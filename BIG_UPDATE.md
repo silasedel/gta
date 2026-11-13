@@ -302,9 +302,22 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Fully furnished, lived-in interior.
 - **Original design:** our own color, layout and details. The reference frame `ref_24` is another game's protagonist's house, so match the *quality and Keys vernacular*, not that exact building.
 
-**Main character's name: still to decide.**
-- Don't use "Jason": that is the real GTA 6 protagonist's name, and with the Keys stilt house, the teal shirt and the setting it would add up to copying that character.
-- Pick an original name with the user before starting. Suggestions: Cole, Rafe, Danny Reyes, Wade, Nico, Marco Vega.
+**Main character's name: Nico** (user's pick, Nov 13).
+
+**Top-priority set pieces (user, Nov 13): give these the most care of anything in V2.**
+1. **The map:** follow the user's concept layout (ref_15, ref_25, ref_26) as closely as possible in *arrangement and feel*:
+   - the east-coast city with bay islands and the barrier beach
+   - the northern park hills, the big inland lake, the central wetlands
+   - the airport west of downtown
+   - the southern Everglades
+   - the Keys chain curving south-west to an airfield island, about 13 km overall
+   - Nico's home at the marked dot
+   Drawn as our own map (own coastline shapes, roads and place names), because those images closely resemble another game's map. Do not trace them.
+2. **Nico's house:** a Keys stilt house as close in *quality, mood and type* to ref_24 as possible, with every board, weathering, plant and prop immaculate.
+   - Our own design, colors and layout: that frame is another game's protagonist's home, so don't replicate that exact building.
+3. **"Welcome to the Keys" sign** at the start of the island chain: a hand-painted wooden roadside sign in Keys style, with wildlife art (heron, fish), beside the highway, as nice as ref_18.
+   - Original artwork and layout of our own; don't copy that exact sign.
+
 
 **Spawn and start:**
 - The player starts in a **small, realistic suburban house** (a modest 2-bedroom on a canal street) roughly in the middle of the map, between the city and the wilderness. That becomes the first safehouse.
