@@ -412,7 +412,7 @@ function humanMaterials(base, seed, zone, variant) {
     }
     base.shared ||= {};
     const skin = base.shared.skinS ||= makeAtlasSkinMat();
-    const atlas = makeAtlasMat(pal);
+    const atlas = makeAtlasMat(pal, variant === 'player' ? { topTint: 0x1f8c8c } : {}); // player: teal shirt
     return { mats: { skinS: skin, atlasC: atlas }, garments: { __v2: atlas, slots: garments }, hairC };
   }
   base.shared ||= {};
@@ -481,7 +481,7 @@ function getMaterials(base, variant, seed) {
   if (variant === 'player') {
     const key = 'player';
     if (!cache.has(key)) cache.set(key, buildMaleSet(base, { player: true, skin: [0.9, 0.77, 0.66], hair: 0x15100c, hairStyle: 1, beard: false, stubble: 1,
-      shirt: 0x5f6a4c /* faded olive overshirt */, shirt2: 0x34363a /* charcoal crew-neck tee */, open: true, sleeve: 0, cuff: 0, pants: 0x1d2533, shoes: 0x3b2c22 }));
+      shirt: 0x1f8c8c /* teal overshirt */, shirt2: 0x34363a /* charcoal crew-neck tee */, open: true, sleeve: 0, cuff: 0, pants: 0x1d2533, shoes: 0x3b2c22 }));
     return cache.get(key);
   }
   const zone = opts_beach(seed) || 'residential';

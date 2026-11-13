@@ -142,22 +142,26 @@ export function makeTexturedMat(entryMat, k) {
 export function makeAtlasSkinMat(tint) {
   return makeSkinMat({ d: 'atlasS.jpg' }, tint);
 }
-export function makeAtlasMat(palette) {
+export function makeAtlasMat(palette, opts = {}) {
   const m = new THREE.MeshStandardMaterial({ map: tex('atlasC.webp'), alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.82, metalness: 0, name: 'atlasC' });
+  // optional re-tint of a baked-in top (the player's shirt): non-skin, non-denim texels between waist and collar height
+  const topTint = opts.topTint != null ? new THREE.Color(opts.topTint) : null;
+  m.userData.top = { value: topTint || new THREE.Color(1, 1, 1) };
+  m.customProgramCacheKey = () => 'atlasC' + (topTint ? 'T' : '');
   const pal = []; for (let i = 0; i < 12; i++) pal.push(new THREE.Color(1, 1, 1));
   (palette || []).forEach((c, i) => { if (c !== undefined && c !== null) pal[i].set(c); });
   m.userData.pal = { value: pal };
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uPal = m.userData.pal;
+    sh.uniforms.uPal = m.userData.pal; sh.uniforms.uTop = m.userData.top;
     sh.vertexShader = `#if !defined(USE_COLOR) && !defined(USE_COLOR_ALPHA)
 attribute vec4 color;
 #endif
 #ifndef USE_UV1
 attribute vec2 uv1;
 #endif
-varying vec4 vG; varying vec2 vU1;
-` + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1;');
-    sh.fragmentShader = 'uniform vec3 uPal[12]; varying vec4 vG; varying vec2 vU1;\n' + HASH + `
+varying vec4 vG; varying vec2 vU1; varying float vLY;
+` + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1; vLY = position.y;');
+    sh.fragmentShader = (topTint ? '#define TOP_TINT\n' : '') + 'uniform vec3 uPal[12]; uniform vec3 uTop; varying vec4 vG; varying vec2 vU1; varying float vLY;\n' + HASH + `
 float foldH(vec2 u) { return 0.5 + 0.5 * sin(u.y * 24.0 + sin(u.x * 9.0) * 1.5); }
 float fabricH(vec2 u, float fab) {
   // fine weave fades out with screen-space frequency (no moire), folds stay
@@ -182,6 +186,14 @@ float fabricH(vec2 u, float fab) {
       .replace('#include <map_fragment>', `#include <map_fragment>
   float gSlot = floor(vG.r * 16.0 + 0.5);
   float gFab = floor(vG.b * 16.0 + 0.5);
+#ifdef TOP_TINT
+  if (gSlot < 1.5 && vLY > 0.9 && vLY < 1.5) {
+    vec3 c0 = diffuseColor.rgb;
+    float warm = c0.r - c0.b, lum0 = dot(c0, vec3(0.3, 0.59, 0.11));
+    bool denim = c0.b > c0.g * 1.12 && c0.b > c0.r * 1.2;
+    if (warm < 0.06 && !denim) diffuseColor.rgb = uTop * clamp(0.45 + lum0 * 2.6, 0.35, 1.25);
+  }
+#endif
   if (gSlot > 2.5) {
     vec3 tint = uPal[int(min(gSlot, 11.0))];
     float h = fabricH(vU1, gFab);
@@ -214,7 +226,7 @@ float fabricH(vec2 u, float fab) {
     if (fs > 2.5) roughnessFactor = (fb > 9.5 && vG.a > 0.85) ? 0.25 : fb > 3.5 && fb < 4.5 ? 0.45 : fb > 7.5 && fb < 8.5 ? 0.6 : 0.9;
     else if (fs > 1.5) roughnessFactor = 0.55; }`);
   };
-  m.customProgramCacheKey = () => 'mpfbAtlasC';
+  m.customProgramCacheKey = () => 'mpfbAtlasC' + (topTint ? 'T' : ''); // tinted (player) variant compiles its own program
   return m;
 }
 
