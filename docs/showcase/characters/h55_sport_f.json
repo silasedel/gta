@@ -1,0 +1,49 @@
+{
+ "id": "h55_sport_f",
+ "file": "h55_sport_f.glb",
+ "height": 1.4871285781264305,
+ "verts": [
+  18432,
+  5989,
+  2210
+ ],
+ "tris": [
+  34230,
+  10269,
+  3423
+ ],
+ "garments": [],
+ "spec": {
+  "id": "h55_sport_f",
+  "zone": "sport",
+  "gender": "f",
+  "years": 33,
+  "race": "latino",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.562,
+   "muscle": 0.45,
+   "weight": 0.34,
+   "height": 0.3,
+   "proportions": 0.51,
+   "race": {
+    "caucasian": 0.6,
+    "african": 0.2,
+    "asian": 0.2
+   },
+   "cupsize": 0.7,
+   "firmness": 0.64
+  },
+  "skin": "young_caucasian_female",
+  "hair": "bob01",
+  "eyebrows": "eyebrow007",
+  "eyelashes": "eyelashes01",
+  "clothes": [
+   "female_sportsuit01",
+   "shoes05"
+  ],
+  "shells": [],
+  "garments": [],
+  "eye": "brownlight"
+ }
+}

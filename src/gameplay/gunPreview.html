@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Port Solana — weapon lineup</title>
+<style>html,body{margin:0;background:#101215;overflow:hidden;font-family:system-ui,sans-serif}#lbl{position:fixed;left:24px;top:18px;color:#ddd;font-size:15px;letter-spacing:.08em}</style></head>
+<body><div id="lbl"></div>
+<script type="importmap">{"imports":{}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const q = new URLSearchParams(location.search);
+const mod = await import(q.get('src') === 'next' ? './_gunModels.next.js' : './gunModels.js');
+const { buildWeaponModel } = mod;
+const W = +(q.get('w') || 1600), H = +(q.get('h') || 900);
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H); r.setPixelRatio(1); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace;
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x15181c);
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const key = new THREE.DirectionalLight(0xfff1e0, 2.2); key.position.set(-1.5, 3, 2); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -2; key.shadow.camera.right = 2; key.shadow.camera.top = 2; key.shadow.camera.bottom = -2; scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fc4ff, 1.4); rim.position.set(2, 1.5, -2); scene.add(rim);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ color: 0x23272c, roughness: 0.85 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const cam = new THREE.PerspectiveCamera(30, W / H, 0.01, 50);
+const model = q.get('model');
+let tris = {};
+function triCount(o) { let n = 0; o.traverse((m) => { if (m.isMesh) { const g = m.geometry; n += (g.index ? g.index.count : g.attributes.position.count) / 3; } }); return Math.round(n); }
+function draws(o) { let n = 0; o.traverse((m) => { if (m.isMesh) n++; }); return n; }
+if (model) {
+  const g = buildWeaponModel(model);
+  const box = new THREE.Box3().setFromObject(g); const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  g.position.set(-c.x, -box.min.y + 0.02, -c.z); scene.add(g);
+  const ang = +(q.get('ang') || 0.5);
+  const D = Math.max(s.z * 0.56 / 0.476, s.y * 0.62 / 0.268) * 1.05;
+  const dir = new THREE.Vector3(-Math.cos(ang), 0.42, Math.sin(ang)).normalize();
+  const ctr = new THREE.Vector3(0, s.y * 0.5 + 0.02, 0);
+  cam.position.copy(ctr).addScaledVector(dir, D); cam.lookAt(ctr);
+  document.getElementById('lbl').textContent = model.toUpperCase();
+  tris[model] = triCount(g);
+} else {
+  const left = ['pistol', 'revolver', 'microsmg', 'knife', 'grenade', 'bat'], right = ['smg', 'rifle', 'carbine', 'shotgun', 'sawnoff', 'sniper'];
+  const basis = new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
+  [[left, -0.72], [right, 0.5]].forEach(([keys, cx]) => keys.forEach((k, row) => {
+    const g = buildWeaponModel(k);
+    g.setRotationFromMatrix(basis);
+    const box = new THREE.Box3().setFromObject(g); const c = box.getCenter(new THREE.Vector3());
+    g.position.set(cx - c.x, -box.min.y + 0.005, -0.8 + row * (cx > 0 ? 0.32 : 0.3) - c.z);
+    scene.add(g);
+    tris[k] = triCount(g);
+    window.__draws = (window.__draws || {}); window.__draws[k] = draws(g);
+  }));
+  key.position.set(-0.6, 3, 0.9);
+  cam.position.set(0, 3.15, 0.3); cam.lookAt(0, 0, -0.02);
+  document.getElementById('lbl').textContent = 'PORT SOLANA — ARSENAL (procedural, original designs)';
+}
+r.render(scene, cam);
+window.__tris = tris; window.__ready = true;
+</script></body></html>

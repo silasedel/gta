@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>env test</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:block;width:100vw;height:100vh}#i{position:fixed;left:8px;top:8px;color:#fff;font:12px monospace;z-index:2;text-shadow:0 1px 2px #000}</style>
+</head><body><canvas id="c"></canvas><div id="i"></div>
+<script type="module">
+// Graphics-agent test harness (not used by the game). Params: ?t=18&yaw=0&pitch=0.1&x=0&z=0&y=2&q=high
+import * as THREE from 'three';
+const P = new URLSearchParams(location.search);
+const STAGE = P.has('stage');
+const { createEnvironment } = await import(STAGE ? './stage/environment.js' : '../world/environment.js');
+const { createPost } = await import(STAGE ? './stage/post.js' : './post.js');
+const num = (k, d) => P.has(k) ? parseFloat(P.get(k)) : d;
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: false, powerPreference: 'high-performance', stencil: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 8000);
+const game = { THREE, renderer, scene, camera, timeOfDay: num('t', 18), settings: { quality: P.get('q') || 'high' },
+  player: { position: new THREE.Vector3(num('x', 0), 0, num('z', 0)), state: { inVehicle: false } }, clock: { elapsed: 0, dt: 0 } };
+window.game = game;
+const CITY = P.has('city');
+if (CITY) {
+  const RAPIER = (await import('@dimforge/rapier3d-compat')).default; await RAPIER.init();
+  game.RAPIER = RAPIER; game.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 }); game.updaters = []; game.fixedHooks = [];
+}
+// fake city
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(1040, 1200), new THREE.MeshStandardMaterial({ color: 0x6b6b68, roughness: 0.9 }));
+ground.rotation.x = -Math.PI / 2; ground.position.x = -0; ground.receiveShadow = true; scene.add(ground);
+const sand = new THREE.Mesh(new THREE.PlaneGeometry(80, 1200), new THREE.MeshStandardMaterial({ color: 0xd8c39a, roughness: 1 }));
+sand.rotation.x = -Math.PI / 2; sand.position.set(480, 0.01, 0); sand.receiveShadow = true; scene.add(sand);
+const cols = [0xe8d8c0, 0xf0c8b0, 0xb8d0d8, 0xd8b8c8, 0xfff0d8, 0x9fb8c8];
+let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (let i = -5; i < 5; i++) for (let j = -5; j < 5; j++) {
+  for (let k = 0; k < 2; k++) {
+    const h = 8 + rnd() * (Math.abs(i) < 2 && Math.abs(j) < 2 ? 120 : 40);
+    const glass = h > 60;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(30, h, 30), new THREE.MeshStandardMaterial({ color: glass ? 0x6a8090 : cols[(rnd() * 6) | 0], roughness: glass ? 0.1 : 0.8, metalness: glass ? 0.8 : 0 }));
+    m.position.set(i * 90 + 25 + k * 40, h / 2, j * 90 + 45); m.castShadow = m.receiveShadow = true; scene.add(m);
+  }
+}
+const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0 }));
+ball.position.set(game.player.position.x, 1, game.player.position.z); ball.castShadow = true; scene.add(ball);
+const neon = new THREE.Mesh(new THREE.BoxGeometry(8, 1, 0.3), new THREE.MeshStandardMaterial({ color: 0, emissive: 0xff2a8a, emissiveIntensity: 6 }));
+neon.position.set(game.player.position.x + 6, 4, game.player.position.z - 12); scene.add(neon);
+if (CITY) { [ground, sand].forEach(m => m.visible = false); scene.children.filter(o => o.isMesh && o.geometry?.type === 'BoxGeometry' && o !== neon).forEach(o => o.visible = false); }
+game.env = await createEnvironment(game);
+if (CITY) { const { createCity } = await import(P.has('livecity') ? '../world/city.js' : './stage/snap/city.js'); game.city = await createCity(game); }
+game.post = createPost(game);
+if (P.has('fx') && !game.fx) {
+  const { createFX } = await import('../fx/fx.js');
+  game.fx = createFX(game, game.env);
+  const p0 = game.player.position;
+  setInterval(() => {
+    const f = game.fx, T = THREE;
+    f.splash(new T.Vector3(530, 0, p0.z - 6), 1.5);
+    f.sparks(new T.Vector3(p0.x - 2, 1, p0.z - 3), new T.Vector3(0, 1, 0));
+    f.dust(new T.Vector3(p0.x + 2, 0, p0.z - 2));
+    f.muzzleFlash(new T.Vector3(p0.x, 1.4, p0.z - 1), new T.Vector3(0, 0, -1));
+    f.bulletImpact(new T.Vector3(p0.x + 1, 0.02, p0.z - 4), new T.Vector3(0, 1, 0), 'concrete');
+    for (let i = 0; i < 6; i++) { f.smoke(new T.Vector3(p0.x - 4, 1, p0.z - 6)); f.tireSmoke(new T.Vector3(p0.x + 4, 0, p0.z - 6)); }
+    f.ripple(new T.Vector3(520, 0, p0.z - 3));
+  }, 700);
+}
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); game.post.setSize(innerWidth, innerHeight); });
+const yaw = num('yaw', 0), pitch = num('pitch', 0.1), dist = num('d', 9);
+const rate = num('rate', 0);
+// headless snapshot helper: __snap({t,x,z,y,yaw,pitch,look,d,w,q,steps})
+window.__snap = (o = {}) => {
+  const g = game, cam = g.camera;
+  if (o.t !== undefined) g.timeOfDay = o.t;
+  const x = o.x ?? g.player.position.x, z = o.z ?? g.player.position.z, y = o.y ?? 2, yaw = o.yaw ?? 0, pitch = o.pitch ?? 0.1, d = o.d ?? 9;
+  g.player.position.set(x, 0, z);
+  cam.position.set(x + Math.sin(yaw) * d * Math.cos(pitch), y + Math.sin(pitch) * d, z + Math.cos(yaw) * d * Math.cos(pitch));
+  cam.lookAt(x - Math.sin(yaw) * 50, y + (o.look ?? 0), z - Math.cos(yaw) * 50); cam.updateMatrixWorld();
+  g.env.regenerateEnvMap?.();
+  for (let i = 0; i < (o.steps ?? 6); i++) { (g.updaters || []).forEach(f => f(0.03)); g.env.update(0.03); g.post.render(0.016); }
+  const c = renderer.domElement, cv = document.createElement('canvas');
+  cv.width = o.w ?? 200; cv.height = Math.round(cv.width * c.height / c.width);
+  cv.getContext('2d').drawImage(c, 0, 0, cv.width, cv.height);
+  return cv.toDataURL('image/jpeg', o.q ?? 0.6).slice(23);
+};
+let last = performance.now(), frames = 0, acc = 0, fps = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  game.timeOfDay = (game.timeOfDay + dt * rate) % 24;
+  const p = game.player.position;
+  camera.position.set(p.x + Math.sin(yaw) * dist * Math.cos(pitch), num('y', 2) + Math.sin(pitch) * dist, p.z + Math.cos(yaw) * dist * Math.cos(pitch));
+  camera.lookAt(p.x - Math.sin(yaw) * 50, num('y', 2) + num('look', 0), p.z - Math.cos(yaw) * 50);
+  game.clock.dt = dt; game.clock.elapsed += dt; (game.updaters || []).forEach(f => f(dt));
+  game.env.update(dt); game.fx?.update?.(dt); game.post.render(dt);
+  frames++; acc += dt; if (acc > 1) { fps = frames / acc; frames = 0; acc = 0; document.getElementById('i').textContent = `t=${game.timeOfDay.toFixed(2)} fps=${fps.toFixed(0)}`; if (P.has('bench')) { const i = renderer.info.render; console.log(`[bench] q=${game.settings.quality} fps=${fps.toFixed(1)} calls=${i.calls} tris=${i.triangles} pr=${renderer.getPixelRatio()} ${innerWidth}x${innerHeight}`); game.settings.quality = game.settings.quality === 'high' ? 'medium' : 'high'; } }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script></body></html>

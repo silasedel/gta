@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><title>vehicle preview</title>
+<style>html,body{margin:0;height:100%;background:#222;overflow:hidden}#lbl{position:fixed;inset:0;pointer-events:none;font:600 11px system-ui;color:#fff}</style></head>
+<body><div id="lbl"></div><script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildCar, CAR_TYPES, MODELS, ALL_KEYS, rollVariant } from './carModel.js';
+const q = new URLSearchParams(location.search);
+const night = q.has('night');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(+(q.get('dpr') || devicePixelRatio));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(night ? 0x0a0c18 : (q.get('bg') ? +('0x' + q.get('bg')) : 0xe8b48a));
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = night ? 0.15 : 0.85;
+const sun = new THREE.DirectionalLight(0xffd6a8, night ? 0.1 : 2.6); sun.position.set(-20, 30, 18); sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, far: 120 });
+scene.add(sun); scene.add(new THREE.HemisphereLight(0xffe0c0, 0x303040, night ? 0.05 : 0.5));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: q.get('floor') ? +('0x' + q.get('floor')) : 0x3a3a3c, roughness: 0.85 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+let types = (q.get('types') || 'super,muscle,roadster,sports,luxury,van');
+const ORDER = ['compact', 'sedan', 'sports', 'muscle', 'super', 'suv', 'pickup', 'van', 'taxi', 'police', 'truck', 'bus'];
+const big = (k) => !!(CAR_TYPES[k].heavy || CAR_TYPES[k].box || CAR_TYPES[k].bus);
+types = types === 'all' ? ALL_KEYS.slice().sort((a, b) => (big(a) - big(b)) || (ORDER.indexOf(MODELS[a].class) - ORDER.indexOf(MODELS[b].class))) : types.split(',');
+let bigRow = false;
+const fixed = [0xffc21a, 0x1d3f8f, 0xb3121b, 0xff5a1f, 0x101214, 0xeeeeea, 0x1fb5b0, 0x7c2fbf];
+const cars = [];
+const cols = +(q.get('cols') || types.length);
+let seed = +(q.get('seed') || 7);
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+let x = 0, z = 0, rowDepth = 0, col = 0;
+const placed = [];
+types.forEach((t, i) => {
+  const spec = CAR_TYPES[t]; if (!spec) return;
+  const v = q.has('palette') ? rollVariant(t, rnd) : null;
+  const c = buildCar(t, v ? v.color : fixed[i % fixed.length], v ? { kit: v.kit, wheel: v.wheel, blackRoof: v.blackRoof } : {});
+  c.shell.position.y = 0;
+  c.wheels.forEach((w) => w.steer.position.set(w.x, spec.r, w.z));
+  if (q.get('lod')) { c.lod.autoUpdate = false; c.lod.levels.forEach((l, k) => (l.object.visible = k === +q.get('lod'))); }
+  const ro = +(q.get('rot') || 0.6);
+  const fx = Math.abs(spec.L * Math.sin(ro)) + Math.abs(spec.W * Math.cos(ro)), fz = Math.abs(spec.L * Math.cos(ro)) + Math.abs(spec.W * Math.sin(ro));
+  if (col >= cols || (big(t) && !bigRow && q.has('bigrow'))) { if (big(t)) bigRow = true; col = 0; x = 0; z += rowDepth + +(q.get('gap') || 1.5); rowDepth = 0; }
+  const w = fx * +(q.get('pack') || 0.8) + 0.6;
+  c.root.position.set(x + w / 2, 0, z + fz / 2);
+  c.root.rotation.y = ro;
+  x += w; col++; rowDepth = Math.max(rowDepth, fz);
+  if (night) for (const k in c.lightMats) c.lightMats[k].emissiveIntensity = k === 'reverse' || k === 'blinkL' || k === 'blinkR' ? 0 : 5;
+  if (q.has('wire')) c.root.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.wireframe = true; } });
+  scene.add(c.root); cars.push(c); placed.push({ c, t });
+});
+// centre the arrangement
+const box = new THREE.Box3(); cars.forEach((c) => box.expandByObject(c.root));
+const ctr = box.getCenter(new THREE.Vector3());
+cars.forEach((c) => { c.root.position.x -= ctr.x; c.root.position.z -= ctr.z; });
+const cam = new THREE.PerspectiveCamera(+(q.get('fov') || 40), innerWidth / innerHeight, 0.1, 800);
+const cp = (q.get('cam') || '0,4,13').split(',').map(Number); cam.position.set(...cp);
+const lk = (q.get('look') || '0,0.6,0').split(',').map(Number); cam.lookAt(...lk);
+window.cars = cars; window.cam = cam; window.scene = scene; window.renderer = renderer;
+renderer.render(scene, cam);
+if (q.has('labels')) {
+  const lbl = document.getElementById('lbl');
+  for (const { c, t } of placed) {
+    const p = c.root.position.clone(); p.y = CAR_TYPES[t].roofY + 0.6; p.project(cam);
+    const d = document.createElement('div'); d.style.cssText = `position:absolute;left:${(p.x * 0.5 + 0.5) * innerWidth}px;top:${(-p.y * 0.5 + 0.5) * innerHeight}px;transform:translate(-50%,-100%);text-align:center;text-shadow:0 1px 2px #000;white-space:nowrap`;
+    d.textContent = MODELS[t].brand + ' ' + MODELS[t].name; lbl.appendChild(d);
+  }
+}
+let tri = 0; renderer.info.autoReset = true;
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
+renderer.setAnimationLoop(() => { renderer.render(scene, cam); window.stats = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles }; });
+</script></body></html>

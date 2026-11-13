@@ -1,0 +1,73 @@
+{
+ "id": "h31_casual_f",
+ "file": "h31_casual_f.glb",
+ "height": 1.4758496787399054,
+ "verts": [
+  19017,
+  6300,
+  2426
+ ],
+ "tris": [
+  35120,
+  10535,
+  3511
+ ],
+ "garments": [
+  {
+   "kind": "tee",
+   "slot": 3,
+   "fabric": "knit"
+  },
+  {
+   "kind": "shorts",
+   "slot": 4,
+   "fabric": "canvas"
+  }
+ ],
+ "spec": {
+  "id": "h31_casual_f",
+  "zone": "casual",
+  "gender": "f",
+  "years": 73,
+  "race": "black",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.869,
+   "muscle": 0.43,
+   "weight": 0.69,
+   "height": 0.23,
+   "proportions": 0.63,
+   "race": {
+    "caucasian": 0.06,
+    "african": 0.9,
+    "asian": 0.04
+   },
+   "cupsize": 0.74,
+   "firmness": 0.54
+  },
+  "skin": "old_african_female",
+  "hair": "ponytail01",
+  "eyebrows": "eyebrow007",
+  "eyelashes": "eyelashes03",
+  "clothes": [
+   "shoes05"
+  ],
+  "shells": [
+   {
+    "type": "tee"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "garments": [
+   {
+    "type": "tee"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "eye": "grey"
+ }
+}

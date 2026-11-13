@@ -1,0 +1,82 @@
+{
+ "id": "h09_beach_f",
+ "file": "h09_beach_f.glb",
+ "height": 1.7134843928943155,
+ "verts": [
+  18778,
+  6445,
+  2879
+ ],
+ "tris": [
+  35088,
+  10525,
+  3508
+ ],
+ "garments": [
+  {
+   "kind": "bikini_top",
+   "slot": 3,
+   "fabric": "lycra"
+  },
+  {
+   "kind": "briefs",
+   "slot": 4,
+   "fabric": "lycra"
+  },
+  {
+   "kind": "sarong",
+   "slot": 7,
+   "fabric": "chiffon"
+  }
+ ],
+ "spec": {
+  "id": "h09_beach_f",
+  "zone": "beach",
+  "gender": "f",
+  "years": 31,
+  "race": "black",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.546,
+   "muscle": 0.4,
+   "weight": 0.55,
+   "height": 0.54,
+   "proportions": 0.47,
+   "race": {
+    "caucasian": 0.06,
+    "african": 0.9,
+    "asian": 0.04
+   },
+   "cupsize": 0.77,
+   "firmness": 0.63
+  },
+  "skin": "young_african_female",
+  "hair": "afro01",
+  "eyebrows": "eyebrow006",
+  "eyelashes": "eyelashes03",
+  "clothes": [],
+  "shells": [
+   {
+    "type": "bikini_top"
+   },
+   {
+    "type": "briefs"
+   }
+  ],
+  "garments": [
+   {
+    "type": "bikini_top"
+   },
+   {
+    "type": "briefs"
+   },
+   {
+    "type": "sarong"
+   },
+   {
+    "type": "flipflops"
+   }
+  ],
+  "eye": "brownlight"
+ }
+}

@@ -1,0 +1,71 @@
+{
+ "id": "h28_casual_m",
+ "file": "h28_casual_m.glb",
+ "height": 1.6639519296586514,
+ "verts": [
+  16916,
+  5313,
+  1893
+ ],
+ "tris": [
+  32856,
+  9856,
+  3285
+ ],
+ "garments": [
+  {
+   "kind": "tee",
+   "slot": 3,
+   "fabric": "knit"
+  },
+  {
+   "kind": "shorts",
+   "slot": 4,
+   "fabric": "canvas"
+  }
+ ],
+ "spec": {
+  "id": "h28_casual_m",
+  "zone": "casual",
+  "gender": "m",
+  "years": 69,
+  "race": "latino2",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.838,
+   "muscle": 0.38,
+   "weight": 0.9,
+   "height": 0.34,
+   "proportions": 0.73,
+   "race": {
+    "caucasian": 0.45,
+    "african": 0.4,
+    "asian": 0.15
+   }
+  },
+  "skin": "old_african_male",
+  "hair": "short02",
+  "eyebrows": "eyebrow010",
+  "eyelashes": "eyelashes02",
+  "clothes": [
+   "shoes02"
+  ],
+  "shells": [
+   {
+    "type": "tee"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "garments": [
+   {
+    "type": "tee"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "eye": "bluegreen"
+ }
+}

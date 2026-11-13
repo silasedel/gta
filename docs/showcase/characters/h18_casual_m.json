@@ -1,0 +1,73 @@
+{
+ "id": "h18_casual_m",
+ "file": "h18_casual_m.glb",
+ "height": 1.9166659861803055,
+ "verts": [
+  21177,
+  7103,
+  2769
+ ],
+ "tris": [
+  39402,
+  11819,
+  3940
+ ],
+ "garments": [
+  {
+   "kind": "tee",
+   "slot": 3,
+   "fabric": "knit"
+  },
+  {
+   "kind": "trousers",
+   "slot": 4,
+   "fabric": "denim"
+  },
+  {
+   "kind": "shirt",
+   "slot": 5,
+   "fabric": "linen"
+  }
+ ],
+ "spec": {
+  "id": "h18_casual_m",
+  "zone": "casual",
+  "gender": "m",
+  "years": 25,
+  "race": "black",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.5,
+   "muscle": 0.55,
+   "weight": 0.72,
+   "height": 0.57,
+   "proportions": 0.54,
+   "race": {
+    "caucasian": 0.06,
+    "african": 0.9,
+    "asian": 0.04
+   }
+  },
+  "skin": "young_african_male",
+  "hair": "short01",
+  "eyebrows": "eyebrow006",
+  "eyelashes": "eyelashes03",
+  "clothes": [
+   "shoes06"
+  ],
+  "shells": [],
+  "garments": [
+   {
+    "type": "tee"
+   },
+   {
+    "type": "trousers",
+    "fabric": "denim"
+   },
+   {
+    "type": "shirt"
+   }
+  ],
+  "eye": "brownlight"
+ }
+}

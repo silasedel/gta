@@ -1,0 +1,74 @@
+{
+ "id": "h01_beach_f",
+ "file": "h01_beach_f.glb",
+ "height": 1.381513794491184,
+ "verts": [
+  18947,
+  6334,
+  2346
+ ],
+ "tris": [
+  35316,
+  10593,
+  3530
+ ],
+ "garments": [
+  {
+   "kind": "bikini_top",
+   "slot": 3,
+   "fabric": "lycra"
+  },
+  {
+   "kind": "briefs",
+   "slot": 4,
+   "fabric": "lycra"
+  }
+ ],
+ "spec": {
+  "id": "h01_beach_f",
+  "zone": "beach",
+  "gender": "f",
+  "years": 45,
+  "race": "asian",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.654,
+   "muscle": 0.32,
+   "weight": 0.3,
+   "height": 0.31,
+   "proportions": 0.36,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   },
+   "cupsize": 0.45,
+   "firmness": 0.43
+  },
+  "skin": "middleage_asian_female",
+  "hair": "long01",
+  "eyebrows": "eyebrow002",
+  "eyelashes": "eyelashes03",
+  "clothes": [],
+  "shells": [
+   {
+    "type": "bikini_top"
+   },
+   {
+    "type": "briefs"
+   }
+  ],
+  "garments": [
+   {
+    "type": "bikini_top"
+   },
+   {
+    "type": "briefs"
+   },
+   {
+    "type": "flipflops"
+   }
+  ],
+  "eye": "brown"
+ }
+}

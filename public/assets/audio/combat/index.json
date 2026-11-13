@@ -1,0 +1,754 @@
+{
+ "punch_body": {
+  "files": [
+   "punch_body_01.ogg",
+   "punch_body_02.ogg",
+   "punch_body_03.ogg",
+   "punch_body_04.ogg",
+   "punch_body_05.ogg",
+   "punch_body_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.39
+ },
+ "punch_head": {
+  "files": [
+   "punch_head_01.ogg",
+   "punch_head_02.ogg",
+   "punch_head_03.ogg",
+   "punch_head_04.ogg",
+   "punch_head_05.ogg",
+   "punch_head_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.95,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.43
+ },
+ "punch_heavy": {
+  "files": [
+   "punch_heavy_01.ogg",
+   "punch_heavy_02.ogg",
+   "punch_heavy_03.ogg",
+   "punch_heavy_04.ogg",
+   "punch_heavy_05.ogg",
+   "punch_heavy_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.91,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.39
+ },
+ "kick": {
+  "files": [
+   "kick_01.ogg",
+   "kick_02.ogg",
+   "kick_03.ogg",
+   "kick_04.ogg",
+   "kick_05.ogg",
+   "kick_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.86,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.48
+ },
+ "slap": {
+  "files": [
+   "slap_01.ogg",
+   "slap_02.ogg",
+   "slap_03.ogg",
+   "slap_04.ogg",
+   "slap_05.ogg",
+   "slap_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.36
+ },
+ "swing_fist": {
+  "files": [
+   "swing_fist_01.ogg",
+   "swing_fist_02.ogg",
+   "swing_fist_03.ogg",
+   "swing_fist_04.ogg",
+   "swing_fist_05.ogg",
+   "swing_fist_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.5,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.23
+ },
+ "bat_swing": {
+  "files": [
+   "bat_swing_01.ogg",
+   "bat_swing_02.ogg",
+   "bat_swing_03.ogg",
+   "bat_swing_04.ogg",
+   "bat_swing_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.5,
+  "category": "melee",
+  "variants": 5,
+  "avg_dur": 0.38
+ },
+ "bat_hit_body": {
+  "files": [
+   "bat_hit_body_01.ogg",
+   "bat_hit_body_02.ogg",
+   "bat_hit_body_03.ogg",
+   "bat_hit_body_04.ogg",
+   "bat_hit_body_05.ogg",
+   "bat_hit_body_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.46
+ },
+ "bat_hit_head": {
+  "files": [
+   "bat_hit_head_01.ogg",
+   "bat_hit_head_02.ogg",
+   "bat_hit_head_03.ogg",
+   "bat_hit_head_04.ogg",
+   "bat_hit_head_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.86,
+  "category": "melee",
+  "variants": 5,
+  "avg_dur": 0.28,
+  "note": "each file = real wooden-stick-on-medicine-ball hit layered with a real cantaloupe-head impact"
+ },
+ "bat_hit_world": {
+  "files": [
+   "bat_hit_world_01.ogg",
+   "bat_hit_world_02.ogg",
+   "bat_hit_world_03.ogg",
+   "bat_hit_world_04.ogg",
+   "bat_hit_world_05.ogg",
+   "bat_hit_world_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.42,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.45
+ },
+ "knife_swing": {
+  "files": [
+   "knife_swing_01.ogg",
+   "knife_swing_02.ogg",
+   "knife_swing_03.ogg",
+   "knife_swing_04.ogg",
+   "knife_swing_05.ogg",
+   "knife_swing_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.68,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.33
+ },
+ "knife_slash": {
+  "files": [
+   "knife_slash_01.ogg",
+   "knife_slash_02.ogg",
+   "knife_slash_03.ogg",
+   "knife_slash_04.ogg",
+   "knife_slash_05.ogg",
+   "knife_slash_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.93,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.41
+ },
+ "knife_stab": {
+  "files": [
+   "knife_stab_01.ogg",
+   "knife_stab_02.ogg",
+   "knife_stab_03.ogg",
+   "knife_stab_04.ogg",
+   "knife_stab_05.ogg",
+   "knife_stab_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.11,
+  "category": "melee",
+  "variants": 6,
+  "avg_dur": 0.34
+ },
+ "bullet_impact_concrete": {
+  "files": [
+   "bullet_impact_concrete_01.ogg",
+   "bullet_impact_concrete_02.ogg",
+   "bullet_impact_concrete_03.ogg",
+   "bullet_impact_concrete_04.ogg",
+   "bullet_impact_concrete_05.ogg",
+   "bullet_impact_concrete_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.81,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.56
+ },
+ "bullet_impact_metal": {
+  "files": [
+   "bullet_impact_metal_01.ogg",
+   "bullet_impact_metal_02.ogg",
+   "bullet_impact_metal_03.ogg",
+   "bullet_impact_metal_04.ogg",
+   "bullet_impact_metal_05.ogg",
+   "bullet_impact_metal_06.ogg",
+   "bullet_impact_metal_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.38,
+  "category": "impact",
+  "variants": 7,
+  "avg_dur": 0.56
+ },
+ "bullet_impact_glass": {
+  "files": [
+   "bullet_impact_glass_01.ogg",
+   "bullet_impact_glass_02.ogg",
+   "bullet_impact_glass_03.ogg",
+   "bullet_impact_glass_04.ogg",
+   "bullet_impact_glass_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.46,
+  "category": "impact",
+  "variants": 5,
+  "avg_dur": 0.53
+ },
+ "bullet_impact_wood": {
+  "files": [
+   "bullet_impact_wood_01.ogg",
+   "bullet_impact_wood_02.ogg",
+   "bullet_impact_wood_03.ogg",
+   "bullet_impact_wood_04.ogg",
+   "bullet_impact_wood_05.ogg",
+   "bullet_impact_wood_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.22,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.21
+ },
+ "bullet_impact_flesh": {
+  "files": [
+   "bullet_impact_flesh_01.ogg",
+   "bullet_impact_flesh_02.ogg",
+   "bullet_impact_flesh_03.ogg",
+   "bullet_impact_flesh_04.ogg",
+   "bullet_impact_flesh_05.ogg",
+   "bullet_impact_flesh_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.72,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.17
+ },
+ "bullet_impact_water": {
+  "files": [
+   "bullet_impact_water_01.ogg",
+   "bullet_impact_water_02.ogg",
+   "bullet_impact_water_03.ogg",
+   "bullet_impact_water_04.ogg",
+   "bullet_impact_water_05.ogg",
+   "bullet_impact_water_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.56,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.51
+ },
+ "bullet_impact_dirt": {
+  "files": [
+   "bullet_impact_dirt_01.ogg",
+   "bullet_impact_dirt_02.ogg",
+   "bullet_impact_dirt_03.ogg",
+   "bullet_impact_dirt_04.ogg",
+   "bullet_impact_dirt_05.ogg",
+   "bullet_impact_dirt_06.ogg",
+   "bullet_impact_dirt_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.04,
+  "category": "impact",
+  "variants": 7,
+  "avg_dur": 0.39
+ },
+ "bullet_impact_car": {
+  "files": [
+   "bullet_impact_car_01.ogg",
+   "bullet_impact_car_02.ogg",
+   "bullet_impact_car_03.ogg",
+   "bullet_impact_car_04.ogg",
+   "bullet_impact_car_05.ogg",
+   "bullet_impact_car_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.57,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.52
+ },
+ "ricochet": {
+  "files": [
+   "ricochet_01.ogg",
+   "ricochet_02.ogg",
+   "ricochet_03.ogg",
+   "ricochet_04.ogg",
+   "ricochet_05.ogg",
+   "ricochet_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.97,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.52
+ },
+ "flyby": {
+  "files": [
+   "flyby_01.ogg",
+   "flyby_02.ogg",
+   "flyby_03.ogg",
+   "flyby_04.ogg",
+   "flyby_05.ogg",
+   "flyby_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.56,
+  "category": "impact",
+  "variants": 6,
+  "avg_dur": 0.83
+ },
+ "casing_concrete": {
+  "files": [
+   "casing_concrete_01.ogg",
+   "casing_concrete_02.ogg",
+   "casing_concrete_03.ogg",
+   "casing_concrete_04.ogg",
+   "casing_concrete_05.ogg",
+   "casing_concrete_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.41,
+  "category": "casing",
+  "variants": 6,
+  "avg_dur": 0.8
+ },
+ "casing_wood": {
+  "files": [
+   "casing_wood_01.ogg",
+   "casing_wood_02.ogg",
+   "casing_wood_03.ogg",
+   "casing_wood_04.ogg",
+   "casing_wood_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.56,
+  "category": "casing",
+  "variants": 5,
+  "avg_dur": 0.77
+ },
+ "casing_grass": {
+  "files": [
+   "casing_grass_01.ogg",
+   "casing_grass_02.ogg",
+   "casing_grass_03.ogg",
+   "casing_grass_04.ogg"
+  ],
+  "loop": false,
+  "gain": 0.2,
+  "category": "casing",
+  "variants": 4,
+  "avg_dur": 0.3,
+  "note": "no real casing-on-grass recording found: real stone-on-grass drop (pitch-varied) layered with a quiet low-passed real brass casing tick"
+ },
+ "reload_pistol": {
+  "files": [
+   "reload_pistol_01.ogg",
+   "reload_pistol_02.ogg",
+   "reload_pistol_03.ogg",
+   "reload_pistol_04.ogg"
+  ],
+  "loop": false,
+  "gain": 0.41,
+  "category": "weapon_foley",
+  "variants": 4,
+  "avg_dur": 2.9
+ },
+ "reload_smg": {
+  "files": [
+   "reload_smg_01.ogg",
+   "reload_smg_02.ogg",
+   "reload_smg_03.ogg",
+   "reload_smg_04.ogg"
+  ],
+  "loop": false,
+  "gain": 0.49,
+  "category": "weapon_foley",
+  "variants": 4,
+  "avg_dur": 2.42
+ },
+ "reload_rifle": {
+  "files": [
+   "reload_rifle_01.ogg",
+   "reload_rifle_02.ogg",
+   "reload_rifle_03.ogg",
+   "reload_rifle_04.ogg",
+   "reload_rifle_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.43,
+  "category": "weapon_foley",
+  "variants": 5,
+  "avg_dur": 2.25
+ },
+ "reload_shotgun": {
+  "files": [
+   "reload_shotgun_01.ogg",
+   "reload_shotgun_02.ogg",
+   "reload_shotgun_03.ogg",
+   "reload_shotgun_04.ogg",
+   "reload_shotgun_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.6,
+  "category": "weapon_foley",
+  "variants": 5,
+  "avg_dur": 0.38
+ },
+ "shotgun_pump": {
+  "files": [
+   "shotgun_pump_01.ogg",
+   "shotgun_pump_02.ogg",
+   "shotgun_pump_03.ogg",
+   "shotgun_pump_04.ogg",
+   "shotgun_pump_05.ogg",
+   "shotgun_pump_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.83,
+  "category": "weapon_foley",
+  "variants": 6,
+  "avg_dur": 0.52
+ },
+ "reload_revolver": {
+  "files": [
+   "reload_revolver_01.ogg",
+   "reload_revolver_02.ogg",
+   "reload_revolver_03.ogg",
+   "reload_revolver_04.ogg",
+   "reload_revolver_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.65,
+  "category": "weapon_foley",
+  "variants": 5,
+  "avg_dur": 2.32
+ },
+ "dryfire": {
+  "files": [
+   "dryfire_01.ogg",
+   "dryfire_02.ogg",
+   "dryfire_03.ogg",
+   "dryfire_04.ogg",
+   "dryfire_05.ogg",
+   "dryfire_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.68,
+  "category": "weapon_foley",
+  "variants": 6,
+  "avg_dur": 0.38
+ },
+ "weapon_switch": {
+  "files": [
+   "weapon_switch_01.ogg",
+   "weapon_switch_02.ogg",
+   "weapon_switch_03.ogg",
+   "weapon_switch_04.ogg",
+   "weapon_switch_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.55,
+  "category": "weapon_foley",
+  "variants": 5,
+  "avg_dur": 0.68
+ },
+ "gun_pistol": {
+  "files": [
+   "gun_pistol_01.ogg",
+   "gun_pistol_02.ogg",
+   "gun_pistol_03.ogg",
+   "gun_pistol_04.ogg",
+   "gun_pistol_05.ogg",
+   "gun_pistol_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.11,
+  "category": "gunshot",
+  "variants": 6,
+  "avg_dur": 0.87
+ },
+ "gun_revolver": {
+  "files": [
+   "gun_revolver_01.ogg",
+   "gun_revolver_02.ogg",
+   "gun_revolver_03.ogg",
+   "gun_revolver_04.ogg",
+   "gun_revolver_05.ogg",
+   "gun_revolver_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.32,
+  "category": "gunshot",
+  "variants": 6,
+  "avg_dur": 0.99
+ },
+ "gun_smg": {
+  "files": [
+   "gun_smg_01.ogg",
+   "gun_smg_02.ogg",
+   "gun_smg_03.ogg",
+   "gun_smg_04.ogg",
+   "gun_smg_05.ogg"
+  ],
+  "loop": false,
+  "gain": 1.2,
+  "category": "gunshot",
+  "variants": 5,
+  "avg_dur": 0.69,
+  "note": "no clean real SMG single shot found; uses layered real-gunshot 'automatic rifle single shot' designs + Dragout auto shots"
+ },
+ "gun_rifle": {
+  "files": [
+   "gun_rifle_01.ogg",
+   "gun_rifle_02.ogg",
+   "gun_rifle_03.ogg",
+   "gun_rifle_04.ogg",
+   "gun_rifle_05.ogg",
+   "gun_rifle_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.14,
+  "category": "gunshot",
+  "variants": 6,
+  "avg_dur": 1.03
+ },
+ "gun_shotgun": {
+  "files": [
+   "gun_shotgun_01.ogg",
+   "gun_shotgun_02.ogg",
+   "gun_shotgun_03.ogg",
+   "gun_shotgun_04.ogg",
+   "gun_shotgun_05.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "gunshot",
+  "variants": 5,
+  "avg_dur": 1.0
+ },
+ "gun_sniper": {
+  "files": [
+   "gun_sniper_01.ogg",
+   "gun_sniper_02.ogg",
+   "gun_sniper_03.ogg",
+   "gun_sniper_04.ogg",
+   "gun_sniper_05.ogg",
+   "gun_sniper_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "gunshot",
+  "variants": 6,
+  "avg_dur": 1.0
+ },
+ "explosion": {
+  "files": [
+   "explosion_01.ogg",
+   "explosion_02.ogg",
+   "explosion_03.ogg",
+   "explosion_04.ogg",
+   "explosion_05.ogg",
+   "explosion_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.5,
+  "category": "gunshot",
+  "variants": 6,
+  "avg_dur": 2.51
+ },
+ "explosion_small": {
+  "files": [
+   "explosion_small_01.ogg",
+   "explosion_small_02.ogg",
+   "explosion_small_03.ogg",
+   "explosion_small_04.ogg",
+   "explosion_small_05.ogg"
+  ],
+  "loop": false,
+  "gain": 1.22,
+  "category": "gunshot",
+  "variants": 5,
+  "avg_dur": 1.11
+ },
+ "distant_gunfire": {
+  "files": [
+   "distant_gunfire_01.ogg",
+   "distant_gunfire_02.ogg",
+   "distant_gunfire_03.ogg",
+   "distant_gunfire_04.ogg",
+   "distant_gunfire_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.42,
+  "category": "gunshot",
+  "variants": 5,
+  "avg_dur": 1.54
+ },
+ "grunt_male": {
+  "files": [
+   "grunt_male_01.ogg",
+   "grunt_male_02.ogg",
+   "grunt_male_03.ogg",
+   "grunt_male_04.ogg",
+   "grunt_male_05.ogg",
+   "grunt_male_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.76,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 0.37
+ },
+ "pain_male": {
+  "files": [
+   "pain_male_01.ogg",
+   "pain_male_02.ogg",
+   "pain_male_03.ogg",
+   "pain_male_04.ogg",
+   "pain_male_05.ogg",
+   "pain_male_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.63,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 0.62
+ },
+ "death_male": {
+  "files": [
+   "death_male_01.ogg",
+   "death_male_02.ogg",
+   "death_male_03.ogg",
+   "death_male_04.ogg",
+   "death_male_05.ogg",
+   "death_male_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.66,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 1.38
+ },
+ "grunt_female": {
+  "files": [
+   "grunt_female_01.ogg",
+   "grunt_female_02.ogg",
+   "grunt_female_03.ogg",
+   "grunt_female_04.ogg",
+   "grunt_female_05.ogg",
+   "grunt_female_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.59,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 0.45
+ },
+ "pain_female": {
+  "files": [
+   "pain_female_01.ogg",
+   "pain_female_02.ogg",
+   "pain_female_03.ogg",
+   "pain_female_04.ogg",
+   "pain_female_05.ogg",
+   "pain_female_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.77,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 0.41
+ },
+ "death_female": {
+  "files": [
+   "death_female_01.ogg",
+   "death_female_02.ogg",
+   "death_female_03.ogg",
+   "death_female_04.ogg",
+   "death_female_05.ogg",
+   "death_female_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.61,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 1.13
+ },
+ "scream_male": {
+  "files": [
+   "scream_male_01.ogg",
+   "scream_male_02.ogg",
+   "scream_male_03.ogg",
+   "scream_male_04.ogg",
+   "scream_male_05.ogg",
+   "scream_male_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.99,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 1.96
+ },
+ "scream_female": {
+  "files": [
+   "scream_female_01.ogg",
+   "scream_female_02.ogg",
+   "scream_female_03.ogg",
+   "scream_female_04.ogg",
+   "scream_female_05.ogg",
+   "scream_female_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.7,
+  "category": "vocal",
+  "variants": 6,
+  "avg_dur": 1.51
+ }
+}

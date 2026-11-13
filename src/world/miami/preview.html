@@ -1,0 +1,57 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>miami preview</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:block}#i{position:fixed;left:8px;top:8px;color:#fff;font:12px monospace;background:#0009;padding:6px;white-space:pre}</style></head>
+<body><div id="i">loading…</div><script type="module">
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { createMiamiCity } from './city.js';
+await RAPIER.init();
+const q = new URLSearchParams(location.search);
+const v = (k, d) => (q.get(k) || d).split(',').map(Number);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.5, 9000);
+const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+const game = { THREE, RAPIER, renderer, scene, camera, world, input: { down: () => false, pressed: () => false, mouseDX: 0, mouseDY: 0 }, updaters: [], fixedHooks: [], clock: { elapsed: 0, dt: 0 }, timeOfDay: Number(q.get('t') || 17.5),
+  player: { position: new THREE.Vector3(...v('cam', '3440,40,300')), state: {} } };
+window.game = game;
+camera.position.set(...v('cam', '3440,40,300'));
+let env = null;
+const simpleEnv = () => { scene.background = new THREE.Color(0x9fb8d0); scene.fog = new THREE.Fog(0x9fb8d0, 800, 6000); scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x806040, 1.6)); const s = new THREE.DirectionalLight(0xffe0c0, 2.5); s.position.set(-300, 400, 200); scene.add(s); const w = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000), new THREE.MeshStandardMaterial({ color: 0x1d5a6a, roughness: 0.15, metalness: 0.2 })); w.rotation.x = -Math.PI / 2; w.position.y = -0.12; scene.add(w); };
+if (q.get('env') === '0') simpleEnv();
+else try { const envUrl = new URL('../environment.js', import.meta.url).href; const m = await import(/* @vite-ignore */ envUrl); env = await m.createEnvironment(game); } catch (e) { console.warn('env failed', e); simpleEnv(); }
+const city = await createMiamiCity(game, { warmup: q.get('warm') !== '0' });
+window.city = city; game.city = city; if (env) game.env = env;
+// screenshot helper for docs: returns a JPEG data URL of the current frame
+window.snap = (w = 1280, h = 720, q = 0.85) => { renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); env?.update?.(0); for (const u of game.updaters) u(0); renderer.render(scene, camera); const url = renderer.domElement.toDataURL('image/jpeg', q); renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); return url; };
+window.setHour = (h) => { game.timeOfDay = h; };
+camera.lookAt(...v('look', '3440,0,-200'));
+// fly controls: WASD/QE, shift = fast, drag = look
+const keys = new Set(); addEventListener('keydown', (e) => keys.add(e.code)); addEventListener('keyup', (e) => keys.delete(e.code));
+let drag = false, yaw = 0, pitch = 0; { const d = new THREE.Vector3(); camera.getWorldDirection(d); yaw = Math.atan2(-d.x, -d.z); pitch = Math.asin(d.y); }
+renderer.domElement.addEventListener('mousedown', () => drag = true); addEventListener('mouseup', () => drag = false);
+addEventListener('mousemove', (e) => { if (!drag) return; yaw -= e.movementX * 0.003; pitch = Math.max(-1.5, Math.min(1.5, pitch - e.movementY * 0.003)); });
+window.fly = (x, y, z, lx, ly, lz) => { camera.position.set(x, y, z); camera.lookAt(lx, ly, lz); const d = new THREE.Vector3(); camera.getWorldDirection(d); yaw = Math.atan2(-d.x, -d.z); pitch = Math.asin(d.y); };
+let last = performance.now(), frames = 0, acc = 0, worst = 0;
+const info = document.getElementById('i');
+function loop() {
+  const now = performance.now(), dtr = (now - last) / 1000, dt = Math.min(0.05, dtr); last = now; worst = Math.max(worst, dtr * 1000);
+  game.clock.dt = dt; game.clock.elapsed += dt;
+  const sp = (keys.has('ShiftLeft') ? 300 : 60) * dt;
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  const f = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation), r = new THREE.Vector3(1, 0, 0).applyEuler(camera.rotation);
+  if (keys.has('KeyW')) camera.position.addScaledVector(f, sp); if (keys.has('KeyS')) camera.position.addScaledVector(f, -sp);
+  if (keys.has('KeyD')) camera.position.addScaledVector(r, sp); if (keys.has('KeyA')) camera.position.addScaledVector(r, -sp);
+  if (keys.has('KeyE')) camera.position.y += sp; if (keys.has('KeyQ')) camera.position.y -= sp;
+  game.player.position.copy(camera.position);
+  env?.update?.(dt); for (const u of game.updaters) u(dt);
+  renderer.render(scene, camera);
+  frames++; acc += dtr;
+  if (acc > 0.5) { const s = city.streamer.stats; info.textContent = `fps ${(frames / acc).toFixed(0)}  worst ${worst.toFixed(1)}ms  calls ${renderer.info.render.calls}  tris ${(renderer.info.render.triangles / 1e6).toFixed(2)}M\nnear ${s.near} mid ${s.mid} far ${s.far} col ${s.col} queued ${s.queued} stream ${s.msLast.toFixed(2)}ms\ncam ${camera.position.x.toFixed(0)},${camera.position.y.toFixed(0)},${camera.position.z.toFixed(0)}  ${city.districtAt(camera.position.x, camera.position.z)}  ${city.streetNameAt(camera.position.x, camera.position.z) || ''}  [${city.provider}]`; frames = 0; acc = 0; worst = 0; }
+  requestAnimationFrame(loop);
+}
+loop();
+</script></body></html>

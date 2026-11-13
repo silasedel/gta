@@ -1,0 +1,797 @@
+{
+ "step_asphalt_walk": {
+  "files": [
+   "step_asphalt_walk_01.ogg",
+   "step_asphalt_walk_02.ogg",
+   "step_asphalt_walk_03.ogg",
+   "step_asphalt_walk_04.ogg",
+   "step_asphalt_walk_05.ogg",
+   "step_asphalt_walk_06.ogg",
+   "step_asphalt_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.94,
+  "surface": "asphalt",
+  "gait": "walk"
+ },
+ "step_asphalt_run": {
+  "files": [
+   "step_asphalt_run_01.ogg",
+   "step_asphalt_run_02.ogg",
+   "step_asphalt_run_03.ogg",
+   "step_asphalt_run_04.ogg",
+   "step_asphalt_run_05.ogg",
+   "step_asphalt_run_06.ogg",
+   "step_asphalt_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.16,
+  "surface": "asphalt",
+  "gait": "run"
+ },
+ "step_concrete_walk": {
+  "files": [
+   "step_concrete_walk_01.ogg",
+   "step_concrete_walk_02.ogg",
+   "step_concrete_walk_03.ogg",
+   "step_concrete_walk_04.ogg",
+   "step_concrete_walk_05.ogg",
+   "step_concrete_walk_06.ogg",
+   "step_concrete_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.6,
+  "surface": "concrete",
+  "gait": "walk"
+ },
+ "step_concrete_run": {
+  "files": [
+   "step_concrete_run_01.ogg",
+   "step_concrete_run_02.ogg",
+   "step_concrete_run_03.ogg",
+   "step_concrete_run_04.ogg",
+   "step_concrete_run_05.ogg",
+   "step_concrete_run_06.ogg",
+   "step_concrete_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.3,
+  "surface": "concrete",
+  "gait": "run"
+ },
+ "step_tile_walk": {
+  "files": [
+   "step_tile_walk_01.ogg",
+   "step_tile_walk_02.ogg",
+   "step_tile_walk_03.ogg",
+   "step_tile_walk_04.ogg",
+   "step_tile_walk_05.ogg",
+   "step_tile_walk_06.ogg",
+   "step_tile_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.14,
+  "surface": "tile",
+  "gait": "walk"
+ },
+ "step_tile_run": {
+  "files": [
+   "step_tile_run_01.ogg",
+   "step_tile_run_02.ogg",
+   "step_tile_run_03.ogg",
+   "step_tile_run_04.ogg",
+   "step_tile_run_05.ogg",
+   "step_tile_run_06.ogg",
+   "step_tile_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.44,
+  "surface": "tile",
+  "gait": "run"
+ },
+ "step_heels_hard": {
+  "files": [
+   "step_heels_hard_01.ogg",
+   "step_heels_hard_02.ogg",
+   "step_heels_hard_03.ogg",
+   "step_heels_hard_04.ogg",
+   "step_heels_hard_05.ogg",
+   "step_heels_hard_06.ogg",
+   "step_heels_hard_07.ogg",
+   "step_heels_hard_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.62,
+  "shoe": "high_heels",
+  "surface": "pavement/tile"
+ },
+ "step_sand_wet_walk": {
+  "files": [
+   "step_sand_wet_walk_01.ogg",
+   "step_sand_wet_walk_02.ogg",
+   "step_sand_wet_walk_03.ogg",
+   "step_sand_wet_walk_04.ogg",
+   "step_sand_wet_walk_05.ogg",
+   "step_sand_wet_walk_06.ogg",
+   "step_sand_wet_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.38,
+  "surface": "sand_wet",
+  "gait": "walk"
+ },
+ "step_sand_wet_run": {
+  "files": [
+   "step_sand_wet_run_01.ogg",
+   "step_sand_wet_run_02.ogg",
+   "step_sand_wet_run_03.ogg",
+   "step_sand_wet_run_04.ogg",
+   "step_sand_wet_run_05.ogg",
+   "step_sand_wet_run_06.ogg",
+   "step_sand_wet_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.45,
+  "surface": "sand_wet",
+  "gait": "run"
+ },
+ "step_grass_short_walk": {
+  "files": [
+   "step_grass_short_walk_01.ogg",
+   "step_grass_short_walk_02.ogg",
+   "step_grass_short_walk_03.ogg",
+   "step_grass_short_walk_04.ogg",
+   "step_grass_short_walk_05.ogg",
+   "step_grass_short_walk_06.ogg",
+   "step_grass_short_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.37,
+  "surface": "grass_short",
+  "gait": "walk"
+ },
+ "step_grass_short_run": {
+  "files": [
+   "step_grass_short_run_01.ogg",
+   "step_grass_short_run_02.ogg",
+   "step_grass_short_run_03.ogg",
+   "step_grass_short_run_04.ogg",
+   "step_grass_short_run_05.ogg",
+   "step_grass_short_run_06.ogg",
+   "step_grass_short_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.48,
+  "surface": "grass_short",
+  "gait": "run"
+ },
+ "step_dirt_walk": {
+  "files": [
+   "step_dirt_walk_01.ogg",
+   "step_dirt_walk_02.ogg",
+   "step_dirt_walk_03.ogg",
+   "step_dirt_walk_04.ogg",
+   "step_dirt_walk_05.ogg",
+   "step_dirt_walk_06.ogg",
+   "step_dirt_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.43,
+  "surface": "dirt",
+  "gait": "walk"
+ },
+ "step_dirt_run": {
+  "files": [
+   "step_dirt_run_01.ogg",
+   "step_dirt_run_02.ogg",
+   "step_dirt_run_03.ogg",
+   "step_dirt_run_04.ogg",
+   "step_dirt_run_05.ogg",
+   "step_dirt_run_06.ogg",
+   "step_dirt_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.51,
+  "surface": "dirt",
+  "gait": "run"
+ },
+ "step_grass_long_run": {
+  "files": [
+   "step_grass_long_run_01.ogg",
+   "step_grass_long_run_02.ogg",
+   "step_grass_long_run_03.ogg",
+   "step_grass_long_run_04.ogg",
+   "step_grass_long_run_05.ogg",
+   "step_grass_long_run_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.23,
+  "surface": "grass_long",
+  "gait": "run"
+ },
+ "step_gravel_walk": {
+  "files": [
+   "step_gravel_walk_01.ogg",
+   "step_gravel_walk_02.ogg",
+   "step_gravel_walk_03.ogg",
+   "step_gravel_walk_04.ogg",
+   "step_gravel_walk_05.ogg",
+   "step_gravel_walk_06.ogg",
+   "step_gravel_walk_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.49,
+  "surface": "gravel",
+  "gait": "walk"
+ },
+ "step_gravel_run": {
+  "files": [
+   "step_gravel_run_01.ogg",
+   "step_gravel_run_02.ogg",
+   "step_gravel_run_03.ogg",
+   "step_gravel_run_04.ogg",
+   "step_gravel_run_05.ogg",
+   "step_gravel_run_06.ogg",
+   "step_gravel_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.76,
+  "surface": "gravel",
+  "gait": "run"
+ },
+ "step_wood_walk": {
+  "files": [
+   "step_wood_walk_01.ogg",
+   "step_wood_walk_02.ogg",
+   "step_wood_walk_03.ogg",
+   "step_wood_walk_04.ogg",
+   "step_wood_walk_05.ogg",
+   "step_wood_walk_06.ogg",
+   "step_wood_walk_07.ogg",
+   "step_wood_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.52,
+  "surface": "wood",
+  "gait": "walk"
+ },
+ "step_wood_run": {
+  "files": [
+   "step_wood_run_01.ogg",
+   "step_wood_run_02.ogg",
+   "step_wood_run_03.ogg",
+   "step_wood_run_04.ogg",
+   "step_wood_run_05.ogg",
+   "step_wood_run_06.ogg",
+   "step_wood_run_07.ogg",
+   "step_wood_run_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.52,
+  "surface": "wood",
+  "gait": "run"
+ },
+ "step_metal_walk": {
+  "files": [
+   "step_metal_walk_01.ogg",
+   "step_metal_walk_02.ogg",
+   "step_metal_walk_03.ogg",
+   "step_metal_walk_04.ogg",
+   "step_metal_walk_05.ogg",
+   "step_metal_walk_06.ogg",
+   "step_metal_walk_07.ogg",
+   "step_metal_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.54,
+  "surface": "metal",
+  "gait": "walk"
+ },
+ "step_metal_run": {
+  "files": [
+   "step_metal_run_01.ogg",
+   "step_metal_run_02.ogg",
+   "step_metal_run_03.ogg",
+   "step_metal_run_04.ogg",
+   "step_metal_run_05.ogg",
+   "step_metal_run_06.ogg",
+   "step_metal_run_07.ogg",
+   "step_metal_run_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.76,
+  "surface": "metal",
+  "gait": "run"
+ },
+ "step_water_walk": {
+  "files": [
+   "step_water_walk_01.ogg",
+   "step_water_walk_02.ogg",
+   "step_water_walk_03.ogg",
+   "step_water_walk_04.ogg",
+   "step_water_walk_05.ogg",
+   "step_water_walk_06.ogg",
+   "step_water_walk_07.ogg",
+   "step_water_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.8,
+  "surface": "water",
+  "gait": "walk",
+  "depth": "shin"
+ },
+ "step_water_run": {
+  "files": [
+   "step_water_run_01.ogg",
+   "step_water_run_02.ogg",
+   "step_water_run_03.ogg",
+   "step_water_run_04.ogg",
+   "step_water_run_05.ogg",
+   "step_water_run_06.ogg",
+   "step_water_run_07.ogg",
+   "step_water_run_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.88,
+  "surface": "water",
+  "gait": "run",
+  "depth": "shin"
+ },
+ "step_flipflop": {
+  "files": [
+   "step_flipflop_01.ogg",
+   "step_flipflop_02.ogg",
+   "step_flipflop_03.ogg",
+   "step_flipflop_04.ogg",
+   "step_flipflop_05.ogg",
+   "step_flipflop_06.ogg",
+   "step_flipflop_07.ogg",
+   "step_flipflop_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.78,
+  "shoe": "sandals_flipflops",
+  "surface": "hard"
+ },
+ "step_boots_hard": {
+  "files": [
+   "step_boots_hard_01.ogg",
+   "step_boots_hard_02.ogg",
+   "step_boots_hard_03.ogg",
+   "step_boots_hard_04.ogg",
+   "step_boots_hard_05.ogg",
+   "step_boots_hard_06.ogg",
+   "step_boots_hard_07.ogg",
+   "step_boots_hard_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.79,
+  "shoe": "boots",
+  "surface": "concrete/asphalt"
+ },
+ "cloth_move": {
+  "files": [
+   "cloth_move_01.ogg",
+   "cloth_move_02.ogg",
+   "cloth_move_03.ogg",
+   "cloth_move_04.ogg",
+   "cloth_move_05.ogg",
+   "cloth_move_06.ogg",
+   "cloth_move_07.ogg",
+   "cloth_move_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.28,
+  "type": "clothing_rustle"
+ },
+ "land_concrete": {
+  "files": [
+   "land_concrete_01.ogg",
+   "land_concrete_02.ogg",
+   "land_concrete_03.ogg",
+   "land_concrete_04.ogg",
+   "land_concrete_05.ogg",
+   "land_concrete_06.ogg",
+   "land_concrete_07.ogg",
+   "land_concrete_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.82,
+  "surface": "concrete",
+  "type": "jump_landing"
+ },
+ "land_tile": {
+  "files": [
+   "land_tile_01.ogg",
+   "land_tile_02.ogg",
+   "land_tile_03.ogg",
+   "land_tile_04.ogg",
+   "land_tile_05.ogg",
+   "land_tile_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.71,
+  "surface": "tile",
+  "type": "jump_landing"
+ },
+ "land_wood": {
+  "files": [
+   "land_wood_01.ogg",
+   "land_wood_02.ogg",
+   "land_wood_03.ogg",
+   "land_wood_04.ogg",
+   "land_wood_05.ogg",
+   "land_wood_06.ogg",
+   "land_wood_07.ogg"
+  ],
+  "loop": false,
+  "gain": 0.65,
+  "surface": "wood",
+  "type": "jump_landing"
+ },
+ "bodyfall_tile": {
+  "files": [
+   "bodyfall_tile_01.ogg",
+   "bodyfall_tile_02.ogg",
+   "bodyfall_tile_03.ogg",
+   "bodyfall_tile_04.ogg",
+   "bodyfall_tile_05.ogg",
+   "bodyfall_tile_06.ogg",
+   "bodyfall_tile_07.ogg",
+   "bodyfall_tile_08.ogg"
+  ],
+  "loop": false,
+  "gain": 1.41,
+  "surface": "tile",
+  "type": "bodyfall"
+ },
+ "bodyfall_wood": {
+  "files": [
+   "bodyfall_wood_01.ogg",
+   "bodyfall_wood_02.ogg",
+   "bodyfall_wood_03.ogg",
+   "bodyfall_wood_04.ogg",
+   "bodyfall_wood_05.ogg",
+   "bodyfall_wood_06.ogg",
+   "bodyfall_wood_07.ogg",
+   "bodyfall_wood_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.71,
+  "surface": "wood",
+  "type": "bodyfall"
+ },
+ "land_dirt": {
+  "files": [
+   "land_dirt_01.ogg",
+   "land_dirt_02.ogg",
+   "land_dirt_03.ogg",
+   "land_dirt_04.ogg",
+   "land_dirt_05.ogg",
+   "land_dirt_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.6,
+  "surface": "dirt",
+  "type": "jump_landing",
+  "built": "heavy run step + low thump layer"
+ },
+ "land_grass_short": {
+  "files": [
+   "land_grass_short_01.ogg",
+   "land_grass_short_02.ogg",
+   "land_grass_short_03.ogg",
+   "land_grass_short_04.ogg",
+   "land_grass_short_05.ogg",
+   "land_grass_short_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.55,
+  "surface": "grass_short",
+  "type": "jump_landing",
+  "built": "heavy run step + low thump layer"
+ },
+ "land_grass_long": {
+  "files": [
+   "land_grass_long_01.ogg",
+   "land_grass_long_02.ogg",
+   "land_grass_long_03.ogg",
+   "land_grass_long_04.ogg",
+   "land_grass_long_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.36,
+  "surface": "grass_long",
+  "type": "jump_landing",
+  "built": "tall-grass rustle step + low thump layer"
+ },
+ "land_sand_wet": {
+  "files": [
+   "land_sand_wet_01.ogg",
+   "land_sand_wet_02.ogg",
+   "land_sand_wet_03.ogg",
+   "land_sand_wet_04.ogg",
+   "land_sand_wet_05.ogg",
+   "land_sand_wet_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.48,
+  "surface": "sand_wet",
+  "type": "jump_landing",
+  "built": "heavy run step + low thump layer"
+ },
+ "land_gravel": {
+  "files": [
+   "land_gravel_01.ogg",
+   "land_gravel_02.ogg",
+   "land_gravel_03.ogg",
+   "land_gravel_04.ogg",
+   "land_gravel_05.ogg",
+   "land_gravel_06.ogg"
+  ],
+  "loop": false,
+  "gain": 1.12,
+  "surface": "gravel",
+  "type": "jump_landing"
+ },
+ "land_metal": {
+  "files": [
+   "land_metal_01.ogg",
+   "land_metal_02.ogg",
+   "land_metal_03.ogg",
+   "land_metal_04.ogg",
+   "land_metal_05.ogg",
+   "land_metal_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.67,
+  "surface": "metal",
+  "type": "jump_landing",
+  "built": "heavy run step + low thump layer"
+ },
+ "bodyfall_concrete": {
+  "files": [
+   "bodyfall_concrete_01.ogg",
+   "bodyfall_concrete_02.ogg",
+   "bodyfall_concrete_03.ogg",
+   "bodyfall_concrete_04.ogg",
+   "bodyfall_concrete_05.ogg",
+   "bodyfall_concrete_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.6,
+  "surface": "concrete",
+  "type": "bodyfall"
+ },
+ "bodyfall_asphalt": {
+  "files": [
+   "bodyfall_concrete_01.ogg",
+   "bodyfall_concrete_02.ogg",
+   "bodyfall_concrete_03.ogg",
+   "bodyfall_concrete_04.ogg",
+   "bodyfall_concrete_05.ogg",
+   "bodyfall_concrete_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.6,
+  "surface": "concrete",
+  "type": "bodyfall",
+  "shared_with": "bodyfall_concrete"
+ },
+ "bodyfall_grass": {
+  "files": [
+   "bodyfall_grass_01.ogg",
+   "bodyfall_grass_02.ogg",
+   "bodyfall_grass_03.ogg",
+   "bodyfall_grass_04.ogg",
+   "bodyfall_grass_05.ogg",
+   "bodyfall_grass_06.ogg",
+   "bodyfall_grass_07.ogg",
+   "bodyfall_grass_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.91,
+  "surface": "grass",
+  "type": "bodyfall"
+ },
+ "step_pavers_walk": {
+  "files": [
+   "step_pavers_walk_01.ogg",
+   "step_pavers_walk_02.ogg",
+   "step_pavers_walk_03.ogg",
+   "step_pavers_walk_04.ogg",
+   "step_pavers_walk_05.ogg",
+   "step_pavers_walk_06.ogg",
+   "step_pavers_walk_07.ogg",
+   "step_pavers_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.56,
+  "surface": "pavers",
+  "gait": "walk"
+ },
+ "step_pavers_run": {
+  "files": [
+   "step_concrete_run_01.ogg",
+   "step_concrete_run_02.ogg",
+   "step_concrete_run_03.ogg",
+   "step_concrete_run_04.ogg",
+   "step_concrete_run_05.ogg",
+   "step_concrete_run_06.ogg",
+   "step_concrete_run_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.3,
+  "surface": "concrete",
+  "gait": "run",
+  "shared_with": "step_concrete_run"
+ },
+ "land_pavers": {
+  "files": [
+   "land_concrete_01.ogg",
+   "land_concrete_02.ogg",
+   "land_concrete_03.ogg",
+   "land_concrete_04.ogg",
+   "land_concrete_05.ogg",
+   "land_concrete_06.ogg",
+   "land_concrete_07.ogg",
+   "land_concrete_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.82,
+  "surface": "concrete",
+  "type": "jump_landing",
+  "shared_with": "land_concrete"
+ },
+ "land_asphalt": {
+  "files": [
+   "land_concrete_01.ogg",
+   "land_concrete_02.ogg",
+   "land_concrete_03.ogg",
+   "land_concrete_04.ogg",
+   "land_concrete_05.ogg",
+   "land_concrete_06.ogg",
+   "land_concrete_07.ogg",
+   "land_concrete_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.82,
+  "surface": "concrete",
+  "type": "jump_landing",
+  "shared_with": "land_concrete"
+ },
+ "step_barefoot_hard": {
+  "files": [
+   "step_barefoot_hard_01.ogg",
+   "step_barefoot_hard_02.ogg",
+   "step_barefoot_hard_03.ogg",
+   "step_barefoot_hard_04.ogg",
+   "step_barefoot_hard_05.ogg",
+   "step_barefoot_hard_06.ogg",
+   "step_barefoot_hard_07.ogg"
+  ],
+  "loop": false,
+  "gain": 1.14,
+  "shoe": "barefoot",
+  "surface": "tile"
+ },
+ "land_water": {
+  "files": [
+   "land_water_01.ogg",
+   "land_water_02.ogg",
+   "land_water_03.ogg",
+   "land_water_04.ogg",
+   "land_water_05.ogg",
+   "land_water_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.8,
+  "surface": "water",
+  "type": "jump_landing"
+ },
+ "bodyfall_water": {
+  "files": [
+   "bodyfall_water_01.ogg",
+   "bodyfall_water_02.ogg",
+   "bodyfall_water_03.ogg",
+   "bodyfall_water_04.ogg",
+   "bodyfall_water_05.ogg",
+   "bodyfall_water_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.7,
+  "surface": "water",
+  "type": "bodyfall",
+  "depth": "shallow"
+ },
+ "step_grass_long_walk": {
+  "files": [
+   "step_grass_long_walk_01.ogg",
+   "step_grass_long_walk_02.ogg",
+   "step_grass_long_walk_03.ogg",
+   "step_grass_long_walk_04.ogg",
+   "step_grass_long_walk_05.ogg",
+   "step_grass_long_walk_06.ogg",
+   "step_grass_long_walk_07.ogg",
+   "step_grass_long_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.35,
+  "surface": "grass_long",
+  "gait": "walk"
+ },
+ "bodyfall_metal": {
+  "files": [
+   "bodyfall_metal_01.ogg",
+   "bodyfall_metal_02.ogg",
+   "bodyfall_metal_03.ogg",
+   "bodyfall_metal_04.ogg",
+   "bodyfall_metal_05.ogg",
+   "bodyfall_metal_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.88,
+  "surface": "metal",
+  "type": "bodyfall",
+  "built": "body-fall recording + metal plate impact layer"
+ },
+ "step_sand_dry_walk": {
+  "files": [
+   "step_sand_dry_walk_01.ogg",
+   "step_sand_dry_walk_02.ogg",
+   "step_sand_dry_walk_03.ogg",
+   "step_sand_dry_walk_04.ogg",
+   "step_sand_dry_walk_05.ogg",
+   "step_sand_dry_walk_06.ogg",
+   "step_sand_dry_walk_07.ogg",
+   "step_sand_dry_walk_08.ogg"
+  ],
+  "loop": false,
+  "gain": 0.22,
+  "surface": "sand_dry",
+  "gait": "walk"
+ },
+ "step_sand_dry_run": {
+  "files": [
+   "step_sand_dry_run_01.ogg",
+   "step_sand_dry_run_02.ogg",
+   "step_sand_dry_run_03.ogg",
+   "step_sand_dry_run_04.ogg",
+   "step_sand_dry_run_05.ogg",
+   "step_sand_dry_run_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.29,
+  "surface": "sand_dry",
+  "gait": "run"
+ },
+ "land_sand_dry": {
+  "files": [
+   "land_sand_dry_01.ogg",
+   "land_sand_dry_02.ogg",
+   "land_sand_dry_03.ogg",
+   "land_sand_dry_04.ogg",
+   "land_sand_dry_05.ogg",
+   "land_sand_dry_06.ogg"
+  ],
+  "loop": false,
+  "gain": 0.45,
+  "surface": "sand_dry",
+  "type": "jump_landing",
+  "built": "sand step + low thump layer"
+ },
+ "bodyfall_sand": {
+  "files": [
+   "bodyfall_sand_01.ogg",
+   "bodyfall_sand_02.ogg",
+   "bodyfall_sand_03.ogg",
+   "bodyfall_sand_04.ogg",
+   "bodyfall_sand_05.ogg"
+  ],
+  "loop": false,
+  "gain": 0.67,
+  "surface": "sand",
+  "type": "bodyfall",
+  "built": "body-fall recording + sand step texture layer"
+ }
+}

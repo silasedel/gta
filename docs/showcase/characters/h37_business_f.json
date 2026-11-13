@@ -1,0 +1,49 @@
+{
+ "id": "h37_business_f",
+ "file": "h37_business_f.glb",
+ "height": 1.5144323483109474,
+ "verts": [
+  16341,
+  5709,
+  2169
+ ],
+ "tris": [
+  29570,
+  8871,
+  2957
+ ],
+ "garments": [],
+ "spec": {
+  "id": "h37_business_f",
+  "zone": "business",
+  "gender": "f",
+  "years": 34,
+  "race": "white",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.569,
+   "muscle": 0.57,
+   "weight": 0.27,
+   "height": 0.36,
+   "proportions": 0.66,
+   "race": {
+    "caucasian": 0.88,
+    "african": 0.04,
+    "asian": 0.08
+   },
+   "cupsize": 0.68,
+   "firmness": 0.69
+  },
+  "skin": "young_caucasian_female2",
+  "hair": "long01",
+  "eyebrows": "eyebrow009",
+  "eyelashes": "eyelashes03",
+  "clothes": [
+   "female_elegantsuit01",
+   "shoes04"
+  ],
+  "shells": [],
+  "garments": [],
+  "eye": "green"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "id": "player",
+ "file": "player.glb",
+ "height": 1.7819472327828407,
+ "verts": [
+  15634,
+  5009,
+  1792
+ ],
+ "tris": [
+  30016,
+  9003,
+  3001
+ ],
+ "garments": [],
+ "spec": {
+  "id": "player",
+  "zone": "player",
+  "gender": "m",
+  "years": 29,
+  "race": "latino",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.531,
+   "muscle": 0.68,
+   "weight": 0.46,
+   "height": 0.52,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.18,
+    "asian": 0.2
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "hair": "short02",
+  "eyebrows": "eyebrow003",
+  "eyelashes": "eyelashes01",
+  "clothes": [
+   "male_casualsuit05",
+   "shoes03"
+  ],
+  "shells": [],
+  "garments": [],
+  "eye": "brown"
+ }
+}

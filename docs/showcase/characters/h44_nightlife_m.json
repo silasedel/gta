@@ -1,0 +1,47 @@
+{
+ "id": "h44_nightlife_m",
+ "file": "h44_nightlife_m.glb",
+ "height": 1.8377321735024452,
+ "verts": [
+  15134,
+  4813,
+  1724
+ ],
+ "tris": [
+  29208,
+  8761,
+  2919
+ ],
+ "garments": [],
+ "spec": {
+  "id": "h44_nightlife_m",
+  "zone": "nightlife",
+  "gender": "m",
+  "years": 27,
+  "race": "latino",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.515,
+   "muscle": 0.74,
+   "weight": 0.28,
+   "height": 0.57,
+   "proportions": 0.75,
+   "race": {
+    "caucasian": 0.6,
+    "african": 0.2,
+    "asian": 0.2
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short02",
+  "eyebrows": "eyebrow004",
+  "eyelashes": "eyelashes03",
+  "clothes": [
+   "male_casualsuit05",
+   "shoes04"
+  ],
+  "shells": [],
+  "garments": [],
+  "eye": "bluegreen"
+ }
+}

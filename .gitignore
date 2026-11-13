@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-*/
+tools/osm/cache/
+src/render/stage/
+.DS_Store
+*.log

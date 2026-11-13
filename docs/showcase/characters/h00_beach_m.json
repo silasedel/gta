@@ -1,0 +1,61 @@
+{
+ "id": "h00_beach_m",
+ "file": "h00_beach_m.glb",
+ "height": 1.8347486930870218,
+ "verts": [
+  15779,
+  4971,
+  1777
+ ],
+ "tris": [
+  30670,
+  9201,
+  3066
+ ],
+ "garments": [
+  {
+   "kind": "trunks",
+   "slot": 4,
+   "fabric": "lycra"
+  }
+ ],
+ "spec": {
+  "id": "h00_beach_m",
+  "zone": "beach",
+  "gender": "m",
+  "years": 22,
+  "race": "asian",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.47,
+   "muscle": 0.44,
+   "weight": 0.57,
+   "height": 0.67,
+   "proportions": 0.73,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   }
+  },
+  "skin": "young_asian_male",
+  "hair": "short04",
+  "eyebrows": "eyebrow006",
+  "eyelashes": "eyelashes02",
+  "clothes": [],
+  "shells": [
+   {
+    "type": "trunks"
+   }
+  ],
+  "garments": [
+   {
+    "type": "trunks"
+   },
+   {
+    "type": "flipflops"
+   }
+  ],
+  "eye": "brownlight"
+ }
+}

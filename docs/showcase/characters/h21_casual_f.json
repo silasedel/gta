@@ -1,0 +1,73 @@
+{
+ "id": "h21_casual_f",
+ "file": "h21_casual_f.glb",
+ "height": 1.4168110936880112,
+ "verts": [
+  18448,
+  6104,
+  2332
+ ],
+ "tris": [
+  34128,
+  10238,
+  3412
+ ],
+ "garments": [
+  {
+   "kind": "tank",
+   "slot": 3,
+   "fabric": "knit"
+  },
+  {
+   "kind": "shorts",
+   "slot": 4,
+   "fabric": "canvas"
+  }
+ ],
+ "spec": {
+  "id": "h21_casual_f",
+  "zone": "casual",
+  "gender": "f",
+  "years": 27,
+  "race": "black",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.515,
+   "muscle": 0.37,
+   "weight": 0.56,
+   "height": 0.13,
+   "proportions": 0.46,
+   "race": {
+    "caucasian": 0.06,
+    "african": 0.9,
+    "asian": 0.04
+   },
+   "cupsize": 0.42,
+   "firmness": 0.51
+  },
+  "skin": "young_african_female",
+  "hair": "ponytail01",
+  "eyebrows": "eyebrow002",
+  "eyelashes": "eyelashes04",
+  "clothes": [
+   "shoes05"
+  ],
+  "shells": [
+   {
+    "type": "tank"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "garments": [
+   {
+    "type": "tank"
+   },
+   {
+    "type": "shorts"
+   }
+  ],
+  "eye": "brown"
+ }
+}

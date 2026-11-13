@@ -1,0 +1,47 @@
+{
+ "id": "h34_business_m",
+ "file": "h34_business_m.glb",
+ "height": 1.7874306738376617,
+ "verts": [
+  18640,
+  5813,
+  2024
+ ],
+ "tris": [
+  36410,
+  10922,
+  3640
+ ],
+ "garments": [],
+ "spec": {
+  "id": "h34_business_m",
+  "zone": "business",
+  "gender": "m",
+  "years": 39,
+  "race": "white",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.608,
+   "muscle": 0.75,
+   "weight": 0.27,
+   "height": 0.55,
+   "proportions": 0.53,
+   "race": {
+    "caucasian": 0.88,
+    "african": 0.04,
+    "asian": 0.08
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "hair": "short03",
+  "eyebrows": "eyebrow010",
+  "eyelashes": "eyelashes03",
+  "clothes": [
+   "male_elegantsuit01",
+   "shoes01"
+  ],
+  "shells": [],
+  "garments": [],
+  "eye": "brown"
+ }
+}

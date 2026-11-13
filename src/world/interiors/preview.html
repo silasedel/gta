@@ -1,0 +1,84 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>interiors preview</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:block}#i{position:fixed;left:8px;top:8px;color:#fff;font:12px monospace;background:#000a;padding:6px;white-space:pre;max-width:60vw}</style></head>
+<body><div id="i">loading…</div><script type="module">
+// Standalone preview for the INTERIORS agent: fake city with Miami-style shells (walls + door gap) of varied sizes.
+// URL: ?types=grocery,bar,club&t=21&store=0&cam=x,y,z&look=x,y,z&people=1
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+await RAPIER.init();
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fb8d8);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(-60, 90, 40); scene.add(sun, new THREE.HemisphereLight(0xcfe6ff, 0x806a50, 0.9));
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
+const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+const types = (q.get('types') || 'grocery,convenience,liquor,pharmacy,electronics,clothing,beauty,surf,souvenir,icecream,cafe,restaurant,bar,club,laundromat,bank,barber,jewelry,guns,pawn,auto,sport,bodega').split(',');
+const sizes = [[10, 12], [14, 18], [8, 10], [20, 16], [12, 9], [16, 22], [9, 14], [24, 18]];
+let storefronts;
+if (q.get('miami')) { // real Miami storefront lots around lot `at` (fake shells drawn below)
+  const spots = await (await fetch('/assets/miami/spots.json')).json(); const all = spots.storefronts; const c = all[Number(q.get('at') || 0)];
+  storefronts = all.filter((s) => Math.hypot(s.x - c.x, s.z - c.z) < Number(q.get('r') || 120)).map((s, i) => (q.get('noshell') === 'odd' && i % 2 ? { ...s } : { ...s, h: 4.18, doorX: 0, doorW: 1.9 }));
+  const ox = c.x, oz = c.z; for (const s of storefronts) { s.x -= ox; s.z -= oz; s.fx -= ox; s.fz -= oz; }
+}
+else storefronts = types.map((kind, i) => { const [w, d] = sizes[(i * 3 + (q.get('sz') | 0)) % sizes.length]; return q.get('old') ? { id: i, kind, x: i * 32, z: 0, y: 0.15, w: 18, d: 14, facing: 0, buildingId: null } : { id: i, kind, x: i * 32, z: 0, y: 0, w, d, h: 4.2, facing: 0, buildingId: 1000 + i, doorX: ((i % 3) - 1) * w * 0.2 }; });
+// ground + fake shells (what the CITY would draw)
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 400), new THREE.MeshStandardMaterial({ color: 0x6f6f6a })); ground.rotation.x = -Math.PI / 2; ground.position.set(q.get('miami') ? 0 : types.length * 16, 0, 0); scene.add(ground);
+const wallM = new THREE.MeshStandardMaterial({ color: 0xe8d8c0, transparent: true, opacity: q.get('xray') ? 0.15 : 1 });
+for (const s of storefronts) {
+  if (q.get('old')) continue;
+  const sg = new THREE.Group(); sg.position.set(s.x, 0, s.z); sg.rotation.y = s.facing || 0; scene.add(sg); const doorX0 = s.doorX || 0;
+  const sq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), s.facing || 0); const sb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(s.x, 0, s.z).setRotation({ x: sq.x, y: sq.y, z: sq.z, w: sq.w }));
+  const T = 0.3, add = (x, y, z, sx, sy, sz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), wallM); m.position.set(x, y, z); sg.add(m); world.createCollider(RAPIER.ColliderDesc.cuboid(sx / 2, sy / 2, sz / 2).setTranslation(x, y, z), sb); };
+  add(0, s.h / 2, -s.d / 2 - T / 2, s.w + 2 * T, s.h, T); add(-s.w / 2 - T / 2, s.h / 2, 0, T, s.h, s.d); add(s.w / 2 + T / 2, s.h / 2, 0, T, s.h, s.d);
+  const dl = doorX0 - 1, dr = doorX0 + 1; add((-s.w / 2 + dl) / 2, 0.25, s.d / 2 + T / 2, dl + s.w / 2, 0.5, T); add((dr + s.w / 2) / 2, 0.25, s.d / 2 + T / 2, s.w / 2 - dr, 0.5, T); add(0, s.h - 0.6, s.d / 2 + T / 2, s.w + 2 * T, 1.2, T);
+  add((-s.w / 2 + dl) / 2, s.h / 2, s.d / 2 + T / 2, dl + s.w / 2, s.h, T); add((dr + s.w / 2) / 2, s.h / 2, s.d / 2 + T / 2, s.w / 2 - dr, s.h, T);
+  if (!q.get('xray')) add(0, s.h + 0.1, 0, s.w + 2 * T, 0.2, s.d + 2 * T);
+}
+world.createCollider(RAPIER.ColliderDesc.cuboid(2000, 0.1, 400).setTranslation(0, -0.1, 0));
+const player = { position: new THREE.Vector3(0, 0, 12), heading: Math.PI, state: { inVehicle: false }, money: 5000, health: 50 };
+const game = { THREE, RAPIER, renderer, scene, camera, world, updaters: [], fixedHooks: [], clock: { elapsed: 0, dt: 0 }, timeOfDay: Number(q.get('t') || 13), player,
+  input: { pressed: () => false, down: () => false }, hud: { notify: (t) => console.log('[notify]', t), help: () => {} }, city: { storefronts, zoneAt: () => 'commercial' }, on() {}, emit() { return true; } };
+window.game = game; game.debugInteriors = { noCeil: !!q.get('xray') };
+if (q.get('people') !== '0') { try { const cm = await import('../../player/characterModel.js'); await cm.preloadCharacters(game); } catch (e) { console.warn('chars', e); } }
+const { createInteriors } = await import('./manager.js');
+const t0 = performance.now(); const interiors = await createInteriors(game); game.interiors = interiors; window.interiors = interiors;
+const initMs = performance.now() - t0;
+const si = Number(q.get('store') || 0); const s0 = storefronts[si];
+const controls = new OrbitControls(camera, renderer.domElement);
+const v = (k, d) => (q.get(k) || d).split(',').map(Number);
+camera.position.set(...v('cam', `${s0.x + 3},${7},${s0.d / 2 + 4}`)); controls.target.set(...v('look', `${s0.x},1,${-1}`)); controls.update();
+const info = document.getElementById('i');
+let last = performance.now(), fr = 0, acc = 0, fps = 0, worst = 0;
+function loop() {
+  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); worst = Math.max(worst, now - last); last = now;
+  game.clock.dt = dt; game.clock.elapsed += dt;
+  if (q.get('pt') === 'target') player.position.set(controls.target.x, 0, controls.target.z); else player.position.set(camera.position.x, 0, camera.position.z);
+  const u0 = performance.now(); interiors.update(dt); const um = performance.now() - u0;
+  world.step();
+  renderer.render(scene, camera);
+  fr++; acc += dt; if (acc > 0.5) { fps = fr / acc; fr = 0; acc = 0; }
+  const ri = renderer.info.render; const st = interiors.stats();
+  const cur = interiors.current;
+  const near = interiors.list.filter((s) => s.built).map((s) => `${s.name} [${s.type}/${s.layoutKey}] ${s.W.toFixed(0)}x${s.D.toFixed(0)} build ${s.built.ms.toFixed(0)}ms prod ${(([...s.built.chunks.values()].reduce((a, c) => a + (c.mesh ? c.verts : 0), 0)) / 1000).toFixed(0)}k/${(s.built.batch.parts.reduce((a, p) => a + p[0].attributes.position.count, 0) / 1000).toFixed(0)}k ppl ${s.built.people.length}+${s.built.staff.length}`).join('\n');
+  info.textContent = `fps ${fps.toFixed(0)} worst ${worst.toFixed(0)}ms upd ${um.toFixed(1)}ms calls ${ri.calls} tris ${(ri.triangles / 1000).toFixed(0)}k init ${initMs.toFixed(0)}ms\nstores ${st.stores} built ${st.built} chars ${st.chars}\ninside: ${cur ? cur.name : '-'}\n${near}`;
+  if (fr === 0) worst = 0;
+  if (q.get('poi') && !window.__poiDone) { const st = interiors.list[si]; if (st?.built && window.poi) { window.__poiDone = true; window.poi(si, Number(q.get('poi'))); } }
+  requestAnimationFrame(loop);
+}
+loop();
+// stand at point-of-interest k of store i, step back `back` metres and look the way a shopper would
+window.poi = (i, k, back = Number(q.get('back') || 1.2)) => {
+  const st = interiors.list[i]; const b = st.built; const p = b.pts[k % b.pts.length];
+  const ry = st.facing + (p.ry || 0); const fx = Math.sin(ry), fz = Math.cos(ry);
+  const w = st.toWorld(p.x, p.z); camera.position.set(w.x - fx * back, 1.6, w.z - fz * back);
+  controls.target.set(w.x + fx * 2, 1.0, w.z + fz * 2); controls.update();
+  return { n: b.pts.length, tag: p.tag };
+};
+window.goto = (i, inside = true) => { const s = storefronts[i]; controls.target.set(s.x, 1, inside ? 0 : s.d / 2 + 6); camera.position.set(s.x + s.w * 0.35, inside ? 3.2 : 8, inside ? s.d / 2 - 0.6 : s.d / 2 + 14); controls.update(); };
+</script></body></html>

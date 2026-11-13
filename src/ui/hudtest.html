@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>HUD test harness</title>
+<style>html,body{margin:0;height:100%;background:linear-gradient(180deg,#5a7fa8,#e8a07a 60%,#4a4a52 61%,#2e2f36);overflow:hidden}</style></head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { createHUD } from './hud.js';
+// mock game for UI-only testing (not used by the real game)
+const xs = [], zs = [];
+for (let v = -450; v <= 450; v += 90) { xs.push(v); zs.push(v); }
+const roads = [...xs.map((x) => ({ x1: x, z1: -500, x2: x, z2: 500, width: 16 })), ...zs.map((z) => ({ x1: -500, z1: z, x2: 500, z2: z, width: 16 }))];
+const buildings = [];
+for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < zs.length - 1; j++) {
+  const cx = (xs[i] + xs[i + 1]) / 2, cz = (zs[j] + zs[j + 1]) / 2; if (cx > 420) continue;
+  for (let k = 0; k < 4; k++) buildings.push({ x: cx + (k % 2 ? 18 : -18), z: cz + (k > 1 ? 18 : -18), w: 28, d: 28, h: 10 + Math.random() * 120 });
+}
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 100);
+const params = new URLSearchParams(location.search);
+const game = {
+  THREE, camera, renderer: { domElement: document.body }, timeOfDay: 18.2, clock: { dt: 0.016 },
+  settings: { mouseSens: 1, quality: 'high', fov: 62 }, ui: { phoneOpen: false, paused: false },
+  input: { pressed: () => false, down: () => false },
+  city: { half: 500, roads, buildings },
+  player: { position: new THREE.Vector3(30, 0, 40), heading: 0.6, state: { speed: 0, inVehicle: false, vehicle: null }, health: 100, armor: 50, money: 2450, wanted: 0, weapon: 'fist' },
+  vehicles: { list: Array.from({ length: 12 }, (_, i) => ({ name: i === 3 ? 'Police Cruiser' : 'Sedan', mesh: { position: new THREE.Vector3(Math.random() * 300 - 150, 0, Math.random() * 300 - 150) } })) },
+  peds: { list: [] },
+};
+const _ev = {}; game.on = (n, f) => ((_ev[n] ||= []).push(f), f); game.emit = (n, d) => { for (const f of _ev[n] || []) f(d); return true; };
+if (params.get('demo')?.includes('osm')) { const { makeSyntheticCity } = await import('./hudtest_osm.js'); game.city = makeSyntheticCity(); game.player.position.set(-400, 0, 300); }
+window.game = game;
+game.hud = createHUD(game);
+if (params.has('play')) document.querySelector('.ps-title').click();
+const demo = params.get('demo') || '';
+const kd = (c) => window.dispatchEvent(new KeyboardEvent('keydown', { code: c }));
+setTimeout(() => {
+  if (demo.includes('drive')) { game.player.state.inVehicle = true; game.player.state.vehicle = { name: 'Vesper GT', speedKmh: 132 }; }
+  if (demo.includes('hud')) { game.player.money += 1500; game.player.wanted = 3; game.hud.help('Press <b>F</b> to enter vehicle'); game.hud.notify('Marisol: Pier 7, after sunset.', 60000); game.hud.setMission('Drive to Pier 7 on Coral Beach'); game.waypoint = { x: 200, z: -150 }; }
+  if (demo.includes('phone')) { kd('ArrowUp'); if (demo.includes('app')) { for (let i = 0; i < +params.get('app'); i++) kd('ArrowRight'); kd('Enter'); } }
+  if (demo.includes('pause')) { kd('KeyP'); if (params.get('tab')) document.querySelectorAll('.ps-tab')[+params.get('tab')].click(); }
+  if (demo.includes('dead')) game.player.health = 0;
+  if (demo.includes('w2')) {
+    game.player.inventory = ['fist', 'bat', 'pistol', 'shotgun']; game.player.ammo = { pistol: 48, smg: 0, shotgun: 12 }; game.player.weapon = 'pistol'; game.player.aiming = true;
+    game.wanted = { level: 2, evading: params.has('evade'), searchCenter: { x: 60, z: 30 }, searchRadius: 70 };
+    game.interiors = { list: [{ name: 'Lagoon Threads', type: 'clothing', open: true, center: { x: 80, z: 90 } }, { name: 'Quik Mart', type: 'convenience', open: false, center: { x: -20, z: 60 } }, { name: 'Bayside Arms', type: 'gun', open: true, center: { x: 120, z: -10 } }] };
+    game.peds.list.push({ pos: new THREE.Vector3(70, 0, 70), isCop: true });
+    game.hud.notify('Purchased Aviator Shades for $120', 60000); game.hud.notify('Stole Energy Drink', 60000);
+    game.emit('crime', { type: 'vehicle_theft', severity: 2 });
+    setInterval(() => { game.emit('shot', {}); game.emit('hit', { target: 'ped', object: {} }); }, 1500);
+  }
+  if (demo.includes('w3')) {
+    import('/src/gameplay/weapons.js').then(({ WEAP, ORDER }) => {
+      const P = game.player; P.inventory = ['fist', 'knife', 'bat', 'pistol', 'revolver', 'smg', 'rifle', 'sawnoff', 'grenade']; P.weapon = 'rifle';
+      P.ammo = { pistol: 45, revolver: 18, smg: 90, rifle: 97, sawnoff: 10, grenade: 3 }; P.clip = { pistol: 15, revolver: 6, smg: 35, rifle: 7, sawnoff: 2, grenade: 1 };
+      let rel = false;
+      game.weapons = { defs: WEAP, order: ORDER, has: (k) => P.inventory.includes(k), select: (k) => { P.weapon = k; }, get reloading() { return rel; } };
+      if (params.has('reload')) rel = true;
+      game.pickups = { list: [{ pos: { x: 50, z: 60 }, mapIcon: 'weapon', active: true }, { pos: { x: 20, z: 80 }, mapIcon: 'ammo', active: true }, { pos: { x: 0, z: 50 }, mapIcon: 'health', active: true }, { pos: { x: 60, z: 20 }, mapIcon: 'armor', active: true }, { pos: { x: 10, z: 20 }, mapIcon: 'cash', active: true }] };
+      game.interiors = { list: [{ name: 'Coastline Arms', type: 'guns', open: true, center: { x: 90, z: 70 } }] };
+      if (demo.includes('wheel')) window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Tab' }));
+    });
+  }
+  if (demo.includes('wheel') && !demo.includes('w3')) { window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Tab' })); }
+  if (demo.includes('arrest')) game.emit('arrest', { fee: 1500 });
+}, 300);
+let t = 0, last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt;
+  game.cameraYaw = t * 0.15;
+  camera.rotation.set(0, game.cameraYaw, 0, 'YXZ'); camera.updateMatrixWorld();
+  if (!game.ui.paused) { game.player.position.x += Math.sin(game.player.heading) * dt * 6; game.player.position.z += Math.cos(game.player.heading) * dt * 6; game.timeOfDay = (game.timeOfDay + dt / 120) % 24; }
+  game.hud.update(dt);
+}
+requestAnimationFrame(loop);
+</script>
+</body></html>
