@@ -278,6 +278,20 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
    - A highway loop connecting everything.
 5. **Suburbs between city and wilderness:** realistic South Florida subdivisions, canals, strip malls, gas stations.
 
+**Size decision (user, Nov 13):**
+- About **10 km wide** total (the user's call: realistic and doable at the detail standard). Up to ~20 km only if detail never suffers.
+- Miami core (Miami Beach through Brickell) stays at true 1:1 scale. The Everglades, Keys, suburbs and north are compressed so the Keys are a short, realistic-feeling drive away.
+- Include an **international airport** with runways, terminals, planes taking off and landing on real-looking approach paths over the city, and a smaller Keys airfield.
+- The user designed a concept map with ChatGPT and likes its overall shape: a big landmass with the city on the east coast, a national park and hills in the north, a large inland lake, wetlands in the middle-south, the airport west of downtown, and island chains south and west.
+  - Use that overall *arrangement* as inspiration, but draw our own map from real Florida geography, with our own place names.
+  - That image resembles another game's map, so don't trace it or reuse its names.
+
+**Named locals with lore (user example):** recurring named NPCs tied to places, e.g. "Jeff" who runs a hot dog stand at one end of the beach and has the best prices. They have schedules, personalities and memory of you, and some offer deals or jobs. Few but high quality (see the lore rule).
+
+**Highways and signage:**
+- Realistic US-style green overhead signs, exit numbers and shields using **real Miami road names and numbers** (I-95, I-395, US-1, MacArthur Causeway, and so on). These are public infrastructure, so that's fine.
+- Fictional regions get fictional names of our own.
+
 **Spawn and start:**
 - The player starts in a **small, realistic suburban house** (a modest 2-bedroom on a canal street) roughly in the middle of the map, between the city and the wilderness. That becomes the first safehouse.
 - You start with little money and work up: jobs, buying bigger property later.
@@ -417,6 +431,14 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Started Nov 13: water is at least 5 m deep away from beaches, and there is a basic visible seabed.
 
 ## 7. World and atmosphere
+- **Visual target (user's reference screenshots, Nov 13):**
+  - Sunlit highways with heavy traffic, haze and depth over the skyline, a port with cranes across the water, power lines, dirty and worn cars, palm shadows, a plane overhead, film-like color and soft light.
+  - The game must reach that look. Before calling V2 done, take matching screenshots in-game and compare them side by side.
+  - These look like another game's trailer frames: use them only as a quality and mood reference. Copy no names, signs, logos or vehicles from them.
+- **Day length and start time:**
+  - A full day/night cycle of **144 real minutes** (1 game minute = 6 real seconds). This matches what leaked GTA 6 footage suggests; Rockstar hasn't confirmed it. Today our game uses 48 minutes, the same as GTA 5.
+  - No reliable info exists on GTA 6's starting time of day, so start a new game in the **morning (about 9 AM)**. Saves resume at their saved time.
+  - Option in settings to change the day length.
 - **Weather and time:** rain with wet reflective streets, Florida thunderstorms (lightning, wind in palms), sunsets, foggy mornings.
 - **Lighting:** crazy neon and signage on every nightlife street, lit windows that vary at night, car headlight shadows, wet-road reflections.
 - **Boat sounds:** find much better, realistic recorded boat audio (CC0 / CC-BY only, credited in CREDITS.md):
