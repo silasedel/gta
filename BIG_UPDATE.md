@@ -31,6 +31,33 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
    - They test hitboxes, doors, stairs and furniture collisions, and play through every mission and job.
    - Failures go back for fixes. Repeat until clean.
 
+## 0a. THE DETAIL STANDARD (the user's #1 expectation; applies to EVERY store, building and street on the WHOLE map)
+- **Think "real place you could walk into", not "game level".**
+  - **Example: the luxury fashion boutique** where the real one is in Miami.
+    - True-to-life size, facade and floor plan, with the kind of stock that store really sells (handbags, small leather goods, shoes, luggage, ready-to-wear) at realistic sizes, displays and prices.
+    - Lighting, mirrors, a security guard at the door, and sales associates who greet you, follow you around, take a bag from the shelf to show you, and offer you a bottle of water while you browse.
+    - Branding is original, styled to match the tier.
+  - **The same thought for every other place.** Examples:
+    - A gas station clerk restocking the cooler.
+    - A barista calling out orders.
+    - A bartender wiping the counter.
+    - A pharmacy line.
+    - A sneaker store with a release-day queue.
+    - Office workers in cubicles with lit screens.
+    - Apartments with lived-in clutter, unique per unit.
+- **No "less important" area.** The worst corner of the map must still beat today's best interior. If an agent would leave a place generic, it is not done.
+- **Visual quality bar:** high-resolution PBR textures everywhere (albedo, normal, roughness, AO), wear and dirt, real-scale props, proper reflections on glass and floors, soft shadows, and dense small props (receipts, price tags, magazines, plants, cables, trash).
+- **Behavior quality bar:** every staff member and customer has a job, a routine and reactions. They talk, gesture, serve you, react to weapons, call security or the police, and go on breaks at the right times.
+- **Inspection:** an agent screenshots every interior and street block and rejects anything below this bar.
+
+## 0a2. Wanted HUD: "what the police know" (added Nov 13)
+- Under the six stars, show **evidence icons** for what the police currently know about you. Use our own original icon set and style, not a copy of any other game's HUD.
+  - Seen on camera, witnesses, your outfit described, your face identified, your weapon described, your vehicle and plate.
+  - Plus timers/counters (for example, how long until a description goes stale, and how many units are searching).
+- Icons appear when that information becomes known (a witness calls it in, a camera spots you) and clear when you invalidate it: change clothes, swap or repaint the car, ditch the weapon, wear a mask or hat, or wait it out.
+- Briefly highlight the icon that just changed, so you can see what blew your cover.
+- This is tied to the realistic police tracking in item 9 below.
+
 ## 0b. Everything from the Nov 13 pitch: ALL approved
 1. A story campaign of 15–25 missions with an original main character, crew, rivals and cutscenes.
 2. Heists you plan and run: scope the place, recruit and **hire** a crew (each person has skills and a cut), buy gear, choose loud or quiet, plan the getaway. Banks, jewelry stores, yachts, the port, casinos, armored trucks.
