@@ -5,6 +5,84 @@ Rethink and retest everything from scratch: this is a full overhaul, not a patch
 Keep it original. No copied GTA/Rockstar content (UI, characters, names, map art, music), and no exact replicas of real car or boat models or real brands.
 Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Revival) and real place layouts are fine. Shops and hotels get made-up brands.
 
+## 0. The bar and the approach (read first)
+**Quality bar.** The *least* detailed interior, shop or corner anywhere on the map must beat today's *best* shop interiors and the spawn area. It must also *work*: everything is polished, bug-checked and hitbox-accurate.
+
+**Nothing repeats.**
+- Every exterior, apartment block, dock, elevator, storefront, gas station, sign, door, bench, lamp and clock varies like real life, where different brands and builders make things.
+- Use invented manufacturer and brand families (elevator makers, dock builders, fixture brands), each with its own look. Seed variation per building.
+- No two neighbors identical.
+
+**"I can think of anything and do it."**
+- Build systems, not one-off scripts. Example: robbing a bank should work through general systems: scouting, disguises, crews, alarms, vaults, getaway, police response.
+- The player can also improvise: walk into any bank, threaten the teller, crack the vault, escape by boat.
+- Every plausible plan should have a working path.
+
+**Tiny realistic details.** Wall clocks show the current game time. Store hours, menus, receipts, screens and signs fit the time and place. You can always check the time (HUD, phone, clocks).
+
+**Agent structure** (agreed Nov 13): run dozens of agents in waves.
+1. **Design-system agent first:** a shared kit of materials, furniture, fixtures, lighting rules, invented brand families, and a style guide per area and per brand.
+2. **Category agents:** gas stations, hotels, convenience stores, apartments (luxury / mid / run-down), restaurants, bars, clubs, offices, retail types, banks, docks and marinas, elevators and lobbies.
+   - Each builds a variation generator, so no two match, plus 5–10 hand-made standout locations.
+3. **Area agents:** one per district or island. Placement, street-level detail, real Miami land use.
+4. **Systems agents:** missions and jobs, heists, businesses, wanted and police, pedestrian AI and dialogue, vehicles and damage, boats, water, weather, audio, map, saving, performance.
+5. **Inspection team:**
+   - Agents walk into every building, screenshot it and score it against the bar.
+   - They test hitboxes, doors, stairs and furniture collisions, and play through every mission and job.
+   - Failures go back for fixes. Repeat until clean.
+
+## 0b. Everything from the Nov 13 pitch: ALL approved
+1. A story campaign of 15–25 missions with an original main character, crew, rivals and cutscenes.
+2. Heists you plan and run: scope the place, recruit and **hire** a crew (each person has skills and a cut), buy gear, choose loud or quiet, plan the getaway. Banks, jewelry stores, yachts, the port, casinos, armored trucks.
+3. Side jobs: taxi, delivery, tow truck, boat tours, lifeguard, valet, ambulance, firefighter, vigilante.
+4. Street races and boat races with buy-ins and prize money.
+5. Random street events: muggings, chases, hitchhikers, armored-truck robberies.
+6. Businesses you own and **run**: nightclub, car wash, marina, restaurant, garage. Hire and fire staff, set prices, upgrade, defend from raids, earn passive income.
+7. Property: apartments and houses to save at, and garages that store your cars and boats.
+8. Stocks and betting: in-game companies whose prices react to what you do.
+9. **A six-star wanted system that tracks you realistically:**
+   - Witnesses call it in, with descriptions of you, your clothes and your car. Cameras, phones and plate reads count too.
+   - Police search the last-known area. Changing clothes, swapping or repainting your car, hiding or lying low lowers the chance they find you.
+   - It is hard to shake, but every escape method works.
+10. A police response that grows with your stars: patrols, roadblocks, **spike strips**, helicopters with spotlights, **police boats**, **SWAT** vans and teams, and an extreme sixth-star response.
+11. Bounty hunters who come after you if you lie low with a high bounty.
+12. Gangs with territories that react to trouble on their turf.
+13. Every building enterable, all detailed, all different.
+14. Daily routines: shop hours, rush hour, a busy beach at noon, packed clubs at 1 AM, garbage trucks at dawn.
+15. Events: beach festivals, car shows, boat parades, weekend fireworks.
+16. News and social media reacting to what you do.
+17. A rare hurricane event with flooding, debris and evacuations.
+18. Weather and tides, plus a moon and stars at night.
+19. Mini-games: pool, darts, arcade, golf, volleyball, basketball, fishing, jet-ski stunts.
+20. A gym, tattoo parlor, barber and clothing stores that change your look. Outfits matter for police descriptions.
+21. Food and drink with effects (health; drunk wobble).
+22. A phone with contacts, missions, camera, map, banking, stocks, and the time.
+23. Car customization with original parts: paint, wheels, tint, body kits, engine, neon.
+24. Helicopters, small planes, jet skis, blimps.
+25. **Realistic car damage, both visual and mechanical:**
+    - Crumpled panels, broken lights and glass.
+    - Damage that actually changes the car: bent steering pulls, a hit radiator overheats, a shot-out tire handles badly or blows out, an engine hit loses power, a big hit stalls it, a hit fuel tank leaks or catches fire.
+    - What it takes to disable a car should match real life.
+26. Delivery trucks, buses and garbage trucks running their actual routes.
+27. A cover system, better aiming, weapon upgrades (sights, extended magazines, suppressors).
+28. Melee combos and takedowns.
+29. Destructible props: glass, fruit stands, hydrants that spray water, light poles that bend.
+30. Ragdolls that react to cars, falls and explosions.
+31. Original radio stations with DJs, ads and talk shows, written for the game.
+32. A save system that resumes where you left off.
+33. A desktop app version if the browser can't keep up.
+
+## 0c. More added Nov 13
+- **Security in expensive buildings:** banks, the financial district, luxury hotels and offices have metal detectors and guards. Carrying a gun can get you stopped, questioned or searched, and it escalates if you run or fight. Some areas need keycards or a disguise.
+- **Talking pedestrians:**
+  - People say context-aware lines as you pass and react to your outfit, your car, the time, the weather and what you just did.
+  - They have short conversations with each other, and you can talk back with a few choices.
+  - Use a large original written line bank plus a smart picker. Optionally, an AI dialogue mode, only if it can run without exposing keys.
+- **Intense bug-checking:**
+  - Accurate hitboxes for people, cars, props and buildings.
+  - No stuck spots, no invisible walls, and doors and stairs that work.
+  - Every job and mission completable from start to finish, with automated playthrough tests.
+
 ## 1. Buildings and interiors
 - **Every building can be entered**, each with a fully detailed interior that fits it: apartments (luxury to run-down), hotel lobbies, offices, shops, restaurants, bars, clubs, gas stations, garages, churches, schools, warehouses.
 - **Elevators and stairs** to upper floors and rooftops with skyline views.
