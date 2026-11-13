@@ -226,6 +226,32 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **Gas stations, car washes, and a repair/repaint garage** that work.
 - **Traffic AI:** working traffic lights, lane changes, turn signals, pedestrians using crosswalks, honking, road rage, cars pulling over for sirens.
 
+## 4b. Hero vehicles and yachts (added Nov 13)
+- **User request:** exact replicas of specific real cars:
+  - a green Lamborghini Urus
+  - a red Huracán
+  - a graphite Aventador SVJ
+  - a purple Bugatti Chiron, like a well-known YouTuber's
+- **Decision: we do NOT build exact replicas or use real brands.** Real car designs, names and badges are protected. Instead, build **original hero cars that fill the same roles, with the same colors and the same "wow"**: equally detailed, clearly in the same class, but our own body lines, lights, wheels and badges.
+  - **Green super-SUV:** an aggressive high-riding performance SUV, angular hexagon-themed lights. Spotted in Brickell and on Miami Beach.
+  - **Red V10-style supercar:** low and wedge-shaped, mid-engine, sharp side intakes, a howling engine sound.
+  - **Graphite flagship V12-style hypercar:** wing, scissor doors, carbon aero, a loud exhaust with pops.
+  - **Purple two-tone hypercar:** curved, a luxurious grand-touring hypercar look with a two-tone purple and black split, and a signature front grille shape of our own. Parked at a luxury hotel.
+  - Each car has a cockpit interior, working doors and lights, a per-model engine sound, and damage. They spawn in rich areas, at valet stands and in garages.
+- **Yachts: fully detailed and boardable.**
+  - Several sizes (a 40 ft cruiser up to a 120 ft superyacht).
+  - Multiple decks with stairs: flybridge and helm, sundeck, salon, galley, cabins, swim platform, a tender garage.
+  - Working lights, music and a hot tub. They moor at marinas or anchor offshore. You board by swimming or by tender, or step on at the dock.
+  - **At the helm** you can:
+    - ask the captain to let you steer, or forcefully take over;
+    - just hang out: eat the food, use the hot tub, dance.
+  - **Scenario-driven reactions:**
+    - **Party yacht** (crowded, music): most guests don't care, a few get suspicious and stare or whisper, a bouncer type may eventually check on you.
+    - **Rich family yacht:** they notice fast. The father confronts you, tells you to get off, gets angry and may shove you. Others back away or film. Someone calls the police, and the captain turns the yacht back to shore while police boats head out.
+    - **Crewed charter:** crew ask for your booking, then call security.
+    - Taking the helm by force escalates (wanted stars, passengers panic, someone may jump overboard).
+- **This level of situational reaction is the standard for EVERY system and place.** People respond believably to who you are, what you're doing, where you are and who they are.
+
 ## 5. Police and wanted system
 - **Rebuild the wanted system as six stars.**
   - GTA 6 is confirmed to use six stars; that is a common genre mechanic, so use our own UI and our own rules for it.
