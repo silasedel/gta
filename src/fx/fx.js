@@ -311,7 +311,7 @@ export function createFX(game, env) {
     },
     ripple(pos) {
       const p = P(pos); if (!p) return;
-      ring(p.x, p.z, 0.15, rnd(1.2, 1.8), 1.6, 1, 0.55);
+      ring(p.x, p.z, 0.12, rnd(0.7, 1.05), 1.3, 1, 0.28); // subtle: small, faint rings
     },
     dust(pos, color) {
       const p = P(pos); if (!p) return;
@@ -413,7 +413,7 @@ export function createFX(game, env) {
     game.on('footstep', (e) => {
       if (!e?.position) return;
       if (e.surface === 'sand' && (e.run || Math.random() < 0.4)) fx.dust(e.position);
-      else if (e.surface === 'water') fx.ripple(e.position);
+      else if (e.surface === 'water' && !game.player?.swimming) fx.ripple(e.position); // wading only; swimming has its own small trail
     });
   }
 
@@ -469,11 +469,11 @@ export function createFX(game, env) {
     if (pl?.position && !pl.state?.inVehicle) {
       const p = pl.position;
       const wet = p.y < sl + 0.05 && inWater(p.x, p.z);
-      if (wet && !wasWet && (pl.velocity?.length?.() ?? 0) > 1.5) fx.splash(tmpV.set(p.x, sl, p.z), 0.6);
+      if (wet && !wasWet && !pl.swimming && (pl.velocity?.length?.() ?? 0) > 1.5) fx.splash(tmpV.set(p.x, sl, p.z), 0.6); // entering the water, not bobbing while swimming
       if (wet) {
         rippleT -= dt;
         const sp = Math.hypot(pl.velocity?.x || 0, pl.velocity?.z || 0);
-        if (rippleT <= 0) { fx.ripple(tmpV.set(p.x, sl, p.z)); rippleT = sp > 0.5 ? 0.35 : 1.2; }
+        if (rippleT <= 0) { fx.ripple(tmpV.set(p.x, sl, p.z)); rippleT = sp > 0.5 ? 0.6 : 1.6; }
       }
       wasWet = wet;
       // landing puffs on sand / grass
