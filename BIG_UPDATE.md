@@ -50,6 +50,46 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **Behavior quality bar:** every staff member and customer has a job, a routine and reactions. They talk, gesture, serve you, react to weapons, call security or the police, and go on breaks at the right times.
 - **Inspection:** an agent screenshots every interior and street block and rejects anything below this bar.
 
+## 0a1. Detail calibration, round 1 (user's ratings, Nov 13)
+- **Good (hit this level):** gas station, small details, restaurants, street props, pedestrians, bank heist, car damage, beach, hotels. Use the examples from the questionnaire as the floor.
+- **Lacking (needs MORE than described):**
+  - Apartments: more elements per unit than "clutter, TV, residents cooking or sleeping".
+  - The police-knowledge HUD.
+- **Too much:** the luxury boutique *as described* (guard, associate showing bags, offering water, real-size products) is a bit beyond what's expected. Keep it detailed, but don't over-invest there at the expense of everywhere else.
+- Round 2 of the questionnaire (tiered scenarios) refines this. See 0a1b when filled in.
+
+## 0a1b. Detail calibration, round 2: THE TARGET TIERS (user picked, Nov 13). Apply to EVERY shop, corner and area.
+- **Homes and apartments = Tier D, "Extreme".** Example: a mid-price 2-bedroom in Little Havana at 7 PM.
+  - A family at home doing believable things on a daily schedule: school, work, dinner, sleep. For example, one cooking on a working stove with steam and sizzle, a kid doing homework, a parent on the phone.
+  - Every drawer and cabinet opens with contents. A fridge with real-looking food, magnets and drawings.
+  - A bathroom with toiletries and a fan. A balcony with plants and a drying rack.
+  - Mail on the counter addressed to the residents, a laptop with a readable screen, unique family photos.
+  - A wall clock at the right time, and a TV showing the in-game news (including reports about the player).
+  - Neighbors' noise through the wall, plumbing sounds.
+  - Residents react to intruders: scream, call 911, grab a bat.
+  - Every unit is different and fits its area and income.
+- **Police knowledge = Tier C, "Full knowledge model".** Example: rob a corner store at 3 stars, then flee.
+  - Each piece of evidence is its own HUD icon with a countdown: the store camera records your face and outfit, the clerk describes your gun, a witness reads your plate.
+  - Police radio repeats the description ("male, teal shirt, gray sedan"), and cops stop people who match it.
+  - Swapping the car clears the car icon and a new shirt clears the outfit icon. Your face stays known for the day unless you wear a mask or hat.
+  - Destroying the store's camera recorder before leaving means no camera evidence.
+- **Streets = Tier D, "Extreme density".** Example: a random, non-landmark block of SW 8th Street on a Saturday afternoon.
+  - Life: a walk-up coffee window with a line, old men playing dominoes in a park, a fruit cart vendor, music from a bakery.
+  - Wear: murals, cracked sidewalks with gum stains, sneakers on power lines.
+  - Activity: a double-parked delivery truck with hazards on and a driver unloading, someone washing a car, a dog tied outside a store, steam from restaurant vents.
+  - PLUS: every window shows a different interior from outside, every parked car has unique dirt and stickers, flyers on poles you can read, birds on wires that scatter, puddles from AC drips, shop owners hosing the sidewalk at opening time.
+- **Shops and boutiques = Tier C, "Service".**
+  - Real store layout and lighting, mirrors, a guard at the door, associates who greet you, take items off the shelf to show you, and offer water.
+  - Realistic products, sizes and prices.
+  - Original brands styled to the store's tier.
+- **Applies everywhere.** EVERY shop, corner and area gets this level: its own lore (who owns it, its history, regulars), its own style, and real, recognizable kinds of everyday objects. Brands stay original, but the objects (coffee makers, sneakers, phones, groceries) must read instantly as the real thing.
+  - The user's words: "more than you could ever fathom".
+  - When in doubt, add more.
+
+## 0a1c. DONE MEANS VERIFIED (user rule)
+- Never say the update is done until every place, system and area has been checked against this standard: screenshots, walkthroughs, and automated play tests.
+- If anything falls short, keep working until it passes. Report the evidence, not just claims.
+
 ## 0a2. Wanted HUD: "what the police know" (added Nov 13)
 - Under the six stars, show **evidence icons** for what the police currently know about you. Use our own original icon set and style, not a copy of any other game's HUD.
   - Seen on camera, witnesses, your outfit described, your face identified, your weapon described, your vehicle and plate.
