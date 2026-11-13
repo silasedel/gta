@@ -1,6 +1,6 @@
 # Claude GTA (Port Solana)
 
-**Play in your browser:** https://silasedel.github.io/claude-gta/
+**Play in your browser:** https://silasedel.github.io/gta/
 
 An open-world, third-person crime and driving sandbox that runs in the browser. It's set on **real-scale Miami**, built from OpenStreetMap data, and every character, car, brand, UI element and story beat in it is original. It was built with Claude Code by a team of parallel AI agents.
 

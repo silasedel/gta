@@ -229,5 +229,5 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - Plan first, then parallel agents with clear file ownership.
 - Production builds for every check; muted, isolated headless Chrome only; never touch the user's browser.
 - Before/after numbers for each area; screenshots in `docs/showcase/`.
-- Push to GitHub (silasedel/claude-gta) when verified, then check the live site.
+- Push to GitHub (silasedel/gta) when verified, then check the live site.
 - When starting, fold `git log` and `BIG_UPDATE.md` into the plan, along with any extra notes the user adds before then.
