@@ -471,9 +471,6 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 ## Not doing
 - Filming tools (the user declined them).
 
-## Open question
-- "Cursor 6" from the user's voice note. Ask what it meant before starting.
-
 ## Process (when started)
 - Plan first, then parallel agents with clear file ownership.
 - Production builds for every check; muted, isolated headless Chrome only; never touch the user's browser.
