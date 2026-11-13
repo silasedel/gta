@@ -276,6 +276,24 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **A phone** with simple missions and jobs.
 - **Save system:** position, money, owned vehicles and property, outfits. The game resumes where you left off.
 
+## 8a. Main menu and front end (added Nov 13)
+- **A proper, cinematic main menu** in the same *format* as modern open-world crime games, but **our own original design**: our logo, art, fonts, colors and character, nothing traced from another game.
+  - A live 3D background: the main character posed on a Miami street, rooftop or marina at sunset, with slow camera moves, weather and time of day. The background changes between visits.
+  - **"Fit" showcase:** the character model up front in the current outfit, rotatable, with an **Outfit / Wardrobe** button to change clothes right from the menu.
+  - **Menu items:**
+    - **Continue** and **Story / Missions** (chapter select, replay finished missions).
+    - **Free Roam**.
+    - **Play with Friends**: create or join a session, invite code, friends list, party chat. Uses the multiplayer server from 8c.
+    - **Wardrobe**.
+    - **Garage**: owned cars and boats.
+    - **Settings**: graphics presets, resolution scale, render distance, audio levels, controls and rebinding, mouse sensitivity, subtitles, accessibility.
+    - **Credits**.
+  - Original menu music, smooth animated transitions, controller and keyboard support, and a news/updates panel.
+- **Changing clothes (confirm it is fully built):**
+  - Clothing stores, a home wardrobe and the menu Wardrobe, with shirts, pants, shorts, shoes, hats, sunglasses, masks and jewelry.
+  - Saved outfits; everything shows correctly on the 3D character.
+  - Outfits feed the police-description system: changing clothes clears the outfit evidence icon.
+
 ## 8b. Desktop app and near-AAA graphics (future-proofing, added Nov 13)
 - **Downloadable desktop app:**
   - Wrap the game in **Electron** (bundles its own Chromium, so the same WebGPU/WebGL behavior on every PC and Mac).
