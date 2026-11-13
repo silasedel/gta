@@ -1690,10 +1690,8 @@ export function createTileBuilder(ctx) {
     for (const p of P.hut) { box(p.x, p.y, p.z, 1.25, 1.2, 1.25, p.ry); box(p.x, p.y + 2.4, p.z, 1.5, 1.2, 1.5, p.ry); }
     sol('cafe');
     for (const p of P.cafe) box(p.x, p.y, p.z, 1.2, 0.45, 0.3, p.ry);
-    sol('blob');
-    for (let i = 0; i < P.blob.length; i += 2) { const p = P.blob[i]; cyl(p.x, 0, p.z, 0.55, 0.85); }
-    sol('flower');
-    for (let i = 0; i < P.flower.length; i += 2) { const p = P.flower[i]; cyl(p.x, 0, p.z, 0.55, 0.85); }
+    // bushes and flower beds are NOT solid (you push through them like real life); they're registered as soft zones that slow you down
+    if (!bushTiles.has(t.k)) { bushTiles.add(t.k); for (const arr of [P.blob, P.flower]) for (const p of arr) addBush(p.x, p.z, 0.75 * (p.s || 1)); }
     sol('kiosk');
     for (const p of P.kiosk) box(p.x, p.y, p.z, 1.3, 1.3, 0.8, p.ry);
     sol('bike');
@@ -1769,6 +1767,15 @@ export function createTileBuilder(ctx) {
     if (forColliders && r.group) r.group.traverse((o) => { if (o.isMesh && !o.isInstancedMesh) o.geometry?.dispose?.(); });
     return r;
   }
+  // ---- soft bush zones (no colliders): a 4 m grid of [x, z, r]; queried by the player controller and vehicles for slowdown ----
+  const bushTiles = new Set(), bushGrid = new Map(), BG = 4;
+  function addBush(x, z, r) { const k = Math.floor(x / BG) + ',' + Math.floor(z / BG); let a = bushGrid.get(k); if (!a) bushGrid.set(k, (a = [])); a.push(x, z, r); }
+  function bushAt(x, z, pad = 0) { // 0..1 how deep inside a bush (0 = not in one)
+    let best = 0; const cx = Math.floor(x / BG), cz = Math.floor(z / BG);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const a = bushGrid.get((cx + i) + ',' + (cz + j)); if (!a) continue;
+      for (let q = 0; q < a.length; q += 3) { const d = Math.hypot(x - a[q], z - a[q + 1]), r = a[q + 2] + pad; if (d < r) best = Math.max(best, 1 - d / r); } }
+    return best;
+  }
   function removeColliders(handles) { for (const h of handles) if (h && world.getCollider(h.handle) === h && (typeof h.isValid !== 'function' || h.isValid())) world.removeCollider(h, false); handles.length = 0; }
   function dispose(group) {
     if (!group) return;
@@ -1781,5 +1788,5 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
+  return { bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
 }

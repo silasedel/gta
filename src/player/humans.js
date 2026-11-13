@@ -142,52 +142,22 @@ export function makeTexturedMat(entryMat, k) {
 export function makeAtlasSkinMat(tint) {
   return makeSkinMat({ d: 'atlasS.jpg' }, tint);
 }
-export function makeAtlasMat(palette, opts = {}) {
+export function makeAtlasMat(palette) {
   const m = new THREE.MeshStandardMaterial({ map: tex('atlasC.webp'), alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.82, metalness: 0, name: 'atlasC' });
-  // optional re-tint of a baked-in top (the player's shirt): non-skin, non-denim texels between waist and collar height
-  const topTint = opts.topTint != null ? new THREE.Color(opts.topTint) : null;
-  m.userData.top = { value: topTint || new THREE.Color(1, 1, 1) };
-  m.customProgramCacheKey = () => 'atlasC' + (topTint ? 'T' : '');
   const pal = []; for (let i = 0; i < 12; i++) pal.push(new THREE.Color(1, 1, 1));
   (palette || []).forEach((c, i) => { if (c !== undefined && c !== null) pal[i].set(c); });
   m.userData.pal = { value: pal };
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uPal = m.userData.pal; sh.uniforms.uTop = m.userData.top;
+    sh.uniforms.uPal = m.userData.pal;
     sh.vertexShader = `#if !defined(USE_COLOR) && !defined(USE_COLOR_ALPHA)
 attribute vec4 color;
 #endif
 #ifndef USE_UV1
 attribute vec2 uv1;
 #endif
-varying vec4 vG; varying vec2 vU1; varying vec3 vLP;
-` + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1; vLP = position;');
-    sh.fragmentShader = (topTint ? '#define TOP_TINT\n' : '') + 'uniform vec3 uPal[12]; uniform vec3 uTop; varying vec4 vG; varying vec2 vU1; varying vec3 vLP;\n' + HASH + `
-#ifdef TOP_TINT
-// original tropical print (leaves + hibiscus) mapped around the torso
-vec3 tropicalPrint(vec3 lp, vec3 base) {
-  vec2 uv = vec2(atan(lp.x, lp.z) * 0.16, lp.y) / 0.12; // motif size ~12 cm
-  vec2 id = floor(uv), f = fract(uv) - 0.5;
-  vec3 col = base;
-  const vec3 LEAF = vec3(0.05, 0.26, 0.20), FLOWER = vec3(0.95, 0.42, 0.33), CENTER = vec3(0.98, 0.84, 0.35);
-  for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
-    vec2 o = vec2(float(i), float(j)), cid = id + o;
-    float r1 = fract(sin(dot(cid, vec2(127.1, 311.7))) * 43758.5453), r2 = fract(sin(dot(cid, vec2(269.5, 183.3))) * 43758.5453);
-    vec2 q = f - (o + vec2(r1, r2) * 0.5 - 0.25);
-    float rot = r1 * 6.2831; q = mat2(cos(rot), -sin(rot), sin(rot), cos(rot)) * q;
-    if (r2 < 0.5) {
-      float leaf = 1.0 - smoothstep(0.85, 1.0, length(q / vec2(0.44, 0.15)));
-      float rib = (1.0 - smoothstep(0.0, 0.018, abs(q.y))) * step(abs(q.x), 0.36);
-      float vein = (1.0 - smoothstep(0.0, 0.012, abs(fract((q.x + abs(q.y) * 0.9) * 9.0) - 0.5) * 0.11)) * 0.35;
-      col = mix(col, LEAF * (1.0 + rib * 0.6 + vein), leaf);
-    } else if (r2 < 0.78) {
-      float a = atan(q.y, q.x), rr = length(q), petal = 0.16 + 0.065 * cos(5.0 * a);
-      col = mix(col, FLOWER * (0.85 + 0.3 * rr / 0.2), 1.0 - smoothstep(petal - 0.015, petal, rr));
-      col = mix(col, CENTER, 1.0 - smoothstep(0.025, 0.036, rr));
-    }
-  }
-  return col;
-}
-#endif
+varying vec4 vG; varying vec2 vU1;
+` + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vG = vec4(color); vU1 = uv1;');
+    sh.fragmentShader = 'uniform vec3 uPal[12]; varying vec4 vG; varying vec2 vU1;\n' + HASH + `
 float foldH(vec2 u) { return 0.5 + 0.5 * sin(u.y * 24.0 + sin(u.x * 9.0) * 1.5); }
 float fabricH(vec2 u, float fab) {
   // fine weave fades out with screen-space frequency (no moire), folds stay
@@ -212,29 +182,6 @@ float fabricH(vec2 u, float fab) {
       .replace('#include <map_fragment>', `#include <map_fragment>
   float gSlot = floor(vG.r * 16.0 + 0.5);
   float gFab = floor(vG.b * 16.0 + 0.5);
-#ifdef TOP_TINT
-  if (gSlot < 1.5 && vLP.y > 0.9 && vLP.y < 1.5) {
-    vec3 c0 = diffuseColor.rgb;
-    float warm = c0.r - c0.b, lum0 = dot(c0, vec3(0.3, 0.59, 0.11));
-    bool denim = c0.b > c0.g * 1.12 && c0.b > c0.r * 1.2;
-    if (warm < 0.06 && !denim) {
-      // plain short-sleeve button-up: bare forearms past the sleeve hem, darker placket with buttons down the front, collar
-      float ax = abs(vLP.x), shade = clamp(0.55 + lum0 * 2.2, 0.45, 1.2);
-      if (ax > 0.30) diffuseColor.rgb = vec3(0.6, 0.31, 0.2) * clamp(0.72 + lum0 * 0.9, 0.68, 1.0);
-      else {
-        vec3 col = uTop;
-        if (ax > 0.283) col *= 0.8;                                   // sleeve hem
-        if (vLP.z > 0.02 && ax < 0.013 && vLP.y < 1.43) {             // button placket (front is +z)
-          col *= 0.86;
-          float by = mod(vLP.y - 0.97, 0.085) - 0.0425;
-          if (length(vec2(ax, by)) < 0.0075) col = vec3(0.9, 0.9, 0.86);
-        }
-        if (vLP.y > 1.41) col *= 1.1;                                 // collar
-        diffuseColor.rgb = col * shade;
-      }
-    }
-  }
-#endif
   if (gSlot > 2.5) {
     vec3 tint = uPal[int(min(gSlot, 11.0))];
     float h = fabricH(vU1, gFab);
@@ -267,7 +214,7 @@ float fabricH(vec2 u, float fab) {
     if (fs > 2.5) roughnessFactor = (fb > 9.5 && vG.a > 0.85) ? 0.25 : fb > 3.5 && fb < 4.5 ? 0.45 : fb > 7.5 && fb < 8.5 ? 0.6 : 0.9;
     else if (fs > 1.5) roughnessFactor = 0.55; }`);
   };
-  m.customProgramCacheKey = () => 'mpfbAtlasC' + (topTint ? 'T' : ''); // tinted (player) variant compiles its own program
+  m.customProgramCacheKey = () => 'mpfbAtlasC';
   return m;
 }
 

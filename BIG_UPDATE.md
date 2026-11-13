@@ -13,6 +13,12 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 ## 0. The bar and the approach (read first)
 **Quality bar (raised, Nov 13).** The *worst* shop on the new map must be **WAY** better than today's *best* store. The user says today's stores "suck"; the new ones must be in a different league, not comparable at all. Before/after screenshots of the same store must look like two different games. It must also *work*: everything is polished, bug-checked and hitbox-accurate.
 
+**Fully maxed out, not efficient (user, Nov 13).**
+- Do NOT minimize, simplify or take shortcuts to save time, size or effort.
+- Every single item and little thing gets its own detailed asset: either meticulously handcrafted, or a high-quality downloaded model (CC0 / CC-BY, credited).
+- No placeholder boxes, no reused generic stand-ins, no "good enough".
+- Download size and code size do not matter; quality does. Use the desktop app build to carry the full asset set.
+
 **Nothing repeats.**
 - Every exterior, apartment block, dock, elevator, storefront, gas station, sign, door, bench, lamp and clock varies like real life, where different brands and builders make things.
 - Use invented manufacturer and brand families (elevator makers, dock builders, fixture brands), each with its own look. Seed variation per building.
@@ -267,6 +273,13 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Panning and zooming stay locked to the mouse/trackpad.
   - Crisp at every zoom.
   - GPS route lines, store icons by category, a legend, fast travel to discovered places.
+- **Real GPS routing (user, Nov 13):** today the route zigzags street by street toward the destination. Replace it with true fastest-route routing, like a real navigation app.
+  - **Travel time, not distance:** each road segment is weighted by length ÷ realistic speed for its class (highway/motorway > trunk > primary > secondary > residential > service and alleys), its lane count, and its speed limit.
+  - **Intersections cost time:** left turns cost more than right turns, U-turns heavily, and traffic lights and stop signs add a wait. Going straight through a junction is cheapest.
+  - **Rules:** one-way streets, highway on- and off-ramps, no illegal turns, no driving over medians, and bridges and causeways used properly. Prefer staying on bigger roads, like real GPS.
+  - **Live traffic:** rush-hour slowdowns and accidents raise costs, and the route updates when you miss a turn (quick recalculation).
+  - **Smooth display:** the route line follows the actual lanes on both the minimap and the pause map, with turn-by-turn arrows and an ETA and distance readout.
+  - **Walking mode:** a separate on-foot route that uses sidewalks, crosswalks and parks.
 
 ## 3. People and AI
 - **Pedestrian AI:**

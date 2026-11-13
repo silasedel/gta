@@ -1209,6 +1209,12 @@ export async function createVehicles(game) {
     for (let i = 0; i < list.length; i++) {
       const v = list[i];
       try { if (v.ghost) ghostTick(v, dt); else physicsTick(v, dt); } catch (e) { console.error('[vehicles] tick', v.name, e); }
+      // driving through bushes and flower beds (no colliders): they drag the car down instead of stopping it dead
+      if (!v.ghost && !v.frozen && !v.isBoat && !v.disposed && city?.bushAt) {
+        try { const t = v.body.translation(), bd = city.bushAt(t.x, t.z, 0.9);
+          if (bd > 0) { const lv = v.body.linvel(), k = Math.exp(-dt * 2.2 * Math.min(1, bd * 2)); v.body.setLinvel({ x: lv.x * k, y: lv.y, z: lv.z * k }, true); }
+        } catch (e) { /* body gone */ }
+      }
     }
   }
   Object.defineProperty(vehiclesFixed, 'name', { value: 'vehiclesFixed' }); // survives minification for the profiler

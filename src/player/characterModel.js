@@ -397,6 +397,8 @@ function humanGarment(kind, r, zone) {
   if (zone === 'nightlife' || zone === 'night') return { c: p([0x1f1f21, 0x3a3a3c, 0x5a1f2e, 0x2a3442, 0xf0ede6, 0x3b2a4a]), pat: 0 };
   return { c: r() < 0.5 ? p(G_BRIGHT) : p(G_NEUTRAL), pat: r() < 0.18 ? 1 : 0, c2: p([0xf0ede6, 0x2a3442, 0x1f1f21]) };
 }
+// player outfit (v2 model): plain teal short-sleeve button-up (slot 3), denim jeans (slot 4), off-white buttons (slot 5)
+const PLAYER_PAL = { shirt: 0x2aa9a6, jeans: 0x2f4a6e, buttons: 0xe9e6dc };
 function humanMaterials(base, seed, zone, variant) {
   const e = base.entry; const r = rng(seed * 5 + 9);
   if (e.v === 2) {
@@ -410,10 +412,11 @@ function humanMaterials(base, seed, zone, variant) {
       if (pal[g.slot] === undefined) pal[g.slot] = c.c;
       garments[g.slot] = g.kind;
     }
+    if (variant === 'player') { pal[3] = PLAYER_PAL.shirt; pal[4] = PLAYER_PAL.jeans; pal[5] = PLAYER_PAL.buttons; } // fixed outfit
     base.shared ||= {};
     const skin = base.shared.skinS ||= makeAtlasSkinMat();
-    const atlas = makeAtlasMat(pal, variant === 'player' ? { topTint: 0x2aa9a6 } : {}); // player: plain teal short-sleeve button-up
-    return { mats: { skinS: skin, atlasC: atlas }, garments: { __v2: atlas, slots: garments }, hairC };
+    const atlas = makeAtlasMat(pal);
+    return { mats: { skinS: skin, atlasC: atlas }, garments: { __v2: atlas, slots: garments, fixed: variant === 'player' }, hairC };
   }
   base.shared ||= {};
   const out = {}; const garments = {};
@@ -432,6 +435,7 @@ function humanMaterials(base, seed, zone, variant) {
 function restyleHuman(garments, seed, zone) {
   const r = rng(seed * 29 + zone.length * 7);
   if (garments.__v2) {
+    if (garments.fixed) return;
     const pal = garments.__v2.userData.pal.value;
     for (const slot in garments.slots) { const k = garments.slots[slot]; if (k === 'vest') continue; pal[+slot].setHex((zone === 'cop' ? { c: 0x1c2a44 } : humanGarment(k, r, zone)).c); }
     return;

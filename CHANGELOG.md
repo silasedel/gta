@@ -2,6 +2,11 @@
 
 Versions are MAJOR.MINOR.PATCH: MAJOR = huge overhauls, MINOR = sizable changes, PATCH = small fixes.
 
+## v1.1.0 (Nov 13, 2026)
+- **New main character model:** a real modeled teal short-sleeve button-up with proper bare arms, plus jeans.
+- **Swimming:** a proper front-crawl animation.
+- **Bushes and flower beds:** you can walk and drive through them, and they slow you down instead of blocking you.
+
 ## v1.0.0 (Nov 13, 2026)
 The first public version.
 - **City and vehicles:** real-scale Miami from OpenStreetMap, original cars, and enterable boats.

@@ -244,6 +244,7 @@ export async function createMiamiCity(game, opts = {}) {
   city.registerAnchor = (obj, radius = 100) => { if (!obj || anchors.has(obj)) return; anchors.add(obj); anchorFocus.set(obj, { x: 0, z: 0, r: radius }); };
   city.unregisterAnchor = (obj) => { anchors.delete(obj); anchorFocus.delete(obj); };
   city.collidersReadyAt = (x, z) => streamer.collidersReadyAt(x, z);
+  city.bushAt = (x, z, pad) => (builder.bushAt ? builder.bushAt(x, z, pad) : 0); // 0..1 depth inside a (non-solid) bush
   city.colliderSourceAt = (x, z, r) => builder.colliderSourceAt ? builder.colliderSourceAt(x, z, r) : []; // which city generator placed static geometry near (x, z)
   city.deckSurfaceAt = (x, z, yHint) => builder.deckSurfaceAt(x, z, yHint);
   // moored boats (VEHICLES swaps one for a drivable boat): moorings near a point (default: the player), claim hides the static boat + its collider
