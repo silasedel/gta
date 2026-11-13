@@ -5,6 +5,42 @@ Rethink and retest everything from scratch: this is a full overhaul, not a patch
 Keep it original. No copied GTA/Rockstar content (UI, characters, names, map art, music), and no exact replicas of real car or boat models or real brands.
 Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Revival) and real place layouts are fine. Shops and hotels get made-up brands.
 
+## Reference gallery (look at these first)
+These images live in `references/`. That folder is kept locally only and is not on GitHub, so the links work in the project folder.
+- **V2 agents must open and study these before building.**
+- They set the bar for layout, quality, lighting and mood. Build our own original versions to that standard; don't trace or reuse their exact characters, names, logos or buildings.
+
+### The map (top priority)
+User's concept layout, with Nico's home marked by the white dot and a scale of about 13 km.
+
+![Concept map](references/ref_15.webp)
+![Map with Nico's home marked](references/ref_25.webp)
+![Map scale, about 13 km](references/ref_26.webp)
+
+### Nico's home (top priority): a Keys stilt house on the water
+![Keys stilt house reference](references/ref_24.webp)
+
+### The Keys welcome sign (top priority)
+![Keys welcome sign reference](references/ref_18.webp)
+
+### Visual quality bar
+![Highway, signs and skyline](references/ref_16.webp)
+![Port road](references/ref_17.webp)
+![Planes over the highway](references/ref_19.webp)
+![Store interior](references/ref_20.webp)
+![Characters at a van](references/ref_21.webp)
+![Car interior](references/ref_22.webp)
+![Golden-hour dock](references/ref_23.webp)
+![Character close-up](references/ref_27.webp)
+![Character by a seaplane](references/ref_28.webp)
+![Character close-up 2](references/ref_29.webp)
+![Keys bar patio](references/ref_30.webp)
+![Boat scene](references/ref_31.webp)
+![Underwater cave](references/ref_32.webp)
+![Reef with sea turtle](references/ref_33.webp)
+![Dolphin by a yacht](references/ref_34.webp)
+![Street life with an iguana](references/ref_35.webp)
+
 ## Versioning (user, Nov 13)
 - The current game is **v1.0.0**. This big update ships as **v2.0.0**, and the user will call it "V2".
 - **MAJOR** (first number) = huge overhauls. **MINOR** (second) = decently large changes. **PATCH** (third) = tiny fixes. For example, v2.6.34.
