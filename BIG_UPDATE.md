@@ -259,6 +259,46 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - A discount or family shoe store.
   - Shoes can be bought and actually worn by the player, and they show in police descriptions.
 
+## 1c. A whole state-style world (added Nov 13): real Miami inside a condensed Florida
+**Concept:**
+- A **perfect, real-scale copy of Miami** (Miami Beach, Downtown, Brickell, and the core neighborhoods west and north of it) sits on the east coast of a **larger, condensed Florida-style landmass**.
+- The rest of the world is a believable, *compressed* blend of real South and Central Florida regions, stitched together naturally. No hard cutoffs.
+- **Use our own layout and names.** Use real Florida geography as the source. Don't copy any other game's or fan map's layout or place names.
+
+**Regions** (rough layout: city on the east coast, wilderness inland, islands to the south):
+1. **Miami (real, 1:1 scale):**
+   - Miami Beach and the bay islands, PortMiami, Downtown, Brickell (city detail all the way down through Brickell), Little Havana, Wynwood, Edgewater and the Design District.
+   - Modeled as true to life as possible (see "street accuracy" below).
+2. **The Everglades (condensed):** sawgrass marsh, mangrove channels, airboat routes, a two-lane highway crossing it, wildlife (gators, birds), fishing camps and a ranger station.
+3. **The Keys (condensed):** a chain of small islands connected by long overseas bridges, ending in a small island town with an airfield. Marinas, dive spots, beach bars.
+4. **North and inland (condensed):**
+   - Suburbs and strip malls fading into farmland and a big inland lake.
+   - A state forest or park with hills and trails.
+   - A smaller second coastal town to the north.
+   - A highway loop connecting everything.
+5. **Suburbs between city and wilderness:** realistic South Florida subdivisions, canals, strip malls, gas stations.
+
+**Spawn and start:**
+- The player starts in a **small, realistic suburban house** (a modest 2-bedroom on a canal street) roughly in the middle of the map, between the city and the wilderness. That becomes the first safehouse.
+- You start with little money and work up: jobs, buying bigger property later.
+
+**Size:**
+- Aim for a total world comparable to or larger than the big open-world crime games. GTA 5's map is commonly cited at roughly 80 km² (unofficial); GTA 6 is expected to be larger.
+- Miami core at 1:1. Surrounding regions compressed (real Miami to the Keys is 100+ km), so travel stays fun.
+- Everywhere playable must meet the detail standard. Wilderness gets nature detail (plants, water, wildlife, roads, small buildings) instead of city density.
+- If the world is too big to hit the detail bar, keep the region list but shrink the wilderness before lowering quality anywhere.
+
+**Street accuracy for Miami:**
+- **Google Street View can't be used.** Its imagery is copyrighted and its terms forbid scraping or copying it, so agents won't scrape it or "drive every street" there.
+- **Instead, model Miami from:**
+  - OpenStreetMap: building outlines, heights, levels, colors, shop types and names.
+  - **Mapillary** (street-level photos under CC-BY-SA) as visual reference for key streets.
+  - Public-domain or openly licensed photos.
+  - Architectural style knowledge per neighborhood.
+- **Priority 1, highest fidelity:** the famous streets, e.g. Ocean Drive, Collins Ave, Lincoln Road, Brickell Ave, Biscayne Blvd, Calle Ocho and the Wynwood walls area.
+- **Priority 2:** every other street, from data plus district style rules.
+- Real *places* and layouts are fine; real *business names, brands and logos* stay replaced by our own.
+
 ## 2. Map
 - **Extend the map:** downtown a few blocks further **west**, and the whole map a few blocks further **north**. Use a fresh OSM pull and keep the designed hard boundary.
 - **Much bigger playable area** (user, Nov 13):
