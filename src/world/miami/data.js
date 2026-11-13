@@ -82,9 +82,9 @@ export async function loadMiamiData(game, opts = {}) {
     return j * g.w + i;
   };
   const surfCode = (x, z) => gS.data[cellOf(gS, x, z)];
-  // swimmable water: at least MIN_DEPTH (2 m, > 6 ft) everywhere except where the water meets a beach, which keeps its
-  // gentle slope (the clamp ramps in from 8 m to 32 m off the sand). Cached per surface cell.
-  const MIN_DEPTH = 2.0;
+  // swimmable water: at least MIN_DEPTH (5 m) everywhere except where the water meets a beach, which keeps its
+  // gentle slope (the clamp ramps in from 8 m to 56 m off the sand). Cached per surface cell.
+  const MIN_DEPTH = 5.0; // deep enough to dive under and swim along the bottom
   const S_SANDS = SURF.map((s, i) => (/sand|beach/i.test(s) ? i : -1)).filter((i) => i >= 0);
   const minDepthCache = new Map();
   function minDepthAt(x, z) {
@@ -92,8 +92,8 @@ export async function loadMiamiData(game, opts = {}) {
     const k = cellOf(gS, x, z); let v = minDepthCache.get(k);
     if (v === undefined) {
       let dB = Infinity;
-      for (let r = 8; r <= 32 && dB === Infinity; r += 8) for (let a = 0; a < 12; a++) { const ang = (a / 12) * Math.PI * 2; if (S_SANDS.includes(surfCode(x + Math.cos(ang) * r, z + Math.sin(ang) * r))) { dB = r; break; } }
-      v = dB === Infinity ? MIN_DEPTH : MIN_DEPTH * Math.min(1, Math.max(0, (dB - 8) / 24));
+      for (let r = 8; r <= 56 && dB === Infinity; r += 8) for (let a = 0; a < 12; a++) { const ang = (a / 12) * Math.PI * 2; if (S_SANDS.includes(surfCode(x + Math.cos(ang) * r, z + Math.sin(ang) * r))) { dB = r; break; } }
+      v = dB === Infinity ? MIN_DEPTH : MIN_DEPTH * Math.min(1, Math.max(0, (dB - 8) / 48));
       if (minDepthCache.size > 400000) minDepthCache.clear();
       minDepthCache.set(k, v);
     }

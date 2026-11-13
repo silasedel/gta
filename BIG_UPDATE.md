@@ -45,6 +45,12 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Smooth, clean, high-detail bodies with no glitches.
   - Tiered by area: supercars in rich areas; cheap sedans and old SUVs in poorer areas.
 - **Boats rebuilt** as original designs of real categories: center-console, speedboat, sailboat, yacht, fishing boat, police boat.
+  - **Spend real time on boats; they must feel great.**
+  - **Steering:** much more responsive (the user says it is far too low now). Speed-sensitive turning, planing lean into turns, and a tight low-speed turn for docking.
+  - **Physics:** a convincing hull on the water: bow rise when planing, bounce over waves and wakes, spray, a believable drift/slide. No getting stuck on docks or other boats (a guard exists for docks; extend it to parked boats).
+  - **Models and graphics:** high-detail, smooth hulls with no glitches. Detailed decks, consoles, seats, rails, windshields, outboard motors, lights at night, wet sheen. Engine sound per boat type.
+  - **Boarding animation:** a really smooth climb from the water (grab the side, pull up, roll over) and a jump or step-on from a dock or shore, chosen by where the player is, with a smooth hand-off to the driving pose. Getting off is just as smooth.
+  - **Test specifically:** steering feel at several speeds, every boat model up close (screenshots), and boarding and exiting from every direction (water, dock, beach).
 - **Jet skis** you can steal, or rent from beach rental stands.
 - **Helicopters and small planes** you can fly.
 - **Car damage:** crumpling panels, shattering glass, detached bumpers and doors, smoke and fire states.
@@ -66,13 +72,38 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - Boat wakes and spray, underwater light patterns, **seagrass and fish**.
 - **Sharks:** a very rare encounter in open water, roughly matching real-life odds. It can bite.
 - Swimmable depth (at least 6 ft) wherever there are boats (started Nov 13).
+- **Swimming and diving, much better:**
+  - Smooth dive and surface controls, with a proper underwater swim stroke and turning.
+  - Deep water you can explore: a detailed seabed with rocks, seagrass, shells, wrecks and fish schools.
+  - Underwater light rays, murk that varies by area, bubbles, a muffled underwater audio filter.
+  - Climbing out anywhere natural.
+  - Started Nov 13: water is at least 5 m deep away from beaches, and there is a basic visible seabed.
 
 ## 7. World and atmosphere
 - **Weather and time:** rain with wet reflective streets, Florida thunderstorms (lightning, wind in palms), sunsets, foggy mornings.
 - **Lighting:** crazy neon and signage on every nightlife street, lit windows that vary at night, car headlight shadows, wet-road reflections.
+- **Boat sounds:** find much better, realistic recorded boat audio (CC0 / CC-BY only, credited in CREDITS.md):
+  - Outboard and inboard engines with idle, rev and planing layers.
+  - Hull slap, wake and spray, horn.
+  - A distinct engine per boat type (jet ski whine, center-console outboard, yacht diesel rumble).
+- **A unique sound for every car model:**
+  - Find new real engine recordings for the main classes (supercar V8/V10/V12, muscle V8, inline-4 compact, diesel truck, EV whine).
+  - Then give every individual model its own slight variation: pitch, rev range, exhaust tone, intake noise, turbo/whistle, pops.
+  - No two models should sound identical.
+  - Keep the strong bass and the balanced mix.
+- **Deep, satisfying sound** that you can feel on headphones and good speakers:
+  - High-quality samples with real low-end bass for engines, crashes, impacts, explosions, gunfire and boat engines.
+  - Layered crashes: metal crunch, glass, debris, and a sub-bass thump.
+  - Mixed so it stays clear and doesn't clip.
 - **Sound** (already good; improve everything): ambience per district, NPC footsteps by surface, rain, thunder and wind, music inside venues (clubs, bars, restaurants, shops), and venue music audible from the street.
 
 ## 8. Player and progression
+- **Main character: a big upgrade.** Better face, hair, body proportions, skin and cloth shading, and smoother animations (walk, run, idle, enter/exit, swim).
+  - **Signature outfit:** a hand-designed Miami tropical button-up shirt, original artwork.
+    - Our own print: hand-drawn palms, leaves and hibiscus in our own layout.
+    - Our own colorway, not a copy of any game character's shirt.
+    - Proper fabric texture, a collar, buttons, and cloth that moves.
+  - Have 2–3 shirt variants in the clothing stores.
 - **Jobs and ways to earn money** so money matters: taxi, delivery, boat tours, lifeguard shifts, valet, robbery and heists.
 - **Things to spend it on:** cars, boats, property, clothes, weapons, garage upgrades.
 - **Clothing stores** where you actually change outfits.
@@ -80,6 +111,11 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **Save system:** position, money, owned vehicles and property, outfits. The game resumes where you left off.
 
 ## 9. Quality
+- **No lag and far render distance; nothing pops in.**
+  - Cars, trees, props and buildings must already be there well before you reach them, at full detail near you and good detail far away.
+  - First try to get there in the browser (better LOD and impostors, instancing, worker-thread tile building, GPU-driven culling, streaming far ahead of the camera).
+  - If the browser truly can't hold it, ship a **desktop app** build (Electron/Tauri wrapper with higher memory limits and an unthrottled GPU), plus the web version as a lighter mode.
+  - Measure the pop-in distance and frame times before and after.
 - **Performance gate:** 60 fps target and fast first load (compressed assets, lazy-loaded districts).
 - **Re-run every test after the update:** soak, drive, ram, road audit, swim/boat, click, sub-path, live site.
 - No pop-in close to the player, no invisible walls, no falling through anything.
@@ -95,3 +131,4 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - Production builds for every check; muted, isolated headless Chrome only; never touch the user's browser.
 - Before/after numbers for each area; screenshots in `docs/showcase/`.
 - Push to GitHub (silasedel/claude-gta) when verified, then check the live site.
+- When starting, fold `git log` and `BIG_UPDATE.md` into the plan, along with any extra notes the user adds before then.

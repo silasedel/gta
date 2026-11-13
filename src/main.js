@@ -244,7 +244,7 @@ async function boot() {
       const bob = Math.sin(game.clock.elapsed * 1.7) * 0.05;
       // dive: hold C / Ctrl to go down, Space to come up (breath drains while the head is under)
       const diveIn = !blocked && (inp.down('KeyC') || inp.down('ControlLeft')), upIn = !blocked && inp.down('Space');
-      const maxDive = Math.max(0, (SEA - L.groundY) - 2.2);
+      const maxDive = Math.max(0, (SEA - L.groundY) - 1.6); // swim right down to just above the sea floor
       // camera-directed swimming: looking down while swimming forward dives, looking up rises
       const pitchDown = Math.max(-1, Math.min(1, (game.cameraPitch - 0.3) / 0.6));   // + = camera looking down
       const fwdIn = !blocked && inp.down('KeyW') ? 1 : 0;

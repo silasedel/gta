@@ -41,6 +41,25 @@ export function createPost(game) {
     composer.addPass(gtao);
   } catch (e) { console.warn('[post] GTAO unavailable', e); gtao = null; }
 
+  // Sanitize the HDR image before bloom: a single NaN / Inf pixel (an overflowing specular or emissive highlight, a 0/0 in
+  // some material) gets spread by bloom's down-sampled blur into flickering black squares. Replace non-finite values and
+  // clamp absurd intensities (half-float max is 65504) so one bad pixel can never poison a whole block of the screen.
+  const sanitize = new ShaderPass({
+    uniforms: { tDiffuse: { value: null }, uMax: { value: 48.0 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `
+      uniform sampler2D tDiffuse; uniform float uMax; varying vec2 vUv;
+      bool bad(float v) { return !(v == v) || abs(v) > 6.0e4; } // NaN fails v == v; Inf / overflow is huge
+      void main() {
+        vec4 c = texture2D(tDiffuse, vUv);
+        if (bad(c.r) || bad(c.g) || bad(c.b) || bad(c.a)) c = vec4(0.0, 0.0, 0.0, 1.0);
+        c.rgb = clamp(c.rgb, 0.0, uMax);
+        gl_FragColor = c;
+      }`,
+  });
+  composer.addPass(sanitize);
+  game.postSanitize = sanitize;
+
   const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.32, 0.55, 0.92);
   composer.addPass(bloom);
 

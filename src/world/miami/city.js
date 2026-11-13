@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createDataProvider } from './dataProvider.js';
 import { buildPort } from './port.js';
 import { createGrassField } from './grass.js';
+import { createSeabed } from './seabed.js';
 
 const SEA_LEVEL = -0.12;
 
@@ -251,6 +252,7 @@ export async function createMiamiCity(game, opts = {}) {
   city.releaseMooring = (id) => builder.releaseMooring(id); // rendered/collider deck height near yHint, or null off-deck
   city.onTileCollidersRemoving = (fn) => streamer.onTileCollidersRemoving(fn);
   game.updaters.push((dt) => city.update(dt));
+  try { city.seabed = createSeabed(game, city); } catch (e) { console.warn('[miami] seabed unavailable', e); }
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }
   // synchronous warm-up: colliders + near tiles around the spawn so the player never falls
