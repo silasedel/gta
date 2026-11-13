@@ -49,6 +49,14 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Use **made-up brands** (no real logos, names or trade dress).
   - Each brand is a fully designed, consistent fake brand: its own logo, colors, packaging and typography, used across billboards, shops, products and ads.
   - The player can tell brands apart and recognize them across the map.
+- **Items are specific, physical things (user, Nov 13).**
+  - Every food, drink and product is a precisely identifiable item with its own model and name, for example "hot dog with mustard", "shrimp nigiri", "cafecito", "glazed donut", "pack of gum".
+  - **Grab and steal animations:** you see the character's arm and hand reach out, grip and pick the item up smoothly (hand IK to the exact item), then pocket it, hold it or eat it. The item physically leaves the shelf, so the gap stays.
+  - Clerks and cameras can notice.
+  - **Eating and drinking:** visible eat/drink animations with bites taken out of the item. Each food has realistic calories and nutrition (for example, a hot dog with mustard ~290 kcal, a shrimp nigiri piece ~60 kcal), restoring health and stamina accordingly.
+  - **Body changes:** overeating over time slowly makes the character slightly heavier (a gradual body-shape blend). Exercise (running, swimming, the gym) slims him back. Changes are subtle and capped.
+  - **Effects:** coffee gives a short sprint boost, alcohol a wobble, junk food a smaller heal than real meals, and spoiled food a sickness wobble.
+
 - **No "less important" area.** The worst corner of the map must still beat today's best interior. If an agent would leave a place generic, it is not done.
 - **Visual quality bar:** high-resolution PBR textures everywhere (albedo, normal, roughness, AO), wear and dirt, real-scale props, proper reflections on glass and floors, soft shadows, and dense small props (receipts, price tags, magazines, plants, cables, trash).
 - **Behavior quality bar:** every staff member and customer has a job, a routine and reactions. They talk, gesture, serve you, react to weapons, call security or the police, and go on breaks at the right times.
