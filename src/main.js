@@ -798,9 +798,10 @@ async function boot() {
         const sb = L.swimBlend;
         const hx = Math.sin(P.heading), hz = Math.cos(P.heading);
         // swim pose: tilt root forward ~70deg, float with head above water, centre the body on the capsule
-        L.tilt = sb * 1.2;
+        // the 'swim' clip lays the body flat itself (front crawl); only tilt the root while blending in/out of it
+        L.tilt = sb * (1 - sb) * 1.2;
         const back = Math.sin(L.tilt) * 0.8;
-        const rootY = L.visY * (1 - sb) + (SEA - 0.27 + Math.sin(game.clock.elapsed * 1.7) * 0.04) * sb;
+        const rootY = L.visY * (1 - sb) + (SEA - 0.05 - (L.dive || 0) + Math.sin(game.clock.elapsed * 1.7) * 0.04) * sb; // clip root sits at the water surface
         character.root.rotation.order = 'YXZ';
         character.root.position.set(t.x - hx * back, rootY, t.z - hz * back);
         character.root.rotation.x = L.tilt;
@@ -811,7 +812,7 @@ async function boot() {
         L.animSpeed += (intended - L.animSpeed) * Math.min(1, dt * 8);
         const swim = P.swimming;
         const aSpeed = swim ? 1.2 + L.animSpeed * 0.9 : L.animSpeed;
-        character.update(simDt, { speed: aSpeed, grounded: P.state.grounded || swim, jumping: P.state.jumping, sprint: P.state.sprint, driving: false, punch: P.state.punch, dead: P.health <= 0, swimming: swim, wading: !swim && P.waterDepth > 0.4 });
+        character.update(simDt, { speed: swim ? 0 : aSpeed, idleStyle: swim ? 'swim' : undefined, grounded: P.state.grounded || swim, jumping: P.state.jumping, sprint: P.state.sprint, driving: false, punch: P.state.punch, dead: P.health <= 0, swimming: swim, wading: !swim && P.waterDepth > 0.4 });
         // ripples while moving in water; stride footsteps fallback; swim strokes
         const pos = P.position;
         if (P.waterDepth > 0.15) {
