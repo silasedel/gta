@@ -743,7 +743,7 @@ async function boot() {
     if (inp.pressed('Escape') || inp.pressed('KeyP')) { /* HUD toggles pause */ }
     const paused = game.ui.paused;
     if (!paused) {
-      game.timeOfDay = (game.timeOfDay + dt / 120) % 24;
+      game.timeOfDay = (game.timeOfDay + dt / 360) % 24; // 1 game hour = 6 real minutes: a full day lasts 144 minutes
       // interactions
       enterCooldown -= dt; punchTimer -= dt;
       P.state.punch = false;

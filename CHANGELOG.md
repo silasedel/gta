@@ -2,6 +2,9 @@
 
 Versions are MAJOR.MINOR.PATCH: MAJOR = huge overhauls, MINOR = sizable changes, PATCH = small fixes.
 
+## v1.1.1 (Nov 13, 2026)
+- **Longer days:** a full day/night cycle now lasts 144 real minutes (was 48), matching what leaked footage suggests for GTA 6.
+
 ## v1.1.0 (Nov 13, 2026)
 - **New main character model:** a real modeled teal short-sleeve button-up with proper bare arms, plus jeans.
 - **Swimming:** a proper front-crawl animation.

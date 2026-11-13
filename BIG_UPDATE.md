@@ -292,6 +292,20 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - Realistic US-style green overhead signs, exit numbers and shields using **real Miami road names and numbers** (I-95, I-395, US-1, MacArthur Causeway, and so on). These are public infrastructure, so that's fine.
 - Fictional regions get fictional names of our own.
 
+**Spawn location and home (user, Nov 13; replaces the "suburban house" idea below):**
+- **Where:** the start point is on the **upper end of the long Keys island chain**, just south-east of the Everglades: the first large inhabited key, where the overseas highway reaches the mainland. This matches the user's marked map (`references/ref_25.webp`, white dot).
+- **Map extent:** roughly **13 km** from the northern park hills to the far south-west airfield island (`references/ref_26.webp`).
+- **The home:** a **weathered Keys-style stilt house** on the waterfront, a real Florida Keys building type.
+  - Raised on wooden piles, with a wraparound wooden deck, an exterior staircase, faded painted wood siding, shutters and a tin roof.
+  - A satellite dish, a carport space underneath with a basketball hoop, a kayak and a beat-up muscle-pickup and dirt bike out front, a dock with a skiff, and water views on two sides.
+  - Spend a LOT of time making it immaculate: every board, weathering, plants, clutter.
+  - Fully furnished, lived-in interior.
+- **Original design:** our own color, layout and details. The reference frame `ref_24` is another game's protagonist's house, so match the *quality and Keys vernacular*, not that exact building.
+
+**Main character's name: still to decide.**
+- Don't use "Jason": that is the real GTA 6 protagonist's name, and with the Keys stilt house, the teal shirt and the setting it would add up to copying that character.
+- Pick an original name with the user before starting. Suggestions: Cole, Rafe, Danny Reyes, Wade, Nico, Marco Vega.
+
 **Spawn and start:**
 - The player starts in a **small, realistic suburban house** (a modest 2-bedroom on a canal street) roughly in the middle of the map, between the city and the wilderness. That becomes the first safehouse.
 - You start with little money and work up: jobs, buying bigger property later.
@@ -431,6 +445,18 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Started Nov 13: water is at least 5 m deep away from beaches, and there is a basic visible seabed.
 
 ## 7. World and atmosphere
+- **Reference image set (local only):** `game/references/ref_15.webp` to `ref_35.webp` (git-ignored, because these frames appear to come from another game's trailers and must not be published).
+  - **Quality bar for V2:**
+    - Convenience-store interior lighting and clutter (ref_20).
+    - Character close-ups with realistic skin, hair, clothing folds and accessories (ref_21, ref_22, ref_27, ref_28, ref_29, ref_31).
+    - Golden-hour dock with a boat and outboard (ref_23), the Keys stilt house (ref_24).
+    - A busy Keys bar patio with crowds (ref_30).
+    - Underwater caves, reefs, sea turtles, rays and fish (ref_32, ref_33).
+    - A dolphin beside a yacht in sparkling water (ref_34).
+    - A street with a mobility scooter, an iguana, a dog, a bus and roadside attractions (ref_35).
+    - Highways, port and skyline (ref_16 to ref_19). The concept map is ref_15.
+  - Before V2 counts as done, take matching in-game shots and compare them side by side.
+  - Match the *quality, lighting, density and mood* only. Use none of their characters, names, logos, brands, signs or exact buildings.
 - **Visual target (user's reference screenshots, Nov 13):**
   - Sunlit highways with heavy traffic, haze and depth over the skyline, a port with cranes across the water, power lines, dirty and worn cars, palm shadows, a plane overhead, film-like color and soft light.
   - The game must reach that look. Before calling V2 done, take matching screenshots in-game and compare them side by side.

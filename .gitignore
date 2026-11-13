@@ -5,3 +5,4 @@ tools/osm/cache/
 src/render/stage/
 .DS_Store
 *.log
+references/

@@ -1,6 +1,6 @@
 # Claude GTA (Port Solana)
 
-**Version:** v1.1.0 (versions are MAJOR.MINOR.PATCH: v2 = the big update, middle number = sizable changes, last number = small fixes)
+**Version:** v1.1.1 (versions are MAJOR.MINOR.PATCH: v2 = the big update, middle number = sizable changes, last number = small fixes)
 
 **Play in your browser:** https://silasedel.github.io/gta/
 
