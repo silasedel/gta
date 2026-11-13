@@ -6,7 +6,7 @@ Keep it original. No copied GTA/Rockstar content (UI, characters, names, map art
 Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Revival) and real place layouts are fine. Shops and hotels get made-up brands.
 
 ## 0. The bar and the approach (read first)
-**Quality bar.** The *least* detailed interior, shop or corner anywhere on the map must beat today's *best* shop interiors and the spawn area. It must also *work*: everything is polished, bug-checked and hitbox-accurate.
+**Quality bar (raised, Nov 13).** The *worst* shop on the new map must be **WAY** better than today's *best* store. The user says today's stores "suck"; the new ones must be in a different league, not comparable at all. Before/after screenshots of the same store must look like two different games. It must also *work*: everything is polished, bug-checked and hitbox-accurate.
 
 **Nothing repeats.**
 - Every exterior, apartment block, dock, elevator, storefront, gas station, sign, door, bench, lamp and clock varies like real life, where different brands and builders make things.
@@ -45,6 +45,10 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
     - A sneaker store with a release-day queue.
     - Office workers in cubicles with lit screens.
     - Apartments with lived-in clutter, unique per unit.
+- **Products and brands:** every product must be instantly recognizable as *what it is and what tier it is*: a flagship phone, a cheap prepaid phone, a designer handbag, a running shoe, a cola, a premium tequila, a chip bag.
+  - Use **made-up brands** (no real logos, names or trade dress).
+  - Each brand is a fully designed, consistent fake brand: its own logo, colors, packaging and typography, used across billboards, shops, products and ads.
+  - The player can tell brands apart and recognize them across the map.
 - **No "less important" area.** The worst corner of the map must still beat today's best interior. If an agent would leave a place generic, it is not done.
 - **Visual quality bar:** high-resolution PBR textures everywhere (albedo, normal, roughness, AO), wear and dirt, real-scale props, proper reflections on glass and floors, soft shadows, and dense small props (receipts, price tags, magazines, plants, cables, trash).
 - **Behavior quality bar:** every staff member and customer has a job, a routine and reactions. They talk, gesture, serve you, react to weapons, call security or the police, and go on breaks at the right times.
