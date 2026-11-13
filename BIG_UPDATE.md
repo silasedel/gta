@@ -97,6 +97,20 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **Every storefront is a real store** with a theme, stock, staff and furniture.
 - **Detail parity everywhere:** downtown, every corner and every little island at least as detailed as the spawn area.
 
+## 1b. Real-world precision (added Nov 13)
+- **Put places where they really are.** Use OSM shop/amenity data (and its building outlines) so each store type sits at its real-world address and footprint.
+  - Real luxury boutiques go at the real luxury addresses, and the same for shoe stores, pharmacies, gas stations, banks, restaurants and malls.
+  - Interior layouts follow how that kind of store is really laid out: floor plan, fitting rooms, display walls, checkout position, back rooms.
+- **Brands stay made-up.** No real logos, names, monogram patterns or signature store designs.
+  - For example, where a real luxury fashion house has its Miami store, put an original high-end fashion house with its own name, monogram and boutique design, in the same spot with the same kind of layout (handbag walls, private salon, security at the door).
+  - Real shopping areas (the Design District if the extended map reaches it, Brickell City Centre-style malls, Lincoln Road) get the same density and feel.
+- **Shoe stores (required):** several shoe stores across the map, each different:
+  - A sneaker boutique with sneaker walls, drop displays and a line outside on release days.
+  - A mall athletic shoe chain.
+  - A luxury shoe salon.
+  - A discount or family shoe store.
+  - Shoes can be bought and actually worn by the player, and they show in police descriptions.
+
 ## 2. Map
 - **Extend the map:** downtown a few blocks further **west**, and the whole map a few blocks further **north**. Use a fresh OSM pull and keep the designed hard boundary.
 - **Rebuild the pause map:**
