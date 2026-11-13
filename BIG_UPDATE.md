@@ -180,6 +180,13 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 
 ## 2. Map
 - **Extend the map:** downtown a few blocks further **west**, and the whole map a few blocks further **north**. Use a fresh OSM pull and keep the designed hard boundary.
+- **Much bigger playable area** (user, Nov 13):
+  - Extend at least 1 mile, ideally several miles, to the **west, south and north** (more of Downtown and Brickell, Little Havana, Coconut Grove direction, Wynwood, the Design District, Edgewater and so on).
+  - Same detail standard everywhere inside.
+- **City beyond the edge:**
+  - Outside the playable boundary, the real city keeps going *visually*: low-detail buildings, roads and skyline out to the horizon, so you see the rest of Miami instead of void or ocean.
+  - An **invisible barrier** at the boundary (a smooth, non-glitchy stop, with a short "Area off limits" hint).
+  - On the map those outside parts are shown **dimmed, without detail or labels**, so they read as off limits. (A basic version of the dimmed map was added Nov 13.)
 - **Rebuild the pause map:**
   - No flicker, no static, no things disappearing and reappearing while zooming.
   - Panning and zooming stay locked to the mouse/trackpad.

@@ -94,9 +94,9 @@ export function createMapRenderer(game) {
     const blds = Array.isArray(L.buildingPolys) ? L.buildingPolys : [];
     for (const p of blds) {
       const rings = ringsOf(p).filter((r) => Array.isArray(r) && r.length > 2); if (!rings.length) continue;
-      // drop buildings that cross the playable boundary instead of slicing them
-      if (insideFn && !rings[0].every((q) => insideFn(q[0], q[1]))) continue;
-      add('building', { rings, h: +(p.h ?? p.height ?? 0) || 0 }, bboxOfRings(rings));
+      // buildings outside (or crossing) the playable boundary are kept but drawn dimmed in the off-limits area
+      const inB = !insideFn || rings[0].every((q) => insideFn(q[0], q[1]));
+      add('building', { rings, h: +(p.h ?? p.height ?? 0) || 0, inside: inB }, bboxOfRings(rings));
     }
     const edges = [];
     const G = c.roadGraph;
@@ -111,7 +111,7 @@ export function createMapRenderer(game) {
       for (const r of c.roads) edges.push({ pts: [[r.x1, r.z1], [r.x2, r.z2]], width: +r.width || 12, kind: 'default', bridge: false, name: null });
     }
     for (const e of edges) {
-      if (insideFn && !e.pts.some((q) => insideFn(q[0], q[1]))) continue; // fully outside: skip
+      e.inside = !insideFn || e.pts.some((q) => insideFn(q[0], q[1])); // fully outside: drawn dimmed, no labels
       add('road', e, bboxOfRings([e.pts]));
     }
     // label chains: join same-name edges that share endpoints
@@ -137,7 +137,9 @@ export function createMapRenderer(game) {
         add('chain', { name, kind: e0.kind, pts }, bboxOfRings([pts]));
       }
     }
-    const bounds = ring ? ringBounds(ring) : (c.bounds || (() => { const b = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity }; for (const e of edges) for (const [x, z] of e.pts) { b.minX = Math.min(b.minX, x); b.maxX = Math.max(b.maxX, x); b.minZ = Math.min(b.minZ, z); b.maxZ = Math.max(b.maxZ, z); } return b; })());
+    const rb0 = ring ? ringBounds(ring) : null, db = c.bounds;
+    // pan/zoom range covers everything that exists in the world (the playable ring plus the dimmed area around it)
+    const bounds = rb0 ? (db ? { minX: Math.min(rb0.minX, db.minX), maxX: Math.max(rb0.maxX, db.maxX), minZ: Math.min(rb0.minZ, db.minZ), maxZ: Math.max(rb0.maxZ, db.maxZ) } : rb0) : (c.bounds || (() => { const b = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity }; for (const e of edges) for (const [x, z] of e.pts) { b.minX = Math.min(b.minX, x); b.maxX = Math.max(b.maxX, x); b.minZ = Math.min(b.minZ, z); b.maxZ = Math.max(b.maxZ, z); } return b; })());
     const hasLand = Array.isArray(L.land) && L.land.length > 0;
     built = { big, grid, edges, bounds, hasLand, ring };
     builtFor = c; cache.clear(); districtCache = null; lastLevel.clear();
@@ -168,20 +170,27 @@ export function createMapRenderer(game) {
     g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, TILE_PX, TILE_PX);
     g.setTransform(ppm, 0, 0, ppm, -x0 * ppm, -z0 * ppm);
     const B = build(), ring = B.ring;
-    if (ring) {
-      const rb = ringBounds(ring);
-      if (x0 > rb.maxX + 200 || x0 + S < rb.minX - 200 || z0 > rb.maxZ + 200 || z0 + S < rb.minZ - 200) return cv;
-      g.save(); ringPath(g, ring); g.clip();
-    }
     const pad = 40;
-    const recs = query(x0 - pad, z0 - pad, x0 + S + pad, z0 + S + pad);
-    const by = { land: [], beach: [], park: [], water: [], building: [], road: [] };
-    for (const r of recs) by[r.layer]?.push(r.item);
     const fillRings = (items, style) => {
       g.fillStyle = style; g.beginPath();
       for (const it of items) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
       g.fill('evenodd');
     };
+    const recs = query(x0 - pad, z0 - pad, x0 + S + pad, z0 + S + pad);
+    if (ring) {
+      const bb = B.bounds;
+      if (x0 > bb.maxX + 200 || x0 + S < bb.minX - 200 || z0 > bb.maxZ + 200 || z0 + S < bb.minZ - 200) return cv;
+      // off-limits area outside the playable boundary: real city shown dimmed and flat (no detail, no labels)
+      const oLand = [], oWater = [], oB = [], oR = [];
+      for (const r of recs) { if (r.layer === 'land') oLand.push(r.item); else if (r.layer === 'water') oWater.push(r.item); else if (r.layer === 'building' && r.item.inside === false) oB.push(r.item); else if (r.layer === 'road' && r.item.inside === false) oR.push(r.item); }
+      if (!B.hasLand) { g.fillStyle = '#161d27'; g.fillRect(x0, z0, S, S); } else if (oLand.length) fillRings(oLand, '#161d27');
+      if (oWater.length) fillRings(oWater, MAP_COLORS.water);
+      if (oB.length) fillRings(oB, '#232c39');
+      if (oR.length) { g.strokeStyle = 'rgba(120,132,150,.35)'; g.lineCap = 'round'; for (const e of oR) { g.lineWidth = Math.max((e.width || 8) * 0.8, 1 / ppm); g.beginPath(); g.moveTo(e.pts[0][0], e.pts[0][1]); for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]); g.stroke(); } }
+      g.save(); ringPath(g, ring); g.clip();
+    }
+    const by = { land: [], beach: [], park: [], water: [], building: [], road: [] };
+    for (const r of recs) { if ((r.layer === 'building' || r.layer === 'road') && r.item.inside === false) continue; by[r.layer]?.push(r.item); }
     if (!B.hasLand) { g.fillStyle = MAP_COLORS.land; g.fillRect(x0, z0, S, S); }
     else if (by.land.length) fillRings(by.land, MAP_COLORS.land);
     if (by.park.length) fillRings(by.park, MAP_COLORS.park);
