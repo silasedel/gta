@@ -141,7 +141,7 @@ export function createHUD(game) {
   moneyWrap.append(moneyDelta, moneyEl);
   const starsEl = el('div', 'ps-stars');
   const starEls = [];
-  for (let i = 0; i < 5; i++) { const s = el('span', 'ps-star', ICON.star); starEls.push(s); starsEl.appendChild(s); }
+  for (let i = 0; i < 6; i++) { const s = el('span', 'ps-star', ICON.star); starEls.push(s); starsEl.appendChild(s); }
   status.append(topRow, moneyWrap, starsEl);
   root.appendChild(status);
 
@@ -1358,7 +1358,7 @@ export function createHUD(game) {
     if (deltaTimer > 0) { deltaTimer -= dt; if (deltaTimer <= 0) moneyDelta.classList.remove('show'); }
 
     // wanted
-    const w = clamp(Math.round(num(game.wanted?.level, num(pl.wanted))), 0, 5);
+    const w = clamp(Math.round(num(game.wanted?.level, num(pl.wanted))), 0, 6);
     const evading = w > 0 && !!game.wanted?.evading;
     if (evading !== status.classList.contains('evading')) { status.classList.toggle('evading', evading); mm.classList.toggle('evading', evading); }
     if (w !== lastWanted) {

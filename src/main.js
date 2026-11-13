@@ -13,9 +13,26 @@ import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
 
+// Loading bar with a live percentage. Each boot step sets a milestone; between milestones the shown value keeps
+// creeping toward (but never reaching) the next one, so long steps (loading Miami) never look frozen.
+const LOAD_STEPS = [0, 5, 15, 30, 32, 55, 70, 80, 86, 90, 96, 100];
+const loadState = { target: 0, shown: 0, raf: 0 };
+function loadTick() {
+  const s = loadState, next = LOAD_STEPS.find((v) => v > s.target) ?? 100, ceil = s.target >= 100 ? 100 : next - 0.5;
+  if (s.shown < s.target) s.shown += Math.max(0.6, (s.target - s.shown) * 0.25); // catch up quickly to a reached milestone
+  else if (s.shown < ceil) s.shown += (ceil - s.shown) * 0.012;                   // then creep toward the next one
+  s.shown = Math.min(s.shown, s.target >= 100 ? 100 : ceil);
+  const v = Math.floor(s.shown);
+  const b = document.getElementById('loadbar'); if (b) b.style.width = `${s.shown}%`;
+  const pc = document.getElementById('loadpct'); if (pc) pc.textContent = `${v}%`;
+  if (s.target >= 100 && s.shown >= 100) { s.raf = 0; return; }
+  s.raf = requestAnimationFrame(loadTick);
+}
 const loadMsg = (t, p) => {
   const m = document.getElementById('loadmsg'); if (m) m.textContent = t;
-  const b = document.getElementById('loadbar'); if (b) b.style.width = `${p}%`;
+  loadState.target = Math.max(loadState.target, Math.min(100, p));
+  if (!loadState.raf) loadState.raf = requestAnimationFrame(loadTick);
+  if (p >= 100 && /^ERROR/.test(t)) { const pc = document.getElementById('loadpct'); if (pc) pc.textContent = ''; }
 };
 
 async function safe(name, fn, fallback) {
@@ -23,7 +40,7 @@ async function safe(name, fn, fallback) {
 }
 
 async function boot() {
-  loadMsg('INITIALISING PHYSICS', 5);
+  loadMsg('INITIALIZING PHYSICS', 5);
   await RAPIER.init();
 
   const canvas = document.getElementById('game');

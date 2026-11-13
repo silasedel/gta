@@ -13,12 +13,13 @@
     #loading h1 { font-size: 88px; margin: 0; font-weight: 800; font-style: italic; text-shadow: 0 6px 30px rgba(0,0,0,.45); }
     #loading p { opacity: .8; font-size: 18px; }
     #loading .bar { width: 320px; height: 4px; background: rgba(255,255,255,.2); border-radius: 2px; overflow: hidden; }
-    #loading .bar i { display: block; height: 100%; width: 0; background: #fff; transition: width .3s; }
+    #loading .bar i { display: block; height: 100%; width: 0; background: #fff; }
+    #loading .pct { margin-top: 12px; font-size: 22px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; opacity: .9; }
   </style>
 </head>
 <body>
   <canvas id="game"></canvas>
-  <div id="loading"><h1>PORT SOLANA</h1><p id="loadmsg">LOADING</p><div class="bar"><i id="loadbar"></i></div></div>
+  <div id="loading"><h1>PORT SOLANA</h1><p id="loadmsg">LOADING</p><div class="bar"><i id="loadbar"></i></div><div class="pct" id="loadpct">0%</div></div>
     <script>
     // When hosted under a sub-path (e.g. GitHub Pages /port-solana/), rewrite root-absolute '/assets/...'
     // URLs used by the game code to the site's base path. No-op when served from the domain root.

@@ -188,6 +188,27 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 - **A phone** with simple missions and jobs.
 - **Save system:** position, money, owned vehicles and property, outfits. The game resumes where you left off.
 
+## 8b. Desktop app and near-AAA graphics (future-proofing, added Nov 13)
+- **Downloadable desktop app:**
+  - Wrap the game in **Electron** (bundles its own Chromium, so the same WebGPU/WebGL behavior on every PC and Mac).
+  - Ship it as Mac (.dmg) and Windows (.exe) downloads via GitHub Releases, with the high-performance GPU, higher memory limits, no background-tab throttling, and fullscreen.
+  - Tauri is lighter but uses the system webview (Safari's engine on Mac), which is less consistent for WebGPU. Prefer Electron.
+  - Keep the GitHub Pages web version as the "play instantly" option.
+- **Renderer upgrade path:**
+  - Move to three.js **WebGPU** (WebGPURenderer + TSL shaders) with a WebGL2 fallback.
+  - Unlocks compute shaders (GPU culling, particles, water simulation, many more lights), much cheaper draw calls and better post-processing.
+- **AAA-style visuals within reach:**
+  - Physically based materials with real texture sets (albedo/normal/roughness/AO) everywhere, compressed as KTX2/Basis so they load fast.
+  - Meshopt/Draco-compressed models.
+  - Cascaded shadow maps with soft contact shadows.
+  - Screen-space reflections and global illumination (SSR/SSGI) or baked light probes, volumetric fog and god rays.
+  - Better atmosphere and clouds, real water simulation, TAA plus upscaling, high-quality depth of field and motion blur at speed only.
+- **Performance architecture:**
+  - Tile building in Web Workers so streaming never stalls a frame.
+  - GPU-driven instancing and culling, impostors (billboards) for far buildings and trees, and a long render distance with no pop-in.
+  - Quality presets (Low → Ultra) plus auto-detect.
+- **Honest ceiling:** a browser/Electron engine can get close to modern-console visuals with the above, but true AAA (Unreal-level) would mean porting to a native engine later. Keep the code and data (OSM pipeline, game systems, assets) engine-agnostic enough that a later port is possible.
+
 ## 9. Quality
 - **No lag and far render distance; nothing pops in.**
   - Cars, trees, props and buildings must already be there well before you reach them, at full detail near you and good detail far away.

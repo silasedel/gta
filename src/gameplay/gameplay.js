@@ -11,9 +11,10 @@ import { createActivities } from './activities.js';
 // ---- wanted tuning (documented in docs/gameplay/police_tuning.md)
 export const SEV = { assault: 1, shoplift: 1, vehicle_theft: 1, carjack: 1, shooting: 2, robbery: 2, hit_pedestrian: 2, cop_assault: 2, cop_shot: 3, murder: 3, cop_murder: 3 };
 export const MINOR = new Set(['assault', 'shoplift', 'vehicle_theft', 'carjack']); // need a cop or a successful witness call
-export const CLEAR_TIME = [0, 10, 15, 25, 35, 45];       // s unseen outside the search area to lose the cops
-export const SEARCH_R = [0, 150, 250, 400, 600, 800];    // search-area radius per star (m)
-export const HEAT_STEPS = [0, 1, 3, 7, 14, 24];          // accumulated heat needed for each star
+export const MAX_STARS = 6;
+export const CLEAR_TIME = [0, 10, 15, 25, 35, 45, 60];       // s unseen outside the search area to lose the cops
+export const SEARCH_R = [0, 150, 250, 400, 600, 800, 1000];    // search-area radius per star (m)
+export const HEAT_STEPS = [0, 1, 3, 7, 14, 24, 38];          // accumulated heat needed for each star
 export const WITNESS_CALL = [5, 8];                      // s a witness needs to phone it in
 
 export async function createGameplay(game) {
@@ -43,8 +44,8 @@ export async function createGameplay(game) {
     const before = W.level;
     W.heat += stars;
     let fromHeat = 0;
-    for (let i = 1; i <= 5; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
-    W.level = Math.min(5, Math.max(W.level, Math.min(3, Math.round(stars)), fromHeat));
+    for (let i = 1; i <= MAX_STARS; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
+    W.level = Math.min(MAX_STARS, Math.max(W.level, Math.min(3, Math.round(stars)), fromHeat));
     W.lastSeen.copy(position || P.position);
     W.unseenT = 0; W.clearT = 0; W.evading = false; W.searchCenter = null; W.searchRadius = 0;
     if (W.level > before) {
@@ -103,7 +104,7 @@ export async function createGameplay(game) {
     let stars = SEV[type] ?? d.severity ?? 1;
     if (type === 'cop_murder' && W.level >= 3) stars = W.level + 1; // killing cops while hot keeps escalating
     if (d.police) stars = Math.max(stars, 2);
-    stars = Math.min(5, stars);
+    stars = Math.min(MAX_STARS, stars);
     // direct report: cops see it (or it targets a cop / police car)
     const copSaw = type.startsWith('cop_') || d.police || tryCall('copWitness', () => G.police?.copWitness?.(pos), false) || (W.level > 0 && W.seen);
     if (copSaw) { addStars(stars, pos); crimeToast(type, !!d._gp); return; }
@@ -150,13 +151,15 @@ export async function createGameplay(game) {
     P._wantedT = 0; // disable main.js' legacy decay
     P.wantedEvading = W.evading;
     if (W.level === 0) { W.seen = false; return; }
-    const seen = tryCall('anySees', () => G.police?.anySees?.(), false);
-    W.seen = !!seen;
+    const seenNow = !!tryCall('anySees', () => G.police?.anySees?.(), false);
+    if (seenNow) W.seenAt = game.clock.elapsed;
+    const seen = seenNow || game.clock.elapsed - (W.seenAt ?? -99) < 0.75; // short memory: flickering line of sight is not "lost"
+    W.seen = seen;
     // sustained violence escalates: fighting in view of the police keeps adding heat
     if (seen && W.level >= 2 && game.clock.elapsed - Math.max(G.copAggroT ?? -99, G.lastShotT ?? -99, G.lastConfirmedHit ?? -99) < 4) {
       W.heat += dt * 0.12;
-      let fromHeat = 0; for (let i = 1; i <= 5; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
-      if (fromHeat > W.level) { W.level = Math.min(5, fromHeat); game.emit?.('wantedChange', { level: W.level }); }
+      let fromHeat = 0; for (let i = 1; i <= MAX_STARS; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
+      if (fromHeat > W.level) { W.level = Math.min(MAX_STARS, fromHeat); game.emit?.('wantedChange', { level: W.level }); }
     }
     if (seen) {
       W.lastSeen.copy(P.position); W.unseenT = 0; W.clearT = 0;
@@ -167,9 +170,10 @@ export async function createGameplay(game) {
     if (W.unseenT > 2.5) {
       const R0 = SEARCH_R[W.level];
       if (!W.evading) { W.evading = true; W.searchCenter = W.lastSeen.clone(); W.searchRadius = R0; }
-      W.searchRadius = Math.min(R0 * 1.35, W.searchRadius + dt * (1 + W.level * 0.6)); // the net widens slowly
-      if (distXZ(P.position, W.searchCenter) > W.searchRadius) W.clearT += dt;
-      else W.clearT = Math.max(0, W.clearT - dt * 0.5); // inside the search area you are not getting away
+      const outside = distXZ(P.position, W.searchCenter) > W.searchRadius;
+      if (!outside) W.searchRadius = Math.min(R0 * 1.35, W.searchRadius + dt * (1 + W.level * 0.6)); // the net widens slowly while you're inside it
+      if (outside) W.clearT += dt;
+      else W.clearT = Math.max(0, W.clearT - dt * 0.35); // inside the search area you are not getting away (progress fades slowly)
       W.clearProgress = W.clearT / CLEAR_TIME[W.level];
       if (W.clearT > CLEAR_TIME[W.level]) clearWanted();
     } else {

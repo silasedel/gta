@@ -5,8 +5,8 @@ import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView,
 import { buildWeaponModel } from './gunModels.js';
 
 const POOL = 8;
-export const CAR_TARGET = [0, 1, 2, 3, 4, 6];
-export const FOOT_TARGET = [0, 0, 2, 4, 6, 8];
+export const CAR_TARGET = [0, 1, 2, 3, 4, 6, 8];
+export const FOOT_TARGET = [0, 0, 2, 4, 6, 8, 10];
 export const SIGHT = { cone: 110, footRange: 60, carRange: 90, aware: 8, carAware: 15, night: 0.65, water: 0.6, covered: 0.7 };
 
 function styleUniform(char) {
@@ -376,9 +376,11 @@ export function createPolice(game, G) {
     }
     carSpawnCd -= dt;
     if (lvl > 0 && carSpawnCd <= 0 && cars.length < CAR_TARGET[lvl]) {
-      carSpawnCd = lvl >= 5 ? 3 : lvl >= 3 ? 4.5 : 6;
-      const r = dispatchPoint(pp);
-      if (r) { const v = spawnPoliceCar(r.position, r.heading, true); if (v) cars.push({ v, deployed: false, cops: [], mine: true, t: 0 }); }
+      carSpawnCd = lvl >= 6 ? 2.2 : lvl >= 5 ? 3 : lvl >= 3 ? 4.5 : 6;
+      // reinforcements head for what the police know: the player while seen, otherwise the last-known spot / search area
+      const known = W.seen ? pp : (W.evading && W.searchCenter ? W.searchCenter : W.lastSeen);
+      const r = dispatchPoint(known);
+      if (r && (W.seen || distXZ(r.position, pp) > 140)) { const v = spawnPoliceCar(r.position, r.heading, true); if (v) cars.push({ v, deployed: false, cops: [], mine: true, t: 0 }); }
     }
     for (const c of cars.slice()) {
       const v = c.v;
@@ -394,8 +396,9 @@ export function createPolice(game, G) {
       }
       if (d > 260 * (G.city?.mapScale || 1)) { removeCar(c); continue; }
       if (!c.deployed) {
-        // evading: cars search the circle instead of homing on the player
-        let target = P.position;
+        // cops only home on the player while someone actually sees them; otherwise they drive to the last-known
+        // position (grace period), then search the circle once the player is evading
+        let target = W.seen ? P.position : W.lastSeen;
         if (W.evading && W.searchCenter) {
           c.searchT = (c.searchT || 0) + dt;
           if (!c.searchPt || distXZ(t, c.searchPt) < 14 || c.searchT > 18) {
@@ -414,7 +417,8 @@ export function createPolice(game, G) {
         if (c.stuckT > 9) {
           c.bestD = undefined;
           c.stuckT = 0;
-          const r = G.city?.roadPoint(pp, 60, 120, { avoidView: true, inView: (q) => inView(game, q) }) || pointNear(game, pp, 60, 110, 'road', true);
+          const kc = W.seen ? pp : (W.searchCenter || W.lastSeen); // relocate near what the police know, not the hidden player
+          const r = G.city?.roadPoint(kc, 60, 120, { avoidView: true, inView: (q) => inView(game, q) }) || pointNear(game, kc, 60, 110, 'road', true);
           if (r && placeCar(v, r.position, r.heading)) { c.path = null; tryCall('setChaseTarget', () => { v.setChaseTarget?.(null); v.setChaseTarget?.(target); }); }
         }
         // 4+ stars: passenger shoots out of the window
@@ -456,7 +460,7 @@ export function createPolice(game, G) {
     footSpawnCd -= dt;
     const footActive = units.filter((u) => u.active && !u.dead).length;
     if (lvl >= 2 && footSpawnCd <= 0 && footActive < FOOT_TARGET[lvl] && onFoot) {
-      footSpawnCd = lvl >= 5 ? rand(2.5, 4) : rand(5, 9);
+      footSpawnCd = lvl >= 6 ? rand(1.8, 3) : lvl >= 5 ? rand(2.5, 4) : rand(5, 9);
       const from = W.evading && W.searchCenter ? W.searchCenter : pp;
       const q = G.city?.sidewalkPoint(from, 35, 75, null, { avoidView: true, inView: (x) => inView(game, x) });
       const r = q ? { position: q } : pointNear(game, from, 35, 70, 'sidewalk', true);
@@ -539,7 +543,7 @@ export function createPolice(game, G) {
         blocks.splice(blocks.indexOf(b), 1);
       }
     }
-    if (lvl < 4 || blockCd > 0 || !P.state.inVehicle || (P.state.vehicle?.speedKmh || 0) < 35 || blocks.length >= 2) return;
+    if (lvl < 4 || blockCd > 0 || !P.state.inVehicle || (P.state.vehicle?.speedKmh || 0) < 35 || blocks.length >= (lvl >= 6 ? 3 : 2)) return;
     blockCd = 25;
     const vel = P.state.vehicle?.body?.linvel?.() || { x: Math.sin(P.heading), z: Math.cos(P.heading) };
     const vl = Math.hypot(vel.x, vel.z) || 1;
