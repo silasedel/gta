@@ -5,6 +5,11 @@ Rethink and retest everything from scratch: this is a full overhaul, not a patch
 Keep it original. No copied GTA/Rockstar content (UI, characters, names, map art, music), and no exact replicas of real car or boat models or real brands.
 Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Revival) and real place layouts are fine. Shops and hotels get made-up brands.
 
+## Versioning (user, Nov 13)
+- The current game is **v1.0.0**. This big update ships as **v2.0.0**, and the user will call it "V2".
+- **MAJOR** (first number) = huge overhauls. **MINOR** (second) = decently large changes. **PATCH** (third) = tiny fixes. For example, v2.6.34.
+- The version lives in `src/version.js` and shows on the title screen and pause menu. Bump it with every push, and keep a short CHANGELOG.md.
+
 ## 0. The bar and the approach (read first)
 **Quality bar (raised, Nov 13).** The *worst* shop on the new map must be **WAY** better than today's *best* store. The user says today's stores "suck"; the new ones must be in a different league, not comparable at all. Before/after screenshots of the same store must look like two different games. It must also *work*: everything is polished, bug-checked and hitbox-accurate.
 

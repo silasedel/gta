@@ -1,5 +1,6 @@
 // PORT SOLANA — HUD (original design). Owns: minimap, status cluster, speedometer,
 // help/notifications/mission, district toast, phone, pause menu, title + death screens.
+import { VERSION } from '../version.js';
 import './hud.css';
 import { createMapRenderer, MAP_COLORS } from './mapRender.js';
 import { createGPS } from './gps.js';
@@ -249,7 +250,7 @@ export function createHUD(game) {
       <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>
       <div class="ps-page ps-page-controls"><div class="ps-controls"></div></div>
     </div>
-    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">CALORA · EST. 1921 <i>· Map data © OpenStreetMap contributors (ODbL)</i></span></div>`;
+    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · CALORA · EST. 1921 <i>· Map data © OpenStreetMap contributors (ODbL)</i></span></div>`;
   root.appendChild(pause);
   const tabs = [...pause.querySelectorAll('.ps-tab')], pages = [...pause.querySelectorAll('.ps-page')];
   const bigmap = pause.querySelector('.ps-bigmap'), bctx = bigmap.getContext('2d');
@@ -281,7 +282,7 @@ export function createHUD(game) {
       <div class="ps-logo-sub"><i></i>CALORA<i></i></div>
     </div>
     <div class="ps-title-cta">CLICK TO PLAY<span style="display:block;margin-top:8px;font-size:11px;letter-spacing:.25em;opacity:.65;font-weight:500">OR PRESS ENTER</span></div>
-    <div class="ps-title-foot">WASD move · Mouse look · F vehicles · ▲ phone · Esc pause</div>`;
+    <div class="ps-title-foot">WASD move · Mouse look · F vehicles · ▲ phone · Esc pause<span style="display:block;margin-top:6px;opacity:.55;letter-spacing:.2em">v${VERSION}</span></div>`;
   root.appendChild(title);
   // Robust start: pointerdown fires even if a click gets swallowed; Enter/Space also start; a failed mouse
   // capture never blocks starting (the player can click the game view to capture the mouse later).
