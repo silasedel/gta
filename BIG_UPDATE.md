@@ -209,6 +209,31 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - Quality presets (Low → Ultra) plus auto-detect.
 - **Honest ceiling:** a browser/Electron engine can get close to modern-console visuals with the above, but true AAA (Unreal-level) would mean porting to a native engine later. Keep the code and data (OSM pipeline, game systems, assets) engine-agnostic enough that a later port is possible.
 
+## 8c. Multiplayer (added Nov 13)
+- **Goal:** play the same Miami with friends: a free roam session of about 8–16 players, with co-op and PvP.
+- **What players can do together:**
+  - See each other with your own outfits; ride in the same car or boat (driver plus passengers); shoot from windows.
+  - Co-op heists and missions with crew roles (driver, hacker, gunner, lookout) and shared payouts.
+  - PvP: fights, races, police-vs-robbers, and bounties on other players.
+  - Party up, use voice and text chat, see friends on the map, set waypoints for them, and give money or cars to each other.
+- **Shared world:**
+  - Traffic, pedestrians, police and props stay in sync for everyone nearby: same cars, same crashes, same explosions.
+  - Each player has their own wanted level; police respond to whoever did the crime.
+  - Businesses and property belong to their owners; others can visit them.
+- **Networking:**
+  - An authoritative game server (Node + WebSockets, or a framework like Colyseus) runs physics-critical state for its area.
+  - Clients predict their own movement and smoothly interpolate other players, with lag compensation for hits.
+  - AI is simulated by the server, or handed to the nearest player and moved between players as they travel.
+  - Only nearby updates are sent (interest management), so bandwidth stays low.
+  - Basic anti-cheat: the server checks money, damage, speed and position.
+  - Single-player still works offline exactly as now.
+- **Hosting (needs the user):**
+  - GitHub Pages only serves static files, so multiplayer needs a small always-on server.
+  - Options: Fly.io, Render or Railway (free or cheap tiers), or a player-hosted session over WebRTC with a small signaling server.
+  - **The user must create and own the hosting account.** Claude never creates accounts. Choose the host before starting this part.
+- **Accounts and saves:** guest play with a nickname to start. Optional sign-in later to keep saves, money and property across devices.
+- **Testing:** automated multi-client tests (several headless players driving, shooting, entering the same car, doing a heist) plus a latency simulation (100–250 ms, packet loss) before shipping.
+
 ## 9. Quality
 - **No lag and far render distance; nothing pops in.**
   - Cars, trees, props and buildings must already be there well before you reach them, at full detail near you and good detail far away.
