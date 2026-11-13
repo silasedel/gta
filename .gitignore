@@ -6,3 +6,11 @@ src/render/stage/
 .DS_Store
 *.log
 references/
+
+# V2 local-only
+references/
+docs/v2/compare/
+.v2-tmp/
+desktop/dist/
+desktop/node_modules/
+server/node_modules/

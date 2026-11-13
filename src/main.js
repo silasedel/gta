@@ -586,6 +586,29 @@ async function boot() {
     const t = document.getElementById('title'); if (t && document.pointerLockElement) t.style.display = 'none';
   });
 
+  // ---------- V2 MODULES ----------
+  // Any file named src/**/<name>.v2.js that exports `async function initV2(game)` is loaded here, in ascending
+  // `export const order` (default 100). Modules register their own game.updaters / fixedHooks / events.
+  game.teleport = (x, y, z, heading) => {
+    if (P.state.inVehicle) exitVehicle();
+    const gy = y ?? (game.city.groundHeightAt?.(x, z) ?? 0);
+    pBody.setTranslation({ x, y: gy + CENTER + 0.1, z }, true); P.position.set(x, gy, z); vy = 0;
+    if (typeof heading === 'number') { P.heading = heading; game.cameraYaw = heading + Math.PI; }
+  };
+  loadMsg('LOADING V2 SYSTEMS', 92);
+  {
+    const v2 = import.meta.glob('./**/*.v2.js');
+    const mods = [];
+    for (const k of Object.keys(v2)) { const m = await safe('v2:' + k, () => v2[k](), null); if (m?.initV2) mods.push([m.order ?? 100, k, m]); }
+    mods.sort((a, b) => a[0] - b[0] || (a[1] < b[1] ? -1 : 1));
+    game.v2 = { loaded: [], failed: [] };
+    for (const [, k, m] of mods) {
+      let ok = true;
+      try { await m.initV2(game); } catch (e) { ok = false; console.error('[v2:' + k + '] init failed', e); }
+      (ok ? game.v2.loaded : game.v2.failed).push(k);
+    }
+  }
+
   const loading = document.getElementById('loading');
   // Precompile every shader and render one warm-up frame behind the loading screen, so the first
   // visible frame doesn't stall for seconds compiling materials.
@@ -612,6 +635,7 @@ async function boot() {
     if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   } catch (e) { console.warn('[boot] shader warm-up skipped', e); }
   loadMsg('READY', 100);
+  game.ready = true;
   loading.style.pointerEvents = 'none'; // never swallow the first click while fading out
   setTimeout(() => { loading.style.opacity = 0; setTimeout(() => loading.remove(), 700); }, 200);
   game.hud.notify?.('Welcome to Port Solana. Click to play.', 4000);

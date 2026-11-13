@@ -1,10 +1,11 @@
 {
-  "name": "sunline-city",
+  "name": "port-solana",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173",
-    "build": "vite build"
+    "dev": "vite --host 127.0.0.1 --port 5200 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5201 --strictPort"
   },
   "dependencies": {
     "three": "^0.170.0",
@@ -13,5 +14,5 @@
   "devDependencies": {
     "vite": "^5.4.0"
   },
-  "version": "1.1.1"
+  "version": "2.0.0-dev"
 }

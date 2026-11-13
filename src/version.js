@@ -2,4 +2,4 @@
 //   MAJOR = huge overhauls (v2 = the "big update")
 //   MINOR = decently large changes (new systems, new areas)
 //   PATCH = tiny fixes and tweaks
-export const VERSION = '1.1.1';
+export const VERSION = '2.0.0-dev';
