@@ -196,6 +196,35 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
 ### NO
 - Content creator career, skills that grow by use, treasure-diving system, food truck job, gadgets (drone, lockpick, scanner, binoculars), lots of collectibles and easter eggs, fishing tournaments.
 
+## 0e. V2 idea round 2 (user's yes/no, Nov 13)
+
+### YES
+- **Police traffic stops:** for small offenses police pull you over first. Stop and pay a fine, or floor it and get stars.
+- **Bribing a cop** at 1 star to make it go away (sometimes they refuse and add a star).
+- **Impound:** your car gets towed from no-parking zones. Pay to get it back at the impound lot.
+- **Flying through the windshield** in big crashes (ragdoll out of the car).
+- **Drive-thrus:** order food from your car at fast-food windows.
+- **Valet stands** at hotels: hand over your car, or steal one from the valet board.
+- **Rentable e-scooters** on sidewalks that you can ride.
+- **Sitting** on any bench, chair or stool with a key press.
+- **Jumping off bridges and piers** into the water with a dive animation.
+- **Rooftop hotel pools** you can swim in.
+- **Manatees** drifting slowly in canals and marinas.
+- **Dolphins** occasionally surfacing in the bay.
+- **Street vendor carts:** buy a coconut, ice cream or churros.
+- **Honk reactions:** people jump back, yell or flip you off.
+- **Calling 911** on your phone brings police, an ambulance or a fire truck.
+- **Hotel rooms** you can rent for a night to sleep, save and change clothes.
+- **Scratch-off lottery tickets** at gas stations (small chance to win big).
+- **Cold-morning iguanas:** on rare chilly mornings, stunned iguanas drop from palm trees.
+
+### SOMETIMES (occasional, not every time)
+- **Paramedics** sometimes arrive to treat people after crashes and fights.
+- **Tow trucks** sometimes come to clear wrecks.
+
+### NO
+- Elbowing car windows to break in, the hotwire animation.
+
 ## 1. Buildings and interiors
 - **Every building can be entered**, each with a fully detailed interior that fits it: apartments (luxury to run-down), hotel lobbies, offices, shops, restaurants, bars, clubs, gas stations, garages, churches, schools, warehouses.
 - **Elevators and stairs** to upper floors and rooftops with skyline views.
