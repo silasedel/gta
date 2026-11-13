@@ -238,6 +238,18 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - **Graphite flagship V12-style hypercar:** wing, scissor doors, carbon aero, a loud exhaust with pops.
   - **Purple two-tone hypercar:** curved, a luxurious grand-touring hypercar look with a two-tone purple and black split, and a signature front grille shape of our own. Parked at a luxury hotel.
   - Each car has a cockpit interior, working doors and lights, a per-model engine sound, and damage. They spawn in rich areas, at valet stands and in garages.
+- **Design quality bar for hero cars and all sports cars (user, Nov 13):** no "lame generic car".
+  - Each must be a *beautiful*, premium design with the same proportions, stance, silhouette and feel as the real car it stands in for, so it feels like that class of car, not a cheap generic sports car:
+    - wheelbase-to-length ratio, cab-forward mid-engine profile, roof height, track width
+    - wheel size and fitment, overhangs, and the sharpness or softness of the surfaces
+  - All details are our own: body lines, lights, grille, intakes, wheels, badges. No exact replica and no real branding.
+  - Use real-car reference photos only for *proportions and class feel*. Do not trace any one car panel for panel.
+  - Final check: put screenshots next to class references and confirm they look premium, not generic.
+- **Engine sounds:**
+  - Find real recordings of the same *engine type* for each hero car: naturally aspirated V10 shriek, V12 howl with crackles, quad-turbo W16 whoosh and whine, twin-turbo V8 burble, super-SUV twin-turbo V8.
+  - Only CC0 / CC-BY recordings (credited in CREDITS.md). No ripped game or video audio.
+  - Layer them with intake, exhaust, turbo, pops and a sub-bass layer, and tune them per model.
+- **Boats: super, super detailed**, with true-to-category proportions and styling (hull shape, deadrise, freeboard, deck layout, helm, windshield, rails, cushions, T-top, outboards and swim platforms), the same quality bar as the hero cars, and realistic engine and hull audio.
 - **Car tiers** (user, Nov 13). The user re-asked for exact traced replicas; the decision above stands (original designs only).
   - **Top tier (super and hyper cars):** only the four hero cars above.
   - **Next tier:** an **orange British-style mid-engine supercar** (teardrop canopy, dihedral doors, slim LED "eye" lights), our own design. A step below the hero four in rarity and drama.
