@@ -351,7 +351,7 @@ async function boot() {
   const guard = { v: null, until: 0 };
   function armGuard(v) { guard.v = v; guard.until = game.clock.elapsed + 0.6; }
   game.fixedHooks.push(() => {
-    const v = guard.v; if (!v || game.clock.elapsed > guard.until) return;
+    const v = guard.v; if (!v || v.alive === false || v.disposed || game.clock.elapsed > guard.until) { if (v && (v.alive === false || v.disposed)) guard.v = null; return; }
     try {
       const lv = v.body.linvel(), av = v.body.angvel();
       if (lv.y > 2.5) v.body.setLinvel({ x: lv.x, y: Math.min(lv.y, 0.5), z: lv.z }, true);
@@ -737,6 +737,16 @@ async function boot() {
       }
       if (!P.state.inVehicle && inp.mouseClicked && punchTimer <= 0 && !game.ui.phoneOpen && !game.ui.weaponWheel && !hardBlocked()) { P.state.punch = true; punchTimer = 0.45; game.emit('punch', { position: P.position.clone(), heading: P.heading }); }
       if (P.state.inVehicle) vehicleControl();
+      // boat boarding (VEHICLES): show the character climbing over the side / hopping onto the deck while the scripted move runs
+      { const bb = game.vehicles?.boatBoarding;
+        if (character && bb?.active && bb.position) {
+          character.setVisible(true); L.boardShown = true;
+          character.root.rotation.order = 'YXZ'; character.root.rotation.x = 0;
+          character.root.position.set(bb.position.x, bb.position.y, bb.position.z);
+          character.root.rotation.y = bb.heading ?? P.heading;
+          try { character.update(dt, { speed: 0.6, grounded: bb.type !== 'hop', jumping: bb.type === 'hop', sprint: false, driving: false, punch: false, dead: false, swimming: bb.type === 'climb' && (bb.t ?? 0) < 0.45, wading: false }); } catch (e) { /* */ }
+        } else if (L.boardShown) { L.boardShown = false; if (character && P.state.inVehicle) character.setVisible(false); }
+      }
       // help prompt
       if (!P.state.inVehicle) {
         const v = game.vehicles.nearest?.(P.position, 4.0);

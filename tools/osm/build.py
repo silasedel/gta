@@ -31,7 +31,7 @@ ZONES = ['water', 'beach', 'nightlife', 'downtown', 'business', 'residential', '
 Z = {n: i for i, n in enumerate(ZONES)}
 PROPS = ['tree', 'palm', 'lamp', 'signal', 'bus', 'stop', 'crossing', 'waste', 'fountain', 'bike', 'art', 'hydrant']
 CURB = 0.15
-PIER_Y = 1.2
+PIER_Y = 0.3  # docks: one easy step up from land, low enough to climb onto from the water
 Q = 10  # coordinate quantisation: ints in decimetres
 
 T0 = time.time()

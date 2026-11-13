@@ -58,8 +58,12 @@ export function createStreamer(opts) {
       if (!ch || !ch.active) continue;
       const t = tileOf(tx, tz);
       t.d = Math.hypot(t.cx - cam.x, t.cz - cam.z);
-      const wantNear = t.near ? t.d < nearR + 80 : t.d < nearR;
-      if (wantNear && !t.near && !t.job) t.job = enqueue('near', t, buildNear(t), t.d, (res) => { t.near = res; t.job = null; });
+      // look-ahead (fast player car): tiles near where the car will be in a few seconds count as near too, so full detail
+      // (palms, poles, props) is built before the car gets there instead of popping in right in front of it
+      const la = focus.lookAhead, dn = la ? Math.min(t.d, Math.hypot(t.cx - la.x, t.cz - la.z) + 40) : t.d;
+      const wantNear = t.near ? dn < nearR + 80 : dn < nearR;
+      if (wantNear && !t.near && !t.job) t.job = enqueue('near', t, buildNear(t), dn, (res) => { t.near = res; t.job = null; });
+      else if (t.job && t.job.kind === 'near' && !t.job.cancelled) t.job.prio = dn;
       if (!wantNear && t.near && ch.mid) { dispose(t.near); t.near = null; }
     }
     for (let fi = 1; fi < focus.length; fi++) {
@@ -86,7 +90,8 @@ export function createStreamer(opts) {
     const t0 = performance.now();
     if (jobs.length) {
       jobs.sort((a, b) => a.prio - b.prio);
-      while (jobs.length && performance.now() - t0 < budgetMs) {
+      const B = focus.budgetMs || budgetMs;
+      while (jobs.length && performance.now() - t0 < B) {
         const j = jobs[0];
         if (j.cancelled) { jobs.shift(); if (j.gen.return) { const r = j.gen.return(); if (r && r.value) dispose(r.value); } continue; }
         const ts = performance.now();

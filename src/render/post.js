@@ -158,7 +158,7 @@ export function createPost(game) {
       // speed streaks
       const st = game.player?.state;
       const kmh = st?.inVehicle && st.vehicle ? (st.vehicle.speedKmh || 0) : 0;
-      const target = THREE.MathUtils.clamp((Math.abs(kmh) - 70) / 110, 0, 1);
+      const target = THREE.MathUtils.clamp((Math.abs(kmh) - 110) / 140, 0, 1); // speed blur only when really flying (110+ km/h)
       speedSmooth += (target - speedSmooth) * Math.min(1, dt * 3);
       gu.uSpeed.value = speedSmooth;
 

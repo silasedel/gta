@@ -69,7 +69,7 @@ export async function createVehicles(game) {
       const info = randomLane(net, nearPos, minD, maxD, trafficEdge, 4);
       if (!info) continue;
       const pos = new THREE.Vector3(info.x, groundY(info.x, info.z, info.y), info.z);
-      if (notInView && inView(pos)) continue;
+      if (notInView && spawnVisible(pos)) continue;
       if (isNear(pos, 10)) continue;
       if (!spotFree(pos, info.heading, spec || CAR_TYPES.sedan)) continue;
       // keep clear of junctions
@@ -90,7 +90,7 @@ export async function createVehicles(game) {
       const p = lanePointAt(e, info.dir, info.d, curb);
       const pos = new THREE.Vector3(p.x, groundY(p.x, p.z, p.y), p.z);
       if (city?.isWater?.(pos.x, pos.z)) continue;
-      if (notInView && inView(pos)) continue;
+      if (notInView && spawnVisible(pos)) continue;
       if (isNear(pos, 7)) continue;
       const heading = Math.atan2(p.fx, p.fz);
       if (!spotFree(pos, heading, spec)) continue;
@@ -107,6 +107,29 @@ export async function createVehicles(game) {
     _pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
     _frus.setFromProjectionMatrix(_pm);
     return _frus.intersectsSphere(new THREE.Sphere(new THREE.Vector3(p.x, 1, p.z), 4)) && cam.position.distanceTo(p) < 260;
+  }
+  // spawn visibility: wider than inView (a margin around the screen, out to the fog), plus a corridor along the player car's
+  // velocity, so a car never appears where the player will be looking or driving in the next few seconds
+  const _sph = new THREE.Sphere(new THREE.Vector3(), 12);
+  function spawnVisible(p) {
+    const cam = game.camera;
+    if (cam) {
+      cam.updateMatrixWorld();
+      _pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+      _frus.setFromProjectionMatrix(_pm);
+      _sph.center.set(p.x, (p.y || 0) + 1, p.z);
+      if (cam.position.distanceTo(_sph.center) < 420 && _frus.intersectsSphere(_sph)) return true;
+    }
+    let pv = null; try { pv = playerCarRef && !playerCarRef.disposed ? playerCarRef.body.linvel() : null; } catch (e) { pv = null; } // (declared further down)
+    if (pv) {
+      const sp = Math.hypot(pv.x, pv.z);
+      if (sp > 6) {
+        const pt = playerCarRef.body.translation(), dx = p.x - pt.x, dz = p.z - pt.z, d = Math.hypot(dx, dz) || 1;
+        const cos = (dx * pv.x + dz * pv.z) / (d * sp);
+        if (cos > 0.45 && d < 80 + sp * 7) return true; // ahead within ~7 s of travel
+      }
+    }
+    return false;
   }
 
   // ------------------------------------------------------------ shared headlight spot (player car only)
@@ -304,6 +327,7 @@ export async function createVehicles(game) {
       siren(on) { this.sirenOn = on === undefined ? !this.sirenOn : !!on; return this.sirenOn; },
       setChaseTarget(target) {
         this.chaseTarget = target || null;
+        try { if (target) city?.registerAnchor?.(this, 70); else city?.unregisterAnchor?.(this); } catch (e) { /* city without anchors */ }
         if (target) {
           if (!this.ai) this.ai = makeAI();
           this.ai.chase = { stuckT: 0, revT: 0 };
@@ -752,7 +776,7 @@ export async function createVehicles(game) {
       ai.edge = n.edge; ai.dir = n.dir; ai.lane = n.lane; ai.d = n.dir > 0 ? p2.s : n.edge.len - p2.s; ai.next = null; ai.waitT = 0;
       chooseNext(v);
     } else if (ai.d > ai.edge.len - 0.8 && ai.deadEnd) {
-      if (!inView(_p)) { respawnAI(v); return; }
+      if (!spawnVisible(_p)) { respawnAI(v); return; }
       ai.dir = -ai.dir; ai.d = ai.edge.len - ai.d; ai.deadEnd = false; chooseNext(v); // U-turn
     }
     const spd = Math.max(0, v.speed);
@@ -930,8 +954,8 @@ export async function createVehicles(game) {
   function respawnAI(v) {
     respawnCount++;
     const pp = game.player?.position || city?.playerSpawn || new THREE.Vector3();
-    const info = randomLanePos(pp, 80, PHYS_R - 20, true, 40, v.spec) || randomLanePos(pp, 45, PHYS_R - 20, false, 40, v.spec);
-    if (!info) return false;
+    const info = randomLanePos(pp, 90, PHYS_R - 15, true, 40, v.spec);
+    if (!info) return false; // nothing hidden right now: try again next frame rather than spawn in view
     placeVehicle(v, info.pos, info.heading);
     aiAssign(v, info);
     return true;
@@ -1028,8 +1052,9 @@ export async function createVehicles(game) {
         else if (v.ghost && d < SIM_R - 10) fromGhost(v);
       } else {
         if (v.ghost) fromGhost(v, true);
-        if (!v.frozen && d > SIM_R + 10) freeze(v);
-        else if (v.frozen && d < SIM_R - 10) thaw(v);
+        const chaseR = v.chaseTarget && !v.disabled ? 450 : SIM_R; // dispatched police drive in from far away
+        if (!v.frozen && d > chaseR + 10) freeze(v);
+        else if (v.frozen && d < chaseR - 10) thaw(v);
       }
     }
   }
@@ -1156,7 +1181,7 @@ export async function createVehicles(game) {
       }
     }
     if (ais.length < target && moved < 2) {
-      const info = randomLanePos(pp, 80, PHYS_R - 20, true);
+      const info = randomLanePos(pp, 90, PHYS_R - 15, true);
       if (info) { const type = trafficTypeFor(); const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true }); aiAssign(v, info); }
     }
     // parked cars: keep ~10 at the curbs near the player
@@ -1164,7 +1189,7 @@ export async function createVehicles(game) {
     const nearParked = parked.filter((v) => distXZ(v.body.translation(), pp) < PHYS_R).length;
     if (nearParked < 10) {
       const farP = parked.find((v) => distXZ(v.body.translation(), pp) > PHYS_R + 60);
-      const sp = parkedSpot(pp, 50, PHYS_R - 20, true);
+      const sp = parkedSpot(pp, 70, PHYS_R - 15, true);
       if (sp) {
         if (farP) { placeVehicle(farP, sp.pos, sp.heading); farP.locked = Math.random() < 0.4; }
         else if (parked.length < 18) { const type = parkedTypeFor(sp.pos); createVehicle(type, colorFor(type), sp.pos, sp.heading, { locked: Math.random() < 0.4 }); }
@@ -1532,6 +1557,7 @@ export async function createVehicles(game) {
     if (i < 0 || v.playerDriven) return false;
     list.splice(i, 1);
     v.alive = false; v.disposed = true;
+    try { city?.unregisterAnchor?.(v); } catch (e) { /* */ }
     disposeCar(v);
     for (let k = 0; k < 4; k++) skids.end(v.name + k);
     scene.remove(v.mesh);
@@ -1618,9 +1644,11 @@ export async function createVehicles(game) {
     const c = carNearest(pos, maxDist);
     const b = boatSys?.nearest(pos, maxDist);
     if (!b) return c; if (!c) return b;
-    const ct = c.body.translation(), bt = b.body.translation();
-    return Math.hypot(ct.x - pos.x, ct.z - pos.z) <= Math.hypot(bt.x - pos.x, bt.z - pos.z) ? c : b;
+    // a boat is long: compare the distance to its hull outline with the car's (centre) distance
+    const ct = c.body.translation(), cd = Math.hypot(ct.x - pos.x, ct.y - c.groundOff - (pos.y || 0), ct.z - pos.z);
+    const bd = boatSys.hullDist ? boatSys.hullDist(b, pos) : Math.hypot(b.body.translation().x - pos.x, b.body.translation().z - pos.z);
+    return bd <= cd ? b : c;
   }
   const updateAll = (dt) => { update(dt); try { boatSys?.update(dt); } catch (e) { console.error('[boats]', e); } };
-  return { list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+  return { list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
 }

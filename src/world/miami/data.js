@@ -61,7 +61,9 @@ export async function loadMiamiData(game, opts = {}) {
   const B = man.bounds;
   const SEA = man.seaLevel;
   const CURB = man.curb;
-  const PIER_Y = man.pierY;
+  // docks / piers sit 0.3 m above the land (0.42 m above the water): the player steps straight on from shore
+  // (autostep 0.35 m) and can climb out of the water onto them; the OSM pipeline's 1.2 m made a ledge you could not get onto
+  const PIER_Y = Math.min(man.pierY ?? 0.3, 0.3);
   const SURF = man.surfaces, ZONES = man.zones, DISTRICTS = man.districts;
   const S_WATER = SURF.indexOf('water'), S_SIDEWALK = SURF.indexOf('sidewalk'), S_PIER = SURF.indexOf('pier');
   const S_BUILDING = SURF.indexOf('building'), S_ASPHALT = SURF.indexOf('asphalt');
@@ -80,6 +82,24 @@ export async function loadMiamiData(game, opts = {}) {
     return j * g.w + i;
   };
   const surfCode = (x, z) => gS.data[cellOf(gS, x, z)];
+  // swimmable water: at least MIN_DEPTH (2 m, > 6 ft) everywhere except where the water meets a beach, which keeps its
+  // gentle slope (the clamp ramps in from 8 m to 32 m off the sand). Cached per surface cell.
+  const MIN_DEPTH = 2.0;
+  const S_SANDS = SURF.map((s, i) => (/sand|beach/i.test(s) ? i : -1)).filter((i) => i >= 0);
+  const minDepthCache = new Map();
+  function minDepthAt(x, z) {
+    if (!S_SANDS.length) return MIN_DEPTH;
+    const k = cellOf(gS, x, z); let v = minDepthCache.get(k);
+    if (v === undefined) {
+      let dB = Infinity;
+      for (let r = 8; r <= 32 && dB === Infinity; r += 8) for (let a = 0; a < 12; a++) { const ang = (a / 12) * Math.PI * 2; if (S_SANDS.includes(surfCode(x + Math.cos(ang) * r, z + Math.sin(ang) * r))) { dB = r; break; } }
+      v = dB === Infinity ? MIN_DEPTH : MIN_DEPTH * Math.min(1, Math.max(0, (dB - 8) / 24));
+      if (minDepthCache.size > 400000) minDepthCache.clear();
+      minDepthCache.set(k, v);
+    }
+    return v;
+  }
+  const swimDepthAt = (x, z) => Math.max(depthAt(x, z), minDepthAt(x, z));
   function depthAt(x, z) { // bilinear seabed depth (m, positive)
     const fx = (x - gD.x0) / gD.res - 0.5, fz = (z - gD.z0) / gD.res - 0.5;
     let i = Math.floor(fx), j = Math.floor(fz);
@@ -237,7 +257,7 @@ export async function loadMiamiData(game, opts = {}) {
   function groundHeightAt(x, z, y) {
     if (deckAt(x, z, y === undefined ? Infinity : y + 4)) return DK.y;
     const s = surfCode(x, z);
-    if (s === S_WATER) return SEA - Math.max(0.2, depthAt(x, z));
+    if (s === S_WATER) return SEA - Math.max(0.2, swimDepthAt(x, z));
     if (s === S_SIDEWALK) return CURB;
     if (s === S_PIER) return PIER_Y;
     return 0;
@@ -506,7 +526,7 @@ export async function loadMiamiData(game, opts = {}) {
       sidewalks: (T.sw || []).map(polyT),
       landcover: (T.lu || []).map((r) => ({ cls: r.c, surface: r.s, ...polyT(r) })),
       paths: (T.fw || []).map((r) => ({ kind: r.k, width: r.w, surface: r.s || null, bridge: !!r.br, pts: f32(r.p) })),
-      piers: (T.pr || []).map((r) => ({ kind: r.k, y: r.y, ...polyT(r) })),
+      piers: (T.pr || []).map((r) => ({ kind: r.k, y: Math.min(r.y ?? PIER_Y, PIER_Y), ...polyT(r) })),
       roadEdges: (T.r || []).map((k) => edges[k]), // edges whose midpoint is in this tile (draw each edge once)
       roadEdgesTouching: (T.rt || []).map((k) => edges[k]), // every edge crossing the tile (colliders)
       storefronts: (T.sf || []).map((k) => storefronts[k]),
@@ -601,7 +621,7 @@ export async function loadMiamiData(game, opts = {}) {
     });
     const tile = { tx, tz, x0, z0, size: TS, key, areas, roads, nodes: nodesT, buildings: buildingsT, trees, palms, signals, lamps, busStops, crossings, stops, props: other,
       sidewalkPolys: (T.sw || []).map(ringsA), paths: (T.fw || []).map((r) => ({ kind: r.k, width: r.w, surface: r.s || null, bridge: !!r.br, pts: ringA(r.p) })),
-      piers: (T.pr || []).map((r) => ({ kind: r.k, y: r.y, rings: ringsA(r) })),
+      piers: (T.pr || []).map((r) => ({ kind: r.k, y: Math.min(r.y ?? PIER_Y, PIER_Y), rings: ringsA(r) })),
       storefronts: (T.sf || []).map((k) => storefronts[k]), benches: (T.bn || []).map((k) => benches[k]), leanSpots: (T.ls || []).map((k) => leanSpots[k]),
       pois: (T.poi || []).map((p) => ({ kind: p.k, x: p.x * Q, z: p.z * Q })) };
     cityTiles.set(key, tile);
@@ -613,7 +633,7 @@ export async function loadMiamiData(game, opts = {}) {
     source: 'osm-miami', manifest: man, attribution: man.attribution,
     bounds: { ...B }, seaLevel: SEA, curbHeight: CURB, pierHeight: PIER_Y,
     playerSpawn: spawn, playerSpawnHeading: man.playerSpawnHeading,
-    groundHeightAt, isWater, surfaceAt, zoneAt, districtAt, streetNameAt, seabedDepthAt: depthAt,
+    groundHeightAt, isWater, surfaceAt, zoneAt, districtAt, streetNameAt, seabedDepthAt: (x, z) => (surfCode(x, z) === S_WATER ? swimDepthAt(x, z) : depthAt(x, z)),
     roadGraph, roads, buildings, mapLayers,
     randomRoadPoint, randomSidewalkPoint,
     storefronts, shopLots: storefronts, benches, leanSpots, storefrontsNear, benchesNear, leanSpotsNear,

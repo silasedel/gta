@@ -9,7 +9,7 @@ export const GradeShader = {
     uRes: { value: [1, 1] },
     uAspect: { value: 1 },
     uSpeed: { value: 0 },
-    uCA: { value: 0.0035 },
+    uCA: { value: 0.0 }, // no constant edge fringe: aberration only appears with speed (uSpeed)
     uGrain: { value: 0.035 },
     uVignette: { value: 0.42 },
     uSat: { value: 1.14 },
@@ -67,11 +67,11 @@ export const GradeShader = {
       if ( uUnder > 0.001 ) uv += uUnder * vec2( sin( uv.y * 40.0 + uTime * 2.3 ), cos( uv.x * 33.0 + uTime * 1.9 ) ) * 0.0035;
       vec2 dc = uv - 0.5;
       float r2 = dot( dc * vec2( uAspect, 1.0 ), dc * vec2( uAspect, 1.0 ) );
-      float ca = uCA * r2 * 2.0 + uSpeed * 0.004;
+      float ca = uCA * r2 * 2.0 + uSpeed * r2 * 0.006;
       vec3 col;
       if ( uSpeed > 0.01 ) {
         // radial streaks: blur outward from the center, stronger at the edges
-        float amt = uSpeed * 0.06 * smoothstep( 0.02, 0.35, r2 );
+        float amt = uSpeed * 0.035 * smoothstep( 0.08, 0.45, r2 ); // edges only, centre stays sharp
         col = vec3( 0.0 );
         float wsum = 0.0;
         for ( int i = 0; i < 8; i++ ) {

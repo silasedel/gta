@@ -299,6 +299,7 @@ export function createHUD(game) {
   let lastHp = 999, lastAr = -1, lastKmh = -1;
   let lastWanted = 0, lastDistrict = null, areaTimer = 0, helpText = null;
   let mapView = { cx: 60, cz: 0, ppm: 1 }, mapXform = null, drag = null;
+  ui._mapView = () => mapView; // read-only debug hook for tests
   let bigPendingTimer = 0;
   function mapBounds() { return mapR.bounds() || game.city?.bounds || { minX: MAP_X0, maxX: MAP_X1, minZ: MAP_Z0, maxZ: MAP_Z1 }; }
   function fitPPM() { const r = bigmap.getBoundingClientRect(), B = mapBounds(); return Math.min((r.width || 1000) / Math.max(100, B.maxX - B.minX), (r.height || 600) / Math.max(100, B.maxZ - B.minZ)) * 0.95; }
@@ -446,9 +447,10 @@ export function createHUD(game) {
     const r = bigmap.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top;
     const px = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? r.height : 1;
     const dX = e.deltaX * px, dY = e.deltaY * px;
-    const mouseNotch = e.deltaMode !== 0 || (dX === 0 && Math.abs(dY) >= 40 && Math.abs(dY - Math.round(dY)) < 1e-6);
-    if (e.ctrlKey || mouseNotch) zoomAt(sx, sy, Math.exp(-clamp(dY, -240, 240) * (e.ctrlKey ? 0.01 : 0.0016)));
-    else { zoomAnim = null; mapView.cx += dX / mapView.ppm; mapView.cz += dY / mapView.ppm; clampView(); drawBigMap(); }
+    // Vertical scroll (mouse wheel or two-finger trackpad) always zooms at the cursor; pinch (ctrlKey) zooms faster.
+    // A mostly-sideways trackpad swipe pans horizontally. Dragging pans in any direction.
+    if (!e.ctrlKey && Math.abs(dX) > Math.abs(dY) * 1.5) { zoomAnim = null; mapView.cx += dX / mapView.ppm; clampView(); drawBigMap(); return; }
+    if (dY) zoomAt(sx, sy, Math.exp(-clamp(dY, -240, 240) * (e.ctrlKey ? 0.01 : 0.0022)));
   }, { passive: false });
   function stepZoom() {
     const z = zoomAnim; if (!z) return;

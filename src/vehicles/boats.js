@@ -377,6 +377,35 @@ export function createBoats(game, opts = {}) {
     return new THREE.Vector3(tr.x + _v.x, SEA - 0.8, tr.z + _v.z);
   }
 
+  // ---- dock guard: piers sit only 0.42 m above the water, so a hull driven into one would ride up onto the deck.
+  // Bow (or stern when reversing) over a pier/dock deck while moving toward it -> kill that motion (small rebound);
+  // hull centre already up on a deck -> slide it back off toward the water. Beaches are not decks (sloping sand).
+  const _dray = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 }), _df = new THREE.Vector3();
+  function deckUnder(x, z) {
+    const sf = city?.surfaceAt?.(x, z);
+    if (sf !== undefined && sf !== 'wood' && !isWater(x, z)) return false; // land / beach / quay: not a floating dock
+    _dray.origin = { x, y: SEA + 2, z }; _dray.dir = { x: 0, y: -1, z: 0 };
+    const hit = world.castRay(_dray, 2.25, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
+    if (!hit) return false;
+    const y = SEA + 2 - (hit.timeOfImpact ?? hit.toi);
+    return y > SEA + 0.05 && y < SEA + 1.6;
+  }
+  function dockGuard(b, tr, lv) {
+    const t = b.spec; _df.set(0, 0, 1).applyQuaternion(_q); _df.y = 0; _df.normalize();
+    const vF = lv.x * _df.x + lv.z * _df.z;
+    const reach = t.L / 2 + 0.4;
+    const bowOn = vF > 0.3 && deckUnder(tr.x + _df.x * reach, tr.z + _df.z * reach);
+    const sternOn = vF < -0.3 && deckUnder(tr.x - _df.x * reach, tr.z - _df.z * reach);
+    const midOn = deckUnder(tr.x, tr.z);
+    if (!bowOn && !sternOn && !midOn) return;
+    let nx = lv.x, ny = lv.y, nz = lv.z;
+    if (bowOn || sternOn) { const k = vF * 1.25; nx -= _df.x * k; nz -= _df.z * k; } // stop at the dock edge, slight bounce back
+    if (midOn) { const away = bowOn || vF > 0 ? -1 : 1; nx = _df.x * away * 2.5; nz = _df.z * away * 2.5; } // slide back off the deck
+    if (ny > 0) ny = 0;
+    b.body.setLinvel({ x: nx, y: ny, z: nz }, true);
+    b.dockHits = (b.dockHits || 0) + 1;
+  }
+
   // ---- physics
   const _pt = { x: 0, y: 0, z: 0 }, _imp = { x: 0, y: 0, z: 0 };
   function boatTick(b, dt, time) {
@@ -403,6 +432,7 @@ export function createBoats(game, opts = {}) {
       body.applyImpulseAtPoint(_imp, _pt, true);
     }
     const wf = wet / b.floats.length;
+    dockGuard(b, tr, lv);
     // hull hung up on a seawall toe / pier edge while over deep water: the prop is still in the water
     if (!sternWet && wf > 0 && isWater(tr.x, tr.z) && bedY(tr.x, tr.z) < SEA - 1.5) sternWet = true;
     b.submerged = 0;
@@ -427,7 +457,7 @@ export function createBoats(game, opts = {}) {
       body.setAngularDamping(1.6 * wf + 0.3);
       body.setLinearDamping(b.beached ? 1.5 : 0.05);
       // throttle -> prop thrust at the stern, only when it is in the water
-      const c = b.playerDriven || b.ai || b.chaseTarget ? b.ctrl : { throttle: 0, steer: 0 };
+      const c = (b.playerDriven && !b.boarding) || b.ai || b.chaseTarget ? b.ctrl : { throttle: 0, steer: 0 };
       const on = b.engineOn && !b.disabled;
       let thr = on ? c.throttle : 0;
       if (b.beached && thr > 0) thr = 0; // aground: forward drive is useless, but backing off the sand still works
@@ -751,7 +781,7 @@ export function createBoats(game, opts = {}) {
       if (b.frozen) continue;
       if (b.playerDriven !== (prevPD.get(b) || false)) {
         prevPD.set(b, b.playerDriven);
-        if (b.playerDriven) { b.everDriven = true; if (!b.engineOn && !b.disabled) { b.engineOn = true; game.emit?.('engineStart', { vehicle: b }); } }
+        if (b.playerDriven) { startBoarding(b); b.everDriven = true; if (!b.engineOn && !b.disabled) { b.engineOn = true; game.emit?.('engineStart', { vehicle: b }); } }
         else { b.engineOffT = 3; }
       }
       if (!b.playerDriven && b.engineOffT > 0) { b.engineOffT -= dt; if (b.engineOffT <= 0 && !b.chaseTarget) { b.engineOn = false; game.emit?.('engineStop', { vehicle: b }); } }
@@ -767,6 +797,8 @@ export function createBoats(game, opts = {}) {
   function update(dt) {
     try { manager(dt); } catch (e) { console.error('[boats] manager', e); }
     navStep(1.2);
+    try { proximitySwap(dt); } catch (e) { console.warn('[boats] swap', e); }
+    boardingStep(dt);
     const h = game.timeOfDay ?? 12, night = h < 6.6 || h > 18.7;
     const et = game.clock?.elapsed ?? 0;
     for (const b of boats) {
@@ -779,20 +811,73 @@ export function createBoats(game, opts = {}) {
     }
     foam.flush();
   }
+  // ---- boarding: a short scripted move from where the player stood/swam onto the deck (main.js renders the player
+  // at BOARD.position while BOARD.active; the boat ignores the controls meanwhile, the player collider stays off)
+  const BOARD = { active: false, type: null, t: 0, dur: 0.8, vehicle: null, position: new THREE.Vector3(), heading: 0, from: new THREE.Vector3(), side: 1 };
+  const _bq = new THREE.Quaternion(), _bv = new THREE.Vector3();
+  function seatLocal(t, out) { return out.set(0, t.sheer * 0.55, -t.L * 0.12); }
+  function startBoarding(b) {
+    const P = game.player, pp = P?.position; if (!pp) return;
+    const tr = b.body.translation();
+    const inWater = !!P.swimming || ((P.waterDepth || 0) > 1.0 && !P.state?.grounded); // on a dock / quay / beach = hop on
+    BOARD.active = true; BOARD.vehicle = b; BOARD.t = 0; BOARD.type = inWater ? 'climb' : 'hop';
+    BOARD.dur = inWater ? 0.85 : 0.65; BOARD.from.set(pp.x, pp.y, pp.z);
+    const r = b.body.rotation(); _bq.set(r.x, r.y, r.z, r.w); _bv.set(1, 0, 0).applyQuaternion(_bq);
+    BOARD.side = (pp.x - tr.x) * _bv.x + (pp.z - tr.z) * _bv.z >= 0 ? 1 : -1;
+    b.boarding = true;
+    game.emit?.('boatBoardStart', { vehicle: b, type: BOARD.type, duration: BOARD.dur });
+  }
+  const smooth = (u) => u * u * (3 - 2 * u);
+  function boardingStep(dt) {
+    if (!BOARD.active) return;
+    const b = BOARD.vehicle;
+    if (!b || !b.alive || !b.playerDriven) { BOARD.active = false; if (b) b.boarding = false; return; }
+    BOARD.t = Math.min(1, BOARD.t + dt / BOARD.dur);
+    const t = b.spec, tr = b.body.translation(), r = b.body.rotation(); _bq.set(r.x, r.y, r.z, r.w);
+    const seat = seatLocal(t, _bv).applyQuaternion(_bq).add(tr);
+    const u = BOARD.t, F = BOARD.from, out = BOARD.position;
+    if (BOARD.type === 'climb') {
+      // reach the gunwale (side nearest the start), pull up, roll over onto the deck
+      _w.set(BOARD.side * (t.W / 2 + 0.15), t.sheer - 0.9, -t.L * 0.05).applyQuaternion(_bq).add(tr); // hands-on-gunwale body pos
+      if (u < 0.45) { const k = smooth(u / 0.45); out.lerpVectors(F, _w, k); }
+      else { const k = smooth((u - 0.45) / 0.55); out.lerpVectors(_w, seat, k); out.y += Math.sin(k * Math.PI) * 0.35; }
+    } else {
+      const k = smooth(u); out.lerpVectors(F, seat, k);
+      out.y += Math.sin(k * Math.PI) * (0.55 + Math.max(0, seat.y - F.y) * 0.3); // hop arc
+    }
+    BOARD.heading = u < 0.6 ? Math.atan2(tr.x - out.x, tr.z - out.z) : b.heading;
+    if (BOARD.t >= 1) { BOARD.active = false; b.boarding = false; game.emit?.('boatBoardEnd', { vehicle: b }); }
+  }
+  // hull-outline distance (shared by nearest() and the car/boat arbitration in vehicles.js)
+  function hullDist(b, pos) {
+    const tr = b.body.translation(), hd = b.heading, fx = Math.sin(hd), fz = Math.cos(hd), dx = pos.x - tr.x, dz = pos.z - tr.z;
+    const lz = clamp(dx * fx + dz * fz, -b.spec.L / 2, b.spec.L / 2), lx = clamp(dx * fz - dz * fx, -b.spec.W / 2, b.spec.W / 2);
+    const ex = dx - (fx * lz + fz * lx), ez = dz - (fz * lz - fx * lx);
+    return Math.hypot(ex, ez, Math.max(0, Math.abs((pos.y ?? tr.y) - tr.y) - 2.5));
+  }
+  // every static moored boat close to a player on foot / swimming becomes the drivable one (no cap), so F always works
+  let swapT = 0;
+  function proximitySwap(dt) {
+    swapT -= dt; if (swapT > 0) return; swapT = 0.2;
+    const P = game.player, pp = P?.position; if (!pp || P.state?.inVehicle || typeof city?.moorings !== 'function') return;
+    const near = moorSlots(pp.x, pp.z, 40).filter((m) => Math.hypot(m.x - pp.x, m.z - pp.z) - (m.length || 8) / 2 < 16);
+    for (const m of near) {
+      if (boats.length >= 16) { // make room: drop the farthest idle boat (abandoned ones count once they are 150 m away)
+        let far = null, fd = 0; for (const q of boats) { if (q.playerDriven || q.chaseTarget || q.external || q === game.player?.state?.vehicle) continue; const t = q.body.translation(), d = Math.hypot(t.x - pp.x, t.z - pp.z); if (d > fd && d > (q.everDriven ? 150 : 60)) { fd = d; far = q; } }
+        if (far) removeBoat(far); else if (boats.length >= 28) break;
+      }
+      fillFrom([m], 28);
+    }
+  }
   function nearest(pos, maxDist) {
     let best = null, bd = maxDist;
     for (const b of boats) {
       if (b.frozen || b.disabled) continue;
-      const tr = b.body.translation();
-      // distance to the hull outline (boats are long): project into hull frame
-      const hd = b.heading, fx = Math.sin(hd), fz = Math.cos(hd), dx = pos.x - tr.x, dz = pos.z - tr.z;
-      const lz = clamp(dx * fx + dz * fz, -b.spec.L / 2, b.spec.L / 2), lx = clamp(dx * fz - dz * fx, -b.spec.W / 2, b.spec.W / 2);
-      const ex = dx - (fx * lz + fz * lx), ez = dz - (fz * lz - fx * lx);
-      const d = Math.hypot(ex, ez, Math.max(0, Math.abs((pos.y ?? tr.y) - tr.y) - 1.5));
+      const d = hullDist(b, pos);
       if (d < bd) { bd = d; best = b; }
     }
     return best;
   }
-  return { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES,
+  return { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES, hullDist, boarding: BOARD,
     nav: { stats: NAV.stats, get grid() { return NAV.grid; }, get building() { return !!NAV.gen; }, path: navPath, spawnSpot: navSpawnSpot, ensure: navEnsure } };
 }

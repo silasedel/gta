@@ -313,6 +313,35 @@ export function createPolice(game, G) {
     return v;
   }
   let carSpawnCd = 2, footSpawnCd = 3;
+  // Police cars are dispatched from the nearest station: they appear out of sight 170-300 m away on the road route from the
+  // station towards the player (so they arrive from the station's direction), never on the road next to the player.
+  let dispatchCache = null;
+  function dispatchPoint(pp) {
+    const C = G.city, ms = Math.sqrt(C?.mapScale || 1), iv = (q) => inView(game, q);
+    const st = tryCall('policeStation', () => C?.respawnPoint?.('police', pp), null);
+    if (st && Number.isFinite(st.x)) {
+      const ds = Math.hypot(st.x - pp.x, st.z - pp.z);
+      if (ds < 200 * ms) { // station is close by: cars pull out of it
+        const r = C.roadPoint(st, 0, 60, { avoidView: true, inView: iv });
+        if (r && distXZ(r.position, pp) > 70) return r;
+      } else if (ds < 3000) {
+        if (!dispatchCache || Math.hypot(dispatchCache.x - pp.x, dispatchCache.z - pp.z) > 60 || dispatchCache.sx !== st.x) {
+          dispatchCache = { x: pp.x, z: pp.z, sx: st.x, path: tryCall('dispatchPath', () => C.findPath(pp.x, pp.z, st.x, st.z), null) };
+        }
+        const path = dispatchCache.path;
+        if (path && path.length > 1) {
+          for (const q of path) {
+            const d = Math.hypot(q.x - pp.x, q.z - pp.z);
+            if (d < 170 * ms) continue;
+            if (d > 320 * ms) break;
+            const r = C.roadPoint(new THREE.Vector3(q.x, pp.y, q.z), 0, 30, { avoidView: true, inView: iv });
+            if (r && distXZ(r.position, pp) > 150 * ms) return r;
+          }
+        }
+      }
+    }
+    return C?.roadPoint(pp, 170 * ms, 280 * ms, { avoidView: true, inView: iv, tries: 24 }) || pointNear(game, pp, 160, 260, 'road', true);
+  }
   // road-graph navigation: A* to the goal, follow waypoints, go direct when close
   function navTarget(c, t, goal, dt) {
     const C = G.city;
@@ -348,8 +377,7 @@ export function createPolice(game, G) {
     carSpawnCd -= dt;
     if (lvl > 0 && carSpawnCd <= 0 && cars.length < CAR_TARGET[lvl]) {
       carSpawnCd = lvl >= 5 ? 3 : lvl >= 3 ? 4.5 : 6;
-      const ms = Math.sqrt(G.city?.mapScale || 1);
-      const r = G.city?.roadPoint(pp, 80 * ms, 160 * ms, { avoidView: true, inView: (q) => inView(game, q) }) || pointNear(game, pp, 80, 150, 'road', true);
+      const r = dispatchPoint(pp);
       if (r) { const v = spawnPoliceCar(r.position, r.heading, true); if (v) cars.push({ v, deployed: false, cops: [], mine: true, t: 0 }); }
     }
     for (const c of cars.slice()) {

@@ -226,6 +226,8 @@ export async function createMiamiCity(game, opts = {}) {
       focus[3].x = focus[2].x + lvx * k6 * 0.5; focus[3].z = focus[2].z + lvz * k6 * 0.5; focus[4].x = focus[2].x + lvx * k6; focus[4].z = focus[2].z + lvz * k6;
       // registered anchors (cars, peds, pickups...): colliders stay loaded around each one
       focus.length = 5;
+      // fast driving: build full-detail tiles ahead of the car (look-ahead about 4-6 s out) and give streaming a bit more time per frame
+      focus.lookAhead = sp > 8 ? focus[4] : null; focus.budgetMs = sp > 25 ? 5 : sp > 12 ? 4 : 0;
       for (const a of anchors) { const q = anchorPos(a); if (q) { const f = anchorFocus.get(a); f.x = q.x; f.z = q.z; focus.push(f); } }
       streamer.update(focus);
       // a fast car must never outrun its colliders: spend extra budget while the path ahead is not ready yet
