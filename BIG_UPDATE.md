@@ -167,6 +167,35 @@ Real-world Miami *architecture* (Art Deco, MiMo, glass towers, Mediterranean Rev
   - No stuck spots, no invisible walls, and doors and stairs that work.
   - Every job and mission completable from start to finish, with automated playthrough tests.
 
+## 0d. V2 idea round (user's yes/no, Nov 13)
+
+### YES
+- **Real Miami transit:** the elevated downtown people-mover, city buses and trolleys, with stops, schedules and NPC riders. You can ride along.
+- **Night car meets:** NPCs show off cars in lots at night, with cash races and pink-slip bets.
+- **Disguises and uniforms:**
+  - Wear delivery, security or staff uniforms to enter restricted areas unnoticed.
+  - **People drop what they carry and wear:** kill or knock out a delivery driver and you can pick up and put on their uniform (also bags, hats, IDs, keys).
+- **Parkour and climbing:** vault fences, climb ladders and fire escapes, run across rooftops.
+- **A pet dog:** adopt one at a shelter. It follows you, rides in the car, barks at cops, and can be trained.
+- **NPC memory:** the barista knows your usual, a clerk you robbed refuses service, and people across the city become friends or enemies.
+- **Fishing (casual, no tournaments):** fish from piers, boats and bridges, with real Florida species, and sell the catch to stores.
+- **Nightclub nights:** dress code and bouncers, VIP tables, bottle service, dancing, fights spilling outside.
+- **Car upkeep:** fuel, tire wear and flats, breakdowns, and insurance to recover destroyed owned cars.
+- **Cash vs. bank:** carried cash can be stolen or lost on death; the bank, card and ATMs keep it safe.
+- **Traffic cameras:** speeding and red-light tickets mailed to your safehouse, and chases caught on camera add heat.
+- **Light needs:** sleep at home to skip time and save, tiredness if you stay up too long, showers clear the "seen at the crime" description.
+- **Rideshare:** call a ride as a passenger, or drive for the app.
+- **Wet-weather driving:** slick roads, puddle hydroplaning, automatic wipers and headlights.
+- **Modern influencer flavor (not a career):** NPC influencers filming content on the street, ring lights in apartments, selfie spots, people livestreaming your crimes. Ambient life only, no player career system.
+- **Rare ocean-floor finds:** a few rare, realistic items on the seabed (a lost phone, a sunken small boat, an old anchor). Nothing crazy or unrealistic, and no treasure-hunting system.
+- **Talking with people (big):**
+  - NPCs speak to you with purpose: "we're hiring", someone who likes you flirts or wants to hang out, someone offers a deal (buy, sell, a job), someone warns you or asks for help.
+  - **You can talk back:** a context dialogue wheel (friendly, rude, ask, threaten, accept or decline the offer, ask about the job) leads to real outcomes: a job, a discount, a friend, a fight, a police call.
+- **Lore: few but high quality.** A small number of hand-written, polished stories and secrets. Quality over quantity, and no filler.
+
+### NO
+- Content creator career, skills that grow by use, treasure-diving system, food truck job, gadgets (drone, lockpick, scanner, binoculars), lots of collectibles and easter eggs, fishing tournaments.
+
 ## 1. Buildings and interiors
 - **Every building can be entered**, each with a fully detailed interior that fits it: apartments (luxury to run-down), hotel lobbies, offices, shops, restaurants, bars, clubs, gas stations, garages, churches, schools, warehouses.
 - **Elevators and stairs** to upper floors and rooftops with skyline views.
