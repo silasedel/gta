@@ -242,8 +242,8 @@ export function createHUD(game) {
       <div class="ps-pause-meta"><span class="ps-pm-clock">18:00</span><span class="ps-pm-money">$0</span></div>
     </div>
     <div class="ps-pages">
-      <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div>
-        <div class="ps-map-legend"><b>Click</b> set waypoint · <b>Right-click</b> clear · <b>Wheel</b> zoom · <b>Drag</b> pan</div>
+      <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div><div class="ps-map-zoom"><button data-z="in" title="Zoom in (+)">+</button><button data-z="out" title="Zoom out (−)">−</button><button data-z="fit" title="Whole map (F)">⤢</button><button data-z="me" title="Centre on me (C)">◎</button></div>
+        <div class="ps-map-legend"><b>Drag / WASD</b> pan · <b>Wheel / pinch</b> zoom · <b>Click</b> waypoint · <b>Right-click</b> clear · <b>F</b> whole map</div>
         <div class="ps-map-loc"></div><div class="ps-map-attrib">Map data © OpenStreetMap contributors</div></div>
       <div class="ps-page ps-page-stats"><div class="ps-stats-grid"></div></div>
       <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>
@@ -254,6 +254,10 @@ export function createHUD(game) {
   const tabs = [...pause.querySelectorAll('.ps-tab')], pages = [...pause.querySelectorAll('.ps-page')];
   const bigmap = pause.querySelector('.ps-bigmap'), bctx = bigmap.getContext('2d');
   const mapLoc = pause.querySelector('.ps-map-loc');
+  pause.querySelectorAll('.ps-map-zoom button').forEach((b) => b.addEventListener('click', () => {
+    const r = bigmap.getBoundingClientRect(), z = b.dataset.z;
+    if (z === 'in') zoomAt(r.width / 2, r.height / 2, 1.6); else if (z === 'out') zoomAt(r.width / 2, r.height / 2, 1 / 1.6); else if (z === 'fit') fitMap(); else centreOnPlayer();
+  }));
   const statsGrid = pause.querySelector('.ps-stats-grid');
   const pmClock = pause.querySelector('.ps-pm-clock'), pmMoney = pause.querySelector('.ps-pm-money');
   let curTab = 0;
@@ -276,7 +280,7 @@ export function createHUD(game) {
       <div class="ps-logo-solana">SOLANA</div>
       <div class="ps-logo-sub"><i></i>CALORA<i></i></div>
     </div>
-    <div class="ps-title-cta">CLICK TO PLAY</div><div class="ps-title-foot" style="margin-top:6px;opacity:.7">or press Enter</div>
+    <div class="ps-title-cta">CLICK TO PLAY<span style="display:block;margin-top:8px;font-size:11px;letter-spacing:.25em;opacity:.65;font-weight:500">OR PRESS ENTER</span></div>
     <div class="ps-title-foot">WASD move · Mouse look · F vehicles · ▲ phone · Esc pause</div>`;
   root.appendChild(title);
   // Robust start: pointerdown fires even if a click gets swallowed; Enter/Space also start; a failed mouse
@@ -359,44 +363,99 @@ export function createHUD(game) {
 
   // big map interactions
   bigmap.addEventListener('contextmenu', (e) => { e.preventDefault(); game.waypoint = null; notify('Waypoint cleared', 1800); drawBigMap(); });
-  bigmap.addEventListener('mousedown', (e) => { if (e.button === 0) drag = { x: e.clientX, y: e.clientY, cx: mapView.cx, cz: mapView.cz, moved: false }; });
-  window.addEventListener('mousemove', (e) => {
+  function clampView() {
+    const B = mapBounds(), r = bigmap.getBoundingClientRect(), k = mapView.ppm || 1;
+    const hw = (r.width || 1000) / 2 / k, hh = (r.height || 600) / 2 / k, m = 150;
+    // centre may roam anywhere that keeps some of the playable area on screen
+    const loX = B.minX - m - hw * 0.6, hiX = B.maxX + m + hw * 0.6, loZ = B.minZ - m - hh * 0.6, hiZ = B.maxZ + m + hh * 0.6;
+    const cxMid = (B.minX + B.maxX) / 2, czMid = (B.minZ + B.maxZ) / 2;
+    mapView.cx = loX > hiX ? cxMid : clamp(mapView.cx, Math.min(loX, cxMid), Math.max(hiX, cxMid));
+    mapView.cz = loZ > hiZ ? czMid : clamp(mapView.cz, Math.min(loZ, czMid), Math.max(hiZ, czMid));
+  }
+  bigmap.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    drag = { x: e.clientX, y: e.clientY, cx: mapView.cx, cz: mapView.cz, moved: false, id: e.pointerId };
+    try { bigmap.setPointerCapture(e.pointerId); } catch (err) { /* */ }
+    zoomAnim = null; bigmap.classList.add('grab');
+  });
+  bigmap.addEventListener('pointermove', (e) => {
     if (!drag || !mapXform) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
-    if (drag.moved) { mapView.cx = drag.cx - dx / mapXform.k; mapView.cz = drag.cz - dy / mapXform.k; drawBigMap(); }
+    if (drag.moved) { mapView.cx = drag.cx - dx / mapView.ppm; mapView.cz = drag.cz - dy / mapView.ppm; clampView(); drawBigMap(); }
   });
-  window.addEventListener('mouseup', (e) => {
+  const endDrag = (e, cancel) => {
     if (!drag) return;
-    const d = drag; drag = null;
-    if (d.moved || !mapXform) return;
+    const d = drag; drag = null; bigmap.classList.remove('grab');
+    try { bigmap.releasePointerCapture(d.id); } catch (err) { /* */ }
+    if (cancel || d.moved || !mapXform) return;
     const r = bigmap.getBoundingClientRect();
     const x = (e.clientX - r.left - mapXform.ox) / mapXform.k, z = (e.clientY - r.top - mapXform.oz) / mapXform.k;
+    if (mapR.ok() && mapR.boundary() && !mapR.inside(x, z)) { notify('That spot is outside the playable area', 1600); return; }
     const B = mapBounds();
     if (x < B.minX - 50 || x > B.maxX + 50 || z < B.minZ - 50 || z > B.maxZ + 50) return;
     game.waypoint = { x, z }; route = null; routeShown = null;
     const sn = streetName(x, z);
     notify(`Waypoint set · ${sn ? sn + ', ' : ''}${distName(x, z)}`, 2200);
     drawBigMap();
+  };
+  bigmap.addEventListener('pointerup', (e) => endDrag(e, false));
+  bigmap.addEventListener('pointercancel', (e) => endDrag(e, true));
+  bigmap.addEventListener('dblclick', (e) => { const r = bigmap.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, 2); });
+  // keyboard pan / zoom while the map tab is open
+  const mapKeys = new Set();
+  window.addEventListener('keydown', (e) => {
+    if (!ui.paused || curTab !== 0) return;
+    const k = e.code;
+    if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) { e.preventDefault(); if (!mapKeys.size) requestAnimationFrame(keyPanStep); mapKeys.add(k); }
+    else if (k === 'Equal' || k === 'NumpadAdd') { const r = bigmap.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.5); }
+    else if (k === 'Minus' || k === 'NumpadSubtract') { const r = bigmap.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1 / 1.5); }
+    else if (k === 'KeyF') fitMap();
+    else if (k === 'KeyC') centreOnPlayer();
   });
+  window.addEventListener('keyup', (e) => mapKeys.delete(e.code));
+  window.addEventListener('blur', () => mapKeys.clear());
+  let keyLast = 0;
+  function keyPanStep(t) {
+    if (!mapKeys.size || !ui.paused) { keyLast = 0; return; }
+    const dt = keyLast ? Math.min(0.05, (t - keyLast) / 1000) : 0.016; keyLast = t;
+    const sp = 700 / mapView.ppm * dt; // ~700 screen px per second
+    if (mapKeys.has('KeyW') || mapKeys.has('ArrowUp')) mapView.cz -= sp;
+    if (mapKeys.has('KeyS') || mapKeys.has('ArrowDown')) mapView.cz += sp;
+    if (mapKeys.has('KeyA') || mapKeys.has('ArrowLeft')) mapView.cx -= sp;
+    if (mapKeys.has('KeyD') || mapKeys.has('ArrowRight')) mapView.cx += sp;
+    clampView(); drawBigMap();
+    requestAnimationFrame(keyPanStep);
+  }
+  function minPPM() { return fitPPM(); }
+  function zoomAt(sx, sy, f) {
+    if (!mapXform) drawBigMap(); if (!mapXform) return;
+    const r = bigmap.getBoundingClientRect();
+    const wx = (sx - mapXform.ox) / mapXform.k, wz = (sy - mapXform.oz) / mapXform.k;
+    const tgt = clamp((zoomAnim ? zoomAnim.tgt : mapView.ppm) * f, minPPM(), 6);
+    const running = !!zoomAnim;
+    zoomAnim = { tgt, wx, wz, sx, sy, W: r.width, H: r.height };
+    if (!running) requestAnimationFrame(stepZoom);
+  }
+  function fitMap() { const B = mapBounds(), r = bigmap.getBoundingClientRect(); zoomAnim = null; mapView.ppm = minPPM(); mapView.cx = (B.minX + B.maxX) / 2; mapView.cz = (B.minZ + B.maxZ) / 2; drawBigMap(); }
+  function centreOnPlayer() { const pp = game.player?.position; if (!pp) return; zoomAnim = null; mapView.cx = pp.x; mapView.cz = pp.z; clampView(); drawBigMap(); }
   let zoomAnim = null;
   bigmap.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (!mapXform) return;
-    const r = bigmap.getBoundingClientRect(), f = Math.exp(-clamp(e.deltaY, -240, 240) * 0.0016);
-    const sx = e.clientX - r.left, sy = e.clientY - r.top;
-    const wx = (sx - mapXform.ox) / mapXform.k, wz = (sy - mapXform.oz) / mapXform.k;
-    const tgt = clamp((zoomAnim ? zoomAnim.tgt : mapView.ppm) * f, fitPPM() * 0.8, 6);
-    const running = !!zoomAnim;
-    zoomAnim = { tgt, wx, wz, sx, sy, W: r.width, H: r.height };
-    if (!running) requestAnimationFrame(stepZoom);
+    const r = bigmap.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top;
+    const px = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? r.height : 1;
+    const dX = e.deltaX * px, dY = e.deltaY * px;
+    const mouseNotch = e.deltaMode !== 0 || (dX === 0 && Math.abs(dY) >= 40 && Math.abs(dY - Math.round(dY)) < 1e-6);
+    if (e.ctrlKey || mouseNotch) zoomAt(sx, sy, Math.exp(-clamp(dY, -240, 240) * (e.ctrlKey ? 0.01 : 0.0016)));
+    else { zoomAnim = null; mapView.cx += dX / mapView.ppm; mapView.cz += dY / mapView.ppm; clampView(); drawBigMap(); }
   }, { passive: false });
   function stepZoom() {
     const z = zoomAnim; if (!z) return;
     const lp = Math.log(mapView.ppm), lt = Math.log(z.tgt), nl = lp + (lt - lp) * 0.28;
     mapView.ppm = Math.exp(Math.abs(lt - nl) < 0.004 ? lt : nl);
     mapView.cx = z.wx - (z.sx - z.W / 2) / mapView.ppm; mapView.cz = z.wz - (z.sy - z.H / 2) / mapView.ppm;
-    drawBigMap();
+    clampView(); drawBigMap();
     if (mapView.ppm === z.tgt || !ui.paused) { zoomAnim = null; return; }
     requestAnimationFrame(stepZoom);
   }
@@ -578,7 +637,7 @@ export function createHUD(game) {
     g.translate(cx, cy); g.rotate(th); g.scale(mmZoom, mmZoom); g.translate(-p.x, -p.z);
     {
       const R = Math.hypot(MW, MH) / 2 / mmZoom + 8;
-      const drawn = mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, mmZoom * dpr);
+      const drawn = mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, mmZoom * dpr, { id: 'mini' });
       if (!drawn && bake) { g.imageSmoothingEnabled = true; g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0); }
     }
     // GPS route
@@ -714,8 +773,26 @@ export function createHUD(game) {
     return out;
   }
   // mode 'mini' | 'big'; ppm = screen px per metre
+  let respawnCache = null;
+  function landmarks(p) {
+    const out = [], c = game.city;
+    const sp = c?.playerSpawn;
+    if (sp && isFinite(sp.x)) out.push({ x: sp.x, z: sp.z, kind: 'home', label: 'Home (spawn)' });
+    const api = game.gameplayCity;
+    if (p && typeof api?.respawnPoint === 'function') {
+      if (!respawnCache || Math.hypot(respawnCache.x - p.x, respawnCache.z - p.z) > 400) {
+        const pts = {};
+        for (const kind of ['hospital', 'police']) { try { const q = api.respawnPoint(kind, p); if (q && isFinite(q.x)) pts[kind] = { x: q.x, z: q.z }; } catch (e) { /* */ } }
+        respawnCache = { x: p.x, z: p.z, pts };
+      }
+      if (respawnCache.pts.hospital) out.push({ ...respawnCache.pts.hospital, kind: 'hospital', label: 'Hospital (respawn)' });
+      if (respawnCache.pts.police) out.push({ ...respawnCache.pts.police, kind: 'station', label: 'Police station (release)' });
+    }
+    return out;
+  }
   function mapIcons(p, ppm, mode, view) {
     const icons = [];
+    for (const lm of landmarks(p)) icons.push({ x: lm.x, z: lm.z, prio: 88, lm: lm.kind, draw: (g, x, y, s) => drawLandmark(g, x, y, lm.kind, s) });
     for (const c of policeEntities(p)) icons.push({ ...c, prio: 95, draw: (g, x, y) => copBlipScreen(g, x, y, c.kind === 'cop') });
     const PL = game.pickups?.list;
     if (Array.isArray(PL) && p) {
@@ -766,7 +843,20 @@ export function createHUD(game) {
           draw: (g, x2, y2, s2) => { drawPOI(g, x2, y2, sh, s2); if (n > 1) countBadge(g, x2 + 7 * s2, y2 - 7 * s2, n); } });
       }
     }
+    if (mapR.ok() && mapR.boundary()) return icons.filter((ic) => ic.prio >= 88 || mapR.inside(ic.x, ic.z));
     return icons;
+  }
+  function drawLandmark(g, x, y, kind, s = 1) {
+    g.save(); g.translate(x, y); g.scale(s, s);
+    g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 4; g.shadowOffsetY = 1;
+    const col = kind === 'home' ? '#2fe0d0' : kind === 'hospital' ? '#ff5d6c' : '#4d8bff';
+    g.fillStyle = '#0b0f17'; roundRect(g, -8.5, -8.5, 17, 17, 5); g.fill(); g.shadowColor = 'transparent';
+    g.strokeStyle = col; g.lineWidth = 1.8; g.stroke();
+    g.fillStyle = col; g.strokeStyle = col;
+    if (kind === 'home') { g.beginPath(); g.moveTo(0, -5); g.lineTo(5.2, -0.6); g.lineTo(3.6, -0.6); g.lineTo(3.6, 4.6); g.lineTo(-3.6, 4.6); g.lineTo(-3.6, -0.6); g.lineTo(-5.2, -0.6); g.closePath(); g.fill(); g.fillStyle = '#0b0f17'; g.fillRect(-1.1, 1.4, 2.2, 3.2); }
+    else if (kind === 'hospital') { g.fillRect(-1.5, -5, 3, 10); g.fillRect(-5, -1.5, 10, 3); }
+    else { g.beginPath(); g.moveTo(0, -5.2); g.lineTo(4.6, -3.2); g.lineTo(4, 1.2); g.quadraticCurveTo(2.6, 4, 0, 5.4); g.quadraticCurveTo(-2.6, 4, -4, 1.2); g.lineTo(-4.6, -3.2); g.closePath(); g.fill(); g.fillStyle = '#0b0f17'; g.beginPath(); g.arc(0, 0, 1.6, 0, TAU); g.fill(); }
+    g.restore();
   }
   // place icons by priority with screen-space collision avoidance
   function placeIcons(g, icons, toScreen, W, H, reserved, s = 1, pad = 4) {
@@ -849,13 +939,13 @@ export function createHUD(game) {
     const W = Math.round(r.width * d), H = Math.round(r.height * d);
     if (bigmap.width !== W || bigmap.height !== H) { bigmap.width = W; bigmap.height = H; }
     const g = bctx; g.setTransform(d, 0, 0, d, 0, 0);
-    g.fillStyle = MAP_COLORS.waterDeep; g.fillRect(0, 0, r.width, r.height);
-    mapView.ppm = clamp(mapView.ppm, fitPPM() * 0.8, 6);
+    g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, r.width, r.height);
+    mapView.ppm = clamp(mapView.ppm, fitPPM(), 6);
     const k = mapView.ppm, ox = r.width / 2 - mapView.cx * k, oz = r.height / 2 - mapView.cz * k;
     mapXform = { k, ox, oz };
     const view = [-ox / k, -oz / k, (r.width - ox) / k, (r.height - oz) / k];
     g.save(); g.translate(ox, oz); g.scale(k, k);
-    const drawn = mapR.draw(g, view[0], view[1], view[2], view[3], k * d, { budget: 28, quality: 0.75 });
+    const drawn = mapR.draw(g, view[0], view[1], view[2], view[3], k * d, { budget: 28, quality: 0.75, id: 'big' });
     if (drawn && mapR.pending > 0 && !bigPendingTimer) bigPendingTimer = setTimeout(() => { bigPendingTimer = 0; if (ui.paused && curTab === 0) drawBigMap(); }, 20);
     if (!drawn && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
     g.restore();
@@ -927,8 +1017,9 @@ export function createHUD(game) {
     {
       const cats = [...new Set(shown.filter((q) => q.cat).map((q) => q.cat))].slice(0, 6);
       const extra = [];
+      for (const [lk, lt] of [['home', 'Home (spawn)'], ['hospital', 'Hospital (respawn)'], ['station', 'Police station']]) if (shown.some((q) => q.lm === lk)) extra.push(['lm:' + lk, lt]);
       if (shown.some((q) => q.prio >= 95)) extra.push(['cop', 'Police (while wanted)']);
-      if (shown.some((q) => q.prio >= 44 && q.prio < 95 && !q.cat)) extra.push(['pickup', 'Pickups nearby']);
+      if (shown.some((q) => q.prio >= 44 && q.prio < 88 && !q.cat && !q.lm)) extra.push(['pickup', 'Pickups nearby']);
       const rows = cats.length + extra.length;
       if (rows) {
         const lw = 176, lh = 14 + rows * 21, lx = r.width - lw - 14, ly = r.height - lh - 40;
@@ -937,7 +1028,7 @@ export function createHUD(game) {
         let y = ly + 17;
         g.font = '600 12px Inter, system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
         for (const c of cats) { const st = CAT_STYLE[c]; drawPOI(g, lx + 17, y, { c: st[1], glyph: st[0] }, 0.8); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(st[2], lx + 32, y + 0.5); y += 21; }
-        for (const [kd, txt] of extra) { if (kd === 'cop') copBlipScreen(g, lx + 17, y, true); else drawPickup(g, lx + 17, y, 'weapon', 0.9); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(txt, lx + 32, y + 0.5); y += 21; }
+        for (const [kd, txt] of extra) { if (kd === 'cop') copBlipScreen(g, lx + 17, y, true); else if (kd.startsWith('lm:')) drawLandmark(g, lx + 17, y, kd.slice(3), 0.8); else drawPickup(g, lx + 17, y, 'weapon', 0.9); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText(txt, lx + 32, y + 0.5); y += 21; }
         g.textAlign = 'center';
       }
     }
@@ -956,7 +1047,7 @@ export function createHUD(game) {
     const k = 1.2;
     g.save(); g.translate(c.width / 2, c.height / 2); g.scale(k, k); g.translate(-p.x, -p.z);
     const R = Math.hypot(c.width, c.height) / 2 / k;
-    if (!mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, k) && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
+    if (!mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, k, { id: 'phone' }) && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
     if (routeShown && routeShown.length > 1) strokeRoute(g, routeShown, 1 / k, 6);
     g.restore();
     g.fillStyle = '#2fe0d0'; g.beginPath(); g.arc(c.width / 2, c.height / 2, 7, 0, TAU); g.fill();
@@ -1367,7 +1458,9 @@ export function createHUD(game) {
   moneyEl.textContent = fmtMoney(moneyShown);
   if (document.pointerLockElement) hideTitle();
   const api = { update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,
-    _mapZoom(ppm) { const pp = game.player?.position; if (pp) { mapView.cx = pp.x; mapView.cz = pp.z; } mapView.ppm = ppm; drawBigMap(); } };
+    _mapZoom(ppm, cx, cz) { const pp = game.player?.position; if (cx != null) { mapView.cx = cx; mapView.cz = cz; } else if (pp) { mapView.cx = pp.x; mapView.cz = pp.z; } mapView.ppm = ppm; drawBigMap(); },
+    _mapPan(dx, dz) { mapView.cx += dx; mapView.cz += dz; clampView(); drawBigMap(); return [mapView.cx, mapView.cz]; },
+    _mapFit() { fitMap(); return mapView.ppm; } };
   return api;
 }
 

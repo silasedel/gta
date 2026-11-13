@@ -540,3 +540,140 @@ All files in `public/assets/audio/ambience/` were processed (trimmed, looped, fi
 ### Audio wave 4b — music & mix (AUDIO agent)
 - Radio stations / club / boombox / car-radio / store / distant-party music ("Solana FM 98.1", "Ritmo 104.5", "Neon 88.7", "Biscayne 101.3", "Bay Chill 1270 AM", "Club 124"): ORIGINAL procedural compositions generated at runtime in `src/core/audio.js` (WebAudio OfflineAudioContext, no samples, no existing songs).
 - Vehicle sample loudness normalised in-place (`norm` / `levelDb` fields in `public/assets/audio/vehicles/index.json`); no new downloaded assets.
+
+## City prop surface atlas (CITY agent)
+`public/assets/city/tex/props_{color,normal,rough}.jpg` are packed (512 px cells) from these CC0 materials by ambientCG (https://ambientcg.com, CC0 1.0):
+PaintedMetal004, Metal032, Rust004, Wood066, Concrete034, Plaster001 (1K-JPG).
+
+### Audio — ped voices & venue ambience (AUDIO agent): public/assets/audio/{voices,venues}/ — all freesound.org CC0 (licence checked per sound page)
+# Voices & venues audio credits
+
+All files in `public/assets/audio/voices/` and `public/assets/audio/venues/` are real recordings from freesound.org, each licensed **Creative Commons 0 (CC0 1.0)** — licence confirmed on every sound page before download. Edits: mono (one-shots) / stereo (beds), trimmed (leading silence removed, onset within ~5 ms), DC removed, high-passed, tails shortened with fades, multi-take recordings sliced, peak-normalised to about -1.5 dBFS (one-shots), encoded Ogg Opus 48 kHz (64 kb/s one-shots, 96 kb/s stereo beds). Beds are seamless loops (2 s equal-power crossfade, 1.5 s for fridge_hum) mixed from the listed sources and normalised to -23 dBFS RMS; bed_bar_chatter also has a few glass clinks mixed in.
+
+- voices/hey_male_01.ogg — "Oi.wav", rhink, CC0 1.0 — https://freesound.org/people/rhink/sounds/245867/
+- voices/hey_male_02.ogg — "Oi.wav", Sami_Kullström, CC0 1.0 — https://freesound.org/people/Sami_Kullstr%C3%B6m/sounds/585037/
+- voices/hey_male_03.ogg — "Sadiquecat MKE600 - Greetings - Hey", Sadiquecat, CC0 1.0 — https://freesound.org/people/Sadiquecat/sounds/818146/
+- voices/hey_male_04.ogg — "Heyy.mp3", JPBILLINGSLEYJR, CC0 1.0 — https://freesound.org/people/JPBILLINGSLEYJR/sounds/476542/
+- voices/hey_male_05.ogg — "Male_Heyyy_01", Artmasterrich, CC0 1.0 — https://freesound.org/people/Artmasterrich/sounds/345431/
+- voices/hey_male_06.ogg — "HEY VERY LOW 4.WAV", metrostock99, CC0 1.0 — https://freesound.org/people/metrostock99/sounds/345083/
+- voices/hey_male_07.ogg, voices/hey_male_08.ogg — "Voice_Man_hey_calling_far_away_shout.wav", ValentinPetiteau, CC0 1.0 — https://freesound.org/people/ValentinPetiteau/sounds/557375/
+- voices/hey_female_01.ogg — "Female Voc txt_ Hey 2.wav", owstu, CC0 1.0 — https://freesound.org/people/owstu/sounds/639864/
+- voices/hey_female_02.ogg — "hey.mp3", pinko2021, CC0 1.0 — https://freesound.org/people/pinko2021/sounds/568608/
+- voices/hey_female_03.ogg — "japanese - hey.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/235019/
+- voices/hey_female_04.ogg — "japanese - hey2.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/235020/
+- voices/hey_female_05.ogg — "Hey.mp3", Roses1401, CC0 1.0 — https://freesound.org/people/Roses1401/sounds/432241/
+- voices/hey_female_06.ogg — "EarlyFiles-TSR-Yell-Female Yell 2-Single Yell-Oh", CAT-FOX_ALEX, CC0 1.0 — https://freesound.org/people/CAT-FOX_ALEX/sounds/852535/
+- voices/hum_male_01.ogg — "Voice Male humming - Doubting", bolkmar, CC0 1.0 — https://freesound.org/people/bolkmar/sounds/469605/
+- voices/hum_male_02.ogg — "approving hm.wav", trimono, CC0 1.0 — https://freesound.org/people/trimono/sounds/519112/
+- voices/hum_male_03.ogg — "OneHmm-question.wav", esperar, CC0 1.0 — https://freesound.org/people/esperar/sounds/170779/
+- voices/hum_male_04.ogg, voices/hum_male_05.ogg, voices/hum_male_06.ogg — "Guy saying mmhmm *5 takes*", NicolasLikesThisWebsite496, CC0 1.0 — https://freesound.org/people/NicolasLikesThisWebsite496/sounds/806888/
+- voices/hum_male_07.ogg — "Hmm RTS Select Male NPC", VSE00, CC0 1.0 — https://freesound.org/people/VSE00/sounds/867879/
+- voices/hum_male_08.ogg — "Hmm reflexion male voice thinking", daalvinz, CC0 1.0 — https://freesound.org/people/daalvinz/sounds/394231/
+- voices/hum_female_01.ogg, voices/hum_female_02.ogg, voices/hum_female_03.ogg, voices/hum_female_04.ogg — "Hmms various 2.wav", esperar, CC0 1.0 — https://freesound.org/people/esperar/sounds/170766/
+- voices/hum_female_05.ogg, voices/hum_female_06.ogg — "Hmms various 1.wav", esperar, CC0 1.0 — https://freesound.org/people/esperar/sounds/170767/
+- voices/hum_female_07.ogg — "hmms.wav", sterferny, CC0 1.0 — https://freesound.org/people/sterferny/sounds/337082/
+- voices/hum_female_08.ogg — "3 feminine hmm", kanyonwyvern, CC0 1.0 — https://freesound.org/people/kanyonwyvern/sounds/727359/
+- voices/laugh_male_01.ogg — "deep laugh chuckle.mp3", hsmith1986, CC0 1.0 — https://freesound.org/people/hsmith1986/sounds/458101/
+- voices/laugh_male_02.ogg, voices/laugh_male_03.ogg, voices/laugh_male_04.ogg, voices/laugh_male_05.ogg — "Various Chuckles_Male.mp3", SnowFightStudios, CC0 1.0 — https://freesound.org/people/SnowFightStudios/sounds/643665/
+- voices/laugh_male_06.ogg — "LaughM.ogg", egomassive, CC0 1.0 — https://freesound.org/people/egomassive/sounds/536811/
+- voices/laugh_male_07.ogg — "Laughing (male)", dastudiospr, CC0 1.0 — https://freesound.org/people/dastudiospr/sounds/529818/
+- voices/laugh_male_08.ogg — "Discrete, hearty laugh", danielsilveira321, CC0 1.0 — https://freesound.org/people/danielsilveira321/sounds/191898/
+- voices/laugh_female_01.ogg — "small chuckle.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/234950/
+- voices/laugh_female_02.ogg — "short - female - laugh - chuckle - giggle -  AIFF 24 bits", amoyssiadis, CC0 1.0 — https://freesound.org/people/amoyssiadis/sounds/397673/
+- voices/laugh_female_03.ogg — "Girl Chuckle.wav", BlueSiren, CC0 1.0 — https://freesound.org/people/BlueSiren/sounds/377742/
+- voices/laugh_female_04.ogg — "laugh chuckle thing.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/242686/
+- voices/laugh_female_05.ogg, voices/laugh_female_06.ogg — "Female Lines Laughing", SnowFightStudios, CC0 1.0 — https://freesound.org/people/SnowFightStudios/sounds/669880/
+- voices/laugh_female_07.ogg — "Female laugh (short).aif", thedialogueproject, CC0 1.0 — https://freesound.org/people/thedialogueproject/sounds/565973/
+- voices/laugh_female_08.ogg — "Female Burst Laugh.mp3", SugarANDRocks, CC0 1.0 — https://freesound.org/people/SugarANDRocks/sounds/695626/
+- voices/gasp_male_01.ogg — "male_gasp.wav", slamaxu, CC0 1.0 — https://freesound.org/people/slamaxu/sounds/509880/
+- voices/gasp_male_02.ogg — "Male Gasp 1.wav", jawbutch, CC0 1.0 — https://freesound.org/people/jawbutch/sounds/344407/
+- voices/gasp_male_03.ogg — "Male Gasp 4.wav", jawbutch, CC0 1.0 — https://freesound.org/people/jawbutch/sounds/344415/
+- voices/gasp_male_04.ogg — "Male Gasp 3.wav", jawbutch, CC0 1.0 — https://freesound.org/people/jawbutch/sounds/344416/
+- voices/gasp_male_05.ogg — "Male Gasp 2.wav", jawbutch, CC0 1.0 — https://freesound.org/people/jawbutch/sounds/344417/
+- voices/gasp_male_06.ogg — "Gasp Male", bertiehs, CC0 1.0 — https://freesound.org/people/bertiehs/sounds/271245/
+- voices/gasp_female_01.ogg — "female_gasp.wav", slamaxu, CC0 1.0 — https://freesound.org/people/slamaxu/sounds/509883/
+- voices/gasp_female_02.ogg — "Famale- Gasp.wav", akennedybrewer, CC0 1.0 — https://freesound.org/people/akennedybrewer/sounds/389169/
+- voices/gasp_female_03.ogg — "close call gasp.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/253773/
+- voices/gasp_female_04.ogg — "Exaggerated Surprised Gasp!", CuboRodante, CC0 1.0 — https://freesound.org/people/CuboRodante/sounds/812418/
+- voices/gasp_female_05.ogg — "Female Gasp", kanyonwyvern, CC0 1.0 — https://freesound.org/people/kanyonwyvern/sounds/740310/
+- voices/gasp_female_06.ogg — "surprised 'oh!'.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/242677/
+- voices/gasp_female_07.ogg, voices/gasp_female_08.ogg — "surprised gasps.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/232472/
+- voices/mumble_male_01.ogg — "Human_Male_Mumble_Short_1.wav", SilentStrikeZ, CC0 1.0 — https://freesound.org/people/SilentStrikeZ/sounds/389644/
+- voices/mumble_male_02.ogg, voices/mumble_male_03.ogg — "Indistinct deep male mumble", dynamique, CC0 1.0 — https://freesound.org/people/dynamique/sounds/536967/
+- voices/mumble_male_04.ogg, voices/mumble_male_05.ogg — "Man Grumbling.wav", KALeigh0218, CC0 1.0 — https://freesound.org/people/KALeigh0218/sounds/655877/
+- voices/mumble_male_06.ogg, voices/mumble_male_07.ogg — "Comical Grunts And Mumbles.wav", kayasavas87, CC0 1.0 — https://freesound.org/people/kayasavas87/sounds/70758/
+- voices/mumble_female_01.ogg — "18.Muttering_woman.wav", miguelab1998, CC0 1.0 — https://freesound.org/people/miguelab1998/sounds/408594/
+- voices/mumble_female_02.ogg, voices/mumble_female_03.ogg, voices/mumble_female_04.ogg, voices/mumble_female_05.ogg, voices/mumble_female_06.ogg, voices/mumble_female_07.ogg, voices/mumble_female_08.ogg — "Female Gibberish", cloyen, CC0 1.0 — https://freesound.org/people/cloyen/sounds/800349/
+- voices/grunt_annoyed_male_01.ogg — "ugh (male)", brookmorgan, CC0 1.0 — https://freesound.org/people/brookmorgan/sounds/189565/
+- voices/grunt_annoyed_male_02.ogg — "Male Disgusted", kanyonwyvern, CC0 1.0 — https://freesound.org/people/kanyonwyvern/sounds/740303/
+- voices/grunt_annoyed_male_03.ogg — "Angry Grunt", Rocotilos, CC0 1.0 — https://freesound.org/people/Rocotilos/sounds/341489/
+- voices/grunt_annoyed_male_04.ogg — "Tsk 2", hollandm, CC0 1.0 — https://freesound.org/people/hollandm/sounds/691913/
+- voices/grunt_annoyed_male_05.ogg, voices/grunt_annoyed_male_06.ogg — "tsk.aif", brunchik, CC0 1.0 — https://freesound.org/people/brunchik/sounds/401599/
+- voices/grunt_annoyed_male_07.ogg — "Sigh_5_Male_Deep", Drkvixn91, CC0 1.0 — https://freesound.org/people/Drkvixn91/sounds/318090/
+- voices/grunt_annoyed_male_08.ogg, voices/shout_male_03.ogg, voices/shout_male_04.ogg, voices/shout_male_05.ogg — "Angry frustrated and disappointed - Male - Various Sounds.wav", khenshom, CC0 1.0 — https://freesound.org/people/khenshom/sounds/527737/
+- voices/grunt_annoyed_female_01.ogg — "Woman Exasperated Sigh, Breathe Out", monsterthing, CC0 1.0 — https://freesound.org/people/monsterthing/sounds/663651/
+- voices/grunt_annoyed_female_02.ogg, voices/grunt_annoyed_female_03.ogg — "AS055237 disdain.flac", SuddenDice, CC0 1.0 — https://freesound.org/people/SuddenDice/sounds/622569/
+- voices/grunt_annoyed_female_04.ogg — "Disgusted/angry "Ugh No" female", BlueSiren, CC0 1.0 — https://freesound.org/people/BlueSiren/sounds/377738/
+- voices/grunt_annoyed_female_05.ogg — "Female *Sigh* Sound Effect [Voiced By DarkNightPrincess]", DarkNightPrincess, CC0 1.0 — https://freesound.org/people/DarkNightPrincess/sounds/621773/
+- voices/grunt_annoyed_female_06.ogg — "angry cough of sorts.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/343885/
+- voices/grunt_annoyed_female_07.ogg, voices/grunt_annoyed_female_08.ogg — "humpf tsk tsk.mp3", juror2, CC0 1.0 — https://freesound.org/people/juror2/sounds/196402/
+- voices/shout_male_01.ogg — "Yelling Eyoh in Empty Parking Garage", qubodup, CC0 1.0 — https://freesound.org/people/qubodup/sounds/859347/
+- voices/shout_male_02.ogg — "Yell EEEH", joseppujol, CC0 1.0 — https://freesound.org/people/joseppujol/sounds/221546/
+- voices/shout_male_06.ogg, voices/shout_male_07.ogg — "ShoutingPunches_Male", BaggoNotes, CC0 1.0 — https://freesound.org/people/BaggoNotes/sounds/718967/
+- voices/shout_male_08.ogg — "yelling 3", riippumattog, CC0 1.0 — https://freesound.org/people/riippumattog/sounds/844206/
+- voices/shout_female_01.ogg — "Shout", Beussa, CC0 1.0 — https://freesound.org/people/Beussa/sounds/740788/
+- voices/shout_female_02.ogg — "19-yeard-old Girl Shouting", annatabernero, CC0 1.0 — https://freesound.org/people/annatabernero/sounds/219666/
+- voices/shout_female_03.ogg — "VA FR - Mom - Pack rapide - Onomatopées - Cris colère - NT5", Sadiquecat, CC0 1.0 — https://freesound.org/people/Sadiquecat/sounds/874434/
+- voices/shout_female_04.ogg — "female_shout_01.wav", slamaxu, CC0 1.0 — https://freesound.org/people/slamaxu/sounds/509882/
+- voices/shout_female_05.ogg, voices/shout_female_06.ogg — "Sampli_Ha.wav", BrivaMagda, CC0 1.0 — https://freesound.org/people/BrivaMagda/sounds/671353/
+- voices/shout_female_07.ogg — "Woman yelling high pitched 2.wav", EricSueiro, CC0 1.0 — https://freesound.org/people/EricSueiro/sounds/220822/
+- voices/drunk_male_01.ogg, voices/drunk_male_02.ogg, voices/drunk_male_03.ogg — "male hiccup", lipalearning, CC0 1.0 — https://freesound.org/people/lipalearning/sounds/428635/
+- voices/drunk_male_04.ogg, voices/drunk_male_05.ogg — "drunk mumble", riippumattog, CC0 1.0 — https://freesound.org/people/riippumattog/sounds/842496/
+- voices/drunk_male_06.ogg — "burp52.wav", doktoraudio, CC0 1.0 — https://freesound.org/people/doktoraudio/sounds/502274/
+- voices/drunk_male_07.ogg — "Hiccup", ceoux, CC0 1.0 — https://freesound.org/people/ceoux/sounds/338196/
+- voices/drunk_male_08.ogg — "comedy  hiccup.wav", martian, CC0 1.0 — https://freesound.org/people/martian/sounds/202800/
+- voices/drunk_female_01.ogg, voices/drunk_female_02.ogg, voices/drunk_female_03.ogg — "famale hiccup.aif", amoyssiadis, CC0 1.0 — https://freesound.org/people/amoyssiadis/sounds/438902/
+- voices/drunk_female_04.ogg — "weird hiccup2.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/344040/
+- voices/drunk_female_05.ogg — "weird hiccup.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/344052/
+- voices/drunk_female_06.ogg — "burp42.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/323712/
+- voices/drunk_female_07.ogg — "Loud burp from woman", pinmemo, CC0 1.0 — https://freesound.org/people/pinmemo/sounds/403350/
+- voices/oof_male_01.ogg — "Oof (original)", unfa, CC0 1.0 — https://freesound.org/people/unfa/sounds/719053/
+- voices/oof_male_02.ogg — "Sadiquecat MKE600 - Pain - Oof 1", Sadiquecat, CC0 1.0 — https://freesound.org/people/Sadiquecat/sounds/818199/
+- voices/oof_male_03.ogg, voices/oof_male_04.ogg — "PunchedNoises.mp3", shelbyshark, CC0 1.0 — https://freesound.org/people/shelbyshark/sounds/444703/
+- voices/oof_male_05.ogg, voices/oof_male_06.ogg — "male grunt.wav", lipalearning, CC0 1.0 — https://freesound.org/people/lipalearning/sounds/427972/
+- voices/oof_female_01.ogg — "VA FR - Mom - Pack rapide - Onomatopées - Expiration hit - NT5", Sadiquecat, CC0 1.0 — https://freesound.org/people/Sadiquecat/sounds/874437/
+- voices/oof_female_02.ogg — "FemaleGrunt1.wav", BranndyBottle, CC0 1.0 — https://freesound.org/people/BranndyBottle/sounds/464675/
+- voices/oof_female_03.ogg — "FemaleGrunt2.wav", BranndyBottle, CC0 1.0 — https://freesound.org/people/BranndyBottle/sounds/464674/
+- voices/oof_female_04.ogg — "FemaleGrunt3.wav", BranndyBottle, CC0 1.0 — https://freesound.org/people/BranndyBottle/sounds/464673/
+- voices/oof_female_05.ogg — "grunt.wav", Reitanna, CC0 1.0 — https://freesound.org/people/Reitanna/sounds/242623/
+- voices/oof_female_06.ogg — "EffortNoise.wav", Keskaowl, CC0 1.0 — https://freesound.org/people/Keskaowl/sounds/507730/
+- voices/oof_female_07.ogg — "HomemadeOof.wav", LucyTheDev, CC0 1.0 — https://freesound.org/people/LucyTheDev/sounds/438912/
+- voices/oof_female_08.ogg — "GruntF.ogg", egomassive, CC0 1.0 — https://freesound.org/people/egomassive/sounds/536750/
+- venues/espresso_01.ogg — "180722 Espresso machine long pull.flac", TRP, CC0 1.0 — https://freesound.org/people/TRP/sounds/572430/
+- venues/espresso_02.ogg, venues/espresso_03.ogg — "Cappucino coffee machine", mycompasstv, CC0 1.0 — https://freesound.org/people/mycompasstv/sounds/474599/
+- venues/espresso_04.ogg, venues/espresso_05.ogg — "Espresso machine.wav", Ohrwurm, CC0 1.0 — https://freesound.org/people/Ohrwurm/sounds/96906/
+- venues/espresso_06.ogg — "espresso milk foamer low.WAV", Lynnjamin, CC0 1.0 — https://freesound.org/people/Lynnjamin/sounds/671560/
+- venues/bed_bar_chatter_01.ogg, venues/glass_clink_01.ogg, venues/glass_clink_02.ogg, venues/glass_clink_03.ogg, venues/glass_clink_04.ogg, venues/glass_clink_05.ogg — "Drinking Glasses contact (Clink)", EpicWizard, CC0 1.0 — https://freesound.org/people/EpicWizard/sounds/325195/
+- venues/bed_bar_chatter_01.ogg, venues/glass_clink_06.ogg — "Glass_Clink.aif", kbnevel, CC0 1.0 — https://freesound.org/people/kbnevel/sounds/119839/
+- venues/glass_clink_07.ogg, venues/glass_clink_08.ogg — "Wine Glasses on contact (Clink)", EpicWizard, CC0 1.0 — https://freesound.org/people/EpicWizard/sounds/325194/
+- venues/cash_register_01.ogg, venues/cash_register_02.ogg — "old cash register open and close with a bing", clubmydia+, CC0 1.0 — https://freesound.org/people/clubmydia+/sounds/584168/
+- venues/cash_register_03.ogg, venues/cash_register_04.ogg — "cash register.wav by cognito perceptu", cognito%20perceptu, CC0 1.0 — https://freesound.org/people/cognito%20perceptu/sounds/83915/
+- venues/cash_register_05.ogg — "cash register.mp3", SoundCollectah, CC0 1.0 — https://freesound.org/people/SoundCollectah/sounds/108278/
+- venues/cash_register_06.ogg — "cash drawer and receipt.wav", kalisemorrison, CC0 1.0 — https://freesound.org/people/kalisemorrison/sounds/202531/
+- venues/door_bell_01.ogg — "shop_door_bell.wav", 3bagbrew, CC0 1.0 — https://freesound.org/people/3bagbrew/sounds/57743/
+- venues/door_bell_02.ogg, venues/door_bell_03.ogg — "Shop door bell.wav", 775noise, CC0 1.0 — https://freesound.org/people/775noise/sounds/494565/
+- venues/door_bell_04.ogg — "Shop Bell", NachtmahrTV, CC0 1.0 — https://freesound.org/people/NachtmahrTV/sounds/556710/
+- venues/door_bell_05.ogg, venues/door_bell_06.ogg — "R04-62-Shop Bell.wav", craigsmith, CC0 1.0 — https://freesound.org/people/craigsmith/sounds/479988/
+- venues/door_bell_07.ogg — "Shop_Door_Opens_with_Bell_Rings_SFX", bigspamtonfan69, CC0 1.0 — https://freesound.org/people/bigspamtonfan69/sounds/726253/
+- venues/door_bell_08.ogg — "Ryuuzan_shop_door_bell00.wav", ryuuzan, CC0 1.0 — https://freesound.org/people/ryuuzan/sounds/192761/
+- venues/bed_kitchen_01.ogg — "restaurant kitchen.wav by cognito perceptu", cognito%20perceptu, CC0 1.0 — https://freesound.org/people/cognito%20perceptu/sounds/162662/
+- venues/bed_kitchen_01.ogg — "RESTAURANT KITCHEN IS BUSY.wav", cpark12, CC0 1.0 — https://freesound.org/people/cpark12/sounds/347309/
+- venues/bed_cafe_01.ogg — "Bustling Cafe Ambience", Talitha5, CC0 1.0 — https://freesound.org/people/Talitha5/sounds/509950/
+- venues/bed_cafe_01.ogg — "MS-STEREO Coffee Shop, 6 People, low chatter, refrigerator,  barista making milk shake, customers entering 3.WAV", AwenAudio, CC0 1.0 — https://freesound.org/people/AwenAudio/sounds/403066/
+- venues/bed_bar_chatter_01.ogg — "Bar Crowd in Belgrade", EpicWizard, CC0 1.0 — https://freesound.org/people/EpicWizard/sounds/394290/
+- venues/bed_store_01.ogg — "Supermarket-01 (stereo)", meisterleise, CC0 1.0 — https://freesound.org/people/meisterleise/sounds/353258/
+- venues/bed_store_01.ogg — "Grocery Store Ambience Checkout Line", deleted_user_7146007, CC0 1.0 — https://freesound.org/people/deleted_user_7146007/sounds/383718/
+- venues/fridge_hum_01.ogg — "Refridgerator hum.wav", NHumphrey, CC0 1.0 — https://freesound.org/people/NHumphrey/sounds/200979/
+
+## City plant models (trial only, behind `?plants=q`; not the default look)
+- Quaternius, "Bush" (https://poly.pizza/m/ooG6CkLyE8) and "Bush with Flowers" (https://poly.pizza/m/U1ymDy8tbY), CC0 1.0. Stored in `public/assets/city/models/quaternius/`.

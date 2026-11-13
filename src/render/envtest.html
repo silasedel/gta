@@ -80,10 +80,27 @@ window.__snap = (o = {}) => {
   cv.getContext('2d').drawImage(c, 0, 0, cv.width, cv.height);
   return cv.toDataURL('image/jpeg', o.q ?? 0.6).slice(23);
 };
+// soak mode (?soak=1): travel in a big loop, cycle time of day, spam every fx, record GPU memory
+if (P.has('soak')) {
+  window.__mem = [];
+  const T = THREE; let k = 0;
+  setInterval(() => {
+    const f = game.fx, p = game.player.position;
+    if (!f) return;
+    k++;
+    f.splash(new T.Vector3(p.x + 3, 0, p.z), 1.2); f.ripple(new T.Vector3(p.x, 0, p.z + 2));
+    f.sparks(new T.Vector3(p.x, 1, p.z), new T.Vector3(0, 1, 0)); f.dust(new T.Vector3(p.x + 1, 0, p.z));
+    f.muzzleFlash(new T.Vector3(p.x, 1.4, p.z), new T.Vector3(1, 0, 0));
+    f.bulletImpact(new T.Vector3(p.x + 2, 0.02, p.z + (k % 7)), new T.Vector3(0, 1, 0), ['concrete', 'metal', 'flesh', 'vehicle', 'water', 'sand'][k % 6]);
+    for (let i = 0; i < 4; i++) { f.smoke(new T.Vector3(p.x - 2, 1, p.z)); f.tireSmoke(new T.Vector3(p.x + 2, 0, p.z)); }
+  }, 200);
+  setInterval(() => { const m = renderer.info.memory; window.__mem.push([Math.round(performance.now() / 1000), m.geometries, m.textures, renderer.getPixelRatio()]); }, 10000);
+}
 let last = performance.now(), frames = 0, acc = 0, fps = 0;
 function loop(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   game.timeOfDay = (game.timeOfDay + dt * rate) % 24;
+  if (P.has('soak')) { const a = now / 1000 * 0.05; game.player.position.set(Math.cos(a) * 380, 0, Math.sin(a) * 380); }
   const p = game.player.position;
   camera.position.set(p.x + Math.sin(yaw) * dist * Math.cos(pitch), num('y', 2) + Math.sin(pitch) * dist, p.z + Math.cos(yaw) * dist * Math.cos(pitch));
   camera.lookAt(p.x - Math.sin(yaw) * 50, num('y', 2) + num('look', 0), p.z - Math.cos(yaw) * 50);

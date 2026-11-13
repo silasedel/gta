@@ -646,5 +646,13 @@
 .ps-map-frame { position: absolute; inset: 0; border-radius: 18px; pointer-events: none;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 0 0 5px rgba(6, 9, 14, .35), inset 0 0 90px 30px rgba(4, 8, 14, .55);
   background: radial-gradient(130% 120% at 50% 50%, transparent 62%, rgba(4, 8, 14, .45) 100%); }
-.ps-bigmap { background: #0a3346; }
+.ps-bigmap { background: #0f4c63; }
 .ps-map-loc, .ps-map-legend, .ps-map-attrib { z-index: 2; }
+
+.ps-map-zoom { position: absolute; right: 14px; top: 64px; display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+.ps-map-zoom button { all: unset; cursor: pointer; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+  background: rgba(9, 11, 18, .78); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 4px 12px rgba(0, 0, 0, .35);
+  font: 700 18px/1 var(--ps-sans); color: #fff; transition: background .15s, transform .15s; }
+.ps-map-zoom button:hover { background: rgba(255, 107, 90, .85); transform: translateY(-1px); }
+.ps-bigmap { cursor: grab; touch-action: none; }
+.ps-bigmap.grab { cursor: grabbing; }

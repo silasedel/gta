@@ -710,15 +710,15 @@ export function buildCar(typeKey, color, opts = {}) {
   const mdl = MODELS[typeKey];
   if (mdl) {
     const bm = badgeMat(mdl.brand);
-    const bg = new THREE.PlaneGeometry(0.34, 0.085);
+    const bg = SHARED.badge;
     const f = new THREE.Mesh(bg, bm); f.position.set(0, t.noseY - 0.2 + (t.bigGrille ? 0.2 : 0.12), t.L / 2 + 0.03); detail.add(f);
     const r = new THREE.Mesh(bg, bm); r.position.set(0, t.tailY - 0.2, -t.L / 2 - 0.04); r.rotation.y = Math.PI; detail.add(r);
   }
   // steering wheel (separate so it can turn)
   const sw = new THREE.Group();
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.022, 8, 20), m.trim);
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12).rotateX(Math.PI / 2), m.trim);
-  const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.03, 0.015), m.trim);
+  const rim = new THREE.Mesh(SHARED.swRim, m.trim);
+  const hub = new THREE.Mesh(SHARED.swHub, m.trim);
+  const spoke = new THREE.Mesh(SHARED.swSpoke, m.trim);
   const swInner = new THREE.Group(); // rotates about the column
   swInner.add(rim, hub, spoke);
   sw.add(swInner);
@@ -748,7 +748,52 @@ export function buildCar(typeKey, color, opts = {}) {
     root.add(steer);
     wheels.push({ steer, spin, side, front, detail: detailMeshes, lo: tireLo, x: side * (t.W / 2 - t.tw / 2 - 0.03), z: front ? t.wb / 2 : -t.wb / 2 });
   }
-  return { root, shell, wheels, lightMats, spec: t, paint, parts, slots, steeringWheel: swInner, info: MODELS[typeKey], lod, kit, hull: hullPoints(t, typeKey, kit) };
+  const res = [acquire('b|' + typeKey + '|' + kit, () => bodyGeos(typeKey, kit)), acquire('w|' + wheelKey(t, wv.spokes), () => Object.values(wg).flatMap((x) => (x.isBufferGeometry ? [x] : Object.values(x))))];
+  return { root, shell, wheels, lightMats, spec: t, paint, parts, slots, steeringWheel: swInner, info: MODELS[typeKey], lod, kit, hull: hullPoints(t, typeKey, kit), _res: res };
+}
+
+// ---------------------------------------------------------------- GPU residency
+// Model geometry is cached on the CPU (rebuilding costs 100+ ms), but its GPU buffers are only kept while a car of
+// that model exists.  When the last one despawns the buffers are freed (geometry.dispose()) after a grace period;
+// three re-uploads them transparently if the model comes back.  This keeps GPU geometry count proportional to the
+// models actually on screen instead of growing with every model ever seen.
+const residency = new Map(); // key -> { refs, geos, idleSince, resident }
+const gpuStats = { acquires: 0, releases: 0, evictions: 0, geosFreed: 0, ownFreed: 0 };
+function wheelKey(t, spokes) { return t.r.toFixed(3) + '|' + t.tw.toFixed(3) + '|' + (spokes || t.spokes); }
+function bodyGeos(key, kit) {
+  const out = [];
+  for (const l of [0, 1, 2]) { const r = bodyCache.get(key + '|' + kit + '|' + l); if (r) for (const grp of [r.body, r.lights]) for (const k in grp) out.push(grp[k]); }
+  return out;
+}
+function acquire(k, geosFn) {
+  let e = residency.get(k);
+  if (!e) { e = { refs: 0, geos: geosFn(), idleSince: 0, resident: true }; residency.set(k, e); }
+  e.refs++; e.resident = true; e.idleSince = 0; gpuStats.acquires++;
+  return k;
+}
+/** Call when a car built by buildCar() is removed for good. */
+export function releaseCar(car) {
+  if (!car || !car._res) return;
+  const now = performance.now();
+  for (const k of car._res) { const e = residency.get(k); if (!e) continue; e.refs = Math.max(0, e.refs - 1); if (!e.refs) e.idleSince = now; gpuStats.releases++; }
+  car._res = null;
+}
+/** Free GPU buffers of models unused for idleMs.  Cheap; call ~1/s. */
+export function evictIdleModels(idleMs = 30000, max = 2) {
+  const now = performance.now(); let n = 0;
+  for (const e of residency.values()) {
+    if (e.refs || !e.resident || !e.idleSince || now - e.idleSince < idleMs) continue;
+    for (const g of e.geos) g.dispose();
+    e.resident = false; gpuStats.evictions++; gpuStats.geosFreed += e.geos.length;
+    if (++n >= max) break;
+  }
+  return n;
+}
+export function noteOwnGeoFreed(n = 1) { gpuStats.ownFreed += n; }
+export function modelGpuStats() {
+  let resident = 0, residentGeos = 0, inUse = 0;
+  for (const e of residency.values()) { if (e.resident) { resident++; residentGeos += e.geos.length; } if (e.refs) inUse++; }
+  return { ...gpuStats, models: residency.size, resident, residentGeos, inUse };
 }
 
 // convex hull point cloud (shell coords) from the coarse LOD body: paint + cabin + roof + box
@@ -758,7 +803,7 @@ function hullPoints(t, typeKey, kit) {
   if (hullCache.has(ck)) return hullCache.get(ck);
   const geo = buildBody(t, typeKey, kit, 2).body;
   const out = [];
-  const minY = t.yb + 0.06;
+  const minY = Math.max(t.yb + 0.06, 0.28); // common bumper-height floor: low noses must not act as ramps
   for (const k of ['paint', 'glass', 'roof', 'box']) {
     const g = geo[k]; if (!g) continue;
     const a = g.attributes.position;
@@ -766,7 +811,7 @@ function hullPoints(t, typeKey, kit) {
     for (let i = 0; i < a.count; i += step) {
       const x = a.getX(i), y = a.getY(i), z = a.getZ(i);
       if (Math.abs(x) > t.W / 2 + 0.02 || Math.abs(z) > t.L / 2 + 0.05) continue; // mirrors / wings stay out of the hull
-      out.push(x * 0.985, Math.max(minY, y), z);
+      out.push(x, Math.max(minY, y), z);
     }
   }
   const res = new Float32Array(out);
@@ -788,7 +833,7 @@ export function isBuilt(key, kit = 'base') {
 }
 export function wheelBuilt(key, spokes) {
   const t = CAR_TYPES[key]; if (!t) return false;
-  return wheelCache.has(t.r.toFixed(3) + '|' + t.tw.toFixed(3) + '|' + (spokes || t.spokes));
+  return wheelCache.has(wheelKey(t, spokes));
 }
 export function prebuild(key, kit = 'base') {
   const t = CAR_TYPES[key]; if (!t) return;
@@ -842,6 +887,15 @@ function taxiSignTex() {
   return _signTex;
 }
 const decalTex = {};
+const decalMat = {};
+const decalGeo = new Map();
+// shared small geometries (never per car: avoids GPU geometry growth while traffic recycles)
+const SHARED = {
+  badge: new THREE.PlaneGeometry(0.34, 0.085),
+  swRim: new THREE.TorusGeometry(0.18, 0.022, 8, 20),
+  swHub: new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12).rotateX(Math.PI / 2),
+  swSpoke: new THREE.BoxGeometry(0.34, 0.03, 0.015),
+};
 function addDecals(shell, t, typeKey) {
   if (!decalTex[typeKey]) {
     decalTex[typeKey] = textTexture(512, 128, (c) => {
@@ -872,14 +926,15 @@ function addDecals(shell, t, typeKey) {
       }
     });
   }
-  const mat = new THREE.MeshStandardMaterial({
+  const mat = decalMat[typeKey] ||= new THREE.MeshStandardMaterial({
     map: decalTex[typeKey], transparent: true, roughness: 0.35, metalness: 0.1,
     polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false,
   });
   let len = t.wb - 2 * (t.r + 0.1) + 0.1, h = (t.belt - t.yb) * 0.62, y = t.yb + 0.08 + h / 2, zc = -0.1, xw = t.W / 2 + 0.006;
   if (t.box) { const bl = t.box.front + t.L / 2; len = bl * 0.85; h = len / 4; zc = (t.box.front - t.L / 2) / 2; y = t.belt + (t.box.top - t.belt) * 0.55; xw = (t.W + 0.06) / 2 + 0.008; }
   if (t.bus) { len = t.L * 0.8; h = len / 4; y = t.yb + 0.15 + h / 2; zc = 0; }
-  const geo = new THREE.PlaneGeometry(len, h);
+  const gk = t.label + '|' + typeKey;
+  const geo = decalGeo.get(gk) || decalGeo.set(gk, new THREE.PlaneGeometry(len, h)).get(gk);
   for (const s of [1, -1]) {
     const p = new THREE.Mesh(geo, mat);
     p.position.set(s * xw, y, zc);

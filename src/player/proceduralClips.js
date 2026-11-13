@@ -230,6 +230,13 @@ export function buildProceduralClips(rig) {
   clips.leash = upper(makeClip(rig, 'leash', [{ t: 0, b: merge(RELAX, { RightArm: [['z', 62], ['y', 30]], RightForeArm: [['y', 55]], RightHand: [['x', 20]] }) },
     { t: 1, b: merge(RELAX, { RightArm: [['z', 60], ['y', 36]], RightForeArm: [['y', 50]], RightHand: [['x', 25]] }) }, { t: 2, b: merge(RELAX, { RightArm: [['z', 62], ['y', 30]], RightForeArm: [['y', 55]], RightHand: [['x', 20]] }) }], { hipsKey: false }));
 
+  // ---- WAVE / GREET (upper overlay) ----
+  const wv = (k) => merge(RELAX, { RightArm: [['z', -10], ['y', 15]], RightForeArm: [['y', 40 + k * 30], ['x', -10]], RightHand: [['z', k * 15]], Head: [['y', -8], ['x', -4]] });
+  clips.wave = upper(makeClip(rig, 'wave', [{ t: 0, b: RELAX }, { t: 0.2, b: wv(-1) }, { t: 0.45, b: wv(1) }, { t: 0.7, b: wv(-1) }, { t: 0.95, b: wv(1) }, { t: 1.25, b: RELAX }], { hipsKey: false }));
+  // ---- ARGUE (upper overlay: animated gesturing, leaning in) ----
+  const ag = (k) => ({ Spine: [['x', 8], ['y', k * 6]], Head: [['x', 6], ['y', -k * 8]], RightArm: [['z', 55], ['y', 40 + k * 10]], RightForeArm: [['y', 70 + k * 25]], LeftArm: [['z', -58], ['y', -35 + k * 8]], LeftForeArm: [['y', -60 + k * 20]] });
+  clips.argue = upper(makeClip(rig, 'argue', [{ t: 0, b: ag(-1) }, { t: 0.35, b: ag(1) }, { t: 0.7, b: ag(-1) }, { t: 1.05, b: ag(1) }, { t: 1.4, b: ag(-1) }], { hipsKey: false }));
+
   // ---- HANDS UP / FLAIL while fleeing (upper body overlay) ----
   const upA = { LeftArm: [['z', 50], ['y', -10]], RightArm: [['z', -40], ['y', 15]], LeftForeArm: [['y', -50]], RightForeArm: [['y', 30]], Head: [['x', -8]] };
   const upB = { LeftArm: [['z', 40], ['y', 10]], RightArm: [['z', -52], ['y', -8]], LeftForeArm: [['y', -30]], RightForeArm: [['y', 55]], Head: [['x', -6]] };

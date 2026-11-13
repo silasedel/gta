@@ -182,15 +182,27 @@ export function findBone(root, re) {
   return found;
 }
 
-// simple marker sprite (canvas) e.g. "!" above a witness
+// shared geometry cache: one BoxGeometry per size, never per instance
+const _boxCache = new Map();
+export function sharedBox(w, h, d) {
+  const k = w + ',' + h + ',' + d;
+  let g = _boxCache.get(k); if (!g) { g = new THREE.BoxGeometry(w, h, d); _boxCache.set(k, g); }
+  return g;
+}
+const _markerMats = new Map();
+// simple marker sprite (canvas) e.g. "!" above a witness; material cached per text/colour
 export function makeMarker(text, color = '#ff4d5e', size = 0.6) {
+  const mk = text + '|' + color;
+  const cached = _markerMats.get(mk);
+  if (cached) { const s = new THREE.Sprite(cached); s.scale.setScalar(size); s.renderOrder = 999; return s; }
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const g = c.getContext('2d');
   g.fillStyle = color; g.beginPath(); g.arc(32, 32, 28, 0, Math.PI * 2); g.fill();
   g.lineWidth = 4; g.strokeStyle = '#fff'; g.stroke();
   g.fillStyle = '#fff'; g.font = 'bold 40px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 32, 35);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }); _markerMats.set(mk, mat);
+  const s = new THREE.Sprite(mat);
   s.scale.setScalar(size); s.renderOrder = 999;
   return s;
 }

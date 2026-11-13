@@ -76,6 +76,8 @@ export function genOutfit(r, zone) {
   return o;
 }
 
+const _gcache = new Map();
+const SG = (key, Ctor, ...a) => { const k = key + ':' + a.join(','); let g = _gcache.get(k); if (!g) { g = new Ctor(...a); _gcache.set(k, g); } return g; };
 // ---------- accessories ----------
 const G = {};
 function geo() {
@@ -151,9 +153,9 @@ export function makeHeadAccessories(r, beach, hairOn) {
 export function makeCopCap() {
   const g = geo(); const grp = new THREE.Group(); const m = mat(0x141b2c, 0.7);
   grp.add(mesh(g.capDome, m, 0, -0.072, -0.004, 1.02, 0.8, 1.05));
-  grp.add(mesh(new THREE.CylinderGeometry(0.112, 0.108, 0.04, 18), m, 0, -0.03, -0.004));
+  grp.add(mesh(SG('CylinderGeometry', THREE.CylinderGeometry, 0.112, 0.108, 0.04, 18), m, 0, -0.03, -0.004));
   grp.add(mesh(g.capBrim, mat(0x0a0a0a, 0.3, 0.2), 0, -0.07, 0.09, 1, 1, 1.0, 0.18));
-  grp.add(mesh(new THREE.BoxGeometry(0.03, 0.03, 0.006), mat(0xc9a43a, 0.3, 0.8), 0, -0.035, 0.112));
+  grp.add(mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.03, 0.03, 0.006), mat(0xc9a43a, 0.3, 0.8), 0, -0.035, 0.112));
   return grp;
 }
 export function makeSunglasses(dy = 0) {
@@ -165,12 +167,12 @@ export function makeSunglasses(dy = 0) {
 }
 export function makeDutyBelt() {
   const grp = new THREE.Group();
-  const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.165, 0.165, 0.055, 20, 1, true), mat(0x0d0d0d, 0.45, 0.1));
+  const belt = new THREE.Mesh(SG('CylinderGeometry', THREE.CylinderGeometry, 0.165, 0.165, 0.055, 20, 1, true), mat(0x0d0d0d, 0.45, 0.1));
   belt.scale.set(1, 1, 0.78); belt.castShadow = true; grp.add(belt);
-  const holster = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.13, 0.08), mat(0x111111, 0.5)); holster.position.set(-0.17, -0.05, 0); grp.add(holster);
-  const cuffs = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.035), mat(0x151515, 0.5)); cuffs.position.set(0.02, -0.005, -0.13); grp.add(cuffs);
-  const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.035), mat(0x151515, 0.5)); pouch.position.set(-0.1, -0.01, 0.12); grp.add(pouch);
-  const radio = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.035), mat(0x1a1a1a, 0.5)); radio.position.set(0.15, 0, 0.06); grp.add(radio);
+  const holster = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.05, 0.13, 0.08), mat(0x111111, 0.5)); holster.position.set(-0.17, -0.05, 0); grp.add(holster);
+  const cuffs = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.07, 0.05, 0.035), mat(0x151515, 0.5)); cuffs.position.set(0.02, -0.005, -0.13); grp.add(cuffs);
+  const pouch = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.06, 0.06, 0.035), mat(0x151515, 0.5)); pouch.position.set(-0.1, -0.01, 0.12); grp.add(pouch);
+  const radio = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.06, 0.08, 0.035), mat(0x1a1a1a, 0.5)); radio.position.set(0.15, 0, 0.06); grp.add(radio);
   return grp;
 }
 
@@ -178,10 +180,10 @@ export function makeDutyBelt() {
 export function makeCase(kind = 'briefcase') {
   const grp = new THREE.Group();
   if (kind === 'briefcase') {
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.085, 0.4), mat(0x2a1a10, 0.45, 0.05)); body.position.set(-0.21, -0.02, 0); body.castShadow = true; grp.add(body);
-    const h = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.12), mat(0x111111, 0.4)); h.position.set(-0.05, -0.02, 0); grp.add(h);
+    const body = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.3, 0.085, 0.4), mat(0x2a1a10, 0.45, 0.05)); body.position.set(-0.21, -0.02, 0); body.castShadow = true; grp.add(body);
+    const h = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.03, 0.02, 0.12), mat(0x111111, 0.4)); h.position.set(-0.05, -0.02, 0); grp.add(h);
   } else {
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.09, 0.28), mat(0x5a2e22, 0.5)); body.position.set(-0.2, -0.02, 0); body.castShadow = true; grp.add(body);
+    const body = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 0.2, 0.09, 0.28), mat(0x5a2e22, 0.5)); body.position.set(-0.2, -0.02, 0); body.castShadow = true; grp.add(body);
   }
   return grp;
 }

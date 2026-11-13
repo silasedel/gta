@@ -1,7 +1,8 @@
 // Port Solana vehicles: procedural cars + Rapier raycast-vehicle physics + lane-following traffic AI.
 import * as THREE from 'three';
-import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild } from './carModel.js';
+import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel.js';
 import { dentMesh } from './damage.js';
+import { createBoats } from './boats.js';
 import { buildRoadNet, project, sampleEdge, laneOffset, laneCount, driveLaneMax, lanePointAt, exitsAt, edgeDirAt, signalState, randomLane } from './roadnet.js';
 import { createCharacter } from '../player/characterModel.js';
 import { createSkids, createScreech, createSmoke, createShards, playImpact } from './skids.js';
@@ -232,7 +233,7 @@ export async function createVehicles(game) {
     const rr = 0.08;
     const lowerCy = (spec.yb + 0.06 + spec.belt) / 2 - groundOff;
     const c1 = RAPIER.ColliderDesc.roundCuboid(W / 2 - 0.02 - rr, (spec.belt - spec.yb - 0.06) / 2 - rr, L / 2 - 0.03 - rr, rr)
-      .setTranslation(0, lowerCy, 0).setDensity(0).setFriction(0.35).setRestitution(0.08);
+      .setTranslation(0, lowerCy, 0).setDensity(0).setFriction(0.6).setRestitution(0.15);
     const Wc = W - 2 * spec.cabInset;
     const c2 = RAPIER.ColliderDesc.roundCuboid(Wc / 2 - rr, (spec.roofY - spec.belt) / 2 - rr, (spec.zA - spec.zD) / 2 - rr, rr)
       .setTranslation(0, (spec.roofY + spec.belt) / 2 - groundOff, (spec.zA + spec.zD) / 2).setDensity(0).setFriction(0.3).setRestitution(0.05);
@@ -243,11 +244,19 @@ export async function createVehicles(game) {
         const pts = new Float32Array(hp.length);
         for (let i = 0; i < hp.length; i += 3) { pts[i] = hp[i]; pts[i + 1] = hp[i + 1] - groundOff; pts[i + 2] = hp[i + 2]; }
         const hd = RAPIER.ColliderDesc.convexHull(pts);
-        if (hd) col1 = world.createCollider(hd.setDensity(0).setFriction(0.35).setRestitution(0.08), body);
+        if (hd) col1 = world.createCollider(hd.setDensity(0).setFriction(0.6).setRestitution(0.15), body);
       }
     } catch (e) { col1 = null; }
     if (!col1) { col1 = world.createCollider(c1, body); world.createCollider(c2, body); }
+    // vertical bumper blocks at both ends (0.28-0.68 m): car-to-car hits push horizontally instead of ramping
+    for (const zs of [1, -1]) {
+      const bh = 0.2, by = 0.48 - groundOff, bz = zs * (L / 2 - 0.16);
+      world.createCollider(RAPIER.ColliderDesc.cuboid(W / 2 - 0.12, bh, 0.16).setTranslation(0, by, bz).setDensity(0).setFriction(0.6).setRestitution(0.15), body);
+    }
 
+    // mass properties are otherwise only computed at the next world.step(): a vehicle-controller tick before that
+    // sees mass 0 (inverse mass inf) and produces NaN velocities.  Compute them now.
+    try { body.recomputeMassPropertiesFromColliders(); } catch (e) { /* older rapier */ }
     // raycast vehicle
     const vc = makeController(body, model.wheels, spec, restLen, stiff);
 
@@ -359,6 +368,7 @@ export async function createVehicles(game) {
   function removeDriver(v) {
     if (!v.driver) return;
     v.driver.parent?.remove(v.driver);
+    try { v.driverChar?.dispose?.(); } catch (e) { /* ignore */ }
     v.driver = null; v.driverChar = null;
   }
 
@@ -405,7 +415,7 @@ export async function createVehicles(game) {
     game.audio?.play?.('car_crash', { position: pos, volume: 1 });
     game.emit?.('crash', { vehicle: v, impulse: v.spec.mass * 12, point: pos });
     // charred paint
-    const burnt = v.car.paint.clone(); burnt.color.setHex(0x16120f); burnt.metalness = 0.2; burnt.roughness = 0.8; burnt.clearcoat = 0.1;
+    const burnt = v.burntMat = v.car.paint.clone(); burnt.color.setHex(0x16120f); burnt.metalness = 0.2; burnt.roughness = 0.8; burnt.clearcoat = 0.1;
     for (const mm of [...(v.car.slots?.paint || []), ...(v.car.slots?.roof || [])]) mm.material = burnt;
     breakGlass(v);
     v.body.applyImpulse({ x: 0, y: v.spec.mass * 5, z: 0 }, true);
@@ -505,6 +515,7 @@ export async function createVehicles(game) {
   function physicsTick(v, dt) {
     // a chassis removed behind our back (another module) must never reach updateVehicle -> wasm panic
     if (v.body.isValid && !v.body.isValid()) { dropVehicle(v); return; }
+    if (v.frozen && v.playerDriven && !v.ghost) thaw(v, true); // the player's car is never left frozen, not even for a manager tick
     if (v.frozen || !v.vc) { v.speed = 0; return; }
     // never drive onto ground whose colliders are not streamed in (would fall through the world)
     if (!v.playerDriven && city?.collidersReadyAt && ((v.edgeT = (v.edgeT || 0) - dt) <= 0)) {
@@ -553,7 +564,8 @@ export async function createVehicles(game) {
     const aspd = Math.abs(speed);
     // CCD only when it matters (fast or player-driven) - it is costly with a dense city
     const lv0 = body.linvel();
-    const wantCcd = v.playerDriven;
+    let wantCcd = v.playerDriven;
+    if (!wantCcd && playerCarRef) { const pt = playerCarRef.body.translation(); wantCcd = distXZ(pt, body.translation()) < 40; }
     if (wantCcd !== v.ccd) { body.enableCcd(wantCcd); v.ccd = wantCcd; }
 
     // steering (speed sensitive, smoothed)
@@ -608,7 +620,23 @@ export async function createVehicles(game) {
         body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
     }
+    if (!(body.mass() > 0)) { try { body.recomputeMassPropertiesFromColliders(); } catch (e) { /* ignore */ } if (!(body.mass() > 0)) return; }
+    const pl = body.linvel(), pa = body.angvel();
     vc.updateVehicle(dt, wheelFilter);
+    {
+      // a degenerate ground triangle can make the ray-cast suspension produce NaN: undo and rebuild the controller
+      const nl = body.linvel(), na = body.angvel();
+      if (![nl.x, nl.y, nl.z, na.x, na.y, na.z].every(Number.isFinite)) {
+        body.setLinvel(Number.isFinite(pl.x + pl.y + pl.z) ? pl : { x: 0, y: 0, z: 0 }, true);
+        body.setAngvel(Number.isFinite(pa.x + pa.y + pa.z) ? pa : { x: 0, y: 0, z: 0 }, true);
+        try { world.removeVehicleController(vc); } catch (e) { /* ignore */ }
+        v.vc = makeController(body, v.car.wheels, v.spec, v.restLen, v.stiff);
+        v.nanFixes = (v.nanFixes || 0) + 1;
+        { const now = performance.now(); if (!(now - (v.nanWarnT || -1e9) < 10000)) { v.nanWarnT = now; const tp = body.translation(); console.warn(`[vehicles] NaN from wheel ray-cast (x${v.nanFixes}) at ${tp.x.toFixed(1)},${tp.y.toFixed(1)},${tp.z.toFixed(1)} ${v.name}`); } }
+        v.speed = 0;
+        return;
+      }
+    }
 
     // downforce + upright assist
     const r = body.rotation();
@@ -981,12 +1009,18 @@ export async function createVehicles(game) {
   let mgrT = 0;
   // simulation tiers: full ray-cast physics within SIM_R; beyond it AI traffic becomes a kinematic
   // "ghost" that follows its lane on the road graph (no controller, no wheel rays), parked cars freeze.
-  const SIM_R = 120;
+  const SIM_R = 180;
+  let playerCarRef = null;
   function physicsRange(pp) {
+    playerCarRef = list.find((v) => v.playerDriven) || null;
+    const pv = playerCarRef ? playerCarRef.body.linvel() : null;
     for (const v of list) {
       if (v.playerDriven) { if (v.ghost) fromGhost(v, true); if (v.frozen) thaw(v, true); continue; }
       const t = v.body.translation();
-      const d = distXZ(t, pp);
+      let d = distXZ(t, pp);
+      // closing fast on the player's car (time-to-reach < 5 s) counts as near
+      if (pv) { const ov = v.body.linvel(); const dx = t.x - pp.x, dz = t.z - pp.z, L = Math.hypot(dx, dz) || 1;
+        const closing = -((ov.x - pv.x) * dx + (ov.z - pv.z) * dz) / L; if (closing > 0 && L / closing < 5) d = Math.min(d, SIM_R - 20); }
       const aiCar = v.ai && !v.chaseTarget && !v.disabled;
       if (aiCar) {
         if (v.frozen && d < PHYS_R) { thaw(v, true); toGhost(v); }
@@ -1158,6 +1192,7 @@ export async function createVehicles(game) {
   // ------------------------------------------------------------ per-frame visuals
   let lastT = -1;
   const _spotPos = new THREE.Vector3();
+  let lastEvict = 0;
   function update(dt) {
     const et = game.clock?.elapsed ?? performance.now() / 1000;
     if (et === lastT) return;
@@ -1168,6 +1203,7 @@ export async function createVehicles(game) {
     let playerCar = null;
     let sirenBest = null, sirenBestD = 1e9;
     let driverBuiltThisFrame = false;
+    if (et - lastEvict > 1) { lastEvict = et; try { evictIdleModels(); } catch (e) { /* non-fatal */ } }
     try { trafficManager(dt); } catch (e) { console.error('[traffic]', e); }
     let fireBest = null, fireBestD = 1e9;
     for (const v of list) {
@@ -1473,7 +1509,18 @@ export async function createVehicles(game) {
     });
   }
 
+  // release everything this car owns (shared/cached geometry and materials stay)
+  function disposeCar(v) {
+    removeDriver(v);
+    v.mesh.traverse((o) => {
+      if (o.isMesh && o.userData.ownGeo) { o.geometry.dispose(); o.userData.ownGeo = false; noteOwnGeoFreed(); }
+    });
+    releaseCar(v.car); // model GPU buffers freed once no car of this model remains (after a grace period)
+    for (const k in v.car.lightMats) v.car.lightMats[k].dispose();
+    if (v.burntMat) v.burntMat.dispose();
+  }
   function dropVehicle(v) {
+    disposeCar(v);
     const i = list.indexOf(v); if (i >= 0) list.splice(i, 1);
     v.alive = false; v.disposed = true;
     if (v.vc) { try { world.removeVehicleController(v.vc); } catch (e) { /* ignore */ } v.vc = null; }
@@ -1485,6 +1532,7 @@ export async function createVehicles(game) {
     if (i < 0 || v.playerDriven) return false;
     list.splice(i, 1);
     v.alive = false; v.disposed = true;
+    disposeCar(v);
     for (let k = 0; k < 4; k++) skids.end(v.name + k);
     scene.remove(v.mesh);
     if (v.vc) { try { world.removeVehicleController(v.vc); } catch (e) { /* ignore */ } v.vc = null; }
@@ -1529,6 +1577,10 @@ export async function createVehicles(game) {
     return best;
   }
 
+  // ---- boats (own physics; share nearest()/enter/exit through this API)
+  let boatSys = null;
+  try { boatSys = createBoats(game); } catch (e) { console.error('[vehicles] boats', e); }
+
   // ---- warm-up: compile every vehicle material variant and upload every texture now (loading screen), so
   // entering a car / seeing LOD0 / first skid or smoke never compiles shaders mid-game.
   function warmup() {
@@ -1561,5 +1613,14 @@ export async function createVehicles(game) {
   }
   try { warmup(); } catch (e) { /* non-fatal */ }
 
-  return { list, nearest, update, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; } };
+  const carNearest = nearest;
+  function nearestAny(pos, maxDist = 6) {
+    const c = carNearest(pos, maxDist);
+    const b = boatSys?.nearest(pos, maxDist);
+    if (!b) return c; if (!c) return b;
+    const ct = c.body.translation(), bt = b.body.translation();
+    return Math.hypot(ct.x - pos.x, ct.z - pos.z) <= Math.hypot(bt.x - pos.x, bt.z - pos.z) ? c : b;
+  }
+  const updateAll = (dt) => { update(dt); try { boatSys?.update(dt); } catch (e) { console.error('[boats]', e); } };
+  return { list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
 }

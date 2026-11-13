@@ -26,11 +26,15 @@ export function createActivities(game, G) {
     g.fillStyle = gr; g.fillRect(0, 0, 4, 128); return new THREE.CanvasTexture(c);
   }
   const BT = beamTex();
+  const _mats = new Map();
+  function cmat(kind, color, make) { const k = kind + color; let m = _mats.get(k); if (!m) { m = make(); _mats.set(k, m); } return m; }
+  const _archGeo = new Map();
+  function archGeo(width) { let g = _archGeo.get(width); if (!g) { g = { post: new THREE.BoxGeometry(0.35, 5, 0.35), top: new THREE.BoxGeometry(width, 0.4, 0.35), flag: new THREE.PlaneGeometry(width * 0.9, 0.8) }; _archGeo.set(width, g); } return g; }
   function marker(pos, color = 0xffd25a, opts = {}) {
     const g = new THREE.Group();
-    const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ map: BT, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, opacity: 0.55, toneMapped: false }));
+    const beam = new THREE.Mesh(beamGeo, cmat('beam', color, () => new THREE.MeshBasicMaterial({ map: BT, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, opacity: 0.55, toneMapped: false })));
     beam.scale.set(opts.r || 1, opts.h || 1, opts.r || 1);
-    const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false }));
+    const ring = new THREE.Mesh(ringGeo, cmat('ring', color, () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false })));
     ring.rotation.x = -Math.PI / 2; ring.position.y = 0.12; ring.scale.setScalar(opts.r || 1);
     g.add(beam, ring);
     g.position.set(pos.x, (pos.y ?? C.groundHeight(pos.x, pos.z)) + 0.02, pos.z);
@@ -40,11 +44,11 @@ export function createActivities(game, G) {
   }
   function arch(pos, heading, color = 0x2fe0d0, width = 12) { // race checkpoint gate
     const g = new THREE.Group();
-    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false });
-    const postGeo = new THREE.BoxGeometry(0.35, 5, 0.35);
-    const l = new THREE.Mesh(postGeo, mat), r = new THREE.Mesh(postGeo, mat), top = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, 0.35), mat);
+    const mat = cmat('arch', color, () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false }));
+    const AG = archGeo(width);
+    const l = new THREE.Mesh(AG.post, mat), r = new THREE.Mesh(AG.post, mat), top = new THREE.Mesh(AG.top, mat);
     l.position.set(-width / 2, 2.5, 0); r.position.set(width / 2, 2.5, 0); top.position.set(0, 5, 0);
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.9, 0.8), new THREE.MeshBasicMaterial({ map: checkerTex(), transparent: true, side: THREE.DoubleSide, toneMapped: false }));
+    const flag = new THREE.Mesh(AG.flag, cmat('flag', 0, () => new THREE.MeshBasicMaterial({ map: checkerTex(), transparent: true, side: THREE.DoubleSide, toneMapped: false })));
     flag.position.set(0, 4.4, 0);
     g.add(l, r, top, flag);
     g.position.set(pos.x, pos.y ?? C.groundHeight(pos.x, pos.z), pos.z); g.rotation.y = heading;
@@ -101,9 +105,13 @@ export function createActivities(game, G) {
 
   // simple scripted NPC (fares, bounty targets): own character + kinematic capsule + KCC, hit-testable
   const npcs = [];
+  const charPool = [];
   function makeNpc(pos, seed, opts = {}) {
-    const char = tryCall('createCharacter', () => createCharacter(game, { variant: 'ped', seed }), null);
+    // characters are pooled (creating a new one per fare/bounty would leak GPU resources)
+    let char = charPool.pop() || null;
+    if (!char) char = tryCall('createCharacter', () => createCharacter(game, { variant: 'ped', seed }), null);
     if (!char) return null;
+    char.root.visible = true;
     scene.add(char.root);
     const body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(pos.x, pos.y + 0.9, pos.z));
     const collider = world.createCollider(RAPIER.ColliderDesc.capsule(0.6, 0.28), body);
@@ -115,6 +123,8 @@ export function createActivities(game, G) {
   function removeNpc(n) {
     if (!n || !n.alive) return; n.alive = false;
     scene.remove(n.char.root);
+    if (charPool.length < 6) charPool.push(n.char);
+    try { world.removeCharacterController(n.kcc); } catch (e) { /* ignore */ }
     removeBodySafe(game, n.body);
     const i = npcs.indexOf(n); if (i >= 0) npcs.splice(i, 1);
   }
@@ -473,7 +483,6 @@ export function createActivities(game, G) {
       const s = cell.data.shell; if (!s || found.has(s.id)) return;
       const m = new THREE.Mesh(shellGeo, shellMat); m.castShadow = true;
       m.position.set(s.x, s.y + 0.45, s.z); scene.add(m); cell.data.mesh = m;
-      const glow = new THREE.PointLight(0xffb38a, 0.6, 4, 2); glow.position.set(0, 0.2, 0); m.add(glow);
       shells.push(cell.data);
     },
     unload(cell) { if (cell.data.mesh) { scene.remove(cell.data.mesh); cell.data.mesh = null; } const i = shells.indexOf(cell.data); if (i >= 0) shells.splice(i, 1); },

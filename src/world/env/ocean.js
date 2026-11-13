@@ -203,6 +203,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
     const tex = new THREE.DataTexture(out, W, H, THREE.RedFormat, THREE.UnsignedByteType);
     tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
     tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.needsUpdate = true;
+    if (uniforms.tShore.value && uniforms.tShore.value !== tex) uniforms.tShore.value.dispose(); // rebuilds never leak
     uniforms.tShore.value = tex;
     uniforms.uShoreRect.value.set(minX, minZ, 1 / (W * cell), 1 / (H * cell));
     uniforms.uHasShore.value = 1;

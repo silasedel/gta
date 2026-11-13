@@ -49,9 +49,10 @@ function grid(cell) {
   };
 }
 
-export function fitLots(lots, buildingPolys = []) {
+// Incremental fitter: lots can stream in later (CITY's synthetic ground-floor shops appear as tiles build);
+// each batch is fitted against everything accepted so far, so earlier interiors never get invalidated.
+export function createLotFitter(buildingPolys = []) {
   const res = new Map();
-  // building footprints (polygons) indexed by bbox
   const bg = grid(40); const polys = [];
   for (const b of buildingPolys || []) {
     const o = b.outer || b; if (!o || o.length < 3) continue;
@@ -59,23 +60,14 @@ export function fitLots(lots, buildingPolys = []) {
     const p = { o, x0, z0, x1, z1 }; polys.push(p); bg.add(p, x0, z0, x1, z1);
   }
   const polysAt = (x, z) => bg.at(x, z).filter((p) => x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && pointInPoly(p.o, x, z));
-  // accept order: real OSM POIs first, then larger lots
-  const order = lots.map((sf, i) => i).sort((a, b) => (!!lots[b].poi - !!lots[a].poi) || (lots[b].w * lots[b].d - lots[a].w * lots[a].d) || a - b);
   const lg = grid(20); const accepted = [];
-  const stats = { total: lots.length, ok: 0, shrunk: 0, droppedOverlap: 0, droppedBuilding: 0, overlapPairsBefore: 0 };
-  // raw overlap count (before fitting) for reporting
-  { const rg = grid(20); const rects = lots.map((sf) => rectOf(sf.x, sf.z, sf.w, sf.d, sf.facing || 0));
-    rects.forEach((r, i) => { const R = Math.hypot(r.hw, r.hd); rg.add(i, r.x - R, r.z - R, r.x + R, r.z + R); });
-    const seen = new Set();
-    rects.forEach((r, i) => { for (const [x, z] of samples(r, 0.05)) for (const j of rg.at(x, z)) { if (j === i) continue; const k = i < j ? i + ':' + j : j + ':' + i; if (seen.has(k)) continue; if (inRect(rects[j], x, z)) seen.add(k); } });
-    stats.overlapPairsBefore = seen.size; }
-  for (const i of order) {
-    const sf = lots[i]; const facing = sf.facing || 0; const sn = Math.sin(facing), cs = Math.cos(facing);
-    // host building = footprint containing the lot centre (or most samples)
+  const stats = { total: 0, ok: 0, shrunk: 0, droppedOverlap: 0, droppedBuilding: 0, overlapPairsBefore: 0, batches: 0 };
+  function fitOne(sf) {
+    const facing = sf.facing || 0; const sn = Math.sin(facing), cs = Math.cos(facing);
     const r0 = rectOf(sf.x, sf.z, sf.w, sf.d, facing);
     const hostVotes = new Map(); for (const [x, z] of samples(r0, 0.4)) for (const p of polysAt(x, z)) hostVotes.set(p, (hostVotes.get(p) || 0) + 1);
     let host = null, best = 0; for (const [p, v] of hostVotes) if (v > best) { best = v; host = p; }
-    let w = sf.w, d = sf.d, off = 0, verdict = null; // off: centre moved outward (front edge stays on the facade)
+    let w = sf.w, d = sf.d, off = 0, verdict = null;
     for (let attempt = 0; attempt < 4; attempt++) {
       const r = rectOf(sf.x + sn * off, sf.z + cs * off, w, d, facing); const S = samples(r, 0.2);
       let lotHits = 0, bldHits = 0;
@@ -92,15 +84,32 @@ export function fitLots(lots, buildingPolys = []) {
       const nd = Math.max(3.5, d * 0.82), nw = Math.max(3.5, w * 0.88); off += (d - nd) / 2; d = nd; w = nw;
     }
     if (verdict.ok) {
-      const r = verdict.rect; delete verdict.rect;
+      const r = verdict.rect; delete verdict.rect; r.i = accepted.length;
       accepted.push(r); const R = Math.hypot(r.hw, r.hd); lg.add(r, r.x - R, r.z - R, r.x + R, r.z + R);
       stats.ok++; if (verdict.shrunk) stats.shrunk++;
     } else if (verdict.reason === 'building') stats.droppedBuilding++; else stats.droppedOverlap++;
     res.set(sf, verdict);
   }
-  // post-check: overlapping accepted pairs (should be 0)
-  let after = 0; { const seen = new Set(); accepted.forEach((r, i) => { r.i = i; }); for (const r of accepted) { const R0 = Math.hypot(r.hw, r.hd); for (const [x, z] of [[r.x - R0, r.z - R0], [r.x + R0, r.z - R0], [r.x - R0, r.z + R0], [r.x + R0, r.z + R0], [r.x, r.z]]) for (const a of lg.at(x, z)) { if (a === r) continue; const k = Math.min(a.i, r.i) + ':' + Math.max(a.i, r.i); if (!seen.has(k) && obbOverlap(a, r)) { seen.add(k); after++; } } } }
-  stats.overlapPairsAfter = after;
-  res.stats = stats;
+  function fit(lots) {
+    const fresh = lots.filter((sf) => !res.has(sf)); if (!fresh.length) return res;
+    stats.total += fresh.length; stats.batches++;
+    fresh.sort((a, b) => (!!b.poi - !!a.poi) || (b.w * b.d - a.w * a.d) || ((a.id ?? 0) - (b.id ?? 0)));
+    for (const sf of fresh) fitOne(sf);
+    return res;
+  }
+  function overlapsAfter() { let after = 0; const seen = new Set(); for (const r of accepted) { const R0 = Math.hypot(r.hw, r.hd); for (const [x, z] of [[r.x - R0, r.z - R0], [r.x + R0, r.z - R0], [r.x - R0, r.z + R0], [r.x + R0, r.z + R0], [r.x, r.z]]) for (const a of lg.at(x, z)) { if (a === r) continue; const k = Math.min(a.i, r.i) + ':' + Math.max(a.i, r.i); if (!seen.has(k) && obbOverlap(a, r)) { seen.add(k); after++; } } } return after; }
+  return { fit, res, stats, overlapsAfter, get: (sf) => res.get(sf) };
+}
+
+export function fitLots(lots, buildingPolys = []) {
+  const F = createLotFitter(buildingPolys);
+  // raw overlap count (before fitting) for reporting
+  let before = 0; { const rg = grid(20); const rects = lots.map((sf) => rectOf(sf.x, sf.z, sf.w, sf.d, sf.facing || 0));
+    rects.forEach((r, i) => { const R = Math.hypot(r.hw, r.hd); rg.add(i, r.x - R, r.z - R, r.x + R, r.z + R); });
+    const seen = new Set();
+    rects.forEach((r, i) => { for (const [x, z] of samples(r, 0.05)) for (const j of rg.at(x, z)) { if (j === i) continue; const k = i < j ? i + ':' + j : j + ':' + i; if (seen.has(k)) continue; if (inRect(rects[j], x, z)) seen.add(k); } });
+    before = seen.size; }
+  const res = F.fit(lots);
+  res.stats = { ...F.stats, overlapPairsBefore: before, overlapPairsAfter: F.overlapsAfter() };
   return res;
 }

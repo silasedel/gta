@@ -64,6 +64,12 @@ export async function createMiamiCity(game, opts = {}) {
   };
   const [bench, hydrant, trash] = await Promise.all([loadParts('bench_wooden/painted_wooden_bench_1k.gltf', { scale: 1.3, autoFace: true }), loadParts('hydrant_lo/hydrant_lo.gltf'), loadParts('trash_can_lo/trash_can_lo.gltf', { scale: 1.05 })]);
   const models = { bench, hydrant, trash };
+  // TRIAL (?plants=q): Quaternius CC0 low-poly shrubs instead of the leaf-card bushes, for an A/B look
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('plants') === 'q') {
+    const fit = (parts, H) => { if (!parts) return null; const bb = new THREE.Box3(); for (const p of parts) { p.geometry.computeBoundingBox(); bb.union(p.geometry.boundingBox); } const k = H / Math.max(1e-6, bb.max.y - bb.min.y); for (const p of parts) { p.geometry.translate(0, -bb.min.y, 0); p.geometry.scale(k, k, k); } return parts; };
+    const [qb, qf] = await Promise.all([loadParts('quaternius/bush.glb'), loadParts('quaternius/bush_flowers.glb')]);
+    models.bush = fit(qb, 1.25); models.flowerBush = fit(qf, 1.1);
+  }
   // live furniture lists for peds (sit / lean); tiles add/remove entries as they stream
   const benches = [], leanSpots = [];
   const onProps = (t, props, added) => {
@@ -71,14 +77,18 @@ export async function createMiamiCity(game, opts = {}) {
     else { for (const arr of [[benches, t._benches], [leanSpots, t._lean]]) for (const e of arr[1] || []) { const i = arr[0].indexOf(e); if (i >= 0) arr[0].splice(i, 1); } }
   };
   const CURB_H = data?.curbHeight ?? 0.15;
-  const groundAt = data?.groundHeightAt ? (x, z) => Math.max(0, data.groundHeightAt(x, z)) : () => 0;
+  const groundAt = data?.groundHeightAt ? (x, z) => Math.max(0, elevated ? data.groundHeightAt(x, z, -50) : data.groundHeightAt(x, z)) : () => 0; // ground under OSM bridges (ELEVATED owns every deck)
   const onSidewalk = data?.groundHeightAt ? (x, z) => Math.abs(data.groundHeightAt(x, z) - CURB_H) < 0.02 : null;
   const _ne = {};
   const roadDirAt = data?.roadGraph?.nearestEdge ? (x, z) => { const r = data.roadGraph.nearestEdge(x, z, _ne, 60); if (!r) return 0; const dx = r.point.x - x, dz = r.point.z - z; return Math.atan2(dx, dz); } : null;
   const isWaterQ = data?.isWater ? (x, z) => data.isWater(x, z) : null;
   const _nd = {};
   const roadDist = data?.roadGraph?.nearestEdge ? (x, z) => { const r = data.roadGraph.nearestEdge(x, z, _nd, 40); return r ? r.dist - r.edge.width / 2 : 99; } : null;
-  const builder = createTileBuilder({ M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist });
+  // optional ELEVATED module (decks / ramps / barriers / piers); any failure falls back to the built-in deck code
+  let elevated = null;
+  try { const mods = import.meta.glob('./elevated.js'); /* vite rewrites this statically; under plain node it throws and we fall back */ if (mods['./elevated.js']) { const m = await mods['./elevated.js'](); elevated = m.createElevated ? m.createElevated({ THREE, RAPIER, world, data, materials: M }) : null; } } catch (e) { console.warn('[miami] elevated.js unavailable, using built-in decks', e); elevated = null; }
+  const elevH = (x, z, y) => { if (!elevated) return null; try { const h = elevated.heightAt(x, z, y); return Number.isFinite(h) ? h : null; } catch (e) { return null; } };
+  const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist });
   // mid/far chunk meshes: discard fragments of tiles that currently have a near (full-detail) build
   const NM = 9, nearU = { uNearOrigin: { value: new THREE.Vector2(-1e6, -1e6) }, uNearMask: { value: new Float32Array(NM * NM) } };
   const nearCut = (sh) => {
@@ -166,10 +176,11 @@ export async function createMiamiCity(game, opts = {}) {
     roads: edges.flatMap((e) => e.pts.slice(1).map((p, i) => ({ x1: e.pts[i][0], z1: e.pts[i][1], x2: p[0], z2: p[1], width: e.width }))),
     buildings: data?.buildings || [],
     mapLayers: data?.mapLayers || { land: [], water: [], beach: [], park: [], buildingPolys: [], roadEdges: edges.map((e) => e.pts) },
-    groundHeightAt: data?.groundHeightAt ? (x, z, y) => data.groundHeightAt(x, z, y) : () => 0,
+    groundHeightAt: data?.groundHeightAt ? (x, z, y) => elevH(x, z, y) ?? (elevated ? data.groundHeightAt(x, z, -50) : data.groundHeightAt(x, z, y)) :  // decks only where ELEVATED has one (raw OSM deck heights are not surfaces)
+    (x, z, y) => elevH(x, z, y) ?? 0,
     isWater: data?.isWater ? (x, z) => data.isWater(x, z) : (x, z) => zoneAt(x, z) === 'water',
     seabedDepthAt: data?.seabedDepthAt ? (x, z) => data.seabedDepthAt(x, z) : () => 3,
-    surfaceAt: data?.surfaceAt ? (x, z, y) => data.surfaceAt(x, z, y) : (x, z) => { const r = nearestEdge(x, z, 30); if (r && r.dist < r.edge.width / 2) return 'asphalt'; if (r && r.dist < r.edge.width / 2 + 3) return 'concrete'; return zoneAt(x, z) === 'beach' ? 'sand' : 'grass_short'; },
+    surfaceAt: data?.surfaceAt ? (x, z, y) => (elevH(x, z, y) !== null && (y === undefined || Math.abs(elevH(x, z, y) - y) < 2) ? 'asphalt' : data.surfaceAt(x, z, y)) : (x, z) => { const r = nearestEdge(x, z, 30); if (r && r.dist < r.edge.width / 2) return 'asphalt'; if (r && r.dist < r.edge.width / 2 + 3) return 'concrete'; return zoneAt(x, z) === 'beach' ? 'sand' : 'grass_short'; },
     zoneAt, districtAt: data?.districtAt ? (x, z) => data.districtAt(x, z) : (x, z) => regionAt(x, z)?.[0] || 'Miami',
     streetNameAt: data?.streetNameAt ? (x, z) => data.streetNameAt(x, z) : (x, z) => { const r = nearestEdge(x, z, 40); return r && r.dist < r.edge.width / 2 + 6 ? r.edge.name || null : null; },
     randomRoadPoint(near = null, radius = 250, o) {
@@ -202,30 +213,44 @@ export async function createMiamiCity(game, opts = {}) {
       return playerSpawn.clone();
     },
     shopLots: data?.storefronts || [], storefronts: data?.storefronts || [],
-    benches: data?.benches || benches, leanSpots: data?.leanSpots || leanSpots, benchesNear: data?.benchesNear, leanSpotsNear: data?.leanSpotsNear, storefrontsNear: data?.storefrontsNear,
+    benches: data?.benches || benches, leanSpots: data?.leanSpots || leanSpots, benchesNear: data?.benchesNear, leanSpotsNear: data?.leanSpotsNear, storefrontsNear: (x, z, r, out = []) => { const a = data?.storefrontsNear ? data.storefrontsNear(x, z, r).slice() : []; builder.synthShopsNear(x, z, r, a); out.length = 0; for (const l of a) out.push(l); return out; }, // DATA lots + synthetic ground-floor shops,
     root, streamer, get grass() { return grassField; }, provider: provider.source || 'data.js',
     update(dt) {
       const h = game.timeOfDay ?? 12; updateMats(dt, h);
       focus[0].x = game.camera.position.x; focus[0].z = game.camera.position.z;
       const p = game.player?.position; if (p) { focus[1].x = p.x; focus[1].z = p.z; }
-      const v = game.player?.state?.vehicle?.body?.translation?.(); if (v) { focus[2].x = v.x; focus[2].z = v.z; } else { focus[2].x = focus[1].x; focus[2].z = focus[1].z; }
+      const vb = game.player?.state?.vehicle?.body, v = vb?.translation?.(); if (v) { focus[2].x = v.x; focus[2].z = v.z; } else { focus[2].x = focus[1].x; focus[2].z = focus[1].z; }
+      // look-ahead along the player car's velocity: colliders are built where the car will be in 3 s and 6 s
+      let lvx = 0, lvz = 0; if (v && vb.linvel) { const lv = vb.linvel(); lvx = lv.x; lvz = lv.z; }
+      const sp = Math.hypot(lvx, lvz), k6 = sp > 1 ? Math.min(6, 400 / sp) : 0;
+      focus[3].x = focus[2].x + lvx * k6 * 0.5; focus[3].z = focus[2].z + lvz * k6 * 0.5; focus[4].x = focus[2].x + lvx * k6; focus[4].z = focus[2].z + lvz * k6;
       // registered anchors (cars, peds, pickups...): colliders stay loaded around each one
-      focus.length = 3;
+      focus.length = 5;
       for (const a of anchors) { const q = anchorPos(a); if (q) { const f = anchorFocus.get(a); f.x = q.x; f.z = q.z; focus.push(f); } }
       streamer.update(focus);
+      // a fast car must never outrun its colliders: spend extra budget while the path ahead is not ready yet
+      if (sp > 8) for (let extra = 0; extra < 3; extra++) { let ok = true; for (const tt of [0, 0.75, 1.5, 3]) if (!streamer.collidersReadyAt(focus[2].x + lvx * tt, focus[2].z + lvz * tt)) { ok = false; break; } if (ok) break; streamer.update(focus); }
       if (grassField) grassField.update(game.camera);
       const o = streamer.nearMask(nearU.uNearMask.value, NM, focus[0].x, focus[0].z); nearU.uNearOrigin.value.set(o[0], o[1]);
     },
   };
   // focus[0] = camera (render LOD only, small collider radius), [1] = player (300 m colliders), [2] = player car, then anchors
-  const focus = [{ x: playerSpawn.x, z: playerSpawn.z, r: 60 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }];
+  const focus = [{ x: playerSpawn.x, z: playerSpawn.z, r: 60 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }, { x: playerSpawn.x, z: playerSpawn.z, r: 200 }, { x: playerSpawn.x, z: playerSpawn.z, r: 150 }, { x: playerSpawn.x, z: playerSpawn.z, r: 150 }];
   const anchors = new Set(), anchorFocus = new Map();
   const anchorPos = (a) => { const b = a.body && a.body.translation ? a.body.translation() : null; if (b) return b; const p = a.position || a.mesh?.position || a.root?.position || a.pos; return p && Number.isFinite(p.x) ? p : (Number.isFinite(a.x) ? a : null); };
   city.registerAnchor = (obj, radius = 100) => { if (!obj || anchors.has(obj)) return; anchors.add(obj); anchorFocus.set(obj, { x: 0, z: 0, r: radius }); };
   city.unregisterAnchor = (obj) => { anchors.delete(obj); anchorFocus.delete(obj); };
   city.collidersReadyAt = (x, z) => streamer.collidersReadyAt(x, z);
+  city.colliderSourceAt = (x, z, r) => builder.colliderSourceAt ? builder.colliderSourceAt(x, z, r) : []; // which city generator placed static geometry near (x, z)
+  city.deckSurfaceAt = (x, z, yHint) => builder.deckSurfaceAt(x, z, yHint);
+  // moored boats (VEHICLES swaps one for a drivable boat): moorings near a point (default: the player), claim hides the static boat + its collider
+  city.moorings = (x, z, r = 400) => { const p = game.player?.position; return builder.mooringsNear(x ?? p?.x ?? 0, z ?? p?.z ?? 0, r); };
+  city.claimMooring = (id) => builder.claimMooring(id);
+  city.releaseMooring = (id) => builder.releaseMooring(id); // rendered/collider deck height near yHint, or null off-deck
   city.onTileCollidersRemoving = (fn) => streamer.onTileCollidersRemoving(fn);
   game.updaters.push((dt) => city.update(dt));
+  // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
+  if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }
   // synchronous warm-up: colliders + near tiles around the spawn so the player never falls
   { const g = builder.buildLandBase(); for (let r = g.next(); !r.done; r = g.next()); }
   // warm-up: stream until the near tiles + colliders around the spawn are ready (tiles load asynchronously)

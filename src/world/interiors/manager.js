@@ -5,14 +5,21 @@
 import * as THREE from 'three';
 import { createCharacter } from '../../player/characterModel.js';
 import { rng as pedRng } from '../../player/pedStyle.js';
-import { ProductBatch, getAtlas, productGeo, labelPlaneGeo, GARMENT_COLORS } from './products.js';
+import { ProductBatch, getAtlas, productGeo, labelPlaneGeo, GARMENT_COLORS, FOOD_LIST } from './products.js';
 import { TYPES, chooseType, chooseName, isOpenAt, busyFactor, srng } from './types.js';
 import { generateLayout, buildNav } from './layout.js';
-import { fitLots } from './fitlots.js';
+import { createLotFitter } from './fitlots.js';
 import { textMesh, setTextBrightness, stdMat, glowMat, panelMats, floorMats, floorGeo, danceMat, warmup, glyphAtlas } from './shared.js';
 import { Bucket, mats, buildFixture, signTex, stripeTex, floorTex, menuTex, textTex, MIX } from './fixtures.js';
+import { themeFor, shopStyle, THEMES } from './themes.js';
+import { makeStaff, line } from './staff.js';
+import { propGeo, propColliders, propMat } from './props.js';
+import { STATIONS, STATION_ON, DECOR } from './decor.js';
+import { wallMat as finishMat, wallGeo, extraFloorMat, WALL_STYLES, FLOOR_EXTRA_STYLES } from './shared.js';
 
 const ACTIVE_R = 80, DISPOSE_R = 150, DETAIL_R = 45, MAX_DETAIL = 3, MAX_ACTIVE = 6, CACHE = 6, PROD_BUDGET = 150000, MAX_CHARS = 32, CH = 3, PROD_R = 11;
+const MAX_DYN_PROPS = 40;
+const STATION_LAYOUT = { sushiConveyor: ['diner'], oysterBar: ['diner'], dinerCounter: ['diner'], espressoBar: ['cafe-a', 'cafe-b'], burgerGrill: ['cafe-a', 'cafe-b'], tacoStation: ['cafe-b', 'cafe-a'], pokeBar: ['cafe-a'], juiceBar: ['cafe-a', 'cafe-b'], pizzaOven: ['restaurant-a', 'restaurant-b'], openGrill: ['restaurant-a'], wokLine: ['restaurant-b', 'restaurant-a'], cocktailBar: ['bar-a', 'bar-b'], beerTaps: ['bar-a', 'bar-b'], wineBar: ['bar-b'], clubBar: ['club'], iceCase: ['icecream'] };
 const SHELL_T = 0.25, GF_H = 4.2; // CITY shell wall allowance and ground-floor height
 
 function seedFor(base, female) { for (let s = base; s < base + 400; s++) { const isF = pedRng(s * 7 + 3)() < 0.3; if (isF === female) return s; } return base; }
@@ -65,12 +72,20 @@ export async function createInteriors(game) {
       H = Math.max(3, Math.min(sf.h || GF_H, GF_H)); FY = 0.03; if (!(sf.y > 0) && city.groundHeightAt) { try { const gy = city.groundHeightAt(sf.x + sin * (D / 2 + 1.5), sf.z + cos * (D / 2 + 1.5)); if (Number.isFinite(gy) && gy > -2) baseY = gy; } catch (e) { /* */ } } }
     else { const Wb = Math.min(Math.max(8, (sf.w || 18) - 2), 18), Db = Math.min(Math.max(8, (sf.d || 14) - 3), 14); W = Wb - 2 * SHELL_T; D = Db - 2 * SHELL_T; H = 4.5; FY = 0.08; const off = -((sf.d || 14) - Db) / 2 + 0.5; cx += sin * off; cz += cos * off; }
     const doorW = Math.min(sf.doorW || (shell ? 1.9 : 2.0), W - 1);
-    const doorX = THREE.MathUtils.clamp(sf.doorX || 0, -W / 2 + doorW / 2 + 0.3, W / 2 - doorW / 2 - 0.3);
+    // CITY's doorX is measured to the right when looking OUT of the shop = our local -x
+    const doorX = THREE.MathUtils.clamp(-(sf.doorX || 0), -W / 2 + doorW / 2 + 0.3, W / 2 - doorW / 2 - 0.3);
+    const theme = themeFor(type, sf, seed);
+    const baseName = chooseName(type, sf, index, seed, oldCity);
+    const fixedOld = oldCity && index < 16 && !/^(.+) \1$/.test(baseName) && sf.kind && !TYPES[sf.kind];
+    const st = theme ? (STATION_LAYOUT[theme.station] || def.layouts) : null;
     const s = {
-      key, sf, index, type, def, name: chooseName(type, sf, index, seed, oldCity), hours: def.hours.slice(), open: true, robbed: false, robbedUntil: -1,
+      key, sf, index, type, def, theme, shop: theme ? null : shopStyle(type, seed), name: theme && !fixedOld ? theme.name : baseName, hours: def.hours.slice(), open: true, robbed: false, robbedUntil: -1,
       shell, W, D, H, FY, baseY, doorX, doorW, facing, cos, sin, seed, zone, items: [], clerk: null, built: null, dist: Infinity, doorOpen: 0, lastSeen: 0,
-      center: new THREE.Vector3(cx, baseY, cz), layoutKey: def.layouts[seed % def.layouts.length],
+      center: new THREE.Vector3(cx, baseY, cz), layoutKey: st ? st[seed % st.length] : def.layouts[seed % def.layouts.length],
     };
+    if (!sf.name) uniqueName(s, sf, index, seed, oldCity);
+    s.menu = theme ? theme.menu.map(([n, pr]) => [n, pr, /tea|coffee|cafecito|cortadito|latte|brew|white|soda|water|juice|machine|tango|shot|wheatgrass|lager|pint|pitcher|ipa|glass|cava|martini|negroni|75|mai tai|zombie|painkiller|colada|old fashioned|horchata|red bull|vodka|tequila|well|pickleback|boilermaker|shake/i.test(n) ? 10 : 25]) : def.items;
+    s.staffDefs = makeStaff(s, theme, seed);
     s.toWorld = (lx, lz, out = new THREE.Vector3()) => out.set(cx + lx * cos + lz * sin, baseY, cz - lx * sin + lz * cos);
     s.toLocal = (wx, wz) => { const dx = wx - cx, dz = wz - cz; return { x: dx * cos - dz * sin, z: dx * sin + dz * cos }; };
     s.isInside = (pos) => { const l = s.toLocal(pos.x, pos.z); return Math.abs(l.x) < W / 2 && l.z < D / 2 && l.z > -D / 2 && pos.y < baseY + H - 0.2 && pos.y > baseY - 1.5; };
@@ -79,6 +94,20 @@ export async function createInteriors(game) {
     if (!shell) buildExterior(s);
   }
   let fitStats = null;
+  // generated venue names stay unique within ~900 m (two "Black Angus Grill Room"s on one street read as a bug)
+  const nameAt = new Map();
+  function uniqueName(s, sf, index, seed, oldCity) {
+    const x = s.center.x, z = s.center.z, R2 = 900 * 900;
+    const clash = (n) => (nameAt.get(n) || []).some((p) => (p[0] - x) ** 2 + (p[1] - z) ** 2 < R2);
+    for (let k = 1; k <= 12 && clash(s.name); k++) {
+      const s2 = seed + k * 7919;
+      if (s.theme) { const r = srng(s2 * 11 + 5), N = s.theme.name; s.name = `${N[0][Math.floor(r() * N[0].length)]} ${N[1][Math.floor(r() * N[1].length)]}`.replace(/\s+&\s+&/, ' &'); }
+      else s.name = chooseName(s.type, sf, index, s2, false);
+    }
+    if (clash(s.name)) { const tags = ['Bayside', 'Uptown', 'on Flagler', 'Riverside', 'Plaza', 'Corner', 'Express', 'Annex']; for (const t of tags) if (!clash(s.name + ' ' + t)) { s.name += ' ' + t; break; } }
+    if (s.theme) s.theme = { ...s.theme, name: s.name };
+    let a = nameAt.get(s.name); if (!a) nameAt.set(s.name, a = []); a.push([x, z]);
+  }
   // Miami: OSM has (almost) no gun shops, so promote ~5 untyped commercial/residential lots to gun stores,
   // spread over the map, one within ~300 m of the player spawn. Deterministic (ordered by lot id).
   const gunLots = new Set();
@@ -112,16 +141,26 @@ export async function createInteriors(game) {
     const sf = s.sf; if (!s.shell) return;
     if (sf.h != null) s.H = Math.max(2.6, sf.h); // the shell's own ground-floor clearance
     if (sf.doorW != null) s.doorW = Math.min(sf.doorW, s.W - 1);
-    if (sf.doorX != null) s.doorX = THREE.MathUtils.clamp(sf.doorX, -s.W / 2 + s.doorW / 2 + 0.3, s.W / 2 - s.doorW / 2 - 0.3);
+    if (sf.doorX != null) s.doorX = THREE.MathUtils.clamp(-sf.doorX, -s.W / 2 + s.doorW / 2 + 0.3, s.W / 2 - s.doorW / 2 - 0.3);
   }
+  // Lots stream in (CITY's synthetic ground-floor shops appear as tiles build): only NEW lots are fitted and added,
+  // incrementally against everything accepted so far — no full re-fit, so no hitch while travelling.
+  let fitter = null, ingestFirst = true;
   function ingest() {
     const src = (Array.isArray(city.storefronts) && city.storefronts.length ? city.storefronts : city.shopLots) || [];
     if (src === ingest.src && src.length === ingest.n) return;
+    const start = src === ingest.src ? ingest.n : 0;
     ingest.src = src; ingest.n = src.length;
-    const shells = src.filter((sf) => sf.shell ?? (sf.buildingId != null));
-    if (shells.length) { try { const t = performance.now(); ingest.fit = fitLots(shells, city.mapLayers?.buildingPolys); fitStats = { ...ingest.fit.stats, ms: Math.round(performance.now() - t) }; console.info('[interiors] lot fit', fitStats); } catch (e) { console.warn('[interiors] fitLots failed', e); ingest.fit = null; } }
-    if (shells.length) pickGunLots(shells);
-    src.forEach((sf, i) => { try { addStorefront(sf, i); } catch (e) { console.warn('[interiors] storefront failed', e); } });
+    const fresh = src.slice(start).filter((sf) => !byKey.has(sf.id != null ? 'id' + sf.id : `${Math.round(sf.x * 10)},${Math.round(sf.z * 10)}`));
+    if (!fresh.length) return;
+    const shells = fresh.filter((sf) => sf.shell ?? (sf.buildingId != null));
+    if (shells.length) {
+      try { const t = performance.now(); if (!fitter) fitter = createLotFitter(city.mapLayers?.buildingPolys); fitter.fit(shells); ingest.fit = fitter.res; fitStats = { ...fitter.stats, ms: Math.round(performance.now() - t) }; if (ingestFirst) console.info('[interiors] lot fit', fitStats); }
+      catch (e) { console.warn('[interiors] lot fit failed', e); }
+      if (ingestFirst) pickGunLots(shells);
+    }
+    ingestFirst = false;
+    for (const sf of fresh) { try { addStorefront(sf, src.indexOf(sf)); } catch (e) { console.warn('[interiors] storefront failed', e); } }
     rebuildGrid();
   }
   // spatial hash (64 m cells)
@@ -167,8 +206,11 @@ export async function createInteriors(game) {
     // sign: shared dark backboard + neon glyph text (no per-store textures or materials)
     const signW = Math.min(s.W * 0.6, 8), signH = Math.min(0.75, signW * 0.19);
     const sign = new THREE.Group(); sign.position.set(s.shell ? doorX : 0, s.shell ? Math.min(H - 0.35, 3.3) : H - 0.6, zFront + 0.03); grp.add(sign);
-    const board = new THREE.Mesh(new THREE.PlaneGeometry(signW, signH), M.black); sign.add(board);
-    const signText = textMesh(s.name, { size: signH * 0.5, color: new THREE.Color(def.neon), maxWidth: signW * 0.92 }); signText.position.z = 0.01; sign.add(signText);
+    // per-store sign style: neon on a dark board, a lit box sign, or bare neon script; colours from the venue/shop scheme
+    const sstyle = s.theme ? (s.theme.key === 'steak' || s.theme.key === 'wine' ? 'box' : 'neon') : (s.shop?.signStyle || 'neon');
+    const scol = new THREE.Color(s.theme?.neon || (s.shop ? s.shop.trim : def.neon)); if (!s.theme && s.shop) scol.offsetHSL(0, 0.1, 0.12);
+    if (sstyle !== 'script') { const board = new THREE.Mesh(new THREE.PlaneGeometry(signW, signH), sstyle === 'box' ? stdMat(0xf4f1ea, 0.4) : M.black); sign.add(board); if (sstyle === 'box') { const glow = new THREE.Mesh(new THREE.PlaneGeometry(signW + 0.1, signH + 0.1), glowMat(new THREE.Color(1.4, 1.35, 1.2))); glow.position.z = -0.01; sign.add(glow); } }
+    const signText = textMesh(s.name, { size: signH * (sstyle === 'script' ? 0.62 : 0.5), color: sstyle === 'box' ? scol.clone().multiplyScalar(0.55) : scol, maxWidth: signW * 0.92 }); signText.position.z = 0.01; sign.add(signText);
     const ox = doorX - doorW / 2 - 0.9;
     const mkSmall = (txt, col, z) => { const g = new THREE.Group(); g.position.set(ox, 2.3, zFront + z); const b = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.3), M.black); g.add(b); const t = textMesh(txt, { size: 0.13, color: new THREE.Color(col).multiplyScalar(2), maxWidth: 0.72 }); t.position.z = 0.005; g.add(t); grp.add(g); return g; };
     const openSign = mkSmall('OPEN', '#ff4060', 0.02); const closedSign = mkSmall('CLOSED', '#ff2a2a', 0.025); closedSign.visible = false;
@@ -232,30 +274,39 @@ export async function createInteriors(game) {
     const trimC = new THREE.Color(def.trim);
     const ctx = {
       B: new Bucket(), glassB: new Bucket(), low: new Bucket(), batch: new ProductBatch(), cols: [], anim: [], R, H, W, D, FY, def, type, L, grp, seats: L.seats, signs: [], aisleSigns: 0, disposables,
-      trimMat: stdMat(trimHex(def), 0.55),
-      vinylMat: stdMat(VINYL[s.seed % 5], 0.45), tableMat: stdMat(TABLE[s.seed % 4], 0.4), chairMat: stdMat(CHAIR[(s.seed >> 2) % 5], 0.6),
+      trimMat: s.shop ? stdMat(s.shop.trim, 0.5) : s.theme ? stdMat(s.theme.pal.trim, 0.5) : stdMat(trimHex(def), 0.55),
+      vinylMat: stdMat(s.theme ? s.theme.pal.fabric : VINYL[s.seed % 5], 0.45), tableMat: stdMat(s.theme ? s.theme.pal.top : TABLE[s.seed % 4], 0.4), chairMat: stdMat(s.theme ? s.theme.pal.fabric : CHAIR[(s.seed >> 2) % 5], 0.6),
       colorMat: (c) => stdMat(c.getHex(), 0.7), ledMat: glowMat(new THREE.Color(def.neon).multiplyScalar(2.2)),
       screenMats, tvMat,
       // menu / price boards and small signs: shared backboard + glyph text (built from the TYPE, not the store)
-      menuBoard: (w, h) => board(w, h, type === 'guns' ? 'PRICE LIST' : (def.label || '').toUpperCase() + ' MENU', def.items.map((i) => [i[0], i[1]]), def.neon),
+      menuBoard: (w, h) => board(w, h, type === 'guns' ? 'PRICE LIST' : ((s.theme?.label || def.label || '').toUpperCase() + ' MENU'), s.menu.map((i) => [i[0], i[1]]), s.theme?.neon || def.neon),
+      theme: s.theme, productGeo, labelPlane: labelPlaneGeo,
+      pal: s.theme ? s.theme.pal : { top: TABLE[s.seed % 4], frame: 0x1c1c22, fabric: CHAIR[(s.seed >> 2) % 5], accent: s.shop?.trim ?? def.trim },
+      foodPick: () => { const f = s.theme?.food || (type === 'cafe' || type === 'icecream' ? ['coffeeCup'] : type === 'bar' || type === 'club' ? ['beerPint', 'cocktailGlass'] : ['burgerPlate', 'plate']); return f[Math.floor(R() * f.length)]; },
+      shelfMat: s.shop ? (s.shop.shelfStyle === 'wood' ? stdMat([0x8a5a3a, 0xa47148, 0x6b4423, 0xc8a97e][s.seed % 4], 0.72) : s.shop.shelfStyle === 'metal' ? stdMat(s.shop.shelf, 0.3) : stdMat(s.shop.shelf, 0.55)) : null,
+      shelfTrim: s.shop && (s.shop.variant & 1) ? stdMat(s.shop.trim, 0.5) : null, // per-store accent: coloured shelf header / kick strips
       textBoard: (txt, w, h) => board(w, h, txt, null, '#ffffff', 0x1d3557),
     };
     ctx.B.yOff = FY;
+    const props = []; ctx.props = props; ctx.prop = (kind, style, x, z, ry, colors = {}) => { props.push({ kind, style, colors, x, z, ry }); return props.length - 1; };
     const chunkOf = (x, z) => Math.max(0, Math.floor((x + W / 2) / CH)) + Math.max(0, Math.floor((z + D / 2) / CH)) * 64;
     ctx.batch.chunkOf = chunkOf; const lowChunks = new Map();
     ctx.lowFor = (x, z) => { const k = chunkOf(x, z); if (!lowChunks.has(k)) lowChunks.set(k, new Bucket()); return lowChunks.get(k); };
     // items + points of interest
     const items = []; let itemI = 0;
-    const smashDefs = def.items.filter((i) => i[3]?.smash); const plainDefs = def.items.filter((i) => !i[3]?.smash);
+    const smashDefs = s.menu.filter((i) => i[3]?.smash); const plainDefs = s.menu.filter((i) => !i[3]?.smash);
     ctx.addItem = (x, z, tag) => {
-      const pool = tag === 'smash' && smashDefs.length ? smashDefs : plainDefs.length ? plainDefs : def.items;
+      const pool = tag === 'smash' && smashDefs.length ? smashDefs : plainDefs.length ? plainDefs : s.menu;
       const d = pool[itemI++ % pool.length];
       items.push({ name: d[0], price: d[1], heal: d[2] || 0, action: d[3] || null, local: { x, z }, pos: s.toWorld(x, z).setY(s.baseY + 1.0) });
     };
     const pois = []; ctx.poi = (x, z, ry, tag) => pois.push({ x, z, ry, tag });
     // shell finish: floor, ceiling + light panels, wall paint, mat, posters, speakers, camera
-    const fstyle = def.floor[s.seed % def.floor.length];
-    const floorMat = floorMats(floorTex)[fstyle] || floorMats(floorTex).tile;
+    const fstyle = s.theme ? s.theme.floorStyle : def.floor[s.seed % def.floor.length];
+    const floorMat = extraFloorMat(fstyle) || floorMats(floorTex)[fstyle] || floorMats(floorTex).tile;
+    const wstyle = s.theme ? s.theme.wall : s.shop.wall;
+    const wtint = /plaster|stripe|subway/.test(wstyle) ? new THREE.Color(s.theme ? s.theme.pal.accent : def.wall).lerp(new THREE.Color(0xffffff), 0.72).getHex() : 0xffffff;
+    const finish = finishMat(wstyle, wtint);
     const pm = panelMats(); const panel = type === 'club' ? pm.club : type === 'bar' ? pm.bar : pm.std;
     const wallMat = stdMat(wallHex(def, s.seed), 0.9);
     const B = ctx.B;
@@ -264,7 +315,8 @@ export async function createInteriors(game) {
     if (!game.debugInteriors?.noCeil) B.box(ceilMat, 0, ch, 0, W, 0.05, D);
     if (def.ceil === 'dark') for (let z = -D / 2 + 2; z < D / 2 - 1; z += 3) B.box(M.metal, 0, ch - 0.2, z, W - 1, 0.14, 0.14);
     for (let x = -W / 2 + 2; x < W / 2 - 1; x += 3.5) for (let z = -D / 2 + 1.8; z < D / 2 - 1; z += 3.2) B.box(panel, x, ch - 0.03, z, 1.2, 0.03, 0.6);
-    for (const [x, z, sx, sz] of [[0, -D / 2 + 0.01, W, 0.02], [-W / 2 + 0.01, 0, 0.02, D], [W / 2 - 0.01, 0, 0.02, D]]) B.box(wallMat, x, ch / 2, z, sx, ch, sz);
+    B.add(finish, wallGeo(W, ch, wstyle), 0, ch / 2, -D / 2 + 0.012); B.add(finish, wallGeo(D, ch, wstyle), -W / 2 + 0.012, ch / 2, 0, Math.PI / 2); B.add(finish, wallGeo(D, ch, wstyle), W / 2 - 0.012, ch / 2, 0, -Math.PI / 2);
+    B.box(s.theme ? stdMat(s.theme.pal.trim, 0.5) : ctx.trimMat, 0, 0.06, -D / 2 + 0.03, W, 0.12, 0.04); // skirting
     B.box(M.mat, s.doorX, 0.005, D / 2 - 0.8, s.doorW + 0.4, 0.01, 1.2);
     if (s.shell) { // the CITY shell is the whole ground floor; wall off this shop's box (sides + back) inside it
       const T = SHELL_T, hh = H; // walls occupy the lot's outer 0.25 m — never outside the shell box
@@ -278,7 +330,13 @@ export async function createInteriors(game) {
       const cat = cats[type] || 'mag'; let k = 0;
       for (const side of [-1, 1]) for (let z = -D / 2 + 1.6; z < D / 2 - 2.5; z += 3.2) { if (R() < 0.35) continue; B.add(M.atlas, labelPlaneGeo(cat, (s.seed + k++) % 5, { art: ['face', 'circle', 'wave'][k % 3], sub: ['NEW', 'SALE', '2 FOR 1', 'FRESH'][k % 4] }, 0.8, 1.1), side * (W / 2 - 0.03), Math.min(ch - 0.75, 2.75), z, -side * Math.PI / 2); } }
     // fixtures
-    for (const f of L.fixtures) { buildFixture(ctx, f); if (Y()) { active += performance.now() - ly; yield; ly = performance.now(); } }
+    let stationDone = false;
+    for (const f of L.fixtures) {
+      if (s.theme?.station && !stationDone && STATION_ON.has(f.k) && STATIONS[s.theme.station]) { stationDone = true; try { STATIONS[s.theme.station](ctx, f); } catch (e) { console.warn('[interiors] station', s.theme.station, e); buildFixture(ctx, f); } }
+      else buildFixture(ctx, f);
+      if (Y()) { active += performance.now() - ly; yield; ly = performance.now(); }
+    }
+    for (const d of s.theme?.decor || []) { try { DECOR[d]?.(ctx); } catch (e) { console.warn('[interiors] decor', d, e); } }
     active += performance.now() - ly; yield; ly = performance.now();
     // hanging aisle signs
     const aisleNames = { grocery: ['CEREAL & BREAKFAST', 'PASTA & SAUCES', 'CANNED GOODS', 'SNACKS', 'COFFEE & TEA'], convenience: ['SNACKS', 'GROCERY', 'CANDY'], bodega: ['CHIPS', 'GROCERY', 'CAFÉ'], pharmacy: ['PAIN RELIEF', 'COLD & FLU', 'VITAMINS', 'FIRST AID'], liquor: ['RUM', 'TEQUILA', 'WHISKEY', 'WINE'], auto: ['OIL', 'ELECTRICAL', 'CAR CARE'], souvenir: ['GIFTS', 'MIAMI'] }[type];
@@ -286,6 +344,15 @@ export async function createInteriors(game) {
     // meshes
     const meshes = [...B.build(grp), ...ctx.glassB.build(grp, { cast: false, receive: false })];
     const panelMesh = meshes.find((m) => m.material === panel) || null;
+    // movable props: one InstancedMesh per shared prop geometry, matrices in store-local space
+    const pgroups = new Map();
+    props.forEach((pr, i) => { const g = propGeo(pr.kind, pr.style, pr.colors); if (!pgroups.has(g)) pgroups.set(g, []); pgroups.get(g).push(i); pr.geo = g; });
+    const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s1 = new THREE.Vector3(1, 1, 1), _up = new THREE.Vector3(0, 1, 0);
+    for (const [g, idx] of pgroups) {
+      const im = new THREE.InstancedMesh(g, propMat(), idx.length); im.castShadow = true; im.receiveShadow = true;
+      idx.forEach((i, k) => { const pr = props[i]; pr.im = im; pr.ii = k; pr.m0 = _m.compose(_v.set(pr.x, FY, pr.z), _q.setFromAxisAngle(_up, pr.ry), _s1).clone(); im.setMatrixAt(k, pr.m0); });
+      im.computeBoundingSphere(); grp.add(im);
+    }
     active += performance.now() - ly; yield; ly = performance.now();
     const lowGroup = new THREE.Group(); grp.add(lowGroup);
     const chunks = new Map(); const cv = ctx.batch.chunkVerts();
@@ -304,9 +371,10 @@ export async function createInteriors(game) {
     s.items = items;
     s.counterPos = s.toWorld(L.counterPos.x, L.counterPos.z);
     if (s.shell && !s.facade) addFacade(s, grp, D / 2 + (s.sf.wallT ?? 0.03));
-    s.built = { grp, meshes, lowGroup, chunks, body, ctx, L, nav, pts, pay, seats, panel, panelMesh, disposables, batch: ctx.batch, stepper: null, stepKey: null, people: [], staff: [], anim: ctx.anim, visible: true, ms: 0 };
+    s.built = { props, grp, meshes, lowGroup, chunks, body, ctx, L, nav, pts, pay, seats, panel, panelMesh, disposables, batch: ctx.batch, stepper: null, stepKey: null, people: [], staff: [], anim: ctx.anim, visible: true, ms: 0 };
     active += performance.now() - ly; s.built.ms = active; s.built.wall = performance.now() - t0; s.built.prof = prof;
     scene.add(grp);
+    createPropBodies(s);
     applyOpen(s, true);
     return s.built;
   }
@@ -315,12 +383,12 @@ export async function createInteriors(game) {
   const deadBodies = [];
   const killBody = (b) => { if (b) deadBodies.push(b); };
   function flushBodies(max = 4) { for (let i = 0; i < max && deadBodies.length; i++) { const b = deadBodies.shift(); try { if (!world.bodies?.contains || world.bodies.contains(b.handle)) world.removeRigidBody(b); } catch (e) { console.warn('[interiors] removeRigidBody', e); } } }
-  function hideInterior(s) { const b = s.built; if (!b || !b.visible) return; b.visible = false; b.grp.visible = false; if (b.body) { killBody(b.body); b.body = null; } releasePeople(s); dropProducts(s); }
-  function showInterior(s) { const b = s.built; if (!b || b.visible) return; b.visible = true; b.grp.visible = true; try { b.body = fixedBody(s, b.ctx.cols); } catch (e) { /* */ } }
+  function hideInterior(s) { const b = s.built; if (!b || !b.visible) return; b.visible = false; b.grp.visible = false; if (b.body) { killBody(b.body); b.body = null; } removePropBodies(s); releasePeople(s); dropProducts(s); }
+  function showInterior(s) { const b = s.built; if (!b || b.visible) return; b.visible = true; b.grp.visible = true; try { b.body = fixedBody(s, b.ctx.cols); } catch (e) { /* */ } createPropBodies(s); }
   function disposeInterior(s) {
     const b = s.built; if (!b) return;
     hideInterior(s);
-    b.grp.traverse((o) => { if (o.isMesh || o.isInstancedMesh) o.geometry?.dispose?.(); });
+    b.grp.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && !o.geometry?.userData?.shared) o.geometry?.dispose?.(); if (o.isInstancedMesh) o.dispose?.(); });
     for (const d of b.disposables) if (d.isBufferGeometry) d.dispose();
     scene.remove(b.grp);
     if (s.shell && s.facade) { // facade lives in the interior group for shells
@@ -329,6 +397,62 @@ export async function createInteriors(game) {
       s.facade = null;
     }
     s.built = null; s.items = [];
+  }
+  // ---- dynamic props (Rapier): reset to their authored pose whenever the interior (re)appears ----
+  const _pm = new THREE.Matrix4(), _pq = new THREE.Quaternion(), _pq2 = new THREE.Quaternion(), _pv = new THREE.Vector3(), _ps = new THREE.Vector3(1, 1, 1), _pup = new THREE.Vector3(0, 1, 0);
+  function createPropBodies(s) {
+    const b = s.built; if (!b?.props?.length) return;
+    let dyn = 0;
+    for (const pr of b.props) {
+      if (pr.body) continue;
+      pr.im.setMatrixAt(pr.ii, pr.m0); pr.im.instanceMatrix.needsUpdate = true; pr.moved = false;
+      const w = s.toWorld(pr.x, pr.z); const q = _pq.setFromAxisAngle(_pup, s.facing + pr.ry);
+      const dynamic = dyn < MAX_DYN_PROPS; if (dynamic) dyn++;
+      try {
+        const desc = (dynamic ? RAPIER.RigidBodyDesc.dynamic().setLinearDamping(1.6).setAngularDamping(2.2).setCanSleep(true) : RAPIER.RigidBodyDesc.fixed())
+          .setTranslation(w.x, s.baseY + s.FY + 0.002, w.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+        const body = world.createRigidBody(desc);
+        for (const [shape, a, x, y, z, m] of propColliders(pr.kind, pr.style, pr.colors)) {
+          const cd = shape === 'cylinder' ? RAPIER.ColliderDesc.cylinder(a[0], a[1]) : RAPIER.ColliderDesc.cuboid(a[0], a[1], a[2]);
+          cd.setTranslation(x, y, z).setFriction(pr.kind === 'table' ? 0.6 : 0.45).setRestitution(0.05); if (dynamic) cd.setMass(m);
+          world.createCollider(cd, body);
+        }
+        if (dynamic) body.sleep?.();
+        pr.body = body; pr.dynamic = dynamic;
+      } catch (e) { console.warn('[interiors] prop body', e); }
+    }
+  }
+  function removePropBodies(s) { const b = s.built; if (!b?.props) return; for (const pr of b.props) { if (pr.body) killBody(pr.body); pr.body = null; } }
+  // player ↔ prop contact: wake props the player is about to touch (sleeping bodies ignore the KCC's impulses) and
+  // add a shove along the player's motion so chairs slide, stools scoot and a sprinting player knocks chairs over.
+  const _pp0 = new THREE.Vector3(); let _ppT = 0;
+  const PROP_R = { chair: 0.3, stool: 0.21, plant: 0.25, sign: 0.32, bin: 0.21 };
+  function pushProps(s, dt) {
+    const b = s.built; if (!b?.props || dt <= 0) return; const P = game.player; if (P.state?.inVehicle) return;
+    const pp = P.position; const vx = (pp.x - _pp0.x) / dt, vz = (pp.z - _pp0.z) / dt; const inp = game.input; const moving = ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some((k) => inp?.down?.(k)); const hx = Math.sin(P.heading || 0), hz = Math.cos(P.heading || 0); const sp = Math.max(Math.hypot(vx, vz), moving ? 1.5 : 0);
+    for (const pr of b.props) {
+      if (!pr.dynamic || !pr.body) continue;
+      const t = pr.body.translation(); const dx = t.x - pp.x, dz = t.z - pp.z, d = Math.hypot(dx, dz);
+      const r = (pr.kind === 'table' ? (pr.colors.w || 0.8) / 2 + 0.05 : PROP_R[pr.kind] || 0.25) + 0.36;
+      if (d > r + 0.6) continue;
+      if (pr.body.isSleeping()) pr.body.wakeUp();
+      if (d > r + 0.05 || sp < 0.3 || Math.abs(t.y - pp.y) > 1.5) continue;
+      const nx = dx / (d || 1), nz = dz / (d || 1); const app = Math.max(vx * nx + vz * nz, moving ? (hx * nx + hz * nz) * (P.state?.sprint ? 4.2 : 1.6) : 0); if (app <= 0.15) continue; // the KCC stops the player at the prop, so use the intended push too
+      const m = pr.body.mass(); const k = m * Math.min(1.4, app / 1.6) * (pr.kind === 'table' ? 9 : 7.5) * dt; // > floor friction, so props slide instead of jamming
+      const sprint = !!P.state?.sprint && app > 3.5 && pr.kind === 'chair';
+      pr.body.applyImpulseAtPoint({ x: nx * k * (sprint ? 1.6 : 1), y: 0, z: nz * k * (sprint ? 1.6 : 1) }, { x: t.x, y: t.y + (sprint ? 0.8 : pr.kind === 'table' ? 0.12 : pr.kind === 'stool' ? 0.3 : 0.36), z: t.z }, true);
+    }
+  }
+  function syncProps(s) {
+    const b = s.built; if (!b?.props) return;
+    const inv = _pq2.setFromAxisAngle(_pup, -s.facing);
+    for (const pr of b.props) {
+      if (!pr.dynamic || !pr.body || pr.body.isSleeping()) continue;
+      const t = pr.body.translation(), r = pr.body.rotation();
+      const l = s.toLocal(t.x, t.z); _pq.set(r.x, r.y, r.z, r.w).premultiply(inv);
+      _pm.compose(_pv.set(l.x, t.y - s.baseY, l.z), _pq, _ps); pr.im.setMatrixAt(pr.ii, _pm); pr.im.instanceMatrix.needsUpdate = true;
+      pr.moved = true; pr.lx = l.x; pr.lz = l.z; pr.up = 1 - 2 * (_pq.x * _pq.x + _pq.z * _pq.z); pr.yaw = Math.atan2(2 * (_pq.w * _pq.y + _pq.x * _pq.z), 1 - 2 * (_pq.y * _pq.y + _pq.x * _pq.x));
+    }
   }
   function dropChunk(b, c) { if (c.mesh) { b.grp.remove(c.mesh); c.mesh.geometry.dispose(); c.mesh = null; } if (c.low) c.low.visible = true; }
   function dropProducts(s) { const b = s.built; if (!b) return; for (const c of b.chunks.values()) dropChunk(b, c); b.stepper = null; b.stepKey = null; }
@@ -347,19 +471,20 @@ export async function createInteriors(game) {
 
   // ---------------------------------------------------------------- people
   const freeChars = {}; let charCount = 0, charThrottle = 0; // class key `${gender}:${outfit}` -> pooled characters
-  function acquire(cls, seedBase) {
+  function acquire(cls, seedBase, personality) {
     const fl = (freeChars[cls] ||= []); if (fl.length) return fl.pop();
     if (charThrottle > 0) return null;
     if (charCount >= MAX_CHARS) { for (const k of Object.keys(freeChars)) if (freeChars[k].length) return freeChars[k].pop(); return null; }
     const [gender, outfit] = cls.split(':'); const seed = seedFor(seedBase, gender === 'f');
-    const char = createCharacter(game, { variant: 'ped', seed, outfit, zone: outfit, gender, beach: outfit === 'beach' });
+    const char = createCharacter(game, { variant: 'ped', seed, outfit, zone: outfit, gender, beach: outfit === 'beach', personality });
     scene.add(char.root); charCount++; charThrottle = 4;
     const p = { char, cls, x: 0, z: 0, heading: 0, speed: 0, route: [], wait: 0, body: null, head: char.getBone?.('Head') || null, armL: char.getBone?.('LeftArm') || null, armR: char.getBone?.('RightArm') || null };
     try { p.body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -80, 0)); world.createCollider(RAPIER.ColliderDesc.capsule(0.6, 0.28).setFriction(0.5), p.body); } catch (e) { /* */ }
     return p;
   }
   function park(p) { p.char.setVisible(false); p.char.root.visible = false; if (p.body) p.body.setNextKinematicTranslation({ x: 0, y: -80, z: 0 }); }
-  function release(p) { park(p); p.store = null; p.route = []; p.flee = false; freeChars[p.cls].push(p); }
+  const PERSONA_MAP = { polite: 'friendly', gruff: 'grumpy', chatty: 'chatty', rushed: 'rushed', bored: 'bored', nervous: 'nervous', tough: 'tough', flair: 'chatty' };
+  function release(p) { park(p); p.store = null; p.route = []; p.flee = false; p.reachT = 0; p.sitting = false; p.seatY = 0; p.idleStyle = null; p.carrying = false; p.bowT = 0; p.char.root.rotation.x = 0; if (p.tray) { p.char.root.remove(p.tray); p.tray = null; } p.persona = null; freeChars[p.cls].push(p); }
   function releasePeople(s) { const b = s.built; if (!b) return; for (const p of b.people) release(p); for (const p of b.staff) release(p); b.people = []; b.staff = []; if (s.clerk) s.clerk = null; }
   function patronClass(s, R) {
     const d = s.def.demo || {}; const female = R() < (d.female ?? 0.45);
@@ -373,8 +498,10 @@ export async function createInteriors(game) {
   }
   function place(s, p) {
     const w = s.toWorld(p.x, p.z, tmpV);
-    p.char.root.position.set(w.x, w.y + s.FY + (p.bob || 0), w.z); p.char.root.rotation.y = s.facing + p.heading;
-    if (p.body) p.body.setNextKinematicTranslation({ x: w.x, y: w.y + 0.9 + s.FY, z: w.z });
+    const root = p.char.root; root.rotation.order = 'YXZ';
+    root.position.set(w.x, w.y + s.FY + (p.bob || 0) + (p.seatY || 0), w.z); root.rotation.y = s.facing + p.heading; root.rotation.x = p.bowT > 0 ? Math.sin(Math.min(1, p.bowT) * Math.PI) * 0.45 : p.reachT > 0 ? Math.sin(Math.min(1, p.reachT) * Math.PI) * 0.16 : 0;
+    if (p.body) { if (p.sitting) p.body.setNextKinematicTranslation({ x: 0, y: -80, z: 0 }); else p.body.setNextKinematicTranslation({ x: w.x, y: w.y + 0.9 + s.FY, z: w.z }); }
+    if (p.tray) p.tray.visible = !!p.carrying;
   }
   const outside = (s) => ({ x: s.doorX + (Math.random() - 0.5) * 1.5, z: s.D / 2 + 2.5 });
   function routeTo(s, p, tx, tz) {
@@ -385,71 +512,153 @@ export async function createInteriors(game) {
     const path = b.nav.path(from.x, from.z, tx, tz) || [{ x: tx, z: tz }];
     p.route = pts.concat(path);
   }
+  // where a seated person's root goes for a given seat (chairs/stools follow their physics prop)
+  function seatPose(s, st) {
+    const b = s.built; let x = st.x, z = st.z, ry = st.ry ?? 0; let kind = st.stool ? 'stool' : 'chair', style = '';
+    if (st.prop != null && b.props[st.prop]) { const pr = b.props[st.prop]; kind = pr.kind; style = pr.style; if (pr.moved) { if (pr.up < 0.85) return null; x = pr.lx; z = pr.lz; ry = pr.yaw; } else { x = pr.x; z = pr.z; ry = pr.ry; } }
+    const fwd = kind === 'stool' ? 0.17 : style === 'velvet' ? 0.3 : 0.2; const y = kind === 'stool' ? 0.32 : style === 'velvet' ? -0.06 : 0.01;
+    return { x: x + Math.sin(ry) * fwd, z: z + Math.cos(ry) * fwd, ry, y };
+  }
+  const SERVICE = (s) => (s.type === 'club' ? 'club' : s.type === 'bar' ? 'bar' : /cafe|fastfood|icecream/.test(s.type) || (s.theme && s.theme.layout === 'counter' && s.theme.key !== 'sushi') ? 'counter' : s.type === 'restaurant' ? 'table' : /laundromat|barber|salon|bank/.test(s.type) ? 'wait' : 'shop');
+  function freeSeat(s, pred) { const b = s.built; const free = b.seats.filter((x) => !x.taken && (!pred || pred(x)) && (!x.prop || !b.props[x.prop]?.moved || b.props[x.prop].up > 0.85)); return free.length ? free[Math.floor(Math.random() * free.length)] : null; }
+  function goSit(s, p, pred) { const st = freeSeat(s, pred); if (!st) return false; st.taken = p; p.seat = st; const sp = seatPose(s, st) || st; const back = st.prop != null ? 0.95 : 0.4; routeTo(s, p, sp.x - Math.sin(sp.ry ?? 0) * back, sp.z - Math.cos(sp.ry ?? 0) * back); p.next = 'sit'; return true; }
+  function queueSpot(s, p) { const b = s.built; const t = b.pay[0]; if (!t) return null; const q = b.people.filter((o) => o !== p && (o.next === 'order' || o.state === 'order')).length; const fx = Math.sin(t.ry ?? 0), fz = Math.cos(t.ry ?? 0); return { x: t.x - fx * 0.8 * q, z: t.z - fz * 0.8 * q, ry: t.ry }; }
   function chooseActivity(s, p) {
-    const b = s.built; const R = Math.random;
+    const b = s.built; const R = Math.random; const svc = SERVICE(s);
+    p.state = null; p.idleStyle = null;
     if (p.leaving) { const o = outside(s); routeTo(s, p, b.nav.door.x, b.nav.door.z); p.route.push({ x: s.doorX, z: s.D / 2 + 0.6 }, o); p.exit = true; return; }
-    const seatsFirst = /restaurant|cafe|bar|club|icecream|laundromat|barber|bank/.test(s.type);
-    if (seatsFirst && b.seats.length && R() < 0.75) {
-      const free = b.seats.filter((x) => !x.taken); if (free.length) { const st = free[Math.floor(R() * free.length)]; st.taken = p; p.seat = st; routeTo(s, p, st.x, st.z); p.next = 'sit'; return; }
-    }
+    if (svc === 'club') { if (goSit(s, p, (x) => x.dance) || goSit(s, p)) return; }
+    if (svc === 'bar' || svc === 'table' || svc === 'wait') { if (goSit(s, p)) return; }
+    if (svc === 'counter' && !p.ordered && b.pay.length) { const q = queueSpot(s, p); if (q) { p.target = q; routeTo(s, p, q.x, q.z); p.next = 'order'; return; } }
+    if (svc === 'counter' && p.ordered) { if (goSit(s, p)) return; p.leaving = true; return chooseActivity(s, p); }
     const visits = (p.visits = (p.visits || 0) + 1);
-    if (visits > 3 + Math.floor(R() * 3) && b.pay.length) { const t = b.pay[Math.floor(R() * b.pay.length)]; routeTo(s, p, t.x, t.z); p.next = 'pay'; return; }
-    const t = b.pts[Math.floor(R() * b.pts.length)]; if (!t) return; p.target = t; routeTo(s, p, t.x, t.z); p.next = 'browse';
+    if (visits > 3 + Math.floor(R() * 3) && b.pay.length) { const t = b.pay[Math.floor(R() * b.pay.length)]; p.target = t; routeTo(s, p, t.x, t.z); p.next = 'pay'; return; }
+    const t = b.pts[Math.floor(R() * b.pts.length)]; if (!t) { p.leaving = true; return; } p.target = t; routeTo(s, p, t.x, t.z); p.next = 'browse';
   }
   function stepPerson(s, p, dt, night) {
+    if (p.bowT > 0) p.bowT -= dt * 1.4;
+    if (p.reachT > 0) p.reachT -= dt * 0.8;
     if (p.wait > 0) {
       p.wait -= dt; p.speed = 0;
-      if (p.dancing) { p.bob = Math.abs(Math.sin(performance.now() / 260 + p.phase)) * 0.08; p.heading += Math.sin(performance.now() / 700 + p.phase) * dt * 1.5; }
+      if (p.sitting && p.seat) { const sp = seatPose(s, p.seat); if (!sp) { p.wait = 0; } else { p.x = sp.x; p.z = sp.z; p.heading = sp.ry; p.seatY = sp.y; } }
+      if (p.state === 'order') p.idleStyle = 'talk';
       if (p.wait > 0) return;
-      p.bob = 0; p.dancing = false;
-      if (p.seat) { p.seat.taken = null; p.seat = null; }
+      p.bob = 0; p.dancing = false; p.sitting = false; p.seatY = 0; p.idleStyle = null;
+      if (p.seat) { const sp = seatPose(s, p.seat); if (sp) { const back = p.seat.prop != null ? 0.95 : 0.45; p.x = sp.x - Math.sin(sp.ry) * back; p.z = sp.z - Math.cos(sp.ry) * back; } p.seat.taken = null; p.seat = null; }
+      if (p.state === 'order') p.ordered = true;
       if (p.next === 'leave-after') p.leaving = true;
       chooseActivity(s, p); return;
     }
     if (!p.route.length) {
       if (p.exit) { p.gone = true; return; }
-      if (p.next === 'sit' && p.seat) { p.heading = p.seat.ry ?? p.heading; p.wait = p.seat.dance ? 10 + Math.random() * 25 : 15 + Math.random() * 40; p.dancing = !!p.seat.dance && night; p.phase = Math.random() * 6; if (Math.random() < 0.35) p.next = 'leave-after'; else p.next = null; return; }
-      if (p.next === 'pay') { p.wait = 3 + Math.random() * 3; p.heading = (p.target?.ry ?? p.heading); p.next = 'leave-after'; return; }
+      if (p.next === 'sit' && p.seat) {
+        const sp = seatPose(s, p.seat); if (!sp) { p.seat.taken = null; p.seat = null; p.next = null; chooseActivity(s, p); return; }
+        if (p.seat.dance) { p.heading = p.seat.ry ?? p.heading; p.wait = 12 + Math.random() * 25; p.idleStyle = night ? 'dance' : 'talk'; p.next = Math.random() < 0.35 ? 'leave-after' : null; return; }
+        p.sitting = true; p.x = sp.x; p.z = sp.z; p.heading = sp.ry; p.seatY = sp.y; p.idleStyle = 'sitBench';
+        p.wait = SERVICE(s) === 'wait' ? 10 + Math.random() * 20 : 20 + Math.random() * 45; p.next = Math.random() < 0.5 ? 'leave-after' : null; if (SERVICE(s) === 'counter') p.next = 'leave-after';
+        return;
+      }
+      if (p.next === 'order') { p.state = 'order'; p.heading = p.target?.ry ?? p.heading; p.wait = 3 + Math.random() * 3; return; }
+      if (p.next === 'pay') { p.wait = 3 + Math.random() * 3; p.heading = (p.target?.ry ?? p.heading); p.idleStyle = 'talk'; p.next = 'leave-after'; return; }
       if (p.target) p.heading = p.target.ry ?? p.heading;
+      if (SERVICE(s) === 'shop' && Math.random() < 0.7) p.reachT = 1; // reach for / pick up an item
       p.wait = 2 + Math.random() * 6; p.next = null; return;
     }
     const tgt = p.route[0]; const dx = tgt.x - p.x, dz = tgt.z - p.z, d = Math.hypot(dx, dz);
-    const sp = p.flee ? 4.2 : 1.15;
+    const sp = p.flee ? 4.2 : p.walkSpeed || 1.15;
     if (d < 0.1) { p.route.shift(); return; }
     const v = Math.min(sp, d / Math.max(dt, 1e-3)); p.x += (dx / d) * v * dt; p.z += (dz / d) * v * dt; p.speed = sp;
     let dh = Math.atan2(dx, dz) - p.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); p.heading += dh * Math.min(1, dt * 10);
   }
   function panic(s) {
     const b = s.built; if (!b) return;
-    for (const p of b.people) { if (p.flee || p.gone) continue; p.flee = true; p.wait = Math.random() * 0.3; p.dancing = false; if (p.seat) { p.seat.taken = null; p.seat = null; } routeTo(s, p, b.nav.door.x, b.nav.door.z); p.route.push({ x: s.doorX, z: s.D / 2 + 0.8 }, { x: s.doorX + (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 4), z: s.D / 2 + 7 }); p.exit = true; }
+    for (const p of b.people) { if (p.flee || p.gone) continue; p.flee = true; p.wait = Math.random() * 0.3; p.dancing = false; p.sitting = false; p.seatY = 0; p.idleStyle = null; if (p.seat) { p.seat.taken = null; p.seat = null; } routeTo(s, p, b.nav.door.x, b.nav.door.z); p.route.push({ x: s.doorX, z: s.D / 2 + 0.8 }, { x: s.doorX + (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 4), z: s.D / 2 + 7 }); p.exit = true; }
+  }
+  // ---- staff ----
+  let TRAY = null;
+  function makeTray() { if (!TRAY) { TRAY = { disc: new THREE.CylinderGeometry(0.2, 0.2, 0.015, 14) }; TRAY.disc.userData.shared = true; } const g = new THREE.Group(); g.add(new THREE.Mesh(TRAY.disc, M.steel)); const f1 = new THREE.Mesh(productGeo('coffeeCup', 0), M.atlas); f1.position.set(-0.07, 0.01, 0); g.add(f1); const f2 = new THREE.Mesh(productGeo('burgerPlate', 0), M.atlas); f2.position.set(0.07, 0.01, 0.02); f2.scale.setScalar(0.8); g.add(f2); g.position.set(0.05, 1.1, 0.36); return g; }
+  function staffHome(s, def, i, used) {
+    const b = s.built; const L = b.L; const R = Math.random;
+    if (def.behaviour === 'door') return { x: s.doorX + (s.doorX > 0 ? -1.3 : 1.3), z: s.D / 2 - 1.3, ry: Math.PI };
+    if (def.behaviour === 'dj') { const c = L.clerks.find((c) => c.role === 'dj'); return c || null; }
+    if (def.behaviour === 'waiter') { const t = b.pay[0] || { x: L.counterPos.x, z: L.counterPos.z, ry: 0 }; return { x: t.x + (R() - 0.5), z: t.z + 0.3, ry: t.ry ?? 0 }; }
+    const c = L.clerks.filter((c) => c.role !== 'dj' && c.role !== 'desk').find((c) => !used.has(c)) || L.clerks.find((c) => !used.has(c)) || L.clerks[0];
+    if (c) used.add(c); return c ? { ...c } : null;
+  }
+  function staffStep(s, c, dt, night, pl) {
+    const def = c.persona; const R = Math.random; const b = s.built;
+    const dPl = Math.hypot(pl.x - c.x, pl.z - c.z);
+    c.idleStyle = null; c.walkSpeed = def.personality === 'rushed' ? 1.9 : 1.25;
+    if (c.bowT > 0) c.bowT -= dt * 1.4;
+    if (!s.open) { // night cleaner
+      if (!c.route.length && c.wait <= 0) { const t = b.pts[Math.floor(R() * b.pts.length)]; if (t) routeTo(s, c, t.x, t.z); }
+      stepPerson(s, c, dt * 0.6, night); if (c.wait <= 0 && !c.route.length) c.wait = 3 + R() * 5; return;
+    }
+    const robbed = s.robbery && c === s.clerk;
+    switch (def.behaviour) {
+      case 'waiter': {
+        if (c.route.length) { stepPerson(s, c, dt, night); return; }
+        if (c.wait > 0) { c.wait -= dt; c.speed = 0; if (c.atTable) c.idleStyle = 'talk'; return; }
+        if (c.atTable) { c.atTable = false; c.carrying = false; routeTo(s, c, c.home.x, c.home.z); return; }
+        const seated = b.people.filter((p) => p.sitting && p.seat); const st = seated.length ? seated[Math.floor(R() * seated.length)].seat : b.seats[Math.floor(R() * b.seats.length)];
+        if (st && R() < 0.7) { const sp = seatPose(s, st) || st; c.carrying = true; c.atTable = true; const sd = Math.random() < 0.5 ? 1 : -1; routeTo(s, c, sp.x - Math.sin(sp.ry ?? 0) * 0.55 + Math.cos(sp.ry ?? 0) * 0.75 * sd, sp.z - Math.cos(sp.ry ?? 0) * 0.55 - Math.sin(sp.ry ?? 0) * 0.75 * sd); c.wait = 1.8; }
+        else { c.wait = 2 + R() * 3; c.heading = c.home.ry; }
+        return;
+      }
+      case 'wipe': {
+        if (c.route.length) { c.walkSpeed = 0.6; stepPerson(s, c, dt, night); return; }
+        c.wait = (c.wait || 0) - dt; if (c.wait > 0) { c.heading = c.home.ry; c.speed = 0; if (def.personality === 'gruff' && dPl < 4) c.idleStyle = 'talk'; return; }
+        c.side = -(c.side || 1); const ax = Math.cos(c.home.ry), az = -Math.sin(c.home.ry); c.route = [{ x: c.home.x + ax * 0.6 * c.side, z: c.home.z + az * 0.6 * c.side }]; c.wait = 2.5 + R() * 2; return;
+      }
+      case 'bartend': {
+        if (c.route.length) { stepPerson(s, c, dt, night); return; }
+        c.wait = (c.wait || 0) - dt; c.speed = 0; c.heading = c.home.ry;
+        const near = b.people.find((p) => p.sitting && Math.hypot(p.x - c.x, p.z - c.z) < 2.2);
+        if (near || dPl < 3) c.idleStyle = 'talk';
+        if (def.personality === 'flair' && c.spinT > 0) { c.spinT -= dt; c.heading += (1 - c.spinT / 0.7) * Math.PI * 2; }
+        if (c.wait <= 0) { c.side = -(c.side || 1); const ax = Math.cos(c.home.ry), az = -Math.sin(c.home.ry); c.route = [{ x: c.home.x + ax * (0.5 + R()) * c.side, z: c.home.z + az * (0.5 + R()) * c.side }]; c.wait = 3 + R() * 4; if (def.personality === 'flair' && R() < 0.4) c.spinT = 0.7; }
+        return;
+      }
+      case 'dj': { c.x = c.home.x; c.z = c.home.z; c.heading = c.home.ry; c.speed = 0; c.idleStyle = night ? 'dance' : null; return; }
+      case 'door': { c.x = c.home.x; c.z = c.home.z; c.speed = 0; c.heading = Math.atan2(pl.x - c.x, pl.z - c.z); if (s.type === 'guns' && (s.robbery || s.alarmT > 0)) c.idleStyle = null; return; }
+      default: { // counter, chef, cook
+        if (c.route.length) { stepPerson(s, c, dt, night); return; }
+        c.x = c.home.x; c.z = c.home.z; c.heading = c.home.ry; c.speed = 0;
+        if (robbed) return;
+        if (def.personality === 'bored') c.idleStyle = dPl < 2.5 ? null : 'phone';
+        else if (def.personality === 'chatty' && dPl < 4.5) c.idleStyle = 'talk';
+        else if (def.behaviour === 'cook' || def.behaviour === 'chef') { c.cookT = (c.cookT || 0) - dt; if (c.cookT <= 0) { c.cookT = 2 + R() * 3; c.cookSide = (c.cookSide || 1) * -1; } c.idleStyle = c.cookT > 1.2 ? 'talk' : null; c.heading = c.home.ry + c.cookSide * 0.25; }
+      }
+    }
   }
   function updatePeople(s, dt, hour, night, pl) {
     const b = s.built; if (!b) return;
     const R = Math.random;
-    // staff
-    const wantStaff = s.open ? Math.min(b.L.clerks.length, 4) : (s.seed % 2 === 0 ? 1 : 0);
+    // staff (named personas)
+    const defs = s.staffDefs || [];
+    const wantStaff = s.open ? Math.min(defs.length, 4) : (s.seed % 2 === 0 ? 1 : 0);
+    if (!b.usedHomes) b.usedHomes = new Set();
     while (b.staff.length < wantStaff && !b.spawnedThisFrame) {
-      const c = b.L.clerks[b.staff.length]; const p = acquire((R() < 0.5 ? 'f' : 'm') + ':' + (/bank|jewelry|electronics/.test(s.type) ? 'business' : s.type === 'club' ? 'nightlife' : 'casual'), s.seed + 7 + b.staff.length * 17); if (!p) break;
-      p.store = s; p.x = c.x; p.z = c.z; p.heading = c.ry; p.role = c.role || 'clerk'; p.home = c; p.route = []; p.wait = 0; p.gone = false; p.char.setVisible(true); p.char.root.visible = true;
+      const def = defs[b.staff.length]; const home = staffHome(s, def, b.staff.length, b.usedHomes); if (!home) { defs.splice(b.staff.length, 1); continue; }
+      const outfit = /bank|jewelry|electronics/.test(s.type) || s.theme?.key === 'steak' || s.theme?.key === 'lounge' ? 'business' : s.type === 'club' ? 'nightlife' : 'casual';
+      const pers = PERSONA_MAP[def.personality] || 'friendly';
+      const p = acquire(def.gender + ':' + outfit, s.seed + 7 + b.staff.length * 17, pers); if (!p) break; try { p.char.setPersonality?.(pers); } catch (e) { /* older character module */ }
+      p.store = s; p.x = home.x; p.z = home.z; p.heading = home.ry; p.role = def.role; p.persona = def; p.home = home; p.route = []; p.wait = 0; p.gone = false; p.sitting = false; p.seatY = 0; p.carrying = false; p.atTable = false;
+      if (def.behaviour === 'waiter' && !p.tray) { p.tray = makeTray(); p.char.root.add(p.tray); }
+      p.char.setVisible(true); p.char.root.visible = true;
       b.staff.push(p); b.spawnedThisFrame = true;
     }
     while (b.staff.length > wantStaff) release(b.staff.pop());
     s.clerk = b.staff[0] || null;
     for (const c of b.staff) {
-      if (!s.open) { // cleaner wanders
-        if (!c.route.length && c.wait <= 0) { const t = b.pts[Math.floor(R() * b.pts.length)]; if (t) routeTo(s, c, t.x, t.z); c.wait = 0; }
-        stepPerson(s, c, dt * 0.6, night); if (c.wait <= 0 && !c.route.length) c.wait = 3 + R() * 5;
-      } else {
-        c.x = c.home.x; c.z = c.home.z; c.heading = c.home.ry; c.speed = 0;
-        c.bob = c.role === 'dj' && night ? Math.abs(Math.sin(performance.now() / 240)) * 0.06 : 0;
-      }
+      staffStep(s, c, dt, night, pl);
       place(s, c);
-      c.char.update(dt, { speed: c.speed, grounded: true });
-      if (s.open && c.head && s.dist < 15 && c === s.clerk) { let a = Math.atan2(pl.x - c.x, pl.z - c.z) - c.heading; a = Math.atan2(Math.sin(a), Math.cos(a)); c.head.rotation.y += THREE.MathUtils.clamp(a, -1.0, 1.0) * 0.8; }
-      if (c === s.clerk && (s.robbery || (s.robbed && s.alarmT > 0)) && c.armL && c.armR) { c.armL.rotation.z += 1.3; c.armR.rotation.z -= 1.3; c.armL.rotation.x -= 0.4; c.armR.rotation.x -= 0.4; }
+      c.char.update(dt, { speed: c.speed, grounded: true, idleStyle: c.idleStyle || undefined });
+      if (s.open && c.head && s.dist < 15 && c.persona?.behaviour !== 'waiter') { let a = Math.atan2(pl.x - c.x, pl.z - c.z) - c.heading; a = Math.atan2(Math.sin(a), Math.cos(a)); c.head.rotation.y += THREE.MathUtils.clamp(a, -1.0, 1.0) * (c.persona?.personality === 'nervous' ? 1.0 : 0.8); }
+      if (c === s.clerk && (s.robbery || (s.robbed && s.alarmT > 0)) && c.armL && c.armR && c.persona?.personality !== 'tough') { c.armL.rotation.z += 1.3; c.armR.rotation.z -= 1.3; c.armL.rotation.x -= 0.4; c.armR.rotation.x -= 0.4; }
     }
     // patrons
-    const area = s.W * s.D; const cap = Math.min(s.def.patrons, Math.floor(area / 10) + 1);
+    const area = s.W * s.D; const cap = Math.min(s.def.patrons + (s.theme ? 2 : 0), Math.floor(area / 9) + 1);
     const want = s.open && !s.robbed && !s.robbery ? Math.round(cap * busyFactor(hour, s.def.busy)) : 0;
     const active = b.people.filter((p) => !p.gone && !p.flee).length;
     b.spawnT = (b.spawnT || 0) - dt;
@@ -457,10 +666,12 @@ export async function createInteriors(game) {
       const sr = srng(s.seed + (b.spawnN = (b.spawnN || 0) + 1) * 13);
       const p = acquire(patronClass(s, sr), s.seed + 101 + b.spawnN * 29);
       if (p) {
-        p.store = s; p.gone = false; p.flee = false; p.exit = false; p.leaving = false; p.visits = 0; p.seat = null; p.next = null; p.wait = 0;
-        // first arrivals appear already inside; later ones walk in from the street
-        const t = b.people.length < want && !b.warm ? b.pts[Math.floor(R() * b.pts.length)] : null;
-        if (t) { p.x = t.x; p.z = t.z; p.heading = t.ry || 0; p.wait = R() * 4; } else { const o = outside(s); p.x = o.x; p.z = o.z; p.heading = Math.PI; chooseActivity(s, p); }
+        p.store = s; p.gone = false; p.flee = false; p.exit = false; p.leaving = false; p.visits = 0; p.seat = null; p.next = null; p.wait = 0; p.ordered = false; p.sitting = false; p.seatY = 0; p.state = null; p.idleStyle = null; p.walkSpeed = 1.05 + R() * 0.3; p.carrying = false;
+        if (!b.warm && b.people.length < want) { // first arrivals: already seated / browsing
+          p.x = b.nav.door.x; p.z = b.nav.door.z; p.ordered = true; chooseActivity(s, p);
+          if (p.next === 'sit' && p.seat) { const sp = seatPose(s, p.seat); if (sp) { p.route = []; p.x = sp.x; p.z = sp.z; } }
+          else if (p.route.length) { const last = p.route[p.route.length - 1]; p.x = last.x; p.z = last.z; p.route = []; }
+        } else { const o = outside(s); p.x = o.x; p.z = o.z; p.heading = Math.PI; chooseActivity(s, p); }
         p.char.setVisible(true); p.char.root.visible = true; b.people.push(p); b.spawnedThisFrame = true;
       }
       b.spawnT = b.warm ? 3 + R() * 6 : 0;
@@ -468,11 +679,11 @@ export async function createInteriors(game) {
     if (active >= want) b.warm = true;
     for (let i = b.people.length - 1; i >= 0; i--) {
       const p = b.people[i];
-      if (!p.leaving && active > want + 1 && !p.flee && R() < dt * 0.05) p.leaving = true;
+      if (!p.leaving && active > want + 1 && !p.flee && !p.sitting && R() < dt * 0.05) p.leaving = true;
       stepPerson(s, p, dt, night);
       if (p.gone) { if (p.seat) p.seat.taken = null; release(p); b.people.splice(i, 1); continue; }
       place(s, p);
-      p.char.update(dt, { speed: p.speed, grounded: true, sprint: !!p.flee });
+      p.char.update(dt, { speed: p.speed, grounded: true, sprint: !!p.flee, idleStyle: p.idleStyle || undefined });
     }
   }
 
@@ -489,12 +700,18 @@ export async function createInteriors(game) {
   };
   function startRobbery(s) {
     if (s.robbery || s.robbed || !s.open || !s.clerk || s.type === 'club') return;
-    s.robbery = { t: 0, paid: false };
-    notify(s.type === 'bank' ? 'Teller: "Please, take it, just don\'t shoot!"' : 'Clerk: "Okay, okay! Don\'t hurt me!"', 2500);
+    const per = s.clerk.persona;
+    if (per?.personality === 'tough') { // this owner draws on robbers
+      notify(line(per, 'rob'), 2500); s.alarmT = 6; panic(s);
+      setTimeout(() => { const P = game.player; if (!P || current !== s) return; try { game.audio?.play?.('pistol', { position: s.counterPos }); } catch (e) { /* */ } P.health = Math.max(0, (P.health || 0) - 34); notify(`${per.label} fires! -34 health`, 2200); try { game.emit?.('crime', { type: 'robbery', position: s.counterPos.clone(), severity: 2, witnessed: true }); } catch (e) { /* */ } }, 700);
+      return;
+    }
+    s.robbery = { t: per?.personality === 'nervous' ? 1.5 : 0, paid: false };
+    notify(per ? line(per, 'rob') : 'Clerk: "Okay, okay! Don\'t hurt me!"', 2500);
     try { game.audio?.play?.('scream', { position: s.center }); } catch (e) { /* */ }
     panic(s);
   }
-  try { game.on?.('punch', (e) => { const s = current; if (!s || !e?.position) return; if (Math.hypot(e.position.x - s.counterPos.x, e.position.z - s.counterPos.z) < 2.4) startRobbery(s); }); } catch (e) { /* */ }
+  try { game.on?.('punch', (e) => { const s = current; if (!s || !e?.position) return; if (Math.hypot(e.position.x - s.counterPos.x, e.position.z - s.counterPos.z) < 2.4) { if (s.clerk?.persona && !s.robbery) notify(line(s.clerk.persona, 'punch'), 2000); startRobbery(s); } }); } catch (e) { /* */ }
   try { game.on?.('shot', () => { const s = current; if (s) { panic(s); startRobbery(s); } }); } catch (e) { /* */ }
 
   function interact(s, pp, P) {
@@ -520,14 +737,14 @@ export async function createInteriors(game) {
         if (a?.ammo && !a.gun) { try { if (game.weapons?.buyAmmo) game.weapons.buyAmmo(a.ammo, a.n); else { P.ammo = P.ammo || {}; P.ammo[a.ammo] = (P.ammo[a.ammo] || 0) + a.n; } } catch (e) { console.warn(e); } }
         if (a?.armor) P.armor = Math.max(P.armor || 0, a.armor);
         if (best.heal) P.health = Math.min(100, (P.health || 0) + best.heal);
-        notify(`Bought ${best.name} -$${best.price}${best.heal ? '  +' + best.heal + ' health' : ''}`);
+        notify(`Bought ${best.name} -$${best.price}${best.heal ? '  +' + best.heal + ' health' : ''}`); if (s.clerk?.persona && Math.random() < 0.6) setTimeout(() => notify(line(s.clerk.persona, 'buy'), 2200), 900);
         try { game.audio?.play?.('cash', { position: best.pos }); } catch (e) { /* */ }
       } else notify('Not enough cash');
     } else if (inp?.pressed?.('KeyG') && best.action?.smash) {
       if (best.smashed) notify('Case already smashed');
       else { best.smashed = true; const cash = 400 + Math.floor(Math.random() * 1100); P.money = (P.money || 0) + cash; notify(`Smashed the case: +$${cash} in jewelry`, 3000); try { game.audio?.play?.('glass', { position: best.pos }); } catch (e) { /* */ } try { game.emit?.('crime', { type: 'robbery', position: pp.clone(), severity: 2, witnessed: true }); } catch (e) { /* */ } panic(s); s.alarmT = 6; }
     } else if (inp?.pressed?.('KeyG') && best.price > 0) {
-      if (clerkSees(s)) { notify('Clerk: "Hey! Put that back! I\'m calling the cops!"', 3000); s.alarmT = 3; try { game.emit?.('crime', { type: 'shoplift', position: pp.clone(), severity: 1, witnessed: true }); } catch (e) { /* */ } }
+      if (clerkSees(s)) { notify(s.clerk?.persona ? line(s.clerk.persona, 'steal') : 'Clerk: "Hey! Put that back! I\'m calling the cops!"', 3000); s.alarmT = 3; try { game.emit?.('crime', { type: 'shoplift', position: pp.clone(), severity: 1, witnessed: true }); } catch (e) { /* */ } }
       else { if (best.heal) P.health = Math.min(100, (P.health || 0) + best.heal); notify(`Pocketed ${best.name}${best.heal ? '  +' + best.heal + ' health' : ''}`); }
     }
     return help;
@@ -546,15 +763,20 @@ export async function createInteriors(game) {
   function prewarm(ms) { const t = performance.now(); while (warm.length && performance.now() - t < ms) { const [k, v] = warm.shift(); try { productGeo(k, v); } catch (e) { /* */ } } if (!warm.length && !prewarm.done) { prewarm.done = true; atlasSync(); } }
   function atlasSync() { const A = getAtlas(); if (A.dirty) { A.dirty = false; A.tex.needsUpdate = true; } }
   // ---- load time: draw every label, build every shared material, compile + upload behind the loading screen ----
+  for (const k of FOOD_LIST) for (let v = 0; v < 4; v++) warm.push([k, v]);
   prewarm(1e9); for (const c of posterCats) for (let v = 0; v < 5; v++) getAtlas().label(c, v, { art: ['face', 'circle', 'wave'][v % 3], sub: ['NEW', 'SALE', '2 FOR 1', 'FRESH'][v % 4] }); atlasSync(); glyphAtlas();
   const warmMats = [...Object.values(M).flat().filter((m) => m && m.isMaterial), ...Object.values(panelMats()), ...Object.values(floorMats(floorTex)), danceMat(), ...screenMats];
   for (const t of Object.values(TYPES)) { warmMats.push(stdMat(trimHex(t), 0.55), glowMat(new THREE.Color(t.neon).multiplyScalar(2.2))); for (let k = 0; k < 7; k++) warmMats.push(stdMat(wallHex(t, k), 0.9)); }
   for (const h of [...VINYL]) warmMats.push(stdMat(h, 0.45)); for (const h of TABLE) warmMats.push(stdMat(h, 0.4)); for (const h of CHAIR) warmMats.push(stdMat(h, 0.6));
   for (const c of GARMENT_COLORS) warmMats.push(stdMat(new THREE.Color(c).getHex(), 0.7));
   for (const st of ['#ffffff', '#1d3557']) warmMats.push(stdMat(new THREE.Color(st).getHex(), 0.8));
-  let unwarm = null; try { unwarm = warmup(game, warmMats); } catch (e) { console.warn('[interiors] warmup', e); }
+  for (const st of WALL_STYLES) warmMats.push(finishMat(st, 0xffffff)); for (const st of FLOOR_EXTRA_STYLES) warmMats.push(extraFloorMat(st));
+  for (const t of Object.values(THEMES)) { for (const k of ['accent', 'trim', 'fabric', 'top', 'frame']) warmMats.push(stdMat(t.palette[k], 0.5)); for (const st of t.walls) if (/plaster|stripe|subway/.test(st)) warmMats.push(finishMat(st, new THREE.Color(t.palette.accent).lerp(new THREE.Color(0xffffff), 0.72).getHex())); }
+  let unwarm = null; try { unwarm = warmup(game, warmMats, [propMat(), M.atlas]); } catch (e) { console.warn('[interiors] warmup', e); }
   let warmFrames = 0;
-  function update(dt) {
+  let upMax = 0;
+  function update(dt) { const t = performance.now(); try { updateInner(dt); } finally { const d = performance.now() - t; if (d > upMax) upMax = d; } }
+  function updateInner(dt) {
     const P = game.player; if (!P) return;
     if (unwarm && ++warmFrames > 90) { unwarm(); unwarm = null; }
     if (warm.length) prewarm(2.5);
@@ -591,6 +813,8 @@ export async function createInteriors(game) {
       const isDetail = detail.includes(s);
       b.spawnedThisFrame = false;
       // open/closed
+      if (s === current || s.dist < 12) pushProps(s, dt);
+      syncProps(s);
       if (s.robbed && absH > s.robbedUntil) s.robbed = false;
       const open = isOpenAt(hour, s.hours); if (open !== s.open) { s.open = open; applyOpen(s); }
       if (s.facade) setSign(s, s.open ? (night ? 1.7 : 1.05) : 0.22);
@@ -641,12 +865,17 @@ export async function createInteriors(game) {
     }
     // lights: nearest open detailed store
     const ls = detail.find((s) => s.open);
-    if (ls) { const a = ls.toWorld(0, -ls.D / 4), c = ls.toWorld(0, ls.D / 4); lights[0].position.set(a.x, ls.baseY + ls.H - 1.0, a.z); lights[1].position.set(c.x, ls.baseY + ls.H - 1.0, c.z); const k = Math.min(30, 10 + ls.W * ls.D / 12); lights.forEach((l) => { l.intensity = k; l.distance = Math.max(ls.W, ls.D) * 0.9; }); }
+    if (ls) { const a = ls.toWorld(0, -ls.D / 4), c = ls.toWorld(0, ls.D / 4); lights[0].position.set(a.x, ls.baseY + ls.H - 1.0, a.z); lights[1].position.set(c.x, ls.baseY + ls.H - 1.0, c.z); const k = Math.min(16, 6 + ls.W * ls.D / 20); lights.forEach((l) => { l.intensity = k; l.distance = Math.max(ls.W, ls.D) * 0.9; }); }
     else lights.forEach((l) => { l.intensity = 0; });
 
+    _pp0.copy(P.position); void _ppT;
     // inside detection, notify, indoor flag, interactions
     let inside = null; if (!P.state?.inVehicle) for (const s of nearList) { if ((s.built || !s.shell) && s.dist < Math.max(s.W, s.D) && s.isInside(pp)) { inside = s; break; } }
-    if (inside && inside !== lastInside) notify(inside.open ? inside.name : `${inside.name} (closed)`, 2000);
+    if (inside && inside !== lastInside) {
+      const per = inside.clerk?.persona || inside.staffDefs?.[0];
+      notify(inside.open ? (per ? `${inside.name} · ${per.label}` : inside.name) : `${inside.name} (closed)`, 2400);
+      if (inside.open && inside.clerk?.persona) { const c = inside.clerk; const who = inside; setTimeout(() => { if (current === who) notify(line(c.persona, 'enter'), 2600); }, 1300); for (const st of inside.built?.staff || []) if (st.persona?.personality === 'polite') st.bowT = 1; }
+    }
     lastInside = inside; current = inside; api.current = inside;
     const indoor = !!inside;
     if (P.state && P.state.indoor !== indoor) { P.state.indoor = indoor; try { game.env?.setIndoor?.(indoor); } catch (e) { /* */ } }
@@ -654,6 +883,6 @@ export async function createInteriors(game) {
   }
 
   ingest();
-  const api = { list, update, current: null, get fitStats() { return fitStats; }, stats: () => ({ stores: list.length, built: list.filter((s) => s.built).length, chars: charCount, prodVerts: list.reduce((a, s) => a + (s.built ? [...s.built.chunks.values()].reduce((b, c) => b + (c.mesh ? c.verts : 0), 0) : 0), 0) }) };
+  const api = { list, update, current: null, get fitStats() { return fitStats; }, stats: (reset) => { const r = { updMaxMs: Math.round(upMax * 10) / 10, stores: list.length, built: list.filter((s) => s.built).length, chars: charCount, prodVerts: list.reduce((a, s) => a + (s.built ? [...s.built.chunks.values()].reduce((b, c) => b + (c.mesh ? c.verts : 0), 0) : 0), 0) }; if (reset) upMax = 0; return r; } };
   return api;
 }

@@ -8,9 +8,13 @@ import { createWorldStuff } from './world.js';
 import { createCityAdapter } from './cityApi.js';
 import { createActivities } from './activities.js';
 
-const SEV = { assault: 1, vehicle_theft: 1, carjack: 1, shoplift: 1, hit_pedestrian: 2, robbery: 2, shooting: 3, murder: 3 };
-const CLEAR_TIME = [0, 15, 20, 26, 32, 40];
-const HEAT_STEPS = [0, 1, 4, 9, 16, 26];
+// ---- wanted tuning (documented in docs/gameplay/police_tuning.md)
+export const SEV = { assault: 1, shoplift: 1, vehicle_theft: 1, carjack: 1, shooting: 2, robbery: 2, hit_pedestrian: 2, cop_assault: 2, cop_shot: 3, murder: 3, cop_murder: 3 };
+export const MINOR = new Set(['assault', 'shoplift', 'vehicle_theft', 'carjack']); // need a cop or a successful witness call
+export const CLEAR_TIME = [0, 10, 15, 25, 35, 45];       // s unseen outside the search area to lose the cops
+export const SEARCH_R = [0, 150, 250, 400, 600, 800];    // search-area radius per star (m)
+export const HEAT_STEPS = [0, 1, 3, 7, 14, 24];          // accumulated heat needed for each star
+export const WITNESS_CALL = [5, 8];                      // s a witness needs to phone it in
 
 export async function createGameplay(game) {
   if (/[?&]nogameplay\b/.test(location.search)) return { update() {} }; // debug: isolate other systems
@@ -40,7 +44,7 @@ export async function createGameplay(game) {
     W.heat += stars;
     let fromHeat = 0;
     for (let i = 1; i <= 5; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
-    W.level = Math.min(5, Math.max(W.level, Math.round(stars), fromHeat));
+    W.level = Math.min(5, Math.max(W.level, Math.min(3, Math.round(stars)), fromHeat));
     W.lastSeen.copy(position || P.position);
     W.unseenT = 0; W.clearT = 0; W.evading = false; W.searchCenter = null; W.searchRadius = 0;
     if (W.level > before) {
@@ -97,8 +101,7 @@ export async function createGameplay(game) {
     if (victim && victim._gpCriminal && (type === 'assault' || type === 'murder')) { victim._gpHitByPlayer = true; return; } // vigilante justice
     if (victim && victim.isCop) { if (type === 'murder') type = 'cop_murder'; else if (type === 'assault') type = 'cop_assault'; }
     let stars = SEV[type] ?? d.severity ?? 1;
-    if (type === 'cop_assault') stars = Math.min(5, Math.max(2, W.level + 1));
-    if (type === 'cop_murder') stars = Math.min(5, Math.max(3, W.level + 2));
+    if (type === 'cop_murder' && W.level >= 3) stars = W.level + 1; // killing cops while hot keeps escalating
     if (d.police) stars = Math.max(stars, 2);
     stars = Math.min(5, stars);
     // direct report: cops see it (or it targets a cop / police car)
@@ -119,7 +122,7 @@ export async function createGameplay(game) {
     }
     const marker = makeMarker('!', '#ff4d5e', 0.55);
     game.scene.add(marker);
-    reports.push({ ped: w, t: 3, stars, pos, type, marker, created: game.clock.elapsed, gp: !!d._gp });
+    reports.push({ ped: w, t: rand(WITNESS_CALL[0], WITNESS_CALL[1]), stars, pos, type, marker, created: game.clock.elapsed, gp: !!d._gp });
     w.state = w.char?.hasPhone ? 'film' : 'cower'; w.stateT = 4; w.threat = { x: pos.x, z: pos.z }; w.pending = null;
     w.idleStyle = w.char?.hasPhone ? 'film' : 'phone';
     tryCall('notify', () => game.hud?.notify?.('A witness is calling the cops!', 2400));
@@ -149,6 +152,12 @@ export async function createGameplay(game) {
     if (W.level === 0) { W.seen = false; return; }
     const seen = tryCall('anySees', () => G.police?.anySees?.(), false);
     W.seen = !!seen;
+    // sustained violence escalates: fighting in view of the police keeps adding heat
+    if (seen && W.level >= 2 && game.clock.elapsed - Math.max(G.copAggroT ?? -99, G.lastShotT ?? -99, G.lastConfirmedHit ?? -99) < 4) {
+      W.heat += dt * 0.12;
+      let fromHeat = 0; for (let i = 1; i <= 5; i++) if (W.heat >= HEAT_STEPS[i]) fromHeat = i;
+      if (fromHeat > W.level) { W.level = Math.min(5, fromHeat); game.emit?.('wantedChange', { level: W.level }); }
+    }
     if (seen) {
       W.lastSeen.copy(P.position); W.unseenT = 0; W.clearT = 0;
       if (W.evading) { W.evading = false; W.searchCenter = null; W.searchRadius = 0; }
@@ -156,9 +165,12 @@ export async function createGameplay(game) {
     }
     W.unseenT += dt;
     if (W.unseenT > 2.5) {
-      if (!W.evading) { W.evading = true; W.searchCenter = W.lastSeen.clone(); W.searchRadius = (45 + W.level * 25) * (G.city?.mapScale || 1); }
+      const R0 = SEARCH_R[W.level];
+      if (!W.evading) { W.evading = true; W.searchCenter = W.lastSeen.clone(); W.searchRadius = R0; }
+      W.searchRadius = Math.min(R0 * 1.35, W.searchRadius + dt * (1 + W.level * 0.6)); // the net widens slowly
       if (distXZ(P.position, W.searchCenter) > W.searchRadius) W.clearT += dt;
-      else W.clearT += dt * 0.25;
+      else W.clearT = Math.max(0, W.clearT - dt * 0.5); // inside the search area you are not getting away
+      W.clearProgress = W.clearT / CLEAR_TIME[W.level];
       if (W.clearT > CLEAR_TIME[W.level]) clearWanted();
     } else {
       // short grace: cops still know roughly where you are
@@ -172,7 +184,7 @@ export async function createGameplay(game) {
   G.police = tryCall('police', () => createPolice(game, G), null);
   G.props = tryCall('world', () => createWorldStuff(game, G), null);
   G.activities = tryCall('activities', () => createActivities(game, G), null);
-  G.playerArmedRecently = () => !!G.weapons && ['pistol', 'smg', 'shotgun'].includes(P.weapon) && game.clock.elapsed - (G.lastShotT ?? -99) < 10;
+  G.playerArmedRecently = () => !!game.weapons?.isGun?.(P.weapon) && (P.aiming || game.clock.elapsed - (G.lastShotT ?? -99) < 10);
   game.on?.('shot', (d) => { if (d?.byPlayer) G.lastShotT = game.clock.elapsed; });
   game.police = G.police;
 

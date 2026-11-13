@@ -37,6 +37,7 @@ if (W > 0) {
 }
 game.police = { units, cars };
 game.vehicles = { list: [] };
+game.gameplayCity = { respawnPoint: (kind) => { const q = data.randomSidewalkPoint(spawn, kind === 'hospital' ? 900 : 700); return q; } };
 game.peds = { list: [] };
 window.game = game;
 game.hud = createHUD(game);
@@ -48,7 +49,11 @@ requestAnimationFrame(loop);
 setTimeout(() => {
   if (P.get('view') === 'pause') {
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP' }));
-    setTimeout(() => { if (P.get('ppm')) game.hud._mapZoom?.(+P.get('ppm')); }, 1500);
+    setTimeout(() => {
+      if (P.get('fit')) game.hud._mapFit();
+      else if (P.get('ppm')) game.hud._mapZoom?.(+P.get('ppm'), P.get('cx') != null ? +P.get('cx') : null, P.get('cz') != null ? +P.get('cz') : null);
+      if (P.get('pan')) { const [dx, dz] = P.get('pan').split(',').map(Number); game.hud._mapPan(dx, dz); }
+    }, 1500);
   }
 }, 400);
 </script>

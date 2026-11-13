@@ -16,7 +16,8 @@ const M = new Proxy({}, { get: (o, k) => (o[k] ??= (k.toString().includes('Depth
 const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
 const nodeIdx = new Map(); for (const n of provider.nodes) nodeIdx.set(Math.round(n.x * 2) + ',' + Math.round(n.z * 2), { degree: n.deg, width: Math.max(0, ...n.edges.map((e) => e.width)) });
 const _ne = {};
-const b = createTileBuilder({ auditTags: true, M, provider, root: new THREE.Group(), world, RAPIER, zoneAt: data.zoneAt, nodeAt: (p) => nodeIdx.get(Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2)) || null,
+let elevated = null; if (!process.env.NOELEV) { try { const { createElevated } = await import('./elevated.js'); elevated = createElevated({ THREE, RAPIER, world, data, materials: M }); } catch (e) { console.log('no elevated', String(e).slice(0, 120)); } }
+const b = createTileBuilder({ districtAt: data.districtAt, roadKindAt: (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind, elevated, auditTags: true, M, provider, root: new THREE.Group(), world, RAPIER, zoneAt: data.zoneAt, nodeAt: (p) => nodeIdx.get(Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2)) || null,
   onSidewalk: (x, z) => Math.abs(data.groundHeightAt(x, z) - 0.15) < 0.02, groundAt: (x, z) => Math.max(0, data.groundHeightAt(x, z)),
   isWater: (x, z) => data.isWater(x, z), roadDist: (x, z) => { const r = data.roadGraph.nearestEdge(x, z, {}, 40); return r ? r.dist - r.edge.width / 2 : 99; },
   roadDirAt: (x, z) => { const r = data.roadGraph.nearestEdge(x, z, _ne, 60); return r ? Math.atan2(r.point.x - x, r.point.z - z) : 0; } });
@@ -32,7 +33,7 @@ console.log('tiles', tileList.length, 'colliders', world.colliders.len(), 'build
 if (MODE === 'probe') { const PTS = JSON.parse(process.argv[4]); world.step();
   for (const [x, z] of PTS) { const tile = provider.getTile(Math.floor(x / T), Math.floor(z / T)); const hits = []; world.intersectionsWithRay(new RAPIER.Ray({ x, y: 40, z }, { x: 0, y: -1, z: 0 }), 60, true, (h) => { hits.push([+(40 - h.timeOfImpact).toFixed(2), b.colTags.get(h.collider.handle)]); return true; });
     const rs = []; for (const r of tile.roads) { const pr = b.roadProfile(r, tile); let best = 1e9, bi = 0; pr.pts.forEach((p, i) => { const dd = Math.hypot(p[0] - x, p[1] - z); if (dd < best) { best = dd; bi = i; } }); if (best < r.width / 2 + 4) rs.push([r.name, r.kind, r.width, +best.toFixed(1), pr.ys ? +pr.ys[bi].toFixed(2) : 'g', r.y ? r.y.map((v) => +v.toFixed(1)).join('/') : '']); }
-    console.log(JSON.stringify([x, z]), 'hits', JSON.stringify(hits), 'roads', JSON.stringify(rs), 'dataY', data.groundHeightAt(x, z, 20).toFixed(2), 'swIn', b.sidewalksOf(tile).filter((rg) => { const r0 = rg[0]; let c = false; for (let i = 0, j = r0.length - 1; i < r0.length; j = i++) { const [xi, zi] = r0[i], [xj, zj] = r0[j]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; }).map((rg) => [rg[0].length, rg.length]), 'tile', tile.tx, tile.tz); }
+    console.log(JSON.stringify([x, z]), 'hits', JSON.stringify(hits), 'roads', JSON.stringify(rs), 'dataY', data.groundHeightAt(x, z, 20).toFixed(2), 'areasIn', (tile.areas || []).filter((a) => { const r0 = a.rings[0]; let c = false; for (let i = 0, j = r0.length - 1; i < r0.length; j = i++) { const [xi, zi] = r0[i], [xj, zj] = r0[j]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; }).map((a) => a.kind).join('|'), 'gh', data.groundHeightAt(x, z).toFixed(2), 'surf', data.surfaceAt(x, z), 'swIn', b.sidewalksOf(tile).filter((rg) => { const r0 = rg[0]; let c = false; for (let i = 0, j = r0.length - 1; i < r0.length; j = i++) { const [xi, zi] = r0[i], [xj, zj] = r0[j]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; }).map((rg) => [rg[0].length, rg.length]), 'tile', tile.tx, tile.tz); }
   process.exit(0); }
 const tagOf = (c) => b.colTags.get(c.handle) || (c.shape.type === 1 ? 'cuboid' : '?');
 const cnt = {}, fails = []; const bump = (cat, x, z) => { if (typeof inB === 'function' && !inB(x, z)) return; cnt[cat] = (cnt[cat] || 0) + 1; if (fails.length < 200000) fails.push([x, z, cat]); };
@@ -62,12 +63,13 @@ for (const [tx, tz] of tileList) {
   const tile = provider.getTile(tx, tz); if (!tile) continue; b.resolveDecks(tile); const x0 = tx * T, z0 = tz * T, inT = (x, z) => x >= x0 && x < x0 + T && z >= z0 && z < z0 + T;
   const ends = new Map(), key = (p) => Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2);
   for (const r of tile.roads) {
+    if (elevated && elevated.ownsEdge && elevated.ownsEdge(r.edgeId ?? r.id)) { cnt.ownedSkipped = (cnt.ownedSkipped || 0) + 1; continue; } // ELEVATED's decks are swept by its own audit (real lane geometry)
     if (r.pts.length < 2 || !DRIVE.test(r.kind) || /footway|path|pedestrian|cycleway|steps/.test(r.kind)) continue;
     const pr = b.roadProfile(r, tile), P = pr.pts, ys = pr.ys, hw = r.width / 2, total = Math.max(1, (r.lanesFwd || 1) + (r.lanesBack || 0)), lw = r.width / total;
     for (const [i, j] of [[0, 1], [P.length - 1, P.length - 2]]) { const a = P[i], c = P[j], l = Math.hypot(c[0] - a[0], c[1] - a[1]) || 1, k = key(a); if (!ends.has(k)) ends.set(k, []); ends.get(k).push({ r, dx: (c[0] - a[0]) / l, dz: (c[1] - a[1]) / l, y: ys ? ys[i] : 0, hw, lw, P, ys, rev: i !== 0 }); }
     for (let k = 0; k < total; k++) { const o = -hw + lw * (k + 0.5), S = [];
       for (let i = 0; i < P.length - 1; i++) { const a = P[i], c = P[i + 1], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.01) continue; const dx = (c[0] - a[0]) / L, dz = (c[1] - a[1]) / L, rot = qY(Math.atan2(dx, dz), ys ? Math.atan2(ys[i + 1] - ys[i], L) : 0);
-        for (let s = 0; s < L; s += 0.5) { const x = a[0] + dx * s - dz * o, z = a[1] + dz * s + dx * o, y = (ys ? ys[i] + (ys[i + 1] - ys[i]) * (s / L) : 0) + 0.05; if (!inT(x, z)) continue; S.push([x, z, y]);
+        for (let s = 0; s < L; s += 0.5) { const x = a[0] + dx * s - dz * o, z = a[1] + dz * s + dx * o, y0p = (ys ? ys[i] + (ys[i + 1] - ys[i]) * (s / L) : 0), own = elevated && elevated.ownsEdge(r.edgeId ?? r.id), y = own ? (elevated.heightAt(x, z, y0p + 1.0) ?? y0p + 0.05) : y0p + 0.05; if (!inT(x, z)) continue; S.push([x, z, y]);
           if (((s * 2) | 0) % 4 === 0) { nLane++; boxHit(r.kind === 'service' ? 'laneSvc' : 'lane', x, y + 0.35 + 0.5, z, rot); } } }
       surfaceCheck('lane', S); }
   }

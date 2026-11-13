@@ -8,6 +8,7 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { buildProceduralClips } from './proceduralClips.js';
 import { addHairShell, makeHairMaterial } from './hairShell.js';
 import { loadHumanManifest, loadHumanGLB, makeSkinMat, makeHairMat, makeGarmentMat, makeTexturedMat, makeAtlasSkinMat, makeAtlasMat } from './humans.js';
+import { PERSONAS } from '../npc/personality.js';
 import { rng, pick, SKIN_TONES, HAIR, genOutfit, makeHeadAccessories, makePhone, attachToBone, makeCopCap, makeDutyBelt, makeCase, makeSunglasses } from './pedStyle.js';
 import { makeTopMaterial, makeRecolorMaterial, makeSkinMaterial, makeMichelleVariantMap, limbIndices } from './characterMaterials.js';
 
@@ -289,7 +290,41 @@ async function ensureHuman(entry) {
   if (ref && ref.rig.bones.Hips.name === B.rig.bones.Hips.name) shareClips(ref, B);
   else { buildClipsFor(B, LIB.srcG, LIB.sources, LIB.procClips); if (!LIB.humanRef) LIB.humanRef = B; }
   LIB.humans.set(entry.id, B);
+  if (LIB.game) warmHumanBase(LIB.game, B);
   return B;
+}
+// GPU warm-up: draw every LOD of a freshly loaded body (with the runtime materials) a few times, far below the
+// world with culling off, so geometry upload + main/shadow shader variants happen at load time and runtime LOD
+// switches never upload or compile. At boot this runs inside main.js' warm-up frames behind the loading screen.
+let _warmGroup = null;
+function warmHumanBase(game, B) {
+  const scene = game?.scene; if (!scene || !B?.scene) return;
+  if (!_warmGroup) { _warmGroup = new THREE.Group(); _warmGroup.name = 'humanWarmup'; _warmGroup.position.set(0, -5000, 0); scene.add(_warmGroup); }
+  B.shared ||= {};
+  const skin = B.shared.skinS ||= makeAtlasSkinMat();
+  const atl = LIB.warmAtlas ||= makeAtlasMat([]);
+  const saved = [];
+  B.scene.traverse((o) => {
+    if (!o.isMesh) return;
+    saved.push([o, o.material, o.visible, o.frustumCulled, o.castShadow]);
+    const nm = o.material?.name;
+    if (nm === 'skinS') o.material = skin; else if (nm === 'atlasC') o.material = atl;
+    o.visible = true; o.frustumCulled = false; o.castShadow = true;
+  });
+  const first = saved[0]?.[0]; if (!first) return;
+  let n = 0;
+  B.warming = true;
+  first.onBeforeRender = () => {
+    if (++n !== 6) return;
+    setTimeout(() => {
+      for (const [o, m, v, f, c] of saved) { o.material = m; o.visible = v; o.frustumCulled = f; o.castShadow = c; }
+      first.onBeforeRender = () => {};
+      _warmGroup.remove(B.scene); B.warming = false;
+      B.scene.traverse((o) => { if (o.isSkinnedMesh) { try { o.skeleton.dispose(); } catch (e) { /* ignore */ } } });
+      if (!_warmGroup.children.length) { scene.remove(_warmGroup); _warmGroup = null; }
+    }, 0);
+  };
+  _warmGroup.add(B.scene);
 }
 const INITIAL_HUMANS = 40;
 async function initHumans() {
@@ -420,7 +455,7 @@ export async function preloadCharacters(game) {
   if (g.rpm) bases.male = prepareBase(g.rpm, null, 'male', sources.xbot);
   if (g.michelle) bases.female = prepareBase(g.michelle, 'TPose', 'female', sources.xbot);
   for (const key in bases) buildClipsFor(bases[key], g, sources, procClips);
-  LIB = { bases, sources, procClips, srcG: g, matCache: new Map(), humans: new Map(), humanEntries: [] };
+  LIB = { bases, sources, procClips, srcG: g, matCache: new Map(), humans: new Map(), humanEntries: [], game };
   if (typeof window !== 'undefined') window.__chars = LIB;
   try { await initHumans(); } catch (e) { console.warn('[humans] init failed', e); }
   console.log('[characters] ready', Object.fromEntries(Object.entries(bases).map(([k, b]) => [k, Object.fromEntries(Object.entries(b.clips).map(([n, c]) => [n, c.userData.speed ? +c.userData.speed.toFixed(2) : +c.duration.toFixed(2)]))])));
@@ -483,12 +518,67 @@ function restyleSet(set, o) {
   if (f) { f.uColor.value.setHex(o.shoes); f.uSole.value.setHex(o.sole); f.uSandal.value = o.sandal || 0; }
 }
 
+// ---------------------------------------------------------------- global human LOD manager
+// Every human (peds, drivers, cops, interiors staff, gameplay spawns) registers here; mesh LOD is chosen by distance
+// to the main camera with hysteresis (LOD1 > ~15 m, LOD2 > ~35 m) and then a triangle budget over the in-view set
+// (nearest first), so the total cost stays bounded however many systems spawn people. Ticked from onBeforeRender
+// of whichever human mesh renders first in a frame (no main.js hook needed), re-evaluated every 3 frames.
+export const LOD_CFG = { up1: 17, down0: 15, up2: 38, down1: 35, far: 70, budget: 380000, maxFull: 6, shadowDist: 32, every: 3 };
+const _lodReg = new Set();
+let _lodFrame = -1, _lodN = 0;
+const _lodFr = new THREE.Frustum(), _lodM = new THREE.Matrix4(), _lodS = new THREE.Sphere(), _lodV = new THREE.Vector3(), _lodC = [];
+export const lodStats = { tris: 0, inView: 0, levels: [0, 0, 0], total: 0 };
+function lodTick(game) {
+  const r = game.renderer; const f = r ? r.info.render.frame : 0;
+  if (f === _lodFrame) return; _lodFrame = f;
+  if ((_lodN++ % LOD_CFG.every) !== 0) return;
+  const cam = game.camera; if (!cam) return;
+  cam.updateMatrixWorld(); _lodM.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse); _lodFr.setFromProjectionMatrix(_lodM);
+  const cp = cam.getWorldPosition(_lodV);
+  _lodC.length = 0;
+  for (const c of _lodReg) {
+    const L = c._lod; if (!L) continue;
+    let vis = true, top = c.root; for (let o = c.root; o; o = o.parent) { top = o; if (!o.visible) vis = false; }
+    if (top !== game.scene) { if (++L.off > 200) _lodReg.delete(c); continue; } // detached: drop (re-registers on render)
+    L.off = 0;
+    if (!vis) { L.inView = false; continue; }
+    const rp = c.root.getWorldPosition(L.wp);
+    L.d = rp.distanceTo(cp);
+    _lodS.center.set(rp.x, rp.y + 0.9, rp.z); _lodS.radius = 1.6;
+    L.inView = _lodFr.intersectsSphere(_lodS);
+    // distance level with hysteresis
+    let lv = L.want;
+    if (lv === 0 && L.d > LOD_CFG.up1) lv = 1;
+    if (lv <= 1 && L.d > LOD_CFG.up2) lv = 2;
+    if (lv === 2 && L.d < LOD_CFG.down1) lv = 1;
+    if (lv >= 1 && L.d < LOD_CFG.down0) lv = 0;
+    L.want = lv;
+    _lodC.push(c);
+  }
+  _lodC.sort((a, b) => a._lod.d - b._lod.d);
+  let tris = 0, full = 0; const lv3 = [0, 0, 0]; let inView = 0;
+  for (const c of _lodC) {
+    const L = c._lod; let lv = L.want;
+    if (L.inView) {
+      inView++;
+      if (lv === 0 && full >= LOD_CFG.maxFull) lv = 1;
+      while (lv < 2 && tris + L.tris[lv] > LOD_CFG.budget) lv++;
+      if (lv === 0) full++;
+      tris += L.tris[lv]; lv3[lv]++;
+    }
+    c._applyLOD(lv, L.d);
+  }
+  lodStats.tris = tris; lodStats.inView = inView; lodStats.levels = lv3; lodStats.total = _lodReg.size;
+}
+
 export function createCharacter(game, opts = {}) {
   const variant = opts.variant || 'player';
   const seed = opts.seed ?? 0;
   if (!LIB || LIB.failed) return fallbackCharacter(variant);
   const r = rng(seed * 7 + 3);
   const zone0 = opts.outfit || opts.zone || (opts.beach ? 'beach' : 'residential');
+  const personaName = opts.personality || null;
+  let persona = personaName ? (PERSONAS[personaName] || PERSONAS.calm) : null;
   let base = opts.noHuman ? null : pickHuman(variant, seed, opts);
   const isHuman = !!base;
   if (!base) {
@@ -502,6 +592,7 @@ export function createCharacter(game, opts = {}) {
   const mats = isHuman ? (hm = humanMaterials(base, seed, zone0, variant)).mats : getMaterials(base, variant, seed);
   const detail = [], meshes = [];
   const lodMeshes = [[], [], []];
+  const lodHook = () => { if (character?._lod && !_lodReg.has(character)) _lodReg.add(character); lodTick(game); };
   model.traverse((m) => {
     if (!m.isMesh) return;
     const nm = m.material?.name;
@@ -509,6 +600,9 @@ export function createCharacter(game, opts = {}) {
       if (mats[nm]) m.material = mats[nm];
       const lm = /LOD(\d)/.exec(m.name); const l = lm ? Math.min(2, +lm[1]) : 0;
       lodMeshes[l].push(m);
+      m.frustumCulled = true;
+      if (m.isSkinnedMesh && m.geometry) { if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere(); const bs = m.geometry.boundingSphere.clone(); bs.radius *= 1.5; m.boundingSphere = bs; }
+      m.onBeforeRender = lodHook;
       const k = base.entry.materials?.[nm]?.k;
       m.castShadow = !(k === 'eye' || k === 'brow' || k === 'lash'); m.receiveShadow = true;
       if (l > 0) m.visible = false;
@@ -678,6 +772,11 @@ export function createCharacter(game, opts = {}) {
     st.idleT += dt;
     // idle styles (phone / talk / film / cower) replace the plain idle while standing
     const FULL = FULL_STYLES;
+    if (anim.idleStyle === undefined && persona && persona.idles) {
+      st.pIdleT = (st.pIdleT ?? 0) - dt;
+      if (st.pIdleT <= 0) { st.pIdleT = 3 + r() * 6; st.pIdle = persona.idles[Math.floor(r() * persona.idles.length)]; }
+      anim = Object.assign({}, anim, { idleStyle: st.pIdle });
+    }
     const wantStyle = STY.includes(anim.idleStyle) && A[anim.idleStyle] ? anim.idleStyle : null;
     if (wantStyle && wantStyle !== st.styleName) { if (st.styleW < 0.05 || !st.styleName) st.styleName = wantStyle; }
     st.styleW = approach(st.styleW, wantStyle && wantStyle === st.styleName ? 1 : 0, wantStyle === 'cower' ? 10 : 4, dt);
@@ -692,6 +791,11 @@ export function createCharacter(game, opts = {}) {
     // upper-body overlays: phone call, dog leash; one-shots: hit reaction, throw
     st.callW = approach(st.callW || 0, anim.call ? 1 : 0, 4, dt);
     if (A.phoneCall) { setT(A.phoneCall, st.idleT % C.phoneCall.duration); setW(A.phoneCall, st.callW * 4 * locoW); }
+    // greet wave / argue gestures (personality reactions)
+    st.waveW = approach(st.waveW || 0, anim.wave ? 1 : 0, 6, dt);
+    if (A.wave) { setT(A.wave, (st.idleT * 0.9) % C.wave.duration); setW(A.wave, st.waveW * 5 * locoW); }
+    st.argW = approach(st.argW || 0, anim.argue ? 1 : 0, 5, dt);
+    if (A.argue) { setT(A.argue, st.idleT % C.argue.duration); setW(A.argue, st.argW * 4 * locoW); }
     st.leashW = approach(st.leashW || 0, anim.leash ? 1 : 0, 4, dt);
     if (A.leash) { setT(A.leash, st.idleT % C.leash.duration); setW(A.leash, st.leashW * 3 * locoW); }
     if (anim.hit && !st.prevHit) st.hitT = 0;
@@ -743,7 +847,8 @@ export function createCharacter(game, opts = {}) {
     st.prevHeading = root.rotation.y;
     const targetLean = -turn * Math.min(1, s / 6) * 0.05 * base * (1 - st.air);
     st.lean = approach(st.lean, targetLean, 6, dt);
-    holder.rotation.z = st.lean;
+    // drunk weave (on the holder, keeps the root clean)
+    holder.rotation.z = st.lean + (persona?.sway ? Math.sin(st.idleT * 1.7) * persona.sway * 0.12 * Math.min(1, 0.3 + s) : 0);
     // weight: pitch forward when accelerating / sprinting, rock back when braking
     const rawAcc = dt > 0 ? (speed - (st.prevSpeed ?? speed)) / dt : 0;
     st.prevSpeed = speed;
@@ -818,6 +923,26 @@ export function createCharacter(game, opts = {}) {
       model.traverse((m) => { if (m.name === 'CharHairShell' && on) m.visible = false; });
     },
     hasPhone: !!phone,
+    personality: personaName, persona,
+    setPersonality(n) { persona = PERSONAS[n] || null; st.pIdleT = 0; if (character) { character.personality = n; character.persona = persona; } },
+    // free per-instance GPU resources (shared geometry / textures / base materials stay alive)
+    _applyLOD(lv, d) {
+      const L = character._lod;
+      const sh = d < LOD_CFG.shadowDist && lv < 2;
+      if (L.cur === lv && L.sh === sh) return;
+      L.cur = lv; L.sh = sh;
+      lodMeshes.forEach((arr, i) => arr.forEach((m) => { m.visible = i === lv && !m.userData.hide; }));
+      for (const m of meshes) m.castShadow = sh && !detail.includes(m);
+    },
+    dispose() {
+      _lodReg.delete(character);
+      try { mixer.stopAllAction(); mixer.uncacheRoot(model); } catch (e) { /* ignore */ }
+      const shared = new Set(Object.values(base.shared || {}));
+      model.traverse((o) => {
+        if (o.isSkinnedMesh && o.skeleton) { try { o.skeleton.dispose(); } catch (e) { /* ignore */ } }
+        if (o.isMesh && isHuman) { const ms = Array.isArray(o.material) ? o.material : [o.material]; for (const m of ms) if (m && !shared.has(m) && (m.name === 'atlasC' || m.name === 'hair' || m.name === 'brow' || /^garment_/.test(m.name))) { try { m.dispose(); } catch (e) { /* ignore */ } } }
+      });
+    },
     // capture the current bone pose (e.g. from a ragdoll) and blend from it into animation over `dur` seconds
     snapshotPose(dur = 0.35) {
       const arr = [];
@@ -829,18 +954,19 @@ export function createCharacter(game, opts = {}) {
     setLOD(n) {
       if (opts.lod === n) return;
       opts.lod = n;
-      if (isHuman) {
-        const lv = n <= 2 ? 0 : n <= 4 ? 1 : 2;
-        lodMeshes.forEach((arr, i) => arr.forEach((m) => { m.visible = i === lv && !m.userData.hide; }));
-        for (const m of meshes) m.castShadow = n <= 2 && !detail.includes(m); // shadows only near (< ~45 m)
-        return;
-      }
+      if (isHuman) return; // mesh LOD + shadows are owned by the global LOD manager (lodTick)
+
       for (const m of detail) m.visible = n < 3;
       for (const m of meshes) m.castShadow = n < 4;
     },
   };
   update(0, { speed: 0, grounded: true });
   if (zone0 === 'cop' || zone0 === 'business') character.restyle(zone0);
+  if (isHuman && variant !== 'player') {
+    const t = base.entry.tris || [34000, 10000, 3400];
+    character._lod = { want: 2, cur: 0, off: 0, sh: true, d: 1e9, inView: false, wp: new THREE.Vector3(), tris: [t[0], t[1] ?? t[0], t[2] ?? t[1] ?? t[0]] };
+    _lodReg.add(character);
+  }
   return character;
 }
 

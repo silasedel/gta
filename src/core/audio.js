@@ -182,6 +182,8 @@ export function createAudio(game) {
     loadSamples();
     // real banks: footsteps + combat fully preloaded (small); vehicles one-shots; ambience lazily per zone
     preload('footsteps');
+    preload('voices');
+    bank('venues');
     preload('combat');
     preload('vehicles', (k) => !/_(idle|low|mid|high|off_low|off_high)$/.test(k));
     bank('ambience').p.then(() => {
@@ -489,7 +491,7 @@ export function createAudio(game) {
   const FAR = new Set([...GUNS, 'car_crash', 'backfire', 'crackle']);
 
   // ---- real-recording routing ----
-  const CATS = ['combat', 'vehicles', 'footsteps', 'ambience'];
+  const CATS = ['combat', 'vehicles', 'footsteps', 'ambience', 'voices', 'venues'];
   const REAL = {
     pistol: ['combat', 'gun_pistol'], revolver: ['combat', 'gun_revolver'], smg: ['combat', 'gun_smg'], microsmg: ['combat', 'gun_smg', { rate: 1.12, gain: 0.85 }],
     uzi: ['combat', 'gun_smg', { rate: 1.12, gain: 0.85 }], rifle: ['combat', 'gun_rifle'], assault: ['combat', 'gun_rifle'], ar: ['combat', 'gun_rifle'],
@@ -500,6 +502,7 @@ export function createAudio(game) {
     punch_hit: ['combat', 'punch_body'], punch_swing: ['combat', 'swing_fist'], swing: ['combat', 'bat_swing'], bat_hit: ['combat', 'bat_hit_body'],
     bullet_hit_flesh: ['combat', 'bullet_impact_flesh'], bullet_hit_world: ['combat', 'bullet_impact_concrete'],
     glass: ['vehicles', 'glass_shatter'], door: ['vehicles', 'door_close'], backfire: ['vehicles', 'backfire', { gain: VMIX.backfire }], crackle: ['vehicles', 'crackle', { gain: VMIX.pops }],
+    espresso: ['venues', 'espresso', { gain: 3 }], door_bell: ['venues', 'door_bell', { gain: 0.6 }], glass_clink: ['venues', 'glass_clink', { gain: 0.7 }],
     horn: ['vehicles', 'horn_sedan'], blowoff: ['vehicles', 'blowoff', { gain: VMIX.blowoff }], shift: ['vehicles', 'shift', { gain: VMIX.shift }],
     scream: (dst, t, o) => real(dst, t, 'combat', o.female ?? Math.random() < 0.5 ? 'scream_female' : 'scream_male'),
     car_crash(dst, t, o) {
@@ -665,6 +668,72 @@ export function createAudio(game) {
       if (dead || Math.random() < 0.65) play(k, { position: { x: position.x, y: position.y + 0.3, z: position.z }, volume: e.kind === 'bullet' ? 0.5 : 0.7 });
     }
   });
+  // ---- pedestrian vocalisations (non-verbal / generic), rate-limited, 3D, quieter than guns & engines ----
+  const pedVoiceT = [];
+  const PV = {
+    greet: { friendly: ['hum', 'laugh', 'hey'], default: ['hum', 'hum', 'hey'] },
+    apologise: { default: ['hum', 'gasp', 'oof'] },
+    insult: { default: ['grunt_annoyed', 'hey', 'shout'] },
+    argue: { default: ['shout', 'shout', 'grunt_annoyed', 'hey'] },
+    scream: { default: ['scream'] },
+    drunk: { default: ['drunk', 'drunk', 'laugh', 'mumble'] },
+    mumble: { default: ['mumble'] }, laugh: { default: ['laugh'] }, gasp: { default: ['gasp'] }, shove: { default: ['oof', 'grunt_annoyed'] },
+  };
+  const LOUD = { shout: 0.62, scream: 0.7, hey: 0.5, laugh: 0.45, gasp: 0.42, oof: 0.45, grunt_annoyed: 0.42, drunk: 0.45, hum: 0.32, mumble: 0.32 };
+  function pedVoice(e) {
+    if (!ctx || !e) return;
+    const p = e.position || e.ped?.position || e.ped?.pos; if (!p || !Number.isFinite(p.x + p.z)) return;
+    const c = game.camera?.position; const d = c ? Math.hypot(p.x - c.x, p.z - c.z) : 0;
+    if (d > 45) return;
+    const now = ctx.currentTime;
+    while (pedVoiceT.length && now - pedVoiceT[0] > 1) pedVoiceT.shift();
+    if (pedVoiceT.length >= 2 && e.kind !== 'scream') return; // max ~2 voices per second nearby
+    const fem = /^f/i.test(String(e.gender || '')) || e.female === true;
+    const pers = String(e.personality || '');
+    const tbl = PV[e.kind] || PV.mumble;
+    let list = tbl[/friend|cheer|happy|kind/.test(pers) ? 'friendly' : 'default'] || tbl.default;
+    if (/rude|aggress|angry|grump|tough/.test(pers) && e.kind === 'greet') list = ['grunt_annoyed', 'hum'];
+    const base = list[Math.floor(Math.random() * list.length)];
+    const key = base === 'scream' ? (fem ? 'scream_female' : 'scream_male') : `${base}_${fem ? 'female' : 'male'}`;
+    const cat = base === 'scream' ? 'combat' : 'voices';
+    if (!hasKey(cat, key)) { bank(cat); return; }
+    pedVoiceT.push(now);
+    // stable per-voice pitch so the same ped sounds consistent
+    const vid = String(e.voice ?? e.ped?.id ?? ''); let h = 0; for (let i = 0; i < vid.length; i++) h = (h * 31 + vid.charCodeAt(i)) | 0;
+    const rate = vid ? 0.93 + ((Math.abs(h) % 1000) / 1000) * 0.14 : rnd(0.95, 1.05);
+    const dst = out({ position: { x: p.x, y: (p.y || 0) + 1.6, z: p.z }, volume: (LOUD[base] || 0.4) * (e.volume ?? 1), ref: 2.5, rolloff: 1.4, room: 0.25 });
+    real(dst, now + 0.01, cat, key, { rate });
+  }
+  game.on?.('pedVoice', pedVoice);
+  game.on?.('pedShove', (e) => {
+    const p = e?.position || e?.victim?.position || e?.target?.position; if (!p) return;
+    play('punch_body', { position: { x: p.x, y: (p.y || 0) + 1.1, z: p.z }, volume: 0.22 });
+    play('cloth_move', { position: { x: p.x, y: (p.y || 0) + 1.1, z: p.z }, volume: 0.4 });
+    pedVoice({ kind: 'shove', position: p, gender: e?.gender ?? e?.victimGender, voice: e?.voice });
+  });
+  // ---- venue ambience requests (INTERIORS): audio.venue(id, kind, position|null, on) or game event 'venueAmbience' ----
+  const VENUE_BED = { kitchen: 'bed_kitchen', restaurant: 'bed_kitchen', cafe: 'bed_cafe', coffee: 'bed_cafe', espresso: 'bed_cafe', bar: 'bed_bar_chatter', club: 'bed_bar_chatter', store: 'bed_store', shop: 'bed_store', market: 'bed_store', fridge: 'fridge_hum' };
+  const venueSrc = new Map();
+  function venue(id, kind, position, on = true, gain = 1) {
+    if (!ctx) return;
+    const cur = venueSrc.get(id);
+    if (!on) { if (cur) { venueSrc.delete(id); cur.g.gain.setTargetAtTime(0, ctx.currentTime, 0.4); setTimeout(() => { try { cur.src.stop(); cur.g.disconnect(); } catch (e) { /* */ } }, 2000); } return; }
+    const key = VENUE_BED[String(kind).toLowerCase()] || String(kind);
+    if (cur && cur.key === key) { if (position && cur.pan) setPos(cur.pan, position); cur.g.gain.setTargetAtTime(0.4 * gain * cur.k, ctx.currentTime, 0.4); return; }
+    if (cur) venue(id, null, null, false);
+    if (BANK.venues?.idx && !hasKey('venues', key)) return;
+    const v = getVar('venues', key);
+    if (!v) { bank('venues').p.then(() => getVar('venues', key)); setTimeout(() => venue(id, kind, position, on, gain), 800); return; }
+    const src = ctx.createBufferSource(); src.buffer = v.buf; src.loop = true;
+    const g = ctx.createGain(); g.gain.value = 0; src.connect(g);
+    let pan = null;
+    if (position) { pan = panner(4, 1.3, 120); setPos(pan, position); g.connect(pan).connect(ambBus); } else g.connect(ambBus);
+    src.start(ctx.currentTime, Math.random() * v.buf.duration);
+    const k = (v.e.gain ?? 1);
+    g.gain.setTargetAtTime(0.4 * gain * k, ctx.currentTime, 0.4);
+    venueSrc.set(id, { src, g, pan, key, k });
+  }
+  game.on?.('venueAmbience', (e) => e && venue(e.id ?? e.kind, e.kind, e.position || null, e.on !== false, e.gain ?? 1));
   game.on?.('land', (e) => { const p = e?.position || game.player?.position; if (p) play('land', { position: { x: p.x, y: (p.y || 0) + 0.05, z: p.z }, surface: e?.surface, volume: Math.min(1, 0.5 + (e?.speed || 4) / 12) }); });
   game.on?.('bodyfall', (e) => { const p = e?.position; if (p) play('bodyfall', { position: { x: p.x, y: (p.y || 0) + 0.1, z: p.z }, surface: e?.surface, volume: 0.9 }); });
   game.on?.('engineStart', (e) => engineOneShot(e?.vehicle || e, 'start'));
@@ -1152,15 +1221,23 @@ export function createAudio(game) {
       if (night) { if (mix.bed_downtown) mix.bed_downtown *= bedState.zone === 'nightlife' ? 0.9 : 0.6; if (mix.bed_crowd && bedState.zone !== 'nightlife') mix.bed_crowd *= 0.3; }
       let sea = -0.12; try { sea = game.city?.seaLevel ?? sea; } catch (e) { /* */ }
       if (game.camera && game.camera.position.y < sea - 0.2) { for (const k in mix) mix[k] *= 0.06; mix.bed_underwater = 1; }
-      if (indoor) { for (const k in mix) mix[k] *= 0.12; mix.bed_interior_shop = 0.9; }
+      if (indoor) {
+        for (const k in mix) mix[k] *= 0.12;
+        let ty = ''; try { const sh = (game.interiors?.list || []).find((x) => x.isInside?.(game.player?.position)); ty = String(sh?.type || sh?.kind || sh?.name || ''); } catch (e) { /* */ }
+        const vb = /cafe|coffee|bakery/i.test(ty) ? 'venues:bed_cafe' : /restaurant|diner|kitchen|food|pizza|taco|burger|grill/i.test(ty) ? 'venues:bed_kitchen'
+          : /bar|club|lounge|pub|cantina/i.test(ty) ? 'venues:bed_bar_chatter' : /store|market|grocery|convenience|liquor|gas|pharm|shop/i.test(ty) ? 'venues:bed_store' : null;
+        mix.bed_interior_shop = vb ? 0.35 : 0.9;
+        if (vb) mix[vb] = vb.endsWith('kitchen') ? 0.55 : 0.9;
+      }
       bedState.mix = mix;
     }
     const idx = BANK.ambience.idx;
     for (const k of new Set([...Object.keys(bedState.mix), ...beds.keys()])) {
       const want = muted ? 0 : (bedState.mix[k] || 0);
       let b = beds.get(k);
-      if (!b && want > 0.02 && idx[k]) {
-        const v = getVar('ambience', k);
+      const [bc, bk] = k.includes(':') ? k.split(':') : ['ambience', k];
+      if (!b && want > 0.02 && (bc === 'ambience' ? idx[k] : (bank(bc), hasKey(bc, bk)))) {
+        const v = getVar(bc, bk);
         if (v) {
           const src = ctx.createBufferSource(); src.buffer = v.buf; src.loop = true;
           const g = ctx.createGain(); g.gain.value = 0;
@@ -1395,6 +1472,7 @@ export function createAudio(game) {
       return o;
     },
     stations: STATIONS.map((s) => ({ id: s.id, name: s.name })),
+    venue, pedVoice,
     setStation(i) { radio.idx = i; if (i >= 0) renderStation(STATIONS[i]); },
     get debug() { return { nan: { ...NANLOG }, music: [...musicSrc].map(([k, m]) => ({ id: k, station: m.station, gain: +m.g.gain.value.toFixed(3) })), radio: radio.idx, deathFx: deathFx.state, muted: MUTED, banks: Object.fromEntries(Object.entries(BANK).map(([c, b]) => [c, { keys: b.idx ? Object.keys(b.idx).length : 0, decoded: [...b.buf.values()].filter(Boolean).length }])), beds: Object.fromEntries([...beds].map(([k, b]) => [k, +b.g.gain.value.toFixed(3)])), zone: bedState.zone, ir: roomState.ir, sirens: [...sirens.values()].map((x) => ({ mode: x.mode, real: x.real })), samples: Object.keys(BUF), engines: [...voices.values()].map((v) => ({ kind: v.kind, src: v.src, dop: +(v.dop || 1).toFixed(3) })), voices: [...voices.values()].map((v) => ({ kind: v.kind, player: v.isPlayer, rpm: Math.round(v.rpm), gear: v.gear, layers: v.layers.length, squeal: +v.squeal.amt.toFixed(2) })) }; },
     play,

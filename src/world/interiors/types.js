@@ -98,7 +98,7 @@ const OSM = {
   hairdresser: 'barber', barber: 'barber', jewelry: 'jewelry', watches: 'jewelry', weapons: 'guns', pawnbroker: 'pawn', second_hand: 'pawn', car_parts: 'auto', tyres: 'auto',
   sports: 'sport', outdoor: 'sport', fishing: 'sport', bicycle: 'sport', liquor: 'liquor', salon: 'salon', hair: 'salon', nail_salon: 'salon', massage: 'salon', tattoo: 'barber',
   hardware: 'hardware', doityourself: 'hardware', locksmith: 'hardware', paint: 'hardware', trade: 'hardware', construction: 'hardware', lighting: 'hardware',
-  fast_food: 'fastfood', confectionery: 'icecream', hotel: 'restaurant', gym: 'sport', fitness_centre: 'sport', clinic: 'pharmacy', doctors: 'pharmacy', optician: 'beauty',
+  confectionery: 'icecream', hotel: 'restaurant', gym: 'sport', fitness_centre: 'sport', clinic: 'pharmacy', doctors: 'pharmacy', optician: 'beauty',
   theatre: 'bar', cinema: 'bar', car: 'auto', car_rental: 'auto', car_repair: 'auto', motorcycle: 'auto', fuel: 'convenience', smoke: 'convenience', tobacco: 'convenience',
   furniture: 'pawn', interior_decoration: 'souvenir', florist: 'souvenir', travel_agency: 'bank', stationery: 'souvenir', copyshop: 'electronics', storage_rental: 'pawn',
   general: 'bodega', mall: 'clothing', charity: 'pawn', cannabis: 'convenience', erotic: 'convenience', frame: 'souvenir', bed: 'pawn', photo: 'electronics', tailor: 'clothing',

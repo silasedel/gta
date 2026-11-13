@@ -23,8 +23,11 @@ const M = {
 };
 M.atmScreen.emissiveMap = M.atmScreen.map; M.vendFront.emissiveMap = M.vendFront.map; M.sign.emissiveMap = M.sign.map;
 
-function bx(w, h, d, mat, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
-function buildProp(type) {
+const _bxCache = new Map();
+function bx(w, h, d, mat, x, y, z) { const k = w + ',' + h + ',' + d; let geo = _bxCache.get(k); if (!geo) { geo = new THREE.BoxGeometry(w, h, d); _bxCache.set(k, geo); } const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
+const _propProto = new Map();
+function buildProp(type) { let p = _propProto.get(type); if (!p) { p = buildPropRaw(type); _propProto.set(type, p); } return p.clone(); }
+function buildPropRaw(type) {
   const g = new THREE.Group();
   if (type === 'atm') {
     g.add(bx(0.8, 1.6, 0.6, M.atmBody, 0, 0.8, 0));

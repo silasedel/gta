@@ -168,6 +168,44 @@ async function boot() {
     P.swimming = swim; P.waterDepth = L.depth;
     if (!swim) L.dive = 0;
     P.headUnderwater = swim && (L.dive || 0) > 0.35;
+    // ---- climb out of the water onto docks / seawalls / ledges (mantle) ----
+    if (L.mantle) {
+      const m = L.mantle; m.t += dt / 0.6;
+      const k = Math.min(1, m.t), e = k * k * (3 - 2 * k);
+      const mx = m.fx + (m.tx - m.fx) * e, mz = m.fz + (m.tz - m.fz) * e;
+      const my = m.fy + (m.ty - m.fy) * Math.min(1, e * 1.7) + Math.sin(Math.PI * e) * 0.2;
+      pBody.setNextKinematicTranslation({ x: mx, y: my, z: mz }); P.position.set(mx, my - CENTER, mz);
+      st.speed = 0; P.velocity.set(0, 0, 0);
+      if (k >= 1) { L.mantle = null; L.swimming = false; P.swimming = false; P.headUnderwater = false; L.dive = 0; vy = 0; moveSpeed = 0; st.grounded = true; }
+      return;
+    }
+    L.mantleCheck = (L.mantleCheck || 0) - dt;
+    if ((swim || L.depth > 0.45) && hasInput && !blocked && L.mantleCheck <= 0) {
+      L.mantleCheck = 0.12;
+      const dx = moveDir.x, dz = moveDir.z;
+      // something solid right in front of us at water level?
+      // probe at chest height (seawalls/docks) and knee height (sloped banks, low shore lips under the swimmer's legs)
+      let wall = null;
+      for (const fy of [Math.max(t0.y, SEA + 0.2), SEA - 0.55, SEA - 0.95]) {
+        wall = world.castRay(new RAPIER.Ray({ x: t0.x, y: fy, z: t0.z }, { x: dx, y: 0, z: dz }), CAP_R + 0.9, true, STATIC_ONLY, undefined, pCol);
+        if (wall) break;
+      }
+      if (!wall && (L.blockT || 0) > 0.25) wall = { timeOfImpact: CAP_R + 0.2 };   // blocked by something the rays missed: try climbing anyway
+      if (wall) {
+        const reach = wall.timeOfImpact + 0.55;
+        const px = t0.x + dx * reach, pz = t0.z + dz * reach;
+        const top = world.castRay(new RAPIER.Ray({ x: px, y: SEA + 3.0, z: pz }, { x: 0, y: -1, z: 0 }), 3.6, true, STATIC_ONLY, undefined, pCol);
+        if (top) {
+          const ty = SEA + 3.0 - top.timeOfImpact;
+          if (ty > SEA - 0.1 && ty < SEA + 2.3 && !(game.city?.isWater?.(px, pz) && ty < SEA + 0.05) && spotFree(px, ty, pz)) {
+            L.mantle = { t: 0, fx: t0.x, fy: t0.y, fz: t0.z, tx: px, ty: ty + CENTER + 0.03, tz: pz };
+            P.heading = Math.atan2(dx, dz);
+            try { audio.play?.('splash', { position: { x: t0.x, y: SEA, z: t0.z }, volume: 0.35 }); } catch (e) {}
+            return;
+          }
+        }
+      }
+    }
     const sprintKey = inp.down('ShiftLeft');
     st.sprint = hasInput && sprintKey && !swim;
     const walk = inp.down('AltLeft') || inp.down('ControlLeft');
@@ -207,7 +245,14 @@ async function boot() {
       // dive: hold C / Ctrl to go down, Space to come up (breath drains while the head is under)
       const diveIn = !blocked && (inp.down('KeyC') || inp.down('ControlLeft')), upIn = !blocked && inp.down('Space');
       const maxDive = Math.max(0, (SEA - L.groundY) - 2.2);
-      L.dive = Math.min(maxDive, Math.max(0, (L.dive || 0) + (diveIn ? 1.6 : upIn ? -2.4 : -0.9) * dt));
+      // camera-directed swimming: looking down while swimming forward dives, looking up rises
+      const pitchDown = Math.max(-1, Math.min(1, (game.cameraPitch - 0.3) / 0.6));   // + = camera looking down
+      const fwdIn = !blocked && inp.down('KeyW') ? 1 : 0;
+      let dv = diveIn ? 1.8 : upIn ? -2.6 : 0;
+      if (!diveIn && !upIn && fwdIn) dv = pitchDown > 0.15 ? 1.9 * pitchDown : pitchDown < -0.15 ? 2.2 * pitchDown : ((L.dive || 0) > 0.3 ? 0 : -0.9);
+      if (!diveIn && !upIn && !fwdIn) dv = (L.dive || 0) > 0.3 ? -0.35 : -0.9;    // gently float up when idle underwater
+      L.dive = Math.min(maxDive, Math.max(0, (L.dive || 0) + dv * dt));
+      if (!L.swimHintShown) { L.swimHintShown = true; try { game.hud?.notify?.('Swimming: look down + W or hold C to dive · Space to surface · swim into a dock or wall to climb out', 6000); } catch (e) {} }
       const targetY = Math.max(L.groundY + 0.4, SEA - 1.25 - L.dive + (L.dive > 0.05 ? 0 : bob)) + CENTER;
       const wantVy = Math.max(-3, Math.min(2, (targetY - t0.y) * 3));
       vy += (wantVy - vy) * Math.min(1, dt * 4);
@@ -319,8 +364,14 @@ async function boot() {
   let solverSweepT = 0;
   function sweepKinematicSolver() {
     // collect first, mutate after: touching colliders inside a world callback triggers Rapier's "recursive use" error
+    // Vehicles are excluded: kinematic (lane-following) traffic must keep solid contacts with other cars.
+    const carBodies = new Set();
+    for (const v of game.vehicles?.list || []) { try { if (v.body) carBodies.add(v.body.handle); } catch (e) {} }
     const kin = [];
-    world.forEachRigidBody((b) => { if (b.isKinematic()) kin.push(b); });
+    world.forEachRigidBody((b) => { if (b.isKinematic() && !carBodies.has(b.handle) && !b.userData?.vehicle) kin.push(b); });
+    for (const v of game.vehicles?.list || []) {
+      try { const b = v.body; for (let i = 0, n = b.numColliders(); i < n; i++) { const c = b.collider(i); if (c && c.solverGroups() === 0) c.setSolverGroups(0xffffffff); } } catch (e) {}
+    }
     for (const b of kin) {
       for (let i = 0, n = b.numColliders(); i < n; i++) { const c = b.collider(i); if (c && c.solverGroups() !== 0) c.setSolverGroups(0); }
     }
@@ -413,6 +464,7 @@ async function boot() {
   const camLook = new THREE.Vector3();
   let camDist = 4.2, camInit = false, colDist = 4.2, camDriving = null;
   const raydir = new THREE.Vector3();
+  const camSphere = new RAPIER.Ball(0.24);
   const pivS = new THREE.Vector3();
   function updateCamera(dt) {
     if (!Number.isFinite(L.speedF)) L.speedF = 0;
@@ -465,7 +517,13 @@ async function boot() {
     const piv = new THREE.Vector3(pivot.x + rightX * sideOff, pivot.y, pivot.z + rightZ * sideOff);
     camDist += (wantDist - camDist) * Math.min(1, dt * 3);
     // camera collision: static world only (peds/vehicles/player never snap the camera)
-    const hit = world.castRay(new RAPIER.Ray(piv, raydir), camDist + 0.3, true, STATIC_ONLY);
+    // Sweep a small sphere (≈ the near plane's half-width) instead of a thin ray, so the camera can't slip
+    // past the edges of poles, posts, signs and wall corners and show their insides.
+    let hit = world.castRay(new RAPIER.Ray(piv, raydir), camDist + 0.3, true, STATIC_ONLY);
+    try {
+      const sh = world.castShape(piv, IDQ, raydir, camSphere, 0, camDist + 0.3, false, STATIC_ONLY);
+      if (sh && Number.isFinite(sh.time_of_impact) && (!hit || sh.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sh.time_of_impact };
+    } catch (e) { /* keep ray result */ }
     const wantD = hit ? Math.max(0.6, hit.timeOfImpact - 0.3) : camDist;
     if (wantD < colDist) colDist = wantD; else colDist += (wantD - colDist) * Math.min(1, dt * 2.5);
     const target = piv.clone().addScaledVector(raydir, colDist);
@@ -559,6 +617,9 @@ async function boot() {
     }
   }
   game.updaters.push(perfTick);
+  // diagnostics for freeze reports: GPU context loss and physics halts are recorded in game.perf
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); (game.perf.events ||= []).push({ t: game.clock.elapsed, ev: 'contextlost' }); console.error('[gpu] WebGL context lost'); });
+  canvas.addEventListener('webglcontextrestored', () => { (game.perf.events ||= []).push({ t: game.clock.elapsed, ev: 'contextrestored' }); });
   // ---- breath / drowning ----
   P.breath = 100;
   const breathEl = document.createElement('div');
@@ -597,6 +658,17 @@ async function boot() {
     if (game.ui.weaponWheel && !game.input.down('Tab')) { unstuck.wheelT += dt; if (unstuck.wheelT > 0.5) { try { game.hud?.closeWeaponWheel?.(); } catch (e) {} game.ui.weaponWheel = false; unstuck.wheelT = 0; } } else unstuck.wheelT = 0;
     if (st.inVehicle || game.ui.dead || P.swimming || !pCol.isEnabled()) { unstuck.t = 0; return; }
     const t = pBody.translation();
+    // fell through a hole in the ground? (on land, well below where the ground should be) -> put back on top
+    const c = game.city;
+    if (c?.groundHeightAt && c.isWater && !c.isWater(t.x, t.z) && !L.mantle) {
+      const gh = c.groundHeightAt(t.x, t.z, t.y + 30);
+      if (Number.isFinite(gh) && t.y - CENTER < gh - 1.5) {
+        pBody.setTranslation({ x: t.x, y: gh + CENTER + 0.25, z: t.z }, true);
+        P.position.set(t.x, gh, t.z); vy = 0; knock.set(0, 0, 0);
+        console.warn('[player] fell below ground, restored at', t.x.toFixed(1), t.z.toFixed(1));
+        unstuck.t = 0; return;
+      }
+    }
     let hit = null;
     try { hit = world.intersectionWithShape({ x: t.x, y: t.y + 0.03, z: t.z }, IDQ, coreShape, QF.EXCLUDE_SENSORS, undefined, pCol, undefined, (c) => { const b = c.parent(); return !b || !b.isDynamic() || true; }); } catch (e) { hit = null; }
     if (!hit) { unstuck.t = 0; return; }

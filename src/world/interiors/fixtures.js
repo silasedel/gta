@@ -204,6 +204,7 @@ function garment(ctx, x, y, z, ry, ci, dress, sc = 1) {
   if (dress) ctx.B.add(m, DRESS_G, x, y - 0.52 * sc, z, ry, 0, 0, sc, sc, sc);
   else ctx.B.add(m, SLEEVE_G, x, y - 0.38 * sc, z, ry, 0, 0, 0.44 * sc, 0.68 * sc, 0.035 * sc);
 }
+const hx = (c) => '#' + (c >>> 0).toString(16).padStart(6, '0');
 // ---------- builders ----------
 const BUILD = {
   clerkzone(ctx, f) { ctx.B.box(mats().mat, f.x, 0.005, f.z, f.sx * 0.9, 0.01, f.sz * 0.9); },
@@ -211,9 +212,10 @@ const BUILD = {
     const M = mats(); const along = f.axis === 'x' ? 'x' : 'z'; const len = along === 'z' ? f.sz : f.sx; const h = f.k === 'gondola-short' ? 1.35 : 1.75;
     const levels = h > 1.5 ? [0.12, 0.55, 0.98, 1.41] : [0.12, 0.55, 0.98];
     const fr = frame({ ...f, face: along === 'z' ? '+x' : '+z' });
-    fbox(ctx, fr, M.shelf, 0, 0, h / 2, len, h, 0.1); fbox(ctx, fr, M.dark, 0, 0, 0.06, len, 0.12, 0.9);
-    for (const y of levels) fbox(ctx, fr, M.shelf, 0, 0, y, len, 0.035, 0.88);
-    for (const s of [-1, 1]) { fbox(ctx, fr, M.shelf, s * len / 2, 0, h / 2, 0.04, h, 0.9); for (const y of levels) { const p = fr.pt(0, s * 0.45); ctx.B.box(M.white, p.x, y + 0.02, p.z, along === 'x' ? len : 0.01, 0.035, along === 'x' ? 0.01 : len); } }
+    fbox(ctx, fr, (ctx.shelfMat || M.shelf), 0, 0, h / 2, len, h, 0.1); fbox(ctx, fr, ctx.shelfTrim || M.dark, 0, 0, 0.06, len, 0.12, 0.9);
+    if (ctx.shelfTrim) fbox(ctx, fr, ctx.shelfTrim, 0, 0, h + 0.05, len + 0.04, 0.1, 0.14);
+    for (const y of levels) fbox(ctx, fr, (ctx.shelfMat || M.shelf), 0, 0, y, len, 0.035, 0.88);
+    for (const s of [-1, 1]) { fbox(ctx, fr, (ctx.shelfMat || M.shelf), s * len / 2, 0, h / 2, 0.04, h, 0.9); for (const y of levels) { const p = fr.pt(0, s * 0.45); ctx.B.box(M.white, p.x, y + 0.02, p.z, along === 'x' ? len : 0.01, 0.035, along === 'x' ? 0.01 : len); } }
     const mix = f.mix || ctx.type;
     for (const flip of [false, true]) shelfStack(ctx, fr, -len / 2, len / 2, 0.28, levels, mix, { flip, maxH: 0.38 });
     col(ctx, f.x, h / 2, f.z, f.sx, h, f.sz);
@@ -223,9 +225,10 @@ const BUILD = {
   },
   wallshelf(ctx, f) {
     const M = mats(); const fr = frame(f); const h = f.h || 2.0; const levels = h > 2.1 ? [0.1, 0.5, 0.9, 1.3, 1.7, 2.05] : [0.1, 0.5, 0.9, 1.3, 1.7];
-    fbox(ctx, fr, M.shelf, 0, -fr.dep / 2 + 0.03, h / 2, fr.len, h, 0.05);
-    for (const y of levels) fbox(ctx, fr, M.shelf, 0, 0, y, fr.len, 0.03, fr.dep);
-    fbox(ctx, fr, M.dark, 0, 0, 0.05, fr.len, 0.1, fr.dep);
+    fbox(ctx, fr, (ctx.shelfMat || M.shelf), 0, -fr.dep / 2 + 0.03, h / 2, fr.len, h, 0.05);
+    for (const y of levels) fbox(ctx, fr, (ctx.shelfMat || M.shelf), 0, 0, y, fr.len, 0.03, fr.dep);
+    fbox(ctx, fr, ctx.shelfTrim || M.dark, 0, 0, 0.05, fr.len, 0.1, fr.dep);
+    if (ctx.shelfTrim) fbox(ctx, fr, ctx.shelfTrim, 0, -fr.dep / 2 + 0.06, h + 0.08, fr.len, 0.16, 0.1);
     shelfStack(ctx, fr, -fr.len / 2, fr.len / 2, 0.02, levels, f.mix || ctx.type, { maxH: 0.36 });
     col(ctx, f.x, h / 2, f.z, f.sx, h, f.sz); spotsAlong(ctx, fr, fr.dep / 2 + 0.6, Math.max(1, Math.round(fr.len / 3)));
   },
@@ -408,7 +411,7 @@ const BUILD = {
   dinercounter(ctx, f) {
     const M = mats(); const fr = frame(f); const len = fr.len;
     fbox(ctx, fr, ctx.trimMat, 0, 0, 0.55, len, 1.1, fr.dep); fbox(ctx, fr, M.counterTop, 0, 0, 1.12, len + 0.1, 0.06, fr.dep + 0.12); fbox(ctx, fr, M.chrome, 0, fr.dep / 2 + 0.02, 0.15, len, 0.04, 0.04);
-    for (let t = -len / 2 + 0.4; t < len / 2 - 0.3; t += 0.75) { const s = fr.pt(t, fr.dep / 2 + 0.45); ctx.B.add(M.chrome, new THREE.CylinderGeometry(0.04, 0.04, 0.7, 6), s.x, 0.35, s.z); ctx.B.add(ctx.vinylMat, new THREE.CylinderGeometry(0.21, 0.21, 0.1, 12), s.x, 0.75, s.z); ctx.seats.push({ x: s.x, z: s.z + 0, ry: fr.ry + Math.PI, stool: true }); const pl = fr.pt(t, 0.15); ctx.batch.add(ctx.R() < 0.5 ? 'plate' : 'mug', Math.floor(ctx.R() * 3), pl.x, 1.15 + ctx.FY, pl.z, 0); }
+    for (let t = -len / 2 + 0.4; t < len / 2 - 0.3; t += 0.75) { const s = fr.pt(t, fr.dep / 2 + 0.45); const si = ctx.prop('stool', ctx.theme?.stool || 'chromeVinyl', s.x, s.z, fr.ry + Math.PI, { seat: hx(ctx.pal.fabric), frame: '#c8ccd0', h: 0.76 }); ctx.seats.push({ x: s.x, z: s.z, ry: fr.ry + Math.PI, stool: true, prop: si }); const pl = fr.pt(t, 0.15); ctx.batch.add(ctx.foodPick(), Math.floor(ctx.R() * 4), pl.x, 1.15 + ctx.FY, pl.z, fr.ry + Math.PI); }
     BUILD.kitchenWall(ctx, fr, len);
     col(ctx, f.x, 0.6, f.z, f.sx, 1.2, f.sz); const s = fr.pt(len / 2 - 0.5, fr.dep / 2 + 1.0); ctx.addItem(s.x, s.z, 'counter'); ctx.poi(s.x, s.z, fr.ry + Math.PI, 'pay');
   },
@@ -425,7 +428,7 @@ const BUILD = {
     const M = mats(); const fr = frame(f); const len = fr.len;
     fbox(ctx, fr, M.darkwood, 0, 0, 0.55, len, 1.1, fr.dep); fbox(ctx, fr, M.counterTop, 0, 0.05, 1.12, len + 0.1, 0.06, fr.dep + 0.2); fbox(ctx, fr, M.brass, 0, fr.dep / 2 + 0.08, 0.2, len, 0.04, 0.04);
     fbox(ctx, fr, M.strip, 0, fr.dep / 2 + 0.01, 1.06, len, 0.02, 0.02);
-    for (let t = -len / 2 + 0.4; t < len / 2 - 0.3; t += 0.7) { const s = fr.pt(t, fr.dep / 2 + 0.5); ctx.B.add(M.chrome, new THREE.CylinderGeometry(0.03, 0.05, 0.75, 6), s.x, 0.37, s.z); ctx.B.add(M.leather, new THREE.CylinderGeometry(0.19, 0.19, 0.08, 10), s.x, 0.79, s.z); ctx.seats.push({ x: s.x, z: s.z, ry: fr.ry + Math.PI, stool: true }); if (ctx.R() < 0.4) { const g = fr.pt(t, 0.25); ctx.batch.add('glassware', 0, g.x, 1.15 + ctx.FY, g.z, 0, 0.5); } }
+    for (let t = -len / 2 + 0.4; t < len / 2 - 0.3; t += 0.7) { const s = fr.pt(t, fr.dep / 2 + 0.5); const si = ctx.prop('stool', ctx.theme?.stool || 'metal', s.x, s.z, fr.ry + Math.PI, { seat: hx(ctx.pal.fabric), frame: hx(ctx.pal.frame), h: 0.76 }); ctx.seats.push({ x: s.x, z: s.z, ry: fr.ry + Math.PI, stool: true, prop: si }); if (ctx.R() < 0.5) { const g = fr.pt(t, 0.25); ctx.batch.add(ctx.foodPick(), Math.floor(ctx.R() * 4), g.x, 1.15 + ctx.FY, g.z, fr.ry + Math.PI); } }
     // bar back: shelves of lit bottles + mirror against the wall
     const bbD = -fr.dep / 2 - 1.05; const wl = Math.min(len, f.small ? len : len);
     fbox(ctx, fr, M.mirror, 0, bbD - 0.12, 1.7, wl, 1.0, 0.02);
@@ -452,18 +455,19 @@ const BUILD = {
   },
   table2(ctx, f) { BUILD.table4(ctx, f, 2); },
   table4(ctx, f, n = 4) {
-    const M = mats(); const tw = n === 4 ? 1.0 : 0.7; const hi = f.high; const th = hi ? 1.05 : 0.75;
-    ctx.B.box(ctx.tableMat, f.x, th, f.z, tw, 0.04, tw); ctx.B.add(M.dark, new THREE.CylinderGeometry(0.04, 0.04, th, 6), f.x, th / 2, f.z); ctx.B.add(M.dark, new THREE.CylinderGeometry(0.25, 0.25, 0.03, 10), f.x, 0.015, f.z);
+    const hi = f.high; const th = hi ? 1.05 : 0.75; const tw = n === 4 ? 1.0 : 0.7; const T = ctx.theme; const P = ctx.pal;
+    const tstyle = hi ? 'round' : (T?.table || (n === 4 ? 'square' : 'round'));
+    ctx.prop('table', tstyle, f.x, f.z, 0, { top: hx(P.top), frame: hx(P.frame), cloth: '#f4f1ea', w: tw, d: tw, h: th });
     const seats = n === 4 ? [[0, -1], [0, 1], [-1, 0], [1, 0]] : [[0, -1], [0, 1]];
     for (const [a, b] of seats) {
-      const cx = f.x + a * (tw / 2 + 0.3), cz = f.z + b * (tw / 2 + 0.3);
-      if (hi) { ctx.B.add(M.chrome, new THREE.CylinderGeometry(0.03, 0.05, 0.75, 6), cx, 0.37, cz); ctx.B.add(M.leather, new THREE.CylinderGeometry(0.18, 0.18, 0.07, 10), cx, 0.78, cz); }
-      else { ctx.B.box(ctx.chairMat, cx, 0.45, cz, 0.42, 0.05, 0.42); ctx.B.box(ctx.chairMat, cx + a * 0.19, 0.7, cz + b * 0.19, a ? 0.04 : 0.42, 0.5, b ? 0.04 : 0.42); for (const [u, v] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.B.box(M.dark, cx + u * 0.18, 0.22, cz + v * 0.18, 0.03, 0.45, 0.03); }
-      const pl = { x: f.x + a * tw * 0.28, z: f.z + b * tw * 0.28 }; if (ctx.R() < 0.6) ctx.batch.add(ctx.type === 'cafe' || ctx.type === 'icecream' ? 'mug' : ctx.type === 'bar' || ctx.type === 'club' ? 'glassware' : 'plate', Math.floor(ctx.R() * 3), pl.x, th + 0.02 + ctx.FY, pl.z, 0, ctx.type === 'bar' ? 0.4 : 1);
+      const cx = f.x + a * (tw / 2 + 0.32), cz = f.z + b * (tw / 2 + 0.32), ry = Math.atan2(-a, -b);
+      const i = hi ? ctx.prop('stool', T?.stool || 'metal', cx, cz, ry, { seat: hx(P.fabric), frame: hx(P.frame), h: 0.76 })
+        : ctx.prop('chair', T?.chair || 'wood', cx, cz, ry, { seat: hx(P.fabric), frame: hx(P.frame), back: hx(P.fabric) });
+      ctx.seats.push({ x: cx, z: cz, ry, prop: i, stool: !!hi });
+      if (ctx.R() < 0.75) { const pl = { x: f.x + a * tw * 0.27, z: f.z + b * tw * 0.27 }; const fk = ctx.foodPick(); ctx.batch.add(fk, Math.floor(ctx.R() * 4), pl.x, th + 0.02 + ctx.FY, pl.z, ry); }
     }
-    if (ctx.type === 'restaurant') ctx.batch.add('napkin', 0, f.x, th + 0.02 + ctx.FY, f.z, 0);
+    if (ctx.type === 'restaurant') ctx.batch.add('napkin', 0, f.x + 0.12, th + 0.02 + ctx.FY, f.z + 0.1, 0);
     else if (ctx.type === 'cafe') ctx.batch.add('menu', 0, f.x, th + 0.02 + ctx.FY, f.z, ctx.R());
-    col(ctx, f.x, th / 2, f.z, tw, th, tw);
   },
   booth(ctx, f) {
     const M = mats(); const left = f.face === '+x'; const bx = f.x; const s = left ? 1 : -1;
@@ -473,7 +477,7 @@ const BUILD = {
     col(ctx, f.x, 0.5, f.z, f.sx, 1.0, f.sz);
   },
   lounge(ctx, f) { const M = mats(); const s = f.face === '+x' ? 1 : -1; ctx.B.box(M.vinylDark, f.x - s * 0.45, 0.25, f.z, 0.7, 0.5, f.sz); ctx.B.box(M.vinylDark, f.x - s * 0.75, 0.75, f.z, 0.2, 0.7, f.sz); ctx.B.box(M.black, f.x + s * 0.4, 0.22, f.z, 0.6, 0.44, 0.9); ctx.batch.add('barbottle', 2, f.x + s * 0.4, 0.44 + ctx.FY, f.z, 0); ctx.batch.add('glassware', 0, f.x + s * 0.4, 0.44 + ctx.FY, f.z + 0.25, 0, 0.5); col(ctx, f.x, 0.4, f.z, f.sx, 0.8, f.sz); },
-  windowbar(ctx, f) { const M = mats(); ctx.B.box(M.darkwood, f.x, 1.05, f.z, f.sx, 0.05, f.sz); for (let x = f.x - f.sx / 2 + 0.4; x < f.x + f.sx / 2 - 0.2; x += 0.8) { ctx.B.add(M.chrome, new THREE.CylinderGeometry(0.03, 0.05, 0.75, 6), x, 0.37, f.z - 0.6); ctx.B.add(M.leather, new THREE.CylinderGeometry(0.18, 0.18, 0.07, 10), x, 0.78, f.z - 0.6); } for (const e of [-1, 1]) ctx.B.box(M.dark, f.x + e * (f.sx / 2 - 0.05), 0.52, f.z, 0.05, 1.05, 0.05); col(ctx, f.x, 0.55, f.z, f.sx, 1.1, f.sz); },
+  windowbar(ctx, f) { const M = mats(); ctx.B.box(M.darkwood, f.x, 1.05, f.z, f.sx, 0.05, f.sz); for (let x = f.x - f.sx / 2 + 0.4; x < f.x + f.sx / 2 - 0.2; x += 0.8) { const si = ctx.prop('stool', ctx.theme?.stool || 'metal', x, f.z - 0.55, 0, { seat: hx(ctx.pal.fabric), frame: hx(ctx.pal.frame), h: 0.76 }); ctx.seats.push({ x, z: f.z - 0.55, ry: 0, stool: true, prop: si }); } for (const e of [-1, 1]) ctx.B.box(M.dark, f.x + e * (f.sx / 2 - 0.05), 0.52, f.z, 0.05, 1.05, 0.05); col(ctx, f.x, 0.55, f.z, f.sx, 1.1, f.sz); },
   rack(ctx, f) {
     const M = mats(); const L = f.sz; ctx.B.box(M.chrome, f.x, 1.45, f.z, 0.04, 0.04, L); for (const e of [-1, 1]) { ctx.B.box(M.chrome, f.x, 0.72, f.z + e * L / 2, 0.04, 1.45, 0.04); ctx.B.box(M.chrome, f.x, 0.02, f.z + e * L / 2, 0.55, 0.04, 0.06); }
     const ci = f.color ?? 0; for (let z = f.z - L / 2 + 0.12; z < f.z + L / 2 - 0.1; z += 0.075) garment(ctx, f.x, 1.45, z, Math.PI / 2 + (ctx.R() - 0.5) * 0.1, ci + (ctx.R() < 0.15 ? 1 : 0), ctx.R() < 0.25);
@@ -508,7 +512,7 @@ const BUILD = {
   chairs(ctx, f) { const M = mats(); const n = Math.max(1, Math.floor(Math.max(f.sx, f.sz) / 0.55)); const alongZ = f.sz > f.sx; for (let i = 0; i < n; i++) { const u = -(n - 1) * 0.275 + i * 0.55; const x = f.x + (alongZ ? 0 : u), z = f.z + (alongZ ? u : 0); ctx.B.box(M.plastic, x, 0.45, z, 0.45, 0.05, 0.45); ctx.B.box(M.plastic, x + (alongZ ? -0.2 : 0), 0.7, z + (alongZ ? 0 : -0.2), alongZ ? 0.04 : 0.45, 0.45, alongZ ? 0.45 : 0.04); ctx.B.box(M.chrome, x, 0.22, z, 0.4, 0.44, 0.03); ctx.seats.push({ x: x + (alongZ ? 0.35 : 0), z: z + (alongZ ? 0 : 0.35), ry: alongZ ? Math.PI / 2 : 0 }); } col(ctx, f.x, 0.4, f.z, f.sx, 0.8, f.sz); },
   atm(ctx, f) { const M = mats(); ctx.B.box(M.steel, f.x, 0.8, f.z, 0.7, 1.6, 0.5); ctx.B.box(M.screenBlue, f.x, 1.25, f.z + 0.26, 0.4, 0.3, 0.01); col(ctx, f.x, 0.8, f.z, 0.7, 1.6, 0.5); ctx.addItem(f.x, f.z + 0.7, 'atm'); },
   host(ctx, f) { const M = mats(); ctx.B.box(M.darkwood, f.x, 0.6, f.z, 0.6, 1.2, 0.45); ctx.B.box(M.brass, f.x, 1.2, f.z, 0.62, 0.03, 0.47); ctx.batch.add('menu', 1, f.x, 1.22 + ctx.FY, f.z, 0.3); col(ctx, f.x, 0.6, f.z, 0.6, 1.2, 0.45); },
-  plant(ctx, f) { const M = mats(); ctx.B.add(M.pot, new THREE.CylinderGeometry(0.22, 0.17, 0.45, 8), f.x, 0.22, f.z); for (let i = 0; i < 6; i++) { const a = i * 1.05; ctx.B.add(M.leaf, new THREE.ConeGeometry(0.09, 0.9, 4), f.x + Math.sin(a) * 0.12, 0.85, f.z + Math.cos(a) * 0.12, a, Math.sin(a) * 0.4, Math.cos(a) * 0.4); } col(ctx, f.x, 0.4, f.z, 0.45, 0.8, 0.45); },
+  plant(ctx, f) { ctx.prop('plant', '', f.x, f.z, ctx.R() * 6, { pot: ['#bc6c25', '#f1faee', '#264653', '#c8a97e'][Math.floor(ctx.R() * 4)], leaf: ['#2d6a4f', '#40916c', '#1b4332'][Math.floor(ctx.R() * 3)] }); },
   ballbin(ctx, f) { const M = mats(); ctx.B.box(M.chrome, f.x, 0.35, f.z, f.sx, 0.7, f.sz); for (let i = 0; i < 9; i++) ctx.B.add(M.board[i % 6], new THREE.SphereGeometry(0.12, 8, 6), f.x + ((i % 3) - 1) * 0.26, 0.72 + (i % 2) * 0.05, f.z + (Math.floor(i / 3) - 1) * 0.26); col(ctx, f.x, 0.4, f.z, f.sx, 0.8, f.sz); ctx.addItem(f.x, f.z + 0.8); },
   pooltable(ctx, f) { const M = mats(); ctx.B.box(M.darkwood, f.x, 0.4, f.z, f.sx, 0.8, f.sz); ctx.B.box(M.felt, f.x, 0.81, f.z, f.sx - 0.2, 0.02, f.sz - 0.2); for (let i = 0; i < 8; i++) ctx.B.add(M.board[i % 6], new THREE.SphereGeometry(0.03, 6, 4), f.x + ((i % 3) - 1) * 0.07, 0.85, f.z - 0.4 + Math.floor(i / 3) * 0.06); col(ctx, f.x, 0.42, f.z, f.sx, 0.85, f.sz); ctx.seats.push({ x: f.x + f.sx / 2 + 0.4, z: f.z, ry: -Math.PI / 2 }); },
   djbooth(ctx, f) {
@@ -552,3 +556,4 @@ export function buildFixture(ctx, f) {
   const b = BUILD[f.k]; if (!b) return;
   try { b(ctx, f); } catch (e) { console.warn('[interiors] fixture failed', f.k, e); }
 }
+export { frame, fbox, col, BUILD as FIXTURES };

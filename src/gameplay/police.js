@@ -5,8 +5,9 @@ import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView,
 import { buildWeaponModel } from './gunModels.js';
 
 const POOL = 8;
-const CAR_TARGET = [0, 1, 2, 2, 3, 4];
-const FOOT_TARGET = [0, 0, 2, 3, 4, 5];
+export const CAR_TARGET = [0, 1, 2, 3, 4, 6];
+export const FOOT_TARGET = [0, 0, 2, 4, 6, 8];
+export const SIGHT = { cone: 110, footRange: 60, carRange: 90, aware: 8, carAware: 15, night: 0.65, water: 0.6, covered: 0.7 };
 
 function styleUniform(char) {
   char.root.traverse((m) => {
@@ -98,7 +99,7 @@ export function createPolice(game, G) {
   function damageCop(u, amount, dir, kind = 'bullet', point = null, info = {}) {
     if (!u.active || u.dead) return;
     u.health -= amount;
-    G.combatT = 0;
+    G.combatT = 0; G.copAggroT = game.clock.elapsed;
     const pt = point || _v.set(u.pos.x, u.pos.y + 1.2, u.pos.z).clone();
     const zone = info.zone || (point && point.y - u.pos.y > 1.45 ? 'head' : 'torso');
     game.emit?.('hit', { target: 'ped', object: u, point: pt, normal: dir ? dir.clone().negate() : new THREE.Vector3(0, 1, 0), damage: amount, kind, byPlayer: true, zone, limb: info.limb, strength: info.strength ?? Math.min(1, amount / 100), isCop: true });
@@ -112,7 +113,7 @@ export function createPolice(game, G) {
       // drop weapon + ammo
       tryCall('drop', () => G.pickups?.spawn?.(u.gunKey || 'pistol', u.pos.clone().setY(u.pos.y + 0.05), { temp: true, life: 45, ammo: u.gunKey === 'shotgun' ? 8 : u.gunKey === 'pistol' ? 15 : 30 }));
     } else {
-      G.reportCrime?.('cop_assault', u.pos.clone(), u);
+      G.reportCrime?.(kind === 'bullet' || kind === 'explosion' ? 'cop_shot' : 'cop_assault', u.pos.clone(), u);
       if (dir) { u.knock = dir.clone().setY(0).multiplyScalar(kind === 'bullet' ? 0.8 : 2.2); }
     }
   }
@@ -196,7 +197,7 @@ export function createPolice(game, G) {
     const tgt = _v.set(pp.x, pp.y + 1.3, pp.z);
     const dist = distXZ(u.pos, pp);
     const eye = _a.set(u.pos.x, u.pos.y + 1.6, u.pos.z);
-    u.sees = W.level > 0 && dist < 70 && (dist < 8 || hasLOS(game, eye, tgt));
+    u.sees = W.level > 0 && canSee(eye, u.heading, SIGHT.footRange, SIGHT.aware, tgt);
     let gx = 0, gz = 0, speed = 0;
     if (W.level === 0) {
       // stand down: walk off then vanish
@@ -207,7 +208,7 @@ export function createPolice(game, G) {
     } else if (u.sees || dist < 25) {
       u.mode = 'chase'; u.wander = null;
       gx = pp.x - u.pos.x; gz = pp.z - u.pos.z;
-      const shooter = W.level >= 3 || (W.level >= 2 && G.playerArmedRecently?.());
+      const shooter = W.level >= 3 || !!G.playerArmedRecently?.(); // 1-2 stars: only return fire against an armed suspect
       if (shooter && u.sees && dist < 38) {
         // close in to ~12m and shoot
         speed = dist > 16 ? 5.6 : dist > 9 ? 2.2 : 0;
@@ -218,7 +219,7 @@ export function createPolice(game, G) {
         speed = dist > 7 ? 6.2 : dist > 2.2 ? 3.6 : dist > 1.1 ? 1.4 : 0;
         // melee when the player is fighting back
         u.punchCd -= dt;
-        if (dist < 1.4 && u.punchCd <= 0 && !P.state.inVehicle && G.combatT < 4) { u.punchCd = rand(0.9, 1.4); u.punch = true; if (Math.random() < 0.7) damagePlayer(rand(4, 8), u); }
+        if (dist < 1.4 && u.punchCd <= 0 && !P.state.inVehicle && game.clock.elapsed - (G.copAggroT ?? -99) < 6) { u.punchCd = rand(0.9, 1.4); u.punch = true; if (Math.random() < 0.7) damagePlayer(rand(4, 8), u); }
       }
     } else {
       // search the circle
@@ -346,7 +347,7 @@ export function createPolice(game, G) {
     }
     carSpawnCd -= dt;
     if (lvl > 0 && carSpawnCd <= 0 && cars.length < CAR_TARGET[lvl]) {
-      carSpawnCd = 6;
+      carSpawnCd = lvl >= 5 ? 3 : lvl >= 3 ? 4.5 : 6;
       const ms = Math.sqrt(G.city?.mapScale || 1);
       const r = G.city?.roadPoint(pp, 80 * ms, 160 * ms, { avoidView: true, inView: (q) => inView(game, q) }) || pointNear(game, pp, 80, 150, 'road', true);
       if (r) { const v = spawnPoliceCar(r.position, r.heading, true); if (v) cars.push({ v, deployed: false, cops: [], mine: true, t: 0 }); }
@@ -427,7 +428,7 @@ export function createPolice(game, G) {
     footSpawnCd -= dt;
     const footActive = units.filter((u) => u.active && !u.dead).length;
     if (lvl >= 2 && footSpawnCd <= 0 && footActive < FOOT_TARGET[lvl] && onFoot) {
-      footSpawnCd = rand(5, 9);
+      footSpawnCd = lvl >= 5 ? rand(2.5, 4) : rand(5, 9);
       const from = W.evading && W.searchCenter ? W.searchCenter : pp;
       const q = G.city?.sidewalkPoint(from, 35, 75, null, { avoidView: true, inView: (x) => inView(game, x) });
       const r = q ? { position: q } : pointNear(game, from, 35, 70, 'sidewalk', true);
@@ -443,10 +444,11 @@ export function createPolice(game, G) {
   })();
   const barMat = new THREE.MeshStandardMaterial({ map: stripeTex, roughness: 0.6, emissive: 0x330000 });
   const legMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7 });
+  const barGeo = new THREE.BoxGeometry(3, 0.3, 0.08), legGeo = new THREE.BoxGeometry(0.08, 1, 0.5);
   function makeBarrier(x, z, heading, gy = 0) {
     const g = new THREE.Group();
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, 0.08), barMat); bar.position.y = 0.95;
-    const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1, 0.5), legMat); l1.position.set(-1.3, 0.5, 0);
+    const bar = new THREE.Mesh(barGeo, barMat); bar.position.y = 0.95;
+    const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-1.3, 0.5, 0);
     const l2 = l1.clone(); l2.position.x = 1.3;
     g.add(bar, l1, l2); g.traverse((m) => { if (m.isMesh) m.castShadow = true; });
     g.position.set(x, gy, z); g.rotation.y = heading; scene.add(g);
@@ -544,7 +546,8 @@ export function createPolice(game, G) {
     if (lvl === 0 || lvl > 2 || P.state.inVehicle || G.dead || G.busted) { arrestT = 0; G.arrestT = 0; return; }
     let close = false;
     for (const u of units) if (u.active && !u.dead && distXZ(u.pos, P.position) < 1.6 && Math.abs(u.pos.y - P.position.y) < 1.5) close = true;
-    if (close && !(P.state.sprint && (P.state.speed || 0) > 4)) {
+    const resisting = (P.state.sprint && (P.state.speed || 0) > 4) || game.clock.elapsed - (G.copAggroT ?? -99) < 4 || !!G.playerArmedRecently?.();
+    if (close && !resisting) {
       if (arrestT === 0) sfx(game, 'whistle', P.position, 0.7);
       arrestT += dt;
     } else arrestT = Math.max(0, arrestT - dt * 2);
@@ -552,6 +555,29 @@ export function createPolice(game, G) {
     if (arrestT > 2) { arrestT = 0; G.arrestT = 0; G.bust?.(); }
   }
 
+  // vision: 110 deg cone, range shrinks at night / in water / under cover (bridges), LOS ray, close-range awareness
+  function visMul(target) {
+    let k = 1;
+    const tod = game.timeOfDay ?? 12;
+    if (tod < 6.5 || tod > 19.5) k *= SIGHT.night;
+    try { if ((P.waterDepth || 0) > 0.4 || G.city?.isWater?.(target.x, target.z)) k *= SIGHT.water; } catch (e) { /* ignore */ }
+    if (game.clock.elapsed - coverT > 0.5) { coverT = game.clock.elapsed; covered = hasLOS(game, _c.set(target.x, target.y + 1, target.z), _d.set(target.x, target.y + 9, target.z)) === false; }
+    if (covered) k *= SIGHT.covered;
+    return k;
+  }
+  let coverT = -9, covered = false;
+  const _c = new THREE.Vector3(), _d = new THREE.Vector3(), _e = new THREE.Vector3();
+  function canSee(eye, heading, range, aware, tgt) {
+    const dx = tgt.x - eye.x, dz = tgt.z - eye.z, d = Math.hypot(dx, dz);
+    if (d < aware) return true;
+    if (d > range * visMul(tgt)) return false;
+    if (heading !== null && heading !== undefined) {
+      let a = Math.atan2(dx, dz) - heading; a = Math.atan2(Math.sin(a), Math.cos(a));
+      if (Math.abs(a) > (SIGHT.cone / 2) * Math.PI / 180) return false;
+    }
+    return hasLOS(game, eye, tgt);
+  }
+  G.canSee = canSee;
   function anySees() {
     for (const u of units) if (u.active && !u.dead && u.sees) return true;
     const pp = P.position, tgt = _b.set(pp.x, pp.y + 1.3, pp.z);
@@ -559,22 +585,21 @@ export function createPolice(game, G) {
       if (c.deployed && c.cops.length) continue;
       if (!vAlive(game, c.v)) continue;
       const t = c.v.body.translation();
-      const d = distXZ(t, pp);
-      if (d < 15 || (d < 90 && hasLOS(game, _a.set(t.x, t.y + 1.2, t.z), tgt))) return true;
+      if (canSee(_e.set(t.x, t.y + 1.2, t.z), c.v.heading, SIGHT.carRange, SIGHT.carAware, tgt)) return true;
     }
     return false;
   }
   // a cop that would witness a crime at `pos`
   function copWitness(pos) {
     const tgt = _b.set(pos.x, pos.y + 1.2, pos.z);
-    for (const u of units) if (u.active && !u.dead && distXZ(u.pos, pos) < 60 && hasLOS(game, _a.set(u.pos.x, u.pos.y + 1.6, u.pos.z), tgt)) return true;
-    for (const c of cars) { if (!vAlive(game, c.v)) continue; const t = c.v.body.translation(); if (distXZ(t, pos) < 60 && hasLOS(game, _a.set(t.x, t.y + 1.2, t.z), tgt)) return true; }
+    for (const u of units) if (u.active && !u.dead && canSee(_a.set(u.pos.x, u.pos.y + 1.6, u.pos.z), u.heading, SIGHT.footRange, SIGHT.aware, tgt)) return true;
+    for (const c of cars) { if (!vAlive(game, c.v)) continue; const t = c.v.body.translation(); if (canSee(_a.set(t.x, t.y + 1.2, t.z), c.v.heading, SIGHT.carRange, SIGHT.carAware, tgt)) return true; }
     for (const v of V()?.list || []) {
       if (!(v.typeKey === 'police' || v.police) || v.playerDriven || !v.ai) continue;
       if (!vAlive(game, v)) continue;
-      const t = v.body.translation(); if (distXZ(t, pos) < 45 && hasLOS(game, _a.set(t.x, t.y + 1.2, t.z), tgt)) return true;
+      const t = v.body.translation(); if (canSee(_a.set(t.x, t.y + 1.2, t.z), v.heading, SIGHT.carRange, SIGHT.carAware, tgt)) return true;
     }
-    for (const ped of game.peds?.list || []) if (ped.isCop && !ped.dead && ped.pos && distXZ(ped.pos, pos) < 50) return true;
+    for (const ped of game.peds?.list || []) if (ped.isCop && !ped.dead && ped.pos && canSee(_a.set(ped.pos.x, ped.pos.y + 1.6, ped.pos.z), ped.heading, SIGHT.footRange, SIGHT.aware, tgt)) return true;
     return false;
   }
 

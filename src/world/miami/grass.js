@@ -3,17 +3,19 @@
 // Placement is cached per 8 m cell (stable hashed jitter), so moving the camera only concatenates cached cells.
 import * as THREE from 'three';
 
-const R = 30, CELL = 8, STEP = 0.5, MAX = 16000;
+const R = 30, CELL = 8, STEP = 0.44, MAX = 20000;
 
-function bladeTexture() {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
+function bladeTexture() { // 512 x 256 atlas: left = mixed grass blades (thin / broad / seed heads), right = blades with clover, daisies and small weeds
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const x = c.getContext('2d');
   let s = 1234; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 150; i++) {
-    const bx = 4 + r() * 248, h = 40 + r() * 86, lean = (r() - 0.5) * 34, w = 3 + r() * 4;
-    const l = 22 + r() * 22, hue = 78 + r() * 34;
-    const g = x.createLinearGradient(0, 128, 0, 128 - h); g.addColorStop(0, `hsl(${hue},45%,${l * 0.55}%)`); g.addColorStop(1, `hsl(${hue - 8},${40 + r() * 20}%,${l + 14}%)`);
-    x.fillStyle = g; x.beginPath(); x.moveTo(bx - w / 2, 128); x.quadraticCurveTo(bx + lean * 0.4, 128 - h * 0.6, bx + lean, 128 - h); x.quadraticCurveTo(bx + lean * 0.4 + w * 0.3, 128 - h * 0.6, bx + w / 2, 128); x.fill();
-  }
+  const blade = (ox, bx, h, lean, w, hue, l, sat) => { const g = x.createLinearGradient(0, 256, 0, 256 - h); g.addColorStop(0, `hsl(${hue + 6},${sat}%,${l * 0.45}%)`); g.addColorStop(0.5, `hsl(${hue},${sat}%,${l}%)`); g.addColorStop(1, `hsl(${hue - 10},${sat - 8}%,${l + 16}%)`);
+    x.fillStyle = g; x.beginPath(); x.moveTo(ox + bx - w / 2, 256); x.quadraticCurveTo(ox + bx + lean * 0.35, 256 - h * 0.62, ox + bx + lean, 256 - h); x.quadraticCurveTo(ox + bx + lean * 0.35 + w * 0.25, 256 - h * 0.62, ox + bx + w / 2, 256); x.fill(); };
+  for (const ox of [0, 256]) for (let i = 0; i < 230; i++) { const tall = r() < 0.18; blade(ox, 4 + r() * 248, tall ? 150 + r() * 100 : 60 + r() * 120, (r() - 0.5) * 60, tall ? 2 + r() * 2 : 3 + r() * 6, 72 + r() * 40, 22 + r() * 24, 38 + r() * 26); }
+  for (let i = 0; i < 14; i++) { const bx = 10 + r() * 236, top = 40 + r() * 70; x.strokeStyle = '#8a8a52'; x.lineWidth = 2; x.beginPath(); x.moveTo(bx, 256); x.quadraticCurveTo(bx + 4, 150, bx + (r() - 0.5) * 30, top); x.stroke(); for (let k = 0; k < 7; k++) { x.fillStyle = `hsl(48,${30 + r() * 20}%,${55 + r() * 15}%)`; x.beginPath(); x.ellipse(bx + (r() - 0.5) * 10, top + k * 6, 2.5, 5, 0.3, 0, 7); x.fill(); } } // seed heads
+  for (let i = 0; i < 60; i++) { const fx = 256 + 10 + r() * 236, fy = 120 + r() * 120, kind = r(); // flowers / clover in the right half
+    if (kind < 0.4) { x.fillStyle = '#f4f1e6'; for (let p = 0; p < 7; p++) { x.beginPath(); x.ellipse(fx + Math.cos(p * 0.9) * 5, fy + Math.sin(p * 0.9) * 5, 4, 2, p * 0.9, 0, 7); x.fill(); } x.fillStyle = '#e8b923'; x.beginPath(); x.arc(fx, fy, 2.5, 0, 7); x.fill(); }
+    else if (kind < 0.7) { x.fillStyle = '#f2c41e'; x.beginPath(); x.arc(fx, fy, 4.5, 0, 7); x.fill(); x.fillStyle = '#d99a0c'; x.beginPath(); x.arc(fx, fy, 1.8, 0, 7); x.fill(); }
+    else { x.fillStyle = `hsl(110,40%,${28 + r() * 10}%)`; for (let p = 0; p < 3; p++) { x.beginPath(); x.arc(fx + Math.cos(p * 2.1) * 4, fy + Math.sin(p * 2.1) * 4, 4.5, 0, 7); x.fill(); } } }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
@@ -21,11 +23,13 @@ export function createGrassField({ M, root, data, lawnAt = null, lawnTester = nu
   const surf = data?.surfaceAt, gh = data?.groundHeightAt;
   // tuft: 3 crossed cards, 1.1 m wide x 0.42 m tall (base at y=0)
   const parts = [];
-  for (let k = 0; k < 3; k++) { const p = new THREE.PlaneGeometry(0.55, 0.4); p.translate(0, 0.2, 0); p.rotateX((k - 1) * 0.18); p.rotateY((k / 3) * Math.PI + k * 0.4); parts.push(p); }
+  // 4 cards of different size / tilt / offset per tuft (no regular star pattern); uv u in [0, 0.5] (variant picks the half in the shader)
+  let ss = 99; const rr = () => ((ss = (ss * 16807) % 2147483647) / 2147483647);
+  for (let k = 0; k < 4; k++) { const w = 0.32 + rr() * 0.3, h = 0.26 + rr() * 0.24, p = new THREE.PlaneGeometry(w, h); p.translate(0, h / 2, 0); p.rotateX((rr() - 0.5) * 0.45); p.rotateY(rr() * Math.PI); p.translate((rr() - 0.5) * 0.3, 0, (rr() - 0.5) * 0.3); parts.push(p); }
   const pos = [], nor = [], uv = [], idx = []; let base = 0;
   for (const p of parts) {
     const P = p.attributes.position, U = p.attributes.uv;
-    for (let i = 0; i < P.count; i++) { pos.push(P.getX(i), P.getY(i), P.getZ(i)); nor.push(0, 1, 0); uv.push(U.getX(i), U.getY(i)); }
+    for (let i = 0; i < P.count; i++) { pos.push(P.getX(i), P.getY(i), P.getZ(i)); nor.push(0, 1, 0); uv.push(U.getX(i) * 0.5, U.getY(i)); }
     for (let i = 0; i < p.index.count; i++) idx.push(base + p.index.getX(i));
     base += P.count; p.dispose();
   }
@@ -34,15 +38,26 @@ export function createGrassField({ M, root, data, lawnAt = null, lawnTester = nu
   const timeU = M.timeU || { value: 0 };
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uWindTime = timeU;
-    sh.vertexShader = 'uniform float uWindTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+    sh.vertexShader = 'uniform float uWindTime;\nvarying float vGv;\n' + sh.vertexShader.replace('#include <uv_vertex>', `#include <uv_vertex>
+      #ifdef USE_INSTANCING
+        vGv = length(instanceMatrix[0].xyz) > 1.004 ? 1.0 : 0.0;
+        #ifdef USE_MAP
+          vMapUv.x += vGv * 0.5;
+        #endif
+      #endif`).replace('#include <begin_vertex>', `#include <begin_vertex>
       #ifdef USE_INSTANCING
         vec3 gIp = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
         float gD = distance(gIp.xz, cameraPosition.xz);
         float gFade = 1.0 - smoothstep(${(R - 12).toFixed(1)}, ${(R - 1).toFixed(1)}, gD);
         transformed.y *= gFade;
         float gPh = gIp.x * 0.31 + gIp.z * 0.23;
-        float gW = (sin(uWindTime * 2.1 + gPh) * 0.6 + sin(uWindTime * 3.7 + gPh * 1.9) * 0.3) * transformed.y * 0.35;
+        float gWave = sin(dot(gIp.xz, vec2(0.11, 0.07)) - uWindTime * 1.4) * 0.5 + 0.5; // rolling gust waves across the lawn
+        float gW = (sin(uWindTime * 2.1 + gPh) * 0.35 + sin(uWindTime * 3.7 + gPh * 1.9) * 0.15 + gWave * 0.6) * transformed.y * 0.38;
         transformed.x += gW; transformed.z += gW * 0.5;
+      #endif`);
+    sh.fragmentShader = 'varying float vGv;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      #ifdef USE_MAP
+        diffuseColor.rgb *= mix(0.45, 1.0, smoothstep(0.0, 0.55, vMapUv.y)); // ground occlusion at the blade base
       #endif`);
   };
   M.grassBlades = mat; // precompiled with the other city materials
@@ -68,9 +83,11 @@ export function createGrassField({ M, root, data, lawnAt = null, lawnTester = nu
       if (lawn === false || (lawn === null && s !== 'grass_short' && s !== 'grass_long')) continue;
       if (s === 'water' || s === 'asphalt') continue;
       const y = gh ? gh(wx, wz) : 0; if (!(y > -0.5 && y < 0.3)) continue; // ground-level lawns only
-      const a = h1 * 6.28, co = Math.cos(a), si = Math.sin(a), sy = (s === 'grass_long' ? 1.2 : 0.55) + h2 * 0.45;
+      let edge = 1; if (test) for (const [ox, oz] of [[1.2, 0], [-1.2, 0], [0, 1.2], [0, -1.2]]) if (!test(wx + ox, wz + oz)) edge = Math.min(edge, 0.45); // thin out towards lawn edges
+      const patch = Math.sin(wx * 0.045 + Math.sin(wz * 0.03) * 2) * Math.cos(wz * 0.05 - wx * 0.02) * 0.5 + 0.5; // lush / dry patches
+      const a = h1 * 6.28, flower = hash(ci * 977 + i, cj * 131 + j) < 0.07 + patch * 0.05, sxz = flower ? 1.012 : 1, co = Math.cos(a) * sxz, si = Math.sin(a) * sxz, sy = ((s === 'grass_long' ? 1.25 : 0.6) + h2 * 0.55) * (0.75 + patch * 0.35) * edge;
       mm.push(co, 0, -si, 0, 0, sy, 0, 0, si, 0, co, 0, wx, y + 0.012, wz, 1);
-      cc.push(0.85 + h1 * 0.3, 0.9 + h1 * 0.15, 0.7 + h1 * 0.2);
+      const dry = Math.max(0, 0.6 - patch) * 0.9; cc.push(0.82 + h1 * 0.25 + dry * 0.35, 0.92 + h1 * 0.12 - dry * 0.05, 0.62 + h1 * 0.2 - dry * 0.25);
     }
     c = { m: new Float32Array(mm), c: new Float32Array(cc), n: cc.length / 3 }; cells.set(key, c);
     if (cells.size > 400) cells.delete(cells.keys().next().value);

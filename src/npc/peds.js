@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { createCharacter, humansLoaded, humansTotal } from '../player/characterModel.js';
 import { createRagdollSystem } from './ragdoll.js';
+import { PERSONAS, pickPersona } from './personality.js';
 
 const DESPAWN = 300, SPAWN_MIN = 20, SPAWN_MAX = 165;
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _q = new THREE.Quaternion();
@@ -16,8 +17,11 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (a) => a[(Math.random() * a.length) | 0];
 const approachAngle = (a, b, k) => { let d = b - a; d = Math.atan2(Math.sin(d), Math.cos(d)); return a + d * Math.min(1, k); };
 const TOWEL_COLS = [0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6];
+const NONMOVING = new Set(['talk', 'dance', 'bench', 'lean', 'garden', 'sunbathe', 'volley', 'frisbee', 'wade', 'cower', 'film', 'gettingUp', 'argue']);
 const LIMB_PART = { head: 'head', neck: 'head', torso_upper: 'chest', torso_lower: 'pelvis', upperarm_l: 'uArmL', forearm_l: 'lArmL', upperarm_r: 'uArmR', forearm_r: 'lArmR', thigh_l: 'thighL', shin_l: 'shinL', thigh_r: 'thighR', shin_r: 'shinR' };
 
+const _gcache = new Map();
+const SG = (key, Ctor, ...a) => { const k = key + ':' + a.join(','); let g = _gcache.get(k); if (!g) { g = new Ctor(...a); _gcache.set(k, g); } return g; };
 export async function createPeds(game) {
   const { scene, world, RAPIER } = game;
   const city = game.city || {};
@@ -187,7 +191,7 @@ export async function createPeds(game) {
     pole: new THREE.CylinderGeometry(0.022, 0.022, 2.2, 6), canopy: new THREE.ConeGeometry(1.15, 0.45, 12, 1, true),
     ball: new THREE.SphereGeometry(0.11, 12, 8), disc: new THREE.CylinderGeometry(0.13, 0.12, 0.025, 16),
   };
-  const propMat = new Map();
+  const propMat = new Map(); let netMat = null; const leashMat = new THREE.LineBasicMaterial({ color: 0x222222 });
   const pmat = (c, r = 0.8, side = THREE.FrontSide) => { const k = c + ':' + r + ':' + side; if (!propMat.has(k)) propMat.set(k, new THREE.MeshStandardMaterial({ color: c, roughness: r, side })); return propMat.get(k); };
   const props = new Set();
   function addProp(mesh) { mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); props.add(mesh); return mesh; }
@@ -205,18 +209,18 @@ export async function createPeds(game) {
   function makeDog() {
     const s = rand(0.75, 1.25); const m = pick(dogMat);
     const g = new THREE.Group(); g.scale.setScalar(s);
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.38, 3, 8), m); body.rotation.x = Math.PI / 2; body.position.y = 0.36; g.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), m); head.position.set(0, 0.5, 0.3); g.add(head);
-    const snout = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.07, 3, 6), m); snout.rotation.x = Math.PI / 2; snout.position.set(0, 0.47, 0.41); g.add(snout);
-    for (const sx of [-1, 1]) { const ear = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 5), m); ear.position.set(sx * 0.06, 0.6, 0.28); g.add(ear); }
-    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 0.22, 5), m); tail.position.set(0, 0.45, -0.3); tail.rotation.x = -0.7; g.add(tail);
+    const body = new THREE.Mesh(SG('CapsuleGeometry', THREE.CapsuleGeometry, 0.11, 0.38, 3, 8), m); body.rotation.x = Math.PI / 2; body.position.y = 0.36; g.add(body);
+    const head = new THREE.Mesh(SG('SphereGeometry', THREE.SphereGeometry, 0.1, 10, 8), m); head.position.set(0, 0.5, 0.3); g.add(head);
+    const snout = new THREE.Mesh(SG('CapsuleGeometry', THREE.CapsuleGeometry, 0.045, 0.07, 3, 6), m); snout.rotation.x = Math.PI / 2; snout.position.set(0, 0.47, 0.41); g.add(snout);
+    for (const sx of [-1, 1]) { const ear = new THREE.Mesh(SG('ConeGeometry', THREE.ConeGeometry, 0.04, 0.09, 5), m); ear.position.set(sx * 0.06, 0.6, 0.28); g.add(ear); }
+    const tail = new THREE.Mesh(SG('CylinderGeometry', THREE.CylinderGeometry, 0.015, 0.025, 0.22, 5), m); tail.position.set(0, 0.45, -0.3); tail.rotation.x = -0.7; g.add(tail);
     const legs = [];
     for (const [lx, lz] of [[-0.07, 0.18], [0.07, 0.18], [-0.07, -0.18], [0.07, -0.18]]) {
       const pivot = new THREE.Group(); pivot.position.set(lx, 0.32, lz);
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.02, 0.32, 5), m); leg.position.y = -0.16; pivot.add(leg); g.add(pivot); legs.push(pivot);
+      const leg = new THREE.Mesh(SG('CylinderGeometry', THREE.CylinderGeometry, 0.025, 0.02, 0.32, 5), m); leg.position.y = -0.16; pivot.add(leg); g.add(pivot); legs.push(pivot);
     }
     g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    const leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x222222 }));
+    const leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), leashMat);
     leash.frustumCulled = false;
     scene.add(g); scene.add(leash);
     return { g, legs, tail, leash, phase: 0, pos: new THREE.Vector3(), heading: 0 };
@@ -241,7 +245,7 @@ export async function createPeds(game) {
     const b = _v3.copy(d.pos); b.x += Math.sin(d.heading) * 0.28; b.y += 0.48 * d.g.scale.y; b.z += Math.cos(d.heading) * 0.28;
     const arr = d.leash.geometry.attributes.position.array; arr[0] = a.x; arr[1] = a.y; arr[2] = a.z; arr[3] = b.x; arr[4] = b.y; arr[5] = b.z; d.leash.geometry.attributes.position.needsUpdate = true;
   }
-  function removeDog(ped) { if (!ped.dog) return; scene.remove(ped.dog.g); scene.remove(ped.dog.leash); ped.dog = null; }
+  function removeDog(ped) { if (!ped.dog) return; scene.remove(ped.dog.g); scene.remove(ped.dog.leash); ped.dog.leash.geometry.dispose(); ped.dog = null; }
 
   // ---------------------------------------------------------------- character pool (reuse by zone)
   const pool = [];
@@ -270,7 +274,8 @@ export async function createPeds(game) {
     const m = { beach: ['beach', 'casual', 'sport'], business: ['business', 'casual'], downtown: ['business', 'casual'], nightlife: ['nightlife', 'casual'], night: ['nightlife', 'casual'], port: ['port'], industrial: ['port', 'casual'], park: ['sport', 'casual'], causeway: ['sport', 'casual'], cop: ['cop'] };
     return (m[zone] || ['casual', 'sport']).includes(tag);
   }
-  function releaseChar(c) { if (!c) return; c.root.visible = false; if (pool.length < 24) pool.push(c); else { scene.remove(c.root); } }
+  // bounded pool; characters beyond it are truly removed and their GPU resources freed (bone textures, per-instance materials)
+  function releaseChar(c) { if (!c) return; c.root.visible = false; if (pool.length < 12) pool.push(c); else { scene.remove(c.root); c.dispose?.(); } }
 
   // ---------------------------------------------------------------- ped lifecycle
   let idN = 0;
@@ -312,8 +317,13 @@ export async function createPeds(game) {
     ped.char.restyle?.(opts.outfit || zone);
     ped.active = true; ped.dead = false; ped.health = 100; ped.state = act === 'walk' || act === 'jog' || act === 'dog' || act === 'shore' ? 'walk' : act;
     ped.idleStyle = null; ped.pending = null; ped.threat = null; ped.knock.set(0, 0, 0); ped.shoveT = 0; ped.deadT = 0; ped.isCop = false; ped.foughtBack = false; ped.guard = false;
-    ped.walkSpeed = act === 'jog' ? rand(2.6, 3.2) : zone === 'business' || zone === 'downtown' ? rand(1.4, 1.75) : zone === 'beach' ? rand(0.9, 1.25) : rand(1.05, 1.5);
-    ped.call = (zone === 'business' || zone === 'downtown') && Math.random() < 0.35;
+    ped.personality = opts.personality || (zone === 'cop' ? 'tough' : pickPersona(zone, hourNow()));
+    ped.P = PERSONAS[ped.personality] || PERSONAS.calm;
+    ped.tough = Math.random() < ped.P.fight;
+    ped.walkSpeed = (act === 'jog' ? rand(2.6, 3.2) : zone === 'business' || zone === 'downtown' ? rand(1.4, 1.75) : zone === 'beach' ? rand(0.9, 1.25) : rand(1.05, 1.5)) * (act === 'jog' ? 1 : ped.P.walk);
+    ped.call = Math.random() < ped.P.call;
+    ped.greeted = false; ped.lookT = 0; ped.argueT = 0;
+    ped.char.setPersonality?.(ped.personality);
     ped.nav = (act === 'walk' || act === 'jog' || act === 'dog') ? navFromPos(ped) : null;
     ped.target = null; ped.heading = opts.heading ?? Math.random() * Math.PI * 2;
     if (ped.nav) { ped.heading = navTarget(ped, _nt); }
@@ -447,9 +457,9 @@ export async function createPeds(game) {
     // net: two poles + a translucent mesh panel across the middle
     const net = new THREE.Group(); net.position.set(c.x, c.y, c.z); net.rotation.y = hd + Math.PI / 2;
     for (const sx of [-3.4, 3.4]) { const pl = new THREE.Mesh(propGeo.pole, pmat(0xdedede, 0.4)); pl.position.set(sx, 1.1, 0); pl.castShadow = true; net.add(pl); }
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(6.8, 0.9, 1, 1), new THREE.MeshStandardMaterial({ color: 0x111111, transparent: true, opacity: 0.45, side: THREE.DoubleSide, roughness: 1 }));
+    const panel = new THREE.Mesh(SG('PlaneGeometry', THREE.PlaneGeometry, 6.8, 0.9, 1, 1), (netMat ||= new THREE.MeshStandardMaterial({ color: 0x111111, transparent: true, opacity: 0.45, side: THREE.DoubleSide, roughness: 1 })));
     panel.position.y = 1.85; net.add(panel);
-    const band = new THREE.Mesh(new THREE.BoxGeometry(6.8, 0.06, 0.02), pmat(0xf5f5f5, 0.6)); band.position.y = 2.3; net.add(band);
+    const band = new THREE.Mesh(SG('BoxGeometry', THREE.BoxGeometry, 6.8, 0.06, 0.02), pmat(0xf5f5f5, 0.6)); band.position.y = 2.3; net.add(band);
     scene.add(net); props.add(net); g.props.push(net);
     const ball = addProp(new THREE.Mesh(propGeo.ball, pmat(0xf2efe6, 0.6))); g.props.push(ball);
     g.ball = { mesh: ball, from: 0, to: 2, t: 0, dur: 1.3 };
@@ -479,6 +489,13 @@ export async function createPeds(game) {
     return p ? [p] : [];
   }
 
+  // voice reactions (AUDIO agent may listen): kind = greet | apologise | insult | argue | scream | drunk
+  function voice(ped, kind) {
+    const now = game.clock?.elapsed ?? 0;
+    if (ped.voiceT && now - ped.voiceT < 2.5) return;
+    ped.voiceT = now;
+    try { game.emit?.('pedVoice', { ped, kind, voice: ped.P?.voice || 'calm', personality: ped.personality, gender: ped.char?.human?.gender, position: ped.pos.clone() }); } catch (e) { /* ignore */ }
+  }
   // ---------------------------------------------------------------- incidents / damage / API
   function emitHit(ped, kind, damage, dir, info = {}) {
     if (kind === 'car') return; // vehicles emit their own impact event
@@ -491,12 +508,13 @@ export async function createPeds(game) {
     for (const o of list) {
       if (!o.active || o.dead || o.state === 'fight' || o.state === 'cop' || o.rag) continue;
       const dx = o.pos.x - x, dz = o.pos.z - z; const d2 = dx * dx + dz * dz;
-      if (d2 > radius * radius) continue;
+      const pr = o.P ? o.P.panic : 1;
+      if (d2 > radius * radius * pr * pr) continue;
       const d = Math.sqrt(d2), r = Math.random();
       let react;
       if (o.act === 'swim') react = 'swimAway';
-      else if (d < 7 && r < 0.22) react = 'cower';
-      else if (d > 6 && r < 0.3 && o.char?.hasPhone) react = 'film';
+      else if (d < 7 && r < (o.P ? o.P.cower : 0.22)) react = 'cower';
+      else if (d > 6 && r < (o.P ? o.P.film : 0.3) + (o.P ? o.P.cower : 0) && o.char?.hasPhone) react = 'film';
       else react = 'flee';
       o.pending = { react, x, z, t: 0.15 + d * 0.03 + Math.random() * 0.35, src };
     }
@@ -563,7 +581,7 @@ export async function createPeds(game) {
     if (!p) { let bd = -1; const pp = playerPos(); for (const q of list) { const dd = q.pos.distanceTo(pp); if (dd > bd && q.state !== 'fight' && q.state !== 'cop') { bd = dd; p = q; } } if (p) despawn(p); }
     if (!p) p = newPed();
     const zone = o.state === 'cop' ? 'cop' : (o.outfit || zoneAt(pos.x, pos.z));
-    if (!activate(p, new THREE.Vector3(pos.x, pos.y ?? groundAt(pos.x, pos.z), pos.z), zone, 'walk', { outfit: o.state === 'cop' ? 'cop' : o.outfit, gender: o.gender, y: pos.y, force: true })) return null;
+    if (!activate(p, new THREE.Vector3(pos.x, pos.y ?? groundAt(pos.x, pos.z), pos.z), zone, 'walk', { outfit: o.state === 'cop' ? 'cop' : o.outfit, gender: o.gender, y: pos.y, force: true, personality: o.personality })) return null;
     const pp = playerPos();
     if (o.state === 'flee') { p.state = 'flee'; p.fleeT = rand(4, 7); p.threat = { x: pp.x, z: pp.z }; p.scream = true; }
     else if (o.state === 'fight') { p.state = 'fight'; p.stateT = 15; p.hitCd = 1; p.guard = true; }
@@ -728,7 +746,7 @@ export async function createPeds(game) {
           if (pe.react === 'swimAway') { ped.swimDir = Math.atan2(ped.pos.x - pe.x, ped.pos.z - pe.z); ped.stateT = 20; }
           else if (pe.react === 'cower') { ped.state = 'cower'; ped.stateT = rand(2.5, 5); }
           else if (pe.react === 'film') { ped.state = 'film'; ped.stateT = rand(6, 12); }
-          else { ped.state = 'flee'; ped.fleeT = rand(4, 8); ped.scream = Math.random() < 0.6; }
+          else { ped.state = 'flee'; ped.fleeT = rand(4, 8); ped.scream = Math.random() < 0.6; if (ped.scream) voice(ped, 'scream'); }
         }
       }
       if (ped.leaveGroup) {
@@ -785,6 +803,14 @@ export async function createPeds(game) {
           break;
         }
         case 'gettingUp': break;
+        case 'argue': {
+          ped.argueT -= dt; lookAt = pp;
+          ped.heading = approachAngle(ped.heading, Math.atan2(-dpx, -dpz), dt * 6);
+          if (ped.shoveBack && dPlayer < 1.2) { ped.shoveBack = false; ped.punchNow = true; try { game.emit?.('pedShove', { ped, dir: new THREE.Vector3(-dpx, 0, -dpz).normalize() }); } catch (e) { /* ignore */ } }
+          if (Math.random() < dt * 0.4) voice(ped, 'argue');
+          if (ped.argueT <= 0 || dPlayer > 12) { ped.state = 'walk'; ped.act = 'walk'; }
+          break;
+        }
         case 'talk': case 'dance': {
           ped.stateT -= dt; ped.styleT -= dt;
           if (ped.group) ped.heading = approachAngle(ped.heading, Math.atan2(ped.group.center.x - ped.pos.x, ped.group.center.z - ped.pos.z), dt * 2);
@@ -825,18 +851,28 @@ export async function createPeds(game) {
             if (ped.pause <= 0) ped.idleStyle = null;
           } else {
             targetSpeed = ped.walkSpeed; ped.idleStyle = null;
-            if (ped.act !== 'jog' && Math.random() < dt / 45) { ped.pause = rand(4, 12); ped.pauseStyle = Math.random() < 0.6 ? 'phone' : null; }
+            if (ped.act !== 'jog' && Math.random() < dt / 45) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
           }
           // step aside when the player walks into us; stumble when shoved by a sprinting player
           if (dPlayer < 1.15 && pSpeed > 0.6 && !inCar) {
             const approaching = (dpx * fwdX + dpz * fwdZ) / Math.max(dPlayer, 0.01) > 0.4;
             const sx = fwdZ, sz = -fwdX; const sgn = (dpx * sx + dpz * sz) >= 0 ? 1 : -1;
-            if (pSpeed > 4 && dPlayer < 0.85) { ped.knock.set(fwdX * 3 + sx * sgn, 0, fwdZ * 3 + sz * sgn); ped.hitNow = true; ped.state = 'flee'; ped.fleeT = rand(1.5, 3); ped.threat = { x: pp.x, z: pp.z }; ped.scream = false; ped.shoveT = 0.5; }
-            else if (approaching) { ped.asideT = 0.7; ped.asideDir = { x: sx * sgn, z: sz * sgn }; ped.pause = 0; }
+            if (pSpeed > 4 && dPlayer < 0.85) {
+              ped.knock.set(fwdX * 3 + sx * sgn, 0, fwdZ * 3 + sz * sgn); ped.hitNow = true; ped.shoveT = 0.5;
+              const sh = ped.P.shove;
+              if (sh === 'shove' || sh === 'argue') { ped.state = 'argue'; ped.argueT = rand(3, 6); ped.shoveBack = sh === 'shove'; voice(ped, sh === 'shove' ? 'insult' : 'argue'); }
+              else if (sh === 'flee') { ped.state = 'flee'; ped.fleeT = rand(2, 4); ped.threat = { x: pp.x, z: pp.z }; ped.scream = true; voice(ped, 'scream'); }
+              else if (sh === 'apologise') { voice(ped, 'apologise'); }
+              else { ped.state = 'flee'; ped.fleeT = rand(1, 2); ped.threat = { x: pp.x, z: pp.z }; ped.scream = false; }
+            }
+            else if (approaching) { ped.asideT = ped.P.shove === 'shove' ? 0.25 : 0.7; ped.asideDir = { x: sx * sgn, z: sz * sgn }; ped.pause = 0; if (ped.P.shove === 'shove' && Math.random() < 0.3) voice(ped, 'insult'); }
           }
-          if (dPlayer < 7 && !inCar) lookAt = pp;
+          // personality look-at + greeting
+          if (dPlayer < ped.P.look && !inCar) { ped.lookT += dt; if (ped.lookT < ped.P.lookHold + 2) lookAt = pp; } else ped.lookT = 0;
+          if (!ped.greeted && dPlayer < 3.5 && !inCar && Math.random() < ped.P.greet * dt * 2) { ped.greeted = true; ped.waveT = 1.4; voice(ped, ped.personality === 'drunk' ? 'drunk' : 'greet'); }
         }
       }
+      if (ped.waveT > 0) ped.waveT -= dt;
       if (ped.lookUntil && now < ped.lookUntil) lookAt = lookAt || pp;
 
       // ---- integrate
@@ -848,7 +884,7 @@ export async function createPeds(game) {
         ped.knock.multiplyScalar(Math.exp(-dt * 3.5));
       }
       if (ped.asideT > 0) { ped.asideT -= dt; ped.pos.x += ped.asideDir.x * 1.3 * dt; ped.pos.z += ped.asideDir.z * 1.3 * dt; }
-      const moving = ped.speed > 0.02 && !['talk', 'dance', 'bench', 'lean', 'garden', 'sunbathe', 'volley', 'frisbee', 'wade', 'cower', 'film', 'gettingUp'].includes(ped.state);
+      const moving = ped.speed > 0.02 && !NONMOVING.has(ped.state);
       if (moving) {
         if (ped.state === 'fight' || (ped.state === 'cop' && (P.wanted || 0) > 0)) {
           const hd = ped.heading + (ped.detourT > 0 ? ped.detourA : 0); if (ped.detourT > 0) ped.detourT -= dt;
@@ -858,7 +894,7 @@ export async function createPeds(game) {
           ped.heading = approachAngle(ped.heading, ped.swimDir, dt * 2);
         } else {
           moveHeading = ped.nav && ped.act !== 'shore' ? navStep(ped, dt, ped.speed) : freeStep(ped, dt, ped.speed);
-          ped.heading = approachAngle(ped.heading, moveHeading, dt * (ped.state === 'flee' ? 9 : 4.5));
+          ped.heading = approachAngle(ped.heading, moveHeading + (ped.P.sway ? Math.sin(now * 1.3 + ped.id) * ped.P.sway : 0), dt * (ped.state === 'flee' ? 9 : 4.5));
         }
       }
 
@@ -918,7 +954,7 @@ export async function createPeds(game) {
         speed: swimming ? 0 : ped.speed, grounded: true, jumping: false, sprint: ped.state === 'flee', driving: false, punch,
         dead: false, idleStyle: swimming ? 'swim' : (ped.speed < 0.4 || ['cower', 'film'].includes(ped.state)) ? ped.idleStyle : null,
         handsUp: ped.handsUp || ped.shoveT > 0.2, guard: ped.state === 'fight', lookAt: dCam < 40 ? lookAt : null,
-        call: ped.call && (ped.state === 'walk' || ped.state === 'bench' || ped.state === 'lean'), leash: !!ped.dog, hit, throw: thr, getUp: ped.getUp || null,
+        call: ped.call && (ped.state === 'walk' || ped.state === 'bench' || ped.state === 'lean'), wave: ped.waveT > 0, argue: ped.state === 'argue', leash: !!ped.dog, hit, throw: thr, getUp: ped.getUp || null,
       });
     }
   }

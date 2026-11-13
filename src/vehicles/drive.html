@@ -28,7 +28,19 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshS
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 // ?stream: ground exists only as 40 m tiles near the moving player (emulates Miami collider streaming)
 const STREAM = q.has('stream'); const tiles = new Map(); const removingCbs = []; const TS = 40;
-if (!STREAM) world.createCollider(RAPIER.ColliderDesc.cuboid(400, 1, 400).setTranslation(0, -1, 0));
+const WATER = q.has('boat');
+if (WATER) {
+  // land for z < 0 (top y=0), seabed at -4 for z > 40, a sloping beach between, plus a dock on the shore
+  world.createCollider(RAPIER.ColliderDesc.cuboid(400, 1, 200).setTranslation(0, -1, -200));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(400, 1, 200).setTranslation(0, -5, 240));
+  const ang = Math.atan2(4, 40), beach = RAPIER.ColliderDesc.cuboid(60, 1, Math.hypot(40, 4) / 2).setTranslation(-60, -2 - Math.cos(ang), 20).setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), ang));
+  world.createCollider(beach);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(30, 1, 200).setTranslation(30, -1, 20).setTranslation(30, -1, -180)); // keep land
+  world.createCollider(RAPIER.ColliderDesc.cuboid(1.5, 0.15, 12).setTranslation(20, 0.4, 12)); // dock over the water
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(800, 400), new THREE.MeshStandardMaterial({ color: 0x1b5a70, roughness: 0.15, transparent: true, opacity: 0.85 }));
+  sea.rotation.x = -Math.PI / 2; sea.position.set(0, -0.12, 200); scene.add(sea);
+  const dock = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, 24), new THREE.MeshStandardMaterial({ color: 0x8a6a4a })); dock.position.set(20, 0.4, 12); scene.add(dock);
+} else if (!STREAM) world.createCollider(RAPIER.ColliderDesc.cuboid(400, 1, 400).setTranslation(0, -1, 0));
 function streamTiles(p, rIn = 90, rOut = 115) {
   for (let i = -10; i < 10; i++) for (let j = -10; j < 10; j++) {
     const cx = i * TS + TS / 2, cz = j * TS + TS / 2, key = i + ',' + j, d = Math.hypot(cx - p.x, cz - p.z);
@@ -45,6 +57,7 @@ for (const z of zs) roads.push({ x1: -200, z1: z, x2: 200, z2: z, width: 14 });
 const bm = new THREE.MeshStandardMaterial({ color: 0xc8b8a8, roughness: 0.8 });
 for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < zs.length - 1; j++) {
   const x = xs[i] + 50, z = zs[j] + 50, w = 72, d = 72, h = 8 + ((i * 7 + j * 13) % 5) * 6;
+  if (q.has('boat') && z > -60) continue; // keep the bay clear in boat tests
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bm); m.position.set(x, h / 2, z); m.castShadow = m.receiveShadow = true; scene.add(m);
   world.createCollider(RAPIER.ColliderDesc.cuboid(w / 2, h / 2, d / 2).setTranslation(x, h / 2, z));
   buildings.push({ x, z, w, d, h });
@@ -55,6 +68,7 @@ const game = {
   player: { position: new THREE.Vector3(5, 0, -20), heading: 0, velocity: new THREE.Vector3(), state: { inVehicle: false }, wanted: +(q.get('wanted') || 0) },
   city: { half: 200, grid: { block: 100, roadWidth: 14, xs, zs, laneOffsets: [1.75, 5.25] }, roads, buildings, playerSpawn: new THREE.Vector3(9, 0, -20),
     ...(q.has('water') ? { seaLevel: 1.0, isWater: (x, z) => z > 0 } : {}),
+    ...(WATER ? { seaLevel: -0.12, isWater: (x, z) => z > 0 && !(Math.abs(x - 20) < 1.5 && z < 24), groundHeightAt: (x, z) => (z <= 0 ? 0 : z < 40 && x < 0 && x > -120 ? -z / 10 : -4) } : {}),
     ...(STREAM && !q.has('nofix') ? { onTileCollidersRemoving: (f) => removingCbs.push(f), collidersReadyAt: (x, z) => tiles.has(Math.floor(x / TS) + ',' + Math.floor(z / TS)) } : {}) },
 };
 window.game = game;
@@ -115,6 +129,91 @@ if (auto) {
     high: L.filter((v) => v.body.translation().y > v.groundOff + 1.2).length,
     frozen: L.filter((v) => v.frozen).length, fell: L.filter((v) => v.body.translation().y < -2).length, tilesRemoved: window.__removed || 0, panic: window.__panic || null,
     hookMs: +((window.__hk || 0) / (window.__n || 1)).toFixed(3), stepMs: +((window.__st || 0) / (window.__n || 1)).toFixed(3) }));
+}
+// ?crash=parked|moving&v=kmh : ram test, logs penetration + post-impact velocities
+if (q.get('crash')) {
+  const kmh = +(q.get('v') || 60), h = 1 / 60;
+  const tgt = game.vehicles.list.find((o) => o !== me && o.typeKey === (q.get('target') || 'sedan')) || game.vehicles.spawn(q.get('target') || 'sedan', new THREE.Vector3(0, 0, 60), 0, {});
+  for (const o of game.vehicles.list) if (o !== me && o !== tgt) { o.body.setTranslation({ x: 1000 + Math.random() * 500, y: 2, z: 1000 }, true); o.body.setEnabled?.(false); o.frozen = true; }
+  const X = 0, Z0 = -150;
+  const place = (v, z, head, speed) => { const qq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), head);
+    v.body.setTranslation({ x: X - 1.75, y: v.groundOff + 0.02, z }, true); v.body.setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }, true);
+    v.body.setLinvel({ x: Math.sin(head) * speed, y: 0, z: Math.cos(head) * speed }, true); v.body.setAngvel({ x: 0, y: 0, z: 0 }, true); v.bodySway = null; };
+  me.playerDriven = true; game.player.state.inVehicle = true;
+  place(me, Z0, 0, kmh / 3.6);
+  const moving = q.get('crash') === 'moving';
+  if (moving) { tgt.ai = null; place(tgt, Z0 + 45, Math.PI, 40 / 3.6); tgt.playerDriven = false; } else { tgt.ai = null; place(tgt, Z0 + 45, 0, 0); }
+  tgt.locked = false;
+  let minGap = 99, impactT = null, post = null, touched = false;
+  const state0 = { tgtFrozen: !!tgt.frozen, tgtGhost: !!tgt.ghost, tgtEnabled: tgt.body.isEnabled?.(), tgtType: tgt.body.bodyType?.(), meCols: me.body.numColliders(), tgtCols: tgt.body.numColliders() };
+  const half = (me.spec.L + tgt.spec.L) / 2;
+  for (let i = 0; i < 60 * 6; i++) {
+    me.setControls({ throttle: impactT === null ? 1 : 0, steer: 0, brake: 0 });
+    if (moving && impactT === null) tgt.body.setLinvel({ x: 0, y: tgt.body.linvel().y, z: -40 / 3.6 }, true);
+    simStep(h, null);
+    const a = me.body.translation(), b = tgt.body.translation();
+    const gap = Math.abs(b.z - a.z) - half;
+    // true penetration from Rapier's contact manifolds between the two chassis
+    for (let ci = 0; ci < me.body.numColliders(); ci++) for (let cj = 0; cj < tgt.body.numColliders(); cj++)
+      world.contactPair(me.body.collider(ci), tgt.body.collider(cj), (man) => { for (let k = 0; k < man.numContacts(); k++) minGap = Math.min(minGap, man.contactDist(k)); touched = true; });
+    if (impactT === null && gap < 0.3) impactT = i;
+    if (impactT !== null && i === impactT + 30) { const va = me.body.linvel(), vb = tgt.body.linvel(), wb = tgt.body.angvel();
+      post = { me_kmh: +(Math.hypot(va.x, va.z) * 3.6 * Math.sign(va.z || 1)).toFixed(1), tgt_kmh: +(Math.hypot(vb.x, vb.z) * 3.6 * Math.sign(vb.z || 1)).toFixed(1), tgt_yawRate: +wb.y.toFixed(2),
+        meHealth: Math.round(me.health), tgtHealth: Math.round(tgt.health), passedThrough: b.z < a.z, meY: +a.y.toFixed(2), tgtY: +b.y.toFixed(2), meX: +a.x.toFixed(2), tgtX: +b.x.toFixed(2), meCcd: !!me.ccd, tgtCcd: !!tgt.ccd }; }
+  }
+  { const a = me.body.translation(), b = tgt.body.translation(); console.log('END ' + JSON.stringify({ a: [a.x, a.y, a.z].map((x) => +x.toFixed(2)), b: [b.x, b.y, b.z].map((x) => +x.toFixed(2)), tgtFrozen: tgt.frozen, tgtGhost: tgt.ghost })); }
+  console.log('CRASH ' + JSON.stringify({ mode: q.get('crash'), kmh, me: me.typeKey, target: tgt.typeKey, penetration_m: +Math.max(0, -minGap).toFixed(3), touched, impactFrame: impactT, ...state0, tgtGhostAfter: !!tgt.ghost, tgtFrozenAfter: !!tgt.frozen, ...post }));
+}
+if (q.has('boattest')) { window.__boatDbg = q.has('dbg');
+  const V = game.vehicles, h = 1 / 60, out = { boatsSpawned: V.boats.length, types: V.boats.map((b) => b.typeKey) };
+  const step = (n, fn) => { for (let i = 0; i < n; i++) { fn && fn(i); for (const f of game.fixedHooks) f(h); world.step(); game.clock.elapsed += h; V.update(h); } };
+  const runType = (key) => {
+    const b = V.spawnBoat(key, new THREE.Vector3(0, 0, 120), Math.PI / 2, {});
+    // steal: player swims beside it, nearest() must return it
+    game.player.position.set(0 + 0.2, -1.0, 120 + b.spec.W / 2 + 1.5);
+    const found = V.nearest(game.player.position, 4.0) === b;
+    b.playerDriven = true; game.player.state.inVehicle = true; game.player.state.vehicle = b;
+    step(60);
+    const r = { key, enterFromWater: found, restY: +b.body.translation().y.toFixed(2) };
+    let vmax = 0, maxRoll = 0, maxPitch = 0, minY = 9, maxY = -9;
+    const h0 = b.heading;
+    step(60 * 10, (i) => { b.setControls({ throttle: 1, steer: i > 360 ? 1 : 0 }); const t = b.body.translation(); game.player.position.set(t.x, t.y, t.z);
+      vmax = Math.max(vmax, b.speedKmh); const rr = b.body.rotation(); const e = new THREE.Euler().setFromQuaternion(new THREE.Quaternion(rr.x, rr.y, rr.z, rr.w), 'YXZ');
+      maxRoll = Math.max(maxRoll, Math.abs(e.z) * 57.3); maxPitch = Math.max(maxPitch, -e.x * 57.3); minY = Math.min(minY, t.y); maxY = Math.max(maxY, t.y); });
+    let dh = b.heading - h0; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    Object.assign(r, { topKmh: Math.round(vmax), turnDeg: Math.round(dh * 57.3), maxRollDeg: +maxRoll.toFixed(1), maxBowUpDeg: +maxPitch.toFixed(1), yRange: [+minY.toFixed(2), +maxY.toFixed(2)], rpm: Math.round(b.rpm) });
+    // beach it: run at the sloped beach (x -60, from z 70 toward -z)
+    const qq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); b.body.setTranslation({ x: -60, y: 0, z: 75 }, true); b.body.setRotation(qq, true); b.body.setLinvel({ x: 0, y: 0, z: 0 }, true); b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    step(60 * 14, () => { b.setControls({ throttle: 1, steer: 0 }); const t = b.body.translation(); game.player.position.set(t.x, t.y, t.z); });
+    const bt = b.body.translation();
+    Object.assign(r, { beachedAtZ: +bt.z.toFixed(1), beachY: +bt.y.toFixed(2), beached: b.beached, speedAfterBeach: Math.round(b.speedKmh) });
+    // exit: next to the dock, and in open water
+    b.body.setTranslation({ x: 20 - 1.5 - b.spec.W / 2 - 0.4, y: -0.1, z: 12 }, true); b.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true); b.body.setLinvel({ x: 0, y: 0, z: 0 }, true); step(30);
+    const e1 = b.exitPosition();
+    b.body.setTranslation({ x: 0, y: -0.1, z: 150 }, true); step(30);
+    const e2 = b.exitPosition();
+    Object.assign(r, { exitNearDock: [+e1.x.toFixed(1), +e1.y.toFixed(2), +e1.z.toFixed(1)], exitOpenWater: [+e2.x.toFixed(1), +e2.y.toFixed(2), +e2.z.toFixed(1)] });
+    b.playerDriven = false; game.player.state.inVehicle = false; V.removeBoat(b);
+    return r;
+  };
+  out.results = (q.get('types') || 'console,racer,cruiser,jetski,skiff,police').split(',').map(runType);
+  console.log('BOATS ' + JSON.stringify(out));
+}
+if (q.has('memsoak')) {
+  // drive laps (teleported player), render every 4th step, log GPU memory per lap
+  const V = game.vehicles, h = 1 / 60, lapLen = 1600, laps = +(q.get('laps') || 6);
+  let sweep = 0; const rows = [];
+  for (let lap = 0; lap < laps; lap++) {
+    for (let i = 0; i < lapLen / 25 * 60; i++) {
+      sweep += 25 * h; const u = sweep % lapLen, P = game.player.position;
+      if (u < 400) P.set(-200 + u, 0, -200); else if (u < 800) P.set(200, 0, -200 + (u - 400)); else if (u < 1200) P.set(200 - (u - 800), 0, 200); else P.set(-200, 0, 200 - (u - 1200));
+      if (STREAM && i % 15 === 0) streamTiles(P);
+      for (const f of game.fixedHooks) f(h); world.step(); game.clock.elapsed += h; V.update(h);
+      if (i % 20 === 0) { camera.position.set(P.x - 8, 6, P.z - 8); camera.lookAt(P.x, 0, P.z); renderer.render(scene, camera); }
+    }
+    const m = renderer.info.memory; rows.push({ lap, geometries: m.geometries, textures: m.textures, programs: renderer.info.programs.length, cars: V.list.length, resp: V.respawnCount });
+  }
+  console.log('MEM ' + JSON.stringify(rows));
 }
 if (q.get('cam')) window.camOff = new THREE.Vector3(...q.get('cam').split(',').map(Number));
 let last = performance.now();

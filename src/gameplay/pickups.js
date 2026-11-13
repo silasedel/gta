@@ -1,7 +1,7 @@
 // Glowing pickups with tall light beams: weapons (all defs), ammo, armor, health, cash. Caches + starter stash.
 // game.pickups.list -> [{ pos, type, key, mapIcon, active }]  (HUD draws mapIcon when non-null)
 import * as THREE from 'three';
-import { rand, pick, pointNear, sfx, tryCall, distXZ, groundAt } from './util.js';
+import { rand, pick, pointNear, sfx, tryCall, distXZ, groundAt, sharedBox } from './util.js';
 import { buildWeaponModel } from './gunModels.js';
 import { createCellStreamer } from './stream.js';
 import { WEAP } from './weapons.js';
@@ -13,7 +13,25 @@ const COLOR = (t) => (isWeapon(t) ? (t === 'grenade' ? 0xff7a3a : WEAP[t].melee 
 const LABEL = (t) => (isWeapon(t) ? WEAP[t].name : { armor: 'Body armor', health: 'First-aid kit', cash: 'Cash', ammo: 'Ammo' }[t] || t);
 const ICON = (t) => (isWeapon(t) ? 'weapon' : t);
 
-function box(w, h, d, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; return m; }
+function box(w, h, d, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(sharedBox(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; return m; }
+const _protos = new Map();
+function pickupModel(type, color) { // one prototype per type; instances share geometry + materials
+  let p = _protos.get(type);
+  if (!p) { p = buildPickupModel(type, color); _protos.set(type, p); }
+  return p.clone();
+}
+const _haloGeo = new THREE.PlaneGeometry(1.7, 1.7).rotateX(-Math.PI / 2);
+const _fxMats = new Map();
+function fxMat(kind, color, opacity) {
+  const k = kind + color + '|' + opacity;
+  let m = _fxMats.get(k);
+  if (!m) {
+    m = kind === 'halo' ? new THREE.MeshBasicMaterial({ map: haloTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity })
+      : new THREE.MeshBasicMaterial({ map: beamTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity, side: THREE.DoubleSide });
+    _fxMats.set(k, m);
+  }
+  return m;
+}
 function buildPickupModel(type, color) {
   const g = new THREE.Group();
   const glowMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.6, roughness: 0.4 });
@@ -70,11 +88,11 @@ export function createPickups(game, G) {
     if (!type || (type !== 'armor' && type !== 'health' && type !== 'cash' && type !== 'ammo' && !isWeapon(type))) return null;
     const color = COLOR(type);
     const root = new THREE.Group();
-    const model = buildPickupModel(type, color);
+    const model = pickupModel(type, color);
     model.position.y = 0.8;
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.7), new THREE.MeshBasicMaterial({ map: haloTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.85 }));
-    halo.rotation.x = -Math.PI / 2; halo.position.y = 0.04; halo.renderOrder = 2;
-    const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ map: beamTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: type === 'cash' && opts.temp ? 0.35 : 0.75, side: THREE.DoubleSide }));
+    const halo = new THREE.Mesh(_haloGeo, fxMat('halo', color, 0.85));
+    halo.position.y = 0.04; halo.renderOrder = 2;
+    const beam = new THREE.Mesh(beamGeo, fxMat('beam', color, type === 'cash' && opts.temp ? 0.35 : 0.75));
     beam.renderOrder = 3;
     root.add(model, halo, beam);
     root.position.set(pos.x, pos.y || 0, pos.z);

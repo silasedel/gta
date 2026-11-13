@@ -196,6 +196,51 @@ export async function createMaterials(renderer) {
     M.dune = new THREE.MeshStandardMaterial({ map: sand.map, normalMap: sand.normalMap, roughness: 1, metalness: 0, color: 0xfff0d8 }); M.dune.color.setRGB(1.5, 1.38, 1.18);
   }
   for (const [mat, u] of [[M.land, -1], [M.sand, -2], [M.grass, -3], [M.wood, -4], [M.parking, -4], [M.sidewalk, -4], [M.promenade, -4], [M.panels, -4], [M.asphalt, -6], [M.junction, -7], [M.markings, -9]]) if (mat) zOff(mat, u);
+  { // world-space (triplanar) surface detail for street props: galvanized / painted metal, wood grain, concrete, corrugated steel
+    const mkTex = (draw, n = 256) => { const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'); draw(x, n, rng(n + draw.length)); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; };
+    const noise = (x, n, r, k, a) => { for (let i = 0; i < k; i++) { const v = (r() * 255) | 0; x.fillStyle = `rgba(${v},${v},${v},${a})`; x.fillRect(r() * n, r() * n, 1 + r() * 3, 1 + r() * 3); } };
+    const TEX = {
+      metal: mkTex((x, n, r) => { x.fillStyle = '#808080'; x.fillRect(0, 0, n, n); noise(x, n, r, 6000, 0.25); for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${r() < 0.5 ? '40,35,30' : '200,200,200'},${0.08 + r() * 0.1})`; x.fillRect(r() * n, r() * n, 1 + r() * 2, 20 + r() * 80); } for (let i = 0; i < 18; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(r() * n, r() * n); x.scale(6 + r() * 14, 3 + r() * 8); g.addColorStop(0, 'rgba(110,70,40,0.35)'); g.addColorStop(1, 'rgba(110,70,40,0)'); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); } }),
+      paint: mkTex((x, n, r) => { x.fillStyle = '#868686'; x.fillRect(0, 0, n, n); noise(x, n, r, 3000, 0.12); for (let i = 0; i < 60; i++) { x.strokeStyle = `rgba(${r() < 0.6 ? '230,230,230' : '50,45,40'},${0.25 + r() * 0.3})`; x.lineWidth = 0.6 + r(); x.beginPath(); const px = r() * n, py = r() * n; x.moveTo(px, py); x.lineTo(px + (r() - 0.5) * 30, py + (r() - 0.5) * 12); x.stroke(); } }),
+      wood: mkTex((x, n, r) => { x.fillStyle = '#7d7d7d'; x.fillRect(0, 0, n, n); for (let i = 0; i < 90; i++) { const yy = r() * n, v = 90 + r() * 90; x.strokeStyle = `rgba(${v},${v},${v},0.35)`; x.lineWidth = 1 + r() * 2; x.beginPath(); x.moveTo(0, yy); for (let k = 0; k <= 8; k++) x.lineTo(k * n / 8, yy + Math.sin(k * 0.9 + i) * 3); x.stroke(); } for (let i = 0; i < 6; i++) { x.fillStyle = 'rgba(40,30,20,0.35)'; x.beginPath(); x.ellipse(r() * n, r() * n, 3 + r() * 4, 2 + r() * 2, 0, 0, 7); x.fill(); } }),
+      concrete: mkTex((x, n, r) => { x.fillStyle = '#8a8a8a'; x.fillRect(0, 0, n, n); noise(x, n, r, 9000, 0.18); for (let i = 0; i < 8; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(r() * n, r() * n); x.scale(20 + r() * 40, 15 + r() * 30); g.addColorStop(0, 'rgba(40,40,40,0.18)'); g.addColorStop(1, 'rgba(40,40,40,0)'); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); } }),
+      ribs: mkTex((x, n, r) => { for (let i = 0; i < n; i++) { const v = 128 + Math.sin(i / n * Math.PI * 2 * 12) * 50; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(i, 0, 1, n); } noise(x, n, r, 2500, 0.15); for (let i = 0; i < 10; i++) { x.fillStyle = 'rgba(120,60,30,0.25)'; x.fillRect(r() * n, r() * n, 2 + r() * 6, 10 + r() * 40); } }),
+    };
+    // detail(mat, kind, scale): multiplies albedo by the world-space detail texture and varies roughness with it
+    // real CC0 PBR atlas (ambientCG: PaintedMetal004, Metal032, Rust004, Wood066, Concrete034, Plaster001 at 1K, 3x2 cells) - see CREDITS.md
+    const tl = new THREE.TextureLoader(), base = (import.meta.env?.BASE_URL ?? '/') + 'assets/city/tex/';
+    const ATL = { color: tl.load(base + 'props_color.jpg', undefined, undefined, () => {}), rough: tl.load(base + 'props_rough.jpg', undefined, undefined, () => {}), normal: tl.load(base + 'props_normal.jpg', undefined, undefined, () => {}) };
+    ATL.color.colorSpace = THREE.SRGBColorSpace; for (const t of Object.values(ATL)) { t.anisotropy = maxAniso; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; }
+    const CELL = { paint: 0, metal: 1, rust: 2, wood: 3, concrete: 4, plaster: 5, ribs: 2 };
+    M.detail = (mat, kind = 'metal', scale = 0.8, strength = 0.9, normalK = 1.4) => {
+      const tex = TEX[kind] || TEX.metal, prev = mat.onBeforeCompile, cell = CELL[kind] ?? 1;
+      mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r);
+        sh.uniforms.uDet = { value: tex }; sh.uniforms.uDetS = { value: scale }; sh.uniforms.uDetK = { value: strength }; sh.uniforms.uAtl = { value: ATL.color }; sh.uniforms.uAtlR = { value: ATL.rough }; sh.uniforms.uAtlN = { value: ATL.normal }; sh.uniforms.uDetN = { value: normalK }; sh.uniforms.uCell = { value: new THREE.Vector2(cell % 3, Math.floor(cell / 3)) };
+        sh.vertexShader = 'varying vec3 vDetP;\nvarying vec3 vDetN;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+          vec4 dwp = vec4(transformed, 1.0); vec3 dwn = objectNormal;
+          #ifdef USE_INSTANCING
+            dwp = instanceMatrix * dwp; dwn = mat3(instanceMatrix) * dwn;
+          #endif
+          dwp = modelMatrix * dwp; vDetP = dwp.xyz; vDetN = normalize(mat3(modelMatrix) * dwn);`);
+        sh.fragmentShader = 'uniform sampler2D uDet;\nuniform sampler2D uAtl;\nuniform sampler2D uAtlR;\nuniform sampler2D uAtlN;\nuniform float uDetN;\nuniform vec2 uCell;\nuniform float uDetS;\nuniform float uDetK;\nvarying vec3 vDetP;\nvarying vec3 vDetN;\nvec4 atl(sampler2D t, vec2 p) { vec2 f = fract(p) * 0.98 + 0.01; vec2 uv = (uCell + f) / vec2(3.0, 2.0); return textureGrad(t, uv, dFdx(p) / vec2(3.0, 2.0), dFdy(p) / vec2(3.0, 2.0)); }\nvec4 tri(sampler2D t, vec3 bw) { return atl(t, vDetP.zy * uDetS * 0.35) * bw.x + atl(t, vDetP.xz * uDetS * 0.35) * bw.y + atl(t, vDetP.xy * uDetS * 0.35) * bw.z; }\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+          vec3 bw = pow(abs(vDetN), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
+          float det = texture2D(uDet, vDetP.zy * uDetS).r * bw.x + texture2D(uDet, vDetP.xz * uDetS).r * bw.y + texture2D(uDet, vDetP.xy * uDetS).r * bw.z;
+          vec3 pbr = tri(uAtl, bw).rgb; float lum = dot(pbr, vec3(0.299, 0.587, 0.114)) + 1e-3;
+          diffuseColor.rgb *= mix(vec3(1.0), mix(pbr / lum * 0.5 + 0.5, vec3(1.0), 0.35) * (lum * 1.6 + 0.2) * mix(1.0, det * 1.4, 0.3), uDetK);`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+          { // triplanar atlas normal map (whiteout blend in world space), then back to view space
+            vec3 wn = normalize(vDetN); vec3 bwn = pow(abs(wn), vec3(4.0)); bwn /= (bwn.x + bwn.y + bwn.z + 1e-4); float s3 = uDetS * 0.35;
+            vec3 tX = atl(uAtlN, vDetP.zy * s3).xyz * 2.0 - 1.0, tY = atl(uAtlN, vDetP.xz * s3).xyz * 2.0 - 1.0, tZ = atl(uAtlN, vDetP.xy * s3).xyz * 2.0 - 1.0;
+            tX.xy *= uDetN; tY.xy *= uDetN; tZ.xy *= uDetN;
+            tX = vec3(tX.xy + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy + wn.xy, abs(tZ.z) * wn.z);
+            vec3 nW = normalize(tX.zyx * bwn.x + tY.xzy * bwn.y + tZ.xyz * bwn.z);
+            vec3 nV = normalize((viewMatrix * vec4(nW, 0.0)).xyz); normal = normalize(mix(normal, nV * faceDirection, uDetK));
+          }`).replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+          roughnessFactor = clamp(mix(roughnessFactor, tri(uAtlR, bw).r * 1.1, uDetK), 0.04, 1.0);`);
+      };
+      mat.needsUpdate = true; return mat;
+    };
+    M.detail(M.metal, 'metal', 1.2);
+  }
   { // grass: world-space colour variation (sun-bleached / lush / dry patches) breaks up the tiling
     const prevG = M.grass.onBeforeCompile;
     M.grass.onBeforeCompile = (sh) => {

@@ -1,0 +1,25 @@
+district | street km | props/km | shops/km | trees/km | lamps/km | furniture/km
+Downtown | 50.9 | 112 | 11.3 | 37 | 31 | 43
+South Beach | 50.7 | 147 | 17.2 | 41 | 39 | 68
+Brickell | 37.2 | 97 | 16.3 | 26 | 28 | 43
+Edgewater | 23.7 | 87 | 5.3 | 20 | 27 | 40
+Overtown | 19.6 | 96 | 1.6 | 19 | 32 | 44
+Collins Park | 19.1 | 82 | 4.8 | 34 | 23 | 25
+PortMiami | 18.8 | 10 | 0 | 1 | 8 | 1
+Arts & Entertainment District | 13.6 | 117 | 10 | 27 | 32 | 58
+South of Fifth | 11.6 | 143 | 10.7 | 65 | 33 | 45
+Fisher Island | 6.4 | 109 | 0.5 | 53 | 25 | 31
+Watson Island | 6.3 | 71 | 0.2 | 13 | 36 | 22
+MacArthur Causeway | 6.1 | 42 | 0 | 0 | 41 | 0
+Sunset Islands | 4.6 | 72 | 0 | 17 | 21 | 34
+Palm Island | 3.9 | 79 | 0 | 19 | 27 | 33
+Hibiscus Island | 3 | 89 | 0 | 21 | 25 | 43
+Di Lido Island | 2.9 | 64 | 0 | 14 | 19 | 31
+Rivo Alto Island | 2.3 | 60 | 0 | 14 | 17 | 29
+Biscayne Island | 2 | 85 | 0 | 20 | 29 | 37
+San Marco Island | 1.8 | 47 | 0 | 9 | 16 | 22
+Biscayne Bay | 1.7 | 107 | 0 | 56 | 45 | 6
+San Marino Island | 1.7 | 49 | 0 | 8 | 17 | 24
+Venetian Causeway | 1.4 | 41 | 0 | 0 | 41 | 0
+Star Island | 1.3 | 31 | 0 | 9 | 11 | 11
+Belle Isle | 1.2 | 62 | 0.8 | 11 | 18 | 33

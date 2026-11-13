@@ -194,7 +194,7 @@ export function generateLayout({ type, layout, W, D, H, doorX = 0, doorW = 2, se
     const nx = Math.max(1, Math.floor((tx1 - tx0 + 0.6) / p)), nz = Math.max(1, Math.floor((tz1 - tz0 + 0.6) / p));
     for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
       const f = place({ k: four ? 'table4' : 'table2', high: !!fo.high, x: (tx0 + tx1) / 2 + (i - (nx - 1) / 2) * p, z: (tz0 + tz1) / 2 + (j - (nz - 1) / 2) * p, sx: tw + 0.9, sz: tw + 0.9 }, { margin: 0.25 });
-      if (f) { const seats = four ? [[0, -1], [0, 1], [-1, 0], [1, 0]] : [[0, -1], [0, 1]]; for (const [a, b] of seats) out.seats.push({ x: f.x + a * (tw / 2 + 0.35), z: f.z + b * (tw / 2 + 0.35), ry: Math.atan2(-a, -b) }); }
+      void f;
     }
   } else if (fill === 'booths') {
     for (const left of [true, false]) for (let z = z0 + 3.2; z < z1 - entryDepth - 1; z += 2.4) {
@@ -243,7 +243,7 @@ export function generateLayout({ type, layout, W, D, H, doorX = 0, doorW = 2, se
   }
   if (ex.includes('window-bar')) { // counter along the window, stools facing out
     const f = place({ k: 'windowbar', x: doorX > 0 ? (x0 + doorX - doorW / 2) / 2 - 0.3 : (x1 + doorX + doorW / 2) / 2 + 0.3, z: z1 - 0.35, sx: Math.min(4, W / 2 - doorW), sz: 0.45 }, { margin: 0.05, ignoreKeep: true });
-    if (f) for (let i = 0; i < Math.floor(f.sx / 0.8); i++) out.seats.push({ x: f.x - f.sx / 2 + 0.4 + i * 0.8, z: f.z - 0.6, ry: 0 });
+    void f;
   }
   if (ex.includes('smallbar')) tryCorner('barcounter', 0.8, 2.6, { face: '+x', axis: 'z', small: true });
   if (ex.includes('desks')) { for (const s of [-1, 1]) place({ k: 'desk', x: s * (W / 2 - 1.6), z: z1 - entryDepth - 1.4, sx: 1.6, sz: 0.8 }, { margin: 0.2 }); }
