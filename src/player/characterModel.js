@@ -412,7 +412,7 @@ function humanMaterials(base, seed, zone, variant) {
     }
     base.shared ||= {};
     const skin = base.shared.skinS ||= makeAtlasSkinMat();
-    const atlas = makeAtlasMat(pal, variant === 'player' ? { topTint: 0x2fb3ad } : {}); // player: teal tropical-print shirt
+    const atlas = makeAtlasMat(pal, variant === 'player' ? { topTint: 0x2aa9a6 } : {}); // player: plain teal short-sleeve button-up
     return { mats: { skinS: skin, atlasC: atlas }, garments: { __v2: atlas, slots: garments }, hairC };
   }
   base.shared ||= {};

@@ -217,7 +217,22 @@ float fabricH(vec2 u, float fab) {
     vec3 c0 = diffuseColor.rgb;
     float warm = c0.r - c0.b, lum0 = dot(c0, vec3(0.3, 0.59, 0.11));
     bool denim = c0.b > c0.g * 1.12 && c0.b > c0.r * 1.2;
-    if (warm < 0.06 && !denim) diffuseColor.rgb = tropicalPrint(vLP, uTop) * clamp(0.55 + lum0 * 2.2, 0.45, 1.2);
+    if (warm < 0.06 && !denim) {
+      // plain short-sleeve button-up: bare forearms past the sleeve hem, darker placket with buttons down the front, collar
+      float ax = abs(vLP.x), shade = clamp(0.55 + lum0 * 2.2, 0.45, 1.2);
+      if (ax > 0.30) diffuseColor.rgb = vec3(0.6, 0.31, 0.2) * clamp(0.72 + lum0 * 0.9, 0.68, 1.0);
+      else {
+        vec3 col = uTop;
+        if (ax > 0.283) col *= 0.8;                                   // sleeve hem
+        if (vLP.z > 0.02 && ax < 0.013 && vLP.y < 1.43) {             // button placket (front is +z)
+          col *= 0.86;
+          float by = mod(vLP.y - 0.97, 0.085) - 0.0425;
+          if (length(vec2(ax, by)) < 0.0075) col = vec3(0.9, 0.9, 0.86);
+        }
+        if (vLP.y > 1.41) col *= 1.1;                                 // collar
+        diffuseColor.rgb = col * shade;
+      }
+    }
   }
 #endif
   if (gSlot > 2.5) {
