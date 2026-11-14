@@ -1,4 +1,4 @@
-// PORT SOLANA UI: the original icon family ("Tide Line" set). Drawn for this project on a 24 x 24 grid:
+// SOUTHLINE UI: the original icon family ("Tide Line" set). Drawn for this project on a 24 x 24 grid:
 // 1.8 px round strokes, no fills except small solid accents. One source for DOM (icon(name)) and canvas (drawIcon).
 //   icon('heart')                 -> '<svg class="ps-svg" …>' (inherits currentColor)
 //   iconEl('heart', 'ps-ico')     -> <span class="ps-ico"><svg/></span>

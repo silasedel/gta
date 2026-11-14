@@ -1,5 +1,5 @@
 import { boundaryFor, pointInRing, ringBounds } from './mapBoundary.js';
-// PORT SOLANA — tiled map renderer for the minimap, pause map and phone map.
+// SOUTHLINE — tiled map renderer for the minimap, pause map and phone map.
 // Renders city.mapLayers (+ city.roadGraph edges) into cached 512px tiles at several
 // world scales so huge real-scale cities stay cheap to draw every frame.
 // Works with any city exposing mapLayers; returns ok() === false otherwise.

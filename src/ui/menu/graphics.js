@@ -1,4 +1,4 @@
-// PORT SOLANA: applies the graphics / display settings the settings store marks owner 'ui' and that need the engine
+// SOUTHLINE: applies the graphics / display settings the settings store marks owner 'ui' and that need the engine
 // (main-menu track). Uses the look track's presets (game.quality) and never edits src/render:
 //   gfxPreset         -> game.quality.set(name, { manual })   (quality.v2.js also listens; 'custom' keeps the last preset)
 //   resolutionScale   -> multiplies game.quality.dpr() (the renderer pixel ratio post.js fits to)

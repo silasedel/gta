@@ -1,4 +1,4 @@
-// PORT SOLANA: the title screen's camera scenes (main-menu track). Real places on our map, resolved at run time from
+// SOUTHLINE: the title screen's camera scenes (main-menu track). Real places on our map, resolved at run time from
 // the city (road graph, water test, Nico's house anchors) so they follow the world when it changes.
 // A scene: { id, place, hour, player: { x, z, heading, visible }, shot: cinema shot }.
 import * as THREE from 'three';

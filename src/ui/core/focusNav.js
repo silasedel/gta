@@ -1,4 +1,4 @@
-// PORT SOLANA UI: keyboard / controller focus navigation shared by every menu, the pause screen and the phone.
+// SOUTHLINE UI: keyboard / controller focus navigation shared by every menu, the pause screen and the phone.
 //
 // Usage:
 //   const scope = nav.push({ root, onBack() {…}, onTab(dir) {…}, onAction(name) {…}, initial: '.first' });

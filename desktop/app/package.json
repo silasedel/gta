@@ -1,9 +1,9 @@
 {
   "name": "port-solana-desktop",
-  "productName": "Port Solana",
+  "productName": "Southline",
   "version": "2.0.0",
-  "description": "Port Solana desktop app",
-  "author": "Port Solana",
+  "description": "Southline desktop app",
+  "author": "Southline",
   "private": true,
   "main": "main.cjs"
 }

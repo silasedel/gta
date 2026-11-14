@@ -1,4 +1,4 @@
-// PORT SOLANA: the wardrobe (main-menu track). Nico on a lit turntable stage, rendered through the game's own post chain
+// SOUTHLINE: the wardrobe (main-menu track). Nico on a lit turntable stage, rendered through the game's own post chain
 // (bloom, grade, depth of field), dressed with the real outfit system (game.wardrobe, CHARACTER track) so every
 // change is the live garment. Drag to turn him, scroll to zoom. Reached from the title menu and the pause menu.
 import * as THREE from 'three';

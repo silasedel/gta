@@ -1,4 +1,4 @@
-// PORT SOLANA — hand-made playable-area boundary for the real-scale Miami map (world metres, +X east, +Z south).
+// SOUTHLINE — hand-made playable-area boundary for the real-scale Miami map (world metres, +X east, +Z south).
 // Traced ~18 m outside real street centrelines so the boundary street itself stays on the map:
 //   north (mainland): NW/NE 20th Street      west: NW 2nd Avenue -> SW 2nd Avenue
 //   south (mainland): SW/SE 13th Street       bay: open water north of the Venetian Islands

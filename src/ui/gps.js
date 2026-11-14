@@ -1,4 +1,4 @@
-// PORT SOLANA — GPS routing over city.roadGraph (A*), used by the HUD for waypoint routes.
+// SOUTHLINE — GPS routing over city.roadGraph (A*), used by the HUD for waypoint routes.
 // route(fromX, fromZ, toX, toZ) -> { pts: [[x,z],...], length } | null
 
 const WALK_KINDS = new Set(['footway', 'path', 'cycleway', 'pedestrian', 'steps']);

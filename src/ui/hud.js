@@ -1,4 +1,4 @@
-// PORT SOLANA — HUD (original design). Owns: minimap, status cluster, speedometer,
+// SOUTHLINE — HUD (original design). Owns: minimap, status cluster, speedometer,
 // help/notifications/mission, district toast, phone, pause menu, title + death screens.
 import { VERSION } from '../version.js';
 import { BRAND } from './brand.js';

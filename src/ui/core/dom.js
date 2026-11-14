@@ -1,4 +1,4 @@
-// PORT SOLANA UI: small DOM and formatting helpers shared by every UI module.
+// SOUTHLINE UI: small DOM and formatting helpers shared by every UI module.
 export const TAU = Math.PI * 2;
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const lerp = (a, b, t) => a + (b - a) * t;

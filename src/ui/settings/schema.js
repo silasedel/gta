@@ -1,4 +1,4 @@
-// PORT SOLANA UI: the settings schema. One flat key per setting (mirrored into game.settings[key]).
+// SOUTHLINE UI: the settings schema. One flat key per setting (mirrored into game.settings[key]).
 // type: 'range' | 'choice' | 'toggle' | 'action' | 'custom'. `owner` says which track applies the value:
 //   'ui'   applied by src/ui (store.js) and verified here
 //   other  that track reads game.settings[key] or listens to 'settings:changed' { key, value, previous, all }

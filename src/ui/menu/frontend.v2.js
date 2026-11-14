@@ -1,4 +1,4 @@
-// PORT SOLANA: the front end (main-menu track). Title screen over a live in-engine scene, main menu, online join
+// SOUTHLINE: the front end (main-menu track). Title screen over a live in-engine scene, main menu, online join
 // form, credits, loading screen into the game, and the doorway to Settings and the Wardrobe (also from the pause menu).
 //   game.frontEnd = { open(), openSettings(o), openWardrobe(o), active }
 // The title is skipped under automation (navigator.webdriver) so other tracks' test scripts keep their old flow;

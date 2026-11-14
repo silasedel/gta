@@ -1,4 +1,4 @@
-// PORT SOLANA: arrival intros (main-menu track). The first time the player reaches a special place, a short
+// SOUTHLINE: arrival intros (main-menu track). The first time the player reaches a special place, a short
 // cutscene plays on the cinematic director (ui/menu/cinema.js): about six quick shots with depth of field and the
 // letterbox, cut on the bar lines of the radio song that plays under it (src/audio/radio.js wall clock +
 // ui/menu/beats.json tempo map), and a title card. Once per save (save slice 'intros'), skippable, smooth handoff.
@@ -33,7 +33,7 @@ const FRONT_SHOTS = [
 export const PLACES = [
   {
     id: 'club', name: 'Velvet Undertow', tagline: "South Beach's after-hours.", station: 'neon', hour: [21, 4],
-    frame: (game) => { const p = game.club?.pos; if (!p) return null; const f = nearestStorefront(game, /nightclub|club/i, p); return f ? { ...f, x: p.x, z: p.z } : { x: p.x, z: p.z, fx: 0, fz: 1 }; },
+    frame: (game) => { const s = game.bizSites?.sites?.find((x) => x.id === 'biz_club'); if (s?.front) return { x: s.x, z: s.z, fx: s.front.dx, fz: s.front.dz }; const p = game.club?.pos; return p ? { x: p.x, z: p.z, fx: 0, fz: 1 } : null; },
     radius: 28, shots: FRONT_SHOTS,
   },
   {

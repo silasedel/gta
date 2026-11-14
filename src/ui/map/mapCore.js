@@ -1,4 +1,4 @@
-// PORT SOLANA UI: map engine shared by the pause map, the minimap and the phone map.
+// SOUTHLINE UI: map engine shared by the pause map, the minimap and the phone map.
 //  - Vector data (game.city.mapLayers + roadGraph) is rasterized into cached 512 px tiles at 7 levels of detail.
 //  - No flicker by construction: a view only switches to a new level once every tile it needs is ready (the old
 //    level keeps being drawn until then, then a short cross-fade); missing edge tiles fall back to cached parents

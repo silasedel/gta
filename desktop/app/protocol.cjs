@@ -1,4 +1,4 @@
-// Port Solana desktop: serves the production web build from local files over app://game/.
+// Southline desktop: serves the production web build from local files over app://game/.
 // A privileged, standard, secure scheme behaves like https for the page: ES modules, module workers,
 // fetch(), WASM and IndexedDB/localStorage all work, and the origin (app://game) is stable across
 // launches so saves persist. Paths are confined to the web root; anything outside it is a 404.

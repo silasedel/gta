@@ -1,4 +1,4 @@
-// Port Solana desktop: keeps the window alive when the renderer or GPU process dies or hangs.
+// Southline desktop: keeps the window alive when the renderer or GPU process dies or hangs.
 // - Renderer crash / OOM / kill: log it, reload the game, show a short notice.
 // - GPU process crash: log it, reload the game (the page's WebGL context is gone).
 // - Renderer hang: after HANG_SECONDS without a response, crash it on purpose and reload.
@@ -75,7 +75,7 @@ function attach(win, startUrl) {
       buttons: ['Try again', 'Open log folder', 'Quit'],
       defaultId: 0,
       cancelId: 2,
-      message: 'Port Solana keeps crashing',
+      message: 'Southline keeps crashing',
       detail: 'The game crashed several times in a row. The reasons are in crash.log in the log folder.',
     });
     if (r.response === 0) {

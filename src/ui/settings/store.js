@@ -1,4 +1,4 @@
-// PORT SOLANA UI: settings store. Persists every setting, applies it live, and publishes 'settings:changed'.
+// SOUTHLINE UI: settings store. Persists every setting, applies it live, and publishes 'settings:changed'.
 //   const s = createSettings(game, { bindings });  s.get('fov');  s.set('fov', 70);  s.on('fov' | '*', fn);
 // Values are mirrored into game.settings[key]. Other tracks either read game.settings[key] each frame or listen:
 //   game.on('settings:changed', ({ key, value, previous, all }) => …)

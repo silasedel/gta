@@ -1,5 +1,6 @@
 {
   "name": "port-solana",
+  "productName": "Southline",
   "private": true,
   "type": "module",
   "scripts": {

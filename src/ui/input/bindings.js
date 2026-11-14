@@ -1,4 +1,4 @@
-// PORT SOLANA UI: input layer. Full key rebinding, controller support (Gamepad API), UI navigation events and
+// SOUTHLINE UI: input layer. Full key rebinding, controller support (Gamepad API), UI navigation events and
 // key glyphs that follow the current bindings and the last-used device.
 //
 // How rebinding works without touching anyone's code:

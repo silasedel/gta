@@ -1,4 +1,4 @@
-// PORT SOLANA — top-right HUD corner: clock and weapon (small), six wanted stars,
+// SOUTHLINE — top-right HUD corner: clock and weapon (small), six wanted stars,
 // the three "what the police know" badges (outfit, face, vehicle) and the money lines
 // (bank with a house badge, cash with a wallet badge). All icons are original SVG.
 import './corner.css';

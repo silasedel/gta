@@ -1,4 +1,4 @@
-// PORT SOLANA UI: one guarded doorway to every other track's API. UI code never reaches into game.<system> directly
+// SOUTHLINE UI: one guarded doorway to every other track's API. UI code never reaches into game.<system> directly
 // for these; it asks here and always gets a plain object back, with `available: false` when the system is missing
 // (so screens can show an honest "not available" state instead of a fake).
 import { num, clamp, fmtClock, DAY_NAMES } from './dom.js';

@@ -1,4 +1,4 @@
-// Port Solana desktop app (Electron main process).
+// Southline desktop app (Electron main process).
 // Loads the production web build from local files over app://game/, on the high-performance GPU,
 // with no background throttling, a large V8 heap, a crash guard and logs in the user data folder.
 // Developer switches (all optional):
@@ -418,6 +418,16 @@ app.whenReady().then(async () => {
   protocolMod.handle(root);
   lockDown(session.defaultSession);
   buildMenu();
+  // About panel and (unpackaged dev runs) the Dock icon carry the Southline brand
+  try {
+    app.setAboutPanelOptions({ applicationName: 'Southline', applicationVersion: app.getVersion(), copyright: 'Southline', credits: 'An original open-world Florida story.' });
+    if (process.platform === 'darwin' && !app.isPackaged && app.dock) {
+      const devIcon = path.join(__dirname, '..', 'build', 'icon.png');
+      if (fs.existsSync(devIcon)) app.dock.setIcon(devIcon);
+    }
+  } catch (e) {
+    log.info('about panel / dock icon: ' + e.message);
+  }
   createWindow();
   startMemorySampler();
   // GPU feature status is only meaningful once the GPU process has reported in.

@@ -1,4 +1,4 @@
-// PORT SOLANA: the cinematic director (main-menu track). One camera rig shared by the title screen, the wardrobe
+// SOUTHLINE: the cinematic director (main-menu track). One camera rig shared by the title screen, the wardrobe
 // backdrop and the arrival intros. It never edits src/render: it adds one pass to the existing composer and wraps two
 // existing passes from the outside.
 //   const cin = getCinema(game);
@@ -11,6 +11,7 @@
 import * as THREE from 'three';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import { LOOK_OFF } from '../../world/env/fogChunks.js';
 
 const V = (v, out = new THREE.Vector3()) => (Array.isArray(v) ? out.set(v[0], v[1], v[2]) : v?.isVector3 ? out.copy(v) : typeof v === 'function' ? V(v(), out) : v ? out.set(v.x, v.y, v.z) : out.set(0, 0, 0));
 export const EASE = {
@@ -152,7 +153,8 @@ export function getCinema(game) {
         if (!pass.enabled || !rb?.depthTexture) return;
         if (depthRT.width !== rb.width || depthRT.height !== rb.height) depthRT.setSize(rb.width, rb.height);
         const u = copyQuad.material.uniforms;
-        u.tDepth.value = rb.depthTexture; u.uNear.value = camera.near; u.uFar.value = camera.far;
+        // look track: with MSAA the scene depth lives in post.sceneDepth
+        u.tDepth.value = post.sceneDepth || rb.depthTexture; u.uNear.value = camera.near; u.uFar.value = camera.far;
         u.uFocus.value = Math.max(0.3, state.focus); u.uAperture.value = state.aperture; u.uMaxCoc.value = state.maxCoc * (rb.width / Math.max(1, innerWidth)) ;
         const prevRT = r.getRenderTarget();
         r.setRenderTarget(depthRT); copyQuad.render(r); r.setRenderTarget(prevRT);
@@ -225,6 +227,15 @@ export function getCinema(game) {
     // focus: a point (distance to it), a number, or the look target
     if (s.focus != null) state.focus = typeof s.focus === 'number' ? s.focus : V(s.focus, fp).distanceTo(tmpP);
     else state.focus = tmpL.distanceTo(tmpP);
+    // look track (z-fighting): the near plane follows the shot's focus distance. Wide skyline shots get up to 1.5 m
+    // (depth precision far away is about 7x better than at 0.2), close-ups keep 0.2.
+    if (!LOOK_OFF) {
+      const wantNear = Math.min(1.5, Math.max(0.2, state.focus * 0.02));
+      if (Math.abs(cam.near - wantNear) > 0.02) {
+        cam.near = wantNear;
+        cam.updateProjectionMatrix();
+      }
+    }
     state.aperture = s.aperture ?? 1.2;
     state.maxCoc = s.maxCoc ?? 11;
     return true;

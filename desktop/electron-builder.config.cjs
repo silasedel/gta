@@ -1,9 +1,10 @@
-// electron-builder config for the Port Solana desktop app (run from the repo root, see desktop/scripts/build.mjs).
+// electron-builder config for the Southline desktop app (run from the repo root, see desktop/scripts/build.mjs).
 // Unsigned build for local use: no signing identity, no notarization.
 module.exports = {
-  appId: 'com.portsolana.game',
+  appId: 'com.portsolana.game', // kept: changing it would give macOS a new app identity (prefs, permissions)
   productName: 'Southline',
   copyright: 'Southline',
+  artifactName: 'Southline-${version}-${arch}.${ext}',
   electronVersion: '45.2.1',
   directories: {
     app: 'desktop/app',
@@ -30,12 +31,15 @@ module.exports = {
       'dmg',
     ],
     category: 'public.app-category.games',
-    icon: 'desktop/build/icon.png',
+    icon: 'desktop/build/icon.icns',
     identity: null,
     hardenedRuntime: false,
     gatekeeperAssess: false,
     darkModeSupport: true,
     extendInfo: {
+      CFBundleName: 'Southline',
+      CFBundleDisplayName: 'Southline',
+      NSHumanReadableCopyright: 'Southline',
       NSHighResolutionCapable: true,
       LSMinimumSystemVersion: '12.0',
       // Prefer the discrete GPU on dual-GPU Macs.
@@ -46,6 +50,7 @@ module.exports = {
   },
   dmg: {
     title: 'Southline',
+    icon: 'desktop/build/icon.icns',
     writeUpdateInfo: false,
   },
   win: {
@@ -55,6 +60,7 @@ module.exports = {
     icon: 'desktop/build/icon.png',
   },
   nsis: {
+    shortcutName: 'Southline',
     oneClick: false,
     allowToChangeInstallationDirectory: true,
   },

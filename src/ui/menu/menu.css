@@ -1,4 +1,4 @@
-/* PORT SOLANA front end (main-menu track): title, menu, sub screens, settings, wardrobe, loading.
+/* SOUTHLINE front end (main-menu track): title, menu, sub screens, settings, wardrobe, loading.
  * Built on the Tide Line tokens (src/ui/styles/tokens.css). Own pm- class names so the legacy HUD styles never collide. */
 body.pm-front #ps-hud, body.pm-front #title { opacity: 0 !important; pointer-events: none !important; }
 body.pm-front .pm-fps { bottom: calc(12vh + 10px); }

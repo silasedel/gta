@@ -366,7 +366,7 @@ function save(res) {
 }
 
 if (mode === 'app') {
-  const bin = opt('bin', path.join(ROOT, 'desktop/dist/mac-arm64/Port Solana.app/Contents/MacOS/Port Solana'));
+  const bin = opt('bin', path.join(ROOT, 'desktop/dist/mac-arm64/Southline.app/Contents/MacOS/Southline'));
   const port = Number(opt('port', '9411'));
   if (port <= 9400 || port === 9222 || port === 9333) {
     throw new Error('use a debugging port above 9400');

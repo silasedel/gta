@@ -1,4 +1,4 @@
-/* PORT SOLANA — top-right HUD corner (stars, police-knowledge badges, bank and cash).
+/* SOUTHLINE — top-right HUD corner (stars, police-knowledge badges, bank and cash).
    No boxes: everything is white or colored glyphs with a soft dark shadow so it reads over bright sky. */
 .ps-hud .ps-corner {
   --ps-c-shadow: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .55)) drop-shadow(0 0 6px rgba(0, 0, 0, .28));

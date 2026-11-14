@@ -1,4 +1,4 @@
-// PORT SOLANA UI: language scaffold. Strings are written in English in the code and looked up by that text:
+// SOUTHLINE UI: language scaffold. Strings are written in English in the code and looked up by that text:
 //   t('Continue')  ->  'Continuar' when the language setting is 'es' and the dictionary has it, else 'Continue'.
 //   t('Day {n}', { n: 3 })
 // Add a language: add a dictionary below (or call i18n.add('fr', {...}) from a data file) and an option to the

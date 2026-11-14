@@ -28,7 +28,7 @@ const CSS = `
   -webkit-mask: radial-gradient(circle at 62% 38%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); mask: radial-gradient(circle at 62% 38%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); animation: sl-rays 60s linear infinite; }
 @keyframes sl-rays { to { transform: rotate(18deg); } }
 .sl-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(18, 6, 28, .88) 0%, rgba(18, 6, 28, .25) 30%, transparent 55%), linear-gradient(180deg, rgba(18, 6, 28, .45), transparent 28%); }
-.sl-logo { position: absolute; left: clamp(20px, 4vw, 80px); top: clamp(16px, 3.4vh, 56px); width: clamp(220px, 24vw, 500px); filter: drop-shadow(0 6px 22px rgba(20, 0, 30, .6)); }
+.sl-logo { position: absolute; left: clamp(20px, 4vw, 80px); top: clamp(16px, 3.4vh, 56px); width: clamp(300px, 33.6vw, 700px); filter: drop-shadow(0 6px 22px rgba(20, 0, 30, .6)); }
 .sl-logo svg { display: block; width: 100%; height: auto; margin: 0 !important; animation: none !important; }
 .sl-left { position: absolute; left: clamp(20px, 4vw, 80px); bottom: clamp(22px, 5.2vh, 72px); width: min(46vw, 760px); }
 .sl-word { font: 400 clamp(26px, 3.2vw, 56px)/1 var(--ps-cond); letter-spacing: .02em; transform: skewX(-11deg); transform-origin: 0 100%; color: #fff4e3; text-shadow: 3px 4px 0 #3b0f46, 0 0 24px rgba(255, 46, 138, .55); }

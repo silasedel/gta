@@ -1,4 +1,4 @@
-// PORT SOLANA: the settings screen (main-menu track). Renders src/ui/settings/schema.js through the settings store:
+// SOUTHLINE: the settings screen (main-menu track). Renders src/ui/settings/schema.js through the settings store:
 // every change applies live and persists; the world keeps running behind a translucent panel so you see the result.
 // Keyboard / controller: arrows move, left / right change a value, Q / E (LB / RB) switch tabs, Esc (B) goes back.
 import { el, esc } from '../core/dom.js';

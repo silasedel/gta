@@ -1,4 +1,4 @@
-// PORT SOLANA UI: the shared UI context. Built once by createHUD (hud.js) and by the dev pages; every UI module
+// SOUTHLINE UI: the shared UI context. Built once by createHUD (hud.js) and by the dev pages; every UI module
 // receives it:   createThing(game, ctx)
 //   ctx.root      the .ps-ui root element (classes for scale, colorblind, reduced motion live here)
 //   ctx.layer(name) -> a full-screen layer element in z order: 'world' < 'hud' < 'toast' < 'phone' < 'screen' < 'modal' < 'top'

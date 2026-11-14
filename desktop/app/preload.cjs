@@ -1,4 +1,4 @@
-// Port Solana desktop preload: tells the game it runs inside the desktop app. Nothing else is exposed.
+// Southline desktop preload: tells the game it runs inside the desktop app. Nothing else is exposed.
 const { contextBridge } = require('electron');
 
 contextBridge.exposeInMainWorld('portSolanaDesktop', {

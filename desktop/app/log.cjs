@@ -1,5 +1,5 @@
-// Port Solana desktop: plain-text logs in the app's user data folder.
-//   macOS: ~/Library/Application Support/Port Solana/logs/
+// Southline desktop: plain-text logs in the app's user data folder.
+//   macOS: ~/Library/Application Support/Port Solana/logs/ (folder name kept from before the rename so saves and logs stay put)
 //   crash.log  renderer/GPU crashes, hangs, reloads (the file to read first)
 //   app.log    startup info, GPU info, renderer console errors, periodic memory samples
 // Files roll over at 2 MB so they never grow without bound.
