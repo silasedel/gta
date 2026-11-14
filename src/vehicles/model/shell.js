@@ -99,6 +99,13 @@ export function styleOf(t) {
   };
   if (era === 0 && !boxy) { d.noseW = Math.min(0.93, d.noseW + 0.1); d.tailW = Math.min(0.95, d.tailW + 0.07); d.noseP += 1.2; d.tailP += 1; d.fillet *= 0.6; d.roofFillet *= 0.7; d.barrel *= 0.5; d.tumble *= 0.8; d.noseL *= 0.6; d.tailL *= 0.6; d.bowF *= 0.5; d.glassBow *= 0.6; d.hoodP *= 0.85; }
   if (era === 2 && !boxy) { d.fillet *= 0.85; d.beltRise += 0.02; d.flare += 0.006; }
+  // less "soap bar": flatter side walls and a tighter shoulder, the way stamped steel panels read on real cars
+  if (!boxy) {
+    d.barrel *= 0.65;
+    d.fillet *= 0.78;
+    d.roofFillet *= 0.85;
+    d.tuck *= 0.8;
+  }
   return { ...d, ...(t.style || {}) };
 }
 

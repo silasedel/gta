@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel2.js';
 import { rollLook, visualSignature, lookSignature, incomeFor, fleetMix, tierWeight } from './catalog.js';
 import { rollDriver, createDriverStats } from './traffic/drivers.js';
+import { smoothAiControls } from './traffic/smooth.js'; // [vehicles-look hook]
 import { dentMesh } from './damage.js';
 import { createBoats } from './boats.js';
 import { buildRoadNet, project, sampleEdge, laneOffset, laneCount, driveLaneMax, lanePointAt, exitsAt, edgeDirAt, signalState, randomLane } from './roadnet.js';
@@ -967,6 +968,7 @@ export async function createVehicles(game) {
     if (desired < 0.3) { v.ctrl.throttle = 0; v.ctrl.brake = v.speed > 0.2 ? 1 : 0.6; }
     else if (err < -1.2) { v.ctrl.throttle = 0; v.ctrl.brake = clamp(-err / 6 * P.brake, 0.15, 1); }
     else { v.ctrl.brake = 0; v.ctrl.throttle = clamp(err * 0.35 + 0.15, 0, 0.45 + 0.55 * P.accel); }
+    smoothAiControls(v, dt); // [vehicles-look hook] calm steering and progressive pedals (traffic/smooth.js)
     // measurement (traffic/drivers.js): time, distance, free-flow speed vs limit, following gap
     S.seconds += dt; S.meters += spd * dt;
     if (block > 60 && stopBlock > 60 && distToNode > 50 && curve < 0.15 && Math.abs(steerAng) < 0.1 && spd > 3) { S.ratioSum += spd / limitMs * dt; S.ratioN += dt; }

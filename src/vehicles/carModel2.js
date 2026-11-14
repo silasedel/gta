@@ -103,8 +103,8 @@ function buildBody(t, typeKey, kit = 'base', lod = 0) {
 
   // ---- fascia: front
   const fy0 = S.bot(zf), fx = hw * 0.975;
-  const lampY1 = noseY - 0.06, lampH = era === 2 ? 0.075 : era === 0 ? 0.17 : 0.13, lampY0 = lampY1 - lampH;
-  const big = !!t.bigGrille, gw = hw * (big ? 0.5 : 0.4), gy1 = noseY - (big ? 0.07 : 0.1), gy0 = big ? Math.max(fy0 + 0.22, noseY - 0.34) : noseY - 0.19;
+  const lampY1 = noseY - 0.06, lampH = era === 2 ? 0.095 : era === 0 ? 0.17 : 0.14, lampY0 = lampY1 - lampH;
+  const big = !!t.bigGrille, gw = hw * (big ? 0.52 : 0.46), gy1 = noseY - (big ? 0.07 : 0.1), gy0 = big ? Math.max(fy0 + 0.22, noseY - 0.34) : noseY - 0.19;
   const lampXi = Math.max(gw + 0.05, hw * 0.5), slant = era === 2 ? 0.03 : 0;
   P.end(1, [[lampXi, lampY0], [fx, lampY0 + slant], [fx, lampY1 + slant], [lampXi, lampY1]], 'head', { round: era === 1 ? 0.45 : era === 0 ? 0.08 : 0.2, nu: D ? 10 : 4, nv: D ? 3 : 1, mirror: true, off: 0.005 });
   if (D1 && !t.wedge && MODELS[typeKey]?.engine !== 'electric') P.end(1, rectQ(-gw, gy0, gw, gy1), 'grille', { round: big ? 0.12 : 0.3, nu: D ? 10 : 4, nv: D ? 4 : 1 });
@@ -146,6 +146,23 @@ function buildBody(t, typeKey, kit = 'base', lod = 0) {
     if (!noDeck && !t.bed) { P.topLine(-S.section(zD - 0.1).cx + 0.04, zD - 0.1, S.section(zD - 0.1).cx - 0.04, zD - 0.1, 'gap', 0.008, 10); P.endLine(-1, -hw * 0.8, yT - 0.24, hw * 0.8, yT - 0.24, 'gap', 0.008, 10, 0.004); }
     P.end(-1, rectQ(-0.06, yT - 0.085, 0.06, yT - 0.045), 'chrome', { round: 1, nu: 4, nv: 3, off: 0.01 });
     if (t.bed) P.endLine(-1, -hw * 0.9, yT - 0.06, hw * 0.9, yT - 0.06, 'gap', 0.01, 12, 0.004);
+    // separate tail-lamp lenses: dark mullions split each lamp into cells (stop / turn / reverse read as distinct lenses)
+    const cells = vert ? 0 : era === 0 ? 3 : 2;
+    for (let i = 1; i <= cells; i++) {
+      const xc = tq[0][0] + (tq[1][0] - tq[0][0]) * i / (cells + 1);
+      for (const sx of [1, -1]) P.endLine(-1, sx * xc, tq[0][1] + 0.008, sx * xc, tq[2][1] - 0.008, 'gap', 0.009, 2, 0.011);
+    }
+    if (!vert) for (const sx of [1, -1]) P.endLine(-1, sx * tq[0][0], (tq[0][1] + tq[2][1]) / 2, sx * (fx - 0.04), (tq[0][1] + tq[2][1]) / 2, 'gap', 0.006, 4, 0.011);
+    // bumper cover split line, front and rear (a real shut line between the fascia and the body)
+    if (!utility) {
+      const byR = Math.min(yT - 0.3, ry0 + 0.34), byF = Math.min(lampY0 - 0.1, fy0 + 0.36);
+      P.endLine(-1, -fx + 0.03, byR, fx - 0.03, byR, 'gap', 0.007, 16, 0.004);
+      P.endLine(1, -lampXi, byF, lampXi, byF, 'gap', 0.007, 12, 0.004);
+      if (era === 0 && !t.chromeBumpers) {
+        P.end(-1, rectQ(-fx, ry0 + 0.1, fx, ry0 + 0.24), 'trim', { nu: 18, nv: 2, off: 0.02, round: 0.08 });
+        P.end(1, rectQ(-fx, fy0 + 0.1, fx, fy0 + 0.24), 'trim', { nu: 18, nv: 2, off: 0.02, round: 0.08 });
+      }
+    }
   }
 
   // ---- sides: gaps, handles, mirrors, trims
@@ -172,6 +189,11 @@ function buildBody(t, typeKey, kit = 'base', lod = 0) {
     if (t.cls === 'super' || t.intakes) P.side(rectQ(zR + ra + 0.05, yb + 0.16, zR + ra + 0.55, belt - 0.08), 'grille', { off: 0.004, round: 0.45, nu: 5, nv: 4 });
     if (!t.bus && !t.box && !t.convertible) cyl(acc, 'trim', 0.004, 0.006, 0.3, -(G.baseX(0.2) * 0.6), roofY + 0.12, zC + 0.2, -0.4, 0, 5);
     if (t.roofRails) for (const sx of [1, -1]) rbox(acc, 'trim', 0.04, 0.035, (zB - zC) * 0.86, 0.015, sx * (G.side(0.5, 1)[0] - 0.06), roofY + 0.012, (zB + zC) / 2, 1);
+  }
+  if (D) {
+    const py = noDeck || t.bed ? ry0 + 0.4 : yT - 0.33;
+    P.end(-1, rectQ(-0.19, py - 0.1, 0.19, py + 0.1), 'gap', { round: 0.15, nu: 6, nv: 3, off: 0.003 });
+    P.end(-1, rectQ(-0.2, py + 0.1, 0.2, py + 0.115), 'chrome', { nu: 6, nv: 1, off: 0.006 });   // plate lamp bar
   }
   if (t.wing && D1) { const wy0 = S.topY(zr + 0.25, 0); rbox(acc, 'trim', W - 0.22, 0.03, 0.24, 0.012, 0, wy0 + (t.wedge ? 0.3 : 0.14), zr + 0.22, 1); for (const sx of [1, -1]) box(acc, 'trim', 0.03, t.wedge ? 0.3 : 0.14, 0.1, sx * (hw - 0.45), wy0 + (t.wedge ? 0.15 : 0.07), zr + 0.24); }
   if (kit === 'sport' && !t.wing && !t.bed && !noDeck && D1) rbox(acc, 'paint', W - 0.5, 0.035, 0.14, 0.014, 0, S.topY(zr + 0.12, 0) + 0.03, zr + 0.12, 1);
@@ -229,6 +251,44 @@ function mats() {
     grille: new THREE.MeshStandardMaterial({ color: 0xffffff, map: grilleTex, roughness: 0.55, metalness: 0.3, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }),
     wheelTrim: s.blackPlastic, interior: s.clothBlack, screen: new THREE.MeshStandardMaterial({ color: 0x0a0a0a, emissive: 0x7fd6ff, emissiveIntensity: 0.6, roughness: 0.3 }) };
   return _mats;
+}
+SHARED.contact = new THREE.PlaneGeometry(1, 1);
+let _contactMat = null;
+// ambient-occlusion style contact shadow: dark, soft-edged, densest under the wheels and the floor pan
+function contactMat() {
+  if (_contactMat) return _contactMat;
+  const cv = document.createElement('canvas');
+  cv.width = 64;
+  cv.height = 128;
+  const c = cv.getContext('2d');
+  const img = c.createImageData(64, 128);
+  for (let j = 0; j < 128; j++) {
+    for (let i = 0; i < 64; i++) {
+      const u = (i + 0.5) / 64 * 2 - 1;
+      const v = (j + 0.5) / 128 * 2 - 1;
+      const d = Math.pow(Math.pow(Math.abs(u), 4) + Math.pow(Math.abs(v), 4), 0.25);
+      const a = Math.max(0, Math.min(1, (1 - d) / 0.42));
+      const o = (j * 64 + i) * 4;
+      const val = Math.round(255 * a * a * (3 - 2 * a) * 0.8);
+      img.data[o] = val;
+      img.data[o + 1] = val;
+      img.data[o + 2] = val;
+      img.data[o + 3] = 255;   // alphaMap samples the green channel
+    }
+  }
+  c.putImageData(img, 0, 0);
+  const tx = new THREE.CanvasTexture(cv);
+  _contactMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    alphaMap: tx,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
+    fog: true,
+  });
+  return _contactMat;
 }
 let _signTex = null, _busTex = null;
 const canvasTex = (w, h, draw) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d')); const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; return tx; };
@@ -347,8 +407,17 @@ export function buildCar(typeKey, lookOrColor, opts = {}) {
     levels.push(g);
   }
   const big = t.heavy ? 2.2 : 1;
-  lod.addLevel(levels[0], 0); lod.addLevel(levels[1], 34 * big); lod.addLevel(levels[2], 105 * big);
+  lod.addLevel(levels[0], 0);
+  lod.addLevel(levels[1], 34 * big, 0.12);
+  lod.addLevel(levels[2], 105 * big, 0.12);
   shell.add(lod);
+  const contact = new THREE.Mesh(SHARED.contact, contactMat());
+  contact.scale.set(t.W + 0.5, t.L + 0.7, 1);
+  contact.rotation.x = -Math.PI / 2;
+  contact.position.y = 0.025;
+  contact.renderOrder = 1;
+  contact.userData.contactShadow = true;
+  shell.add(contact);
   const detail = levels[0], mid = levels[1], A = geo0.anchors;
   const livery = t.taxi ? 'taxi' : t.police === 'bar' ? 'police' : t.busLivery ? 'bus' : t.ambulance ? 'ambulance' : t.fire ? 'fire' : null;
   if (livery) { addDecals(detail, t, livery); addDecals(mid, t, livery); }

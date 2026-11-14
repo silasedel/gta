@@ -1,0 +1,21 @@
+{
+ "track": "vehicles-look",
+ "title": "Cars look familiar, no glitches, smooth traffic",
+ "section": "Vehicles",
+ "agent": "idle",
+ "items": [
+  { "name": "Lineup render of every model", "state": "verified", "evidence": "docs/v2/shots/vehicles-look/lineup_all.png" },
+  { "name": "Glitch: lamp patches z-fighting at range (polygonOffset on all lamp materials)", "state": "built", "evidence": "" },
+  { "name": "Glitch: LOD flicker at switch distance (hysteresis 0.12)", "state": "built", "evidence": "" },
+  { "name": "Soft contact shadow under every car", "state": "built", "evidence": "docs/v2/shots/vehicles-look/cabrio_rear_after.png" },
+  { "name": "Separate tail-lamp lenses, bumper shut lines, plate recess and lamp bar", "state": "verified", "evidence": "docs/v2/shots/vehicles-look/cabrio_rear_after.png" },
+  { "name": "Cleaner wear mix (most city cars washed, rust only on old cars)", "state": "verified", "evidence": "docs/v2/shots/vehicles-look/lineup_all.png" },
+  { "name": "80s convertible (Tarpon Bayline Cabrio) for the ref_51 bar", "state": "verified", "evidence": "docs/v2/shots/vehicles-look/cabrio_rear_after.png" },
+  { "name": "Traffic: smoothed steering and progressive pedals (traffic/smooth.js)", "state": "built", "evidence": "" },
+  { "name": "Bodies redesigned to read as familiar real-world kinds (fascias, glasshouse, crisp feature lines)", "state": "todo", "evidence": "" },
+  { "name": "Minivan, delivery-van and police-SUV specific bodies", "state": "todo", "evidence": "" },
+  { "name": "Triangle and draw-call budget (now about 39k tris and 40 calls per car at LOD0)", "state": "todo", "evidence": "" },
+  { "name": "Street before/after shots South Beach and Downtown at the same camera", "state": "todo", "evidence": "" },
+  { "name": "Traffic: signals, turn signals, spawn-in-view and jitter checked on screen", "state": "todo", "evidence": "" }
+ ]
+}

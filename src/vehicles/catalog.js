@@ -88,6 +88,7 @@ m('kestrel_line', 'Kestrel', 'Line', 'sedan', 'sedan', 'i4', 'std', { sz: 0.93, 
 m('sedan', 'Marlin', 'Coastline', 'sedan', 'sedan', 'i4', 'std', {});
 m('osprey_mid', 'Osprey', 'Meridian', 'sedan', 'sedan', 'v6', 'std', { sz: 1.02, sy: 1.01, engine: 7600 });
 m('cayo_grand', 'Cayo', 'Grandeur', 'sedan', 'sedan', 'v6', 'lux', { sz: 1.06, sx: 1.03, mass: 1650, engine: 8400, bigGrille: true });
+m('tarpon_cabrio', 'Tarpon', 'Bayline Cabrio', 'sports', 'sedan', 'i4', 'fun', { year: 1988, sz: 0.93, sy: 0.97, convertible: true, coupe: true, zC: -0.45, zD: -0.85, engine: 6400, vmax: 200, rimColor: 0xb9bdc1 });
 m('marlin_cab', 'Marlin', 'Coastline Cabrio', 'sports', 'sedan', 'v6', 'fun', { sz: 0.95, convertible: true, coupe: true, zC: -0.5, zD: -0.9, engine: 7600 });
 // luxury / executive
 m('luxury', 'Aurelia', 'Regent', 'sedan', 'lux', 'v8l', 'lux', {});
@@ -138,7 +139,7 @@ m('ambulance', 'Corvo', 'Medic One', 'van', 'box', 'dsl', 'work', { sz: 0.92, sx
 m('firetruck', 'Atlas', 'Engine 9', 'truck', 'box', 'dslH', 'work', { sz: 1.25, sx: 1.04, fire: true, police: 'fire', box: { front: 1.4, top: 2.9 }, mass: 9000, engine: 24000, vmax: 120 });
 
 // ---------------------------------------------------------------- build specs
-const PAL_SPECIAL = { taxi: [0xf5b800], taxi_xl: [0xf5b800], police: [0x0b1a33], police_suv: [0x0b1a33], unmarked: [0x2b2f36, 0x101214, 0x3a3f46],
+const PAL_SPECIAL = { tarpon_cabrio: [0xa3231f, 0xeeeeea, 0x101214, 0x1d3f8f, 0x2f6d3a], taxi: [0xf5b800], taxi_xl: [0xf5b800], police: [0x0b1a33], police_suv: [0x0b1a33], unmarked: [0x2b2f36, 0x101214, 0x3a3f46],
   ambulance: [0xf4f4f2], firetruck: [0xc4161c], citybus: [0xf2f2f2] };
 
 function scaleSpec(s, sx = 1, sy = 1, sz = 1) {
@@ -249,8 +250,8 @@ export function rollLook(key, seed, env = {}) {
   const tint = fleet ? 1 : r.weighted([[0, 2 + (1 - income) * 2], [1, 4], [2, 2 + income * 2], [3, tier >= 3 ? 1.6 : 0.4]]);
   const dirtColor = env.salt ? 'salt' : DIRT_BY_ZONE[env.zone] || (env.rural ? 'mud' : r.pick(['dust', 'dust', 'sand', 'mud', 'clay']));
   const wear = {
-    dirt: Math.round(Math.min(1, age * 0.55 + r() * 0.3 + (env.rural ? 0.2 : 0)) * 100) / 100, dirtColor,
-    rust: age > 0.55 ? Math.round(Math.min(1, (age - 0.55) * 1.8 * (0.3 + r() * 0.7) + (env.salt ? 0.12 : 0)) * 100) / 100 : 0,
+    dirt: Math.round(Math.min(1, 0.03 + r() * 0.12 + age * age * 0.5 + (env.rural ? 0.2 : 0)) * 100) / 100, dirtColor,   // most city cars are washed; only old ones carry real grime
+    rust: age > 0.7 ? Math.round(Math.min(1, (age - 0.7) * 1.6 * (0.3 + r() * 0.7) + (env.salt ? 0.12 : 0)) * 100) / 100 : 0,
     fade: age > 0.45 ? Math.round(Math.min(0.8, (age - 0.45) * 1.4 * r()) * 100) / 100 : 0,
     age: Math.round(age * 100) / 100, seed: seed % 997,
     patch: !fleet && age > 0.68 && r() < 0.4 ? { panel: r.pick(['hood', 'trunk', 'doorFL', 'doorFR', 'fenderFL', 'fenderFR']), color: r() < 0.4 ? 0x6f7276 : pal[r.int(pal.length)] } : null,

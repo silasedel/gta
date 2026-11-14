@@ -53,6 +53,30 @@ varying vec3 vWearN;
 uniform vec3 uWearOffset;
 `;
 const WEAR_FRAG_DECL = /* glsl */`
+uniform float uWet;
+float wetBead = 0.0;
+vec2 wetGrad = vec2(0.0);
+// rain beads: one droplet per 9 mm cell, jittered, sized at random; beads sit on up-facing and side panels,
+// run into streaks on steep sides; returns height 0..1 and its gradient for the clear-coat normal
+void computeBeads(vec3 p, vec3 n) {
+  if (uWet <= 0.001) {
+    return;
+  }
+  float up = clamp(n.y, 0.0, 1.0);
+  vec2 q = abs(n.y) > 0.5 ? p.xz : (abs(n.x) > 0.5 ? vec2(p.z, p.y * 0.55) : vec2(p.x, p.y * 0.55));
+  q *= 110.0;
+  vec2 c = floor(q);
+  vec2 f = fract(q);
+  float h = fract(sin(dot(c, vec2(127.1, 311.7))) * 43758.5453);
+  float h2 = fract(sin(dot(c, vec2(269.5, 183.3))) * 43758.5453);
+  vec2 ctr = vec2(0.3, 0.3) + vec2(h, h2) * 0.4;
+  float rad = 0.12 + 0.3 * h2;
+  vec2 d = f - ctr;
+  float k = 1.0 - dot(d, d) / (rad * rad);
+  float present = step(1.0 - uWet * (0.35 + 0.55 * up), h);
+  wetBead = clamp(k, 0.0, 1.0) * present;
+  wetGrad = k > 0.0 ? -d / rad * present : vec2(0.0);
+}
 varying vec3 vWearPos;
 varying vec3 vWearN;
 uniform sampler2D uGrime;
@@ -117,14 +141,22 @@ function injectWear(mat) {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\n' + WEAR_VERT_DECL)
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vWearPos = position + uWearOffset;\n  vWearN = normal;');
+    shader.uniforms.uWet = PAINT_WET;
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + WEAR_FRAG_DECL)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);')
+      .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);\n  computeBeads(vWearPos, normalize(vWearN));\n  diffuseColor.rgb *= 1.0 - uWet * 0.14 * (1.0 - wearDirt);')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade)));\n  #endif');
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade)));\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v1';
+  mat.customProgramCacheKey = () => 'ps-wear-v2';
+}
+
+// Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
+export const PAINT_WET = { value: 0 };
+export function setPaintWetness(w) {
+  PAINT_WET.value = Math.max(0, Math.min(1, +w || 0));
 }
 
 const DIRT_COLORS = { dust: 0x9a8a72, sand: 0xb9a98a, mud: 0x4f4032, salt: 0xa9a8a2, soot: 0x2e2c2a, clay: 0x8a5a3a };
@@ -251,7 +283,7 @@ export function caliperMat(color = 0x333333) {
 /** Emissive lamp material (per car: vehicles.js drives emissiveIntensity). kind: 'head'|'tail'|'amber'|'reverse'|'drl'|'red'|'blue'|'white' */
 export function lampMat(kind = 'head', extra = {}) {
   const P = {
-    head: { color: 0xdfe6ec, emissive: 0xfff2dc, metalness: 0.85, roughness: 0.06 },
+    head: { color: 0x8f989f, emissive: 0xfff2dc, metalness: 0.9, roughness: 0.1 },   // chrome reflector seen through a clear lens, not a white blob
     drl: { color: 0xffffff, emissive: 0xe8f2ff, roughness: 0.2 },
     tail: { color: 0x5a0606, emissive: 0xff1a0a, roughness: 0.25 },
     amber: { color: 0x8a4a00, emissive: 0xff8a00, roughness: 0.3 },
@@ -260,6 +292,14 @@ export function lampMat(kind = 'head', extra = {}) {
     blue: { color: 0x000a40, emissive: 0x1a3cff, roughness: 0.3 },
     white: { color: 0xd8dde0, emissive: 0xffffff, roughness: 0.2 },
   }[kind] || {};
-  return new THREE.MeshStandardMaterial({ emissiveIntensity: 0, ...P, ...extra });
+  // lamps are conformal patches a few millimeters off the body: pull them forward in depth so they never z-fight at range
+  return new THREE.MeshStandardMaterial({
+    emissiveIntensity: 0,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -4,
+    ...P,
+    ...extra,
+  });
 }
 export { DIRT_COLORS };
