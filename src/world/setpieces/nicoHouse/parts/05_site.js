@@ -4,7 +4,7 @@
 export const order = 5;
 
 export function build(ctx) {
-  const { THREE, kit, plan: P, mat, col } = ctx, B = ctx.ext, D = ctx.detail, M = kit.M, r = kit.rng(55), L = P.lot, sea = P.seaY;
+  const { THREE, kit, plan: P, mat, col } = ctx, B = ctx.site ?? ctx.ext, D = ctx.detail, M = kit.M, r = kit.rng(55), L = P.lot, sea = P.seaY;
   // ---------- yard: one subdivided sheet, vertex colors blend shell drive, pale sand, damp shade and grassy edges ----------
   const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true }), x0 = L.x0 - 22, x1 = L.x1 - 0.2, z0 = L.z0 + 0.2, z1 = L.z1 + 22;
   { const nx = 90, nz = 110, g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
@@ -16,14 +16,18 @@ export function build(ctx) {
       const grass = Math.min(1, edge * 0.8 + (1 - drive) * 0.25 * n); c = [c[0] * (1 - 0.45 * grass), c[1] * (1 - 0.25 * grass), c[2] * (1 - 0.55 * grass)];
       if (z > 5.5) { const rut = Math.max(Math.exp(-((x + 2.85 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12), Math.exp(-((x + 1.15 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12)); c = c.map((v) => v * (1 - 0.2 * rut)); }   // tire ruts
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
-      pa.setY(i, (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5));
+      // ground-continuity: on the open (west, street) sides the sheet sinks under the surrounding ground along a wobbly line,
+      // so the yard fades into the terrain instead of ending in a straight raised edge (the drive keeps its level up to the road apron)
+      const dEdge = Math.min(x - x0, z1 - z) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
+      const core = Math.max(0, Math.min(1, (7 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2)) / 2.5)), sink = (1 - keep) * (1 - core);
+      pa.setY(i, (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5) * keep - 0.14 * sink);
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
     B.geo(SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
     col.box((x0 + x1) / 2, -1.5, (z0 + z1) / 2, x1 - x0, 3, z1 - z0, { tag: 'ground', surface: 'gravel' });
   }
   // puddles in the wheel ruts of the drive (the sky and the house mirror in them)
-  { const PUD = new THREE.MeshPhysicalMaterial({ color: 0x3a3d38, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.7, envMapIntensity: 1.5, clearcoat: 1 }); PUD.userData.uvScale = 1; PUD.name = 'puddle';
+  { const PUD = new THREE.MeshPhysicalMaterial({ color: 0x2b2820, roughness: 0.12, metalness: 0, transparent: true, opacity: 0.5, envMapIntensity: 0.55, clearcoat: 0.4 }); // ground-continuity: muddy rut water, not bright sky-blue decals PUD.userData.uvScale = 1; PUD.name = 'puddle';
     for (const [x, z, a, b, rot] of [[-3.5, 10.2, 1.5, 0.3, 0.12], [1.6, 11.3, 1.9, 0.36, -0.08], [-7.6, 11.4, 1.0, 0.24, 0.3], [5.5, 10.0, 1.1, 0.22, 0.2]]) {
       const sh = new THREE.Shape(), n = 22; for (let i = 0; i <= n; i++) { const t = i / n * 6.283, k = 1 + 0.22 * Math.sin(t * 3 + x) + 0.12 * Math.sin(t * 5 + z); const px = Math.cos(t) * a * k, py = Math.sin(t) * b * k; i ? sh.lineTo(px, py) : sh.moveTo(px, py); }
       const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2); B.geo(PUD, g, M(x, 0.022, z, 0, rot, 0), {}); g.dispose();

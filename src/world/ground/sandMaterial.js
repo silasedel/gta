@@ -50,7 +50,7 @@ export function sandAtlas(seed = 77) {
 }
 
 const GLSL = /* glsl */`
-uniform sampler2D sandCol, sandNrm, sandAtl; uniform float sandTile, sandBump; uniform vec4 sandP; uniform float sandMarks;
+uniform sampler2D sandCol, sandNrm, sandAtl, sandShore; uniform float sandTile, sandBump; uniform vec4 sandP; uniform float sandMarks; uniform vec4 sandShoreRect; uniform float sandShoreOn, sandTime;
 varying vec3 vSandW;
 float sH(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 vec2 sH2(vec2 p){ float n = sH(p); return vec2(n, sH(p + n + 17.1)); }
@@ -77,10 +77,10 @@ export function makeSandMaterial(THREE, opts = {}) {
     const atl = new THREE.CanvasTexture(sandAtlas()); atl.colorSpace = THREE.SRGBColorSpace; atl.anisotropy = o.anisotropy; atl.wrapS = atl.wrapT = THREE.ClampToEdgeWrapping;
     shared = { col: T('coast_sand_01_col', true), nrm: T('coast_sand_01_nrm', false), atl }; cache.set(loader, shared);
   }
-  const U = { sandCol: { value: shared.col }, sandNrm: { value: shared.nrm }, sandAtl: { value: shared.atl }, sandTile: { value: o.tile }, sandBump: { value: o.bump }, sandP: { value: new THREE.Vector4(o.shells, o.damp, o.ripples, o.litter) }, sandMarks: { value: o.marks } };
+  const U = { sandCol: { value: shared.col }, sandNrm: { value: shared.nrm }, sandAtl: { value: shared.atl }, sandTile: { value: o.tile }, sandBump: { value: o.bump }, sandP: { value: new THREE.Vector4(o.shells, o.damp, o.ripples, o.litter) }, sandMarks: { value: o.marks } , sandShore: { value: null }, sandShoreRect: { value: new THREE.Vector4(0, 0, 1, 1) }, sandShoreOn: { value: 0 }, sandTime: { value: 0 } };
   const mat = new THREE.MeshStandardMaterial({ color: o.tint, roughness: 0.96, metalness: 0, vertexColors: o.vertexColors });
   mat.name = 'sand:fine'; mat.userData.sand = U; mat.userData.isSand = true;
-  mat.customProgramCacheKey = () => 'sand-fine-v1';
+  mat.customProgramCacheKey = () => 'sand-fine-v2';
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandW;').replace('#include <project_vertex>', '#include <project_vertex>\n  vSandW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -93,11 +93,20 @@ export function makeSandMaterial(THREE, opts = {}) {
   vec3 sc = pow(mix(texture2D(sandCol, suA).rgb, texture2D(sandCol, suB).rgb, sbl) / savg, vec3(1.2));
   float sdamp = sandP.y * smoothstep(.5, .7, sF(sw * .045 + vec2(11., 3.)) + .12 * sm2);
   sc *= mix(.84, 1.1, sm1) * mix(1., .6, sdamp); sc *= mix(vec3(1.), vec3(1.04, 1., .93), sm2);
+  // ground-continuity: a third, coarse rotated sample and large-scale colour drift (no repeat visible from any height)
+  vec3 sc3 = texture2D(sandCol, sR(2.21) * sw / (sandTile * 4.7) + vec2(.71, .29)).rgb / savg; sc = mix(sc, sc * sc3, .35);
+  sc *= mix(.9, 1.08, sF(sw * .011 + 4.2)) * mix(vec3(1.), vec3(1.05, 1.01, .94), sF(sw * .004 + 9.));
+  // moisture from the distance to the waterline (field built by beach.v2.js): dry pale sand up top, damp band, wet swash sheen
+  float sShD = 99.; if (sandShoreOn > .5) { vec2 su = (sw - sandShoreRect.xy) * sandShoreRect.zw; if (su.x > 0. && su.y > 0. && su.x < 1. && su.y < 1.) sShD = texture2D(sandShore, su).r * 40.; }
+  float sJit = (sF(sw * .15 + 3.) - .5) * 5.;
+  float sDampB = 1. - smoothstep(3., 15., sShD + sJit), sWet = 1. - smoothstep(.3, 3. + 1.4 * sin(sandTime * .45 + sw.x * .031 + sw.y * .017), sShD + sJit * .3), sDry = smoothstep(16., 32., sShD + sJit);
+  sc *= mix(vec3(1.), vec3(.68, .65, .62), sDampB * .85); sc *= mix(1., .8, sWet); sc *= mix(1., 1.07, sDry);
+  sdamp = max(sdamp, sDampB * .6);
   float sgf = 1. - smoothstep(.0015, .01, spx), sgr = sH(floor(sR(.52) * sw * 430.)), sgr2 = sH(floor(sR(1.93) * sw * 287.) + 7.3);
   sc *= 1. + sgf * (sgr - .5) * .22 + sgf * (sgr2 - .5) * .14; sc += sgf * step(.99, sgr) * .2; sc *= 1. - sgf * step(sgr2, .02) * .3;
   vec2 sandG = mix(texture2D(sandNrm, suA).xy * 2. - 1., sR(-.6435) * (texture2D(sandNrm, suB).xy * 2. - 1.), sbl) * 1.25;
   sandG += (sH2(floor(sR(1.1) * sw * 310.)) - .5) * .6 * sgf;
-  float srp = sandP.z * smoothstep(.45, .68, sF(sw * .06 + vec2(40., 2.))) * (1. - smoothstep(.008, .04, spx));
+  float srp = sandP.z * mix(smoothstep(.45, .68, sF(sw * .06 + vec2(40., 2.))), 1., sDry * .8) * (1. - sDampB) * (1. - smoothstep(.008, .04, spx));
   vec2 srd = normalize(vec2(.8, .6) + .3 * (vec2(sN(sw * .11), sN(sw * .11 + 9.)) - .5)); float sph = dot(sw, srd) * 27. + sF(sw * .8) * 5.;
   sandG += srd * cos(sph) * .34 * srp; sc *= 1. + sin(sph) * .05 * srp;
   vec4 sbig = sandStamp(sw + 13.7, 2.9, sandMarks, .9, 1.7, 0., 1., sdx, sdy);
@@ -107,7 +116,7 @@ export function makeSandMaterial(THREE, opts = {}) {
   vec4 ss2 = sandStamp(sw + 5.3, .61, sandP.x * .35, .04, .12, 2., 2., sdx, sdy); diffuseColor.rgb = mix(diffuseColor.rgb, ss2.rgb, ss2.a);
   vec4 ss3 = sandStamp(sw + 21.1, .93, sandP.w, .03, .14, 1., 1., sdx, sdy); diffuseColor.rgb = mix(diffuseColor.rgb, ss3.rgb, ss3.a);
   float sStampA = max(ss1.a, max(ss2.a, ss3.a));`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(roughnessFactor, .5, sdamp * .7), .55, sStampA * .6);')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, sdamp * .7), .55, sStampA * .6), .1, sWet * .9);')
       .replace('#include <normal_fragment_maps>', /* glsl */`#include <normal_fragment_maps>
   { vec3 swn = inverseTransformDirection(normal, viewMatrix); swn = normalize(swn + vec3(sandG.x, 0., -sandG.y) * sandBump * .55 * (1. - sStampA * .7)); normal = normalize((viewMatrix * vec4(swn, 0.)).xyz); }`);
   };

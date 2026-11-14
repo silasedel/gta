@@ -274,6 +274,7 @@ export async function createMiamiCity(game, opts = {}) {
     return out; };
   game.updaters.push((dt) => city.update(dt));
   city.terrain = terrain; city.flora = flora;
+  city.materials = M; city.groundClaims = builder.groundClaims; city.capStats = builder.capStats; city.sliverStats = builder.sliverStats; // ground-continuity (seam audit)
   try { city.seabed = createSeabed(game, city); } catch (e) { console.warn('[miami] seabed unavailable', e); }
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }

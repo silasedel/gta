@@ -1,0 +1,445 @@
+{
+ "set": "before",
+ "url": "http://127.0.0.1:5200/?mute&groundfix=0",
+ "when": "2026-11-14T04:35:35.369Z",
+ "spots": {
+  "nico": {
+   "name": "Nico house (Pelican Point Lane)",
+   "x": -6406.19352182439,
+   "z": 12436.687225061316,
+   "r": 140,
+   "roadEnds": {
+    "n": 1,
+    "abrupt": 0,
+    "step": 0,
+    "list": []
+   },
+   "pads": {
+    "n": 118,
+    "step": 117,
+    "maxStep": 0.88,
+    "list": [
+     {
+      "id": "nico_house",
+      "x": -6448.3,
+      "z": 12454,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6447.6,
+      "z": 12452.1,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6447,
+      "z": 12450.2,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6446.3,
+      "z": 12448.3,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6445.7,
+      "z": 12446.4,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6445,
+      "z": 12444.5,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6444.4,
+      "z": 12442.6,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6443.7,
+      "z": 12440.8,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6443.1,
+      "z": 12438.9,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6442.4,
+      "z": 12437,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6441.8,
+      "z": 12435.1,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6441.1,
+      "z": 12433.2,
+      "step": 0.88
+     }
+    ]
+   },
+   "holes": {
+    "n": 0,
+    "list": []
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": [
+    {
+     "x": -6534,
+     "z": 11125,
+     "cells": 1
+    },
+    {
+     "x": -7206,
+     "z": 11301,
+     "cells": 1
+    },
+    {
+     "x": -5494,
+     "z": 11413,
+     "cells": 3
+    },
+    {
+     "x": -6262,
+     "z": 11573,
+     "cells": 1
+    },
+    {
+     "x": -7094,
+     "z": 11597,
+     "cells": 2
+    },
+    {
+     "x": -6550,
+     "z": 11749,
+     "cells": 3
+    },
+    {
+     "x": -6566,
+     "z": 11781,
+     "cells": 1
+    },
+    {
+     "x": -5726,
+     "z": 11813,
+     "cells": 2
+    },
+    {
+     "x": -5718,
+     "z": 11909,
+     "cells": 1
+    },
+    {
+     "x": -4966,
+     "z": 12021,
+     "cells": 9
+    },
+    {
+     "x": -5862,
+     "z": 11973,
+     "cells": 1
+    },
+    {
+     "x": -5454,
+     "z": 12037,
+     "cells": 4
+    },
+    {
+     "x": -5030,
+     "z": 12053,
+     "cells": 3
+    },
+    {
+     "x": -6310,
+     "z": 12165,
+     "cells": 1
+    },
+    {
+     "x": -6062,
+     "z": 12165,
+     "cells": 2
+    },
+    {
+     "x": -6294,
+     "z": 12181,
+     "cells": 1
+    },
+    {
+     "x": -7646,
+     "z": 12925,
+     "cells": 4
+    },
+    {
+     "x": -6134,
+     "z": 13685,
+     "cells": 9
+    },
+    {
+     "x": -6462,
+     "z": 13693,
+     "cells": 6
+    },
+    {
+     "x": -7338,
+     "z": 13701,
+     "cells": 4
+    }
+   ],
+   "caps": "{\"bulb\":0,\"cap\":0,\"apron\":0}"
+  },
+  "sb": {
+   "name": "South Beach sand strip",
+   "x": 3600,
+   "z": 300,
+   "r": 120,
+   "roadEnds": {
+    "n": 0,
+    "abrupt": 0,
+    "step": 0,
+    "list": []
+   },
+   "pads": {
+    "n": 0,
+    "step": 0,
+    "maxStep": 0,
+    "list": []
+   },
+   "holes": {
+    "n": 4759,
+    "list": [
+     [
+      3576,
+      183
+     ],
+     [
+      3579,
+      183
+     ],
+     [
+      3582,
+      183
+     ],
+     [
+      3585,
+      183
+     ],
+     [
+      3588,
+      183
+     ],
+     [
+      3591,
+      183
+     ],
+     [
+      3594,
+      183
+     ],
+     [
+      3597,
+      183
+     ],
+     [
+      3600,
+      183
+     ],
+     [
+      3603,
+      183
+     ],
+     [
+      3606,
+      183
+     ],
+     [
+      3609,
+      183
+     ]
+    ]
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": {
+    "n": 0,
+    "list": []
+   }
+  },
+  "lawn": {
+   "name": "South Beach lawn (Ocean Drive)",
+   "x": 3470,
+   "z": -80,
+   "r": 110,
+   "roadEnds": {
+    "n": 1,
+    "abrupt": 1,
+    "step": 0,
+    "list": [
+     {
+      "x": 3515.2,
+      "z": -155.7,
+      "name": "service",
+      "abrupt": true,
+      "step": 0.05
+     }
+    ]
+   },
+   "pads": {
+    "n": 0,
+    "step": 0,
+    "maxStep": 0,
+    "list": []
+   },
+   "holes": {
+    "n": 0,
+    "list": []
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": {
+    "n": 0,
+    "list": []
+   }
+  },
+  "dt": {
+   "name": "Downtown (Flagler)",
+   "x": -2420,
+   "z": 520,
+   "r": 140,
+   "roadEnds": {
+    "n": 2,
+    "abrupt": 2,
+    "step": 0,
+    "list": [
+     {
+      "x": -2451.3,
+      "z": 406.9,
+      "name": "service",
+      "abrupt": true,
+      "step": 0.05
+     },
+     {
+      "x": -2345.8,
+      "z": 621.2,
+      "name": "service",
+      "abrupt": true,
+      "step": 0.05
+     }
+    ]
+   },
+   "pads": {
+    "n": 0,
+    "step": 0,
+    "maxStep": 0,
+    "list": []
+   },
+   "holes": {
+    "n": 0,
+    "list": []
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": {
+    "n": 0,
+    "list": []
+   }
+  },
+  "lh": {
+   "name": "Little Havana",
+   "x": -3639,
+   "z": 1095,
+   "r": 140,
+   "roadEnds": {
+    "n": 2,
+    "abrupt": 2,
+    "step": 0,
+    "list": [
+     {
+      "x": -3555.4,
+      "z": 988.6,
+      "name": "Southwest 4th Street",
+      "abrupt": true,
+      "step": 0.05
+     },
+     {
+      "x": -3723.9,
+      "z": 1000,
+      "name": "Mariner Crossing",
+      "abrupt": true,
+      "step": 0.05
+     }
+    ]
+   },
+   "pads": {
+    "n": 0,
+    "step": 0,
+    "maxStep": 0,
+    "list": []
+   },
+   "holes": {
+    "n": 0,
+    "list": []
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": {
+    "n": 0,
+    "list": []
+   }
+  }
+ },
+ "waterMask": {
+  "slivers": 16618,
+  "stillWater": 16618,
+  "m2": 265888,
+  "ms": 3212
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+  "ERR [hud] failed ReferenceError: injectFonts is not defined\n    at createHUD (http://127.0.0.1:5200/src/ui/hud.js?t=1794630412462:99:3)\n    at game.hud.safe.update (http://127.0.0.1:5200/src/main.js:126:38)\n    at safe (http://127.0.0.1:5200/src/main.js:39:22)\n    at boot (http://127.0.0.1:5200/src/main.js:126:20)",
+  "LOG Failed to load resource: the server responded with a status of 500 (Internal Server Error) http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794630971406",
+  "ERR [v2:./ui/menu/frontend.v2.js] failed TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794630971406",
+  "LOG Failed to load resource: the server responded with a status of 500 (Internal Server Error) http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794631003197",
+  "ERR [v2:./ui/menu/frontend.v2.js] failed TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794631003197",
+  "LOG Failed to load resource: the server responded with a status of 500 (Internal Server Error) http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794631082630",
+  "ERR [v2:./ui/menu/frontend.v2.js] failed TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:5200/src/ui/menu/frontend.v2.js?t=1794631082630",
+  "ERR THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The \"position\" attribute is likely to have NaN values. _BufferGeometry",
+  "ERR THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. _BufferGeometry",
+  "ERR [hud] failed ReferenceError: injectFonts is not defined\n    at createHUD (http://127.0.0.1:5200/src/ui/hud.js?t=1794630412462:99:3)\n    at game.hud.safe.update (http://127.0.0.1:5200/src/main.js:127:38)\n    at safe (http://127.0.0.1:5200/src/main.js:40:22)\n    at boot (http://127.0.0.1:5200/src/main.js:127:20)"
+ ],
+ "totals": {
+  "roadEndsChecked": 6,
+  "abruptRoadEnds": 5,
+  "roadEndSteps": 0,
+  "padBorderSamples": 118,
+  "padSteps": 117,
+  "colliderHoles": 4759,
+  "solidOverWater": 0,
+  "waterMaskSliversStillWater": 16618
+ }
+}

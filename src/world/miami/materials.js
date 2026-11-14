@@ -7,6 +7,8 @@ import { loadPropArray, patchPropMaterial, SURF } from '../city/propmat.js';
 import { loadWallArray, createFacadeMaterial } from '../city/facade.js';
 import { bakeRoomAtlas } from '../city/rooms.js';
 import { sharedVegMaterials, vegUniforms } from '../vegetation/materials.js';
+import { LOOK_OFF } from '../env/fogChunks.js';
+import { makeSandMaterial } from '../ground/sandMaterial.js';
 
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
@@ -66,6 +68,10 @@ export async function createMaterials(renderer) {
   // distant glass towers: same curtain-wall look as near glass (reflective, tinted, lit at night) on the mid/far chunk meshes
   M.farGlass = new THREE.MeshStandardMaterial({ map: F.glass.map, emissiveMap: F.glass.emissive, emissive: 0xfff0d8, emissiveIntensity: 0, roughnessMap: F.glass.rm, metalnessMap: F.glass.rm, roughness: 1, metalness: 1, vertexColors: true, envMapIntensity: 1.6 }); // mid/far facades show window grids by day too (vertex colour tints) // mid/far LOD: windows glow at night; ground/roofs use uv (0,0) = black texel
   M.sand.color.setRGB(1.55, 1.42, 1.22); M.sidewalk.color.setScalar(2.4); M.roof.color.setScalar(2.4); M.land.color.setScalar(1.6);
+  // ground-continuity: beaches and sand areas use the fine sand material (three-scale stochastic sampling, grain, ripples,
+  // shells and debris, moisture bands toward the waterline once beach.v2.js has built the shore field); was one tiled photo
+  if (!(typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search))) { const base = (import.meta.env && import.meta.env.BASE_URL) || '/';
+    M.sandPhoto = M.sand; M.sand = makeSandMaterial(THREE, { base, vertexColors: true, tint: 0xc9b591, tile: 1.3, shells: 0.5, litter: 0.15, damp: 0.25, ripples: 0.7, marks: 0.25, anisotropy: 8 }); }
   for (const [m, b] of [[M.office, 2.0], [M.deco, 1.6], [M.band, 1.6], [M.shop, 1.2]]) { m.bumpMap = m.map; m.bumpScale = b; }
 
   // lit windows: warm tint + per-window on/off switching over time (a few flicker)
@@ -202,6 +208,7 @@ export async function createMaterials(renderer) {
     const otx = new THREE.CanvasTexture(oc); otx.colorSpace = THREE.SRGBColorSpace; otx.anisotropy = maxAniso;
     M.oats = new THREE.MeshStandardMaterial({ map: otx, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.9 }); M.oats.onBeforeCompile = rustle;
     M.dune = new THREE.MeshStandardMaterial({ map: sand.map, normalMap: sand.normalMap, roughness: 1, metalness: 0, color: 0xfff0d8 }); M.dune.color.setRGB(1.5, 1.38, 1.18);
+    if (M.sand.userData.isSand) M.dune = makeSandMaterial(THREE, { base: (import.meta.env && import.meta.env.BASE_URL) || '/', tint: 0xc9b591, tile: 1.3, shells: 0.3, litter: 0.05, damp: 0.1, ripples: 0.9, marks: 0.1 }); // ground-continuity: dunes match the beach
   }
   for (const [mat, u] of [[M.land, -1], [M.sand, -2], [M.grass, -3], [M.wood, -4], [M.parking, -4], [M.sidewalk, -4], [M.promenade, -4], [M.panels, -4], [M.asphalt, -6], [M.junction, -7], [M.markings, -9]]) if (mat) zOff(mat, u);
   { // world-space (triplanar) surface detail for street props: galvanized / painted metal, wood grain, concrete, corrugated steel
@@ -285,6 +292,98 @@ export async function createMaterials(renderer) {
     M.propify(M.trim, 'plaster'); M.propify(M.guardrail, 'galv'); M.propify(M.lampHead, 'plastic'); M.propify(M.shaft, 'plastic'); M.propify(M.poolWater, 'glass'); M.propify(M.shopGlass, 'glass');
     M.metal.userData.pbr = 'triplanar-atlas';
   } catch (e) { console.error('[miami] PBR library failed, falling back to v1 materials', e); }
+  // ---------- look track: ground wear (world space, no extra textures) ----------
+  // Breaks the "one flat canvas" read of large ground surfaces: macro tone patches (30 m and 9 m), fine 1 m mottling,
+  // and on asphalt oil stains / sealed patches that are darker and glossier. Roughness follows the same noise.
+  // amp = macro tone amplitude, stain = asphalt stain strength. ?lookoff skips it.
+  const WEAR_FN = `
+    varying vec3 vWWear;
+    float psWH( vec2 p ) { vec3 p3 = fract( vec3( p.xyx ) * 0.1031 ); p3 += dot( p3, p3.yzx + 33.33 ); return fract( ( p3.x + p3.y ) * p3.z ); }
+    float psWN( vec2 p ) {
+      vec2 i = floor( p );
+      vec2 f = fract( p );
+      vec2 u = f * f * ( 3.0 - 2.0 * f );
+      return mix( mix( psWH( i ), psWH( i + vec2( 1.0, 0.0 ) ), u.x ), mix( psWH( i + vec2( 0.0, 1.0 ) ), psWH( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
+    }
+  `;
+  const groundWear = (mat, amp, stain, key, crack = 0, tone = 1, minRough = 0) => {
+    if (!mat || LOOK_OFF) return;
+    const prev = mat.onBeforeCompile;
+    const prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
+    mat.onBeforeCompile = (sh, r) => {
+      if (prev) prev(sh, r);
+      sh.vertexShader = 'varying vec3 vWWear;\n' + sh.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+        {
+          vec4 wwp = vec4( transformed, 1.0 );
+          #ifdef USE_INSTANCING
+            wwp = instanceMatrix * wwp;
+          #endif
+          vWWear = ( modelMatrix * wwp ).xyz;
+        }`);
+      // all wear code goes after roughnessmap_fragment (diffuseColor is still editable there); robust when another
+      // patch (e.g. sand-wear) has already inlined map_fragment
+      sh.fragmentShader = WEAR_FN + sh.fragmentShader.replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        float wMacro = psWN( vWWear.xz * 0.033 ) * 0.62 + psWN( vWWear.xz * 0.11 + 7.3 ) * 0.38;
+        float wFine = psWN( vWWear.xz * 0.95 + 3.1 );
+        float wStain = smoothstep( 0.6, 0.8, psWN( vWWear.xz * 0.21 + 1.7 ) * 0.72 + wFine * 0.28 ) * ${stain.toFixed(3)};
+        // hairline cracks: the zero crossings of a warped noise, only in patches; sealed with dark tar
+        float wCrkN = psWN( vWWear.xz * 0.42 + psWN( vWWear.xz * 1.7 ) * 0.6 ) + 0.5 * psWN( vWWear.xz * 1.3 + 9.1 );
+        float wFw = max( fwidth( wCrkN ), 1e-4 );
+        float wCrk = ( 1.0 - smoothstep( 0.0, max( 0.007, wFw ), abs( wCrkN - 0.75 ) ) ) * clamp( 0.012 / wFw, 0.0, 1.0 ) * smoothstep( 0.5, 0.72, psWN( vWWear.xz * 0.05 + 4.4 ) ) * ${crack.toFixed(3)};
+        wStain = max( wStain, wCrk * 0.4 );
+        diffuseColor.rgb *= ( 1.0 + ${amp.toFixed(3)} * ( wMacro * 2.0 - 1.0 ) ) * ( 0.95 + 0.1 * wFine ) * ( 1.0 - 0.45 * wStain ) * ( 1.0 - 0.3 * wCrk ) * ${tone.toFixed(3)};
+        roughnessFactor = mix( roughnessFactor * ( 0.86 + 0.24 * wMacro ), 0.42, wStain );
+        roughnessFactor = max( roughnessFactor, ${minRough.toFixed(3)} );`);
+    };
+    mat.customProgramCacheKey = () => prevKey() + '|wear' + key;
+    mat.needsUpdate = true;
+  };
+  // look track: max anisotropic filtering on every ground texture (roads and sand stay crisp at grazing angles)
+  for (const m of [M.asphalt, M.junction, M.parking, M.sidewalk, M.panels, M.promenade, M.sand, M.dune, M.land, M.roof, M.grass, M.markings, M.wood]) {
+    if (!m) continue;
+    for (const k of ['map', 'normalMap', 'roughnessMap', 'aoMap']) {
+      const t = m[k];
+      if (t && t.anisotropy !== maxAniso) {
+        t.anisotropy = maxAniso;
+        t.needsUpdate = true;
+      }
+    }
+  }
+  for (const m of [M.asphalt, M.junction, M.parking]) groundWear(m, 0.16, 0.5, 'a', 1.0, 1.55); // tone 1.55: sun-bleached gray asphalt, not black
+  for (const m of [M.markings]) groundWear(m, 0.10, 0.0, 'm', 0.6); // worn, chipped paint over the same cracks
+  for (const m of [M.sidewalk, M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
+  for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
+  for (const m of [M.land, M.roof]) groundWear(m, 0.14, 0.12, 'l');
+  groundWear(M.grass, 0.2, 0.16, 'g', 0, 0.97); // ground-continuity: mown park lawns get macro light / dark mowing and dry patches (no flat single-colour lawn)
+  // ground-continuity: plain land is a world-space lawn / sparse grass / bare dirt blend (was gray concrete; shader by world-dressing)
+  try {
+    const [gS, sS, dS] = await Promise.all([loadSet(renderer, 'leafy_grass'), loadSet(renderer, 'sparse_grass'), loadSet(renderer, 'dirt')]);
+    for (const t of [gS.map, gS.normalMap, gS.arm, sS.map, dS.map]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; }
+    const L = M.land, prev = L.onBeforeCompile, prevKey = L.customProgramCacheKey ? L.customProgramCacheKey.bind(L) : () => '';
+    L.map = gS.map; L.normalMap = gS.normalMap; if (gS.arm) L.roughnessMap = gS.arm; L.color.setRGB(0.92, 0.95, 0.88); L.userData.pbr = 'land-blend';
+    L.onBeforeCompile = (sh, r) => {
+      if (prev) prev(sh, r);
+      sh.uniforms.tSparse = { value: sS.map }; sh.uniforms.tDirt = { value: dS.map };
+      sh.vertexShader = 'varying vec3 vLandWP;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvLandWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      sh.fragmentShader = `uniform sampler2D tSparse;
+uniform sampler2D tDirt;
+varying vec3 vLandWP;
+float lHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f); return mix(mix(lHash(i), lHash(i + vec2(1.0, 0.0)), u.x), mix(lHash(i + vec2(0.0, 1.0)), lHash(i + vec2(1.0, 1.0)), u.x), u.y); }
+` + sh.fragmentShader.replace('#include <map_fragment>', `{
+    vec2 wp = vLandWP.xz;
+    vec4 cg = texture2D(map, wp / 5.0), cs = texture2D(tSparse, wp / 4.3 + 0.37), cd = texture2D(tDirt, wp / 3.7 + 0.11);
+    float n1 = lNoise(wp * 0.031) * 0.65 + lNoise(wp * 0.11) * 0.35, n2 = lNoise(wp * 0.017 + 7.3) * 0.7 + lNoise(wp * 0.07) * 0.3;
+    vec4 c = mix(mix(cg, cs, smoothstep(0.42, 0.62, n2)), cd, smoothstep(0.6, 0.78, n1));
+    c.rgb = mix(c.rgb, c.rgb * vec3(1.18, 1.08, 0.82), smoothstep(0.55, 0.85, lNoise(wp * 0.009 + 3.1)) * 0.6);
+    c.rgb *= 0.9 + 0.2 * lNoise(wp * 0.23);
+    diffuseColor *= c;
+  }`);
+    };
+    L.customProgramCacheKey = () => prevKey() + '|landblend';
+    L.needsUpdate = true;
+  } catch (e) { console.warn('[miami] land blend textures unavailable', e); }
+
   // lit-window fraction per building type (office, home, hotel, retail, industrial, garage, lobby, restaurant) by hour
   const LIT = [[[0, .1], [5, .1], [7, .3], [17, .75], [19, .5], [21, .24], [24, .1]], [[0, .22], [2, .07], [5, .06], [6.5, .36], [18, .7], [22, .5], [24, .22]], [[0, .3], [2, .13], [5, .12], [7, .3], [18, .55], [23, .32], [24, .3]],
     [[0, .2], [6, .2], [17, .9], [22, .55], [24, .2]], [[0, .25], [24, .25]], [[0, 1], [24, 1]], [[0, .95], [24, .95]], [[0, .5], [1, .12], [17, .12], [18, .95], [23, .65], [24, .5]]];

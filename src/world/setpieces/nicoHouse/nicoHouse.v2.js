@@ -16,7 +16,12 @@ export async function initV2(game) {
   } catch (e) { /* no layout yet */ }
   if (!spot || !Number.isFinite(spot.x) || !Number.isFinite(spot.z)) { const s0 = game.city?.playerSpawn; spot = { x: (s0?.x ?? 0) + 60, z: (s0?.z ?? 0) + 60, heading: 0 }; temporary = true; console.warn('[nicoHouse] layout.json has no setpieces.nico_house: using a temporary spot'); }
   const sea = game.city?.seaLevel ?? -0.12;
-  const yGround = Number.isFinite(spot.y) ? spot.y : sea + 1.0;                 // the lot sits 1 m above the water
+  // ground-continuity: the yard sits flush on the ground around it (it used to float 1 m above the water on a 0.88 m ledge
+  // with no sides); +4 cm keeps the yard sheet above the terrain's own surface without a step you notice
+  const gAt = (x, z) => { const h = game.city?.groundHeightAt?.(x, z); return Number.isFinite(h) && !(game.city?.isWater?.(x, z)) ? h : null; };
+  const gs = [gAt(spot.x, spot.z), gAt(spot.x + 12, spot.z), gAt(spot.x - 12, spot.z), gAt(spot.x, spot.z + 12), gAt(spot.x, spot.z - 12)].filter((v) => v !== null);
+  const gcOff = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search);
+  const yGround = Number.isFinite(spot.y) ? spot.y : gs.length && !gcOff ? Math.max(sea + 0.1, gs.reduce((a, b) => a + b, 0) / gs.length) + 0.04 : sea + 1.0;
   // palms come from the shared vegetation system when it is up (wait briefly for vegetation:ready, else use our own)
   if (!game.vegetation && game.on) {
     await new Promise((res) => {

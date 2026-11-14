@@ -2,6 +2,7 @@
 // Built from OpenStreetMap (c) OpenStreetMap contributors, ODbL, by tools/osm/build.py -> public/assets/miami/*.
 // Frame (CONTRACT4): x east, z south (+Z), y up, metres. Heading 0 faces +Z; direction of heading h = (sin h, cos h).
 // Format notes: tools/osm/README.md
+const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import * as THREE from 'three';
 
 const DEFAULT_BASE = '/assets/miami/';
@@ -116,8 +117,53 @@ export async function loadMiamiData(game, opts = {}) {
     else if (g.enc === 'u8') G[g.name] = { ...g, data: raw };
     else if (g.enc === 'i16') G[g.name] = { ...g, data: new Int16Array(raw.buffer, raw.byteOffset, g.w * g.h) };
   }));
-  const surfCode = G.surface, coverCode = G.cover || (() => 0), zoneCode = G.zone, distCode = G.district, wkCode = G.wkind || null;
+  const surfRaw = G.surface, coverCode = G.cover || (() => 0), zoneCode = G.zone, distCode = G.district, wkCode = G.wkind || null;
   const WKINDS = man.waterKinds || [null, 'sea'];
+  // ground-continuity: thin 'sea' / 'lake' slivers (<= 12 m across, land on both sides) are rasterisation gaps between land
+  // polygons (e.g. the strip that ran along South Beach): they count as the land beside them, so the water mask, the drawn
+  // ground and the colliders all agree (tilebuild fills these cells with ground). Canals, rivers, ponds and marsh keep their water.
+  const SM = man.grids.find((g) => g.name === 'surface') || { res: 2, x0: 0, z0: 0 };
+  const S_SAND = SURF.indexOf('sand'), SLIVER_SAND = 30, SLIVER_W = 12, sliverCache = new Map(), SLIVER_DIRS = [[1, 0], [0, 1], [0.7071, 0.7071], [0.7071, -0.7071]];
+  function sliverLand(x, z) {
+    const k = surfRaw.cell(x, z); let v = sliverCache.get(k);
+    if (v !== undefined) return v;
+    v = -1;
+    const wk = wkCode ? WKINDS[wkCode(x, z)] : 'sea';
+    if (!wk || wk === 'sea' || wk === 'lake') {
+      const res = SM.res || 2, cx = (Math.floor((x - SM.x0) / res) + 0.5) * res + SM.x0, cz = (Math.floor((z - SM.z0) / res) + 0.5) * res + SM.z0;
+      for (const [dx, dz] of SLIVER_DIRS) {
+        let a = 0, ca = -1, b = 0, cb = -1;
+        for (let s = res; s <= SLIVER_SAND; s += res) { const c = surfRaw(cx + dx * s, cz + dz * s); if (c !== S_WATER) { a = s; ca = c; break; } }
+        if (!a || ca === S_PIER || ca === S_BUILDING) continue; // water beside a pier or a building edge stays water
+        for (let s = res; s <= SLIVER_SAND - a + res; s += res) { const c = surfRaw(cx - dx * s, cz - dz * s); if (c !== S_WATER) { b = s; cb = c; break; } }
+        if (!b || cb === S_PIER) continue;
+        // any land on both sides within 12 m; sand on both sides (a strip through a beach) up to 30 m
+        if (a + b <= SLIVER_W + res || (ca === S_SAND && cb === S_SAND)) { v = ca; break; }
+      }
+    }
+    if (sliverCache.size > 400000) sliverCache.clear();
+    sliverCache.set(k, v); return v;
+  }
+  // ground-continuity: tiny bare specks of sand out in open water outside real Miami (< ~260 m across, no vegetation cover)
+  // rendered as flat slabs floating on the sea; they are open water (the map's real keys and mangrove islets stay land)
+  const ISLET_COVER = new Set(['none', 'sand', 'island', 'dune']), isletCache = new Map(), ISLET_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, -0.7071], [0.7071, -0.7071], [-0.7071, 0.7071]];
+  function isIslet(x, z) {
+    const k = Math.floor(x / 16) * 100003 + Math.floor(z / 16); let v = isletCache.get(k);
+    if (v !== undefined) return v;
+    v = false;
+    if (!inReal(x, z) && ISLET_COVER.has(COVER[coverCode(x, z)] || 'none')) {
+      const d = []; let ok = true;
+      for (const [dx, dz] of ISLET_DIRS) { let h = 0; for (let s = 8; s <= 200; s += 8) if (surfRaw(x + dx * s, z + dz * s) === S_WATER) { h = s; break; } if (!h) { ok = false; break; } d.push(h); }
+      v = ok && d[0] + d[1] <= 260 && d[2] + d[3] <= 260 && d[4] + d[5] <= 260 && d[6] + d[7] <= 260;
+    }
+    if (isletCache.size > 200000) isletCache.clear();
+    isletCache.set(k, v); return v;
+  }
+  const surfCode = (x, z) => { const s = surfRaw(x, z); if (GC_OFF) return s; if (s !== S_WATER) return s !== S_BUILDING && s !== S_PIER && isIslet(x, z) ? S_WATER : s; const l = sliverLand(x, z); return l >= 0 ? l : s; };
+  surfCode.cell = surfRaw.cell;
+  const isSliver = (x, z) => surfRaw(x, z) === S_WATER && sliverLand(x, z) >= 0;
+  const isWaterRaw = (x, z) => surfRaw(x, z) === S_WATER;
+  const isIsletAt = (x, z) => !GC_OFF && surfRaw(x, z) !== S_WATER && isIslet(x, z);
   const gD = G.depth, gH = G.height || null;
   // terrain height above y = 0 (bilinear, node-registered 16 m grid). Zero everywhere in real Miami; hills and dunes outside.
   const terrainHeightAt = gH ? (x, z) => {
@@ -868,7 +914,7 @@ export async function loadMiamiData(game, opts = {}) {
     bounds: { ...B }, realRect: { ...RR }, seaLevel: SEA, curbHeight: CURB, pierHeight: PIER_Y,
     playerSpawn: spawn, playerSpawnHeading: man.playerSpawnHeading,
     groundHeightAt, isWater, surfaceAt, zoneAt, districtAt, streetNameAt, seabedDepthAt: (x, z) => (surfCode(x, z) === S_WATER ? swimDepthAt(x, z) : depthAt(x, z)),
-    terrainHeightAt, coverAt, waterKindAt, inRealMiami: inReal, hasRelief: !!gH,
+    terrainHeightAt, coverAt, waterKindAt, inRealMiami: inReal, hasRelief: !!gH, isSliver, isWaterRaw, isIsletAt,
     heightField: gH ? { cell: gH.res, minX: gH.x0, minZ: gH.z0, nx: gH.w, nz: gH.h, unit: gH.unit, data: gH.data } : null,
     roadGraph, roads, buildings, mapLayers,
     randomRoadPoint, randomSidewalkPoint,

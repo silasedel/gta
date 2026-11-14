@@ -40,7 +40,7 @@ export function createTileBuilder(ctx) {
     for (const k in props) { const L = props[k]; if (!Array.isArray(L)) continue; for (const it of L) { if (!it || typeof it.x !== 'number' || typeof it.z !== 'number') continue; const h = TH(it.x, it.z); if (h > 0.3 && (it.y || 0) < h - 0.25) it.y = (it.y || 0) + h; } } }
   const densify = (pts, step) => { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 1; k <= n; k++) out.push(k === n ? b : [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; };
   function* floraInto(t, tile, props) { if (props.veg !== undefined) return; props.veg = null; const T0 = provider.tileSize || 200, V = {};
-    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) || !!(CLAIMS.list.length && CLAIMS.at(x, z, 1.5)) }, V);
+    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) || houseLots.claimedNear(buildingsOf(tile, false), x, z, 4) || !!(CLAIMS.list.length && CLAIMS.at(x, z, 1.5)) }, V);
     if (V.palm) props.palm.push(...V.palm); if (V.oats) props.oats.push(...V.oats); if (V.tree) props.tree.push(...V.tree); props.veg = V; }
   function stiltPiles(B, b) { // timber piles under a raised Keys house (minH set in buildingsOf)
     const r = b.rings[0], H = b.minH || 2.7; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
@@ -1775,7 +1775,7 @@ export function createTileBuilder(ctx) {
     for (let j = 0; j < N; j++) {
       let run = -1, sand = false;
       for (let i = 0; i <= N; i++) {
-        const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C, on = i < N && (D.isSliver(x, z) || D.isSliver(x + C, z) || D.isSliver(x - C, z) || D.isSliver(x, z + C) || D.isSliver(x, z - C)); // dilated one cell: covers the stair-step gaps against diagonal polygon edges
+        const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C, on = i < N && (D.isSliver(x, z) || D.isSliver(x + C, z) || D.isSliver(x - C, z) || D.isSliver(x, z + C) || D.isSliver(x, z - C) || D.isSliver(x + 2 * C, z) || D.isSliver(x - 2 * C, z) || D.isSliver(x, z + 2 * C) || D.isSliver(x, z - 2 * C)); // dilated one cell: covers the stair-step gaps against diagonal polygon edges
         if (on && run < 0) { run = i; sand = /sand|beach/.test((D.surfaceAt && D.surfaceAt(x, z)) || '') || isBeachAt(x, z); }
         if (!on && run >= 0) { const xa = X0 + run * C, xb = X0 + i * C, za = Z0 + j * C, zb = za + C; quadUp(sand ? B.sand : B.land, [xa, 0.012, za], [xb, 0.012, za], [xb, 0.012, zb], [xa, 0.012, zb], WHITE, 1 / 6); run = -1; n++; }
       }
@@ -2203,12 +2203,15 @@ export function createTileBuilder(ctx) {
     // seawalls (land edges on water): a stair flight every ~200 m of waterfront (deterministic phase from world position, so seams agree)
     for (const a of tile.areas || []) { if (a.kind !== 'land') continue;
       walk(a.rings[0], (p, q, L, tx, tz, nx, nz) => { for (let s2 = 6; s2 < L - 6; s2 += 4) { const x = p[0] + tx * s2, z = p[1] + tz * s2; if (!inT(x, z)) continue;
-        const cell = Math.floor(x / 200) + ',' + Math.floor(z / 200); if (ex.steps.some((e) => e.cell === cell)) continue; if (roadDist && roadDist(x, z) < 6) continue;
+        const cell = Math.floor(x / 200) + ',' + Math.floor(z / 200); if (ex.steps.some((e) => e.cell === cell)) continue; if (roadDist && roadDist(x, z) < 6) continue; if (!GC_OFF && isBeachAt(x, z)) continue; // beaches slope into the sea: no seawall stair
         ex.steps.push({ cell, x, z, nx, nz, tx, tz, top: 0, w: 2.4 }); s2 += 150; } }); }
     // piers / marina docks: one flight at each pier's seaward end
     for (const pq of tile.piers || []) { let best = null; walk(pq.rings[0], (p, q, L, tx, tz, nx, nz) => { const x = (p[0] + q[0]) / 2, z = (p[1] + q[1]) / 2; if (!inT(x, z)) return; const d = roadDist ? roadDist(x, z) : 0; if (!best || d > best.d) best = { d, x, z, nx, nz, tx, tz }; }); if (best) ex.steps.push({ ...best, top: pq.y ?? 1.2, w: 1.6 }); }
     // beaches: the sand keeps sloping into the water (no lip)
     for (const a of tile.areas || []) { if (a.kind !== 'beach' && a.kind !== 'sand') continue; walk(a.rings[0], (p, q, L, tx, tz, nx, nz) => ex.skirts.push({ p, q, nx, nz })); }
+    // ground-continuity: plain land meeting open water inside a beach zone is a beach, not a dirt lawn ending at a seawall:
+    // a sand band runs inland from the waterline and the sand slopes on into the sea (same skirt, so colliders follow)
+    if (!GC_OFF) for (const a of tile.areas || []) { if (a.kind !== 'land') continue; for (const ring of a.rings) walk(ring, (p, q, L, tx, tz, nx, nz) => { const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2; if (isBeachAt(mx, mz) || isBeachAt(mx - nx * 20, mz - nz * 20)) ex.skirts.push({ p, q, nx, nz, band: true }); }); }
     exitCache.set(tile, ex); return ex;
   }
   const STEP_H = 0.28, STEP_D = 0.55, C_STEP = new THREE.Color(0xc9c4b8), C_RAILX = new THREE.Color(0x9aa0a6);
@@ -2221,6 +2224,10 @@ export function createTileBuilder(ctx) {
       for (const st of stairBoxes(e)) B.trim.addGeometry(BOXG, mat4(st.cx, (st.top - 2.2) / 2, st.cz, ry, e.w, st.top + 2.2, STEP_D), C_STEP);
       const n = stairBoxes(e).length, len = STEP_D * n; for (const side of [-1, 1]) { const ox = e.tx * side * (e.w / 2 - 0.05), oz = e.tz * side * (e.w / 2 - 0.05);
         B.guard.addGeometry(CYLG, new THREE.Matrix4().compose(new THREE.Vector3(e.x + e.nx * len / 2 + ox, e.top + 0.9 - (n * STEP_H) / 2, e.z + e.nz * len / 2 + oz), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(e.nx * len, -n * STEP_H, e.nz * len).normalize()), new THREE.Vector3(0.06, Math.hypot(len, n * STEP_H), 0.06)), C_RAILX); } }
+    for (const k of ex.skirts) if (k.band) { // inland sand band behind the waterline, ragged inner edge (6 m steps)
+      const a = k.p, b2 = k.q, L = Math.hypot(b2[0] - a[0], b2[1] - a[1]), n = Math.max(1, Math.ceil(L / 6)), wAt = (x, z) => 26 + 16 * (Math.sin(x * 0.043 + Math.sin(z * 0.031) * 2) * 0.5 + 0.5);
+      for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n, x0 = a[0] + (b2[0] - a[0]) * t0, z0 = a[1] + (b2[1] - a[1]) * t0, x1 = a[0] + (b2[0] - a[0]) * t1, z1 = a[1] + (b2[1] - a[1]) * t1, w0 = wAt(x0, z0), w1 = wAt(x1, z1);
+        quadUp(B.sand, [x0, 0.008, z0], [x1, 0.008, z1], [x1 - k.nx * w1, 0.008, z1 - k.nz * w1], [x0 - k.nx * w0, 0.008, z0 - k.nz * w0], new THREE.Color(0xffffff), 1 / 6); } }
     for (const k of ex.skirts) { const a = k.p, b2 = k.q, D = 9, y1 = -1.6; quadUp(B.sand, [a[0], 0.008, a[1]], [b2[0], 0.008, b2[1]], [b2[0] + k.nx * D, y1, b2[1] + k.nz * D], [a[0] + k.nx * D, y1, a[1] + k.nz * D], new THREE.Color(0xffffff), 1 / 6); }
   }
   function exitColliders(tile, tri, box) {

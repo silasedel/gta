@@ -116,9 +116,15 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   function layerAt(x, z) {
     const cls = data.coverAt ? data.coverAt(x, z) : 'none';
     let k = CLS[cls];
+    if (k === 'sand' && !(data.isWater && [[40, 0], [-40, 0], [0, 40], [0, -40], [28, 28], [-28, 28], [28, -28], [-28, -28]].some(([dx, dz]) => data.isWater(x + dx, z + dz)))) { // inland sand fields (Keys lots): bare sand broken by shell, scrub, rough meadow and mown patches; beaches within 40 m of water stay sand
+      const nk = vnoise(x * 0.018 + 2.3, z * 0.018 - 7.1) * 0.65 + vnoise(x * 0.06, z * 0.06) * 0.35;
+      k = nk < 0.4 ? 'sand' : nk < 0.62 ? 'scrub' : nk < 0.78 ? 'meadow' : 'lawn';
+    }
     if (!k) { // unclassified land: by zone / region, broken into patches
       const zn = data.zoneAt ? data.zoneAt(x, z) : '', nz = vnoise(x * 0.02, z * 0.02);
-      if (isKeys(x, z)) k = nz < 0.5 ? 'shell' : nz < 0.78 ? 'lawn' : 'sand'; // Keys: crushed shell, mown green, sand
+      if (isKeys(x, z)) { // Keys: scrub, crushed shell, mown green, rough meadow and sand in two scales of patches (no single flat field)
+        const nk = nz * 0.65 + vnoise(x * 0.071 + 13.7, z * 0.071 - 4.1) * 0.35;
+        k = nk < 0.36 ? 'scrub' : nk < 0.43 ? 'shell' : nk < 0.62 ? 'lawn' : nk < 0.74 ? 'meadow' : nk < 0.8 ? 'dirt' : nk < 0.9 ? 'scrub' : 'sand'; }
       else if (zn === 'airport') k = 'lawn';
       else if (zn === 'wilderness') k = nz < 0.6 ? 'scrub' : 'meadow';
       else if (zn === 'rural') k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';
@@ -131,7 +137,18 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     }
     return LI[k];
   }
-  const heightAt = (x, z) => (data.isWater && data.isWater(x, z) ? WATER_Y : (data.terrainHeightAt ? data.terrainHeightAt(x, z) : 0) + Y_OFF);
+  // ground-continuity: the shore height follows the share of water around the point (9 probes, 4.5 m) instead of jumping
+  // from land to WATER_Y between two 4 m grid vertices: the waterline is a smooth contour, not a jagged triangle saw that
+  // z-fights with the ocean plane
+  const SH = [[0, 0], [4.5, 0], [-4.5, 0], [0, 4.5], [0, -4.5], [3.2, 3.2], [-3.2, 3.2], [3.2, -3.2], [-3.2, -3.2]];
+  const heightAt = (x, z) => {
+    const land = (data.terrainHeightAt ? data.terrainHeightAt(x, z) : 0) + Y_OFF;
+    if (!data.isWater) return land;
+    let w = 0; for (const [dx, dz] of SH) if (data.isWater(x + dx, z + dz)) w++;
+    if (w === 0) return land; if (w === 9) return WATER_Y;
+    const f = w / 9, k = f * f * (3 - 2 * f), h = land + (WATER_Y - land) * k;
+    return data.isWater(x, z) ? h : Math.max(h, Math.min(land, -0.1)); // land stays just above the sea (-0.12): matches its collider
+  };
 
   // ---- grid builder (generator: yields every few rows so the streamer stays inside its frame budget) ----
   // returns { geometry, coll: Float32Array (triangle soup, same vertices) } ; skips triangles that are all water or all real Miami

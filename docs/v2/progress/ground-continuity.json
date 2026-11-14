@@ -1,0 +1,103 @@
+{
+ "track": "ground-continuity",
+ "title": "Ground continuity: seams, pads, road ends, water mask, ground cover, beach sand",
+ "section": "World",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Seam audit tool (tools/v2/seam-audit.mjs + src/world/ground/seamAudit.js): dead-end road finish and step, set-piece pad border steps, collider holes, solid ground over swimmable water, offshore islets, map-wide water-mask slivers; before/after via ?groundfix=0",
+   "state": "verified",
+   "evidence": "docs/v2/reports/seam-audit-after-full.json"
+  },
+  {
+   "name": "Audit totals before -> after (5 areas: Nico house, South Beach strip, South Beach lawn, Downtown, Little Havana): abrupt road ends 5 -> 0, pad border steps 117/118 (max 0.88 m) -> 0 (max 0.12 m), solid-over-water 0 -> 0, water-mask slivers still water 16618 samples (~266k m2) -> 0",
+   "state": "verified",
+   "evidence": "docs/v2/reports/seam-audit-before.json"
+  },
+  {
+   "name": "Nico house yard sits flush on the ground (was a 0.88 m ledge with a seawall face and an open void below); yard sheet sinks into the terrain along a meandering edge on the open sides",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_nico_platform.png"
+  },
+  {
+   "name": "Pelican Point Lane ends at the yard with a flared concrete apron (road trimmed at the set-piece ground claim, no road under or over the yard)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_nico_road_end.png"
+  },
+  {
+   "name": "Every dead-end road in the map: cul-de-sac bulb (residential, when there is room) or rounded asphalt cap, with colliders; ends inside set-piece ground get the apron",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_downtown.png"
+  },
+  {
+   "name": "Water-mask slivers (rasterisation gaps between land polygons, e.g. the strip through South Beach where Nico swam under a sand slab) count as land map-wide; ground is drawn and collided over them",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_sb_strip.png"
+  },
+  {
+   "name": "Tiny bare sand specks in open water outside real Miami (the slab offshore of the Keys spawn) are open water; dropped from the land base too",
+   "state": "built",
+   "evidence": "docs/v2/shots/ground-continuity/after_nico_overview.png"
+  },
+  {
+   "name": "Keys / synthetic inland sand fields broken into sand, scrub, meadow and lawn patches (no single brown field); Keys mix gets a second noise scale",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_nico_overview.png"
+  },
+  {
+   "name": "Plain land (M.land) is the world-space lawn / sparse grass / dirt blend permanently (from world-dressing patchLand); land base recolored green-brown with variation in tilebuild",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Park lawns get macro mowing / dry-patch variation (groundWear on M.grass)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_sb_lawn.png"
+  },
+  {
+   "name": "Beaches and dunes use the fine sand material (now 3-scale stochastic sampling + large colour drift) with a waterline moisture field (src/world/ground/beach.v2.js): dry pale sand, damp band, glossy swash line, ripples on dry sand, shells and debris",
+   "state": "built",
+   "evidence": "docs/v2/shots/ground-continuity/after_sb_shore.png"
+  },
+  {
+   "name": "Terrain flora no longer grows inside set-piece ground claims (bushes in Nico's yard)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "GPU deformation map for footprints and tyre tracks (existing decals in src/fx/footprints.v2.js kept: depth normals, rims, damp darkening)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Nico house: the layout's water is ~35 m beyond the yard's seawall, so the seawall and dock face low land (now flush, 0.24 m cap); needs a layout or house-plan decision",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "sand:fine shader compile fix (groundWear no longer chained onto the fine sand material: wMacro / wStain undefined)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Beach-zone land meeting the sea gets a 26-42 m sand band and a sand slope into the water instead of a dirt lawn ending at a seawall (no seawall stairs on beaches)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "G2: synthetic terrain shoreline height follows the local water share (smooth waterline contour, no jagged triangle saw z-fighting the ocean); land stays above sea level",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "G5: Nico yard puddles toned to muddy rut water (dark, low reflection) instead of sky-blue decals",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "G3 dock (planks over land, slabs under dock, rail lines, step-on), G4 footstep FX by collider surface, R1 road gaps at junctions, R2 ground grain",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}
