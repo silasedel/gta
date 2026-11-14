@@ -462,7 +462,6 @@
    "ship_horn_02.ogg",
    "ship_horn_03.ogg",
    "ship_horn_04.ogg",
-   "ship_horn_05.ogg",
    "ship_horn_06.ogg"
   ],
   "loop": false,
@@ -475,7 +474,6 @@
    0.227,
    0.252,
    0.525,
-   0.566,
    0.347
   ],
   "lufs": [
@@ -483,11 +481,13 @@
    -6.1,
    -7.0,
    -13.4,
-   -14.1,
    -9.8
   ],
   "target": -19,
-  "measure": "max-100ms"
+  "measure": "max-100ms",
+  "excluded": [
+   "ship_horn_05.ogg (voice-like detector hit, dropped by audio-clean)"
+  ]
  },
  "crane_clank": {
   "files": [
@@ -582,8 +582,7 @@
    "distant_horn_02.ogg",
    "distant_horn_03.ogg",
    "distant_horn_04.ogg",
-   "distant_horn_05.ogg",
-   "distant_horn_06.ogg"
+   "distant_horn_05.ogg"
   ],
   "loop": false,
   "gain": 1,
@@ -595,19 +594,20 @@
    0.373,
    0.364,
    0.353,
-   0.541,
-   0.32
+   0.541
   ],
   "lufs": [
    -10.8,
    -10.4,
    -10.2,
    -9.9,
-   -13.7,
-   -9.1
+   -13.7
   ],
   "target": -19,
-  "measure": "max-100ms"
+  "measure": "max-100ms",
+  "excluded": [
+   "distant_horn_06.ogg (voice-like detector hit, dropped by audio-clean)"
+  ]
  },
  "helicopter": {
   "files": [

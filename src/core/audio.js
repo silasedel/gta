@@ -25,13 +25,52 @@ const NANLOG = { n: 0, first: null };
     const f = P[m]; P[m] = function (v, t, k) { if (!Number.isFinite(v) || !Number.isFinite(t) || (k !== undefined && !Number.isFinite(k))) { note(v); return this; } return f.call(this, v, t, k); };
   }
 })();
+// Scene mix constants (linear). Tuned with offline renders (src/audio/mixtest.html), see the audio-clean report.
+const MIXK = {
+  engine: 0.115, // player engine voice into the car bus
+  aiEngine: 0.2, // traffic engine voices (positional, full level inside 3.5 m)
+  aiLoud: 2.2, // traffic supercars, sports and muscle cars
+  ambInCar: 0.5, // ambience duck while the player drives
+  vehOut: 0.9, // vehicle bus make-up after its compressor / limiter
+  bed: 0.6, // ambience bed send (beds are normalized to -23 LUFS)
+  amb: 1, // ambience bus base
+  music: 1, // music and radio bus base
+  crash: 1.8, // vehicle impact one-shots
+};
 export function createAudio(game) {
   let ctx = null, eng = null, master = null, sfx = null, ambBus = null, reverb = null, reverbSend = null, echo = null;
   let carBus = null, vehBus = null, outGain = null, worldLP = null, worldG = null, uiBus = null, musicBus = null;
-  // ---- vehicle mix (linear gains). Samples are loudness-normalised to -20 dBFS short-term (index.json "norm").
-  // Engine loops are the bed (player car ~ -14 dBFS RMS at mid rpm); pops ~ -11 dB, turbo/shift/blow-off ~ -8 dB,
-  // tyre squeal ~ -6 dB under the engine; wind subtle.
-  const VMIX = { engine: 1.25, aiEngine: 1.1, pops: 0.085, backfire: 0.1, turbo: 0.42, shift: 0.105, blowoff: 0.16, squeal: 0.87, wind: 0.2, oneShot: 0.5 };
+  let radioBus = null, voiceBus = null, vehOut = null, masterComp = null, masterMakeup = null, ambDuck = null;
+  // ---- loudness plan (audio-clean pass). Every bank file is normalized by index.json "norm" to its category
+  // target (engine loops -20 LUFS integrated, ambience beds -23 LUFS, one-shots by their loudest 100 ms:
+  // guns -10, impacts -16, vocals -14 / -16, footsteps -23; see docs/v2/reports/audio-clean.md).
+  // The mixer below then places whole scenes (at the default 90% master): driving the supercar about
+  // -16 LUFS, standing in the city about -21, walking or on the beach about -22, crashes and shots above that.
+  // ---- vehicle mix (linear gains). Engine loops are the bed; pops, turbo, shift and blow-off sit under them,
+  // tire squeal about 6 dB under the engine; wind subtle.
+  const VMIX = {
+    engine: MIXK.engine,
+    aiEngine: MIXK.aiEngine,
+    pops: 0.085,
+    backfire: 0.1,
+    turbo: 0.42,
+    shift: 0.105,
+    blowoff: 0.16,
+    squeal: 0.87,
+    wind: 0.2,
+    oneShot: 0.5,
+  };
+  // per-bus user volumes (settings sliders: game.settings.audio or setBusVolume)
+  const busVol = {
+    sfx: 1,
+    vehicles: 1,
+    ambience: 0.9,
+    music: 0.8,
+    radio: 0.8,
+    voice: 1,
+    ui: 0.8,
+  };
+  const outMode = { output: 'headphones', range: 'full' };
   const meters = {}; // name -> AnalyserNode (pre-master taps for verification)
   // test/automation mute: ?mute in the URL or localStorage 'ps-mute' = '1' keeps master gain at 0
   let MUTED = false;
@@ -131,16 +170,32 @@ export function createAudio(game) {
     const tap = (name, node) => { const a = ctx.createAnalyser(); a.fftSize = 4096; node.connect(a); meters[name] = a; return node; };
     master = ctx.createGain(); master.gain.value = 1;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 10; comp.ratio.value = 2.5; comp.attack.value = 0.01; comp.release.value = 0.25;
-    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.0005; lim.release.value = 0.06;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.0005; lim.release.value = 0.06;
     outGain = ctx.createGain(); outGain.gain.value = MUTED ? 0 : volume;
     worldLP = ctx.createBiquadFilter(); worldLP.type = 'lowpass'; worldLP.frequency.value = 20000; worldLP.Q.value = 0.5;
     worldG = ctx.createGain(); worldG.gain.value = 1;
-    master.connect(worldLP).connect(worldG).connect(comp).connect(lim).connect(outGain).connect(ctx.destination);
-    uiBus = ctx.createGain(); uiBus.gain.value = 1; uiBus.connect(comp); tap('ui', uiBus);
-    musicBus = ctx.createGain(); musicBus.gain.value = 1; musicBus.connect(master); tap('music', musicBus);
+    masterComp = comp;
+    masterMakeup = ctx.createGain();
+    masterMakeup.gain.value = 1;
+    master.connect(worldLP).connect(worldG).connect(comp).connect(masterMakeup).connect(lim).connect(outGain).connect(ctx.destination);
+    uiBus = ctx.createGain(); uiBus.gain.value = busVol.ui; uiBus.connect(comp); tap('ui', uiBus);
+    musicBus = ctx.createGain(); musicBus.gain.value = busVol.music * MIXK.music; musicBus.connect(master); tap('music', musicBus);
+    radioBus = ctx.createGain();
+    radioBus.gain.value = busVol.radio * MIXK.music;
+    radioBus.connect(master);
+    tap('radio', radioBus);
+    voiceBus = ctx.createGain();
+    voiceBus.gain.value = busVol.voice;
+    voiceBus.connect(master);
+    tap('voice', voiceBus);
     tap('mix', lim);
-    sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(master); tap('sfx', sfx);
-    ambBus = ctx.createGain(); ambBus.gain.value = 1; ambBus.connect(master); tap('amb', ambBus);
+    sfx = ctx.createGain(); sfx.gain.value = busVol.sfx; sfx.connect(master); tap('sfx', sfx);
+    ambBus = ctx.createGain(); ambBus.gain.value = busVol.ambience * MIXK.amb; tap('amb', ambBus);
+    ambDuck = ctx.createGain();
+    ambDuck.gain.value = 1;
+    ambBus.connect(ambDuck).connect(master); // ducked while the player drives
+    readSettings();
+    applyOutputMode();
     noiseW = makeNoise(2, false); noiseB = makeNoise(2, true);
     // reverb (indoor rooms) — send bus
     reverb = ctx.createConvolver(); reverb.buffer = makeImpulse(1.1, 3.2);
@@ -167,7 +222,8 @@ export function createAudio(game) {
     const vComp = ctx.createDynamicsCompressor(); vComp.threshold.value = -20; vComp.knee.value = 12; vComp.ratio.value = 3; vComp.attack.value = 0.006; vComp.release.value = 0.2;
     const vLim = ctx.createDynamicsCompressor(); vLim.threshold.value = -6; vLim.knee.value = 0; vLim.ratio.value = 20; vLim.attack.value = 0.001; vLim.release.value = 0.08;
     vehBus = ctx.createGain(); vehBus.gain.value = 1;
-    const vehOut = ctx.createGain(); vehOut.gain.value = 1.4; // make-up gain after compression
+    vehOut = ctx.createGain();
+    vehOut.gain.value = MIXK.vehOut * busVol.vehicles; // make-up gain after compression x user volume
     vehBus.connect(vComp).connect(vLim).connect(vehOut).connect(master);
     meter('vehicle', vehOut);
     carBus = ctx.createGain(); carBus.gain.value = 1; carBus.connect(cabin).connect(vehBus);
@@ -192,11 +248,105 @@ export function createAudio(game) {
   }
   addEventListener('mousedown', start);
   addEventListener('keydown', start);
+  addEventListener('pointerdown', start);
+  addEventListener('touchstart', start);
+  // background tab: suspend the context (no CPU, no stray sound) unless the player turned off
+  // "mute when the window is in the background"; resume when the tab is visible again
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      const offline = typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext;
+      if (!ctx || offline) return;
+      if (document.hidden) {
+        const keepPlaying = game.settings?.muteOnFocusLoss === false;
+        if (ctx.state === 'running' && !keepPlaying) ctx.suspend().catch(() => { /* */ });
+      } else if (ctx.state !== 'running' && ctx.state !== 'closed') {
+        ctx.resume().catch(() => { /* resumes on the next input event instead */ });
+      }
+    });
+  }
+
+  // ---------- bus volumes, output mode, dynamic range (settings) ----------
+  const BUS_ALIAS = { vehicle: 'vehicles', amb: 'ambience', ambient: 'ambience', dialogue: 'voice', voices: 'voice', effects: 'sfx' };
+  function busNode(key) {
+    if (key === 'sfx') return sfx;
+    if (key === 'ambience') return ambBus;
+    if (key === 'music') return musicBus;
+    if (key === 'radio') return radioBus;
+    if (key === 'voice') return voiceBus;
+    if (key === 'ui') return uiBus;
+    return null;
+  }
+  function busBase(key) {
+    if (key === 'ambience') return MIXK.amb;
+    if (key === 'music' || key === 'radio') return MIXK.music;
+    if (key === 'vehicles') return MIXK.vehOut;
+    return 1;
+  }
+  function setBusVolume(bus, v) {
+    const key = BUS_ALIAS[bus] || bus;
+    const x = Math.max(0, Math.min(1, +v));
+    if (!(key in busVol) || !Number.isFinite(x)) return false;
+    busVol[key] = x;
+    if (!ctx) return true;
+    const node = key === 'vehicles' ? vehOut : busNode(key);
+    node?.gain.setTargetAtTime(x * busBase(key), ctx.currentTime, 0.05);
+    return true;
+  }
+  // effects that also feed the shared reverb / echo: scale the sends by the source bus volume
+  function busLevel(node) {
+    if (!node || node === sfx) return busVol.sfx;
+    if (node === vehBus) return busVol.vehicles;
+    if (node === ambBus) return busVol.ambience;
+    if (node === voiceBus) return busVol.voice;
+    if (node === uiBus) return busVol.ui;
+    return 1;
+  }
+  // dynamic range: full = gentle glue; medium / night squeeze loud and quiet together (with make-up gain)
+  const RANGE = {
+    full: { threshold: -18, ratio: 2.5, makeup: 1 },
+    medium: { threshold: -26, ratio: 4, makeup: 1.5 },
+    night: { threshold: -34, ratio: 8, makeup: 2.2 },
+  };
+  function applyOutputMode() {
+    if (!ctx) return;
+    const r = RANGE[outMode.range] || RANGE.full;
+    const t = ctx.currentTime;
+    masterComp?.threshold.setTargetAtTime(r.threshold, t, 0.1);
+    masterComp?.ratio.setTargetAtTime(r.ratio, t, 0.1);
+    masterMakeup?.gain.setTargetAtTime(r.makeup, t, 0.1);
+    // mono: fold the master down to one channel; other modes keep stereo
+    try {
+      const d = ctx.destination;
+      const want = outMode.output === 'mono' ? 1 : Math.min(2, d.maxChannelCount || 2);
+      if (d.channelCount !== want) d.channelCount = want;
+      d.channelInterpretation = 'speakers';
+    } catch (e) { /* fixed channel count on this browser */ }
+  }
+  // settings store mirrors sliders into game.settings.audio[bus]; also read Output choices
+  function readSettings() {
+    const S = game.settings;
+    if (!S) return;
+    const A = S.audio;
+    if (A) {
+      for (const k of Object.keys(busVol)) {
+        if (typeof A[k] === 'number' && Math.abs(A[k] - busVol[k]) > 1e-4) setBusVolume(k, A[k]);
+      }
+    }
+    const output = S.audioOutput || 'headphones';
+    const range = S.dynamicRange || 'full';
+    if (output !== outMode.output || range !== outMode.range) {
+      outMode.output = output;
+      outMode.range = range;
+      applyOutputMode();
+    }
+  }
 
   // ---------- helpers ----------
   function panner(ref = 3, rolloff = 1.2, max = 250) {
     const p = ctx.createPanner();
-    p.panningModel = 'HRTF'; p.distanceModel = 'inverse';
+    // HRTF suits headphones; speakers, TV and mono get plain equal-power panning (cheaper too)
+    p.panningModel = outMode.output === 'headphones' ? 'HRTF' : 'equalpower';
+    p.distanceModel = 'inverse';
     p.refDistance = ref; p.rolloffFactor = rolloff; p.maxDistance = max;
     return p;
   }
@@ -225,8 +375,9 @@ export function createAudio(game) {
     if (o.position) { const p = panner(o.ref || 3, o.rolloff || 1.2); setPos(p, o.position); tail.connect(p); tail = p; }
     tail.connect(o.bus || sfx);
     const indoor = o.indoor ?? (o.room ? isIndoor() : false);
-    if (o.room && indoor) { const s = ctx.createGain(); s.gain.value = o.room; tail.connect(s).connect(reverb); }
-    if (o.echo && !indoor) { const s = ctx.createGain(); s.gain.value = o.echo; tail.connect(s).connect(echo); }
+    const sendK = busLevel(o.bus);
+    if (o.room && indoor) { const s = ctx.createGain(); s.gain.value = o.room * sendK; tail.connect(s).connect(reverb); }
+    if (o.echo && !indoor) { const s = ctx.createGain(); s.gain.value = o.echo * sendK; tail.connect(s).connect(echo); }
     return g;
   }
   // filtered noise burst
@@ -507,8 +658,8 @@ export function createAudio(game) {
     scream: (dst, t, o) => real(dst, t, 'combat', o.female ?? Math.random() < 0.5 ? 'scream_female' : 'scream_male'),
     car_crash(dst, t, o) {
       const k = Math.min(1, Math.max(0.1, o.impulse ? o.impulse / 15000 : o.strength ?? 0.6));
-      const ok = real(dst, t, 'vehicles', k > 0.7 ? 'crash_heavy' : k > 0.35 ? 'crash_medium' : 'crash_light', { rate: rnd(0.92, 1.06), gain: 0.5 + 0.6 * k });
-      if (ok && k > 0.6) real(dst, t + 0.02, 'vehicles', 'glass_shatter', { gain: 0.6 * k });
+      const ok = real(dst, t, 'vehicles', k > 0.7 ? 'crash_heavy' : k > 0.35 ? 'crash_medium' : 'crash_light', { rate: rnd(0.92, 1.06), gain: (0.5 + 0.6 * k) * MIXK.crash });
+      if (ok && k > 0.6) real(dst, t + 0.02, 'vehicles', 'glass_shatter', { gain: 0.6 * k * MIXK.crash });
       return ok;
     },
   };
@@ -603,7 +754,7 @@ export function createAudio(game) {
       s.src = s.o = s.lfo = null;
       if (rv) { // real recorded siren loop
         const src = ctx.createBufferSource(); src.buffer = rv.buf; src.loop = true;
-        sg.gain.value = 0.45 * (rv.e.gain ?? 1); src.connect(sg); src.start(ctx.currentTime, Math.random() * rv.buf.duration);
+        sg.gain.value = 0.45 * (rv.e.gain ?? 1) * (rv.e.norm?.[rv.i] ?? 1); src.connect(sg); src.start(ctx.currentTime, Math.random() * rv.buf.duration);
         s.src = src; s.real = true;
       } else { // synth fallback
         const o = ctx.createOscillator(); o.type = 'sawtooth';
@@ -701,7 +852,7 @@ export function createAudio(game) {
     // stable per-voice pitch so the same ped sounds consistent
     const vid = String(e.voice ?? e.ped?.id ?? ''); let h = 0; for (let i = 0; i < vid.length; i++) h = (h * 31 + vid.charCodeAt(i)) | 0;
     const rate = vid ? 0.93 + ((Math.abs(h) % 1000) / 1000) * 0.14 : rnd(0.95, 1.05);
-    const dst = out({ position: { x: p.x, y: (p.y || 0) + 1.6, z: p.z }, volume: (LOUD[base] || 0.4) * (e.volume ?? 1), ref: 2.5, rolloff: 1.4, room: 0.25 });
+    const dst = out({ bus: voiceBus, position: { x: p.x, y: (p.y || 0) + 1.6, z: p.z }, volume: (LOUD[base] || 0.4) * (e.volume ?? 1), ref: 2.5, rolloff: 1.4, room: 0.25 });
     real(dst, now + 0.01, cat, key, { rate });
   }
   game.on?.('pedVoice', pedVoice);
@@ -729,7 +880,7 @@ export function createAudio(game) {
     let pan = null;
     if (position) { pan = panner(4, 1.3, 120); setPos(pan, position); g.connect(pan).connect(ambBus); } else g.connect(ambBus);
     src.start(ctx.currentTime, Math.random() * v.buf.duration);
-    const k = (v.e.gain ?? 1);
+    const k = (v.e.gain ?? 1) * (v.e.norm?.[v.i] ?? 1);
     g.gain.setTargetAtTime(0.4 * gain * k, ctx.currentTime, 0.4);
     venueSrc.set(id, { src, g, pan, key, k });
   }
@@ -826,7 +977,7 @@ export function createAudio(game) {
       const e = b.idx[`${k}_${suf}`]; if (!e) continue;
       const v = getVar('vehicles', `${k}_${suf}`);
       if (!v) { pending = true; continue; }
-      out.push({ buf: v.buf, rpm: e.rpm || 1000, gain: e.gain ?? 1 });
+      out.push({ buf: v.buf, rpm: e.rpm || 1000, gain: (e.gain ?? 1) * (e.norm?.[v.i] ?? 1) });
     }
     if (pending || !out.length) return null;
     return out.sort((a, c) => a.rpm - c.rpm);
@@ -888,7 +1039,7 @@ export function createAudio(game) {
     }
     let pan = null;
     if (isPlayer) out.connect(carBus._engine);
-    else { pan = panner(5, 1.3, 200); out.connect(pan).connect(vehBus); }
+    else { pan = panner(3.5, 1.3, 200); out.connect(pan).connect(vehBus); }
     const v = { sub, intake, car, kind, E, isPlayer, out, lp, sum, pan, layers: [], rpm: DEF_RPM[kind][0], gear: 1, prevThr: 0, shiftT: 0, popT: 0, popN: 0, dead: false, prevGear: 1, squeal: null, turbo: null, el: null };
     if (E.electric) {
       const o1 = ctx.createOscillator(); o1.type = 'sine';
@@ -1030,7 +1181,7 @@ export function createAudio(game) {
         if (!real(dst, t + 0.01, 'vehicles', 'crackle', { rate: rnd(0.9, 1.1) })) crackle(dst, t + 0.01, 1);
       }
     }
-    const vol = (v.isPlayer ? VMIX.engine : VMIX.aiEngine) * (v.src === 'real' ? 1 : 0.35) * (disabled ? 0 : 1);
+    const vol = (v.isPlayer ? VMIX.engine : VMIX.aiEngine * (/super|sports|muscle/.test(carClass(car)) ? MIXK.aiLoud : 1)) * (v.src === 'real' ? 1 : 0.35) * (disabled ? 0 : 1);
     if (v.el) { // electric: rising inverter whine + motor hum
       const sp = Math.min(1, st.kmh / 180);
       v.el.o1.frequency.setTargetAtTime(180 + sp * 2600, t, 0.05);
@@ -1242,11 +1393,11 @@ export function createAudio(game) {
           const src = ctx.createBufferSource(); src.buffer = v.buf; src.loop = true;
           const g = ctx.createGain(); g.gain.value = 0;
           src.connect(g).connect(ambBus); src.start(ctx.currentTime, Math.random() * v.buf.duration);
-          b = { src, g, k: v.e.gain ?? 1, idle: 0 }; beds.set(k, b);
+          b = { src, g, k: (v.e.gain ?? 1) * (v.e.norm?.[v.i] ?? 1), idle: 0 }; beds.set(k, b);
         }
       }
       if (!b) continue;
-      b.g.gain.setTargetAtTime(want * 0.32 * b.k, t, 1.2);
+      b.g.gain.setTargetAtTime(want * MIXK.bed * b.k, t, 1.2);
       b.idle = want < 0.01 ? b.idle + dt : 0;
       if (b.idle > 6) { try { b.src.stop(); b.g.disconnect(); } catch (e) { /* */ } beds.delete(k); }
     }
@@ -1388,7 +1539,8 @@ export function createAudio(game) {
     const g = ctx.createGain(); g.gain.value = 0;
     src.connect(hs).connect(lp).connect(g);
     let pan = null;
-    if (positional) { pan = panner(ref, rolloff, 400); g.connect(pan).connect(musicBus); } else g.connect(musicBus);
+    const mbus = id === 'radio' || String(id).startsWith('car:') ? radioBus : musicBus;
+    if (positional) { pan = panner(ref, rolloff, 400); g.connect(pan).connect(mbus); } else g.connect(mbus);
     src.start(ctx.currentTime, ctx.currentTime % buf.duration); // stations feel "live": shared clock
     m = { src, g, lp, hs, pan, station: stationId, seen: 0 }; musicSrc.set(id, m); return m;
   }
@@ -1478,6 +1630,12 @@ export function createAudio(game) {
     play,
     siren,
     setVolume(v) { volume = Math.max(0, Math.min(1, v)); if (outGain) outGain.gain.value = MUTED ? 0 : volume; },
+    // settings sliders: bus = sfx | vehicles | ambience | music | radio | voice | ui, v = 0..1
+    setBusVolume,
+    setBus: setBusVolume,
+    get busVolumes() { return { master: volume, ...busVol }; },
+    setOutput(mode) { outMode.output = mode || 'headphones'; applyOutputMode(); },
+    setDynamicRange(mode) { outMode.range = mode || 'full'; applyOutputMode(); },
     setMuted(m) { MUTED = !!m; if (outGain) outGain.gain.value = MUTED ? 0 : volume; },
     get muted() { return MUTED; },
     horn(position, vehicle) {
@@ -1494,7 +1652,7 @@ export function createAudio(game) {
       if (position) { play('horn', { position, volume: 1 }); return; }
       const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
       o.type = o2.type = 'square'; o.frequency.value = 415; o2.frequency.value = 520; g.gain.value = 0.08;
-      o.connect(g); o2.connect(g); g.connect(master); o.start(); o2.start();
+      o.connect(g); o2.connect(g); g.connect(vehBus); o.start(); o2.start();
       o.stop(ctx.currentTime + 0.45); o2.stop(ctx.currentTime + 0.45);
     },
     update(dt) {
@@ -1524,6 +1682,8 @@ export function createAudio(game) {
           L.forwardX.value = fx; L.forwardY.value = fy; L.forwardZ.value = fz; L.upX.value = ux; L.upY.value = uy; L.upZ.value = uz;
         } else { L.setPosition(cam.position.x, cam.position.y, cam.position.z); L.setOrientation(fx, fy, fz, ux, uy, uz); }
       }
+      readSettings();
+      ambDuck.gain.setTargetAtTime(st?.inVehicle && !muted ? MIXK.ambInCar : 1, t, 0.6);
       outGain.gain.setTargetAtTime(MUTED ? 0 : game.ui?.paused ? volume * 0.25 : volume, t, 0.1);
       const indoor = isIndoor();
       reverbSend.gain.setTargetAtTime(0, t, 0.1); // sends are per-sound; keep bus idle

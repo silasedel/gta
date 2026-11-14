@@ -1021,7 +1021,6 @@
  "ignition": {
   "files": [
    "ignition_01.ogg",
-   "ignition_02.ogg",
    "ignition_03.ogg",
    "ignition_04.ogg"
   ],
@@ -1029,7 +1028,6 @@
   "gain": 1,
   "norm": [
    0.524,
-   1.92,
    0.482,
    1.139
   ],
@@ -1037,12 +1035,14 @@
   "gain_prev": 1,
   "lufs": [
    -11.4,
-   -22.7,
    -10.7,
    -18.1
   ],
   "target": -17,
-  "measure": "max-100ms"
+  "measure": "max-100ms",
+  "excluded": [
+   "ignition_02.ogg (voice-like detector hit, dropped by audio-clean)"
+  ]
  },
  "moto_high": {
   "files": [
