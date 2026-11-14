@@ -1,0 +1,3524 @@
+{
+ "set": "after",
+ "url": "http://127.0.0.1:5200/?mute",
+ "when": "2026-11-14T08:35:44.282Z",
+ "r": 150,
+ "spots": {
+  "dt": {
+   "name": "Downtown (Flagler)",
+   "x": -2420,
+   "z": 520,
+   "r": 150,
+   "items": 560,
+   "overlap": [
+    {
+     "x": -2411.66,
+     "y": 0.15,
+     "z": 639.93,
+     "a": "palm",
+     "b": "umbrella",
+     "srcA": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "srcB": "tilebuild.js:beachDress",
+     "pen": 0.25
+    }
+   ],
+   "building": [
+    {
+     "x": -2341.61,
+     "y": 0.15,
+     "z": 403.62,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "inside": false,
+     "bld": 5032
+    },
+    {
+     "x": -2340.61,
+     "y": 0.15,
+     "z": 403.59,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "inside": false,
+     "bld": 5032
+    },
+    {
+     "x": -2347.61,
+     "y": 0.15,
+     "z": 403.84,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "inside": false,
+     "bld": 5032
+    },
+    {
+     "x": -2334.43,
+     "y": 0.15,
+     "z": 403.42,
+     "kind": "bench",
+     "src": "tilebuild.js:shopDress/plazaDress",
+     "inside": false,
+     "bld": 5032
+    },
+    {
+     "x": -2465.76,
+     "y": 0,
+     "z": 565.45,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 5564
+    },
+    {
+     "x": -2471.17,
+     "y": 0,
+     "z": 571.58,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 3434
+    },
+    {
+     "x": -2486.99,
+     "y": 0,
+     "z": 587.38,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 5708
+    }
+   ],
+   "road": [],
+   "ground": [
+    {
+     "x": -2399.34,
+     "y": 0,
+     "z": 524.65,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": -0.15,
+     "ground": 0.15
+    },
+    {
+     "x": -2399.69,
+     "y": 0,
+     "z": 601.63,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": -0.15,
+     "ground": 0.15
+    }
+   ],
+   "zfight": [
+    {
+     "x": -2553.75,
+     "y": 24.35,
+     "z": 456.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2552.25,
+     "y": 24.35,
+     "z": 456.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2550.75,
+     "y": 24.35,
+     "z": 456.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2480.25,
+     "y": 4.15,
+     "z": 480.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2480.25,
+     "y": 4.15,
+     "z": 482.25,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2480.25,
+     "y": 4.15,
+     "z": 483.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2466.75,
+     "y": 28.7,
+     "z": 566.25,
+     "dy": 0,
+     "a": "facades<tile-near--13,2<miami-city [facade]",
+     "b": "facades<tile-near--13,2<miami-city [facade]"
+    },
+    {
+     "x": -2273.25,
+     "y": 1.398,
+     "z": 503.25,
+     "dy": 0.0018,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2273.25,
+     "y": 1.406,
+     "z": 504.75,
+     "dy": 0.011,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2271.75,
+     "y": 2.971,
+     "z": 501.75,
+     "dy": 0.005,
+     "a": "Mesh<Group<LOD [MeshStandardMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2271.75,
+     "y": 1.399,
+     "z": 503.25,
+     "dy": 0.0038,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2271.75,
+     "y": 1.423,
+     "z": 504.75,
+     "dy": -0.0035,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    }
+   ],
+   "zfightRaw": 879,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 12,
+   "zfightBySrc": {
+    "facades<tile-near--13,2<miami-city [facade] | facades<tile-near--13,2<miami-city [facade]": 7,
+    "Mesh<Group<LOD [MeshPhysicalMaterial] | Mesh<Group<LOD [MeshStandardMaterial]": 4,
+    "Mesh<Group<LOD [MeshStandardMaterial] | Mesh<Group<LOD [MeshStandardMaterial]": 1
+   }
+  },
+  "lh": {
+   "name": "Little Havana",
+   "x": -3639,
+   "z": 1095,
+   "r": 150,
+   "items": 884,
+   "overlap": [],
+   "building": [
+    {
+     "x": -3634.03,
+     "y": 0,
+     "z": 1190.89,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": false,
+     "bld": 2372
+    },
+    {
+     "x": -3610.4,
+     "y": 0,
+     "z": 1142.67,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 1780
+    },
+    {
+     "x": -3570.81,
+     "y": 0,
+     "z": 1166.63,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 1747
+    },
+    {
+     "x": -3578.75,
+     "y": 0,
+     "z": 1165.39,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 1747
+    }
+   ],
+   "road": [],
+   "ground": [
+    {
+     "x": -3675.5,
+     "y": 0,
+     "z": 1200.88,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": -0.15,
+     "ground": 0.15
+    },
+    {
+     "x": -3721.4,
+     "y": 0.15,
+     "z": 1211.9,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3665.95,
+     "y": 0.15,
+     "z": 1209.7,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3727.4,
+     "y": 0.15,
+     "z": 1211.1,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3652.06,
+     "y": 0.15,
+     "z": 1209.35,
+     "kind": "bin",
+     "src": "tilebuild.js:shopDress/buildRoads",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3713.48,
+     "y": 0.15,
+     "z": 1211.2,
+     "kind": "bin",
+     "src": "tilebuild.js:shopDress/buildRoads",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3580.58,
+     "y": 0.15,
+     "z": 1207.58,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3582.76,
+     "y": 0.15,
+     "z": 1207.45,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -3569.49,
+     "y": 0.15,
+     "z": 1206.4,
+     "kind": "signPost",
+     "src": "tilebuild.js:buildRoads(street signs)",
+     "dy": 0.15,
+     "ground": 0
+    }
+   ],
+   "zfight": [
+    {
+     "x": -3671.25,
+     "y": 1.428,
+     "z": 1100.25,
+     "dy": -0.0098,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -3669.75,
+     "y": 1.429,
+     "z": 1100.25,
+     "dy": -0.0099,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -3668.25,
+     "y": 1.43,
+     "z": 1100.25,
+     "dy": -0.01,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -3614.25,
+     "y": 0.03,
+     "z": 1035.75,
+     "dy": 0.01,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -3614.25,
+     "y": 0.03,
+     "z": 1037.25,
+     "dy": 0.01,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    }
+   ],
+   "zfightRaw": 6953,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 5,
+   "zfightBySrc": {
+    "Mesh<Group<LOD [MeshPhysicalMaterial] | Mesh<Group<LOD [MeshStandardMaterial]": 3,
+    "Mesh<Group [MeshStandardMaterial] | Mesh<Group [MeshStandardMaterial]": 2
+   }
+  },
+  "sb": {
+   "name": "South Beach (Ocean Drive)",
+   "x": 3470,
+   "z": -80,
+   "r": 150,
+   "items": 424,
+   "overlap": [],
+   "building": [],
+   "road": [],
+   "ground": [],
+   "zfight": [
+    {
+     "x": 3401.25,
+     "y": 1.461,
+     "z": -20.25,
+     "dy": -0.0043,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": 3401.25,
+     "y": 1.437,
+     "z": -18.75,
+     "dy": 0.0092,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": 3402.75,
+     "y": 1.401,
+     "z": -20.25,
+     "dy": 0.0024,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": 3402.75,
+     "y": 1.393,
+     "z": -18.75,
+     "dy": -0.0001,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": 3414.75,
+     "y": 0.02,
+     "z": -104.25,
+     "dy": 0.012,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3414.75,
+     "y": 3.8,
+     "z": -93.75,
+     "dy": -0.012,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3419.25,
+     "y": 0.02,
+     "z": -96.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3419.25,
+     "y": 0.02,
+     "z": -95.25,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3420.75,
+     "y": 0.02,
+     "z": -105.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3464.25,
+     "y": 3.585,
+     "z": -150.75,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3464.25,
+     "y": 0.13,
+     "z": -144.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3465.75,
+     "y": 0.13,
+     "z": -152.25,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3467.25,
+     "y": 0.15,
+     "z": -149.25,
+     "dy": 0.0175,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3468.75,
+     "y": 0.15,
+     "z": -149.25,
+     "dy": 0.0175,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3468.75,
+     "y": 0.15,
+     "z": -146.25,
+     "dy": 0.0175,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3470.25,
+     "y": 3.585,
+     "z": -146.25,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3482.25,
+     "y": 0.13,
+     "z": -143.25,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3483.75,
+     "y": 3.585,
+     "z": -144.75,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3486.75,
+     "y": 0.13,
+     "z": -147.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3486.75,
+     "y": 3.585,
+     "z": -143.25,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3488.25,
+     "y": 0.13,
+     "z": -147.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3488.25,
+     "y": 0.13,
+     "z": -141.75,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3489.75,
+     "y": 3.585,
+     "z": -143.25,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3491.25,
+     "y": 0.03,
+     "z": -144.75,
+     "dy": 0.01,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 3399.75,
+     "y": 1.518,
+     "z": -20.25,
+     "dy": -0.0079,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    }
+   ],
+   "zfightRaw": 35290,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 25,
+   "zfightBySrc": {
+    "Mesh<Group<LOD [MeshPhysicalMaterial] | Mesh<Group<LOD [MeshStandardMaterial]": 5,
+    "Mesh<Group [MeshStandardMaterial] | Mesh<Group [MeshStandardMaterial]": 20
+   }
+  },
+  "keysbar": {
+   "name": "Keys: bar",
+   "x": -7434,
+   "z": 14342,
+   "r": 150,
+   "items": 25,
+   "overlap": [],
+   "building": [],
+   "road": [],
+   "ground": [],
+   "zfight": [
+    {
+     "x": -7434.75,
+     "y": 0.06,
+     "z": 14328.75,
+     "dy": 0.0024,
+     "a": "Mesh<veg_seagrape<keysBar [vegLeaf]",
+     "b": "Mesh<veg_seagrape<keysBar [vegLeaf]"
+    },
+    {
+     "x": -7430.25,
+     "y": 0.612,
+     "z": 14337.75,
+     "dy": -0.012,
+     "a": "keysBar:art:rug<keysBar [MeshStandardMaterial]",
+     "b": "keysBar:wood<keysBar [keysBar:wood]"
+    },
+    {
+     "x": -7428.75,
+     "y": 0.061,
+     "z": 14339.25,
+     "dy": -0.0015,
+     "a": "Mesh<veg_hibiscus<keysBar [vegLeaf]",
+     "b": "Mesh<veg_hibiscus<keysBar [vegLeaf]"
+    },
+    {
+     "x": -7443.75,
+     "y": 0.059,
+     "z": 14346.75,
+     "dy": 0.0004,
+     "a": "Mesh<veg_seagrape<keysBar [vegLeaf]",
+     "b": "Mesh<veg_seagrape<keysBar [vegLeaf]"
+    },
+    {
+     "x": -7443.75,
+     "y": 0.06,
+     "z": 14352.75,
+     "dy": -0.0031,
+     "a": "Mesh<veg_seagrape<keysBar [vegLeaf]",
+     "b": "Mesh<veg_seagrape<keysBar [vegLeaf]"
+    },
+    {
+     "x": -7430.25,
+     "y": 0.059,
+     "z": 14325.75,
+     "dy": 0.0022,
+     "a": "Mesh<veg_seagrape<keysBar [vegLeaf]",
+     "b": "Mesh<veg_seagrape<keysBar [vegLeaf]"
+    }
+   ],
+   "zfightRaw": 31,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 6,
+   "zfightBySrc": {
+    "Mesh<veg_seagrape<keysBar [vegLeaf] | Mesh<veg_seagrape<keysBar [vegLeaf]": 4,
+    "keysBar:art:rug<keysBar [MeshStandardMaterial] | keysBar:wood<keysBar [keysBar:wood]": 1,
+    "Mesh<veg_hibiscus<keysBar [vegLeaf] | Mesh<veg_hibiscus<keysBar [vegLeaf]": 1
+   }
+  },
+  "cw0": {
+   "name": "Causeway: North Venetian Drive",
+   "x": -1118.1,
+   "z": -1281.1,
+   "r": 150,
+   "items": 404,
+   "overlap": [],
+   "building": [],
+   "road": [],
+   "ground": [
+    {
+     "x": -1136.29,
+     "y": 0,
+     "z": -1273.09,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1108.77,
+     "y": 0.15,
+     "z": -1272.63,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -1129.07,
+     "y": 0,
+     "z": -1272.45,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1131.67,
+     "y": 0,
+     "z": -1272.31,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1136.36,
+     "y": 0,
+     "z": -1266.5,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1135.88,
+     "y": 0,
+     "z": -1258.71,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1132.23,
+     "y": 0,
+     "z": -1258.13,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1129.64,
+     "y": 0,
+     "z": -1258.26,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1127.04,
+     "y": 0,
+     "z": -1258.39,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1124.44,
+     "y": 0,
+     "z": -1258.53,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1121.85,
+     "y": 0,
+     "z": -1258.66,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": 8,
+     "ground": -8
+    },
+    {
+     "x": -1134.7,
+     "y": 0,
+     "z": -1271.15,
+     "kind": "flower",
+     "src": "tilebuild.js:plazaDress",
+     "dy": 8,
+     "ground": -8
+    }
+   ],
+   "zfight": [
+    {
+     "x": -1202.25,
+     "y": 7.617,
+     "z": -1220.25,
+     "dy": -0.0153,
+     "a": "asph<elevated_-7_-7<tile-near--7,-7 [asphalt]",
+     "b": "asph<elevated_-7_-7<tile-near--7,-7 [asphalt]"
+    },
+    {
+     "x": -1056.75,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1056.75,
+     "y": 0.01,
+     "z": -1146.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1056.75,
+     "y": 0.01,
+     "z": -1145.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1055.25,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1055.25,
+     "y": 0.01,
+     "z": -1146.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1055.25,
+     "y": 0.01,
+     "z": -1145.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1053.75,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1053.75,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1053.75,
+     "y": 0.01,
+     "z": -1146.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1052.25,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1052.25,
+     "y": 0.01,
+     "z": -1146.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1050.75,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1052.25,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1050.75,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1049.25,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1049.25,
+     "y": 0.01,
+     "z": -1148.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1047.75,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1046.25,
+     "y": 0.01,
+     "z": -1149.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near--6,-6<miami-city [sand]",
+     "b": "Mesh<tile-near--6,-6<miami-city [sand]"
+    },
+    {
+     "x": -1140.75,
+     "y": 0.113,
+     "z": -1397.25,
+     "dy": 0.015,
+     "a": "matte<cc26<Group [MeshStandardMaterial]",
+     "b": "metal<cc26<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1142.25,
+     "y": 0.548,
+     "z": -1394.25,
+     "dy": 0.006,
+     "a": "gel<cc26<Group [MeshPhysicalMaterial]",
+     "b": "nonskid<cc26<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1164.75,
+     "y": 0.341,
+     "z": -1341.75,
+     "dy": 0.006,
+     "a": "gel<cc26<Group [MeshPhysicalMaterial]",
+     "b": "nonskid<cc26<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1112.25,
+     "y": 0.298,
+     "z": -1205.25,
+     "dy": 0.01,
+     "a": "matte<cc34<Group [MeshStandardMaterial]",
+     "b": "gel<cc34<Group [MeshPhysicalMaterial]"
+    },
+    {
+     "x": -1112.25,
+     "y": 0.926,
+     "z": -1208.25,
+     "dy": -0.018,
+     "a": "metal<cc34<Group [MeshStandardMaterial]",
+     "b": "metal<cc34<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1112.25,
+     "y": 0.793,
+     "z": -1200.75,
+     "dy": 0.006,
+     "a": "gel<cc34<Group [MeshPhysicalMaterial]",
+     "b": "nonskid<cc34<Group [MeshStandardMaterial]"
+    }
+   ],
+   "zfightRaw": 1378,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 25,
+   "zfightBySrc": {
+    "asph<elevated_-7_-7<tile-near--7,-7 [asphalt] | asph<elevated_-7_-7<tile-near--7,-7 [asphalt]": 1,
+    "Mesh<tile-near--6,-6<miami-city [sand] | Mesh<tile-near--6,-6<miami-city [sand]": 18,
+    "matte<cc26<Group [MeshStandardMaterial] | metal<cc26<Group [MeshStandardMaterial]": 1,
+    "gel<cc26<Group [MeshPhysicalMaterial] | nonskid<cc26<Group [MeshStandardMaterial]": 2,
+    "gel<cc34<Group [MeshPhysicalMaterial] | matte<cc34<Group [MeshStandardMaterial]": 1,
+    "metal<cc34<Group [MeshStandardMaterial] | metal<cc34<Group [MeshStandardMaterial]": 1,
+    "gel<cc34<Group [MeshPhysicalMaterial] | nonskid<cc34<Group [MeshStandardMaterial]": 1
+   }
+  },
+  "cw1": {
+   "name": "Causeway: MacArthur Causeway",
+   "x": 1446.1,
+   "z": 765.4,
+   "r": 150,
+   "items": 590,
+   "overlap": [],
+   "building": [
+    {
+     "x": 1411.9,
+     "y": 0,
+     "z": 802.52,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": false,
+     "bld": 297
+    },
+    {
+     "x": 1468.31,
+     "y": 0,
+     "z": 827.18,
+     "kind": "vegPalm",
+     "src": "vegetation field sabal (scene)",
+     "inside": true,
+     "bld": 524
+    }
+   ],
+   "road": [],
+   "ground": [
+    {
+     "x": 1487.52,
+     "y": 0.15,
+     "z": 802.9,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": 1462.11,
+     "y": 0.15,
+     "z": 801.21,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": 1410.62,
+     "y": 0.15,
+     "z": 833.4,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": 1540.63,
+     "y": 0.15,
+     "z": 809.4,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": 0.15,
+     "ground": 0
+    }
+   ],
+   "zfight": [
+    {
+     "x": 1593.75,
+     "y": 0.01,
+     "z": 744.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1586.25,
+     "y": 0.01,
+     "z": 737.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1587.75,
+     "y": 0.01,
+     "z": 735.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1589.25,
+     "y": 0.01,
+     "z": 734.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 732.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 734.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 732.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1586.25,
+     "y": 0.01,
+     "z": 738.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1587.75,
+     "y": 0.01,
+     "z": 737.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1587.75,
+     "y": 0.01,
+     "z": 738.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1589.25,
+     "y": 0.01,
+     "z": 735.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1589.25,
+     "y": 0.01,
+     "z": 737.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1589.25,
+     "y": 0.01,
+     "z": 738.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1589.25,
+     "y": 0.01,
+     "z": 740.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 735.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 737.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 738.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 740.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1590.75,
+     "y": 0.01,
+     "z": 741.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 734.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 735.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 737.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 738.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 740.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1592.25,
+     "y": 0.01,
+     "z": 741.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1593.75,
+     "y": 0.01,
+     "z": 740.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1593.75,
+     "y": 0.01,
+     "z": 741.75,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1593.75,
+     "y": 0.01,
+     "z": 743.25,
+     "dy": -0.002,
+     "a": "Mesh<tile-near-7,3<miami-city [sand]",
+     "b": "Mesh<tile-near-7,3<miami-city [sand]"
+    },
+    {
+     "x": 1539.75,
+     "y": 0.333,
+     "z": 782.25,
+     "dy": -0.0153,
+     "a": "asph<elevated_7_3<tile-near-7,3 [asphalt]",
+     "b": "asph<elevated_7_3<tile-near-7,3 [asphalt]"
+    },
+    {
+     "x": 1560.75,
+     "y": 0.32,
+     "z": 782.25,
+     "dy": 0.0076,
+     "a": "asph<elevated_7_3<tile-near-7,3 [asphalt]",
+     "b": "asph<elevated_7_3<tile-near-7,3 [asphalt]"
+    },
+    {
+     "x": 1562.25,
+     "y": 0.316,
+     "z": 782.25,
+     "dy": 0.0128,
+     "a": "asph<elevated_7_3<tile-near-7,3 [asphalt]",
+     "b": "asph<elevated_7_3<tile-near-7,3 [asphalt]"
+    },
+    {
+     "x": 1377.75,
+     "y": 0.628,
+     "z": 680.25,
+     "dy": 0.006,
+     "a": "gel<cc26<Group [MeshPhysicalMaterial]",
+     "b": "nonskid<cc26<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 1565.25,
+     "y": 0.194,
+     "z": 689.25,
+     "dy": 0.0075,
+     "a": "matte<cc26<Group [MeshStandardMaterial]",
+     "b": "matte<cc26<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": 1563.75,
+     "y": 0.401,
+     "z": 693.75,
+     "dy": -0.009,
+     "a": "matte<cc26<Group [MeshStandardMaterial]",
+     "b": "gel<cc26<Group [MeshPhysicalMaterial]"
+    },
+    {
+     "x": 1563.75,
+     "y": 0.498,
+     "z": 692.25,
+     "dy": -0.017,
+     "a": "matte<cc26<Group [MeshStandardMaterial]",
+     "b": "vinyl<cc26<Group [MeshPhysicalMaterial]"
+    }
+   ],
+   "zfightRaw": 860,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 35,
+   "zfightBySrc": {
+    "Mesh<tile-near-7,3<miami-city [sand] | Mesh<tile-near-7,3<miami-city [sand]": 28,
+    "asph<elevated_7_3<tile-near-7,3 [asphalt] | asph<elevated_7_3<tile-near-7,3 [asphalt]": 3,
+    "gel<cc26<Group [MeshPhysicalMaterial] | nonskid<cc26<Group [MeshStandardMaterial]": 1,
+    "matte<cc26<Group [MeshStandardMaterial] | matte<cc26<Group [MeshStandardMaterial]": 1,
+    "gel<cc26<Group [MeshPhysicalMaterial] | matte<cc26<Group [MeshStandardMaterial]": 1,
+    "matte<cc26<Group [MeshStandardMaterial] | vinyl<cc26<Group [MeshPhysicalMaterial]": 1
+   }
+  },
+  "north0": {
+   "name": "North land: Port Cassia",
+   "x": -1521,
+   "z": -9186,
+   "r": 150,
+   "items": 466,
+   "overlap": [
+    {
+     "x": -1501.26,
+     "y": -0.02,
+     "z": -9236.63,
+     "a": "palm",
+     "b": "blob",
+     "srcA": "tilebuild.js:seedRealProps(palm)",
+     "srcB": "tilebuild.js:islandDress/plazaDress",
+     "pen": 0.14
+    },
+    {
+     "x": -1473.7,
+     "y": 0,
+     "z": -9139.5,
+     "a": "palm",
+     "b": "vegShrub",
+     "srcA": "tilebuild.js:seedRealProps(palm)",
+     "srcB": "vegetation field hedge (houses)",
+     "pen": 0.1
+    },
+    {
+     "x": -1447.02,
+     "y": 0,
+     "z": -9081.04,
+     "a": "vegShrub",
+     "b": "vegPalm",
+     "srcA": "vegetation field hedge (houses)",
+     "srcB": "vegetation field coconut (houses)",
+     "pen": 0.06
+    },
+    {
+     "x": -1450.22,
+     "y": 0,
+     "z": -9080.9,
+     "a": "vegShrub",
+     "b": "vegPalm",
+     "srcA": "vegetation field hedge (houses)",
+     "srcB": "vegetation field coconut (houses)",
+     "pen": 0.16
+    }
+   ],
+   "building": [
+    {
+     "x": -1558.4,
+     "y": 0,
+     "z": -9170.6,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps",
+     "inside": true,
+     "bld": "town:"
+    }
+   ],
+   "road": [],
+   "ground": [
+    {
+     "x": -1593.68,
+     "y": 0.15,
+     "z": -9235.31,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -1478.54,
+     "y": 0,
+     "z": -9238.73,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": -0.3,
+     "ground": 0.3
+    },
+    {
+     "x": -1478.59,
+     "y": 0,
+     "z": -9238.65,
+     "kind": "blob",
+     "src": "tilebuild.js:islandDress/plazaDress",
+     "dy": -0.3,
+     "ground": 0.3
+    },
+    {
+     "x": -1590.92,
+     "y": 0.15,
+     "z": -9172.61,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -1558.4,
+     "y": 0,
+     "z": -9170.6,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps",
+     "dy": -2,
+     "ground": 2
+    },
+    {
+     "x": -1476.26,
+     "y": 0,
+     "z": -9126.14,
+     "kind": "vegShrub",
+     "src": "vegetation field ixora (houses)",
+     "dy": -0.25,
+     "ground": 0.25
+    },
+    {
+     "x": -1473.61,
+     "y": 0,
+     "z": -9112.85,
+     "kind": "vegShrub",
+     "src": "vegetation field bougainvillea (houses)",
+     "dy": -0.32,
+     "ground": 0.32
+    },
+    {
+     "x": -1479.78,
+     "y": 0,
+     "z": -9151.89,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)",
+     "dy": -0.65,
+     "ground": 0.65
+    },
+    {
+     "x": -1478.85,
+     "y": 0,
+     "z": -9151.71,
+     "kind": "vegShrub",
+     "src": "vegetation field hibiscus (houses)",
+     "dy": -0.65,
+     "ground": 0.65
+    }
+   ],
+   "zfight": [
+    {
+     "x": -1479.75,
+     "y": 2.95,
+     "z": -9198.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:near:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.567,
+     "z": -9198.75,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1478.25,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1476.75,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1476.75,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1475.25,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1475.25,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1473.75,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1472.25,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1470.75,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1470.75,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1469.25,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1469.25,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1434.75,
+     "y": 2.93,
+     "z": -9195.75,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1407.75,
+     "y": -0.02,
+     "z": -9180.75,
+     "dy": -0.01,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1487.25,
+     "y": 3.722,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1487.25,
+     "y": 3.572,
+     "z": -9176.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1485.75,
+     "y": 3.55,
+     "z": -9176.25,
+     "dy": 0.0163,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1484.25,
+     "y": 3.71,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1482.75,
+     "y": 3.704,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1482.75,
+     "y": 3.55,
+     "z": -9176.25,
+     "dy": 0.0041,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9176.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9176.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9174.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9174.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9173.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1560.75,
+     "y": 7.4,
+     "z": -9168.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1557.75,
+     "y": 0,
+     "z": -9168.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1556.25,
+     "y": 7.4,
+     "z": -9168.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:house:brick<town:Port Cassia:near<towns [house:brick]"
+    },
+    {
+     "x": -1530.75,
+     "y": 0,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1523.25,
+     "y": 0,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1484.25,
+     "y": 0.025,
+     "z": -9171.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1484.25,
+     "y": 0.025,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9171.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1419.75,
+     "y": 0,
+     "z": -9162.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-46:1:fin:plastic<Group<houses [fin:plastic]"
+    },
+    {
+     "x": -1563.75,
+     "y": 0.3,
+     "z": -9156.75,
+     "dy": 0.015,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -1527.75,
+     "y": 0,
+     "z": -9156.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]"
+    },
+    {
+     "x": -1526.25,
+     "y": 0,
+     "z": -9156.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1524.75,
+     "y": 0,
+     "z": -9156.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1599.75,
+     "y": 0.26,
+     "z": -9155.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1571.25,
+     "y": 0.26,
+     "z": -9155.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1545.75,
+     "y": 0.3,
+     "z": -9152.25,
+     "dy": 0.015,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -1559.25,
+     "y": 0,
+     "z": -9146.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1556.25,
+     "y": 0,
+     "z": -9146.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1590.75,
+     "y": 0,
+     "z": -9137.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1596.75,
+     "y": 4.2,
+     "z": -9128.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1472.25,
+     "y": -0.02,
+     "z": -9113.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1446.75,
+     "y": 2.93,
+     "z": -9113.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1437.75,
+     "y": 2.93,
+     "z": -9068.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1476.75,
+     "y": 2.93,
+     "z": -9059.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1584.75,
+     "y": 0,
+     "z": -9054.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1484.25,
+     "y": 2.93,
+     "z": -9044.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1521.75,
+     "y": 7.4,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:house:brick<town:Port Cassia:near<towns [house:brick]"
+    },
+    {
+     "x": -1538.25,
+     "y": 0.26,
+     "z": -9153.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1514.25,
+     "y": 0,
+     "z": -9320.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:fin:plastic<Group<houses [fin:plastic]"
+    },
+    {
+     "x": -1586.25,
+     "y": 0.07,
+     "z": -9314.25,
+     "dy": 0.006,
+     "a": "Mesh<Group<Group [MeshBasicMaterial]",
+     "b": "Mesh<Group<Group [MeshBasicMaterial]"
+    },
+    {
+     "x": -1524.75,
+     "y": 3.46,
+     "z": -9300.75,
+     "dy": -0.0183,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-47:1:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1523.25,
+     "y": 3.46,
+     "z": -9300.75,
+     "dy": -0.0065,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-47:1:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1521.75,
+     "y": -0.02,
+     "z": -9302.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1517.25,
+     "y": 3.26,
+     "z": -9290.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1596.75,
+     "y": 0,
+     "z": -9276.75,
+     "dy": 0.005,
+     "a": "town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1596.75,
+     "y": 0,
+     "z": -9275.25,
+     "dy": 0.005,
+     "a": "town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1578.75,
+     "y": 0,
+     "z": -9245.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.3,
+     "z": -9240.75,
+     "dy": 0.02,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1478.25,
+     "y": -0.02,
+     "z": -9240.75,
+     "dy": -0.01,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1439.25,
+     "y": 3.26,
+     "z": -9224.25,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1557.75,
+     "y": 0.13,
+     "z": -9221.25,
+     "dy": 0.015,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.55,
+     "z": -9222.75,
+     "dy": 0.0055,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.55,
+     "z": -9221.25,
+     "dy": 0.0113,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1563.75,
+     "y": 0.03,
+     "z": -9216.75,
+     "dy": 0.01,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -1482.75,
+     "y": 1.15,
+     "z": -9216.75,
+     "dy": 0.0196,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.55,
+     "z": -9219.75,
+     "dy": 0.0171,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": 3.811,
+     "z": -9206.25,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1479.75,
+     "y": 3.822,
+     "z": -9204.75,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.511,
+     "z": -9206.25,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.522,
+     "z": -9204.75,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1479.75,
+     "y": 3.833,
+     "z": -9203.25,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1479.75,
+     "y": 3.845,
+     "z": -9201.75,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.545,
+     "z": -9201.75,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.556,
+     "z": -9200.25,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1478.25,
+     "y": 3.534,
+     "z": -9203.25,
+     "dy": 0.0173,
+     "a": "houses:tile:-8_-47:1:wood<Group<houses [wood]",
+     "b": "houses:near:house:shingle<Group<houses [house:shingle]"
+    },
+    {
+     "x": -1475.25,
+     "y": 0.025,
+     "z": -9203.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1473.75,
+     "y": 0.025,
+     "z": -9203.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1472.25,
+     "y": 0.025,
+     "z": -9203.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1470.75,
+     "y": 0.025,
+     "z": -9203.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1649.25,
+     "y": -0.02,
+     "z": -9170.25,
+     "dy": -0.01,
+     "a": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1647.75,
+     "y": -0.02,
+     "z": -9170.25,
+     "dy": -0.01,
+     "a": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1610.25,
+     "y": 7.4,
+     "z": -9167.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1604.25,
+     "y": 0,
+     "z": -9167.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1656.75,
+     "y": 0.3,
+     "z": -9162.75,
+     "dy": 0.015,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -1640.25,
+     "y": 0.11,
+     "z": -9162.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1632.75,
+     "y": 0.15,
+     "z": -9162.75,
+     "dy": 0.015,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -1656.75,
+     "y": 0.3,
+     "z": -9153.75,
+     "dy": 0.015,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -1647.75,
+     "y": 0.26,
+     "z": -9153.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1640.25,
+     "y": 0.26,
+     "z": -9153.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1616.25,
+     "y": 0.26,
+     "z": -9155.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1649.25,
+     "y": 0.03,
+     "z": -9162.75,
+     "dy": -0.005,
+     "a": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1608.75,
+     "y": 0.26,
+     "z": -9155.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]",
+     "b": "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte]"
+    },
+    {
+     "x": -1388.25,
+     "y": 3.26,
+     "z": -9192.75,
+     "dy": -0.005,
+     "a": "houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1484.25,
+     "y": 3.55,
+     "z": -9176.25,
+     "dy": 0.0102,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1485.75,
+     "y": 3.716,
+     "z": -9177.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -1484.25,
+     "y": 2.93,
+     "z": -9111.75,
+     "dy": -0.005,
+     "a": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9171.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1481.25,
+     "y": 0.03,
+     "z": -9173.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1479.75,
+     "y": -0.02,
+     "z": -9219.75,
+     "dy": -0.01,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1482.75,
+     "y": 2.95,
+     "z": -9209.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]",
+     "b": "houses:near:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+    },
+    {
+     "x": -1479.75,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1478.25,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1473.75,
+     "y": 0.03,
+     "z": -9194.25,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1472.25,
+     "y": 0.03,
+     "z": -9195.75,
+     "dy": 0,
+     "a": "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1571.25,
+     "y": 0,
+     "z": -9168.75,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -1526.25,
+     "y": 0,
+     "z": -9170.25,
+     "dy": 0,
+     "a": "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    }
+   ],
+   "zfightRaw": 1416,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 117,
+   "zfightBySrc": {
+    "houses:near:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]": 2,
+    "houses:near:house:shingle<Group<houses [house:shingle] | houses:tile:-8_-47:1:wood<Group<houses [wood]": 10,
+    "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 20,
+    "houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]": 6,
+    "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 2,
+    "houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 5,
+    "houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 3,
+    "houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 14,
+    "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 11,
+    "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 5,
+    "town:Port Cassia:near:house:brick<town:Port Cassia:near<towns [house:brick] | town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 2,
+    "houses:tile:-8_-46:1:fin:plastic<Group<houses [fin:plastic] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 1,
+    "town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint] | town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]": 5,
+    "town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]": 1,
+    "town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte] | town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]": 8,
+    "houses:tile:-8_-47:1:fin:plastic<Group<houses [fin:plastic] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 1,
+    "Mesh<Group<Group [MeshBasicMaterial] | Mesh<Group<Group [MeshBasicMaterial]": 1,
+    "houses:tile:-8_-47:1:house:shingle<Group<houses [house:shingle] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]": 2,
+    "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 3,
+    "houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]": 2,
+    "town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]": 2,
+    "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 2,
+    "Mesh<Group [MeshStandardMaterial] | Mesh<Group [MeshStandardMaterial]": 2,
+    "houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 3,
+    "houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 3,
+    "houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]": 1
+   }
+  },
+  "north1": {
+   "name": "North land: Amaro Landing",
+   "x": -7875,
+   "z": -9419,
+   "r": 150,
+   "items": 1123,
+   "overlap": [],
+   "building": [
+    {
+     "x": -7993.76,
+     "y": 0,
+     "z": -9471.56,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)",
+     "inside": false,
+     "bld": 7418
+    }
+   ],
+   "road": [],
+   "ground": [
+    {
+     "x": -7811.3,
+     "y": 0.15,
+     "z": -9441.9,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -7867.93,
+     "y": 0.15,
+     "z": -9286.88,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -7867.5,
+     "y": 0.15,
+     "z": -9287.7,
+     "kind": "tree",
+     "src": "tilebuild.js:seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -7781.7,
+     "y": 0.15,
+     "z": -9524.1,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps(palm)",
+     "dy": 0.15,
+     "ground": 0
+    }
+   ],
+   "zfight": [
+    {
+     "x": -7911.75,
+     "y": 0,
+     "z": -9512.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7914.75,
+     "y": 0,
+     "z": -9504.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7895.25,
+     "y": 4.2,
+     "z": -9504.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7902.75,
+     "y": 0,
+     "z": -9500.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7917.75,
+     "y": 0,
+     "z": -9495.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7904.25,
+     "y": 4.2,
+     "z": -9495.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7905.75,
+     "y": 0.005,
+     "z": -9485.25,
+     "dy": -0.005,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]",
+     "b": "town:Amaro Landing:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Amaro Landing:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]"
+    },
+    {
+     "x": -7986.75,
+     "y": 0.11,
+     "z": -9464.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7938.75,
+     "y": 5.05,
+     "z": -9467.25,
+     "dy": 0.02,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7979.25,
+     "y": 0.11,
+     "z": -9461.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7997.25,
+     "y": 0.3,
+     "z": -9458.25,
+     "dy": 0.015,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7971.75,
+     "y": 0.26,
+     "z": -9458.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7989.75,
+     "y": 0.3,
+     "z": -9455.25,
+     "dy": 0.015,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7982.25,
+     "y": 0.26,
+     "z": -9452.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7964.25,
+     "y": 0.15,
+     "z": -9455.25,
+     "dy": 0.015,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7913.25,
+     "y": 7.4,
+     "z": -9452.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7908.75,
+     "y": 7.4,
+     "z": -9453.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7934.25,
+     "y": 0,
+     "z": -9450.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7920.75,
+     "y": 8.426,
+     "z": -9450.75,
+     "dy": 0.02,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7920.75,
+     "y": 0,
+     "z": -9449.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7967.25,
+     "y": 0.3,
+     "z": -9447.75,
+     "dy": 0.015,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7941.75,
+     "y": 0.11,
+     "z": -9447.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7956.75,
+     "y": 0,
+     "z": -9441.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7953.75,
+     "y": 0,
+     "z": -9440.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7907.25,
+     "y": 0,
+     "z": -9437.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7949.25,
+     "y": 4.2,
+     "z": -9420.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7946.25,
+     "y": 7.4,
+     "z": -9423.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7907.25,
+     "y": 5.318,
+     "z": -9423.75,
+     "dy": 0.02,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7958.25,
+     "y": 4.2,
+     "z": -9419.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    },
+    {
+     "x": -7953.75,
+     "y": 5.05,
+     "z": -9419.25,
+     "dy": 0.02,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+    },
+    {
+     "x": -7917.75,
+     "y": 3.585,
+     "z": -9401.25,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -7917.75,
+     "y": 0.03,
+     "z": -9402.75,
+     "dy": 0.01,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -7910.25,
+     "y": 3.585,
+     "z": -9402.75,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -7878.75,
+     "y": 0,
+     "z": -9413.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7946.25,
+     "y": 0,
+     "z": -9417.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+    },
+    {
+     "x": -7914.75,
+     "y": 3.585,
+     "z": -9399.75,
+     "dy": -0.02,
+     "a": "Mesh<Group [MeshStandardMaterial]",
+     "b": "Mesh<Group [MeshStandardMaterial]"
+    },
+    {
+     "x": -8001.75,
+     "y": 0.11,
+     "z": -9468.75,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -8004.75,
+     "y": 0.26,
+     "z": -9461.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]",
+     "b": "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte]"
+    },
+    {
+     "x": -7958.25,
+     "y": 0,
+     "z": -9386.25,
+     "dy": 0,
+     "a": "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]",
+     "b": "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+    }
+   ],
+   "zfightRaw": 793,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 39,
+   "zfightBySrc": {
+    "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]": 8,
+    "town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]": 13,
+    "town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | town:Amaro Landing:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Amaro Landing:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]": 1,
+    "town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte] | town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]": 7,
+    "town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint] | town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]": 6,
+    "Mesh<Group [MeshStandardMaterial] | Mesh<Group [MeshStandardMaterial]": 4
+   }
+  },
+  "ramp": {
+   "name": "Downtown under the US-1 / SR 970 ramps",
+   "x": -2543.2,
+   "z": 777.6,
+   "r": 150,
+   "items": 180,
+   "overlap": [],
+   "building": [],
+   "road": [],
+   "ground": [
+    {
+     "x": -2591.27,
+     "y": 0.15,
+     "z": 818.84,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2609.04,
+     "y": 0.15,
+     "z": 821.69,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2544.48,
+     "y": 0.15,
+     "z": 710.37,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2579.89,
+     "y": 0.15,
+     "z": 711.73,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2550.48,
+     "y": 0.15,
+     "z": 709.79,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2585.91,
+     "y": 0.15,
+     "z": 711.16,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2529.77,
+     "y": 0.15,
+     "z": 716.26,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2528.68,
+     "y": 0.15,
+     "z": 801.11,
+     "kind": "mast",
+     "src": "tilebuild.js:buildRoads(signals)",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2564.21,
+     "y": 0.15,
+     "z": 823.73,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2580.9,
+     "y": 0.15,
+     "z": 816.99,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2491.4,
+     "y": 0.15,
+     "z": 814.42,
+     "kind": "palm",
+     "src": "tilebuild.js:seedRealProps/buildRoads/palmDress",
+     "dy": 0.15,
+     "ground": 0
+    },
+    {
+     "x": -2485.44,
+     "y": 0.15,
+     "z": 813.38,
+     "kind": "lamp",
+     "src": "tilebuild.js:buildRoads/seedRealProps",
+     "dy": 0.15,
+     "ground": 0
+    }
+   ],
+   "zfight": [
+    {
+     "x": -2571.75,
+     "y": 4.39,
+     "z": 758.25,
+     "dy": 0,
+     "a": "facades<tile-near--13,3<miami-city [facade]",
+     "b": "facades<tile-near--13,3<miami-city [facade]"
+    },
+    {
+     "x": -2571.75,
+     "y": 4.39,
+     "z": 759.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,3<miami-city [facade]",
+     "b": "facades<tile-near--13,3<miami-city [facade]"
+    },
+    {
+     "x": -2571.75,
+     "y": 4.39,
+     "z": 761.25,
+     "dy": 0,
+     "a": "facades<tile-near--13,3<miami-city [facade]",
+     "b": "facades<tile-near--13,3<miami-city [facade]"
+    },
+    {
+     "x": -2571.75,
+     "y": 4.39,
+     "z": 762.75,
+     "dy": 0,
+     "a": "facades<tile-near--13,3<miami-city [facade]",
+     "b": "facades<tile-near--13,3<miami-city [facade]"
+    },
+    {
+     "x": -2540.25,
+     "y": 0.353,
+     "z": 774.75,
+     "dy": -0.0049,
+     "a": "Mesh<Group<Group [MeshBasicMaterial]",
+     "b": "Mesh<Group<Group [MeshBasicMaterial]"
+    },
+    {
+     "x": -2535.75,
+     "y": 0.229,
+     "z": 773.25,
+     "dy": -0.0057,
+     "a": "Mesh<Group<Group [MeshBasicMaterial]",
+     "b": "Mesh<Group<Group [MeshBasicMaterial]"
+    },
+    {
+     "x": -2544.75,
+     "y": 0.28,
+     "z": 806.25,
+     "dy": -0.0013,
+     "a": "Mesh [ShaderMaterial]",
+     "b": "Mesh [ShaderMaterial]"
+    },
+    {
+     "x": -2543.25,
+     "y": 0.218,
+     "z": 806.25,
+     "dy": -0.001,
+     "a": "Mesh [ShaderMaterial]",
+     "b": "Mesh [ShaderMaterial]"
+    },
+    {
+     "x": -2541.75,
+     "y": 0.162,
+     "z": 807.75,
+     "dy": 0.0014,
+     "a": "Mesh [ShaderMaterial]",
+     "b": "Mesh [ShaderMaterial]"
+    },
+    {
+     "x": -2622.75,
+     "y": 1.434,
+     "z": 705.75,
+     "dy": -0.0091,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2621.25,
+     "y": 1.436,
+     "z": 705.75,
+     "dy": -0.0086,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    },
+    {
+     "x": -2619.75,
+     "y": 1.437,
+     "z": 705.75,
+     "dy": -0.0081,
+     "a": "Mesh<Group<LOD [MeshPhysicalMaterial]",
+     "b": "Mesh<Group<LOD [MeshStandardMaterial]"
+    }
+   ],
+   "zfightRaw": 2344,
+   "barricade": [],
+   "flap": [],
+   "floatDecal": [],
+   "zfightCells": 12,
+   "zfightBySrc": {
+    "facades<tile-near--13,3<miami-city [facade] | facades<tile-near--13,3<miami-city [facade]": 4,
+    "Mesh<Group<Group [MeshBasicMaterial] | Mesh<Group<Group [MeshBasicMaterial]": 2,
+    "Mesh [ShaderMaterial] | Mesh [ShaderMaterial]": 3,
+    "Mesh<Group<LOD [MeshPhysicalMaterial] | Mesh<Group<LOD [MeshStandardMaterial]": 3
+   }
+  }
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ],
+ "totals": {
+  "overlap": 5,
+  "building": 15,
+  "road": 0,
+  "ground": 52,
+  "floatDecal": 0,
+  "barricade": 0,
+  "flap": 0,
+  "zfight": 276
+ },
+ "ranked": [
+  {
+   "n": 28,
+   "s": "zfight :: Mesh<Group [MeshStandardMaterial] | Mesh<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 28,
+   "s": "zfight :: Mesh<tile-near-7,3<miami-city [sand] | Mesh<tile-near-7,3<miami-city [sand]"
+  },
+  {
+   "n": 20,
+   "s": "zfight :: houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 18,
+   "s": "zfight :: Mesh<tile-near--6,-6<miami-city [sand] | Mesh<tile-near--6,-6<miami-city [sand]"
+  },
+  {
+   "n": 15,
+   "s": "zfight :: Mesh<Group<LOD [MeshPhysicalMaterial] | Mesh<Group<LOD [MeshStandardMaterial]"
+  },
+  {
+   "n": 15,
+   "s": "ground :: tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "n": 14,
+   "s": "zfight :: houses:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 13,
+   "s": "zfight :: town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 11,
+   "s": "ground :: tilebuild.js:islandDress/plazaDress"
+  },
+  {
+   "n": 11,
+   "s": "zfight :: town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 10,
+   "s": "zfight :: houses:near:house:shingle<Group<houses [house:shingle] | houses:tile:-8_-47:1:wood<Group<houses [wood]"
+  },
+  {
+   "n": 9,
+   "s": "building :: vegetation field sabal (scene)"
+  },
+  {
+   "n": 8,
+   "s": "zfight :: town:Port Cassia:near:fin:matte<town:Port Cassia:near<towns [fin:matte] | town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+  },
+  {
+   "n": 8,
+   "s": "zfight :: town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Amaro Landing:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 7,
+   "s": "zfight :: facades<tile-near--13,2<miami-city [facade] | facades<tile-near--13,2<miami-city [facade]"
+  },
+  {
+   "n": 7,
+   "s": "zfight :: town:Amaro Landing:near:fin:matte<town:Amaro Landing:near<towns [fin:matte] | town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+  },
+  {
+   "n": 6,
+   "s": "ground :: tilebuild.js:buildRoads(signals)"
+  },
+  {
+   "n": 6,
+   "s": "ground :: tilebuild.js:buildRoads/seedRealProps"
+  },
+  {
+   "n": 6,
+   "s": "zfight :: houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+  },
+  {
+   "n": 6,
+   "s": "zfight :: town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint] | town:Amaro Landing:near:fin:metalPaint<town:Amaro Landing:near<towns [fin:metalPaint]"
+  },
+  {
+   "n": 5,
+   "s": "zfight :: houses:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 5,
+   "s": "zfight :: town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 5,
+   "s": "zfight :: town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint] | town:Port Cassia:near:fin:metalPaint<town:Port Cassia:near<towns [fin:metalPaint]"
+  },
+  {
+   "n": 4,
+   "s": "zfight :: Mesh<veg_seagrape<keysBar [vegLeaf] | Mesh<veg_seagrape<keysBar [vegLeaf]"
+  },
+  {
+   "n": 4,
+   "s": "zfight :: facades<tile-near--13,3<miami-city [facade] | facades<tile-near--13,3<miami-city [facade]"
+  },
+  {
+   "n": 3,
+   "s": "building :: tilebuild.js:seedRealProps/buildRoads/palmDress"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: gel<cc26<Group [MeshPhysicalMaterial] | nonskid<cc26<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: asph<elevated_7_3<tile-near-7,3 [asphalt] | asph<elevated_7_3<tile-near-7,3 [asphalt]"
+  },
+  {
+   "n": 3,
+   "s": "ground :: tilebuild.js:seedRealProps(palm)"
+  },
+  {
+   "n": 3,
+   "s": "ground :: tilebuild.js:seedRealProps"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: Mesh<Group<Group [MeshBasicMaterial] | Mesh<Group<Group [MeshBasicMaterial]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-9_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 3,
+   "s": "zfight :: Mesh [ShaderMaterial] | Mesh [ShaderMaterial]"
+  },
+  {
+   "n": 2,
+   "s": "ground :: tilebuild.js:shopDress/buildRoads"
+  },
+  {
+   "n": 2,
+   "s": "overlap :: vegetation field hedge (houses) x vegetation field coconut (houses)"
+  },
+  {
+   "n": 2,
+   "s": "ground :: vegetation field hibiscus (houses)"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: houses:near:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: town:Port Cassia:near:house:brick<town:Port Cassia:near<towns [house:brick] | town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: houses:tile:-8_-47:1:house:shingle<Group<houses [house:shingle] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-8_-47:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: town:Port Cassia:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]"
+  },
+  {
+   "n": 2,
+   "s": "zfight :: houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 1,
+   "s": "overlap :: tilebuild.js:seedRealProps/buildRoads/palmDress x tilebuild.js:beachDress"
+  },
+  {
+   "n": 1,
+   "s": "building :: tilebuild.js:shopDress/plazaDress"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: Mesh<Group<LOD [MeshStandardMaterial] | Mesh<Group<LOD [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "ground :: tilebuild.js:buildRoads(street signs)"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: keysBar:art:rug<keysBar [MeshStandardMaterial] | keysBar:wood<keysBar [keysBar:wood]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: Mesh<veg_hibiscus<keysBar [vegLeaf] | Mesh<veg_hibiscus<keysBar [vegLeaf]"
+  },
+  {
+   "n": 1,
+   "s": "ground :: tilebuild.js:plazaDress"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: asph<elevated_-7_-7<tile-near--7,-7 [asphalt] | asph<elevated_-7_-7<tile-near--7,-7 [asphalt]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: matte<cc26<Group [MeshStandardMaterial] | metal<cc26<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: gel<cc34<Group [MeshPhysicalMaterial] | matte<cc34<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: metal<cc34<Group [MeshStandardMaterial] | metal<cc34<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: gel<cc34<Group [MeshPhysicalMaterial] | nonskid<cc34<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: matte<cc26<Group [MeshStandardMaterial] | matte<cc26<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: gel<cc26<Group [MeshPhysicalMaterial] | matte<cc26<Group [MeshStandardMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: matte<cc26<Group [MeshStandardMaterial] | vinyl<cc26<Group [MeshPhysicalMaterial]"
+  },
+  {
+   "n": 1,
+   "s": "overlap :: tilebuild.js:seedRealProps(palm) x tilebuild.js:islandDress/plazaDress"
+  },
+  {
+   "n": 1,
+   "s": "overlap :: tilebuild.js:seedRealProps(palm) x vegetation field hedge (houses)"
+  },
+  {
+   "n": 1,
+   "s": "building :: tilebuild.js:seedRealProps"
+  },
+  {
+   "n": 1,
+   "s": "ground :: vegetation field ixora (houses)"
+  },
+  {
+   "n": 1,
+   "s": "ground :: vegetation field bougainvillea (houses)"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: houses:tile:-8_-46:1:fin:plastic<Group<houses [fin:plastic] | houses:tile:-8_-46:1:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<Group<houses [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: town:Port Cassia:near:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<town:Port Cassia:near<towns [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1] | town:Port Cassia:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Port Cassia:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: houses:tile:-8_-47:1:fin:plastic<Group<houses [fin:plastic] | houses:tile:-8_-47:1:pbr:concrete_wall_008:1.4:0:0:0:::2.25:1<Group<houses [pbr:concrete_wall_008:1.4:0:0:0:::2.25:1]"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0] | houses:tile:-7_-46:1:paint:a:0.22:0.72:1:0<Group<houses [paint:a:0.22:0.72:1:0]"
+  },
+  {
+   "n": 1,
+   "s": "building :: tilebuild.js:seedRealProps(palm)"
+  },
+  {
+   "n": 1,
+   "s": "zfight :: town:Amaro Landing:near:pbr:concrete_wall_008:1.6:0:0:0:::2.3:1<town:Amaro Landing:near<towns [pbr:concrete_wall_008:1.6:0:0:0:::2.3:1] | town:Amaro Landing:near:pbr:coral_stone_wall:1.2:0:0:0:::1.6:1<town:Amaro Landing:near<towns [pbr:coral_stone_wall:1.2:0:0:0:::1.6:1]"
+  }
+ ],
+ "worst": [
+  {
+   "spot": "north0",
+   "x": -1479.75,
+   "y": 2.95,
+   "z": -9198.75,
+   "n": 7.5,
+   "why": "{\"zfight\":30}"
+  },
+  {
+   "spot": "north0",
+   "x": -1487.25,
+   "y": 3.722,
+   "z": -9177.75,
+   "n": 5.5,
+   "why": "{\"zfight\":22}"
+  },
+  {
+   "spot": "cw1",
+   "x": 1593.75,
+   "y": 0.01,
+   "z": 744.75,
+   "n": 4.5,
+   "why": "{\"zfight\":18}"
+  },
+  {
+   "spot": "dt",
+   "x": -2471.17,
+   "y": 0,
+   "z": 571.58,
+   "n": 4,
+   "why": "{\"building\":2,\"ground\":2}"
+  },
+  {
+   "spot": "cw0",
+   "x": -1129.64,
+   "y": 0,
+   "z": -1258.26,
+   "n": 4,
+   "why": "{\"ground\":4}"
+  },
+  {
+   "spot": "cw0",
+   "x": -1056.75,
+   "y": 0.01,
+   "z": -1148.25,
+   "n": 3.5,
+   "why": "{\"zfight\":14}"
+  },
+  {
+   "spot": "lh",
+   "x": -3721.4,
+   "y": 0.15,
+   "z": 1211.9,
+   "n": 3,
+   "why": "{\"ground\":3}"
+  },
+  {
+   "spot": "cw0",
+   "x": -1136.29,
+   "y": 0,
+   "z": -1273.09,
+   "n": 3,
+   "why": "{\"ground\":3}"
+  },
+  {
+   "spot": "cw0",
+   "x": -1136.36,
+   "y": 0,
+   "z": -1266.5,
+   "n": 3,
+   "why": "{\"ground\":3}"
+  },
+  {
+   "spot": "cw1",
+   "x": 1586.25,
+   "y": 0.01,
+   "z": 737.25,
+   "n": 2.5,
+   "why": "{\"zfight\":10}"
+  },
+  {
+   "spot": "north0",
+   "x": -1478.54,
+   "y": 0,
+   "z": -9238.73,
+   "n": 2.5,
+   "why": "{\"ground\":2,\"zfight\":2}"
+  },
+  {
+   "spot": "north0",
+   "x": -1476.26,
+   "y": 0,
+   "z": -9126.14,
+   "n": 2.5,
+   "why": "{\"ground\":2,\"zfight\":2}"
+  }
+ ],
+ "note": "dt rerun separately (the first pass caught a page reload: 6 items)"
+}

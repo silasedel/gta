@@ -1,0 +1,47 @@
+[
+ {
+  "id": "1",
+  "spot": "dt",
+  "x": -2540.26,
+  "y": 0.15,
+  "z": 492.31,
+  "n": 7,
+  "why": "overlap: palm x palm"
+ },
+ {
+  "id": "2",
+  "spot": "lh",
+  "x": -3727.4,
+  "y": 0.15,
+  "z": 1202.15,
+  "n": 2,
+  "why": "overlap: palm x palm"
+ },
+ {
+  "id": "3",
+  "spot": "cw1",
+  "x": 1409.78,
+  "y": 0,
+  "z": 765.7,
+  "n": 4,
+  "why": "overlap: palm x palm"
+ },
+ {
+  "id": "4",
+  "spot": "dt",
+  "x": -2341.61,
+  "y": 0,
+  "z": 403.62,
+  "n": 3,
+  "why": "building: palm"
+ },
+ {
+  "id": "5",
+  "spot": "dt",
+  "x": -2556.75,
+  "y": 4.15,
+  "z": 488.25,
+  "n": 90,
+  "why": "zfight: facades<tile-near--13,2<miami-city [facade] x facades<tile-near--13,2<miami-city [facade]"
+ }
+]

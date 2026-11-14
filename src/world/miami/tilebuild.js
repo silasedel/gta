@@ -1296,7 +1296,7 @@ export function createTileBuilder(ctx) {
       fillPolyDown(B.trim, [ring2], h - 1.25, stone.clone().multiplyScalar(0.75));
     }
     if (h > 9.5 && y0 < 0.5) { // string course over the ground floor
-      const gr = scalePoly(outer, b.cx, b.cz, 0.12), gy = 4.2;
+      const gr = scalePoly(outer, b.cx, b.cz, 0.12), gy = 4.2 + (CLIP_OFF ? 0 : Math.floor(hash(((b.cx * 7) | 0) * 131 + ((b.cz * 13) | 0)) * 5) * 0.06); // clipping sweep: neighbors' string courses meet at party walls: never at the same height (z-fight)
       wallStrip(B.trim, gr, gy - 0.05, gy + 0.28, 4, 4, stone);
       fillPolyDown(B.trim, [gr], gy - 0.05, stone.clone().multiplyScalar(0.8));
       capPoly(B.trim, gr, gy + 0.28, stone);
@@ -1506,9 +1506,29 @@ export function createTileBuilder(ctx) {
   const OCC_POLE = new Set(['mast', 'upole', 'lamp']), OCC_FIXED = new Set(['mast', 'upole']), OCC_SOFT = new Set(['flower', 'blob']), OCC_CROWN = { palm: 2.6, tree: 3.2 };
   const OCC_SHIFT = { palm: 3, tree: 3, lamp: 2, flower: 1.5, blob: 1.5 };
   const OCC_SPACE = { lamp: { kinds: new Set(['lamp', 'upole', 'mast']), d: 2.5 }, signPost: { kinds: new Set(['signPost']), d: 0.9 }, hydrant: { kinds: new Set(['hydrant']), d: 3 } };
+  // ground snapping on the surface that is really drawn: the curb-height slab triangles of this tile's sidewalk batches
+  // (ribbons along the roads + clipped sidewalk polygons). A prop on the slab stands at its top; a prop off it stands on the
+  // ground (the height query reads unclipped sidewalk polygons: palms sunk 15 cm into a slab, lamps floating over a driveway).
+  function slabFromBatches(list) {
+    const G = new Map(), C = 4, kk = (i, j) => i * 100003 + j, tris = [];
+    for (const b of list) { if (!b || !b.p || !b.p.length) continue; const P = b.p;
+      for (let i = 0; i + 8 < P.length; i += 9) { const y0 = P[i + 1], y1 = P[i + 4], y2 = P[i + 7]; if (y0 < 0.08 || y0 > 0.3 || Math.abs(y1 - y0) > 0.03 || Math.abs(y2 - y0) > 0.03) continue;
+        const t = [P[i], P[i + 2], P[i + 3], P[i + 5], P[i + 6], P[i + 8], (y0 + y1 + y2) / 3]; tris.push(t);
+        const x0 = Math.min(t[0], t[2], t[4]), x1 = Math.max(t[0], t[2], t[4]), z0 = Math.min(t[1], t[3], t[5]), z1 = Math.max(t[1], t[3], t[5]);
+        for (let a = Math.floor(x0 / C); a <= Math.floor(x1 / C); a++) for (let c = Math.floor(z0 / C); c <= Math.floor(z1 / C); c++) { const k = kk(a, c); let arr = G.get(k); if (!arr) G.set(k, (arr = [])); arr.push(t); } } }
+    if (!tris.length) return null;
+    return (x, z) => { const arr = G.get(kk(Math.floor(x / C), Math.floor(z / C))); if (!arr) return null;
+      for (const t of arr) { const d1 = (x - t[2]) * (t[1] - t[3]) - (t[0] - t[2]) * (z - t[3]), d2 = (x - t[4]) * (t[3] - t[5]) - (t[2] - t[4]) * (z - t[5]), d3 = (x - t[0]) * (t[5] - t[1]) - (t[4] - t[0]) * (z - t[1]);
+        if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) return t[6]; }
+      return null; };
+  }
   function resolveClips(tile, props) {
     const owner = 'tile:' + tile.tx + ',' + tile.tz; occupancy.removeOwner(owner);
-    const near = roadIndex(tile);
+    const near = roadIndex(tile), slab = props._slab || null;
+    const snapY = (p, r) => { if (!slab) return; const y = p.y || 0; if (y > 0.3 || y < -0.05) return; // piers, decks, planters, shallows: placed on purpose
+      let on = 0, top = 0; for (const [dx, dz] of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]]) { const h = slab(p.x + dx, p.z + dz); if (h !== null) { on++; top = Math.max(top, h); } }
+      if (on >= 3) { if (Math.abs(y - top) > 0.02) { p.y = top; placeStats.groundSnapped = (placeStats.groundSnapped || 0) + 1; } }
+      };
     const inB = (x, z, r) => insideBuilding(tile, x, z) || insideBuilding(tile, x + r, z) || insideBuilding(tile, x - r, z) || insideBuilding(tile, x, z + r) || insideBuilding(tile, x, z - r); // trunk / post through a wall
     for (const kind of Object.keys(OCC)) {
       const list = props[kind]; if (!Array.isArray(list) || !list.length) continue;
@@ -1517,6 +1537,7 @@ export function createTileBuilder(ctx) {
         const s = p.s || 1, r = r0 * s, h = h0 * s, y = p.y || 0;
         const reg = (x, z) => occupancy.add({ x, z, r, y, h, kind, src: 'tilebuild:' + kind, owner, pole: OCC_POLE.has(kind), soft: OCC_SOFT.has(kind), crown: OCC_CROWN[kind] ? { r: OCC_CROWN[kind] * s * 0.8, y0: y + h * 0.55 } : null, audit: false });
         if (p.elev || y > 1.5) { keep.push(p); continue; } // ELEVATED deck lamps sit on the barrier tops
+        snapY(p, Math.max(r, 0.2));
         const o = { y, h, gap: 0.08, pole: OCC_POLE.has(kind), soft: OCC_SOFT.has(kind), crown: OCC_CROWN[kind] ? { r: OCC_CROWN[kind] * s * 0.8, y0: y + h * 0.55 } : null, spacing: OCC_SPACE[kind] || null };
         if (OCC_FIXED.has(kind)) { keep.push(p); reg(p.x, p.z); continue; }
         const walled = !OCC_SOFT.has(kind) && inB(p.x, p.z, r + 0.05);
@@ -1526,7 +1547,7 @@ export function createTileBuilder(ctx) {
         const f = occupancy.free(p.x, p.z, r, { ...o, dir }, OCC_SHIFT[kind] || 1, ok) || (dir ? occupancy.free(p.x, p.z, r, o, Math.min(1, OCC_SHIFT[kind] || 1), ok) : null);
         if (!f) { placeStats.clipDropped = (placeStats.clipDropped || 0) + 1; continue; }
         const y1 = p.y !== undefined && p.y < 0.5 && p.y > -0.3 ? gY0(f[0], f[1]) : null; // a moved prop stands on the ground at its new spot (curb / no curb)
-        p.x = f[0]; p.z = f[1]; if (y1 !== null && Number.isFinite(y1)) p.y = y1; keep.push(p); reg(p.x, p.z); placeStats.clipMoved = (placeStats.clipMoved || 0) + 1;
+        p.x = f[0]; p.z = f[1]; if (y1 !== null && Number.isFinite(y1)) p.y = y1; snapY(p, Math.max(r, 0.2)); keep.push(p); reg(p.x, p.z); placeStats.clipMoved = (placeStats.clipMoved || 0) + 1;
       }
       list.length = 0; for (const p of keep) list.push(p);
     }
@@ -1918,7 +1939,7 @@ export function createTileBuilder(ctx) {
       for (let i = 0; i <= N; i++) {
         const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C, on = i < N && (D.isSliver(x, z) || D.isSliver(x + C, z) || D.isSliver(x - C, z) || D.isSliver(x, z + C) || D.isSliver(x, z - C) || D.isSliver(x + 2 * C, z) || D.isSliver(x - 2 * C, z) || D.isSliver(x, z + 2 * C) || D.isSliver(x, z - 2 * C)); // dilated one cell: covers the stair-step gaps against diagonal polygon edges
         if (on && run < 0) { run = i; sand = /sand|beach/.test((D.surfaceAt && D.surfaceAt(x, z)) || '') || isBeachAt(x, z); }
-        if (!on && run >= 0) { const xa = X0 + run * C, xb = X0 + i * C, za = Z0 + j * C, zb = za + C; quadUp(sand ? B.sand : B.land, [xa, 0.012, za], [xb, 0.012, za], [xb, 0.012, zb], [xa, 0.012, zb], WHITE, 1 / 6); run = -1; n++; }
+        if (!on && run >= 0) { const xa = X0 + run * C, xb = X0 + i * C, za = Z0 + j * C, zb = za + C; const ys = CLIP_OFF ? 0.012 : -0.025; quadUp(sand ? B.sand : B.land, [xa, ys, za], [xb, ys, za], [xb, ys, zb], [xa, ys, zb], WHITE, 1 / 6); /* clipping sweep: under the land / sand polygons (was 1.2 cm over them: z-fight), over the land base */ run = -1; n++; }
       }
       if ((j & 7) === 7) yield;
     }
@@ -1964,7 +1985,8 @@ export function createTileBuilder(ctx) {
     for (const b of buildingsOf(tile)) { if (houseLots.claims(b)) continue; /* drawn by the house generator (setpieces/houses) */ if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
     LF.k = null;
     yield;
-    cleanProps(tile, props); yield;
+    if (!CLIP_OFF && !LF.on) props._slab = slabFromBatches([B.sidewalk, B.promenade, B.panels]);
+    cleanProps(tile, props); props._slab = null; yield;
     if (LF.on) liftProps(props);
     if (synth && flora) yield* floraInto(t, tile, props);
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
