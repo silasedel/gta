@@ -264,6 +264,173 @@ function stabilizeLights(game) {
   return true;
 }
 
+// ---- 4. Even frame pacing on high-refresh displays (120 Hz MacBook Pro panels): a frame that misses 8.3 ms snapped
+// to 25 ms and the game judders between 60 and 40 fps. requestAnimationFrame callbacks now run on every second
+// display refresh when the display runs at 90 Hz or more, so frames present at an even 16.7 ms.
+let pacingOn = false;
+function evenPacing(game) {
+  if (pacingOn || typeof window === 'undefined' || !window.requestAnimationFrame) {
+    return false;
+  }
+  pacingOn = true;
+  const nativeRAF = window.requestAnimationFrame.bind(window);
+  const nativeCancel = window.cancelAnimationFrame.bind(window);
+  const pace = {
+    hz: 0,
+    on: false,
+    skipped: 0,
+  };
+  game.framePacing = pace;
+  // measure the display refresh for about half a second, using the browser's own callbacks
+  const probe = [];
+  const measure = (t) => {
+    probe.push(t);
+    if (probe.length < 40) {
+      nativeRAF(measure);
+      return;
+    }
+    const d = [];
+    for (let i = 1; i < probe.length; i++) {
+      d.push(probe[i] - probe[i - 1]);
+    }
+    d.sort((x, y) => x - y);
+    const med = d[d.length >> 1];
+    pace.hz = Math.round(1000 / med);
+    pace.on = pace.hz >= 90 && game.settings?.fpsLimit !== 0 && game.settings?.evenPacing !== false;
+  };
+  nativeRAF(measure);
+
+  let queue = [];
+  let ids = 0;
+  let scheduled = false;
+  let lastFire = 0;
+  function pump(now) {
+    scheduled = false;
+    // on a 120 Hz panel ticks come every 8.3 ms: fire every second tick (present at 16.7 ms)
+    if (pace.on && now - lastFire < 12.5) {
+      pace.skipped++;
+      scheduled = true;
+      nativeRAF(pump);
+      return;
+    }
+    lastFire = now;
+    const run = queue;
+    queue = [];
+    for (const e of run) {
+      if (!e.cancelled) {
+        try {
+          e.cb(now);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+  }
+  window.requestAnimationFrame = function requestAnimationFrame(cb) {
+    const e = { id: ++ids, cb, cancelled: false };
+    queue.push(e);
+    if (!scheduled) {
+      scheduled = true;
+      nativeRAF(pump);
+    }
+    return e.id;
+  };
+  window.cancelAnimationFrame = function cancelAnimationFrame(id) {
+    for (const e of queue) {
+      if (e.id === id) {
+        e.cancelled = true;
+      }
+    }
+    void nativeCancel;
+  };
+  return true;
+}
+
+// ---- 5. Shader warm-up for streamed geometry: new city tiles are hidden from the main camera (layer 0) until
+// their shader programs have compiled in parallel (KHR_parallel_shader_compile through compileAsync), so a tile
+// that needs a new program no longer stalls a frame for 100-250 ms. Usually that takes a frame or two.
+let warmOn = false;
+function warmStreamedShaders(game) {
+  const { renderer, scene, camera } = game;
+  const root = game.city?.root;
+  if (warmOn || !renderer?.compileAsync || !root) {
+    return false;
+  }
+  warmOn = true;
+  const stats = {
+    warmed: 0,
+    pending: 0,
+    maxWaitMs: 0,
+  };
+  game.shaderWarm = stats;
+  const origAdd = root.add;
+  root.add = function add(...objs) {
+    const r = origAdd.apply(this, objs);
+    for (const o of objs) {
+      if (!o || !o.isObject3D) {
+        continue;
+      }
+      const hidden = [];
+      o.traverse((m) => {
+        if ((m.isMesh || m.isInstancedMesh || m.isPoints || m.isLine) && m.layers.isEnabled(0)) {
+          m.layers.disable(0);
+          hidden.push(m);
+        }
+      });
+      if (!hidden.length) {
+        continue;
+      }
+      stats.pending++;
+      const t0 = performance.now();
+      let finished = false;
+      const done = () => {
+        // runs once: the 1.5 s timeout and the compile promise can both arrive
+        if (finished) {
+          return;
+        }
+        finished = true;
+        for (const m of hidden) {
+          m.layers.enable(0);
+        }
+        stats.pending--;
+        stats.warmed++;
+        stats.maxWaitMs = Math.max(stats.maxWaitMs, performance.now() - t0);
+      };
+      // compile with layer 0 on for this object only (compile follows the camera layers)
+      const mask = camera.layers.mask;
+      let promise = null;
+      try {
+        for (const m of hidden) {
+          m.layers.enable(0);
+        }
+        promise = renderer.compileAsync(o, camera, scene);
+      } catch (e) {
+        promise = null;
+      } finally {
+        for (const m of hidden) {
+          m.layers.disable(0);
+        }
+        camera.layers.mask = mask;
+      }
+      if (promise && promise.then) {
+        // never hold a tile back for long: show it after 1.5 s whatever happens
+        const timer = setTimeout(done, 1500);
+        promise.then(() => {
+          clearTimeout(timer);
+          done();
+        }, () => {
+          clearTimeout(timer);
+          done();
+        });
+      } else {
+        done();
+      }
+    }
+    return r;
+  };
+  return true;
+}
+
 export async function initV2(game) {
   const done = {
     interiorsList: false,
@@ -291,6 +458,16 @@ export async function initV2(game) {
     }
   } catch (e) {
     // not fatal
+  }
+  try {
+    done.pacing = evenPacing(game);
+  } catch (e) {
+    console.warn('[perfGuards] pacing', e);
+  }
+  try {
+    done.shaderWarm = warmStreamedShaders(game);
+  } catch (e) {
+    console.warn('[perfGuards] shader warm', e);
   }
   game.perfGuards = done;
 }

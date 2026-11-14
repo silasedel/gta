@@ -501,6 +501,11 @@ async function boot() {
       game.cameraYaw -= inp.mouseDX * sens;
       game.cameraPitch = THREE.MathUtils.clamp(game.cameraPitch + inp.mouseDY * sens, -0.6, 1.2);
     }
+    // swimming: no straight-down view (from above it only shows the water plane, from below the sea floor)
+    if (P.swimming && !P.state.inVehicle) {
+      const maxP = P.headUnderwater ? 0.95 : 0.8;
+      if (game.cameraPitch > maxP) game.cameraPitch += (maxP - game.cameraPitch) * Math.min(1, dt * 6);
+    }
     const st = P.state, driving = st.inVehicle;
     let pivot, wantDist, sideOff = 0;
     if (driving) {
@@ -554,6 +559,16 @@ async function boot() {
     const under = (P.headUnderwater || (driving && (st.vehicle?.submerged || 0) > 0.3));
     const minY = cw ? (under ? (game.city.groundHeightAt?.(target.x, target.z) ?? -30) + 0.4 : seaLevel(game) + 0.3) : 0.3;
     if (target.y < minY) target.y = minY;
+    // the camera stays on the same side of the water surface as the swimmer's head: above it at the surface,
+    // below it (and above the sea floor) when diving, so the near plane never cuts the water plane mid-frame
+    // and the camera never looks down through the surface at a diver it cannot see
+    if (cw && !driving && P.swimming) {
+      const sea = seaLevel(game);
+      if (under) {
+        const floor = (game.city.groundHeightAt?.(target.x, target.z) ?? -30) + 0.4;
+        target.y = Math.max(floor, Math.min(target.y, sea - 0.4));
+      } else if (target.y < sea + 0.45) target.y = sea + 0.45;
+    }
     // NaN guard: one bad value (e.g. a NaN pivot or ray) must never poison the camera permanently
     const finite = (v) => Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
     if (!Number.isFinite(camDist)) camDist = wantDist;

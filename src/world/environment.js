@@ -109,8 +109,9 @@ export async function createEnvironment(game) {
   sun.name = 'sun';
   sun.castShadow = true;
   // static (city) shadow map: large, updated on demand; dynamic map (sunDyn): small, every frame
-  const SHADOW_SIZE = 4096, SHADOW_R = 150;
-  const DYN_SIZE = 2048, DYN_R = 42;
+  // mutable: game.quality changes them through env.setShadowQuality()
+  let SHADOW_SIZE = 4096, SHADOW_R = 150;
+  let DYN_SIZE = 2048, DYN_R = 42;
   sun.shadow.mapSize.set(SHADOW_SIZE, SHADOW_SIZE);
   Object.assign(sun.shadow.camera, { left: -SHADOW_R, right: SHADOW_R, top: SHADOW_R, bottom: -SHADOW_R, near: 1, far: 900 });
   sun.shadow.camera.updateProjectionMatrix();
@@ -169,6 +170,30 @@ export async function createEnvironment(game) {
     // get indoor exposure (brighter), thin fog and no sun glare/god rays
     setIndoor(flag) { env._indoorFlag = !!flag; },
     regenerateEnvMap() { envTimer = 1e9; },
+    /** shadow quality (playtest-fixes): { size, radius, dynSize, dynRadius, dynamic } */
+    setShadowQuality(q) {
+      const apply = (light, size, R) => {
+        if (light.shadow.mapSize.x !== size) {
+          light.shadow.mapSize.set(size, size);
+          if (light.shadow.map) {
+            light.shadow.map.dispose();
+            light.shadow.map = null;
+          }
+        }
+        Object.assign(light.shadow.camera, { left: -R, right: R, top: R, bottom: -R });
+        light.shadow.camera.updateProjectionMatrix();
+      };
+      SHADOW_SIZE = q.size ?? SHADOW_SIZE;
+      SHADOW_R = q.radius ?? SHADOW_R;
+      DYN_SIZE = q.dynSize ?? DYN_SIZE;
+      DYN_R = q.dynRadius ?? DYN_R;
+      apply(sun, SHADOW_SIZE, SHADOW_R);
+      apply(sunDyn, DYN_SIZE, DYN_R);
+      // keep the shader variant (two directional shadow maps) the same; just stop redrawing the dynamic one
+      sunDyn.shadow.autoUpdate = q.dynamic !== false;
+      staticCell.set(1e9, 0, 0);
+      staticPending = true;
+    },
     update(dt) {
       try { updateImpl(dt); } catch (e) { if (!env._warned) { env._warned = true; console.error('[env] update failed', e); } }
     },

@@ -158,3 +158,17 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
   - Fewer draw calls through merged and instanced city geometry (city-look).
   - Moving tile building into a worker (city-look).
   - Re-measuring in the app at low load.
+
+## Swimming camera (about 21:05)
+- **Cause:** the camera's height follows its pitch. When diving with the camera pitched down, it ended up above the water surface and looked down through it. It could not see the diver, only the water plane and a bright, unfogged seabed. That matches the user's split view with only the feet showing.
+- **Fix** (`src/main.js`, `updateCamera`):
+  - While swimming, the camera stays on the same side of the surface as Nico's head. At the surface it stays at least 0.45 m above the water. Diving, it stays below sea level minus 0.4 m and above the sea floor plus 0.4 m. So the near plane never cuts the water mid-frame, and going under switches cleanly in one frame.
+  - The swim pitch eases back to at most 0.8 rad at the surface and 0.95 rad underwater, instead of looking straight down.
+- **Verified in game in Biscayne Bay** (-1800, -680; 5 m deep):
+  - At the surface the camera was at 1.34 m, with Nico's head above the water.
+  - Diving and looking down, the camera was at -0.52 m and Nico at -4.5 m, with the underwater fog and tint active. Before the fix the camera was at +1.06 m, looking at the surface from above.
+- **Shots:** `swim_before_dive_lookdown.jpg`, `swim_after_surface.jpg`, `swim_after_surface_lookdown.jpg`, `swim_after_dive.jpg`, `swim_after_dive_lookdown.jpg`, `swim_after_wade.jpg`.
+- **Caustics:** not added.
+- **World data bug, for world-layout / city-look:** at South Beach (3594-3610, 300), `city.isWater` reports water, but sand terrain is drawn over it. On screen it is a rectangular pool cut into the sand next to a sidewalk, and Nico walks across it (`swim_after_wade.jpg`). Swimming in such a spot puts him under a sand slab, which is the other half of the user's report.
+- **NPC glitching through each other, walls and the player:** not investigated. Peds only collide (Rapier KCC) within 25 m, every 3rd frame. Beyond that they follow the ground without collisions. Peds have no separation from each other.
+- **Shader warm-up fix:** `game.shaderWarm` could finish a tile twice (the 1.5 s timeout and then the compile promise). That made `pending` negative and inflated `maxWaitMs`. Each tile now finishes once.
