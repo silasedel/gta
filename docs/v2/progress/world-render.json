@@ -1,0 +1,13 @@
+{ "track": "world-render", "title": "World render: land cover, hills, airport, Keys", "section": "World", "agent": "done",
+  "items": [
+    { "name": "Land-cover terrain (16-layer PBR texture array, per-pixel class blending, marsh standing water, farm furrows)", "state": "verified", "evidence": "docs/v2/shots/world-render/citrus_flats.png" },
+    { "name": "Real tree species instead of palms (oak, gumbo, banyan, pine, cypress, citrus with fruit, mangrove with prop roots, seagrape)", "state": "verified", "evidence": "docs/v2/shots/world-render/citrus_flats.png" },
+    { "name": "Instanced vegetation scatter (sawgrass, rush, palmetto, crop rows, citrus grove rows, mangrove fringe, tree islands)", "state": "built", "evidence": "docs/v2/shots/world-render/key_paloma.png" },
+    { "name": "Sawpalm Ridge heightfield terrain + matching trimesh colliders, draped roads, buildings seated", "state": "verified", "evidence": "docs/v2/shots/world-render/sawpalm_ridge.png (20-point check: groundHeightAt vs collider vs render max 0.02 m)" },
+    { "name": "Airport runway/taxiway/apron surfaces + markings (threshold bars, designators, centerline, TDZ, aiming points, hold-short, stands)", "state": "verified", "evidence": "docs/v2/shots/world-render/airport.png" },
+    { "name": "Overseas bridges render and hold the player along the Keys chain", "state": "built", "evidence": "docs/v2/shots/world-render/bridges.png (4 decks, player stays at deck height; barrier material dark, elevated.js)" },
+    { "name": "Building styles for new land (stilt with piles, cabin, strip, hangar, terminal, barn)", "state": "built", "evidence": "" },
+    { "name": "Mid/far LOD terrain (16 m / 32 m, near-cut) so new land does not pop", "state": "built", "evidence": "" },
+    { "name": "Everglades look", "state": "built", "evidence": "docs/v2/shots/world-render/everglades.png (camera inside a tree island, not usable)" },
+    { "name": "Re-verify on the new 20.8 x 30 km layout; far-LOD draw-call cap", "state": "todo", "evidence": "" }
+  ] }

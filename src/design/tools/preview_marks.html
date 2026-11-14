@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#f3efe4"><canvas id="c"></canvas>
+<script type="module">
+import { drawMark, markNames } from '../logos/allmarks.js';
+const q = new URLSearchParams(location.search); const names = markNames(); const cols = 18, cell = 88, from = +(q.get('from') || 0);
+const list = names.slice(from, from + (+(q.get('n') || 400)));
+const c = document.getElementById('c'); c.width = cols * cell; c.height = Math.ceil(list.length / cols) * (cell + 12); const g = c.getContext('2d');
+const P = { primary: '#12507a', secondary: '#e8862a', accent: '#c9283e', ink: '#16181d', paper: '#f3efe4' }; const errs = [];
+list.forEach((n, i) => { const x = (i % cols) * cell, y = Math.floor(i / cols) * (cell + 12); g.save(); g.translate(x + 8, y + 4); try { drawMark(g, cell - 16, P, n); } catch (e) { errs.push(n + ':' + e.message); } g.restore(); g.fillStyle = '#333'; g.font = '10px Menlo'; g.textAlign = 'center'; g.fillText(n, x + cell / 2, y + cell + 5); });
+window.report = { count: names.length, errs, h: c.height }; window.ready = true;
+</script>

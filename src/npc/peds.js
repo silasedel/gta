@@ -17,7 +17,7 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (a) => a[(Math.random() * a.length) | 0];
 const approachAngle = (a, b, k) => { let d = b - a; d = Math.atan2(Math.sin(d), Math.cos(d)); return a + d * Math.min(1, k); };
 const TOWEL_COLS = [0xe07f68, 0x2f8a86, 0xf0ede6, 0xe8d78a, 0x9cc1de, 0xb8a8d2, 0xe6b3b5, 0x3b6fb6];
-const NONMOVING = new Set(['talk', 'dance', 'bench', 'lean', 'garden', 'sunbathe', 'volley', 'frisbee', 'wade', 'cower', 'film', 'gettingUp', 'argue']);
+const NONMOVING = new Set(['convo', 'freeze', 'call', 'watch', 'talk', 'dance', 'bench', 'lean', 'garden', 'sunbathe', 'volley', 'frisbee', 'wade', 'cower', 'film', 'gettingUp', 'argue']);
 const LIMB_PART = { head: 'head', neck: 'head', torso_upper: 'chest', torso_lower: 'pelvis', upperarm_l: 'uArmL', forearm_l: 'lArmL', upperarm_r: 'uArmR', forearm_r: 'lArmR', thigh_l: 'thighL', shin_l: 'shinL', thigh_r: 'thighR', shin_r: 'shinR' };
 
 const _gcache = new Map();
@@ -117,6 +117,8 @@ export async function createPeds(game) {
         n.edge = ch.e; n.dir = ch.fwd ? 1 : -1; n.s = ch.fwd ? 0.01 : edgeLen(ch.e) - 0.01;
         const t = _nt; navTarget(ped, t);
         n.cross = { x: t.x, z: t.z }; n.crossT = 0;
+        // patient people wait at the corner before crossing; impatient ones go straight (people.v2.js traits)
+        if (ped.P && ped.P.patience !== undefined && ped.state === 'walk' && ped.P.patience > 0.4 && Math.random() < 0.7) ped.waitT = rand(0.8, 1.5 + ped.P.patience * 4);
         return Math.atan2(t.x - ped.pos.x, t.z - ped.pos.z);
       }
     }
@@ -275,7 +277,7 @@ export async function createPeds(game) {
     return (m[zone] || ['casual', 'sport']).includes(tag);
   }
   // bounded pool; characters beyond it are truly removed and their GPU resources freed (bone textures, per-instance materials)
-  function releaseChar(c) { if (!c) return; c.root.visible = false; if (pool.length < 12) pool.push(c); else { scene.remove(c.root); c.dispose?.(); } }
+  function releaseChar(c) { if (!c) return; c.root.visible = false; if (pool.length < 12) pool.push(c); else { try { game.people?.undress?.(c); } catch (e) { /* ignore */ } scene.remove(c.root); c.dispose?.(); } }
 
   // ---------------------------------------------------------------- ped lifecycle
   let idN = 0;
@@ -330,6 +332,9 @@ export async function createPeds(game) {
     const gy = groundAt(pos.x, pos.z, pos.y || 0); ped.pos.y = opts.y ?? gy; ped.groundY = ped.pos.y;
     if (ped.collider) { ped.collider.setEnabled(!opts.noCollider); ped.body.setTranslation({ x: ped.pos.x, y: ped.pos.y + 0.9, z: ped.pos.z }, true); ped.teleported = true; }
     if (act === 'dog') { ped.dog = makeDog(); ped.dog.pos.copy(ped.pos); }
+    // identity, unique look and traits (people.v2.js); a failure leaves the v1 person as is
+    ped.identity = null; ped.look = null; ped.applied = null; ped.sig = null; ped.sawWeapon = false; ped.waitT = 0; ped.handsUp = false; ped.walkBoostT = 0; ped.callPe = null; ped.helper = false;
+    if (zone !== 'cop' && opts.outfit !== 'cop') { try { game.people?.dress?.(ped, { zone, act, opts }); } catch (e) { console.warn('[peds] dress', e); } }
     ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading;
     return ped;
   }
@@ -495,6 +500,7 @@ export async function createPeds(game) {
     if (ped.voiceT && now - ped.voiceT < 2.5) return;
     ped.voiceT = now;
     try { game.emit?.('pedVoice', { ped, kind, voice: ped.P?.voice || 'calm', personality: ped.personality, gender: ped.char?.human?.gender, position: ped.pos.clone() }); } catch (e) { /* ignore */ }
+    try { game.people?.voiceLine?.(ped, kind); } catch (e) { /* ignore */ }
   }
   // ---------------------------------------------------------------- incidents / damage / API
   function emitHit(ped, kind, damage, dir, info = {}) {
@@ -511,8 +517,10 @@ export async function createPeds(game) {
       const pr = o.P ? o.P.panic : 1;
       if (d2 > radius * radius * pr * pr) continue;
       const d = Math.sqrt(d2), r = Math.random();
-      let react;
-      if (o.act === 'swim') react = 'swimAway';
+      let react = null;
+      if (o.identity && game.people?.react) { try { react = game.people.react(o, { src, d, x, z }); } catch (e) { react = null; } if (react === 'ignore') continue; }
+      if (react) { /* chosen from the person's traits (people.v2.js) */ }
+      else if (o.act === 'swim') react = 'swimAway';
       else if (d < 7 && r < (o.P ? o.P.cower : 0.22)) react = 'cower';
       else if (d > 6 && r < (o.P ? o.P.film : 0.3) + (o.P ? o.P.cower : 0) && o.char?.hasPhone) react = 'film';
       else react = 'flee';
@@ -612,7 +620,9 @@ export async function createPeds(game) {
   let spawnT = 0, lastPunch = false;
   function targetCount() {
     const h = hourNow();
-    const base = h >= 1 && h < 5 ? 10 : h < 7 ? 18 : h < 9 ? 26 : h < 20 ? 32 : h < 23 ? 30 : 20;
+    let base = h >= 1 && h < 5 ? 10 : h < 7 ? 18 : h < 9 ? 26 : h < 20 ? 32 : h < 23 ? 30 : 20;
+    // people.v2.js: who would really be out here at this hour (district x hour schedules)
+    try { const pp = playerPos(); const dn = game.people?.densityFor?.(pp.x, pp.z); if (Number.isFinite(dn)) base = Math.round(6 + 34 * dn); } catch (e) { /* ignore */ }
     const fps = game.perf?.fps || 60;
     const cap = fps >= 50 ? 32 : fps >= 38 ? 26 : 20;
     return Math.min(base, cap);
@@ -746,6 +756,15 @@ export async function createPeds(game) {
           if (pe.react === 'swimAway') { ped.swimDir = Math.atan2(ped.pos.x - pe.x, ped.pos.z - pe.z); ped.stateT = 20; }
           else if (pe.react === 'cower') { ped.state = 'cower'; ped.stateT = rand(2.5, 5); }
           else if (pe.react === 'film') { ped.state = 'film'; ped.stateT = rand(6, 12); }
+          else if (pe.react === 'freeze') { ped.state = 'freeze'; ped.stateT = rand(1.2, 3.5); }
+          else if (pe.react === 'call911') { ped.state = 'call'; ped.stateT = rand(5, 9); ped.callPe = pe; try { game.people?.say?.(ped, 'call911', { force: true, topic: pe.src === 'crash' ? 'crash' : pe.src === 'hit' ? 'fight' : 'shot' }); } catch (e) { /* ignore */ } }
+          else if (pe.react === 'fight') { ped.state = 'fight'; ped.stateT = rand(5, 9); ped.foughtBack = true; ped.hitCd = 0.8; ped.guard = true; }
+          else if (pe.react === 'help' || pe.react === 'crowd') {
+            const a = Math.random() * Math.PI * 2, rr = pe.react === 'help' ? 2.2 : rand(4, 7);
+            ped.state = 'approach'; ped.helper = pe.react === 'help'; ped.stateT = 20;
+            ped.target = new THREE.Vector3(pe.x + Math.sin(a) * rr, ped.pos.y, pe.z + Math.cos(a) * rr);
+            try { game.people?.say?.(ped, 'crash', { force: true }); } catch (e) { /* ignore */ }
+          }
           else { ped.state = 'flee'; ped.fleeT = rand(4, 8); ped.scream = Math.random() < 0.6; if (ped.scream) voice(ped, 'scream'); }
         }
       }
@@ -802,6 +821,45 @@ export async function createPeds(game) {
           } else targetSpeed = ped.walkSpeed * 0.8;
           break;
         }
+        case 'convo': { // talking with the player (talk.js): face them, point when giving directions
+          ped.stateT -= dt;
+          ped.idleStyle = ped.speakT > 0 ? 'talk' : null;
+          const tgt = ped.pointAt || pp;
+          ped.heading = approachAngle(ped.heading, Math.atan2(tgt.x - ped.pos.x, tgt.z - ped.pos.z), dt * 4);
+          lookAt = pp;
+          if (ped.stateT <= 0) {
+            ped.state = 'walk';
+            ped.act = 'walk';
+            ped.idleStyle = null;
+          }
+          break;
+        }
+        case 'freeze': { // frozen in place, hands up, eyes on the danger
+          ped.stateT -= dt; ped.handsUp = true; ped.idleStyle = null;
+          if (ped.threat) ped.heading = approachAngle(ped.heading, Math.atan2(ped.threat.x - ped.pos.x, ped.threat.z - ped.pos.z), dt * 5);
+          if (ped.stateT <= 0) { ped.handsUp = false; ped.state = 'flee'; ped.fleeT = rand(3, 6); ped.scream = Math.random() < 0.5; }
+          break;
+        }
+        case 'call': { // on the phone to 911, turned away from the danger; reports when done
+          ped.stateT -= dt; ped.idleStyle = 'phone';
+          if (ped.threat) ped.heading = approachAngle(ped.heading, Math.atan2(ped.pos.x - ped.threat.x, ped.pos.z - ped.threat.z), dt * 2);
+          if (ped.stateT <= 0) { try { game.people?.callDone?.(ped, ped.callPe || { x: ped.pos.x, z: ped.pos.z, src: 'shot' }); } catch (e) { /* ignore */ } ped.callPe = null; ped.idleStyle = null; ped.state = 'walk'; ped.act = 'walk'; }
+          break;
+        }
+        case 'approach': { // walking over to a crash to help or to look
+          ped.stateT -= dt; targetSpeed = ped.helper ? 3.2 : ped.walkSpeed * 1.1;
+          if (!ped.target || Math.hypot(ped.target.x - ped.pos.x, ped.target.z - ped.pos.z) < 1.4 || ped.stateT <= 0) {
+            ped.state = 'watch'; ped.stateT = rand(8, 16); ped.target = null;
+            ped.idleStyle = ped.helper ? 'kneel' : (ped.identity && ped.identity.phoneAddict > 0.5 ? 'film' : 'talk');
+          }
+          break;
+        }
+        case 'watch': {
+          ped.stateT -= dt;
+          if (ped.threat) { ped.heading = approachAngle(ped.heading, Math.atan2(ped.threat.x - ped.pos.x, ped.threat.z - ped.pos.z), dt * 3); lookAt = ped.threat; }
+          if (ped.stateT <= 0) { ped.idleStyle = null; ped.state = 'walk'; ped.act = 'walk'; ped.helper = false; }
+          break;
+        }
         case 'gettingUp': break;
         case 'argue': {
           ped.argueT -= dt; lookAt = pp;
@@ -845,14 +903,19 @@ export async function createPeds(game) {
           break;
         }
         default: { // walk / jog / dog / shore
+          ped.handsUp = false;
+          if (ped.waitT > 0) { ped.waitT -= dt; targetSpeed = 0; ped.idleStyle = ped.call ? 'phone' : null; break; } // waiting at the corner
           if (ped.pause > 0) {
             ped.pause -= dt; targetSpeed = 0;
             if (!ped.idleStyle && ped.pauseStyle) ped.idleStyle = ped.pauseStyle;
             if (ped.pause <= 0) ped.idleStyle = null;
           } else {
             targetSpeed = ped.walkSpeed; ped.idleStyle = null;
-            if (ped.act !== 'jog' && Math.random() < dt / 45) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
+            if (ped.act !== 'jog' && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
           }
+          // impatient people cut across the street mid-block; honked-at people hurry
+          if (ped.nav && !ped.nav.cross && ped.act === 'walk' && ped.P.jaywalk && Math.random() < dt * ped.P.jaywalk / 40) { ped.nav.hand *= -1; ped.jaywalks = (ped.jaywalks || 0) + 1; }
+          if (ped.walkBoostT > 0) { ped.walkBoostT -= dt; targetSpeed *= 1.6; }
           // step aside when the player walks into us; stumble when shoved by a sprinting player
           if (dPlayer < 1.15 && pSpeed > 0.6 && !inCar) {
             const approaching = (dpx * fwdX + dpz * fwdZ) / Math.max(dPlayer, 0.01) > 0.4;
@@ -893,7 +956,7 @@ export async function createPeds(game) {
           ped.pos.x += Math.sin(ped.swimDir) * ped.speed * dt; ped.pos.z += Math.cos(ped.swimDir) * ped.speed * dt;
           ped.heading = approachAngle(ped.heading, ped.swimDir, dt * 2);
         } else {
-          moveHeading = ped.nav && ped.act !== 'shore' ? navStep(ped, dt, ped.speed) : freeStep(ped, dt, ped.speed);
+          moveHeading = ped.nav && ped.act !== 'shore' && ped.state !== 'approach' ? navStep(ped, dt, ped.speed) : freeStep(ped, dt, ped.speed);
           ped.heading = approachAngle(ped.heading, moveHeading + (ped.P.sway ? Math.sin(now * 1.3 + ped.id) * ped.P.sway : 0), dt * (ped.state === 'flee' ? 9 : 4.5));
         }
       }
@@ -959,5 +1022,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt }, get count() { return list.filter((p) => p.active).length; } };
 }

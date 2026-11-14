@@ -1,0 +1,238 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Nico's house: preview</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1118;font:12px/1.4 ui-monospace,Menlo,monospace;color:#e9f1f5}
+canvas{display:block}
+#ui{position:fixed;left:8px;top:8px;background:#000a;padding:8px 10px;border-radius:8px;max-width:520px}
+#ui label{display:inline-block;margin-right:10px} #ui select,#ui button{font:inherit} #info{white-space:pre;margin-top:6px;color:#bfe}
+#prompt{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:#000b;padding:8px 14px;border-radius:8px;font:600 15px/1.2 Helvetica,Arial,sans-serif;display:none}
+#toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:#123c;padding:6px 12px;border-radius:8px;display:none}
+.hide #ui,.hide #prompt,.hide #toast{display:none!important}
+</style></head>
+<body><div id="ui">
+  <label>time <input id="tod" type="range" min="0" max="24" step="0.05" value="10" style="width:180px;vertical-align:middle"> <span id="todv"></span></label>
+  <label>view <select id="view"></select></label>
+  <button id="mode">walk (Tab)</button>
+  <div id="info">loading…</div>
+</div><div id="prompt"></div><div id="toast"></div>
+<script type="module">
+// Standalone preview for Nico's house (track: nico-house). Sky, sun, clear shallow water, orbit and walk cameras, time-of-day slider.
+// URL: ?t=17.4&view=hero | &cam=x,y,z&look=x,y,z&fov=45 | &walk=x,z,heading | &ui=0 | &ao=0 | &only=structure,shell | &skip=interior
+// Console: setView(name), setTime(h), walkTest([...]), stats(), use(id), house
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { buildNicoHouse } from './index.js';
+await RAPIER.init();
+const q = new URLSearchParams(location.search), num = (k, d) => (q.get(k) ?? d).split(',').map(Number);
+if (q.get('ui') === '0') document.body.classList.add('hide');
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+renderer.setPixelRatio(Number(q.get('pr') || 1)); renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(Number(q.get('fov') || 50), innerWidth / innerHeight, 0.08, 6000);
+
+// ---- sky, sun, ambient ----
+const sky = new Sky(); sky.scale.setScalar(5000); scene.add(sky);
+const su = sky.material.uniforms; su.turbidity.value = 4.5; su.rayleigh.value = 1.6; su.mieCoefficient.value = 0.006; su.mieDirectionalG.value = 0.82;
+const sun = new THREE.DirectionalLight(0xffffff, 4); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.00025; sun.shadow.normalBias = 0.035;
+Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 1, far: 260 }); sun.shadow.camera.updateProjectionMatrix();
+scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd9ff, 0x9a8a6a, 0.6); scene.add(hemi);
+const pmrem = new THREE.PMREMGenerator(renderer); let envRT = null;
+const envScene = new THREE.Scene(); const sky2 = new Sky(); sky2.scale.setScalar(1000); envScene.add(sky2);
+const stars = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0 }));
+{ const p = []; let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 1400; i++) { const a = r() * 6.283, y = r() * 0.95 + 0.03, k = Math.sqrt(1 - y * y); p.push(Math.cos(a) * k * 4000, y * 4000, Math.sin(a) * k * 4000); } stars.geometry.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); scene.add(stars); }
+let tod = Number(q.get('t') || 10);
+const sunDir = new THREE.Vector3();
+function setTime(h) {
+  tod = ((h % 24) + 24) % 24;
+  const a = (tod - 6.4) / 12.4 * Math.PI, day = tod > 6.4 && tod < 18.8;
+  const el = day ? Math.sin(a) * 1.18 : -0.35;                             // radians (about 68 degrees at solar noon)
+  sunDir.set(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * 0.62 * Math.cos(el) + 0.12).normalize();
+  const k = THREE.MathUtils.smoothstep(sunDir.y, -0.04, 0.22), low = 1 - THREE.MathUtils.smoothstep(sunDir.y, 0.05, 0.5);
+  for (const s of [sky, sky2]) { const u = s.material.uniforms; u.sunPosition.value.copy(sunDir); u.turbidity.value = 1.6 + 6 * low; u.rayleigh.value = 0.9 + 2.2 * low; u.mieCoefficient.value = 0.006; u.mieDirectionalG.value = 0.82; }
+  const night = !day || sunDir.y < 0;
+  if (night) { sun.position.set(-40, 70, -30); sun.color.set(0x9db8ff); sun.intensity = 0.32; hemi.intensity = 0.11; hemi.color.set(0x5f7fb8); hemi.groundColor.set(0x1b2230); }
+  else { sun.position.copy(sunDir).multiplyScalar(120); sun.color.setHSL(0.09 + 0.03 * k, 0.55 * low + 0.12, 0.5 + 0.46 * k * (1 - 0.25 * low)); sun.intensity = 5.0 * k * (1 - 0.3 * low) + 0.02; hemi.intensity = 0.2 + 0.55 * k; hemi.color.set(0xbfd9ff); hemi.groundColor.set(0x9a8a6a); }
+  sun.target.position.set(0, 0, 0);
+  sky.visible = true; stars.material.opacity = night ? 0.9 : 0;
+  renderer.toneMappingExposure = night ? 0.5 : 0.36 + 0.1 * low;
+  if (envRT) envRT.dispose(); envRT = pmrem.fromScene(envScene, 0.02); scene.environment = envRT.texture; scene.environmentIntensity = night ? 0.25 : 0.85;
+  if (night) { for (const s of [sky, sky2]) { s.material.uniforms.sunPosition.value.set(0.2, -0.35, 0.5); } envRT.dispose(); envRT = pmrem.fromScene(envScene, 0.02); scene.environment = envRT.texture; scene.environmentIntensity = 6; sky.visible = false; scene.background = new THREE.Color(0x070b14); } else scene.background = null;
+  if (water) { water.material.color.set(night ? 0x0a2530 : 0x2f8f8a).lerp(new THREE.Color(0xd8a070), day ? low * 0.35 : 0); }
+  document.getElementById('tod').value = tod; document.getElementById('todv').textContent = `${String(Math.floor(tod)).padStart(2, '0')}:${String(Math.floor((tod % 1) * 60)).padStart(2, '0')}`;
+}
+window.setTime = setTime;
+
+// ---- house ----
+const opt = {}; if (q.get('only')) opt.only = q.get('only').split(','); if (q.get('skip')) opt.skip = q.get('skip').split(',');
+const t0 = performance.now();
+const house = await buildNicoHouse(THREE, { timeOfDay: tod, ...opt }); window.house = house;
+scene.add(house.group);
+const P = house.plan;
+
+// ---- preview-only surroundings: mainland-side land to the west and south, shallow clear water, far keys on the horizon ----
+let water = null;
+{ const tl = new THREE.TextureLoader(), rep = (t, n) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(n, n); return t; };
+  const sand = rep(tl.load('/assets/setpieces/nicoHouse/tex/sand_01_diff.jpg'), 260); sand.colorSpace = THREE.SRGBColorSpace;
+  const land = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshStandardMaterial({ map: sand, color: 0xd9d2bd, roughness: 1 })); land.rotation.x = -Math.PI / 2; land.position.set(P.lot.x1 - 800, -0.06, P.lot.z0 + 800); land.receiveShadow = true; scene.add(land);
+  const bed = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ map: rep(sand.clone(), 500), color: 0x9fb39a, roughness: 1 })); bed.rotation.x = -Math.PI / 2; bed.position.y = P.seaY - 3.2; scene.add(bed);
+  const wn = rep(tl.load('/assets/env/waternormals.jpg'), 90);
+  water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshPhysicalMaterial({ color: 0x2f8f8a, transparent: true, opacity: 0.8, roughness: 0.07, metalness: 0, normalMap: wn, normalScale: new THREE.Vector2(0.55, 0.55), envMapIntensity: 1.5, depthWrite: false }));
+  water.rotation.x = -Math.PI / 2; water.position.y = P.seaY; water.renderOrder = 1; scene.add(water); water.userData.wn = wn;
+  // far keys: low mangrove silhouettes
+  const isl = new THREE.MeshStandardMaterial({ color: 0x4d6a4a, roughness: 1 }); let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 26; i++) { const a = -2.6 + r() * 3.6, d = 420 + r() * 900, w = 60 + r() * 240; const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), isl); m.scale.set(w, 5 + r() * 7, w * (0.25 + r() * 0.4)); m.position.set(Math.sin(a) * d + 100, P.seaY - 1, -Math.cos(a) * d); m.rotation.y = r() * 3; scene.add(m); }
+}
+setTime(tod);
+
+// ---- physics from the house's collider descriptors ----
+const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+const fixed = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+world.createCollider(RAPIER.ColliderDesc.cuboid(900, 0.5, 900).setTranslation(P.lot.x1 - 900, -0.56, P.lot.z0 + 900), fixed);   // preview land
+const colMap = new Map();
+for (const c of house.colliders) {
+  const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);
+  d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
+  const rc = world.createCollider(d, fixed); rc.setEnabled(c.enabled !== false); colMap.set(c, { rc, en: c.enabled !== false });
+}
+function syncColliders() { for (const [c, s] of colMap) { const en = c.enabled !== false; if (en !== s.en) { s.rc.setEnabled(en); s.en = en; } if (c.moved) { s.rc.setTranslation({ x: c.p[0], y: c.p[1], z: c.p[2] }); s.rc.setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] }); c.moved = false; } } }
+// debug view of colliders: ?col=1
+if (q.get('col')) { const mm = new THREE.MeshBasicMaterial({ color: 0x00ffaa, wireframe: true }); for (const c of house.colliders) { const g = c.shape === 'box' ? new THREE.BoxGeometry(c.h[0] * 2, c.h[1] * 2, c.h[2] * 2) : new THREE.CylinderGeometry(c.r, c.r, c.hh * 2, 12); const m = new THREE.Mesh(g, mm); m.position.set(...c.p); m.quaternion.set(...c.q); scene.add(m); } }
+
+// ---- lights from descriptors (the game maps these onto its clustered lamp system) ----
+const liveLights = house.lights.map((l) => { const pl = new THREE.PointLight(l.color ?? 0xffd9a8, 0, l.range ?? 9, 1.6); pl.position.set(...l.pos); pl.userData.d = l; scene.add(pl); return pl; });
+
+// ---- player (same capsule and controller settings as the game) ----
+const CAP_HALF = 0.55, CAP_R = 0.32, CENTER = CAP_HALF + CAP_R;
+const pBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 5, 12));
+const pCol = world.createCollider(RAPIER.ColliderDesc.capsule(CAP_HALF, CAP_R).setFriction(0), pBody);
+const kcc = world.createCharacterController(0.02); kcc.setUp({ x: 0, y: 1, z: 0 }); kcc.enableAutostep(0.35, 0.2, false); kcc.enableSnapToGround(0.35);
+kcc.setMaxSlopeClimbAngle(50 * Math.PI / 180); kcc.setMinSlopeSlideAngle(40 * Math.PI / 180);
+const player = { pos: new THREE.Vector3(0, 0, 12), heading: Math.PI, vy: 0, grounded: false, yaw: 0, pitch: 0 };
+function teleport(x, y, z, heading = player.heading) { pBody.setTranslation({ x, y: y + CENTER + 0.05, z }, true); player.pos.set(x, y, z); player.heading = heading; player.yaw = heading + Math.PI; player.vy = 0; world.step(); }
+function stepPlayer(dt, mx, mz, speed, jump) {
+  const t = pBody.translation();
+  if (player.grounded) { player.vy = -1; if (jump) { player.vy = 5.2; player.grounded = false; } } else player.vy = Math.max(-40, player.vy - 18 * dt);
+  kcc.computeColliderMovement(pCol, { x: mx * speed * dt, y: player.vy * dt, z: mz * speed * dt }, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
+  const mv = kcc.computedMovement(); player.grounded = kcc.computedGrounded();
+  pBody.setNextKinematicTranslation({ x: t.x + mv.x, y: t.y + mv.y, z: t.z + mv.z }); world.step(); syncColliders();
+  const n = pBody.translation(); player.pos.set(n.x, n.y - CENTER, n.z);
+  return Math.hypot(mv.x, mv.z);
+}
+// Automated walk test. steps: [[x, z] | { use: 'interact id' } | { tp: [x, y, z] } | { wait: seconds }] -> { ok, log }
+window.walkTest = (steps, speed = 4.2) => {
+  const log = []; let ok = true;
+  for (const s of steps) {
+    if (s.tp) { teleport(...s.tp); for (let i = 0; i < 30; i++) stepPlayer(1 / 60, 0, 0, 0); log.push(`tp ${s.tp.join(',')} -> y ${player.pos.y.toFixed(2)}`); continue; }
+    if (s.use) { const it = house.interact.find((i) => i.id === s.use); if (!it) { ok = false; log.push(`MISSING interact ${s.use}`); continue; } const d = it.pos.distanceTo(player.pos.clone().setY(player.pos.y + 1)); it.use(envFor()); for (let i = 0; i < 90; i++) { house.update(1 / 60, { timeOfDay: tod, camera: player.pos, player: player.pos }); stepPlayer(1 / 60, 0, 0, 0); } log.push(`use ${s.use} (dist ${d.toFixed(2)})`); continue; }
+    if (s.wait) { for (let i = 0; i < s.wait * 60; i++) { house.update(1 / 60, { timeOfDay: tod, camera: player.pos, player: player.pos }); stepPlayer(1 / 60, 0, 0, 0); } continue; }
+    const [tx, tz, wantY] = s; let still = 0, n = 0, reached = false;
+    while (n++ < 60 * 40) {
+      const dx = tx - player.pos.x, dz = tz - player.pos.z, d = Math.hypot(dx, dz);
+      if (d < 0.18) { reached = true; break; }
+      const moved = stepPlayer(1 / 60, dx / d, dz / d, Math.min(speed, d * 60));
+      still = moved < 0.004 ? still + 1 : 0; if (still > 90) break;
+    }
+    const yOk = wantY == null || Math.abs(player.pos.y - wantY) < 0.25;
+    if (!reached || !yOk) ok = false;
+    log.push(`${reached ? (yOk ? 'ok  ' : 'BADY') : 'STUCK'} -> (${tx}, ${tz}) at (${player.pos.x.toFixed(2)}, ${player.pos.y.toFixed(2)}, ${player.pos.z.toFixed(2)})${wantY != null ? ' want y ' + wantY : ''}`);
+  }
+  return { ok, log };
+};
+
+// ---- interaction ----
+const promptEl = document.getElementById('prompt'), toastEl = document.getElementById('toast'); let toastT = 0; const events = []; window.events = events;
+const envFor = () => ({ game: null, timeOfDay: tod, emit: (n, d) => { events.push([n, d]); console.log('[emit]', n, JSON.stringify(d ?? null)); toast(`event: ${n}`); return true; }, notify: toast, setTime: (h) => setTime(h) });
+function toast(t) { toastEl.textContent = t; toastEl.style.display = 'block'; toastT = 2.5; }
+window.use = (id) => house.interact.find((i) => i.id === id)?.use(envFor());
+function nearestInteract(pos, fwd) {
+  let best = null, bs = 1e9;
+  for (const it of house.interact) { if (it.enabled === false) continue; const dx = it.pos.x - pos.x, dy = it.pos.y - (pos.y + 1.2), dz = it.pos.z - pos.z, d = Math.hypot(dx, dy, dz); if (d > it.radius) continue; const face = fwd ? (dx * fwd.x + dz * fwd.z) / (Math.hypot(dx, dz) || 1) : 1; const sc = d - face * 0.6; if (face > -0.2 && sc < bs) { bs = sc; best = it; } }
+  return best;
+}
+
+// ---- cameras ----
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.maxDistance = 400;
+const VIEWS = {
+  hero: { cam: [-9.8, 1.2, 15.2], look: [0.4, 4.1, 2.5], fov: 56 },            // the ref_24 framing: low, off the front-left corner, water behind
+  front: { cam: [-1, 2.2, 27], look: [-1, 3.6, 0], fov: 44 }, frontHigh: { cam: [6, 12, 30], look: [-1, 3, 0], fov: 44 },
+  west: { cam: [-27, 3.2, 1], look: [-4, 3.6, 0], fov: 44 }, stair: { cam: [-15.5, 2.2, 10.5], look: [-9.5, 2.6, 3], fov: 48 },
+  northwest: { cam: [-22, 4, -20], look: [-2, 3.2, -3], fov: 44 }, bay: { cam: [2, 1.2, -34], look: [0, 3.5, 0], fov: 44 },
+  northeast: { cam: [24, 5, -24], look: [1, 3, -3], fov: 44 }, east: { cam: [26, 3, 3], look: [3, 3.5, 0], fov: 44 },
+  southeast: { cam: [20, 3.5, 22], look: [2, 3.5, 1], fov: 44 }, under: { cam: [-7.5, 1.6, 9.5], look: [0, 1.9, -2], fov: 58 },
+  porch: { cam: [-7.6, 4.7, 4.3], look: [0, 4.3, 3.7], fov: 58 }, deckBay: { cam: [-7.8, 4.7, -5.6], look: [3, 4.0, -4.8], fov: 58 },
+  dock: { cam: [6.5, 1.5, -22], look: [1.5, 0.8, -17], fov: 50 }, aerial: { cam: [-30, 34, 36], look: [0, 2, 0], fov: 40 }, top: { cam: [0, 60, 0.1], look: [0, 0, 0], fov: 40 },
+  living: { cam: [-2.3, 4.6, 2.2], look: [-5.5, 4.1, -1.5], fov: 68 }, living2: { cam: [-6.0, 4.6, -2.8], look: [-2.5, 4.0, 1.5], fov: 68 },
+  kitchen: { cam: [-2.6, 4.6, 1.6], look: [0.6, 4.0, -2.2], fov: 68 }, kitchen2: { cam: [1.6, 4.6, 2.2], look: [-0.8, 4.0, -2.4], fov: 68 },
+  bedroom: { cam: [2.4, 4.6, 0.4], look: [5.6, 3.9, 3.6], fov: 70 }, bedroom2: { cam: [6.2, 4.6, 4.0], look: [3.0, 3.9, 0.8], fov: 70 },
+  bath: { cam: [4.3, 4.6, -0.35], look: [5.8, 3.9, -2.6], fov: 74 }, hall: { cam: [2.3, 4.6, -0.4], look: [3.2, 4.0, -3.0], fov: 72 },
+};
+window.VIEWS = VIEWS;
+const viewSel = document.getElementById('view'); for (const k of Object.keys(VIEWS)) viewSel.add(new Option(k, k));
+let mode = 'orbit';
+function setView(name, o = {}) {
+  const v = VIEWS[name] || {}; mode = 'orbit';
+  const cam = o.cam || v.cam || [0, 5, 30], look = o.look || v.look || [0, 3, 0];
+  camera.position.set(...cam); controls.target.set(...look); camera.fov = o.fov || v.fov || 50; camera.updateProjectionMatrix(); controls.update();
+}
+window.setView = setView;
+viewSel.onchange = () => setView(viewSel.value);
+if (q.get('cam')) setView('', { cam: num('cam'), look: num('look', '0,3,0'), fov: Number(q.get('fov') || 50) }); else { setView(q.get('view') || 'hero'); viewSel.value = q.get('view') || 'hero'; }
+if (q.get('walk')) { const [x, z, h = 180, y = 0] = num('walk'); teleport(x, y, z, h * Math.PI / 180); mode = 'walk'; }
+const keys = new Set(); addEventListener('keydown', (e) => { keys.add(e.code); if (e.code === 'Tab') { e.preventDefault(); toggleMode(); } if (e.code === 'KeyE' && mode === 'walk') { const f = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); nearestInteract(player.pos, f)?.use(envFor()); } }); addEventListener('keyup', (e) => keys.delete(e.code));
+function toggleMode() { mode = mode === 'orbit' ? 'walk' : 'orbit'; if (mode === 'walk') { const a = house.anchors.spawn; teleport(a ? a.pos.x : controls.target.x, a ? a.pos.y : 0, a ? a.pos.z : controls.target.z, a ? a.heading : 0); } }
+document.getElementById('mode').onclick = toggleMode;
+let drag = false; renderer.domElement.addEventListener('mousedown', () => drag = true); addEventListener('mouseup', () => drag = false);
+addEventListener('mousemove', (e) => { if (mode !== 'walk' || !drag) return; player.yaw -= e.movementX * 0.004; player.pitch = Math.max(-1.3, Math.min(1.3, player.pitch + e.movementY * 0.004)); });
+document.getElementById('tod').oninput = (e) => setTime(Number(e.target.value));
+
+// ---- post (approximates the game's GTAO + output) ----
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: 4 }));
+composer.addPass(new RenderPass(scene, camera));
+let gtao = null;
+if (q.get('ao') !== '0') { gtao = new GTAOPass(scene, camera, innerWidth, innerHeight); gtao.updateGtaoMaterial({ radius: 0.55, distanceExponent: 1.4, thickness: 1.4, scale: 1.15, samples: 16 }); gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 4, rings: 2, samples: 16 }); gtao.blendIntensity = 0.95; composer.addPass(gtao); }
+composer.addPass(new OutputPass()); composer.addPass(new SMAAPass(innerWidth, innerHeight));
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+window.stats = () => { const i = renderer.info; let meshes = 0, tris = 0; house.group.traverse((o) => { if (o.isMesh) { meshes++; const g = o.geometry; tris += ((g.index ? g.index.count : g.attributes.position.count) / 3) * (o.isInstancedMesh ? o.count : 1); } });
+  return { houseMeshes: meshes, houseTris: Math.round(tris), frameCalls: i.render.calls, frameTris: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, programs: i.programs?.length, buildMs: house.stats.buildMs, parts: house.stats.parts, failed: house.stats.failed || [], colliders: house.colliders.length, interact: house.interact.length, lights: house.lights.length, fps: Math.round(fps) }; };
+window.teleport = teleport; window.player = player;
+
+const info = document.getElementById('info'); let last = performance.now(), fr = 0, acc = 0, fps = 0, frames = 0, lastCalls = 0, lastTris = 0;
+const camLocal = new THREE.Vector3();
+function loop() {
+  requestAnimationFrame(loop);
+  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+  renderer.info.reset();
+  if (mode === 'walk') {
+    const f = (keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0), r = (keys.has('KeyD') ? 1 : 0) - (keys.has('KeyA') ? 1 : 0);
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw); let mx = fx * f + -fz * r, mz = fz * f + fx * r; const l = Math.hypot(mx, mz) || 1;
+    stepPlayer(Math.max(dt, 1 / 240), mx / l, mz / l, (f || r) ? (keys.has('ShiftLeft') ? 7.2 : 4.2) : 0, keys.has('Space'));
+    camera.position.set(player.pos.x, player.pos.y + 1.62, player.pos.z); camera.rotation.set(-player.pitch, player.yaw, 0, 'YXZ');
+    const it = nearestInteract(player.pos, new THREE.Vector3(fx, 0, fz));
+    if (it) { promptEl.style.display = 'block'; promptEl.innerHTML = `Press <b>E</b>: ${typeof it.label === 'function' ? it.label() : it.label}`; } else promptEl.style.display = 'none';
+  } else { controls.update(); promptEl.style.display = 'none'; }
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) toastEl.style.display = 'none'; }
+  camLocal.copy(camera.position);
+  house.update(dt, { timeOfDay: tod, camera: camLocal, player: mode === 'walk' ? player.pos : null, game: null });
+  syncColliders();
+  for (const pl of liveLights) { const d = pl.userData.d; const want = d.on ? (d.intensity ?? 60) : 0; pl.intensity += (want - pl.intensity) * Math.min(1, dt * 8); }
+  if (water) { const wn = water.userData.wn; wn.offset.x += dt * 0.004; wn.offset.y += dt * 0.0025; }
+  composer.render(dt);
+  lastCalls = renderer.info.render.calls; lastTris = renderer.info.render.triangles;
+  fr++; acc += dt; frames++; if (acc > 0.5) { fps = fr / acc; fr = 0; acc = 0; info.textContent = `${fps.toFixed(0)} fps  calls ${lastCalls}  tris ${(lastTris / 1e6).toFixed(2)}M  build ${house.stats.buildMs} ms  ${mode}\ncam ${camera.position.toArray().map((v) => v.toFixed(1))}  target ${controls.target.toArray().map((v) => v.toFixed(1))}`; }
+}
+renderer.info.autoReset = false;
+loop();
+house.loaded.then(async () => { await new Promise((r) => setTimeout(r, 400)); window.ready = true; console.log('[preview] ready', performance.now() - t0 | 0, 'ms'); });
+</script></body></html>

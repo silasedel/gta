@@ -1,0 +1,254 @@
+{
+ "palette": {
+  "ocean": [
+   7,
+   65,
+   118
+  ],
+  "shallow": [
+   35,
+   136,
+   149
+  ],
+  "sand": [
+   191,
+   185,
+   151
+  ],
+  "urban": [
+   163,
+   157,
+   148
+  ],
+  "forest": [
+   92,
+   119,
+   63
+  ],
+  "land": [
+   136,
+   151,
+   90
+  ],
+  "water": [
+   14,
+   90,
+   112
+  ]
+ },
+ "road_km": 557.4,
+ "roads": 5853,
+ "bridges": 196,
+ "buildings": 11029,
+ "pois": 627,
+ "land_polys": 223,
+ "water": 245,
+ "areas": 1870,
+ "joins": 134,
+ "joins_expected": 134,
+ "towns": {
+  "West End": 254,
+  "West End Outskirts": 132,
+  "North Shore": 104,
+  "North Shore Outskirts": 232,
+  "South Shore": 51,
+  "South Shore Outskirts": 166,
+  "Coontie": 224,
+  "Brisa Heights": 115,
+  "Port Cassia": 168,
+  "Port Calabash": 145,
+  "Punta Marisol": 138,
+  "Sabal Grove": 6,
+  "Limpkin Park": 103,
+  "Key Paloma": 98,
+  "Amaro Landing": 88,
+  "Shellmound": 77,
+  "Playa Serena": 59,
+  "Citrus Flats": 15,
+  "Tangelo": 44,
+  "Gumbo Limbo": 28,
+  "Corkwood": 25,
+  "Seagrape Heights": 16,
+  "Buttonwood": 14,
+  "Sandspur": 13,
+  "Mullet Creek": 13,
+  "Honeybell": 9,
+  "Spoonbill Flats": 9,
+  "Calamondin": 9,
+  "Junonia": 8,
+  "Whelk Harbor": 7,
+  "Satsuma": 5,
+  "Allapattah West": 3
+ },
+ "stats": {
+  "Citrus Belt Highway": 7,
+  "Corkwood Road": 11,
+  "Lake Amaro Road": 7,
+  "Ocean Drive North": 1,
+  "Calabash Causeway": 14,
+  "Marisol Road": 7,
+  "Tamiami Trail": 7,
+  "Overseas Highway": 54,
+  "West Line Avenue": 52,
+  "Airport Boulevard": 1,
+  "West End": 1381,
+  "West End Outskirts": 229,
+  "North Shore": 583,
+  "North Shore Outskirts": 468,
+  "South Shore": 195,
+  "South Shore Outskirts": 622,
+  "Coontie": 1213,
+  "Brisa Heights": 619,
+  "Port Cassia": 893,
+  "Port Calabash": 848,
+  "Punta Marisol": 784,
+  "Sabal Grove": 0,
+  "Limpkin Park": 218,
+  "Key Paloma": 624,
+  "Amaro Landing": 418,
+  "Shellmound": 567,
+  "Playa Serena": 297,
+  "Citrus Flats": 23,
+  "Tangelo": 0,
+  "Gumbo Limbo": 229,
+  "Corkwood": 180,
+  "Seagrape Heights": 68,
+  "Buttonwood": 42,
+  "Sandspur": 52,
+  "Mullet Creek": 99,
+  "Honeybell": 0,
+  "Spoonbill Flats": 0,
+  "Calamondin": 70,
+  "Junonia": 0,
+  "Whelk Harbor": 0,
+  "Satsuma": 0,
+  "Allapattah West": 9,
+  "signals": 46,
+  "stops": 6566,
+  "lamps": 1920
+ },
+ "peak": {
+  "x": -6864,
+  "z": -2556,
+  "y": 271.8
+ },
+ "setpieces": [
+  {
+   "id": "nico_house",
+   "x": -2543.73,
+   "z": 9262.68,
+   "heading": 1.0895,
+   "note": "60 x 60 m lot on the bay side of the upper end of the Keys strip; back to the bay water (dock side), front toward the Overseas Highway",
+   "lot": [
+    [
+     -2503.25,
+     9249.97
+    ],
+    [
+     -2531.02,
+     9303.16
+    ],
+    [
+     -2584.21,
+     9275.38
+    ],
+    [
+     -2556.43,
+     9222.2
+    ]
+   ],
+   "dock": [
+    -2582.7,
+    9242.3
+   ],
+   "water_distance": 8
+  },
+  {
+   "id": "keys_bar",
+   "x": -2996.55,
+   "z": 10449.82,
+   "heading": 0.9716,
+   "note": "40 x 32 m roadside lot on the bay side of the Overseas Highway, mid strip; front faces the highway",
+   "lot": [
+    [
+     -2972.06,
+     10442.33
+    ],
+    [
+     -2994.62,
+     10475.36
+    ],
+    [
+     -3021.04,
+     10457.31
+    ],
+    [
+     -2998.48,
+     10424.28
+    ]
+   ]
+  },
+  {
+   "id": "keys_sign",
+   "x": -2225.76,
+   "z": 9096.52,
+   "heading": 2.9268,
+   "note": "roadside verge on the inbound (southbound, right-hand) side where the Overseas Highway reaches the Keys strip; faces arriving traffic",
+   "verge_radius": 6.5
+  }
+ ],
+ "transform": {
+  "image": "references/ref_40_map_user_official.webp (local only)",
+  "size": [
+   1041,
+   1500
+  ],
+  "metersPerPixel": 20.0,
+  "x0": -15000.0,
+  "z0": -15700.0,
+  "formula": "x = x0 + mpp * px; z = z0 + mpp * py"
+ },
+ "log": [
+  "fill_district West End: could not place church",
+  "fill_district West End: could not place park",
+  "fill_district West End: could not place fire_station",
+  "fill_district West End: could not place motel",
+  "fill_district North Shore: could not place fire_station",
+  "fill_district South Shore: could not place motel",
+  "fill_district Coontie: could not place church",
+  "fill_district Coontie: could not place park",
+  "fill_district Coontie: could not place fire_station",
+  "fill_district Coontie: could not place motel",
+  "fill_district Port Cassia: could not place gas",
+  "fill_district Port Cassia: could not place church",
+  "fill_district Port Cassia: could not place fire_station",
+  "fill_district Port Cassia: could not place motel",
+  "fill_district Port Cassia: could not place bait_shop",
+  "fill_district Punta Marisol: could not place gas",
+  "fill_district Punta Marisol: could not place church",
+  "fill_district Punta Marisol: could not place park",
+  "fill_district Punta Marisol: could not place fire_station",
+  "fill_district Punta Marisol: could not place motel",
+  "fill_district Sabal Grove: could not place gas",
+  "fill_district Sabal Grove: could not place church",
+  "fill_district Sabal Grove: could not place park",
+  "fill_district Sabal Grove: could not place fire_station",
+  "fill_district Sabal Grove: could not place motel",
+  "fill_district Sabal Grove: could not place bait_shop",
+  "fill_district Limpkin Park: could not place gas",
+  "fill_district Limpkin Park: could not place church",
+  "fill_district Limpkin Park: could not place park",
+  "fill_district Limpkin Park: could not place motel",
+  "fill_district Limpkin Park: could not place bait_shop",
+  "fill_district Key Paloma: could not place gas",
+  "fill_district Key Paloma: could not place church",
+  "fill_district Key Paloma: could not place park",
+  "fill_district Key Paloma: could not place fire_station",
+  "fill_district Key Paloma: could not place motel",
+  "fill_district Amaro Landing: could not place gas",
+  "fill_district Amaro Landing: could not place church",
+  "fill_district Amaro Landing: could not place park",
+  "fill_district Amaro Landing: could not place fire_station"
+ ],
+ "seconds": 38.4
+}

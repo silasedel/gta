@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><title>hero cars: studio</title><link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%;background:#0d0e10;overflow:hidden}#ui{position:fixed;left:8px;top:8px;font:12px system-ui;color:#ddd}#ui button,#ui select{font:12px system-ui;margin:2px}</style></head>
+<body><div id="ui"></div><script type="module">
+// Hero-car studio.  ?car=<key>&view=front34|side|rear34|top|front|rear|high34&env=studio|sky|night&lod=0|1|2&spin=1&doors=1&lights=1
+import * as THREE from 'three';
+import { createStudio } from './kit/studio.js';
+import { buildHeroCar } from './build.js';
+import { PACK, HERO_KEYS } from './packages.js';
+const st = createStudio();
+const q = st.q;
+let cur = null;
+const hero = window.hero = {
+  st, car: null, key: null,
+  show(key, opts = {}) {
+    if (cur) st.scene.remove(cur.group);
+    const t0 = performance.now();
+    cur = buildHeroCar(THREE, key, opts); hero.car = cur; hero.key = key;
+    hero.buildMs = Math.round(performance.now() - t0);
+    st.scene.add(cur.group);
+    if (opts.lod != null) hero.lod(opts.lod);
+    return hero.buildMs;
+  },
+  lod(l) { cur.lod.autoUpdate = l < 0; if (l >= 0) cur.lod.levels.forEach((lv, i) => (lv.object.visible = i === l)); },
+  dims() { const d = PACK[hero.key].dims; return { L: d.L, W: d.W, H: d.H }; },
+  view(name, o) { return st.view(name, hero.dims(), o); },
+  cam(p, l, f) { st.cam(p, l, f); },
+  env(n) { st.setEnv(n); },
+  stats() { st.frame(); return { ...st.stats(), buildMs: hero.buildMs, tris: cur.tris }; },
+  bbox() { const b = new THREE.Box3().setFromObject(cur.group); return { min: b.min.toArray().map((x) => +x.toFixed(3)), max: b.max.toArray().map((x) => +x.toFixed(3)) }; },
+  lights(on, brake) { const L = cur.lights; L.head.emissiveIntensity = on ? 7 : 0.5; L.lens.emissiveIntensity = on ? 12 : 0; L.drl.emissiveIntensity = 6; L.tail.emissiveIntensity = on ? 4 : 1.2; L.brake.emissiveIntensity = brake ? 14 : on ? 3 : 0.3; L.amber.emissiveIntensity = on ? 3 : 0.4; },
+  wire(on) { cur.group.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.wireframe = on; } }); },
+};
+hero.show(q.get('car') || 'hero_red_v10', { lod: q.has('lod') ? +q.get('lod') : undefined });
+if (q.has('lod')) hero.lod(+q.get('lod'));
+hero.view(q.get('view') || 'front34');
+if (q.has('spin')) st.onFrame = (dt) => { cur.group.rotation.y += dt * 0.4; };
+const ui = document.getElementById('ui');
+if (!q.has('noui')) {
+  const sel = document.createElement('select'); for (const k of HERO_KEYS) { const o = document.createElement('option'); o.value = k; o.textContent = PACK[k].brand + ' ' + PACK[k].name; sel.appendChild(o); } sel.value = hero.key;
+  sel.onchange = () => { try { hero.show(sel.value); hero.view('front34'); } catch (e) { console.warn(e.message); } }; ui.appendChild(sel);
+  for (const v of ['front34', 'side', 'rear34', 'top', 'front', 'rear']) { const b = document.createElement('button'); b.textContent = v; b.onclick = () => hero.view(v); ui.appendChild(b); }
+  for (const e of ['studio', 'sky', 'night']) { const b = document.createElement('button'); b.textContent = e; b.onclick = () => hero.env(e); ui.appendChild(b); }
+}
+st.start();
+window.ready = true;
+</script></body></html>

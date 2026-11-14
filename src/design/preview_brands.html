@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Design system: brand contact sheet</title>
+<style>
+  body { margin: 0; background: #2a2c31; font: 12px "Helvetica Neue", Arial, sans-serif; color: #dfe3ea; }
+  #grid { display: grid; gap: 10px; padding: 10px; }
+  .card { background: #1b1d21; border-radius: 6px; overflow: hidden; }
+  .card canvas { display: block; width: 100%; height: auto; }
+  .meta { padding: 5px 8px 7px; line-height: 1.35; }
+  .meta b { font-size: 13px; color: #fff; } .meta i { color: #9aa3b2; font-style: normal; }
+  .sw { display: inline-block; width: 13px; height: 13px; margin-right: 2px; border-radius: 2px; vertical-align: -2px; border: 1px solid #0006; }
+  h1 { font-size: 15px; margin: 10px 12px 0; }
+</style></head>
+<body><h1 id="title"></h1><div id="grid"></div>
+<script type="module">
+// ?file=fuel_grocery  ?cat=fuel  ?tier=luxury  ?ids=a,b  ?cols=4  ?page=0&per=24  ?big=<id> (one brand, every treatment)
+import design from './index.js';
+import { makeCanvas, ctx2d } from './util.js';
+const q = new URLSearchParams(location.search);
+design.setAssetBase('/assets/design/');
+await design.ready();
+let list = design.brands.slice();
+if (q.get('file')) list = list.filter((b) => q.get('file').split(',').includes(b.file));
+if (q.get('cat')) list = list.filter((b) => q.get('cat').split(',').includes(b.category));
+if (q.get('tier')) list = list.filter((b) => b.tier === q.get('tier'));
+if (q.get('ids')) list = list.filter((b) => q.get('ids').split(',').includes(b.id));
+const total = list.length; const per = +(q.get('per') || 1000), page = +(q.get('page') || 0);
+list = list.slice(page * per, page * per + per);
+const cols = +(q.get('cols') || 4); const grid = document.getElementById('grid'); grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+document.getElementById('title').textContent = `Brands: ${list.length} of ${total} shown (${design.brands.length} total)` + (q.get('file') ? ` · file ${q.get('file')}` : '');
+const errors = [];
+const W = 560, H = 300;
+for (const b of list) {
+  const c = makeCanvas(W, H), g = ctx2d(c); const P = b.palette;
+  try {
+    // left: full logo on paper; right top: knockout on primary; right bottom: mark on ink + pattern swatch
+    g.fillStyle = P.paper; g.fillRect(0, 0, 350, H);
+    b.drawLogo(g, 22, 22, 306, H - 44);
+    g.fillStyle = P.primary; g.fillRect(350, 0, 210, 150);
+    b.drawLogoOn(g, P.primary, 364, 14, 182, 122);
+    g.fillStyle = P.ink; g.fillRect(350, 150, 105, 150);
+    b.drawLogoOn(g, P.ink, 362, 162, 81, 126, { variant: typeof b.logo.mark === 'function' ? 'mark' : 'full' });
+    g.drawImage(b.patternCanvas(256), 0, 0, 256, 256, 455, 150, 105, 150);
+  } catch (e) { errors.push(b.id + ': ' + e.message); g.fillStyle = '#f00'; g.font = '14px Menlo'; g.fillText('ERROR ' + e.message, 10, 20); }
+  const card = document.createElement('div'); card.className = 'card'; card.appendChild(c);
+  const sw = ['primary', 'secondary', 'accent', 'ink', 'paper', 'neon'].map((k) => `<span class="sw" style="background:${P[k]}" title="${k}"></span>`).join('');
+  const m = document.createElement('div'); m.className = 'meta';
+  m.innerHTML = `<b>${b.name}</b> <i>${b.id}</i><br>${b.category}${b.sub ? ' / ' + b.sub : ''} · ${b.tier} · ${b.presence} · sign: ${b.signStyle.type} · pack: ${b.packaging.style}<br>${sw} <i>${(b.tagline || '').replace(/</g, '&lt;')}</i>`;
+  card.appendChild(m); grid.appendChild(card);
+}
+window.report = { shown: list.length, total, all: design.brands.length, errors, dataErrors: design.errors.brands, height: document.body.scrollHeight };
+window.ready = true;
+</script></body></html>

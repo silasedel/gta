@@ -1,0 +1,640 @@
+{
+ "when": "2026-11-14T01:20:30.352Z",
+ "boot": {
+  "people": true,
+  "failed": [],
+  "peds": 17,
+  "lines": 471
+ },
+ "rush": {
+  "mem": 1345,
+  "peds": 25,
+  "crowd": 151,
+  "audit": {
+   "spawned": 44,
+   "crowdSpawned": 609,
+   "total": 653,
+   "distinct": 653,
+   "dup": 0,
+   "dupInView": 0,
+   "lookFailed": 0,
+   "applyFailed": 0,
+   "dupList": [],
+   "look": {
+    "looks": 653,
+    "rerolls": 0,
+    "dupSignatures": 0,
+    "bodyClashAvoided": 0,
+    "distinct": 653
+   },
+   "bodies": {
+    "unlocked": true,
+    "loaded": 120,
+    "total": 129,
+    "ok": true,
+    "added": 89,
+    "ms": 17950
+   }
+  },
+  "district": "Downtown"
+ },
+ "frameRush": {
+  "frames": 179,
+  "avgMs": 22.38,
+  "p95Ms": 33.4,
+  "fps": 44.7,
+  "peds": 25,
+  "crowd": 99,
+  "calls": 579,
+  "tris": 1008807,
+  "inView": {
+   "near": 4,
+   "far": 40,
+   "total": 44
+  }
+ },
+ "stageSidewalk": {
+  "best": [
+   -2539.3863622480085,
+   544.5545219940868,
+   2.8797932657906435
+  ],
+  "score": 15
+ },
+ "inViewSidewalk": {
+  "near": 9,
+  "far": 47,
+  "total": 56
+ },
+ "roster": [
+  {
+   "name": "Bonnie Whitaker",
+   "age": 38,
+   "job": "cashier",
+   "home": "downtown",
+   "voice": "anxious",
+   "traits": {
+    "courage": 0.26,
+    "honesty": 0.2,
+    "talk": 0.65,
+    "kindness": 0.43,
+    "temper": 0.6,
+    "curiosity": 0.64,
+    "vanity": 0.18,
+    "energy": 0.06,
+    "sociability": 0.55,
+    "patience": 0.79,
+    "nerve": 0.17
+   }
+  },
+  {
+   "name": "Zenaida Noriega Mesa",
+   "age": 43,
+   "job": "yacht broker",
+   "home": "downtown",
+   "voice": "warm",
+   "traits": {
+    "courage": 0.47,
+    "honesty": 0.5,
+    "talk": 0.88,
+    "kindness": 0.65,
+    "temper": 0.67,
+    "curiosity": 0.71,
+    "vanity": 0.87,
+    "energy": 0.11,
+    "sociability": 0.39,
+    "patience": 0.57,
+    "nerve": 0.34
+   }
+  },
+  {
+   "name": "Cedric Jenkins",
+   "age": 24,
+   "job": "stay-at-home parent",
+   "home": "downtown",
+   "voice": "warm",
+   "traits": {
+    "courage": 0.99,
+    "honesty": 0.5,
+    "talk": 0.74,
+    "kindness": 0.54,
+    "temper": 0.25,
+    "curiosity": 0.99,
+    "vanity": 0.25,
+    "energy": 0.96,
+    "sociability": 0.51,
+    "patience": 0.79,
+    "nerve": 0.87
+   }
+  },
+  {
+   "name": "Raquel Ferrer",
+   "age": 29,
+   "job": "sales associate",
+   "home": "downtown",
+   "voice": "tough",
+   "traits": {
+    "courage": 0.85,
+    "honesty": 0.17,
+    "talk": 0.07,
+    "kindness": 0.38,
+    "temper": 0.17,
+    "curiosity": 0.69,
+    "vanity": 0.54,
+    "energy": 0.63,
+    "sociability": 0.96,
+    "patience": 0.55,
+    "nerve": 0.29
+   }
+  },
+  {
+   "name": "Maikel Castro Lima",
+   "age": 73,
+   "job": "retiree",
+   "home": "downtown",
+   "voice": "elder_cuban",
+   "traits": {
+    "courage": 0.09,
+    "honesty": 0.83,
+    "talk": 1,
+    "kindness": 0.46,
+    "temper": 0.65,
+    "curiosity": 0.63,
+    "vanity": 0.93,
+    "energy": 0.02,
+    "sociability": 0.06,
+    "patience": 0.44,
+    "nerve": 0.86
+   }
+  },
+  {
+   "name": "Deja Katz",
+   "age": 37,
+   "job": "accountant",
+   "home": "downtown",
+   "voice": "snob",
+   "traits": {
+    "courage": 0.63,
+    "honesty": 0.02,
+    "talk": 0.59,
+    "kindness": 0.18,
+    "temper": 0.71,
+    "curiosity": 0.54,
+    "vanity": 0.1,
+    "energy": 0.84,
+    "sociability": 0.64,
+    "patience": 0.92,
+    "nerve": 0.83
+   }
+  }
+ ],
+ "reactSpawn": {
+  "spawned": 30,
+  "dressed": 23
+ },
+ "reactStates": {
+  "byCourageBand": {
+   "mid": {
+    "call": 1,
+    "cower": 1,
+    "flee": 6,
+    "film": 2
+   },
+   "high": {
+    "dead": 1,
+    "film": 1,
+    "flee": 5,
+    "call": 2
+   },
+   "low": {
+    "call": 1,
+    "cower": 2,
+    "freeze": 1
+   }
+  },
+  "stats": {
+   "knockdown": {
+    "high": {
+     "flee": 3,
+     "freeze": 1
+    },
+    "low": {
+     "flee": 1,
+     "cower": 2,
+     "freeze": 1
+    },
+    "mid": {
+     "call911": 1,
+     "flee": 3
+    }
+   },
+   "shot": {
+    "mid": {
+     "call911": 1,
+     "cower": 1,
+     "flee": 8,
+     "film": 2
+    },
+    "high": {
+     "film": 1,
+     "flee": 5,
+     "call911": 2
+    },
+    "low": {
+     "call911": 1,
+     "cower": 2,
+     "freeze": 1
+    }
+   }
+  }
+ },
+ "witness": {
+  "reports": 2,
+  "sample": [
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2539.556396484375,
+     "z": 545.1427612304688
+    },
+    "description": "a man",
+    "reliability": 0.7,
+    "witness": "Nadia Rivera",
+    "witnessId": "pa35j7"
+   },
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2539.556396484375,
+     "z": 545.1427612304688
+    },
+    "description": "a man",
+    "reliability": 0.82,
+    "witness": "Abel Delgado",
+    "witnessId": "p9z2vv"
+   }
+  ],
+  "lines": [
+   {
+    "t": 19,
+    "who": "Eduardo Garcia",
+    "voice": "pro",
+    "situation": "crash",
+    "text": "I'm calling it in."
+   },
+   {
+    "t": 19,
+    "who": "Emilio Urrutia",
+    "voice": "warm",
+    "situation": "crash",
+    "text": "Don't move, you might be hurt!"
+   },
+   {
+    "t": 19,
+    "who": "Giulia Schmitt",
+    "voice": "flirty",
+    "situation": "call911",
+    "text": "I think somebody got hit."
+   },
+   {
+    "t": 20,
+    "who": "Mateo Morales Gutierrez",
+    "voice": "hustler",
+    "situation": "call911",
+    "text": "An accident, two cars, send an ambulance."
+   },
+   {
+    "t": 20,
+    "who": "Barbara Hernandez",
+    "voice": "snob",
+    "situation": "crash",
+    "text": "Are you insured?"
+   },
+   {
+    "t": 22,
+    "who": "Mitch Sterling",
+    "voice": "snob",
+    "situation": "gunfire",
+    "text": "Get away from the windows!"
+   },
+   {
+    "t": 22,
+    "who": "Colton Gallagher",
+    "voice": "gruff",
+    "situation": "gunfire",
+    "text": "Move, move!"
+   },
+   {
+    "t": 22,
+    "who": "Eduardo Garcia",
+    "voice": "pro",
+    "situation": "gunfire",
+    "text": "Go, go, go!"
+   }
+  ]
+ },
+ "schedule": [
+  {
+   "hour": 4,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 4,
+    "sampled": 200,
+    "out": 10,
+    "density": 0.05,
+    "acts": "exercise:10",
+    "jobs": "itsupport:2 tourist:2 guard:1 valet:1 analyst:1 paralegal:1",
+    "roles": "resident:5 worker:3 visitor:2"
+   },
+   "live": {
+    "peds": 25,
+    "crowd": 16,
+    "density": 0.04
+   }
+  },
+  {
+   "hour": 8.5,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 8.5,
+    "sampled": 200,
+    "out": 110,
+    "density": 0.55,
+    "acts": "commute:45 errands:24 work_street:23 exercise:9 stroll:8 socialize:1",
+    "jobs": "attorney:14 guard:11 accountant:11 tourist:10 broker:10 itsupport:9",
+    "roles": "worker:76 resident:19 visitor:15"
+   },
+   "live": {
+    "peds": 25,
+    "crowd": 151,
+    "density": 0.53
+   }
+  },
+  {
+   "err": "TypeError: Cannot read properties of undefined (reading 'sample')\n    at <anonymous>:1:98\n    at <anonymous>:1:296\n    at <anonymous>:1:378"
+  },
+  {
+   "err": "TypeError: Cannot read properties of undefined (reading 'sample')\n    at <anonymous>:1:97\n    at <anonymous>:1:294\n    at <anonymous>:1:376"
+  }
+ ],
+ "beach": {
+  "mem": 1172,
+  "uptime": 27696,
+  "peds": 13,
+  "crowd": 195,
+  "district": "South Beach",
+  "zone": "beach"
+ },
+ "frameBeach": {
+  "frames": 205,
+  "avgMs": 19.59,
+  "p95Ms": 16.8,
+  "fps": 51.1,
+  "peds": 27,
+  "crowd": 195,
+  "calls": 222,
+  "tris": 928123,
+  "inView": {
+   "near": 7,
+   "far": 0,
+   "total": 7
+  }
+ },
+ "stageBeach": {
+  "best": [
+   3401.420000115465,
+   -166.49922499362617,
+   1.3089969389957472
+  ],
+  "score": 116
+ },
+ "inViewBeach": {
+  "near": 22,
+  "far": 113,
+  "total": 135
+ },
+ "audit": {
+  "spawned": 12,
+  "crowdSpawned": 182,
+  "total": 194,
+  "distinct": 194,
+  "dup": 0,
+  "dupInView": 0,
+  "lookFailed": 0,
+  "applyFailed": 0,
+  "dupList": [],
+  "look": {
+   "looks": 194,
+   "rerolls": 0,
+   "dupSignatures": 0,
+   "bodyClashAvoided": 0,
+   "distinct": 194
+  },
+  "bodies": {
+   "unlocked": false,
+   "loaded": 67,
+   "total": 0
+  }
+ },
+ "sigs": [
+  "crowd|h03_beach_f|163|25|b8a8d2|b5a385|4f3622|e9e7e2|sunglasses39|none",
+  "crowd|h19_casual_f|154|22|d39582|b5a385|5a4029|6c6c6a|sunglasses76+backpack0|none",
+  "crowd|h118_sport_f|165|19|2a2a2e|2a2a2e|2a1d14|e07f68|headphones53|none",
+  "crowd|h114_sport_f|158|23|3f3e3e|2a2a2e|2a1d14|4a3426||none",
+  "h105_nightlife_m|1009|,0c0a09||none|20",
+  "crowd|h20_casual_m|183|21|e8d78a|2a3442|c9a86a|6c6c6a|glasses74+shoppingBags71|none",
+  "crowd|h24_casual_m|179|22|7f8690|2f3a4a|120d0a|2a3442|hatstraw62+tote23|none",
+  "crowd|h114_sport_f|159|23|2a2a2e|2a2a2e|c0a09|b5443e|glasses11|none",
+  "crowd|h16_casual_m|177|25|e6b3b5|b5a385|4f3622|2a3442|sunglasses80+backpack42|none",
+  "crowd|h19_casual_f|157|24|f0ede6|b5a385|5a4029|e9e7e2|tote82|none",
+  "crowd|h24_casual_m|173|27|7f8690|2f3a4a|4f3622|222222|backpack35|none",
+  "crowd|h23_casual_f|161|27|a6d3bf|e9e1cf|8f8a80|e9e7e2|sunglasses81+tote87|none",
+  "crowd|h118_sport_f|165|19|2a2a2e|2a2a2e|3d2a1a|4a3426|sunglasses28|none",
+  "crowd|h19_casual_f|165|18|9cc1de|5a6450|5a4029|222222|chain80+backpack42|none",
+  "crowd|h20_casual_m|175|23|d95f9a|5a6450|5a4029|e9e7e2|sunglasses43|none",
+  "crowd|h04_beach_m|180|25|2a6fb5|2a6fb5|120d0a|e07f68||none",
+  "crowd|h19_casual_f|159|24|e89a85|5a6450|3d2a1a|e9e7e2|backpack36|none",
+  "crowd|h119_sport_m|177|23|a6d3bf|b8a8d2|7a5a36|4a3426|sunglasses57+backpack73|none",
+  "crowd|h19_casual_f|166|25|e6b3b5|1f1f21|5a4029|e9e7e2|glasses40|none",
+  "crowd|h24_casual_m|174|26|7f8690|2f3a4a|3d2a1a|2a3442|hatstraw77+camera96+tote6|none",
+  "crowd|h24_casual_m|173|25|7f8690|2f3a4a|1d140e|222222||none",
+  "crowd|h19_casual_f|156|26|2a6fb5|f0ede6|8f8a80|e9e7e2||none",
+  "crowd|h116_sport_f|157|22|2a2a2e|2a2a2e|2a1d14|2f8a86|sunglasses78+backpack77|none",
+  "h108_nightlife_f|919|9cc1de,e9e1cf,5a4029|headphones|none|23",
+  "crowd|h116_sport_f|164|23|2a2a2e|2a2a2e|120d0a|2f8a86|sunglasses68|none",
+  "crowd|h118_sport_f|169|23|2a2a2e|2a2a2e|3d2a1a|4a3426|purse30|none",
+  "crowd|h15_beach_f|166|24|c9a043|5d7598|1d140e|e07f68|sunglasses77+backpack32|none",
+  "crowd|h16_casual_m|182|20|2f8a86|b5a385|2a1d14|2a3442|sunglasses32+chain30+backpack15|none",
+  "crowd|h20_casual_m|167|22|2a6fb5|5a6450|120d0a|e9e7e2|hatcap6+backpack70|none",
+  "crowd|h12_beach_m|174|24|e89a85|2a3442|1d140e|e9e7e2|headphones12+shoppingBags75|none",
+  "crowd|h19_casual_f|166|23|e6b3b5|5d7598|1d140e|e9e7e2|purse12|none",
+  "crowd|h19_casual_f|157|23|da893d|d6c4a0|3d2a1a|e9e7e2|sunglasses24+backpack62|none",
+  "crowd|h20_casual_m|168|23|8e9094|8e9094|c0a09|b5443e|tote90|none",
+  "crowd|h114_sport_f|163|23|2a2a2e|2a2a2e|1d140e|6c6c6a|sunglasses5|none",
+  "crowd|h20_casual_m|168|24|a6d3bf|b5a385|4f3622|6c6c6a|backpack57|none",
+  "crowd|h23_casual_f|162|23|f0ede6|b8a8d2|1d140e|e9e7e2|sunglasses74|none",
+  "crowd|h24_casual_m|167|21|7f8690|2f3a4a|c0a09|e9e7e2|hatbucket87+camera57+shoppingBags91|none",
+  "crowd|h19_casual_f|170|21|d6c4a0|2a3442|4f3622|6c6c6a|sunglasses81+purse5|none",
+  "crowd|h16_casual_m|175|25|8e9094|8e9094|120d0a|b5443e|sunglasses39|none",
+  "crowd|h118_sport_f|166|25|2a2a2e|2a2a2e|2a1d14|6c6c6a||none",
+  "crowd|h116_sport_f|168|23|2a2a2e|2a2a2e|5a4029|4a3426|sunglasses74+headphones19|none",
+  "crowd|h114_sport_f|164|26|2a2a2e|2a2a2e|c0a09|b5443e||none",
+  "crowd|h20_casual_m|170|22|d6c4a0|b5a385|5a4029|4a3426|tote94|none",
+  "crowd|h118_sport_f|160|22|2a2a2e|2a2a2e|5a4029|e9e7e2|hatheadwrap47+chain82+shoppingBags96|none",
+  "h106_nightlife_f|956|,3d2a1a|sunglasses|none|24",
+  "crowd|h117_sport_m|183|23|aea0be|1f1f21|2a1d14|4a3426|headphones69|none",
+  "crowd|h119_sport_m|173|22|e6b3b5|e6b3b5|5fb3b8|6c6c6a|sunglasses96+headphones15+backpack34|none",
+  "crowd|h20_casual_m|173|23|f0ede6|b5a385|3d2a1a|222222|hatfedora64+camera83|none",
+  "crowd|h20_casual_m|180|21|f08a2c|5d7598|5a4029|2a3442|hatfedora4+sunglasses6|none",
+  "crowd|h20_casual_m|175|22|2a6fb5|b5a385|3d2a1a|e9e7e2|hatbucket79+camera4+backpack8|none",
+  "crowd|h00_beach_m|177|20|2f8a86|f0ede6|4f3622|b5443e|sunglasses31|none",
+  "crowd|h115_sport_m|172|25|d95f9a|f0ede6|2a1d14|6c6c6a||none",
+  "crowd|h24_casual_m|167|20|7f8690|2f3a4a|8f8a80|b5443e|sunglasses75+chain67|none",
+  "crowd|h14_beach_m|179|20|e8d78a|e8d78a|2a1d14|2f8a86||none",
+  "crowd|h09_beach_f|161|20|9cc1de|5a6450|3d2a1a|222222|sunglasses6+headphones9+backpack49|none",
+  "crowd|h20_casual_m|169|24|e6b3b5|5d7598|2a1d14|e9e7e2|sunglasses27+chain33+shoppingBags81|none",
+  "crowd|h16_casual_m|170|25|b5443e|f0ede6|3d2a1a|e9e7e2|hatvisor77+sunglasses45|none",
+  "crowd|h02_beach_m|177|21|f0ede6|b5a385|2a1d14|e9e7e2|sunglasses50+backpack17|none",
+  "crowd|h19_casual_f|157|23|e9e1cf|f0ede6|d8d4cc|2a3442|glasses96|none",
+  "crowd|h115_sport_m|182|26|e9e1cf|e6b3b5|5a4029|222222|tote33|none",
+  "crowd|h114_sport_f|159|25|3f3e3e|2a2a2e|c0a09|e9e7e2||none",
+  "crowd|h19_casual_f|166|23|c9a043|5a6450|c0a09|e9e7e2|sunglasses36+backpack68|none",
+  "crowd|h19_casual_f|156|24|f0ede6|1f1f21|9b5a2e|e9e7e2|shoppingBags29|none",
+  "crowd|h01_beach_f|159|22|58a55c|5d7598|1d140e|222222||none",
+  "crowd|h119_sport_m|176|27|d2a9a8|1f1f21|7a5a36|2a3442|headphones64|none",
+  "crowd|h03_beach_f|164|27|d39582|e89a85|c0a09|3a2a1e||none",
+  "crowd|h20_casual_m|178|23|b5443e|1f2a3c|5a4029|4a3426||none",
+  "crowd|h116_sport_f|157|23|2a2a2e|2a2a2e|1d140e|e9e7e2||none",
+  "crowd|h20_casual_m|173|23|f08a2c|f0ede6|c0a09|e9e7e2|glasses25+backpack23|none",
+  "crowd|h117_sport_m|168|24|c9a043|5d7598|4f3622|e9e7e2|hatbeanie21|none",
+  "crowd|h22_casual_m|173|24|c9a043|5d7598|c0a09|4a3426|hatcap64+camera4|none",
+  "crowd|h13_beach_f|161|27|9cc1de|b8a8d2|e8d78a|6c6c6a||none",
+  "crowd|h05_beach_f|162|21|f0ede6|5d7598|1d140e|e9e7e2|sunglasses17+shoppingBags16|none",
+  "crowd|h20_casual_m|176|22|f0ede6|5a6450|5a4029|4a3426|hatfedora57+backpack61|none",
+  "crowd|h20_casual_m|182|20|b5443e|2a3442|c0a09|222222|sunglasses44|none",
+  "crowd|h19_casual_f|166|22|f08a2c|5a6450|8a6a3e|4a3426||none",
+  "crowd|h23_casual_f|159|23|e8d78a|e9e1cf|120d0a|e9e7e2|sunglasses16|none",
+  "crowd|h03_beach_f|165|24|b8a8d2|5a6450|4f3622|4a3426|backpack59|none",
+  "crowd|h19_casual_f|161|21|2a6fb5|b5a385|c0a09|2a3442|tote43|none",
+  "crowd|h20_casual_m|181|25|e6b3b5|5a6450|5a4029|6c6c6a|hatstraw76+glasses30+tote31|none",
+  "crowd|h114_sport_f|161|22|3f3e3e|2a2a2e|3d2a1a|2a3442|sunglasses54|none",
+  "crowd|h07_beach_f|163|22|e07f68|b5a385|6e6a64|e9e7e2|sunglasses40|none",
+  "crowd|h16_casual_m|176|19|d95f9a|b5a385|4f3622|e9e7e2||none",
+  "crowd|h19_casual_f|163|24|2a6fb5|5d7598|7a5a36|4a3426|sunglasses72+camera29+shoppingBags17|none",
+  "crowd|h20_casual_m|175|22|e07f68|5d7598|a88a58|b5443e|sunglasses91+chain93|none",
+  "crowd|h114_sport_f|162|22|2a2a2e|2a2a2e|5a4029|e9e7e2|sunglasses72+shoppingBags26|none",
+  "crowd|h16_casual_m|181|21|2f8a86|5d7598|120d0a|b5443e|hatbucket35+shoppingBags65|none",
+  "crowd|h24_casual_m|178|26|7f8690|2f3a4a|5a4029|4a3426|hatcap62+backpack52|none",
+  "crowd|h19_casual_f|158|25|d6c4a0|b5a385|8a6a3e|4a3426|sunglasses74+chain2+purse71|none",
+  "crowd|h117_sport_m|175|22|b8a8d2|2a3442|4f3622|e9e7e2||none",
+  "crowd|h24_casual_m|170|19|7f8690|2f3a4a|5a4029|e9e7e2|hatbeanie40+sunglasses61|none",
+  "crowd|h19_casual_f|163|18|d95f9a|f0ede6|120d0a|b5443e||none",
+  "crowd|h114_sport_f|163|25|2a2a2e|2a2a2e|1d140e|e9e7e2|tote15|none",
+  "crowd|h08_beach_m|177|27|f0ede6|5d7598|2a1d14|222222|hatvisor4|none",
+  "crowd|h07_beach_f|163|23|f0ede6|f0ede6|4f3622|6c6c6a|sunglasses78|none",
+  "crowd|h09_beach_f|163|22|2a6fb5|2a6fb5|120d0a|3a2a1e|sunglasses55+tote31|none",
+  "crowd|h01_beach_f|161|23|98b4c8|b8a8d2|3d2a1a|e9e7e2|hatheadwrap81+backpack20|none",
+  "crowd|h20_casual_m|177|23|e9e1cf|5a6450|2a1d14|2a3442||none",
+  "crowd|h12_beach_m|181|24|a6d3bf|e9e1cf|1d140e|e9e7e2|sunglasses84+chain60|none",
+  "crowd|h22_casual_m|178|24|d6c4a0|e89a85|3d2a1a|4a3426||none",
+  "crowd|h00_beach_m|172|23|1f1f21|e6b3b5|d95f9a|2a3442||none",
+  "h104_nightlife_f|1005|2a6fb5,f0ede6,0c0a09|tote|none|25",
+  "crowd|h19_casual_f|155|22|e8d78a|f0ede6|c0a09|b5443e|tote42|none",
+  "crowd|h08_beach_m|172|21|1f1f21|b8a8d2|d95f9a|2a3442||none",
+  "crowd|h08_beach_m|179|25|e9e1cf|f0ede6|2a1d14|e9e7e2|hatbeanie61+sunglasses18+backpack6|none",
+  "crowd|h19_casual_f|159|20|58a55c|d6c4a0|1d140e|4a3426|sunglasses29+chain57|none",
+  "crowd|h118_sport_f|164|25|2a2a2e|2a2a2e|a88a58|6c6c6a|chain55|none",
+  "crowd|h114_sport_f|161|24|2a2a2e|2a2a2e|b5443e|b5443e|sunglasses79+chain2+tote86|none",
+  "crowd|h115_sport_m|176|24|1f1f21|5d7598|3d2a1a|e9e7e2||none",
+  "crowd|h20_casual_m|172|24|656b59|8e9094|c0a09|222222||none",
+  "crowd|h12_beach_m|169|23|58a55c|5d7598|c0a09|2a3442|hatvisor67+sunglasses93|none",
+  "crowd|h20_casual_m|179|24|b5a385|1f2a3c|5a4029|2a3442|hatcapBack17+sunglasses79+chain84|none",
+  "crowd|h114_sport_f|162|27|2a2a2e|2a2a2e|c0a09|2a3442|sunglasses55|none",
+  "crowd|h26_casual_m|170|19|7f8690|2f3a4a|c0a09|4a3426|tote32|none",
+  "crowd|h29_casual_f|167|27|e6b3b5|5d7598|3d2a1a|4a3426|sunglasses69+camera70+backpack60|none",
+  "crowd|h20_casual_m|174|27|f0ede6|b5a385|120d0a|2a3442||none",
+  "crowd|h29_casual_f|160|23|2f8a86|5d7598|2a1d14|4a3426|camera61+tote29|none",
+  "crowd|h02_beach_m|165|22|d6c4a0|b8a8d2|d8d4cc|b5443e|hatfedora45|none",
+  "crowd|h29_casual_f|161|19|5fb3b8|1f1f21|3d2a1a|e9e7e2|purse54|none",
+  "crowd|h20_casual_m|176|25|e6b3b5|d6c4a0|1d140e|222222|sunglasses78+tote64|none",
+  "h25_casual_f|1001|da893d,b5a385,120d0a||none|25",
+  "crowd|h26_casual_m|168|23|7f8690|2f3a4a|2a1d14|4a3426||none",
+  "crowd|h29_casual_f|161|23|9cc1de|f0ede6|8a6a3e|4a3426|sunglasses59+camera6+backpack84|none",
+  "crowd|h19_casual_f|166|23|b8a8d2|e07f68|3d2a1a|222222|sunglasses48|none",
+  "crowd|h25_casual_f|160|25|98b4c8|b5a385|d8d4cc|e9e7e2|sunglasses34|none",
+  "crowd|h19_casual_f|157|26|c9a043|5a6450|7a5a36|e9e7e2|sunglasses6+camera12+shoppingBags2|none",
+  "crowd|h27_casual_f|159|23|e6b3b5|f0ede6|c0a09|e9e7e2|tote14|none",
+  "crowd|h29_casual_f|159|19|5a6450|b5a385|4f3622|b5443e|glasses20|none",
+  "crowd|h20_casual_m|177|27|9cc1de|2a3442|c0a09|2a3442|hatcap32|none",
+  "crowd|h109_nightlife_m|173|24|7f8690|2f3a4a|5a4029|6c6c6a|hatcapBack7+chain96|none",
+  "crowd|h09_beach_f|162|22|f0ede6|f08a2c|120d0a|2a3442|chain31|none",
+  "crowd|h119_sport_m|170|23|1f1f21|e6b3b5|d95f9a|b5443e|sunglasses40|none",
+  "crowd|h21_casual_f|159|26|2a6fb5|1f2a3c|120d0a|e9e7e2|sunglasses88+chain59|none",
+  "crowd|h114_sport_f|155|22|3f3e3e|2a2a2e|1d140e|2a3442|tote92|none",
+  "crowd|h20_casual_m|175|23|b5443e|f0ede6|120d0a|e9e7e2|camera81+backpack12|none",
+  "crowd|h24_casual_m|177|22|7f8690|2f3a4a|d8d4cc|e9e7e2|hatvisor45+camera88+backpack86|none",
+  "crowd|h18_casual_m|176|19|1f1f21|5d7598|1d140e|e9e7e2||none",
+  "crowd|h20_casual_m|175|22|f08a2c|f0ede6|9b5a2e|e9e7e2|camera23|none",
+  "crowd|h114_sport_f|167|22|2a2a2e|2a2a2e|2a1d14|6c6c6a||none",
+  "crowd|h115_sport_m|169|23|2a6fb5|1f1f21|2a1d14|222222|chain77|none",
+  "crowd|h27_casual_f|158|21|da893d|d6c4a0|5a4029|222222||none",
+  "h17_casual_f|1095|,2a1d14|sunglasses+backpack|none|23",
+  "crowd|h16_casual_m|173|22|a6d3bf|b5a385|1d140e|4a3426|chain14|none",
+  "crowd|h10_beach_m|172|18|b8a8d2|58a55c|2a1d14|2f8a86|sunglasses8+headphones27+chain8|none",
+  "crowd|h07_beach_f|161|24|d6c4a0|e89a85|2a1d14|6c6c6a|sunglasses30+purse84|none",
+  "crowd|h20_casual_m|170|23|e8d78a|e8d78a|1d140e|e9e7e2|sunglasses40+backpack33|none",
+  "crowd|h16_casual_m|180|23|b5443e|f0ede6|1d140e|2a3442|sunglasses30+shoppingBags48|none",
+  "crowd|h20_casual_m|183|25|5fb3b8|5d7598|a88a58|4a3426|hatbeanie54|none",
+  "crowd|h114_sport_f|167|23|2a2a2e|2a2a2e|3d2a1a|e9e7e2|purse70|none",
+  "crowd|h114_sport_f|162|23|3f3e3e|2a2a2e|c0a09|2a3442|hatheadwrap88|none",
+  "crowd|h16_casual_m|180|24|5a6450|1f1f21|120d0a|222222|hatheadwrap28|none",
+  "crowd|h07_beach_f|159|24|d95f9a|d95f9a|120d0a|e07f68|sunglasses93+chain7+backpack40|none",
+  "crowd|h26_casual_m|173|22|7f8690|2f3a4a|3d2a1a|222222|hatbeanie32|none",
+  "crowd|h114_sport_f|155|24|2a2a2e|2a2a2e|5fb3b8|222222|chain34|none",
+  "crowd|h12_beach_m|166|21|a95d3d|8e9094|1d140e|2a3442||none",
+  "crowd|h20_casual_m|184|20|d3c586|9cc1de|8a6a3e|e07f68|tote17|none",
+  "crowd|h19_casual_f|158|22|d95f9a|5a6450|5a4029|222222||none",
+  "crowd|h20_casual_m|169|26|e6b3b5|b8a8d2|8f8a80|2a3442|hatbucket15|none",
+  "crowd|h19_casual_f|159|25|e6b3b5|e6b3b5|a88a58|e9e7e2|sunglasses69+tote74|none",
+  "crowd|h20_casual_m|172|21|a0c2af|b5a385|1d140e|222222|backpack94|none",
+  "crowd|h119_sport_m|179|22|c86793|1f1f21|3d2a1a|222222|headphones4+tote93|none",
+  "h109_nightlife_m|935|,120d0a|headphones|none|19",
+  "h107_nightlife_m|965|,4f3622|hat:cap+sunglasses+backpack|none|24",
+  "crowd|h114_sport_f|158|27|2a2a2e|2a2a2e|1d140e|e9e7e2|headphones68+chain6|none",
+  "crowd|h20_casual_m|181|19|2a3442|d6c4a0|2a1d14|6c6c6a||none",
+  "crowd|h09_beach_f|167|20|e6b3b5|2a3442|1d140e|2f8a86|hatvisor56+sunglasses69+backpack42|none",
+  "crowd|h21_casual_f|163|25|58a55c|f0ede6|120d0a|e9e7e2|hatvisor33+backpack65|none",
+  "crowd|h26_casual_m|167|25|7f8690|2f3a4a|5a4029|e9e7e2|sunglasses62|none",
+  "crowd|h07_beach_f|171|17|9cc1de|e9e1cf|6e6a64|222222|tote45|none",
+  "crowd|h10_beach_m|174|23|f0ede6|f08a2c|120d0a|e9e7e2|hatvisor1|none",
+  "crowd|h20_casual_m|179|21|2f8a86|5a6450|4f3622|222222|hatheadwrap46+sunglasses29+backpack33|none",
+  "crowd|h114_sport_f|164|26|2a2a2e|2a2a2e|120d0a|6c6c6a|chain15|none",
+  "crowd|h07_beach_f|164|19|c9a043|c9a043|2a1d14|222222|sunglasses84|none",
+  "crowd|h114_sport_f|160|27|2a2a2e|2a2a2e|120d0a|e9e7e2|sunglasses83+backpack94|none",
+  "crowd|h14_beach_m|172|23|a6d3bf|a6d3bf|3d2a1a|e07f68|sunglasses95|none",
+  "crowd|h24_casual_m|166|25|7f8690|2f3a4a|3d2a1a|2a3442||none",
+  "crowd|h114_sport_f|159|25|2a2a2e|2a2a2e|1d140e|2a3442|chain60|none",
+  "crowd|h119_sport_m|172|27|d95f9a|1f1f21|c0a09|e9e7e2||none",
+  "crowd|h19_casual_f|160|25|aea0be|2a3442|8a6a3e|b5443e||none",
+  "crowd|h114_sport_f|161|23|2a2a2e|2a2a2e|120d0a|e9e7e2|hatheadwrap48|none",
+  "crowd|h119_sport_m|173|26|e6b3b5|e6b3b5|8a6a3e|222222||none",
+  "crowd|h19_casual_f|165|18|e07f68|f0ede6|a88a58|e9e7e2|backpack23|none",
+  "crowd|h20_casual_m|173|20|e6b3b5|e6b3b5|2a1d14|3a2a1e|hatbucket40+glasses61+chain54|none",
+  "crowd|h109_nightlife_m|165|23|7f8690|2f3a4a|120d0a|e9e7e2|sunglasses32|none",
+  "crowd|h26_casual_m|172|24|7f8690|2f3a4a|2a1d14|6c6c6a|hatstraw22+shoppingBags78|none",
+  "crowd|h27_casual_f|161|26|1f1f21|1f2a3c|4f3622|e9e7e2||none",
+  "crowd|h20_casual_m|174|24|9cc1de|2a3442|8a6a3e|e9e7e2|backpack76|none",
+  "crowd|h29_casual_f|157|20|9cc1de|1f2a3c|4f3622|222222|purse50|none",
+  "crowd|h30_casual_m|173|24|c9a043|b5a385|8f8a80|2a3442|hatcap1+sunglasses82+shoppingBags62|none",
+  "crowd|h12_beach_m|181|22|e6b3b5|1f1f21|3d2a1a|2a3442|chain81|none",
+  "h20_casual_m|1007|d95f9a,b5a385,d95f9a,a88a58||stroller|27",
+  "h23_casual_f|1028|e6b3b5,5a6450,e6b3b5,1d140e||none|20",
+  "h33_casual_f|961|2f8a86,d6c4a0,1d140e|sunglasses+camera|none|26",
+  "h45_nightlife_f|998|2a6fb5,1f2a3c,0c0a09|sunglasses+purse|none|22"
+ ],
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

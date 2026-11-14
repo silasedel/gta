@@ -3,15 +3,20 @@ import json, os, re
 from shapely.geometry import LineString, Polygon, MultiPolygon, GeometryCollection, box
 from shapely.ops import unary_union, polygonize, linemerge
 from shapely import make_valid
-from config import proj, bounds
+from config import proj, bounds, real_bounds
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(HERE, 'cache')
+CACHE = os.path.join(HERE, 'cache', 'v2')      # V2 pull; the V1 pull stays in cache/*.json
+
+
+_loaded = {}
 
 
 def load(name):
-    with open(os.path.join(CACHE, name + '.json')) as f:
-        return json.load(f)['elements']
+    if name not in _loaded:
+        with open(os.path.join(CACHE, name + '.json')) as f:
+            _loaded[name] = json.load(f)['elements']
+    return _loaded[name]
 
 
 def pts(geom):
@@ -95,7 +100,8 @@ def elem_poly(e):
 
 
 def world_box(pad=0.0):
-    x0, z0, x1, z1 = bounds()
+    """The REAL (OSM) rectangle as a shapely box; all OSM geometry is clipped to it."""
+    x0, z0, x1, z1 = real_bounds()
     return box(x0 - pad, z0 - pad, x1 + pad, z1 + pad)
 
 

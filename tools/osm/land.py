@@ -5,15 +5,16 @@ from shapely.ops import unary_union, polygonize, linemerge
 from shapely import STRtree
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from osmgeom import load, pts, elem_poly, world_box, polys_only, fix, CACHE  # noqa: E402
+from config import FETCH_PAD_M  # noqa: E402
 
-WORK = os.path.join(CACHE, 'work')
+WORK = os.environ.get('MIAMI_WORK') or os.path.join(CACHE, 'work')
 
 NON_SWIM = {'swimming_pool', 'fountain', 'reflecting_pool', 'wastewater', 'pool'}
 
 
-def build_land():
+def land_from_coast(B):
+    """Coastline ways -> land MultiPolygon inside the shapely box B (OSM rule: land is on the left)."""
     t0 = time.time()
-    B = world_box()
     coast = []
     for e in load('coastline'):
         c = pts(e['geometry'])
@@ -53,8 +54,10 @@ def build_land():
             land.append(f)
     landU = unary_union(land)
     print(f'faces {len(faces)} land {len(land)} area {landU.area/1e6:.2f} km2 of {B.area/1e6:.2f} ({time.time()-t0:.1f}s)')
+    return landU
 
-    # inland water (rivers, canals, ponds, lakes)
+
+def inland_water():
     water = []
     for e in load('areas'):
         t = e.get('tags', {})
@@ -66,12 +69,23 @@ def build_land():
         if p is None or p.area < 20:
             continue
         water.append((p, t.get('name'), t.get('water') or t.get('waterway') or 'water'))
+    return water
+
+
+def build_land(pad=None):
+    """Land for the real rectangle padded by `pad` meters (default: config.FETCH_PAD_M - 50), so the merge with
+    the synthetic world and the edge summary both see the real coast just beyond the rectangle."""
+    if pad is None:
+        pad = FETCH_PAD_M - 50.0
+    B = world_box(pad)
+    landU = land_from_coast(B)
+    water = inland_water()
     W = unary_union([w[0] for w in water]).intersection(B) if water else None
     land2 = fix(landU.difference(W)) if W is not None else landU
     print(f'inland water polys {len(water)}; land after holes {land2.area/1e6:.2f} km2')
     os.makedirs(WORK, exist_ok=True)
     with open(os.path.join(WORK, 'land.pkl'), 'wb') as f:
-        pickle.dump({'land': land2, 'landCoast': landU, 'water': water}, f)
+        pickle.dump({'land': land2, 'landCoast': landU, 'water': water, 'pad': pad}, f)
     return land2
 
 

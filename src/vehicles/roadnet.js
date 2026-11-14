@@ -13,7 +13,7 @@ export function buildRoadNet(city) {
 
 function fromGraph(g, city) {
   const nodes = new Map();
-  for (const n of g.nodes) nodes.set(n.id, { id: n.id, x: n.x, z: n.z, edges: [] });
+  for (const n of g.nodes) nodes.set(n.id, { id: n.id, x: n.x, z: n.z, edges: [], signal: !!(n.signal || n.control === 'signal') });
   const edges = [];
   for (const e of g.edges) {
     if (!e.pts || e.pts.length < 2 || !nodes.has(e.a) || !nodes.has(e.b)) continue;
@@ -198,10 +198,30 @@ export function edgeDirAt(e, dir, atStart) {
   return { x: p.dx * dir, z: p.dz * dir };
 }
 
+// Fixed-time signal plan for mapped signals when no world module drives them (game.traffic.signalAt overrides):
+// two phases by approach axis, 32 s cycle (13 s green, 3 s yellow, 0 s+... 1 s all-red each), offset per node so the city
+// does not switch in lockstep.  The approach axis is the edge's direction at the node relative to the node's first edge.
+const SIG_CYCLE = 34, SIG_GREEN = 13, SIG_YELLOW = 3;
+function edgeAngleAt(e, nodeId) {
+  const p = e.pts, atB = e.b === nodeId, i0 = atB ? p.length - 1 : 0, i1 = atB ? Math.max(0, p.length - 2) : Math.min(p.length - 1, 1);
+  return Math.atan2(p[i1][0] - p[i0][0], p[i1][1] - p[i0][1]);
+}
+export function fixedSignal(net, node, e, t = performance.now() / 1000) {
+  if (!node.axisRef) node.axisRef = edgeAngleAt(node.edges[0], node.id);
+  const d = Math.abs(Math.sin(edgeAngleAt(e, node.id) - node.axisRef)); // 0 = same axis as the reference, 1 = crossing
+  const phase = d < 0.6 ? 0 : 1;
+  const off = ((node.id * 7.31) % SIG_CYCLE + SIG_CYCLE) % SIG_CYCLE;
+  const k = (t + off) % SIG_CYCLE, half = SIG_CYCLE / 2, s = phase === 0 ? k : (k + half) % SIG_CYCLE;
+  return s < SIG_GREEN ? 'green' : s < SIG_GREEN + SIG_YELLOW ? 'yellow' : 'red';
+}
 export function signalState(net, nodeId, e) {
   const c = net.city;
+  const gt = net.game?.traffic;
+  if (typeof gt?.signalAt === 'function') { const r = gt.signalAt(nodeId, e.id); if (r !== undefined) return r || null; }
   if (!c) return null;
   if (typeof c.signalAt === 'function') return c.signalAt(nodeId, e.id) || null;
+  const node = net.nodes.get(nodeId);
+  if (node?.signal && node.edges.length >= 3 && e.pts?.length >= 2) return fixedSignal(net, node, e);
   if (typeof c.trafficLight === 'function') {
     const n = net.nodes.get(nodeId);
     if (n && n.edges.length >= 3) {

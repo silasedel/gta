@@ -1,0 +1,68 @@
+{
+ "sb": {
+  "x": 3430.5857066142275,
+  "z": -86.29208837223591,
+  "dx": -0.1923181566172665,
+  "dz": 0.9813326279276238,
+  "y": 0,
+  "name": "Ocean Drive",
+  "kind": "tertiary",
+  "w": 4.2,
+  "label": "South Beach (Ocean Drive)"
+ },
+ "dt": {
+  "x": -2419.9891333192504,
+  "z": 520.3158927790307,
+  "dx": -0.9994088479639391,
+  "dz": 0.0343795667714392,
+  "y": 0,
+  "name": "East Flagler Street",
+  "kind": "secondary",
+  "w": 7.6,
+  "label": "Downtown (Flagler / Biscayne)"
+ },
+ "br": {
+  "x": -2640.4458796020663,
+  "z": 1655.4785792369294,
+  "dx": -0.23196518891238868,
+  "dz": 0.9727240878753028,
+  "y": 0,
+  "name": "Brickell Avenue",
+  "kind": "primary",
+  "w": 7.8,
+  "label": "Brickell Avenue"
+ },
+ "port": {
+  "x": -354.86692638059384,
+  "z": 575.7077335108003,
+  "dx": -0.8675519695451174,
+  "dz": -0.49734653928461975,
+  "y": 0,
+  "name": "Port Boulevard",
+  "kind": "primary",
+  "w": 7.8,
+  "label": "PortMiami"
+ },
+ "cw": {
+  "x": 326.305544850126,
+  "z": 257.824835999226,
+  "dx": -0.9042492222548943,
+  "dz": -0.4270050866809648,
+  "y": 0,
+  "name": "MacArthur Causeway",
+  "kind": "trunk",
+  "w": 11.2,
+  "label": "MacArthur Causeway"
+ },
+ "isl": {
+  "x": 952.4295665382652,
+  "z": -1305.441928956828,
+  "dx": -0.042334718207491705,
+  "dz": -0.9991034839466291,
+  "y": 1.5581409997878903,
+  "name": "West Rivo Alto Drive",
+  "kind": "residential",
+  "w": 7,
+  "label": "Residential island (Venetian / Di Lido)"
+ }
+}

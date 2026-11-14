@@ -1,0 +1,56 @@
+BOAT MODEL BRIEF (Port Solana V2, boats track). Read this fully, then read these files fully before writing anything:
+  src/vehicles/boats/kit.js      (Kit: buckets, palette slots S, primitives, loft, parts, anchors)
+  src/vehicles/boats/hull.js     (makeHull: parametric hull, skin/deck/liner/cap/rubRail)
+  src/vehicles/boats/parts.js    (outboard, console, seats, T-top, bimini, rails, cleats, rods, coolers, fenders, lights, lettering ...)
+  src/vehicles/boats/catalog.js  (model module contract in the header)
+  src/vehicles/boats/models/cc.js (REFERENCE MODEL: copy its structure and level of detail; shot: docs/v2/shots/boats/wip/cc26_sternq.png)
+Also look at references/ref_23.webp and ref_31.webp (quality and mood bar only; never copy a brand, name or exact design).
+
+RULES
+- Work only in the files named in your task (new files in src/vehicles/boats/models/). Do NOT edit kit.js, hull.js, parts.js,
+  materials.js, livery.js, identity.js, catalog.js, brands.js or any other file. If the kit lacks something, write a local helper
+  in your own file, and list what you would want added in your final reply.
+- Never run git commands that change state. Never start a dev server (one runs at http://127.0.0.1:5200). American spelling.
+- Atomic edits: the dev server hot-reloads for everyone. Write <file>.tmp, check it with
+    npx esbuild <file>.tmp --loader:.tmp=js --format=esm --outfile=/dev/null
+  then mv it into place. A model file must never be left broken.
+- Original designs only: real boat CATEGORIES with true-to-category proportions, invented model names, builders only from
+  brands.js (key given in your task). No real brand or model names anywhere.
+- No placeholders: every surface comes from a textured bucket (gel, nonskid, vinyl, matte, metal, alu, teak, glass ...). No bare boxes
+  standing in for something: build the real shape (lofts, lathes, tubes, rounded boxes).
+- Frame: +Z bow, +X port, y = 0 waterline, meters. u = 0 transom .. 1 stem.
+- Budgets per boat: <= 45,000 triangles, <= 16 buckets/parts draw calls where possible, keep tube/cylinder segment counts low.
+- Seeded variety: roll(r, id) must return options (engine count/hp, tops, layout, gear list, fender sides ...) so two boats of the
+  same model differ in structure and gear, not only in color. Colors come from palette slots (S.hull, S.deck, S.upA ...), never
+  hard-coded hex. Use def.look to steer the identity roll (hull color families, graphics styles, wear range, named/registered,
+  nameKind 'work' for commercial boats, look.fixed = { [S.hull]: 0x..., ... } for liveried boats such as police).
+- Required anchors (K.anchor): 'helm' (where the driver is; extra { pose: 'stand'|'sit'|'lean'|'straddle'|'kneel'|'paddle' }),
+  'seat' for each passenger place, 'board' for each good boarding spot (swim platform, low gunwale, ladder), 'cleat' via P.cleat.
+- Movable part names the physics uses (K.part): outboards 'ob0'.. via P.outboard; 'wheel'; 'throttle0'; 'fenders' (hidden underway);
+  sails: 'boom' (rotation.y = sheet angle, mainsail drawn inside it), 'jib' (rotation.y), 'rudder' (rotation.y);
+  airboat: 'airprop' (rotation.z spins), 'rudders' (rotation.y); personal watercraft: 'bars' (rotation.y), 'nozzle' (rotation.y);
+  inboards / sterndrives: 'drive0'.. (rotation.y) or 'rudder'; paddle craft: 'paddle'; 'radar' (rotation.y spins).
+- def.phys: { type: 'planing'|'displacement'|'pontoon'|'pwc'|'sail'|'airboat'|'paddle', mass (kg, loaded), vmaxKmh,
+  drive: 'outboard'|'sterndrive'|'inboard'|'twin-screw'|'jet'|'air'|'paddle'|'sail', leanDeg (bank into a turn; negative = leans out),
+  trimDeg (peak bow rise), slide (0..1 how loosely the stern slides), optional accel (s to 80% speed), sailArea (m2), auxKmh }.
+  Use realistic numbers for the category. def.sound: { engine: 'outboard4s'|'outboard2s'|'inboardV8'|'diesel'|'jet'|'air'|'none',
+  cylinders, hull: 'fiberglass'|'aluminum'|'pontoon'|'inflatable'|'wood'|'steel'|'plastic' }. def.dims: { L, B, draft, height }.
+  def.berth: 'slip'|'mooring'|'beach'|'trailer'|'rack'|'commercial'.
+- build() returns { H } (the main hull from makeHull) so the livery, collider and float points work. For multihulls / pontoons /
+  boards without one main hull, also return hullPts (Float32Array of collider points: a vertical-walled prism of the plan outline,
+  bottom at -draft, top >= 0.95) and floats (8 THREE.Vector3 buoyancy points), and build the skin in 'hull' with H.skin for each hull
+  or in 'gel'/'alu' with your own lofts.
+- Loft facing: rings ordered along +Z with points counter-clockwise seen from the bow face outward; plan rings (ringPlan) stacked
+  upward need { flip: true }. If a surface renders black/inside-out, flip it.
+
+VERIFY (required for every model before you call it done)
+  node src/vehicles/boats/tests/shots.mjs --query "keys=<key>&seed=5" --views quarter,sternq,helm --prefix docs/v2/shots/boats/wip/<key> --stats
+  (views: quarter, side, stern, sternq, bow, top, helm, deck, engine, low; add "&n=3&sheet" without --views to see three seeds at once.)
+  The test browser is shared machine-wide (it may wait for a slot); keep runs short. Never launch a browser any other way.
+  LOOK at the screenshots (Read the PNG) and fix what is wrong: inside-out faces, floating or intersecting parts, wrong scale,
+  proportions that do not read as the category. --stats prints triangles, draw calls and build ms. Console errors fail the run.
+  Be economical: at most ~3 screenshot rounds per model, open only the images you need.
+
+DEADLINE: stop and report by the time given in your task. Work model by model, most important first; each finished model must
+already be in place and loading. Final reply (under 200 words): models done and verified (with screenshot paths), models built but
+not verified, models not started, kit additions you wanted.

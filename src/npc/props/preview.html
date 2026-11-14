@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>NPC props preview</title>
+<style>html,body{margin:0;background:#9db8c9;overflow:hidden}canvas{display:block}#lab{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;font:11px/1.2 ui-monospace,Menlo,monospace;color:#111}.t{position:absolute;transform:translate(-50%,0);background:rgba(255,255,255,.75);padding:1px 4px;border-radius:3px;white-space:nowrap}</style></head>
+<body><div id="lab"></div>
+<script type="module">
+// Usage: preview.html?mod=mobility[&only=buildStroller,buildWalker][&seed=3][&cols=6][&yaw=0.6][&pitch=0.35][&zoom=1][&n=1]
+// Renders every exported build* function of ./<mod>.js in a grid on a concrete floor, with a 1.75 m scale figure.
+import * as THREE from 'three';
+const q = new URLSearchParams(location.search);
+const mod = await import(`./${q.get('mod') || 'mobility'}.js`);
+const only = q.get('only') ? q.get('only').split(',') : null;
+const names = Object.keys(mod).filter((k) => /^build[A-Z]/.test(k) && (!only || only.includes(k)));
+const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(innerWidth, innerHeight); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9db8c9);
+scene.add(new THREE.HemisphereLight(0xdfeeff, 0x8a7f6a, 1.1));
+const sun = new THREE.DirectionalLight(0xfff2dd, 2.6); sun.position.set(6, 12, 8); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+const cols = +(q.get('cols') || Math.ceil(Math.sqrt(names.length * 1.8))), rows = Math.ceil(names.length / cols), SP = +(q.get('sp') || 2.4);
+Object.assign(sun.shadow.camera, { left: -cols * SP, right: cols * SP, top: rows * SP + 2, bottom: -rows * SP - 2, near: 0.5, far: 60 }); sun.shadow.bias = -0.0004; scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0xb9b4a8, roughness: 0.95 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const stats = {}; const lab = document.getElementById('lab'); const tags = [];
+const seed0 = +(q.get('seed') || 1), per = +(q.get('n') || 1);
+names.forEach((k, i) => {
+  for (let j = 0; j < per; j++) {
+    let g; try { g = mod[k](THREE, { seed: seed0 + i * 17 + j * 101 }); } catch (e) { console.error(k, e); stats[k] = 'ERROR ' + e.message; return; }
+    const cx = ((i % cols) - (cols - 1) / 2) * SP + j * 0.0, cz = (Math.floor(i / cols) - (rows - 1) / 2) * SP + j * 1.2;
+    g.position.set(cx, 0, cz); scene.add(g);
+    if (j === 0) { let n = 0; g.traverse((o) => { if (o.isMesh) { const ge = o.geometry; n += (ge.index ? ge.index.count : ge.attributes.position.count) / 3; } }); const bb = new THREE.Box3().setFromObject(g); const s = bb.getSize(new THREE.Vector3());
+      stats[k] = { tris: Math.round(n), size: [+s.x.toFixed(2), +s.y.toFixed(2), +s.z.toFixed(2)], minY: +bb.min.y.toFixed(3), anchors: Object.keys(g.userData.anchors || {}), kind: g.userData.kind };
+      const el = document.createElement('div'); el.className = 't'; el.textContent = k.replace(/^build/, ''); lab.appendChild(el); tags.push([el, new THREE.Vector3(cx, 0, cz + 0.9)]); }
+  }
+});
+// scale figure: 1.75 m post with a head-height band, at the left of the grid
+const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.75, 8), new THREE.MeshStandardMaterial({ color: 0xcc3333 })); post.position.set(-(cols / 2) * SP - 0.6, 0.875, 0); scene.add(post);
+const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 200);
+const yaw = +(q.get('yaw') || 0.55), pitch = +(q.get('pitch') || 0.42), ext = Math.max(cols * SP, rows * SP * 1.6) / (+(q.get('zoom') || 1));
+const D = ext * 1.25 + 3; cam.position.set(Math.sin(yaw) * Math.cos(pitch) * D, Math.sin(pitch) * D + 0.5, Math.cos(yaw) * Math.cos(pitch) * D); cam.lookAt(0, 0.5, 0);
+function draw() { renderer.render(scene, cam); for (const [el, p] of tags) { const v = p.clone().project(cam); el.style.left = ((v.x * 0.5 + 0.5) * innerWidth) + 'px'; el.style.top = ((-v.y * 0.5 + 0.5) * innerHeight) + 'px'; } }
+draw(); requestAnimationFrame(() => { draw(); window.stats = stats; window.ready = true; });
+</script></body></html>

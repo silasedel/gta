@@ -1,59 +1,85 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Port Solana — weapon lineup</title>
-<style>html,body{margin:0;background:#101215;overflow:hidden;font-family:system-ui,sans-serif}#lbl{position:fixed;left:24px;top:18px;color:#ddd;font-size:15px;letter-spacing:.08em}</style></head>
+<html><head><meta charset="utf-8"><title>Port Solana: weapon contact sheet</title>
+<style>html,body{margin:0;background:#101215;overflow:hidden;font-family:system-ui,sans-serif}#lbl{position:fixed;left:24px;top:14px;color:#ddd;font-size:15px;letter-spacing:.08em}.tag{position:fixed;color:#cfd3d8;font:600 12px/1.2 system-ui;letter-spacing:.06em;text-shadow:0 1px 2px #000;transform:translate(-50%,0);white-space:nowrap}</style></head>
 <body><div id="lbl"></div>
-<script type="importmap">{"imports":{}}</script>
 <script type="module">
+// Modes (query): sheet=factory | kitted | skins | parts | melee, or model=<key>[&ang=][&kit=1][&skin=][&anim=slide:1,magOut:1]
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildWeaponModel, MODEL_KEYS, WEAPON_ATTACH, SKINS, DEFAULT_ATTACH } from './gunModels.js';
 const q = new URLSearchParams(location.search);
-const mod = await import(q.get('src') === 'next' ? './_gunModels.next.js' : './gunModels.js');
-const { buildWeaponModel } = mod;
-const W = +(q.get('w') || 1600), H = +(q.get('h') || 900);
-const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true });
 r.setSize(W, H); r.setPixelRatio(1); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace;
-r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
-document.body.appendChild(r.domElement);
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x15181c);
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x15181c);
 scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
-const key = new THREE.DirectionalLight(0xfff1e0, 2.2); key.position.set(-1.5, 3, 2); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = -2; key.shadow.camera.right = 2; key.shadow.camera.top = 2; key.shadow.camera.bottom = -2; scene.add(key);
+const key = new THREE.DirectionalLight(0xfff1e0, 2.2); key.position.set(-0.6, 3, 0.9); key.castShadow = true; key.shadow.mapSize.set(4096, 4096);
+key.shadow.camera.left = -2.4; key.shadow.camera.right = 2.4; key.shadow.camera.top = 2; key.shadow.camera.bottom = -2; key.shadow.bias = -0.0002; scene.add(key);
 const rim = new THREE.DirectionalLight(0x9fc4ff, 1.4); rim.position.set(2, 1.5, -2); scene.add(rim);
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ color: 0x23272c, roughness: 0.85 }));
-floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+// bench mat: woven texture so the floor is not a flat color
+const matC = document.createElement('canvas'); matC.width = matC.height = 256; { const g = matC.getContext('2d'); g.fillStyle = '#262a2f'; g.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 8) for (let x = 0; x < 256; x += 8) { g.fillStyle = ((x + y) / 8) % 2 ? '#272b30' : '#24282d'; g.fillRect(x, y, 8, 8); } }
+const matT = new THREE.CanvasTexture(matC); matT.wrapS = matT.wrapT = THREE.RepeatWrapping; matT.repeat.set(40, 40); matT.colorSpace = THREE.SRGBColorSpace;
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ map: matT, roughness: 0.9 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 const cam = new THREE.PerspectiveCamera(30, W / H, 0.01, 50);
-const model = q.get('model');
-let tris = {};
-function triCount(o) { let n = 0; o.traverse((m) => { if (m.isMesh) { const g = m.geometry; n += (g.index ? g.index.count : g.attributes.position.count) / 3; } }); return Math.round(n); }
-function draws(o) { let n = 0; o.traverse((m) => { if (m.isMesh) n++; }); return n; }
+const fullKit = (k) => { const a = WEAPON_ATTACH[k]; if (!a) return {}; return { sight: a.sight[a.sight.length - 1], mag: a.mag[a.mag.length - 1], muzzle: a.muzzle.includes('suppressor') ? 'suppressor' : a.muzzle[a.muzzle.length - 1], grip: a.grip[a.grip.length - 1], laser: a.laser, light: a.light }; };
+const stats = {}; const tags = [];
+function tag(text, obj) { const v = obj.clone(); tags.push({ text, v }); }
+// lay a model on its side on the bench (left side up, muzzle to the right)
+const basis = new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
+function lay(g, cx, cz) {
+  g.setRotationFromMatrix(basis); g.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
+  g.position.set(cx - c.x, -box.min.y + 0.004, cz - c.z); scene.add(g); return box.getSize(new THREE.Vector3());
+}
+function count(k, g) { let draws = 0; g.traverse((m) => { if (m.isMesh) draws++; }); stats[k] = { tris: g.userData.tris, draws }; }
+const model = q.get('model'), sheet = q.get('sheet') || 'factory';
+const GUNS = ['pistol', 'revolver', 'microsmg', 'smg', 'rifle', 'carbine', 'shotgun', 'sawnoff', 'sniper'];
+const OTHER = ['grenade', 'molotov', 'bat', 'knife', 'crowbar', 'bottle'];
+let label = '';
 if (model) {
-  const g = buildWeaponModel(model);
+  const anim = {}; (q.get('anim') || '').split(',').filter(Boolean).forEach((p) => { const [a, v] = p.split(':'); anim[a] = +v; });
+  const g = buildWeaponModel(model, { attachments: q.get('kit') ? fullKit(model) : undefined, skin: q.get('skin') || 'factory', wear: +(q.get('wear') ?? 0.6), broken: !!q.get('broken'), lod: +(q.get('lod') || 0) });
+  g.userData.animate(anim);
   const box = new THREE.Box3().setFromObject(g); const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
   g.position.set(-c.x, -box.min.y + 0.02, -c.z); scene.add(g);
-  const ang = +(q.get('ang') || 0.5);
-  const D = Math.max(s.z * 0.56 / 0.476, s.y * 0.62 / 0.268) * 1.05;
-  const dir = new THREE.Vector3(-Math.cos(ang), 0.42, Math.sin(ang)).normalize();
-  const ctr = new THREE.Vector3(0, s.y * 0.5 + 0.02, 0);
-  cam.position.copy(ctr).addScaledVector(dir, D); cam.lookAt(ctr);
-  document.getElementById('lbl').textContent = model.toUpperCase();
-  tris[model] = triCount(g);
+  const ang = +(q.get('ang') || 0.5), D = Math.max(s.z * 0.56 / 0.476, s.y * 0.62 / 0.268) * (+(q.get('zoom') || 1.05));
+  const dir = new THREE.Vector3(-Math.cos(ang), +(q.get('elev') || 0.42), Math.sin(ang)).normalize(), ctr = new THREE.Vector3(0, s.y * 0.5 + 0.02, 0);
+  key.position.set(-1.5, 3, 2); cam.position.copy(ctr).addScaledVector(dir, D); cam.lookAt(ctr);
+  count(model, g); label = `${model.toUpperCase()}  ${q.get('kit') ? 'full kit' : 'factory'}  ${q.get('skin') || ''}  ${g.userData.tris} tris`;
 } else {
-  const left = ['pistol', 'revolver', 'microsmg', 'knife', 'grenade', 'bat'], right = ['smg', 'rifle', 'carbine', 'shotgun', 'sawnoff', 'sniper'];
-  const basis = new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
-  [[left, -0.72], [right, 0.5]].forEach(([keys, cx]) => keys.forEach((k, row) => {
-    const g = buildWeaponModel(k);
-    g.setRotationFromMatrix(basis);
-    const box = new THREE.Box3().setFromObject(g); const c = box.getCenter(new THREE.Vector3());
-    g.position.set(cx - c.x, -box.min.y + 0.005, -0.8 + row * (cx > 0 ? 0.32 : 0.3) - c.z);
-    scene.add(g);
-    tris[k] = triCount(g);
-    window.__draws = (window.__draws || {}); window.__draws[k] = draws(g);
-  }));
-  key.position.set(-0.6, 3, 0.9);
-  cam.position.set(0, 3.15, 0.3); cam.lookAt(0, 0, -0.02);
-  document.getElementById('lbl').textContent = 'PORT SOLANA — ARSENAL (procedural, original designs)';
+  const rows = [];
+  if (sheet === 'factory' || sheet === 'kitted') {
+    const kit = sheet === 'kitted';
+    GUNS.forEach((k, i) => rows.push({ k, opts: { attachments: kit ? fullKit(k) : undefined }, col: i < 5 ? 0 : 1, row: i < 5 ? i : i - 5, text: k + (kit ? ' (full kit)' : '') }));
+    label = kit ? 'PORT SOLANA ARSENAL: every attachment slot filled' : 'PORT SOLANA ARSENAL: factory configuration';
+  } else if (sheet === 'skins') {
+    SKINS.forEach((s, i) => { rows.push({ k: 'pistol', opts: { skin: s.key }, col: 0, row: i, text: s.name, small: true }); rows.push({ k: i % 2 ? 'smg' : 'rifle', opts: { skin: s.key, attachments: { sight: 'reddot', grip: 'vertical' } }, col: 1, row: i, text: s.name, small: true }); });
+    label = 'SKINS: ' + SKINS.map((s) => s.name).join(' / ');
+  } else if (sheet === 'parts') {
+    const demo = [['pistol', { slide: 1, trigger: 1 }, 'slide locked back'], ['pistol', { magOut: 1 }, 'magazine out'], ['revolver', { hammer: 1, cylinder: 0.52, trigger: 1 }, 'hammer cocked'], ['shotgun', { pump: 1, bolt: 1 }, 'pump back'], ['sawnoff', { breech: 1, hammer: 1 }, 'breech open'],
+      ['rifle', { bolt: 1, charging: 1, cover: 1 }, 'bolt back, cover open'], ['rifle', { magOut: 1 }, 'magazine out'], ['sniper', { boltHandle: 1 }, 'bolt open'], ['smg', { charging: 1, bolt: 1, magOut: 0.6 }, 'charging handle back'], ['microsmg', { bolt: 1, magOut: 1 }, 'bolt back, mag out']];
+    demo.forEach(([k, a, t], i) => rows.push({ k, opts: {}, anim: a, col: i < 5 ? 0 : 1, row: i < 5 ? i : i - 5, text: `${k}: ${t}` }));
+    label = 'MOVING PARTS';
+  } else if (sheet === 'melee') {
+    OTHER.forEach((k, i) => rows.push({ k, opts: {}, col: i < 3 ? 0 : 1, row: i < 3 ? i * 1.2 : (i - 3) * 1.2, text: k }));
+    rows.push({ k: 'bottle', opts: { broken: true }, col: 0, row: 3.6, text: 'bottle (broken)' }); rows.push({ k: 'pistol', opts: { lod: 1 }, col: 1, row: 3.6, text: 'pistol LOD1' });
+    label = 'MELEE AND THROWN';
+  }
+  const small = rows.some((r0) => r0.small);
+  for (const rw of rows) {
+    const g = buildWeaponModel(rw.k, rw.opts); if (rw.anim) g.userData.animate(rw.anim);
+    const cx = rw.col ? 0.62 : -0.66, cz = (small ? -0.8 : -0.72) + rw.row * (small ? 0.175 : 0.36);
+    lay(g, cx, cz); count(rw.text, g);
+    tag(`${rw.text}  ·  ${g.userData.tris} tris`, new THREE.Vector3(cx, 0, cz + (small ? 0.085 : 0.15)));
+  }
+  cam.position.set(0, 3.5, 0.28); cam.lookAt(0, 0, 0.0);
 }
-r.render(scene, cam);
-window.__tris = tris; window.__ready = true;
+document.getElementById('lbl').textContent = label;
+function frame() {
+  r.render(scene, cam);
+  for (const t of tags) { if (!t.el) { t.el = document.createElement('div'); t.el.className = 'tag'; t.el.textContent = t.text; document.body.appendChild(t.el); } const p = t.v.clone().project(cam); t.el.style.left = ((p.x * 0.5 + 0.5) * W) + 'px'; t.el.style.top = ((-p.y * 0.5 + 0.5) * H) + 'px'; }
+}
+frame(); requestAnimationFrame(frame);
+window.__stats = stats; window.__ready = true;
 </script></body></html>

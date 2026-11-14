@@ -9,6 +9,7 @@ import { buildProceduralClips } from './proceduralClips.js';
 import { addHairShell, makeHairMaterial } from './hairShell.js';
 import { loadHumanManifest, loadHumanGLB, makeSkinMat, makeHairMat, makeGarmentMat, makeTexturedMat, makeAtlasSkinMat, makeAtlasMat } from './humans.js';
 import { PERSONAS } from '../npc/personality.js';
+import { preloadNico, decorateNico } from './nico/index.js';
 import { rng, pick, SKIN_TONES, HAIR, genOutfit, makeHeadAccessories, makePhone, attachToBone, makeCopCap, makeDutyBelt, makeCase, makeSunglasses } from './pedStyle.js';
 import { makeTopMaterial, makeRecolorMaterial, makeSkinMaterial, makeMichelleVariantMap, limbIndices } from './characterMaterials.js';
 
@@ -462,6 +463,17 @@ export async function preloadCharacters(game) {
   LIB = { bases, sources, procClips, srcG: g, matCache: new Map(), humans: new Map(), humanEntries: [], game };
   if (typeof window !== 'undefined') window.__chars = LIB;
   try { await initHumans(); } catch (e) { console.warn('[humans] init failed', e); }
+  // V2: Nico (the upgraded protagonist). Any failure keeps the v1 player model.
+  try {
+    const A = await preloadNico();
+    const scene = A.gltf.scene; const rig = makeRig(scene, null);
+    if (rig.bones.Hips && sources.xbot) {
+      alignRestTo(rig, sources.xbot); setRest(rig); scene.updateMatrixWorld(true);
+      const B = { kind: 'nico', assets: A, scene, rig, yaw: facingYaw(rig), height: A.meta.height, minY: 0, clips: {}, headTop: null };
+      buildClipsFor(B, g, sources, procClips);
+      if (B.clips.idle && B.clips.walk) LIB.nico = B;
+    }
+  } catch (e) { console.warn('[nico] unavailable, using the v1 player', e); }
   console.log('[characters] ready', Object.fromEntries(Object.entries(bases).map(([k, b]) => [k, Object.fromEntries(Object.entries(b.clips).map(([n, c]) => [n, c.userData.speed ? +c.userData.speed.toFixed(2) : +c.duration.toFixed(2)]))])));
   return LIB;
 }
@@ -584,7 +596,9 @@ export function createCharacter(game, opts = {}) {
   const personaName = opts.personality || null;
   let persona = personaName ? (PERSONAS[personaName] || PERSONAS.calm) : null;
   let base = opts.noHuman ? null : pickHuman(variant, seed, opts);
-  const isHuman = !!base;
+  if (variant === 'player' && LIB.nico && !opts.legacy) base = LIB.nico;
+  const isNico = base?.kind === 'nico';
+  const isHuman = !!base && !isNico;
   if (!base) {
     base = LIB.bases.male;
     if (variant === 'ped' && LIB.bases.female && (r() < 0.3 || !base)) base = LIB.bases.female;
@@ -593,7 +607,7 @@ export function createCharacter(game, opts = {}) {
   const model = SkeletonUtils.clone(base.scene);
   _beachSeeds.set(seed, zone0);
   let hm = null;
-  const mats = isHuman ? (hm = humanMaterials(base, seed, zone0, variant)).mats : getMaterials(base, variant, seed);
+  const mats = isNico ? {} : isHuman ? (hm = humanMaterials(base, seed, zone0, variant)).mats : getMaterials(base, variant, seed);
   const detail = [], meshes = [];
   const lodMeshes = [[], [], []];
   const lodHook = () => { if (character?._lod && !_lodReg.has(character)) _lodReg.add(character); lodTick(game); };
@@ -965,6 +979,7 @@ export function createCharacter(game, opts = {}) {
     },
   };
   update(0, { speed: 0, grounded: true });
+  if (isNico) { try { decorateNico(character, { game, model, assets: base.assets, opts }); } catch (e) { console.warn('[nico] decorate failed', e); } }
   if (zone0 === 'cop' || zone0 === 'business') character.restyle(zone0);
   if (isHuman && variant !== 'player') {
     const t = base.entry.tris || [34000, 10000, 3400];

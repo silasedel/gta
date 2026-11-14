@@ -1,11 +1,14 @@
 // Port Solana vehicles: procedural cars + Rapier raycast-vehicle physics + lane-following traffic AI.
 import * as THREE from 'three';
-import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel.js';
+import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel2.js';
+import { rollLook, visualSignature, lookSignature, incomeFor, fleetMix, tierWeight } from './catalog.js';
+import { rollDriver, createDriverStats } from './traffic/drivers.js';
 import { dentMesh } from './damage.js';
 import { createBoats } from './boats.js';
 import { buildRoadNet, project, sampleEdge, laneOffset, laneCount, driveLaneMax, lanePointAt, exitsAt, edgeDirAt, signalState, randomLane } from './roadnet.js';
 import { createCharacter } from '../player/characterModel.js';
 import { createSkids, createScreech, createSmoke, createShards, playImpact } from './skids.js';
+import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistry, externalModelKeys } from './registry.js';
 
 const PALETTE = [
   0xff6a2b, 0x1fb5b0, 0x173b8f, 0xeeeeea, 0x101214, 0xa9aeb4, 0xb3121b, 0x7c2fbf,
@@ -25,7 +28,7 @@ export async function createVehicles(game) {
   const list = [];
 
   // ------------------------------------------------------------ road network (city.roadGraph or legacy grid)
-  const net = buildRoadNet(city);
+  const net = buildRoadNet(city); net.game = game; // signalState reads game.traffic?.signalAt when a world module drives the lights
   const groundY = (x, z, y) => (y != null ? y : (city?.groundHeightAt?.(x, z) ?? 0));
   const isNear = (p, R) => list.some((v) => v.body && distXZ(v.body.translation(), p) < Math.max(R, (v.spec.L + 5) / 2 + 1.2));
   // footprint test: inflated chassis box vs every existing collider (buildings, props, kerbs above 0.3 m, other cars)
@@ -216,15 +219,21 @@ export async function createVehicles(game) {
   function createVehicle(typeKey, color, pos, heading, opts = {}) {
     if (!CAR_TYPES[typeKey]) typeKey = 'sedan';
     const spec = CAR_TYPES[typeKey];
-    const variant = opts.variant || rollVariant(typeKey);
-    if (!isBuilt(typeKey, variant.kit)) variant.kit = 'base';
-    if (variant.wheel && !wheelBuilt(typeKey, variant.wheel.spokes)) variant.wheel = { spokes: spec.spokes, rimColor: variant.wheel.rimColor };
+    const isExt = hasExternalModel(typeKey);
+    let look = null;
+    if (!isExt) {
+      look = opts.look || rollUniqueLook(typeKey, pos, opts.seed);
+      if (color != null && !opts.look) { look.color = color; look.twoTone = null; look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; look.signature = lookSignature(look); }
+      if (!isBuilt(typeKey, look.kit)) look.kit = 'base';
+    }
+    const variant = opts.variant || (isExt ? { color: spec.palette[(Math.random() * spec.palette.length) | 0], kit: 'base', wheel: null, blackRoof: false } : { color: look.color, kit: look.kit, wheel: look.wheel, blackRoof: !!look.twoTone });
     if (color == null) color = variant.color;
-    const model = buildCar(typeKey, color, { kit: variant.kit, wheel: variant.wheel, blackRoof: variant.blackRoof });
+    let model = isExt ? buildExternalCar(typeKey, color, { variant, seed: opts.seed ?? ((Math.random() * 0x7fffffff) | 0), custom: opts.custom }) : null;
+    if (!model) model = buildCar(CAR_TYPES[typeKey] && !isExt ? typeKey : (spec.cls === 'super' ? 'super' : spec.cls === 'suv' ? 'suv' : 'sports'), !isExt && look ? look : color, { kit: variant.kit === 'base' || !isExt ? variant.kit : 'base', wheel: variant.wheel, blackRoof: variant.blackRoof });
     const [restLen, stiff] = spec.susp || [0.36, 34];
     const eqLen = restLen - 9.81 / (4 * stiff);
     const groundOff = eqLen + spec.r; // body origin height above ground at rest
-    model.shell.position.y = -groundOff;
+    model.shell.position.y = -groundOff + (look?.ride || 0); // per-car ride height (lowered / lifted)
     scene.add(model.root);
     const pool = new THREE.Mesh(poolGeo, poolMat);
     pool.position.set(0, -groundOff + 0.04, spec.L / 2 + 6.0);
@@ -349,7 +358,10 @@ export async function createVehicles(game) {
         _v.set(0, 0, 1).applyQuaternion(_q); return Math.atan2(_v.x, _v.z);
       },
     };
+    v.kind = 'car';
     list.push(v);
+    if (look) { v.look = look; registerLook(v); }
+    game.emit?.('vehicle:spawned', { vehicle: v });
     // driver is added lazily in update() when the car is near (one per frame)
     return v;
   }
@@ -370,8 +382,10 @@ export async function createVehicles(game) {
     });
     return vc;
   }
+  let driverSeq = (Date.now() >>> 3) & 0xffff;
+  const driverStats = createDriverStats();
   function makeAI() {
-    return { edge: null, dir: 1, d: 0, lane: 0, next: null, cruiseK: 0.85 + Math.random() * 0.25, stuckT: 0, blockedT: 0, fleeT: 0, honkT: 0, chase: null };
+    return { drv: null, lcT: 2 + Math.random() * 4, signal: 0, phoneT: 0, wanderT: 0, wanderK: 1, seenBlock: null, edge: null, dir: 1, d: 0, lane: 0, next: null, cruiseK: 0.85 + Math.random() * 0.25, stuckT: 0, blockedT: 0, fleeT: 0, honkT: 0, chase: null };
   }
 
   // ------------------------------------------------------------ drivers (ped models seated in AI cars)
@@ -402,6 +416,7 @@ export async function createVehicles(game) {
     if (v.health <= 0) return;
     v.health = Math.max(0, v.health - amount);
     const spec = v.spec;
+    game.emit?.('vehicle:damage', { vehicle: v, amount, health: v.health, localPoint: localPoint || null, kind: 'impact' });
     if (localPoint) {
       // shell coordinates (ground = 0)
       const sp = { x: localPoint.x, y: localPoint.y + v.groundOff, z: localPoint.z, cy: spec.belt * 0.7 };
@@ -438,6 +453,7 @@ export async function createVehicles(game) {
     game.fx?.smoke?.(pos);
     game.audio?.play?.('car_crash', { position: pos, volume: 1 });
     game.emit?.('crash', { vehicle: v, impulse: v.spec.mass * 12, point: pos });
+    game.emit?.('vehicle:destroyed', { vehicle: v, position: pos.clone(), cause: 'damage' });
     // charred paint
     const burnt = v.burntMat = v.car.paint.clone(); burnt.color.setHex(0x16120f); burnt.metalness = 0.2; burnt.roughness = 0.8; burnt.clearcoat = 0.1;
     for (const mm of [...(v.car.slots?.paint || []), ...(v.car.slots?.roof || [])]) mm.material = burnt;
@@ -737,6 +753,7 @@ export async function createVehicles(game) {
       // prefer bigger roads a little
       o.w *= 0.7 + 0.15 * Math.min(4, laneCount(o.edge, o.dir));
       if (MINOR.test(o.edge.kind || '')) o.w *= 0.04;
+      if (ai.drv?.wander && a > 0.45 && a < 2.4) o.w *= 1 + ai.drv.wander * 2.5; // lost / tourist: turn more, often off the main road
       tot += o.w;
     }
     let r = Math.random() * tot, pick = opts[0];
@@ -764,6 +781,8 @@ export async function createVehicles(game) {
     if (v.chaseTarget) { chaseDrive(v, dt, t, left); return; }
     if (ai.fleeT > 0) ai.fleeT -= dt;
     const fleeing = ai.fleeT > 0;
+    const P = ai.drv ||= rollDriver(driverSeq++, { zone: zoneAt(_p), fleet: !!(v.police || v.spec.taxi || v.spec.heavy || v.spec.busLivery) });
+    const S = driverStats.get(P.type); S.seen.add(v.id);
     if (!ai.edge && !snapAI(v, t)) { v.ctrl.throttle = 0; v.ctrl.brake = 1; ai.stuckT += dt; return; }
     // progress along the current edge
     const pr = project(ai.edge, t.x, t.z, ai.dir > 0 ? ai.d : ai.edge.len - ai.d);
@@ -792,7 +811,11 @@ export async function createVehicles(game) {
     v.ctrl.steer = clamp(steerAng / maxSteer, -1, 1);
 
     // target speed: speed limit, curves, junction turns
-    const limit = Math.min(v.spec.vmax * 0.85, (ai.edge.speedKmh || 40) / 3.6 * ai.cruiseK);
+    // personality: wandering (lost / tourist slow down to read signs), phone glances (distracted)
+    if (P.wander) { ai.wanderT -= dt; if (ai.wanderT <= 0) { const slow = Math.random() < P.wander * 0.35; ai.wanderK = slow ? 0.45 + Math.random() * 0.25 : 1; ai.wanderT = slow ? 3 + Math.random() * 4 : 6 + Math.random() * 10; } }
+    if (P.phone) { if (ai.phoneT > 0) ai.phoneT -= dt; else if (Math.random() < P.phone * 0.12 * dt) ai.phoneT = 0.8 + Math.random() * 1.6; }
+    const limitMs = (ai.edge.speedKmh || 40) / 3.6;
+    const limit = Math.min(v.spec.vmax * 0.85, limitMs * P.speed * ai.wanderK * (0.97 + ((v.id * 37) % 7) / 100));
     let desired = fleeing ? Math.min(v.spec.vmax * 0.8, limit * 1.6 + 6) : limit;
     const distToNode = ai.edge.len - ai.d;
     if (ai.next && distToNode < 40) {
@@ -807,14 +830,14 @@ export async function createVehicles(game) {
     if (Math.abs(steerAng) > 0.25) desired = Math.min(desired, 7);
 
     // obstacles: other vehicles + player
-    let block = 99;
+    let block = 99, leadSpd = 99, stopBlock = 99;
     for (const o of list) {
       if (o === v) continue;
       const ot = o.body.translation();
       const dx = ot.x - t.x, dz = ot.z - t.z;
       if (dx * dx + dz * dz > 900 || Math.abs(ot.y - t.y) > 4) continue;
       const a = dx * _f.x + dz * _f.z, lat = Math.abs(dx * left.x + dz * left.z);
-      if (a > 0 && a < 25 && lat < 1.9 + Math.min(0.6, Math.abs(steerAng))) block = Math.min(block, a - (o.spec.L + v.spec.L) / 2);
+      if (a > 0 && a < 40 && lat < 1.9 + Math.min(0.6, Math.abs(steerAng))) { const g = a - (o.spec.L + v.spec.L) / 2; if (g < block) { block = g; leadSpd = o.speed; } }
     }
     let byPlayer = false;
     for (const o of list) {
@@ -838,22 +861,35 @@ export async function createVehicles(game) {
         const dx = q2.x - t.x, dz = q2.z - t.z;
         if (dx * dx + dz * dz > 300) continue;
         const a = dx * _f.x + dz * _f.z, latS = dx * left.x + dz * left.z, lat = Math.abs(latS);
-        if (a > 0 && a < 15 && lat < 1.8) {
+        if (a > 0 && a < 15 + P.pedMargin * 8 && lat < 1.8 + P.pedMargin) {
           block = Math.min(block, a - v.spec.L / 2);
+          if ((ai.pedT || 0) <= 0 && spd > 2) { S.pedYields++; ai.pedT = 6; }
           if (a < 11 && v.speed > 4) v.ctrl.steer = clamp(v.ctrl.steer - Math.sign(latS || 1) * 0.45, -1, 1);
         }
       }
     }
     // signals / yielding at the junction ahead
     const node = net.nodes.get(endNodeOf(ai));
-    if (node && node.edges.length >= 3 && distToNode < 45 && !fleeing) {
+    if (ai.pedT > 0) ai.pedT -= dt;
+    const ctrl = ai.dir > 0 ? ai.edge.src?.controlB : ai.edge.src?.controlA;
+    if (node && ai.approachNode !== node.id) { ai.approachNode = node.id; ai.runRed = Math.random() < P.redRun; ai.rolls = Math.random() > P.stopFull; ai.redSeen = false; ai.redRunCounted = false; ai.stopSeen = false; ai.stopDone = 0; }
+    if (node && (node.edges.length >= 3 || ctrl === 'stop') && distToNode < 45 && !fleeing) {
       let clear = 4;
       for (const e of node.edges) if (e !== ai.edge) clear = Math.max(clear, e.width / 2 + 1.5);
       const stopAt = distToNode - clear - v.spec.L / 2; // distance from our nose to the stop line
       const sig = signalState(net, node.id, ai.edge);
       let mustStop = false;
-      if (sig === 'red') mustStop = stopAt > -1.5;
-      else if (sig === 'yellow') mustStop = stopAt > 6 && spd < stopAt * 1.2 + 3 ? true : stopAt > 14;
+      if (sig === 'red') {
+        if (!ai.redSeen && stopAt > 0 && stopAt < 40) { ai.redSeen = true; S.redApproach++; }
+        mustStop = stopAt > -1.5 && !(ai.runRed && stopAt < 22 && spd > 4);
+        if (!mustStop && ai.redSeen && stopAt < -1 && !ai.redRunCounted && spd > 2) { ai.redRunCounted = true; S.redRun++; }
+      } else if (sig === 'yellow') mustStop = stopAt > P.amberGo || (stopAt > 6 && spd * 1.3 < stopAt && P.amberGo < 15);
+      else if (!sig && ctrl === 'stop' && stopAt > -1) {
+        // stop sign: full stop and a look (stopWait s), or a rolling stop for the impatient
+        if (!ai.stopSeen && stopAt < 30) { ai.stopSeen = true; S.stopApproach++; if (ai.rolls) S.stopRolled++; }
+        if (ai.rolls) desired = Math.min(desired, 3.2 + Math.max(0, stopAt) * 0.5);
+        else { if (spd < 0.4 && stopAt < 3.5) ai.stopDone += dt; mustStop = ai.stopDone < P.stopWait; }
+      }
       else if (!sig && ai.next && stopAt < 14 && stopAt > -1) {
         // uncontrolled junction: yield to anyone already moving through it
         for (const o of list) {
@@ -864,7 +900,7 @@ export async function createVehicles(game) {
         }
         if (Math.abs(ai.next.ang) > 0.45) desired = Math.min(desired, 6);
       }
-      if (mustStop) { block = Math.min(block, stopAt + 2.5); ai.waitT += dt; } else ai.waitT = 0;
+      if (mustStop) { stopBlock = Math.min(stopBlock, stopAt + 2.5); ai.waitT += dt; } else ai.waitT = 0;
     }
     if (fleeing) block = Math.max(block, 99 * (block > 6 ? 1 : 0) || block);
     // ray for anything else (props, unknown obstacles)
@@ -880,22 +916,75 @@ export async function createVehicles(game) {
       if (ai.rayFixed) { if (ai.rayToi < 4) block = Math.min(block, ai.rayToi); }
       else block = Math.min(block, ai.rayToi);
     }
-    if (block < 99) desired = Math.min(desired, Math.max(0, (block - 2.5) * 0.9));
+    // perception: the gap the driver *believes* lags the real one by their reaction time; a phone glance freezes it
+    if (ai.seenBlock == null) ai.seenBlock = block;
+    if (!(ai.phoneT > 0)) ai.seenBlock += (block - ai.seenBlock) * Math.min(1, dt / P.react);
+    if (block < Math.min(ai.seenBlock, 4 + spd * 0.25)) ai.seenBlock = block; // emergency: everyone reacts to something right at the bumper
+    const pb = Math.min(ai.seenBlock, block + 6);
+    const decel = 2.6 * P.brake;
+    if (pb < 99) desired = Math.min(desired, Math.max(0, Math.min((pb - P.gap) / P.headway, Math.sqrt(2 * decel * Math.max(0, pb - P.gap)) + Math.max(0, leadSpd < 90 ? leadSpd : 0))));
+    if (stopBlock < 99) desired = Math.min(desired, Math.max(0, Math.min(Math.sqrt(2 * decel * Math.max(0, stopBlock - 2.5)), (stopBlock - 2.5) * 1.1)));
+    if (ai.phoneT > 0 && spd > 3) v.ctrl.steer = clamp(v.ctrl.steer + Math.sin(ai.phoneT * 3 + v.id) * 0.04, -1, 1); // weaving while looking down
+    // lane changes with turn signals: overtake slower traffic on multi-lane roads (rate by personality)
+    if (ai.lcT > 0) ai.lcT -= dt;
+    const maxLane = driveLaneMax(ai.edge, ai.dir);
+    if (maxLane >= 1 && ai.lcT <= 0 && !ai.lcTarget && distToNode > 22 && !fleeing) {
+      const slowLead = block < 35 && leadSpd < Math.max(4, limit * 0.8);
+      const rate = slowLead ? P.lane * 0.09 : P.lane * 0.006; // per second
+      if (Math.random() < rate * dt) {
+        const tl = ai.lane > 0 && (ai.lane >= maxLane || Math.random() < 0.6) ? ai.lane - 1 : Math.min(maxLane, ai.lane + 1);
+        if (tl !== ai.lane) { ai.lcTarget = { lane: tl, t: P.lane > 1.5 && Math.random() < 0.35 ? 0.25 : 1.2 + (P.react - 0.3) * 1.5 }; }
+      }
+    }
+    if (ai.lcTarget) {
+      const lc = ai.lcTarget;
+      lanePointAt(ai.edge, ai.dir, Math.min(ai.edge.len, ai.d + 8), laneOffset(ai.edge, ai.dir, lc.lane), _lp2);
+      const sx = (_lp2.x - t.x) * left.x + (_lp2.z - t.z) * left.z, cx = (_lp1.x - t.x) * left.x + (_lp1.z - t.z) * left.z;
+      ai.signal = sx > cx ? 1 : -1;
+      lc.t -= dt;
+      if (lc.t <= 0) {
+        let free = lc.lane <= maxLane;
+        lanePointAt(ai.edge, ai.dir, ai.d, laneOffset(ai.edge, ai.dir, lc.lane), _lp2);
+        for (const o of list) {
+          if (o === v || !free) continue;
+          const ot = o.body.translation(), dx = ot.x - _lp2.x, dz = ot.z - _lp2.z;
+          const al = dx * _f.x + dz * _f.z, lat = Math.abs(dx * left.x + dz * left.z);
+          if (lat < 1.7 && al > -10 - Math.max(0, o.speed - spd) * 1.5 && al < 12) free = false;
+        }
+        if (free) { ai.lane = lc.lane; S.laneChanges++; ai.lcTarget = null; ai.signal = 0; ai.lcT = 4 + 8 / Math.max(0.2, P.lane); }
+        else if (lc.t < -4) { ai.lcTarget = null; ai.signal = 0; ai.lcT = 3; }
+      }
+    }
+    // sirens: pull to the curb lane and crawl (if the driver notices)
+    let siren = null;
+    for (const o of list) if (o !== v && o.sirenActive && distXZ(o.body.translation(), t) < 70) { siren = o; break; }
+    if (siren) {
+      if (ai.sirenNotice == null) { ai.sirenNotice = Math.random() < P.siren; if (ai.sirenNotice) S.sirenYields++; }
+      if (ai.sirenNotice) { ai.lane = maxLane; desired = Math.min(desired, 2.5); }
+    } else ai.sirenNotice = null;
 
     const err = desired - v.speed;
     if (desired < 0.3) { v.ctrl.throttle = 0; v.ctrl.brake = v.speed > 0.2 ? 1 : 0.6; }
-    else if (err < -1.2) { v.ctrl.throttle = 0; v.ctrl.brake = clamp(-err / 6, 0.15, 1); }
-    else { v.ctrl.brake = 0; v.ctrl.throttle = clamp(err * 0.35 + 0.15, 0, 0.9); }
+    else if (err < -1.2) { v.ctrl.throttle = 0; v.ctrl.brake = clamp(-err / 6 * P.brake, 0.15, 1); }
+    else { v.ctrl.brake = 0; v.ctrl.throttle = clamp(err * 0.35 + 0.15, 0, 0.45 + 0.55 * P.accel); }
+    // measurement (traffic/drivers.js): time, distance, free-flow speed vs limit, following gap
+    S.seconds += dt; S.meters += spd * dt;
+    if (block > 60 && stopBlock > 60 && distToNode > 50 && curve < 0.15 && Math.abs(steerAng) < 0.1 && spd > 3) { S.ratioSum += spd / limitMs * dt; S.ratioN += dt; }
+    if (block < 40 && leadSpd > 2 && spd > 3) { S.gapSum += block * dt; S.gapN += dt; }
     v.ctrl.handbrake = false;
 
     if (byPlayer && v.speed < 1) {
       ai.honkT += dt;
-      if (ai.honkT > 1.6) {
-        ai.honkT = -4 - Math.random() * 3;
+      if (ai.honkT > 1.6 / Math.max(0.08, P.honk)) {
+        ai.honkT = -4 - Math.random() * 3; S.honks++;
         const hp = new THREE.Vector3(t.x, t.y, t.z);
         if (game.audio?.play) game.audio.play('horn', { position: hp, volume: 0.6 });
         else if (pp && distXZ(t, pp) < 40) horn(v);
       }
+    } else if (block < 9 && leadSpd < 0.5 && v.speed < 1 && stopBlock > 60 && P.honk > 0.3) {
+      // impatient drivers lean on the horn at a car that does not move on green
+      ai.honkT += dt * P.honk;
+      if (ai.honkT > 2.5) { ai.honkT = -6 - Math.random() * 4; S.honks++; const hp = new THREE.Vector3(t.x, t.y, t.z); if (game.audio?.play) game.audio.play('horn', { position: hp, volume: 0.45 }); }
     } else if (ai.honkT > 0) ai.honkT = 0;
 
     // stuck detection (waiting at a red light does not count)
@@ -990,17 +1079,75 @@ export async function createVehicles(game) {
   };
   const zoneAt = (p) => city?.zoneAt?.(p.x, p.z) || 'commercial';
   const RICH = new Set(['beach', 'nightlife', 'downtown', 'business']);
+  // neighborhood-matched fleet: class mix and model tier follow the income of the zone (catalog.fleetMix / tierWeight)
+  function pickModel(mix, income) {
+    const ks = CLASSES[pickW(mix)] || CLASSES.sedan;
+    let tot = 0; for (const k of ks) tot += tierWeight(k, income);
+    let r = Math.random() * tot;
+    for (const k of ks) { r -= tierWeight(k, income); if (r <= 0) return k; }
+    return ks[0];
+  }
   function parkedTypeFor(pos) {
-    if (RICH.has(zoneAt(pos)) && Math.random() < 0.2) return randomModel(EXOTIC_MIX);
-    let k = randomModel(PARKED_MIX);
+    const inc = incomeFor(zoneAt(pos));
+    let k = pickModel(fleetMix(inc, true), inc);
     if (CAR_TYPES[k].police && CAR_TYPES[k].police !== 'hidden' && Math.random() < 0.7) k = 'sedan';
     return k;
   }
-  function trafficTypeFor() {
-    let k = randomModel(TRAFFIC_MIX);
+  function trafficTypeFor(pos) {
+    const inc = pos ? incomeFor(zoneAt(pos)) : 0.5;
+    let k = pickModel(fleetMix(inc), inc);
     if ((k === 'firetruck' || k === 'ambulance') && Math.random() < 0.6) k = 'atlas_box';
-    if (CAR_TYPES[k].cls === 'super' && Math.random() < 0.5) k = fromClass('sports');
+    if (CAR_TYPES[k].cls === 'super' && inc < 0.7 && Math.random() < 0.5) k = fromClass('sports');
     return k;
+  }
+  // ---- unique looks: every live car has a different look; collisions re-roll (lookAudit proves it on 500 cars)
+  const liveReg = { vis: new Map(), full: new Set() };
+  let lookSeq = (Date.now() * 2654435761) >>> 0;
+  const lookStats = { rolled: 0, rerolled: 0 };
+  function envAt(pos) {
+    const zone = pos ? zoneAt(pos) : 'commercial';
+    const salt = zone === 'keys' || zone === 'causeway' || (!!pos && pos.z > 4300);
+    const rural = ['rural', 'farm', 'park', 'wetland', 'everglades'].includes(zone) || (!!pos && (pos.x < -3800 || pos.z < -3300 || (pos.z > 2900 && pos.z < 4300)));
+    return { zone, income: incomeFor(zone), salt, rural };
+  }
+  function rollUniqueLook(key, pos, seed, reg = liveReg, env = envAt(pos)) {
+    let look = null;
+    for (let k = 0; k < 8; k++) {
+      look = rollLook(key, seed != null && k === 0 ? seed : (lookSeq = (lookSeq + 0x9e3779b1) >>> 0), env);
+      if (!reg.vis.has(visualSignature(look)) && !reg.full.has(look.signature)) break;
+      lookStats.rerolled++;
+    }
+    lookStats.rolled++;
+    return look;
+  }
+  function registerLook(v, reg = liveReg) {
+    v._vsig = visualSignature(v.look);
+    reg.vis.set(v._vsig, (reg.vis.get(v._vsig) || 0) + 1); reg.full.add(v.look.signature);
+  }
+  function unregisterLook(v) {
+    if (!v._vsig) return;
+    const n = (liveReg.vis.get(v._vsig) || 1) - 1;
+    if (n > 0) liveReg.vis.set(v._vsig, n); else liveReg.vis.delete(v._vsig);
+    liveReg.full.delete(v.look.signature); v._vsig = null;
+  }
+  // audit: roll + build n cars through the spawner's own model/look path at random road spots in every zone, all
+  // treated as alive at once; reports duplicate full and visual signatures (expected 0) and build errors
+  function lookAudit(n = 500) {
+    const reg = { vis: new Map(), full: new Set() }, zones = {}, models = {}, t0 = performance.now();
+    let dupFull = 0, dupVis = 0, buildErr = 0, built = 0;
+    const nodes = [...net.nodes.values()];
+    const fullSeen = new Set(), visSeen = new Set();
+    for (let i = 0; i < n; i++) {
+      const nd = nodes[(Math.random() * nodes.length) | 0], pos = new THREE.Vector3(nd?.x ?? 0, 0, nd?.z ?? 0);
+      const type = i % 3 ? trafficTypeFor(pos) : parkedTypeFor(pos);
+      const look = rollUniqueLook(type, pos, undefined, reg);
+      const fake = { look }; registerLook(fake, reg);
+      if (fullSeen.has(look.signature)) dupFull++; fullSeen.add(look.signature);
+      if (visSeen.has(fake._vsig)) dupVis++; visSeen.add(fake._vsig);
+      const z = envAt(pos).zone; zones[z] = (zones[z] || 0) + 1; models[type] = (models[type] || 0) + 1;
+      try { const car = buildCar(type, look); built++; car.dispose?.(); releaseCar(car); } catch (e) { buildErr++; if (buildErr < 3) console.warn('[lookAudit]', type, e); }
+    }
+    return { cars: n, built, buildErr, dupFull, dupVisual: dupVis, rerolls: lookStats.rerolled, models: Object.keys(models).length, zones, ms: Math.round(performance.now() - t0) };
   }
   // a hero sports car right next to the player spawn + special spawns close by so they are found quickly
   const specials = new Set();
@@ -1022,7 +1169,7 @@ export async function createVehicles(game) {
   for (let k = 0; k < 60 && list.filter((v) => v.ai).length < 12; k++) {
     const info = randomLanePos(spawn, 25, 260 + k * 10, false);
     if (!info) continue;
-    const type = trafficTypeFor();
+    const type = trafficTypeFor(info.pos);
     const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true });
     aiAssign(v, info);
   }
@@ -1031,6 +1178,7 @@ export async function createVehicles(game) {
   const PHYS_R = 190; // simulate cars within this radius of the player (colliders stream to ~250-300 m)
   const DENS = { downtown: 1.45, business: 1.35, causeway: 1.25, nightlife: 1.25, commercial: 1.1, beach: 0.95, residential: 0.8, port: 0.7, industrial: 0.7, park: 0.55, water: 0.5 };
   let mgrT = 0;
+  const trafficDebug = { target: null };
   // simulation tiers: full ray-cast physics within SIM_R; beyond it AI traffic becomes a kinematic
   // "ghost" that follows its lane on the road graph (no controller, no wheel rays), parked cars freeze.
   const SIM_R = 180;
@@ -1167,7 +1315,7 @@ export async function createVehicles(game) {
     if (pendingSpecials.length && (game.clock?.elapsed ?? 0) < 90) trySpecials();
     const h = game.timeOfDay ?? 12;
     const tf = h < 5 ? 0.4 : h < 6.5 ? 0.6 : (h > 7 && h < 9.5) || (h > 16 && h < 19) ? 1.2 : h > 22 ? 0.65 : 1;
-    const target = clamp(Math.round(11 * (DENS[zoneAt(pp)] ?? 1) * tf), 4, 16);
+    const target = trafficDebug.target ?? clamp(Math.round(11 * (DENS[zoneAt(pp)] ?? 1) * tf), 4, 16);
     const ais = list.filter((v) => v.ai && !v.chaseTarget && !v.playerDriven && !v.disabled && !v.external);
     // recycle far / stuck traffic
     let moved = 0;
@@ -1182,7 +1330,7 @@ export async function createVehicles(game) {
     }
     if (ais.length < target && moved < 2) {
       const info = randomLanePos(pp, 90, PHYS_R - 15, true);
-      if (info) { const type = trafficTypeFor(); const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true }); aiAssign(v, info); }
+      if (info) { const type = trafficTypeFor(info.pos); const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true }); aiAssign(v, info); }
     }
     // parked cars: keep ~10 at the curbs near the player
     const parked = list.filter((v) => !v.ai && !v.playerDriven && !v.everDriven && !specials.has(v));
@@ -1217,6 +1365,8 @@ export async function createVehicles(game) {
       }
     }
   }
+  const kindReg = createKindRegistry();
+  game.fixedHooks.push(function vehicleKindsFixed(dt) { kindReg.fixed(dt); });
   Object.defineProperty(vehiclesFixed, 'name', { value: 'vehiclesFixed' }); // survives minification for the profiler
   game.fixedHooks.push(vehiclesFixed);
 
@@ -1353,7 +1503,10 @@ export async function createVehicles(game) {
       let bl = 0, br = 0;
       const blinkOn = (et * 1.6) % 1 < 0.5 ? 1 : 0;
       if (v.ai && !v.playerDriven && v.ai.next && v.ai.edge && Math.abs(v.ai.next.ang) > 0.45) {
-        if (v.ai.edge.len - v.ai.d < 40) { if (v.ai.next.ang > 0) bl = blinkOn; else br = blinkOn; }
+        const sigD = v.ai.drv?.type === 'lost' || v.ai.drv?.type === 'distracted' ? 12 : v.ai.drv?.type === 'aggressive' ? 18 : 40; // late signalers
+        if (v.ai.edge.len - v.ai.d < sigD) { if (v.ai.next.ang > 0) bl = blinkOn; else br = blinkOn; }
+      } else if (v.ai && !v.playerDriven && v.ai.signal) {
+        if (v.ai.signal > 0) bl = blinkOn; else br = blinkOn;
       } else if (v.playerDriven && Math.abs(v.ctrl.steer) > 0.5 && Math.abs(v.speed) < 8) {
         if (v.ctrl.steer > 0) bl = blinkOn; else br = blinkOn;
       }
@@ -1546,6 +1699,8 @@ export async function createVehicles(game) {
     v.mesh.traverse((o) => {
       if (o.isMesh && o.userData.ownGeo) { o.geometry.dispose(); o.userData.ownGeo = false; noteOwnGeoFreed(); }
     });
+    unregisterLook(v);
+    try { v.car.dispose?.(); } catch (e) { /* per-car materials */ }
     releaseCar(v.car); // model GPU buffers freed once no car of this model remains (after a grace period)
     for (const k in v.car.lightMats) v.car.lightMats[k].dispose();
     if (v.burntMat) v.burntMat.dispose();
@@ -1573,6 +1728,9 @@ export async function createVehicles(game) {
   }
 
   function spawnVehicle(type = 'sedan', pos, heading = 0, opts = {}) {
+    // non-car kinds registered by other tracks: 'boat:skiff', 'aircraft:heli', 'scooter', ...
+    const routed = kindReg.route(type);
+    if (routed && typeof routed[0].spawn === 'function') { try { return routed[0].spawn(routed[1], pos, heading, opts); } catch (e) { console.error('[vehicles] kind spawn', type, e); return null; } }
     const key = CAR_TYPES[type] ? type : CLASSES[type] ? fromClass(type) : (opts.police ? 'police' : 'sedan');
     const color = opts.color ?? null;
     let p = pos || game.player?.position || new THREE.Vector3();
@@ -1647,14 +1805,51 @@ export async function createVehicles(game) {
 
   const carNearest = nearest;
   function nearestAny(pos, maxDist = 6) {
+    const cb = nearestCarOrBoat(pos, maxDist);
+    const k = kindReg.nearest(pos, maxDist);
+    if (!k) return cb; if (!cb) return k.vehicle;
+    const t = cb.body.translation(), d = Math.hypot(t.x - pos.x, t.y - (cb.groundOff || 0) - (pos.y || 0), t.z - pos.z);
+    return k.dist < d ? k.vehicle : cb;
+  }
+  function nearestCarOrBoat(pos, maxDist = 6) {
     const c = carNearest(pos, maxDist);
-    const b = boatSys?.nearest(pos, maxDist);
+    const b = kindReg.has('boat') ? null : boatSys?.nearest(pos, maxDist);
     if (!b) return c; if (!c) return b;
     // a boat is long: compare the distance to its hull outline with the car's (centre) distance
     const ct = c.body.translation(), cd = Math.hypot(ct.x - pos.x, ct.y - c.groundOff - (pos.y || 0), ct.z - pos.z);
     const bd = boatSys.hullDist ? boatSys.hullDist(b, pos) : Math.hypot(b.body.translation().x - pos.x, b.body.translation().z - pos.z);
     return bd <= cd ? b : c;
   }
-  const updateAll = (dt) => { update(dt); try { boatSys?.update(dt); } catch (e) { console.error('[boats]', e); } };
-  return { list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+  const updateAll = (dt) => { update(dt); try { if (!kindReg.has('boat')) boatSys?.update(dt); } catch (e) { console.error('[boats]', e); } kindReg.update(dt); };
+  // ---- registration hooks (see src/vehicles/README.md)
+  function registerModel(entry, builder) {
+    const n = addExternalModel(entry, builder);
+    const prevCls = CAR_TYPES[entry.key]?.cls;
+    CAR_TYPES[entry.key] = n.spec; MODELS[entry.key] = n.model;
+    if (prevCls && CLASSES[prevCls]) { const i = CLASSES[prevCls].indexOf(entry.key); if (i >= 0) CLASSES[prevCls].splice(i, 1); }
+    // hero / rare models stay out of the random class pools; they spawn through their own spawn rules
+    const pool = entry.pool ?? (n.model.hero ? 'hero' : n.spec.cls);
+    (CLASSES[pool] ||= []).includes(entry.key) || CLASSES[pool].push(entry.key);
+    if (!ALL_KEYS.includes(entry.key)) ALL_KEYS.push(entry.key);
+    game.emit?.('vehicle:modelRegistered', { key: entry.key, model: n.model, spec: n.spec });
+    return n.model;
+  }
+  function registerKind(kind, impl) { const k = kindReg.register(kind, impl); game.emit?.('vehicle:kindRegistered', { kind, impl: k }); return k; }
+  // hero cars: src/vehicles/hero/index.js may export `register(vehiclesApi)` or `models = [{ entry, builder }]`
+  const apiEarly = { registerModel, registerKind };
+  try {
+    const heroMods = import.meta.glob('./hero/index.js');
+    for (const k of Object.keys(heroMods)) {
+      heroMods[k]().then((m) => {
+        try {
+          if (typeof m.register === 'function') m.register(api);
+          else for (const it of m.models || m.default || []) registerModel(it.entry, it.builder);
+        } catch (e) { console.error('[vehicles] hero registration failed', e); }
+      }).catch((e) => console.error('[vehicles] hero module failed to load', e));
+    }
+  } catch (e) { /* no glob support (plain esbuild check) */ }
+  const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
+    models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+  return api;
 }

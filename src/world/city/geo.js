@@ -1,5 +1,6 @@
 // Port Solana city — geometry helpers (batched merges, world-UV walls, palms)
 import * as THREE from 'three';
+import { buildPalm } from '../vegetation/palms.js';
 
 const _c = new THREE.Color();
 
@@ -160,70 +161,17 @@ export function parapet(batch, pts, y, h, t, color) {
   }
 }
 
-// ---------- Palm tree geometry (trunk tube + drooping fronds) ----------
+// ---------- Palm tree geometry (vegetation track: real species from src/world/vegetation/palms.js) ----------
+// Signature kept for the old call sites. Species: o.species, else royal for seeds 40..69, palmetto for 70+, otherwise one of 12
+// street-palm variants picked from the seed (coconut-heavy, plus royal, sabal, queen, date). Height is folded into the species range.
+const PALM_BY_VARIANT = ['coconut', 'royal', 'coconut', 'sabal', 'queen', 'date', 'coconut', 'queen', 'coconut', 'royal', 'date', 'sabal'];
+const PALM_RANGE = { coconut: [8, 15], royal: [12, 18], sabal: [6, 11], date: [6, 10], queen: [8, 12], palmetto: [0.1, 0.6] };
 export function palmGeometry(seed, height, lean, rnd, o = {}) {
-  const bow = o.bow ?? 0, fMul = o.frondLen ?? 1, dMul = o.droop ?? 1;
-  const segs = 12, rad = 7;
-  const tp = [], tn = [], tu = [], ti = [];
-  const curve = (t) => new THREE.Vector3(lean * height * t * t + bow * height * 0.06 * Math.sin(Math.PI * t), height * t, lean * 0.25 * height * t * t * Math.sin(seed) + bow * height * 0.035 * Math.sin(2 * Math.PI * t));
-  for (let i = 0; i <= segs; i++) {
-    const t = i / segs; const c = curve(t);
-    const c2 = curve(Math.min(1, t + 0.01)), c1 = curve(Math.max(0, t - 0.01));
-    const tang = c2.sub(c1).normalize();
-    const side = new THREE.Vector3(0, 0, 1).cross(tang).normalize(); const bi = tang.clone().cross(side).normalize();
-    const r = 0.26 * (1 - 0.38 * t) + (t < 0.08 ? 0.18 * (1 - t / 0.08) : 0);
-    for (let j = 0; j <= rad; j++) {
-      const a = (j / rad) * Math.PI * 2; const nx = Math.cos(a), nz = Math.sin(a);
-      const nv = side.clone().multiplyScalar(nx).add(bi.clone().multiplyScalar(nz));
-      tp.push(c.x + nv.x * r, c.y + nv.y * r, c.z + nv.z * r); tn.push(nv.x, nv.y, nv.z); tu.push(j / rad, t * height * 0.5);
-    }
-  }
-  for (let i = 0; i < segs; i++) for (let j = 0; j < rad; j++) {
-    const a = i * (rad + 1) + j, b = a + rad + 1;
-    ti.push(a, b, a + 1, b, b + 1, a + 1);
-  }
-  const trunk = new THREE.BufferGeometry();
-  trunk.setAttribute('position', new THREE.Float32BufferAttribute(tp, 3));
-  trunk.setAttribute('normal', new THREE.Float32BufferAttribute(tn, 3));
-  trunk.setAttribute('uv', new THREE.Float32BufferAttribute(tu, 2));
-  trunk.setIndex(ti);
-
-  // crown
-  const top = curve(1);
-  const fp = [], fn = [], fu = [], fi = [];
-  const nF = o.fronds ?? (11 + ((rnd() * 4) | 0));
-  const fs = 9;
-  for (let f = 0; f < nF; f++) {
-    const ang = (f / nF) * Math.PI * 2 + rnd() * 0.4;
-    const L = (3.6 + rnd() * 1.4) * fMul; const lift = 0.35 + rnd() * 0.5; const droop = (0.9 + rnd() * 0.5) * dMul;
-    const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang)); const side = new THREE.Vector3(-dir.z, 0, dir.x);
-    const base = fp.length / 3;
-    for (let s = 0; s <= fs; s++) {
-      const t = s / fs;
-      const hx = L * t * (1 - 0.15 * t);
-      const y = L * (lift * t - droop * t * t * 0.9);
-      const w = 0.75 * Math.sin(Math.PI * Math.min(1, 0.12 + t * 0.95)) * (1 - 0.2 * t);
-      const c = top.clone().add(dir.clone().multiplyScalar(hx)); c.y += y;
-      const fold = -0.22 * w;
-      const pts = [c.clone().addScaledVector(side, -w).setY(c.y + fold), c.clone(), c.clone().addScaledVector(side, w).setY(c.y + fold)];
-      pts.forEach((p, k) => { fp.push(p.x, p.y, p.z); fn.push(0, 1, 0); fu.push(k / 2, t); });
-    }
-    for (let s = 0; s < fs; s++) for (let k = 0; k < 2; k++) {
-      const a = base + s * 3 + k, b = a + 3;
-      fi.push(a, a + 1, b, a + 1, b + 1, b);
-    }
-  }
-  const fronds = new THREE.BufferGeometry();
-  fronds.setAttribute('position', new THREE.Float32BufferAttribute(fp, 3));
-  fronds.setAttribute('normal', new THREE.Float32BufferAttribute(fn, 3));
-  fronds.setAttribute('uv', new THREE.Float32BufferAttribute(fu, 2));
-  fronds.setIndex(fi);
-  fronds.computeVertexNormals();
-  // bias normals upward for nicer foliage lighting
-  const N = fronds.attributes.normal;
-  for (let i = 0; i < N.count; i++) { const ny = N.getY(i); N.setXYZ(i, N.getX(i) * 0.5, Math.abs(ny) * 0.8 + 0.5, N.getZ(i) * 0.5); }
-  N.needsUpdate = true; fronds.normalizeNormals();
-  // coconuts
+  const species = o.species || (seed >= 70 ? 'palmetto' : seed >= 40 ? 'royal' : PALM_BY_VARIANT[Math.abs(Math.round((seed - 1) / 2.3)) % PALM_BY_VARIANT.length]);
+  const [h0, h1] = PALM_RANGE[species]; let h = height;
+  if (!(h >= h0 && h <= h1)) h = h0 + (((Math.abs(height) * 7.31) % 1) * (h1 - h0));
+  const p = buildPalm({ species, seed: seed * 3.7 + 1, height: h, lean: species === 'coconut' ? Math.min(0.38, lean * 1.3) : lean * 0.25,
+    frondLen: Math.min(1.12, Math.max(0.88, o.frondLen ?? 1)), droop: Math.min(1.2, Math.max(0.85, o.droop ?? 1)) });
   const nuts = new THREE.SphereGeometry(0.14, 5, 3).toNonIndexed();
-  return { trunk, fronds, top, nuts };
+  return { trunk: p.trunk, fronds: p.fronds, top: p.top, nuts, species, height: p.height };
 }

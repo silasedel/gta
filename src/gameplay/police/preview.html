@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><title>PSPD model preview</title>
+<style>html,body{margin:0;height:100%;background:#222;overflow:hidden}</style></head>
+<body><script type="module">
+// Standalone preview for the police models: ?m=heli|drone|k9|spikes|barriers|cameras|checkpoint|impound|gear|all  &night=1  &az=35&el=18&dist=14&ty=1
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import * as K from './models.js';
+import * as A from './modelsAir.js';
+const q = new URLSearchParams(location.search), night = q.has('night'), m = q.get('m') || 'all';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(1);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(night ? 0x070912 : 0xb9d4ea);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = night ? 0.08 : 0.8;
+const sun = new THREE.DirectionalLight(0xfff0dc, night ? 0.06 : 2.8); sun.position.set(-14, 26, 16); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, far: 120 }); scene.add(sun, new THREE.HemisphereLight(0xcfe4ff, 0x30302c, night ? 0.05 : 0.55));
+const gc = document.createElement('canvas'); gc.width = gc.height = 256; { const g = gc.getContext('2d'); g.fillStyle = '#4a4b4d'; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 9000; i++) { const v = Math.random() < 0.5 ? 255 : 0; g.fillStyle = `rgba(${v},${v},${v},${Math.random() * 0.1})`; g.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); } }
+const gt = new THREE.CanvasTexture(gc); gt.wrapS = gt.wrapT = THREE.RepeatWrapping; gt.repeat.set(60, 60); gt.colorSpace = THREE.SRGBColorSpace;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ map: gt, roughness: 0.9 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const ups = []; let focus = new THREE.Vector3(0, 1, 0), dist = 8;
+const put = (o, x = 0, z = 0, ry = 0, y = 0) => { o.group.position.set(x, y, z); o.group.rotation.y = ry; scene.add(o.group); if (o.update) ups.push(o); return o; };
+const show = {
+  heli() { const h = put(A.buildPoliceHeli(THREE, { seed: 4 }), 0, 0, 0, q.has('fly') ? 9 : 0); scene.add(h.spotTarget, h.pool); if (night || q.has('spot')) { h.setSpot(true); h.aimSpot(new THREE.Vector3(5, 0, 9)); } h.fly = q.has('fly'); focus.set(0, q.has('fly') ? 6 : 1.7, 0); dist = q.has('fly') ? 26 : 15; h._s = { rotorSpeed: q.has('static') ? 0 : 1 }; },
+  drone() { const d = put(A.buildSpotterDrone(THREE, { seed: 2 }), 0, 0, 0, 1); if (night) d.setLight(true); focus.set(0, 1, 0); dist = 1.6; },
+  k9() { put(A.buildK9(THREE, { seed: 1 }), -0.9, 0, 0.5)._s = { speed: 0 }; put(A.buildK9(THREE, { seed: 2 }), 0.2, 0, 0.5)._s = { speed: 5.5 }; put(A.buildK9(THREE, { seed: 3 }), 1.2, 0, 0.5)._s = { speed: 0, sit: true }; put(A.buildK9(THREE, { seed: 4 }), 2.2, 0, 0.5)._s = { speed: 1.4, sniff: true }; focus.set(0.6, 0.45, 0); dist = 4.2; },
+  spikes() { put(K.buildSpikeStrip(THREE, { length: 7 }), 0, 0); const s2 = put(K.buildSpikeStrip(THREE, { length: 7, deployed: 0.15 }), 0, 1.6); void s2; focus.set(0, 0.1, 0.6); dist = 6; },
+  barriers() { put(K.buildBarrier(THREE, 'sawhorse'), -4, 0); put(K.buildBarrier(THREE, 'jersey'), -0.6, 0); put(K.buildBarrier(THREE, 'jersey', { color: 'navy' }), 1.5, 0); put(K.buildBarrier(THREE, 'cone'), 3.2, 0); put(K.buildBarrier(THREE, 'flare'), 4, 0.6); put(K.buildBarrier(THREE, 'wedge'), 0, -3.4); focus.set(0, 0.6, -1); dist = 10; },
+  cameras() { const tc = put(K.buildTrafficCamera(THREE, { seed: 3 }), -1.5, 0, 0.5); if (q.has('flash')) setInterval(() => tc.flash(), 700); const r1 = put(K.buildRecorder(THREE, { seed: 1 }), 1.2, 1, 0, 1); const r2 = put(K.buildRecorder(THREE, { seed: 2 }), 1.9, 1, 0, 1); r2.setDestroyed(true); const t = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1, 0.6), new THREE.MeshStandardMaterial({ color: 0x6b5a48, roughness: 0.7 })); t.position.set(1.55, 0.5, 1); scene.add(t); focus.set(q.has('close') ? 1.55 : 0, q.has('close') ? 1.05 : 2.8, 1); dist = q.has('close') ? 1.5 : 9; },
+  checkpoint() { const md = put(K.buildMetalDetector(THREE), 0, 0); if (q.has('alarm')) md.alarm(true), setInterval(() => md.alarm(true), 2000); focus.set(0, 1.2, 0); dist = 4.5; },
+  impound() { const lot = put(K.buildImpoundLot(THREE, { seed: 3 })); lot._s = { night }; focus.set(0, 1.5, 4); dist = 44; },
+  gear() { const g = K.buildSwatGear(THREE); const mk = (o, x, y) => { o.position.set(x, y, 0); scene.add(o); }; mk(g.helmet, -0.6, 1.7); mk(g.vest, 0, 1.3); mk(g.shield, 0.8, 1.2); const cap = K.buildPatrolCap(THREE); mk(cap, -1.2, 1.7); const w = K.buildWitnessMarker(THREE); w.sprite.position.set(1.6, 1.5, 0); w.set(0.6); scene.add(w.sprite); const w2 = K.buildWitnessMarker(THREE); w2.sprite.position.set(2.3, 1.5, 0); w2.set(0.3, 'run'); scene.add(w2.sprite); focus.set(0.3, 1.4, 0); dist = 3.2; },
+};
+if (m === 'all') { show.barriers(); show.spikes(); } else (show[m] || show.heli)();
+const az = (+(q.get('az') ?? 35)) * Math.PI / 180, el = (+(q.get('el') ?? 16)) * Math.PI / 180; dist = +(q.get('dist') || dist); if (q.get('ty')) focus.y = +q.get('ty');
+const cam = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.05, 500);
+cam.position.set(focus.x + Math.sin(az) * Math.cos(el) * dist, focus.y + Math.sin(el) * dist, focus.z + Math.cos(az) * Math.cos(el) * dist); cam.lookAt(focus);
+let last = performance.now(), t = 0, n = 0;
+function frame(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt; for (const o of ups) o.update(dt, o._s || t, o._s); renderer.render(scene, cam); if (++n > 20) { window.ready = true; window.stats = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles }; } requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+</script></body></html>

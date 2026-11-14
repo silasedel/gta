@@ -1,0 +1,201 @@
+{
+ "items": {
+  "Surfacing kit (B-spline skins, trimming, shut lines)": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/fulmine_side.jpg"
+  },
+  "Material library (paint, carbon, glass, leather, metals)": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/kit_materials.png"
+  },
+  "Studio preview page (turntable, doors, lights, interior camera)": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/final3_fulmine_cam0.jpg"
+  },
+  "Catalog: handling and engine data per model": {
+   "state": "built",
+   "evidence": "src/vehicles/hero/index.js"
+  },
+  "Registration with vehicles-core (index.js + hero.v2.js)": {
+   "state": "verified",
+   "evidence": "docs/v2/reports/hero-cars.md (game eval: registered, spawned, drove 56 km/h)"
+  },
+  "Engine character notes for the audio track": {
+   "state": "built",
+   "evidence": "docs/v2/reports/hero-cars.md"
+  },
+  "Screenshot set per car (front 3/4, side, rear 3/4, top, interior, doors open, night)": {
+   "state": "built",
+   "evidence": "docs/v2/shots/hero-cars/ (Fulmine only; no interior or doors-open shots)"
+  },
+  "Class-comparison notes (proportions vs class figures)": {
+   "state": "built",
+   "evidence": "docs/v2/reports/hero-cars.md"
+  },
+  "Triangles and draw calls per car and LOD": {
+   "state": "built",
+   "evidence": "docs/v2/reports/hero-cars.md"
+  },
+  "Green super-SUV (Vireo Colosso): body surfacing, proportions, panel gaps": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): paint, carbon, glass, badges, plates": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): wheels, tires, brakes": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): light clusters and working lights": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): cockpit interior, live cluster": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): working doors, hood, engine cover": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): engine bay": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Green super-SUV (Vireo Colosso): damage-ready parts, collider hull, LODs": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Red V10 supercar (Vireo Fulmine V10): body surfacing, proportions, panel gaps": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/final3_fulmine_cam0.jpg"
+  },
+  "Red V10 supercar (Vireo Fulmine V10): paint, carbon, glass, badges, plates": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/final3_fulmine_cam0.jpg"
+  },
+  "Red V10 supercar (Vireo Fulmine V10): wheels, tires, brakes": {
+   "state": "verified",
+   "evidence": "docs/v2/shots/hero-cars/fulmine_side.jpg"
+  },
+  "Red V10 supercar (Vireo Fulmine V10): light clusters and working lights": {
+   "state": "built",
+   "evidence": "docs/v2/shots/hero-cars/fulmine_night_rear34.jpg"
+  },
+  "Red V10 supercar (Vireo Fulmine V10): cockpit interior, live cluster": {
+   "state": "building",
+   "evidence": ""
+  },
+  "Red V10 supercar (Vireo Fulmine V10): working doors, hood, engine cover": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Red V10 supercar (Vireo Fulmine V10): engine bay": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Red V10 supercar (Vireo Fulmine V10): damage-ready parts, collider hull, LODs": {
+   "state": "built",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): body surfacing, proportions, panel gaps": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): paint, carbon, glass, badges, plates": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): wheels, tires, brakes": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): light clusters and working lights": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): cockpit interior, live cluster": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): working doors, hood, engine cover": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): engine bay": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Graphite V12 flagship (Vireo Saetta V12 Ombra): damage-ready parts, collider hull, LODs": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): body surfacing, proportions, panel gaps": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): paint, carbon, glass, badges, plates": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): wheels, tires, brakes": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): light clusters and working lights": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): cockpit interior, live cluster": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): working doors, hood, engine cover": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): engine bay": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Purple two-tone hypercar (Vauclair Minuit): damage-ready parts, collider hull, LODs": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): body surfacing, proportions, panel gaps": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): paint, carbon, glass, badges, plates": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): wheels, tires, brakes": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): light clusters and working lights": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): cockpit interior, live cluster": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): working doors, hood, engine cover": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): engine bay": {
+   "state": "todo",
+   "evidence": ""
+  },
+  "Orange mid-engine supercar (Merrow Peregrine): damage-ready parts, collider hull, LODs": {
+   "state": "todo",
+   "evidence": ""
+  }
+ },
+ "agent": "done"
+}

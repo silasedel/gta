@@ -2,6 +2,11 @@
 import * as THREE from 'three';
 import { facadeVariants, VARIANTS } from './facades.js';
 import { officeFacade, decoFacade, glassFacade, bandFacade, shopFacade, trunkTexture, frondTexture, radialTexture, loadPBR, rng } from '../city/tex.js';
+import { loadSet } from '../city/pbr.js';
+import { loadPropArray, patchPropMaterial, SURF } from '../city/propmat.js';
+import { loadWallArray, createFacadeMaterial } from '../city/facade.js';
+import { bakeRoomAtlas } from '../city/rooms.js';
+import { sharedVegMaterials, vegUniforms } from '../vegetation/materials.js';
 
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
@@ -113,6 +118,9 @@ export async function createMaterials(renderer) {
   M.frondDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: frondMap, alphaTest: 0.45, side: THREE.DoubleSide });
   M.frondDepth.onBeforeCompile = windPatch(true);
   M.trunkDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }); M.trunkDepth.onBeforeCompile = windPatch(false);
+  { // vegetation track: palms and street shrubs use the shared vegetation materials (bark atlas + normal/roughness, translucent leaves, per-instance variation)
+    const VM = sharedVegMaterials(); M.trunk = VM.bark; M.royalTrunk = VM.bark; M.trunkDepth = VM.barkDepth; M.frond = VM.leaf; M.frondDepth = VM.leafDepth;
+    M.vegBark = VM.bark; M.vegBarkDepth = VM.barkDepth; M.vegLeaf = VM.leaf; M.vegLeafDepth = VM.leafDepth; }
 
   { // graffiti atlas: original procedural tags (4x2 cells)
     const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d'); const gr = rng(4242);
@@ -256,14 +264,41 @@ export async function createMaterials(renderer) {
   // storefront glass: see the INTERIORS agent's shops from the street (reflections come from scene.environment)
   M.shopGlass = new THREE.MeshPhysicalMaterial({ color: 0xd6eaee, roughness: 0.04, metalness: 0.0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 1.3, clearcoat: 0.6, clearcoatRoughness: 0.05 });
   M.poolWater = new THREE.MeshStandardMaterial({ color: 0x2aa6b8, roughness: 0.05, metalness: 0.3, vertexColors: true });
+  // ---- V2 city-look: real CC0 PBR on every surface ----
+  const facU = { uFLit: { value: new Float32Array(8) }, uFNight: { value: 0 }, uFDay: { value: 0.5 }, uFTime: { value: 0 }, uFGlow: { value: 1.0 } }, propU = { uEmis: { value: 0 } };
+  try {
+    const [wallArr, propArr, sSide, sPark, sBark, sPlank, sConc] = await Promise.all([loadWallArray(renderer), loadPropArray(renderer), loadSet(renderer, 'concrete_pavement'), loadSet(renderer, 'asphalt_04'), loadSet(renderer, 'palm_bark'), loadSet(renderer, 'weathered_planks'), loadSet(renderer, 'brushed_concrete')]);
+    const rooms = await bakeRoomAtlas(renderer);
+    M.facade = createFacadeMaterial(wallArr, rooms, facU); M.facade.userData.pbr = 'facade-array';
+    M.makeFacadeFar = (extra) => { const m = createFacadeMaterial(wallArr, rooms, facU, extra); m.userData.pbr = 'facade-array'; return m; };
+    M.roomAtlas = rooms; M.propArr = propArr; M.propU = propU;
+    // ground: full sets (albedo, normal, roughness + AO from the packed ARM map)
+    const rep = (t, k) => { if (!k || k === 1) return t; const c = t.clone(); c.repeat.set(k, k); c.needsUpdate = true; return c; };
+    const full = (mat, set, col, k = 1) => { mat.map = rep(set.map, k); mat.normalMap = rep(set.normalMap, k); mat.roughnessMap = rep(set.arm, k); mat.aoMap = mat.roughnessMap; mat.roughness = 1; if (col !== undefined) mat.color.setScalar(col); mat.needsUpdate = true; };
+    full(M.sidewalk, sSide, 1.75); full(M.parking, sPark, 0.62); full(M.panels, sSide, 1.9, 2.4); full(M.promenade, sSide, 1, 3.2); M.promenade.color.setRGB(2.1, 1.5, 1.36); M.promenade.normalScale.set(1, 1);
+    full(M.wood, sPlank, 1.9); full(M.roof, sConc, 1.9, 2);
+    M.markings.normalMap = M.asphalt.normalMap; M.markings.roughnessMap = M.asphalt.roughnessMap; M.markings.roughness = 1; M.markings.map = sConc.map; M.markings.color.setScalar(2.3); // paint over the road texture, worn by the grain
+    M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
+    M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);
+    // props: one shared triplanar PBR array (painted metal, galvanized, rust, wood, concrete ...)
+    M.propify = (mat, surf, emis = 0) => patchPropMaterial(mat, propArr, propU, { surf: SURF[surf] ?? 0, emis });
+    M.propify(M.trim, 'plaster'); M.propify(M.guardrail, 'galv'); M.propify(M.lampHead, 'plastic'); M.propify(M.shaft, 'plastic'); M.propify(M.poolWater, 'glass'); M.propify(M.shopGlass, 'glass');
+    M.metal.userData.pbr = 'triplanar-atlas';
+  } catch (e) { console.error('[miami] PBR library failed, falling back to v1 materials', e); }
+  // lit-window fraction per building type (office, home, hotel, retail, industrial, garage, lobby, restaurant) by hour
+  const LIT = [[[0, .1], [5, .1], [7, .3], [17, .75], [19, .5], [21, .24], [24, .1]], [[0, .22], [2, .07], [5, .06], [6.5, .36], [18, .7], [22, .5], [24, .22]], [[0, .3], [2, .13], [5, .12], [7, .3], [18, .55], [23, .32], [24, .3]],
+    [[0, .2], [6, .2], [17, .9], [22, .55], [24, .2]], [[0, .25], [24, .25]], [[0, 1], [24, 1]], [[0, .95], [24, .95]], [[0, .5], [1, .12], [17, .12], [18, .95], [23, .65], [24, .5]]];
+  const litAt = (tab, h) => { for (let i = 1; i < tab.length; i++) if (h <= tab[i][0]) { const a = tab[i - 1], b = tab[i]; return a[1] + (b[1] - a[1]) * ((h - a[0]) / Math.max(1e-6, b[0] - a[0])); } return tab[tab.length - 1][1]; };
   let t = 0;
   const night = (h) => (h >= 19.5 || h < 6 ? 1 : h > 18.6 ? (h - 18.6) / 0.9 : h < 7 ? 1 - (h - 6) : 0);
   const duskF = (h) => (h >= 18.0 ? Math.min(1, (h - 18.0) / 0.5) : h < 6.2 ? 1 : h < 6.7 ? (6.7 - h) / 0.5 : 0);
   function update(dt, hour) {
     t += dt;
     const n = night(hour), dusk = duskF(hour);
+    for (let i = 0; i < 8; i++) facU.uFLit.value[i] = litAt(LIT[i], hour); facU.uFNight.value = Math.max(n, dusk * 0.85); facU.uFDay.value = 0.05 + 0.5 * (1 - n); facU.uFTime.value = t; propU.uEmis.value = Math.max(n, dusk);
     winU.uWinTime.value = t; winU.uWinDensity.value = hour >= 17 || hour < 0.5 ? 0.85 : hour < 5 ? 0.45 : 0.6;
     windU.uWindTime.value = t; windU.uGust.value = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.13)) + 0.35 * Math.max(0, Math.sin(t * 0.41) * Math.sin(t * 0.067 + 1.3));
+    vegUniforms.uVegTime.value = t; vegUniforms.uVegGust.value = windU.uGust.value;
     for (const m of [M.office, M.deco, M.band, M.warehouse, ...Object.keys(VARIANTS).map((k) => M[k])]) m.emissiveIntensity = 0.04 + 1.0 * n;
     M.glass.emissiveIntensity = 0.03 + 0.9 * n; M.farGlass.emissiveIntensity = 0.03 + 0.9 * n; M.shop.emissiveIntensity = 0.35 + 1.1 * n; M.far.emissiveIntensity = 0.9 * n;
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;

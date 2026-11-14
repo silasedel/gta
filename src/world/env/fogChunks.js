@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // Uses FogExp2's fogDensity as a linear extinction coefficient and the first
 // directional light (the sun / moon, which casts shadows so it sorts first) for in-scatter.
 export const FOG_HEIGHT_FALLOFF = 0.0045;
-export const FOG_INSCATTER = 0.06;
+export const FOG_INSCATTER = 0.055;
 export const FOG_INSCATTER_POW = 7.0;
 
 let patched = false;

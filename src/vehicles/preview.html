@@ -3,8 +3,9 @@
 <body><div id="lbl"></div><script type="module">
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildCar, CAR_TYPES, MODELS, ALL_KEYS, rollVariant } from './carModel.js';
 const q = new URLSearchParams(location.search);
+const { buildCar, CAR_TYPES, MODELS, ALL_KEYS, rollVariant } = await import(q.has('v1') ? './carModel.js' : './carModel2.js');
+const { rollLook } = await import('./catalog.js');
 const night = q.has('night');
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(+(q.get('dpr') || devicePixelRatio));
@@ -35,7 +36,8 @@ const placed = [];
 types.forEach((t, i) => {
   const spec = CAR_TYPES[t]; if (!spec) return;
   const v = q.has('palette') ? rollVariant(t, rnd) : null;
-  const c = buildCar(t, v ? v.color : fixed[i % fixed.length], v ? { kit: v.kit, wheel: v.wheel, blackRoof: v.blackRoof } : {});
+  const c = q.has('looks') ? buildCar(t, rollLook(t, +(q.get('seed') || 7) * 131 + i, { income: +(q.get('income') ?? 0.5), zone: q.get('zone') || undefined })) : buildCar(t, v ? v.color : fixed[i % fixed.length], v ? { kit: v.kit, wheel: v.wheel, blackRoof: v.blackRoof } : {});
+  if (c.look?.ride) c.shell.position.y += c.look.ride;
   c.shell.position.y = 0;
   c.wheels.forEach((w) => w.steer.position.set(w.x, spec.r, w.z));
   if (q.get('lod')) { c.lod.autoUpdate = false; c.lod.levels.forEach((l, k) => (l.object.visible = k === +q.get('lod'))); }

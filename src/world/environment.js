@@ -46,18 +46,18 @@ function set(out, v) { return typeof v === 'number' ? v : out.setRGB(v[0], v[1],
 // all colors linear
 const SUN_COLOR = [[-0.06, [1.0, 0.22, 0.05]], [0.0, [1.0, 0.33, 0.10]], [0.06, [1.0, 0.48, 0.20]], [0.16, [1.0, 0.66, 0.40]], [0.35, [1.0, 0.86, 0.70]], [0.6, [1.0, 0.95, 0.88]], [1.0, [1.0, 0.97, 0.93]]];
 const FOG_COLOR = [[-0.35, [0.0035, 0.0055, 0.013]], [-0.12, [0.012, 0.016, 0.035]], [-0.03, [0.07, 0.055, 0.09]], [0.02, [0.30, 0.17, 0.16]], [0.09, [0.48, 0.30, 0.22]], [0.2, [0.50, 0.42, 0.38]], [0.4, [0.42, 0.50, 0.60]], [1.0, [0.36, 0.48, 0.64]]];
-const HEMI_SKY = [[-0.3, [0.030, 0.045, 0.095]], [-0.05, [0.08, 0.08, 0.15]], [0.05, [0.45, 0.38, 0.45]], [0.25, [0.50, 0.58, 0.72]], [1.0, [0.45, 0.60, 0.85]]];
-const HEMI_GROUND = [[-0.3, [0.008, 0.008, 0.012]], [0.0, [0.08, 0.05, 0.04]], [0.2, [0.28, 0.20, 0.14]], [1.0, [0.30, 0.26, 0.20]]];
-const CLOUD_AMB = [[-0.3, [0.012, 0.016, 0.03]], [-0.05, [0.07, 0.06, 0.10]], [0.03, [0.30, 0.20, 0.25]], [0.15, [0.55, 0.48, 0.52]], [0.4, [0.75, 0.78, 0.85]], [1.0, [0.85, 0.88, 0.95]]];
-const CIRRUS = [[-0.2, [0.01, 0.012, 0.025]], [-0.06, [0.35, 0.08, 0.12]], [0.0, [1.0, 0.32, 0.28]], [0.08, [1.0, 0.55, 0.40]], [0.25, [0.95, 0.85, 0.80]], [1.0, [1.0, 1.0, 1.0]]];
-const EXPOSURE = [[-0.3, 1.45], [-0.05, 1.25], [0.05, 1.05], [0.2, 1.0], [1.0, 0.9]];
-const FOG_DENSITY = [[-0.3, 0.0009], [0.0, 0.0012], [0.12, 0.0010], [0.4, 0.0007], [1.0, 0.0006]];
+const HEMI_SKY = [[-0.3, [0.030, 0.045, 0.095]], [-0.05, [0.08, 0.07, 0.15]], [0.05, [0.40, 0.34, 0.50]], [0.12, [0.46, 0.42, 0.60]], [0.3, [0.45, 0.58, 0.80]], [1.0, [0.40, 0.60, 0.95]]];
+const HEMI_GROUND = [[-0.3, [0.008, 0.008, 0.012]], [0.0, [0.08, 0.05, 0.05]], [0.12, [0.24, 0.15, 0.14]], [0.3, [0.30, 0.25, 0.19]], [1.0, [0.32, 0.28, 0.22]]];
+const CLOUD_AMB = [[-0.3, [0.012, 0.016, 0.03]], [-0.05, [0.07, 0.06, 0.10]], [0.03, [0.34, 0.20, 0.32]], [0.12, [0.50, 0.34, 0.52]], [0.22, [0.62, 0.55, 0.68]], [0.4, [0.74, 0.80, 0.92]], [1.0, [0.82, 0.88, 1.0]]];
+const CIRRUS = [[-0.2, [0.01, 0.012, 0.025]], [-0.06, [0.35, 0.08, 0.14]], [0.0, [1.0, 0.34, 0.34]], [0.1, [1.0, 0.58, 0.62]], [0.25, [0.98, 0.88, 0.86]], [1.0, [1.0, 1.0, 1.0]]];
+const EXPOSURE = [[-0.3, 1.45], [-0.05, 1.25], [0.05, 0.98], [0.2, 0.96], [1.0, 0.96]];
+const FOG_DENSITY = [[-0.3, 0.00060], [0.0, 0.00048], [0.12, 0.00036], [0.3, 0.00026], [0.5, 0.00013], [1.0, 0.00011]];
 const SKY_EXPOSURE = [[-0.2, 0.55], [0.0, 0.55], [0.15, 0.5], [1.0, 0.45]];
 
-const SKY_ZENITH = [[-0.3, [0.002, 0.004, 0.012]], [-0.08, [0.010, 0.014, 0.05]], [0.0, [0.025, 0.04, 0.15]], [0.1, [0.025, 0.10, 0.32]], [0.3, [0.05, 0.17, 0.50]], [1.0, [0.07, 0.22, 0.60]]];
-const SKY_HORIZON = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.06, 0.04, 0.09]], [0.0, [0.40, 0.16, 0.18]], [0.1, [0.60, 0.36, 0.30]], [0.3, [0.58, 0.64, 0.76]], [1.0, [0.55, 0.68, 0.86]]];
-const SKY_HORIZON_SUN = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.22, 0.06, 0.05]], [0.0, [1.3, 0.38, 0.09]], [0.1, [1.5, 0.70, 0.28]], [0.3, [1.1, 0.92, 0.72]], [1.0, [0.78, 0.84, 0.94]]];
-const SKY_GLOW = [[-0.12, [0.0, 0.0, 0.0]], [-0.04, [0.5, 0.12, 0.02]], [0.0, [1.8, 0.6, 0.12]], [0.1, [2.2, 1.1, 0.45]], [0.3, [1.6, 1.3, 1.0]], [1.0, [1.0, 0.95, 0.9]]];
+const SKY_ZENITH = [[-0.3, [0.002, 0.004, 0.012]], [-0.08, [0.012, 0.012, 0.05]], [0.0, [0.06, 0.045, 0.20]], [0.1, [0.13, 0.11, 0.42]], [0.2, [0.09, 0.15, 0.50]], [0.35, [0.026, 0.13, 0.50]], [1.0, [0.02, 0.125, 0.52]]];
+const SKY_HORIZON = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.07, 0.04, 0.10]], [0.0, [0.46, 0.22, 0.36]], [0.1, [0.56, 0.36, 0.56]], [0.2, [0.58, 0.50, 0.68]], [0.35, [0.34, 0.54, 0.88]], [1.0, [0.30, 0.52, 0.90]]];
+const SKY_HORIZON_SUN = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.22, 0.06, 0.06]], [0.0, [1.2, 0.40, 0.18]], [0.1, [1.25, 0.62, 0.45]], [0.2, [1.15, 0.85, 0.72]], [0.35, [0.90, 0.90, 0.95]], [1.0, [0.70, 0.82, 0.96]]];
+const SKY_GLOW = [[-0.12, [0.0, 0.0, 0.0]], [-0.04, [0.5, 0.12, 0.04]], [0.0, [1.5, 0.55, 0.22]], [0.1, [1.5, 0.80, 0.55]], [0.3, [1.3, 1.05, 0.85]], [1.0, [1.0, 0.95, 0.9]]];
 const tmpC = new THREE.Color();
 let envFrame = 0;
 const NIGHT_WATER = new THREE.Color().setRGB(0.002, 0.008, 0.016);
@@ -245,14 +245,14 @@ export async function createEnvironment(game) {
       // --- hemisphere / fog / exposure ---
       ramp(HEMI_SKY, s, hemi.color);
       ramp(HEMI_GROUND, s, hemi.groundColor);
-      hemi.intensity = 0.55 + 0.2 * dayF;
-      ramp(SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.85);
+      hemi.intensity = 0.5 + 0.1 * dayF;
+      ramp(SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.9);
       scene.fog.density = ramp(FOG_DENSITY, s) * (1 - 0.8 * env.indoor);
       const wantIndoor = env._indoorFlag || !!game.player?.state?.indoor;
       env.indoor += ((wantIndoor ? 1 : 0) - env.indoor) * Math.min(1, dt * 2.5);
       env.exposure = ramp(EXPOSURE, s) * (1 + 0.35 * env.indoor);
       renderer.toneMappingExposure = env.exposure;
-      if ('environmentIntensity' in scene) scene.environmentIntensity = 0.8 + 0.4 * dayF;
+      if ('environmentIntensity' in scene) scene.environmentIntensity = 0.85 + 0.25 * dayF;
 
       // --- sky uniforms ---
       const u = skyMat.uniforms;
@@ -270,10 +270,14 @@ export async function createEnvironment(game) {
       ramp(CLOUD_AMB, s, u.uCloudAmbient.value);
       u.uCloudSun.value.copy(sun.color).multiplyScalar(useMoon ? 0.25 * nightF : 0.75 * THREE.MathUtils.smoothstep(s, -0.1, 0.02));
       ramp(CIRRUS, s, u.uCirrusColor.value);
+      // sunset: clouds catch pink-rose light rather than plain orange (backlit rims stay warm through the forward-scatter term)
+      env.golden = dayF * (1 - THREE.MathUtils.smoothstep(s, 0.06, 0.3));
+      if (!useMoon) u.uCloudSun.value.lerp(tmpC.setRGB(0.95, 0.56, 0.60), 0.55 * env.golden);
       ramp(SKY_ZENITH, s, u.uZenith.value);
       ramp(SKY_HORIZON, s, u.uHorizon.value);
       ramp(SKY_HORIZON_SUN, s, u.uHorizonSun.value);
       ramp(SKY_GLOW, s, u.uSunGlow.value);
+      u.uCloudCover.value = 0.385 + 0.11 * env.golden; // bigger, softer cloud banks toward sunset
 
       // --- ocean ---
       { const tO = performance.now(); ocean.update(dt, camera, env); prof('ocean', tO); }

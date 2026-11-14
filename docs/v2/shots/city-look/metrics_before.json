@@ -1,0 +1,490 @@
+{
+ "set": "before",
+ "when": "2026-11-14T00:10:52.523Z",
+ "uptime": "17:10  up 6 days,  9:40, 1 user, load averages: 6.23 7.77 6.34",
+ "views": {
+  "sb_street_14": {
+   "calls": 377,
+   "triangles": 713766,
+   "geometries": 840,
+   "textures": 253,
+   "programs": 316,
+   "frameMsAvg": 16.69,
+   "frameMsP95": 20.5,
+   "frameMsMax": 22.5,
+   "fps": 59.9,
+   "stream": {
+    "near": 10,
+    "mid": 17,
+    "far": 71
+   },
+   "gy": 0,
+   "district": "South Beach",
+   "zone": "nightlife",
+   "street": "Ocean Drive"
+  },
+  "sb_aerial_14": {
+   "calls": 727,
+   "triangles": 646667,
+   "geometries": 983,
+   "textures": 279,
+   "programs": 317,
+   "frameMsAvg": 16.83,
+   "frameMsP95": 20.1,
+   "frameMsMax": 22.4,
+   "fps": 59.4,
+   "stream": {
+    "near": 10,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "South Beach",
+   "zone": "nightlife",
+   "street": "Ocean Drive"
+  },
+  "sb_street_21h5": {
+   "calls": 533,
+   "triangles": 674297,
+   "geometries": 1067,
+   "textures": 293,
+   "programs": 317,
+   "frameMsAvg": 17.51,
+   "frameMsP95": 22.2,
+   "frameMsMax": 23.7,
+   "fps": 57.1,
+   "stream": {
+    "near": 10,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "South Beach",
+   "zone": "nightlife",
+   "street": "Ocean Drive"
+  },
+  "sb_aerial_21h5": {
+   "calls": 702,
+   "triangles": 656490,
+   "geometries": 1085,
+   "textures": 312,
+   "programs": 318,
+   "frameMsAvg": 18.53,
+   "frameMsP95": 22.1,
+   "frameMsMax": 143.4,
+   "fps": 54,
+   "stream": {
+    "near": 10,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "South Beach",
+   "zone": "nightlife",
+   "street": "Ocean Drive"
+  },
+  "dt_street_14": {
+   "calls": 248,
+   "triangles": 519948,
+   "geometries": 1128,
+   "textures": 281,
+   "programs": 317,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 19.7,
+   "frameMsMax": 23.2,
+   "fps": 60,
+   "stream": {
+    "near": 9,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  },
+  "dt_aerial_14": {
+   "calls": 361,
+   "triangles": 563320,
+   "geometries": 1157,
+   "textures": 290,
+   "programs": 317,
+   "frameMsAvg": 16.65,
+   "frameMsP95": 19.7,
+   "frameMsMax": 21.3,
+   "fps": 60.1,
+   "stream": {
+    "near": 11,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  },
+  "dt_street_21h5": {
+   "calls": 271,
+   "triangles": 523158,
+   "geometries": 1174,
+   "textures": 290,
+   "programs": 317,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 18.9,
+   "frameMsMax": 20.8,
+   "fps": 60,
+   "stream": {
+    "near": 11,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  },
+  "dt_aerial_21h5": {
+   "calls": 406,
+   "triangles": 575723,
+   "geometries": 1174,
+   "textures": 290,
+   "programs": 317,
+   "frameMsAvg": 16.66,
+   "frameMsP95": 19.5,
+   "frameMsMax": 20.6,
+   "fps": 60,
+   "stream": {
+    "near": 11,
+    "mid": 18,
+    "far": 70
+   },
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  },
+  "br_street_14": {
+   "calls": 370,
+   "triangles": 490440,
+   "geometries": 1242,
+   "textures": 299,
+   "programs": 318,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 20.2,
+   "frameMsMax": 21.6,
+   "fps": 59.9,
+   "stream": {
+    "near": 9,
+    "mid": 17,
+    "far": 71
+   },
+   "gy": 0,
+   "district": "Brickell",
+   "zone": "business",
+   "street": "Brickell Avenue"
+  },
+  "br_aerial_14": {
+   "calls": 497,
+   "triangles": 543480,
+   "geometries": 1287,
+   "textures": 309,
+   "programs": 318,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 19.9,
+   "frameMsMax": 21.3,
+   "fps": 60,
+   "stream": {
+    "near": 12,
+    "mid": 17,
+    "far": 71
+   },
+   "gy": 0,
+   "district": "Brickell",
+   "zone": "business",
+   "street": "Brickell Avenue"
+  },
+  "br_street_21h5": {
+   "calls": 510,
+   "triangles": 664874,
+   "geometries": 1357,
+   "textures": 318,
+   "programs": 318,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 19.8,
+   "frameMsMax": 21,
+   "fps": 60,
+   "stream": {
+    "near": 12,
+    "mid": 17,
+    "far": 71
+   },
+   "gy": 0,
+   "district": "Brickell",
+   "zone": "business",
+   "street": "Brickell Avenue"
+  },
+  "br_aerial_21h5": {
+   "calls": 521,
+   "triangles": 530203,
+   "geometries": 1360,
+   "textures": 321,
+   "programs": 318,
+   "frameMsAvg": 16.65,
+   "frameMsP95": 19.9,
+   "frameMsMax": 21.7,
+   "fps": 60,
+   "stream": {
+    "near": 12,
+    "mid": 17,
+    "far": 71
+   },
+   "gy": 0,
+   "district": "Brickell",
+   "zone": "business",
+   "street": "Brickell Avenue"
+  },
+  "port_street_14": {
+   "calls": 296,
+   "triangles": 420210,
+   "geometries": 691,
+   "textures": 233,
+   "programs": 312,
+   "frameMsAvg": 16.65,
+   "frameMsP95": 19.4,
+   "frameMsMax": 21.8,
+   "fps": 60,
+   "stream": {
+    "near": 9,
+    "mid": 21,
+    "far": 67
+   },
+   "gy": 0,
+   "district": "PortMiami",
+   "zone": "port",
+   "street": "Port Boulevard"
+  },
+  "port_aerial_14": {
+   "calls": 356,
+   "triangles": 427924,
+   "geometries": 751,
+   "textures": 244,
+   "programs": 313,
+   "frameMsAvg": 16.64,
+   "frameMsP95": 19,
+   "frameMsMax": 20.6,
+   "fps": 60.1,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0,
+   "district": "PortMiami",
+   "zone": "port",
+   "street": "Port Boulevard"
+  },
+  "port_street_21h5": {
+   "calls": 328,
+   "triangles": 406627,
+   "geometries": 760,
+   "textures": 244,
+   "programs": 313,
+   "frameMsAvg": 16.69,
+   "frameMsP95": 20.2,
+   "frameMsMax": 22.6,
+   "fps": 59.9,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0,
+   "district": "PortMiami",
+   "zone": "port",
+   "street": "Port Boulevard"
+  },
+  "port_aerial_21h5": {
+   "calls": 388,
+   "triangles": 491816,
+   "geometries": 778,
+   "textures": 248,
+   "programs": 313,
+   "frameMsAvg": 16.69,
+   "frameMsP95": 20.3,
+   "frameMsMax": 22.3,
+   "fps": 59.9,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0,
+   "district": "PortMiami",
+   "zone": "port",
+   "street": "Port Boulevard"
+  },
+  "cw_street_14": {
+   "calls": 420,
+   "triangles": 399781,
+   "geometries": 869,
+   "textures": 212,
+   "programs": 314,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 18.8,
+   "frameMsMax": 19.7,
+   "fps": 60,
+   "stream": {
+    "near": 9,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.4231035929622994,
+   "district": "South Beach",
+   "zone": "residential",
+   "street": "MacArthur Causeway"
+  },
+  "cw_aerial_14": {
+   "calls": 478,
+   "triangles": 433778,
+   "geometries": 917,
+   "textures": 215,
+   "programs": 314,
+   "frameMsAvg": 16.64,
+   "frameMsP95": 19,
+   "frameMsMax": 20,
+   "fps": 60.1,
+   "stream": {
+    "near": 10,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.4231035929622994,
+   "district": "South Beach",
+   "zone": "residential",
+   "street": "MacArthur Causeway"
+  },
+  "cw_street_21h5": {
+   "calls": 508,
+   "triangles": 449606,
+   "geometries": 995,
+   "textures": 224,
+   "programs": 314,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 18.8,
+   "frameMsMax": 19.4,
+   "fps": 60,
+   "stream": {
+    "near": 10,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.4231035929622994,
+   "district": "South Beach",
+   "zone": "residential",
+   "street": "MacArthur Causeway"
+  },
+  "cw_aerial_21h5": {
+   "calls": 467,
+   "triangles": 424804,
+   "geometries": 1019,
+   "textures": 226,
+   "programs": 314,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 19.6,
+   "frameMsMax": 21.2,
+   "fps": 60,
+   "stream": {
+    "near": 10,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.4231035929622994,
+   "district": "South Beach",
+   "zone": "residential",
+   "street": "MacArthur Causeway"
+  },
+  "isl_street_14": {
+   "calls": 218,
+   "triangles": 328046,
+   "geometries": 932,
+   "textures": 240,
+   "programs": 317,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 19.2,
+   "frameMsMax": 20.8,
+   "fps": 60,
+   "stream": {
+    "near": 10,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.09899864334614802,
+   "district": "Rivo Alto Island",
+   "zone": "residential",
+   "street": "West Rivo Alto Drive"
+  },
+  "isl_aerial_14": {
+   "calls": 347,
+   "triangles": 384722,
+   "geometries": 981,
+   "textures": 241,
+   "programs": 317,
+   "frameMsAvg": 16.65,
+   "frameMsP95": 19.4,
+   "frameMsMax": 21.8,
+   "fps": 60,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.09899864334614802,
+   "district": "Rivo Alto Island",
+   "zone": "residential",
+   "street": "West Rivo Alto Drive"
+  },
+  "isl_street_21h5": {
+   "calls": 356,
+   "triangles": 505846,
+   "geometries": 1041,
+   "textures": 242,
+   "programs": 317,
+   "frameMsAvg": 16.68,
+   "frameMsP95": 20.1,
+   "frameMsMax": 21,
+   "fps": 60,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.09899864334614802,
+   "district": "Rivo Alto Island",
+   "zone": "residential",
+   "street": "West Rivo Alto Drive"
+  },
+  "isl_aerial_21h5": {
+   "calls": 365,
+   "triangles": 377088,
+   "geometries": 1040,
+   "textures": 242,
+   "programs": 317,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 19.4,
+   "frameMsMax": 20.6,
+   "fps": 60,
+   "stream": {
+    "near": 11,
+    "mid": 22,
+    "far": 66
+   },
+   "gy": 0.09899864334614802,
+   "district": "Rivo Alto Island",
+   "zone": "residential",
+   "street": "West Rivo Alto Drive"
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

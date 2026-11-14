@@ -3,12 +3,10 @@
  "limit": 20,
  "running": [
   "nico-house",
-  "world-layout",
-  "npc-ai",
   "environment",
   "vegetation",
-  "sand-wear",
-  "character"
+  "character",
+  "world-layout"
  ],
  "queued": [
   "police",
@@ -31,7 +29,9 @@
   "character",
   "keys-bar",
   "world-render",
-  "vehicles-core"
+  "vehicles-core",
+  "sand-wear",
+  "npc-ai"
  ],
  "launchedTotal": 27,
  "note": "4 on Fable, 4 on Opus 5.5",

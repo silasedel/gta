@@ -1,0 +1,29 @@
+{
+ "boot": {
+  "talk": true,
+  "failed": []
+ },
+ "beach": {
+  "inView": {
+   "near": 6,
+   "far": 27,
+   "total": 33
+  },
+  "crowd": 85,
+  "peds": 32
+ },
+ "bar": {
+  "spot": {
+   "x": -2996.55,
+   "z": 10449.82,
+   "heading": 0.9716,
+   "from": "layout",
+   "crowded": true
+  },
+  "loaded": [
+   "./world/setpieces/keysSign/keysSign.v2.js",
+   "./world/setpieces/keysBar/keysBar.v2.js"
+  ]
+ },
+ "errors": []
+}

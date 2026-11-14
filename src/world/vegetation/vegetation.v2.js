@@ -1,0 +1,40 @@
+// game.vegetation: build(kind, opts) -> THREE.Group (palms, shrubs, trees; every seed differs), kinds, field(kind, items, opts) for
+// instanced LOD fields (near / mid / impostor with dithered cross-fades), stats(). Also drives the sun direction for leaf translucency,
+// and the wind clock when no other system does (the Miami materials update drives it in the city).
+import * as THREE from 'three';
+import { build, buildGeometry, KINDS, KIND_TYPE } from './index.js';
+import { sharedVegMaterials, vegUniforms, updateVegetation } from './materials.js';
+import { createVegField } from './field.js';
+import { PALM_SPECIES } from './palms.js';
+
+export const order = 60;
+export async function initV2(game) {
+  const fields = [];
+  let t = 0, lastSeen = -1;
+  game.vegetation = {
+    kinds: KINDS, types: KIND_TYPE, palms: PALM_SPECIES,
+    // build one plant: opts { seed, height, lod, size, length (hedges), lean, wear } -> Group at the origin (base at y=0)
+    build(kind, opts = {}) { const p = build(kind, opts); p.group.userData.tris = p.tris; p.group.userData.height = p.height; return p.group; },
+    buildGeometry,
+    materials: sharedVegMaterials(),
+    // instanced field with LODs: items [{x,y,z,ry,s}] in world space; added to game.scene unless opts.parent is given
+    field(kind, items, opts = {}) {
+      const f = createVegField(game.renderer, kind, items, opts); (opts.parent || game.scene).add(f.group); fields.push(f);
+      f.remove = () => { const i = fields.indexOf(f); if (i >= 0) fields.splice(i, 1); f.group.removeFromParent(); f.dispose(); };
+      if (game.camera) f.update(game.camera, true);
+      return f;
+    },
+    stats() { return fields.map((f) => f.stats()); },
+  };
+  game.updaters.push((dt) => {
+    try {
+      t += dt || 0;
+      const cur = vegUniforms.uVegTime.value;
+      if (cur === lastSeen) updateVegetation(t, game.scene); // nobody else advanced the wind clock this frame
+      else updateVegetation(cur, game.scene), vegUniforms.uVegTime.value = cur;
+      lastSeen = vegUniforms.uVegTime.value;
+      if (game.camera) for (const f of fields) f.update(game.camera);
+    } catch (e) { /* never take the frame down */ }
+  });
+  game.emit?.('vegetation:ready', { kinds: KINDS });
+}

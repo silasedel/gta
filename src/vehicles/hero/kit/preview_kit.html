@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><title>hero kit: materials</title>
+<style>html,body{margin:0;height:100%;background:#111;overflow:hidden}</style></head>
+<body><script type="module">
+// Material swatches + kit geometry smoke test.  ?env=studio|sky|night
+import * as THREE from 'three';
+import { createStudio } from './studio.js';
+import { getMats } from './mats.js';
+import { sweep, sect, lathe, rbox, tube, plate, poly, uvBox, Bucket, meshesFrom } from './geo.js';
+const st = createStudio();
+const M = getMats();
+const list = [
+  ['paint candy red', M.paint(0xc20d14, { type: 'candy' })], ['paint pearl green', M.paint(0x2fb53a, { type: 'pearl' })], ['paint satin graphite', M.paint(0x34373c, { type: 'satin' })],
+  ['paint pearl purple', M.paint(0x4a1d96, { type: 'pearl' })], ['paint pearl orange', M.paint(0xff6a0a, { type: 'pearl' })], ['paint metallic black', M.paint(0x09090b)],
+  ['carbon', M.carbon()], ['carbon matte', M.carbon({ matte: true })], ['leather', M.leather(0x5a2d16)], ['leather perf', M.leather(0x141312, { perf: true })],
+  ['alcantara', M.alcantara(0x17181a)], ['plastic', M.plastic()], ['piano', M.plastic(0x050505, 'piano')], ['rubber', M.rubber()],
+  ['chrome', M.metal('chrome')], ['dark chrome', M.metal('dark')], ['brushed', M.metal('brushed')], ['cast', M.metal('cast')], ['titanium', M.metal('titanium')],
+  ['crackle red', M.coated(0xb0141a, 'crackle')], ['caliper yellow', M.coated(0xe8c21a)], ['foil', M.foil()], ['carpet', M.carpet()], ['hex mesh', M.hexMesh()],
+];
+const cols = 8;
+list.forEach(([name, mat], i) => {
+  const g = uvBox(new THREE.SphereGeometry(0.16, 48, 32));
+  const m = new THREE.Mesh(g, mat); m.castShadow = true;
+  m.position.set(((i % cols) - (cols - 1) / 2) * 0.42, 0.17, -Math.floor(i / cols) * 0.45 + 0.4);
+  st.scene.add(m);
+});
+// geometry smoke test: swept airfoil wing, lathe, tube, hex plate
+const b = new Bucket();
+b.add('carbon', sweep([[-0.5, 0.6, -1.2], [0, 0.62, -1.2], [0.5, 0.6, -1.2]].map((p, i) => ({ p, s: i === 1 ? 1 : 0.8 })), sect.airfoil(0.3, 0.035, 24), { up: [0, 1, 0], smoothPath: 12 }));
+b.add('alu', lathe([[0.02, 0], [0.08, 0], [0.1, 0.03], [0.1, 0.12], [0.06, 0.14]], 32, 'y'), { p: [-1.2, 0, -1.2] });
+b.add('rubber', tube([[0.8, 0.1, -1.2], [1.0, 0.3, -1.1], [1.2, 0.1, -1.2]], 0.02));
+b.add('alu', plate(poly(6, 0.1, Math.PI / 6), 0.02, 0.004), { p: [1.5, 0.15, -1.2] });
+b.add('leather', rbox(0.3, 0.1, 0.3, 0.04, 4), { p: [-1.7, 0.06, -1.2] });
+const grp = meshesFrom(b.merged(), { carbon: M.carbon(), alu: M.metal('alu'), rubber: M.rubber(), leather: M.leather(0x5a2d16) });
+st.scene.add(grp);
+st.cam([0, 1.5, 2.6], [0, 0.1, -0.3], 34);
+st.start();
+window.ready = true;
+</script></body></html>

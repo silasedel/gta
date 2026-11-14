@@ -1,0 +1,75 @@
+{
+ "set": "after",
+ "when": "2026-11-14T00:57:07.506Z",
+ "uptime": "17:57  up 6 days, 10:27, 1 user, load averages: 9.34 10.41 8.85",
+ "views": {
+  "port_street_21h5": {
+   "calls": 618,
+   "triangles": 682302,
+   "geometries": 797,
+   "textures": 327,
+   "programs": 505,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 19.4,
+   "frameMsMax": 20.7,
+   "fps": 60,
+   "stream": {
+    "near": 10,
+    "mid": 19,
+    "far": 285
+   },
+   "shot": true,
+   "gy": 0,
+   "district": "PortMiami",
+   "zone": "port",
+   "street": "Port Boulevard"
+  },
+  "cw_street_21h5": {
+   "calls": 475,
+   "triangles": 635671,
+   "geometries": 1091,
+   "textures": 308,
+   "programs": 515,
+   "frameMsAvg": 16.63,
+   "frameMsP95": 18.2,
+   "frameMsMax": 18.6,
+   "fps": 60.1,
+   "stream": {
+    "near": 9,
+    "mid": 21,
+    "far": 283
+   },
+   "shot": true,
+   "gy": 0.4231035929622994,
+   "district": "MacArthur Causeway",
+   "zone": "causeway",
+   "street": "MacArthur Causeway"
+  },
+  "isl_street_21h5": {
+   "calls": 302,
+   "triangles": 463665,
+   "geometries": 1046,
+   "textures": 327,
+   "programs": 514,
+   "frameMsAvg": 16.67,
+   "frameMsP95": 18.7,
+   "frameMsMax": 20.1,
+   "fps": 60,
+   "stream": {
+    "near": 10,
+    "mid": 22,
+    "far": 282
+   },
+   "shot": true,
+   "gy": 0.09899864334614802,
+   "district": "Rivo Alto Island",
+   "zone": "residential",
+   "street": "West Rivo Alto Drive"
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+  "ERR THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: eye\nMaterial Type: MeshPhysicalMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1585: 'normalMatrix' : undeclared identifier\n\n  1580: \t\ttbn2[0] *= faceDirection;\n  1581: \t\ttbn2[1] *= faceDirection;\n  1582: \t#endif\n  1583: #endif\n  1584: vec3 nonPerturbedNormal = normal;\n> 1585:         normal = normalize( normalMatrix * eyeNrmL ); nonPerturbedNormal = normal;\n  1586: #ifdef USE_NORMALMAP_OB",
+  "ERR THREE.WebGLProgram: Shader Error 1282 - VALIDATE_STATUS false\n\nMaterial Name: eye\nMaterial Type: MeshPhysicalMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1585: 'normalMatrix' : undeclared identifier\n\n  1580: \t\ttbn2[0] *= faceDirection;\n  1581: \t\ttbn2[1] *= faceDirection;\n  1582: \t#endif\n  1583: #endif\n  1584: vec3 nonPerturbedNormal = normal;\n> 1585:         normal = normalize( normalMatrix * eyeNrmL ); nonPerturbedNormal = normal;\n  1586: #ifdef USE_NORMALMAP"
+ ]
+}

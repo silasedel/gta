@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSkids } from './skids.js';
+import { MODELS as FLEET, loadModels, buildBoatSteps } from './boats/catalog.js';
+import { createWakeFx } from './boats/wakefx.js';
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const fin = (x, f = 0) => (Number.isFinite(x) ? x : f);
@@ -10,20 +12,23 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 // ---------------------------------------------------------------- catalogue (all invented brands)
 export const BOAT_TYPES = {
-  console: { trimDeg: 7, brand: 'Tarpon', name: 'Reef 24 CC', L: 7.2, W: 2.5, draft: 0.45, sheer: 0.75, bowRise: 0.45, mass: 1800, thrust: 15000, vmax: 72, turn: 1.0,
+  console: { trimDeg: 6, brand: 'Tidewright', name: 'Bluewright 26', L: 7.9, W: 2.64, draft: 0.46, sheer: 0.74, bowRise: 0.45, mass: 2900, thrust: 24000, vmax: 84, turn: 1.0,
     engine: 'outboard', engines: 2, colors: [0xf4f4f2, 0x1d3f8f, 0x0e5e7a], stripe: 0x1fb5b0, console: true, tTop: true },
-  racer: { trimDeg: 5.5, brand: 'Vireo', name: 'Offshore 39', L: 11.5, W: 2.6, draft: 0.5, sheer: 0.85, bowRise: 0.5, mass: 3000, thrust: 36000, vmax: 125, turn: 0.75,
-    engine: 'inboard', engines: 2, colors: [0xffc21a, 0xb3121b, 0x101214, 0xf2f2f2], stripe: 0x101214, cockpit: true, pointy: true },
-  cruiser: { trimDeg: 5, brand: 'Aurelia', name: 'Bayliner 34', L: 10.5, W: 3.4, draft: 0.75, sheer: 1.25, bowRise: 0.5, mass: 5500, thrust: 30000, vmax: 58, turn: 0.7,
-    engine: 'inboard', engines: 2, colors: [0xf4f4f2, 0xe7dcc4], stripe: 0x173b8f, cabin: true },
+  racer: { trimDeg: 4.5, brand: 'Marazul', name: 'Corsario 42', L: 12.8, W: 3.72, draft: 0.66, sheer: 1.0, bowRise: 0.5, mass: 9800, thrust: 70000, vmax: 104, turn: 0.8,
+    engine: 'outboard', engines: 4, colors: [0xffc21a, 0xb3121b, 0x101214, 0xf2f2f2], stripe: 0x101214, cockpit: true, pointy: true },
+  cruiser: { trimDeg: 5, brand: 'Marazul', name: 'Corsario 34', L: 10.4, W: 3.1, draft: 0.56, sheer: 0.86, bowRise: 0.5, mass: 5600, thrust: 42000, vmax: 96, turn: 0.9,
+    engine: 'outboard', engines: 3, colors: [0xf4f4f2, 0xe7dcc4], stripe: 0x173b8f, console: true, tTop: true },
   jetski: { trimDeg: 3, brand: 'Pico', name: 'WaveRider', L: 3.2, W: 1.2, draft: 0.22, sheer: 0.45, bowRise: 0.18, mass: 350, thrust: 4200, vmax: 95, turn: 1.8,
     engine: 'jetski', engines: 1, colors: [0xff5a1f, 0x9be22d, 0x2a8cff, 0xffc21a], stripe: 0x101214, jet: true },
-  skiff: { trimDeg: 6, brand: 'Corvo', name: 'Flats 17', L: 5.2, W: 1.9, draft: 0.3, sheer: 0.55, bowRise: 0.25, mass: 700, thrust: 5000, vmax: 50, turn: 1.2,
+  skiff: { trimDeg: 6, brand: 'Tidewright', name: 'Baywright 21', L: 6.45, W: 2.44, draft: 0.38, sheer: 0.66, bowRise: 0.3, mass: 1650, thrust: 13500, vmax: 74, turn: 1.15,
     engine: 'outboard', engines: 1, colors: [0xd8cdb0, 0x2f6d3a, 0xa9aeb4], stripe: 0x5a6470, skiff: true },
   police: { trimDeg: 6.5, brand: 'Marlin', name: 'Patrol 29', L: 8.8, W: 2.8, draft: 0.5, sheer: 0.85, bowRise: 0.45, mass: 3200, thrust: 26000, vmax: 95, turn: 0.95,
     engine: 'outboard', engines: 2, colors: [0x0b1a33], stripe: 0xf2f2f2, console: true, tTop: true, police: true },
 };
 const MAXRPM = { outboard: 6000, inboard: 5200, jetski: 7500 };
+// V2 fleet: these v1 types now get a rebuilt, individually seeded center console (src/vehicles/boats/models/cc.js)
+const NEWKEY = { console: 'cc26', skiff: 'cc21', cruiser: 'cc34', racer: 'cc42' };
+const hash2 = (x, z) => { let h = (Math.round(x * 3) * 73856093) ^ (Math.round(z * 3) * 19349663); h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; };
 
 // ---------------------------------------------------------------- materials
 let M = null;
@@ -254,6 +259,9 @@ export function createBoats(game, opts = {}) {
   const boats = [];
   const QF = RAPIER.QueryFilterFlags;
   const foam = createSkids(scene, 900);
+  let wake = null; try { if (!opts.sim) wake = createWakeFx(scene); } catch (e) { console.warn('[boats] wake fx', e); wake = null; }
+  let fleetReady = false, fleetFailed = false; const upgradeQ = [];
+  if (!opts.sim) loadModels().then(() => { fleetReady = true; }).catch((e) => { fleetFailed = true; console.warn('[boats] fleet', e); });
   foam.mesh.material.uniforms.color.value.setRGB(0.95, 0.97, 1.0);
   foam.mesh.material.depthTest = true;
   const isWater = (x, z) => (city?.isWater ? city.isWater(x, z) : false);
@@ -305,8 +313,41 @@ export function createBoats(game, opts = {}) {
       get heading() { const r = body.rotation(); _q.set(r.x, r.y, r.z, r.w); _v.set(0, 0, 1).applyQuaternion(_q); return Math.atan2(_v.x, _v.z); },
       external: !!o.external,
     };
+    b.seed = o.seed ?? hash2(pos.x, pos.z);
+    if (NEWKEY[key] && !opts.sim && !fleetFailed) { b.mesh.visible = false; upgradeQ.push(b); }
     boats.push(b);
     return b;
+  }
+  // ---- V2 visuals: build the detailed, seeded boat a little per frame, then swap it in for the v1 hull
+  function attachVisual(b, nb) {
+    for (const c of [...b.mesh.children]) b.mesh.remove(c);
+    b.mesh.add(nb.root); b.mesh.visible = true; b.visual = nb;
+    b.name = `${nb.id.builder.name} ${nb.def.name}${nb.id.name ? ` "${nb.id.name}"` : ''}`; b.model.brand = nb.id.builder.name; b.model.name = nb.def.name;
+    b.boatName = nb.id.name; b.registration = nb.id.reg; b.hailingPort = nb.id.port;
+  }
+  function upgradeStep() {
+    if (!upgradeQ.length) return;
+    if (!fleetReady) { if (fleetFailed) { for (const b of upgradeQ) b.mesh.visible = true; upgradeQ.length = 0; } return; }
+    const t0 = performance.now();
+    while (upgradeQ.length && performance.now() - t0 < 4) {
+      const b = upgradeQ[0];
+      if (b.disposed || !FLEET[NEWKEY[b.typeKey]]) { b.mesh.visible = true; b._gen = null; upgradeQ.shift(); continue; }
+      if (!b._gen) b._gen = buildBoatSteps(NEWKEY[b.typeKey], b.seed, {}, 3);
+      let s; try { s = b._gen.next(); } catch (e) { console.warn('[boats] visual build failed', e); b.mesh.visible = true; b._gen = null; upgradeQ.shift(); continue; }
+      if (s.done) { b._gen = null; upgradeQ.shift(); try { attachVisual(b, s.value); } catch (e) { console.warn('[boats] attach', e); b.mesh.visible = true; } }
+    }
+  }
+  function animateVisual(b, dt, night) {
+    const V = b.visual, P = V.parts, st = b.steerF || 0, plane = clamp((Math.abs(b.speed) - b.spec.vmax / 3.6 * 0.35) / (b.spec.vmax / 3.6 * 0.25), 0, 1);
+    for (let i = 0; i < 4; i++) { const s = P[`ob${i}/steer`]; if (!s) break; s.rotation.y = -st * 0.5;
+      const tl = P[`ob${i}/steer/tilt`]; if (tl) { const up = !b.engineOn && !b.everDriven && (b.seed & 1); tl.rotation.x += ((up ? 1.05 : -0.04 + 0.1 * plane) - tl.rotation.x) * Math.min(1, dt * 1.5); }
+      const pr = P[`ob${i}/steer/tilt/prop`]; if (pr && b.rpm > 50) pr.rotation.z += b.rpm * dt * 0.03; }
+    if (P.wheel) P.wheel.rotation.z = st * 2.4;
+    const live = b.playerDriven || b.chaseTarget; for (let i = 0; i < 2; i++) { const th = P[`throttle${i}`]; if (th) th.rotation.x += ((live ? b.ctrl.throttle * 0.6 : 0) - th.rotation.x) * Math.min(1, dt * 8); }
+    if (P.fenders) P.fenders.visible = !b.everDriven && !b.chaseTarget;
+    const lit = night && (b.engineOn || b.playerDriven || !!(b.seed & 2));
+    if (V._lit !== lit) { V._lit = lit; V.root.traverse((o) => { if (o.isMesh && o.name === 'lamp') o.material = lit ? V.mats.lampOn : V.mats.lampOff; }); }
+    if (V.mats.screen) V.mats.screen.emissiveIntensity = b.engineOn ? (night ? 1.3 : 0.45) : 0;
   }
   function placeBoat(b, p, heading) {
     const q = new THREE.Quaternion().setFromAxisAngle(UP, heading);
@@ -330,6 +371,7 @@ export function createBoats(game, opts = {}) {
     boats.splice(i, 1); b.alive = false; b.disposed = true; scene.remove(b.mesh);
     if (b.moorId != null && !b.everDriven) pendingRelease.set(b.moorId, b.moorPos || b.body.translation());
     for (const k in b.lightMats) b.lightMats[k].dispose();
+    try { b.visual?.dispose(); } catch (e) { /* ignore */ } b.visual = null; wake?.endWake(b); wake?.dropSource(b);
     foam.end(b.name);
     try { world.removeRigidBody(b.body); } catch (e) { /* ignore */ }
     return true;
@@ -471,9 +513,22 @@ export function createBoats(game, opts = {}) {
       // rudder / jet steering: yaw needs flow (speed) or thrust; roll into the turn; bow lift when planing
       const flow = Math.min(1, (sp + Math.abs(thr) * 5) / 8);
       const Iy = m / 12 * (t.W * t.W + t.L * t.L), Ix = m / 12 * ((t.sheer + t.draft) ** 2 + t.L * t.L);
-      const yawT = c.steer * t.turn * Iy * 0.6 * flow * Math.sign(vF || 1) * wf;
-      _w.set(0, yawT * dt, 0); body.applyTorqueImpulse(_w, true);
-      _w.copy(_f).multiplyScalar(-c.steer * m * 0.9 * Math.min(1, sp / 12) * wf * dt); body.applyTorqueImpulse(_w, true);
+      // V2 steering: a yaw-rate servo instead of a weak torque. Tight pivot at docking speed (vectored thrust), limited by
+      // lateral g at speed (speed-sensitive), quick response, and a banked lean into the turn while planing.
+      {
+        b.steerF = (b.steerF || 0) + (c.steer - (b.steerF || 0)) * Math.min(1, dt * (sp > vmax * 0.5 ? 5 : 9));
+        const jet = !!t.jet, auth = clamp(jet ? Math.abs(thr) * 0.9 + sp / 12 : Math.abs(thr) * 0.8 + sp / 3, 0, 1);
+        const dockYaw = clamp(3.3 / Math.pow(t.L, 0.75), 0.35, 1.5), latG = (jet ? 1.3 : 0.85 * clamp(t.turn, 0.85, 1.3)) * 9.81;
+        const yawMax = Math.min(dockYaw * auth, latG / Math.max(sp, 2.5));
+        const dirS = vF < -0.5 || (thr < 0 && vF < 0.5) ? -1 : 1;
+        const wT = b.steerF * yawMax * dirS * Math.min(1, wf * 3), tau = 0.12 + t.L * 0.02, blend = 1 - Math.exp(-dt / tau), damp = (1.6 * wf + 0.3) * dt;
+        const nw = av.y + (wT * (blend + damp) / blend - av.y) * blend;
+        const leanMax = (jet ? 30 : t.cabin ? 6 : t.pointy ? 10 : 14) * Math.PI / 180, sf = clamp(sp / (vmax * 0.45), 0, 1);
+        _w.set(1, 0, 0).applyQuaternion(_q); const roll = Math.asin(clamp(_w.y, -1, 1));               // + = port side up
+        const rollRate = av.x * _f.x + av.z * _f.z, dR = ((-b.steerF * leanMax * sf * dirS - roll) * 5 - rollRate) * sf * (1 - Math.exp(-dt / 0.18));
+        body.setAngvel({ x: av.x + _f.x * dR, y: nw, z: av.z + _f.z * dR }, true);
+        b.lean = roll;
+      }
       // planing trim: bow rises through the hump (~0.25-0.5 vmax) and settles lower at full plane.  A PD on pitch plus
       // a feed-forward that cancels the buoyancy restoring moment at the target angle (else the floats flatten it).
       {
@@ -495,12 +550,20 @@ export function createBoats(game, opts = {}) {
       // wake + spray + foam trail (render-side effects throttled)
       b.wakeT -= dt;
       if (b.wakeT <= 0 && sp > 2) {
-        b.wakeT = 0.12;
+        b.wakeT = wake ? 0.07 : 0.12;
         _w.set(0, 0, -t.L / 2).applyQuaternion(_q);
+        if (wake) { // persistent wash + bow-wave arms, bow spray sheets while planing, rooster tail at speed
+          const sx = tr.x + _w.x, sz = tr.z + _w.z, k = Math.min(1, sp / (vmax * 0.6));
+          wake.addWake(b, sx, SEA + 0.035, sz, _r.x, _r.z, t.W * (0.22 + 0.16 * k), Math.min(1, 0.3 + sp / 22), Math.min(0.8, sp / 18), time);
+          wake.source(b, tr.x, tr.z, time, Math.min(0.22, 0.02 * sp) * Math.min(1.5, t.mass / 2500));
+          if (planing > 0.15) { _w.set(0, 0, t.L * (0.18 - 0.1 * planing)).applyQuaternion(_q); const bx = tr.x + _w.x, bz = tr.z + _w.z, n = 2 + Math.round(planing * 3);
+            for (const sd of [1, -1]) wake.burst(n, bx + _r.x * sd * t.W * 0.42, SEA + 0.12, bz + _r.z * sd * t.W * 0.42, _f.x * sp * 0.55 + _r.x * sd * (2.2 + sp * 0.12), 1.6 + sp * 0.07, _f.z * sp * 0.55 + _r.z * sd * (2.2 + sp * 0.12), 1.4, 0.13 + t.W * 0.02, 0.6, time); }
+          if (sp > vmax * 0.7) wake.burst(2, sx, SEA + 0.1, sz, _f.x * sp * 0.3, 2.2 + sp * 0.08, _f.z * sp * 0.3, 1.0, 0.16, 0.7, time);
+        } else {
         foam.add(b.name, { x: tr.x + _w.x, y: SEA + 0.03, z: tr.z + _w.z }, _r.x, _r.z, Math.min(t.W * 1.6, 0.8 + sp * 0.12), Math.min(0.8, 0.25 + sp / 30));
         if (sp > 9) { _w.set(0, 0, t.L * 0.3).applyQuaternion(_q); game.fx?.splash?.(new THREE.Vector3(tr.x + _w.x, SEA + 0.1, tr.z + _w.z), Math.min(2, sp / 25)); }
-        else if (Math.random() < 0.3) game.fx?.ripple?.(new THREE.Vector3(tr.x, SEA, tr.z));
-      } else if (sp <= 2) foam.end(b.name);
+        else if (Math.random() < 0.3) game.fx?.ripple?.(new THREE.Vector3(tr.x, SEA, tr.z)); }
+      } else if (sp <= 2) { foam.end(b.name); wake?.endWake(b); }
     } else {
       // out of the water: on sand/land the hull grinds to a stop
       if (groundBelow) { body.setLinearDamping(2.5); body.setAngularDamping(2.5); } else { body.setLinearDamping(0.05); body.setAngularDamping(0.3); }
@@ -706,7 +769,7 @@ export function createBoats(game, opts = {}) {
   }
   const MIX = ['console', 'console', 'skiff', 'cruiser', 'jetski', 'racer', 'skiff', 'console'];
   // CITY mooring types -> our drivable boats (no sailboats: sloops become cruisers, yachts the biggest cruiser)
-  const MOOR_KIND = { console: 'console', cruiser: 'cruiser', sloop: 'cruiser', yacht: 'cruiser', skiff: 'skiff', jetski: 'jetski', racer: 'racer' };
+  const MOOR_KIND = { console: 'console', cruiser: 'cruiser', sloop: 'skiff', yacht: 'racer', skiff: 'skiff', jetski: 'jetski', racer: 'racer' };
   const moorSlots = (x, z, r) => (typeof city?.moorings === 'function' ? (city.moorings(x, z, r) || []) : []).filter((m) => !m.claimed)
     .map((m) => ({ id: m.id, x: m.x, z: m.z, heading: m.heading ?? 0, length: m.length, kind: MOOR_KIND[m.type] || (m.length > 9 ? 'cruiser' : 'console') }));
   function fillFrom(slots, cap = 7) {
@@ -798,6 +861,7 @@ export function createBoats(game, opts = {}) {
     try { manager(dt); } catch (e) { console.error('[boats] manager', e); }
     navStep(1.2);
     try { proximitySwap(dt); } catch (e) { console.warn('[boats] swap', e); }
+    try { upgradeStep(); } catch (e) { console.warn('[boats] upgrade', e); }
     boardingStep(dt);
     const h = game.timeOfDay ?? 12, night = h < 6.6 || h > 18.7;
     const et = game.clock?.elapsed ?? 0;
@@ -808,8 +872,19 @@ export function createBoats(game, opts = {}) {
       const lit = night && (b.engineOn || b.playerDriven) ? 4 : 0.15;
       b.lightMats.red.emissiveIntensity = lit; b.lightMats.green.emissiveIntensity = lit; b.lightMats.white.emissiveIntensity = lit;
       if (b.police) b.lightMats.bar.emissiveIntensity = b.sirenOn ? ((et * 2.6) % 1 < 0.5 ? 9 : 0.3) : 0.2;
+      // fields for the AUDIO track: planing 0..1, slam 0..1 (decays), plus rpm / load set in the physics tick
+      { const vm = b.spec.vmax / 3.6, sp = Math.abs(b.speed); b.planing = clamp((sp - vm * 0.35) / (vm * 0.25), 0, 1);
+        const vy = lv.y; if (b._vy != null && b._vy < -1.6 && vy > b._vy + 1.2 && sp > 5) { b.slam = Math.min(1, -b._vy / 5); game.emit?.('boatSlam', { vehicle: b, strength: b.slam });
+          if (wake) { const f = b.heading, fx = Math.sin(f), fz = Math.cos(f); wake.burst(14, tr.x + fx * b.spec.L * 0.25, SEA + 0.15, tr.z + fz * b.spec.L * 0.25, fx * sp * 0.4, 3.5 * b.slam + 1.5, fz * sp * 0.4, 5, 0.2, 0.8, time); } }
+        b._vy = vy; b.slam = Math.max(0, (b.slam || 0) - dt * 2.5); }
+      if (b.visual) { try { animateVisual(b, dt, night); } catch (e) { /* ignore */ }
+        // cooling-water telltale from each running outboard and a bilge pump stream now and then
+        if (wake && b.engineOn && (b.fxT = (b.fxT || 0) - dt) <= 0) { b.fxT = 0.05; const q = b.mesh.quaternion;
+          for (const a of b.visual.anchors.telltale || []) { _v.set(a.x, a.y, a.z).applyQuaternion(q); _w.set(-0.9, 0.5, -0.4).applyQuaternion(q); wake.spray(tr.x + _v.x, tr.y + _v.y, tr.z + _v.z, lv.x + _w.x, _w.y, lv.z + _w.z, 0.035, 0.45, time); }
+          if ((et + (b.seed % 20)) % 20 < 4) { const a = (b.visual.anchors.bilge || [])[0]; if (a) { _v.set(a.x, a.y, a.z).applyQuaternion(q); _w.set(1.4, 0.3, 0).applyQuaternion(q); wake.spray(tr.x + _v.x, tr.y + _v.y, tr.z + _v.z, lv.x + _w.x, _w.y, lv.z + _w.z, 0.06, 0.5, time); } } } }
     }
     foam.flush();
+    try { wake?.update(time, night, SEA, innerHeight); } catch (e) { /* ignore */ }
   }
   // ---- boarding: a short scripted move from where the player stood/swam onto the deck (main.js renders the player
   // at BOARD.position while BOARD.active; the boat ignores the controls meanwhile, the player collider stays off)
@@ -879,5 +954,6 @@ export function createBoats(game, opts = {}) {
     return best;
   }
   return { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES, hullDist, boarding: BOARD,
+    wake, wakeHeightAt: (x, z) => (wake ? wake.heightAt(x, z, time, null) : 0), fleet: FLEET, get fleetReady() { return fleetReady; },
     nav: { stats: NAV.stats, get grid() { return NAV.grid; }, get building() { return !!NAV.gen; }, path: navPath, spawnSpot: navSpawnSpot, ensure: navEnsure } };
 }

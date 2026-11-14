@@ -25,7 +25,7 @@ export function createGrassField({ M, root, data, lawnAt = null, lawnTester = nu
   const parts = [];
   // 4 cards of different size / tilt / offset per tuft (no regular star pattern); uv u in [0, 0.5] (variant picks the half in the shader)
   let ss = 99; const rr = () => ((ss = (ss * 16807) % 2147483647) / 2147483647);
-  for (let k = 0; k < 4; k++) { const w = 0.32 + rr() * 0.3, h = 0.26 + rr() * 0.24, p = new THREE.PlaneGeometry(w, h); p.translate(0, h / 2, 0); p.rotateX((rr() - 0.5) * 0.45); p.rotateY(rr() * Math.PI); p.translate((rr() - 0.5) * 0.3, 0, (rr() - 0.5) * 0.3); parts.push(p); }
+  for (let k = 0; k < 4; k++) { const w = 0.2 + rr() * 0.16, h = 0.2 + rr() * 0.16, p = new THREE.PlaneGeometry(w, h); /* vegetation track: smaller cards = finer blades */ p.translate(0, h / 2, 0); p.rotateX((rr() - 0.5) * 0.45); p.rotateY(rr() * Math.PI); p.translate((rr() - 0.5) * 0.3, 0, (rr() - 0.5) * 0.3); parts.push(p); }
   const pos = [], nor = [], uv = [], idx = []; let base = 0;
   for (const p of parts) {
     const P = p.attributes.position, U = p.attributes.uv;

@@ -38,3 +38,26 @@ Rules:
 ## Change log
 - v1 (lead): initial format.
 - v2 (lead, Nov 13 5:30 PM): world halved. `realRect` is now the v1 Miami rectangle (x −3709…4511, z −2654…2654); world bounds about x −7000…5400, z −6000…6500. See the layout table in CONTRACT5.
+- v2.1 (world-osm, Nov 13): how the ingest (`tools/osm/ingest.py`) reads the file; no field was removed or renamed.
+  - `heights`: samples are node-registered: sample `(i, j)` (row-major, `j` rows of `nx`) is the height at `x = minX + i*cell`, `z = minZ + j*cell`. Heights inside `realRect` are ignored (flat).
+  - Road `y` values are ABSOLUTE deck heights (above y = 0), one per point. A bridge without `y` gets a computed profile (8 to 12 m over water, 6.5 % ramps).
+  - Road ends within 3 m of a clipped OSM road end on the `realRect` edge (32 m if the name or ref matches) are snapped onto it; the exact crossings are in `tools/osm/cache/edge_summary.json`. A road end within 1.5 m of another synthetic road gets a shared vertex there; at-grade crossings without a shared vertex get one (bridges are left alone).
+  - Optional extras the ingest also understands: road `width`, `layer`, `sidewalk` (`yes`/`no`), `toll`, `lit`, `destination`, `access`; water `depth` (m); building `minH`, `material`, `heading`, `poi.sub`, `poi.tier`; poi `sub`, `tier`; places of kind `sea|bay|sound|gulf` name the open water around them; area kinds `dune`, `marsh`, `rock`, `gravel`, `plaza`, `pitch`, `marina`, `cemetery`, and `reef`/`seagrass` (passed to tiles as `underwater`). Unknown area kinds and prop types are passed through by name; unknown top-level keys are reported, not dropped silently.
+- v2.1 (world-layout, Nov 13): what `tools/world/build.py` actually writes, beyond the v1 fields. All additions are optional for the ingest.
+  - `version: 2`. **Road connectivity:** two roads are connected if and only if they share a vertex with identical coordinates (2 decimals). Every road is already split at its junctions, so each `roads[]` entry is one graph edge (end to end). A crossing without a shared vertex is a grade separation (one of the two has `bridge: true` and a higher `layer`).
+  - `roads[]` also carry `width` (m, carriageway), `layer` (0 ground, 1 overpass/viaduct). `y` is given only where the deck is above the ground plane (bridges, their approach ramps); roads on the park hills have no `y` and follow `heights.bin`.
+  - One-way roads run in point order. Motorways are two one-way carriageways.
+  - `joins[]` entries also carry `osmWay` (the id from edge_summary). The join vertex is the exact (x, z) from `edge_summary.json`; each join road is a short stub from that point to our first road outside the rectangle.
+  - `water[]` carry `depth` (m). Kinds used: lake, river, pond, marsh_open (airboat trails). Tidal water is simply the absence of land.
+  - `buildings[]` carry `facing` (heading toward their street) and `region`; `pois[]` carry `building` (id) where the POI is a typed shop unit.
+  - `props[]` types beyond v1: power_pole, lot_lamp, pylon_sign, price_sign, neon_sign, fuel_pump, mailbox, culdesac, pool, dumpster, picnic_table, playground, flagpole, rv_* and boat_* props, stop, signal, lamp and others (free vocabulary; unknown types can be ignored).
+  - Extra top-level list `powerlines[]` ({name, kind, poles}).
+  - `public/assets/world/layout.json` adds: `regions` (name → ring), `airport` (runways, tower, `approaches` and `departures` lines for the aircraft track), `airfield`, `routes.airboat`, `wildlife` (gator holes, hammocks), `underwater` (reef line, reefs, caves, wrecks, seagrass, channels with depths), `highways`, `peak`.
+- v3 (world-layout, Nov 13, 6:30 PM): the world is now machine-traced from the user's official map image (`references/ref_40_map_user_official.webp`, local only, 1041 x 1500 px).
+  - **Image transform (uniform scale + translation, no rotation):** `x = -15000 + 20 * px`, `z = -15700 + 20 * py` (20 m per pixel). `bounds` is exactly the image: x -15000 … 5820, z -15700 … 14300. The same numbers are in `features.json.imageTransform` and `layout.json.imageTransform`. The real Miami rectangle is image pixels x 564.6 … 975.5, y 652.3 … 917.7.
+  - `version: 3`. New optional top-level list `shallows[]` (polygons of the image's turquoise shallow water, for the water and map tracks).
+  - `water[]` are the image's inland waters (lake, rivers, ponds, swamp channels as `marsh_open`); `areas[]` carry the traced `beach` and `forest` polygons.
+  - `setpieces[]` now carry `lot` (ring of the clear lot) or `verge_radius`.
+  - `heights.bin` covers the new bounds (1301 x 1875 cells of 16 m); peak 260 m.
+  - Everything in v2.1 about connectivity, joins and extra fields still holds.
+- v3.1 (world-layout, Nov 13, 6:48 PM): heights are now slope-limited (30 %) and graded under roads; flat inside the real rectangle with a 400 m taper. The ring is two one-way `motorway` carriageways with `motorway_link` ramps; ramp junctions over the median are `bridge: true, layer: 1` pieces. Traced town outlines are also written as `areas` of kind `residential`. `layout.json` adds `routes.airboat` and `airfield.bearingDeg`. Set-piece coordinates are unchanged from v3.

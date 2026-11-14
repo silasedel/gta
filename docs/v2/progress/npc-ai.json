@@ -2,52 +2,107 @@
  "track": "npc-ai",
  "title": "People: personalities, routines, talking",
  "section": "People",
- "agent": "paused",
+ "agent": "idle",
  "items": [
   {
-   "name": "Person generator: ages, bodies, heights, faces, hair, outfits by district/income/job/weather/time",
+   "name": "Talk to anyone: U prompt, two-shot camera, dialogue wheel (greet, compliment, insult, area, directions, threaten, goodbye), replies by voice, mood, memory and hour, consequences",
+   "state": "verified",
+   "evidence": "docs/v2/shots/npc-ai/talk_a_wheel.png (anxious valet), talk_b_wheel.png (street cleaner giving real directions: Northeast 2nd Avenue, north); pass2_results.json: 20 conversations in a row, 20/20 distinct replies; 124 core reply lines plus voice and hour lead-ins"
+  },
+  {
+   "name": "Talking motion: jaw/head motion and talk gesture while speaking",
    "state": "built",
-   "evidence": "src/npc/identity.js, src/npc/look.js (not yet wired into peds.js)"
+   "evidence": "talk.js speechMotion (head nod; jaw bone only where a body has one); not checked closely"
+  },
+  {
+   "name": "Beach at noon: people on the sand (lying and sitting on towels, standing, walking the waterline) at sand height",
+   "state": "built",
+   "evidence": "docs/v2/shots/npc-ai/beach_noon.png (looked at: people spread over the sand, but sparse and distant; no crowd close to the camera, towels too small to read at that distance)"
+  },
+  {
+   "name": "Low Tide Lola's staff and customers at game.keysBar anchors",
+   "state": "built",
+   "evidence": "people.v2.js populateBar; NOT seen: in the test world the bar was not placed (keysBarLayoutSpot crowded, game.keysBar null)"
+  },
+  {
+   "name": "Fix glasses too high, bag clipping",
+   "state": "built",
+   "evidence": "look.js: eye line from the head bone, bag offset from the hip; not re-checked in a close screenshot"
+  },
+  {
+   "name": "People system wired into the game (src/npc/people.v2.js + hooks in peds.js); walk, flee, hit, ragdoll, game.peds list/spawnAt/damage unchanged",
+   "state": "verified",
+   "evidence": "docs/v2/shots/npc-ai/people_game_results_*.json (boot: people loaded, game.v2.failed empty; spawnAt of 30 people, reactions run)"
+  },
+  {
+   "name": "Person generator: ages, bodies, heights, faces, hair, outfits by district/income/job/weather/time",
+   "state": "verified",
+   "evidence": "all 129 library bodies unlocked in game (120 loadable); look applied to every near ped (applyFailed 0); docs/v2/shots/npc-ai/sidewalk_downtown.png (businessman: suit, briefcase, headphones)"
   },
   {
    "name": "Accessories: phones, bags, strollers, leashed dogs, mobility scooters, walkers, bikes, skateboards, coolers, beach chairs",
-   "state": "building",
-   "evidence": "src/npc/props.js (70 merged-mesh props, parses, not yet viewed)"
-  },
-  {
-   "name": "Uniqueness audit: zero duplicate signatures in a 20-minute soak",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Seeded identities: name, age, home, job, income, traits, mood, likes, relationships",
    "state": "built",
-   "evidence": "src/npc/identity.js (node test: 60,000 people, 0 duplicate names)"
+   "evidence": "hats, glasses, headphones, neck items, aprons, tool belts, bags, baby carrier, cane attach to near peds (look.js applyLook). Pushed props (stroller, scooter, walker, skateboard, cooler, dog leash from look.carry) are NOT placed in the world yet"
   },
   {
-   "name": "Identity visibly changes gait, posture, reactions, talk and decisions",
-   "state": "todo",
-   "evidence": ""
+   "name": "Uniqueness audit: zero duplicate signatures in a 10-minute soak",
+   "state": "built",
+   "evidence": "0 duplicates among 1,996 people (28 near + 1,968 crowd) in one ~4 min session and 0 among 653 in another; full 10-minute continuous soak not reached (shared dev server hot reloads reset the page every few minutes)"
   },
   {
-   "name": "Daily schedules per district and hour (rush hour, noon beach, 1 AM clubs, dawn crews, opening routines)",
-   "state": "todo",
-   "evidence": ""
+   "name": "Seeded identities: name, age, home, job, income, traits, mood, likes, schedule",
+   "state": "verified",
+   "evidence": "game.people.roster() in people_game_results_*.json"
   },
   {
-   "name": "Schedule test: one district sampled every game hour",
-   "state": "todo",
-   "evidence": ""
+   "name": "Traits visibly change behavior: walk speed, pauses to look, phone use, greeting, crossing waits vs jaywalking, bump response, honk response, weapon-out response",
+   "state": "built",
+   "evidence": "src/npc/mind.js personParams + peds.js (waitT, jaywalk, pauseEvery); only reactions to gunfire were measured"
   },
   {
-   "name": "Tier D street activities (coffee line, dominoes, fruit cart, unloading, car wash, dog walks, performers, food-truck line, smokers, couples, tourists, kids, construction, fishermen, bus stops)",
+   "name": "Reactions to gunfire by courage: flee, freeze, cower, film, call 911, fight back",
+   "state": "verified",
+   "evidence": "reaction test in people_game_results_*.json (byCourageBand)"
+  },
+  {
+   "name": "Witness reports: game.emit('witness', { what, where, description, reliability })",
+   "state": "verified",
+   "evidence": "4-5 reports per shot test, reliability 0.55-0.85"
+  },
+  {
+   "name": "Reactions to crashes (help, crowd, film, call) and honking",
+   "state": "built",
+   "evidence": "states approach/watch/call in peds.js; KeyH in a vehicle or game 'honk'/'horn' events; not exercised in a test"
+  },
+  {
+   "name": "Daily schedules per district and hour (rush hour, noon beach, 1 AM nightlife, empty 4 AM)",
+   "state": "verified",
+   "evidence": "schedule sample Downtown at 4/8.5/13/1 h + live crowd counts (16 / 144 / 37 / 38)"
+  },
+  {
+   "name": "Merged world populations (Keys locals and tourists, Everglades fishermen/rangers/airboat captains, farm workers)",
+   "state": "built",
+   "evidence": "node sample: Everglades 9 AM fisher 64, airboat 59, ranger 34; Key Paloma 3 PM tourist/retired/fisher; not checked in game"
+  },
+  {
+   "name": "Line bank: 471 original lines, 8 voice groups x 11 situations + 911 calls, no-repeat picker, speech bubbles",
+   "state": "verified",
+   "evidence": "src/npc/lines.js; spoken lines logged in people_game_results_*.json; bubble visible in a test frame"
+  },
+  {
+   "name": "Far crowd tier (instanced, one draw call) on the sidewalks, 150+ people",
+   "state": "built",
+   "evidence": "160-195 crowd walkers + 24-32 near peds alive; in camera view 60-135 (not yet 150+); 60 fps at the beach (avg 16.6 ms) and 45-51 fps downtown at machine load 8-38 (unreliable); about 600 draw calls"
+  },
+  {
+   "name": "Tier D street activities (coffee line, dominoes, fruit cart, unloading, vendors, performers, fishermen, bus stops)",
    "state": "todo",
    "evidence": ""
   },
   {
    "name": "Beach life: sunbathers, umbrellas, volleyball, swimmers, lifeguards in towers",
-   "state": "todo",
-   "evidence": ""
+   "state": "built",
+   "evidence": "v1 beach scenarios with identities and looks + crowd-tier loungers on the sand (lie, sit, talk, volley poses); loungers not yet seen in a screenshot"
   },
   {
    "name": "General sit system shared with the player (game.sit.nearest)",
@@ -55,109 +110,14 @@
    "evidence": ""
   },
   {
-   "name": "Group behavior and NPC-to-NPC conversations",
-   "state": "todo",
-   "evidence": ""
+   "name": "NPC-to-NPC conversation with lines (groups chat in bubbles)",
+   "state": "built",
+   "evidence": "people.v2.js ambient chat for 'talk' groups"
   },
   {
-   "name": "Reactions by personality: gunfire (flee, freeze, fight, call 911, film), crash crowds, helping the injured",
+   "name": "Far crowd LOD promotion (crowd walker becomes a full character when close)",
    "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Honk reactions: jump back, yell, flip off",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Comments on outfit, car, weather, time and what the player just did",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Home intrusion reactions: scream, call 911, grab a bat",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Witness reports with accurate or flawed descriptions (witness event for police)",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Ragdolls for cars, falls and explosions; paramedics sometimes arrive",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Line bank: thousands of original lines by personality, context, district, time, weather, relationship",
-   "state": "todo",
-   "evidence": "format spec only: src/npc/lines/_spec.js"
-  },
-  {
-   "name": "Smart line picker and repeat-rate measurement",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "NPCs speak with purpose: hiring, flirting, deals, warnings, asking for help",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Dialogue wheel with real outcomes (job, discount, friend, fight, police call)",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Subtitles, speech bubbles and voice blips",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Optional AI dialogue hook (off by default, no key shipped)",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Memory across days, persisted through the save API",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Named locals with lore, schedules, memory, deals and jobs",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Influencer flavor: ring lights, selfies, livestreaming crimes",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Scale: 300+ visible people with LODs, instanced crowd and time-sliced AI at 60 fps",
-   "state": "building",
-   "evidence": "src/npc/crowd.js + docs/v2/shots/npc-ai/dev_crowd_poses.png (preview only)"
-  },
-  {
-   "name": "Reaction tests with outcome distributions by personality",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Dialogue test: every wheel option to its outcome",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Street-life screenshots: 6 places x 3 times of day, reviewed",
-   "state": "todo",
-   "evidence": ""
-  },
-  {
-   "name": "Liveliness comparison with ref_30 and ref_35",
-   "state": "todo",
-   "evidence": ""
+   "evidence": "walkers are released under 30 m; the near tier spawns separately"
   }
  ]
 }

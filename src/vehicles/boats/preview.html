@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8"><title>boat fleet preview</title>
+<style>html,body{margin:0;height:100%;background:#9fc4dc;overflow:hidden}#lbl{position:fixed;inset:0;pointer-events:none;font:600 12px system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000}#lbl div{position:absolute;transform:translate(-50%,0);white-space:nowrap;text-align:center}</style></head>
+<body><div id="lbl"></div><script type="module">
+// Standalone preview of the boat fleet (no game needed).
+//   ?keys=cc26,skiff17      models to show (or ?all, or ?cat=center_console)      &n=3   seeds per model     &seed=11
+//   &sheet                  contact sheet: every boat in a grid with labels          &cols=6
+//   &night  &golden  &dry (hull out of the water on a floor)  &wire  &nofenders
+//   window.view('quarter'|'side'|'stern'|'bow'|'top'|'helm'|'engine'|'deck', index)   frame one boat
+//   window.setCam([x,y,z],[lx,ly,lz], fov)
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { MODELS, buildBoat, modelKeys, byCategory, loadModels } from './catalog.js';
+await loadModels();
+const q = new URLSearchParams(location.search);
+const night = q.has('night'), golden = q.has('golden'), dry = q.has('dry');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(+(q.get('dpr') || 1));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = night ? 0.9 : 1.0;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+// sky dome gradient
+{ const cv = document.createElement('canvas'); cv.width = 4; cv.height = 256; const c = cv.getContext('2d'), g = c.createLinearGradient(0, 0, 0, 256);
+  const stops = night ? ['#05070f', '#0b1022', '#141a30'] : golden ? ['#3d5f9a', '#e8a66a', '#ffd9a0'] : ['#3f86c9', '#9fc8e6', '#dfeef6'];
+  g.addColorStop(0, stops[0]); g.addColorStop(0.62, stops[1]); g.addColorStop(1, stops[2]); c.fillStyle = g; c.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.mapping = THREE.EquirectangularReflectionMapping; scene.background = t; }
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.03).texture; scene.environmentIntensity = night ? 0.12 : golden ? 0.6 : 0.8;
+const sun = new THREE.DirectionalLight(golden ? 0xffb066 : 0xfff2dc, night ? 0.08 : golden ? 3.2 : 2.8);
+sun.position.set(golden ? -40 : -22, golden ? 9 : 34, golden ? -18 : 20); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+scene.add(sun); scene.add(new THREE.HemisphereLight(golden ? 0xffd0a0 : 0xdcecff, 0x3a4a50, night ? 0.06 : 0.55));
+const water = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), dry ? new THREE.MeshStandardMaterial({ color: 0x6d7074, roughness: 0.9 })
+  : new THREE.MeshPhysicalMaterial({ color: night ? 0x06202c : golden ? 0x2a5560 : 0x1c6f8c, roughness: 0.12, metalness: 0, transparent: true, opacity: 0.8, clearcoat: 1 }));
+water.rotation.x = -Math.PI / 2; water.receiveShadow = true; scene.add(water);
+let keys = q.has('all') ? modelKeys() : q.get('cat') ? byCategory(q.get('cat')).map((d) => d.key) : (q.get('keys') || modelKeys()[0] || '').split(',').filter(Boolean);
+const n = +(q.get('n') || 1), seed0 = +(q.get('seed') || 11), cols = +(q.get('cols') || Math.ceil(Math.sqrt(keys.length * n * 1.6)));
+const boats = [], stats = [], lbl = document.getElementById('lbl');
+let x = 0, z = 0, rowD = 0, col = 0;
+const rot = +(q.get('rot') ?? 0.5), gapX = +(q.get('gap') || 1.2);
+for (const key of keys) for (let i = 0; i < n; i++) {
+  const def = MODELS[key]; if (!def) { console.error('no model', key); continue; }
+  const t0 = performance.now(); let b;
+  try { b = buildBoat(key, seed0 + i * 101 + boats.length * 7); } catch (e) { console.error('build failed', key, e.stack || e); continue; }
+  const ms = performance.now() - t0;
+  const fx = Math.abs(def.dims.L * Math.sin(rot)) + Math.abs(def.dims.B * Math.cos(rot)), fz = Math.abs(def.dims.L * Math.cos(rot)) + Math.abs(def.dims.B * Math.sin(rot));
+  if (col >= cols) { col = 0; x = 0; z += rowD + gapX + 1; rowD = 0; }
+  b.root.position.set(x + fx / 2, dry ? def.dims.draft + 0.25 : 0, z + fz / 2); b.root.rotation.y = rot;
+  x += fx + gapX; col++; rowD = Math.max(rowD, fz);
+  if (q.has('nofenders') && b.parts.fenders) b.parts.fenders.visible = false;
+  if (night) { b.root.traverse((o) => { if (o.isMesh && o.name === 'lamp') o.material = b.mats.lampOn; }); if (b.mats.screen) b.mats.screen.emissiveIntensity = 1.2; }
+  if (q.has('wire')) b.root.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.wireframe = true; } });
+  let calls = 0; b.root.traverse((o) => { if (o.isMesh) calls++; });
+  scene.add(b.root); boats.push(b);
+  stats.push({ key, seed: b.id.seed, name: b.id.name, reg: b.id.reg, port: b.id.port, tris: b.tris, calls, ms: +ms.toFixed(1), sig: b.id.signature, opt: b.opt });
+}
+const box = new THREE.Box3(); boats.forEach((b) => box.expandByObject(b.root));
+const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+boats.forEach((b) => { b.root.position.x -= ctr.x; b.root.position.z -= ctr.z; });
+const R = Math.max(size.x, size.z) * 0.6 + 4;
+Object.assign(sun.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 1, far: 200 }); sun.shadow.camera.updateProjectionMatrix();
+const cam = new THREE.PerspectiveCamera(+(q.get('fov') || 32), innerWidth / innerHeight, 0.05, 1500);
+window.setCam = (p, l, fov) => { cam.position.set(...p); if (fov) { cam.fov = fov; cam.updateProjectionMatrix(); } cam.lookAt(...l); render(); return true; };
+// frame one boat. Views are in the boat's own frame (+z bow, +x port).
+window.view = (name = 'quarter', i = 0, k = 1) => {
+  const b = boats[i]; if (!b) return false; const d = b.def.dims, L = d.L, Hh = d.height || 2, p = b.root.position, ry = b.root.rotation.y;
+  const loc = (x, y, z) => { const c = Math.cos(ry), s = Math.sin(ry); return [p.x + x * c + z * s, p.y + y, p.z - x * s + z * c]; };
+  const helm = (b.anchors.helm || [{ x: 0, y: 0.3, z: -L * 0.1 }])[0], eng = (b.anchors.engine || [{ x: 0, y: 0.3, z: -L / 2 }])[0];
+  const V = { quarter: [[L * 0.75, Hh * 0.75 + 1, L * 0.95], [0, Hh * 0.3, 0], 30], side: [[L * 1.5, 1.1, 0], [0, Hh * 0.32, 0], 30], stern: [[L * 0.38, Hh * 0.5 + 0.6, -L * 1.05], [0, Hh * 0.28, -L * 0.2], 32],
+    sternq: [[-L * 0.6, Hh * 0.6 + 0.8, -L * 0.95], [0, Hh * 0.3, -L * 0.1], 30], bow: [[-L * 0.55, 1.2, L * 1.25], [0, Hh * 0.3, 0], 30], top: [[0.01, L * 1.65, 0], [0, 0, 0], 34],
+    helm: [[helm.x + 0.9, helm.y + 2.3, helm.z - 2.0], [helm.x, helm.y + 1.0, helm.z + 0.7], 46], deck: [[d.B * 0.2, Hh * 0.5 + 2.6, -L * 0.42], [0, 0.4, L * 0.08], 50],
+    engine: [[eng.x + 1.5, eng.y + 0.75, eng.z - 1.7], [eng.x, eng.y + 0.05, eng.z - 0.1], 38], low: [[L * 0.62, 0.35, -L * 0.9], [0, Hh * 0.32, -L * 0.05], 34] }[name];
+  if (!V) return false; const cp = loc(V[0][0] * k, V[0][1] * k, V[0][2] * k), lk = loc(...V[1]); return window.setCam(cp, lk, V[2]);
+};
+function labels() {
+  if (!q.has('sheet')) return; lbl.innerHTML = '';
+  for (const b of boats) { const v = b.root.position.clone(); v.y = -0.2; v.project(cam); const d = document.createElement('div'); d.style.left = (v.x * 0.5 + 0.5) * innerWidth + 'px'; d.style.top = (-v.y * 0.5 + 0.5) * innerHeight + 'px';
+    d.innerHTML = `${b.def.key} · ${b.def.name}<br><span style="font-weight:400;opacity:.9">${b.id.name || ''} ${b.id.reg || ''}</span>`; lbl.appendChild(d); }
+}
+function render() { renderer.render(scene, cam); labels(); }
+const cp = (q.get('cam') || `${size.x * 0.25},${Math.max(6, R * 0.9)},${size.z / 2 + R * 1.25}`).split(',').map(Number), lk = (q.get('look') || '0,0.4,0').split(',').map(Number);
+window.setCam(cp, lk);
+if (q.has('view')) window.view(q.get('view'), +(q.get('i') || 0), +(q.get('k') || 1));
+Object.assign(window, { boats, stats, scene, cam, renderer, render, THREE });
+window.ready = true;
+</script></body></html>

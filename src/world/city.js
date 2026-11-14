@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { rng, bandFacade, finSignTexture, shopFacade, officeFacade, decoFacade, glassFacade, trunkTexture, frondTexture, adsTexture, ADS, radialTexture, helipadTexture, loadPBR } from './city/tex.js';
 import { Batch, rectPts, roundRectPts, wallStrip, capPoly, parapet, palmGeometry, orient } from './city/geo.js';
+import { sharedVegMaterials } from './vegetation/materials.js';
 
 const RW = 14, HW = RW / 2, SW = 5, CURB = 0.15;
 const XS = [-480, -380, -280, -180, -80, 20, 120, 220, 320, 420];
@@ -1334,14 +1335,13 @@ export async function createCity(game) {
       ${frond ? 'transformed.y += sin(uWindTime * 4.5 + ph + transformed.x * 1.3 + transformed.z) * 0.12 * uv.y * (0.4 + uGust) * amp;' : ''}`);
   };
   {
-    const trunkMat = new THREE.MeshStandardMaterial({ map: trunkTexture(renderer), roughness: 0.9, side: THREE.DoubleSide });
+    const VM = sharedVegMaterials(), trunkMat = VM.bark; // vegetation track: shared bark / leaf materials
     const frondMap = frondTexture(renderer);
-    const frondMat = new THREE.MeshStandardMaterial({ map: frondMap, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.75, color: 0xb8d498 });
+    const frondMat = VM.leaf;
     const nutMat = new THREE.MeshStandardMaterial({ color: 0x5a4a20, roughness: 0.7 });
-    trunkMat.onBeforeCompile = windPatch(false); frondMat.onBeforeCompile = windPatch(true); nutMat.onBeforeCompile = windPatch(false);
-    const frondDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: frondMap, alphaTest: 0.45, side: THREE.DoubleSide });
-    frondDepth.onBeforeCompile = windPatch(true);
-    const trunkDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }); trunkDepth.onBeforeCompile = windPatch(false);
+    nutMat.onBeforeCompile = windPatch(false);
+    const frondDepth = VM.leafDepth; void frondMap;
+    const trunkDepth = VM.barkDepth;
     const pr = rng(77);
     const NV = inst.palm.length;
     for (let v = 0; v < NV; v++) {

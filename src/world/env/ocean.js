@@ -17,8 +17,8 @@ export function createOcean(game, skyUniforms, normalsTex) {
     uShoreRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uHasShore: { value: 0 },
     uTime: { value: 0 },
-    uDeep: { value: new THREE.Color(0.0, 0.035, 0.06) },
-    uShallow: { value: new THREE.Color(0.02, 0.22, 0.21) },
+    uDeep: { value: new THREE.Color(0.010, 0.085, 0.095) },
+    uShallow: { value: new THREE.Color(0.07, 0.48, 0.40) },
     uAmbient: { value: new THREE.Color(0.3, 0.3, 0.35) },
     uSunCol: { value: new THREE.Color(1, 1, 1) },
   }]);
@@ -84,7 +84,9 @@ export function createOcean(game, skyUniforms, normalsTex) {
                + nrm( p / 4.3 + t * vec2( 0.033, -0.041 ) ) * 0.18 * ( 1.0 - smoothstep( 20.0, 120.0, dist ) )
                + nrm( p / 197.0 + t * vec2( 0.004, -0.003 ) ) * 0.6;
         float lod = 1.0 / ( 1.0 + dist * 0.0022 );
-        vec3 N = normalize( vec3( n.x * 0.55 * lod, 1.0, n.y * 0.55 * lod ) );
+        float lowSun = 1.0 - smoothstep( 0.08, 0.45, normalize( lightDir ).y );
+        float chop = ( 0.55 + 0.35 * lowSun ) * lod; // choppier ripples at low sun: dark troughs, bright glitter
+        vec3 N = normalize( vec3( n.x * chop, 1.0, n.y * chop ) );
 
         // ---- shoreline distance (0 at the coast .. 1 = SHORE_MAX m or more) ----
         float shoreD = 1.0;
@@ -99,11 +101,11 @@ export function createOcean(game, skyUniforms, normalsTex) {
         float F = 0.02 + 0.98 * pow( 1.0 - NdV, 5.0 );
         vec3 R = reflect( -V, N );
         R.y = abs( R.y ) + 0.01;
-        vec3 refl = skyColor( normalize( R ) );
+        vec3 refl = skyColor( normalize( R ) ) * ( 1.0 - 0.22 * lowSun );
 
         vec3 L = normalize( lightDir );
         float sunUp = smoothstep( -0.05, 0.05, L.y );
-        float shallow = 1.0 - smoothstep( 2.0, 60.0, shoreM );
+        float shallow = pow( 1.0 - smoothstep( 0.0, 125.0, shoreM ), 1.7 ); // turquoise shallows easing into deep teal-blue
         vec3 body = mix( uDeep, uShallow, shallow );
         float diff = max( dot( N, L ), 0.0 );
         vec3 water = body * ( uAmbient + uSunCol * diff * 0.35 * sunUp );
@@ -115,7 +117,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
         // ---- sun glitter ----
         vec3 H = normalize( L + V );
         float NdH = max( dot( N, H ), 0.0 );
-        col += lightColor * ( pow( NdH, 1200.0 ) * 18.0 + pow( NdH, 160.0 ) * 0.35 ) * F * 4.0 * sunUp;
+                col += lightColor * ( pow( NdH, 1200.0 ) * 18.0 + pow( NdH, 160.0 ) * 0.35 + pow( NdH, 36.0 ) * 0.02 * lowSun ) * F * 4.0 * sunUp;
 
         // ---- shore foam ----
         if ( shoreM < 30.0 ) {

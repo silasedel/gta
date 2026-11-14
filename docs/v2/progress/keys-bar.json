@@ -1,17 +1,83 @@
-{ "track": "keys-bar", "title": "Low Tide Lola's (Keys bar set piece)", "section": "Set pieces", "agent": "done",
-  "items": [
-    { "name": "Conch-house building: lap siding boards, tin roof with seams and rust, cupola, wraparound porch, posts, brackets, sawn-baluster rail, shutters, screen door, steps", "state": "verified", "evidence": "docs/v2/shots/keys-bar/hero.png" },
-    { "name": "Hand-painted roof name board (heron emblem, rope border, fade, chips) with gooseneck lamps", "state": "verified", "evidence": "docs/v2/shots/keys-bar/porch.png" },
-    { "name": "Bar counter through serving window, tap tower, back-bar bottles, beer cooler, stools, chalkboard menu, ceiling fans", "state": "verified", "evidence": "docs/v2/shots/keys-bar/bar_dusk_anchors.png" },
-    { "name": "Neon signs from design-system brands (Tern Key Brewing, Ron Marinero) and OPEN sign", "state": "built", "evidence": "docs/v2/shots/keys-bar/night.png" },
-    { "name": "Yard: shell gravel, picnic tables with bottles and baskets, festival banner, sandwich board, barrel, coral rock beds, palms, crotons, hibiscus, sea grape, string lights, flag", "state": "verified", "evidence": "docs/v2/shots/keys-bar/front.png" },
-    { "name": "Golf cart, beach cruisers and rack, mailbox, hose reel, stage gear (seen at distance only, no close-up check)", "state": "built", "evidence": "docs/v2/shots/keys-bar/front.png" },
-    { "name": "Night lighting: string bulbs, fan and pendant lights, sign lamps, cooler glow", "state": "verified", "evidence": "docs/v2/shots/keys-bar/night.png" },
-    { "name": "Anchors: 36 patron spots (stools, rail, benches, dancing, standing), 5 staff, perches, parking", "state": "built", "evidence": "docs/v2/shots/keys-bar/bar_dusk_anchors.png" },
-    { "name": "Game placement from layout.json (keys_bar), auto-slide clear of roads and buildings, 57 Rapier colliders, lamps, ambient locals", "state": "verified", "evidence": "docs/v2/shots/keys-bar/game.png" },
-    { "name": "Collider walk test in game (steps, porch, door, rail)", "state": "todo", "evidence": "" },
-    { "name": "Posed patrons and working staff at the anchors (needs the NPC system)", "state": "todo", "evidence": "" },
-    { "name": "Order-a-drink and read-menu interactions wired to gameplay", "state": "todo", "evidence": "" },
-    { "name": "Kitchen and restroom interiors behind the bar room", "state": "todo", "evidence": "" },
-    { "name": "Detail and material parity with reference ref_30 (foliage density, photoreal wood and paint, ground litter)", "state": "todo", "evidence": "" }
-  ] }
+{
+ "track": "keys-bar",
+ "title": "Low Tide Lola's (Keys bar set piece)",
+ "section": "Set pieces",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Conch-house building: lap siding boards, tin roof with seams and rust, cupola, wraparound porch, posts, brackets, sawn-baluster rail, shutters, screen door, steps",
+   "state": "verified",
+   "evidence": "docs/v2/shots/keys-bar/hero.png"
+  },
+  {
+   "name": "Hand-painted roof name board (heron emblem, rope border, fade, chips) with gooseneck lamps",
+   "state": "verified",
+   "evidence": "docs/v2/shots/keys-bar/porch.png"
+  },
+  {
+   "name": "Bar counter through serving window, tap tower, back-bar bottles, beer cooler, stools, chalkboard menu, ceiling fans",
+   "state": "verified",
+   "evidence": "docs/v2/shots/keys-bar/bar_dusk_anchors.png"
+  },
+  {
+   "name": "Neon signs from design-system brands (Tern Key Brewing, Ron Marinero) and OPEN sign",
+   "state": "built",
+   "evidence": "docs/v2/shots/keys-bar/night.png"
+  },
+  {
+   "name": "Yard: shell gravel, picnic tables with bottles and baskets, festival banner, sandwich board, barrel, coral rock beds, palms, crotons, hibiscus, sea grape, string lights, flag",
+   "state": "verified",
+   "evidence": "docs/v2/shots/keys-bar/front.png"
+  },
+  {
+   "name": "Golf cart, beach cruisers and rack, mailbox, hose reel, stage gear (seen at distance only, no close-up check)",
+   "state": "built",
+   "evidence": "docs/v2/shots/keys-bar/front.png"
+  },
+  {
+   "name": "Night lighting: string bulbs, fan and pendant lights, sign lamps, cooler glow",
+   "state": "verified",
+   "evidence": "docs/v2/shots/keys-bar/night.png"
+  },
+  {
+   "name": "Anchors: 36 patron spots (stools, rail, benches, dancing, standing), 5 staff, perches, parking",
+   "state": "built",
+   "evidence": "docs/v2/shots/keys-bar/bar_dusk_anchors.png"
+  },
+  {
+   "name": "Game placement from layout.json anchor (seen on the old map; the re-traced anchor is open water in the loaded world, so the bar waits for the new tiles)",
+   "state": "built",
+   "evidence": "docs/v2/shots/keys-bar/game.png"
+  },
+  {
+   "name": "Wear pass (standard 5): worn tables, fill levels, frayed flag, weathered siding and roof, litter, fine sand lot",
+   "state": "verified",
+   "evidence": "docs/v2/shots/sand-wear/hero_after.png"
+  },
+  {
+   "name": "Collider walk test in game (steps, porch, door, rail)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Posed patrons and working staff at the anchors (needs the NPC system)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Order-a-drink and read-menu interactions wired to gameplay",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Kitchen and restroom interiors behind the bar room",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Detail and material parity with reference ref_30 (foliage density, photoreal wood and paint, ground litter)",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

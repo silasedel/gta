@@ -1,0 +1,204 @@
+// Wildlife: spawns animals and underwater life by habitat around the player (BIG_UPDATE 3, 6, 0d, 0e).
+// Species live in species/**; this module is the glue: a `world` adapter over the city API, habitat classification,
+// a budgeted spawner/despawner, cross-species signals, threats (player, vehicles, boats, gunfire) and the public API:
+//   game.wildlife.perchLine(a, b, n)        birds on a wire/rail between two Vector3 (they scatter when approached)
+//   game.wildlife.addPerch(pos, kind)       a perch birds may use: 'pile' | 'roof' | 'lamp' | 'rail' | 'boat' | 'branch'
+//   game.wildlife.spawn(id, x, z, opts)     force a spawn (tests, missions); returns the actor
+//   game.wildlife.signal(kind, pos, ttl)    'food' | 'fish_landed' | 'carcass' | 'baitball' | 'alarm' cues animals react to
+//   game.wildlife.habitatAt(x, z), .actors, .stats, .coldSnap (true on a rare chilly morning: stunned iguanas)
+//   events: 'wildlifeSound' { name, position, volume, pitch } (for the audio track), 'animalAttack' { species, damage }
+import * as THREE from 'three';
+import { makeCreature, T } from './kit/index.js';
+import { loadSpecies } from './registry.js';
+
+export const order = 140;
+const SUBS = import.meta.glob(['./fishing/fishing.js', './dog/dog.js']);
+
+// condensed-Florida regions outside real Miami (CONTRACT5 table); layout.json refines them when it exists
+const REGIONS = [
+  { tag: 'marsh', rect: [-5600, -400, 2900, 4300] }, { tag: 'marsh', rect: [-6000, -3800, 800, 2300] },
+  { tag: 'lake', circle: [-1100, -3900, 560] }, { tag: 'keys', rect: [-4800, 900, 3900, 5900] }, { tag: 'farm', rect: [-5900, -2700, -4000, -1300] },
+];
+const DENSITY = { street: 0.3, lawn: 0.55, park: 0.85, beach: 0.7, dock: 0.9, shallows: 1, canal: 0.7, marina: 0.8, bay: 0.6, ocean: 0.45, marsh: 1, lake: 0.8, keys_scrub: 0.9, sky: 0.5, reef: 1, seagrass: 0.8, farm: 0.5 };
+
+export async function initV2(game) {
+  const city = game.city, scene = game.scene, P = game.player;
+  if (!city?.isWater) return;
+  const reg = await loadSpecies();
+  const SEA = city.seaLevel ?? -0.12;
+  let seed = 987654321; const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const region = (x, z) => { for (const r of REGIONS) { if (r.rect && x > r.rect[0] && x < r.rect[1] && z > r.rect[2] && z < r.rect[3]) return r.tag; if (r.circle && Math.hypot(x - r.circle[0], z - r.circle[1]) < r.circle[2]) return r.tag; } return null; };
+  const depthAt = (x, z) => (city.isWater(x, z) ? (city.seabedDepthAt ? city.seabedDepthAt(x, z) : Math.max(0, SEA - city.groundHeightAt(x, z))) : 0);
+  const landNear = (x, z, r) => { let n = 0; for (let i = 0; i < 8; i++) if (!city.isWater(x + Math.cos(i * 0.785) * r, z + Math.sin(i * 0.785) * r)) n++; return n; };
+  const waterNear = (x, z, r) => 8 - landNear(x, z, r);
+  function habitatAt(x, z) {
+    const rg = region(x, z);
+    if (city.isWater(x, z)) {
+      const d = depthAt(x, z);
+      if (rg === 'marsh' || rg === 'lake') return rg;
+      if (d < 1.3) return 'shallows';
+      if (/ocean|atlantic|gulf|strait/i.test(city.districtAt?.(x, z) || '')) return 'ocean';
+      const l = landNear(x, z, 45); return l >= 4 ? 'canal' : l >= 1 ? 'marina' : 'bay';
+    }
+    if (rg === 'marsh' || rg === 'farm') return rg;
+    const zone = city.zoneAt(x, z), wet = waterNear(x, z, 14) > 0;
+    if (zone === 'beach') return 'beach';
+    if (rg === 'keys') return wet ? 'dock' : 'keys_scrub';
+    if (wet) return 'dock';
+    return zone === 'park' ? 'park' : zone === 'residential' ? 'lawn' : 'street';
+  }
+
+  // ---- world adapter (kit contract) -------------------------------------------------------------------------------
+  const perches = [], signals = [], shots = [];
+  const day = () => Math.floor((game.day ?? game.clockDay ?? 0));
+  const coldDay = (d) => { const h = Math.sin(d * 91.7 + 3.1) * 43758.5453; return (h - Math.floor(h)) < 0.045; };   // about 1 morning in 22
+  const world = {
+    THREE, scene, time: 0, dt: 0, frame: 0, hour: game.timeOfDay, seaLevel: SEA, tide: 0,
+    isWater: (x, z) => city.isWater(x, z), groundY: (x, z) => city.groundHeightAt(x, z), waterDepth: depthAt,
+    surface: (x, z) => city.surfaceAt?.(x, z) || 'grass_short', zone: (x, z) => city.zoneAt(x, z),
+    onRoad: (x, z) => { const r = city.roadGraph?.nearestEdge?.(x, z, {}, 12); return !!r && r.dist < (r.edge.width || 6) / 2 && !city.roadGraph.isFootpath?.(r.edge); },
+    player: { pos: P.position, vel: P.velocity, speed: 0, inVehicle: false, swimming: false, underwater: false }, cam: game.camera.position,
+    threats: [],
+    threatNear(pos, max = 30) { let best = null, bd = max; for (const t of world.threats) { const d = Math.hypot(t.pos.x - pos.x, t.pos.z - pos.z) - (t.radius || 0); if (d < bd) { bd = d; best = t; } } return best ? { t: best, dist: bd } : null; },
+    weather: { rain: 0, wind: 0.2, windDir: [1, 0], storm: false, tempC: 27 },
+    perches(pos, radius = 60) { const out = []; for (const p of perches) if (Math.hypot(p.pos.x - pos.x, p.pos.z - pos.z) < radius) out.push(p); return out; },
+    fx: { splash: (p, k) => game.fx?.splash?.(p, k), ripple: (p) => game.fx?.ripple?.(p), dust: (p) => game.fx?.dust?.(p) },
+    sound(name, pos, o = {}) {
+      try { game.emit('wildlifeSound', { name, position: pos, volume: o.volume ?? 1, pitch: o.pitch ?? 1 }); if (name.startsWith('splash')) game.audio?.play?.('splash', { position: pos, volume: (o.volume ?? 1) * 0.6 }); } catch (e) { /* audio is optional */ }
+    },
+    hurtPlayer(damage, kind, from) { game.emit('hit', { target: 'player', kind: 'animal', animal: kind, damage, point: (from || P.position).clone() }); game.emit('animalAttack', { species: kind, damage }); },
+    signals,
+    signal(kind, pos, ttl = 5, data = null) { const s = { kind, pos: pos.clone(), data, until: world.time + ttl }; signals.push(s); return s; },
+    signalsNear(kind, pos, radius = 60) { const out = []; for (const s of signals) if (s.kind === kind && s.until > world.time && Math.hypot(s.pos.x - pos.x, s.pos.z - pos.z) < radius) out.push(s); return out; },
+    rand,
+  };
+  game.on('shot', (e) => { const o = e?.origin || P.position; shots.push({ pos: new THREE.Vector3(o.x, o.y, o.z), vel: new THREE.Vector3(), radius: 0, kind: 'gunshot', loud: 1, until: world.time + 0.7 }); });
+  game.on('crash', (e) => { if (e?.point) shots.push({ pos: new THREE.Vector3(e.point.x, e.point.y, e.point.z), vel: new THREE.Vector3(), radius: 0, kind: 'gunshot', loud: 0.5, until: world.time + 0.4 }); });
+  const pThreat = { pos: P.position, vel: P.velocity, radius: 0.3, kind: 'player' }, vThreats = [];
+  let vT = 0;
+  function refreshThreats(dt) {
+    vT -= dt;
+    if (vT <= 0) { // vehicles and boats near the player, a few times a second
+      vT = 0.2; vThreats.length = 0;
+      const all = game.vehicles?.all ? game.vehicles.all() : [...(game.vehicles?.list || []), ...(game.vehicles?.boats || [])];
+      for (const v of all) {
+        if (!v?.body || v.disposed) continue; let t; try { t = v.body.translation(); } catch (e) { continue; }
+        if (Math.abs(t.x - P.position.x) > 160 || Math.abs(t.z - P.position.z) > 160) continue;
+        const lv = v.body.linvel(), o = (v._wl ||= { pos: new THREE.Vector3(), vel: new THREE.Vector3(), radius: 1.3, kind: 'car' });
+        o.pos.set(t.x, t.y, t.z); o.vel.set(lv.x, lv.y, lv.z); o.kind = v.isBoat ? 'boat' : 'car'; o.radius = v.isBoat ? 2 : 1.3; o.vehicle = v; vThreats.push(o);
+      }
+    }
+    const th = world.threats; th.length = 0;
+    if (!P.state.inVehicle) th.push(pThreat);
+    for (const v of vThreats) th.push(v);
+    for (let i = shots.length - 1; i >= 0; i--) { if (shots[i].until < world.time) shots.splice(i, 1); else th.push(shots[i]); }
+    if (api.dog?.threat) th.push(api.dog.threat);
+  }
+
+  // ---- actors -----------------------------------------------------------------------------------------------------
+  const actors = [], fixed = new Map(), stats = { actors: 0, spawned: 0, despawned: 0, bySpecies: {}, failed: reg.failed.slice(), ms: 0 };
+  const defsByHab = new Map();
+  for (const d of reg.defs.values()) for (const h of Object.keys(d.habitats || {})) { if (!defsByHab.has(h)) defsByHab.set(h, []); defsByHab.get(h).push(d); }
+  const countOf = (id) => stats.bySpecies[id] || 0;
+  function spawn(id, x, z, opts = {}) {
+    const def = typeof id === 'string' ? reg.defs.get(id) : id; if (!def?.spawn) return null;
+    const site = { x, z, y: city.groundHeightAt(x, z), habitat: opts.habitat || habitatAt(x, z), radius: opts.radius ?? 6, depth: depthAt(x, z), district: city.districtAt?.(x, z), ...opts };
+    let actor;
+    try { actor = def.spawn(THREE, world, site, (v) => makeCreature(THREE, def, v || (def.variant ? def.variant(rand) : {}), rand)); }
+    catch (e) { console.warn('[wildlife] spawn failed', def.id, e); if (!stats.failed.includes(def.id)) stats.failed.push(def.id + ': ' + e.message); def.broken = true; return null; }
+    if (!actor) return null;
+    actor.def = def; actor.site = site; actor.keep = opts.keep || false;
+    if (actor.root) scene.add(actor.root);
+    actors.push(actor); stats.spawned++; stats.bySpecies[def.id] = countOf(def.id) + 1;
+    return actor;
+  }
+  function remove(i) {
+    const a = actors[i]; actors.splice(i, 1); if (a.root) scene.remove(a.root);
+    try { a.dispose?.(); } catch (e) { /* */ }
+    stats.despawned++; stats.bySpecies[a.def.id] = Math.max(0, countOf(a.def.id) - 1);
+    if (a.fixedKey) fixed.delete(a.fixedKey);
+  }
+  function pick(hab) {
+    const list = defsByHab.get(hab); if (!list) return null;
+    let total = 0; const w = [];
+    for (const d of list) { let k = d.broken || d.fixed ? 0 : (d.habitats[hab] || 0) * (d.when ? d.when(world) : 1); if (countOf(d.id) >= (d.max ?? 3)) k = 0; w.push(k); total += k; }
+    if (total <= 0) return null;
+    let r = rand() * total; for (let i = 0; i < list.length; i++) { r -= w[i]; if (r <= 0) return list[i]; }
+    return null;
+  }
+  const MAX_ACTORS = 30;
+  let spawnT = 1.5, fixedT = 0.5;
+  function trySpawn() {
+    if (actors.length - fixed.size >= MAX_ACTORS) return;
+    const p = P.position, sky = rand() < 0.14, a = rand() * 6.2832;
+    // bias ahead of travel so life is already there when you arrive
+    const sp = Math.hypot(P.velocity.x, P.velocity.z), lead = Math.min(60, sp * 4);
+    const r = 45 + rand() * 110, x = p.x + (sp > 1 ? P.velocity.x / sp * lead : 0) + Math.cos(a) * r, z = p.z + (sp > 1 ? P.velocity.z / sp * lead : 0) + Math.sin(a) * r;
+    const b = city.bounds; if (b && (x < b.minX || x > b.maxX || z < b.minZ || z > b.maxZ)) return;
+    const hab = sky ? 'sky' : habitatAt(x, z);
+    if (rand() > (DENSITY[hab] ?? 0.5)) return;
+    const def = pick(hab); if (!def) return;
+    const gap = def.spacing ?? 28; for (const o of actors) if (!o.fixedKey && Math.hypot(o.pos.x - x, o.pos.z - z) < (o.def === def ? gap * 2 : gap)) return;
+    spawn(def, x, z, { habitat: hab });
+  }
+  // fixed scenery (reef patches, seagrass meadows): deterministic per 180 m cell so it is the same on every visit
+  const CELL = 180, cellHash = (cx, cz, s) => { const h = Math.sin(cx * 127.1 + cz * 311.7 + s * 74.7) * 43758.5453; return h - Math.floor(h); };
+  function fixedSites() {
+    const list = [...reg.defs.values()].filter((d) => d.fixed && !d.broken); if (!list.length) return;
+    const p = P.position, c0x = Math.floor(p.x / CELL), c0z = Math.floor(p.z / CELL);
+    for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
+      const cx = c0x + dx, cz = c0z + dz, key = cx + ',' + cz; if (fixed.has(key)) continue;
+      const x = (cx + 0.2 + cellHash(cx, cz, 1) * 0.6) * CELL, z = (cz + 0.2 + cellHash(cx, cz, 2) * 0.6) * CELL;
+      if (Math.hypot(x - p.x, z - p.z) > 300 || !city.isWater(x, z)) continue;
+      const d = depthAt(x, z), hab = habitatAt(x, z), k = cellHash(cx, cz, 3);
+      for (const def of list) {
+        const chance = def.fixed(hab, d, city.districtAt?.(x, z) || ''); if (k > chance) continue;
+        const a = spawn(def, x, z, { habitat: hab, seed: (cx * 73856093) ^ (cz * 19349663) }); if (a) { a.fixedKey = key; fixed.set(key, a); } break;
+      }
+      if (!fixed.has(key)) fixed.set(key, null);
+    }
+    for (const [key, a] of fixed) { const [cx, cz] = key.split(',').map(Number); if (Math.abs(cx - c0x) > 3 || Math.abs(cz - c0z) > 3) { if (a) { const i = actors.indexOf(a); if (i >= 0) remove(i); } fixed.delete(key); } }
+  }
+
+  const api = game.wildlife = {
+    registry: reg.defs, actors, stats, world, habitatAt, coldSnap: false, enabled: true,
+    spawn, signal: (kind, pos, ttl) => world.signal(kind, pos, ttl),
+    addPerch(pos, kind = 'pile') { const p = { pos: pos.clone ? pos.clone() : new THREE.Vector3(pos.x, pos.y, pos.z), kind, taken: null }; perches.push(p); return p; },
+    perchLine(a, b, n = 8, opts = {}) {
+      const A = new THREE.Vector3(a.x, a.y, a.z), B = new THREE.Vector3(b.x, b.y, b.z);
+      return spawn(opts.species || 'wire_birds', (A.x + B.x) / 2, (A.z + B.z) / 2, { habitat: 'wire', wire: { a: A, b: B, sag: opts.sag ?? 0.3, n }, count: n, keep: true });
+    },
+    clear() { for (let i = actors.length - 1; i >= 0; i--) remove(i); fixed.clear(); },
+    makeCreature: (id, variant) => { const d = reg.defs.get(id); return d ? makeCreature(THREE, d, variant || (d.variant ? d.variant(rand) : {}), rand) : null; },
+  };
+
+  // sub-systems (each optional; a failure in one never stops the animals)
+  for (const [name, path, fn] of [['fishing', './fishing/fishing.js', 'createFishing'], ['dog', './dog/dog.js', 'createDog']]) {
+    try { if (SUBS[path]) { const m = await SUBS[path](); const sub = await m[fn](game, api); api[name] = sub; if (name === 'fishing') game.fishing = sub; else game.dog = sub; } }
+    catch (e) { console.warn('[wildlife] ' + name + ' unavailable', e); stats.failed.push(name + ': ' + e.message); }
+  }
+
+  let lastDay = -1;
+  game.updaters.push(function wildlifeTick(dt) {
+    if (!api.enabled) return;
+    const t0 = performance.now();
+    world.dt = dt; world.time += dt; world.frame++; world.hour = game.timeOfDay;
+    world.tide = game.env?.tide ?? Math.sin(game.timeOfDay / 12.42 * Math.PI * 2);
+    const w = game.weather || game.env?.weather; world.weather.rain = w?.rain ?? 0; world.weather.wind = w?.wind ?? 0.2; world.weather.storm = !!w?.storm;
+    const d = day(); if (d !== lastDay) { lastDay = d; api.coldSnap = api.forceCold ?? coldDay(d); }
+    world.weather.tempC = w?.tempC ?? (api.coldSnap && world.hour > 3 && world.hour < 10.5 ? 6 + Math.max(0, world.hour - 8) * 2.5 : 27 - (world.hour < 7 || world.hour > 21 ? 5 : 0));
+    const wp = world.player; wp.speed = Math.hypot(P.velocity.x, P.velocity.z); wp.inVehicle = !!P.state.inVehicle; wp.swimming = !!P.swimming; wp.underwater = !!P.headUnderwater || !!game.env?.underwater; wp.vehicle = P.state.vehicle || null;
+    for (let i = signals.length - 1; i >= 0; i--) if (signals[i].until < world.time) signals.splice(i, 1);
+    refreshThreats(dt);
+    spawnT -= dt; if (spawnT <= 0) { spawnT = 0.35; try { trySpawn(); } catch (e) { console.warn('[wildlife] spawner', e); } }
+    fixedT -= dt; if (fixedT <= 0) { fixedT = 1.2; try { fixedSites(); } catch (e) { console.warn('[wildlife] fixed', e); } }
+    const p = P.position;
+    for (let i = actors.length - 1; i >= 0; i--) {
+      const a = actors[i];
+      try { a.update?.(dt, world); } catch (e) { console.warn('[wildlife] actor ' + a.def.id, e); a.dead = true; a.def.broken = true; }
+      const far = Math.hypot(a.pos.x - p.x, a.pos.z - p.z);
+      if (a.dead || (!a.fixedKey && !a.keep && far > (a.def.despawn ?? 240)) || (a.keep && far > 500 && a.def.id !== 'wire_birds')) remove(i);
+    }
+    stats.actors = actors.length; stats.ms += (performance.now() - t0 - stats.ms) * 0.05;
+  });
+}

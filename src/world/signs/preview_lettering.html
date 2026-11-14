@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Sign lettering preview</title>
+<style>body{margin:0;background:#222}canvas{display:block}</style></head><body><canvas id="c" width="1600" height="1200"></canvas>
+<script type="module">
+import { drawFHWA, drawPen, penPath, PEN_STYLES } from './lettering.js';
+const q = new URLSearchParams(location.search), mode = q.get('mode') || 'fhwa';
+const c = document.getElementById('c'), x = c.getContext('2d');
+if (mode === 'fhwa') {
+  x.fillStyle = '#0b6b45'; x.fillRect(0, 0, 1600, 1200);
+  let y = 90;
+  drawFHWA(x, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 30, y, 56, { series: 'EM' }); y += 96;
+  drawFHWA(x, 'abcdefghijklmnopqrstuvwxyz 0123456789', 30, y, 56, { series: 'EM' }); y += 110;
+  drawFHWA(x, 'Biscayne Blvd  Miami Beach  Downtown', 30, y, 70, { series: 'EM' }); y += 110;
+  drawFHWA(x, 'MacArthur Cswy   Key Paloma   Airport', 30, y, 70, { series: 'EM' }); y += 100;
+  drawFHWA(x, 'NORTH  SOUTH  EAST  WEST  EXIT 2B  ONLY  1/4 MILE', 30, y, 50, { series: 'E' }); y += 80;
+  drawFHWA(x, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789', 30, y, 50, { series: 'D' }); y += 80;
+  drawFHWA(x, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 SPEED LIMIT', 30, y, 50, { series: 'C' }); y += 80;
+  drawFHWA(x, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 NO PARKING ANY TIME', 30, y, 50, { series: 'B' }); y += 80;
+  drawFHWA(x, "Española Way  Calle Ocho  SW 8 St  NE 2 Av  & ( ) ' , . - / : ! ? $ # +", 30, y, 46, { series: 'D' }); y += 90;
+  drawFHWA(x, 'Brickell Ave  Venetian Cswy  Port Blvd  Flagler St', 30, y, 60, { series: 'EM' }); y += 100;
+  drawFHWA(x, 'quick brown fox jumps over the lazy dog  Tyger Vault Wavy', 30, y, 54, { series: 'EM' }); y += 80;
+  drawFHWA(x, '95  395  836  41  1  A1A  195  112  874  913', 30, y, 64, { series: 'D' });
+} else {
+  x.fillStyle = '#12414a'; x.fillRect(0, 0, 1600, 1200);
+  let y = 150;
+  const show = (t, cap, style, col = '#f3c64a') => { const p = penPath(t, 40, y, cap, { style }); x.fillStyle = '#071c22'; x.fill(penPath(t, 40 + cap * 0.03, y + cap * 0.04, cap, { style, grow: cap * 0.03 }).path); x.fillStyle = col; x.fill(p.path); y += cap * 1.75; };
+  show('The Keys', 150, 'roman');
+  show('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 60, 'roman');
+  show('abcdefghijklmnopqrstuvwxyz 0123456789', 60, 'roman');
+  show('KEY PALOMA  Tern Key  Est. 1938', 64, 'romanCond', '#fff3d8');
+  show('Welcome to  Come Back Soon!', 80, 'casual', '#fff3d8');
+  show('Live Shrimp & Bait  Cold Beer  Tiki Bar', 60, 'casual', '#ffd9c0');
+  show('BAIT TACKLE ICE  OPEN 6 AM', 60, 'block', '#fff');
+  show('Mile Marker 113  slow down, island time', 50, 'liner', '#bfeee6');
+}
+window.ready = true;
+</script></body></html>

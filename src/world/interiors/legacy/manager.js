@@ -3,8 +3,8 @@
 // (old city: empty lots, we also build the shop building). Interiors are generated on demand near the player,
 // LOD'd hard (low-LOD stock strips → full labelled products for the 3 nearest), and disposed when far.
 import * as THREE from 'three';
-import { createCharacter } from '../../player/characterModel.js';
-import { rng as pedRng } from '../../player/pedStyle.js';
+import { createCharacter } from '../../../player/characterModel.js';
+import { rng as pedRng } from '../../../player/pedStyle.js';
 import { ProductBatch, getAtlas, productGeo, labelPlaneGeo, GARMENT_COLORS, FOOD_LIST } from './products.js';
 import { TYPES, chooseType, chooseName, isOpenAt, busyFactor, srng } from './types.js';
 import { generateLayout, buildNav } from './layout.js';
@@ -55,6 +55,7 @@ export async function createInteriors(game) {
   function addStorefront(sf, index) {
     const key = sf.id != null ? 'id' + sf.id : `${Math.round(sf.x * 10)},${Math.round(sf.z * 10)}`;
     if (byKey.has(key)) return;
+    try { if (game.interiorsV2?.claims?.(sf)) return; } catch (e) { /* V2 engine not loaded */ }
     const shell = sf.shell ?? (sf.buildingId != null);
     const fit = shell ? ingest.fit?.get(sf) : null;
     if (fit && !fit.ok) return; // overlaps another lot or a neighbouring building: no interior here
@@ -155,7 +156,7 @@ export async function createInteriors(game) {
     if (!fresh.length) return;
     const shells = fresh.filter((sf) => sf.shell ?? (sf.buildingId != null));
     if (shells.length) {
-      try { const t = performance.now(); if (!fitter) fitter = createLotFitter(city.mapLayers?.buildingPolys); fitter.fit(shells); ingest.fit = fitter.res; fitStats = { ...fitter.stats, ms: Math.round(performance.now() - t) }; if (ingestFirst) console.info('[interiors] lot fit', fitStats); }
+      try { const t = performance.now(); if (!fitter) fitter = game.__lotFitter || createLotFitter(city.mapLayers?.buildingPolys); fitter.fit(shells); ingest.fit = fitter.res; fitStats = { ...fitter.stats, ms: Math.round(performance.now() - t) }; if (ingestFirst) console.info('[interiors] lot fit', fitStats); }
       catch (e) { console.warn('[interiors] lot fit failed', e); }
       if (ingestFirst) pickGunLots(shells);
     }
@@ -878,7 +879,7 @@ export async function createInteriors(game) {
     }
     lastInside = inside; current = inside; api.current = inside;
     const indoor = !!inside;
-    if (P.state && P.state.indoor !== indoor) { P.state.indoor = indoor; try { game.env?.setIndoor?.(indoor); } catch (e) { /* */ } }
+    if (P.state && P.state.indoor !== indoor && !game.interiorsV2?.current) { P.state.indoor = indoor; try { game.env?.setIndoor?.(indoor); } catch (e) { /* */ } }
     setHelp(inside && inside.built ? interact(inside, pp, P) : null);
   }
 

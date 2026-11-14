@@ -2,7 +2,7 @@
   "track": "vehicles-core",
   "title": "Cars, damage, driving feel and traffic AI",
   "section": "Vehicles",
-  "agent": "paused",
+  "agent": "idle",
   "items": [
     {
       "name": "Registration hooks: registerModel, registerKind, per-vehicle fields, events (README)",
@@ -11,13 +11,13 @@
     },
     {
       "name": "Car bodies rebuilt: smooth high-detail shells, readable per type",
-      "state": "building",
-      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+      "state": "built",
+      "evidence": "src/vehicles/carModel2.js is now the live body system (vehicles.js imports it); preview docs/v2/shots/vehicles-core/v2_bodies_rear.png, in-game docs/v2/shots/vehicles-core/closeup_plate_badge_wear.png. Not compared side by side with v1; not crash-tested"
     },
     {
       "name": "PBR paint, glass, chrome, rubber; detailed wheels and light clusters",
-      "state": "building",
-      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+      "state": "built",
+      "evidence": "model/materials.js carPaint + wear shader live in game; docs/v2/shots/vehicles-core/v2_bodies_rear.png"
     },
     {
       "name": "Cockpits with driver and passengers visible",
@@ -46,18 +46,18 @@
     },
     {
       "name": "Fleet matched to neighborhood income (supercars rich, old sedans poor)",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "catalog.fleetMix/tierWeight/incomeFor used by parkedTypeFor/trafficTypeFor; zone mix in look_audit.json; not checked visually per district"
     },
     {
       "name": "No repeating car: seeded trim, wheels, color, two-tone, wear, dirt, dents, rust, stickers, racks, ladders, tint, dash items",
-      "state": "building",
-      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+      "state": "verified",
+      "evidence": "docs/v2/shots/vehicles-core/look_audit.json (500 cars built through the spawner path, 0 duplicate full or visual signatures); live registry re-rolls collisions"
     },
     {
       "name": "Original state license plate, unique per car",
-      "state": "building",
-      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+      "state": "built",
+      "evidence": "model/extras.js plates (7 Calora designs), unique numbers per look; visible in docs/v2/shots/vehicles-core/v2_sedan_rear_close.png"
     },
     {
       "name": "Trailers (boat and jet-ski trailers)",
@@ -66,8 +66,8 @@
     },
     {
       "name": "Uniqueness audit: 500 spawned cars, zero identical signatures",
-      "state": "todo",
-      "evidence": ""
+      "state": "verified",
+      "evidence": "docs/v2/shots/vehicles-core/look_audit.json: game.vehicles.lookAudit(500) -> built 500, buildErr 0, dupFull 0, dupVisual 0"
     },
     {
       "name": "Visual damage: crumpling panels, broken lights and glass, detached bumpers, doors, hoods",
@@ -116,28 +116,28 @@
     },
     {
       "name": "Driver personalities that visibly change driving (careful, aggressive, distracted, lost, in a hurry, elderly, tourist, show-off)",
-      "state": "todo",
-      "evidence": ""
+      "state": "verified",
+      "evidence": "docs/v2/shots/vehicles-core/personality_measurement.json (80 s, 32 AI cars on Biscayne Blvd): speed vs limit 0.70 (lost) .. 1.04 (hurry), gap 9.9 m (aggressive) .. 16.7 m (elderly), lane changes 0 (careful) .. 2.97/km (hurry), stop signs rolled 4/4 aggressive vs 0/1 careful"
     },
     {
       "name": "Traffic lights, stop signs, right-of-way",
-      "state": "todo",
-      "evidence": ""
+      "state": "verified",
+      "evidence": "personality_measurement.json: 67 red-light approaches, 2 runs (aggressive, tourist); stop signs from edge.controlA/B; fixed-time fallback signal plan in roadnet.js (no world module drives the lights yet)"
     },
     {
       "name": "Lane changes with turn signals",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "measured counts in personality_measurement.json; blinkers driven by ai.signal; blinking not checked on screen"
     },
     {
       "name": "Yielding to pedestrians at crosswalks",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "pedMargin per driver, pedYields counted (measurement json); no crosswalk-specific logic"
     },
     {
       "name": "Pulling over for sirens",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "sirenYields counted in measurement json; pulling to the curb lane not checked on screen"
     },
     {
       "name": "Parking and pulling out",
@@ -146,8 +146,8 @@
     },
     {
       "name": "Honking, road rage, honk-reaction hook for peds",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "personality-scaled horn at player and at stalled lead cars; honks counted; no ped honk-reaction hook"
     },
     {
       "name": "Accidents and their aftermath",
@@ -181,8 +181,8 @@
     },
     {
       "name": "Traffic-behavior test: lights obeyed, personalities measurably different, 10-minute soak without gridlock",
-      "state": "todo",
-      "evidence": ""
+      "state": "built",
+      "evidence": "lights + personalities measured (json); 10-minute soak not run"
     },
     {
       "name": "Damage scenarios scripted and screenshotted",

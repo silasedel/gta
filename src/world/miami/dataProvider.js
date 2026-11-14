@@ -31,9 +31,21 @@ export function createDataProvider(data) {
       if (!farBy.has(k)) farBy.set(k, []); farBy.get(k).push({ id: n + 1, rings: [o], h: bp.h || 6, minH: 0, area: Math.abs(a / 2), cx, cz });
     });
     for (const e of rg.edges) if (e.elevated) { const m = e.pts[(e.pts.length / 2) | 0]; const k = key(Math.floor(m[0] / TS), Math.floor(m[1] / TS)); if (!farRoads.has(k)) farRoads.set(k, []); farRoads.get(k).push({ pts: e.pts, y: Array.from(e.y), width: e.width }); }
+    // V2: tiles ship in region bundles that data.js loads on demand. waitTile yields until the tile AND its 8 neighbors
+    // (read synchronously for seams) are in memory, so a builder never sees a missing tile as an empty one.
+    const lazy = typeof data.tileReady === 'function';
     return {
       source: data.source || 'data.js', bounds: data.bounds, tileSize: TS, origin: { x: 0, z: 0 },
-      getTile: (i, j) => normalize(data.getTile(i, j)),
+      getTile: (i, j) => normalize(data.getTile(i, j)) ?? null,
+      ...(lazy ? {
+        *waitTile(i, j) {
+          let n = 0;
+          while (!data.tileReady(i, j)) { if (n++ % 30 === 0) data.requestTile(i, j); yield; }
+          return normalize(data.getTile(i, j)) ?? null;
+        },
+        prefetch(i, j) { data.requestTile(i, j); },
+        tileReady: (i, j) => data.tileReady(i, j),
+      } : {}),
       farTile: (i, j) => ({ buildings: farBy.get(key(i, j)) || [], roads: farRoads.get(key(i, j)) || [], areas: [] }),
       landPolys: (data.mapLayers.land || []).map((p) => [p.outer, ...(p.holes || [])]),
       nodes: rg.nodes.map((nd) => ({ id: nd.id, x: nd.x, z: nd.z, deg: nd.edges.length, edges: nd.edges.map((k) => rg.edges[k]) })),

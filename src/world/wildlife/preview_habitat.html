@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Wildlife: habitat scene</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:block}#i{position:fixed;left:8px;top:8px;color:#fff;font:12px ui-monospace,monospace;background:#0008;padding:4px 6px}</style></head>
+<body><div id="i"></div><script type="module">
+// Behavior scenes in a fake world (see kit/stage.js).
+//   ?mode=land|shore|marsh|underwater  &hour=10.5  &temp=27  &rain=0  &wind=0.2
+//   &spawn=green_iguana:2@0,0;brown_pelican@6,3     id[:count][@x,z][#habitat] separated by ";"
+//   &cam=4,1.2,5 &look=0,0.2,0   or  &follow=0 (orbit the first creature of actor 0)  &dist=3 &az=40 &el=12
+//   &sim=8            seconds simulated (at 30 Hz) before the page reports ready
+//   &player=3,0       put the (invisible) player there;  &walk=1 makes the player walk toward the first actor
+//   &car=1            a car drives along the road (land mode: z = 6) every few seconds
+//   &piles=1 &wire=1  perches;  &wall=1 a stucco wall at z = -2 (sites with #wall get { normal, w, h });  &shot=5  a gunshot threat at t = 5 s
+import * as THREE from 'three';
+import { createStage } from './kit/stage.js';
+import { makeCreature, T } from './kit/index.js';
+import { loadSpecies } from './registry.js';
+const q = new URLSearchParams(location.search), num = (k, d) => (q.has(k) ? Number(q.get(k)) : d), vec = (k, d) => (q.get(k) || d).split(',').map(Number);
+const mode = q.get('mode') || 'land', stage = await createStage({ mode, hour: num('hour', 10.5) }), world = stage.world;
+world.weather.tempC = num('temp', 27); world.weather.rain = num('rain', 0); world.weather.wind = num('wind', 0.2);
+const reg = await loadSpecies(), rand = T.rng(num('seed', 11));
+if (q.get('piles')) for (let i = 0; i < 6; i++) stage.pile(mode === 'shore' ? 6 + i * 2.2 : -6 + i * 2.4, mode === 'shore' ? -3 + (i % 2) * 0.4 : -4);
+window.wires = []; if (q.get('wire')) window.wires.push(stage.wire(-9, -3, 9, -3, 6.5, 12));
+const errors = [], wallSite = q.get('wall') ? stage.wall(0, num('wallz', -2), 6, 3) : null;
+for (const item of (q.get('spawn') || '').split(';').filter(Boolean)) {
+  const m = item.match(/^([a-z0-9_]+)(?::(\d+))?(?:@(-?[\d.]+),(-?[\d.]+))?(?:#([a-z_]+))?$/); if (!m) continue;
+  const def = reg.defs.get(m[1]); if (!def) { errors.push('unknown species ' + m[1]); continue; }
+  const x = m[3] ? +m[3] : 0, z = m[4] ? +m[4] : 0;
+  const site = { x, z, y: world.groundY(x, z), habitat: m[5] || Object.keys(def.habitats || { park: 1 })[0], radius: num('radius', 4), depth: world.waterDepth(x, z), count: m[2] ? +m[2] : undefined, height: num('height', 6) };
+  if (site.habitat === 'wall' && wallSite) Object.assign(site, wallSite);
+  if (site.habitat === 'wire' && window.wires[0]) site.wire = window.wires[0];
+  try { stage.add(def.spawn(THREE, world, site, (v) => makeCreature(THREE, def, v || (def.variant ? def.variant(rand) : {})))); } catch (e) { console.error('spawn failed: ' + def.id, e); errors.push(def.id + ': ' + e.message); }
+}
+if (q.get('player')) { const p = vec('player', '0,0'); world.player.pos.set(p[0], world.groundY(p[0], p[1]), p[1]); }
+let car = null; if (q.get('car')) { car = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.4, 1.8), new THREE.MeshStandardMaterial({ color: 0x9a2a22, roughness: 0.4 })); car.castShadow = true; stage.scene.add(car); car.userData = { pos: new THREE.Vector3(-45, 0.7, num('carz', 6)), vel: new THREE.Vector3(num('carv', 12), 0, 0) }; }
+const pT = { pos: world.player.pos, vel: world.player.vel, radius: 0.3, kind: 'player' }, shotAt = num('shot', -1);
+function driver(dt) {
+  world.threats.length = 0; world.threats.push(pT);
+  if (q.get('walk') && stage.actors[0]) { const a = stage.actors[0].pos, p = world.player.pos, d = Math.hypot(a.x - p.x, a.z - p.z); const sp = num('walk', 1.4); world.player.vel.set((a.x - p.x) / (d || 1) * sp, 0, (a.z - p.z) / (d || 1) * sp); if (d > 0.6) p.addScaledVector(world.player.vel, dt); p.y = world.groundY(p.x, p.z); }
+  if (car) { const u = car.userData; u.pos.addScaledVector(u.vel, dt); if (u.pos.x > 45) u.pos.x = -45; car.position.copy(u.pos); world.threats.push({ pos: u.pos, vel: u.vel, radius: 1.2, kind: 'car' }); }
+  if (shotAt >= 0 && world.time >= shotAt && world.time < shotAt + 0.5) world.threats.push({ pos: world.player.pos, vel: new THREE.Vector3(), radius: 0, kind: 'gunshot', loud: 1 });
+}
+const sim = num('sim', 0); for (let s = 0; s < sim; s += 1 / 30) { driver(1 / 30); stage.step(1 / 30); }
+const info = document.getElementById('i'), follow = q.has('follow') ? num('follow') : -1;
+function aim() {
+  if (follow >= 0 && stage.actors[follow]) { const a = stage.actors[follow].pos, az = num('az', 40) * Math.PI / 180, el = num('el', 12) * Math.PI / 180, d = num('dist', 3); stage.camera.position.set(a.x + Math.sin(az) * Math.cos(el) * d, a.y + Math.sin(el) * d + num('up', 0.15), a.z + Math.cos(az) * Math.cos(el) * d); stage.camera.lookAt(a.x, a.y + num('up', 0.15), a.z); stage.sun.target.position.copy(a); stage.sun.position.copy(a).addScaledVector(stage.sunDir, 60); }
+  else stage.setCam(vec('cam', '5,1.6,6'), vec('look', '0,0.3,0'));
+}
+if (q.has('fov')) { stage.camera.fov = num('fov', 38); stage.camera.updateProjectionMatrix(); }
+let acc = 0, fr = 0, worst = 0;
+stage.run((dt) => { driver(dt); aim(); acc += dt; fr++; worst = Math.max(worst, dt * 1000); if (acc > 1) { const r = stage.renderer.info.render; info.textContent = `${mode} t=${world.time.toFixed(1)}s fps ${(fr / acc).toFixed(0)} calls ${r.calls} tris ${(r.triangles / 1000).toFixed(1)}k actors ${stage.actors.length}${errors.length ? ' ERR ' + errors.join('; ') : ''}`; window.stats = { fps: fr / acc, worstMs: worst, calls: r.calls, tris: r.triangles, events: world.events.slice(-40), errors }; acc = 0; fr = 0; worst = 0; } if (stage.frames === 3) window.ready = true; });
+window.stage = stage;
+</script></body></html>

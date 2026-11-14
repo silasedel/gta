@@ -1,0 +1,76 @@
+{
+ "when": "2026-11-14T00:46:17.178Z",
+ "materials": {
+  "southBeach": {
+   "meshes": 248,
+   "textured": 239,
+   "emitters": 9,
+   "flat": 0,
+   "flatList": {}
+  },
+  "downtown": {
+   "meshes": 292,
+   "textured": 283,
+   "emitters": 9,
+   "flat": 0,
+   "flatList": {}
+  },
+  "brickell": {
+   "meshes": 294,
+   "textured": 284,
+   "emitters": 10,
+   "flat": 0,
+   "flatList": {}
+  },
+  "port": {
+   "meshes": 315,
+   "textured": 310,
+   "emitters": 5,
+   "flat": 0,
+   "flatList": {}
+  },
+  "causeway": {
+   "meshes": 397,
+   "textured": 395,
+   "emitters": 2,
+   "flat": 0,
+   "flatList": {}
+  },
+  "island": {
+   "meshes": 384,
+   "textured": 382,
+   "emitters": 2,
+   "flat": 0,
+   "flatList": {}
+  }
+ },
+ "facades": {
+  "buildings": 3420,
+  "adjacentPairs": 4318,
+  "sameSignature": 0,
+  "distinctSignatures": 2536,
+  "families": {
+   "calleRow": 147,
+   "parkade": 17,
+   "brickRow": 97,
+   "decoStream": 397,
+   "ribbonOffice": 61,
+   "precast": 37,
+   "stoneBank": 47,
+   "mimo": 145,
+   "steelShed": 14,
+   "tiltUp": 16,
+   "medHouse": 874,
+   "villa": 767,
+   "cottage": 636,
+   "cwBrisa": 13,
+   "condo": 17,
+   "cwHalvor": 10,
+   "cwMeridian": 14,
+   "cwAtlas": 11,
+   "decoMed": 100
+  },
+  "examples": []
+ },
+ "errors": []
+}

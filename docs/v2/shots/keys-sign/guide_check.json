@@ -1,0 +1,387 @@
+{
+ "gantries": 29,
+ "panels": 59,
+ "reachable": 59,
+ "unreachable": [],
+ "blades": 932,
+ "signs": [
+  {
+   "id": "g1429",
+   "route": "5th Street",
+   "at": [
+    2347,
+    513
+   ],
+   "type": "monotube",
+   "panels": [
+    "  5th St [down]",
+    "EXIT 1: SR-907 SOUTH Alton Rd [upright]"
+   ]
+  },
+  {
+   "id": "g1624",
+   "route": "Alton Road",
+   "at": [
+    2426,
+    435
+   ],
+   "type": "monotube",
+   "panels": [
+    "SR-907 SOUTH Alton Rd [down]",
+    "EXIT 1:   5th St [upright]"
+   ]
+  },
+  {
+   "id": "g4735",
+   "route": "Alton Road",
+   "at": [
+    2419,
+    312
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 2: SR-907 SOUTH Alton Rd [upleft]",
+    "SR-907 SOUTH Alton Rd [down]"
+   ]
+  },
+  {
+   "id": "g5449",
+   "route": "Alton Road",
+   "at": [
+    2401,
+    -744
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 3: SR-907 NORTH Alton Rd [upleft]",
+    "SR-907 NORTH Alton Rd [down]"
+   ]
+  },
+  {
+   "id": "g4817",
+   "route": "Alton Road",
+   "at": [
+    2417,
+    -1820
+   ],
+   "type": "monotube",
+   "panels": [
+    "SR-907 SOUTH Alton Rd [down]",
+    "EXIT 4:   Sunset Dr [upright]"
+   ]
+  },
+  {
+   "id": "g2107",
+   "route": "Alton Road",
+   "at": [
+    2505,
+    -1918
+   ],
+   "type": "monotube",
+   "panels": [
+    "SR-907 SOUTH Alton Rd [down]",
+    "EXIT 5:   20th St [upright]"
+   ]
+  },
+  {
+   "id": "g5480",
+   "route": "I 395",
+   "at": [
+    -3465,
+    -1083
+   ],
+   "type": "truss",
+   "panels": [
+    "EXIT 1:   Ramp [upleft]",
+    "I-395 WEST I-395 [down]"
+   ]
+  },
+  {
+   "id": "g5558",
+   "route": "I 395",
+   "at": [
+    -3369,
+    -1037
+   ],
+   "type": "truss",
+   "panels": [
+    "I-395 WEST I-395 [down]",
+    "EXIT 2:   Ramp [upright]"
+   ]
+  },
+  {
+   "id": "g5512",
+   "route": "I 395",
+   "at": [
+    -2858,
+    -723
+   ],
+   "type": "truss",
+   "panels": [
+    "I-395 EAST I-395 [down]",
+    "EXIT 3:   NE 2nd Ave [upright]"
+   ]
+  },
+  {
+   "id": "g69",
+   "route": "I 95",
+   "at": [
+    -3469,
+    1842
+   ],
+   "type": "truss",
+   "panels": [
+    "I-95 US-1 NORTH I-95 [down]",
+    "EXIT 1:   SW 3rd Ave [upright]"
+   ]
+  },
+  {
+   "id": "g23",
+   "route": "I 95",
+   "at": [
+    -3441,
+    965
+   ],
+   "type": "truss",
+   "panels": [
+    "I-95 NORTH I-95 [down]",
+    "EXIT 2:   SE 2nd Ave [upright]"
+   ]
+  },
+  {
+   "id": "g12",
+   "route": "I 95",
+   "at": [
+    -3367,
+    722
+   ],
+   "type": "truss",
+   "panels": [
+    "I-95 NORTH I-95 [down]",
+    "EXIT 3:   NW 3rd Ave [upleft]"
+   ]
+  },
+  {
+   "id": "g15",
+   "route": "I 95",
+   "at": [
+    -3491,
+    399
+   ],
+   "type": "truss",
+   "panels": [
+    "EXIT 4:   S Miami Ave [upleft]",
+    "I-95 SOUTH I-95 [down]"
+   ]
+  },
+  {
+   "id": "g21",
+   "route": "I 95",
+   "at": [
+    -3499,
+    254
+   ],
+   "type": "truss",
+   "panels": [
+    "I-95 SOUTH I-95 [down]",
+    "EXIT 5: US-41 SOUTH SW 7th St [upright]"
+   ]
+  },
+  {
+   "id": "g1403",
+   "route": "I 95",
+   "at": [
+    -3489,
+    -125
+   ],
+   "type": "truss",
+   "panels": [
+    "I-95 NORTH I-95 [down]",
+    "EXIT 6:   Ramp [upright]"
+   ]
+  },
+  {
+   "id": "g5245",
+   "route": "MacArthur Causeway",
+   "at": [
+    -1448,
+    -944
+   ],
+   "type": "truss",
+   "panels": [
+    "SR-A1A WEST MacArthur Cswy [down]",
+    "EXIT 1:   NE 13th St [upright]"
+   ]
+  },
+  {
+   "id": "g1414",
+   "route": "MacArthur Causeway",
+   "at": [
+    -1526,
+    -916
+   ],
+   "type": "truss",
+   "panels": [
+    "SR-887 EAST Port Miami Tunnel [upright]",
+    "SR-A1A EAST MacArthur Cswy [upright]"
+   ]
+  },
+  {
+   "id": "g19",
+   "route": "MacArthur Causeway",
+   "at": [
+    -1030,
+    -574
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 2: SR-A1A EAST MacArthur Cswy [upleft, EXIT ONLY]",
+    "SR-A1A EAST MacArthur Cswy [down]",
+    "EXIT 3:   Watson Island [upright, EXIT ONLY]"
+   ]
+  },
+  {
+   "id": "g1505",
+   "route": "MacArthur Causeway",
+   "at": [
+    -754,
+    -274
+   ],
+   "type": "monotube",
+   "panels": [
+    "SR-A1A WEST MacArthur Cswy [down]",
+    "EXIT 4:   Parrot Jungle Trail [upright]"
+   ]
+  },
+  {
+   "id": "g2240",
+   "route": "MacArthur Causeway",
+   "at": [
+    28,
+    137
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 5: SR-A1A EAST MacArthur Cswy [upleft]",
+    "SR-A1A EAST MacArthur Cswy [down]"
+   ]
+  },
+  {
+   "id": "g1415",
+   "route": "MacArthur Causeway",
+   "at": [
+    2144,
+    571
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 6: SR-907 NORTH Alton Rd [upleft]",
+    "SR-A1A EAST MacArthur Cswy [down]"
+   ]
+  },
+  {
+   "id": "g3040",
+   "route": "SR 887",
+   "at": [
+    -716,
+    459
+   ],
+   "type": "truss",
+   "panels": [
+    "EXIT 1:   Ramp [upleft]",
+    "  Port Blvd [down]"
+   ]
+  },
+  {
+   "id": "g24",
+   "route": "US 1",
+   "at": [
+    -2957,
+    797
+   ],
+   "type": "monotube",
+   "panels": [
+    "  SE 2nd Ave [down]",
+    "EXIT 1:   SE 4th St [upright]"
+   ]
+  },
+  {
+   "id": "g35",
+   "route": "US 1",
+   "at": [
+    -2924,
+    775
+   ],
+   "type": "monotube",
+   "panels": [
+    "I-95 US-1 NORTH I-95 [down]",
+    "EXIT 2: I-95 NORTH I-95 [upright]"
+   ]
+  },
+  {
+   "id": "g1468",
+   "route": "ramp",
+   "at": [
+    -2797,
+    835
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 1:   SE 1st Ave [upleft]",
+    "  SE 4th St [down]"
+   ]
+  },
+  {
+   "id": "g1470",
+   "route": "ramp",
+   "at": [
+    -3143,
+    729
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 2:   S Miami Ave [upleft]",
+    "  SE 2nd Ave [down]"
+   ]
+  },
+  {
+   "id": "g625",
+   "route": "ramp",
+   "at": [
+    -2952,
+    702
+   ],
+   "type": "monotube",
+   "panels": [
+    "I-95 US-1 SOUTH I-95 [down]",
+    "EXIT 3: I-95 NORTH I-95 [upright]"
+   ]
+  },
+  {
+   "id": "g29",
+   "route": "ramp",
+   "at": [
+    -3511,
+    379
+   ],
+   "type": "monotube",
+   "panels": [
+    "EXIT 4: I-95 SOUTH I-95 [upleft]",
+    "US-41 SOUTH SW 7th St [down]"
+   ]
+  },
+  {
+   "id": "g1406",
+   "route": "ramp",
+   "at": [
+    -2693,
+    -713
+   ],
+   "type": "monotube",
+   "panels": [
+    "  NE 2nd Ave [down]",
+    "EXIT 5:   NE 2nd Ave [upright]"
+   ]
+  }
+ ]
+}

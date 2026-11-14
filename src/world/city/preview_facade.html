@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>city-look: facade lab</title></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { createLab } from './lab.js';
+import { bakeRoomAtlas } from './rooms.js';
+import { loadWallArray, createFacadeMaterial, FBatch, facadeWalls, WL, WIN, BIT, PROFILE, GLASS } from './facade.js';
+import { fillPoly } from '../miami/geom.js';
+const q = new URLSearchParams(location.search);
+const lab = await createLab({ cam: '0,9,34', look: '0,8,0' });
+const rooms = await bakeRoomAtlas(lab.renderer); window.roomStats = { ms: rooms.ms, tris: rooms.triangles, kinds: rooms.kinds };
+const wall = await loadWallArray(lab.renderer);
+const hour = lab.game.timeOfDay, night = hour >= 19.5 || hour < 6 ? 1 : 0;
+const shared = { uFLit: { value: new Float32Array([0.5, 0.6, 0.5, 0.7, 0.3, 1, 0.9, 0.8]) }, uFNight: { value: night }, uFDay: { value: night ? 0.03 : 0.5 }, uFTime: { value: 0 }, uFGlow: { value: 1.6 } };
+const mat = createFacadeMaterial(wall, rooms, shared);
+if (q.get('view') === 'atlas') {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(32, 16), new THREE.MeshBasicMaterial({ map: rooms.texture })); m.position.set(0, 9, 0); lab.scene.add(m); lab.camera.position.set(0, 9, 19); lab.camera.lookAt(0, 9, 0);
+} else {
+  const C = (h) => new THREE.Color(h), B = new FBatch();
+  const styles = [
+    { layer: WL.stucco, tint: C(0xf6a8b8), bayW: 3.2, floorH: 3.3, winW: 0.5, winH: 0.5, sill: 0.28, type: WIN.punched, bits: BIT.sill | BIT.cross | BIT.stripes | BIT.ac, profile: PROFILE.hotel, glass: GLASS.clear, reflect: 0.15, accent: C(0x39c6c0) },
+    { layer: WL.plasterWorn, tint: C(0xf2d9a0), bayW: 2.8, floorH: 3.1, winW: 0.42, winH: 0.46, sill: 0.3, type: WIN.punched, bits: BIT.sill | BIT.shutters | BIT.vsplit | BIT.ac | BIT.grime, profile: PROFILE.residential, glass: GLASS.clear, reflect: 0.12, accent: C(0x2f6f6a) },
+    { layer: WL.concrete, tint: C(0xe8e4dc), bayW: 3.6, floorH: 3.6, winW: 1, winH: 0.5, sill: 0.28, type: WIN.ribbon, bits: BIT.darkFrame, profile: PROFILE.office, glass: GLASS.bronze, reflect: 0.5, accent: C(0x888888) },
+    { layer: WL.cladding, tint: C(0xd0d8e0), bayW: 1.5, floorH: 3.9, winW: 1, winH: 1, sill: 0.24, type: WIN.curtain, bits: BIT.darkFrame | BIT.fins, profile: PROFILE.office, glass: GLASS.blue, reflect: 0.7, accent: C(0x556677) },
+    { layer: WL.coral, tint: C(0xffffff), bayW: 3.4, floorH: 3.5, winW: 0.4, winH: 0.6, sill: 0.2, type: WIN.arched, bits: BIT.sill | BIT.surround | BIT.cross, profile: PROFILE.residential, glass: GLASS.clear, reflect: 0.12, accent: C(0xf2e6d0) },
+    { layer: WL.brick, tint: C(0xffffff), bayW: 3.0, floorH: 3.4, winW: 0.45, winH: 0.55, sill: 0.25, type: WIN.punched, bits: BIT.sill | BIT.jalousie | BIT.belt | BIT.darkFrame, profile: PROFILE.residential, glass: GLASS.gray, reflect: 0.2, accent: C(0xd8d0c0) },
+    { layer: WL.precast, tint: C(0xf0ece4), bayW: 6, floorH: 3.0, winW: 0.92, winH: 0.6, sill: 0.36, type: WIN.garage, bits: 0, profile: PROFILE.garage, glass: 0, reflect: 0, accent: C(0xcccccc) },
+    { layer: WL.tile, tint: C(0x9fd8d0), bayW: 3.2, floorH: 3.2, winW: 0.3, winH: 0.3, sill: 0.4, type: WIN.porthole, bits: BIT.surround | BIT.pilaster, profile: PROFILE.hotel, glass: GLASS.teal, reflect: 0.3, accent: C(0xffffff) },
+    { layer: WL.corrugated, tint: C(0xb8c4c8), bayW: 6, floorH: 6, winW: 0.6, winH: 0.7, sill: 0.02, type: WIN.roller, bits: BIT.grime, profile: PROFILE.industrial, glass: 0, reflect: 0, accent: C(0x2f6fb0) },
+    { layer: WL.marble, tint: C(0xffffff), bayW: 4, floorH: 4.4, winW: 0.9, winH: 0.84, sill: 0.02, type: WIN.storefront, bits: BIT.darkFrame, profile: PROFILE.retail, glass: GLASS.clear, reflect: 0.1, accent: C(0x222222) },
+  ];
+  styles.forEach((S, i) => {
+    const x = (i % 5 - 2) * 17, z = i < 5 ? 0 : -26, w = 13, d = 10, h = i === 3 ? 31.2 : i === 8 ? 6 : i === 9 ? 4.4 : S.floorH * 5;
+    const ring = [[x - w / 2, z + d / 2], [x + w / 2, z + d / 2], [x + w / 2, z - d / 2], [x - w / 2, z - d / 2]].reverse();
+    // outward normal = (-dz, dx): verify orientation by signed area (negative = ok per geo.orient)
+    let a = 0; for (let k = 0; k < 4; k++) { const p = ring[k], qq = ring[(k + 1) % 4]; a += p[0] * qq[1] - qq[0] * p[1]; } if (a > 0) ring.reverse();
+    S.seed = (i * 0.137 + 0.05) % 1; S.groundY = 0;
+    facadeWalls(B, ring, 0, h, S);
+    B.blank(WL.roofGravel); fillPoly(B, [ring], h, new THREE.Color(0xffffff), 1);
+  });
+  const m = B.build(mat); lab.scene.add(m);
+}
+lab.start((dt, t) => { shared.uFTime.value = t; });
+</script></body></html>

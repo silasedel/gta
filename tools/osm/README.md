@@ -1,20 +1,115 @@
-# Miami OSM pipeline (DATA agent)
+# World data pipeline (track `world-osm`): real Miami (OSM) + the synthetic world, one tile set
 
-Map data is © OpenStreetMap contributors and licensed under the ODbL. The in-game map must show that attribution (`data.attribution`).
+Map data inside the real rectangle is © OpenStreetMap contributors (ODbL). The in-game map must show `data.attribution`.
+
+## The whole merge is ONE command (re-run it whenever `tools/world/out/features.json` changes)
+
+```
+tools/osm/.venv/bin/python tools/osm/merge.py
+```
+It builds the unified world from the cached OSM pull plus `tools/world/out/features.json` + `heights.bin` (world bounds are read
+from features.json, nothing is hard-coded), audits it through the game's own loader (`tools/osm/audit.mjs`: road connectivity,
+geometry, storefronts, tile coverage, heights, transit), and **only if every check passes** publishes it by atomically replacing
+`public/assets/miami/world.json`. A failed build or audit leaves the live world untouched and prints where the staged build is.
+Takes about 45 s. `--force` publishes despite a failed check, `--no-publish` only stages. Hard-reload the game afterwards.
+
+## New in V2 (read this first; renderer and gameplay tracks)
+
+**What changed**
+- The world is now **real Miami (the V1 rectangle, x −3709…4511, z −2654…2654) merged with the synthetic regions** from
+  `tools/world/out/features.json` + `heights.bin` (format: `tools/world/FORMAT.md`). `data.bounds` is the whole world,
+  `data.realRect` the 1:1 OSM part, `data.inRealMiami(x, z)` tells them apart. Without a features file the world is just real Miami.
+- **Files:** `public/assets/miami/world.json` is the manifest of the live build and points (`dir`) at `public/assets/miami/<build>/`.
+  A build is written to a staging folder, renamed, and published by atomically replacing `world.json`. The previous build stays on
+  disk for running games. The V1 files (`manifest.json`, `tiles/`, `tiles.bundle.json`, root `grid.bin` ...) are gone.
+- **Tiles ship in region bundles** (`regions/{rx}_{rz}.json`, 4×4 tiles = 800 m, the streamer's chunk), loaded on demand.
+  - `data.getTile(tx, tz)` returns the tile, `null` (empty: open water), or **`undefined` when its region is not in memory yet**.
+  - `data.tileReady(tx, tz)` (tile + 8 neighbors in memory), `data.requestTile(tx, tz)`, `data.loadRegion(key)`, `data.regionStats`.
+  - `dataProvider.js` now has `*waitTile(i, j)` (yields until ready), which `tilebuild.js` already uses, so builders never see a
+    missing tile as an empty one. `data.update(focus)` (registered on `game.updaters`) keeps regions within 2.6 km of the camera
+    and player loaded (plus look-ahead along the player's velocity) and frees regions beyond 4.8 km. The port's regions
+    (`manifest.bootRegions`, cruise terminals for `port.js`) and the ones around the default spawn load during boot.
+  - **Do not loop over `data.tileKeys` calling `loadTile`/`getTile` at boot** (it would pull the whole world). Use the global lists below.
+- **Grids** (`grid.bin`, deflated per layer): `surface` 2 m, `cover` 4 m, `zone`/`district`/`wkind` 8 m are kept as run tables in
+  memory (a few MB for the whole world) and read by binary search; `depth` 8 m and `height` 16 m are dense.
+
+**New queries on `data`**
+- `terrainHeightAt(x, z)`: ground height above y = 0 (bilinear, 16 m). Zero in real Miami; hills and dunes outside.
+  `groundHeightAt` includes it (terrain + curb on sidewalks; decks as before). `data.heightField = { cell, minX, minZ, nx, nz, unit, data: Int16Array }`
+  (node-registered: sample (i, j) is at `minX + i*cell`, `minZ + j*cell`), `data.hasRelief`.
+- `coverAt(x, z)`: land cover class (list in `manifest.cover`): `none park grass wild pitch playground sand dirt parking plaza marina
+  island pool scrub forest pine sawgrass wetland mangrove farmland grove paved apron runway taxiway campground golf rock gravel
+  dune construction garden cemetery` (+ any new kind the world layout invents, appended).
+- `waterKindAt(x, z)`: `'sea' | 'lake' | 'canal' | 'river' | 'pond' | 'marsh' | null`. Outside real Miami, canals, ponds and marsh
+  keep their own shallow depth (`seabedDepthAt`); the 5 m swim floor applies to the sea and lakes.
+- `zoneAt` can also return **`'airport' | 'rural' | 'wilderness'`** (appended to the V1 list; V1 ids unchanged).
+- `places` (`{ name, kind, x, z, r, real? }`: real districts, islands and waters + the layout's towns, keys, parks, lakes, regions),
+  `setpieces` (`{ id, x, z, heading }`, e.g. `nico_house`, `keys_sign`), `sites` (typed land-use sites and buildings:
+  `{ use, x, z, r, kind?, sub?, tier?, b? }`), `controls` (`{ signals, stops, yields, crossings }` as `[x, z]` lists for the whole world),
+  `transit` (below), `mapLayers.cover[cls]` (polygons for the pause map), `mapLayers.rails`, `mapLayers.realRect`.
+
+**Road graph (`data.roadGraph`)**
+- Edge: `ref` ('I-95', 'US-1;SR 970'), `controlA` / `controlB` (control faced when arriving at node a / b: `'signal' | 'stop' | 'yield' | null`),
+  `turnLanes`, `turnLanesBack`, `toll`, `lit`, `speedPosted` (speed limit is from a real sign tag), `surface` ('asphalt', 'dirt', 'gravel' ...),
+  `destination`, `destinationRef` (sign text on ramps), `bridgeName`, `roundabout`, `synthetic`, `private` (gated yard or drive),
+  `component` (0 = main network), `mainNetwork` (in the main strongly connected part).
+- **Heights:** `edge.y` is the ABSOLUTE road surface height. `edge.elevated` = a structure (bridge, overpass, ramp).
+  **`edge.terrain` = the road only follows non-flat ground** (hills): not a deck. In tiles such a road piece has `y: null` (as a flat road)
+  and **`terrainY: [...]`**; the renderer must drape it (and the ground mesh) on `terrainHeightAt`. `tile.relief = { min, max }` is set on
+  tiles whose ground is not flat (null otherwise).
+- Node: `signal`, `control`, `exit` (motorway exit number). `roadGraph.turns = { no, only, via }` and
+  `roadGraph.turnAllowed(fromEdgeId, nodeId, toEdgeId)`, `roadGraph.controlAt(edge, dir)`.
+- Connectivity is audited: one network, except Fisher Island (ferry only in reality). Real roads up to 800 m outside the rectangle are
+  kept where they tie a clipped street back to the network; synthetic roads are snapped onto the clipped OSM ends at the rectangle edge,
+  and the other carriageway of a divided road gets a short connector.
+
+**Tiles (`data.getTile`, renderer format; all V1 fields unchanged)**
+- `areas[]`: `kind` is still the ground bucket the renderer knows (`land beach park grass parking paved`); **`cls` is the precise class**
+  (the `coverAt` list) and `surface` the walk surface. New classes arrive with a sensible bucket today (sawgrass, wetland, mangrove,
+  forest, pine, scrub, farmland, grove → `grass`; runway, taxiway → `parking`; apron, paved → `paved`; dune → `beach`; golf, cemetery,
+  garden, campground → `park`; dirt, construction, rock, gravel → `land`). **city-look: switch on `cls` to give each its own look.**
+- `buildings[]`: + `use` (land use: fuel, hotel, school, worship, parking_garage, office, hospital, police, fire_station, supermarket,
+  car_dealer, laundromat, gym, marina, bank, mall, museum ...), `poiKind`, `osm` ('shop=shoes'), `sub` (cuisine, sport, shoe store
+  type ...), `tier` (luxury | premium | mid | budget), `address`, `material`, `roofMaterial`, `roofHeight`, `roofLevels`, `year`,
+  `architecture`, `tenants` (types of places inside that have no street door), `synthetic`, `heading`, `sourceId`.
+  New `style` values from the layout: `stilt hangar terminal barn cabin strip`. Names are never carried (types only).
+- `trees[]` entries are `[x, z, species]` (`tree palm royal_palm coconut oak pine cypress mangrove citrus gumbo banyan seagrape`).
+- `props[]` (`{ type, x, z, heading? }`): many more types (`manifest.props`): yield, bench, water_tap, bike_share, recycling, vending, atm,
+  post_box, phone, ev_charger, shelter, toilets, beach_shower, garage_entrance, cctv, crane, mast, flagpole, buoy, bollard, gate, gate_arm,
+  toll_gantry, power_pole, power_tower, rail_crossing, station_entrance, monument, picnic, boat_ramp, billboard, entrance, lifeguard ...
+  plus whatever prop types the layout uses (passed through by name).
+- New lists: `sites[]` (`{ use, kind, sub, tier, rings }`: school grounds, fuel forecourts, hospital campuses, marinas ...),
+  `rails[]` (`{ kind: people_mover | metro | rail, pts, y, bridge }`), `barriers[]` (`{ kind: fence | wall | hedge | ..., pts, height, material }`),
+  `underwater[]` (reef / seagrass polygons from the layout), `setpieces[]`, `roads[].ref/surface/lit/toll/synthetic/terrainY`,
+  `nodes[].exit`, `pois[]` + `osm, sub, tier, buildingId, address, level`.
+- Storefronts (`data.storefronts`): + `osm`, `sub`, `tier`, `addr`, `driveThrough`, `outdoorSeating`. `poi: true` means the kind is the real
+  OSM type at that address (or the layout's). Every storefront has a kind, a facing and a street (audited).
+
+**Transit (`data.transit`)**
+- `stops[]` `{ id, x, z, name ('NW 7th Ave & NW 20th St', derived from the streets), kind: bus | trolley, edge, s, side, shelter, bench, routes }`
+- `routes[]` `{ ref, kind, name ('Route 77'), stops: [stop id], edges: [[edgeId, dir]] (a continuous drivable path through every stop), loop, length }`
+- `lines[]` `{ kind: people_mover | metro | rail, name ('Omni Loop', 'Orange Line', 'Commuter Rail'), pts, y (track height), stations, loop }`,
+  `stations[]` `{ name, kind, x, z, y }`. Operator and company names are dropped or replaced.
 
 ## Rebuild
 
 ```
-python3 -m venv --system-site-packages tools/osm/.venv && tools/osm/.venv/bin/pip install shapely   # once
-tools/osm/.venv/bin/python tools/osm/fetch.py      # Overpass -> tools/osm/cache/*.json (cached; --force to refetch)
-tools/osm/.venv/bin/python tools/osm/land.py       # coastline -> land polygons (cache/work/land.pkl)
-tools/osm/.venv/bin/python tools/osm/build.py      # everything -> public/assets/miami/*, docs/showcase/map/*
-tools/osm/.venv/bin/python tools/osm/output.py     # re-emit files only, from cache/work/v.pkl
+tools/osm/.venv/bin/python tools/osm/fetch.py            # Overpass -> tools/osm/cache/v2/*.json (cached; --force to refetch)
+tools/osm/.venv/bin/python tools/osm/build.py            # OSM + tools/world/out/features.json -> public/assets/miami/<build>/, publishes world.json
+tools/osm/.venv/bin/python tools/osm/output.py           # re-emit from cache/v2/work/v.pkl
+tools/osm/.venv/bin/python tools/osm/preview_world.py    # docs/v2/shots/world-osm/world_preview.png  (--crop x0,z0,x1,z1 --mpp 1)
+node tools/osm/audit.mjs --out docs/v2/reports/world-osm-audit.json   # connectivity, geometry, storefronts, coverage, heights, transit, speed
+tools/osm/.venv/bin/python tools/osm/edge_summary.py     # tools/osm/cache/edge_summary.json for the world layout
 ```
+Environment: `WORLD_FEATURES=<file>|none` (other features file / real Miami only), `MIAMI_OUT=<dir>` (build somewhere else),
+`MIAMI_WORK=<dir>`, `MIAMI_NO_PUBLISH=1` (build the folder but leave `world.json` alone; publish later by copying
+`<build>/manifest.json` over `world.json`).
 
-The bounding box and world frame are set in `config.py`:
-- bbox is lat 25.755..25.803, lon -80.202..-80.120, which is about 8.2 x 5.3 km.
-- The origin and projection follow CONTRACT4.
+Modules: `config.py` (rectangles), `fetch.py`, `land.py` (coast), `roads.py` (graph, stitching, controls, restrictions, rail),
+`poi.py` (OSM tags → types, private brand → tier lookup), `districts.py`, `ingest.py` (features.json), `transit.py`, `build.py`,
+`output.py` (files, regions, publish), `audit.mjs`, `preview_world.py`, `edge_summary.py`.
+
+# V1 notes (still valid unless superseded above)
 
 ## Runtime API: `src/world/miami/data.js`
 

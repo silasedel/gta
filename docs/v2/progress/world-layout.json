@@ -1,30 +1,83 @@
 {
-  "track": "world-layout",
-  "title": "Condensed Florida landmass and Keys",
-  "section": "World",
-  "agent": "done",
-  "items": [
-    { "name": "Generator toolchain (tools/world/build.py, deterministic, one command)", "state": "verified", "evidence": "tools/world/out/summary.json" },
-    { "name": "Own landmass: organic coast, bays, inlet, sandbars, mangrove fringes, islands (117 land polygons)", "state": "verified", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Seamless coast blend into the real Miami edge", "state": "built", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Every real edge road joined (135 of 136), one connected road graph", "state": "verified", "evidence": "tools/world/out/audit.json" },
-    { "name": "Highway network: I-95 north, SR 836 parkway loop with ramps, US-1, US-41, US-27", "state": "built", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Solana International Airport (3 runways, taxiways, terminal, concourses, cargo, tower, approach paths)", "state": "built", "evidence": "public/assets/world/layout.json" },
-    { "name": "Central wetlands and Everglades (sawgrass, Sawfish Bay, airboat trails, gator holes, ranger station, camps)", "state": "built", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "South Shore and North Shore suburbs, West End, Playa Serena (street grids, lots, typed shops)", "state": "built", "evidence": "tools/world/out/summary.json" },
-    { "name": "Key Paloma as a 2 km NNE-SSW key + setpieces.nico_house (255, 4890) + setpieces.keys_sign (702, 4678)", "state": "built", "evidence": "public/assets/world/layout.json" },
-    { "name": "Middle Keys and overseas bridges with navigation humps", "state": "built", "evidence": "tools/world/out/audit.json" },
-    { "name": "Tern Key town and Tern Key Airfield (crossed runways)", "state": "built", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Lake Amaro, Citrus Flats, Port Cassia, Faro Key, Shellmound", "state": "built", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Sawpalm Ridge State Park height field (peak 92 m), Ridge Road under 8 % grade, trails, overlooks", "state": "verified", "evidence": "tools/world/out/audit.json" },
-    { "name": "Underwater features (reef line, reefs, caves, wrecks, seagrass, channels)", "state": "built", "evidence": "public/assets/world/layout.json" },
-    { "name": "Place names, street names, route numbers (banned-list checked)", "state": "verified", "evidence": "tools/world/out/audit.json" },
-    { "name": "Outputs: features.json, heights.bin, layout.json", "state": "verified", "evidence": "tools/world/out/features.json" },
-    { "name": "Programmatic audits: zero hard failures", "state": "verified", "evidence": "tools/world/out/audit.json" },
-    { "name": "Rendered map preview PNG (4133 x 4766), printed-map style, pass 3", "state": "verified", "evidence": "docs/v2/shots/world-layout/map.png" },
-    { "name": "Civic sites that did not fit (schools, some churches and fire stations in tight grids)", "state": "todo", "evidence": "tools/world/out/summary.json" },
-    { "name": "Motorway joins follow real geometry and heights; interchanges beyond three diamonds and one tee", "state": "todo", "evidence": "" },
-    { "name": "Canal-finger subdivisions, marina basins, richer airport landside, per-region polish", "state": "todo", "evidence": "" },
-    { "name": "Report docs/v2/reports/world-layout.md", "state": "verified", "evidence": "docs/v2/reports/world-layout.md" }
-  ]
+ "track": "world-layout",
+ "title": "Condensed Florida landmass and Keys",
+ "section": "World",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Machine trace of the official map image (coast, islets, lakes, rivers, swamp water, beaches, forest, shallows)",
+   "state": "verified",
+   "evidence": "docs/v2/compare/world-layout_vs_ref40.png"
+  },
+  {
+   "name": "Uniform georeference (20 m per pixel) recorded in FORMAT.md, features.json and layout.json",
+   "state": "verified",
+   "evidence": "tools/world/FORMAT.md"
+  },
+  {
+   "name": "Heights: smooth, slope-limited, road-graded; same checks as the merge audit pass locally",
+   "state": "verified",
+   "evidence": "tools/world/out/audit.json"
+  },
+  {
+   "name": "Seam: tapering bay water, street grids growing out of the rectangle, no synthetic road inside",
+   "state": "built",
+   "evidence": "docs/v2/compare/world-layout_crop_city_bay.png"
+  },
+  {
+   "name": "City and bay matching ref_40 (blocked by scale: needs 30 m per pixel decision)",
+   "state": "todo",
+   "evidence": "docs/v2/reports/world-layout.md"
+  },
+  {
+   "name": "Main roads joined to all 134 real edge roads on land, one graph; divided ring motorway with ramps",
+   "state": "verified",
+   "evidence": "tools/world/out/audit.json"
+  },
+  {
+   "name": "Towns inside traced urban outlines: street grids, 11,029 buildings, typed POIs; 39 patches relinked",
+   "state": "built",
+   "evidence": "tools/world/out/summary.json"
+  },
+  {
+   "name": "Solana International Airport: rotated, three parallel runways, terminal north-east",
+   "state": "built",
+   "evidence": "docs/v2/compare/world-layout_crop_airport.png"
+  },
+  {
+   "name": "Tern Key Airfield from the image's pixels, filling the island",
+   "state": "built",
+   "evidence": "docs/v2/compare/world-layout_crop_tern_key.png"
+  },
+  {
+   "name": "Set pieces on the Keys strip with clear lots (unchanged this pass)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-layout.md"
+  },
+  {
+   "name": "Swamp channels, airboat loops, farmland east of the lake",
+   "state": "built",
+   "evidence": "public/assets/world/layout.json"
+  },
+  {
+   "name": "Programmatic audits: zero hard failures",
+   "state": "verified",
+   "evidence": "tools/world/out/audit.json"
+  },
+  {
+   "name": "Map preview in the image's palette, side-by-side and three crops",
+   "state": "built",
+   "evidence": "docs/v2/shots/world-layout/map.png"
+  },
+  {
+   "name": "Causeways to every traced island, Tamarind Key streets, cross routes as divided roads",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Report docs/v2/reports/world-layout.md",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-layout.md"
+  }
+ ]
 }

@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Nico geometry check</title><style>body{margin:0;overflow:hidden;background:#555}</style></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x6a7078);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff0e0, 2.2); sun.position.set(2, 3, 3); scene.add(sun);
+const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.02, 50);
+const g = await new GLTFLoader().loadAsync('/assets/characters/nico/nico.glb');
+scene.add(g.scene);
+const meshes = []; g.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+window.info = meshes.map((m) => [m.name, m.material.name, m.geometry.attributes.position.count, Object.keys(m.morphTargetDictionary || {}).length, m.isSkinnedMesh, m.parent.name]);
+const mats = { skin_head: 0xc79a80, skin_body: 0xc09078, skin_far: 0xc09078, eye: 0xf0f0f0, lashes: 0x111111, brows: 0x221a14, teeth: 0xe8e4d8, tongue: 0xb05050 };
+for (const m of meshes) { m.material = new THREE.MeshStandardMaterial({ color: mats[m.material.name] ?? 0xff00ff, roughness: 0.6, side: /lash|brow/.test(m.material.name) ? THREE.DoubleSide : THREE.FrontSide }); m.frustumCulled = false; }
+window.setLOD = (n) => { for (const m of meshes) { const l = /LOD(\d)/.exec(m.name) || /LOD(\d)/.exec(m.parent.name); if (l) m.visible = +l[1] === n; else m.visible = n < 2; } };
+window.morph = (name, v) => { for (const m of meshes) { const i = m.morphTargetDictionary?.[name]; if (i !== undefined) m.morphTargetInfluences[i] = v; } };
+window.bone = (name) => g.scene.getObjectByName(name);
+window.cam = (px, py, pz, tx, ty, tz) => { camera.position.set(px, py, pz); camera.lookAt(tx, ty, tz); };
+window.THREE = THREE; window.scene = scene;
+setLOD(0); cam(0, 1.68, 0.9, 0, 1.66, 0);
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+window.ready = true;
+</script></body></html>

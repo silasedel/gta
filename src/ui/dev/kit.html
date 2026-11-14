@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>UI kit (dev)</title>
+<style>html,body{margin:0;min-height:100%;background:linear-gradient(160deg,#27405c,#c9785f 55%,#1c2a3d)} .ps-ui{overflow:auto !important} .wrap{pointer-events:auto;padding:28px;display:grid;gap:22px;grid-template-columns:repeat(12,1fr)} .col6{grid-column:span 6} .col12{grid-column:span 12} .col4{grid-column:span 4} .col8{grid-column:span 8}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:10px} .icons div{display:flex;flex-direction:column;align-items:center;gap:5px;font:500 10px Inter,sans-serif;color:#9aa6ba} .icons .ps-ico{width:28px;height:28px;color:#f3ede2}
+.sw{display:flex;gap:8px;flex-wrap:wrap} .sw i{width:74px;height:54px;border-radius:6px;display:flex;align-items:flex-end;padding:4px;font:600 9px Inter;color:#000;font-style:normal}</style></head>
+<body><canvas id="game" style="display:none"></canvas>
+<script type="module">
+import { createMockGame, runLoop } from './mockGame.js';
+import { createUIContext } from '../core/context.js';
+import { el } from '../core/dom.js';
+import { ICONS, icon, WEAPON_ICONS, weaponIcon } from '../core/icons.js';
+import { logoSVG } from '../core/logo.js';
+const P = new URLSearchParams(location.search);
+const game = await createMockGame({ systems: true });
+const ctx = createUIContext(game);
+if (P.get('cb')) ctx.settings.set('colorblind', P.get('cb'));
+const host = el('div', 'wrap'); ctx.layer('screen').appendChild(host);
+const sec = P.get('s') || 'all';
+const panel = (cls, title, html) => { const p = el('div', 'ps-panel ps-panel-pad ' + cls, `<div class="ps-cap" style="margin-bottom:14px">${title}</div>${html}`); host.appendChild(p); return p; };
+if (sec === 'all' || sec === 'logo') {
+  panel('col8', 'Wordmark: full lockup', `<div style="width:620px;color:var(--ps-shell)">${logoSVG({ variant: 'full' })}</div>`);
+  panel('col4', 'Emblem and one-line', `<div style="display:flex;gap:24px;align-items:center"><div style="width:120px">${logoSVG({ variant: 'emblem' })}</div><div style="width:64px">${logoSVG({ variant: 'emblem' })}</div><div style="width:28px">${logoSVG({ variant: 'emblem' })}</div></div><div style="width:330px;margin-top:22px">${logoSVG({ variant: 'line' })}</div><div style="width:170px;margin-top:16px">${logoSVG({ variant: 'line' })}</div>`);
+}
+if (sec === 'all' || sec === 'kit') {
+  panel('col6', 'Type', `<div class="ps-h1">Key Paloma</div><div class="ps-h2">Causeway Money</div><div class="ps-h3">Play with friends</div><div class="ps-h4">Graphics preset</div><p class="ps-body" style="margin-top:8px">Body text. Follow the armored truck along the MacArthur and note every stop.</p><p class="ps-small">Small text for descriptions and hints. $12,480.55 · 6:42 PM · 0.4 mi</p><div class="ps-cap" style="margin-top:8px">Caption · 25°46′N</div>`);
+  const p = panel('col6', 'Controls', `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><button class="ps-btn primary" data-nav>Continue</button><button class="ps-btn" data-nav>Wardrobe</button><button class="ps-btn ghost" data-nav>Back</button><button class="ps-btn danger is-focus" data-nav>Delete save</button><button class="ps-btn" disabled>Disabled</button></div>
+    <div class="ps-tabs" style="margin-bottom:10px"><button class="ps-tab on">Map</button><button class="ps-tab">Missions</button><button class="ps-tab">Stats</button><button class="ps-tab">Settings</button></div>
+    <div class="ps-row" data-nav="range"><div class="ps-row-label">Field of view<small>How wide the camera sees.</small></div><div class="ps-range" style="--pct:40%"><input type="range" min="50" max="100" value="70"><output>70°</output></div></div>
+    <div class="ps-row is-focus" data-nav><div class="ps-row-label">Shadows</div><div class="ps-seg"><button>Off</button><button>Low</button><button class="on">High</button><button>Ultra</button></div></div>
+    <div class="ps-row" data-nav><div class="ps-row-label">Motion blur at speed</div><div class="ps-toggle on"></div></div>
+    <div class="ps-row" data-nav="select"><div class="ps-row-label">Units</div><div class="ps-select"><button>${icon('back')}</button><span>Miles, mph, °F</span><button>${icon('forward')}</button></div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center"><span class="ps-chip">Free roam</span><span class="ps-chip coral">New</span><span class="ps-chip lagoon">Online</span><span class="ps-chip mango">$1,500</span><span class="ps-chip line">Locked</span><span class="ps-dot on"></span><span class="ps-dot warn"></span><span class="ps-dot off"></span><input class="ps-input" placeholder="Invite code" style="width:160px"></div>
+    <div class="ps-hints" style="margin-top:16px"><span>${ctx.bindings.codeGlyph('Enter')} Select</span><span>${ctx.bindings.codeGlyph('Escape')} Back</span><span>${ctx.bindings.codeGlyph('KeyQ')}${ctx.bindings.codeGlyph('KeyE')} Tabs</span><span>${ctx.bindings.padGlyph('A')} Select</span><span>${ctx.bindings.padGlyph('B')} Back</span><span>${ctx.bindings.padGlyph('LB')}${ctx.bindings.padGlyph('RB')} Tabs</span><span>${ctx.bindings.codeGlyph('Mouse0')}${ctx.bindings.codeGlyph('Mouse2')} Mouse</span></div>`);
+  ctx.nav.push({ root: p });
+  panel('col12', 'Palette', `<div class="sw">${['ink-900', 'ink-800', 'ink-700', 'ink-600', 'ink-500', 'shell', 'shell-2', 'mute', 'faint', 'coral', 'coral-2', 'lagoon', 'lagoon-2', 'mango', 'flamingo', 'violet', 'danger', 'police', 'health', 'armor', 'stamina', 'money', 'bank', 'route', 'friend', 'mission'].map((n) => `<i style="background:var(--ps-${n});color:${/ink|faint/.test(n) ? '#fff' : '#000'}">${n}</i>`).join('')}</div>`);
+}
+if (sec === 'all' || sec === 'icons') {
+  panel('col12', 'Icon family (' + Object.keys(ICONS).length + ')', `<div class="icons">${Object.keys(ICONS).map((n) => `<div><span class="ps-ico">${icon(n)}</span>${n}</div>`).join('')}</div>`);
+  panel('col12', 'Weapon silhouettes', `<div class="icons">${Object.keys(WEAPON_ICONS).map((n) => `<div><span class="ps-ico" style="width:54px;height:54px">${weaponIcon(n)}</span>${n}</div>`).join('')}</div>`);
+}
+runLoop(game);
+window.ready = true;
+</script></body></html>

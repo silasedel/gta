@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NPC bodies</title><style>html,body{margin:0;overflow:hidden;background:#9db8c9}#lab{position:fixed;inset:0;pointer-events:none;font:10px ui-monospace,Menlo,monospace}.t{position:absolute;transform:translate(-50%,0);background:rgba(255,255,255,.8);padding:0 3px;white-space:nowrap}</style></head><body><div id="lab"></div>
+<script type="module">
+// preview_bodies.html?from=0&n=26&zone=business : every library body, forced by id (checks library.js unlock)
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { preloadCharacters, createCharacter } from '../player/characterModel.js';
+import { unlockAllBodies, loadedBodies, allBodyIds } from './library.js';
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9db8c9);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff0dd, 2.2); sun.position.set(3, 8, 6); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x9a968c })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const camera = new THREE.PerspectiveCamera(28, innerWidth / innerHeight, 0.1, 200);
+const game = { THREE, scene, camera, renderer };
+await preloadCharacters(game);
+const un = await unlockAllBodies();
+let bodies = loadedBodies().sort((a, b) => (a.zone + a.id < b.zone + b.id ? -1 : 1));
+if (q.get('zone')) bodies = bodies.filter((b) => b.zone === q.get('zone'));
+const from = +(q.get('from') || 0), n = +(q.get('n') || 26); bodies = bodies.slice(from, from + n);
+const ids = allBodyIds(); const chars = []; const lab = document.getElementById('lab'); const tags = [];
+const cols = Math.ceil(bodies.length / 2);
+bodies.forEach((e, i) => {
+  const ex = new Set(ids.filter((x) => x !== e.id));
+  const c = createCharacter(game, { variant: 'ped', seed: 77 + i, outfit: e.zone, zone: e.zone, gender: e.gender, exclude: ex });
+  const x = ((i % cols) - (cols - 1) / 2) * 0.85, z = i < cols ? 0 : 2.6;
+  c.root.position.set(x, 0, z); scene.add(c.root); chars.push(c);
+  const el = document.createElement('div'); el.className = 't'; el.textContent = `${e.id.replace(/^h/, '')} ${c.human?.id === e.id ? '' : 'MISMATCH'} ${e.years}y ${e.race} ${(e.clothes || []).join('+').replace(/male_|female_|suit0?\d?|shoes/g, '')}|${(e.shells || []).join('+')}`; lab.appendChild(el); tags.push([el, new THREE.Vector3(x, -0.02 - (i % 2) * 0.09, z)]);
+});
+camera.position.set(0, 2.4, 3 + cols * 0.95); camera.lookAt(0, 0.85, 1.2);
+let f = 0;
+function loop() { for (const c of chars) c.update(1 / 60, { speed: 0, grounded: true, idleStyle: null }); renderer.render(scene, camera); for (const [el, p] of tags) { const v = p.clone().project(camera); el.style.left = ((v.x * 0.5 + 0.5) * innerWidth) + 'px'; el.style.top = ((-v.y * 0.5 + 0.5) * innerHeight) + 'px'; }
+  if (++f === 20) { window.stats = { unlock: un, shown: bodies.length, mismatches: chars.filter((c, i) => c.human?.id !== bodies[i].id).length }; window.ready = true; } requestAnimationFrame(loop); }
+loop();
+</script></body></html>

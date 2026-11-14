@@ -1,0 +1,443 @@
+{
+ "when": "2026-11-14T01:17:12.272Z",
+ "boot": {
+  "people": true,
+  "failed": [],
+  "peds": 17,
+  "lines": 471
+ },
+ "rush": {
+  "mem": 1429,
+  "peds": 24,
+  "crowd": 144,
+  "audit": {
+   "spawned": 41,
+   "crowdSpawned": 361,
+   "total": 402,
+   "distinct": 402,
+   "dup": 0,
+   "dupInView": 0,
+   "lookFailed": 0,
+   "applyFailed": 0,
+   "dupList": [],
+   "look": {
+    "looks": 402,
+    "rerolls": 0,
+    "dupSignatures": 0,
+    "bodyClashAvoided": 0,
+    "distinct": 402
+   },
+   "bodies": {
+    "unlocked": true,
+    "loaded": 120,
+    "total": 129,
+    "ok": true,
+    "added": 89,
+    "ms": 7421
+   }
+  },
+  "district": "Downtown"
+ },
+ "frameRush": {
+  "frames": 231,
+  "avgMs": 17.33,
+  "p95Ms": 16.8,
+  "fps": 57.7,
+  "peds": 24,
+  "crowd": 95,
+  "calls": 603,
+  "tris": 1053838
+ },
+ "roster": [
+  {
+   "name": "Iraida Galindo",
+   "age": 37,
+   "job": "construction laborer",
+   "home": "downtown",
+   "voice": "worker",
+   "traits": {
+    "courage": 0.82,
+    "honesty": 0.15,
+    "talk": 0.39,
+    "kindness": 0.74,
+    "temper": 0.58,
+    "curiosity": 0.2,
+    "vanity": 0.14,
+    "energy": 0.51,
+    "sociability": 0.85,
+    "patience": 0.3,
+    "nerve": 0.01
+   }
+  },
+  {
+   "name": "Donna Birch",
+   "age": 27,
+   "job": "server",
+   "home": "downtown",
+   "voice": "tough",
+   "traits": {
+    "courage": 0.92,
+    "honesty": 0.67,
+    "talk": 0.01,
+    "kindness": 0.34,
+    "temper": 0.6,
+    "curiosity": 0.1,
+    "vanity": 0.05,
+    "energy": 0.53,
+    "sociability": 0.83,
+    "patience": 0.89,
+    "nerve": 0.58
+   }
+  },
+  {
+   "name": "Holly Birch",
+   "age": 49,
+   "job": "delivery driver",
+   "home": "downtown",
+   "voice": "anxious",
+   "traits": {
+    "courage": 0.09,
+    "honesty": 0.35,
+    "talk": 0.85,
+    "kindness": 0.98,
+    "temper": 0.96,
+    "curiosity": 0.24,
+    "vanity": 0.08,
+    "energy": 0.47,
+    "sociability": 0.93,
+    "patience": 0.29,
+    "nerve": 0.99
+   }
+  },
+  {
+   "name": "Lenny Quinn",
+   "age": 46,
+   "job": "attorney",
+   "home": "downtown",
+   "voice": "snob",
+   "traits": {
+    "courage": 0.36,
+    "honesty": 0.44,
+    "talk": 0.64,
+    "kindness": 0.18,
+    "temper": 0.08,
+    "curiosity": 0.99,
+    "vanity": 0.79,
+    "energy": 0.82,
+    "sociability": 0.89,
+    "patience": 0.55,
+    "nerve": 0.72
+   }
+  },
+  {
+   "name": "Suki Nguyen",
+   "age": 27,
+   "job": "IT technician",
+   "home": "downtown",
+   "voice": "tough",
+   "traits": {
+    "courage": 0.91,
+    "honesty": 0.79,
+    "talk": 0.28,
+    "kindness": 0.13,
+    "temper": 0.54,
+    "curiosity": 0.26,
+    "vanity": 0.28,
+    "energy": 0.66,
+    "sociability": 0.79,
+    "patience": 0.9,
+    "nerve": 0.78
+   }
+  },
+  {
+   "name": "Nora Miller",
+   "age": 46,
+   "job": "yacht broker",
+   "home": "downtown",
+   "voice": "gruff",
+   "traits": {
+    "courage": 0.41,
+    "honesty": 0,
+    "talk": 0.4,
+    "kindness": 0.16,
+    "temper": 0.71,
+    "curiosity": 0.38,
+    "vanity": 0.82,
+    "energy": 0.41,
+    "sociability": 0.91,
+    "patience": 0.85,
+    "nerve": 0.47
+   }
+  }
+ ],
+ "reactSpawn": {
+  "spawned": 30,
+  "dressed": 24
+ },
+ "reactStates": {
+  "byCourageBand": {
+   "mid": {
+    "flee": 3,
+    "call": 1,
+    "film": 1
+   },
+   "high": {
+    "call": 2,
+    "fight": 1,
+    "flee": 4,
+    "film": 2,
+    "cower": 3
+   },
+   "low": {
+    "call": 1,
+    "flee": 4,
+    "cower": 1,
+    "freeze": 1
+   }
+  },
+  "stats": {
+   "shot": {
+    "mid": {
+     "flee": 3,
+     "call911": 1,
+     "film": 1
+    },
+    "high": {
+     "call911": 2,
+     "fight": 1,
+     "flee": 4,
+     "film": 2,
+     "cower": 3
+    },
+    "low": {
+     "call911": 1,
+     "flee": 4,
+     "cower": 1,
+     "freeze": 1
+    }
+   }
+  }
+ },
+ "witness": {
+  "reports": 4,
+  "sample": [
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2505,
+     "z": 555
+    },
+    "description": "a man",
+    "reliability": 0.72,
+    "witness": "Jonas Weber",
+    "witnessId": "p4zs15"
+   },
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2505,
+     "z": 555
+    },
+    "description": "a man",
+    "reliability": 0.84,
+    "witness": "Rhonda Drummond",
+    "witnessId": "p4i4k1"
+   },
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2505,
+     "z": 555
+    },
+    "description": "a man",
+    "reliability": 0.85,
+    "witness": "Dolores Anderson",
+    "witnessId": "p4zlx6"
+   }
+  ],
+  "lines": [
+   {
+    "t": 26,
+    "who": "Jonas Weber",
+    "voice": "warm",
+    "situation": "call911",
+    "text": "I'm on the corner, I can see him right now."
+   },
+   {
+    "t": 26,
+    "who": "Leticia Bermudez",
+    "voice": "warm",
+    "situation": "gunfire",
+    "text": "Get down, everybody down!"
+   },
+   {
+    "t": 26,
+    "who": "Rhonda Drummond",
+    "voice": "tough",
+    "situation": "call911",
+    "text": "There's a guy with a gun on the street, please hurry."
+   },
+   {
+    "t": 26,
+    "who": "Marcela Estrada Pardo",
+    "voice": "chill",
+    "situation": "call911",
+    "text": "Yes, I'm safe. I'm hiding behind a car."
+   },
+   {
+    "t": 26,
+    "who": "Ana Maria Echevarria",
+    "voice": "snob",
+    "situation": "gunfire",
+    "text": "Call 911, now!"
+   },
+   {
+    "t": 26,
+    "who": "Rocio Medina",
+    "voice": "anxious",
+    "situation": "gunfire",
+    "text": "I don't want to die!"
+   },
+   {
+    "t": 27,
+    "who": "Yamile Noriega",
+    "voice": "chill",
+    "situation": "gunfire",
+    "text": "Nah, I'm out!"
+   },
+   {
+    "t": 32,
+    "who": "Daisy Perez Vazquez",
+    "voice": "hustler",
+    "situation": "greet",
+    "text": "Hola guapo, you lost?"
+   }
+  ]
+ },
+ "schedule": [
+  {
+   "hour": 4,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 4,
+    "sampled": 200,
+    "out": 11,
+    "density": 0.06,
+    "acts": "exercise:11",
+    "jobs": "itsupport:2 tourist:2 server:2 guard:1 valet:1 analyst:1",
+    "roles": "resident:5 worker:4 visitor:2"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 16,
+    "density": 0.05
+   }
+  },
+  {
+   "hour": 8.5,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 8.5,
+    "sampled": 200,
+    "out": 110,
+    "density": 0.55,
+    "acts": "commute:45 work_street:23 errands:21 exercise:10 stroll:10 socialize:1",
+    "jobs": "attorney:14 guard:11 accountant:11 tourist:10 broker:10 itsupport:9",
+    "roles": "worker:76 resident:19 visitor:15"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 144,
+    "density": 0.54
+   }
+  },
+  {
+   "hour": 13,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 13,
+    "sampled": 200,
+    "out": 122,
+    "density": 0.61,
+    "acts": "lunch:95 work_street:25 commute:2",
+    "jobs": "tourist:16 guard:11 attorney:8 analyst:7 teller:6 paralegal:6",
+    "roles": "worker:74 visitor:27 resident:21"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 39,
+    "density": 0.13
+   }
+  },
+  {
+   "hour": 1,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 1,
+    "sampled": 200,
+    "out": 30,
+    "density": 0.15,
+    "acts": "nightlife:24 home:6",
+    "jobs": "tourist:11 analyst:4 broker:2 guard:2 accountant:1 realtor:1",
+    "roles": "visitor:14 worker:9 resident:7"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 47,
+    "density": 0.17
+   }
+  }
+ ],
+ "beach": {
+  "mem": 1275,
+  "uptime": 94102,
+  "peds": 32,
+  "crowd": 184,
+  "district": "South Beach",
+  "zone": "beach"
+ },
+ "frameBeach": {
+  "frames": 241,
+  "avgMs": 16.61,
+  "p95Ms": 16.7,
+  "fps": 60.2,
+  "peds": 32,
+  "crowd": 184,
+  "calls": 580,
+  "tris": 1262834
+ },
+ "audit": {
+  "spawned": 28,
+  "crowdSpawned": 1968,
+  "total": 1996,
+  "distinct": 1996,
+  "dup": 0,
+  "dupInView": 0,
+  "lookFailed": 0,
+  "applyFailed": 0,
+  "dupList": [],
+  "look": {
+   "looks": 1996,
+   "rerolls": 0,
+   "dupSignatures": 0,
+   "bodyClashAvoided": 0,
+   "distinct": 1996
+  },
+  "bodies": {
+   "unlocked": true,
+   "loaded": 120,
+   "total": 129,
+   "ok": true,
+   "added": 89,
+   "ms": 4830
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+  "ERR [vehicles] tick Kestrel Terra R #35 TypeError: Cannot read properties of undefined (reading 'current_vehicle_speed')\n    at Ng.currentVehicleSpeed (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapier3d-compat.js?v=242c5a29:4207:21)\n    at physicsTick (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794618791703:603:22)\n    at vehiclesFixed (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794618791703:1359:49)\n    at frame (http://127.0.0.1:5200/src/main.js:816:80)"
+ ]
+}

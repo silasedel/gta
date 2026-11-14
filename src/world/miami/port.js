@@ -97,7 +97,7 @@ export function buildPort({ data, M, F, root, world, RAPIER }) {
     if (cranes.length >= 14) break scan;
   }
   if (cranes.length) {
-    const cg = craneGeometry(), mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.4 });
+    const cg = craneGeometry(), mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.4 }); if (M.propify) M.propify(mat, 'rustPaint');
     const im = new THREE.InstancedMesh(cg, mat, cranes.length), d = new THREE.Object3D();
     cranes.forEach((c, i) => { d.position.set(c.x, 0, c.z); d.rotation.set(0, c.ry, 0); d.updateMatrix(); im.setMatrixAt(i, d.matrix); });
     im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); group.add(im);

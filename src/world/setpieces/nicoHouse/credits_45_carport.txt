@@ -1,0 +1,24 @@
+Part 45_carport: downloaded assets (all Poly Haven, CC0 1.0, https://polyhaven.com/license)
+Models (gltf 1k, textures downscaled to 512 px, hand tools / shell / vise to 256 px), stored in public/assets/setpieces/nicoHouse/models/<id>/:
+adjustable_wrench            https://polyhaven.com/a/adjustable_wrench            CC0
+bench_vice_01                https://polyhaven.com/a/bench_vice_01                CC0
+boombox                      https://polyhaven.com/a/boombox                      CC0
+cross_pein_hammer            https://polyhaven.com/a/cross_pein_hammer            CC0
+garden_hose_wall_mounted_01  https://polyhaven.com/a/garden_hose_wall_mounted_01  CC0
+handsaw_wood                 https://polyhaven.com/a/handsaw_wood                 CC0
+lambis_shell                 https://polyhaven.com/a/lambis_shell                 CC0
+life_jacket                  https://polyhaven.com/a/life_jacket                  CC0
+lifebuoy                     https://polyhaven.com/a/lifebuoy                     CC0
+metal_jerrycan               https://polyhaven.com/a/metal_jerrycan               CC0
+metal_toolbox                https://polyhaven.com/a/metal_toolbox                CC0
+metal_trash_can              https://polyhaven.com/a/metal_trash_can              CC0
+old_tyre                     https://polyhaven.com/a/old_tyre                     CC0
+plastic_crate_01             https://polyhaven.com/a/plastic_crate_01             CC0
+plastic_jerrycan             https://polyhaven.com/a/plastic_jerrycan             CC0
+plastic_monobloc_chair_01    https://polyhaven.com/a/plastic_monobloc_chair_01    CC0
+pliers                       https://polyhaven.com/a/pliers                       CC0
+rusted_spade_01              https://polyhaven.com/a/rusted_spade_01              CC0
+screwdrivers_02              https://polyhaven.com/a/screwdrivers_02              CC0
+watering_can_metal_01        https://polyhaven.com/a/watering_can_metal_01        CC0
+wooden_crate_02              https://polyhaven.com/a/wooden_crate_02              CC0
+Files were fetched through https://api.polyhaven.com/files/<id> (gltf, 1k).

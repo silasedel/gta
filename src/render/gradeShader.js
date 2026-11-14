@@ -10,10 +10,11 @@ export const GradeShader = {
     uAspect: { value: 1 },
     uSpeed: { value: 0 },
     uCA: { value: 0.0 }, // no constant edge fringe: aberration only appears with speed (uSpeed)
-    uGrain: { value: 0.035 },
-    uVignette: { value: 0.42 },
+    uGrain: { value: 0.012 },
+    uSharp: { value: 0.45 },
+    uVignette: { value: 0.2 },
     uSat: { value: 1.14 },
-    uContrast: { value: 0.32 },
+    uContrast: { value: 0.33 },
     uLift: { value: [0.0, 0.004, 0.012] },
     uGamma: { value: [1.0, 1.0, 1.0] },
     uGain: { value: [1.03, 1.0, 0.96] },
@@ -36,6 +37,7 @@ export const GradeShader = {
     uniform float uSpeed;
     uniform float uCA;
     uniform float uGrain;
+    uniform float uSharp;
     uniform float uVignette;
     uniform float uSat;
     uniform float uContrast;
@@ -83,6 +85,12 @@ export const GradeShader = {
         col /= wsum;
       } else {
         col = sampleCA( uv, dc, ca );
+        if ( uSharp > 0.001 ) {
+          // mild unsharp mask (restores the crispness SMAA and resolution scaling take away); clamped so edges never ring
+          vec2 px = 1.0 / uRes;
+          vec3 nb = ( texture2D( tDiffuse, uv + vec2( px.x, 0.0 ) ).rgb + texture2D( tDiffuse, uv - vec2( px.x, 0.0 ) ).rgb + texture2D( tDiffuse, uv + vec2( 0.0, px.y ) ).rgb + texture2D( tDiffuse, uv - vec2( 0.0, px.y ) ).rgb ) * 0.25;
+          col += clamp( col - nb, -0.07, 0.07 ) * uSharp;
+        }
       }
 
       // --- sun glare & lens ghosts ---

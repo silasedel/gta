@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Wildlife: species sheet</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#1b1d20}canvas{display:block}
+.lab{position:fixed;color:#fff;font:600 12px/1.25 system-ui,sans-serif;text-shadow:0 1px 3px #000;padding:5px 8px;pointer-events:none}
+.lab small{font-weight:400;opacity:.8;display:block}</style></head>
+<body><script type="module">
+// Contact sheet and turntables.
+//   ?ids=green_iguana,brown_pelican | ?kind=bird | ?all      which species (default: all)
+//   &state=walk &speed=0.5      animation state for every cell (default: the species' first state)
+//   &view=sheet (default) | quad (one species from four angles: 3/4, side, front, top) | states (one species, every state)
+//   &az=35 &el=14 &zoom=1 &spin=0|1 &cols=5 &t=2.5 (seconds simulated before the page reports ready)
+//   &v={"morph":"orange"}       variant overrides (JSON) &seed=3
+import * as THREE from 'three';
+import { createStage } from './kit/stage.js';
+import { makeCreature, T } from './kit/index.js';
+import { loadSpecies } from './registry.js';
+const q = new URLSearchParams(location.search), num = (k, d) => (q.has(k) ? Number(q.get(k)) : d);
+const stage = await createStage({ mode: 'studio', hour: num('hour', 10.5) });
+const reg = await loadSpecies();
+let defs = [...reg.defs.values()].filter((d) => d.build && d.paint).sort((a, b) => (a.kind + a.id).localeCompare(b.kind + b.id));
+if (q.get('ids')) { const want = q.get('ids').split(','); defs = want.map((id) => reg.defs.get(id)).filter(Boolean); }
+else if (q.get('kind')) defs = defs.filter((d) => d.kind === q.get('kind'));
+const view = q.get('view') || 'sheet', rand = T.rng(num('seed', 7)), vOver = q.get('v') ? JSON.parse(q.get('v')) : null;
+const cells = [], stats = { species: defs.length, failed: reg.failed, build: {}, tris: {} };
+function addCell(def, state, az, el, label) {
+  const t0 = performance.now(); let c;
+  try { c = makeCreature(THREE, def, { ...(def.variant ? def.variant(rand) : {}), ...(vOver || {}) }); } catch (e) { console.error('build failed: ' + def.id, e); stats.failed.push(def.id + ': ' + e.message); return; }
+  stats.build[def.id] = Math.round(performance.now() - t0);
+  let tris = 0; c.group.traverse((o) => { if (o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; }); stats.tris[def.id] = tris | 0;
+  c.group.visible = false; stage.scene.add(c.group);
+  const st = state || q.get('state') || c.states?.[0] || 'idle';
+  const box = new THREE.Box3().setFromObject(c.group), size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  // swimmers and fliers are authored around their body center: lift them off the floor
+  const lift = box.min.y < -0.01 ? -box.min.y + Math.max(size.x, size.y, size.z) * 0.25 : 0; c.group.position.y = lift; ctr.y += lift;
+  cells.push({ def, c, st, az, el, ctr, r: Math.max(size.x, size.y, size.z) * 0.5 + 0.02, label: label || def.name, sub: `${st} · ${(def.length ?? 0)} m · ${tris | 0} tris` });
+}
+if (view === 'quad' && defs[0]) for (const [az, el, l] of [[35, 14, '3/4'], [90, 4, 'side'], [0, 6, 'front'], [20, 80, 'top']]) addCell(defs[0], null, az, el, defs[0].name + ' · ' + l);
+else if (view === 'states' && defs[0]) { const probe = makeCreature(THREE, defs[0]); for (const s of probe.states || ['idle']) addCell(defs[0], s, num('az', 50), num('el', 12), defs[0].name + ' · ' + s); }
+else for (const d of defs) addCell(d, null, num('az', 40), num('el', 13));
+const n = cells.length, cols = num('cols', n === 4 ? 2 : Math.min(n, Math.ceil(Math.sqrt(n * 16 / 9)))), rows = Math.ceil(n / cols) || 1, W = innerWidth, H = innerHeight, cw = W / cols, ch = H / rows;
+cells.forEach((cl, i) => { const d = document.createElement('div'); d.className = 'lab'; d.style.left = (i % cols) * cw + 'px'; d.style.top = Math.floor(i / cols) * ch + 'px'; d.innerHTML = `${cl.label}<small>${cl.sub}</small>`; document.body.appendChild(d); });
+const cam = stage.camera, spin = num('spin', 0), zoom = num('zoom', 1), speed = q.has('speed') ? num('speed') : undefined;
+let time = 0;
+function frame(dt) {
+  time += dt; stage.world.time = time; stage.world.frame++;
+  const r = stage.renderer; r.setScissorTest(true); r.setClearColor(0x1b1d20);
+  cells.forEach((cl, i) => {
+    cl.c.update(dt, { state: cl.st, speed, t: time });
+    const cx = (i % cols) * cw, cy = H - (Math.floor(i / cols) + 1) * ch;
+    if (q.has('fx')) { cl.ctr.set(num('fx', 0), num('fy', 0.1) + cl.c.group.position.y, num('fz', 0)); cl.r = num('fr', 0.2); }
+    r.setViewport(cx, cy, cw, ch); r.setScissor(cx, cy, cw, ch);
+    cam.aspect = cw / ch; cam.updateProjectionMatrix();
+    const az = (cl.az + (spin ? time * 40 : 0)) * Math.PI / 180, el = cl.el * Math.PI / 180, dist = cl.r / Math.tan(cam.fov * Math.PI / 360) * 1.25 / zoom / Math.min(1, cam.aspect * 0.95);
+    cam.position.set(cl.ctr.x + Math.sin(az) * Math.cos(el) * dist, cl.ctr.y + Math.sin(el) * dist, cl.ctr.z + Math.cos(az) * Math.cos(el) * dist); cam.lookAt(cl.ctr);
+    cam.near = dist * 0.02; cam.far = 600; cam.updateProjectionMatrix();
+    stage.sun.shadow.camera.left = stage.sun.shadow.camera.bottom = -cl.r * 2.2; stage.sun.shadow.camera.right = stage.sun.shadow.camera.top = cl.r * 2.2; stage.sun.shadow.camera.updateProjectionMatrix();
+    cl.c.group.visible = true; r.render(stage.scene, cam); cl.c.group.visible = false;
+  });
+}
+const pre = num('t', 2.5); for (let s = 0; s < pre; s += 1 / 30) for (const cl of cells) cl.c.update(1 / 30, { state: cl.st, speed, t: s });
+time = pre; let last = performance.now(), frames = 0;
+(function loop() { const now = performance.now(), dt = q.get('freeze') ? 0 : Math.min(0.05, (now - last) / 1000); last = now; frame(dt); if (++frames === 3) { window.stats = stats; window.ready = true; } requestAnimationFrame(loop); })();
+</script></body></html>

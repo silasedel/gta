@@ -1,0 +1,26 @@
+{
+ "cars": 500,
+ "built": 500,
+ "buildErr": 0,
+ "dupFull": 0,
+ "dupVisual": 0,
+ "rerolls": 6,
+ "models": 50,
+ "zones": {
+  "residential": 215,
+  "nightlife": 13,
+  "port": 29,
+  "commercial": 96,
+  "downtown": 63,
+  "business": 34,
+  "wilderness": 1,
+  "causeway": 6,
+  "park": 21,
+  "rural": 12,
+  "water": 1,
+  "industrial": 7,
+  "beach": 2
+ },
+ "ms": 955,
+ "source": "game.vehicles.lookAudit(500) in the full game, Nov 13 18:16 MST"
+}

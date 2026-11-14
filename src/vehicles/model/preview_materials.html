@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><title>vehicle materials</title><style>html,body{margin:0;height:100%;background:#222;overflow:hidden}</style></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { carPaint, wornMaterial, sharedMats, glassMat, rimMat } from './materials.js';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9fb6c8);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff0dc, 2.5); sun.position.set(-6, 10, 8); scene.add(sun);
+const cam = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 3.2, 15); cam.lookAt(0, 0.9, 0);
+// a car-sized rounded slab per sample, in shell space (ground y=0), then moved by its parent group
+const geo = new RoundedBoxGeometry(1.8, 1.0, 4.4, 6, 0.25); geo.translate(0, 0.75, 0);
+const samples = [
+  { color: 0xb3121b, finish: 'gloss', wear: {} },
+  { color: 0x173b8f, finish: 'metallic', wear: { dirt: 0.35, seed: 3 } },
+  { color: 0xeeeeea, finish: 'gloss', wear: { dirt: 0.8, dirtColor: 'mud', seed: 9 } },
+  { color: 0x2f6d3a, finish: 'metallic', wear: { rust: 0.6, dirt: 0.2, seed: 21 } },
+  { color: 0x7a1f2b, finish: 'metallic', wear: { fade: 0.8, dirt: 0.15, seed: 40 } },
+  { color: 0xd8cdb0, finish: 'gloss', wear: { rust: 0.9, fade: 0.6, dirt: 0.5, seed: 55 }, twoTone: { color: 0x5a3a22, y: 0.62 }, patch: { min: [-2, 0, 0.3], max: [2, 1.3, 1.4], color: 0x6a6d70 } },
+  { color: 0x101214, finish: 'matte', wear: { dirt: 0.1 } },
+  { color: 0xf0b62a, finish: 'pearl', wear: {} },
+];
+samples.forEach((s, i) => {
+  const g = new THREE.Group(); const m = new THREE.Mesh(geo, carPaint({ ...s, wear: s.wear })); g.add(m);
+  g.position.set((i % 4 - 1.5) * 3.4, 0, i < 4 ? 0 : -6.5); g.rotation.y = 0.55; scene.add(g);
+});
+renderer.render(scene, cam); window.ready = true;
+renderer.setAnimationLoop(() => renderer.render(scene, cam));
+</script></body></html>

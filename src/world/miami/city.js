@@ -89,7 +89,13 @@ export async function createMiamiCity(game, opts = {}) {
   let elevated = null;
   try { const mods = import.meta.glob('./elevated.js'); /* vite rewrites this statically; under plain node it throws and we fall back */ if (mods['./elevated.js']) { const m = await mods['./elevated.js'](); elevated = m.createElevated ? m.createElevated({ THREE, RAPIER, world, data, materials: M }) : null; } } catch (e) { console.warn('[miami] elevated.js unavailable, using built-in decks', e); elevated = null; }
   const elevH = (x, z, y) => { if (!elevated) return null; try { const h = elevated.heightAt(x, z, y); return Number.isFinite(h) ? h : null; } catch (e) { return null; } };
-  const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist });
+  // V2 world-render: land-cover terrain (height-displaced, PBR texture array) + flora for the synthetic land outside real Miami
+  let terrain = null, flora = null; const terrainOpts = {};
+  if (data && data.coverAt && data.inRealMiami) {
+    try { const [{ createTerrain }, { createFlora }] = await Promise.all([import('../terrain/terrain.js'), import('../terrain/flora.js')]); terrain = await createTerrain(renderer, data, terrainOpts); flora = await createFlora(renderer, M); }
+    catch (e) { console.warn('[miami] terrain unavailable, flat ground', e); terrain = null; flora = null; }
+  }
+  const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist, terrain, flora, data });
   // mid/far chunk meshes: discard fragments of tiles that currently have a near (full-detail) build
   const NM = 9, nearU = { uNearOrigin: { value: new THREE.Vector2(-1e6, -1e6) }, uNearMask: { value: new Float32Array(NM * NM) } };
   const nearCut = (sh) => {
@@ -101,6 +107,7 @@ export async function createMiamiCity(game, opts = {}) {
       vec2 nt = floor(vTile + 0.5) - uNearOrigin;
       if (nt.x >= 0.0 && nt.y >= 0.0 && nt.x < ${NM}.0 && nt.y < ${NM}.0) { int k = int(nt.y) * ${NM} + int(nt.x); if (uNearMask[k] > 0.5) discard; }`);
   };
+  terrainOpts.nearCut = nearCut;
   M.far.onBeforeCompile = nearCut; if (M.farGlass) M.farGlass.onBeforeCompile = nearCut;
   const streamer = createStreamer({
     tileSize: provider.tileSize || 200, origin: provider.origin || { x: 0, z: 0 }, chunkTiles: 4, nearR: opts.nearR ?? 350, midR: opts.midR ?? 1500, colR: 200, budgetMs: opts.budgetMs ?? 3,
@@ -252,7 +259,17 @@ export async function createMiamiCity(game, opts = {}) {
   city.claimMooring = (id) => builder.claimMooring(id);
   city.releaseMooring = (id) => builder.releaseMooring(id); // rendered/collider deck height near yHint, or null off-deck
   city.onTileCollidersRemoving = (fn) => streamer.onTileCollidersRemoving(fn);
+  // ---- V2 city-look audits ----
+  city.auditFacades = () => builder.auditFacades(bounds); // no two adjacent buildings may share a facade signature
+  city.auditMaterials = (all = false) => { // every city mesh must carry real texture input (map / normalMap, or a shader-bound PBR array)
+    const out = { meshes: 0, textured: 0, emitters: 0, flat: 0, flatList: {} };
+    (all ? scene : root).traverse((o) => { if (!(o.isMesh || o.isInstancedMesh) || !o.visible) return; if (o.isInstancedMesh && o.count === 0) return;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) { if (!m) continue; out.meshes++;
+        if (m.map || m.normalMap || m.userData?.pbr || m.isShaderMaterial) out.textured++; else if (m.isMeshBasicMaterial && (m.toneMapped === false || m.blending === THREE.AdditiveBlending)) out.emitters++;
+        else { out.flat++; const k = (o.name || o.parent?.name || o.type) + ' / ' + m.type + (m.name ? ':' + m.name : ''); out.flatList[k] = (out.flatList[k] || 0) + 1; } } });
+    return out; };
   game.updaters.push((dt) => city.update(dt));
+  city.terrain = terrain; city.flora = flora;
   try { city.seabed = createSeabed(game, city); } catch (e) { console.warn('[miami] seabed unavailable', e); }
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }

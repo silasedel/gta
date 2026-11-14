@@ -1,0 +1,136 @@
+// Hero cars: the "package" (hard points) of each car.  Body, wheels, cockpit and engine builders all read from here,
+// so the parts fit each other.  Coordinates: meters, y up, +Z forward, +X = car's left (driver side, US), ground y = 0,
+// z = 0 at mid-wheelbase.  cabin.beltY = [at the rear edge of the front door, at its front edge]; cabin.sillTopY = top of the sill inside.
+// All names and marques are invented for Port Solana.
+//
+// Marques: Vireo (existing Port Solana supercar house), Vauclair (grand-touring hypercars), Merrow (British mid-engine).
+// Tire brand: Garrano.  None of these are real brands; the design-system track should adopt them into src/design/brands.
+
+export const TIRE_BRAND = { name: 'GARRANO', lines: { track: 'APEX-R', road: 'VELA GT', suv: 'TERRA-S' } };
+
+export const PACK = {
+  // ------------------------------------------------------------------ 1. green super-SUV
+  hero_green_suv: {
+    key: 'hero_green_suv', brand: 'Vireo', name: 'Colosso', badge: 'COLOSSO', cls: 'suv', tier: 'super',
+    paint: { hex: 0x2fb53a, type: 'pearl', name: 'Verde Serpente' },
+    dims: { L: 5.12, W: 2.02, H: 1.64, wb: 3.0, zNose: 2.46, zTail: -2.66, clearance: 0.21 },
+    wheels: {
+      design: 'colosso', tireLine: 'suv', caliper: 0x111214, caliperText: 'VIREO', disc: 'carbon',
+      front: { x: 0.845, z: 1.5, r: 0.3875, rimR: 0.292, tw: 0.295, size: '285/40 ZR23' },
+      rear: { x: 0.845, z: -1.5, r: 0.3875, rimR: 0.292, tw: 0.325, size: '325/35 ZR23' },
+    },
+    cabin: {
+      sillTopY: 0.47, beltY: [1.14, 1.10], seatsLayout: '2+2', floorY: 0.42, sillX: 0.74, doorInnerX: 0.80, roofInnerY: 1.585, tunnelHalfW: 0.14, tunnelTopY: 0.80,
+      cowlZ: 0.98, cowlY: 1.10, dashFaceZ: 0.58, dashTopY: 1.12, headerZ: 0.18, headerY: 1.56,
+      rearSeatBackZ: -1.22, cargoFloorY: 0.72, cargoZ: [-2.42, -1.30],
+      trim: { main: 0x121212, accent: 0x2fb53a, stitch: 0x39c046, style: 'hex-quilt' },
+    },
+    seats: [{ x: 0.39, y: 0.74, z: 0.05, recline: 0.38 }, { x: -0.39, y: 0.74, z: 0.05, recline: 0.38 }, { x: 0.39, y: 0.78, z: -0.88, recline: 0.42 }, { x: -0.39, y: 0.78, z: -0.88, recline: 0.42 }],
+    steering: { x: 0.39, y: 1.06, z: 0.50, tilt: 0.44, dia: 0.37, flatBottom: true },
+    eye: [0.39, 1.36, -0.03],
+    pedals: { x: 0.39, y: 0.50, z: 0.93 },
+    engineBay: { where: 'front', type: 'v8tt', z: [1.02, 2.10], halfW: 0.66, y: [0.40, 0.98], cover: 'hood' },
+    doors: [
+      { id: 'doorFL', side: 1, front: true, type: 'conventional', z: [-0.10, 0.98] }, { id: 'doorFR', side: -1, front: true, type: 'conventional', z: [-0.10, 0.98] },
+      { id: 'doorRL', side: 1, front: false, type: 'conventional', z: [-1.12, -0.10] }, { id: 'doorRR', side: -1, front: false, type: 'conventional', z: [-1.12, -0.10] },
+    ],
+  },
+  // ------------------------------------------------------------------ 2. red V10 supercar
+  hero_red_v10: {
+    key: 'hero_red_v10', brand: 'Vireo', name: 'Fulmine V10', badge: 'FULMINE', cls: 'super', tier: 'super',
+    paint: { hex: 0xc20d14, type: 'candy', name: 'Rosso Corallo' },
+    dims: { L: 4.53, W: 1.94, H: 1.165, wb: 2.62, zNose: 2.38, zTail: -2.15, clearance: 0.115 },
+    wheels: {
+      design: 'fulmine', tireLine: 'road', caliper: 0xe8c21a, caliperText: 'VIREO', disc: 'carbon',
+      front: { x: 0.80, z: 1.31, r: 0.3375, rimR: 0.254, tw: 0.245, size: '245/30 ZR20' },
+      rear: { x: 0.775, z: -1.31, r: 0.35, rimR: 0.254, tw: 0.305, size: '305/30 ZR20' },
+    },
+    cabin: {
+      sillTopY: 0.32, beltY: [0.86, 0.80], seatsLayout: '2', floorY: 0.17, sillX: 0.66, doorInnerX: 0.74, roofInnerY: 1.125, tunnelHalfW: 0.12, tunnelTopY: 0.42,
+      cowlZ: 0.80, cowlY: 0.80, dashFaceZ: 0.42, dashTopY: 0.80, headerZ: 0.12, headerY: 1.10,
+      bulkheadZ: [-0.52, -0.62], bulkheadY: [0.30, 1.0],
+      trim: { main: 0x111111, accent: 0xc20d14, stitch: 0xd0181f, style: 'alcantara-sport' },
+    },
+    seats: [{ x: 0.345, y: 0.30, z: -0.02, recline: 0.50 }, { x: -0.345, y: 0.30, z: -0.02, recline: 0.50 }],
+    steering: { x: 0.345, y: 0.655, z: 0.36, tilt: 0.38, dia: 0.35, flatBottom: true },
+    eye: [0.345, 0.96, -0.22],
+    pedals: { x: 0.345, y: 0.27, z: 0.96 },
+    engineBay: { where: 'mid', type: 'v10', z: [-1.72, -0.62], halfW: 0.56, y: [0.22, 0.86], cover: 'glass' },
+    frunk: { z: [1.0, 1.72], halfW: 0.42, y: [0.36, 0.58] },
+    doors: [{ id: 'doorFL', side: 1, front: true, type: 'conventional', z: [-0.50, 0.72] }, { id: 'doorFR', side: -1, front: true, type: 'conventional', z: [-0.50, 0.72] }],
+  },
+  // ------------------------------------------------------------------ 3. graphite flagship V12
+  hero_graphite_v12: {
+    key: 'hero_graphite_v12', brand: 'Vireo', name: 'Saetta V12 Ombra', badge: 'SAETTA', cls: 'super', tier: 'hyper',
+    paint: { hex: 0x34373c, type: 'satin', name: 'Grafite Ombra' },
+    dims: { L: 4.92, W: 2.08, H: 1.135, wb: 2.70, zNose: 2.55, zTail: -2.37, clearance: 0.11 },
+    wheels: {
+      design: 'saetta', tireLine: 'track', caliper: 0xc9a227, caliperText: 'VIREO', disc: 'carbon', centerLock: true,
+      front: { x: 0.86, z: 1.35, r: 0.345, rimR: 0.254, tw: 0.255, size: '255/30 ZR20' },
+      rear: { x: 0.84, z: -1.35, r: 0.365, rimR: 0.2667, tw: 0.355, size: '355/25 ZR21' },
+    },
+    cabin: {
+      sillTopY: 0.36, beltY: [0.86, 0.78], seatsLayout: '2', floorY: 0.165, sillX: 0.68, doorInnerX: 0.78, roofInnerY: 1.095, tunnelHalfW: 0.14, tunnelTopY: 0.45,
+      cowlZ: 0.92, cowlY: 0.78, dashFaceZ: 0.45, dashTopY: 0.78, headerZ: 0.18, headerY: 1.07,
+      bulkheadZ: [-0.52, -0.62], bulkheadY: [0.29, 0.98],
+      trim: { main: 0x0e0e0f, accent: 0xc9a227, stitch: 0xc9a227, style: 'carbon-race' },
+    },
+    seats: [{ x: 0.365, y: 0.29, z: 0.0, recline: 0.52 }, { x: -0.365, y: 0.29, z: 0.0, recline: 0.52 }],
+    steering: { x: 0.365, y: 0.64, z: 0.38, tilt: 0.36, dia: 0.345, flatBottom: true },
+    eye: [0.365, 0.93, -0.22],
+    pedals: { x: 0.365, y: 0.26, z: 0.98 },
+    engineBay: { where: 'mid', type: 'v12', z: [-1.95, -0.62], halfW: 0.60, y: [0.22, 0.84], cover: 'louvers' },
+    frunk: { z: [1.1, 1.9], halfW: 0.45, y: [0.34, 0.55] },
+    doors: [{ id: 'doorFL', side: 1, front: true, type: 'scissor', z: [-0.52, 0.86] }, { id: 'doorFR', side: -1, front: true, type: 'scissor', z: [-0.52, 0.86] }],
+  },
+  // ------------------------------------------------------------------ 4. purple two-tone grand-touring hypercar
+  hero_purple_gt: {
+    key: 'hero_purple_gt', brand: 'Vauclair', name: 'Minuit', badge: 'MINUIT', cls: 'super', tier: 'hyper',
+    paint: { hex: 0x4a1d96, type: 'pearl', name: 'Violet Minuit', two: { hex: 0x09090b, type: 'metallic', name: 'Noir Encre' } },
+    dims: { L: 4.56, W: 2.04, H: 1.21, wb: 2.71, zNose: 2.335, zTail: -2.225, clearance: 0.115 },
+    wheels: {
+      design: 'minuit', tireLine: 'road', caliper: 0x4a1d96, caliperText: 'VAUCLAIR', disc: 'carbon',
+      front: { x: 0.865, z: 1.355, r: 0.35, rimR: 0.254, tw: 0.285, size: '285/30 ZR20' },
+      rear: { x: 0.835, z: -1.355, r: 0.3675, rimR: 0.2667, tw: 0.355, size: '355/25 ZR21' },
+    },
+    cabin: {
+      sillTopY: 0.34, beltY: [0.92, 0.90], seatsLayout: '2', floorY: 0.18, sillX: 0.70, doorInnerX: 0.78, roofInnerY: 1.17, tunnelHalfW: 0.13, tunnelTopY: 0.46,
+      cowlZ: 0.72, cowlY: 0.90, dashFaceZ: 0.36, dashTopY: 0.90, headerZ: 0.05, headerY: 1.15,
+      bulkheadZ: [-0.60, -0.70], bulkheadY: [0.33, 1.04],
+      trim: { main: 0x1a1512, accent: 0x4a1d96, stitch: 0xb9a37a, second: 0x6a4a2e, style: 'grand-touring' },
+    },
+    seats: [{ x: 0.37, y: 0.33, z: -0.06, recline: 0.46 }, { x: -0.37, y: 0.33, z: -0.06, recline: 0.46 }],
+    steering: { x: 0.37, y: 0.69, z: 0.33, tilt: 0.38, dia: 0.36, flatBottom: false },
+    eye: [0.37, 0.99, -0.26],
+    pedals: { x: 0.37, y: 0.29, z: 0.90 },
+    engineBay: { where: 'mid', type: 'w16', z: [-1.85, -0.68], halfW: 0.64, y: [0.24, 0.92], cover: 'open-spine' },
+    frunk: { z: [0.95, 1.70], halfW: 0.40, y: [0.36, 0.60] },
+    doors: [{ id: 'doorFL', side: 1, front: true, type: 'conventional', z: [-0.58, 0.66] }, { id: 'doorFR', side: -1, front: true, type: 'conventional', z: [-0.58, 0.66] }],
+  },
+  // ------------------------------------------------------------------ 5. orange British-style mid-engine supercar
+  hero_orange_mid: {
+    key: 'hero_orange_mid', brand: 'Merrow', name: 'Peregrine', badge: 'PEREGRINE', cls: 'super', tier: 'super',
+    paint: { hex: 0xff6a0a, type: 'pearl', name: 'Solstice Orange' },
+    dims: { L: 4.55, W: 1.93, H: 1.195, wb: 2.67, zNose: 2.365, zTail: -2.185, clearance: 0.115 },
+    wheels: {
+      design: 'peregrine', tireLine: 'road', caliper: 0x101113, caliperText: 'MERROW', disc: 'carbon',
+      front: { x: 0.83, z: 1.335, r: 0.3275, rimR: 0.2413, tw: 0.245, size: '245/35 ZR19' },
+      rear: { x: 0.80, z: -1.335, r: 0.35, rimR: 0.254, tw: 0.305, size: '305/30 ZR20' },
+    },
+    cabin: {
+      sillTopY: 0.34, beltY: [0.88, 0.82], seatsLayout: '2', floorY: 0.17, sillX: 0.64, doorInnerX: 0.72, roofInnerY: 1.155, tunnelHalfW: 0.09, tunnelTopY: 0.38,
+      cowlZ: 0.80, cowlY: 0.82, dashFaceZ: 0.40, dashTopY: 0.82, headerZ: 0.10, headerY: 1.13,
+      bulkheadZ: [-0.56, -0.66], bulkheadY: [0.30, 1.02],
+      trim: { main: 0x121314, accent: 0xff6a0a, stitch: 0xff7a1a, style: 'minimal-driver' },
+    },
+    seats: [{ x: 0.33, y: 0.30, z: -0.04, recline: 0.50 }, { x: -0.33, y: 0.30, z: -0.04, recline: 0.50 }],
+    steering: { x: 0.33, y: 0.66, z: 0.35, tilt: 0.36, dia: 0.35, flatBottom: false },
+    eye: [0.33, 0.95, -0.24],
+    pedals: { x: 0.33, y: 0.27, z: 0.94 },
+    engineBay: { where: 'mid', type: 'v8tt-flat', z: [-1.75, -0.64], halfW: 0.52, y: [0.22, 0.80], cover: 'mesh-glass' },
+    frunk: { z: [1.0, 1.75], halfW: 0.45, y: [0.34, 0.60] },
+    doors: [{ id: 'doorFL', side: 1, front: true, type: 'dihedral', z: [-0.54, 0.74] }, { id: 'doorFR', side: -1, front: true, type: 'dihedral', z: [-0.54, 0.74] }],
+  },
+};
+
+export const HERO_KEYS = Object.keys(PACK);

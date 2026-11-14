@@ -4,6 +4,10 @@
 
 // ---------------------------------------------------------------- archetypes (body shape + base physics)
 // Shell coords: ground y=0, +z forward, mid-wheelbase at z=0. zA windshield base, zB roof front, zC roof rear, zD rear glass base.
+import { rng, hashSeed } from './model/rng.js';
+import { plateText, STICKER_COUNT, TRIM_IDS, ACCESSORIES, DASH_ITEMS } from './model/extras.js';
+import { WHEEL_STYLES } from './model/wheels.js';
+
 const A = {
   citycar: { L: 3.55, W: 1.68, wb: 2.35, r: 0.3, tw: 0.2, yb: 0.2, belt: 0.92, noseY: 0.74, tailY: 1.0, roofY: 1.55, zA: 0.62, zB: -0.05, zC: -1.22, zD: -1.58, cabInset: 0.12,
     mass: 950, engine: 4600, vmax: 150, steer: 0.65, grip: 2.3, drive: 'fwd', susp: [0.33, 38], rollK: 1.1 },
@@ -170,6 +174,12 @@ for (const d of DEFS) {
     key: d.key, brand: d.brand, name: d.name, class: d.cls, engine: e.engine, maxRpm: e.maxRpm, idleRpm: e.idleRpm, gears: e.gears, final: e.final,
     sound: { engine: e.engine, cylinders: e.cylinders, aspiration: e.aspiration, exhaust: e.exhaust },
   };
+  // model year (drives the body era: 0 boxy < 1996, 1 rounded, 2 sharp modern) and price tier 1 beater .. 5 exotic
+  const yh = hashSeed(d.key) % 1000 / 1000;
+  const year = o.year ?? (d.key === 'tarpon_classic' ? 1969 : d.arch === 'bus' || d.arch === 'box' ? 2008 + Math.round(yh * 14) : d.pal === 'work' ? 1998 + Math.round(yh * 26) : 2004 + Math.round(yh * 21));
+  const tier = o.hyper ? 5 : d.cls === 'super' ? 5 : d.pal === 'lux' || o.lux ? 4 : d.cls === 'sports' || d.cls === 'muscle' ? 3 : d.pal === 'work' || d.cls === 'compact' ? 1.5 : 2;
+  spec.year = year; spec.era ??= year < 1996 ? 0 : year < 2012 ? 1 : 2; spec.tier = tier;
+  Object.assign(MODELS[d.key], { year, tier, price: Math.round(9000 * Math.pow(2.6, tier - 1) * (0.85 + yh * 0.3) / 100) * 100 });
   (CLASSES[d.cls] ||= []).push(d.key);
 }
 
@@ -189,3 +199,124 @@ export function rollVariant(key, rnd = Math.random) {
 }
 
 export const ALL_KEYS = Object.keys(CAR_TYPES);
+
+
+// ---------------------------------------------------------------- per-car looks ("no repeating car")
+// rollLook(key, seed, env) -> plain JSON look, fully deterministic from (key, seed, env).  env = { income: 0..1, zone, salt, rural }.
+// Every visual axis is rolled: paint (hue/lightness jitter, finish, two-tone, fade), wheels, ride height, tint, dirt kind and level,
+// rust, patch panel, dents, missing hubcaps, stickers, plate (number + design), accessories, cabin trim, dash clutter.
+const INCOME = { business: 0.92, beach: 0.82, downtown: 0.74, nightlife: 0.7, causeway: 0.6, keys: 0.6, residential: 0.5, park: 0.5, commercial: 0.42, suburb: 0.45, rural: 0.32, farm: 0.28, port: 0.3, industrial: 0.24, water: 0.5 };
+export function incomeFor(zone) { return INCOME[zone] ?? 0.5; }
+const DIRT_BY_ZONE = { beach: 'sand', keys: 'salt', causeway: 'salt', port: 'soot', industrial: 'soot', rural: 'mud', farm: 'clay', park: 'mud', wetland: 'mud' };
+const hexJitter = (c, r, amt) => {
+  let R = (c >> 16) & 255, G = (c >> 8) & 255, B = c & 255;
+  const k = 1 + (r() - 0.5) * amt * 2, s = (r() - 0.5) * amt * 40;
+  R = Math.max(0, Math.min(255, Math.round(R * k + s))); G = Math.max(0, Math.min(255, Math.round(G * k + s * 0.7))); B = Math.max(0, Math.min(255, Math.round(B * k + s * 0.4)));
+  return (R << 16) | (G << 8) | B;
+};
+const EXTRA_COLORS = [0x6b4f3a, 0x8a9a5b, 0xc2b280, 0x4b5320, 0x9e1b32, 0xd4c4a8, 0x36454f, 0x7b3f00, 0xb87333, 0x2e5894, 0xf4f0e6, 0x5d3954, 0x00704a, 0xc0c0c0, 0x7f7f7f];
+const STYLE_TAGS = { super: ['sport', 'lux'], sports: ['sport'], muscle: ['muscle', 'classic', 'sport'], suv: ['std', 'lux', 'offroad'], pickup: ['truck', 'offroad', 'work'], van: ['work', 'std'], truck: ['truck', 'heavy'], bus: ['heavy'], taxi: ['std', 'cheap'], police: ['std'], compact: ['std', 'cheap'], sedan: ['std', 'lux', 'cheap'] };
+const RIMS = [0xc9ced3, 0xd8dcdf, 0x9da2a6, 0x2b2e33, 0x16181b, 0xb08d57, 0x5c6066, 0xe8e8e8, 0x8a1c1c, 0x1f3f7a];
+export function rollLook(key, seed, env = {}) {
+  const t = CAR_TYPES[key] || CAR_TYPES.sedan, mi = MODELS[key] || MODELS.sedan;
+  seed = seed >>> 0;
+  const r = rng(hashSeed(key, seed));
+  const income = env.income ?? incomeFor(env.zone);
+  const fleet = !!(t.police || t.taxi || t.heavy || t.busLivery || t.ambulance || t.fire);
+  const tier = mi.tier || 2;
+  // age 0 new .. 1 tired beater: poorer areas and cheaper models skew older, fleets are maintained
+  const ageBias = 0.62 - income * 0.5 - (tier - 2) * 0.08 + (fleet ? -0.2 : 0);
+  const age = Math.max(0, Math.min(1, ageBias + r.normal() * 0.28));
+  const pal = t.palette;
+  let base = fleet ? pal[r.int(pal.length)] : r() < 0.82 ? pal[r.int(pal.length)] : EXTRA_COLORS[r.int(EXTRA_COLORS.length)];
+  const color = fleet ? base : hexJitter(base, r, 0.07);
+  const finish = fleet ? 'gloss' : r.weighted({ metallic: 5, gloss: 3, pearl: tier >= 3.5 ? 2 : 0.4, satin: tier >= 3 ? 0.8 : 0.2, matte: tier >= 3 ? 0.6 : 0.05, primer: age > 0.75 ? 0.15 : 0 });
+  let twoTone = null;
+  if (!fleet && r() < 0.13) {
+    const c2 = r() < 0.5 ? 0x141518 : EXTRA_COLORS[r.int(EXTRA_COLORS.length)];
+    twoTone = !t.convertible && r() < 0.6 ? { roof: c2 } : { color: c2, y: Math.round((0.32 + r() * 0.2) * 100) / 100 };
+  }
+  const kits = fleet ? ['base'] : t.cls === 'sports' || t.cls === 'super' || t.cls === 'muscle' ? ['base', 'sport', 'sport'] : ['base', 'base', 'sport', 'lux'];
+  const kit = t.kit || kits[r.int(kits.length)];
+  const tags = t.heavy ? ['heavy', 'truck'] : (STYLE_TAGS[t.cls] || ['std']).concat(age > 0.6 ? ['cheap'] : [], t.offroad ? ['offroad'] : []);
+  const styles = WHEEL_STYLES.filter((s) => s.tags.some((g) => tags.includes(g)) && (t.heavy ? true : s.id !== 'truck8')).map((s) => s.id);
+  const wheel = {
+    style: fleet ? (t.heavy ? 'truck8' : t.police ? 'steel' : 'hubcap') : styles[r.int(styles.length)] || 'star5',
+    rimColor: fleet ? (t.rimColor ?? 0x9da2a6) : r() < 0.45 ? t.rimColor : RIMS[r.int(RIMS.length)],
+    finish: r() < (tier >= 3 ? 0.25 : 0.06) ? 'chrome' : 'alloy',
+  };
+  const ride = fleet ? 0 : Math.round((t.offroad || t.bed ? (r() < 0.25 ? 0.03 + r() * 0.05 : 0) : (r() < 0.18 && tier >= 2 ? -(0.015 + r() * 0.035) : (r() - 0.5) * 0.02) + age * 0.015 * r.sign()) * 1000) / 1000;
+  const tint = fleet ? 1 : r.weighted([[0, 2 + (1 - income) * 2], [1, 4], [2, 2 + income * 2], [3, tier >= 3 ? 1.6 : 0.4]]);
+  const dirtColor = env.salt ? 'salt' : DIRT_BY_ZONE[env.zone] || (env.rural ? 'mud' : r.pick(['dust', 'dust', 'sand', 'mud', 'clay']));
+  const wear = {
+    dirt: Math.round(Math.min(1, age * 0.55 + r() * 0.3 + (env.rural ? 0.2 : 0)) * 100) / 100, dirtColor,
+    rust: age > 0.55 ? Math.round(Math.min(1, (age - 0.55) * 1.8 * (0.3 + r() * 0.7) + (env.salt ? 0.12 : 0)) * 100) / 100 : 0,
+    fade: age > 0.45 ? Math.round(Math.min(0.8, (age - 0.45) * 1.4 * r()) * 100) / 100 : 0,
+    age: Math.round(age * 100) / 100, seed: seed % 997,
+    patch: !fleet && age > 0.68 && r() < 0.4 ? { panel: r.pick(['hood', 'trunk', 'doorFL', 'doorFR', 'fenderFL', 'fenderFR']), color: r() < 0.4 ? 0x6f7276 : pal[r.int(pal.length)] } : null,
+  };
+  const dents = [];
+  for (let n = Math.floor(age * 3.4 * r() + (r() < 0.12 ? 1 : 0)), i = 0; i < n; i++) {
+    const side = r.sign(), z = (r() - 0.5) * t.L * 0.85, onEnd = r() < 0.35;
+    dents.push({ x: onEnd ? (r() - 0.5) * t.W * 0.6 : side * t.W / 2, y: t.yb + (t.belt - t.yb) * (0.3 + r() * 0.6), z: onEnd ? Math.sign(z || 1) * t.L / 2 : z,
+      depth: Math.round((0.02 + r() * 0.05) * 1000) / 1000, radius: Math.round((0.14 + r() * 0.22) * 100) / 100 });
+  }
+  const missing = [];
+  if (wheel.style === 'hubcap') for (let i = 0; i < 4; i++) if (r() < age * 0.3) missing.push('hubcap' + i);
+  const stickers = [];
+  const nSt = fleet ? 0 : Math.min(5, Math.floor(r() * (1.2 + (1 - income) * 2.4 + age * 1.4)));
+  for (let i = 0; i < nSt; i++) stickers.push({ id: r.int(STICKER_COUNT), where: r.pick(['glass', 'trunk', 'bumper', 'bumper']), u: Math.round((r() * 2 - 1) * 100) / 100, rot: Math.round(r.normal() * 0.08 * 100) / 100, scale: Math.round((0.8 + r() * 0.45) * 100) / 100 });
+  // accessories (roof racks, ladders, toolboxes, bars...) by model and neighborhood
+  const accessories = [];
+  if (!fleet || (t.bed && !t.police)) {
+    const want = { roofRack: 0.14, roofBox: 0.06, kayak: env.zone === 'beach' || env.salt ? 0.08 : 0.025, surfboard: env.zone === 'beach' || env.salt ? 0.1 : 0.02, ladder: t.van || t.bed ? 0.3 : 0, lightBar: 0.2, bullBar: 0.18, hitch: 0.35, bedBox: 0.45, bedCargo: 0.35, flag: 0.03, wing: tier >= 3 ? 0.12 : 0.04 };
+    for (const id in want) {
+      const A0 = ACCESSORIES[id]; if (!A0 || !A0.fits(t) || !(r() < want[id])) continue;
+      if (A0.needs && !accessories.some((a) => a.id === A0.needs)) accessories.push({ id: A0.needs });
+      if (!accessories.some((a) => a.id === id)) accessories.push({ id, c: r.int(6) });
+    }
+  }
+  const trim = tier >= 3.5 ? r.pick(['leatherBlack', 'leatherTan', 'leatherRed', 'leatherCream']) : r.pick(TRIM_IDS);
+  const dash = [];
+  for (const id of DASH_ITEMS) if (r() < (fleet ? 0.08 : 0.22)) dash.push(id);
+  const mirrorCharm = !fleet && r() < 0.35 ? r.pick(['freshener', 'beads', 'dice', 'rosary', 'tassel', 'charm']) : null;
+  const year = Math.max(1960, (mi.year || 2015) - (age > 0.5 ? r.int(8) : r.int(3)));
+  const plate = {
+    text: plateText(hashSeed(seed, key)),
+    style: t.heavy || t.van && fleet || t.box ? 4 : year < 1985 ? 6 : age < 0.08 && r() < 0.25 ? 5 : r.weighted([[0, 10], [1, env.salt || env.zone === 'beach' ? 3 : 1.2], [2, env.rural ? 3 : 1], [3, env.salt ? 4 : 1]]),
+  };
+  const look = { key, seed, color, finish, twoTone, kit, trim, wheel, ride, tint, wear, dents, missing, stickers, accessories, dash, mirrorCharm, plate, year, zone: env.zone || null };
+  look.signature = lookSignature(look);
+  return look;
+}
+// canonical string of everything visible about the car (plate included): two cars are the same car iff equal
+export function lookSignature(L) {
+  return [L.key, L.color, L.finish, JSON.stringify(L.twoTone), L.kit, L.trim, L.wheel?.style, L.wheel?.rimColor, L.wheel?.finish, L.ride, L.tint,
+    L.wear?.dirt, L.wear?.dirtColor, L.wear?.rust, L.wear?.fade, JSON.stringify(L.wear?.patch), JSON.stringify(L.dents), (L.missing || []).join(','),
+    JSON.stringify(L.stickers), JSON.stringify(L.accessories), (L.dash || []).join(','), L.mirrorCharm, L.plate?.text, L.plate?.style].join('|');
+}
+// the same, without the plate number: what a player could tell apart at a glance
+export function visualSignature(L) {
+  const q = (c) => ((c >> 19) & 31) + ',' + ((c >> 11) & 31) + ',' + ((c >> 3) & 31); // 5-bit per channel color bucket
+  return [L.key, q(L.color), L.finish, L.twoTone ? 1 : 0, L.kit, L.wheel?.style, L.wheel?.rimColor, L.tint, Math.round((L.wear?.dirt || 0) * 4), L.wear?.dirtColor,
+    Math.round((L.wear?.rust || 0) * 4), L.wear?.patch ? 1 : 0, (L.dents || []).length, (L.stickers || []).map((s) => s.id).sort().join(','), (L.accessories || []).map((a) => a.id).join(','), L.plate?.style].join('|');
+}
+// old call style buildCar(key, color, { kit, wheel: { spokes, rimColor }, blackRoof }) -> a clean look
+export function legacyLook(key, color, opts = {}) {
+  const t = CAR_TYPES[key] || CAR_TYPES.sedan;
+  const sp = opts.wheel?.spokes, style = sp === 5 ? 'star5' : sp === 6 ? 'six' : sp === 8 ? 'turbine' : sp === 10 ? 'multi10' : sp === 12 ? 'multi15' : t.heavy ? 'truck8' : 'split5';
+  const look = { key, seed: (color ?? 0) >>> 0, color: color ?? t.palette[0], finish: t.taxi || t.heavy ? 'gloss' : 'metallic', twoTone: opts.blackRoof ? { roof: 0x141518 } : null,
+    kit: opts.kit || t.kit || 'base', trim: 'clothBlack', wheel: { style, rimColor: opts.wheel?.rimColor ?? t.rimColor, finish: 'alloy' }, ride: 0, tint: 1,
+    wear: { dirt: 0.06, dirtColor: 'dust', rust: 0, fade: 0, age: 0, seed: 0, patch: null }, dents: [], missing: [], stickers: [], accessories: [], dash: [], mirrorCharm: null,
+    plate: { text: plateText(hashSeed(key, color ?? 0)), style: 0 }, year: t.year };
+  look.signature = lookSignature(look);
+  return look;
+}
+// neighborhood-matched fleet: class weights for a spot with this income (0 poor .. 1 wealthy)
+export function fleetMix(income = 0.5, parked = false) {
+  const rich = Math.max(0, income - 0.5) * 2, poor = Math.max(0, 0.5 - income) * 2;
+  return { sedan: 26, compact: 20 + poor * 12, suv: 18 + rich * 8, pickup: 8 + poor * 6, van: 7 + poor * 3, taxi: parked ? 0 : 7, sports: 4 + rich * 14, muscle: 2 + poor * 2,
+    police: parked ? 0 : 3, truck: (parked ? 2 : 3) * (1 - rich * 0.7), bus: parked ? 0 : 1.5, super: 0.4 + rich * 7 };
+}
+// tier filter used by the spawner: wealthy streets rarely show a beater model, poor streets rarely show an exotic
+export function tierWeight(key, income = 0.5) { const tr = MODELS[key]?.tier ?? 2; return Math.max(0.05, 1 + (tr - 2.5) * (income - 0.5) * 1.6); }

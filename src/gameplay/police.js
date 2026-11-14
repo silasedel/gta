@@ -3,10 +3,18 @@ import * as THREE from 'three';
 import { createCharacter } from '../player/characterModel.js';
 import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView, groundAt, warnOnce, aimArm, removeColliderSafe, removeBodySafe, bodyAlive, vAlive } from './util.js';
 import { buildWeaponModel } from './gunModels.js';
+import { createLaw } from './police/law.js';
+import { createStations } from './police/stations.js';
+import { createResponse } from './police/response.js';
+import { createRadio } from './police/radio.js';
+import { createLowLevel } from './police/lowlevel.js';
 
-const POOL = 8;
-export const CAR_TARGET = [0, 1, 2, 3, 4, 6, 8];
-export const FOOT_TARGET = [0, 0, 2, 4, 6, 8, 10];
+const POOL = 12;
+// Officers are individuals: each has a name, a rank and traits that change how they see, run, shoot and deal (docs/gameplay/police_tuning.md).
+const OFFICERS = ['Reyes', 'Okafor', 'Delgado', 'Brandt', 'Nakamura', 'Sorrell', 'Vance', 'Aguilar', 'Whitlock', 'Baptiste', 'Mendez', 'Karras', 'Lindqvist', 'Truong', 'Castellano', 'Ibarra'];
+const h32 = (n) => { let x = (n | 0) ^ 0x9e3779b9; x = Math.imul(x ^ (x >>> 16), 0x85ebca6b); x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; };
+export const CAR_TARGET = [0, 1, 2, 3, 4, 5, 6];
+export const FOOT_TARGET = [0, 0, 2, 4, 5, 8, 10];
 export const SIGHT = { cone: 110, footRange: 60, carRange: 90, aware: 8, carAware: 15, night: 0.65, water: 0.6, covered: 0.7 };
 
 function styleUniform(char) {
@@ -36,6 +44,8 @@ function makeCap() {
 export function createPolice(game, G) {
   const { scene, world, RAPIER } = game;
   const P = game.player;
+  const law = createLaw(game, G); // from here on G.wanted / game.wanted are the knowledge-model facade
+  const stations = createStations(game, G.city); law.stations = stations;
   const units = [];
   const byHandle = new Map();
   const cars = [];        // {v, deployed, cops:[], mine}
@@ -66,6 +76,9 @@ export function createPolice(game, G) {
       char, body, collider, kcc, cap, gun, gunKey, head: findBone(char.root, /Head$/i), hand: findBone(char.root, /RightHand$/i), arm: findBone(char.root, /RightArm$/i),
       pos: new THREE.Vector3(), heading: 0, speed: 0, health: 100, dead: false, deadT: 0, active: false, isCop: true,
       fireCd: 1, punchCd: 1, punch: false, stuckT: 0, side: 0, sideT: 0, car: null, mode: 'chase', wander: null, lifeT: 0, vy: 0,
+      // personality: perception (how fast they recognize a description), fitness (foot speed), aim, integrity (bribes), restraint (bystanders), years on the job
+      name: OFFICERS[i % OFFICERS.length], rank: h32(i * 7 + 1) < 0.2 ? 'Sgt.' : 'Ofc.', per: 0.25 + h32(i * 13 + 2) * 0.7, fit: 0.8 + h32(i * 17 + 3) * 0.4, aim: 0.7 + h32(i * 19 + 4) * 0.6,
+      integrity: 0.2 + h32(i * 23 + 5) * 0.8, restraint: 0.3 + h32(i * 29 + 6) * 0.7, years: 1 + Math.floor(h32(i * 31 + 7) * 24), role: 'patrol',
     };
     byHandle.set(collider.handle, u);
     return u;
@@ -76,7 +89,7 @@ export function createPolice(game, G) {
     const u = units.find((x) => !x.active);
     if (!u) return null;
     u.active = true; u.dead = false; u.deadT = 0; u.health = 100; u.car = car; u.mode = 'chase'; u.lifeT = 0; u.fireCd = rand(1, 2); u.vy = 0;
-    u.pos.copy(pos); u.heading = heading; u.speed = 0; u.stuckT = 0; u.wander = null;
+    u.pos.copy(pos); u.heading = heading; u.speed = 0; u.stuckT = 0; u.wander = null; u._susp = 0; u._callT = 0; u._called = false; u.role = 'patrol'; u.vaultT = 0;
     // armament scales with heat
     const lv = G.wanted?.level || 0, r = Math.random();
     const key = lv >= 4 ? (r < 0.45 ? 'rifle' : r < 0.75 ? 'carbine' : 'shotgun') : lv >= 3 ? (r < 0.3 ? 'shotgun' : r < 0.45 ? 'smg' : 'pistol') : 'pistol';
@@ -135,7 +148,7 @@ export function createPolice(game, G) {
     const muzzle = from ? _a.copy(from) : u.gun.userData.muzzle ? u.gun.localToWorld(_a.copy(u.gun.userData.muzzle)) : _a.set(u.pos.x, u.pos.y + 1.4, u.pos.z);
     const inCar = !!P.state.inVehicle;
     const lvl = G.wanted.level;
-    let p = clamp(0.48 - dist * 0.011 - (P.state.speed || 0) * 0.04 + lvl * 0.04, 0.06, 0.65);
+    let p = clamp((0.48 - dist * 0.011 - (P.state.speed || 0) * 0.04 + lvl * 0.04) * (u?.aim || 1), 0.06, 0.7);
     if (inCar) p *= 0.75;
     const hitP = Math.random() < p;
     const end = _b.copy(target);
@@ -177,11 +190,33 @@ export function createPolice(game, G) {
     u.body.setNextKinematicTranslation({ x: nx, y: ny, z: nz });
     const moved = Math.hypot(mv.x, mv.z);
     u.speed = dt > 0 ? moved / dt : 0;
+    if (speed > 3 && moved < speed * dt * 0.3 && u.stuckT > 0.15 && u.vaultT <= 0 && lowObstacle(u)) { u.vy = 5.4; u.vaultT = 1.2; u.stuckT = 0; } // vault fences, planters and hoods
+    if (u.vaultT > 0) u.vaultT -= dt;
     if (speed > 1 && moved < speed * dt * 0.3) { u.stuckT += dt; if (u.stuckT > 0.4) { u.side = Math.random() < 0.5 ? -1 : 1; u.sideT = rand(0.8, 1.6); u.stuckT = 0; } } else u.stuckT = 0;
     u.pos.set(nx, ny - 0.88, nz);
     if (u.pos.y < -10) { const gy = groundAt(game, u.pos.x, u.pos.z); u.body.setTranslation({ x: u.pos.x, y: gy + 0.9, z: u.pos.z }, true); u.vy = 0; }
   }
 
+  // something low (under about 1.2 m) is in the way and there is room above it
+  function lowObstacle(u) {
+    try {
+      const dx = Math.sin(u.heading), dz = Math.cos(u.heading);
+      const lo = world.castRay(new RAPIER.Ray({ x: u.pos.x, y: u.pos.y + 0.45, z: u.pos.z }, { x: dx, y: 0, z: dz }), 1.1, true, QF.EXCLUDE_SENSORS, undefined, u.collider);
+      if (!lo) return false;
+      const hi = world.castRay(new RAPIER.Ray({ x: u.pos.x, y: u.pos.y + 1.45, z: u.pos.z }, { x: dx, y: 0, z: dz }), 1.6, true, QF.EXCLUDE_SENSORS, undefined, u.collider);
+      return !hi;
+    } catch (e) { return false; }
+  }
+  // no civilian within a narrow corridor between the muzzle and the target (careful officers check a wider one)
+  function lineClear(u, tgt) {
+    const ax = u.pos.x, az = u.pos.z, bx = tgt.x - ax, bz = tgt.z - az, l2 = bx * bx + bz * bz || 1, wid = 0.5 + (u.restraint || 0.5) * 0.9;
+    for (const ped of game.peds?.list || []) {
+      if (!ped.pos || ped.dead || ped.active === false || ped.isCop) continue;
+      const t = ((ped.pos.x - ax) * bx + (ped.pos.z - az) * bz) / l2; if (t < 0.05 || t > 1.1) continue;
+      if (Math.hypot(ax + bx * t - ped.pos.x, az + bz * t - ped.pos.z) < wid) return false;
+    }
+    return true;
+  }
   let arrestT = 0;
   function updateUnit(u, dt) {
     const W = G.wanted;
@@ -197,7 +232,7 @@ export function createPolice(game, G) {
     const tgt = _v.set(pp.x, pp.y + 1.3, pp.z);
     const dist = distXZ(u.pos, pp);
     const eye = _a.set(u.pos.x, u.pos.y + 1.6, u.pos.z);
-    u.sees = W.level > 0 && canSee(eye, u.heading, SIGHT.footRange, SIGHT.aware, tgt);
+    u.sees = canSee(eye, u.heading, SIGHT.footRange, SIGHT.aware, tgt); // raw line of sight; whether they know who they are looking at is the knowledge model's call
     let gx = 0, gz = 0, speed = 0;
     if (W.level === 0) {
       // stand down: walk off then vanish
@@ -205,22 +240,27 @@ export function createPolice(game, G) {
       if (!u.wander) u.wander = new THREE.Vector3(u.pos.x + rand(-40, 40), 0, u.pos.z + rand(-40, 40));
       gx = u.wander.x - u.pos.x; gz = u.wander.z - u.pos.z; speed = 1.4;
       if ((dist > 45 && !inView(game, u.pos)) || u.lifeT > 200 || dist > 120) { despawnCop(u); return; }
-    } else if (u.sees || dist < 25) {
+    } else if (W.seen && (u.sees || dist < 25)) {
       u.mode = 'chase'; u.wander = null;
       gx = pp.x - u.pos.x; gz = pp.z - u.pos.z;
       const shooter = W.level >= 3 || !!G.playerArmedRecently?.(); // 1-2 stars: only return fire against an armed suspect
       if (shooter && u.sees && dist < 38) {
         // close in to ~12m and shoot
-        speed = dist > 16 ? 5.6 : dist > 9 ? 2.2 : 0;
+        speed = (dist > 16 ? 5.6 : dist > 9 ? 2.2 : 0) * u.fit;
+        if (u.fireCd <= dt && !lineClear(u, tgt)) u.fireCd = 0.4; // bystander in the line of fire: hold
         u.fireCd -= dt;
         if (u.fireCd <= 0) { const auto = u.gunKey === 'rifle' || u.gunKey === 'smg'; u.fireCd = (auto ? rand(0.25, 0.45) : u.gunKey === 'shotgun' ? rand(1.1, 1.6) : rand(0.7, 1.5)) - W.level * 0.05; copShoot(u, tgt, dist); }
         if (speed === 0) { gx = pp.x - u.pos.x; gz = pp.z - u.pos.z; }
       } else {
-        speed = dist > 7 ? 6.2 : dist > 2.2 ? 3.6 : dist > 1.1 ? 1.4 : 0;
+        speed = (dist > 7 ? 6.2 : dist > 2.2 ? 3.6 : dist > 1.1 ? 1.4 : 0) * (dist > 2.2 ? u.fit : 1);
         // melee when the player is fighting back
         u.punchCd -= dt;
         if (dist < 1.4 && u.punchCd <= 0 && !P.state.inVehicle && game.clock.elapsed - (G.copAggroT ?? -99) < 6) { u.punchCd = rand(0.9, 1.4); u.punch = true; if (Math.random() < 0.7) damagePlayer(rand(4, 8), u); }
       }
+    } else if (u.sees && (u._susp || 0) > 0.2 && dist < 45) {
+      // somebody fits part of the description: walk over for a closer look
+      u.mode = 'check'; u.wander = null;
+      gx = pp.x - u.pos.x; gz = pp.z - u.pos.z; speed = dist > 5 ? 2.4 : 0;
     } else {
       // search the circle
       u.mode = 'search';
@@ -318,13 +358,14 @@ export function createPolice(game, G) {
   let dispatchCache = null;
   function dispatchPoint(pp) {
     const C = G.city, ms = Math.sqrt(C?.mapScale || 1), iv = (q) => inView(game, q);
-    const st = tryCall('policeStation', () => C?.respawnPoint?.('police', pp), null);
+    const stn = stations.nearest(pp); law.dispatchStation = stn || null;
+    const st = stn ? stn.road : tryCall('policeStation', () => C?.respawnPoint?.('police', pp), null);
     if (st && Number.isFinite(st.x)) {
       const ds = Math.hypot(st.x - pp.x, st.z - pp.z);
       if (ds < 200 * ms) { // station is close by: cars pull out of it
         const r = C.roadPoint(st, 0, 60, { avoidView: true, inView: iv });
         if (r && distXZ(r.position, pp) > 70) return r;
-      } else if (ds < 3000) {
+      } else if (ds < 4500) {
         if (!dispatchCache || Math.hypot(dispatchCache.x - pp.x, dispatchCache.z - pp.z) > 60 || dispatchCache.sx !== st.x) {
           dispatchCache = { x: pp.x, z: pp.z, sx: st.x, path: tryCall('dispatchPath', () => C.findPath(pp.x, pp.z, st.x, st.z), null) };
         }
@@ -531,7 +572,7 @@ export function createPolice(game, G) {
   }
   let blockCd = 10;
   function roadblockTick(dt) {
-    const lvl = G.wanted.level;
+    const lvl = G.wanted.level, W = G.wanted;
     blockCd -= dt;
     for (const b of blocks.slice()) {
       b.t += dt;
@@ -539,11 +580,12 @@ export function createPolice(game, G) {
       const seen = inView(game, b.center);
       if ((lvl === 0 && d > 50 && !seen) || (b.t > 60 && d > 80 && !seen) || d > 300) {
         for (const m of b.items) removeBarrier(m);
+        tryCall('spikes off', () => response?.removeSpikes?.(b));
         for (const v of b.cars) removeCar({ v, cops: [], mine: true });
         blocks.splice(blocks.indexOf(b), 1);
       }
     }
-    if (lvl < 4 || blockCd > 0 || !P.state.inVehicle || (P.state.vehicle?.speedKmh || 0) < 35 || blocks.length >= (lvl >= 6 ? 3 : 2)) return;
+    if (lvl < 3 || !W.seen || blockCd > 0 || !P.state.inVehicle || (P.state.vehicle?.speedKmh || 0) < 35 || blocks.length >= (lvl >= 6 ? 3 : 2)) return;
     blockCd = 25;
     const vel = P.state.vehicle?.body?.linvel?.() || { x: Math.sin(P.heading), z: Math.cos(P.heading) };
     const vl = Math.hypot(vel.x, vel.z) || 1;
@@ -569,6 +611,8 @@ export function createPolice(game, G) {
       spawnCop(p, Math.atan2(P.position.x - p.x, P.position.z - p.z));
     }
     blocks.push(b);
+    tryCall('spikes', () => response?.addSpikes?.(b, ra, gy));
+    tryCall('radio', () => law.radio?.say('roadblock', { street: tryCall('st', () => G.city?.city?.streetNameAt?.(cx, cz), null) }));
     tryCall('notify', () => game.hud?.notify?.('Roadblock ahead!', 2200));
   }
 
@@ -610,7 +654,34 @@ export function createPolice(game, G) {
     return hasLOS(game, eye, tgt);
   }
   G.canSee = canSee;
-  function anySees() {
+  // every police pair of eyes with a line of sight to the player right now (the knowledge model decides who recognizes him)
+  const obsOut = [];
+  let ambT = 0; const ambient = [];
+  function observers() {
+    obsOut.length = 0;
+    const pp = P.position, tgt = _b.set(pp.x, pp.y + 1.3, pp.z), lvl = law.S.level;
+    for (const u of units) if (u.active && !u.dead && u.sees) obsOut.push({ o: u, kind: 'foot', dist: distXZ(u.pos, pp), perception: u.per, name: `${u.rank} ${u.name}`, callTime: 2.2 - u.per * 1.2 });
+    for (const c of cars) {
+      if ((c.deployed && c.cops.length) || !vAlive(game, c.v)) continue;
+      const t = c.v.body.translation();
+      if (canSee(_e.set(t.x, t.y + 1.2, t.z), c.v.heading, SIGHT.carRange, SIGHT.carAware, tgt)) obsOut.push({ o: c, kind: 'car', dist: distXZ(t, pp), perception: c.per ?? (c.per = 0.3 + Math.random() * 0.6), name: c.callsign || 'A patrol unit', callTime: 1.4 });
+    }
+    // patrol cars in ordinary traffic also keep an eye out for a description on file
+    if (game.clock.elapsed - ambT > 0.4) {
+      ambT = game.clock.elapsed; ambient.length = 0;
+      if (law.ev.size) for (const v of V()?.list || []) {
+        if (!(v.typeKey === 'police' || v.police === true) || v.playerDriven || !v.ai || !vAlive(game, v) || cars.some((c) => c.v === v)) continue;
+        const t = v.body.translation(); if (distXZ(t, pp) > 70) continue;
+        if (canSee(_e.set(t.x, t.y + 1.2, t.z), v.heading, lvl > 0 ? SIGHT.carRange : 45, SIGHT.carAware, tgt)) ambient.push(v);
+      }
+    }
+    for (const v of ambient) { if (!vAlive(game, v)) continue; const t = v.body.translation(); obsOut.push({ o: v, kind: 'car', dist: distXZ(t, pp), perception: 0.5, name: 'A patrol unit', callTime: 1.6 }); }
+    for (const x of response?.observers?.() || []) obsOut.push(x);
+    return obsOut;
+  }
+  function nearestDist() { let d = 99; const pp = P.position; for (const u of units) if (u.active && !u.dead) d = Math.min(d, distXZ(u.pos, pp)); for (const c of cars) if (vAlive(game, c.v)) d = Math.min(d, distXZ(c.v.body.translation(), pp)); return d; }
+  function witnessName() { let best = null, bd = 1e9; for (const u of units) if (u.active && !u.dead) { const d = distXZ(u.pos, P.position); if (d < bd) { bd = d; best = u; } } return best ? `${best.rank} ${best.name}` : 'A patrol unit'; }
+  function anySeesRaw() {
     for (const u of units) if (u.active && !u.dead && u.sees) return true;
     const pp = P.position, tgt = _b.set(pp.x, pp.y + 1.3, pp.z);
     for (const c of cars) {
@@ -640,6 +711,10 @@ export function createPolice(game, G) {
   }
 
   function update(dt) {
+    tryCall('law', () => law.tick(dt));
+    tryCall('radio', () => radio?.tick(dt));
+    tryCall('response', () => response?.tick(dt));
+    tryCall('lowlevel', () => lowlevel?.tick(dt));
     tryCall('police.cars', () => carTick(dt));
     tryCall('police.roadblock', () => roadblockTick(dt));
     tryCall('police.barriers', () => barrierTick());
@@ -651,7 +726,16 @@ export function createPolice(game, G) {
     for (const u of units) if (u.active) despawnCop(u);
     for (const c of cars.slice()) removeCar(c);
     blockCd = 10; carSpawnCd = 4; footSpawnCd = 5;
+    tryCall('response.reset', () => response?.reset?.());
+    tryCall('law.close', () => law.closeCase('processed'));
   }
   if (!units.length) warnOnce('police', 'no foot cop units (character model failed)');
-  return { barriers, makeBarrier, blocks, units, cars, byHandle, spawnCop, despawnCop, damageCop, damagePlayer, anySees, copWitness, clearAll, hardReset, update, spawnPoliceCar, removeCar };
+  const api = { barriers, makeBarrier, removeBarrier, blocks, units, cars, byHandle, spawnCop, despawnCop, damageCop, damagePlayer, anySees: () => law.S.seen, anySeesRaw, copWitness: () => false, copWitnessReal: copWitness,
+    observers, nearestDist, witnessName, clearAll, hardReset, update, spawnPoliceCar, removeCar, placeCar, canSee, dispatchPoint, navTarget, stations, law, SIGHT };
+  law.police = api;
+  let radio = null, response = null, lowlevel = null;
+  radio = tryCall('radio.create', () => createRadio(game, G, law), null); law.radio = radio;
+  response = tryCall('response.create', () => createResponse(game, G, law, api), null); law.response = response;
+  lowlevel = tryCall('lowlevel.create', () => createLowLevel(game, G, law, api), null); law.lowlevel = lowlevel;
+  return api;
 }

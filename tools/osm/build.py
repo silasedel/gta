@@ -12,24 +12,39 @@ from shapely import STRtree, prepare, contains_xy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from config import BBOX, LAT0, LON0, SEA_LEVEL, TILE, proj, bounds  # noqa: E402
-from osmgeom import load, pts, elem_poly, way_line, polys_only, fix, parse_len, CACHE  # noqa: E402
+from config import BBOX, LAT0, LON0, SEA_LEVEL, TILE, REAL_RECT, FEATURES, proj, bounds  # noqa: E402
+from osmgeom import load, pts, elem_poly, way_line, polys_only, fix, parse_len, world_box, CACHE  # noqa: E402
 from raster import Grid, dilate, distance_steps, label_fill, rle, X0, Z0, X1, Z1  # noqa: E402
 import roads as R  # noqa: E402
+import poi as POI  # noqa: E402
+import ingest as ING  # noqa: E402
 
 GAME = os.path.abspath(os.path.join(HERE, '..', '..'))
-OUT = os.path.join(GAME, 'public', 'assets', 'miami')
-TILES = os.path.join(OUT, 'tiles')
-DOCS = os.path.join(GAME, 'docs', 'showcase', 'map')
-WORK = os.path.join(CACHE, 'work')
+OUT_ROOT = os.environ.get('MIAMI_OUT') or os.path.join(GAME, 'public', 'assets', 'miami')
+DOCS = os.path.join(GAME, 'docs', 'v2', 'shots', 'world-osm')
+WORK = os.environ.get('MIAMI_WORK') or os.path.join(CACHE, 'work')
 
 SURF = ['water', 'asphalt', 'concrete', 'pavers', 'tile', 'sand', 'grass_short', 'grass_long', 'dirt', 'gravel',
         'wood', 'metal', 'sidewalk', 'pier', 'building']
 S = {n: i for i, n in enumerate(SURF)}
+# V1 zones first (ids unchanged); V2 adds the last three for the synthetic regions
 ZONES = ['water', 'beach', 'nightlife', 'downtown', 'business', 'residential', 'commercial', 'park', 'port',
-         'causeway', 'industrial']
+         'causeway', 'industrial', 'airport', 'rural', 'wilderness']
 Z = {n: i for i, n in enumerate(ZONES)}
-PROPS = ['tree', 'palm', 'lamp', 'signal', 'bus', 'stop', 'crossing', 'waste', 'fountain', 'bike', 'art', 'hydrant']
+# V1 prop types first (ids unchanged). New types are appended; unknown synthetic prop types are appended at build time.
+PROPS = ['tree', 'palm', 'lamp', 'signal', 'bus', 'stop', 'crossing', 'waste', 'fountain', 'bike', 'art', 'hydrant',
+         'royal_palm', 'coconut', 'oak', 'pine', 'cypress', 'mangrove', 'citrus', 'gumbo', 'banyan', 'seagrape',
+         'yield', 'bench', 'water_tap', 'bike_share', 'recycling', 'vending', 'atm', 'post_box', 'phone', 'ev_charger',
+         'shelter', 'toilets', 'beach_shower', 'garage_entrance', 'moto_parking', 'bike_repair', 'photo_booth', 'clock',
+         'bbq', 'taxi_stand', 'dumpster', 'emergency_phone', 'life_ring', 'cctv', 'crane', 'mast', 'flagpole', 'buoy',
+         'satellite_dish', 'utility_box', 'bollard', 'gate', 'gate_arm', 'toll_booth', 'toll_gantry', 'power_pole',
+         'power_tower', 'transformer', 'rail_crossing', 'station_entrance', 'rail_signal', 'buffer_stop', 'info_board',
+         'viewpoint', 'monument', 'picnic', 'fitness_station', 'boat_ramp', 'billboard', 'ad_column', 'entrance',
+         'elevator', 'speed_camera', 'redlight_camera', 'planter', 'manhole', 'lifeguard']
+# land cover classes (4 m raster `cover`, and `cls` of tile areas)
+COVER = ['none', 'park', 'grass', 'wild', 'pitch', 'playground', 'sand', 'dirt', 'parking', 'plaza', 'marina', 'island',
+         'pool', 'scrub', 'forest', 'pine', 'sawgrass', 'wetland', 'mangrove', 'farmland', 'grove', 'paved', 'apron',
+         'runway', 'taxiway', 'campground', 'golf', 'rock', 'gravel', 'dune', 'construction', 'garden', 'cemetery']
 CURB = 0.15
 PIER_Y = 0.3  # docks: one easy step up from land, low enough to climb onto from the water
 Q = 10  # coordinate quantisation: ints in decimetres
@@ -106,16 +121,30 @@ def classify_area(t):
              'asphalt': 'asphalt', 'concrete': 'concrete', 'acrylic': 'asphalt', 'tartan': 'asphalt',
              'dirt': 'dirt', 'paved': 'asphalt'}.get(surf, 'grass_short')
         return 'pitch', s
-    if le in ('park', 'garden', 'dog_park', 'recreation_ground', 'nature_reserve', 'golf_course', 'common') \
-            or lu in ('recreation_ground', 'village_green', 'cemetery') or am == 'grave_yard':
+    if le == 'golf_course':
+        return 'golf', 'grass_short'
+    if lu == 'cemetery' or am == 'grave_yard':
+        return 'cemetery', 'grass_short'
+    if le == 'garden':
+        return 'garden', 'grass_short'
+    if le in ('park', 'dog_park', 'recreation_ground', 'nature_reserve', 'common') \
+            or lu in ('recreation_ground', 'village_green'):
         return 'park', 'grass_short'
     if le == 'playground':
         return 'playground', 'pavers' if surf in ('paving_stones', 'concrete') else 'sand' if surf == 'sand' else 'grass_short'
     if lu in ('grass', 'meadow', 'flowerbed') or n == 'grassland':
         return 'grass', 'grass_short'
-    if n in ('heath', 'scrub', 'wood', 'wetland', 'tree_row') or lu in ('forest', 'greenfield'):
+    if n == 'wetland':
+        return ('mangrove', 'dirt') if t.get('wetland') == 'mangrove' else ('wetland', 'grass_long')
+    if n == 'wood' or lu == 'forest':
+        return 'forest', 'grass_long'
+    if n in ('heath', 'scrub', 'tree_row') or lu in ('greenfield', 'plant_nursery'):
         return 'wild', 'grass_long'
-    if lu in ('construction', 'brownfield'):
+    if n == 'bare_rock':
+        return 'rock', 'gravel'
+    if lu == 'construction':
+        return 'construction', 'dirt'
+    if lu == 'brownfield':
         return 'dirt', 'dirt'
     if am == 'parking' and t.get('parking') not in ('multi-storey', 'underground', 'rooftop'):
         return 'parking', 'asphalt'
@@ -135,253 +164,303 @@ def classify_area(t):
 
 
 def stage_areas():
-    out = []
+    """OSM area features -> land cover areas (cls, surface) and land-use sites (use)."""
+    out, sites = [], []
+    RB = world_box()
     for e in load('areas'):
         t = e.get('tags', {})
         cls, surf = classify_area(t)
-        if not cls:
+        use = POI.site_use(t)
+        if not cls and not use:
             continue
         p = elem_poly(e)
         if p is None or p.area < 4:
             continue
-        out.append(dict(cls=cls, surf=surf, geom=p, name=t.get('name'), area=p.area))
+        if not RB.contains(p):
+            p = fix(p.intersection(RB))
+            if p is None or p.area < 4:
+                continue
+        if cls:
+            out.append(dict(cls=cls, surf=surf, geom=p, name=t.get('name'), area=p.area))
+        if use and p.area >= 30:
+            c = POI.classify(t) or {}
+            sites.append(dict(use=use, geom=p, area=p.area, kind=c.get('kind'), osm=c.get('osm'), sub=c.get('sub'), tier=c.get('tier'),
+                              name=t.get('name') if use in ('marina', 'stadium', 'cemetery', 'golf') and False else None,
+                              addr=POI.address(t), levels=t.get('building:levels')))
     # pedestrian area highways from highways.json (area=yes)
     for e in load('highways'):
         t = e.get('tags', {})
         if t.get('highway') == 'pedestrian' and t.get('area') == 'yes':
             p = elem_poly(e)
             if p is not None:
-                out.append(dict(cls='plaza', surf='pavers', geom=p, name=t.get('name'), area=p.area))
+                p = fix(p.intersection(RB))
+                if p is not None:
+                    out.append(dict(cls='plaza', surf='pavers', geom=p, name=t.get('name'), area=p.area))
     log('areas', len(out), dict(sorted(((c, sum(1 for a in out if a['cls'] == c)) for c in {a['cls'] for a in out}))))
+    log('sites', len(sites), dict(sorted(((c, sum(1 for a in sites if a['use'] == c)) for c in {a['use'] for a in sites}))))
+    return out, sites
+
+
+def barriers():
+    """Fences, walls, hedges and guard rails as lines (tile `bar`)."""
+    RB = world_box()
+    out = []
+    for e in load('areas'):
+        t = e.get('tags', {})
+        k = t.get('barrier')
+        if k not in ('fence', 'wall', 'retaining_wall', 'hedge', 'jersey_barrier', 'guard_rail', 'city_wall', 'handrail', 'chain'):
+            continue
+        ln = way_line(e)
+        if ln is None:
+            continue
+        g = ln.intersection(RB) if not RB.contains(ln) else ln
+        for p_ in (g.geoms if hasattr(g, 'geoms') else [g]):
+            if p_.geom_type == 'LineString' and p_.length > 1:
+                out.append(dict(kind=k, line=p_.simplify(0.3), h=parse_len(t.get('height')), mat=t.get('material') or t.get('fence_type')))
     return out
 
 
-# ---------------------------------------------------------------- districts
-def stage_districts(land, areas, ww_lines):
-    G = Grid(8)
-    names = []
+# ---------------------------------------------------------------- props
+PALM = ('sabal', 'roystonea', 'cocos', 'phoenix', 'washingtonia', 'veitchia', 'wodyetia', 'adonidia', 'palm',
+        'dypsis', 'livistona', 'bismarckia', 'ptychosperma', 'thrinax', 'coccothrinax', 'arecaceae', 'pritchardia', 'syagrus')
+SPECIES = (('roystonea', 'royal_palm'), ('royal palm', 'royal_palm'), ('cocos', 'coconut'), ('coconut', 'coconut'),
+           ('quercus', 'oak'), ('oak', 'oak'), ('pinus', 'pine'), ('pine', 'pine'), ('taxodium', 'cypress'), ('cypress', 'cypress'),
+           ('rhizophora', 'mangrove'), ('mangrove', 'mangrove'), ('citrus', 'citrus'), ('bursera', 'gumbo'), ('gumbo', 'gumbo'),
+           ('ficus', 'banyan'), ('banyan', 'banyan'), ('coccoloba', 'seagrape'), ('seagrape', 'seagrape'), ('sea grape', 'seagrape'))
+AMENITY_PROP = {'waste_basket': 'waste', 'fountain': 'fountain', 'drinking_water': 'water_tap', 'bicycle_parking': 'bike',
+                'bicycle_rental': 'bike_share', 'recycling': 'recycling', 'vending_machine': 'vending', 'atm': 'atm',
+                'post_box': 'post_box', 'telephone': 'phone', 'charging_station': 'ev_charger', 'shelter': 'shelter',
+                'toilets': 'toilets', 'shower': 'beach_shower', 'parking_entrance': 'garage_entrance',
+                'motorcycle_parking': 'moto_parking', 'bicycle_repair_station': 'bike_repair', 'photo_booth': 'photo_booth',
+                'clock': 'clock', 'bbq': 'bbq', 'taxi': 'taxi_stand', 'waste_disposal': 'dumpster'}
+MANMADE_PROP = {'surveillance': 'cctv', 'crane': 'crane', 'tower': 'mast', 'mast': 'mast', 'flagpole': 'flagpole', 'buoy': 'buoy',
+                'satellite_dish': 'satellite_dish', 'street_cabinet': 'utility_box', 'planter': 'planter', 'manhole': 'manhole',
+                'antenna': 'mast', 'communications_tower': 'mast', 'redlight_camera': 'redlight_camera'}
+BARRIER_PROP = {'bollard': 'bollard', 'block': 'bollard', 'gate': 'gate', 'swing_gate': 'gate', 'lift_gate': 'gate_arm',
+                'sliding_gate': 'gate', 'toll_booth': 'toll_booth'}
+HIGHWAY_PROP = {'street_lamp': 'lamp', 'traffic_signals': 'signal', 'bus_stop': 'bus', 'stop': 'stop', 'give_way': 'yield',
+                'crossing': 'crossing', 'toll_gantry': 'toll_gantry', 'elevator': 'elevator', 'speed_camera': 'speed_camera',
+                'speed_display': 'speed_camera'}
+RAILWAY_PROP = {'level_crossing': 'rail_crossing', 'crossing': 'rail_crossing', 'subway_entrance': 'station_entrance',
+                'signal': 'rail_signal', 'buffer_stop': 'buffer_stop'}
 
-    def did(n):
-        if n not in names:
-            names.append(n)
-        return names.index(n)
 
-    UNK = 255
-    landM = G.mask(land)
-    lab = np.full((G.H, G.W), UNK, np.uint8)
-    xs = X0 + (np.arange(G.W) + 0.5) * G.res
-    zs = Z0 + (np.arange(G.H) + 0.5) * G.res
-    XX, ZZ = np.meshgrid(xs, zs)
-    # water names
-    lab[~landM] = did('Biscayne Bay')
-    xcut = ll(LAT0, -80.160)[0]
-    atl = did('Atlantic Ocean')
-    for j in range(G.H):
-        cols = np.flatnonzero(landM[j] & (xs > xcut))
-        e = cols.max() + 1 if cols.size else int((ll(LAT0, -80.135)[0] - X0) / G.res)
-        m = ~landM[j, e:]
-        lab[j, e:][m] = atl
-    for name, line in ww_lines:
-        if name in ('Atlantic Intracoastal Waterway',):
-            continue
-        r = 70 if name in ('Miami River', 'Collins Canal') else 100
-        m = G.mask(line.buffer(r)) & ~landM
-        if name in ('Government Cut', 'Main Channel', "Fisherman's Channel", 'Dodge Island Cut'):
-            m &= lab != atl
-        lab[m] = did(name)
-    landDistrict = len(names)  # ids >= this are land names
-    # land components
-    comps = polys_only(land)
-    known = {
-        'Brickell': ll(25.7615, -80.1929), 'Downtown': ll(25.7745, -80.1920), 'Watson Island': ll(25.7849, -80.1757),
-        'PortMiami': ll(25.7741, -80.1661), 'Fisher Island': ll(25.7609, -80.1406), 'Brickell Key': ll(25.7673, -80.1850),
-        'Miami Beach': ll(25.7800, -80.1320),
-    }
-    compName = {}
-    for nm, (x, z) in known.items():
-        for k, c in enumerate(comps):
-            if c.contains(Point(x, z)):
-                compName[k] = nm
-    lm = landM.copy()
-    for k, c in enumerate(comps):
-        nm = compName.get(k)
-        if nm is None or nm == 'Miami Beach':
-            continue
-        if nm == 'Downtown':
-            m = G.mask(c)
-            zA, zE = ll(25.7875, LON0)[1], ll(25.7945, LON0)[1]
-            lab[m & (ZZ > zA)] = did('Downtown')
-            lab[m & (ZZ <= zA) & (ZZ > zE)] = did('Arts & Entertainment District')
-            lab[m & (ZZ <= zE)] = did('Edgewater')
-        elif nm == 'Watson Island':
-            m = G.mask(c)
-            xc = ll(LAT0, -80.1728)[0]
-            lab[m & (XX <= xc)] = did('Watson Island')
-            lab[m & (XX > xc)] = did('MacArthur Causeway')
-        else:
-            lab[G.mask(c)] = did(nm)
-    dd = {e['tags'].get('name'): e for e in load('districts')}
-    if 'Overtown' in dd:
-        p = elem_poly(dd['Overtown'])
-        if p is not None:
-            lab[G.mask(p) & lm] = did('Overtown')
-    if 'Miami Beach' in dd:
-        mb = elem_poly(dd['Miami Beach'])
-        m = G.mask(mb) & lm if mb is not None else np.zeros_like(lm)
-        for k, c in enumerate(comps):
-            if compName.get(k) == 'Miami Beach':
-                m |= G.mask(c)
-        z5, zD = ll(25.7737, LON0)[1], ll(25.7935, LON0)[1]
-        mbm = m & lm
-        lab[mbm & (ZZ > z5)] = did('South of Fifth')
-        lab[mbm & (ZZ <= z5) & (ZZ > zD)] = did('South Beach')
-        lab[mbm & (ZZ <= zD)] = did('Collins Park')
-    # Sunset Islands (unnamed fingers north of Venetian Causeway, west of Alton Rd)
-    sx0, sz0 = ll(25.7965, -80.1510)
-    sx1, sz1 = ll(25.8030, -80.1395)
-    for k, c in enumerate(comps):
-        rp = c.representative_point()
-        if compName.get(k) is None and sx0 < rp.x < sx1 and sz1 < rp.y < sz0:
-            lab[G.mask(c)] = did('Sunset Islands')
-            compName[k] = 'Sunset Islands'
-    # named islands (override)
-    for e in load('districts'):
-        t = e.get('tags', {})
-        if t.get('place') in ('island', 'islet') and t.get('name'):
-            p = elem_poly(e)
-            if p is not None:
-                lab[G.mask(p) & lm] = did(t['name'])
-    for a in areas:
-        pass
-    # unknown land comps: causeway strips or nearest fill
-    return G, lab, names, landM, UNK, comps, compName
+def prop_type(t):
+    if t.get('natural') == 'tree':
+        s_ = ' '.join(str(t.get(k, '')) for k in ('species', 'genus', 'taxon', 'leaf_type', 'species:en', 'taxon:en', 'name')).lower()
+        for needle, typ in SPECIES:
+            if needle in s_:
+                return typ
+        return 'palm' if any(p_ in s_ for p_ in PALM) else 'tree'
+    hw = (t.get('highway') or '').split(';')[0]
+    if hw in HIGHWAY_PROP:
+        return HIGHWAY_PROP[hw]
+    a = t.get('amenity')
+    if a in AMENITY_PROP:
+        return AMENITY_PROP[a]
+    if t.get('tourism') == 'artwork':
+        return 'art'
+    if t.get('tourism') == 'information' and t.get('information') in ('board', 'map', 'guidepost'):
+        return 'info_board'
+    if t.get('tourism') == 'viewpoint':
+        return 'viewpoint'
+    em = t.get('emergency')
+    if em:
+        return {'fire_hydrant': 'hydrant', 'phone': 'emergency_phone', 'life_ring': 'life_ring', 'lifeguard': 'lifeguard'}.get(em)
+    mm = t.get('man_made')
+    if mm in MANMADE_PROP:
+        return MANMADE_PROP[mm]
+    if t.get('barrier') in BARRIER_PROP:
+        return BARRIER_PROP[t['barrier']]
+    pw = t.get('power')
+    if pw in ('pole', 'tower', 'transformer'):
+        return {'pole': 'power_pole', 'tower': 'power_tower', 'transformer': 'transformer'}[pw]
+    if t.get('railway') in RAILWAY_PROP:
+        return RAILWAY_PROP[t['railway']]
+    if t.get('historic') in ('memorial', 'monument'):
+        return 'monument'
+    le = t.get('leisure')
+    if le in ('picnic_table', 'fitness_station', 'slipway'):
+        return {'picnic_table': 'picnic', 'fitness_station': 'fitness_station', 'slipway': 'boat_ramp'}[le]
+    if t.get('advertising') in ('billboard', 'column', 'board'):
+        return 'ad_column' if t['advertising'] == 'column' else 'billboard'
+    if t.get('entrance') in ('main', 'yes', 'staircase', 'service', 'home', 'shop', 'garage', 'emergency', 'exit'):
+        return 'entrance'
+    return None
+
+
+def prop_id(name):
+    if name not in PROPS:
+        PROPS.append(name)
+    return PROPS.index(name)
 
 
 # ---------------------------------------------------------------- main
 def main():
-    os.makedirs(TILES, exist_ok=True)
-    os.makedirs(DOCS, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
-    L = stage_land()
-    land = L['land']
+    rx0, rz0, rx1, rz1 = REAL_RECT
+    RB = box(rx0, rz0, rx1, rz1)
+    WB = box(X0, Z0, X1, Z1)
+    Lr = stage_land()
+    land_real = fix(Lr['land'].intersection(RB))
+    log(f'real land {land_real.area/1e6:.2f} km2 in a {RB.area/1e6:.1f} km2 rectangle; world {WB.area/1e6:.1f} km2')
+
+    # ---- synthetic world (may be absent)
+    SY = ING.load(FEATURES, log)
+    terrain = ING.terrain_sampler(SY['heights'] if SY else None)
+    land = land_real
+    inland = list(Lr['water'])           # (geom, name, kind) for map layers
+    if SY and SY['land_raw'] is not None:
+        sl = fix(SY['land_raw'].difference(RB))
+        sw = [w['geom'] for w in SY['water_polys']]
+        if sw and sl is not None:
+            sl = fix(sl.difference(unary_union(sw)))
+        if sl is not None:
+            land = fix(unary_union([land_real, sl]).intersection(WB))
+        inland += [(w['geom'], w.get('name'), w.get('kind') or 'lake') for w in SY['water_polys']]
+        log(f'merged land {land.area/1e6:.2f} km2 ({len(polys_only(land))} pieces)')
     prepare(land)
-    log(f'land {land.area/1e6:.2f} km2')
 
     def is_water_pt(x, z):
         return not contains_xy(land, x, z)
 
-    areas = stage_areas()
+    areas, sites = stage_areas()
     clipped = []
     for a in areas:
         g = a['geom']
-        if not land.contains(g):
-            g = fix(g.intersection(land))
+        if not land_real.contains(g):
+            g = fix(g.intersection(land_real))
             if g is None or g.area < 4:
                 continue
             a['geom'], a['area'] = g, g.area
         clipped.append(a)
     log(f'areas clipped to land: {len(areas)} -> {len(clipped)}')
     areas = clipped
+    if SY:
+        for a in SY['areas']:
+            g = a['geom']
+            if a['cls'] not in ('sand', 'dune', 'mangrove', 'wetland', 'sawgrass') and not land.contains(g):
+                g = fix(g.intersection(land))
+                if g is None or g.area < 4:
+                    continue
+                a['geom'], a['area'] = g, g.area
+            areas.append(a)
     ww_lines = []
     for e in load('areas'):
         t = e.get('tags', {})
-        if t.get('waterway') in ('river', 'canal') and t.get('name') and e['type'] == 'way':
+        if t.get('waterway') in ('river', 'canal', 'stream') and t.get('name') and e['type'] == 'way':
             ln = way_line(e)
             if ln is not None:
                 ww_lines.append((t['name'], ln))
 
     # ---- roads first (needed for causeway corridors & nightlife)
-    nodes, edges = R.build_graph(is_water_pt)
+    syn_ways = SY['ways'] if SY else []
+    stitch_rep = None
+    if syn_ways:
+        _, _, bnd, _ = R.osm_ways()
+        extra, stitch_rep = R.stitch(syn_ways, bnd, log)
+        syn_ways = syn_ways + extra
+        ING.node_roads(syn_ways, log)
+    nodes, edges, ginfo = R.build_graph(is_water_pt, syn_ways, terrain if SY and SY['heights'] else None, log)
     for i, e in enumerate(edges):
         e['id'] = i
         e['line'] = LineString(e['pts'])
+    # real roads kept just outside the rectangle (they tie clipped streets back to the network) need real ground under them
+    outs = [e['line'].buffer(e['w'] / 2 + 14) for e in edges if e.get('outside')]
+    if outs:
+        strip = fix(unary_union(outs).intersection(Lr['land']).difference(RB))
+        if strip is not None:
+            land = fix(unary_union([land, strip]).intersection(WB) if WB.area > RB.area + 1 else unary_union([land, strip]))
+            prepare(land)
+            log(f'land under {len(outs)} real road edges outside the rectangle: +{strip.area/1e4:.1f} ha')
+    turn_no, turn_via = R.restrictions(nodes, edges, ginfo)
+    signal_nodes, exits = R.controls(nodes, edges)
     fws = R.footways()
     piers = R.piers()
-    log(f'graph nodes {len(nodes)} edges {len(edges)}; footways {len(fws)}; piers {len(piers)}')
+    rails = R.rails()
+    bars = barriers()
+    if SY:
+        fws += SY['fws']
+        piers += SY['piers']
+    log(f'graph nodes {len(nodes)} edges {len(edges)}; footways {len(fws)}; piers {len(piers)}; rails {len(rails)}; barriers {len(bars)}')
 
     # ---- districts
-    G8, dlab, dnames, land8, UNK, comps, compName = stage_districts(land, areas, ww_lines)
-    corridor_names = {'MacArthur Causeway': 'MacArthur Causeway', 'Venetian Way': 'Venetian Causeway',
-                      'Venetian Causeway': 'Venetian Causeway', 'Port Boulevard': 'Port Boulevard',
-                      'Rickenbacker Causeway': 'Rickenbacker Causeway'}
-
-    def did(n):
-        if n not in dnames:
-            dnames.append(n)
-        return dnames.index(n)
-
-    corr = defaultdict(list)
-    for e in edges:
-        if e['name'] in corridor_names:
-            corr[corridor_names[e['name']]].append(e['line'])
-    corrM = np.zeros_like(land8)
-    for nm, lines in corr.items():
-        m = G8.mask(unary_union(lines).buffer(22))
-        corrM |= m
-        # water corridor and unnamed land strips along it
-        dlab[m & ~land8] = did(nm)
-    for k, c in enumerate(comps):
-        if compName.get(k):
-            continue
-        cm = G8.mask(c)
-        if not cm.any():
-            continue
-        cur = dlab[cm]
-        if (cur != UNK).mean() > 0.5:
-            continue
-        hit = None
-        for nm, lines in corr.items():
-            if any(c.distance(l) < 25 for l in lines):
-                hit = nm
-                break
-        if hit:
-            dlab[cm & (dlab == UNK)] = did(hit)
-        elif c.area < 60000:
-            dlab[cm & (dlab == UNK)] = did('Biscayne Bay Islands')
-    dlab = label_fill(dlab, UNK)
+    import districts as D
+    G8, dlab, dnames, land8, corrM = D.stage_districts(land, land_real, edges, ww_lines, SY)
     log('districts', dnames)
+    xs8 = X0 + (np.arange(G8.W) + 0.5) * 8
+    zs8 = Z0 + (np.arange(G8.H) + 0.5) * 8
+    inReal8 = ((xs8 >= rx0) & (xs8 < rx1))[None, :] & ((zs8 >= rz0) & (zs8 < rz1))[:, None]
 
     # ---- zones (8 m)
     zlab = np.full(dlab.shape, Z['residential'], np.uint8)
+    zlab[land8 & ~inReal8] = Z['rural']
     zlab[~land8] = Z['water']
     for a in areas:
         if a['cls'] == 'lu_commercial':
             zlab[G8.mask(a['geom']) & land8] = Z['commercial']
         elif a['cls'] == 'lu_industrial':
-            zlab[G8.mask(a['geom']) & land8] = Z['industrial']
+            zlab[G8.mask(a['geom']) & land8] = Z[a.get('zone') or 'industrial']
+        elif a['cls'] in ('lu_residential', 'lu_airport') and a.get('zone'):
+            zlab[G8.mask(a['geom']) & land8] = Z[a['zone']]
+    # synthetic land cover -> zones (grouped per zone for speed)
+    zgroups = defaultdict(list)
+    for a in areas:
+        if a.get('synthetic') and a.get('zone') and not a['cls'].startswith('lu_'):
+            zgroups[a['zone']].append(a['geom'])
+    for zn in ('wilderness', 'rural', 'park', 'beach', 'airport'):
+        if zgroups.get(zn):
+            zlab[G8.mask(zgroups[zn]) & land8 & ~inReal8] = Z[zn]
+    # towns of the synthetic world: the zone each building was authored with spreads ~30 m around it (streets, yards)
+    if SY:
+        bz = defaultdict(list)
+        for b in SY['buildings']:
+            if b.get('zone') in ('residential', 'commercial', 'industrial', 'airport', 'port'):
+                bz[b['zone']].append(b['geom'])
+        for zn in ('residential', 'industrial', 'airport', 'port', 'commercial'):
+            if bz.get(zn):
+                m = dilate(G8.mask(bz[zn]), 4) & land8 & ~inReal8
+                zlab[m & np.isin(zlab, [Z['rural'], Z['wilderness'], Z['residential']] if zn != 'airport' else [Z['rural']])] = Z[zn]
     pois_raw = [e for e in load('pois') if e.get('tags')]
     cnt = np.zeros(dlab.shape, np.float32)
     for e in pois_raw:
         t = e['tags']
         if 'shop' in t or t.get('amenity') in ('restaurant', 'cafe', 'bar', 'fast_food', 'pub', 'nightclub', 'bank', 'pharmacy'):
             x, z = proj(e.get('lon', e.get('center', {}).get('lon', 0)), e.get('lat', e.get('center', {}).get('lat', 0)))
-            i, j = G8.cell(x, z)
-            cnt[j, i] += 1
+            if rx0 <= x < rx1 and rz0 <= z < rz1:
+                i, j = G8.cell(x, z)
+                cnt[j, i] += 1
+    for p_ in (SY['pois'] if SY else []):
+        i, j = G8.cell(p_['x'], p_['z'])
+        cnt[j, i] += 1
     k = 9
     cs = np.cumsum(np.cumsum(np.pad(cnt, ((k // 2 + 1, k // 2), (k // 2 + 1, k // 2))), 0), 1)
     box9 = cs[k:, k:] - cs[:-k, k:] - cs[k:, :-k] + cs[:-k, :-k]
-    zlab[(box9 >= 4) & land8 & (zlab == Z['residential'])] = Z['commercial']
+    zlab[(box9 >= 4) & land8 & np.isin(zlab, [Z['residential'], Z['rural']])] = Z['commercial']
     dn = {n: i for i, n in enumerate(dnames)}
     for n, zn in (('Downtown', 'downtown'), ('Arts & Entertainment District', 'downtown'), ('Brickell', 'business'),
                   ('Brickell Key', 'business'), ('PortMiami', 'port'), ('Watson Island', 'park'),
-                  ('MacArthur Causeway', 'causeway'), ('Venetian Causeway', 'causeway'), ('Port Boulevard', 'causeway')):
+                  ('MacArthur Causeway', 'causeway'), ('Venetian Causeway', 'causeway'), ('Port Boulevard', 'causeway'),
+                  ('Julia Tuttle Causeway', 'causeway'), ('Rickenbacker Causeway', 'causeway')):
         if n in dn:
-            zlab[(dlab == dn[n]) & land8] = Z[zn]
+            zlab[(dlab == dn[n]) & land8 & inReal8] = Z[zn]
     zlab[corrM & ~land8] = Z['causeway']
     for a in areas:
-        if a['cls'] in ('park', 'pitch', 'playground') and a['area'] >= 1500 or (a['cls'] == 'grass' and a['area'] >= 6000):
+        if a.get('synthetic'):
+            continue
+        if a['cls'] in ('park', 'pitch', 'playground', 'golf', 'cemetery', 'garden') and a['area'] >= 1500 or (a['cls'] == 'grass' and a['area'] >= 6000):
             m = G8.mask(a['geom']) & land8
             zlab[m & (zlab != Z['port'])] = Z['park']
-    sobe = np.isin(dlab, [dn.get(n, -1) for n in ('South Beach', 'South of Fifth', 'Collins Park')])
+    sobe = np.isin(dlab, [dn.get(n, -1) for n in ('South Beach', 'South of Fifth', 'Collins Park', 'Mid-Beach', 'Bayshore')])
     z5, z16 = ll(25.7735, LON0)[1], ll(25.7905, LON0)[1]
-    nl = [e['line'] for e in edges if e['name'] in ('Ocean Drive', 'Collins Avenue', 'Washington Avenue')]
-    nl2 = [e['line'] for e in edges if e['name'] in ('Española Way', 'Espanola Way', 'Lincoln Road')]
+    nl = [e['line'] for e in edges if e['name'] in ('Ocean Drive', 'Collins Avenue', 'Washington Avenue') and not e.get('synthetic')]
+    nl2 = [e['line'] for e in edges if e['name'] in ('Española Way', 'Espanola Way', 'Lincoln Road') and not e.get('synthetic')]
     nl2 += [f['line'] for f in fws if f.get('name') in ('Lincoln Road', 'Española Way', 'Lincoln Road Mall')]
-    ZZ = Z0 + (np.arange(dlab.shape[0]) + 0.5) * 8
-    band = ((ZZ < z5) & (ZZ > z16))[:, None]
-    nmask = (G8.mask(unary_union(nl).buffer(70)) & band) | G8.mask(unary_union(nl2).buffer(45))
-    zlab[nmask & sobe & land8 & (zlab != Z['park'])] = Z['nightlife']
-    sand8 = G8.mask([a['geom'] for a in areas if a['cls'] == 'sand']) & land8
+    band = ((zs8 < z5) & (zs8 > z16))[:, None]
+    if nl and nl2:
+        nmask = (G8.mask(unary_union(nl).buffer(70)) & band) | G8.mask(unary_union(nl2).buffer(45))
+        zlab[nmask & sobe & land8 & (zlab != Z['park'])] = Z['nightlife']
+    sand8 = G8.mask([a['geom'] for a in areas if a['cls'] in ('sand', 'dune')]) & land8
     beachParks = [a['geom'] for a in areas if a['cls'] == 'park' and a['name'] in ('Lummus Park', 'Marjory Stoneman Douglas Ocean Beach Park')]
     zlab[dilate(sand8, 1) & land8] = Z['beach']
     if beachParks:
@@ -397,27 +476,45 @@ def main():
         return int(dlab[j, i])
 
     # ---- buildings
-    bl = stage_buildings(zone_at)
+    bl = stage_buildings(zone_at, sites)
+    if SY:
+        n0 = len(bl)
+        for b in SY['buildings']:
+            zn = Z.get(b.pop('zone', None))
+            rp = b['geom'].representative_point()
+            b['zn'] = zn if zn is not None else zone_at(rp.x, rp.y)
+            b['geom'] = orient(b['geom'].simplify(0.05, preserve_topology=True), 1.0)
+            c = None
+            if b.get('poi'):
+                c = POI.classify({'shop': b['poi']}) if b['poi'] not in POI.AMENITY_KIND and b['poi'] not in POI.AMENITY_USE else POI.classify({'amenity': b['poi']})
+            b['use'] = (c or {}).get('use') or POI.BUILDING_USE.get(b['typ'])
+            b['id'] = n0 + len(bl) - n0
+            bl.append(b)
+        for i, b in enumerate(bl):
+            b['id'] = i
     ground_b = [b for b in bl if b['mh'] < 0.5]
     btree = STRtree([b['geom'] for b in ground_b])
     log(f'buildings {len(bl)} (ground {len(ground_b)}), tallest {max(b["h"] for b in bl):.0f} m')
 
     # ---- sidewalks / carriageways
-    carr_lines = [e['line'].buffer(e['w'] / 2, quad_segs=4) for e in edges if e['y'] is None]
+    carr_lines = [e['line'].buffer(e['w'] / 2, quad_segs=4) for e in edges if e['y'] is None or e.get('tr')]
     carriage = unary_union(carr_lines)
     log('carriage union done')
     sw_edges = []
     outer = []
+    NO_SW_ZONES = ('port', 'water', 'wilderness', 'airport')
     for e in edges:
-        if e['y'] is not None or e['kind'] not in R.SIDEWALK_KINDS:
+        if (e['y'] is not None and not e.get('tr')) or e['kind'] not in R.SIDEWALK_KINDS:
             continue
         if e['kind'] == 'trunk' and e['name'] in ('MacArthur Causeway',):
             continue
-        if e.get('sidewalk') == 'no' or e.get('sidewalk') == 'none':
+        if e.get('sidewalk') in ('no', 'none', 'separate') and e.get('sidewalk') != 'separate':
             continue
         mid = e['line'].interpolate(0.5, normalized=True)
         zn = ZONES[zone_at(mid.x, mid.y)]
-        if zn in ('port', 'water'):
+        if zn in NO_SW_ZONES:
+            continue
+        if e.get('synthetic') and e.get('sidewalk') not in ('yes', 'both', 'left', 'right') and (zn in ('rural', 'industrial') or e['kind'] in ('trunk', 'primary') and zn not in ('commercial', 'downtown', 'business')):
             continue
         sw = {'downtown': 3.4, 'business': 3.4, 'nightlife': 3.2, 'commercial': 3.0, 'beach': 3.0}.get(zn, 2.2)
         e['sw'] = sw
@@ -451,24 +548,36 @@ def main():
                     ped_lines.append(dict(e=e['id'], side=side, line=p, zn=zone_at(m.x, m.y)))
     log(f'ped sidewalk lines {len(ped_lines)} total {sum(p["line"].length for p in ped_lines)/1000:.1f} km')
 
-    # ---- surface raster (2 m)
+    # ---- surface raster (2 m) and land cover raster (4 m)
     G2 = Grid(2)
     land2 = G2.mask(land)
     zup = np.repeat(np.repeat(zlab, 4, 0), 4, 1)[:G2.H, :G2.W]
     surf = np.full((G2.H, G2.W), S['concrete'], np.uint8)
-    for zn in ('residential', 'park', 'causeway', 'beach'):
+    for zn in ('residential', 'park', 'causeway', 'beach', 'rural'):
         surf[zup == Z[zn]] = S['grass_short']
-    order = ['lu_residential', 'wild', 'grass', 'park', 'island', 'dirt', 'parking', 'marina', 'pitch', 'playground', 'plaza', 'sand', 'pool']
-    for cls in order:
+    surf[zup == Z['wilderness']] = S['grass_long']
+    del zup
+    order = ['lu_residential', 'farmland', 'grove', 'wild', 'scrub', 'forest', 'pine', 'sawgrass', 'wetland', 'mangrove', 'grass', 'park',
+             'golf', 'cemetery', 'garden', 'campground', 'island', 'dirt', 'construction', 'rock', 'gravel', 'parking', 'paved', 'marina',
+             'apron', 'taxiway', 'runway', 'pitch', 'playground', 'plaza', 'dune', 'sand', 'pool']
+    G4 = Grid(4)
+    cover = np.zeros((G4.H, G4.W), np.uint8)
+    for cls in order + sorted({a['cls'] for a in areas} - set(order)):
         groups = defaultdict(list)
         for a in areas:
             if a['cls'] == cls and a['surf']:
                 groups[a['surf']].append(a['geom'])
         for s_, gs in groups.items():
             surf[G2.mask(gs) & land2] = S[s_]
+        allg = [a['geom'] for a in areas if a['cls'] == cls and a['surf']]
+        if allg and not cls.startswith('lu_'):
+            if cls not in COVER:
+                COVER.append(cls)
+            cover[G4.mask(allg)] = COVER.index(cls)
     fwsurf = {'concrete': 'concrete', 'asphalt': 'asphalt', 'paving_stones': 'pavers', 'paved': 'concrete', 'sett': 'pavers',
               'brick': 'pavers', 'concrete:plates': 'concrete', 'sand': 'sand', 'wood': 'wood', 'metal': 'metal',
-              'unpaved': 'dirt', 'dirt': 'dirt', 'ground': 'dirt', 'compacted': 'gravel', 'gravel': 'gravel', 'grass': 'grass_short'}
+              'unpaved': 'dirt', 'dirt': 'dirt', 'ground': 'dirt', 'compacted': 'gravel', 'gravel': 'gravel', 'grass': 'grass_short',
+              'fine_gravel': 'gravel', 'pebblestone': 'gravel', 'earth': 'dirt', 'mud': 'dirt'}
     groups = defaultdict(list)
     for f in fws:
         if f['br'] and f['surface'] != 'wood':
@@ -478,8 +587,19 @@ def main():
     for s_, ls in groups.items():
         surf[G2.lines_mask(ls) & land2] = S[s_]
     surf[G2.mask(sw_polys) & land2] = S['sidewalk']
+    # carriageways by their real surface (dirt and gravel roads in the synthetic regions)
+    rsurf = {'gravel': 'gravel', 'dirt': 'dirt', 'sand': 'sand', 'unpaved': 'dirt', 'ground': 'dirt', 'compacted': 'gravel',
+             'fine_gravel': 'gravel', 'concrete': 'concrete', 'grass': 'grass_short', 'paving_stones': 'pavers', 'sett': 'pavers'}
     carrM = G2.mask(carriage) & land2
     surf[carrM] = S['asphalt']
+    del carrM
+    rgroups = defaultdict(list)
+    for e in edges:
+        s_ = rsurf.get(e.get('surface') or '') or ('dirt' if e['kind'] == 'track' and not e.get('surface') else None)
+        if s_ and (e['y'] is None or e.get('tr')):
+            rgroups[s_].append((e['line'], e['w']))
+    for s_, ls in rgroups.items():
+        surf[G2.lines_mask(ls) & land2] = S[s_]
     bM = G2.mask([b['geom'] for b in ground_b])
     surf[bM] = S['building']
     surf[~land2] = S['water']
@@ -487,31 +607,63 @@ def main():
     bwM = G2.mask([p['geom'] for p in piers if p['kind'] != 'pier']) & ~land2
     surf[bwM] = S['gravel']
     surf[pierM & ~bM] = S['pier']
+    del bM, pierM, bwM
+    cover[~G4.mask(land)] = 0
     log('surface raster', {n: int((surf == i).sum()) for i, n in enumerate(SURF)})
 
-    # ---- seabed depth (4 m), decimetres
-    G4 = Grid(4)
-    land4 = G4.mask(land)
-    sand4 = G4.mask([a['geom'] for a in areas if a['cls'] == 'sand'])
-    STEPS = 70
-    dL = distance_steps(land4, STEPS) * 4.0
-    dS = distance_steps(sand4 & land4, STEPS) * 4.0
-    beachy = dS <= dL + 4
+    # ---- seabed depth (8 m), decimetres
+    sandG = [a['geom'] for a in areas if a['cls'] in ('sand', 'dune')]
+    sand8b = G8.mask(sandG) if sandG else np.zeros_like(land8)
+    STEPS = 40
+    dL = distance_steps(land8, STEPS) * 8.0
+    dS = distance_steps(sand8b & land8, STEPS) * 8.0
+    beachy = dS <= dL + 8
     d_beach = np.minimum(0.25 + 0.035 * dL, 5.0)
     d_wall = np.minimum(2.2 + 0.03 * dL, 6.0)
     depth = np.where(beachy, d_beach, d_wall)
-    chan = G4.mask([ln.buffer(90) for n, ln in ww_lines if n in ('Government Cut', 'Main Channel', "Fisherman's Channel", 'Dodge Island Cut')])
-    depth = np.where(chan & ~land4, np.maximum(depth, np.minimum(4 + 0.05 * dL, 12)), depth)
-    riv = G4.mask([ln.buffer(60) for n, ln in ww_lines if n in ('Miami River', 'Collins Canal')])
-    depth = np.where(riv & ~land4, np.minimum(depth, 4.0), depth)
-    depth[land4] = 0
+    chanL = [ln.buffer(90) for n, ln in ww_lines if n in ('Government Cut', 'Main Channel', "Fisherman's Channel", 'Dodge Island Cut')]
+    if chanL:
+        chan = G8.mask(chanL)
+        depth = np.where(chan & ~land8, np.maximum(depth, np.minimum(4 + 0.05 * dL, 12)), depth)
+    rivL = [ln.buffer(60) for n, ln in ww_lines if n in ('Miami River', 'Collins Canal', 'Indian Creek', 'Wagner Creek', 'Seybold Canal')]
+    if rivL:
+        riv = G8.mask(rivL)
+        depth = np.where(riv & ~land8, np.minimum(depth, 4.0), depth)
+    if SY:
+        # synthetic inland water: explicit depth if given, else by kind
+        KD = {'lake': 4.5, 'canal': 2.6, 'river': 3.2, 'pond': 1.8, 'marsh_open': 0.9}
+        for w in SY['water_polys']:
+            dmax = float(w['depth']) if w.get('depth') else KD.get(w['kind'], 3.0)
+            m = G8.mask(w['geom']) & ~land8
+            depth = np.where(m, np.minimum(depth, dmax), depth)
+    depth[land8] = 0
     depth_dm = np.clip(np.round(depth * 10), 0, 255).astype(np.uint8)
+    # ---- water kind (8 m): 0 land, 1 sea, 2 lake, 3 canal, 4 river, 5 pond, 6 marsh
+    wkind = np.where(land8, 0, 1).astype(np.uint8)
+    WK = {'lake': 2, 'lagoon': 2, 'reservoir': 2, 'basin': 2, 'canal': 3, 'canal_area': 3, 'ditch': 3, 'drain': 3, 'river': 4,
+          'riverbank': 4, 'stream': 4, 'pond': 5, 'marsh_open': 6, 'marsh': 6, 'dock': 1, 'harbour': 1, 'water': 2}
+    wgroups = defaultdict(list)
+    for g_, n_, k_ in inland:
+        wgroups[WK.get(k_, 2)].append(g_)
+    for code, gs in wgroups.items():
+        wkind[G8.mask(gs) & ~land8] = code
+    for n_, ln in ww_lines:
+        if n_ in ('Miami River', 'Wagner Creek', 'Seybold Canal', 'Collins Canal', 'Tamiami Canal'):
+            m = G8.mask(ln.buffer(45)) & ~land8 & (wkind == 1) & inReal8
+            wkind[m] = 4 if 'River' in n_ or 'Creek' in n_ else 3
+
+    # ---- terrain heights (16 m, decimetres above y = 0); zero inside the real rectangle
+    G16 = Grid(16)
+    hgt = np.zeros((G16.H + 1, G16.W + 1), np.int16)
+    if SY and SY['heights']:
+        for j in range(G16.H + 1):
+            z = Z0 + j * 16
+            for i in range(G16.W + 1):
+                hgt[j, i] = int(round(terrain(X0 + i * 16, z) * 10))
+        log(f'terrain: {int((hgt != 0).sum())} non-zero samples, max {hgt.max() / 10:.1f} m, min {hgt.min() / 10:.1f} m')
 
     # ---- POIs / props
-    pois, props, benches_raw = [], [], []
-    PALM = ('sabal', 'roystonea', 'cocos', 'phoenix', 'washingtonia', 'veitchia', 'wodyetia', 'adonidia', 'palm',
-            'dypsis', 'livistona', 'bismarckia', 'ptychosperma', 'thrinax', 'coccothrinax', 'arecaceae', 'pritchardia', 'syagrus')
-    B = box(X0, Z0, X1, Z1)
+    pois, props, benches_raw, doors = [], [], [], []
     for e in pois_raw:
         t = e['tags']
         lat = e.get('lat', e.get('center', {}).get('lat'))
@@ -519,38 +671,71 @@ def main():
         if lat is None:
             continue
         x, z = proj(lon, lat)
-        if not (X0 <= x <= X1 and Z0 <= z <= Z1):
+        if not (rx0 <= x < rx1 and rz0 <= z < rz1):
             continue
-        hw = t.get('highway')
-        if t.get('natural') == 'tree':
-            s = ' '.join(str(t.get(k, '')) for k in ('species', 'genus', 'taxon', 'leaf_type', 'species:en', 'taxon:en', 'name')).lower()
-            props.append((PROPS.index('palm' if any(p in s for p in PALM) else 'tree'), x, z))
-        elif hw == 'street_lamp':
-            props.append((PROPS.index('lamp'), x, z))
-        elif hw == 'traffic_signals':
-            props.append((PROPS.index('signal'), x, z))
-        elif hw == 'bus_stop':
-            props.append((PROPS.index('bus'), x, z))
-        elif hw == 'stop':
-            props.append((PROPS.index('stop'), x, z))
-        elif hw == 'crossing':
-            props.append((PROPS.index('crossing'), x, z))
-        elif t.get('amenity') == 'bench':
+        pt = prop_type(t)
+        if t.get('amenity') == 'bench':
             benches_raw.append((x, z))
-        elif t.get('amenity') == 'waste_basket':
-            props.append((PROPS.index('waste'), x, z))
-        elif t.get('amenity') in ('fountain', 'drinking_water'):
-            props.append((PROPS.index('fountain'), x, z))
-        elif t.get('amenity') == 'bicycle_parking':
-            props.append((PROPS.index('bike'), x, z))
-        elif t.get('tourism') == 'artwork':
-            props.append((PROPS.index('art'), x, z))
-        elif t.get('emergency') == 'fire_hydrant':
-            props.append((PROPS.index('hydrant'), x, z))
-        k = poi_kind(t)
-        if k:
-            pois.append(dict(k=k, x=x, z=z, real=True))
-    log(f'pois {len(pois)} props {len(props)} benches {len(benches_raw)}')
+        elif pt:
+            props.append((prop_id(pt), x, z))
+            if pt == 'entrance':
+                doors.append((x, z, t.get('entrance')))
+        c = POI.classify(t)
+        if c and c.get('kind'):
+            pois.append(dict(k=c['kind'], x=x, z=z, real=True, osm=c.get('osm'), sub=c.get('sub'), tier=c.get('tier'), use=c.get('use'),
+                             addr=POI.address(t), level=c.get('level'), dt=c.get('driveThrough'), os=c.get('outdoorSeating')))
+    # shops and amenities mapped as areas (not on the building itself) also count as POIs at their center
+    for s_ in sites:
+        if s_.get('kind') and s_['use'] not in ('parking', 'parking_garage'):
+            rp = s_['geom'].representative_point()
+            pois.append(dict(k=s_['kind'], x=rp.x, z=rp.y, real=True, osm=s_.get('osm'), sub=s_.get('sub'), tier=s_.get('tier'),
+                             use=s_['use'], addr=s_.get('addr'), site=True))
+    # tree rows -> individual trees every ~8 m
+    for e in load('areas'):
+        t = e.get('tags', {})
+        if t.get('natural') == 'tree_row':
+            ln = way_line(e)
+            if ln is not None:
+                typ = prop_type({'natural': 'tree', 'species': t.get('species', ''), 'genus': t.get('genus', ''), 'leaf_type': t.get('leaf_type', '')})
+                n = max(2, int(ln.length / 8))
+                for i in range(n + 1):
+                    p_ = ln.interpolate(i / n, normalized=True)
+                    if rx0 <= p_.x < rx1 and rz0 <= p_.y < rz1:
+                        props.append((prop_id(typ), p_.x, p_.y))
+    props_h = []        # props with a heading: (type id, x, z, heading radians)
+    if SY:
+        for p_ in SY['pois']:
+            c = POI.classify({'shop': p_['k']}) if p_['k'] not in POI.AMENITY_KIND and p_['k'] not in POI.AMENITY_USE else POI.classify({'amenity': p_['k']})
+            c = c or {'kind': p_['k']}
+            pois.append(dict(k=c.get('kind') or p_['k'], x=p_['x'], z=p_['z'], real=False, osm=c.get('osm'), sub=p_.get('sub') or c.get('sub'),
+                             tier=p_.get('tier'), use=c.get('use'), syn=True))
+        for p_ in SY['props']:
+            if p_['type'] == 'bench':
+                benches_raw.append((p_['x'], p_['z'], p_.get('heading')))
+            elif p_.get('heading') is not None:
+                props_h.append((prop_id(p_['type']), p_['x'], p_['z'], float(p_['heading'])))
+            else:
+                props.append((prop_id(p_['type']), p_['x'], p_['z']))
+        for t_ in SY['trees']:
+            props.append((prop_id(t_['type']), t_['x'], t_['z']))
+    log(f'pois {len(pois)} props {len(props)} (+{len(props_h)} with heading) benches {len(benches_raw)} entrances {len(doors)}')
+
+    # ---- addresses onto buildings that have none
+    n_addr = 0
+    for e in load('addresses'):
+        t = e.get('tags', {})
+        ad = POI.address(t)
+        if not ad or 'lat' not in e:
+            continue
+        x, z = proj(e['lon'], e['lat'])
+        P = Point(x, z)
+        for k in btree.query(P):
+            b = ground_b[k]
+            if not b.get('addr') and b['geom'].contains(P):
+                b['addr'] = ad
+                n_addr += 1
+                break
+    log(f'addresses: {sum(1 for b in bl if b.get("addr"))} buildings have a street address ({n_addr} from address points)')
 
     # ---- storefronts + lean spots
     named = [e for e in edges if e['name'] and e['kind'] not in ('motorway', 'motorway_link')]
@@ -560,25 +745,35 @@ def main():
             named.append(dict(name=f['name'], line=f['line'], id=-1))
             named_lines.append(f['line'])
     ntree = STRtree(named_lines)
-    storefronts, lean = stage_storefronts(ground_b, btree, pois, named, ntree, zone_at, surf, G2)
+    anyroad = [e for e in edges if e['kind'] not in ('motorway', 'motorway_link')]
+    atree_r = STRtree([e['line'] for e in anyroad])
+    storefronts, lean = stage_storefronts(ground_b, btree, pois, named, ntree, anyroad, atree_r, zone_at, surf, G2, doors)
     benches = []
     alltree_lines = [e['line'] for e in edges] + [f['line'] for f in fws]
     atree = STRtree(alltree_lines)
-    for x, z in benches_raw:
-        k = atree.query_nearest(Point(x, z), max_distance=30)
+    for bb in benches_raw:
+        x, z = bb[0], bb[1]
         h = 0.0
-        if len(k):
-            qp = alltree_lines[int(k[0])].interpolate(alltree_lines[int(k[0])].project(Point(x, z)))
-            h = math.atan2(qp.x - x, qp.y - z)
+        if len(bb) > 2 and bb[2] is not None:
+            h = float(bb[2])
+        else:
+            k = atree.query_nearest(Point(x, z), max_distance=30)
+            if len(k):
+                qp = alltree_lines[int(k[0])].interpolate(alltree_lines[int(k[0])].project(Point(x, z)))
+                h = math.atan2(qp.x - x, qp.y - z)
         benches.append(dict(x=x, z=z, heading=h))
     log(f'storefronts {len(storefronts)} ({sum(1 for s in storefronts if s["poi"])} from POIs), lean spots {len(lean)}, benches {len(benches)}')
+
+    # ---- transit (bus stops and routes, people mover, metro, rail)
+    import transit as TR
+    transit = TR.build(nodes, edges, rails, ginfo, log)
 
     # ---- player spawn: Ocean Drive west sidewalk near 9th-10th St facing north along the strip
     tx, tz = ll(25.7800, -80.1307)
     best = None
     for pl in ped_lines:
         e = edges[pl['e']]
-        if e['name'] != 'Ocean Drive':
+        if e['name'] != 'Ocean Drive' or e.get('synthetic'):
             continue
         mp = pl['line'].interpolate(pl['line'].project(Point(tx, tz)))
         ep = e['line'].interpolate(e['line'].project(mp))
@@ -594,28 +789,16 @@ def main():
         spawn = (tx, CURB, tz)
     spawnHeading = math.pi  # facing north (-Z) along Ocean Drive: deco hotels on the left, Lummus Park + beach on the right
     log('spawn', spawn, 'dist', best[0] if best else None)
+    places = list(SY['places']) if SY else []
+    synth_other = SY.get('other', {}) if SY else {}
+    setpieces = list(SY['setpieces']) if SY else []
+    extra_areas = SY['extra_areas'] if SY else []
+    synth_issues = SY['issues'] if SY else []
+    has_synth = bool(SY)
+    props_list, cover_names = list(PROPS), list(COVER)
 
     # ---- write everything
     write_outputs(locals())
-
-
-def poi_kind(t):
-    s, a, tr = t.get('shop'), t.get('amenity'), t.get('tourism')
-    if s and s not in ('vacant', 'no', 'yes'):
-        m = {'alcohol': 'liquor', 'wine': 'liquor', 'beverages': 'liquor', 'mobile_phone': 'electronics',
-             'computer': 'electronics', 'hairdresser': 'salon', 'beauty': 'salon', 'cosmetics': 'beauty',
-             'department_store': 'clothes', 'boutique': 'clothes', 'fashion_accessories': 'clothes', 'bag': 'clothes',
-             'chemist': 'pharmacy', 'deli': 'convenience', 'kiosk': 'convenience', 'variety_store': 'convenience',
-             'tobacco': 'smoke', 'e-cigarette': 'smoke', 'swimwear': 'clothes', 'perfumery': 'beauty', 'tattoo': 'tattoo'}
-        return m.get(s, s)
-    if a in ('restaurant', 'cafe', 'bar', 'pub', 'fast_food', 'nightclub', 'ice_cream', 'bank', 'pharmacy', 'fuel',
-             'cinema', 'theatre', 'car_rental', 'bureau_de_change', 'stripclub', 'casino', 'dentist', 'clinic'):
-        return 'bar' if a == 'pub' else a
-    if tr in ('hotel', 'hostel', 'motel', 'guest_house'):
-        return 'hotel'
-    if t.get('leisure') == 'fitness_centre':
-        return 'gym'
-    return None
 
 
 DEFAULT_KINDS = {
@@ -625,13 +808,24 @@ DEFAULT_KINDS = {
     'business': ['cafe', 'restaurant', 'bank', 'pharmacy', 'convenience', 'clothes', 'fast_food'],
     'commercial': ['convenience', 'restaurant', 'fast_food', 'clothes', 'liquor', 'salon', 'pharmacy', 'hardware'],
 }
+# storefront kind for a building whose land use is known but that has no POI node of its own
+USE_KIND = {'fuel': 'fuel', 'hotel': 'hotel', 'supermarket': 'supermarket', 'car_dealer': 'car', 'car_repair': 'car_repair',
+            'car_wash': 'car_wash', 'car_rental': 'car_rental', 'laundromat': 'laundry', 'gym': 'gym', 'bank': 'bank',
+            'pharmacy': 'pharmacy', 'restaurant': 'restaurant', 'fast_food': 'fast_food', 'cafe': 'cafe', 'bar': 'bar',
+            'nightclub': 'nightclub', 'cinema': 'cinema', 'theatre': 'theatre', 'clinic': 'clinic', 'post_office': 'post_office',
+            'mall': 'mall', 'museum': 'museum', 'library': 'library', 'veterinary': 'veterinary', 'storage': 'storage_rental',
+            'police': 'police', 'fire_station': 'fire_station', 'hospital': 'hospital', 'school': 'school', 'university': 'university',
+            'worship': 'worship', 'courthouse': 'courthouse', 'townhall': 'townhall', 'community': 'community',
+            'kindergarten': 'childcare', 'childcare': 'childcare', 'marina': 'marina', 'arts': 'gallery', 'venue': 'venue',
+            'convention': 'venue', 'cruise_terminal': 'cruise_terminal', 'ferry_terminal': 'ferry_terminal', 'station': 'station',
+            'office': 'office', 'nursing_home': 'nursing_home', 'social': 'social'}
 
 
-def stage_buildings(zone_at):
+def stage_buildings(zone_at, sites):
     out = []
     parts = []
     els = load('buildings')
-    B = box(X0, Z0, X1, Z1)
+    B = world_box()
     for e in els:
         t = e.get('tags', {})
         g = elem_poly(e)
@@ -700,21 +894,61 @@ def stage_buildings(zone_at):
         if src == 'default' and maxp:
             h = maxp
         b.update(h=h, mh=mh, lv=lv, src=src, zn=zn, typ=typ, partsCover=cover / g.area)
+    stree = STRtree([s_['geom'] for s_ in sites]) if sites else None
+
+    def site_of(g):
+        if stree is None:
+            return None
+        rp = g.representative_point()
+        best = None
+        for k in stree.query(rp):
+            s_ = sites[k]
+            if s_['use'] in ('parking',):
+                continue
+            if s_['geom'].contains(rp) and (best is None or s_['area'] < best['area']):
+                best = s_
+        return best
+
     for b in out:
         if b['partsCover'] >= 0.7:
             continue  # rendered by its parts
-        res.append(mk_building(b, b['typ']))
+        res.append(mk_building(b, b['typ'], site=site_of(b['geom'])))
     for p in parts:
         typ = p['owner']['typ'] if p.get('owner') else 'yes'
         if p.get('owner') and p['owner']['partsCover'] < 0.7:
             continue  # outline already rendered; skip parts to avoid z-fighting
-        res.append(mk_building(p, typ, part=True))
+        if p.get('owner'):
+            # parts inherit what the outline says about the building as a whole
+            for k_ in ('amenity', 'shop', 'tourism', 'office', 'leisure', 'addr:housenumber', 'addr:street', 'start_date',
+                       'building:colour', 'building:material', 'roof:colour', 'roof:material', 'building:architecture'):
+                if k_ in p['owner']['t'] and k_ not in p['t']:
+                    p['t'][k_] = p['owner']['t'][k_]
+        res.append(mk_building(p, typ, part=True, site=site_of(p['geom'])))
+    # OSM sometimes holds the same footprint twice (an outline and an identical part, or a double import);
+    # of two with the same outer ring the one with courtyards (smaller area) is kept
+    seen, uniq = set(), []
+    for b in sorted(res, key=lambda b: b['area']):
+        c = b['geom'].centroid
+        k_ = (round(c.x), round(c.y), round(b['area'] / 3), b['mh'], b['h'])
+        ex = list(b['geom'].exterior.coords)[:-1]
+        k2 = ('v', round(sum(p_[0] for p_ in ex) / len(ex) * 5), round(sum(p_[1] for p_ in ex) / len(ex) * 5), round(b['area']), b['mh'], b['h'])
+        k3 = ('b',) + tuple(round(v) for v in b['geom'].bounds) + (len(ex), b['mh'], b['h'])
+        if k_ in seen or k2 in seen or k3 in seen:
+            continue
+        seen.add(k_)
+        seen.add(k2)
+        seen.add(k3)
+        uniq.append(b)
+    res = uniq
     for i, b in enumerate(res):
         b['id'] = i
     return res
 
 
-def mk_building(b, typ, part=False):
+_year = __import__('re').compile(r'(1[89]\d\d|20[0-2]\d)')
+
+
+def mk_building(b, typ, part=False, site=None):
     t = b['t']
     g = b['geom']
     gs = g.simplify(0.3, preserve_topology=True)
@@ -724,6 +958,12 @@ def mk_building(b, typ, part=False):
     gs = orient(gs, 1.0)
     h = b['h']
     zn = ZONES[b['zn']]
+    use = POI.building_use(t)
+    if site is not None and (use is None or use in ('retail', 'office', 'house', 'apartments', 'government', 'kiosk', 'utility')) \
+            and site['use'] not in ('parking_garage', 'golf', 'construction'):
+        # a building standing on a typed site (school grounds, fuel forecourt, hospital campus) takes the site's use
+        if not (use in ('house', 'apartments') and site['use'] in ('marina', 'mall', 'hotel', 'attraction')):
+            use = site['use']
     if typ in ('house', 'detached', 'semidetached_house', 'bungalow', 'residential') and h < 12:
         st = 'house'
     elif h >= 45:
@@ -732,7 +972,7 @@ def mk_building(b, typ, part=False):
         st = 'deco'
     elif typ in ('roof', 'carport'):
         st = 'canopy'
-    elif typ in ('parking',):
+    elif typ in ('parking',) or use == 'parking_garage':
         st = 'garage'
     elif typ in ('industrial', 'warehouse', 'cruise_terminal', 'hangar', 'service', 'shed', 'garages', 'garage'):
         st = 'industrial'
@@ -740,9 +980,23 @@ def mk_building(b, typ, part=False):
         st = 'midrise'
     else:
         st = 'lowrise'
+    c = POI.classify(t) or {}
+    year = None
+    m = _year.search(str(t.get('start_date') or t.get('year_of_construction') or ''))
+    if m:
+        year = int(m.group(1))
+    rlv = None
+    try:
+        rlv = float(t['roof:levels']) if t.get('roof:levels') else None
+    except ValueError:
+        pass
     return dict(geom=gs, h=h, mh=b['mh'], lv=b['lv'], typ=typ, zn=b['zn'], st=st, part=part, src=b['src'],
                 col=t.get('building:colour') or t.get('colour'), rcol=t.get('roof:colour'),
-                rs=t.get('roof:shape'), area=gs.area)
+                rs=t.get('roof:shape'), area=gs.area, use=use, kind=c.get('kind'), osm=c.get('osm'), sub=c.get('sub'),
+                tier=c.get('tier'), addr=POI.address(t), mat=t.get('building:material') or t.get('building:facade:material'),
+                rmat=t.get('roof:material'), rh=parse_len(t.get('roof:height')), rlv=rlv, year=year,
+                arch=t.get('building:architecture') or t.get('architecture'),
+                rooms=t.get('rooms'), stars=t.get('stars'), dt=c.get('driveThrough'))
 
 
 def default_height(typ, zn, area, g):
@@ -776,90 +1030,165 @@ def default_height(typ, zn, area, g):
     return 6 * r
 
 
-def stage_storefronts(ground_b, btree, pois, named, ntree, zone_at, surf, G2):
-    COM = {'commercial', 'retail', 'hotel', 'office', 'supermarket', 'kiosk', 'mixed', 'mixed_use'}
+def stage_storefronts(ground_b, btree, pois, named, ntree, anyroad, atree_r, zone_at, surf, G2, doors):
+    """Storefront boxes on street-facing facades. Every storefront gets a kind (real OSM type where one exists),
+    a facing (heading toward the street) and the street it faces."""
+    COM = {'commercial', 'retail', 'hotel', 'office', 'supermarket', 'kiosk', 'mixed', 'mixed_use', 'strip', 'store', 'shop'}
     bpois = defaultdict(list)
     for pi, p in enumerate(pois):
-        for k in btree.query(Point(p['x'], p['z']).buffer(2.0)):
-            if ground_b[k]['geom'].distance(Point(p['x'], p['z'])) < 2.0:
-                bpois[int(k)].append(pi)
-                break
+        P = Point(p['x'], p['z'])
+        best = None
+        for k in btree.query(P.buffer(2.5)):
+            d = ground_b[k]['geom'].distance(P)
+            if d < 2.5 and (best is None or d < best[0]):
+                best = (d, int(k))
+        if best:
+            bpois[best[1]].append(pi)
+            p['b'] = ground_b[best[1]]['id']
+    dtree = STRtree([Point(d[0], d[1]) for d in doors]) if doors else None
     stores, lean = [], []
     for bi, b in enumerate(ground_b):
         zn = ZONES[b['zn']]
-        hasP = bi in bpois
+        plist = [pi for pi in bpois.get(bi, []) if not pois[pi].get('level') or pois[pi].get('level') in (0, 1)]
+        upper = [pi for pi in bpois.get(bi, []) if pi not in plist]
+        own_kind = b.get('kind') or USE_KIND.get(b.get('use') or '')
+        if b.get('synthetic') and b.get('poi'):
+            own_kind = own_kind or b['poi']
+        hasP = bool(plist) or bool(own_kind)
         elig = hasP or b['typ'] in COM or (zn in ('nightlife', 'downtown', 'business', 'commercial') and
                                             b['typ'] in ('yes', 'apartments', 'hotel', 'office', 'commercial', 'retail') and b['area'] > 120)
         leanZone = zn in ('nightlife', 'downtown', 'business', 'commercial', 'beach')
-        if (not elig and not leanZone) or b['h'] < 3 or b['st'] in ('canopy', 'house', 'garage', 'industrial'):
+        if (not elig and not leanZone) or b['h'] < 2.6:
+            continue
+        if b['st'] in ('canopy', 'house', 'garage', 'industrial', 'stilt', 'hangar', 'barn') and not hasP:
+            continue
+        if b['st'] == 'canopy':
             continue
         g = b['geom']
         c = list(g.exterior.coords)
         facades = []
-        for i in range(len(c) - 1):
-            (x0, z0), (x1, z1) = c[i], c[i + 1]
-            dx, dz = x1 - x0, z1 - z0
-            Ls = math.hypot(dx, dz)
-            if Ls < 6:
-                continue
-            nx, nz = dz / Ls, -dx / Ls
-            mx, mz = (x0 + x1) / 2, (z0 + z1) / 2
-            probe = Point(mx + nx * 1.5, mz + nz * 1.5)
-            if any(ground_b[k]['geom'].contains(probe) for k in btree.query(probe)):
-                continue
-            k = ntree.query_nearest(probe, max_distance=28)
-            if not len(k):
-                continue
-            ne = named[int(k[0])]
-            qp = ne['line'].interpolate(ne['line'].project(probe))
-            vx, vz = qp.x - mx, qp.y - mz
-            vd = math.hypot(vx, vz)
-            if vd < 1e-3 or (vx * nx + vz * nz) / vd < 0.55:
-                continue
-            facades.append(dict(x0=x0, z0=z0, dx=dx / Ls, dz=dz / Ls, L=Ls, nx=nx, nz=nz, street=ne['name'], dist=vd))
+        for strict in (True, False):
+            for i in range(len(c) - 1):
+                (x0, z0), (x1, z1) = c[i], c[i + 1]
+                dx, dz = x1 - x0, z1 - z0
+                Ls = math.hypot(dx, dz)
+                if Ls < (6 if strict else 4):
+                    continue
+                nx, nz = dz / Ls, -dx / Ls
+                mx, mz = (x0 + x1) / 2, (z0 + z1) / 2
+                probe = Point(mx + nx * 1.5, mz + nz * 1.5)
+                if any(ground_b[k]['geom'].contains(probe) for k in btree.query(probe)):
+                    continue
+                if strict:
+                    k = ntree.query_nearest(probe, max_distance=28)
+                    if not len(k):
+                        continue
+                    ne = named[int(k[0])]
+                    street = ne['name']
+                else:
+                    # typed places off the named streets (strip malls behind a parking lot, kiosks in parks, marinas)
+                    k = atree_r.query_nearest(probe, max_distance=70)
+                    if not len(k):
+                        continue
+                    ne = anyroad[int(k[0])]
+                    street = ne['name']
+                    if not street:
+                        k2 = ntree.query_nearest(probe, max_distance=900)
+                        street = named[int(k2[0])]['name'] if len(k2) else None
+                qp = ne['line'].interpolate(ne['line'].project(probe))
+                vx, vz = qp.x - mx, qp.y - mz
+                vd = math.hypot(vx, vz)
+                if vd < 1e-3 or (vx * nx + vz * nz) / vd < (0.55 if strict else 0.3):
+                    continue
+                facades.append(dict(x0=x0, z0=z0, dx=dx / Ls, dz=dz / Ls, L=Ls, nx=nx, nz=nz, street=street, dist=vd))
+            if facades or not hasP:
+                break
         if not facades:
             continue
         used = []
 
-        def place(f, s, kind, real):
+        def place(f, s, kind, real, extra=None):
             # s = distance along facade of the shop centre
-            for w in (9.0, 7.0, 5.5):
+            for w in (9.0, 7.0, 5.5, 4.2):
                 if w > f['L'] - 0.6:
                     continue
                 s_ = min(max(s, w / 2 + 0.3), f['L'] - w / 2 - 0.3)
                 fx, fz = f['x0'] + f['dx'] * s_, f['z0'] + f['dz'] * s_
                 if any(math.hypot(fx - u[0], fz - u[1]) < (w + u[2]) / 2 + 0.8 for u in used):
                     continue
-                for d in (10.0, 8.0, 6.0, 4.5):
+                for d in (10.0, 8.0, 6.0, 4.5, 3.2):
                     corners = [(fx + f['dx'] * w / 2 * a - f['nx'] * d * bb, fz + f['dz'] * w / 2 * a - f['nz'] * d * bb)
                                for a, bb in ((-1, 0.02), (1, 0.02), (1, 1), (-1, 1))]
                     if all(g.buffer(0.25).contains(Point(cx, cz)) for cx, cz in corners):
                         used.append((fx, fz, w))
-                        stores.append(dict(x=fx - f['nx'] * d / 2, z=fz - f['nz'] * d / 2, y=0.0, w=w, d=d,
-                                           facing=math.atan2(f['nx'], f['nz']), fx=fx, fz=fz, kind=kind, poi=real,
-                                           buildingId=b['id'], street=f['street'], zone=zn))
+                        rec = dict(x=fx - f['nx'] * d / 2, z=fz - f['nz'] * d / 2, y=0.0, w=w, d=d,
+                                   facing=math.atan2(f['nx'], f['nz']), fx=fx, fz=fz, kind=kind, poi=real,
+                                   buildingId=b['id'], street=f['street'], zone=zn)
+                        if extra:
+                            rec.update({k_: v for k_, v in extra.items() if v is not None})
+                        stores.append(rec)
                         return True
             return False
 
+        def along_shifts(f, s):
+            yield s
+            for dlt in (6, -6, 12, -12, 18, -18, 26, -26, 36, -36):
+                if 2 < s + dlt < f['L'] - 2:
+                    yield s + dlt
+
+        tenants = []
         if elig:
-            for pi in bpois.get(bi, [])[:4]:
+            for pi in plist:
                 p = pois[pi]
-                best = min(facades, key=lambda f: abs((p['x'] - f['x0']) * f['nx'] + (p['z'] - f['z0']) * f['nz']))
-                s = (p['x'] - best['x0']) * best['dx'] + (p['z'] - best['z0']) * best['dz']
-                place(best, s, p['k'], True)
-            if bi not in bpois:
-                lst = DEFAULT_KINDS.get(zn, DEFAULT_KINDS['commercial'])
-                nmax = 1 if b['area'] < 400 else 2 if b['area'] < 2000 else 3
-                n = 0
-                for f in sorted(facades, key=lambda f: (f['dist'], -f['L'])):
-                    if n >= nmax:
+                ex = dict(osm=p.get('osm'), sub=p.get('sub'), tier=p.get('tier'), addr=p.get('addr') or b.get('addr'),
+                          dt=p.get('dt'), os=p.get('os'))
+                order = sorted(facades, key=lambda f: abs((p['x'] - f['x0']) * f['nx'] + (p['z'] - f['z0']) * f['nz']))
+                ok = False
+                for f in order[:3]:
+                    s = (p['x'] - f['x0']) * f['dx'] + (p['z'] - f['z0']) * f['dz']
+                    for s2 in along_shifts(f, s):
+                        if place(f, s2, p['k'], True, ex):
+                            ok = True
+                            break
+                    if ok:
                         break
-                    kinds = int(hsh(b['id'], n, 'k') * len(lst))
-                    if place(f, f['L'] / 2, lst[kinds], False):
-                        n += 1
-                    if f['L'] > 22 and n < nmax and place(f, f['L'] * 0.2, lst[(kinds + 3) % len(lst)], False):
-                        n += 1
-        if leanZone:
+                if not ok:
+                    tenants.append(p['k'])
+            for pi in upper:
+                tenants.append(pois[pi]['k'])
+            if not plist:
+                if own_kind:
+                    # the building itself is the place (a hotel, a supermarket, a bank branch): one front door
+                    f = min(facades, key=lambda f: (f['dist'] - min(f['L'], 30) * 0.5))
+                    s0 = f['L'] / 2
+                    if dtree is not None:
+                        for k in dtree.query(g.buffer(1.5)):
+                            dx_, dz_, kind_ = doors[int(k)]
+                            if kind_ in ('main', 'yes', 'shop'):
+                                fb = min(facades, key=lambda ff: abs((dx_ - ff['x0']) * ff['nx'] + (dz_ - ff['z0']) * ff['nz']))
+                                if abs((dx_ - fb['x0']) * fb['nx'] + (dz_ - fb['z0']) * fb['nz']) < 2.5:
+                                    f, s0 = fb, (dx_ - fb['x0']) * fb['dx'] + (dz_ - fb['z0']) * fb['dz']
+                                    break
+                    ex = dict(osm=b.get('osm'), sub=b.get('sub') or b.get('poiSub'), tier=b.get('tier'), addr=b.get('addr'), dt=b.get('dt'))
+                    if not place(f, s0, own_kind, True, ex):
+                        for f2 in sorted(facades, key=lambda f: -f['L']):
+                            if place(f2, f2['L'] / 2, own_kind, True, ex):
+                                break
+                else:
+                    lst = DEFAULT_KINDS.get(zn, DEFAULT_KINDS['commercial'])
+                    nmax = 1 if b['area'] < 400 else 2 if b['area'] < 2000 else 3
+                    n = 0
+                    for f in sorted(facades, key=lambda f: (f['dist'], -f['L'])):
+                        if n >= nmax:
+                            break
+                        kinds = int(hsh(b['id'], n, 'k') * len(lst))
+                        if place(f, f['L'] / 2, lst[kinds], False, dict(addr=b.get('addr'))):
+                            n += 1
+                        if f['L'] > 22 and n < nmax and place(f, f['L'] * 0.2, lst[(kinds + 3) % len(lst)], False, dict(addr=b.get('addr'))):
+                            n += 1
+        if tenants:
+            b['tenants'] = tenants
+        if leanZone and b['st'] not in ('house', 'garage', 'industrial'):
             for f in facades:
                 s = 3.0
                 while s < f['L'] - 2.5:
@@ -870,13 +1199,14 @@ def stage_storefronts(ground_b, btree, pois, named, ntree, zone_at, surf, G2):
                         if surf is None or int(surf[j, i]) in (S['sidewalk'], S['concrete'], S['pavers'], S['tile']):
                             lean.append(dict(x=px, z=pz, heading=math.atan2(f['nx'], f['nz'])))
                     s += 11.0
-    # dedupe lean spots near each other
     return stores, lean
 
 
 # ---------------------------------------------------------------- output
-KEEP = ('land', 'areas', 'nodes', 'edges', 'fws', 'piers', 'dlab', 'dnames', 'zlab', 'bl', 'sw_polys', 'ped_lines',
-        'surf', 'depth_dm', 'pois', 'props', 'storefronts', 'lean', 'benches', 'spawn', 'spawnHeading', 'carriage', 'L')
+KEEP = ('land', 'land_real', 'inland', 'areas', 'sites', 'nodes', 'edges', 'fws', 'piers', 'rails', 'bars', 'dlab', 'dnames', 'zlab',
+        'bl', 'sw_polys', 'ped_lines', 'surf', 'cover', 'depth_dm', 'wkind', 'hgt', 'pois', 'props', 'props_h', 'storefronts', 'lean',
+        'benches', 'spawn', 'spawnHeading', 'turn_no', 'turn_via', 'signal_nodes', 'exits', 'transit', 'places', 'setpieces',
+        'extra_areas', 'synth_issues', 'stitch_rep', 'has_synth', 'props_list', 'cover_names', 'synth_other')
 
 
 def write_outputs(V):
@@ -884,8 +1214,8 @@ def write_outputs(V):
     for e in d['edges']:
         e.pop('line', None)
     with open(os.path.join(WORK, 'v.pkl'), 'wb') as f:
-        pickle.dump(d, f)
-    log('saved work/v.pkl')
+        pickle.dump(d, f, protocol=4)
+    log('saved', os.path.join(WORK, 'v.pkl'))
     import output
     output.run(d)
 

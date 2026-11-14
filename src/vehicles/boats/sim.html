@@ -1,0 +1,196 @@
+<!doctype html><html><head><meta charset="utf-8"><title>boat physics sim harness</title>
+<style>html,body{margin:0;height:100%;background:#0d1b26;overflow:hidden;color:#cfe;font:12px ui-monospace,monospace}#out{position:fixed;left:8px;top:8px;white-space:pre;pointer-events:none;text-shadow:0 1px 2px #000}</style></head>
+<body><div id="out"></div><script type="module">
+// Headless-friendly physics harness for the boats track. A mock `game` (Rapier world, open water, one pier, one beach)
+// runs either the v1 baseline (?impl=v1) or the current boats.js, so steering / stuck numbers are measured the same way.
+//   window.steerTable(keys?)  -> turn rate / radius table at several speeds
+//   window.stuckTest()        -> drive at the pier, at parked boats and at the beach; must always get free
+//   window.run(seconds)       -> advance the sim
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+const q = new URLSearchParams(location.search);
+await RAPIER.init();
+const impl = q.get('impl') || 'v2';
+const mod = await import(impl === 'v1' ? './baseline/boats_v1.js' : '../boats.js');
+const SEA = -0.12;
+const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+world.timestep = 1 / 60;
+const scene = new THREE.Scene();
+// ---- mock world: sea bed, a pier (x 40..44, z -30..30, deck 0.42 m over the water) with pilings, a beach rising for x > 120
+world.createCollider(RAPIER.ColliderDesc.cuboid(2000, 0.5, 2000).setTranslation(0, -10.5, 0));
+const PIER = { x0: 40, x1: 44, z0: -30, z1: 30, y: SEA + 0.42 };
+world.createCollider(RAPIER.ColliderDesc.cuboid((PIER.x1 - PIER.x0) / 2, 0.12, (PIER.z1 - PIER.z0) / 2).setTranslation((PIER.x0 + PIER.x1) / 2, PIER.y - 0.12, 0));
+for (let z = PIER.z0; z <= PIER.z1; z += 6) for (const x of [PIER.x0 + 0.2, PIER.x1 - 0.2]) world.createCollider(RAPIER.ColliderDesc.cylinder(2.2, 0.16).setTranslation(x, SEA - 1.2, z));
+const beachY = (x) => (x > 120 ? Math.min(2.5, -3 + (x - 120) * 0.14) : -10);
+{ // beach wedge as a heightfield-ish stack of thin cuboids (static)
+  for (let x = 120; x < 200; x += 2) world.createCollider(RAPIER.ColliderDesc.cuboid(1, 0.5, 200).setTranslation(x + 1, beachY(x + 1) - 0.5, 0));
+}
+const onPier = (x, z) => x > PIER.x0 && x < PIER.x1 && z > PIER.z0 && z < PIER.z1;
+const city = {
+  seaLevel: SEA, bounds: { minX: -2000, maxX: 2000, minZ: -2000, maxZ: 2000 },
+  isWater: (x, z) => beachY(x) < SEA - 0.02,
+  groundHeightAt: (x, z) => beachY(x),
+  surfaceAt: (x, z) => (onPier(x, z) ? 'wood' : beachY(x) >= SEA ? 'sand' : 'water'),
+  zoneAt: () => 'water', districtAt: () => 'Test Basin',
+  collidersReadyAt: () => true,
+};
+const listeners = {};
+const game = {
+  THREE, RAPIER, world, scene, city, env: null, fx: null, audio: null,
+  fixedHooks: [], updaters: [], clock: { elapsed: 0, dt: 1 / 60 }, timeOfDay: 12,
+  input: { down: () => false, pressed: () => false },
+  player: { position: new THREE.Vector3(-500, 0, -500), heading: 0, velocity: new THREE.Vector3(), state: { inVehicle: false, vehicle: null, grounded: true }, swimming: false, waterDepth: 0, wanted: 0, script: null },
+  ui: {}, hud: { notify() {}, help() {} },
+  on(n, f) { (listeners[n] ||= []).push(f); }, emit(n, d) { let ok = true; for (const f of listeners[n] || []) if (f(d) === false) ok = false; return ok; },
+  movePlayerTo(x, y, z) { game.player.position.set(x, y, z); },
+};
+window.game = game;
+const sys = mod.createBoats(game, { sim: true });
+game.vehicles = { boats: sys.list, boatBoarding: sys.boarding, nearest: sys.nearest };
+window.sys = sys;
+const DT = 1 / 60;
+let simT = 0;
+function step(n = 1) {
+  for (let i = 0; i < n; i++) {
+    try { world.updateSceneQueries?.(); } catch (e) { /* */ }
+    for (const f of game.fixedHooks) f(DT);
+    world.step();
+    game.clock.elapsed += DT; simT += DT;
+    for (const u of game.updaters) u(DT);
+    sys.update(DT);
+  }
+}
+window.run = (s) => { step(Math.round(s / DT)); return simT; };
+const hdg = (b) => b.heading;
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+function drive(b) { b.playerDriven = true; b.engineOn = true; game.player.state.inVehicle = true; game.player.state.vehicle = b; step(2); b.boarding = false; if (sys.boarding) sys.boarding.active = false; }
+function release(b) { b.playerDriven = false; game.player.state.inVehicle = false; game.player.state.vehicle = null; }
+const pos = (b) => { const t = b.body.translation(); return { x: t.x, y: t.y, z: t.z }; };
+const fwdSpeed = (b) => { const lv = b.body.linvel(), h = hdg(b); return lv.x * Math.sin(h) + lv.z * Math.cos(h); };
+const groundSpeed = (b) => { const lv = b.body.linvel(); return Math.hypot(lv.x, lv.z); };
+
+// One steering run: settle at a target speed (fraction of top speed), then hold full rudder for `hold` seconds.
+function steerRun(key, frac, hold = 8) {
+  const b = sys.spawn(key, { x: -300, z: -300 + Math.random() }, 0);
+  if (!b) return null;
+  drive(b);
+  const vmax = (b.spec?.vmax ?? b.spec?.phys?.vmaxKmh ?? 60) / 3.6, target = vmax * frac;
+  let thr = 0;
+  // settle
+  for (let i = 0; i < 60 * 40; i++) {
+    const v = fwdSpeed(b);
+    thr = Math.max(0.05, Math.min(1, thr + (target - v) * 0.002));
+    if (frac >= 0.99) thr = 1;
+    b.setControls({ throttle: thr, steer: 0, brake: 0 });
+    step(1);
+    if (i > 60 * 12 && Math.abs(v - target) < 0.25 && frac < 0.99) break;
+  }
+  const v0 = groundSpeed(b), h0 = hdg(b), p0 = pos(b);
+  let acc = 0, prev = h0, t90 = null, t63 = null, rates = [], speeds = [], rolls = [], minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, slip = [];
+  const N = Math.round(hold / DT);
+  let ssRate = null;
+  const hist = [];
+  for (let i = 0; i < N; i++) {
+    b.setControls({ throttle: thr, steer: 1, brake: 0 });
+    step(1);
+    const h = hdg(b), d = wrap(h - prev); prev = h; acc += d;
+    const p = pos(b); minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
+    hist.push(Math.abs(d) / DT);
+    if (t90 == null && Math.abs(acc) >= Math.PI / 2) t90 = (i + 1) * DT;
+    if (i >= N - 120) {
+      rates.push(Math.abs(d) / DT); speeds.push(groundSpeed(b));
+      const r = b.body.rotation(), qq = new THREE.Quaternion(r.x, r.y, r.z, r.w), up = new THREE.Vector3(0, 1, 0).applyQuaternion(qq), rt = new THREE.Vector3(1, 0, 0).applyQuaternion(qq);
+      rolls.push(Math.asin(Math.max(-1, Math.min(1, rt.y))) * 180 / Math.PI);
+      const lv = b.body.linvel(); const course = Math.atan2(lv.x, lv.z); slip.push(Math.abs(wrap(course - h)) * 180 / Math.PI);
+    }
+  }
+  const avg = (a) => a.reduce((s, x) => s + x, 0) / Math.max(1, a.length);
+  const rate = avg(rates), sp = avg(speeds);
+  for (let i = 0; i < hist.length; i++) { const sm = avg(hist.slice(Math.max(0, i - 3), i + 1)); if (sm >= rate * 0.63) { t63 = (i + 1) * DT; break; } }
+  release(b); sys.remove(b);
+  return { key, frac, entryKmh: +(v0 * 3.6).toFixed(1), turnKmh: +(sp * 3.6).toFixed(1), yawDegS: +(rate * 180 / Math.PI).toFixed(1), radiusM: rate > 1e-4 ? +(sp / rate).toFixed(1) : null,
+    t90s: t90 == null ? null : +t90.toFixed(2), response63s: t63 == null ? null : +t63.toFixed(2), latG: +((sp * rate) / 9.81).toFixed(2), bankDeg: +avg(rolls).toFixed(1), slipDeg: +avg(slip).toFixed(1),
+    circleM: +Math.max(maxX - minX, maxZ - minZ).toFixed(1), turnedDeg: +(Math.abs(acc) * 180 / Math.PI).toFixed(0), L: b.spec?.L };
+}
+// Docking turn: from rest, 35% throttle and full rudder for 6 s.
+function dockRun(key) {
+  const b = sys.spawn(key, { x: -300, z: 300 }, 0); if (!b) return null;
+  drive(b); b.setControls({ throttle: 0, steer: 0 }); step(120);
+  let acc = 0, prev = hdg(b), minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, t90 = null, t180 = null;
+  for (let i = 0; i < 60 * 10; i++) {
+    b.setControls({ throttle: 0.35, steer: 1, brake: 0 }); step(1);
+    const h = hdg(b); acc += wrap(h - prev); prev = h;
+    const p = pos(b); minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
+    if (t90 == null && Math.abs(acc) >= Math.PI / 2) t90 = (i + 1) * DT;
+    if (t180 == null && Math.abs(acc) >= Math.PI) t180 = (i + 1) * DT;
+  }
+  const r = { key, dock: true, t90s: t90 && +t90.toFixed(2), t180s: t180 && +t180.toFixed(2), circleM: +Math.max(maxX - minX, maxZ - minZ).toFixed(1), circleInLengths: +(Math.max(maxX - minX, maxZ - minZ) / (b.spec?.L || 1)).toFixed(2), endKmh: +(groundSpeed(b) * 3.6).toFixed(1) };
+  release(b); sys.remove(b); return r;
+}
+// Straight-line: 0 -> top speed time, top speed, peak bow-up trim, stop distance, reverse speed.
+function straightRun(key) {
+  const b = sys.spawn(key, { x: -300, z: -600 }, 0); if (!b) return null;
+  drive(b); step(60);
+  let top = 0, tPlane = null, maxTrim = 0, t80 = null; const vmax = (b.spec?.vmax ?? b.spec?.phys?.vmaxKmh ?? 60) / 3.6;
+  for (let i = 0; i < 60 * 45; i++) {
+    b.setControls({ throttle: 1, steer: 0 }); step(1);
+    const v = fwdSpeed(b); top = Math.max(top, v);
+    const r = b.body.rotation(), f = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w)); maxTrim = Math.max(maxTrim, Math.asin(f.y) * 180 / Math.PI);
+    if (t80 == null && v > vmax * 0.8) t80 = (i + 1) * DT;
+  }
+  const p0 = pos(b); let stopT = null;
+  for (let i = 0; i < 60 * 30; i++) { b.setControls({ throttle: 0, steer: 0 }); step(1); if (stopT == null && fwdSpeed(b) < 1) { stopT = (i + 1) * DT; break; } }
+  const p1 = pos(b); let rev = 0;
+  for (let i = 0; i < 60 * 8; i++) { b.setControls({ throttle: -1, steer: 0 }); step(1); rev = Math.min(rev, fwdSpeed(b)); }
+  const out = { key, topKmh: +(top * 3.6).toFixed(1), specKmh: +(vmax * 3.6).toFixed(0), t80s: t80 && +t80.toFixed(1), peakTrimDeg: +maxTrim.toFixed(1), coastToStopM: +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(0), coastS: stopT && +stopT.toFixed(1), reverseKmh: +(-rev * 3.6).toFixed(1) };
+  release(b); sys.remove(b); return out;
+}
+window.steerTable = (keys, fracs = [0.15, 0.35, 0.6, 1.0]) => {
+  keys = keys || (impl === 'v1' ? ['skiff', 'console', 'jetski', 'racer', 'cruiser', 'police'] : (sys.testKeys || ['skiff', 'console', 'jetski', 'racer', 'cruiser', 'police']));
+  const rows = [];
+  for (const k of keys) { rows.push(dockRun(k)); for (const f of fracs) rows.push(steerRun(k, f)); rows.push(straightRun(k)); }
+  return { impl, rows: rows.filter(Boolean) };
+};
+window.steerRun = steerRun; window.dockRun = dockRun; window.straightRun = straightRun;
+
+// Stuck test: ram the pier head-on / at 30 deg / stern-first, ram a row of parked boats, run up the beach; then try to leave.
+window.stuckTest = (keys) => {
+  keys = keys || (sys.testKeys || ['skiff', 'console', 'jetski', 'racer', 'cruiser', 'police']);
+  const out = [];
+  const parked = [];
+  const pk = sys.parkKeys || keys;
+  for (let i = 0; i < 6; i++) { const p = sys.spawn(pk[i % pk.length], { x: 30, z: -24 + i * 8 }, Math.PI / 2, { moored: true }); if (p) parked.push(p); }
+  step(120);
+  const scen = [
+    { name: 'pier head-on', start: { x: 70, z: 0 }, h: -Math.PI / 2 },
+    { name: 'pier 30deg', start: { x: 70, z: -22 }, h: -Math.PI / 2 + 0.5 },
+    { name: 'pier end glancing', start: { x: 42, z: 62 }, h: Math.PI },
+    { name: 'parked boats head-on', start: { x: 0, z: 0 }, h: Math.PI / 2 },
+    { name: 'parked boats oblique', start: { x: 0, z: -30 }, h: Math.PI / 2 - 0.6 },
+    { name: 'beach run-up', start: { x: 90, z: 80 }, h: Math.PI / 2 },
+  ];
+  for (const k of keys) for (const sc of scen) {
+    const b = sys.spawn(k, sc.start, sc.h); if (!b) continue;
+    drive(b); step(30);
+    let maxY = -9, maxPitch = 0, onDeck = 0;
+    for (let i = 0; i < 60 * 9; i++) { b.setControls({ throttle: 1, steer: 0 }); step(1); const p = pos(b); maxY = Math.max(maxY, p.y);
+      const r = b.body.rotation(), f = new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w)); maxPitch = Math.max(maxPitch, Math.abs(Math.asin(f.y)) * 180 / Math.PI);
+      if (onPier(p.x, p.z) && p.y > SEA + 0.2) onDeck++; }
+    const hit = pos(b);
+    // try to leave: reverse 5 s, then forward with rudder 6 s
+    for (let i = 0; i < 60 * 5; i++) { b.setControls({ throttle: -1, steer: 0 }); step(1); }
+    const mid = pos(b);
+    for (let i = 0; i < 60 * 6; i++) { b.setControls({ throttle: 1, steer: 1 }); step(1); }
+    const end = pos(b);
+    const backed = Math.hypot(mid.x - hit.x, mid.z - hit.z), moved = Math.hypot(end.x - mid.x, end.z - mid.z);
+    const r = b.body.rotation(), up = new THREE.Vector3(0, 1, 0).applyQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w));
+    out.push({ key: k, scen: sc.name, maxYAboveSea: +(maxY - SEA).toFixed(2), maxPitchDeg: +maxPitch.toFixed(0), framesOnPierDeck: onDeck, backedOffM: +backed.toFixed(1), thenMovedM: +moved.toFixed(1), upright: up.y > 0.8, free: backed > 3 && moved > 6 && up.y > 0.8 && !(onPier(end.x, end.z)), health: b.health, flood: b.flood ?? null });
+    release(b); sys.remove(b);
+  }
+  const parkedMoved = parked.map((p, i) => { const t = pos(p); return +Math.hypot(t.x - 30, t.z - (-24 + i * 8)).toFixed(1); });
+  for (const p of parked) sys.remove(p);
+  return { impl, pass: out.every((o) => o.free), fails: out.filter((o) => !o.free), parkedDriftM: parkedMoved, rows: out };
+};
+window.ready = true;
+document.getElementById('out').textContent = `boat sim harness (${impl}) ready\nboats: ${Object.keys(sys.types || {}).join(', ')}`;
+</script></body></html>

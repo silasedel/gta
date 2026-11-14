@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Design system: products, materials, signs</title><style>body{margin:0;background:#1b1d21;overflow:hidden}canvas{display:block}</style></head><body>
+<script type="module">
+// ?view=products|materials|signs  ?page=0  ?bite=2  ?state=open  ?ids=a,b
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import design from './index.js';
+const q = new URLSearchParams(location.search); design.setAssetBase('/assets/design/'); await design.ready();
+const W = innerWidth, H = innerHeight; const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setSize(W, H); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x2a2c31); scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const sun = new THREE.DirectionalLight(0xfff1dd, 2.2); sun.position.set(3, 6, 5); scene.add(sun);
+const view = q.get('view') || 'products'; const errors = []; let cols, rows, cell, count = 0;
+const grid = (n, c) => { cols = c; rows = Math.ceil(n / c); };
+const place = (o, i, s) => { o.position.x += (i % cols - (cols - 1) / 2) * cell; o.position.z += (Math.floor(i / cols) - (rows - 1) / 2) * cell; scene.add(o); };
+if (view === 'products') {
+  let list = design.products; if (q.get('ids')) list = list.filter((p) => q.get('ids').split(',').includes(p.id)); const per = +(q.get('per') || 45), page = +(q.get('page') || 0); list = list.slice(page * per, page * per + per); grid(list.length, +(q.get('cols') || 9)); cell = 0.34; count = list.length;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(cols * cell + 0.4, rows * cell + 0.4), design.materials.get(THREE, q.get('floor') || 'terrazzo_cream', { repeat: [3, 2] })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+  list.forEach((p, i) => { try { const o = design.buildProduct(THREE, p.id, { bite: +(q.get('bite') || 0), state: q.get('state') || 'closed', sip: +(q.get('sip') || 0) }); if (!o) throw new Error('no model'); const s = o.userData.size; const k = Math.min(1, 0.26 / Math.max(s.w, s.h, s.d)) * (Math.max(s.w, s.h, s.d) < 0.12 ? Math.min(2.2, 0.2 / Math.max(s.w, s.h, s.d)) : 1); o.scale.setScalar(k); o.rotation.y = -0.45; place(o, i); } catch (e) { errors.push(p.id + ': ' + e.message); } });
+} else if (view === 'materials') {
+  const names = design.materials.names(); const per = 60, page = +(q.get('page') || 0); const list = names.slice(page * per, page * per + per); grid(list.length, 10); cell = 0.5; count = names.length; const geo = new THREE.SphereGeometry(0.2, 48, 32);
+  list.forEach((n, i) => { try { const g = new THREE.Group(); const m = new THREE.Mesh(geo, design.materials.get(THREE, n, { repeat: [2, 1], wear: i % 10 === 9 ? 0.75 : 0 })); m.position.y = 0.2; g.add(m); place(g, i); } catch (e) { errors.push(n + ': ' + e.message); } });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 4), design.materials.get(THREE, 'concrete_smooth', { repeat: [3, 2] })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+} else {
+  let list = design.brands.filter((b) => b.storefront); const seen = new Set(); list = list.filter((b) => !seen.has(b.signStyle.type + (seen.size > 40 ? b.id : '')) && seen.add(b.signStyle.type + b.id)).slice(+(q.get('from') || 0), +(q.get('from') || 0) + 20); grid(list.length, 5); cell = 4.2; count = list.length;
+  list.forEach((b, i) => { try { const s = design.signs.build(THREE, b, { width: 3.2 }); s.update(0, q.get('night') === '0' ? 0 : 1); const g = new THREE.Group(); g.add(s.group); g.rotation.x = -Math.PI / 2 + 0.0; g.position.y = 0.2; place(g, i); } catch (e) { errors.push(b.id + ': ' + e.message + ' ' + (e.stack || '').split('\n')[1]); } });
+  scene.background = new THREE.Color(0x15161a);
+}
+const span = Math.max(cols * cell * 0.62, rows * cell * 1.15); const cam = new THREE.PerspectiveCamera(30, W / H, 0.01, 200);
+if (view === 'signs') { cam.position.set(0, span * 1.25, 0.001); cam.lookAt(0, 0, 0); } else { cam.position.set(0, span * 0.95, span * 0.95); cam.lookAt(0, 0.05, 0); }
+renderer.render(scene, cam);
+window.design = design; window.THREE = THREE;
+window.report = { view, count, errors, products: design.products.length, materials: design.materials.names().length, brands: design.brands.length, productErrors: design.errors.products, tris: renderer.info.render.triangles, calls: renderer.info.render.calls };
+window.ready = true;
+</script></body></html>

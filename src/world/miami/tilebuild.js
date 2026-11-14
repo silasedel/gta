@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { Batch, orient, wallStrip, parapet, palmGeometry, capPoly } from '../city/geo.js';
 import { rng } from '../city/tex.js';
+import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
 
 const PASTELS = [0xff9eb8, 0x7fe3d0, 0xffe08a, 0xbfa6ff, 0xffbf80, 0xa8eba0, 0x80d4ff, 0xff8fa8, 0xf6efe4, 0xfff3d6, 0xffb3e6, 0x9ff0e8];
@@ -12,10 +13,92 @@ const NEONS = [0xff2bd6, 0x23f0ff, 0xff7a1a, 0x9d4dff, 0x3dff8f, 0xff3366];
 const SIDEWALK_W = 3.0, CURB = 0.15;
 import { VARIANTS, pickFacade } from './facades.js';
 import { boatVariants, BOAT_LEN } from './boats.js';
+import { FBatch, facadeWalls, WL, WIN } from '../city/facade.js';
+import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
 export function createTileBuilder(ctx) {
   const { M, provider, root, world, RAPIER, zoneAt, nodeAt, models = {}, onProps = null, onSidewalk = null, groundAt = null, roadDirAt = null, isWater = null, roadDist = null } = ctx;
+  // ---- V2 world-render: terrain, flora and relief (src/world/terrain/) ----
+  const terrain = ctx.terrain || null, flora = ctx.flora || null, D = ctx.data || null;
+  const TH = (x, z) => (D && D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0);
+  const HARD_CLS = new Set(['paved', 'parking', 'plaza', 'marina', 'pool', 'runway', 'taxiway', 'apron']);
+  const LAWN_CLS = new Set(['park', 'grass', 'garden', 'cemetery', 'golf', 'pitch', 'playground']);
+  const synthArea = (a) => !!(terrain && a.kind !== 'pool' && !HARD_CLS.has(a.cls) && !terrain.real(a.rings[0][0][0], a.rings[0][0][1]));
+  // relief tiles: every vertex written through a lifted batch is raised onto the terrain (k = null) or by a constant (building base)
+  function liftB(b, L) { if (!b || !b.p || b._lifted) return b; const v0 = b.vert; b._lifted = true;
+    b.vert = function (x, y, z, nx, ny, nz, u, vv, col) { if (!L.on) return v0.call(this, x, y, z, nx, ny, nz, u, vv, col); const dy = L.k !== null ? L.k : TH(x, z);
+      if (this.s) { const g0 = this.s[8]; this.s[8] = g0 + dy; v0.call(this, x, y + dy, z, nx, ny, nz, u, vv, col); this.s[8] = g0; } else v0.call(this, x, y + dy, z, nx, ny, nz, u, vv, col); };
+    return b; }
+  const baseOf = (b) => { let m = TH(b.cx ?? b.rings[0][0][0], b.cz ?? b.rings[0][0][1]); for (const [x, z] of b.rings[0]) m = Math.min(m, TH(x, z)); return m - 0.05; };
+  function liftProps(props) { if (!D || props._lifted) return; props._lifted = true;
+    for (const k in props) { const L = props[k]; if (!Array.isArray(L)) continue; for (const it of L) { if (!it || typeof it.x !== 'number' || typeof it.z !== 'number') continue; const h = TH(it.x, it.z); if (h > 0.3 && (it.y || 0) < h - 0.25) it.y = (it.y || 0) + h; } } }
+  const densify = (pts, step) => { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 1; k <= n; k++) out.push(k === n ? b : [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; };
+  function* floraInto(t, tile, props) { if (props.veg !== undefined) return; props.veg = null; const T0 = provider.tileSize || 200, V = {};
+    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) }, V);
+    if (V.palm) props.palm.push(...V.palm); if (V.oats) props.oats.push(...V.oats); if (V.tree) props.tree.push(...V.tree); props.veg = V; }
+  function stiltPiles(B, b) { // timber piles under a raised Keys house (minH set in buildingsOf)
+    const r = b.rings[0], H = b.minH || 2.7; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
+    const pile = (x, z) => { const dx = cx - x, dz = cz - z, l = Math.hypot(dx, dz) || 1; fastBox(B.wood, x + dx / l * 0.35, H / 2 - 0.3, z + dz / l * 0.35, 0.13, H / 2 + 0.3, 0.13, 0xffffff); };
+    for (let i = 0; i < r.length; i++) { const a = r[i], c = r[(i + 1) % r.length]; pile(a[0], a[1]); const L = Math.hypot(c[0] - a[0], c[1] - a[1]); for (let k = 1, n = Math.floor(L / 3.2); k < n; k++) pile(a[0] + (c[0] - a[0]) * k / n, a[1] + (c[1] - a[1]) * k / n); }
+  }
+  // ---- airport markings: runway sides, centerline, thresholds, designators, touchdown zone, aiming points; taxiway lines + hold-short ----
+  let airMarks = null;
+  function frameOf(ring) { let mx = 0, mz = 0; for (const [x, z] of ring) { mx += x; mz += z; } mx /= ring.length; mz /= ring.length; let sxx = 0, szz = 0, sxz = 0; for (const [x, z] of ring) { const dx = x - mx, dz = z - mz; sxx += dx * dx; szz += dz * dz; sxz += dx * dz; }
+    const an = 0.5 * Math.atan2(2 * sxz, sxx - szz), ux = Math.cos(an), uz = Math.sin(an); let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const [x, z] of ring) { const s = (x - mx) * ux + (z - mz) * uz, q = -(x - mx) * uz + (z - mz) * ux; a0 = Math.min(a0, s); a1 = Math.max(a1, s); b0 = Math.min(b0, q); b1 = Math.max(b1, q); }
+    const cs = (a0 + a1) / 2, cq = (b0 + b1) / 2; return { cx: mx + ux * cs - uz * cq, cz: mz + uz * cs + ux * cq, ux, uz, L: a1 - a0, W: b1 - b0 }; }
+  const SEG7 = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
+  function buildAirMarks() {
+    const out = new Map(), cov = D?.mapLayers?.cover || {}, TS = provider.tileSize || 200;
+    const WH = new THREE.Color(0.43, 0.43, 0.42), YE = new THREE.Color(0.44, 0.3, 0.03);
+    const ringOf = (p) => p.outer || (Array.isArray(p[0]?.[0]) ? p[0] : p);
+    const R = (f, s0, s1, q0, q1, col) => { if (s1 < s0) [s0, s1] = [s1, s0]; if (q1 < q0) [q0, q1] = [q1, q0];
+      for (let a = s0; a < s1 - 1e-6; a += 50) { const b = Math.min(s1, a + 50), P = (s, q) => [f.cx + f.ux * s - f.uz * q, 0, f.cz + f.uz * s + f.ux * q], c = P((a + b) / 2, (q0 + q1) / 2), k = Math.floor(c[0] / TS) + ',' + Math.floor(c[2] / TS);
+        if (!out.has(k)) out.set(k, []); out.get(k).push([P(a, q0), P(b, q0), P(b, q1), P(a, q1), col]); } };
+    const runways = (cov.runway || []).map(ringOf).filter((r) => r && r.length > 2), pip = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
+    const onRunway = (x, z) => runways.some((r) => pip(r, x, z));
+    for (const ring of runways) {
+      const f = frameOf(ring), L = f.L, W = f.W; if (L < 200 || W < 15) continue;
+      R(f, -L / 2 + 2, L / 2 - 2, W / 2 - 2.4, W / 2 - 1.5, WH); R(f, -L / 2 + 2, L / 2 - 2, -W / 2 + 1.5, -W / 2 + 2.4, WH); // side stripes
+      for (let s = -L / 2 + 90; s + 36 < L / 2 - 90; s += 60) R(f, s, s + 36, -0.45, 0.45, WH); // centerline 36 m dash / 24 m gap
+      for (const e of [-1, 1]) {
+        const end = e * L / 2, dir = -e, at = (d) => end + dir * d;
+        for (let k = 0; ; k++) { const q = 3 + 0.9 + k * 3.6; if (q + 0.9 > W / 2 - 2.8) break; for (const sg of [-1, 1]) R(f, at(6), at(51), sg * (q - 0.9), sg * (q + 0.9), WH); } // threshold bars
+        const dx = dir * f.ux, dz = dir * f.uz; let brg = Math.atan2(dx, -dz) * 180 / Math.PI; if (brg < 0) brg += 360; let num = Math.round(brg / 10) % 36; if (num === 0) num = 36;
+        const txt = String(num), DW = 9, DH = 18, st = 1.8, tot = txt.length * DW + (txt.length - 1) * 4.5, sb = 63;
+        [...txt].forEach((ch, i) => { const u0 = -tot / 2 + i * (DW + 4.5), segs = SEG7[+ch];
+          const box = { a: [0, DW, DH - st, DH], b: [DW - st, DW, DH / 2, DH], c: [DW - st, DW, 0, DH / 2], d: [0, DW, 0, st], e: [0, st, 0, DH / 2], f: [0, st, DH / 2, DH], g: [0, DW, DH / 2 - st / 2, DH / 2 + st / 2] };
+          for (const sg of segs) { const [ua, ub, wa, wb] = box[sg]; R(f, at(sb + wa), at(sb + wb), dir * (u0 + ua), dir * (u0 + ub), WH); } });
+        for (const d of [150, 450, 600]) for (const sg of [-1, 1]) for (let k = 0; k < (d === 150 ? 3 : d === 450 ? 2 : 1); k++) { const q = 6 + k * 3.3; if (q + 1.8 < W / 2 - 3) R(f, at(d), at(d + 22.5), sg * q, sg * (q + 1.8), WH); } // touchdown zone
+        for (const sg of [-1, 1]) R(f, at(300), at(345), sg * (W / 4 - 2.5), sg * (W / 4 + 4.5), WH); // aiming point
+      }
+    }
+    for (const ring of (cov.taxiway || []).map(ringOf)) {
+      if (!ring || ring.length < 3) continue; const f = frameOf(ring), L = f.L, W = f.W; if (L < 20) continue;
+      R(f, -L / 2, L / 2, -0.22, 0.22, YE); // centerline
+      for (const sg of [-1, 1]) { R(f, -L / 2, L / 2, sg * (W / 2 - 0.75), sg * (W / 2 - 0.6), YE); R(f, -L / 2, L / 2, sg * (W / 2 - 1.05), sg * (W / 2 - 0.9), YE); }
+      for (const e of [-1, 1]) { // hold-short: walk in from the end while on the runway; the line sits 45 m before the runway edge
+        const P = (s) => [f.cx + f.ux * s, f.cz + f.uz * s]; let s = e * (L / 2 + 12); const [ex, ez] = P(s); if (!onRunway(ex, ez) && !onRunway(...P(e * L / 2 - e * 2))) continue;
+        s = e * L / 2; while (Math.abs(s) > 1 && onRunway(...P(s))) s -= e * 4; const sh = s - e * 45; if (Math.abs(sh) > L / 2) continue;
+        for (const o of [0.3, 0.9]) R(f, sh - e * o, sh - e * (o + 0.3), -W / 2 + 1.2, W / 2 - 1.2, YE); // solid (holding side)
+        for (const o of [0.3, 0.9]) for (let q = -W / 2 + 1.2; q < W / 2 - 1.2; q += 1.8) R(f, sh + e * o, sh + e * (o + 0.3), q, Math.min(W / 2 - 1.2, q + 0.9), YE); // dashed (runway side)
+      }
+    }
+    for (const ring of (cov.apron || []).map(ringOf)) { // stands: lead-in lines + stop bars, apron edge
+      if (!ring || ring.length < 3) continue; const f = frameOf(ring), L = f.L, W = f.W; if (L < 40 || W < 40) continue;
+      for (let s = -L / 2 + 40; s < L / 2 - 30; s += 55) { R(f, s - 0.15, s + 0.15, -W / 2 + 25, W / 2 - 8, YE); R(f, s - 3, s + 3, W / 2 - 34, W / 2 - 33.6, YE); }
+      for (const sg of [-1, 1]) R(f, -L / 2 + 1, L / 2 - 1, sg * (W / 2 - 1.2), sg * (W / 2 - 0.9), YE);
+    }
+    return out;
+  }
+  function airportMarks(B, X0, Z0, TS) { if (!airMarks) airMarks = buildAirMarks(); const L = airMarks.get(Math.floor((X0 + 1) / TS) + ',' + Math.floor((Z0 + 1) / TS)); if (!L) return;
+    const y = 0.046; for (const [a, b, c, d, col] of L) quadUp(B.marks, [a[0], y, a[2]], [b[0], y, b[2]], [c[0], y, c[2]], [d[0], y, d[2]], col, 1 / 3); }
+  function* terrainLod(group, ca, cb, CS, cell) { if (!terrain || !group) return; const T0 = provider.tileSize || 200, n = CS / T0; let any = false;
+    for (let i = 0; i < n && !any; i++) for (let j = 0; j < n; j++) if (terrain.synthetic(ca * n + i, cb * n + j)) { any = true; break; }
+    if (!any) return; const r = yield* terrain.gridGen(ca * CS, cb * CS, (ca + 1) * CS, (cb + 1) * CS, cell, { lod: true }); if (!r) return;
+    const m = new THREE.Mesh(r.geometry, terrain.lodMat); m.name = 'terrain-lod'; m.receiveShadow = true; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); }
+
   // ELEVATED agent's module (src/world/miami/elevated.js) owns decks, ramps, barriers and piers when present; otherwise our own deck code runs
   const elevated = ctx.elevated || null;
   const owned = (r) => !!(elevated && elevated.ownsEdge && (() => { try { return elevated.ownsEdge(r.edgeId ?? r.id); } catch (e) { return false; } })());
@@ -32,7 +115,7 @@ export function createTileBuilder(ctx) {
   // ---- shared prop geometry ----
   const pr = rng(4242);
   const palmVariants = [];
-  for (let v = 0; v < 6; v++) {
+  for (let v = 0; v < 12; v++) { // 12 variants (vegetation track): coconut, royal, sabal, queen, date; per-instance lean / tint / wear in the shader
     const H = 6 + v * 2 + pr();
     palmVariants.push(palmGeometry(v * 2.3 + 1, H, 0.03 + pr() * 0.25, pr, { bow: (pr() - 0.5) * 2, fronds: 9 + ((pr() * 8) | 0), frondLen: 0.8 + pr() * 0.45 + H * 0.015, droop: 0.75 + pr() * 0.7 }));
   }
@@ -68,6 +151,16 @@ export function createTileBuilder(ctx) {
     return g;
   }
   const leafG = cardBush(0), flowerG = cardBush(0.5);
+  // street shrubs (vegetation track): real shrub variants (woody skeleton, leaf clusters, flowers, litter) split over bush / flower-bed props
+  const vegBush = { blob: [], flower: [] };
+  try {
+    for (const [k, s] of [['seagrape', 1], ['hibiscus', 2], ['croton', 3], ['ixora', 4], ['seagrape', 5], ['croton', 6], ['hibiscus', 11]]) vegBush.blob.push(vegGeometry(k, { seed: s, size: 0.72 }));
+    for (const [k, s] of [['bougainvillea', 1], ['hibiscus', 7], ['ixora', 8], ['bougainvillea', 9]]) vegBush.flower.push(vegGeometry(k, { seed: s, size: 0.68 }));
+  } catch (e) { console.warn('[vegetation] shrubs unavailable', e); vegBush.blob.length = vegBush.flower.length = 0; }
+  function vegBushes(group, items, list) {
+    const per = list.map(() => []); items.forEach((p, i) => per[(i + Math.abs((p.x * 7) | 0)) % per.length].push(p));
+    per.forEach((it, v) => { if (!it.length) return; const g = list[v]; if (g.bark.index.count) inst(group, g.bark, M.vegBark, it, { cast: true, depth: M.vegBarkDepth }); inst(group, g.leaf, M.vegLeaf, it, { cast: true, depth: M.vegLeafDepth }); });
+  }
   const oatsG = (() => { const b = new Batch(), c = new THREE.PlaneGeometry(0.9, 1.1), w = new THREE.Color(1, 1, 1); for (let k = 0; k < 3; k++) b.addGeometry(c, m4(0, 0.55, 0, (k / 3) * Math.PI), w, [0.5, 1], [0, 0]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(b.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(b.n, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2)); return g; })();
   const duneG = (() => { const g = new THREE.SphereGeometry(1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2); const uv = g.attributes.uv, P = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, P.getX(i) * 0.8, P.getZ(i) * 0.8); return g; })();
   const bikeG = (() => { const parts = []; for (let k = -2; k <= 2; k++) parts.push([BOXG, m4(k * 0.7, 0.45, -0.3, 0, 0.05, 0.9, 0.05), 0x9aa3a8], [BOXG, m4(k * 0.7, 0.45, 0.3, 0, 0.05, 0.9, 0.05), 0x9aa3a8], [BOXG, m4(k * 0.7, 0.9, 0, 0, 0.05, 0.05, 0.65), 0x9aa3a8]); return mergeParts(parts); })();
@@ -195,6 +288,10 @@ export function createTileBuilder(ctx) {
     const r = rng(seed)();
     if (b.style) { // DATA agent's archetype
       switch (b.style) {
+        case 'stilt': case 'cabin': return 'house';
+        case 'strip': return r < 0.6 ? 'deco' : 'office';
+        case 'hangar': case 'barn': return 'warehouse';
+        case 'terminal': return r < 0.5 ? 'glass' : 'band';
         case 'tower': return r < 0.6 ? 'glass' : r < 0.85 ? 'band' : 'office';
         case 'deco': return 'deco';
         case 'house': return 'house';
@@ -213,6 +310,37 @@ export function createTileBuilder(ctx) {
     return r < 0.5 ? 'deco' : 'office';
   }
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
+  // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
+  const isFB = (B) => (B && B.fac && B.fac.fx ? B.fac : null);
+  const fview = (fb, layer) => { const v = Object.create(Batch.prototype); v.layer = layer; v.vert = function (x, y, z, nx, ny, nz, u, vv, col) { fb.blank(this.layer); fb.vert(x, y, z, nx, ny, nz, u, vv, col); }; Object.defineProperty(v, 'empty', { get: () => true }); return v; };
+  const bbOf = (o) => { if (!o._bb) { let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [x, z] of o.rings[0]) { a = Math.min(a, x); c = Math.max(c, x); d = Math.min(d, z); e = Math.max(e, z); } o._bb = [a, c, d, e]; } return o._bb; };
+  const ADJ = 9; // m between footprints' bounding boxes that still counts as "next door"
+  function nearBuildings(b) {
+    const bb = bbOf(b), T = provider.tileSize || 200, out = [];
+    if (!provider.getTile) return out;
+    for (let i = Math.floor((bb[0] - ADJ) / T); i <= Math.floor((bb[1] + ADJ) / T); i++) for (let j = Math.floor((bb[2] - ADJ) / T); j <= Math.floor((bb[3] + ADJ) / T); j++) {
+      let t2 = null; try { t2 = provider.getTile(i, j); } catch (e) { /* not loaded */ } if (!t2 || typeof t2.then === 'function' || !t2.buildings) continue;
+      for (const o of t2.buildings) { if (o === b || o._dropped || !o.rings || !o.rings[0] || o.rings[0].length < 3) continue; const ob = bbOf(o); if (ob[0] < bb[1] + ADJ && ob[1] > bb[0] - ADJ && ob[2] < bb[3] + ADJ && ob[3] > bb[2] - ADJ) out.push(o); }
+    }
+    return out;
+  }
+  function facStyle(b, zone, style, h) {
+    if (b._fs && b._fsStyle === style) return b._fs;
+    const ctxS = { zone, district: ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '', style, h }, nb = nearBuildings(b);
+    let salt = 0, S = buildingStyle(b, ctxS, 0);
+    while (salt < 12 && nb.some((o) => o._fs && o._fs.sig === S.sig)) S = buildingStyle(b, ctxS, ++salt);
+    b._fs = S; b._fsStyle = style; return S;
+  }
+  // audit: every building gets its recipe; count adjacent pairs that share a signature (must be 0)
+  function auditFacades(bounds) {
+    const r = null, T = provider.tileSize || 200, B0 = bounds || provider.bounds; let n = 0, pairs = 0, same = 0; const fams = {}, sigs = new Set(), bad = [];
+    const i0 = r ? r.minX ?? r[0] : Math.floor(B0.minX / T), i1 = r ? r.maxX ?? r[1] : Math.floor(B0.maxX / T), j0 = r ? r.minZ ?? r[2] : Math.floor(B0.minZ / T), j1 = r ? r.maxZ ?? r[3] : Math.floor(B0.maxZ / T);
+    const all = [];
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { let t2 = null; try { t2 = provider.getTile(i, j); } catch (e) { /* */ } if (!t2 || typeof t2.then === 'function' || !t2.buildings) continue;
+      for (const b of buildingsOf(t2, false)) { if (!b.rings || b.rings[0].length < 3) continue; const zone = zoneAt(b.cx, b.cz), st = styleFor(b, b.zone || zone, (b.id % 2147483647) | 0); if (st === 'canopy') continue; const S = facStyle(b, zone, st, b.h); all.push(b); n++; fams[S.fam] = (fams[S.fam] || 0) + 1; sigs.add(S.sig); } }
+    for (const b of all) for (const o of nearBuildings(b)) { if (!o._fs || (o.id | 0) <= (b.id | 0)) continue; pairs++; if (o._fs.sig === b._fs.sig) { same++; if (bad.length < 10) bad.push([b.id, o.id, b._fs.sig]); } }
+    return { buildings: n, adjacentPairs: pairs, sameSignature: same, distinctSignatures: sigs.size, families: fams, examples: bad };
+  }
 
   // polygon grown/shrunk by ~d metres (centroid scaling; fine for the mostly convex tower/podium footprints)
   function scalePoly(pts, cx, cz, d) {
@@ -246,17 +374,19 @@ export function createTileBuilder(ctx) {
     // podium: 3-8 floors on the full footprint, built through the normal path (storefronts, roof, AC, colliders)
     const podH = Math.min(h * 0.35, 4.2 + (2 + ((r1 * 6) | 0)) * 3.6);
     const podStyle = r2 < 0.5 ? 'band' : 'office';
-    buildBuilding(B, { ...b, h: podH, _forceStyle: podStyle, _noTower: true, colour: null }, opts);
+    buildBuilding(B, { ...b, h: podH, _forceStyle: podStyle, _noTower: true, colour: null, _podOf: b, _fs: null }, opts);
     // body: inset glass (or concrete for condo/office towers), second setback on the tallest
     const d = Math.min(8, Math.max(3, Math.sqrt(b.area) * 0.12));
     const body = scalePoly(outer, b.cx, b.cz, -d);
     const tall = h > 120, hA = tall ? h * (0.72 + r3 * 0.1) : h;
     const top = tall ? scalePoly(body, b.cx, b.cz, -3) : body;
+    const zone0 = zoneAt(b.cx, b.cz);
     const bstyle = pickFacade(style, b.zone || zoneAt(b.cx, b.cz), hash(seed + 91));
     const [bays, fl, tw, th] = FAC[bstyle], uOff = ((hash(seed + 1) * bays) | 0) / bays, vOff = ((hash(seed + 2) * fl) | 0) / fl;
     const tint = style === 'glass' ? color : new THREE.Color(OFFICE_TINTS[(hash(seed + 54) * 11) | 0]);
-    wallStrip(B[bstyle], body, podH, hA, tw, th, tint, uOff, vOff - podH / th);
-    if (tall) { fillPoly(B.roof, [body], hA, new THREE.Color(0x8a8f94), 1 / 6); wallStrip(B[bstyle], top, hA, h, tw, th, tint, uOff, vOff - hA / th); }
+    const FB = isFB(B), FS = FB ? facStyle(b, zone0, style, h) : null;
+    if (FB) { B.roof.layer = FS.roof; facadeWalls(FB, body, podH, hA, FS, 40); } else wallStrip(B[bstyle], body, podH, hA, tw, th, tint, uOff, vOff - podH / th);
+    if (tall) { fillPoly(B.roof, [body], hA, new THREE.Color(0x8a8f94), 1 / 6); if (FB) facadeWalls(FB, top, hA, h, FS, 90); else wallStrip(B[bstyle], top, hA, h, tw, th, tint, uOff, vOff - hA / th); }
     fillPoly(B.roof, [top], h, new THREE.Color(0x80868c), 1 / 6);
     if (opts.coll) {
       wallStrip(opts.coll, body, podH, hA, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [body], hA, 0xffffff, 1);
@@ -284,7 +414,7 @@ export function createTileBuilder(ctx) {
     if (kind < 0.3) { // rooftop mechanical screen
       const scr = scalePoly(top, b.cx, b.cz, -2.5); wallStrip(B.trim, scr, h, h + 4.5, 10, 10, new THREE.Color(0x5d6266)); crownTop = h + 4.5;
     } else if (kind < 0.55) { // lit glass crown with neon bands
-      wallStrip(B[bstyle], top, h, h + 6, tw, th, tint, uOff, vOff - h / th);
+      if (FB) facadeWalls(FB, top, h, h + 6, { ...FS, floorH: 6 }, 150); else wallStrip(B[bstyle], top, h, h + 6, tw, th, tint, uOff, vOff - h / th);
       const nc = new THREE.Color(NEONS[(hash(seed + 57) * 6) | 0]), ring = scalePoly(top, b.cx, b.cz, 0.12);
       wallStrip(B.neon, ring, h - 2.4, h - 2.0, 10, 10, nc); wallStrip(B.neon, ring, h + 5.6, h + 6.0, 10, 10, nc); crownTop = h + 6;
     } else if (kind < 0.75) { // spire
@@ -314,6 +444,8 @@ export function createTileBuilder(ctx) {
     // ---- towers: podium base + inset glass/concrete body with setbacks and a crown ----
     if (!b._noTower && !b.part && y0 < 0.5 && h > 45 && b.area > 450 && (style === 'glass' || style === 'band' || style === 'office')) { buildTower(B, b, outer, opts, style, color, seed, h); return; }
     const fstyle = pickFacade(style === 'house' ? 'deco' : style, zone, hash(seed + 91));
+    const FB = isFB(B); let FS = null;
+    if (FB) { if (b._podOf) { const TS = facStyle(b._podOf, zone, styleFor(b._podOf, b._podOf.zone || zone, seed), b._podOf.h); FS = podiumStyle(TS, b._podOf, zone); } else FS = facStyle(b, zone, style, h); FS.groundY = 0; B.roof.layer = FS.roof; color = FS.tint.clone(); }
     const [bays, fl, tw, th] = FAC[fstyle];
     const uOff = ((hash(seed + 1) * bays) | 0) / bays, vOff = ((hash(seed + 2) * fl) | 0) / fl;
     const sfl = b.storefronts || (b.storefront ? [b.storefront] : null);
@@ -327,13 +459,13 @@ export function createTileBuilder(ctx) {
       if (sf) annotateStorefronts(sf, GF);
       // painted shop art stays on plain facades; storefront lots get a real glass front (opened full-height in the painted wall)
       const openings = sf ? sf.map((f) => ({ x: f.fx ?? f.x, z: f.fz ?? f.z, w: Math.max(DOOR_W + 1, f.w || 6), h: GF + 1 })) : null;
-      wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
+      if (FB && sf) wallGaps(B.trim, outer, y0, GF, 64, GF - y0, FS.tint, 0, 0, openings); else if (FB) facadeWalls(FB, outer, y0, GF, groundStyle(FS, true, false) || FS, 7); else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
       if (sf && B.shopGlass) for (const f of sf) glassFront(B, outer, f, y0, GF, color);
-      wallStrip(B[fstyle], outer, GF, h, tw, th, color, uOff, vOff - GF / th);
+      if (FB) facadeWalls(FB, outer, GF, h, FS, 20); else wallStrip(B[fstyle], outer, GF, h, tw, th, color, uOff, vOff - GF / th);
       if (sf) fillPolyDown(B.trim, b.rings, GF - 0.02, new THREE.Color(0xe6e2da));
       if (h <= GF + 0.01) { /* single storey: roof sits right above the shop */ }
       if (opts.coll) { wallGaps(opts.coll, outer, y0, GF, 64, 4, 0xffffff, 0, 0, gaps); wallStrip(opts.coll, outer, GF, h, 10, 10, new THREE.Color(0xffffff)); if (sf) fillPoly(opts.coll, b.rings, GF, 0xffffff, 1); }
-    } else { wallStrip(B[fstyle], outer, y0, h, tw, th, color, uOff, vOff - y0 / th); if (opts.coll) wallStrip(opts.coll, outer, y0, h, 10, 10, new THREE.Color(0xffffff)); }
+    } else { if (FB) { const G0 = y0 < 0.5 && h > 7.5 ? groundStyle(FS, false, h > 45) : null, gh = G0 ? Math.min(G0.type === WIN.roller ? 5.2 : 4.4, h * 0.5) : 0; if (G0) facadeWalls(FB, outer, y0, y0 + gh, G0, 7); facadeWalls(FB, outer, y0 + gh, h, FS, 20); } else wallStrip(B[fstyle], outer, y0, h, tw, th, color, uOff, vOff - y0 / th); if (opts.coll) wallStrip(opts.coll, outer, y0, h, 10, 10, new THREE.Color(0xffffff)); }
     if (opts.coll) fillPoly(opts.coll, b.rings, h, 0xffffff, 1);
     if (y0 > 0.5 && !b.part) { fillPolyDown(B.trim, b.rings, y0, new THREE.Color(0xcfcac2)); if (opts.coll) fillPolyDown(opts.coll, b.rings, y0, 0xffffff); } // passage / overhang soffit
     if (b._passage) for (const [x, z] of outer) { if (roadDist && roadDist(x, z) < 0.8) continue; // columns at the corners that stand clear of the lanes
@@ -342,9 +474,9 @@ export function createTileBuilder(ctx) {
       const led = scalePoly(outer, b.cx, b.cz, 0.28), lc = color.clone().multiplyScalar(0.92);
       for (let y = 4.2 + 3.5; y < h - 0.8; y += 3.5) { wallStrip(B.trim, led, y - 0.32, y, 10, 10, lc); capPoly(B.trim, led, y, lc); }
     }
-    for (let i = 1; i < b.rings.length; i++) { const hole = orient(b.rings[i]).slice().reverse(); wallStrip(B[fstyle], hole, y0, h, tw, th, color, uOff, vOff); }
+    for (let i = 1; i < b.rings.length; i++) { const hole = orient(b.rings[i]).slice().reverse(); if (FB) facadeWalls(FB, hole, y0, h, FS, 60); else wallStrip(B[fstyle], hole, y0, h, tw, th, color, uOff, vOff); }
     // roof
-    const roofC = new THREE.Color(style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
+    const roofC = new THREE.Color(FB ? FS.roofTint : style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
     if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
     if (opts.props && style === 'house' && !sf && y0 < 0.5 && !b.part && h < 14 && outer.length <= 24) { // villa garden: clipped hedge ring + a pair of palms
@@ -355,7 +487,7 @@ export function createTileBuilder(ctx) {
     if (style === 'house' && outer.length <= 6 && b.area < 600) { // hip roof over the footprint's bounding box (Mediterranean terracotta)
       let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of outer) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
       const rg = new THREE.ConeGeometry(1, 1, 4, 1); rg.rotateY(Math.PI / 4);
-      B.trim.addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color([0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
+      (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
     if (opts.props && style !== 'house' && b.area > 120 && h < 120) { const n = Math.min(5, 1 + ((b.area / 300) | 0)); for (let k = 0; k < n; k++) { const p = outer[(hash(seed + 10 + k) * outer.length) | 0]; opts.props.ac.push({ x: b.cx + (p[0] - b.cx) * 0.45, y: h, z: b.cz + (p[1] - b.cz) * 0.45, ry: hash(seed + 20 + k) < 0.5 ? 0 : 1.57, s: 0.9 + hash(seed + 30 + k) * 0.4 }); } }
@@ -419,6 +551,7 @@ export function createTileBuilder(ctx) {
   function runSynth(tile, out) { out._synthDone = true; for (const b of out) synthShops(b, out); }
   function buildingsOf(tile, synth = true) {
     let out = bldCache.get(tile); if (out) { if (synth && !tile._far && !out._synthDone) runSynth(tile, out); return out; }
+    for (const b0 of tile.buildings || []) if (b0.style === 'stilt' && !b0.minH) b0.minH = 2.7; // Keys stilt houses stand on piles
     const all = tile.buildings || [], bbs = all.map((b) => { let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [x, z] of b.rings[0]) { a = Math.min(a, x); c = Math.max(c, x); d = Math.min(d, z); e = Math.max(e, z); } return [a, c, d, e]; });
     const inP = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
     const cen = (b) => { if (b.cx !== undefined) return [b.cx, b.cz]; let x = 0, z = 0; for (const p of b.rings[0]) { x += p[0]; z += p[1]; } return [x / b.rings[0].length, z / b.rings[0].length]; };
@@ -481,7 +614,7 @@ export function createTileBuilder(ctx) {
       for (const [pi, yi] of [[0, r.y[0]], [n0 - 1, r.y[n0 - 1]]]) if (yi >= 0.3) { if (onSeam(r.pts[pi]) || outsideTile(tile, r.pts[pi])) chain = true; for (const e of ends0.get(endKey(r.pts[pi])) || []) if (e.r !== r && e.r.y && Math.max(...e.r.y) >= ymax + 0.3) chain = true; } // a deck cut by a tile seam continues next door
       if (!chain) ymax = 0;
     }
-    if (!r.y || ymax < ELEV_MIN) { pr = { pts: r.pts, ys: null }; baseCache.set(r, pr); return pr; }
+    if (!r.y || ymax < ELEV_MIN) { pr = { pts: r.terrainY && D ? densify(r.pts, 4) : r.pts, ys: null }; baseCache.set(r, pr); return pr; }
     const pts = [], ys = [];
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 3));
@@ -888,6 +1021,8 @@ export function createTileBuilder(ctx) {
   const AREA_Y = { land: 0, grass: 0.02, park: 0.02, beach: 0.01, sand: 0.01, paved: 0.03, parking: 0.03, dirt: 0.01, wood: 0.03, pool: 0.06 };
   function areaFill(B, a) {
     const k = a.kind, y = AREA_Y[k] ?? 0.004;
+    if (synthArea(a)) return; // natural cover outside real Miami: drawn by the terrain mesh
+    if (terrain && B[a.cls] && (a.cls === 'runway' || a.cls === 'taxiway' || a.cls === 'apron')) { fillPoly(B[a.cls], a.rings, y, 0xffffff, a.cls === 'apron' ? 1 / 6 : 1 / 8); return; }
     if (k === 'land') { // seawall / bank face down to the water (edges on tile seams stay hidden under the ground)
       wallStrip(B.trim, orient(a.rings[0]), -1.6, 0, 6, 6, new THREE.Color(0xa8a49a));
       for (let i = 1; i < a.rings.length; i++) wallStrip(B.trim, orient(a.rings[i]).slice().reverse(), -1.6, 0, 6, 6, new THREE.Color(0xa8a49a));
@@ -952,7 +1087,7 @@ export function createTileBuilder(ctx) {
     if (coll) { fillPoly(coll, p.rings, y, 0xffffff, 1); wallStrip(coll, outer, y - 0.35, y, 10, 10, new THREE.Color(0xffffff)); }
     if (props && B) for (let i = 0; i < outer.length; i += 1) { const q = outer[i], n2 = outer[(i + 1) % outer.length], L = Math.hypot(n2[0] - q[0], n2[1] - q[1]); for (let s2 = 0; s2 < L; s2 += 6) props.pier.push({ x: q[0] + (n2[0] - q[0]) * (s2 / L), y: (y - 0.35 - 4) / 2, z: q[1] + (n2[1] - q[1]) * (s2 / L), ry: 0, sx: 0.3, sy: y - 0.35 + 4 }); }
   }
-  function newProps() { return { lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], grate: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
+  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], grate: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
   function sampleAt(fr, s, ys = null) {
     let i = 0; while (i < fr.length - 2 && fr[i + 1].s < s) i++;
     const A = fr[i], Bf = fr[i + 1] || A, L = Bf.s - A.s || 1, t = Math.max(0, Math.min(1, (s - A.s) / L));
@@ -1031,7 +1166,7 @@ export function createTileBuilder(ctx) {
     const props = newProps(); seedRealProps(props, tile); const dummy = { guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch() };
     const it = buildRoads(dummy, tile, props, null);
     for (let r = it.next(); !r.done; r = it.next()) { dummy.guard = new Batch(); dummy.asphalt = new Batch(); dummy.marks = new Batch(); dummy.sidewalk = new Batch(); dummy.trim = new Batch(); yield; }
-    cleanProps(tile, props); t.props = props; return props;
+    cleanProps(tile, props); if (tile.relief && D) liftProps(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
   }
   // procedural fallbacks + bus shelter / bin variants
   const shelterG = mergeParts([[BOXG, m4(0, 2.55, 0, 0, 4.2, 0.12, 1.9), 0xf4f4f4], [BOXG, m4(0, 1.3, -0.75, 0, 4.0, 2.2, 0.05), 0x9fc6d4], [BOXG, m4(-2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(0, 0.48, -0.45, 0, 3.0, 0.08, 0.4), 0xb07a4a], [BOXG, m4(0, 2.66, 0.9, 0, 4.2, 0.18, 0.08), 0x2ec4b6]]);
@@ -1046,6 +1181,7 @@ export function createTileBuilder(ctx) {
   const benchG = mergeParts([[BOXG, m4(0, 0.45, 0, 0, 1.8, 0.07, 0.5), 0xb07a4a], [BOXG, m4(0, 0.75, -0.24, 0, 1.8, 0.45, 0.06), 0xb07a4a], [BOXG, m4(-0.75, 0.22, 0, 0, 0.08, 0.45, 0.5), 0x333333], [BOXG, m4(0.75, 0.22, 0, 0, 0.08, 0.45, 0.5), 0x333333]]);
   const hydrantG = mergeParts([[new THREE.CylinderGeometry(0.14, 0.17, 0.6, 10), m4(0, 0.3, 0), 0xd8261c], [new THREE.SphereGeometry(0.15, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), m4(0, 0.6, 0), 0xd8261c]]);
   const litterG = new THREE.BoxGeometry(0.16, 0.01, 0.22), litterMat = new THREE.MeshStandardMaterial({ roughness: 0.8 });
+  if (M.propify) { try { M.propify(sigMat, 'paint'); M.propify(containerMat, 'rustPaint'); M.propify(blobMat, 'plaster'); M.propify(hutMat, 'paint'); M.propify(umbMat, 'plastic'); M.propify(boatMat, 'plastic'); M.propify(acMat, 'galv'); M.propify(pierMat, 'concrete'); M.propify(vcMat, 'paint'); M.propify(upoleMat, 'creosote'); M.propify(litterMat, 'plastic'); } catch (e) { console.warn('[miami] prop PBR', e); } }
   const modelOrProc = (group, key, procG, items, opts = {}) => { if (!items.length) return; const parts = models[key]; if (parts && parts.length) for (const p of parts) inst(group, p.geometry, p.material, items, { cast: false }); else inst(group, procG, vcMat, items, opts); };
 
   // ---------------- NEAR ----------------
@@ -1344,7 +1480,7 @@ export function createTileBuilder(ctx) {
   function seedRealProps(props, tile, B = null) {
     portYard(tile, props); marinaBoats(tile, props); beachDress(tile, props, B); islandDress(tile, props, B); shopDress(tile, props); plazaDress(tile, props);
     const toRoad = (x, z) => (roadDirAt ? roadDirAt(x, z) : 0);
-    if (tile.trees && tile.trees.length) { props.realTrees = tile.trees.length > 40; /* sparse mapped trees: keep generated street trees too */ for (const [x, z] of tile.trees) { const y = gY(x, z); props.palm.push({ x, y, z, ry: hash(x * 13 + z) * 6, s: 0.8 + hash(x + z * 7) * 0.5, real: 1 });
+    if (tile.trees && tile.trees.length) { props.realTrees = tile.trees.length > 40; /* sparse mapped trees: keep generated street trees too */ for (const [x, z, sp0] of tile.trees) { const y = gY(x, z); if (flora && sp0 && flora.SPECIES.has(sp0)) { const spk = sp0 === 'tree' ? 'oak' : sp0; props.tree.push({ sp: spk, x, y, z, ry: hash(x * 13 + z) * 6, s: 0.8 + hash(x + z * 7) * 0.5, color: new THREE.Color(flora.TINT[spk][0]).multiplyScalar(0.85 + hash(x * 3 + z) * 0.3) }); continue; } props.palm.push({ x, y, z, ry: hash(x * 13 + z) * 6, s: 0.8 + hash(x + z * 7) * 0.5, real: 1 });
       if (y < 0.05) for (let k = 0; k < 3; k++) { const hk = hash(((x * 17) | 0) + k * 131 + ((z * 5) | 0)); if (hk < 0.35) continue; const a = hk * 6.28, rr2 = 1.6 + hk * 1.8; (hk > 0.9 ? props.flower : props.blob).push({ x: x + Math.cos(a) * rr2, y: 0, z: z + Math.sin(a) * rr2, ry: hk * 6, s: 0.7 + hk * 0.5, color: new THREE.Color().setHSL(0.24 + hk * 0.08, 0.4, 0.6 + hk * 0.2) }); } } }
     if (tile.lamps && tile.lamps.length > 4) { props.realLamps = true; for (const l of tile.lamps) props.lamp.push({ x: l.x, y: gY(l.x, l.z), z: l.z, ry: toRoad(l.x, l.z) }); }
     if (tile.busStops) for (const b of tile.busStops) { props.realBus = true; props.shelter.push({ x: b.x, y: gY(b.x, b.z), z: b.z, ry: toRoad(b.x, b.z) }); }
@@ -1381,13 +1517,19 @@ export function createTileBuilder(ctx) {
     const group = new THREE.Group(); group.name = `tile-near-${t.tx},${t.tz}`;
     if (!tile) { root.add(group); return group; }
     const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch() };
+    if (M.facade) { B.fac = new FBatch(); B.trim = fview(B.fac, WL.stucco); B.roof = fview(B.fac, WL.roofConcrete); }
+    const T0 = provider.tileSize || 200, X0 = t.tx * T0, Z0 = t.tz * T0, synth = !!(terrain && terrain.synthetic(t.tx, t.tz)), LF = { on: !!(tile.relief && D), k: null };
+    if (terrain) { B.runway = new Batch(); B.taxiway = new Batch(); B.apron = new Batch(); }
+    if (LF.on) for (const key in B) liftB(B[key], LF);
     const props = newProps(); buildingsOf(tile); yield; seedRealProps(props, tile, B); yield;
     for (const a of tile.areas || []) areaFill(B, a);
+    if (terrain) airportMarks(B, X0, Z0, T0);
+    if (synth) { const tr = yield* terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: tile.relief ? 4 : 0.8 }); if (tr) { const m = new THREE.Mesh(tr.geometry, terrain.nearMat); m.name = 'terrain'; m.receiveShadow = true; m.castShadow = !!tile.relief; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); } yield; }
     exitVisuals(B, tile);
     if (t.x0 !== undefined) { // visual lawn index (3D grass follows what is drawn: lawn rings minus raised sidewalks)
       const bb = (r) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of r) { a = Math.min(a, x); b = Math.min(b, z); c = Math.max(c, x); d = Math.max(d, z); } return [a, b, c, d]; };
-      const lawns = (tile.areas || []).filter((a) => a.kind === 'grass' || a.kind === 'park').map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }));
-      const walks = sidewalksOf(tile).map((rings) => ({ rings, bb: bb(rings[0]) }));
+      const lawns = (tile.areas || []).filter((a) => (a.kind === 'grass' || a.kind === 'park') && (!a.cls || LAWN_CLS.has(a.cls))).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }));
+      const walks = sidewalksOf(tile).map((rings) => ({ rings, bb: bb(rings[0]) })).concat((tile.areas || []).filter((a) => HARD_CLS.has(a.cls)).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }))); // no lawn grass through aprons / runways / lots
       const TS = (t.cx - t.x0) * 2; lawnIndex.set(group, { minX: t.x0, minZ: t.z0, maxX: t.x0 + TS, maxZ: t.z0 + TS, lawns, walks });
     }
     yield; sidewalksOf(tile); yield; roadIndex(tile, true); yield;
@@ -1405,13 +1547,19 @@ export function createTileBuilder(ctx) {
     yield* buildRoads(B, tile, props, null);
     yield;
     let k = 0;
-    for (const b of buildingsOf(tile)) { buildBuilding(B, b, { shops: true, props }); if (++k % 25 === 0) yield; }
+    for (const b of buildingsOf(tile)) { if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
+    LF.k = null;
     yield;
     cleanProps(tile, props); yield;
+    if (LF.on) liftProps(props);
+    if (synth && flora) yield* floraInto(t, tile, props);
+    if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' });
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
     }
+    if (B.fac && !B.fac.empty) { const m = B.fac.build(M.facade, { cast: true }); m.name = 'facades'; group.add(m); yield; }
+    if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }
     yield;
     modelOrProc(group, 'bench', benchG, props.bench);
     modelOrProc(group, 'hydrant', hydrantG, props.hydrant, { cast: false });
@@ -1440,7 +1588,7 @@ export function createTileBuilder(ctx) {
     for (let v = 0; v < 4; v++) { const it = props.boat.filter((b) => b.v === v); if (!it.length) continue; inst(group, boatGs[v], boatMat, it, { colors: true, cast: true }); const h = group.userData.handles[group.userData.handles.length - 1]; it.forEach((b, k) => moorVisual(b, h, k)); }
     palmDress(props);
     if (models.bush) { for (const pp of models.bush) inst(group, pp.geometry, pp.material, props.blob, { colors: true, cast: true }); for (const pp of models.flowerBush || models.bush) inst(group, pp.geometry, pp.material, props.flower, { colors: true, cast: true }); if (M.leaf) inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false }); }
-    else if (M.leaf) { inst(group, leafG, M.leaf, props.blob, { colors: true, cast: true, depth: M.leafDepth }); inst(group, flowerG, M.leaf, props.flower, { colors: true, cast: true, depth: M.leafDepth }); inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false }); }
+    else if (M.leaf) { if (vegBush.blob.length && M.vegLeaf) { vegBushes(group, props.blob, vegBush.blob); vegBushes(group, props.flower, vegBush.flower); } else { inst(group, leafG, M.leaf, props.blob, { colors: true, cast: true, depth: M.leafDepth }); inst(group, flowerG, M.leaf, props.flower, { colors: true, cast: true, depth: M.leafDepth }); } inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false }); }
     else inst(group, blobG, blobMat, props.blob.concat(props.flower), { colors: true });
     inst(group, duneG, M.dune || M.sand, props.dune, { cast: false });
     inst(group, bikeG, vcMat, props.bike);
@@ -1463,6 +1611,8 @@ export function createTileBuilder(ctx) {
     // palms: split over the shared variants
     const per = palmVariants.map(() => []); props.palm.forEach((p, i) => per[i % per.length].push(p));
     per.forEach((items, v) => { if (!items.length) return; const pg = palmVariants[v]; inst(group, pg.trunk, M.trunk, items, { cast: true, depth: M.trunkDepth }); inst(group, pg.fronds, M.frond, items, { cast: true, depth: M.frondDepth }); });
+    if (flora && props.tree.length) { const by = {}; for (const it of props.tree) (by[it.sp] ||= []).push(it);
+      for (const sp in by) { const TG = flora.T[sp] || flora.T.oak; inst(group, TG.trunk, flora.barkMat, by[sp], { cast: true }); inst(group, TG.crown, flora.leaf, by[sp], { colors: true, cast: true, depth: flora.leafDepth }); if (sp === 'citrus') inst(group, flora.T.citrusFruit, flora.fruitMat, by[sp]); } }
     t.props = props; group.userData.tile = t; if (onProps) onProps(t, props, true);
     // real lamp light: the GRAPHICS clustered-lamp system discovers per-tile lamp lists (removed when the tile group leaves the scene)
     group.userData.psLamps = props.lamp.map((l) => { const sc = l.s || 1, ry = l.ry || 0; return { x: l.x + Math.sin(ry) * 2.25 * sc, y: (l.y || 0) + 7.0 * sc, z: l.z + Math.cos(ry) * 2.25 * sc, gy: l.y || 0 }; });
@@ -1504,13 +1654,13 @@ export function createTileBuilder(ctx) {
     g.dispose(); return n;
   }
   function* buildMid(ca, cb, CS) {
-    const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T;
+    const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T, LFm = { on: false, k: null }; liftB(b, LFm); liftB(gb, LFm);
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
       const tx = ca * n + i, tz = cb * n + j, tile = yield* getTileG(tx, tz); if (!tile) continue;
-      const v0 = b.p.length / 3, g0 = gb.p.length / 3;
+      const v0 = b.p.length / 3, g0 = gb.p.length / 3; LFm.on = !!(tile.relief && D); LFm.k = null;
       yield* portYardGen(tile);
       { const pp = newProps(); portYard(tile, pp); let ns = 0; for (const st of pp.stack) { fastBox(b, st.x, st.n * 1.3, st.z, 6.1, st.n * 1.3, 1.22, BOX_COLS[(hash(((st.x * 13) | 0) + ((st.z * 5) | 0)) * BOX_COLS.length) | 0]); if (++ns % 300 === 0) yield; } }
-      for (const a of tile.areas || []) if (a.kind !== 'land') fillPoly(b, a.rings, AREA_Y[a.kind] ?? 0.01, MID_COL[a.kind] ?? 0x8c8a84, 0);
+      for (const a of tile.areas || []) if (a.kind !== 'land' && !synthArea(a)) fillPoly(b, a.rings, AREA_Y[a.kind] ?? 0.01, MID_COL[a.kind] ?? 0x8c8a84, 0);
       yield;
       for (const rings of sidewalksOf(tile)) fillPoly(b, rings, CURB, 0xc8c4bc, 0);
       yield;
@@ -1521,6 +1671,7 @@ export function createTileBuilder(ctx) {
       let k = 0;
       for (const bd of buildingsOf(tile, false)) {
         const outer = orient(bd.rings[0]); if (outer.length < 3) continue;
+        if (LFm.on) LFm.k = baseOf(bd);
         const zone = zoneAt(bd.cx, bd.cz), style = styleFor(bd, zone, bd.id | 0), rr = hash(bd.id | 0);
         if (isTower(bd, style)) { // same silhouette as the near build: podium, inset body, setback, crown
           const ts = towerShape(bd, outer, bd.id | 0, bd.h), pc = new THREE.Color(OFFICE_TINTS[(hash((bd.id | 0) + 54) * 11) | 0]).multiplyScalar(0.9);
@@ -1546,7 +1697,7 @@ export function createTileBuilder(ctx) {
       yield;
     }
     yield;
-    return yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-mid-${ca},${cb}`);
+    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-mid-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 16); return cg;
   }
   // one global low-detail land base (y = -0.05, under every LOD) so distant islands never float on the ocean
   function* buildLandBase() {
@@ -1559,10 +1710,10 @@ export function createTileBuilder(ctx) {
     root.add(group); return group;
   }
   function* buildFar(ca, cb, CS) {
-    const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T;
+    const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T, LFm = { on: false, k: null }; liftB(b, LFm); liftB(gb, LFm);
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
       const tx = ca * n + i, tz = cb * n + j, tile = provider.farTile ? provider.farTile(tx, tz) : yield* getTileG(tx, tz); if (!tile) continue; if (provider.farTile) tile._far = true;
-      const v0 = b.p.length / 3, g0 = gb.p.length / 3;
+      const v0 = b.p.length / 3, g0 = gb.p.length / 3; LFm.on = !!(tile.relief && D); LFm.k = null;
       if (elevated && elevated.buildTileLod) { elevLodInto(b, tx, tz); yield; }
       else for (const r of tile.roads) if (r.y && r.pts.length > 1) { const pr = roadProfile(r, tile); if (pr.ys) ribbon(b, polyFrame(pr.pts), pr.ys, -r.width / 2, r.width / 2, 0.05, 0x707070, 0); }
       for (const bd of buildingsOf(tile, false)) {
@@ -1577,7 +1728,7 @@ export function createTileBuilder(ctx) {
       yield;
     }
     yield;
-    return yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-far-${ca},${cb}`);
+    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-far-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 32); return cg;
   }
 
   // ---------------- COLLIDERS: trimesh per tile (roads/sidewalks/curbs/intersections + building shells) ----------------
@@ -1595,11 +1746,12 @@ export function createTileBuilder(ctx) {
     const handles = []; t._colPartial = handles; colTileReg.set(Math.floor((t.cx ?? (t.tx + 0.5) * provider.tileSize) / provider.tileSize) + ',' + Math.floor((t.cz ?? (t.tz + 0.5) * provider.tileSize) / provider.tileSize), t); // lets the streamer release partially built colliders if the job is cancelled
     const tile = yield* getTileG(t.tx, t.tz);
     if (!tile) { t._colPartial = null; return handles; }
+    const LFc = !!(tile.relief && D); // relief tile: road / building collider vertices are raised onto the terrain like the render
     // trimesh from a triangle soup; drops degenerate / non-finite triangles (they can make parry panic in ray/shape casts)
     const ground = [], solid = [];
     // audit mode (ctx.auditTags): every collider source gets its own trimesh, tagged in colTags (handle -> source)
     const audit = !!ctx.auditTags, soups = new Map(), soupOf = (tag) => { if (!soups.has(tag)) soups.set(tag, []); return soups.get(tag); };
-    const add = (batch, out = ground) => {
+    const add = (batch, out = ground, dk = null) => { if (LFc && !batch.empty) { const Q = batch.p; for (let i = 1; i < Q.length; i += 3) Q[i] += dk !== null ? dk : TH(Q[i - 1], Q[i + 1]); }
       if (batch.empty) return; const P = batch.p;
       for (let i = 0; i + 8 < P.length; i += 9) {
         const ax = P[i], ay = P[i + 1], az = P[i + 2], bx = P[i + 3] - ax, by = P[i + 4] - ay, bz = P[i + 5] - az, cx = P[i + 6] - ax, cy = P[i + 7] - ay, cz = P[i + 8] - az;
@@ -1630,10 +1782,11 @@ export function createTileBuilder(ctx) {
     const it = buildRoads(dummyB, tile, null, collObj, flush);
     for (let r = it.next(); !r.done; r = it.next()) { dummyB.guard = new Batch(); dummyB.asphalt = new Batch(); dummyB.marks = new Batch(); dummyB.sidewalk = new Batch(); dummyB.trim = new Batch(); yield; }
     flush(); yield;
-    for (const a of tile.areas || []) if (a.kind !== 'pool') fillPoly(g, a.rings, 0, 0xffffff, 1);
+    if (LFc && terrain) { const T0 = provider.tileSize || 200, tr = yield* terrain.gridGen(t.tx * T0, t.tz * T0, (t.tx + 1) * T0, (t.tz + 1) * T0, 4, { coll: true }); if (tr) { const C3 = tr.coll; for (let i = 0; i < C3.length; i++) ground.push(C3[i]); tr.geometry.dispose(); } } // same vertices as the rendered terrain
+    else for (const a of tile.areas || []) if (a.kind !== 'pool') fillPoly(g, a.rings, 0, 0xffffff, 1);
     // ground cover: every 2 m cell of this tile that is land (not water) gets a floor at y = 0, so no land is ever without a collider
     // (OSM land polygons miss slivers along the coast, tile borders and whole map-edge tiles; the visual land base covers them)
-    if (isWater) { const T = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? t.x0, z0 = tile.z0 ?? t.z0, C = 2, N = Math.round(T / C);
+    if (isWater && !(LFc && terrain)) { const T = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? t.x0, z0 = tile.z0 ?? t.z0, C = 2, N = Math.round(T / C);
       for (let j = 0; j < N; j++) { let run = -1; for (let i = 0; i <= N; i++) { const land = i < N && !isWater(x0 + (i + 0.5) * C, z0 + (j + 0.5) * C);
           if (land && run < 0) run = i; if (!land && run >= 0) { const xa = x0 + run * C, xb = x0 + i * C, za = z0 + j * C, zb = za + C; quadUp(g, [xa, 0, za], [xb, 0, za], [xb, 0, zb], [xa, 0, zb], WHITE, 1); run = -1; } }
         if ((j & 3) === 3) yield; } }
@@ -1648,7 +1801,7 @@ export function createTileBuilder(ctx) {
     let bb = new Batch(), k = 0;
     for (const b of buildingsOf(tile)) {
       if (b.part) continue;
-      buildBuilding(NULLB, b, { coll: bb, shops: false });
+      buildBuilding(NULLB, b, { coll: bb, shops: false }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
     add(bb, audit ? soupOf('building') : solid); yield;
@@ -1669,6 +1822,7 @@ export function createTileBuilder(ctx) {
     for (const p of P.lamp) { cyl(p.x, p.y, p.z, 3.6, 0.14); if (++c % 60 === 0) yield; }
     sol('palm');
     for (const p of P.palm) { cyl(p.x, p.y, p.z, 2, 0.28); if (++c % 60 === 0) yield; }
+    sol('tree'); for (const p of P.tree || []) { cyl(p.x, p.y, p.z, 2.4, (p.sp === 'banyan' ? 0.75 : /citrus|seagrape|mangrove/.test(p.sp) ? 0.14 : 0.34) * (p.s || 1)); if (++c % 60 === 0) yield; }
     sol('hydrant');
     for (const p of P.hydrant) cyl(p.x, p.y, p.z, 0.4, 0.17);
     sol('bin');
@@ -1788,5 +1942,5 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
+  return { auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
 }

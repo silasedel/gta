@@ -1,0 +1,455 @@
+{
+ "when": "2026-11-14T01:23:58.056Z",
+ "boot": {
+  "people": true,
+  "failed": [],
+  "peds": 15,
+  "lines": 471
+ },
+ "rush": {
+  "mem": 1864,
+  "peds": 24,
+  "crowd": 153,
+  "audit": {
+   "spawned": 39,
+   "crowdSpawned": 521,
+   "total": 560,
+   "distinct": 560,
+   "dup": 0,
+   "dupInView": 0,
+   "lookFailed": 0,
+   "applyFailed": 0,
+   "dupList": [],
+   "look": {
+    "looks": 560,
+    "rerolls": 0,
+    "dupSignatures": 0,
+    "bodyClashAvoided": 0,
+    "distinct": 560
+   },
+   "bodies": {
+    "unlocked": true,
+    "loaded": 120,
+    "total": 129,
+    "ok": true,
+    "added": 89,
+    "ms": 10052
+   }
+  },
+  "district": "Downtown"
+ },
+ "frameRush": {
+  "frames": 204,
+  "avgMs": 19.61,
+  "p95Ms": 33.4,
+  "fps": 51,
+  "peds": 24,
+  "crowd": 100,
+  "calls": 578,
+  "tris": 965388,
+  "inView": {
+   "near": 2,
+   "far": 39,
+   "total": 41
+  }
+ },
+ "stageSidewalk": {
+  "best": [
+   -2481.613956141923,
+   608.5726335324841,
+   4.974188368183839
+  ],
+  "score": 32
+ },
+ "inViewSidewalk": {
+  "near": 6,
+  "far": 31,
+  "total": 37
+ },
+ "roster": [
+  {
+   "name": "Omar Iglesias",
+   "age": 39,
+   "job": "on vacation",
+   "home": "downtown",
+   "voice": "tourist",
+   "traits": {
+    "courage": 0.23,
+    "honesty": 0.49,
+    "talk": 0.3,
+    "kindness": 0.89,
+    "temper": 0.57,
+    "curiosity": 0.94,
+    "vanity": 0.83,
+    "energy": 0.11,
+    "sociability": 0.98,
+    "patience": 0.86,
+    "nerve": 0.67
+   }
+  },
+  {
+   "name": "Eduardo Gonzalez Acosta",
+   "age": 45,
+   "job": "server",
+   "home": "downtown",
+   "voice": "gruff",
+   "traits": {
+    "courage": 0.29,
+    "honesty": 0.06,
+    "talk": 0.33,
+    "kindness": 0.11,
+    "temper": 0.78,
+    "curiosity": 0.92,
+    "vanity": 0.01,
+    "energy": 0.77,
+    "sociability": 0.77,
+    "patience": 0.45,
+    "nerve": 0.85
+   }
+  },
+  {
+   "name": "Brayan Contreras",
+   "age": 55,
+   "job": "architect",
+   "home": "downtown",
+   "voice": "anxious",
+   "traits": {
+    "courage": 0.13,
+    "honesty": 0.94,
+    "talk": 0.4,
+    "kindness": 0.83,
+    "temper": 0.16,
+    "curiosity": 0.57,
+    "vanity": 0.42,
+    "energy": 0.39,
+    "sociability": 0.67,
+    "patience": 0.52,
+    "nerve": 0.77
+   }
+  },
+  {
+   "name": "Guerda Desir",
+   "age": 43,
+   "job": "yacht broker",
+   "home": "downtown",
+   "voice": "kreyol",
+   "traits": {
+    "courage": 0.82,
+    "honesty": 0.46,
+    "talk": 0.66,
+    "kindness": 0.68,
+    "temper": 0.88,
+    "curiosity": 0.44,
+    "vanity": 0.6,
+    "energy": 0.45,
+    "sociability": 0.68,
+    "patience": 0.38,
+    "nerve": 0.02
+   }
+  },
+  {
+   "name": "Miriam Birch",
+   "age": 41,
+   "job": "attorney",
+   "home": "downtown",
+   "voice": "pro",
+   "traits": {
+    "courage": 0.65,
+    "honesty": 0.32,
+    "talk": 0.12,
+    "kindness": 0.83,
+    "temper": 0.18,
+    "curiosity": 0.43,
+    "vanity": 0.71,
+    "energy": 0.76,
+    "sociability": 0.85,
+    "patience": 0.1,
+    "nerve": 0.45
+   }
+  },
+  {
+   "name": "Tatiana Mesa",
+   "age": 40,
+   "job": "accountant",
+   "home": "downtown",
+   "voice": "pro",
+   "traits": {
+    "courage": 0.28,
+    "honesty": 0.22,
+    "talk": 0.07,
+    "kindness": 0.04,
+    "temper": 0.65,
+    "curiosity": 0.25,
+    "vanity": 0.41,
+    "energy": 0.29,
+    "sociability": 0.24,
+    "patience": 0.48,
+    "nerve": 0.75
+   }
+  }
+ ],
+ "reactSpawn": {
+  "spawned": 30,
+  "dressed": 24
+ },
+ "reactStates": {
+  "byCourageBand": {
+   "mid": {
+    "flee": 7,
+    "cower": 2,
+    "freeze": 2,
+    "film": 1
+   },
+   "high": {
+    "film": 2,
+    "call": 3,
+    "cower": 1,
+    "flee": 2
+   },
+   "low": {
+    "flee": 3,
+    "call": 1
+   }
+  },
+  "stats": {
+   "shot": {
+    "mid": {
+     "flee": 7,
+     "cower": 2,
+     "freeze": 2,
+     "film": 1
+    },
+    "high": {
+     "film": 2,
+     "call911": 3,
+     "cower": 1,
+     "flee": 2
+    },
+    "low": {
+     "flee": 3,
+     "call911": 1
+    }
+   }
+  }
+ },
+ "witness": {
+  "reports": 4,
+  "sample": [
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2481.614014761585,
+     "z": 608.5726320062047
+    },
+    "description": "a man",
+    "reliability": 0.78,
+    "witness": "Daniel Medina",
+    "witnessId": "p6frgb"
+   },
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2481.614014761585,
+     "z": 608.5726320062047
+    },
+    "description": "a man",
+    "reliability": 0.79,
+    "witness": "Odessa Bermudez",
+    "witnessId": "p5o9kt"
+   },
+   {
+    "what": "shots fired",
+    "where": {
+     "x": -2481.614014761585,
+     "z": 608.5726320062047
+    },
+    "description": "a man",
+    "reliability": 0.82,
+    "witness": "Marie Augustin",
+    "witnessId": "p5v83o"
+   }
+  ],
+  "lines": [
+   {
+    "t": 36,
+    "who": "Odessa Bermudez",
+    "voice": "gruff",
+    "situation": "call911",
+    "text": "Please hurry, there are kids here."
+   },
+   {
+    "t": 36,
+    "who": "Chad Jacobs",
+    "voice": "warm",
+    "situation": "gunfire",
+    "text": "Oh my God, run!"
+   },
+   {
+    "t": 36,
+    "who": "Nia Jimenez",
+    "voice": "warm",
+    "situation": "gunfire",
+    "text": "Was that a gun? Run!"
+   },
+   {
+    "t": 36,
+    "who": "Juana Sotolongo Fernandez",
+    "voice": "chill",
+    "situation": "call911",
+    "text": "I need police, there's shooting."
+   },
+   {
+    "t": 36,
+    "who": "Marie Augustin",
+    "voice": "kreyol",
+    "situation": "call911",
+    "text": "Yes, hi, I want to report shots fired."
+   },
+   {
+    "t": 36,
+    "who": "Hugo Contreras",
+    "voice": "hustler",
+    "situation": "gunfire",
+    "text": "Nope! I'm out!"
+   },
+   {
+    "t": 36,
+    "who": "Daymi Leyva",
+    "voice": "warm",
+    "situation": "gunfire",
+    "text": "Get down, everybody down!"
+   },
+   {
+    "t": 43,
+    "who": "Daniel Medina",
+    "voice": "snob",
+    "situation": "greet",
+    "text": "Morning."
+   }
+  ]
+ },
+ "schedule": [
+  {
+   "hour": 4,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 4,
+    "sampled": 200,
+    "out": 12,
+    "density": 0.06,
+    "acts": "exercise:12",
+    "jobs": "itsupport:2 tourist:2 server:2 guard:1 valet:1 analyst:1",
+    "roles": "worker:5 resident:5 visitor:2"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 11,
+    "density": 0.05
+   }
+  },
+  {
+   "hour": 8.5,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 8.5,
+    "sampled": 200,
+    "out": 109,
+    "density": 0.55,
+    "acts": "commute:45 work_street:23 errands:22 exercise:9 stroll:9 socialize:1",
+    "jobs": "attorney:14 guard:11 accountant:11 tourist:10 broker:10 itsupport:9",
+    "roles": "worker:75 resident:19 visitor:15"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 46,
+    "density": 0.54
+   }
+  },
+  {
+   "hour": 13,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 13,
+    "sampled": 200,
+    "out": 122,
+    "density": 0.61,
+    "acts": "lunch:95 work_street:25 commute:2",
+    "jobs": "tourist:16 guard:11 attorney:8 analyst:7 teller:6 paralegal:6",
+    "roles": "worker:74 visitor:27 resident:21"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 19,
+    "density": 0.13
+   }
+  },
+  {
+   "hour": 1,
+   "sample": {
+    "zone": "business",
+    "district": "Downtown",
+    "hour": 1,
+    "sampled": 200,
+    "out": 30,
+    "density": 0.15,
+    "acts": "nightlife:24 home:6",
+    "jobs": "tourist:11 analyst:4 broker:2 guard:2 accountant:1 realtor:1",
+    "roles": "visitor:14 worker:9 resident:7"
+   },
+   "live": {
+    "peds": 24,
+    "crowd": 21,
+    "density": 0.16
+   }
+  }
+ ],
+ "beach": {
+  "mem": 1578,
+  "uptime": 108621,
+  "peds": 32,
+  "crowd": 67,
+  "district": "South Beach",
+  "zone": "beach"
+ },
+ "frameBeach": {
+  "frames": 97,
+  "avgMs": 41.55,
+  "p95Ms": 50.1,
+  "fps": 24.1,
+  "peds": 32,
+  "crowd": 65,
+  "calls": 278,
+  "tris": 864129,
+  "inView": {
+   "near": 6,
+   "far": 7,
+   "total": 13
+  }
+ },
+ "stageBeach": {
+  "best": [
+   3575.495115279152,
+   -59.66121292114258,
+   1.5707963267948966
+  ],
+  "score": 2
+ },
+ "inViewBeach": {
+  "near": 13,
+  "far": 0,
+  "total": 13
+ },
+ "audit": {
+  "err": "TypeError: Cannot read properties of undefined (reading 'audit')\n    at <anonymous>:1:78\n    at <anonymous>:1:89\n    at <anonymous>:1:171"
+ },
+ "sigs": {
+  "err": "TypeError: Cannot read properties of undefined (reading 'sigList')\n    at <anonymous>:1:78\n    at <anonymous>:1:91\n    at <anonymous>:1:173"
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+  "ERR [vehicles] tick Kestrel Line #31 TypeError: Cannot read properties of undefined (reading 'current_vehicle_speed')\n    at Ng.currentVehicleSpeed (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapier3d-compat.js?v=242c5a29:4207:21)\n    at physicsTick (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794619453071:603:22)\n    at vehiclesFixed (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794619453071:1359:49)\n    at frame (http://127.0.0.1:5200/src/main.js:816:80)"
+ ]
+}

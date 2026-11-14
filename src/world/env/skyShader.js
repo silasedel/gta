@@ -26,7 +26,7 @@ export function createSkyMaterial() {
       uNight: { value: 0 },
       uFogColor: { value: new THREE.Color(0.7, 0.5, 0.4) },
       uHorizonBlend: { value: 1.0 },
-      uCloudCover: { value: 0.47 },
+      uCloudCover: { value: 0.385 },
       uCloudAmbient: { value: new THREE.Color(0.5, 0.45, 0.5) },
       uCloudSun: { value: new THREE.Color(1, 0.6, 0.3) },
       uCirrusColor: { value: new THREE.Color(1, 0.5, 0.4) },
@@ -196,20 +196,20 @@ export function createSkyMaterial() {
           vec2 cuv = dir.xz * t * 0.9 + vec2( uTime * 0.0035, uTime * 0.0012 );
           float n = fbm5( cuv * 1.3 );
           float cov = 1.0 - uCloudCover;
-          float dens = smoothstep( cov, cov + 0.22, n );
+          float dens = smoothstep( cov, cov + 0.26, n );
           vec2 toSun = normalize( sd.xz + vec2( 1e-4 ) );
           float n2 = fbm5( cuv * 1.3 + toSun * 0.11 );
           float lit = clamp( 0.55 + ( n - n2 ) * 5.0, 0.0, 1.0 );
           float fwd = pow( max( cosTheta, 0.0 ), 10.0 );
           float underside = smoothstep( 0.0, 0.6, n - cov );
-          vec3 cloudCol = uCloudAmbient * ( 0.55 + 0.45 * ( 1.0 - underside ) ) + uCloudSun * ( lit * ( 0.7 + 3.2 * fwd ) + ( 1.0 - dens ) * fwd * 4.0 ) * ( 1.0 - 0.5 * underside );
+          vec3 cloudCol = uCloudAmbient * ( 0.62 + 0.38 * ( 1.0 - underside ) ) + uCloudSun * ( lit * ( 0.85 + 3.2 * fwd ) + ( 1.0 - dens ) * fwd * 4.5 ) * ( 1.0 - 0.42 * underside );
           float horizonFade = smoothstep( 0.0, 0.16, dir.y );
           cloudA = dens * horizonFade * 0.96;
           // high cirrus streaks
           vec2 ciuv = dir.xz * t * 0.35 + vec2( uTime * 0.002, 0.0 );
           float ci = fbm3( vec2( ciuv.x * 1.2, ciuv.y * 5.0 ) + fbm3( ciuv * 2.0 ) );
-          float ciA = smoothstep( 0.52, 0.85, ci ) * 0.55 * smoothstep( 0.0, 0.25, dir.y );
-          col = mix( col, uCirrusColor * ( 0.6 + 1.6 * fwd ), ciA * ( 1.0 - cloudA ) );
+          float ciA = smoothstep( 0.62, 0.92, ci ) * 0.30 * smoothstep( 0.0, 0.25, dir.y );
+          col = mix( col, uCirrusColor * ( 1.05 + 1.6 * fwd ), ciA * ( 1.0 - cloudA ) );
           col = mix( col, cloudCol, cloudA );
         }
 

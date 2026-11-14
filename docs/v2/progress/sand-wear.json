@@ -1,1 +1,17 @@
-{"track":"sand-wear","agent":"running","items":[{"name":"Started","state":"building"}]}
+{ "track": "sand-wear", "title": "Fine sand, footprints and bar wear pass", "section": "Set pieces", "agent": "done",
+  "items": [
+    { "name": "Fine-detail sand material (world-space, no tiling, grain, ripples, damp patches, shells, pebbles, seaweed, caps, old marks), exported for other sand", "state": "verified", "evidence": "docs/v2/shots/sand-wear/sand_closeup.png" },
+    { "name": "Sand material on the bar lot", "state": "verified", "evidence": "docs/v2/shots/sand-wear/hero_after.png" },
+    { "name": "Sand material adopted by beaches and dunes (lead wiring in terrain.js / miami/materials.js)", "state": "todo", "evidence": "" },
+    { "name": "Footprint decals: shoe print with tread and raised rim, left and right, deeper when running, erode and fade over 3.5 minutes", "state": "verified", "evidence": "docs/v2/shots/sand-wear/prints_preview.png" },
+    { "name": "Footprints in the full game: player walking on beach sand (7 prints in 10.7 m) with sand puff", "state": "verified", "evidence": "docs/v2/shots/sand-wear/game_walk.png" },
+    { "name": "Footprints on a registered sand lot (the bar-lot path), tested in game with a temporary lot: 8 prints in 12.2 m at lot height", "state": "verified", "evidence": "docs/v2/shots/sand-wear/game_lot_test.png" },
+    { "name": "Full-game walk across the real bar lot (bar not placed: new keys_bar anchor is open water in the loaded world)", "state": "todo", "evidence": "" },
+    { "name": "Pedestrian footprints (stride-based, within 45 m of the player)", "state": "built", "evidence": "" },
+    { "name": "Picnic tables each different: missing, cracked, snapped and replaced boards, faded and chipped paint, propped and splinted legs, carved initials, rings, stains", "state": "verified", "evidence": "docs/v2/shots/sand-wear/table.png" },
+    { "name": "Bottles and glasses at different fill levels, some tipped over", "state": "verified", "evidence": "docs/v2/shots/sand-wear/table.png" },
+    { "name": "Flag: wrinkles, sun fade, stains, frayed fly end, gusting wind", "state": "verified", "evidence": "docs/v2/shots/sand-wear/flag.png" },
+    { "name": "Roof rust and mismatched panels, weathered siding, dead and missing string bulbs, litter, overflowing trash", "state": "verified", "evidence": "docs/v2/shots/sand-wear/hero_after.png" },
+    { "name": "Porch deck scuff and traffic overlay (not inspected close-up)", "state": "built", "evidence": "" },
+    { "name": "Vegetation hook (opts.vegetation.build) for palms and bushes (game.vegetation not present yet, untested)", "state": "built", "evidence": "" }
+  ] }
