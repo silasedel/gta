@@ -5,9 +5,9 @@
  "agent": "idle",
  "items": [
   {
-   "name": "Rusticated stone base, deeper reveals, interior-room shop glass on street bays (about 6 ms per frame; ?noshoprooms)",
+   "name": "Rusticated stone base, deeper reveals, interior-room shop glass on street bays (within 70 m, high/ultra only, cost within noise)",
    "state": "verified",
-   "evidence": "docs/v2/shots/city-look/after59c/dt_street_13.png"
+   "evidence": "docs/v2/shots/city-look/after59d/dt_street_13_rooms.png"
   },
   {
    "name": "Downtown sidewalk pavers and granite curbs",

@@ -1,3 +1,14 @@
+# city-look: shop-room cost fix (Nov 14, 6:28 AM)
+- **Changes:** room panes draw first (`renderOrder -1`, opaque, front side only), so the heavy facade shader behind them is depth-rejected. Rooms show only within about 70 m (dithered 55 to 70 m discard); the facade's own shop glass shows beyond. On the medium and low presets no panes are built and the shader discards (`uRoomOn`).
+- **Measured** (same camera, high preset set by the script, load about 3.5):
+
+  | | Draw calls | Avg frame | p95 frame |
+  |---|---|---|---|
+  | Shop rooms on | 638 | 20.3 ms | 32.7 ms |
+  | `?noshoprooms` | 611 | 23.5 ms | 37.7 ms |
+
+  The rooms now cost nothing measurable, within noise; the run with rooms was even faster. Earlier the cost was about 6 ms. Shots: `after59d/dt_street_13_rooms.png` and `after59d/dt_street_13_norooms.png`. The near shop rooms are visible; beyond about 60 m the facade glass shows.
+
 # city-look: downtown street pass 3 (Nov 14, 6:20 to 6:30 AM, load 3 to 4)
 
 Same camera throughout: East Flagler St, car height, 1 PM.

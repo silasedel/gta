@@ -403,7 +403,11 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;
     M.neon.color.setScalar(1 + 2.4 * dusk);
     if (dusk > 0.02) M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk); else M.bulb.color.setRGB(0.2, 0.19, 0.17); // unlit by day: dull glass bulb, not a glowing beige dot
-    if (M.roomGlassKit) M.roomGlassKit.uNight.value = Math.max(n, dusk * 0.8);
+    if (M.roomGlassKit) {
+      M.roomGlassKit.uNight.value = Math.max(n, dusk * 0.8);
+      const qn = globalThis.game?.quality?.name;
+      M.roomGlassU.uRoomOn.value = qn === 'medium' || qn === 'low' ? 0 : 1;
+    }
     const blink = t % 1.6 < 0.25; M.beacon.color.setRGB(blink ? 4 : 0.25, blink ? 0.2 : 0.02, blink ? 0.2 : 0.02);
     return { n, dusk };
   }
@@ -413,8 +417,24 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     const { createHouseKit } = await import('../setpieces/houses/materials.js');
     const hk = createHouseKit(THREE, {});
     M.roomGlass = hk.mat.shopGlass();
-    M.roomGlass.side = THREE.DoubleSide;
+    M.roomGlass.side = THREE.FrontSide;
     M.roomGlassKit = hk;
+    // cost control: rooms only within ~70 m (dithered 55-70 m, the facade's own shop glass shows beyond) and only on the
+    // high / ultra presets; the panes draw first (renderOrder -1) so the facade shader behind them is depth-rejected
+    M.roomGlassU = { uRoomOn: { value: 1 } };
+    const prevRG = M.roomGlass.onBeforeCompile;
+    M.roomGlass.onBeforeCompile = (sh, r) => {
+      prevRG(sh, r);
+      sh.uniforms.uRoomOn = M.roomGlassU.uRoomOn;
+      sh.fragmentShader = sh.fragmentShader.replace('void main() {', `uniform float uRoomOn;
+void main() {
+  {
+    float rd = distance( vRoomW, cameraPosition );
+    float rth = fract( dot( gl_FragCoord.xy, vec2( 0.0671, 0.5831 ) ) * 52.98 );
+    if ( uRoomOn < 0.5 || rd > 55.0 + 15.0 * rth ) discard;
+  }`);
+    };
+    M.roomGlass.customProgramCacheKey = () => 'house:shopGlass|near70';
   } catch (e) { console.warn('[city-look] shop room glass unavailable', e); }
   return { M, F, update };
 }

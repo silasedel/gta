@@ -1330,6 +1330,8 @@ export function createTileBuilder(ctx) {
   const ROOM_TINT = [0x8c7c66, 0x7a6e60, 0x968a76, 0x6e6252, 0x857866, 0x7c7468]; // mid-tone walls: the room's light and goods carry the read, not a blown-out box
   function roomPane(rb, p, tx, tz, nx, nz, sa, sb, ya, yb, h) {
     if (sb - sa < 0.8 || yb - ya < 0.8) return;
+    const qn = globalThis.game?.quality?.name;
+    if (qn === 'medium' || qn === 'low') return; // no room panes at all on the cheaper presets
     const o = 0.04, col = new THREE.Color(ROOM_TINT[(h * ROOM_TINT.length) | 0]);
     const wear = 1 + ((h * 977) % 1) * 4.99 | 0;
     const w = wear + 0.35 + 0.6 * ((h * 131) % 1);
@@ -2021,7 +2023,7 @@ export function createTileBuilder(ctx) {
     }
     if (B.roomGlass && B.roomGlass.p.length) { // shop rooms behind street-front glass (aWear = room kind + how lit)
       const m = meshOf(B.roomGlass, M.roomGlass, { cast: false });
-      if (m) { m.geometry.setAttribute('aWear', new THREE.BufferAttribute(new Float32Array(B.roomGlass.w), 1)); m.name = 'shop-rooms'; group.add(m); }
+      if (m) { m.geometry.setAttribute('aWear', new THREE.BufferAttribute(new Float32Array(B.roomGlass.w), 1)); m.name = 'shop-rooms'; m.renderOrder = -1; group.add(m); }
     }
     if (B.fac && !B.fac.empty) { const m = B.fac.build(M.facade, { cast: true }); m.name = 'facades'; group.add(m); yield; }
     if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }
