@@ -801,6 +801,42 @@ def slope_limit(A, fixed=None, n=120):
         A = B
     return A
 H = slope_limit(H)
+# maproads track: a cut-and-fill corridor for the ring motorway. The ground under and beside the carriageways follows one
+# smooth longitudinal profile (gaussian-smoothed terrain along the centerline, at most 4 % grade): full within 30 m of the
+# centerline (both carriageways and the verges), blended back to the natural ground over the next 80 m. Water stays water.
+def _ring_corridor(Hm):
+    cen = LineString(RING.center); L_ = cen.length; n_ = max(2, int(L_ / CELLH) + 1)
+    ss_ = np.linspace(0, L_, n_); P_ = [cen.interpolate(v) for v in ss_]
+    def _hb(x, z):
+        fx, fz = (x - hx0) / CELLH - 0.5, (z - hz0) / CELLH - 0.5
+        i, j = min(hnx - 2, max(0, int(fx))), min(hnz - 2, max(0, int(fz))); u, v = min(1.0, max(0.0, fx - i)), min(1.0, max(0.0, fz - j))
+        return float((Hm[j, i] * (1 - u) + Hm[j, i + 1] * u) * (1 - v) + (Hm[j + 1, i] * (1 - u) + Hm[j + 1, i + 1] * u) * v)
+    t_ = np.array([_hb(q.x, q.y) for q in P_], np.float32)
+    p_ = ndimage.gaussian_filter1d(t_, 8.0, mode='nearest')
+    g_ = 0.04 * CELLH
+    for _ in range(200):
+        q_ = p_.copy()
+        q_[1:] = np.minimum(q_[1:], q_[:-1] + g_); q_[:-1] = np.minimum(q_[:-1], q_[1:] + g_)
+        q_[1:] = np.maximum(q_[1:], q_[:-1] - g_); q_[:-1] = np.maximum(q_[:-1], q_[1:] - g_)
+        if np.allclose(q_, p_, atol=1e-3): break
+        p_ = q_
+    # cells within 110 m of the centerline
+    bx0, bz0, bx1, bz1 = cen.buffer(112).bounds
+    i0, i1 = max(0, int((bx0 - hx0) / CELLH)), min(hnx, int((bx1 - hx0) / CELLH) + 1)
+    j0, j1 = max(0, int((bz0 - hz0) / CELLH)), min(hnz, int((bz1 - hz0) / CELLH) + 1)
+    sub = Hm[j0:j1, i0:i1].copy(); n_set = 0
+    from shapely import points as _pts, distance as _dist, line_locate_point as _llp
+    xs = hx0 + (np.arange(i0, i1) + 0.5) * CELLH; zs = hz0 + (np.arange(j0, j1) + 0.5) * CELLH
+    GX, GZ = np.meshgrid(xs, zs); pts_ = _pts(GX.ravel(), GZ.ravel())
+    d_ = _dist(pts_, cen).reshape(GX.shape); sp_ = _llp(cen, pts_).reshape(GX.shape)
+    tgt = np.interp(sp_, ss_, p_)
+    w_ = 1.0 - smoothstep(30.0, 110.0, d_)
+    dry_ = (lmask & ~wmask)[j0:j1, i0:i1]
+    w_ = np.where(dry_, w_, 0.0)
+    Hm[j0:j1, i0:i1] = sub * (1 - w_) + tgt * w_
+    return int((w_ > 0.99).sum())
+_nc = _ring_corridor(H)
+print('maproads: ring motorway corridor graded,', _nc, 'cells at full weight', flush=True)
 # road grading on the graph: h(v) = min(terrain, neighbors + 6 % * distance); then bench the roadbed and re-limit slopes
 import heapq
 def hbil(x, z):
@@ -931,6 +967,35 @@ for r in W.roads:
         r.y = [round(hbil(*q_) + v_, 2) for q_, v_ in zip(r.pts, r.y)]; _nreb += 1
 print('maproads: deck profiles rebased onto the terrain', _nreb, flush=True)
 _mbr = set(q_ for r in W.roads if r.kind == 'motorway' and r.bridge for q_ in (r.pts[0], r.pts[-1]))   # water bridges keep their approaches
+_split_new = []; _split_old = set()
+# pieces next to a water bridge keep only their approach (150 m, blended out by 220 m); the rest is ground
+for r in W.roads:
+    if r.kind == 'motorway' and not r.bridge and r.y and (r.pts[0] in _mbr or r.pts[-1] in _mbr):
+        cl_ = cumlen(r.pts); L_ = cl_[-1]; ny_ = []
+        for k, (q_, v_) in enumerate(zip(r.pts, r.y)):
+            g_ = hbil(*q_); dd_ = min(cl_[k] if r.pts[0] in _mbr else 1e9, (L_ - cl_[k]) if r.pts[-1] in _mbr else 1e9)
+            w_ = 1.0 - smoothstep(150.0, 220.0, dd_)
+            ny_.append(round(g_ + max(0.0, v_ - g_) * w_, 2))
+        r.y = ny_ if max(v_ - hbil(*q_) for q_, v_ in zip(r.pts, ny_)) > 0.3 else None
+        if r.y:   # split off the at-grade rest so only the approach is a deck in the game
+            rel_ = [v_ - hbil(*q_) for q_, v_ in zip(r.pts, r.y)]
+            hi_ = [k for k, v_ in enumerate(rel_) if v_ > 0.05]
+            a0, a1 = (max(0, hi_[0] - 1), min(len(r.pts) - 1, hi_[-1] + 1)) if hi_ else (0, 0)
+            parts_ = []
+            if a0 > 0: parts_.append((0, a0, False))
+            parts_.append((a0, a1, True))
+            if a1 < len(r.pts) - 1: parts_.append((a1, len(r.pts) - 1, False))
+            if len(parts_) > 1:
+                for b0, b1, el_ in parts_:
+                    if b1 - b0 < 1: continue
+                    c_ = r.copy_with(r.pts[b0:b1 + 1]); c_.y = [round(hbil(*q_), 2) + 0 for q_ in c_.pts] if False else (r.y[b0:b1 + 1] if el_ else None)
+                    c_.id = None; _split_new.append(c_)
+                _split_old.add(id(r))
+if _split_old:
+    W.roads = [r for r in W.roads if id(r) not in _split_old] + _split_new
+    for i_, r in enumerate(W.roads):
+        if r.id is None: r.id = W.nid('r')
+print('maproads: motorway approach pieces split from their at-grade rest', len(_split_old), flush=True)
 _mot = [r for r in W.roads if r.kind == 'motorway' and not r.bridge and r.y and not (r.pts[0] in _mbr or r.pts[-1] in _mbr)]
 _morig = {id(r): r.y for r in _mot}
 for r in _mot: r.y = None

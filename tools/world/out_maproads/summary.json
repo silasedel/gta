@@ -303,7 +303,7 @@
  "ring_island_ha": 189.9,
  "relief": {
   "forest_median_m": 1.2,
-  "forest_p75_m": 81.9,
+  "forest_p75_m": 81.8,
   "forest_p95_m": 238.6,
   "share_of_forest_above_20m": 0.41
  },
@@ -507,7 +507,7 @@
   ]
  },
  "road_km": 844.2,
- "roads": 3863,
+ "roads": 3881,
  "bridges": 171,
  "buildings": 4705,
  "pois": 896,
@@ -733,5 +733,5 @@
   "fill_district Allapattah West: could not place motel",
   "fill_district Allapattah West: could not place bait_shop"
  ],
- "seconds": 34.2
+ "seconds": 77.2
 }

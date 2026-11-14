@@ -32,7 +32,7 @@
   {
    "name": "Interchanges: no lips over 0.15 m (probe across every ramp and the motorway within 450 m)",
    "state": "todo",
-   "evidence": "docs/v2/reports/maproads-interchange-probe.json (b20261114-032612): 8276 samples, 353 off-height, 103 steps; median-flyover junctions replaced by diamonds (tools/world/wl/roadnet.py diamond_end), deck profiles rebased onto the terrain; remaining problems sit on the hilly west side of the ring (about x -15700, z -4600 to -9600) where a ramp deck is missing (17 m drops) and the lane collider stays flat while the game height sampler follows the slope"
+   "evidence": "docs/v2/reports/maproads-interchange-probe.json (b20261114-035906): 8234 samples, 220 off-height, 76 steps (was 353 / 103). Ring corridor graded (60 m cut-and-fill, 80 m blend), motorway approach decks only within 150-220 m of water bridges, at-grade rest split off. Left: a flat collider on a 7 % slope near (-15741, -4830) ending in a 1.9 m step; a ramp with no collider for about 30 m near (-15770, -4615); about 10 places with 8 m drops that may be tiles that had not streamed in"
   },
   {
    "name": "GPS North Shore -> Calabash well under 24.6 km",
