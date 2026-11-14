@@ -45,7 +45,7 @@ async function boot() {
 
   const canvas = document.getElementById('game');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -892,7 +892,7 @@ async function boot() {
     const dProg = (renderer.info.programs?.length || 0) - progs0, dTex = renderer.info.memory.textures - tex0, dGeo = renderer.info.memory.geometries - geo0;
     inp.endFrame();
     const work = performance.now() - fStart;
-    if ((gap > 40 || work > 40) && game.clock.elapsed > 3) {
+    if ((gap > 25 || work > 25) && game.clock.elapsed > 3) {
       const top = Object.entries(PT).filter(([, v]) => v > 2).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} ${v.toFixed(1)}`);
       spikes.push({ t: +game.clock.elapsed.toFixed(1), gap: Math.round(gap), work: Math.round(work), top, newPrograms: dProg, newTextures: dTex, newGeometries: dGeo, calls: renderer.info.render.calls });
       if (spikes.length > 80) spikes.shift();

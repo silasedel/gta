@@ -3,7 +3,7 @@
 # dark wavy hair (longer on top, tapered sides), light stubble, hazel eyes, a small scar through the left brow.
 # Built from the MakeHuman / MPFB2 CC0 base mesh and modelling targets; every weight below is our own choice.
 MACRO = {
-    "gender": 1.0, "age": 0.58, "muscle": 0.80, "weight": 0.50, "proportions": 0.85, "height": 0.56,
+    "gender": 1.0, "age": 0.58, "muscle": 0.90, "weight": 0.56, "proportions": 0.85, "height": 0.56,
     "cupsize": 0.5, "firmness": 0.5,
     "race": {"asian": 0.20, "caucasian": 0.62, "african": 0.18},
 }
@@ -33,13 +33,16 @@ DETAILS = {
     "mouth-angles-up": 0.08, "mouth-philtrum-volume-incr": 0.15,
     # ears, neck
     "l-ear-wing-decr": 0.25, "r-ear-wing-decr": 0.25, "l-ear-lobe-incr": 0.2, "r-ear-lobe-incr": 0.2,
-    "measure-neck-circ-incr": 0.42,
+    "measure-neck-circ-incr": 0.80,
     # torso and arms: swimmer's V, defined shoulders
-    "torso-vshape-incr": 0.36, "measure-shoulder-dist-incr": 0.14, "torso-muscle-pectoral-incr": 0.22, "torso-muscle-dorsi-incr": 0.25,
-    "l-upperarm-shoulder-muscle-incr": 0.30, "r-upperarm-shoulder-muscle-incr": 0.30, "l-lowerarm-muscle-incr": 0.65, "r-lowerarm-muscle-incr": 0.65, "l-upperarm-muscle-incr": 0.35, "r-upperarm-muscle-incr": 0.35,
+    "torso-vshape-incr": 0.40, "measure-shoulder-dist-incr": 0.34, "torso-muscle-pectoral-incr": 0.55, "torso-muscle-dorsi-incr": 0.45,
+    "l-upperarm-shoulder-muscle-incr": 0.55, "r-upperarm-shoulder-muscle-incr": 0.55, "l-lowerarm-muscle-incr": 0.85, "r-lowerarm-muscle-incr": 0.85, "l-upperarm-muscle-incr": 0.70, "r-upperarm-muscle-incr": 0.70,
+    # pass 6 (ref_48 side view): real depth front to back, trapezius slope into a thick neck, heavier upper arms and thighs
+    "torso-scale-depth-incr": 0.30, "neck-back-scale-depth-incr": 0.45, "measure-upperarm-circ-incr": 0.30,
+    "l-upperleg-muscle-incr": 0.35, "r-upperleg-muscle-incr": 0.35,
     # pass 3 (natural proportions): longer neck, sloped rather than square shoulders, real-size hands and feet,
     # tapered wrists and ankles, defined calves, ears set a little closer to the head
-    "measure-neck-height-incr": 0.02, "neck-scale-horiz-incr": 0.22, "neck-scale-depth-incr": 0.15, "torso-trans-down": 0.0,
+    "measure-neck-height-incr": 0.0, "neck-scale-horiz-incr": 0.40, "neck-scale-depth-incr": 0.32, "torso-trans-down": 0.0,
     "measure-wrist-circ-decr": 0.12, "measure-ankle-circ-decr": 0.18,
     "l-hand-scale-incr": 0.16, "r-hand-scale-incr": 0.16, "l-hand-fingers-length-incr": 0.10, "r-hand-fingers-length-incr": 0.10,
     "l-foot-scale-incr": 0.10, "r-foot-scale-incr": 0.10,

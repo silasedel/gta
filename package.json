@@ -7,11 +7,13 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 5201 --strictPort",
     "desktop:build": "node desktop/scripts/build.mjs",
-    "desktop:dev": "node desktop/scripts/dev.mjs"
+    "desktop:dev": "node desktop/scripts/dev.mjs",
+    "server": "node server/server.js"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "electron": "45.2.1",

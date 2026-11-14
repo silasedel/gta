@@ -1,0 +1,27 @@
+--- a/src/world/miami/stream.js	2026-11-13 20:02:10
++++ b/src/world/miami/stream.js	2026-11-13 20:02:10
+@@ -7,6 +7,10 @@
+ export function createStreamer(opts) {
+   const {
+     tileSize = 200, chunkTiles = 4, nearR = 350, midR = 1500, colR = 250, budgetMs = 3,
++    // far LOD only within farR of the camera (the camera's far plane is 8 km); chunks past farR + 1.5 km are freed.
++    // Before this, a far mesh was built and kept for every chunk of the whole 31 x 45 km world: memory grew for
++    // minutes after loading (about 20 new geometries per second while standing still) until the tab crashed.
++    farR = 9000,
+     bounds, buildNear, buildMid, buildColliders, removeColliders, buildFar, dispose, origin = { x: 0, z: 0 },
+   } = opts;
+   const OX = origin.x, OZ = origin.z;
+@@ -46,7 +50,12 @@
+       const wantActive = c.active ? dmin < midR + 150 : dmin < midR;
+       c.prio = dmin;
+       if (wantActive !== c.active) c.active = wantActive;
+-      if (!c.far && !c.job) c.job = enqueue('far', c, buildFar(c.a, c.b, CS), 1e6 + dmin, (res) => { c.far = res; c.job = null; });
++      if (dmin < farR) {
++        if (!c.far && !c.job) c.job = enqueue('far', c, buildFar(c.a, c.b, CS), 1e6 + dmin, (res) => { c.far = res; c.job = null; });
++      } else if (dmin > farR + 1500) {
++        if (c.job) { c.job.cancelled = true; c.job = null; }
++        if (c.far) { dispose(c.far); c.far = null; }
++      }
+       if (c.active && !c.mid && !c.midJob) c.midJob = enqueue('mid', c, buildMid(c.a, c.b, CS), dmin + 2000, (res) => { c.mid = res; c.midJob = null; });
+       if (!c.active) { if (c.midJob) { c.midJob.cancelled = true; c.midJob = null; } if (c.mid) { dispose(c.mid); c.mid = null; } }
+     }

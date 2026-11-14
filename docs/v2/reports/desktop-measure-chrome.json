@@ -1,0 +1,577 @@
+{
+ "mode": "chrome",
+ "when": "2026-11-14T03:09:06.217Z",
+ "load": [
+  17.1,
+  16.8,
+  24.3
+ ],
+ "samples": [
+  {
+   "heapMB": 1599,
+   "heapLimitMB": 4192,
+   "gameFps": 32,
+   "calls": 700,
+   "tris": 3285854,
+   "geometries": 917,
+   "textures": 348,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 82,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5855
+  },
+  {
+   "heapMB": 1985,
+   "heapLimitMB": 4192,
+   "gameFps": 28,
+   "calls": 766,
+   "tris": 3391566,
+   "geometries": 993,
+   "textures": 356,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 92,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6237
+  },
+  {
+   "heapMB": 1593,
+   "heapLimitMB": 4192,
+   "gameFps": 34,
+   "calls": 854,
+   "tris": 3525641,
+   "geometries": 1074,
+   "textures": 366,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 102,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5845
+  },
+  {
+   "heapMB": 1719,
+   "heapLimitMB": 4192,
+   "gameFps": 20,
+   "calls": 901,
+   "tris": 3639169,
+   "geometries": 1123,
+   "textures": 379,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 113,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5919
+  },
+  {
+   "heapMB": 1803,
+   "heapLimitMB": 4192,
+   "gameFps": 21,
+   "calls": 920,
+   "tris": 3710228,
+   "geometries": 1127,
+   "textures": 381,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 123,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6053
+  },
+  {
+   "heapMB": 1836,
+   "heapLimitMB": 4192,
+   "gameFps": 22,
+   "calls": 906,
+   "tris": 3671025,
+   "geometries": 1130,
+   "textures": 382,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 133,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6151
+  },
+  {
+   "heapMB": 1889,
+   "heapLimitMB": 4192,
+   "gameFps": 21,
+   "calls": 911,
+   "tris": 3659900,
+   "geometries": 1130,
+   "textures": 382,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 143,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6214
+  },
+  {
+   "heapMB": 1934,
+   "heapLimitMB": 4192,
+   "gameFps": 22,
+   "calls": 929,
+   "tris": 3688557,
+   "geometries": 1135,
+   "textures": 384,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 153,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6278
+  },
+  {
+   "heapMB": 2067,
+   "heapLimitMB": 4192,
+   "gameFps": 46,
+   "calls": 952,
+   "tris": 3857405,
+   "geometries": 1192,
+   "textures": 393,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 163,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6415
+  },
+  {
+   "heapMB": 2172,
+   "heapLimitMB": 4192,
+   "gameFps": 34,
+   "calls": 970,
+   "tris": 3865660,
+   "geometries": 1197,
+   "textures": 396,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 173,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6557
+  },
+  {
+   "heapMB": 2268,
+   "heapLimitMB": 4192,
+   "gameFps": 21,
+   "calls": 995,
+   "tris": 3933787,
+   "geometries": 1210,
+   "textures": 396,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 183,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6657
+  },
+  {
+   "heapMB": 2325,
+   "heapLimitMB": 4192,
+   "gameFps": 22,
+   "calls": 980,
+   "tris": 3904343,
+   "geometries": 1218,
+   "textures": 396,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 194,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6724
+  },
+  {
+   "heapMB": 1502,
+   "heapLimitMB": 4192,
+   "gameFps": 21,
+   "calls": 981,
+   "tris": 3882537,
+   "geometries": 1218,
+   "textures": 397,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 204,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6511
+  },
+  {
+   "heapMB": 1557,
+   "heapLimitMB": 4192,
+   "gameFps": 23,
+   "calls": 967,
+   "tris": 3861267,
+   "geometries": 1218,
+   "textures": 397,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 214,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6018
+  },
+  {
+   "heapMB": 1487,
+   "heapLimitMB": 4192,
+   "gameFps": 30,
+   "calls": 962,
+   "tris": 3896279,
+   "geometries": 1218,
+   "textures": 399,
+   "pos": [
+    3432,
+    -112
+   ],
+   "t": 224,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6019
+  },
+  {
+   "heapMB": 1547,
+   "heapLimitMB": 4192,
+   "gameFps": 40,
+   "calls": 653,
+   "tris": 3613716,
+   "geometries": 1442,
+   "textures": 412,
+   "pos": [
+    3433,
+    -152
+   ],
+   "t": 236,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6053
+  },
+  {
+   "heapMB": 1665,
+   "heapLimitMB": 4192,
+   "gameFps": 55,
+   "calls": 569,
+   "tris": 4072648,
+   "geometries": 1481,
+   "textures": 417,
+   "pos": [
+    3433,
+    -162
+   ],
+   "t": 246,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6078
+  },
+  {
+   "heapMB": 1831,
+   "heapLimitMB": 4192,
+   "gameFps": 50,
+   "calls": 911,
+   "tris": 4382155,
+   "geometries": 1898,
+   "textures": 523,
+   "pos": [
+    3432,
+    -195
+   ],
+   "t": 257,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6312
+  },
+  {
+   "heapMB": 1848,
+   "heapLimitMB": 4192,
+   "gameFps": 60,
+   "calls": 433,
+   "tris": 3170519,
+   "geometries": 1824,
+   "textures": 500,
+   "pos": [
+    -2476,
+    565
+   ],
+   "t": 268,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6700
+  },
+  {
+   "heapMB": 2023,
+   "heapLimitMB": 4192,
+   "gameFps": 48,
+   "calls": 426,
+   "tris": 3168762,
+   "geometries": 1831,
+   "textures": 500,
+   "pos": [
+    -2476,
+    570
+   ],
+   "t": 278,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6722
+  },
+  {
+   "heapMB": 2162,
+   "heapLimitMB": 4192,
+   "gameFps": 57,
+   "calls": 467,
+   "tris": 3190050,
+   "geometries": 1845,
+   "textures": 502,
+   "pos": [
+    -2476,
+    576
+   ],
+   "t": 289,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6851
+  },
+  {
+   "heapMB": 2581,
+   "heapLimitMB": 4192,
+   "gameFps": 53,
+   "calls": 375,
+   "tris": 3048756,
+   "geometries": 1939,
+   "textures": 515,
+   "pos": [
+    -895,
+    119
+   ],
+   "t": 299,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 7410
+  },
+  {
+   "heapMB": 2738,
+   "heapLimitMB": 4192,
+   "gameFps": 52,
+   "calls": 371,
+   "tris": 3047986,
+   "geometries": 1939,
+   "textures": 515,
+   "pos": [
+    -894,
+    120
+   ],
+   "t": 310,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 7558
+  },
+  {
+   "heapMB": 1695,
+   "heapLimitMB": 4192,
+   "gameFps": 37,
+   "calls": 387,
+   "tris": 3074160,
+   "geometries": 1901,
+   "textures": 515,
+   "pos": [
+    -893,
+    120
+   ],
+   "t": 321,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 7148
+  },
+  {
+   "heapMB": 1718,
+   "heapLimitMB": 4192,
+   "gameFps": 58,
+   "calls": 296,
+   "tris": 2802723,
+   "geometries": 1886,
+   "textures": 480,
+   "pos": [
+    1785,
+    -615
+   ],
+   "t": 331,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6900
+  },
+  {
+   "heapMB": 1879,
+   "heapLimitMB": 4192,
+   "gameFps": 58,
+   "calls": 298,
+   "tris": 2802723,
+   "geometries": 1889,
+   "textures": 480,
+   "pos": [
+    1770,
+    -631
+   ],
+   "t": 342,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6902
+  },
+  {
+   "heapMB": 2066,
+   "heapLimitMB": 4192,
+   "gameFps": 52,
+   "calls": 300,
+   "tris": 2803706,
+   "geometries": 1873,
+   "textures": 480,
+   "pos": [
+    1755,
+    -646
+   ],
+   "t": 352,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6946
+  },
+  {
+   "heapMB": 2317,
+   "heapLimitMB": 4192,
+   "gameFps": 40,
+   "calls": 712,
+   "tris": 3348911,
+   "geometries": 2223,
+   "textures": 505,
+   "pos": [
+    3413,
+    -88
+   ],
+   "t": 366,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 7265
+  },
+  {
+   "heapMB": 2434,
+   "heapLimitMB": 4192,
+   "gameFps": 31,
+   "calls": 718,
+   "tris": 3660673,
+   "geometries": 2335,
+   "textures": 547,
+   "pos": [
+    3376,
+    -91
+   ],
+   "t": 377,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 7407
+  }
+ ],
+ "bootSeconds": 44.4,
+ "failed": "[]",
+ "loaded": 12,
+ "env": "{\"desktop\":null,\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36\",\"dpr\":2,\"drawingBuffer\":[2268,1423],\"size\":[1512,949],\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\",\"webgpu\":true}",
+ "idle": {
+  "frames": 4018,
+  "seconds": 152.5,
+  "avgFps": 26.3,
+  "low1Fps": 7.8,
+  "p50Ms": 33.4,
+  "p99Ms": 66.7,
+  "maxMs": 716.6,
+  "over25ms": 3135,
+  "over50ms": 426
+ },
+ "move": {
+  "frames": 7043,
+  "seconds": 152.9,
+  "avgFps": 46.1,
+  "low1Fps": 6,
+  "p50Ms": 16.7,
+  "p99Ms": 50,
+  "maxMs": 2666.7,
+  "over25ms": 1560,
+  "over50ms": 27
+ },
+ "all": {
+  "frames": 11061,
+  "seconds": 305.4,
+  "avgFps": 36.2,
+  "low1Fps": 6.3,
+  "p50Ms": 16.7,
+  "p99Ms": 66.7,
+  "maxMs": 2666.7,
+  "over25ms": 4695,
+  "over50ms": 453
+ },
+ "memory": {
+  "rssStartMB": 5855,
+  "rssEndMB": 7407,
+  "rssMaxMB": 7558,
+  "heapStartMB": 1599,
+  "heapEndMB": 2434,
+  "heapMaxMB": 2738,
+  "heapLimitMB": 4192
+ },
+ "loadEnd": [
+  15.3,
+  14.9,
+  20.9
+ ],
+ "pageErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5311/favicon.ico",
+  "ERR [nicoHouse] part \"50_plants\" failed TypeError: top.clone is not a function\n    at d (http://127.0.0.1:5311/assets/nicoHouse.v2-TXUB3Txy.js:31:20385)\n    at Object.No [as build] (http://127.0.0.1:5311/assets/nicoHouse.v2-TXUB3Txy.js:31:21053)\n    at e2 (http://127.0.0.1:5311/assets/nicoHouse.v2-TXUB3Txy.js:126:12229)\n    at async Module.a2 (http://127.0.0.1:5311/assets/nicoHouse.v2-TXUB3Txy.js:126:14441)\n    at async kZ (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6428:237776)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)",
+  "ERR TypeError: x.body.translation is not a function\n    at ge (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:160323)\n    at en (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:196230)\n    at Object.Qa [as update] (http://127.0.0.1:5311/assets/manager-gRMN4axC.js:1:193390)\n    at Object.update (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6407:132798)\n    at AA (http://127.0.0.1:5311/assets/index-C6DxZybz.js:6433:2607)"
+ ]
+}

@@ -45,10 +45,10 @@ export function makeSkinMaterial(kind, state) {
   const m = new THREE.MeshPhysicalMaterial({
     name: 'skin_' + kind,
     map: tex(far ? 'skin_far.webp' : kind + '_albedo.webp', { srgb: true }),
-    roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: far ? 0 : 0.10, clearcoatRoughness: 0.32,
+    roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: far ? 0 : 0.05, clearcoatRoughness: 0.4,
   });
   if (!far) {
-    m.normalMap = tex(kind + '_normal.webp'); m.normalScale = new THREE.Vector2(1, -1);
+    m.normalMap = tex(kind + '_normal.webp'); m.normalScale = kind === 'head' ? new THREE.Vector2(0.6, -0.6) : new THREE.Vector2(0.85, -0.85);   // pores read as craters at full strength
     const m1 = tex(kind + '_m1.webp'); m.aoMap = m1; m.roughnessMap = m1; m.aoMapIntensity = 0.85;
   }
   const u = { uM2: { value: far ? null : tex(kind + '_m2.webp') }, uMicro: { value: far ? null : tex('skin_micro_n.webp', { repeat: true }) },
@@ -66,13 +66,13 @@ export function makeSkinMaterial(kind, state) {
         'reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );', /* glsl */`
         {
           float ndl = dot( geometryNormal, directLight.direction );
-          vec3 wr = uSSS * vec3( 0.42, 0.16, 0.09 );
+          vec3 wr = uSSS * vec3( 0.24, 0.11, 0.07 );
           vec3 dif = saturate( ( vec3( ndl ) + wr ) / ( 1.0 + wr ) );
           float band = smoothstep( -0.35, 0.05, ndl ) * ( 1.0 - smoothstep( 0.05, 0.6, ndl ) );
-          dif += band * uSSS * vec3( 0.11, 0.012, 0.0 );
+          dif += band * uSSS * vec3( 0.05, 0.010, 0.0 );
           vec3 h2 = normalize( directLight.direction + geometryNormal * 0.4 );
           float back = pow( saturate( dot( geometryViewDir, - h2 ) ), 4.0 ) * nicoThick;
-          reflectedLight.directDiffuse += directLight.color * ( dif + back * vec3( 1.3, 0.30, 0.15 ) * uSSS ) * BRDF_Lambert( material.diffuseColor );
+          reflectedLight.directDiffuse += directLight.color * ( dif + back * vec3( 0.9, 0.30, 0.16 ) * uSSS ) * BRDF_Lambert( material.diffuseColor );
         }`))
       .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
       #ifdef NICO_BODY
@@ -86,7 +86,9 @@ export function makeSkinMaterial(kind, state) {
         #else
           float tanK = uTan;
         #endif
-        diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 0.80, 0.70, 0.62 ), tanK );
+        diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 0.80, 0.74, 0.66 ), tanK );
+        // olive cast: the MakeHuman base skin is pink; pull its saturation toward a tanned olive-brown
+        { float lum = dot( diffuseColor.rgb, vec3( 0.30, 0.55, 0.15 ) ); diffuseColor.rgb = mix( vec3( lum ), diffuseColor.rgb, 0.78 ) * vec3( 1.0, 0.99, 0.95 ); }
         float burn = clamp( uBurn * m2.g + uFlush * m2.g * 0.6, 0.0, 1.0 );
         diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 1.22, 0.70, 0.66 ), burn * 0.75 );
         // water and sweat beads: more beads appear as the amount rises
@@ -104,7 +106,7 @@ export function makeSkinMaterial(kind, state) {
       #endif`)
       .replace('mapN.xy *= normalScale;', /* glsl */`
         vec3 mic = texture2D( uMicro, vNormalMapUv * uMicroTile ).xyz * 2.0 - 1.0;
-        float micK = 0.55 * ( 1.0 - smoothstep( 0.0015, 0.006, max( fwidth( vNormalMapUv.x ), fwidth( vNormalMapUv.y ) ) * uMicroTile ) );   // fades out with distance: no shimmer
+        float micK = 0.30 * ( 1.0 - smoothstep( 0.0015, 0.006, max( fwidth( vNormalMapUv.x ), fwidth( vNormalMapUv.y ) ) * uMicroTile ) );   // fades out with distance: no shimmer
         mapN.xy += mic.xy * micK;
         mapN.xy = mix( mapN.xy, nicoBeadN * 1.6, nicoBead * 0.85 );
         mapN.xy *= normalScale;`);
@@ -120,7 +122,9 @@ export function makeEyeMaterial(radius) {
     uR: { value: radius }, uIR: { value: 0.47 }, uPupil: { value: 0.30 }, uBlink: { value: 0 },
     uEyeQ: { value: new THREE.Vector4(0, 0, 0, 1) }, uSide: { value: 1 }, uLid: { value: new THREE.Vector4(0.80, 0.36, 0.30, 0.0) },   // half-angles: horizontal, up, down; w unused
   };
-  const m = new THREE.MeshPhysicalMaterial({ name: 'eye', color: 0xffffff, roughness: 0.2, metalness: 0, ior: 1.376, clearcoat: 1.0, clearcoatRoughness: 0.04 });
+  // the sky probe is unoccluded: a real eye sits in a socket under the brow, so most of the sky never reaches it.
+  // Keep one small wet highlight (clearcoat) and cut the environment reflection that made the eyes look glassy.
+  const m = new THREE.MeshPhysicalMaterial({ name: 'eye', color: 0xffffff, roughness: 0.2, metalness: 0, ior: 1.376, clearcoat: 0.55, clearcoatRoughness: 0.06, envMapIntensity: 0.18, specularIntensity: 0.6 });
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
@@ -155,7 +159,7 @@ export function makeEyeMaterial(radius) {
         vec2 sdir = en.xy / max( length( en.xy ), 1e-4 );
         vec3 sclC = texture2D( uSclera, vec2( 0.5 ) + 0.5 * ( eth / PI ) * sdir * vec2( uSide, -1.0 ) ).rgb;
         float inIris = ( 1.0 - smoothstep( 0.93, 1.03, ir ) ) * eyeCornea;
-        vec3 ecol = mix( sclC * vec3( 0.86, 0.80, 0.76 ), irisC.rgb * 0.52, inIris );
+        vec3 ecol = mix( sclC * vec3( 0.74, 0.68, 0.64 ), irisC.rgb * 0.46, inIris );
         ecol *= 1.0 - 0.35 * smoothstep( 0.80, 1.0, ir ) * ( 1.0 - smoothstep( 1.0, 1.25, ir ) );     // limbal shadow ring
         // socket shadow: where the lids and the socket shade the globe (in head space, so it does not turn with the eye)
         vec3 sn = qrot( uEyeQ, en );
@@ -194,7 +198,7 @@ export function makeMouthMaterial(kind, mouth) {
 export function makeHairShellMaterial(layer, layers, state) {
   const k = layer / (layers - 1);
   const u = { uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
-  const m = new THREE.MeshStandardMaterial({ name: 'hairShell', color: 0xffffff, roughness: 0.42, metalness: 0, side: THREE.DoubleSide });
+  const m = new THREE.MeshStandardMaterial({ name: 'hairShell', color: 0xffffff, roughness: 0.42, metalness: 0, side: THREE.DoubleSide, envMapIntensity: 0.35 });
   m.userData.u = u; m.userData.layer = layer;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
@@ -236,7 +240,7 @@ export function makeHairShellMaterial(layer, layers, state) {
         vec3 hc = uHairC * ( 0.55 + 0.85 * id ) * mix( 0.42, 1.25, tip ) * mix( 1.0, 0.7, uWetH );     // dark at the roots (self-shadow), lighter tips
         if ( uK <= 0.001 ) hc = uHairC * 0.35;
         diffuseColor.rgb = hc;`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.48, 0.22, uWetH );');
+      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.62, 0.3, uWetH );');
   };
   m.customProgramCacheKey = () => 'nicoHairShell';
   return m;

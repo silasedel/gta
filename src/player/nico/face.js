@@ -23,6 +23,18 @@ export const VISEMES = {
   MBP: { 'mouth-compression': 0.7 }, FV: { 'mouth-open': 0.08, 'mouth-upward-retraction': 0.5, 'mouth-depression-retraction': 0.2 }, L: { 'mouth-open': 0.26, 'mouth-parling': 0.4 },
   S: { 'mouth-open': 0.07, 'mouth-part-later': 0.45, 'mouth-retraction': 0.2 }, W: { 'mouth-open': 0.10, 'mouth-pursing': 0.9 }, TH: { 'mouth-open': 0.18, 'mouth-parling': 0.3 },
 };
+// Nico's resting face (ref_48): heavy upper lids over deep-set eyes, low brows, a slightly set mouth. Expressions and
+// speech add on top of it; the lids still blink fully.
+export const REST_FACE = {
+  'eye-left-closure': 0.24,
+  'eye-right-closure': 0.24,
+  'eye-left-slit': 0.12,
+  'eye-right-slit': 0.12,
+  'eyebrows-left-down': 0.32,
+  'eyebrows-right-down': 0.32,
+  'mouth-compression': 0.12,
+  'mouth-depression': 0.08,
+};
 const LETTER = { a: 'AA', e: 'EE', i: 'IH', o: 'OH', u: 'OO', m: 'MBP', b: 'MBP', p: 'MBP', f: 'FV', v: 'FV', l: 'L', s: 'S', z: 'S', c: 'S', t: 'S', d: 'S', n: 'L', r: 'OH', w: 'W', q: 'W', y: 'EE', h: 'AA', g: 'IH', k: 'IH', j: 'S', x: 'S' };
 export function textToVisemes(text, rate = 13) {            // -> [{ v, t }] at ~13 phonemes per second, pauses on punctuation
   const out = []; let t = 0;
@@ -85,7 +97,9 @@ export function createFace({ model, meta, faceMeshes, eyes, bone, mouth, skin })
       }
       // ---- expression + speech -> morph weights
       const tgt = {}; const E = st.exprTarget;
-      for (const n in E) tgt[n] = E[n];
+      const restK = o.dead ? 0 : 1;
+      for (const n in REST_FACE) tgt[n] = REST_FACE[n] * restK;
+      for (const n in E) tgt[n] = Math.max(tgt[n] || 0, E[n]);
       if (o.effort && !Object.keys(E).length) for (const n in EXPRESSIONS.effort) tgt[n] = EXPRESSIONS.effort[n] * o.effort * 0.7;
       if (st.speech) {
         st.speechT += dt; const ks = st.speech.keys; let i = 0; while (i < ks.length - 1 && ks[i + 1].t <= st.speechT) i++;

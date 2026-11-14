@@ -1,0 +1,68 @@
+{
+ "track": "playtest-fixes",
+ "title": "Playtest fixes: memory, freezes, resolution, people, shadows, signs, fire",
+ "section": "Integration",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Memory runaway (tab crash): far LOD built and kept for every chunk of the 31 x 45 km world; patch limits far LOD to 9 km and frees beyond 10.5 km (lead applies docs/v2/reports/playtest-fixes-patches/stream-far-radius.patch); heap now levels off in a 7 min soak",
+   "state": "verified",
+   "evidence": "docs/v2/reports/playtest-fixes.md"
+  },
+  {
+   "name": "Shader recompile storms: point/spot light count changed as lights came and went, recompiling every material (250 programs after load, bursts of 60-70). Light count now constant (src/render/perfGuards.v2.js); 57 new programs after load, all genuinely new materials",
+   "state": "verified",
+   "evidence": "docs/v2/reports/playtest-fixes.md"
+  },
+  {
+   "name": "GC churn: minimap rebuilt every shop icon every frame (interiors list getter); facade batches in JS double arrays; elevated joints re-sampled per tile build (patch)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/playtest-fixes.md"
+  },
+  {
+   "name": "WebGL context loss: message, pause, forced restore, reload button (src/render/contextGuard.v2.js)",
+   "state": "built"
+  },
+  {
+   "name": "Native fixed resolution: adaptive scaler removed (it held the canvas at 0.8x: 1536x864 in a 1920x1080 window); canvas always fills the window, DPR up to 2, ResizeObserver + fullscreen",
+   "state": "verified",
+   "evidence": "docs/v2/shots/playtest-fixes/res_after_2560x1440_dpr2.jpg"
+  },
+  {
+   "name": "Frame time: 60 fps with no frame over 25 ms on the user's Mac",
+   "state": "building",
+   "evidence": "docs/v2/reports/playtest-fixes.md"
+  },
+  {
+   "name": "Quality presets Low/Medium/High/Ultra with auto-pick (schema exists in src/ui/settings, store not wired into the game)",
+   "state": "todo"
+  },
+  {
+   "name": "NPC gait: crowd stride and cadence from speed and height (feet plant), varied leg swing; near people animate every frame in view up to 60 m (was every 2nd-5th frame)",
+   "state": "built"
+  },
+  {
+   "name": "NPC pop-in: crowd fades (dithered, 0.5 s) in and out, far edge fades by distance, close spawns placed out of view, no mass despawn on fps dips; density up (crowd 240, near cap 40)",
+   "state": "built",
+   "evidence": "docs/v2/reports/playtest-fixes.md"
+  },
+  {
+   "name": "Shadow flicker: static map keeps its light direction between re-centers, bias tied to it, edge fade at map borders, map centered ahead of the camera",
+   "state": "built"
+  },
+  {
+   "name": "Street-name signs on their posts and readable from both sides (patch drops the old floating, mirrored corner blades)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/playtest-fixes/sign_after_back.jpg"
+  },
+  {
+   "name": "Realistic fire: noise flame sheets, fireball, embers, dark smoke; car fires rare; pickup beams subtle and near-only",
+   "state": "verified",
+   "evidence": "docs/v2/shots/playtest-fixes/fire_car_day.png"
+  },
+  {
+   "name": "Fire checked inside the running game (burning wreck, explosion)",
+   "state": "todo"
+  }
+ ]
+}

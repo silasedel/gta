@@ -375,7 +375,7 @@ export function createBuilder(net) {
       }
     }
     const jointsT = [];
-    for (const jt of net.joints) { const c = chains[jt.chain], f = net.framesAt(c, jt.s); if (f.x >= B.x0 - 30 && f.x < B.x1 + 30 && f.z >= B.z0 - 30 && f.z < B.z1 + 30) jointsT.push(jt); }
+    for (const jt of net.joints) { const c = chains[jt.chain], f = jt._frame || (jt._frame = net.framesAt(c, jt.s)); /* joints never move: cache (was ~1 GB of garbage per 20 s of streaming) */ if (f.x >= B.x0 - 30 && f.x < B.x1 + 30 && f.z >= B.z0 - 30 && f.z < B.z1 + 30) jointsT.push(jt); }
     return { segs, piersT, lampsT, runsT, jointsT };
   }
 

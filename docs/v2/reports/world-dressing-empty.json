@@ -1,0 +1,1340 @@
+{
+ "build": "b20261113-195853",
+ "tag": "before",
+ "cell": 20,
+ "landKm2": 447.31,
+ "emptyGrayKm2": 207.2,
+ "emptyGrayRealMiamiKm2": 9.03,
+ "bareLawnKm2": 12.15,
+ "byCauseKm2": {
+  "synthetic land with no cover": 1.415,
+  "plain land, no land use (M.land gray)": 196.449,
+  "parking lot with nothing on it": 0.686,
+  "bare lawn (grass, no trees or props)": 12.15,
+  "dirt / gravel / construction": 0.174,
+  "paved / plaza with nothing on it": 8.48
+ },
+ "regionsOver2000m2": 3835,
+ "ranked": [
+  {
+   "rank": 1,
+   "x": -11527,
+   "z": -16057,
+   "areaM2": 12785600,
+   "grayM2": 12785600,
+   "lawnM2": 0,
+   "bbox": [
+    -15650,
+    -18730,
+    -7270,
+    -9810
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "wilderness",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 12780000,
+    "synthetic land with no cover": 5600
+   }
+  },
+  {
+   "rank": 2,
+   "x": -4446,
+   "z": -5780,
+   "areaM2": 12493600,
+   "grayM2": 12493600,
+   "lawnM2": 0,
+   "bbox": [
+    -7710,
+    -8010,
+    -1490,
+    -3030
+   ],
+   "district": "Citrus Flats",
+   "zone": "wilderness",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 12476400,
+    "synthetic land with no cover": 17200
+   }
+  },
+  {
+   "rank": 3,
+   "x": -7280,
+   "z": -18512,
+   "areaM2": 9174000,
+   "grayM2": 9174000,
+   "lawnM2": 0,
+   "bbox": [
+    -11670,
+    -20390,
+    -3230,
+    -15030
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 9138800,
+    "synthetic land with no cover": 35200
+   }
+  },
+  {
+   "rank": 4,
+   "x": -17090,
+   "z": 15439,
+   "areaM2": 7977200,
+   "grayM2": 7977200,
+   "lawnM2": 0,
+   "bbox": [
+    -18870,
+    13210,
+    -15250,
+    17150
+   ],
+   "district": "Tern Key Airfield",
+   "zone": "residential",
+   "real": false,
+   "cause": "paved / plaza with nothing on it",
+   "causes": {
+    "paved / plaza with nothing on it": 7767600,
+    "parking lot with nothing on it": 209600
+   }
+  },
+  {
+   "rank": 5,
+   "x": -5224,
+   "z": -8351,
+   "areaM2": 6443200,
+   "grayM2": 5763200,
+   "lawnM2": 680000,
+   "bbox": [
+    -7290,
+    -9410,
+    -2070,
+    -7070
+   ],
+   "district": "Citrus Flats",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 5761600,
+    "synthetic land with no cover": 1600,
+    "bare lawn (grass, no trees or props)": 680000
+   }
+  },
+  {
+   "rank": 6,
+   "x": -8895,
+   "z": -5192,
+   "areaM2": 6084400,
+   "grayM2": 6084400,
+   "lawnM2": 0,
+   "bbox": [
+    -11070,
+    -6850,
+    -7650,
+    -1470
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 6084400
+   }
+  },
+  {
+   "rank": 7,
+   "x": -17233,
+   "z": -7623,
+   "areaM2": 5057600,
+   "grayM2": 5057600,
+   "lawnM2": 0,
+   "bbox": [
+    -18810,
+    -10830,
+    -15770,
+    -4210
+   ],
+   "district": "Atlantic Ocean",
+   "zone": "water",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 5043600,
+    "synthetic land with no cover": 14000
+   }
+  },
+  {
+   "rank": 8,
+   "x": -9523,
+   "z": -10871,
+   "areaM2": 4891600,
+   "grayM2": 4891600,
+   "lawnM2": 0,
+   "bbox": [
+    -11390,
+    -12130,
+    -7790,
+    -9330
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 4874000,
+    "synthetic land with no cover": 17600
+   }
+  },
+  {
+   "rank": 9,
+   "x": -7658,
+   "z": 1612,
+   "areaM2": 8261200,
+   "grayM2": 742800,
+   "lawnM2": 7518400,
+   "bbox": [
+    -9790,
+    -370,
+    -5410,
+    3690
+   ],
+   "district": "Solana International Airport",
+   "zone": "residential",
+   "real": false,
+   "cause": "bare lawn (grass, no trees or props)",
+   "causes": {
+    "paved / plaza with nothing on it": 456000,
+    "parking lot with nothing on it": 286800,
+    "bare lawn (grass, no trees or props)": 7518400
+   }
+  },
+  {
+   "rank": 10,
+   "x": -1957,
+   "z": -12443,
+   "areaM2": 3987200,
+   "grayM2": 3987200,
+   "lawnM2": 0,
+   "bbox": [
+    -3130,
+    -14650,
+    -1130,
+    -9290
+   ],
+   "district": "Port Cassia",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3987200
+   }
+  },
+  {
+   "rank": 11,
+   "x": -15503,
+   "z": 138,
+   "areaM2": 3763200,
+   "grayM2": 3763200,
+   "lawnM2": 0,
+   "bbox": [
+    -16450,
+    -2610,
+    -14410,
+    2950
+   ],
+   "district": "Punta Marisol",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3759200,
+    "synthetic land with no cover": 4000
+   }
+  },
+  {
+   "rank": 12,
+   "x": -6276,
+   "z": 325,
+   "areaM2": 4044000,
+   "grayM2": 2920000,
+   "lawnM2": 1124000,
+   "bbox": [
+    -8350,
+    -850,
+    -4870,
+    2690
+   ],
+   "district": "Solana International Airport",
+   "zone": "residential",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 2920000,
+    "bare lawn (grass, no trees or props)": 1124000
+   }
+  },
+  {
+   "rank": 13,
+   "x": -13614,
+   "z": 1275,
+   "areaM2": 3239200,
+   "grayM2": 3239200,
+   "lawnM2": 0,
+   "bbox": [
+    -15090,
+    -130,
+    -11610,
+    2390
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3229200,
+    "synthetic land with no cover": 10000
+   }
+  },
+  {
+   "rank": 14,
+   "x": -4864,
+   "z": -14841,
+   "areaM2": 3203200,
+   "grayM2": 3203200,
+   "lawnM2": 0,
+   "bbox": [
+    -7570,
+    -16930,
+    -2970,
+    -13270
+   ],
+   "district": "Playa Serena",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3198800,
+    "synthetic land with no cover": 4400
+   }
+  },
+  {
+   "rank": 15,
+   "x": -10461,
+   "z": 5673,
+   "areaM2": 3197200,
+   "grayM2": 3197200,
+   "lawnM2": 0,
+   "bbox": [
+    -12570,
+    3950,
+    -8390,
+    7330
+   ],
+   "district": "Solana International Airport",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3188400,
+    "synthetic land with no cover": 8800
+   }
+  },
+  {
+   "rank": 16,
+   "x": -6742,
+   "z": -2492,
+   "areaM2": 3024400,
+   "grayM2": 3024400,
+   "lawnM2": 0,
+   "bbox": [
+    -7610,
+    -4110,
+    -5510,
+    -750
+   ],
+   "district": "Solana International Airport",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 3017200,
+    "synthetic land with no cover": 7200
+   }
+  },
+  {
+   "rank": 17,
+   "x": -6000,
+   "z": -12683,
+   "areaM2": 2279200,
+   "grayM2": 2244000,
+   "lawnM2": 35200,
+   "bbox": [
+    -7730,
+    -14070,
+    -4130,
+    -11330
+   ],
+   "district": "Lake Amaro",
+   "zone": "water",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 2242800,
+    "synthetic land with no cover": 1200,
+    "bare lawn (grass, no trees or props)": 35200
+   }
+  },
+  {
+   "rank": 18,
+   "x": -5440,
+   "z": -19638,
+   "areaM2": 2088400,
+   "grayM2": 2088400,
+   "lawnM2": 0,
+   "bbox": [
+    -7030,
+    -20750,
+    -4430,
+    -18870
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 2076000,
+    "synthetic land with no cover": 12400
+   }
+  },
+  {
+   "rank": 19,
+   "x": 2777,
+   "z": 3064,
+   "areaM2": 2168800,
+   "grayM2": 1986800,
+   "lawnM2": 182000,
+   "bbox": [
+    1650,
+    2110,
+    3970,
+    4070
+   ],
+   "district": "Sandspur",
+   "zone": "residential",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1956800,
+    "paved / plaza with nothing on it": 20400,
+    "synthetic land with no cover": 9600,
+    "bare lawn (grass, no trees or props)": 182000
+   }
+  },
+  {
+   "rank": 20,
+   "x": -12747,
+   "z": -10812,
+   "areaM2": 2075600,
+   "grayM2": 2075600,
+   "lawnM2": 0,
+   "bbox": [
+    -13970,
+    -12010,
+    -11470,
+    -9570
+   ],
+   "district": "Atlantic Ocean",
+   "zone": "water",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 2066800,
+    "synthetic land with no cover": 8800
+   }
+  },
+  {
+   "rank": 21,
+   "x": -14256,
+   "z": -1971,
+   "areaM2": 1968800,
+   "grayM2": 1968800,
+   "lawnM2": 0,
+   "bbox": [
+    -15370,
+    -3270,
+    -13230,
+    -1010
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1968800
+   }
+  },
+  {
+   "rank": 22,
+   "x": -7347,
+   "z": -21011,
+   "areaM2": 1960000,
+   "grayM2": 1960000,
+   "lawnM2": 0,
+   "bbox": [
+    -8370,
+    -22130,
+    -6110,
+    -19810
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1947200,
+    "synthetic land with no cover": 12800
+   }
+  },
+  {
+   "rank": 23,
+   "x": 290,
+   "z": 1395,
+   "areaM2": 1960800,
+   "grayM2": 1944400,
+   "lawnM2": 16400,
+   "bbox": [
+    -1150,
+    650,
+    2250,
+    1970
+   ],
+   "district": "MacArthur Causeway",
+   "zone": "causeway",
+   "real": true,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1943600,
+    "parking lot with nothing on it": 800,
+    "bare lawn (grass, no trees or props)": 16400
+   }
+  },
+  {
+   "rank": 24,
+   "x": -16537,
+   "z": -14545,
+   "areaM2": 1736000,
+   "grayM2": 1736000,
+   "lawnM2": 0,
+   "bbox": [
+    -17570,
+    -16470,
+    -15770,
+    -13590
+   ],
+   "district": "Port Calabash",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1726000,
+    "synthetic land with no cover": 10000
+   }
+  },
+  {
+   "rank": 25,
+   "x": 486,
+   "z": 4347,
+   "areaM2": 1687200,
+   "grayM2": 1687200,
+   "lawnM2": 0,
+   "bbox": [
+    -670,
+    2930,
+    1510,
+    5270
+   ],
+   "district": "Sabal Grove",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1668000,
+    "synthetic land with no cover": 19200
+   }
+  },
+  {
+   "rank": 26,
+   "x": -7219,
+   "z": 5006,
+   "areaM2": 1678000,
+   "grayM2": 1678000,
+   "lawnM2": 0,
+   "bbox": [
+    -8190,
+    4170,
+    -6090,
+    6190
+   ],
+   "district": "Sabal Grove",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1678000
+   }
+  },
+  {
+   "rank": 27,
+   "x": -1719,
+   "z": 4575,
+   "areaM2": 1675200,
+   "grayM2": 1675200,
+   "lawnM2": 0,
+   "bbox": [
+    -2610,
+    3970,
+    -810,
+    5430
+   ],
+   "district": "South Shore Outskirts",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1671600,
+    "synthetic land with no cover": 3600
+   }
+  },
+  {
+   "rank": 28,
+   "x": -8392,
+   "z": -8227,
+   "areaM2": 1664400,
+   "grayM2": 1664400,
+   "lawnM2": 0,
+   "bbox": [
+    -9350,
+    -9270,
+    -7790,
+    -6910
+   ],
+   "district": "Amaro Landing",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1664400
+   }
+  },
+  {
+   "rank": 29,
+   "x": -19539,
+   "z": -11694,
+   "areaM2": 1607200,
+   "grayM2": 1607200,
+   "lawnM2": 0,
+   "bbox": [
+    -20910,
+    -12890,
+    -17370,
+    -10890
+   ],
+   "district": "Port Calabash",
+   "zone": "residential",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1591200,
+    "synthetic land with no cover": 16000
+   }
+  },
+  {
+   "rank": 30,
+   "x": -14956,
+   "z": 5673,
+   "areaM2": 1560400,
+   "grayM2": 1560400,
+   "lawnM2": 0,
+   "bbox": [
+    -16550,
+    3550,
+    -13530,
+    7650
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1540800,
+    "synthetic land with no cover": 19600
+   }
+  },
+  {
+   "rank": 31,
+   "x": -4225,
+   "z": 10289,
+   "areaM2": 1512800,
+   "grayM2": 1512800,
+   "lawnM2": 0,
+   "bbox": [
+    -5530,
+    7970,
+    -2870,
+    11990
+   ],
+   "district": "Buttonwood",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1496400,
+    "synthetic land with no cover": 16400
+   }
+  },
+  {
+   "rank": 32,
+   "x": -6319,
+   "z": -16725,
+   "areaM2": 1366400,
+   "grayM2": 1366400,
+   "lawnM2": 0,
+   "bbox": [
+    -7170,
+    -17870,
+    -4830,
+    -15010
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "wilderness",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1364800,
+    "synthetic land with no cover": 1600
+   }
+  },
+  {
+   "rank": 33,
+   "x": -7497,
+   "z": 9909,
+   "areaM2": 1311600,
+   "grayM2": 1311600,
+   "lawnM2": 0,
+   "bbox": [
+    -8330,
+    8810,
+    -6650,
+    10830
+   ],
+   "district": "Everglades",
+   "zone": "water",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1301600,
+    "synthetic land with no cover": 10000
+   }
+  },
+  {
+   "rank": 34,
+   "x": -9456,
+   "z": 433,
+   "areaM2": 1519200,
+   "grayM2": 978000,
+   "lawnM2": 541200,
+   "bbox": [
+    -10190,
+    -530,
+    -8410,
+    1750
+   ],
+   "district": "Solana International Airport",
+   "zone": "residential",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 975600,
+    "synthetic land with no cover": 2400,
+    "bare lawn (grass, no trees or props)": 541200
+   }
+  },
+  {
+   "rank": 35,
+   "x": -530,
+   "z": -10735,
+   "areaM2": 1213600,
+   "grayM2": 1213600,
+   "lawnM2": 0,
+   "bbox": [
+    -1110,
+    -12190,
+    130,
+    -9030
+   ],
+   "district": "Port Cassia",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1199200,
+    "synthetic land with no cover": 14400
+   }
+  },
+  {
+   "rank": 36,
+   "x": -5972,
+   "z": 12712,
+   "areaM2": 1185600,
+   "grayM2": 1185600,
+   "lawnM2": 0,
+   "bbox": [
+    -6510,
+    11570,
+    -5210,
+    13730
+   ],
+   "district": "Satsuma",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1183600,
+    "synthetic land with no cover": 2000
+   }
+  },
+  {
+   "rank": 37,
+   "x": -16905,
+   "z": 1952,
+   "areaM2": 1142000,
+   "grayM2": 1142000,
+   "lawnM2": 0,
+   "bbox": [
+    -17990,
+    1090,
+    -15890,
+    3450
+   ],
+   "district": "Punta Marisol",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1137600,
+    "synthetic land with no cover": 4400
+   }
+  },
+  {
+   "rank": 38,
+   "x": -20158,
+   "z": 971,
+   "areaM2": 1118400,
+   "grayM2": 1118400,
+   "lawnM2": 0,
+   "bbox": [
+    -21150,
+    -150,
+    -19230,
+    1550
+   ],
+   "district": "Atlantic Ocean",
+   "zone": "water",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1112800,
+    "synthetic land with no cover": 5600
+   }
+  },
+  {
+   "rank": 39,
+   "x": -17464,
+   "z": -3571,
+   "areaM2": 1064400,
+   "grayM2": 1064400,
+   "lawnM2": 0,
+   "bbox": [
+    -18690,
+    -5930,
+    -15910,
+    -1870
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1064400
+   }
+  },
+  {
+   "rank": 40,
+   "x": -1051,
+   "z": -6988,
+   "areaM2": 1044800,
+   "grayM2": 1044800,
+   "lawnM2": 0,
+   "bbox": [
+    -1510,
+    -7990,
+    -270,
+    -5230
+   ],
+   "district": "Port Cassia",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1040400,
+    "synthetic land with no cover": 4400
+   }
+  },
+  {
+   "rank": 41,
+   "x": -13248,
+   "z": 3265,
+   "areaM2": 1022400,
+   "grayM2": 1022400,
+   "lawnM2": 0,
+   "bbox": [
+    -14470,
+    2670,
+    -11730,
+    3930
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1022400
+   }
+  },
+  {
+   "rank": 42,
+   "x": -11887,
+   "z": -6362,
+   "areaM2": 1017200,
+   "grayM2": 1017200,
+   "lawnM2": 0,
+   "bbox": [
+    -12570,
+    -6930,
+    -11190,
+    -5510
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 1017200
+   }
+  },
+  {
+   "rank": 43,
+   "x": 1304,
+   "z": -6733,
+   "areaM2": 992000,
+   "grayM2": 992000,
+   "lawnM2": 0,
+   "bbox": [
+    290,
+    -7610,
+    2470,
+    -5950
+   ],
+   "district": "Corona Island",
+   "zone": "beach",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 979600,
+    "synthetic land with no cover": 12400
+   }
+  },
+  {
+   "rank": 44,
+   "x": -13254,
+   "z": -18197,
+   "areaM2": 954800,
+   "grayM2": 954800,
+   "lawnM2": 0,
+   "bbox": [
+    -13770,
+    -19050,
+    -12690,
+    -17230
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 950000,
+    "synthetic land with no cover": 4800
+   }
+  },
+  {
+   "rank": 45,
+   "x": 3049,
+   "z": -3272,
+   "areaM2": 918400,
+   "grayM2": 918400,
+   "lawnM2": 0,
+   "bbox": [
+    2310,
+    -3830,
+    3630,
+    -2770
+   ],
+   "district": "Corkwood",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 918400
+   }
+  },
+  {
+   "rank": 46,
+   "x": 2665,
+   "z": -5185,
+   "areaM2": 897600,
+   "grayM2": 897600,
+   "lawnM2": 0,
+   "bbox": [
+    2070,
+    -6030,
+    3210,
+    -4370
+   ],
+   "district": "Spoonbill Flats",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 895600,
+    "synthetic land with no cover": 2000
+   }
+  },
+  {
+   "rank": 47,
+   "x": -11212,
+   "z": -7306,
+   "areaM2": 884000,
+   "grayM2": 884000,
+   "lawnM2": 0,
+   "bbox": [
+    -12030,
+    -8030,
+    -10050,
+    -6890
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 883600,
+    "synthetic land with no cover": 400
+   }
+  },
+  {
+   "rank": 48,
+   "x": -15822,
+   "z": -3254,
+   "areaM2": 841600,
+   "grayM2": 841600,
+   "lawnM2": 0,
+   "bbox": [
+    -16470,
+    -4510,
+    -15450,
+    -2270
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 841600
+   }
+  },
+  {
+   "rank": 49,
+   "x": -19191,
+   "z": 15220,
+   "areaM2": 821600,
+   "grayM2": 821600,
+   "lawnM2": 0,
+   "bbox": [
+    -20010,
+    14150,
+    -18630,
+    16190
+   ],
+   "district": "Tern Key Airfield",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 819200,
+    "synthetic land with no cover": 2400
+   }
+  },
+  {
+   "rank": 50,
+   "x": -13052,
+   "z": -20912,
+   "areaM2": 812800,
+   "grayM2": 812800,
+   "lawnM2": 0,
+   "bbox": [
+    -14150,
+    -22090,
+    -11870,
+    -19590
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 805600,
+    "synthetic land with no cover": 7200
+   }
+  },
+  {
+   "rank": 51,
+   "x": -4810,
+   "z": -9831,
+   "areaM2": 746800,
+   "grayM2": 736400,
+   "lawnM2": 10400,
+   "bbox": [
+    -5810,
+    -10610,
+    -3970,
+    -9370
+   ],
+   "district": "Port Cassia",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 736000,
+    "synthetic land with no cover": 400,
+    "bare lawn (grass, no trees or props)": 10400
+   }
+  },
+  {
+   "rank": 52,
+   "x": -3799,
+   "z": 8191,
+   "areaM2": 738800,
+   "grayM2": 738800,
+   "lawnM2": 0,
+   "bbox": [
+    -4150,
+    7250,
+    -3270,
+    9230
+   ],
+   "district": "Buttonwood",
+   "zone": "beach",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 722400,
+    "synthetic land with no cover": 16400
+   }
+  },
+  {
+   "rank": 53,
+   "x": -13067,
+   "z": -8160,
+   "areaM2": 738000,
+   "grayM2": 738000,
+   "lawnM2": 0,
+   "bbox": [
+    -13850,
+    -8590,
+    -12170,
+    -7590
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 738000
+   }
+  },
+  {
+   "rank": 54,
+   "x": -2526,
+   "z": -12055,
+   "areaM2": 802000,
+   "grayM2": 661600,
+   "lawnM2": 140400,
+   "bbox": [
+    -3150,
+    -13470,
+    -1990,
+    -10830
+   ],
+   "district": "Port Cassia",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 661600,
+    "bare lawn (grass, no trees or props)": 140400
+   }
+  },
+  {
+   "rank": 55,
+   "x": -9892,
+   "z": 11595,
+   "areaM2": 725200,
+   "grayM2": 725200,
+   "lawnM2": 0,
+   "bbox": [
+    -10770,
+    11030,
+    -9050,
+    12210
+   ],
+   "district": "Coontie",
+   "zone": "wilderness",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 715600,
+    "synthetic land with no cover": 9600
+   }
+  },
+  {
+   "rank": 56,
+   "x": -10856,
+   "z": 1740,
+   "areaM2": 741200,
+   "grayM2": 661600,
+   "lawnM2": 79600,
+   "bbox": [
+    -11970,
+    870,
+    -10010,
+    2450
+   ],
+   "district": "Solana International Airport",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 634400,
+    "paved / plaza with nothing on it": 10400,
+    "parking lot with nothing on it": 16400,
+    "synthetic land with no cover": 400,
+    "bare lawn (grass, no trees or props)": 79600
+   }
+  },
+  {
+   "rank": 57,
+   "x": 1879,
+   "z": -2110,
+   "areaM2": 699600,
+   "grayM2": 698800,
+   "lawnM2": 800,
+   "bbox": [
+    1430,
+    -2730,
+    2550,
+    -1410
+   ],
+   "district": "Bayshore",
+   "zone": "rural",
+   "real": true,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 672000,
+    "paved / plaza with nothing on it": 26800,
+    "bare lawn (grass, no trees or props)": 800
+   }
+  },
+  {
+   "rank": 58,
+   "x": -10555,
+   "z": -772,
+   "areaM2": 694800,
+   "grayM2": 694800,
+   "lawnM2": 0,
+   "bbox": [
+    -11610,
+    -1110,
+    -9610,
+    -470
+   ],
+   "district": "Sawpalm Ridge State Park",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 694800
+   }
+  },
+  {
+   "rank": 59,
+   "x": 1952,
+   "z": -417,
+   "areaM2": 690400,
+   "grayM2": 688000,
+   "lawnM2": 2400,
+   "bbox": [
+    1470,
+    -1370,
+    2310,
+    590
+   ],
+   "district": "South Beach",
+   "zone": "rural",
+   "real": true,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 684000,
+    "parking lot with nothing on it": 4000,
+    "bare lawn (grass, no trees or props)": 2400
+   }
+  },
+  {
+   "rank": 60,
+   "x": -11317,
+   "z": 3269,
+   "areaM2": 656400,
+   "grayM2": 656400,
+   "lawnM2": 0,
+   "bbox": [
+    -12270,
+    2490,
+    -10150,
+    3890
+   ],
+   "district": "Solana International Airport",
+   "zone": "rural",
+   "real": false,
+   "cause": "plain land, no land use (M.land gray)",
+   "causes": {
+    "plain land, no land use (M.land gray)": 656400
+   }
+  }
+ ]
+}

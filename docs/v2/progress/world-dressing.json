@@ -1,0 +1,12 @@
+{ "track": "world-dressing", "title": "World dressing: find and fill empty ground", "section": "World", "agent": "running",
+  "items": [
+    { "name": "Emptiness audit script + ranked list + heatmap", "state": "building", "evidence": "" },
+    { "name": "Root causes of flagged empty areas found and fixed or reported", "state": "todo", "evidence": "" },
+    { "name": "Real parking lots dressed (worn asphalt, stalls, curbs, wheel stops, poles, islands, parked cars, pay stations, signs)", "state": "todo", "evidence": "" },
+    { "name": "General dressing (grass variation, shrubs, palms, fences, utility poles and wires, mailboxes, dumpsters, benches, shelters, news boxes, hydrants, planters, bike racks)", "state": "todo", "evidence": "" },
+    { "name": "Beach gear (umbrellas, lifeguard towers, chairs, coolers)", "state": "todo", "evidence": "" },
+    { "name": "Marina and Keys dressing (boat trailers, mangroves, coral rock, crab traps, buoys, weathered docks)", "state": "todo", "evidence": "" },
+    { "name": "Spawn neighborhood at Nico's house (neighbor houses and yards, parked cars, boats on trailers, power lines, bait shop, water view)", "state": "todo", "evidence": "" },
+    { "name": "Performance: instancing, time-sliced per-region build, far LOD, no frame over 33 ms while streaming", "state": "todo", "evidence": "" },
+    { "name": "Before/after shots: p4_front_dry spot, 5 flagged areas, spawn at 9 AM (player cam + overview)", "state": "todo", "evidence": "" }
+  ] }

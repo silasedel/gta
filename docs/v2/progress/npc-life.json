@@ -1,0 +1,17 @@
+{
+ "track": "npc-life",
+ "title": "Street life: crowds, routines, reactions",
+ "section": "People",
+ "agent": "running",
+ "items": [
+  { "name": "Density by district and hour: busy South Beach, Ocean Drive, Brickell, Downtown, Wynwood; thin suburbs; commuter, lunch and night-life curves", "state": "building", "evidence": "" },
+  { "name": "Beach life: towels, waterline walkers, volleyball, joggers", "state": "todo", "evidence": "" },
+  { "name": "Crowd tier carries props: bikes, skateboards, umbrellas, phones, shopping bags, dogs on leashes", "state": "building", "evidence": "" },
+  { "name": "Routines in the crowd tier: cafe tables, benches, bus stops, talking groups, photos, vendors, joggers, cyclists, skaters, shops in and out", "state": "todo", "evidence": "" },
+  { "name": "Walk signals: people wait at signalized crosswalks and cross on the walk phase (both tiers)", "state": "todo", "evidence": "" },
+  { "name": "Reactions: gunfire panic in the crowd tier, near-miss jump back, rain umbrellas and running to cover, bump stumble and glare", "state": "todo", "evidence": "" },
+  { "name": "Avoidance: no walking through each other or through people standing in groups", "state": "todo", "evidence": "" },
+  { "name": "150-300 visible pedestrians in dense districts at 60 fps; fps and 1% lows in the densest spot", "state": "todo", "evidence": "" },
+  { "name": "Crowd shots: South Beach, Ocean Drive, the beach, Brickell, Wynwood, day and night", "state": "todo", "evidence": "" }
+ ]
+}

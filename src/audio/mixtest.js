@@ -3,8 +3,9 @@
 // simulation at 30 Hz with ctx.suspend()/resume(), and returns the rendered mix plus per-bus meter peaks.
 // Nothing is played out loud: an OfflineAudioContext has no output device.
 //   mixtest.html?sc=drive|city|walk|crash|beach|driveby&dur=30&engine=v10
+//   &impl=/path/to/candidate/audio.js renders a candidate build instead of the live module.
 import * as THREE from 'three';
-import { createAudio } from '../core/audio.js';
+import { createAudio as liveCreateAudio } from '../core/audio.js';
 
 const SR = 48000;
 const FPS = 30;
@@ -275,7 +276,19 @@ function toB64(buf) {
   return btoa(s);
 }
 
+// deterministic randomness so before / after renders compare like for like
+function seedRandom(seed) {
+  let a = seed >>> 0;
+  Math.random = () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 async function run() {
+  seedRandom(+(q.get('seed') || 7));
   const off = new OfflineAudioContext(2, Math.round(SR * DUR), SR);
   window.AudioContext = function FakeAudioContext() {
     return off;
@@ -284,6 +297,7 @@ async function run() {
   const game = makeGame();
   const scene = SCENES[SC];
   scene.setup(game);
+  const createAudio = q.get('impl') ? (await import(/* @vite-ignore */ q.get('impl'))).createAudio : liveCreateAudio;
   const audio = createAudio(game);
   game.audio = audio;
   if (q.has('vol')) audio.setVolume(+q.get('vol'));

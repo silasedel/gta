@@ -1148,7 +1148,10 @@ export function createTileBuilder(ctx) {
           quadUp(B.marks, a, b, c, d, new THREE.Color(0xf4f4f0), 1);
         }
         if (props && !props._signedNode) props._signedNode = new Set();
-        if (props && !props._signedNode.has(n.id)) { // corner post with blade signs naming the two crossing streets
+        // Street-name blades are placed by src/world/signs (keys-sign track), mounted on their own posts and readable from
+        // both sides. These older corner blades floated beside their poles (cleanProps moves the pole off the walkway but
+        // not the signs) and their single double-sided plane showed mirrored text from behind ("teertS ht01").
+        if (false && props && !props._signedNode.has(n.id)) { // corner post with blade signs naming the two crossing streets
           const named = []; for (const d of n.dirs) if (d[4] && !named.some((m) => m[4] === d[4])) named.push(d);
           if (named.length >= 2) {
             props._signedNode.add(n.id);
