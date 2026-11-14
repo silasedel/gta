@@ -81,3 +81,6 @@ The V2 world is a condensed Florida-style landmass with **real 1:1 Miami** on it
 
 ## Performance budget
 60 fps on the user's Mac (M3 Max) at the default preset, no frame over 25 ms after loading. Under ~1,500 draw calls and ~5M visible triangles in view. Instancing, merged geometry, LODs and texture atlases are expected; they are how full detail stays fast, not a reason to cut detail. Dispose what you unload (GPU memory must level off).
+
+## Code layout (user, Nov 13)
+- Write code in an open, readable layout: one statement per line, one property per line in larger object literals, long argument lists and chains broken across lines. No dense one-line blocks. Do not reformat existing files just for this, and do not pad with filler; it applies to code you write or rewrite anyway.
