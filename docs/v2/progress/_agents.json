@@ -5,14 +5,12 @@
   "world-osm",
   "city-look",
   "design-system",
-  "interiors-engine",
   "nico-house",
   "keys-sign",
-  "hero-cars",
-  "boats",
   "character",
+  "keys-bar",
   "world-layout",
-  "keys-bar"
+  "interiors-engine"
  ],
  "queued": [
   "vehicles-core",
@@ -26,15 +24,18 @@
   "inspection",
   "release"
  ],
- "done": [],
+ "done": [
+  "boats",
+  "hero-cars"
+ ],
  "launchedTotal": 21,
  "note": "10 on Fable until 6:30 PM, then a cheaper model",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 53,
-  "fable": 52,
+  "all": 57,
+  "fable": 60,
   "cap": 82,
-  "at": "5:44 PM",
+  "at": "6:00 PM",
   "log": [
    [
     "17:36",
@@ -50,6 +51,11 @@
     "17:44",
     53,
     52
+   ],
+   [
+    "18:00",
+    57,
+    60
    ]
   ]
  },
