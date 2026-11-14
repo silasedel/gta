@@ -1,12 +1,13 @@
-{ "track": "world-dressing", "title": "World dressing: find and fill empty ground", "section": "World", "agent": "running",
+{ "track": "world-dressing", "title": "World dressing: find and fill empty ground", "section": "World", "agent": "idle",
   "items": [
-    { "name": "Emptiness audit script + ranked list + heatmap", "state": "building", "evidence": "" },
-    { "name": "Root causes of flagged empty areas found and fixed or reported", "state": "todo", "evidence": "" },
-    { "name": "Real parking lots dressed (worn asphalt, stalls, curbs, wheel stops, poles, islands, parked cars, pay stations, signs)", "state": "todo", "evidence": "" },
-    { "name": "General dressing (grass variation, shrubs, palms, fences, utility poles and wires, mailboxes, dumpsters, benches, shelters, news boxes, hydrants, planters, bike racks)", "state": "todo", "evidence": "" },
-    { "name": "Beach gear (umbrellas, lifeguard towers, chairs, coolers)", "state": "todo", "evidence": "" },
-    { "name": "Marina and Keys dressing (boat trailers, mangroves, coral rock, crab traps, buoys, weathered docks)", "state": "todo", "evidence": "" },
-    { "name": "Spawn neighborhood at Nico's house (neighbor houses and yards, parked cars, boats on trailers, power lines, bait shop, water view)", "state": "todo", "evidence": "" },
-    { "name": "Performance: instancing, time-sliced per-region build, far LOD, no frame over 33 ms while streaming", "state": "todo", "evidence": "" },
-    { "name": "Before/after shots: p4_front_dry spot, 5 flagged areas, spawn at 9 AM (player cam + overview)", "state": "todo", "evidence": "" }
+    { "name": "Emptiness audit script + ranked list + heatmap", "state": "verified", "evidence": "docs/v2/shots/world-dressing/heatmap_real.png; docs/v2/reports/world-dressing-empty.json" },
+    { "name": "Root causes found: gray M.land, gray land base, teleport before tiles stream, flora skips synthetic lawn", "state": "built", "evidence": "docs/v2/reports/world-dressing.md" },
+    { "name": "Plain land re-skinned (grass/sparse/dirt blend) and land base recolored, at runtime", "state": "built", "evidence": "game.dressing.stats().landPatched = true in game; no close-up shot of a re-skinned lot yet" },
+    { "name": "Real-Miami plain land planted (17,851 palms, sea grape, oaks, hibiscus in clusters, vegetation fields)", "state": "built", "evidence": "game.dressing.stats().scatter" },
+    { "name": "Spawn street at Nico's house: 22 neighbor lots, bait shop, power line, 6 parked cars, boats on trailers, mangroves, palms", "state": "verified", "evidence": "docs/v2/shots/world-dressing/after_spawn_overview_9am.png vs before_spawn_overview_9am.png" },
+    { "name": "Real parking lots dressed (stalls, wheel stops, poles, islands, pay stations, signs)", "state": "todo", "evidence": "kit has wheelStop, lightPole, payStation; no stall layout" },
+    { "name": "General street dressing (fences, poles, mailboxes, dumpsters, news boxes, planters, bike racks) outside the spawn street", "state": "todo", "evidence": "" },
+    { "name": "Beach gear, marina boat trailers, Keys dressing outside the spawn street", "state": "todo", "evidence": "" },
+    { "name": "Causeway quality bar (ref_51) and tag-based benchmark scenes (VFX_NOTES item 11)", "state": "todo", "evidence": "" },
+    { "name": "Performance: spawn street = 1 merged mesh (86.7k tris) + vegetation fields; no frame timing measured", "state": "built", "evidence": "" }
   ] }
