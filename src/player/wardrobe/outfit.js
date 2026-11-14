@@ -32,7 +32,7 @@ export const CATALOG = [
     noun: 'shirt',
     price: 0,
     signature: true,
-    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xf2f2ee, repeatM: 0.42, roughness: 0.92, specular: 0.3, sheen: 0.2, sheenRoughness: 0.55, sheenColor: 0x5e8a80 },
+    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xdfe4d6, repeatM: 0.42, roughness: 0.94, specular: 0.25, sheen: 0.12, sheenRoughness: 0.6, sheenColor: 0x6a8a7c },     // cooler in sun: less cyan
     buttons: 0xe9e4d8,
     thread: 0x2f7f7c,
   },

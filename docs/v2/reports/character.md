@@ -182,3 +182,13 @@ Not done: two-hand pistol stance, locomotion, VFX_NOTES items 6–9 (hair cards,
 - **Ear backlit** (`hero_ear_backlit.png`): natural skin, no red.
 - **Walk** (`hero_walk_0..2.png`): captured. The arm swing layer is visible; W produced a jog here, not a slow walk.
 - Every JS edit was parse-checked (`node --check` on a temp copy) before writing.
+
+## Pass 10 (in progress; stopped on machine load, about 23:50, load average 130)
+**Live and parse-checked, not yet seen in a screenshot:**
+- eyes: rest lids 0.44 closure / 0.34 slit, deep brown iris (0.17, 0.12, 0.09);
+- matte skin: roughness floor 0.55, specular 0.5, no clearcoat, faint warm sheen as the soft second lobe;
+- hair: cards up to about 4.5 cm on top with more lift and per-card tone, hair color 0x352216;
+- shirt tint 0xdfe4d6, sheen 0.12 (less cyan);
+- `main.js`: W walks (1.7 m/s), Shift runs (4.2), Shift held 1.5 s sprints (7.2). Ctrl/Alt still walk.
+
+**Not finished:** the denser, darker stubble repaint (`nico_textures.py`, 150k short hairs, darker warm brown) was stopped before writing. Re-run `nico_textures.py <w6> <skin> <out> head` and copy `head_*.webp` to `public/assets/characters/nico/tex/`.

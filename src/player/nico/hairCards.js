@@ -85,13 +85,13 @@ export function buildHairCards(scalpGeo, mask, state, { count = 2200, seed = 3 }
     _p.set(0, 0, 0).addScaledVector(_a.fromBufferAttribute(pos, i0), w0).addScaledVector(_b.fromBufferAttribute(pos, i1), u1).addScaledVector(_c.fromBufferAttribute(pos, i2), u2);
     _n.set(0, 0, 0).addScaledVector(_a.fromBufferAttribute(nrm, i0), w0).addScaledVector(_b.fromBufferAttribute(nrm, i1), u1).addScaledVector(_c.fromBufferAttribute(nrm, i2), u2).normalize();
     const L = lenAt(uv.getX(i0) * w0 + uv.getX(i1) * u1 + uv.getX(i2) * u2, uv.getY(i0) * w0 + uv.getY(i1) * u1 + uv.getY(i2) * u2);
-    const len = baseLen * (0.55 + 0.75 * L) * (0.75 + 0.5 * rnd());
+    const len = baseLen * (0.9 + 1.25 * L) * (0.75 + 0.5 * rnd());           // textured top up to ~4.5 cm, short at the fade
     // comb direction in the scalp tangent plane, a little random swirl
     _t.copy(comb).addScaledVector(_n, -comb.dot(_n));
     _t.x += (rnd() - 0.5) * 0.5; _t.z += (rnd() - 0.5) * 0.5;
     _t.addScaledVector(_n, -_t.dot(_n)).normalize();
     _w.crossVectors(_n, _t).normalize();
-    const lift = 0.45 + 0.35 * rnd();
+    const lift = 0.6 + 0.4 * rnd() * L;
     const width = 0.011 + 0.007 * rnd();
     const variant = Math.floor(rnd() * 4);
     const base = P.length / 3;
@@ -108,8 +108,9 @@ export function buildHairCards(scalpGeo, mask, state, { count = 2200, seed = 3 }
         UV.push(variant * 0.25 + (sgn < 0 ? 0.01 : 0.24), 1 - f);
         SI.push(si.getX(i0), si.getY(i0), si.getZ(i0), si.getW(i0));
         SW.push(sw.getX(i0), sw.getY(i0), sw.getZ(i0), sw.getW(i0));
-        const root = 0.42 + 0.58 * f;
-        C.push(root, root, root);
+        const tone = 0.8 + 0.4 * ((k * 0.6180339) % 1);
+        const root = (0.38 + 0.62 * f) * tone;
+        C.push(root, root * 0.97, root * 0.93);
       }
     }
     for (let j = 0; j < SEG; j++) {
@@ -127,7 +128,7 @@ export function buildHairCards(scalpGeo, mask, state, { count = 2200, seed = 3 }
   g.setIndex(I);
   g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 1.7, 0), 0.4);
   const m = new THREE.MeshStandardMaterial({
-    name: 'hairCards', map: strandAtlas(), color: state.uHairC.value.clone().multiplyScalar(1.6), vertexColors: true,
+    name: 'hairCards', map: strandAtlas(), color: state.uHairC.value.clone().multiplyScalar(1.9), vertexColors: true,
     alphaTest: 0.42, alphaToCoverage: true, side: THREE.DoubleSide, roughness: 0.74, metalness: 0, envMapIntensity: 0.3,
   });
   return { geometry: g, material: m };

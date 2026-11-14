@@ -187,8 +187,8 @@ def paint_head():
         up = (p[:, 2] < 1.555)                                        # under the jaw the growth turns up toward the chin
         v[up] = np.stack([np.zeros(up.sum()), -0.6 * np.ones(up.sum()), 0.6 * np.ones(up.sum())], 1)
         return v
-    n_beard = int(95000 * scale * scale)                              # short, even stubble (ref_54): many short hairs, not a beard
-    bt = hair_strokes(np.clip(beard_d * 1.4, 0, 0.85), ok, dPdx, dPdy, n_beard, beard_dir, lambda p, r: 0.0007 + 0.0005 * r.rand(len(p)), 1.2 * scale, alpha=(0.35, 0.75), jitter=0.55, seed=41, P=P, N=N)
+    n_beard = int(150000 * scale * scale)                             # short dense stubble (ref_54): jaw, chin and upper lip read clearly
+    bt = hair_strokes(np.clip(beard_d * 1.8, 0, 1.0), ok, dPdx, dPdy, n_beard, beard_dir, lambda p, r: 0.0008 + 0.0006 * r.rand(len(p)), 1.25 * scale, alpha=(0.55, 0.95), jitter=0.55, seed=41, P=P, N=N)
     cov_b, sh_b = stamp_strokes(SZ, bt)
     def brow_dir_for(side):
         inner, mid, outer = BF[side]; axv = outer - inner; L = np.linalg.norm(axv); axn = axv / L
@@ -210,7 +210,7 @@ def paint_head():
     sc_sh = np.clip(ndi.gaussian_filter(cov_s, 4 * scale) * 1.8 + scalp * 0.25 * smooth(2, 14, hair_d), 0, 1)
     lin *= 1 - sc_sh[..., None] * np.array([0.52, 0.50, 0.46], dtype=np.float32)
     bw_sh = np.clip(ndi.gaussian_filter(cov_w, 4 * scale) * 1.3, 0, 1); lin *= 1 - bw_sh[..., None] * 0.30
-    STUB = HAIR * np.array([1.0, 0.80, 0.62], dtype=np.float32)        # stubble: warm dark brown, not grey
+    STUB = HAIR * np.array([0.80, 0.62, 0.48], dtype=np.float32)        # stubble: darker warm brown, not grey
     for cov, sh, op, hc in ((cov_s, sh_s, 0.95, HAIR), (cov_b, sh_b, 0.92, STUB), (cov_w, sh_w, 0.95, HAIR)):
         a = (cov * op)[..., None]; lin = lin * (1 - a) + (hc * (0.75 + 0.9 * (sh[..., None] - 0.75))) * a
     lin = lin * (1 - scar[..., None] * 0.5) + scar[..., None] * 0.5 * np.array([0.62, 0.40, 0.33], dtype=np.float32)   # pale scar tissue

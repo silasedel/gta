@@ -58,7 +58,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quater
 export function decorateNico(character, { game, model, assets, opts = {} }) {
   const meta = assets.meta;
   const skin = makeSkinState();
-  const hairState = { uHairLen: { value: 0.022 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.05, 0.55, 0.30) }, uWet: skin.uWet };     // short textured crop, combed a little forward and up (ref_54)
+  const hairState = { uHairLen: { value: 0.022 }, uHairC: { value: new THREE.Color(0x352216) }, uComb: { value: new THREE.Vector3(0.05, 0.55, 0.30) }, uWet: skin.uWet };     // short textured crop, combed a little forward and up (ref_54)
   const mouth = { value: 0 };
   const mats = { skin_head: makeSkinMaterial('head', skin), skin_body: makeSkinMaterial('body', skin), skin_far: makeSkinMaterial('far', skin),
     lashes: makeLashMaterial(), teeth: makeMouthMaterial('teeth', mouth), tongue: makeMouthMaterial('tongue', mouth) };

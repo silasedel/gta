@@ -45,7 +45,8 @@ export function makeSkinMaterial(kind, state) {
   const m = new THREE.MeshPhysicalMaterial({
     name: 'skin_' + kind,
     map: tex(far ? 'skin_far.webp' : kind + '_albedo.webp', { srgb: true }),
-    roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: far ? 0 : 0.05, clearcoatRoughness: 0.4,
+    roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: 0, specularIntensity: 0.5,
+    sheen: far ? 0 : 0.28, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xc89078),     // soft second lobe: faint warm sheen at grazing angles
   });
   if (!far) {
     m.normalMap = tex(kind + '_normal.webp'); m.normalScale = kind === 'head' ? new THREE.Vector2(1.0, -1.0) : new THREE.Vector2(1.0, -1.0);   // pores read as craters at full strength
@@ -124,6 +125,7 @@ export function makeSkinMaterial(kind, state) {
       #endif`)
       .replace('#include <roughnessmap_fragment>', /* glsl */`#include <roughnessmap_fragment>
       #ifndef NICO_FAR
+        roughnessFactor = clamp( roughnessFactor * 1.15 + 0.12, 0.55, 0.9 );          // matte skin, no plastic shine (ref_54 / ref_51 noon sun)
         roughnessFactor = mix( roughnessFactor, 0.22, clamp( max( uWet, uSweat * m2.r * 0.7 ), 0.0, 1.0 ) * 0.75 );
         roughnessFactor = mix( roughnessFactor, 0.05, nicoBead );
       #endif`)
@@ -182,7 +184,7 @@ export function makeEyeMaterial(radius) {
         vec2 sdir = en.xy / max( length( en.xy ), 1e-4 );
         vec3 sclC = texture2D( uSclera, vec2( 0.5 ) + 0.5 * ( eth / PI ) * sdir * vec2( uSide, -1.0 ) ).rgb;
         float inIris = ( 1.0 - smoothstep( 0.93, 1.03, ir ) ) * eyeCornea;
-        vec3 ecol = mix( sclC * vec3( 0.88, 0.83, 0.79 ), irisC.rgb * vec3( 0.30, 0.25, 0.22 ), inIris );     // dark brown iris (ref_48), clean off-white sclera
+        vec3 ecol = mix( sclC * vec3( 0.88, 0.83, 0.79 ), irisC.rgb * vec3( 0.17, 0.12, 0.09 ), inIris );     // dark brown iris (ref_48), clean off-white sclera
         ecol *= 1.0 - 0.35 * smoothstep( 0.80, 1.0, ir ) * ( 1.0 - smoothstep( 1.0, 1.25, ir ) );     // limbal shadow ring
         // socket shadow: where the lids and the socket shade the globe (in head space, so it does not turn with the eye)
         vec3 sn = qrot( uEyeQ, en );
