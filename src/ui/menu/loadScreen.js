@@ -24,8 +24,8 @@ const CSS = `
 .sl-art { position: absolute; inset: -5%; background: #2a0f3a center / cover no-repeat; animation: sl-kb 34s ease-in-out infinite alternate; }
 @keyframes sl-kb { from { transform: scale(1.03) translate(0, 0); } to { transform: scale(1.12) translate(-1.6%, -1%); } }
 .sl-rays { position: absolute; inset: -30%; pointer-events: none; mix-blend-mode: screen; opacity: .32;
-  background: repeating-conic-gradient(from 0deg at 62% 38%, rgba(255, 214, 140, .55) 0deg 3deg, transparent 3deg 11deg, rgba(255, 140, 190, .35) 11deg 13deg, transparent 13deg 22deg);
-  -webkit-mask: radial-gradient(circle at 62% 38%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); mask: radial-gradient(circle at 62% 38%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); animation: sl-rays 60s linear infinite; }
+  background: repeating-conic-gradient(from 0deg at 57.5% 53.2%, rgba(255, 214, 140, .55) 0deg 3deg, transparent 3deg 11deg, rgba(255, 140, 190, .35) 11deg 13deg, transparent 13deg 22deg);
+  -webkit-mask: radial-gradient(circle at 57.5% 53.2%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); mask: radial-gradient(circle at 57.5% 53.2%, #000 0%, rgba(0,0,0,.5) 22%, transparent 48%); transform-origin: 57.5% 53.2%; animation: sl-rays 60s linear infinite; }
 @keyframes sl-rays { to { transform: rotate(18deg); } }
 .sl-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(18, 6, 28, .88) 0%, rgba(18, 6, 28, .25) 30%, transparent 55%), linear-gradient(180deg, rgba(18, 6, 28, .45), transparent 28%); }
 .sl-logo { position: absolute; left: clamp(20px, 4vw, 80px); top: clamp(16px, 3.4vh, 56px); width: clamp(300px, 33.6vw, 700px); filter: drop-shadow(0 6px 22px rgba(20, 0, 30, .6)); }
@@ -52,7 +52,7 @@ export function createLoadScreen(o = {}) {
   const tips = (o.tips || TIPS).slice().sort(() => Math.random() - 0.5);
   if (o.firstTip) tips.unshift(o.firstTip);
   const L = document.createElement('div'); L.className = 'sl-load';
-  L.innerHTML = `<div class="sl-art"></div><div class="sl-rays"></div><div class="sl-shade"></div>
+  L.innerHTML = `<div class="sl-art"><div class="sl-rays"></div></div><div class="sl-shade"></div>
     <div class="sl-logo">${logoSVG()}</div>
     <div class="sl-place"></div>
     <div class="sl-left"><div class="sl-word">LOADING<i>.</i><i>.</i><i>.</i></div><div class="sl-bar"><b></b></div><div class="sl-stat"><span class="sl-msg"></span><span class="sl-pct">0%</span></div></div>

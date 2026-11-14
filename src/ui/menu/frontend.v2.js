@@ -159,7 +159,7 @@ function startTitle(game, ctx, cin, fe, params) {
   const artBg = params.get('titlebg') !== 'live' && params.get('titlebg') !== 'scene' && !params.has('menushot');
   if (artBg) {
     live = false;
-    root.insertAdjacentHTML('afterbegin', `<div class="pm-titleart" style="background-image:url('/assets/ui/keyart_loading.webp')"></div><div class="pm-titlerays"></div>`);
+    root.insertAdjacentHTML('afterbegin', `<div class="pm-titleart" style="background-image:url('/assets/ui/keyart_loading.webp')"><div class="pm-titlerays"></div></div>`);
     placeName.textContent = 'Biscayne Bay'; placeSub.textContent = 'Southline'; root.querySelector('.pm-place').classList.add('show');
   } else {
     cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.5, vignette: 0.12, exposure: 0.86, bloom: 0.6, owner: 'title' });
@@ -180,7 +180,7 @@ function startTitle(game, ctx, cin, fe, params) {
 
   // ---------------------------------------------------------------- music
   const startAudio = () => { try { window.dispatchEvent(new Event('pointerdown')); } catch (e) { /* */ } };
-  const music = () => { if (ctx.settings.get('menuMusic') === false) { game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 }; return; } game.menuMusic = { station: STATION, gain: 0.85, duck: 0.3, duckLP: 1600, loopAt: 8 }; };
+  const music = () => { if (ctx.settings.get('menuMusic') === false) { game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 }; return; } game.menuMusic = { station: STATION, gain: 0.85, duck: 0.3, duckLP: 1600, startAt: 9, loopAt: 9 }; };
   music();
   ctx.settings.on('menuMusic', music);
   let npLast = '';
@@ -229,6 +229,9 @@ function startTitle(game, ctx, cin, fe, params) {
 
   let scope = null;
   fe.screen = 'attract';
+  // the theme cues in as soon as the title screen is up (the Mac app allows audio without a click; a browser
+  // starts it suspended and resumes on the first input)
+  startAudio();
   // any key / click / pad button leaves the attract state
   const offNav = ctx.bindings.on('nav', (d) => { if (fe.screen === 'attract') { d.handled = true; openMenu(); } });
   const offUiKey = ctx.bindings.on('uikey', (d) => { if (fe.screen === 'attract' && d.down && !/^F\d+$/.test(d.code)) openMenu(); });
@@ -328,7 +331,7 @@ function startTitle(game, ctx, cin, fe, params) {
     live = false;
     await new Promise((r) => setTimeout(r, 380));
     // fade the title music under the loading screen, then start the world
-    game.menuMusic = { station: ctx.settings.get('menuMusic') === false ? null : STATION, gain: 0.5, duck: 0.3, duckLP: 1200, loopAt: 8 };
+    game.menuMusic = { station: ctx.settings.get('menuMusic') === false ? null : STATION, gain: 0.5, duck: 0.3, duckLP: 1200, startAt: 9, loopAt: 9 };
     let ok = false;
     try {
       game.save?.release?.('title');

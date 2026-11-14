@@ -1586,8 +1586,11 @@ export function createAudio(game) {
       const el = new Audio(); el.crossOrigin = 'anonymous'; el.preload = 'auto'; el.src = String(stationId).slice(4);
       const node = ctx.createGain(); let msrc = null; try { msrc = ctx.createMediaElementSource(el); msrc.connect(node); } catch (e) { msrc = null; }
       if (msrc) {
-        const loopAt = game.menuMusic?.loopAt ?? 0;
-        el.addEventListener('timeupdate', () => { if (el.duration && el.currentTime > el.duration - 0.25) el.currentTime = loopAt; });
+        const loopAt = game.menuMusic?.loopAt ?? 0, startAt = game.menuMusic?.startAt ?? 0;
+        if (startAt > 0) { try { el.currentTime = startAt; } catch (e) { /* set once metadata is in */ } el.addEventListener('loadedmetadata', () => { if (el.currentTime < startAt - 0.5) el.currentTime = startAt; }, { once: true }); }
+        // loop forever: jump back just before the end, and if timeupdate missed it, restart on 'ended'
+        el.addEventListener('timeupdate', () => { if (el.duration && el.currentTime > el.duration - 0.35) el.currentTime = loopAt; });
+        el.addEventListener('ended', () => { el.currentTime = loopAt; el.play().catch(() => { /* */ }); });
         el.play().catch(() => { /* resumes after a gesture */ });
         stream = { node, el, stop() { try { el.pause(); el.removeAttribute('src'); el.load(); msrc.disconnect(); } catch (e) { /* */ } } };
       }
