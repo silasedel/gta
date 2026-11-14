@@ -2,14 +2,15 @@
  "startedAt": "2026-11-13T16:42:00-07:00",
  "limit": 20,
  "running": [
-  "world-osm",
-  "city-look",
   "character",
-  "nico-house",
-  "ui-frontend",
-  "playtest-fixes",
+  "look",
+  "houses",
+  "ground-continuity",
+  "interiors-art",
+  "car-bodies",
+  "people-look",
   "desktop",
-  "audio-clean"
+  "main-menu"
  ],
  "queued": [
   "police",
@@ -22,28 +23,35 @@
   "release"
  ],
  "done": [
+  "audio-clean",
   "boats",
-  "hero-cars",
-  "keys-sign",
-  "interiors-engine",
   "design-system",
+  "environment",
+  "gangs-business",
+  "hero-cars",
+  "interiors-engine",
   "keys-bar",
-  "world-render",
-  "vehicles-core",
-  "sand-wear",
+  "keys-sign",
+  "multiplayer",
   "npc-ai",
+  "npc-life",
+  "playtest-fixes",
+  "sand-wear",
   "vegetation",
+  "vehicles-core",
+  "vehicles-look",
+  "world-dressing",
   "world-layout",
-  "environment"
+  "world-render"
  ],
- "launchedTotal": 34,
+ "launchedTotal": 40,
  "note": "4 on Fable, 4 on Opus 5.5",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 66,
-  "fable": 75,
+  "all": 72,
+  "fable": 79,
   "cap": 90,
-  "at": "7:05 PM",
+  "at": "9:20 PM",
   "log": [
    [
     "17:36",
@@ -79,6 +87,11 @@
     "18:21",
     62,
     69
+   ],
+   [
+    "21:20",
+    72,
+    79
    ]
   ]
  },
@@ -86,8 +99,6 @@
   "aircraft",
   "yachts",
   "combat",
-  "multiplayer",
-  "desktop",
   "story-jobs",
   "audio"
  ]
