@@ -30,14 +30,14 @@
    "evidence": "docs/v2/shots/highways/after_jt_deck.png, docs/v2/shots/highways/after_jt_air.png"
   },
   {
-   "name": "Barriers, walls, piers in weathered grey cast concrete (own material, CC0 concrete detail) instead of beige plaster trim (shots still read too light: needs a second look in game)",
+   "name": "Barriers, walls, piers: own grey concrete material (was near-white: vertex colours are linear, 0.5-0.86 read as sRGB 0.73-0.94), grime gradient and per-section tone",
    "state": "built",
-   "evidence": "src/world/miami/elevated.js"
+   "evidence": "docs/v2/shots/highways/p2after_ramp_deck.png"
   },
   {
    "name": "Retaining walls on embankments: coping with drip lip, precast panel joints, batter, footing",
-   "state": "built",
-   "evidence": "src/world/miami/elevated/build.js"
+   "state": "verified",
+   "evidence": "docs/v2/shots/highways/p2after_wall_port.png, docs/v2/shots/highways/p2after_wall_22.png"
   },
   {
    "name": "No barrier end caps / cushions where another deck's barrier continues (no overlapping ends)",
@@ -65,9 +65,24 @@
    "evidence": ""
   },
   {
-   "name": "Barrier between the two Julia Tuttle carriageways (decks join into one slab without a median barrier); island runs stay elevated (no island junctions)",
+   "name": "Julia Tuttle: both carriageways carry their own barriers (median side included); the \"blue deck\" was the shaded inner face of the left barrier",
+   "state": "verified",
+   "evidence": "docs/v2/shots/highways/p2after_jt_med.png, docs/v2/shots/highways/dbg_jt_C_noconc.png"
+  },
+  {
+   "name": "I-95 north -> I-395 east ramp re-linked just outside the rectangle (merge, tools/osm/roads.py _seam_ramps): no more West Line Avenue detour",
+   "state": "verified",
+   "evidence": "docs/v2/reports/highways-gps-after.json"
+  },
+  {
+   "name": "Mid/far LOD decks and barriers inset inside the full-detail geometry (no LOD slab in front of the jersey barrier)",
+   "state": "built",
+   "evidence": "src/world/miami/elevated/build.js buildLod"
+  },
+  {
+   "name": "Shaded concrete faces read dark blue-grey (sky-only fill); needs a lighting / AO look, not more albedo",
    "state": "todo",
-   "evidence": "docs/v2/shots/highways/after_jt_deck.png"
+   "evidence": "docs/v2/shots/highways/p2after_wall_port.png"
   }
  ]
 }

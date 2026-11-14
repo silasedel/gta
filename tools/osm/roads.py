@@ -217,8 +217,9 @@ def rescue_outside(ways, pad=800.0, log=print):
     main = max(length, key=length.get)
     comp_in = [find(i) for i in range(nin)]
     stranded = {r for r in set(comp_in) if r != main and length[r] >= 150}
+    ramps = _seam_ramps(ways, outer, B, log)
     if not stranded:
-        return []
+        return ramps
     # adjacency through shared vertices, inside + outside
     vown = defaultdict(list)
     for i, (c, a, w) in enumerate(allw):
@@ -257,9 +258,53 @@ def rescue_outside(ways, pad=800.0, log=print):
             u = prev[u]
         fixed += 1
     extra = [allw[i] for i in sorted(use)]
+    have = {id(x) for x in extra}
+    extra += [x for x in ramps if id(x) not in have]
     log(f'roads: {len(stranded)} clipped pieces of the network were stranded; {fixed} tied back with {len(extra)} real road pieces just outside the rectangle '
         f'({sum(LineString(c).length for c, a, w in extra):.0f} m)')
     return extra
+
+
+MOTOR_KINDS = ('motorway', 'motorway_link', 'trunk', 'trunk_link')
+
+
+def _seam_ramps(ways, outer, B, log=print, max_len=1500.0):
+    """Interchange ramps that leave the rectangle and come straight back (I-95 north -> I-395 east loops just west of the edge):
+    the network stays connected through the synthetic roads, so the stranded-piece rescue never sees them, and the GPS drove
+    a 5 km detour through the synthetic grid (highways track, Nov 14). For every one-way motorway-class piece that LEAVES the
+    rectangle, follow the real one-way motorway-class pieces outside (in driving direction, at most `max_len`) to a piece that
+    ENTERS it again, and keep that outside chain."""
+    x0, z0, x1, z1 = B.bounds
+    on_edge = lambda v: min(abs(v[0] - x0), abs(v[0] - x1), abs(v[1] - z0), abs(v[1] - z1)) < 0.05
+    starts = defaultdict(list)       # outside piece index by its first vertex key
+    for j, (c, a, w) in enumerate(outer):
+        if a['kind'] in MOTOR_KINDS and a['oneway']:
+            starts[key(c[0])].append(j)
+    entries = set(key(c[0]) for c, a, w in ways if a['kind'] in MOTOR_KINDS and a['oneway'] and on_edge(c[0]))
+    exits = [c[-1] for c, a, w in ways if a['kind'] in MOTOR_KINDS and a['oneway'] and on_edge(c[-1])]
+    use = set()
+    for v in exits:
+        # depth-first along driving direction through outside pieces
+        stack = [(key(v), 0.0, ())]
+        while stack:
+            k, L, path = stack.pop()
+            for j in starts.get(k, ()):
+                if j in path:
+                    continue
+                c = outer[j][0]
+                L2 = L + LineString(c).length
+                if L2 > max_len:
+                    continue
+                k2 = key(c[-1])
+                if k2 in entries:
+                    use.update(path + (j,))
+                    continue
+                stack.append((k2, L2, path + (j,)))
+    out = [outer[j] for j in sorted(use)]
+    if out:
+        log(f'roads: {len(out)} real interchange ramp pieces just outside the rectangle re-link motorway exits to entries '
+            f'({sum(LineString(c).length for c, a, w in out):.0f} m)')
+    return out
 
 
 def stitch(syn, bnd, log=print):

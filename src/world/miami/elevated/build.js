@@ -5,9 +5,11 @@
 import { P } from './params.js';
 import { GeoBuf, PosBuf, triClip } from './geobuf.js';
 
-const COL = { // weathered grey cast concrete (highways track): barrier faces a touch lighter than the walls, soffit in shade
-  deck: [1, 1, 1], barrier: [0.56, 0.56, 0.55], barrierTop: [0.62, 0.62, 0.6], fascia: [0.52, 0.52, 0.51], wall: [0.5, 0.5, 0.49], coping: [0.58, 0.58, 0.57], joint: [0.16, 0.16, 0.17], footing: [0.42, 0.42, 0.41], drip: [0.3, 0.3, 0.3],
-  soffit: [0.34, 0.34, 0.34], walk: [0.62, 0.62, 0.6], curb: [0.55, 0.55, 0.54], girder: [0.42, 0.42, 0.41], pier: [0.54, 0.54, 0.52], cap: [0.5, 0.5, 0.49], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
+// Vertex colours are LINEAR (three.js): 0.27 linear is about sRGB 0.56, a weathered mid-grey concrete. The old values (0.5 - 0.86
+// linear = sRGB 0.73 - 0.94) read near-white in the sun, which is why the barriers looked like flat white / beige slabs.
+const COL = { // a touch warm (not beige): the blue sky fill on shaded faces then reads neutral grey, not navy
+  deck: [1, 1, 1], barrier: [0.212, 0.206, 0.189], barrierTop: [0.243, 0.237, 0.219], fascia: [0.19, 0.185, 0.171], wall: [0.175, 0.17, 0.155], coping: [0.223, 0.216, 0.199], joint: [0.03, 0.03, 0.032], footing: [0.128, 0.124, 0.113], drip: [0.058, 0.057, 0.053],
+  soffit: [0.09, 0.088, 0.083], walk: [0.254, 0.247, 0.228], curb: [0.201, 0.196, 0.181], girder: [0.128, 0.124, 0.114], pier: [0.201, 0.196, 0.181], cap: [0.181, 0.175, 0.161], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
 export function createBuilder(net) {
@@ -182,10 +184,13 @@ export function createBuilder(net) {
             const o0a = pa[k * 2], y0a = pa[k * 2 + 1], o1a = pa[k * 2 + 2], y1a = pa[k * 2 + 3], o0b = pb[k * 2], y0b = pb[k * 2 + 1], o1b = pb[k * 2 + 2], y1b = pb[k * 2 + 3];
             const hx = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * -F0.tz, hz = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * F0.tx, hy = k === 2 ? 1 : (k === 1 ? 0.3 : 0);
             const col = cols[k], vS = k === 3 ? 0.25 : 0.5;
-            setV(va, F0.x - F0.tz * o0a, y0a, F0.z + F0.tx * o0a, 0, 0, 0, F0.s * vS, y0a * vS, col);
-            setV(vb, F0.x - F0.tz * o1a, y1a, F0.z + F0.tx * o1a, 0, 0, 0, F0.s * vS, y1a * vS, col);
-            setV(vc, F1.x - F1.tz * o1b, y1b, F1.z + F1.tx * o1b, 0, 0, 0, F1.s * vS, y1b * vS, col);
-            setV(vd, F1.x - F1.tz * o0b, y0b, F1.z + F1.tx * o0b, 0, 0, 0, F1.s * vS, y0b * vS, col);
+            // weathering: road grime darkens the lower barrier (tyre spray), each 6 m cast section has its own tone
+            const tone = panelTone(Math.floor((F0.s + F1.s) / 12) + c.id * 5 + (side > 0 ? 2 : 0));
+            const g0 = (y, yb) => tone * (0.7 + 0.3 * Math.min(1, Math.max(0, (y - yb) / P.BAR_H))), gc = (y, yb) => { const f = k === 3 ? tone : g0(y, yb); return [col[0] * f, col[1] * f, col[2] * f]; };
+            setV(va, F0.x - F0.tz * o0a, y0a, F0.z + F0.tx * o0a, 0, 0, 0, F0.s * vS, y0a * vS, gc(y0a, pa[1]));
+            setV(vb, F0.x - F0.tz * o1a, y1a, F0.z + F0.tx * o1a, 0, 0, 0, F0.s * vS, y1a * vS, gc(y1a, pa[1]));
+            setV(vc, F1.x - F1.tz * o1b, y1b, F1.z + F1.tx * o1b, 0, 0, 0, F1.s * vS, y1b * vS, gc(y1b, pb[1]));
+            setV(vd, F1.x - F1.tz * o0b, y0b, F1.z + F1.tx * o0b, 0, 0, 0, F1.s * vS, y0b * vS, gc(y0b, pb[1]));
             quad(conc, va, vb, vc, vd, hx, hy, hz, B);
           }
           // end caps where the run stops
@@ -461,16 +466,21 @@ export function createBuilder(net) {
       const j = Math.min(c.n - 1, i0 + step); if (!(c.vis[i0] && c.vis[j])) continue;
       const pt = (k, o, dy) => [c.x[k] - c.tz[k] * o, c.y[k] + P.ROAD_Y + c.bank[k] * o + dy, c.z[k] + c.tx[k] * o];
       const q = (A, Bq, C, D, col, hx, hy, hz) => { setV(va, ...A, 0, 0, 0, 0, 0, col); setV(vb, ...Bq, 0, 0, 0, 0, 0, col); setV(vc, ...C, 0, 0, 0, 0, 0, col); setV(vd, ...D, 0, 0, 0, 0, 0, col); quad(buf, va, vb, vc, vd, hx, hy, hz, B); };
-      q(pt(i0, c.vL[i0], 0), pt(i0, c.vR[i0], 0), pt(j, c.vR[j], 0), pt(j, c.vL[j], 0), ASPH, 0, 1, 0);
+      // The city shows mid / far chunks while the near tile is up too (highways track, Nov 14: raycasts hit the LOD barrier slab
+      // 0.3 m in FRONT of the real jersey barrier, and the untextured LOD deck z-fought the real one: the "flat white slabs" and the
+      // "blue deck"). So the LOD shell sits strictly INSIDE the full-detail geometry: deck 6 cm lower, barrier block inset under the
+      // jersey profile (outer face 6 cm in, inner face at the top width, 10 cm lower), so the near tile always wins where it exists.
+      q(pt(i0, c.vL[i0] + 0.06, -0.06), pt(i0, c.vR[i0] - 0.06, -0.06), pt(j, c.vR[j] - 0.06, -0.06), pt(j, c.vL[j] + 0.06, -0.06), ASPH, 0, 1, 0);
       const open = c.type[i0] === 2 && c.type[j] === 2;
       for (const side of [-1, 1]) {
-        const bar = side < 0 ? c.barL : c.barR, oa = side < 0 ? c.vL[i0] : c.vR[i0], ob = side < 0 ? c.vL[j] : c.vR[j], hasBar = bar[i0] && bar[j];
-        const top = hasBar ? P.BAR_H : 0, bot = (k, o) => (open ? -0.85 - (c.y[k] + P.ROAD_Y + c.bank[k] * o) + c.y[k] : c.gY[k] - 0.3 - (c.y[k] + P.ROAD_Y + c.bank[k] * o));
+        const bar = side < 0 ? c.barL : c.barR; let oa = side < 0 ? c.vL[i0] : c.vR[i0], ob = side < 0 ? c.vL[j] : c.vR[j]; const hasBar = bar[i0] && bar[j];
+        const top = hasBar ? P.BAR_H - 0.1 : -0.06, bot = (k, o) => (open ? -0.85 - (c.y[k] + P.ROAD_Y + c.bank[k] * o) + c.y[k] : c.gY[k] - 0.3 - (c.y[k] + P.ROAD_Y + c.bank[k] * o));
         if (c.type[i0] === 0 && c.type[j] === 0) continue;
-        q(pt(i0, oa, top), pt(i0, oa, bot(i0, oa)), pt(j, ob, bot(j, ob)), pt(j, ob, top), COL.fascia, side * -c.tz[i0], 0, side * c.tx[i0]);
-        if (hasBar) { const ia = oa - side * P.BAR_BASE, ib = ob - side * P.BAR_BASE; q(pt(i0, ia, top), pt(i0, oa, top), pt(j, ob, top), pt(j, ib, top), COL.barrierTop, 0, 1, 0); q(pt(i0, ia, 0), pt(i0, ia, top), pt(j, ib, top), pt(j, ib, 0), COL.barrier, -side * -c.tz[i0], 0, -side * c.tx[i0]); }
+        const oa6 = oa - side * 0.06, ob6 = ob - side * 0.06;
+        q(pt(i0, oa6, top), pt(i0, oa6, bot(i0, oa) + 0.06), pt(j, ob6, bot(j, ob) + 0.06), pt(j, ob6, top), COL.fascia, side * -c.tz[i0], 0, side * c.tx[i0]);
+        if (hasBar) { const ia = oa - side * P.BAR_TOP, ib = ob - side * P.BAR_TOP; const oa_ = oa6, ob_ = ob6; oa = oa_; ob = ob_; q(pt(i0, ia, top), pt(i0, oa, top), pt(j, ob, top), pt(j, ib, top), COL.barrierTop, 0, 1, 0); q(pt(i0, ia, 0), pt(i0, ia, top), pt(j, ib, top), pt(j, ib, 0), COL.barrier, -side * -c.tz[i0], 0, -side * c.tx[i0]); }
       }
-      if (open) q(pt(i0, c.vL[i0], -0.85), pt(i0, c.vR[i0], -0.85), pt(j, c.vR[j], -0.85), pt(j, c.vL[j], -0.85), COL.soffit, 0, -1, 0);
+      if (open) q(pt(i0, c.vL[i0] + 0.06, -0.79), pt(i0, c.vR[i0] - 0.06, -0.79), pt(j, c.vR[j] - 0.06, -0.79), pt(j, c.vL[j] + 0.06, -0.79), COL.soffit, 0, -1, 0);
     }
     for (const p of g.piersT) for (const [cx, cz, gy] of p.cols) { const r = p.r, y1 = p.soffit;
       for (const [dx0, dz0, dx1, dz1, hx, hz] of [[-r, -r, r, -r, 0, -1], [r, -r, r, r, 1, 0], [r, r, -r, r, 0, 1], [-r, r, -r, -r, -1, 0]]) { setV(va, cx + dx0, gy, cz + dz0, 0, 0, 0, 0, 0, COL.pier); setV(vb, cx + dx1, gy, cz + dz1, 0, 0, 0, 0, 0, COL.pier); setV(vc, cx + dx1, y1, cz + dz1, 0, 0, 0, 0, 0, COL.pier); setV(vd, cx + dx0, y1, cz + dz0, 0, 0, 0, 0, 0, COL.pier); quad(buf, va, vb, vc, vd, hx, 0, hz, B); } }
