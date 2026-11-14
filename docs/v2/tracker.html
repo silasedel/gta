@@ -201,6 +201,7 @@ function render(d) {
     ['Test screenshots', fmt(stats.screenshots), 'looked at by agents'],
     ['Asset files', fmt(stats.assets), fmt(stats.assetMB) + ' MB'],
     ['Build time', hh + 'h ' + String(mm).padStart(2, '0') + 'm', fmt(stats.commits) + ' commits'],
+    ...(agents.usage ? [['Weekly usage', agents.usage.all + '%', 'pacing to stay under ' + agents.usage.cap + '% · read ' + agents.usage.at]] : []),
   ];
   $('tiles').innerHTML = tiles.map((t) => '<div class="tile ' + (t[3] || '') + '"><div class="l">' + t[0] + '</div><div class="n">' + t[1] + '</div><div class="d">' + esc(t[2]) + '</div></div>').join('');
   // count-up for lines of code

@@ -33,5 +33,18 @@
  "done": [],
  "launchedTotal": 20,
  "note": "Wave 1: foundations (due 10 PM)",
- "etaTotalHours": 16.8
+ "etaTotalHours": 16.8,
+ "usage": {
+  "all": 46,
+  "fable": 37,
+  "cap": 82,
+  "at": "5:36 PM",
+  "log": [
+   [
+    "17:36",
+    46,
+    37
+   ]
+  ]
+ }
 }
