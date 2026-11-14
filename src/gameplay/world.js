@@ -142,7 +142,7 @@ export function createWorldStuff(game, G) {
   let nearProp = null;
   const PHONE_LINES = [
     'Dial tone. You hang up — nobody uses payphones anymore.',
-    '"Port Solana Weather Line: hot, humid, chance of trouble."',
+    '"Southline Weather Line: hot, humid, chance of trouble."',
     '"You\'ve reached Big Lou\'s Bait & Tackle. We\'re closed."',
     'A recorded voice offers you a timeshare in Key Calora.',
   ];

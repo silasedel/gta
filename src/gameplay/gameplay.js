@@ -305,7 +305,7 @@ export async function createGameplay(game) {
       P.money = Math.max(0, (P.money || 0) - (G.bustFee || 0));
       G.weapons?.strip?.();
       game.ui.arrested = false;
-      tryCall('notify', () => game.hud?.notify?.(`Released from the ${G.city?.districtAt(sp.x, sp.z) || 'Port Solana'} PD precinct. Weapons confiscated.`, 4500));
+      tryCall('notify', () => game.hud?.notify?.(`Released from the ${G.city?.districtAt(sp.x, sp.z) || 'Southline'} PD precinct. Weapons confiscated.`, 4500));
     }
   }
 

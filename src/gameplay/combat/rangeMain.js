@@ -81,4 +81,4 @@ const T = window.T = {
 if (q.has('manual')) game.manual = true;
 game.start();
 window.rangeReady = true;
-document.getElementById('info').textContent = 'Port Solana combat range  ·  WASD move, mouse aim, LMB fire, RMB aim, Q cover, V swap shoulder, X lock, E grab, Space vault/climb, 1-7 weapons';
+document.getElementById('info').textContent = 'Southline combat range  ·  WASD move, mouse aim, LMB fire, RMB aim, Q cover, V swap shoulder, X lock, E grab, Space vault/climb, 1-7 weapons';

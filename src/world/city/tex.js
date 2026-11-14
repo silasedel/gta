@@ -176,7 +176,7 @@ export const ADS = [
   { bg: ['#ff5f6d', '#ffc371'], t: 'SOLARA COLA', s: 'Taste the Sunset', fg: '#fff' },
   { bg: ['#1fa2ff', '#12d8fa'], t: 'CALORA AIR', s: 'Fly the Coast · from $49', fg: '#fff' },
   { bg: ['#f7971e', '#ffd200'], t: 'MANGO BAY', s: 'Island Spiced Rum', fg: '#3b1d00' },
-  { bg: ['#8e2de2', '#4a00e0'], t: 'WAVE 101.3', s: "Port Solana's Hit Music", fg: '#fff' },
+  { bg: ['#8e2de2', '#4a00e0'], t: 'WAVE 101.3', s: "Southline's Hit Music", fg: '#fff' },
   { bg: ['#0f0c29', '#302b63'], t: 'CLUB VESPER', s: 'Neon Nights · Thu–Sun', fg: '#ff4fd8' },
   { bg: ['#11998e', '#38ef7d'], t: 'TROPICOOL', s: 'Sunscreen SPF 50', fg: '#fff' },
   { bg: ['#232526', '#414345'], t: 'VIPERA MOTORS', s: 'Feel the Bite', fg: '#ffcc00' },

@@ -280,7 +280,7 @@ export function createMoney(sys) {
     S.fines.push(fine);
     const v = fines.view(fine);
     const where = fine.place ? ` at ${fine.place}` : '';
-    sys.property?.sendMail?.({ kind: 'fine', title: `${v.label} citation: ${fmtMoney(v.amount)}`, from: 'Port Solana Traffic and Parking Division', data: { fineId: fine.id },
+    sys.property?.sendMail?.({ kind: 'fine', title: `${v.label} citation: ${fmtMoney(v.amount)}`, from: 'Southline Traffic and Parking Division', data: { fineId: fine.id },
       body: `${fine.camera ? 'A traffic camera recorded' : 'An officer cited'} ${fine.plate ? 'the vehicle with plate ' + fine.plate : 'you'}${where}${fine.speedOver ? `, ${Math.round(fine.speedOver)} mph over the limit` : ''}. Amount due: ${fmtMoney(v.amount)} within ${FINE_DUE_DAYS} days. Pay with the banking app or at the courthouse. Unpaid citations gain a ${Math.round(ANCHORS.fines.late_fee * 100)}% late fee and can lead to a warrant.` });
     sys.stats?.add('finesIssued', 1);
     emit('fineIssued', { fine: v });
@@ -291,7 +291,7 @@ export function createMoney(sys) {
   fines.owed = () => toDollars(S.fines.filter((f) => f.status !== 'paid').reduce((s, f) => s + f.amount, 0));
   fines.pay = (id, opts = {}) => {
     const f = S.fines.find((x) => x.id === id); if (!f || f.status === 'paid') return { ok: false, reason: 'no_fine' };
-    const r = wallet.pay(toDollars(f.amount), { to: 'Port Solana Clerk of Courts', category: 'fines', memo: `${FINE_LABEL[f.kind] || f.kind} citation`, method: opts.method || 'auto', accepts: ['cash', 'card', 'bank'] });
+    const r = wallet.pay(toDollars(f.amount), { to: 'Southline Clerk of Courts', category: 'fines', memo: `${FINE_LABEL[f.kind] || f.kind} citation`, method: opts.method || 'auto', accepts: ['cash', 'card', 'bank'] });
     if (!r.ok) return r;
     f.status = 'paid'; f.paidAt = now();
     sys.stats?.add('finesPaid', toDollars(f.amount));
@@ -308,7 +308,7 @@ export function createMoney(sys) {
       if (f.status === 'unpaid' && t >= f.dueAt) {
         f.status = 'overdue'; f.amount = Math.round(f.base * (1 + ANCHORS.fines.late_fee)); f.notices = 1;
         emit('fineOverdue', { fine: fines.view(f) });
-        sys.property?.sendMail?.({ kind: 'fine', title: `SECOND NOTICE: ${FINE_LABEL[f.kind] || f.kind} citation`, from: 'Port Solana Clerk of Courts', data: { fineId: f.id }, body: `Your citation is past due. A late fee was added. Amount now due: ${fmtMoney(toDollars(f.amount))}. Continued non-payment may result in a bench warrant.` });
+        sys.property?.sendMail?.({ kind: 'fine', title: `SECOND NOTICE: ${FINE_LABEL[f.kind] || f.kind} citation`, from: 'Southline Clerk of Courts', data: { fineId: f.id }, body: `Your citation is past due. A late fee was added. Amount now due: ${fmtMoney(toDollars(f.amount))}. Continued non-payment may result in a bench warrant.` });
       } else if (f.status === 'overdue' && f.notices === 1 && t >= f.dueAt + FINE_DUE_DAYS * DAY) { f.notices = 2; f.amount = Math.round(f.base * (1 + 2 * ANCHORS.fines.late_fee)); }
     }
     const over = S.fines.filter((f) => f.status === 'overdue');
@@ -423,7 +423,7 @@ export function createMoney(sys) {
     try { items = sys.inventory?.confiscate?.((it) => it.stolen) || []; } catch (e) { items = []; }
     const bail = Math.round(ANCHORS.services.bail_per_star * stars * diff().fineMul);
     let paid = 0, mailed = 0;
-    const r = wallet.pay(bail, { to: 'Port Solana Police Department', category: 'fines', memo: `Bail and court costs (${stars}-star arrest)`, accepts: ['cash', 'bank'], method: 'auto' });
+    const r = wallet.pay(bail, { to: 'Southline Police Department', category: 'fines', memo: `Bail and court costs (${stars}-star arrest)`, accepts: ['cash', 'bank'], method: 'auto' });
     if (r.ok) paid = bail; else { fines.issue({ kind: 'court', amount: bail, note: 'Bail and court costs' }); mailed = bail; }
     // overdue citations are settled at the station if the money is there
     let settled = 0;

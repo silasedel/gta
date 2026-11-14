@@ -44,7 +44,7 @@ const ALIASES = {
   'little-haiti': 'overtown', 'coconut-grove': 'brickell', 'coral-way': 'south-suburbs', 'central-wetlands': 'everglades', 'the-keys': 'middle-keys',
   'tern-key-airfield': 'tern-key', 'solana-international-airport': 'airport', 'sawpalm-ridge-state-park': 'sawpalm-ridge',
 };
-const DEFAULT_DISTRICT = { id: 'unknown', name: 'Port Solana', income: 0.5, medianIncome: 58000, priceIndex: 1.0, rentIndex: 1.0, tourist: 0.2, nightlife: 0.2, crime: 0.35 };
+const DEFAULT_DISTRICT = { id: 'unknown', name: 'Southline', income: 0.5, medianIncome: 58000, priceIndex: 1.0, rentIndex: 1.0, tourist: 0.2, nightlife: 0.2, crime: 0.35 };
 export const tierOf = (income) => (income >= 0.92 ? 'luxury' : income >= 0.66 ? 'high' : income >= 0.34 ? 'mid' : 'low');
 
 // ---------------------------------------------------------------------------------------------------------------------

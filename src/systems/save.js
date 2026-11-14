@@ -21,7 +21,7 @@ export function decodeRecord(text) {
   if (typeof text !== 'string' || !text) throw new Error('empty record');
   let env;
   try { env = JSON.parse(text); } catch (e) { throw new Error('record is not valid JSON'); }
-  if (!env || env.format !== SAVE_FORMAT) throw new Error('not a Port Solana save');
+  if (!env || env.format !== SAVE_FORMAT) throw new Error('not a Southline save');
   if (typeof env.payload !== 'string' || typeof env.checksum !== 'string') throw new Error('record is incomplete');
   if (checksum(env.payload) !== env.checksum) throw new Error('checksum mismatch');
   if (!(env.v <= SAVE_FORMAT_VERSION)) throw new Error(`save format ${env.v} is newer than this build (${SAVE_FORMAT_VERSION})`);

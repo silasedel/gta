@@ -1,23 +1,88 @@
 {
-  "track": "main-menu",
-  "title": "Southline front end: title, menus, settings, wardrobe, loading, arrival intros",
-  "section": "Systems",
-  "agent": "idle",
-  "items": [
-    { "name": "Rename to SOUTHLINE: brand.js, logo, title, loading, index.html title, desktop productName/window/menu, HUD strings (saves keep their old folder)", "state": "verified", "evidence": "docs/v2/shots/main-menu/loading_boot_1440x900.jpg" },
-    { "name": "New logo: slanted heavy wordmark, cream fill, plum outline, offset extrude, pink brush swoosh and glow, striped sunset disc behind skyline and palms (original SVG, bundled font via --ps-cond)", "state": "verified", "evidence": "docs/v2/shots/main-menu/logo.jpg" },
-    { "name": "Loading screen to the mockup: stylized key art, logo top-left, LOADING bar bottom-left, rotating tip bottom-right; boot and into-game; bar tied to streaming (readyAround 220 m)", "state": "verified", "evidence": "docs/v2/shots/main-menu/loading_boot_1440x900.jpg, loading_boot_1280x800.jpg" },
-    { "name": "Stylized key art baked from an in-engine bay render (posterize, ink edges, painted sky, sun, skyline, causeway, palms, halftone, grain): public/assets/ui/keyart_loading.webp; graded live stills keyart_ocean/keyart_keys.webp", "state": "verified", "evidence": "public/assets/ui/keyart_loading.webp" },
-    { "name": "Title background: key art with Ken Burns move and light rays by default; live cinematic scenes with DOF, 20% flare, lower exposure and bloom behind ?titlebg=live", "state": "built", "evidence": "docs/v2/shots/main-menu/title_1440x900.jpg (live mode seen earlier: title_scene2_1440x900.jpg)" },
-    { "name": "Menu: Continue (save exists), New Game, Online join form, Wardrobe, Settings, Credits, Quit (desktop only); focus animations, UI sounds on the UI bus, keyboard and controller nav", "state": "verified", "evidence": "docs/v2/shots/main-menu/menu_hover_1440x900.jpg" },
-    { "name": "Title music: the game's own theme (theme/port_solana_theme.aac) on its own bus, looped, world ducked", "state": "built", "evidence": "game.audio.debug.music shows id menu, station url:theme, gain 0.85 (headless is muted)" },
-    { "name": "New Game into gameplay: loading screen, crane-down handoff, HUD live, wanted cleared", "state": "verified", "evidence": "docs/v2/shots/main-menu/gameplay_hud_1440x900.jpg" },
-    { "name": "Settings: presets (look track), render scale, FPS cap 60/120/unlimited, shadows, draw distance, motion blur, DOF, grain, FPS counter, audio mix, key rebinding, mouse sensitivity, invert Y, fullscreen, HUD scale, subtitles; live apply over the scene", "state": "verified", "evidence": "docs/v2/shots/main-menu/settings_1440x900.jpg, settings_1512x982.jpg" },
-    { "name": "Wardrobe: lit turntable stage through the post chain, drag / zoom, Tops / Bottoms / Shoes / Accessories on the real outfit system, save slice; also in the pause menu", "state": "verified", "evidence": "docs/v2/shots/main-menu/wardrobe_1440x900.jpg" },
-    { "name": "Laptop screens 1280x800, 1440x900, 1512x982: menu, loading, settings, wardrobe fit", "state": "verified", "evidence": "docs/v2/shots/main-menu/menu_1280x800.jpg, menu_1512x982.jpg" },
-    { "name": "UI palette: sunset pink, purple, yellow, cream accents; HUD aqua-green replaced (notifications, minimap arrow, health bar pink, cash badge gold)", "state": "verified", "evidence": "docs/v2/shots/main-menu/gameplay_hud_1440x900.jpg" },
-    { "name": "Fonts bundled locally (OFL), no CDN; injectFonts bug in hud.js fixed; credits updated", "state": "verified", "evidence": "src/ui/styles/fonts.css" },
-    { "name": "Arrival intros: data-driven places (club, hotel, marina, Keys bar, downtown), 6 shots cut on bar lines (beats.json), title card, once per save, skippable", "state": "built", "evidence": "club strip not captured: Miami failed to load in the test run (shopDress error in tilebuild.js)" },
-    { "name": "Sunglasses and hats in the wardrobe", "state": "todo", "evidence": "needs catalog entries from the Nico track" }
-  ]
+ "track": "main-menu",
+ "title": "Southline front end: title, menus, settings, wardrobe, loading, arrival intros",
+ "section": "Systems",
+ "agent": "idle",
+ "items": [
+  {
+   "name": "Rename to SOUTHLINE: brand.js, logo, title, loading, index.html title, desktop productName/window/menu, HUD strings (saves keep their old folder)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/loading_boot_1440x900.jpg"
+  },
+  {
+   "name": "In-world text renamed to Southline (newspaper, city, police, courts, impound, DMV, addresses, billboard, precinct message, liveries); save-folder compatibility unchanged",
+   "state": "built",
+   "evidence": "31 files, code lines only (comments untouched); not seen on screen"
+  },
+  {
+   "name": "New logo: slanted heavy wordmark, cream fill, plum outline, offset extrude, pink brush swoosh and glow, striped sunset disc behind skyline and palms (original SVG, bundled font via --ps-cond)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/logo.jpg"
+  },
+  {
+   "name": "Loading screen to the mockup: stylized key art, logo top-left, LOADING bar bottom-left, rotating tip bottom-right; boot and into-game; bar tied to streaming (readyAround 220 m)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/loading_boot_1440x900.jpg, loading_boot_1280x800.jpg"
+  },
+  {
+   "name": "Stylized key art baked from an in-engine bay render (posterize, ink edges, painted sky, sun, skyline, causeway, palms, halftone, grain): public/assets/ui/keyart_loading.webp; graded live stills keyart_ocean/keyart_keys.webp",
+   "state": "verified",
+   "evidence": "public/assets/ui/keyart_loading.webp (palms redrawn: curved trunks, layered drooping fronds, pink rim), docs/v2/shots/main-menu/loading_boot_1440x900.jpg"
+  },
+  {
+   "name": "Title background: key art with Ken Burns move and light rays by default; live cinematic scenes with DOF, 20% flare, lower exposure and bloom behind ?titlebg=live",
+   "state": "built",
+   "evidence": "docs/v2/shots/main-menu/title_1440x900.jpg (live mode seen earlier: title_scene2_1440x900.jpg)"
+  },
+  {
+   "name": "Menu: Continue (save exists), New Game, Online join form, Wardrobe, Settings, Credits, Quit (desktop only); focus animations, UI sounds on the UI bus, keyboard and controller nav",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/menu_hover_1440x900.jpg"
+  },
+  {
+   "name": "Title music: the game's own theme (theme/port_solana_theme.aac) on its own bus, looped, world ducked",
+   "state": "built",
+   "evidence": "game.audio.debug.music shows id menu, station url:theme, gain 0.85 (headless is muted)"
+  },
+  {
+   "name": "New Game into gameplay: loading screen, crane-down handoff, HUD live, wanted cleared",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/gameplay_hud_1440x900.jpg"
+  },
+  {
+   "name": "Settings: presets (look track), render scale, FPS cap 60/120/unlimited, shadows, draw distance, motion blur, DOF, grain, FPS counter, audio mix, key rebinding, mouse sensitivity, invert Y, fullscreen, HUD scale, subtitles; live apply over the scene",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/settings_1440x900.jpg, settings_1512x982.jpg"
+  },
+  {
+   "name": "Wardrobe: lit turntable stage through the post chain, drag / zoom, Tops / Bottoms / Shoes / Accessories on the real outfit system, save slice; also in the pause menu",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/wardrobe_1440x900.jpg"
+  },
+  {
+   "name": "Laptop screens 1280x800, 1440x900, 1512x982: menu, loading, settings, wardrobe fit",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/menu_1280x800.jpg, menu_1512x982.jpg"
+  },
+  {
+   "name": "UI palette: sunset pink, purple, yellow, cream accents; HUD aqua-green replaced (notifications, minimap arrow, health bar pink, cash badge gold)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/gameplay_hud_1440x900.jpg"
+  },
+  {
+   "name": "Fonts bundled locally (OFL), no CDN; injectFonts bug in hud.js fixed; credits updated",
+   "state": "verified",
+   "evidence": "src/ui/styles/fonts.css"
+  },
+  {
+   "name": "Arrival intros: data-driven places (club, hotel, marina, Keys bar, downtown), 6 shots cut on bar lines (beats.json), title card, once per save, skippable",
+   "state": "verified",
+   "evidence": "docs/v2/shots/main-menu/club_intro_strip.jpg (plays, cuts, title card, hands back; framing then fixed to the club storefront facing, not re-shot; South Beach tiles render sparse around the club in the current world)"
+  },
+  {
+   "name": "Sunglasses and hats in the wardrobe",
+   "state": "todo",
+   "evidence": "needs catalog entries from the Nico track"
+  }
+ ]
 }

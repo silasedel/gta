@@ -47,7 +47,7 @@ export function build(ctx) {
 
   // ---------- original art (one atlas) ----------
   const A = makeAtlas('nh72_atlas', 2048, 2048, {
-    bill: [640, 300, (g, w, h) => { g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#1f5f9a'; g.beginPath(); g.moveTo(22, 50); g.lineTo(40, 18); g.lineTo(36, 40); g.lineTo(54, 40); g.lineTo(30, 74); g.lineTo(36, 50); g.fill(); T(g, 'GULFSIDE POWER & LIGHT', 64, 42, 21, '#1f5f9a'); T(g, 'PO Box 4410 · Port Solana, FL 33010', 64, 62, 13, '#444', { w: 500 });
+    bill: [640, 300, (g, w, h) => { g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#1f5f9a'; g.beginPath(); g.moveTo(22, 50); g.lineTo(40, 18); g.lineTo(36, 40); g.lineTo(54, 40); g.lineTo(30, 74); g.lineTo(36, 50); g.fill(); T(g, 'GULFSIDE POWER & LIGHT', 64, 42, 21, '#1f5f9a'); T(g, 'PO Box 4410 · Southline, FL 33010', 64, 62, 13, '#444', { w: 500 });
       g.strokeStyle = '#888'; g.strokeRect(500, 18, 118, 60); T(g, 'PRESORTED', 559, 40, 12, '#555', { a: 'center' }); T(g, 'FIRST-CLASS MAIL', 559, 56, 11, '#555', { a: 'center' }); T(g, 'U.S. POSTAGE PAID', 559, 70, 9, '#555', { a: 'center', w: 500 });
       g.fillStyle = '#fbfaf5'; g.fillRect(150, 128, 360, 112); g.strokeStyle = '#c9c4b5'; g.strokeRect(150, 128, 360, 112); addr(g, 172, 166, 21);
       g.save(); g.translate(118, 272); g.rotate(-0.04); g.strokeStyle = '#c0281f'; g.lineWidth = 4; g.strokeRect(-100, -30, 330, 46); T(g, 'PAST DUE · OPEN IMMEDIATELY', 65, 3, 20, '#c0281f', { a: 'center' }); g.restore(); T(g, 'Acct 0118-4471-6   Amount due $184.20', 372, 280, 14, '#444', { f: MONO, w: 500 }); age(g, w, h, 5); }],

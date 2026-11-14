@@ -29,7 +29,7 @@ Object.keys(CAMS).forEach((k) => btn(k, () => setCam(k))); Object.keys(LIGHTS).f
 for (const s of SLOTS) { const sel = document.createElement('select'); sel.innerHTML = `<option value="">${s}: none</option>` + CATALOG.filter((p) => p.slot === s).map((p) => `<option value="${p.id}">${p.name}</option>`).join(''); sel.onchange = () => (sel.value ? nico.outfit?.wear(sel.value) : nico.outfit?.remove(s)); ui.appendChild(sel); }
 [['idle', { speed: 0 }], ['walk', { speed: 1.5 }], ['run', { speed: 3.8 }], ['sprint', { speed: 6, sprint: true }], ['swim', { idleStyle: 'swim', swimming: true }], ['sit', { idleStyle: 'sitBench' }], ['dance', { idleStyle: 'dance' }]].forEach(([n, a]) => btn(n, () => { window.anim = { grounded: true, ...a }; }));
 Object.keys(nico.face?.expressions ? Object.fromEntries(nico.face.expressions.map((e) => [e, 1])) : {}).forEach((e) => btn(e, () => nico.face.setExpression(e)));
-btn('say', () => nico.face?.say('Hey, welcome to Port Solana. You need a ride?'));
+btn('say', () => nico.face?.say('Hey, welcome to Southline. You need a ride?'));
 setLight('studio'); setCam('full');
 await new Promise((r) => setTimeout(r, 600)); await texturesReady(); await new Promise((r) => setTimeout(r, 400));
 window.ready = true;

@@ -57,7 +57,7 @@ export default [
   // ------------------------------------------------------------------ fashion house: luxury, with a monogram canvas
   B({
     id: 'vauclere', name: 'Vauclère', legal: 'Maison Vauclère S.A.', category: 'fashion', sub: 'house', tier: 'luxury', presence: 'chain', weight: 2, storefront: true,
-    tagline: 'Depuis 1894.', story: 'A Lyon trunk maker turned fashion house; its diamond-V canvas is the most copied pattern on the Port Solana flea markets.',
+    tagline: 'Depuis 1894.', story: 'A Lyon trunk maker turned fashion house; its diamond-V canvas is the most copied pattern on the Southline flea markets.',
     founded: 1894, districts: ['design-district', 'brickell', 'south-beach', 'mid-beach', 'airport'],
     palette: { primary: '#173a2c', secondary: '#c9a35a', accent: '#7a1f2b', ink: '#141311', paper: '#efe6d2', neon: '#f3e2b8' },
     fonts: { display: 'didoneLight', text: 'gillLight' },

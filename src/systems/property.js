@@ -389,7 +389,7 @@ export function createProperty(sys) {
     if (v) { r.condition = G.capture(v); removeLive(id); }
     r.location = { kind: 'impound', since: now(), reason: opts.reason || 'parking', fee: num(opts.fee, ANCHORS.services.impound_fee) };
     r.stats.impounds = (r.stats.impounds || 0) + 1;
-    sys.property && Pr.sendMail({ kind: 'impound', title: `Your vehicle was impounded: ${r.name}`, from: 'Port Solana Vehicle Impound', data: { vehicleId: id }, body: `${r.name} (plate ${r.plate}) was towed${opts.reason ? ' for ' + String(opts.reason).replace(/_/g, ' ') : ''}. Release fee: ${fmtMoney(r.location.fee)} plus ${fmtMoney(ANCHORS.services.impound_per_day)} per day of storage. Vehicles not claimed within 10 days are auctioned.` });
+    sys.property && Pr.sendMail({ kind: 'impound', title: `Your vehicle was impounded: ${r.name}`, from: 'Southline Vehicle Impound', data: { vehicleId: id }, body: `${r.name} (plate ${r.plate}) was towed${opts.reason ? ' for ' + String(opts.reason).replace(/_/g, ' ') : ''}. Release fee: ${fmtMoney(r.location.fee)} plus ${fmtMoney(ANCHORS.services.impound_per_day)} per day of storage. Vehicles not claimed within 10 days are auctioned.` });
     emit('vehicleImpounded', { record: r, fee: r.location.fee });
     return r;
   };
@@ -397,7 +397,7 @@ export function createProperty(sys) {
   G.release = (id, opts = {}) => {
     const r = rec(id); if (!r || r.location.kind !== 'impound') return { ok: false, reason: 'not_impounded' };
     const fee = G.impoundFee(id);
-    const pay = sys.wallet.pay(fee, { to: 'Port Solana Vehicle Impound', category: 'fees', memo: `Impound release: ${r.name}`, accepts: ['cash', 'card', 'bank'], method: opts.method || 'auto' });
+    const pay = sys.wallet.pay(fee, { to: 'Southline Vehicle Impound', category: 'fees', memo: `Impound release: ${r.name}`, accepts: ['cash', 'card', 'bank'], method: opts.method || 'auto' });
     if (!pay.ok) return { ok: false, reason: pay.reason, fee };
     const lot = S.impoundLot;
     r.location = { kind: 'world', pos: opts.pos ? vec3arr(opts.pos) : lot?.pos || null, heading: opts.heading ?? lot?.heading ?? 0 };
@@ -412,7 +412,7 @@ export function createProperty(sys) {
     r.location = { kind: 'destroyed', since: now() };
     const insured = sys.insurance?.has('vehicle', id);
     emit('vehicleLost', { record: r, reason: 'destroyed', insured: !!insured });
-    Pr.sendMail({ kind: 'insurance', title: insured ? `Claim ready to file: ${r.name}` : `Total loss: ${r.name}`, from: insured ? sys.insurance.name : 'Port Solana DMV', data: { vehicleId: id },
+    Pr.sendMail({ kind: 'insurance', title: insured ? `Claim ready to file: ${r.name}` : `Total loss: ${r.name}`, from: insured ? sys.insurance.name : 'Southline DMV', data: { vehicleId: id },
       body: insured ? `Your ${r.name} was reported destroyed. File the claim with the insurance app and pay the deductible; a replacement is delivered to your home about six hours later.` : `Your ${r.name} (plate ${r.plate}) was reported destroyed. It was not insured, so it has been written off.` });
     return r;
   };

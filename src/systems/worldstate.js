@@ -69,7 +69,7 @@ const CRIME_HEAD = {
   shoplift: ['Shoplifter slips out of {place}', 'Store owners in {district} report a rise in thefts'],
   shooting: ['Shots fired in {district}', 'Gunfire sends people running in {district}', 'Police respond to shooting in {district}'],
   murder: ['One dead after violence in {district}', 'Homicide detectives called to {district}'],
-  cop_murder: ['Officer killed in {district}; manhunt under way', 'Port Solana mourns officer shot in {district}'],
+  cop_murder: ['Officer killed in {district}; manhunt under way', 'Southline mourns officer shot in {district}'],
   cop_assault: ['Officer assaulted in {district}'], cop_shot: ['Officer wounded by gunfire in {district}'],
   carjack: ['Driver pulled from car in {district} carjacking', 'Carjacking reported in {district}'],
   vehicle_theft: ['Car thefts on the rise in {district}', 'Vehicle stolen in {district}'],
@@ -78,7 +78,7 @@ const CRIME_HEAD = {
   heist: ['Crew hits {place} in daring heist', 'Millions feared lost in {place} heist'],
 };
 const CRIME_BODY = [
-  'Police describe the suspect as {desc}. Anyone with information is asked to call the Port Solana Police tip line.',
+  'Police describe the suspect as {desc}. Anyone with information is asked to call the Southline Police tip line.',
   'Witnesses told officers the suspect was {desc}. No arrests have been made.',
   'Investigators are reviewing camera footage. The suspect was described as {desc}.',
 ];
@@ -130,7 +130,7 @@ export function createNews(sys) {
     const crime = r.crime || 'robbery';
     const heads = CRIME_HEAD[crime] || ['Police called to {district}'];
     const k = hash32('news', crime, Math.floor(now()), seq);
-    const vars = { place: r.place || (r.district ? `a ${r.district} business` : 'a local business'), district: r.district || 'Port Solana' };
+    const vars = { place: r.place || (r.district ? `a ${r.district} business` : 'a local business'), district: r.district || 'Southline' };
     const body = fill(CRIME_BODY[k % CRIME_BODY.length], { desc: describe(r.description) });
     return N.post({ kind: 'crime', about: 'player', headline: cap(fill(heads[k % heads.length], vars)), body, place: r.place || null, district: r.district || null, priority: Math.max(1, Math.min(3, Math.round(num(r.severity, 2) / 1.7))), ttlHours: 30, data: { crime, description: r.description || null } });
   };

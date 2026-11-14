@@ -40,7 +40,7 @@ const BANK = {
     chat: 'My cousin is coming from Port-au-Prince.|Church was full Sunday.|You going to the market later?|The griot at that place is the best.|My son passed his exam!|I work double shift again tomorrow.',
   },
   tourist: {
-    greet: 'Hi! Is the beach this way?|Hello! Gorgeous weather, right?|Hey! First time in Port Solana!|Morning! Where\'s good for breakfast?|Hi there! Love this town.|Excuse me, is this Ocean Drive?',
+    greet: 'Hi! Is the beach this way?|Hello! Gorgeous weather, right?|Hey! First time in Southline!|Morning! Where\'s good for breakfast?|Hi there! Love this town.|Excuse me, is this Ocean Drive?',
     bumped: 'Oh gosh, so sorry!|Oops, my fault, I was looking up.|Sorry! Busy sidewalk.|Whoa! No harm done.|Sorry, I\'m lost, ha.|Pardon me!',
     honked: 'Sorry! Are we in the bike lane?|Yikes, okay, moving!|Is that for us?|Wow, drivers here are intense.|Oh! Okay, okay.',
     weapon: 'Is that a real gun?!|Honey, let\'s go back to the hotel.|Nobody told us about this part.|Oh no no no.|We\'re just tourists, please!',

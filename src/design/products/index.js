@@ -65,7 +65,7 @@ function drawBack(g, p, b, x, y, w, h) {
   wrapText(g, (b.story || '') + ' ' + (b.tagline || ''), w * 0.84).slice(0, 5).forEach((ln, i) => g.fillText(ln, w * 0.08, h * (0.17 + i * 0.034)));
   if (p.nutrition) nutritionPanel(g, p, w * 0.08, h * 0.37, w * 0.5, h * 0.4, '#111', '#fff');
   barcode(g, w * 0.62, h * 0.62, w * 0.3, h * 0.15, p.id);
-  g.fillStyle = fg; g.font = font('textNarrow', h * 0.022); wrapText(g, `Distributed by ${b.legal || b.name + ' Co.'}, Port Solana. ${p.price ? '' : ''}Please recycle.`, w * 0.84).slice(0, 3).forEach((ln, i) => g.fillText(ln, w * 0.08, h * (0.82 + i * 0.03)));
+  g.fillStyle = fg; g.font = font('textNarrow', h * 0.022); wrapText(g, `Distributed by ${b.legal || b.name + ' Co.'}, Southline. ${p.price ? '' : ''}Please recycle.`, w * 0.84).slice(0, 3).forEach((ln, i) => g.fillText(ln, w * 0.08, h * (0.82 + i * 0.03)));
   g.restore();
 }
 const labelCache = new Map();

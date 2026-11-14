@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Port Solana: weapon contact sheet</title>
+<html><head><meta charset="utf-8"><title>Southline: weapon contact sheet</title>
 <style>html,body{margin:0;background:#101215;overflow:hidden;font-family:system-ui,sans-serif}#lbl{position:fixed;left:24px;top:14px;color:#ddd;font-size:15px;letter-spacing:.08em}.tag{position:fixed;color:#cfd3d8;font:600 12px/1.2 system-ui;letter-spacing:.06em;text-shadow:0 1px 2px #000;transform:translate(-50%,0);white-space:nowrap}</style></head>
 <body><div id="lbl"></div>
 <script type="module">
@@ -52,7 +52,7 @@ if (model) {
   if (sheet === 'factory' || sheet === 'kitted') {
     const kit = sheet === 'kitted';
     GUNS.forEach((k, i) => rows.push({ k, opts: { attachments: kit ? fullKit(k) : undefined }, col: i < 5 ? 0 : 1, row: i < 5 ? i : i - 5, text: k + (kit ? ' (full kit)' : '') }));
-    label = kit ? 'PORT SOLANA ARSENAL: every attachment slot filled' : 'PORT SOLANA ARSENAL: factory configuration';
+    label = kit ? 'SOUTHLINE ARSENAL: every attachment slot filled' : 'SOUTHLINE ARSENAL: factory configuration';
   } else if (sheet === 'skins') {
     SKINS.forEach((s, i) => { rows.push({ k: 'pistol', opts: { skin: s.key }, col: 0, row: i, text: s.name, small: true }); rows.push({ k: i % 2 ? 'smg' : 'rifle', opts: { skin: s.key, attachments: { sight: 'reddot', grip: 'vertical' } }, col: 1, row: i, text: s.name, small: true }); });
     label = 'SKINS: ' + SKINS.map((s) => s.name).join(' / ');
