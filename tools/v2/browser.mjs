@@ -1,3 +1,4 @@
+import * as _cp from 'node:child_process';
 // V2 test browser: the ONLY way V2 agents may drive a browser.
 // - Own muted, isolated headless Chrome with a fresh temp profile and a random debugging port (never 9222/9333).
 // - Machine-wide semaphore (2 slots) so parallel agents never run more than two Chromes at once (the user is filming v1).
@@ -52,6 +53,7 @@ async function acquireSlot(waitSeconds = 1500) {
   }
 }
 
+function execSyncSafe(cmd) { try { return String(_cp.execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 32e6 })); } catch (e) { return ''; } }
 export async function withBrowser(opts, fn) {
   if (typeof opts === 'function') { fn = opts; opts = {}; }
   const { width = 1280, height = 720, maxSeconds = 240, extraArgs = [] } = opts || {};
@@ -67,8 +69,20 @@ export async function withBrowser(opts, fn) {
     try { chrome.kill('SIGKILL'); } catch (e) { /* */ }
     try { spawn('pkill', ['-9', '-f', prof], { stdio: 'ignore' }); } catch (e) { /* */ }
     try { fs.rmSync(slot, { recursive: true, force: true }); } catch (e) { /* */ }
+    // delete the profile now (a delayed timer never fires when the process is exiting), then again shortly after
+    // in case Chrome was still flushing files. Leaked profiles once filled ~128 GB of the user's disk.
+    try { fs.rmSync(prof, { recursive: true, force: true }); } catch (e) { /* */ }
     setTimeout(() => { try { fs.rmSync(prof, { recursive: true, force: true }); } catch (e) { /* */ } }, 400).unref?.();
   };
+  // sweep profiles leaked by earlier runs: any ps-v2-chrome-* older than 20 min that no running Chrome uses
+  try {
+    const live = execSyncSafe('ps -axo command');
+    for (const n of fs.readdirSync(os.tmpdir())) {
+      if (!n.startsWith('ps-v2-chrome-') || path.join(os.tmpdir(), n) === prof || live.includes(n)) continue;
+      const d = path.join(os.tmpdir(), n);
+      try { if (Date.now() - fs.statSync(d).mtimeMs > 20 * 60e3) fs.rmSync(d, { recursive: true, force: true }); } catch (e) { /* */ }
+    }
+  } catch (e) { /* */ }
   const onSig = () => { cleanup(); process.exit(130); };
   process.on('SIGINT', onSig); process.on('SIGTERM', onSig); process.on('exit', cleanup);
   const dog = setTimeout(() => { console.error(`[v2 browser] watchdog: exceeded ${maxSeconds}s, killing Chrome`); cleanup(); process.exit(2); }, maxSeconds * 1000);
