@@ -1492,8 +1492,8 @@ export async function createVehicles(game) {
       if (v.flooded && !v.lightsOn) lm.head.emissiveIntensity = 0;
       if (lm.drl) lm.drl.emissiveIntensity = v.headBroken ? 0 : alive ? 6 : 0;
       if (lm.lens) lm.lens.emissiveIntensity = v.headBroken ? 0 : v.lightsOn ? 12 : 0;
-      if (lm.tailLed) lm.tailLed.emissiveIntensity = v.disabled ? 0 : v.braking && alive ? 8 : v.lightsOn ? 5 : alive ? 3 : 0.2;
-      lm.tail.emissiveIntensity = v.disabled ? 0 : v.braking && (v.ai || v.playerDriven) ? 3.5 : (v.lightsOn ? 1.4 : 0.15); // [car-bodies] hotter pure red tone-maps to yellow-white
+      if (lm.tailLed) lm.tailLed.emissiveIntensity = v.disabled ? 0 : v.braking && alive ? 3.2 : v.lightsOn ? 2.2 : alive ? 1.4 : 0.2;
+      lm.tail.emissiveIntensity = v.disabled ? 0 : v.braking && (v.ai || v.playerDriven) ? 1.8 : (v.lightsOn ? 0.9 : 0.15); // [car-bodies] hotter pure red tone-maps to yellow-white
       // exhaust backfire pops when lifting off at high revs (player car)
       if (v.playerDriven && !v.disabled) {
         const thr = v.ctrl.throttle;

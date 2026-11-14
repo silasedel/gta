@@ -159,7 +159,7 @@ export function wheelMaterial(finish = 'alloy') {
 // ---------------------------------------------------------------- glass (windows tinted per car tint level; lamp lenses clear)
 const _glass = [];
 const TINTS = [
-  { color: 0x6f8a86, opacity: 0.42 },   // 0 clear factory (green-ish)
+  { color: 0x34413f, opacity: 0.62 },   // 0 factory (green-ish; still dark enough to reflect)
   { color: 0x1c2528, opacity: 0.74 },   // 1 light (ref_57: dark enough that the reflection reads over the cabin)
   { color: 0x0e1418, opacity: 0.8 },    // 2 dark
   { color: 0x030507, opacity: 0.92 },   // 3 limo
@@ -183,6 +183,10 @@ export function glassMaterial(tint = 1) {
       .replace('#include <opaque_fragment>', `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
   float ga = clamp(diffuseColor.a + fr * 0.6 * vWin, 0.0, 1.0);
   vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.55 + 0.9 * fr);
+  // sky / street mirror: a world-space sky gradient seen in the reflected direction (works without a scene env map)
+  vec3 rw = inverseTransformDirection(reflect(normalize(-vViewPosition), normal), viewMatrix);
+  vec3 skyC = mix(vec3(0.16, 0.15, 0.14), mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0)), smoothstep(-0.12, 0.05, rw.y));
+  spec += skyC * vWin * (0.12 + 0.55 * fr);
   gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`)
       .replace('#include <premultiplied_alpha_fragment>', '');
   };
@@ -200,7 +204,7 @@ export function brokenGlass() {
 // channels (aLamp): see LAMP; base color from vertex color, decal texels from the car's decal sheet (uv), alpha-tested.
 export const LAMP = { none: 0, head: 1, drl: 2, lens: 3, fog: 4, tail: 5, tailLed: 6, reverse: 7, blinkL: 8, blinkR: 9, red: 10, blue: 11, sign: 12, amber: 13, plate: 14 };
 const NCH = 16; // 15 = seat trim (base color times the car's trim color)
-const LAMP_EMISSIVE = { head: 0xfff2dc, drl: 0xe8f2ff, lens: 0xfff6e8, fog: 0xffffff, tail: 0xff0703, tailLed: 0xff2410, reverse: 0xffffff, blinkL: 0xff8a00, blinkR: 0xff8a00,
+const LAMP_EMISSIVE = { head: 0xfff2dc, drl: 0xe8f2ff, lens: 0xfff6e8, fog: 0xffffff, tail: 0xff0402, tailLed: 0xff0a04, reverse: 0xffffff, blinkL: 0xff8a00, blinkR: 0xff8a00,
   red: 0xff0a0a, blue: 0x1a3cff, sign: 0xffe9a0, amber: 0xff8a00, plate: 0xfff4e0 };
 // a lightMats entry: what vehicles.js and net/session.js touch (emissiveIntensity, color, emissive, dispose)
 function proxy(kind) {
