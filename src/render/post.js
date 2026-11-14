@@ -532,6 +532,8 @@ export function createPost(game) {
     fitWindow,
     composer, bloom, grade, gtao, smaa, ao, taa,
     get renderScale() { return renderScale; },
+    // depth of this frame's scene pass (the MSAA target's depth when MSAA is on); other passes must read this
+    get sceneDepth() { return sceneDepth; },
     get internalSize() { return [composer.renderTarget1.width, composer.renderTarget1.height]; },
     setSize,
     render(dt) {
@@ -586,9 +588,11 @@ export function createPost(game) {
       }
       const golden0 = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.3));
       // bloom: highlights only by day, a little more at sunset (sun glow), generous at night (neon)
-      bloom.strength = 0.20 + 0.13 * night + 0.14 * golden0;
-      bloom.radius = 0.45 + 0.1 * night;
-      bloom.threshold = 1.0 - 0.25 * night - 0.14 * golden0; // sunset: the glitter path and sun rim bloom a little
+      // interiors (club, bars) glow like night by day too: the bloom night term follows max(night, indoor)
+      const bloomNight = Math.max(night, env?.indoor || 0);
+      bloom.strength = 0.20 + 0.13 * bloomNight + 0.14 * golden0;
+      bloom.radius = 0.45 + 0.1 * bloomNight;
+      bloom.threshold = 1.0 - 0.25 * bloomNight - 0.14 * golden0; // sunset: the glitter path and sun rim bloom a little
 
       // speed streaks
       const st = game.player?.state;
@@ -650,6 +654,21 @@ export function createPost(game) {
 
       // TAA mode per preset: 'always', 'auto' (only while the render scale is below 1, where it reconstructs the missing
       // pixels; at full scale SMAA is sharper on moving foliage because there are no motion vectors), or false
+      // z-fighting (gameplay cameras only; cinema.js sets its own from the focus distance): high cameras (aircraft,
+      // rooftops) get a larger near plane, since depth precision at range scales with it. Street level keeps 0.25.
+      if (!game.cameraOverride && !LOOK_OFF) {
+        let gy = 0;
+        try {
+          gy = game.city?.groundHeightAt?.(camera.position.x, camera.position.z) ?? 0;
+        } catch (e) {
+          gy = 0;
+        }
+        const wantNear = Math.min(1.2, Math.max(0.25, (camera.position.y - gy) * 0.012));
+        if (Math.abs(camera.near - wantNear) > 0.03) {
+          camera.near = wantNear;
+          camera.updateProjectionMatrix();
+        }
+      }
       const taaMode = game.quality?.current?.look?.taa;
       const taaOn = !!taa && !LOOK_OFF && !env?.underwater && (taaMode === 'always' || (taaMode === 'auto' && renderScale < 0.999));
       if (taa) {

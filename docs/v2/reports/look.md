@@ -70,3 +70,18 @@ Each change is gated by `?lookoff` in the URL, so the before and after shots com
 - Z-fighting: reversed depth or near/far per mode, plus polygonOffset on coplanar layers (`main.js`, `cinema.js`, tilebuild). Not started.
 - Shadow reach at road level for dappled palm and tree shadows (`environment.js`, `shadows.js`). Car clear coat, tail-light emissive and store-window interiors belong to vehicles and city.
 - Ground textures: the coordinator assigned them to the ground agent after I added `groundWear` in `materials.js`. To drop it, remove the five `groundWear(...)` calls. It is off under `?lookoff`.
+
+## Pass 3 (Nov 14): z-fighting, MSAA cost, interior bloom
+- **Ground agent:** the ground wear is kept. It is `groundWear(mat, amp, stain, key, crack, tone, minRough)` near the end of `src/world/miami/materials.js`, five calls (asphalt, paving, sand, land and roofs, markings). Tune the numbers there; `?lookoff` disables it.
+- **Z-fighting:**
+  - `src/ui/menu/cinema.js`: the near plane now follows the shot's focus distance, `clamp(focus * 0.02, 0.2, 1.5)`. Wide skyline shots run at near 1.5 instead of 0.2: about 7x the depth precision at range. Close-ups keep 0.2. Disabled under `?lookoff`.
+  - `post.js`: gameplay cameras get near = `clamp(height above ground * 0.012, 0.25, 1.2)`. Street level is unchanged; aircraft and rooftop views gain precision.
+  - Reversed depth was not used: the AO, TAA, cinema DOF and ocean shaders all assume standard depth.
+  - Existing polygonOffset on ground layers and markings is unchanged.
+- **Cinema DOF fix:** `cinema.js` read `rb.depthTexture`, which MSAA leaves stale. It now reads `post.sceneDepth`.
+- **Two-frame diffs** (`docs/v2/shots/look/zfight_before_after.jpg`, `z_*_diff.png`, frozen cinema camera, 3 rAF ticks apart):
+  - Venetian sunset wide shot. Before (near 0.2): whole roofs and ground surfaces change between frames. After (near 1.5): building surfaces are stable; only palms (wind) and a few far pixels change. This points to the fix working, but exposure adaptation could also explain part of the before diff, so it is not proof.
+  - The before skyline frame caught the loading screen, so there is no valid pair. In the after skyline diff, the changing far buildings come from LOD tiles swapping between frames (pop-in), not depth fighting.
+- **MSAA cost** (full frame, 10 renders between hard syncs, 1600x900): 4x vs off = 17.4 vs 15.0 ms in one run, 41.6 vs 33.0 ms in another under heavy load. High now uses 2x, ultra 4x, medium 2x.
+- **Interior bloom:** the bloom night term is `max(night, env.indoor)`, so venues glow by day.
+- **Not done this pass:** edges and shimmer in motion from a frame sequence; tree and road-shadow after-shots; car paint, tail-light and window comparisons with ref_57/ref_59.
