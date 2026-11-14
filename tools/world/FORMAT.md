@@ -8,7 +8,7 @@ All coordinates are world meters in the CONTRACT4 frame (x east, z south). Polyg
 {
   "version": 1,
   "bounds":   { "minX", "maxX", "minZ", "maxZ" },          // whole world including ocean margin
-  "realRect": { "minX": -5000, "maxX": 4600, "minZ": -4000, "maxZ": 3400 },  // OSM owns everything inside; synthetic land/areas/buildings are clipped out of it
+  "realRect": { "minX": -3709, "maxX": 4511, "minZ": -2654, "maxZ": 2654 },  // OSM owns everything inside; synthetic land/areas/buildings are clipped out of it
   "land":  [ { "id", "name?", "outer", "holes" } ],        // every landmass and island outside realRect (may overlap its edge; the merge unions them with OSM land)
   "water": [ { "id", "kind": "lake|canal|river|pond|marsh_open", "name?", "outer", "holes" } ],
   "areas": [ { "id", "kind", "name?", "outer", "holes" } ],
@@ -37,3 +37,4 @@ Rules:
 
 ## Change log
 - v1 (lead): initial format.
+- v2 (lead, Nov 13 5:30 PM): world halved. `realRect` is now the v1 Miami rectangle (x −3709…4511, z −2654…2654); world bounds about x −7000…5400, z −6000…6500. See the layout table in CONTRACT5.

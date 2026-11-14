@@ -7,6 +7,19 @@
 - **Version:** `2.0.0-dev` until every gate below passes, then `2.0.0`.
 - **Rule:** nothing is called done until it is verified with screenshots and automated tests, and compared with the references (BIG_UPDATE 0a1c). Progress percentages count verified items only.
 
+## Schedule and budget (user, Nov 13, 5:30 PM)
+- **Finish within 16 hours:** by about 9:30 AM MST on Nov 14.
+- **Usage:** stay under about 82% of the weekly limit (it was 46% all-models, 37% Fable at 5:30 PM). The lead checks usage at every checkpoint and lowers the number of agents if the pace would overshoot.
+- **World:** about half the planned area (see CONTRACT5).
+
+| When (MST) | What |
+|---|---|
+| until 10:00 PM | Wave 1 tracks finish and report |
+| 10:00 PM – 11:00 PM | Lead wires wave 1 into the game, production build, commit and push `v2` |
+| 11:00 PM – 4:00 AM | Wave 2: world render of the merged map, store and building categories, districts, second-pass systems, plus the five queued tracks |
+| 4:00 AM – 7:30 AM | Wave 3: inspection sweeps, automated playthroughs, fixes |
+| 7:30 AM – 9:30 AM | Wave 4: release gates, reference comparisons, v2.0.0 |
+
 ## How the work is split
 Every track is one agent with its own files, its own preview pages, its own progress file (`docs/v2/progress/<track>.json`) and its own report (`docs/v2/reports/<track>.md`). The lead owns `src/main.js`, wiring, commits and releases. New systems plug in as `*.v2.js` modules, so tracks do not collide.
 

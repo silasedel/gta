@@ -314,7 +314,12 @@ User's concept layout, with Nico's home marked by the white dot and a scale of a
    - A highway loop connecting everything.
 5. **Suburbs between city and wilderness:** realistic South Florida subdivisions, canals, strip malls, gas stations.
 
-**Size decision (user, Nov 13):**
+**Size decision, updated (user, Nov 13, 5:30 PM): make the world about half the planned size so it can be finished to the full standard within 16 hours and the usage budget.**
+- Same layout arrangement as the concept map, everything pulled in: land about 10.5 km across (about half the area first planned).
+- Real Miami keeps exactly the area v1 already has (8.2 × 5.3 km at 1:1); the planned extension west, north and south is dropped for now.
+- Every region keeps its full character and density (gators and airboats in the Everglades, many different shops in every town). The exact extents are in `CONTRACT5.md`.
+
+**Earlier size decision (user, Nov 13), superseded where it conflicts:**
 - About **10 km wide** total (the user's call: realistic and doable at the detail standard). Up to ~20 km only if detail never suffers.
 - Miami core (Miami Beach through Brickell) stays at true 1:1 scale. The Everglades, Keys, suburbs and north are compressed so the Keys are a short, realistic-feeling drive away.
 - Include an **international airport** with runways, terminals, planes taking off and landing on real-looking approach paths over the city, and a smaller Keys airfield.

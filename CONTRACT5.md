@@ -18,6 +18,7 @@ No deadline, no budget limit, no shortcuts, no placeholders, no "good enough". W
 - **American spelling** in all code comments, UI text, docs and reports.
 - **Atomic edits:** never leave a file half-written. For an existing file: write `<file>.tmp` → `npx esbuild <file>.tmp --loader:.tmp=js --format=esm --outfile=/dev/null` (or bundle check) → `mv`. New files: write then check. The shared dev server hot-reloads everyone's work, so a syntax error breaks every other agent.
 - **Only edit files you own** (see the ownership table in `V2_PLAN.md` and your brief). `src/main.js`, `index.html`, `package.json`, `CONTRACT*.md`, `V2_PLAN.md`, `BIG_UPDATE.md`, `README.md`, `CHANGELOG.md` and `src/version.js` belong to the lead. If you need a change there, say exactly what in your report.
+- **Deadline and budget (user, Nov 13, 5:30 PM):** all of V2 must be finished within 16 hours (by about 9:30 AM MST, Nov 14) and inside a usage budget. The quality bar does not move; breadth and order do: build the core of your scope to full quality first, in priority order, keep the game bootable at every moment, and stop iterating when another round no longer changes the result. Be economical: do not re-read large files you already know, open only the screenshots you need, prefer small preview pages over full-game loads.
 - **No placeholders.** No box stand-ins, no TODO stubs presented as done, no flat untextured materials. If something is not finished, list it as not finished.
 
 ## Testing rules (the user is filming v1 on this machine right now)
@@ -50,24 +51,27 @@ Each track keeps `docs/v2/progress/<track>.json` (the live tracker reads it):
 ## World frame and layout (all modules)
 Unchanged frame: origin lat0 = 25.7790, lon0 = -80.1650; `x` east, `z` south, `y` up, meters; heading 0 faces +Z; sea level `y = -0.12`.
 
-The V2 world is a condensed Florida-style landmass with **real 1:1 Miami** on its east coast. Rough layout (the WORLD track owns the exact shapes; treat these as approximate until `public/assets/world/layout.json` exists):
+**Size change (user, Nov 13, 5:30 PM): the world is about half the area first planned, so it can be finished to the full detail standard in time.** Same arrangement as before, everything outside real Miami pulled in tight. Real Miami keeps exactly the area v1 already has (no extension west, north or south).
+
+The V2 world is a condensed Florida-style landmass with **real 1:1 Miami** on its east coast. Layout (the WORLD track owns the exact shapes; treat these as approximate until `public/assets/world/layout.json` exists):
 
 | Region | Approx. extent (x, z in m) | Notes |
 |---|---|---|
-| **Real Miami (OSM, 1:1)** | x −5000 … 4600, z −4000 … 3400 | Miami Beach, bay islands, PortMiami, Downtown, Brickell, Little Havana, Overtown, Wynwood, Edgewater, Design District edge. Real street names and road numbers. |
-| **Solana International Airport** | x −8400 … −5200, z −1700 … 900 | West of downtown. Two long runways, terminals, cargo, approach paths over the city. |
-| **Central wetlands** | x −8600 … −5200, z 900 … 3300 | Marsh and canals between the airport and the south. |
-| **South suburbs** | x −5000 … 1200, z 3400 … 4700 | Canal subdivisions and strip malls fading out of Brickell / Little Havana. |
-| **Everglades (condensed)** | x −7600 … −600, z 4300 … 6100 | Sawgrass, mangrove channels, airboat routes, two-lane highway, fishing camp, ranger station. |
-| **The Keys (condensed)** | chain from (300, 5700) curving SW to (−6200, 7600) | First large key **Key Paloma** (Nico's home, about (300, 6500)); small keys and long overseas bridges; island town and **Tern Key Airfield** at the far SW end. |
-| **North suburbs and strip malls** | x −5000 … 3000, z −5000 … −4000 | Fade from the real city into the inland. |
-| **Lake Amaro** | center (−1500, −5500), ~900 m radius | Big inland lake with a shore road, boat ramps, fish camps. |
-| **Citrus Flats (farmland)** | x −8200 … −3600, z −5600 … −1900 | Groves, fields, farm roads, packing houses. |
-| **Sawpalm Ridge State Park** | center (−3600, −6600) | The only real hills (peak ~110 m), trails, overlooks, campground. |
-| **Port Cassia (north coastal town)** | around (2600, −6400) | Small second town, marina, main street. |
+| **Real Miami (OSM, 1:1, same rectangle as v1)** | x −3709 … 4511, z −2654 … 2654 | Miami Beach, bay islands, PortMiami, Downtown, Brickell edge, Overtown edge. Real street names and road numbers. |
+| **Solana International Airport** | x −5900 … −3800, z −1100 … 800 | West of downtown. Two parallel runways (~1.9 km), terminal, cargo, approach paths over the city. |
+| **Central wetlands** | x −6000 … −3800, z 800 … 2300 | Marsh and canals between the airport and the south. |
+| **South suburbs** | x −3700 … 1000, z 2654 … 3200 | A band of canal subdivisions and strip malls below the real city. |
+| **Everglades (condensed)** | x −5600 … −400, z 2900 … 4300 | Sawgrass, mangrove channels, airboat routes, two-lane highway, fishing camp, ranger station, gators. |
+| **The Keys (condensed)** | chain from (500, 4000) curving SW to (−4600, 5700) | First large key **Key Paloma** (Nico's home, about (600, 4550)); small keys and overseas bridges; island town and **Tern Key Airfield** at the far SW end. |
+| **North suburbs and strip malls** | x −3700 … 2400, z −3300 … −2654 | Fade from the real city into the inland. |
+| **Lake Amaro** | center (−1100, −3900), ~520 m radius | Inland lake with a shore road, boat ramps, fish camps. |
+| **Citrus Flats (farmland)** | x −5900 … −2700, z −4000 … −1300 | Groves, fields, farm roads, packing houses. |
+| **Sawpalm Ridge State Park** | center (−2800, −4900) | The only real hills (peak ~90 m), trails, overlooks, campground. |
+| **Port Cassia (north coastal town)** | around (2100, −4500) | Small second town, marina, main street. |
 | **Barrier beach and islands** | east coast north of Miami Beach, west coast | Sand, dunes, small islands. |
 
-- Total extent about 13 km from the park hills to the airfield island (BIG_UPDATE 1c). The landmass shape is **our own**, drawn from real Florida geography; it must not trace `ref_15`.
+- World bounds including ocean margin: about x −7000 … 5400, z −6000 … 6500. Land is about 10.5 km across; about 10.5 km from the park hills to the airfield island. The landmass shape is **our own**, drawn from real Florida geography; it follows the *arrangement* of the user's concept map (`ref_15`, `ref_25`) but must not trace it.
+- Smaller does not mean thinner: every region keeps its full character (the Everglades has gators and airboats, each town has many different shops). Fewer square meters, same density and quality.
 - Names above are ours. Do not rename them without the lead. New place names must be original (and not a real trademark).
 - Everything outside real Miami is authored by `tools/world/` as OSM-like features and goes through the same tile pipeline, so the same renderer, streamer, road graph, traffic, peds and interiors work everywhere.
 
