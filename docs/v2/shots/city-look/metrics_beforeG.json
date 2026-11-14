@@ -1,0 +1,52 @@
+{
+ "set": "beforeG",
+ "when": "2026-11-14T13:33:46.560Z",
+ "uptime": "6:33  up 6 days, 23:03, 1 user, load averages: 2.19 3.26 3.35",
+ "views": {
+  "dt_street_13": {
+   "calls": 490,
+   "triangles": 3355214,
+   "geometries": 1220,
+   "textures": 558,
+   "programs": 986,
+   "frameMsAvg": 26.27,
+   "frameMsP95": 40.3,
+   "frameMsMax": 71,
+   "fps": 38.1,
+   "stream": {
+    "near": 9,
+    "mid": 18,
+    "far": 466
+   },
+   "shot": true,
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  },
+  "oh_street_13": {
+   "calls": 390,
+   "triangles": 6960276,
+   "geometries": 1269,
+   "textures": 547,
+   "programs": 991,
+   "frameMsAvg": 37.02,
+   "frameMsP95": 43.6,
+   "frameMsMax": 473.6,
+   "fps": 27,
+   "stream": {
+    "near": 10,
+    "mid": 20,
+    "far": 478
+   },
+   "shot": true,
+   "gy": 0,
+   "district": "Solana International Airport",
+   "zone": "wilderness",
+   "street": "Overseas Highway"
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

@@ -1,3 +1,47 @@
+# city-look: ground pass (Nov 14, 6:33 to 6:40 AM, load about 3)
+
+Same cameras: East Flagler St (downtown) and the Overseas Highway at (-7005, 6529) (rural Keys), car height, 1 PM. Before: `beforeG/`; after: `afterG2/` (dt_street_13, oh_street_13).
+
+## Changes
+- **materials.js:**
+  - `groundWear` gained a joint-grid option: per-unit tone, dark rough joints, fade with distance.
+  - Sidewalks: 0.6 m running-bond pavers.
+  - Parking and aprons: switched from asphalt to brushed concrete, with 4.5 m expansion joints and stronger oil stains.
+  - Asphalt: macro wear 0.16 to 0.12, fine grain 0.1 to 0.04, cracks 1.0 to 0.7, normal map scaled to 0.6, and the albedo sampled one mip softer so the white aggregate speckle calms down.
+  - Land verge blend: fewer dirt patches, a weaker warm cast.
+- **tilebuild.js:**
+  - Roads are drawn as lengthwise strips per lane, so wheel tracks are 11% lighter and the mid-lane oil line 10% darker; service roads and tracks keep one ribbon.
+  - Curbs: granite curb face, plus a 0.3 m granite top band with a pale 3.5 cm arris at the road edge.
+
+## Cost (game stats, same cameras)
+
+| | Draw calls | Triangles | Frame |
+|---|---|---|---|
+| Downtown before | 490 | 3.36M | 26.3 ms |
+| Downtown after | 537 | 3.41M | 18.4 ms |
+| Rural before | 390 | 6.96M | 37.0 ms |
+| Rural after | 364 | 6.99M | 23.9 ms |
+
+Frame times are noisy: the after runs were faster. Cost is flat.
+
+## Seen in the shots
+- The asphalt speckle is calmer and the cracks softer.
+- The curb shows a pale arris and a granite band.
+- Faint paver joints appear on the sidewalk.
+
+## Not seen
+- Wheel tracks: the downtown road is in shade, and the rural foreground is a junction fill.
+- The parking slab joints: no parking lot in frame.
+- Tree grates exist already (palm grates); not changed.
+- Crosswalk bars looked flush; not changed.
+
+## Honest score against ref_57/58/59 ground
+About 4/10, up from 3.
+- Downtown asphalt still reads navy in shade. That is lighting, not this pass.
+- The rural verge stays olive-yellow. The verge there is terrain or flora material, not the `M.land` blend I changed, so the orange is not fixed. It needs the terrain/vegetation owner.
+
+---
+
 # city-look: shop-room cost fix (Nov 14, 6:28 AM)
 - **Changes:** room panes draw first (`renderOrder -1`, opaque, front side only), so the heavy facade shader behind them is depth-rejected. Rooms show only within about 70 m (dithered 55 to 70 m discard); the facade's own shop glass shows beyond. On the medium and low presets no panes are built and the shader discards (`uRoomOn`).
 - **Measured** (same camera, high preset set by the script, load about 3.5):

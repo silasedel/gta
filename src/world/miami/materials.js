@@ -282,8 +282,9 @@ export async function createMaterials(renderer) {
     // ground: full sets (albedo, normal, roughness + AO from the packed ARM map)
     const rep = (t, k) => { if (!k || k === 1) return t; const c = t.clone(); c.repeat.set(k, k); c.needsUpdate = true; return c; };
     const full = (mat, set, col, k = 1) => { mat.map = rep(set.map, k); mat.normalMap = rep(set.normalMap, k); mat.roughnessMap = rep(set.arm, k); mat.aoMap = mat.roughnessMap; mat.roughness = 1; if (col !== undefined) mat.color.setScalar(col); mat.needsUpdate = true; };
-    full(M.sidewalk, sSide, 1.75); full(M.parking, sPark, 0.62); full(M.panels, sSide, 1.9, 2.4); full(M.promenade, sSide, 1, 3.2); M.promenade.color.setRGB(2.1, 1.5, 1.36); M.promenade.normalScale.set(1, 1);
+    full(M.sidewalk, sSide, 1.75); full(M.parking, sConc, 1.45, 0.6); full(M.panels, sSide, 1.9, 2.4); full(M.promenade, sSide, 1, 3.2); M.promenade.color.setRGB(2.1, 1.5, 1.36); M.promenade.normalScale.set(1, 1);
     full(M.wood, sPlank, 1.9); full(M.roof, sConc, 1.9, 2);
+    if (M.asphalt.normalScale) M.asphalt.normalScale.multiplyScalar(0.6); // calmer grain at car height
     M.markings.normalMap = M.asphalt.normalMap; M.markings.roughnessMap = M.asphalt.roughnessMap; M.markings.roughness = 1; M.markings.map = sConc.map; M.markings.color.setScalar(2.3); // paint over the road texture, worn by the grain
     M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
     M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);
@@ -306,7 +307,7 @@ export async function createMaterials(renderer) {
       return mix( mix( psWH( i ), psWH( i + vec2( 1.0, 0.0 ) ), u.x ), mix( psWH( i + vec2( 0.0, 1.0 ) ), psWH( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
     }
   `;
-  const groundWear = (mat, amp, stain, key, crack = 0, tone = 1, minRough = 0) => {
+  const groundWear = (mat, amp, stain, key, crack = 0, tone = 1, minRough = 0, joint = null, fine = 0.1) => {
     if (!mat || LOOK_OFF) return;
     const prev = mat.onBeforeCompile;
     const prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
@@ -331,10 +332,28 @@ export async function createMaterials(renderer) {
         float wFw = max( fwidth( wCrkN ), 1e-4 );
         float wCrk = ( 1.0 - smoothstep( 0.0, max( 0.007, wFw ), abs( wCrkN - 0.75 ) ) ) * clamp( 0.012 / wFw, 0.0, 1.0 ) * smoothstep( 0.5, 0.72, psWN( vWWear.xz * 0.05 + 4.4 ) ) * ${crack.toFixed(3)};
         wStain = max( wStain, wCrk * 0.4 );
-        diffuseColor.rgb *= ( 1.0 + ${amp.toFixed(3)} * ( wMacro * 2.0 - 1.0 ) ) * ( 0.95 + 0.1 * wFine ) * ( 1.0 - 0.45 * wStain ) * ( 1.0 - 0.3 * wCrk ) * ${tone.toFixed(3)};
+        diffuseColor.rgb *= ( 1.0 + ${amp.toFixed(3)} * ( wMacro * 2.0 - 1.0 ) ) * ( 1.0 - ${(fine / 2).toFixed(3)} + ${fine.toFixed(3)} * wFine ) * ( 1.0 - 0.45 * wStain ) * ( 1.0 - 0.3 * wCrk ) * ${tone.toFixed(3)};
+        ${joint ? `{ // joint grid: pavers / poured slabs, each unit with its own tone, joints dark and rough, fading out with distance
+          vec2 jp = vWWear.xz / vec2( ${joint[0].toFixed(3)}, ${joint[1].toFixed(3)} );
+          jp.x += ${joint[2] ? '0.5 * mod( floor( jp.y ), 2.0 )' : '0.0'};
+          vec2 jf = abs( fract( jp ) - 0.5 );
+          vec2 jw = max( fwidth( jp ), vec2( 1e-4 ) );
+          float jl = 1.0 - smoothstep( 0.5 - ${joint[3].toFixed(3)} / ${joint[0].toFixed(3)} - jw.x, 0.5 - jw.x * 0.5, max( jf.x, jf.y * ${(joint[0] / joint[1]).toFixed(3)} ) );
+          jl = ( 1.0 - jl ) * clamp( 0.35 / max( jw.x, jw.y ) - 0.4, 0.0, 1.0 );
+          float ju = psWH( floor( jp ) + 3.7 );
+          diffuseColor.rgb *= ( 1.0 - ${joint[4].toFixed(3)} * jl ) * ( 0.96 + 0.08 * ju );
+          roughnessFactor = mix( roughnessFactor, 0.95, jl );
+        }` : ''}
         roughnessFactor = mix( roughnessFactor * ( 0.86 + 0.24 * wMacro ), 0.42, wStain );
         roughnessFactor = max( roughnessFactor, ${minRough.toFixed(3)} );`);
     };
+    if (key === 'a') { // calmer asphalt: sample the albedo one mip softer so the white aggregate speckle does not shimmer
+      const pv = mat.onBeforeCompile;
+      mat.onBeforeCompile = (sh, r) => {
+        pv(sh, r);
+        sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n  diffuseColor *= texture2D( map, vMapUv, 1.25 );\n#endif');
+      };
+    }
     mat.customProgramCacheKey = () => prevKey() + '|wear' + key;
     mat.needsUpdate = true;
   };
@@ -349,9 +368,13 @@ export async function createMaterials(renderer) {
       }
     }
   }
-  for (const m of [M.asphalt, M.junction, M.parking]) groundWear(m, 0.16, 0.5, 'a', 1.0, 1.55); // tone 1.55: sun-bleached gray asphalt, not black
+  for (const m of [M.asphalt, M.junction]) groundWear(m, 0.12, 0.42, 'a', 0.7, 1.55, 0, null, 0.04); // tone 1.55: sun-bleached gray asphalt; calm grain, softer cracks
+  // parking lots and station aprons: poured concrete slabs with expansion joints every 4.5 m and oil stains
+  if (M.parking) groundWear(M.parking, 0.1, 0.75, 'k', 0.35, 1.0, 0, [4.5, 4.5, 0, 0.035, 0.5], 0.06);
   for (const m of [M.markings]) groundWear(m, 0.10, 0.0, 'm', 0.6); // worn, chipped paint over the same cracks
-  for (const m of [M.sidewalk, M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
+  // sidewalks: 0.6 x 0.6 m concrete pavers in a running bond, dark sand joints (panels / promenade keep their own sets)
+  groundWear(M.sidewalk, 0.08, 0.12, 'p2', 0, 1, 0, [0.6, 0.6, 1, 0.012, 0.45], 0.06);
+  for (const m of [M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
   for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
   for (const m of [M.land, M.roof]) groundWear(m, 0.14, 0.12, 'l');
   groundWear(M.grass, 0.2, 0.16, 'g', 0, 0.97); // ground-continuity: mown park lawns get macro light / dark mowing and dry patches (no flat single-colour lawn)
@@ -374,8 +397,8 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     vec2 wp = vLandWP.xz;
     vec4 cg = texture2D(map, wp / 5.0), cs = texture2D(tSparse, wp / 4.3 + 0.37), cd = texture2D(tDirt, wp / 3.7 + 0.11);
     float n1 = lNoise(wp * 0.031) * 0.65 + lNoise(wp * 0.11) * 0.35, n2 = lNoise(wp * 0.017 + 7.3) * 0.7 + lNoise(wp * 0.07) * 0.3;
-    vec4 c = mix(mix(cg, cs, smoothstep(0.42, 0.62, n2)), cd, smoothstep(0.6, 0.78, n1));
-    c.rgb = mix(c.rgb, c.rgb * vec3(1.18, 1.08, 0.82), smoothstep(0.55, 0.85, lNoise(wp * 0.009 + 3.1)) * 0.6);
+    vec4 c = mix(mix(cg, cs, smoothstep(0.42, 0.62, n2)), cd, smoothstep(0.7, 0.86, n1) * 0.7);
+    c.rgb = mix(c.rgb, c.rgb * vec3(1.08, 1.05, 0.9), smoothstep(0.55, 0.85, lNoise(wp * 0.009 + 3.1)) * 0.35);
     c.rgb *= 0.9 + 0.2 * lNoise(wp * 0.23);
     diffuseColor *= c;
   }`);

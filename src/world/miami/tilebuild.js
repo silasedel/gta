@@ -1072,7 +1072,7 @@ export function createTileBuilder(ctx) {
       if (capB) { rB = Math.min(rB, L - capB.cut); if (capB.kind === 'apron') cB = capB.cut; drawCap(B, coll, fr, L, hw, capB, true); }
       const dw = ys ? deckWidths(fr, ys, r, hw, tile) : null;
       if (dw && dw.shrunk) { if (rB > rA + 0.2) vribbon(B.asphalt, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = 'deck'; vribbon(coll, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1); } }
-      else { if (rB > rA + 0.2) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
+      else { if (rB > rA + 0.2) roadStrips(B.asphalt, fr, ys, hw, yRoad, rA, rB, r); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
       // ground-continuity R2: a thin concrete edge strip where an open road meets the verge (no raw asphalt-to-grass cut)
       if (!ys && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
       // markings
@@ -1097,7 +1097,12 @@ export function createTileBuilder(ctx) {
           const oIn = side * hw, oOut = side * (hw + SIDEWALK_W);
           if (r.sidewalks) {
             ribbon(B.sidewalk, fr, 0, Math.min(oIn, oOut), Math.max(oIn, oOut), CURB, 0xffffff, 1 / 2.5, a, b2);
-            sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xd8d4cc, -side, a, b2);
+            sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b2); // granite curb face
+            { // granite curb top: a 0.3 m darker band with a pale arris at the road edge
+              const o1 = oIn + side * 0.3, oA = oIn + side * 0.035;
+              ribbon(B.sidewalk, fr, 0, Math.min(oIn, oA), Math.max(oIn, oA), CURB + 0.004, 0xf0eee8, 1 / 2.5, a, b2);
+              ribbon(B.sidewalk, fr, 0, Math.min(oA, o1), Math.max(oA, o1), CURB + 0.004, 0xb4b2ae, 1 / 2.5, a, b2);
+            }
             if (coll) { coll.tag = 'roadSidewalk'; ribbon(coll, fr, 0, Math.min(oIn, oOut), Math.max(oIn, oOut), CURB, 0xffffff, 1, a, b2); sideWall(coll, fr, 0, oIn, CURB, 0, 0xffffff, -side, a, b2); }
           }
           if (props) { // street lamps every ~32m, alternating sides
@@ -1324,6 +1329,27 @@ export function createTileBuilder(ctx) {
         if (hash(seed * 31 + i * 7 + k) < 0.6) shopFrontDress(B, p, tx, tz, nx, nz, sA, sB, y0, top, GF, cx, cz, props);
         if (B.roomGlass && B.roomGlass.w) roomPane(B.roomGlass, p, tx, tz, nx, nz, sA + 0.12, sB - 0.12, y0 + 0.5, top - 0.06, hash(seed * 13 + i * 5 + k));
       }
+    }
+  }
+  // road surface as lengthwise strips: wheel tracks slightly lighter (polished by tires), a faint oil drip line mid-lane;
+  // same world uv as one ribbon, so the texture stays continuous
+  function roadStrips(batch, fr, ys, hw, y, sA, sB, r) {
+    const lanes = Math.max(1, Math.round((r.lanes || (hw * 2) / 3.4)));
+    const lw = (hw * 2) / lanes;
+    if (lw < 2.6 || /service|track|path|footway/.test(r.kind || '')) { ribbon(batch, fr, ys, -hw, hw, y, 0xffffff, 1 / 7, sA, sB); return; }
+    const cuts = [[-hw, 1]];
+    for (let k = 0; k < lanes; k++) {
+      const c = -hw + lw * (k + 0.5);
+      for (const [o0, o1, col] of [[c - 1.15, c - 0.6, 1.11], [c - 0.6, c - 0.12, 1], [c - 0.12, c + 0.12, 0.9], [c + 0.12, c + 0.6, 1], [c + 0.6, c + 1.15, 1.11]]) cuts.push([o0, col], [o1, 1]);
+    }
+    cuts.push([hw, 1]);
+    cuts.sort((p, q) => p[0] - q[0]);
+    const col = new THREE.Color();
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const o0 = Math.max(-hw, cuts[i][0]), o1 = Math.min(hw, cuts[i + 1][0]);
+      if (o1 - o0 < 0.02) continue;
+      col.setScalar(cuts[i][1]);
+      ribbon(batch, fr, ys, o0, o1, y, col, 1 / 7, sA, sB);
     }
   }
   // one interior-mapped shop pane (uv 0..1 across the glass); the room kind and light level ride in aWear

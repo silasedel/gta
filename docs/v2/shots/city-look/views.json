@@ -64,5 +64,16 @@
   "kind": "residential",
   "w": 7,
   "label": "Residential island (Venetian / Di Lido)"
+ },
+ "oh": {
+  "x": -7004.990551065391,
+  "z": 6529.010086052108,
+  "dx": -0.7297804613866926,
+  "dz": 0.683681561970356,
+  "y": 0,
+  "name": "Overseas Highway",
+  "kind": "trunk",
+  "w": 9,
+  "label": "Overseas Highway (rural Keys)"
  }
 }

@@ -5,13 +5,18 @@
  "agent": "idle",
  "items": [
   {
+   "name": "Ground: paver joints, granite curbs with arris, concrete parking slabs with joints and oil, calmer asphalt, wheel-track strips",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/afterG2/dt_street_13.png"
+  },
+  {
+   "name": "Rural verge orange-yellow (terrain/flora material, not mine)",
+   "state": "todo"
+  },
+  {
    "name": "Rusticated stone base, deeper reveals, interior-room shop glass on street bays (within 70 m, high/ultra only, cost within noise)",
    "state": "verified",
    "evidence": "docs/v2/shots/city-look/after59d/dt_street_13_rooms.png"
-  },
-  {
-   "name": "Downtown sidewalk pavers and granite curbs",
-   "state": "todo"
   },
   {
    "name": "Near facades vs ref_58/59: reflective blue-grey glass, muted interiors and curtains, no paint bands, lintels and keystones",
