@@ -136,3 +136,33 @@ The user asked for a plain teal, real-looking button-up beach shirt as Nico's de
 - `character.meshLOD` reports a stale value (`Object.assign` copies the getter).
 
 Not done: two-hand pistol stance, locomotion, VFX_NOTES items 6–9 (hair cards, pose-driven wrinkle maps, texture-space wetness, pre-integrated skin).
+
+## Pass 8 (user feedback on pass 7: red ear, low-res, sticker print, slab tee, hair, walk)
+- **Red ear:** the skin back-scatter added up to 0.9 red times the thickness mask (highest on the ears) when backlit. Now: thickness capped at 0.6, factor 0.35, sharper lobe, warmer (0.55, 0.30, 0.20) color (`nico/materials.js`).
+- **Resolution:** head and body maps load at 4096² (verified in the asset files). Anisotropy is now 16 for all Nico textures. LOD0 (subdivided) is used out to 9 m. `character.meshLOD` was a stale copy (`Object.assign` evaluates getters), not a real downgrade: the meshes visible at the follow camera are LOD0.
+- **Cloth:**
+  - Tee albedo is 0xd6d2c9 (about 0.8; it clipped to a white slab in sun), with stronger folds and a finer knit.
+  - The shirt print gets thread-scale breakup and uneven dye in the shader, so it sits in the weave.
+  - Pants pockets, flaps, loops and the belt are geometry since pass 7.
+- **Hair cards** (`nico/hairCards.js`, new): 2,200 (LOD0) or 1,200 (LOD1) tapered, curved cards on the long-hair zone of the scalp, combed with lift and sag, painted strand-alpha atlas, alpha-test plus alpha-to-coverage, matte (roughness 0.74, env 0.3), darker roots. The shells stay as the undercoat and barber fade.
+- **Locomotion:**
+  - `characterModel.js` exposes `character.gaitPhase`.
+  - `nico/pose.js` adds a phase-locked layer: pelvis roll and yaw, chest counter-rotation, forward lean (more when running), arm swing opposite the legs, bent elbows when running.
+  - The relaxed-arm correction is 12% while moving (it was 45% and killed the swing).
+  - Legs and root are untouched, so the phase-synced clips still plant the feet.
+- **ref_54 (corrected sheet), pass 8b:**
+  - Hair is a short textured crop: shells 2.2 cm combed slightly forward, plus 2,600 short cards (LOD0).
+  - Head textures repainted with short, even stubble (95k short hairs, lighter shadow).
+  - Palm print is teal (44, 136, 138) with cream palms (236, 226, 194).
+  - Watch is a gunmetal tactical digital with a dark strap and an LCD dial.
+  - New `suspicious` expression; neutral, focus and angry exist.
+  - Evidence: `docs/v2/shots/character/turnaround_vs_ref54.png`, `hero_close_front.png`, `hero_close_34.png`, `hero_34.png`, `hero_gameplay_front.png`, `hero_gameplay_back.png`, `hero_walk_0.png`.
+- **Incident:** an edit to `nico/index.js` (the hairState line) had a syntax error for about 20 minutes (22:20 to 22:45). The game did not boot from :5200 in that window. Fixed and parse-checked.
+- **Still bad in the shots (honest):**
+  - grey-blue halo around the eyes (eye socket and sclera shading);
+  - stubble reads grey and washed;
+  - skin lacks form shading (the face looks flat);
+  - hair reads as a dark cap;
+  - shirt cyan and too saturated in sun, with sleeves standing off the arm (A-pose drape);
+  - pants dark brown, not tan;
+  - walk not verified (the run timed out on browser-slot load).

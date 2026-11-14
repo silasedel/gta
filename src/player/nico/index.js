@@ -7,6 +7,7 @@ import { makeSkinState, makeSkinMaterial, makeEyeMaterial, makeLashMaterial, mak
 import { createFace } from './face.js';
 import { createArmIK } from './ik.js';
 import { createRelaxedPose } from './pose.js';
+import { buildHairCards } from './hairCards.js';
 import { createOutfit, preloadWardrobe } from '../wardrobe/outfit.js';
 
 const DIR = '/assets/characters/nico/';
@@ -38,6 +39,7 @@ export function preloadNico() {
       const sg = new THREE.BufferGeometry();
       for (const k of ['position', 'normal', 'uv', 'skinIndex', 'skinWeight']) sg.setAttribute(k, g.attributes[k]);
       sg.setIndex(out); sg.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 1.7, 0), 0.4); sg.boundingBox = new THREE.Box3(new THREE.Vector3(-0.3, 1.4, -0.3), new THREE.Vector3(0.3, 2, 0.3));
+      sg.userData.mask = hairMask;
       g.userData.scalpGeo = sg;
     });
     // request every texture now so they stream in behind the loading screen
@@ -56,7 +58,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quater
 export function decorateNico(character, { game, model, assets, opts = {} }) {
   const meta = assets.meta;
   const skin = makeSkinState();
-  const hairState = { uHairLen: { value: 0.040 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.75, 0.05, 0.35) }, uWet: skin.uWet };
+  const hairState = { uHairLen: { value: 0.022 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.05, 0.55, 0.30) }, uWet: skin.uWet };     // short textured crop, combed a little forward and up (ref_54)
   const mouth = { value: 0 };
   const mats = { skin_head: makeSkinMaterial('head', skin), skin_body: makeSkinMaterial('body', skin), skin_far: makeSkinMaterial('far', skin),
     lashes: makeLashMaterial(), teeth: makeMouthMaterial('teeth', mouth), tongue: makeMouthMaterial('tongue', mouth) };
@@ -85,6 +87,15 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
         sm.name = 'NicoHairShell'; sm.bind(o.skeleton, o.bindMatrix); sm.frustumCulled = false; sm.castShadow = i === Math.floor(n * 0.6); sm.receiveShadow = true;
         o.parent.add(sm); shells[L].push(sm); lod[L].push(sm);
       }
+      // hair cards on top of the shells: volume and a broken silhouette (hairCards.js)
+      try {
+        const hc = buildHairCards(o.geometry.userData.scalpGeo, o.geometry.userData.scalpGeo.userData.mask, hairState, { count: L === 0 ? 2600 : 1400 });
+        if (hc) {
+          const cm = new THREE.SkinnedMesh(hc.geometry, hc.material);
+          cm.name = 'NicoHairCards'; cm.bind(o.skeleton, o.bindMatrix); cm.frustumCulled = false; cm.castShadow = true; cm.receiveShadow = true;
+          o.parent.add(cm); shells[L].push(cm); lod[L].push(cm);
+        }
+      } catch (e) { console.warn('[nico] hair cards skipped', e); }
     }
   }
   const bone = (n) => model.getObjectByName(n) || model.getObjectByName('mixamorig' + n);
@@ -138,7 +149,7 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
   const ik = { right: createArmIK(model, bone, 'Right'), left: createArmIK(model, bone, 'Left') };
   const baseUpdate = character.update;
   let lodT = 0; const camP = new THREE.Vector3();
-  const relaxed = createRelaxedPose({ model, bone });
+  const relaxed = createRelaxedPose({ model, bone, character });
   character.update = (dt, anim = {}) => {
     baseUpdate(dt, anim);
     try { relaxed.update(dt, anim); } catch (e) { /* pose layer is cosmetic */ }

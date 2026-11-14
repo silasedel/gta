@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const TEX = '/assets/characters/nico/tex/';
 const loader = new THREE.TextureLoader();
 const cache = new Map();
-export function tex(file, { srgb = false, repeat = false, aniso = 8, base = TEX } = {}) {
+export function tex(file, { srgb = false, repeat = false, aniso = 16, base = TEX } = {}) {
   const key = base + file + (srgb ? '|s' : '');
   if (cache.has(key)) return cache.get(key);
   const t = loader.load(base + file);
@@ -73,8 +73,8 @@ export function makeSkinMaterial(kind, state) {
           float band = smoothstep( -0.35, 0.05, ndl ) * ( 1.0 - smoothstep( 0.05, 0.6, ndl ) );
           dif += band * uSSS * vec3( 0.05, 0.010, 0.0 );
           vec3 h2 = normalize( directLight.direction + geometryNormal * 0.4 );
-          float back = pow( saturate( dot( geometryViewDir, - h2 ) ), 4.0 ) * nicoThick;
-          reflectedLight.directDiffuse += directLight.color * ( dif + back * vec3( 0.9, 0.30, 0.16 ) * uSSS ) * BRDF_Lambert( material.diffuseColor );
+          float back = pow( saturate( dot( geometryViewDir, - h2 ) ), 6.0 ) * min( nicoThick, 0.6 ) * 0.35;     // ears glow only faintly when backlit
+          reflectedLight.directDiffuse += directLight.color * ( dif + back * vec3( 0.55, 0.30, 0.20 ) * uSSS ) * BRDF_Lambert( material.diffuseColor );
         }`))
       .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
       #ifdef NICO_BODY
@@ -605,6 +605,14 @@ export function makeClothMaterial(o = {}) {
         }
         #else
         diffuseColor.rgb *= ( 0.80 + 0.20 * vGc.r ) * ( 1.0 - 0.10 * vGc.g ) * ( 1.0 + 0.05 * weaveH( vFab ) * weaveAA * uWeave );
+        #endif
+        #ifdef SHIRT
+        {
+          // the print is dyed into the weave: thread-scale breakup and soft uneven dye, so it never reads as a sticker
+          float th = cn( vFab * 1400.0 ) * 0.6 + cn( vFab * vec2( 2600.0, 320.0 ) ) * 0.4;
+          diffuseColor.rgb *= mix( 1.0, 0.88 + 0.22 * th, weaveAA );
+          diffuseColor.rgb *= 0.95 + 0.08 * cn( vFab * 22.0 + 5.0 );
+        }
         #endif
         float wetK = uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) );       // wicks a little above the water line
         diffuseColor.rgb *= mix( 1.0, 0.58, wetK );

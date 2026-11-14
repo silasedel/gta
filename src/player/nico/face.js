@@ -14,6 +14,7 @@ export const EXPRESSIONS = {
   pain: { 'eyebrows-left-down': 0.8, 'eyebrows-right-down': 0.8, 'eye-left-closure': 0.7, 'eye-right-closure': 0.7, 'mouth-retraction': 0.7, 'mouth-part-later': 0.6, 'nose-compression': 0.7, 'neck-platysma': 0.6 },
   focus: { 'eyebrows-left-down': 0.4, 'eyebrows-right-down': 0.4, 'eye-left-slit': 0.3, 'eye-right-slit': 0.3, 'mouth-compression': 0.2 },
   effort: { 'eyebrows-left-down': 0.5, 'eyebrows-right-down': 0.5, 'mouth-part-later': 0.4, 'mouth-open': 0.18, 'nose-left-dilatation': 0.6, 'nose-right-dilatation': 0.6 },
+  suspicious: { 'eyebrows-left-down': 0.65, 'eyebrows-right-up': 0.12, 'eye-left-slit': 0.5, 'eye-right-slit': 0.3, 'mouth-compression': 0.3, 'mouth-corner-puller': 0.08 },
   squint: { 'eye-left-slit': 0.7, 'eye-right-slit': 0.7, 'eyebrows-left-down': 0.3, 'eyebrows-right-down': 0.3 },
 };
 // mouth shapes for speech (our own mixes of the action units)

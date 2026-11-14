@@ -775,6 +775,7 @@ export function createCharacter(game, opts = {}) {
       const effS = Math.max(s, loco[0].v * 0.55); // walk cadence never too slow while blending out
       const prevPh = st.phase;
       st.phase = (st.phase + dt * effS / Math.max(D, 0.3)) % 1;
+      if (character) character.gaitPhase = st.phase;      // phase 0 = left foot plant, 0.5 = right (nico/pose.js layers on it)
       // foot plants at phase 0 (left) and 0.5 (right) -> footstep events for the player
       if (variant === 'player' && game?.emit && locoW * wsum > 0.35 && anim.grounded !== false) {
         const crossed = (a, b, x) => (a <= b ? (a < x && b >= x) : (a < x || b >= x));

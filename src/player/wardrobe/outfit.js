@@ -19,7 +19,7 @@ export const CATALOG = [
     colorName: 'white',
     noun: 'tee',
     price: 0,
-    mat: { color: 0xeeeae2, roughness: 0.92, specular: 0.4, sheen: 0.3, sheenColor: 0xffffff, weaveScale: 3800, fold: 0.5, flutter: 0.2 },
+    mat: { color: 0xd6d2c9, roughness: 0.94, specular: 0.3, sheen: 0.35, sheenRoughness: 0.7, sheenColor: 0xcfcac0, weaveScale: 5200, fold: 1.1, flutter: 0.2 },     // cotton knit: ~0.8 albedo, never clips in sun
   },
   // ---- tops: Nico's signature faded palm-print camp shirt worn open, the plain teal button-up, prints and solids
   {
@@ -106,7 +106,7 @@ export const CATALOG = [
   { id: 'boots_tan', slot: 'shoes', cut: 'sneakers', name: 'Tan work shoes', colorName: 'tan', noun: 'work shoes', price: 120, mat: { color: 0x9a6b3c, roughness: 0.7, weave: 0, fold: 0.3, flutter: 0, sheen: 0.1 } },
   { id: 'shoes_dress_black', slot: 'shoes', cut: 'sneakers', name: 'Black dress shoes', colorName: 'black', noun: 'dress shoes', price: 180, mat: { color: 0x0e0e10, roughness: 0.22, weave: 0, fold: 0.1, flutter: 0, sheen: 0 } },
   // ---- watch and chain (built in code)
-  { id: 'watch_diver_steel', slot: 'watch', name: 'Steel dive watch', colorName: 'steel', noun: 'watch', price: 0, build: 'watch', opt: { caseC: 0xb8bcc2, dial: 0x0f2f3a, band: 0x2a2c30, metalBand: false } },
+  { id: 'watch_diver_steel', slot: 'watch', name: 'Gunmetal tactical watch', colorName: 'gunmetal', noun: 'watch', price: 0, build: 'watch', opt: { caseC: 0x55585e, dial: 0x1c1f22, band: 0x34373b, metalBand: false, digital: true } },     // ref_54: gunmetal digital, dark strap
   { id: 'watch_gold', slot: 'watch', name: 'Gold dress watch', colorName: 'gold', noun: 'watch', price: 2400, build: 'watch', opt: { caseC: 0xd4a94e, dial: 0xf4efe0, band: 0xd4a94e, metalBand: true } },
   { id: 'chain_gold_thin', slot: 'chain', name: 'Thin gold chain', colorName: 'gold', noun: 'chain', price: 0, build: 'chain', opt: { color: 0xd9ad52, r: 0.0014 } },
   { id: 'chain_silver_thin', slot: 'chain', name: 'Thin silver chain', colorName: 'silver', noun: 'chain', price: 0, build: 'chain', opt: { color: 0xc9cdd2, r: 0.0013 } },
@@ -131,12 +131,22 @@ export function preloadWardrobe() {
 let _lib = null; preloadWardrobe().then((l) => { _lib = l; }).catch(() => {});
 
 function buildWatch(o) {
-  const g = new THREE.Group(); const metal = new THREE.MeshStandardMaterial({ color: o.caseC, metalness: 1, roughness: 0.25 });
+  const g = new THREE.Group(); const metal = new THREE.MeshStandardMaterial({ color: o.caseC, metalness: 1, roughness: o.digital ? 0.45 : 0.25 });
   const band = new THREE.Mesh(new THREE.TorusGeometry(0.0315, 0.0042, 10, 40), o.metalBand ? metal : new THREE.MeshStandardMaterial({ color: o.band, roughness: 0.7 })); band.scale.set(1, 0.84, 2.6); g.add(band);
   const cs = new THREE.Mesh(new THREE.CylinderGeometry(0.0205, 0.0215, 0.011, 36), metal); cs.rotation.x = Math.PI / 2; cs.position.z = 0; cs.position.y = 0.0285; cs.rotation.set(0, 0, 0); g.add(cs);
   const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.0195, 0.0022, 8, 36), metal); bezel.rotation.x = Math.PI / 2; bezel.position.y = 0.034; g.add(bezel);
   const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
   x.fillStyle = '#' + new THREE.Color(o.dial).getHexString(); x.beginPath(); x.arc(128, 128, 128, 0, 7); x.fill();
+  if (o.digital) {
+    // tactical digital: a grey-green LCD window with the time, small labels around the bezel
+    x.fillStyle = '#8f9a88'; x.fillRect(46, 88, 164, 80);
+    x.fillStyle = '#1d211c'; x.font = 'bold 54px monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('22:07', 128, 130);
+    x.fillStyle = '#9aa0a6'; x.font = 'bold 18px sans-serif'; x.fillText('MODE', 128, 62); x.fillText('LIGHT', 128, 196);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    const dial = new THREE.Mesh(new THREE.CircleGeometry(0.0188, 36), new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.08 })); dial.rotation.x = -Math.PI / 2; dial.position.y = 0.0343; g.add(dial);
+    g.traverse((m) => { if (m.isMesh) m.castShadow = true; });
+    return g;
+  }
   x.strokeStyle = o.metalBand ? '#3a3020' : '#e8f0f0'; x.fillStyle = x.strokeStyle;
   for (let i = 0; i < 60; i++) { const a = i / 60 * Math.PI * 2, r0 = i % 5 ? 112 : 98; x.lineWidth = i % 5 ? 2 : 6; x.beginPath(); x.moveTo(128 + Math.sin(a) * r0, 128 - Math.cos(a) * r0); x.lineTo(128 + Math.sin(a) * 120, 128 - Math.cos(a) * 120); x.stroke(); }
   x.lineWidth = 7; x.beginPath(); x.moveTo(128, 128); x.lineTo(128 + 46, 128 - 34); x.stroke(); x.lineWidth = 5; x.beginPath(); x.moveTo(128, 128); x.lineTo(128 - 20, 128 - 88); x.stroke();

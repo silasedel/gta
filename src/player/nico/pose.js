@@ -39,11 +39,43 @@ function aimToward(bone, child, want, k, maxAngle = 1.2) {
   rotateWorld(bone, _ax, ang);
 }
 
-export function createRelaxedPose({ model, bone }) {
+export function createRelaxedPose({ model, bone, character = null }) {
   const B = (n) => bone(n);
   let w = 0;
   let wArms = 0;
+  let wLoco = 0;
   let t = 0;
+  // locomotion layer, locked to the gait phase (0 = left foot plant, 0.5 = right): the pelvis rolls down toward the
+  // swinging leg and yaws with it, the chest counter-rotates, the arms swing opposite to the legs; when running the
+  // elbows bend and the swing grows. Small world-space rotations on top of the clips (no foot sliding: the legs and
+  // root are untouched).
+  const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _l = new THREE.Vector3();
+  function locomotion(ph, speed, k) {
+    const hips = B('Hips');
+    if (!hips) return;
+    model.updateMatrixWorld(true);
+    _f.set(0, 0, 1).applyQuaternion(model.getWorldQuaternion(_qp)).setY(0).normalize();
+    _r.crossVectors(UP, _f).normalize();                              // character's left
+    const run = THREE.MathUtils.smoothstep(2.2, 4.0, speed);
+    const c = Math.cos(ph * Math.PI * 2), sn = Math.sin(ph * Math.PI * 2);
+    // pelvis: roll toward the swing side, yaw forward with the swinging hip
+    rotateWorld(hips, _f, 0.06 * c * k * (1 - 0.4 * run));
+    rotateWorld(hips, UP, -0.09 * c * k * (1 - 0.3 * run));
+    const sp2 = B('Spine2');
+    const sp1 = B('Spine1');
+    if (sp1) rotateWorld(sp1, UP, 0.07 * c * k);
+    if (sp2) rotateWorld(sp2, UP, 0.07 * c * k);                      // shoulders counter the pelvis
+    if (sp2) rotateWorld(sp2, _r, (0.05 + 0.1 * run) * k);             // lean into the stride (more when running)
+    for (const side of ['Left', 'Right']) {
+      const sg = side === 'Left' ? 1 : -1;
+      const swing = -sg * c;                                          // left arm back at the left foot plant
+      const arm = B(side + 'Arm');
+      const fa = B(side + 'ForeArm');
+      const amp = 0.20 + 0.25 * run;
+      if (arm) rotateWorld(arm, _l.copy(_r).multiplyScalar(-1), swing * amp * k);
+      if (fa) rotateWorld(fa, _l.copy(_r).multiplyScalar(-1), (0.25 + 0.9 * run + 0.15 * Math.max(0, swing)) * k);
+    }
+  }
   const fingers = ['Index', 'Middle', 'Ring', 'Pinky'];
   return {
     update(dt, anim = {}) {
@@ -58,10 +90,13 @@ export function createRelaxedPose({ model, bone }) {
         || anim.grounded === false;
       const speed = anim.speed || 0;
       const wantIdle = special ? 0 : THREE.MathUtils.smoothstep(0.6, 0.05, speed);
-      const wantArms = special ? 0 : Math.max(wantIdle, 0.45 * THREE.MathUtils.smoothstep(4.5, 1.0, speed));
+      const wantArms = special ? 0 : Math.max(wantIdle, 0.12 * THREE.MathUtils.smoothstep(4.5, 1.0, speed));     // moving: let the arms swing
       const r = Math.min(1, dt * 4);
       w += (wantIdle - w) * r;
       wArms += (wantArms - wArms) * r;
+      const wantLoco = special ? 0 : THREE.MathUtils.smoothstep(0.3, 1.2, speed);
+      wLoco += (wantLoco - wLoco) * r;
+      if (wLoco > 0.01 && character && typeof character.gaitPhase === 'number') locomotion(character.gaitPhase, speed, wLoco);
       if (wArms < 0.01) return;
       const root = B('Hips');
       if (!root) return;

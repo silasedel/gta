@@ -11,8 +11,8 @@ os.makedirs(OUT + "/prints", exist_ok=True)
 S = 2048
 SS = 2
 W = S * SS
-BG = np.array([36, 96, 90], dtype=np.float32)        # muted teal-green (ref_48)
-INK = (178, 206, 184)                                  # pale sage
+BG = np.array([44, 136, 138], dtype=np.float32)       # teal #2E8A8C (ref_54)
+INK = (236, 226, 194)                                  # cream palms (ref_54)
 rng = np.random.RandomState(42)
 
 
