@@ -81,9 +81,9 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     for (const hour of hours) for (const angle of angles) {
       const info = await b.eval(STAGE(poses[id], angle, hour));
       await b.sleep(1200);
-      try { await b.waitFor(SETTLED, 45); } catch (e) { console.log('  (stream not settled)', id); }
+      try { await b.waitFor(SETTLED, +(o.settleWait || 45)); } catch (e) { console.log('  (stream not settled)', id); }
       await b.sleep(+(o.settle || 2500));
-      const m = await b.eval(MEASURE);
+      const m = o.nomeasure ? { calls: await b.eval('game.renderer.info.render.calls'), triangles: await b.eval('game.renderer.info.render.triangles') } : await b.eval(MEASURE);
       const tag = `${id}_${angle}_${String(hour).replace('.', 'h')}`;
       const file = path.join(OUT, SET, tag + '.png');
       let shot = false; for (let k = 0; k < 3 && !shot; k++) { try { await b.screenshot(file); shot = true; } catch (e) { const r = await b.send('Page.captureScreenshot', { format: 'png' }); console.log('  screenshot retry', tag, JSON.stringify(r.error || r.result?.exceptionDetails || Object.keys(r)).slice(0, 200)); await b.sleep(1500); } }

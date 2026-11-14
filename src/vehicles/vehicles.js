@@ -598,11 +598,15 @@ export async function createVehicles(game) {
     }
     if (!v.playerDriven && (!v.ai || v.disabled) && body.isSleeping()) { v.speed = 0; v.rpm = 0; v.throttle = 0; v.load = 0; return; }
     const spec = v.spec;
-    const vc = v.vc;
     if (v.ai && !v.playerDriven) aiDrive(v, dt);
     waterTick(v, dt);
+    // read the controller only now: aiDrive / respawn / ghost mode may have freed or replaced it this tick
+    // (playtest: "current_vehicle_speed" read from a freed Rapier controller)
+    const vc = v.vc;
+    if (!vc || !v.body || !world.getRigidBody?.(v.body.handle)) { v.speed = v.ghostSpeed ?? 0; return; }
     const c = v.disabled || v.flooded ? DEAD_CTRL : (v.playerDriven || v.ai ? v.ctrl : PARK_CTRL);
-    const speed = vc.currentVehicleSpeed();
+    let speed = 0;
+    try { speed = vc.currentVehicleSpeed(); } catch (e) { v.vc = null; v.speed = 0; return; }
     const aspd = Math.abs(speed);
     // CCD only when it matters (fast or player-driven) - it is costly with a dense city
     const lv0 = body.linvel();
@@ -1327,7 +1331,8 @@ export async function createVehicles(game) {
       const t = v.body.translation();
       const far = distXZ(t, pp) > PHYS_R + 15, stuck = v.ai.stuckT > 8; // stalled cars recover within 8 s (out of view)
       if ((far || stuck) && moved < 2) {
-        if (stuck && !far && inView(new THREE.Vector3(t.x, t.y, t.z))) continue;
+        // in view, a stalled car first gets a long grace (it may be waiting behind something); after 25 s it is recycled anyway
+        if (stuck && !far && v.ai.stuckT < 25 && inView(new THREE.Vector3(t.x, t.y, t.z))) continue;
         if (ais.length > target + 1 && far) { removeVehicle(v); moved++; continue; }
         if (respawnAI(v)) moved++;
       }

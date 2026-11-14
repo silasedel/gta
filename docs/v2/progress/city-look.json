@@ -5,6 +5,20 @@
  "agent": "idle",
  "items": [
   {
+   "name": "Near facades vs ref_58/59: reflective blue-grey glass, muted interiors and curtains, no paint bands, lintels and keystones",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/after58/dt_street_13.png"
+  },
+  {
+   "name": "Cornices, string courses, striped awnings, granite planters with topiary, warm shop interiors",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Rusticated stone base, deep reveals, lit shop interiors at street level matching ref_59",
+   "state": "todo"
+  },
+  {
    "name": "Skyline pass: mid/far buildings drawn by the near builder with the near facade material (window grids, floors, glass glint, roofs; no LOD pop)",
    "state": "verified",
    "evidence": "docs/v2/shots/city-look/close_a3_13.png"

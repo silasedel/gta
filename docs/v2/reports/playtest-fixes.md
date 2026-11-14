@@ -257,3 +257,15 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
 - **Downtown crosswalk shot:** not taken.
 - **Footway and path edges from OSM:** not added to pedestrian navigation.
 - **Seen in the proof run, belongs to vehicles-core:** `[vehicles] tick ... Cannot read properties of undefined (reading 'current_vehicle_speed')`. A Rapier vehicle controller is used after it was freed.
+
+## Pass 4 (about 00:05): last pass on this track
+- **Freed Rapier vehicle controller** (`src/vehicles/vehicles.js`, `physicsTick`):
+  - **Cause:** the function took `v.vc` before `aiDrive()`. `aiDrive` can respawn, recycle or ghost a car, which frees or replaces the controller, and the tick then read `currentVehicleSpeed()` from the freed one.
+  - **Fix:** the controller is now read after `aiDrive` and `waterTick`. A missing controller or body returns early using the ghost speed. A throwing read nulls `v.vc` instead of crashing the tick.
+- **Downtown stuck car:** stalled AI cars that stayed in view were never recycled, because the in-view check skipped them forever. They now get a 25 s grace in view and are then recycled anyway; out of view they are recycled after 8 s. Ghost-driven AI blocked behind a stalled car resumes once that car is gone.
+- **X1, breakable props: not done.**
+  - City props are instanced pools whose collisions are baked into per-tile trimesh soups (`tilebuild.js` `buildColliders`). There is no per-prop collider whose contact could be detected and removed.
+  - Doing X1 properly means giving the small props (bins, hydrants, sign posts, mailboxes, bushes and fences) their own cuboid colliders tagged with their pool handle. Those colliders would be excluded from the trimesh soup. On a car contact above about 15 km/h, `poolRemove(h)` hides the instance, 3-6 dynamic debris cuboids spawn and despawn after 20 s, and the car takes damage and loses speed.
+  - That is a city-look change in `tilebuild.js`. The fence in 59.webp may also belong to a set piece or houses track.
+  - **Proof shot:** not taken.
+- **Not re-measured** after these two fixes: I didn't run the browser again.

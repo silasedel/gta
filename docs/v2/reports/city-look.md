@@ -1,3 +1,24 @@
+# city-look: near buildings vs ref_58 / ref_59 (Nov 13, 10:38 PM to 11:55 PM)
+
+## Changes
+- **Glass (facade.js):** curtain walls and punched windows are now tinted reflective glass: sky-mirror metalness 0.68 to 0.72 on a gTint x 0.4 albedo, where it used to be near-black albedo with weak reflection. Rooms behind daylight glass are desaturated and dimmed (day interior 0.2, was 0.6). Curtains use linen, cream and grey; the random rainbow palette is gone. Spandrels are dark glass or metal, not accent paint, which removes the blue bands on towers. Deco stripes and belt courses blend toward the wall color.
+- **Window dressing (shader):** stone lintels over punched windows. Arched windows get a voussoir ring and a keystone.
+- **Geometry (tilebuild.js, building code only):** `corniceBands` adds a projecting stone cornice at the roof line, with a second tier on stone-bank, brick-row and precast families, and a string course over the ground floor. Near and mid LOD only; far skips it. `shopFrontDress` adds a striped canvas awning in one of 7 muted liveries, side cheeks, and granite planters with clipped topiary and flowers. It runs on mapped shop lots and, through `streetShopDress`, on street-facing shop bays drawn by the shader. Shop interiors are warm, not candy-colored.
+- **Incident (mine):** the new helper was first named `shopDress`, which collided with the existing `shopDress(tile, props)`. The city failed to load and errors looped for about 15 minutes, around 10:53 to 11:08 PM. It is renamed to `shopFrontDress`. The 11:30 PM downtown run had a clean console (the only entry was the favicon 404).
+
+## Evidence (same camera: East Flagler St, car height, 1 PM)
+- Before: `docs/v2/shots/city-look/before58/dt_street_13.png`. After pass 1: `docs/v2/shots/city-look/after58/dt_street_13.png`, 446 calls and 3.22M tris, load 70.
+- Pass 1 (glass, lintels, keystones, muted bands) is seen. The upper-floor pink and purple panes are gone and the glass reads dark blue-grey. The arched windows have a voussoir ring and keystone.
+- Pass 2 is built but not seen. It holds the warm shop interiors and the awnings and planters on street bays; this street has no mapped shop lots, so the pass-1 shot shows none. Three runs were killed by the watchdog at load 64 to 79.
+
+## Honest score against ref_58 / ref_59 (0 to 10)
+Pass 1 is about 3.5 out of 10, up from about 2.
+- Still missing: the rusticated limestone base, deep window reveals at street distance, lit interiors at the right exposure, and the overall lighting and grading, which belong to the render track.
+- Shop windows still read pastel in the pass-1 shot; pass 2 targets that.
+- Sidewalk pavers, granite curbs, bins and the yellow patches belong to the ground agent.
+
+---
+
 # city-look report: skyline pass (Nov 13, 7:03 to 8:05 PM)
 
 ## What changed

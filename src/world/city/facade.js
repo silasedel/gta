@@ -202,15 +202,15 @@ void facadeEval() {
       float blind = (h2 < 0.3 ? smoothstep(cs.y - (0.2 + 0.5 * h3) * (cs.y - spH), cs.y - (0.2 + 0.5 * h3) * (cs.y - spH) + 0.02, pm.y) : 0.0) * (1.0 - sp);
       vec3 blindC = vec3(0.78, 0.76, 0.7) * (0.8 + 0.2 * sin(pm.y * 90.0) * detail);
       float tr = (1.0 - refl * 0.82) * (1.0 - sp);
-      vec3 gl = mix(gTint * 0.10, blindC * 0.5, blind * 0.8);
-      vec3 spC = (bits & 2) != 0 ? acc : gTint * 0.34;
+      vec3 gl = mix(gTint * 0.42, blindC * 0.5, blind * 0.8);
+      vec3 spC = (bits & 2) != 0 ? mix(gTint * 0.3, vec3(0.16, 0.17, 0.18), 0.5) : gTint * 0.34;
       alb = mix(mix(gl, spC, sp), frameC, mull * (0.35 + 0.65 * detail));
       float fin = (bits & 1024) != 0 ? fLine(dv, 0.06, px) * detail : 0.0;
       alb = mix(alb, vec3(0.8, 0.82, 0.84), fin * 0.8);
       rough = mix(mix(0.05 + 0.1 * fVN(pm * 2.0 + cell), 0.14, sp), 0.42, max(mull, fin));
-      metal = mix(refl, 0.75, max(mull, fin)); ao = 1.0 - 0.25 * mull;
+      metal = mix(mix(max(refl, 0.72), 0.55, sp), 0.75, max(mull, fin)); ao = 1.0 - 0.25 * mull; // glass reads as a tinted mirror of the sky
       nT = vec3((fVN(cell * 3.7 + seed) - 0.5) * 0.035, (fVN(cell * 5.1 + seed) - 0.5) * 0.035, 1.0); // panes are never perfectly coplanar
-      emi = I * tr * (1.0 - mull) * (1.0 - blind * 0.7) * (uFDay * 0.5 + lit * litC * uFGlow) + blindC * blind * lit * litC * 0.35 * uFGlow * (1.0 - mull);
+      emi = I * tr * (1.0 - mull) * (1.0 - blind * 0.7) * (uFDay * 0.16 + lit * litC * uFGlow) + blindC * blind * lit * litC * 0.35 * uFGlow * (1.0 - mull);
     } else {
       // ---- openings in a solid wall ----
       float rec = (type == 1 ? 0.09 : type == 8 ? 0.3 : 0.17) * detail;
@@ -219,14 +219,22 @@ void facadeEval() {
       float inOpen = 1.0 - smoothstep(-px, px, sdW);
       // wall dressing around the opening
       if ((bits & 1) != 0) { float pd = min(pm.x, cs.x - pm.x); float pil = 1.0 - smoothstep(0.2 - px, 0.2 + px, pd); alb = mix(alb, alb * 1.1 + 0.02, pil); nT.x += (smoothstep(0.16, 0.2, pd) - smoothstep(0.2, 0.24, pd)) * 0.9 * sign(pm.x - cs.x * 0.5) * detail; }
-      if ((bits & 4) != 0) { float bc = 1.0 - smoothstep(0.2 - px, 0.2 + px, pm.y); alb = mix(alb, acc * cR.rgb * 1.25, bc); ao *= 1.0 - 0.3 * (1.0 - smoothstep(0.0, 0.1, cs.y - pm.y)); nT.y += (smoothstep(0.16, 0.2, pm.y) - smoothstep(0.2, 0.24, pm.y)) * 0.8 * detail; }
-      if ((bits & 8) != 0) { float sy = wmin.y * 0.5; float st = max(fLine(pm.y - sy, 0.03, px), max(fLine(pm.y - sy - 0.11, 0.03, px), fLine(pm.y - sy + 0.11, 0.03, px))); alb = mix(alb, acc, st * (0.5 + 0.5 * detail)); }
+      if ((bits & 4) != 0) { float bc = 1.0 - smoothstep(0.2 - px, 0.2 + px, pm.y); alb = mix(alb, mix(acc, vec3(0.82, 0.79, 0.73), 0.6) * cR.rgb * 1.25, bc); ao *= 1.0 - 0.3 * (1.0 - smoothstep(0.0, 0.1, cs.y - pm.y)); nT.y += (smoothstep(0.16, 0.2, pm.y) - smoothstep(0.2, 0.24, pm.y)) * 0.8 * detail; }
+      if ((bits & 8) != 0) { float sy = wmin.y * 0.5; float st = max(fLine(pm.y - sy, 0.03, px), max(fLine(pm.y - sy - 0.11, 0.03, px), fLine(pm.y - sy + 0.11, 0.03, px))); alb = mix(alb, mix(acc, alb, 0.45), st * (0.5 + 0.5 * detail)); }
       if ((bits & 2) != 0 && type == 0) { float spn = (1.0 - smoothstep(-px, px, fBox(pm - vec2(wc.x, wmin.y * 0.5 + 0.06), vec2(hs.x, max(0.02, wmin.y * 0.5 - 0.14))))); alb = mix(alb, acc * (0.9 + 0.1 * cR.rgb), spn); rough = mix(rough, 0.5, spn); }
       if ((bits & 2048) != 0) { float sr = (1.0 - smoothstep(0.13 - px, 0.13 + px, sdW)) * (1.0 - inOpen); alb = mix(alb, acc, sr); ao *= 1.0 - 0.18 * sr * smoothstep(0.09, 0.13, sdW); }
       if ((bits & 128) != 0 && type == 0) { // louvered shutters flanking the window
         float sw = hs.x * 0.52; vec2 sp2 = vec2(abs(pm.x - wc.x) - hs.x - sw * 0.5 - 0.02, pm.y - wc.y);
         float sm = 1.0 - smoothstep(-px, px, fBox(sp2, vec2(sw * 0.5, hs.y)));
         alb = mix(alb, acc * (0.78 + 0.22 * step(0.5, fract(pm.y * 14.0)) * detail), sm); rough = mix(rough, 0.6, sm); nT.y += sm * (fract(pm.y * 14.0) - 0.5) * 0.9 * detail;
+      }
+      if ((type == 0 || type == 3) && (bits & 2048) == 0) { // stone lintel (flat) or voussoir ring + keystone (arched)
+        float topY = wmin.y + hs.y * 2.0;
+        float lin = type == 0 ? 1.0 - smoothstep(-px, px, fBox(pm - vec2(wc.x, topY + 0.11), vec2(hs.x + 0.12, 0.11)))
+                              : (1.0 - smoothstep(-px, px, abs(sdW - 0.1) - 0.1)) * step(wc.y + hs.y - hs.x, pm.y);
+        if (type == 3) lin = max(lin, 1.0 - smoothstep(-px, px, fBox(pm - vec2(wc.x, topY + 0.14), vec2(0.13, 0.17))));
+        vec3 stoneC = mix(cR.rgb, vec3(0.86, 0.83, 0.77), 0.55);
+        alb = mix(alb, stoneC, lin * (1.0 - inOpen)); nT.y += lin * 0.25 * detail; ao *= 1.0 - 0.12 * lin;
       }
       if ((bits & 4096) != 0 && type != 7 && type != 6) { // sill + stains running down from its ends
         float sl = 1.0 - smoothstep(-px, px, fBox(pm - vec2(wc.x, wmin.y - 0.05), vec2(hs.x + 0.09, 0.05)));
@@ -286,19 +294,21 @@ void facadeEval() {
           float cov = 0.0; vec3 cC = vec3(0.8);
           if (type != 8 && type != 6 && type != 7) {
             float st = h2 * 7.0 - floor(h2 * 7.0); bool home = prof == 1 || prof == 2;
-            vec3 pal = 0.5 + 0.42 * cos(6.2831 * (h3 * 3.0 + vec3(0.0, 0.33, 0.67)));
+            vec3 pal = mix(vec3(0.78, 0.74, 0.66), 0.5 + 0.42 * cos(6.2831 * (h3 * 3.0 + vec3(0.0, 0.33, 0.67))), 0.12); // linen, cream, grey: never candy colors
             if (st < (home ? 0.22 : 0.34)) { float t = 0.22 + 0.62 * h3; cov = smoothstep(1.0 - t - 0.01, 1.0 - t + 0.01, wq.y) * 0.92; cC = vec3(0.82, 0.8, 0.74) * (0.72 + 0.28 * step(0.5, fract(wq.y * hs.y * 2.0 * 26.0)) * detail); }
             else if (st < (home ? 0.5 : 0.4)) { float c = 0.14 + 0.2 * h1; cov = smoothstep(0.5 - c - 0.01, 0.5 - c + 0.01, abs(wq.x - 0.5)) * 0.95; cC = mix(vec3(0.86, 0.82, 0.74), pal, 0.55) * (0.8 + 0.2 * sin(wq.x * hs.x * 2.0 * 46.0) * detail); }
             else if (st < (home ? 0.64 : 0.44)) { cov = 0.62; cC = vec3(0.9, 0.9, 0.86) * (0.86 + 0.14 * sin(wq.x * hs.x * 2.0 * 34.0 + h1 * 6.0) * detail); }
             else if (st < (home ? 0.76 : 0.5)) { cov = 0.97; cC = mix(vec3(0.62, 0.58, 0.5), pal * 0.7, 0.5) * (0.84 + 0.16 * sin(wq.x * hs.x * 2.0 * 30.0) * detail); }
           }
           float tr = type == 8 ? 1.0 : 1.0 - refl * 0.82;
-          float dayI = uFDay * (type == 8 ? 0.55 : 0.6) * (1.0 - 0.5 * clamp(it, 0.0, 1.0));
+          float dayI = uFDay * (type == 8 ? 0.55 : type == 6 || type == 7 ? 0.5 : 0.2) * (1.0 - 0.5 * clamp(it, 0.0, 1.0));
+          if (type != 6 && type != 7 && type != 8) I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.45); // rooms seen through daylight glass are muted
+          if (type == 6 || type == 7) { dayI += uFDay * 0.35; I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.35) * vec3(1.25, 1.0, 0.72); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
           float l2 = type == 8 ? max(lit, uFNight * 0.9) : lit;
           oEmi = I * tr * (1.0 - cov) * (dayI + l2 * litC * uFGlow) + cC * cov * l2 * litC * 0.3 * uFGlow * tr;
-          oAlb = mix(gTint * (type == 8 ? 0.0 : 0.08), cC * 0.85, cov * 0.9);
+          oAlb = mix(gTint * (type == 8 ? 0.0 : 0.4), cC * 0.85, cov * 0.9);
           oRough = type == 8 ? 1.0 : 0.05 + 0.12 * fVN(pm * 2.3 + cell * 7.0);
-          oMetal = type == 8 ? 0.0 : refl * (1.0 - cov * 0.75);
+          oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.35 : 0.68, 0.0, cov * 0.75);
           if (type == 9) { // roller shutter: ribbed painted steel filling the opening
             vec4 sR = texture(uFCol, vec3(tuv * uFTile[17], 17.0));
             float rib = fract(pg.y * 11.0); oAlb = acc * sR.rgb * (0.82 + 0.18 * smoothstep(0.0, 0.5, rib)); oRough = sR.a; oMetal = 0.35; oEmi = vec3(0.0); oN = vec3(0.0, (rib - 0.5) * 0.9 * detail, 1.0);
