@@ -1,3 +1,11 @@
+# city-look: awnings at night (Nov 14, 7:20 AM)
+- **Change:** awning canvas carries a new facade feature bit (`BIT.awning`, drawn through `awningView`). The facade shader adds a warm bounce from the shop below. It scales with the night factor and the retail lit fraction, is stronger on the underside, and adds a faint translucency by day.
+- **Testing aid:** `?noawningglow` turns it off.
+- **Result:** same camera (East Flagler St, 22:00). Before, `beforeN/dt_street_22.png`: black voids. After, `afterN/dt_street_22.png`: dark green, cream and red canvas, readable but not self-lit. Cost: shader math only, no draw calls.
+- **Tool fix:** `.shots.mjs` now re-stages the hour right before each shot (a save load had been resetting it to day).
+
+---
+
 # city-look: ground pass (Nov 14, 6:33 to 6:40 AM, load about 3)
 
 Same cameras: East Flagler St (downtown) and the Overseas Highway at (-7005, 6529) (rural Keys), car height, 1 PM. Before: `beforeG/`; after: `afterG2/` (dt_street_13, oh_street_13).

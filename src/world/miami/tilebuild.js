@@ -15,7 +15,7 @@ const NEONS = [0xff2bd6, 0x23f0ff, 0xff7a1a, 0x9d4dff, 0x3dff8f, 0xff3366];
 const SIDEWALK_W = 3.0, CURB = 0.15;
 import { VARIANTS, pickFacade } from './facades.js';
 import { boatVariants, BOAT_LEN } from './boats.js';
-import { FBatch, facadeWalls, WL, WIN } from '../city/facade.js';
+import { FBatch, facadeWalls, WL, WIN, BIT } from '../city/facade.js';
 import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
@@ -370,6 +370,12 @@ export function createTileBuilder(ctx) {
       s[12] = S.accent.r; s[13] = S.accent.g; s[14] = S.accent.b; s[15] = S.bits || 0;
       fb.vert(x, y, z, nx, ny, nz, u, vv, col);
     };
+    return v;
+  };
+  // awning canvas: plain wall layer (plaster grain reads as woven fabric) plus the awning feature bit
+  const awningView = (fb) => {
+    const v = Object.create(Batch.prototype);
+    v.vert = function (x, y, z, nx, ny, nz, u, vv, col) { fb.blank(WL.plaster); fb.s[15] = BIT.awning; fb.vert(x, y, z, nx, ny, nz, u, vv, col); };
     return v;
   };
   const fview = (fb, layer) => { const v = Object.create(Batch.prototype); v.layer = layer; v.vert = function (x, y, z, nx, ny, nz, u, vv, col) { fb.blank(this.layer); fb.vert(x, y, z, nx, ny, nz, u, vv, col); }; Object.defineProperty(v, 'empty', { get: () => true }); return v; };
@@ -1262,9 +1268,10 @@ export function createTileBuilder(ctx) {
   function shopFrontDress(B, p, tx, tz, nx, nz, s0, s1, y0, top, GF, fx, fz, props) {
     const hA = hash(((fx * 11) | 0) * 31 + ((fz * 17) | 0) * 7 + 3);
     const P = (sv, o, y) => [p[0] + tx * sv + nx * o, y, p[1] + tz * sv + nz * o];
+    const AW = isFB(B) ? awningView(B.fac) : B.trim; // canvas flagged for the facade shader's night bounce
     const quad2 = (A, Bq, C, D, col) => {
       for (const [v, n] of [[[A, Bq, C, A, C, D], 1], [[A, C, Bq, A, D, C], -1]]) {
-        for (const q of v) B.trim.vert(q[0], q[1], q[2], nx * 0.5 * n, 0.85 * n, nz * 0.5 * n, 0, 0, col);
+        for (const q of v) AW.vert(q[0], q[1], q[2], nx * 0.5 * n, 0.85 * n, nz * 0.5 * n, 0, 0, col);
       }
     };
     if (hA < 0.85 && s1 - s0 > 1.5) {
@@ -1279,7 +1286,7 @@ export function createTileBuilder(ctx) {
       }
       for (const sv of [s0 - 0.2, s1 + 0.2]) { // side cheeks
         const A = P(sv, 0.03, yT), Bq = P(sv, dep, yB), C = P(sv, dep, yB - 0.3);
-        for (const q of [A, Bq, C, A, C, Bq]) B.trim.vert(q[0], q[1], q[2], tx, 0, tz, 0, 0, cA);
+        for (const q of [A, Bq, C, A, C, Bq]) AW.vert(q[0], q[1], q[2], tx, 0, tz, 0, 0, cA);
       }
     }
     if (props && hash(((fx * 5) | 0) + ((fz * 13) | 0) * 3) < 0.75) {

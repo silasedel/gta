@@ -272,7 +272,7 @@ export async function createMaterials(renderer) {
   M.shopGlass = new THREE.MeshPhysicalMaterial({ color: 0xd6eaee, roughness: 0.04, metalness: 0.0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 1.3, clearcoat: 0.6, clearcoatRoughness: 0.05 });
   M.poolWater = new THREE.MeshStandardMaterial({ color: 0x2aa6b8, roughness: 0.05, metalness: 0.3, vertexColors: true });
   // ---- V2 city-look: real CC0 PBR on every surface ----
-  const facU = { uFLit: { value: new Float32Array(8) }, uFNight: { value: 0 }, uFDay: { value: 0.5 }, uFTime: { value: 0 }, uFGlow: { value: 1.0 } }, propU = { uEmis: { value: 0 } };
+  const facU = { uFLit: { value: new Float32Array(8) }, uFNight: { value: 0 }, uFDay: { value: 0.5 }, uFTime: { value: 0 }, uFGlow: { value: 1.0 }, uFAwn: { value: typeof location !== 'undefined' && /noawningglow/.test(location.search) ? 0 : 1 } }, propU = { uEmis: { value: 0 } };
   try {
     const [wallArr, propArr, sSide, sPark, sBark, sPlank, sConc] = await Promise.all([loadWallArray(renderer), loadPropArray(renderer), loadSet(renderer, 'concrete_pavement'), loadSet(renderer, 'asphalt_04'), loadSet(renderer, 'palm_bark'), loadSet(renderer, 'weathered_planks'), loadSet(renderer, 'brushed_concrete')]);
     const rooms = await bakeRoomAtlas(renderer);

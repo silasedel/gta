@@ -23,6 +23,7 @@ const VIEWS = [
   { id: 'col', label: 'Collins Avenue', x: 3330, z: -700, re: 'Collins' },
   { id: 'lh', label: 'Calle Ocho (SW 8th St)', x: -3300, z: 1380, re: '8th' },
   { id: 'wyn', label: 'Wynwood', x: -3050, z: -2400, re: '' },
+  { id: 'oh', label: 'Overseas Highway (rural Keys)', x: -7005, z: 6529, re: 'Overseas' },
 ];
 const want = (o.views ? String(o.views).split(',') : VIEWS.slice(0, 6).map((v) => v.id));
 const hours = (o.hours ? String(o.hours).split(',').map(Number) : [14, 21.5]);
@@ -75,6 +76,7 @@ let bad = false;
 await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 235) }, async (b) => {
   await b.goto(o.url || 'http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY, 150);
+  if (o.pre) console.log('PRE', JSON.stringify(await b.eval(String(o.pre))));
   for (const id of want) {
     const v = VIEWS.find((q) => q.id === id); if (!v) continue;
     if (!poses[id]) { poses[id] = await b.eval(RESOLVE(v)); poses[id].label = v.label; }
@@ -83,6 +85,10 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
       await b.sleep(1200);
       try { await b.waitFor(SETTLED, +(o.settleWait || 45)); } catch (e) { console.log('  (stream not settled)', id); }
       await b.sleep(+(o.settle || 2500));
+      // re-stage: a save load or the clock can move the hour after the first staging
+      await b.eval(STAGE(poses[id], angle, hour));
+      await b.sleep(3000);
+      console.log('  hour', await b.eval('game.timeOfDay'));
       const m = o.nomeasure ? { calls: await b.eval('game.renderer.info.render.calls'), triangles: await b.eval('game.renderer.info.render.triangles') } : await b.eval(MEASURE);
       const tag = `${id}_${angle}_${String(hour).replace('.', 'h')}`;
       const file = path.join(OUT, SET, tag + '.png');

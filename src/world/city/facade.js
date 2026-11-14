@@ -42,7 +42,7 @@ export const WALL_LAYERS = [
 export const WL = Object.fromEntries(WALL_LAYERS.map((l, i) => [l.key, i]));
 export const WIN = { punched: 0, ribbon: 1, curtain: 2, arched: 3, porthole: 4, blank: 5, storefront: 6, door: 7, garage: 8, roller: 9 };
 export const PROFILE = { office: 0, residential: 1, hotel: 2, retail: 3, industrial: 4, garage: 5, lobby: 6, restaurant: 7 };
-export const BIT = { pilaster: 1, spandrel: 2, belt: 4, stripes: 8, cross: 16, vsplit: 32, jalousie: 64, shutters: 128, ac: 256, darkFrame: 512, fins: 1024, surround: 2048, sill: 4096, grime: 8192, solidDoor: 16384, awningWin: 32768 };
+export const BIT = { awning: 65536, pilaster: 1, spandrel: 2, belt: 4, stripes: 8, cross: 16, vsplit: 32, jalousie: 64, shutters: 128, ac: 256, darkFrame: 512, fins: 1024, surround: 2048, sill: 4096, grime: 8192, solidDoor: 16384, awningWin: 32768 };
 export const GLASS = { clear: 0, blue: 1, green: 2, bronze: 3, gray: 4, silver: 5, teal: 6, dark: 7 };
 
 let wallP = null;
@@ -114,7 +114,7 @@ const GLASS_TINTS = [[0.50, 0.57, 0.58], [0.27, 0.37, 0.47], [0.29, 0.42, 0.39],
 const FRAG_HEAD = /* glsl */`
 uniform sampler2DArray uFCol; uniform sampler2DArray uFNrm; uniform sampler2D uFRooms;
 uniform vec4 uFGrid; uniform vec2 uFRoomKind[8]; uniform float uFTile[NUM_FLAYERS]; uniform vec3 uFGlass[8];
-uniform float uFLit[8]; uniform float uFNight; uniform float uFDay; uniform float uFTime; uniform float uFGlow;
+uniform float uFLit[8]; uniform float uFAwn; uniform float uFNight; uniform float uFDay; uniform float uFTime; uniform float uFGlow;
 flat in vec4 vFa; flat in vec4 vFb; flat in vec4 vFc; flat in vec4 vFd;
 in vec3 vFWP; in vec3 vFWN; in vec2 vFuv;
 vec3 gFAlb; float gFRough; float gFMetal; float gFAO; vec3 gFNw; vec3 gFEmi; float gFFar = 0.0; float gFLit = 0.0; vec3 gFLitC = vec3(1.0);
@@ -353,6 +353,12 @@ void facadeEval() {
       }
     }
   }
+  if ((bits & 65536) != 0 && uFAwn > 0.5) { // shop awning canvas: bounce from the lit shop window below (stronger on the underside) and a
+    // little light through the fabric, so a dark awning reads as colored canvas at night instead of a black void
+    float under = clamp(-vFWN.y, 0.0, 1.0);
+    float shopLit = 0.35 + 0.65 * uFLit[3];
+    emi += alb * (uFNight * shopLit * (0.07 + 0.33 * under) * vec3(1.0, 0.8, 0.55) * uFGlow + uFDay * 0.04);
+  }
   nT = mix(nT, nOver, useOver);
   gFNw = normalize(T * nT.x + Bt * nT.y + Nw * max(nT.z, 0.05));
   gFAlb = alb; gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi * (1.0 + gFFar * 1.6 * uFNight) + gFFar * gFLit * gFLitC * 0.95 * uFGlow; // distant windows cover less of the pixel: compensate the glow
@@ -370,7 +376,7 @@ export function createFacadeMaterial(wall, rooms, shared, extra = null) {
       uFCol: { value: wall.colR }, uFNrm: { value: wall.nrmAO }, uFRooms: { value: rooms.texture },
       uFGrid: { value: new THREE.Vector4(rooms.cols, rooms.rows, 0.6 / rooms.cell, rooms.cols * rooms.rows) }, uFRoomKind: { value: kinds },
       uFTile: { value: wall.tiles }, uFGlass: { value: GLASS_TINTS.map((c) => new THREE.Vector3(c[0], c[1], c[2])) },
-      uFLit: shared.uFLit, uFNight: shared.uFNight, uFDay: shared.uFDay, uFTime: shared.uFTime, uFGlow: shared.uFGlow,
+      uFLit: shared.uFLit, uFNight: shared.uFNight, uFDay: shared.uFDay, uFTime: shared.uFTime, uFGlow: shared.uFGlow, uFAwn: shared.uFAwn || { value: 1 },
     });
     sh.vertexShader = 'attribute vec4 aFa; attribute vec4 aFb; attribute vec4 aFc; attribute vec4 aFd;\nflat out vec4 vFa; flat out vec4 vFb; flat out vec4 vFc; flat out vec4 vFd;\nout vec3 vFWP; out vec3 vFWN; out vec2 vFuv;\n'
       + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
