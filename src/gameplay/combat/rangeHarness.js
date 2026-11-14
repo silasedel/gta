@@ -233,7 +233,7 @@ export async function createRangeGame(opts = {}) {
     const lethal = o.lethal !== false;
     ped.state = lethal ? 'dead' : 'down'; if (lethal) { ped.dead = true; ped.health = 0; }
     ped.collider.setEnabled(false);
-    if (!ped.rag) { ped.root.position.copy(ped.pos); ped.root.updateMatrixWorld(true); try { ped.rag = rag.start(ped.char, { vel: o.vel || { x: 0, y: 0, z: 0 }, spin: o.spin || 0, hit: o.impulse ? { impulse: o.impulse, point: o.point || null } : null }); } catch (e) { ped.rag = null; } }
+    if (!ped.rag) { ped.root.position.copy(ped.pos); ped.root.updateMatrixWorld(true); try { ped.rag = rag.start(ped.char, { vel: o.vel || { x: 0, y: 0, z: 0 }, spin: o.spin || 0, hit: o.impulse ? { impulse: o.impulse, point: o.point || null } : null, kind: o.kind, strength: o.strength, lethal, balance: !!o.balance }); } catch (e) { ped.rag = null; } }
     if (!lethal) ped.getUpT = o.getUp ?? 2.6;
   }
   peds.knockDown = knockDown;
@@ -244,9 +244,9 @@ export async function createRangeGame(opts = {}) {
     const pt = info.point || ped.pos.clone().setY(ped.pos.y + 1.1);
     game.emit('hit', { target: 'ped', object: ped, point: pt, normal: d.clone().negate(), damage: amount, kind, zone: info.zone, limb: info.limb, byPlayer: info.byPlayer });
     const strength = info.strength ?? Math.min(1, amount / 100);
-    if (kind === 'car') { const kmh = amount / 1.5, v = Math.min(16, kmh / 3.6) * 0.8; knockDown(ped, d, { lethal: ped.health <= 0 || kmh > 32, vel: { x: d.x * v, y: Math.min(3.2, kmh / 22), z: d.z * v }, spin: Math.min(3, kmh / 20), point: pt, impulse: new THREE.Vector3(d.x * v * 6, 0, d.z * v * 6) }); return; }
-    if (ped.health <= 0) { const I = kind === 'bullet' ? 9 + strength * 14 : kind === 'explosion' ? 120 : 25 + strength * 40; knockDown(ped, d, { lethal: true, vel: { x: d.x * (kind === 'explosion' ? 5 : 0.6), y: kind === 'explosion' ? 4 : 0, z: d.z * (kind === 'explosion' ? 5 : 0.6) }, point: pt, impulse: new THREE.Vector3(d.x * I, I * 0.1, d.z * I) }); return; }
-    if ((info.heavy || strength > 0.85) && kind !== 'bullet') { knockDown(ped, d, { lethal: false, vel: { x: d.x * 1.5, y: 0.3, z: d.z * 1.5 }, point: pt, impulse: new THREE.Vector3(d.x * 30, 3, d.z * 30) }); return; }
+    if (kind === 'car') { const kmh = amount / 1.5, v = Math.min(16, kmh / 3.6) * 0.8; knockDown(ped, d, { kind: 'car', strength: Math.min(1, kmh / 60), lethal: ped.health <= 0 || kmh > 32, vel: { x: d.x * v, y: Math.min(3.2, kmh / 22), z: d.z * v }, spin: Math.min(3, kmh / 20), point: pt, impulse: new THREE.Vector3(d.x * v * 6, 0, d.z * v * 6) }); return; }
+    if (ped.health <= 0) { const I = kind === 'bullet' ? 9 + strength * 14 : kind === 'explosion' ? 120 : 25 + strength * 40; knockDown(ped, d, { kind, strength, lethal: true, vel: { x: d.x * (kind === 'explosion' ? 5 : 0.6), y: kind === 'explosion' ? 4 : 0, z: d.z * (kind === 'explosion' ? 5 : 0.6) }, point: pt, impulse: new THREE.Vector3(d.x * I, I * 0.1, d.z * I) }); return; }
+    if ((info.heavy || strength > 0.85) && kind !== 'bullet') { knockDown(ped, d, { kind, strength, balance: true, lethal: false, vel: { x: d.x * 1.5, y: 0.3, z: d.z * 1.5 }, point: pt, impulse: new THREE.Vector3(d.x * 30, 3, d.z * 30) }); return; }
     ped.hitNow = true; ped.knock.set(d.x * (1.2 + strength * 2), 0, d.z * (1.2 + strength * 2)); ped.shoveT = 0.35;
   };
   peds.update = (dt) => {
@@ -256,10 +256,14 @@ export async function createRangeGame(opts = {}) {
       if (ped.state === 'down' || ped.state === 'dead') {
         if (ped.rag && !ped.dead && ped.state === 'down') {
           ped.getUpT -= dt;
-          if (ped.getUpT <= 0) {
+          if (ped.rag.recovered) { // kept the feet: blend straight back into animation where the body stands
             const info = rag.poseInfo(ped.rag);
-            if (info) { ped.pos.set(info.pelvis.x, pedGround(info.pelvis.x, info.pelvis.z, info.pelvis.y), info.pelvis.z); ped.heading = Math.atan2(info.head.x - info.pelvis.x, info.head.z - info.pelvis.z) + (info.faceUp ? Math.PI : 0); }
-            rag.remove(ped.rag); ped.rag = null; ped.getUp = info && !info.faceUp ? 'fwd' : 'back'; ped.getUpClock = 2.4; ped.state = 'getup'; ped.collider.setEnabled(true);
+            if (info) { ped.pos.set(info.pelvis.x, pedGround(info.pelvis.x, info.pelvis.z, info.pelvis.y), info.pelvis.z); ped.heading = info.heading; ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading; }
+            rag.handoff ? rag.handoff(ped.rag) : rag.remove(ped.rag); ped.rag = null; ped.char.snapshotPose?.(0.4); ped.state = 'idle'; ped.collider.setEnabled(true); ped.hitNow = false;
+          } else if ((ped.getUpT <= 0 && rag.isSettled?.(ped.rag) !== false) || ped.getUpT < -2.5) {
+            const info = rag.poseInfo(ped.rag);
+            if (info) { ped.pos.set(info.pelvis.x, pedGround(info.pelvis.x, info.pelvis.z, info.pelvis.y), info.pelvis.z); ped.heading = Math.atan2(info.head.x - info.pelvis.x, info.head.z - info.pelvis.z) + (info.faceUp ? Math.PI : 0); ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading; }
+            rag.handoff ? rag.handoff(ped.rag) : rag.remove(ped.rag); ped.rag = null; ped.char.snapshotPose?.(0.6); ped.getUp = info && !info.faceUp ? 'fwd' : 'back'; ped.getUpClock = 2.4; ped.state = 'getup'; ped.collider.setEnabled(true);
           }
         }
         if (ped.rag || ped.dead) { if (!ped.rag) ped.char.update(dt, { dead: true }); continue; }

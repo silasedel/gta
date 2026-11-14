@@ -30,7 +30,8 @@ export async function createPeds(game) {
   const playerPos = () => game.player?.position || _v.set(0, 0, 0);
   const hourNow = () => (((game.timeOfDay ?? 14) % 24) + 24) % 24;
   const zoneAt = (x, z) => { try { return city.zoneAt?.(x, z) || 'residential'; } catch (e) { return 'residential'; } };
-  const groundAt = (x, z, fallback = 0) => { try { const g = city.groundHeightAt?.(x, z); return Number.isFinite(g) ? g : fallback; } catch (e) { return fallback; } };
+  // height of the surface at the person's own level (hint just above the feet), never the highest deck overhead
+  const groundAt = (x, z, fallback = 0) => { try { const g = city.groundHeightAt?.(x, z, fallback + 1.2); return Number.isFinite(g) ? g : fallback; } catch (e) { return fallback; } };
   const isWater = (x, z) => { try { return !!city.isWater?.(x, z); } catch (e) { return false; } };
   const surfaceAt = (x, z) => { try { return city.surfaceAt?.(x, z) || 'concrete'; } catch (e) { return 'concrete'; } };
   const seaLevel = city.seaLevel ?? -0.12;
@@ -273,7 +274,9 @@ export async function createPeds(game) {
       return null;
     }
     createdThisFrame++;
-    const c = createCharacter(game, { variant: 'ped', seed: 1000 + (seedN++) * 37, zone: want, gender: opts.gender, exclude: activeIds });
+    const sd = 1000 + (seedN++) * 37;
+    // archetype people (src/npc/arch, PEOPLE-LOOK) when loaded for this place; the legacy library body otherwise
+    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender }) || createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds });
     scene.add(c.root);
     return c;
   }
@@ -285,6 +288,34 @@ export async function createPeds(game) {
   function releaseChar(c) { if (!c) return; c.root.visible = false; if (pool.length < 12) pool.push(c); else { try { game.people?.undress?.(c); } catch (e) { /* ignore */ } scene.remove(c.root); c.dispose?.(); } }
 
   // ---------------------------------------------------------------- ped lifecycle
+  // Is (x, z) a place a person can stand? Not inside a road's carriageway, not near a motorway / trunk / link / bridge
+  // edge, and not where an elevated deck exists (deck height and street height differ there). Playtest: idle
+  // "parked people" on highways, bridges and causeways.
+  function spotOK(x, z) {
+    try {
+      if (RG) {
+        const r = RG.nearestEdge(x, z);
+        const e = r?.edge;
+        if (e && Number.isFinite(r.dist)) {
+          const half = (e.width || 8) / 2;
+          if (r.dist < half + 0.3) {
+            return false;
+          }
+          if ((/motorway|_link/.test(e.kind || '') || e.bridge || (e.speedKmh || 40) >= 75) && r.dist < half + 6) {
+            return false;
+          }
+        }
+      }
+      const low = city.groundHeightAt?.(x, z, -50);
+      const high = city.groundHeightAt?.(x, z, 200);
+      if (Number.isFinite(low) && Number.isFinite(high) && high - low > 1.5) {
+        return false;
+      }
+    } catch (e) {
+      // no data: allow
+    }
+    return true;
+  }
   let idN = 0;
   function newPed() {
     const ped = {
@@ -292,6 +323,24 @@ export async function createPeds(game) {
       knock: new THREE.Vector3(), shoveT: 0, health: 100, dead: false, deadT: 0, pending: null, threat: null, stateT: 0, fleeT: 0,
       body: null, collider: null, rag: null, tough: Math.random() < 0.2, idleStyle: null, isCop: false, zone: 'residential', active: false, group: null,
     };
+    // voices (pain, grunts, screams in src/core/audio.js) read ped.gender / ped.female: take them from the body actually
+    // worn, then the identity, so a woman never gets a male voice (playtest P5)
+    Object.defineProperty(ped, 'gender', {
+      configurable: true,
+      enumerable: false,
+      get() {
+        const g = ped.char?.human?.gender || ped.identity?.gender || ped.char?.gender || null;
+        return g ? (/^f/i.test(String(g)) ? 'f' : 'm') : undefined;
+      },
+    });
+    Object.defineProperty(ped, 'female', {
+      configurable: true,
+      enumerable: false,
+      get() {
+        const g = ped.gender;
+        return g === undefined ? undefined : g === 'f';
+      },
+    });
     try {
       ped.body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -200, 0));
       ped.collider = world.createCollider(RAPIER.ColliderDesc.capsule(0.6, 0.28).setFriction(0.5), ped.body);
@@ -353,11 +402,12 @@ export async function createPeds(game) {
     // a candidate spawn location on a sidewalk around the player (prefer behind the camera or far)
     let base = null;
     for (let i = 0; i < 6 && !base; i++) {
-      const p = sidewalkNear(pp, Math.random() < 0.7 ? 95 : SPAWN_MAX);
+      const p = sidewalkNear(pp, Math.random() < 0.75 ? 60 : 110); // close enough to be seen (playtest: streets looked empty)
       if (!p) continue;
       const d = Math.hypot(p.x - pp.x, p.z - pp.z);
       if (d < SPAWN_MIN) continue;
       if (!collidersReady(p.x, p.z)) continue;
+      if (!spotOK(p.x, p.z)) continue;
       const cam = game.camera; let behind = true;
       if (cam) { cam.getWorldDirection(_v2); behind = (_v2.x * (p.x - cam.position.x) + _v2.z * (p.z - cam.position.z)) < 0; }
       if (!behind && d < 45 && Math.random() < 0.85) continue;
@@ -546,7 +596,7 @@ export async function createPeds(game) {
       try {
         ped.root.position.copy(ped.pos); ped.root.updateMatrixWorld(true);
         const part = opts.limb ? LIMB_PART[opts.limb] : null;
-        ped.rag = rag.start(ped.char, { vel: opts.vel || { x: 0, y: 0, z: 0 }, spin: opts.spin || 0, hit: opts.impulse ? { impulse: opts.impulse, point: opts.point || null, part } : null });
+        ped.rag = rag.start(ped.char, { vel: opts.vel || { x: 0, y: 0, z: 0 }, spin: opts.spin || 0, hit: opts.impulse ? { impulse: opts.impulse, point: opts.point || null, part } : null, kind: opts.kind, strength: opts.strength, lethal, balance: !!opts.balance });
       } catch (e) { ped.rag = null; }
     }
     panic(ped.pos.x, ped.pos.z, 20, 'knockdown');
@@ -567,18 +617,18 @@ export async function createPeds(game) {
       const v = Math.min(16, kmh / 3.6) * 0.8;
       const lethal = ped.health <= 0 || kmh > 32;
       ped.knock.set(0, 0, 0);
-      knockDown(ped, d, { lethal, vel: { x: d.x * v, y: Math.min(3.2, kmh / 22), z: d.z * v }, spin: Math.min(3, kmh / 20), point: pt, impulse: new THREE.Vector3(d.x * v * 6, 0, d.z * v * 6) });
+      knockDown(ped, d, { kind: 'car', strength: Math.min(1, kmh / 60), lethal, vel: { x: d.x * v, y: Math.min(3.2, kmh / 22), z: d.z * v }, spin: Math.min(3, kmh / 20), point: pt, impulse: new THREE.Vector3(d.x * v * 6, 0, d.z * v * 6) });
       if (!lethal) ped.getUpT = rand(2.2, 3.5);
       return;
     }
     if (ped.health <= 0) {
       const I = kind === 'bullet' ? 9 + strength * 14 : kind === 'explosion' ? 120 : 25 + strength * 40;
-      knockDown(ped, d, { lethal: true, vel: { x: d.x * (kind === 'explosion' ? 5 : 0.6), y: kind === 'explosion' ? 4 : 0, z: d.z * (kind === 'explosion' ? 5 : 0.6) }, point: pt, limb: info.limb, impulse: new THREE.Vector3(d.x * I, I * 0.1, d.z * I) });
+      knockDown(ped, d, { kind, strength, lethal: true, vel: { x: d.x * (kind === 'explosion' ? 5 : 0.6), y: kind === 'explosion' ? 4 : 0, z: d.z * (kind === 'explosion' ? 5 : 0.6) }, point: pt, limb: info.limb, impulse: new THREE.Vector3(d.x * I, I * 0.1, d.z * I) });
       return;
     }
     // non-lethal: heavy blows knock people down (they get back up), others stagger + flinch
     if ((info.heavy || strength > 0.85) && kind !== 'bullet' && Math.random() < 0.6) {
-      knockDown(ped, d, { lethal: false, vel: { x: d.x * 1.5, y: 0.3, z: d.z * 1.5 }, point: pt, limb: info.limb, impulse: new THREE.Vector3(d.x * 30, 3, d.z * 30) });
+      knockDown(ped, d, { kind, strength, balance: true, lethal: false, vel: { x: d.x * 1.5, y: 0.3, z: d.z * 1.5 }, point: pt, limb: info.limb, impulse: new THREE.Vector3(d.x * 30, 3, d.z * 30) });
       ped.getUpT = rand(1.8, 3.2);
       return;
     }
@@ -793,6 +843,19 @@ export async function createPeds(game) {
       if (ped.pinned > 0) ped.pinned -= dt;
       // despawn far away / on unloading tiles / long-dead
       if (ped.despawnNow || (dPlayer > DESPAWN && !(ped.pinned > 0)) || (ped.dead && (ped.deadT += dt) > 25 && dPlayer > 40)) { ped.despawnNow = false; despawn(ped); continue; }
+      // nobody strolls on an elevated road deck (playtest): a walker standing well above the street-level ground is
+      // removed (checked about twice a second per person, out of view first)
+      if (((frameN + ped.id) % 30) === 0 && ped.nav && !ped.dead && ped.state === 'walk') {
+        try {
+          const street = city.groundHeightAt?.(ped.pos.x, ped.pos.z, -50);
+          if (Number.isFinite(street) && ped.pos.y - street > 2.5) {
+            despawn(ped);
+            continue;
+          }
+        } catch (e) {
+          // no height data here
+        }
+      }
       let targetSpeed = 0, lookAt = null, moveHeading = ped.heading;
       ped.handsUp = false;
 
@@ -803,9 +866,20 @@ export async function createPeds(game) {
           if (pt) ped.pos.set(pt.x, pt.y - 0.9, pt.z);
           if (ped.state === 'down') {
             ped.getUpT -= dt;
-            if (ped.getUpT <= 0 && ped.rag.frozen !== undefined) {
+            if (ped.rag.recovered) { // active ragdoll kept its feet: blend straight back into animation (ragdoll.js)
               const info = rag.poseInfo(ped.rag);
-              rag.remove(ped.rag); ped.rag = null;
+              if (info) { ped.heading = info.heading; ped.pos.set(info.pelvis.x, groundAt(info.pelvis.x, info.pelvis.z, ped.pos.y), info.pelvis.z); ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading; }
+              rag.handoff(ped.rag); ped.rag = null;
+              ped.char.snapshotPose?.(0.4);
+              ped.state = 'flee'; ped.fleeT = rand(3, 6); ped.threat = { x: pp.x, z: pp.z }; ped.nav = navFromPos(ped);
+              ped.collider?.setEnabled(true); ped.teleported = true;
+              try { ped.body.setTranslation({ x: ped.pos.x, y: ped.pos.y + 0.9, z: ped.pos.z }, true); } catch (e) { /* ignore */ }
+              continue;
+            }
+            if ((ped.getUpT <= 0 && rag.isSettled?.(ped.rag) !== false) || ped.getUpT < -2.5) {
+              const info = rag.poseInfo(ped.rag);
+              const rd0 = ped.rag; ped.rag = null;
+              if (!info) rag.remove(rd0);
               if (info) {
                 // place the root under the pelvis, oriented so the clip's lying pose matches the body
                 const hx = info.head.x - info.pelvis.x, hz = info.head.z - info.pelvis.z;
@@ -814,7 +888,8 @@ export async function createPeds(game) {
                 ped.heading = face === 'back' ? Math.atan2(-hx, -hz) : Math.atan2(hx, hz);
                 ped.pos.set(info.pelvis.x, groundAt(info.pelvis.x, info.pelvis.z, ped.pos.y), info.pelvis.z);
                 ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading;
-                ped.char.snapshotPose?.(0.45);
+                rag.handoff(rd0); // bones re-expressed under the moved root, so the snapshot blend has no pop
+                ped.char.snapshotPose?.(0.6);
                 ped.getUp = face; ped.getUpClock = 2.5;
                 ped.state = 'gettingUp';
                 ped.collider?.setEnabled(true); ped.teleported = true;
@@ -1125,5 +1200,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt }, get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK }, get count() { return list.filter((p) => p.active).length; } };
 }

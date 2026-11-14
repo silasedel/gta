@@ -1,0 +1,63 @@
+{
+ "track": "ragdoll",
+ "title": "Active ragdolls (joint limits, muscles, balance, falls)",
+ "section": "Systems",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Anatomical joint limits: Rapier spherical joints with per-axis swing/twist limits (spine, neck, shoulders, hips, ankles) measured from the rig's rest pose; revolute knees and elbows that flex one way only",
+   "state": "verified",
+   "evidence": "src/npc/ragdoll.js LIMITS; wrong-way / over-folded knees: gun 3.12 -> 0.17 rad, stairs 3.02 -> 0.42; car still spikes once (3.13) while the 1.4 t car is on top of the legs (docs/v2/shots/ragdoll/before.json, after.json)"
+  },
+  {
+   "name": "No self-intersection: 15 capsules sized to body parts (wide pelvis and chest), 5 collision classes (torso, each arm, each leg) that collide with each other, jointed neighbours skip contacts",
+   "state": "verified",
+   "evidence": "frames with limb interpenetration (>2.5 cm) gun/car/stairs: 238/254/72 before -> 0/2/0 after"
+  },
+  {
+   "name": "Muscles: implicit PD motor per joint toward the pose at impact, torque applied in equal and opposite pairs, strength fading 0.5-1.5 s by hit kind and power, joint-friction floor (no jitter, never infinitely floppy)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/after_gun.png (dead crumple: legs give first)"
+  },
+  {
+   "name": "Balance on survivable hits: hit leg goes weak, other braces, capture-point stumble steps, leg/core support as internal force pairs; recovery blends straight back to animation",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/after_shove.png and after_punch.png (stumble steps, keeps the feet, blends back to idle at ~0.9 s)"
+  },
+  {
+   "name": "Falls: arms reach toward the fall direction, chin tucks on backward falls, arms soften after landing",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/after_stairs.png, after_punch.png"
+  },
+  {
+   "name": "Car impacts: per-height impact velocity (legs swept, upper body lags) so the body rolls onto the hood; CCD on for car hits",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/after_car.png (40 km/h)"
+  },
+  {
+   "name": "Getting up / death: settle detection, dead frozen in their pose, living hand the pose back under the moved root before the get-up blend (no root-offset pop)",
+   "state": "built",
+   "evidence": "ragdoll.handoff(); punch strip 3.2 -> 4.5 s"
+  },
+  {
+   "name": "Physics: muscles and balance run per fixed substep in game.fixedHooks, bodies sleep when still, cap on active ragdolls (oldest frozen first)",
+   "state": "built",
+   "evidence": "peds.js keeps cap 6; harness 8"
+  },
+  {
+   "name": "Bench: src/npc/bench/ragdoll.html + tools/v2/ragdoll-shots.mjs (frame strips + interpenetration / knee / neck metrics)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/*.png"
+  },
+  {
+   "name": "In-city playtest of ragdolls (real cars, slopes, crowds)",
+   "state": "todo",
+   "evidence": "only tested on the range bench"
+  },
+  {
+   "name": "Spine arches backwards a lot during a stumble; muscles weaker than ideal (effective inertia capped for solver stability)",
+   "state": "todo",
+   "evidence": "after_punch.png / after_shove.png 0.45-1.0 s"
+  }
+ ]
+}

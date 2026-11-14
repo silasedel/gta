@@ -1,0 +1,669 @@
+{
+ "punch": {
+  "name": "punch",
+  "frames": [
+   {
+    "t": 0,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.42,
+    "elbow": [
+     0.34,
+     0.28
+    ],
+    "pelvisY": 0.84,
+    "state": "down"
+   },
+   {
+    "t": 0.12,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.42,
+    "elbow": [
+     0.58,
+     0.6
+    ],
+    "pelvisY": 0.81,
+    "state": "down"
+   },
+   {
+    "t": 0.25,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.4,
+    "elbow": [
+     0.12,
+     0.21
+    ],
+    "pelvisY": 0.73,
+    "state": "down"
+   },
+   {
+    "t": 0.45,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.51,
+    "elbow": [
+     0.25,
+     0.19
+    ],
+    "pelvisY": 0.58,
+    "state": "down"
+   },
+   {
+    "t": 0.7,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.54,
+    "elbow": [
+     1.14,
+     1.01
+    ],
+    "pelvisY": 0.3,
+    "state": "down"
+   },
+   {
+    "t": 1,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.48,
+    "elbow": [
+     0.23,
+     0.47
+    ],
+    "pelvisY": 0.13,
+    "state": "down"
+   },
+   {
+    "t": 1.5,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.5,
+    "elbow": [
+     0.49,
+     0.5
+    ],
+    "pelvisY": 0.12,
+    "state": "down"
+   },
+   {
+    "t": 2.2,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.5,
+    "elbow": [
+     0.48,
+     0.5
+    ],
+    "pelvisY": 0.12,
+    "state": "down"
+   },
+   {
+    "t": 3.2,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.29,
+    "elbow": [
+     0.37,
+     0.34
+    ],
+    "pelvisY": 0.29,
+    "state": "getup"
+   },
+   {
+    "t": 4.5,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.27,
+    "elbow": [
+     0.24,
+     0.22
+    ],
+    "pelvisY": 0.69,
+    "state": "getup"
+   }
+  ],
+  "worst": {
+   "pen": 0.027,
+   "kneeWrong": 0.25,
+   "neck": 0.56
+  },
+  "penFrames": 4,
+  "steps": 271,
+  "rag": 0
+ },
+ "gun": {
+  "name": "gun",
+  "frames": [
+   {
+    "t": 0,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.43,
+    "elbow": [
+     0.13,
+     0.06
+    ],
+    "pelvisY": 0.83,
+    "state": "dead"
+   },
+   {
+    "t": 0.12,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.43,
+    "elbow": [
+     0.13,
+     0.16
+    ],
+    "pelvisY": 0.77,
+    "state": "dead"
+   },
+   {
+    "t": 0.25,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.43,
+    "elbow": [
+     0.18,
+     0.26
+    ],
+    "pelvisY": 0.76,
+    "state": "dead"
+   },
+   {
+    "t": 0.45,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.53,
+    "elbow": [
+     0.01,
+     0.25
+    ],
+    "pelvisY": 0.45,
+    "state": "dead"
+   },
+   {
+    "t": 0.7,
+    "pen": 0.112,
+    "penPairs": [
+     "Hips/LeftForeArm",
+     "Hips/LeftLeg",
+     "Hips/RightLeg",
+     "Spine1/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "RightForeArm/RightLeg",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 3.01,
+    "neck": 0.43,
+    "elbow": [
+     0.36,
+     0.93
+    ],
+    "pelvisY": 0.12,
+    "state": "dead"
+   },
+   {
+    "t": 1,
+    "pen": 0.077,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg"
+    ],
+    "kneeWrong": 0,
+    "neck": 0.45,
+    "elbow": [
+     0.78,
+     0.15
+    ],
+    "pelvisY": 0.13,
+    "state": "dead"
+   },
+   {
+    "t": 1.5,
+    "pen": 0.111,
+    "penPairs": [
+     "Hips/RightLeg",
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 3.01,
+    "neck": 0.48,
+    "elbow": [
+     1.2,
+     0.27
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   },
+   {
+    "t": 2.2,
+    "pen": 0.114,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "RightForeArm/RightLeg",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 2.91,
+    "neck": 0.48,
+    "elbow": [
+     1.24,
+     0.23
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   },
+   {
+    "t": 3.2,
+    "pen": 0.114,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "RightForeArm/RightLeg",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 2.91,
+    "neck": 0.48,
+    "elbow": [
+     1.24,
+     0.22
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   },
+   {
+    "t": 4.5,
+    "pen": 0.114,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "RightForeArm/RightLeg",
+     "LeftUpLeg/RightUpLeg",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightUpLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 2.91,
+    "neck": 0.48,
+    "elbow": [
+     1.24,
+     0.22
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   }
+  ],
+  "worst": {
+   "pen": 0.15,
+   "kneeWrong": 3.12,
+   "neck": 0.64
+  },
+  "penFrames": 238,
+  "steps": 271,
+  "rag": 0
+ },
+ "car": {
+  "name": "car",
+  "frames": [
+   {
+    "t": 0,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.45,
+    "elbow": [
+     0.21,
+     0.14
+    ],
+    "pelvisY": 0.87,
+    "state": "dead"
+   },
+   {
+    "t": 0.12,
+    "pen": 0.096,
+    "penPairs": [
+     "Hips/LeftForeArm"
+    ],
+    "kneeWrong": 0,
+    "neck": 0.48,
+    "elbow": [
+     0.38,
+     0.19
+    ],
+    "pelvisY": 0.96,
+    "state": "dead"
+   },
+   {
+    "t": 0.25,
+    "pen": 0.125,
+    "penPairs": [
+     "Hips/LeftForeArm",
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm"
+    ],
+    "kneeWrong": 0,
+    "neck": 0.48,
+    "elbow": [
+     0.65,
+     2.26
+    ],
+    "pelvisY": 0.96,
+    "state": "dead"
+   },
+   {
+    "t": 0.45,
+    "pen": 0.094,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm"
+    ],
+    "kneeWrong": 1.03,
+    "neck": 0.49,
+    "elbow": [
+     0.08,
+     2.8
+    ],
+    "pelvisY": 0.92,
+    "state": "dead"
+   },
+   {
+    "t": 0.7,
+    "pen": 0.095,
+    "penPairs": [
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftForeArm/RightArm",
+     "LeftForeArm/RightForeArm"
+    ],
+    "kneeWrong": 2.49,
+    "neck": 0.47,
+    "elbow": [
+     0.32,
+     3.09
+    ],
+    "pelvisY": 0.87,
+    "state": "dead"
+   },
+   {
+    "t": 1,
+    "pen": 0.118,
+    "penPairs": [
+     "Hips/LeftForeArm",
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftLeg/RightUpLeg"
+    ],
+    "kneeWrong": 0,
+    "neck": 0.45,
+    "elbow": [
+     1.78,
+     0.11
+    ],
+    "pelvisY": 0.22,
+    "state": "dead"
+   },
+   {
+    "t": 1.5,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.51,
+    "elbow": [
+     3.03,
+     1.24
+    ],
+    "pelvisY": 0.44,
+    "state": "dead"
+   },
+   {
+    "t": 2.2,
+    "pen": 0.089,
+    "penPairs": [
+     "Hips/RightLeg",
+     "LeftUpLeg/RightLeg"
+    ],
+    "kneeWrong": 2.82,
+    "neck": 0.43,
+    "elbow": [
+     0.18,
+     1.58
+    ],
+    "pelvisY": 0.1,
+    "state": "dead"
+   },
+   {
+    "t": 3.2,
+    "pen": 0.09,
+    "penPairs": [
+     "Hips/LeftForeArm",
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 0.15,
+    "neck": 0.5,
+    "elbow": [
+     0.31,
+     0.94
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   },
+   {
+    "t": 4.5,
+    "pen": 0.09,
+    "penPairs": [
+     "Hips/LeftForeArm",
+     "Spine1/LeftForeArm",
+     "Spine2/LeftForeArm",
+     "LeftUpLeg/RightLeg",
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 0.16,
+    "neck": 0.5,
+    "elbow": [
+     0.31,
+     0.95
+    ],
+    "pelvisY": 0.11,
+    "state": "dead"
+   }
+  ],
+  "worst": {
+   "pen": 0.154,
+   "kneeWrong": 3.13,
+   "neck": 0.58
+  },
+  "penFrames": 254,
+  "steps": 271,
+  "rag": 0
+ },
+ "stairs": {
+  "name": "stairs",
+  "frames": [
+   {
+    "t": 0,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.43,
+    "elbow": [
+     0.08,
+     0.01
+    ],
+    "pelvisY": 2.46,
+    "state": "down"
+   },
+   {
+    "t": 0.12,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.43,
+    "elbow": [
+     0.28,
+     0.32
+    ],
+    "pelvisY": 2.43,
+    "state": "down"
+   },
+   {
+    "t": 0.25,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.44,
+    "elbow": [
+     0.35,
+     0.37
+    ],
+    "pelvisY": 2.27,
+    "state": "down"
+   },
+   {
+    "t": 0.45,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.45,
+    "elbow": [
+     0.13,
+     0.43
+    ],
+    "pelvisY": 1.88,
+    "state": "down"
+   },
+   {
+    "t": 0.7,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.44,
+    "elbow": [
+     0.03,
+     2.27
+    ],
+    "pelvisY": 1.14,
+    "state": "down"
+   },
+   {
+    "t": 1,
+    "pen": 0.064,
+    "penPairs": [
+     "LeftLeg/RightLeg"
+    ],
+    "kneeWrong": 0.41,
+    "neck": 0.5,
+    "elbow": [
+     0.86,
+     1.9
+    ],
+    "pelvisY": 1.06,
+    "state": "down"
+   },
+   {
+    "t": 1.5,
+    "pen": 0.09,
+    "penPairs": [
+     "Hips/RightLeg",
+     "LeftUpLeg/RightLeg"
+    ],
+    "kneeWrong": 2.58,
+    "neck": 0.44,
+    "elbow": [
+     1.27,
+     3.06
+    ],
+    "pelvisY": 1.03,
+    "state": "down"
+   },
+   {
+    "t": 2.2,
+    "pen": 0.028,
+    "penPairs": [
+     "Hips/RightLeg"
+    ],
+    "kneeWrong": 3.02,
+    "neck": 0.41,
+    "elbow": [
+     0.83,
+     2.72
+    ],
+    "pelvisY": 1.04,
+    "state": "down"
+   },
+   {
+    "t": 3.2,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.19,
+    "elbow": [
+     0.21,
+     0.26
+    ],
+    "pelvisY": 0.89,
+    "state": "getup"
+   },
+   {
+    "t": 4.5,
+    "pen": 0,
+    "penPairs": [],
+    "kneeWrong": 0,
+    "neck": 0.19,
+    "elbow": [
+     0.2,
+     0.23
+    ],
+    "pelvisY": 1.41,
+    "state": "getup"
+   }
+  ],
+  "worst": {
+   "pen": 0.119,
+   "kneeWrong": 3.02,
+   "neck": 0.56
+  },
+  "penFrames": 72,
+  "steps": 271,
+  "rag": 0
+ }
+}

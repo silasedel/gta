@@ -913,6 +913,7 @@ export function createCharacter(game, opts = {}) {
     update,
     setVisible(v) { root.visible = v; },
     getBone(name) { return base.rig.bones[name] ? model.getObjectByName(base.rig.bones[name].name) : null; },
+    getRest(name) { return base.rig.rest?.[name] || null; }, // rest (T) pose local transform, used by ragdoll joint limits
     restyle(zone) {
       const z = zone === true ? 'beach' : zone || 'residential';
       if (isHuman && hm) restyleHuman(hm.garments, seed, z);

@@ -97,7 +97,7 @@ export function materialOf(game, col, point, normal) {
     if (ud?.material) return ud.material;
     if (ud?.vehicle) return 'vehicle';
     for (const v of game.vehicles?.list || []) if (v.body && v.body.handle === body.handle) return 'vehicle';
-    try { if (body.isDynamic() && col.collisionGroups && ((col.collisionGroups() >>> 16) & 0x0004)) return 'flesh'; } catch (e) { /* */ }
+    try { if (body.isDynamic() && col.collisionGroups && ((col.collisionGroups() >>> 16) & 0x007c)) return 'flesh'; } catch (e) { /* */ }
   }
   if (!point) return 'concrete';
   const floor = !normal || normal.y > 0.6;
