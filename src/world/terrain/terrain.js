@@ -42,7 +42,9 @@ export function vnoise(x, z) { const ix = Math.floor(x), iz = Math.floor(z); let
 export async function createTerrain(renderer, data, opts = {}) {
   const T = data.tileSize || 200, WATER_Y = -0.55, Y_OFF = -0.02;
   const arr = await loadArray(renderer, LAYERS.map((l) => ({ key: l.key, name: l.name, level: l.level })), { size: 512 });
-  const uLay = LAYERS.map((l) => new THREE.Vector4(l.scale, l.wet || 0, l.rows || 0, 1));
+  // w: how strongly the layer is graded toward living grass (vegetation track: lush, varied rural green instead of brown / orange)
+  const GREEN = { lawn: 1, scrub: 0.92, meadow: 0.9, grove: 0.85, pine: 0.6, forest: 0.45, sawgrass: 0.35, farm: 0.15 };
+  const uLay = LAYERS.map((l) => new THREE.Vector4(l.scale, l.wet || 0, l.rows || 0, GREEN[l.key] || 0));
   const uTint = LAYERS.map((l) => new THREE.Color(l.tint ?? 0xffffff));
   const N = LAYERS.length;
   const real = (x, z) => (data.inRealMiami ? data.inRealMiami(x, z) : false);
@@ -68,7 +70,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
         .replace('#include <map_fragment>', `
           vec2 tp = vWP.xz;
           float n1 = tNoise(tp * 0.011), n2 = tNoise(tp * 0.067 + 3.1), n3 = tNoise(tp * 0.29 + 7.7);
-          vec4 tcA[3]; vec4 tnA[3]; float tw[3]; float twet[3]; float trow[3];
+          vec4 tcA[3]; vec4 tnA[3]; float tw[3]; float twet[3]; float trow[3]; float tgrn[3];
           for (int i = 0; i < 3; i++) {
             float Lf = floor(vL[i] + 0.5); int L = int(Lf); vec4 P = uLay[L];
             vec2 uv = tp * P.x;
@@ -77,7 +79,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
             vec4 c = mix(c0, c1, 0.25 + 0.3 * n2); c.rgb *= uTint[L];
             tcA[i] = c; tnA[i] = texture(tTNrm, vec3(uv, Lf));
             tw[i] = vBary[i] + dot(c0.rgb, vec3(0.333)) * 0.45 + n3 * 0.2 * vBary[i];
-            twet[i] = P.y; trow[i] = P.z;
+            twet[i] = P.y; trow[i] = P.z; tgrn[i] = P.w;
           }
           float tmx = max(tw[0], max(tw[1], tw[2])) - 0.2;
           vec3 tW = vec3(max(tw[0] - tmx, 0.0), max(tw[1] - tmx, 0.0), max(tw[2] - tmx, 0.0)); tW /= max(1e-4, tW.x + tW.y + tW.z);
@@ -85,7 +87,15 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
           vec4 tNr = tnA[0] * tW.x + tnA[1] * tW.y + tnA[2] * tW.z;
           float wetK = twet[0] * tW.x + twet[1] * tW.y + twet[2] * tW.z, rowK = trow[0] * tW.x + trow[1] * tW.y + trow[2] * tW.z;
           vec3 alb = tCol.rgb * mix(0.8, 1.12, n1) * mix(0.92, 1.06, n2);
-          alb = mix(alb, alb * vec3(1.1, 1.0, 0.76), smoothstep(0.55, 0.9, n1) * 0.45); // sun-bleached, drier patches
+          float grnK = tgrn[0] * tW.x + tgrn[1] * tW.y + tgrn[2] * tW.z;
+          alb = mix(alb, alb * vec3(1.04, 1.0, 0.86), smoothstep(0.6, 0.9, n1) * 0.3 * (1.0 - grnK)); // sun-bleached, drier patches (bare layers)
+          { // living-grass grade: keep the texture's luminance detail, recolour it as lush green with olive-dry and sandy patches (low frequency)
+            float lum = dot(alb, vec3(0.3, 0.59, 0.11)), lv = mix(lum, 0.16, 0.35) * 1.08;
+            float lush = smoothstep(0.28, 0.72, n1 * 0.7 + n2 * 0.3), sandy = smoothstep(0.8, 0.94, n2 * 0.75 + n1 * 0.25);
+            vec3 gLush = lv * vec3(0.58, 1.0, 0.34), gDry = lv * vec3(0.86, 1.0, 0.5), gSand = lv * vec3(1.18, 1.1, 0.84);
+            vec3 g = mix(mix(gDry, gLush, lush), gSand, sandy * 0.55) * mix(0.94, 1.05, n3);
+            alb = mix(alb, g, grnK);
+          }
           if (rowK > 0.01) { float fr = 0.5 + 0.5 * sin(tp.x * 3.927); alb *= mix(1.0, mix(0.6, 1.1, fr), rowK); }
           float tRough = tCol.a;
           float pud = wetK * smoothstep(0.5, 0.58, n2 * 0.6 + n3 * 0.4); // standing water in marsh / mangrove mud

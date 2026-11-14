@@ -31,11 +31,11 @@ const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x
 // ---------------- biomes ----------------
 // tree: max acceptance on the 8 m candidate grid inside groves; shrub: on the 3 m grid; grass: on the 1.1 m grid
 const BIOMES = {
-  keys: { tree: 0.32, trees: [['gumbo', 3], ['buttonwood', 2.5], ['sabal', 2], ['coconut', 1], ['seagrapeT', 2]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 2], ['fern', 0.6]], grass: 0.8, dry: 0.22, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
+  keys: { road: 0.3, tree: 0.32, trees: [['gumbo', 3], ['buttonwood', 2.5], ['sabal', 2], ['coconut', 1], ['seagrapeT', 2]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 2], ['fern', 0.6]], grass: 0.8, dry: 0.22, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
   keysSand: { tree: 0.06, trees: [['coconut', 2], ['sabal', 1], ['seagrapeT', 2]], shrub: 0.08, shrubs: [['seagrape', 3]], grass: 0.35, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
-  pine: { tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.3, shrubs: [['sawpalmetto', 5], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
-  hammock: { tree: 0.6, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2]], shrub: 0.28, shrubs: [['fern', 3], ['seagrape', 1], ['sawpalmetto', 1]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
-  rural: { tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1]], shrub: 0.12, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
+  pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.3, shrubs: [['sawpalmetto', 5], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
+  hammock: { road: 0.35, tree: 0.6, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2]], shrub: 0.28, shrubs: [['fern', 3], ['seagrape', 1], ['sawpalmetto', 1]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
+  rural: { road: 0.4, tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1]], shrub: 0.12, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
   glade: { tree: 0.14, dome: 1, trees: [['cypress', 5], ['liveoak', 1], ['sabal', 1.2]], shrub: 0.04, shrubs: [['sawpalmetto', 1]], grass: 0.95, tall: 0.75, dry: 0.5, flower: 0.025, rock: 0, hue: [1.06, 1.0, 0.76] },
   marsh: { tree: 0.07, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.85, tall: 1, dry: 0.25, flower: 0, rock: 0, hue: [0.95, 1.0, 0.8] },
   mangrove: { tree: 0.75, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.15, tall: 0.5, dry: 0.1, flower: 0, rock: 0, hue: [0.95, 1.0, 0.85] },
@@ -78,12 +78,13 @@ export function placeTrees(ctx, x0, z0, S, emit) {
   for (let j = Math.ceil(z0 / TSTEP); j * TSTEP < z0 + S; j++) for (let i = Math.ceil(x0 / TSTEP); i * TSTEP < x0 + S; i++) {
     const p = hh(i, j, 3), x = (i + 0.22 + hh(i, j, 1) * 0.56) * TSTEP, z = (j + 0.22 + hh(i, j, 2) * 0.56) * TSTEP; // trunks >= 3.5 m apart
     const g = groveN(x, z), gd = vn(x / 60 - 11, z / 60 + 4); // gd: cypress domes / tree islands
-    if (p > 0.75 * Math.max(g, gd > 0.7 ? 1 : 0)) continue;
+    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.4)) continue; // 0.4: roadside-row candidates
     const b = biomeOf(ctx, x, z); if (!b) continue;
     const B = BIOMES[BKEYS[b - 1]], dens = B.dome ? (gd > 0.68 ? 0.7 : B.tree * g * 0.35) : B.tree * (0.15 + 0.85 * g);
-    if (p >= dens) continue;
+    let rdQ = null; // roadside row: rural stretches keep trees just outside the clear zone so their shade dapples the asphalt
+    if (p >= dens) { if (!B.road || p >= B.road) continue; rdQ = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rdQ < 4.5 || rdQ > 15) continue; }
     const name = pick(B.trees, hh(i, j, 5)), K = TREE_KINDS[name];
-    const rd = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rd < (K.palm ? 4 : 5.5) + hh(i, j, 6) * 5) continue;
+    const rd = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99); if (rd < (rdQ !== null ? 4.5 : (K.palm ? 4 : 5.5) + hh(i, j, 6) * 5)) continue;
     if (inLot(x, z)) continue;
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
@@ -150,13 +151,14 @@ function rock(seed, col) { // limestone / coral rock: displaced, flattened icosp
 // ---------------- LOD bands (m): [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] ----------------
 const BAND = {
   // full mesh straight to the impostor baked from that same mesh (an in-between 'lod 1' mesh has a different branch layout = shape pop)
-  tree: [[0, 0, 120, 150], null, [120, 150, 1150, 1320]],
-  shrub: [[0, 0, 55, 75], null, [55, 75, 380, 440]],
-  gc: [[0, 0, 40, 60]],
+  tree: [[0, 0, 60, 76], null, [60, 76, 1150, 1320]],
+  shrub: [[0, 0, 34, 48], null, [34, 48, 380, 440]],
+  gc: [[0, 0, 36, 52]],
   peb: [[0, 0, 26, 40]],
-  gcn: [[0, 0, 20, 32]],
+  gcn: [[0, 0, 18, 26]],
+  gch: [[0, 0, 24, 34]], // half of the main grass layer stops early: grass density falls off with distance
 };
-const CELLS = 64, HALF = CELLS * 0.7072, MARGIN = 11, R_TREE = 1320, R_SHRUB = 440, R_GC = 62, GRID = 4;
+const CELLS = 64, HALF = CELLS * 0.7072, MARGIN = 11, R_TREE = 1320, R_SHRUB = 440, R_GC = 54, GRID = 4;
 
 class Slot { // one InstancedMesh whose content is rebuilt from the cells on every re-bucket
   constructor(parent, geo, mat, depth, cast, colored) { Object.assign(this, { parent, geo, mat, depth, cast, colored, cap: 0, n: 0, im: null }); this.grow(64); }
@@ -180,7 +182,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   const vegMat = (fam, band, o = {}) => makeVegMaterial(fam, { fade: band, lean: 0.006, sway: 0.0035, ...o });
   const MAT = {};
   for (const cls of ['tree', 'shrub']) MAT[cls] = [{ bark: vegMat('bark', BAND[cls][0]), leaf: vegMat('leaf', BAND[cls][0]) }];
-  MAT.gc = { leaf: vegMat('leaf', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0.35, transl: 0.7 }), plain: vegMat('plain', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0 }), rock: vegMat('plain', BAND.gc[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), peb: vegMat('plain', BAND.peb[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), fill: vegMat('plain', BAND.gcn[0], { lean: 0.02, sway: 0.03, wear: 0 }) };
+  MAT.gc = { leaf: vegMat('leaf', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0.35, transl: 0.7 }), plain: vegMat('plain', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0 }), rock: vegMat('plain', BAND.gc[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), peb: vegMat('plain', BAND.peb[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), fill: vegMat('plain', BAND.gcn[0], { lean: 0.02, sway: 0.03, wear: 0 }), half: vegMat('plain', BAND.gch[0], { lean: 0.02, sway: 0.03, wear: 0 }) };
   const bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
   // ---- prototypes ----
   const protos = [], protoOf = {};
@@ -193,7 +195,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       try { const im = bakeImpostor(renderer, 'cs_' + key, 1, g0, bakeM.bark.mat, bakeM.leaf.mat, 256), m = makeVegMaterial('imp', { map: im.texture, fade: bands[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 });
         P.lods.push({ band: bands[2], slots: [new Slot(group, im.geometry, m.mat, m.depth, false, colored)] }); } catch (e) { console.warn('[countryside] impostor bake failed', key, e); }
     } else {
-      const band = cls === 'peb' ? BAND.peb[0] : cls === 'gcn' ? BAND.gcn[0] : BAND.gc[0], M = cls === 'peb' ? MAT.gc.peb : cls === 'gcn' ? MAT.gc.fill : g0.plain ? (key.startsWith('rock') ? MAT.gc.rock : MAT.gc.plain) : MAT.gc.leaf;
+      const band = cls === 'peb' ? BAND.peb[0] : cls === 'gcn' ? BAND.gcn[0] : cls === 'gch' ? BAND.gch[0] : BAND.gc[0], M = cls === 'peb' ? MAT.gc.peb : cls === 'gcn' ? MAT.gc.fill : cls === 'gch' ? MAT.gc.half : g0.plain ? (key.startsWith('rock') ? MAT.gc.rock : MAT.gc.plain) : MAT.gc.leaf;
       P.lods.push({ band, slots: [new Slot(group, g0.plain || g0.leaf, M.mat, M.depth, key.startsWith('rock'), true)] });
     }
     protos.push(P); (protoOf[key.replace(/#\d+$/, '')] ||= []).push(idx); return idx;
@@ -201,7 +203,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   for (const [name, K] of Object.entries(TREE_KINDS)) K.seeds.forEach(([seed, size], v) => { const o = { seed, size }; addProto(K.shrubLike ? 'shrub' : 'tree', name + '#' + v, buildGeometry(K.kind, { ...o, lod: 0 }), null); });
   for (const [name, K] of Object.entries(SHRUB_KINDS)) K.seeds.forEach(([seed, size], v) => { const g0 = K.custom ? fernClump(seed) : buildGeometry(K.kind, { seed, size, lod: 0 }); addProto('shrub', name + '#' + v, g0, null); });
   const GC = {
-    grass: [1, 2, 3, 4].map((s) => bladeTuft(s * 11, { n: 26, h: 0.42, w: 0.007, lean: 0.55, r: 0.28 })),
+    grass: [1, 2, 3, 4].map((s) => bladeTuft(s * 11, { n: 12, h: 0.42, w: 0.01, lean: 0.55, r: 0.28 })), // 12 blades: this layer reaches 52 m
+    fillG: [1, 2, 3, 4].map((s) => bladeTuft(s * 13, { n: 13, h: 0.4, w: 0.008, lean: 0.55, r: 0.3 })), // dense near layer (<26 m)
     short: [1, 2].map((s) => bladeTuft(s * 17, { n: 22, h: 0.2, w: 0.006, lean: 0.6, r: 0.3 })),
     tall: [1, 2].map((s) => bladeTuft(s * 23, { n: 22, h: 0.95, w: 0.009, lean: 0.4, r: 0.22 })),
     daisy: [1, 2].map((s) => flowerClump(s * 31, [0.92, 0.92, 0.88], [0.95, 0.7, 0.08])),
@@ -209,8 +212,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     rock: [1, 2, 3].map((s) => rock(s * 41, [0.13, 0.125, 0.11])), // linear albedo: weathered grey limestone, not chalk white
     peb: [1, 2].map((s) => rock(s * 47, [0.12, 0.11, 0.095])),
   };
-  for (const [k, list] of Object.entries(GC)) list.forEach((g, v) => addProto(k === 'peb' ? 'peb' : 'gc', k + '#' + v, g, null));
-  GC.grass.forEach((g, v) => addProto('gcn', 'fill#' + v, g, null)); // near fill: a second, denser grass layer that only lives within ~30 m
+  for (const [k, list] of Object.entries(GC)) if (k !== 'fillG') list.forEach((g, v) => addProto(k === 'peb' ? 'peb' : 'gc', k + '#' + v, g, null));
+  GC.fillG.forEach((g, v) => addProto('gcn', 'fill#' + v, g, null)); GC.grass.forEach((g, v) => addProto('gch', 'half#' + v, g, null)); // near fill: a second, denser grass layer that only lives within ~30 m
 
   // ---- cells ----
   const cells = new Map(); let dirty = true;
@@ -272,7 +275,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       if (hh(i, j, 46) < 0.8) pushItem(c, protoOf.fill[(p * 517 | 0) % 4], x - 0.35, y - 0.02, z + 0.4, ry + 1, 0.75 + hh(i, j, 47) * 0.5, _n, [B.hue[0], B.hue[1], B.hue[2] * 0.95]);
       const dry = sstep(0.5, 0.85, patchN(x, z, 7)) * B.dry + (rd < 4 ? 0.1 : 0), v = 0.85 + hh(i, j, 41) * 0.3;
       const gcol = [B.hue[0] * v * (1 + dry * 0.55), B.hue[1] * v * (1 + dry * 0.12), B.hue[2] * v * (1 - dry * 0.45)];
-      const tall = B.tall && patchN(x, z, 9) < B.tall, kind = tall ? 'tall' : (rd < 5 && pat < 0.45) || pat < 0.3 ? 'short' : 'grass', L = protoOf[kind];
+      const tall = B.tall && patchN(x, z, 9) < B.tall, kind0 = tall ? 'tall' : (rd < 5 && pat < 0.45) || pat < 0.3 ? 'short' : 'grass', kind = kind0 === 'grass' && hh(i, j, 48) < 0.5 ? 'half' : kind0, L = protoOf[kind];
       pushItem(c, L[(p * 997 | 0) % L.length], x, y - 0.02, z, ry, 0.75 + hh(i, j, 42) * 0.55, _n, gcol);
     }
     c.lv.g = 1;
@@ -300,7 +303,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     // forget far data (hysteresis)
     for (const c of cells.values()) { const d = Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) - HALF;
       if (d > R_TREE + 140) { cells.delete(c.k); dirty = true; continue; }
-      if (c.lv.g && d > R_GC + 60) { dropLevel(c, ['gc', 'peb', 'gcn']); c.lv.g = 0; }
+      if (c.lv.g && d > R_GC + 60) { dropLevel(c, ['gc', 'peb', 'gcn', 'gch']); c.lv.g = 0; }
       if (c.lv.s && d > R_SHRUB + 80) { for (const [pi] of c.lists) if (protos[pi].cls === 'shrub' && !TREE_KINDS[protos[pi].key.split('#')[0]]) c.lists.delete(pi); c.lv.s = 0; c.grid = c.lv.g ? c.grid : null; dirty = true; }
       if (!c.lv.s && !c.lv.g) c.grid = null; }
     return tasks.length;
@@ -339,14 +342,15 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     st.pending = pending;
   }
   function stats() {
-    let draws = 0, inst = 0, tris = 0; const byCls = {};
-    for (const P of protos) P.lods.forEach((L, l) => { for (const s of L.slots) if (s.n) { draws++; inst += s.n; const t = s.n * (s.geo.index ? s.geo.index.count / 3 : s.geo.attributes.position.count / 3); tris += t; byCls[P.cls + l] = (byCls[P.cls + l] || 0) + s.n; } });
-    return { cells: cells.size, drawCalls: draws, instances: inst, tris: Math.round(tris), byClassLod: byCls, gen: st.gen, genAvgMs: +(st.genMs / Math.max(1, st.gen)).toFixed(2), genMaxMs: +st.maxMs.toFixed(1), rebuckets: st.rebucket, rebucketAvgMs: +(st.rebucketMs / Math.max(1, st.rebucket)).toFixed(2), lastRebucketMs: +st.lastRebucketMs.toFixed(2), pending: st.pending, initMs: Math.round(initMs) };
+    let draws = 0, inst = 0, tris = 0; const byCls = {}, byTris = {};
+    for (const P of protos) P.lods.forEach((L, l) => { for (const s of L.slots) if (s.n) { draws++; inst += s.n; const t = s.n * (s.geo.index ? s.geo.index.count / 3 : s.geo.attributes.position.count / 3); tris += t; byCls[P.cls + l] = (byCls[P.cls + l] || 0) + s.n; byTris[P.cls + l] = Math.round((byTris[P.cls + l] || 0) + t); } });
+    return { cells: cells.size, drawCalls: draws, instances: inst, tris: Math.round(tris), byClassLod: byCls, trisByClassLod: byTris, gen: st.gen, genAvgMs: +(st.genMs / Math.max(1, st.gen)).toFixed(2), genMaxMs: +st.maxMs.toFixed(1), rebuckets: st.rebucket, rebucketAvgMs: +(st.rebucketMs / Math.max(1, st.rebucket)).toFixed(2), lastRebucketMs: +st.lastRebucketMs.toFixed(2), pending: st.pending, initMs: Math.round(initMs) };
   }
   function dispose() { group.removeFromParent(); for (const P of protos) for (const L of P.lods) for (const s of L.slots) s.im.dispose(); cells.clear(); if (active === api) active = null; }
   const initMs = performance.now() - t0;
   function nearestTree(x, z, kind = null) { let best = null, bd = Infinity; for (const c of cells.values()) for (const [pi, L] of c.lists) { const k = protos[pi].key.split('#')[0]; if (!TREE_KINDS[k] || (kind && k !== kind)) continue; for (let i = 0; i < L.n; i++) { const d = (L.m[i * 16 + 12] - x) ** 2 + (L.m[i * 16 + 14] - z) ** 2; if (d < bd) { bd = d; best = { kind: k, x: L.m[i * 16 + 12], y: L.m[i * 16 + 13], z: L.m[i * 16 + 14] }; } } } return best; }
-  const api = { group, update, stats, dispose, reject, protos, nearestTree, biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
+  function treesNear(x, z, r) { const out = []; for (const c of cells.values()) { if (Math.abs(c.cx - x) > r + CELLS || Math.abs(c.cz - z) > r + CELLS) continue; for (const [pi, L] of c.lists) { const k = protos[pi].key.split('#')[0]; if (!TREE_KINDS[k]) continue; for (let i = 0; i < L.n; i++) { const o = i * 16, tx = L.m[o + 12], tz = L.m[o + 14]; if ((tx - x) ** 2 + (tz - z) ** 2 > r * r) continue; out.push({ kind: k, palm: !!TREE_KINDS[k].palm, x: tx, y: L.m[o + 13], z: tz, s: Math.hypot(L.m[o], L.m[o + 1], L.m[o + 2]) }); } } } return out; }
+  const api = { group, update, stats, dispose, reject, protos, nearestTree, treesNear, biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
   active = api;
   return api;
 }

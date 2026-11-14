@@ -89,12 +89,51 @@ const FRAG_TRANSL = `
   }
 `;
 
+// multi-view impostor (field.js bakeImpostor): camera-facing quad around the plant's axis, nearest two baked azimuths
+const IMP_VERT_HEAD = `
+uniform vec4 uImp; // views, radius, y0, height
+varying vec2 vImpUv0; varying vec2 vImpUv1; varying float vImpF;
+`;
+const IMP_NORMAL = `
+  vec3 objectNormal;
+  vec2 impDir;
+  {
+    mat4 impM = modelMatrix;
+  #ifdef USE_INSTANCING
+    impM = impM * instanceMatrix;
+  #endif
+    vec3 camL = (inverse(impM) * vec4(uVegCamOn > 0.5 ? uVegCam : cameraPosition, 1.0)).xyz;
+    impDir = camL.xz; float l = length(impDir); impDir = l > 1e-4 ? impDir / l : vec2(0.0, 1.0);
+    objectNormal = normalize(vec3(impDir.x, 0.0, impDir.y) * 0.45 + vec3(0.0, 0.9, 0.0));
+    float V = uImp.x, ph = atan(impDir.x, impDir.y) / 6.2831853; ph = ph < 0.0 ? ph + 1.0 : ph;
+    float fk = ph * V, k0 = floor(fk); vImpF = fk - k0; float k1 = mod(k0 + 1.0, V); k0 = mod(k0, V);
+    vImpUv0 = vec2((k0 + uv.x) / V, uv.y); vImpUv1 = vec2((k1 + uv.x) / V, uv.y);
+  }
+`;
+const IMP_POS = `
+  vec3 transformed = vec3(impDir.y * position.x * uImp.y, uImp.z + position.y * uImp.w, -impDir.x * position.x * uImp.y);
+`;
+const IMP_FRAG_HEAD = `
+uniform vec4 uImp; varying vec2 vImpUv0; varying vec2 vImpUv1; varying float vImpF;
+`;
+const IMP_MAP = `
+  { // blend the two nearest baked azimuths by a screen-space dither (no ghosted double image)
+    vec2 impUv = vegDither() < vImpF ? vImpUv1 : vImpUv0;
+    vec4 sampledDiffuseColor = texture2D( map, impUv );
+    diffuseColor *= sampledDiffuseColor;
+  }
+`;
+
 function patch(kind, local) {
   return (sh) => {
     Object.assign(sh.uniforms, vegUniforms, local);
-    sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY);
-    if (sh.fragmentShader.includes('#include <map_fragment>')) {
-      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR);
+    if (kind === 'imp') {
+      sh.vertexShader = IMP_VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', IMP_NORMAL).replace('#include <begin_vertex>', IMP_POS);
+      sh.fragmentShader = IMP_FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment_imp>');
+    }
+    sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
+    if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
+      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
     } else { // depth material: dither only
@@ -105,7 +144,8 @@ function patch(kind, local) {
 }
 
 function localUniforms(o) {
-  return { uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
+  const im = o.map && o.map.userData && o.map.userData.impostor;
+  return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) } };
 }
 

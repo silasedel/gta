@@ -63,11 +63,6 @@
    "state": "todo"
   },
   {
-   "name": "Pass 2: fuller palm crowns (27-35 fronds coconut, 23-30 royal), fuller crownshaft, fiber mesh, flower stalks, root mass, ring relief, lichen, height color variation",
-   "state": "verified",
-   "evidence": "docs/v2/shots/vegetation/palms_lineup2.png"
-  },
-  {
    "name": "Crown close-ups and rebuilt clipped hedge",
    "state": "verified",
    "evidence": "docs/v2/shots/vegetation/palms_crown_close.png"
@@ -115,11 +110,6 @@
    "evidence": "docs/v2/shots/vegetation/countryside/compare_hwy.jpg"
   },
   {
-   "name": "No pop: full mesh to an impostor baked from that exact mesh (same seed / scale / yaw / instance colour; bake has no lean, sway, tint or wear), dithered cross-fades (trees 120-150 m, shrubs 55-75 m, impostors out to 1.3 km), shadow pass fades with the view camera; palms keep the same crown at every LOD",
-   "state": "built",
-   "evidence": "docs/v2/shots/vegetation/countryside/after_fly_sheet.jpg, docs/v2/shots/vegetation/countryside/after_drive_sheet.jpg (frames 1.5 s apart; not a frame-by-frame pop test)"
-  },
-  {
    "name": "Biomes: Keys scrub, Keys sand, pine rockland, hammock, rural verge, glades (cypress domes), marsh, mangrove shore; 9 tree kinds x 2-3 seeds, seagrape / saw palmetto / fern shrubs; grove / clearing noise; per-instance hue",
    "state": "verified",
    "evidence": "docs/v2/shots/vegetation/countryside/compare_rural.jpg"
@@ -143,6 +133,21 @@
    "name": "Countryside performance: 66-80 draw calls, 10-20k instances, 0.6-2.4 M tris, cell gen 0.25 ms avg / 12-20 ms max, re-bucket 2-6 ms every 5 m or 0.35 rad",
    "state": "built",
    "evidence": "docs/v2/reports/vegetation-after.json (shared machine, 3 headless browsers: fps not comparable)"
+  },
+  {
+   "name": "No pop: full mesh -> multi-view impostor (8 azimuths baked around the plant's own axis, camera-facing, dithered blend of the 2 nearest views) baked from the same mesh; replaces crossed cards that showed a doubled crown / pale slab on leaning palms and lopsided crowns",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/dolly/tree_lodband_strip.jpg, docs/v2/shots/vegetation/dolly/palm_lodband_strip.jpg, docs/v2/reports/vegetation-dolly.json (spike 1.02 tree, 1.00 palm in the 56-80 m swap band)"
+  },
+  {
+   "name": "Pass 2: roadside tree row 4.5-15 m from rural road edges (shade on the asphalt), green rural terrain grade (lush / olive-dry / sandy patches, no orange bleach), muted green-grey royal crownshaft",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/countryside/pass2_sheet.jpg"
+  },
+  {
+   "name": "Pass 2 triangle budget: highway view 0.99 M, dense rural woodland 1.41 M (tree L0 to 60-76 m, grass 12/13-blade tufts, half the grass ends at 34 m, near fill to 26 m)",
+   "state": "built",
+   "evidence": "docs/v2/reports/vegetation-after.json (rural is over the 1.2 M aim)"
   }
  ]
 }

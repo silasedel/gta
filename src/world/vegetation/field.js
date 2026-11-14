@@ -10,42 +10,42 @@ import { makeVegMaterial, vegUniforms } from './materials.js';
 
 const DEF_DIST = { palm: [45, 160, 900], tree: [55, 190, 1100], shrub: [28, 90, 260] };
 
-// bake an impostor: two orthographic views (front, side) of the full-detail plant into one RGBA texture (left / right half)
+// bake an impostor: V orthographic views around the plant's own vertical axis (azimuth k * 360 / V), side by side in one RGBA
+// texture, framed on the trunk base so every view shares one pivot. The impostor is a single camera-facing quad that shows the
+// view nearest to the true viewing azimuth (dithered blend of the two nearest), so a leaning palm or a lopsided crown projects
+// where the real mesh projects: no doubled crown or flat slab from crossed cards, no shape jump at the mesh <-> impostor swap.
 const _bakeCache = new Map(); let _bakeMats = null;
-export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 512) {
-  const key = kind + ':' + seed; if (_bakeCache.has(key)) return _bakeCache.get(key);
+export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 256, V = 8) {
+  const key = kind + ':' + seed + ':' + S + ':' + V; if (_bakeCache.has(key)) return _bakeCache.get(key);
   const bb = new THREE.Box3(); geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox();
-  bb.copy(geo.leaf.boundingBox); if (geo.bark.index.count) bb.union(geo.bark.boundingBox);
-  const half = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z, 0.5) / 2 * 1.04, hgt = (bb.max.y - Math.min(0, bb.min.y)) * 1.03, cx = (bb.max.x + bb.min.x) / 2, cz = (bb.max.z + bb.min.z) / 2;
-  const rt = new THREE.WebGLRenderTarget(S * 2, Math.round(S * Math.min(2, hgt / (half * 2))), { samples: 4, colorSpace: THREE.NoColorSpace });
+  bb.copy(geo.leaf.boundingBox); if (geo.bark.index && geo.bark.index.count) bb.union(geo.bark.boundingBox);
+  const R = Math.max(0.5, Math.hypot(Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x)), Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z)))) * 1.02;
+  const y0 = Math.min(0, bb.min.y), hgt = (bb.max.y - y0) * 1.02;
+  const rh = Math.min(1024, Math.max(32, Math.round(S * hgt / (2 * R))));
+  const rt = new THREE.WebGLRenderTarget(S * V, rh, { samples: 4, colorSpace: THREE.NoColorSpace });
   const scene = new THREE.Scene(); scene.add(new THREE.AmbientLight(0xffffff, Math.PI * 0.95));
   // bake with neutral materials: no lean, no wind sway, no per-instance tint / wear (the impostor material applies those per instance,
   // exactly like the near mesh), so the far card is the same plant in the same pose and colour
   _bakeMats ||= { bark: makeVegMaterial('bark', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat, leaf: makeVegMaterial('leaf', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat };
   const g = new THREE.Group(); if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark)); g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf)); scene.add(g);
-  const cam = new THREE.OrthographicCamera(-half, half, hgt, 0, 0.1, 400);
-  const prev = { rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), sun: vegUniforms.uSunCol.value.clone(), as: renderer.autoClear, sm: renderer.shadowMap.enabled };
+  const cam = new THREE.OrthographicCamera(-R, R, y0 + hgt, y0, 0.1, 400);
+  const prev = { rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), sun: vegUniforms.uSunCol.value.clone(), as: renderer.autoClear };
   vegUniforms.uSunCol.value.setRGB(0, 0, 0); renderer.setClearColor(0x3e5a2c, 0); renderer.autoClear = false; renderer.setRenderTarget(rt); renderer.clear();
-  for (let v = 0; v < 2; v++) {
-    const a = v * Math.PI / 2; cam.position.set(cx + Math.sin(a) * 100, Math.min(0, bb.min.y), cz + Math.cos(a) * 100); cam.lookAt(cx, Math.min(0, bb.min.y), cz); cam.updateMatrixWorld();
-    rt.viewport.set(v * S, 0, S, rt.height); rt.scissor.set(v * S, 0, S, rt.height); rt.scissorTest = true;
+  for (let v = 0; v < V; v++) {
+    const a = v / V * Math.PI * 2; cam.position.set(Math.sin(a) * 100, 0, Math.cos(a) * 100); cam.lookAt(0, 0, 0); cam.updateMatrixWorld();
+    rt.viewport.set(v * S, 0, S, rh); rt.scissor.set(v * S, 0, S, rh); rt.scissorTest = true;
     renderer.setRenderTarget(rt); renderer.render(scene, cam);
   }
   rt.viewport.set(0, 0, rt.width, rt.height); rt.scissorTest = false;
   renderer.setRenderTarget(prev.rt); renderer.setClearColor(prev.cc, prev.ca); renderer.autoClear = prev.as; vegUniforms.uSunCol.value.copy(prev.sun);
-  rt.texture.generateMipmaps = true; rt.texture.minFilter = THREE.LinearMipmapLinearFilter;
-  // geometry: two crossed quads, each showing its view; normals lean up so the far canopy reads lit from the sky
-  const pos = [], nor = [], uv = [], idx = [];
-  for (let v = 0; v < 2; v++) {
-    const a = v * Math.PI / 2, ax = [Math.cos(a), 0, -Math.sin(a)], b = pos.length / 3;
-    for (const [sx, sy] of [[-1, 0], [1, 0], [1, 1], [-1, 1]]) {
-      pos.push(cx + ax[0] * sx * half, Math.min(0, bb.min.y) + sy * hgt, cz + ax[2] * sx * half); nor.push(Math.sin(a) * 0.35, 0.9, Math.cos(a) * 0.35);
-      uv.push((v + (sx + 1) / 2) / 2, sy);
-    }
-    idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
-  }
-  const ig = new THREE.BufferGeometry(); ig.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); ig.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); ig.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  ig.setAttribute('aWind', new THREE.Float32BufferAttribute(pos.map((p, i) => (i % 3 === 1 ? Math.max(0, p) : 0)), 3)); // same bend-by-height as the mesh: no lean / sway jump at the swap ig.setIndex(idx); ig.computeBoundingSphere();
+  rt.texture.generateMipmaps = true; rt.texture.minFilter = THREE.LinearMipmapLinearFilter; rt.texture.userData.impostor = { views: V, R, y0, hgt };
+  // geometry: one quad; position.xy = corner (-1..1, 0..1), the vertex shader turns it to face the camera around the plant's axis
+  const ig = new THREE.BufferGeometry();
+  ig.setAttribute('position', new THREE.Float32BufferAttribute([-1, 0, 0, 1, 0, 0, 1, 1, 0, -1, 1, 0], 3));
+  ig.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
+  ig.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
+  ig.setAttribute('aWind', new THREE.Float32BufferAttribute([Math.max(0, y0), 0, 0, Math.max(0, y0), 0, 0, y0 + hgt, 0, 0, y0 + hgt, 0, 0], 3)); // same bend-by-height as the mesh
+  ig.setIndex([0, 1, 2, 0, 2, 3]); ig.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, y0 + hgt / 2, 0), Math.hypot(R, hgt / 2));
   const out = { geometry: ig, texture: rt.texture, rt };
   _bakeCache.set(key, out); g.clear();
   return out;

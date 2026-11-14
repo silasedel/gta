@@ -55,7 +55,7 @@ export async function initV2(game) {
     try {
       t += dt || 0;
       const cur = vegUniforms.uVegTime.value;
-      if (cur === lastSeen) updateVegetation(t, game.scene, null, game.wind); // nobody else advanced the wind clock this frame
+      if (game.vegetation.freezeWind) { /* test hook: hold the wind clock (dolly pop test) */ } else if (cur === lastSeen) updateVegetation(t, game.scene, null, game.wind); // nobody else advanced the wind clock this frame
       else updateVegetation(cur, game.scene, null, game.wind), vegUniforms.uVegTime.value = cur;
       lastSeen = vegUniforms.uVegTime.value;
       if (game.camera) { setVegCamera(game.camera); for (const f of fields) f.update(game.camera); }

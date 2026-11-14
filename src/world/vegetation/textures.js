@@ -73,10 +73,10 @@ function barkSample(col, u, v) {
     const k = 0.86 + 0.16 * ring + 0.1 * (n - 0.5);
     return { h, c: [mix(0.6, 0.55, li) * k, mix(0.58, 0.62, li) * k, mix(0.54, 0.45, li) * k], r: 0.78 };
   }
-  if (col === 5) { // crownshaft: glossy green, faint vertical striations, waxy bloom patches
+  if (col === 5) { // crownshaft: muted green-grey, faint vertical striations, waxy bloom patches
     const n = fbm(u * 60, v * 2, 60, 2, s, 3), bl = smooth(0.55, 0.8, fbm(u * 4, v * 3, 4, 3, s + 1));
     const h = 0.5 + 0.08 * n, k = 0.85 + 0.2 * n;
-    return { h, c: [mix(0.33, 0.5, bl) * k, mix(0.5, 0.58, bl) * k, mix(0.22, 0.38, bl) * k], r: 0.42 + 0.2 * bl };
+    return { h, c: [mix(0.4, 0.5, bl) * k, mix(0.46, 0.53, bl) * k, mix(0.37, 0.45, bl) * k], r: 0.5 + 0.2 * bl }; // muted green-grey with a waxy bloom
   }
   if (col === 6) { // fiber: brown frond bases, coarse vertical fibers with mesh
     const n = fbm(u * 90, v * 4, 90, 4, s, 3), m = fbm(u * 20, v * 20, 20, 20, s + 3, 3);
