@@ -1697,7 +1697,7 @@ export function createAudio(game) {
       m.g.gain.setTargetAtTime(w.gain, t, 0.5);
       m.lp.frequency.setTargetAtTime(w.lp, t, 0.3);
       m.hs.gain.setTargetAtTime(w.bass || 0, t, 0.3);
-      if (w.rate) m.src.playbackRate.setTargetAtTime(w.rate, t, 0.1);
+      if (w.rate && m.src?.playbackRate) m.src.playbackRate.setTargetAtTime(w.rate, t, 0.1); // media-element music has no AudioParam rate
     }
   }
 
