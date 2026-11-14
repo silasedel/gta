@@ -11,7 +11,7 @@ import { createOutfit, preloadWardrobe } from '../wardrobe/outfit.js';
 
 const DIR = '/assets/characters/nico/';
 let ASSETS = null;
-export const NICO_LOD = { d0: 3.6, d1: 16, d2: 42 };           // camera distances for mesh LOD 0/1/2/3 (hysteresis 12 %)
+export const NICO_LOD = { d0: 9, d1: 18, d2: 42 };              // camera distances for mesh LOD 0/1/2/3 (hysteresis 12 %); LOD0 covers the follow camera
 
 export function preloadNico() {
   if (ASSETS) return ASSETS;
@@ -56,7 +56,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quater
 export function decorateNico(character, { game, model, assets, opts = {} }) {
   const meta = assets.meta;
   const skin = makeSkinState();
-  const hairState = { uHairLen: { value: 0.034 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.75, 0.05, 0.35) }, uWet: skin.uWet };
+  const hairState = { uHairLen: { value: 0.040 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.75, 0.05, 0.35) }, uWet: skin.uWet };
   const mouth = { value: 0 };
   const mats = { skin_head: makeSkinMaterial('head', skin), skin_body: makeSkinMaterial('body', skin), skin_far: makeSkinMaterial('far', skin),
     lashes: makeLashMaterial(), teeth: makeMouthMaterial('teeth', mouth), tongue: makeMouthMaterial('tongue', mouth) };
@@ -90,6 +90,28 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
   const bone = (n) => model.getObjectByName(n) || model.getObjectByName('mixamorig' + n);
   const face = createFace({ model, meta, faceMeshes, eyes, bone, mouth, skin });
   const outfit = createOutfit({ character, model, bone, skin, meta, game });
+  // LOD0 is the hero mesh at the follow camera: its body primitive keeps only triangles that are not fully under the
+  // clothes (the cover mask already discards those pixels), which keeps LOD0 near 50k triangles with a full outfit.
+  const trimmed = new Map();
+  const trimBody = (px) => {
+    for (const o of lod[0]) {
+      if (o.material !== mats.skin_body || !o.geometry.index) continue;
+      const g = o.geometry;
+      if (!trimmed.has(g)) trimmed.set(g, g.index.array.slice());
+      const src = trimmed.get(g);
+      if (!px) { g.setIndex(new THREE.BufferAttribute(src, 1)); continue; }
+      const uv = g.attributes.uv, n = uv.count, cov = new Uint8Array(n);
+      for (let i = 0; i < n; i++) {
+        const x = Math.min(511, Math.max(0, Math.floor(uv.getX(i) * 512))), y = Math.min(511, Math.max(0, Math.floor(uv.getY(i) * 512)));
+        cov[i] = px[(y * 512 + x) * 4] > 127 ? 1 : 0;
+      }
+      const keep = [];
+      for (let t = 0; t < src.length; t += 3) if (!(cov[src[t]] && cov[src[t + 1]] && cov[src[t + 2]])) keep.push(src[t], src[t + 1], src[t + 2]);
+      g.setIndex(new THREE.BufferAttribute(n > 65535 ? new Uint32Array(keep) : new Uint16Array(keep), 1));
+    }
+  };
+  outfit.onCover = trimBody;
+  try { outfit.refreshCover(); } catch (e) { /* outfit not dressed yet: the first set() trims */ }
 
   // ---- mesh LOD by camera distance
   let cur = -1; let hat = false;

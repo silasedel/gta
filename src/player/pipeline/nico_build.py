@@ -111,6 +111,30 @@ ear_x = P_[headw][np.argmax(P_[headw, 0])]                                      
 jaw_p = np.array([0.0, ear_x[1] - 0.022, ear_x[2] - 0.012])
 log("jaw pivot", jaw_p.round(4), "chin", ID[chin_i].round(4), "ear", ear_x.round(4))
 
+# ---- head sculpt (nico_design.SCULPT): gaussian falloff brushes on the head, identity and every morph alike, so the
+# expressions and body shapes keep their deltas. Eyelid rims are protected so the lids still close over the eyeball.
+if getattr(D, "SCULPT", None):
+    hw = np.zeros(len(ID)); hw[:NB] = np.clip(W.get(PRE + "Head", np.zeros(NB)) + 0.5 * W.get(PRE + "Neck", np.zeros(NB)), 0, 1)
+    eye_mid = (EYE["L"]["c"] + EYE["R"]["c"]) / 2
+    gon = np.array([ear_x[0] - 0.024, ear_x[1] - 0.030, ID[chin_i][2] + 0.030])
+    LM = {"eye": eye_mid, "chin": ID[chin_i], "gonion": gon}
+    guard = np.ones(len(ID))
+    for sd in "LR":
+        de = np.linalg.norm(ID - EYE[sd]["c"], axis=1)
+        guard *= np.clip((de - EYE[sd]["r"] - 0.004) / 0.008, 0, 1)
+    disp = np.zeros_like(ID)
+    for nm_, (lk, off), r, dv, mirror in D.SCULPT:
+        for sg in ((1, -1) if mirror else (1,)):
+            c = LM[lk] + np.array([off[0] * sg, off[1], off[2]])
+            if lk == "gonion":
+                c = np.array([gon[0] * sg + off[0] * sg, gon[1] + off[1], gon[2] + off[2]])
+            w = np.exp(-(np.linalg.norm(ID - c, axis=1) / r) ** 2 * 2.0) * hw * guard
+            disp += w[:, None] * np.array([dv[0] * sg, dv[1], dv[2]])
+    ID = ID + disp
+    for nm_ in MORPH:
+        MORPH[nm_] = MORPH[nm_] + disp
+    log("sculpt", len(D.SCULPT), "brushes, max move", round(float(np.linalg.norm(disp, axis=1).max()), 4))
+
 bpy.ops.object.mode_set(mode="EDIT")
 eb = arm.data.edit_bones
 def add_bone(name, head, tail, parent, roll=0.0):

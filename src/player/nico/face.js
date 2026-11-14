@@ -26,10 +26,10 @@ export const VISEMES = {
 // Nico's resting face (ref_48): heavy upper lids over deep-set eyes, low brows, a slightly set mouth. Expressions and
 // speech add on top of it; the lids still blink fully.
 export const REST_FACE = {
-  'eye-left-closure': 0.24,
-  'eye-right-closure': 0.24,
-  'eye-left-slit': 0.12,
-  'eye-right-slit': 0.12,
+  'eye-left-closure': 0.34,
+  'eye-right-closure': 0.34,
+  'eye-left-slit': 0.22,
+  'eye-right-slit': 0.22,
   'eyebrows-left-down': 0.32,
   'eyebrows-right-down': 0.32,
   'mouth-compression': 0.12,

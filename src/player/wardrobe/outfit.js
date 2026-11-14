@@ -148,6 +148,18 @@ function buildWatch(o) {
   return g;
 }
 
+// belt: vertex colors carry the leather / buckle color, alpha marks metal; leather grain and edge wear in the shader
+function makeBeltMaterial() {
+  const m = new THREE.MeshStandardMaterial({ name: 'belt', vertexColors: true, roughness: 0.55, metalness: 0 });
+  m.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vColor.a > 0.5 ? 1.0 : 0.0;')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = vColor.a > 0.5 ? 0.3 : 0.62;');
+  };
+  m.customProgramCacheKey = () => 'nicoBelt';
+  return m;
+}
+
 const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 export function createOutfit({ character, model, bone, skin, meta, game }) {
   const time = { value: 0 }, wind = { value: new THREE.Vector3(0.3, 0, 0.15) }, wet = { value: 0 }, wetLine = { value: 3.0 };
@@ -188,6 +200,8 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
     cx.globalCompositeOperation = 'source-over'; cx.fillStyle = '#000'; cx.fillRect(0, 0, 512, 512); cx.globalCompositeOperation = 'lighter';
     let any = false; for (const s in worn) { const im = _lib?.covers[worn[s].piece.cut]; if (im) { cx.drawImage(im, 0, 0, 512, 512); any = true; } }
     coverTex.needsUpdate = true; skin.uCoverOn.value = any ? 1 : 0;
+    // the body LOD0 drops triangles that are fully hidden under the clothes (nico/index.js)
+    try { outfit?.onCover?.(any ? cx.getImageData(0, 0, 512, 512).data : null); } catch (e) { /* cosmetic */ }
   }
   function attachCut(name, material) {
     const src = _lib?.cuts[name]; const ref = skinned(); if (!src || !ref) return null;
@@ -239,6 +253,20 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
           const b = attachCut(p.cut + '_buttons', bm);
           if (b) objects.push(b);
         }
+        // modeled companions of a cut: `<cut>_detail` shares the garment material (cargo pockets and flaps),
+        // `<cut>_belt` is leather with a steel buckle (vertex color: rgb = base color, a = metal)
+        const det = attachCut(p.cut + '_detail', mat);
+        if (det) {
+          applyBody(det);
+          objects.push(det);
+        }
+        if (_lib?.cuts[p.cut + '_belt']) {
+          const belt = attachCut(p.cut + '_belt', makeBeltMaterial());
+          if (belt) {
+            applyBody(belt);
+            objects.push(belt);
+          }
+        }
       } else if (p.build === 'watch') {
         const w = buildWatch(p.opt); const fr = bone('LeftForeArmRoll') || bone('LeftForeArm'), h = bone('LeftHand');
         if (fr && h) { model.updateMatrixWorld(true); h.getWorldPosition(_a); bone('LeftForeArm').getWorldPosition(_b); const dir = _v.subVectors(_a, _b).normalize();
@@ -278,6 +306,7 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
     },
     disguise() { const t = worn.top?.piece?.disguise; return t || null; },
     setBody(w) { bodyW = w; for (const s in worn) for (const o of worn[s].objects) if (o.isSkinnedMesh) applyBody(o); },
+    refreshCover() { refreshCover(); },
     setWet(v, line) { wet.value = v; if (line !== undefined) wetLine.value = line; }, setLOD() {},
     update(dt, anim) {
       time.value += dt;

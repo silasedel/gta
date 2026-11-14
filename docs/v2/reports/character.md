@@ -81,3 +81,58 @@ The user asked for a plain teal, real-looking button-up beach shirt as Nico's de
 - **Pants color** (`wardrobe/outfit.js`): `pants_cargo_khaki` 0x94714a with tan sheen (it read pale olive).
 - **Evidence:** `docs/v2/compare/nico48_front.png`, `nico48_back.png`, `nico48_34.png` (1920x1080, about 4.6 m third-person distance, Ocean Drive, 13:30, facing the sun like ref_48).
 - **Still wrong in those shots:** the head is small and the face generic (no sculpt or bake yet); the shirt print is too cyan and saturated; the pants are baggy and stack into a flared hem; the shoes are small white shells (no sole, laces or panels); the arms hang with the hands forward; walk, run, aim, swim and wet were not reworked or re-shot this pass.
+
+## Pass 7 (Nov 13, evening): new garment pipeline, sculpted head, follow-camera profile
+**Pipeline** (`src/player/pipeline/`, run order: `nico_build.py` → `envelope.py` (system Python + scipy) → `garments.py` → `garment_sim.py` → `palm_print.py`):
+- `envelope.py` (new): voxelizes the body (5 mm) and writes signed distances to its morphological closing (shirt R 4.5 cm with a 1.5 cm opening, tee 1.2 cm, pants 3 cm). Cloth spans the spine groove, pec cleft, armpit and seat crease, and the nipples disappear.
+- `garments.py`: shells are projected onto envelope + ease (`env_fit`), then `drape_rules`:
+  - the shirt body falls straight from its widest girth above;
+  - sleeves are cylinders sized from the arm's own radius, with the underside hanging;
+  - trouser legs are straight below the knee.
+  The hem folds are creased. The worn sneaker is now modeled (`sneakers.py`). The script saves `garments.blend`.
+- `garment_sim.py` (new): Blender cloth drape in the bind pose.
+  - Shirt: woven cotton, pinned on the yoke and collar, body-only collision 16 mm off. Pants: twill, pinned at the waistband.
+  - The solved cloth is a single-layer copy. Hem turn-backs, the collar and the pocket patch are rebuilt on the draped surface with a rigid triangle-frame binding.
+  - The tee stays a fitted shell.
+  - Skin weights and fat/thin/muscle morphs are re-derived from the body.
+  - It builds modeled cargo pockets (bellows patch, box pleat, two-layer flap), 5 belt loops and a 34 mm leather belt with a steel frame buckle on the draped pants, then exports `garments.glb`.
+- `sneakers.py` (new): parametric low-top fitted to the foot:
+  - cupsole with toe spring;
+  - lofted upper with a collar opening, round toe box and tongue;
+  - five crossing flat laces;
+  - panel codes in vertex color.
+- `nico_build.py` + `nico_design.SCULPT`: landmark-placed falloff brushes on the identity and every morph (brow ridge, glabella, cheekbones, cheek hollows, jaw angle, jaw line, masseter, chin corners and front). The eyelid rims are protected. Max move 9 mm.
+- `palm_print.py`: muted teal-green ground (36, 96, 90), pale sage palms, lighter distress. The repeat is 0.42 m (about 1.5x the density).
+
+**Runtime:**
+- `nico/materials.js`:
+  - new modeled-sneaker shader (toe cap, heel counter, eyestay, seams and stitching, eyelets, rubber cupsole with groove, woven laces, scuffs);
+  - head barber fade (blurred hair mask: dark stubble under and about 2 cm outside the hairline, so no helmet edge);
+  - dark brown iris and off-white sclera.
+- `nico/face.js`: heavier resting lids.
+- `nico/pose.js`: arms at the sides with soft elbows; head scale 1.10.
+- `nico/index.js`:
+  - LOD0 out to 9 m (the follow camera at 4.5 m used to get the faceted LOD1);
+  - LOD0 body triangles fully under the clothes are dropped from the index on every outfit change (`outfit.onCover`);
+  - hair 4 cm.
+- `wardrobe/outfit.js`: `<cut>_detail` (same material) and `<cut>_belt` (leather and steel vertex-color material) companions; `refreshCover()`; `onCover` hook; palm shirt tint and repeat; pants color. The lead's cloth damping is unchanged.
+
+**Evidence:**
+- `docs/v2/compare/nico_profile_follow_before_after.png` (follow camera, top before, bottom after: side, 3/4 rear, front, 3/4 front);
+- `docs/v2/compare/nico_studio_head_garments_pass7.png`;
+- `docs/v2/compare/nico_studio_drape_pass7.png`;
+- `docs/v2/shots/character/hero_follow_{side,rear34,front,front34}.png`.
+
+**Still short (seen in shots):**
+- face is sculpted only by brushes on the MakeHuman head, not a full sculpt, and no high-to-low normal bake yet;
+- hair is still shells (no cards or Kajiya-Kay);
+- the beard edge is still fairly hard at the jaw;
+- the tee neckline looks ragged in the shirt opening;
+- sleeve hems and the shirt hem are slightly uneven after the drape;
+- the A-pose drape gives sleeves that stand out from the arm when lowered;
+- pants have no simulated knee folds (straight tube with pockets);
+- no wrinkle-map normal bake for garments;
+- the sneaker shader and pockets were not inspected close up in game;
+- `character.meshLOD` reports a stale value (`Object.assign` copies the getter).
+
+Not done: two-hand pistol stance, locomotion, VFX_NOTES items 6–9 (hair cards, pose-driven wrinkle maps, texture-space wetness, pre-integrated skin).

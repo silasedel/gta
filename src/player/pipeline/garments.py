@@ -31,6 +31,112 @@ def arm_t(side):
 tL, tR = arm_t("Left"), arm_t("Right"); tA = np.where(x > 0, tL, tR)
 covers = {}
 
+# ---- cloth envelopes (envelope.py): signed distance to the body closed by a ball, so cloth spans concavities
+ENV = np.load(os.path.join(WORK, "envelope.npz")) if os.path.exists(os.path.join(WORK, "envelope.npz")) else None
+ENV_OF = {"camp_shirt": "shirt", "camp_shirt_open": "shirt", "tee": "tee", "cargo_pants": "pants", "shorts": "pants"}
+EASE_OF = {"camp_shirt": lambda o: 0.008 + 0.3 * np.maximum(0, o - 0.009), "camp_shirt_open": lambda o: 0.008 + 0.3 * np.maximum(0, o - 0.009),
+           "tee": lambda o: np.full_like(o, 0.003), "cargo_pants": lambda o: np.full_like(o, 0.009), "shorts": lambda o: np.full_like(o, 0.012)}
+
+
+def env_sample(g, p):
+    lo, H, shp = ENV["lo"], float(ENV["H"]), ENV["shape"]
+    f = (p - lo) / H
+    i0 = np.clip(np.floor(f).astype(int), 0, shp - 2)
+    t = np.clip(f - i0, 0, 1)
+    out = 0
+    for dx in (0, 1):
+        for dy in (0, 1):
+            for dz in (0, 1):
+                w = (t[:, 0] if dx else 1 - t[:, 0]) * (t[:, 1] if dy else 1 - t[:, 1]) * (t[:, 2] if dz else 1 - t[:, 2])
+                out = out + w * g[i0[:, 0] + dx, i0[:, 1] + dy, i0[:, 2] + dz]
+    return out
+
+
+def env_fit(name, c, ease):
+    """move every point along the envelope gradient onto the iso-surface sdf = ease (outside only ever grows)"""
+    if ENV is None or name not in ENV_OF:
+        return c
+    g = ENV[ENV_OF[name]]
+    c = c.copy()
+    e = 0.004
+    for _ in range(6):
+        s0 = env_sample(g, c)
+        gr = np.stack([(env_sample(g, c + np.array(dv) * e) - env_sample(g, c - np.array(dv) * e)) / (2 * e) for dv in ((1, 0, 0), (0, 1, 0), (0, 0, 1))], 1)
+        gr /= np.maximum(np.linalg.norm(gr, axis=1, keepdims=True), 1e-6)
+        c = c - gr * (s0 - ease)[:, None] * 0.8
+    return c
+
+
+def drape_rules(name, c, used):
+    """how woven cloth hangs: the shirt body falls straight from its widest girth above (never tucks in under the chest
+    or the seat), sleeves are straight cylinders off the arm axis, trouser legs are straight below the knee"""
+    c = c.copy()
+    if name in ("camp_shirt", "camp_shirt_open"):
+        wa = wArm[used]
+        body_ = (wa < 0.25) & (np.abs(c[:, 0]) < 0.27) & (c[:, 2] < 1.32)
+        yc = float(np.mean(co[(wTorso > 0.5) & (z > 1.0) & (z < 1.3), 1]))
+        NB = 96
+        th = np.arctan2(c[:, 1] - yc, c[:, 0])
+        r = np.hypot(c[:, 0], c[:, 1] - yc)
+        bins = ((th + np.pi) / (2 * np.pi) * NB).astype(int) % NB
+        run = np.zeros(NB)
+        idx = np.nonzero(body_)[0]
+        idx = idx[np.argsort(-c[idx, 2])]
+        zs = c[idx, 2]
+        k = 0
+        while k < len(idx):                                  # walk down in 1 cm slices
+            j = k
+            while j < len(idx) and zs[j] > zs[k] - 0.01:
+                j += 1
+            sl = idx[k:j]
+            for i in sl:
+                r[i] = max(r[i], run[bins[i]] * 0.995)
+            np.maximum.at(run, bins[sl], r[sl])
+            run = np.maximum(run, (np.roll(run, 1) + np.roll(run, -1)) * 0.5 * 0.99)
+            k = j
+        c[body_, 0] = np.cos(th[body_]) * r[body_]
+        c[body_, 1] = yc + np.sin(th[body_]) * r[body_]
+        for side, sg in (("Left", 1), ("Right", -1)):
+            a0, a1 = bh(side + "Arm"), bh(side + "ForeArm")
+            ax = (a1 - a0) / np.linalg.norm(a1 - a0)
+            sv = (wa > 0.3) & (c[:, 0] * sg > 0.12)
+            if not sv.any():
+                continue
+            rel = c[sv] - a0
+            t = rel @ ax / np.linalg.norm(a1 - a0)
+            rad = rel - np.outer(rel @ ax, ax)
+            rr = np.linalg.norm(rad, axis=1)
+            # arm radius from the body itself (biceps / triceps band), not from the shell (which carries armpit webbing)
+            bsel = (wArm > 0.5) & (x * sg > 0.1)
+            brel = co[bsel] - a0
+            bt = brel @ ax / np.linalg.norm(a1 - a0)
+            br = np.linalg.norm(brel - np.outer(brel @ ax, ax), axis=1)
+            band = (bt > 0.25) & (bt < 0.55)
+            Rb = np.percentile(br[band], 90) if band.any() else rr.min()
+            # woven sleeve: lies on top of the arm, the underside hangs open (gravity in the bind pose is world -z)
+            down = np.clip(-(rad[:, 2] / np.maximum(rr, 1e-6)), 0, 1)
+            want = Rb + 0.007 + 0.008 * down * np.clip((t - 0.1) / 0.4, 0, 1) + 0.004 * np.clip((t - 0.2) / 0.4, 0, 1)
+            k_ = np.clip((t - 0.10) / 0.2, 0, 1)
+            rn = rr + (want - rr) * k_
+            rn = np.maximum(rn, Rb + 0.005)
+            c[sv] = a0 + np.outer(rel @ ax, ax) + rad / np.maximum(rr, 1e-6)[:, None] * rn[:, None]
+    if name == "cargo_pants":
+        for side, sg in (("Left", 1), ("Right", -1)):
+            k0, k1 = bh(side + "Leg"), bh(side + "Foot")
+            ax = (k1 - k0) / np.linalg.norm(k1 - k0)
+            sv = (c[:, 0] * sg > 0.02) & (c[:, 2] < 0.6)
+            rel = c[sv] - k0
+            along = rel @ ax
+            rad = rel - np.outer(along, ax)
+            rr = np.linalg.norm(rad, axis=1)
+            band = (c[sv, 2] > 0.47) & (c[sv, 2] < 0.55)
+            Rk = np.percentile(rr[band], 80) if band.any() else rr.max()
+            k_ = np.clip((0.55 - c[sv, 2]) / 0.1, 0, 1)
+            rn = np.maximum(rr, rr + (Rk * 0.97 - rr) * k_)
+            c[sv] = k0 + np.outer(along, ax) + rad / np.maximum(rr, 1e-6)[:, None] * rn[:, None]
+    return c
+
+
 def build(name, sel, off, panel, hem_fn, flutter_fn, smooth_it=6, extra=None, r_fn=None):
     keep = [i for i, p in enumerate(polys) if all(sel[v] for v in p)]
     used = sorted({v for i in keep for v in polys[i]}); remap = {v: k for k, v in enumerate(used)}; used = np.array(used)
@@ -76,8 +182,12 @@ def build(name, sel, off, panel, hem_fn, flutter_fn, smooth_it=6, extra=None, r_
                 over = np.maximum(over, np.maximum(0.0, dist - 0.007) * sm(1.08, 1.18, bodyc[:, 2]))
             c = c - vn[used] * over[:, None]
         return c
-    c0 = clear(lap(base), co[used]); me.vertices.foreach_set("co", c0.reshape(-1)); me.shape_keys.key_blocks[0].data.foreach_set("co", c0.reshape(-1))
-    for nm in BODYM: me.shape_keys.key_blocks[nm].data.foreach_set("co", clear(lap(shapes[nm]), BODYM[nm][used]).reshape(-1))
+    cl0 = clear(lap(base), co[used])
+    c0 = env_fit(name, cl0, EASE_OF[name](off[used])) if name in EASE_OF else cl0
+    c0 = drape_rules(name, c0, used)
+    fit = c0 - cl0                                         # the same envelope correction rides on the body-change shapes
+    me.vertices.foreach_set("co", c0.reshape(-1)); me.shape_keys.key_blocks[0].data.foreach_set("co", c0.reshape(-1))
+    for nm in BODYM: me.shape_keys.key_blocks[nm].data.foreach_set("co", (clear(lap(shapes[nm]), BODYM[nm][used]) + fit).reshape(-1))
     if extra: extra(ob, c0, used)
     # subdivide once (shape keys evaluated one by one)
     sub = ob.modifiers.new("s", "SUBSURF"); sub.levels = 1
@@ -486,6 +596,7 @@ def finish_edges(ob, c0, used, level_below=None, turn=0.018):
             nv[sk[k]] = ex[sk[k]] + d
         return nv
 
+    cl = bm.edges.layers.float.get("crease_edge") or bm.edges.layers.float.new("crease_edge")   # before collecting edges (adding a layer invalidates them)
     be = [e for e in bm.edges if e.is_boundary]
     bv = {v for e in be for v in e.verts}
     bs = set(be)
@@ -523,6 +634,9 @@ def finish_edges(ob, c0, used, level_below=None, turn=0.018):
         f.normal_update()
         if f.normal.dot(-a.normal) < 0:
             f.normal_flip()
+    # the fold is a pressed edge, not a rolled bead: crease it so the subdivision keeps it crisp
+    for e in be:
+        e[cl] = 1.0
     bm.to_mesh(me)
     bm.free()
 
@@ -647,6 +761,10 @@ def sole(ob, c0, used):
         a = np.zeros(len(me.vertices) * 3); k.data.foreach_get("co", a); a = a.reshape(-1, 3); low = a[:, 2] < 0.022; a[low, 2] = -0.004 + a[low, 2] * 0.2; k.data.foreach_set("co", a.reshape(-1))
     a = np.zeros(len(me.vertices) * 3); me.shape_keys.key_blocks[0].data.foreach_get("co", a); me.vertices.foreach_set("co", a)
 shoes = build("sneakers", selF, offF, np.zeros(N, dtype=np.float32), lambda u: sm(0.03, 0.018, co[u, 2]), lambda u: np.zeros(len(u)), smooth_it=30, extra=sole)
+# the shell above only provides the body cover mask; the worn sneaker is modeled (sneakers.py)
+from sneakers import build_sneakers
+bpy.data.objects.remove(shoes, do_unlink=True)
+shoes = build_sneakers(arm, co, W, PRE)
 
 np.savez_compressed(os.path.join(WORK, "garment_covers.npz"), **{k: v for k, v in covers.items()})
 bpy.ops.object.select_all(action="DESELECT")
@@ -654,3 +772,6 @@ for o in (arm, shirt, btn, shorts, shoes, shirt_open, btn_open, tee, pants): o.s
 bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, "garments.glb"), export_format="GLB", use_selection=True, export_animations=False, export_morph=True, export_morph_normal=False,
                           export_skins=True, export_def_bones=False, export_yup=True, export_texcoords=True, export_normals=True, export_materials="NONE", export_vertex_color="ACTIVE", export_all_vertex_colors=True, export_active_vertex_color_when_no_material=True)
 print("[garment] exported", os.path.getsize(os.path.join(OUT, "garments.glb")) // 1024, "KB")
+# the cloth-simulation stage (garment_sim.py) drapes these shells on the body: keep the scene
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(WORK, "garments.blend"))
+print("[garment] saved", os.path.join(WORK, "garments.blend"))

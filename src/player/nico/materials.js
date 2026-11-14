@@ -35,7 +35,7 @@ uniform float uSSS, uWetU, uWetLine, uSweat, uBurn, uTan, uFlush, uCoverOn, uTat
 varying float vWetH;
 // wet only up to the highest water line reached (bind-pose height in meters), soaking a few cm above it
 #define uWet ( uWetU * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.08, vWetH ) ) )
-uniform sampler2D uM2, uMicro, uDrops, uCover, uTattoo;
+uniform sampler2D uM2, uMicro, uDrops, uCover, uTattoo, uHairMaskS;
 float nicoThick = 0.0; float nicoBead = 0.0; vec2 nicoBeadN = vec2(0.0);
 `;
 
@@ -52,9 +52,11 @@ export function makeSkinMaterial(kind, state) {
     const m1 = tex(kind + '_m1.webp'); m.aoMap = m1; m.roughnessMap = m1; m.aoMapIntensity = 0.85;
   }
   const u = { uM2: { value: far ? null : tex(kind + '_m2.webp') }, uMicro: { value: far ? null : tex('skin_micro_n.webp', { repeat: true }) },
-    uDrops: { value: far ? null : tex('droplets.webp', { repeat: true }) }, uMicroTile: { value: kind === 'head' ? 34 : 60 } };
+    uDrops: { value: far ? null : tex('droplets.webp', { repeat: true }) }, uMicroTile: { value: kind === 'head' ? 34 : 60 },
+    uHairMaskS: { value: kind === 'head' ? tex('head_hair.webp') : null } };
   m.userData.u = u; m.userData.state = state;
   m.defines = { NICO_SKIN: 1 }; if (far) m.defines.NICO_FAR = 1; if (kind === 'body') m.defines.NICO_BODY = 1;
+  if (kind === 'head') m.defines.NICO_HEAD = 1;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u, state, { uWetU: state.uWet, uWetLine: state.uWetLine || { value: 3.0 } });
     sh.vertexShader = sh.vertexShader
@@ -98,6 +100,25 @@ export function makeSkinMaterial(kind, state) {
         nicoBeadN = ( dr.rg * 2.0 - 1.0 ) * nicoBead;
         diffuseColor.rgb *= 1.0 - 0.12 * uWet;
         nicoThick = texture2D( roughnessMap, vMapUv ).b;
+      #endif
+      #ifdef NICO_HEAD
+      {
+        // barber fade: under the hair shells and for ~2 cm outside the hairline the scalp carries short dark stubble,
+        // so the haircut never ends in a hard helmet edge (sides, nape, temples)
+        float inH = step( 0.5, texture2D( uHairMaskS, vMapUv ).r );
+        float soft = 0.0;
+        for ( int i = 0; i < 12; i ++ ) {
+          float a = float( i ) * 0.5236;
+          vec2 o = vec2( cos( a ), sin( a ) );
+          soft += step( 0.5, texture2D( uHairMaskS, vMapUv + o * 0.010 ).r ) * 0.6 + step( 0.5, texture2D( uHairMaskS, vMapUv + o * 0.022 ).r ) * 0.4;
+        }
+        soft /= 12.0;
+        float fadeK = max( inH, smoothstep( 0.05, 0.9, soft ) * 0.9 );
+        vec2 sc = floor( vMapUv * 2600.0 );
+        float dots = fract( sin( dot( sc, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+        float stub = fadeK * ( 0.55 + 0.45 * step( 0.35, dots ) );
+        diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.075, 0.058, 0.048 ), clamp( stub * 0.85, 0.0, 0.9 ) );
+      }
       #endif`)
       .replace('#include <roughnessmap_fragment>', /* glsl */`#include <roughnessmap_fragment>
       #ifndef NICO_FAR
@@ -159,7 +180,7 @@ export function makeEyeMaterial(radius) {
         vec2 sdir = en.xy / max( length( en.xy ), 1e-4 );
         vec3 sclC = texture2D( uSclera, vec2( 0.5 ) + 0.5 * ( eth / PI ) * sdir * vec2( uSide, -1.0 ) ).rgb;
         float inIris = ( 1.0 - smoothstep( 0.93, 1.03, ir ) ) * eyeCornea;
-        vec3 ecol = mix( sclC * vec3( 0.74, 0.68, 0.64 ), irisC.rgb * 0.46, inIris );
+        vec3 ecol = mix( sclC * vec3( 0.88, 0.83, 0.79 ), irisC.rgb * vec3( 0.30, 0.25, 0.22 ), inIris );     // dark brown iris (ref_48), clean off-white sclera
         ecol *= 1.0 - 0.35 * smoothstep( 0.80, 1.0, ir ) * ( 1.0 - smoothstep( 1.0, 1.25, ir ) );     // limbal shadow ring
         // socket shadow: where the lids and the socket shade the globe (in head space, so it does not turn with the eye)
         vec3 sn = qrot( uEyeQ, en );
@@ -272,12 +293,15 @@ export function makeClothMaterial(o = {}) {
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uTime, uFlutter; uniform vec3 uWind, uSwing;\n#ifdef CLOTHSIM\nattribute vec4 clothW; uniform vec3 uCP[ 40 ];\n#endif\n#if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )\nvarying vec3 vRest; varying vec3 vRestN;\n#endif')
+      .replace('#include <common>', '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uTime, uFlutter; uniform vec3 uWind, uSwing;\n#ifdef CLOTHSIM\nattribute vec4 clothW; uniform vec3 uCP[ 40 ];\n#endif\n#if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )\nvarying vec3 vRest; varying vec3 vRestN;\n#endif\n#ifdef SHOE\nvarying vec2 vShoeUv;\n#endif')
       .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
         vFab = uv1; vGc = color; vWetH = position.y;
         #if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )
           vRest = position;
           vRestN = normal;
+        #endif
+        #ifdef SHOE
+          vShoeUv = uv;
         #endif
         float fl = color.b * uFlutter;
         float ph = position.x * 9.0 + position.y * 13.0 + position.z * 7.0;
@@ -315,6 +339,9 @@ export function makeClothMaterial(o = {}) {
         float weaveH( vec2 u ) { vec2 q = u * uWeaveScale; return ( sin( q.x ) * sin( q.y ) ) * step( 0.0, sin( q.x * 0.5 ) * sin( q.y * 0.5 ) ) + 0.35 * sin( q.x * 2.0 ) * sin( q.y * 2.0 ); }
         #if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )
         varying vec3 vRest; varying vec3 vRestN;
+        #endif
+        #ifdef SHOE
+        varying vec2 vShoeUv;
         #endif
         float aaLineS( float d, float halfW ) {
           float f = max( fwidth( d ), 1e-6 );
@@ -534,36 +561,47 @@ export function makeClothMaterial(o = {}) {
         }
         #elif defined( SHOE )
         {
-          // sneaker: canvas upper, vulcanized off-white rubber sole with a foxing line, toe bumper, stitched quarter seam
-          float sy = vRest.y;
-          float fwS = max( fwidth( sy ), 1e-5 );
-          diffuseColor.rgb *= ( 1.0 + 0.06 * weaveH( vFab ) * weaveAA );
-          float sole = 1.0 - smoothstep( 0.031 - fwS, 0.031 + fwS, sy );
-          vec3 rubber = vec3( 0.80, 0.78, 0.72 ) * ( 0.94 + 0.06 * cn( vRest.xz * 300.0 ) );
-          diffuseColor.rgb = mix( diffuseColor.rgb, rubber, sole );
-          diffuseColor.rgb *= 1.0 - 0.45 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0006, abs( sy - 0.0315 ) ) );
-          diffuseColor.rgb *= 1.0 - 0.25 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0004, abs( sy - 0.0245 ) ) );
-          diffuseColor.rgb *= 1.0 - 0.3 * ( 1.0 - smoothstep( 0.0, fwS + 0.0003, abs( sy - 0.043 ) ) ) * step( 0.5, fract( ( vRest.x + vRest.z ) * 300.0 ) );
-          diffuseColor.rgb *= 1.0 - 0.18 * smoothstep( 0.6, 1.0, vGc.g ) * step( 0.05, sy );
-          diffuseColor.rgb *= 0.97 + 0.05 * cn( vRest.xz * 40.0 ) - 0.06 * smoothstep( 0.0, 0.02, sy ) * ( 1.0 - smoothstep( 0.02, 0.05, sy ) ) * cn( vRest.xz * 25.0 );
-          #ifdef LEATHER
-          {
-            // lace area on the instep: eyelet rows and crossing laces; toe-cap and heel panel seams; scuffs and grime
-            float top = smoothstep( 0.45, 0.8, vRestN.y );
-            float fx = fract( vRest.x * 6.0 );
-            float lacesZ = fract( vRest.z * 85.0 );
-            float midline = abs( fract( vRest.x * 1.0 + 0.5 ) - 0.5 );
-            float inLace = top * step( 0.055, sy ) * step( sy, 0.10 );
-            float laceBar = inLace * ( 1.0 - smoothstep( 0.18, 0.32, abs( lacesZ - 0.5 ) * 2.0 - 0.6 ) );
-            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.86, 0.84, 0.80 ), 0.0 );
-            diffuseColor.rgb *= 1.0 - 0.18 * inLace * smoothstep( 0.35, 0.5, abs( lacesZ - 0.5 ) * 2.0 );
-            diffuseColor.rgb *= 1.0 - 0.3 * ( 1.0 - smoothstep( 0.0, fwS + 0.0006, abs( sy - 0.055 ) ) ) * top;
-            diffuseColor.rgb *= 1.0 - 0.25 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0005, abs( sy - 0.048 ) ) ) * ( 1.0 - top );
-            float scuff = smoothstep( 0.62, 0.8, cn( vRest.xz * 90.0 + sy * 50.0 ) );
-            diffuseColor.rgb *= 1.0 - 0.14 * scuff - 0.10 * smoothstep( 0.05, 0.02, sy ) * cn( vRest.xz * 50.0 );
-            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.45, 0.40, 0.33 ), 0.12 * cn( vRest.xz * 12.0 + 3.0 ) * smoothstep( 0.06, 0.0, sy ) );
+          // modeled low-top (sneakers.py): uv0 = (s heel->toe, arch 0 outer base .. 1 inner base; < 0 on the sole),
+          // vertex color a = lace. Panels and seams are drawn from (s, arch) so they stay crisp at any distance.
+          float s = vShoeUv.x, a = vShoeUv.y, sy = vRest.y;
+          float lace = smoothstep( 0.5, 0.9, vGc.a );
+          float sole = 1.0 - step( -0.05, a );
+          vec3 leather = diffuseColor.rgb * ( 0.975 + 0.04 * cn( vRest.xz * 520.0 + sy * 410.0 ) );
+          // panels: toe cap and heel counter are separate leather pieces (a hair warmer), the eyestay a little greyer
+          float capLine = 0.78 + 0.07 * ( 1.0 - sin( clamp( a, 0.0, 1.0 ) * PI ) );
+          float toeCap = step( capLine, s );
+          float heelLine = 0.20 + 0.06 * abs( cos( clamp( a, 0.0, 1.0 ) * PI ) );
+          float heel = step( s, heelLine ) * step( sy, 0.072 );
+          float eyestay = step( 0.30, a ) * step( a, 0.70 ) * step( 0.40, s ) * step( s, 0.76 );
+          leather *= mix( vec3( 1.0 ), vec3( 1.02, 0.99, 0.95 ), max( toeCap, heel ) );
+          leather *= mix( 1.0, 0.94, eyestay );
+          // seams (sunk) with a stitch row 2.5 mm inside each panel edge
+          float fs = max( fwidth( s ), 1e-5 ), fa = max( fwidth( a ), 1e-5 );
+          float seam = max( aaLineS( s - capLine, fs * 0.8 ), aaLineS( s - heelLine, fs * 0.8 ) * step( sy, 0.072 ) );
+          float st = aaLineS( s - capLine + 0.012, fs * 0.6 ) + aaLineS( s - heelLine - 0.012, fs * 0.6 ) * step( sy, 0.07 );
+          st *= step( 0.45, fract( ( a * 0.24 + sy ) * 260.0 ) );
+          leather *= 1.0 - 0.30 * seam - 0.18 * clamp( st, 0.0, 1.0 );
+          // eyelets: two rows along the eyestay
+          float ey = 0.0;
+          for ( int i = 0; i < 5; i ++ ) {
+            float es = 0.47 + float( i ) * 0.055;
+            ey = max( ey, 1.0 - smoothstep( 0.0025, 0.0040, length( vec2( ( s - es ) * 0.27, ( abs( a - 0.5 ) - 0.115 ) * 0.24 ) ) ) );
           }
-          #endif
+          leather = mix( leather, vec3( 0.20, 0.20, 0.21 ), ey * step( 0.40, s ) * step( s, 0.76 ) );
+          // collar lining shows as a darker padded rim
+          leather *= 1.0 - 0.22 * smoothstep( 0.5, 1.0, vGc.g );
+          // cupsole: off-white rubber, a groove 12 mm up, darker grime at the ground line, tread underneath
+          vec3 rubber = vec3( 0.86, 0.84, 0.79 ) * ( 0.96 + 0.05 * cn( vRest.xz * 380.0 ) );
+          rubber *= 1.0 - 0.35 * aaLineS( sy - 0.013, max( fwidth( sy ), 1e-5 ) * 1.2 );
+          rubber *= 1.0 - 0.25 * smoothstep( 0.006, 0.0, sy );
+          rubber = mix( rubber, vec3( 0.45, 0.42, 0.38 ), 0.35 * smoothstep( 0.004, -0.002, sy ) );
+          vec3 laceC = vec3( 0.90, 0.89, 0.86 ) * ( 0.9 + 0.12 * sin( vFab.x * 2600.0 ) );
+          vec3 shoeC = mix( mix( leather, rubber, sole ), laceC, lace );
+          // light scuffs and dust: toe, outer side, sole edge
+          float scuff = smoothstep( 0.62, 0.82, cn( vRest.xz * 95.0 + sy * 60.0 ) ) * ( 0.4 + 0.6 * toeCap );
+          shoeC *= 1.0 - 0.10 * scuff;
+          shoeC = mix( shoeC, vec3( 0.55, 0.50, 0.43 ), 0.10 * cn( vRest.xz * 14.0 + 3.0 ) * smoothstep( 0.05, 0.0, sy ) );
+          diffuseColor.rgb = shoeC;
         }
         #else
         diffuseColor.rgb *= ( 0.80 + 0.20 * vGc.r ) * ( 1.0 - 0.10 * vGc.g ) * ( 1.0 + 0.05 * weaveH( vFab ) * weaveAA * uWeave );

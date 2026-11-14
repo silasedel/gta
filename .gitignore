@@ -14,3 +14,7 @@ docs/v2/compare/
 desktop/dist/
 desktop/node_modules/
 server/node_modules/
+
+# Epidemic Sound tracks licensed to the user: local only, never pushed
+public/assets/audio/music/club_licensed/
+__pycache__/

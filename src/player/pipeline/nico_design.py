@@ -53,3 +53,18 @@ DETAILS = {
 }
 SKIN = "young_caucasian_male"      # CC0 MakeHuman skin used as the painting base; regraded and detailed in nico_textures.py
 HEIGHT_M = 1.80
+
+# ---- head sculpt (pass 7): falloff brushes applied after the sliders, placed from facial landmarks.
+# Each brush: (name, center, radius m, displacement m, mirror). Center = landmark key + offset (x, y, z) in meters,
+# x = character's left, -y = forward, z = up. Landmarks: "eye" (mid-point of the eyes), "chin", "gonion" (jaw angle).
+SCULPT = [
+    ("brow ridge",      ("eye", (0.031, -0.008, 0.021)),  0.020, (0.0000, -0.0072, -0.0024), True),
+    ("glabella",        ("eye", (0.0, -0.012, 0.016)),    0.014, (0.0000, -0.0048, 0.0000), False),
+    ("cheekbone",       ("eye", (0.050, 0.004, -0.026)),  0.019, (0.0048, -0.0035, 0.0008), True),
+    ("cheek hollow",    ("eye", (0.046, 0.006, -0.056)),  0.016, (-0.0040, 0.0016, 0.0000), True),
+    ("jaw angle",       ("gonion", (0.0, 0.0, 0.0)),      0.026, (0.0088, 0.0000, -0.0056), True),
+    ("jaw line",        ("gonion", (-0.028, -0.040, -0.010)), 0.020, (0.0056, -0.0016, -0.0040), True),
+    ("chin corner",     ("chin", (0.016, 0.004, 0.006)),  0.014, (0.0056, -0.0024, -0.0024), True),
+    ("chin front",      ("chin", (0.0, 0.0, 0.004)),      0.013, (0.0000, -0.0032, -0.0016), False),
+    ("masseter",        ("gonion", (-0.012, -0.022, 0.018)), 0.024, (0.0045, 0.0, 0.0), True),
+]

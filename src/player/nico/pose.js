@@ -52,7 +52,7 @@ export function createRelaxedPose({ model, bone }) {
       const nk = B('Neck');
       const hd = B('Head');
       if (nk) nk.scale.set(1.12, 1.0, 1.12);
-      if (hd) hd.scale.set(1.06 / 1.12, 1.06, 1.06 / 1.12);
+      if (hd) hd.scale.set(1.10 / 1.12, 1.10, 1.10 / 1.12);         // ref_48: about 7.5 heads tall
       const special = anim.driving || anim.swimming || anim.wading || anim.dead || anim.idleStyle || anim.punch
         || anim.handsUp || anim.guard || anim.throw || anim.call || anim.wave || anim.hit || anim.getUp || anim.jumping
         || anim.grounded === false;
@@ -78,7 +78,7 @@ export function createRelaxedPose({ model, bone }) {
         const sh = B(side + 'Shoulder');
         if (sh) rotateWorld(sh, fwd, sgn * (0.13 + breathe) * wArms);      // clavicle drops (lowers the shoulder point)
         // upper arm hangs close to the body, a touch forward
-        const want = new THREE.Vector3(0, -1, 0).addScaledVector(out, 0.13).addScaledVector(fwd, 0.04).normalize();
+        const want = new THREE.Vector3(0, -1, 0).addScaledVector(out, 0.17).addScaledVector(fwd, -0.01).normalize();     // at the sides, clear of the lats
         aimToward(B(side + 'Arm'), B(side + 'ForeArm'), want, 0.85 * wArms);
         // soft elbow: forearm swings ~16 degrees forward
         const fa = B(side + 'ForeArm');
@@ -87,7 +87,7 @@ export function createRelaxedPose({ model, bone }) {
           fa.getWorldPosition(_a);
           hand.getWorldPosition(_b);
           _d.subVectors(_b, _a).normalize();
-          const fwant = _d.clone().addScaledVector(fwd, 0.3).addScaledVector(out, -0.08).normalize();
+          const fwant = _d.clone().addScaledVector(fwd, 0.12).addScaledVector(out, -0.03).normalize();     // soft elbow, hands beside the thighs
           aimToward(fa, hand, fwant, 0.9 * wArms, 0.35);
         }
         // relaxed fingers: each joint curls toward the palm (palm faces the thigh, so toward the body)

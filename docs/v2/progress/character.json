@@ -238,6 +238,11 @@
    "name": "Pass 6: heavier athletic body rebuild, natural skin, non-glassy eyes, tan pants",
    "state": "built",
    "evidence": "docs/v2/compare/nico48_front.png"
+  },
+  {
+   "name": "Pass 7: envelope + cloth-sim garments, modeled sneakers, cargo pockets and belt, sculpted head, follow-camera LOD0 profile",
+   "state": "built",
+   "evidence": "docs/v2/compare/nico_profile_follow_before_after.png"
   }
  ],
  "note": "Stopped at the 6:30 PM budget stop. Verified = seen in a screenshot or measured in the running game. Built = code runs but was not checked closely. See docs/v2/reports/character.md for flaws and open work."

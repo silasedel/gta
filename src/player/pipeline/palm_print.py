@@ -11,8 +11,8 @@ os.makedirs(OUT + "/prints", exist_ok=True)
 S = 2048
 SS = 2
 W = S * SS
-BG = np.array([30, 118, 120], dtype=np.float32)
-INK = (190, 228, 206)
+BG = np.array([36, 96, 90], dtype=np.float32)        # muted teal-green (ref_48)
+INK = (178, 206, 184)                                  # pale sage
 rng = np.random.RandomState(42)
 
 
@@ -97,7 +97,7 @@ def fbm(n, scale, octaves, seed):
 # distress: worn-through specks and a cracked, washed print; dye fade varies across the tile
 wear = fbm(S, 6, 4, 3)
 speck = fbm(S, 90, 2, 5)
-a = a * np.clip((wear - 0.15) * 2.6, 0.6, 1.0) * np.clip((speck - 0.10) * 4.0, 0.25, 1.0)
+a = a * np.clip((wear - 0.15) * 2.6, 0.78, 1.0) * np.clip((speck - 0.10) * 4.0, 0.7, 1.0)      # light wear only: the print stays crisp
 a = a * (0.88 + 0.12 * fbm(S, 3, 2, 8))
 fade = 0.92 + 0.12 * fbm(S, 4, 3, 11)
 weave = 0.97 + 0.03 * fbm(S, 300, 1, 13)
