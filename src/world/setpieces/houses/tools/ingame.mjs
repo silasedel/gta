@@ -17,6 +17,10 @@ const SPOTS = {
   townMain: { hour: 12, town: 'main' },
   townPlaza: { hour: 12, town: 'plaza' },
   townNight: { hour: 21, town: 'main' },
+  townQuarter: { hour: 11, town: 'quarter' },
+  townClose: { hour: 13, town: 'close' },
+  townSatsuma: { hour: 15.5, town: 'main', tname: 'Satsuma' },
+  townSatsumaQ: { hour: 10, town: 'quarter', tname: 'Satsuma' },
   distA: { hour: 10.5, at: [700, -1100] },
   distB: { hour: 15.5, at: [2900, 700] },
 };
@@ -25,13 +29,15 @@ const stage = (s) => `(async () => {
   const s = ${JSON.stringify(s)}; game.timeExternal = true; if (game.time) game.time.paused = true; game.timeOfDay = s.hour;
   const V3 = game.camera.position.constructor; const eye = new V3(), look = new V3();
   if (s.town) {
-    const P = (await (await fetch('/assets/world/layout.json')).json()).places.find((p) => p.name === 'Port Calabash');
+    const TN = s.tname || 'Port Calabash', P = (await (await fetch('/assets/world/layout.json')).json()).places.find((p) => p.name === TN);
     game.teleport(P.x, null, P.z, 0);
-    for (let i = 0; i < 400; i++) { await new Promise((r) => setTimeout(r, 300)); const T = game.towns?.list?.[0]; if (!game.towns || (T && (T.state === 'built' || T.state === 'none'))) break; }
-    const T = game.towns?.list?.[0], plan = T?.plan;
+    for (let i = 0; i < 400; i++) { await new Promise((r) => setTimeout(r, 300)); const T = game.towns?.list?.find((t) => t.name === TN); if (!game.towns || (T && (T.state === 'built' || T.state === 'none'))) break; }
+    const T = game.towns?.list?.find((t) => t.name === TN), plan = T?.plan;
     if (plan && plan.shops.length) {
       const f = plan.shops[0].f, gy = plan.shops[0].y || 0;
       if (s.town === 'plaza' && plan.plaza) { const Q = plan.plaza; eye.set(Q.x - Q.nx * (Q.hd + 9) + f.tx * 6, gy + 2.2, Q.z - Q.nz * (Q.hd + 9) + f.tz * 6); look.set(Q.x, gy + 2.5, Q.z); }
+      else if (s.town === 'quarter' && plan.shops.some((x) => x.quarter)) { const q = plan.shops.find((x) => x.quarter), g = q.f, sd = q.side, nx = -g.tz * sd, nz = g.tx * sd; eye.set(g.x - nx * 2 - g.tx * 6, gy + 1.8, g.z - nz * 2 - g.tz * 6); look.set(g.x + nx * 8 + g.tx * 22, gy + 3.0, g.z + nz * 8 + g.tz * 22); }
+      else if (s.town === 'close') { const q = plan.shops[1] || plan.shops[0], g = q.f, sd = q.side, nx = -g.tz * sd, nz = g.tx * sd, b0 = { x: q.x - nx * (q.d / 2 + 4.5), z: q.z - nz * (q.d / 2 + 4.5) }; eye.set(b0.x - nx * 5.5 + g.tx * 6, gy + 1.7, b0.z - nz * 5.5 + g.tz * 6); look.set(q.x, gy + 2.2, q.z); }
       else { const sd = plan.shops[0].side, nx = -f.tz * sd, nz = f.tx * sd; eye.set(f.x - nx * 1.5 - f.tx * 22, gy + 1.9, f.z - nz * 1.5 - f.tz * 22); look.set(f.x + nx * 9 + f.tx * 12, gy + 3.2, f.z + nz * 9 + f.tz * 12); }
     } else { eye.set(P.x + 30, 30, P.z + 30); look.set(P.x, 0, P.z); }
     game.teleport(eye.x + 3, null, eye.z + 3, 0);

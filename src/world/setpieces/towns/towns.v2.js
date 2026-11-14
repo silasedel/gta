@@ -18,7 +18,9 @@ export async function initV2(game) {
   const hk = game.houses?.kit, D = game.miamiData, city = game.city; if (!hk || !D?.roadGraph) return;
   let layout = null; try { layout = await (await fetch((import.meta.env?.BASE_URL ?? '/') + 'assets/world/layout.json', { cache: 'no-cache' })).json(); } catch (e) { /* */ }
   const list = [];
-  for (const t of TOWNS) { const p = layout?.places?.find((q) => q.name === t.name); if (!p) continue; const T = { ...t, x: p.x, z: p.z, r: p.r, R: Math.min(330, Math.max(180, p.r * 0.4)), planned: false, state: 'idle' }; list.push(T); lots.towns.push(T); }
+  // every fictional-land town on the map (the main street is found on whatever grid the map-roads track has built)
+  const towns = (layout?.places || []).filter((q) => q.kind === 'town' && !/Outskirts/.test(q.name) && !(layout.realRect && q.x > layout.realRect.minX && q.x < layout.realRect.maxX && q.z > layout.realRect.minZ && q.z < layout.realRect.maxZ)).map((q) => ({ name: q.name, short: q.name.split(' ').filter((w) => w.length > 3).pop() || q.name }));
+  for (const t of towns.length ? towns : TOWNS) { const p = layout?.places?.find((q) => q.name === t.name); if (!p) continue; const T = { ...t, x: p.x, z: p.z, r: p.r, R: Math.min(330, Math.max(180, p.r * 0.4)), planned: false, state: 'idle' }; list.push(T); lots.towns.push(T); }
   if (!list.length) return;
   const root = new THREE.Group(); root.name = 'towns'; game.scene.add(root);
   const stats = {};

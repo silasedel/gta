@@ -24,7 +24,16 @@ export const KINDS = {
   motel: { awn: 'none', front: 'motel', stories: [2], palette: ['#2f8f8a', '#e07a2a'] },
   school: { awn: 'none', front: 'school', stories: [1], palette: ['#b85a38'] },
   marina: { awn: 'tin', front: 'shack', stories: [1], palette: ['#2a5a8a'] },
+  boutique: { awn: 'flat', front: 'bay', stories: [2], palette: ['#1e1e1e', '#6a2a3a', '#2a4a3a'] },
+  gallery: { awn: 'none', front: 'wide', stories: [1, 2], palette: ['#2a2a2a', '#f2efe6'] },
+  wine: { awn: 'striped', front: 'narrow', stories: [2], palette: ['#5a1e2a', '#2a3a2a'] },
+  jeweler: { awn: 'flat', front: 'narrow', stories: [2], palette: ['#1e2e3e', '#7a6a3a'] },
+  salon: { awn: 'striped', front: 'narrow', stories: [1, 2], palette: ['#d28aa0', '#2a6a6a'] },
+  deli: { awn: 'striped', front: 'bay', stories: [1], palette: ['#2a5a2a', '#b84a2a'] },
+  toys: { awn: 'striped', front: 'bay', stories: [1], palette: ['#e0a020', '#2a7ac8'] },
 };
+// room behind the shop glass (interior mapping kind, see houses/materials.js shopGlass)
+const ROOM = { hardware: 1, pharmacy: 1, books: 1, bait: 1, seafood: 1, wine: 1, toys: 1, cafe: 2, bakery: 2, icecream: 2, deli: 2, diner: 5, bank: 4, realty: 4, gallery: 0, florist: 3, boutique: 3, jeweler: 3, salon: 0, barber: 0, laundry: 0, motel: 0, school: 0, marina: 1 };
 const BODY = ['#efe4cf', '#f3e6d6', '#e7d3b5', '#f2dcc8', '#dfe6dc', '#f4efe2', '#e9d8c4', '#d8e2e6', '#f0d9c0', '#e6e0d0', '#f5e9d9'];
 const hex = (s) => parseInt(s.slice(1), 16);
 
@@ -37,19 +46,35 @@ export function buildShop(hk, s, lod = 0) {
   const body = s.colors.body, trim = s.colors.trim, acc = s.colors.accent, awnC = s.colors.awn;
   const box = (m, sx, sy, sz, x, y, z, o = {}, ry = 0, rx = 0, rz = 0) => B.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), o);
   const vary = (c, a = 0.04) => kit.vary(c, r, a);
-  const front = K.front;
+  const front = K.front, SG = mat.shopGlass(), room = ROOM[s.kind] ?? 0, rw = (lit) => room + Math.min(0.98, Math.max(0, lit));
+  // facade material by rule (set by the town: quarter, kind, neighbors): stucco, painted brick or raw brick, board and batten, stone
+  const FAC = s.facade === 'brick' ? mat.brick() : s.facade === 'batten' ? PAINT : s.facade === 'stone' ? mat.stoneVeneer() : STU;
+  const facC = s.facade === 'brick' ? (s.paintedBrick ? body : 0xffffff) : s.facade === 'stone' ? 0xf0e8d8 : body;
 
   // ---------- shell ----------
   if (front === 'church') return church();
   box(STU, w, h, d, 0, h / 2, 0, { color: body, wear: [wear + 0.25, wear] });
+  // facade skin on the street face above the storefront (the ground floor is glass, bulkheads and pilasters), and on the
+  // ground floor only for the civic fronts that have no shop window
+  const skin0 = /columns|motel|school/.test(K.front) ? 0.35 : 2.78;
+  if (FAC !== STU) box(FAC, w + 0.04, h - skin0, 0.05, 0, (h + skin0) / 2, z1 + 0.02, { color: facC, wear: wear, grain: 1 });
+  if (s.facade === 'batten' && L1 && h > 4.4) for (let x = x0 + 0.3; x < x1 - 0.1; x += 0.6) box(PAINT, 0.06, h - 3.9, 0.03, x, (h + 3.9) / 2, z1 + 0.06, { color: kit.mul(body, 0.92), wear: wear + 0.1, grain: 1 });
+  if (s.stoneBase && L1) box(mat.stoneVeneer(), w + 0.1, 0.9, 0.08, 0, 0.45, z1 + 0.05, { color: 0xe8e0d0 });
   box(CONC, w + 0.12, 0.35, d + 0.12, 0, 0.12, 0, { color: 0xbab3a6, wear: 0.4 });                       // base / water table
   cols.push({ shape: 'box', p: [0, h / 2, 0], h: [w / 2, h / 2, d / 2], ry: 0 });
   // parapet, cornice, coping (stepped center on some)
   const par = 0.7 + r() * 0.5;
   for (const [sx, sz, x, z] of [[w + 0.1, 0.22, 0, z1 - 0.06], [w + 0.1, 0.22, 0, z0 + 0.06], [0.22, d, x0 + 0.06, 0], [0.22, d, x1 - 0.06, 0]]) box(STU, sx, par, sz, x, h + par / 2, z, { color: body, wear: 0.3 });
   box(STU, w + 0.34, 0.16, 0.3, 0, h + par + 0.06, z1 - 0.05, { color: trim, wear: 0.25 });
-  if (L1) box(STU, w + 0.26, 0.22, 0.24, 0, h - 0.05, z1 + 0.04, { color: trim, wear: 0.25 });          // cornice band
-  if (r() < 0.55 && w > 7) { const sw = w * (0.3 + r() * 0.2); box(STU, sw, 0.6, 0.22, 0, h + par + 0.3, z1 - 0.06, { color: body, wear: 0.3 }); box(STU, sw + 0.2, 0.12, 0.3, 0, h + par + 0.62, z1 - 0.05, { color: trim, wear: 0.25 }); }
+  // cornice by style: stepped (three projecting courses), dentil (block row under a crown), arched center, false front
+  const cor = s.cornice || 'stepped';
+  if (L1) { box(STU, w + 0.22, 0.2, 0.2, 0, h - 0.06, z1 + 0.06, { color: trim, wear: 0.25 }); box(STU, w + 0.32, 0.12, 0.3, 0, h + 0.1, z1 + 0.08, { color: trim, wear: 0.25 }); }
+  if (cor === 'stepped' && L1) box(STU, w + 0.12, 0.1, 0.12, 0, h - 0.26, z1 + 0.03, { color: trim, wear: 0.25 });
+  if (cor === 'dentil' && L0) for (let x = x0 + 0.15; x < x1 - 0.1; x += 0.24) box(STU, 0.1, 0.12, 0.1, x, h - 0.22, z1 + 0.07, { color: trim });
+  if (cor === 'arched' && L1 && w > 6) { const R = Math.min(w * 0.22, 1.6), sh = new THREE.Shape(); sh.moveTo(-R - 0.3, 0); sh.lineTo(-R, 0); sh.absarc(0, 0, R, PI, 0, true); sh.lineTo(R + 0.3, 0); sh.lineTo(R + 0.3, -0.01); sh.lineTo(-R - 0.3, -0.01);
+    B.geo(STU, new THREE.ExtrudeGeometry(sh, { depth: 0.22, bevelEnabled: false, curveSegments: L0 ? 12 : 6 }), M(0, h + par, z1 - 0.17), { color: body, wear: 0.3, uvMul: [0.7, 0.7] }); B.geo(STU, new THREE.TorusGeometry(R + 0.05, 0.08, 6, L0 ? 18 : 8, PI), M(0, h + par, z1 - 0.04), { color: trim }); }
+  if (cor === 'false' && L1) { const fh = 1.3; box(FAC, w + 0.04, fh, 0.12, 0, h + par + fh / 2, z1 - 0.04, { color: facC, wear }); box(STU, w + 0.3, 0.14, 0.26, 0, h + par + fh + 0.07, z1 - 0.02, { color: trim }); }
+  if (cor === 'stepped' && w > 7 && L1) { const sw = w * 0.4; box(STU, sw, 0.6, 0.22, 0, h + par + 0.3, z1 - 0.06, { color: body, wear: 0.3 }); box(STU, sw + 0.2, 0.12, 0.3, 0, h + par + 0.62, z1 - 0.05, { color: trim, wear: 0.25 }); }
   box(CONC, w - 0.3, 0.06, d - 0.3, 0, h + 0.03, 0, { color: 0x8a867e, wear: 0.6 });                     // roof deck
   if (L1) { const n = 1 + ((w * d) / 90 | 0); for (let k = 0; k < Math.min(3, n); k++) { const ax = x0 + 1.2 + r() * (w - 2.4), az = z0 + 1.2 + r() * (d * 0.5); box(MET, 1.0, 0.8, 1.2, ax, h + 0.45, az, { color: 0xc8c6bc, wear: 0.4 }); if (L0) B.cyl(MET, 0.35, 0.35, 0.02, M(ax, h + 0.86, az), { seg: 12, color: 0x2a2a2a }); } }
   // pilasters at the front corners
@@ -84,7 +109,7 @@ export function buildShop(hk, s, lod = 0) {
   }
   function win(x, y0, z, ww, wh, ry, k) {   // punched window: frame, sill, glass (lit at night), on a side or upper wall
     const lit = ((s.seed >> (k & 7)) & 1) && r() < 0.8 ? 0.4 + r() * 0.6 : 0, cur = [0xe8dcc0, 0xf2eee4, 0xd8c8a0, 0xc8d8e0, 0xe8c8b0][(r() * 5) | 0];
-    B.box(WIN, ww, wh, 0.03, M(x, y0 + wh / 2, z, 0, ry), { color: cur, wear: lit });
+    B.box(SG, ww, wh, 0.03, M(x, y0 + wh / 2, z, 0, ry), { color: cur, wear: rw(lit * 0.8) });
     if (L1) { B.box(STU, ww + 0.2, 0.08, 0.14, M(x, y0 - 0.04, z, 0, ry).multiply(M(0, 0, 0.05)), { color: trim, wear: 0.3 }); B.box(STU, ww + 0.16, 0.12, 0.06, M(x, y0 + wh + 0.06, z, 0, ry).multiply(M(0, 0, 0.03)), { color: trim, wear: 0.3 }); }
     if (L0) B.box(MET, 0.03, wh, 0.04, M(x, y0 + wh / 2, z, 0, ry).multiply(M(0, 0, 0.02)), { color: 0xf0f0ec });
   }
@@ -97,9 +122,9 @@ export function buildShop(hk, s, lod = 0) {
     for (const [a, b] of [[xa, doorU - doorW / 2 - 0.12], [doorU + doorW / 2 + 0.12, xb]]) {
       if (b - a < 0.4) continue; const cx = (a + b) / 2, ww = b - a;
       box(STU, ww, kick, 0.2 + bay, cx, kick / 2, zf + bay / 2, { color: kit.mul(trim, 0.92), wear: 0.35 });
-      B.box(WIN, ww - 0.08, gy1 - gy0, 0.03, M(cx, (gy0 + gy1) / 2, zf + bay - 0.02), { color: s.colors.interior, wear: s.lit });
+      B.box(SG, ww - 0.08, gy1 - gy0, 0.03, M(cx, (gy0 + gy1) / 2, zf + bay - 0.02), { color: s.colors.interior, wear: rw(s.lit) });
       if (L1) { const nm = Math.max(1, Math.round(ww / 1.3)); for (let k = 0; k <= nm; k++) box(MET, 0.06, gy1 - gy0, 0.08, a + (ww * k) / nm, (gy0 + gy1) / 2, zf + bay, { color: acc, wear: 0.2 }); box(MET, ww, 0.07, 0.09, cx, gy1, zf + bay, { color: acc }); box(MET, ww, 0.05, 0.12, cx, gy0, zf + bay, { color: acc }); }
-      if (bay && L1) { box(STU, ww + 0.1, 0.1, bay + 0.25, cx, gy1 + 0.1, zf + bay / 2, { color: trim, wear: 0.25 }); for (const ex of [a, b]) B.box(WIN, 0.03, gy1 - gy0, bay, M(ex, (gy0 + gy1) / 2, zf + bay / 2), { color: s.colors.interior, wear: s.lit }); }
+      if (bay && L1) { box(STU, ww + 0.1, 0.1, bay + 0.25, cx, gy1 + 0.1, zf + bay / 2, { color: trim, wear: 0.25 }); for (const ex of [a, b]) B.box(SG, 0.03, gy1 - gy0, bay, M(ex, (gy0 + gy1) / 2, zf + bay / 2), { color: s.colors.interior, wear: rw(s.lit) }); }
       // transom band above the display with small lights
       if (L1) B.box(WIN, ww - 0.1, 0.32, 0.03, M(cx, gy1 + 0.27, zf), { color: 0xd8e4e8, wear: s.lit * 0.6 });
       if (L0) { // window displays behind the glass: shelves and goods by kind
@@ -109,14 +134,14 @@ export function buildShop(hk, s, lod = 0) {
     }
     // door: recessed entry with side glass, glass door with push bar, transom
     const dz = zf - recess;
-    if (recess > 0.2) { box(CONC, doorW + 0.3, 0.04, recess, doorU, 0.02, zf - recess / 2, { color: 0x9a9690 }); for (const sx of [-1, 1]) B.box(WIN, 0.03, gy1 - 0.05, recess, M(doorU + sx * (doorW / 2 + 0.12), (gy1 + 0.05) / 2, zf - recess / 2), { color: s.colors.interior, wear: s.lit }); }
-    B.box(WIN, doorW - 0.1, 2.1, 0.03, M(doorU, 1.08, dz), { color: s.colors.interior, wear: s.lit });
+    if (recess > 0.2) { box(CONC, doorW + 0.3, 0.04, recess, doorU, 0.02, zf - recess / 2, { color: 0x9a9690 }); for (const sx of [-1, 1]) B.box(SG, 0.03, gy1 - 0.05, recess, M(doorU + sx * (doorW / 2 + 0.12), (gy1 + 0.05) / 2, zf - recess / 2), { color: s.colors.interior, wear: rw(s.lit) }); }
+    B.box(SG, doorW - 0.1, 2.1, 0.03, M(doorU, 1.08, dz), { color: s.colors.interior, wear: rw(s.lit) });
     if (L1) { for (const sx of [-1, 1]) box(MET, 0.08, 2.2, 0.08, doorU + sx * doorW / 2, 1.1, dz, { color: acc }); box(MET, doorW, 0.1, 0.08, doorU, 2.2, dz, { color: acc }); }
     if (L0) { box(MET, doorW * 0.6, 0.04, 0.06, doorU, 1.05, dz + 0.04, { color: 0xc8c8c4 }); box(PLAST, 0.5, 0.25, 0.01, doorU + doorW * 0.2, 1.55, dz + 0.03, { color: 0xf2f0ea }); }
     lamps.push({ pos: [doorU, 2.6, z1 + 0.8], color: 0xffd7a0, intensity: 16, range: 6 });
     cols.length = 0; cols.push({ shape: 'box', p: [0, h / 2, -recess / 2 + 0.02], h: [w / 2, h / 2, d / 2 - recess / 2], ry: 0 });
     // shack fronts (bait / marina / seafood): board and batten skin over the stucco and a tin awning
-    if (front === 'shack' && L0) for (let x = x0 + 0.15; x < x1; x += 0.3) if (x < doorU - doorW / 2 - 0.1 || x > doorU + doorW / 2 + 0.1) box(PAINT, 0.05, signY0 - 0.3, 0.02, x, (signY0 - 0.3) / 2 + 0.3, zf + 0.21, { color: kit.mul(body, 0.9), wear: 0.5 });
+    // shack fronts get their board and batten from the facade skin above the windows (never over the glass)
     // cafe tables, sidewalk sale racks and plants are placed by the town (they sit on the sidewalk)
   }
   function awning() {
@@ -141,7 +166,7 @@ export function buildShop(hk, s, lod = 0) {
     box(STU, w + 0.2, 0.7, 1.4, 0, h - 0.35, z1 + 0.6, { color: 0xf2efe6, wear: 0.2 });
     if (L1) { const tri = new THREE.Shape(); tri.moveTo(-w / 2 - 0.1, 0); tri.lineTo(w / 2 + 0.1, 0); tri.lineTo(0, 1.2); tri.lineTo(-w / 2 - 0.1, 0); B.geo(STU, new THREE.ShapeGeometry(tri), M(0, h, z1 + 1.31), { color: 0xf2efe6, wear: 0.2, uvMul: [0.7, 0.7] }); }
     box(CONC, w + 0.6, 0.15, 2.0, 0, 0.08, z1 + 1.0, { color: 0xd8d2c4 });
-    B.box(WIN, 1.6, 2.5, 0.03, M(0, 1.35, z1 + 0.02), { color: 0xe8d8b0, wear: s.lit }); for (const x of [-w / 3, w / 3]) B.box(WIN, 1.1, 2.0, 0.03, M(x, 1.6, z1 + 0.02), { color: 0xe8d8b0, wear: s.lit * 0.7 });
+    B.box(SG, 1.6, 2.5, 0.03, M(0, 1.35, z1 + 0.02), { color: 0xe8d8b0, wear: rw(s.lit) }); for (const x of [-w / 3, w / 3]) B.box(SG, 1.1, 2.0, 0.03, M(x, 1.6, z1 + 0.02), { color: 0xe8d8b0, wear: rw(s.lit * 0.7) });
   }
   function motelFront() { // two-story walkway with rail, doors and windows per room, office at one end with a tall sign on a pole
     const rooms = Math.max(3, Math.floor(w / 3.4));

@@ -13,7 +13,7 @@ import { buildShop, KINDS, BODY, hex, signAtlas } from './shops.js';
 
 const RANK = { trunk: 5, primary: 5, secondary: 4, tertiary: 3, unclassified: 2, residential: 2, living_street: 1 };
 const PROGRAM = ['cafe', 'pharmacy', 'hardware', 'bakery', 'diner', 'bank', 'books', 'barber', 'bait', 'florist', 'seafood', 'realty', 'icecream', 'laundry', 'motel', 'church', 'school', 'marina'];
-const WIDTH = { cafe: [8, 10], pharmacy: [11, 13], hardware: [12, 15], bakery: [7, 8.5], diner: [11, 13], bank: [10, 12], books: [7, 8.5], barber: [6, 7], bait: [8, 9.5], florist: [6, 7], seafood: [9, 11], realty: [7, 8], icecream: [6, 7], laundry: [9, 10], motel: [20, 26], church: [10, 11], school: [24, 30], marina: [9, 10] };
+const WIDTH = { boutique: [7, 8.5], gallery: [8, 10], wine: [6.5, 8], jeweler: [6, 7], salon: [6, 7.5], deli: [7.5, 9], toys: [7, 8.5], cafe: [8, 10], pharmacy: [11, 13], hardware: [12, 15], bakery: [7, 8.5], diner: [11, 13], bank: [10, 12], books: [7, 8.5], barber: [6, 7], bait: [8, 9.5], florist: [6, 7], seafood: [9, 11], realty: [7, 8], icecream: [6, 7], laundry: [9, 10], motel: [20, 26], church: [10, 11], school: [24, 30], marina: [9, 10] };
 const DEPTH = { motel: 9, church: 16, school: 14, hardware: 16, diner: 12 };
 const NAME = {
   cafe: ['%T Coffee House', 'Morning Tide Cafe', 'The Driftwood Cafe'], pharmacy: ['%T Drug Co.', 'Harborview Pharmacy'], hardware: ['%T Hardware & Marine', 'Anchor Hardware'],
@@ -21,6 +21,7 @@ const NAME = {
   barber: ['Sharp Tide Barber', 'Old Salt Barber'], bait: ['%T Bait & Tackle', 'Reel Deal Bait'], florist: ['Hibiscus Florist', 'Bloom & Brine'], seafood: ['%T Fish Market', 'Snapper Seafood'],
   realty: ['Seabreeze Realty', '%T Island Realty'], icecream: ['Scoops by the Sea', 'Coconut Creamery'], laundry: ['Suds & Sun Laundry', 'Island Wash'], motel: ['%T Motor Inn', 'Sand Dollar Motel'],
   church: ['%T Chapel', 'Harbor Community Church'], school: ['%T Elementary', '%T Academy'], marina: ['%T Marina Office', 'Harbor Master'],
+  boutique: ['Linen & Salt', 'The Tidal Closet', 'Mangrove Mercantile'], gallery: ['Driftline Gallery', 'Tern Art House'], wine: ['Vine & Brine Cellars', 'Corkscrew Wine Shop'], jeweler: ['Sea Glass Jewelers', 'Pearl & Compass'], salon: ['Saltwater Salon', 'Breeze Hair Studio'], deli: ['Market Street Deli', 'Gulfside Provisions'], toys: ['Sandcastle Toys', 'Kite & Pail'],
 };
 
 export function planTown(town, env) {
@@ -80,46 +81,82 @@ export function planTown(town, env) {
     add(q); add({ x: f.x + nx * (f.hw + sideW * 0.55), z: f.z + nz * (f.hw + sideW * 0.55), ry: q.ry, hw: w / 2, hd: sideW * 0.3, kind: 'awning' });
     return { ...q, w, d, side, f };
   };
-  const MAXS = Math.min(20, seq.length + 4), usedNames = new Set();
-  for (const f of frontage) { if (out.shops.length >= MAXS) break;
-    for (const side of [1, -1]) { const kind = seq[pi % seq.length]; if ((used.has(kind) && pi < seq.length) || (pi >= seq.length && /motel|church|school|marina|bank/.test(kind))) { pi++; continue; }
-      const sh = tryShop(f, side, kind); if (!sh) continue; used.add(kind); pi++;
-      const P = KINDS[kind].palette, k2 = out.shops.length;
-      sh.seed = (Math.round(sh.x * 31 + sh.z * 17) >>> 0) || 1;
-      sh.colors = { body: hex(BODY[(k2 * 7 + 3) % BODY.length]), trim: [0xfaf6ee, 0xf2ede2, 0xe6dccb, 0xfdfaf2][k2 % 4], accent: hex(P[k2 % P.length]), awn: hex(P[(k2 + 1) % P.length]), interior: [0xf0d8a8, 0xe8e0c8, 0xf4e4c0, 0xd8e4e8][k2 % 4] };
-      sh.stories = KINDS[kind].stories[(k2 + (sh.seed & 1)) % KINDS[kind].stories.length];
-      { const names = NAME[kind].map((n) => n.replace('%T', town.short || town.name.split(' ').pop())); sh.name = names.find((n, j) => !usedNames.has(n) && j >= ((sh.seed >>> 3) % names.length)) || names.find((n) => !usedNames.has(n)); if (!sh.name) { out.shops.pop(); continue; } usedNames.add(sh.name); }
-      sh.lit = 0.28 + r() * 0.2; sh.shutters = r() < 0.5; sh.balcony = sh.stories > 1 && r() < 0.4; sh.y = groundAt(sh.x, sh.z);
-      out.shops.push(sh); } }
-  // reserve the shop and plaza footprints for the house generator (map houses under them are not built)
+  // ---- shop rows: main street first (anchors), then the side streets; the quarter street gets the boutiques ----
+  const usedNames = new Set(), short = town.short || town.name.split(' ').pop();
+  const FACADES = ['stucco', 'brick', 'stucco', 'batten', 'stone'], CORN = ['stepped', 'dentil', 'arched', 'stepped', 'dentil'];
+  const lastOnSide = new Map();
+  const finishShop = (sh, kind, quarter) => {
+    const P = KINDS[kind].palette, k2 = out.shops.length;
+    sh.seed = (Math.round(sh.x * 31 + sh.z * 17) >>> 0) || 1;
+    sh.colors = { body: hex(BODY[(k2 * 7 + 3) % BODY.length]), trim: [0xfaf6ee, 0xf2ede2, 0xe6dccb, 0xfdfaf2, 0x2a2a2a][quarter && k2 % 3 === 0 ? 4 : k2 % 4], accent: hex(P[k2 % P.length]), awn: hex(P[(k2 + 1) % P.length]), interior: [0xc8a070, 0xa8b0a8, 0xd0b088, 0x8ea4b4, 0xc08e78, 0xb8a890][(k2 * 3 + (kind.length)) % 6] };   // mid-tone room walls (the glass shows them)
+    sh.stories = KINDS[kind].stories[(k2 + (sh.seed & 1)) % KINDS[kind].stories.length];
+    const names = NAME[kind].map((n) => n.replace('%T', short)), tOff = Math.abs(Math.round(cx + cz)) % 7; sh.name = names.find((n, j) => !usedNames.has(n) && j >= ((tOff + k2) % names.length)) || names.find((n) => !usedNames.has(n)); if (!sh.name) return false; usedNames.add(sh.name);
+    // facade by rule: working shops on the water get board and batten with a false front, the bank stone, the quarter
+    // brick and stone, the rest stucco; a building never shares facade and cornice with its neighbor on the same side
+    let fac = /bait|seafood|marina/.test(kind) ? 'batten' : kind === 'bank' ? 'stone' : quarter ? (k2 % 2 ? 'brick' : 'stucco') : FACADES[(sh.seed >>> 5) % FACADES.length];
+    const sideKey = (sh.f.e?.id ?? 0) + ':' + sh.side, prev = lastOnSide.get(sideKey);
+    if (prev && prev.facade === fac && !/bait|seafood|marina|bank/.test(kind)) fac = FACADES[(FACADES.indexOf(fac) + 1) % FACADES.length];
+    sh.facade = fac; sh.paintedBrick = fac === 'brick' && (sh.seed & 4) !== 0 && !quarter;
+    sh.cornice = fac === 'batten' ? 'false' : CORN[(sh.seed >>> 7) % CORN.length]; if (prev && prev.cornice === sh.cornice && sh.cornice !== 'false') sh.cornice = CORN[(CORN.indexOf(sh.cornice) + 1) % CORN.length];
+    sh.stoneBase = quarter || (fac === 'stucco' && (sh.seed & 8) !== 0);
+    sh.lit = 0.35 + r() * 0.3; sh.shutters = r() < 0.5; sh.balcony = sh.stories > 1 && r() < (quarter ? 0.7 : 0.35); sh.y = groundAt(sh.x, sh.z); sh.quarter = !!quarter;
+    lastOnSide.set(sideKey, sh); out.shops.push(sh); return true;
+  };
+  const placeRow = (list, program, max, quarter) => { let n = 0, pj = 0; const usedK = new Set();
+    for (const f of list) { if (n >= max || pj >= program.length * 2) break;
+      for (const side of [1, -1]) { if (n >= max) break; const kind = program[pj % program.length]; if (usedK.has(kind) && pj < program.length) { pj++; continue; }
+        const sh = tryShop(f, side, kind); if (!sh) continue; pj++; usedK.add(kind); if (finishShop(sh, kind, quarter)) n++; } } return n; };
+  placeRow(frontage, seq.filter((k) => k !== 'marina' || town.coast !== false), Math.min(16, Math.round(R / 14)), false);
+  // side streets: the cross streets at the main-street junctions, first 80 m from the junction
+  const sides = [];
+  for (const n of nodes) { if (Math.hypot(n.x - cx, n.z - cz) > R * 0.85) continue;
+    for (const k of n.edges || []) { const e = rg.edges[k]; if (!e || main.edges.includes(e) || e.bridge || /service|footway|path|track/.test(e.kind || '')) continue;
+      const atA = e.a === n.id, pts = atA ? e.pts : e.pts.slice().reverse(), list = []; let acc = 0; const hw = (e.width || 7) / 2;
+      for (let i = 0; i < pts.length - 1 && acc < 80; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 1) continue; const tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L; for (let t = 0; t < L && acc < 80; t += 2, acc += 2) list.push({ x: a[0] + tx * t, z: a[1] + tz * t, tx, tz, hw, e }); }
+      if (list.length > 8) sides.push({ e, node: n, list, d: Math.hypot(n.x - (out.plaza?.x ?? cx), n.z - (out.plaza?.z ?? cz)) }); } }
+  sides.sort((a, b) => a.d - b.d);
+  const QUARTER = ['boutique', 'cafe', 'gallery', 'wine', 'jeweler', 'deli', 'salon', 'toys', 'florist', 'books'];
+  if (sides[0]) { out.quarter = { edge: sides[0].e.id, name: sides[0].e.name || null }; placeRow(sides[0].list.slice(5), QUARTER, 8, true); }
+  for (const sd of sides.slice(1, 4)) placeRow(sd.list.slice(5), ['realty', 'laundry', 'barber', 'salon', 'deli', 'toys', 'icecream'], 2, false);
+  // a small green on the quarter street: lawn, one shade tree, benches, low hedge
+  if (sides[0]) for (const f of sides[0].list.slice(12)) { if (out.green) break; for (const side of [1, -1]) { const nx = -f.tz * side, nz = f.tx * side, o = f.hw + sideW + 0.4 + 8; const q = { x: f.x + nx * o, z: f.z + nz * o, ry: Math.atan2(-nx, -nz), hw: 8, hd: 8, kind: 'green' }; if (!free(q)) continue; out.green = add(q); break; } }
+  // reserve the shop, plaza and green footprints for the house generator (map houses under them are not built)
   for (const q of placed) if (q.kind !== 'awning') out.reserved.push(q);
   // ---- furniture (rules: lamps every 24 m at the curb alternating sides; benches + bins at shop entries; planters between) ----
+  const rows = [frontage, ...sides.slice(0, 4).map((x) => x.list)];
   let lampS = 0;
-  for (const f of frontage) for (const side of [1, -1]) {
+  for (const list of rows) for (const f of list) for (const side of [1, -1]) {
     const nx = -f.tz * side, nz = f.tx * side, ry = Math.atan2(f.tx, f.tz);
     if (nearJunction(f.x, f.z, f.hw + 5)) continue;
     const key = Math.round((f.x * f.tx + f.z * f.tz) / 2);
     if ((key % 12 === 0) && (((key / 12) | 0) % 2 === (side > 0 ? 0 : 1))) { const q = { x: f.x + nx * (f.hw + 0.55), z: f.z + nz * (f.hw + 0.55), ry, hw: 0.3, hd: 0.3, kind: 'lamp' }; if (free(q, { roadPad: 0.1 })) { add(q); out.furniture.push({ ...q, y: groundAt(q.x, q.z) }); lampS++; } }
   }
   for (const sh of out.shops) { if (/church|school|motel/.test(sh.kind)) continue; const f = sh.f, nx = -f.tz * sh.side, nz = f.tx * sh.side, tx = f.tx, tz = f.tz;
-    const pos = (u, o) => ({ x: f.x + nx * (f.hw + o) + tx * u + (sh.x - f.x - nx * (sh.x - f.x) * 0) * 0, z: f.z + nz * (f.hw + o) + tz * u });
     const at = (u, o) => { const base = { x: sh.x - nx * (sh.d / 2 + 0.3 + sideW + 0.15), z: sh.z - nz * (sh.d / 2 + 0.3 + sideW + 0.15) }; return { x: base.x + tx * u + nx * o, z: base.z + tz * u + nz * o }; };
-    void pos;
-    // bench (facing the street) and bin beside it near the curb
     const sideU = (sh.seed & 2 ? 1 : -1) * (sh.w / 2 - 1.2), b = at(sideU, 1.3), bq = { ...b, ry: Math.atan2(-nx, -nz) + Math.PI, hw: 0.85, hd: 0.35, kind: 'bench' };
     if (free(bq, { roadPad: 0.6 })) { add(bq); out.furniture.push({ ...bq, y: groundAt(bq.x, bq.z) }); const bn = at(sideU + 1.25, 1.0), nq = { ...bn, ry: bq.ry, hw: 0.3, hd: 0.3, kind: 'bin' }; if (free(nq, { roadPad: 0.5 })) { add(nq); out.furniture.push({ ...nq, y: groundAt(nq.x, nq.z) }); } }
-    // planter with a shrub at the far end of the frontage
     const p = at(-sideU, 0.9), pq = { ...p, ry: bq.ry, hw: 0.6, hd: 0.6, kind: 'planter' }; if (free(pq, { roadPad: 0.5 })) { add(pq); out.furniture.push({ ...pq, y: groundAt(pq.x, pq.z) }); }
-    // cafe / bakery / icecream: two bistro tables with umbrellas on the sidewalk
-    if (/cafe|bakery|icecream|diner/.test(sh.kind)) for (const u of [-sh.w * 0.25, sh.w * 0.25]) { const t = at(u, sideW * 0.42), tq = { ...t, ry: 0, hw: 0.8, hd: 0.8, kind: 'bistro' }; if (free(tq, { roadPad: 0.6 })) { add(tq); out.furniture.push({ ...tq, y: groundAt(tq.x, tq.z), color: sh.colors.awn }); } }
+    if (/cafe|bakery|icecream|diner|deli|wine/.test(sh.kind)) for (const u of [-sh.w * 0.25, sh.w * 0.25]) { const t = at(u, sideW * 0.42), tq = { ...t, ry: 0, hw: 0.8, hd: 0.8, kind: 'bistro' }; if (free(tq, { roadPad: 0.6 })) { add(tq); out.furniture.push({ ...tq, y: groundAt(tq.x, tq.z), color: sh.colors.awn }); } }
   }
+  // ---- street trees in grates: every 12 m at the curb, never under an awning reach, 5 m from lamps, clear of junctions ----
+  const lampsXZ = out.furniture.filter((f) => f.kind === 'lamp');
+  for (const list of rows) { const quarterRow = list === sides[0]?.list;
+    for (const f of list) for (const side of [1, -1]) { const key = Math.round((f.x * f.tx + f.z * f.tz) / 2); if (key % 6 !== 3) continue; if (nearJunction(f.x, f.z, f.hw + 7)) continue;
+      const nx = -f.tz * side, nz = f.tx * side, x = f.x + nx * (f.hw + 0.95), z = f.z + nz * (f.hw + 0.95);
+      if (lampsXZ.some((l) => Math.hypot(l.x - x, l.z - z) < 5)) continue;
+      const q = { x, z, ry: Math.atan2(f.tx, f.tz), hw: 0.7, hd: 0.7, kind: 'grate' }; if (!free(q, { roadPad: 0.15 })) continue;
+      // crown clearance: no shop facade within 2.2 m of the trunk
+      if (out.shops.some((sh) => { const dx = x - sh.x, dz = z - sh.z, c = Math.cos(sh.ry), sn = Math.sin(sh.ry), u = Math.abs(dx * c - dz * sn), v = Math.abs(dx * sn + dz * c); return u < sh.w / 2 + 2.2 && v < sh.d / 2 + 2.2; })) continue;
+      add(q); const y = groundAt(x, z); out.furniture.push({ ...q, y });
+      out.trees.push({ kind: quarterRow ? 'gumbo' : (key / 6 | 0) % 2 ? 'sabal' : 'queen', x, z, y: y + 0.1, s: quarterRow ? 0.55 : 0.75, small: false }); } }
   // plaza furniture: fountain in the middle, four shade trees, benches around, cafe tables on the street side
   if (out.plaza) { const P = out.plaza, c = Math.cos(P.ry), sn = Math.sin(P.ry), at = (u, v) => ({ x: P.x + c * u + sn * v, z: P.z - sn * u + c * v });
     out.plazaY = groundAt(P.x, P.z);
     for (const [u, v] of [[-8.5, -7.5], [8.5, -7.5], [-8.5, 6.5], [8.5, 6.5]]) { const t = at(u, v); out.trees.push({ kind: (u > 0) === (v > 0) ? 'royal' : 'sabal', x: t.x, z: t.z, y: out.plazaY + 0.25, s: 0.9 }); }   // narrow crowns: clear of the shops and the fountain
     for (const [u, v, a] of [[0, -6.5, 0], [0, 6.0, Math.PI], [-6.5, 0, Math.PI / 2], [6.5, 0, -Math.PI / 2]]) { const t = at(u, v); out.furniture.push({ ...t, ry: P.ry + a, kind: 'bench', y: out.plazaY }); }
   }
-  out.counts = { shops: out.shops.length, lamps: lampS, furniture: out.furniture.length, crossings: out.crossings.length, walks: out.walks.length };
+  if (out.green) { const G = out.green, c = Math.cos(G.ry), sn = Math.sin(G.ry), at = (u, v) => ({ x: G.x + c * u + sn * v, z: G.z - sn * u + c * v }); out.greenY = groundAt(G.x, G.z); out.trees.push({ kind: 'gumbo', ...at(0, 0), y: out.greenY + 0.1, s: 0.8 }); for (const [u, v, a] of [[0, -4.5, 0], [0, 4.5, Math.PI], [-4.5, 0, Math.PI / 2], [4.5, 0, -Math.PI / 2]]) out.furniture.push({ ...at(u, v), ry: G.ry + a, kind: 'bench', y: out.greenY }); }
+  out.counts = { shops: out.shops.length, quarter: out.shops.filter((x) => x.quarter).length, lamps: lampS, trees: out.trees.length, furniture: out.furniture.length, crossings: out.crossings.length, walks: out.walks.length, green: !!out.green, sides: sides.length };
   return out;
 }
 
@@ -140,7 +177,8 @@ export function buildStreetscape(hk, plan, ox, oz, lod = 0) {
       cols.push({ shape: 'cyl', p: [x, y + 2.3, z], r: 0.1, hh: 2.3 }); lamps.push({ pos: [x, y + 4.4, z], color: 0xffd9a8, intensity: 30, range: 12 }); }
     else if (f.kind === 'bench') { for (const lx of [-0.75, 0.75]) B.box(MET, 0.06, 0.45, 0.5, m(lx, 0.22, 0), { color: 0x1e2a22 }); for (let k = 0; k < 4; k++) B.box(WOOD, 1.7, 0.035, 0.09, m(0, 0.45, -0.18 + k * 0.11), { color: 0x9a6a3a, wear: 0.3 }); for (let k = 0; k < 3; k++) B.box(WOOD, 1.7, 0.09, 0.035, m(0, 0.62 + k * 0.12, -0.26, -0.15), { color: 0x9a6a3a, wear: 0.3 }); cols.push({ shape: 'box', p: [x, y + 0.4, z], h: [0.85, 0.4, 0.3], ry: f.ry }); }
     else if (f.kind === 'bin') { B.cyl(MET, 0.26, 0.24, 0.85, m(0, 0.43, 0), { seg: L0 ? 14 : 8, color: 0x1e3a2a }); if (L0) for (let k = 0; k < 10; k++) B.box(MET, 0.03, 0.75, 0.02, m(Math.cos(k * 0.63) * 0.265, 0.43, Math.sin(k * 0.63) * 0.265, 0, -k * 0.63), { color: 0x1e3a2a }); B.cyl(MET, 0.28, 0.28, 0.05, m(0, 0.87, 0), { seg: 10, color: 0x1a2a20 }); cols.push({ shape: 'cyl', p: [x, y + 0.45, z], r: 0.27, hh: 0.45 }); }
-    else if (f.kind === 'planter') { B.box(STU, 1.2, 0.6, 1.2, m(0, 0.3, 0), { color: 0xe8e0d0, wear: 0.3 }); B.box(STU, 1.32, 0.06, 1.32, m(0, 0.62, 0), { color: 0xd8d0c0 }); B.box(mat.matte(), 1.05, 0.04, 1.05, m(0, 0.6, 0), { color: 0x3a2a1c }); cols.push({ shape: 'box', p: [x, y + 0.3, z], h: [0.6, 0.3, 0.6], ry: f.ry }); plan.trees.push({ kind: ['ixora', 'croton', 'hibiscus'][Math.abs(Math.round(f.x + f.z)) % 3], x: f.x, z: f.z, y: y + 0.6, s: 0.55, small: true }); }
+    else if (f.kind === 'planter') { B.box(STU, 1.2, 0.6, 1.2, m(0, 0.3, 0), { color: 0xe8e0d0, wear: 0.3 }); B.box(STU, 1.32, 0.06, 1.32, m(0, 0.62, 0), { color: 0xd8d0c0 }); B.box(mat.matte(), 1.05, 0.04, 1.05, m(0, 0.6, 0), { color: 0x3a2a1c }); cols.push({ shape: 'box', p: [x, y + 0.3, z], h: [0.6, 0.3, 0.6], ry: f.ry }); if (L0) plan.trees.push({ kind: ['ixora', 'croton', 'hibiscus'][Math.abs(Math.round(f.x + f.z)) % 3], x: f.x, z: f.z, y: y + 0.6, s: 0.55, small: true }); }
+    else if (f.kind === 'grate') { B.box(MET, 1.3, 0.04, 1.3, m(0, 0.13, 0), { color: 0x2a2a28 }); if (L0) for (let k = -2; k <= 2; k++) { B.box(MET, 1.3, 0.05, 0.04, m(0, 0.14, k * 0.22), { color: 0x1a1a18 }); B.box(MET, 0.04, 0.05, 1.3, m(k * 0.22, 0.14, 0), { color: 0x1a1a18 }); } B.box(mat.matte(), 1.2, 0.02, 1.2, m(0, 0.12, 0), { color: 0x3a2a1c }); cols.push({ shape: 'cyl', p: [x, y + 1.5, z], r: 0.3, hh: 1.5 }); }
     else if (f.kind === 'bistro') { B.cyl(MET, 0.35, 0.35, 0.03, m(0, 0.74, 0), { seg: 14, color: 0xe8e8e4 }); B.cyl(MET, 0.03, 0.03, 2.3, m(0, 1.15, 0), { seg: 6, color: 0xd8d8d8 }); B.cyl(PLAST, 0.02, 1.1, 0.35, m(0, 2.25, 0), { seg: 8, color: f.color ?? 0x2f6b5a });
       for (const a of [0.4, 2.5, 4.4]) { const cx2 = Math.cos(a) * 0.62, cz2 = Math.sin(a) * 0.62; B.box(MET, 0.4, 0.03, 0.4, m(cx2, 0.45, cz2, 0, -a), { color: 0x2a2a2a }); B.box(MET, 0.4, 0.4, 0.03, m(cx2 + Math.cos(a) * 0.2, 0.65, cz2 + Math.sin(a) * 0.2, 0, -a + Math.PI / 2), { color: 0x2a2a2a }); } cols.push({ shape: 'cyl', p: [x, y + 0.4, z], r: 0.4, hh: 0.4 }); }
   }
@@ -154,6 +192,11 @@ export function buildStreetscape(hk, plan, ox, oz, lod = 0) {
     if (L0) for (let k = 0; k < 12; k++) { const a = k * 0.5236; B.cyl(WATER, 0.03, 0.06, 0.55, M(x, y, z, 0, Pz.ry).multiply(M(Math.cos(a) * 1.25, 1.75, Math.sin(a) * 1.25, Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5)), { seg: 5, color: 0xd8f0f4 }); }
     cols.push({ shape: 'cyl', p: [x, y + 0.5, z], r: 3.3, hh: 0.5 });
     for (const t of plan.trees) if (!t.small) { const [tx, tz] = P(t.x, t.z); cols.push({ shape: 'cyl', p: [tx, y + 1.5, tz], r: 0.35, hh: 1.5 }); }
+  }
+  // the quarter's small green: lawn, clipped hedge border with gaps, paths crossing
+  if (plan.green) { const Gq = plan.green, [x, z] = P(Gq.x, Gq.z), y = plan.greenY ?? 0, m = (lx, ly, lz) => M(x, y, z, 0, Gq.ry).multiply(M(lx, ly, lz));
+    B.box(mat.matte(), 15.6, 0.08, 15.6, m(0, 0.03, 0), { color: 0x5a8a3a }); B.box(PAV, 1.6, 0.1, 15.6, m(0, 0.04, 0), { color: 0xe2d6c0 }); B.box(PAV, 15.6, 0.1, 1.6, m(0, 0.04, 0), { color: 0xe2d6c0 });
+    for (const [u, v, sx, sz] of [[-4.6, -7.6, 6, 0.6], [4.6, -7.6, 6, 0.6], [-4.6, 7.6, 6, 0.6], [4.6, 7.6, 6, 0.6], [-7.6, -4.6, 0.6, 6], [-7.6, 4.6, 0.6, 6], [7.6, -4.6, 0.6, 6], [7.6, 4.6, 0.6, 6]]) { if (L0) for (let t = -0.5; t <= 0.5; t += 1 / Math.max(1, Math.round(Math.max(sx, sz) / 1.2))) { const lu = u + (sx > 1 ? t * sx : 0), lv = v + (sz > 1 ? t * sz : 0); plan.trees.push({ kind: 'hedge', x: Gq.x + Math.cos(Gq.ry) * lu + Math.sin(Gq.ry) * lv, z: Gq.z - Math.sin(Gq.ry) * lu + Math.cos(Gq.ry) * lv, y: y + 0.05, s: 0.6, small: true }); } cols.push({ shape: 'box', p: [x + Math.cos(Gq.ry) * u + Math.sin(Gq.ry) * v, y + 0.4, z - Math.sin(Gq.ry) * u + Math.cos(Gq.ry) * v], h: [sx / 2, 0.4, sz / 2], ry: Gq.ry }); }
   }
   return { batch: B, colliders: cols, lamps };
 }

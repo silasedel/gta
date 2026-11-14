@@ -98,6 +98,11 @@
    "name": "Town center (Port Calabash): main street with distinct shops and civic places (original names, signs, awnings, lit glass), lamps, benches, bins, planters, cafe seating, plaza with fountain and palms; footprint index for every placement",
    "state": "built",
    "evidence": "docs/v2/shots/houses/townMain.png, townPlaza.png, townNight.png, before_townCenter.png"
+  },
+  {
+   "name": "Town pass 2: interior-mapped shop glass (shelves, cafe, boutique, office, diner rooms; warm at night), facade materials by rule (stucco, brick, board and batten, stone, stone bases), cornice styles, street trees in grates, side streets with a boutique quarter and a green, kit applied to every fictional-land town",
+   "state": "built",
+   "evidence": "docs/v2/shots/houses/townClose.png, townMain.png, townQuarter.png, townNight.png, townSatsuma.png, townSatsumaQ.png; honest score about 5/10 against the polished reference"
   }
  ]
 }
