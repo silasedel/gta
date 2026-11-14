@@ -85,3 +85,18 @@ Each change is gated by `?lookoff` in the URL, so the before and after shots com
 - **MSAA cost** (full frame, 10 renders between hard syncs, 1600x900): 4x vs off = 17.4 vs 15.0 ms in one run, 41.6 vs 33.0 ms in another under heavy load. High now uses 2x, ultra 4x, medium 2x.
 - **Interior bloom:** the bloom night term is `max(night, env.indoor)`, so venues glow by day.
 - **Not done this pass:** edges and shimmer in motion from a frame sequence; tree and road-shadow after-shots; car paint, tail-light and window comparisons with ref_57/ref_59.
+
+## Pass 4 (Nov 14): navy shade fix (`post.js`, `game.look`)
+- By day (fading out below sun elevation 0.05–0.25):
+  - hemisphere sky colour pulled 75% toward its own grey (`skyDesat`);
+  - warm sun bounce added to the hemisphere ground colour (`bounce` 0.6: sun colour x 0.36/0.31/0.24);
+  - PMREM environment intensity x0.4 (`envDay`, was 0.78), because its blue diffuse was the main source of navy shade;
+  - hemisphere x1.65 (`hemiDay`, was 0.62) to keep shade brightness;
+  - teal shadow push in the grade cut to 25% (`shadeTint`).
+  The sunlit side is unchanged. Colours are re-captured every time `environment.js` writes them, so nothing compounds.
+- Same camera, same page, old and new values toggled live: `docs/v2/shots/look/neutral_shade_before_after.jpg` (Downtown at 15:30 on top, Julia Tuttle Causeway at 15:30 below).
+- Result:
+  - Downtown: the shaded street and walls are clearly less blue, but somewhat darker.
+  - Julia Tuttle: the shaded inner barrier went from navy to a darker blue-grey. Better, but not the neutral grey of ref_57/58/59; a blue grazing sky reflection remains.
+- **Next step, not done:** sky occlusion on vertical faces, or a desaturated environment map for the diffuse term only (needs `environment.js`).
+- Not shot: under the US-1 ramp; car paint, tail lights and windows vs ref_57/59 (out of budget).

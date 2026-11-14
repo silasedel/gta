@@ -406,6 +406,8 @@ export function createPost(game) {
   let time = 0;
   const lookB = { hemi: 0, sun: 0, env: 0 };
   const lookW = { hemi: -1, sun: -1, env: -1 };
+  const lookCB = { sky: new THREE.Color(), gnd: new THREE.Color() };
+  const lookCW = { sky: new THREE.Color(-1, -1, -1), gnd: new THREE.Color(-1, -1, -1) };
 
   // internal render scale (VFX_NOTES #4): only the composer targets shrink; the canvas stays at the quality DPR and
   // the last pass (grade) upscales to it. Driven by frame time with hysteresis (see governor).
@@ -568,7 +570,7 @@ export function createPost(game) {
       // By day the flat sky fill (hemisphere + PMREM diffuse) is cut and the sun pushed, so shade reads as shade.
       // ?lookoff restores the old balance. Tunables live on game.look.
       if (!LOOK_OFF && env && !env.underwater) {
-        const L = game.look || (game.look = { hemiDay: 0.62, envDay: 0.78, sunDay: 1.14 });
+        const L = game.look || (game.look = { hemiDay: 1.65, envDay: 0.4, sunDay: 1.14, skyDesat: 0.75, bounce: 0.6, neutral: 1, shadeTint: 0.25 });
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));
@@ -584,6 +586,25 @@ export function createPost(game) {
         if ('environmentIntensity' in scene) {
           if (scene.environmentIntensity !== lookW.env) lookB.env = scene.environmentIntensity;
           scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl);
+        }
+        // neutral shade (navy-concrete fix): shaded faces were lit only by a saturated blue sky. By day the hemisphere
+        // sky colour is pulled toward its own grey and the ground colour gets a warm sun bounce (sun x dry ground
+        // albedo), so shade reads neutral grey while the sunlit side is unchanged. Colours are re-captured whenever
+        // environment.js wrote new ones, so nothing compounds.
+        if (env.hemi && L.neutral) {
+          const dn = day * (1 - (env.indoor || 0)) * THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.05, 0.25);
+          const hc = env.hemi.color;
+          const hg = env.hemi.groundColor;
+          if (!hc.equals(lookCW.sky)) lookCB.sky.copy(hc);
+          if (!hg.equals(lookCW.gnd)) lookCB.gnd.copy(hg);
+          const lum = lookCB.sky.r * 0.2126 + lookCB.sky.g * 0.7152 + lookCB.sky.b * 0.0722;
+          const k = L.skyDesat * dn;
+          hc.setRGB(lookCB.sky.r + (lum * 1.02 - lookCB.sky.r) * k, lookCB.sky.g + (lum * 1.0 - lookCB.sky.g) * k, lookCB.sky.b + (lum * 1.04 - lookCB.sky.b) * k);
+          const sc = env.sun ? env.sun.color : hc;
+          const b = L.bounce * dn;
+          hg.setRGB(lookCB.gnd.r + sc.r * 0.36 * b, lookCB.gnd.g + sc.g * 0.31 * b, lookCB.gnd.b + sc.b * 0.24 * b);
+          lookCW.sky.copy(hc);
+          lookCW.gnd.copy(hg);
         }
       }
       const golden0 = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.3));
@@ -639,6 +660,8 @@ export function createPost(game) {
         const dayOnly = day * (1 - golden);
         gu.uHighTint.value.set(0.028 + 0.035 * golden - 0.02 * night, 0.012 - 0.006 * golden - 0.006 * night, -0.022 + 0.014 * golden + 0.025 * night);
         gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.020 + 0.016 * golden + 0.02 * night);
+        // shade tint strength by day (game.look.shadeTint): the teal shadow push read as navy on concrete in shade
+        gu.uShadowTint.value.multiplyScalar(1 - (1 - (game.look?.shadeTint ?? 0.25)) * (1 - golden) * day);
         gu.uSat.value = (1.1 + 0.1 * golden) * (1 - 0.92 * (game.deathFade || 0));
         gu.uToe.value = 0.012 * dayOnly + 0.008 * golden;
         gu.uContrast.value = 0.37 + 0.08 * dayOnly;
