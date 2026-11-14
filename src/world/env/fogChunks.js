@@ -65,6 +65,15 @@ export function patchFogChunks() {
   if (!C.lights_pars_begin.includes('FOG_HAS_DIRLIGHTS')) {
     C.lights_pars_begin = C.lights_pars_begin + '\n#if NUM_DIR_LIGHTS > 0\n#define FOG_HAS_DIRLIGHTS\n#endif\n#ifdef USE_FOG\n' + HAZE_GLSL + '#endif\n';
   }
+  // look track, navy shade fix: the sky environment map (PMREM) is the main fill light in shade (about 8x the
+  // hemisphere light) and it is blue, so shaded asphalt and concrete read navy. Its diffuse (irradiance) term is
+  // pulled 65% toward its own luminance, slightly warm; specular reflections keep the sky colour. ?lookoff skips it.
+  if (!LOOK_OFF && !C.envmap_physical_pars_fragment.includes('psIblL')) {
+    C.envmap_physical_pars_fragment = C.envmap_physical_pars_fragment.replace(
+      'return PI * envMapColor.rgb * envMapIntensity;',
+      'vec3 psIbl = PI * envMapColor.rgb * envMapIntensity;\n\t\t\tfloat psIblL = dot( psIbl, vec3( 0.2126, 0.7152, 0.0722 ) );\n\t\t\treturn mix( psIbl, vec3( psIblL ) * vec3( 1.03, 1.0, 0.96 ), 0.65 );',
+    );
+  }
   C.fog_fragment = /* glsl */`
 #ifdef USE_FOG
 	#ifdef FOG_EXP2

@@ -100,3 +100,15 @@ Each change is gated by `?lookoff` in the URL, so the before and after shots com
   - Julia Tuttle: the shaded inner barrier went from navy to a darker blue-grey. Better, but not the neutral grey of ref_57/58/59; a blue grazing sky reflection remains.
 - **Next step, not done:** sky occlusion on vertical faces, or a desaturated environment map for the diffuse term only (needs `environment.js`).
 - Not shot: under the US-1 ramp; car paint, tail lights and windows vs ref_57/59 (out of budget).
+
+## Pass 5: navy asphalt on East Flagler at 1 PM
+- **Diagnosis** (in-page toggles, same camera; mean road colour in the bottom-centre crop):
+  - Removing the grade lift and shadow tint: 19.0 to 17.0 blue.
+  - Fully grey hemisphere: almost no change.
+  - Environment intensity set to 0: road (1.8, 2.3, 2.2), near black and neutral.
+  - So the sky environment map (PMREM) supplies about 8x the hemisphere light in shade, and it is blue.
+  - The road material is the plain `M.asphalt` (roughness 1, no own envMap). A per-material `envMapIntensity` has no effect with `scene.environment` in three r170; I tried it and removed it.
+- **Fix** (`fogChunks.js`, global chunk patch): the IBL irradiance (diffuse only) is pulled 65% toward its own luminance, slightly warm. Specular sky reflections keep their colour; off under `?lookoff`. `game.look.envDay` raised back to 0.6 to keep shade brightness.
+- **Result** (`docs/v2/shots/look/navy_road_before_after.jpg`): shaded asphalt moves from (5.8, 10.3, 19.0), navy, to (10.4, 14.1, 21.2), a dark slate grey. Walls in shade are more neutral too.
+  - Still slightly cool: what remains comes from the grade's blue lift (`uLift` 0.012), the 35% kept IBL colour and the grazing sky specular.
+  - Not rechecked at night or sunset; the desaturation applies at all times of day.

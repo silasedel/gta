@@ -570,7 +570,7 @@ export function createPost(game) {
       // By day the flat sky fill (hemisphere + PMREM diffuse) is cut and the sun pushed, so shade reads as shade.
       // ?lookoff restores the old balance. Tunables live on game.look.
       if (!LOOK_OFF && env && !env.underwater) {
-        const L = game.look || (game.look = { hemiDay: 1.65, envDay: 0.4, sunDay: 1.14, skyDesat: 0.75, bounce: 0.6, neutral: 1, shadeTint: 0.25 });
+        const L = game.look || (game.look = { hemiDay: 1.65, envDay: 0.6, sunDay: 1.14, skyDesat: 0.75, bounce: 0.6, neutral: 1, shadeTint: 0.25 });
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));

@@ -22,6 +22,7 @@ const SP = {
   cw: { hour: 12.5, kind: 'road', near: [942, -1305], re: 'Venetian', near2: [500, -110], re2: 'MacArthur' },
   jt: { hour: 15.5, kind: 'road', near: [0, -3600], re: 'Julia Tuttle|I-195|I 195', near2: [-1500, -3500], re2: 'I-195|I 195|Interstate 195' },
   dt15: { hour: 15.5, kind: 'street', pose: views.dt },
+  dt13: { hour: 13, kind: 'street', pose: views.dt },
 };
 const VARS = JSON.parse(o.vars || '[["cur",{}],["strong",{"hemiDay":0.45,"envDay":0.6,"sunDay":1.25}]]');
 await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
@@ -37,6 +38,7 @@ await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
   const base = await b.eval('JSON.stringify(game.look)');
   for (const [name, v] of VARS) {
     await b.eval(`Object.assign(game.look, ${base}, ${JSON.stringify(v)}) && true`);
+    if (v.__js) await b.eval(v.__js);
     await b.sleep(1500);
     await b.screenshot(`docs/v2/shots/look/tune_${spot}_${name}.png`);
   }
