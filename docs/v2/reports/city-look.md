@@ -1,3 +1,32 @@
+# city-look: downtown street pass 3 (Nov 14, 6:20 to 6:30 AM, load 3 to 4)
+
+Same camera throughout: East Flagler St, car height, 1 PM.
+- Before (Nov 13): `before58/dt_street_13.png`
+- Pass 2: `after58/dt_street_13.png`
+- Pass 3: `after59c/dt_street_13.png`
+
+## Verified in screenshots
+- **Pass 2:** striped awnings in muted liveries, granite planters with topiary and flowers, cornices and string courses, reflective blue-grey upper glass, lintels and keystones. Shaded sides read grey under the new lighting.
+- **Pass 3:**
+  - A rusticated stone base: banded courses, V-joints and staggered head joints on the ground floor of masonry-type walls (facade.js).
+  - Deeper window reveals (0.26 m on punched and arched windows) that now hold out to street distance instead of fading at about 5 m.
+  - Street-facing shop bays get a pane of the towns track's interior-room glass (`createHouseKit().mat.shopGlass()`, our own instance). Each pane is a box room with walls, floor and ceiling, kinds 1 to 5, and is warm at night through the kit's `uNight`, which materials.js now drives.
+  - Shader-drawn shop windows lost their pastel tint.
+- Console is clean (only the favicon 404).
+
+## Cost
+- **Draw calls:** 502 to 509, unchanged.
+- **Frame time:** 16.7 ms (60 fps) before the room glass, 23 to 28 ms after (36 to 43 fps), at load 4. The house room shader over about 10% of the screen costs roughly 6 ms. `?noshoprooms` turns it off. The lead should decide whether to keep it on.
+
+## Honest score against ref_58 / ref_59
+About 4.5/10, up from 3.5.
+- The shop rooms read as empty, evenly lit boxes; the furniture in the house shader barely shows at 4 m pane width.
+- Still no lit-interior richness, deep arched stone surrounds or real geometric rustication.
+- The tile-textured blue building on the right still looks generated.
+- Sidewalk pavers and granite curbs: not done. They are ground-track code (road and sidewalk functions in tilebuild.js), which I was told not to touch. The current sidewalk is a plain concrete-paver PBR set with a curb.
+
+---
+
 # city-look: near buildings vs ref_58 / ref_59 (Nov 13, 10:38 PM to 11:55 PM)
 
 ## Changes

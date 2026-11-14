@@ -403,8 +403,18 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;
     M.neon.color.setScalar(1 + 2.4 * dusk);
     if (dusk > 0.02) M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk); else M.bulb.color.setRGB(0.2, 0.19, 0.17); // unlit by day: dull glass bulb, not a glowing beige dot
+    if (M.roomGlassKit) M.roomGlassKit.uNight.value = Math.max(n, dusk * 0.8);
     const blink = t % 1.6 < 0.25; M.beacon.color.setRGB(blink ? 4 : 0.25, blink ? 0.2 : 0.02, blink ? 0.2 : 0.02);
     return { n, dusk };
   }
+  // downtown shop windows: the towns track's interior-room glass (furnished box rooms behind the pane, warm at night)
+  // ?noshoprooms turns it off (costs about 6 ms a frame on a downtown street at car height, measured Nov 14)
+  if (!(typeof location !== 'undefined' && /noshoprooms/.test(location.search))) try {
+    const { createHouseKit } = await import('../setpieces/houses/materials.js');
+    const hk = createHouseKit(THREE, {});
+    M.roomGlass = hk.mat.shopGlass();
+    M.roomGlass.side = THREE.DoubleSide;
+    M.roomGlassKit = hk;
+  } catch (e) { console.warn('[city-look] shop room glass unavailable', e); }
   return { M, F, update };
 }

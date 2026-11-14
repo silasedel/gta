@@ -151,6 +151,28 @@ void facadeEval() {
   vec3 nT = vec3(nA.xy * 2.0 - 1.0, 0.0); nT.z = sqrt(max(0.05, 1.0 - dot(nT.xy, nT.xy)));
   vec3 emi = vec3(0.0); vec3 nOver = vec3(0.0); float useOver = 0.0;
   int type = int(vFb.w + 0.5);
+  { // rusticated stone base: banded courses with V-joints and staggered head joints on the ground floor of masonry-type walls
+    float hy = vFWP.y - vFc.x;
+    bool stoneWall = Li == 1 || Li == 2 || Li == 5 || Li == 6 || Li == 9 || Li == 15 || Li == 16 || Li == 14;
+    if (!horiz && stoneWall && hy > 0.0 && hy < 4.35) {
+      float pw = max(length(fwidth(tuv)), 1e-4);
+      float cy = hy / 0.52;
+      float row = floor(cy);
+      float cx = (tuv.x + mod(row, 2.0) * 0.7) / 1.4;
+      float gy = min(fract(cy), 1.0 - fract(cy)) * 0.52;
+      float gx = min(fract(cx), 1.0 - fract(cx)) * 1.4;
+      float jy = 1.0 - smoothstep(0.03 - pw, 0.03 + pw, gy);
+      float jx = (1.0 - smoothstep(0.018 - pw, 0.018 + pw, gx)) * (1.0 - smoothstep(0.06, 0.25, pw));
+      float j = max(jy, jx);
+      float blk = fH2(vec2(floor(cx), row) + vFa.w * 31.0);
+      alb = mix(alb, mix(vec3(0.84, 0.81, 0.74), cR.rgb * 1.1, 0.35) * (0.93 + 0.12 * blk), 0.6);
+      alb *= 1.0 - 0.45 * j;
+      ao *= 1.0 - 0.4 * j;
+      float sgn = fract(cy) < 0.5 ? 1.0 : -1.0;
+      nT.y += jy * sgn * 0.7;
+      rough = mix(rough, 0.82, 0.5);
+    }
+  }
   if (type != 5 && !horiz) {
     vec2 guv = vFuv; vec2 cell = floor(guv); vec2 f = guv - cell;
     vec2 cs = vec2(vFa.y, vFa.z); vec2 pm = f * cs;
@@ -213,7 +235,7 @@ void facadeEval() {
       emi = I * tr * (1.0 - mull) * (1.0 - blind * 0.7) * (uFDay * 0.16 + lit * litC * uFGlow) + blindC * blind * lit * litC * 0.35 * uFGlow * (1.0 - mull);
     } else {
       // ---- openings in a solid wall ----
-      float rec = (type == 1 ? 0.09 : type == 8 ? 0.3 : 0.17) * detail;
+      float rec = (type == 1 ? 0.09 : type == 8 ? 0.3 : type == 0 || type == 3 ? 0.26 : 0.17) * (1.0 - smoothstep(0.12, 0.7, px));
       vec2 pg = pm + Vt.xy / (-Vt.z) * rec;
       float sdW = fOpen(type, pm - wc, hs), sdG = fOpen(type, pg - wc, hs);
       float inOpen = 1.0 - smoothstep(-px, px, sdW);
@@ -303,7 +325,7 @@ void facadeEval() {
           float tr = type == 8 ? 1.0 : 1.0 - refl * 0.82;
           float dayI = uFDay * (type == 8 ? 0.55 : type == 6 || type == 7 ? 0.5 : 0.2) * (1.0 - 0.5 * clamp(it, 0.0, 1.0));
           if (type != 6 && type != 7 && type != 8) I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.45); // rooms seen through daylight glass are muted
-          if (type == 6 || type == 7) { dayI += uFDay * 0.35; I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.35) * vec3(1.25, 1.0, 0.72); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
+          if (type == 6 || type == 7) { dayI += uFDay * 0.12; I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.3) * vec3(1.15, 0.97, 0.76); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
           float l2 = type == 8 ? max(lit, uFNight * 0.9) : lit;
           oEmi = I * tr * (1.0 - cov) * (dayI + l2 * litC * uFGlow) + cC * cov * l2 * litC * 0.3 * uFGlow * tr;
           oAlb = mix(gTint * (type == 8 ? 0.0 : 0.4), cC * 0.85, cov * 0.9);

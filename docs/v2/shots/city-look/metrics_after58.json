@@ -1,11 +1,23 @@
 {
  "set": "after58",
- "when": "2026-11-14T06:30:38.914Z",
- "uptime": "23:30  up 6 days, 16 hrs, 1 user, load averages: 71.76 73.80 62.36",
+ "when": "2026-11-14T13:20:08.759Z",
+ "uptime": "6:20  up 6 days, 22:50, 1 user, load averages: 2.54 2.96 3.18",
  "views": {
   "dt_street_13": {
-   "calls": 446,
-   "triangles": 3220233,
+   "calls": 539,
+   "triangles": 3527078,
+   "geometries": 1280,
+   "textures": 614,
+   "programs": 975,
+   "frameMsAvg": 17.09,
+   "frameMsP95": 23.7,
+   "frameMsMax": 29.1,
+   "fps": 58.5,
+   "stream": {
+    "near": 9,
+    "mid": 18,
+    "far": 466
+   },
    "shot": true,
    "gy": 0,
    "district": "Downtown",

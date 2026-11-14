@@ -1318,12 +1318,25 @@ export function createTileBuilder(ctx) {
       if (roadDist && roadDist(mx, mz) > 14) continue; // only the faces that front a street
       const nb = Math.max(1, Math.round(L / G.bayW)), bw = L / nb;
       for (let k = 0; k < nb; k++) {
-        if (hash(seed * 31 + i * 7 + k) > 0.6) continue;
         const sA = k * bw + 0.35, sB = (k + 1) * bw - 0.35;
         if (sB - sA < 1.6) continue;
         const cx = p[0] + tx * (sA + sB) / 2, cz = p[1] + tz * (sA + sB) / 2;
-        shopFrontDress(B, p, tx, tz, nx, nz, sA, sB, y0, top, GF, cx, cz, props);
+        if (hash(seed * 31 + i * 7 + k) < 0.6) shopFrontDress(B, p, tx, tz, nx, nz, sA, sB, y0, top, GF, cx, cz, props);
+        if (B.roomGlass && B.roomGlass.w) roomPane(B.roomGlass, p, tx, tz, nx, nz, sA + 0.12, sB - 0.12, y0 + 0.5, top - 0.06, hash(seed * 13 + i * 5 + k));
       }
+    }
+  }
+  // one interior-mapped shop pane (uv 0..1 across the glass); the room kind and light level ride in aWear
+  const ROOM_TINT = [0x8c7c66, 0x7a6e60, 0x968a76, 0x6e6252, 0x857866, 0x7c7468]; // mid-tone walls: the room's light and goods carry the read, not a blown-out box
+  function roomPane(rb, p, tx, tz, nx, nz, sa, sb, ya, yb, h) {
+    if (sb - sa < 0.8 || yb - ya < 0.8) return;
+    const o = 0.04, col = new THREE.Color(ROOM_TINT[(h * ROOM_TINT.length) | 0]);
+    const wear = 1 + ((h * 977) % 1) * 4.99 | 0;
+    const w = wear + 0.35 + 0.6 * ((h * 131) % 1);
+    const A = [p[0] + tx * sa + nx * o, p[1] + tz * sa + nz * o], Bq = [p[0] + tx * sb + nx * o, p[1] + tz * sb + nz * o];
+    for (const [x, y, z, u, v] of [[A[0], ya, A[1], 0, 0], [Bq[0], ya, Bq[1], 1, 0], [Bq[0], yb, Bq[1], 1, 1], [A[0], ya, A[1], 0, 0], [Bq[0], yb, Bq[1], 1, 1], [A[0], yb, A[1], 0, 1]]) {
+      rb.vert(x, y, z, nx, 0, nz, u, v, col);
+      rb.w.push(w);
     }
   }
   function glassFront(B, outer, f, y0, GF, bColor, props = null) {
@@ -1963,6 +1976,7 @@ export function createTileBuilder(ctx) {
     if (!tile) { root.add(group); return group; }
     const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch() };
     if (M.facade) { B.fac = new FBatch(); B.trim = fview(B.fac, WL.stucco); B.roof = fview(B.fac, WL.roofConcrete); }
+    if (M.roomGlass) { B.roomGlass = new Batch(); B.roomGlass.w = []; }
     const T0 = provider.tileSize || 200, X0 = t.tx * T0, Z0 = t.tz * T0, synth = !!(terrain && terrain.synthetic(t.tx, t.tz)), LF = { on: !!(tile.relief && D), k: null };
     if (terrain) { B.runway = new Batch(); B.taxiway = new Batch(); B.apron = new Batch(); }
     if (LF.on) for (const key in B) liftB(B[key], LF);
@@ -2004,6 +2018,10 @@ export function createTileBuilder(ctx) {
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
+    }
+    if (B.roomGlass && B.roomGlass.p.length) { // shop rooms behind street-front glass (aWear = room kind + how lit)
+      const m = meshOf(B.roomGlass, M.roomGlass, { cast: false });
+      if (m) { m.geometry.setAttribute('aWear', new THREE.BufferAttribute(new Float32Array(B.roomGlass.w), 1)); m.name = 'shop-rooms'; group.add(m); }
     }
     if (B.fac && !B.fac.empty) { const m = B.fac.build(M.facade, { cast: true }); m.name = 'facades'; group.add(m); yield; }
     if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }

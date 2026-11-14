@@ -1,0 +1,31 @@
+{
+ "set": "after59b",
+ "when": "2026-11-14T13:24:49.969Z",
+ "uptime": "6:24  up 6 days, 22:54, 1 user, load averages: 4.57 3.66 3.40",
+ "views": {
+  "dt_street_13": {
+   "calls": 536,
+   "triangles": 3529443,
+   "geometries": 1290,
+   "textures": 609,
+   "programs": 969,
+   "frameMsAvg": 25.22,
+   "frameMsP95": 38.5,
+   "frameMsMax": 101.3,
+   "fps": 39.7,
+   "stream": {
+    "near": 9,
+    "mid": 18,
+    "far": 466
+   },
+   "shot": true,
+   "gy": 0,
+   "district": "Downtown",
+   "zone": "downtown",
+   "street": "East Flagler Street"
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

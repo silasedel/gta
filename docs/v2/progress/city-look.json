@@ -5,14 +5,23 @@
  "agent": "idle",
  "items": [
   {
+   "name": "Rusticated stone base, deeper reveals, interior-room shop glass on street bays (about 6 ms per frame; ?noshoprooms)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/after59c/dt_street_13.png"
+  },
+  {
+   "name": "Downtown sidewalk pavers and granite curbs",
+   "state": "todo"
+  },
+  {
    "name": "Near facades vs ref_58/59: reflective blue-grey glass, muted interiors and curtains, no paint bands, lintels and keystones",
    "state": "verified",
    "evidence": "docs/v2/shots/city-look/after58/dt_street_13.png"
   },
   {
    "name": "Cornices, string courses, striped awnings, granite planters with topiary, warm shop interiors",
-   "state": "built",
-   "evidence": ""
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/after58/dt_street_13.png"
   },
   {
    "name": "Rusticated stone base, deep reveals, lit shop interiors at street level matching ref_59",
