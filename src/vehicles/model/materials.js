@@ -6,6 +6,7 @@
 // panels must be SHELL space: ground y = 0, +Z forward, x = 0 centerline, meters.  Meshes that live in another local space
 // (a door with its own pivot, a trailer) set material.userData.wearOffset (Vector3 added to the position before sampling).
 import * as THREE from 'three';
+import { linkEnv } from './envlink.js';
 
 // ---------------------------------------------------------------- shared grime noise (generated once, tileable)
 let _grime = null;
@@ -222,14 +223,14 @@ export function carPaint(opts = {}) {
     uFlake: { value: opts.flakeAmt ?? ({ metallic: 0.22, pearl: 0.16, satin: 0.12 }[finish] || 0) },
   };
   injectWear(m);
-  return m;
+  return linkEnv(m);
 }
 /** A companion material that shares the wear uniforms of `paint` (same dirt on bumpers, cladding, trim, bed liner...). */
 export function wornMaterial(paint, params) {
-  const m = new THREE.MeshPhysicalMaterial({ envMapIntensity: 1, ...params });
+  const m = linkEnv(new THREE.MeshPhysicalMaterial({ envMapIntensity: 1, ...params }));
   m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
   injectWear(m);
-  return m;
+  return linkEnv(m);
 }
 export function setPaintColor(mat, color, finish) {
   mat.color.set(color);
@@ -246,8 +247,8 @@ export function setWearOffset(mat, x, y, z) { mat.userData.wearUniforms?.uWearOf
 let S = null;
 export function sharedMats() {
   if (S) return S;
-  const std = (p) => new THREE.MeshStandardMaterial(p);
-  const phys = (p) => new THREE.MeshPhysicalMaterial(p);
+  const std = (p) => linkEnv(new THREE.MeshStandardMaterial(p));
+  const phys = (p) => linkEnv(new THREE.MeshPhysicalMaterial(p));
   S = {
     chrome: std({ color: 0xe9edf0, metalness: 1, roughness: 0.07, envMapIntensity: 1.4 }),
     chromeDark: std({ color: 0x4a4e53, metalness: 1, roughness: 0.16 }),
@@ -280,7 +281,7 @@ export function glassMat(tint = 1) {
   const s = sharedMats(), t = Math.max(0, Math.min(3, tint | 0));
   if (!s._glass[t]) {
     const P = [{ color: 0x9fb4b0, opacity: 0.3 }, { color: 0x3a4a4c, opacity: 0.5 }, { color: 0x10171b, opacity: 0.74 }, { color: 0x040608, opacity: 0.9 }][t];
-    s._glass[t] = new THREE.MeshPhysicalMaterial({ ...P, metalness: 0.1, roughness: 0.04, transparent: true, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6, depthWrite: false });
+    s._glass[t] = linkEnv(new THREE.MeshPhysicalMaterial({ ...P, metalness: 0.1, roughness: 0.04, transparent: true, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6, depthWrite: false }));
   }
   return s._glass[t];
 }
@@ -289,7 +290,7 @@ export function rimMat(color = 0xc9ced3, finish = 'alloy') {
   const s = sharedMats(), k = color + ':' + finish;
   if (!s._rims.has(k)) {
     const P = { alloy: [0.95, 0.24], polished: [1, 0.1], chrome: [1, 0.04], gloss: [0.6, 0.18], satin: [0.8, 0.42], steel: [0.6, 0.6] }[finish] || [0.95, 0.24];
-    s._rims.set(k, new THREE.MeshStandardMaterial({ color, metalness: P[0], roughness: P[1], envMapIntensity: 1.2 }));
+    s._rims.set(k, linkEnv(new THREE.MeshStandardMaterial({ color, metalness: P[0], roughness: P[1], envMapIntensity: 1.2 })));
   }
   return s._rims.get(k);
 }

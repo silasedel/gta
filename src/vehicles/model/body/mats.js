@@ -6,6 +6,7 @@
 //   lamp   (per car: emissive channels driven through lightMats proxies + the car's plate / badge / lettering decal sheet)
 //   wheels (one InstancedMesh for the four wheels, spin applied in the vertex shader)
 import * as THREE from 'three';
+import { linkEnv } from '../envlink.js';
 
 // ---------------------------------------------------------------- trim
 // pattern ids (aPat): 0 none, 1 honeycomb mesh, 2 horizontal slats, 3 tire tread (uses uv), 4 vertical slats,
@@ -170,6 +171,7 @@ export function glassMaterial(tint = 1) {
   const P = TINTS[t];
   const m = new THREE.MeshPhysicalMaterial({ color: P.color, opacity: P.opacity, transparent: true, depthWrite: false, metalness: 0, roughness: 0.03,
     clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 2.6, side: THREE.DoubleSide, specularIntensity: 1 });
+  linkEnv(m);
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aWin;\nvarying float vWin;')
