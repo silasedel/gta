@@ -933,11 +933,11 @@ function addRear(gb, D, R, t, Q, o) {
       fasciaPatch(gb, D, R, false, sub4(0.08, 0.92, 0.05, 0.27), MAT.reverse, { nu: 3, nv: 2, off: 0.009, mirror });
     } else {
       // stop/tail lens, an LED light guide inside, reverse + amber cells at the inner end
-      fasciaPatch(gb, D, R, false, sub4(0.18, 0.98, 0.08, 0.92), MAT.tail, { nu: 10, nv: 3, off: 0.0085, mirror, bulge: 0.002 });
+      fasciaPatch(gb, D, R, false, sub4(0.04, 0.98, 0.4, 0.92), MAT.tail, { nu: 10, nv: 3, off: 0.0085, mirror, bulge: 0.002 });
       if (det > 1) fasciaPatch(gb, D, R, false, D.era === 0 ? sub4(0.2, 0.96, 0.4, 0.6) : sub4(0.24, 0.97, 0.58, 0.72), MAT.tailLed, { nu: 10, nv: 1, off: 0.0105, mirror });
       if (det > 1 && D.era >= 1) fasciaPatch(gb, D, R, false, sub4(0.9, 0.97, 0.2, 0.72), MAT.tailLed, { nu: 1, nv: 2, off: 0.0105, mirror });
-      fasciaPatch(gb, D, R, false, sub4(0.03, 0.13, 0.5, 0.88), MAT.reverse, { nu: 2, nv: 2, off: 0.0085, mirror });
-      fasciaPatch(gb, D, R, false, sub4(0.03, 0.13, 0.12, 0.46), MAT.blinkL, { nu: 2, nv: 2, off: 0.0085, mirror });
+      fasciaPatch(gb, D, R, false, sub4(0.06, 0.62, 0.08, 0.2), MAT.reverse, { nu: 6, nv: 1, off: 0.0085, mirror });
+      fasciaPatch(gb, D, R, false, sub4(0.06, 0.62, 0.23, 0.36), MAT.blinkL, { nu: 6, nv: 1, off: 0.0085, mirror });
       if (det > 1 && D.era === 0) for (const a of [0.43, 0.7]) fasciaPatch(gb, D, R, false, sub4(a, a + 0.012, 0.08, 0.92), MAT.housing, { nu: 1, nv: 2, off: 0.0115, mirror });
     }
     fasciaPatch(gb, D, R, false, C, MAT.lens, { nu: 10, nv: 3, off: 0.0135, mirror, bulge: 0.002 });

@@ -160,7 +160,7 @@ export function wheelMaterial(finish = 'alloy') {
 const _glass = [];
 const TINTS = [
   { color: 0x6f8a86, opacity: 0.42 },   // 0 clear factory (green-ish)
-  { color: 0x2e3b3e, opacity: 0.62 },   // 1 light
+  { color: 0x1c2528, opacity: 0.74 },   // 1 light (ref_57: dark enough that the reflection reads over the cabin)
   { color: 0x0e1418, opacity: 0.8 },    // 2 dark
   { color: 0x030507, opacity: 0.92 },   // 3 limo
 ];
@@ -178,11 +178,16 @@ export function glassMaterial(tint = 1) {
       .replace('#include <common>', '#include <common>\nvarying float vWin;')
       // lens (vWin 0): near-clear, a hint of the lamp color below; window (1): the tint.  Fresnel keeps grazing glass reflective.
       .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor = mix(vec4(0.92, 0.94, 0.96, 0.1), diffuseColor, vWin);')
+      // premultiplied output: the tint (diffuse) is scaled by alpha, the reflection (specular + clearcoat) is added at full
+      // strength, so a dark window still mirrors the sky and street like real glass
       .replace('#include <opaque_fragment>', `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
-  diffuseColor.a = clamp(diffuseColor.a + fr * 0.75 * vWin, 0.0, 1.0);
-  #include <opaque_fragment>`);
+  float ga = clamp(diffuseColor.a + fr * 0.6 * vWin, 0.0, 1.0);
+  vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.55 + 0.9 * fr);
+  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`)
+      .replace('#include <premultiplied_alpha_fragment>', '');
   };
-  m.customProgramCacheKey = () => 'ps-carglass-v1';
+  m.premultipliedAlpha = true;
+  m.customProgramCacheKey = () => 'ps-carglass-v2';
   _glass[t] = m;
   return m;
 }

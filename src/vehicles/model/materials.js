@@ -163,7 +163,7 @@ function injectWear(mat) {
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade)));\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
-      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt));')
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
   };
   mat.customProgramCacheKey = () => 'ps-wear-v2';
@@ -189,8 +189,8 @@ const hex = (h) => new THREE.Color(h);
 export function carPaint(opts = {}) {
   const finish = opts.finish || 'metallic';
   const F = {
-    gloss: { metalness: 0.05, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.04 },
-    metallic: { metalness: 0.55, roughness: 0.34, clearcoat: 1, clearcoatRoughness: 0.04 },
+    gloss: { metalness: 0.05, roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.025 },
+    metallic: { metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.025 },
     pearl: { metalness: 0.35, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.03, sheen: 0.6, iridescence: 0.35 },
     matte: { metalness: 0.2, roughness: 0.78, clearcoat: 0, clearcoatRoughness: 0.5 },
     satin: { metalness: 0.4, roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.35 },
