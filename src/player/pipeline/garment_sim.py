@@ -359,7 +359,7 @@ def build_cargo_details(pants_ob):
         r = rmax[k] + r_add
         return np.array([np.cos(a) * r, yb + np.sin(a) * r, zz])
     front = -np.pi / 2
-    for la in (front + 0.42, front - 0.42, front + 1.05, front - 1.05, np.pi / 2):
+    for la in (front + 0.42, front - 0.42, np.pi / 2):            # side loops poked through the hanging shirt
         P = np.zeros((2, 4, 3))
         for i, zz in enumerate((1.012, 1.062)):
             for j, (da, dr) in enumerate(((-0.06, 0.0005), (-0.05, 0.0065), (0.05, 0.0065), (0.06, 0.0005))):
@@ -459,6 +459,8 @@ if btn:
     stris, _ = tris_of([tuple(p.vertices) for p in shirt.data.polygons])
     sbind = SurfaceBinding(s0, stris, b0)
 pin = np.maximum(sm(1.40, 1.47, s0[:, 2]) * sm(0.05, 0.015, body_dist(s0)) * sm(0.13, 0.20, np.abs(s0[:, 0])), sm(1.47, 1.52, s0[:, 2]))
+# sleeves keep their shaped tube (draping them in the A-pose made them hang away from the lowered arm)
+pin = np.maximum(pin, 0.55 * sm(0.24, 0.30, np.abs(s0[:, 0])))
 sco = drape(shirt, pin, {"mass": 0.15, "tension": 40, "shear": 15, "bending": 1.0, "shrink": 0.0, "dist": 0.004, "quality": 10, "gap": 0.016}, 36)
 finish(shirt, sco)
 if btn and sbind is not None:

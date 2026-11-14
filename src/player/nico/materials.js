@@ -48,7 +48,7 @@ export function makeSkinMaterial(kind, state) {
     roughness: far ? 0.6 : 1.0, metalness: 0, ior: 1.4, clearcoat: far ? 0 : 0.05, clearcoatRoughness: 0.4,
   });
   if (!far) {
-    m.normalMap = tex(kind + '_normal.webp'); m.normalScale = kind === 'head' ? new THREE.Vector2(0.6, -0.6) : new THREE.Vector2(0.85, -0.85);   // pores read as craters at full strength
+    m.normalMap = tex(kind + '_normal.webp'); m.normalScale = kind === 'head' ? new THREE.Vector2(1.0, -1.0) : new THREE.Vector2(1.0, -1.0);   // pores read as craters at full strength
     const m1 = tex(kind + '_m1.webp'); m.aoMap = m1; m.roughnessMap = m1; m.aoMapIntensity = 0.85;
   }
   const u = { uM2: { value: far ? null : tex(kind + '_m2.webp') }, uMicro: { value: far ? null : tex('skin_micro_n.webp', { repeat: true }) },
@@ -100,6 +100,8 @@ export function makeSkinMaterial(kind, state) {
         nicoBeadN = ( dr.rg * 2.0 - 1.0 ) * nicoBead;
         diffuseColor.rgb *= 1.0 - 0.12 * uWet;
         nicoThick = texture2D( roughnessMap, vMapUv ).b;
+        // cavity: the baked AO also darkens the albedo, so creases and forms read in direct sun (AO alone only shades sky light)
+        diffuseColor.rgb *= mix( 1.0, texture2D( roughnessMap, vMapUv ).r, 0.45 );
       #endif
       #ifdef NICO_HEAD
       {
@@ -189,7 +191,8 @@ export function makeEyeMaterial(radius) {
         float dEl = length( vec2( sx / uLid.x, sy / ( sy > 0.0 ? up + 0.02 : uLid.z ) ) );
         float lidAO = 1.0 - 0.86 * smoothstep( 0.30, 1.0, dEl );
         lidAO *= 1.0 - 0.35 * smoothstep( up * 0.25, up * 0.95, sy );                                  // upper lid + lash shadow
-        diffuseColor.rgb = ecol * lidAO;`)
+        // where the lids and socket shade the globe it reads as warm lid shadow, not a sky-lit grey ring
+        diffuseColor.rgb = mix( vec3( 0.14, 0.085, 0.065 ), ecol, lidAO );`)
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.30, 0.10, eyeCornea );')
       .replace('#include <normal_fragment_begin>', /* glsl */`#include <normal_fragment_begin>
         normal = normalize( normalMatrix * eyeNrmL ); nonPerturbedNormal = normal;`);
@@ -630,6 +633,16 @@ export function makeClothMaterial(o = {}) {
                      - smN.x * 0.00035 + smN.y * 0.00012;
           #else
             float hC = clothH( vFab ) * 0.0045 + weaveH( vFab ) * 0.00010 * uWeave * ( 1.0 - smoothstep( 0.25, 0.9, fw * uWeaveScale ) );
+          #endif
+          #ifdef CARGO
+          {
+            // trousers: horizontal bunching over the knee and behind it, and the stacked break above the shoe
+            float py = vRest.y;
+            float kz = smoothstep( 0.38, 0.46, py ) * smoothstep( 0.60, 0.50, py );
+            hC += kz * 0.0018 * sin( py * 165.0 + cn( vRest.xz * 30.0 ) * 3.0 ) * ( 0.55 + 0.45 * cn( vRest.xz * 12.0 + 2.0 ) );
+            float az = smoothstep( 0.24, 0.07, py );
+            hC += az * 0.0026 * sin( py * 205.0 + cn( vRest.xz * 25.0 ) * 4.0 );
+          }
           #endif
           vec3 dpx = dFdx( - vViewPosition ), dpy = dFdy( - vViewPosition );
           float dhx = dFdx( hC ), dhy = dFdy( hC );

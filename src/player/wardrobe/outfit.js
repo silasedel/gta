@@ -86,7 +86,7 @@ export const CATALOG = [
     colorName: 'khaki',
     noun: 'cargo pants',
     price: 0,
-    mat: { color: 0x94714a, roughness: 0.92, specular: 0.35, sheen: 0.12, sheenColor: 0xc8a878, weaveScale: 2200, fold: 0.35, flutter: 0.3 },
+    mat: { color: 0xb08a58, roughness: 0.9, specular: 0.3, sheen: 0.15, sheenColor: 0xd8bc90, weaveScale: 2200, fold: 0.9, flutter: 0.3 },     // tan khaki (ref_54), stronger folds
   },
   // ---- shoes
   {

@@ -115,7 +115,7 @@ def drape_rules(name, c, used):
             Rb = np.percentile(br[band], 90) if band.any() else rr.min()
             # woven sleeve: lies on top of the arm, the underside hangs open (gravity in the bind pose is world -z)
             down = np.clip(-(rad[:, 2] / np.maximum(rr, 1e-6)), 0, 1)
-            want = Rb + 0.007 + 0.008 * down * np.clip((t - 0.1) / 0.4, 0, 1) + 0.004 * np.clip((t - 0.2) / 0.4, 0, 1)
+            want = Rb + 0.0055 + 0.0 * down       # no A-pose droop: it turns into outward slack once the arm hangs * np.clip((t - 0.1) / 0.4, 0, 1) + 0.004 * np.clip((t - 0.2) / 0.4, 0, 1)
             k_ = np.clip((t - 0.10) / 0.2, 0, 1)
             rn = rr + (want - rr) * k_
             rn = np.maximum(rn, Rb + 0.005)

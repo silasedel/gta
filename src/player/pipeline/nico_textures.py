@@ -206,12 +206,13 @@ def paint_head():
     cov_w, sh_w = stamp_strokes(SZ, np.concatenate(bs))
     # follicle shadow under the skin (blurred coverage) then the hairs themselves
     shadow = np.clip(ndi.gaussian_filter(cov_b, 5 * scale) * 1.5 + ndi.gaussian_filter(beard_d, 10 * scale) * 0.42, 0, 1)     # even blue-grey shadow of shaved stubble
-    lin *= 1 - shadow[..., None] * np.array([0.30, 0.25, 0.20], dtype=np.float32)
+    lin *= 1 - shadow[..., None] * np.array([0.20, 0.25, 0.29], dtype=np.float32)      # warm follicle shadow (a cool tint read grey-blue)
     sc_sh = np.clip(ndi.gaussian_filter(cov_s, 4 * scale) * 1.8 + scalp * 0.25 * smooth(2, 14, hair_d), 0, 1)
     lin *= 1 - sc_sh[..., None] * np.array([0.52, 0.50, 0.46], dtype=np.float32)
     bw_sh = np.clip(ndi.gaussian_filter(cov_w, 4 * scale) * 1.3, 0, 1); lin *= 1 - bw_sh[..., None] * 0.30
-    for cov, sh, op in ((cov_s, sh_s, 0.95), (cov_b, sh_b, 0.92), (cov_w, sh_w, 0.95)):
-        a = (cov * op)[..., None]; lin = lin * (1 - a) + (HAIR * (0.75 + 0.9 * (sh[..., None] - 0.75))) * a
+    STUB = HAIR * np.array([1.0, 0.80, 0.62], dtype=np.float32)        # stubble: warm dark brown, not grey
+    for cov, sh, op, hc in ((cov_s, sh_s, 0.95, HAIR), (cov_b, sh_b, 0.92, STUB), (cov_w, sh_w, 0.95, HAIR)):
+        a = (cov * op)[..., None]; lin = lin * (1 - a) + (hc * (0.75 + 0.9 * (sh[..., None] - 0.75))) * a
     lin = lin * (1 - scar[..., None] * 0.5) + scar[..., None] * 0.5 * np.array([0.62, 0.40, 0.33], dtype=np.float32)   # pale scar tissue
     # ambient occlusion from the mesh, kept gentle in the albedo (most of it goes to the AO channel)
     lin *= (0.90 + 0.10 * AO)[..., None]

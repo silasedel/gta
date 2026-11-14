@@ -166,3 +166,19 @@ Not done: two-hand pistol stance, locomotion, VFX_NOTES items 6–9 (hair cards,
   - shirt cyan and too saturated in sun, with sleeves standing off the arm (A-pose drape);
   - pants dark brown, not tan;
   - walk not verified (the run timed out on browser-slot load).
+
+## Pass 9 (coordinator steps 1–5, ear and walk checks)
+1. **Eye halo:** where the lids and socket shade the globe, the eye shader now blends to warm lid shadow (0.14, 0.085, 0.065) instead of darkening the sky-lit white to grey. In `hero_close_front.png` the whites read clean.
+2. **Stubble:** the head is repainted (`nico_textures.py`) with a warm dark-brown stubble color and a warm follicle shadow (the cool tint read grey-blue).
+3. **Form shading:**
+   - the AO channel also darkens the skin albedo by 45% (cavity term; AO alone only shades sky light, so the face looked flat in sun);
+   - head and body normal maps are back to full strength.
+4. **Pants:** tan 0xb08a58 with stronger folds, plus horizontal knee and back-of-knee bunching and an ankle-stack break in the normal (`CARGO`).
+5. **Sleeves:**
+   - no A-pose droop and 5.5 mm ease over the arm's own radius;
+   - sleeve cloth partly pinned in the drape;
+   - the side belt loops that poked through the shirt were dropped.
+   `studio_drape` render: the sleeves sit on the arm.
+- **Ear backlit** (`hero_ear_backlit.png`): natural skin, no red.
+- **Walk** (`hero_walk_0..2.png`): captured. The arm swing layer is visible; W produced a jog here, not a slow walk.
+- Every JS edit was parse-checked (`node --check` on a temp copy) before writing.
