@@ -176,3 +176,95 @@ In-game check: see section 9.
   - Radio bus RMS was −29.5 dBFS (a quieter passage); the full mix was −21.3.
 - **Radio slider at 0:** the radio bus fell to −120 dBFS.
 - **Console:** no audio errors. The only error was an unrelated `MeshPhysicalMaterial` shader error (`clearcoatNormal`) from another track.
+
+## 10. Club DJ (owner-licensed Epidemic Sound tracks)
+
+**Library and license handling**
+- `tools/v2/sync-club-songs.mjs` copies `Club Song N - Tag:Tag[:Tag].mp3` and `ES_<Title> - <Artist>.mp3` from `club_licensed/originals/` (where the owner keeps them) into the git-ignored `public/assets/audio/music/club_licensed/`. It gives each copy a short file name, then runs the analysis.
+- The set is exactly the 11 "Club Song" files. `ES_Caught Your Attention` is not in Downloads and is not used. The analyzer can tag an `ES_` file by ear-like analysis if one is added later.
+- `CREDITS.md` credits each one as "Epidemic Sound, licensed by the project owner, local build only".
+- Without that folder (a fresh clone), `index.json` 404s, `clubdj.available` stays false, and clubs and bars keep the CC BY stations.
+
+**Offline analysis** (`tools/v2/club_analyze.py`; numpy, scipy and ffmpeg only)
+- **Tempo:** autocorrelation of the onset envelope with a 124 BPM prior.
+- **Beat grid:** a fine period and phase search, then a robust least-squares fit to kick onsets. The phase is refined on 40–160 Hz kick attacks, plus a per-phrase local phase correction (`phaseFix`).
+- **Structure:**
+  - downbeat: the beat-in-bar where timbre changes and kicks concentrate
+  - 8-bar phrase grid: the bar offset where bar-level novelty peaks
+- **Per-bar curves:** energy and bass.
+- **Cue points:**
+  - cue-in: the first phrase with a kick and real energy, so beatless or cheesy intros are skipped
+  - outro: after the last strong phrase
+  - transition window: the 8 bars before the outro
+- **Also:** drops, the best 16-bar section, key (Krumhansl, plus Camelot), loudness (EBU R128) and the gain to −14 LUFS.
+- **Tags:** parsed from the file name, 2 or 3 per track.
+
+| Track (tags) | BPM | Grid residual | First downbeat | First phrase | Cue-in | Transition window | Outro | Key | Drops (first 3) | Gain to −14 LUFS |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Club Song 1 (Fast, Dark) | 130.00 | 4.5 ms | 0.03 s | 0.03 s | 14.8 s | 118.2–133.0 s | 133.0 s | D minor (7A) | 14.8, 44.3, 103.4 | -4.8 dB |
+| Club Song 2 (Dark, Grimey) | 130.00 | 4.2 ms | 0.21 s | 2.05 s | 2.1 s | 149.7–164.5 s | 164.5 s | A minor (8A) | 46.4, 120.2, 135.0 | -5.7 dB |
+| Club Song 3 (Deep, Euphoric) | 130.00 | 4.8 ms | 0.10 s | 0.10 s | 29.6 s | 177.3–192.1 s | 192.1 s | A minor (8A) | 14.9, 29.6, 88.7 | -4.5 dB |
+| Club Song 4 (Groovy, Deep) | 128.00 | 4.7 ms | 0.02 s | 1.89 s | 16.9 s | 121.9–136.9 s | 136.9 s | A# major (6B) | 16.9, 61.9, 106.9 | -3.4 dB |
+| Club Song 5 (Deep, Modern) | 126.00 | 4.2 ms | 0.02 s | 0.02 s | 0.0 s | 152.4–167.6 s | 167.6 s | B minor (10A) | — | -6.1 dB |
+| Club Song 6 (Funky, Fun) | 128.00 | 4.0 ms | 0.00 s | 5.63 s | 5.6 s | 125.6–140.6 s | 140.6 s | C# minor (12A) | 35.6, 110.6 | -6.0 dB |
+| Club Song 7 (Intense, Deep, Electric) | 138.00 | 4.4 ms | 1.73 s | 5.21 s | 5.2 s | 158.3–172.2 s | 172.2 s | B minor (10A) | 130.4 | -8.1 dB |
+| Club Song 8 (Deep, Simple) | 128.00 | 3.9 ms | 0.01 s | 1.88 s | 16.9 s | 166.9–181.9 s | 181.9 s | A minor (8A) | 16.9, 61.9, 121.9 | -6.2 dB |
+| Club Song 9 (Simple, Disco) | 128.00 | 7.0 ms | 0.51 s | 0.51 s | 0.5 s | 120.5–135.5 s | 135.5 s | A minor (8A) | 30.5, 105.5 | -5.1 dB |
+| Club Song 10 (Dark, Edm) | 128.00 | 4.1 ms | 0.04 s | 13.17 s | 13.2 s | 373.2–388.2 s | 388.2 s | F major (7B) | 43.2, 118.2, 193.2 | -5.2 dB |
+| Club Song 11 (Hard, Dubstep) | 127.00 | 5.3 ms | 1.38 s | 1.38 s | 1.4 s | 182.8–197.9 s | 197.9 s | A minor (8A) | 31.6, 61.9, 77.0 | -6.0 dB |
+
+**Mixing engine** (`src/audio/clubdj.js`)
+- **Track selection:** mood by hour, scoring tags, energy and tempo:
+  - 18–22: warm (Groovy, Funky, Disco)
+  - 22–24: Deep, Modern, Euphoric
+  - 00–03: Dark, Fast, Grimey, Intense, EDM, Hard, Dubstep
+  - 03–06: Deep, Simple
+  - Crowd level raises the target energy.
+  - Also scored: Camelot neighbors, and no recent repeats.
+- **Transitions:**
+  - start on the outgoing track's phrase-aligned transition window
+  - the incoming track enters on its cue-in downbeat
+  - tempo is matched by playbackRate within ±8% (a light pitch shift; no phase vocoder in this pass)
+  - beats are phase-locked using the analyzed grids plus the local phase corrections
+- **32-beat crossfade:**
+  - the incoming track fades up with its bass cut by 26 dB
+  - on the middle downbeat the basses swap
+  - the outgoing track fades with a high-pass sweep from 18 to 900 Hz
+  - a dotted-eighth echo-out on its last bar
+- **Output:** −6 dB of headroom and a safety limiter.
+- **Shared mix:**
+  - one shared mix for every club and bar (`venue*` music sources tap one output), so everyone hears the same set
+  - the set joins mid-flow on a phrase when you arrive
+  - it stops and frees its decoded audio 30 s after the last listener leaves
+- **Velvet Undertow:** once owned it only plays while `game.club.open`; unowned, it runs as a normal club.
+- **Venue staging is unchanged:** positional; outside, low-passed with a bass shelf; full inside.
+- **Beat clock for cutscenes (`game.clubdj`):**
+  - `beatAt(t)` returns beat, beatInBar, bar, phase, isDownbeat, time and bpm
+  - `nextDownbeat(t)` returns a ctx time
+  - also `bpm`, `current`, `start()` and `available`
+- **Job Passed stinger:** `passed.v2.js` ducks the radio and music buses. The DJ mix plays through the music bus, so it ducks the same way and needs no change to the lead's file.
+
+**Offline transition render** (`src/audio/clubdj_test.html`; WAVs in `.v2-tmp/audio-clean/dj/`)
+- Club Song 1 (130 BPM) into Club Song 6 (128 BPM, played at ×1.0156).
+- The transition starts 16 s into the render: 32 beats, bass swap at 23.38 s, done at 30.77 s.
+- Each deck was also rendered alone to check alignment:
+  - Kick-onset cross-correlation between the decks over the overlap: **8.7 ms** lag. Before the kick-based phase refinement and per-phrase correction it was −46 ms, then −29 ms.
+  - Under 10 ms, the kicks land together.
+- Mix peak -2.54 dBFS, 0 clipped samples.
+
+**In-game check (Velvet Undertow)**
+- **Run 1 (full game, `?mute`):**
+  - The player was teleported inside the club (`interiors` "Velvet Undertow", nightclub; `game.club` unowned, so it plays).
+  - Both nearby venues had music sources, but on the CC BY stations, not the DJ. The first venue source was created before the club library finished loading, and it was then kept.
+  - Fixed: a venue source now switches to the DJ as soon as the library is ready, and the DJ instance is created on the first audio frame.
+- **Later runs:**
+  - One reload was caused by my own hot edit.
+  - Then `src/player/nico/index.js` (another track) returned HTTP 500, so the game did not boot.
+  - **The final in-game DJ confirmation is still open.** Re-run `node .v2-tmp/audio-clean/scripts/ingame_club.mjs` once that file builds again. It prints `game.clubdj.debug`, `bpm`, `beatAt()`, `nextDownbeat()` and the music meter inside the club.
+
+## 11. Playtest fixes
+- **Surf:** −6 dB.
+  - Beach beds: `bed_beach` 1 → 0.5, `bed_wind_coast` 0.35 → 0.22; night and open-water mixes likewise.
+  - The synth shore wash went 0.35 → 0.17, with a squared fall-off inland and ×0.4 in a vehicle, on top of the existing 6 dB ambience duck in cars.
+- **No chiptune anywhere:** the procedural (synth) station fallback is disabled. Radio, venue, party, boombox and menu music now play only the real CC BY songs or the club DJ, and stay silent until those load.
+- **Sync source:** `tools/v2/sync-club-songs.mjs` now reads the originals from `public/assets/audio/music/club_licensed/originals/`, not Downloads. `--from DIR` overrides it.

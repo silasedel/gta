@@ -16,7 +16,7 @@ All textures CC0 (public domain) from Poly Haven (https://polyhaven.com/license)
 Procedural (generated at runtime, original): building facades/windows, storefronts, palm trunk/frond textures, billboard ads (all brand names fictional), helipad.
 
 ## UI (src/ui)
-- Fonts: "Barlow Condensed" and "Inter" via Google Fonts (loaded at runtime) — SIL Open Font License 1.1.
+- Fonts: bundled locally in `public/assets/fonts/` (no font CDN at runtime), all SIL Open Font License 1.1 (license text in `public/assets/fonts/OFL.txt`): "Archivo Black" (Omnibus-Type), "Barlow Condensed" Bold and Bold Italic and "Barlow Semi Condensed" ExtraBold (The Barlow Project Authors, https://github.com/jpt/barlow), "Inter" (The Inter Project Authors, https://github.com/rsms/inter).
 - All HUD graphics (icons, logo, palm silhouettes, minimap rendering) are original, drawn in code/inline SVG for this project.
 
 ## Characters (CHARACTER agent) — public/assets/characters/
@@ -772,3 +772,34 @@ All songs by Kevin MacLeod (incompetech.com), licensed under Creative Commons: B
 
 ## Fonts
 - Archivo Black (Omnibus-Type), SIL Open Font License 1.1: `public/assets/fonts/ArchivoBlack-Regular.ttf`, license in `public/assets/fonts/OFL-ArchivoBlack.txt`. Now the UI font everywhere.
+
+## Club DJ music (audio-clean track): public/assets/audio/music/club_licensed/ (git-ignored, local build only)
+Epidemic Sound, licensed by the project owner, local build only. These files are never committed or published; a fresh clone falls back to the CC BY radio stations above. Originals kept in club_licensed/originals/; short-named copies and the DJ analysis made by tools/v2/sync-club-songs.mjs.
+- "Club Song 1 - Fast:Dark.mp3.mp3" (Fast, Dark; 130 BPM, D minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_1_fast_dark.mp3
+- "Club Song 2 - Dark:Grimey.mp3" (Dark, Grimey; 130 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_2_dark_grimey.mp3
+- "Club Song 3 - Deep:Euphoric.mp3.mp3" (Deep, Euphoric; 130 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_3_deep_euphoric.mp3
+- "Club Song 4 - Groovy:Deep.mp3" (Groovy, Deep; 128 BPM, A# major) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_4_groovy_deep.mp3
+- "Club Song 5 - Deep:Modern.mp3" (Deep, Modern; 126 BPM, B minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_5_deep_modern.mp3
+- "Club Song 6 - Funky:Fun.mp3" (Funky, Fun; 128 BPM, C# minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_6_funky_fun.mp3
+- "Club Song 7 - Intense:Deep:Electric.mp3" (Intense, Deep, Electric; 138 BPM, B minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_7_intense_deep_electric.mp3
+- "Club Song 8 - Deep:Simple.mp3" (Deep, Simple; 128 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_8_deep_simple.mp3
+- "Club Song 9 - Simple:Disco.mp3" (Simple, Disco; 128 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_9_simple_disco.mp3
+- "Club Song 10 - Dark:EDM.mp3" (Dark, Edm; 128 BPM, F major) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_10_dark_edm.mp3
+- "Club Song 11 - Hard:Dubstep.mp3" (Hard, Dubstep; 127 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_11_hard_dubstep.mp3
+
+## Interior art kit (interiors-art, src/world/interiors/kit, fixtures/venue.js, fixtures/dining.js, types/nightclub|bar|restaurant|cafe.js)
+No third-party assets. Every surface (polished stone tile, marble, velvet, tufting, fluting, plaster, walnut, brass), the bottle
+shapes and their label atlas (40 invented brands), neon signs (club names and icons), menus, art prints, palm fronds and effects are
+generated in code. Neon and menu lettering use typefaces referenced by name from the operating system (no font files are distributed).
+
+## Front end: title screen, menus, settings, wardrobe, arrival intros (main-menu track)
+- Title screen, key-art stills (`public/assets/ui/keyart_*.webp`), loading screen and arrival intros are rendered from the game itself (our own scenes, our own graded frames). No outside images.
+- Logo lockup, menu art, icons, wardrobe stage and lens flare / depth of field shaders are original work for this project.
+- Menu music and intro music are the in-game radio stations (see the music credits above, CC BY 4.0). The beat map in `src/ui/menu/beats.json` was measured from those files.
+- UI sounds are synthesized at runtime (Web Audio), original.
+
+## NPC archetypes (people-look track): public/assets/npc/, src/npc/arch/, src/npc/pipeline/
+- 40 original NPC archetypes generated headless with Blender 5.2 + **MPFB2 / MakeHuman** (https://github.com/makehumancommunity/mpfb2): base mesh, modelling targets and the `mixamo`-named rig skeleton definition, **CC0**. (The rig only borrows the bone naming; no Mixamo assets or animations are used.)
+- **MakeHuman system asset pack** (CC0, files.makehumancommunity.org): skin photo textures (repainted per archetype: tone, scalp, fades, beards, make-up), eyes, eyebrows, eyelashes, hair card meshes and textures (short01-04, afro01, bob01/02, braid01, long01, ponytail01; the bun is ours, built from ponytail01), shoes01-04 meshes (recolored; sock parts trimmed).
+- Garments, hats, heels, sandals, short fade hair shells, the hair strand texture, every atlas (seams, stitching, folds, denim fades, prints, insignia), micro-normal tiles and all shaders: original procedural work (`src/npc/pipeline/*.py`, `src/npc/arch/materials.js`). No real brands; police insignia and work-wear text are invented.
+- Animation: all NPC clips are original and procedural (`src/npc/arch/anim.js` gait generator, idles, poses, dances, bar and kitchen work) plus the project's own procedural action clips (`src/player/proceduralClips.js`). Archetype people no longer use the Mixamo-derived idle/walk/run clips.

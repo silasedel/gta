@@ -15,6 +15,7 @@
 // Listens to game events: 'footstep','punch','hit','shot','crash'.
 // Engines read vehicle.model.{engine,maxRpm,idleRpm}, vehicle.rpm/gear/throttle/load/slip (CONTRACT3) with fallbacks.
 import { createRadioStreams } from '../audio/radio.js';
+import { createClubDJ } from '../audio/clubdj.js';
 const NANLOG = { n: 0, first: null };
 (function guardAudioParams() {
   if (typeof AudioParam === 'undefined' || AudioParam.prototype.__psGuard) return;
@@ -42,6 +43,7 @@ const MIXK = {
 export function createAudio(game) {
   let ctx = null, eng = null, master = null, sfx = null, ambBus = null, reverb = null, reverbSend = null, echo = null;
   let carBus = null, vehBus = null, outGain = null, worldLP = null, worldG = null, uiBus = null, musicBus = null;
+  let menuBus = null; const menuDuck = { on: false }; // [main-menu hook] title-screen radio skips the world duck
   let radioBus = null, voiceBus = null, vehOut = null, masterComp = null, masterMakeup = null, ambDuck = null;
   // ---- loudness plan (audio-clean pass). Every bank file is normalized by index.json "norm" to its category
   // target (engine loops -20 LUFS integrated, ambience beds -23 LUFS, one-shots by their loudest 100 ms:
@@ -181,6 +183,7 @@ export function createAudio(game) {
     masterMakeup.gain.value = 1;
     master.connect(worldLP).connect(worldG).connect(comp).connect(masterMakeup).connect(lim).connect(outGain).connect(ctx.destination);
     uiBus = ctx.createGain(); uiBus.gain.value = busVol.ui; uiBus.connect(comp); tap('ui', uiBus);
+    menuBus = ctx.createGain(); menuBus.gain.value = busVol.music * MIXK.music; menuBus.connect(comp); // [main-menu hook]
     musicBus = ctx.createGain(); musicBus.gain.value = busVol.music * MIXK.music; musicBus.connect(master); tap('music', musicBus);
     radioBus = ctx.createGain();
     radioBus.gain.value = busVol.radio * MIXK.music;
@@ -292,6 +295,7 @@ export function createAudio(game) {
     if (!ctx) return true;
     const node = key === 'vehicles' ? vehOut : busNode(key);
     node?.gain.setTargetAtTime(x * busBase(key), ctx.currentTime, 0.05);
+    if (key === 'music' && menuBus) menuBus.gain.setTargetAtTime(x * busBase(key), ctx.currentTime, 0.05); // [main-menu hook]
     return true;
   }
   // effects that also feed the shared reverb / echo: scale the sends by the source bus volume
@@ -1334,7 +1338,7 @@ export function createAudio(game) {
 
   // ---------- ambience beds by zone / time of day (real recordings) ----------
   const ZONE_BEDS = {
-    beach: { bed_beach: 1, bed_wind_coast: 0.35 },
+    beach: { bed_beach: 0.5, bed_wind_coast: 0.22 }, // playtest: surf was too loud (-6 dB)
     nightlife: { bed_downtown: 0.55, bed_crowd: 0.8 },
     downtown: { bed_downtown: 1, bed_crowd: 0.3 },
     business: { bed_downtown: 0.9, bed_crowd: 0.2 },
@@ -1344,9 +1348,9 @@ export function createAudio(game) {
     port: { bed_port: 1, bed_wind_coast: 0.2 },
     industrial: { bed_port: 0.6, bed_downtown: 0.4 },
     causeway: { bed_wind_coast: 1, bed_downtown: 0.3 },
-    water: { bed_wind_coast: 0.8, bed_beach: 0.3, bed_port: 0.3 },
+    water: { bed_wind_coast: 0.6, bed_beach: 0.15, bed_port: 0.3 },
   };
-  const NIGHT_BEDS = { residential: { bed_night_crickets: 0.9, bed_residential: 0.3 }, park: { bed_night_crickets: 1, bed_frogs: 0.7 }, beach: { bed_beach: 1, bed_wind_coast: 0.3, bed_night_crickets: 0.15 } };
+  const NIGHT_BEDS = { residential: { bed_night_crickets: 0.9, bed_residential: 0.3 }, park: { bed_night_crickets: 1, bed_frogs: 0.7 }, beach: { bed_beach: 0.5, bed_wind_coast: 0.2, bed_night_crickets: 0.15 } };
   const ZONE_SHOTS = {
     beach: [['gull', 1]], port: [['gull', 1], ['ship_horn', 0.15], ['crane_clank', 0.6], ['reverse_beep', 0.3]], water: [['gull', 1], ['ship_horn', 0.1]],
     residential: [['songbird', 1], ['dog_bark', 0.5], ['parrot', 0.35], ['distant_horn', 0.2]], park: [['songbird', 1], ['parrot', 0.5], ['dog_bark', 0.2]],
@@ -1538,20 +1542,64 @@ export function createAudio(game) {
   const musicSrc = new Map(); // id -> { src, g, lp, hs, pan, station }
   // real songs (src/audio/radio.js); the procedural stations remain the fallback (and the offline renders)
   const realRadio = createRadioStreams();
+  // club DJ (owner-licensed tracks, local builds only): one shared beatmatched mix for clubs and bars
+  let djInst = null;
+  function clubDJ() {
+    if (djInst || !ctx) return djInst;
+    if (typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext) return null;
+    djInst = createClubDJ(ctx, {
+      hour: () => game.timeOfDay ?? 23,
+      crowd: () => (game.club?.open ? 0.8 : 0.55),
+    });
+    return djInst;
+  }
+  // beat clock for cutscenes and anything cut to the club music (null until the DJ runs)
+  game.clubdj = {
+    beatAt: (t) => clubDJ()?.beatAt(t) ?? null,
+    nextDownbeat: (t) => clubDJ()?.nextDownbeat(t) ?? null,
+    get bpm() { return djInst?.bpm ?? null; },
+    get current() { return djInst?.current ?? null; },
+    get available() { return !!djInst?.available; },
+    get running() { return !!djInst?.running; },
+    start() { const d = clubDJ(); d?.ready.then((ok) => ok && d.ensureRunning()); return d?.ready ?? Promise.resolve(false); },
+    get debug() { return djInst?.debug ?? null; },
+  };
   const radioList = () => (realRadio.list.length ? realRadio.list : STATIONS);
   function musicSource(id, stationId, positional, ref = 6, rolloff = 1.3) {
     let m = musicSrc.get(id);
-    if (m && m.station === stationId) return m;
+    // a venue that started on a radio station switches to the club DJ once its library has loaded
+    const djLate = m && !m.dj && String(id).startsWith('venue') && clubDJ()?.available;
+    if (m && m.station === stationId && !djLate) return m;
     const realId = realRadio.alias(stationId);
     let stream = null;
     let buf = null;
-    if (realId) {
+    let isDJ = false;
+    if (String(id).startsWith('venue')) {
+      const d = clubDJ();
+      if (d?.available) {
+        d.ensureRunning();
+        stream = d.tap();
+        isDJ = true;
+      }
+    }
+    if (!stream && String(stationId).startsWith('url:')) { // [main-menu hook] a looping file (the title theme) instead of a station
+      const el = new Audio(); el.crossOrigin = 'anonymous'; el.preload = 'auto'; el.src = String(stationId).slice(4);
+      const node = ctx.createGain(); let msrc = null; try { msrc = ctx.createMediaElementSource(el); msrc.connect(node); } catch (e) { msrc = null; }
+      if (msrc) {
+        const loopAt = game.menuMusic?.loopAt ?? 0;
+        el.addEventListener('timeupdate', () => { if (el.duration && el.currentTime > el.duration - 0.25) el.currentTime = loopAt; });
+        el.play().catch(() => { /* resumes after a gesture */ });
+        stream = { node, el, stop() { try { el.pause(); el.removeAttribute('src'); el.load(); msrc.disconnect(); } catch (e) { /* */ } } };
+      }
+    }
+    if (!stream && realId) {
       const onTrack = id === 'radio' ? (tr, s) => notify(`♪ ${s.name} · ${tr.title} (${tr.artist})`) : null;
       stream = realRadio.source(ctx, realId, onTrack);
     }
     if (!stream) {
-      buf = renderStation(stationById(stationId));
-      if (!buf) return null;
+      // no procedural (chiptune-like) fallback anywhere: wait for the real stations instead
+      if (!realRadio.list.length) return null;
+      return null;
     }
     if (m) dropMusic(id);
     let src;
@@ -1565,10 +1613,10 @@ export function createAudio(game) {
     const g = ctx.createGain(); g.gain.value = 0;
     (stream ? stream.node : src).connect(hs).connect(lp).connect(g);
     let pan = null;
-    const mbus = id === 'radio' || String(id).startsWith('car:') ? radioBus : musicBus;
+    const mbus = id === 'menu' ? menuBus : id === 'radio' || String(id).startsWith('car:') ? radioBus : musicBus; // [main-menu hook] 'menu'
     if (positional) { pan = panner(ref, rolloff, 400); g.connect(pan).connect(mbus); } else g.connect(mbus);
     if (!stream) src.start(ctx.currentTime, ctx.currentTime % buf.duration); // stations feel "live": shared clock
-    m = { src, g, lp, hs, pan, station: stationId, real: !!stream, seen: 0 }; musicSrc.set(id, m); return m;
+    m = { src, g, lp, hs, pan, station: stationId, real: !!stream && !isDJ, dj: isDJ, seen: 0 }; musicSrc.set(id, m); return m;
   }
   function dropMusic(id) { const m = musicSrc.get(id); if (!m) return; musicSrc.delete(id); const t = ctx.currentTime; m.g.gain.setTargetAtTime(0, t, 0.3); setTimeout(() => { try { m.src.stop(); m.g.disconnect(); } catch (e) { /* */ } }, 1500); }
   const radio = { idx: -1, lastCar: null };
@@ -1605,6 +1653,9 @@ export function createAudio(game) {
       const kind = String(s.type || s.kind || s.name || '');
       let isClub = VENUE_RE.test(kind);
       if (!isClub && night) { try { isClub = zoneAt(c.x, c.z) === 'nightlife'; } catch (e) { /* */ } }
+      // the player's club (business track) only plays while it is open, once owned
+      const ownClub = game.club?.pos && Math.hypot(game.club.pos.x - c.x, game.club.pos.z - c.z) < 30;
+      if (ownClub) isClub = !game.club.owned || !!game.club.open;
       if (isClub) venues.push([d, s]);
     }
     venues.sort((a, b) => a[0] - b[0]);
@@ -1636,6 +1687,8 @@ export function createAudio(game) {
       if (!party.pos || Math.hypot(party.pos.x - pp.x, party.pos.z - pp.z) > 320) { const a = Math.random() * 6.283; party.pos = { x: pp.x + Math.cos(a) * 160, y: 3, z: pp.z + Math.sin(a) * 160 }; party.station = Math.random() < 0.5 ? 'house' : 'reggaeton'; }
       want.set('party', { station: party.station, pos: party.pos, gain: 0.8, lp: 320, bass: 8, ref: 25, rolloff: 1 });
     }
+    // [main-menu hook] title screen / arrival intros: game.menuMusic = { station, gain?, lp? } plays a radio station on its own bus
+    { const mm = game.menuMusic; if (mm?.station && !quiet) want.set('menu', { station: mm.station, pos: null, gain: mm.gain ?? 0.8, lp: mm.lp ?? 16000 }); }
     for (const id of [...musicSrc.keys()]) if (!want.has(id) || quiet) dropMusic(id);
     if (quiet) return;
     for (const [id, w] of want) {
@@ -1661,8 +1714,26 @@ export function createAudio(game) {
     nowPlaying(id) { const np = realRadio.nowPlaying(id ?? radioList()[radio.idx]?.id); return np ? { station: np.station.name, title: np.track.title, artist: np.track.artist, offset: +np.offset.toFixed(1) } : null; },
     venue, pedVoice,
     setStation(i) { radio.idx = i; const s = radioList()[i]; if (s && !realRadio.has(s.id)) renderStation(stationById(s.id)); },
-    get debug() { return { nan: { ...NANLOG }, music: [...musicSrc].map(([k, m]) => ({ id: k, station: m.station, real: !!m.real, t: m.real ? +m.src.el.currentTime.toFixed(1) : null, gain: +m.g.gain.value.toFixed(3) })), radio: radio.idx, deathFx: deathFx.state, muted: MUTED, banks: Object.fromEntries(Object.entries(BANK).map(([c, b]) => [c, { keys: b.idx ? Object.keys(b.idx).length : 0, decoded: [...b.buf.values()].filter(Boolean).length }])), beds: Object.fromEntries([...beds].map(([k, b]) => [k, +b.g.gain.value.toFixed(3)])), zone: bedState.zone, ir: roomState.ir, sirens: [...sirens.values()].map((x) => ({ mode: x.mode, real: x.real })), samples: Object.keys(BUF), engines: [...voices.values()].map((v) => ({ kind: v.kind, src: v.src, dop: +(v.dop || 1).toFixed(3) })), voices: [...voices.values()].map((v) => ({ kind: v.kind, player: v.isPlayer, rpm: Math.round(v.rpm), gear: v.gear, layers: v.layers.length, squeal: +v.squeal.amt.toFixed(2) })) }; },
+    get debug() { return { nan: { ...NANLOG }, music: [...musicSrc].map(([k, m]) => ({ id: k, station: m.station, real: !!m.real, dj: !!m.dj, t: m.real ? +m.src.el.currentTime.toFixed(1) : null, gain: +m.g.gain.value.toFixed(3) })), radio: radio.idx, deathFx: deathFx.state, muted: MUTED, banks: Object.fromEntries(Object.entries(BANK).map(([c, b]) => [c, { keys: b.idx ? Object.keys(b.idx).length : 0, decoded: [...b.buf.values()].filter(Boolean).length }])), beds: Object.fromEntries([...beds].map(([k, b]) => [k, +b.g.gain.value.toFixed(3)])), zone: bedState.zone, ir: roomState.ir, sirens: [...sirens.values()].map((x) => ({ mode: x.mode, real: x.real })), samples: Object.keys(BUF), engines: [...voices.values()].map((v) => ({ kind: v.kind, src: v.src, dop: +(v.dop || 1).toFixed(3) })), voices: [...voices.values()].map((v) => ({ kind: v.kind, player: v.isPlayer, rpm: Math.round(v.rpm), gear: v.gear, layers: v.layers.length, squeal: +v.squeal.amt.toFixed(2) })) }; },
     play,
+    // [main-menu hook] UI cues on the UI bus: move, tick, select, confirm, back, tab, deny, open, close, notify, start, whoosh
+    ui(name, o = {}) {
+      if (!ctx || !uiBus || ctx.state !== 'running') return;
+      const t = ctx.currentTime + 0.004, d = out({ bus: uiBus, volume: 0.55 * (o.volume ?? 1) });
+      switch (name) {
+        case 'move': tone(d, t, { f0: 1760, f1: 1480, decay: 0.05, gain: 0.13 }); burst(d, t, { type: 'highpass', freq: 7000, decay: 0.018, gain: 0.05 }); break;
+        case 'tick': tone(d, t, { type: 'triangle', f0: 2300, decay: 0.022, gain: 0.07 }); break;
+        case 'select': case 'confirm': tone(d, t, { f0: 660, f1: 990, attack: 0.004, decay: 0.11, gain: 0.2 }); tone(d, t + 0.055, { f0: 990, f1: 1320, decay: 0.18, gain: 0.13 }); burst(d, t, { type: 'bandpass', freq: 3200, q: 1.2, decay: 0.05, gain: 0.05 }); break;
+        case 'back': tone(d, t, { f0: 880, f1: 520, decay: 0.12, gain: 0.16 }); break;
+        case 'tab': burst(d, t, { type: 'bandpass', freq: 1800, freqEnd: 4200, q: 1, attack: 0.01, decay: 0.07, gain: 0.12 }); tone(d, t, { f0: 1240, decay: 0.05, gain: 0.07 }); break;
+        case 'deny': tone(d, t, { type: 'square', f0: 196, decay: 0.09, gain: 0.05 }); tone(d, t + 0.1, { type: 'square', f0: 165, decay: 0.12, gain: 0.05 }); break;
+        case 'open': case 'whoosh': burst(d, t, { type: 'bandpass', freq: 380, freqEnd: 3400, q: 0.8, attack: 0.09, decay: 0.28, gain: 0.22 }); break;
+        case 'close': burst(d, t, { type: 'bandpass', freq: 3000, freqEnd: 360, q: 0.8, attack: 0.04, decay: 0.24, gain: 0.18 }); break;
+        case 'notify': tone(d, t, { f0: 1320, decay: 0.09, gain: 0.12 }); tone(d, t + 0.09, { f0: 1760, decay: 0.16, gain: 0.1 }); break;
+        case 'start': burst(d, t, { type: 'bandpass', freq: 240, freqEnd: 5200, q: 0.7, attack: 0.55, decay: 0.35, gain: 0.26 }); tone(d, t + 0.55, { f0: 72, f1: 38, attack: 0.005, decay: 1.4, gain: 0.55 }); tone(d, t + 0.55, { f0: 660, f1: 640, attack: 0.01, decay: 1.1, gain: 0.08 }); break;
+        default: tone(d, t, { f0: 1200, decay: 0.05, gain: 0.08 });
+      }
+    },
     siren,
     setVolume(v) { volume = Math.max(0, Math.min(1, v)); if (outGain) outGain.gain.value = MUTED ? 0 : volume; },
     // settings sliders: bus = sfx | vehicles | ambience | music | radio | voice | ui, v = 0..1
@@ -1720,6 +1791,11 @@ export function createAudio(game) {
       readSettings();
       ambDuck.gain.setTargetAtTime(st?.inVehicle && !muted ? MIXK.ambInCar : 1, t, 0.6);
       outGain.gain.setTargetAtTime(MUTED ? 0 : game.ui?.paused ? volume * 0.25 : volume, t, 0.1);
+      { // [main-menu hook] menus duck and muffle the world (menu music and UI cues bypass it)
+        const dk = game.menuMusic?.duck;
+        if (dk != null && deathFx.state === 0) { worldG.gain.setTargetAtTime(dk, t, 0.5); worldLP.frequency.setTargetAtTime(game.menuMusic.duckLP ?? 20000, t, 0.5); menuDuck.on = true; }
+        else if (menuDuck.on && deathFx.state === 0) { worldG.gain.setTargetAtTime(1, t, 0.6); worldLP.frequency.setTargetAtTime(20000, t, 0.6); menuDuck.on = false; }
+      }
       const indoor = isIndoor();
       reverbSend.gain.setTargetAtTime(0, t, 0.1); // sends are per-sound; keep bus idle
       try { updateEngines(dt, t, muted); } catch (e) { if (!eng.errLogged) { eng.errLogged = true; console.warn('[audio] engines', e); } }
@@ -1734,7 +1810,7 @@ export function createAudio(game) {
       const shoreD = realAmb ? 1e9 : Math.abs(pp.x - 505);
       // waves: swash cycle ~7s
       const swash = 0.55 + 0.45 * Math.sin(game.clock.elapsed * 0.9) * Math.sin(game.clock.elapsed * 0.37 + 1);
-      const waveG = Math.max(0, 1 - shoreD / 170) * 0.35 * swash * (indoor ? 0.2 : 1);
+      const waveG = Math.pow(Math.max(0, 1 - shoreD / 170), 2) * 0.17 * swash * (indoor ? 0.2 : 1) * (st?.inVehicle ? 0.4 : 1);
       eng.wvG.gain.setTargetAtTime(waveG, t, 0.3);
       eng.wvF.frequency.setTargetAtTime(500 + swash * 900, t, 0.3);
       setPos(eng.wvP, { x: 508, y: 0, z: pp.z });
@@ -1754,6 +1830,7 @@ export function createAudio(game) {
           cricket(t + 0.01, { x: pp.x + Math.cos(a) * r, y: 0.2, z: pp.z + Math.sin(a) * r });
         }
       }
+      try { clubDJ()?.tick(dt); } catch (e) { if (!eng.djErr) { eng.djErr = true; console.warn('[audio] club dj', e); } }
       try { updateMusic(dt, t, pp, indoor, night, bedState.zone, muted); } catch (e) { if (!eng.musErr) { eng.musErr = true; console.warn('[audio] music', e); } }
       // (legacy synth club loop disabled: real/generative venue music above)
       let shop = null, sd = 70;

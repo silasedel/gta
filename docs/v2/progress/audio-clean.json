@@ -67,6 +67,25 @@
   {
    "name": "Boat engines, hull slap and spray",
    "state": "todo"
+  },
+  {
+   "name": "Club DJ: 11 licensed tracks analyzed (BPM, grid, downbeats, phrases, cues, key), local-only library + sync script",
+   "state": "verified",
+   "evidence": "public/assets/audio/music/club_licensed/index.json (git-ignored)"
+  },
+  {
+   "name": "Club DJ mixing: phrase-aligned 32-beat beatmatched transitions, bass swap, filter sweep, echo-out; shared mix; beat clock game.clubdj",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md (offline transition: 8.7 ms deck lag, no clipping)"
+  },
+  {
+   "name": "Club DJ in Velvet Undertow, in-game confirmation",
+   "state": "built",
+   "evidence": "blocked by another track's 500 error; rerun .v2-tmp/audio-clean/scripts/ingame_club.mjs"
+  },
+  {
+   "name": "Playtest: surf -6 dB (more inland and in cars); no chiptune fallback anywhere",
+   "state": "built"
   }
  ]
 }
