@@ -1,0 +1,73 @@
+{
+ "track": "people-look",
+ "title": "People look: NPC archetypes, cloth, skin, hair, animation",
+ "section": "People",
+ "agent": "idle",
+ "items": [
+  {
+   "name": "41 original NPC archetypes (ages 21-74, Latino, Black, white, Asian, mixed; beach, club, bar staff, cooks, workers, office, tourists, police with invented insignia, three gangs in their own colors)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/grp0.webp .. grp7.webp (41 archetypes, looked at)"
+  },
+  {
+   "name": "Garment generator: tops, shirts with collars area/plackets/buttons, bomber, vest, hi-vis, blazer, jeans, chinos, cargo, shorts, swimwear, skirts, dresses, aprons, beanies, caps, pumps with heels, sandals",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/grp*.webp, face_*.webp, club_poses.webp; known flaws in docs/v2/reports/people-look.md (boxy blazer, no modelled collars, nude pumps read as bare feet, strapless slip dress)"
+  },
+  {
+   "name": "Fabric detail: seams, topstitching, hems, plackets, pockets, folds baked to normal maps, denim fades/whiskers/honeycombs, prints; runtime knit/rib/weave/twill/pique micro-normals",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/grp0.webp (denim fades, stripes), face_bartender_vest_m.webp (shirt placket, buttons, vest)"
+  },
+  {
+   "name": "Skin: MakeHuman CC0 photo skin repainted per archetype (tone, scalp, fades, beards, make-up), wrap lighting with warm scatter, pore micro-normal, low specular",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/face_club_knitdress_f.webp, face_bartender_vest_m.webp, face_police_f.webp"
+  },
+  {
+   "name": "Hair: matte cards with Kajiya-Kay (two weak lobes), fades as stacked short-hair shells + painted fade, buns, ponytails, braids, afro, bobs, beanies and caps",
+   "state": "built",
+   "evidence": "hair shells and cards visible in face_*.webp; bun reads small; Kajiya-Kay not judged in a dim room"
+  },
+  {
+   "name": "Animation: procedural gait generator (walk m/f/heels/old/brisk, jog, run, sprint), idles with weight shift, cross arms, lean on wall, phone, talk, drink, photo, 3 dances, bartending, pour, shake, cook, tray, sit, stool; Mixamo clips no longer used by NPCs",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/walk34.webp, club_poses.webp, seat_side.webp (sit fix after this shot not re-shot)"
+  },
+  {
+   "name": "LOD and performance: full mesh to 15 m (budget 8), 7k tris to 60 m, 1.7k tris beyond; shadows within 26 m; animation every 1/2/3 frames by distance; shared per-archetype clips, materials, textures",
+   "state": "built",
+   "evidence": "fps before 16.0 / after 15.5 at load 14-18 (unreliable), see report"
+  },
+  {
+   "name": "Peds and venues use archetypes (game.npc.createPed), legacy bodies as fallback; API game.npc.spawnPosed({ archetype, pose, pos, rot }) for interiors-art",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/club_velvet_undertow_ingame.webp (venue people are archetypes); game.npc.spawnPosed used by the club test"
+  },
+  {
+   "name": "Close-ups of archetypes vs ref_52",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/face_*.webp (8 close-ups); honest score 5/10 vs ref_52"
+  },
+  {
+   "name": "South Beach promenade crowd shot and fps before/after",
+   "state": "built",
+   "evidence": "docs/v2/shots/people-look/promenade_ocean_drive_after.webp, promenade_before_legacy.webp; the crowd is sparse in these shots"
+  },
+  {
+   "name": "Velvet Undertow club interior with patrons and bartenders",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/club_velvet_undertow_ingame.webp (shot from the door; a camera inside was not staged)"
+  },
+  {
+   "name": "Coordinator: gold edge specks (exact material byte fetch, specular AA, capped sheen), bartender vest outfit (bartender_vest_m), seat at 0.46 m",
+   "state": "built",
+   "evidence": "materials.js, npc_specs.py, anim.js sit; specks and sit fix not re-shot"
+  },
+  {
+   "name": "Impostors beyond LOD2, GPU texture compression, modelled collars/lapels, cloth sim, facial animation",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

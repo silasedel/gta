@@ -194,6 +194,7 @@ function attachAt(bone, obj, wx, wy, wz) { // obj keeps world-upright orientatio
 export function applyLook(char, L) {
   const out = { props: [], accKinds: [] };
   const root = char.root; root.position.set(0, 0, 0); root.rotation.set(0, 0, 0); root.scale.setScalar(1);
+  if (char.npcArch) return applyArchLook(char, L, out);
   // palette: garment slots and hair of the atlas material
   let pal = null; char.model.traverse((m) => { if (m.isMesh && m.material?.name === 'atlasC' && m.material.userData?.pal) pal = m.material.userData.pal.value; });
   if (pal) { pal[2].setHex(L.hair); for (const g of L.slots) { if (g.kind === 'vest') { pal[g.slot].setHex(0xc8f020); continue; } pal[g.slot].setHex(TOPK.has(g.kind) ? L.top : L.bottom); } }
@@ -244,4 +245,23 @@ export function settleHanging(applied, root) {
 export function realizedSignature(char, applied, L) {
   const p = applied.pal; const cols = p ? L.slots.map((g) => p[g.slot].getHexString()).join(',') + ',' + p[2].getHexString() : 'nopal';
   return [char.human?.id, Math.round((applied.scale || 1) * 1000), cols, applied.accKinds.join('+'), L.carry, Math.round(L.girth * 20)].join('|');
+}
+
+// archetype people (src/npc/arch): the outfit, hair and build are modelled; the look only picks garment color variants,
+// the height and a few small accessories (no hats over modelled hair, no bone reshaping)
+function applyArchLook(char, L, out) {
+  const r = char.applyLook(L) || {};
+  const head = char.getBone('Head'), neck = char.getBone('Neck'), spine = char.getBone('Spine2'), handL = char.getBone('LeftHand');
+  char.root.updateMatrixWorld(true);
+  const hp = head ? head.getWorldPosition(new THREE.Vector3()) : null;
+  const add = (bone, mesh, x, y, z, kind) => { if (!bone || !mesh) return; attachAt(bone, mesh, x, y, z); out.props.push(mesh); out.accKinds.push(kind); };
+  for (const a of L.acc || []) {
+    try {
+      if ((a.kind === 'sunglasses' || a.kind === 'glasses') && hp && !char.archetype?.noGlasses) add(head, PR.sunglasses(a.seed, a.kind === 'glasses'), hp.x, hp.y + 0.085, hp.z + 0.095, a.kind);
+      else if (a.slot === 'neck' && neck && spine) { const np = neck.getWorldPosition(new THREE.Vector3()); add(spine, PR[a.kind](a.seed), np.x, np.y - 0.02, np.z + 0.02, a.kind); }
+      else if (a.slot === 'handL' && handL) { const h2 = handL.getWorldPosition(new THREE.Vector3()); const m = PR[a.kind](a.seed); add(handL, m, h2.x + 0.065, h2.y - 0.05, h2.z + 0.03, a.kind); m.userData.hang = true; }
+    } catch (e) { /* a failed accessory never blocks a person */ }
+  }
+  out.height = r.height || L.height; out.scale = r.scale || 1; out.body = char.npcArch; out.pal = null;
+  return out;
 }

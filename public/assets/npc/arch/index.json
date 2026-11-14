@@ -1,0 +1,1743 @@
+{
+ "version": 1,
+ "archetypes": [
+  {
+   "id": "bartender_f",
+   "file": "bartender_f.glb",
+   "height": 1.4282558262348175,
+   "minZ": 0.16892465949058533,
+   "hipH": 0.8635832071304321,
+   "tris": {
+    "LOD0_body": 35190,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 5352,
+    "LOD0_shoes": 2360,
+    "LOD2_hair": 1605
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "ponytail01",
+   "brows": "eyebrow005",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#140e0b",
+   "tone": "brown",
+   "beard": null,
+   "gender": "f",
+   "years": 28,
+   "race": "latino2",
+   "place": [
+    "bar"
+   ],
+   "poses": [
+    "bartend",
+    "pour",
+    "idle_f"
+   ]
+  },
+  {
+   "id": "bartender_m",
+   "file": "bartender_m.glb",
+   "height": 1.6216829270124435,
+   "minZ": 0.15925736725330353,
+   "hipH": 1.0027143955230713,
+   "tris": {
+    "LOD0_body": 35946,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2544,
+    "LOD0_hair": 720
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "shell",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#120d0a",
+   "tone": "olive",
+   "beard": "full",
+   "gender": "m",
+   "years": 31,
+   "race": "latino",
+   "place": [
+    "bar"
+   ],
+   "poses": [
+    "bartend",
+    "pour",
+    "idle"
+   ]
+  },
+  {
+   "id": "bartender_vest_m",
+   "file": "bartender_vest_m.glb",
+   "height": 1.7295943796634674,
+   "minZ": 0.1765666902065277,
+   "hipH": 1.0854237079620361,
+   "tris": {
+    "LOD0_body": 36476,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2512,
+    "LOD0_hair": 660
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "shell",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "dark",
+   "beard": "goatee",
+   "gender": "m",
+   "years": 42,
+   "race": "black",
+   "place": [
+    "bar"
+   ],
+   "poses": [
+    "bartend",
+    "shake",
+    "pour"
+   ]
+  },
+  {
+   "id": "beach_bikini_f",
+   "file": "beach_bikini_f.glb",
+   "height": 1.5696838394578663,
+   "minZ": -4.925095709040761e-08,
+   "hipH": 0.8487436771392822,
+   "tris": {
+    "LOD0_body": 29674,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_hair": 4108,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 1232
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "long01",
+   "brows": "eyebrow003",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#3a2414",
+   "tone": "tan",
+   "beard": null,
+   "gender": "f",
+   "years": 25,
+   "race": "latino",
+   "place": [
+    "beach"
+   ],
+   "poses": [
+    "walk_f",
+    "idle_f",
+    "phone"
+   ]
+  },
+  {
+   "id": "beach_board_m",
+   "file": "beach_board_m.glb",
+   "height": 1.9243796096998267,
+   "minZ": -2.2526364773511887e-08,
+   "hipH": 1.0937103033065796,
+   "tris": {
+    "LOD0_body": 29266,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 660
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "shell",
+   "brows": "eyebrow005",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "deep",
+   "beard": null,
+   "gender": "m",
+   "years": 24,
+   "race": "black",
+   "place": [
+    "beach"
+   ],
+   "poses": [
+    "walk",
+    "idle",
+    "phone"
+   ]
+  },
+  {
+   "id": "beach_crop_f",
+   "file": "beach_crop_f.glb",
+   "height": 1.5679725135851186,
+   "minZ": 2.727028913795948e-08,
+   "hipH": 0.8410885334014893,
+   "tris": {
+    "LOD0_body": 31314,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_hair": 5518,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 1654
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "braid01",
+   "brows": "eyebrow001",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#100b09",
+   "tone": "dark",
+   "beard": null,
+   "gender": "f",
+   "years": 21,
+   "race": "black",
+   "place": [
+    "beach",
+    "street"
+   ],
+   "poses": [
+    "walk_f",
+    "phone",
+    "talk"
+   ]
+  },
+  {
+   "id": "beach_elder_f",
+   "file": "beach_elder_f.glb",
+   "height": 1.4602138526533963,
+   "minZ": 4.695903044193983e-08,
+   "hipH": 0.7744358777999878,
+   "tris": {
+    "LOD0_body": 33438,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_hair": 8474,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 2542
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "bob01",
+   "brows": "eyebrow002",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#cfcac0",
+   "tone": "fair",
+   "beard": null,
+   "gender": "f",
+   "years": 71,
+   "race": "white",
+   "place": [
+    "beach",
+    "street"
+   ],
+   "poses": [
+    "walk_old",
+    "idle_old",
+    "talk"
+   ]
+  },
+  {
+   "id": "beach_lifeguard_m",
+   "file": "beach_lifeguard_m.glb",
+   "height": 1.9131549306912348,
+   "minZ": 2.898741513490677e-08,
+   "hipH": 1.0873475074768066,
+   "tris": {
+    "LOD0_body": 32320,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 672
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "shell",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#140e0b",
+   "tone": "tan",
+   "beard": null,
+   "gender": "m",
+   "years": 26,
+   "race": "latino2",
+   "place": [
+    "beach"
+   ],
+   "poses": [
+    "cross_arms",
+    "idle",
+    "walk"
+   ]
+  },
+  {
+   "id": "beach_retiree_m",
+   "file": "beach_retiree_m.glb",
+   "height": 1.520861878991127,
+   "minZ": 0.14872442185878754,
+   "hipH": 0.9343340396881104,
+   "tris": {
+    "LOD0_body": 30096,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2548,
+    "LOD0_hair": 1922
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short03",
+   "brows": "eyebrow006",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "dress_brown",
+   "heels": false,
+   "hairColor": "#b5b0a6",
+   "tone": "tan",
+   "beard": "mustache",
+   "gender": "m",
+   "years": 68,
+   "race": "latino",
+   "place": [
+    "beach",
+    "street"
+   ],
+   "poses": [
+    "idle_old",
+    "walk_old",
+    "talk"
+   ]
+  },
+  {
+   "id": "beach_sundress_f",
+   "file": "beach_sundress_f.glb",
+   "height": 1.5516868468266694,
+   "minZ": 3.614604793256149e-08,
+   "hipH": 0.8392719030380249,
+   "tris": {
+    "LOD0_body": 31802,
+    "LOD1_body": 6991,
+    "LOD2_body": 1692,
+    "LOD0_hair": 2248,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 674
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "bob02",
+   "brows": "eyebrow001",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#8a6a3e",
+   "tone": "light",
+   "beard": null,
+   "gender": "f",
+   "years": 44,
+   "race": "white",
+   "place": [
+    "beach",
+    "tourist"
+   ],
+   "poses": [
+    "walk_f",
+    "photo",
+    "idle_f"
+   ]
+  },
+  {
+   "id": "beach_tank_m",
+   "file": "beach_tank_m.glb",
+   "height": 1.6367339765347424,
+   "minZ": 3.225432010367513e-08,
+   "hipH": 0.907434344291687,
+   "tris": {
+    "LOD0_body": 32194,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 3344
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short02",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#100c0a",
+   "tone": "light",
+   "beard": null,
+   "gender": "m",
+   "years": 30,
+   "race": "asian",
+   "place": [
+    "beach",
+    "sport"
+   ],
+   "poses": [
+    "walk",
+    "idle",
+    "volley"
+   ]
+  },
+  {
+   "id": "beach_tourist_m",
+   "file": "beach_tourist_m.glb",
+   "height": 1.6179948449134827,
+   "minZ": 0.164226233959198,
+   "hipH": 0.9991123676300049,
+   "tris": {
+    "LOD0_body": 31324,
+    "LOD1_body": 6999,
+    "LOD2_body": 1698,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848,
+    "LOD0_hair": 232
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short01",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "sneaker_gray",
+   "heels": false,
+   "hairColor": "#6b5a48",
+   "tone": "fair",
+   "beard": null,
+   "gender": "m",
+   "years": 47,
+   "race": "white",
+   "place": [
+    "beach",
+    "tourist"
+   ],
+   "poses": [
+    "walk",
+    "photo",
+    "idle"
+   ]
+  },
+  {
+   "id": "bouncer_m",
+   "file": "bouncer_m.glb",
+   "height": 1.9027692675590515,
+   "minZ": 0.19401103258132935,
+   "hipH": 1.2077971696853638,
+   "tris": {
+    "LOD0_body": 29808,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 4056
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": null,
+   "brows": "eyebrow004",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "boots_black",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "dark",
+   "beard": "full",
+   "gender": "m",
+   "years": 38,
+   "race": "black",
+   "place": [
+    "security"
+   ],
+   "poses": [
+    "cross_arms",
+    "idle"
+   ]
+  },
+  {
+   "id": "builder_m",
+   "file": "builder_m.glb",
+   "height": 1.6051078736782074,
+   "minZ": 0.157449871301651,
+   "hipH": 0.9870889186859131,
+   "tris": {
+    "LOD0_body": 37280,
+    "LOD1_body": 7000,
+    "LOD2_body": 1697,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 4056,
+    "LOD0_hair": 774
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "short02",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "boots_tan",
+   "heels": false,
+   "hairColor": "#1c130e",
+   "tone": "tan",
+   "beard": "full",
+   "gender": "m",
+   "years": 43,
+   "race": "latino",
+   "place": [
+    "work",
+    "port"
+   ],
+   "poses": [
+    "idle",
+    "walk",
+    "cross_arms"
+   ]
+  },
+  {
+   "id": "club_bomber_m",
+   "file": "club_bomber_m.glb",
+   "height": 1.6813022196292877,
+   "minZ": 0.1653643548488617,
+   "hipH": 1.033270001411438,
+   "tris": {
+    "LOD0_body": 43262,
+    "LOD1_body": 6999,
+    "LOD2_body": 1698,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": null,
+   "brows": "eyebrow004",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#16100c",
+   "tone": "tan",
+   "beard": "stubble",
+   "gender": "m",
+   "years": 33,
+   "race": "latino",
+   "place": [
+    "nightlife",
+    "street"
+   ],
+   "poses": [
+    "lean_cross",
+    "cross_arms",
+    "phone"
+   ]
+  },
+  {
+   "id": "club_croptop_f",
+   "file": "club_croptop_f.glb",
+   "height": 1.456120576709509,
+   "minZ": 0.011999998241662979,
+   "hipH": 0.8151107430458069,
+   "tris": {
+    "LOD0_body": 31498,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_hair": 4108,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 1232
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "long01",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": true,
+   "hairColor": "#0f0c0b",
+   "tone": "light",
+   "beard": null,
+   "gender": "f",
+   "years": 23,
+   "race": "asian",
+   "place": [
+    "nightlife"
+   ],
+   "poses": [
+    "dance",
+    "phone",
+    "talk"
+   ]
+  },
+  {
+   "id": "club_knitdress_f",
+   "file": "club_knitdress_f.glb",
+   "height": 1.6143438443541527,
+   "minZ": 0.012000001966953278,
+   "hipH": 0.9108339548110962,
+   "tris": {
+    "LOD0_body": 33296,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 2898,
+    "LOD2_hair": 868
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "bun",
+   "brows": "eyebrow005",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": true,
+   "hairColor": "#1c130e",
+   "tone": "olive",
+   "beard": null,
+   "gender": "f",
+   "years": 27,
+   "race": "latino",
+   "place": [
+    "nightlife"
+   ],
+   "poses": [
+    "walk_heels",
+    "idle_f",
+    "talk",
+    "drink"
+   ]
+  },
+  {
+   "id": "club_printshirt_m",
+   "file": "club_printshirt_m.glb",
+   "height": 1.7659625858068466,
+   "minZ": 0.18033958971500397,
+   "hipH": 1.108815312385559,
+   "tris": {
+    "LOD0_body": 29844,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2516,
+    "LOD0_hair": 660
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "shell",
+   "brows": "eyebrow002",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "dark",
+   "beard": "goatee",
+   "gender": "m",
+   "years": 29,
+   "race": "black",
+   "place": [
+    "nightlife",
+    "street"
+   ],
+   "poses": [
+    "dance",
+    "talk",
+    "drink"
+   ]
+  },
+  {
+   "id": "club_slipdress_f",
+   "file": "club_slipdress_f.glb",
+   "height": 1.7056629285216331,
+   "minZ": 0.012000001966953278,
+   "hipH": 0.971531093120575,
+   "tris": {
+    "LOD0_body": 32166,
+    "LOD1_body": 6994,
+    "LOD2_body": 1690,
+    "LOD0_hair": 2192,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 657
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "afro01",
+   "brows": "eyebrow002",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": true,
+   "hairColor": "#120d0a",
+   "tone": "deep",
+   "beard": null,
+   "gender": "f",
+   "years": 24,
+   "race": "black",
+   "place": [
+    "nightlife"
+   ],
+   "poses": [
+    "dance",
+    "idle_f",
+    "talk"
+   ]
+  },
+  {
+   "id": "club_tee_m",
+   "file": "club_tee_m.glb",
+   "height": 1.76987923681736,
+   "minZ": 0.17670927941799164,
+   "hipH": 1.1124889850616455,
+   "tris": {
+    "LOD0_body": 29862,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2840,
+    "LOD0_hair": 3678
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short01",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#5a3f28",
+   "tone": "light",
+   "beard": null,
+   "gender": "m",
+   "years": 26,
+   "race": "white",
+   "place": [
+    "nightlife",
+    "street"
+   ],
+   "poses": [
+    "dance",
+    "talk",
+    "drink"
+   ]
+  },
+  {
+   "id": "cook_m",
+   "file": "cook_m.glb",
+   "height": 1.6081880033016205,
+   "minZ": 0.15759244561195374,
+   "hipH": 0.9858574867248535,
+   "tris": {
+    "LOD0_body": 34548,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 4064,
+    "LOD0_hair": 738
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "short02",
+   "brows": "eyebrow001",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "boots_black",
+   "heels": false,
+   "hairColor": "#120d0a",
+   "tone": "brown",
+   "beard": "stubble",
+   "gender": "m",
+   "years": 36,
+   "race": "latino2",
+   "place": [
+    "kitchen",
+    "work"
+   ],
+   "poses": [
+    "cook",
+    "idle"
+   ]
+  },
+  {
+   "id": "courier_m",
+   "file": "courier_m.glb",
+   "height": 1.7606829404830933,
+   "minZ": 0.18117177486419678,
+   "hipH": 1.0973654985427856,
+   "tris": {
+    "LOD0_body": 30128,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2828
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": null,
+   "brows": "eyebrow004",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "sneaker_black",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "deep",
+   "beard": null,
+   "gender": "m",
+   "years": 27,
+   "race": "black",
+   "place": [
+    "work",
+    "street"
+   ],
+   "poses": [
+    "walk",
+    "phone",
+    "idle"
+   ]
+  },
+  {
+   "id": "dock_m",
+   "file": "dock_m.glb",
+   "height": 1.5718604624271393,
+   "minZ": 0.15573617815971375,
+   "hipH": 0.9725580215454102,
+   "tris": {
+    "LOD0_body": 32374,
+    "LOD1_body": 7000,
+    "LOD2_body": 1695,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 4064,
+    "LOD0_hair": 1922
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short03",
+   "brows": "eyebrow002",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "boots_tan",
+   "heels": false,
+   "hairColor": "#6b6058",
+   "tone": "olive",
+   "beard": "full",
+   "gender": "m",
+   "years": 50,
+   "race": "white",
+   "place": [
+    "work",
+    "port"
+   ],
+   "poses": [
+    "idle",
+    "walk",
+    "cross_arms"
+   ]
+  },
+  {
+   "id": "elder_f",
+   "file": "elder_f.glb",
+   "height": 1.3424168676137924,
+   "minZ": 0.1614784151315689,
+   "hipH": 0.8127787113189697,
+   "tris": {
+    "LOD0_body": 30556,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 3070,
+    "LOD0_shoes": 2444,
+    "LOD2_hair": 921
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "bun",
+   "brows": "eyebrow003",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#bab4aa",
+   "tone": "tan",
+   "beard": null,
+   "gender": "f",
+   "years": 66,
+   "race": "latino",
+   "place": [
+    "street"
+   ],
+   "poses": [
+    "idle_old",
+    "walk_old",
+    "talk"
+   ]
+  },
+  {
+   "id": "elder_m",
+   "file": "elder_m.glb",
+   "height": 1.5908938199281693,
+   "minZ": 0.16409973800182343,
+   "hipH": 0.992355227470398,
+   "tris": {
+    "LOD0_body": 33112,
+    "LOD1_body": 6998,
+    "LOD2_body": 1698,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2536,
+    "LOD0_hair": 228
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short01",
+   "brows": "eyebrow005",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "dress_brown",
+   "heels": false,
+   "hairColor": "#c9c5bc",
+   "tone": "dark",
+   "beard": "mustache",
+   "gender": "m",
+   "years": 74,
+   "race": "black",
+   "place": [
+    "street"
+   ],
+   "poses": [
+    "idle_old",
+    "walk_old",
+    "talk"
+   ]
+  },
+  {
+   "id": "gang_garzas_m",
+   "file": "gang_garzas_m.glb",
+   "height": 1.6139215975999832,
+   "minZ": 0.1605488508939743,
+   "hipH": 1.001303791999817,
+   "tris": {
+    "LOD0_body": 28592,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848,
+    "LOD0_hair": 894
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "shell",
+   "brows": "eyebrow003",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#100b09",
+   "tone": "tan",
+   "beard": "goatee",
+   "gender": "m",
+   "years": 25,
+   "race": "latino",
+   "place": [
+    "gang_garzas",
+    "street"
+   ],
+   "poses": [
+    "cross_arms",
+    "lean_cross",
+    "talk"
+   ]
+  },
+  {
+   "id": "gang_lyric_m",
+   "file": "gang_lyric_m.glb",
+   "height": 1.7496112436056137,
+   "minZ": 0.17701436579227448,
+   "hipH": 1.0892159938812256,
+   "tris": {
+    "LOD0_body": 31300,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
+    "LOD0_hair": 4852,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2828,
+    "LOD2_hair": 1455
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "braid01",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "sneaker_gold",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "dark",
+   "beard": null,
+   "gender": "m",
+   "years": 23,
+   "race": "black",
+   "place": [
+    "gang_lyric",
+    "street"
+   ],
+   "poses": [
+    "cross_arms",
+    "lean_cross",
+    "phone"
+   ]
+  },
+  {
+   "id": "gang_wolves_m",
+   "file": "gang_wolves_m.glb",
+   "height": 1.719759851694107,
+   "minZ": 0.16863355040550232,
+   "hipH": 1.0562790632247925,
+   "tris": {
+    "LOD0_body": 31344,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848,
+    "LOD0_hair": 212
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short01",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "sneaker_black",
+   "heels": false,
+   "hairColor": "#2a1d14",
+   "tone": "light",
+   "beard": "stubble",
+   "gender": "m",
+   "years": 28,
+   "race": "white",
+   "place": [
+    "gang_wolves",
+    "street"
+   ],
+   "poses": [
+    "cross_arms",
+    "lean_cross",
+    "talk"
+   ]
+  },
+  {
+   "id": "jogger_f",
+   "file": "jogger_f.glb",
+   "height": 1.4256323277950287,
+   "minZ": 0.1713789999485016,
+   "hipH": 0.8705429434776306,
+   "tris": {
+    "LOD0_body": 27640,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 5352,
+    "LOD0_shoes": 2812,
+    "LOD2_hair": 1604
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "ponytail01",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "sneaker_gray",
+   "heels": false,
+   "hairColor": "#5a3f28",
+   "tone": "light",
+   "beard": null,
+   "gender": "f",
+   "years": 33,
+   "race": "white",
+   "place": [
+    "sport",
+    "beach"
+   ],
+   "poses": [
+    "jog",
+    "idle_f"
+   ]
+  },
+  {
+   "id": "jogger_m",
+   "file": "jogger_m.glb",
+   "height": 1.7350413352251053,
+   "minZ": 0.1808660477399826,
+   "hipH": 1.0922675132751465,
+   "tris": {
+    "LOD0_body": 27014,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2832
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": null,
+   "brows": "eyebrow004",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "sneaker_black",
+   "heels": false,
+   "hairColor": "#0e0b09",
+   "tone": "dark",
+   "beard": "stubble",
+   "gender": "m",
+   "years": 41,
+   "race": "black",
+   "place": [
+    "sport",
+    "beach"
+   ],
+   "poses": [
+    "jog",
+    "idle"
+   ]
+  },
+  {
+   "id": "office_blouse_f",
+   "file": "office_blouse_f.glb",
+   "height": 1.6606891974806786,
+   "minZ": 0.012000001966953278,
+   "hipH": 0.9469528794288635,
+   "tris": {
+    "LOD0_body": 33726,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_hair": 8474,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 2542
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "bob01",
+   "brows": "eyebrow003",
+   "lashes": "eyelashes03",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": true,
+   "hairColor": "#1c130e",
+   "tone": "olive",
+   "beard": null,
+   "gender": "f",
+   "years": 35,
+   "race": "latino",
+   "place": [
+    "business"
+   ],
+   "poses": [
+    "phone",
+    "walk_heels",
+    "talk"
+   ]
+  },
+  {
+   "id": "office_pants_f",
+   "file": "office_pants_f.glb",
+   "height": 1.7391124591231346,
+   "minZ": 0.012000001966953278,
+   "hipH": 0.9927535653114319,
+   "tris": {
+    "LOD0_body": 35556,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
+    "LOD0_hair": 5518,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD2_hair": 1655
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "braid01",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": true,
+   "hairColor": "#100b09",
+   "tone": "dark",
+   "beard": null,
+   "gender": "f",
+   "years": 42,
+   "race": "black",
+   "place": [
+    "business"
+   ],
+   "poses": [
+    "phone",
+    "walk_heels",
+    "talk"
+   ]
+  },
+  {
+   "id": "office_shirt_m",
+   "file": "office_shirt_m.glb",
+   "height": 1.4973796010017395,
+   "minZ": 0.14169436693191528,
+   "hipH": 0.9086472392082214,
+   "tris": {
+    "LOD0_body": 31170,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2620,
+    "LOD0_hair": 3344
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short02",
+   "brows": "eyebrow003",
+   "lashes": "eyelashes02",
+   "eyes": "brown",
+   "shoes": "dress_brown",
+   "heels": false,
+   "hairColor": "#0f0c0b",
+   "tone": "light",
+   "beard": null,
+   "gender": "m",
+   "years": 30,
+   "race": "asian",
+   "place": [
+    "business"
+   ],
+   "poses": [
+    "phone",
+    "walk",
+    "talk"
+   ]
+  },
+  {
+   "id": "office_suit_m",
+   "file": "office_suit_m.glb",
+   "height": 1.7169163972139359,
+   "minZ": 0.17082683742046356,
+   "hipH": 1.077101707458496,
+   "tris": {
+    "LOD0_body": 41056,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2540,
+    "LOD0_hair": 3678
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "short01",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#3d2a1a",
+   "tone": "light",
+   "beard": null,
+   "gender": "m",
+   "years": 39,
+   "race": "white",
+   "place": [
+    "business"
+   ],
+   "poses": [
+    "phone",
+    "walk",
+    "talk"
+   ]
+  },
+  {
+   "id": "police_f",
+   "file": "police_f.glb",
+   "height": 1.4778843224048615,
+   "minZ": 0.1750992238521576,
+   "hipH": 0.9022284150123596,
+   "tris": {
+    "LOD0_body": 29728,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 3076,
+    "LOD0_shoes": 4056,
+    "LOD2_hair": 921
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "bun",
+   "brows": "eyebrow005",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "boots_black",
+   "heels": false,
+   "hairColor": "#100b09",
+   "tone": "deep",
+   "beard": null,
+   "gender": "f",
+   "years": 32,
+   "race": "black",
+   "place": [
+    "police"
+   ],
+   "poses": [
+    "idle_f",
+    "walk_f",
+    "cross_arms"
+   ]
+  },
+  {
+   "id": "police_m",
+   "file": "police_m.glb",
+   "height": 1.683594211935997,
+   "minZ": 0.1662544161081314,
+   "hipH": 1.0437021255493164,
+   "tris": {
+    "LOD0_body": 31772,
+    "LOD1_body": 7000,
+    "LOD2_body": 1697,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 4056
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": null,
+   "brows": "eyebrow001",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "boots_black",
+   "heels": false,
+   "hairColor": "#120d0a",
+   "tone": "olive",
+   "beard": null,
+   "gender": "m",
+   "years": 37,
+   "race": "latino",
+   "place": [
+    "police"
+   ],
+   "poses": [
+    "idle",
+    "walk",
+    "cross_arms"
+   ]
+  },
+  {
+   "id": "street_cap_m",
+   "file": "street_cap_m.glb",
+   "height": 1.5952573418617249,
+   "minZ": 0.15832966566085815,
+   "hipH": 0.9794578552246094,
+   "tris": {
+    "LOD0_body": 32092,
+    "LOD1_body": 6999,
+    "LOD2_body": 1698,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": null,
+   "brows": "eyebrow005",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#120d0a",
+   "tone": "olive",
+   "beard": null,
+   "gender": "m",
+   "years": 22,
+   "race": "latino",
+   "place": [
+    "street",
+    "nightlife"
+   ],
+   "poses": [
+    "walk",
+    "phone",
+    "talk"
+   ]
+  },
+  {
+   "id": "street_tank_f",
+   "file": "street_tank_f.glb",
+   "height": 1.4193875342607498,
+   "minZ": 0.16762928664684296,
+   "hipH": 0.8614218831062317,
+   "tris": {
+    "LOD0_body": 28402,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 5352,
+    "LOD0_shoes": 2812,
+    "LOD2_hair": 1605
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "ponytail01",
+   "brows": "eyebrow006",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#24170f",
+   "tone": "olive",
+   "beard": null,
+   "gender": "f",
+   "years": 30,
+   "race": "latino",
+   "place": [
+    "street"
+   ],
+   "poses": [
+    "walk_f",
+    "phone",
+    "talk"
+   ]
+  },
+  {
+   "id": "tourist_couple_f",
+   "file": "tourist_couple_f.glb",
+   "height": 1.2304730862379074,
+   "minZ": 0.15255410969257355,
+   "hipH": 0.7462268471717834,
+   "tris": {
+    "LOD0_body": 30412,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
+    "LOD0_hair": 8474,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_shoes": 2848,
+    "LOD2_hair": 2541
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "bob01",
+   "brows": "eyebrow002",
+   "lashes": "eyelashes01",
+   "eyes": "brown",
+   "shoes": "sneaker_white",
+   "heels": false,
+   "hairColor": "#181210",
+   "tone": "light",
+   "beard": null,
+   "gender": "f",
+   "years": 52,
+   "race": "asian",
+   "place": [
+    "tourist"
+   ],
+   "poses": [
+    "photo",
+    "walk_f",
+    "idle_f"
+   ]
+  },
+  {
+   "id": "tourist_print_m",
+   "file": "tourist_print_m.glb",
+   "height": 1.7343988323700614,
+   "minZ": 9.487848728895187e-09,
+   "hipH": 0.9688284397125244,
+   "tris": {
+    "LOD0_body": 35990,
+    "LOD1_body": 6999,
+    "LOD2_body": 1698,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 576
+   },
+   "atlas": [
+    1024,
+    1024
+   ],
+   "outer": false,
+   "hair": "short03",
+   "brows": "eyebrow007",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": null,
+   "heels": false,
+   "hairColor": "#a8a49b",
+   "tone": "fair",
+   "beard": null,
+   "gender": "m",
+   "years": 55,
+   "race": "white",
+   "place": [
+    "tourist",
+    "beach"
+   ],
+   "poses": [
+    "photo",
+    "walk",
+    "idle"
+   ]
+  },
+  {
+   "id": "waiter_f",
+   "file": "waiter_f.glb",
+   "height": 1.4149592369794846,
+   "minZ": 0.1665312796831131,
+   "hipH": 0.8580814599990845,
+   "tris": {
+    "LOD0_body": 31502,
+    "LOD1_body": 6999,
+    "LOD2_body": 1700,
+    "LOD0_brows": 192,
+    "LOD0_lashes": 368,
+    "LOD0_eyes": 172,
+    "LOD0_hair": 5352,
+    "LOD0_shoes": 2356,
+    "LOD2_hair": 1604
+   },
+   "atlas": [
+    2048,
+    1024
+   ],
+   "outer": true,
+   "hair": "ponytail01",
+   "brows": "eyebrow004",
+   "lashes": "eyelashes04",
+   "eyes": "brown",
+   "shoes": "dress_black",
+   "heels": false,
+   "hairColor": "#7a5232",
+   "tone": "light",
+   "beard": null,
+   "gender": "f",
+   "years": 24,
+   "race": "white",
+   "place": [
+    "bar",
+    "work"
+   ],
+   "poses": [
+    "carry_tray",
+    "idle_f",
+    "walk_f"
+   ]
+  }
+ ]
+}

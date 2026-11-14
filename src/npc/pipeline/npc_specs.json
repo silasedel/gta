@@ -1,0 +1,2900 @@
+[
+ {
+  "id": "club_knitdress_f",
+  "gender": "f",
+  "years": 27,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.515,
+   "muscle": 0.4,
+   "weight": 0.42,
+   "height": 0.42,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   },
+   "cupsize": 0.55,
+   "firmness": 0.65
+  },
+  "skin": "young_caucasian_female2",
+  "details": {
+   "chin-cleft-incr": 0.26,
+   "forehead-temple-decr": 0.44,
+   "head-oval": 0.15,
+   "l-cheek-volume-incr": 0.53,
+   "l-ear-lobe-incr": 0.39,
+   "l-eye-scale-decr": 0.4,
+   "mouth-angles-up": 0.38,
+   "nose-greek-incr": 0.41,
+   "nose-scale-vert-incr": 0.27,
+   "nose-volume-incr": 0.34,
+   "nose-width1-decr": 0.48,
+   "r-cheek-volume-incr": 0.53,
+   "r-ear-lobe-incr": 0.39,
+   "r-eye-scale-decr": 0.4
+  },
+  "place": [
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "knit_dress",
+    "color": "#2b2a33",
+    "fabric": "rib",
+    "sleeve": 0.55,
+    "hemLeg": 0.42
+   }
+  ],
+  "shoes": "heels_black",
+  "hair": {
+   "style": "bun",
+   "color": "#1c130e",
+   "trim": null
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "makeup": "evening",
+  "poses": [
+   "walk_heels",
+   "idle_f",
+   "talk",
+   "drink"
+  ]
+ },
+ {
+  "id": "club_bomber_m",
+  "gender": "m",
+  "years": 33,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.562,
+   "muscle": 0.62,
+   "weight": 0.5,
+   "height": 0.58,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "details": {
+   "chin-height-incr": 0.24,
+   "eyebrows-angle-down": 0.27,
+   "head-square": 0.39,
+   "l-ear-flap-decr": 0.27,
+   "l-ear-scale-decr": 0.45,
+   "l-eye-eyefold-down": 0.46,
+   "mouth-scale-horiz-decr": 0.42,
+   "neck-double-incr": 0.37,
+   "nose-flaring-incr": 0.38,
+   "nose-greek-incr": 0.48,
+   "nose-volume-decr": 0.53,
+   "r-ear-flap-decr": 0.27,
+   "r-ear-scale-decr": 0.45,
+   "r-eye-eyefold-down": 0.46
+  },
+  "place": [
+   "nightlife",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "henley",
+    "color": "#3b3734",
+    "fabric": "jersey",
+    "sleeve": 1.95
+   },
+   {
+    "type": "bomber",
+    "color": "#2c3527",
+    "fabric": "nylon",
+    "outer": true,
+    "sleeve": 1.97
+   },
+   {
+    "type": "jeans",
+    "color": "#27344a",
+    "fabric": "denim",
+    "fade": 0.55
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "short02",
+   "color": "#16100c",
+   "trim": "fade"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "hat": {
+   "type": "beanie",
+   "color": "#2e3e52",
+   "fabric": "knit"
+  },
+  "beard": "stubble",
+  "poses": [
+   "lean_cross",
+   "cross_arms",
+   "phone"
+  ]
+ },
+ {
+  "id": "club_slipdress_f",
+  "gender": "f",
+  "years": 24,
+  "race": "black",
+  "tone": "deep",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.478,
+   "muscle": 0.45,
+   "weight": 0.38,
+   "height": 0.5,
+   "proportions": 0.65,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   },
+   "cupsize": 0.5,
+   "firmness": 0.7
+  },
+  "skin": "young_african_female",
+  "details": {
+   "eyebrows-trans-down": 0.39,
+   "head-square": 0.35,
+   "l-cheek-volume-decr": 0.49,
+   "l-ear-lobe-incr": 0.35,
+   "l-eye-corner2-up": 0.37,
+   "l-eye-scale-decr": 0.37,
+   "mouth-angles-up": 0.34,
+   "mouth-lowerlip-volume-incr": 0.18,
+   "mouth-scale-horiz-decr": 0.25,
+   "mouth-scale-horiz-incr": 0.39,
+   "neck-double-incr": 0.25,
+   "r-cheek-volume-decr": 0.49,
+   "r-ear-lobe-incr": 0.35,
+   "r-eye-corner2-up": 0.37,
+   "r-eye-scale-decr": 0.37
+  },
+  "place": [
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "slip_dress",
+    "color": "#7a1c2c",
+    "fabric": "satin",
+    "hemLeg": 0.35
+   }
+  ],
+  "shoes": "heels_nude",
+  "hair": {
+   "style": "afro01",
+   "color": "#120d0a",
+   "trim": null
+  },
+  "brows": "eyebrow002",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "makeup": "evening",
+  "poses": [
+   "dance",
+   "idle_f",
+   "talk"
+  ]
+ },
+ {
+  "id": "club_printshirt_m",
+  "gender": "m",
+  "years": 29,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.531,
+   "muscle": 0.66,
+   "weight": 0.45,
+   "height": 0.62,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "young_african_male",
+  "details": {
+   "chin-bones-incr": 0.15,
+   "chin-cleft-incr": 0.3,
+   "chin-height-decr": 0.2,
+   "l-eye-trans-in": 0.45,
+   "l-eye-trans-out": 0.15,
+   "mouth-cupidsbow-incr": 0.12,
+   "mouth-lowerlip-volume-incr": 0.41,
+   "neck-double-incr": 0.47,
+   "nose-hump-decr": 0.31,
+   "nose-hump-incr": 0.53,
+   "nose-volume-decr": 0.33,
+   "r-eye-trans-in": 0.45,
+   "r-eye-trans-out": 0.15
+  },
+  "place": [
+   "nightlife",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "camp",
+    "color": "#1d2b3a",
+    "fabric": "rayon",
+    "print": "leaf_navy"
+   },
+   {
+    "type": "chinos",
+    "color": "#1a1a1c",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "short04",
+   "color": "#0e0b09",
+   "trim": "fade"
+  },
+  "brows": "eyebrow002",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "beard": "goatee",
+  "poses": [
+   "dance",
+   "talk",
+   "drink"
+  ]
+ },
+ {
+  "id": "club_croptop_f",
+  "gender": "f",
+  "years": 23,
+  "race": "asian",
+  "tone": "light",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.47,
+   "muscle": 0.38,
+   "weight": 0.32,
+   "height": 0.36,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   },
+   "cupsize": 0.42,
+   "firmness": 0.6
+  },
+  "skin": "young_asian_female",
+  "details": {
+   "chin-prominent-incr": 0.43,
+   "chin-width-incr": 0.3,
+   "head-diamond": 0.18,
+   "l-ear-flap-decr": 0.42,
+   "l-eye-scale-decr": 0.48,
+   "mouth-angles-down": 0.34,
+   "mouth-angles-up": 0.35,
+   "nose-hump-decr": 0.3,
+   "nose-hump-incr": 0.34,
+   "nose-point-up": 0.54,
+   "nose-volume-decr": 0.43,
+   "r-ear-flap-decr": 0.42,
+   "r-eye-scale-decr": 0.48
+  },
+  "place": [
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "crop",
+    "color": "#e9e4dc",
+    "fabric": "jersey"
+   },
+   {
+    "type": "mini_skirt",
+    "color": "#151517",
+    "fabric": "leather",
+    "hemLeg": 0.3
+   }
+  ],
+  "shoes": "heels_black",
+  "hair": {
+   "style": "long01",
+   "color": "#0f0c0b",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "makeup": "evening",
+  "poses": [
+   "dance",
+   "phone",
+   "talk"
+  ]
+ },
+ {
+  "id": "club_tee_m",
+  "gender": "m",
+  "years": 26,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.508,
+   "muscle": 0.58,
+   "weight": 0.42,
+   "height": 0.66,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "young_caucasian_male",
+  "details": {
+   "chin-bones-incr": 0.17,
+   "chin-width-incr": 0.48,
+   "eyebrows-trans-down": 0.46,
+   "l-cheek-volume-decr": 0.2,
+   "mouth-angles-up": 0.17,
+   "mouth-cupidsbow-incr": 0.44,
+   "mouth-scale-horiz-incr": 0.17,
+   "nose-point-up": 0.39,
+   "nose-scale-vert-decr": 0.27,
+   "nose-scale-vert-incr": 0.47,
+   "nose-width2-incr": 0.33,
+   "r-cheek-volume-decr": 0.2
+  },
+  "place": [
+   "nightlife",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#141416",
+    "fabric": "jersey"
+   },
+   {
+    "type": "jeans",
+    "color": "#1c1f26",
+    "fabric": "denim",
+    "fade": 0.25
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "short01",
+   "color": "#5a3f28",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "poses": [
+   "dance",
+   "talk",
+   "drink"
+  ]
+ },
+ {
+  "id": "bartender_m",
+  "gender": "m",
+  "years": 31,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.546,
+   "muscle": 0.6,
+   "weight": 0.48,
+   "height": 0.55,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "details": {
+   "chin-cleft-incr": 0.28,
+   "chin-width-decr": 0.24,
+   "eyebrows-trans-down": 0.31,
+   "head-diamond": 0.12,
+   "head-oval": 0.29,
+   "head-round": 0.17,
+   "l-ear-flap-decr": 0.27,
+   "l-eye-eyefold-down": 0.19,
+   "mouth-cupidsbow-incr": 0.16,
+   "nose-hump-decr": 0.55,
+   "nose-width1-incr": 0.36,
+   "r-ear-flap-decr": 0.27,
+   "r-eye-eyefold-down": 0.19
+  },
+  "place": [
+   "bar",
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "rolled_shirt",
+    "color": "#ece9e2",
+    "fabric": "poplin"
+   },
+   {
+    "type": "vest",
+    "color": "#18181a",
+    "fabric": "suiting",
+    "outer": true
+   },
+   {
+    "type": "trousers",
+    "color": "#141416",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "short03",
+   "color": "#120d0a",
+   "trim": "fade"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "beard": "full",
+  "poses": [
+   "bartend",
+   "pour",
+   "idle"
+  ]
+ },
+ {
+  "id": "bartender_f",
+  "gender": "f",
+  "years": 28,
+  "race": "latino2",
+  "tone": "brown",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.523,
+   "muscle": 0.42,
+   "weight": 0.4,
+   "height": 0.45,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.45,
+    "african": 0.42,
+    "asian": 0.13
+   },
+   "cupsize": 0.48,
+   "firmness": 0.6
+  },
+  "skin": "young_african_female",
+  "details": {
+   "chin-bones-incr": 0.17,
+   "eyebrows-angle-down": 0.46,
+   "head-diamond": 0.48,
+   "l-eye-corner2-up": 0.15,
+   "mouth-lowerlip-volume-decr": 0.5,
+   "mouth-lowerlip-volume-incr": 0.52,
+   "mouth-scale-horiz-decr": 0.36,
+   "mouth-scale-horiz-incr": 0.21,
+   "nose-hump-incr": 0.34,
+   "nose-scale-vert-incr": 0.47,
+   "nose-width2-incr": 0.14,
+   "r-eye-corner2-up": 0.15
+  },
+  "place": [
+   "bar",
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "rolled_shirt",
+    "color": "#151517",
+    "fabric": "poplin"
+   },
+   {
+    "type": "vest",
+    "color": "#2a1e26",
+    "fabric": "suiting",
+    "outer": true
+   },
+   {
+    "type": "trousers",
+    "color": "#121214",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "ponytail01",
+   "color": "#140e0b",
+   "trim": null
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "bartend",
+   "pour",
+   "idle_f"
+  ]
+ },
+ {
+  "id": "bartender_vest_m",
+  "gender": "m",
+  "years": 42,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.631,
+   "muscle": 0.62,
+   "weight": 0.55,
+   "height": 0.6,
+   "proportions": 0.58,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "middleage_african_male",
+  "details": {
+   "eyebrows-angle-down": 0.33,
+   "head-diamond": 0.16,
+   "head-round": 0.16,
+   "l-eye-bag-incr": 0.28,
+   "mouth-cupidsbow-incr": 0.54,
+   "mouth-scale-horiz-decr": 0.17,
+   "mouth-upperlip-volume-incr": 0.32,
+   "nose-point-down": 0.54,
+   "nose-scale-vert-decr": 0.14,
+   "nose-scale-vert-incr": 0.25,
+   "nose-volume-incr": 0.36,
+   "r-eye-bag-incr": 0.28
+  },
+  "place": [
+   "bar",
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "dress_shirt",
+    "color": "#f2f0ea",
+    "fabric": "poplin"
+   },
+   {
+    "type": "vest",
+    "color": "#3a3d44",
+    "fabric": "suiting",
+    "outer": true
+   },
+   {
+    "type": "trousers",
+    "color": "#1a1b1e",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "short04",
+   "color": "#0e0b09",
+   "trim": "fade"
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "beard": "goatee",
+  "poses": [
+   "bartend",
+   "shake",
+   "pour"
+  ]
+ },
+ {
+  "id": "bouncer_m",
+  "gender": "m",
+  "years": 38,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.6,
+   "muscle": 0.85,
+   "weight": 0.72,
+   "height": 0.72,
+   "proportions": 0.55,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "middleage_african_male",
+  "details": {
+   "chin-prominent-incr": 0.48,
+   "head-fat-incr": 0.39,
+   "head-square": 0.31,
+   "l-ear-flap-decr": 0.39,
+   "l-eye-corner2-up": 0.27,
+   "l-eye-scale-incr": 0.13,
+   "mouth-scale-horiz-decr": 0.45,
+   "mouth-upperlip-volume-incr": 0.34,
+   "nose-flaring-incr": 0.3,
+   "nose-hump-incr": 0.3,
+   "nose-width2-incr": 0.34,
+   "r-ear-flap-decr": 0.39,
+   "r-eye-corner2-up": 0.27,
+   "r-eye-scale-incr": 0.13
+  },
+  "place": [
+   "nightlife",
+   "security"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#101012",
+    "fabric": "jersey",
+    "text": "STAFF"
+   },
+   {
+    "type": "cargo_pants",
+    "color": "#18191b",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "boots_black",
+  "hair": {
+   "style": "none",
+   "color": "#0e0b09",
+   "trim": "shaved"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "beard": "full",
+  "poses": [
+   "cross_arms",
+   "idle"
+  ]
+ },
+ {
+  "id": "beach_board_m",
+  "gender": "m",
+  "years": 24,
+  "race": "black",
+  "tone": "deep",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.478,
+   "muscle": 0.72,
+   "weight": 0.36,
+   "height": 0.62,
+   "proportions": 0.65,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "young_african_male",
+  "details": {
+   "chin-cleft-incr": 0.28,
+   "chin-height-decr": 0.2,
+   "chin-prominent-incr": 0.45,
+   "eyebrows-angle-down": 0.48,
+   "l-cheek-bones-incr": 0.24,
+   "l-eye-scale-incr": 0.54,
+   "mouth-angles-up": 0.19,
+   "mouth-scale-horiz-decr": 0.49,
+   "neck-double-incr": 0.43,
+   "nose-greek-incr": 0.18,
+   "nose-volume-incr": 0.47,
+   "r-cheek-bones-incr": 0.24,
+   "r-eye-scale-incr": 0.54
+  },
+  "place": [
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "boardshorts",
+    "color": "#d25a3c",
+    "fabric": "poly",
+    "print": "stripe_coral"
+   }
+  ],
+  "shoes": "flipflops",
+  "hair": {
+   "style": "short04",
+   "color": "#0e0b09",
+   "trim": "fade"
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "poses": [
+   "walk",
+   "idle",
+   "phone"
+  ]
+ },
+ {
+  "id": "beach_bikini_f",
+  "gender": "f",
+  "years": 25,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.5,
+   "muscle": 0.42,
+   "weight": 0.36,
+   "height": 0.45,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   },
+   "cupsize": 0.55,
+   "firmness": 0.66
+  },
+  "skin": "young_caucasian_female2",
+  "details": {
+   "chin-height-decr": 0.55,
+   "chin-width-decr": 0.47,
+   "eyebrows-trans-down": 0.43,
+   "l-cheek-bones-incr": 0.16,
+   "l-ear-flap-decr": 0.4,
+   "l-ear-lobe-incr": 0.37,
+   "l-ear-scale-decr": 0.47,
+   "l-eye-corner2-up": 0.29,
+   "l-eye-scale-decr": 0.43,
+   "mouth-scale-horiz-decr": 0.48,
+   "nose-hump-incr": 0.3,
+   "r-cheek-bones-incr": 0.16,
+   "r-ear-flap-decr": 0.4,
+   "r-ear-lobe-incr": 0.37,
+   "r-ear-scale-decr": 0.47,
+   "r-eye-corner2-up": 0.29,
+   "r-eye-scale-decr": 0.43
+  },
+  "place": [
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "bikini_top",
+    "color": "#2f8a86",
+    "fabric": "lycra"
+   },
+   {
+    "type": "bikini_bottom",
+    "color": "#2f8a86",
+    "fabric": "lycra"
+   }
+  ],
+  "shoes": "sandals",
+  "hair": {
+   "style": "long01",
+   "color": "#3a2414",
+   "trim": null
+  },
+  "brows": "eyebrow003",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "poses": [
+   "walk_f",
+   "idle_f",
+   "phone"
+  ]
+ },
+ {
+  "id": "beach_tourist_m",
+  "gender": "m",
+  "years": 47,
+  "race": "white",
+  "tone": "fair",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.669,
+   "muscle": 0.42,
+   "weight": 0.68,
+   "height": 0.55,
+   "proportions": 0.5,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "chin-cleft-incr": 0.17,
+   "chin-height-decr": 0.15,
+   "chin-width-decr": 0.32,
+   "eyebrows-angle-up": 0.39,
+   "forehead-temple-decr": 0.23,
+   "head-fat-decr": 0.14,
+   "l-cheek-volume-decr": 0.26,
+   "l-eye-scale-incr": 0.48,
+   "nose-curve-convex": 0.43,
+   "nose-hump-incr": 0.27,
+   "nose-scale-vert-incr": 0.47,
+   "r-cheek-volume-decr": 0.26,
+   "r-eye-scale-incr": 0.48
+  },
+  "place": [
+   "beach",
+   "tourist"
+  ],
+  "garments": [
+   {
+    "type": "polo",
+    "color": "#9cc1de",
+    "fabric": "pique"
+   },
+   {
+    "type": "cargo_shorts",
+    "color": "#b5a385",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "sneaker_gray",
+  "hair": {
+   "style": "short01",
+   "color": "#6b5a48",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#f0ede6",
+   "fabric": "twill"
+  },
+  "poses": [
+   "walk",
+   "photo",
+   "idle"
+  ]
+ },
+ {
+  "id": "beach_sundress_f",
+  "gender": "f",
+  "years": 44,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.646,
+   "muscle": 0.36,
+   "weight": 0.55,
+   "height": 0.42,
+   "proportions": 0.55,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   },
+   "cupsize": 0.62,
+   "firmness": 0.5
+  },
+  "skin": "middleage_caucasian_female",
+  "details": {
+   "chin-height-incr": 0.51,
+   "chin-prominent-incr": 0.2,
+   "head-fat-incr": 0.14,
+   "head-square": 0.36,
+   "l-eye-eyefold-down": 0.24,
+   "mouth-angles-down": 0.38,
+   "nose-curve-convex": 0.17,
+   "nose-flaring-incr": 0.17,
+   "nose-greek-incr": 0.16,
+   "nose-point-up": 0.3,
+   "nose-width1-decr": 0.31,
+   "r-eye-eyefold-down": 0.24
+  },
+  "place": [
+   "beach",
+   "tourist"
+  ],
+  "garments": [
+   {
+    "type": "sundress",
+    "color": "#f2e6c8",
+    "fabric": "linen",
+    "print": "floral_cream",
+    "hemLeg": 1.05
+   }
+  ],
+  "shoes": "sandals",
+  "hair": {
+   "style": "bob02",
+   "color": "#8a6a3e",
+   "trim": null
+  },
+  "brows": "eyebrow001",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "walk_f",
+   "photo",
+   "idle_f"
+  ]
+ },
+ {
+  "id": "beach_retiree_m",
+  "gender": "m",
+  "years": 68,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.831,
+   "muscle": 0.4,
+   "weight": 0.62,
+   "height": 0.42,
+   "proportions": 0.5,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "old_caucasian_male",
+  "details": {
+   "chin-width-incr": 0.2,
+   "eyebrows-trans-down": 0.55,
+   "head-age-incr": 0.57,
+   "head-fat-decr": 0.21,
+   "l-cheek-bones-incr": 0.28,
+   "l-eye-bag-incr": 0.35,
+   "l-eye-scale-decr": 0.37,
+   "mouth-lowerlip-volume-decr": 0.29,
+   "mouth-lowerlip-volume-incr": 0.48,
+   "mouth-upperlip-volume-incr": 0.4,
+   "nose-curve-convex": 0.48,
+   "nose-scale-vert-decr": 0.4,
+   "r-cheek-bones-incr": 0.28,
+   "r-eye-bag-incr": 0.35,
+   "r-eye-scale-decr": 0.37
+  },
+  "place": [
+   "beach",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "guayabera",
+    "color": "#efe9da",
+    "fabric": "linen"
+   },
+   {
+    "type": "trousers",
+    "color": "#c8b894",
+    "fabric": "linen",
+    "fit": 0.02
+   }
+  ],
+  "shoes": "dress_brown",
+  "hair": {
+   "style": "short03",
+   "color": "#b5b0a6",
+   "trim": null
+  },
+  "brows": "eyebrow006",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "beard": "mustache",
+  "poses": [
+   "idle_old",
+   "walk_old",
+   "talk"
+  ]
+ },
+ {
+  "id": "beach_crop_f",
+  "gender": "f",
+  "years": 21,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.47,
+   "muscle": 0.5,
+   "weight": 0.4,
+   "height": 0.4,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   },
+   "cupsize": 0.5,
+   "firmness": 0.7
+  },
+  "skin": "young_african_female",
+  "details": {
+   "chin-bones-incr": 0.38,
+   "chin-height-incr": 0.42,
+   "chin-width-decr": 0.5,
+   "l-ear-scale-decr": 0.33,
+   "l-eye-eyefold-down": 0.26,
+   "mouth-angles-down": 0.46,
+   "mouth-cupidsbow-incr": 0.51,
+   "neck-double-incr": 0.26,
+   "nose-hump-decr": 0.14,
+   "nose-point-down": 0.32,
+   "nose-width1-decr": 0.45,
+   "r-ear-scale-decr": 0.33,
+   "r-eye-eyefold-down": 0.26
+  },
+  "place": [
+   "beach",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "crop",
+    "color": "#f2c94c",
+    "fabric": "jersey"
+   },
+   {
+    "type": "shorts",
+    "color": "#4d6c95",
+    "fabric": "denim",
+    "fade": 0.7
+   }
+  ],
+  "shoes": "sandals",
+  "hair": {
+   "style": "braid01",
+   "color": "#100b09",
+   "trim": null
+  },
+  "brows": "eyebrow001",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "poses": [
+   "walk_f",
+   "phone",
+   "talk"
+  ]
+ },
+ {
+  "id": "beach_tank_m",
+  "gender": "m",
+  "years": 30,
+  "race": "asian",
+  "tone": "light",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.538,
+   "muscle": 0.66,
+   "weight": 0.34,
+   "height": 0.5,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   }
+  },
+  "skin": "young_asian_male",
+  "details": {
+   "chin-height-decr": 0.29,
+   "chin-height-incr": 0.24,
+   "chin-prominent-incr": 0.3,
+   "chin-width-decr": 0.17,
+   "head-rectangular": 0.52,
+   "l-cheek-bones-incr": 0.4,
+   "l-ear-flap-decr": 0.43,
+   "l-eye-bag-incr": 0.5,
+   "mouth-upperlip-volume-incr": 0.49,
+   "neck-double-incr": 0.52,
+   "nose-hump-incr": 0.3,
+   "r-cheek-bones-incr": 0.4,
+   "r-ear-flap-decr": 0.43,
+   "r-eye-bag-incr": 0.5
+  },
+  "place": [
+   "beach",
+   "sport"
+  ],
+  "garments": [
+   {
+    "type": "tank",
+    "color": "#f0ede6",
+    "fabric": "jersey"
+   },
+   {
+    "type": "boardshorts",
+    "color": "#2a3f6e",
+    "fabric": "poly",
+    "print": "stripe_navy"
+   }
+  ],
+  "shoes": "flipflops",
+  "hair": {
+   "style": "short02",
+   "color": "#100c0a",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "poses": [
+   "walk",
+   "idle",
+   "volley"
+  ]
+ },
+ {
+  "id": "beach_elder_f",
+  "gender": "f",
+  "years": 71,
+  "race": "white",
+  "tone": "fair",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.854,
+   "muscle": 0.3,
+   "weight": 0.55,
+   "height": 0.3,
+   "proportions": 0.45,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   },
+   "cupsize": 0.5,
+   "firmness": 0.35
+  },
+  "skin": "old_caucasian_female",
+  "details": {
+   "chin-prominent-decr": 0.2,
+   "eyebrows-trans-down": 0.24,
+   "head-age-incr": 0.65,
+   "head-fat-decr": 0.26,
+   "head-oval": 0.24,
+   "l-eye-bag-incr": 0.35,
+   "l-eye-scale-decr": 0.2,
+   "l-eye-trans-out": 0.52,
+   "mouth-lowerlip-volume-decr": 0.31,
+   "nose-greek-incr": 0.45,
+   "nose-point-down": 0.13,
+   "nose-point-up": 0.2,
+   "nose-width2-incr": 0.32,
+   "r-eye-bag-incr": 0.35,
+   "r-eye-scale-decr": 0.2,
+   "r-eye-trans-out": 0.52
+  },
+  "place": [
+   "beach",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#e6b3b5",
+    "fabric": "jersey"
+   },
+   {
+    "type": "shorts",
+    "color": "#f0ede6",
+    "fabric": "twill",
+    "legLen": 0.95
+   }
+  ],
+  "shoes": "sandals",
+  "hair": {
+   "style": "bob01",
+   "color": "#cfcac0",
+   "trim": null
+  },
+  "brows": "eyebrow002",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "poses": [
+   "walk_old",
+   "idle_old",
+   "talk"
+  ]
+ },
+ {
+  "id": "beach_lifeguard_m",
+  "gender": "m",
+  "years": 26,
+  "race": "latino2",
+  "tone": "tan",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.508,
+   "muscle": 0.82,
+   "weight": 0.32,
+   "height": 0.62,
+   "proportions": 0.66,
+   "race": {
+    "caucasian": 0.45,
+    "african": 0.42,
+    "asian": 0.13
+   }
+  },
+  "skin": "young_african_male",
+  "details": {
+   "chin-bones-incr": 0.23,
+   "chin-height-decr": 0.28,
+   "chin-width-incr": 0.43,
+   "head-diamond": 0.24,
+   "l-ear-lobe-incr": 0.24,
+   "l-eye-corner2-up": 0.52,
+   "mouth-cupidsbow-incr": 0.16,
+   "mouth-lowerlip-volume-decr": 0.2,
+   "mouth-scale-horiz-incr": 0.27,
+   "nose-hump-incr": 0.34,
+   "nose-width2-incr": 0.16,
+   "r-ear-lobe-incr": 0.24,
+   "r-eye-corner2-up": 0.52
+  },
+  "place": [
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "tank",
+    "color": "#d9432b",
+    "fabric": "jersey",
+    "text": "RESCUE"
+   },
+   {
+    "type": "boardshorts",
+    "color": "#d9432b",
+    "fabric": "poly"
+   }
+  ],
+  "shoes": "flipflops",
+  "hair": {
+   "style": "short04",
+   "color": "#140e0b",
+   "trim": "fade"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "poses": [
+   "cross_arms",
+   "idle",
+   "walk"
+  ]
+ },
+ {
+  "id": "street_cap_m",
+  "gender": "m",
+  "years": 22,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.47,
+   "muscle": 0.6,
+   "weight": 0.38,
+   "height": 0.55,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "details": {
+   "chin-width-incr": 0.27,
+   "eyebrows-trans-down": 0.22,
+   "head-diamond": 0.46,
+   "head-fat-decr": 0.52,
+   "head-round": 0.28,
+   "l-cheek-bones-incr": 0.26,
+   "l-ear-flap-decr": 0.25,
+   "l-eye-bag-incr": 0.18,
+   "mouth-lowerlip-volume-decr": 0.21,
+   "mouth-lowerlip-volume-incr": 0.49,
+   "nose-flaring-incr": 0.43,
+   "r-cheek-bones-incr": 0.26,
+   "r-ear-flap-decr": 0.25,
+   "r-eye-bag-incr": 0.18
+  },
+  "place": [
+   "street",
+   "nightlife"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#f0ede6",
+    "fabric": "jersey"
+   },
+   {
+    "type": "jeans",
+    "color": "#3c5277",
+    "fabric": "denim",
+    "fade": 0.8
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "short02",
+   "color": "#120d0a",
+   "trim": "fade"
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#1f1f21",
+   "fabric": "twill"
+  },
+  "poses": [
+   "walk",
+   "phone",
+   "talk"
+  ]
+ },
+ {
+  "id": "street_tank_f",
+  "gender": "f",
+  "years": 30,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.538,
+   "muscle": 0.44,
+   "weight": 0.48,
+   "height": 0.48,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   },
+   "cupsize": 0.6,
+   "firmness": 0.6
+  },
+  "skin": "young_caucasian_female2",
+  "details": {
+   "chin-bones-incr": 0.24,
+   "chin-cleft-incr": 0.3,
+   "chin-height-decr": 0.44,
+   "chin-prominent-decr": 0.5,
+   "chin-width-decr": 0.25,
+   "forehead-temple-decr": 0.54,
+   "nose-curve-convex": 0.51,
+   "nose-flaring-incr": 0.34,
+   "nose-point-up": 0.43,
+   "nose-scale-vert-decr": 0.43,
+   "nose-scale-vert-incr": 0.47
+  },
+  "place": [
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tank",
+    "color": "#7aa58c",
+    "fabric": "rib"
+   },
+   {
+    "type": "jeans",
+    "color": "#2c3a54",
+    "fabric": "denim",
+    "fade": 0.45,
+    "fit": 0.004
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "ponytail01",
+   "color": "#24170f",
+   "trim": null
+  },
+  "brows": "eyebrow006",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "walk_f",
+   "phone",
+   "talk"
+  ]
+ },
+ {
+  "id": "jogger_f",
+  "gender": "f",
+  "years": 33,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.562,
+   "muscle": 0.62,
+   "weight": 0.3,
+   "height": 0.5,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   },
+   "cupsize": 0.42,
+   "firmness": 0.75
+  },
+  "skin": "young_caucasian_female",
+  "details": {
+   "chin-prominent-decr": 0.37,
+   "chin-prominent-incr": 0.17,
+   "chin-width-incr": 0.21,
+   "head-square": 0.5,
+   "l-cheek-volume-decr": 0.45,
+   "l-cheek-volume-incr": 0.33,
+   "l-ear-scale-decr": 0.26,
+   "l-eye-bag-incr": 0.21,
+   "mouth-cupidsbow-incr": 0.26,
+   "mouth-scale-horiz-decr": 0.14,
+   "nose-point-up": 0.51,
+   "r-cheek-volume-decr": 0.45,
+   "r-cheek-volume-incr": 0.33,
+   "r-ear-scale-decr": 0.26,
+   "r-eye-bag-incr": 0.21
+  },
+  "place": [
+   "sport",
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "sports_bra",
+    "color": "#1f1f21",
+    "fabric": "lycra"
+   },
+   {
+    "type": "leggings",
+    "color": "#2a2f3a",
+    "fabric": "lycra"
+   }
+  ],
+  "shoes": "sneaker_gray",
+  "hair": {
+   "style": "ponytail01",
+   "color": "#5a3f28",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "poses": [
+   "jog",
+   "idle_f"
+  ]
+ },
+ {
+  "id": "jogger_m",
+  "gender": "m",
+  "years": 41,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.623,
+   "muscle": 0.72,
+   "weight": 0.36,
+   "height": 0.6,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "middleage_african_male",
+  "details": {
+   "chin-bones-incr": 0.47,
+   "eyebrows-angle-down": 0.33,
+   "head-square": 0.29,
+   "l-eye-corner2-up": 0.16,
+   "l-eye-eyefold-down": 0.16,
+   "l-eye-scale-incr": 0.12,
+   "mouth-lowerlip-volume-decr": 0.41,
+   "mouth-scale-horiz-decr": 0.14,
+   "neck-double-incr": 0.39,
+   "nose-point-down": 0.3,
+   "nose-width1-decr": 0.25,
+   "r-eye-corner2-up": 0.16,
+   "r-eye-eyefold-down": 0.16,
+   "r-eye-scale-incr": 0.12
+  },
+  "place": [
+   "sport",
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "tank",
+    "color": "#3b6fb6",
+    "fabric": "mesh"
+   },
+   {
+    "type": "run_shorts",
+    "color": "#1f1f21",
+    "fabric": "poly"
+   }
+  ],
+  "shoes": "sneaker_black",
+  "hair": {
+   "style": "none",
+   "color": "#0e0b09",
+   "trim": "shaved"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "beard": "stubble",
+  "poses": [
+   "jog",
+   "idle"
+  ]
+ },
+ {
+  "id": "tourist_print_m",
+  "gender": "m",
+  "years": 55,
+  "race": "white",
+  "tone": "fair",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.731,
+   "muscle": 0.38,
+   "weight": 0.75,
+   "height": 0.48,
+   "proportions": 0.45,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "chin-height-decr": 0.17,
+   "chin-height-incr": 0.54,
+   "chin-prominent-incr": 0.16,
+   "chin-width-incr": 0.52,
+   "eyebrows-angle-down": 0.2,
+   "head-age-incr": 0.25,
+   "head-round": 0.55,
+   "l-cheek-bones-incr": 0.24,
+   "l-ear-flap-decr": 0.2,
+   "l-eye-bag-incr": 0.35,
+   "mouth-lowerlip-volume-incr": 0.26,
+   "mouth-scale-horiz-incr": 0.35,
+   "nose-scale-vert-incr": 0.27,
+   "r-cheek-bones-incr": 0.24,
+   "r-ear-flap-decr": 0.2,
+   "r-eye-bag-incr": 0.35
+  },
+  "place": [
+   "tourist",
+   "beach"
+  ],
+  "garments": [
+   {
+    "type": "camp",
+    "color": "#e8d78a",
+    "fabric": "rayon",
+    "print": "hibiscus_sun"
+   },
+   {
+    "type": "cargo_shorts",
+    "color": "#8e9094",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "sandals",
+  "hair": {
+   "style": "short03",
+   "color": "#a8a49b",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#2a3442",
+   "fabric": "twill"
+  },
+  "poses": [
+   "photo",
+   "walk",
+   "idle"
+  ]
+ },
+ {
+  "id": "tourist_couple_f",
+  "gender": "f",
+  "years": 52,
+  "race": "asian",
+  "tone": "light",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.708,
+   "muscle": 0.34,
+   "weight": 0.45,
+   "height": 0.32,
+   "proportions": 0.5,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   },
+   "cupsize": 0.45,
+   "firmness": 0.45
+  },
+  "skin": "middleage_asian_female",
+  "details": {
+   "chin-cleft-incr": 0.33,
+   "eyebrows-trans-down": 0.13,
+   "head-age-incr": 0.17,
+   "head-square": 0.52,
+   "l-cheek-bones-incr": 0.42,
+   "l-eye-bag-incr": 0.35,
+   "l-eye-corner2-up": 0.18,
+   "l-eye-trans-in": 0.46,
+   "mouth-cupidsbow-incr": 0.32,
+   "mouth-scale-horiz-decr": 0.26,
+   "nose-hump-decr": 0.23,
+   "nose-volume-incr": 0.26,
+   "nose-width2-incr": 0.48,
+   "r-cheek-bones-incr": 0.42,
+   "r-eye-bag-incr": 0.35,
+   "r-eye-corner2-up": 0.18,
+   "r-eye-trans-in": 0.46
+  },
+  "place": [
+   "tourist"
+  ],
+  "garments": [
+   {
+    "type": "rolled_shirt",
+    "color": "#cfe0ea",
+    "fabric": "linen"
+   },
+   {
+    "type": "chinos",
+    "color": "#e9e1cf",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "bob01",
+   "color": "#181210",
+   "trim": null
+  },
+  "brows": "eyebrow002",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "poses": [
+   "photo",
+   "walk_f",
+   "idle_f"
+  ]
+ },
+ {
+  "id": "elder_m",
+  "gender": "m",
+  "years": 74,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.877,
+   "muscle": 0.36,
+   "weight": 0.5,
+   "height": 0.45,
+   "proportions": 0.5,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "old_african_male",
+  "details": {
+   "chin-prominent-decr": 0.5,
+   "eyebrows-trans-down": 0.42,
+   "head-age-incr": 0.72,
+   "head-fat-incr": 0.31,
+   "head-round": 0.29,
+   "l-cheek-bones-incr": 0.19,
+   "l-eye-bag-incr": 0.35,
+   "l-eye-eyefold-down": 0.35,
+   "mouth-lowerlip-volume-incr": 0.22,
+   "neck-double-incr": 0.25,
+   "nose-hump-decr": 0.24,
+   "nose-volume-decr": 0.24,
+   "nose-width1-decr": 0.21,
+   "r-cheek-bones-incr": 0.19,
+   "r-eye-bag-incr": 0.35,
+   "r-eye-eyefold-down": 0.35
+  },
+  "place": [
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "dress_shirt",
+    "color": "#d6c4a0",
+    "fabric": "poplin"
+   },
+   {
+    "type": "trousers",
+    "color": "#4a4036",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_brown",
+  "hair": {
+   "style": "short01",
+   "color": "#c9c5bc",
+   "trim": null
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "beard": "mustache",
+  "hat": {
+   "type": "cap",
+   "color": "#6e5a42",
+   "fabric": "tweed",
+   "flat": true
+  },
+  "poses": [
+   "idle_old",
+   "walk_old",
+   "talk"
+  ]
+ },
+ {
+  "id": "elder_f",
+  "gender": "f",
+  "years": 66,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.815,
+   "muscle": 0.3,
+   "weight": 0.62,
+   "height": 0.38,
+   "proportions": 0.48,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   },
+   "cupsize": 0.7,
+   "firmness": 0.35
+  },
+  "skin": "old_caucasian_female",
+  "details": {
+   "chin-height-decr": 0.53,
+   "chin-width-incr": 0.42,
+   "head-age-incr": 0.53,
+   "head-round": 0.36,
+   "head-square": 0.12,
+   "l-ear-scale-decr": 0.49,
+   "l-eye-bag-incr": 0.35,
+   "l-eye-scale-incr": 0.52,
+   "mouth-upperlip-volume-incr": 0.5,
+   "neck-double-incr": 0.36,
+   "nose-flaring-incr": 0.54,
+   "nose-point-down": 0.4,
+   "r-ear-scale-decr": 0.49,
+   "r-eye-bag-incr": 0.35,
+   "r-eye-scale-incr": 0.52
+  },
+  "place": [
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "blouse",
+    "color": "#a95d3d",
+    "fabric": "rayon",
+    "print": "dot_rust"
+   },
+   {
+    "type": "trousers",
+    "color": "#2a2622",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "bun",
+   "color": "#bab4aa",
+   "trim": null
+  },
+  "brows": "eyebrow003",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "idle_old",
+   "walk_old",
+   "talk"
+  ]
+ },
+ {
+  "id": "cook_m",
+  "gender": "m",
+  "years": 36,
+  "race": "latino2",
+  "tone": "brown",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.585,
+   "muscle": 0.6,
+   "weight": 0.62,
+   "height": 0.5,
+   "proportions": 0.55,
+   "race": {
+    "caucasian": 0.45,
+    "african": 0.42,
+    "asian": 0.13
+   }
+  },
+  "skin": "middleage_african_male",
+  "details": {
+   "chin-height-decr": 0.5,
+   "chin-prominent-incr": 0.32,
+   "chin-width-incr": 0.28,
+   "head-square": 0.19,
+   "l-cheek-volume-incr": 0.48,
+   "l-eye-corner2-up": 0.53,
+   "mouth-scale-horiz-incr": 0.5,
+   "mouth-upperlip-volume-incr": 0.31,
+   "nose-curve-convex": 0.19,
+   "nose-volume-incr": 0.12,
+   "nose-width2-incr": 0.4,
+   "r-cheek-volume-incr": 0.48,
+   "r-eye-corner2-up": 0.53
+  },
+  "place": [
+   "kitchen",
+   "work"
+  ],
+  "garments": [
+   {
+    "type": "chef",
+    "color": "#f3f1ec",
+    "fabric": "drill"
+   },
+   {
+    "type": "chef_pants",
+    "color": "#1e1f22",
+    "fabric": "twill",
+    "print": "check_small"
+   },
+   {
+    "type": "apron",
+    "color": "#efece4",
+    "fabric": "canvas",
+    "outer": true
+   }
+  ],
+  "shoes": "boots_black",
+  "hair": {
+   "style": "short02",
+   "color": "#120d0a",
+   "trim": null
+  },
+  "brows": "eyebrow001",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "hat": {
+   "type": "beanie",
+   "color": "#141416",
+   "fabric": "knit",
+   "skull": true
+  },
+  "beard": "stubble",
+  "poses": [
+   "cook",
+   "idle"
+  ]
+ },
+ {
+  "id": "waiter_f",
+  "gender": "f",
+  "years": 24,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.478,
+   "muscle": 0.4,
+   "weight": 0.4,
+   "height": 0.5,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   },
+   "cupsize": 0.45,
+   "firmness": 0.6
+  },
+  "skin": "young_caucasian_female",
+  "details": {
+   "chin-bones-incr": 0.31,
+   "chin-height-incr": 0.14,
+   "head-fat-decr": 0.21,
+   "head-fat-incr": 0.16,
+   "l-cheek-bones-incr": 0.32,
+   "l-ear-scale-decr": 0.15,
+   "l-eye-scale-decr": 0.47,
+   "mouth-scale-horiz-decr": 0.15,
+   "nose-greek-incr": 0.3,
+   "nose-volume-incr": 0.28,
+   "nose-width2-incr": 0.54,
+   "r-cheek-bones-incr": 0.32,
+   "r-ear-scale-decr": 0.15,
+   "r-eye-scale-decr": 0.47
+  },
+  "place": [
+   "bar",
+   "work"
+  ],
+  "garments": [
+   {
+    "type": "polo",
+    "color": "#151517",
+    "fabric": "pique"
+   },
+   {
+    "type": "trousers",
+    "color": "#121214",
+    "fabric": "twill"
+   },
+   {
+    "type": "apron",
+    "color": "#1a1a1c",
+    "fabric": "canvas",
+    "outer": true,
+    "short": true
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "ponytail01",
+   "color": "#7a5232",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "carry_tray",
+   "idle_f",
+   "walk_f"
+  ]
+ },
+ {
+  "id": "builder_m",
+  "gender": "m",
+  "years": 43,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.638,
+   "muscle": 0.75,
+   "weight": 0.62,
+   "height": 0.55,
+   "proportions": 0.55,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "chin-cleft-incr": 0.54,
+   "chin-width-incr": 0.33,
+   "head-diamond": 0.32,
+   "head-round": 0.53,
+   "l-cheek-volume-decr": 0.17,
+   "l-ear-lobe-incr": 0.29,
+   "mouth-lowerlip-volume-incr": 0.39,
+   "nose-flaring-incr": 0.21,
+   "nose-hump-incr": 0.28,
+   "nose-scale-vert-incr": 0.46,
+   "nose-width1-decr": 0.25,
+   "r-cheek-volume-decr": 0.17,
+   "r-ear-lobe-incr": 0.29
+  },
+  "place": [
+   "work",
+   "port"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#7d8187",
+    "fabric": "jersey"
+   },
+   {
+    "type": "hivis",
+    "color": "#d7f02a",
+    "fabric": "mesh",
+    "outer": true
+   },
+   {
+    "type": "cargo_pants",
+    "color": "#6a5a44",
+    "fabric": "canvas"
+   }
+  ],
+  "shoes": "boots_tan",
+  "hair": {
+   "style": "short02",
+   "color": "#1c130e",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#f0a020",
+   "fabric": "twill"
+  },
+  "beard": "full",
+  "poses": [
+   "idle",
+   "walk",
+   "cross_arms"
+  ]
+ },
+ {
+  "id": "dock_m",
+  "gender": "m",
+  "years": 50,
+  "race": "white",
+  "tone": "olive",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.692,
+   "muscle": 0.7,
+   "weight": 0.66,
+   "height": 0.5,
+   "proportions": 0.52,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "head-fat-incr": 0.45,
+   "head-rectangular": 0.36,
+   "head-round": 0.28,
+   "l-ear-lobe-incr": 0.55,
+   "l-ear-scale-decr": 0.38,
+   "l-eye-trans-out": 0.31,
+   "mouth-scale-horiz-decr": 0.42,
+   "mouth-scale-horiz-incr": 0.29,
+   "nose-curve-convex": 0.42,
+   "nose-flaring-incr": 0.47,
+   "nose-point-down": 0.4,
+   "r-ear-lobe-incr": 0.55,
+   "r-ear-scale-decr": 0.38,
+   "r-eye-trans-out": 0.31
+  },
+  "place": [
+   "work",
+   "port"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#efece6",
+    "fabric": "jersey"
+   },
+   {
+    "type": "overalls",
+    "color": "#3a5b8a",
+    "fabric": "denim",
+    "fade": 0.6
+   }
+  ],
+  "shoes": "boots_tan",
+  "hair": {
+   "style": "short03",
+   "color": "#6b6058",
+   "trim": null
+  },
+  "brows": "eyebrow002",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "beard": "full",
+  "poses": [
+   "idle",
+   "walk",
+   "cross_arms"
+  ]
+ },
+ {
+  "id": "courier_m",
+  "gender": "m",
+  "years": 27,
+  "race": "black",
+  "tone": "deep",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.515,
+   "muscle": 0.62,
+   "weight": 0.36,
+   "height": 0.6,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "young_african_male",
+  "details": {
+   "chin-bones-incr": 0.4,
+   "chin-width-decr": 0.46,
+   "chin-width-incr": 0.46,
+   "eyebrows-angle-down": 0.17,
+   "head-fat-decr": 0.39,
+   "head-oval": 0.37,
+   "l-cheek-volume-decr": 0.48,
+   "l-eye-trans-in": 0.35,
+   "mouth-angles-down": 0.17,
+   "nose-point-down": 0.2,
+   "nose-width2-incr": 0.16,
+   "r-cheek-volume-decr": 0.48,
+   "r-eye-trans-in": 0.35
+  },
+  "place": [
+   "work",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "polo",
+    "color": "#2f8a86",
+    "fabric": "pique",
+    "text": "SWIFTBOX"
+   },
+   {
+    "type": "shorts",
+    "color": "#1f2a3c",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "sneaker_black",
+  "hair": {
+   "style": "short04",
+   "color": "#0e0b09",
+   "trim": "fade"
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#2f8a86",
+   "fabric": "twill"
+  },
+  "poses": [
+   "walk",
+   "phone",
+   "idle"
+  ]
+ },
+ {
+  "id": "office_suit_m",
+  "gender": "m",
+  "years": 39,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.608,
+   "muscle": 0.55,
+   "weight": 0.5,
+   "height": 0.62,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "chin-width-incr": 0.49,
+   "head-diamond": 0.18,
+   "l-ear-flap-decr": 0.43,
+   "l-ear-scale-decr": 0.29,
+   "mouth-angles-down": 0.33,
+   "mouth-upperlip-volume-incr": 0.21,
+   "nose-curve-convex": 0.32,
+   "nose-flaring-incr": 0.41,
+   "nose-hump-decr": 0.42,
+   "nose-point-up": 0.12,
+   "nose-volume-decr": 0.33,
+   "r-ear-flap-decr": 0.43,
+   "r-ear-scale-decr": 0.29
+  },
+  "place": [
+   "business"
+  ],
+  "garments": [
+   {
+    "type": "dress_shirt",
+    "color": "#f2f2f4",
+    "fabric": "poplin"
+   },
+   {
+    "type": "blazer",
+    "color": "#2a3042",
+    "fabric": "suiting",
+    "outer": true
+   },
+   {
+    "type": "trousers",
+    "color": "#2a3042",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "dress_black",
+  "hair": {
+   "style": "short01",
+   "color": "#3d2a1a",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "poses": [
+   "phone",
+   "walk",
+   "talk"
+  ]
+ },
+ {
+  "id": "office_blouse_f",
+  "gender": "f",
+  "years": 35,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.577,
+   "muscle": 0.4,
+   "weight": 0.42,
+   "height": 0.5,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   },
+   "cupsize": 0.55,
+   "firmness": 0.6
+  },
+  "skin": "young_caucasian_female2",
+  "details": {
+   "chin-cleft-incr": 0.35,
+   "chin-height-decr": 0.39,
+   "chin-height-incr": 0.4,
+   "chin-prominent-decr": 0.54,
+   "chin-prominent-incr": 0.22,
+   "l-ear-flap-decr": 0.49,
+   "l-eye-eyefold-down": 0.15,
+   "l-eye-trans-out": 0.24,
+   "mouth-cupidsbow-incr": 0.44,
+   "nose-greek-incr": 0.13,
+   "nose-scale-vert-incr": 0.28,
+   "r-ear-flap-decr": 0.49,
+   "r-eye-eyefold-down": 0.15,
+   "r-eye-trans-out": 0.24
+  },
+  "place": [
+   "business"
+  ],
+  "garments": [
+   {
+    "type": "blouse",
+    "color": "#f0ede6",
+    "fabric": "silk"
+   },
+   {
+    "type": "pencil_skirt",
+    "color": "#2a2f3a",
+    "fabric": "suiting",
+    "hemLeg": 0.95
+   }
+  ],
+  "shoes": "heels_black",
+  "hair": {
+   "style": "bob01",
+   "color": "#1c130e",
+   "trim": null
+  },
+  "brows": "eyebrow003",
+  "lashes": "eyelashes03",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "phone",
+   "walk_heels",
+   "talk"
+  ]
+ },
+ {
+  "id": "office_shirt_m",
+  "gender": "m",
+  "years": 30,
+  "race": "asian",
+  "tone": "light",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.538,
+   "muscle": 0.5,
+   "weight": 0.4,
+   "height": 0.5,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.08,
+    "african": 0.02,
+    "asian": 0.9
+   }
+  },
+  "skin": "young_asian_male",
+  "details": {
+   "eyebrows-angle-up": 0.46,
+   "l-cheek-bones-incr": 0.24,
+   "l-ear-flap-decr": 0.15,
+   "l-eye-corner2-up": 0.41,
+   "l-eye-scale-decr": 0.2,
+   "mouth-scale-horiz-incr": 0.46,
+   "neck-double-incr": 0.32,
+   "nose-curve-convex": 0.24,
+   "nose-greek-incr": 0.51,
+   "nose-hump-decr": 0.25,
+   "nose-width1-decr": 0.32,
+   "r-cheek-bones-incr": 0.24,
+   "r-ear-flap-decr": 0.15,
+   "r-eye-corner2-up": 0.41,
+   "r-eye-scale-decr": 0.2
+  },
+  "place": [
+   "business"
+  ],
+  "garments": [
+   {
+    "type": "dress_shirt",
+    "color": "#bcd3ea",
+    "fabric": "oxford"
+   },
+   {
+    "type": "chinos",
+    "color": "#3a3a3c",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "dress_brown",
+  "hair": {
+   "style": "short02",
+   "color": "#0f0c0b",
+   "trim": null
+  },
+  "brows": "eyebrow003",
+  "lashes": "eyelashes02",
+  "eyes": "brown",
+  "poses": [
+   "phone",
+   "walk",
+   "talk"
+  ]
+ },
+ {
+  "id": "office_pants_f",
+  "gender": "f",
+  "years": 42,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.631,
+   "muscle": 0.42,
+   "weight": 0.55,
+   "height": 0.52,
+   "proportions": 0.58,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   },
+   "cupsize": 0.6,
+   "firmness": 0.55
+  },
+  "skin": "middleage_african_female",
+  "details": {
+   "chin-bones-incr": 0.31,
+   "chin-height-decr": 0.42,
+   "head-diamond": 0.13,
+   "head-round": 0.2,
+   "l-eye-corner2-up": 0.26,
+   "l-eye-scale-decr": 0.49,
+   "l-eye-trans-out": 0.41,
+   "mouth-angles-down": 0.28,
+   "mouth-cupidsbow-incr": 0.51,
+   "nose-hump-decr": 0.35,
+   "nose-scale-vert-decr": 0.38,
+   "r-eye-corner2-up": 0.26,
+   "r-eye-scale-decr": 0.49,
+   "r-eye-trans-out": 0.41
+  },
+  "place": [
+   "business"
+  ],
+  "garments": [
+   {
+    "type": "dress_shirt",
+    "color": "#d9e3d6",
+    "fabric": "silk"
+   },
+   {
+    "type": "trousers",
+    "color": "#141416",
+    "fabric": "suiting"
+   }
+  ],
+  "shoes": "heels_nude",
+  "hair": {
+   "style": "braid01",
+   "color": "#100b09",
+   "trim": null
+  },
+  "brows": "eyebrow007",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "makeup": "day",
+  "poses": [
+   "phone",
+   "walk_heels",
+   "talk"
+  ]
+ },
+ {
+  "id": "police_m",
+  "gender": "m",
+  "years": 37,
+  "race": "latino",
+  "tone": "olive",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.592,
+   "muscle": 0.72,
+   "weight": 0.55,
+   "height": 0.6,
+   "proportions": 0.58,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "details": {
+   "chin-height-decr": 0.27,
+   "chin-prominent-incr": 0.12,
+   "eyebrows-trans-down": 0.41,
+   "head-fat-decr": 0.53,
+   "head-square": 0.29,
+   "l-eye-eyefold-down": 0.24,
+   "mouth-angles-down": 0.41,
+   "nose-flaring-incr": 0.46,
+   "nose-hump-incr": 0.32,
+   "nose-volume-decr": 0.4,
+   "nose-width1-decr": 0.23,
+   "r-eye-eyefold-down": 0.24
+  },
+  "place": [
+   "police"
+  ],
+  "garments": [
+   {
+    "type": "police_shirt",
+    "color": "#1d2a45",
+    "fabric": "uniform"
+   },
+   {
+    "type": "trousers",
+    "color": "#151c2c",
+    "fabric": "uniform",
+    "stripe": true
+   }
+  ],
+  "shoes": "boots_black",
+  "hair": {
+   "style": "short02",
+   "color": "#120d0a",
+   "trim": "fade"
+  },
+  "brows": "eyebrow001",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#151c2c",
+   "fabric": "twill",
+   "police": true
+  },
+  "poses": [
+   "idle",
+   "walk",
+   "cross_arms"
+  ]
+ },
+ {
+  "id": "police_f",
+  "gender": "f",
+  "years": 32,
+  "race": "black",
+  "tone": "deep",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.554,
+   "muscle": 0.55,
+   "weight": 0.45,
+   "height": 0.5,
+   "proportions": 0.58,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   },
+   "cupsize": 0.45,
+   "firmness": 0.6
+  },
+  "skin": "young_african_female",
+  "details": {
+   "head-diamond": 0.19,
+   "head-rectangular": 0.49,
+   "head-round": 0.27,
+   "head-square": 0.46,
+   "l-cheek-volume-incr": 0.19,
+   "l-eye-trans-out": 0.39,
+   "mouth-scale-horiz-incr": 0.46,
+   "nose-greek-incr": 0.41,
+   "nose-point-down": 0.47,
+   "nose-volume-decr": 0.13,
+   "nose-volume-incr": 0.34,
+   "r-cheek-volume-incr": 0.19,
+   "r-eye-trans-out": 0.39
+  },
+  "place": [
+   "police"
+  ],
+  "garments": [
+   {
+    "type": "police_shirt",
+    "color": "#1d2a45",
+    "fabric": "uniform"
+   },
+   {
+    "type": "trousers",
+    "color": "#151c2c",
+    "fabric": "uniform",
+    "stripe": true
+   }
+  ],
+  "shoes": "boots_black",
+  "hair": {
+   "style": "bun",
+   "color": "#100b09",
+   "trim": null
+  },
+  "brows": "eyebrow005",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "poses": [
+   "idle_f",
+   "walk_f",
+   "cross_arms"
+  ]
+ },
+ {
+  "id": "gang_garzas_m",
+  "gender": "m",
+  "years": 25,
+  "race": "latino",
+  "tone": "tan",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.5,
+   "muscle": 0.68,
+   "weight": 0.42,
+   "height": 0.55,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.62,
+    "african": 0.16,
+    "asian": 0.22
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "details": {
+   "chin-cleft-incr": 0.54,
+   "head-rectangular": 0.16,
+   "head-square": 0.5,
+   "l-cheek-bones-incr": 0.26,
+   "l-ear-lobe-incr": 0.43,
+   "l-ear-scale-decr": 0.4,
+   "l-eye-bag-incr": 0.37,
+   "mouth-lowerlip-volume-decr": 0.43,
+   "mouth-scale-horiz-incr": 0.15,
+   "nose-scale-vert-incr": 0.21,
+   "nose-width2-incr": 0.34,
+   "r-cheek-bones-incr": 0.26,
+   "r-ear-lobe-incr": 0.43,
+   "r-ear-scale-decr": 0.4,
+   "r-eye-bag-incr": 0.37
+  },
+  "place": [
+   "gang_garzas",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tank",
+    "color": "#25c4b4",
+    "fabric": "rib"
+   },
+   {
+    "type": "jeans",
+    "color": "#d9d4c8",
+    "fabric": "denim",
+    "fade": 0.2,
+    "undyed": true
+   }
+  ],
+  "shoes": "sneaker_white",
+  "hair": {
+   "style": "short04",
+   "color": "#100b09",
+   "trim": "fade"
+  },
+  "brows": "eyebrow003",
+  "lashes": "eyelashes04",
+  "eyes": "brown",
+  "beard": "goatee",
+  "chain": true,
+  "poses": [
+   "cross_arms",
+   "lean_cross",
+   "talk"
+  ]
+ },
+ {
+  "id": "gang_lyric_m",
+  "gender": "m",
+  "years": 23,
+  "race": "black",
+  "tone": "dark",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.47,
+   "muscle": 0.66,
+   "weight": 0.4,
+   "height": 0.62,
+   "proportions": 0.62,
+   "race": {
+    "caucasian": 0.05,
+    "african": 0.92,
+    "asian": 0.03
+   }
+  },
+  "skin": "young_african_male",
+  "details": {
+   "chin-height-decr": 0.29,
+   "chin-width-decr": 0.36,
+   "forehead-temple-decr": 0.3,
+   "head-diamond": 0.3,
+   "head-fat-decr": 0.26,
+   "l-ear-flap-decr": 0.19,
+   "l-eye-trans-in": 0.54,
+   "mouth-lowerlip-volume-incr": 0.15,
+   "nose-point-down": 0.47,
+   "nose-point-up": 0.48,
+   "nose-scale-vert-decr": 0.49,
+   "r-ear-flap-decr": 0.19,
+   "r-eye-trans-in": 0.54
+  },
+  "place": [
+   "gang_lyric",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#141414",
+    "fabric": "jersey",
+    "trim": "#e3b23c"
+   },
+   {
+    "type": "cargo_pants",
+    "color": "#141414",
+    "fabric": "twill"
+   }
+  ],
+  "shoes": "sneaker_gold",
+  "hair": {
+   "style": "braid01",
+   "color": "#0e0b09",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "hat": {
+   "type": "cap",
+   "color": "#e3b23c",
+   "fabric": "twill"
+  },
+  "chain": true,
+  "poses": [
+   "cross_arms",
+   "lean_cross",
+   "phone"
+  ]
+ },
+ {
+  "id": "gang_wolves_m",
+  "gender": "m",
+  "years": 28,
+  "race": "white",
+  "tone": "light",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.523,
+   "muscle": 0.6,
+   "weight": 0.45,
+   "height": 0.6,
+   "proportions": 0.6,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.03,
+    "asian": 0.07
+   }
+  },
+  "skin": "young_caucasian_male",
+  "details": {
+   "chin-width-incr": 0.21,
+   "eyebrows-angle-down": 0.32,
+   "forehead-temple-decr": 0.48,
+   "head-oval": 0.41,
+   "l-cheek-bones-incr": 0.51,
+   "l-eye-corner2-up": 0.23,
+   "l-eye-trans-out": 0.15,
+   "nose-curve-convex": 0.39,
+   "nose-flaring-incr": 0.16,
+   "nose-hump-incr": 0.41,
+   "nose-width1-incr": 0.3,
+   "r-cheek-bones-incr": 0.51,
+   "r-eye-corner2-up": 0.23,
+   "r-eye-trans-out": 0.15
+  },
+  "place": [
+   "gang_wolves",
+   "street"
+  ],
+  "garments": [
+   {
+    "type": "tee",
+    "color": "#202020",
+    "fabric": "jersey",
+    "print": "splatter_magenta"
+   },
+   {
+    "type": "jeans",
+    "color": "#1c1f26",
+    "fabric": "denim",
+    "fade": 0.3
+   }
+  ],
+  "shoes": "sneaker_black",
+  "hair": {
+   "style": "short01",
+   "color": "#2a1d14",
+   "trim": null
+  },
+  "brows": "eyebrow004",
+  "lashes": "eyelashes01",
+  "eyes": "brown",
+  "hat": {
+   "type": "beanie",
+   "color": "#e23d9a",
+   "fabric": "knit"
+  },
+  "beard": "stubble",
+  "poses": [
+   "cross_arms",
+   "lean_cross",
+   "talk"
+  ]
+ }
+]
