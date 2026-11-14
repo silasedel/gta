@@ -17,6 +17,9 @@ import { VARIANTS, pickFacade } from './facades.js';
 import { boatVariants, BOAT_LEN } from './boats.js';
 import { FBatch, facadeWalls, WL, WIN } from '../city/facade.js';
 import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
+import { lots as houseLots } from '../setpieces/houses/lots.js';
+import { groundClaims } from '../ground/claims.js';
+const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
 export function createTileBuilder(ctx) {
@@ -37,7 +40,7 @@ export function createTileBuilder(ctx) {
     for (const k in props) { const L = props[k]; if (!Array.isArray(L)) continue; for (const it of L) { if (!it || typeof it.x !== 'number' || typeof it.z !== 'number') continue; const h = TH(it.x, it.z); if (h > 0.3 && (it.y || 0) < h - 0.25) it.y = (it.y || 0) + h; } } }
   const densify = (pts, step) => { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 1; k <= n; k++) out.push(k === n ? b : [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; };
   function* floraInto(t, tile, props) { if (props.veg !== undefined) return; props.veg = null; const T0 = provider.tileSize || 200, V = {};
-    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) }, V);
+    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) || !!(CLAIMS.list.length && CLAIMS.at(x, z, 1.5)) }, V);
     if (V.palm) props.palm.push(...V.palm); if (V.oats) props.oats.push(...V.oats); if (V.tree) props.tree.push(...V.tree); props.veg = V; }
   function stiltPiles(B, b) { // timber piles under a raised Keys house (minH set in buildingsOf)
     const r = b.rings[0], H = b.minH || 2.7; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
@@ -990,6 +993,41 @@ export function createTileBuilder(ctx) {
     return { oL, oR, shrunk };
   }
   // ---- roads ----
+  // ---- ground-continuity: dead-end road caps ----
+  const CLAIMS = groundClaims(D && D.setpieces), BND = D && D.bounds, CUL_KIND = /residential|living|unclassified|tertiary/;
+  const capStats = { bulb: 0, cap: 0, apron: 0 };
+  // r's end (atB: the last point) at a degree-1 node -> { kind: 'bulb' | 'cap' | 'apron', cut (asphalt stops this far from the end), mk (markings stop), x, z, R, ox, oz }
+  function endCap(r, fr, L, hw, atB, tile) {
+    if (L < 4 || GC_OFF) return null;
+    const p = atB ? r.pts[r.pts.length - 1] : r.pts[0], nd = nodeAt(p);
+    if (!nd || nd.degree !== 1) return null;
+    if (BND && (p[0] < BND.minX + 60 || p[0] > BND.maxX - 60 || p[1] < BND.minZ + 60 || p[1] > BND.maxZ - 60)) return null; // the map edge cuts it, not a real end
+    const q = sampleAt(fr, atB ? L : 0), ox = atB ? q.dx : -q.dx, oz = atB ? q.dz : -q.dz;
+    if (CLAIMS.list.length && CLAIMS.at(p[0], p[1], 2)) { // runs into a set piece's own ground (its yard / drive takes over)
+      let s = 0; for (; s < Math.min(L - 2, 150); s += 0.5) { const w = sampleAt(fr, atB ? L - s : s); if (!CLAIMS.at(w.x, w.z, 0.2)) break; }
+      return { kind: 'apron', cut: s + 3, edge: s, mk: s + 4, ox, oz };
+    }
+    const free = (cx, cz, R) => { for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R; if ((isWater && isWater(x, z)) || insideBuilding(tile, x, z)) return false; } return !(isWater && isWater(cx, cz)); };
+    if (CUL_KIND.test(r.kind || '') && L > 30) { const R = Math.max(hw + 3, 8), o = R * 0.5, cx = p[0] + ox * o, cz = p[1] + oz * o;
+      if (free(cx, cz, R)) { capStats.bulb++; return { kind: 'bulb', x: cx, z: cz, R, cut: Math.max(0, Math.sqrt(R * R - hw * hw) - o - 0.3), mk: R - o + 2, ox, oz }; } }
+    capStats.cap++;
+    return { kind: 'cap', x: p[0], z: p[1], R: hw, cut: 0, mk: 1, ox, oz };
+  }
+  function drawCap(B, coll, fr, L, hw, c, atB) {
+    if (c.kind === 'apron') { // asphalt -> flared broom-finished concrete apron up to the set piece's edge
+      capStats.apron++;
+      const at = (s, o) => { const q = sampleAt(fr, atB ? L - s : s); return [q.x + q.nx * o, 0.06, q.z + q.nz * o]; };
+      const sIn = c.cut, sOut = c.edge, wIn = hw, wOut = hw + 1.4;
+      const a = at(sIn, -wIn), b = at(sIn, wIn), cc = at(sOut, wOut), d = at(sOut, -wOut);
+      quadUp(B.sidewalk, a, b, cc, d, new THREE.Color(0xd9d4c8), 1 / 2.5);
+      if (coll) { coll.tag = 'road'; quadUp(coll, a, b, cc, d, WHITE, 1); }
+      return;
+    }
+    const seg = c.kind === 'bulb' ? 28 : 16, ring = [];
+    for (let k = 0; k < seg; k++) { const a = (k / seg) * Math.PI * 2; ring.push([c.x + Math.cos(a) * c.R, c.z + Math.sin(a) * c.R]); }
+    fillPoly(B.junction || B.asphalt, [ring], 0.055, 0xffffff, 1 / 7);
+    if (coll) { coll.tag = 'junction'; fillPoly(coll, [ring], 0.05, 0xffffff, 1); }
+  }
   function* buildRoads(B, tile, props, coll, flush) {
     resolveDecks(tile); let rc = 0;
     for (const r of tile.roads) {
@@ -1005,13 +1043,18 @@ export function createTileBuilder(ctx) {
       // stop the ribbon just inside a junction fill drawn at this end's level (no road-over-road duplicates)
       const lvA = trimA ? nodeLevel(tile, na) : null, lvB = trimB ? nodeLevel(tile, nb) : null;
       const yA = ys ? ys[0] : 0, yB = ys ? ys[ys.length - 1] : 0;
-      const rA = lvA && lvA.kind && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;
+      let rA = lvA && lvA.kind && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;
+      // ground-continuity: dead ends finish as a cul-de-sac bulb / rounded cap, or (inside a set piece's own ground) stop at its edge with a concrete apron
+      const capA = ys ? null : endCap(r, fr, L, hw, false, tile), capB = ys ? null : endCap(r, fr, L, hw, true, tile);
+      let cA = 0, cB = 0; // collider trims
+      if (capA) { rA = Math.max(rA, capA.cut); if (capA.kind === 'apron') cA = capA.cut; drawCap(B, coll, fr, L, hw, capA, false); }
+      if (capB) { rB = Math.min(rB, L - capB.cut); if (capB.kind === 'apron') cB = capB.cut; drawCap(B, coll, fr, L, hw, capB, true); }
       const dw = ys ? deckWidths(fr, ys, r, hw, tile) : null;
       if (dw && dw.shrunk) { if (rB > rA + 0.2) vribbon(B.asphalt, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = 'deck'; vribbon(coll, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1); } }
-      else { if (rB > rA + 0.2) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1); } }
+      else { if (rB > rA + 0.2) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
       // markings
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total);
-      const mY = yRoad + 0.015, s0 = trimA + 1, s1 = L - trimB - 1;
+      const mY = yRoad + 0.015, s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
       if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service') {
         const dash = (off, w, len, gap, col) => { for (let s = s0; s < s1; s += len + gap) ribbon(B.marks, fr, ys, off - w, off + w, mY, col, 1, s, Math.min(s1, s + len)); };
         if (!r.oneway) { // yellow double centre line at the forward/back split
@@ -1725,6 +1768,22 @@ export function createTileBuilder(ctx) {
     }
     return null;
   }
+  // ground-continuity: water-mask slivers that count as land (data.isSliver: rasterisation gaps between land polygons) get the
+  // ground drawn over them, matching the land collider the ground-cover pass now builds there (no sand slab over swimmable water)
+  function* sliverFill(B, X0, Z0, T0) {
+    const C = 2, N = Math.round(T0 / C); let n = 0;
+    for (let j = 0; j < N; j++) {
+      let run = -1, sand = false;
+      for (let i = 0; i <= N; i++) {
+        const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C, on = i < N && (D.isSliver(x, z) || D.isSliver(x + C, z) || D.isSliver(x - C, z) || D.isSliver(x, z + C) || D.isSliver(x, z - C)); // dilated one cell: covers the stair-step gaps against diagonal polygon edges
+        if (on && run < 0) { run = i; sand = /sand|beach/.test((D.surfaceAt && D.surfaceAt(x, z)) || '') || isBeachAt(x, z); }
+        if (!on && run >= 0) { const xa = X0 + run * C, xb = X0 + i * C, za = Z0 + j * C, zb = za + C; quadUp(sand ? B.sand : B.land, [xa, 0.012, za], [xb, 0.012, za], [xb, 0.012, zb], [xa, 0.012, zb], WHITE, 1 / 6); run = -1; n++; }
+      }
+      if ((j & 7) === 7) yield;
+    }
+    sliverStats.runs += n;
+  }
+  const sliverStats = { runs: 0 };
   function* buildNear(t) {
     const tile = yield* getTileG(t.tx, t.tz);
     const group = new THREE.Group(); group.name = `tile-near-${t.tx},${t.tz}`;
@@ -1736,6 +1795,7 @@ export function createTileBuilder(ctx) {
     if (LF.on) for (const key in B) liftB(B[key], LF);
     const props = newProps(); buildingsOf(tile); yield; seedRealProps(props, tile, B); yield;
     for (const a of tile.areas || []) areaFill(B, a);
+    if (!synth && D && D.isSliver && !GC_OFF) yield* sliverFill(B, X0, Z0, T0);
     if (terrain) airportMarks(B, X0, Z0, T0);
     if (synth) { const tr = yield* terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: tile.relief ? 4 : 0.8 }); if (tr) { const m = new THREE.Mesh(tr.geometry, terrain.nearMat); m.name = 'terrain'; m.receiveShadow = true; m.castShadow = !!tile.relief; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); } yield; }
     exitVisuals(B, tile);
@@ -1760,7 +1820,7 @@ export function createTileBuilder(ctx) {
     yield* buildRoads(B, tile, props, null);
     yield;
     let k = 0;
-    for (const b of buildingsOf(tile)) { if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
+    for (const b of buildingsOf(tile)) { if (houseLots.claims(b)) continue; /* drawn by the house generator (setpieces/houses) */ if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
     LF.k = null;
     yield;
     cleanProps(tile, props); yield;
@@ -1962,7 +2022,13 @@ export function createTileBuilder(ctx) {
   function* buildLandBase() {
     if (!provider.landPolys) return null;
     const b = new Batch(); let k = 0;
-    for (const rings of provider.landPolys) { fillPoly(b, rings, -0.05, 0x7e7c76, 0); if (++k % 20 === 0) yield; }
+    const islet = (rings) => { if (!D || !D.isIsletAt) return false; const r0 = rings[0]; let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [x, z] of r0) { a = Math.min(a, x); c = Math.max(c, x); d = Math.min(d, z); e = Math.max(e, z); } return c - a < 270 && e - d < 270 && D.isIsletAt((a + c) / 2, (d + e) / 2); }; // tiny offshore specks are open water now
+    for (const rings of provider.landPolys) { if (!islet(rings)) fillPoly(b, rings, -0.05, 0x5c6645, 0); if (++k % 20 === 0) yield; }
+    if (!GC_OFF) { // ground-continuity: muted green-brown, varied per vertex (no flat gray land while tiles stream / at mid range)
+      const h2 = (x, z) => { const v = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return v - Math.floor(v); };
+      const vn = (x, z) => { const xi = Math.floor(x), zi = Math.floor(z), fx = x - xi, fz = z - zi, u = fx * fx * (3 - 2 * fx), v = fz * fz * (3 - 2 * fz); return (h2(xi, zi) * (1 - u) + h2(xi + 1, zi) * u) * (1 - v) + (h2(xi, zi + 1) * (1 - u) + h2(xi + 1, zi + 1) * u) * v; };
+      for (let i = 0, n = b.p.length / 3; i < n; i++) { const kk = 0.85 + vn(b.p[i * 3] * 0.004, b.p[i * 3 + 2] * 0.004) * 0.3; b.c[i * 3] = 0.36 * kk; b.c[i * 3 + 1] = 0.4 * kk; b.c[i * 3 + 2] = 0.27 * kk; }
+    }
     const group = new THREE.Group(); group.name = 'miami-land-base';
     const m = meshOf(b, M.far, { cast: false });
     if (m) { m.geometry.setAttribute('aTile', new THREE.BufferAttribute(new Float32Array(m.geometry.attributes.position.count * 2).fill(-1e6), 2)); group.add(m); }
@@ -2065,7 +2131,7 @@ export function createTileBuilder(ctx) {
     flush(); yield;
     let bb = new Batch(), k = 0;
     for (const b of buildingsOf(tile)) {
-      if (b.part) continue;
+      if (b.part || houseLots.claims(b)) continue; // claimed houses bring their own colliders (setpieces/houses)
       buildBuilding(NULLB, b, { coll: bb, shops: false }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
@@ -2207,5 +2273,5 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
+  return { capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
 }

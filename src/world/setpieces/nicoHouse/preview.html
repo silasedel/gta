@@ -74,7 +74,7 @@ function setTime(h) {
 window.setTime = setTime;
 
 // ---- house ----
-const opt = {}; if (q.get('only')) opt.only = q.get('only').split(','); if (q.get('skip')) opt.skip = q.get('skip').split(',');
+const opt = {}; if (q.get('only')) opt.only = q.get('only').split(','); if (q.get('skip')) opt.skip = q.get('skip').split(','); if (q.get('lod') === '0') opt.lod = false;
 const t0 = performance.now();
 // shared vegetation system for the palms (default on; ?veg=0 uses the house's own palms)
 if (q.get('veg') !== '0') {

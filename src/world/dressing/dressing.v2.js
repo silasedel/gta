@@ -12,6 +12,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createPropMaterial } from '../city/propmat.js';
 import { loadSet } from '../city/pbr.js';
 import * as K from './kit.js';
+import { lots as houseLots } from '../setpieces/houses/lots.js';
 
 export const order = 70;
 
@@ -277,13 +278,20 @@ float lNoise(vec2 p) {
         if (!isBait && R() < 0.12) continue; // the odd empty lot
         const ry = Math.atan2(-nx, -nz);
         const y = groundY(cx, cz);
-        place(H.geo, cx, y, cz, ry);
-        for (const c of H.colliders) {
-          const wx = cx + Math.cos(ry) * c.x + Math.sin(ry) * c.z;
-          const wz = cz - Math.sin(ry) * c.x + Math.cos(ry) * c.z;
-          boxCol(wx, y + c.y, wz, c.hx, c.hy, c.hz, ry);
+        // houses: drawn by the house generator (src/world/setpieces/houses) on this lot; the bait shop stays here
+        const gen = !isBait && houseLots.enabled && !game.v2DressingBoxHouses
+          ? houseLots.add({ id: 'spawn:' + seed, x: cx, z: cz, y, heading: ry, w: H.w + 13, d: H.d + 6, front: H.d / 2 + 3, roadGap: Math.max(0, set - H.d / 2 - 3), source: 'street', seed,
+            house: { w: H.w, d: H.d, stilt: H.stilt, base: H.base, roadV: set - H.d / 2, drvU: null } })
+          : null;
+        if (!gen) {
+          place(H.geo, cx, y, cz, ry);
+          for (const c of H.colliders) {
+            const wx = cx + Math.cos(ry) * c.x + Math.sin(ry) * c.z;
+            const wz = cz - Math.sin(ry) * c.x + Math.cos(ry) * c.z;
+            boxCol(wx, y + c.y, wz, c.hx, c.hy, c.hz, ry);
+          }
         }
-        lots.push({ x: cx, z: cz, y, ry, span, nx, nz, q, side, H, bait: isBait, seed });
+        lots.push({ x: cx, z: cz, y, ry, span, nx, nz, q, side, H, bait: isBait, seed, gen });
         if (isBait) {
           baitDone = true;
           const tex = K.signTexture([{ text: 'LIVE BAIT  ·  ICE  ·  TACKLE', px: 92 }], { bg: '#efe6cf', ink: '#1d4a5a' });
@@ -319,6 +327,7 @@ float lNoise(vec2 p) {
       const H = L.H;
       const roadV = H.d / 2 + (Math.hypot(L.x - L.q.x, L.z - L.q.z) - L.q.hw - H.d / 2);
       const drvU = (H.w / 2 + 2.2) * (r() < 0.5 ? -1 : 1);
+      if (L.gen) L.gen.house.drvU = drvU;
       // crushed-shell driveway from the road to the house
       const dlen = roadV - H.d / 2 + 1;
       const [dx0, dz0] = at(drvU, H.d / 2 + dlen / 2 - 1);

@@ -1,0 +1,73 @@
+{
+ "track": "houses",
+ "title": "Generated residential houses (six styles, importance LOD)",
+ "section": "Set pieces",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Nico's house perf pass: per-mesh importance LOD (size and triangle density), no sun shadows from interior and small detail",
+   "state": "verified",
+   "evidence": "preview at the spawn view: 576 -> 403 draw calls, 2.32M -> 1.73M tris; at 45 m: 544 -> 260 calls, 2.30M -> 1.47M tris (docs/v2/shots/houses/nico_lod_spawn.png)"
+  },
+  {
+   "name": "Draw-call and triangle budget per house: near <= 40k tris and about 9 materials (sun shadows only from walls, roofs, structure); mid about 4k tris merged; far shell about 0.5k tris",
+   "state": "verified",
+   "evidence": "preview stats: near 3k-37k tris, 12-16 meshes; mid 4k"
+  },
+  {
+   "name": "Seeded house generator built on the Nico house kit (real boards, sashes, shutters, rails, tiles, clutter; peeling paint and wear)",
+   "state": "verified",
+   "evidence": "src/world/setpieces/houses/generator.js, preview.html"
+  },
+  {
+   "name": "Six styles: Keys stilt, Florida ranch, Mediterranean barrel tile, art-deco duplex, mid-century modern, bungalow with porch",
+   "state": "verified",
+   "evidence": "src/world/setpieces/houses/preview.html (all six looked at)"
+  },
+  {
+   "name": "Variation: palettes, wear, shutters, awnings, bars and grilles, AC units, dishes, solar heaters, porch furniture, house numbers",
+   "state": "verified",
+   "evidence": "preview shots"
+  },
+  {
+   "name": "Yards on map lots: driveways to the road, walks, fences and gates, mailboxes, bins, pools with screen cages, palms and shrubs (instanced), parked cars",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/distB.png (iron fence, mailbox, bins, hedge, palms)"
+  },
+  {
+   "name": "Lit windows and porch lights at night (shared night uniform, clustered lamps for near lots)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/night.png"
+  },
+  {
+   "name": "Importance LOD: near full detail per lot, mid and far merged per cluster with a lot-hide mask, shared materials and textures",
+   "state": "verified",
+   "evidence": "Nico street, headless Chrome: 21 lots, 5 at full detail (142k tris), 1 merged mid cluster (85k tris); house build 81 ms total, max 15 ms per near house"
+  },
+  {
+   "name": "Lot API (lots.js, game.lots): claims, near, at, isFree; world-dressing's spawn-street lots now use the generator",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/street.png, highway.png"
+  },
+  {
+   "name": "Map house footprints in other districts replaced by generated houses as the city streams (tilebuild skips claimed footprints)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/distA.png (Di Lido Island: mid-century and Mediterranean), distB.png (South of Fifth: bungalow, ranch); 48-82 map lots streamed around each spot"
+  },
+  {
+   "name": "Colliders for houses, decks, stairs, rails, fences within 90 m of the player",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Interiors of generated houses",
+   "state": "todo",
+   "evidence": "not in scope (doors are closed, glass is opaque and lit)"
+  },
+  {
+   "name": "60 fps on the Mac app in Nico's neighborhood",
+   "state": "todo",
+   "evidence": "headless Chrome, Nico street: before (box houses) 558 draw calls / 4.41M tris; after 712 calls / 4.51M tris. Not measured in the Mac app"
+  }
+ ]
+}

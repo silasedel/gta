@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Houses: preview</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#0b1118;font:12px/1.4 ui-monospace,Menlo,monospace;color:#e9f1f5}#info{position:fixed;left:8px;top:8px;background:#000a;padding:6px 9px;border-radius:6px;white-space:pre}.hide #info{display:none}</style></head>
+<body><div id="info">loading…</div>
+<script type="module">
+// Standalone preview for the house generator (track: houses). A street with one house per style; ?lod=0|1|2 (or 'all' =
+// three rows), ?t=hour, ?cam=x,y,z&look=x,y,z, ?seed=n, ?ui=0. Console: stats(), setTime(h).
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { createHouseKit } from './materials.js';
+import { planHouse, buildHouse } from './generator.js';
+import { STYLES } from './styles.js';
+const q = new URLSearchParams(location.search), num = (k, d) => (q.get(k) ?? d).split(',').map(Number);
+if (q.get('ui') === '0') document.body.classList.add('hide');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 3000);
+const sky = new Sky(); sky.scale.setScalar(2000); scene.add(sky);
+const sun = new THREE.DirectionalLight(0xfff2e0, 3.2); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 300 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.03; scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd9ff, 0x8a7a5a, 0.7); scene.add(hemi);
+const pmrem = new THREE.PMREMGenerator(renderer);
+const hk = createHouseKit(THREE, {}); window.hk = hk;
+function setTime(h) {
+  const a = (h - 6.3) / 12.4 * Math.PI, day = h > 6.3 && h < 18.7, el = day ? Math.sin(a) * 1.15 : -0.3, dir = new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el), 0.45).normalize();
+  sky.material.uniforms.sunPosition.value.copy(dir); sky.material.uniforms.turbidity.value = 3; sky.material.uniforms.rayleigh.value = 1.4;
+  sun.position.copy(day ? dir.clone().multiplyScalar(150) : new THREE.Vector3(-60, 120, 40)); sun.intensity = day ? 3.4 * Math.min(1, dir.y * 3) : 0.12; sun.color.set(day ? 0xfff0dc : 0x9db8ff);
+  hemi.intensity = day ? 0.7 : 0.06; renderer.toneMappingExposure = day ? 0.5 : 0.6;
+  const env = pmrem.fromScene(new (class extends THREE.Scene { constructor() { super(); const s2 = new Sky(); s2.scale.setScalar(500); s2.material.uniforms.sunPosition.value.copy(day ? dir : new THREE.Vector3(0, -0.3, 1)); this.add(s2); } })(), 0.02);
+  scene.environment = env.texture; scene.environmentIntensity = day ? 0.8 : 0.15;
+  hk.uNight.value = day ? Math.max(0, 1 - dir.y * 6) : 1;
+}
+setTime(Number(q.get('t') || 10)); window.setTime = setTime;
+// ground and street
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshStandardMaterial({ color: 0x6f7f4a, roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const road = new THREE.Mesh(new THREE.PlaneGeometry(400, 8), new THREE.MeshStandardMaterial({ color: 0x3a3a3c, roughness: 0.9 })); road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 14); road.receiveShadow = true; scene.add(road);
+const lodArg = q.get('lod') ?? '0', rows = lodArg === 'all' ? [0, 1, 2] : [Number(lodArg)], seed0 = Number(q.get('seed') || 11);
+const styles = (q.get('styles') || STYLES.join(',')).split(','), stats = [];
+const t0 = performance.now();
+rows.forEach((lod, ri) => styles.forEach((st, i) => {
+  const sp = planHouse({ seed: seed0 + i * 101, w: 10 + (i % 3), d: 9 + (i % 2) * 1.5, style: st, stilt: st === 'keys' ? true : undefined, drvU: (i % 2 ? 1 : -1) * 7, yard: q.get('yard') === '0' ? null : { gap: 6.5, back: 11, side: 3.5 } });
+  const tb = performance.now(), res = buildHouse(hk, sp, lod), cnt = res.batch.count(), g = new THREE.Group();
+  res.batch.build(g); g.position.set((i - (styles.length - 1) / 2) * 24, 0, -ri * 34); scene.add(g);
+  stats.push({ style: st, lod, meshes: g.children.length, tris: cnt.tris, ms: Math.round(performance.now() - tb), colliders: res.colliders.length, lamps: res.lamps.length });
+}));
+window.stats = () => ({ build: stats, total: Math.round(performance.now() - t0), calls: renderer.info.render.calls, tris: renderer.info.render.triangles });
+const controls = new OrbitControls(camera, renderer.domElement);
+const [cx, cy, cz] = num('cam', '0,14,48'), [lx, ly, lz] = num('look', '0,3,0'); camera.position.set(cx, cy, cz); controls.target.set(lx, ly, lz); controls.update();
+let fr = 0, acc = 0, last = performance.now();
+renderer.setAnimationLoop(() => { const now = performance.now(); acc += (now - last) / 1000; last = now; fr++; controls.update(); renderer.render(scene, camera);
+  if (acc > 0.5) { document.getElementById('info').textContent = `${(fr / acc).toFixed(0)} fps  calls ${renderer.info.render.calls}  tris ${(renderer.info.render.triangles / 1e6).toFixed(2)}M`; fr = 0; acc = 0; } });
+Promise.all(hk.pending).then(() => setTimeout(() => { window.ready = true; }, 500));
+</script></body></html>
