@@ -5,9 +5,9 @@
 import { P } from './params.js';
 import { GeoBuf, PosBuf, triClip } from './geobuf.js';
 
-const COL = {
-  deck: [1, 1, 1], barrier: [0.86, 0.85, 0.82], barrierTop: [0.9, 0.89, 0.86], fascia: [0.8, 0.79, 0.76], wall: [0.74, 0.72, 0.68],
-  soffit: [0.42, 0.41, 0.4], walk: [0.8, 0.79, 0.76], curb: [0.72, 0.71, 0.69], girder: [0.5, 0.49, 0.47], pier: [0.77, 0.75, 0.72], cap: [0.72, 0.7, 0.67], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], joint: [0.16, 0.16, 0.17], gore: [0.93, 0.93, 0.9],
+const COL = { // weathered grey cast concrete (highways track): barrier faces a touch lighter than the walls, soffit in shade
+  deck: [1, 1, 1], barrier: [0.56, 0.56, 0.55], barrierTop: [0.62, 0.62, 0.6], fascia: [0.52, 0.52, 0.51], wall: [0.5, 0.5, 0.49], coping: [0.58, 0.58, 0.57], joint: [0.16, 0.16, 0.17], footing: [0.42, 0.42, 0.41], drip: [0.3, 0.3, 0.3],
+  soffit: [0.34, 0.34, 0.34], walk: [0.62, 0.62, 0.6], curb: [0.55, 0.55, 0.54], girder: [0.42, 0.42, 0.41], pier: [0.54, 0.54, 0.52], cap: [0.5, 0.5, 0.49], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
 export function createBuilder(net) {
@@ -86,6 +86,65 @@ export function createBuilder(net) {
     return c.y[i] < 1.6 ? 0.35 + 0.325 * k : 1;
   }
 
+  // ---- barrier continuity: outer barrier points of every chain (4 m grid). A run end that sits on another chain's barrier line
+  // (ramp leaving / joining the mainline, chain seams at nodes) gets no end cap and no crash cushion.
+  const barPts = new Map(), BCELL = 4, bk = (x, z) => Math.floor(x / BCELL) * 100003 + Math.floor(z / BCELL);
+  for (const c of chains) for (const side of [-1, 1]) { const bar = side < 0 ? c.barL : c.barR;
+    for (let i = 0; i < c.n; i++) if (bar[i] && c.vis[i]) { const p = edgePt(c, i, side), k = bk(p[0], p[2]); let l = barPts.get(k); if (!l) barPts.set(k, (l = [])); l.push(c.id, p[0], p[1], p[2]); } }
+  function barrierContinues(c, at, side, prof) {
+    const x = c.x[at] - c.tz[at] * prof[6], z = c.z[at] + c.tx[at] * prof[6], y = prof[7] - P.BAR_H;
+    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+      const l = barPts.get((Math.floor(x / BCELL) + di) * 100003 + Math.floor(z / BCELL) + dj); if (!l) continue;
+      for (let q = 0; q < l.length; q += 4) { if (l[q] === c.id) continue; if (Math.hypot(l[q + 1] - x, l[q + 3] - z) < 1.1 && Math.abs(l[q + 2] - P.ROAD_Y - y) < 0.7) return true; }
+    }
+    return false;
+  }
+  // ---- retaining wall under a barrier on an embankment (type 1): barrier outer face, a cast coping with drip lip at deck level,
+  // precast panel wall (3 m x 1.5 m joints, slight per-panel tone, 2 % batter) and a footing strip into the ground.
+  const panelTone = (n) => { const h = Math.sin(n * 12.9898) * 43758.5453; return 0.955 + (h - Math.floor(h)) * 0.07; };
+  function retainingWall(buf, c, side, F0, F1, pa, pb, B) {
+    const oE0 = pa[6], oE1 = pb[6], yt0 = pa[7], yt1 = pb[7];
+    const yE0 = F0.y + P.ROAD_Y + F0.b * oE0, yE1 = F1.y + P.ROAD_Y + F1.b * oE1, g0 = pa[9] + 0.3, g1 = pb[9] + 0.3;
+    if (yE0 - g0 < 0.7 && yE1 - g1 < 0.7) return false; // ramp foot: the plain face reads better than a squashed wall
+    const W = (F, o, y) => [F.x - F.tz * o, y, F.z + F.tx * o];
+    const hx = side * -F0.tz, hz = side * F0.tx;
+    const face = (oa0, ya0, oa1, ya1, ob0, yb0, ob1, yb1, col, nx, ny, nz, uvS = 0.25) => {
+      const A0 = W(F0, oa0, ya0), A1 = W(F0, oa1, ya1), B1 = W(F1, ob1, yb1), B0 = W(F1, ob0, yb0);
+      setV(va, ...A0, 0, 0, 0, F0.s * uvS, ya0 * uvS, col); setV(vb, ...A1, 0, 0, 0, F0.s * uvS, ya1 * uvS, col); setV(vc, ...B1, 0, 0, 0, F1.s * uvS, yb1 * uvS, col); setV(vd, ...B0, 0, 0, 0, F1.s * uvS, yb0 * uvS, col);
+      quad(buf, va, vb, vc, vd, nx, ny, nz, B);
+    };
+    const s = side, CP = 0.14, cT0 = yE0 - 0.05, cT1 = yE1 - 0.05, cB0 = yE0 - 0.42, cB1 = yE1 - 0.42;
+    face(oE0, yt0, oE0, cT0, oE1, yt1, oE1, cT1, COL.barrier, hx, 0, hz);                                   // barrier outer face down to the coping
+    face(oE0, cT0, oE0 + s * CP, cT0, oE1, cT1, oE1 + s * CP, cT1, COL.coping, 0, 1, 0);                       // coping top
+    face(oE0 + s * CP, cT0, oE0 + s * CP, cB0, oE1 + s * CP, cT1, oE1 + s * CP, cB1, COL.coping, hx, 0, hz);    // coping front
+    face(oE0 + s * CP, cB0 + 0.04, oE0 + s * (CP - 0.03), cB0 + 0.04, oE1 + s * CP, cB1 + 0.04, oE1 + s * (CP - 0.03), cB1 + 0.04, COL.drip, 0, -1, 0); // drip groove
+    face(oE0 + s * CP, cB0, oE0, cB0, oE1 + s * CP, cB1, oE1, cB1, COL.drip, 0, -1, 0);                        // coping underside
+    // wall face (2 % batter toward the base), tone per 3 m panel at the segment middle
+    const ft0 = g0 + 0.25, ft1 = g1 + 0.25, bt0 = s * 0.02 * Math.max(0, cB0 - ft0), bt1 = s * 0.02 * Math.max(0, cB1 - ft1);
+    const tone = panelTone(Math.floor((F0.s + F1.s) / 2 / 3.0) + c.id * 7 + (side > 0 ? 3 : 0)), wc = [COL.wall[0] * tone, COL.wall[1] * tone, COL.wall[2] * tone];
+    face(oE0, cB0, oE0 + bt0, ft0, oE1, cB1, oE1 + bt1, ft1, wc, hx, 0, hz);
+    // panel joints: vertical every 3 m (by global arc length), horizontal every 1.5 m above the footing
+    const jw = 0.035, out = s * 0.012;
+    for (let sj = Math.ceil(F0.s / 3.0) * 3.0; sj < F1.s; sj += 3.0) {
+      const f = (sj - F0.s) / Math.max(1e-6, F1.s - F0.s), Fm = { x: F0.x + (F1.x - F0.x) * f, z: F0.z + (F1.z - F0.z) * f, tx: F0.tx, tz: F0.tz }, oe = oE0 + (oE1 - oE0) * f;
+      const yc = cB0 + (cB1 - cB0) * f, yf = ft0 + (ft1 - ft0) * f, bt = bt0 + (bt1 - bt0) * f;
+      const P0 = (ds, o, y) => [Fm.x + Fm.tx * ds - Fm.tz * o, y, Fm.z + Fm.tz * ds + Fm.tx * o];
+      const A0 = P0(-jw, oe + out, yc), A1 = P0(jw, oe + out, yc), B1 = P0(jw, oe + bt + out, yf), B0 = P0(-jw, oe + bt + out, yf);
+      setV(va, ...A0, 0, 0, 0, 0, 0, COL.drip); setV(vb, ...A1, 0, 0, 0, 0, 0, COL.drip); setV(vc, ...B1, 0, 0, 0, 0, 0, COL.drip); setV(vd, ...B0, 0, 0, 0, 0, 0, COL.drip);
+      quad(buf, va, vb, vc, vd, hx, 0, hz, B);
+    }
+    for (let k = 1; k < 12; k++) {
+      const h0 = ft0 + 1.5 * k, h1 = ft1 + 1.5 * k; if (h0 > cB0 - 0.3 || h1 > cB1 - 0.3) break;
+      const u0 = (h0 - ft0) / Math.max(1e-6, cB0 - ft0), u1 = (h1 - ft1) / Math.max(1e-6, cB1 - ft1), o0 = oE0 + bt0 * (1 - u0) + out, o1 = oE1 + bt1 * (1 - u1) + out;
+      face(o0, h0 + jw, o0, h0 - jw, o1, h1 + jw, o1, h1 - jw, COL.drip, hx, 0, hz);
+    }
+    // footing strip
+    const FW = 0.3;
+    face(oE0 + bt0, ft0, oE0 + bt0 + s * FW, ft0, oE1 + bt1, ft1, oE1 + bt1 + s * FW, ft1, COL.footing, 0, 1, 0);
+    face(oE0 + bt0 + s * FW, ft0, oE0 + bt0 + s * FW, g0 - 0.35, oE1 + bt1 + s * FW, ft1, oE1 + bt1 + s * FW, g1 - 0.35, COL.footing, hx, 0, hz);
+    return true;
+  }
+
   function buildVisual(B, segs, piersT, jointsT) {
     const asph = new GeoBuf(2048), conc = new GeoBuf(8192), mark = new GeoBuf(2048);
     for (const { c, i } of segs) {
@@ -117,7 +176,9 @@ export function createBuilder(net) {
           const pa = PA10, pb = PB10;
           for (let k = 0; k < 10; k++) { pa[k] = lerp(A[k], Bp[k], tA); pb[k] = lerp(A[k], Bp[k], tB); }
           const cols = [COL.barrier, COL.barrier, COL.barrierTop, (t0 === 1 || t1 === 1) ? COL.wall : COL.fascia];
+          const wallSeg = (t0 === 1 || t1 === 1) && t0 !== 2 && t1 !== 2;
           for (let k = 0; k < 4; k++) {
+            if (k === 3 && wallSeg && retainingWall(conc, c, side, F0, F1, pa, pb, B)) continue;
             const o0a = pa[k * 2], y0a = pa[k * 2 + 1], o1a = pa[k * 2 + 2], y1a = pa[k * 2 + 3], o0b = pb[k * 2], y0b = pb[k * 2 + 1], o1b = pb[k * 2 + 2], y1b = pb[k * 2 + 3];
             const hx = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * -F0.tz, hz = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * F0.tx, hy = k === 2 ? 1 : (k === 1 ? 0.3 : 0);
             const col = cols[k], vS = k === 3 ? 0.25 : 0.5;
@@ -130,6 +191,7 @@ export function createBuilder(net) {
           // end caps where the run stops
           for (const [at, has, F, prof, dir] of [[i, i > 0 && bar[i - 1], F0, pa, -1], [j, j < c.n - 1 && bar[j + 1], F1, pb, 1]]) {
             if (has && !((at === i && ta > 0) || (at === j && tb < 1))) continue;
+            if (barrierContinues(c, at, side, prof)) continue; // another deck's barrier carries on right here: no nose / cap (no overlapping ends)
             // crash cushion (impact attenuator) ahead of a barrier nose that faces oncoming traffic on an elevated deck
             if (dir < 0 && c.lanesB[at] === 0 && c.y[at] >= 1.6 && cushionClear(c, at, (prof[0] + prof[6]) / 2)) cushion(conc, F, (prof[0] + prof[6]) / 2, prof[1], B);
             const pts = []; for (let k = 0; k < 5; k++) pts.push([F.x - F.tz * prof[k * 2], prof[k * 2 + 1], F.z + F.tx * prof[k * 2]]);
@@ -229,30 +291,42 @@ export function createBuilder(net) {
     for (const v of [a, b, c]) { v[3] = nx; v[4] = ny; v[5] = nz; }
     if (!flip) triClip(buf, a, b, c, B); else triClip(buf, a, c, b, B);
   }
-  // lane / edge lines for one segment (dashes by global arc length so they line up across tiles)
+  // lane / edge lines for one segment (dashes by global arc length so they line up across tiles). Offsets are evaluated at both
+  // ends of the segment (highways track): edge lines follow the visible deck and keep a fixed shoulder off the barrier toe, so they
+  // bend with a ramp that widens / narrows instead of running straight into the barrier; lines that would end up under a barrier
+  // or off the deck are dropped.
   function markings(buf, c, i, P0, P1, B) {
-    const j = i + 1, hw = (c.hw[i] + c.hw[j]) / 2, lf = c.lanesF[i], lb = c.lanesB[i], tot = Math.max(1, lf + lb), lw = (2 * hw) / tot;
+    const j = i + 1, lf = c.lanesF[i], lb = c.lanesB[i], tot = Math.max(1, lf + lb);
     if (c.y[i] < -1 || (c.type[i] === 0 && c.type[j] === 0 && c.kind === 'service')) return;
-    const lines = []; // [offset, halfWidth, colour, dashed]
     const oneway = lb === 0 || lf === 0;
-    lines.push([-hw + 0.15, 0.08, oneway && tot >= 2 && /motorway|trunk/.test(c.kind) ? COL.yellow : COL.white, false]);
-    lines.push([hw - 0.15, 0.08, COL.white, false]);
+    // per end: carriageway half width, visible deck edges and the usable band between the barrier toes (+ a 0.3 m paint margin)
+    const end = (k, F) => {
+      const hw = c.hw[k], tl = c.barL[k] ? P.BAR_BASE + 0.3 : 0.3, tr = c.barR[k] ? P.BAR_BASE + 0.3 : 0.3;
+      return { hw, lo: F.vL + tl, hi: F.vR - tr, lw: (2 * hw) / tot };
+    };
+    const A = end(i, P0), Bn = end(j, P1);
+    const lines = []; // [offsetA, offsetB, halfWidth, colour, dashed]
+    const edgeCol = oneway && tot >= 2 && /motorway|trunk/.test(c.kind) ? COL.yellow : COL.white;
+    // edge lines: on the carriageway edge, pulled in to stay a shoulder off a barrier that squeezes the deck
+    lines.push([Math.max(-A.hw + 0.15, A.lo + 0.08), Math.max(-Bn.hw + 0.15, Bn.lo + 0.08), 0.08, edgeCol, false]);
+    lines.push([Math.min(A.hw - 0.15, A.hi - 0.08), Math.min(Bn.hw - 0.15, Bn.hi - 0.08), 0.08, COL.white, false]);
     for (let k = 1; k < tot; k++) {
-      const o = -hw + k * lw;
-      if (!oneway && k === lb) { lines.push([o - 0.17, 0.06, COL.yellow, false]); lines.push([o + 0.17, 0.06, COL.yellow, false]); }
-      else lines.push([o, 0.06, COL.white, true]);
+      const oa = -A.hw + k * A.lw, ob = -Bn.hw + k * Bn.lw;
+      if (!oneway && k === lb) { lines.push([oa - 0.17, ob - 0.17, 0.06, COL.yellow, false]); lines.push([oa + 0.17, ob + 0.17, 0.06, COL.yellow, false]); }
+      else lines.push([oa, ob, 0.06, COL.white, true]);
     }
     const sa = P0.s, sb = P1.s; if (sb - sa < 1e-3) return;
-    for (const [o, w, col, dashed] of lines) {
-      // inside the visible deck at both ends (not under a neighbour / barrier)
-      if (o - w < P0.vL + 0.35 || o + w > P0.vR - 0.35 || o - w < P1.vL + 0.35 || o + w > P1.vR - 0.35) continue;
+    for (const [oa, ob, w, col, dashed] of lines) {
+      // inside the usable band at both ends (not under a neighbour / barrier); edge lines need a 1.2 m lane-side clearance too
+      if (oa - w < A.lo - 0.1 || oa + w > A.hi + 0.1 || ob - w < Bn.lo - 0.1 || ob + w > Bn.hi + 0.1) continue;
+      if (Math.abs(ob - oa) > 0.6) continue; // a jump this big in 2 m is a seam artefact, not a taper
       const pieces = [];
       if (!dashed) pieces.push([sa, sb]);
       else { const per = 12, dl = 3; let s0 = Math.floor(sa / per) * per; for (; s0 < sb; s0 += per) { const a = Math.max(sa, s0), b = Math.min(sb, s0 + dl); if (b > a) pieces.push([a, b]); } }
       for (const [a, b] of pieces) {
         const fa = (a - sa) / (sb - sa), fb = (b - sa) / (sb - sa);
-        const F = (f, oo) => { const x = P0.x + (P1.x - P0.x) * f, z = P0.z + (P1.z - P0.z) * f, tx = P0.tx + (P1.tx - P0.tx) * f, tz = P0.tz + (P1.tz - P0.tz) * f, y = P0.y + (P1.y - P0.y) * f, bk = P0.b + (P1.b - P0.b) * f; return [x - tz * oo, y + P.ROAD_Y + bk * oo + 0.012, z + tx * oo]; };
-        const A0 = F(fa, o - w), A1 = F(fa, o + w), B1 = F(fb, o + w), B0 = F(fb, o - w);
+        const F = (f, dw) => { const oo = oa + (ob - oa) * f + dw, x = P0.x + (P1.x - P0.x) * f, z = P0.z + (P1.z - P0.z) * f, tx = P0.tx + (P1.tx - P0.tx) * f, tz = P0.tz + (P1.tz - P0.tz) * f, y = P0.y + (P1.y - P0.y) * f, bk = P0.b + (P1.b - P0.b) * f; return [x - tz * oo, y + P.ROAD_Y + bk * oo + 0.012, z + tx * oo]; };
+        const A0 = F(fa, -w), A1 = F(fa, w), B1 = F(fb, w), B0 = F(fb, -w);
         setV(va, ...A0, 0, 1, 0, 0, 0, col); setV(vb, ...A1, 0, 1, 0, 0, 0, col); setV(vc, ...B1, 0, 1, 0, 0, 0, col); setV(vd, ...B0, 0, 1, 0, 0, 0, col);
         quad(buf, va, vb, vc, vd, 0, 1, 0, B);
       }

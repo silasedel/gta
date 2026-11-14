@@ -1,0 +1,73 @@
+{
+ "track": "highways",
+ "title": "Causeways, ramps and elevated highways",
+ "section": "World",
+ "agent": "running",
+ "items": [
+  {
+   "name": "Why bay crossings were missing: Julia Tuttle lies outside the real rectangle (synthetic layout has no crossing); MacArthur / Venetian cut by the picture mask over Watson / Venetian islands",
+   "state": "verified",
+   "evidence": "tools/osm/citymask.py, tools/osm/causeways.py"
+  },
+  {
+   "name": "MacArthur and Venetian kept whole across the picture's water (named causeways become spans, not cut at the shore)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/highways-gps-after.json (Edgewater -> Venetian 33.4 -> 4.9 km; downtown -> South Beach via MacArthur 7.0 km)"
+  },
+  {
+   "name": "Julia Tuttle Causeway (I-195) from the real OSM centerlines: 2 x 3 lanes, bridges over water, fill on the islands, tied to the mainland and beach grids, corridor cleared",
+   "state": "verified",
+   "evidence": "tools/osm/causeways.py"
+  },
+  {
+   "name": "Headless GPS: mainland 36th St -> Miami Beach 41st St 29.3 -> 5.4 km (N Miami Ave -> Collins 29.2 -> 7.2 km)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/highways-gps-after.json"
+  },
+  {
+   "name": "In-game shot on Julia Tuttle",
+   "state": "verified",
+   "evidence": "docs/v2/shots/highways/after_jt_deck.png, docs/v2/shots/highways/after_jt_air.png"
+  },
+  {
+   "name": "Barriers, walls, piers in weathered grey cast concrete (own material, CC0 concrete detail) instead of beige plaster trim (shots still read too light: needs a second look in game)",
+   "state": "built",
+   "evidence": "src/world/miami/elevated.js"
+  },
+  {
+   "name": "Retaining walls on embankments: coping with drip lip, precast panel joints, batter, footing",
+   "state": "built",
+   "evidence": "src/world/miami/elevated/build.js"
+  },
+  {
+   "name": "No barrier end caps / cushions where another deck's barrier continues (no overlapping ends)",
+   "state": "built",
+   "evidence": "src/world/miami/elevated/build.js"
+  },
+  {
+   "name": "Lane and edge lines follow the visible deck and stay clear of the barrier toe",
+   "state": "built",
+   "evidence": "src/world/miami/elevated/build.js"
+  },
+  {
+   "name": "HUD street name: multi-ref values read 'US-1 / SR 970'",
+   "state": "verified",
+   "evidence": "docs/v2/reports/highways-after.json"
+  },
+  {
+   "name": "Ground streets under the ramps (junction pads, crosswalks, signals, curb ramps, dirt ground)",
+   "state": "todo",
+   "evidence": "ground agent owns tilebuild.js"
+  },
+  {
+   "name": "79th St / JFK and Broad Causeways (beyond the OSM pull; the synthetic north bay has a different shape)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Barrier between the two Julia Tuttle carriageways (decks join into one slab without a median barrier); island runs stay elevated (no island junctions)",
+   "state": "todo",
+   "evidence": "docs/v2/shots/highways/after_jt_deck.png"
+  }
+ ]
+}

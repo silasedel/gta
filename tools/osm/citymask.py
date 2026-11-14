@@ -17,6 +17,15 @@ ROAD_PAD = 6.0         # m: real roads are kept this far past the kept land (sea
 SUPPORT = 12.0         # m: a road end this close to land is supported
 MAX_SPAN = 2500.0      # m: longest picture-water crossing a real street keeps as a bridge span
 PT_PAD = 15.0          # m: real buildings / points this close to land are kept
+# Named bay crossings stay whole even where the picture draws water over the real islands they cross (Watson Island,
+# the Venetian islands): their runs over the picture's water become bridge spans instead of being cut at the shore,
+# so the causeway keeps linking the mainland to the beach (highways track, Nov 13: MacArthur lost its Watson run).
+CAUSEWAY_NAMES = ('Causeway', 'Venetian Way', 'Port Boulevard')
+
+
+def is_causeway(a):
+    n = a.get('name') or ''
+    return any(k in n for k in CAUSEWAY_NAMES) and a.get('kind') not in ('footway', 'cycleway', 'path', 'pedestrian', 'service')
 
 
 def _poly(r):
@@ -132,8 +141,9 @@ def mask_ways(pieces, M, outside_land=None, log=print):
             s0, s1 = sorted((ln.project(Point(p.coords[0])), ln.project(Point(p.coords[-1]))))
             if s1 - s0 < 0.5:
                 continue
-            okA = s0 > 0.5 or (round(c[0][0], 2), round(c[0][1], 2)) in bkeys
-            okB = s1 < L_ - 0.5 or (round(c[-1][0], 2), round(c[-1][1], 2)) in bkeys
+            cw = is_causeway(a)
+            okA = s0 > 0.5 or cw or (round(c[0][0], 2), round(c[0][1], 2)) in bkeys
+            okB = s1 < L_ - 0.5 or cw or (round(c[-1][0], 2), round(c[-1][1], 2)) in bkeys
             span = okA and okB and (s1 - s0) <= MAX_SPAN
             iv.append((s0, s1, span))
         if not iv:

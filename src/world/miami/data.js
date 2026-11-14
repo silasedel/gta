@@ -410,7 +410,10 @@ export async function loadMiamiData(game, opts = {}) {
   const coverAt = (x, z) => COVER[coverCode(x, z)] || 'none';
   const named = (e) => !!e.name;
   // nearest named street (drivable edges), or a named pedestrian street / promenade if that is closer
-  function streetNameAt(x, z, maxDist = 60) {
+  // display form of a street name: multi-ref OSM values ('US-1;SR 970', 'I 95;US 1') read 'US-1 / SR 970' (highways track)
+  const fmtStreet = (n) => (n && n.indexOf(';') >= 0 ? n.split(';').map((p) => p.trim().replace(/^(I|US)[ ]?(\d)/, '$1-$2')).filter((p, i, a) => p && a.indexOf(p) === i).join(' / ') : n);
+  function streetNameAt(x, z, maxDist = 60) { return fmtStreet(streetNameRaw(x, z, maxDist)); }
+  function streetNameRaw(x, z, maxDist) {
     let best = null, bd = maxDist * maxDist;
     if (nearestSeg(x, z, maxDist, named)) { best = edges[NE.e].name; bd = NE.d2; }
     if (namedPathHash) {

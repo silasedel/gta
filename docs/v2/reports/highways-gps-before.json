@@ -1,0 +1,236 @@
+{
+ "build": "b20261113-195853",
+ "at": "2026-11-14T06:57:07.461Z",
+ "routes": [
+  {
+   "name": "mainland NE 36th St @ Biscayne Blvd -> Miami Beach 41st St @ Alton Rd",
+   "from": [
+    -2485,
+    -3350
+   ],
+   "to": [
+    2506,
+    -3759
+   ],
+   "crowKm": 5.01,
+   "routeKm": 29.27,
+   "minutes": 27.6,
+   "snap": [
+    3,
+    71
+   ],
+   "via": [
+    "Cypress Way",
+    "Gumbo Circle",
+    "Calamondin Run",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "Sabal Way",
+    "Satsuma Lane"
+   ]
+  },
+  {
+   "name": "mainland NE 36th St @ N Miami Ave -> Miami Beach 41st St @ Collins Ave",
+   "from": [
+    -3057,
+    -3350
+   ],
+   "to": [
+    4290,
+    -3759
+   ],
+   "crowKm": 7.36,
+   "routeKm": 29.19,
+   "minutes": 27.4,
+   "snap": [
+    3,
+    776
+   ],
+   "via": [
+    "Cypress Way",
+    "Corazon Road",
+    "Tarpon Run",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North"
+   ]
+  },
+  {
+   "name": "mainland NE 79th St @ Biscayne Blvd -> North Beach 71st St",
+   "from": [
+    -2054,
+    -7740
+   ],
+   "to": [
+    3207,
+    -8514
+   ],
+   "crowKm": 5.32,
+   "routeKm": 18.65,
+   "minutes": 16.6,
+   "snap": [
+    205,
+    1864
+   ],
+   "via": [
+    "Corkwood Road",
+    "Cypress Belt Parkway",
+    "Ocean Drive North"
+   ]
+  },
+  {
+   "name": "mainland NE 123rd St -> Bay Harbor / Broad Causeway east end",
+   "from": [
+    -501,
+    -12384
+   ],
+   "to": [
+    3207,
+    -12052
+   ],
+   "crowKm": 3.72,
+   "routeKm": 1.27,
+   "minutes": 1.4,
+   "snap": [
+    125,
+    3596
+   ],
+   "via": [
+    "Ocean Drive North"
+   ]
+  },
+  {
+   "name": "Brickell -> South Beach (MacArthur)",
+   "from": [
+    -2932,
+    1753
+   ],
+   "to": [
+    2772,
+    -555
+   ],
+   "crowKm": 6.15,
+   "routeKm": 39.91,
+   "minutes": 45.5,
+   "snap": [
+    20,
+    79
+   ],
+   "via": [
+    "Southwest 12th Street",
+    "Southwest 1st Avenue",
+    "Southwest 13th Street",
+    "Southwest 2nd Avenue",
+    "Southwest 9th Street",
+    "Southwest 3rd Avenue",
+    "I-95;US-1",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "NW 30th Street",
+    "Ocean Drive North",
+    "W 47th Street"
+   ]
+  },
+  {
+   "name": "South Beach -> Brickell (MacArthur)",
+   "from": [
+    2772,
+    -555
+   ],
+   "to": [
+    -2932,
+    1753
+   ],
+   "crowKm": 6.15,
+   "routeKm": 39.35,
+   "minutes": 45.6,
+   "snap": [
+    79,
+    20
+   ],
+   "via": [
+    "Michigan Avenue",
+    "15th Street",
+    "Alton Road",
+    "W 47th Street",
+    "Ocean Drive North",
+    "Cypress Belt Parkway",
+    "NW 30th Street",
+    "West Line Avenue",
+    "Schooner Bend",
+    "Snapper Terrace",
+    "Corazon Walk",
+    "Interstate 95",
+    "I-95",
+    "South Miami Avenue"
+   ]
+  },
+  {
+   "name": "Edgewater -> Belle Isle / Miami Beach (Venetian)",
+   "from": [
+    -2277,
+    -1300
+   ],
+   "to": [
+    2200,
+    -1300
+   ],
+   "crowKm": 4.48,
+   "routeKm": 33.41,
+   "minutes": 34.7,
+   "snap": [
+    51,
+    40
+   ],
+   "via": [
+    "North Bayshore Drive",
+    "Northeast 16th Street",
+    "Northeast 17th Terrace",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "W 47th Street",
+    "Alton Road",
+    "Lincoln Road"
+   ]
+  },
+  {
+   "name": "Brickell -> Key Biscayne (Rickenbacker)",
+   "from": [
+    -3007,
+    1879
+   ],
+   "to": [
+    300,
+    9288
+   ],
+   "crowKm": 8.11,
+   "routeKm": 12.14,
+   "minutes": 17.9,
+   "snap": [
+    14,
+    4615
+   ],
+   "via": [
+    "Southwest 1st Avenue",
+    "Southwest 13th Street",
+    "South Miami Avenue",
+    "Southeast 15th Road",
+    "Brickell Avenue",
+    "SW 28th Road",
+    "Overseas Highway",
+    "Guava Drive",
+    "Capstan Run",
+    "Soledad Court",
+    "Sheepshead Court",
+    "Cowrie Place",
+    "Tideline Bend",
+    "Warbler Terrace"
+   ]
+  }
+ ]
+}

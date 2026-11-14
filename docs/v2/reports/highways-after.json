@@ -1,0 +1,41 @@
+{
+ "set": "after",
+ "when": "2026-11-14T07:38:15.578Z",
+ "shots": {
+  "ramp_deck": {
+   "eye": [
+    -2800,
+    8.2,
+    816
+   ],
+   "street": "US-1 / SR 970"
+  },
+  "jt_deck": {
+   "eye": [
+    -700,
+    13.6,
+    -3492
+   ],
+   "street": "Julia Tuttle Causeway"
+  },
+  "jt_air": {
+   "eye": [
+    -1300,
+    70,
+    -3200
+   ],
+   "street": null
+  },
+  "macarthur": {
+   "eye": [
+    -900,
+    40,
+    -250
+   ],
+   "street": null
+  }
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

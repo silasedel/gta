@@ -27,7 +27,8 @@ export function buildNetwork(data, opts = {}) {
   const G = data.roadGraph, E = G.edges, N = G.nodes;
   const isWater = data.isWater ? (x, z) => data.isWater(x, z) : () => false;
   const seabed = data.seabedDepthAt ? (x, z) => -0.12 - Math.max(0.3, data.seabedDepthAt(x, z)) : () => -3;
-  const groundY = (x, z) => (isWater(x, z) ? seabed(x, z) : 0);
+  const terrainY = data.hasRelief && data.terrainHeightAt ? (x, z) => Math.max(0, data.terrainHeightAt(x, z) || 0) : () => 0;
+  const groundY = (x, z) => (isWater(x, z) ? seabed(x, z) : terrainY(x, z)); // walls / piers stand on the real ground (hills outside real Miami)
 
   // ---------------------------------------------------------------- 1. owned edges
   const own = new Uint8Array(E.length);
@@ -422,7 +423,7 @@ export function buildNetwork(data, opts = {}) {
   // structure type per sample: 0 at grade, 1 embankment (retaining walls), 2 open viaduct (fascia, soffit, piers)
   for (const c of chains) {
     const n = c.n; c.type = new Uint8Array(n); c.gY = new Float64Array(n); c.water = new Uint8Array(n);
-    for (let i = 0; i < n; i++) { c.water[i] = isWater(c.x[i], c.z[i]) ? 1 : 0; c.gY[i] = c.water[i] ? seabed(c.x[i], c.z[i]) : 0; }
+    for (let i = 0; i < n; i++) { c.water[i] = isWater(c.x[i], c.z[i]) ? 1 : 0; c.gY[i] = c.water[i] ? seabed(c.x[i], c.z[i]) : terrainY(c.x[i], c.z[i]); }
     const wNear = new Uint8Array(n); for (let i = 0; i < n; i++) if (c.water[i]) for (let k = Math.max(0, i - 4); k <= Math.min(n - 1, i + 4); k++) wNear[k] = 1;
     for (let i = 0; i < n; i++) { const y = c.y[i]; c.type[i] = wNear[i] && y > 0.6 ? 2 : y < P.GRADE_Y ? 0 : y < P.OPEN_MIN ? 1 : 2; }
     // something passes underneath (a street or a lower deck): never a solid embankment there, open span instead

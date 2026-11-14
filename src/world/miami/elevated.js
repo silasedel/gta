@@ -17,7 +17,8 @@ export function createElevated({ THREE, RAPIER, world = null, data, materials = 
   const M = materials || {};
   const mats = {
     asph: M.asphalt || new THREE.MeshStandardMaterial({ color: 0x8e8e8e, roughness: 0.92, vertexColors: true }),
-    conc: M.trim || new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0.02, vertexColors: true }),
+    // highways track: weathered grey cast concrete (world-space CC0 concrete detail), not the city's beige plaster trim
+    conc: (() => { const m = new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0.0, vertexColors: true }); m.name = 'elevated-concrete'; if (M.detail) M.detail(m, 'concrete', 0.45, 0.85, 1.2); else if (M.trim) return M.trim; return m; })(),
     mark: M.markings || new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
   };
   const toMesh = (buf, mat, name, cast) => {

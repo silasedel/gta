@@ -1,0 +1,46 @@
+{
+ "set": "before",
+ "when": "2026-11-14T05:59:24.192Z",
+ "shots": {
+  "ramp_air": {
+   "eye": [
+    -2470,
+    34,
+    880
+   ],
+   "street": null
+  },
+  "ramp_low": {
+   "eye": [
+    -2520,
+    4.5,
+    830
+   ],
+   "street": null
+  },
+  "ramp_deck": {
+   "eye": [
+    -2800,
+    1.6,
+    816
+   ],
+   "street": null
+  },
+  "macarthur": {
+   "eye": [
+    -900,
+    40,
+    -250
+   ],
+   "street": null
+  }
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+  "ERR [miami] failed TypeError: object is not iterable (cannot read property Symbol(Symbol.iterator))\n    at shopDress (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1768:41)\n    at glassFront (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1323:5)\n    at buildBuilding (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:658:50)\n    at buildColliders (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:2206:7)\n    at next (<anonymo",
+  "ERR [v2:./world/signs/signs.v2.js] init failed TypeError: Cannot read properties of undefined (reading 'map')\n    at planSigns (http://127.0.0.1:5200/src/world/signs/plan.js?t=1794617138146:52:27)\n    at Module.initV2 (http://127.0.0.1:5200/src/world/signs/signs.v2.js?t=1794617138147:15:16)\n    at boot (http://127.0.0.1:5200/src/main.js:663:21)",
+  "ERR [v2:./world/setpieces/keysSign/keysSign.v2.js] init failed TypeError: G.pointAt is not a function\n    at snapToRoad (http://127.0.0.1:5200/src/world/setpieces/keysSign/keysSign.v2.js?t=1794618060578:35:17)\n    at Module.initV2 (http://127.0.0.1:5200/src/world/setpieces/keysSign/keysSign.v2.js?t=1794618060578:47:26)\n    at async boot (http://127.0.0.1:5200/src/main.js:663:13)",
+  "ERR TypeError: object is not iterable (cannot read property Symbol(Symbol.iterator))\n    at shopDress (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1768:41)\n    at glassFront (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1323:5)\n    at buildBuilding (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:658:50)\n    at buildTower (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:519:5)\n    at buildBuilding (http://127.0.0.1:52",
+  "ERR TypeError: object is not iterable (cannot read property Symbol(Symbol.iterator))\n    at shopDress (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1768:41)\n    at glassFront (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:1323:5)\n    at buildBuilding (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:658:50)\n    at buildColliders (http://127.0.0.1:5200/src/world/miami/tilebuild.js?t=1794635596394:2206:7)\n    at buildColliders.next (<anonymo"
+ ]
+}

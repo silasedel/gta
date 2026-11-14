@@ -419,6 +419,11 @@ def main():
         if CM:
             rw_ = R.osm_ways()[0]
             syn_ways = syn_ways + CMK.causeway_ways(CM, rw_, syn_ways, lambda x, z: contains_xy(land, x, z), log)
+        # bay crossings the synthetic layout lacks (Julia Tuttle / I-195), from the real centerlines; corridor cleared of lots
+        import causeways as CWY
+        _cw_ways, _cw_cor = CWY.julia_tuttle(syn_ways, lambda x, z: contains_xy(land, x, z), log)
+        syn_ways = syn_ways + _cw_ways
+        CWY.clear_corridor(SY, _cw_cor, log)
         ING.node_roads(syn_ways, log)
     nodes, edges, ginfo = R.build_graph(is_water_pt, syn_ways, terrain if SY and SY['heights'] else None, log)
     for i, e in enumerate(edges):
