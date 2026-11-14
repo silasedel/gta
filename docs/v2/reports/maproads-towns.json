@@ -1,13 +1,13 @@
 {
- "build": "b20261114-011057",
- "at": "2026-11-14T08:18:23.273Z",
+ "build": "b20261114-022610",
+ "at": "2026-11-14T09:26:52.014Z",
  "northShoreToCalabash": {
   "ok": true,
-  "routeKm": 31.9,
+  "routeKm": 31.81,
   "crowKm": 17.84,
   "snap": [
-   24,
-   4
+   42,
+   5
   ],
   "via": [
    "North Shore Main Street",
@@ -21,10 +21,10 @@
  },
  "northShoreToCalabashPin": {
   "ok": true,
-  "routeKm": 29.29,
+  "routeKm": 29.2,
   "crowKm": 16.39,
   "snap": [
-   24,
+   42,
    0
   ],
   "via": [
@@ -44,18 +44,19 @@
  "places": [
   {
    "ok": true,
-   "routeKm": 1.97,
+   "routeKm": 2.14,
    "crowKm": 1.61,
    "snap": [
     27,
-    28
+    0
    ],
    "via": [
     "East Flagler Street",
     "West Flagler Street",
     "Northwest North River Drive",
     "West Line Avenue",
-    "Marlin Avenue"
+    "Marlin Avenue",
+    "West End Main Street"
    ],
    "problems": [],
    "name": "West End",
@@ -97,11 +98,11 @@
   },
   {
    "ok": true,
-   "routeKm": 5.92,
+   "routeKm": 5.87,
    "crowKm": 3.49,
    "snap": [
     27,
-    24
+    42
    ],
    "via": [
     "East Flagler Street",
@@ -182,11 +183,11 @@
   },
   {
    "ok": true,
-   "routeKm": 6.01,
+   "routeKm": 5.99,
    "crowKm": 3.32,
    "snap": [
     27,
-    10
+    24
    ],
    "via": [
     "East Flagler Street",
@@ -358,7 +359,7 @@
    "crowKm": 20.07,
    "snap": [
     27,
-    4
+    5
    ],
    "via": [
     "East Flagler Street",

@@ -98,7 +98,7 @@ res['max_deck_grade'] = round(mg, 3); res['deck_segments_over_7pct'] = int(over)
 h = F['heights']; H = np.fromfile(os.path.join(OUT, h['file']), '<i2').reshape(h['nz'], h['nx']) * h['unit']
 res['height_max'] = float(H.max()); res['height_max_step_per_cell'] = float(max(np.abs(np.diff(H, axis=0)).max(), np.abs(np.diff(H, axis=1)).max()))
 def hat(x, z):
-    fx = (x - h['minX']) / h['cell'] - 0.5; fz = (z - h['minZ']) / h['cell'] - 0.5
+    fx = (x - h['minX']) / h['cell']; fz = (z - h['minZ']) / h['cell']   # node-registered, as the ingest and the game read it
     i = min(h['nx'] - 2, max(0, int(fx))); j = min(h['nz'] - 2, max(0, int(fz))); u = min(1, max(0, fx - i)); v = min(1, max(0, fz - j))
     return (H[j, i] * (1 - u) + H[j, i + 1] * u) * (1 - v) + (H[j + 1, i] * (1 - u) + H[j + 1, i + 1] * u) * v
 from wl.util import resample

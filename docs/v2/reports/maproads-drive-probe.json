@@ -1,297 +1,353 @@
 {
- "at": "2026-11-14T07:17:40.452Z",
- "build": "b20261114-001156",
+ "at": "2026-11-14T09:45:21.208Z",
+ "build": "b20261114-024424",
  "routes": [
   {
    "name": "Port Calabash",
-   "km": 31.61,
-   "samples": 5502,
+   "km": 31.64,
+   "samples": 5473,
    "holes": [
     {
      "at": [
-      -3800,
-      -843.8
-     ],
-     "road": "West Line Avenue",
-     "expect": 5.82,
-     "got": 4.12
-    },
-    {
-     "at": [
-      -3800,
-      -849.2
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.15,
-     "got": 4.23
-    },
-    {
-     "at": [
-      -3800,
-      -854.6
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.48,
-     "got": 4.31
-    },
-    {
-     "at": [
-      -3800,
-      -860.1
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.38
-    },
-    {
-     "at": [
-      -3800,
-      -865.1
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.45
-    },
-    {
-     "at": [
-      -3800,
-      -870.1
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.5
-    },
-    {
-     "at": [
-      -3800,
-      -875
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.8
-    },
-    {
-     "at": [
-      -3800,
-      -880
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.67
-    },
-    {
-     "at": [
-      -3800,
-      -885
-     ],
-     "road": "West Line Avenue",
-     "expect": 6.8,
-     "got": 4.81
-    },
-    {
-     "at": [
-      -3800,
-      -890
-     ],
-     "road": "Cypress Belt Parkway",
-     "expect": 6.8,
-     "got": 4.96
-    },
-    {
-     "at": [
-      -3801.6,
-      -892.9
-     ],
-     "road": "Cypress Belt Parkway",
-     "expect": 6.64,
-     "got": 4.96
-    },
-    {
-     "at": [
-      -3803.1,
-      -895.7
-     ],
-     "road": "Cypress Belt Parkway",
-     "expect": 6.48,
-     "got": 4.95
-    },
-    {
-     "at": [
-      -5603.6,
-      -1100.1
+      -3900.9,
+      -872.4
      ],
      "road": "Cypress Belt Parkway",
      "expect": 0,
-     "got": -8
+     "got": 1.67
     },
     {
      "at": [
-      -5608.6,
-      -1099.5
+      -4048.6,
+      -885.6
      ],
      "road": "Cypress Belt Parkway",
      "expect": 0,
-     "got": -8
+     "got": 1.51
     },
     {
      "at": [
-      -5613.5,
-      -1098.8
+      -4054.4,
+      -886.5
      ],
      "road": "Cypress Belt Parkway",
      "expect": 0,
-     "got": -8
+     "got": 1.69
     },
     {
      "at": [
-      -5618.4,
-      -1098.2
+      -4279.7,
+      -920.2
      ],
      "road": "Cypress Belt Parkway",
      "expect": 0,
-     "got": -8
+     "got": 1.59
     },
     {
      "at": [
-      -5623.4,
-      -1097.5
+      -4562.4,
+      -950.8
      ],
      "road": "Cypress Belt Parkway",
      "expect": 0,
-     "got": -8
+     "got": 1.55
     },
     {
      "at": [
-      -7420.4,
-      -648.9
+      -11595.2,
+      -896.9
      ],
      "road": "Cypress Belt Parkway",
-     "expect": 6.55,
-     "got": 4.99
+     "expect": 0,
+     "got": 1.53
     },
     {
      "at": [
-      -7424.8,
-      -646.6
+      -11600.8,
+      -895.2
      ],
      "road": "Cypress Belt Parkway",
-     "expect": 6.8,
-     "got": 5.01
+     "expect": 0,
+     "got": 1.73
     },
     {
      "at": [
-      -7429.6,
-      -644.9
+      -11813.4,
+      -1000.2
      ],
      "road": "Cypress Belt Parkway",
-     "expect": 6.55,
-     "got": 4.99
+     "expect": 0,
+     "got": 1.8
+    },
+    {
+     "at": [
+      -11788.4,
+      -815.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.77
+    },
+    {
+     "at": [
+      -11793.7,
+      -813
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.58
+    },
+    {
+     "at": [
+      -12920.4,
+      -797.1
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0.17,
+     "got": 1.79
+    },
+    {
+     "at": [
+      -16034.3,
+      -6122.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.6
+    },
+    {
+     "at": [
+      -16060.6,
+      -6148.6
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.77
+    },
+    {
+     "at": [
+      -16058.2,
+      -6153
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.6
+    },
+    {
+     "at": [
+      -16054.5,
+      -7375.8
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.63
+    },
+    {
+     "at": [
+      -16166.7,
+      -7800.4
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.62
+    },
+    {
+     "at": [
+      -16013.1,
+      -10431.4
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.57
+    },
+    {
+     "at": [
+      -16014,
+      -10436.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.73
+    },
+    {
+     "at": [
+      -15863.5,
+      -10718.8
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.72
+    },
+    {
+     "at": [
+      -15858.8,
+      -10717.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": 1.54
     }
    ],
    "steps": [
     {
      "at": [
-      -5603.6,
-      -1100.1
+      -4795,
+      -959.6
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -8.05
+     "dy": -4.21
     },
     {
      "at": [
-      -5628.1,
-      -1095.7
+      -4822.1,
+      -961.8
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 8.05
+     "dy": 3.69
     },
     {
      "at": [
-      -7658.8,
-      -624
+      -11769,
+      -962.1
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 1.47
+     "dy": -4.81
     },
     {
      "at": [
-      -7664.5,
-      -624.1
+      -11813.4,
+      -1000.2
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -1.49
+     "dy": 1.8
     },
     {
      "at": [
-      -10204.5,
-      -852.3
+      -11817.5,
+      -1003.1
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -8.05
+     "dy": -1.8
     },
     {
      "at": [
-      -15786.7,
-      -2623
+      -11821.6,
+      -1006.1
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 8.05
+     "dy": 4.76
     },
     {
      "at": [
-      -15777.4,
-      -3600.1
+      -11843,
+      -990.6
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -8.08
+     "dy": -4.69
     },
     {
      "at": [
-      -15775.9,
-      -3628.3
+      -11783.7,
+      -944.6
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 8.06
+     "dy": 4.66
     },
     {
      "at": [
-      -15759.8,
-      -4183.7
+      -12915.5,
+      -796.1
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -8.05
+     "dy": 1.46
     },
     {
      "at": [
-      -15759.4,
-      -4201.7
+      -12925.2,
+      -798.2
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 8.06
+     "dy": -0.67
     },
     {
      "at": [
-      -15745.2,
-      -5800.4
+      -12930.1,
+      -799.2
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -9.89
+     "dy": -0.66
     },
     {
      "at": [
-      -15766.1,
-      -5828.2
+      -14748.1,
+      -1661
      ],
      "road": "Cypress Belt Parkway",
-     "dy": 8.99
+     "dy": 6.11
     },
     {
      "at": [
-      -16073.6,
-      -6124.8
+      -14782.2,
+      -1652.6
      ],
      "road": "Cypress Belt Parkway",
-     "dy": -0.61
+     "dy": -7.04
+    },
+    {
+     "at": [
+      -14885.2,
+      -1701.6
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 7.06
+    },
+    {
+     "at": [
+      -14913.1,
+      -1737.2
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -6.41
+    },
+    {
+     "at": [
+      -14953.6,
+      -1774.2
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 6.49
+    },
+    {
+     "at": [
+      -14963,
+      -1775.2
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -6.42
+    },
+    {
+     "at": [
+      -15156.9,
+      -1689.9
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 5.1
+    },
+    {
+     "at": [
+      -15161.1,
+      -1692.6
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -0.74
+    },
+    {
+     "at": [
+      -15165.4,
+      -1695.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -0.78
     }
    ],
    "ok": false

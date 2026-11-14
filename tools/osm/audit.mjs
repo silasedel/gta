@@ -124,6 +124,9 @@ R.boot = { ms: Math.round(bootMs), timings: data.timings, files: fetched, MB: +(
     // stay 3 m clear of the raster's coast so a 2 m cell edge is not counted as a hole
     const w = data.isWater(x, z), near = data.isWater(x + 3, z) !== w || data.isWater(x - 3, z) !== w || data.isWater(x, z + 3) !== w || data.isWater(x, z - 3) !== w;
     if (near) continue;
+    // ground-continuity reclassifies tiny bare islets as open water and rasterisation slivers as land at runtime (data.js); tilebuild
+    // and the colliders follow that, so those cells are not coverage holes (maproads track, Nov 14)
+    if ((data.isIsletAt && data.isIsletAt(x, z)) || (data.isSliver && data.isSliver(x, z))) continue;
     const sf = data.surfaceAt(x, z); if (!w && (sf === 'wood' || sf === 'gravel')) continue; // piers and breakwaters stand over water, not on land polygons
     const covered = !!t && t.areas.some((a) => a.kind === 'land' && pip(a.rings, x, z));
     if (!w) { landPts++; if (!t) { noTile++; if (holes.length < 8) holes.push([x, z]); } else if (!covered) { notCovered++; if (holes.length < 8) holes.push([x, z]); } } else { waterPts++; if (covered) waterCovered++; }

@@ -2,7 +2,7 @@
 //   node tools/v2/maproads/drive-probe.mjs [--to "Port Calabash,Punta Marisol"] [--shot name@x,z,heading]
 // For each target it computes the GPS route headless (game loader + router), then in the game teleports along it every
 // ~600 m, waits for the colliders, and casts rays down every 6 m of the route. Fails on: no fixed collider within 1.5 m of the
-// road height (hole / gap), or a collider step of more than 0.6 m between consecutive samples 6 m apart (wall / step).
+// height the game itself reports (city.groundHeightAt, deck-aware) (hole / gap / wrong deck), or a collider step of more than 0.6 m between consecutive samples 6 m apart (wall / step).
 // Writes docs/v2/reports/maproads-drive-probe.json; optional drive-level shot to docs/v2/shots/maproads/<name>.png.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -53,8 +53,8 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 900) }, asy
     if (!rt.ok) { out.routes.push(rt); continue; }
     const res = { name: rt.name, km: rt.km, samples: 0, holes: [], steps: [] };
     let prevY = null;
-    for (let c = 0; c < rt.pts.length; c += 100) {
-      const chunk = rt.pts.slice(c, c + 100);
+    for (let c = 0; c < rt.pts.length; c += 50) {
+      const chunk = rt.pts.slice(c, c + 50);
       const [cx, cz] = chunk[Math.floor(chunk.length / 2)];
       await b.waitFor("typeof game.teleport === 'function'", 300);
       await b.eval(`game.teleport(${cx}, null, ${cz}, 0) || true`);
@@ -62,8 +62,16 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 900) }, asy
       await b.sleep(400);
       const hs = await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, FIX = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS;
         const c = game.city; const pts = ${JSON.stringify(chunk)};
-        return pts.map(([x, z, y]) => { const ref = (y ?? (c.groundHeightAt ? c.groundHeightAt(x, z) : 0)) || 0; const top = ref + 1.8;
+        return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, y ?? undefined) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
           const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; }); })()`);
+      // a miss to the sea plane (-8) right after a teleport is usually a tile whose colliders are not in yet: wait and sample again
+      if (hs.some(([ref, y]) => y == null || y < ref - 1.5)) {
+        await b.sleep(4000);
+        const again = await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, FIX = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS; const c = game.city; const pts = ${JSON.stringify(chunk)};
+          return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, y ?? undefined) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
+            const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; }); })()`);
+        for (let k = 0; k < hs.length; k++) hs[k] = again[k];
+      }
       hs.forEach(([ref, y], i) => {
         const p = chunk[i]; res.samples++;
         if (y == null || Math.abs(y - ref) > 1.5) res.holes.push({ at: [p[0], p[1]], road: p[3], expect: +ref.toFixed(2), got: y });

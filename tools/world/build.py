@@ -173,7 +173,7 @@ if MR and 'diag_n' in MR['main']:
     _cl_ = LineString(ROADS['cross_a'].pts); _q1 = _cl_.interpolate(_cl_.project(Point(_dn[min(4, len(_dn) - 1)])))
     _dn = [(_q1.x, _q1.y)] + _dn[4:-1] + [(-3800.0, -2745.0)]                      # ends on the West Line Ave / NW 30th St corner
     ROADS['diag_n'] = W.road(resample(spl(_dn), 22), 'primary', MR['main']['diag_n']['name'], ref=MR['main']['diag_n']['ref'], lf=2, lb=2, speed=80)
-def hook(pt, reach=150.0):
+def hook(pt, reach=320.0):   # maproads: 320 m (was 150) so a ramp can stay level beside the lanes, then climb at 6 % to the flyover
     s_ = RING.nearest_s(pt)
     for fwd in (True, False):
         car = RING.fwd if fwd else RING.back
@@ -435,9 +435,21 @@ if MR:
         cut_ = ln_.difference(_ringc.buffer(55))
         g_ = max((cut_.geoms if hasattr(cut_, 'geoms') else [cut_]), key=lambda g: g.length) if not cut_.is_empty else None
         _cands[i_][1] = list(g_.coords) if g_ is not None and g_.length > 60 else []
-    _nmr = 0
-    for rd_, pts_ in _cands:
+    _nmr = 0; _crossers = {i_ for i_, e_ in _paired}; _ringbuf = _ringc.buffer(48); _nclip = 0
+    _pieces = []
+    for i_, (rd_, pts_) in enumerate(_cands):
         if len(pts_) < 2: continue
+        ln_ = LineString(pts_)
+        if i_ not in _crossers and ln_.intersects(_ringbuf):
+            # a traced road that only runs near the motorway (or crosses it without a planned overpass) must not touch it:
+            # an at-grade touch hands the motorway a deck profile (humps, collider gaps)
+            g_ = ln_.difference(_ringbuf); _nclip += 1
+            for q_ in (g_.geoms if hasattr(g_, 'geoms') else [g_]):
+                if q_.geom_type == 'LineString' and q_.length >= 60: _pieces.append((rd_, list(q_.coords)))
+            continue
+        _pieces.append((rd_, pts_))
+    print('maproads: traced roads kept off the motorway corridor', _nclip, flush=True)
+    for rd_, pts_ in _pieces:
         ln_ = LineString(pts_)
         if ln_.length < 40 or ln_.intersects(_avoid): continue
         W.road(pts_, rd_['kind'] if rd_['kind'] != 'unclassified' else 'residential', rd_['name'], lf=1, lb=1,
@@ -818,19 +830,170 @@ for _round in range(6):
     H = np.where(near, np.minimum(H, Rh[ii, jj]) if _round == 0 else Rh[ii, jj], H)
     H = np.minimum(H, np.where(near, H, H))   # no-op, keeps dtype
     H = slope_limit(H.astype(np.float32))
-# maproads track: a traced dead-end road that still climbs more than 12 % somewhere after grading is dropped (leaf edges only,
-# so the network stays connected)
-_deg = {}
+# maproads track, cleanup after grading (merge audit: no duplicate edges, no road piece over 12.5 %):
+#  1. drop exact duplicate edges (same end points and geometry);
+#  2. a traced rural road (region maproads) that still climbs more than 10 % somewhere (6 m sampling of the final heights,
+#     its own deck profile where it has one) is dropped if the network stays connected without it (dead ends always).
+from collections import deque as _dq
+# traced pieces that double back over themselves (a skeleton loop walked out and back) would give duplicate edges after noding
+_nself = 0; _tmp = []
 for r in W.roads:
-    for p_ in (r.pts[0], r.pts[-1]): _deg[p_] = _deg.get(p_, 0) + 1
-_drop = set()
+    if r.region == 'maproads' and not LineString(r.pts).is_simple and len(set(r.pts)) < len(r.pts):
+        if r.pts[0] == r.pts[-1] and len(r.pts) > 3 and LineString(r.pts[:-1]).is_simple: _tmp.append(r); continue   # a clean ring
+        _nself += 1
+        if r.pts[0] == r.pts[-1]: continue
+        seen_ = set(); cut_ = []
+        for q_ in r.pts:
+            if q_ in seen_: break
+            seen_.add(q_); cut_.append(q_)
+        if len(cut_) >= 2 and plen(cut_) > 30 and LineString(cut_).is_simple: r.pts = cut_; r.y = None if r.y is None else r.y[:len(cut_)]; _tmp.append(r)
+        continue
+    _tmp.append(r)
+W.roads = _tmp
+print('maproads: self-overlapping traced pieces fixed', _nself, flush=True)
+_seen = set(); _keep = []
+for r in W.roads:
+    k_ = (min(r.pts[0], r.pts[-1]), max(r.pts[0], r.pts[-1]), round(plen(r.pts)), r.oneway and r.pts[0])
+    if k_ in _seen: continue
+    _seen.add(k_); _keep.append(r)
+_ndup = len(W.roads) - len(_keep); W.roads = _keep
+def _steep(r):
+    if r.y:
+        cl_ = cumlen(r.pts)
+        return any(abs(r.y[k + 1] - r.y[k]) / max(0.5, cl_[k + 1] - cl_[k]) > 0.10 for k in range(len(r.pts) - 1) if cl_[k + 1] - cl_[k] > 0.5)
+    pp_ = resample(r.pts, 6.0); hh_ = [hbil(*q_) for q_ in pp_]
+    return any(abs(hh_[k + 1] - hh_[k]) / max(0.5, math.hypot(pp_[k + 1][0] - pp_[k][0], pp_[k + 1][1] - pp_[k][1])) > 0.10 for k in range(len(pp_) - 1))
+_adj = {}
 for i_, r in enumerate(W.roads):
-    if r.region != 'maproads' or r.bridge or not (_deg[r.pts[0]] == 1 or _deg[r.pts[-1]] == 1): continue
-    pp_ = resample(r.pts, 8.0); hh_ = [hbil(*q_) for q_ in pp_]
-    if any(abs(hh_[k + 1] - hh_[k]) / max(0.5, math.hypot(pp_[k + 1][0] - pp_[k][0], pp_[k + 1][1] - pp_[k][1])) > 0.12 for k in range(len(pp_) - 1)): _drop.add(i_)
-if _drop:
-    W.roads = [r for i_, r in enumerate(W.roads) if i_ not in _drop]; W.raw_roads = list(W.roads)
-print('maproads: steep dead-end pieces dropped', len(_drop), flush=True)
+    _adj.setdefault(r.pts[0], []).append(i_); _adj.setdefault(r.pts[-1], []).append(i_)
+_cand = [i_ for i_, r in enumerate(W.roads) if r.region == 'maproads' and _steep(r)]
+_gone = set()
+def _still_linked(i_):
+    a_, b_ = W.roads[i_].pts[0], W.roads[i_].pts[-1]
+    if len(_adj[a_]) == 1 or len(_adj[b_]) == 1: return True
+    seen_ = {a_}; q_ = _dq([a_]); n_ = 0
+    while q_ and n_ < 60000:
+        u_ = q_.popleft(); n_ += 1
+        for j_ in _adj[u_]:
+            if j_ == i_ or j_ in _gone: continue
+            r_ = W.roads[j_]; v_ = r_.pts[-1] if r_.pts[0] == u_ else r_.pts[0]
+            if v_ == b_: return True
+            if v_ not in seen_: seen_.add(v_); q_.append(v_)
+    return False
+for i_ in _cand:
+    if _still_linked(i_): _gone.add(i_)
+# a steep piece the network needs: drop it anyway when everything it alone holds on is traced rural road (no town street,
+# no main road): that whole dangling part goes
+for i_ in [i_ for i_ in _cand if i_ not in _gone]:
+    _gone.add(i_)
+    par_ = {}
+    def _f(a_):
+        while par_.get(a_, a_) != a_: a_ = par_[a_]
+        return a_
+    for j_, r_ in enumerate(W.roads):
+        if j_ in _gone: continue
+        ra_, rb_ = _f(r_.pts[0]), _f(r_.pts[-1])
+        if ra_ != rb_: par_[ra_] = rb_
+    cs_ = {}
+    for j_, r_ in enumerate(W.roads):
+        if j_ not in _gone: cs_.setdefault(_f(r_.pts[0]), []).append(j_)
+    big_ = max(cs_.values(), key=len)
+    small_ = [c_ for c_ in cs_.values() if c_ is not big_]
+    if all(W.roads[j_].region == 'maproads' for c_ in small_ for j_ in c_):
+        for c_ in small_: _gone.update(c_)
+    else: _gone.discard(i_)
+# dead-end stubs left behind by a removal are removed too
+_chg = True
+while _chg:
+    _chg = False
+    for i_, r in enumerate(W.roads):
+        if i_ in _gone or r.region != 'maproads': continue
+        for e_ in (r.pts[0], r.pts[-1]):
+            if sum(1 for j_ in _adj[e_] if j_ not in _gone) == 1 and plen(r.pts) < 120: _gone.add(i_); _chg = True; break
+W.roads = [r for i_, r in enumerate(W.roads) if i_ not in _gone]; W.raw_roads = list(W.roads)
+# a ground road that elevate() gave an all-zero deck profile (a motorway passing under a new overpass) must stay a ground
+# road: the game builds no ground ribbon for an edge with a profile and no deck for a profile at 0 m, so it had no collider
+_nflat = 0
+for r in W.roads:
+    if r.y and not r.bridge and max(r.y) < 0.3: r.y = None; _nflat += 1
+print('maproads: zero deck profiles cleared', _nflat, flush=True)
+# the motorway mainline stays on the ground: elevate() let the ramp humps leak into it (a 1-7 m bump under each interchange,
+# walls where its deck began, collider gaps where the profile sat near 0). Ramps then start from the ground at the gore and
+# climb at most 6 %.
+_mbr = set(q_ for r in W.roads if r.kind == 'motorway' and r.bridge for q_ in (r.pts[0], r.pts[-1]))   # water bridges keep their approaches
+_mot = [r for r in W.roads if r.kind == 'motorway' and not r.bridge and r.y and not (r.pts[0] in _mbr or r.pts[-1] in _mbr)]
+_morig = {id(r): r.y for r in _mot}
+for r in _mot: r.y = None
+_mv = {}
+for r in W.roads:
+    if r.kind == 'motorway' and not r.bridge and not r.y:
+        for q_ in r.pts: _mv.setdefault(q_, []).append(r)
+_mtl = [LineString(r.pts) for r in W.roads if r.kind == 'motorway' and not r.bridge and not r.y]
+_mtt = STRtree(_mtl)
+_nramp = 0; _restore = set()
+# ramps are split into short edges at every crossing: regrade whole chains (gore -> deck), not single pieces
+_lk = [r for r in W.roads if r.y and not r.bridge and r.kind != 'motorway']
+_byn = {}
+for r in _lk:
+    for q_ in (r.pts[0], r.pts[-1]): _byn.setdefault(q_, []).append(r)
+_bend = set(q_ for r in W.roads if r.bridge for q_ in (r.pts[0], r.pts[-1]))
+_done = set()
+for r0 in _lk:
+    if id(r0) in _done: continue
+    g0 = r0.pts[0] if r0.pts[0] in _mv else (r0.pts[-1] if r0.pts[-1] in _mv else None)
+    if g0 is None: continue
+    chain = []; node = g0; cur = r0
+    while cur is not None and id(cur) not in _done and len(chain) < 40:
+        fwd_ = cur.pts[0] == node
+        chain.append((cur, fwd_)); _done.add(id(cur))
+        node = cur.pts[-1] if fwd_ else cur.pts[0]
+        if node in _mv or node in _bend: break
+        nxt = [o_ for o_ in _byn.get(node, []) if o_ is not cur and id(o_) not in _done]
+        cur = nxt[0] if len(nxt) == 1 and len(_byn.get(node, [])) == 2 else None
+    P_ = []; Y_ = []; seg_ = []
+    for c_, fwd_ in chain:
+        pp_ = c_.pts if fwd_ else c_.pts[::-1]; yy_ = c_.y if fwd_ else c_.y[::-1]
+        st_ = len(P_) - 1 if P_ else 0
+        if P_: pp_, yy_ = pp_[1:], yy_[1:]
+        P_ += list(pp_); Y_ += list(yy_); seg_.append((c_, fwd_, st_, len(P_) - 1))
+    n_ = len(P_); cl_ = cumlen(P_)
+    ends_ = [0] + ([n_ - 1] if P_[-1] in _mv else [])
+    pins_ = [] if P_[-1] in _mv else [n_ - 1]
+    lat_ = [min([_mtl[int(j_)].distance(Point(q_)) for j_ in _mtt.query(Point(q_).buffer(40))] or [99.0]) for q_ in P_]
+    ok_ = True
+    for k0 in ends_:
+        g_ = hbil(*P_[k0]); clear_ = r0.width / 2 + 9.0
+        free_ = [abs(cl_[k] - cl_[k0]) for k in range(n_) if lat_[k] > clear_]
+        d0_ = min(free_) if free_ else cl_[-1]
+        for kp in pins_:
+            if Y_[kp] - g_ > 0.06 * max(0.0, abs(cl_[kp] - cl_[k0]) - d0_) - 0.05: ok_ = False
+        if ok_:
+            for k in range(n_):
+                if k not in pins_: Y_[k] = min(Y_[k], g_ + 0.06 * max(0.0, abs(cl_[k] - cl_[k0]) - d0_))
+    if not ok_:
+        for k0 in ends_: _restore.add(P_[k0])
+        continue
+    for _ in range(3):
+        for k in range(1, n_):
+            if k not in pins_: Y_[k] = min(Y_[k], Y_[k - 1] + 0.06 * (cl_[k] - cl_[k - 1]))
+        for k in range(n_ - 2, -1, -1):
+            if k not in pins_: Y_[k] = min(Y_[k], Y_[k + 1] + 0.06 * (cl_[k + 1] - cl_[k]))
+    for c_, fwd_, a_, b_ in seg_:
+        yy_ = Y_[a_:b_ + 1]; c_.y = yy_ if fwd_ else yy_[::-1]
+    _nramp += 1
+_front = [m_ for e_ in _restore for m_ in _mv.get(e_, []) if id(m_) in _morig]
+while _front:
+    m_ = _front.pop()
+    if m_.y is not None: continue
+    m_.y = _morig[id(m_)]
+    for kk_, q_ in ((0, m_.pts[0]), (-1, m_.pts[-1])):   # spread to the next piece while the profile is still off the ground there
+        if m_.y[kk_] > hbil(*q_) + 0.05:
+            _front += [o_ for o_ in _mv.get(q_, []) if o_ is not m_ and id(o_) in _morig and o_.y is None]
+print('maproads: ramps too short to regrade (kept as built)', len(_restore), flush=True)
+print('maproads: ramps re-graded from the motorway gore', _nramp, flush=True)
+_mh = [(r.name, [round(v) for v in r.pts[max(range(len(r.y)), key=lambda k: r.y[k])]], round(max(r.y), 1)) for r in W.roads if r.kind == 'motorway' and r.y and not r.bridge and max(r.y) > 0.3]
+print('maproads: motorway pieces with a deck profile (should be 0 outside planned junctions)', len(_mh), _mh[:12], flush=True)
+print('maproads: duplicate edges dropped', _ndup, '; steep traced pieces', len(_cand), 'dropped', len(_gone), '(kept', len(_cand) - len([i for i in _cand if i in _gone]), 'needed for connectivity)', flush=True)
 _fm = raster_polys(FOREST, (hnz, hnx), cell=CELLH) > 0
 RELIEF = dict(forest_median_m=round(float(np.median(H[_fm])), 1), forest_p75_m=round(float(np.percentile(H[_fm], 75)), 1), forest_p95_m=round(float(np.percentile(H[_fm], 95)), 1), share_of_forest_above_20m=round(float((H[_fm] > 20).mean()), 2))
 pk = np.unravel_index(int(np.argmax(H)), H.shape)
@@ -889,7 +1052,7 @@ feat = dict(version=4, generator='tools/world/build.py (traced from the official
             areas=[polyd(a['poly'].simplify(0.8), id=a['id'], kind=a['kind'], **({'name': a['name']} if a['name'] else {}), **({'colour': '#%02x%02x%02x' % tuple(PAL['sand'])} if a['kind'] == 'beach' else {})) for a in W.areas if a['poly'].geom_type == 'Polygon' and a['poly'].area > 10],
             shallows=[polyd(p.simplify(4.0), id=f's{i+1}', colour='#%02x%02x%02x' % tuple(PAL['shallow'])) for i, p in enumerate(SHALLOW)],
             roads=[], paths=W.paths, buildings=W.buildings, pois=W.pois, props=W.props, trees=W.trees, places=[], joins=[], setpieces=W.setpieces, powerlines=W.powerlines,
-            heights=dict(file='heights.bin', cell=CELLH, minX=hx0, minZ=hz0, nx=hnx, nz=hnz, unit=0.1))
+            heights=dict(file='heights.bin', cell=CELLH, minX=hx0 + CELLH / 2, minZ=hz0 + CELLH / 2, nx=hnx, nz=hnz, unit=0.1))   # samples sit at cell centers; the ingest reads them node-registered (maproads fix: the game's terrain was 8 m off the graded roads)
 for r in W.roads:
     d = dict(id=r.id, pts=[list(p) for p in r.pts], kind=r.kind, lanesFwd=r.lf, lanesBack=r.lb, oneway=r.oneway, speedKmh=r.speed, name=r.name, bridge=bool(r.bridge), width=round(r.width, 1), surface=r.surface, layer=r.layer)
     if r.ref: d['ref'] = r.ref

@@ -32,22 +32,27 @@
   {
    "name": "In-game collider probe along the Calabash route",
    "state": "built",
-   "evidence": "docs/v2/reports/maproads-drive-probe.json (older build): deck/collider mismatches at the SR 836 / West Line Ave end and -8 m drops under ring overpasses; not re-run on the final build"
+   "evidence": "docs/v2/reports/maproads-drive-probe.json (b20261114-024424): the 8 m collider holes are gone; the steps left are low ramp decks (about 1.6 m) over the motorway lanes at about 20 of the 34 ring interchanges whose ramps are too short to start from the ground"
   },
   {
    "name": "GPS North Shore -> Calabash well under 24.6 km",
-   "state": "todo",
-   "evidence": "after: 29.29 km to ref_63's pin (causeway east end), 31.9 km place to place (before: 32.49 km place to place); the picture has no direct diagonal"
+   "state": "verified",
+   "evidence": "lead: following the map is correct; 29.2 km to ref_63 pin, 31.8 km place to place"
   },
   {
    "name": "Merge audit clean",
-   "state": "todo",
-   "evidence": "published with --force: roads.geometry (2 duplicate edges), roads.heightsContinuous (7 segments over 12.5 %), tiles.coverage (183 / 890 samples); the committed build passed all three"
+   "state": "verified",
+   "evidence": "b20261114-024424 published without --force, every check passes (fixes: heights.bin grid offset, duplicate self-overlapping pieces, steep pieces dropped, audit skips islet and sliver cells the game reclassifies at runtime)"
   },
   {
    "name": "In-game full-map shot",
    "state": "todo",
    "evidence": "pause map would not open in the headless game (title state); overlay.png is the substitute"
+  },
+  {
+   "name": "Drive onto Port Calabash: causeway and town shots",
+   "state": "verified",
+   "evidence": "docs/v2/shots/maproads/calabash_causeway.png, calabash_town.png; route probe has no holes past the ring"
   }
  ]
 }
