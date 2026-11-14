@@ -1502,12 +1502,14 @@ export function createTileBuilder(ctx) {
   // furniture. A prop that touches an earlier one (or stands a pole inside a palm crown) slides along the curb to the nearest free spot
   // that is still off the carriageway, outside buildings and on land; if there is none it is dropped. Neighbor tiles, world-dressing and
   // set pieces register in the same index, so props never clip across tile seams or into a set piece either.
-  const OCC = { mast: [0.18, 6.5], upole: [0.15, 10], lamp: [0.15, 7.6], shelter: [1.0, 2.8], kiosk: [0.8, 3], hut: [1.6, 4.8], signPost: [0.06, 3.6], hydrant: [0.17, 0.8], tree: [0.32, 8], palm: [0.3, 9], bench: [0.45, 1], bin: [0.32, 1.1], bike: [0.4, 1], cafe: [0.55, 1], umbrella: [0.06, 2.6], flower: [0.6, 1.3], blob: [0.6, 1.4] };
+  const OCC = { mast: [0.18, 6.5], upole: [0.15, 10], lamp: [0.15, 7.6], shelter: [1.0, 2.8], kiosk: [0.8, 3], hut: [1.6, 4.8], signPost: [0.06, 3.6], hydrant: [0.17, 0.8], tree: [0.32, 8], palm: [0.3, 9], bench: [0.45, 1], bin: [0.32, 1.1], bike: [0.4, 1], cafe: [0.55, 1], flower: [0.6, 1.3], blob: [0.6, 1.4] }; // umbrellas stand in their cafe table on purpose
   const OCC_POLE = new Set(['mast', 'upole', 'lamp']), OCC_FIXED = new Set(['mast', 'upole']), OCC_SOFT = new Set(['flower', 'blob']), OCC_CROWN = { palm: 2.6, tree: 3.2 };
   const OCC_SHIFT = { palm: 3, tree: 3, lamp: 2, flower: 1.5, blob: 1.5 };
+  const OCC_SPACE = { lamp: { kinds: new Set(['lamp', 'upole', 'mast']), d: 2.5 }, signPost: { kinds: new Set(['signPost']), d: 0.9 }, hydrant: { kinds: new Set(['hydrant']), d: 3 } };
   function resolveClips(tile, props) {
     const owner = 'tile:' + tile.tx + ',' + tile.tz; occupancy.removeOwner(owner);
     const near = roadIndex(tile);
+    const inB = (x, z, r) => insideBuilding(tile, x, z) || insideBuilding(tile, x + r, z) || insideBuilding(tile, x - r, z) || insideBuilding(tile, x, z + r) || insideBuilding(tile, x, z - r); // trunk / post through a wall
     for (const kind of Object.keys(OCC)) {
       const list = props[kind]; if (!Array.isArray(list) || !list.length) continue;
       const [r0, h0] = OCC[kind], keep = [];
@@ -1515,15 +1517,16 @@ export function createTileBuilder(ctx) {
         const s = p.s || 1, r = r0 * s, h = h0 * s, y = p.y || 0;
         const reg = (x, z) => occupancy.add({ x, z, r, y, h, kind, src: 'tilebuild:' + kind, owner, pole: OCC_POLE.has(kind), soft: OCC_SOFT.has(kind), crown: OCC_CROWN[kind] ? { r: OCC_CROWN[kind] * s * 0.8, y0: y + h * 0.55 } : null, audit: false });
         if (p.elev || y > 1.5) { keep.push(p); continue; } // ELEVATED deck lamps sit on the barrier tops
-        const o = { y, h, gap: 0.08, pole: OCC_POLE.has(kind), soft: OCC_SOFT.has(kind), crown: OCC_CROWN[kind] ? { r: OCC_CROWN[kind] * s * 0.8, y0: y + h * 0.55 } : null };
+        const o = { y, h, gap: 0.08, pole: OCC_POLE.has(kind), soft: OCC_SOFT.has(kind), crown: OCC_CROWN[kind] ? { r: OCC_CROWN[kind] * s * 0.8, y0: y + h * 0.55 } : null, spacing: OCC_SPACE[kind] || null };
         if (OCC_FIXED.has(kind)) { keep.push(p); reg(p.x, p.z); continue; }
-        if (!occupancy.blocked(p.x, p.z, r, o)) { keep.push(p); reg(p.x, p.z); continue; }
+        const walled = !OCC_SOFT.has(kind) && inB(p.x, p.z, r + 0.05);
+        if (!walled && !occupancy.blocked(p.x, p.z, r, o)) { keep.push(p); reg(p.x, p.z); continue; }
         const q = near(p.x, p.z), dir = q.gap < 1e8 ? [-q.nz, q.nx] : null;
-        const ok = (x, z) => near(x, z).gap >= r + (OCC_SOFT.has(kind) ? 0.3 : 0.1) && !insideBuilding(tile, x, z) && !(isWater && isWater(x, z));
+        const ok = (x, z) => near(x, z).gap >= r + (OCC_SOFT.has(kind) ? 0.3 : 0.1) && !inB(x, z, r + 0.05) && !(isWater && isWater(x, z));
         const f = occupancy.free(p.x, p.z, r, { ...o, dir }, OCC_SHIFT[kind] || 1, ok) || (dir ? occupancy.free(p.x, p.z, r, o, Math.min(1, OCC_SHIFT[kind] || 1), ok) : null);
         if (!f) { placeStats.clipDropped = (placeStats.clipDropped || 0) + 1; continue; }
-        const dy = p.y !== undefined && p.y < 0.5 ? gY(f[0], f[1]) - gY(p.x, p.z) : 0;
-        p.x = f[0]; p.z = f[1]; if (dy) p.y += dy; keep.push(p); reg(p.x, p.z); placeStats.clipMoved = (placeStats.clipMoved || 0) + 1;
+        const y1 = p.y !== undefined && p.y < 0.5 && p.y > -0.3 ? gY0(f[0], f[1]) : null; // a moved prop stands on the ground at its new spot (curb / no curb)
+        p.x = f[0]; p.z = f[1]; if (y1 !== null && Number.isFinite(y1)) p.y = y1; keep.push(p); reg(p.x, p.z); placeStats.clipMoved = (placeStats.clipMoved || 0) + 1;
       }
       list.length = 0; for (const p of keep) list.push(p);
     }

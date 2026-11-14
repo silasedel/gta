@@ -108,6 +108,41 @@
   {
    "name": "Blade trampling by player and pedestrians",
    "state": "built"
+  },
+  {
+   "name": "Countryside streamer (synthetic land): 64 m deterministic world cells around the camera replace the per-tile flora draw that popped at the 350 m near-tile edge and the 140 m hard pool cut; tile colliders use the same placement",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/countryside/compare_hwy.jpg"
+  },
+  {
+   "name": "No pop: full mesh to an impostor baked from that exact mesh (same seed / scale / yaw / instance colour; bake has no lean, sway, tint or wear), dithered cross-fades (trees 120-150 m, shrubs 55-75 m, impostors out to 1.3 km), shadow pass fades with the view camera; palms keep the same crown at every LOD",
+   "state": "built",
+   "evidence": "docs/v2/shots/vegetation/countryside/after_fly_sheet.jpg, docs/v2/shots/vegetation/countryside/after_drive_sheet.jpg (frames 1.5 s apart; not a frame-by-frame pop test)"
+  },
+  {
+   "name": "Biomes: Keys scrub, Keys sand, pine rockland, hammock, rural verge, glades (cypress domes), marsh, mangrove shore; 9 tree kinds x 2-3 seeds, seagrape / saw palmetto / fern shrubs; grove / clearing noise; per-instance hue",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/countryside/compare_rural.jpg"
+  },
+  {
+   "name": "Ground cover: real thin grass blades (2 layers, 60 m and 32 m), daisies, tickseed, grey rocks, shoulder pebbles, on the terrain normal; haystack cones and flat palmetto cards gone from the countryside",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/countryside/after_hwy.png"
+  },
+  {
+   "name": "Clearance: game.vegetation.field() drops plants on roads (edge width + 1.5 m), any deck / ramp footprint, sidewalk, pier, building surface; streamer skips decks and house lots (filtered in place when houses are planned later)",
+   "state": "built",
+   "evidence": "docs/v2/shots/vegetation/countryside/compare_causeway.jpg (the ref_62 palms were not in this camera before either; spot not reproduced)"
+  },
+  {
+   "name": "Street palms: olive / yellow-green frond atlas (was lime), crown self-shadow in vertex colour, more dead fronds on coconut",
+   "state": "built",
+   "evidence": "docs/v2/shots/vegetation/countryside/after_downtown.png (no true before: the palm change is global)"
+  },
+  {
+   "name": "Countryside performance: 66-80 draw calls, 10-20k instances, 0.6-2.4 M tris, cell gen 0.25 ms avg / 12-20 ms max, re-bucket 2-6 ms every 5 m or 0.35 rad",
+   "state": "built",
+   "evidence": "docs/v2/reports/vegetation-after.json (shared machine, 3 headless browsers: fps not comparable)"
   }
  ]
 }

@@ -164,8 +164,8 @@ function leafCells(x, r) {
     x.fillStyle = o.rachis; x.fillRect(0, 0, 9, S); x.fillStyle = 'rgba(255,255,230,0.25)'; x.fillRect(2, 0, 2, S);
     x.restore();
   };
-  pinnate(CELL.coconut, { n: 80, len: 0.95, ang: 0.42, jit: 0.14, w: 12, h: 88, s: 52, l: 34, brown: 0.18, torn: 0.18, curl: 26, rachis: '#a9a45a' });
-  pinnate(CELL.plume, { n: 96, len: 0.95, ang: 0.5, jit: 0.4, w: 8.5, h: 100, s: 48, l: 28, brown: 0.08, torn: 0.08, curl: 40, rachis: '#8d9b52', double: true });
+  pinnate(CELL.coconut, { n: 80, len: 0.95, ang: 0.42, jit: 0.14, w: 12, h: 84, s: 40, l: 29, brown: 0.18, torn: 0.18, curl: 26, rachis: '#a9a45a' });
+  pinnate(CELL.plume, { n: 96, len: 0.95, ang: 0.5, jit: 0.4, w: 8.5, h: 96, s: 40, l: 25, brown: 0.08, torn: 0.08, curl: 40, rachis: '#8d9b52', double: true });
   pinnate(CELL.date, { n: 60, len: 0.85, ang: 0.6, jit: 0.15, w: 9, h: 130, s: 22, l: 40, brown: 0.12, torn: 0.05, curl: 6, rachis: '#a4a476' });
   pinnate(CELL.dead, { n: 46, len: 0.75, ang: 0.3, jit: 0.5, w: 9, h: 34, s: 42, l: 46, brown: 1, torn: 0.55, curl: 50, rachis: '#8a6a42' });
   { // dead frond: darken irregularly, holes

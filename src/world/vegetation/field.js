@@ -11,15 +11,18 @@ import { makeVegMaterial, vegUniforms } from './materials.js';
 const DEF_DIST = { palm: [45, 160, 900], tree: [55, 190, 1100], shrub: [28, 90, 260] };
 
 // bake an impostor: two orthographic views (front, side) of the full-detail plant into one RGBA texture (left / right half)
-const _bakeCache = new Map();
-export function bakeImpostor(renderer, kind, seed, geo, bark, leaf) {
+const _bakeCache = new Map(); let _bakeMats = null;
+export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 512) {
   const key = kind + ':' + seed; if (_bakeCache.has(key)) return _bakeCache.get(key);
   const bb = new THREE.Box3(); geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox();
   bb.copy(geo.leaf.boundingBox); if (geo.bark.index.count) bb.union(geo.bark.boundingBox);
   const half = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z, 0.5) / 2 * 1.04, hgt = (bb.max.y - Math.min(0, bb.min.y)) * 1.03, cx = (bb.max.x + bb.min.x) / 2, cz = (bb.max.z + bb.min.z) / 2;
-  const S = 512, rt = new THREE.WebGLRenderTarget(S * 2, Math.round(S * Math.min(2, hgt / (half * 2))), { samples: 4, colorSpace: THREE.NoColorSpace });
+  const rt = new THREE.WebGLRenderTarget(S * 2, Math.round(S * Math.min(2, hgt / (half * 2))), { samples: 4, colorSpace: THREE.NoColorSpace });
   const scene = new THREE.Scene(); scene.add(new THREE.AmbientLight(0xffffff, Math.PI * 0.95));
-  const g = new THREE.Group(); g.add(new THREE.Mesh(geo.bark, bark)); g.add(new THREE.Mesh(geo.leaf, leaf)); scene.add(g);
+  // bake with neutral materials: no lean, no wind sway, no per-instance tint / wear (the impostor material applies those per instance,
+  // exactly like the near mesh), so the far card is the same plant in the same pose and colour
+  _bakeMats ||= { bark: makeVegMaterial('bark', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat, leaf: makeVegMaterial('leaf', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat };
+  const g = new THREE.Group(); if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark)); g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf)); scene.add(g);
   const cam = new THREE.OrthographicCamera(-half, half, hgt, 0, 0.1, 400);
   const prev = { rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), sun: vegUniforms.uSunCol.value.clone(), as: renderer.autoClear, sm: renderer.shadowMap.enabled };
   vegUniforms.uSunCol.value.setRGB(0, 0, 0); renderer.setClearColor(0x3e5a2c, 0); renderer.autoClear = false; renderer.setRenderTarget(rt); renderer.clear();
@@ -42,7 +45,7 @@ export function bakeImpostor(renderer, kind, seed, geo, bark, leaf) {
     idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
   }
   const ig = new THREE.BufferGeometry(); ig.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); ig.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); ig.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  ig.setAttribute('aWind', new THREE.Float32BufferAttribute(pos.map((p, i) => (i % 3 === 1 ? p * 0.6 : 0)), 3)); ig.setIndex(idx); ig.computeBoundingSphere();
+  ig.setAttribute('aWind', new THREE.Float32BufferAttribute(pos.map((p, i) => (i % 3 === 1 ? Math.max(0, p) : 0)), 3)); // same bend-by-height as the mesh: no lean / sway jump at the swap ig.setIndex(idx); ig.computeBoundingSphere();
   const out = { geometry: ig, texture: rt.texture, rt };
   _bakeCache.set(key, out); g.clear();
   return out;
@@ -55,8 +58,8 @@ export function createVegField(renderer, kind, items, opts = {}) {
   const mats = fades.map((f, l) => l < 2 ? { bark: makeVegMaterial('bark', { fade: f, lean: 0.006, sway: 0.0035 }), leaf: makeVegMaterial('leaf', { fade: f, lean: 0.006, sway: 0.0035 }) } : null);
   const variants = [], bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
   for (let v = 0; v < nV; v++) {
-    const vs = seed * 31 + v * 7 + 1, g0 = buildGeometry(kind, { seed: vs, lod: 0, ...opts.build }), g1 = buildGeometry(kind, { seed: vs, lod: 1, ...opts.build });
-    const imp = bakeImpostor(renderer, kind, vs, g0, bakeM.bark.mat, bakeM.leaf.mat), impMat = makeVegMaterial('imp', { map: imp.texture, fade: fades[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.3 });
+    const vs = seed * 31 + v * 7 + 1, g0 = buildGeometry(kind, { seed: vs, lod: 0, ...opts.build }), g1 = type === 'palm' ? buildGeometry(kind, { seed: vs, lod: 1, ...opts.build }) : g0; // trees / shrubs: lod 1 is a different branch layout, so the mid band keeps the full mesh (no shape pop); palms share the crown across LODs
+    const imp = bakeImpostor(renderer, kind, vs, g0, bakeM.bark.mat, bakeM.leaf.mat), impMat = makeVegMaterial('imp', { map: imp.texture, fade: fades[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 });
     const parts = [];
     const mk = (geo, m, lod, cast) => { if (!geo.index || !geo.index.count) return; const im = new THREE.InstancedMesh(geo, m.mat, Math.max(16, items.length)); im.count = 0; im.frustumCulled = false; im.castShadow = cast && opts.shadows !== false; im.receiveShadow = true; im.customDepthMaterial = m.depth; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(im); parts.push({ im, lod, tris: geo.index.count / 3 }); };
     mk(g0.bark, mats[0].bark, 0, true); mk(g0.leaf, mats[0].leaf, 0, true); mk(g1.bark, mats[1].bark, 1, true); mk(g1.leaf, mats[1].leaf, 1, true); mk(imp.geometry, impMat, 2, false);

@@ -10,7 +10,7 @@ const V3 = THREE.Vector3;
 export const PALM_SPECIES = ['coconut', 'royal', 'sabal', 'date', 'queen', 'palmetto'];
 
 const SP = {
-  coconut: { H: [8, 15], r0: 0.2, rTop: 0.14, flare: 1.15, lean: [0.12, 0.38], bow: 0.6, bark: BARK.coconut, rep: 1.2, nF: [27, 35], L: [4.4, 5.8], elev: [-0.35, 1.38], droop: [1.3, 2.4], fold: 0.42, foldOut: 0.6, w: 0.78, mesh: true, roots: 16, infl: true, cell: CELL.coconut, dead: [2, 6], stubs: 10 },
+  coconut: { H: [8, 15], r0: 0.2, rTop: 0.14, flare: 1.15, lean: [0.12, 0.38], bow: 0.6, bark: BARK.coconut, rep: 1.2, nF: [27, 35], L: [4.4, 5.8], elev: [-0.35, 1.38], droop: [1.3, 2.4], fold: 0.42, foldOut: 0.6, w: 0.78, mesh: true, roots: 16, infl: true, cell: CELL.coconut, dead: [3, 7], stubs: 10 },
   royal: { H: [13, 19], r0: 0.27, rTop: 0.2, flare: 0.9, lean: [0.0, 0.04], bow: 0.1, bark: BARK.royal, rep: 2.0, nF: [23, 30], L: [5.0, 6.4], elev: [-0.15, 1.35], droop: [1.0, 1.9], fold: -0.15, foldOut: 0.9, w: 0.86, roots: 14, infl: true, cell: CELL.plume, plume: true, dead: [0, 1], shaft: 0.18 },
   sabal: { H: [6, 12], r0: 0.22, rTop: 0.2, flare: 0.45, roots: 12, lean: [0.0, 0.1], bow: 0.25, bark: BARK.sabal, rep: 1.6, nF: [26, 36], fan: true, fanR: [1.0, 1.3], pet: [1.5, 2.3], dead: [3, 9], boots: true },
   date: { H: [6, 11], r0: 0.34, rTop: 0.3, flare: 0.5, roots: 14, lean: [0.0, 0.08], bow: 0.15, bark: BARK.date, rep: 1.4, nF: [48, 64], L: [3.6, 4.8], elev: [-0.25, 1.2], droop: [0.6, 1.3], fold: 0.55, foldOut: 0.35, w: 0.6, cell: CELL.date, dead: [0, 3], stubs: 22, dates: true },
@@ -52,7 +52,7 @@ function pinnateFrond(gb, R, base, az, elev, L, o, crownH, lod) {
           if (k > 0) q = q.clone().addScaledVector(dir, w / across);
           const n = new V3().crossVectors(dir, T).multiplyScalar(sg).normalize().lerp(UP, 0.35).normalize();
           const [u, v] = leafUV(o.cell, Math.min(0.995, 0.01 + k / across), Math.min(0.995, 0.005 + t * 0.99));
-          const shade = 0.9 + 0.1 * t;
+          const shade = (0.5 + 0.5 * Math.min(1, t * 1.5)) * (1 - 0.12 * (k / Math.max(1, across))); // crown self-shadow: frond bases inside the crown and the folded inner leaflets are darker
           gb.vert(q, n, u, v, [col[0] * shade, col[1] * shade, col[2] * shade], [crownH, t * (0.4 + 0.6 * k / across), ph]);
         }
       }
@@ -163,34 +163,36 @@ export function buildPalm(opts = {}) {
     stub(b0, d, 0.7, 0.035, [1.3, 1.15, 0.65]);
     for (let m = 0; m < 7; m++) { const dd = d.clone().add(new V3((R() - 0.5) * 0.9, -0.6 - R() * 0.5, (R() - 0.5) * 0.9)).normalize(); stub(e.clone().addScaledVector(d, -m * 0.06), dd, 0.35 + R() * 0.25, 0.012, [1.4, 1.25, 0.7]); } }
 
+  // crown: its own random stream and the same frond count at every LOD, so a far palm has exactly the near palm's crown (no shape pop)
+  const RC = rng((opts.seed ?? 1) * 5.77 + PALM_SPECIES.indexOf(species) * 37 + 11);
   // crown
-  const nF = Math.round(rr(R, P.nF) * (lod ? 0.75 : 1)), fl = opts.frondLen ?? 1, dm = opts.droop ?? 1;
+  const nF = Math.round(rr(RC, P.nF)), fl = opts.frondLen ?? 1, dm = opts.droop ?? 1;
   const crownC = top.clone().add(new V3(0, P.low ? 0.05 : 0.15, 0));
   for (let f = 0; f < nF; f++) {
-    const golden = f * 2.39996 + R() * 0.35, t = f / nF; // phyllotaxis; t=0 youngest (upright) .. 1 oldest (lowest)
-    const age = Math.pow(R(), 0.8) * 0.5 + t * 0.5;
-    const col = [1 - age * 0.06 + (R() - 0.5) * 0.08, 1 - age * 0.04 + (R() - 0.5) * 0.06, 1 - age * 0.25];
+    const golden = f * 2.39996 + RC() * 0.35, t = f / nF; // phyllotaxis; t=0 youngest (upright) .. 1 oldest (lowest)
+    const age = Math.pow(RC(), 0.8) * 0.5 + t * 0.5;
+    const ao = 1 - age * 0.3, col = [(1 - age * 0.02 + (RC() - 0.5) * 0.08) * ao, (1 - age * 0.04 + (RC() - 0.5) * 0.06) * ao, (1 - age * 0.3) * ao]; // lower, older fronds sit in the crown's shade
     if (P.fan) {
       const elev = P.low ? lerp(1.25, 0.25, age) : lerp(1.15, -0.35, age);
-      const base = crownC.clone().add(new V3((R() - 0.5) * 0.15, -age * (P.low ? 0 : 0.4), (R() - 0.5) * 0.15));
-      fanLeaf(fr, R, base, golden, elev, rr(R, P.pet) * (P.low ? 1 : 0.9 + 0.2 * (1 - age)), rr(R, P.fanR), { col }, crownH, lod);
+      const base = crownC.clone().add(new V3((RC() - 0.5) * 0.15, -age * (P.low ? 0 : 0.4), (RC() - 0.5) * 0.15));
+      fanLeaf(fr, RC, base, golden, elev, rr(RC, P.pet) * (P.low ? 1 : 0.9 + 0.2 * (1 - age)), rr(RC, P.fanR), { col }, crownH, lod);
     } else {
-      const elev = lerp(P.elev[1], P.elev[0], age) + (R() - 0.5) * 0.2, L = rr(R, P.L) * fl * (1 - (t < 0.12 ? 0.3 * (1 - t / 0.12) : 0));
+      const elev = lerp(P.elev[1], P.elev[0], age) + (RC() - 0.5) * 0.2, L = rr(RC, P.L) * fl * (1 - (t < 0.12 ? 0.3 * (1 - t / 0.12) : 0));
       const base = crownC.clone().add(new V3(Math.cos(golden) * 0.12, -age * 0.35, Math.sin(golden) * 0.12));
-      pinnateFrond(fr, R, base, golden, elev, L, { droop: rr(R, P.droop) * dm * (0.7 + age * 0.6), fold: P.fold, foldOut: P.foldOut, w: P.w, cell: P.cell, plume: P.plume, col, segs: species === 'date' ? 7 : 10 }, crownH, lod);
+      pinnateFrond(fr, RC, base, golden, elev, L, { droop: rr(RC, P.droop) * dm * (0.7 + age * 0.6), fold: P.fold, foldOut: P.foldOut, w: P.w, cell: P.cell, plume: P.plume, col, segs: species === 'date' ? 7 : 10 }, crownH, lod);
     }
   }
   // dead fronds hanging against the trunk (wear varies a lot per palm)
-  const nDead = Math.round(rr(R, P.dead) * (opts.wear ?? 1) * (lod ? 0.6 : 1));
+  const nDead = Math.round(rr(RC, P.dead) * (opts.wear ?? 1));
   for (let k = 0; k < nDead; k++) {
-    const a = R() * 6.28, base = crownC.clone().add(new V3(Math.cos(a) * 0.15, -0.3 - R() * 0.4, Math.sin(a) * 0.15)), col = [0.95 + R() * 0.15, 0.9 + R() * 0.1, 0.8 + R() * 0.15];
-    if (P.fan) fanLeaf(fr, R, base, a, P.low ? 0.05 + R() * 0.2 : -1.2 - R() * 0.3, rr(R, P.pet) * 0.6, rr(R, P.fanR) * 0.85, { dead: true, col }, crownH, lod);
-    else pinnateFrond(fr, R, base, a, -1.15 - R() * 0.3, rr(R, P.L) * 0.85, { droop: 0.25, fold: 0.5, foldOut: 0.6, w: P.w * 0.75, cell: CELL.dead, col, dead: true }, crownH, lod);
+    const a = RC() * 6.28, base = crownC.clone().add(new V3(Math.cos(a) * 0.15, -0.3 - RC() * 0.4, Math.sin(a) * 0.15)), col = [0.95 + RC() * 0.15, 0.9 + RC() * 0.1, 0.8 + RC() * 0.15];
+    if (P.fan) fanLeaf(fr, RC, base, a, P.low ? 0.05 + RC() * 0.2 : -1.2 - RC() * 0.3, rr(RC, P.pet) * 0.6, rr(RC, P.fanR) * 0.85, { dead: true, col }, crownH, lod);
+    else pinnateFrond(fr, RC, base, a, -1.15 - RC() * 0.3, rr(RC, P.L) * 0.85, { droop: 0.25, fold: 0.5, foldOut: 0.6, w: P.w * 0.75, cell: CELL.dead, col, dead: true }, crownH, lod);
   }
   // fruit: coconuts in bunches under the crown, date strands, queen palm drupes
-  const fruit = (c, n, sz, sw, spread, colr) => { for (let i = 0; i < n; i++) { const p = c.clone().add(new V3((R() - 0.5) * spread, -R() * spread * 0.8, (R() - 0.5) * spread)); blob(fr, p, sz * (0.9 + R() * 0.2), sz * (1.05 + R() * 0.2), sz * (0.9 + R() * 0.2), [...leafUV(CELL.fan, sw[0], sw[3]), ...leafUV(CELL.fan, sw[2], sw[1])], colr(), [crownH, 0.05, 0]); } };
-  if (species === 'coconut' && R() < 0.92) { const nb = 2 + ((R() * 3) | 0); for (let b = 0; b < nb; b++) { const a = R() * 6.28; fruit(crownC.clone().add(new V3(Math.cos(a) * 0.38, -0.5, Math.sin(a) * 0.38)), lod ? 3 : 6 + ((R() * 8) | 0), 0.125, SWATCH.husk, 0.5, () => { const ripe = R(); return [0.85 + ripe * 0.3, 0.9 - ripe * 0.15, 0.7 - ripe * 0.2]; }); } }
-  if ((species === 'date' && R() < 0.8) || (species === 'queen' && R() < 0.7)) { const nb = 2 + ((R() * 3) | 0); for (let b = 0; b < nb; b++) { const a = R() * 6.28, c0 = crownC.clone().add(new V3(Math.cos(a) * 0.45, -0.6, Math.sin(a) * 0.45)); fruit(c0, lod ? 6 : 26, species === 'date' ? 0.03 : 0.022, species === 'date' ? SWATCH.dates : SWATCH.fruit, 0.55, () => [0.9 + R() * 0.2, 0.85 + R() * 0.2, 0.8]); } }
+  const fruit = (c, n, sz, sw, spread, colr) => { for (let i = 0; i < n; i++) { const p = c.clone().add(new V3((RC() - 0.5) * spread, -RC() * spread * 0.8, (RC() - 0.5) * spread)); blob(fr, p, sz * (0.9 + RC() * 0.2), sz * (1.05 + RC() * 0.2), sz * (0.9 + RC() * 0.2), [...leafUV(CELL.fan, sw[0], sw[3]), ...leafUV(CELL.fan, sw[2], sw[1])], colr(), [crownH, 0.05, 0]); } };
+  if (species === 'coconut' && RC() < 0.92) { const nb = 2 + ((RC() * 3) | 0); for (let b = 0; b < nb; b++) { const a = RC() * 6.28; fruit(crownC.clone().add(new V3(Math.cos(a) * 0.38, -0.5, Math.sin(a) * 0.38)), lod ? 3 : 6 + ((RC() * 8) | 0), 0.125, SWATCH.husk, 0.5, () => { const ripe = RC(); return [0.85 + ripe * 0.3, 0.9 - ripe * 0.15, 0.7 - ripe * 0.2]; }); } }
+  if ((species === 'date' && RC() < 0.8) || (species === 'queen' && RC() < 0.7)) { const nb = 2 + ((RC() * 3) | 0); for (let b = 0; b < nb; b++) { const a = RC() * 6.28, c0 = crownC.clone().add(new V3(Math.cos(a) * 0.45, -0.6, Math.sin(a) * 0.45)); fruit(c0, lod ? 6 : 26, species === 'date' ? 0.03 : 0.022, species === 'date' ? SWATCH.dates : SWATCH.fruit, 0.55, () => [0.9 + RC() * 0.2, 0.85 + RC() * 0.2, 0.8]); } }
   const tg = trunk.build(), fg = fr.build();
   return { trunk: tg, fronds: fg, height: crownH, top, tris: trunk.tris + fr.tris, species };
 }

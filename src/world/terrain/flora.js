@@ -73,6 +73,7 @@ function fruit(clusters, n, seed) { const r = rnd(seed), P = [], N = [], s = new
   return geomFrom(P, N, null, null); }
 
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
+import { placeTrees, csReject, CS_ON } from '../vegetation/countryside.js';
 export async function createFlora(renderer, M) {
   const bark = await loadSet(renderer, 'bark_brown_02'); for (const t of [bark.map, bark.normalMap, bark.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
   const barkMat = new THREE.MeshStandardMaterial(setParams(bark, { color: 0xb8aa98 })); barkMat.name = 'flora-bark'; barkMat.userData.pbr = true;
@@ -124,6 +125,13 @@ export async function createFlora(renderer, M) {
     const L = terrain.LI, push = (k, it) => (out[k] ||= []).push(it);
     const tint = (sp, x, z) => { const a = TINT[sp]; return new THREE.Color(a[(hash(x, z, 5) * a.length) | 0]).multiplyScalar(0.85 + hash(x, z, 6) * 0.3); };
     const tree = (sp, x, z, y, s) => push('tree', { sp, x, y, z, ry: hash(x, z, 7) * 6.28, s, color: tint(sp, x, z), col: 1 });
+    if (CS_ON) { // countryside streamer draws the wild plants; the tile keeps the same trees / palms for its colliders only (cs: 1 = not drawn here)
+      placeTrees({ terrain, data, roadDist: q.roadDist }, x0, z0, S, (r) => {
+        if (q.inBuilding && q.inBuilding(r.x, r.z)) { csReject(r.x, r.z); return; }
+        if (r.palm) push('palm', { x: r.x, y: r.y, z: r.z, ry: r.ry, s: r.s, real: 1, cs: 1 }); else push('tree', { sp: r.sp, x: r.x, y: r.y, z: r.z, ry: r.ry, s: r.s, color: tint(r.sp, r.x, r.z), cs: 1 });
+      });
+      yield;
+    } else
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
         const x = x0 + (i + hash(i + x0, j + z0, 1)) * st, z = z0 + (j + hash(i + x0, j + z0, 2)) * st;
@@ -157,5 +165,5 @@ export async function createFlora(renderer, M) {
       if ((Math.round(x) & 15) === 0) yield;
     }
   }
-  return { G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
+  return { countryside: CS_ON, G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
 }

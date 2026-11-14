@@ -1,0 +1,431 @@
+{
+ "set": "after",
+ "url": "http://127.0.0.1:5200/?mute",
+ "when": "2026-11-14T07:51:33.475Z",
+ "shots": {},
+ "drive": [
+  {
+   "k": 0,
+   "d": -240.73148000000023,
+   "calls": 575,
+   "tris": 7990026,
+   "veg": {
+    "cells": 1559,
+    "drawCalls": 87,
+    "instances": 21639,
+    "tris": 2862082,
+    "byClassLod": {
+     "tree0": 376,
+     "tree1": 1131,
+     "shrub0": 279,
+     "shrub1": 1710,
+     "gc0": 12908,
+     "peb0": 48,
+     "gcn0": 5187
+    },
+    "gen": 4391,
+    "genAvgMs": 0.38,
+    "genMaxMs": 40.1,
+    "rebuckets": 160,
+    "rebucketAvgMs": 2.58,
+    "lastRebucketMs": 1.9,
+    "pending": 0,
+    "initMs": 83
+   },
+   "fps": 18.1871193961599
+  },
+  {
+   "k": 1,
+   "d": -219.42556000000135,
+   "calls": 565,
+   "tris": 7861268.666666667,
+   "veg": {
+    "cells": 1559,
+    "drawCalls": 85,
+    "instances": 22495,
+    "tris": 2997027,
+    "byClassLod": {
+     "tree0": 402,
+     "tree1": 1111,
+     "shrub1": 1629,
+     "shrub0": 255,
+     "gc0": 13831,
+     "peb0": 54,
+     "gcn0": 5213
+    },
+    "gen": 4391,
+    "genAvgMs": 0.38,
+    "genMaxMs": 40.1,
+    "rebuckets": 164,
+    "rebucketAvgMs": 2.56,
+    "lastRebucketMs": 2.1,
+    "pending": 0,
+    "initMs": 83
+   },
+   "fps": 17.813382057306608
+  },
+  {
+   "k": 2,
+   "d": -199.04538000000133,
+   "calls": 553,
+   "tris": 7372175.333333331,
+   "veg": {
+    "cells": 1559,
+    "drawCalls": 85,
+    "instances": 22517,
+    "tris": 2714635,
+    "byClassLod": {
+     "tree0": 332,
+     "tree1": 1072,
+     "shrub1": 1518,
+     "shrub0": 222,
+     "gc0": 14000,
+     "peb0": 64,
+     "gcn0": 5309
+    },
+    "gen": 4394,
+    "genAvgMs": 0.38,
+    "genMaxMs": 40.1,
+    "rebuckets": 169,
+    "rebucketAvgMs": 2.56,
+    "lastRebucketMs": 2.5,
+    "pending": 1,
+    "initMs": 83
+   },
+   "fps": 16.784155756965752
+  },
+  {
+   "k": 3,
+   "d": -177.73668000000072,
+   "calls": 522,
+   "tris": 7311732.333333334,
+   "veg": {
+    "cells": 1559,
+    "drawCalls": 87,
+    "instances": 22666,
+    "tris": 2811335,
+    "byClassLod": {
+     "tree0": 340,
+     "tree1": 1058,
+     "shrub0": 209,
+     "shrub1": 1462,
+     "gc0": 14216,
+     "peb0": 179,
+     "gcn0": 5202
+    },
+    "gen": 4395,
+    "genAvgMs": 0.38,
+    "genMaxMs": 40.1,
+    "rebuckets": 174,
+    "rebucketAvgMs": 2.56,
+    "lastRebucketMs": 2.6,
+    "pending": 0,
+    "initMs": 83
+   },
+   "fps": 19.663304402604652
+  },
+  {
+   "k": 4,
+   "d": -157.3509400000012,
+   "calls": 498,
+   "tris": 7236568.999999997,
+   "veg": {
+    "cells": 1560,
+    "drawCalls": 87,
+    "instances": 22732,
+    "tris": 2979135,
+    "byClassLod": {
+     "tree0": 384,
+     "tree1": 1047,
+     "shrub0": 238,
+     "shrub1": 1416,
+     "gc0": 14424,
+     "peb0": 259,
+     "gcn0": 4964
+    },
+    "gen": 4401,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 182,
+    "rebucketAvgMs": 2.55,
+    "lastRebucketMs": 2.6,
+    "pending": 0,
+    "initMs": 83
+   },
+   "fps": 17.309606016938183
+  },
+  {
+   "k": 5,
+   "d": -136.04224000000215,
+   "calls": 501,
+   "tris": 6808065.666666664,
+   "veg": {
+    "cells": 1560,
+    "drawCalls": 89,
+    "instances": 23006,
+    "tris": 2740607,
+    "byClassLod": {
+     "tree0": 290,
+     "tree1": 991,
+     "shrub0": 275,
+     "shrub1": 1270,
+     "gc0": 14920,
+     "peb0": 314,
+     "gcn0": 4946
+    },
+    "gen": 4410,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 193,
+    "rebucketAvgMs": 2.54,
+    "lastRebucketMs": 2.6,
+    "pending": 2,
+    "initMs": 83
+   },
+   "fps": 19.644821626399597
+  },
+  {
+   "k": 6,
+   "d": -115.65372000000238,
+   "calls": 487,
+   "tris": 6664477.666666667,
+   "veg": {
+    "cells": 1562,
+    "drawCalls": 87,
+    "instances": 23534,
+    "tris": 2752894,
+    "byClassLod": {
+     "tree0": 278,
+     "tree1": 973,
+     "shrub0": 307,
+     "shrub1": 1276,
+     "gc0": 15219,
+     "peb0": 343,
+     "gcn0": 5138
+    },
+    "gen": 4415,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 201,
+    "rebucketAvgMs": 2.53,
+    "lastRebucketMs": 2.6,
+    "pending": 2,
+    "initMs": 83
+   },
+   "fps": 20.88511018461567
+  },
+  {
+   "k": 7,
+   "d": -93.88076000000204,
+   "calls": 466,
+   "tris": 6446291.333333335,
+   "veg": {
+    "cells": 1562,
+    "drawCalls": 87,
+    "instances": 24147,
+    "tris": 2797960,
+    "byClassLod": {
+     "tree0": 264,
+     "tree1": 947,
+     "shrub0": 320,
+     "shrub1": 1164,
+     "gc0": 15562,
+     "peb0": 312,
+     "gcn0": 5578
+    },
+    "gen": 4426,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 214,
+    "rebucketAvgMs": 2.52,
+    "lastRebucketMs": 2.4,
+    "pending": 2,
+    "initMs": 83
+   },
+   "fps": 19.2901731708966
+  },
+  {
+   "k": 8,
+   "d": -73.50335999999959,
+   "calls": 465,
+   "tris": 6131588,
+   "veg": {
+    "cells": 1560,
+    "drawCalls": 86,
+    "instances": 24906,
+    "tris": 2688708,
+    "byClassLod": {
+     "tree0": 202,
+     "tree1": 909,
+     "shrub0": 305,
+     "shrub1": 1137,
+     "gc0": 16456,
+     "peb0": 282,
+     "gcn0": 5615
+    },
+    "gen": 4441,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 226,
+    "rebucketAvgMs": 2.5,
+    "lastRebucketMs": 2.4,
+    "pending": 2,
+    "initMs": 83
+   },
+   "fps": 20.171416697703165
+  },
+  {
+   "k": 9,
+   "d": -52.19465999999958,
+   "calls": 433,
+   "tris": 6053237.666666667,
+   "veg": {
+    "cells": 1564,
+    "drawCalls": 87,
+    "instances": 24466,
+    "tris": 2637813,
+    "byClassLod": {
+     "tree0": 190,
+     "tree1": 906,
+     "shrub0": 321,
+     "shrub1": 1108,
+     "gc0": 16107,
+     "peb0": 276,
+     "gcn0": 5558
+    },
+    "gen": 4459,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 242,
+    "rebucketAvgMs": 2.48,
+    "lastRebucketMs": 2.3,
+    "pending": 3,
+    "initMs": 83
+   },
+   "fps": 19.603886800638204
+  },
+  {
+   "k": 10,
+   "d": -29.95465999999957,
+   "calls": 380,
+   "tris": 5599524.000000002,
+   "veg": {
+    "cells": 1565,
+    "drawCalls": 87,
+    "instances": 23920,
+    "tris": 2467436,
+    "byClassLod": {
+     "tree0": 150,
+     "tree1": 870,
+     "shrub0": 319,
+     "shrub1": 971,
+     "gc0": 15861,
+     "peb0": 266,
+     "gcn0": 5483
+    },
+    "gen": 4478,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 256,
+    "rebucketAvgMs": 2.47,
+    "lastRebucketMs": 2.2,
+    "pending": 1,
+    "initMs": 83
+   },
+   "fps": 18.25668452377854
+  },
+  {
+   "k": 11,
+   "d": -8.6431799999994,
+   "calls": 443,
+   "tris": 6139982.333333333,
+   "veg": {
+    "cells": 1561,
+    "drawCalls": 86,
+    "instances": 23529,
+    "tris": 2431716,
+    "byClassLod": {
+     "tree0": 126,
+     "tree1": 864,
+     "shrub0": 329,
+     "shrub1": 930,
+     "gc0": 15625,
+     "peb0": 266,
+     "gcn0": 5389
+    },
+    "gen": 4499,
+    "genAvgMs": 0.39,
+    "genMaxMs": 40.1,
+    "rebuckets": 272,
+    "rebucketAvgMs": 2.45,
+    "lastRebucketMs": 2.3,
+    "pending": 1,
+    "initMs": 83
+   },
+   "fps": 17.155386456750495
+  },
+  {
+   "k": 12,
+   "d": 11.74256000000028,
+   "calls": 407,
+   "tris": 5855458,
+   "veg": {
+    "cells": 1563,
+    "drawCalls": 86,
+    "instances": 23261,
+    "tris": 2489890,
+    "byClassLod": {
+     "tree0": 142,
+     "tree1": 873,
+     "shrub0": 314,
+     "shrub1": 940,
+     "gc0": 15411,
+     "peb0": 264,
+     "gcn0": 5317
+    },
+    "gen": 4516,
+    "genAvgMs": 0.4,
+    "genMaxMs": 40.1,
+    "rebuckets": 288,
+    "rebucketAvgMs": 2.43,
+    "lastRebucketMs": 3,
+    "pending": 4,
+    "initMs": 83
+   },
+   "fps": 17.749378771368168
+  },
+  {
+   "k": 13,
+   "d": 24.247000000000767,
+   "calls": 398,
+   "tris": 5657254.333333334,
+   "veg": {
+    "cells": 1567,
+    "drawCalls": 84,
+    "instances": 22352,
+    "tris": 2363889,
+    "byClassLod": {
+     "tree0": 120,
+     "tree1": 849,
+     "shrub0": 290,
+     "shrub1": 860,
+     "gc0": 14762,
+     "peb0": 267,
+     "gcn0": 5204
+    },
+    "gen": 4530,
+    "genAvgMs": 0.4,
+    "genMaxMs": 40.1,
+    "rebuckets": 299,
+    "rebucketAvgMs": 2.44,
+    "lastRebucketMs": 2.7,
+    "pending": 0,
+    "initMs": 83
+   },
+   "fps": 19.589789801554826
+  }
+ ],
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

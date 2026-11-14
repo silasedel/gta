@@ -273,7 +273,7 @@ export async function createMiamiCity(game, opts = {}) {
         else { out.flat++; const k = (o.name || o.parent?.name || o.type) + ' / ' + m.type + (m.name ? ':' + m.name : ''); out.flatList[k] = (out.flatList[k] || 0) + 1; } } });
     return out; };
   game.updaters.push((dt) => city.update(dt));
-  city.terrain = terrain; city.flora = flora;
+  city.terrain = terrain; city.flora = flora; city.elevated = elevated; // vegetation: deck footprints keep plants out of bridges / ramps
   city.materials = M; city.groundClaims = builder.groundClaims; city.capStats = builder.capStats; city.sliverStats = builder.sliverStats; // ground-continuity (seam audit)
   try { city.seabed = createSeabed(game, city); } catch (e) { console.warn('[miami] seabed unavailable', e); }
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera

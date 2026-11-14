@@ -13,12 +13,12 @@ export const vegUniforms = {
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
   uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
   // shared wind (copied every frame from game.wind when it exists): direction the air moves to, mean speed, clock of the gust field
-  uVegWindDir: { value: new THREE.Vector2(-1, 0) }, uVegWindSpeed: { value: 3 }, uVegWindT: { value: 0 }, uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
+  uVegWindDir: { value: new THREE.Vector2(-1, 0) }, uVegCam: { value: new THREE.Vector3() }, uVegCamOn: { value: 0 }, uVegWindSpeed: { value: 3 }, uVegWindT: { value: 0 }, uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
 };
 
 const VERT_HEAD = `
 attribute vec3 aWind;
-uniform float uVegTime; uniform float uVegGust; uniform float uLean; uniform float uSway; uniform vec2 uVegWindDir; uniform float uVegWindSpeed; uniform float uVegWindT;
+uniform float uVegTime; uniform float uVegGust; uniform float uLean; uniform float uSway; uniform vec2 uVegWindDir; uniform float uVegWindSpeed; uniform float uVegWindT; uniform vec3 uVegCam; uniform float uVegCamOn;
 float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): palms, shrubs, trees and grass react to one front together
   vec2 d = uVegWindDir; float along = dot(p, d), across = -p.x * d.y + p.y * d.x, s = max(uVegWindSpeed, 0.5), t = uVegWindT;
   float a = sin(6.2831 * ((along - s * 0.9 * t) / 140.0 + 0.13 * sin(across / 90.0)));
@@ -53,7 +53,7 @@ const VERT_BODY = `
 #ifdef USE_INSTANCING
   vegW = instanceMatrix * vegW;
 #endif
-  vegW = modelMatrix * vegW; vVegW = vegW.xyz; vVegDist = distance(vIw, cameraPosition);
+  vegW = modelMatrix * vegW; vVegW = vegW.xyz; vVegDist = distance(vIw, uVegCamOn > 0.5 ? uVegCam : cameraPosition); // the view camera, also in the shadow pass (LOD fades match)
 `;
 const FRAG_HEAD = `
 uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt;
@@ -113,7 +113,9 @@ function localUniforms(o) {
 export function makeVegMaterial(family, o = {}) {
   const u = localUniforms(o);
   let mat;
-  if (family === 'bark') {
+  if (family === 'plain') { // untextured vertex-colour parts (flowers, rocks, pebbles)
+    mat = new THREE.MeshStandardMaterial({ roughness: o.roughness ?? 0.88, metalness: 0, vertexColors: true, side: o.side ?? THREE.DoubleSide });
+  } else if (family === 'bark') {
     const B = barkAtlas();
     mat = new THREE.MeshStandardMaterial({ map: B.map, normalMap: B.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughnessMap: B.roughnessMap, roughness: 1, metalness: 0, vertexColors: true });
   } else {
@@ -122,7 +124,7 @@ export function makeVegMaterial(family, o = {}) {
   }
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => 'veg-' + family;
-  const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' ? null : mat.map, alphaTest: family === 'bark' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });
+  const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' || family === 'plain' ? null : mat.map, alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });
   depth.onBeforeCompile = patch('depth', u);
   depth.customProgramCacheKey = () => 'veg-depth-' + family;
   mat.userData.veg = { family, u, depth };
@@ -140,6 +142,8 @@ export function sharedVegMaterials() {
 
 // per-frame: wind clock and sun (pass a DirectionalLight, or find the strongest one in the scene)
 let _sun = null;
+// view camera for the LOD dither (so shadow-map passes fade exactly like the visible pass)
+export function setVegCamera(cam) { if (cam) { vegUniforms.uVegCam.value.copy(cam.position); vegUniforms.uVegCamOn.value = 1; } }
 export function updateVegetation(t, scene, sun, wind) {
   vegUniforms.uVegTime.value = t;
   if (wind && wind.dir) { vegUniforms.uVegWindDir.value.copy(wind.dir); vegUniforms.uVegWindSpeed.value = wind.speed ?? 3; vegUniforms.uVegWindT.value = wind.time ?? t; }
