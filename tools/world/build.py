@@ -183,7 +183,8 @@ def hook(pt, reach=320.0):   # maproads: 320 m (was 150) so a ramp can stay leve
             if off: RN.ramp(W, q_, t_, pt, RN._dir(q_, pt), region='hwy', tags={'ramp': 'off'})
             else: RN.ramp(W, pt, RN._dir(pt, q_), q_, t_, region='hwy', tags={'ramp': 'on'})
 for k_, ends in (('central', (0, -1)), ('cross_a', (0, -1)), ('cross_b', (0, -1)), ('a1a', (-1,)), ('calabash', (0,)), ('marisol', (0,)), ('west', (0,))):
-    for e_ in ends: hook(ROADS[k_].pts[e_])
+    for e_ in ends:
+        if RN.diamond_end(W, RING, ROADS[k_], e_) is None: hook(ROADS[k_].pts[e_])   # maproads: diamond, no median flyover
 _rc = Point(TR.p2w(862, 639)); RING_ISLAND = None
 _li0, _n0 = ndimage.label(C['inland']); _yy, _xx = np.ogrid[:IH, :1041]
 _near = np.unique(_li0[(np.hypot(_xx - 862, _yy - 639) < 75) & (_li0 > 0)])
@@ -412,7 +413,7 @@ if MR:
                 _paired.add((i1, e1)); _paired.add((i2, e2))
     # the longest roads that end at the ring get their own interchange (4 ramps, as the main roads), at least 1.5 km apart
     _hs = [RING.nearest_s(ROADS[k_].pts[e_]) for k_, ends in (('central', (0, -1)), ('cross_a', (0, -1)), ('cross_b', (0, -1)), ('a1a', (-1,)), ('calabash', (0,)), ('marisol', (0,)), ('west', (0,))) for e_ in ends]
-    _nh = 0; _glen = {}
+    _nh = 0; _glen = {}; _dhook = {}
     for rd_, pts_ in _cands:
         if len(pts_) > 1: _glen[rd_['name']] = _glen.get(rd_['name'], 0) + LineString(pts_).length
     for i_, end_ in sorted([t for t in _rend if t not in _paired], key=lambda t: -_glen.get(_cands[t[0]][0]['name'], 0)):
@@ -426,7 +427,7 @@ if MR:
         if g_ is None or g_.length < 200: continue
         cc_ = list(g_.coords)
         cc_ = (cc_ + [q_]) if math.hypot(cc_[-1][0] - q_[0], cc_[-1][1] - q_[1]) < math.hypot(cc_[0][0] - q_[0], cc_[0][1] - q_[1]) else ([q_] + cc_)
-        _cands[i_][1] = cc_; hook(q_); _hs.append(s_); _paired.add((i_, end_)); _nh += 1
+        _cands[i_][1] = cc_; _dhook[i_] = 0 if cc_[0] == q_ else -1; _hs.append(s_); _paired.add((i_, end_)); _nh += 1
     print('maproads: extra ring interchanges', _nh, flush=True)
     for i_, end_ in _rend:
         if (i_, end_) in _paired: continue
@@ -445,16 +446,17 @@ if MR:
             # an at-grade touch hands the motorway a deck profile (humps, collider gaps)
             g_ = ln_.difference(_ringbuf); _nclip += 1
             for q_ in (g_.geoms if hasattr(g_, 'geoms') else [g_]):
-                if q_.geom_type == 'LineString' and q_.length >= 60: _pieces.append((rd_, list(q_.coords)))
+                if q_.geom_type == 'LineString' and q_.length >= 60: _pieces.append((rd_, list(q_.coords), None))
             continue
-        _pieces.append((rd_, pts_))
+        _pieces.append((rd_, pts_, _dhook.get(i_)))
     print('maproads: traced roads kept off the motorway corridor', _nclip, flush=True)
-    for rd_, pts_ in _pieces:
+    for rd_, pts_, dh_ in _pieces:
         ln_ = LineString(pts_)
         if ln_.length < 40 or ln_.intersects(_avoid): continue
-        W.road(pts_, rd_['kind'] if rd_['kind'] != 'unclassified' else 'residential', rd_['name'], lf=1, lb=1,
+        _nr_ = W.road(pts_, rd_['kind'] if rd_['kind'] != 'unclassified' else 'residential', rd_['name'], lf=1, lb=1,
                oneway=False, surface=rd_.get('surface'), region='maproads', tags={'maproads': 1, 'nolots': 1})
         MAPROADS_KM += ln_.length / 1000; _nmr += 1
+        if dh_ is not None and RN.diamond_end(W, RING, _nr_, dh_) is None: hook(_nr_.pts[dh_])
     print('maproads: traced roads added', _nmr, round(MAPROADS_KM, 1), 'km', flush=True)
 
 # ---------------------------------------------------------------- 5. towns inside the traced urban outlines
@@ -920,6 +922,14 @@ print('maproads: zero deck profiles cleared', _nflat, flush=True)
 # the motorway mainline stays on the ground: elevate() let the ramp humps leak into it (a 1-7 m bump under each interchange,
 # walls where its deck began, collider gaps where the profile sat near 0). Ramps then start from the ground at the gore and
 # climb at most 6 %.
+# deck profiles from elevate() are heights above a flat world (it runs before the terrain exists): on the hills an overpass
+# came out at 6.8 m above sea level, i.e. 1 m over (or under) the road it crosses. Rebase every profile onto the final
+# terrain: absolute = terrain + height above ground. Shared nodes stay shared (same point, same terrain).
+_nreb = 0
+for r in W.roads:
+    if r.y:
+        r.y = [round(hbil(*q_) + v_, 2) for q_, v_ in zip(r.pts, r.y)]; _nreb += 1
+print('maproads: deck profiles rebased onto the terrain', _nreb, flush=True)
 _mbr = set(q_ for r in W.roads if r.kind == 'motorway' and r.bridge for q_ in (r.pts[0], r.pts[-1]))   # water bridges keep their approaches
 _mot = [r for r in W.roads if r.kind == 'motorway' and not r.bridge and r.y and not (r.pts[0] in _mbr or r.pts[-1] in _mbr)]
 _morig = {id(r): r.y for r in _mot}

@@ -1,0 +1,80 @@
+{
+ "invalid_polygons": {
+  "land": 0,
+  "water": 0,
+  "areas": 0
+ },
+ "buildings": 4705,
+ "invalid_buildings": 0,
+ "buildings_in_real_rect": 0,
+ "buildings_off_land": 0,
+ "buildings_on_inland_water": 0,
+ "buildings_overlapping_roads": 0,
+ "buildings_farther_than_90m_from_road": 8,
+ "building_pairs_overlapping": 0,
+ "non_bridge_roads_over_water": {
+  "count": 0,
+  "meters": 0
+ },
+ "road_meters_inside_real_rect": 0,
+ "straight_coast_runs_over_300m_on_rect_line": 0,
+ "straight_coast_where": [],
+ "road_components": 1,
+ "roads": 3863,
+ "road_km": 844.2,
+ "road_km_by_kind": {
+  "motorway": 121.74,
+  "trunk": 98.14,
+  "primary": 44.61,
+  "secondary": 41.67,
+  "motorway_link": 9.74,
+  "tertiary": 248.47,
+  "residential": 238.22,
+  "service": 41.27
+ },
+ "joins": 134,
+ "real_edge_roads": 136,
+ "joins_with_missing_road": 0,
+ "max_deck_grade": 0.1,
+ "deck_segments_over_7pct": 3,
+ "height_max": 341.5,
+ "height_max_step_per_cell": 4.900000000000006,
+ "max_terrain_road_grade": 0.067,
+ "terrain_road_segments_over_8pct": 0,
+ "max_step_between_16m_samples": 4.9,
+ "ground_pairs_2m_step_over_0_8m": 0,
+ "terrain_road_max_grade_8m": 0.107,
+ "terrain_road_segments_over_12_5pct": 0,
+ "banned_name_hits": [],
+ "duplicate_place_names": [],
+ "unnamed_public_roads": 21,
+ "setpieces": [
+  "nico_house",
+  "keys_bar",
+  "keys_sign"
+ ],
+ "setpiece_lots": {
+  "nico_house": {
+   "roads": 0,
+   "buildings": 0,
+   "water": 0,
+   "on_land": true
+  },
+  "keys_bar": {
+   "roads": 0,
+   "buildings": 0,
+   "water": 0,
+   "on_land": true
+  },
+  "keys_sign": {
+   "roads": 0,
+   "buildings": 0,
+   "water": 0,
+   "on_land": true
+  }
+ },
+ "islands": 455,
+ "pois": 896,
+ "poi_types": 99,
+ "hard_failures": {}
+}

@@ -1,28 +1,34 @@
 {
- "build": "b20261114-022610",
- "at": "2026-11-14T09:26:52.014Z",
+ "build": "b20261114-032612",
+ "at": "2026-11-14T10:27:08.040Z",
  "northShoreToCalabash": {
   "ok": true,
-  "routeKm": 31.81,
+  "routeKm": 27.03,
   "crowKm": 17.84,
   "snap": [
    42,
-   5
+   11
   ],
   "via": [
    "North Shore Main Street",
    "Opal Loop",
    "NW 30th Street",
-   "West Line Avenue",
-   "Cypress Belt Parkway",
+   "Sabal Grove Parkway",
+   "Corkwood Road",
+   "Citrus Belt Highway",
+   "Lake Amaro Road",
+   "Pond Apple Trail South",
+   "Coontie Road",
+   "Duck Potato Trail",
+   "Plover Pass",
    "Calabash Causeway"
   ],
   "problems": []
  },
  "northShoreToCalabashPin": {
   "ok": true,
-  "routeKm": 29.2,
-  "crowKm": 16.39,
+  "routeKm": 24.23,
+  "crowKm": 16.3,
   "snap": [
    42,
    0
@@ -31,24 +37,30 @@
    "North Shore Main Street",
    "Opal Loop",
    "NW 30th Street",
-   "West Line Avenue",
-   "Cypress Belt Parkway",
+   "Sabal Grove Parkway",
+   "Corkwood Road",
+   "Citrus Belt Highway",
+   "Lake Amaro Road",
+   "Pond Apple Trail South",
+   "Coontie Road",
+   "Duck Potato Trail",
+   "Plover Pass",
    "Calabash Causeway"
   ],
   "problems": [],
   "to": [
-   -15790,
-   -12890
+   -15607,
+   -12972
   ]
  },
  "places": [
   {
    "ok": true,
-   "routeKm": 2.14,
+   "routeKm": 2.04,
    "crowKm": 1.61,
    "snap": [
     27,
-    0
+    19
    ],
    "via": [
     "East Flagler Street",
@@ -169,7 +181,7 @@
     "West Line Avenue",
     "SW 28th Road",
     "Overseas Highway",
-    "Capstan Run",
+    "Ketch Trail",
     "Jororo Drive",
     "South Shore Main Street"
    ],
@@ -183,11 +195,11 @@
   },
   {
    "ok": true,
-   "routeKm": 5.99,
+   "routeKm": 6.02,
    "crowKm": 3.32,
    "snap": [
     27,
-    24
+    1
    ],
    "via": [
     "East Flagler Street",
@@ -198,7 +210,7 @@
     "Interstate 95",
     "West Line Avenue",
     "SW 28th Road",
-    "Sereno Street",
+    "Sextant Bend",
     "Hibiscus Path",
     "South Shore Outskirts Main Street"
    ],
@@ -228,7 +240,7 @@
     "West Line Avenue",
     "SW 28th Road",
     "Overseas Highway",
-    "Trawler Path",
+    "Calamondin Drive",
     "Sundial Street",
     "Tamarind Key Main Street"
    ],
@@ -325,7 +337,7 @@
   },
   {
    "ok": true,
-   "routeKm": 25.6,
+   "routeKm": 18.58,
    "crowKm": 9.79,
    "snap": [
     27,
@@ -338,12 +350,12 @@
     "I-95",
     "Interstate 95",
     "West Line Avenue",
-    "Cypress Belt Parkway",
-    "Citrus Belt Highway",
+    "Sabal Grove Parkway",
+    "Corkwood Road",
+    "Willow Bustic Road",
     "Lake Amaro Road",
     "Sabal Trail East",
-    "Snapper Terrace",
-    "Calusa Circle"
+    "Snapper Terrace"
    ],
    "problems": [],
    "name": "Port Cassia",
@@ -355,11 +367,11 @@
   },
   {
    "ok": true,
-   "routeKm": 31.63,
+   "routeKm": 31.72,
    "crowKm": 20.07,
    "snap": [
     27,
-    5
+    11
    ],
    "via": [
     "East Flagler Street",
@@ -369,7 +381,11 @@
     "Interstate 95",
     "West Line Avenue",
     "Cypress Belt Parkway",
-    "Calabash Causeway"
+    "Lake Amaro Road",
+    "Pond Apple Trail South",
+    "Coontie Road",
+    "Duck Potato Trail",
+    "Plover Pass"
    ],
    "problems": [],
    "name": "Port Calabash",
@@ -381,7 +397,7 @@
   },
   {
    "ok": true,
-   "routeKm": 22.05,
+   "routeKm": 24.5,
    "crowKm": 14.21,
    "snap": [
     27,
@@ -395,6 +411,8 @@
     "Interstate 95",
     "West Line Avenue",
     "Cypress Belt Parkway",
+    "Beautyberry Trail South",
+    "Tarflower Lane",
     "Marisol Road",
     "Punta Marisol Main Street"
    ],
@@ -408,7 +426,7 @@
   },
   {
    "ok": true,
-   "routeKm": 25.2,
+   "routeKm": 24.91,
    "crowKm": 16.28,
    "snap": [
     27,
@@ -465,7 +483,7 @@
   },
   {
    "ok": true,
-   "routeKm": 17.97,
+   "routeKm": 15.69,
    "crowKm": 11.33,
    "snap": [
     27,
@@ -478,7 +496,8 @@
     "I-95",
     "Interstate 95",
     "West Line Avenue",
-    "Cypress Belt Parkway",
+    "Sabal Grove Parkway",
+    "Corkwood Road",
     "Citrus Belt Highway",
     "Buttonwood Bend",
     "Doldrum Road"
@@ -510,7 +529,7 @@
     "SW 28th Road",
     "Overseas Highway",
     "Tamiami Trail",
-    "Mango Loop",
+    "Tangelo Pass",
     "Lignum Vitae Trail East"
    ],
    "problems": [],
@@ -553,7 +572,7 @@
   },
   {
    "ok": true,
-   "routeKm": 20.82,
+   "routeKm": 20.62,
    "crowKm": 15.76,
    "snap": [
     27,
@@ -657,7 +676,7 @@
     "West Line Avenue",
     "SW 28th Road",
     "Overseas Highway",
-    "Scallop Row",
+    "Sereno Street",
     "Azul Run",
     "Buttonwood Main Street"
    ],
@@ -686,7 +705,7 @@
     "Interstate 95",
     "West Line Avenue",
     "SW 28th Road",
-    "Sereno Street",
+    "Sextant Bend",
     "Hibiscus Path",
     "Pescador Walk",
     "Honeybell Bend"
@@ -701,7 +720,7 @@
   },
   {
    "ok": true,
-   "routeKm": 20.04,
+   "routeKm": 17.77,
    "crowKm": 11.98,
    "snap": [
     27,
@@ -714,12 +733,12 @@
     "I-95",
     "Interstate 95",
     "West Line Avenue",
-    "Cypress Belt Parkway",
+    "Sabal Grove Parkway",
+    "Corkwood Road",
     "Citrus Belt Highway",
     "Lake Amaro Road",
     "Anchor Circle",
-    "Arena Pass",
-    "Honeybell Main Street"
+    "Arena Pass"
    ],
    "problems": [],
    "name": "Honeybell",
@@ -761,7 +780,7 @@
   },
   {
    "ok": true,
-   "routeKm": 3.99,
+   "routeKm": 4.04,
    "crowKm": 2.16,
    "snap": [
     27,
@@ -774,9 +793,8 @@
     "I-95",
     "Interstate 95",
     "West Line Avenue",
-    "Cypress Belt Parkway",
+    "Sereno Bend",
     "Crabwood Lane South",
-    "Whelk Terrace",
     "Calamondin Main Street"
    ],
    "problems": [],
@@ -834,7 +852,7 @@
     "Interstate 95",
     "West Line Avenue",
     "SW 28th Road",
-    "Sereno Street",
+    "Sextant Bend",
     "Hibiscus Path",
     "Pescador Walk",
     "Honeybell Bend"
@@ -866,7 +884,7 @@
     "SW 28th Road",
     "Overseas Highway",
     "Myrsine Drive South",
-    "Tangelo Pass",
+    "Scallop Row",
     "Satsuma Main Street"
    ],
    "problems": [],
@@ -879,7 +897,7 @@
   },
   {
    "ok": true,
-   "routeKm": 24.64,
+   "routeKm": 17.62,
    "crowKm": 8.23,
    "snap": [
     27,
@@ -892,8 +910,9 @@
     "I-95",
     "Interstate 95",
     "West Line Avenue",
-    "Cypress Belt Parkway",
-    "Citrus Belt Highway",
+    "Sabal Grove Parkway",
+    "Corkwood Road",
+    "Willow Bustic Road",
     "Lake Amaro Road",
     "Satsuma Road",
     "Mullet Street"
@@ -993,7 +1012,7 @@
   },
   {
    "ok": true,
-   "routeKm": 25.19,
+   "routeKm": 25.34,
    "crowKm": 9.31,
    "snap": [
     27,

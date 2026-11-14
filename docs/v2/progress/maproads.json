@@ -30,14 +30,14 @@
    "evidence": "docs/v2/reports/maproads-towns.json: 34 of 34"
   },
   {
-   "name": "In-game collider probe along the Calabash route",
-   "state": "built",
-   "evidence": "docs/v2/reports/maproads-drive-probe.json (b20261114-024424): the 8 m collider holes are gone; the steps left are low ramp decks (about 1.6 m) over the motorway lanes at about 20 of the 34 ring interchanges whose ramps are too short to start from the ground"
+   "name": "Interchanges: no lips over 0.15 m (probe across every ramp and the motorway within 450 m)",
+   "state": "todo",
+   "evidence": "docs/v2/reports/maproads-interchange-probe.json (b20261114-032612): 8276 samples, 353 off-height, 103 steps; median-flyover junctions replaced by diamonds (tools/world/wl/roadnet.py diamond_end), deck profiles rebased onto the terrain; remaining problems sit on the hilly west side of the ring (about x -15700, z -4600 to -9600) where a ramp deck is missing (17 m drops) and the lane collider stays flat while the game height sampler follows the slope"
   },
   {
    "name": "GPS North Shore -> Calabash well under 24.6 km",
    "state": "verified",
-   "evidence": "lead: following the map is correct; 29.2 km to ref_63 pin, 31.8 km place to place"
+   "evidence": "24.23 km to ref_63 pin (24.59 before), 27.03 km place to place, after the diamond interchanges"
   },
   {
    "name": "Merge audit clean",

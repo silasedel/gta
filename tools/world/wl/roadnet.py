@@ -592,3 +592,29 @@ def connectivity(roads):
     for i, r in enumerate(roads):
         comp[find(r.pts[0])].append(i)
     return sorted(comp.values(), key=len, reverse=True)
+
+
+def diamond_end(world, mw, road, end=-1, approach=230.0, beyond=200.0, lateral=170.0, reach=320.0, region='hwy'):
+    """A road that ends at a motorway gets a diamond interchange instead of a flyover junction in the median
+    (maproads track, Nov 14): the road's last `approach` m become a crossing road that continues `beyond` m past the
+    motorway and is lifted over both carriageways in one overpass (grade_separate); four ramps run at grade, each from the
+    outer edge of its own carriageway (taper alongside the lanes, 0 m at the gore) to a terminal on the crossing road
+    `lateral` m out, where the crossing road is back on the ground. No ramp climbs beside the lanes, so no lip.
+    Returns the crossing Road, or None (road too short: it is left as is, ending short of the motorway)."""
+    pts = list(road.pts) if end == -1 else list(road.pts)[::-1]
+    ln = LineString(pts)
+    L = ln.length
+    if L < approach + 60:
+        return None
+    pt = pts[-1]
+    q = ln.interpolate(L - approach)
+    d = _dir((q.x, q.y), pt)
+    far = (pt[0] + d[0] * beyond, pt[1] + d[1] * beyond)
+    keep = [r2(p) for p in substring(ln, 0, L - approach).coords]
+    road.pts = keep if end == -1 else keep[::-1]
+    if road.y is not None:
+        road.y = None
+    cross = world.road([r2((q.x, q.y)), r2(pt), r2(far)], road.kind, road.name, ref=road.ref, lf=road.lf, lb=road.lb or road.lf, region=region,
+                       tags={'diamond': 1, 'nolots': 1})
+    diamond(world, mw, cross, reach=reach, lateral=lateral, name='', region=region)
+    return cross
