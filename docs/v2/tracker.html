@@ -41,6 +41,9 @@ h1 span { color: var(--coral); }
 .biglabel { font-family: var(--display); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fog); font-size: 14px; }
 .obar { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--fog); }
+.eta { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .04em; }
+.eta b { color: var(--sand); font-family: var(--mono); font-size: 20px; }
+.eta span { color: var(--fog); font-family: var(--body); font-weight: 400; font-size: 13px; letter-spacing: 0; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
 .bar { position: relative; height: 12px; background: var(--rail); border-radius: 6px; overflow: hidden; }
 .bar.tall { height: 22px; border-radius: 8px; }
@@ -107,18 +110,19 @@ footer { color: var(--fog); font-size: 13px; border-top: 1px solid var(--rail); 
 <div class="wrap" id="app">
   <header>
     <h1>PORT SOLANA <span>V2</span></h1>
-    <div class="sub">Build tracker. Percentages count checklist items that are verified with a test or a screenshot.</div>
+    <div class="sub">Build tracker. Progress counts everything built so far, plus half credit for what is being built right now.</div>
     <div class="live" id="live"><span class="dot"></span><span id="livetxt">connecting</span></div>
   </header>
 
   <div class="overall">
     <div>
-      <div class="biglabel">Overall verified</div>
+      <div class="biglabel">Overall progress</div>
       <div class="big"><span id="ov">0</span><small>%</small></div>
     </div>
     <div class="obar">
       <div class="bar tall" id="obar"><b class="work stripe"></b><b class="built"></b><b class="ver"></b></div>
-      <div class="legend"><span><i style="background:var(--coral)"></i>Verified <b id="lv">0</b></span><span><i style="background:var(--sea)"></i>Built, not yet verified <b id="lb">0</b></span><span><i style="background:var(--sand)"></i>Being built now <b id="lw">0</b></span><span>To do <b id="lt">0</b></span></div>
+      <div class="legend"><span><i style="background:var(--coral)"></i>Built and checked <b id="lv">0</b></span><span><i style="background:var(--sea)"></i>Built <b id="lb">0</b></span><span><i style="background:var(--sand)"></i>Being built now <b id="lw">0</b></span><span>To do <b id="lt">0</b></span></div>
+      <div class="eta">Estimated time left: <b id="eta">working it out</b> <span id="etanote"></span></div>
     </div>
   </div>
 
@@ -174,19 +178,26 @@ function render(d) {
     if (c.n) { sumVer += c.ver / c.n; sumBuilt += c.built / c.n; sumWork += c.work / c.n; items.n += c.n; items.ver += c.ver; items.built += c.built; items.work += c.work; }
   }
   const N = plan.planned.length;
-  $('ov').textContent = (100 * sumVer / N).toFixed(1);
+  const prog = (sumVer + sumBuilt + 0.5 * sumWork) / N; // overall progress, 0..1
+  $('ov').textContent = (100 * prog).toFixed(1);
   setBar($('obar'), { ver: sumVer, built: sumBuilt, work: sumWork }, N);
   $('lv').textContent = fmt(items.ver); $('lb').textContent = fmt(items.built); $('lw').textContent = fmt(items.work); $('lt').textContent = fmt(items.n - items.ver - items.built - items.work);
 
   const start = agents.startedAt ? new Date(agents.startedAt) : null;
   const el = start ? Math.max(0, (new Date(d.at) - start) / 1000) : 0;
   const hh = Math.floor(el / 3600), mm = Math.floor((el % 3600) / 60);
+  // Time left: starts from the lead's estimate of the whole job and leans on the measured pace as more gets built.
+  const elH = el / 3600, prior = Math.max(2, (agents.etaTotalHours || 40) - elH);
+  const paceEta = prog > 0.01 && elH > 0.2 ? elH * (1 - prog) / prog : null;
+  const w = Math.min(1, prog / 0.35), etaH = paceEta == null ? prior : prior * (1 - w) + paceEta * w;
+  $('eta').textContent = prog >= 0.999 ? 'done' : 'about ' + (etaH >= 10 ? Math.round(etaH) : etaH.toFixed(1)) + ' hours';
+  $('etanote').textContent = prog >= 0.999 ? '' : '(rough; it firms up as more gets built)';
   const tiles = [
     ['Lines of code', '<span id="loc">' + fmt(shown.lines || stats.lines) + '</span>', '+' + fmt(stats.addedLines) + ' since v1', 'hot'],
     ['Code files', fmt(stats.files), '+' + fmt(stats.addedFiles) + ' new'],
     ['Agents working', fmt(run.size), fmt(que.size) + ' queued · ' + fmt(fin.size) + ' finished', run.size ? 'hot' : ''],
     ['Agents launched', fmt(agents.launchedTotal || 0), agents.note || ''],
-    ['Checklist items', fmt(items.n), fmt(items.ver) + ' verified'],
+    ['Checklist items', fmt(items.n), fmt(items.ver + items.built) + ' built · ' + fmt(items.ver) + ' checked'],
     ['Test screenshots', fmt(stats.screenshots), 'looked at by agents'],
     ['Asset files', fmt(stats.assets), fmt(stats.assetMB) + ' MB'],
     ['Build time', hh + 'h ' + String(mm).padStart(2, '0') + 'm', fmt(stats.commits) + ' commits'],
@@ -202,15 +213,15 @@ function render(d) {
   for (const s of plan.sections) {
     const ps = plan.planned.filter((p) => p.section === s); if (!ps.length) continue;
     let sv = 0, sb = 0, sw = 0; ps.forEach((p) => { const c = per[p.track]; if (c.n) { sv += c.ver / c.n; sb += c.built / c.n; sw += c.work / c.n; } });
-    html += '<section class="sec"><div class="sechead"><h2>' + esc(s) + '</h2><div class="bar" data-sec="' + esc(s) + '"><b class="work stripe" style="width:' + (100 * (sv + sb + sw) / ps.length) + '%"></b><b class="built" style="width:' + (100 * (sv + sb) / ps.length) + '%"></b><b class="ver" style="width:' + (100 * sv / ps.length) + '%"></b></div><div class="pct">' + (100 * sv / ps.length).toFixed(0) + '%</div></div><div class="rows">';
+    html += '<section class="sec"><div class="sechead"><h2>' + esc(s) + '</h2><div class="bar" data-sec="' + esc(s) + '"><b class="work stripe" style="width:' + (100 * (sv + sb + sw) / ps.length) + '%"></b><b class="built" style="width:' + (100 * (sv + sb) / ps.length) + '%"></b><b class="ver" style="width:' + (100 * sv / ps.length) + '%"></b></div><div class="pct">' + (100 * (sv + sb + 0.5 * sw) / ps.length).toFixed(0) + '%</div></div><div class="rows">';
     for (const p of ps) {
       const c = per[p.track], t = tracks[p.track];
       const st = run.has(p.track) ? 'running' : fin.has(p.track) ? 'done' : que.has(p.track) ? 'queued' : '';
       const label = st === 'running' ? 'agent working' : st === 'done' ? 'agent finished' : st === 'queued' ? 'queued' : 'wave ' + p.wave;
       const k = c.n ? 100 / c.n : 0;
-      html += '<div class="row ' + st + '"><div><div class="t">' + esc((t && t.title) || p.title) + '<span class="pill ' + st + '">' + label + '</span></div><div class="now">' + (c.now ? '<em>Now:</em> ' + esc(c.now) : c.n ? (c.ver === c.n ? 'All items verified' : '') : 'Checklist appears when its agent starts') + '</div></div>'
+      html += '<div class="row ' + st + '"><div><div class="t">' + esc((t && t.title) || p.title) + '<span class="pill ' + st + '">' + label + '</span></div><div class="now">' + (c.now ? '<em>Now:</em> ' + esc(c.now) : c.n ? (c.ver === c.n ? 'All items built and checked' : '') : 'Checklist appears when its agent starts') + '</div></div>'
         + '<div class="bar"><b class="work' + (st === 'running' ? ' stripe' : '') + '" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div>'
-        + '<div class="cnt"><strong>' + (c.n ? Math.round(c.ver * k) : 0) + '%</strong><br>' + c.ver + ' / ' + c.n + ' verified</div></div>';
+        + '<div class="cnt"><strong>' + (c.n ? Math.round((c.ver + c.built + 0.5 * c.work) * k) : 0) + '%</strong><br>' + (c.ver + c.built) + ' / ' + c.n + ' built</div></div>';
     }
     html += '</div></section>';
   }

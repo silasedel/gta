@@ -1,9 +1,37 @@
 {
-  "startedAt": "2026-11-13T16:42:00-07:00",
-  "limit": 20,
-  "running": ["world-osm","world-layout","city-look","design-system","interiors-engine","nico-house","keys-sign","hero-cars","vehicles-core","boats","yachts","aircraft","character","npc-ai","wildlife","police","combat","nav-gps","ui-frontend","core-systems"],
-  "queued": ["story-jobs","audio","environment","multiplayer","desktop"],
-  "done": [],
-  "launchedTotal": 20,
-  "note": "Wave 1: foundations"
+ "startedAt": "2026-11-13T16:42:00-07:00",
+ "limit": 20,
+ "running": [
+  "world-osm",
+  "world-layout",
+  "city-look",
+  "design-system",
+  "interiors-engine",
+  "nico-house",
+  "keys-sign",
+  "hero-cars",
+  "vehicles-core",
+  "boats",
+  "yachts",
+  "aircraft",
+  "character",
+  "npc-ai",
+  "wildlife",
+  "police",
+  "combat",
+  "nav-gps",
+  "ui-frontend",
+  "core-systems"
+ ],
+ "queued": [
+  "story-jobs",
+  "audio",
+  "environment",
+  "multiplayer",
+  "desktop"
+ ],
+ "done": [],
+ "launchedTotal": 20,
+ "note": "Wave 1: foundations",
+ "etaTotalHours": 40
 }
