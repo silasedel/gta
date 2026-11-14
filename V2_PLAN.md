@@ -7,18 +7,18 @@
 - **Version:** `2.0.0-dev` until every gate below passes, then `2.0.0`.
 - **Rule:** nothing is called done until it is verified with screenshots and automated tests, and compared with the references (BIG_UPDATE 0a1c). Progress percentages count verified items only.
 
-## Schedule and budget (user, Nov 13, 5:30 PM)
-- **Finish within 16 hours:** by about 9:30 AM MST on Nov 14.
-- **Usage:** stay under about 82% of the weekly limit (it was 46% all-models, 37% Fable at 5:30 PM). The lead checks usage at every checkpoint and lowers the number of agents if the pace would overshoot.
-- **World:** about half the planned area (see CONTRACT5).
+## Schedule and budget (user, Nov 13, 5:45 PM; replaces the earlier schedule)
+- **Deadline:** 11:00 AM MST on Nov 14.
+- **Usage is the real limit.** Weekly usage was 49% (all models) and 42% (Fable) at 5:34 PM, and 20 Fable agents were burning roughly a point every one to two minutes. The user is not buying more. Target: stop at about 82%.
+- **So v2.0.0 is sized to the budget.** Detail, graphics and texture quality never drop; the amount of content does.
 
-| When (MST) | What |
-|---|---|
-| until 10:00 PM | Wave 1 tracks finish and report |
-| 10:00 PM – 11:00 PM | Lead wires wave 1 into the game, production build, commit and push `v2` |
-| 11:00 PM – 4:00 AM | Wave 2: world render of the merged map, store and building categories, districts, second-pass systems, plus the five queued tracks |
-| 4:00 AM – 7:30 AM | Wave 3: inspection sweeps, automated playthroughs, fixes |
-| 7:30 AM – 9:30 AM | Wave 4: release gates, reference comparisons, v2.0.0 |
+| Phase | Tracks | Model |
+|---|---|---|
+| Now, until 6:30 PM | world-osm (merge), world-layout (the map), city-look (textures, facades), design-system (brands, logos, products), interiors-engine, nico-house, keys-sign, hero-cars, boats, character | Fable 5.2 (the work that needs it most) |
+| Next, from partial work and handoff notes | vehicles-core (no repeating car, driver personalities), npc-ai (no repeating person, personalities), police (evidence HUD), ui-frontend (map, menu), core-systems (save, clock), nav-gps, wildlife (gators, pelicans, dolphins), world render of the new regions, a first set of store types, then integration, inspection and release | Opus 5.5, few agents at a time, usage checked between batches |
+| After the weekly reset (Nov 18, 7 PM MST) → v2.1 | aircraft, yachts, combat overhaul, story campaign and jobs, audio overhaul, weather and water overhaul, multiplayer, desktop app, WebGPU renderer, per-district passes, heists/businesses/events | to be decided with the user |
+
+Paused tracks left handoff notes in `docs/v2/reports/<track>.md` and code that parses but is mostly not wired into the game.
 
 ## How the work is split
 Every track is one agent with its own files, its own preview pages, its own progress file (`docs/v2/progress/<track>.json`) and its own report (`docs/v2/reports/<track>.md`). The lead owns `src/main.js`, wiring, commits and releases. New systems plug in as `*.v2.js` modules, so tracks do not collide.

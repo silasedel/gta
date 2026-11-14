@@ -169,15 +169,16 @@ function barHTML(cls) { return '<div class="bar ' + (cls || '') + '"><b class="w
 
 function render(d) {
   const { plan, agents, stats, tracks } = d;
-  const run = new Set(agents.running || []), que = new Set(agents.queued || []), fin = new Set(agents.done || []);
+  const run = new Set(agents.running || []), que = new Set(agents.queued || []), fin = new Set(agents.done || []), pau = new Set(agents.paused || []);
   // per-track fractions; a planned track with no checklist yet counts as 0 of 1
   let sumVer = 0, sumBuilt = 0, sumWork = 0, items = { n: 0, ver: 0, built: 0, work: 0 };
   const per = {};
+  const live = plan.planned.filter((p) => !p.deferred);
   for (const p of plan.planned) {
     const c = tally(tracks[p.track]); per[p.track] = c;
-    if (c.n) { sumVer += c.ver / c.n; sumBuilt += c.built / c.n; sumWork += c.work / c.n; items.n += c.n; items.ver += c.ver; items.built += c.built; items.work += c.work; }
+    if (c.n && !p.deferred) { sumVer += c.ver / c.n; sumBuilt += c.built / c.n; sumWork += c.work / c.n; items.n += c.n; items.ver += c.ver; items.built += c.built; items.work += c.work; }
   }
-  const N = plan.planned.length;
+  const N = live.length;
   const prog = (sumVer + sumBuilt + 0.5 * sumWork) / N; // overall progress, 0..1
   $('ov').textContent = (100 * prog).toFixed(1);
   setBar($('obar'), { ver: sumVer, built: sumBuilt, work: sumWork }, N);
@@ -195,7 +196,7 @@ function render(d) {
   const tiles = [
     ['Lines of code', '<span id="loc">' + fmt(shown.lines || stats.lines) + '</span>', '+' + fmt(stats.addedLines) + ' since v1', 'hot'],
     ['Code files', fmt(stats.files), '+' + fmt(stats.addedFiles) + ' new'],
-    ['Agents working', fmt(run.size), fmt(que.size) + ' queued · ' + fmt(fin.size) + ' finished', run.size ? 'hot' : ''],
+    ['Agents working', fmt(run.size), fmt(que.size) + ' up next · ' + fmt(fin.size) + ' finished', run.size ? 'hot' : ''],
     ['Agents launched', fmt(agents.launchedTotal || 0), agents.note || ''],
     ['Checklist items', fmt(items.n), fmt(items.ver + items.built) + ' built · ' + fmt(items.ver) + ' checked'],
     ['Test screenshots', fmt(stats.screenshots), 'looked at by agents'],
@@ -212,18 +213,25 @@ function render(d) {
 
   let html = '';
   for (const s of plan.sections) {
-    const ps = plan.planned.filter((p) => p.section === s); if (!ps.length) continue;
+    const ps = plan.planned.filter((p) => p.section === s && !p.deferred); if (!ps.length) continue;
     let sv = 0, sb = 0, sw = 0; ps.forEach((p) => { const c = per[p.track]; if (c.n) { sv += c.ver / c.n; sb += c.built / c.n; sw += c.work / c.n; } });
     html += '<section class="sec"><div class="sechead"><h2>' + esc(s) + '</h2><div class="bar" data-sec="' + esc(s) + '"><b class="work stripe" style="width:' + (100 * (sv + sb + sw) / ps.length) + '%"></b><b class="built" style="width:' + (100 * (sv + sb) / ps.length) + '%"></b><b class="ver" style="width:' + (100 * sv / ps.length) + '%"></b></div><div class="pct">' + (100 * (sv + sb + 0.5 * sw) / ps.length).toFixed(0) + '%</div></div><div class="rows">';
     for (const p of ps) {
       const c = per[p.track], t = tracks[p.track];
       const st = run.has(p.track) ? 'running' : fin.has(p.track) ? 'done' : que.has(p.track) ? 'queued' : '';
-      const label = st === 'running' ? 'agent working' : st === 'done' ? 'agent finished' : st === 'queued' ? 'queued' : 'wave ' + p.wave;
+      const label = st === 'running' ? 'agent working' : st === 'done' ? 'agent finished' : st === 'queued' ? 'up next' : 'planned';
       const k = c.n ? 100 / c.n : 0;
       html += '<div class="row ' + st + '"><div><div class="t">' + esc((t && t.title) || p.title) + '<span class="pill ' + st + '">' + label + '</span></div><div class="now">' + (c.now ? '<em>Now:</em> ' + esc(c.now) : c.n ? (c.ver === c.n ? 'All items built and checked' : '') : 'Checklist appears when its agent starts') + '</div></div>'
         + '<div class="bar"><b class="work' + (st === 'running' ? ' stripe' : '') + '" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div>'
         + '<div class="cnt"><strong>' + (c.n ? Math.round((c.ver + c.built + 0.5 * c.work) * k) : 0) + '%</strong><br>' + (c.ver + c.built) + ' / ' + c.n + ' built</div></div>';
     }
+    html += '</div></section>';
+  }
+  const def = plan.planned.filter((p) => p.deferred);
+  if (def.length) {
+    html += '<section class="sec"><div class="sechead"><h2>After usage resets (v2.1)</h2><div></div><div class="pct"></div></div><div class="now" style="color:var(--fog)">' + esc(plan.scopeNote || '') + '</div><div class="rows">';
+    for (const p of def) { const c = per[p.track], k = c.n ? 100 / c.n : 0;
+      html += '<div class="row"><div><div class="t" style="color:var(--fog)">' + esc((tracks[p.track] && tracks[p.track].title) || p.title) + '<span class="pill">' + (c.n ? 'started, paused' : 'not started') + '</span></div></div><div class="bar"><b class="work" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div><div class="cnt">' + (c.ver + c.built) + ' / ' + c.n + ' built</div></div>'; }
     html += '</div></section>';
   }
   $('sections').innerHTML = html;

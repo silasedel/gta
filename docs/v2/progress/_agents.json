@@ -10,41 +10,51 @@
   "nico-house",
   "keys-sign",
   "hero-cars",
-  "vehicles-core",
   "boats",
-  "yachts",
-  "aircraft",
-  "character",
-  "npc-ai",
-  "wildlife",
-  "police",
-  "combat",
-  "nav-gps",
-  "ui-frontend",
-  "core-systems"
+  "character"
  ],
  "queued": [
-  "story-jobs",
-  "audio",
-  "environment",
-  "multiplayer",
-  "desktop"
+  "vehicles-core",
+  "npc-ai",
+  "police",
+  "ui-frontend",
+  "core-systems",
+  "nav-gps",
+  "wildlife",
+  "stores",
+  "inspection",
+  "release"
  ],
  "done": [],
  "launchedTotal": 20,
- "note": "Wave 1: foundations (due 10 PM)",
- "etaTotalHours": 16.8,
+ "note": "10 on Fable until 6:30 PM, then a cheaper model",
+ "etaTotalHours": 18.3,
  "usage": {
-  "all": 46,
-  "fable": 37,
+  "all": 49,
+  "fable": 42,
   "cap": 82,
-  "at": "5:36 PM",
+  "at": "5:34 PM",
   "log": [
    [
     "17:36",
     46,
     37
+   ],
+   [
+    "17:34",
+    49,
+    42
    ]
   ]
- }
+ },
+ "paused": [
+  "aircraft",
+  "yachts",
+  "combat",
+  "multiplayer",
+  "desktop",
+  "story-jobs",
+  "audio",
+  "environment"
+ ]
 }
