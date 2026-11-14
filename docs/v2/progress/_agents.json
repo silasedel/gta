@@ -3,7 +3,6 @@
  "limit": 20,
  "running": [
   "world-osm",
-  "world-layout",
   "city-look",
   "design-system",
   "interiors-engine",
@@ -11,7 +10,9 @@
   "keys-sign",
   "hero-cars",
   "boats",
-  "character"
+  "character",
+  "world-layout",
+  "keys-bar"
  ],
  "queued": [
   "vehicles-core",
@@ -26,14 +27,14 @@
   "release"
  ],
  "done": [],
- "launchedTotal": 20,
+ "launchedTotal": 21,
  "note": "10 on Fable until 6:30 PM, then a cheaper model",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 49,
-  "fable": 42,
+  "all": 53,
+  "fable": 52,
   "cap": 82,
-  "at": "5:34 PM",
+  "at": "5:44 PM",
   "log": [
    [
     "17:36",
@@ -44,6 +45,11 @@
     "17:34",
     49,
     42
+   ],
+   [
+    "17:44",
+    53,
+    52
    ]
   ]
  },

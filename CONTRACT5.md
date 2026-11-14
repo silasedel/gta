@@ -62,7 +62,7 @@ The V2 world is a condensed Florida-style landmass with **real 1:1 Miami** on it
 | **Central wetlands** | x −6000 … −3800, z 800 … 2300 | Marsh and canals between the airport and the south. |
 | **South suburbs** | x −3700 … 1000, z 2654 … 3200 | A band of canal subdivisions and strip malls below the real city. |
 | **Everglades (condensed)** | x −5600 … −400, z 2900 … 4300 | Sawgrass, mangrove channels, airboat routes, two-lane highway, fishing camp, ranger station, gators. |
-| **The Keys (condensed)** | chain from (500, 4000) curving SW to (−4600, 5700) | First large key **Key Paloma** (Nico's home, about (600, 4550)); small keys and overseas bridges; island town and **Tern Key Airfield** at the far SW end. |
+| **The Keys** | long chain from about (700, 4700) curving SW to (−4700, 7600) | **Key Paloma**: a long, narrow inhabited key about 2 km long (Nico's home on its bay-side upper end); a long overseas bridge to a small mid key; **Tern Key Airfield** and island town at the far SW end. Redrawn Nov 13, 6 PM at the user's request (not compressed). |
 | **North suburbs and strip malls** | x −3700 … 2400, z −3300 … −2654 | Fade from the real city into the inland. |
 | **Lake Amaro** | center (−1100, −3900), ~520 m radius | Inland lake with a shore road, boat ramps, fish camps. |
 | **Citrus Flats (farmland)** | x −5900 … −2700, z −4000 … −1300 | Groves, fields, farm roads, packing houses. |
@@ -70,7 +70,7 @@ The V2 world is a condensed Florida-style landmass with **real 1:1 Miami** on it
 | **Port Cassia (north coastal town)** | around (2100, −4500) | Small second town, marina, main street. |
 | **Barrier beach and islands** | east coast north of Miami Beach, west coast | Sand, dunes, small islands. |
 
-- World bounds including ocean margin: about x −7000 … 5400, z −6000 … 6500. Land is about 10.5 km across; about 10.5 km from the park hills to the airfield island. The landmass shape is **our own**, drawn from real Florida geography; it follows the *arrangement* of the user's concept map (`ref_15`, `ref_25`) but must not trace it.
+- World bounds including ocean margin: about x −7000 … 5400, z −6000 … 8300. Land is about 10.5 km across; about 13 km from the park hills to the airfield island. The landmass shape is **our own**, drawn from real Florida geography; it follows the *arrangement* of the user's concept map (`ref_15`, `ref_25`) but must not trace it.
 - Smaller does not mean thinner: every region keeps its full character (the Everglades has gators and airboats, each town has many different shops). Fewer square meters, same density and quality.
 - Names above are ours. Do not rename them without the lead. New place names must be original (and not a real trademark).
 - Everything outside real Miami is authored by `tools/world/` as OSM-like features and goes through the same tile pipeline, so the same renderer, streamer, road graph, traffic, peds and interiors work everywhere.
