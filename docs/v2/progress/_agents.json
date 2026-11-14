@@ -2,19 +2,15 @@
  "startedAt": "2026-11-13T16:42:00-07:00",
  "limit": 20,
  "running": [
-  "world-osm",
-  "city-look",
   "design-system",
   "nico-house",
-  "keys-sign",
   "character",
   "keys-bar",
-  "world-layout",
-  "interiors-engine"
+  "world-render",
+  "vehicles-core",
+  "npc-ai"
  ],
  "queued": [
-  "vehicles-core",
-  "npc-ai",
   "police",
   "ui-frontend",
   "core-systems",
@@ -26,16 +22,21 @@
  ],
  "done": [
   "boats",
-  "hero-cars"
+  "hero-cars",
+  "city-look",
+  "world-osm",
+  "world-layout",
+  "keys-sign",
+  "interiors-engine"
  ],
- "launchedTotal": 21,
- "note": "10 on Fable until 6:30 PM, then a cheaper model",
+ "launchedTotal": 24,
+ "note": "4 on Fable, 3 on Opus 5.5",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 57,
-  "fable": 60,
+  "all": 59,
+  "fable": 63,
   "cap": 82,
-  "at": "6:00 PM",
+  "at": "6:06 PM",
   "log": [
    [
     "17:36",
@@ -56,6 +57,11 @@
     "18:00",
     57,
     60
+   ],
+   [
+    "18:06",
+    59,
+    63
    ]
   ]
  },

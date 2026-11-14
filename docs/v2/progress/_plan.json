@@ -34,6 +34,13 @@
    "phase": "now"
   },
   {
+   "track": "world-render",
+   "title": "New regions drawn: terrain, land cover, airport",
+   "section": "World",
+   "wave": 2,
+   "phase": "next"
+  },
+  {
    "track": "areas",
    "title": "District and island passes (21 areas)",
    "section": "World",

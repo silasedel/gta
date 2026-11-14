@@ -35,3 +35,9 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - Game name: user wants a GTA-sounding name; nothing chosen (keep title strings in one constant).
 - Tracker: `node tools/v2/tracker-snapshot.mjs 6` then publish_files to slug 58c78707-885c-498b-b557-54dafad71427 (base_version from the last publish; last was 1794616610-cc6a).
 - An empty duplicate artifact (slug 501d327a-db16-476f-9634-7769d22f06e7) exists; delete only if the user asks.
+
+## Update 6:08 PM
+- Usage 59% all / 63% Fable. Finished since: world-osm (merged world live; `tools/osm/.venv/bin/python tools/osm/merge.py` rebuilds in 32 s), world-layout (3 passes; map v3 merged), city-look, keys-sign, interiors-engine (+ wear pass), boats, hero-cars.
+- Still on Fable: design-system adf5305be17e06ad9, nico-house a7a338f5385c2e604, character a4a7b345dea14a7b7 (Nico's shirt looked wrong in a 6 PM game screenshot: check), keys-bar a5bac553f75291b48.
+- Launched on Opus 5.5 high (budget ~70 tool calls each): world-render a8b2953a2aae6fe42 (owns src/world/miami renderer files now), vehicles-core adff2b7285418dd3e, npc-ai a16a16806cb23eb78.
+- Lead to do: move spawn to Nico's house (data.setpieces.nico_house); tell renderer to skip glassFront when sf.v2Facade; drop city-look blade posts (keys-sign places blades); map preview shallow bands look bubbly around islets.
