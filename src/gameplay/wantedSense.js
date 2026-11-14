@@ -283,29 +283,63 @@ export function createSense(game, G, law) {
     return out;
   }
 
-  // ---- traffic cameras: picked once from the road graph (signalized-looking junctions of bigger roads), streamed near the player
-  const TC = { list: [], grid: new Map(), built: false, cursor: 0, models: new Map(), cell: 240, flashT: 0, light: null };
-  const BIG = /primary|secondary|trunk|tertiary/;
+  // ---- traffic cameras: picked once from the road graph, streamed near the player.
+  // Placed the way a real Florida city does it: red-light / speed cameras sit only at big arterial crossings
+  // (primary or trunk meeting another major road) inside the dense urban core, a kilometre or more apart.
+  // Suburbs get very few, rural and island roads get none. Urban density is measured from the road graph itself
+  // (junctions per 500 m cell, 3x3 neighbourhood), and only the densest ~25% of built-up cells qualify.
+  const TC = { list: [], grid: new Map(), built: false, cursor: 0, pass: 0, dens: new Map(), densMin: Infinity, models: new Map(), cell: 240, flashT: 0, light: null };
+  const MAJOR = /primary|trunk/, BIG = /primary|secondary|trunk/;
+  const DCELL = 500, CAM_SPACING = 1300;
+  const nodeEdges = (n, edges) => (n.edges || []).map((k) => (typeof k === 'number' ? edges[k] : k)).filter(Boolean);
+  function densityAt(x, z) {
+    const cx = Math.floor(x / DCELL), cz = Math.floor(z / DCELL); let d = 0;
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) d += TC.dens.get((cx + i) + ',' + (cz + j)) || 0;
+    return d;
+  }
   function trafficCamBuildStep(budget = 1500) {
     const rg = game.city?.roadGraph; if (TC.built || !rg?.nodes) { TC.built = true; return; }
     const nodes = rg.nodes, edges = rg.edges;
     const end = Math.min(nodes.length, TC.cursor + budget);
+    if (TC.pass === 0) { // pass 0: junction density per cell
+      for (let i = TC.cursor; i < end; i++) {
+        const n = nodes[i]; if (!n || (n.edges || []).length < 3) continue;
+        const k = Math.floor(n.x / DCELL) + ',' + Math.floor(n.z / DCELL); TC.dens.set(k, (TC.dens.get(k) || 0) + 1);
+      }
+      TC.cursor = end;
+      if (end >= nodes.length) { // threshold = 75th percentile of the 3x3 density over built-up cells
+        const vals = [];
+        for (const k of TC.dens.keys()) { const [a, b] = k.split(',').map(Number); vals.push(densityAt((a + 0.5) * DCELL, (b + 0.5) * DCELL)); }
+        vals.sort((a, b) => a - b);
+        TC.densMin = Math.max(40, vals[Math.floor(vals.length * 0.75)] || Infinity);
+        TC.pass = 1; TC.cursor = 0;
+      }
+      return;
+    }
     for (let i = TC.cursor; i < end; i++) {
       const n = nodes[i]; if (!n) continue;
-      const ne = (n.edges || []).map((k) => (typeof k === 'number' ? edges[k] : k)).filter(Boolean);
+      const ne = nodeEdges(n, edges);
       if (ne.length < 3) continue;
-      let big = 0, name = [], spd = 50, dir = null;
-      for (const e of ne) { if (BIG.test(e.kind || '')) { big++; if (!dir && e.pts?.length > 1) { const a = e.a === n.id ? e.pts[0] : e.pts[e.pts.length - 1], b = e.a === n.id ? e.pts[1] : e.pts[e.pts.length - 2]; const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; dir = { x: (b[0] - a[0]) / l, z: (b[1] - a[1]) / l }; } spd = Math.max(spd, e.speedKmh || 50); } if (e.name && !name.includes(e.name)) name.push(e.name); if (e.bridge || e.elevated) big = -9; }
-      if (big < 2 || !dir) continue;
-      if (hash(n.id | 0) % 100 > 34) continue; // roughly a third of the eligible junctions carry a camera
+      let major = 0, big = 0, name = [], spd = 0, dir = null, skip = false;
+      for (const e of ne) {
+        const k = e.kind || '';
+        if (e.bridge || e.elevated || /motorway|_link/.test(k)) skip = true;
+        if (BIG.test(k)) { big++; if (MAJOR.test(k)) major++; if (!dir && e.pts?.length > 1) { const a = e.a === n.id ? e.pts[0] : e.pts[e.pts.length - 1], b = e.a === n.id ? e.pts[1] : e.pts[e.pts.length - 2]; const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; dir = { x: (b[0] - a[0]) / l, z: (b[1] - a[1]) / l }; } spd = Math.max(spd, e.speedKmh || 50); }
+        if (e.name && !name.includes(e.name)) name.push(e.name);
+      }
+      if (skip || !dir || major < 1 || big < 3 || spd > 75) continue; // a real arterial crossing (both roads through), not a highway
+      if (name.length < 2) continue;                                   // two different named roads actually cross here
+      if (densityAt(n.x, n.z) < TC.densMin) continue;                  // dense urban core only: no cameras in suburbs, rural areas or the Keys
+      if (hash(n.id | 0) % 100 > 45) continue;                         // not every qualifying crossing has one
+      if (TC.list.some((c) => Math.hypot(c.x - n.x, c.z - n.z) < CAM_SPACING)) continue;
       const cx = Math.floor(n.x / TC.cell), cz = Math.floor(n.z / TC.cell), key = cx + ',' + cz;
-      if (TC.grid.has(key)) continue;            // at most one per 240 m cell
+      if (TC.grid.has(key)) continue;
       const w = Math.max(...ne.map((e) => e.width || 8));
-      const cam = { id: 'tc' + n.id, node: n, x: n.x, z: n.z, dir, name: `Traffic camera, ${name.slice(0, 2).join(' & ') || 'junction ' + n.id}`, limit: spd, px: n.x + dir.x * (w * 0.5 + 6) - dir.z * (w * 0.5 + 2.2), pz: n.z + dir.z * (w * 0.5 + 6) + dir.x * (w * 0.5 + 2.2), cd: 0, hitCd: 0 };
+      const cam = { id: 'tc' + n.id, node: n, x: n.x, z: n.z, dir, name: `Traffic camera, ${name.slice(0, 2).join(' & ')}`, limit: spd, px: n.x + dir.x * (w * 0.5 + 6) - dir.z * (w * 0.5 + 2.2), pz: n.z + dir.z * (w * 0.5 + 6) + dir.x * (w * 0.5 + 2.2), cd: 0, hitCd: 0 };
       TC.grid.set(key, cam); TC.list.push(cam);
       registerCamera({ id: cam.id, kind: 'traffic', name: cam.name, position: { x: cam.px, y: 5.2, z: cam.pz }, range: 30, uploads: 'remote', quality: 0.98 });
     }
-    TC.cursor = end; if (end >= nodes.length) TC.built = true;
+    TC.cursor = end; if (end >= nodes.length) { TC.built = true; game.trafficCams = TC.list; console.info(`[traffic cams] ${TC.list.length} placed (density >= ${TC.densMin})`); }
   }
   function trafficCamsNear(x, z, r) {
     const out = [], c0 = Math.floor((x - r) / TC.cell), c1 = Math.floor((x + r) / TC.cell), d0 = Math.floor((z - r) / TC.cell), d1 = Math.floor((z + r) / TC.cell);
