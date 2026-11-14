@@ -121,6 +121,47 @@ export async function initV2(game) {
 
   const _p = new THREE.Vector3();
   let vehN = 0;
+  // charring (playtest X2): a burning wreck's paint, plastic and glass darken to soot over about 12 s.
+  // Materials are cloned once per wreck so other cars that share them are untouched.
+  const SOOT = new THREE.Color(0x15110e);
+  function charWreck(v, k) {
+    if (!v._psChar) {
+      v._psChar = [];
+      v.mesh.traverse((o) => {
+        if (!o.isMesh || !o.material || Array.isArray(o.material)) {
+          return;
+        }
+        const m = o.material.clone();
+        o.material = m;
+        v._psChar.push({
+          m,
+          color: m.color ? m.color.clone() : null,
+          rough: m.roughness,
+          metal: m.metalness,
+          emissive: m.emissive ? m.emissive.clone() : null,
+        });
+      });
+    }
+    if (Math.abs((v._psCharK || 0) - k) < 0.02) {
+      return;
+    }
+    v._psCharK = k;
+    for (const e of v._psChar) {
+      if (e.color) {
+        e.m.color.copy(e.color).lerp(SOOT, 0.85 * k);
+      }
+      if (e.rough !== undefined) {
+        e.m.roughness = e.rough + (0.95 - e.rough) * k;
+      }
+      if (e.metal !== undefined) {
+        e.m.metalness = e.metal * (1 - 0.8 * k);
+      }
+      if (e.emissive) {
+        // dead lights: headlights and dash go dark
+        e.m.emissive.copy(e.emissive).multiplyScalar(1 - k);
+      }
+    }
+  }
   function update(dt) {
     hideT -= dt;
     if (hideT <= 0) {
@@ -158,6 +199,7 @@ export async function initV2(game) {
         v.mesh.localToWorld(_p);
         // the fire grows for a few seconds, then settles as it burns out
         const age = 25 - v.burnT;
+        charWreck(v, Math.min(1, age / 12));
         const size = 0.7 + 0.6 * Math.min(1, age / 4) - 0.35 * Math.max(0, (age - 16) / 9);
         sys.burn('v' + v._psId, _p, size);
       } catch (e) {

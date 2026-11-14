@@ -198,6 +198,31 @@ const PLAYER = {
   threat: ['Give me your wallet.', 'Walk away before you get hurt.', 'You want problems?'],
   bye: ['See you around.', 'Take care.', 'Later.'],
 };
+// follow-up openers when the player comes back within about 90 s (short-term memory, playtest P6)
+const FOLLOW_UP = {
+  afterRude: [
+    'You again? After what you just said?',
+    'Seriously? You just insulted me. Walk away.',
+    'Oh, now you want to talk? No.',
+    'Round two? I don\'t think so.',
+    'Still here? You said enough already.',
+  ],
+  afterKind: [
+    'Back again? Okay, you\'re sweet, I\'ll give you that.',
+    'Hi again! Still smiling about what you said.',
+    'Oh, it\'s you again. Hi.',
+  ],
+  afterDirections: [
+    'Lost again already? It\'s the way I pointed.',
+    'Did you find it? No? Okay, listen this time.',
+  ],
+  again: [
+    'Hey, we just talked. What else?',
+    'Back so soon? What\'s up?',
+    'Forgot something?',
+  ],
+};
+
 const OPTIONS = [
   { key: 'greet', label: 'Greet' },
   { key: 'compliment', label: 'Compliment' },
@@ -389,11 +414,37 @@ export function createTalk(game, people) {
     ped.pending = null;
     ped.leaveGroup = true;
     ped.stateT = 60;
-    const mem = memory.get(ped.identity.id) || { talks: 0, rude: false, warm: 0, last: 0 };
+    const mem = memory.get(ped.identity.id) || ped._talkMem || { talks: 0, rude: false, warm: 0, last: 0 };
     memory.set(ped.identity.id, mem);
-    say(ped, compose(ped, 'greet', {}));
+    ped._talkMem = mem;
+    // short-term memory (playtest P6): talking again right after a conversation picks up where it left off
+    const now = game.clock?.elapsed ?? 0;
+    const since = mem.talks > 0 ? now - (mem.endedAt ?? mem.last) : 1e9;
+    let opener = null;
+    if (since < 90) {
+      if (mem.lastTopic === 'insult' || mem.lastTopic === 'threat') {
+        opener = pick(FOLLOW_UP.afterRude, '');
+        ped.mood = clamp((ped.mood ?? 0.5) - 0.08);
+      } else if (mem.lastTopic === 'compliment') {
+        opener = pick(FOLLOW_UP.afterKind, '');
+      } else if (mem.lastTopic === 'directions') {
+        opener = pick(FOLLOW_UP.afterDirections, '');
+      } else {
+        opener = pick(FOLLOW_UP.again, '');
+      }
+    }
+    say(ped, opener || compose(ped, 'greet', {}));
     mem.talks++;
-    mem.last = game.clock?.elapsed ?? 0;
+    mem.last = now;
+    // someone who was just insulted does not stand around for a second round
+    if (opener && (mem.lastTopic === 'insult' || mem.lastTopic === 'threat') && since < 30) {
+      convo.shortFuse = true;
+      setTimeout(() => {
+        if (convo?.ped === ped && !convo.out && convo.choices === 0) {
+          end(ped.identity.traits.temper > 0.6 && ped.identity.traits.courage > 0.45 ? 'swing' : 'leave');
+        }
+      }, 3500);
+    }
     showWheel(ped);
     game.cameraOverride = cameraTwoShot;
     try { game.emit?.('npcTalk', { phase: 'start', name: ped.identity.name }); } catch (e) { /* */ }
@@ -408,6 +459,9 @@ export function createTalk(game, people) {
     const id = ped.identity;
     const T = id.traits;
     const mem = memory.get(id.id);
+    if (o.key !== 'bye' || !mem.lastTopic) {
+      mem.lastTopic = o.key;
+    }
     const place = o.key === 'directions' ? nearbyPlace(ped) : null;
     const vars = {
       item: itemOf(ped),
@@ -474,6 +528,15 @@ export function createTalk(game, people) {
   function end(outcome = 'leave') {
     if (!convo) return;
     const ped = convo.ped;
+    try {
+      const m = memory.get(ped.identity?.id) || ped._talkMem;
+      if (m) {
+        m.endedAt = game.clock?.elapsed ?? 0;
+        m.lastOutcome = outcome;
+      }
+    } catch (e) {
+      // memory is best effort
+    }
     convo.out = true;
     wheel.style.display = 'none';
     ped.pointAt = null;

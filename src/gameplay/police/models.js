@@ -21,7 +21,7 @@ export function buildWitnessMarker(THREE) {
   const c = document.createElement('canvas'); c.width = c.height = 96;
   const g = c.getContext('2d');
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: true, depthWrite: false, transparent: true }) /* occluded by buildings and roofs (playtest P2) */;
   const sprite = new THREE.Sprite(mat); sprite.scale.setScalar(0.62); sprite.renderOrder = 999; sprite.userData.ownTex = true;
   let last = -1, lastMode = '';
   function set(k, mode = 'call') {
@@ -52,7 +52,7 @@ export function buildWitnessMarker(THREE) {
 export function buildTrafficCamera(THREE, o = {}) {
   const r = rng(o.seed || 11), group = new THREE.Group();
   const cabTex = canvasTex('tc:cab', 128, 160, (g, w, h) => { g.fillStyle = '#8f979c'; g.fillRect(0, 0, w, h); grain(g, w, h, { a: 0.1, streaks: 8, scuffs: 10 }); g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 2; g.strokeRect(8, 8, w - 16, h - 16); for (let i = 0; i < 7; i++) { g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(24, 26 + i * 7, w - 48, 3); } g.fillStyle = '#16181c'; g.fillRect(w - 26, h / 2 - 8, 10, 16); g.fillStyle = PSPD.navy; g.fillRect(18, h - 44, 52, 22); g.fillStyle = '#fff'; g.font = 'bold 13px Arial'; g.fillText('PSPD', 24, h - 28); });
-  const signTex = canvasTex('tc:sign', 256, 160, (g, w, h) => { g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, w, h); g.strokeStyle = '#16181c'; g.lineWidth = 8; g.strokeRect(8, 8, w - 16, h - 16); g.fillStyle = '#16181c'; g.textAlign = 'center'; g.font = '900 44px Arial'; g.fillText('PHOTO', w / 2, 66); g.fillText('ENFORCED', w / 2, 116); g.font = 'bold 15px Arial'; g.fillText('PORT SOLANA TRAFFIC DIVISION', w / 2, 142); grain(g, w, h, { a: 0.08, streaks: 5, scuffs: 6 }); }, { clamp: true });
+  const signTex = canvasTex('tc:sign', 256, 160, (g, w, h) => { g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, w, h); g.strokeStyle = '#16181c'; g.lineWidth = 8; g.strokeRect(8, 8, w - 16, h - 16); g.fillStyle = '#16181c'; g.textAlign = 'center'; g.font = '900 44px Arial'; g.fillText('PHOTO', w / 2, 66); g.fillText('ENFORCED', w / 2, 116); g.font = 'bold 15px Arial'; g.fillText('SOUTHLINE TRAFFIC DIVISION', w / 2, 142); grain(g, w, h, { a: 0.08, streaks: 5, scuffs: 6 }); }, { clamp: true });
   const galv = M.galv, dark = M.dark;
   // mast with base plate, bolts and a control cabinet
   group.add(mesh(cyl(0.085, 0.11, 5.6, 14), galv, 0, 2.8, 0));

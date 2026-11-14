@@ -185,3 +185,46 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
   - The closest pair was 0.58 m apart.
   - 0 pairs were under 0.45 m, and 0 people were inside the player.
 - **Cost:** `peds.update` averaged 2.1 ms at the cluster and 1.1 ms at an empty spot. The two runs are not comparable (people near the player do more work), and the separation pass on its own was not timed.
+
+## Playtest round 2 (Nov 13, about 23:40): P1-P7, overpass pop-up, empty downtown, people on decks
+**Machine load was 36-79 for every measurement in this round, so all timings are unreliable.** The dev server on 5200 also kept reloading because other agents were saving files, and once it would not boot at all (a 500 error from `nico/index.js`). The last runs used a production snapshot served on port 5225.
+
+### Changes
+- **P1, freezes on the first shot and the first car entry.** New file `src/render/warmup.v2.js`. Behind the loading screen it does the following:
+  - builds every gun model once;
+  - fires a real pistol shot;
+  - triggers every gunfx effect (impacts, blood, sparks, dust, decals, tracer, shockwave, splash) and the fire system 600 m below the street;
+  - tries to seat the player in the nearest car, then restores the spawn, weapon, ammo and clip when the game is ready;
+  - after load, recompiles the whole scene in the background (`compileAsync`) at 0.4 s and 15 s, to cover cars and set pieces that stream in later.
+
+  Measured with `firstuse.mjs`. The "before" run used dev at load ~42; the "after" run used the snapshot at load ~79.
+
+  | Event | New shader programs, before → after | Worst frame, before → after | Note |
+  |---|---|---|---|
+  | First shot | 5 → 3 | 567 → 1,767 ms | before: the first shot errored |
+  | Second shot | 15 → 1 | 3,683 → 333 ms | |
+  | First car entry | 11 → 15 | 8,450 → 6,900 ms | |
+
+  - The car-entry programs were car wear shaders (`ps-wear-v2`) and Keys bar materials. The in-car warm-up did not run, because no cars exist yet while v2 modules load. The background recompile was added for that case and is **not measured yet**.
+- **P2, camera through roofs.** In `src/main.js`, the camera now also raycasts against the render geometry of set pieces near the player (`game.nicoHouse.group`, `game.keysBar.group`, `game.cameraOccluders`). This catches roof overhangs, eaves and porch roofs that have no collider. Markers now respect depth (`src/gameplay/util.js`, `src/gameplay/police/models.js`). **Not verified** in a shot. The raycast cost against the house mesh was not measured.
+- **P3, people fading up close.** `src/npc/people.v2.js`: a crowd-tier person close to the player is only handed over or faded once out of view, never while visible. **Not verified** in a shot.
+- **P4, hovering square under a woman.** Beach loungers and their towels now sit on the physics surface: a downward ray from 3 m above the navigation ground, ignoring dynamic and kinematic bodies. **Unverified:** I could not find the reported scene.
+- **P5, male voice for a woman.** In `src/npc/peds.js`, peds now expose `gender` and `female`, taken from the body worn and then the identity. The pain and death voices in `src/core/audio.js` read these instead of a random 50/50 pick.
+- **P6, conversation memory.** In `src/npc/talk.js`, talking to someone again within about 90 s opens with a follow-up line based on the last topic: insult or threat, compliment, directions, or anything else. Within 30 s of an insult, the person walks off or swings after 3.5 s. Memory is also kept on the ped object, so it survives an identity swap.
+- **Overpass pop-up.** The player's "fell below ground" rescue queried the ground with a hint 30 m above, which returned the overpass deck. It now queries at the feet's own level (`src/main.js`). The ped ground query in `src/npc/peds.js` now also passes a feet-level hint instead of none. **Not checked:** walking or driving under an overpass in a headless test.
+- **People on decks and highways.**
+  - A walker standing more than 2.5 m above street level is despawned.
+  - New `spotOK()` in `peds.js`, exposed on `_nav`. It rejects spawn spots inside a carriageway, within 6 m of a motorway, link, bridge or fast road, and anywhere an elevated deck sits above the street.
+  - Used by near-ped spawns, crowd walkers and crowd groups.
+  - Trunk roads (Biscayne Blvd) keep their sidewalks.
+- **Empty downtown.**
+  - Near peds now spawn within 60 m (75% of spawns) or 110 m, instead of 95 or 165 m, so they are close enough to be seen.
+  - The 11:45 probe at Downtown (-2700, 450) on the snapshot found 0 near peds, 4 crowd people and 0 cars within 150 m. That was at 10 fps and load 79, before the new code was in the snapshot. **Unresolved:** the body library may simply not have loaded under that load. Needs a re-run at normal load.
+- **X2, car fire.** Burning wrecks now char: paint, plastic and glass go to soot over about 12 s and the lights die. Materials are cloned per wreck. This adds to the real flames, smoke and light from earlier.
+
+### Not done (other owners or out of budget)
+- **Fences and small props that break (X1, cars inside props):** city-look props and vehicles-core physics.
+- **Traffic on elevated highways, and stalled or parked cars in lanes:** vehicles-core. Both need its traffic spawner and stuck-car recovery.
+- **Crosswalk and footway navigation from OSM:** large; npc-ai or npc-life.
+- **`src/npc/streetlife.js:98`:** still calls `groundHeightAt(x, z)` without a height hint, so it can return deck heights. Its owner should pass a feet-level hint.
+- **P7, spawn sweep, and the headless proofs requested:** MacArthur Causeway and I-95 counts, overpass walk and drive, downtown crosswalk shot. Not done; the machine load made every in-game run unreliable.

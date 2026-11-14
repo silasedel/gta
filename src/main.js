@@ -226,9 +226,11 @@ async function boot() {
         }
       }
     }
+    // W walks, Shift runs, Shift held for 1.5 s while moving breaks into the sprint (character track, pass 10)
     const sprintKey = inp.down('ShiftLeft');
-    st.sprint = hasInput && sprintKey && !swim;
-    const walk = inp.down('AltLeft') || inp.down('ControlLeft');
+    st.shiftT = sprintKey && hasInput ? (st.shiftT || 0) + dt : 0;
+    st.sprint = hasInput && sprintKey && st.shiftT > 1.5 && !swim;
+    const walk = !sprintKey || inp.down('AltLeft') || inp.down('ControlLeft');
     let target = hasInput ? (swim ? (sprintKey ? 3.0 : 1.8) : st.sprint ? 7.2 : walk ? 1.7 : 4.2) : 0;
     if (!swim && game.city?.bushAt) { // pushing through bushes and flower beds: slower, no sprinting through the middle
       const bd = game.city.bushAt(t0.x, t0.z, 0.25);

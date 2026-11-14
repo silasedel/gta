@@ -201,7 +201,7 @@ export function makeMarker(text, color = '#ff4d5e', size = 0.6) {
   g.lineWidth = 4; g.strokeStyle = '#fff'; g.stroke();
   g.fillStyle = '#fff'; g.font = 'bold 40px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 32, 35);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }); _markerMats.set(mk, mat);
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: true, depthWrite: false, transparent: true }) /* occluded by buildings and roofs (playtest P2) */; _markerMats.set(mk, mat);
   const s = new THREE.Sprite(mat);
   s.scale.setScalar(size); s.renderOrder = 999;
   return s;

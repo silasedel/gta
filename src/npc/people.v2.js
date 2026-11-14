@@ -298,6 +298,31 @@ export async function initV2(game) {
     return { cadence, amp };
   }
   const _fwd = new THREE.Vector3();
+  const _rayO = { x: 0, y: 0, z: 0 };
+  const _rayD = { x: 0, y: -1, z: 0 };
+  function surfaceY(x, z, hint) {
+    try {
+      const R = game.RAPIER;
+      const W = game.world;
+      if (!R || !W) {
+        return hint;
+      }
+      _rayO.x = x;
+      _rayO.y = hint + 3;
+      _rayO.z = z;
+      const hit = W.castRay(new R.Ray(_rayO, _rayD), 8, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | (R.QueryFilterFlags.EXCLUDE_KINEMATIC || 0) | R.QueryFilterFlags.EXCLUDE_SENSORS);
+      if (hit && Number.isFinite(hit.timeOfImpact)) {
+        const y = _rayO.y - hit.timeOfImpact;
+        // trust the physics ground only when it is close to the navigation ground (not a roof or a pier above)
+        if (Math.abs(y - hint) < 1.2) {
+          return y;
+        }
+      }
+    } catch (e) {
+      // keep the hint
+    }
+    return hint;
+  }
   function spawnWalker(cam, beachy) {
     // denser near the viewer and in front of the camera (people behind you are never seen)
     game.camera.getWorldDirection(_fwd);
@@ -308,6 +333,7 @@ export async function initV2(game) {
       const r = crowdCfg.near + 12 + Math.pow(Math.random(), 1.4) * (crowdCfg.far - crowdCfg.near - 25);
       const q = lounger ? NAV.sandPoint(cam, r) : shoreWalker ? NAV.sandPoint(cam, r, true) : NAV.sidewalkNear(cam, r);
       if (!q) continue;
+      if (NAV.spotOK && !NAV.spotOK(q.x, q.z)) continue; // never on a carriageway, highway, bridge or deck
       const dx = q.x - cam.x, dz = q.z - cam.z, dl = Math.hypot(dx, dz) || 1, dot = (dx * _fwd.x + dz * _fwd.z) / dl;
       // far away: prefer in front (where people are seen); closer: prefer behind or beside the camera, so nobody
       // appears in plain sight
@@ -327,6 +353,8 @@ export async function initV2(game) {
     crowd.setFade(i, 0);
     crowd.setLook(i, crowdLook(L));
     if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
+      // sit on the surface that is really there (physics ground), so neither the person nor the towel hovers (playtest P4)
+      w.gy = surfaceY(w.pos.x, w.pos.z, w.gy);
       const pose = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.volley, POSE.sip][(Math.random() * 12) | 0];
       w.pose = pose; crowd.setPose(i, pose, pose === POSE.talk || pose === POSE.volley ? 2.2 : 1, w.phase, 1);
       crowd.setTransform(i, w.pos.x, w.gy, w.pos.z, w.heading, L.height, pose === POSE.lie || pose === POSE.lieFront ? 1.5 : 1);
@@ -413,7 +441,7 @@ export async function initV2(game) {
       return 0;
     }
     const g = spots.group(q.x, q.z, 0, 30);
-    if (!g || Math.hypot(g.x - cam.x, g.z - cam.z) < crowdCfg.near + 6) {
+    if (!g || Math.hypot(g.x - cam.x, g.z - cam.z) < crowdCfg.near + 6 || (NAV.spotOK && !NAV.spotOK(g.x, g.z))) {
       return 0;
     }
     spots.take(g.key);
@@ -646,9 +674,19 @@ export async function initV2(game) {
     }
     return false;
   }
+  const _frus = new THREE.Frustum();
+  const _pm = new THREE.Matrix4();
+  const _sp = new THREE.Sphere(new THREE.Vector3(), 1.2);
+  function inViewXZ(x, y, z) {
+    _sp.center.set(x, y, z);
+    return _frus.intersectsSphere(_sp);
+  }
   function updateCrowd(dt) {
     if (!crowd || !NAV) return;
     const cam = game.camera?.position; if (!cam) return;
+    game.camera.updateMatrixWorld();
+    _pm.multiplyMatrices(game.camera.projectionMatrix, game.camera.matrixWorldInverse);
+    _frus.setFromProjectionMatrix(_pm);
     crowdFrame++;
     const fps = game.perf?.fps || 60;
     const dens = streetDensity(zoneKey(NAV.zoneAt(cam.x, cam.z)), districtAt(cam.x, cam.z), hour());
@@ -676,7 +714,11 @@ export async function initV2(game) {
       const w = walkers[n];
       const d = Math.hypot(w.pos.x - cam.x, w.pos.z - cam.z);
       // leaving (too close for the crowd tier, too far, or over the target): fade out over about half a second
-      if (!w.leaving && (d < (w.still || w.shore ? 14 : crowdCfg.near) || d > crowdCfg.far + 10 || excess > 0)) {
+      // never fade someone out close to the player while they can be seen (playtest P3): a person who comes within
+      // the near range keeps walking until they are out of view, and only then hands over
+      const tooNear = d < (w.still || w.shore ? 14 : crowdCfg.near);
+      const seen = inViewXZ(w.pos.x, w.gy + 1, w.pos.z);
+      if (!w.leaving && ((tooNear && !seen) || d > crowdCfg.far + 10 || (excess > 0 && !(d < 60 && seen)))) {
         if (excess > 0) {
           excess--;
         }
