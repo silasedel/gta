@@ -107,11 +107,16 @@ export function buildShop(hk, s, lod = 0) {
     for (let i = 0; i < uv.count; i++) { uv.setX(i, c.u0 + uv.getX(i) * (c.u1 - c.u0)); uv.setY(i, c.v0 + uv.getY(i) * (c.v1 - c.v0)); }
     B.geo(s.signMat, g, M(x, y, z, 0, ry), {});
   }
-  function win(x, y0, z, ww, wh, ry, k) {   // punched window: frame, sill, glass (lit at night), on a side or upper wall
+  function win(x, y0, z, ww, wh, ry, k) {   // punched window set deep: projecting surround (jambs, lintel, sill) so the glass sits 0.16 m back
     const lit = ((s.seed >> (k & 7)) & 1) && r() < 0.8 ? 0.4 + r() * 0.6 : 0, cur = [0xe8dcc0, 0xf2eee4, 0xd8c8a0, 0xc8d8e0, 0xe8c8b0][(r() * 5) | 0];
-    B.box(SG, ww, wh, 0.03, M(x, y0 + wh / 2, z, 0, ry), { color: cur, wear: rw(lit * 0.8) });
-    if (L1) { B.box(STU, ww + 0.2, 0.08, 0.14, M(x, y0 - 0.04, z, 0, ry).multiply(M(0, 0, 0.05)), { color: trim, wear: 0.3 }); B.box(STU, ww + 0.16, 0.12, 0.06, M(x, y0 + wh + 0.06, z, 0, ry).multiply(M(0, 0, 0.03)), { color: trim, wear: 0.3 }); }
-    if (L0) B.box(MET, 0.03, wh, 0.04, M(x, y0 + wh / 2, z, 0, ry).multiply(M(0, 0, 0.02)), { color: 0xf0f0ec });
+    const P = (lx, ly, lz) => M(x, y0, z, 0, ry).multiply(M(lx, ly, lz)), dep = 0.17, stone = s.facade === 'brick' || s.facade === 'stone' ? 0xe6dfd0 : trim;
+    B.box(SG, ww, wh, 0.03, P(0, wh / 2, 0.01), { color: cur, wear: rw(lit * 0.8) });
+    if (!L1) return;
+    for (const sx of [-1, 1]) B.box(STU, 0.12, wh + 0.08, dep, P(sx * (ww / 2 + 0.06), wh / 2, dep / 2), { color: trim, wear: 0.25 });       // jambs / reveals
+    B.box(STU, ww + 0.42, 0.2, dep + 0.04, P(0, wh + 0.1, (dep + 0.04) / 2), { color: stone, wear: 0.25 });                                   // lintel
+    B.box(STU, ww + 0.38, 0.08, dep + 0.1, P(0, -0.04, (dep + 0.1) / 2), { color: stone, wear: 0.35 });                                        // sill
+    if (L0) { B.box(STU, ww + 0.2, 0.06, 0.05, P(0, -0.11, 0.05), { color: stone }); B.box(MET, 0.03, wh, 0.04, P(0, wh / 2, 0.03), { color: 0xf0f0ec }); B.box(MET, ww, 0.03, 0.04, P(0, wh * 0.62, 0.03), { color: 0xf0f0ec });
+      if (s.facade !== 'brick' && ww > 0.8) B.box(STU, 0.16, 0.24, 0.06, P(0, wh + 0.12, dep + 0.05), { color: stone }); }                // keystone
   }
   function storefront() {
     const kick = 0.5, gy0 = kick, gy1 = signY0 - 0.25, doorW = front === 'wide' ? 1.8 : 1.0, doorU = front === 'narrow' ? (r() < 0.5 ? -1 : 1) * (w / 2 - 1.2) : (r() < 0.7 ? 0 : (r() < 0.5 ? -1 : 1) * w * 0.25);
@@ -159,6 +164,11 @@ export function buildShop(hk, s, lod = 0) {
     for (let k = 0; k < n; k++) { const x = x0 + (w / n) * (k + 0.5); win(x, y0, z1 + 0.01, w / n * 0.5, 1.5, 0, k + fl * 3); if (L1 && s.shutters) for (const sx of [-1, 1]) box(PAINT, w / n * 0.26, 1.55, 0.04, x + sx * (w / n * 0.39), y0 + 0.75, z1 + 0.04, { color: acc, wear: 0.3 }); }
     if (s.balcony && L1) { box(CONC, w * 0.5, 0.12, 0.9, 0, fl * FL + 0.1, z1 + 0.45, { color: trim }); for (let x = -w * 0.25; x <= w * 0.25 + 0.01; x += L0 ? 0.12 : w * 0.5) box(MET, L0 ? 0.02 : w * 0.5, 0.9, L0 ? 0.02 : 0.01, L0 ? x : 0, fl * FL + 0.6, z1 + 0.88, { color: 0x1a1a1a }); box(MET, w * 0.5, 0.04, 0.04, 0, fl * FL + 1.05, z1 + 0.88, { color: 0x1a1a1a }); }
     box(STU, w + 0.1, 0.12, 0.12, 0, fl * FL + 0.05, z1 + 0.05, { color: trim, wear: 0.25 });   // floor band
+    if (L1) for (let k = 0; k < n; k++) { const x = x0 + (w / n) * (k + 0.5), ww = w / n * 0.5;
+      if ((s.seed >>> (k + fl)) % 5 === 1) { box(MET, ww * 0.8, 0.42, 0.6, x, y0 + 0.24, z1 + 0.28, { color: 0xd8d6cc, wear: 0.4 }); if (L0) for (let j = 0; j < 6; j++) box(MET, ww * 0.7, 0.012, 0.01, x, y0 + 0.08 + j * 0.05, z1 + 0.585, { color: 0x8a8a84 }); }   // window AC
+      else if (!s.balcony && (s.seed >>> (k + 2)) % 3 === 0) { box(WOOD, ww + 0.1, 0.22, 0.26, x, y0 - 0.2, z1 + 0.25, { color: 0x6a4a30, wear: 0.4 }); if (L0) for (let j = 0; j < 5; j++) B.geo(PLAST, new THREE.SphereGeometry(0.12, 6, 4), M(x - ww / 2 + 0.1 + j * (ww / 4), y0 - 0.02, z1 + 0.25, 0, 0, 0, 1, 0.8, 1), { color: [0xd8304a, 0xf0c020, 0x3a7a2a, 0xe86aa0][j % 4] }); } }   // flower box
+    // second-floor signage: a projecting blade sign by the corner (the shop's own name) on two-story shops
+    if (fl === 1 && s.sign && L1 && !/bank|church|school|motel/.test(s.kind)) { const bx = (s.seed & 1 ? 1 : -1) * (w / 2 - 0.35); box(MET, 0.05, 0.05, 1.9, bx, FL + 1.75, z1 + 0.95, { color: 0x1a1a1a }); for (const dz of [0.25, 1.65]) box(MET, 0.03, 0.2, 0.03, bx, FL + 1.63, z1 + dz, { color: 0x1a1a1a }); box(PAINT, 0.08, 0.5, 1.7, bx, FL + 1.28, z1 + 0.95, { color: acc }); signCard(1.6, 0.4, bx + 0.045, FL + 1.28, z1 + 0.95, Math.PI / 2); signCard(1.6, 0.4, bx - 0.045, FL + 1.28, z1 + 0.95, -Math.PI / 2); }
   }
   function bankFront() {
     box(mat.stoneVeneer(), w, 1.0, 0.14, 0, 0.5, z1 + 0.07, { color: 0xe8e2d4 });

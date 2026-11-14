@@ -103,6 +103,11 @@
    "name": "Town pass 2: interior-mapped shop glass (shelves, cafe, boutique, office, diner rooms; warm at night), facade materials by rule (stucco, brick, board and batten, stone, stone bases), cornice styles, street trees in grates, side streets with a boutique quarter and a green, kit applied to every fictional-land town",
    "state": "built",
    "evidence": "docs/v2/shots/houses/townClose.png, townMain.png, townQuarter.png, townNight.png, townSatsuma.png, townSatsumaQ.png; honest score about 5/10 against the polished reference"
+  },
+  {
+   "name": "Town pass 3: deep window surrounds (jambs, lintels, sills, keystones), upper floors with window AC units, flower boxes and projecting blade signs, unique shop names map-wide (word + trade pool, one registry), street palms every 8 m where clear",
+   "state": "built",
+   "evidence": "docs/v2/shots/houses/townClose.png, townQuarter.png, townTangelo.png; Coontie built (stats) but its shot landed in a bush; honest score about 5.5/10"
   }
  ]
 }

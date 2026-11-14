@@ -24,7 +24,8 @@ export async function initV2(game) {
   if (!list.length) return;
   const root = new THREE.Group(); root.name = 'towns'; game.scene.add(root);
   const stats = {};
-  const groundAt = (x, z) => { try { return Math.max(0, D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0); } catch (e) { return 0; } };
+  // ground: the city's own surface query (terrain relief included), so buildings and furniture sit where the ground is drawn
+  const groundAt = (x, z) => { try { const g = city.groundHeightAt ? city.groundHeightAt(x, z) : (D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0); return Number.isFinite(g) ? Math.max(0, g) : 0; } catch (e) { return 0; } };
   const roadDist = (x, z) => { const r = D.roadGraph.nearestEdge(x, z, {}, 30); return r ? r.dist - r.edge.width / 2 : 99; };
   const isWater = (x, z) => { try { return city.isWater(x, z); } catch (e) { return false; } };
   const TS = D.tileSize || 200;

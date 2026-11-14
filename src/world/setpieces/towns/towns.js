@@ -24,6 +24,25 @@ const NAME = {
   boutique: ['Linen & Salt', 'The Tidal Closet', 'Mangrove Mercantile'], gallery: ['Driftline Gallery', 'Tern Art House'], wine: ['Vine & Brine Cellars', 'Corkscrew Wine Shop'], jeweler: ['Sea Glass Jewelers', 'Pearl & Compass'], salon: ['Saltwater Salon', 'Breeze Hair Studio'], deli: ['Market Street Deli', 'Gulfside Provisions'], toys: ['Sandcastle Toys', 'Kite & Pail'],
 };
 
+// Shop names: a coastal word (or the town's own name) + a trade word, picked by a hash of town, kind and slot, never
+// repeating anywhere on the map (one registry for every town in the session).
+const WORDS = ['Pelican', 'Tarpon', 'Heron', 'Coral', 'Mangrove', 'Driftwood', 'Saltwater', 'Seabreeze', 'Sandpiper', 'Conch', 'Palmetto', 'Bayside', 'Harbor', 'Tidewater', 'Sunset', 'Lighthouse', 'Osprey', 'Manatee', 'Key Lime', 'Gulfstream', 'Sea Grape', 'Blue Crab', 'Pompano', 'Snook', 'Cormorant', 'Egret', 'Sawgrass', 'Coquina', 'Old Pier', 'Anchor', 'Compass', 'Trade Wind', 'Starfish', 'Moonfish', 'Buttonwood', 'Royal Palm', 'Breakwater', 'Lagoon', 'Tide Pool', 'Shell Road', 'Brine', 'Cypress', 'Spoonbill', 'Barefoot', 'Sea Oat', 'Marlin', 'Kingfish', 'Bonefish', 'Hammock', 'Breeze Point'];
+const TRADE = { cafe: ['Cafe', 'Coffee House', 'Coffee Co.', 'Espresso Bar', 'Roasters'], pharmacy: ['Pharmacy', 'Drug Co.', 'Apothecary', 'Drugs & Sundries'], hardware: ['Hardware', 'Hardware & Marine', 'Supply Co.', 'Tool & Tackle'],
+  bakery: ['Bakery', 'Bread Co.', 'Pastry Shop', 'Bake House'], diner: ['Diner', 'Luncheonette', 'Grill', 'Eatery'], bank: ['Savings Bank', 'Trust Co.', 'National Bank', 'Bank & Trust'], books: ['Books', 'Bookshop', 'Book Exchange', 'Readers'],
+  barber: ['Barber Shop', 'Barbers', 'Cuts'], bait: ['Bait & Tackle', 'Bait Shop', 'Tackle Co.', 'Fish Camp'], florist: ['Florist', 'Flowers', 'Blooms', 'Garden Shop'], seafood: ['Fish Market', 'Seafood', 'Fish House', 'Catch Co.'],
+  realty: ['Realty', 'Properties', 'Land Co.', 'Homes'], icecream: ['Creamery', 'Ice Cream', 'Scoops', 'Frozen Treats'], laundry: ['Laundry', 'Wash House', 'Laundromat', 'Cleaners'], motel: ['Motel', 'Motor Inn', 'Inn', 'Cottages'],
+  church: ['Chapel', 'Community Church', 'Church', 'Fellowship Hall'], school: ['Elementary', 'Academy', 'School', 'Day School'], marina: ['Marina', 'Harbor Master', 'Boat Works', 'Dock Office'], boutique: ['Boutique', 'Mercantile', 'Outfitters', 'Closet'],
+  gallery: ['Gallery', 'Art House', 'Studio', 'Arts'], wine: ['Wine Shop', 'Cellars', 'Wine & Spirits', 'Vintners'], jeweler: ['Jewelers', 'Jewelry', 'Gems', 'Goldsmith'], salon: ['Salon', 'Hair Studio', 'Beauty Bar', 'Spa'],
+  deli: ['Deli', 'Provisions', 'Market', 'Sandwich Shop'], toys: ['Toys', 'Toy Shop', 'Kites & Toys', 'Playthings'] };
+const NAMES_USED = new Set();
+export function pickName(townName, short, kind, slot) {
+  const h = (str) => { let x = 2166136261; for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619); } return x >>> 0; };
+  const T = TRADE[kind] || ['Shop'], civic = /bank|church|school|motel|marina/.test(kind), base = h(townName + '|' + kind + '|' + slot);
+  for (let i = 0; i < 400; i++) { const wi = (base + i * 7919) % (WORDS.length + 1), word = civic && i < 2 ? short : wi === WORDS.length ? short : WORDS[wi], name = word + ' ' + T[((base >>> 8) + i) % T.length];
+    if (!NAMES_USED.has(name)) { NAMES_USED.add(name); return name; } }
+  return short + ' ' + T[0] + ' ' + slot;
+}
+
 export function planTown(town, env) {
   const { D, isWater, roadDist, groundAt, buildingsNear, lots } = env;
   const rg = D.roadGraph, cx = town.x, cz = town.z, R = Math.min(330, Math.max(180, (town.r || 600) * 0.4));
@@ -90,7 +109,7 @@ export function planTown(town, env) {
     sh.seed = (Math.round(sh.x * 31 + sh.z * 17) >>> 0) || 1;
     sh.colors = { body: hex(BODY[(k2 * 7 + 3) % BODY.length]), trim: [0xfaf6ee, 0xf2ede2, 0xe6dccb, 0xfdfaf2, 0x2a2a2a][quarter && k2 % 3 === 0 ? 4 : k2 % 4], accent: hex(P[k2 % P.length]), awn: hex(P[(k2 + 1) % P.length]), interior: [0xc8a070, 0xa8b0a8, 0xd0b088, 0x8ea4b4, 0xc08e78, 0xb8a890][(k2 * 3 + (kind.length)) % 6] };   // mid-tone room walls (the glass shows them)
     sh.stories = KINDS[kind].stories[(k2 + (sh.seed & 1)) % KINDS[kind].stories.length];
-    const names = NAME[kind].map((n) => n.replace('%T', short)), tOff = Math.abs(Math.round(cx + cz)) % 7; sh.name = names.find((n, j) => !usedNames.has(n) && j >= ((tOff + k2) % names.length)) || names.find((n) => !usedNames.has(n)); if (!sh.name) return false; usedNames.add(sh.name);
+    sh.name = pickName(town.name, short, kind, k2); usedNames.add(sh.name);
     // facade by rule: working shops on the water get board and batten with a false front, the bank stone, the quarter
     // brick and stone, the rest stucco; a building never shares facade and cornice with its neighbor on the same side
     let fac = /bait|seafood|marina/.test(kind) ? 'batten' : kind === 'bank' ? 'stone' : quarter ? (k2 % 2 ? 'brick' : 'stucco') : FACADES[(sh.seed >>> 5) % FACADES.length];
@@ -141,14 +160,14 @@ export function planTown(town, env) {
   // ---- street trees in grates: every 12 m at the curb, never under an awning reach, 5 m from lamps, clear of junctions ----
   const lampsXZ = out.furniture.filter((f) => f.kind === 'lamp');
   for (const list of rows) { const quarterRow = list === sides[0]?.list;
-    for (const f of list) for (const side of [1, -1]) { const key = Math.round((f.x * f.tx + f.z * f.tz) / 2); if (key % 6 !== 3) continue; if (nearJunction(f.x, f.z, f.hw + 7)) continue;
+    for (const f of list) for (const side of [1, -1]) { const key = Math.round((f.x * f.tx + f.z * f.tz) / 2); if (key % 4 !== 1) continue; if (nearJunction(f.x, f.z, f.hw + 6)) continue;   // every 8 m
       const nx = -f.tz * side, nz = f.tx * side, x = f.x + nx * (f.hw + 0.95), z = f.z + nz * (f.hw + 0.95);
-      if (lampsXZ.some((l) => Math.hypot(l.x - x, l.z - z) < 5)) continue;
+      if (lampsXZ.some((l) => Math.hypot(l.x - x, l.z - z) < 3.6)) continue;   // the lamp head stays clear of a palm crown at 3.6 m
       const q = { x, z, ry: Math.atan2(f.tx, f.tz), hw: 0.7, hd: 0.7, kind: 'grate' }; if (!free(q, { roadPad: 0.15 })) continue;
       // crown clearance: no shop facade within 2.2 m of the trunk
-      if (out.shops.some((sh) => { const dx = x - sh.x, dz = z - sh.z, c = Math.cos(sh.ry), sn = Math.sin(sh.ry), u = Math.abs(dx * c - dz * sn), v = Math.abs(dx * sn + dz * c); return u < sh.w / 2 + 2.2 && v < sh.d / 2 + 2.2; })) continue;
+      if (out.shops.some((sh) => { const dx = x - sh.x, dz = z - sh.z, c = Math.cos(sh.ry), sn = Math.sin(sh.ry), u = Math.abs(dx * c - dz * sn), v = Math.abs(dx * sn + dz * c); return u < sh.w / 2 + 1.7 && v < sh.d / 2 + 1.7; })) continue;   // narrow palm crowns: 1.7 m from any facade
       add(q); const y = groundAt(x, z); out.furniture.push({ ...q, y });
-      out.trees.push({ kind: quarterRow ? 'gumbo' : (key / 6 | 0) % 2 ? 'sabal' : 'queen', x, z, y: y + 0.1, s: quarterRow ? 0.55 : 0.75, small: false }); } }
+      out.trees.push({ kind: quarterRow ? ((key / 4 | 0) % 2 ? 'queen' : 'date') : (key / 4 | 0) % 2 ? 'sabal' : 'queen', x, z, y: y + 0.1, s: 0.7, small: false }); } }   // palms only at the curb: a broad shade crown would hang over the lanes
   // plaza furniture: fountain in the middle, four shade trees, benches around, cafe tables on the street side
   if (out.plaza) { const P = out.plaza, c = Math.cos(P.ry), sn = Math.sin(P.ry), at = (u, v) => ({ x: P.x + c * u + sn * v, z: P.z - sn * u + c * v });
     out.plazaY = groundAt(P.x, P.z);

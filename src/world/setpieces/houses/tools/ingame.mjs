@@ -20,6 +20,8 @@ const SPOTS = {
   townQuarter: { hour: 11, town: 'quarter' },
   townClose: { hour: 13, town: 'close' },
   townSatsuma: { hour: 15.5, town: 'main', tname: 'Satsuma' },
+  townTangelo: { hour: 11.5, town: 'main', tname: 'Tangelo' },
+  townCoontie: { hour: 16, town: 'main', tname: 'Coontie' },
   townSatsumaQ: { hour: 10, town: 'quarter', tname: 'Satsuma' },
   distA: { hour: 10.5, at: [700, -1100] },
   distB: { hour: 15.5, at: [2900, 700] },
@@ -40,6 +42,7 @@ const stage = (s) => `(async () => {
       else if (s.town === 'close') { const q = plan.shops[1] || plan.shops[0], g = q.f, sd = q.side, nx = -g.tz * sd, nz = g.tx * sd, b0 = { x: q.x - nx * (q.d / 2 + 4.5), z: q.z - nz * (q.d / 2 + 4.5) }; eye.set(b0.x - nx * 5.5 + g.tx * 6, gy + 1.7, b0.z - nz * 5.5 + g.tz * 6); look.set(q.x, gy + 2.2, q.z); }
       else { const sd = plan.shops[0].side, nx = -f.tz * sd, nz = f.tx * sd; eye.set(f.x - nx * 1.5 - f.tx * 22, gy + 1.9, f.z - nz * 1.5 - f.tz * 22); look.set(f.x + nx * 9 + f.tx * 12, gy + 3.2, f.z + nz * 9 + f.tz * 12); }
     } else { eye.set(P.x + 30, 30, P.z + 30); look.set(P.x, 0, P.z); }
+    { const ge = game.city.groundHeightAt(eye.x, eye.z) || 0, dy = eye.y - ge; if (dy > 4) { const k = ge + (s.town === 'plaza' ? 2.2 : 1.85) - eye.y; eye.y += k; look.y += k; } }   // keep the eye at street level
     game.teleport(eye.x + 3, null, eye.z + 3, 0);
     window.__spot = { town: game.towns?.stats?.(), district: game.city.districtAt(eye.x, eye.z) };
   } else if (s.at) {
