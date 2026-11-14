@@ -4,12 +4,11 @@
  "running": [
   "nico-house",
   "world-layout",
-  "world-render",
-  "vehicles-core",
   "npc-ai",
   "environment",
   "vegetation",
-  "sand-wear"
+  "sand-wear",
+  "character"
  ],
  "queued": [
   "police",
@@ -30,16 +29,18 @@
   "interiors-engine",
   "design-system",
   "character",
-  "keys-bar"
+  "keys-bar",
+  "world-render",
+  "vehicles-core"
  ],
- "launchedTotal": 26,
+ "launchedTotal": 27,
  "note": "4 on Fable, 4 on Opus 5.5",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 62,
-  "fable": 69,
+  "all": 64,
+  "fable": 72,
   "cap": 85,
-  "at": "6:21 PM",
+  "at": "7:25 PM",
   "log": [
    [
     "17:36",

@@ -16,7 +16,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ps-v2-snap-'));
 for (const s of (stats.recentShots || []).filter((x) => !/\/before\//.test(x.file)).slice(0, Number(process.argv[2] || 8))) {
   try {
     const out = path.join(tmp, shots.length + '.jpg');
-    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '62', '-Z', '520', P(s.file), '--out', out], { stdio: 'ignore' });
+    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '800', P(s.file), '--out', out], { stdio: 'ignore' });
     shots.push({ src: 'data:image/jpeg;base64,' + fs.readFileSync(out).toString('base64'), name: s.file.replace('docs/v2/shots/', '') });
   } catch (e) { /* skip unreadable image */ }
 }

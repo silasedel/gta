@@ -5,103 +5,336 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Port Solana V2 Build Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;0,800;1,800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* One visual world on purpose: a night harbor control board. Single theme. */
-  --ink: #0b1220;        /* page */
-  --deck: #121c2e;       /* panels */
-  --rail: #22304a;       /* lines, empty bars */
-  --fog: #8ea0bd;        /* secondary text */
-  --chalk: #eef3fb;      /* primary text */
-  --coral: #ff6b57;      /* accent: verified */
-  --sea: #2fd3c0;        /* built, live */
-  --sand: #f2c14e;       /* in progress */
-  --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-  --body: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --ink: #0d1117;
+  --deck: #161b24;
+  --deck2: #1c2330;
+  --rail: #2a3342;
+  --fog: #94a0b4;
+  --chalk: #f2f5f9;
+  --coral: #ff7a66;
+  --sea: #3ecfbe;
+  --sand: #f0c35a;
+  --display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Inter', system-ui, sans-serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--ink); color: var(--chalk); font-family: var(--body); font-size: 15px; line-height: 1.4; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 22px 16px 60px; display: flex; flex-direction: column; gap: 22px; }
-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; border-bottom: 1px solid var(--rail); padding-bottom: 14px; }
-h1 { font-family: var(--display); font-weight: 800; font-style: italic; font-size: 40px; letter-spacing: .04em; margin: 0; line-height: 1; }
-h1 span { color: var(--coral); }
-.sub { color: var(--fog); font-size: 14px; }
-.live { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--fog); display: flex; align-items: center; gap: 8px; }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sea); box-shadow: 0 0 0 0 rgba(47,211,192,.6); animation: ping 1.8s infinite; }
-.snap .dot { background: var(--sand); animation: none; }
-@keyframes ping { 70% { box-shadow: 0 0 0 9px rgba(47,211,192,0); } 100% { box-shadow: 0 0 0 0 rgba(47,211,192,0); } }
-@media (prefers-reduced-motion: reduce) { .dot, .stripe { animation: none !important; } }
+html, body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--chalk);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+h1 {
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -.01em;
+  margin: 0;
+  line-height: 1.1;
+}
+h1 span {
+  color: var(--fog);
+  font-weight: 500;
+}
+.sub { display: none; }
+.live {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--fog);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sea);
+}
+.snap .dot { background: var(--sand); }
+.refresh {
+  appearance: none;
+  border: 1px solid var(--rail);
+  background: var(--deck2);
+  color: var(--chalk);
+  font: 600 13px var(--body);
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.refresh:hover { border-color: var(--fog); }
+.refresh:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; }
+.refresh svg { width: 14px; height: 14px; }
+.refresh.spin svg { animation: turn .7s linear infinite; }
+@keyframes turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .refresh.spin svg, .stripe { animation: none !important; } }
 
-.overall { background: var(--deck); border: 1px solid var(--rail); border-radius: 14px; padding: 20px; display: grid; grid-template-columns: auto 1fr; gap: 8px 26px; align-items: center; }
-.big { font-family: var(--display); font-weight: 800; font-size: 92px; line-height: .9; font-variant-numeric: tabular-nums; }
-.big small { font-size: 36px; color: var(--fog); font-weight: 700; }
-.biglabel { font-family: var(--display); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fog); font-size: 14px; }
-.obar { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--fog); }
-.eta { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .04em; }
-.eta b { color: var(--sand); font-family: var(--mono); font-size: 20px; }
-.eta span { color: var(--fog); font-family: var(--body); font-weight: 400; font-size: 13px; letter-spacing: 0; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-.bar { position: relative; height: 12px; background: var(--rail); border-radius: 6px; overflow: hidden; }
-.bar.tall { height: 22px; border-radius: 8px; }
-.bar > b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; transition: width .8s cubic-bezier(.2,.7,.2,1); }
-.bar .work { background: repeating-linear-gradient(-45deg, rgba(242,193,78,.55) 0 6px, rgba(242,193,78,.25) 6px 12px); background-size: 34px 100%; }
-.bar .work.stripe { animation: slide 1.2s linear infinite; }
-@keyframes slide { to { background-position: 34px 0; } }
-.bar .built { background: var(--sea); opacity: .8; }
+.card, .overall, .tile, .panel, .widget {
+  background: var(--deck);
+  border: 1px solid var(--rail);
+  border-radius: 16px;
+}
+.overall {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 32px;
+  align-items: center;
+}
+.big {
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+.big small {
+  font-size: 30px;
+  color: var(--fog);
+  font-weight: 600;
+  margin-left: 2px;
+}
+.biglabel, .tile .l, .panel h3 {
+  font-weight: 600;
+  color: var(--fog);
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+.obar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 13px;
+  color: var(--fog);
+}
+.legend b { color: var(--chalk); font-weight: 600; }
+.legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.eta { font-size: 14px; color: var(--fog); }
+.eta b { color: var(--chalk); font-weight: 600; }
+.eta span { font-size: 13px; }
+.bar {
+  position: relative;
+  height: 8px;
+  background: var(--rail);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bar.tall { height: 14px; }
+.bar > b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  transition: width .8s cubic-bezier(.2,.7,.2,1);
+}
+.bar .work { background: var(--sand); opacity: .55; }
+.bar .built { background: var(--sea); }
 .bar .ver { background: var(--coral); }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-.tile { background: var(--deck); border: 1px solid var(--rail); border-radius: 12px; padding: 12px 14px; min-width: 0; }
-.tile .n { font-family: var(--mono); font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tile .l { font-family: var(--display); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--fog); font-size: 13px; }
-.tile .d { font-family: var(--mono); font-size: 12px; color: var(--sea); }
-.tile.hot .n { color: var(--coral); }
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.tile { padding: 16px 18px; min-width: 0; }
+.tile .n {
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+.tile .d {
+  font-size: 12px;
+  color: var(--fog);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-section.sec { display: flex; flex-direction: column; gap: 8px; }
-.sechead { display: grid; grid-template-columns: 1fr minmax(120px, 280px) 64px; gap: 14px; align-items: center; }
-.sechead h2 { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: .06em; text-transform: uppercase; margin: 0; }
-.pct { font-family: var(--mono); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-.rows { display: flex; flex-direction: column; gap: 6px; }
-.row { background: var(--deck); border: 1px solid var(--rail); border-left: 4px solid var(--rail); border-radius: 10px; padding: 10px 14px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 96px; gap: 6px 16px; align-items: center; }
-.row.running { border-left-color: var(--sand); }
-.row.done { border-left-color: var(--coral); }
-.row.queued { border-left-color: var(--sea); }
-.row .t { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
-.row .now { color: var(--fog); font-size: 13px; overflow-wrap: anywhere; }
-.row .now em { color: var(--sand); font-style: normal; }
-.pill { display: inline-block; font-family: var(--display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 12px; padding: 1px 8px; border-radius: 20px; border: 1px solid var(--rail); color: var(--fog); margin-left: 8px; vertical-align: 1px; white-space: nowrap; }
-.pill.running { color: var(--ink); background: var(--sand); border-color: var(--sand); }
-.pill.done { color: var(--ink); background: var(--coral); border-color: var(--coral); }
-.pill.queued { color: var(--sea); border-color: var(--sea); }
-.row .cnt { font-family: var(--mono); font-size: 12px; color: var(--fog); text-align: right; white-space: nowrap; }
-.row .cnt strong { color: var(--chalk); font-size: 15px; }
+#sections {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px !important;
+}
+.widget {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.widget.later { opacity: .6; }
+.whead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.whead h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.whead .pct {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.wrows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+.wrow {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--fog);
+}
+.wrow .t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wrow .p { color: var(--chalk); font-weight: 600; }
+.wrow i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rail);
+}
+.wrow.running i { background: var(--sand); }
+.wrow.done i { background: var(--sea); }
+.wrow.running .t { color: var(--chalk); }
+.wkey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 12px;
+  color: var(--fog);
+}
+.wkey i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
 
-.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-.panel { background: var(--deck); border: 1px solid var(--rail); border-radius: 12px; padding: 14px; min-width: 0; }
-.panel h3 { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 8px; }
-.files { font-family: var(--mono); font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
-.files div { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
-.files span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
-.files .ln { color: var(--sea); }
+.two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+.panel { padding: 16px 18px; min-width: 0; }
+.panel h3 { font-size: 15px; color: var(--chalk); margin-bottom: 10px; }
+.files {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.files div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+}
+.files span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+.files .ln { color: var(--chalk); }
 .files .ago { color: var(--fog); }
-.dirs { display: flex; flex-direction: column; gap: 5px; font-family: var(--mono); font-size: 12px; }
-.dirs div { display: grid; grid-template-columns: 150px 1fr 60px; gap: 10px; align-items: center; }
-.dirs .bar { height: 8px; }
-.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.dirs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+.dirs div {
+  display: grid;
+  grid-template-columns: 150px 1fr 60px;
+  gap: 10px;
+  align-items: center;
+}
+.dirs .bar { height: 6px; }
+.shots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
 .shots figure { margin: 0; }
-.shots img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; border: 1px solid var(--rail); display: block; background: var(--rail); }
-.shots figcaption { font-family: var(--mono); font-size: 11px; color: var(--fog); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-footer { color: var(--fog); font-size: 13px; border-top: 1px solid var(--rail); padding-top: 12px; }
-@media (max-width: 640px) {
+.shots img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--rail);
+  display: block;
+  background: var(--rail);
+}
+.shots figcaption {
+  font-size: 12px;
+  color: var(--fog);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+footer { color: var(--fog); font-size: 13px; }
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
   .overall { grid-template-columns: 1fr; }
-  .big { font-size: 64px; }
-  .row { grid-template-columns: 1fr; }
-  .row .cnt { text-align: left; }
-  .sechead { grid-template-columns: 1fr 64px; } .sechead .bar { grid-column: 1 / -1; order: 3; }
+  .big { font-size: 56px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shots { grid-template-columns: 1fr; }
   .dirs div { grid-template-columns: 110px 1fr 54px; }
 }
 </style>
@@ -109,9 +342,10 @@ footer { color: var(--fog); font-size: 13px; border-top: 1px solid var(--rail); 
 <body>
 <div class="wrap" id="app">
   <header>
-    <h1>PORT SOLANA <span>V2</span></h1>
+    <h1>Port Solana V2 <span>build progress</span></h1>
     <div class="sub">Build tracker. Progress counts everything built so far, plus half credit for what is being built right now.</div>
     <div class="live" id="live"><span class="dot"></span><span id="livetxt">connecting</span></div>
+    <button class="refresh" id="refresh" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Refresh</button>
   </header>
 
   <div class="overall">
@@ -122,12 +356,13 @@ footer { color: var(--fog); font-size: 13px; border-top: 1px solid var(--rail); 
     <div class="obar">
       <div class="bar tall" id="obar"><b class="work stripe"></b><b class="built"></b><b class="ver"></b></div>
       <div class="legend"><span><i style="background:var(--coral)"></i>Built and checked <b id="lv">0</b></span><span><i style="background:var(--sea)"></i>Built <b id="lb">0</b></span><span><i style="background:var(--sand)"></i>Being built now <b id="lw">0</b></span><span>To do <b id="lt">0</b></span></div>
-      <div class="eta">Estimated time left: <b id="eta">working it out</b> <span id="etanote"></span></div>
+      <div class="eta">Estimated time left <b id="eta">working it out</b> <span id="etanote"></span></div>
     </div>
   </div>
 
   <div class="tiles" id="tiles"></div>
-  <div id="sections" style="display:flex;flex-direction:column;gap:22px"></div>
+  <div class="wkey"><span><i style="background:var(--sand)"></i>Agent working now</span><span><i style="background:var(--sea)"></i>Agent finished</span><span><i style="background:var(--rail)"></i>Not started</span></div>
+  <div id="sections"></div>
 
   <div class="two">
     <div class="panel"><h3>Files being written</h3><div class="files" id="files"></div></div>
@@ -194,15 +429,11 @@ function render(d) {
   $('eta').textContent = prog >= 0.999 ? 'done' : 'about ' + (etaH >= 10 ? Math.round(etaH) : etaH.toFixed(1)) + ' hours';
   $('etanote').textContent = prog >= 0.999 ? '' : '(rough; it firms up as more gets built)';
   const tiles = [
-    ['Lines of code', '<span id="loc">' + fmt(shown.lines || stats.lines) + '</span>', '+' + fmt(stats.addedLines) + ' since v1', 'hot'],
+    ['Lines of code', '<span id="loc">' + fmt(shown.lines || stats.lines) + '</span>', '+' + fmt(stats.addedLines) + ' since v1'],
     ['Code files', fmt(stats.files), '+' + fmt(stats.addedFiles) + ' new'],
-    ['Agents working', fmt(run.size), fmt(que.size) + ' up next · ' + fmt(fin.size) + ' finished', run.size ? 'hot' : ''],
-    ['Agents launched', fmt(agents.launchedTotal || 0), agents.note || ''],
-    ['Checklist items', fmt(items.n), fmt(items.ver + items.built) + ' built · ' + fmt(items.ver) + ' checked'],
-    ['Test screenshots', fmt(stats.screenshots), 'looked at by agents'],
     ['Asset files', fmt(stats.assets), fmt(stats.assetMB) + ' MB'],
+    ['Agents launched', fmt(agents.launchedTotal || 0), fmt(run.size) + ' working now'],
     ['Build time', hh + 'h ' + String(mm).padStart(2, '0') + 'm', fmt(stats.commits) + ' commits'],
-    ...(agents.usage ? [['Weekly usage', agents.usage.all + '%', 'pacing to stay under ' + agents.usage.cap + '% · read ' + agents.usage.at]] : []),
   ];
   $('tiles').innerHTML = tiles.map((t) => '<div class="tile ' + (t[3] || '') + '"><div class="l">' + t[0] + '</div><div class="n">' + t[1] + '</div><div class="d">' + esc(t[2]) + '</div></div>').join('');
   // count-up for lines of code
@@ -212,41 +443,53 @@ function render(d) {
   (function tick(now) { const k = Math.min(1, (now - t0) / 900); const v = Math.round(from + (target - from) * k); const e = $('loc'); if (e) e.textContent = fmt(v); if (k < 1) requestAnimationFrame(tick); else shown.lines = target; })(t0);
 
   let html = '';
-  for (const s of plan.sections) {
-    const ps = plan.planned.filter((p) => p.section === s && !p.deferred); if (!ps.length) continue;
-    let sv = 0, sb = 0, sw = 0; ps.forEach((p) => { const c = per[p.track]; if (c.n) { sv += c.ver / c.n; sb += c.built / c.n; sw += c.work / c.n; } });
-    html += '<section class="sec"><div class="sechead"><h2>' + esc(s) + '</h2><div class="bar" data-sec="' + esc(s) + '"><b class="work stripe" style="width:' + (100 * (sv + sb + sw) / ps.length) + '%"></b><b class="built" style="width:' + (100 * (sv + sb) / ps.length) + '%"></b><b class="ver" style="width:' + (100 * sv / ps.length) + '%"></b></div><div class="pct">' + (100 * (sv + sb + 0.5 * sw) / ps.length).toFixed(0) + '%</div></div><div class="rows">';
+  const widget = (title, ps, later) => {
+    let sv = 0, sb = 0, sw = 0;
+    ps.forEach((p) => {
+      const c = per[p.track];
+      if (c.n) { sv += c.ver / c.n; sb += c.built / c.n; sw += c.work / c.n; }
+    });
+    const n = ps.length;
+    let h = '<div class="widget' + (later ? ' later' : '') + '"><div class="whead"><h2>' + esc(title) + '</h2>'
+      + '<div class="pct">' + (100 * (sv + sb + 0.5 * sw) / n).toFixed(0) + '%</div></div>'
+      + '<div class="bar"><b class="work" style="width:' + (100 * (sv + sb + sw) / n) + '%"></b>'
+      + '<b class="built" style="width:' + (100 * (sv + sb) / n) + '%"></b>'
+      + '<b class="ver" style="width:' + (100 * sv / n) + '%"></b></div><div class="wrows">';
     for (const p of ps) {
       const c = per[p.track], t = tracks[p.track];
-      const st = run.has(p.track) ? 'running' : fin.has(p.track) ? 'done' : que.has(p.track) ? 'queued' : '';
-      const label = st === 'running' ? 'agent working' : st === 'done' ? 'agent finished' : st === 'queued' ? 'up next' : 'planned';
+      const st = run.has(p.track) ? 'running' : fin.has(p.track) ? 'done' : '';
       const k = c.n ? 100 / c.n : 0;
-      html += '<div class="row ' + st + '"><div><div class="t">' + esc((t && t.title) || p.title) + '<span class="pill ' + st + '">' + label + '</span></div><div class="now">' + (c.now ? '<em>Now:</em> ' + esc(c.now) : c.n ? (c.ver === c.n ? 'All items built and checked' : '') : 'Checklist appears when its agent starts') + '</div></div>'
-        + '<div class="bar"><b class="work' + (st === 'running' ? ' stripe' : '') + '" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div>'
-        + '<div class="cnt"><strong>' + (c.n ? Math.round((c.ver + c.built + 0.5 * c.work) * k) : 0) + '%</strong><br>' + (c.ver + c.built) + ' / ' + c.n + ' built</div></div>';
+      const name = (t && t.title) || p.title;
+      h += '<div class="wrow ' + st + '" title="' + esc(c.now ? name + ' — now: ' + c.now : name) + '"><i></i>'
+        + '<span class="t">' + esc(name) + '</span>'
+        + '<span class="p">' + (c.n ? Math.round((c.ver + c.built + 0.5 * c.work) * k) : 0) + '%</span></div>';
     }
-    html += '</div></section>';
+    return h + '</div></div>';
+  };
+  for (const s of plan.sections) {
+    const ps = plan.planned.filter((p) => p.section === s && !p.deferred);
+    if (ps.length) html += widget(s, ps, false);
   }
   const def = plan.planned.filter((p) => p.deferred);
-  if (def.length) {
-    html += '<section class="sec"><div class="sechead"><h2>After usage resets (v2.1)</h2><div></div><div class="pct"></div></div><div class="now" style="color:var(--fog)">' + esc(plan.scopeNote || '') + '</div><div class="rows">';
-    for (const p of def) { const c = per[p.track], k = c.n ? 100 / c.n : 0;
-      html += '<div class="row"><div><div class="t" style="color:var(--fog)">' + esc((tracks[p.track] && tracks[p.track].title) || p.title) + '<span class="pill">' + (c.n ? 'started, paused' : 'not started') + '</span></div></div><div class="bar"><b class="work" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div><div class="cnt">' + (c.ver + c.built) + ' / ' + c.n + ' built</div></div>'; }
-    html += '</div></section>';
-  }
+  if (def.length) html += widget('Later (v2.1)', def, true);
   $('sections').innerHTML = html;
 
   $('files').innerHTML = (stats.recentFiles || []).map((f) => '<div><span title="' + esc(f.file) + '">&lrm;' + esc(f.file) + '</span><span class="ln">' + fmt(f.lines) + ' lines</span><span class="ago">' + ago(f.secondsAgo) + ' ago</span></div>').join('') || '<div>No data yet</div>';
   const td = stats.topDirs || [], mx = td.length ? td[0][1] : 1;
   $('dirs').innerHTML = td.map(([n, v]) => '<div><span>' + esc(n) + '</span><div class="bar"><b class="built" style="width:' + (100 * v / mx) + '%"></b></div><span style="text-align:right">' + fmt(v) + '</span></div>').join('');
-  const shots = d.shots || (stats.recentShots || []).slice(0, 12).map((s) => ({ src: '../../' + s.file, name: s.file.replace('docs/v2/shots/', '') }));
+  const shots = d.shots || (stats.recentShots || []).slice(0, 9).map((s) => ({ src: '../../' + s.file, name: s.file.replace('docs/v2/shots/', '') }));
   $('shotpanel').style.display = shots.length ? '' : 'none';
   $('shots').innerHTML = shots.map((s) => '<figure><img loading="lazy" src="' + esc(s.src) + '" alt=""><figcaption>' + esc(s.name) + '</figcaption></figure>').join('');
   $('live').className = 'live' + (SNAP ? ' snap' : '');
   $('livetxt').textContent = SNAP ? 'snapshot ' + new Date(d.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'live · updated ' + new Date().toLocaleTimeString('en-US');
-  $('foot').textContent = SNAP ? 'This page is a snapshot, republished as agents report in. The always-live version runs on the build machine at http://127.0.0.1:5200/docs/v2/tracker.html' : 'Live: refreshes every 5 seconds from the progress files each agent keeps.';
+  $('foot').textContent = SNAP ? 'Snapshot. Refresh loads the newest one published. The always-live version runs on the build machine at http://127.0.0.1:5200/docs/v2/tracker.html' : 'Live: refreshes every 5 seconds from the progress files each agent keeps.';
 }
 async function cycle() { const d = await load(); if (d) render(d); else $('livetxt').textContent = 'waiting for progress files'; }
+$('refresh').addEventListener('click', () => {
+  $('refresh').classList.add('spin');
+  if (SNAP) location.reload();
+  else cycle().then(() => setTimeout(() => $('refresh').classList.remove('spin'), 400));
+});
 cycle(); if (!SNAP) setInterval(cycle, 5000);
 </script>
 </body>
