@@ -132,12 +132,47 @@ Other pass-1 hits were reviewed as noise, not voices:
 - **New:** `src/audio/mixtest.{html,js}` (offline mix test page).
 - **Backups** of every original: `.v2-tmp/audio-clean/backup/`. That includes a stale duplicate folder, `voices/voices.tmp/`, moved out of `public/` there.
 
-## 8. Not done (budget)
-None of the v2.1 requests were started:
-- radio stations with real CC0/CC-BY songs
-- club music
-- per-model engine work beyond the mix
-- boats
-- layered crash debris
+## 8. v2.1: radio with real songs, club music, layered crashes
+- **Stations** (`public/assets/audio/music/`): 26 songs by Kevin MacLeod (incompetech.com), all **CC BY 4.0** and credited one by one in `CREDITS.md`. No NC or ND licenses, and no DJ voices.
+  - Each song is normalized to −16 LUFS (true peak ≤ −1.5 dBFS) and encoded as Ogg Opus 96 kbps stereo. 76 MB in all.
+  - Songs stream through `<audio>` elements and are never fully decoded in memory.
 
-The current engine, crash, squeal and Doppler systems were kept and remixed only.
+- **Brisa 98.4** (Latin and tropical): "Samba Isobel" (4:10), "Bossa Antigua" (4:43), "Pamgaea" (2:48), "Latin Industries" (3:20), "Tango de Manzana" (3:02), "Island Meet and Greet" (3:36), "Equatorial Complex" (4:00), "Mariachi Snooze" (0:40)
+- **Neon Coast 101.9** (Synthwave and retro electro): "Voxel Revolution" (2:09), "Cyborg Ninja" (3:00), "Stringed Disco" (2:54), "Disco Medusae" (3:41), "Raving Energy" (4:27), "Hyperfun" (3:53), "Ouroboros" (2:41), "Chase Pulse" (1:56), "Electro Sketch" (3:07)
+- **Low Tide 89.3** (Chill beats and funk): "Werq" (2:42), "Funkorama" (3:21), "Bass Walker" (2:41), "Backed Vibes Clean" (3:48), "Hep Cats" (4:10), "Chill Wave" (4:00), "Dream Culture" (3:34), "Groove Grove" (3:25), "Cool Vibes" (3:38)
+
+**Behavior (`src/audio/radio.js` plus `musicSource` in `src/core/audio.js`):**
+- Every station is a live broadcast on a wall clock. Its playlist runs whether you listen or not, so switching away and back lands where the station is now. Car radios, clubs and passing cars on the same station are in sync.
+- `,` and `.` cycle the stations and Off in any vehicle, boats included, because the check is `player.state.inVehicle`.
+- The station name and song title show via the HUD notify, and again on every song change.
+- The player radio goes on the Radio bus at 0.8. A badly damaged car (health under 35%) low-passes it to 2.2 kHz.
+- AI cars with a radio (28%) play one of the real stations, positional and with Doppler.
+- Clubs and bars (`VENUE_RE`), the daytime beach boombox, the night house party and store music now map onto the real stations: tropical and reggaeton → Brisa, house → Neon Coast, hip-hop and ambient → Low Tide.
+  - Club music keeps the existing staging: positional; outside it is low-passed (180–700 Hz falling with distance) with a +9 dB bass shelf so the bass carries at night; inside it plays full range.
+  - The gangs-business `club.open` state is not read yet. Venues follow the existing night and type rule.
+- **Fallback:** the procedural stations are still used if the music index fails to load, and in `OfflineAudioContext` renders, which cannot stream media elements.
+
+**Crashes:** layered by impact strength k:
+- recorded crunch (light, medium or heavy)
+- a synth body thump (95 → 32 Hz) plus a brown-noise low burst, scaling with k²
+- a second, pitched-down metal layer above k 0.5
+- glass above k 0.45
+- falling-debris clunks 0.2–0.3 s later above k 0.3
+
+Offline render of the 120 km/h crash:
+- low band (< 120 Hz) up 1.5 dB
+- crash window −13.2 LUFS momentary, vs −13.9 before the layering
+- true peak −1.7 dBTP, no clipping
+- the drive mix is unchanged at −13.9 LUFS
+
+**Not done:** boats (budget).
+
+In-game check: see section 9.
+## 9. In-game check (full game, `?mute`, headless; `.v2-tmp/audio-clean/scripts/ingame3.mjs`)
+- **Context:** the AudioContext runs, and `game.audio.stations` lists Brisa 98.4, Neon Coast 101.9 and Low Tide 89.3.
+- **Station 0 (Brisa):** streaming "Pamgaea" at 147.4 s. Two nearby clubs and the beach boombox (also mapped to Brisa) were at exactly 147.4 s too, so the live clock keeps them in sync.
+  - Radio bus RMS was −21.8 dBFS.
+- **Switch to Neon Coast:** it joined live mid-song: "Chase Pulse" at 40.3 s.
+  - Radio bus RMS was −29.5 dBFS (a quieter passage); the full mix was −21.3.
+- **Radio slider at 0:** the radio bus fell to −120 dBFS.
+- **Console:** no audio errors. The only error was an unrelated `MeshPhysicalMaterial` shader error (`clearcoatNormal`) from another track.

@@ -4,15 +4,69 @@
  "section": "Audio",
  "agent": "done",
  "items": [
-  { "name": "Supercar sound traced (super -> v12 loops, Fulmine -> v10 loops)", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Speech scan of every audio file (silero + whisper + spectral, deep pass under engines)", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Supercar v12 idle re-cut without the bystander voice, pitch and EQ matched, seamless", "state": "verified", "evidence": "public/assets/audio/vehicles/v12_idle.ogg" },
-  { "name": "Bullet fly-bys re-cut without the narrator slate; 3 doubtful variants dropped", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Deep detector: 7 unintended hits before, 0 after; supercar drive and drive-by renders 0", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Every bank asset loudness-normalized to per-category targets (index.json norm)", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Mix rebuilt: engines -8 LU, traffic under the player, ambience duck in car, crashes punch, limiter -1.6 dBTP", "state": "verified", "evidence": "docs/v2/reports/audio-clean.md" },
-  { "name": "Settings sliders per bus, speaker setup, dynamic range, background suspend/resume", "state": "built", "evidence": "src/core/audio.js" },
-  { "name": "Offline mix test page (OfflineAudioContext, seeded)", "state": "verified", "evidence": "src/audio/mixtest.html" },
-  { "name": "v2.1: radio stations with real songs, club music, boats, layered crash debris", "state": "todo" }
+  {
+   "name": "Supercar sound traced (super -> v12 loops, Fulmine -> v10 loops)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Speech scan of every audio file (silero + whisper + spectral, deep pass under engines)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Supercar v12 idle re-cut without the bystander voice, pitch and EQ matched, seamless",
+   "state": "verified",
+   "evidence": "public/assets/audio/vehicles/v12_idle.ogg"
+  },
+  {
+   "name": "Bullet fly-bys re-cut without the narrator slate; 3 doubtful variants dropped",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Deep detector: 7 unintended hits before, 0 after; supercar drive and drive-by renders 0",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Every bank asset loudness-normalized to per-category targets (index.json norm)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Mix rebuilt: engines -8 LU, traffic under the player, ambience duck in car, crashes punch, limiter -1.6 dBTP",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Settings sliders per bus, speaker setup, dynamic range, background suspend/resume",
+   "state": "built",
+   "evidence": "src/core/audio.js"
+  },
+  {
+   "name": "Offline mix test page (OfflineAudioContext, seeded)",
+   "state": "verified",
+   "evidence": "src/audio/mixtest.html"
+  },
+  {
+   "name": "Radio: 3 stations, 26 CC BY songs (Kevin MacLeod), live clock, song titles, Radio bus",
+   "state": "built",
+   "evidence": "src/audio/radio.js"
+  },
+  {
+   "name": "Club, bar, beach and party music from the same stations, positional, muffled outside",
+   "state": "built",
+   "evidence": "src/core/audio.js"
+  },
+  {
+   "name": "Layered crashes (thump, metal, glass, debris) scaled by impulse",
+   "state": "verified",
+   "evidence": "docs/v2/reports/audio-clean.md"
+  },
+  {
+   "name": "Boat engines, hull slap and spray",
+   "state": "todo"
+  }
  ]
 }

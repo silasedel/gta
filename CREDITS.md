@@ -729,3 +729,35 @@ All from Poly Haven (https://polyhaven.com), license CC0 1.0. Files in public/as
 ## Audio clean-up (audio-clean track)
 - No new sources. Re-cuts from sources already credited above: `vehicles/v12_idle.ogg` (cheesepuff, "Lambo idle and rev.mp3", CC0, https://freesound.org/people/cheesepuff/sounds/112075/) and `combat/flyby_01..04.ogg` (craigsmith, CC0, https://freesound.org/people/craigsmith/sounds/675663/ and /675948/).
 - Dropped from use (files kept, removed from index.json): `ambience/distant_horn_06.ogg`, `ambience/ship_horn_05.ogg`, `vehicles/ignition_02.ogg` (voice-like detector hits).
+
+## Radio and club music (audio-clean track, v2.1): public/assets/audio/music/
+All songs by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/ . Loudness-normalized to -16 LUFS and re-encoded to Ogg Opus 96 kbps; otherwise unchanged. Station names are ours.
+- **Brisa 98.4** (Latin and tropical):
+  - "Samba Isobel" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Samba%20Isobel.mp3 → music/latin/samba_isobel.ogg
+  - "Bossa Antigua" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bossa%20Antigua.mp3 → music/latin/bossa_antigua.ogg
+  - "Pamgaea" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Pamgaea.mp3 → music/latin/pamgaea.ogg
+  - "Latin Industries" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Latin%20Industries.mp3 → music/latin/latin_industries.ogg
+  - "Tango de Manzana" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Tango%20de%20Manzana.mp3 → music/latin/tango_de_manzana.ogg
+  - "Island Meet and Greet" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Island%20Meet%20and%20Greet.mp3 → music/latin/island_meet_and_greet.ogg
+  - "Equatorial Complex" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Equatorial%20Complex.mp3 → music/latin/equatorial_complex.ogg
+  - "Mariachi Snooze" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Mariachi%20Snooze.mp3 → music/latin/mariachi_snooze.ogg
+- **Neon Coast 101.9** (Synthwave and retro electro):
+  - "Voxel Revolution" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Voxel%20Revolution.mp3 → music/neon/voxel_revolution.ogg
+  - "Cyborg Ninja" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cyborg%20Ninja.mp3 → music/neon/cyborg_ninja.ogg
+  - "Stringed Disco" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Stringed%20Disco.mp3 → music/neon/stringed_disco.ogg
+  - "Disco Medusae" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Disco%20Medusae.mp3 → music/neon/disco_medusae.ogg
+  - "Raving Energy" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Raving%20Energy.mp3 → music/neon/raving_energy.ogg
+  - "Hyperfun" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hyperfun.mp3 → music/neon/hyperfun.ogg
+  - "Ouroboros" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ouroboros.mp3 → music/neon/ouroboros.ogg
+  - "Chase Pulse" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Chase%20Pulse.mp3 → music/neon/chase_pulse.ogg
+  - "Electro Sketch" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Electro%20Sketch.mp3 → music/neon/electro_sketch.ogg
+- **Low Tide 89.3** (Chill beats and funk):
+  - "Werq" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Werq.mp3 → music/lowtide/werq.ogg
+  - "Funkorama" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Funkorama.mp3 → music/lowtide/funkorama.ogg
+  - "Bass Walker" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bass%20Walker.mp3 → music/lowtide/bass_walker.ogg
+  - "Backed Vibes Clean" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Backed%20Vibes%20Clean.mp3 → music/lowtide/backed_vibes_clean.ogg
+  - "Hep Cats" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hep%20Cats.mp3 → music/lowtide/hep_cats.ogg
+  - "Chill Wave" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Chill%20Wave.mp3 → music/lowtide/chill_wave.ogg
+  - "Dream Culture" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dream%20Culture.mp3 → music/lowtide/dream_culture.ogg
+  - "Groove Grove" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Groove%20Grove.mp3 → music/lowtide/groove_grove.ogg
+  - "Cool Vibes" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cool%20Vibes.mp3 → music/lowtide/cool_vibes.ogg
