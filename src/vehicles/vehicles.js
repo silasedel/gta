@@ -4,6 +4,7 @@ import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlas
 import { rollLook, visualSignature, lookSignature, incomeFor, fleetMix, tierWeight } from './catalog.js';
 import { rollDriver, createDriverStats } from './traffic/drivers.js';
 import { smoothAiControls } from './traffic/smooth.js'; // [vehicles-look hook]
+import { setPaintWetness } from './model/materials.js';
 import { dentMesh } from './damage.js';
 import { createBoats } from './boats.js';
 import { buildRoadNet, project, sampleEdge, laneOffset, laneCount, driveLaneMax, lanePointAt, exitsAt, edgeDirAt, signalState, randomLane } from './roadnet.js';
@@ -1376,7 +1377,14 @@ export async function createVehicles(game) {
   let lastT = -1;
   const _spotPos = new THREE.Vector3();
   let lastEvict = 0;
+  let paintWet = 0;
   function update(dt) {
+    { // car paint wetness follows rain: builds in ~10 s, dries over ~90 s
+      const w = game.weather; const kind = String(typeof w === 'string' ? w : (w?.kind || w?.type || w?.current || w?.state || '')).toLowerCase();
+      const rain = typeof w?.rain === 'number' ? w.rain : (/storm|hurricane|rain|shower/.test(kind) ? 1 : 0);
+      paintWet += ((rain > 0.05 ? 1 : 0) - paintWet) * Math.min(1, dt * (rain > 0.05 ? 0.1 : 0.011));
+      setPaintWetness(paintWet);
+    }
     const et = game.clock?.elapsed ?? performance.now() / 1000;
     if (et === lastT) return;
     lastT = et;
