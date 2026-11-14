@@ -1,7 +1,7 @@
 /* PORT SOLANA — HUD (original design language: "Golden Hour Glass") */
 :root {
   --ps-coral: #ff6b5a;
-  --ps-aqua: #2fe0d0;
+  --ps-aqua: #ff5fa8; /* sunset pink (was a flat aqua-green everywhere) */
   --ps-gold: #ffd27a;
   --ps-ink: rgba(10, 13, 20, 0.52);
   --ps-ink-strong: rgba(9, 11, 18, 0.78);
@@ -76,7 +76,7 @@
 .ps-bar u { background: rgba(255, 245, 235, .85); transition: transform .7s cubic-bezier(.65, 0, .35, 1) .45s; }
 .ps-bar b { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .35), transparent 70%); }
 .ps-hp { flex: 1.6; }
-.ps-hp i { background: linear-gradient(90deg, #35c977, #7dffa8); }
+.ps-hp i { background: linear-gradient(90deg, #ff2e8a, #ff8fc4); }
 .ps-hp.low i { background: linear-gradient(90deg, #e2384a, #ff6b5a); animation: ps-blink 0.9s ease-in-out infinite; }
 .ps-ar { flex: 1; }
 .ps-ar i { background: linear-gradient(90deg, #3b86ff, #8cc8ff); }
@@ -193,7 +193,7 @@
 .ps-notif::before { background: linear-gradient(180deg, var(--ps-aqua), #6fb6ff); }
 .ps-notif.in { opacity: 1; transform: none; }
 .ps-notif-from { display: block; font: 700 12px/1.2 var(--ps-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ps-aqua); margin-bottom: 3px; }
-.ps-notif.msg::before { background: linear-gradient(180deg, #4be38a, var(--ps-aqua)); }
+.ps-notif.msg::before { background: linear-gradient(180deg, #ffd23f, var(--ps-aqua)); }
 .ps-notif.out { opacity: 0; transform: translateX(-20px); }
 
 /* ---------------- Mission ---------------- */
@@ -326,7 +326,7 @@
 .ps-post-l { font-size: 11px; color: #ff8fc8; margin-top: 3px; }
 .ps-bank-card {
   position: relative; height: 120px; border-radius: 16px; padding: 14px; margin-bottom: 8px;
-  background: linear-gradient(135deg, #ff6b5a, #ffb35a 45%, #2fe0d0); box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
+  background: linear-gradient(135deg, #ff6b5a, #ffb35a 45%, #ff5fa8); box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
   display: flex; flex-direction: column; justify-content: space-between; color: #10131b;
 }
 .ps-bank-card span { font: 800 12px/1 var(--ps-sans); letter-spacing: .2em; }

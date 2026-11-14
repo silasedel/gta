@@ -1,0 +1,424 @@
+// PORT SOLANA: the front end (main-menu track). Title screen over a live in-engine scene, main menu, online join
+// form, credits, loading screen into the game, and the doorway to Settings and the Wardrobe (also from the pause menu).
+//   game.frontEnd = { open(), openSettings(o), openWardrobe(o), active }
+// The title is skipped under automation (navigator.webdriver) so other tracks' test scripts keep their old flow;
+// ?menu=1 forces it on, ?menu=0 turns it off.
+import './menu.css';
+import { createUIContext } from '../core/context.js';
+import { el, esc, fmtClock } from '../core/dom.js';
+import { logoSVG } from '../core/logo.js';
+import { icon } from '../core/icons.js';
+import { BRAND } from '../brand.js';
+import { VERSION } from '../../version.js';
+import { getCinema } from './cinema.js';
+import { createGraphics } from './graphics.js';
+import { buildTitleScenes } from './titleShots.js';
+import { openSettingsScreen } from './settingsScreen.js';
+import { openWardrobeStage } from './wardrobeStage.js';
+import { createLoadScreen } from './loadScreen.js';
+import creditsText from '../../../CREDITS.md?raw';
+
+export const order = 950;
+
+const TIPS = [
+  'Press {enterVehicle} near any car to get in. Faster cars attract more attention.',
+  'The police remember what they saw: your outfit, your face and your car. Change one and they lose the trail.',
+  'Your phone ({phone}) has the map, jobs, your bank and the camera.',
+  'Cash on you can be lost. Put it in the bank before you go looking for trouble.',
+  'Businesses earn while you are away. Collect the safe before someone else does.',
+  'Hold a corner long enough and it is yours: turf pays out every day.',
+  'Change stations with {radioPrev} and {radioNext} while you drive.',
+  'Nico keeps his clothes at home. The wardrobe is also in the pause menu.',
+  'Night changes the city: clubs open, streets empty, and the neon comes up.',
+  'Swim too long underwater and you will run out of breath.',
+  'Every save keeps the last good copy. If one breaks, the backup loads.',
+  'Golden hour in the Keys lasts longer than you think. Stop and look around.',
+];
+const STATION = 'url:/assets/audio/music/theme/port_solana_theme.aac'; // the game's own theme (epic, not chiptune)
+const TITLE_HOURS_FALLBACK = 18.4;
+
+export async function initV2(game) {
+  const params = new URLSearchParams(location.search);
+  const forced = params.get('menu');
+  const enabled = forced === '1' || (forced !== '0' && !params.has('nomenu') && !navigator.webdriver);
+  const ctx = createUIContext(game);
+  try { if (game.quality?.name && ctx.settings.get('gfxPreset') !== 'custom') ctx.settings.values.gfxPreset = game.quality.name; } catch (e) { /* */ }
+  const gfx = createGraphics(game, ctx.settings);
+  const cin = getCinema(game);
+  registerWardrobeSlice(game);
+  const fe = { active: false, ctx, gfx, cin };
+  game.frontEnd = fe;
+  const overPause = (o, open) => {
+    if (o.from !== 'pause') return open(o);
+    document.body.classList.add('pm-over-pause');
+    return open({ ...o, onClose() { document.body.classList.remove('pm-over-pause'); o.onClose?.(); } });
+  };
+  fe.openSettings = (o = {}) => overPause(o, (x) => openSettingsScreen(game, ctx, x));
+  fe.openWardrobe = (o = {}) => overPause(o, (x) => openWardrobeStage(game, ctx, cin, x));
+  hookPauseMenu(game, fe);
+  if (enabled) startTitle(game, ctx, cin, fe, params);
+}
+
+// ---- the outfit rides in the save game too (the wardrobe also keeps it on this device)
+function registerWardrobeSlice(game) {
+  const S = game.save; if (!S?.register || !game.wardrobe) return;
+  try {
+    S.register('wardrobe', {
+      version: 1, order: 60,
+      save: () => { const c = game.wardrobe.current?.() || {}; return { ids: Object.values(c).filter(Boolean) }; },
+      load: (d) => { if (!d?.ids?.length) return; for (const id of d.ids) { try { game.wardrobe.wear(id); } catch (e) { /* piece missing */ } } },
+    });
+  } catch (e) { console.warn('[frontend] wardrobe save slice', e); }
+}
+
+// ---- pause menu: Wardrobe and full Settings buttons next to Resume
+function hookPauseMenu(game, fe) {
+  const tryHook = () => {
+    const foot = document.querySelector('#ps-hud .ps-pause-foot'); if (!foot) return false;
+    if (foot.querySelector('.pm-pause-btn')) return true;
+    const mk = (label, fn) => { const b = el('button', { class: 'ps-resume pm-pause-btn', text: label }); b.addEventListener('click', (e) => { e.stopPropagation(); fn(); }); return b; };
+    const res = foot.querySelector('.ps-resume');
+    const wrap = el('div', 'pm-pause-btns');
+    wrap.append(mk('WARDROBE', () => fe.openWardrobe({ from: 'pause' })), mk('ALL SETTINGS', () => fe.openSettings({ from: 'pause' })));
+    res?.after(wrap);
+    return true;
+  };
+  if (!tryHook()) { let n = 0; const t = setInterval(() => { if (tryHook() || ++n > 60) clearInterval(t); }, 500); }
+}
+
+function startTitle(game, ctx, cin, fe, params) {
+  const P = game.player, layer = ctx.layer('screen');
+  fe.active = true;
+  document.body.classList.add('pm-front');
+  game.ui.title = true;
+  game.save?.inhibit?.('title');
+  if (game.save) game.save.manualBoot = true;
+  const leaveUI = ctx.bindings.pushMode('ui');
+  // the player waits, still, wherever the scene needs him
+  const heroAnim = { speed: 0, grounded: true, sprint: false, jumping: false, driving: false, punch: false, dead: false, swimming: false, wading: false };
+  P.script = { lock: true, title: true, fixed() {}, anim: heroAnim };
+
+  // ---------------------------------------------------------------- DOM
+  const root = el('div', 'pm ps-interactive');
+  const sunId = 'pm-glow';
+  root.innerHTML = `
+    <div class="pm-grad"></div>
+    <div class="pm-brand">
+      <div class="pm-logo">${logoSVG()}</div>
+      <div class="pm-tagline"><i></i><span>${esc(BRAND.tagline)}</span></div>
+    </div>
+    <nav class="pm-menu" hidden></nav>
+    <div class="pm-press"><span>${esc(ctx.t('Press any key'))}</span></div>
+    <div class="pm-place"><b class="pm-place-name"></b><span class="pm-place-sub"></span></div>
+    <div class="pm-np" hidden><span class="pm-np-ico">${icon('radio')}</span><div><b class="pm-np-st"></b><span class="pm-np-tr"></span></div></div>
+    <div class="pm-foot"><span class="pm-ver">v${esc(VERSION)} · ${esc(BRAND.coords)}</span><div class="pm-hints ps-hints"></div></div>
+    <div class="pm-sub" hidden></div>`;
+  layer.appendChild(root);
+  if (false) try { root.querySelector('.pm-logo').style.setProperty('--pm-logo-mask', `url("data:image/svg+xml;utf8,${encodeURIComponent(logoSVG({ caption: false, color: '#fff', accent: '#fff' }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))}")`); } catch (e) { /* no shimmer */ }
+  const $ = (s) => root.querySelector(s);
+  const menu = $('.pm-menu'), press = $('.pm-press'), hints = $('.pm-hints'), sub = $('.pm-sub');
+  const placeName = $('.pm-place-name'), placeSub = $('.pm-place-sub'), np = $('.pm-np');
+  requestAnimationFrame(() => root.classList.add('in'));
+
+  // ---------------------------------------------------------------- scenes
+  let scenes = [];
+  try { scenes = buildTitleScenes(game); } catch (e) { console.error('[frontend] scenes', e); }
+  const only = params.get('menushot');
+  // wide establishing shots only on the title (no close-up of Nico until the character model is final)
+  if (!only) scenes = scenes.filter((s) => s.id !== 'keys_hero');
+  if (only) scenes = scenes.filter((s) => s.id === only).concat(scenes.filter((s) => s.id !== only));
+  let si = -1, sceneTimer = 0, switching = false, live = true;
+  const character = () => game.playerCharacter;
+  function placePlayer(sc) {
+    const p = sc.player; if (!p) return;
+    try { game.teleport(p.x, null, p.z, p.heading); } catch (e) { /* */ }
+    try { character()?.setVisible?.(p.visible !== false); } catch (e) { /* */ }
+    heroAnim.lookAt = null;
+  }
+  async function nextScene(first) {
+    if (!scenes.length || switching || !live) return;
+    switching = true;
+    const sc = scenes[(si + 1) % scenes.length];
+    if (!first) await cin.crossfade(1700, (async () => {
+      if (fe.screen === 'wardrobe') return;
+      placePlayer(sc); game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK;
+      cin.shot(sc.shot);
+      const s = sc.stream || sc.player || {};
+      await cin.waitStream(s.x ?? 0, s.z ?? 0, 4500);
+    })());
+    else { placePlayer(sc); game.timeOfDay = sc.hour ?? TITLE_HOURS_FALLBACK; cin.shot(sc.shot); }
+    cin.setLook({ letterbox: true, dof: true, flare: true, flareGain: sc.flareGain ?? 1 });
+    if (fe.screen === 'wardrobe') { switching = false; sceneTimer = 0; return; }
+    si = (si + 1) % scenes.length; sceneTimer = 0;
+    placeName.textContent = sc.place; placeSub.textContent = `${sc.sub || ''}  ·  ${fmtClock(sc.hour ?? 18)}`;
+    root.querySelector('.pm-place').classList.remove('show'); void root.offsetWidth; root.querySelector('.pm-place').classList.add('show');
+    switching = false;
+  }
+  // default: the stylized key art with a slow Ken Burns move and light rays (always premium, cheap on laptops).
+  // ?titlebg=live runs the in-engine cinematic scenes instead (camera paths depend on the world, which is still changing).
+  const artBg = params.get('titlebg') !== 'live' && params.get('titlebg') !== 'scene' && !params.has('menushot');
+  if (artBg) {
+    live = false;
+    root.insertAdjacentHTML('afterbegin', `<div class="pm-titleart" style="background-image:url('/assets/ui/keyart_loading.webp')"></div><div class="pm-titlerays"></div>`);
+    placeName.textContent = 'Biscayne Bay'; placeSub.textContent = 'Southline'; root.querySelector('.pm-place').classList.add('show');
+  } else {
+    cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.5, vignette: 0.12, exposure: 0.86, bloom: 0.6, owner: 'title' });
+    nextScene(true);
+  }
+  const SHOT_SECONDS = 13.5;
+  const lockShot = params.has('menushot');
+  game.updaters.push(function titleDirector(dt) {
+    if (!live || fe.screen === 'wardrobe') return;
+    sceneTimer += dt;
+    const sc = scenes[si];
+    if (sc && cin.active && fe.screen !== 'wardrobe') {
+      // the hero looks past the lens, toward the light
+      if (sc.player?.pose === 'hero') { const c = character(); if (c?.lookAt) c.lookAt(game.camera.position); }
+    }
+    if (!lockShot && sceneTimer > (sc?.shot?.dur ? Math.min(sc.shot.dur - 0.3, SHOT_SECONDS) : SHOT_SECONDS)) { sceneTimer = -999; nextScene(false); }
+  });
+
+  // ---------------------------------------------------------------- music
+  const startAudio = () => { try { window.dispatchEvent(new Event('pointerdown')); } catch (e) { /* */ } };
+  const music = () => { if (ctx.settings.get('menuMusic') === false) { game.menuMusic = { station: null, duck: 0.3, duckLP: 1600 }; return; } game.menuMusic = { station: STATION, gain: 0.85, duck: 0.3, duckLP: 1600, loopAt: 8 }; };
+  music();
+  ctx.settings.on('menuMusic', music);
+  let npLast = '';
+  const npTimer = setInterval(() => {
+    const n = STATION.startsWith('url:') ? { station: 'Main theme', title: BRAND.name, artist: 'Original score' } : game.audio?.nowPlaying?.(STATION);
+    if (!n || !game.audio?.ctx || ctx.settings.get('menuMusic') === false) { np.hidden = true; return; }
+    const k = n.title + n.artist; np.hidden = false;
+    if (k !== npLast) { npLast = k; np.querySelector('.pm-np-st').textContent = n.station; np.querySelector('.pm-np-tr').textContent = `${n.title} · ${n.artist}`; np.classList.remove('show'); void np.offsetWidth; np.classList.add('show'); }
+  }, 1000);
+
+  // ---------------------------------------------------------------- menu
+  let hasSave = false;
+  const isDesktop = !!window.portSolanaDesktop?.isDesktop;
+  const ITEMS = () => [
+    hasSave && { id: 'continue', label: 'Continue', sub: 'Pick up where you left off' },
+    { id: 'new', label: 'New Game', sub: hasSave ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys' },
+    { id: 'online', label: 'Online', sub: params.get('mp') ? 'Connected session: ' + (params.get('room') || 'lobby') : 'Join a friend’s session' },
+    { id: 'wardrobe', label: 'Wardrobe', sub: 'Dress Nico' },
+    { id: 'settings', label: 'Settings', sub: 'Graphics, audio, controls, display' },
+    { id: 'credits', label: 'Credits', sub: 'Who made this, and what with' },
+    isDesktop && { id: 'quit', label: 'Quit', sub: 'Close the game' },
+  ].filter(Boolean);
+  async function refreshSave() {
+    try { hasSave = !params.has('newgame') && !!(await game.save?.hasContinue?.()); } catch (e) { hasSave = false; }
+    if (hasSave) {
+      try { const l = await game.save.list(); const best = l.map((x) => x.latest).filter(Boolean).sort((a, b) => b.savedAt - a.savedAt)[0]; fe.saveMeta = best || null; } catch (e) { /* */ }
+    }
+  }
+  function renderMenu() {
+    const items = ITEMS();
+    menu.innerHTML = items.map((it, i) => `<button class="pm-item" data-nav data-id="${it.id}" style="--i:${i}">
+        <span class="pm-idx">${String(i + 1).padStart(2, '0')}</span><span class="pm-lab">${esc(ctx.t(it.label))}</span>
+        <span class="pm-desc">${esc(it.id === 'continue' && fe.saveMeta ? saveLine(fe.saveMeta) : it.sub)}</span></button>`).join('');
+  }
+  function saveLine(m) {
+    const bits = [];
+    if (m.day) bits.push('Day ' + m.day);
+    if (m.district || m.place) bits.push(m.district || m.place);
+    if (Number.isFinite(m.money ?? m.cash)) bits.push('$' + Math.round(m.money ?? m.cash).toLocaleString('en-US'));
+    if (m.savedAt) { const d = new Date(m.savedAt); if (!isNaN(d)) bits.push(d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })); }
+    return bits.join(' · ') || 'Pick up where you left off';
+  }
+  const glyph = (code) => ctx.bindings.codeGlyph(code);
+  function setHints(list) { hints.innerHTML = list.map(([k, l]) => `<span>${k}${esc(l)}</span>`).join(''); }
+  const hintsMenu = () => setHints([[glyph('ArrowUp') + glyph('ArrowDown'), 'Choose'], [glyph('Enter'), 'Select']]);
+
+  let scope = null;
+  fe.screen = 'attract';
+  // any key / click / pad button leaves the attract state
+  const offNav = ctx.bindings.on('nav', (d) => { if (fe.screen === 'attract') { d.handled = true; openMenu(); } });
+  const offUiKey = ctx.bindings.on('uikey', (d) => { if (fe.screen === 'attract' && d.down && !/^F\d+$/.test(d.code)) openMenu(); });
+  root.addEventListener('pointerdown', () => { if (fe.screen === 'attract') openMenu(); });
+  setHints([[glyph('Enter'), 'Start']]);
+
+  async function openMenu() {
+    if (fe.screen !== 'attract') return;
+    fe.screen = 'menu';
+    startAudio();
+    setTimeout(() => ctx.sfx('open'), 60);
+    press.classList.add('out');
+    await refreshSave();
+    renderMenu();
+    menu.hidden = false; root.classList.add('menu-on');
+    hintsMenu();
+    scope = ctx.nav.push({ root: menu, wrap: true, onBack() { /* title has nowhere to go back to */ } });
+  }
+  menu.addEventListener('nav:focus', (e) => { const b = e.target.closest('.pm-item'); if (b) { menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('cur', x === b)); } });
+  menu.addEventListener('click', (e) => { const b = e.target.closest('.pm-item'); if (b) choose(b.dataset.id); });
+
+  function choose(id) {
+    switch (id) {
+      case 'continue': ctx.sfx('start'); play('continue'); break;
+      case 'new': ctx.sfx('start'); play('new'); break;
+      case 'online': ctx.sfx('open'); openOnline(); break;
+      case 'wardrobe': ctx.sfx('open'); openWardrobe(); break;
+      case 'settings': ctx.sfx('open'); openSettings(); break;
+      case 'credits': ctx.sfx('open'); openCredits(); break;
+      case 'quit': ctx.sfx('back'); try { game.save?.release?.('title'); } catch (e) { /* */ } setTimeout(() => window.close(), 250); break;
+      default: break;
+    }
+  }
+  function hideMain(h) { root.classList.toggle('sub-on', h); }
+
+  // ---------------------------------------------------------------- sub screens
+  function openSub(html, cls, onClose) {
+    hideMain(true);
+    sub.className = 'pm-sub ' + cls; sub.innerHTML = html; sub.hidden = false;
+    requestAnimationFrame(() => sub.classList.add('in'));
+    const s = ctx.nav.push({ root: sub, onBack: close });
+    function close() { ctx.sfx('close'); s.pop(); sub.classList.remove('in'); setTimeout(() => { sub.hidden = true; sub.innerHTML = ''; }, 260); hideMain(false); hintsMenu(); onClose?.(); }
+    return { root: sub, close, scope: s };
+  }
+  function openOnline() {
+    const last = (() => { try { return JSON.parse(localStorage.getItem('portsolana.v2.online') || '{}'); } catch (e) { return {}; } })();
+    const cur = params.get('mp');
+    const h = openSub(`
+      <div class="pm-card">
+        <div class="pm-card-h"><span class="pm-kicker">${icon('globe')} Online</span><h2>Join a session</h2><p>Play in the same Southline as your friends. Ask the host for the server address and the room code.</p></div>
+        ${cur ? `<div class="pm-online-now">${icon('signal')} Connected to <b>${esc(cur)}</b> · room <b>${esc(params.get('room') || 'lobby')}</b></div>` : ''}
+        <label class="pm-field" data-nav="text"><span>Server address</span><input class="ps-input" name="mp" spellcheck="false" placeholder="ws://192.168.1.20:5310" value="${esc(last.mp || cur || 'ws://' + (location.hostname || '127.0.0.1') + ':5310')}"></label>
+        <label class="pm-field" data-nav="text"><span>Room code</span><input class="ps-input" name="room" spellcheck="false" maxlength="12" placeholder="Leave empty to create a room" value="${esc(last.room || params.get('room') || '')}"></label>
+        <label class="pm-field" data-nav="text"><span>Your name</span><input class="ps-input" name="name" spellcheck="false" maxlength="18" placeholder="Nico" value="${esc(last.name || params.get('name') || 'Nico')}"></label>
+        <div class="pm-card-act"><button class="ps-btn primary" data-nav data-act="join">${icon('play')} Join</button>${cur ? '<button class="ps-btn" data-nav data-act="leave">Play offline</button>' : ''}<button class="ps-btn ghost" data-nav data-act="back">Back</button></div>
+        <p class="pm-small">The game reloads into the session. Saves stay on this device.</p>
+      </div>`, 'pm-sub-online');
+    const go = () => {
+      const v = (n) => h.root.querySelector(`[name=${n}]`).value.trim();
+      const mp = v('mp'); if (!/^wss?:\/\/.+/i.test(mp)) { ctx.sfx('deny'); h.root.querySelector('[name=mp]').focus(); return; }
+      const room = v('room').replace(/[^a-z0-9_-]/gi, '').slice(0, 12), name = v('name').slice(0, 18) || 'Nico';
+      try { localStorage.setItem('portsolana.v2.online', JSON.stringify({ mp, room, name })); } catch (e) { /* */ }
+      const q = new URLSearchParams(location.search); q.set('mp', mp); if (room) q.set('room', room); else q.delete('room'); q.set('name', name);
+      ctx.sfx('start'); cin.black(true, 500).then(() => { location.search = q.toString(); });
+    };
+    h.root.addEventListener('click', (e) => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'join') go(); else if (a === 'back') h.close(); else if (a === 'leave') { const q = new URLSearchParams(location.search); q.delete('mp'); q.delete('room'); q.delete('name'); location.search = q.toString(); } });
+    h.root.addEventListener('nav:submit', go);
+  }
+  function openCredits() {
+    const html = mdLite(creditsText);
+    const h = openSub(`<div class="pm-card pm-credits"><div class="pm-card-h"><span class="pm-kicker">${icon('star')} Credits</span><h2>${esc(BRAND.name)}</h2><p>${esc(BRAND.studio)} · v${esc(VERSION)}. An original game: every name, brand and logo in it is made up.</p></div>
+      <div class="pm-credits-body ps-scroll">${html}</div><div class="pm-card-act"><button class="ps-btn ghost" data-nav data-act="back">Back</button></div></div>`, 'pm-sub-credits');
+    h.root.addEventListener('click', (e) => { if (e.target.closest('[data-act=back]')) h.close(); });
+    // slow auto-scroll until the player touches it
+    const body = h.root.querySelector('.pm-credits-body'); let auto = true; body.addEventListener('wheel', () => { auto = false; }, { passive: true });
+    (function roll() { if (!body.isConnected) return; if (auto) body.scrollTop += 0.6; requestAnimationFrame(roll); })();
+  }
+  function openSettings() {
+    hideMain(true); fe.screen = 'settings';
+    root.classList.add('pane-on');
+    fe.openSettings({ from: 'title', onClose() { root.classList.remove('pane-on'); hideMain(false); fe.screen = 'menu'; hintsMenu(); } });
+  }
+  function openWardrobe() {
+    hideMain(true); fe.screen = 'wardrobe'; root.classList.add('pane-on', 'ward-on');
+    fe.openWardrobe({ from: 'title', onClose() { root.classList.remove('pane-on', 'ward-on'); hideMain(false); fe.screen = 'menu'; hintsMenu(); cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.7, vignette: 0.14, owner: 'title' }); const sc = scenes[si]; if (sc) { placePlayer(sc); game.timeOfDay = sc.hour; cin.shot(sc.shot); } } });
+  }
+
+  // ---------------------------------------------------------------- into the game
+  let playing = false;
+  async function play(kind) {
+    if (playing) return; playing = true;
+    fe.screen = 'loading';
+    scope?.pop();
+    root.classList.add('leaving');
+    const load = createLoading(game, ctx, kind);
+    await cin.crossfade(900);
+    live = false;
+    await new Promise((r) => setTimeout(r, 380));
+    // fade the title music under the loading screen, then start the world
+    game.menuMusic = { station: ctx.settings.get('menuMusic') === false ? null : STATION, gain: 0.5, duck: 0.3, duckLP: 1200, loopAt: 8 };
+    let ok = false;
+    try {
+      game.save?.release?.('title');
+      if (kind === 'continue') { const r = await game.save.continue(); ok = !!r?.ok; if (!ok) console.warn('[frontend] continue failed', r); }
+      if (!ok) {
+        await game.save?.newGame?.();
+        const sp = game.nicoHouse?.anchors?.spawnYard || game.nicoHouse?.anchors?.spawn;
+        if (sp?.pos) game.teleport(sp.pos.x, sp.pos.y, sp.pos.z, sp.heading);
+        else if (game.city?.playerSpawn) game.teleport(game.city.playerSpawn.x, null, game.city.playerSpawn.z, game.city.playerSpawnHeading);
+      }
+    } catch (e) { console.error('[frontend] start', e); }
+    try { character()?.setVisible?.(true); character()?.lookAt?.(null); } catch (e) { /* */ }
+    game.cameraYaw = P.heading + Math.PI; game.cameraPitch = 0.22;
+    // camera waits above the player while the ground streams in
+    const px = P.position.x, pz = P.position.z, py = P.position.y;
+    const back = { x: Math.sin(P.heading), z: Math.cos(P.heading) };
+    cin.begin({ letterbox: false, dof: true, flare: true, grain: 1.2, vignette: 0.08, owner: 'intro' });
+    cin.shot({ dur: 1e6, fov: 42, aperture: 0.4, from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] } });
+    await load.waitWorld(px, pz);
+    // reveal: crane down from behind to the gameplay camera, then hand it over
+    game.menuMusic = null;
+    root.remove();
+    load.close();
+    cin.shot({ dur: 2.6, fov: 42, aperture: 0.5, ease: (t) => 1 - Math.pow(1 - t, 3), from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] }, to: { pos: [px - back.x * 5.2, py + 2.6, pz - back.z * 5.2], look: [px, py + 1.5, pz] } });
+    await new Promise((r) => setTimeout(r, 2300));
+    cin.handoff?.(1100);
+    cin.end();
+    finish();
+  }
+  function finish() {
+    fe.active = false; fe.screen = null;
+    clearInterval(npTimer); offNav(); offUiKey();
+    leaveUI();
+    P.script = null;
+    document.body.classList.remove('pm-front');
+    game.ui.title = false;
+    document.getElementById('ps-hud')?.classList.add('live');
+    const clearLaw = () => { try { game.wanted?.clear?.('fresh start'); } catch (e) { /* */ } }; clearLaw(); setTimeout(clearLaw, 3000);
+    const t = document.getElementById('title'); if (t) t.style.display = 'none';
+    try { game.renderer.domElement.requestPointerLock?.()?.catch?.(() => {}); } catch (e) { /* needs a click: the canvas asks on the next one */ }
+    game.emit?.('frontend:play', {});
+  }
+  fe.open = () => { /* the title only opens at boot */ };
+  // dev: ?menushot=<id>&menustate=menu|settings|wardrobe|loading for shots
+  const st = params.get('menustate');
+  if (st) setTimeout(async () => { await openMenu(); if (st === 'settings') openSettings(); else if (st === 'wardrobe') openWardrobe(); else if (st === 'online') openOnline(); else if (st === 'credits') openCredits(); }, 600);
+}
+
+// ---------------------------------------------------------------- loading screen
+function createLoading(game, ctx, kind) {
+  const fill = (t) => esc(t).replace(/ , and \. /, ` ${ctx.bindings.glyph('radioPrev')} and ${ctx.bindings.glyph('radioNext')} `);
+  const ls = createLoadScreen({ mount: ctx.layer('top'), fillTip: fill });
+  ls.set(2, kind === 'continue' ? 'Loading your save' : 'Starting a new game');
+  return {
+    // real readiness: streamed tiles (colliders + full-detail meshes) within 220 m of the player
+    async waitWorld(x, z) {
+      const t0 = performance.now(), st = game.city?.streamer;
+      try { ls.place(game.city?.districtAt?.(x, z) || ''); } catch (e) { /* */ }
+      const R = 220, ts = st?.tileSize || 200, expected = Math.max(4, Math.ceil((Math.PI * R * R) / (ts * ts)));
+      for (;;) {
+        const el2 = performance.now() - t0;
+        let ready = 0, seen = 0;
+        if (st) for (const t of st.tiles.values()) { const d = Math.hypot(t.cx - x, t.cz - z); if (d < R) { seen++; if (t.col && t.near) ready++; } }
+        const around = st?.readyAround ? st.readyAround(x, z, 220) : true;
+        const frac = around ? 1 : ready / Math.max(expected, seen);
+        const pend = st?.pending?.() ?? 0;
+        ls.set(Math.min(around ? 100 : 92, 8 + frac * 80 + (pend < 3 ? 8 : 0) + Math.min(4, el2 / 500)), around ? 'Ready' : pend > 0 ? `Streaming the streets (${pend} left)` : 'Building colliders');
+        if ((around && el2 > 2200) || el2 > 25000) break;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      game.renderer.shadowMap.needsUpdate = true;
+      await new Promise((r) => setTimeout(r, 350));
+      ls.set(100, 'Ready');
+      await new Promise((r) => setTimeout(r, 300));
+    },
+    close() { ls.close(); },
+  };
+}
+
+// minimal markdown for CREDITS.md: headings, bullets, links, code, bold
+function mdLite(src) {
+  const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1').replace(/(https?:\/\/[^\s)<,]+)/g, '<span class="pm-url">$1</span>');
+  let out = '', inList = false;
+  for (const line of String(src).split('\n')) {
+    const h = /^(#{1,4})\s+(.*)/.exec(line), li = /^\s*[-*]\s+(.*)/.exec(line);
+    if (!li && inList) { out += '</ul>'; inList = false; }
+    if (h) out += `<h${Math.min(4, h[1].length + 2)}>${inline(h[2])}</h${Math.min(4, h[1].length + 2)}>`;
+    else if (li) { if (!inList) { out += '<ul>'; inList = true; } out += `<li>${inline(li[1])}</li>`; }
+    else if (line.trim()) out += `<p>${inline(line)}</p>`;
+  }
+  if (inList) out += '</ul>';
+  return out;
+}

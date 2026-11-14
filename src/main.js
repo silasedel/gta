@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import './ui/menu/splash.js'; // [main-menu hook] key-art boot screen
 import RAPIER from '@dimforge/rapier3d-compat';
 import { createInput } from './core/input.js';
 import { createEnvironment } from './world/environment.js';
@@ -79,7 +80,7 @@ async function boot() {
 
   loadMsg('BUILDING SKY', 15);
   game.env = await safe('env', () => createEnvironment(game), { update() {} });
-  loadMsg('BUILDING PORT SOLANA', 30);
+  loadMsg('BUILDING THE CITY', 30);
   // Map switch: ?map=miami loads the real-scale Miami city (when present); ?map=old forces the original grid city.
   const mapParam = new URLSearchParams(location.search).get('map');
   const MIAMI_DEFAULT = true; // flipped to true once the Miami city is ready
@@ -489,6 +490,21 @@ async function boot() {
   const raydir = new THREE.Vector3();
   const camSphere = new RAPIER.Ball(0.24);
   const pivS = new THREE.Vector3();
+  const camRay = new THREE.Raycaster();
+  const _occList = [];
+  const _occSphere = new THREE.Sphere();
+  const _occBox = new THREE.Box3();
+  function camOccluders() {
+    _occList.length = 0;
+    const cands = [game.nicoHouse?.group, game.keysBar?.group, ...(game.cameraOccluders || [])];
+    for (const g of cands) {
+      if (!g || !g.visible || !g.parent) continue;
+      if (!g.userData.psOccSphere) { _occBox.setFromObject(g); g.userData.psOccSphere = _occBox.getBoundingSphere(new THREE.Sphere()); }
+      _occSphere.copy(g.userData.psOccSphere);
+      if (_occSphere.center.distanceTo(P.position) < _occSphere.radius + 12) _occList.push(g);
+    }
+    return _occList;
+  }
   function updateCamera(dt) {
     if (!Number.isFinite(L.speedF)) L.speedF = 0;
     if (!Number.isFinite(L.bobPhase)) L.bobPhase = 0;
@@ -552,6 +568,24 @@ async function boot() {
       const sh = world.castShape(piv, IDQ, raydir, camSphere, 0, camDist + 0.3, false, STATIC_ONLY);
       if (sh && Number.isFinite(sh.time_of_impact) && (!hit || sh.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sh.time_of_impact };
     } catch (e) { /* keep ray result */ }
+    // render geometry without colliders (roof overhangs, eaves, porch roofs of set pieces): the camera must not
+    // sit inside them (playtest P2). Groups in game.cameraOccluders plus the known set pieces, tested only when near.
+    try {
+      const occ = camOccluders();
+      if (occ.length) {
+        camRay.set(piv, raydir);
+        camRay.near = 0;
+        camRay.far = camDist + 0.3;
+        for (const g of occ) {
+          const hits = camRay.intersectObject(g, true);
+          for (const h of hits) {
+            if (!h.object.visible || h.object.isSprite || h.object.isPoints || h.object.isLine) continue;
+            if (!hit || h.distance < hit.timeOfImpact) hit = { timeOfImpact: h.distance };
+            break;
+          }
+        }
+      }
+    } catch (e) { /* occluder test is best effort */ }
     const wantD = hit ? Math.max(0.6, hit.timeOfImpact - 0.3) : camDist;
     if (wantD < colDist) colDist = wantD; else colDist += (wantD - colDist) * Math.min(1, dt * 2.5);
     const target = piv.clone().addScaledVector(raydir, colDist);
@@ -660,7 +694,7 @@ async function boot() {
   game.ready = true;
   loading.style.pointerEvents = 'none'; // never swallow the first click while fading out
   setTimeout(() => { loading.style.opacity = 0; setTimeout(() => loading.remove(), 700); }, 200);
-  game.hud.notify?.('Welcome to Port Solana. Click to play.', 4000);
+  game.hud.notify?.('Welcome to Southline. Click to play.', 4000);
 
   // ---- F3 performance overlay ----
   const perfEl = document.createElement('div');
@@ -728,7 +762,7 @@ async function boot() {
     // fell through a hole in the ground? (on land, well below where the ground should be) -> put back on top
     const c = game.city;
     if (c?.groundHeightAt && c.isWater && !c.isWater(t.x, t.z) && !L.mantle) {
-      const gh = c.groundHeightAt(t.x, t.z, t.y + 30);
+      const gh = c.groundHeightAt(t.x, t.z, t.y - CENTER + 1.5); // surface at the feet' own level: never an overpass deck above (playtest: snapped up onto the deck)
       if (Number.isFinite(gh) && t.y - CENTER < gh - 1.5) {
         pBody.setTranslation({ x: t.x, y: gh + CENTER + 0.25, z: t.z }, true);
         P.position.set(t.x, gh, t.z); vy = 0; knock.set(0, 0, 0);
@@ -770,6 +804,7 @@ async function boot() {
   const spikes = []; game.perf = Object.assign(game.perf || {}, { spikes, longTasks: [] });
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) { game.perf.longTasks.push({ t: +(e.startTime / 1000).toFixed(1), ms: Math.round(e.duration), src: (e.attribution?.[0]?.containerSrc || e.attribution?.[0]?.name || e.name || '') }); if (game.perf.longTasks.length > 60) game.perf.longTasks.shift(); } }).observe({ entryTypes: ['longtask'] }); } catch (e) {}
   function frame(now) {
+    if (game.frameGate && !game.frameGate(now)) { requestAnimationFrame(frame); return; } // [main-menu hook] frame-rate cap
     const gap = now - last, fStart = performance.now();
     for (const k in PT) PT[k] = 0;
     requestAnimationFrame(frame);

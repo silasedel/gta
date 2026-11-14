@@ -3,14 +3,14 @@
 // follow. The wordmark is drawn from original letterforms in core/logo.js for the letters it knows
 // (A L N O P R S T); any other letter makes the wordmark fall back to bold condensed type next to the tide-sun emblem.
 export const BRAND = {
-  name: 'Port Solana',          // plain-text name (window title, credits, messages)
-  line1: 'PORT',                // small top row of the lockup ('' for a one-word name)
-  line2: 'SOLANA',              // the big word
-  sunLetter: 1,                 // index of the letter in line2 replaced by the tide sun (-1 = none; must be an O to read well)
+  name: 'Southline',            // plain-text name (window title, credits, messages)
+  line1: '',                    // small top row of the lockup ('' for a one-word name)
+  line2: 'SOUTHLINE',           // the big word
+  sunLetter: -1,                 // index of the letter in line2 replaced by the tide sun (-1 = none; must be an O to read well)
   tagline: 'AN OPEN-WORLD FLORIDA STORY',
   coords: '25°46′N  80°11′W',
   phoneOS: 'TideOS',            // the phone's operating system name
-  studio: 'Port Solana project',
+  studio: 'Southline project',
 };
 export const gameName = () => BRAND.name;
 export const gameNameUpper = () => BRAND.name.toUpperCase();

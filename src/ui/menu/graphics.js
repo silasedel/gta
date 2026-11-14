@@ -52,7 +52,7 @@ export function createGraphics(game, settings) {
   // ---- FPS counter
   const fpsEl = document.createElement('div');
   fpsEl.className = 'pm-fps';
-  fpsEl.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:9998;font:700 13px/1 "Archivo Black",sans-serif;letter-spacing:.12em;color:#f3ede2;background:rgba(5,8,14,.55);padding:6px 9px;border-radius:4px;pointer-events:none;display:none;font-variant-numeric:tabular-nums';
+  fpsEl.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:9998;font:700 13px/1 var(--ps-cond);letter-spacing:.12em;color:#f3ede2;background:rgba(5,8,14,.55);padding:6px 9px;border-radius:4px;pointer-events:none;display:none;font-variant-numeric:tabular-nums';
   document.body.appendChild(fpsEl);
   let fAcc = 0, fN = 0, fLast = performance.now();
   (function fpsLoop(now) {

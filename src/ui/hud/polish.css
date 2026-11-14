@@ -70,10 +70,10 @@
   background: #2fb8a9;
 }
 .ps-hud .ps-notif.msg::before {
-  background: #3aa64c;
+  background: #e8a317;
 }
 .ps-hud .ps-notif.item::before {
-  background: #3aa64c;
+  background: #e8a317;
 }
 .ps-hud .ps-notif.item.steal::before {
   background: #e2763a;

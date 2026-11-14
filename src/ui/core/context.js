@@ -6,6 +6,7 @@
 //   ctx.nav       focus navigation (push scopes)           ctx.svc       guarded access to other tracks' systems
 //   ctx.t         translate('English text')                ctx.sfx(name) UI sound hook ('move','select','back','tab','tick','deny','open','close','notify')
 //   ctx.notify(text, ms, opts)  HUD notification (set by the HUD)   ctx.bus  UI-only events (on / emit)
+import '../styles/fonts.css';
 import '../styles/tokens.css';
 import { el, emitter } from './dom.js';
 import { createBindings } from '../input/bindings.js';
@@ -16,13 +17,8 @@ import { createI18n } from './i18n.js';
 
 const LAYERS = ['world', 'hud', 'toast', 'phone', 'screen', 'modal', 'top'];
 
-export function injectFonts() {
-  if (typeof document === 'undefined' || document.getElementById('ps-fonts')) return;
-  const pre = document.createElement('link'); pre.rel = 'preconnect'; pre.href = 'https://fonts.gstatic.com'; pre.crossOrigin = '';
-  const l = document.createElement('link'); l.id = 'ps-fonts'; l.rel = 'stylesheet';
-  l.href = 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap';
-  document.head.append(pre, l);
-}
+// Fonts are bundled (src/ui/styles/fonts.css, OFL): nothing is fetched from a font CDN (the desktop app is offline).
+export function injectFonts() { /* kept for callers: fonts.css is imported above */ }
 
 export function createUIContext(game, opts = {}) {
   if (game.uiContext && !opts.fresh) return game.uiContext;

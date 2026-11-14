@@ -10,10 +10,10 @@ const mult = (v) => (+v).toFixed(2) + 'x';
 const C = (value, label, hint) => ({ value, label, hint });
 
 export const PRESETS = {
-  low: { resolutionScale: 0.7, renderDistance: 'near', shadows: 'low', reflections: 'off', antialias: 'fxaa', ambientOcclusion: false, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'medium', vegetation: 'low', trafficDensity: 0.6, pedDensity: 0.6, interiorDetail: 'medium' },
-  medium: { resolutionScale: 0.85, renderDistance: 'medium', shadows: 'medium', reflections: 'low', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'high', vegetation: 'medium', trafficDensity: 0.8, pedDensity: 0.8, interiorDetail: 'high' },
+  low: { resolutionScale: 0.85, renderDistance: 'near', shadows: 'low', reflections: 'off', antialias: 'fxaa', ambientOcclusion: false, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'medium', vegetation: 'low', trafficDensity: 0.6, pedDensity: 0.6, interiorDetail: 'medium' },
+  medium: { resolutionScale: 1, renderDistance: 'medium', shadows: 'medium', reflections: 'low', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'high', vegetation: 'medium', trafficDensity: 0.8, pedDensity: 0.8, interiorDetail: 'high' },
   high: { resolutionScale: 1, renderDistance: 'far', shadows: 'high', reflections: 'high', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'high', vegetation: 'high', trafficDensity: 1, pedDensity: 1, interiorDetail: 'high' },
-  ultra: { resolutionScale: 1.25, renderDistance: 'ultra', shadows: 'ultra', reflections: 'ultra', antialias: 'taa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'ultra', vegetation: 'ultra', trafficDensity: 1.2, pedDensity: 1.2, interiorDetail: 'ultra' },
+  ultra: { resolutionScale: 1, renderDistance: 'ultra', shadows: 'ultra', reflections: 'ultra', antialias: 'taa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'ultra', vegetation: 'ultra', trafficDensity: 1.2, pedDensity: 1.2, interiorDetail: 'ultra' },
 };
 export const PRESET_KEYS = Object.keys(PRESETS.high);
 export const RENDER_DISTANCE = { near: 0.6, medium: 1, far: 1.5, ultra: 2.2 };
@@ -24,8 +24,8 @@ export const SCHEMA = [
       { key: 'gfxPreset', label: 'Preset', type: 'choice', default: 'high', owner: 'ui', options: [C('low', 'Low'), C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Ultra'), C('custom', 'Custom')], desc: 'Sets everything below at once. Changing any single option switches to Custom.' },
       { key: 'gfxAutoDetect', label: 'Auto-detect', type: 'action', action: 'detect', button: 'Detect best settings', desc: 'Looks at your graphics chip and the measured frame rate, then picks a preset.' },
       { key: 'resolutionScale', label: 'Resolution scale', type: 'range', min: 0.5, max: 1.5, step: 0.05, default: 1, fmt: pct, owner: 'ui', desc: 'Renders the 3D world at a fraction of the window size. Lower is faster and softer.' },
-      { key: 'renderDistance', label: 'Render distance', type: 'choice', default: 'far', owner: 'city-look', options: [C('near', 'Near'), C('medium', 'Medium'), C('far', 'Far'), C('ultra', 'Ultra')], desc: 'How far full-detail buildings, cars and trees are drawn.' },
-      { key: 'shadows', label: 'Shadows', type: 'choice', default: 'high', owner: 'environment', options: [C('off', 'Off'), C('low', 'Low'), C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Ultra')] },
+      { key: 'renderDistance', label: 'Draw distance', type: 'choice', default: 'far', owner: 'ui', options: [C('near', 'Near'), C('medium', 'Medium'), C('far', 'Far'), C('ultra', 'Ultra')], desc: 'How far full-detail buildings, cars and trees are drawn.' },
+      { key: 'shadows', label: 'Shadows', type: 'choice', default: 'high', owner: 'ui', options: [C('off', 'Off'), C('low', 'Low'), C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Ultra')] },
       { key: 'reflections', label: 'Reflections', type: 'choice', default: 'high', owner: 'environment', options: [C('off', 'Off'), C('low', 'Low'), C('high', 'High'), C('ultra', 'Ultra')], desc: 'Water, wet roads, glass and car paint.' },
       { key: 'antialias', label: 'Anti-aliasing', type: 'choice', default: 'smaa', owner: 'environment', options: [C('off', 'Off'), C('fxaa', 'FXAA'), C('smaa', 'SMAA'), C('taa', 'TAA')] },
       { key: 'textureQuality', label: 'Texture quality', type: 'choice', default: 'high', owner: 'city-look', options: [C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Ultra')] },
@@ -36,9 +36,10 @@ export const SCHEMA = [
       { key: 'ambientOcclusion', label: 'Ambient occlusion', type: 'toggle', default: true, owner: 'environment' },
       { key: 'bloom', label: 'Bloom and neon glow', type: 'toggle', default: true, owner: 'environment' },
       { key: 'volumetrics', label: 'Volumetric fog and light rays', type: 'toggle', default: true, owner: 'environment' },
-      { key: 'motionBlur', label: 'Motion blur at speed', type: 'toggle', default: true, owner: 'environment' },
-      { key: 'depthOfField', label: 'Depth of field', type: 'toggle', default: true, owner: 'environment' },
-      { key: 'filmGrain', label: 'Film grain', type: 'range', min: 0, max: 1, step: 0.05, default: 0.5, fmt: pct, owner: 'environment' },
+      { key: 'motionBlur', label: 'Motion blur at speed', type: 'toggle', default: true, owner: 'ui' },
+      { key: 'depthOfField', label: 'Depth of field', type: 'toggle', default: true, owner: 'ui', desc: 'Soft focus on the title screen, the wardrobe and arrival intros.' },
+      { key: 'lensFlare', label: 'Lens flare', type: 'toggle', default: true, owner: 'ui', desc: 'Sun ghosts and a soft streak when the camera looks toward the sun.' },
+      { key: 'filmGrain', label: 'Film grain', type: 'range', min: 0, max: 1, step: 0.05, default: 0.5, fmt: pct, owner: 'ui' },
     ] },
     { title: 'World', items: [
       { key: 'trafficDensity', label: 'Traffic density', type: 'range', min: 0.2, max: 1.5, step: 0.1, default: 1, fmt: pct, owner: 'vehicles-core' },
@@ -48,7 +49,7 @@ export const SCHEMA = [
       { key: 'fov', label: 'Field of view', type: 'range', min: 50, max: 100, step: 1, default: 62, fmt: (v) => Math.round(v) + '°', owner: 'ui' },
       { key: 'cameraShake', label: 'Camera shake', type: 'range', min: 0, max: 1, step: 0.05, default: 1, fmt: pct, owner: 'lead' },
       { key: 'fullscreen', label: 'Fullscreen', type: 'toggle', default: false, owner: 'ui', volatile: true },
-      { key: 'fpsLimit', label: 'Frame rate limit', type: 'choice', default: 0, owner: 'lead', options: [C(30, '30'), C(60, '60'), C(120, '120'), C(0, 'Unlimited')] },
+      { key: 'fpsLimit', label: 'Frame rate limit', type: 'choice', default: 0, owner: 'ui', options: [C(60, '60'), C(120, '120'), C(0, 'Unlimited')] },
       { key: 'showFps', label: 'Show frame rate', type: 'toggle', default: false, owner: 'ui' },
     ] },
   ] },
@@ -99,8 +100,9 @@ export const SCHEMA = [
   ] },
   { id: 'display', label: 'HUD', icon: 'hud', sections: [
     { title: 'Layout', items: [
-      { key: 'uiScale', label: 'UI scale', type: 'range', min: 0.8, max: 1.5, step: 0.05, default: 1, fmt: pct, owner: 'ui' },
+      { key: 'uiScale', label: 'HUD and menu scale', type: 'range', min: 0.8, max: 1.5, step: 0.05, default: 1, fmt: pct, owner: 'ui' },
       { key: 'safeZone', label: 'Screen edge margin', type: 'range', min: 0, max: 0.1, step: 0.005, default: 0, fmt: (v) => (v * 100).toFixed(1) + '%', owner: 'ui', desc: 'Moves the HUD in from the edges (TVs, curved screens).' },
+      { key: 'letterbox', label: 'Cinematic letterbox', type: 'toggle', default: true, owner: 'ui', desc: 'Black bars on the title screen and arrival intros.' },
       { key: 'hudCentered', label: 'Keep the HUD in the middle 16:9 on ultrawide', type: 'toggle', default: false, owner: 'ui' },
       { key: 'minimapMode', label: 'Minimap', type: 'choice', default: 'rotate', owner: 'ui', options: [C('rotate', 'Rotates'), C('north', 'North up')] },
       { key: 'minimapSize', label: 'Minimap size', type: 'choice', default: 'medium', owner: 'ui', options: [C('small', 'Small'), C('medium', 'Medium'), C('large', 'Large')] },

@@ -60,12 +60,15 @@ if (process.platform === 'darwin') {
   sw.appendSwitch('use-angle', 'metal');
 }
 
-app.setName('Port Solana');
+app.setName('Southline');
 // Measurement runs (--ps-size) use their own profile, so they never share the single-instance lock,
 // window state, saves or logs with the player's copy of the app.
 const testProfile = !!argValue('ps-size') || hasArg('ps-test-profile');
 if (testProfile) {
   app.setPath('userData', path.join(app.getPath('appData'), 'Port Solana Test'));
+} else {
+  // renamed to Southline: keep the saves, settings and window state where earlier builds put them
+  app.setPath('userData', path.join(app.getPath('appData'), 'Port Solana'));
 }
 protocolMod.registerSchemes();
 
@@ -163,7 +166,7 @@ function buildMenu() {
   }
   const template = [
     {
-      label: 'Port Solana',
+      label: 'Southline',
       submenu: [
         { role: 'about' },
         { type: 'separator' },
@@ -287,7 +290,7 @@ function createWindow() {
     minHeight: 540,
     show: false,
     backgroundColor: '#000000',
-    title: 'Port Solana',
+    title: 'Southline',
     fullscreenable: true,
     autoHideMenuBar: true,
     webPreferences: {

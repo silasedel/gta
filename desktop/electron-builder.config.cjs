@@ -2,8 +2,8 @@
 // Unsigned build for local use: no signing identity, no notarization.
 module.exports = {
   appId: 'com.portsolana.game',
-  productName: 'Port Solana',
-  copyright: 'Port Solana',
+  productName: 'Southline',
+  copyright: 'Southline',
   electronVersion: '45.2.1',
   directories: {
     app: 'desktop/app',
@@ -45,7 +45,7 @@ module.exports = {
     },
   },
   dmg: {
-    title: 'Port Solana',
+    title: 'Southline',
     writeUpdateInfo: false,
   },
   win: {

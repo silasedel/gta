@@ -1,6 +1,7 @@
 // PORT SOLANA — HUD (original design). Owns: minimap, status cluster, speedometer,
 // help/notifications/mission, district toast, phone, pause menu, title + death screens.
 import { VERSION } from '../version.js';
+import { BRAND } from './brand.js';
 import './styles/fonts.css';
 import './hud.css';
 import { createCorner } from './hud/corner.js';
@@ -12,7 +13,7 @@ const MAP_X0 = -580, MAP_X1 = 760, MAP_Z0 = -580, MAP_Z1 = 580; // baked world r
 const BAKE_PPM = 2;                                             // baked pixels per meter
 
 const DISTRICTS = {
-  'Coral Beach': '#2fe0d0', 'Downtown': '#ffffff', 'Palmetto Heights': '#9be37a',
+  'Coral Beach': '#ff5fa8', 'Downtown': '#ffffff', 'Palmetto Heights': '#9be37a',
   'Marina Vista': '#6fb6ff', 'Neon Row': '#ff5fb8', 'Harbor District': '#ffb35a',
   'Old Town': '#e8c28a', 'Sunset Flats': '#ff6b5a',
 };
@@ -73,7 +74,7 @@ const CRIME_NAMES = {
 };
 const SHOP_GLYPH = (t = '') => {
   t = String(t).toLowerCase();
-  if (/surf|beach|board/.test(t)) return ['wave', '#2fe0d0'];
+  if (/surf|beach|board/.test(t)) return ['wave', '#ff5fa8'];
   if (/electr|tech|phone|volt/.test(t)) return ['bolt', '#ffe066'];
   if (/beauty|salon|spa|cosmet/.test(t)) return ['sparkle', '#ff9ad5'];
   if (/cloth|apparel|fashion|boutique|sport|outfit/.test(t)) return ['shirt', '#c58cff'];
@@ -89,7 +90,7 @@ const APPS = [
   { id: 'contacts', name: 'Contacts', bg: 'linear-gradient(140deg,#ffb35a,#ff6b5a)' },
   { id: 'messages', name: 'Messages', bg: 'linear-gradient(140deg,#4be38a,#18b07a)' },
   { id: 'camera', name: 'Camera', bg: 'linear-gradient(140deg,#5d6578,#2c3140)' },
-  { id: 'map', name: 'Map', bg: 'linear-gradient(140deg,#2fe0d0,#1a8fb0)' },
+  { id: 'map', name: 'Map', bg: 'linear-gradient(140deg,#ff5fa8,#1a8fb0)' },
   { id: 'wavvy', name: 'Wavvy', bg: 'linear-gradient(140deg,#ff5fb8,#7a5cff)' },
   { id: 'bank', name: 'Bank', bg: 'linear-gradient(140deg,#2b3550,#121828)' },
   { id: 'settings', name: 'Settings', bg: 'linear-gradient(140deg,#8a93a6,#4b5263)' },
@@ -171,7 +172,7 @@ export function createHUD(game) {
   }
   speedo.innerHTML = `
     <svg class="ps-speedo-svg" viewBox="0 0 180 180">
-      <defs><linearGradient id="psSpdGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2fe0d0"/><stop offset=".65" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff6b5a"/></linearGradient></defs>
+      <defs><linearGradient id="psSpdGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ff5fa8"/><stop offset=".65" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff6b5a"/></linearGradient></defs>
       <circle cx="90" cy="90" r="${ARC_R}" class="ps-arc-bg" stroke-dasharray="${ARC_LEN} 999" transform="rotate(135 90 90)"/>
       <circle cx="90" cy="90" r="${ARC_R}" class="ps-arc" stroke="url(#psSpdGrad)" stroke-dasharray="0 999" transform="rotate(135 90 90)"/>
       <g class="ps-ticks">${ticks}</g>
@@ -206,7 +207,7 @@ export function createHUD(game) {
   // ---------- Death screen ----------
   const deathEl = el('div', 'ps-death', `<div class="ps-death-flash"></div><div class="ps-death-bar top"></div><div class="ps-death-bar bot"></div><div class="ps-death-card"><div class="ps-death-rule"></div><h1>LIGHTS OUT</h1><p><span>RESPAWNING</span> Solana General Hospital</p></div>`);
   root.appendChild(deathEl);
-  const arrestEl = el('div', 'ps-arrest', `<div class="ps-arrest-bars"></div><h1>DETAINED</h1><p class="ps-arrest-fee"></p><small>Released from Port Solana Central Holding</small>`);
+  const arrestEl = el('div', 'ps-arrest', `<div class="ps-arrest-bars"></div><h1>DETAINED</h1><p class="ps-arrest-fee"></p><small>Released from ${BRAND.name} Central Holding</small>`);
   root.appendChild(arrestEl);
   const arrestFee = arrestEl.querySelector('.ps-arrest-fee');
   let arrestTimer = 0;
@@ -230,7 +231,7 @@ export function createHUD(game) {
   phone.innerHTML = `<div class="ps-phone-body"><div class="ps-phone-screen">
       <div class="ps-phone-status"><span class="ps-ph-time">18:00</span><span class="ps-ph-notch"></span><span class="ps-ph-icons">${ICON.signal}${ICON.battery}</span></div>
       <div class="ps-phone-home">
-        <div class="ps-ph-big"><div class="ps-ph-bigtime">18:00</div><div class="ps-ph-date">Friday · Port Solana</div></div>
+        <div class="ps-ph-big"><div class="ps-ph-bigtime">18:00</div><div class="ps-ph-date">Friday · ${BRAND.name}</div></div>
         <div class="ps-ph-grid"></div>
         <div class="ps-ph-hint">◀ ▶ ▲ select · Enter open · ▼ close</div>
       </div>
@@ -253,7 +254,7 @@ export function createHUD(game) {
   const pause = el('div', 'ps-pause');
   pause.innerHTML = `
     <div class="ps-pause-top">
-      <div class="ps-pause-brand"><span class="ps-pb-port">PORT</span><span class="ps-pb-sol">SOLANA</span></div>
+      <div class="ps-pause-brand"><span class="ps-pb-sol">${BRAND.name.toUpperCase()}</span></div>
       <div class="ps-tabs">${['MAP', 'STATS', 'SETTINGS', 'CONTROLS'].map((t, i) => `<button class="ps-tab${i ? '' : ' on'}" data-tab="${i}">${t}</button>`).join('')}</div>
       <div class="ps-pause-meta"><span class="ps-pm-clock">18:00</span><span class="ps-pm-money">$0</span></div>
     </div>
@@ -292,8 +293,7 @@ export function createHUD(game) {
     <div class="ps-title-palm ps-palm-l">${ICON.palm}</div>
     <div class="ps-title-palm ps-palm-r">${ICON.palm}</div>
     <div class="ps-logo">
-      <div class="ps-logo-port">PORT</div>
-      <div class="ps-logo-solana">SOLANA</div>
+      <div class="ps-logo-solana">${BRAND.name.toUpperCase()}</div>
       <div class="ps-logo-sub"><i></i>CALORA<i></i></div>
     </div>
     <div class="ps-title-cta">CLICK TO PLAY<span style="display:block;margin-top:8px;font-size:11px;letter-spacing:.25em;opacity:.65;font-weight:500">OR PRESS ENTER</span></div>
@@ -726,7 +726,7 @@ export function createHUD(game) {
     g.fillStyle = 'rgba(47,224,208,.22)'; g.beginPath(); g.arc(0, 0, 13, 0, TAU); g.fill();
     g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 4;
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(10, 0); g.lineTo(-7, -7); g.lineTo(-3.5, 0); g.lineTo(-7, 7); g.closePath(); g.fill();
-    g.shadowBlur = 0; g.strokeStyle = '#2fe0d0'; g.lineWidth = 1.4; g.stroke();
+    g.shadowBlur = 0; g.strokeStyle = '#ff5fa8'; g.lineWidth = 1.4; g.stroke();
     g.restore();
   }
   function drawSearch(g, px) {
@@ -877,7 +877,7 @@ export function createHUD(game) {
   function drawLandmark(g, x, y, kind, s = 1) {
     g.save(); g.translate(x, y); g.scale(s, s);
     g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 4; g.shadowOffsetY = 1;
-    const col = kind === 'home' ? '#2fe0d0' : kind === 'hospital' ? '#ff5d6c' : '#4d8bff';
+    const col = kind === 'home' ? '#ff5fa8' : kind === 'hospital' ? '#ff5d6c' : '#4d8bff';
     g.fillStyle = '#0b0f17'; roundRect(g, -8.5, -8.5, 17, 17, 5); g.fill(); g.shadowColor = 'transparent';
     g.strokeStyle = col; g.lineWidth = 1.8; g.stroke();
     g.fillStyle = col; g.strokeStyle = col;
@@ -1059,7 +1059,7 @@ export function createHUD(game) {
       g.fillStyle = 'rgba(47,224,208,.25)'; g.beginPath(); g.arc(sx, sy, pulse, 0, TAU); g.fill();
       g.save(); g.translate(sx, sy); g.rotate(Math.atan2(Math.cos(h), Math.sin(h)));
       g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 5;
-      g.fillStyle = '#fff'; g.strokeStyle = '#2fe0d0'; g.lineWidth = 1.6;
+      g.fillStyle = '#fff'; g.strokeStyle = '#ff5fa8'; g.lineWidth = 1.6;
       g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -8); g.lineTo(-4, 0); g.lineTo(-8, 8); g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke();
       g.restore();
       { const sn = streetName(p.x, p.z); mapLoc.innerHTML = `<small>YOU ARE IN</small>${distName(p.x, p.z)}${sn ? `<em>${sn.replace(/[<>&]/g, '')}</em>` : ''}`; }
@@ -1138,7 +1138,7 @@ export function createHUD(game) {
     if (!mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, k, { id: 'phone' }) && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
     if (routeShown && routeShown.length > 1) strokeRoute(g, routeShown, 1 / k, 6);
     g.restore();
-    g.fillStyle = '#2fe0d0'; g.beginPath(); g.arc(c.width / 2, c.height / 2, 7, 0, TAU); g.fill();
+    g.fillStyle = '#ff5fa8'; g.beginPath(); g.arc(c.width / 2, c.height / 2, 7, 0, TAU); g.fill();
     g.strokeStyle = '#fff'; g.lineWidth = 3; g.stroke();
   }
 
@@ -1382,7 +1382,7 @@ export function createHUD(game) {
     missionEl.classList.remove('on'); void missionEl.offsetWidth; missionEl.classList.add('on');
   }
   function showArea(name, street) {
-    areaSmall.textContent = 'PORT SOLANA';
+    areaSmall.textContent = BRAND.name.toUpperCase();
     areaName.textContent = name;
     areaStreet.textContent = street || '';
     areaEl.style.setProperty('--dc', distColor(name));
@@ -1567,7 +1567,7 @@ const POIS = [
   { x: -95, z: -250, c: '#c58cff', glyph: 'shirt', name: 'Threads' },
   { x: 300, z: -105, c: '#ff8fc8', glyph: 'cup', name: 'Neon Diner' },
   { x: -350, z: 45, c: '#6fb6ff', glyph: 'drop', name: 'Solana Gas' },
-  { x: 470, z: -200, c: '#2fe0d0', glyph: 'wave', name: 'Pier 7' },
+  { x: 470, z: -200, c: '#ff5fa8', glyph: 'wave', name: 'Pier 7' },
 ];
 function drawGlyph(g, kind) {
   g.fillStyle = '#fff'; g.strokeStyle = '#fff'; g.lineWidth = 1.6; g.lineCap = 'round'; g.lineJoin = 'round';

@@ -1,0 +1,106 @@
+{
+"latin/samba_isobel.ogg": {
+"bpm": 95.29,
+"beat0": 0.116
+},
+"latin/bossa_antigua.ogg": {
+"bpm": 94.37,
+"beat0": 0.116
+},
+"latin/pamgaea.ogg": {
+"bpm": 124.45,
+"beat0": 0.418
+},
+"latin/latin_industries.ogg": {
+"bpm": 122.6,
+"beat0": 0.116
+},
+"latin/tango_de_manzana.ogg": {
+"bpm": 128.16,
+"beat0": 0.116
+},
+"latin/island_meet_and_greet.ogg": {
+"bpm": 79.81,
+"beat0": 0.325
+},
+"latin/equatorial_complex.ogg": {
+"bpm": 80.29,
+"beat0": 0.302
+},
+"latin/mariachi_snooze.ogg": {
+"bpm": 82.68,
+"beat0": 0.673
+},
+"neon/voxel_revolution.ogg": {
+"bpm": 122.66,
+"beat0": 0.418
+},
+"neon/cyborg_ninja.ogg": {
+"bpm": 160.84,
+"beat0": 0.255
+},
+"neon/stringed_disco.ogg": {
+"bpm": 118.45,
+"beat0": 0.093
+},
+"neon/disco_medusae.ogg": {
+"bpm": 115.24,
+"beat0": 0.116
+},
+"neon/raving_energy.ogg": {
+"bpm": 122.55,
+"beat0": 0.418
+},
+"neon/hyperfun.ogg": {
+"bpm": 99.83,
+"beat0": 0.511
+},
+"neon/ouroboros.ogg": {
+"bpm": 107.09,
+"beat0": 0.07
+},
+"neon/chase_pulse.ogg": {
+"bpm": 143.73,
+"beat0": 0.372
+},
+"neon/electro_sketch.ogg": {
+"bpm": 112.32,
+"beat0": 0.255
+},
+"lowtide/werq.ogg": {
+"bpm": 124.0,
+"beat0": 0.302
+},
+"lowtide/funkorama.ogg": {
+"bpm": 100.53,
+"beat0": 0.557
+},
+"lowtide/bass_walker.ogg": {
+"bpm": 112.65,
+"beat0": 0.464
+},
+"lowtide/backed_vibes_clean.ogg": {
+"bpm": 104.0,
+"beat0": 0.302
+},
+"lowtide/hep_cats.ogg": {
+"bpm": 89.6,
+"beat0": 0.348
+},
+"lowtide/chill_wave.ogg": {
+"bpm": 99.32,
+"beat0": 0.046
+},
+"lowtide/dream_culture.ogg": {
+"bpm": 139.85,
+"beat0": 0.0
+},
+"lowtide/groove_grove.ogg": {
+"bpm": 91.88,
+"beat0": 0.209
+},
+"lowtide/cool_vibes.ogg": {
+"bpm": 83.0,
+"beat0": 0.046
+}
+}

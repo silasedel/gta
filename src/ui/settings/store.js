@@ -47,6 +47,7 @@ export function createSettings(game, opts = {}) {
   let basePR = null;
   function applyResolution() {
     const r = game.renderer; if (!r?.setPixelRatio) return;
+    if (game.quality?.dpr && game.post?.fitWindow) { game.post.fitWindow(); return; } // the look track's DPR (scaled by ui/menu/graphics.js)
     if (basePR == null) basePR = Math.min(window.devicePixelRatio || 1, 1.5);
     const pr = clamp(basePR * values.resolutionScale, 0.35, 3);
     if (Math.abs(r.getPixelRatio() - pr) < 1e-3) return;

@@ -4,16 +4,8 @@
 import './corner.css';
 import './polish.css';
 
-// money numerals use the semi-condensed cut of the HUD face (wider digits, as in the user's mock-up)
-if (typeof document !== 'undefined' && !document.getElementById('ps-corner-font')) {
-  try {
-    const l = document.createElement('link');
-    l.id = 'ps-corner-font';
-    l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&display=swap';
-    document.head.appendChild(l);
-  } catch (e) { /* system fallback */ }
-}
+// money numerals use the semi-condensed cut of the HUD face (bundled locally in src/ui/styles/fonts.css, OFL)
+import '../styles/fonts.css';
 
 const SVG = (body, vb = '0 0 24 24') => `<svg viewBox="${vb}" aria-hidden="true">${body}</svg>`;
 
