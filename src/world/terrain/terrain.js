@@ -43,7 +43,7 @@ export async function createTerrain(renderer, data, opts = {}) {
   const T = data.tileSize || 200, WATER_Y = -0.55, Y_OFF = -0.02;
   const arr = await loadArray(renderer, LAYERS.map((l) => ({ key: l.key, name: l.name, level: l.level })), { size: 512 });
   // w: how strongly the layer is graded toward living grass (vegetation track: lush, varied rural green instead of brown / orange)
-  const GREEN = { lawn: 1, scrub: 0.92, meadow: 0.9, grove: 0.85, pine: 0.6, forest: 0.45, sawgrass: 0.35, farm: 0.15 };
+  const GREEN = { lawn: 1, scrub: 0.95, meadow: 0.9, grove: 0.85, pine: 0.72, forest: 0.68, sawgrass: 0.45, farm: 0.15 };
   const uLay = LAYERS.map((l) => new THREE.Vector4(l.scale, l.wet || 0, l.rows || 0, GREEN[l.key] || 0));
   const uTint = LAYERS.map((l) => new THREE.Color(l.tint ?? 0xffffff));
   const N = LAYERS.length;
@@ -93,7 +93,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
             float lum = dot(alb, vec3(0.3, 0.59, 0.11)), lv = mix(lum, 0.16, 0.35) * 1.08;
             float lush = smoothstep(0.28, 0.72, n1 * 0.7 + n2 * 0.3), sandy = smoothstep(0.8, 0.94, n2 * 0.75 + n1 * 0.25);
             vec3 gLush = lv * vec3(0.58, 1.0, 0.34), gDry = lv * vec3(0.86, 1.0, 0.5), gSand = lv * vec3(1.18, 1.1, 0.84);
-            vec3 g = mix(mix(gDry, gLush, lush), gSand, sandy * 0.55) * mix(0.94, 1.05, n3);
+            vec3 g = mix(mix(gDry, gLush, 0.25 + 0.75 * lush), gSand, sandy * 0.4) * mix(0.94, 1.05, n3); // mostly fresh green, olive-dry and sandy only in patches
             alb = mix(alb, g, grnK);
           }
           if (rowK > 0.01) { float fr = 0.5 + 0.5 * sin(tp.x * 3.927); alb *= mix(1.0, mix(0.6, 1.1, fr), rowK); }
@@ -123,6 +123,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   const surfaces = { runway, apron, taxiway };
 
   // ---- cover -> layer ----
+  const _vergeQ = {};
   function layerAt(x, z) {
     const cls = data.coverAt ? data.coverAt(x, z) : 'none';
     let k = CLS[cls];
@@ -139,6 +140,11 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
       else if (zn === 'wilderness') k = nz < 0.6 ? 'scrub' : 'meadow';
       else if (zn === 'rural') k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';
       else k = nz < 0.75 ? 'lawn' : 'scrub';
+    }
+    // vegetation track: road verges through hammock / pine / glade cover are mown grass, not leaf litter (the 'forest' layer read
+    // olive-orange along the Overseas Highway); 9-13 m from the carriageway edge, wobbling so the edge is not a ruled line
+    if ((k === 'forest' || k === 'pine' || k === 'sawgrass') && data.roadGraph && data.roadGraph.nearestEdge) {
+      const r = data.roadGraph.nearestEdge(x, z, _vergeQ, 16); if (r && r.dist - r.edge.width / 2 < 9 + 4 * vnoise(x * 0.07, z * 0.07)) k = 'scrub';
     }
     // shoreline: a few meters of beach sand on open coast, mud on marsh / mangrove banks
     if (data.isWater && k !== 'marsh') for (const [dx, dz] of [[5, 0], [-5, 0], [0, 5], [0, -5]]) if (data.isWater(x + dx, z + dz)) {
