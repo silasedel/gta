@@ -1,0 +1,80 @@
+{
+ "track": "look",
+ "title": "Cinematic daytime look: atmosphere, light balance, grade, ground wear, render scale + TAA",
+ "section": "Graphics",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Aerial perspective: shared sky/fog haze color, blue-gray away from sun, warm forward-scatter lobe, Rayleigh extinction, day haze floor",
+   "state": "verified",
+   "evidence": "docs/v2/shots/look/pair_sbw12.jpg"
+  },
+  {
+   "name": "White veil: extinction capped at 0.00019 (was 0.0007 at sunset/night), Mie in-scatter clamped",
+   "state": "built",
+   "evidence": "docs/v2/shots/look/pair_sbw19.jpg",
+   "note": "Fog part done. The remaining white towers at dusk are far-LOD buildings that show as flat pale boxes (city-look facade far material), not fog."
+  },
+  {
+   "name": "Sun-to-shade balance by day (hemisphere x0.62, PMREM x0.78, sun x1.14), fades out at low sun",
+   "state": "verified",
+   "evidence": "docs/v2/shots/look/pair_house.jpg",
+   "note": "Visible but subtle; game.look tunables. A stronger variant (0.45/0.6/1.25) also looked nearly identical (tune_house_*.png)."
+  },
+  {
+   "name": "Neutral day grade (ref_51): light warm highlights, faint teal shadows, toe, vignette, sharpen per preset",
+   "state": "verified",
+   "evidence": "docs/v2/shots/look/pair_sb.jpg"
+  },
+  {
+   "name": "Ground wear: macro patches, mottling, asphalt stains, tar, hairline cracks, lighter sun-bleached asphalt, worn paint, rough dry sand",
+   "state": "verified",
+   "evidence": "docs/v2/shots/look/pair_cw.jpg"
+  },
+  {
+   "name": "Render scale (composer only) with GPU-bound frame-time governor and hysteresis",
+   "state": "built",
+   "evidence": "docs/v2/shots/look/ab_sb_taaOn.png",
+   "note": "Seen holding scale 1 on CPU-bound headless frames, and at 0.8 under the first frame-time-only rule; not seen on the user's Mac."
+  },
+  {
+   "name": "TAA (jitter, depth reprojection, variance clip, Catmull-Rom history), auto mode below scale 1",
+   "state": "built",
+   "evidence": "docs/v2/shots/look/ab_sb_taaOn.png",
+   "note": "Stills only; no motion or ghosting test. Softer than SMAA on swaying palms (no motion vectors)."
+  },
+  {
+   "name": "GTAO off in every preset; auto-pick starts on high",
+   "state": "built",
+   "evidence": "src/render/quality.v2.js"
+  },
+  {
+   "name": "Sun hot spot on sand: dry-sand roughness floor 0.93, HDR capped at 10 before bloom",
+   "state": "built",
+   "evidence": "docs/v2/shots/look/pair_bay.jpg"
+  },
+  {
+   "name": "Black trees at golden hour: sky fill no longer cut at low sun",
+   "state": "built",
+   "evidence": "docs/v2/shots/look/after_vw18.png",
+   "note": "Vegetation shading (translucency, wrap) belongs to the vegetation track."
+  },
+  {
+   "name": "Wet SSR, probe GI, haze lit by local lights (VFX_NOTES #1-3, #12)",
+   "state": "todo"
+  }
+ ],
+ "scores": {
+  "house_spawn_11h": { "before": 4, "after": 4.5, "vs": "ref_49 top-left" },
+  "ocean_drive_11h": { "before": 3.5, "after": 4, "vs": "ref_49 top-right" },
+  "downtown_13h": { "before": 3.5, "after": 4, "vs": "ref_51" },
+  "venetian_12h30": { "before": 3, "after": 4, "vs": "ref_51" },
+  "bay_sunset": { "before": 3, "after": 3.5, "vs": "ref_49 middle-left" }
+ },
+ "postCost": {
+  "method": "post chain only, rendered 20x between 1-pixel readbacks, 1920x1080, South Beach (src/render/.lookab.mjs)",
+  "smaaPathMs": 1.3,
+  "taaPathFullResMs_firstVersion": "3.0 to 4.8 (9-tap TAA at scale 1; since cut to a 4-tap cross and runs only below scale 1)",
+  "sceneOffChainMs": 0.45
+ }
+}

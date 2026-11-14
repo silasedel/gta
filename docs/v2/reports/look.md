@@ -1,0 +1,72 @@
+# look track report (Nov 13, evening)
+
+Goal: a cinematic, crisp daytime look (ref_49 top frames, ref_51 causeway bar) without leaving the 60 fps budget.
+Each change is gated by `?lookoff` in the URL, so the before and after shots come from the same build, at the same spot and time, on the same machine.
+
+## What changed
+- **Atmosphere (`src/world/env/fogChunks.js`, `skyShader.js`)**
+  - One shared haze-color function, `psHazeColor`, is used by the fog chunk and by the sky horizon, so geometry fades into the matching sky.
+  - Away from the sun, the fog color is pulled toward a pale blue-gray (it was saturated blue at noon). Toward the sun, a broad warm forward-scatter lobe adds glow even at noon.
+  - The Mie in-scatter is now clamped. At full strength it painted a white-pink veil over the far skyline.
+  - Daytime haze floor: +0.00016 extinction while the sun is up.
+  - Per-channel Rayleigh extinction (blue fades first).
+  - Total extinction is capped at 0.00019 below a density of 0.002, so buildings 3–5 km away keep their contrast and shadow sides. The old 0.0007 at sunset and night meant 94% fog at 4 km. Underwater and weather fog above 0.002 are unchanged.
+  - The sky haze band is taller by day: it blends up to 13 degrees, up from 3.5.
+- **Light balance (`src/render/post.js`)**
+  - `environment.js` sets these every frame. Right before the render, with the sun high, the hemisphere fill is scaled by 0.62, the PMREM environment intensity by 0.78, and the sun by 1.14.
+  - Tunables are on `game.look`. Values are re-read every frame and never compound.
+  - The effect fades out below a sun elevation of 0.12–0.4, so backlit foliage keeps its sky fill at golden hour (the "black trees" note).
+- **Grade (`post.js`, `gradeShader.js`)**
+  - Restrained, near-neutral day grade, per ref_51: light warm highlights, faint teal shadows, a black point (`uToe`, 0.012 by day), contrast 0.45 by day, saturation 1.10 (up to 1.2 at golden hour), vignette 0.27.
+  - The sharpen strength comes from the preset; the clamp is widened from ±0.07 to ±0.10. The clamp change also applies under `?lookoff`.
+- **Ground wear (`src/world/miami/materials.js`)**
+  - World-space macro tone patches (30 m and 9 m), 1 m mottling, and roughness tied to the same noise.
+  - Asphalt (road, junction, parking) also gets glossy oil stains and tar patches, hairline cracks with derivative-based anti-aliasing, and a 1.55x tone lift (the gray asphalt of ref_51, not near-black).
+  - The same treatment, with different weights, on sidewalks, panels, promenade, land and roofs, plus worn paint on road markings.
+  - Sand: macro variation, and a roughness floor of 0.93 that removes the mirror-like sun hot spot.
+  - No new textures; two noise functions per fragment.
+- **Render scale and TAA (VFX_NOTES #4, `post.js`)**
+  - Only the composer targets scale; the canvas never changes size. Range per preset: ultra 0.85–1, high 0.8–1, medium 0.75–0.9, low 0.75–0.85.
+  - The governor drops 0.05 after 2 s of GPU-bound frames over 17.5 ms and raises after 6 s near the cap. A raise followed by a drop within 10 s blocks raising for 60 s.
+  - "GPU-bound" means `perf.cpuMs` (rAF start to end of render) is at least 3 ms under the frame time. CPU-bound frames never lower the resolution.
+  - TAA: Halton jitter, depth reprojection plus a same-UV tap for camera-attached objects, YCoCg variance clip over a 5-tap cross, Catmull-Rom history, luma-weighted blend.
+  - Mode `'auto'`: TAA runs only while the scale is below 1; at full scale SMAA is used. Without motion vectors, TAA visibly softened swaying palms in a same-frame A/B (`ab_sb_taaOn.png` vs `ab_sb_taaOff.png`).
+- **Quality (`src/render/quality.v2.js`)**
+  - GTAO is off in every preset (handover from playtest-fixes: 21 ms, a second full scene render). `post.js` follows `preset.gtao` instead of the 'ultra' name.
+  - The auto-pick starts on 'high'.
+  - New `look` block per preset: sharpen, taa, taaSharpen, scaleMin, scaleMax.
+
+## Playtest round (Nico's street notes), same evening
+- **Edges:** MSAA per preset (ultra and high 4x, medium 2x, low off with SMAA). Only the scene pass renders multisampled, into its own target, and is resolved once into the composer. A first version put MSAA on the composer buffers, so every full-screen pass paid a resolve; that frame measured 70 ms and was replaced. Foliage materials already set `alphaToCoverage`, which works now that the scene is multisampled. TAA stays on 'auto' (only below scale 1).
+- **Resolution floor:** the internal picture never has fewer pixels than 1920x1080. `scaleFloor()` in `post.js` caps the governor and `setSize`. High now renders at native DPR (Retina). Read in game: see "Drawing buffer" below.
+- **Anisotropy:** max anisotropic filtering on every ground texture set (`materials.js`).
+- **Sun glare:** glare core 0.10/0.25 to 0.04/0.14, streak 0.18 to 0.07, ghosts halved, god rays more than halved. The HDR is capped at 10 before bloom, so wet-sand and water sparkles stay sparkles.
+- **Not done (other owners or out of budget):** pop-in cross-fades and LOD hysteresis (streamer, tilebuild, vegetation), puddle decals on sand (sand-wear), wet SSR, probe GI, haze lit by local lights.
+
+## Cost (1920x1080, headless Chrome, shared machine with load 9–15)
+- Post chain only, timed by rendering it 20x between hard syncs (`src/render/.lookab.mjs`, South Beach): see the numbers in the progress JSON (`postCost`).
+- Frame times in this headless browser are 20–30 ms and CPU-bound by world work (`metrics_*.json`). Before and after differ within noise. 60 fps on the user's Mac is **not** confirmed by me.
+- The `EXT_disjoint_timer_query` numbers in `metrics_*.json` are not usable: on this ANGLE/Metal path they include the scene pass (8–21 ms, both before and after).
+
+## Shots (`docs/v2/shots/look/`)
+`pair_<spot>.jpg` = before | after | reference crop. Raw frames: `before_<spot>.png`, `after_<spot>.png`.
+
+## Tools
+- `src/render/.lookshots.mjs`: fixed spots, frozen clock (`game.time.paused`), metrics.
+- `src/render/.lookab.mjs`: same-frame TAA A/B and post cost.
+- `src/render/.looktune.mjs`: live `game.look` variants.
+- `src/render/.lookpair.py`: annotated triptychs.
+
+## Drawing buffer (read in game, default preset, Retina emulation 1512x982 at DPR 2, headless)
+- Preset: high. Canvas: 3024x1964. Internal (composer) render: 2873x1866, scale 0.95. That is above the 1920x1080 floor, so TAA is in auto mode.
+- MSAA 4x on the scene pass. Frame screenshot: `docs/v2/shots/look/retina_default.png`.
+- That headless run measured 10 fps with 83 ms of CPU per frame: load average 17–33, and `tilebuild.js shopDress` was throwing in a loop (another track). This says nothing about the Mac's frame rate.
+
+## Requests for other tracks (from the coordinator's later notes, not done here)
+- Pop-in: dithered LOD cross-fades and switch hysteresis (streamer, tilebuild, vegetation).
+- Puddle decals on sand need sky reflection or removal in dry weather (sand-wear).
+- Far-LOD towers render as flat pale boxes at dusk and read as a "white veil" (city-look `makeFacadeFar`).
+- Black trees: vegetation translucency and wrap lighting (vegetation). My part: the sky fill is no longer cut at low sun.
+- Z-fighting: reversed depth or near/far per mode, plus polygonOffset on coplanar layers (`main.js`, `cinema.js`, tilebuild). Not started.
+- Shadow reach at road level for dappled palm and tree shadows (`environment.js`, `shadows.js`). Car clear coat, tail-light emissive and store-window interiors belong to vehicles and city.
+- Ground textures: the coordinator assigned them to the ground agent after I added `groundWear` in `materials.js`. To drop it, remove the five `groundWear(...)` calls. It is off under `?lookoff`.

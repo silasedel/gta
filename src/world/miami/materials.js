@@ -41,7 +41,7 @@ export async function createMaterials(renderer) {
     roughnessMap: f.rm || null, metalnessMap: f.rm || null, roughness: f.rm ? 1 : 0.7, metalness: f.rm ? 1 : 0.2, vertexColors: true, ...o,
   });
   const M = {
-    asphalt: pbr(asph, { color: 0x8e8e8e, vertexColors: true }),
+    asphalt: pbr(asph, { color: 0x9e9e9c, vertexColors: true }), // ground-continuity R2: mid-grey worn asphalt
     sidewalk: pbr(tiles, { vertexColors: true }),
     roof: pbr(conc, { vertexColors: true }),
     sand: pbr(sand, { color: 0xfff0d8, vertexColors: true }),

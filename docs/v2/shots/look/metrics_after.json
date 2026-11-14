@@ -1,0 +1,64 @@
+{
+ "set": "after",
+ "spots": {
+  "house": {
+   "calls": 731,
+   "triangles": 4270359,
+   "frameMsAvg": 21.12,
+   "frameMsP95": 28.9,
+   "frameMsMax": 42.8,
+   "postGpuMsAvg": 21.583,
+   "postGpuMsMedian": 21.711,
+   "postSamples": 176,
+   "postFinishMsMedian": null,
+   "quality": "high",
+   "pixelRatio": 1,
+   "buffer": [
+    1920,
+    1080
+   ]
+  },
+  "sb": {
+   "calls": 540,
+   "triangles": 3623984,
+   "frameMsAvg": 31.53,
+   "frameMsP95": 36.3,
+   "frameMsMax": 37.7,
+   "postGpuMsAvg": 18.162,
+   "postGpuMsMedian": 16.93,
+   "postSamples": 179,
+   "postFinishMsMedian": null,
+   "quality": "high",
+   "pixelRatio": 1,
+   "buffer": [
+    1920,
+    1080
+   ]
+  },
+  "dt": null,
+  "cw": {
+   "calls": 464,
+   "triangles": 3186501,
+   "frameMsAvg": 24.86,
+   "frameMsP95": 29.8,
+   "frameMsMax": 58.8,
+   "postGpuMsAvg": 15.598,
+   "postGpuMsMedian": 13.046,
+   "postSamples": 179,
+   "postFinishMsMedian": null,
+   "quality": "high",
+   "pixelRatio": 1,
+   "buffer": [
+    1920,
+    1080
+   ]
+  },
+  "bay": null,
+  "sbw18": null,
+  "sbw12": null,
+  "sbw19": null,
+  "vw18": null
+ },
+ "when": "2026-11-14T04:44:01.639Z",
+ "uptime": "21:44  up 6 days, 14:13, 1 user, load averages: 20.11 19.39 21.12"
+}

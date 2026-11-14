@@ -7,6 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GradeShader } from './gradeShader.js';
+import { LOOK_OFF } from '../world/env/fogChunks.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
@@ -15,6 +16,11 @@ export function createPost(game) {
   // Native resolution, fixed (playtest-fixes): the full window at the display's own pixel ratio (Retina up to 2x).
   // Nothing ever scales this down at run time; speed comes from engineering, not from a blurrier picture.
   const NATIVE_PR = Math.min(window.devicePixelRatio || 1, 2);
+  // the quality preset may pick a ratio between "at least 1920x1080 internal" and native (game.quality.dpr())
+  const targetPR = () => {
+    const q = game.quality?.dpr?.();
+    return Number.isFinite(q) && q > 0 ? q : Math.min(window.devicePixelRatio || 1, 2);
+  };
   renderer.setPixelRatio(NATIVE_PR);
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   const size = new THREE.Vector2();
@@ -32,6 +38,50 @@ export function createPost(game) {
 
   const renderPass = new RenderPass(scene, camera);
   composer.addPass(renderPass);
+  // the composer keeps its buffers swapped between frames: remember which depth texture this frame's scene went into
+  let sceneDepth = null;
+  // MSAA (per preset, look.msaa): only the scene pass renders multisampled, into its own target, and is resolved once
+  // into the composer buffer. (MSAA on the composer buffers made every full-screen pass pay a resolve.)
+  const msaaRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 4 });
+  try {
+    msaaRT.depthTexture = new THREE.DepthTexture(4, 4, THREE.UnsignedIntType);
+    msaaRT.depthTexture.format = THREE.DepthFormat;
+  } catch (e) {
+    console.warn('[post] msaa depth texture', e);
+  }
+  const resolveMat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+    fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main() { gl_FragColor = texture2D( tDiffuse, vUv ); }',
+    depthTest: false,
+    depthWrite: false,
+  });
+  const resolveQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), resolveMat);
+  resolveQuad.frustumCulled = false;
+  const resolveScene = new THREE.Scene();
+  resolveScene.add(resolveQuad);
+  const resolveCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  {
+    const rpRender = renderPass.render.bind(renderPass);
+    renderPass.render = (r, wb, rb, dt, mask) => {
+      const n = LOOK_OFF ? 0 : (game.quality?.current?.look?.msaa ?? 0);
+      if (n > 0 && msaaRT.depthTexture) {
+        if (msaaRT.samples !== n) {
+          msaaRT.samples = n;
+          msaaRT.dispose();
+        }
+        if (msaaRT.width !== rb.width || msaaRT.height !== rb.height) msaaRT.setSize(rb.width, rb.height);
+        rpRender(r, wb, msaaRT, dt, mask);
+        resolveMat.uniforms.tDiffuse.value = msaaRT.texture;
+        r.setRenderTarget(rb);
+        r.render(resolveScene, resolveCam);
+        sceneDepth = msaaRT.depthTexture;
+        return;
+      }
+      sceneDepth = rb.depthTexture || null;
+      rpRender(r, wb, rb, dt, mask);
+    };
+  }
 
   let gtao = null;
   try {
@@ -103,7 +153,7 @@ export function createPost(game) {
     const aoRender = ao.render.bind(ao);
     ao.render = (r, wb, rb, dt, mask) => {
       const U = ao.uniforms;
-      U.tDepth.value = rb.depthTexture;
+      U.tDepth.value = sceneDepth || rb.depthTexture;
       U.uProjInv.value.copy(camera.projectionMatrixInverse);
       U.uProjY.value = camera.projectionMatrix.elements[5];
       U.uAspect.value = W / H;
@@ -133,6 +183,200 @@ export function createPost(game) {
   composer.addPass(sanitize);
   game.postSanitize = sanitize;
 
+  // ---------- look track: TAA (VFX_NOTES #4) ----------
+  // The camera projection is jittered by a Halton(2,3) sub-pixel offset each frame. This pass blends the new HDR frame
+  // with a reprojected history: depth plus the previous view-projection (static world), with a second history tap at
+  // the same UV for camera-attached objects (car, player). Each tap is clamped to the 3x3 YCoCg neighborhood and the
+  // one closer to it wins. Luma-weighted blend (no fireflies). Runs at the internal render scale. With TAA on, SMAA is
+  // skipped and the grade's sharpen is raised.
+  let taa = null;
+  try {
+    if (!target.depthTexture) throw new Error('depth texture unavailable');
+    const hOpts = { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
+    const hist = [new THREE.WebGLRenderTarget(4, 4, hOpts), new THREE.WebGLRenderTarget(4, 4, hOpts)];
+    const taaMat = new THREE.ShaderMaterial({
+      name: 'PortSolanaTAA',
+      uniforms: {
+        tCur: { value: null },
+        tHist: { value: null },
+        tDepth: { value: null },
+        uInvVP: { value: new THREE.Matrix4() },
+        uPrevVP: { value: new THREE.Matrix4() },
+        uTexel: { value: new THREE.Vector2(1, 1) },
+        uReset: { value: 1 },
+        uBlend: { value: 0.1 },
+      },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: /* glsl */`
+        uniform sampler2D tCur;
+        uniform sampler2D tHist;
+        uniform sampler2D tDepth;
+        uniform mat4 uInvVP;
+        uniform mat4 uPrevVP;
+        uniform vec2 uTexel;
+        uniform float uReset;
+        uniform float uBlend;
+        varying vec2 vUv;
+        vec3 toY( vec3 c ) { return vec3( 0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b ); }
+        vec3 fromY( vec3 y ) { return vec3( y.x + y.y - y.z, y.x + y.z, y.x - y.y - y.z ); }
+        vec3 tm( vec3 c ) { return c / ( 1.0 + max( c.r, max( c.g, c.b ) ) ); }
+        vec3 itm( vec3 c ) { return c / max( 1.0 - max( c.r, max( c.g, c.b ) ), 1e-3 ); }
+        // 5-tap bicubic Catmull-Rom history fetch: keeps the history sharp (bilinear re-sampling blurs it every frame)
+        vec3 histCR( vec2 uv ) {
+          vec2 tsz = 1.0 / uTexel;
+          vec2 sp = uv * tsz;
+          vec2 tp = floor( sp - 0.5 ) + 0.5;
+          vec2 f = sp - tp;
+          vec2 w0 = f * ( -0.5 + f * ( 1.0 - 0.5 * f ) );
+          vec2 w1 = 1.0 + f * f * ( -2.5 + 1.5 * f );
+          vec2 w2 = f * ( 0.5 + f * ( 2.0 - 1.5 * f ) );
+          vec2 w3 = f * f * ( -0.5 + 0.5 * f );
+          vec2 w12 = w1 + w2;
+          vec2 tc12 = ( tp + w2 / w12 ) * uTexel;
+          vec2 tc0 = ( tp - 1.0 ) * uTexel;
+          vec2 tc3 = ( tp + 2.0 ) * uTexel;
+          vec3 r = texture2D( tHist, vec2( tc12.x, tc0.y ) ).rgb * ( w12.x * w0.y )
+            + texture2D( tHist, vec2( tc0.x, tc12.y ) ).rgb * ( w0.x * w12.y )
+            + texture2D( tHist, vec2( tc12.x, tc12.y ) ).rgb * ( w12.x * w12.y )
+            + texture2D( tHist, vec2( tc3.x, tc12.y ) ).rgb * ( w3.x * w12.y )
+            + texture2D( tHist, vec2( tc12.x, tc3.y ) ).rgb * ( w12.x * w3.y );
+          float ws = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y;
+          return max( r / ws, 0.0 );
+        }
+        void main() {
+          vec3 cur = tm( texture2D( tCur, vUv ).rgb );
+          if ( uReset > 0.5 ) { gl_FragColor = vec4( itm( cur ), 1.0 ); return; }
+          vec3 yc = toY( cur );
+          vec3 mn = yc;
+          vec3 mx = yc;
+          vec3 m1 = yc;
+          vec3 m2 = yc * yc;
+          // 4-tap cross neighborhood (cheap; the corners add little once the variance box is used)
+          for ( int i = 0; i < 4; i++ ) {
+            vec2 o = i == 0 ? vec2( 1.0, 0.0 ) : i == 1 ? vec2( -1.0, 0.0 ) : i == 2 ? vec2( 0.0, 1.0 ) : vec2( 0.0, -1.0 );
+            vec3 y = toY( tm( texture2D( tCur, vUv + o * uTexel ).rgb ) );
+            mn = min( mn, y );
+            mx = max( mx, y );
+            m1 += y;
+            m2 += y * y;
+          }
+          // variance box (tighter than min/max: less ghosting), kept inside min/max
+          vec3 mu = m1 / 5.0;
+          vec3 sd = sqrt( max( m2 / 5.0 - mu * mu, 0.0 ) );
+          mn = max( mn, mu - 1.0 * sd );
+          mx = min( mx, mu + 1.0 * sd );
+          float d = texture2D( tDepth, vUv ).x;
+          vec4 w = uInvVP * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+          vec4 pc = uPrevVP * w;
+          vec2 puv = pc.xy / pc.w * 0.5 + 0.5;
+          bool inside = pc.w > 0.0 && all( greaterThanEqual( puv, vec2( 0.0 ) ) ) && all( lessThanEqual( puv, vec2( 1.0 ) ) );
+          vec3 hA = toY( tm( histCR( puv ) ) );
+          vec3 hB = toY( tm( texture2D( tHist, vUv ).rgb ) );
+          vec3 cA = clamp( hA, mn, mx );
+          vec3 cB = clamp( hB, mn, mx );
+          float eA = inside ? length( cA - hA ) : 1e3;
+          float eB = length( cB - hB );
+          vec3 h = eA <= eB ? cA : cB;
+          float a = uBlend;
+          // fast motion: trust the new frame more
+          a = mix( a, 0.5, clamp( length( ( puv - vUv ) / uTexel ) / 40.0, 0.0, 1.0 ) * step( eB, eA ) );
+          float wc = a / ( 1.0 + yc.x );
+          float wh = ( 1.0 - a ) / ( 1.0 + h.x );
+          vec3 o = ( yc * wc + h * wh ) / ( wc + wh );
+          gl_FragColor = vec4( itm( max( fromY( o ), 0.0 ) ), 1.0 );
+        }`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const copyMat = new THREE.ShaderMaterial({
+      uniforms: { tDiffuse: { value: null } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main() { gl_FragColor = texture2D( tDiffuse, vUv ); }',
+      depthTest: false,
+      depthWrite: false,
+    });
+    const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), taaMat);
+    quad.frustumCulled = false;
+    const quadScene = new THREE.Scene();
+    quadScene.add(quad);
+    const prevVP = new THREE.Matrix4();
+    const curVP = new THREE.Matrix4();
+    let reset = true;
+    let flip = 0;
+    taa = {
+      enabled: true,
+      needsSwap: true,
+      clear: false,
+      renderToScreen: false,
+      frame: 0,
+      jx: 0,
+      jy: 0,
+      hist,
+      invalidate() { reset = true; },
+      setSize(w, h) {
+        hist[0].setSize(w, h);
+        hist[1].setSize(w, h);
+        taaMat.uniforms.uTexel.value.set(1 / w, 1 / h);
+        reset = true;
+      },
+      // called right before composer.render: jitter the projection (restored by unjitter after the frame)
+      jitter(w, h) {
+        taa.frame = (taa.frame + 1) % 8;
+        const hal = (i, b) => {
+          let f = 1;
+          let r = 0;
+          let k = i;
+          while (k > 0) {
+            f /= b;
+            r += f * (k % b);
+            k = Math.floor(k / b);
+          }
+          return r;
+        };
+        taa.jx = (hal(taa.frame + 1, 2) - 0.5) * 2 / w;
+        taa.jy = (hal(taa.frame + 1, 3) - 0.5) * 2 / h;
+        curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        const e = camera.projectionMatrix.elements;
+        e[8] += taa.jx;
+        e[9] += taa.jy;
+        camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+      },
+      unjitter() {
+        const e = camera.projectionMatrix.elements;
+        e[8] -= taa.jx;
+        e[9] -= taa.jy;
+        camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+        prevVP.copy(curVP);
+      },
+      render(r, writeBuffer, readBuffer) {
+        const U = taaMat.uniforms;
+        const dst = hist[flip];
+        const src = hist[1 - flip];
+        U.tCur.value = readBuffer.texture;
+        U.tHist.value = src.texture;
+        U.tDepth.value = sceneDepth || target.depthTexture;
+        // inverse of the jittered view-projection (matches the depth buffer exactly)
+        U.uInvVP.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert();
+        U.uPrevVP.value.copy(prevVP);
+        U.uReset.value = reset ? 1 : 0;
+        reset = false;
+        quad.material = taaMat;
+        r.setRenderTarget(dst);
+        r.render(quadScene, quadCam);
+        copyMat.uniforms.tDiffuse.value = dst.texture;
+        quad.material = copyMat;
+        r.setRenderTarget(writeBuffer);
+        r.render(quadScene, quadCam);
+        flip = 1 - flip;
+      },
+    };
+    composer.addPass(taa);
+  } catch (e) {
+    console.warn('[post] TAA unavailable', e);
+    taa = null;
+  }
+
   const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.32, 0.55, 0.92);
   composer.addPass(bloom);
 
@@ -155,21 +399,37 @@ export function createPost(game) {
   const sunNdc = new THREE.Vector3();
   const camDir = new THREE.Vector3();
   let speedSmooth = 0, adapt = 1, frameAvg = 1 / 60, aoAllowed = true, aoTimer = 0;
+  let rsOver = 0;
+  let rsUnder = 0;
+  let rsBlock = 0;
+  let rsSinceUp = 99;
   let time = 0;
+  const lookB = { hemi: 0, sun: 0, env: 0 };
+  const lookW = { hemi: -1, sun: -1, env: -1 };
 
+  // internal render scale (VFX_NOTES #4): only the composer targets shrink; the canvas stays at the quality DPR and
+  // the last pass (grade) upscales to it. Driven by frame time with hysteresis (see governor).
+  let renderScale = 1;
+  // hard floor (user requirement): the internal picture never has fewer pixels than 1920x1080
+  function scaleFloor() {
+    const full = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
+    return Math.min(1, Math.sqrt((1920 * 1080) / full));
+  }
   function setSize(w, h) {
     W = Math.max(1, w); H = Math.max(1, h);
-    const p = renderer.getPixelRatio();
+    renderScale = Math.max(renderScale, scaleFloor());
+    const p = renderer.getPixelRatio() * renderScale;
     composer.setPixelRatio(p);
     composer.setSize(W, H);
-    gu.uRes.value.set(W * p, H * p);
+    gu.uRes.value.set(Math.floor(W * p), Math.floor(H * p));
     gu.uAspect.value = W / H;
+    if (taa) taa.setSize(Math.floor(W * p), Math.floor(H * p));
   }
   setSize(W, H);
 
   // ---------- performance stats (the resolution is fixed and native; there is no adaptive scaler) ----------
   renderer.info.autoReset = false;
-  const perf = game.perf = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, pixelRatio: renderer.getPixelRatio(), resScale: 1, gtao: false, ao: false };
+  const perf = game.perf = { fps: 60, frameMs: 16.7, cpuMs: 8, drawCalls: 0, triangles: 0, pixelRatio: renderer.getPixelRatio(), resScale: 1, gtao: false, ao: false };
   let lastNow = performance.now();
   let clock = 0;
   function applyPR(pr) {
@@ -191,8 +451,47 @@ export function createPost(game) {
     clock += ms / 1000;
     perf.frameMs += (ms - perf.frameMs) * 0.1;
     perf.fps = 1000 / perf.frameMs;
+    // dynamic render scale from frame time only, with hysteresis: down after 2 s over 17.5 ms, up after 6 s near the
+    // 60 fps cap. A raise that is followed by a drop within 10 s blocks raising for 60 s (no pumping at the cap).
+    {
+      const lk = LOOK_OFF ? null : game.quality?.current?.look;
+      const rsMin = Math.max(lk?.scaleMin ?? 1, scaleFloor());
+      const rsMax = Math.max(lk?.scaleMax ?? 1, rsMin);
+      let want = Math.min(rsMax, Math.max(rsMin, renderScale));
+      rsBlock -= ms / 1000;
+      rsSinceUp += ms / 1000;
+      // CPU-bound frames (main-thread work fills the frame) gain nothing from fewer pixels: only a frame that waits
+      // on the GPU counts as "over". cpuMs = time from this frame's rAF start to the end of the last render.
+      const gpuBound = perf.frameMs > 17.5 && perf.cpuMs < perf.frameMs - 3;
+      if (gpuBound) {
+        rsOver += ms / 1000;
+        rsUnder = 0;
+      } else if (perf.frameMs < 17.0 || perf.frameMs > 17.5) {
+        rsUnder += ms / 1000;
+        rsOver = 0;
+      } else {
+        rsOver = 0;
+        rsUnder = 0;
+      }
+      if (rsOver > 2 && want > rsMin) {
+        want = Math.max(rsMin, Math.round((want - 0.05) * 100) / 100);
+        rsOver = 0;
+        if (rsSinceUp < 10) {
+          rsBlock = 60;
+        }
+      } else if (rsUnder > 6 && want < rsMax && rsBlock <= 0) {
+        want = Math.min(rsMax, Math.round((want + 0.05) * 100) / 100);
+        rsUnder = 0;
+        rsSinceUp = 0;
+      }
+      if (Math.abs(want - renderScale) > 0.001) {
+        renderScale = want;
+        setSize(W, H);
+        perf.resScale = renderScale;
+      }
+    }
     // the display's pixel ratio can change (window dragged to another screen): follow it, never go below native
-    const want = Math.min(window.devicePixelRatio || 1, 2);
+    const want = targetPR();
     if (Math.abs(want - renderer.getPixelRatio()) > 0.01) {
       applyPR(want);
     }
@@ -206,10 +505,10 @@ export function createPost(game) {
     const h = Math.max(1, window.innerHeight);
     const cur = new THREE.Vector2();
     renderer.getSize(cur);
-    if (cur.x === w && cur.y === h && Math.abs(renderer.getPixelRatio() - Math.min(window.devicePixelRatio || 1, 2)) < 0.01) {
+    if (cur.x === w && cur.y === h && Math.abs(renderer.getPixelRatio() - targetPR()) < 0.01) {
       return;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(targetPR());
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -231,7 +530,9 @@ export function createPost(game) {
     perf,
     setBasePixelRatio() { /* fixed native resolution: kept for callers, does nothing */ },
     fitWindow,
-    composer, bloom, grade, gtao, smaa, ao,
+    composer, bloom, grade, gtao, smaa, ao, taa,
+    get renderScale() { return renderScale; },
+    get internalSize() { return [composer.renderTarget1.width, composer.renderTarget1.height]; },
     setSize,
     render(dt) {
       if (failed) { renderer.info.reset(); renderer.render(scene, camera); return; }
@@ -253,18 +554,36 @@ export function createPost(game) {
       frameAvg += (ft - frameAvg) * 0.05;
       if (gtao) {
         // GTAO re-renders the whole scene (G-buffer): only on 'ultra' at city scale
-        const want = game.settings?.quality === 'ultra';
-        if (!want) aoAllowed = false;
-        else if (game.settings?.quality === 'ultra') aoAllowed = true;
-        else {
-          aoTimer += dt;
-          if (aoAllowed && frameAvg > 1 / 50 && aoTimer > 2) { aoAllowed = false; aoTimer = 0; }
-          else if (!aoAllowed && frameAvg < 1 / 62 && aoTimer > 6) { aoAllowed = true; aoTimer = 0; }
-        }
+        const want = game.quality?.current?.gtao === true;
+        // GTAO re-renders the whole scene (G-buffer): only when the preset asks for it (none do by default)
+        aoAllowed = want;
         gtao.enabled = aoAllowed;
       }
       if (ao) { ao.enabled = !gtao?.enabled && game.settings?.ao !== false && aoSafe && game.settings?.quality !== 'low' && !env?.underwater; perf.ao = ao.enabled; }
 
+      // ---------- look track: sun-to-shade ratio ----------
+      // environment.js re-sets these every frame from its time-of-day ramps; this rescales them right before the render.
+      // By day the flat sky fill (hemisphere + PMREM diffuse) is cut and the sun pushed, so shade reads as shade.
+      // ?lookoff restores the old balance. Tunables live on game.look.
+      if (!LOOK_OFF && env && !env.underwater) {
+        const L = game.look || (game.look = { hemiDay: 0.62, envDay: 0.78, sunDay: 1.14 });
+        // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
+        const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
+        const dl = day * sunUp * (1 - (env.indoor || 0));
+        // rescale only values environment.js wrote this frame (if it skipped a frame, e.g. paused, nothing compounds)
+        if (env.hemi) {
+          if (env.hemi.intensity !== lookW.hemi) lookB.hemi = env.hemi.intensity;
+          env.hemi.intensity = lookW.hemi = lookB.hemi * (1 + (L.hemiDay - 1) * dl);
+        }
+        if (env.sun) {
+          if (env.sun.intensity !== lookW.sun) lookB.sun = env.sun.intensity;
+          env.sun.intensity = lookW.sun = lookB.sun * (1 + (L.sunDay - 1) * dl);
+        }
+        if ('environmentIntensity' in scene) {
+          if (scene.environmentIntensity !== lookW.env) lookB.env = scene.environmentIntensity;
+          scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl);
+        }
+      }
       const golden0 = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.3));
       // bloom: highlights only by day, a little more at sunset (sun glow), generous at night (neon)
       bloom.strength = 0.20 + 0.13 * night + 0.14 * golden0;
@@ -302,20 +621,58 @@ export function createPost(game) {
       if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt;
       // god rays: only when the sun is on/near screen; stronger when low (golden hour)
       const low = 1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.1, 0.5);
-      gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (0.3 + 0.25 * low) : 0;
+      gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (LOOK_OFF ? 0.3 + 0.25 * low : 0.12 + 0.13 * low) : 0; // look track: shafts halved (user: glare too strong and hazy)
 
       // grade: warmer, punchier at golden hour; cooler & bluer at night
       const golden = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.35));
-      gu.uHighTint.value.set(0.025 + 0.03 * golden - 0.02 * night, 0.010 - 0.004 * golden - 0.005 * night, -0.02 + 0.012 * golden + 0.02 * night);
-      gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.028 + 0.010 * golden + 0.02 * night); // teal-blue shadows by day, violet at sunset
-      gu.uSat.value = (1.25 + 0.0 * golden) * (1 - 0.92 * (game.deathFade || 0));
-      if (gu._vigBase === undefined) gu._vigBase = gu.uVignette.value;
+      if (LOOK_OFF) {
+        gu.uHighTint.value.set(0.025 + 0.03 * golden - 0.02 * night, 0.010 - 0.004 * golden - 0.005 * night, -0.02 + 0.012 * golden + 0.02 * night);
+        gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.028 + 0.010 * golden + 0.02 * night);
+        gu.uSat.value = 1.25 * (1 - 0.92 * (game.deathFade || 0));
+        gu.uToe.value = 0;
+      } else {
+        // look track: restrained, near-neutral day grade (ref_51): light warm highlights, faint teal shadows, a slightly firmer toe; violet shadows at sunset
+        const dayOnly = day * (1 - golden);
+        gu.uHighTint.value.set(0.028 + 0.035 * golden - 0.02 * night, 0.012 - 0.006 * golden - 0.006 * night, -0.022 + 0.014 * golden + 0.025 * night);
+        gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.020 + 0.016 * golden + 0.02 * night);
+        gu.uSat.value = (1.1 + 0.1 * golden) * (1 - 0.92 * (game.deathFade || 0));
+        gu.uToe.value = 0.012 * dayOnly + 0.008 * golden;
+        gu.uContrast.value = 0.37 + 0.08 * dayOnly;
+        gu.uSharp.value = game.quality?.current?.look?.sharpen ?? 0.6;
+      }
+      if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
       gu.uVignette.value = gu._vigBase + Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) * Math.min(1, (game.deathFade || 0) * 4);
+      // look track: cap HDR before bloom (believable sparkle, not a glare disc on wet sand or water at low sun)
+      sanitize.uniforms.uMax.value = LOOK_OFF ? 48.0 : 10.0;
       gu.uTime.value = time;
       gu.uUnder.value = env?.underwater || 0;
       if (env?.underwater) { gu.uSunOn.value = 0; gu.uRays.value = 0; }
 
-      composer.render(dt);
+      // TAA mode per preset: 'always', 'auto' (only while the render scale is below 1, where it reconstructs the missing
+      // pixels; at full scale SMAA is sharper on moving foliage because there are no motion vectors), or false
+      const taaMode = game.quality?.current?.look?.taa;
+      const taaOn = !!taa && !LOOK_OFF && !env?.underwater && (taaMode === 'always' || (taaMode === 'auto' && renderScale < 0.999));
+      if (taa) {
+        if (taaOn && !taa.enabled) taa.invalidate();
+        taa.enabled = taaOn;
+      }
+      smaa.enabled = !taaOn;
+      if (taaOn) {
+        if (!LOOK_OFF) gu.uSharp.value = Math.max(gu.uSharp.value, game.quality?.current?.look?.taaSharpen ?? 0.8);
+        taa.jitter(Math.floor(W * renderer.getPixelRatio() * renderScale), Math.floor(H * renderer.getPixelRatio() * renderScale));
+      }
+      try {
+        composer.render(dt);
+      } finally {
+        if (taaOn) taa.unjitter();
+      }
+      {
+        const tl = document.timeline?.currentTime;
+        if (typeof tl === 'number') {
+          const c = performance.now() - tl;
+          if (c >= 0 && c < 200) perf.cpuMs += (c - perf.cpuMs) * 0.1;
+        }
+      }
       perf.drawCalls = renderer.info.render.calls;
       perf.triangles = renderer.info.render.triangles;
       perf.gtao = !!gtao?.enabled;

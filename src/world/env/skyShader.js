@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { FOG_INSCATTER, FOG_INSCATTER_POW } from './fogChunks.js';
+import { HAZE_GLSL, LOOK_OFF } from './fogChunks.js';
 
 // Physical (Preetham) sky + procedural clouds (cumulus + cirrus) + stars + moon,
 // horizon blended into the scene fog so geometry fades seamlessly into the sky.
@@ -141,6 +141,7 @@ export function createSkyMaterial() {
         return ONE_OVER_FOURPI * ( ( 1.0 - g2 ) * inv );
       }
 
+      ${HAZE_GLSL}
       void main() {
         vec3 dir = normalize( vDir );
         vec3 sd = normalize( sunDir );
@@ -251,8 +252,11 @@ export function createSkyMaterial() {
         }
 
         // --- horizon / fog matching (same in-scatter as the fog chunk) ---
-        vec3 fogCol = uFogColor + lightColor * ${FOG_INSCATTER.toFixed(4)} * pow( max( dot( dir, normalize( lightDir ) ), 0.0 ), ${FOG_INSCATTER_POW.toFixed(1)} );
-        float hb = 1.0 - smoothstep( -0.02, 0.06, dir.y );
+        vec3 fogCol = psHazeColor( uFogColor, dir, normalize( lightDir ), lightColor );
+        // a taller haze band by day (aerial perspective reaches higher up the sky than the old 6 degree blend)
+        float hazeDay = ${LOOK_OFF ? '0.0' : 'smoothstep( 0.1, 0.5, normalize( lightDir ).y )'};
+        float hb = 1.0 - smoothstep( -0.02, mix( 0.06, 0.22, hazeDay ), dir.y );
+        hb = mix( hb, hb * hb * ( 3.0 - 2.0 * hb ), hazeDay );
         col = mix( col, fogCol, clamp( hb * uHorizonBlend, 0.0, 1.0 ) );
 
         // sun disk on top of horizon haze (dimmed by clouds)

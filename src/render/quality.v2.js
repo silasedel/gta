@@ -15,8 +15,9 @@ const KEY = 'portsolana.v2.quality';
 
 export const PRESETS = {
   ultra: {
-    // look track: post sharpen strength (grade pass, no extra pass). Haze, grade and ground wear cost ~0 and are on in every preset.
-    look: { sharpen: 0.65 },
+    // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
+    // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
+    look: { sharpen: 0.65, taa: 'auto', taaSharpen: 1.0, scaleMin: 0.85, scaleMax: 1.0, msaa: 4 },
     label: 'Ultra',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     dpr: 'native',
@@ -29,11 +30,13 @@ export const PRESETS = {
     gtao: false, // GTAO re-renders the whole scene (measured 21 ms on M3 Max): off in every preset
   },
   high: {
-    // look track: post sharpen strength (grade pass, no extra pass). Haze, grade and ground wear cost ~0 and are on in every preset.
-    look: { sharpen: 0.6 },
+    // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
+    // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
+    look: { sharpen: 0.6, taa: 'auto', taaSharpen: 1.05, scaleMin: 0.75, scaleMax: 1.0, msaa: 4 },
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
-    dpr: 'mid',
+    // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
+    dpr: 'native',
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
@@ -43,8 +46,9 @@ export const PRESETS = {
     gtao: false,
   },
   medium: {
-    // look track: post sharpen strength (grade pass, no extra pass). Haze, grade and ground wear cost ~0 and are on in every preset.
-    look: { sharpen: 0.5 },
+    // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
+    // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
+    look: { sharpen: 0.5, taa: 'auto', taaSharpen: 1.1, scaleMin: 0.75, scaleMax: 0.9, msaa: 2 },
     label: 'Medium',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     dpr: 'min',
@@ -57,8 +61,9 @@ export const PRESETS = {
     gtao: false,
   },
   low: {
-    // look track: post sharpen strength (grade pass, no extra pass). Haze, grade and ground wear cost ~0 and are on in every preset.
-    look: { sharpen: 0.35 },
+    // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
+    // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
+    look: { sharpen: 0.35, taa: 'auto', taaSharpen: 1.1, scaleMin: 0.75, scaleMax: 0.85 },
     label: 'Low',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     dpr: 'min',

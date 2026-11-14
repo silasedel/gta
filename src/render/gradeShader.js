@@ -15,6 +15,7 @@ export const GradeShader = {
     uVignette: { value: 0.2 },
     uSat: { value: 1.14 },
     uContrast: { value: 0.37 },
+    uToe: { value: 0 }, // black point: crushes the haze-lifted floor so sun and shade separate
     uLift: { value: [0.0, 0.004, 0.012] },
     uGamma: { value: [1.0, 1.0, 1.0] },
     uGain: { value: [1.03, 1.0, 0.96] },
@@ -41,6 +42,7 @@ export const GradeShader = {
     uniform float uVignette;
     uniform float uSat;
     uniform float uContrast;
+    uniform float uToe;
     uniform vec3 uLift;
     uniform vec3 uGamma;
     uniform vec3 uGain;
@@ -89,7 +91,7 @@ export const GradeShader = {
           // mild unsharp mask (restores the crispness SMAA and resolution scaling take away); clamped so edges never ring
           vec2 px = 1.0 / uRes;
           vec3 nb = ( texture2D( tDiffuse, uv + vec2( px.x, 0.0 ) ).rgb + texture2D( tDiffuse, uv - vec2( px.x, 0.0 ) ).rgb + texture2D( tDiffuse, uv + vec2( 0.0, px.y ) ).rgb + texture2D( tDiffuse, uv - vec2( 0.0, px.y ) ).rgb ) * 0.25;
-          col += clamp( col - nb, -0.07, 0.07 ) * uSharp;
+          col += clamp( col - nb, -0.1, 0.1 ) * uSharp;
         }
       }
 
@@ -107,9 +109,9 @@ export const GradeShader = {
         vis *= step( 0.0, uSunPos.x ) * step( uSunPos.x, 1.0 ) * step( 0.0, uSunPos.y ) * step( uSunPos.y, 1.0 );
         vec2 sd = ( uv - uSunPos ) * vec2( uAspect, 1.0 );
         float d = length( sd );
-        vec3 glare = uSunColor * ( exp( -d * 9.0 ) * 0.10 + exp( -d * 30.0 ) * 0.25 );
+        vec3 glare = uSunColor * ( exp( -d * 12.0 ) * 0.04 + exp( -d * 40.0 ) * 0.14 ); // look track: tighter, weaker glare (was 0.10 / 0.25)
         // anamorphic streak
-        glare += uSunColor * vec3( 0.6, 0.8, 1.0 ) * exp( -abs( sd.y ) * 220.0 ) * exp( -abs( sd.x ) * 2.5 ) * 0.18;
+        glare += uSunColor * vec3( 0.6, 0.8, 1.0 ) * exp( -abs( sd.y ) * 220.0 ) * exp( -abs( sd.x ) * 2.5 ) * 0.07;
         // ghosts along the sun->center axis
         vec2 axis = vec2( 0.5 ) - uSunPos;
         for ( int i = 0; i < 4; i++ ) {
@@ -117,7 +119,7 @@ export const GradeShader = {
           vec2 gp = uSunPos + axis * k * 1.6;
           float gd = length( ( uv - gp ) * vec2( uAspect, 1.0 ) );
           float rad = 0.02 + 0.03 * float( i );
-          float ring = smoothstep( rad, rad * 0.7, gd ) * 0.018 + smoothstep( rad * 1.05, rad, gd ) * smoothstep( rad * 0.85, rad, gd ) * 0.015;
+          float ring = smoothstep( rad, rad * 0.7, gd ) * 0.008 + smoothstep( rad * 1.05, rad, gd ) * smoothstep( rad * 0.85, rad, gd ) * 0.007;
           vec3 tint = i == 0 ? vec3( 1.0, 0.6, 0.3 ) : ( i == 1 ? vec3( 0.4, 1.0, 0.6 ) : ( i == 2 ? vec3( 0.5, 0.6, 1.0 ) : vec3( 1.0, 0.4, 0.7 ) ) );
           glare += tint * ring;
         }
@@ -151,6 +153,7 @@ export const GradeShader = {
 
       // --- grade ---
       col = max( col, 0.0 );
+      col = max( col - uToe, 0.0 ) / ( 1.0 - uToe );
       float l = luma( col );
       col += uShadowTint * ( 1.0 - l ) * ( 1.0 - l ) + uHighTint * l * l;
       col = uGain * ( col + uLift * ( 1.0 - col ) );
