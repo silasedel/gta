@@ -41,3 +41,9 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - Still on Fable: design-system adf5305be17e06ad9, nico-house a7a338f5385c2e604, character a4a7b345dea14a7b7 (Nico's shirt looked wrong in a 6 PM game screenshot: check), keys-bar a5bac553f75291b48.
 - Launched on Opus 5.5 high (budget ~70 tool calls each): world-render a8b2953a2aae6fe42 (owns src/world/miami renderer files now), vehicles-core adff2b7285418dd3e, npc-ai a16a16806cb23eb78.
 - Lead to do: move spawn to Nico's house (data.setpieces.nico_house); tell renderer to skip glassFront when sf.v2Facade; drop city-look blade posts (keys-sign places blades); map preview shallow bands look bubbly around islets.
+
+## Update 6:25 PM
+- User budget rule now: may use all Fable; keep about 15% of the weekly all-models limit unused (stop at 85%). They also want headroom for bug checks and a later 1-hour video build.
+- New user images in references/: ref_36 (house: match exactly), ref_37 (their satellite-style map: main layout guide), ref_38 (downtown beauty shot: mood/composition target), ref_39 (their flat map without names: map STYLE guide and arrangement). Still no tracing of coast outlines; real Miami stays.
+- world-layout pass 4 requested (north extended to z ≈ −8200, real mountains in the NW, flat printed map style, no speckle islets, single soft shallow gradient). Re-run `tools/osm/.venv/bin/python tools/osm/merge.py` when it finishes.
+- Finished since 6:08: design-system (206 brands, 85 products, 79 materials; `design:ready` event), character (Nico in game; walk test only moved 0.16 m: check; animations are v1 Mixamo clips: license flag for the final report).
