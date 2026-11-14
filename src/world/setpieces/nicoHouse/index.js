@@ -35,6 +35,14 @@ export async function buildNicoHouse(THREE, opts = {}) {
   const count = { ext: ctx.ext.count(), int: ctx.int.count(), detail: ctx.detail.count() };
   ctx.ext.build(ctx.groups.ext); ctx.int.build(ctx.groups.int); ctx.detail.build(ctx.groups.detail); ctx.site.build(ctx.groups.site);
   if (opts.shell !== false) { buildShell(ctx); ctx.groups.shell.visible = false; }
+  const roomProxy = buildRoomProxy(ctx);   // what the windows show while the interior is not drawn
+  // camera occluder (perf pass): the game's camera ray tests this house every frame (playtest P2 roofs). Testing 1.2M
+  // triangles cost about 16 ms a frame at the spawn; a 200-triangle hull of walls, roofs and decks answers the same
+  // question. The hull is never drawn (material.visible = false: no draw call); every other mesh skips raycasts.
+  const occluder = buildOccluder(ctx);
+  const noRay = () => {};
+  const muteRaycasts = () => ctx.group.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && o !== occluder && o.raycast !== noRay) o.raycast = noRay; });
+  muteRaycasts();
   ctx.stats.parts = partMs; ctx.stats.buildMs = Math.round(performance.now() - t0); ctx.stats.batched = count;
 
   // ---- importance LOD (perf pass, track: houses) ----
@@ -42,7 +50,7 @@ export async function buildNicoHouse(THREE, opts = {}) {
   // a lone small object fades at ~70x its radius, a batch of fine detail (nails, screws, weeds, shells) at ~2500x its mean
   // triangle edge, clamped to [14, 200] m. Interior meshes and small detail never cast sun shadows (the walls and roof do).
   // GLTF props arrive late, so new meshes are measured as they appear.
-  const lodK = { r: opts.lodRadiusK ?? 70, e: opts.lodEdgeK ?? 2500, min: opts.lodMin ?? 14, max: opts.lodMax ?? 200 };
+  const lodK = { r: opts.lodRadiusK ?? 48, e: opts.lodEdgeK ?? 1700, min: opts.lodMin ?? 10, max: opts.lodMax ?? 200 };
   const lodList = [], _inv = new THREE.Matrix4(), _m = new THREE.Matrix4(), _c = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3();
   const lodStats = { meshes: 0, shadowOff: 0, culled: 0 };
   const measure = (o, grp) => {
@@ -58,14 +66,15 @@ export async function buildNicoHouse(THREE, opts = {}) {
     const d = Math.max(lodK.min, Math.min(lodK.max, Math.min(rad * lodK.r, edge * lodK.e)));
     const c = bs.center.clone().applyMatrix4(_m);
     o.userData.nhLod = { d, c };
-    if (grp === 'int' || (grp !== 'ext' && d < 32)) { if (o.castShadow) lodStats.shadowOff++; o.castShadow = false; }
+    if (grp === 'int' || (grp !== 'ext' && d < 45)) { if (o.castShadow) lodStats.shadowOff++; o.castShadow = false; }
     lodList.push(o); lodStats.meshes++;
   };
   const scanLod = () => {
     ctx.group.updateWorldMatrix(true, false); _inv.copy(ctx.group.matrixWorld).invert();
     for (const k of ['int', 'detail', 'dyn']) ctx.groups[k].traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && !o.userData.nhLod) measure(o, k); });
+    muteRaycasts();   // late GLTF props too
     // exterior: only the plant and weed batches (the shell batches stay up to the far cutoff), never closer than 60 m
-    ctx.groups.ext.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && !o.userData.nhLod && /plants|weed|grass/.test(o.name)) { measure(o, 'ext'); o.userData.nhLod.d = Math.max(60, o.userData.nhLod.d); } });
+    ctx.groups.ext.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && !o.userData.nhLod && /plants|weed|grass/.test(o.name)) { measure(o, 'ext'); o.userData.nhLod.d = Math.max(45, o.userData.nhLod.d); } });
   };
   let lodT = 0, lodScanT = 0;
   const env0 = { timeOfDay: ctx.time, camera: null, game: null };
@@ -81,9 +90,14 @@ export async function buildNicoHouse(THREE, opts = {}) {
         // far shell (perf pass): beyond ~55 m the full exterior (64 material batches) swaps for a 6-batch shell; site, palms and plants stay
         const shell = opts.shell !== false && (ctx.groups.shell.visible ? d > (opts.shellDist ?? 55) - 6 : d > (opts.shellDist ?? 55));
         if (shell !== ctx.groups.shell.visible) { ctx.groups.shell.visible = shell; for (const o of ctx.groups.ext.children) if (!/^vegPalm|^plants/.test(o.name)) o.visible = !shell; }
-        if (shell) { ctx.groups.int.visible = ctx.groups.detail.visible = ctx.groups.dyn.visible = false; }
+        if (shell) { ctx.groups.int.visible = ctx.groups.detail.visible = ctx.groups.dyn.visible = false; if (roomProxy) roomProxy.visible = false; }
         else {
-        ctx.groups.int.visible = d < (opts.intDist ?? 70); ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
+        // the interior (45 batches, 0.24M tris) only when the camera can really look in: inside, on the porch / decks, or
+        // within a few meters of a window; otherwise each window shows a lit room card at the same depth
+        const cx = env.camera.x, cz = env.camera.z, cy = env.camera.y ?? 1.7, P = plan;
+        const near = (r, pad) => cx > r.x0 - pad && cx < r.x1 + pad && cz > r.z0 - pad && cz < r.z1 + pad;
+        const lookIn = near(P.A, 1.2) || near(P.B, 1.2) || ((near(P.porch, 1.5) || near(P.deckW, 1.5) || near(P.deckN, 1.5)) && cy > P.F - 1.2) || (opts.intNear != null && d < opts.intNear);
+        ctx.groups.int.visible = lookIn && d < (opts.intDist ?? 70); if (roomProxy) roomProxy.visible = !ctx.groups.int.visible; ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
         if (opts.lod !== false && (lodScanT -= dt) <= 0) { lodScanT = 2; scanLod(); }
         if (opts.lod !== false && (lodT -= dt) <= 0 && d < (opts.detailDist ?? 110) + 10) {
           lodT = 0.2; let cul = 0; const cy = env.camera.y ?? 1.7;
@@ -142,4 +156,42 @@ function buildShell(ctx) {
   B.strut(WOOD, [(ld.x0 + ld.x1) / 2, ld.y, ld.z1], [(ld.x0 + ld.x1) / 2, 0.05, ld.z1 + ld.y / P.rise * P.run], 1.2, 0.12, { color: C.deck, roll: Math.PI / 2 });
   box(WOOD, ld.x1 - ld.x0, 0.1, ld.z1 - ld.z0, (ld.x0 + ld.x1) / 2, ld.y, (ld.z0 + ld.z1) / 2, { color: C.deck });
   B.build(ctx.groups.shell);
+}
+
+// Room cards behind every window and glazed door (perf pass): one merged mesh in place of the interior while the camera
+// is outside. A dim, warm room tone with a lighter band (curtain / blind) and a floor line; at night it glows when the
+// house lights are on (uLit follows the lights). Sits 0.45 m behind the glass, so parallax still reads at gameplay range.
+function buildRoomProxy(ctx) {
+  const { THREE, kit, plan: P } = ctx, B = kit.batch('rooms'), T = P.wallT, uLit = { value: 0 };
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }); m.name = 'nh:roomProxy'; m.userData.uvScale = 0;
+  m.onBeforeCompile = (sh) => { sh.uniforms.uLit = uLit; sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uLit;').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3( 1.0, 0.8, 0.55 ) * uLit * 1.4;'); };
+  m.customProgramCacheKey = () => 'nh:roomProxy';
+  let n = 0;
+  for (const o of Object.values(ctx.openings || {})) {
+    if (o.partition || !o.wall?.wm || !/window|slider|door/.test(o.kind) || o.frosted) continue;
+    const w = o.wall, yc = (o.y0 + o.y1) / 2, h = o.y1 - o.y0;
+    B.box(m, o.w + 0.4, h + 0.4, 0.02, w.wm(o.u, yc, -T - 0.45), { color: [0.16, 0.13, 0.1] });
+    B.box(m, o.w + 0.3, h * 0.35, 0.02, w.wm(o.u, o.y1 - h * 0.2, -T - 0.42), { color: [0.42, 0.36, 0.27] });     // curtain / blind band
+    B.box(m, o.w + 0.4, 0.1, 0.5, w.wm(o.u, P.F + 0.02, -T - 0.2), { color: [0.2, 0.14, 0.09] });                   // floor edge
+    n++;
+  }
+  if (!n) return null;
+  const g = new THREE.Group(); g.name = 'nh_roomProxy'; B.build(g, { cast: false }); ctx.group.add(g);
+  ctx.updaters.push(() => { uLit.value = (ctx.lights || []).some((l) => l.on) ? 1 : 0; });
+  return g;
+}
+
+function buildOccluder(ctx) {
+  const { THREE, kit, plan: P } = ctx, M = kit.M, B = kit.batch('occ'), F = P.F, top = F + P.wallH;
+  const m = new THREE.MeshBasicMaterial({ visible: false }); m.name = 'nh:occluder'; m.userData.uvScale = 1;
+  const box = (sx, sy, sz, x, y, z, rx = 0, rz = 0) => B.box(m, sx, sy, sz, M(x, y, z, rx, 0, rz), {});
+  for (const r of [P.A, P.B]) box(r.x1 - r.x0, top - F + 0.4, r.z1 - r.z0, (r.x0 + r.x1) / 2, (F + top + 0.4) / 2, (r.z0 + r.z1) / 2);
+  box(7.5, 0.3, 3.55, 4.35, F - 0.15, 6.18); box(1.5, 0.3, 10.8, 7.35, F - 0.15, -1.0);   // east wing front deck and its east run (12_frontdeck)
+  for (const r of [P.porch, P.deckW, P.deckN]) box(r.x1 - r.x0, 0.3, r.z1 - r.z0, (r.x0 + r.x1) / 2, F - 0.15, (r.z0 + r.z1) / 2);
+  const sh = P.shed, dz = sh.z1 - sh.z0, a = Math.atan(sh.pitch); box(sh.x1 - sh.x0, 0.12, dz / Math.cos(a), (sh.x0 + sh.x1) / 2, sh.y0 - dz / 2 * sh.pitch, (sh.z0 + sh.z1) / 2, a);
+  const hw = (P.B.x1 - P.B.x0) / 2 + P.eaveOv, ab = Math.atan(P.pitchB), zl = P.B.z1 - P.B.z0 + 2 * P.rakeOv;
+  for (const sg of [-1, 1]) box(hw / Math.cos(ab), 0.12, zl, P.ridgeB.x + sg * hw / 2, P.ridgeB.y - hw / 2 * P.pitchB, (P.B.z0 + P.B.z1) / 2, 0, -sg * ab);
+  const pr = P.porchRoof, pd = pr.zOut - P.A.z1, ap = Math.atan(pr.pitch); box(pr.x1 - pr.x0, 0.12, pd / Math.cos(ap), (pr.x0 + pr.x1) / 2, pr.yWall - pd / 2 * pr.pitch, (P.A.z1 + pr.zOut) / 2, ap);
+  const out = B.build(ctx.group, { cast: false, receive: false })[0]; if (out) { out.name = 'nh_occluder'; out.frustumCulled = false; }
+  return out;
 }
