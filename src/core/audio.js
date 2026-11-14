@@ -61,7 +61,7 @@ export function createAudio(game) {
     shift: 0.105,
     blowoff: 0.16,
     squeal: 0.87,
-    wind: 0.2,
+    wind: 0.075, // playtest: wind at speed was far too intense (-8.5 dB, and a softer curve below)
     oneShot: 0.5,
   };
   // per-bus user volumes (settings sliders: game.settings.audio or setBusVolume)
@@ -1324,11 +1324,11 @@ export function createAudio(game) {
     }
     // wind + cabin muffling for the player car
     if (pc && pst) {
-      const sp = Math.min(1, pst.kmh / 200);
+      const sp = Math.pow(Math.min(1, pst.kmh / 220), 1.25); // gentle under ~100 km/h, a soft rush only at real speed
       const inside = cam && pc.mesh ? cam.distanceTo?.(pc.mesh.position) < 2.6 : false;
       eng.wg.gain.setTargetAtTime(sp * sp * (inside ? 0.4 : 1) * VMIX.wind, t, 0.2);
       eng.wf.frequency.setTargetAtTime(500 + sp * 900, t, 0.3);
-      eng.wg2.gain.setTargetAtTime(sp * sp * (inside ? 0.07 : 0.27) * VMIX.wind, t, 0.2);
+      eng.wg2.gain.setTargetAtTime(sp * sp * (inside ? 0.05 : 0.16) * VMIX.wind, t, 0.2);
       eng.cabin.frequency.setTargetAtTime(inside ? 1400 : 20000, t, 0.15);
     } else {
       eng.wg.gain.setTargetAtTime(0, t, 0.2); eng.wg2.gain.setTargetAtTime(0, t, 0.2);
