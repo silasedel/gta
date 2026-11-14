@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { LOOK_OFF } from './fogChunks.js';
 
 // Clustered street-lamp lighting for every lit built-in material (Standard / Physical / Lambert / Phong / Toon).
 //  - Lamps are registered in world space (env.lamps.add / addMany, or Object3D.userData.psLamps).
@@ -64,11 +65,13 @@ export function patchLampChunks() {
 					if ( psD >= psP.w ) continue;
 					vec3 psLd = psL / max( psD, 1e-4 );
 					// mostly-downward luminaire: full strength below, dim spill sideways/up
-					float psSpot = mix( 0.1, 1.0, smoothstep( 0.15, 0.8, psLd.y ) );
+					// look track: a tighter downward cone and less side spill, so lamps make warm pools on a dark street
+					// instead of washing the whole block (?lookoff restores the old cone)
+					float psSpot = ${LOOK_OFF ? 'mix( 0.1, 1.0, smoothstep( 0.15, 0.8, psLd.y ) )' : 'mix( 0.025, 1.0, smoothstep( 0.55, 0.93, psLd.y ) )'};
 					directLight.direction = normalize( ( viewMatrix * vec4( psLd, 0.0 ) ).xyz );
 					// inverse-square with a soft near field (luminaire ~4 m 'size') so nearby walls/people don't blow out
 					float psWin = 1.0 - pow( psD / psP.w, 4.0 ); psWin *= psWin;
-					directLight.color = psC.rgb * ( psC.w * psWin * psSpot / ( psD * psD + 16.0 ) );
+					directLight.color = psC.rgb * ( psC.w * psWin * psSpot / ( psD * psD + ${LOOK_OFF ? '16.0' : '9.0'} ) );
 					directLight.visible = true;
 					RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
 				}

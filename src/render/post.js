@@ -585,7 +585,9 @@ export function createPost(game) {
         }
         if ('environmentIntensity' in scene) {
           if (scene.environmentIntensity !== lookW.env) lookB.env = scene.environmentIntensity;
-          scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl);
+          // at night the sky env map is mostly a blurred moon: it put round hotspots in glass and lifted the street,
+          // so it drops to 35% (night should be dark, lit by lamps and windows)
+          scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl) * (1 - 0.65 * night * (L.nightEnv ?? 1));
         }
         // neutral shade (navy-concrete fix): shaded faces were lit only by a saturated blue sky. By day the hemisphere
         // sky colour is pulled toward its own grey and the ground colour gets a warm sun bounce (sun x dry ground
@@ -662,7 +664,13 @@ export function createPost(game) {
         gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.020 + 0.016 * golden + 0.02 * night);
         // shade tint strength by day (game.look.shadeTint): the teal shadow push read as navy on concrete in shade
         gu.uShadowTint.value.multiplyScalar(1 - (1 - (game.look?.shadeTint ?? 0.25)) * (1 - golden) * day);
-        gu.uSat.value = (1.1 + 0.1 * golden) * (1 - 0.92 * (game.deathFade || 0));
+        // sunset cast: the pink-violet sunset lighting tinted everything; cut it by about 30% with a white-balance shift
+        // toward green and less golden-hour saturation (game.look.sunsetFix: 1 = on, 0 = old look)
+        // twilight weight (the pink cast lives where dayFactor is already small, so golden alone missed it)
+        const twi = (1 - night) * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.05, 0.35));
+        const gc = twi * (game.look?.sunsetFix ?? 1);
+        gu.uGain.value.set(1.03 - 0.03 * gc, 1.0 + 0.09 * gc, 0.96 - 0.02 * gc);
+        gu.uSat.value = (1.1 + 0.1 * golden - 0.16 * gc) * (1 - 0.92 * (game.deathFade || 0));
         gu.uToe.value = 0.012 * dayOnly + 0.008 * golden;
         gu.uContrast.value = 0.37 + 0.08 * dayOnly;
         gu.uSharp.value = game.quality?.current?.look?.sharpen ?? 0.6;

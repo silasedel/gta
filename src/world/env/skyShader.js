@@ -27,6 +27,7 @@ export function createSkyMaterial() {
       uFogColor: { value: new THREE.Color(0.7, 0.5, 0.4) },
       uHorizonBlend: { value: 1.0 },
       uCloudCover: { value: 0.385 },
+      uNightCloud: { value: 1.0 }, // look track: 1 = moon-lit dim night clouds, 0 = old look (A/B)
       uCloudOff: { value: new THREE.Vector2() },
       uCirrus: { value: 0.4 },
       uCloudAmbient: { value: new THREE.Color(0.5, 0.45, 0.5) },
@@ -84,6 +85,7 @@ export function createSkyMaterial() {
       uniform vec2 uCloudOff;
       uniform float uCirrus;
       uniform vec3 uCloudAmbient;
+      uniform float uNightCloud;
       uniform vec3 uCloudSun;
       uniform vec3 uCirrusColor;
       varying vec3 vDir;
@@ -240,6 +242,8 @@ export function createSkyMaterial() {
               T *= 1.0 - a;
             }
           }
+          // look track: night clouds were bright unlit blobs. At night they are dim, moon-lit blue-grey.
+          ${LOOK_OFF ? '' : 'C = mix( C, vec3( dot( C, vec3( 0.2126, 0.7152, 0.0722 ) ) ) * vec3( 0.72, 0.82, 1.0 ) * 0.22, uNight * uNightCloud );'}
           float horizonFade = smoothstep( 0.0, 0.085, dir.y );
           cloudA = ( 1.0 - T ) * horizonFade;
           // thin high cirrus (amount varies by day)

@@ -23,6 +23,8 @@ const SP = {
   jt: { hour: 15.5, kind: 'road', near: [0, -3600], re: 'Julia Tuttle|I-195|I 195', near2: [-1500, -3500], re2: 'I-195|I 195|Interstate 195' },
   dt15: { hour: 15.5, kind: 'street', pose: views.dt },
   dt13: { hour: 13, kind: 'street', pose: views.dt },
+  dt22: { hour: 22, kind: 'street', pose: views.dt },
+  dt19: { hour: 19, kind: 'street', pose: views.dt },
 };
 const VARS = JSON.parse(o.vars || '[["cur",{}],["strong",{"hemiDay":0.45,"envDay":0.6,"sunDay":1.25}]]');
 await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
@@ -34,12 +36,14 @@ await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
   if (st !== true) console.log('stage', spot, st);
   if (SP[spot].kind === 'road') console.log('road', JSON.stringify(await b.eval('window.__lookRoad')));
   await b.sleep(8000);
-  console.log(JSON.stringify(await b.eval(`({ look: game.look, hemi: game.env.hemi.intensity, sun: game.env.sun.intensity, envI: game.scene ? game.scene.environmentIntensity : null, exp: game.renderer.toneMappingExposure, fog: game.scene && game.scene.fog ? game.scene.fog.density : null })`)));
+  console.log(JSON.stringify(await b.eval(`({ indoor: game.env.indoor, night: game.env.nightFactor, lights: (() => { let n = 0, pi = 0; game.scene.traverse((o) => { if (o.isPointLight || o.isSpotLight) { if (o.visible && o.intensity > 0) { n++; pi += o.intensity; } } }); return [n, Math.round(pi)]; })(), look: game.look, hemi: game.env.hemi.intensity, sun: game.env.sun.intensity, envI: game.scene ? game.scene.environmentIntensity : null, exp: game.renderer.toneMappingExposure, fog: game.scene && game.scene.fog ? game.scene.fog.density : null })`)));
   const base = await b.eval('JSON.stringify(game.look)');
   for (const [name, v] of VARS) {
     await b.eval(`Object.assign(game.look, ${base}, ${JSON.stringify(v)}) && true`);
+    await b.eval(`(() => { if (game.time) game.time.paused = true; game.timeOfDay = ${SP[spot].hour}; return true; })()`);
     if (v.__js) await b.eval(v.__js);
     await b.sleep(1500);
+    console.log(name, JSON.stringify(await b.eval('({ hour: game.timeOfDay, night: game.env.nightFactor, indoor: game.env.indoor, exp: game.renderer.toneMappingExposure, hemi: game.env.hemi.intensity, envI: game.scene.environmentIntensity })')));
     await b.screenshot(`docs/v2/shots/look/tune_${spot}_${name}.png`);
   }
   }

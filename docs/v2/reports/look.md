@@ -112,3 +112,17 @@ Each change is gated by `?lookoff` in the URL, so the before and after shots com
 - **Result** (`docs/v2/shots/look/navy_road_before_after.jpg`): shaded asphalt moves from (5.8, 10.3, 19.0), navy, to (10.4, 14.1, 21.2), a dark slate grey. Walls in shade are more neutral too.
   - Still slightly cool: what remains comes from the grade's blue lift (`uLift` 0.012), the 35% kept IBL colour and the grazing sky specular.
   - Not rechecked at night or sunset; the desaturation applies at all times of day.
+
+## Pass 6: night and sunset smoke-test fixes
+- **Night clouds** (`skyShader.js`): at night the cloud colour is replaced by a dim, moon-lit blue-grey (22% of its luminance). There is a live A/B uniform, `uNightCloud`. In the 22:00 frame the clouds are clearly dimmer; `overseas_22` itself was not re-shot.
+- **Downtown at 22:00**, measured with in-page toggles at East Flagler:
+  - My grey-diffuse IBL change is not what lifts it: turning the env map off changed the road by 1–2 levels.
+  - Point lights: none counted in my probe, so it is not the 16 point-light pool.
+  - What lit the block evenly was the clustered lamp shader in `src/world/env/lamps.js`: a wide cone plus a large soft near field.
+  - Fix: tighter downward cone (`smoothstep(0.55, 0.93)` with 2.5% side spill, was 0.15–0.8 with 10%) and a smaller near field (9, was 16), gated by `?lookoff`. This file belongs to the environment track; it is a small, clearly marked edit made because the coordinator asked me to.
+  - The night env map drops to 35% (`game.look.nightEnv`): at night it is mostly a blurred moon, which lifted the street and put round hotspots in glass.
+  - Result: facade wall (29, 23, 20) to (6, 8, 12); the road under the lamps stays warm, (88, 59, 30) to (76, 50, 25).
+- **Awnings:** still black at night: they get no lamp light from below. Not fixed.
+- **Upper-window hotspots:** many are lit room interiors (by design). The env part is reduced by the 35% night env map; I did not check a close-up.
+- **Sunset at 19:00:** twilight white balance (gain toward green) and lower twilight saturation, about 30% less pink-violet (`game.look.sunsetFix`). Wall (93, 72, 76) to (85, 78, 73); the sky keeps its sunset colour.
+- Same-camera before/after: `docs/v2/shots/look/night_sunset_before_after.jpg`.
