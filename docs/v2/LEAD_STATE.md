@@ -48,3 +48,8 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - world-layout pass 4 requested (north extended to z ≈ −8200, real mountains in the NW, flat printed map style, no speckle islets, single soft shallow gradient). Re-run `tools/osm/.venv/bin/python tools/osm/merge.py` when it finishes.
 - Finished since 6:08: design-system (206 brands, 85 products, 79 materials; `design:ready` event), character (Nico in game; walk test only moved 0.16 m: check; animations are v1 Mixamo clips: license flag for the final report).
 - 6:13 PM usage: 61% all / 67% Fable; cap 85% all. world-layout aa7d6857ae7fa3d76 is running pass 4 (due 6:50 PM).
+
+## 6:17 PM: official map
+- User sent `references/ref_40_map_user_official.webp` (their own image) and wants an outline copy: accepted. world-layout agent aa7d6857ae7fa3d76 redirected to machine-trace it (uniform scale ~20 m/px, city aligned to the real Miami rectangle, OSM wins inside it). Hard stop 7:30 PM. World grows to about 16 x 22 km plus Keys.
+- Setpiece coordinates (nico_house, keys_sign, keys_bar) will move; world-layout report lists old to new. Tell nico-house/keys-bar agents to read `layout.json` setpieces, not hard-coded numbers.
+- After it reports: run merge.py, check side-by-side in docs/v2/compare/, send map to user, tell world-render agent the bounds changed.
