@@ -5,74 +5,69 @@
  "agent": "done",
  "items": [
   {
-   "name": "Machine trace of the official map image (coast, islets, lakes, rivers, swamp water, beaches, forest, shallows)",
+   "name": "Pass 7 staged outputs (out_pass7): trace at 30 m/px with the image-height bug fixed; coast IoU 0.989",
    "state": "verified",
-   "evidence": "docs/v2/compare/world-layout_vs_ref40.png"
+   "evidence": "tools/world/out_pass7/summary.json"
   },
   {
-   "name": "Uniform georeference (20 m per pixel) recorded in FORMAT.md, features.json and layout.json",
+   "name": "Every lake, pond and river outline by overlay (recall and precision 0.98 to 1.0)",
    "state": "verified",
-   "evidence": "tools/world/FORMAT.md"
+   "evidence": "tools/world/out_pass7/summary.json"
   },
   {
-   "name": "Heights: smooth, slope-limited, road-graded; same checks as the merge audit pass locally",
-   "state": "verified",
-   "evidence": "tools/world/out/audit.json"
-  },
-  {
-   "name": "Seam: tapering bay water, street grids growing out of the rectangle, no synthetic road inside",
+   "name": "Ring island north of the city: island, ring canal, outer ring, loop road, bridges",
    "state": "built",
-   "evidence": "docs/v2/compare/world-layout_crop_city_bay.png"
+   "evidence": "docs/v2/compare/world-layout_crop_city_bay_p7.png"
   },
   {
-   "name": "City and bay matching ref_40 (blocked by scale: needs 30 m per pixel decision)",
+   "name": "Audit passes with merge thresholds; set-piece lot check inside the audit",
+   "state": "verified",
+   "evidence": "tools/world/out_pass7/audit.json"
+  },
+  {
+   "name": "Runways measured from pixels (Tern Key 2 of 2; main airport 2 strips, count probably short)",
+   "state": "built",
+   "evidence": "docs/v2/compare/world-layout_crop_airport_p7.png"
+  },
+  {
+   "name": "Road network traced from the picture's pale lines",
    "state": "todo",
    "evidence": "docs/v2/reports/world-layout.md"
   },
   {
-   "name": "Main roads joined to all 134 real edge roads on land, one graph; divided ring motorway with ramps",
-   "state": "verified",
-   "evidence": "tools/world/out/audit.json"
-  },
-  {
-   "name": "Towns inside traced urban outlines: street grids, 11,029 buildings, typed POIs; 39 patches relinked",
+   "name": "Picture's bridges as open water with bridge roads; town grids oriented from the picture",
    "state": "built",
-   "evidence": "tools/world/out/summary.json"
+   "evidence": "tools/world/out_pass7/summary.json"
   },
   {
-   "name": "Solana International Airport: rotated, three parallel runways, terminal north-east",
+   "name": "Districts with type and tint sampled from the picture (colors come out near grey)",
    "state": "built",
-   "evidence": "docs/v2/compare/world-layout_crop_airport.png"
+   "evidence": "tools/world/out_pass7/features.json"
   },
   {
-   "name": "Tern Key Airfield from the image's pixels, filling the island",
+   "name": "Amaro Landing as a rural Florida lake town",
    "state": "built",
-   "evidence": "docs/v2/compare/world-layout_crop_tern_key.png"
+   "evidence": "tools/world/out_pass7/summary.json"
   },
   {
-   "name": "Set pieces on the Keys strip with clear lots (unchanged this pass)",
+   "name": "Solana Motor Speedway placed (no oval detected in the picture)",
+   "state": "built",
+   "evidence": "tools/world/out_pass7/layout.json"
+  },
+  {
+   "name": "Swamp areas from the picture's channel network",
+   "state": "built",
+   "evidence": "tools/world/out_pass7/map.png"
+  },
+  {
+   "name": "city_mask for the merge change",
+   "state": "built",
+   "evidence": "tools/world/out_pass7/features.json"
+  },
+  {
+   "name": "Set pieces: keys_bar and keys_sign unchanged, nico_house moved (old lot invalid on corrected land)",
    "state": "verified",
    "evidence": "docs/v2/reports/world-layout.md"
-  },
-  {
-   "name": "Swamp channels, airboat loops, farmland east of the lake",
-   "state": "built",
-   "evidence": "public/assets/world/layout.json"
-  },
-  {
-   "name": "Programmatic audits: zero hard failures",
-   "state": "verified",
-   "evidence": "tools/world/out/audit.json"
-  },
-  {
-   "name": "Map preview in the image's palette, side-by-side and three crops",
-   "state": "built",
-   "evidence": "docs/v2/shots/world-layout/map.png"
-  },
-  {
-   "name": "Causeways to every traced island, Tamarind Key streets, cross routes as divided roads",
-   "state": "todo",
-   "evidence": ""
   },
   {
    "name": "Report docs/v2/reports/world-layout.md",

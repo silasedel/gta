@@ -6,6 +6,7 @@ import { createFX } from '/src/fx/fx.js';
 import { createLampSystem } from './env/lamps.js';
 import { createOcean } from './env/ocean.js';
 import { patchShadowChunks, createSplitShadows } from './env/shadows.js';
+import { createWind } from './env/wind.js';
 
 // ---------------------------------------------------------------------------
 // Time-of-day helpers
@@ -44,14 +45,14 @@ function ramp(keys, x, out) {
 function set(out, v) { return typeof v === 'number' ? v : out.setRGB(v[0], v[1], v[2]); }
 
 // all colors linear
-const SUN_COLOR = [[-0.06, [1.0, 0.22, 0.05]], [0.0, [1.0, 0.33, 0.10]], [0.06, [1.0, 0.48, 0.20]], [0.16, [1.0, 0.66, 0.40]], [0.35, [1.0, 0.86, 0.70]], [0.6, [1.0, 0.95, 0.88]], [1.0, [1.0, 0.97, 0.93]]];
+const SUN_COLOR = [[-0.06, [1.0, 0.22, 0.05]], [0.0, [1.0, 0.33, 0.10]], [0.06, [1.0, 0.48, 0.20]], [0.16, [1.0, 0.66, 0.40]], [0.35, [1.0, 0.86, 0.70]], [0.6, [1.0, 0.93, 0.82]], [1.0, [1.0, 0.94, 0.85]]];
 const FOG_COLOR = [[-0.35, [0.0035, 0.0055, 0.013]], [-0.12, [0.012, 0.016, 0.035]], [-0.03, [0.07, 0.055, 0.09]], [0.02, [0.30, 0.17, 0.16]], [0.09, [0.48, 0.30, 0.22]], [0.2, [0.50, 0.42, 0.38]], [0.4, [0.42, 0.50, 0.60]], [1.0, [0.36, 0.48, 0.64]]];
 const HEMI_SKY = [[-0.3, [0.030, 0.045, 0.095]], [-0.05, [0.08, 0.07, 0.15]], [0.05, [0.40, 0.34, 0.50]], [0.12, [0.46, 0.42, 0.60]], [0.3, [0.45, 0.58, 0.80]], [1.0, [0.40, 0.60, 0.95]]];
 const HEMI_GROUND = [[-0.3, [0.008, 0.008, 0.012]], [0.0, [0.08, 0.05, 0.05]], [0.12, [0.24, 0.15, 0.14]], [0.3, [0.30, 0.25, 0.19]], [1.0, [0.32, 0.28, 0.22]]];
 const CLOUD_AMB = [[-0.3, [0.012, 0.016, 0.03]], [-0.05, [0.07, 0.06, 0.10]], [0.03, [0.34, 0.20, 0.32]], [0.12, [0.50, 0.34, 0.52]], [0.22, [0.62, 0.55, 0.68]], [0.4, [0.74, 0.80, 0.92]], [1.0, [0.82, 0.88, 1.0]]];
 const CIRRUS = [[-0.2, [0.01, 0.012, 0.025]], [-0.06, [0.35, 0.08, 0.14]], [0.0, [1.0, 0.34, 0.34]], [0.1, [1.0, 0.58, 0.62]], [0.25, [0.98, 0.88, 0.86]], [1.0, [1.0, 1.0, 1.0]]];
 const EXPOSURE = [[-0.3, 1.45], [-0.05, 1.25], [0.05, 0.98], [0.2, 0.96], [1.0, 0.96]];
-const FOG_DENSITY = [[-0.3, 0.00060], [0.0, 0.00048], [0.12, 0.00036], [0.3, 0.00026], [0.5, 0.00013], [1.0, 0.00011]];
+const FOG_DENSITY = [[-0.3, 0.00060], [0.0, 0.00070], [0.12, 0.00058], [0.3, 0.00026], [0.5, 0.00013], [1.0, 0.00011]];
 const SKY_EXPOSURE = [[-0.2, 0.55], [0.0, 0.55], [0.15, 0.5], [1.0, 0.45]];
 
 const SKY_ZENITH = [[-0.3, [0.002, 0.004, 0.012]], [-0.08, [0.012, 0.012, 0.05]], [0.0, [0.06, 0.045, 0.20]], [0.1, [0.13, 0.11, 0.42]], [0.2, [0.09, 0.15, 0.50]], [0.35, [0.026, 0.13, 0.50]], [1.0, [0.02, 0.125, 0.52]]];
@@ -67,6 +68,9 @@ export async function createEnvironment(game) {
   patchFogChunks();
   const splitOK = patchShadowChunks();
   const lamps = createLampSystem(game);
+  // shared wind field (game.wind): exists before every other system so anything can read it
+  let wind = null;
+  try { wind = game.wind = createWind(game); setTimeout(() => { try { game.emit?.('wind:ready', wind); } catch (e) { /* listeners must not break the env */ } }, 0); } catch (e) { console.error('[env] wind init failed', e); }
 
   renderer.shadowMap.enabled = true;
   if (renderer.shadowMap.type === THREE.BasicShadowMap) renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -148,12 +152,14 @@ export async function createEnvironment(game) {
   const lookM = new THREE.Matrix4();
   const lightQ = new THREE.Quaternion(), lightQInv = new THREE.Quaternion();
   const v = new THREE.Vector3();
+  const camFwd = new THREE.Vector3();
+  const staticAim = new THREE.Vector3();
   const UP = new THREE.Vector3(0, 1, 0);
   const ORIGIN = new THREE.Vector3();
   let time = 0;
 
   const env = {
-    sun, sunDyn, hemi, sky, water, ocean, distant, lamps,
+    sun, sunDyn, hemi, sky, water, ocean, distant, lamps, wind,
     sunDir, moonDir,
     dayFactor: 1, nightFactor: 0, exposure: 1,
     seaLevel: -0.12, underwater: 0,
@@ -197,55 +203,80 @@ export async function createEnvironment(game) {
         sun.intensity = 0.55 * nightF * THREE.MathUtils.smoothstep(moonDir.y, 0.0, 0.15);
       } else {
         ramp(SUN_COLOR, s, sun.color);
-        sun.intensity = dayF * (3.4 + 1.6 * (1 - THREE.MathUtils.smoothstep(s, 0.05, 0.4)));
+        sun.intensity = dayF * (3.9 + 1.1 * (1 - THREE.MathUtils.smoothstep(s, 0.05, 0.4)));
       }
 
       // grazing light (low sun / moon): scale receiver offsets so ground/sidewalks don't get acne bands
       {
-        const el = Math.max(lightDir.y, 0.1);
+        // from the direction the shadow maps were rendered with (constant between static re-renders), so the
+        // bias never changes under a shadow map that was not redrawn (that made edges pulse while moving)
+        const el = Math.max((staticSun.lengthSq() > 0.5 ? staticSun : lightDir).y, 0.1);
         sun.shadow.normalBias = Math.min(0.45, 0.065 / el);
         sun.shadow.bias = -0.0003 - 0.0004 * (1 - Math.min(1, el / 0.4));
         sunDyn.shadow.normalBias = Math.min(0.25, 0.035 / el);
         sunDyn.shadow.bias = -0.0003 - 0.0003 * (1 - Math.min(1, el / 0.4));
       }
-      // shadow frustums follow the player, snapped to their texel grids (no shimmering)
+      // Shadow frustums follow the player, snapped to their texel grids (no shimmering).
+      // The static (city) map keeps the light direction it was last rendered with: re-centering after a
+      // move reuses that exact direction, so every shadow edge lands on the same texels and nothing crawls.
+      // Only a real sun drift (about 0.25 degrees) re-renders it with a new direction.
       const focus = game.player?.position || ORIGIN;
-      lookM.lookAt(lightDir, ORIGIN, UP);
-      lightQ.setFromRotationMatrix(lookM); lightQInv.copy(lightQ).invert();
-      const place = (light, center, R, size) => {
+      const place = (light, center, R, size, dir) => {
+        lookM.lookAt(dir, ORIGIN, UP);
+        lightQ.setFromRotationMatrix(lookM);
+        lightQInv.copy(lightQ).invert();
         const texel = (2 * R) / size;
         v.copy(center).applyQuaternion(lightQInv);
-        v.x = Math.round(v.x / texel) * texel; v.y = Math.round(v.y / texel) * texel; v.z = Math.round(v.z / texel) * texel;
+        v.x = Math.round(v.x / texel) * texel;
+        v.y = Math.round(v.y / texel) * texel;
+        v.z = Math.round(v.z / texel) * texel;
         v.applyQuaternion(lightQ);
         light.target.position.copy(v);
-        light.position.copy(v).addScaledVector(lightDir, 450);
-        light.target.updateMatrixWorld(); light.updateMatrixWorld();
+        light.position.copy(v).addScaledVector(dir, 450);
+        light.target.updateMatrixWorld();
+        light.updateMatrixWorld();
       };
       if (split) {
-        // static map: re-centre only when the focus enters a new 24 m cell / the sun moved / new geometry
+        // static map: centered a little ahead of the camera (where the visible shadows are), re-centered
+        // when that point leaves a 24 m cell, the sun moved, or new geometry streamed in
         staticT += dt;
-        const cx = Math.round(focus.x / 24) * 24, cz = Math.round(focus.z / 24) * 24;
+        camera.getWorldDirection(camFwd);
+        camFwd.y = 0;
+        if (camFwd.lengthSq() > 1e-6) {
+          camFwd.normalize();
+        }
+        staticAim.copy(focus).addScaledVector(camFwd, SHADOW_R * 0.35);
+        const cx = Math.round(staticAim.x / 24) * 24;
+        const cz = Math.round(staticAim.z / 24) * 24;
         const tS = performance.now();
         const dirty = split.update(dt);
         prof('shadowTags', tS);
-        if (dirty) staticPending = true;
+        if (dirty) {
+          staticPending = true;
+        }
         const moved = cx !== staticCell.x || cz !== staticCell.z;
-        // capped: at most one static re-render per 0.75 s (moving), 1.5 s (streamed geometry), 2 s (sun drift)
-        if ((moved && staticT > 0.75) || (staticPending && staticT > 1.5) || (staticSun.dot(lightDir) < 0.99999 && staticT > 2) || staticT > 12) {
+        const sunDrift = staticSun.dot(lightDir) < 0.99999;
+        // capped: at most one static re-render per 0.4 s (moving), 1.5 s (streamed geometry), 2 s (sun drift)
+        if ((moved && staticT > 0.4) || (staticPending && staticT > 1.5) || (sunDrift && staticT > 2) || staticT > 12) {
           staticPending = false;
-          staticCell.set(cx, focus.y, cz); staticSun.copy(lightDir); staticT = 0;
-          place(sun, staticCell, SHADOW_R, SHADOW_SIZE);
+          staticCell.set(cx, focus.y, cz);
+          if (sunDrift || staticSun.lengthSq() < 0.5) {
+            staticSun.copy(lightDir);
+          }
+          staticT = 0;
+          place(sun, staticCell, SHADOW_R, SHADOW_SIZE, staticSun);
           sun.shadow.needsUpdate = true;
         }
-        place(sunDyn, focus, DYN_R, DYN_SIZE);
+        // the per-frame dynamic map uses the same direction as the static one, so the two always agree
+        place(sunDyn, focus, DYN_R, DYN_SIZE, staticSun.lengthSq() > 0.5 ? staticSun : lightDir);
       } else {
-        place(sun, focus, SHADOW_R, SHADOW_SIZE);
+        place(sun, focus, SHADOW_R, SHADOW_SIZE, lightDir);
       }
 
       // --- hemisphere / fog / exposure ---
       ramp(HEMI_SKY, s, hemi.color);
       ramp(HEMI_GROUND, s, hemi.groundColor);
-      hemi.intensity = 0.5 + 0.1 * dayF;
+      hemi.intensity = 0.52 - 0.04 * dayF;
       ramp(SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.9);
       scene.fog.density = ramp(FOG_DENSITY, s) * (1 - 0.8 * env.indoor);
       const wantIndoor = env._indoorFlag || !!game.player?.state?.indoor;
@@ -277,8 +308,11 @@ export async function createEnvironment(game) {
       ramp(SKY_HORIZON, s, u.uHorizon.value);
       ramp(SKY_HORIZON_SUN, s, u.uHorizonSun.value);
       ramp(SKY_GLOW, s, u.uSunGlow.value);
-      u.uCloudCover.value = 0.385 + 0.11 * env.golden; // bigger, softer cloud banks toward sunset
+      u.uCloudCover.value = 0.40 + 0.07 * env.golden;
+      if (wind) { u.uCloudOff.value.x -= wind.dir.x * wind.speed * dt * 0.0012; u.uCloudOff.value.y -= wind.dir.y * wind.speed * dt * 0.0012; }
+      { const dayN = Math.floor(game.day ?? game.clock?.day ?? 0); const hsh = Math.abs(Math.sin(dayN * 12.9898 + 4.1)) % 1; u.uCirrus.value = hsh < 0.45 ? 0.12 : 0.25 + 0.6 * hsh; } // thin cirrus only on some days // bigger, softer cloud banks toward sunset
 
+      if (wind) wind.update(dt, env, camera);
       // --- ocean ---
       { const tO = performance.now(); ocean.update(dt, camera, env); prof('ocean', tO); }
       // the generic distant ridges/skyline only suit the small legacy map

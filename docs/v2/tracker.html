@@ -477,7 +477,7 @@ function render(d) {
   $('files').innerHTML = (stats.recentFiles || []).map((f) => '<div><span title="' + esc(f.file) + '">&lrm;' + esc(f.file) + '</span><span class="ln">' + fmt(f.lines) + ' lines</span><span class="ago">' + ago(f.secondsAgo) + ' ago</span></div>').join('') || '<div>No data yet</div>';
   const td = stats.topDirs || [], mx = td.length ? td[0][1] : 1;
   $('dirs').innerHTML = td.map(([n, v]) => '<div><span>' + esc(n) + '</span><div class="bar"><b class="built" style="width:' + (100 * v / mx) + '%"></b></div><span style="text-align:right">' + fmt(v) + '</span></div>').join('');
-  const shots = d.shots || (stats.recentShots || []).slice(0, 9).map((s) => ({ src: '../../' + s.file, name: s.file.replace('docs/v2/shots/', '') }));
+  const shots = d.shots || (stats.recentShots || []).slice(0, 12).map((s) => ({ src: '../../' + s.file, name: s.file.replace('docs/v2/shots/', '') }));
   $('shotpanel').style.display = shots.length ? '' : 'none';
   $('shots').innerHTML = shots.map((s) => '<figure><img loading="lazy" src="' + esc(s.src) + '" alt=""><figcaption>' + esc(s.name) + '</figcaption></figure>').join('');
   $('live').className = 'live' + (SNAP ? ' snap' : '');

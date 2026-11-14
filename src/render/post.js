@@ -12,6 +12,11 @@ import { GradeShader } from './gradeShader.js';
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
 export function createPost(game) {
   const { renderer, scene, camera } = game;
+  // Native resolution, fixed (playtest-fixes): the full window at the display's own pixel ratio (Retina up to 2x).
+  // Nothing ever scales this down at run time; speed comes from engineering, not from a blurrier picture.
+  const NATIVE_PR = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(NATIVE_PR);
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
   const size = new THREE.Vector2();
   renderer.getSize(size);
   const pr = renderer.getPixelRatio();
@@ -162,49 +167,70 @@ export function createPost(game) {
   }
   setSize(W, H);
 
-  // ---------- performance stats + FPS-adaptive resolution ----------
+  // ---------- performance stats (the resolution is fixed and native; there is no adaptive scaler) ----------
   renderer.info.autoReset = false;
   const perf = game.perf = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, pixelRatio: renderer.getPixelRatio(), resScale: 1, gtao: false, ao: false };
-  const basePR = renderer.getPixelRatio();
-  const minPR = Math.max(0.5, basePR * 0.8); // floor: never below 80% of the native ratio
-  let lastNow = performance.now(), winMs = 0, winN = 0, evalT = 0, goodT = 0, sinceChange = 0, upBlockT = 0, lastUpAt = -1e9, clock = 0;
+  let lastNow = performance.now();
+  let clock = 0;
   function applyPR(pr) {
-    pr = Math.round(THREE.MathUtils.clamp(pr, minPR, basePR) * 100) / 100;
+    pr = Math.round(pr * 100) / 100;
     if (Math.abs(pr - renderer.getPixelRatio()) < 0.01) return false;
     renderer.setPixelRatio(pr);
     setSize(W, H);
-    perf.pixelRatio = pr; perf.resScale = pr / basePR; sinceChange = 0;
+    perf.pixelRatio = pr;
+    perf.resScale = 1;
     return true;
   }
   function governor() {
     const now = performance.now();
-    const ms = now - lastNow; lastNow = now;
-    if (ms <= 0 || ms > 120) return; // hidden tab / hitch: ignore
-    clock += ms / 1000; sinceChange += ms / 1000; upBlockT -= ms / 1000;
+    const ms = now - lastNow;
+    lastNow = now;
+    if (ms <= 0 || ms > 120) {
+      return; // hidden tab / hitch: ignore
+    }
+    clock += ms / 1000;
     perf.frameMs += (ms - perf.frameMs) * 0.1;
     perf.fps = 1000 / perf.frameMs;
-    winMs += ms; winN++; evalT += ms / 1000;
-    if (evalT < 1) return;
-    const avg = winMs / winN; winMs = 0; winN = 0; evalT = 0;
-    if (game.settings?.dynamicRes === false) { if (renderer.getPixelRatio() !== basePR) applyPR(basePR); return; }
-    if (avg > 19.5 && sinceChange > 2) {
-      if (clock - lastUpAt < 5) upBlockT = 30; // the last step up was too much: stay put for a while
-      applyPR(renderer.getPixelRatio() * (avg > 26 ? 0.82 : 0.9));
-      goodT = 0;
-    } else if (avg < 17.6) {
-      goodT += 1;
-      if (goodT >= 5 && sinceChange > 6 && upBlockT <= 0 && renderer.getPixelRatio() < basePR) {
-        if (applyPR(renderer.getPixelRatio() * 1.08)) lastUpAt = clock;
-        goodT = 0;
-      }
-    } else goodT = 0;
+    // the display's pixel ratio can change (window dragged to another screen): follow it, never go below native
+    const want = Math.min(window.devicePixelRatio || 1, 2);
+    if (Math.abs(want - renderer.getPixelRatio()) > 0.01) {
+      applyPR(want);
+    }
+  }
+  // keep the canvas exactly the size of the window: on resize, fullscreen and when the page finishes sizing
+  function fitWindow() {
+    // CSS size is always the whole window; only the drawing buffer is set from JavaScript
+    renderer.domElement.style.width = '100vw';
+    renderer.domElement.style.height = '100vh';
+    const w = Math.max(1, window.innerWidth);
+    const h = Math.max(1, window.innerHeight);
+    const cur = new THREE.Vector2();
+    renderer.getSize(cur);
+    if (cur.x === w && cur.y === h && Math.abs(renderer.getPixelRatio() - Math.min(window.devicePixelRatio || 1, 2)) < 0.01) {
+      return;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    setSize(w, h);
+  }
+  window.addEventListener('resize', fitWindow);
+  document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitWindow));
+  fitWindow();
+  try {
+    const ro = new ResizeObserver(() => fitWindow());
+    ro.observe(document.documentElement);
+  } catch (e) {
+    // ResizeObserver missing: the resize event still covers it
   }
 
   const aoSafe = !!(target.depthTexture && composer.renderTarget2.depthTexture && composer.renderTarget2.depthTexture !== target.depthTexture && composer.renderTarget2.depthTexture.source !== target.depthTexture.source);
   let failed = false;
   const api = {
     perf,
-    setBasePixelRatio(pr) { applyPR(pr); },
+    setBasePixelRatio() { /* fixed native resolution: kept for callers, does nothing */ },
+    fitWindow,
     composer, bloom, grade, gtao, smaa, ao,
     setSize,
     render(dt) {
@@ -241,9 +267,9 @@ export function createPost(game) {
 
       const golden0 = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.3));
       // bloom: highlights only by day, a little more at sunset (sun glow), generous at night (neon)
-      bloom.strength = 0.20 + 0.13 * night + 0.08 * golden0;
+      bloom.strength = 0.20 + 0.13 * night + 0.14 * golden0;
       bloom.radius = 0.45 + 0.1 * night;
-      bloom.threshold = 1.0 - 0.25 * night;
+      bloom.threshold = 1.0 - 0.25 * night - 0.14 * golden0; // sunset: the glitter path and sun rim bloom a little
 
       // speed streaks
       const st = game.player?.state;
@@ -282,7 +308,7 @@ export function createPost(game) {
       const golden = day * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0.3, 0.05, 0.35));
       gu.uHighTint.value.set(0.025 + 0.03 * golden - 0.02 * night, 0.010 - 0.004 * golden - 0.005 * night, -0.02 + 0.012 * golden + 0.02 * night);
       gu.uShadowTint.value.set(-0.012 + 0.012 * golden - 0.005 * night, 0.010 - 0.006 * golden, 0.028 + 0.010 * golden + 0.02 * night); // teal-blue shadows by day, violet at sunset
-      gu.uSat.value = (1.2 + 0.02 * golden) * (1 - 0.92 * (game.deathFade || 0));
+      gu.uSat.value = (1.25 + 0.0 * golden) * (1 - 0.92 * (game.deathFade || 0));
       if (gu._vigBase === undefined) gu._vigBase = gu.uVignette.value;
       gu.uVignette.value = gu._vigBase + Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) * Math.min(1, (game.deathFade || 0) * 4);
       gu.uTime.value = time;

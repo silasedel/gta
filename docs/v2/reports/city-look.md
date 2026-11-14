@@ -1,3 +1,41 @@
+# city-look report: skyline pass (Nov 13, 7:03 to 8:05 PM)
+
+## What changed
+- **One builder for every distance.** Mid (to 1.5 km) and far (whole map) chunks no longer draw buildings as tinted boxes with the v1 office atlas. `buildMid`/`buildFar` now call the near `buildBuilding` for every building (far skips buildings under 12 m and 1,500 m2), writing into one `FBatch` per chunk drawn with `M.facadeFar`. That is the near facade material plus the near-tile cut (`city.js`). Same family recipe, tint, wall set, window type, glass, roof layer and crown as the near build, so nothing pops at the LOD switch. `chunkMesh` copies the facade attributes in slices. Draw calls per chunk are unchanged (the glass batch is now empty and skipped).
+- **Tower silhouettes (`towerShape`/`buildTower`, shared by near and LOD).** Corners are sharp, chamfered or rounded (rounded corners read as one curved run). Towers get 0 to 2 setbacks with terrace railings. Crowns: plant-room screen with penthouse, a stepped lit glass crown with light bands, a penthouse with a spire, an angled metal roof, or a parapet roof with a helipad or plant room plus an antenna lattice. About 8% of towers over 120 m are topping out, with bare slabs, a column frame and a lattice tower crane. Balconies wrap all faces on slender residential towers. Everything is keyed to the building id.
+- **Landmarks:** towers of 140 m or more on one footprint get one of 8 invented designs, chosen by building id: Halcyon Crown, Marisol Residences, Coralline Tower, Bayline One, Solana Center (topping out), Stanton Plaza, Tidewater Point, Las Brisas Condominium. They are data-driven (`LANDMARKS` in tilebuild.js), not placed by coordinates.
+- **Palette:** family tints keep their hue but lose 40 to 60% of their saturation. Condo towers use warm whites and beiges, and glass tints are muted. 40% of tall buildings are glass, down from 60%.
+- **Night at distance (facade.js):** windows smaller than a pixel light in random power-of-two clusters, with extra glow, instead of averaging to a flat dim tone.
+- **Port:** container colors come from 12 weathered liveries (Nordhaven Line navy from `src/design`), with one dominant line and one stack height per block row and a per-box fade. Mid-LOD stacks use corrugated metal; they had been showing the office window atlas. Gantry cranes get X-bracing, sill beams, boom ties and muted paint.
+- **Ocean Drive beige dots:** these were the string-light bulbs (`palmDress`), hanging with no cable and tinted beige by day. Cables are now drawn, and bulbs are dull glass by day.
+- **Blank ground floors:** the ground floor around shop fronts used a plain wall layer on every side. It now carries the building's own window grid on every side, with the shop openings cut out.
+
+## Verified (shots in docs/v2/shots/city-look/)
+- Noon skyline from an elevated vantage across the bay, with port and causeway: `close_before_13.png` vs `close_a3_13.png` (same camera). Far view at about 4 km: `bay_a4_13.png`.
+- Sunset glints: `close_a5_18h9.png`. Port: the container yard at left in `close_before_13.png` vs `close_a3_13.png`, plus `port_a2_13.png` (my port 'before' frame caught the title card and was deleted). Night street canyon downtown: `canyon_a8_21h5.png` (lit windows in random patterns, tower crowns). Night skyline: `close_a7_21h5.png` (lit clusters on the distant towers; the glow was raised after this frame).
+- Numbers (same camera, game stats, 120 frames): before 565 calls, 2.84M tris, 16.8 ms. After: 590 to 609 calls, 3.07 to 3.11M tris, 16.66 ms. Port view: 428 calls, 3.06M tris. Load was 7 to 9 for these runs and later reached 64, so frame times are vsync-capped and unreliable.
+
+## Honest comparison with the reference (ref38 top half)
+Better: distinct tower shapes, window and floor grids, setbacks, crowns, spires and cranes, a muted mix of glass and concrete, a port that no longer looks like confetti. Still short of it: the haze and sky are cooler than the reference's warm noon. The foreground (parking lots, flat roofs, uniform palms) still looks generated. There is no Ferris wheel, arena or twin pair. Mid-distance low-rise is still simple boxes with textured walls. The reference's warm sunlit beige towers come out greyer here.
+
+## Built, not looked at
+- The final glow strength for the night skyline (raised after `close_a7_21h5.png`).
+- Landmark designs, helipads and antenna masts close up. Crane bracing. String-light cables. Storefront ground-floor windows. A noon street canyon shot.
+
+## Not done
+- Container logos (needs more invented shipping lines from DESIGN-SYSTEM), reefer stacks, light masts, warehouse roller-door detail beyond what the family recipes give.
+- Ferris wheel, arena and twin towers.
+- Filling empty lots and plazas with landscaping, parking or courtyards (user playtest note 1). Only the blank ground floors are fixed.
+- Pushing facade detail toward the house bar (note 3): trim geometry, cornices and pipes.
+
+## Shadow flicker (playtest note 2): not my file
+`src/render/stage/environment.js:203-224` already snaps the shadow frustum in light space. Two things still move it every frame. The sun direction is re-aimed every frame as the time of day advances, which rotates the shadow map, and `normalBias`/`bias` are recomputed from sun elevation every frame. Suggestion for the render owner: step the sun direction in discrete increments (for example every 0.05 degrees or every few seconds), and change biases only on those steps.
+
+## Tools
+`src/world/miami/.skyline.mjs` takes fixed bay, close, port and canyon cameras and prints calls, triangles and frame times.
+
+---
+
 # city-look report (stopped at the 6:30 PM budget cut, Nov 13)
 
 ## What changed

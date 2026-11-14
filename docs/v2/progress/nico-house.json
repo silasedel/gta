@@ -1,26 +1,168 @@
-{ "track": "nico-house", "title": "Nico's Keys stilt house", "section": "Set pieces", "agent": "done",
-  "items": [
-    { "name": "Design matched to the user's own house design (ref_36): seafoam vertical boards, three shuttered windows, roofed gable porch, wraparound deck", "state": "built", "evidence": "docs/v2/compare/nico_house_vs_ref36.jpg (type, colors and dressing match; massing differs: see report)" },
-    { "name": "PBR texture set and wear shaders (wood grain, peeling paint, rust, salt, waterline growth)", "state": "verified", "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png" },
-    { "name": "Posts, footings, cross-bracing, knee braces, girders, joists, hurricane ties", "state": "verified", "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png" },
-    { "name": "Wraparound deck boards, balustrade with individual balusters, two climbable stairs", "state": "verified", "evidence": "walk test passes (west stair, bay stair, all decks): docs/v2/reports/nico-house.md" },
-    { "name": "Vertical board siding with nail heads, trim, windows, louvered and Bahama shutters", "state": "verified", "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png" },
-    { "name": "Corrugated tin roof, rust streaks, fascia, gutters, downspouts, turbine vent", "state": "verified", "evidence": "docs/v2/shots/nico-house/ext_hero_golden.png" },
-    { "name": "Fixtures: service mast, meter, breaker panel, power pole and service drop, AC condenser, window unit, propane, dish, lights, wind chime", "state": "built", "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png (east-side items not looked at up close)" },
-    { "name": "Lower level: lattice, storage wall and door, surfboard, hose, outdoor shower, carport clutter (hoop, workbench, tools, coolers, traps, rods, board, hose reel, trash cans)", "state": "built", "evidence": "docs/v2/shots/nico-house/45_carport_1.png .. 45_carport_15.png (some props below the bar: see report)" },
-    { "name": "Display vehicles: muscle-pickup, dirt bike, kayak, skiff with outboard, teal sedan", "state": "todo", "evidence": "not built; anchors truck / bike / kayak / skiff are exported" },
-    { "name": "Dock: piles, cleats, rope coils, fish-cleaning station, ladder, dock light", "state": "built", "evidence": "docs/v2/shots/nico-house/ext_dock.png (generated, not reviewed)" },
-    { "name": "Site: crushed-shell yard, puddles, weeds, carport slab, seawalls, mailbox, conch shells, hammock", "state": "built", "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png" },
-    { "name": "Plants: coconut palms, sea grape, bougainvillea, potted plants, weeds at the posts", "state": "verified", "evidence": "docs/v2/shots/nico-house/50_plants_1.png .. 50_plants_10.png" },
-    { "name": "Interior shell: living room, kitchen, hall, bedroom, bathroom, working doors", "state": "verified", "evidence": "docs/v2/shots/nico-house/int_living.png; full room-to-room walk test passes" },
-    { "name": "Kitchen: openable cabinets and drawers with contents, fridge, stove, sink, mail to Nico", "state": "built", "evidence": "docs/v2/shots/nico-house/72_kitchen_1.png .. 72_kitchen_3.png (later pass planned)" },
-    { "name": "Living room: TV (news hook), readable laptop, clock on game time, photos, posters, fan, lamps, switches", "state": "built", "evidence": "docs/v2/shots/nico-house/70_living_1.png .. 70_living_3.png (fan spin and clock hands not checked)" },
-    { "name": "Bedroom: bed (sleep), wardrobe (wardrobe:open), laundry, save point, spawn anchor", "state": "built", "evidence": "docs/v2/shots/nico-house/74_bedroom_r1_a.png (events confirmed firing)" },
-    { "name": "Bathroom and hall: shower, toilet, vanity, washer-dryer, breaker panel", "state": "built", "evidence": "docs/v2/shots/nico-house/76_r6_bath_shower.png (steam weak, some props crude)" },
-    { "name": "Colliders and walk test (stairs, decks, every room, dock), no stuck spots on the tested routes", "state": "verified", "evidence": "docs/v2/reports/nico-house.md (walk test)" },
-    { "name": "Preview page: sky, sun, water, orbit and walk cameras, time-of-day slider", "state": "verified", "evidence": "src/world/setpieces/nicoHouse/preview.html" },
-    { "name": "nicoHouse.v2.js: placement from layout.json, Rapier colliders, lights, interactions", "state": "verified", "evidence": "docs/v2/shots/nico-house/ingame_hero_noon.png" },
-    { "name": "Screenshots: ref angle at noon, golden hour, night; 9 other exterior angles; every room", "state": "built", "evidence": "docs/v2/shots/nico-house/ext_*.png, int_*.png (only the hero angle and the living room were reviewed by the track lead)" },
-    { "name": "Performance within the budget", "state": "building", "evidence": "1.33M triangles, 229 meshes for the whole set piece: over budget up close, needs an LOD pass" },
-    { "name": "Credits for every downloaded asset", "state": "verified", "evidence": "CREDITS.md (Track: nico-house)" }
-  ] }
+{
+ "track": "nico-house",
+ "title": "Nico's Keys stilt house",
+ "section": "Set pieces",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Design matched to the user's own house design (ref_36): shed-roof main block, three shuttered windows, covered gable porch and corner deck at the right, weathered sea-green boards",
+   "state": "built",
+   "evidence": "docs/v2/compare/nico_house_vs_ref36.jpg (pass 2 looked at; proportions and a few items still differ: see report)"
+  },
+  {
+   "name": "PBR texture set and wear shaders (wood grain, peeling paint, rust, salt, waterline growth)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png"
+  },
+  {
+   "name": "Posts, footings, cross-bracing, knee braces, girders, joists, hurricane ties",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png"
+  },
+  {
+   "name": "Wraparound deck boards, balustrade with individual balusters, two climbable stairs",
+   "state": "verified",
+   "evidence": "walk test passes (west stair, bay stair, all decks): docs/v2/reports/nico-house.md"
+  },
+  {
+   "name": "Vertical board siding with nail heads, trim, windows, louvered and Bahama shutters",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png"
+  },
+  {
+   "name": "Corrugated tin roof, rust streaks, fascia, gutters, downspouts, turbine vent",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_golden.png"
+  },
+  {
+   "name": "Fixtures: service mast, meter, breaker panel, power pole and service drop, AC condenser, window unit, propane, dish, lights, wind chime",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png (east-side items not looked at up close)"
+  },
+  {
+   "name": "Lower level: open carport bay, storage room, lattice, outdoor shower, carport clutter (workbench, tools, coolers, traps, rods, board, hose reel, trash cans)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/front_ref43_noon.png, front_ref43_close.png"
+  },
+  {
+   "name": "Display vehicles: muscle-pickup, dirt bike, kayak, skiff with outboard, teal sedan",
+   "state": "building",
+   "evidence": "old dark-teal pickup (shared carModel2 body) parked in the left carport bay: docs/v2/shots/nico-house/front_ref43_close.png; dirt bike, kayak, skiff, sedan still not built"
+  },
+  {
+   "name": "Dock: piles, cleats, rope coils, fish-cleaning station, ladder, dock light",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/ext_dock.png (generated, not reviewed)"
+  },
+  {
+   "name": "Site: crushed-shell yard, puddles, weeds, carport slab, seawalls, mailbox, conch shells, hammock",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png"
+  },
+  {
+   "name": "Plants: coconut palms, sea grape, bougainvillea, potted plants, weeds at the posts",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/50_plants_1.png .. 50_plants_10.png"
+  },
+  {
+   "name": "Interior shell: living room, kitchen, hall, bedroom, bathroom, working doors",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/int_living.png; full room-to-room walk test passes"
+  },
+  {
+   "name": "Kitchen: openable cabinets and drawers with contents, fridge, stove, sink, mail to Nico",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/72_kitchen_1.png .. 72_kitchen_3.png (later pass planned)"
+  },
+  {
+   "name": "Living room: TV (news hook), readable laptop, clock on game time, photos, posters, fan, lamps, switches",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/70_living_1.png .. 70_living_3.png (fan spin and clock hands not checked)"
+  },
+  {
+   "name": "Bedroom: bed (sleep), wardrobe (wardrobe:open), laundry, save point, spawn anchor",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/74_bedroom_r1_a.png (events confirmed firing)"
+  },
+  {
+   "name": "Bathroom and hall: shower, toilet, vanity, washer-dryer, breaker panel",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/76_r6_bath_shower.png (steam weak, some props crude)"
+  },
+  {
+   "name": "Colliders and walk test (stairs, decks, every room, dock), no stuck spots on the tested routes",
+   "state": "verified",
+   "evidence": "walk test re-run after pass 2, both routes clean: docs/v2/reports/nico-house.md"
+  },
+  {
+   "name": "Preview page: sky, sun, water, orbit and walk cameras, time-of-day slider",
+   "state": "verified",
+   "evidence": "src/world/setpieces/nicoHouse/preview.html"
+  },
+  {
+   "name": "nicoHouse.v2.js: placement from layout.json, Rapier colliders, lights, interactions",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ingame_hero_noon.png"
+  },
+  {
+   "name": "Screenshots: ref angle at noon, golden hour, night; 9 other exterior angles; every room",
+   "state": "built",
+   "evidence": "docs/v2/shots/nico-house/ext_*.png, int_*.png (only the hero angle and the living room were reviewed by the track lead)"
+  },
+  {
+   "name": "Performance within the budget",
+   "state": "building",
+   "evidence": "1.30M triangles, 230 meshes for the whole set piece: no LOD yet"
+  },
+  {
+   "name": "Credits for every downloaded asset",
+   "state": "verified",
+   "evidence": "CREDITS.md (Track: nico-house)"
+  },
+  {
+   "name": "Street front under the house as in ref_43: open carport bay, cracked stained slab, heavy peeling piers with vines, PVC drains / conduit / loose wiring under the joists, backboard with bent rim and frayed net on the beam, ball, box AC on a timber bracket, panel on the pier, storage room with white panel door and a window with one sash hanging open, ivy, bin and rusty drum, lattice infill, potted plants on the rail, pickup in the left bay, view through to the water",
+   "state": "verified",
+   "evidence": "docs/v2/compare/nico_house_front_vs_ref43.jpg (lighting, palm shadows and camera height still differ from the image)"
+  },
+  {
+   "name": "Siding to the ref_43 look: turquoise boards peeled to bare gray-brown wood, per-board tone, nail heads, gaps",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/front_ref43_close.png"
+  },
+  {
+   "name": "Palms from the shared vegetation system (game.vegetation.build('coconut'), waits for vegetation:ready)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png (preview with the vegetation module; not checked in the full game); full game: 6 vegetation palms on the house"
+  },
+  {
+   "name": "Wind on the net and hanging wires (game.wind)",
+   "state": "built",
+   "evidence": "code only; potted plants and laundry use the existing sway shaders, not game.wind"
+  },
+  {
+   "name": "Second wheelie bin by the storage room",
+   "state": "verified",
+   "evidence": "docs/v2/shots/nico-house/ext_hero_noon.png"
+  },
+  {
+   "name": "Player spawn on the drive in front of the house, following the layout lot",
+   "state": "verified",
+   "evidence": "full-game boot 7:52 PM: game.v2.failed = [], house at layout lot (-6420.26, 12416.02, heading 1.2411), player at (-6411, 0.88, 12421) on the drive; no in-game picture (title screen)"
+  },
+  {
+   "name": "Remaining ref_36 gaps: compact block proportions, real hinged French doors, bougainvillea on the front lattice, wet drive reflections, dense planting behind",
+   "state": "todo",
+   "evidence": "not done this pass"
+  },
+  {
+   "name": "Sand material from game.sand.makeMaterial for the sandy yard",
+   "state": "todo",
+   "evidence": "not done"
+  },
+  {
+   "name": "Far LOD under 150k triangles",
+   "state": "todo",
+   "evidence": "not done; now about 1.25M in all (ext 452k, int 238k, detail 509k, dyn 48k); int / detail / dyn already hide past 70 / 110 m"
+  }
+ ]
+}

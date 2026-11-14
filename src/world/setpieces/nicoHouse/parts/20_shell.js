@@ -11,7 +11,7 @@ export function build(ctx) {
   const nails = [];
 
   // exposure of each wall: [paint wear, sun fade tint, base y of the siding]
-  const EXPO = { A_south: [0.3, 0.1, F - 0.3], B_west: [0.24, 0.05, F + 0.012], A_west: [0.34, 0.12, F + 0.012], A_north: [0.28, 0.05, F + 0.012], B_south: [0.28, 0.08, F + 0.012], B_east: [0.3, 0.08, F - 0.3], B_north: [0.28, 0.05, F + 0.012] };
+  const EXPO = { A_south: [0.5, 0.08, F - 0.3], B_west: [0.4, 0.05, F + 0.012], A_west: [0.52, 0.1, F + 0.012], A_north: [0.46, 0.05, F + 0.012], B_south: [0.46, 0.06, F + 0.012], B_east: [0.5, 0.08, F - 0.3], B_north: [0.46, 0.05, F + 0.012] };
   ctx.walls = {}; ctx.openings = {};
   for (const w of P.WALLS) {
     const dx = w.b[0] - w.a[0], dz = w.b[1] - w.a[1], len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len, nx = -uz, nz = ux;
@@ -29,11 +29,11 @@ export function build(ctx) {
     const startCB = w.id !== 'B_west' && w.id !== 'A_north', uA = w.id === 'B_west' ? 0.03 : startCB ? cb : 0.002, uB = len - ((w.id === 'A_south') ? 0.03 : cb);
     let bi = 0;
     for (let u = uA; u < uB - 0.02; u += bw, bi++) {
-      const u1 = Math.min(uB, u + bw - 0.005), uc = (u + u1) / 2, yTop = Math.min(topAt(u), topAt(u1));
+      const u1 = Math.min(uB, u + bw - 0.008), uc = (u + u1) / 2, yTop = Math.min(topAt(u), topAt(u1));
       let free = [[yBase, yTop]];
       for (const k of blocks) if (u1 > k.u0 && u < k.u1) free = free.flatMap(([a, b]) => (k.y1 <= a || k.y0 >= b) ? [[a, b]] : [[a, Math.min(b, k.y0)], [Math.max(a, k.y1), b]].filter(([p, q]) => q - p > 0.03));
       const fresh = r() < 0.02, wr = wear0 + (r() - 0.5) * 0.34;
-      let tone = kit.mix(kit.vary(C.body, r, 0.07), 0xb9c4b4, fade0 + r() * 0.14);
+      let tone = kit.mix(kit.vary(C.body, r, 0.13), 0xa3c4be, fade0 + r() * 0.22);   // every board its own tone
       if (w.id.endsWith('north')) tone = kit.mix(tone, 0x6f8a5c, 0.12);
       if (fresh) tone = kit.rgb(r() > 0.5 ? 0xe3dfd0 : 0x9fd0b4);
       for (const [a, b] of free) {

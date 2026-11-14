@@ -1,21 +1,152 @@
-{ "track": "city-look", "title": "City surfaces, facades and world render", "section": "World", "agent": "done",
-  "items": [
-    { "name": "Before shots and baseline metrics (6 viewpoints, day and night)", "state": "verified", "evidence": "docs/v2/shots/city-look/before/" },
-    { "name": "CC0 PBR texture library (albedo, normal, roughness, AO): 73 sets, credited", "state": "verified", "evidence": "public/assets/city/pbr/manifest.json" },
-    { "name": "Facade shader: PBR walls and roofs (stucco, concrete, glass, tile, coral stone, brick, metal, wood) with dirt and wear", "state": "verified", "evidence": "docs/v2/shots/city-look/after/dt_street_14.png" },
-    { "name": "Windows: interior-mapped rooms (128), curtains and blinds, night lighting by type and hour", "state": "verified", "evidence": "docs/v2/shots/city-look/lab/facade_night_close.png" },
-    { "name": "Building families by district and era (20), near LOD", "state": "verified", "evidence": "docs/v2/reports/city-look-audit.json" },
-    { "name": "Neighbor audit: no two adjacent buildings share a variant signature (0 of 4,318 pairs)", "state": "verified", "evidence": "docs/v2/reports/city-look-audit.json" },
-    { "name": "Material audit (.matcheck): zero city meshes without texture input at 6 viewpoints (mid/far LOD still v1 atlas)", "state": "verified", "evidence": "docs/v2/reports/city-look-audit.json" },
-    { "name": "Existing props on the shared PBR prop array", "state": "built", "evidence": "docs/v2/shots/city-look/lab/props_surfaces.png" },
-    { "name": "60 fps at Ocean Drive, Downtown, Brickell (dev build, day and night)", "state": "verified", "evidence": "docs/v2/shots/city-look/metrics_after.json" },
-    { "name": "After shots at port, causeway, residential island", "state": "built", "evidence": "docs/v2/shots/city-look/after/" },
-    { "name": "Mid/far LOD on the new facade material, impostors, pop-in measurement", "state": "todo" },
-    { "name": "Ground wear: patches, oil, gum-stained cracked sidewalks, worn lane paint, manholes, drains", "state": "todo" },
-    { "name": "Art Deco / MiMo / Med Revival geometry (eyebrows, ziggurat parapets, barrel-tile details), landmark treatments, murals", "state": "todo" },
-    { "name": "Street furniture families (poles with wires, bins, benches, shelters, signals, hydrants, mailboxes, racks, meters)", "state": "todo" },
-    { "name": "Palms and street trees with real leaf textures (bark done)", "state": "todo" },
-    { "name": "Storefront exteriors: typed unique facades with brand hook to src/design", "state": "todo" },
-    { "name": "Wave 2: wetland, sawgrass, mangrove, farmland, groves, forest, heightfield hills, runways, sand keys, overseas bridges (needs listed in the report)", "state": "todo" },
-    { "name": "v1 road audit, collider coverage, production build, GPU memory soak re-run", "state": "todo" }
-  ] }
+{
+ "track": "city-look",
+ "title": "City surfaces, facades and world render",
+ "section": "World",
+ "agent": "idle",
+ "items": [
+  {
+   "name": "Skyline pass: mid/far buildings drawn by the near builder with the near facade material (window grids, floors, glass glint, roofs; no LOD pop)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/close_a3_13.png"
+  },
+  {
+   "name": "Tower silhouettes: chamfered/rounded corners, 0-2 setbacks with terraces, crowns (lit stepped glass, spire, plant room, helipad, antenna, angled roof), topping-out crane",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/close_a3_13.png"
+  },
+  {
+   "name": "Skyline landmarks: 8 invented designs on towers >= 140 m (rule-based, by building id)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Muted palette: family tints desaturated, condo beige/white, glass tints muted, 40% glass towers instead of 60%",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/close_a3_13.png"
+  },
+  {
+   "name": "Skyline at sunset (glass glint)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/close_a5_18h9.png"
+  },
+  {
+   "name": "Night: lit windows in random patterns (street canyon verified; distant skyline clusters seen before the final glow boost)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/canyon_a8_21h5.png"
+  },
+  {
+   "name": "Port containers: weathered line colors, orderly blocks of equal height; mid-LOD stacks on corrugated metal",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/port_a2_13.png"
+  },
+  {
+   "name": "Port gantry cranes: X-bracing, sill beams, boom ties, weathered paint",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Container logos (invented lines from src/design)",
+   "state": "todo"
+  },
+  {
+   "name": "Ocean Drive beige dots: string-light cables added, bulbs unlit by day",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Ground floors of storefront buildings: window grid on every side instead of blank walls",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Empty lots and plazas filled (landscaping, parking, courtyards)",
+   "state": "todo"
+  },
+  {
+   "name": "Ferris wheel, arena by the water, twin towers",
+   "state": "todo"
+  },
+  {
+   "name": "Before shots and baseline metrics (6 viewpoints, day and night)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/before/"
+  },
+  {
+   "name": "CC0 PBR texture library (albedo, normal, roughness, AO): 73 sets, credited",
+   "state": "verified",
+   "evidence": "public/assets/city/pbr/manifest.json"
+  },
+  {
+   "name": "Facade shader: PBR walls and roofs (stucco, concrete, glass, tile, coral stone, brick, metal, wood) with dirt and wear",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/after/dt_street_14.png"
+  },
+  {
+   "name": "Windows: interior-mapped rooms (128), curtains and blinds, night lighting by type and hour",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/lab/facade_night_close.png"
+  },
+  {
+   "name": "Building families by district and era (20), near LOD",
+   "state": "verified",
+   "evidence": "docs/v2/reports/city-look-audit.json"
+  },
+  {
+   "name": "Neighbor audit: no two adjacent buildings share a variant signature (0 of 4,318 pairs)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/city-look-audit.json"
+  },
+  {
+   "name": "Material audit (.matcheck): zero city meshes without texture input at 6 viewpoints (mid/far LOD still v1 atlas)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/city-look-audit.json"
+  },
+  {
+   "name": "Existing props on the shared PBR prop array",
+   "state": "built",
+   "evidence": "docs/v2/shots/city-look/lab/props_surfaces.png"
+  },
+  {
+   "name": "60 fps at Ocean Drive, Downtown, Brickell (dev build, day and night)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/city-look/metrics_after.json"
+  },
+  {
+   "name": "After shots at port, causeway, residential island",
+   "state": "built",
+   "evidence": "docs/v2/shots/city-look/after/"
+  },
+  {
+   "name": "Mid/far LOD on the new facade material, impostors, pop-in measurement",
+   "state": "todo"
+  },
+  {
+   "name": "Ground wear: patches, oil, gum-stained cracked sidewalks, worn lane paint, manholes, drains",
+   "state": "todo"
+  },
+  {
+   "name": "Art Deco / MiMo / Med Revival geometry (eyebrows, ziggurat parapets, barrel-tile details), landmark treatments, murals",
+   "state": "todo"
+  },
+  {
+   "name": "Street furniture families (poles with wires, bins, benches, shelters, signals, hydrants, mailboxes, racks, meters)",
+   "state": "todo"
+  },
+  {
+   "name": "Palms and street trees with real leaf textures (bark done)",
+   "state": "todo"
+  },
+  {
+   "name": "Storefront exteriors: typed unique facades with brand hook to src/design",
+   "state": "todo"
+  },
+  {
+   "name": "Wave 2: wetland, sawgrass, mangrove, farmland, groves, forest, heightfield hills, runways, sand keys, overseas bridges (needs listed in the report)",
+   "state": "todo"
+  },
+  {
+   "name": "v1 road audit, collider coverage, production build, GPU memory soak re-run",
+   "state": "todo"
+  }
+ ]
+}

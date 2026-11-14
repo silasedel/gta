@@ -8,7 +8,7 @@ from collections import defaultdict
 import numpy as np
 from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
-from shapely import STRtree
+from shapely import STRtree, prepare, contains_xy
 from config import REAL_RECT
 from osmgeom import fix, polys_only
 
@@ -62,6 +62,16 @@ def load(path, log=print):
     rr = F.get('realRect')
     if rr and (abs(rr['minX'] - rx0) > 1 or abs(rr['maxX'] - rx1) > 1 or abs(rr['minZ'] - rz0) > 1 or abs(rr['maxZ'] - rz1) > 1):
         log(f'ingest: WARNING features realRect {rr} differs from config REAL_RECT {REAL_RECT}')
+    # FORMAT v4: synthetic features also live inside the rectangle on `city_mask.newLand` (image land real data lacks)
+    KO = RB
+    cm = F.get('city_mask') or {}
+    if cm.get('newLand'):
+        nl = unary_union([g for g in (ring_poly(r['outer'], r.get('holes')) for r in cm['newLand']) if g is not None])
+        KO = fix(RB.difference(nl.buffer(5.0)))
+    # inland water also continues into the 150 m edge band of the rectangle (no straight shore on the rectangle line)
+    KOw = fix(KO.difference(RB.difference(RB.buffer(-150.0)))) if cm.get('newLand') else RB
+    KOp = KO.buffer(0)
+    prepare(KOp)
     S = {'version': F.get('version', 1), 'bounds': F.get('bounds'), 'issues': []}
     issue = S['issues'].append
 
@@ -70,7 +80,7 @@ def load(path, log=print):
         if g is None:
             return None
         if g.intersects(RB):
-            g = fix(g.difference(RB))
+            g = fix(g.difference(KO))
         if g is None or g.area < min_area:
             return None
         return g
@@ -86,7 +96,10 @@ def load(path, log=print):
     S['land_raw'] = unary_union(lands) if lands else None
     S['water_polys'] = []
     for w in F.get('water', []):
-        g = outside(ring_poly(w['outer'], w.get('holes')), 4)
+        g = ring_poly(w['outer'], w.get('holes'))
+        if g is not None and g.intersects(RB):
+            g = fix(g.difference(KOw))
+        g = g if (g is not None and g.area >= 4) else None
         if g is not None:
             S['water_polys'].append(dict(geom=g, kind=w.get('kind', 'lake'), name=w.get('name'), id=w.get('id'), depth=w.get('depth')))
 
@@ -156,7 +169,7 @@ def load(path, log=print):
         w = float(p.get('width') or 2.0)
         ln = LineString(c)
         if ln.intersects(RB):
-            ln = ln.difference(RB)
+            ln = ln.difference(KO)
         for part in (ln.geoms if hasattr(ln, 'geoms') else [ln]):
             if part.geom_type != 'LineString' or part.length < 0.5:
                 continue
@@ -178,7 +191,8 @@ def load(path, log=print):
             continue
         if g.geom_type != 'Polygon':
             g = max(polys_only(g), key=lambda q: q.area)
-        if RB.contains(g.representative_point()):
+        rp_ = g.representative_point()
+        if contains_xy(KOp, rp_.x, rp_.y):
             continue
         poi = b.get('poi') or None
         bl.append(dict(geom=g, h=float(b.get('h') or 4.0), mh=float(b.get('minH') or 0.0), lv=b.get('levels'),
@@ -190,7 +204,7 @@ def load(path, log=print):
     S['buildings'] = bl
 
     def pt_ok(o):
-        return not (rx0 <= o['x'] < rx1 and rz0 <= o['z'] < rz1)
+        return not (rx0 <= o['x'] < rx1 and rz0 <= o['z'] < rz1) or not contains_xy(KOp, o['x'], o['z'])
 
     S['pois'] = [dict(k=p['type'], x=float(p['x']), z=float(p['z']), real=False, name=p.get('name'), sub=p.get('sub'), tier=p.get('tier'))
                  for p in F.get('pois', []) if p.get('type') and pt_ok(p)]
@@ -201,7 +215,7 @@ def load(path, log=print):
     S['places'] = F.get('places', [])
     S['setpieces'] = F.get('setpieces', [])
     for key_ in F:
-        if key_ not in ('version', 'bounds', 'realRect', 'land', 'water', 'areas', 'roads', 'paths', 'buildings', 'pois', 'props',
+        if key_ not in ('version', 'bounds', 'realRect', 'city_mask', 'land', 'water', 'areas', 'roads', 'paths', 'buildings', 'pois', 'props',
                         'trees', 'places', 'joins', 'setpieces', 'heights'):
             issue(f'features.json has a top-level key the ingest does not know: {key_} (kept in S["other"])')
             S.setdefault('other', {})[key_] = F[key_]

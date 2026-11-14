@@ -23,6 +23,7 @@ for (const s of (stats.recentShots || []).filter((x) => !/\/before\//.test(x.fil
 fs.rmSync(tmp, { recursive: true, force: true });
 const snap = { plan, agents, stats, tracks, shots, at: new Date().toISOString() };
 const html = fs.readFileSync(P('docs/v2/tracker.html'), 'utf8').replace('/*__SNAP__*/', 'window.__SNAP__ = ' + JSON.stringify(snap).replace(/</g, '\\u003c') + ';');
-fs.mkdirSync(P('.v2-tmp/tracker'), { recursive: true });
-fs.writeFileSync(P('.v2-tmp/tracker/index.html'), html);
-console.log('wrote .v2-tmp/tracker/index.html', Math.round(html.length / 1024) + ' KB', shots.length + ' shots');
+const OUT = process.env.TRACKER_OUT || P('.v2-tmp/tracker');
+fs.mkdirSync(OUT, { recursive: true });
+fs.writeFileSync(path.join(OUT, 'index.html'), html);
+console.log('wrote', path.join(OUT, 'index.html'), Math.round(html.length / 1024) + ' KB', shots.length + ' shots');

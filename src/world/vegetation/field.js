@@ -12,7 +12,7 @@ const DEF_DIST = { palm: [45, 160, 900], tree: [55, 190, 1100], shrub: [28, 90, 
 
 // bake an impostor: two orthographic views (front, side) of the full-detail plant into one RGBA texture (left / right half)
 const _bakeCache = new Map();
-function bakeImpostor(renderer, kind, seed, geo, bark, leaf) {
+export function bakeImpostor(renderer, kind, seed, geo, bark, leaf) {
   const key = kind + ':' + seed; if (_bakeCache.has(key)) return _bakeCache.get(key);
   const bb = new THREE.Box3(); geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox();
   bb.copy(geo.leaf.boundingBox); if (geo.bark.index.count) bb.union(geo.bark.boundingBox);

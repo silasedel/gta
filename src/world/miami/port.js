@@ -9,7 +9,13 @@ const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Mat
 // local frame: +Z points to the water, X runs along the quay
 function craneGeometry() {
   const b = new Batch(), BOX = new THREE.BoxGeometry(1, 1, 1);
-  const red = 0xc0392b, white = 0xf2f2ee, grey = 0x6d7378, dark = 0x2b2f33;
+  const red = 0x8e3b31, white = 0xd9d6cc, grey = 0x5f6569, dark = 0x2b2f33; // weathered paint, not toy colors
+  // X-bracing in the four portal planes above the truck lanes (both diagonals, so the frame reads as real steelwork)
+  const aSide = Math.atan2(18, 32), aEnd = Math.atan2(18, 32), dl = Math.hypot(18, 32);
+  for (const lx of [-9, 9]) for (const sg of [-1, 1]) b.addGeometry(BOX, m4(lx, 28, -1, 0, 0.7, dl, 0.7, sg * aSide, 0), white);
+  for (const lz of [-10, 8]) for (const sg of [-1, 1]) b.addGeometry(BOX, m4(0, 28, lz, 0, 0.7, dl, 0.7, 0, sg * aEnd), red);
+  for (const lx of [-9, 9]) b.addGeometry(BOX, m4(lx, 0.6, -1, 0, 2.2, 1.2, 22), grey); // sill beams over the rail bogies
+  for (let z = -24; z < 54; z += 6) b.addGeometry(BOX, m4(0, 46.5, z, 0, 3.4, 0.25, 0.25), white); // boom cross-ties
   for (const lx of [-9, 9]) for (const lz of [-10, 8]) b.addGeometry(BOX, m4(lx, 22.5, lz, 0, 1.4, 45, 1.4), (lx + lz) % 2 ? red : white);
   for (const lz of [-10, 8]) b.addGeometry(BOX, m4(0, 44, lz, 0, 19.4, 1.6, 1.6), red);
   for (const lx of [-9, 9]) { b.addGeometry(BOX, m4(lx, 44, -1, 0, 1.6, 1.6, 19.6), red); b.addGeometry(BOX, m4(lx, 12, -1, 0, 1.0, 1.0, 18), white); }

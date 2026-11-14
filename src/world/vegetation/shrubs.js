@@ -50,28 +50,21 @@ export function buildShrub(opts = {}) {
   return finish(gb, H);
 }
 
-// clipped hedge: a rounded box surface tiled with small-leaf cards parallel to the surface, plus stems visible at the base
+// clipped hedge: foliage clusters packed on a rounded-box surface (crossed cards, outward normals), sheared top, thin woody base
 function hedge(gb, R, opts, lod) {
-  const P = SH.hedge, L = opts.length ?? 2.4, H = rr(R, P.H) * (opts.size ?? 1), D = rr(R, P.W), step = lod ? 0.55 : 0.3;
-  const ctr = new V3(0, H / 2, 0), bump = (x, y) => 0.04 * Math.sin(x * 3.1 + y * 1.7 + R()) + 0.03 * Math.sin(x * 7.3);
-  const add = (p, n, s) => { // card lying on the surface, slightly tilted, normal = surface normal
-    const t1 = new V3().crossVectors(n, Math.abs(n.y) > 0.9 ? new V3(1, 0, 0) : UP).normalize(), t2 = new V3().crossVectors(n, t1);
-    const a = R() * 6.28, ax = t1.clone().multiplyScalar(Math.cos(a)).addScaledVector(t2, Math.sin(a)), ay = new V3().crossVectors(n, ax);
-    const tilt = (R() - 0.5) * 0.7, q = n.clone().applyAxisAngle(ax, tilt), uvr = cellRect(CELL.hedge, 0.05, 0.95, 0.1, 0.9), b = gb.leaf.count;
-    const dead = R() < P.dead * 0.6, g = 0.85 + R() * 0.25, col = dead ? [1.15, 0.95, 0.6] : [g, g, g * 0.95];
-    for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) gb.leaf.vert(p.clone().addScaledVector(ax, sx * s / 2).addScaledVector(ay.clone().applyAxisAngle(ax, tilt), sy * s / 2), q, sx < 0 ? uvr[0] : uvr[2], sy < 0 ? uvr[1] : uvr[3], col, [p.y, 0.25, R() * 6]);
-    gb.leaf.quad(b, b + 1, b + 2, b + 3);
-  };
-  const hTop = (x) => H + 0.05 * Math.sin(x * 1.3 + R()) + (R() - 0.5) * 0.03;
-  for (let x = -L / 2 + step / 2; x < L / 2; x += step) {
-    for (let y = 0.25; y < H - 0.1; y += step) for (const sg of [-1, 1]) { const z = sg * (D / 2 + bump(x, y)); if (R() < 0.04) continue; add(new V3(x + (R() - 0.5) * step * 0.5, y + (R() - 0.5) * step * 0.5, z), new V3((R() - 0.5) * 0.3, 0.1, sg).normalize(), step * (1.5 + R() * 0.5)); }
-    for (let z = -D / 2 + step / 2; z < D / 2; z += step) add(new V3(x + (R() - 0.5) * step * 0.4, hTop(x), z), new V3((R() - 0.5) * 0.2, 1, (R() - 0.5) * 0.2).normalize(), step * (1.5 + R() * 0.5));
-    for (const sg of [-1, 1]) add(new V3(x, H - 0.05, sg * (D / 2 - 0.02)), new V3(0, 0.7, sg * 0.7).normalize(), step * 1.6); // rounded top edge
+  const P = SH.hedge, L = opts.length ?? 2.4, H = rr(R, P.H) * (opts.size ?? 1), D = rr(R, P.W), step = lod ? 0.5 : 0.26;
+  const ctr = new V3(0, H * 0.55, 0), bulge = R() * 6;
+  for (let x = -L / 2 + 0.1; x <= L / 2 - 0.1; x += step) for (let y = 0.3; y <= H; y += step) for (let z = -D / 2 + 0.1; z <= D / 2 - 0.1; z += step) {
+    const ex = Math.abs(x) / (L / 2), ey = (y - 0.3) / (H - 0.3), ez = Math.abs(z) / (D / 2);
+    if (Math.max(ex, ey, ez) < 0.7 && !(ey > 0.85)) continue; // shell only
+    if (R() < 0.05) continue; // small gaps
+    const p = new V3(x + (R() - 0.5) * step * 0.6, Math.min(H - 0.08, y + (R() - 0.5) * step * 0.5), z + (R() - 0.5) * step * 0.6);
+    p.addScaledVector(new V3(Math.sign(x) * ex, ey * 0.5, Math.sign(z) * ez), 0.05 * Math.sin(x * 2.3 + bulge)); // uneven shear
+    const dead = R() < P.dead * (y < 0.6 ? 2 : 0.6), g = 0.85 + R() * 0.25;
+    cluster(gb, R, p, step * (1.9 + R() * 0.5), CELL.hedge, ctr.clone().setX(p.x * 0.5), dead ? [1.15, 0.95, 0.6] : [g, g, g * 0.95], lod ? 2 : 3, 0, 0.25);
   }
-  for (const sg of [-1, 1]) for (let y = 0.25; y < H; y += step) add(new V3(sg * (L / 2 + 0.02), y, (R() - 0.5) * D * 0.6), new V3(sg, 0.1, 0).normalize(), step * 1.7);
-  // stems at the base (the clipped hedge is thin near the ground, you see the wood)
   if (!lod) { const BP = { radial: 4, segLen: 0.25, children: [2], spread: 0.6, lenK: 0.5, rK: 0.6, up: 0.05, wobble: 0.3, childStart: 0.4, barkCol: P.bark };
-    for (let x = -L / 2 + 0.25; x < L / 2; x += 0.45) branch(gb, R, new V3(x + (R() - 0.5) * 0.2, 0, (R() - 0.5) * D * 0.4), new V3((R() - 0.5) * 0.4, 1, (R() - 0.5) * 0.4), H * 0.6, 0.02 + R() * 0.012, 0, BP, lod);
+    for (let x = -L / 2 + 0.25; x < L / 2; x += 0.45) branch(gb, R, new V3(x + (R() - 0.5) * 0.2, 0, (R() - 0.5) * D * 0.4), new V3((R() - 0.5) * 0.4, 1, (R() - 0.5) * 0.4), 0.55, 0.02 + R() * 0.012, 0, BP, lod);
     for (let i = 0; i < 4; i++) groundCard(gb, R, new V3((R() - 0.5) * L, 0, (R() > 0.5 ? 1 : -1) * (D / 2 + R() * 0.3)), 0.4 + R() * 0.3, CELL.litter, [1, 0.95, 0.9]); }
   return finish(gb, H);
 }

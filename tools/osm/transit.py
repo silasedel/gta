@@ -29,6 +29,9 @@ def short(n):
     return n
 
 
+ON_LAND = None     # set by build.py: False for a real point on the official picture's water
+
+
 def build(nodes, edges, rails, ginfo, log=print):
     RB = world_box()
     lines = [LineString(e['pts']) for e in edges]
@@ -84,7 +87,7 @@ def build(nodes, edges, rails, ginfo, log=print):
             return None
         x, z = pos[nid]
         P = Point(x, z)
-        if not RB.contains(P):
+        if not RB.contains(P) or (ON_LAND and not ON_LAND(x, z)):
             return None
         k = tree.query_nearest(P, max_distance=45)
         if not len(k):
@@ -256,7 +259,7 @@ def build(nodes, edges, rails, ginfo, log=print):
         if t.get('railway') != 'station' and t.get('public_transport') != 'station':
             continue
         x, z = pos[nid]
-        if not RB.contains(Point(x, z)):
+        if not RB.contains(Point(x, z)) or (ON_LAND and not ON_LAND(x, z)):
             continue
         name = STATION_RENAME.get(t.get('name'), t.get('name')) or 'Station'
         kind = 'people_mover' if t.get('station') == 'monorail' or t.get('monorail') == 'yes' else \

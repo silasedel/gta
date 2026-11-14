@@ -2,7 +2,8 @@
 // help/notifications/mission, district toast, phone, pause menu, title + death screens.
 import { VERSION } from '../version.js';
 import './hud.css';
-import { createMapRenderer, MAP_COLORS } from './mapRender.js';
+import { createCorner } from './hud/corner.js';
+import { createMapRenderer, MAP_COLORS, setMapPalette } from './mapRender.js';
 import { createGPS } from './gps.js';
 
 const TAU = Math.PI * 2;
@@ -100,6 +101,20 @@ export function createHUD(game) {
   const settings = loadSettings(game);
 
   const mapR = createMapRenderer(game), gps = createGPS(game);
+  // V2 world layout (bounds, palette, place names, set pieces) read from data, never hard-coded
+  let worldLayout = null;
+  try {
+    fetch(new URL('assets/world/layout.json', document.baseURI))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j || !j.bounds) return;
+        worldLayout = j;
+        game.worldLayout = game.worldLayout || j;
+        setMapPalette(j.palette);
+        mapR.invalidate();
+      })
+      .catch(() => {});
+  } catch (e) { /* no layout: v1 behavior */ }
   let route = null, routeShown = null, routeFor = null, routeAt = -1e9, routeCheck = 0, routeLen = 0;
   const distName = (x, z) => { try { const d = game.city?.districtAt?.(x, z); if (d) return String(d); } catch (e) { /* */ } return districtAt(x, z); };
   const streetName = (x, z) => { try { const s2 = game.city?.streetNameAt?.(x, z); return s2 ? String(s2) : null; } catch (e) { return null; } };
@@ -128,7 +143,6 @@ export function createHUD(game) {
   const mctx = mmCanvas.getContext('2d');
 
   // ---------- Status cluster (top-right) ----------
-  const status = el('div', 'ps-status');
   const clockEl = el('div', 'ps-clock', '<i class="ps-tod"></i><span></span>');
   const clockTxt = clockEl.lastChild, todEl = clockEl.firstChild;
   const weaponEl = el('div', 'ps-weapon', `<div class="ps-weapon-ico">${ICON.fist}</div><div class="ps-ammo"></div>`);
@@ -136,14 +150,14 @@ export function createHUD(game) {
   let lastWeapon = 'fist', lastAmmo = null;
   const topRow = el('div', 'ps-toprow');
   topRow.append(weaponEl, clockEl);
-  const moneyWrap = el('div', 'ps-money-wrap');
   const moneyEl = el('div', 'ps-money', '$0');
   const moneyDelta = el('div', 'ps-money-delta');
-  moneyWrap.append(moneyDelta, moneyEl);
-  const starsEl = el('div', 'ps-stars');
-  const starEls = [];
-  for (let i = 0; i < 6; i++) { const s = el('span', 'ps-star', ICON.star); starEls.push(s); starsEl.appendChild(s); }
-  status.append(topRow, moneyWrap, starsEl);
+  // V2 corner (src/ui/hud/corner.js): clock + weapon, six stars, police-knowledge badges, bank and cash lines
+  const corner = createCorner(game, { topRow, moneyEl, moneyDelta });
+  const status = corner.root;
+  const moneyWrap = corner.cashLine;
+  const starsEl = corner.starsEl;
+  const starEls = corner.starEls;
   root.appendChild(status);
 
   // ---------- Speedometer ----------
@@ -302,7 +316,17 @@ export function createHUD(game) {
   let mapView = { cx: 60, cz: 0, ppm: 1 }, mapXform = null, drag = null;
   ui._mapView = () => mapView; // read-only debug hook for tests
   let bigPendingTimer = 0;
-  function mapBounds() { return mapR.bounds() || game.city?.bounds || { minX: MAP_X0, maxX: MAP_X1, minZ: MAP_Z0, maxZ: MAP_Z1 }; }
+  function mapBounds() {
+    const b = mapR.bounds() || game.city?.bounds || { minX: MAP_X0, maxX: MAP_X1, minZ: MAP_Z0, maxZ: MAP_Z1 };
+    const L = worldLayout?.bounds;
+    if (!L) return b;
+    return {
+      minX: Math.min(b.minX, L.minX),
+      maxX: Math.max(b.maxX, L.maxX),
+      minZ: Math.min(b.minZ, L.minZ),
+      maxZ: Math.max(b.maxZ, L.maxZ),
+    };
+  }
   function fitPPM() { const r = bigmap.getBoundingClientRect(), B = mapBounds(); return Math.min((r.width || 1000) / Math.max(100, B.maxX - B.minX), (r.height || 600) / Math.max(100, B.maxZ - B.minZ)) * 0.95; }
   const stats = { time: 0, dist: 0, driveDist: 0, topSpeed: 0, last: null, vehiclesEntered: 0, wasIn: false, deaths: 0, wasDead: false };
   const tmpDir = game.THREE ? new game.THREE.Vector3() : null;
@@ -623,7 +647,7 @@ export function createHUD(game) {
   function drawMinimap(dt, speedKmh) {
     const g = mctx, p = game.player?.position;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, MW, MH);
+    g.fillStyle = MAP_COLORS.sea; g.fillRect(0, 0, MW, MH);
     if (!p) return;
     const bigCity = mapR.ok() && (mapBounds().maxX - mapBounds().minX) > 2500;
     const targetZoom = bigCity ? clamp(1.05 - speedKmh / 170, 0.28, 1.05) : clamp(1.0 - speedKmh / 200, 0.42, 1.0);
@@ -942,7 +966,7 @@ export function createHUD(game) {
     const W = Math.round(r.width * d), H = Math.round(r.height * d);
     if (bigmap.width !== W || bigmap.height !== H) { bigmap.width = W; bigmap.height = H; }
     const g = bctx; g.setTransform(d, 0, 0, d, 0, 0);
-    g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, r.width, r.height);
+    g.fillStyle = MAP_COLORS.sea; g.fillRect(0, 0, r.width, r.height);
     mapView.ppm = clamp(mapView.ppm, fitPPM(), 6);
     const k = mapView.ppm, ox = r.width / 2 - mapView.cx * k, oz = r.height / 2 - mapView.cz * k;
     mapXform = { k, ox, oz };
@@ -965,10 +989,33 @@ export function createHUD(game) {
     const reserved = [];
     if (p) reserved.push([...toScreen(p.x, p.z), 34]);
     if (wp && isFinite(wp.x)) { const [wx, wy] = toScreen(wp.x, wp.z); reserved.push([wx, wy - 12, 34]); }
+    // story set pieces from layout.json (Nico's house, the Keys bar, ...)
+    if (Array.isArray(worldLayout?.setpieces)) {
+      const SP_NAMES = { nico_house: "NICO'S HOUSE", keys_bar: "LOW TIDE LOLA'S" };
+      const spDrawn = [];
+      for (const sp of worldLayout.setpieces) {
+        const nm = SP_NAMES[sp.id];
+        if (!nm || !isFinite(sp.x) || !isFinite(sp.z)) continue;
+        const [sx, sy] = toScreen(sp.x, sp.z);
+        if (sx < -20 || sy < -20 || sx > r.width + 20 || sy > r.height + 20) continue;
+        const crowded = spDrawn.some((q) => Math.abs(q[0] - sx) < 120 && Math.abs(q[1] - sy) < 22);
+        drawSetPiece(g, sx, sy, sp.id, crowded ? null : nm);
+        spDrawn.push([sx, sy]);
+        reserved.push([sx, sy, 20], [sx + 55, sy, 90]);
+      }
+    }
     // district labels (higher priority than shops when zoomed out)
     g.textAlign = 'center'; g.textBaseline = 'middle';
     const DL = mapR.districts();
-    const labels = DL.length ? DL.map((d2) => [d2.name, d2.x, d2.z, d2.size]) : DISTRICT_LABELS.map(([n, x, z]) => [n, x, z, 20]);
+    let labels = DL.length ? DL.map((d2) => [d2.name, d2.x, d2.z, d2.size]) : DISTRICT_LABELS.map(([n, x, z]) => [n, x, z, 20]);
+    const PL = Array.isArray(worldLayout?.places) ? worldLayout.places : null;
+    if (PL && PL.length) {
+      // world places first (sized by kind and radius), then the real-Miami districts when zoomed in
+      const KIND_SIZE = { region: 60, park: 40, airport: 38, lake: 34, town: 22, key: 20 };
+      labels = PL.filter((q) => q && q.name && isFinite(q.x) && isFinite(q.z))
+        .map((q) => [q.name, q.x, q.z, (KIND_SIZE[q.kind] || 20) + Math.sqrt(num(q.r, 400)) * 0.2])
+        .concat(k > 0.35 ? labels : []);
+    }
     labels.sort((a2, b2) => b2[3] - a2[3]);
     const fsBase = DL.length ? clamp(10 + k * 14, 12, 26) : clamp(13 * k / 0.6, 12, 26);
     const labelBoxes = [];
@@ -982,8 +1029,8 @@ export function createHUD(game) {
       if (labelBoxes.some((q) => Math.abs(q[0] - sx) < (q[2] + tw) / 2 + 10 && Math.abs(q[1] - sy) < fs + 4)) continue;
       if (reserved.some((q) => Math.abs(q[0] - sx) < tw / 2 + 14 && Math.abs(q[1] - sy) < fs)) continue;
       labelBoxes.push([sx, sy, tw]);
-      g.lineWidth = 4; g.strokeStyle = 'rgba(6,9,14,.7)'; g.lineJoin = 'round'; g.strokeText(txt, sx, sy);
-      g.fillStyle = distColor(n); g.globalAlpha = 0.92; g.fillText(txt, sx, sy); g.globalAlpha = 1;
+      g.lineWidth = 3.5; g.strokeStyle = 'rgba(20,24,30,.62)'; g.lineJoin = 'round'; g.strokeText(txt, sx, sy);
+      g.fillStyle = PL ? '#ffffff' : distColor(n); g.globalAlpha = 0.95; g.fillText(txt, sx, sy); g.globalAlpha = 1;
       reserved.push([sx, sy, Math.min(tw, 60)]);
     }
     // entity icons with declutter
@@ -1039,6 +1086,43 @@ export function createHUD(game) {
     g.fillStyle = 'rgba(255,255,255,.75)'; g.font = '700 14px "Barlow Condensed", sans-serif'; g.textAlign = 'center';
     g.fillText('N', r.width - 30, 26); g.fillRect(r.width - 31, 34, 2, 18);
   }
+  function drawSetPiece(g, x, y, id, name) {
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,.45)';
+    g.shadowBlur = 5;
+    g.fillStyle = id === 'nico_house' ? '#6a4fd6' : '#e2763a';
+    g.beginPath();
+    g.arc(x, y, 9, 0, TAU);
+    g.fill();
+    g.shadowBlur = 0;
+    g.lineWidth = 2;
+    g.strokeStyle = '#fff';
+    g.stroke();
+    g.fillStyle = '#fff';
+    g.beginPath();
+    if (id === 'nico_house') {
+      g.moveTo(x, y - 5); g.lineTo(x - 5.5, y - 0.5); g.lineTo(x - 3.8, y - 0.5); g.lineTo(x - 3.8, y + 4.5);
+      g.lineTo(x + 3.8, y + 4.5); g.lineTo(x + 3.8, y - 0.5); g.lineTo(x + 5.5, y - 0.5); g.closePath();
+    } else {
+      // cocktail glass
+      g.moveTo(x - 5, y - 4.5); g.lineTo(x + 5, y - 4.5); g.lineTo(x + 0.9, y + 0.3); g.lineTo(x + 0.9, y + 3.2);
+      g.lineTo(x + 3, y + 4.6); g.lineTo(x - 3, y + 4.6); g.lineTo(x - 0.9, y + 3.2); g.lineTo(x - 0.9, y + 0.3); g.closePath();
+    }
+    g.fill();
+    if (!name) {
+      g.restore();
+      return;
+    }
+    g.font = 'italic 800 14px "Barlow Condensed", sans-serif';
+    g.textAlign = 'left';
+    g.textBaseline = 'middle';
+    g.lineWidth = 3.5;
+    g.strokeStyle = 'rgba(20,24,30,.7)';
+    g.lineJoin = 'round';
+    g.strokeText(name, x + 14, y + 0.5);
+    g.fillText(name, x + 14, y + 0.5);
+    g.restore();
+  }
   function drawSearchBig(fn) {
     if (!mapXform) return;
     bctx.save(); bctx.translate(mapXform.ox, mapXform.oz); bctx.scale(mapXform.k, mapXform.k); fn(bctx); bctx.restore();
@@ -1046,7 +1130,7 @@ export function createHUD(game) {
   function drawPhoneMap(c) {
     const g = c.getContext('2d'), p = game.player?.position || { x: 0, z: 0 };
     if (!bake && !mapR.ok()) bake = tryBake();
-    g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = MAP_COLORS.sea; g.fillRect(0, 0, c.width, c.height);
     const k = 1.2;
     g.save(); g.translate(c.width / 2, c.height / 2); g.scale(k, k); g.translate(-p.x, -p.z);
     const R = Math.hypot(c.width, c.height) / 2 / k;
@@ -1369,6 +1453,7 @@ export function createHUD(game) {
       if (w > lastWanted) { starsEl.classList.remove('bump'); void starsEl.offsetWidth; starsEl.classList.add('bump'); }
       lastWanted = w;
     }
+    corner.update(dt, w);
     const wpn = typeof pl.weapon === 'string' && pl.weapon ? pl.weapon : 'fist';
     if (wpn !== lastWeapon) {
       lastWeapon = wpn; weaponIco.innerHTML = weaponIcon(wpn); weaponEl.dataset.weapon = wpn;
@@ -1460,7 +1545,7 @@ export function createHUD(game) {
   refreshPhoneSel();
   moneyEl.textContent = fmtMoney(moneyShown);
   if (document.pointerLockElement) hideTitle();
-  const api = { update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,
+  const api = { setKnown: corner.setKnown, update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,
     _mapZoom(ppm, cx, cz) { const pp = game.player?.position; if (cx != null) { mapView.cx = cx; mapView.cz = cz; } else if (pp) { mapView.cx = pp.x; mapView.cz = pp.z; } mapView.ppm = ppm; drawBigMap(); },
     _mapPan(dx, dz) { mapView.cx += dx; mapView.cz += dz; clampView(); drawBigMap(); return [mapView.cx, mapView.cz]; },
     _mapFit() { fitMap(); return mapView.ppm; } };

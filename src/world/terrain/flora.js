@@ -72,6 +72,7 @@ function fruit(clusters, n, seed) { const r = rnd(seed), P = [], N = [], s = new
     const p = s.attributes.position.array, nn = s.attributes.normal.array; for (let i = 0; i < p.length; i += 3) { P.push(p[i] + x, p[i + 1] + y, p[i + 2] + z); N.push(nn[i], nn[i + 1], nn[i + 2]); } }
   return geomFrom(P, N, null, null); }
 
+import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 export async function createFlora(renderer, M) {
   const bark = await loadSet(renderer, 'bark_brown_02'); for (const t of [bark.map, bark.normalMap, bark.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
   const barkMat = new THREE.MeshStandardMaterial(setParams(bark, { color: 0xb8aa98 })); barkMat.name = 'flora-bark'; barkMat.userData.pbr = true;
@@ -105,6 +106,13 @@ export async function createFlora(renderer, M) {
     mangrove: { trunk: trunk([[0, 0.4, 0, 0.2, 2.6, 0, 0.13, 0.08, 6], [0.2, 2.2, 0, 1.4, 3.2, 0.4, 0.06, 0.04, 5], [0.2, 2.3, 0, -1.2, 3.4, -0.6, 0.06, 0.04, 5]], propRoots(11, 1.9, 1.6, 41)), crown: crown([[0, 3.6, 0, 1.7], [1.5, 3.1, 0.5, 1.5], [-1.4, 3.2, -0.6, 1.5], [0.5, 3.0, -1.5, 1.4], [-0.5, 3.1, 1.5, 1.4], [0.2, 4.2, 0.2, 1.3]], 37) },
     seagrape: { trunk: trunk([[0, 0, 0, 0.5, 1.6, 0.2, 0.08, 0.05, 5], [0, 0, 0, -0.6, 1.4, -0.1, 0.08, 0.05, 5], [0, 0, 0, 0.1, 1.8, -0.6, 0.07, 0.05, 5]]), crown: crown([[0.6, 1.9, 0.3, 1.2], [-0.7, 1.7, -0.1, 1.2], [0.1, 2.2, -0.7, 1.1], [0, 1.1, 0.9, 1.0], [0.9, 1.0, -0.6, 0.9]], 38) },
   };
+  // vegetation track: real branching trees and ground plants (several seeded variants per species), drawn with the shared vegetation materials
+  const VT = {}, VG = {};
+  try {
+    const mk = (kind, n, o = {}) => Array.from({ length: n }, (_, v) => vegGeometry(kind, { seed: v * 5 + 1 + (o.s0 || 0), ...o }));
+    VT.oak = VT.tree = mk('liveoak', 3); VT.gumbo = mk('gumbo', 3); VT.banyan = mk('liveoak', 2, { size: 1.3, s0: 40 }); VT.pine = mk('slashpine', 3); VT.cypress = mk('cypress', 3); VT.mangrove = mk('mangrove', 3); VT.seagrape = mk('seagrape', 3, { size: 1.5 });
+    VG.palmetto = mk('sawpalmetto', 3, { lod: 1 }); VG.sawgrass = mk('sawgrass', 4);
+  } catch (e) { console.warn('[flora] vegetation geometries unavailable', e); }
   T.tree = T.oak; T.citrusFruit = fruit([[0, 2.6, 0, 1.4], [0.8, 2.2, 0.5, 1.1], [-0.8, 2.3, -0.4, 1.1]], 26, 39);
   const TINT = { oak: [0x5d7a3a, 0x6b8442, 0x55703a], gumbo: [0x7c9a4a, 0x86a252], banyan: [0x4f6e34, 0x5a7a3c], pine: [0x4a6436, 0x52703c], cypress: [0x8aa65a, 0x7f9c52], citrus: [0x3f6a2c, 0x46722f], mangrove: [0x4d6a32, 0x587638], seagrape: [0x8a9a4a, 0x9a8e46, 0x7e9248] };
   const SPECIES = new Set(Object.keys(TINT).concat('tree'));
@@ -149,5 +157,5 @@ export async function createFlora(renderer, M) {
       if ((Math.round(x) & 15) === 0) yield;
     }
   }
-  return { G, T, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
+  return { G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
 }

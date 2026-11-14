@@ -20,7 +20,7 @@ export function build(ctx) {
   // beams (doubled, bolted), joists, rim
   const beam = (ax, az, bx, bz) => { const horiz = Math.abs(az - bz) < 0.01, len = horiz ? Math.abs(bx - ax) : Math.abs(bz - az); for (const s of [-1, 1]) B.box(PW, horiz ? len : 0.045, 0.286, horiz ? 0.045 : len, M((ax + bx) / 2 + (horiz ? 0 : s * 0.125), 2.585, (az + bz) / 2 + (horiz ? s * 0.125 : 0)), { grain: horiz ? 0 : 2, ...white(0.92), bevel: 0.004 }); };
   beam(X0, 7.8, X1, 7.8); beam(7.95, -6.4, 7.95, 7.8);
-  for (let x = X0 + 0.2; x < X1 - 0.05; x += 0.406) B.box(W, 0.04, 0.235, (x > XE ? Z1 + 6.4 : Z1 - Z0) - 0.09, M(x, 2.845, x > XE ? (Z1 - 3.2) / 2 : x < 2.0 ? (5.2 + Z1) / 2 + 0.9 : (Z0 + Z1) / 2), { grain: 2, color: kit.vary(0x6f675c, r, 0.1), wear: 0.4, bevel: 0.003, rand: r });
+  for (let x = X0 + 0.2; x < X1 - 0.05; x += 0.406) B.box(W, 0.04, 0.235, (x > XE ? Z1 + 6.4 : x < 2.0 ? Z1 - 5.2 : Z1 - Z0) - 0.09, M(x, 2.845, x > XE ? (Z1 - 6.4) / 2 : x < 2.0 ? (5.2 + Z1) / 2 : (Z0 + Z1) / 2), { grain: 2, color: kit.vary(0x6f675c, r, 0.1), wear: 0.4, bevel: 0.003, rand: r });
   const rim = (ax, az, bx, bz) => { const horiz = Math.abs(az - bz) < 0.01, len = horiz ? Math.abs(bx - ax) : Math.abs(bz - az), n = Math.ceil(len / 3.6); for (let i = 0; i < n; i++) { const t = (i + 0.5) / n; B.box(PW, horiz ? len / n - 0.004 : 0.045, 0.27, horiz ? 0.045 : len / n - 0.004, M(ax + (bx - ax) * t, 2.862, az + (bz - az) * t), { grain: horiz ? 0 : 2, ...white([0.95, 0.85]), bevel: 0.005 }); } };
   rim(X0, Z1 - 0.022, X1, Z1 - 0.022); rim(X1 - 0.022, -6.4, X1 - 0.022, Z1); rim(X0 + 0.022, 5.2, X0 + 0.022, Z1); rim(XE, -6.4 + 0.022, X1, -6.4 + 0.022);
   // boards (east-west rows)

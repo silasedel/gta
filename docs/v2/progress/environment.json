@@ -1,1 +1,93 @@
-{"track":"environment","agent":"running","items":[{"name":"Started","state":"building"}]}
+{
+ "track": "environment",
+ "title": "Lighting, sky, atmosphere, water, post",
+ "section": "Graphics",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Tone and color: ACES, exposure, no gray veil, saturated tropical day",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/pair_street_before_after.jpg"
+  },
+  {
+   "name": "Sky-driven image-based light updated with time of day",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/street_after.png"
+  },
+  {
+   "name": "Aerial perspective: clear blue day haze, thick layered sunset haze",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/pair_bay_before_after.jpg"
+  },
+  {
+   "name": "Midday look vs ref_38: final frame lost the city to another track's tile error; earlier frame has skyline",
+   "state": "built",
+   "evidence": "docs/v2/compare/environment_midday_ref38_vs_game.png"
+  },
+  {
+   "name": "Sunset look vs ref_41 (pink-violet sky, glow, silhouettes, glitter path)",
+   "state": "verified",
+   "evidence": "docs/v2/compare/environment_sunset_ref41_vs_game.png"
+  },
+  {
+   "name": "Golden hour street level",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/pair_golden_before_after.jpg"
+  },
+  {
+   "name": "Night: moon, stars, lamp pools, neon, restrained bloom",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/pair_night_before_after.jpg"
+  },
+  {
+   "name": "Water: turquoise shallows to deep teal, fresnel sky, glitter, shore foam",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/bay_after.png"
+  },
+  {
+   "name": "Post: bloom on highlights only, lighter vignette and grain, mild sharpen, SMAA",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/street_after.png"
+  },
+  {
+   "name": "Contact AO (single depth pass, game.settings.ao)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/environment/ao_on_left_off_right.png"
+  },
+  {
+   "name": "Sun shadows (existing split static/dynamic maps, unchanged)",
+   "state": "built",
+   "evidence": "docs/v2/shots/environment/street_after.png"
+  },
+  {
+   "name": "Shared wind game.wind + wind:ready; water ripples and smoke/dust respond",
+   "state": "built",
+   "evidence": "src/world/env/wind.js"
+  },
+  {
+   "name": "Puffy cumulus layer (marched slab, wind drift, sunset rims); reads stylized, lacks fine wisps",
+   "state": "built",
+   "evidence": "docs/v2/shots/environment/target2_p2b.png"
+  },
+  {
+   "name": "Wind on litter and palm-frond shadows",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "60 fps confirmed on a quiet machine",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Wet-weather extras (puddles, wet roads)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Midday water pass 2: green-teal body, finer near ripples, beach gradient; no boat wakes added",
+   "state": "built",
+   "evidence": "docs/v2/shots/environment/target2_p2b.png"
+  }
+ ]
+}

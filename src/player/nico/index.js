@@ -6,6 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { makeSkinState, makeSkinMaterial, makeEyeMaterial, makeLashMaterial, makeMouthMaterial, makeHairShellMaterial, tex, texturesReady } from './materials.js';
 import { createFace } from './face.js';
 import { createArmIK } from './ik.js';
+import { createRelaxedPose } from './pose.js';
 import { createOutfit, preloadWardrobe } from '../wardrobe/outfit.js';
 
 const DIR = '/assets/characters/nico/';
@@ -55,7 +56,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quater
 export function decorateNico(character, { game, model, assets, opts = {} }) {
   const meta = assets.meta;
   const skin = makeSkinState();
-  const hairState = { uHairLen: { value: 0.034 }, uHairC: { value: new THREE.Color(0x1c130d) }, uComb: { value: new THREE.Vector3(0.35, 0.05, 0.55) }, uWet: skin.uWet };
+  const hairState = { uHairLen: { value: 0.034 }, uHairC: { value: new THREE.Color(0x2a1a10) }, uComb: { value: new THREE.Vector3(0.75, 0.05, 0.35) }, uWet: skin.uWet };
   const mouth = { value: 0 };
   const mats = { skin_head: makeSkinMaterial('head', skin), skin_body: makeSkinMaterial('body', skin), skin_far: makeSkinMaterial('far', skin),
     lashes: makeLashMaterial(), teeth: makeMouthMaterial('teeth', mouth), tongue: makeMouthMaterial('tongue', mouth) };
@@ -102,7 +103,7 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
   setMeshLOD(opts.meshLOD ?? 1);
 
   // ---- body change (BIG_UPDATE 0a): subtle, capped
-  const body = { fat: 0.5, muscle: 0.3 };
+  const body = { fat: 0.36, muscle: 0.75 };          // lean but muscular mid-30s build by default
   const applyBody = () => {
     const f = THREE.MathUtils.clamp(body.fat, 0, 1), mu = THREE.MathUtils.clamp(body.muscle, 0, 1);
     const w = { fat: Math.max(0, (f - 0.5) * 2) * 0.85, thin: Math.max(0, (0.5 - f) * 2) * 0.7, muscle: mu * 0.8 };
@@ -115,8 +116,10 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
   const ik = { right: createArmIK(model, bone, 'Right'), left: createArmIK(model, bone, 'Left') };
   const baseUpdate = character.update;
   let lodT = 0; const camP = new THREE.Vector3();
+  const relaxed = createRelaxedPose({ model, bone });
   character.update = (dt, anim = {}) => {
     baseUpdate(dt, anim);
+    try { relaxed.update(dt, anim); } catch (e) { /* pose layer is cosmetic */ }
     // forearm roll bones take half of the hand's twist (no candy-wrapper wrists)
     for (const s of ['Left', 'Right']) { const h = bone(s + 'Hand'), r = bone(s + 'ForeArmRoll'); if (h && r) { _q.copy(h.quaternion); _q.x = 0; _q.z = 0; _q.normalize(); r.quaternion.slerpQuaternions(_q2.identity(), _q, 0.5); } }
     ik.right.update(dt); ik.left.update(dt);
@@ -126,11 +129,21 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
     // skin states: wet while swimming / in rain, dries off; sweat after sprinting in the sun
     const s = character.skin; const env = game?.env || {};
     const rain = game?.weather?.rain ?? env.rain ?? 0;
-    const wetTarget = anim.swimming || anim.underwater ? 1 : anim.wading ? 0.45 : Math.min(1, rain * 0.9);
-    s.wetness += (wetTarget - s.wetness) * Math.min(1, dt * (wetTarget > s.wetness ? 1.6 : 0.035));
+    // wetness per body part: the water line climbs with submersion depth (bind-pose height, m) and stays at the highest
+    // line reached; everything below it is wet. Out of the water it dries over about 1.5 minutes (faster in the sun).
+    const feetY = game?.player?.position?.y ?? character.root.position.y;
+    const depth = THREE.MathUtils.clamp(-0.12 - feetY, 0, 2);
+    const inWater = anim.swimming || anim.underwater || anim.wading || depth > 0.05;
+    const line = anim.swimming || anim.underwater ? 2.2 : rain > 0.2 ? 2.2 : inWater ? Math.max(0.25, depth + 0.05) : 0;
+    if (line > 0) s.wetLine = Math.max(s.wetLine || 0, line);
+    const wetTarget = inWater ? 1 : Math.min(1, rain * 0.9);
+    const sun = env.sunElevation ?? 0.6;
+    s.wetness += (wetTarget - s.wetness) * Math.min(1, dt * (wetTarget > s.wetness ? 1.6 : 0.022 + 0.02 * Math.max(0, sun)));
+    if (s.wetness < 0.02 && !inWater) s.wetLine = 0;
     s.sweat += ((anim.sprint ? 1 : 0) * 0.9 - s.sweat) * Math.min(1, dt * (anim.sprint ? 0.05 : 0.02));
     skin.uWet.value = s.wetness; skin.uSweat.value = Math.max(s.sweat, s.wetness * 0.5); skin.uBurn.value = s.sunburn; skin.uTan.value = s.tan; skin.uFlush.value = Math.max(s.flush, s.sweat * 0.5);
-    outfit.setWet(s.wetness);
+    outfit.setWet(s.wetness, s.wetLine || 0);
+    skin.uWetLine.value = s.wetLine || 0;
     // mesh LOD
     if (opts.meshLOD === undefined && game?.camera && (lodT -= dt) <= 0) {
       lodT = 0.25; const d = game.camera.getWorldPosition(camP).distanceTo(character.root.getWorldPosition(_v)) * (game.camera.fov ? Math.tan(THREE.MathUtils.degToRad(game.camera.fov) / 2) / Math.tan(THREE.MathUtils.degToRad(25)) : 1);
@@ -143,7 +156,7 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
 
   Object.assign(character, {
     isNico: true, base: 'nico', meta, face, outfit,
-    skin: { wetness: 0, sweat: 0, sunburn: 0, tan: 0.15, flush: 0, state: skin },
+    skin: { wetness: 0, sweat: 0, sunburn: 0, tan: 0.7, flush: 0, state: skin },        // Miami tan; covered zones stay lighter (tan lines)
     body: { get fat() { return body.fat; }, set fat(v) { body.fat = v; applyBody(); }, get muscle() { return body.muscle; }, set muscle(v) { body.muscle = v; applyBody(); }, set(o) { Object.assign(body, o); applyBody(); } },
     setMeshLOD(L) { opts.meshLOD = L; setMeshLOD(L); }, autoLOD() { opts.meshLOD = undefined; }, get meshLOD() { return cur; },
     setHairHidden(b) { hat = b; shells.forEach((arr, L) => arr.forEach((s) => { s.visible = !b && L === cur; })); },

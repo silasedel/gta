@@ -10,17 +10,71 @@ const LEVELS = 7;                 // 250 m .. 16 km per tile
 const MAX_TILES = 110;            // LRU cap (~1 MB each); on-screen + overview tiles are never evicted
 const CELL = 250;                 // spatial index cell (m)
 
+// V2 palette follows the world layout preview (deep navy sea, turquoise shallows, gold sand, natural greens,
+// grey urban, pale roads). setMapPalette() takes layout.json's palette so the map follows the world data.
 export const MAP_COLORS = {
-  water: '#0f4c63', waterDeep: '#0a3346', land: '#1e2633', beach: '#cdb482', park: '#24452f',
-  building: '#3a4559', buildingTall: '#4a5672', buildingEdge: 'rgba(255,255,255,.08)',
-  casing: '#0f141c', bridgeCasing: '#05080d',
+  water: '#0b4d7c',
+  sea: '#074176',
+  shallow: '#238895',
+  waterDeep: '#06365f',
+  land: '#909d64',
+  beach: '#eedba7',
+  park: '#7f9a56',
+  forest: '#5f7941',
+  urban: '#a39d94',
+  building: '#b9b2a6',
+  buildingTall: '#cfc8bb',
+  buildingEdge: 'rgba(60,52,44,.22)',
+  casing: 'rgba(84,78,68,.55)',
+  bridgeCasing: '#4a443b',
 };
+const rgbHex = (a) => '#' + a.map((v) => Math.max(0, Math.min(255, Math.round(+v || 0))).toString(16).padStart(2, '0')).join('');
+export function setMapPalette(pal) {
+  if (!pal || typeof pal !== 'object') return;
+  const pick = (k) => (Array.isArray(pal[k]) && pal[k].length >= 3 ? rgbHex(pal[k]) : null);
+  MAP_COLORS.sea = pick('ocean') || MAP_COLORS.sea;
+  MAP_COLORS.shallow = pick('shallow') || MAP_COLORS.shallow;
+  MAP_COLORS.beach = pick('sand') || MAP_COLORS.beach;
+  MAP_COLORS.urban = pick('urban') || MAP_COLORS.urban;
+  MAP_COLORS.forest = pick('forest') || MAP_COLORS.forest;
+  MAP_COLORS.land = pick('land') || MAP_COLORS.land;
+  MAP_COLORS.water = pick('water') || MAP_COLORS.water;
+}
+// land cover classes (city.mapLayers.cover) drawn over the land fill
+const COVER_STYLE = {
+  forest: () => MAP_COLORS.forest,
+  grove: () => '#6f8a47',
+  farmland: () => '#a9ad6c',
+  sawgrass: () => '#8e9a5c',
+  wetland: () => '#6f8d6c',
+  wild: () => '#869659',
+  dirt: () => '#b3a079',
+  rock: () => '#9c968b',
+  construction: () => '#b4aa98',
+  parking: () => MAP_COLORS.urban,
+  plaza: () => '#bdb6aa',
+  paved: () => MAP_COLORS.urban,
+  apron: () => '#c3c0b8',
+  taxiway: () => '#8f8c86',
+  runway: () => '#6e6b66',
+};
+const COVER_ORDER = ['wild', 'sawgrass', 'wetland', 'farmland', 'grove', 'forest', 'dirt', 'rock', 'construction', 'parking', 'plaza', 'paved', 'apron', 'taxiway', 'runway'];
 // road style by OSM-ish kind: [fill colour, min width m, level cutoff (skip above this level)]
 const ROAD_STYLE = {
-  motorway: ['#ffb35a', 14, 9], trunk: ['#ffcf7a', 12, 9], primary: ['#e9eef7', 11, 6], secondary: ['#c9d2e2', 9, 5],
-  tertiary: ['#aab6ca', 8, 4], residential: ['#8a97ad', 6, 3], unclassified: ['#8a97ad', 6, 3], living_street: ['#8a97ad', 5, 2],
-  service: ['#6f7b90', 4, 1], pedestrian: ['#9a8f7a', 4, 2], footway: ['#7d7462', 2, 1], path: ['#7d7462', 2, 1], cycleway: ['#4f8a7a', 2, 1],
-  default: ['#8f9cb2', 7, 4],
+  motorway: ['#f6dfa0', 14, 9],
+  trunk: ['#f3e5bd', 12, 9],
+  primary: ['#f7f4ec', 11, 6],
+  secondary: ['#efebe2', 9, 5],
+  tertiary: ['#e6e2d8', 8, 4],
+  residential: ['#dcd7cc', 6, 3],
+  unclassified: ['#dcd7cc', 6, 3],
+  living_street: ['#dcd7cc', 5, 2],
+  service: ['#d0cabe', 4, 1],
+  pedestrian: ['#e2d6bd', 4, 2],
+  footway: ['#d8ccb2', 2, 1],
+  path: ['#d8ccb2', 2, 1],
+  cycleway: ['#b9d3c3', 2, 1],
+  default: ['#e3ded4', 7, 4],
 };
 const KIND_ORDER = ['footway', 'path', 'cycleway', 'service', 'pedestrian', 'living_street', 'unclassified', 'residential', 'default', 'tertiary', 'secondary', 'primary', 'trunk', 'motorway'];
 const kindKey = (k) => (k && ROAD_STYLE[String(k).replace(/_link$/, '')] ? String(k).replace(/_link$/, '') : 'default');
@@ -90,6 +144,15 @@ export function createMapRenderer(game) {
     for (const layer of ['land', 'beach', 'park', 'water']) {
       const arr = Array.isArray(L[layer]) ? L[layer] : [];
       for (const p of arr) { const rings = ringsOf(p).filter((r) => Array.isArray(r) && r.length > 2); if (!rings.length) continue; add(layer, { rings, h: 0 }, bboxOfRings(rings)); }
+    }
+    const cov = L.cover && typeof L.cover === 'object' ? L.cover : {};
+    for (const cls of Object.keys(cov)) {
+      const arr = Array.isArray(cov[cls]) ? cov[cls] : [];
+      for (const p of arr) {
+        const rings = ringsOf(p).filter((r) => Array.isArray(r) && r.length > 2);
+        if (!rings.length) continue;
+        add('cover', { rings, h: 0, cls }, bboxOfRings(rings));
+      }
     }
     const blds = Array.isArray(L.buildingPolys) ? L.buildingPolys : [];
     for (const p of blds) {
@@ -167,7 +230,7 @@ export function createMapRenderer(game) {
     const S = tileSize(level), x0 = tx * S, z0 = tz * S, ppm = TILE_PX / S;
     const cv = document.createElement('canvas'); cv.width = cv.height = TILE_PX;
     const g = cv.getContext('2d');
-    g.fillStyle = MAP_COLORS.water; g.fillRect(0, 0, TILE_PX, TILE_PX);
+    g.fillStyle = MAP_COLORS.sea; g.fillRect(0, 0, TILE_PX, TILE_PX);
     g.setTransform(ppm, 0, 0, ppm, -x0 * ppm, -z0 * ppm);
     const B = build(), ring = B.ring;
     const pad = 40;
@@ -189,15 +252,36 @@ export function createMapRenderer(game) {
       if (oR.length) { g.strokeStyle = 'rgba(120,132,150,.35)'; g.lineCap = 'round'; for (const e of oR) { g.lineWidth = Math.max((e.width || 8) * 0.8, 1 / ppm); g.beginPath(); g.moveTo(e.pts[0][0], e.pts[0][1]); for (let i = 1; i < e.pts.length; i++) g.lineTo(e.pts[i][0], e.pts[i][1]); g.stroke(); } }
       g.save(); ringPath(g, ring); g.clip();
     }
-    const by = { land: [], beach: [], park: [], water: [], building: [], road: [] };
+    const by = { land: [], beach: [], park: [], water: [], building: [], road: [], cover: [] };
     for (const r of recs) { if ((r.layer === 'building' || r.layer === 'road') && r.item.inside === false) continue; by[r.layer]?.push(r.item); }
     if (!B.hasLand) { g.fillStyle = MAP_COLORS.land; g.fillRect(x0, z0, S, S); }
-    else if (by.land.length) fillRings(by.land, MAP_COLORS.land);
+    else if (by.land.length) {
+      // turquoise shallows: a wide soft band hugging every coast, under the land fill
+      g.save();
+      g.lineJoin = 'round';
+      g.strokeStyle = MAP_COLORS.shallow;
+      g.globalAlpha = 0.55;
+      g.lineWidth = 300;
+      g.beginPath();
+      for (const it of by.land) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
+      g.stroke();
+      g.globalAlpha = 1;
+      g.lineWidth = 110;
+      g.stroke();
+      g.restore();
+      fillRings(by.land, MAP_COLORS.land);
+    }
+    if (by.cover.length) {
+      const groups = new Map();
+      for (const it of by.cover) { let a = groups.get(it.cls); if (!a) groups.set(it.cls, (a = [])); a.push(it); }
+      const order = [...groups.keys()].sort((a, b) => COVER_ORDER.indexOf(a) - COVER_ORDER.indexOf(b));
+      for (const cls of order) fillRings(groups.get(cls), (COVER_STYLE[cls] || (() => MAP_COLORS.park))());
+    }
     if (by.park.length) fillRings(by.park, MAP_COLORS.park);
     if (by.beach.length) fillRings(by.beach, MAP_COLORS.beach);
     if (by.water.length) {
       fillRings(by.water, MAP_COLORS.water);
-      g.strokeStyle = 'rgba(150,235,230,.28)'; g.lineWidth = 1.5 / ppm; g.beginPath();
+      g.strokeStyle = 'rgba(35,136,149,.55)'; g.lineWidth = 2.5 / ppm; g.beginPath();
       for (const it of by.water) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
       g.stroke();
     }
@@ -211,8 +295,8 @@ export function createMapRenderer(game) {
       }
       g.save();
       if (level === 0) { g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 4; g.shadowOffsetX = 1.5; g.shadowOffsetY = 2; }
-      fillRings(low, level >= 2 ? '#334056' : MAP_COLORS.building);
-      fillRings(tall, level >= 2 ? '#46536d' : MAP_COLORS.buildingTall);
+      fillRings(low, level >= 2 ? MAP_COLORS.urban : MAP_COLORS.building);
+      fillRings(tall, level >= 2 ? '#b3ada3' : MAP_COLORS.buildingTall);
       g.restore();
       if (level === 0) {
         g.strokeStyle = MAP_COLORS.buildingEdge; g.lineWidth = 1 / ppm; g.beginPath();
@@ -239,7 +323,7 @@ export function createMapRenderer(game) {
     const br = roads.filter((e) => e.bridge);
     if (br.length) { g.save(); g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 6; pass(br, true); g.restore(); }
     if (level === 0) {
-      g.setLineDash([3, 4]); g.strokeStyle = 'rgba(255,214,140,.5)'; g.lineWidth = 0.6;
+      g.setLineDash([3, 4]); g.strokeStyle = 'rgba(150,130,90,.45)'; g.lineWidth = 0.6;
       for (const e of roads) if (e.kind === 'primary' || e.kind === 'secondary' || e.kind === 'trunk' || e.kind === 'motorway' || e.kind === 'default') { path(e); g.stroke(); }
       g.setLineDash([]);
     }

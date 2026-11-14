@@ -2,7 +2,7 @@
 // (`setpieces.nico_house`: x, z, heading), builds the self-contained set piece there, creates its Rapier colliders,
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
 import { buildNicoHouse } from './index.js';
-export const order = 60;
+export const order = 65;   // after vegetation (60)
 
 export async function initV2(game) {
   const { THREE, RAPIER, world, scene } = game;
@@ -17,7 +17,22 @@ export async function initV2(game) {
   if (!spot || !Number.isFinite(spot.x) || !Number.isFinite(spot.z)) { const s0 = game.city?.playerSpawn; spot = { x: (s0?.x ?? 0) + 60, z: (s0?.z ?? 0) + 60, heading: 0 }; temporary = true; console.warn('[nicoHouse] layout.json has no setpieces.nico_house: using a temporary spot'); }
   const sea = game.city?.seaLevel ?? -0.12;
   const yGround = Number.isFinite(spot.y) ? spot.y : sea + 1.0;                 // the lot sits 1 m above the water
-  const house = await buildNicoHouse(THREE, { seaY: sea - yGround, timeOfDay: game.timeOfDay, residentName: game.player?.fullName });
+  // palms come from the shared vegetation system when it is up (wait briefly for vegetation:ready, else use our own)
+  if (!game.vegetation && game.on) {
+    await new Promise((res) => {
+      const tm = setTimeout(res, 4000);
+      game.on('vegetation:ready', () => {
+        clearTimeout(tm);
+        res();
+      });
+    });
+  }
+  const house = await buildNicoHouse(THREE, {
+    seaY: sea - yGround,
+    timeOfDay: game.timeOfDay,
+    residentName: game.player?.fullName,
+    vegetation: game.vegetation,
+  });
   const g = house.group; g.position.set(spot.x, yGround, spot.z); g.rotation.y = spot.heading || 0; g.updateMatrixWorld(true); scene.add(g);
   const toWorld = (v) => v.clone().applyMatrix4(g.matrixWorld), inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
   const qH = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), spot.heading || 0);
@@ -64,5 +79,18 @@ export async function initV2(game) {
 
   game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null };
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
+  // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
+  const sp = anchors.spawnYard || anchors.spawn;
+  if (sp && !temporary && game.city) {
+    game.city.playerSpawn = sp.pos.clone();
+    game.city.playerSpawnHeading = sp.heading;
+    if (!game.ready && !game.v2NoHouseSpawn) {
+      try {
+        game.teleport?.(sp.pos.x, sp.pos.y, sp.pos.z, sp.heading);
+      } catch (e) {
+        console.warn('[nicoHouse] spawn teleport failed', e);
+      }
+    }
+  }
   game.emit('nicoHouse:ready', game.nicoHouse);
 }

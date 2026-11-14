@@ -2,7 +2,7 @@
  "track": "ui-frontend",
  "title": "Main menu, map, phone, settings",
  "section": "Systems",
- "agent": "paused",
+ "agent": "idle",
  "items": [
   {
    "name": "Read spec, contracts, plan and all of src/ui",
@@ -60,9 +60,29 @@
    "evidence": ""
   },
   {
+   "name": "HUD top-right corner to the user's mock-up (ref_46): six stars, outfit/face/vehicle badges, bank line with house badge, cash line with wallet badge, small clock and weapon above",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ui-frontend/hud_wanted_two_badges.png; docs/v2/shots/ui-frontend/hud_noon_sky.png (compare: docs/v2/compare/hud_corner_vs_ref46.png, git-ignored)"
+  },
+  {
+   "name": "Police-knowledge badges: game.hud.setKnown({outfit, face, vehicle}) and auto-read of game.evidence.snapshot() facts (face, outfit.*, vehicle/plate); hidden when not wanted",
+   "state": "built",
+   "evidence": "setKnown path seen in hud_wanted_two_badges.png; the evidence-fact path ran (no facts in the test) but was not seen lit by real police facts"
+  },
+  {
+   "name": "HUD polish pass in the corner's language: minimap rim, district/street label, hint and notification cards, mission line, speedometer numerals, map chrome",
+   "state": "built",
+   "evidence": "minimap, label and PSST cards seen in docs/v2/shots/ui-frontend/hud_noon_sky.png; speedometer and mission line not looked at"
+  },
+  {
+   "name": "Pause map shows the whole traced island: bounds, palette, place names and set pieces (Nico's house, Low Tide Lola's) read from public/assets/world/layout.json; land cover classes and coastal shallows drawn",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ui-frontend/pause_map_island.png; docs/v2/shots/ui-frontend/pause_map_zoomed_keys.png; docs/v2/shots/ui-frontend/pause_map_zoomed_player.png"
+  },
+  {
    "name": "Pause map rebuilt: vector tiles with LOD, cached, HiDPI, no flicker",
-   "state": "building",
-   "evidence": "src/ui/map/mapCore.js (engine written, parses; never run; no view/minimap yet)"
+   "state": "built",
+   "evidence": "v1 tiled renderer (src/ui/mapRender.js) restyled and fed by layout.json; the new mapCore.js engine is still not wired"
   },
   {
    "name": "Pause map interaction: cursor-anchored zoom, inertial pan, pinch, keyboard and controller",
@@ -71,8 +91,8 @@
   },
   {
    "name": "Map content: land cover, water depths, roads by class with shields, decluttered labels, places, footprints",
-   "state": "todo",
-   "evidence": ""
+   "state": "building",
+   "evidence": "land cover classes, shallows, pale roads, place names: docs/v2/shots/ui-frontend/pause_map_zoomed_player.png; no shields or depth bands yet"
   },
   {
    "name": "Map overlays: GPS route, POI icons by category with filterable legend, waypoints, friends, missions, police search area",
@@ -101,8 +121,8 @@
   },
   {
    "name": "HUD: health/armor/stamina, cash vs bank, six stars with evidence-strip slot, clock and date",
-   "state": "todo",
-   "evidence": ""
+   "state": "building",
+   "evidence": "stars, cash vs bank and clock done (corner); date and stamina not yet"
   },
   {
    "name": "HUD: weapon and ammo, speedometer with gear/fuel/damage warnings",

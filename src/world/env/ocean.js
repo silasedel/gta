@@ -17,8 +17,10 @@ export function createOcean(game, skyUniforms, normalsTex) {
     uShoreRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uHasShore: { value: 0 },
     uTime: { value: 0 },
-    uDeep: { value: new THREE.Color(0.010, 0.085, 0.095) },
-    uShallow: { value: new THREE.Color(0.07, 0.48, 0.40) },
+    uWindOff: { value: new THREE.Vector2() },
+    uWindChop: { value: 1 },
+    uDeep: { value: new THREE.Color(0.007, 0.070, 0.062) },
+    uShallow: { value: new THREE.Color(0.09, 0.47, 0.37) },
     uAmbient: { value: new THREE.Color(0.3, 0.3, 0.35) },
     uSunCol: { value: new THREE.Color(1, 1, 1) },
   }]);
@@ -47,6 +49,8 @@ export function createOcean(game, skyUniforms, normalsTex) {
       uniform vec4 uShoreRect;
       uniform float uHasShore;
       uniform float uTime;
+      uniform vec2 uWindOff;
+      uniform float uWindChop;
       uniform vec3 uDeep, uShallow, uAmbient, uSunCol;
       uniform vec3 lightDir, lightColor, sunDir, moonDir;
       uniform vec3 uZenith, uHorizon, uHorizonSun, uSunGlow, uFogColor;
@@ -78,14 +82,16 @@ export function createOcean(game, skyUniforms, normalsTex) {
         vec3 V = toEye / dist;
         vec2 p = vWorld.xz;
         float t = uTime;
+        vec2 pw = p - uWindOff; // ripples drift downwind (game.wind); the long swell keeps its own heading
         // ---- multi-scale normals, flattened with distance ----
-        vec3 n = nrm( p / 41.0 + t * vec2( 0.012, 0.009 ) ) * 0.55
-               + nrm( p / 13.0 + t * vec2( -0.021, 0.016 ) ) * 0.35
-               + nrm( p / 4.3 + t * vec2( 0.033, -0.041 ) ) * 0.18 * ( 1.0 - smoothstep( 20.0, 120.0, dist ) )
+        vec3 n = nrm( pw / 41.0 + t * vec2( 0.012, 0.009 ) ) * 0.55
+               + nrm( ( p - uWindOff * 1.6 ) / 13.0 + t * vec2( -0.021, 0.016 ) ) * 0.35
+               + nrm( ( p - uWindOff * 2.2 ) / 4.3 + t * vec2( 0.033, -0.041 ) ) * 0.26 * ( 1.0 - smoothstep( 40.0, 260.0, dist ) )
+               + nrm( ( p - uWindOff * 2.6 ) / 1.37 + t * vec2( -0.047, 0.052 ) ) * 0.16 * ( 1.0 - smoothstep( 8.0, 60.0, dist ) )
                + nrm( p / 197.0 + t * vec2( 0.004, -0.003 ) ) * 0.6;
         float lod = 1.0 / ( 1.0 + dist * 0.0022 );
         float lowSun = 1.0 - smoothstep( 0.08, 0.45, normalize( lightDir ).y );
-        float chop = ( 0.55 + 0.35 * lowSun ) * lod; // choppier ripples at low sun: dark troughs, bright glitter
+        float chop = ( 0.55 + 0.35 * lowSun ) * lod * uWindChop; // choppier ripples at low sun: dark troughs, bright glitter
         vec3 N = normalize( vec3( n.x * chop, 1.0, n.y * chop ) );
 
         // ---- shoreline distance (0 at the coast .. 1 = SHORE_MAX m or more) ----
@@ -98,7 +104,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
 
         // ---- reflection / refraction ----
         float NdV = max( dot( N, V ), 0.0 );
-        float F = 0.02 + 0.98 * pow( 1.0 - NdV, 5.0 );
+        float F = ( 0.02 + 0.98 * pow( 1.0 - NdV, 5.0 ) ) * mix( 0.55, 1.0, lowSun ); // rough daytime sea mirrors less sky: the green-teal body shows
         vec3 R = reflect( -V, N );
         R.y = abs( R.y ) + 0.01;
         vec3 refl = skyColor( normalize( R ) ) * ( 1.0 - 0.22 * lowSun );
@@ -107,8 +113,11 @@ export function createOcean(game, skyUniforms, normalsTex) {
         float sunUp = smoothstep( -0.05, 0.05, L.y );
         float shallow = pow( 1.0 - smoothstep( 0.0, 125.0, shoreM ), 1.7 ); // turquoise shallows easing into deep teal-blue
         vec3 body = mix( uDeep, uShallow, shallow );
+        body = mix( body, vec3( 0.34, 0.60, 0.46 ), ( 1.0 - smoothstep( 0.0, 16.0, shoreM ) ) * 0.55 ); // sand showing through at the beach
+        vec3 amb = mix( uAmbient, vec3( dot( uAmbient, vec3( 0.3333 ) ) ), 0.65 ); // sky light without the blue cast: water keeps its green-teal body
+        body *= 0.80 + 0.40 * smoothstep( -0.5, 0.5, n.x + n.y ); // wave facets read from the air
         float diff = max( dot( N, L ), 0.0 );
-        vec3 water = body * ( uAmbient + uSunCol * diff * 0.35 * sunUp );
+        vec3 water = body * ( amb + uSunCol * diff * 0.35 * sunUp );
         // subsurface glow through wave crests when looking toward the sun
         water += uShallow * uSunCol * pow( max( dot( V, -L ), 0.0 ), 4.0 ) * 0.05 * sunUp * ( 0.4 + 0.6 * shallow );
 
@@ -124,7 +133,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
           float nz = texture2D( tNormal, p / 9.0 + t * 0.02 ).r;
           float waves = sin( shoreM * 0.55 - t * 1.4 + nz * 3.0 );
           float band = smoothstep( 0.55, 0.95, waves ) * ( 1.0 - smoothstep( 4.0, 26.0, shoreM ) );
-          float edge = 1.0 - smoothstep( 1.0, 7.0 + nz * 4.0, shoreM );
+          float edge = 1.0 - smoothstep( 1.5, 9.0 + nz * 6.0, shoreM );
           float foam = clamp( band * 0.7 + edge, 0.0, 1.0 ) * smoothstep( 0.25, 0.65, nz + 0.25 );
           col = mix( col, uAmbient * 1.1 + uSunCol * 0.45 * sunUp * max( L.y, 0.15 ), foam * 0.85 );
         }
@@ -218,6 +227,12 @@ export function createOcean(game, skyUniforms, normalsTex) {
     rebuildShore() { shoreState = 'none'; },
     update(dt, camera, env) {
       uniforms.uTime.value += dt;
+      const wnd = game.wind;
+      if (wnd) {
+        const g = 0.55 + 1.05 * wnd.gust;
+        uniforms.uWindOff.value.x += wnd.dir.x * wnd.speed * g * dt * 0.12; uniforms.uWindOff.value.y += wnd.dir.y * wnd.speed * g * dt * 0.12;
+        uniforms.uWindChop.value += (THREE.MathUtils.clamp(0.72 + 0.07 * wnd.speed + 0.12 * wnd.gust, 0.7, 1.7) - uniforms.uWindChop.value) * Math.min(1, dt * 0.8);
+      }
       // follow the camera, snapped (normals are world-space so snapping is invisible)
       mesh.position.set(Math.round(camera.position.x / 200) * 200, (game.city?.seaLevel ?? env.seaLevel ?? -0.12), Math.round(camera.position.z / 200) * 200);
       // lighting

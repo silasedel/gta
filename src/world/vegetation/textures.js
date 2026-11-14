@@ -35,9 +35,10 @@ function barkSample(col, u, v) {
     const rings = 13, ry = v * rings + Math.sin(u * 6.283 * 2 + Math.floor(v * rings) * 1.7) * 0.18 + Math.sin(u * 6.283 + Math.floor(v * rings) * 2.9) * 0.1 + (n - 0.5) * 0.5, f = ry - Math.floor(ry);
     const groove = smooth(0.0, 0.08, f) * (1 - smooth(0.82, 1.0, f)), lip = smooth(0.06, 0.16, f) * (1 - smooth(0.16, 0.3, f));
     const h = 0.25 + 0.55 * groove + 0.12 * lip - 0.22 * smooth(0.55, 0.8, fis) + 0.1 * n;
-    const gray = smooth(0.45, 0.75, fbm(u * 3, v * 2, 3, 2, s + 9)), base = [0.47, 0.41, 0.34], g2 = [0.6, 0.58, 0.54];
+    const gray = smooth(0.45, 0.75, fbm(u * 3, v * 2, 3, 2, s + 9)), base = [0.47, 0.41, 0.34], g2 = [0.6, 0.58, 0.54], lich = smooth(0.68, 0.78, fbm(u * 7, v * 9, 7, 9, s + 21)) * smooth(0.3, 0.6, n);
     const k = 0.75 + 0.35 * h + 0.08 * (n - 0.5);
     const c = [mix(base[0], g2[0], gray) * k, mix(base[1], g2[1], gray) * k, mix(base[2], g2[2], gray) * k];
+    if (lich > 0) { c[0] = mix(c[0], 0.66, lich * 0.7); c[1] = mix(c[1], 0.68, lich * 0.7); c[2] = mix(c[2], 0.55, lich * 0.7); } // pale lichen crusts
     if (groove < 0.5) { const dk = 0.72 + 0.12 * fis; c[0] *= dk; c[1] *= dk * 0.96; c[2] *= dk * 0.93; }
     return { h, c, r: 0.82 + 0.15 * (1 - h) };
   }
@@ -163,8 +164,8 @@ function leafCells(x, r) {
     x.fillStyle = o.rachis; x.fillRect(0, 0, 9, S); x.fillStyle = 'rgba(255,255,230,0.25)'; x.fillRect(2, 0, 2, S);
     x.restore();
   };
-  pinnate(CELL.coconut, { n: 52, len: 0.95, ang: 0.42, jit: 0.14, w: 12, h: 88, s: 52, l: 34, brown: 0.18, torn: 0.18, curl: 26, rachis: '#a9a45a' });
-  pinnate(CELL.plume, { n: 70, len: 0.95, ang: 0.5, jit: 0.4, w: 8.5, h: 100, s: 48, l: 28, brown: 0.08, torn: 0.08, curl: 40, rachis: '#8d9b52', double: true });
+  pinnate(CELL.coconut, { n: 80, len: 0.95, ang: 0.42, jit: 0.14, w: 12, h: 88, s: 52, l: 34, brown: 0.18, torn: 0.18, curl: 26, rachis: '#a9a45a' });
+  pinnate(CELL.plume, { n: 96, len: 0.95, ang: 0.5, jit: 0.4, w: 8.5, h: 100, s: 48, l: 28, brown: 0.08, torn: 0.08, curl: 40, rachis: '#8d9b52', double: true });
   pinnate(CELL.date, { n: 60, len: 0.85, ang: 0.6, jit: 0.15, w: 9, h: 130, s: 22, l: 40, brown: 0.12, torn: 0.05, curl: 6, rachis: '#a4a476' });
   pinnate(CELL.dead, { n: 46, len: 0.75, ang: 0.3, jit: 0.5, w: 9, h: 34, s: 42, l: 46, brown: 1, torn: 0.55, curl: 50, rachis: '#8a6a42' });
   { // dead frond: darken irregularly, holes

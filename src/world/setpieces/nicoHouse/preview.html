@@ -76,6 +76,18 @@ window.setTime = setTime;
 // ---- house ----
 const opt = {}; if (q.get('only')) opt.only = q.get('only').split(','); if (q.get('skip')) opt.skip = q.get('skip').split(',');
 const t0 = performance.now();
+// shared vegetation system for the palms (default on; ?veg=0 uses the house's own palms)
+if (q.get('veg') !== '0') {
+  try {
+    const vg = { updaters: [], scene, renderer, camera, emit() {}, on() {} };
+    const { initV2 } = await import('../../vegetation/vegetation.v2.js');
+    await initV2(vg);
+    opt.vegetation = vg.vegetation;
+    window.vegGame = vg;
+  } catch (e) {
+    console.warn('[preview] vegetation unavailable', e);
+  }
+}
 const house = await buildNicoHouse(THREE, { timeOfDay: tod, ...opt }); window.house = house;
 scene.add(house.group);
 const P = house.plan;
@@ -164,7 +176,7 @@ function nearestInteract(pos, fwd) {
 // ---- cameras ----
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.maxDistance = 400;
 const VIEWS = {
-  hero: { cam: [-9.8, 1.2, 15.2], look: [0.4, 4.1, 2.5], fov: 56 },            // the ref_24 framing: low, off the front-left corner, water behind
+  hero: { cam: [-6.4, 1.05, 18.4], look: [1.2, 3.3, 3.0], fov: 41 },            // the ref_24 framing: low, off the front-left corner, water behind
   front: { cam: [-1, 2.2, 27], look: [-1, 3.6, 0], fov: 44 }, frontHigh: { cam: [6, 12, 30], look: [-1, 3, 0], fov: 44 },
   west: { cam: [-27, 3.2, 1], look: [-4, 3.6, 0], fov: 44 }, stair: { cam: [-15.5, 2.2, 10.5], look: [-9.5, 2.6, 3], fov: 48 },
   northwest: { cam: [-22, 4, -20], look: [-2, 3.2, -3], fov: 44 }, bay: { cam: [2, 1.2, -34], look: [0, 3.5, 0], fov: 44 },

@@ -38,6 +38,13 @@ def build(name, sel, off, panel, hem_fn, flutter_fn, smooth_it=6, extra=None, r_
     base = co[used] + vn[used] * off[used][:, None]
     shapes = {nm: BODYM[nm][used] + vn[used] * off[used][:, None] for nm in BODYM}
     wts = {k: v[used] for k, v in W.items() if v[used].max() > 0.01}
+    if name == "camp_shirt":                              # an untucked hem hangs from the hips; only half follows the thighs
+        hk = next((k for k in wts if k.endswith("Hips")), None)
+        for k in list(wts):
+            if hk and "UpLeg" in k:
+                give = wts[k] * 0.5
+                wts[k] = wts[k] - give
+                wts[hk] = wts[hk] + give
     ob = new_mesh_object(name, base, pl, weights=wts, shapes=shapes)
     me = ob.data
     # attributes ride through the subdivision as vertex groups (0..1 floats)
@@ -55,7 +62,20 @@ def build(name, sel, off, panel, hem_fn, flutter_fn, smooth_it=6, extra=None, r_
             m = np.array([c[n].mean(0) if n else c[i] for i, n in enumerate(nb)]); c = np.where(isb[:, None], c, c * 0.45 + m * 0.55)
         return c
     def clear(c, bodyc):                                   # smoothing must never pull the cloth under the skin (spine groove, crotch)
-        dist = ((c - bodyc) * vn[used]).sum(1); need = np.maximum(0.0, 0.8 * off[used] - dist); return c + vn[used] * need[:, None]
+        floor = ({"camp_shirt": 0.45, "camp_shirt_open": 0.45, "sneakers": 0.25}.get(name, 0.8)) * off[used]
+        if name in ("camp_shirt", "camp_shirt_open"):
+            floor = np.maximum(floor, 0.011)               # always clear of the tee underneath (tee sits <= 7 mm)
+        dist = ((c - bodyc) * vn[used]).sum(1); need = np.maximum(0.0, floor - dist)
+        c = c + vn[used] * need[:, None]
+        if name in ("camp_shirt", "camp_shirt_open", "tee"):
+            # smoothing bridges the dip between the neck and the shoulder: cloth must lie on the trapezius, not float over it
+            dist = ((c - bodyc) * vn[used]).sum(1)
+            cap = off[used] * 1.2 + 0.006
+            over = np.maximum(0.0, dist - cap) * sm(1.28, 1.36, bodyc[:, 2])
+            if name == "tee":
+                over = np.maximum(over, np.maximum(0.0, dist - 0.007) * sm(1.08, 1.18, bodyc[:, 2]))
+            c = c - vn[used] * over[:, None]
+        return c
     c0 = clear(lap(base), co[used]); me.vertices.foreach_set("co", c0.reshape(-1)); me.shape_keys.key_blocks[0].data.foreach_set("co", c0.reshape(-1))
     for nm in BODYM: me.shape_keys.key_blocks[nm].data.foreach_set("co", clear(lap(shapes[nm]), BODYM[nm][used]).reshape(-1))
     if extra: extra(ob, c0, used)
@@ -110,19 +130,22 @@ def build(name, sel, off, panel, hem_fn, flutter_fn, smooth_it=6, extra=None, r_
 
 # ---- camp shirt: short sleeves, straight untucked hem, open camp collar (stand + fall), placket, chest pocket, buttons.
 # The shell stands well off the body below the chest so it hangs like woven cloth instead of hugging the waist.
-hem_z = 0.885
+hem_z = 0.915
 neck = ((z > 1.50) & (np.abs(x) < 0.062)) | (z > 1.57)
-selS = (z > 0.895) & ~neck & (wHead < 0.1) & (wFore < 0.4) & (wHand < 0.05) & ~((wArm > 0.4) & (tA >= 0.60))
+selS = (z > 0.925) & ~neck & (wHead < 0.1) & (wFore < 0.4) & (wHand < 0.05) & ~((wArm > 0.4) & (tA >= 0.60))
 V_Z0 = 1.385
 vhalf = lambda zz: 0.010 + (zz - V_Z0) * 0.42
 vopen = (np.abs(x) < vhalf(z)) & (z > V_Z0) & (y < 0)            # open V at the chest (top button undone)
 selS &= ~vopen
 offS = (0.009
         + 0.034 * sm(1.30, 0.98, z) * (wTorso > 0.3)
-        + 0.010 * sm(0.30, 0.6, tA) * sm(0.25, 0.55, wArm)
+        + 0.006 * sm(0.35, 0.6, tA) * sm(0.25, 0.55, wArm)
         + 0.006 * (y > 0)
         + 0.012 * (y > 0) * sm(1.12, 0.92, z) * (wTorso + wLeg > 0.3))
-HEM_TARGET = 0.872
+HEM_TARGET = 0.905
+
+
+OPEN_FRONT = False
 
 
 def shirt_extra(ob, c0, used):
@@ -135,6 +158,8 @@ def shirt_extra(ob, c0, used):
     dl = bm.verts.layers.deform.verify()
     g_hem = ob.vertex_groups["_hem"].index
     g_flut = ob.vertex_groups["_flut"].index
+    neck_g = [ob.vertex_groups[n].index for n in (PRE + "Neck", PRE + "Head") if n in ob.vertex_groups]
+    sp2_g = ob.vertex_groups[PRE + "Spine2"].index if (PRE + "Spine2") in ob.vertex_groups else None
 
     def move(v, mv):
         v.co += mv
@@ -156,36 +181,67 @@ def shirt_extra(ob, c0, used):
         return f
 
     # 0) hang: below the waist the cloth falls straight from the widest girth above instead of following the hips in
-    tv = [v for v in bm.verts if v.co.z < 1.16 and abs(v.co.x) < 0.26]
+    arm_g = [ob.vertex_groups[n].index for n in (PRE + "LeftArm", PRE + "RightArm", PRE + "LeftShoulder", PRE + "RightShoulder") if n in ob.vertex_groups]
+
+    def armw(v):
+        dv = v[dl]
+        return sum(dv.get(g, 0.0) for g in arm_g)
+
+    tv = [v for v in bm.verts if v.co.z < 1.36 and abs(v.co.x) < 0.24 and armw(v) < 0.15]
     yc = float(np.mean([v.co.y for v in tv])) if tv else 0.0
     NB = 72
     rmax = np.zeros(NB)
     for v in tv:
-        if 1.02 < v.co.z < 1.14:
+        if 0.88 < v.co.z < 1.32:
             th = math.atan2(v.co.y - yc, v.co.x)
             b = int((th + math.pi) / (2 * math.pi) * NB) % NB
             rmax[b] = max(rmax[b], math.hypot(v.co.x, v.co.y - yc))
     for _ in range(3):
         rmax = np.maximum(rmax, (np.roll(rmax, 1) + np.roll(rmax, -1)) * 0.5 * 0.995)
     for v in tv:
-        if v.co.z >= 1.08:
+        if v.co.z >= 1.30:
             continue
         th = math.atan2(v.co.y - yc, v.co.x)
         b = int((th + math.pi) / (2 * math.pi) * NB) % NB
         r = math.hypot(v.co.x, v.co.y - yc)
-        want = rmax[b] * (0.985 + 0.02 * (1.08 - v.co.z) / 0.2)
-        k = sm(1.08, 1.0, np.array([v.co.z]))[0]
+        want = rmax[b] * (0.99 + 0.03 * (1.30 - v.co.z) / 0.42)
+        k = sm(1.30, 1.16, np.array([v.co.z]))[0]
         if r > 1e-4 and want > r:
             f = (r + (want - r) * k) / r
             move(v, Vector((v.co.x * (f - 1), (v.co.y - yc) * (f - 1), 0)))
+
+    # 0b) cloth bridges the chest: relax the front between the armpits (hides nipples and pec edges), and the shoulder caps
+    bnd0 = {v for v in bm.verts if v.is_boundary}
+    reg = [v for v in bm.verts if v not in bnd0 and (1.12 < v.co.z < 1.43 and v.co.y < yc and abs(v.co.x) < 0.17)]
+    bm.normal_update()
+    for _ in range(14):
+        newp = {}
+        for v in reg:
+            nb = [e.other_vert(v).co for e in v.link_edges]
+            m = sum(nb, Vector((0, 0, 0))) / len(nb)
+            d = (m - v.co) * 0.5
+            dn = d.dot(v.normal)
+            if dn < 0:
+                d = d - v.normal * dn                           # never move inward (skin would show through)
+            newp[v] = v.co + d
+        for v, q in newp.items():
+            move(v, q - v.co)
+
+    if OPEN_FRONT:
+        for v in bm.verts:
+            if v.co.y < yc and abs(v.co.x) < 0.12 and v.co.z < V_Z0 + 0.06:
+                k = sm(V_Z0 + 0.06, 1.15, np.array([v.co.z]))[0] * (1 - abs(v.co.x) / 0.12)
+                move(v, Vector((math.copysign(0.05 * k, v.co.x), -0.008 * k, 0)))
+                v[dl][g_flut] = max(v[dl].get(g_flut, 0.0), 0.65 * sm(0.13, 0.015, np.array([abs(v.co.x)]))[0] * sm(1.42, 1.05, np.array([v.co.z]))[0])
+        bm.normal_update()
 
     # 1) straighten the hem and the V edges (the poly selection leaves them stepped)
     for v in bm.verts:
         if not v.is_boundary:
             continue
-        if v.co.z < 1.0 and abs(v.co.x) < 0.30:
+        if v.co.z < 0.95 and abs(v.co.x) < 0.30:
             move(v, Vector((0, 0, HEM_TARGET - v.co.z)))
-        elif v.co.y < 0 and V_Z0 - 0.02 < v.co.z < 1.50 and abs(v.co.x) < 0.10:
+        elif not OPEN_FRONT and v.co.y < 0 and V_Z0 - 0.02 < v.co.z < 1.50 and abs(v.co.x) < 0.10:
             want = max(0.004, vhalf(v.co.z))
             move(v, Vector((math.copysign(want, v.co.x) - v.co.x, 0, 0)))
     bm.normal_update()
@@ -207,12 +263,14 @@ def shirt_extra(ob, c0, used):
     hem_e = [e for e in bnd_edges if e not in ring_e]
     ring_v = {v for e in ring_e for v in e.verts}
     hem_v = {v for e in hem_e for v in e.verts}
+    ring_pairs = [tuple(e.verts) for e in ring_e]
+    hem_pairs = [tuple(e.verts) for e in hem_e]
     # neckline and hems come out of the poly selection stepped: relax them along their rings (keep the V point and hem height)
     ring_set, hem_set = set(ring_e), set(hem_e)
     nbr = {v: [e.other_vert(v) for e in v.link_edges if e in ring_set] for v in ring_v}
     nbr.update({v: [e.other_vert(v) for e in v.link_edges if e in hem_set] for v in hem_v})
     vpt = min(ring_v, key=lambda v: v.co.z)
-    for _ in range(20):
+    for _ in range(40):
         newp = {}
         for v in ring_v | hem_v:
             if v is vpt or len(nbr[v]) != 2:
@@ -220,12 +278,12 @@ def shirt_extra(ob, c0, used):
             m = (nbr[v][0].co + nbr[v][1].co) * 0.5
             newp[v] = v.co * 0.4 + m * 0.6
         for v, q in newp.items():
-            if v in hem_v and v.co.z < 1.0:
+            if v in hem_v and v.co.z < 0.95:
                 q.z = HEM_TARGET
             move(v, q - v.co)
     bm.normal_update()
     info = {v: (v.co.copy(), v.normal.copy(), inward(v)) for v in ring_v | hem_v}
-    for _ in range(14):
+    for _ in range(30):
         sm_info = {}
         for v in ring_v | hem_v:
             if len(nbr[v]) != 2:
@@ -244,14 +302,25 @@ def shirt_extra(ob, c0, used):
         lap = sm(V_Z0 - 0.005, V_Z0 + 0.07, np.array([p.z]))[0]       # 0 at the V point, 1 at the neck
         h = 0.004 + 0.013 * lap
         w = 0.010 + 0.054 * lap
-        s = p - d * h + n * 0.0015
-        f = s + n * 0.0050
-        c = p + d * w + n * 0.0075
-        e = c + n * -0.0032 + d * -0.002
+        s = p - d * h + n * 0.0008
+        f = s + n * 0.0020
+        c = p + d * w + n * 0.0040
+        e = c + n * -0.0015 + d * -0.001
         rows[v] = [v] + [clone(v, q) for q in (s, f, c, e)]
         for k, nv in enumerate(rows[v][1:]):
+            # the fall lies on the shirt: it follows the chest/back, not the neck (else it lifts off like a board
+            # when the head moves forward)
+            share = (0.5, 0.6, 1.0, 1.0)[k]
+            moved = 0.0
+            for gi in neck_g:
+                w = nv[dl].get(gi, 0.0)
+                if w > 0:
+                    nv[dl][gi] = w * (1 - share)
+                    moved += w * share
+            if moved > 0 and sp2_g is not None:
+                nv[dl][sp2_g] = nv[dl].get(sp2_g, 0.0) + moved
             nv[dl][g_hem] = (0.0, 0.0, 0.9, 1.0)[k]
-            nv[dl][g_flut] = 0.0
+            nv[dl][g_flut] = (0.0, 0.05, 0.3, 0.4)[k] * (0.4 + 0.6 * lap)        # collar tips and lapel edges lift in the air
     for ed in ring_e:
         a, b = ed.verts
         ra, rb = rows[a], rows[b]
@@ -264,8 +333,8 @@ def shirt_extra(ob, c0, used):
     trows = {}
     for v in hem_v:
         p, n, d = info[v]
-        t = p + d * 0.0035 - n * 0.0040
-        u = p + d * 0.0170 - n * 0.0040
+        t = p + d * 0.0015 - n * 0.0016
+        u = p + d * 0.0150 - n * 0.0016
         trows[v] = [v, clone(v, t), clone(v, u)]
         for nv in trows[v][1:]:
             nv[dl][g_hem] = 1.0
@@ -274,6 +343,21 @@ def shirt_extra(ob, c0, used):
         na, da = info[a][1], info[a][2]
         face([trows[a][0], trows[b][0], trows[b][1], trows[a][1]], -da)
         face([trows[a][1], trows[b][1], trows[b][2], trows[a][2]], -na)
+
+    try:
+        clc = bm.edges.layers.float.get("crease_edge") or bm.edges.layers.float.new("crease_edge")
+        for a, b in ring_pairs:
+            for k in (0, 2, 4):
+                eg = bm.edges.get([rows[a][k], rows[b][k]])
+                if eg:
+                    eg[clc] = 1.0
+        for a, b in hem_pairs:
+            for k in (0, 1):
+                eg = bm.edges.get([trows[a][k], trows[b][k]])
+                if eg:
+                    eg[clc] = 1.0
+    except Exception as ex:
+        print("[garment] fold crease skipped", ex)
 
     # 4) chest pocket on the wearer's left (+x), a separate patch laid 2.5 mm over the front
     front = [v for v in bm.verts if v.co.y < 0 and v.co.z > 1.1 and v.co.z < 1.42 and 0.02 < v.co.x < 0.22 and v not in ring_v]
@@ -300,6 +384,19 @@ def shirt_extra(ob, c0, used):
     for j in range(nz - 1):
         for i in range(nx - 1):
             face([grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]], Vector((0, -1, 0)))
+    # pocket walls: the patch edge turns down to the shirt (real thickness, a shadow line under the mouth)
+    ring_ij = [(0, i) for i in range(nx)] + [(j, nx - 1) for j in range(1, nz)] + [(nz - 1, i) for i in range(nx - 2, -1, -1)] + [(j, 0) for j in range(nz - 2, 0, -1)]
+    wall = {}
+    for (j, i) in ring_ij:
+        g = grid[j][i]
+        wall[(j, i)] = clone(g, g.co - Vector((0, -1, 0)) * 0.0 + Vector((0, 0.0026, 0)))
+    for a, b in zip(ring_ij, ring_ij[1:] + ring_ij[:1]):
+        out = (grid[a[0]][a[1]].co + grid[b[0]][b[1]].co) * 0.5 - Vector(((PX0 + PX1) / 2, grid[a[0]][a[1]].co.y, (PZ0 + PZ1) / 2))
+        out.y = 0
+        try:
+            face([grid[a[0]][a[1]], grid[b[0]][b[1]], wall[b], wall[a]], out)
+        except ValueError:
+            pass
     try:
         cl = bm.edges.layers.float.get("crease_edge") or bm.edges.layers.float.new("crease_edge")
         for e in bm.edges:
@@ -316,41 +413,244 @@ def shirt_extra(ob, c0, used):
 shirt = build("camp_shirt", selS, offS, np.zeros(N, dtype=np.float32),
               lambda u: np.maximum(sm(hem_z + 0.03, hem_z, co[u, 2]), 0.0) + sm(0.5, 0.6, tA[u]) * (wArm[u] > 0.4),
               lambda u: sm(1.02, hem_z, co[u, 2]) * 0.9 + sm(0.42, 0.6, tA[u]) * (wArm[u] > 0.4) * 0.6,
-              smooth_it=11, extra=shirt_extra, r_fn=lambda u: np.clip(0.5 + tA[u], 0.001, 1.0))
+              smooth_it=16, extra=shirt_extra, r_fn=lambda u: np.clip(0.5 + tA[u], 0.001, 1.0))
+# open variant (worn open over a tee): the front is cut from the neck to the hem
+OPEN_FRONT = True
+selO = selS & ~((np.abs(x) < 0.011) & (y < 0))
+shirt_open = build("camp_shirt_open", selO, offS, np.zeros(N, dtype=np.float32),
+                   lambda u: np.maximum(sm(hem_z + 0.03, hem_z, co[u, 2]), 0.0) + sm(0.5, 0.6, tA[u]) * (wArm[u] > 0.4),
+                   lambda u: sm(1.02, hem_z, co[u, 2]) * 0.9 + sm(0.42, 0.6, tA[u]) * (wArm[u] > 0.4) * 0.6,
+                   smooth_it=16, extra=shirt_extra, r_fn=lambda u: np.clip(0.5 + tA[u], 0.001, 1.0))
+OPEN_FRONT = False
+
+
+def make_buttons(shirt_ob, name, open_front):
+    sc = np.array([v.co for v in shirt_ob.data.vertices])
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new("UVMap")
+    for bz in np.linspace(1.335, 0.955, 5):
+        if open_front:                                    # on the right front panel, 12 mm in from its edge
+            cand = sc[(sc[:, 0] < 0) & (sc[:, 1] < 0) & (np.abs(sc[:, 2] - bz) < 0.012)]
+            if not len(cand):
+                continue
+            e = cand[np.argmax(cand[:, 0])]
+            near = cand[np.argmin(np.abs(cand[:, 0] - (e[0] - 0.013)) + np.abs(cand[:, 2] - bz))]
+            cx = near[0]
+        else:
+            front = sc[(np.abs(sc[:, 0]) < 0.02) & (sc[:, 1] < 0) & (sc[:, 2] < 1.36)]
+            near = front[np.argmin(np.abs(front[:, 2] - bz) + np.abs(front[:, 0]) * 2)]
+            cx = 0.0
+        r = bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=0.0056, radius2=0.0050, depth=0.0021)
+        for v in r["verts"]:
+            for l in v.link_loops:                        # planar UV across the face: (0.5, 0.5) = button center
+                l[uvl].uv = (0.5 + v.co.x / 0.0112, 0.5 + v.co.y / 0.0112)
+            v.co = Vector((v.co.x, v.co.z - 0.0016, v.co.y)) + Vector((cx, near[1] - 0.0002, bz))
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    kd = [(np.argmin(((sc - np.array(v.co)) ** 2).sum(1))) for v in me.vertices]
+    for g in shirt_ob.vertex_groups:
+        ob.vertex_groups.new(name=g.name)
+    for i, j in enumerate(kd):
+        for g in shirt_ob.data.vertices[j].groups:
+            ob.vertex_groups[g.group].add([i], g.weight, "REPLACE")
+    ob.parent = arm
+    md = ob.modifiers.new("Armature", "ARMATURE")
+    md.object = arm
+    return ob
+
+
+btn_open = make_buttons(shirt_open, "camp_shirt_open_buttons", True)
+
+
+def finish_edges(ob, c0, used, level_below=None, turn=0.018):
+    # relax stepped boundary rings into clean edges and turn a hem inside (double layer gives real thickness)
+    me = ob.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.verts.ensure_lookup_table()
+    sk = bm.verts.layers.shape
+    keys = list(sk.keys())
+
+    def move(v, mv):
+        v.co += mv
+        for k in keys:
+            v[sk[k]] = v[sk[k]] + mv
+
+    def clone(ex, pos):
+        nv = bm.verts.new(pos, ex)
+        d = pos - ex.co
+        for k in keys:
+            nv[sk[k]] = ex[sk[k]] + d
+        return nv
+
+    be = [e for e in bm.edges if e.is_boundary]
+    bv = {v for e in be for v in e.verts}
+    bs = set(be)
+    nbr = {v: [e.other_vert(v) for e in v.link_edges if e in bs] for v in bv}
+    levels = {}
+    if level_below is not None:
+        for side in (1, -1):
+            ring = [v for v in bv if v.co.z < level_below and v.co.x * side > 0]
+            if ring:
+                levels[side] = float(np.mean([v.co.z for v in ring]))
+    for _ in range(60):
+        newp = {}
+        for v in bv:
+            if len(nbr[v]) != 2:
+                continue
+            q = v.co * 0.3 + (nbr[v][0].co + nbr[v][1].co) * 0.35
+            if level_below is not None and v.co.z < level_below:
+                q.z = q.z * 0.5 + levels.get(1 if v.co.x > 0 else -1, q.z) * 0.5
+            newp[v] = q
+        for v, q in newp.items():
+            move(v, q - v.co)
+    bm.normal_update()
+    tb = {}
+    for v in bv:
+        acc = Vector((0, 0, 0))
+        for e in v.link_edges:
+            o = e.other_vert(v)
+            if o not in bv:
+                acc += o.co - v.co
+        d = acc.normalized() if acc.length > 1e-6 else Vector((0, 0, 1))
+        tb[v] = clone(v, v.co + d * turn - v.normal * 0.0025)
+    for e in be:
+        a, b = e.verts
+        f = bm.faces.new([a, b, tb[b], tb[a]])
+        f.normal_update()
+        if f.normal.dot(-a.normal) < 0:
+            f.normal_flip()
+    bm.to_mesh(me)
+    bm.free()
+
+
+# ---- white crew-neck tee under the open shirt: fitted, short sleeves hidden under the shirt's, hem at the belt
+neckT = (z > 1.505) | ((y < 0) & (z > 1.465) & (np.abs(x) < 0.07)) | ((y >= 0) & (z > 1.49) & (np.abs(x) < 0.07))
+selT = (z > 0.93) & ~neckT & (wHead < 0.1) & (wFore < 0.4) & (wHand < 0.05) & ~((wArm > 0.4) & (tA >= 0.42))
+offT = 0.004 + 0.010 * sm(1.25, 0.98, z) * (wTorso > 0.3) + 0.003 * (y > 0)
+tee = build("tee", selT, offT, np.zeros(N, dtype=np.float32),
+            lambda u: np.maximum(sm(0.96, 0.93, co[u, 2]), sm(1.46, 1.50, co[u, 2]) * (np.abs(co[u, 0]) < 0.09)),
+            lambda u: sm(1.0, 0.93, co[u, 2]) * 0.3, smooth_it=10,
+            extra=lambda ob, c0, used: finish_edges(ob, c0, used, level_below=0.99, turn=0.016))
+
 # buttons: five pearl buttons down the placket, below the open top (the V point)
-sc = np.array([v.co for v in shirt.data.vertices])
-front = sc[(np.abs(sc[:, 0]) < 0.02) & (sc[:, 1] < 0) & (sc[:, 2] < 1.36)]
-bm = bmesh.new()
-for bz in np.linspace(1.335, 0.955, 5):
-    near = front[np.argmin(np.abs(front[:, 2] - bz) + np.abs(front[:, 0]) * 2)]
-    r = bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=0.0056, radius2=0.0050, depth=0.0021)
-    for v in r["verts"]:
-        v.co = Vector((v.co.x, v.co.z - 0.0016, v.co.y)) + Vector((0.0, near[1] - 0.0002, bz))
-me = bpy.data.meshes.new("camp_shirt_buttons"); bm.to_mesh(me); bm.free()
-btn = bpy.data.objects.new("camp_shirt_buttons", me); bpy.context.scene.collection.objects.link(btn)
-kd = [(np.argmin(((sc - np.array(v.co)) ** 2).sum(1))) for v in me.vertices]
-for g in shirt.vertex_groups: btn.vertex_groups.new(name=g.name)
-for i, j in enumerate(kd):
-    for g in shirt.data.vertices[j].groups: btn.vertex_groups[g.group].add([i], g.weight, "REPLACE")
-btn.parent = arm; md = btn.modifiers.new("Armature", "ARMATURE"); md.object = arm
+btn = make_buttons(shirt, "camp_shirt_buttons", False)
 
 # ---- shorts: sit on the hips, end above the knee, legs stand off the thigh
 selP = (z > 0.585) & (z < 1.06) & ((wLeg > 0.3) | (wTorso > 0.4)) & (wHand < 0.05) & (wFore < 0.05) & (wArm < 0.05)
 offP = 0.012 + 0.016 * sm(0.80, 0.60, z) + 0.016 * sm(0.07, 0.0, np.abs(x)) * sm(1.0, 0.92, z)
-shorts = build("shorts", selP, offP, np.zeros(N, dtype=np.float32), lambda u: np.maximum(sm(0.615, 0.585, co[u, 2]), sm(1.035, 1.06, co[u, 2])), lambda u: sm(0.70, 0.585, co[u, 2]) * 0.5, smooth_it=3)
+def shorts_extra(ob, c0, used):
+    # leg openings: relax the stepped boundary into a clean level hem, then turn a 2.5 cm hem inside (real thickness)
+    me = ob.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.verts.ensure_lookup_table()
+    sk = bm.verts.layers.shape
+    keys = list(sk.keys())
+
+    def move(v, mv):
+        v.co += mv
+        for k in keys:
+            v[sk[k]] = v[sk[k]] + mv
+
+    def clone(ex, pos):
+        nv = bm.verts.new(pos, ex)
+        d = pos - ex.co
+        for k in keys:
+            nv[sk[k]] = ex[sk[k]] + d
+        return nv
+
+    hem_e = [e for e in bm.edges if e.is_boundary and all(v.co.z < 0.75 for v in e.verts)]
+    hem_v = {v for e in hem_e for v in e.verts}
+    hs = set(hem_e)
+    nbr = {v: [e.other_vert(v) for e in v.link_edges if e in hs] for v in hem_v}
+    for side in (1, -1):
+        ring = [v for v in hem_v if v.co.x * side > 0]
+        if not ring:
+            continue
+        zt = float(np.mean([v.co.z for v in ring]))
+        for _ in range(30):
+            newp = {}
+            for v in ring:
+                if len(nbr[v]) != 2:
+                    continue
+                m = (nbr[v][0].co + nbr[v][1].co) * 0.5
+                q = v.co * 0.4 + m * 0.6
+                q.z = q.z * 0.5 + zt * 0.5
+                newp[v] = q
+            for v, q in newp.items():
+                move(v, q - v.co)
+    bm.normal_update()
+    tb = {}
+    for v in hem_v:
+        acc = Vector((0, 0, 0))
+        for e in v.link_edges:
+            o = e.other_vert(v)
+            if o not in hem_v:
+                acc += o.co - v.co
+        d = acc.normalized() if acc.length > 1e-6 else Vector((0, 0, 1))
+        tb[v] = clone(v, v.co + d * 0.025 - v.normal * 0.003)
+    for e in hem_e:
+        a, b = e.verts
+        f = bm.faces.new([a, b, tb[b], tb[a]])
+        f.normal_update()
+        if f.normal.dot(-a.normal) < 0:
+            f.normal_flip()
+    bm.to_mesh(me)
+    bm.free()
+
+
+shorts = build("shorts", selP, offP, np.zeros(N, dtype=np.float32), lambda u: np.maximum(sm(0.615, 0.585, co[u, 2]), sm(1.035, 1.06, co[u, 2])), lambda u: sm(0.70, 0.585, co[u, 2]) * 0.5, smooth_it=6, extra=shorts_extra)
+# ---- khaki cargo pants: relaxed straight leg, cargo pocket bulge on the outer thigh, hem stacks on the shoe
+selC = (z > 0.045) & (z < 1.06) & ((wLeg > 0.3) | (wShin > 0.3) | (wTorso > 0.4) | (wFoot > 0.3) & (z > 0.062)) & (wHand < 0.05) & (wFore < 0.05) & (wArm < 0.05)
+side_out = np.clip(vn[:, 0] * np.sign(x), 0, 1)
+offC = (0.011 + 0.016 * sm(0.07, 0.0, np.abs(x)) * sm(1.0, 0.92, z)
+        + 0.016 * sm(0.80, 0.55, z) + 0.026 * sm(0.50, 0.12, z) + 0.022 * sm(0.16, 0.06, z)
+        + 0.024 * sm(0.45, 0.8, side_out) * sm(0.50, 0.56, z) * sm(0.74, 0.68, z))
+pants = build("cargo_pants", selC, offC, np.zeros(N, dtype=np.float32),
+              lambda u: np.maximum(sm(0.09, 0.062, co[u, 2]), sm(1.035, 1.06, co[u, 2])),
+              lambda u: sm(0.30, 0.062, co[u, 2]) * 0.4, smooth_it=8,
+              extra=lambda ob, c0, used: finish_edges(ob, c0, used, level_below=0.3, turn=0.035))
+
 # ---- sneakers: shell over the foot, toes merged into a toe box, flat sole
 selF = (z < 0.118) & (wFoot + wShin > 0.5)
-offF = 0.007 + 0.006 * sm(0.03, 0.0, z)
+offF = 0.010 + 0.006 * sm(0.03, 0.0, z) + 0.008 * sm(0.07, 0.02, z)
 def sole(ob, c0, used):
     me = ob.data
+    # toe box: the toes are separate tubes in the body mesh; push the front of the shell onto a smooth half-ellipsoid
+    for k in me.shape_keys.key_blocks:
+        a = np.zeros(len(me.vertices) * 3)
+        k.data.foreach_get("co", a)
+        a = a.reshape(-1, 3)
+        for side in (1, -1):
+            ft = (a[:, 0] * side > 0)
+            if not ft.any():
+                continue
+            fy = a[ft, 1]
+            ymin, ymax = fy.min(), fy.max()
+            L = ymax - ymin
+            toe = ft & (a[:, 1] < ymin + 0.36 * L)
+            if toe.sum() < 10:
+                continue
+            c = np.array([a[toe, 0].mean(), ymin + 0.36 * L, 0.0])
+            rad = np.array([max(1e-3, np.abs(a[toe, 0] - c[0]).max() * 1.08), 0.36 * L * 1.04, max(1e-3, a[toe, 2].max() * 1.12)])
+            d = (a[toe] - c) / rad
+            r = np.linalg.norm(d, axis=1)
+            proj = c + d / np.maximum(r[:, None], 1e-6) * rad
+            w = np.clip((ymin + 0.36 * L - a[toe, 1]) / (0.08 * L), 0, 1)[:, None]
+            a[toe] = a[toe] * (1 - w) + proj * w
+        k.data.foreach_set("co", a.reshape(-1))
     for k in me.shape_keys.key_blocks:
         a = np.zeros(len(me.vertices) * 3); k.data.foreach_get("co", a); a = a.reshape(-1, 3); low = a[:, 2] < 0.022; a[low, 2] = -0.004 + a[low, 2] * 0.2; k.data.foreach_set("co", a.reshape(-1))
     a = np.zeros(len(me.vertices) * 3); me.shape_keys.key_blocks[0].data.foreach_get("co", a); me.vertices.foreach_set("co", a)
-shoes = build("sneakers", selF, offF, np.zeros(N, dtype=np.float32), lambda u: sm(0.03, 0.018, co[u, 2]), lambda u: np.zeros(len(u)), smooth_it=14, extra=sole)
+shoes = build("sneakers", selF, offF, np.zeros(N, dtype=np.float32), lambda u: sm(0.03, 0.018, co[u, 2]), lambda u: np.zeros(len(u)), smooth_it=30, extra=sole)
 
 np.savez_compressed(os.path.join(WORK, "garment_covers.npz"), **{k: v for k, v in covers.items()})
 bpy.ops.object.select_all(action="DESELECT")
-for o in (arm, shirt, btn, shorts, shoes): o.select_set(True)
+for o in (arm, shirt, btn, shorts, shoes, shirt_open, btn_open, tee, pants): o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, "garments.glb"), export_format="GLB", use_selection=True, export_animations=False, export_morph=True, export_morph_normal=False,
                           export_skins=True, export_def_bones=False, export_yup=True, export_texcoords=True, export_normals=True, export_materials="NONE", export_vertex_color="ACTIVE", export_all_vertex_colors=True, export_active_vertex_color_when_no_material=True)
 print("[garment] exported", os.path.getsize(os.path.join(OUT, "garments.glb")) // 1024, "KB")

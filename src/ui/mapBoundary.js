@@ -41,6 +41,8 @@ export const MIAMI_BOUNDARY = chaikin(RAW, 2);
 export function boundaryFor(city) {
   if (!city) return null;
   if (Array.isArray(city.mapBoundary) && city.mapBoundary.length > 2) return city.mapBoundary;
+  // V2: the whole traced island is playable, so there is no off-limits ring around real Miami
+  if (city.mapLayers?.realRect || city.mapLayers?.cover) return null;
   const b = city.bounds, att = String(city.mapLayers?.attribution || city.attribution || '');
   const miami = city.source === 'osm-miami' || /openstreetmap/i.test(att) || (b && b.maxX - b.minX > 6000 && b.minX < -3000);
   return miami ? MIAMI_BOUNDARY : null;

@@ -20,9 +20,24 @@ export function patchShadowChunks() {
   // find the directional-light shadow line and add the dynamic map (index 1) to light 0
   const line = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif';
   if (!src.includes(line)) { console.warn('[shadows] directional shadow line not found; split shadows disabled'); return false; }
-  C.lights_fragment_begin = src.replace(line, line + `
+  // Edge fade (playtest-fixes): near the border of a shadow map the shadow fades out smoothly instead of
+  // ending in a hard line that jumps whenever the map re-centers (seen as a quick "glitch" while moving).
+  const edgeFn = `
+#ifdef USE_SHADOWMAP
+float psShadowEdge( vec4 sc ) {
+	vec2 q = abs( sc.xy / sc.w * 2.0 - 1.0 );
+	return smoothstep( 0.82, 0.98, max( q.x, q.y ) );
+}
+#endif
+`;
+  if (!C.shadowmap_pars_fragment.includes('psShadowEdge')) C.shadowmap_pars_fragment += edgeFn;
+  const fadedLine = line.replace(
+    'getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;',
+    'mix( getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ i ] ) ) : 1.0;',
+  );
+  C.lights_fragment_begin = src.replace(line, fadedLine + `
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )
-		directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ) : 1.0;
+		directLight.color *= ( directLight.visible && receiveShadow ) ? mix( getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ 1 ] ) ) : 1.0;
 		#endif`);
   void anchor;
   return true;

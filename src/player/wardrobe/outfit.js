@@ -3,13 +3,39 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { makeClothMaterial, makeButtonMaterial } from '../nico/materials.js';
+import { createShirtCloth } from './clothSim.js';
 
 const DIR = '/assets/characters/wardrobe/';
 const P = (n) => DIR + 'prints/tropical_' + n + '.webp';
 // slot order = layering order. `cut` = mesh in garments.glb, `cover` = body mask, colorName/patternName feed describe().
-export const SLOTS = ['top', 'bottom', 'shoes', 'watch', 'chain'];
+export const SLOTS = ['under', 'top', 'bottom', 'shoes', 'watch', 'chain'];
 export const CATALOG = [
-  // ---- tops: Nico's signature plain teal linen-cotton camp shirt, the tropical prints, and the other solids
+  // ---- undershirt
+  {
+    id: 'tee_white',
+    slot: 'under',
+    cut: 'tee',
+    name: 'White crew-neck tee',
+    colorName: 'white',
+    noun: 'tee',
+    price: 0,
+    mat: { color: 0xeeeae2, roughness: 0.92, specular: 0.4, sheen: 0.3, sheenColor: 0xffffff, weaveScale: 3800, fold: 0.5, flutter: 0.2 },
+  },
+  // ---- tops: Nico's signature faded palm-print camp shirt worn open, the plain teal button-up, prints and solids
+  {
+    id: 'shirt_palm_open',
+    slot: 'top',
+    cut: 'camp_shirt_open',
+    name: 'Faded palm camp shirt (open)',
+    colorName: 'teal',
+    patternName: 'palm print',
+    noun: 'shirt',
+    price: 0,
+    signature: true,
+    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xa9b7b6, repeatM: 0.62, roughness: 0.92, specular: 0.35, sheen: 0.25, sheenRoughness: 0.5, sheenColor: 0x4f8f88 },
+    buttons: 0xe9e4d8,
+    thread: 0x2f7f7c,
+  },
   {
     id: 'shirt_camp_teal',
     slot: 'top',
@@ -18,7 +44,6 @@ export const CATALOG = [
     colorName: 'teal',
     noun: 'shirt',
     price: 0,
-    signature: true,
     mat: {
       color: 0x0f5856,
       roughness: 0.9,
@@ -53,7 +78,28 @@ export const CATALOG = [
   { id: 'swim_trunks_coral', slot: 'bottom', cut: 'shorts', name: 'Coral swim trunks', colorName: 'coral', noun: 'swim trunks', price: 28, swim: true, mat: { color: 0xee6f5e, roughness: 0.55, weaveScale: 3400, fold: 0.6 } },
   { id: 'swim_trunks_tropical', slot: 'bottom', cut: 'shorts', name: 'Tropical swim trunks', colorName: 'navy', patternName: 'tropical', noun: 'swim trunks', price: 34, swim: true, mat: { print: P('midnight'), repeatM: 0.45, roughness: 0.55, fold: 0.6 } },
   { id: 'uniform_lifeguard_shorts', slot: 'bottom', cut: 'shorts', name: 'Lifeguard shorts', colorName: 'red', noun: 'shorts', price: 0, disguise: 'lifeguard', mat: { color: 0xc8261e, roughness: 0.6 } },
+  {
+    id: 'pants_cargo_khaki',
+    slot: 'bottom',
+    cut: 'cargo_pants',
+    name: 'Khaki cargo pants',
+    colorName: 'khaki',
+    noun: 'cargo pants',
+    price: 0,
+    mat: { color: 0xa88a5c, roughness: 0.92, specular: 0.4, sheen: 0.25, weaveScale: 2200, fold: 0.7, flutter: 0.3 },
+  },
   // ---- shoes
+  {
+    id: 'sneakers_leather_offwhite',
+    slot: 'shoes',
+    cut: 'sneakers',
+    name: 'Off-white leather sneakers',
+    colorName: 'off-white',
+    noun: 'sneakers',
+    price: 0,
+    leather: true,
+    mat: { color: 0xe4dfd2, roughness: 0.55, specular: 0.6, weave: 0, fold: 0.1, flutter: 0, sheen: 0 },
+  },
   { id: 'sneakers_white', slot: 'shoes', cut: 'sneakers', name: 'White low sneakers', colorName: 'white', noun: 'sneakers', price: 0, mat: { color: 0xf1f0ec, roughness: 0.6, weave: 0.4, fold: 0.15, flutter: 0 }, sole: 0xe6e2d6 },
   { id: 'sneakers_black', slot: 'shoes', cut: 'sneakers', name: 'Black low sneakers', colorName: 'black', noun: 'sneakers', price: 70, mat: { color: 0x18181a, roughness: 0.55, weave: 0.4, fold: 0.15, flutter: 0 } },
   { id: 'sneakers_red', slot: 'shoes', cut: 'sneakers', name: 'Red runners', colorName: 'red', noun: 'sneakers', price: 95, mat: { color: 0xc22a22, roughness: 0.5, weave: 0.8, fold: 0.15, flutter: 0 } },
@@ -63,9 +109,10 @@ export const CATALOG = [
   { id: 'watch_diver_steel', slot: 'watch', name: 'Steel dive watch', colorName: 'steel', noun: 'watch', price: 0, build: 'watch', opt: { caseC: 0xb8bcc2, dial: 0x0f2f3a, band: 0x2a2c30, metalBand: false } },
   { id: 'watch_gold', slot: 'watch', name: 'Gold dress watch', colorName: 'gold', noun: 'watch', price: 2400, build: 'watch', opt: { caseC: 0xd4a94e, dial: 0xf4efe0, band: 0xd4a94e, metalBand: true } },
   { id: 'chain_gold_thin', slot: 'chain', name: 'Thin gold chain', colorName: 'gold', noun: 'chain', price: 0, build: 'chain', opt: { color: 0xd9ad52, r: 0.0014 } },
+  { id: 'chain_silver_thin', slot: 'chain', name: 'Thin silver chain', colorName: 'silver', noun: 'chain', price: 0, build: 'chain', opt: { color: 0xc9cdd2, r: 0.0013 } },
   { id: 'chain_silver', slot: 'chain', name: 'Silver curb chain', colorName: 'silver', noun: 'chain', price: 320, build: 'chain', opt: { color: 0xc4c8cc, r: 0.0022 } },
 ];
-export const DEFAULT_OUTFIT = ['shirt_camp_teal', 'shorts_khaki', 'sneakers_white', 'watch_diver_steel', 'chain_gold_thin'];
+export const DEFAULT_OUTFIT = ['tee_white', 'shirt_palm_open', 'pants_cargo_khaki', 'sneakers_leather_offwhite', 'watch_diver_steel', 'chain_silver_thin'];
 const byId = new Map(CATALOG.map((p) => [p.id, p]));
 export const getPiece = (id) => byId.get(id);
 
@@ -76,7 +123,7 @@ export function preloadWardrobe() {
     const gltf = await new GLTFLoader().loadAsync(DIR + 'garments.glb');
     const cuts = {}; gltf.scene.traverse((o) => { if (o.isSkinnedMesh) cuts[o.name.replace(/[._]?\d+$/, '')] = o; });
     const covers = {};
-    await Promise.all(['camp_shirt', 'shorts', 'sneakers'].map((n) => new Promise((res) => { const im = new Image(); im.onload = () => { covers[n] = im; res(); }; im.onerror = () => res(); im.src = DIR + 'covers/' + n + '.png'; })));
+    await Promise.all(['camp_shirt', 'camp_shirt_open', 'tee', 'shorts', 'cargo_pants', 'sneakers'].map((n) => new Promise((res) => { const im = new Image(); im.onload = () => { covers[n] = im; res(); }; im.onerror = () => res(); im.src = DIR + 'covers/' + n + '.png'; })));
     return { cuts, covers };
   })();
   return LIB;
@@ -103,7 +150,34 @@ function buildWatch(o) {
 
 const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 export function createOutfit({ character, model, bone, skin, meta, game }) {
-  const time = { value: 0 }, wind = { value: new THREE.Vector3(0.3, 0, 0.15) }, wet = { value: 0 };
+  const time = { value: 0 }, wind = { value: new THREE.Vector3(0.3, 0, 0.15) }, wet = { value: 0 }, wetLine = { value: 3.0 };
+  // cloth swing: one damped spring (model space) driven by the body's acceleration and the air moving past it
+  const swing = { value: new THREE.Vector3() };
+  let cloth = null;                                  // multi-point shirt cloth (clothSim.js)
+  const sim = {
+    x: new THREE.Vector3(),
+    v: new THREE.Vector3(),
+    prevP: null,
+    vel: new THREE.Vector3(),
+    acc: new THREE.Vector3(),
+    gustT: Math.random() * 100,
+    tread: new THREE.Vector3(),
+  };
+  const _p = new THREE.Vector3(), _w = new THREE.Vector3(), _rel = new THREE.Vector3(), _qi = new THREE.Quaternion(), _tg = new THREE.Vector3();
+  // game.wind may be a vector { x, z } (m/s) or { dir | angle, speed, gust }; otherwise a mild shifting breeze
+  function readWind(out, t) {
+    const gw = game?.wind;
+    if (gw && typeof gw.x === 'number' && typeof gw.z === 'number') return out.set(gw.x, 0, gw.z).multiplyScalar(1 + (gw.gust || 0) * Math.max(0, Math.sin(t * 0.9) * Math.sin(t * 2.3)));
+    if (gw && typeof gw.speed === 'number') {
+      const a = typeof gw.angle === 'number' ? gw.angle : 0;
+      const d = gw.dir || gw.direction;
+      if (d && typeof d.x === 'number') out.set(d.x, 0, d.z ?? d.y ?? 0).normalize(); else out.set(Math.sin(a), 0, Math.cos(a));
+      const g = 1 + (gw.gust || 0) * Math.max(0, Math.sin(t * 0.9) * Math.sin(t * 2.3)) * 1.5;
+      return out.multiplyScalar(gw.speed * g);
+    }
+    const a = 0.6 + Math.sin(t * 0.05) * 0.8;
+    return out.set(Math.sin(a), 0, Math.cos(a)).multiplyScalar(1.6 + 1.2 * Math.max(0, Math.sin(t * 0.7) * Math.sin(t * 1.9)));
+  }
   const worn = {};                      // slot -> { piece, objects: [Object3D] }
   let bodyW = { fat: 0, thin: 0, muscle: 0 };
   const skinned = () => { let s = null; model.traverse((o) => { if (!s && o.isSkinnedMesh && /LOD1/.test(o.name + (o.parent?.name || ''))) s = o; }); return s; };
@@ -131,14 +205,38 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
       const p = byId.get(id); if (!p) return false;
       remove(p.slot); const objects = [];
       if (p.cut) {
-        const mat = makeClothMaterial({ ...p.mat, construct: p.cut === 'camp_shirt', time, wind, wet });
+        const isShirt = p.cut === 'camp_shirt' || p.cut === 'camp_shirt_open';
+        const mat = makeClothMaterial({
+          ...p.mat,
+          construct: isShirt,
+          clothSim: isShirt,
+          shoe: p.cut === 'sneakers' && !p.noSole,
+          leather: !!p.leather,
+          cargo: p.cut === 'cargo_pants',
+          openShirt: p.cut === 'camp_shirt_open',
+          shorts: p.cut === 'shorts' && !p.swim,
+          time,
+          wind,
+          wet,
+          wetLine,
+          swing: isShirt ? { value: new THREE.Vector3() } : swing,
+        });
         const m = attachCut(p.cut, mat); if (!m) return false; applyBody(m); objects.push(m);
-        if (p.cut === 'camp_shirt') {
+        if (isShirt) {
+          try {
+            cloth = createShirtCloth({ mesh: m, model, bone, game, open: p.cut === 'camp_shirt_open' });
+            mat.userData.u.uCP = cloth.uCP;
+          } catch (e) {
+            cloth = null;
+            console.warn('[wardrobe] shirt cloth unavailable', e);
+          }
+        }
+        if (isShirt) {
           const bm = makeButtonMaterial({
             color: p.buttons ?? 0xf0ead8,
             thread: p.thread ?? p.mat.color ?? p.buttons ?? 0xf0ead8,
           });
-          const b = attachCut('camp_shirt_buttons', bm);
+          const b = attachCut(p.cut + '_buttons', bm);
           if (b) objects.push(b);
         }
       } else if (p.build === 'watch') {
@@ -169,13 +267,56 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
     // plain-language description for the police / witness system: "male, teal tropical shirt, khaki shorts, white sneakers"
     describe() {
       const parts = ['male'];
-      for (const s of ['top', 'bottom', 'shoes']) { const p = worn[s]?.piece; if (p) parts.push([p.colorName, p.patternName, p.noun].filter(Boolean).join(' ')); else if (s === 'top') parts.push('shirtless'); else if (s === 'shoes') parts.push('barefoot'); }
+      for (const s of ['top', 'bottom', 'shoes']) {
+        const p = worn[s]?.piece;
+        const u = s === 'top' ? worn.under?.piece : null;
+        if (p) parts.push([p.colorName, p.patternName, p.noun].filter(Boolean).join(' ') + (u ? ' over a ' + [u.colorName, u.noun].join(' ') : ''));
+        else if (s === 'top') parts.push(u ? [u.colorName, u.noun].join(' ') : 'shirtless');
+        else if (s === 'shoes') parts.push('barefoot');
+      }
       return parts.join(', ');
     },
     disguise() { const t = worn.top?.piece?.disguise; return t || null; },
     setBody(w) { bodyW = w; for (const s in worn) for (const o of worn[s].objects) if (o.isSkinnedMesh) applyBody(o); },
-    setWet(v) { wet.value = v; }, setLOD() {},
-    update(dt, anim) { time.value += dt; const sp = anim?.speed || 0; wind.value.set(0.25 + 0.1 * Math.sin(time.value * 0.7), 0, -Math.min(1.2, sp * 0.16)); },
+    setWet(v, line) { wet.value = v; if (line !== undefined) wetLine.value = line; }, setLOD() {},
+    update(dt, anim) {
+      time.value += dt;
+
+      const h = Math.min(0.05, Math.max(1e-3, dt));
+      model.getWorldPosition(_p);
+      if (sim.prevP) {
+        const nv = _w.subVectors(_p, sim.prevP).divideScalar(h);
+        if (nv.lengthSq() > 900) nv.set(0, 0, 0);                    // teleports
+        sim.acc.lerp(_tg.subVectors(nv, sim.vel).divideScalar(h), 0.3);
+        sim.vel.copy(nv);
+      }
+      sim.prevP = (sim.prevP || new THREE.Vector3()).copy(_p);
+      const aspd = anim?.swimming ? 0 : (anim?.speed || 0);
+      sim.tread.set(0, 0, 0);
+      if (aspd > 0.3 && sim.vel.length() < aspd * 0.2) {                       // in place (viewer, treadmill): use the gait speed
+        model.getWorldDirection(_w).setY(0).normalize();
+        sim.tread.copy(_w).multiplyScalar(aspd);
+        sim.vel.lerp(sim.tread, 0.2);
+      }
+      if (cloth && /^camp_shirt/.test(worn.top?.piece?.cut || '')) {
+        try { cloth.update(dt, sim.tread, wet.value * (wetLine.value > 0.9 ? 1 : 0.4)); } catch (e) { cloth = null; }
+      }
+      model.getWorldQuaternion(_qi).invert();
+      readWind(_rel, time.value).sub(sim.vel).applyQuaternion(_qi);          // air moving past the body, model space
+      const air = _rel.length();
+      // drag pushes the loose cloth downwind (more at speed), a little lift when running; inertia from acceleration
+      _tg.copy(_rel).multiplyScalar(0.0075 * Math.min(1, 0.35 + air * 0.12));
+      _tg.y = Math.min(0.012, air * 0.0018);
+      const accL = _w.copy(sim.acc).applyQuaternion(_qi).clampLength(0, 30);
+      const k = 70, c = 5.5;
+      sim.v.addScaledVector(_w.subVectors(_tg, sim.x).multiplyScalar(k).addScaledVector(sim.v, -c).addScaledVector(accL, -0.35), h);
+      sim.x.addScaledVector(sim.v, h).clampLength(0, 0.06);
+      // walking / running bob: the hem keeps bouncing a little behind the stride
+      const sp = anim?.speed || 0;
+      const bob = Math.sin(time.value * (5.5 + sp * 1.2)) * Math.min(0.006, sp * 0.0016);
+      swing.value.set(sim.x.x, sim.x.y + bob, sim.x.z);
+      wind.value.copy(_rel).multiplyScalar(0.12).clampLength(0, 1.2);
+    },
   };
   if (_lib) outfit.set(DEFAULT_OUTFIT); else preloadWardrobe().then(() => outfit.set(DEFAULT_OUTFIT));
   return outfit;

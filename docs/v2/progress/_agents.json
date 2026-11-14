@@ -2,11 +2,14 @@
  "startedAt": "2026-11-13T16:42:00-07:00",
  "limit": 20,
  "running": [
-  "nico-house",
-  "environment",
-  "vegetation",
+  "world-osm",
+  "city-look",
   "character",
-  "world-layout"
+  "nico-house",
+  "ui-frontend",
+  "playtest-fixes",
+  "desktop",
+  "audio-clean"
  ],
  "queued": [
   "police",
@@ -21,26 +24,26 @@
  "done": [
   "boats",
   "hero-cars",
-  "city-look",
-  "world-osm",
   "keys-sign",
   "interiors-engine",
   "design-system",
-  "character",
   "keys-bar",
   "world-render",
   "vehicles-core",
   "sand-wear",
-  "npc-ai"
+  "npc-ai",
+  "vegetation",
+  "world-layout",
+  "environment"
  ],
- "launchedTotal": 27,
+ "launchedTotal": 34,
  "note": "4 on Fable, 4 on Opus 5.5",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 64,
-  "fable": 72,
-  "cap": 85,
-  "at": "7:25 PM",
+  "all": 66,
+  "fable": 75,
+  "cap": 90,
+  "at": "7:05 PM",
   "log": [
    [
     "17:36",

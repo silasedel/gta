@@ -17,12 +17,14 @@ land = [P(d) for d in F['land']]; water = [P(d) for d in F['water']]; areas = [P
 res['invalid_polygons'] = dict(land=sum(not p.is_valid for p in land), water=sum(not p.is_valid for p in water), areas=sum(not p.is_valid for p in areas))
 rr = F['realRect']; realbox = sbox(rr['minX'], rr['minZ'], rr['maxX'], rr['maxZ'])
 rd = R.load_real()
-landU = unary_union([p.buffer(0) for p in land] + ([rd['land']] if rd.get('land') is not None else []))
+landU = unary_union([p.buffer(0) for p in land])
 waterU = unary_union([p.buffer(0) for p in water])
 dry = prep(landU.buffer(1.0))
 B = F['buildings']; bp = [Polygon(b['ring']) for b in B]
 res['buildings'] = len(B); res['invalid_buildings'] = sum(not p.is_valid for p in bp)
-res['buildings_in_real_rect'] = sum(p.intersects(realbox) for p in bp)
+keep = realbox.intersection(rd['land'].buffer(8)).intersection(unary_union([p.buffer(0) for p in land]).buffer(8)).buffer(-1)
+kp = prep(keep)
+res['buildings_in_real_rect'] = sum(kp.intersects(p) for p in bp)
 res['buildings_off_land'] = sum(not dry.contains(p) for p in bp)
 wp = prep(waterU)
 res['buildings_on_inland_water'] = sum(wp.intersects(p) for p in bp)
@@ -42,7 +44,7 @@ for i, p in enumerate(bp):
         if j > i and p.intersection(bp[int(j)]).area > 0.5: ov += 1
 res['building_pairs_overlapping'] = ov
 # roads over water without bridge
-sea = sbox(F['bounds']['minX'], F['bounds']['minZ'], F['bounds']['maxX'], F['bounds']['maxZ']).difference(landU.buffer(0.5)).union(waterU.buffer(-0.5)).difference(realbox)
+sea = sbox(F['bounds']['minX'], F['bounds']['minZ'], F['bounds']['maxX'], F['bounds']['maxZ']).difference(landU.buffer(0.5)).union(waterU.buffer(-0.5)).difference(keep)
 seap = prep(sea); wetlen = 0; wetn = 0
 for r, ln in zip(roads, rl):
     if r['bridge']: continue
@@ -50,7 +52,7 @@ for r, ln in zip(roads, rl):
         L = ln.intersection(sea).length
         if L > 3.0: wetn += 1; wetlen += L
 res['non_bridge_roads_over_water'] = dict(count=wetn, meters=round(wetlen, 1))
-inner = realbox.buffer(-3)
+inner = keep.buffer(-3)
 res['road_meters_inside_real_rect'] = round(sum(l.intersection(inner).length for l in rl if l.intersects(inner)), 1)
 _cz = landU.boundary.intersection(realbox.boundary.buffer(45)).difference(realbox.buffer(-2))
 _n = 0; _mx = 0.0; _where = []
@@ -128,6 +130,11 @@ res['banned_name_hits'] = sorted({n for n in names if any(b in n.lower() for b i
 pn = [p['name'] for p in F['places']]; res['duplicate_place_names'] = sorted({n for n in pn if pn.count(n) > 1})
 res['unnamed_public_roads'] = sum(1 for r in roads if not r['name'] and r['kind'] not in ('service', 'motorway_link', 'track'))
 res['setpieces'] = [s['id'] for s in F['setpieces']]
+lotres = {}
+for s_ in F['setpieces']:
+    lot_ = Polygon(s_['lot']) if 'lot' in s_ else Point(s_['x'], s_['z']).buffer(s_.get('verge_radius', 6))
+    lotres[s_['id']] = dict(roads=sum(1 for r, l_ in zip(roads, rl) if l_.buffer(r['width'] / 2).intersects(lot_)), buildings=sum(1 for p_ in bp if p_.intersects(lot_)), water=sum(1 for w_ in water if w_.intersects(lot_)), on_land=bool(landU.contains(lot_)))
+res['setpiece_lots'] = lotres
 res['islands'] = len(land); res['pois'] = len(F['pois']); res['poi_types'] = len({p['type'] for p in F['pois']})
 hard = ['invalid_buildings', 'buildings_in_real_rect', 'buildings_off_land', 'buildings_on_inland_water', 'buildings_overlapping_roads', 'building_pairs_overlapping', 'joins_with_missing_road']
 res['hard_failures'] = {k: res[k] for k in hard if res[k]}
@@ -135,6 +142,7 @@ if res['road_components'] != 1: res['hard_failures']['road_components'] = res['r
 if wetn: res['hard_failures']['non_bridge_roads_over_water'] = wetn
 if res['road_meters_inside_real_rect'] > 1: res['hard_failures']['road_meters_inside_real_rect'] = res['road_meters_inside_real_rect']
 if res['banned_name_hits']: res['hard_failures']['banned'] = res['banned_name_hits']
+if any(v['roads'] or v['buildings'] or v['water'] or not v['on_land'] for v in res['setpiece_lots'].values()): res['hard_failures']['setpiece_lots'] = res['setpiece_lots']
 if res['max_step_between_16m_samples'] > 6.0: res['hard_failures']['max_step_between_16m_samples'] = res['max_step_between_16m_samples']
 if res['ground_pairs_2m_step_over_0_8m']: res['hard_failures']['ground_pairs_2m_step_over_0_8m'] = res['ground_pairs_2m_step_over_0_8m']
 if res['terrain_road_segments_over_12_5pct']: res['hard_failures']['terrain_road_segments_over_12_5pct'] = res['terrain_road_segments_over_12_5pct']

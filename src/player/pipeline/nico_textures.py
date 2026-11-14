@@ -30,7 +30,7 @@ rs = np.random.RandomState(11)
 
 # Nico's palette (sRGB 0..1)
 SKIN_GAIN = np.array([0.66, 0.535, 0.455], dtype=np.float32)       # linear gain from the light CC0 base to olive tan
-HAIR = np.array([0.060, 0.042, 0.032], dtype=np.float32)           # linear, near-black warm brown
+HAIR = np.array([0.050, 0.032, 0.020], dtype=np.float32)           # linear, near-black warm brown
 def loop_vert_attr(a): return a[pf]                                  # per-loop copy of a per-vertex attribute
 
 def jacobian(P, mask):
@@ -187,8 +187,8 @@ def paint_head():
         up = (p[:, 2] < 1.555)                                        # under the jaw the growth turns up toward the chin
         v[up] = np.stack([np.zeros(up.sum()), -0.6 * np.ones(up.sum()), 0.6 * np.ones(up.sum())], 1)
         return v
-    n_beard = int(30000 * scale * scale)
-    bt = hair_strokes(beard_d, ok, dPdx, dPdy, n_beard, beard_dir, lambda p, r: 0.0011 + 0.0011 * r.rand(len(p)), 1.45 * scale, alpha=(0.5, 1.0), jitter=0.55, seed=41, P=P, N=N)
+    n_beard = int(75000 * scale * scale)                              # heavy stubble (pass 3)
+    bt = hair_strokes(beard_d, ok, dPdx, dPdy, n_beard, beard_dir, lambda p, r: 0.0017 + 0.0015 * r.rand(len(p)), 1.45 * scale, alpha=(0.5, 1.0), jitter=0.55, seed=41, P=P, N=N)
     cov_b, sh_b = stamp_strokes(SZ, bt)
     def brow_dir_for(side):
         inner, mid, outer = BF[side]; axv = outer - inner; L = np.linalg.norm(axv); axn = axv / L
@@ -205,12 +205,12 @@ def paint_head():
         bs.append(hair_strokes(dm, ok, dPdx, dPdy, int(1500 * scale * scale), brow_dir_for(side), lambda p, r: 0.0050 + 0.0035 * r.rand(len(p)), 1.6 * scale, alpha=(0.55, 1.0), curve=0.10, jitter=0.16, seed=50 + side, P=P, N=N))
     cov_w, sh_w = stamp_strokes(SZ, np.concatenate(bs))
     # follicle shadow under the skin (blurred coverage) then the hairs themselves
-    shadow = np.clip(ndi.gaussian_filter(cov_b, 5 * scale) * 2.2 + ndi.gaussian_filter(beard_d, 10 * scale) * 0.12, 0, 1)
+    shadow = np.clip(ndi.gaussian_filter(cov_b, 5 * scale) * 2.2 + ndi.gaussian_filter(beard_d, 10 * scale) * 0.30, 0, 1)
     lin *= 1 - shadow[..., None] * np.array([0.30, 0.25, 0.20], dtype=np.float32)
     sc_sh = np.clip(ndi.gaussian_filter(cov_s, 4 * scale) * 1.8 + scalp * 0.25 * smooth(2, 14, hair_d), 0, 1)
     lin *= 1 - sc_sh[..., None] * np.array([0.52, 0.50, 0.46], dtype=np.float32)
     bw_sh = np.clip(ndi.gaussian_filter(cov_w, 4 * scale) * 1.3, 0, 1); lin *= 1 - bw_sh[..., None] * 0.30
-    for cov, sh, op in ((cov_s, sh_s, 0.95), (cov_b, sh_b, 0.80), (cov_w, sh_w, 0.95)):
+    for cov, sh, op in ((cov_s, sh_s, 0.95), (cov_b, sh_b, 0.92), (cov_w, sh_w, 0.95)):
         a = (cov * op)[..., None]; lin = lin * (1 - a) + (HAIR * (0.75 + 0.9 * (sh[..., None] - 0.75))) * a
     lin = lin * (1 - scar[..., None] * 0.5) + scar[..., None] * 0.5 * np.array([0.62, 0.40, 0.33], dtype=np.float32)   # pale scar tissue
     # ambient occlusion from the mesh, kept gentle in the albedo (most of it goes to the AO channel)

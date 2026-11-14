@@ -6,7 +6,7 @@ import { CELL, BARK, barkU } from './textures.js';
 import { branch, cluster, groundCard, cellRect } from './plantkit.js';
 
 const V3 = THREE.Vector3;
-export const TREE_KINDS = ['liveoak', 'slashpine', 'cypress', 'mangrove'];
+export const TREE_KINDS = ['liveoak', 'gumbo', 'slashpine', 'cypress', 'mangrove'];
 
 // hanging Spanish moss: vertical strips under a limb point
 function moss(gb, R, p, len) {
@@ -22,7 +22,14 @@ export function buildTree(opts = {}) {
   const gb = { bark: new GB(), leaf: new GB() }, ctr = new V3();
   let H = 0;
   const leafCol = (base) => { const g = 0.85 + R() * 0.3; return [base[0] * g, base[1] * g, base[2] * g]; };
-  if (kind === 'liveoak') {
+  if (kind === 'gumbo') { // gumbo limbo: copper-red peeling trunk forking low into a few upright sinuous limbs, open rounded crown
+    const trunkH = (1.8 + R() * 1.2) * sz, Hc = (6 + R() * 3) * sz; H = trunkH + Hc * 0.7; ctr.set(0, trunkH + Hc * 0.45, 0);
+    const P = { radial: 9, segLen: 0.6, children: [3, 3, 2], spread: 0.8, lenK: 0.55, rK: 0.62, up: 0.03, sag: 0.05, wobble: 0.4, childStart: 0.3, barkCol: [1.3, 0.82, 0.66], barkRep: 1.4, flare: 0.35, leafFrom: 2, leafPerSeg: 1.1, leafSpan: 0.8,
+      onLeaf: (p) => cluster(gb, R, p.clone().add(new V3(0, 0.2, 0)), (lod ? 2.0 : 1.35) * (0.8 + R() * 0.4), CELL.mangrove, ctr, leafCol([1.05, 1.1, 0.85]), lod ? 2 : 3, 0.1, 0.6) };
+    const top = branch(gb, R, new V3(), new V3((R() - 0.5) * 0.25, 1, (R() - 0.5) * 0.25), trunkH, 0.3 * sz, 0, { ...P, children: [0], onLeaf: null }, lod);
+    const nL = 3 + ((R() * 2) | 0);
+    for (let k = 0; k < nL; k++) { const a = k * 6.28 / nL + R() * 0.7; branch(gb, R, top.clone().add(new V3(0, -0.15, 0)), new V3(Math.cos(a) * 0.6, 1, Math.sin(a) * 0.6), Hc * (0.55 + R() * 0.3), (0.16 + R() * 0.05) * sz, 0, { ...P, children: [3, 2] }, lod); }
+  } else if (kind === 'liveoak') {
     const trunkH = (2.2 + R() * 1.4) * sz, spread = (7 + R() * 4) * sz; H = trunkH + spread * 0.5; ctr.set(0, trunkH + 1.5, 0);
     const mossy = 0.3 + R() * 0.6;
     const P = { radial: 9, segLen: 0.7, children: [5, 3, 3], spread: 0.95, lenK: 0.55, rK: 0.62, up: 0.01, sag: 0.18, wobble: 0.35, childStart: 0.25, barkCol: [0.75, 0.72, 0.68], barkRep: 1.6, flare: 0.5, leafFrom: 2, leafPerSeg: 1.2, leafSpan: 0.9,

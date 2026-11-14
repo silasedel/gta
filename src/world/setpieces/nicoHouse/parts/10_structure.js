@@ -18,7 +18,8 @@ export function build(ctx) {
 
   // ---------- piles and footings ----------
   const piles = [];
-  for (const x of P.pileXs) for (const z of P.pileZs) { if ((x > 2.01 && z > 5) || (z > 5 && x > -6.3 && x < -0.9)) continue; piles.push([x, z]); }
+  for (const x of P.pileXs) for (const z of P.pileZs) { if ((x > 2.01 && z > 5) || (z > 5 && x > -6.3 && x < -0.9)) continue;
+    if (Math.abs(x + 3.6) < 0.01 && Math.abs(z - 2.8) < 0.01) continue; piles.push([x, z]); }   // pile at (-3.6, 2.8) left out: open carport bay at the street front (part 47)
   piles.push([4.3, 4.25], [6.42, 4.25]);
   ctx.piles = piles;
   for (const [x, z] of piles) {
@@ -127,9 +128,9 @@ export function build(ctx) {
     const a = [px + dx * (P.pileR - 0.01), girBot - 0.78, pz + dz * (P.pileR - 0.01)], b = [px + dx * 0.86, girBot + 0.02, pz + dz * 0.86];
     B.strut(W, a, b, 0.088, 0.088, { color: kit.vary(kit.mul(C.pile, 1.05), r, 0.1), wear: 0.6, bevel: 0.005, extra: 0.1, rand: r });
   };
-  knee(-6.4, 5.02, -1, 0); knee(-0.8, 5.02, 1, 0); knee(2.0, 5.02, -1, 0); for (const x of [-6.4, -3.6, -0.8]) { knee(x, 2.8, 0, -1); }
+  knee(-6.4, 5.02, -1, 0); knee(-0.8, 5.02, 1, 0); knee(2.0, 5.02, -1, 0); for (const x of [-6.4, -0.8]) { knee(x, 2.8, 0, -1); }
   for (const z of [-3.2, -0.2, 2.8]) { knee(-8.42, z, 1, 0); }
-  for (const x of [-3.6, -0.8]) { knee(x, 2.8, 1, 0); knee(x, 2.8, -1, 0); knee(x, -0.2, 1, 0); knee(x, -0.2, -1, 0); }
+  for (const x of [-3.6, -0.8]) { if (x > -1) { knee(x, 2.8, -1, 0); } knee(x, -0.2, 1, 0); knee(x, -0.2, -1, 0); }
 
   // ---------- railings ----------
   const R = P.rail, railY = F + R.h;

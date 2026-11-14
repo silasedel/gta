@@ -107,8 +107,10 @@ function emit(S, x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, kind, grav, drag
   S.kind[i] = kind; S.grav[i] = grav; S.drag[i] = drag; S.floorY[i] = floorY;
 }
 
+let WIND = null; // game.wind (set in createFX): light puffs (smoke, dust, mist) are carried by it
 function stepSystem(S, dt) {
   let n = S.n;
+  const wx = WIND ? WIND.vx : 0, wz = WIND ? WIND.vz : 0, wk = WIND ? Math.min(1, dt * 1.1) : 0;
   for (let i = 0; i < n; i++) {
     S.life[i] += dt;
     if (S.life[i] >= S.maxLife[i]) {
@@ -124,6 +126,7 @@ function stepSystem(S, dt) {
     }
     const d = Math.max(0, 1 - S.drag[i] * dt);
     const i3 = i * 3;
+    if (wk > 0 && S.kind[i] < 0.5 && S.drag[i] > 0) { const a = wk * Math.min(1, S.life[i] * 1.5); S.vel[i3] += (wx - S.vel[i3]) * a; S.vel[i3 + 2] += (wz - S.vel[i3 + 2]) * a; }
     S.vel[i3] *= d; S.vel[i3 + 1] = S.vel[i3 + 1] * d - S.grav[i] * dt; S.vel[i3 + 2] *= d;
     S.pos[i3] += S.vel[i3] * dt; S.pos[i3 + 1] += S.vel[i3 + 1] * dt; S.pos[i3 + 2] += S.vel[i3 + 2] * dt;
     if (S.pos[i3 + 1] < S.floorY[i]) { // hit floor: kill droplets quickly, bounce chips
@@ -268,6 +271,7 @@ export function createFX(game, env) {
   const D = makeDecals(MAX_DECALS);
   scene.add(A.pts, B.pts, R.mesh, D.mesh);
   const inWater = (x, z) => (game.city?.isWater ? !!game.city.isWater(x, z) : false);
+  WIND = game.wind || null;
   const seaLevel = () => (game.city?.seaLevel ?? env?.seaLevel ?? -0.12);
 
   // pooled muzzle flash light (kept in scene at 0 intensity so the light count never changes)

@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { Batch, orient, wallStrip, parapet, palmGeometry, capPoly } from '../city/geo.js';
 import { rng } from '../city/tex.js';
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
+import { makeVegMaterial } from '../vegetation/materials.js';
+import { bakeImpostor } from '../vegetation/field.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
 
 const PASTELS = [0xff9eb8, 0x7fe3d0, 0xffe08a, 0xbfa6ff, 0xffbf80, 0xa8eba0, 0x80d4ff, 0xff8fa8, 0xf6efe4, 0xfff3d6, 0xffb3e6, 0x9ff0e8];
@@ -151,6 +153,26 @@ export function createTileBuilder(ctx) {
     return g;
   }
   const leafG = cardBush(0), flowerG = cardBush(0.5);
+  // street palm LODs (vegetation track): full detail < 48 m, simplified 40-165 m, baked impostor cards 150-480 m; dithered cross-fades
+  const PL = { b0: 40, e0: 48, b1: 150, e1: 165 }, palmLod = [];
+  try {
+    const mk = (f, fade) => { const b = makeVegMaterial('bark', { fade, lean: 0.006, sway: 0.0035 }), l = makeVegMaterial('leaf', { fade, lean: 0.006, sway: 0.0035 }); return { bark: b, leaf: l }; };
+    const m0 = mk(0, [0, 0, PL.b0, PL.e0]), m1 = mk(1, [PL.b0, PL.e0, PL.b1, PL.e1]), ren = ctx.renderer || globalThis.game?.renderer;
+    palmVariants.forEach((pg, v) => {
+      const a = pg.args, g1 = palmGeometry(a[0], a[1], a[2], pr, { ...a[3], lod: 1 }); // same seed -> same palm, fewer triangles
+      pg.trunk.userData.lodMax = pg.fronds.userData.lodMax = PL.e0; g1.trunk.userData.lodMin = g1.fronds.userData.lodMin = PL.b0; g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = PL.e1;
+      const L = { g0: pg, g1, m0, m1, imp: null };
+      if (ren) { try { const im = bakeImpostor(ren, 'street_palm', v, { bark: pg.trunk, leaf: pg.fronds }, makeVegMaterial('bark').mat, makeVegMaterial('leaf').mat); im.geometry.userData.lodMin = PL.b1; im.geometry.userData.lodMax = 480; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [PL.b1, PL.e1, 0, 0], alphaTest: 0.5, transl: 0.3 }) }; } catch (e) { console.warn('[vegetation] palm impostor bake failed', e); } }
+      if (!L.imp) g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = 480;
+      palmLod.push(L);
+    });
+  } catch (e) { console.warn('[vegetation] palm LODs unavailable', e); palmLod.length = 0; }
+  function vegTrees(group, sp, items) {
+    const VT = flora?.VT?.[sp]; if (!VT || !VT.length || !M.vegLeaf) return false;
+    const per = VT.map(() => []); items.forEach((it, i) => per[(i + Math.abs((it.x * 3) | 0)) % per.length].push(it));
+    per.forEach((it, v) => { if (!it.length) return; inst(group, VT[v].bark, M.vegBark, it, { cast: true, depth: M.vegBarkDepth }); inst(group, VT[v].leaf, M.vegLeaf, it, { cast: true, depth: M.vegLeafDepth }); });
+    return true;
+  }
   // street shrubs (vegetation track): real shrub variants (woody skeleton, leaf clusters, flowers, litter) split over bush / flower-bed props
   const vegBush = { blob: [], flower: [] };
   try {
@@ -215,6 +237,7 @@ export function createTileBuilder(ctx) {
     if (!p.geom.boundingSphere) p.geom.computeBoundingSphere();
     const bs = p.geom.boundingSphere; p.rad = bs.radius + bs.center.length(); p.cy = bs.center.y;
     p.maxD = Math.max(140, Math.min(480, p.rad * 70));
+    if (p.geom.userData.lodMax) p.maxD = p.geom.userData.lodMax; p.minD = p.geom.userData.lodMin || 0; // vegetation LOD bands
     im.count = 0; im.frustumCulled = false; im.castShadow = p.cast; im.receiveShadow = true; if (p.depth) im.customDepthMaterial = p.depth;
     p.mesh = im; p.cap = cap; p.dirty = true; root.add(im);
   }
@@ -231,7 +254,7 @@ export function createTileBuilder(ctx) {
       const im = p.mesh, S = p.src, D = im.instanceMatrix.array, SC = p.srcC, DC = SC ? im.instanceColor.array : null, md2 = p.maxD * p.maxD; let n = 0;
       for (let i = 0; i < p.count; i++) {
         const o = i * 16, sc = Math.sqrt(S[o] * S[o] + S[o + 1] * S[o + 1] + S[o + 2] * S[o + 2]) || 1, x = S[o + 12], y = S[o + 13] + p.cy * sc, z = S[o + 14];
-        const dx = x - cx, dz = z - cz; if (dx * dx + dz * dz > md2) continue;
+        const dx = x - cx, dz = z - cz; if (dx * dx + dz * dz > md2 || (p.minD && dx * dx + dz * dz < p.minD * p.minD)) continue;
         const r = p.rad * sc + 18; let vis = true; // 18 m margin: off-screen casters still throw their shadows into view
         for (let k = 0; k < 6; k++) { const pl = PL[k]; if (pl.normal.x * x + pl.normal.y * y + pl.normal.z * z + pl.constant < -r) { vis = false; break; } }
         if (!vis) continue;
@@ -283,8 +306,25 @@ export function createTileBuilder(ctx) {
   const meshOf = (batch, mat, { cast = true, receive = true } = {}) => { if (batch.empty) return null; const m = batch.build(mat, { cast, receive }); m.matrixAutoUpdate = false; m.updateMatrix(); return m; };
 
   // ---- style selection ----
+  // ---- skyline landmarks: the tallest towers in the tile data (h >= 140 m, single footprint) each get one of these designs,
+  // picked from the building id (deterministic, data-driven, never keyed to coordinates). Names are ours.
+  const LANDMARKS = [
+    { name: 'Halcyon Crown', style: 'glass', mode: 1, amt: 4, cuts: [0.5, 0.7, 0.86], kind: 0.4 },
+    { name: 'Marisol Residences', style: 'band', mode: 2, amt: 5, cuts: [], kind: 0.9, wrap: true },
+    { name: 'Coralline Tower', style: 'glass', mode: 2, amt: 60, cuts: [0.8], kind: 0.6 },
+    { name: 'Bayline One', style: 'band', mode: 1, amt: 3, cuts: [0.74], kind: 0.8, wrap: true },
+    { name: 'Solana Center (topping out)', style: 'band', mode: 0, amt: 0, cuts: [], kind: 0.9, crane: true },
+    { name: 'Stanton Plaza', style: 'office', mode: 0, amt: 0, cuts: [0.55, 0.8], kind: 0.2 },
+    { name: 'Tidewater Point', style: 'glass', mode: 1, amt: 7, cuts: [0.66], kind: 0.65 },
+    { name: 'Las Brisas Condominium', style: 'band', mode: 2, amt: 9, cuts: [0.85], kind: 0.45, wrap: true },
+  ];
+  function landmarkOf(b) {
+    if (!b || b.part || b._noTower || (b.minH || 0) > 0.5 || !(b.h >= 140) || !(b.area > 450)) return null;
+    return LANDMARKS[(hash(((b.id % 2147483647) | 0) + 80) * LANDMARKS.length) | 0];
+  }
   function styleFor(b, zone, seed) {
     if (b._forceStyle) return b._forceStyle;
+    { const L = landmarkOf(b); if (L) return L.style; }
     const r = rng(seed)();
     if (b.style) { // DATA agent's archetype
       switch (b.style) {
@@ -292,7 +332,7 @@ export function createTileBuilder(ctx) {
         case 'strip': return r < 0.6 ? 'deco' : 'office';
         case 'hangar': case 'barn': return 'warehouse';
         case 'terminal': return r < 0.5 ? 'glass' : 'band';
-        case 'tower': return r < 0.6 ? 'glass' : r < 0.85 ? 'band' : 'office';
+        case 'tower': return r < 0.4 ? 'glass' : r < 0.78 ? 'band' : 'office';
         case 'deco': return 'deco';
         case 'house': return 'house';
         case 'industrial': return 'warehouse';
@@ -303,7 +343,7 @@ export function createTileBuilder(ctx) {
       }
     }
     if (zone === 'port' || zone === 'industrial' || /warehouse|industrial|hangar|shed|storage/.test(b.kind)) return 'warehouse';
-    if (b.h > 45) return r < 0.6 ? 'glass' : r < 0.85 ? 'band' : 'office';
+    if (b.h > 45) return r < 0.4 ? 'glass' : r < 0.78 ? 'band' : 'office';
     if (zone === 'beach' || zone === 'nightlife') return 'deco';
     if (b.h > 16) return r < 0.25 ? 'glass' : r < 0.55 ? 'band' : 'office';
     if (zone === 'residential' || b.kind === 'house' || b.kind === 'residential' || b.kind === 'detached') return 'house';
@@ -312,6 +352,19 @@ export function createTileBuilder(ctx) {
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
   // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
   const isFB = (B) => (B && B.fac && B.fac.fx ? B.fac : null);
+  // batch view that writes a full facade style (window grid) instead of a blank wall layer
+  const sview = (fb, S, bw, fh) => {
+    const v = Object.create(Batch.prototype);
+    v.vert = function (x, y, z, nx, ny, nz, u, vv, col) {
+      const s = fb.s;
+      s[0] = S.layer; s[1] = bw; s[2] = fh; s[3] = S.seed;
+      s[4] = S.winW; s[5] = S.winH; s[6] = S.sill; s[7] = S.type;
+      s[8] = S.groundY ?? 0; s[9] = S.profile ?? 0; s[10] = S.glass ?? 0; s[11] = S.reflect ?? 0.2;
+      s[12] = S.accent.r; s[13] = S.accent.g; s[14] = S.accent.b; s[15] = S.bits || 0;
+      fb.vert(x, y, z, nx, ny, nz, u, vv, col);
+    };
+    return v;
+  };
   const fview = (fb, layer) => { const v = Object.create(Batch.prototype); v.layer = layer; v.vert = function (x, y, z, nx, ny, nz, u, vv, col) { fb.blank(this.layer); fb.vert(x, y, z, nx, ny, nz, u, vv, col); }; Object.defineProperty(v, 'empty', { get: () => true }); return v; };
   const bbOf = (o) => { if (!o._bb) { let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [x, z] of o.rings[0]) { a = Math.min(a, x); c = Math.max(c, x); d = Math.min(d, z); e = Math.max(e, z); } o._bb = [a, c, d, e]; } return o._bb; };
   const ADJ = 9; // m between footprints' bounding boxes that still counts as "next door"
@@ -361,69 +414,205 @@ export function createTileBuilder(ctx) {
     quad(a0, up(a0, thick), up(a1, thick), a1, [-(bz - az), 0, bx - ax]);
     quad(b1, up(b1, thick), up(b0, thick), b0, [bz - az, 0, -(bx - ax)]);
   }
+  // corner treatment for tower bodies: 0 sharp, 1 chamfered, 2 rounded (quadratic arcs, read as one curved run by facadeWalls)
+  function shapeCorners(ring, mode, amt) {
+    if (!mode || ring.length > 12) return ring;
+    const out = [];
+    const n = ring.length;
+    for (let i = 0; i < n; i++) {
+      const p = ring[(i - 1 + n) % n];
+      const c = ring[i];
+      const q = ring[(i + 1) % n];
+      const l0 = Math.hypot(c[0] - p[0], c[1] - p[1]);
+      const l1 = Math.hypot(q[0] - c[0], q[1] - c[1]);
+      const d = Math.min(amt, l0 * 0.3, l1 * 0.3);
+      if (d < 0.8) { out.push(c); continue; }
+      const a = [c[0] + (p[0] - c[0]) * d / l0, c[1] + (p[1] - c[1]) * d / l0];
+      const e = [c[0] + (q[0] - c[0]) * d / l1, c[1] + (q[1] - c[1]) * d / l1];
+      if (mode === 1) { out.push(a, e); continue; }
+      for (let k = 0; k <= 4; k++) {
+        const t = k / 4;
+        const u = 1 - t;
+        out.push([u * u * a[0] + 2 * u * t * c[0] + t * t * e[0], u * u * a[1] + 2 * u * t * c[1] + t * t * e[1]]);
+      }
+    }
+    return out;
+  }
+  // Tower silhouette, deterministic per building id and shared by the near build and the mid/far LOD (no pop between them):
+  // podium on the full footprint, inset body with chamfered / rounded / sharp corners, zero to two setbacks, crown kind.
   function towerShape(b, outer, seed, h) {
-    const r1 = hash(seed + 51), r3 = hash(seed + 53);
+    const r1 = hash(seed + 51);
+    const r3 = hash(seed + 53);
     const podH = Math.min(h * 0.35, 4.2 + (2 + ((r1 * 6) | 0)) * 3.6);
-    const d = Math.min(8, Math.max(3, Math.sqrt(b.area) * 0.12)), body = scalePoly(outer, b.cx, b.cz, -d);
-    const tall = h > 120, hA = tall ? h * (0.72 + r3 * 0.1) : h, top = tall ? scalePoly(body, b.cx, b.cz, -3) : body;
-    return { podH, body, tall, hA, top, kind: hash(seed + 56) };
+    const d = Math.min(8, Math.max(3, Math.sqrt(b.area) * 0.12));
+    const LM = landmarkOf(b);
+    const cm = hash(seed + 62);
+    const mode = LM ? LM.mode : cm < 0.3 ? 1 : cm < 0.52 ? 2 : 0;
+    const shape = (ring, k) => shapeCorners(ring, mode, k);
+    const body = shape(scalePoly(outer, b.cx, b.cz, -d), LM ? LM.amt : mode === 2 ? 6 + hash(seed + 64) * 8 : 2.5 + hash(seed + 64) * 3);
+    const tall = LM ? LM.cuts.length > 0 : h > 120 || (h > 80 && hash(seed + 63) < 0.5);
+    const levels = [];
+    if (!tall) levels.push({ ring: body, y0: podH, y1: h });
+    else {
+      const cuts = LM ? LM.cuts : h > 150 && hash(seed + 65) < 0.55 ? [0.58 + r3 * 0.08, 0.82 + r3 * 0.06] : [0.72 + r3 * 0.1];
+      let ring = body;
+      let y = podH;
+      cuts.forEach((f, k) => {
+        levels.push({ ring, y0: y, y1: h * f });
+        y = h * f;
+        ring = shape(scalePoly(ring, b.cx, b.cz, -(2.2 + hash(seed + 66 + k) * 2.6)), 2);
+      });
+      levels.push({ ring, y0: y, y1: h });
+    }
+    const top = levels[levels.length - 1].ring;
+    return { podH, body, tall, hA: levels[0].y1, top, levels, kind: LM ? LM.kind : hash(seed + 56), LM };
   }
   const isTower = (b, style) => !b.part && (b.minH || 0) < 0.5 && b.h > 45 && b.area > 450 && (style === 'glass' || style === 'band' || style === 'office');
+  // lattice box column (crane masts, construction frames) from thin boxes: four posts plus rings every `step` m
+  function lattice(batch, x, z, y0, y1, w, step, col, ry = 0) {
+    const c = Math.cos(ry);
+    const s = Math.sin(ry);
+    const P = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, e]) => [x + (a * c + e * s) * w / 2, z + (-a * s + e * c) * w / 2]);
+    for (const [px, pz] of P) batch.addGeometry(BOXG, mat4(px, (y0 + y1) / 2, pz, ry, 0.22, y1 - y0, 0.22), col);
+    for (let y = y0 + step; y < y1; y += step) {
+      batch.addGeometry(BOXG, mat4(x, y, z, ry, w, 0.14, 0.14), col);
+      batch.addGeometry(BOXG, mat4(x, y, z, ry, 0.14, 0.14, w), col);
+      batch.addGeometry(BOXG, mat4(x, y - step / 2, z, ry + Math.PI / 4, w * 1.3, 0.1, 0.1), col);
+    }
+  }
+  // closed block (walls + lid) on an oriented ring: plant rooms, penthouses
+  function block(batch, ring, y0, y1, col) {
+    wallStrip(batch, ring, y0, y1, 4, 4, col);
+    capPoly(batch, ring, y1, col);
+  }
+  // rooftop helipad: dark coated disk, white ring, H, and a perimeter safety net
+  function helipad(paint, top, b, h, seed) {
+    let r = Infinity;
+    for (const [x, z] of top) r = Math.min(r, Math.hypot(x - b.cx, z - b.cz));
+    r = Math.min(11, r * 0.8);
+    if (r < 6) return false;
+    const circ = (rr, n = 24) => Array.from({ length: n }, (_, i) => [b.cx + Math.cos(-i / n * Math.PI * 2) * rr, b.cz + Math.sin(-i / n * Math.PI * 2) * rr]);
+    fillPoly(paint, [circ(r)], h + 0.06, new THREE.Color(0x4a4d50), 1 / 6);
+    fillPoly(paint, [circ(r * 0.86), circ(r * 0.8).reverse()], h + 0.09, new THREE.Color(0xe8e6de), 1 / 6);
+    const a = hash(seed + 71) * Math.PI;
+    const ca = Math.cos(a);
+    const sa = Math.sin(a);
+    const bar = (u0, v0, u1, v1) => {
+      const P = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(([u, v]) => [b.cx + u * ca - v * sa, b.cz + u * sa + v * ca]);
+      fillPoly(paint, [P], h + 0.1, new THREE.Color(0xe8e6de), 1 / 6);
+    };
+    const k = r * 0.32;
+    bar(-k, -k * 1.2, -k * 0.7, k * 1.2);
+    bar(k * 0.7, -k * 1.2, k, k * 1.2);
+    bar(-k * 0.7, -k * 0.15, k * 0.7, k * 0.15);
+    return true;
+  }
   function buildTower(B, b, outer, opts, style, color, seed, h) {
-    const r1 = hash(seed + 51), r2 = hash(seed + 52), r3 = hash(seed + 53);
+    const r2 = hash(seed + 52);
+    const TS = towerShape(b, outer, seed, h);
+    const { podH, body, tall, hA, top, levels } = TS;
     // podium: 3-8 floors on the full footprint, built through the normal path (storefronts, roof, AC, colliders)
-    const podH = Math.min(h * 0.35, 4.2 + (2 + ((r1 * 6) | 0)) * 3.6);
     const podStyle = r2 < 0.5 ? 'band' : 'office';
     buildBuilding(B, { ...b, h: podH, _forceStyle: podStyle, _noTower: true, colour: null, _podOf: b, _fs: null }, opts);
-    // body: inset glass (or concrete for condo/office towers), second setback on the tallest
-    const d = Math.min(8, Math.max(3, Math.sqrt(b.area) * 0.12));
-    const body = scalePoly(outer, b.cx, b.cz, -d);
-    const tall = h > 120, hA = tall ? h * (0.72 + r3 * 0.1) : h;
-    const top = tall ? scalePoly(body, b.cx, b.cz, -3) : body;
     const zone0 = zoneAt(b.cx, b.cz);
     const bstyle = pickFacade(style, b.zone || zoneAt(b.cx, b.cz), hash(seed + 91));
     const [bays, fl, tw, th] = FAC[bstyle], uOff = ((hash(seed + 1) * bays) | 0) / bays, vOff = ((hash(seed + 2) * fl) | 0) / fl;
     const tint = style === 'glass' ? color : new THREE.Color(OFFICE_TINTS[(hash(seed + 54) * 11) | 0]);
     const FB = isFB(B), FS = FB ? facStyle(b, zone0, style, h) : null;
-    if (FB) { B.roof.layer = FS.roof; facadeWalls(FB, body, podH, hA, FS, 40); } else wallStrip(B[bstyle], body, podH, hA, tw, th, tint, uOff, vOff - podH / th);
-    if (tall) { fillPoly(B.roof, [body], hA, new THREE.Color(0x8a8f94), 1 / 6); if (FB) facadeWalls(FB, top, hA, h, FS, 90); else wallStrip(B[bstyle], top, hA, h, tw, th, tint, uOff, vOff - hA / th); }
+    if (FB) B.roof.layer = FS.roof;
+    const terrace = new THREE.Color(0x8a8f94);
+    levels.forEach((L, li) => {
+      if (FB) facadeWalls(FB, L.ring, L.y0, L.y1, FS, 40 + li * 50);
+      else wallStrip(B[bstyle], L.ring, L.y0, L.y1, tw, th, tint, uOff, vOff - L.y0 / th);
+      if (li < levels.length - 1) { // setback terrace: roof deck with a glass-and-steel railing
+        fillPoly(B.roof, [L.ring], L.y1, terrace, 1 / 6);
+        parapet(B.trim, L.ring, L.y1, 1.1, 0.18, new THREE.Color(0x4a5056));
+      }
+      if (opts.coll) {
+        wallStrip(opts.coll, L.ring, L.y0, L.y1, 10, 10, new THREE.Color(0xffffff));
+        fillPoly(opts.coll, [L.ring], L.y1, 0xffffff, 1);
+      }
+    });
     fillPoly(B.roof, [top], h, new THREE.Color(0x80868c), 1 / 6);
-    if (opts.coll) {
-      wallStrip(opts.coll, body, podH, hA, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [body], hA, 0xffffff, 1);
-      if (tall) { wallStrip(opts.coll, top, hA, h, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [top], h, 0xffffff, 1); }
-    }
-    // condo balcony stacks (Brickell / Edgewater): slabs + glass rails on the two longest body faces
+    // balcony stacks: two longest faces on condo towers, or wraparound on every face of the slender residential landmarks
     const zone = b.zone || zoneAt(b.cx, b.cz);
-    if (style !== 'glass' && (zone === 'residential' || zone === 'business') && hash(seed + 55) < 0.6 && B.shopGlass) {
-      const edges = body.map((p, i) => [p, body[(i + 1) % body.length]]).map(([p, q]) => ({ p, q, L: Math.hypot(q[0] - p[0], q[1] - p[1]) })).sort((a, c) => c.L - a.L).slice(0, 2);
+    const wrap = TS.LM ? !!TS.LM.wrap : style !== 'glass' && h > 90 && hash(seed + 67) < 0.4;
+    if (style !== 'glass' && (wrap || ((zone === 'residential' || zone === 'business') && hash(seed + 55) < 0.6)) && B.shopGlass) {
       const slabC = new THREE.Color(0xf2efe8), white = new THREE.Color(0xffffff);
-      for (const { p, q, L } of edges) {
-        if (L < 10) continue;
-        const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L, nx = -tz, nz = tx, m = 1.5;
-        const ax = p[0] + tx * m, az = p[1] + tz * m, bx = q[0] - tx * m, bz = q[1] - tz * m;
-        for (let y = podH + 3.2; y < hA - 2.5; y += 3.2) {
-          edgeSlab(B.trim, ax, az, bx, bz, nx, nz, y, 1.7, 0.2, slabC);
-          const fx = nx * 1.68, fz = nz * 1.68, y1 = y + 0.2, y2 = y + 1.25;
-          for (const v of [[ax + fx, y1, az + fz], [bx + fx, y1, bz + fz], [bx + fx, y2, bz + fz], [ax + fx, y1, az + fz], [bx + fx, y2, bz + fz], [ax + fx, y2, az + fz]]) B.shopGlass.vert(v[0], v[1], v[2], nx, 0, nz, 0, 0, white);
+      for (const L of levels) {
+        const ring = L.ring;
+        let edges = ring.map((p, i) => [p, ring[(i + 1) % ring.length]]).map(([p, q]) => ({ p, q, L: Math.hypot(q[0] - p[0], q[1] - p[1]) })).sort((a, c) => c.L - a.L);
+        if (!wrap) edges = edges.slice(0, 2);
+        for (const { p, q, L: el } of edges) {
+          if (el < (wrap ? 6 : 10)) continue;
+          const tx = (q[0] - p[0]) / el, tz = (q[1] - p[1]) / el, nx = -tz, nz = tx, m = wrap ? 0.2 : 1.5;
+          const ax = p[0] + tx * m, az = p[1] + tz * m, bx = q[0] - tx * m, bz = q[1] - tz * m;
+          for (let y = L.y0 + 3.2; y < L.y1 - 2.5; y += 3.2) {
+            edgeSlab(B.trim, ax, az, bx, bz, nx, nz, y, wrap ? 2.1 : 1.7, 0.2, slabC);
+            const fx = nx * (wrap ? 2.08 : 1.68), fz = nz * (wrap ? 2.08 : 1.68), y1 = y + 0.2, y2 = y + 1.25;
+            for (const v of [[ax + fx, y1, az + fz], [bx + fx, y1, bz + fz], [bx + fx, y2, bz + fz], [ax + fx, y1, az + fz], [bx + fx, y2, bz + fz], [ax + fx, y2, az + fz]]) B.shopGlass.vert(v[0], v[1], v[2], nx, 0, nz, 0, 0, white);
+          }
         }
       }
     }
     // crown
-    const kind = hash(seed + 56);
+    const kind = TS.kind;
+    const paint = FB ? fview(FB, WL.roofCoat) : B.roof;
+    const mech = FB ? fview(FB, WL.cladding) : B.trim;
     let crownTop = h;
-    if (kind < 0.3) { // rooftop mechanical screen
-      const scr = scalePoly(top, b.cx, b.cz, -2.5); wallStrip(B.trim, scr, h, h + 4.5, 10, 10, new THREE.Color(0x5d6266)); crownTop = h + 4.5;
-    } else if (kind < 0.55) { // lit glass crown with neon bands
-      if (FB) facadeWalls(FB, top, h, h + 6, { ...FS, floorH: 6 }, 150); else wallStrip(B[bstyle], top, h, h + 6, tw, th, tint, uOff, vOff - h / th);
+    const building = TS.LM ? !!TS.LM.crane : h > 120 && hash(seed + 69) < 0.08; // topping out: bare slab edges, column frame and a tower crane
+    if (building) {
+      const frameC = new THREE.Color(0x9c9890);
+      for (let y = h + 3.4; y <= h + 10.5; y += 3.5) capPoly(B.trim, top, y, frameC);
+      for (const [x, z] of top) B.trim.addGeometry(BOXG, mat4(x, h + 5.2, z, 0, 0.7, 10.4, 0.7), frameC);
+      const craneC = new THREE.Color(0xb89a3e);
+      const mx = b.cx + (top[0][0] - b.cx) * 0.3, mz = b.cz + (top[0][1] - b.cz) * 0.3, mh = h + 34, ry = hash(seed + 70) * Math.PI * 2;
+      lattice(B.trim, mx, mz, h, mh, 2.0, 2.6, craneC, ry);
+      const jx = Math.sin(ry), jz = Math.cos(ry);
+      B.trim.addGeometry(BOXG, mat4(mx + jx * 20, mh + 0.8, mz + jz * 20, ry, 1.6, 1.6, 48), craneC); // jib
+      B.trim.addGeometry(BOXG, mat4(mx - jx * 9, mh + 0.8, mz - jz * 9, ry, 1.8, 1.4, 16), craneC); // counter-jib
+      B.trim.addGeometry(BOXG, mat4(mx - jx * 15, mh - 0.6, mz - jz * 15, ry, 2.6, 2.2, 3.4), new THREE.Color(0x8a8a86)); // counterweights
+      B.trim.addGeometry(BOXG, mat4(mx, mh + 4, mz, ry, 0.8, 7, 0.8), craneC); // apex
+      B.trim.addGeometry(BOXG, mat4(mx + jx * 1.6, mh - 1.2, mz + jz * 1.6, ry, 1.8, 2.0, 1.8), new THREE.Color(0xd8d6d0)); // cab
+      crownTop = mh + 7.5;
+    } else if (kind < 0.3) { // rooftop mechanical screen around a plant penthouse
+      const scr = scalePoly(top, b.cx, b.cz, -2.5);
+      wallStrip(B.trim, scr, h, h + 4.5, 10, 10, new THREE.Color(0x5d6266));
+      block(mech, scalePoly(top, b.cx, b.cz, -5), h, h + 3.2, new THREE.Color(0x8c9196));
+      crownTop = h + 4.5;
+    } else if (kind < 0.55) { // stepped lit glass crown with light bands
+      const c1 = scalePoly(top, b.cx, b.cz, -2.2);
+      if (FB) {
+        facadeWalls(FB, top, h, h + 6, { ...FS, floorH: 6 }, 150);
+        facadeWalls(FB, c1, h + 6, h + 11, { ...FS, floorH: 5 }, 160);
+      } else wallStrip(B[bstyle], top, h, h + 6, tw, th, tint, uOff, vOff - h / th);
+      fillPoly(B.roof, [top], h + 6, new THREE.Color(0x80868c), 1 / 6);
+      fillPoly(B.roof, [c1], h + 11, new THREE.Color(0x80868c), 1 / 6);
       const nc = new THREE.Color(NEONS[(hash(seed + 57) * 6) | 0]), ring = scalePoly(top, b.cx, b.cz, 0.12);
-      wallStrip(B.neon, ring, h - 2.4, h - 2.0, 10, 10, nc); wallStrip(B.neon, ring, h + 5.6, h + 6.0, 10, 10, nc); crownTop = h + 6;
-    } else if (kind < 0.75) { // spire
-      const sh = 18 + hash(seed + 58) * 30; B.trim.addGeometry(new THREE.CylinderGeometry(0.35, 1.6, sh, 8), mat4(b.cx, h + sh / 2, b.cz), new THREE.Color(0xdfe6ec)); crownTop = h + sh;
-    } else if (top.length <= 8) { // angled metal roof
-      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of top) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-      const rh = 6 + hash(seed + 59) * 8, rg = new THREE.ConeGeometry(1, 1, 4, 1); rg.rotateY(Math.PI / 4);
-      B.trim.addGeometry(rg, mat4((x0 + x1) / 2, h + rh / 2, (z0 + z1) / 2, 0, (x1 - x0) * 0.7072, rh, (z1 - z0) * 0.7072), new THREE.Color(0x9aa4ac)); crownTop = h + rh;
-    } else parapet(B.trim, top, h, 1.6, 0.4, new THREE.Color(0x3c434a));
+      wallStrip(B.neon, ring, h - 2.4, h - 2.0, 10, 10, nc);
+      wallStrip(B.neon, ring, h + 5.6, h + 6.0, 10, 10, nc);
+      crownTop = h + 11;
+    } else if (kind < 0.75) { // mechanical penthouse + spire
+      block(mech, scalePoly(top, b.cx, b.cz, -Math.sqrt(b.area) * 0.18), h, h + 5 + hash(seed + 72) * 3, new THREE.Color(0xb4b2ac));
+      const sh = 18 + hash(seed + 58) * 30;
+      B.trim.addGeometry(new THREE.CylinderGeometry(0.35, 1.6, sh, 8), mat4(b.cx, h + sh / 2, b.cz), new THREE.Color(0xdfe6ec));
+      crownTop = h + sh;
+    } else if (top.length <= 8 && hash(seed + 73) < 0.5) { // angled metal roof
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      for (const [x, z] of top) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+      const rh = 6 + hash(seed + 59) * 8, rg = new THREE.ConeGeometry(1, 1, 4, 1);
+      rg.rotateY(Math.PI / 4);
+      B.trim.addGeometry(rg, mat4((x0 + x1) / 2, h + rh / 2, (z0 + z1) / 2, 0, (x1 - x0) * 0.7072, rh, (z1 - z0) * 0.7072), new THREE.Color(0x9aa4ac));
+      crownTop = h + rh;
+    } else { // parapet roof with a helipad or a plant room, and an antenna mast on some
+      parapet(B.trim, top, h, 1.6, 0.4, new THREE.Color(0x3c434a));
+      if (!(hash(seed + 68) < 0.55 && helipad(paint, top, b, h, seed))) block(mech, scalePoly(top, b.cx, b.cz, -Math.sqrt(b.area) * 0.15), h, h + 4.5, new THREE.Color(0xa8a69e));
+      if (hash(seed + 74) < 0.4) {
+        const p = top[(hash(seed + 75) * top.length) | 0], ax = b.cx + (p[0] - b.cx) * 0.5, az = b.cz + (p[1] - b.cz) * 0.5, ah = 10 + hash(seed + 76) * 14;
+        lattice(B.trim, ax, az, h, h + ah, 0.9, 1.8, new THREE.Color(0xc8ccd0));
+        crownTop = h + ah;
+      }
+    }
     if (opts.props) { opts.props.beacon.push({ x: b.cx, y: crownTop + 0.6, z: b.cz, s: 2.5 }); for (let k = 0; k < 3; k++) { const p = top[(hash(seed + 60 + k) * top.length) | 0]; opts.props.ac.push({ x: b.cx + (p[0] - b.cx) * 0.4, y: h, z: b.cz + (p[1] - b.cz) * 0.4, ry: 0, s: 1.3 }); } }
   }
   // ---- building geometry (shared by near + colliders) ----
@@ -459,7 +648,10 @@ export function createTileBuilder(ctx) {
       if (sf) annotateStorefronts(sf, GF);
       // painted shop art stays on plain facades; storefront lots get a real glass front (opened full-height in the painted wall)
       const openings = sf ? sf.map((f) => ({ x: f.fx ?? f.x, z: f.fz ?? f.z, w: Math.max(DOOR_W + 1, f.w || 6), h: GF + 1 })) : null;
-      if (FB && sf) wallGaps(B.trim, outer, y0, GF, 64, GF - y0, FS.tint, 0, 0, openings); else if (FB) facadeWalls(FB, outer, y0, GF, groundStyle(FS, true, false) || FS, 7); else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
+      if (FB && sf) { // ground floor around the shop fronts: the building's own windows and doors on every side (no blank back walls)
+        const G = groundStyle(FS, false, false) || FS;
+        wallGaps(sview(FB, G, G.bayW, GF - y0), outer, y0, GF, G.bayW, GF - y0, FS.tint, 7.37, 0, openings);
+      } else if (FB) facadeWalls(FB, outer, y0, GF, groundStyle(FS, true, false) || FS, 7); else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
       if (sf && B.shopGlass) for (const f of sf) glassFront(B, outer, f, y0, GF, color);
       if (FB) facadeWalls(FB, outer, GF, h, FS, 20); else wallStrip(B[fstyle], outer, GF, h, tw, th, color, uOff, vOff - GF / th);
       if (sf) fillPolyDown(B.trim, b.rings, GF - 0.02, new THREE.Color(0xe6e2da));
@@ -1087,7 +1279,7 @@ export function createTileBuilder(ctx) {
     if (coll) { fillPoly(coll, p.rings, y, 0xffffff, 1); wallStrip(coll, outer, y - 0.35, y, 10, 10, new THREE.Color(0xffffff)); }
     if (props && B) for (let i = 0; i < outer.length; i += 1) { const q = outer[i], n2 = outer[(i + 1) % outer.length], L = Math.hypot(n2[0] - q[0], n2[1] - q[1]); for (let s2 = 0; s2 < L; s2 += 6) props.pier.push({ x: q[0] + (n2[0] - q[0]) * (s2 / L), y: (y - 0.35 - 4) / 2, z: q[1] + (n2[1] - q[1]) * (s2 / L), ry: 0, sx: 0.3, sy: y - 0.35 + 4 }); }
   }
-  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], grate: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
+  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], wire: [], grate: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
   function sampleAt(fr, s, ys = null) {
     let i = 0; while (i < fr.length - 2 && fr[i + 1].s < s) i++;
     const A = fr[i], Bf = fr[i + 1] || A, L = Bf.s - A.s || 1, t = Math.max(0, Math.min(1, (s - A.s) / L));
@@ -1186,7 +1378,18 @@ export function createTileBuilder(ctx) {
 
   // ---------------- NEAR ----------------
   // ---- Port of Miami container yards (port-zone land away from roads, buildings and the quay edge) ----
-  const BOX_COLS = [0xc0392b, 0x2471a3, 0xd4ac0d, 0x1e8449, 0x7f8c8d, 0xe67e22, 0x8e44ad, 0xecf0f1, 0x2c3e50, 0xa04000];
+  // container colors: weathered line liveries (one dominant line per stacking row, a few strays), never toy-bright.
+  // Nordhaven Line navy comes from src/design (shipping/container); the others are leasing-pool and faded generic boxes.
+  const BOX_COLS = [0x1f3b52, 0x7a3329, 0x8b8f8c, 0x9a6a34, 0x3e5847, 0xb3ac9c, 0x55595c, 0x5e2a28, 0x46667a, 0x9c5530, 0x2d3640, 0xa39c8a];
+  const _bc = new THREE.Color();
+  function containerColor(x, z, k, row) {
+    const line = (hash(row * 7919 + 13) * BOX_COLS.length) | 0;
+    const r = hash(((x * 13) | 0) + k * 31 + ((z * 5) | 0));
+    const base = r < 0.72 ? BOX_COLS[line] : BOX_COLS[(r * 977 * BOX_COLS.length | 0) % BOX_COLS.length];
+    // per-box fade and grime so no two boxes match
+    const f = 0.82 + hash(((x * 3) | 0) * 131 + k * 17 + ((z * 11) | 0)) * 0.26;
+    return _bc.set(base).multiplyScalar(f).lerp(_bc.clone().setRGB(0.55, 0.52, 0.47), 0.12 + r * 0.1).getHex();
+  }
   function insideBuilding(tile, x, z) {
     if (!tile._bb) tile._bb = tile.buildings.map((b) => { let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [px, pz] of b.rings[0]) { if (px < a) a = px; if (px > c) c = px; if (pz < d) d = pz; if (pz > e) e = pz; } return [a, c, d, e]; });
     for (let bi = 0; bi < tile.buildings.length; bi++) {
@@ -1226,9 +1429,12 @@ export function createTileBuilder(ctx) {
       if (zoneAt(x, z) !== 'port' || isWater(x, z) || isWater(x + 30, z) || isWater(x - 30, z) || isWater(x, z + 30) || isWater(x, z - 30)) continue;
       if (roadDist(x, z) < 6 || insideBuilding(tile, x, z)) continue;
       const h0 = hash(((x * 7.13) | 0) * 9176 + ((z * 3.71) | 0)); if (h0 < 0.12) continue;
-      const n = 1 + ((h0 * 4.7) | 0) % 4;
-      for (let k = 0; k < n; k++) props.container.push({ x, y: k * 2.6 + 1.3, z, ry: 0, sx: 12.2, sy: 2.55, sz: 2.44, color: BOX_COLS[(hash(((x * 13) | 0) + k * 31 + ((z * 5) | 0)) * BOX_COLS.length) | 0] });
-      props.stack.push({ x, z, n, col: gx + ',' + gz + ',' + ix });
+      // orderly blocks: one stacking height per block row (3 to 5 high), a few short stacks where boxes were just lifted out
+      const row = ((gx * 0.37) | 0) * 131 + ((gz * 0.53) | 0) * 7 + ix;
+      const rowH = 3 + ((hash(row * 17 + 5) * 3) | 0);
+      const n = h0 < 0.2 ? 1 + ((h0 * 40) | 0) % rowH : rowH;
+      for (let k = 0; k < n; k++) props.container.push({ x, y: k * 2.6 + 1.3, z, ry: 0, sx: 12.2, sy: 2.55, sz: 2.44, color: containerColor(x, z, k, row) });
+      props.stack.push({ x, z, n, row, col: gx + ',' + gz + ',' + ix });
     }
     yardCache.set(tile, props);
   }
@@ -1354,7 +1560,11 @@ export function createTileBuilder(ctx) {
       let best = -1, bd = 1e9; for (let j = 0; j < rows.length; j++) { if (j === i || linked.has(j * 100003 + i)) continue; const d = Math.hypot(rows[j].x - rows[i].x, rows[j].z - rows[i].z); if (d > 6 && d < 26 && d < bd) { bd = d; best = j; } }
       if (best < 0) continue; linked.add(i * 100003 + best);
       const A = rows[i], Bp = rows[best], n = Math.max(5, Math.round(bd / 0.7));
-      for (let k = 1; k < n; k++) { const t = k / n; props.bulb.push({ x: A.x + (Bp.x - A.x) * t, y: 4.6 - 1.1 * 4 * t * (1 - t) + A.y, z: A.z + (Bp.z - A.z) * t }); }
+      const at = (t) => [A.x + (Bp.x - A.x) * t, 4.6 - 1.1 * 4 * t * (1 - t) + A.y + (Bp.y - A.y) * t, A.z + (Bp.z - A.z) * t];
+      for (let k = 1; k < n; k++) { const p = at(k / n); props.bulb.push({ x: p[0], y: p[1] - 0.06, z: p[2] }); }
+      // the cable the bulbs hang from (drawn as a thin sagging strip, palm to palm)
+      const segs = Math.max(6, Math.round(bd / 1.5));
+      for (let k = 0; k < segs; k++) props.wire.push([at(k / segs), at((k + 1) / segs)]);
     }
   }
   // real props from data.js (OSM): trees/palms, lamps, signals, bus stops, hydrants, bins, benches
@@ -1553,7 +1763,7 @@ export function createTileBuilder(ctx) {
     cleanProps(tile, props); yield;
     if (LF.on) liftProps(props);
     if (synth && flora) yield* floraInto(t, tile, props);
-    if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' });
+    if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
@@ -1598,6 +1808,17 @@ export function createTileBuilder(ctx) {
     inst(group, umbG, umbMat, props.umbrella, { colors: true });
     inst(group, grateG, vcMat, props.grate);
     if (M.bulb) inst(group, bulbG, M.bulb, props.bulb);
+    if (props.wire.length) { // string-light cables: two crossed thin strips per segment so they read from every side
+      const wb = new Batch(), wc = new THREE.Color(0x1c1c1c), w = 0.012;
+      for (const [p, q] of props.wire) {
+        for (const [ox, oy, oz] of [[0, w, 0], [w, 0, 0], [0, 0, w]]) {
+          const a0 = [p[0] - ox, p[1] - oy, p[2] - oz], a1 = [p[0] + ox, p[1] + oy, p[2] + oz], b0 = [q[0] - ox, q[1] - oy, q[2] - oz], b1 = [q[0] + ox, q[1] + oy, q[2] + oz];
+          for (const v of [a0, b0, b1, a0, b1, a1, a0, b1, b0, a0, a1, b1]) wb.vert(v[0], v[1], v[2], 0, 1, 0, 0, 0, wc);
+        }
+      }
+      const wm = meshOf(wb, M.guardrail, { cast: false });
+      if (wm) { wm.name = 'string-light-cables'; group.add(wm); }
+    }
     if (elevated) { const er = yield* elevTileG(t, { colliders: false }); if (er && er.group) { group.add(er.group); for (const l of er.lamps || []) props.lamp.push({ ...l, elev: true }); } } // deck lamps (ELEVATED) before the lamp instances are built
     inst(group, lampPoleG, M.metal, props.lamp, { cast: true });
     inst(group, lampHeadG, M.lampHead, props.lamp, { cast: false });
@@ -1610,9 +1831,11 @@ export function createTileBuilder(ctx) {
     inst(group, BOXG, pierMat, props.pier.map((p) => ({ ...p, sz: 2.2 })));
     // palms: split over the shared variants
     const per = palmVariants.map(() => []); props.palm.forEach((p, i) => per[i % per.length].push(p));
-    per.forEach((items, v) => { if (!items.length) return; const pg = palmVariants[v]; inst(group, pg.trunk, M.trunk, items, { cast: true, depth: M.trunkDepth }); inst(group, pg.fronds, M.frond, items, { cast: true, depth: M.frondDepth }); });
+    per.forEach((items, v) => { if (!items.length) return; const pg = palmVariants[v], L = palmLod[v];
+      if (L) { inst(group, pg.trunk, L.m0.bark.mat, items, { cast: true, depth: L.m0.bark.depth }); inst(group, pg.fronds, L.m0.leaf.mat, items, { cast: true, depth: L.m0.leaf.depth }); inst(group, L.g1.trunk, L.m1.bark.mat, items, { cast: true, depth: L.m1.bark.depth }); inst(group, L.g1.fronds, L.m1.leaf.mat, items, { cast: true, depth: L.m1.leaf.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat.mat, items, { cast: false }); }
+      else { inst(group, pg.trunk, M.trunk, items, { cast: true, depth: M.trunkDepth }); inst(group, pg.fronds, M.frond, items, { cast: true, depth: M.frondDepth }); } });
     if (flora && props.tree.length) { const by = {}; for (const it of props.tree) (by[it.sp] ||= []).push(it);
-      for (const sp in by) { const TG = flora.T[sp] || flora.T.oak; inst(group, TG.trunk, flora.barkMat, by[sp], { cast: true }); inst(group, TG.crown, flora.leaf, by[sp], { colors: true, cast: true, depth: flora.leafDepth }); if (sp === 'citrus') inst(group, flora.T.citrusFruit, flora.fruitMat, by[sp]); } }
+      for (const sp in by) { if (vegTrees(group, sp, by[sp])) continue; const TG = flora.T[sp] || flora.T.oak; inst(group, TG.trunk, flora.barkMat, by[sp], { cast: true }); inst(group, TG.crown, flora.leaf, by[sp], { colors: true, cast: true, depth: flora.leafDepth }); if (sp === 'citrus') inst(group, flora.T.citrusFruit, flora.fruitMat, by[sp]); } }
     t.props = props; group.userData.tile = t; if (onProps) onProps(t, props, true);
     // real lamp light: the GRAPHICS clustered-lamp system discovers per-tile lamp lists (removed when the tile group leaves the scene)
     group.userData.psLamps = props.lamp.map((l) => { const sc = l.s || 1, ry = l.ry || 0; return { x: l.x + Math.sin(ry) * 2.25 * sc, y: (l.y || 0) + 7.0 * sc, z: l.z + Math.cos(ry) * 2.25 * sc, gy: l.y || 0 }; });
@@ -1635,6 +1858,15 @@ export function createTileBuilder(ctx) {
         for (let i0 = 0; i0 < src.length; i0 += 60000) { const i1 = Math.min(src.length, i0 + 60000); for (let i = i0; i < i1; i++) out[i] = src[i]; yield; }
         g.setAttribute(name, new THREE.BufferAttribute(out, k));
       }
+      if (b.fx) { // facade batch: the four per-vertex facade vec4s (layer, bays, window type, glass ...) as one interleaved buffer
+        const fx = new Float32Array(b.p.length / 3 * 16);
+        for (let i0 = 0; i0 < b.fx.length; i0 += 120000) { const i1 = Math.min(b.fx.length, i0 + 120000); for (let i = i0; i < i1; i++) fx[i] = b.fx[i]; yield; }
+        const ib = new THREE.InterleavedBuffer(fx, 16);
+        g.setAttribute('aFa', new THREE.InterleavedBufferAttribute(ib, 4, 0));
+        g.setAttribute('aFb', new THREE.InterleavedBufferAttribute(ib, 4, 4));
+        g.setAttribute('aFc', new THREE.InterleavedBufferAttribute(ib, 4, 8));
+        g.setAttribute('aFd', new THREE.InterleavedBufferAttribute(ib, 4, 12));
+      }
       const n = g.attributes.position.count, at = new Float32Array(n * 2);
       for (const [v0, v1, tx, tz] of ranges) for (let v = v0; v < v1; v++) { at[v * 2] = tx; at[v * 2 + 1] = tz; }
       g.setAttribute('aTile', new THREE.BufferAttribute(at, 2));
@@ -1646,6 +1878,24 @@ export function createTileBuilder(ctx) {
     return group;
   }
   const FARGLASS = () => M.farGlass || M.far;
+  // mid/far buildings are written by the near builder itself (same family recipe, tint, window grid, silhouette, crown and roof)
+  // into one facade batch drawn with the near facade material: no color or pattern pop at the LOD switch
+  const lodFacade = () => !!(M.facadeFar && M.facade);
+  function lodBatches(b) {
+    const fb = new FBatch();
+    const B = new Proxy({ fac: fb, trim: fview(fb, WL.stucco), roof: fview(fb, WL.roofConcrete), neon: b }, { get: (o, k) => (k in o ? o[k] : NULL_BATCH) });
+    return { fb, B };
+  }
+  function* lodBuildings(LB, tile, far) {
+    let k = 0;
+    for (const bd of buildingsOf(tile, false)) {
+      if (far && bd.h < 12 && bd.area < 1500) continue;
+      if (!bd.rings || !bd.rings[0] || bd.rings[0].length < 3) continue;
+      if (LB.lift.on) LB.lift.k = baseOf(bd);
+      try { buildBuilding(LB.B, bd, { shops: false, lod: far ? 2 : 1 }); } catch (e) { if (!LB.warned) { LB.warned = true; console.warn('[city-look] LOD building failed', bd.id, e); } }
+      if (++k % 6 === 0) yield;
+    }
+  }
   // ELEVATED's LOD decks (vertex-coloured, clipped to the tile) appended straight into a mid/far chunk batch
   function elevLodInto(b, tx, tz) {
     const T = provider.tileSize || 200, g = safeCall(() => elevated.buildTileLod(tx, tz, { minX: tx * T, minZ: tz * T, maxX: (tx + 1) * T, maxZ: (tz + 1) * T }), null); if (!g) return 0;
@@ -1655,11 +1905,13 @@ export function createTileBuilder(ctx) {
   }
   function* buildMid(ca, cb, CS) {
     const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T, LFm = { on: false, k: null }; liftB(b, LFm); liftB(gb, LFm);
+    const LB = lodFacade() ? { ...lodBatches(b), lift: LFm } : null, franges = [];
+    if (LB) liftB(LB.fb, LFm);
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
       const tx = ca * n + i, tz = cb * n + j, tile = yield* getTileG(tx, tz); if (!tile) continue;
-      const v0 = b.p.length / 3, g0 = gb.p.length / 3; LFm.on = !!(tile.relief && D); LFm.k = null;
+      const v0 = b.p.length / 3, g0 = gb.p.length / 3, f0 = LB ? LB.fb.p.length / 3 : 0; LFm.on = !!(tile.relief && D); LFm.k = null;
       yield* portYardGen(tile);
-      { const pp = newProps(); portYard(tile, pp); let ns = 0; for (const st of pp.stack) { fastBox(b, st.x, st.n * 1.3, st.z, 6.1, st.n * 1.3, 1.22, BOX_COLS[(hash(((st.x * 13) | 0) + ((st.z * 5) | 0)) * BOX_COLS.length) | 0]); if (++ns % 300 === 0) yield; } }
+      { const pp = newProps(), cb2 = LB ? fview(LB.fb, WL.corrugated) : b; portYard(tile, pp); let ns = 0; for (const st of pp.stack) { fastBox(cb2, st.x, st.n * 1.3, st.z, 6.1, st.n * 1.3, 1.22, containerColor(st.x, st.z, st.n - 1, st.row || 0)); if (++ns % 300 === 0) yield; } }
       for (const a of tile.areas || []) if (a.kind !== 'land' && !synthArea(a)) fillPoly(b, a.rings, AREA_Y[a.kind] ?? 0.01, MID_COL[a.kind] ?? 0x8c8a84, 0);
       yield;
       for (const rings of sidewalksOf(tile)) fillPoly(b, rings, CURB, 0xc8c4bc, 0);
@@ -1668,6 +1920,8 @@ export function createTileBuilder(ctx) {
       const lodE = !!(elevated && elevated.buildTileLod);
       for (const r of tile.roads) { if (r.pts.length < 2 || (lodE && owned(r))) continue; const pr = roadProfile(r, tile); ribbon(b, polyFrame(pr.pts), pr.ys, -r.width / 2, r.width / 2, 0.05, 0x3a3a3c, 0); if (pr.ys) for (const side of [-1, 1]) sideWall(b, polyFrame(pr.pts), pr.ys, side * r.width / 2, 1.8, -0.9, 0xb8b4ac, side); }
       if (lodE) { elevLodInto(b, tx, tz); yield; }
+      if (LB) yield* lodBuildings(LB, tile, false);
+      else {
       let k = 0;
       for (const bd of buildingsOf(tile, false)) {
         const outer = orient(bd.rings[0]); if (outer.length < 3) continue;
@@ -1693,11 +1947,13 @@ export function createTileBuilder(ctx) {
         }
         if (++k % 25 === 0) yield;
       }
+      }
+      if (LB) franges.push([f0, LB.fb.p.length / 3, tx, tz]);
       ranges.push([v0, b.p.length / 3, tx, tz]); granges.push([g0, gb.p.length / 3, tx, tz]);
       yield;
     }
     yield;
-    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-mid-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 16); return cg;
+    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()], ...(LB ? [[LB.fb, franges, M.facadeFar]] : [])], `chunk-mid-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 16); return cg;
   }
   // one global low-detail land base (y = -0.05, under every LOD) so distant islands never float on the ocean
   function* buildLandBase() {
@@ -1711,11 +1967,15 @@ export function createTileBuilder(ctx) {
   }
   function* buildFar(ca, cb, CS) {
     const b = new Batch(), ranges = [], gb = new Batch(), granges = [], T = provider.tileSize, n = CS / T, LFm = { on: false, k: null }; liftB(b, LFm); liftB(gb, LFm);
+    const LB = lodFacade() ? { ...lodBatches(b), lift: LFm } : null, franges = [];
+    if (LB) liftB(LB.fb, LFm);
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
       const tx = ca * n + i, tz = cb * n + j, tile = provider.farTile ? provider.farTile(tx, tz) : yield* getTileG(tx, tz); if (!tile) continue; if (provider.farTile) tile._far = true;
-      const v0 = b.p.length / 3, g0 = gb.p.length / 3; LFm.on = !!(tile.relief && D); LFm.k = null;
+      const v0 = b.p.length / 3, g0 = gb.p.length / 3, f0 = LB ? LB.fb.p.length / 3 : 0; LFm.on = !!(tile.relief && D); LFm.k = null;
       if (elevated && elevated.buildTileLod) { elevLodInto(b, tx, tz); yield; }
       else for (const r of tile.roads) if (r.y && r.pts.length > 1) { const pr = roadProfile(r, tile); if (pr.ys) ribbon(b, polyFrame(pr.pts), pr.ys, -r.width / 2, r.width / 2, 0.05, 0x707070, 0); }
+      if (LB) yield* lodBuildings(LB, tile, true);
+      else {
       for (const bd of buildingsOf(tile, false)) {
         if (bd.h < 12 && bd.area < 1500) continue;
         const outer = orient(bd.rings[0]); if (outer.length < 3) continue;
@@ -1724,11 +1984,13 @@ export function createTileBuilder(ctx) {
         else wallStrip(b, outer, bd.minH || 0, bd.h, 24, 28, new THREE.Color(OFFICE_TINTS[(rr * 11) | 0]).multiplyScalar(0.85), ((rr * 8) | 0) / 8, 0);
         fillPoly(b, [outer], bd.h, new THREE.Color(0x8a867e), 0);
       }
+      }
+      if (LB) franges.push([f0, LB.fb.p.length / 3, tx, tz]);
       ranges.push([v0, b.p.length / 3, tx, tz]); granges.push([g0, gb.p.length / 3, tx, tz]);
       yield;
     }
     yield;
-    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()]], `chunk-far-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 32); return cg;
+    const cg = yield* chunkMesh([[b, ranges, M.far], [gb, granges, FARGLASS()], ...(LB ? [[LB.fb, franges, M.facadeFar]] : [])], `chunk-far-${ca},${cb}`); yield* terrainLod(cg, ca, cb, CS, 32); return cg;
   }
 
   // ---------------- COLLIDERS: trimesh per tile (roads/sidewalks/curbs/intersections + building shells) ----------------

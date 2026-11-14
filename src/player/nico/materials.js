@@ -25,13 +25,16 @@ export function texturesReady() {
 // shared per-character skin state (one uniform set drives head + body + far materials)
 export function makeSkinState() {
   return {
-    uSSS: { value: 1.0 }, uWet: { value: 0 }, uSweat: { value: 0 }, uBurn: { value: 0 }, uTan: { value: 0 }, uFlush: { value: 0 },
+    uSSS: { value: 1.0 }, uWet: { value: 0 }, uWetLine: { value: 3.0 }, uSweat: { value: 0 }, uBurn: { value: 0 }, uTan: { value: 0 }, uFlush: { value: 0 },
     uCover: { value: null }, uCoverOn: { value: 0 }, uTattoo: { value: null }, uTattooOn: { value: 0 },
   };
 }
 
 const SKIN_PARS = /* glsl */`
-uniform float uSSS, uWet, uSweat, uBurn, uTan, uFlush, uCoverOn, uTattooOn, uMicroTile;
+uniform float uSSS, uWetU, uWetLine, uSweat, uBurn, uTan, uFlush, uCoverOn, uTattooOn, uMicroTile;
+varying float vWetH;
+// wet only up to the highest water line reached (bind-pose height in meters), soaking a few cm above it
+#define uWet ( uWetU * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.08, vWetH ) ) )
 uniform sampler2D uM2, uMicro, uDrops, uCover, uTattoo;
 float nicoThick = 0.0; float nicoBead = 0.0; vec2 nicoBeadN = vec2(0.0);
 `;
@@ -53,7 +56,10 @@ export function makeSkinMaterial(kind, state) {
   m.userData.u = u; m.userData.state = state;
   m.defines = { NICO_SKIN: 1 }; if (far) m.defines.NICO_FAR = 1; if (kind === 'body') m.defines.NICO_BODY = 1;
   m.onBeforeCompile = (sh) => {
-    Object.assign(sh.uniforms, u, state);
+    Object.assign(sh.uniforms, u, state, { uWetU: state.uWet, uWetLine: state.uWetLine || { value: 3.0 } });
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vWetH;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetH = position.y;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\n' + SKIN_PARS)
       .replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment.replace(
@@ -207,6 +213,17 @@ export function makeHairShellMaterial(layer, layers, state) {
       .replace('#include <map_fragment>', /* glsl */`
         vec4 hm = texture2D( uHairMask, vHUv );
         if ( hm.r < 0.5 ) discard;
+        // soft natural hairline: the painted mask is hard-edged, so thin the strands out over the last ~2 cm inside it
+        {
+          float soft = 0.0;
+          for ( int i = 0; i < 8; i ++ ) {
+            float a = float( i ) * 0.785398;
+            soft += step( 0.5, texture2D( uHairMask, vHUv + vec2( cos( a ), sin( a ) ) * 0.013 ).r );
+          }
+          soft /= 8.0;
+          float keep = smoothstep( 0.25, 1.0, soft );
+          if ( hh( floor( vHUv * 1250.0 ) + 11.3 ) > keep * 1.2 - 0.1 ) discard;
+        }
         // strands: two cell scales (clumps + single hairs); each cell holds one strand of random length and position
         float dens = mix( 1250.0, 760.0, hm.g );
         vec2 g = vHUv * dens; vec2 c = floor( g ); vec2 f = fract( g ) - 0.5;
@@ -236,29 +253,50 @@ export function makeClothMaterial(o = {}) {
   // `construct`: the camp shirt cut gets real construction drawn on it (placket, buttonholes, yoke, side and armhole seams,
   // stitching, hem and pocket topstitch), targeted drape folds and creases, linen slub weave, sun fade and wash variation.
   if (o.construct) m.defines = { SHIRT: '' };
+  if (o.shoe) m.defines = { SHOE: '' };
+  if (o.shorts) m.defines = { SHORTS: '' };
+  if (o.cargo) m.defines = { SHORTS: '', CARGO: '' };
+  if (o.leather) m.defines = { ...(m.defines || {}), LEATHER: '' };
+  if (o.openShirt) m.defines = { ...(m.defines || {}), OPENSHIRT: '' };
+  if (o.clothSim) m.defines = { ...(m.defines || {}), CLOTHSIM: '' };
   if (o.print) { m.map = tex(o.print, { srgb: true, repeat: true, base: '' }); }
   const u = { uRepeat: { value: 1 / (o.repeatM || 0.6) }, uWeave: { value: o.weave ?? 1 }, uWeaveScale: { value: o.weaveScale ?? 2400 }, uFold: { value: o.fold ?? 1 },
-    uTime: o.time || { value: 0 }, uWind: o.wind || { value: new THREE.Vector3(0.4, 0, 0.2) }, uFlutter: { value: o.flutter ?? 1 }, uWetC: o.wet || { value: 0 },
-    uColor2: { value: new THREE.Color(o.color2 ?? 0xffffff) }, uPattern: { value: o.pattern ?? 0 }, uDecal: { value: o.decal ? tex(o.decal, { srgb: true, base: '' }) : null },
+    uTime: o.time || { value: 0 }, uWind: o.wind || { value: new THREE.Vector3(0.4, 0, 0.2) }, uFlutter: { value: o.flutter ?? 1 }, uWetC: o.wet || { value: 0 }, uWetLine: o.wetLine || { value: 3.0 },
+    uSwing: o.swing || { value: new THREE.Vector3() }, uCP: { value: Array.from({ length: 40 }, () => new THREE.Vector3()) }, uColor2: { value: new THREE.Color(o.color2 ?? 0xffffff) }, uPattern: { value: o.pattern ?? 0 }, uDecal: { value: o.decal ? tex(o.decal, { srgb: true, base: '' }) : null },
     uDecalRect: { value: new THREE.Vector4(...(o.decalRect || [0, 0, 0, 0])) }, uDecalPanel: { value: o.decalPanel ?? -1 } };
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; uniform float uTime, uFlutter; uniform vec3 uWind;\n#ifdef SHIRT\nvarying vec3 vRest; varying vec3 vRestN;\n#endif')
+      .replace('#include <common>', '#include <common>\nattribute vec2 uv1;\nattribute vec4 color;\nvarying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uTime, uFlutter; uniform vec3 uWind, uSwing;\n#ifdef CLOTHSIM\nattribute vec4 clothW; uniform vec3 uCP[ 40 ];\n#endif\n#if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )\nvarying vec3 vRest; varying vec3 vRestN;\n#endif')
       .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
-        vFab = uv1; vGc = color;
-        #ifdef SHIRT
+        vFab = uv1; vGc = color; vWetH = position.y;
+        #if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )
           vRest = position;
           vRestN = normal;
         #endif
         float fl = color.b * uFlutter;
         float ph = position.x * 9.0 + position.y * 13.0 + position.z * 7.0;
-        transformed += normal * ( sin( uTime * 5.3 + ph ) * 0.0035 + sin( uTime * 8.1 + ph * 1.7 ) * 0.0018 ) * fl * ( 0.5 + length( uWind ) );
-        transformed += uWind * ( 0.012 * fl * ( 0.6 + 0.4 * sin( uTime * 2.1 + ph * 0.3 ) ) );`);
+        transformed += normal * ( sin( uTime * 5.3 + ph ) * 0.0035 + sin( uTime * 8.1 + ph * 1.7 ) * 0.0018 + sin( uTime * 11.0 + ph * 2.3 ) * 0.0022 * length( uWind ) ) * fl * ( 0.5 + length( uWind ) );
+        transformed += uWind * ( 0.012 * fl * ( 0.6 + 0.4 * sin( uTime * 2.1 + ph * 0.3 ) ) );
+        // spring-simulated swing (hem, sleeve ends, collar tips): lower / looser cloth lags more; never pushed into the body
+        {
+          vec3 sw = uSwing * color.b * uFlutter * ( 0.85 + 0.15 * sin( ph * 0.7 ) );
+          float dn = dot( sw, normal );
+          if ( dn < 0.0 ) sw -= normal * dn * 0.9;
+          transformed += sw;
+        }
+        #ifdef CLOTHSIM
+        {
+          // multi-point cloth: blend of the two nearest simulated particles' offsets
+          // (body collision is solved on the particles; inner and outer layers of a hem move together)
+          vec3 cd = uCP[ int( clothW.x + 0.5 ) ] * clothW.y + uCP[ int( clothW.z + 0.5 ) ] * clothW.w;
+          transformed += cd;
+        }
+        #endif`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', /* glsl */`#include <common>
-        varying vec2 vFab; varying vec4 vGc; uniform float uRepeat, uWeave, uWeaveScale, uFold, uWetC, uPattern, uDecalPanel; uniform vec3 uColor2; uniform sampler2D uDecal; uniform vec4 uDecalRect;
+        varying vec2 vFab; varying vec4 vGc; varying float vWetH; uniform float uWetLine; uniform float uRepeat, uWeave, uWeaveScale, uFold, uWetC, uPattern, uDecalPanel; uniform vec3 uColor2; uniform sampler2D uDecal; uniform vec4 uDecalRect;
         float ch( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }
         float cn( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f ); return mix( mix( ch( i ), ch( i + vec2( 1, 0 ) ), f.x ), mix( ch( i + vec2( 0, 1 ) ), ch( i + vec2( 1, 1 ) ), f.x ), f.y ); }
         float clothH( vec2 u ) {                                   // drape folds + crumple (meters) and thread relief
@@ -267,8 +305,14 @@ export function makeClothMaterial(o = {}) {
           return h * uFold;
         }
         float weaveH( vec2 u ) { vec2 q = u * uWeaveScale; return ( sin( q.x ) * sin( q.y ) ) * step( 0.0, sin( q.x * 0.5 ) * sin( q.y * 0.5 ) ) + 0.35 * sin( q.x * 2.0 ) * sin( q.y * 2.0 ); }
-        #ifdef SHIRT
+        #if defined( SHIRT ) || defined( SHOE ) || defined( SHORTS )
         varying vec3 vRest; varying vec3 vRestN;
+        #endif
+        float aaLineS( float d, float halfW ) {
+          float f = max( fwidth( d ), 1e-6 );
+          return 1.0 - smoothstep( halfW, halfW + f * 1.2, abs( d ) );
+        }
+        #ifdef SHIRT
         // thin anti-aliased line around d = 0 (halfW in d's own units)
         float aaLine( float d, float halfW ) {
           float f = max( fwidth( d ), 1e-6 );
@@ -281,7 +325,7 @@ export function makeClothMaterial(o = {}) {
           float d = smoothstep( 0.18, 0.3, fract( t ) ) * ( 1.0 - smoothstep( 0.76, 0.88, fract( t ) ) );
           return mix( d, 0.5, smoothstep( 0.3, 0.8, f ) );
         }
-        const float HEM_Y = 0.872;
+        const float HEM_Y = 0.905;
         const float V_Y = 1.385;
         // x: seam shadow (darker, sunk), y: thread
         vec2 shirtSeams() {
@@ -297,6 +341,9 @@ export function makeClothMaterial(o = {}) {
           t += aaLine( py - HEM_Y - 0.012, 0.00045 ) * dashA( px ) * low;
           // front placket (left front laps over right): overlap edge, two stitch rows, buttonholes under the buttons
           float plk = front * torso * step( py, V_Y ) * step( HEM_Y, py );
+          #ifdef OPENSHIRT
+          plk = 0.0;
+          #endif
           r += aaLine( px + 0.0175, 0.0007 ) * 1.6 * plk;
           t += ( aaLine( px + 0.0140, 0.00042 ) + aaLine( px - 0.0165, 0.00042 ) ) * dashA( py ) * plk;
           float k = clamp( floor( ( 1.335 - py ) / 0.095 + 0.5 ), 0.0, 4.0 );
@@ -317,10 +364,13 @@ export function makeClothMaterial(o = {}) {
           r += aaLine( ah, 0.0025 ) * 1.1 * nearArm;
           t += aaLine( ah + 0.009, 0.0012 ) * dashA( px + py + pz ) * 0.9 * nearArm;
           // side seams down the flanks
-          float sd = torso * step( py, 1.26 ) * step( HEM_Y, py );
+          float sd = torso * step( py, 1.26 ) * step( HEM_Y, py ) * step( 0.11, ax );
           r += aaLine( vRestN.z, 0.012 ) * 0.8 * sd;
           // sleeve hems, collar edge and pocket edge topstitch (from the hem attribute)
           float up = max( sleeve, step( 1.15, py ) );
+          #ifdef OPENSHIRT
+          up = max( up, front * step( 0.95, py ) );
+          #endif
           t += aaLine( vGc.g - 0.82, 0.008 ) * dashA( px + py + pz ) * up;
           // pocket mouth: folded hem with a stitch row 15 mm down
           float pk = front * step( 0.040, px ) * step( px, 0.142 ) * step( 1.19, py ) * step( py, 1.335 );
@@ -394,12 +444,122 @@ export function makeClothMaterial(o = {}) {
           diffuseColor.rgb *= 1.0 - 0.22 * sm2.x;
           diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * 1.32 + 0.02, 0.85 * sm2.y );
         }
+        #elif defined( SHORTS )
+        {
+          // chino shorts: waistband with belt loops, fly with J-stitch, slant front pockets, back welt pockets,
+          // leg hem topstitch, crotch whiskers and soft wear on the seat and thighs
+          float px = vRest.x, py = vRest.y, pz = vRest.z, ax = abs( px );
+          float front = step( 0.0, pz );
+          diffuseColor.rgb *= 0.82 + 0.3 * cn( vFab * vec2( 900.0, 60.0 ) ) * cn( vFab * 12.0 + 4.0 );
+          float fwy = max( fwidth( py ), 1e-5 ), fwx = max( fwidth( px ), 1e-5 );
+          float ln = 0.0, th = 0.0;
+          // waistband 4 cm with a seam below it and topstitch
+          ln += 1.0 - smoothstep( 0.0, fwy * 1.5 + 0.0005, abs( py - 1.02 ) );
+          th += ( 1.0 - smoothstep( 0.0, fwy + 0.0003, abs( py - 1.045 ) ) ) * step( 0.4, fract( px * 300.0 ) );
+          // belt loops (front sides, hips, back center)
+          float loops = 0.0;
+          for ( int i = 0; i < 3; i ++ ) {
+            float lx = i == 0 ? 0.075 : i == 1 ? 0.15 : 0.0;
+            float isBack = i == 2 ? 1.0 : 0.0;
+            float inX = 1.0 - smoothstep( 0.005, 0.005 + fwx * 1.5, abs( ax - lx ) );
+            float inSide = mix( front, 1.0 - front, isBack );
+            loops = max( loops, inX * inSide * step( 1.008, py ) * step( py, 1.058 ) );
+          }
+          // fly: a J-shaped stitch on the wearer's left of center
+          float fly = front * step( 0.88, py ) * step( py, 1.02 );
+          float jx = px - 0.022 + 0.018 * ( 1.0 - smoothstep( 0.88, 0.93, py ) );
+          th += ( 1.0 - smoothstep( 0.0, fwx + 0.0003, abs( jx ) ) ) * fly * step( 0.4, fract( py * 300.0 ) );
+          ln += ( 1.0 - smoothstep( 0.0, fwx * 1.5 + 0.0004, abs( px ) ) ) * fly;
+          // slant front pockets: from the waistband 7 cm out from center down to the side
+          float pk = front * step( 0.9, py ) * step( py, 1.02 );
+          float sl = ( ax - 0.085 ) - ( 1.02 - py ) * 0.75;
+          ln += ( 1.0 - smoothstep( 0.0, fwx * 1.5 + 0.0005, abs( sl ) ) ) * pk * step( ax, 0.2 );
+          // back welt pockets
+          float bw = ( 1.0 - front ) * step( 0.05, ax ) * step( ax, 0.15 );
+          ln += ( 1.0 - smoothstep( 0.0, fwy * 1.5 + 0.0004, abs( py - 0.965 ) ) ) * bw;
+          // leg hem topstitch 2 cm up
+          th += aaLineS( vGc.g - 0.55, 0.03 ) * step( py, 0.75 ) * step( 0.4, fract( ( px + pz ) * 300.0 ) );
+          // whiskers at the crotch front and wear on the seat
+          float wh = front * smoothstep( 0.06, 0.02, ax - 0.07 ) * smoothstep( 0.78, 0.86, py ) * smoothstep( 0.95, 0.88, py );
+          diffuseColor.rgb *= 1.0 + 0.08 * wh * smoothstep( 0.6, 1.0, sin( ( py - ax * 0.6 ) * 260.0 ) );
+          diffuseColor.rgb *= 1.0 + 0.05 * ( 1.0 - front ) * smoothstep( 0.98, 0.9, py ) * cn( vRest.xy * 30.0 );
+          #ifdef CARGO
+          {
+            // outer-thigh cargo pocket (17 x 20 cm) with a flap, pleat and snap; on the leg's outer side
+            float outer = smoothstep( 0.5, 0.8, vRestN.x * sign( px ) );
+            float cy0 = 0.52, cy1 = 0.72;
+            float cz = pz - 0.0;
+            float inP = outer * step( cy0, py ) * step( py, cy1 ) * step( abs( cz ), 0.085 );
+            float edgeP = inP * ( 1.0 - smoothstep( 0.0, 0.004 + fwy, min( min( py - cy0, cy1 - py ), 0.085 - abs( cz ) ) ) );
+            ln += edgeP * 1.6;
+            diffuseColor.rgb *= 1.0 - 0.06 * inP;
+            float flapY = cy1 - 0.055;
+            ln += outer * step( abs( cz ), 0.09 ) * ( 1.0 - smoothstep( 0.0, fwy * 1.5 + 0.0012, abs( py - flapY ) ) ) * 1.2;
+            diffuseColor.rgb *= 1.0 - 0.10 * outer * step( abs( cz ), 0.09 ) * smoothstep( flapY, flapY - 0.012, py ) * step( cy0, py );
+            th += outer * step( abs( cz ), 0.08 ) * ( 1.0 - smoothstep( 0.0, fwy + 0.0003, abs( py - flapY - 0.008 ) ) ) * step( 0.4, fract( pz * 300.0 ) );
+            ln += outer * ( 1.0 - smoothstep( 0.0, 0.0012 + fwx, abs( cz ) ) ) * step( cy0 + 0.02, py ) * step( py, flapY ) * 0.5;
+            // knee seams across the front of each leg
+            ln += front * ( 1.0 - smoothstep( 0.0, fwy * 1.5 + 0.0006, abs( py - 0.47 ) ) ) * step( 0.03, ax );
+            // back patch pockets
+            float bp = ( 1.0 - front ) * step( 0.82, py ) * step( py, 0.97 ) * step( 0.04, ax ) * step( ax, 0.16 );
+            ln += bp * ( 1.0 - smoothstep( 0.0, 0.003 + fwy, min( min( py - 0.82, 0.97 - py ), min( ax - 0.04, 0.16 - ax ) ) ) );
+            // outseam down the side
+            ln += ( 1.0 - smoothstep( 0.0, 0.0015 + fwx, abs( vRestN.z ) ) ) * step( py, 0.95 ) * step( 0.06, ax ) * 0.6;
+            // dirt, scuffs and fraying at the stacked hems; dusty knees
+            float hemD = smoothstep( 0.20, 0.06, py );
+            diffuseColor.rgb *= 1.0 - 0.22 * hemD * ( 0.5 + 0.5 * cn( vRest.xz * 60.0 + py * 30.0 ) );
+            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.42, 0.36, 0.28 ), 0.18 * hemD * cn( vRest.xz * 25.0 ) );
+            diffuseColor.rgb *= 1.0 + 0.06 * front * smoothstep( 0.06, 0.0, abs( py - 0.50 ) ) * cn( vRest.xy * 40.0 );
+            // stacking creases above the shoe and knee/back-of-knee creases
+            diffuseColor.rgb *= 1.0 - 0.10 * smoothstep( 0.24, 0.08, py ) * smoothstep( 0.4, 1.0, sin( py * 260.0 + cn( vRest.xz * 30.0 ) * 6.0 ) );
+            diffuseColor.rgb *= 1.0 - 0.08 * ( 1.0 - front ) * smoothstep( 0.05, 0.0, abs( py - 0.44 ) ) * smoothstep( 0.3, 1.0, sin( py * 300.0 + px * 40.0 ) );
+          }
+          #endif
+          diffuseColor.rgb *= 1.0 - 0.32 * clamp( ln, 0.0, 1.0 );
+          diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * 1.25, 0.8 * clamp( th, 0.0, 1.0 ) );
+          diffuseColor.rgb *= 1.0 - 0.18 * loops * ( 0.6 + 0.4 * step( 0.5, fract( py * 200.0 ) ) );
+          diffuseColor.rgb *= 1.0 - 0.12 * smoothstep( 0.6, 1.0, vGc.g ) * step( py, 0.75 );
+        }
+        #elif defined( SHOE )
+        {
+          // sneaker: canvas upper, vulcanized off-white rubber sole with a foxing line, toe bumper, stitched quarter seam
+          float sy = vRest.y;
+          float fwS = max( fwidth( sy ), 1e-5 );
+          diffuseColor.rgb *= ( 1.0 + 0.06 * weaveH( vFab ) * weaveAA );
+          float sole = 1.0 - smoothstep( 0.031 - fwS, 0.031 + fwS, sy );
+          vec3 rubber = vec3( 0.80, 0.78, 0.72 ) * ( 0.94 + 0.06 * cn( vRest.xz * 300.0 ) );
+          diffuseColor.rgb = mix( diffuseColor.rgb, rubber, sole );
+          diffuseColor.rgb *= 1.0 - 0.45 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0006, abs( sy - 0.0315 ) ) );
+          diffuseColor.rgb *= 1.0 - 0.25 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0004, abs( sy - 0.0245 ) ) );
+          diffuseColor.rgb *= 1.0 - 0.3 * ( 1.0 - smoothstep( 0.0, fwS + 0.0003, abs( sy - 0.043 ) ) ) * step( 0.5, fract( ( vRest.x + vRest.z ) * 300.0 ) );
+          diffuseColor.rgb *= 1.0 - 0.18 * smoothstep( 0.6, 1.0, vGc.g ) * step( 0.05, sy );
+          diffuseColor.rgb *= 0.97 + 0.05 * cn( vRest.xz * 40.0 ) - 0.06 * smoothstep( 0.0, 0.02, sy ) * ( 1.0 - smoothstep( 0.02, 0.05, sy ) ) * cn( vRest.xz * 25.0 );
+          #ifdef LEATHER
+          {
+            // lace area on the instep: eyelet rows and crossing laces; toe-cap and heel panel seams; scuffs and grime
+            float top = smoothstep( 0.45, 0.8, vRestN.y );
+            float fx = fract( vRest.x * 6.0 );
+            float lacesZ = fract( vRest.z * 85.0 );
+            float midline = abs( fract( vRest.x * 1.0 + 0.5 ) - 0.5 );
+            float inLace = top * step( 0.055, sy ) * step( sy, 0.10 );
+            float laceBar = inLace * ( 1.0 - smoothstep( 0.18, 0.32, abs( lacesZ - 0.5 ) * 2.0 - 0.6 ) );
+            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.86, 0.84, 0.80 ), 0.0 );
+            diffuseColor.rgb *= 1.0 - 0.18 * inLace * smoothstep( 0.35, 0.5, abs( lacesZ - 0.5 ) * 2.0 );
+            diffuseColor.rgb *= 1.0 - 0.3 * ( 1.0 - smoothstep( 0.0, fwS + 0.0006, abs( sy - 0.055 ) ) ) * top;
+            diffuseColor.rgb *= 1.0 - 0.25 * ( 1.0 - smoothstep( 0.0, fwS * 1.5 + 0.0005, abs( sy - 0.048 ) ) ) * ( 1.0 - top );
+            float scuff = smoothstep( 0.62, 0.8, cn( vRest.xz * 90.0 + sy * 50.0 ) );
+            diffuseColor.rgb *= 1.0 - 0.14 * scuff - 0.10 * smoothstep( 0.05, 0.02, sy ) * cn( vRest.xz * 50.0 );
+            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.45, 0.40, 0.33 ), 0.12 * cn( vRest.xz * 12.0 + 3.0 ) * smoothstep( 0.06, 0.0, sy ) );
+          }
+          #endif
+        }
         #else
         diffuseColor.rgb *= ( 0.80 + 0.20 * vGc.r ) * ( 1.0 - 0.10 * vGc.g ) * ( 1.0 + 0.05 * weaveH( vFab ) * weaveAA * uWeave );
         #endif
-        diffuseColor.rgb *= mix( 1.0, 0.62, uWetC );
+        float wetK = uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) );       // wicks a little above the water line
+        diffuseColor.rgb *= mix( 1.0, 0.58, wetK );
         if ( ! gl_FrontFacing ) diffuseColor.rgb *= 0.55;`)
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( roughness, 0.35, uWetC * 0.8 );')
+      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( roughness, 0.32, uWetC * ( 1.0 - smoothstep( uWetLine - 0.02, uWetLine + 0.10, vWetH ) ) * 0.85 );')
       .replace('#include <normal_fragment_maps>', /* glsl */`#include <normal_fragment_maps>
         {
           float fw = max( fwidth( vFab.x ), fwidth( vFab.y ) );
@@ -420,7 +580,7 @@ export function makeClothMaterial(o = {}) {
           normal = normalize( abs( det ) * normal - sign( det ) * ( dhx * r1 + dhy * r2 ) );
         }`);
   };
-  m.customProgramCacheKey = () => 'nicoCloth' + (m.map ? 'M' : '') + (o.construct ? 'S' : '');
+  m.customProgramCacheKey = () => 'nicoCloth' + (m.map ? 'M' : '') + (o.construct ? 'S' : '') + (o.shoe ? 'H' : '') + (o.clothSim ? 'C' : '') + (o.shorts ? 'P' : '') + (o.cargo ? 'G' : '') + (o.leather ? 'L' : '') + (o.openShirt ? 'O' : '');
   return m;
 }
 
@@ -447,13 +607,12 @@ export function makeButtonMaterial(o = {}) {
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBtn = position; vBtnN = normal;');
+      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBtn = position; vBtnN = normal; vBtnUv = uv;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; uniform vec3 uThread; uniform float uTop, uStep, uCount;')
+      .replace('#include <common>', '#include <common>\nvarying vec3 vBtn; varying vec3 vBtnN; varying vec2 vBtnUv; uniform vec3 uThread; uniform float uTop, uStep, uCount;')
       .replace('#include <map_fragment>', /* glsl */`#include <map_fragment>
-        float bk = clamp( floor( ( uTop - vBtn.y ) / uStep + 0.5 ), 0.0, uCount );
-        vec2 bp = vec2( vBtn.x, vBtn.y - ( uTop - bk * uStep ) );
+        vec2 bp = ( vBtnUv - 0.5 ) * 0.0112;
         float br = length( bp );
         float face = smoothstep( 0.3, 0.7, vBtnN.z );
         float holes = 0.0;

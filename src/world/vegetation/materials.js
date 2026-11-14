@@ -11,12 +11,21 @@ import { barkAtlas, leafAtlas } from './textures.js';
 
 export const vegUniforms = {
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
-  uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() }, uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
+  uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
+  // shared wind (copied every frame from game.wind when it exists): direction the air moves to, mean speed, clock of the gust field
+  uVegWindDir: { value: new THREE.Vector2(-1, 0) }, uVegWindSpeed: { value: 3 }, uVegWindT: { value: 0 }, uSunCol: { value: new THREE.Color(1, 0.95, 0.85) },
 };
 
 const VERT_HEAD = `
 attribute vec3 aWind;
-uniform float uVegTime; uniform float uVegGust; uniform float uLean; uniform float uSway;
+uniform float uVegTime; uniform float uVegGust; uniform float uLean; uniform float uSway; uniform vec2 uVegWindDir; uniform float uVegWindSpeed; uniform float uVegWindT;
+float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): palms, shrubs, trees and grass react to one front together
+  vec2 d = uVegWindDir; float along = dot(p, d), across = -p.x * d.y + p.y * d.x, s = max(uVegWindSpeed, 0.5), t = uVegWindT;
+  float a = sin(6.2831 * ((along - s * 0.9 * t) / 140.0 + 0.13 * sin(across / 90.0)));
+  float b = sin(6.2831 * ((along - s * 0.7 * t) / 37.0 + across / 210.0) + 1.7);
+  float c = sin(6.2831 * ((along - s * 0.6 * t) / 9.5) + across * 0.11 + 4.1);
+  return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
+}
 varying vec2 vVegHash; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
 `;
 const VERT_BODY = `
@@ -33,10 +42,11 @@ const VERT_BODY = `
   vec2 ld = vec2(cos(vh * 6.2831), sin(vh * 6.2831));
   transformed.xz += ld * bend * uLean * (vh2 - 0.25);
   float ph = vh * 6.2831 + aWind.z;
-  float sway = (sin(uVegTime * 1.1 + vh * 6.2831) * 0.6 + sin(uVegTime * 2.3 + vh * 11.0) * 0.25) * (0.25 + uVegGust);
-  transformed.x += bend * sway * uSway;
-  transformed.z += bend * cos(uVegTime * 0.9 + vh * 4.0) * uSway * 0.35 * (0.25 + uVegGust);
-  float fl = aWind.y * (0.3 + uVegGust);
+  float gst = vegGust(vIw.xz), wspd = clamp(uVegWindSpeed / 4.0, 0.06, 2.2);
+  float sway = (0.3 + gst * 1.1 + (sin(uVegTime * 1.1 + vh * 6.2831) * 0.6 + sin(uVegTime * 2.3 + vh * 11.0) * 0.25) * (0.3 + gst)) * wspd;
+  transformed.xz += uVegWindDir * bend * sway * uSway;
+  transformed.xz += vec2(-uVegWindDir.y, uVegWindDir.x) * bend * sin(uVegTime * 0.9 + vh * 4.0) * uSway * 0.3 * wspd;
+  float fl = aWind.y * (0.25 + gst) * wspd;
   transformed += normal * sin(uVegTime * 5.3 + ph + transformed.y * 0.7) * 0.05 * fl;
   transformed.y += sin(uVegTime * 2.1 + ph) * 0.09 * fl * aWind.y;
   vec4 vegW = vec4(transformed, 1.0);
@@ -75,7 +85,7 @@ const FRAG_TRANSL = `
     vec3 Vd = normalize(vVegW - cameraPosition);
     float back = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 3.0);
     float up = clamp(uSunDir.y * 2.0, 0.0, 1.0);
-    totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (back * uTransl * 1.6 + uTransl * 0.18) * up * vec3(0.9, 1.05, 0.6);
+    totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (back * uTransl * 1.2 + uTransl * 0.06) * up * vec3(0.9, 1.05, 0.6);
   }
 `;
 
@@ -108,7 +118,7 @@ export function makeVegMaterial(family, o = {}) {
     mat = new THREE.MeshStandardMaterial({ map: B.map, normalMap: B.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughnessMap: B.roughnessMap, roughness: 1, metalness: 0, vertexColors: true });
   } else {
     const map = family === 'imp' ? o.map : leafAtlas().map;
-    mat = new THREE.MeshStandardMaterial({ map, alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.62, metalness: 0, vertexColors: family !== 'imp', alphaToCoverage: true });
+    mat = new THREE.MeshStandardMaterial({ map, alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: true });
   }
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => 'veg-' + family;
@@ -130,8 +140,10 @@ export function sharedVegMaterials() {
 
 // per-frame: wind clock and sun (pass a DirectionalLight, or find the strongest one in the scene)
 let _sun = null;
-export function updateVegetation(t, scene, sun) {
+export function updateVegetation(t, scene, sun, wind) {
   vegUniforms.uVegTime.value = t;
+  if (wind && wind.dir) { vegUniforms.uVegWindDir.value.copy(wind.dir); vegUniforms.uVegWindSpeed.value = wind.speed ?? 3; vegUniforms.uVegWindT.value = wind.time ?? t; }
+  else vegUniforms.uVegWindT.value = t;
   vegUniforms.uVegGust.value = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.13)) + 0.35 * Math.max(0, Math.sin(t * 0.41) * Math.sin(t * 0.067 + 1.3));
   if (!sun && scene) {
     if (!_sun || !_sun.parent) { _sun = null; let best = 0; scene.traverse((o) => { if (o.isDirectionalLight && o.intensity > best) { best = o.intensity; _sun = o; } }); }

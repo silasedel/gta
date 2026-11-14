@@ -198,6 +198,56 @@
    "name": "Credits for every asset",
    "state": "verified",
    "evidence": "CREDITS.md"
+  },
+  {
+   "name": "Teal camp shirt: Nico's default top (solid teal linen-cotton), floral kept as a wardrobe option",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_front.png"
+  },
+  {
+   "name": "Teal shirt construction: camp collar, placket, 5 pearl buttons with thread, buttonholes, pocket, yoke, seams, hems",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_collar_34.png"
+  },
+  {
+   "name": "Teal shirt fit in idle, walk, drive and sit poses (no clipping seen)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_sit_pose.png"
+  },
+  {
+   "name": "Teal shirt in game, daylight, walk and run; wardrobe swap emits outfit:changed",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_ingame_run.png"
+  },
+  {
+   "name": "Relaxed standing pose layer (arms down, soft elbows, curled fingers, feet under hips, weight shift)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_ingame_front.png"
+  },
+  {
+   "name": "Lean swimmer build by default (thin 0.21, muscle 0.44 morphs)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/teal_front.png"
+  },
+  {
+   "name": "Cloth motion: spring-driven hem, sleeve ends and collar tips from body motion and wind (game.wind or breeze)",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/teal_run_a.png"
+  },
+  {
+   "name": "Sneakers: rubber sole band (built); toe shapes still show through the shell",
+   "state": "building",
+   "evidence": "docs/v2/shots/character/teal_feet.png"
+  },
+  {
+   "name": "Shirt fit polish: seat crease at the back, small chest bump, boxy shoulders, wavy lapel edge",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Body rebuild: new proportions, neck/shoulder slope, hands and feet size, ears, hairline, tan lines",
+   "state": "todo",
+   "evidence": ""
   }
  ],
  "note": "Stopped at the 6:30 PM budget stop. Verified = seen in a screenshot or measured in the running game. Built = code runs but was not checked closely. See docs/v2/reports/character.md for flaws and open work."

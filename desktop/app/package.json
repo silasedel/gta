@@ -1,0 +1,9 @@
+{
+  "name": "port-solana-desktop",
+  "productName": "Port Solana",
+  "version": "2.0.0",
+  "description": "Port Solana desktop app",
+  "author": "Port Solana",
+  "private": true,
+  "main": "main.cjs"
+}

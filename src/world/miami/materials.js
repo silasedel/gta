@@ -303,7 +303,7 @@ export async function createMaterials(renderer) {
     M.glass.emissiveIntensity = 0.03 + 0.9 * n; M.farGlass.emissiveIntensity = 0.03 + 0.9 * n; M.shop.emissiveIntensity = 0.35 + 1.1 * n; M.far.emissiveIntensity = 0.9 * n;
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;
     M.neon.color.setScalar(1 + 2.4 * dusk);
-    M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk);
+    if (dusk > 0.02) M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk); else M.bulb.color.setRGB(0.2, 0.19, 0.17); // unlit by day: dull glass bulb, not a glowing beige dot
     const blink = t % 1.6 < 0.25; M.beacon.color.setRGB(blink ? 4 : 0.25, blink ? 0.2 : 0.02, blink ? 0.2 : 0.02);
     return { n, dusk };
   }

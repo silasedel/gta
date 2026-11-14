@@ -14,7 +14,7 @@ export const GradeShader = {
     uSharp: { value: 0.45 },
     uVignette: { value: 0.2 },
     uSat: { value: 1.14 },
-    uContrast: { value: 0.33 },
+    uContrast: { value: 0.37 },
     uLift: { value: [0.0, 0.004, 0.012] },
     uGamma: { value: [1.0, 1.0, 1.0] },
     uGain: { value: [1.03, 1.0, 0.96] },

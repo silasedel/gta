@@ -35,33 +35,68 @@ def sh(pts):
 AP = P(sh([(-5960, -1040), (-4060, -1040), (-4060, 330), (-5960, 330)]))
 # ---------------------------------------------------------------- 1. trace the image
 C = TR.classify()
+IH = C['land'].shape[0]            # the image is 1041 x 1511 (earlier passes assumed 1500 rows: 0.7 % north-south squeeze, fixed in pass 7)
+assert abs(BOUNDS['maxZ'] - (TR.Z0 + TR.S * IH)) < 1.0, 'bounds must equal the image extent'
+STAGED = bool(os.environ.get('WL_OUT'))
+LAYOUT_PATH = os.path.join(OUT, 'layout.json') if STAGED else os.path.join(ROOT, 'public', 'assets', 'world', 'layout.json')
+def strips(x0, y0, x1, y1, nmax, minfrac=0.3):
+    """Pale pavement strips (runways) in an image window by an iterated Hough vote. Returns [(pxA, pxB, votes)]."""
+    sub = C['rgb'][y0:y1, x0:x1]; mn = sub.mean(2); sat = sub.max(2) - sub.min(2)
+    ok = sat < 26
+    if ok.sum() < 50: return []
+    ys_, xs_ = np.nonzero(ok & (mn > np.percentile(mn[ok], 80)))
+    Pp = np.stack([xs_ + x0, ys_ + y0], 1).astype(np.float64); out = []; first = None
+    for _ in range(nmax):
+        if len(Pp) < 30: break
+        best = None
+        for ang in np.arange(0.0, 180.0, 1.5):
+            t_ = math.radians(ang); nn = np.array([-math.sin(t_), math.cos(t_)]); d_ = Pp @ nn
+            h_, ed = np.histogram(d_, bins=np.arange(d_.min() - 1, d_.max() + 2.5, 1.5)); k_ = int(h_.argmax())
+            if best is None or h_[k_] > best[0]: best = (int(h_[k_]), ang, (ed[k_] + ed[k_ + 1]) / 2)
+        cnt, ang, off = best
+        if first is None: first = cnt
+        elif cnt < minfrac * first: break
+        t_ = math.radians(ang); uu = np.array([math.cos(t_), math.sin(t_)]); nn = np.array([-math.sin(t_), math.cos(t_)])
+        sel = np.abs(Pp @ nn - off) < 1.6; al = Pp[sel] @ uu; a_, b_ = np.percentile(al, 2), np.percentile(al, 98)
+        if cnt / max(1.0, b_ - a_) > 0.75 and b_ - a_ > 18: out.append((uu * a_ + nn * off, uu * b_ + nn * off, cnt))
+        Pp = Pp[np.abs(Pp @ nn - off) > 3.5]
+    return out
+AIR_STRIPS = [(TR.p2w(*a_), TR.p2w(*b_), c_) for a_, b_, c_ in strips(515, 815, 675, 955, 4)]
+TERN_STRIPS = [(TR.p2w(*a_), TR.p2w(*b_), c_) for a_, b_, c_ in strips(208, 1262, 348, 1408, 3, 0.25)]
+print('measured runway strips: airport', [(round(math.hypot(b_[0] - a_[0], b_[1] - a_[1])), c_) for a_, b_, c_ in AIR_STRIPS], 'tern', [(round(math.hypot(b_[0] - a_[0], b_[1] - a_[1])), c_) for a_, b_, c_ in TERN_STRIPS], flush=True)
+AIR_MEAS = len(AIR_STRIPS) >= 2
+if AIR_MEAS:
+    _a, _b, _ = max(AIR_STRIPS, key=lambda t: math.hypot(t[1][0] - t[0][0], t[1][1] - t[0][1]))
+    _r = math.atan2(_b[1] - _a[1], _b[0] - _a[0])
+    while _r > math.pi / 2: _r -= math.pi
+    while _r <= -math.pi / 2: _r += math.pi
+    XF['rot'] = _r
+    AP = P(sh([(-5960, -1040), (-4060, -1040), (-4060, 330), (-5960, 330)])).union(unary_union([LineString([a_, b_]).buffer(160, cap_style=2) for a_, b_, _ in AIR_STRIPS])).convex_hull
 def up(m): return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((NX, NZ), Image.BICUBIC)).astype(np.float32) / 255.0
 cache = os.path.join(R.CACHE, 'trace_land.npz')
-key = f"seam6|{os.path.getmtime(TR.IMG)}|{os.path.getmtime(TR.__file__)}|{TR.S}|{TR.X0}|{TR.Z0}|{CELL}"
+key = f"pic8|{IH}|{os.path.getmtime(TR.IMG)}|{os.path.getmtime(TR.__file__)}|{TR.S}|{TR.X0}|{TR.Z0}|{CELL}"
 if os.path.exists(cache) and str(np.load(cache)['key']) == key:
     mask = np.unpackbits(np.load(cache)['mask'])[:NZ * NX].reshape(NZ, NX).astype(bool)
 else:
     m_img = ndimage.gaussian_filter(up(C['solid']), 1.2) > 0.5
-    f = sdf(m_img)
-    xs, zs = grid_xz()
-    dx = np.maximum(np.maximum(RX0 - xs[None, :], xs[None, :] - RX1), 0.0); dz = np.maximum(np.maximum(RZ0 - zs[:, None], zs[:, None] - RZ1), 0.0)
-    dout = np.sqrt(dx * dx + dz * dz).astype(np.float32)
-    fr = sdf(raster_polys(rd['land'], (NZ, NX)) > 0)
-    # seam: the real coast at the rectangle edge is carried straight outward and fades into the traced coast over ~650 m,
-    # so every real shore continues past the edge and bends into the image's shore (no shore can follow the rectangle line)
-    ci = np.clip(np.arange(NX), int(np.searchsorted(xs, RX0)) + 1, int(np.searchsorted(xs, RX1)) - 2)
-    rj = np.clip(np.arange(NZ), int(np.searchsorted(zs, RZ0)) + 1, int(np.searchsorted(zs, RZ1)) - 2)
-    fr = fr[np.ix_(rj, ci)]
-    w = smoothstep(0.0, 650.0, dout * (1.0 + 0.4 * fbm((NZ, NX), 700.0, 'seam', octaves=3, cell=CELL)))
-    mask = (w * f + (1.0 - w) * fr) > 0
+    mask = m_img
     mask = LD._drop_small(mask, 5); mask = ~LD._drop_small(~mask, 5)
     np.savez_compressed(cache, mask=np.packbits(mask), key=key)
 solid, ponds = LD.vectorize(mask)
 land = unary_union(solid).buffer(0)
 W.set_land(land)
+REALKEEP = realbox.intersection(rd['land'].buffer(8)).intersection(land.buffer(8))     # real streets and buildings stay here (real land that is also image land)
+W.real_keepout = REALKEEP
+print(f'keepout {REALKEEP.area/1e6:.1f} km2 {time.time()-T0:.1f}s', flush=True)
 print(f'traced land {len(solid)} polys, {len(ponds)} inland waters, {time.time()-T0:.1f}s')
 _nowater = AP.buffer(25)
-ponds = [q for p in ponds if not p.within(realbox) for q in (lambda g: (g.geoms if hasattr(g, 'geoms') else [g]))(p.difference(_nowater)) if q.geom_type == 'Polygon' and q.area > 150]
+ponds = [q for p in ponds for q in (lambda g: (g.geoms if hasattr(g, 'geoms') else [g]))(p.difference(_nowater)) if q.geom_type == 'Polygon' and q.area > 150]
+_st = STRtree(solid); _p2 = []
+for p in ponds:
+    ins = [solid[int(i)] for i in _st.query(p, predicate='contains')]
+    if ins: p = p.difference(unary_union(ins))
+    _p2 += [q for q in (p.geoms if hasattr(p, 'geoms') else [p]) if q.geom_type == 'Polygon' and q.area > 150]
+ponds = _p2
 ponds.sort(key=lambda p: -p.area)
 for i, p in enumerate(ponds):
     comp = 4 * math.pi * p.area / (p.length ** 2)
@@ -72,13 +107,13 @@ for i, p in enumerate(ponds):
 inland = unary_union([w['poly'] for w in W.water])
 def mpolys(m, min_area, sigma=0.8): return LD._polys_from_mask((up(m) > 0.5) & mask, sigma=sigma, min_area=min_area)
 for p in mpolys(C['sand'], 500):
-    if not p.within(realbox): W.add_area(p, 'beach', block='reserved')
-FOREST = [p for p in mpolys(C['forest'], 30000, 1.5) if not p.within(realbox)]
+    W.add_area(p, 'beach', block='reserved')
+FOREST = [p for p in mpolys(C['forest'], 30000, 1.5) if not p.within(REALKEEP)]
 for p in FOREST: W.add_area(p, 'forest')
-URBAN = [q for p in mpolys(C['urban'], 12000, 1.5) for q in (lambda g: (g.geoms if hasattr(g, 'geoms') else [g]))(p.difference(realbox.buffer(40))) if q.geom_type == 'Polygon' and q.area > 12000]
+URBAN = [q for p in mpolys(C['urban'], 12000, 1.5) for q in (lambda g: (g.geoms if hasattr(g, 'geoms') else [g]))(p.difference(REALKEEP.buffer(25))) if q.geom_type == 'Polygon' and q.area > 12000]
 SHALLOW = LD._polys_from_mask((up(C['shallow']) > 0.5) & ~mask, sigma=1.0, min_area=6000)
 for p_ in URBAN: W.add_area(p_, 'residential')
-PAL = {k: [int(v) for v in np.median(C['rgb'][m_], axis=0)] for k, m_ in (('ocean', C['ocean'] & ~C['shallow']), ('shallow', C['shallow']), ('sand', C['sand']), ('urban', C['urban']), ('forest', C['forest']), ('land', C['green'] & ~C['forest']), ('water', C['inland']))}
+PAL = {k: [int(v) for v in np.median(C['rgb'][m_], axis=0)] for k, m_ in (('ocean', C['ocean'] & ~C['shallow']), ('shallow', C['shallow']), ('sand', C['sand'] & (C['rgb'][..., 0] - C['rgb'][..., 2] > 62) & (C['rgb'][..., 0] > 195)), ('urban', C['urban']), ('forest', C['forest']), ('land', C['green'] & ~C['forest']), ('water', C['inland']))}
 json.dump(PAL, open(os.path.join(OUT, 'palette.json'), 'w'))
 print(f'areas: forest {len(FOREST)} urban {len(URBAN)} shallow {len(SHALLOW)} {time.time()-T0:.1f}s')
 
@@ -131,6 +166,27 @@ def hook(pt, reach=150.0):
             else: RN.ramp(W, pt, RN._dir(pt, q_), q_, t_, region='hwy', tags={'ramp': 'on'})
 for k_, ends in (('central', (0, -1)), ('cross_a', (0, -1)), ('cross_b', (0, -1)), ('a1a', (-1,)), ('calabash', (0,)), ('marisol', (0,)), ('west', (0,))):
     for e_ in ends: hook(ROADS[k_].pts[e_])
+_rc = Point(TR.p2w(862, 639)); RING_ISLAND = None
+_li0, _n0 = ndimage.label(C['inland']); _yy, _xx = np.ogrid[:IH, :1041]
+_near = np.unique(_li0[(np.hypot(_xx - 862, _yy - 639) < 75) & (_li0 > 0)])
+_ringw = ndimage.binary_dilation(np.isin(_li0, _near), iterations=3)                       # the ring canal, bridge gaps closed
+_im = ndimage.binary_erosion(ndimage.binary_fill_holes(_ringw) & ~_ringw, iterations=1) & C['land']
+_cands = [g for g in mpolys(_im, 15000, 1.5) if g.distance(_rc) < 1500] if _im.sum() > 20 else []
+if _cands:
+    RING_ISLAND = max(_cands, key=lambda g: g.area).buffer(60).intersection(land.difference(inland.buffer(4)))
+    RING_ISLAND = max((RING_ISLAND.geoms if hasattr(RING_ISLAND, 'geoms') else [RING_ISLAND]), key=lambda g: g.area)
+    _in = RING_ISLAND.buffer(-45)
+    if not _in.is_empty and _in.geom_type == 'Polygon':
+        _lp = [r2(p) for p in resample(list(_in.exterior.coords), 25)]
+        ROADS['corona_loop'] = W.road(_lp, 'tertiary', 'Corona Loop', region='Corona Island', tags={'nolots': 1})
+        for nm_, key_ in (('Corona Bridge North', min), ('Corona Bridge South', max)):
+            p0_ = key_(_lp, key=lambda q: q[1]); sg = -1 if key_ is min else 1; end_ = None
+            for d_ in range(20, 900, 10):
+                q_ = Point(p0_[0], p0_[1] + sg * d_)
+                if land.contains(q_) and not RING_ISLAND.buffer(5).contains(q_): end_ = (p0_[0], p0_[1] + sg * (d_ + 45)); break
+            if end_: ROADS['corona_' + nm_[-5:]] = W.road([p0_, end_], 'secondary', nm_, region='Corona Island', tags={'nolots': 1})
+        W.add_area(RING_ISLAND.buffer(-70), 'golf', 'Corona Island Golf Links')
+print('ring island', None if RING_ISLAND is None else round(RING_ISLAND.area / 1e4, 1), 'ha', flush=True)
 COLW = W.road([(-3800, -2745), (-3800, 2745)], 'secondary', 'West Line Avenue', zl='strip_small', region='fringe')
 COLN = W.road([(-3800, -2745), (-2030, -2745)], 'tertiary', 'NW 30th Street', region='fringe')
 COLB = W.road([(1800, -2745), (4080, -2745)], 'tertiary', 'W 47th Street', region='fringe')
@@ -173,18 +229,27 @@ u1b = u1.buffer(US1.width / 2 + 8)
 for need_side, fr_ in [(ns, 0.06 + 0.01 * k) for ns in (True, False) for k in range(40)]:
     x, z, dx, dz, nx, nz = on_keys(fr_, 0)
     dc = next((d for d in range(20, 700, 2) if not land.contains(Point(x + nx * d, z + nz * d))), 300)
-    for back in range(34, 90, 4):
+    for back in range(40, 96, 4):
         cd = dc - back
         if cd < 46: break
         L_ = lot(x + nx * cd, z + nz * cd, dx, dz, nx, nz, 60, 60)
         cx_, cz_ = x + nx * cd, z + nz * cd
         side_wet = not land.contains(Point(cx_ - nz * 48, cz_ + nx * 48))          # local +X of the house (front faces the road)
-        if land.contains(L_) and not L_.intersects(u1b) and not L_.intersects(inland) and (side_wet or not need_side):
+        if land.contains(L_.buffer(7)) and not L_.intersects(u1b) and not L_.intersects(inland) and (side_wet or not need_side):
             best = (fr_, cd, dc, L_, side_wet); break
     if best: break
 if best is None: best = (0.2, 60.0, 120.0, None, False)
 x, z, dx, dz, nx, nz = on_keys(best[0], 0); cd, dc = best[1], best[2]
-nico = (x + nx * cd, z + nz * cd); nico_lot = best[3] or lot(nico[0], nico[1], dx, dz, nx, nz, 60, 60); LOTS.append(nico_lot)
+nico = (x + nx * cd, z + nz * cd); nico_lot = best[3] or lot(nico[0], nico[1], dx, dz, nx, nz, 60, 60)
+PIN = (-7064.99, 13125.06, 1.0736); NICO_KEPT = False
+_pnx, _pnz = -math.sin(PIN[2]), -math.cos(PIN[2]); _pl = lot(PIN[0], PIN[1], -_pnz, _pnx, _pnx, _pnz, 60, 60)
+if land.contains(_pl) and not _pl.intersects(u1b) and not _pl.intersects(inland):
+    _dc = next((d for d in range(20, 400, 2) if not land.contains(Point(PIN[0] + _pnx * d, PIN[1] + _pnz * d))), None)
+    if _dc is not None and _dc < 110:
+        _s = u1.project(Point(PIN[0], PIN[1])); x, z, dx, dz = point_at(US1.pts, _s); nx, nz = _pnx, _pnz
+        cd = math.hypot(PIN[0] - x, PIN[1] - z); dc = cd + _dc; nico = (PIN[0], PIN[1]); nico_lot = _pl; NICO_KEPT = True
+        best = (best[0], cd, dc, _pl, not land.contains(Point(PIN[0] - nz * 48, PIN[1] + nx * 48)))
+LOTS.append(nico_lot)
 W.setpiece('nico_house', nico[0], nico[1], heading_of(-nx, -nz), note='60 x 60 m lot on the bay side of the upper end of the Keys strip; back to the bay water (dock side), front toward the Overseas Highway', lot=[r2(p) for p in nico_lot.exterior.coords[:-1]],
            dock=[round(x + nx * (dc + 6), 1), round(z + nz * (dc + 6), 1)], water_distance=dc - cd - 30, water_on_plus_x_side=bool(best[4]))
 if cd - 30 > 14: W.road([(x, z), (x + nx * (cd - 36), z + nz * (cd - 36))], 'residential', 'Pelican Point Lane', region='Key Paloma', tags={'nolots': 1})
@@ -204,12 +269,24 @@ lots_u = unary_union([L_.buffer(9) for L_ in LOTS])
 # ---------------------------------------------------------------- 4. airport (west of the real rectangle) and Tern Key Airfield
 def area(pts, kind, name=None, block='reserved'): W.add_area(P(sh(pts)), kind, name, block=block)
 def rw(a, b, w, kind='runway', name=None): W.add_area(LineString(sh([a, b])).buffer(w / 2, cap_style=2), kind, name, block='reserved')
-def bld(pts, h, kind, style, zone='airport', **kw): return W.building(sh(pts), h, kind, style, zone, check=False, **kw)
+def bld(pts, h, kind, style, zone='airport', **kw):
+    q_ = sh(pts)
+    if globals().get('_RWB') is not None and Polygon(q_).intersects(_RWB): return None
+    return W.building(q_, h, kind, style, zone, check=False, **kw)
 W.add_area(AP.intersection(land), 'grass', 'Solana International Airport')
-rw((-5900, 120), (-4150, 120), 60, name='Runway 10R/28L'); rw((-5900, -150), (-4150, -150), 60, name='Runway 10C/28C'); rw((-5900, -420), (-4750, -420), 45, name='Runway 10L/28R')
-rw((-5900, 20), (-4150, 20), 23, 'taxiway'); rw((-5900, -285), (-4750, -285), 23, 'taxiway')
-for x in (-5880, -5300, -4780): rw((x, -420), (x, 120), 23, 'taxiway')
-rw((-4180, -150), (-4180, 120), 23, 'taxiway'); rw((-4700, -700), (-4700, -150), 23, 'taxiway')
+if not AIR_MEAS:
+    rw((-5900, 120), (-4150, 120), 60, name='Runway 10R/28L'); rw((-5900, -150), (-4150, -150), 60, name='Runway 10C/28C'); rw((-5900, -420), (-4750, -420), 45, name='Runway 10L/28R')
+    rw((-5900, 20), (-4150, 20), 23, 'taxiway'); rw((-5900, -285), (-4750, -285), 23, 'taxiway')
+    for x in (-5880, -5300, -4780): rw((x, -420), (x, 120), 23, 'taxiway')
+    rw((-4180, -150), (-4180, 120), 23, 'taxiway'); rw((-4700, -700), (-4700, -150), 23, 'taxiway')
+else:
+    for i_, (a_, b_, _) in enumerate(sorted(AIR_STRIPS, key=lambda t: -math.hypot(t[1][0] - t[0][0], t[1][1] - t[0][1]))):
+        W.add_area(LineString([a_, b_]).buffer(30 if i_ < 3 else 22, cap_style=2), 'runway', f'Runway {i_ + 1} (measured from the map image)', block='reserved')
+        L_ = math.hypot(b_[0] - a_[0], b_[1] - a_[1]); ux_, uz_ = (b_[0] - a_[0]) / L_, (b_[1] - a_[1]) / L_
+        sd = 1 if ((AP.centroid.x - a_[0]) * -uz_ + (AP.centroid.y - a_[1]) * ux_) > 0 else -1
+        W.add_area(LineString([(a_[0] + ux_ * 60 - uz_ * sd * 150, a_[1] + uz_ * 60 + ux_ * sd * 150), (b_[0] - ux_ * 60 - uz_ * sd * 150, b_[1] - uz_ * 60 + ux_ * sd * 150)]).buffer(11, cap_style=2), 'taxiway', None, block='reserved')
+        for f_ in (0.04, 0.5, 0.96): W.add_area(LineString([(a_[0] + ux_ * L_ * f_, a_[1] + uz_ * L_ * f_), (a_[0] + ux_ * L_ * f_ - uz_ * sd * 150, a_[1] + uz_ * L_ * f_ + ux_ * sd * 150)]).buffer(11, cap_style=2), 'taxiway', None, block='reserved')
+_RWB = unary_union([LineString([a_, b_]).buffer(75, cap_style=2) for a_, b_, _ in AIR_STRIPS]) if AIR_MEAS else None
 area([(-4690, -980), (-4150, -980), (-4150, -400), (-4690, -400)], 'apron', 'Terminal Apron'); area([(-5800, 180), (-4400, 180), (-4400, 320), (-5800, 320)], 'apron', 'Cargo and General Aviation Apron')
 bld([(-4660, -760), (-4340, -760), (-4340, -680), (-4660, -680)], 16, 'terminal', 'terminal', name='Solana International Terminal', poi='terminal', region='airport')
 for i, x in enumerate((-4640, -4500, -4360)): bld([(x - 14, -920), (x + 14, -920), (x + 14, -760), (x - 14, -760)], 11, 'terminal', 'terminal', name=f'Concourse {"ABC"[i]}', poi='gate', region='airport')
@@ -229,7 +306,9 @@ W.reserve(AP, 'reserved')
 _p = lambda x, z: [round(v, 1) for v in sh([(x, z)])[0]]
 def _far(a, b, d):
     (ax, az), (bx, bz) = sh([a])[0], sh([b])[0]; L_ = math.hypot(bx - ax, bz - az); return [round(bx + (bx - ax) / L_ * d, 1), round(bz + (bz - az) / L_ * d, 1)]
-W.extra['airport'] = dict(name='Solana International Airport', code='SOL', tower=_p(-4280, -630), runways=[dict(name='10R/28L', a=_p(-5900, 120), b=_p(-4150, 120), width=60),
+if AIR_MEAS:
+    W.extra['airport_measured'] = [dict(a=[round(v, 1) for v in a_], b=[round(v, 1) for v in b_], lengthM=round(math.hypot(b_[0] - a_[0], b_[1] - a_[1])), bearingDeg=round(math.degrees(math.atan2(b_[0] - a_[0], -(b_[1] - a_[1]))) % 180, 1), votes=c_) for a_, b_, c_ in AIR_STRIPS]
+W.extra['airport'] = dict(name='Solana International Airport', code='SOL', tower=_p(-4280, -630), measuredRunways=W.extra.get('airport_measured'), runways=[dict(name='10R/28L', a=_p(-5900, 120), b=_p(-4150, 120), width=60),
     dict(name='10C/28C', a=_p(-5900, -150), b=_p(-4150, -150), width=60), dict(name='10L/28R', a=_p(-5900, -420), b=_p(-4750, -420), width=45)],
     approaches=[dict(runway='28L', threshold=_p(-4150, 120), from_=_far((-5900, 120), (-4150, 120), 8000), glideDeg=5.0, note='from the east-south-east over the city and the bay; steep approach, obstacle heights not measured'),
                 dict(runway='28C', threshold=_p(-4150, -150), from_=_far((-5900, -150), (-4150, -150), 8000), glideDeg=5.0), dict(runway='10R', threshold=_p(-5900, 120), from_=_far((-4150, 120), (-5900, 120), 6000), glideDeg=3.0),
@@ -242,38 +321,38 @@ _pts = np.stack([_xs + _x0, _ys + _y0], 1).astype(np.float64); _c = _pts.mean(0)
 _ev, _vec = np.linalg.eigh(np.cov((_pts - _c).T)); _v = _vec[:, int(np.argmax(_ev))]
 _t = (_pts - _c) @ _v; _a, _b = np.percentile(_t, 3), np.percentile(_t, 97)
 RWA, RWB = TR.p2w(*(_c + _v * _a)), TR.p2w(*(_c + _v * _b))
-if not (700 < math.hypot(RWB[0] - RWA[0], RWB[1] - RWA[1]) < 2600): RWA, RWB = TR.p2w(268, 1288), TR.p2w(243, 1385)
+if TERN_STRIPS: RWA, RWB = TERN_STRIPS[0][0], TERN_STRIPS[0][1]
+elif not (700 < math.hypot(RWB[0] - RWA[0], RWB[1] - RWA[1]) < 4000): RWA, RWB = TR.p2w(268, 1288), TR.p2w(243, 1385)
 if RWA[1] > RWB[1]: RWA, RWB = RWB, RWA                     # A = north end
 _L = math.hypot(RWB[0] - RWA[0], RWB[1] - RWA[1]); _ux, _uz = (RWB[0] - RWA[0]) / _L, (RWB[1] - RWA[1]) / _L
 _nx, _nz = (-_uz, _ux) if -_uz > 0 else (_uz, -_ux)        # normal pointing east (terminal side)
 def TP(u, v): return (RWA[0] + _ux * u + _nx * v, RWA[1] + _uz * u + _nz * v)
-island = next((p for p in solid if p.contains(Point(tc))), Point(tc).buffer(900))
+def local_island(pt, radius):
+    g = next((p for p in solid if p.contains(Point(pt))), None) or min(solid, key=lambda p: p.distance(Point(pt)))
+    g = g.intersection(Point(pt).buffer(radius)).buffer(-45).buffer(45)          # drop the bridge strips the image draws as land
+    parts = list(g.geoms) if hasattr(g, 'geoms') else [g]
+    return min(parts, key=lambda q: q.distance(Point(pt))) if parts else Point(pt).buffer(300)
+island = local_island(tc, 2600)
 def tarea(g, kind, name=None): W.add_area(g.intersection(island.buffer(-12)), kind, name, block='reserved')
 tarea(LineString([TP(0, 0), TP(_L, 0)]).buffer(28, cap_style=2), 'runway', 'Tern Key Runway (main)')
 tarea(LineString([TP(40, -110), TP(_L - 40, -110)]).buffer(9, cap_style=2), 'taxiway', None)
 for u_ in (40, _L * 0.5, _L - 40): tarea(LineString([TP(u_, 0), TP(u_, -110)]).buffer(9, cap_style=2), 'taxiway', None)
-_ca = math.radians(24); _l2 = _L * 0.78
-X2A = TP(70, 60); X2B = TP(70 + _l2 * math.cos(_ca), 60 + _l2 * math.sin(_ca)); X2_MEASURED = False
-_rest = _pts[np.abs((_pts - _c) @ np.array([-_v[1], _v[0]])) > 2.4]
-if len(_rest) > 40:
-    _c2 = _rest.mean(0); _e2, _w2 = np.linalg.eigh(np.cov((_rest - _c2).T)); _v2 = _w2[:, int(np.argmax(_e2))]
-    _t2 = (_rest - _c2) @ _v2; _a2, _b2 = np.percentile(_t2, 5), np.percentile(_t2, 95)
-    _qa, _qb = TR.p2w(*(_c2 + _v2 * _a2)), TR.p2w(*(_c2 + _v2 * _b2))
-    if _e2.max() / max(_e2.min(), 1e-6) > 4.0 and 500 < math.hypot(_qb[0] - _qa[0], _qb[1] - _qa[1]) < 3600: X2A, X2B, X2_MEASURED = _qa, _qb, True
-_ca = math.atan2(abs((X2B[0] - X2A[0]) * _nx + (X2B[1] - X2A[1]) * _nz), abs((X2B[0] - X2A[0]) * _ux + (X2B[1] - X2A[1]) * _uz) + 1e-6)
-tarea(LineString([X2A, X2B]).buffer(17, cap_style=2), 'runway', 'Tern Key Runway (second)')
+X2_MEASURED = len(TERN_STRIPS) >= 2
+X2A, X2B = (TERN_STRIPS[1][0], TERN_STRIPS[1][1]) if X2_MEASURED else (RWA, RWA)
+if X2_MEASURED: tarea(LineString([X2A, X2B]).buffer(17, cap_style=2), 'runway', 'Tern Key Runway (second, measured)')
+for _e in TERN_STRIPS[2:]: tarea(LineString([_e[0], _e[1]]).buffer(12, cap_style=2), 'taxiway', None)
 _ao = max(160.0, max((X2A[0] - RWA[0]) * _nx + (X2A[1] - RWA[1]) * _nz, (X2B[0] - RWA[0]) * _nx + (X2B[1] - RWA[1]) * _nz) + 80.0)
 _apron = P([TP(_L * 0.55 - 150, _ao), TP(_L * 0.55 + 150, _ao), TP(_L * 0.55 + 150, _ao + 110), TP(_L * 0.55 - 150, _ao + 110)])
 tarea(_apron, 'apron', 'Tern Key Airfield Apron')
 W.building([TP(_L * 0.55 - 38, _ao + 116), TP(_L * 0.55 + 38, _ao + 116), TP(_L * 0.55 + 38, _ao + 142), TP(_L * 0.55 - 38, _ao + 142)], 6.5, 'terminal', 'terminal', 'airport', check=False, name='Tern Key Airfield Terminal', poi='terminal', region='Tern Key')
 for i in range(3): W.building([TP(_L * 0.55 + 70 + i * 36, _ao + 116), TP(_L * 0.55 + 98 + i * 36, _ao + 116), TP(_L * 0.55 + 98 + i * 36, _ao + 144), TP(_L * 0.55 + 70 + i * 36, _ao + 144)], 7, 'hangar', 'hangar', 'airport', check=False, poi='hangar', region='Tern Key')
 TERN_AF = island.buffer(-30)
-W.add_area(TERN_AF.difference(unary_union([LineString([TP(0, 0), TP(_L, 0)]).buffer(24, cap_style=2), LineString([X2A, X2B]).buffer(19, cap_style=2)])), 'paved', 'Tern Key Airfield', block=None)
+W.add_area(TERN_AF.difference(LineString([TP(0, 0), TP(_L, 0)]).buffer(24, cap_style=2)), 'paved', 'Tern Key Airfield', block=None)
 W.reserve(TERN_AF, 'reserved')
 W.add_area(island.difference(island.buffer(-30)), 'beach', 'Tern Key shore', block=None)
 _tf = TP(_L * 0.55, _ao + 150)
 W.road([US1.pts[-1], _tf], 'tertiary', 'Airfield Road', region='Tern Key', tags={'nolots': 1})
-W.extra['airfield'] = dict(name='Tern Key Airfield', runways=[dict(name='main', a=[round(v, 1) for v in RWA], b=[round(v, 1) for v in RWB], width=44), dict(name='second', a=[round(v, 1) for v in X2A], b=[round(v, 1) for v in X2B], width=34, measuredFromImage=X2_MEASURED)],
+W.extra['airfield'] = dict(name='Tern Key Airfield', runways=[dict(name='main', a=[round(v, 1) for v in RWA], b=[round(v, 1) for v in RWB], width=44), dict(name='second', a=[round(v, 1) for v in X2A], b=[round(v, 1) for v in X2B], width=34, measuredFromImage=True)][:2 if X2_MEASURED else 1],
                            terminal=[round(v, 1) for v in TP(_L * 0.55, _ao + 129)], bearingDeg=round(math.degrees(math.atan2(_ux, -_uz)) % 360, 1))
 XF.update(ac=(-4575.0, 6045.0), c=tc, sc=1.0, rot=0.0)
 
@@ -282,7 +361,39 @@ ANCH = [('Key Paloma', 600, 1305), ('Tern Key', 275, 1340), ('Coontie', 600, 108
         ('Port Cassia', 795, 515), ('Amaro Landing', 590, 490), ('Playa Serena', 750, 330), ('Citrus Flats', 710, 590), ('Brisa Heights', 690, 960), ('Allapattah West', 700, 620)]
 EXTRA = ['Sabal Grove', 'Limpkin Park', 'Tangelo', 'Gumbo Limbo', 'Corkwood', 'Seagrape Heights', 'Buttonwood', 'Sandspur', 'Mullet Creek', 'Honeybell', 'Spoonbill Flats', 'Calamondin', 'Junonia', 'Whelk Harbor', 'Satsuma']
 dry = land.difference(inland.buffer(10)).buffer(-14)
-keep_out = unary_union([AP.buffer(12), TERN_AF.buffer(10), lots_u, realbox.buffer(2)])
+keep_out = unary_union([AP.buffer(12), TERN_AF.buffer(10), lots_u, REALKEEP.buffer(15)])
+_gray = C['rgb'].mean(axis=2); _gx = ndimage.sobel(_gray, axis=1); _gy = ndimage.sobel(_gray, axis=0); _gm = np.hypot(_gx, _gy); _ga = np.degrees(np.arctan2(_gy, _gx)) % 90.0
+from PIL import ImageDraw as _IDr
+def town_px_mask(poly):
+    im_ = Image.new('L', (1041, IH), 0); dd_ = _IDr.Draw(im_)
+    for g_ in (poly.geoms if hasattr(poly, 'geoms') else [poly]):
+        if g_.geom_type == 'Polygon': dd_.polygon([TR.w2p(x, z) for x, z in g_.exterior.coords], fill=255)
+    return np.asarray(im_) > 0
+def picture_grid_angle(poly, fallback):
+    m_ = town_px_mask(poly) & C['urban']
+    if m_.sum() < 120: return fallback, False
+    h_, ed = np.histogram(_ga[m_], bins=18, range=(0, 90), weights=_gm[m_]); k_ = int(h_.argmax())
+    if h_[k_] < 1.25 * h_.mean(): return fallback, False
+    return math.radians((ed[k_] + ed[k_ + 1]) / 2.0), True
+DISTRICTS = []
+def district_of(nm, poly):
+    m_ = town_px_mask(poly) & C['urban']; cpx = TR.w2p(poly.centroid.x, poly.centroid.y)
+    if m_.sum() < 20: m_ = town_px_mask(poly)
+    px_ = C['rgb'][m_]; tint = np.median(px_, axis=0) if len(px_) else np.array([200, 196, 188.0])
+    warm = px_[np.argsort(px_[:, 0] - px_[:, 2])[-max(1, len(px_) // 4):]] if len(px_) else px_
+    roof = np.median(warm, axis=0) if len(warm) else tint
+    sat = float(tint.max() - tint.min()); area_ha = poly.area / 1e4
+    if nm == 'Amaro Landing': typ = 'rural_florida'
+    elif nm == 'West End': typ = 'old_town'
+    elif 'Shore' in nm or 'Outskirts' in nm: typ = 'suburb'
+    elif nm in ('Key Paloma', 'Tern Key', 'Tamarind Key') or (cpx[0] > 895 and 590 < cpx[1] < 905): typ = 'resort'
+    elif 690 < cpx[0] < 815 and 640 < cpx[1] < 915 and area_ha > 25: typ = 'downtown'
+    elif roof[0] - roof[2] > 46: typ = 'old_town'
+    elif 800 < cpx[0] < 935 and 838 < cpx[1] < 908 and sat < 16: typ = 'industrial_port'
+    elif area_ha < 60: typ = 'rural_town'
+    else: typ = 'suburb'
+    d_ = dict(name=nm, type=typ, tint='#%02x%02x%02x' % tuple(int(v) for v in tint), roofTint='#%02x%02x%02x' % tuple(int(v) for v in roof), areaHa=round(area_ha, 1))
+    DISTRICTS.append(d_); return d_
 TOWNS = {}
 FILLK = {}
 for nm_, inner, outer, org in (('West End', sbox(-4350, RZ0, RX0, RZ1), sbox(-5000, RZ0, -4350, RZ1), (RX0, 0.0)), ('North Shore', sbox(RX0, -3200, 1800, RZ0), sbox(RX0, -3900, 1800, -3200), (RX0, RZ0)),
@@ -292,7 +403,7 @@ for nm_, inner, outer, org in (('West End', sbox(-4350, RZ0, RX0, RZ1), sbox(-50
         if d_.is_empty or d_.area < 20000: continue
         TOWNS[nm_ + part] = d_; FILLK[nm_ + part] = 1.0 if not part else 0.6
         G.grid(W, d_, org, 0.0, 190, 100, namer(nm_ + part), namer(nm_ + part + 'x'), region=nm_, seed=nm_ + part, skip_u=skip, skip_v=skip)
-_tk = next((p for p in solid if p.contains(Point(TR.p2w(470, 1395)))), None) or min(solid, key=lambda p: p.distance(Point(TR.p2w(470, 1395))))
+_tk = local_island(TR.p2w(470, 1395), 900)
 _td = _tk.buffer(-22).difference(LineString(US1.pts).buffer(6))
 if not _td.is_empty and _td.area > 4000:
     TOWNS['Tamarind Key'] = _tk.buffer(-22)
@@ -312,20 +423,27 @@ for up_ in sorted(URBAN, key=lambda p: -p.area):
     TOWNS[nm] = d
     rr_ = rng('town', nm)
     keys = nm in ('Key Paloma', 'Tern Key', 'Tamarind Key', 'Shellmound')
-    ang = rr_.uniform(0, math.pi / 2)
+    ang, _from_pic = picture_grid_angle(up_, rr_.uniform(0, math.pi / 2))
+    GRIDSRC = globals().setdefault('GRIDSRC', {}); GRIDSRC[nm] = _from_pic
     if nm == 'Key Paloma': ang = math.atan2(TR.p2w(548, 1372)[1] - TR.p2w(640, 1235)[1], TR.p2w(548, 1372)[0] - TR.p2w(640, 1235)[0])
-    G.grid(W, d, (c.x + 40, c.y + 40), ang, 112, 86 if not keys else 120, namer(nm), namer(nm + 'x'), region=nm, seed=nm)
+    G.grid(W, d, (c.x + 40, c.y + 40), ang, rr_.choice([96, 110, 124, 140, 160]), (rr_.choice([70, 82, 94, 106]) if not keys else 120), namer(nm), namer(nm + 'x'), region=nm, seed=nm, skip_u=rr_.choice([0.0, 0.06, 0.12]), skip_v=rr_.choice([0.0, 0.08, 0.16]), jitter=rr_.choice([0, 0, 6, 10]))
     # make sure the town hangs on the main network
     mr_ = min((LineString(r.pts) for r in list(ROADS.values()) + [COLW, COLN, COLS]), key=lambda l: l.distance(c))
     q = mr_.interpolate(mr_.project(c))
     _cl = LineString([(c.x, c.y), (q.x, q.y)])
-    if mr_.distance(up_) > 5 and not _cl.intersects(realbox.buffer(5)) and _cl.difference(land).length < 650 and not _cl.intersects(AP): W.road([(c.x, c.y), (q.x, q.y)], 'tertiary', namer(nm + 'c')(), region=nm)
+    if mr_.distance(up_) > 5 and not _cl.intersects(REALKEEP.buffer(5)) and _cl.difference(land).length < 650 and not _cl.intersects(AP): W.road([(c.x, c.y), (q.x, q.y)], 'tertiary', namer(nm + 'c')(), region=nm)
 print('towns', {k: round(v.area / 1e4) for k, v in TOWNS.items()})
 
 towns_u = unary_union(list(TOWNS.values()))
 forest_u = unary_union(FOREST)
-swamp = unary_union([P(PX([(430, 640), (560, 640), (580, 770), (440, 775)])), P(PX([(340, 950), (560, 1000), (560, 1210), (480, 1230), (400, 1130)]))]).intersection(land).difference(inland.buffer(2)).difference(towns_u.buffer(30)).difference(AP.buffer(30))
-W.add_area(swamp, 'sawgrass', 'swamp')
+_chan = C['inland'] & ~ndimage.binary_opening(C['inland'], structure=np.ones((9, 9), bool))
+_marsh = ndimage.binary_closing(ndimage.binary_dilation(_chan, iterations=5), iterations=4) & C['land']
+_rows = np.arange(IH)[:, None]; _cols = np.arange(1041)[None, :]
+_marsh &= ((_rows > 930) & (_cols < 640)) | ((_rows > 610) & (_rows < 800) & (_cols > 410) & (_cols < 610))
+_marsh = LD._drop_small(_marsh, 400)
+swamp = unary_union(mpolys(_marsh, 60000, 2.5)).buffer(0).intersection(land).difference(inland.buffer(2)).difference(towns_u.buffer(30)).difference(AP.buffer(30))
+for nm_, d_ in TOWNS.items(): district_of(nm_, d_)
+W.add_area(swamp, 'wetland', 'marsh (traced from the map image)')
 farm = P(PX([(703, 405), (765, 415), (770, 480), (760, 560), (703, 585)])).intersection(land).difference(inland.buffer(10)).difference(towns_u.buffer(20)).difference(forest_u)
 rf = rng('fields'); fb = farm.bounds; fx = fb[0]
 while fx < fb[2]:
@@ -335,15 +453,34 @@ while fx < fb[2]:
         if cell_.area > 25000: W.add_area(cell_, rf.choice(['grove', 'grove', 'farmland', 'farmland', 'grass']), rf.choice(['Valencia grove', 'tangelo grove', 'tomato field', 'sweet corn', 'sugarcane', 'pasture', 'strawberry field']))
         fz += 360
     fx += 400
+RACE = None
+for cpx_ in ((470, 838), (455, 845), (500, 842), (430, 835), (480, 870), (440, 880), (360, 880), (340, 905), (460, 905), (420, 860), (500, 880), (380, 840), (330, 860)):
+    cw_ = TR.p2w(*cpx_); box_ = sbox(cw_[0] - 520, cw_[1] - 330, cw_[0] + 520, cw_[1] + 330)
+    if land.contains(box_) and not box_.intersects(inland) and not box_.intersects(towns_u) and not box_.intersects(AP.buffer(60)) and not box_.intersects(LineString(RING.center).buffer(70)) and not any(box_.intersects(LineString(r_.pts)) for r_ in ROADS.values()):
+        RACE = (cw_, box_); break
+if RACE:
+    (rx_, rz_), box_ = RACE
+    OVAL = [(rx_ + 330 * math.cos(t_), rz_ + 170 * math.sin(t_)) for t_ in [i * 2 * math.pi / 64 for i in range(64)]]; OVAL.append(OVAL[0])
+    W.road(OVAL, 'service', 'Solana Motor Speedway', lf=2, oneway=True, region='Speedway', tags={'nolots': 1, 'racetrack': 'oval'})
+    W.road(spl([OVAL[4], (rx_ + 150, rz_ - 40), (rx_ + 40, rz_ + 60), (rx_ - 90, rz_ - 70), (rx_ - 200, rz_ + 40), OVAL[30]], 15), 'service', 'Speedway Infield Course', lf=1, oneway=True, region='Speedway', tags={'nolots': 1, 'racetrack': 'road_course'})
+    W.road([OVAL[10], (rx_ + 120, rz_ + 128), (rx_ - 120, rz_ + 128), OVAL[22]], 'service', 'Pit Lane', lf=1, oneway=True, region='Speedway', tags={'nolots': 1, 'racetrack': 'pit_lane'})
+    ROADS['speedway'] = W.road([OVAL[48], (rx_, rz_ - 300)], 'tertiary', 'Speedway Boulevard', region='Speedway', tags={'nolots': 1})
+    W.add_area(Polygon(OVAL).buffer(11).difference(Polygon(OVAL).buffer(-11)), 'paved', 'Solana Motor Speedway', block='reserved')
+    W.add_area(Polygon(OVAL).buffer(-14), 'grass', 'speedway infield')
+    W.add_area(sbox(rx_ - 420, rz_ - 325, rx_ + 420, rz_ - 215), 'parking', 'speedway parking', block='reserved')
+    W.building([(rx_ - 230, rz_ + 196), (rx_ + 230, rz_ + 196), (rx_ + 230, rz_ + 226), (rx_ - 230, rz_ + 226)], 16, 'grandstand', 'industrial', 'commercial', check=False, name='Speedway Main Grandstand', poi='stadium', region='Speedway')
+    W.building([(rx_ - 90, rz_ + 100), (rx_ + 90, rz_ + 100), (rx_ + 90, rz_ + 116), (rx_ - 90, rz_ + 116)], 6, 'garage', 'industrial', 'commercial', check=False, name='Pit Garages', poi='motorsport_pits', region='Speedway')
+    W.poi(rx_, rz_, 'raceway', 'Solana Motor Speedway'); W.reserve(box_, 'reserved')
+print('speedway', None if not RACE else [round(v) for v in RACE[0]], flush=True)
 # ---------------------------------------------------------------- 6. finalize the network
-wet = sbox(BOUNDS['minX'], BOUNDS['minZ'], BOUNDS['maxX'], BOUNDS['maxZ']).difference(land.buffer(0.5)).union(inland).difference(realbox)
+wet = sbox(BOUNDS['minX'], BOUNDS['minZ'], BOUNDS['maxX'], BOUNDS['maxZ']).difference(land.buffer(0.5)).union(inland).difference(REALKEEP)
 from wl import design as D
 D.CHANNELS[:] = [('Mariner Channel', PX([(520, 1340), (522, 1384), (524, 1420)]), 120, 9.0), ('Tern Pass', PX([(350, 1340), (352, 1372), (354, 1410)]), 60, 5.0),
                  ('Calabash Pass', PX([(312, 380), (314, 413), (316, 450)]), 60, 5.0)]
-_inner = realbox.buffer(-1.0); _rr = []
+_inner = REALKEEP.buffer(-1.0); _rr = []
 for r in W.raw_roads:
     if r.tags.get('join') or not LineString(r.pts).intersects(_inner): _rr.append(r); continue
-    g_ = LineString(r.pts).difference(realbox.buffer(0.5))
+    g_ = LineString(r.pts).difference(REALKEEP.buffer(0.5))
     for ln_ in (g_.geoms if hasattr(g_, 'geoms') else [g_]):
         if ln_.geom_type == 'LineString' and ln_.length > 8: _rr.append(r.copy_with(list(ln_.coords)))
 W.raw_roads = _rr
@@ -363,7 +500,7 @@ for _pass in range(2):
         d_, v, j = best
         if d_ > 2000 or d_ < 0.5: continue
         q = mains[j].interpolate(mains[j].project(Point(v))); ln_ = LineString([v, (q.x, q.y)])
-        if ln_.intersects(realbox.buffer(5)) or ln_.intersects(AP) or ln_.intersects(lots_u) or ln_.intersects(TERN_AF) or ln_.intersection(wet).length > 650: continue
+        if ln_.intersects(REALKEEP.buffer(5)) or ln_.intersects(AP) or ln_.intersects(lots_u) or ln_.intersects(TERN_AF) or ln_.intersection(wet).length > 650: continue
         W.raw_roads.append(Road([v, (q.x, q.y)], 'tertiary', lk(), region='link')); added += 1
     relinked += added
     if not added: break
@@ -373,10 +510,23 @@ print(f'relinked {relinked} patches; roads {len(W.roads)} bridges {nb} orphan ed
 W.roads = [r for i, r in enumerate(W.roads) if i in main_c]
 for r in W.roads:
     if not (r.bridge and r.layer > 0 and not r.tags.get('bclass')): W.idx.add(LineString(r.pts).buffer(r.width / 2 + 2.2, cap_style=2), 'road')
+_k = 0
+for r in W.roads:
+    if r.region == 'Amaro Landing' and r.kind == 'residential':
+        _k += 1
+        if _k % 3 != 0: r.surface = 'dirt' if _k % 2 else 'gravel'
+_al = TOWNS.get('Amaro Landing')
+if _al is not None:
+    from shapely.ops import nearest_points as _npts
+    _q = _npts(LAKE, _al)[0]; W.poi(_q.x, _q.y, 'slipway', 'Amaro Landing Boat Ramp'); W.prop(_q.x, _q.y, 'boat_ramp')
+    _rr2 = rng('pickups'); _b = _al.bounds
+    for _ in range(60):
+        _pt = Point(_rr2.uniform(_b[0], _b[2]), _rr2.uniform(_b[1], _b[3]))
+        if _al.contains(_pt) and not W.idx.hit(_pt.buffer(4), ('bldg', 'road', 'water', 'reserved')): W.prop(_pt.x, _pt.y, _rr2.choice(['pickup_truck', 'pickup_truck', 'boat_trailer', 'airboat_on_trailer', 'swamp_buggy', 'rusted_car', 'propane_tank']), _rr2.uniform(0, 6.28))
 W.raw_roads = list(W.roads)
 road_union = unary_union([LineString(r.pts).buffer(r.width / 2 + 3, cap_style=2) for r in W.roads if not r.bridge])
 gl = swamp.buffer(-45); rc = rng('sloughs'); gb = gl.bounds if not gl.is_empty else (0, 0, 0, 0)
-for i in range(90):
+for i in range(36):
     for _ in range(40):
         p0 = (rc.uniform(gb[0], gb[2]), rc.uniform(gb[1], gb[3]))
         if gl.contains(Point(p0)): break
@@ -403,10 +553,15 @@ for r in list(W.roads):
         for side in (1, -1):
             try: stats[r.name] = stats.get(r.name, 0) + G.walk(W, r, side, 'keys' if keys else 'strip_small', ctx, seed=(r.name, r.id))
             except Exception: W.log.append('walk ' + traceback.format_exc()[-200:])
-for nm, d in sorted(TOWNS.items(), key=lambda kv: ('Outskirts' in kv[0], -kv[1].area)):
-    if len(W.buildings) > 24000: W.log.append(f'building cap reached before {nm}'); continue
+for nm, d in sorted(TOWNS.items(), key=lambda kv: (kv[0] not in ('Tamarind Key', 'Key Paloma', 'Tern Key', 'Amaro Landing', 'Port Cassia', 'Port Calabash', 'Punta Marisol', 'Shellmound'), 'Outskirts' in kv[0], -kv[1].area)):
+    if len(W.buildings) > 23300: W.log.append(f'building cap reached before {nm}'); continue
     keys = nm in ('Key Paloma', 'Tern Key', 'Tamarind Key', 'Shellmound')
     ctx = dict(region=nm, pick_poi=G.poi_picker(G.KEYS_RETAIL if keys else G.RETAIL, nm), **(dict(palette=G.KEYS, tin=True, style='stilt') if keys else {}))
+    if nm == 'Amaro Landing':
+        try: stats[nm] = G.fill_district(W, d.buffer(25), {'residential': 'mobile', 'tertiary': 'shopfront'}, dict(ctx, tin=True, pick_poi=G.poi_picker(['fishing', 'fishing', 'bar', 'hardware', 'convenience', 'second_hand', 'car_repair', 'restaurant', 'boat', 'laundry', 'farm', 'gift', 'pawnbroker'], nm)), seed=nm,
+                                            specials=[('bait_shop', {'name': 'Amaro Bait and Tackle'}), ('bait_shop', None), ('rv_park', {'name': 'Bass Haven Fish Camp'}), ('gas', None), ('church', {'name': 'Amaro Landing Baptist Church'}), ('tiki_bar', {'name': 'The Gator Hole Bar'}), ('auto_repair', None), ('farm_stand', None)])
+        except Exception: W.log.append('fill lake town ' + traceback.format_exc()[-300:])
+        continue
     try: stats[nm] = G.fill_district(W, d.buffer(25), {'residential': 'stilt' if keys else ('house' if d.area > 400000 else 'house_small'), 'tertiary': 'shopfront'}, ctx, seed=nm, specials=civic(nm) if FILLK.get(nm, 1.0) == 1.0 else None, fill=FILLK.get(nm, 1.0))
     except Exception: W.log.append(f'fill {nm} ' + traceback.format_exc()[-300:])
 for nm, d in TOWNS.items(): G.scatter_trees(W, d, int(d.area / 9000), ['palm', 'coconut', 'oak', 'gumbo', 'royal_palm'], nm)
@@ -460,7 +615,7 @@ def hbil(x, z):
     fx, fz = (x - hx0) / CELLH - 0.5, (z - hz0) / CELLH - 0.5
     i, j = min(hnx - 2, max(0, int(fx))), min(hnz - 2, max(0, int(fz))); u, v = min(1.0, max(0.0, fx - i)), min(1.0, max(0.0, fz - j))
     return float((H[j, i] * (1 - u) + H[j, i + 1] * u) * (1 - v) + (H[j + 1, i] * (1 - u) + H[j + 1, i + 1] * u) * v)
-for _round in range(3):
+for _round in range(4):
     hv = {}; adj = {}
     for r in W.roads:
         pts = [r.pts[0]] + [r2(p) for p in resample(r.pts, 8.0)[1:-1]] + [r.pts[-1]]
@@ -474,7 +629,7 @@ for _round in range(3):
         h_, p_ = heapq.heappop(heap)
         if h_ > hv[p_] + 1e-9: continue
         for q_, d_ in adj.get(p_, ()):
-            hq = h_ + 0.055 * d_
+            hq = h_ + 0.045 * d_
             if hq < hv[q_] - 1e-6: hv[q_] = hq; heapq.heappush(heap, (hq, q_))
     Rh = np.full(H.shape, np.nan, np.float32)
     for p_, h_ in hv.items():
@@ -485,6 +640,8 @@ for _round in range(3):
     H = np.where(near, np.minimum(H, Rh[ii, jj]) if _round == 0 else Rh[ii, jj], H)
     H = np.minimum(H, np.where(near, H, H))   # no-op, keeps dtype
     H = slope_limit(H.astype(np.float32))
+_fm = raster_polys(FOREST, (hnz, hnx), cell=CELLH) > 0
+RELIEF = dict(forest_median_m=round(float(np.median(H[_fm])), 1), forest_p75_m=round(float(np.percentile(H[_fm], 75)), 1), forest_p95_m=round(float(np.percentile(H[_fm], 95)), 1), share_of_forest_above_20m=round(float((H[_fm] > 20).mean()), 2))
 pk = np.unravel_index(int(np.argmax(H)), H.shape)
 PEAK = dict(x=round(float(XX[pk])), z=round(float(ZZ[pk])), y=round(float(H.max()), 1))
 os.makedirs(OUT, exist_ok=True)
@@ -494,59 +651,82 @@ os.makedirs(OUT, exist_ok=True)
 def ring(c): return [[round(x, 2), round(z, 2)] for x, z in list(c)[:-1]]
 def polyd(p, **kw):
     d = dict(kw); d['outer'] = ring(p.exterior.coords); d['holes'] = [ring(h.coords) for h in p.interiors]; return d
-clip = realbox.buffer(-30); land_out = []
+land_out = []
 for g in (land.geoms if hasattr(land, 'geoms') else [land]):
-    q = g.difference(clip)
-    for p in (q.geoms if hasattr(q, 'geoms') else [q]):
-        if p.geom_type == 'Polygon' and p.area > 60: land_out.append(polyd(p.simplify(1.0), id=f'l{len(land_out)+1}'))
-TRANSFORM = dict(image='references/ref_40_map_user_official.webp (local only)', size=[1041, 1500], metersPerPixel=TR.S, x0=TR.X0, z0=TR.Z0, formula='x = x0 + mpp * px; z = z0 + mpp * py',
+    if g.geom_type == 'Polygon' and g.area > 60: land_out.append(polyd(g.simplify(1.5), id=f'l{len(land_out)+1}'))
+def _pl(g, tol=2.0, min_area=200): return [polyd(q.simplify(tol)) for q in (g.geoms if hasattr(g, 'geoms') else [g]) if q.geom_type == 'Polygon' and q.area > min_area]
+_real_in = rd['land'].intersection(realbox)
+_isl = [g for g in (land.geoms if hasattr(land, 'geoms') else [land]) if g.area < 4.0e6 and g.intersects(realbox.buffer(1200))]
+_big = unary_union([g for g in (land.geoms if hasattr(land, 'geoms') else [land]) if g.area >= 4.0e6])
+from shapely.ops import nearest_points as _np2
+_cw = []
+for i_, g in enumerate(_isl):
+    if g.area < 15000: continue
+    oth = unary_union([_big] + [h for h in _isl if h is not g and h.area > g.area])
+    a_, b_ = _np2(g, oth)
+    if a_.distance(b_) < 900: _cw.append(dict(island=f'ci{i_+1}', pts=[[round(a_.x, 1), round(a_.y, 1)], [round(b_.x, 1), round(b_.y, 1)]], lengthM=round(a_.distance(b_), 1), source='shortest crossing to the next larger land (generated, not digitized)'))
+CITY_MASK = dict(rect=REAL, rule='inside rect: keep real features only where they fall on `land`; remove them on `water`; `newLand` is image land that real data lacks (synthetic streets and buildings are provided there); `removeRealLand` is real land the image shows as water',
+                 land=_pl(land.intersection(realbox)), water=_pl(realbox.difference(land)), newLand=_pl(land.intersection(realbox).difference(_real_in.buffer(8))), removeRealLand=_pl(_real_in.difference(land.buffer(8))),
+                 islands=[dict(polyd(g.simplify(2.0)), id=f'ci{i_+1}', areaM2=round(g.area)) for i_, g in enumerate(_isl)], causeways=_cw)
+TRANSFORM = dict(image='references/ref_40_map_user_official.webp (local only)', size=[1041, IH], metersPerPixel=TR.S, x0=TR.X0, z0=TR.Z0, formula='x = x0 + mpp * px; z = z0 + mpp * py',
                  fit=dict(method='scale fixed at 30 m/px; x0 = least squares over 5 control points, z0 from the barrier island south tip', residualsM={'ocean shore (3 rows)': [42, 24, -36], 'beach bay shore': 610, 'downtown bayfront': -650, 'south tip': 0}))
 from PIL import ImageDraw as _ID
-_wi = Image.new('L', (1041, 1500), 0); _wd = _ID.Draw(_wi)
+_wi = Image.new('L', (1041, IH), 0); _wd = _ID.Draw(_wi)
 for w_ in W.water:
     if w_['poly'].geom_type == 'Polygon':
         _wd.polygon([TR.w2p(x, z) for x, z in w_['poly'].exterior.coords], fill=255)
         for h_ in w_['poly'].interiors: _wd.polygon([TR.w2p(x, z) for x, z in h_.coords], fill=0)
-_wa = np.asarray(_wi) > 0
+K4 = 4
+def _ras4(polys):
+    im_ = Image.new('L', (1041 * K4, IH * K4), 0); dd_ = _ID.Draw(im_)
+    for g_ in polys:
+        dd_.polygon([((x - TR.X0) / TR.S * K4 - 0.5, (z - TR.Z0) / TR.S * K4 - 0.5) for x, z in g_.exterior.coords], fill=255)
+        for h_ in g_.interiors: dd_.polygon([((x - TR.X0) / TR.S * K4 - 0.5, (z - TR.Z0) / TR.S * K4 - 0.5) for x, z in h_.coords], fill=0)
+    return np.asarray(im_).reshape(IH, K4, 1041, K4).mean(axis=(1, 3)) > 127
+_wa = _ras4([w_['poly'] for w_ in W.water if w_['poly'].geom_type == 'Polygon']) | ~_ras4(list(land.geoms) if hasattr(land, 'geoms') else [land])
 _li, _ln = ndimage.label(C['inland']); _ls = ndimage.sum_labels(np.ones_like(_li), _li, np.arange(_ln + 1)); LAKES = []
-_rpx = (TR.w2p(RX0, RZ0), TR.w2p(RX1, RZ1))
-for k_ in np.argsort(-_ls)[:40]:
-    if k_ == 0 or _ls[k_] < 25: continue
-    m_ = _li == k_; ys_, xs_ = np.nonzero(m_); cx_, cy_ = xs_.mean(), ys_.mean()
-    if _rpx[0][0] - 25 < cx_ < _rpx[1][0] + 25 and _rpx[0][1] - 25 < cy_ < _rpx[1][1] + 25: continue
-    sl_ = (slice(max(0, ys_.min() - 5), ys_.max() + 6), slice(max(0, xs_.min() - 5), xs_.max() + 6))
-    a_ = m_[sl_]; b_ = _wa[sl_] & ~(C['inland'][sl_] & ~a_)
-    LAKES.append(dict(px=[round(float(cx_)), round(float(cy_))], pixels=int(_ls[k_]), iou=round(float((a_ & b_).sum() / max(1, (a_ | b_).sum())), 2)))
-    if len(LAKES) >= 14: break
-feat = dict(version=3, generator='tools/world/build.py (traced from the official map image)', bounds=BOUNDS, realRect=REAL, imageTransform=TRANSFORM, land=land_out,
+for k_ in np.argsort(-_ls)[:18]:
+    if k_ == 0 or _ls[k_] < 200: continue
+    m_ = _li == k_; ys_, xs_ = np.nonzero(m_)
+    sl_ = (slice(max(0, ys_.min() - 4), ys_.max() + 5), slice(max(0, xs_.min() - 4), xs_.max() + 5))
+    a_ = m_[sl_]; b_ = _wa[sl_] & ~C['ocean'][sl_] & ~(C['inland'][sl_] & ~a_)
+    LAKES.append(dict(px=[int(xs_.mean()), int(ys_.mean())], pixels=int(_ls[k_]), recall=round(float((a_ & b_).sum() / a_.sum()), 2), precision=round(float((a_ & b_).sum() / max(1, b_.sum())), 2)))
+_la = _ras4(list(land.geoms) if hasattr(land, 'geoms') else [land]); COAST_IOU = round(float((_la & C['land']).sum() / max(1, (_la | C['land']).sum())), 3)
+feat = dict(version=4, generator='tools/world/build.py (traced from the official map image)', bounds=BOUNDS, realRect=REAL, imageTransform=TRANSFORM, city_mask=CITY_MASK, palette=PAL,
+            districts=[dict(d_, outer=ring(max((TOWNS[d_['name']].geoms if hasattr(TOWNS[d_['name']], 'geoms') else [TOWNS[d_['name']]]), key=lambda g: g.area).simplify(6).exterior.coords)) for d_ in DISTRICTS], land=land_out,
             water=[polyd(w['poly'].simplify(0.8), id=w['id'], kind=w['kind'], **({'name': w['name']} if w['name'] else {}), depth=w['depth']) for w in W.water if w['poly'].geom_type == 'Polygon'],
-            areas=[polyd(a['poly'].simplify(0.8), id=a['id'], kind=a['kind'], **({'name': a['name']} if a['name'] else {})) for a in W.areas if a['poly'].geom_type == 'Polygon' and a['poly'].area > 10],
-            shallows=[polyd(p.simplify(4.0), id=f's{i+1}') for i, p in enumerate(SHALLOW) if not p.within(realbox)],
+            areas=[polyd(a['poly'].simplify(0.8), id=a['id'], kind=a['kind'], **({'name': a['name']} if a['name'] else {}), **({'colour': '#%02x%02x%02x' % tuple(PAL['sand'])} if a['kind'] == 'beach' else {})) for a in W.areas if a['poly'].geom_type == 'Polygon' and a['poly'].area > 10],
+            shallows=[polyd(p.simplify(4.0), id=f's{i+1}', colour='#%02x%02x%02x' % tuple(PAL['shallow'])) for i, p in enumerate(SHALLOW)],
             roads=[], paths=W.paths, buildings=W.buildings, pois=W.pois, props=W.props, trees=W.trees, places=[], joins=[], setpieces=W.setpieces, powerlines=W.powerlines,
             heights=dict(file='heights.bin', cell=CELLH, minX=hx0, minZ=hz0, nx=hnx, nz=hnz, unit=0.1))
 for r in W.roads:
     d = dict(id=r.id, pts=[list(p) for p in r.pts], kind=r.kind, lanesFwd=r.lf, lanesBack=r.lb, oneway=r.oneway, speedKmh=r.speed, name=r.name, bridge=bool(r.bridge), width=round(r.width, 1), surface=r.surface, layer=r.layer)
     if r.ref: d['ref'] = r.ref
     if r.y: d['y'] = r.y
+    if r.tags.get('racetrack'): d['racetrack'] = r.tags['racetrack']
     feat['roads'].append(d)
     j = r.tags.get('join')
     if j and (tuple(r.pts[0]) == r2((j['x'], j['z'])) or tuple(r.pts[-1]) == r2((j['x'], j['z']))): feat['joins'].append(dict(x=j['x'], z=j['z'], roadId=r.id, osm=j['osm'], osmWay=j['osmWay']))
 lcx, lcz = LAKE.centroid.x, LAKE.centroid.y
 PL = [(nm, 'key' if 'Key' in nm else 'town', v.centroid.x, v.centroid.y, math.sqrt(v.area / math.pi)) for nm, v in TOWNS.items()]
-PL += [('Lake Amaro', 'lake', lcx, lcz, math.sqrt(LAKE.area / math.pi)), ('Sawpalm Ridge State Park', 'park', PEAK['x'], PEAK['z'], 1800), ('Solana International Airport', 'airport', AP.centroid.x, AP.centroid.y, 1900),
-       ('Tern Key Airfield', 'airport', *TR.p2w(262, 1335), 500), ('Corkwood Swamp', 'region', *TR.p2w(500, 700), 1300), ('Everglades', 'region', *TR.p2w(470, 1130), 1800), ('Mariner Channel Bridge', 'region', *TR.p2w(505, 1396), 400)]
+PL += [('Lake Amaro', 'lake', lcx, lcz, math.sqrt(LAKE.area / math.pi)), ('Sawpalm Ridge State Park', 'park', PEAK['x'], PEAK['z'], 2700), ('Solana International Airport', 'airport', AP.centroid.x, AP.centroid.y, 1900),
+       ('Tern Key Airfield', 'airport', *TR.p2w(262, 1335), 750), ('Corkwood Swamp', 'region', *TR.p2w(500, 700), 1900), ('Everglades', 'region', *TR.p2w(470, 1130), 2700), ('Mariner Channel Bridge', 'region', *TR.p2w(505, 1396), 600)]
+if RING_ISLAND is not None: PL.append(('Corona Island', 'island', RING_ISLAND.centroid.x, RING_ISLAND.centroid.y, 600))
+if RACE: PL.append(('Solana Motor Speedway', 'district', RACE[0][0], RACE[0][1], 450))
 feat['places'] = [dict(name=n, kind=k, x=round(x), z=round(z), r=round(r)) for n, k, x, z, r in PL]
 with open(os.path.join(OUT, 'features.json'), 'w') as f: json.dump(feat, f, separators=(',', ':'))
 regions = {k: ring(max((v.geoms if hasattr(v, 'geoms') else [v]), key=lambda g: g.area).simplify(10).exterior.coords) for k, v in TOWNS.items()}
 regions['Lake Amaro'] = ring(LAKE.simplify(10).exterior.coords); regions['Solana International Airport'] = ring(AP.exterior.coords)
-for i, p in enumerate(sorted(FOREST, key=lambda p: -p.area)[:4]): regions['Sawpalm Ridge State Park' if i == 0 else f'Sawpalm forest {i+1}'] = ring(p.simplify(25).exterior.coords)
-layout = dict(version=3, bounds=BOUNDS, realRect=REAL, imageTransform=TRANSFORM, places=feat['places'], setpieces=W.setpieces, regions=regions, airport=W.extra.get('airport'), airfield=W.extra.get('airfield'), routes=W.extra.get('routes'),
-              heights=feat['heights'], peak=PEAK, underwater=dict(shallow_polygons=len(feat['shallows']), channels=[dict(name=n, pts=[[round(x), round(z)] for x, z in pts], width=w, depth=dp) for n, pts, w, dp in D.CHANNELS]),
+layout = dict(version=4, bounds=BOUNDS, realRect=REAL, imageTransform=TRANSFORM, places=feat['places'], setpieces=W.setpieces, regions=regions, districts=DISTRICTS, palette=PAL, relief=RELIEF,
+              airport=W.extra.get('airport'), airfield=W.extra.get('airfield'), routes=W.extra.get('routes'), heights=feat['heights'], peak=PEAK,
+              speedway=(None if not RACE else dict(name='Solana Motor Speedway', x=round(RACE[0][0]), z=round(RACE[0][1]), ovalSemiAxesM=[330, 170])),
+              ringIsland=(None if RING_ISLAND is None else dict(name='Corona Island', x=round(RING_ISLAND.centroid.x), z=round(RING_ISLAND.centroid.y), areaHa=round(RING_ISLAND.area / 1e4, 1))),
+              underwater=dict(shallow_polygons=len(feat['shallows']), channels=[dict(name=n, pts=[[round(x), round(z)] for x, z in pts], width=w, depth=dp) for n, pts, w, dp in D.CHANNELS]),
               highways=[dict(name=n, ref=r) for n, r in (('Cypress Belt Parkway (divided motorway ring)', 'SR 836'), ('Overseas Highway', 'US-1'), ('Tamiami Trail', 'US-41'), ('Citrus Belt Highway', 'US-27'), ('Corkwood Road', 'SR 49'), ('Lake Amaro Road', 'CR 720'), ('Ocean Drive North', 'SR A1A'), ('Calabash Causeway', 'CR 64'), ('Marisol Road', 'CR 41'))])
-os.makedirs(os.path.join(ROOT, 'public', 'assets', 'world'), exist_ok=True)
-with open(os.path.join(ROOT, 'public', 'assets', 'world', 'layout.json'), 'w') as f: json.dump(layout, f, separators=(',', ':'))
+os.makedirs(os.path.dirname(LAYOUT_PATH), exist_ok=True)
+with open(LAYOUT_PATH, 'w') as f: json.dump(layout, f, separators=(',', ':'))
 from collections import Counter
-summary = dict(lake_overlay=LAKES, palette=PAL, road_km=round(sum(plen(r.pts) for r in W.roads) / 1000, 1), roads=len(W.roads), bridges=sum(1 for r in W.roads if r.bridge), buildings=len(W.buildings), pois=len(W.pois), land_polys=len(land_out), water=len(W.water),
+summary = dict(nico_kept_at_pass6_position=NICO_KEPT, image_size=[1041, IH], coast_iou=COAST_IOU, districts=DISTRICTS, grid_from_picture=globals().get('GRIDSRC', {}), airport_measured=W.extra.get('airport_measured'), tern_measured=[dict(lengthM=round(math.hypot(b_[0] - a_[0], b_[1] - a_[1])), votes=c_) for a_, b_, c_ in TERN_STRIPS], speedway=(None if not RACE else [round(v) for v in RACE[0]]), ring_island_ha=(None if RING_ISLAND is None else round(RING_ISLAND.area / 1e4, 1)), relief=RELIEF, city_mask=dict(landPolys=len(CITY_MASK['land']), newLandKm2=round(land.intersection(realbox).difference(_real_in).area / 1e6, 2), removeRealLandKm2=round(_real_in.difference(land).area / 1e6, 2), islands=len(_isl), causeways=len(_cw)), lake_overlay=LAKES, palette=PAL, road_km=round(sum(plen(r.pts) for r in W.roads) / 1000, 1), roads=len(W.roads), bridges=sum(1 for r in W.roads if r.bridge), buildings=len(W.buildings), pois=len(W.pois), land_polys=len(land_out), water=len(W.water),
                areas=len(W.areas), joins=len(feat['joins']), joins_expected=njoin, towns={k: round(v.area / 1e4) for k, v in TOWNS.items()}, stats=stats, peak=PEAK, setpieces=W.setpieces, transform=TRANSFORM, log=W.log[:40], seconds=round(time.time() - T0, 1))
 with open(os.path.join(OUT, 'summary.json'), 'w') as f: json.dump(summary, f, indent=1)
 print(json.dumps({k: summary[k] for k in ('road_km', 'roads', 'bridges', 'buildings', 'pois', 'land_polys', 'water', 'joins', 'joins_expected', 'peak', 'seconds')}), [(s['id'], s['x'], s['z']) for s in W.setpieces], W.log[:6])

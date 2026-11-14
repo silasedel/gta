@@ -10,11 +10,11 @@ const V3 = THREE.Vector3;
 export const PALM_SPECIES = ['coconut', 'royal', 'sabal', 'date', 'queen', 'palmetto'];
 
 const SP = {
-  coconut: { H: [8, 15], r0: 0.2, rTop: 0.13, flare: 0.9, lean: [0.12, 0.38], bow: 0.6, bark: BARK.coconut, rep: 1.2, nF: [20, 28], L: [4.3, 5.6], elev: [0.15, 0.9], droop: [1.5, 2.5], fold: 0.38, foldOut: 0.55, w: 0.62, cell: CELL.coconut, dead: [2, 6], stubs: 10 },
-  royal: { H: [13, 19], r0: 0.27, rTop: 0.2, flare: 0.7, lean: [0.0, 0.04], bow: 0.1, bark: BARK.royal, rep: 2.0, nF: [14, 18], L: [5.0, 6.3], elev: [0.25, 1.05], droop: [1.1, 1.8], fold: -0.15, foldOut: 0.9, w: 0.7, cell: CELL.plume, plume: true, dead: [0, 1], shaft: 0.18 },
-  sabal: { H: [6, 12], r0: 0.22, rTop: 0.2, flare: 0.35, lean: [0.0, 0.1], bow: 0.25, bark: BARK.sabal, rep: 1.6, nF: [26, 36], fan: true, fanR: [1.0, 1.3], pet: [1.5, 2.3], dead: [3, 9], boots: true },
-  date: { H: [6, 11], r0: 0.34, rTop: 0.3, flare: 0.4, lean: [0.0, 0.08], bow: 0.15, bark: BARK.date, rep: 1.4, nF: [48, 64], L: [3.6, 4.8], elev: [-0.25, 1.2], droop: [0.6, 1.3], fold: 0.55, foldOut: 0.35, w: 0.6, cell: CELL.date, dead: [0, 3], stubs: 22, dates: true },
-  queen: { H: [9, 13], r0: 0.18, rTop: 0.15, flare: 0.45, lean: [0.0, 0.12], bow: 0.35, bark: BARK.queen, rep: 1.0, nF: [10, 15], L: [3.6, 4.6], elev: [0.2, 0.95], droop: [2.0, 3.0], fold: -0.35, foldOut: 1.25, w: 0.66, cell: CELL.plume, plume: true, dead: [2, 5], stubs: 6, fruit: true },
+  coconut: { H: [8, 15], r0: 0.2, rTop: 0.14, flare: 1.15, lean: [0.12, 0.38], bow: 0.6, bark: BARK.coconut, rep: 1.2, nF: [27, 35], L: [4.4, 5.8], elev: [-0.35, 1.38], droop: [1.3, 2.4], fold: 0.42, foldOut: 0.6, w: 0.78, mesh: true, roots: 16, infl: true, cell: CELL.coconut, dead: [2, 6], stubs: 10 },
+  royal: { H: [13, 19], r0: 0.27, rTop: 0.2, flare: 0.9, lean: [0.0, 0.04], bow: 0.1, bark: BARK.royal, rep: 2.0, nF: [23, 30], L: [5.0, 6.4], elev: [-0.15, 1.35], droop: [1.0, 1.9], fold: -0.15, foldOut: 0.9, w: 0.86, roots: 14, infl: true, cell: CELL.plume, plume: true, dead: [0, 1], shaft: 0.18 },
+  sabal: { H: [6, 12], r0: 0.22, rTop: 0.2, flare: 0.45, roots: 12, lean: [0.0, 0.1], bow: 0.25, bark: BARK.sabal, rep: 1.6, nF: [26, 36], fan: true, fanR: [1.0, 1.3], pet: [1.5, 2.3], dead: [3, 9], boots: true },
+  date: { H: [6, 11], r0: 0.34, rTop: 0.3, flare: 0.5, roots: 14, lean: [0.0, 0.08], bow: 0.15, bark: BARK.date, rep: 1.4, nF: [48, 64], L: [3.6, 4.8], elev: [-0.25, 1.2], droop: [0.6, 1.3], fold: 0.55, foldOut: 0.35, w: 0.6, cell: CELL.date, dead: [0, 3], stubs: 22, dates: true },
+  queen: { H: [9, 13], r0: 0.18, rTop: 0.15, flare: 0.6, lean: [0.0, 0.12], bow: 0.35, bark: BARK.queen, rep: 1.0, nF: [17, 24], L: [3.6, 4.8], elev: [-0.2, 1.3], droop: [1.8, 2.8], fold: -0.35, foldOut: 1.25, w: 0.8, mesh: true, roots: 10, cell: CELL.plume, plume: true, dead: [2, 5], stubs: 6, fruit: true },
   palmetto: { H: [0.1, 0.7], r0: 0.14, rTop: 0.13, flare: 0.2, lean: [0.0, 0.25], bow: 0, bark: BARK.sabal, rep: 0.8, nF: [11, 18], fan: true, fanR: [0.6, 0.85], pet: [0.9, 1.6], dead: [1, 4], low: true },
 };
 
@@ -115,7 +115,7 @@ export function buildPalm(opts = {}) {
     for (let i = 0; i <= nT; i++) { pts.push(p.clone()); const t = i / nT, a = ang * (species === 'coconut' ? 1 - 0.75 * t : 1 - 0.3 * t) + bow * 0.12 * Math.sin(t * 6.283);
       const dir = new V3(0, Math.cos(a), 0).addScaledVector(ld, Math.sin(a)).addScaledVector(bd, bow * 0.06 * Math.cos(t * 4.0)).normalize(); p.addScaledVector(dir, step); } }
   const top = pts[pts.length - 1].clone(), radial = lod ? 6 : 11;
-  const shaftStart = P.shaft ? Math.floor(nT * (1 - 2.6 / H)) : 1e9;
+  const shaftStart = P.shaft ? Math.floor(nT * (1 - 3.0 / H)) : 1e9;
   let arc = 0; const arcs = pts.map((q, i) => (arc += i ? q.distanceTo(pts[i - 1]) : 0));
   const rootSeed = R() * 10, stain = 0.75 + R() * 0.2;
   const radius = (i, a) => {
@@ -123,12 +123,17 @@ export function buildPalm(opts = {}) {
     let r = lerp(P.r0, P.rTop, Math.pow(t, 0.8));
     if (species === 'royal') r *= 1 + 0.22 * Math.exp(-Math.pow((t - 0.55) / 0.22, 2)); // spindle bulge
     if (species === 'date' && P.stubs) r *= 1 + 0.06 * Math.sin(y * 4.5); // knobbly
-    if (i >= shaftStart) r = P.rTop * 1.12;
+    if (i >= shaftStart) { const ts = (arcs[i] - arcs[shaftStart]) / Math.max(0.1, arcs[nT] - arcs[shaftStart]); r = P.rTop * (1.42 - 0.22 * ts + 0.1 * Math.sin(ts * 3.14)); }
     r *= 1 + P.flare * Math.exp(-y / 0.45) * (1 + 0.35 * Math.sin(a * 5 + rootSeed) * Math.exp(-y / 0.25)); // flared base with root bumps
-    if (species === 'coconut' || species === 'queen') r *= 1 + 0.025 * Math.sin(y * 6.283 / (P.rep / (species === 'queen' ? 18 : 13)));
+    if (species === 'coconut' || species === 'queen') { const ph = y * (species === 'queen' ? 18 : 13) / P.rep + 0.3 * Math.sin(a * 2 + y); r *= 1 + (species === 'queen' ? 0.03 : 0.055) * (Math.pow(Math.abs(Math.sin(ph * Math.PI)), 0.35) - 0.6); } // ring scar relief
     return r;
   };
-  const trunkCol = (i) => { const y = arcs[i], soil = Math.exp(-y / 0.6); const k = stain * (1 - 0.35 * soil); return [k * (1 + 0.05 * soil), k * (1 - 0.04 * soil), k * (1 - 0.1 * soil)]; };
+  const lichSeed = R() * 9, lichAmt = R();
+  const trunkCol = (i, j) => { const y = arcs[i], soil = Math.exp(-y / 0.6), a = j / radial * 6.283;
+    const band = 1 + 0.1 * Math.sin(y * 0.8 + lichSeed) + 0.05 * Math.sin(y * 2.9 + lichSeed * 2) - 0.08 * Math.max(0, y / H - 0.75); // weathering along the height
+    const lich = lichAmt * Math.max(0, Math.sin(a * 1.3 + lichSeed) * Math.sin(y * 1.7 + lichSeed) * Math.sin(a * 0.7 + y * 0.9) - 0.15) * 2.2;
+    const k = stain * band * (1 - 0.35 * soil);
+    return [k * (1 + 0.05 * soil) * (1 + 0.12 * lich), k * (1 - 0.04 * soil) * (1 + 0.2 * lich), k * (1 - 0.1 * soil) * (1 + 0.02 * lich)]; };
   const wind = (i) => [arcs[i] * 0.98, 0, 0];
   const main = pts.slice(0, Math.min(pts.length, shaftStart + 1));
   tube(trunk, main, radial, radius, (i, j) => [barkU(P.bark, j / radial), arcs[i] / P.rep], trunkCol, wind);
@@ -146,6 +151,17 @@ export function buildPalm(opts = {}) {
     stub(pts[i].clone().addScaledVector(out, radius(i, a) * 0.8), out.clone().multiplyScalar(0.55).add(new V3(0, 0.83, 0)).normalize(), 0.25 + R() * 0.25, 0.07 + R() * 0.04, [0.85 + R() * 0.2, 0.8 + R() * 0.15, 0.7]);
   }
   if (!lod && P.boots) { const y0 = crownH * (0.25 + R() * 0.3); for (let y = y0; y < crownH - 0.2; y += 0.17) { const i = trunkAt(y), a = y * 9.3 + R() * 0.6, out = new V3(Math.cos(a), 0, Math.sin(a)); stub(pts[i].clone().addScaledVector(out, radius(i, a) * 0.85), out.clone().multiplyScalar(0.7).add(new V3(0, 0.7, 0)).normalize(), 0.22 + R() * 0.2, 0.06 + R() * 0.03, [0.9 + R() * 0.15, 0.85, 0.75]); } }
+
+  if (!lod && P.roots) for (let k = 0; k < P.roots; k++) { // exposed root mass at ground level
+    const a = k * 6.283 / P.roots + R() * 0.4, out = new V3(Math.cos(a), 0, Math.sin(a)), r0 = radius(0, a) * 0.9, L = 0.25 + R() * 0.45;
+    const q = [new V3(out.x * r0 * 0.8, 0.12 + R() * 0.1, out.z * r0 * 0.8), new V3(out.x * (r0 + L * 0.5), 0.05, out.z * (r0 + L * 0.5)), new V3(out.x * (r0 + L), -0.04, out.z * (r0 + L))];
+    tube(trunk, q, 4, (i) => (0.05 + R() * 0.02) * (1 - i * 0.35), (i, j) => [barkU(P.bark, j / 4), i * 0.2], () => [0.8, 0.74, 0.66], () => [0, 0, 0]); }
+  if (!lod && P.mesh) { // fibrous leaf-sheath mesh wrapped around the top of the trunk under the crown
+    const i0 = trunkAt(arcs[nT] - 1.0); const mp = pts.slice(i0); tube(trunk, mp, radial, (i, a) => radius(i + i0, a) * (1.22 + 0.12 * Math.sin(a * 3 + i)), (i, j) => [barkU(BARK.fiber, j / radial), i * 0.4], () => [0.95, 0.85, 0.72], (i) => wind(i + i0)); }
+  if (!lod && P.infl) for (let k = 0; k < 2 + ((R() * 3) | 0); k++) { // flower stalks (spadices) hanging below the crown
+    const a = R() * 6.28, d = new V3(Math.cos(a) * 0.8, -0.35, Math.sin(a) * 0.8).normalize(), b0 = top.clone().add(new V3(Math.cos(a) * 0.2, -0.35, Math.sin(a) * 0.2)), e = b0.clone().addScaledVector(d, 0.7);
+    stub(b0, d, 0.7, 0.035, [1.3, 1.15, 0.65]);
+    for (let m = 0; m < 7; m++) { const dd = d.clone().add(new V3((R() - 0.5) * 0.9, -0.6 - R() * 0.5, (R() - 0.5) * 0.9)).normalize(); stub(e.clone().addScaledVector(d, -m * 0.06), dd, 0.35 + R() * 0.25, 0.012, [1.4, 1.25, 0.7]); } }
 
   // crown
   const nF = Math.round(rr(R, P.nF) * (lod ? 0.75 : 1)), fl = opts.frondLen ?? 1, dm = opts.droop ?? 1;
@@ -173,7 +189,7 @@ export function buildPalm(opts = {}) {
   }
   // fruit: coconuts in bunches under the crown, date strands, queen palm drupes
   const fruit = (c, n, sz, sw, spread, colr) => { for (let i = 0; i < n; i++) { const p = c.clone().add(new V3((R() - 0.5) * spread, -R() * spread * 0.8, (R() - 0.5) * spread)); blob(fr, p, sz * (0.9 + R() * 0.2), sz * (1.05 + R() * 0.2), sz * (0.9 + R() * 0.2), [...leafUV(CELL.fan, sw[0], sw[3]), ...leafUV(CELL.fan, sw[2], sw[1])], colr(), [crownH, 0.05, 0]); } };
-  if (species === 'coconut' && R() < 0.85) { const nb = 1 + ((R() * 3) | 0); for (let b = 0; b < nb; b++) { const a = R() * 6.28; fruit(crownC.clone().add(new V3(Math.cos(a) * 0.35, -0.35, Math.sin(a) * 0.35)), lod ? 3 : 4 + ((R() * 6) | 0), 0.13, SWATCH.husk, 0.4, () => { const ripe = R(); return [0.85 + ripe * 0.3, 0.9 - ripe * 0.15, 0.7 - ripe * 0.2]; }); } }
+  if (species === 'coconut' && R() < 0.92) { const nb = 2 + ((R() * 3) | 0); for (let b = 0; b < nb; b++) { const a = R() * 6.28; fruit(crownC.clone().add(new V3(Math.cos(a) * 0.38, -0.5, Math.sin(a) * 0.38)), lod ? 3 : 6 + ((R() * 8) | 0), 0.125, SWATCH.husk, 0.5, () => { const ripe = R(); return [0.85 + ripe * 0.3, 0.9 - ripe * 0.15, 0.7 - ripe * 0.2]; }); } }
   if ((species === 'date' && R() < 0.8) || (species === 'queen' && R() < 0.7)) { const nb = 2 + ((R() * 3) | 0); for (let b = 0; b < nb; b++) { const a = R() * 6.28, c0 = crownC.clone().add(new V3(Math.cos(a) * 0.45, -0.6, Math.sin(a) * 0.45)); fruit(c0, lod ? 6 : 26, species === 'date' ? 0.03 : 0.022, species === 'date' ? SWATCH.dates : SWATCH.fruit, 0.55, () => [0.9 + R() * 0.2, 0.85 + R() * 0.2, 0.8]); } }
   const tg = trunk.build(), fg = fr.build();
   return { trunk: tg, fronds: fg, height: crownH, top, tris: trunk.tris + fr.tris, species };

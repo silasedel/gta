@@ -109,7 +109,7 @@ export function facadeWalls(batch, ring, y0, y1, S, vBase = 0, coll = null) {
 }
 
 // ---------------- material ----------------
-const GLASS_TINTS = [[0.50, 0.58, 0.60], [0.20, 0.36, 0.58], [0.24, 0.46, 0.42], [0.46, 0.36, 0.24], [0.30, 0.33, 0.37], [0.70, 0.76, 0.80], [0.16, 0.44, 0.50], [0.07, 0.08, 0.10]];
+const GLASS_TINTS = [[0.50, 0.57, 0.58], [0.27, 0.37, 0.47], [0.29, 0.42, 0.39], [0.44, 0.37, 0.28], [0.31, 0.34, 0.37], [0.66, 0.71, 0.73], [0.22, 0.40, 0.42], [0.09, 0.10, 0.11]];
 
 const FRAG_HEAD = /* glsl */`
 uniform sampler2DArray uFCol; uniform sampler2DArray uFNrm; uniform sampler2D uFRooms;
@@ -117,7 +117,7 @@ uniform vec4 uFGrid; uniform vec2 uFRoomKind[8]; uniform float uFTile[NUM_FLAYER
 uniform float uFLit[8]; uniform float uFNight; uniform float uFDay; uniform float uFTime; uniform float uFGlow;
 flat in vec4 vFa; flat in vec4 vFb; flat in vec4 vFc; flat in vec4 vFd;
 in vec3 vFWP; in vec3 vFWN; in vec2 vFuv;
-vec3 gFAlb; float gFRough; float gFMetal; float gFAO; vec3 gFNw; vec3 gFEmi;
+vec3 gFAlb; float gFRough; float gFMetal; float gFAO; vec3 gFNw; vec3 gFEmi; float gFFar = 0.0; float gFLit = 0.0; vec3 gFLitC = vec3(1.0);
 float fH2(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float fVN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(fH2(i), fH2(i + vec2(1.0, 0.0)), f.x), mix(fH2(i + vec2(0.0, 1.0)), fH2(i + vec2(1.0, 1.0)), f.x), f.y); }
 float fBox(vec2 p, vec2 b) { vec2 d = abs(p) - b; return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0); }
@@ -166,10 +166,18 @@ void facadeEval() {
     { // night lighting: each window has a threshold; the lit fraction per building type follows the hour
       float lf = uFLit[prof]; float thr = h4;
       if (prof == 0) thr = mix(h4, fH2(vec2(cell.y, seed)), 0.65);            // offices: whole floors stay on
-      lit = step(thr, lf) * uFNight;
-      lit = mix(lit, lf * uFNight, smoothstep(0.6, 2.5, px / min(cs.x, cs.y))); // sub-pixel windows: average glow
+      // sub-pixel windows (mid / far LOD): light whole clusters of windows (power-of-two groups at least ~1.5 px wide) so a
+      // distant tower keeps a random lit pattern instead of averaging to a flat glow
+      float farF = smoothstep(0.6, 2.5, px / min(cs.x, cs.y));
+      vec2 kg = exp2(ceil(log2(max(vec2(1.0), px * 1.6 / cs))));
+      vec2 cg = floor(cell / kg);
+      float thrG = prof == 0 ? mix(fH2(cg * 1.31 + seed * 7.0), fH2(vec2(cg.y * 1.7, seed)), 0.6) : fH2(cg * 1.31 + seed * 7.0);
+      lit = mix(step(thr, lf), step(thrG, lf), farF) * uFNight;
+      gFFar = smoothstep(0.3, 1.6, px / min(cs.x, cs.y));
+      gFLit = lit;
       float warm = fH2(cell * 3.1 + seed + 5.0);
       litC = prof == 0 || prof == 5 || prof == 4 ? mix(vec3(0.82, 0.92, 1.0), vec3(1.0, 0.95, 0.84), warm * 0.7) : mix(vec3(1.0, 0.66, 0.36), vec3(1.0, 0.88, 0.70), warm);
+      gFLitC = litC;
       if (prof == 1 && warm > 0.84) litC = mix(litC, vec3(0.45, 0.6, 1.0) * (0.75 + 0.5 * fH2(vec2(floor(uFTime * 5.0), h1 * 91.0))), 0.75); // TV glow
     }
     if (type == 2) {
@@ -315,7 +323,7 @@ void facadeEval() {
   }
   nT = mix(nT, nOver, useOver);
   gFNw = normalize(T * nT.x + Bt * nT.y + Nw * max(nT.z, 0.05));
-  gFAlb = alb; gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi;
+  gFAlb = alb; gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi * (1.0 + gFFar * 1.6 * uFNight) + gFFar * gFLit * gFLitC * 0.95 * uFGlow; // distant windows cover less of the pixel: compensate the glow
 }
 `;
 

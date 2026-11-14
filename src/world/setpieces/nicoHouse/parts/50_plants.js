@@ -311,6 +311,33 @@ gl_Position = projectionMatrix * mvPosition;
     const at = (y) => { for (let i = 1; i <= n; i++) if (pts[i].y >= y) { const a = pts[i - 1], b = pts[i]; return a.clone().lerp(b, (y - a.y) / (b.y - a.y)); } return pts[n].clone(); };
     const radAt = (t, len) => rB * (1 - 0.22 * t) + 0.13 * Math.exp(-Math.max(0, len - 0.3) / 0.42) * (rB / 0.15);
     const tone = cv([1.08, 1.04, 0.98], r, 0.06);
+    // shared vegetation system (game.vegetation, passed in as opts.vegetation): its coconut palm replaces the trunk and crown
+    // built here; colliders, litter and the trunk curve used by the hammock stay
+    let vegPalm = false;
+    const veg = ctx.opts.vegetation;
+    if (veg?.build && !o.young) {
+      try {
+        const off = o.lean * H * 0.55;
+        const g = veg.build('coconut', {
+          seed: o.seed * 7919 + 13,
+          height: H,
+          lean: [dx * off, dz * off],
+        });
+        g.position.set(o.x, -0.05, o.z);
+        g.traverse((m) => {
+          if (m.isMesh) {
+            m.castShadow = true;
+            m.receiveShadow = true;
+          }
+        });
+        g.name = 'vegPalm:' + o.id;
+        ctx.groups.ext.add(g);
+        vegPalm = true;
+      } catch (e) {
+        console.warn('[nicoHouse] vegetation palm failed, using own model', e);
+      }
+    }
+    if (!vegPalm) {
     palmBark.tube(pts, radAt, {
       seg: 9, uRep: 2, vLen: 1.1, sw: (q, t) => [ampTop * t * t, phase, 0, 0],
       mod: (t, a, len) => { const ring = (len / 0.1 + 0.2 * Math.sin(a + phase) + 0.07 * Math.sin(a * 3)) % 1, tri = ring < 0.5 ? ring * 2 : 2 - ring * 2; return 1 + 0.045 * tri + 0.09 * Math.sin(a * 7 + phase) * Math.exp(-Math.max(0, len - 0.3) / 0.14); },
@@ -342,6 +369,12 @@ gl_Position = projectionMatrix * mvPosition;
       const L = o.L * (dead ? 0.6 + r() * 0.25 : (0.6 + 0.4 * Math.sin(Math.min(1, a * 1.7 + 0.12) * Math.PI / 2)) * (0.92 + r() * 0.13));
       frond({ r, base: top.clone().addScaledVector(tdir, -0.08 - a * 0.5), az, el, L, droop: dead ? 0.45 : 0.75 + 1.0 * a + (r() - 0.5) * 0.25, age: a, dead, tree, amp: dead ? 0.1 : 0.1 + 0.16 * a, nL: o.nL ?? 46 });
     }
+    }   // end of own trunk and crown (vegPalm false)
+    const top = pts[n];
+    const radial = (az) => new V3(Math.cos(az), 0, Math.sin(az));
+    const tdir = new V3().subVectors(pts[n], pts[n - 4]).normalize();
+    const rT = rB * 0.78;
+    const tree = [ampTop, phase];
     // colliders, litter, husks
     for (const y of [0.5, 1.5]) { const c = at(y); col.cyl(c.x, y, c.z, radAt(0, y + 0.3) + 0.04, 1.0, { tag: 'tree' }); }
     const crown = top.clone();
@@ -654,6 +687,42 @@ gl_Position = projectionMatrix * mvPosition;
     const sp = [c.clone(), c.clone().add(new V3(nx * 0.1, 0.16, nz * 0.1)), c.clone().add(new V3(nx * 0.24, 0.2, nz * 0.24)), c.clone().add(new V3(nx * 0.36, 0.12, nz * 0.36))];
     stems.tube(sp, () => 0.002, { seg: 3, col: () => [0.26, 0.36, 0.14], sw: (q, tt) => [0, 0, 0.01 * tt, px] });
     for (let i = 0; i < 5; i++) { const q = sp[1].clone().lerp(sp[3], i / 4.4); q.y += 0.03 * Math.sin((i / 4) * Math.PI); const s = 0.05; leaf(quads, q.add(new V3(0, -s * 0.5, 0)), UP, new V3(nx + (r() - 0.5) * 0.5, 0.15, nz + (r() - 0.5) * 0.5), s, s, s * 0.3, [1, 1, 1], [0, 0, 0.012, px + i], 13); }
+  }
+
+  // ---------- street-front bay (part 47): ivy up the piers and the room wall, plants in the rail pots ----------
+  {
+    const fbay = ctx.frontBay;
+    const ri = kit.rng(5047);
+    for (const v of fbay?.vines ?? []) {
+      const pts = v.pts.map((p) => new V3(p[0], p[1], p[2]));
+      if (pts.length < 2) continue;
+      stems.tube(pts, (t) => 0.007 * (1 - 0.6 * t) + 0.002, {
+        seg: 4,
+        col: () => cv([0.36, 0.3, 0.2], ri, 0.12),
+        sw: NOSW,
+        vLen: 0.3,
+      });
+      const nrm = new V3(v.n[0], 0, v.n[1]);
+      for (let i = 1; i < pts.length; i++) {
+        const nLeaves = 3 + Math.floor(ri() * 4);
+        for (let k = 0; k < nLeaves; k++) {
+          const q = pts[i - 1].clone().lerp(pts[i], ri());
+          const side = new V3(-nrm.z, 0, nrm.x).multiplyScalar((ri() - 0.5) * 0.24);
+          q.add(side).addScaledVector(nrm, 0.02 + ri() * 0.06);
+          const s = 0.05 + ri() * 0.05;
+          const d = new V3((ri() - 0.5) * 1.2, -0.4 - ri() * 0.6, 0).addScaledVector(nrm, 0.3);
+          const g = 0.7 + ri() * 0.45;
+          leaf(quads, q, d, nrm.clone().add(new V3(0, 0.3, 0)), s, s, s * 0.35, [g * 0.85, g, g * 0.75], [0, 0, 0.008, q.y * 3 + i], 10);
+        }
+      }
+    }
+    for (const [x, y, z, s] of fbay?.pots ?? []) {
+      if (ri() < 0.5) {
+        rosette(x, y, z, { n: 12, el: [1.25, 0.25], l: 0.24 * s, w: 0.42, bend: 0.4, tile: 11, color: (r2) => cv([0.85, 1.05, 0.72], r2, 0.15), amp: 0.02 }, ri);
+      } else {
+        croton(x, y, z, 0.6 * s, ri);
+      }
+    }
   }
 
   // ---------- build meshes ----------

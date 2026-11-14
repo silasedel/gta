@@ -17,7 +17,7 @@ window.setLight = (n) => { const L = LIGHTS[n] || LIGHTS.studio; scene.backgroun
 const CAMS = { full: [[0, 1.0, 5.2], [0, 0.92, 0]], face: [[0.12, 1.69, 0.72], [0, 1.66, 0]], face34: [[0.42, 1.70, 0.58], [0, 1.655, 0]], hands: [[-0.75, 1.0, 0.95], [-0.3, 0.88, 0.05]], back: [[0, 1.0, -5.2], [0, 0.92, 0]], torso: [[0.5, 1.3, 1.9], [0, 1.2, 0]], feet: [[0.6, 0.35, 1.2], [0, 0.08, 0]] };
 window.camAt = (p, t) => { camera.position.set(...p); controls.target.set(...t); controls.update(); };
 window.setCam = (n) => { const c = CAMS[n] || CAMS.full; camera.position.set(...c[0]); controls.target.set(...c[1]); controls.update(); };
-const game = { THREE, scene, camera, renderer, emit() { return true; } };
+const game = { THREE, scene, camera, renderer, emit() { return true; } }; window.vgame = game;
 await preloadCharacters(game);
 const nico = createCharacter(game, { variant: 'player', seed: 1 }); scene.add(nico.root);
 window.nico = nico; window.anim = { speed: 0, grounded: true }; window.turn = false; window.CATALOG = CATALOG; window.THREE = THREE; window.scene = scene; window.camera = camera;

@@ -63,3 +63,78 @@ Current counts: 223 land polygons, 245 inland waters, 5853 road edges, 557.4 km 
 - Tamarind Key has no gray outline in the image, so it has no streets.
 - Lakes and ponds are the traced outlines (5 m raster, light smoothing); I did not overlay each one individually.
 - Last crop sheet looked at was one build earlier (before runway colors were darkened and stray connectors removed).
+
+
+## Pass 6 (7:13 PM): 30 m per pixel, the picture wins everywhere
+**This section supersedes the numbers above.** `merge.py` not run by me.
+
+**Transform.** `x = -25450 + 30 * px`, `z = -24890 + 30 * py`; world = the image, 31.2 x 45 km. Scale fixed at 30 m/px; x0 by least squares over five control points, z0 from the barrier island's south tip on South Pointe (z 1903). Residuals: ocean shore +42, +24, -36 m (three rows, measured from pixels); beach bay shore +610 m and downtown bayfront -650 m (both read by eye from the image, so ±100 m). The real rectangle is image pixels x 724.7 … 998.7, y 741.2 … 918.1. Recorded in FORMAT.md v4, `features.json.imageTransform`, `layout.json.imageTransform`.
+
+**Picture wins.** `land[]` is the image's land for the whole world, inside the rectangle too, with no blend into the OSM coast, so there is no box. `features.json.city_mask` gives the merge agent what it needs: image land and water polygons inside the rectangle, `newLand` (8.32 km2 of image land that real data lacks), `removeRealLand` (3.03 km2 of real land the image shows as water), 17 island outlines and 10 causeway centerlines (generated as the shortest crossing to the next larger land, not digitized). Synthetic streets and buildings are generated on `newLand`; nothing synthetic sits on land that is both real and in the image (audit: 0 buildings, 0 m of road there). Until merge clips real features to the mask, the merged world will still show real Miami's own coast inside the rectangle.
+
+**Counts (audit.json).** 234 land polygons, 349 inland waters, 15553 road edges, 1448.9 km ({'motorway': 104.56, 'trunk': 72.15, 'primary': 32.78, 'secondary': 16.75, 'motorway_link': 6.09, 'tertiary': 21.86, 'residential': 1163.77, 'service': 38.97}), 274 bridge edges, 24414 buildings (cap 23,300 before the last towns; target under 25,000), 503 POIs of 82 types, 32 towns. Joins 135 of 136. One road component.
+
+**Audit with the merge thresholds: PASS, hard failures none.** Max step between 16 m samples 4.9 m; ground pairs 2 m apart over 0.8 m: 0 of 200,000; terrain road segments over 12.5 %: 0 (max 0.119; this is close to the limit, graded at 4.5 % along the graph); max deck grade 0.062.
+
+**Relief.** Peak 384.6 m at (-8834, -15170). Inside the traced forest polygons: median 1.1 m, 75th percentile 93.8 m, 95th percentile 251.0 m; 41 % of forest is above 20 m. The forest class also covers the low southern swamp forest, which is flat by design (heights are zeroed south of image row 800), hence the low median. Not seen in 3D.
+
+**Set pieces (same image pixels, new coordinates).**
+| id | pass 5 | pass 6 | heading | lot |
+|---|---|---|---|---|
+| nico_house | (-2543.7, 9262.7) | (-7064.99, 13125.06) | 1.0736 | 60 x 60 m on land, no road or building inside; water behind (-Z, 32 m from the back edge) and on the +X side (True) |
+| keys_bar | (-2996.6, 10449.8) | (-7434.29, 14341.92) | 0.9717 | 40 x 32 m, bay side of the Overseas Highway |
+| keys_sign | (-2225.8, 9096.5) | (-6282.91, 12306.1) | 2.9337 | 6.5 m verge, inbound side |
+The lot clearance check (roads, buildings, water in each lot) was run in pass 5; in pass 6 the same placement code ran but I did not re-run that separate check.
+
+**Airports.** Solana International is at the image's position: center (-6122, 1773) is the tower; block center = image pixel (595, 885), rotated 25 degrees, scaled 1.9x (3.3 km runways), three parallel runways, terminal north-east. It clears the rectangle, so no shift. Tern Key Airfield: main runway measured from pixels (bearing 194.5 degrees, 3005 m). **The second runway could not be measured from pixels** (the detector found no second elongated bright strip), so it is still my V-shaped guess from the north end.
+
+**Lake overlay (traced water vs the image's inland-water pixels, 4x supersampled).**
+| image px | pixels | recall | precision |
+|---|---|---|---|
+| (649, 455) | 8493 | 0.94 | 0.95 |
+| (506, 697) | 5903 | 0.78 | 0.55 |
+| (862, 639) | 3458 | 0.84 | 0.41 |
+| (307, 444) | 1945 | 0.9 | 0.85 |
+| (399, 855) | 1525 | 0.68 | 0.69 |
+| (688, 768) | 1201 | 0.53 | 0.5 |
+| (482, 448) | 923 | 0.49 | 0.46 |
+| (670, 268) | 802 | 0.87 | 0.87 |
+| (390, 814) | 617 | 0.16 | 0.14 |
+| (554, 787) | 613 | 0.42 | 0.41 |
+| (424, 525) | 475 | 0.36 | 0.35 |
+| (375, 455) | 410 | 0.46 | 0.41 |
+The big round lake and the two compact northern lakes match (0.87 to 0.95). The kidney lake is only 0.68 / 0.69 and the thin rivers and swamp networks are 0.1 to 0.55: thin channels (1 to 2 px) are partly lost or shifted by the smoothing in the trace. I did not find the cause for the kidney lake in time. This item is not met.
+
+**Sand and shallows.** Sampled from the image: sand [238, 219, 167], shallows [35, 136, 149]; written as `colour` on beach areas and shallows and in `palette`. Sand is now only within 150 m of the ocean (pale inland pixels were roads and roofs).
+
+**Still off.**
+- Inside the rectangle the preview shows real streets and buildings where they fall on image land (two paler blocks: downtown and Miami Beach) and generated grids elsewhere; the two textures differ visibly.
+- Causeway centerlines are generated, not the picture's; island towns farther than 650 m of water from other land have no road.
+- The image's bridges are classified as thin land strips, so the Keys bridges are partly 'land' in the trace rather than open water under a bridge.
+- Town street patterns are generated grids at real block size, not the picture's streets. Main roads are still the hand-digitized set (±300 m at this scale).
+- Cross routes and the central highway are six-lane trunks, not divided.
+- No motorway interchange between the ring and I-95/836 stubs; joins are stubs to the fringe collectors.
+
+
+## Pass 7 (7:45 PM), STAGED in `tools/world/out_pass7/` (live files untouched)
+Files: `tools/world/out_pass7/features.json`, `heights.bin`, `layout.json`, `map.png`, `audit.json`, `summary.json`. Side-by-sides: `docs/v2/compare/world-layout_vs_ref40_p7.png`, `world-layout_crop_city_bay_p7.png`, `_tern_key_p7.png`, `_airport_p7.png`. Build with `WL_OUT=out_pass7 tools/world/.venv/bin/python tools/world/build.py` (then `audit.py`, `render.py` with the same variable). Without the variable the same code writes the live paths.
+
+**Found and fixed a registration bug that affects the live pass 4 to 6 outputs.** The official image is 1041 x 1511 px; I had assumed 1500 rows. The traced land was squeezed north–south by 0.73 % (up to 330 m at the south end) relative to the transform and to the hand-digitized roads. This was the cause of the poor lake overlays. `bounds.maxZ` is now 20440.
+
+**Overlay scores (traced vs the image's pixels, 4x supersampled).** Land/coast IoU 0.989. All 17 largest inland waters (big round lake, the northern lakes, the kidney lake, the ring canal, swamp networks, rivers): recall 1.0 to 1.0, precision 0.98 to 1.0. The kidney lake went from 0.68 to 1.0.
+
+**Audit (merge thresholds): PASS, no hard failures.** Max 16 m step 4.9 m; ground pairs over 0.8 m: 0; terrain road max grade 0.08; segments over 12.5 %: 0. One road component, joins 134 of 136. 455 land polygons, 11905 road edges (1263.4 km), 245 bridge edges, 25198 buildings (198 over the 25,000 target: Amaro Landing alone took 3317 trailer lots), 536 POIs. Peak 361.3 m at (-12914, -4882).
+
+**Set pieces.** Lot check now runs inside `audit.py` (`setpiece_lots`): all three lots have 0 roads, 0 buildings, 0 water and are fully on land. `keys_bar` (-7434.29, 14341.92) and `keys_sign` (-6282.91, 12306.1) did not move. **`nico_house` had to move**: its pass 6 lot (-7064.99, 13125.06) is not valid on the corrected land. New: (-6420.26, 12416.02), heading 1.2411, back edge 14 m from the bay; water on the +X side: False (no spot with water on both sides passed the stricter on-land margin).
+
+**Per item.**
+1. Ring island: traced. Inner island (189.9 ha, `Corona Island`), ring canal as water with the island as a hole, outer ring as traced land, `Corona Loop` road around the island, bridge roads north and south, golf area inside. The loop road is an inset of the island outline, not the picture's own road.
+2. Roads: **not traced from pixels.** Main roads are still my hand-digitized polylines (about ±300 m). What changed: the picture's bridges and causeway decks are now open water, so those crossings are real bridges (245 bridge edges); town grids take their orientation from the picture where a dominant direction could be measured (20 of 25 traced towns), with varied block sizes, skips and jitter. No diagonals, curves or interchange loops from the picture.
+3. Runways: measured by an iterated Hough vote on pale pavement pixels. Main airport: 2 strips found (3641 m at 94.5 deg, 4203 m at 123.0 deg); the picture appears to have more, so the count is probably short. Tern Key: 2 strips (2678 m, 2487 m), both measured, no guessed runway. Taxiways, aprons and terminals are still generated, not measured.
+4. Building look: `districts[]` with `type`, `tint`, `roofTint` sampled inside each outline. Types assigned: {"old_town": 1, "suburb": 18, "resort": 4, "downtown": 2, "rural_florida": 1, "industrial_port": 1, "rural_town": 5}. Honest limit: at this image resolution the medians are all near grey-beige (for example West End #a59f97), so the terracotta/pink versus white-tower contrast the user describes is not captured; types come from position rules, not from color.
+5. Lake town: Amaro Landing is tagged `rural_florida`: trailer lots, bait shops, fish camp, bar, repair shop, farm stand, two thirds of its residential streets `dirt` or `gravel`, a boat ramp POI on the lake shore, pickup, trailer and swamp-buggy props. It is too dense (3317 lots).
+6. Racetrack: I did not detect an oval in the picture (no detection was attempted beyond choosing a site). Placed Solana Motor Speedway at (-11650, 2260), south-west of the airport near the kidney lake: 330 x 170 m semi-axis oval, infield road course, pit lane, grandstand, pit garages, parking, Speedway Boulevard.
+7. Swamp: the square patch is gone; marsh areas are now built from the picture's own channel network (dilated and closed), central and southern. 36 extra generated slough channels remain inside them.
+8. Lot clearance: see Set pieces.
+
+**Still differs.** Roads (item 2) are the main gap. Airport runway count and all taxiways/aprons. District colors. Causeways are still generated shortest crossings except where the picture's bridge was removed and a digitized road crosses it. Crop sheet viewed once after the final staged build: city and bay, ring island and Tern Key read like the picture; the airport is the weakest crop.

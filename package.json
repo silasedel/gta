@@ -5,13 +5,17 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5200 --strictPort",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 5201 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 5201 --strictPort",
+    "desktop:build": "node desktop/scripts/build.mjs",
+    "desktop:dev": "node desktop/scripts/dev.mjs"
   },
   "dependencies": {
-    "three": "^0.170.0",
-    "@dimforge/rapier3d-compat": "^0.14.0"
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "three": "^0.170.0"
   },
   "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.1",
     "vite": "^5.4.0"
   },
   "version": "2.0.0-dev"

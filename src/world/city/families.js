@@ -29,6 +29,7 @@ export const FAMILIES = {
 
 const PASTEL = [0xff9eb8, 0x7fe3d0, 0xffe08a, 0xbfa6ff, 0xffbf80, 0xa8eba0, 0x80d4ff, 0xff8fa8, 0xf6efe4, 0xfff3d6, 0xffb3e6, 0x9ff0e8, 0xf7c6a0, 0xc6e0f5];
 const WARM = [0xf4e4c8, 0xf2d6b0, 0xfbefe0, 0xe8c9a0, 0xfff3d6, 0xf0b890, 0xe9a47c, 0xf6d98a, 0xead2c0, 0xd9b99a];
+const CONDO = [0xf2efe8, 0xe9e4da, 0xe4d8c4, 0xd9cbb4, 0xcfc6b8, 0xdedad2, 0xc9c2b4, 0xeae2d0];
 const WHITES = [0xf6f4ee, 0xeeeae0, 0xe6e8ea, 0xf2efe6, 0xdfe3e6, 0xf8f6f0];
 const OFFICE = [0xf2ece2, 0xe8d2b4, 0xd8cfc0, 0xcfdce6, 0xefe0c8, 0xd9c4b4, 0xc9c4ba, 0xe6b8a0, 0xc8d8c8, 0xbfc6cc, 0xd8c8e0, 0xb9b2a6];
 const VIVID = [0xf2a03c, 0x2f9c95, 0xe86a5a, 0xf2d04c, 0x4f86c6, 0x8ccf6f, 0xd96aa0, 0xf08f6e, 0x46b8d6, 0xb880d8, 0xe2c08a, 0x6fc2a8];
@@ -77,7 +78,7 @@ export function buildingStyle(b, ctx, salt = 0) {
     case 'cwBrisa': pal = METAL; S.layer = WL.cladding; S.type = WIN.curtain; S.bayW = 1.2 + R(5) * 0.7; S.floorH = 4.0 + R(6) * 0.3; S.sill = 0.28 + R(7) * 0.06; S.bits = BIT.spandrel | (R(10) < 0.5 ? BIT.darkFrame : 0); S.glass = one([GLASS.green, GLASS.teal, GLASS.blue], 8); S.reflect = 0.5 + R(9) * 0.2; S.profile = PROFILE.office; ai = pickI(METAL, R(4)); break;
     case 'cwMeridian': pal = METAL; S.layer = WL.granite; S.type = WIN.curtain; S.bayW = 2.8 + R(5) * 0.6; S.floorH = 3.5 + R(6) * 0.3; S.sill = 0.16 + R(7) * 0.06; S.bits = BIT.vsplit | BIT.darkFrame; S.glass = one([GLASS.bronze, GLASS.gray, GLASS.dark], 8); S.reflect = 0.55 + R(9) * 0.15; S.profile = PROFILE.office; break;
     case 'cwAtlas': pal = WHITES; S.layer = WL.cladding; S.type = WIN.curtain; S.bayW = 1.9 + R(5) * 0.4; S.floorH = 3.2 + R(6) * 0.3; S.sill = 0.1 + R(7) * 0.05; S.bits = R(10) < 0.5 ? BIT.fins : 0; S.glass = one([GLASS.silver, GLASS.clear, GLASS.blue, GLASS.teal], 8); S.reflect = 0.7 + R(9) * 0.2; S.profile = zone === 'residential' ? PROFILE.residential : PROFILE.office; break;
-    case 'condo': pal = WHITES; S.layer = one([WL.stucco, WL.concrete, WL.plaster], 2); S.bayW = 3.6 + R(5) * 1.2; S.floorH = 3.05 + R(6) * 0.25; S.winW = 0.76 + R(7) * 0.16; S.winH = 0.7 + R(8) * 0.1; S.sill = 0.05;
+    case 'condo': pal = CONDO; S.layer = one([WL.stucco, WL.concrete, WL.plaster], 2); S.bayW = 3.6 + R(5) * 1.2; S.floorH = 3.05 + R(6) * 0.25; S.winW = 0.76 + R(7) * 0.16; S.winH = 0.7 + R(8) * 0.1; S.sill = 0.05;
       S.bits = BIT.vsplit | (R(9) < 0.6 ? BIT.darkFrame : 0) | (R(10) < 0.3 ? BIT.spandrel : 0); S.glass = one([GLASS.blue, GLASS.green, GLASS.gray, GLASS.teal, GLASS.clear], 11); S.reflect = 0.3 + R(12) * 0.2; S.roof = WL.roofGravel; break;
     case 'precast': S.layer = one([WL.precast, WL.concrete, WL.precast], 2); S.bayW = 2.6 + R(5) * 1.0; S.floorH = 3.5 + R(6) * 0.3; S.winW = 0.52 + R(7) * 0.2; S.winH = 0.5 + R(8) * 0.14; S.sill = 0.26;
       S.bits = BIT.pilaster | BIT.darkFrame | (R(9) < 0.4 ? BIT.belt : 0) | BIT.grime; S.glass = one([GLASS.bronze, GLASS.gray, GLASS.dark], 10); S.reflect = 0.4; S.profile = PROFILE.office; break;
@@ -96,6 +97,12 @@ export function buildingStyle(b, ctx, salt = 0) {
   }
   ti = pickI(pal, R(3));
   S.tint = new THREE.Color(b.colour && fam !== 'brickRow' && S.type !== WIN.curtain ? _c.set(pal[ti]).lerp(safeColor(b.colour, pal[ti]), 0.5).getHex() : pal[ti]);
+  { // weathered, sun-bleached paint: keep the hue, pull the saturation down (South Beach deco keeps the most color)
+    const hsl = {};
+    S.tint.getHSL(hsl);
+    const keep = fam === 'decoStream' || fam === 'decoMed' ? 0.6 : fam === 'calleRow' || fam === 'artLoft' || fam === 'cottage' ? 0.52 : 0.42;
+    S.tint.setHSL(hsl.h, hsl.s * keep, Math.min(hsl.l, 0.86));
+  }
   S.accent = new THREE.Color(ACCENT[ai] ?? METAL[ai % METAL.length]);
   if (S.accent.getHex() === S.tint.getHex()) S.accent.offsetHSL(0.5, 0, S.accent.getHSL({}).l > 0.6 ? -0.3 : 0.25);
   if (S.door) S.door.color = new THREE.Color(DOORS[pickI(DOORS, R(21))]);

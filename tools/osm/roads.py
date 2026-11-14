@@ -131,21 +131,32 @@ def osm_ways():
         a['priv'] = t.get('access') in ('no', 'private', 'customers', 'permit', 'delivery', 'military') and hw == 'service'
         if a['rev']:
             c = c[::-1]
+        a['_hw'] = hw
         ln = LineString(c)
         g = ln.intersection(B) if not B.contains(ln) else ln
         for p in (g.geoms if hasattr(g, 'geoms') else [g]):
             if p.geom_type == 'LineString' and p.length > 0.5:
-                cc = list(p.coords)
-                ways.append((cc, a, e['id']))
-                for end in (0, -1):
-                    x, z = cc[end]
-                    side = 'west' if abs(x - x0) < 0.02 else 'east' if abs(x - x1) < 0.02 else 'north' if abs(z - z0) < 0.02 else 'south' if abs(z - z1) < 0.02 else None
-                    if side:
-                        # flow: 'out' when traffic on this piece can leave the rectangle here, 'in' when it can enter
-                        flow = 'both' if not a['oneway'] else ('out' if end == -1 else 'in')
-                        bnd.append(dict(x=x, z=z, side=side, flow=flow, kind=hw, name=a['name'], ref=a['ref'], lf=a['lf'], lb=a['lb'],
-                                        w=a['w'], sp=a['sp'], way=e['id'], br=a['br'], layer=a['layer']))
+                ways.append((list(p.coords), a, e['id']))
+    if MASK is not None:
+        import citymask
+        ways = citymask.mask_ways(ways, MASK, log=_mlog)
+    for cc, a, wid in ways:
+        for end in (0, -1):
+            x, z = cc[end]
+            side = 'west' if abs(x - x0) < 0.02 else 'east' if abs(x - x1) < 0.02 else 'north' if abs(z - z0) < 0.02 else 'south' if abs(z - z1) < 0.02 else None
+            if side:
+                # flow: 'out' when traffic on this piece can leave the rectangle here, 'in' when it can enter
+                flow = 'both' if not a['oneway'] else ('out' if end == -1 else 'in')
+                bnd.append(dict(x=x, z=z, side=side, flow=flow, kind=a['_hw'], name=a['name'], ref=a['ref'], lf=a['lf'], lb=a['lb'],
+                                w=a['w'], sp=a['sp'], way=wid, br=a['br'], layer=a['layer']))
+    for cc, a, wid in ways:
+        a.pop('_hw', None)
     return ways, osm_xy, bnd, tunnels
+
+
+MASK = None              # citymask.load(...) result: the picture's land / water inside the rectangle (set by build.py)
+OUTSIDE_LAND = None      # prepared picture land (+6 m) outside the rectangle, for real roads kept just outside it
+_mlog = print
 
 
 def rescue_outside(ways, pad=800.0, log=print):
@@ -172,6 +183,8 @@ def rescue_outside(ways, pad=800.0, log=print):
         if a['rev']:
             ln = LineString(c[::-1])
         g = ln.intersection(P).difference(B)
+        if OUTSIDE_LAND is not None:
+            g = g.intersection(OUTSIDE_LAND)       # the picture wins outside the rectangle too
         for p in (g.geoms if hasattr(g, 'geoms') else [g]):
             if p.geom_type == 'LineString' and p.length > 0.5:
                 a2 = dict(a)
@@ -481,6 +494,9 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
     if dropped:
         log(f'roads: dropped {dropped[0]} edges in {dropped[1]} disconnected scraps (under 600 m in total, or under 150 m at the rectangle edge): {dropped[2]:.0f} m')
     edges += link_components(nodes, edges, log)
+    if MASK is not None:
+        import citymask
+        edges += citymask.bridge_components(nodes, edges, log)
     log(f'roads: {len(ways)} way pieces, {len(nodes)} raw nodes, {len(raw)} raw edges -> {len(edges)} merged edges; tunnels skipped {tunnels}')
     # compact node ids
     used = sorted({e['a'] for e in edges} | {e['b'] for e in edges})

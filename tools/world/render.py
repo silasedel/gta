@@ -16,7 +16,7 @@ Wp, Hp = int((BOUNDS['maxX'] - BOUNDS['minX']) / S), int((BOUNDS['maxZ'] - BOUND
 def px(p): return ((p[0] - BOUNDS['minX']) / S, (p[1] - BOUNDS['minZ']) / S)
 # --- ocean: depth-like gradient from distance to land
 _rr = F['realRect']
-mask = raster_polys([_PG(l['outer']).buffer(0) for l in F['land']] + [rd['land'].intersection(_bx(_rr['minX'], _rr['minZ'], _rr['maxX'], _rr['maxZ']))], (NZ, NX)) > 0
+mask = raster_polys([_PG(l['outer'], l.get('holes') or []).buffer(0) for l in F['land']], (NZ, NX)) > 0
 d = ndimage.distance_transform_edt(~mask).astype(np.float32) * CELL
 n = fbm(mask.shape, 700, 'mapsea', octaves=4)
 PAL = json.load(open(os.path.join(R.OUT, 'palette.json')))
@@ -28,11 +28,6 @@ _sh = Image.new('L', img.size, 0); _sd = ImageDraw.Draw(_sh)
 for q_ in F.get('shallows', []):
     _sd.polygon([px(p) for p in q_['outer']], fill=255)
     for h_ in q_.get('holes', []): _sd.polygon([px(p) for p in h_], fill=0)
-_sd.rectangle([px((F['realRect']['minX'], F['realRect']['minZ'])), px((F['realRect']['maxX'], F['realRect']['maxZ']))], fill=0)
-_nr = ndimage.distance_transform_edt(~mask) * CELL
-_x0, _y0 = px((F['realRect']['minX'], F['realRect']['minZ'])); _x1, _y1 = px((F['realRect']['maxX'], F['realRect']['maxZ']))
-_band = Image.fromarray((((_nr > 0) & (_nr < 70)) * 255).astype(np.uint8)).resize((Wp, Hp), Image.BILINEAR)
-_sh.paste(_band.crop((int(_x0), int(_y0), int(_x1), int(_y1))), (int(_x0), int(_y0)))
 _sh = _sh.filter(ImageFilter.GaussianBlur(4))
 img.paste(tuple(min(255, int(v * 1.12)) for v in PAL['shallow']), (0, 0), _sh)
 dr = ImageDraw.Draw(img)
@@ -55,22 +50,18 @@ for l in F['land']: poly(l, LAND)
 
 # re-paint real land inside the rect in urban grey, with its holes as water
 rr = F['realRect']
-if rd.get('land') is not None:
-    from shapely.geometry import box
-    g = rd['land'].intersection(box(rr['minX'], rr['minZ'], rr['maxX'], rr['maxZ']))
-    shp(g, tuple(PAL['urban']))
-    for p in rd['parks']:
-        if p.area < 1.2e6 and p.intersects(g): shp(p.intersection(g), (176, 212, 150))
-    _rb = box(rr['minX'], rr['minZ'], rr['maxX'], rr['maxZ'])
-    for p in rd['beaches']: shp(p.intersection(_rb), (246, 233, 170))
-    for p in rd['water']: shp(p.intersection(_rb), (120, 196, 226))
+from shapely.geometry import box, Point as _Pt
+from shapely.prepared import prep as _prep
+from shapely.ops import unary_union as _uu2
+_LANDP = _prep(_uu2([_PG(l['outer'], l.get('holes') or []).buffer(0) for l in F['land']]))
+g = box(rr['minX'], rr['minZ'], rr['maxX'], rr['maxZ'])
 COL0 = {'beach': (247, 234, 168), 'sand': (236, 226, 190), 'scrub': (196, 204, 140), 'mangrove': (92, 176, 120), 'wetland': (140, 206, 150), 'sawgrass': (150, 212, 150),
        'forest': (150, 204, 100), 'pine': (150, 204, 100), 'farmland': (226, 220, 140), 'grove': (164, 212, 104), 'grass': (176, 220, 120), 'park': (160, 214, 110),
-       'parking': (206, 204, 198), 'paved': (198, 198, 194), 'apron': (214, 214, 212), 'runway': (132, 134, 138), 'taxiway': (168, 170, 172), 'campground': (188, 206, 150)}
+       'parking': (206, 204, 198), 'paved': (198, 198, 194), 'apron': (214, 214, 212), 'golf': (120, 170, 90), 'runway': (132, 134, 138), 'taxiway': (168, 170, 172), 'campground': (188, 206, 150)}
 _m = lambda c, k: tuple(int(c[i] * k) for i in range(3))
 COL = dict(COL0, beach=tuple(PAL['sand']), sand=tuple(PAL['sand']), forest=tuple(PAL['forest']), pine=tuple(PAL['forest']), residential=tuple(PAL['urban']), sawgrass=_m(PAL['forest'], 1.12), grass=_m(PAL['land'], 1.05),
            grove=_m(PAL['land'], 0.92), farmland=(150, 150, 84), mangrove=_m(PAL['forest'], 0.9), wetland=_m(PAL['forest'], 1.1), park=_m(PAL['land'], 1.08), scrub=_m(PAL['land'], 0.95), campground=_m(PAL['land'], 1.0))
-order = ['residential', 'sawgrass', 'forest', 'farmland', 'grove', 'grass', 'scrub', 'wetland', 'mangrove', 'sand', 'beach', 'park', 'campground', 'parking', 'paved', 'apron', 'taxiway', 'runway']
+order = ['residential', 'golf', 'sawgrass', 'forest', 'farmland', 'grove', 'grass', 'scrub', 'wetland', 'mangrove', 'sand', 'beach', 'park', 'campground', 'parking', 'paved', 'apron', 'taxiway', 'runway']
 for k in order:
     for a in F['areas']:
         if a['kind'] == k: poly(a, COL[k])
@@ -102,7 +93,7 @@ arr = arr * (1.0 - 0.10 * _lm + 0.20 * _lm * _tex)
 img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)); dr = ImageDraw.Draw(img)
 # buildings
 for c, hh in rd.get('buildings', []):
-    if rr['minX'] < c[0][0] < rr['maxX'] and rr['minZ'] < c[0][1] < rr['maxZ']: dr.polygon([px(p) for p in c], fill=(236, 236, 232))
+    if rr['minX'] < c[0][0] < rr['maxX'] and rr['minZ'] < c[0][1] < rr['maxZ'] and _LANDP.contains(_Pt(c[0])): dr.polygon([px(p) for p in c], fill=(236, 236, 232))
 for b in F['buildings']: dr.polygon([px(p) for p in b['ring']], fill=(250, 250, 247) if b['zone'] != 'airport' else (238, 238, 240), outline=(170, 170, 166))
 for p in F['paths']: dr.line([px(q) for q in p['pts']], fill=(150, 120, 90) if p['kind'] in ('dock', 'pier', 'boardwalk') else (168, 138, 96), width=max(1, int(p['width'] / S)))
 # roads: casing then fill, minor first
@@ -111,7 +102,7 @@ ST = {'track': (1.4, (190, 180, 140), None), 'service': (1.2, (214, 208, 180), N
       'motorway_link': (2.4, (240, 228, 172), (110, 112, 86)), 'motorway': (4.4, (244, 232, 170), (104, 104, 80))}
 RK = list(ST.keys())
 real_roads = [dict(pts=r['pts'], kind={'unclassified': 'residential', 'living_street': 'residential'}.get(r['kind'], r['kind']).replace('trunk_link', 'trunk').replace('primary_link', 'primary').replace('secondary_link', 'secondary').replace('tertiary_link', 'tertiary'), bridge=r['bridge'])
-              for r in rd['roads'] if all(rr['minX'] - 5 < p[0] < rr['maxX'] + 5 and rr['minZ'] - 5 < p[1] < rr['maxZ'] + 5 for p in (r['pts'][0], r['pts'][-1]))]
+              for r in rd['roads'] if all(rr['minX'] - 5 < p[0] < rr['maxX'] + 5 and rr['minZ'] - 5 < p[1] < rr['maxZ'] + 5 for p in (r['pts'][0], r['pts'][-1])) and _LANDP.contains(_Pt(r['pts'][len(r['pts']) // 2]))]
 allr = real_roads + F['roads']
 for phase in (0, 1):
     for k in RK:
@@ -153,20 +144,22 @@ cx, cy = img.size[0] - 150, 160
 dr.polygon([(cx, cy - 70), (cx - 18, cy), (cx + 18, cy)], fill=(255, 255, 255)); dr.polygon([(cx, cy + 70), (cx - 18, cy), (cx + 18, cy)], fill=(30, 50, 90), outline=(255, 255, 255))
 dr.text((cx - 9, cy - 108), 'N', font=font(30), fill=(255, 255, 255))
 dr.text((60, img.size[1] - 50), 'Real Miami: © OpenStreetMap contributors (ODbL)', font=font(18, False), fill=(225, 238, 246))
-out = os.path.join(R.ROOT, 'docs', 'v2', 'shots', 'world-layout'); os.makedirs(out, exist_ok=True)
+SFX = '_p7' if os.environ.get('WL_OUT') else ''
+out = R.OUT if SFX else os.path.join(R.ROOT, 'docs', 'v2', 'shots', 'world-layout'); os.makedirs(out, exist_ok=True)
 img.save(os.path.join(out, 'map.png'), optimize=True)
-sm = img.resize((1041, 1500), Image.LANCZOS)
+IH = int(F.get('imageTransform', {}).get('size', [1041, 1511])[1])
+sm = img.resize((1041, IH), Image.LANCZOS)
 ref = os.path.join(R.ROOT, 'references', 'ref_40_map_user_official.webp')
 if os.path.exists(ref):
-    rf = Image.open(ref).convert('RGB').resize((1041, 1500)); o = Image.new('RGB', (2102, 1500), (20, 20, 20)); o.paste(sm, (0, 0)); o.paste(rf, (1061, 0))
-    os.makedirs(os.path.join(R.ROOT, 'docs', 'v2', 'compare'), exist_ok=True); o.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', 'world-layout_vs_ref40.png'))
-    o.resize((1401, 1000), Image.LANCZOS).save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', 'world-layout_vs_ref40_small.png'))
+    rf = Image.open(ref).convert('RGB').resize((1041, IH)); o = Image.new('RGB', (2102, IH), (20, 20, 20)); o.paste(sm, (0, 0)); o.paste(rf, (1061, 0))
+    os.makedirs(os.path.join(R.ROOT, 'docs', 'v2', 'compare'), exist_ok=True); o.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', f'world-layout_vs_ref40{SFX}.png'))
+    o.resize((1401, 1000), Image.LANCZOS).save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', f'world-layout_vs_ref40_small{SFX}.png'))
     k_ = img.size[0] / 1041.0; rfull = Image.open(ref).convert('RGB'); tiles = []
     for nm_, (x0_, y0_, x1_, y1_) in (('city_bay', (630, 560, 1000, 1010)), ('tern_key', (150, 1230, 400, 1440)), ('airport', (400, 780, 700, 990))):
         a_ = img.crop((int(x0_ * k_), int(y0_ * k_), int(x1_ * k_), int(y1_ * k_))); b_ = rfull.crop((x0_, y0_, x1_, y1_)).resize(a_.size, Image.LANCZOS)
         o_ = Image.new('RGB', (a_.size[0] * 2 + 16, a_.size[1]), (20, 20, 20)); o_.paste(a_, (0, 0)); o_.paste(b_, (a_.size[0] + 16, 0))
-        o_.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', f'world-layout_crop_{nm_}.png')); tiles.append(o_.resize((700, int(700 * o_.size[1] / o_.size[0])), Image.LANCZOS))
+        o_.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', f'world-layout_crop_{nm_}{SFX}.png')); tiles.append(o_.resize((700, int(700 * o_.size[1] / o_.size[0])), Image.LANCZOS))
     sheet = Image.new('RGB', (700, sum(t.size[1] for t in tiles) + 16), (20, 20, 20)); yy = 0
     for t in tiles: sheet.paste(t, (0, yy)); yy += t.size[1] + 8
-    sheet.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', 'world-layout_crops_small.png'))
+    sheet.save(os.path.join(R.ROOT, 'docs', 'v2', 'compare', f'world-layout_crops_small{SFX}.png'))
 print('map', img.size)

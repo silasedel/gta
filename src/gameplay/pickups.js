@@ -112,8 +112,10 @@ export function createPickups(game, G) {
   // starter stash: pistol + ammo right by the spawn (persistent)
   const stashPos = C?.sidewalkPoint(spawnPt, 5, 16) || (pointNear(game, spawnPt, 5, 14, 'sidewalk', false, 120)?.position ?? null);
   if (stashPos) {
-    spawn('pistol', stashPos, { ammo: 45 });
-    spawn('ammo', stashPos.clone().add(new THREE.Vector3(1.4, 0, 0.6)));
+    const sp1 = spawn('pistol', stashPos, { ammo: 45 });
+    const sp2 = spawn('ammo', stashPos.clone().add(new THREE.Vector3(1.4, 0, 0.6)));
+    if (sp1) sp1.starter = true;
+    if (sp2) sp2.starter = true;
     const crate = box(0.9, 0.5, 0.6, crateMat, stashPos.x - 1.0, stashPos.y + 0.25, stashPos.z - 0.6); crate.receiveShadow = true; scene.add(crate);
   }
   const stash = stashPos ? { position: stashPos } : null;
@@ -249,11 +251,20 @@ export function createPickups(game, G) {
       if (p.temp) { p.life -= dt; if (p.life <= 0) { remove(p); continue; } }
       const d = distXZ(p.pos, pp);
       const blink = !p.temp || p.life > 5 || (t * 6 | 0) % 2 === 0;
-      p.root.visible = d < 320 && blink;
+      // Beams only show close by (playtest: tall glowing columns all over Ocean Drive read as glitches).
+      // The starter stash keeps a longer beam while its hint is fresh, so the player can find it.
+      const stashHint = p.starter && t < 240;
+      const beamRange = stashHint ? 160 : 45;
+      p.root.visible = d < Math.max(90, beamRange) && blink;
       if (!p.root.visible) continue;
       const near = d < 90;
-      p.model.visible = near; p.halo.visible = near;
-      p.beam.scale.y = d < 12 ? 0.35 : 1;
+      p.model.visible = near;
+      p.halo.visible = near;
+      p.beam.visible = d < beamRange;
+      // shorter, fainter beam by day; full height at night or for the stash hint
+      const day = game.env?.dayFactor ?? 1;
+      const tall = stashHint ? 1 : 0.55 - 0.25 * day;
+      p.beam.scale.y = d < 12 ? Math.min(0.3, tall) : tall;
       if (!near) continue;
       p.model.rotation.y = t * 2 + p.phase;
       p.model.position.y = 0.8 + Math.sin(t * 2.5 + p.phase) * 0.08;

@@ -1,16 +1,113 @@
-{ "track": "vegetation", "title": "Palms, shrubs and wild plants", "section": "World", "agent": "done",
-  "items": [
-    { "name": "Bark atlas (8 procedural columns: coconut rings, royal, sabal boot-jack, date diamonds, queen, crownshaft, fiber, tree bark) with normal and roughness maps; 20-cell leaf atlas", "state": "verified", "evidence": "docs/v2/shots/vegetation/palms_trunks.png" },
-    { "name": "Palms: coconut, royal, sabal, date, queen, palmetto (curved/leaning trunks, flare, taper, leaflet fronds on drooping twisting rachis, dead fronds, fruit, stubs, boots)", "state": "verified", "evidence": "docs/v2/shots/vegetation/palms_crowns.png" },
-    { "name": "Palm lineup, every instance seeded differently", "state": "verified", "evidence": "docs/v2/shots/vegetation/palms_lineup.png" },
-    { "name": "Leaf shading: backlit translucency, two-sided, per-instance tint/wear/lean", "state": "verified", "evidence": "docs/v2/shots/vegetation/backlit.png" },
-    { "name": "Wind sway in the vertex shader (crown more than trunk, leaflet flutter)", "state": "built" },
-    { "name": "Shrubs: sea grape, hibiscus, croton, bougainvillea, ixora, saw palmetto, ornamental grass, sawgrass, leaf litter", "state": "verified", "evidence": "docs/v2/shots/vegetation/shrubs_sheet.png" },
-    { "name": "Clipped hedge (reads as a box from afar, curtain-like up close: needs another pass)", "state": "built", "evidence": "docs/v2/shots/vegetation/shrubs_sheet.png" },
-    { "name": "Wild: live oak with Spanish moss, slash pine, bald cypress (buttress, knees), red mangrove (prop roots)", "state": "verified", "evidence": "docs/v2/shots/vegetation/trees_sheet.png" },
-    { "name": "LOD fields: full / mid / baked impostor, dithered cross-fade, 1,380 plants in 90 draw calls, 102k tris", "state": "verified", "evidence": "docs/v2/shots/vegetation/field_lod.png" },
-    { "name": "game.vegetation API (build, kinds, field, stats) via vegetation.v2.js", "state": "verified", "evidence": "docs/v2/shots/vegetation/game_ocean_drive_api.png" },
-    { "name": "Old call sites use the new system: palmGeometry (12 street-palm variants), palm materials, street bushes / flower beds, fallback city", "state": "verified", "evidence": "docs/v2/shots/vegetation/game_ocean_drive.png" },
-    { "name": "Full-game shot near the Keys bar (Key Paloma is open ocean in the live world today)", "state": "todo" },
-    { "name": "Swamp/forest flora (terrain/flora.js) and set-piece palms switched to game.vegetation (other owners)", "state": "todo" }
-  ] }
+{
+ "track": "vegetation",
+ "title": "Palms, shrubs and wild plants",
+ "section": "World",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Bark atlas (8 procedural columns: coconut rings, royal, sabal boot-jack, date diamonds, queen, crownshaft, fiber, tree bark) with normal and roughness maps; 20-cell leaf atlas",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/palms_trunks.png"
+  },
+  {
+   "name": "Palms: coconut, royal, sabal, date, queen, palmetto (curved/leaning trunks, flare, taper, leaflet fronds on drooping twisting rachis, dead fronds, fruit, stubs, boots)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/palms_crowns.png"
+  },
+  {
+   "name": "Palm lineup, every instance seeded differently",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/palms_lineup.png"
+  },
+  {
+   "name": "Leaf shading: backlit translucency, two-sided, per-instance tint/wear/lean",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/backlit.png"
+  },
+  {
+   "name": "Wind sway in the vertex shader (crown more than trunk, leaflet flutter)",
+   "state": "built"
+  },
+  {
+   "name": "Shrubs: sea grape, hibiscus, croton, bougainvillea, ixora, saw palmetto, ornamental grass, sawgrass, leaf litter",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/shrubs_sheet.png"
+  },
+  {
+   "name": "Clipped hedge (reads as a box from afar, curtain-like up close: needs another pass)",
+   "state": "built",
+   "evidence": "docs/v2/shots/vegetation/shrubs_sheet.png"
+  },
+  {
+   "name": "Wild: live oak with Spanish moss, slash pine, bald cypress (buttress, knees), red mangrove (prop roots)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/trees_sheet.png"
+  },
+  {
+   "name": "LOD fields: full / mid / baked impostor, dithered cross-fade, 1,380 plants in 90 draw calls, 102k tris",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/field_lod.png"
+  },
+  {
+   "name": "game.vegetation API (build, kinds, field, stats) via vegetation.v2.js",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/game_ocean_drive_api.png"
+  },
+  {
+   "name": "Old call sites use the new system: palmGeometry (12 street-palm variants), palm materials, street bushes / flower beds, fallback city",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/game_ocean_drive.png"
+  },
+  {
+   "name": "Full-game shot near the Keys bar (Key Paloma is open ocean in the live world today)",
+   "state": "todo"
+  },
+  {
+   "name": "Pass 2: fuller palm crowns (27-35 fronds coconut, 23-30 royal), fuller crownshaft, fiber mesh, flower stalks, root mass, ring relief, lichen, height color variation",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/palms_lineup2.png"
+  },
+  {
+   "name": "Crown close-ups and rebuilt clipped hedge",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/palms_crown_close.png"
+  },
+  {
+   "name": "Lawn rebuilt: GPU blades from a height field (3 rings to 40 m, 3 draw calls), soil/thatch ground, mow stripes, desire paths, weeds, dry patches",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/game_lummus_park.png"
+  },
+  {
+   "name": "Ride-on mower with driver, game.grass (heightAt, mow, lastMowed, mower), growth over game days",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/grass_park_mowed.png"
+  },
+  {
+   "name": "Long seedy verge grass shot",
+   "state": "built",
+   "evidence": "docs/v2/shots/vegetation/grass_verge_long.png"
+  },
+  {
+   "name": "flora.js trees (live oak, gumbo limbo, pine, cypress, mangrove, sea grape) and palmetto/sawgrass via vegetation",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/game_lummus_park.png"
+  },
+  {
+   "name": "Street palm LODs in city tiles (full <48 m, mid 40-165 m, impostor 150-480 m, dithered)",
+   "state": "built"
+  },
+  {
+   "name": "Keys bar palms/shrubs via game.vegetation (alias-aware build, no keysBar edit needed)",
+   "state": "built"
+  },
+  {
+   "name": "Shared wind: all vegetation and grass read game.wind gust fronts; sway pixel diff 6.0% moving vs 0% static",
+   "state": "verified",
+   "evidence": "docs/v2/shots/vegetation/wind_check.png"
+  },
+  {
+   "name": "Blade trampling by player and pedestrians",
+   "state": "built"
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "track": "desktop",
+ "title": "Desktop app (Electron, Mac)",
+ "section": "Platform",
+ "agent": "running",
+ "items": [
+  { "name": "Port Solana.app (Electron 45.2.1 pinned) packaged to .app and .dmg, unsigned", "state": "built", "evidence": "desktop/dist/mac-arm64/Port Solana.app" },
+  { "name": "Production build served from local files over app://game (assets, GLBs, tiles, workers, WASM)", "state": "built", "evidence": "" },
+  { "name": "Performance switches: high-performance GPU, no throttling, 8 GB heap flag, WebGPU, GPU blocklist off, ANGLE Metal", "state": "built", "evidence": "" },
+  { "name": "Native fullscreen (F11, Cmd+Ctrl+F), pointer lock, large window, minimal menu, locked-down process", "state": "built", "evidence": "" },
+  { "name": "Crash guard: auto reload on renderer/GPU crash or hang, notice, crash.log in userData", "state": "built", "evidence": "" },
+  { "name": "Saves persist in the app (localStorage and IndexedDB under userData)", "state": "todo", "evidence": "" },
+  { "name": "npm run desktop:build and desktop:dev; copy to ~/Desktop", "state": "built", "evidence": "" },
+  { "name": "5-minute fps (avg, 1% low) and memory: app vs headless Chrome", "state": "building", "evidence": "" },
+  { "name": "WebGPU renderer path", "state": "todo", "evidence": "" },
+  { "name": "Windows build", "state": "todo", "evidence": "" }
+ ]
+}

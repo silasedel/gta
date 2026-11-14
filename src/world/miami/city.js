@@ -109,6 +109,10 @@ export async function createMiamiCity(game, opts = {}) {
   };
   terrainOpts.nearCut = nearCut;
   M.far.onBeforeCompile = nearCut; if (M.farGlass) M.farGlass.onBeforeCompile = nearCut;
+  // mid/far buildings use the near facade material (same window grid, glass, wall sets, night lights) plus the near-tile cut
+  if (M.makeFacadeFar && !M.facadeFar) {
+    try { M.facadeFar = M.makeFacadeFar(nearCut); M.facadeFar.name = 'facade-far'; } catch (e) { console.warn('[city-look] far facade material unavailable', e); }
+  }
   const streamer = createStreamer({
     tileSize: provider.tileSize || 200, origin: provider.origin || { x: 0, z: 0 }, chunkTiles: 4, nearR: opts.nearR ?? 350, midR: opts.midR ?? 1500, colR: 200, budgetMs: opts.budgetMs ?? 3,
     bounds, buildNear: builder.buildNear, buildMid: builder.buildMid, buildFar: builder.buildFar,

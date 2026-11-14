@@ -33,7 +33,7 @@ export const PLAN = {
   lot: { x0: -24, x1: 11.4, z0: -14.2, z1: 27 },   // seawall faces at x1 (east) and z0 (north); street at z1
   dock: { x0: 0.9, x1: 2.7, z0: -27.5, z1: -14.2, headX0: -1.6, headX1: 5.2, headZ0: -27.5, headZ1: -24.9, y: 0.12 },
   colors: {
-    body: 0x6c9482,      // sun-faded mango yellow siding
+    body: 0x3a9898,      // turquoise siding, peeled to bare gray-brown wood (ref 43)
     bodyDeep: 0xc9952e,  // the same paint where it has been shaded (under eaves, porch)
     trim: 0xcfc9b8,      // conch white
     accent: 0x8c7f6d,    // weathered lagoon blue-green (shutters, doors)

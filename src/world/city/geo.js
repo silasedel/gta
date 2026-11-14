@@ -171,7 +171,7 @@ export function palmGeometry(seed, height, lean, rnd, o = {}) {
   const [h0, h1] = PALM_RANGE[species]; let h = height;
   if (!(h >= h0 && h <= h1)) h = h0 + (((Math.abs(height) * 7.31) % 1) * (h1 - h0));
   const p = buildPalm({ species, seed: seed * 3.7 + 1, height: h, lean: species === 'coconut' ? Math.min(0.38, lean * 1.3) : lean * 0.25,
-    frondLen: Math.min(1.12, Math.max(0.88, o.frondLen ?? 1)), droop: Math.min(1.2, Math.max(0.85, o.droop ?? 1)) });
+    frondLen: Math.min(1.12, Math.max(0.88, o.frondLen ?? 1)), droop: Math.min(1.2, Math.max(0.85, o.droop ?? 1)), lod: o.lod | 0 });
   const nuts = new THREE.SphereGeometry(0.14, 5, 3).toNonIndexed();
-  return { trunk: p.trunk, fronds: p.fronds, top: p.top, nuts, species, height: p.height };
+  return { trunk: p.trunk, fronds: p.fronds, top: p.top, nuts, species, height: p.height, args: [seed, height, lean, o] };
 }

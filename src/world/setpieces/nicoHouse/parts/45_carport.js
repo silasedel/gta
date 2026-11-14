@@ -155,35 +155,7 @@ export async function build(ctx) {
     if (fill != null) s.cyl(MATTE, 0.14, 0.14, 0.004, 0, 0.3, 0, { color: fill, seg: 14 });
     return s; };
 
-  // =====================================================================================================================
-  // 1. Basketball hoop on the porch rim
-  // =====================================================================================================================
-  {
-    const o = obj(6.9, 0, 7.95);
-    for (const sx of [-0.36, 0.36]) { o.box(W, 0.089, 1.2, 0.038, sx, 3.33, 0.021, { grain: 1, color: V(0x8d857a), wear: 0.6 }); for (const y of [2.8, 2.93]) o.cyl(STEEL, 0.013, 0.013, 0.012, sx, y, 0.046, { seg: 6, color: 0x6d6258 }, PI / 2); }
-    for (const y of [3.07, 3.6]) o.box(W, 1.0, 0.089, 0.038, 0, y, 0.059, { grain: 0, color: V(0x8d857a), wear: 0.6 });
-    o.box(PLY, 1.12, 0.82, 0.018, 0, 3.33, 0.087, { color: V(0xd9ccb0), wear: 0.8, bevel: 0.002 });
-    o.geo(BOARD, new THREE.PlaneGeometry(1.12, 0.82), M(0, 3.33, 0.0966));
-    const rim = obj(6.9, 3.05, 7.95 + 0.097 + 0.385, 0, 0.11, 0.04);                    // bent: the front edge sags and it sits a little twisted
-    const OR = 0xc2521d;
-    rim.tor(MP, 0.2335, 0.0085, 0, 0, 0, PI / 2, 0, 0, { color: OR, ts: 30, rs: 6 });
-    rim.box(MP, 0.13, 0.12, 0.006, 0, -0.035, -0.38, { color: kit.mul(OR, 0.85) }).box(MP, 0.115, 0.006, 0.16, 0, 0.0, -0.305, { color: OR });
-    for (const s of [-1, 1]) rim.rod(MP, [s * 0.05, -0.085, -0.378], [s * 0.165, -0.004, -0.165], 0.005, { color: kit.mul(OR, 0.8) });
-    const NL = [[0.2335, -0.012], [0.2, -0.1], [0.172, -0.19], [0.152, -0.28], [0.142, -0.37], [0.14, -0.44]];
-    const NN = NL.map(([rad, y], k) => Array.from({ length: 12 }, (_, i) => { const a = (i + (k % 2) * 0.5) / 12 * PI * 2, j = k ? 0.007 : 0; return [Math.cos(a) * rad + rs(j), y + rs(j), Math.sin(a) * rad + rs(j)]; }));
-    const NC = 0xcfc9ba;
-    for (let k = 0; k < NL.length - 1; k++) for (let i = 0; i < 12; i++) {
-      if (k === 0) rim.rod(STEEL, [NN[0][i][0] * 0.99, 0, NN[0][i][2] * 0.99], [NN[0][i][0] * 1.02, -0.02, NN[0][i][2] * 1.02], 0.0022, { seg: 4, color: 0x8a8a84 });
-      if ((k >= 2 && i >= 2 && i <= 4) || (k >= 3 && r() < 0.22)) continue;                // torn out on one side
-      const a = NN[k][i], b2 = NN[k + 1][(i + (k % 2 ? 1 : 11)) % 12];
-      rim.rod(MATTE, a, NN[k + 1][i], 0.0026, { seg: 4, color: V(NC) }); if (!(k >= 1 && (i === 5 || i === 2) && k % 2 === 0)) rim.rod(MATTE, a, b2, 0.0026, { seg: 4, color: V(NC) });
-    }
-    rim.tube(MATTE, [NN[2][2], [NN[2][2][0] * 1.05, -0.3, NN[2][2][2] * 1.02], [NN[2][2][0] * 1.0, -0.47, NN[2][2][2] * 0.9]], 0.0026, { color: NC, seg: 4 });
-    rim.tube(MATTE, [NN[2][4], [NN[2][4][0] * 1.04, -0.31, NN[2][4][2] * 1.03], [NN[2][4][0] * 0.9, -0.52, NN[2][4][2] * 1.05]], 0.0026, { color: NC, seg: 4 });
-    D.geo(BALL, new THREE.SphereGeometry(0.12, 28, 18), M(6.1, 0.17, 10.4, 0.6, 1.1, 0.3));
-    ctx.addInteract({ id: 'hoop', kind: 'activity', label: 'Shoot hoops', pos: [6.9, 1.2, 9.9], radius: 2.2, use(env) { env.emit('activity:hoops', {}); } });
-    ctx.anchors.hoop = { pos: new THREE.Vector3(6.9, 0, 11.1), heading: PI };
-  }
+  // 1. The basketball hoop moved to the front beam over the carport bay (part 47)
 
   // =====================================================================================================================
   // 2. Workbench against the back X-brace of the middle bay
@@ -347,10 +319,10 @@ export async function build(ctx) {
     const mk = obj(-0.8, 0.475, 4.05, 0.5); mk.box(RUB, 0.17, 0.085, 0.035, 0, 0.045, 0, { color: 0x1c1c1e, bevel: 0.015 }).box(RUB, 0.06, 0.05, 0.05, 0, 0.03, -0.03, { color: 0x1c1c1e, bevel: 0.015 }); for (const sx of [-1, 1]) mk.box(PLG, 0.065, 0.055, 0.004, sx * 0.04, 0.052, 0.018, { color: 0x3a5560, bevel: 0.002 });
     mk.tube(RUB, [[-0.085, 0.05, 0], [-0.11, 0.045, -0.08], [0, 0.03, -0.16], [0.11, 0.045, -0.08], [0.085, 0.05, 0]], 0.006, { color: 0x1c1c1e }); mk.tube(PL, [[0.13, 0.012, 0.1], [0.13, 0.012, -0.2], [0.14, 0.02, -0.27], [0.19, 0.03, -0.3]], 0.011, { color: 0x1c1c1e }); mk.cyl(PL, 0.012, 0.012, 0.07, 0.13, 0.012, 0.12, { color: 0xc2521d, seg: 8 }, PI / 2);
   }
-  { // west strip of the middle bay: trailer tire, bucket, outboard on its stand, gas cans
-    prop('old_tyre', M(-3.28, 0.09, 3.62, PI / 2, 0.4, 0)); coil(obj(-3.28, 0.02, 3.62), 0, 0, 0, 0.1, 3, 0.007);
-    const b = bucket(obj(-3.24, 0.01, 4.3), 0, 0, 0, 0xd9d6cc, 0x4a4a40); b.rod(W, [0.02, 0.05, 0.03], [0.1, 0.62, -0.06], 0.012, { color: 0x93846e }); b.box(PL, 0.12, 0.05, 0.05, 0.11, 0.65, -0.065, { color: 0x2c4f8a, bevel: 0.01 }, 0, 0, -0.15);
-    const o = obj(-3.3, 0.01, 1.72, 0), wc = () => V(0x93846e, 0.1);
+  { // against the storage-room side wall in the carport bay (moved from the old west strip): trailer tire, bucket, outboard on its stand, gas cans
+    prop('old_tyre', M(-1.5, 0.09, 3.62, PI / 2, 0.4, 0)); coil(obj(-1.5, 0.02, 3.62), 0, 0, 0, 0.1, 3, 0.007);
+    const b = bucket(obj(-1.46, 0.01, 4.3), 0, 0, 0, 0xd9d6cc, 0x4a4a40); b.rod(W, [0.02, 0.05, 0.03], [0.1, 0.62, -0.06], 0.012, { color: 0x93846e }); b.box(PL, 0.12, 0.05, 0.05, 0.11, 0.65, -0.065, { color: 0x2c4f8a, bevel: 0.01 }, 0, 0, -0.15);
+    const o = obj(-1.55, 0.01, 1.72, 0), wc = () => V(0x93846e, 0.1);
     for (const sx of [-0.22, 0.22]) o.box(W, 0.038, 0.089, 0.72, sx, 0.045, 0.05, { grain: 2, color: wc() }).box(W, 0.038, 1.02, 0.089, sx, 0.51, 0, { grain: 1, color: wc() }).strut(W, [sx, 0.08, -0.28], [sx, 0.72, -0.03], 0.038, 0.089, { color: wc() });
     o.box(W, 0.52, 0.19, 0.038, 0, 0.93, 0.063, { grain: 0, color: wc(), wear: 0.7 }).box(W, 0.48, 0.089, 0.038, 0, 0.3, -0.063, { grain: 0, color: wc() });
     const m = o.sub(0, 1.025, 0.085), CW = 0xcfc9b6, LG = 0x4d5a63;
@@ -362,8 +334,8 @@ export async function build(ctx) {
     m.box(MP, 0.25, 0.08, 0.4, 0, 0.07, 0.08, { color: 0x2f3438, bevel: 0.02 }).box(MP, 0.27, 0.26, 0.42, 0, 0.24, 0.08, { color: V(CW, 0.03), bevel: 0.06 }).box(MP, 0.274, 0.035, 0.424, 0, 0.17, 0.08, { color: 0x2f7f86, bevel: 0.004 }).box(MP, 0.272, 0.008, 0.422, 0, 0.2, 0.08, { color: 0xb5332a, bevel: 0.002 });
     m.cyl(RUB, 0.012, 0.012, 0.07, 0, 0.26, -0.135, { color: 0x1a1a1a, seg: 8 }, 0, 0, PI / 2).box(MP, 0.035, 0.035, 0.4, 0.075, 0.07, -0.3, { color: 0x2f3438, bevel: 0.008 }, 0.12).cyl(RUB, 0.022, 0.022, 0.13, 0.075, 0.105, -0.55, { color: 0x1a1a1a, seg: 10 }, PI / 2 + 0.12);
     m.tube(RUB, [[-0.08, 0.06, -0.1], [-0.2, -0.3, -0.2], [-0.25, -0.9, -0.1], [-0.2, -1.01, 0.2], [-0.05, -1.01, 0.45]], 0.007, { color: 0x1a1a1a }); m.sph(RUB, 0.03, -0.1, -1.0, 0.36, { color: 0x1a1a1a }, 1, 1, 1.7);
-    col.box(-3.3, 0.7, 1.82, 0.56, 1.4, 0.8, { tag: 'clutter' });
-    prop('metal_jerrycan', M(-3.3, 0.01, 0.98, 0, 1.45, 0)); prop('plastic_jerrycan', M(-3.22, 0.01, 0.56, 0, 0.2, 0)); label(obj(-3.22, 0, 0.56, 0.2), REG.tape, 0.16, 0.04, 0, 0.2, 0.172);
+    col.box(-1.55, 0.7, 1.82, 0.56, 1.4, 0.8, { tag: 'clutter' });
+    prop('metal_jerrycan', M(-1.5, 0.01, 0.98, 0, 1.45, 0)); prop('plastic_jerrycan', M(-1.44, 0.01, 0.56, 0, 0.2, 0)); label(obj(-1.44, 0, 0.56, 0.2), REG.tape, 0.16, 0.04, 0, 0.2, 0.172);
   }
   { // longboard slung flat under the joists of the east bay, deck down
     const L = 2.78, Wd = 0.57, T = 0.07, nu = 44, nv = 12, pos = [], cl = [], uv = [], idx = [], cA = kit.rgb(0xe4dcc2), cB = kit.rgb(0x2f7f86), cC = kit.rgb(0xb5332a);
@@ -409,7 +381,7 @@ export async function build(ctx) {
     p.tube(MATTE, [[0.05, 0.03, 0.74], [-0.1, 0.02, 0.5], [0.15, 0.1, 0.3], [0.0, 0.26, 0.12], [-0.12, 0.1, -0.05], [0.0, 0.02, -0.45]], 0.007, { color: ROPE });
   }
   // life jacket on a nail, ring buoy on the front pile
-  prop('life_jacket', M(-0.8, 1.42, 2.8 + 0.24, 0.06, 0, 0, 0.9)); prop('lifebuoy', M(-3.6, 1.72, 5.02 + 0.2, 0.04, 0, 0, 0.92));
+  prop('life_jacket', M(-0.8, 1.42, 2.8 + 0.24, 0.06, 0, 0, 0.9)); prop('lifebuoy', M(-1.1, 1.55, 2.45, 0.04, -Math.PI / 2, 0, 0.92));   // on the storage-room side wall (part 47)
 
   // =====================================================================================================================
   // 4. Utility
@@ -429,7 +401,7 @@ export async function build(ctx) {
     for (const sx of [-1, 1]) { o.cyl(RUB, 0.1, 0.1, 0.045, sx * 0.22, 0.1, -0.22, { color: 0x1c1c1e, seg: 16 }, 0, 0, PI / 2).cyl(PL, 0.045, 0.045, 0.05, sx * 0.22, 0.1, -0.22, { color: 0x3a3c3e, seg: 10 }, 0, 0, PI / 2); o.rod(PL, [sx * 0.19, 0.9, -0.25], [sx * 0.19, 0.95, -0.33], 0.012, { color: G }); }
     o.rod(STEEL, [-0.24, 0.1, -0.22], [0.24, 0.1, -0.22], 0.01, { color: 0x6a6c6e }).rod(PL, [-0.2, 0.95, -0.33], [0.2, 0.95, -0.33], 0.014, { color: G }); label(o, REG.stencil, 0.24, 0.12, 0, 0.56, 0.2515);
     col.box(1.5, 0.48, 3.5, 0.55, 0.96, 0.5, { tag: 'clutter' });
-    prop('plastic_crate_01', M(1.46, 0.01, 2.93, 0, 0.1, 0)); const c = obj(1.46, 0.03, 2.93, 0.1);
+    prop('plastic_crate_01', M(1.12, 0.01, 4.15, 0, 0.1, 0)); const c = obj(1.12, 0.03, 4.15, 0.1);
     for (const [x, z, k] of [[-0.08, -0.12, 0x4a2c12], [0.07, -0.13, 0x2f5a2a], [-0.07, 0.0, 0x4a2c12], [0.08, 0.13, 0x4a2c12]]) bottle(c, x, 0.01, z, k);
     for (const [x, z, k] of [[0.07, 0.0, 0xb5332a], [-0.08, 0.12, 0xc9cccc], [0.0, 0.07, 0x2c5f8f]]) canAl(c, x, 0.01, z, k); canAl(c, 0.0, 0.15, -0.04, 0xb5332a, 1, 0.5); canAl(c, 0.05, 0.215, 0.06, 0xc9cccc, 1, 2.0); canAl(obj(1.2, 0.012, 2.72), 0, 0, 0, 0x2c5f8f, 1, 1.1);
   }

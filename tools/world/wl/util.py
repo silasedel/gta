@@ -9,7 +9,7 @@ import numpy as np
 from scipy import ndimage
 
 # ----------------------------------------------------------------------------------------------- world extents
-BOUNDS = dict(minX=-25450.0, maxX=5780.0, minZ=-24890.0, maxZ=20110.0)   # = the official map image at 30 m per pixel   # whole world incl. ocean margin
+BOUNDS = dict(minX=-25450.0, maxX=5780.0, minZ=-24890.0, maxZ=20440.0)   # = the official map image (1041 x 1511 px) at 30 m per pixel   # whole world incl. ocean margin
 REAL = dict(minX=-3708.9257588469422, maxX=4510.855652652842, minZ=-2653.776000000101, maxZ=2653.776000000101)       # real Miami (OSM owns)
 CELL = 7.5                                                              # working raster cell (m)
 NX = int(round((BOUNDS['maxX'] - BOUNDS['minX']) / CELL))

@@ -11,6 +11,14 @@ export async function initV2(game) {
     if (!p.price && !p.disguise && !save.owned.includes(p.id)) save.owned.push(p.id);     // free pieces added later (the teal shirt) reach old saves
   }
   save.outfits ||= {}; save.current ||= DEFAULT_OUTFIT.slice();
+  // look v3 (Nov 13): Nico's signature outfit changed (open palm shirt over a tee, cargo pants); older saves move to it once
+  if ((save.look || 0) < 3) {
+    save.current = DEFAULT_OUTFIT.slice();
+    delete save.fat;
+    delete save.muscle;
+    save.look = 3;
+    try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* private mode */ }
+  }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* private mode */ } };
   const W = game.wardrobe = {
     slots: SLOTS.slice(), catalog: CATALOG,
@@ -28,7 +36,7 @@ export async function initV2(game) {
     openUI(o = {}) { return openPanel(game, W, o); }, closeUI() { document.getElementById('ps-wardrobe')?.remove(); game.ui && (game.ui.wardrobeOpen = false); },
   };
   // body change: core-systems drives game.player.body.fat (0..1, 0.5 = Nico's normal build) and .muscle (0..1)
-  const body = { _fat: save.fat ?? 0.5, _muscle: save.muscle ?? 0.3 };
+  const body = { _fat: save.fat ?? 0.36, _muscle: save.muscle ?? 0.75 };
   game.player.body = {
     get fat() { return body._fat; }, set fat(v) { body._fat = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.fat = body._fat; },
     get muscle() { return body._muscle; }, set muscle(v) { body._muscle = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.muscle = body._muscle; },

@@ -34,14 +34,19 @@ def classify():
     sizes = ndimage.sum_labels(np.ones_like(lab), lab, np.arange(n + 1))
     big = [i for i in range(1, n + 1) if i in border or sizes[i] > 60000]
     ocean = np.isin(lab, big)
+    solid0 = ~ocean & ~water
+    thin = solid0 & ~ndimage.binary_opening(solid0, structure=np.ones((5, 5), bool))
+    bridges = thin & (mean > 135) & (np.abs(r - g) < 30) & (r - b < 52) & ndimage.binary_dilation(ocean, iterations=3) & ~ndimage.binary_dilation(ndimage.binary_opening(solid0, structure=np.ones((5, 5), bool)), iterations=1)
+    ocean = ocean | bridges                            # the picture's bridges and causeway decks: open water under a road
     land = ~ocean                                  # includes inland water (lake, ponds, channels)
+    sand = sand & ndimage.binary_dilation(ocean, iterations=5)      # beaches only: pale tan pixels inland are roads and roofs, not sand
     inland = water & ~ocean
     shallow = ocean & (g > 118) & (g > r + 30)
     green = land & ~inland & ~sand & ~gray
     dark = green & (mean < np.percentile(mean[green], 42))
     urban = ndimage.binary_opening(ndimage.binary_closing(gray, iterations=2), iterations=1) & land
     forest = ndimage.binary_opening(ndimage.binary_closing(dark, iterations=2), iterations=2)
-    return dict(rgb=a, land=land, solid=land & ~inland, inland=inland, sand=sand & land, urban=urban, forest=forest, shallow=shallow, ocean=ocean, mean=mean, green=green)
+    return dict(bridges=bridges, rgb=a, land=land, solid=land & ~inland, inland=inland, sand=sand & land, urban=urban, forest=forest, shallow=shallow, ocean=ocean, mean=mean, green=green)
 
 
 if __name__ == '__main__':

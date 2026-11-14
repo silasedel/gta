@@ -20,35 +20,8 @@ export function build(ctx) {
     for (const x of [0.02, len - 0.02]) B.box(PEEL, 0.04, h, 0.03, L(x, h / 2, 0), { grain: 1, ...white() }); for (const y of [0.02, h - 0.02]) B.box(PEEL, len, 0.04, 0.03, L(len / 2, y, 0), { grain: 0, ...white() });
     col.box((ax + bx) / 2, (y0 + y1) / 2, (az + bz) / 2, len, h, 0.08, { ry, tag: 'lattice' });
   };
-  lattice(-6.25, 2.8, -3.75, 2.8); lattice(-8.3, 2.8, -6.55, 2.8, 0.12, girBot - 0.02, { missing: 0.06 });
-  // ---------- storage-room wall under the main block (middle bay front), dark door, light, breaker panel, hose, surfboard ----------
-  { const z = 2.8, xa = -3.5, xb = -0.95, y0 = 0.06, y1 = girBot;
-    for (let x = xa; x < xb - 0.02; x += 0.185) { if (x > -2.62 && x < -1.72) { B.box(PAINT, 0.18, y1 - 2.16, 0.02, M(x + 0.09, (y1 + 2.16) / 2, z), { grain: 1, color: kit.vary(C.body, r, 0.06), wear: 0.5, rand: r }); continue; }
-      B.box(PAINT, 0.18, y1 - y0, 0.02, M(x + 0.09, (y0 + y1) / 2, z + (Math.round(x * 9) % 2) * 0.004, 0, 0, (r() - 0.5) * 0.003), { grain: 1, color: kit.vary(C.body, r, 0.06), wear: [0.7, 0.25 + r() * 0.2], rand: r, bevel: 0.003 }); }
-    const dx = -2.17; // door: dark brown plank door with strap hinges and a hasp
-    for (let k = 0; k < 5; k++) B.box(PEEL, 0.166, 2.04, 0.03, M(dx - 0.34 + k * 0.17, 1.1, z + 0.02), { grain: 1, color: kit.vary(0x3b2c22, r, 0.1), wear: 0.3 + r() * 0.3, bevel: 0.004, rand: r });
-    for (const y of [0.4, 1.8]) { B.box(PEEL, 0.8, 0.1, 0.022, M(dx, y, z + 0.045), { grain: 0, color: 0x34271e, wear: 0.4, bevel: 0.004 }); B.box(mat.rust(), 0.5, 0.035, 0.006, M(dx - 0.15, y, z + 0.06), { color: 0x9a8a80 }); }
-    B.box(PEEL, Math.hypot(0.8, 1.3), 0.09, 0.022, M(dx, 1.1, z + 0.045, 0, 0, Math.atan2(1.3, 0.8)), { grain: 0, color: 0x34271e, wear: 0.4, bevel: 0.004 });
-    for (const s of [-1, 1]) B.box(PAINT, 0.09, 2.18, 0.03, M(dx + s * 0.475, 1.12, z + 0.02), { grain: 1, color: kit.vary(C.trim, r, 0.03), wear: 0.7, bevel: 0.004, rand: r }); B.box(PAINT, 1.06, 0.1, 0.03, M(dx, 2.22, z + 0.02), { grain: 0, color: C.trim, wear: 0.6, bevel: 0.004 });
-    B.box(mat.chrome(), 0.03, 0.1, 0.03, M(dx + 0.33, 1.05, z + 0.05), { color: 0x6a655c }); B.box(mat.rust(), 0.09, 0.04, 0.01, M(dx + 0.37, 1.2, z + 0.045), { color: 0x9a8a80 });
-    // breaker panel + meter + conduit
-    B.box(MP, 0.36, 0.52, 0.11, M(-3.15, 1.45, z + 0.065), { color: 0x8f9492, bevel: 0.008 }); B.box(MP, 0.3, 0.44, 0.012, M(-3.15, 1.45, z + 0.125), { color: 0x9a9f9c, bevel: 0.004 });
-    B.box(mat.art('panelLabel', 128, 64, (g, w, h) => { g.fillStyle = '#d9d6c9'; g.fillRect(0, 0, w, h); g.fillStyle = '#222'; g.font = kit.font(11); g.fillText('MAIN  100A  120/240V', 6, 16); g.font = kit.font(8, 400); g.fillText('DANGER: DISCONNECT POWER', 6, 32); g.fillText('BEFORE SERVICING', 6, 44); g.fillStyle = '#b3261e'; g.fillRect(6, 50, 116, 6); }), 0.16, 0.08, 0.002, M(-3.15, 1.55, z + 0.133), {});
-    B.cyl(MP, 0.085, 0.085, 0.1, M(-3.15, 2.0, z + 0.07, Math.PI / 2), { color: 0x8f9492, seg: 16 }); B.cyl(mat.glass(), 0.075, 0.075, 0.05, M(-3.15, 2.0, z + 0.13, Math.PI / 2), { seg: 16 });
-    B.cyl(ST, 0.02, 0.02, 0.9, M(-3.15, 0.75, z + 0.05), { color: 0x9a9c98, seg: 8 }); B.cyl(ST, 0.02, 0.02, 0.35, M(-3.15, 2.26, z + 0.05), { color: 0x9a9c98, seg: 8 });
-    // jelly-jar light by the door
-    B.box(MP, 0.11, 0.11, 0.05, M(dx + 0.72, 1.95, z + 0.04), { color: 0x2c2c2a, bevel: 0.006 }); B.cyl(mat.glass(), 0.05, 0.045, 0.13, M(dx + 0.72, 1.86, z + 0.1), { seg: 10 }); B.geo(mat.emissive(0xffd9a0, 2, 'jar'), new THREE.SphereGeometry(0.03, 8, 6), M(dx + 0.72, 1.87, z + 0.1), {});
-    const lt = ctx.addLight({ id: 'carport_door', pos: [dx + 0.72, 1.85, z + 0.35], color: 0xffd39a, intensity: 45, range: 9, on: false }); ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12; lt.on = t < 6.3 || t > 18.3; });
-    // garden hose on a hook
-    B.box(ST, 0.03, 0.03, 0.14, M(dx + 0.75, 1.25, z + 0.08), { color: 0x777a76 }); for (let k = 0; k < 5; k++) D.geo(RUB, new THREE.TorusGeometry(0.17 + k * 0.004, 0.011, 6, 22), M(dx + 0.75 + (r() - 0.5) * 0.01, 1.07, z + 0.06 + k * 0.022, 0.06 * (r() - 0.5), 0, 0, 1, 1.25, 1), { color: kit.vary(0x2f6b3c, r, 0.08) });
-    // cream surfboard with a stripe, leaning by the door
-    { const sh = new THREE.Shape(), n = 40; for (let i = 0; i <= n; i++) { const t = i / n * Math.PI * 2, c = Math.cos(t), s2 = Math.sin(t), wdt = 0.265 * Math.sign(c) * Math.abs(c) ** 0.75, y = 1.03 * s2 * (s2 > 0 ? 1 : 0.94); i ? sh.lineTo(wdt, y) : sh.moveTo(wdt, y); }
-      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.035, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 3, curveSegments: 20 });
-      const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 0.56 + 0.5, uv.getY(i) / 2.1 + 0.5);
-      const SB = mat.art('surfboard', 128, 512, (g2, w, h) => { g2.fillStyle = '#e8dfc4'; g2.fillRect(0, 0, w, h); g2.fillStyle = '#b5523a'; g2.fillRect(w / 2 - 7, 0, 5, h); g2.fillStyle = '#3f7f86'; g2.fillRect(w / 2 + 3, 0, 4, h); const q = kit.rng(6); for (let i = 0; i < 500; i++) { g2.fillStyle = `rgba(110,95,70,${q() * 0.12})`; g2.beginPath(); g2.arc(q() * w, q() * h, 1 + q() * 5, 0, 7); g2.fill(); } g2.fillStyle = 'rgba(255,255,255,0.35)'; for (let i = 0; i < 40; i++) g2.fillRect(q() * w, h * 0.3 + q() * h * 0.4, 6 + q() * 14, 2); }, { rough: 0.35 });
-      B.geo(SB, g, M(-3.72, 1.1, z + 0.2, -0.16, 0.1, 0.03), {}); g.dispose(); col.box(-3.72, 1.0, z + 0.2, 0.6, 2.0, 0.35, { tag: 'prop' }); }
-    col.box((xa + xb) / 2, 1.25, z - 0.03, xb - xa, 2.4, 0.12, { tag: 'wall' });
-  }
+  lattice(-8.3, 2.8, -6.55, 2.8, 0.12, girBot - 0.02, { missing: 0.06 });
+  // the street front under the main block (open bay, storage room, panel) is part 47
   // ---------- power: service mast through the eave, weatherhead, service drop to the pole on the street side ----------
   { const mx = -6.05, mz = P.A.z1 + 0.06; B.cyl(ST, 0.03, 0.03, 4.4, M(mx, 4.6, mz), { color: 0x9a9c98, seg: 10 }); B.cyl(ST, 0.045, 0.03, 0.12, M(mx, 6.85, mz), { color: 0x8a8c88, seg: 10 }); B.geo(ST, new THREE.SphereGeometry(0.055, 10, 6, 0, 6.3, 0, 1.6), M(mx, 6.9, mz + 0.02, 0.5, 0, 0), { color: 0x8a8c88 });
     for (const y of [3.4, 4.6, 5.5]) B.box(ST, 0.1, 0.025, 0.02, M(mx, y, mz - 0.03), { color: 0x8a8c88 });

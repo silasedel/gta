@@ -27,6 +27,8 @@ export function createSkyMaterial() {
       uFogColor: { value: new THREE.Color(0.7, 0.5, 0.4) },
       uHorizonBlend: { value: 1.0 },
       uCloudCover: { value: 0.385 },
+      uCloudOff: { value: new THREE.Vector2() },
+      uCirrus: { value: 0.4 },
       uCloudAmbient: { value: new THREE.Color(0.5, 0.45, 0.5) },
       uCloudSun: { value: new THREE.Color(1, 0.6, 0.3) },
       uCirrusColor: { value: new THREE.Color(1, 0.5, 0.4) },
@@ -79,6 +81,8 @@ export function createSkyMaterial() {
       uniform vec3 uFogColor;
       uniform float uHorizonBlend;
       uniform float uCloudCover;
+      uniform vec2 uCloudOff;
+      uniform float uCirrus;
       uniform vec3 uCloudAmbient;
       uniform vec3 uCloudSun;
       uniform vec3 uCirrusColor;
@@ -110,6 +114,25 @@ export function createSkyMaterial() {
         float a = 0.5, s = 0.0;
         for ( int i = 0; i < 3; i++ ) { s += a * vnoise( p ); p = ROT * p * 2.1 + 5.3; a *= 0.5; }
         return s;
+      }
+      // distance (in cloud-base heights) to a cloud shell at height h over a small curved planet: clouds keep their
+      // shape toward the horizon instead of smearing into streaks
+      float cloudDist( float y, float h ) { const float R = 9.0; return sqrt( R * R * y * y + 2.0 * R * h + h * h ) - R * y; }
+      float worley( vec2 p ) {
+        vec2 i = floor( p ), f = fract( p ); float md = 1.0;
+        for ( int y = -1; y <= 1; y++ ) for ( int x = -1; x <= 1; x++ ) {
+          vec2 g = vec2( float( x ), float( y ) );
+          vec2 o = hash33( vec3( i + g, 7.0 ) ).xy;
+          md = min( md, length( g + o - f ) );
+        }
+        return 1.0 - md;
+      }
+      float cloudShape( vec2 p ) {
+        float base = vnoise( p * 0.33 + 31.0 ) * 0.65 + vnoise( p * 0.71 ) * 0.35;                                   // where the cloud fields are
+        float cells = worley( p * 0.85 + 11.0 );                          // round individual clouds of varied size                         // individual clouds of varied size
+        float bil = worley( p * 3.1 + 7.0 );                                 // billows
+        float det = fbm3( p * 5.2 + 3.0 );
+        return base * 0.28 + cells * 0.39 + bil * 0.18 + det * 0.15;
       }
       float rayleighPhase( float cosTheta ) { return THREE_OVER_SIXTEENPI * ( 1.0 + pow( cosTheta, 2.0 ) ); }
       float hgPhase( float cosTheta, float g ) {
@@ -189,28 +212,42 @@ export function createSkyMaterial() {
         // city light pollution glow over land (west of the coast) at night
         col += uNight * vec3( 0.06, 0.028, 0.022 ) * exp( -dy * 9.0 );
 
-        // --- clouds ---
+        // --- clouds: fair-weather cumulus, marched through a thin slab (flat bases, mounded sunlit tops) ---
         float cloudA = 0.0;
         if ( dir.y > 0.0 ) {
-          float t = 1.0 / ( dir.y + 0.035 );
-          vec2 cuv = dir.xz * t * 0.9 + vec2( uTime * 0.0035, uTime * 0.0012 );
-          float n = fbm5( cuv * 1.3 );
-          float cov = 1.0 - uCloudCover;
-          float dens = smoothstep( cov, cov + 0.26, n );
           vec2 toSun = normalize( sd.xz + vec2( 1e-4 ) );
-          float n2 = fbm5( cuv * 1.3 + toSun * 0.11 );
-          float lit = clamp( 0.55 + ( n - n2 ) * 5.0, 0.0, 1.0 );
-          float fwd = pow( max( cosTheta, 0.0 ), 10.0 );
-          float underside = smoothstep( 0.0, 0.6, n - cov );
-          vec3 cloudCol = uCloudAmbient * ( 0.62 + 0.38 * ( 1.0 - underside ) ) + uCloudSun * ( lit * ( 0.85 + 3.2 * fwd ) + ( 1.0 - dens ) * fwd * 4.5 ) * ( 1.0 - 0.42 * underside );
-          float horizonFade = smoothstep( 0.0, 0.16, dir.y );
-          cloudA = dens * horizonFade * 0.96;
-          // high cirrus streaks
-          vec2 ciuv = dir.xz * t * 0.35 + vec2( uTime * 0.002, 0.0 );
+          float fwd = pow( max( cosTheta, 0.0 ), 8.0 );
+          float lowS = 1.0 - smoothstep( 0.05, 0.35, sd.y );
+          float cov = 1.03 - uCloudCover;
+          float T = 1.0;
+          vec3 C = vec3( 0.0 );
+          for ( int i = 0; i < 5; i++ ) {
+            float hf = ( float( i ) + 0.5 ) / 5.0;
+            vec2 p = dir.xz * cloudDist( dir.y, 1.0 + 0.09 * hf ) * 1.9 + uCloudOff;
+            float n = cloudShape( p );
+            float thr = cov + 0.15 * hf * hf;                 // tops are narrower than bases
+            float d = smoothstep( thr, thr + 0.075, n );
+            if ( d > 0.001 ) {
+              float n2 = cloudShape( p + toSun * 0.14 );
+              float shade = clamp( 0.50 + ( n - n2 ) * 9.0, 0.0, 1.0 );   // side facing the sun
+              float thick = smoothstep( thr, thr + 0.16, n );             // 0 at the wispy edge, 1 deep inside
+              vec3 amb = uCloudAmbient * ( 0.50 + 0.56 * hf ) * ( 1.0 - 0.42 * thick * ( 1.0 - hf ) );
+              vec3 lit = uCloudSun * ( shade * ( 0.35 + 0.95 * hf ) + lowS * ( 1.0 - hf ) * 0.55 * ( 0.4 + 0.6 * shade ) );
+              lit += uCloudSun * fwd * ( 1.0 - thick ) * ( 2.2 + 3.0 * lowS );   // backlit silver / pink rim
+              float a = d * ( 0.50 + 0.30 * hf );
+              C += T * a * ( amb + lit );
+              T *= 1.0 - a;
+            }
+          }
+          float horizonFade = smoothstep( 0.0, 0.085, dir.y );
+          cloudA = ( 1.0 - T ) * horizonFade;
+          // thin high cirrus (amount varies by day)
+          float t = 1.0 / ( dir.y + 0.035 );
+          vec2 ciuv = dir.xz * t * 0.35 + uCloudOff * 0.3;
           float ci = fbm3( vec2( ciuv.x * 1.2, ciuv.y * 5.0 ) + fbm3( ciuv * 2.0 ) );
-          float ciA = smoothstep( 0.62, 0.92, ci ) * 0.30 * smoothstep( 0.0, 0.25, dir.y );
+          float ciA = smoothstep( 0.62, 0.92, ci ) * 0.6 * uCirrus * smoothstep( 0.0, 0.25, dir.y );
           col = mix( col, uCirrusColor * ( 1.05 + 1.6 * fwd ), ciA * ( 1.0 - cloudA ) );
-          col = mix( col, cloudCol, cloudA );
+          col = col * ( 1.0 - cloudA ) + C * horizonFade;
         }
 
         // --- horizon / fog matching (same in-scatter as the fog chunk) ---

@@ -37,3 +37,31 @@ New animation library (still the v1 Mixamo-derived clips), foot IK, turn-in-plac
 - Eyes were too bright in the last close-up; a darker iris/sclera and stronger socket shadow went in afterward and were not re-shot.
 - Watch dial, `reachTo` / `holdItem`, body-change morphs, wetness beads, far LODs and lip movement run without errors but were not inspected.
 - Sit, eat and drink have no new clips (v1 `sitBench` only).
+
+## Teal camp shirt (Nov 13, 6:36 to 7:00 PM)
+The user asked for a plain teal, real-looking button-up beach shirt as Nico's default top. Done as a rebuilt `camp_shirt` cut (all camp-shirt pieces, floral included, use it) plus a construction shader.
+
+**Geometry** (`src/player/pipeline/garments.py`, rebuilt `public/assets/characters/wardrobe/garments.glb`):
+- Whole torso below the neck down to a straight hem at 0.872 m (the old selection cut the back hem up over the seat). The cloth hangs straight below the waist from the widest girth, sits 9 to 43 mm off the body, 16 Laplacian passes, and the hem skin weights move half of the thigh influence to the hips.
+- Neckline and hem rings relaxed along the ring (they were stepped), the V point kept.
+- Camp collar built from the neckline ring: stand (up to 17 mm), fold with 5 mm thickness, a fall that lies on the shirt (54 mm at the back, lapels tapering into the V), and a turned outer edge.
+- Hem turn-back (3.5 to 17 mm double layer) on the shirt hem and both sleeve hems.
+- Chest pocket patch on the wearer's left, 2.6 mm off the front, slightly pointed bottom.
+- Five pearl buttons (16-sided, 11 mm) from the V point down; the top button is open.
+- Vertex color red now carries a smooth arm parameter (armhole seam, sleeve mask); green = hem/edge attribute; fabric UV is one layout (no stepped sleeve UV seam).
+
+**Shader** (`makeClothMaterial({ construct: true })` in `src/player/nico/materials.js`, `SHIRT` define): placket overlap edge and two stitch rows, buttonholes under the buttons, back yoke, shoulder seam, armhole seam with a felled stitch, side seams, hem and sleeve-hem topstitch, collar edge stitch, pocket mouth hem; drape folds, waist bunching, underarm pull lines, sleeve folds, two faint storage creases, fine crumple; linen-cotton plain weave with slubs (fades with distance); sun fade on shoulder tops; one soft wash-fade patch low on the back; broad dye variation; seams slightly darker; thread tone-on-tone. Matte: roughness 0.9, specular 0.45, teal-tinted sheen 0.4. New `makeButtonMaterial`: four holes, cross-stitched thread, dish, nacre iridescence.
+
+**Wardrobe**: new piece `shirt_camp_teal` ("Teal linen camp shirt", free, signature) is first in `DEFAULT_OUTFIT`; `shirt_tropical_lagoon` and the other prints stay. `nico.v2.js` now adds free pieces to old saves' owned list. Old saves keep the outfit they were wearing. `outfit:changed` unchanged (verified in game: wear floral then teal fired both events).
+
+**Evidence** (`docs/v2/shots/character/`): `teal_front.png`, `teal_back.png`, `teal_collar_34.png`, `teal_pocket_buttons.png`, `teal_walk_viewer.png`, `teal_drive_pose.png`, `teal_sit_pose.png`, `floral_option_front.png`, `teal_ingame_walk.png` (South Beach, 10:30, walking), `teal_ingame_front.png`. The viewer has a new `camAt(pos, target)` helper.
+
+**Still wrong (seen in the shots)**: the chest still shows a small nipple bump and the back still follows the seat a little; the shoulders are a bit boxy; the lapel outer edge is wavy, not a crisp roll; the pocket reads mostly through its stitching (no real thickness); the sit pose (`sitGround`) looked like a squat, not a true sit; no cloth sim, so hem sway is only the existing vertex flutter. Run pose and the hem flutter were not looked at.
+**Rest of Nico not done this round**: sneakers still read as socks (toe shapes, no sole or laces), shorts hem is ragged, hair hairline is hard. Skin looked fine at this distance.
+
+## Redo round (user: "looks really bad"; Nov 13, 7:00 to 7:08 PM, 25 extra minutes)
+- **Relaxed stance** (`src/player/nico/pose.js`, called from `nico/index.js` after the mixer): world-space corrections that do not depend on bone axes. Shoulders drop, upper arms hang close to the body and a little forward, elbows soften about 16 degrees, finger joints curl toward the palm, feet come in under the hips, the pelvis tilts onto the right leg with the chest countering. Full strength standing; arms keep 45 % while walking or running; off for driving, swimming, special idles, jumps. Seen in `teal_front.png`, `teal_ingame_front.png`.
+- **Lean build**: default body is now fat 0.35 / muscle 0.55 (in `nico/index.js` and `nico.v2.js`), which drives the existing thin and muscle morphs on skin and garments.
+- **Cloth motion** (`outfit.js` + cloth vertex shader): one damped spring per outfit (k 70, damping 5.5) in model space, driven by the body's acceleration, the air moving past the body (`game.wind` as `{x, z, gust}` or `{dir|angle, speed, gust}`, else a shifting 1.6 to 2.8 m/s breeze), a little lift with speed and a stride bob. It moves the vertices that have flutter weight (hem, sleeve ends, collar fall edges and tips), so lower and looser cloth moves more. The component pointing into the body is removed, so it never pushes cloth inward. When the character runs in place (viewer), the gait speed stands in for the measured velocity. Wind also drives the existing ripple. Frames: `teal_run_a.png`, `teal_run_b.png` (back hem trails), `teal_wind.png` (7 m/s side wind: the shift is small; the wind effect was not tuned).
+- **Sneakers**: `SHOE` shader mode with an off-white rubber sole band, foxing line, stitch row and toe scuffing. More smoothing and a lower clearance did NOT remove the toe shapes; the shell follows separate toe tubes in the base mesh and needs a remesh (`teal_feet.png`).
+- **Not done**: body rebuild in Blender (proportions, neck and shoulder slope, forearm and calf shape, hand and foot size), ears, hairline, tan lines and forearm hair review, shorts hem (still ragged), a true multi-point verlet hem (this is one spring with per-vertex weights), open placket edge motion, sneaker remesh, laces.

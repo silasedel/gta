@@ -302,14 +302,60 @@ def main():
     RB = box(rx0, rz0, rx1, rz1)
     WB = box(X0, Z0, X1, Z1)
     Lr = stage_land()
-    land_real = fix(Lr['land'].intersection(RB))
+    # FORMAT v4: inside the rectangle the official picture's land / water wins (citymask.py)
+    import citymask as CMK
+    CM = CMK.load(FEATURES, Lr['land'], RB, log)
+    land_real = CM['land_in'] if CM else fix(Lr['land'].intersection(RB))
+    R.MASK, R._mlog = CM, log
     log(f'real land {land_real.area/1e6:.2f} km2 in a {RB.area/1e6:.1f} km2 rectangle; world {WB.area/1e6:.1f} km2')
 
     # ---- synthetic world (may be absent)
     SY = ING.load(FEATURES, log)
     terrain = ING.terrain_sampler(SY['heights'] if SY else None)
+    # the runtime samples the 16 m output grid (origin X0, Z0), not heights.bin (its own origin): resample once here
+    # (vectorized) and give roads the very same sampler, so road heights and terrainHeightAt agree exactly
+    G16 = Grid(16)
+    hgt = np.zeros((G16.H + 1, G16.W + 1), np.int16)
+    if SY and SY['heights']:
+        H_ = SY['heights']
+        d_ = H_['data'].astype(np.float64)
+        xs_ = X0 + np.arange(G16.W + 1) * 16.0
+        zs_ = Z0 + np.arange(G16.H + 1) * 16.0
+        fx = (xs_ - H_['minX']) / H_['cell']
+        fz = (zs_ - H_['minZ']) / H_['cell']
+        i_ = np.floor(fx).astype(int)
+        j_ = np.floor(fz).astype(int)
+        okx = (i_ >= 0) & (i_ < H_['nx'] - 1)
+        okz = (j_ >= 0) & (j_ < H_['nz'] - 1)
+        ic, jc = np.clip(i_, 0, H_['nx'] - 2), np.clip(j_, 0, H_['nz'] - 2)
+        u = (fx - ic)[None, :]
+        v = (fz - jc)[:, None]
+        a00 = d_[jc][:, ic]
+        a01 = d_[jc][:, ic + 1]
+        a10 = d_[jc + 1][:, ic]
+        a11 = d_[jc + 1][:, ic + 1]
+        val_ = ((a00 * (1 - u) + a01 * u) * (1 - v) + (a10 * (1 - u) + a11 * u) * v) * H_['unit']
+        val_[~(okz[:, None] & okx[None, :])] = 0.0
+        inR = ((xs_ >= rx0) & (xs_ <= rx1))[None, :] & ((zs_ >= rz0) & (zs_ <= rz1))[:, None]
+        val_[inR] = 0.0
+        hgt = np.round(val_ * 10).astype(np.int16)
+        log(f'terrain: {int((hgt != 0).sum())} non-zero samples, max {hgt.max() / 10:.1f} m, min {hgt.min() / 10:.1f} m')
+        HW_ = G16.W + 1
+
+        def terrain(x, z):
+            fx_, fz_ = (x - X0) / 16.0, (z - Z0) / 16.0
+            i0, j0 = int(math.floor(fx_)), int(math.floor(fz_))
+            if i0 < 0 or j0 < 0 or i0 >= HW_ - 1 or j0 >= G16.H:
+                return 0.0
+            a, b, c, e = int(hgt[j0, i0]), int(hgt[j0, i0 + 1]), int(hgt[j0 + 1, i0]), int(hgt[j0 + 1, i0 + 1])
+            if not (a | b | c | e):
+                return 0.0
+            uu, vv = fx_ - i0, fz_ - j0
+            return ((a * (1 - uu) + b * uu) * (1 - vv) + (c * (1 - uu) + e * uu) * vv) * 0.1
     land = land_real
     inland = list(Lr['water'])           # (geom, name, kind) for map layers
+    if CM:
+        inland = [w for w in inland if not w[0].intersects(RB) or w[0].intersects(land_real)]
     if SY and SY['land_raw'] is not None:
         sl = fix(SY['land_raw'].difference(RB))
         sw = [w['geom'] for w in SY['water_polys']]
@@ -318,6 +364,14 @@ def main():
         if sl is not None:
             land = fix(unary_union([land_real, sl]).intersection(WB))
         inland += [(w['geom'], w.get('name'), w.get('kind') or 'lake') for w in SY['water_polys']]
+        if CM and sw:
+            swin = [g_ for g_ in sw if g_.intersects(RB)]
+            if swin:
+                land = fix(land.difference(unary_union(swin)))
+        if CM:
+            ol = fix(SY['land_raw'].difference(RB)).buffer(6.0)
+            prepare(ol)
+            R.OUTSIDE_LAND = ol
         log(f'merged land {land.area/1e6:.2f} km2 ({len(polys_only(land))} pieces)')
     prepare(land)
 
@@ -325,6 +379,8 @@ def main():
         return not contains_xy(land, x, z)
 
     areas, sites = stage_areas()
+    if CM:
+        sites = [s_ for s_ in sites if (lambda rp: CM['keep_pt'](rp.x, rp.y))(s_['geom'].representative_point())]
     clipped = []
     for a in areas:
         g = a['geom']
@@ -360,6 +416,9 @@ def main():
         _, _, bnd, _ = R.osm_ways()
         extra, stitch_rep = R.stitch(syn_ways, bnd, log)
         syn_ways = syn_ways + extra
+        if CM:
+            rw_ = R.osm_ways()[0]
+            syn_ways = syn_ways + CMK.causeway_ways(CM, rw_, syn_ways, lambda x, z: contains_xy(land, x, z), log)
         ING.node_roads(syn_ways, log)
     nodes, edges, ginfo = R.build_graph(is_water_pt, syn_ways, terrain if SY and SY['heights'] else None, log)
     for i, e in enumerate(edges):
@@ -368,7 +427,7 @@ def main():
     # real roads kept just outside the rectangle (they tie clipped streets back to the network) need real ground under them
     outs = [e['line'].buffer(e['w'] / 2 + 14) for e in edges if e.get('outside')]
     if outs:
-        strip = fix(unary_union(outs).intersection(Lr['land']).difference(RB))
+        strip = fix(unary_union(outs).intersection(SY['land_raw'] if (CM and SY and SY['land_raw'] is not None) else Lr['land']).difference(RB))
         if strip is not None:
             land = fix(unary_union([land, strip]).intersection(WB) if WB.area > RB.area + 1 else unary_union([land, strip]))
             prepare(land)
@@ -391,10 +450,13 @@ def main():
     xs8 = X0 + (np.arange(G8.W) + 0.5) * 8
     zs8 = Z0 + (np.arange(G8.H) + 0.5) * 8
     inReal8 = ((xs8 >= rx0) & (xs8 < rx1))[None, :] & ((zs8 >= rz0) & (zs8 < rz1))[:, None]
+    # cells the real data owns: inside the rectangle and not on the picture's added land (that land takes synthetic zones,
+    # like the land just outside, so zones and land use do not change along the rectangle line)
+    realOwn8 = inReal8 & ~G8.mask(CM['added']) if (CM and CM.get('added') is not None) else inReal8
 
     # ---- zones (8 m)
     zlab = np.full(dlab.shape, Z['residential'], np.uint8)
-    zlab[land8 & ~inReal8] = Z['rural']
+    zlab[land8 & ~realOwn8] = Z['rural']
     zlab[~land8] = Z['water']
     for a in areas:
         if a['cls'] == 'lu_commercial':
@@ -410,7 +472,7 @@ def main():
             zgroups[a['zone']].append(a['geom'])
     for zn in ('wilderness', 'rural', 'park', 'beach', 'airport'):
         if zgroups.get(zn):
-            zlab[G8.mask(zgroups[zn]) & land8 & ~inReal8] = Z[zn]
+            zlab[G8.mask(zgroups[zn]) & land8 & ~realOwn8] = Z[zn]
     # towns of the synthetic world: the zone each building was authored with spreads ~30 m around it (streets, yards)
     if SY:
         bz = defaultdict(list)
@@ -419,8 +481,31 @@ def main():
                 bz[b['zone']].append(b['geom'])
         for zn in ('residential', 'industrial', 'airport', 'port', 'commercial'):
             if bz.get(zn):
-                m = dilate(G8.mask(bz[zn]), 4) & land8 & ~inReal8
+                m = dilate(G8.mask(bz[zn]), 4) & land8 & ~realOwn8
                 zlab[m & np.isin(zlab, [Z['rural'], Z['wilderness'], Z['residential']] if zn != 'airport' else [Z['rural']])] = Z[zn]
+    if CM:
+        # seam: past the rectangle line the real city's default zone fades out along an irregular, noisy edge
+        # (120 to 500 m out), so no zone or land use change follows the straight rectangle line
+        pad_ = 560.0
+        ia, ib = max(0, int((rx0 - pad_ - X0) // 8)), min(G8.W, int((rx1 + pad_ - X0) // 8) + 1)
+        ja, jb = max(0, int((rz0 - pad_ - Z0) // 8)), min(G8.H, int((rz1 + pad_ - Z0) // 8) + 1)
+        xs_w, zs_w = xs8[ia:ib], zs8[ja:jb]
+        dx_ = np.maximum(np.maximum(rx0 - xs_w, xs_w - rx1), 0)[None, :]
+        dz_ = np.maximum(np.maximum(rz0 - zs_w, zs_w - rz1), 0)[:, None]
+        dist_ = np.sqrt(dx_ * dx_ + dz_ * dz_)
+        rng_ = np.random.default_rng(11)
+        co = rng_.random(((jb - ja) // 12 + 3, (ib - ia) // 12 + 3)).astype(np.float32)
+        fx_ = np.arange(ib - ia) / 12.0
+        fz_ = np.arange(jb - ja) / 12.0
+        i0_, j0_ = fx_.astype(int), fz_.astype(int)
+        u_, v_ = (fx_ - i0_)[None, :], (fz_ - j0_)[:, None]
+        rows = co[:, i0_] * (1 - u_) + co[:, i0_ + 1] * u_
+        nz_ = rows[j0_, :] * (1 - v_) + rows[j0_ + 1, :] * v_
+        reach_ = 120.0 + 380.0 * nz_
+        sub = zlab[ja:jb, ia:ib]
+        m_ = (dist_ > 0) & (dist_ < reach_) & land8[ja:jb, ia:ib] & (sub == Z['rural'])
+        sub[m_] = Z['residential']
+        log(f'citymask: seam: {int(m_.sum())} rural cells just outside the rectangle take the city zone (noisy 120 to 500 m edge)')
     pois_raw = [e for e in load('pois') if e.get('tags')]
     cnt = np.zeros(dlab.shape, np.float32)
     for e in pois_raw:
@@ -477,6 +562,10 @@ def main():
 
     # ---- buildings
     bl = stage_buildings(zone_at, sites)
+    if CM:
+        n_ = len(bl)
+        bl = [b for b in bl if (lambda rp: CM['keep_pt'](rp.x, rp.y))(b['geom'].representative_point())]
+        log(f'citymask: real buildings on the picture water dropped: {n_ - len(bl)} of {n_}')
     if SY:
         n0 = len(bl)
         for b in SY['buildings']:
@@ -652,15 +741,7 @@ def main():
             m = G8.mask(ln.buffer(45)) & ~land8 & (wkind == 1) & inReal8
             wkind[m] = 4 if 'River' in n_ or 'Creek' in n_ else 3
 
-    # ---- terrain heights (16 m, decimetres above y = 0); zero inside the real rectangle
-    G16 = Grid(16)
-    hgt = np.zeros((G16.H + 1, G16.W + 1), np.int16)
-    if SY and SY['heights']:
-        for j in range(G16.H + 1):
-            z = Z0 + j * 16
-            for i in range(G16.W + 1):
-                hgt[j, i] = int(round(terrain(X0 + i * 16, z) * 10))
-        log(f'terrain: {int((hgt != 0).sum())} non-zero samples, max {hgt.max() / 10:.1f} m, min {hgt.min() / 10:.1f} m')
+    # ---- terrain heights (16 m, decimetres above y = 0): `hgt`, resampled at the start of main()
 
     # ---- POIs / props
     pois, props, benches_raw, doors = [], [], [], []
@@ -672,6 +753,8 @@ def main():
             continue
         x, z = proj(lon, lat)
         if not (rx0 <= x < rx1 and rz0 <= z < rz1):
+            continue
+        if CM and not CM['keep_pt'](x, z):
             continue
         pt = prop_type(t)
         if t.get('amenity') == 'bench':
@@ -702,6 +785,9 @@ def main():
                     p_ = ln.interpolate(i / n, normalized=True)
                     if rx0 <= p_.x < rx1 and rz0 <= p_.y < rz1:
                         props.append((prop_id(typ), p_.x, p_.y))
+    if CM:
+        props = [p_ for p_ in props if CM['keep_pt'](p_[1], p_[2])]
+        benches_raw = [b_ for b_ in benches_raw if CM['keep_pt'](b_[0], b_[1])]
     props_h = []        # props with a heading: (type id, x, z, heading radians)
     if SY:
         for p_ in SY['pois']:
@@ -766,6 +852,7 @@ def main():
 
     # ---- transit (bus stops and routes, people mover, metro, rail)
     import transit as TR
+    TR.ON_LAND = CM['keep_pt'] if CM else None
     transit = TR.build(nodes, edges, rails, ginfo, log)
 
     # ---- player spawn: Ocean Drive west sidewalk near 9th-10th St facing north along the strip

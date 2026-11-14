@@ -16,7 +16,7 @@ from .util import REAL
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OSM_CACHE = os.path.join(ROOT, 'tools', 'osm', 'cache')
-OUT = os.path.join(ROOT, 'tools', 'world', 'out')
+OUT = os.path.join(ROOT, 'tools', 'world', os.environ.get('WL_OUT') or 'out')      # WL_OUT=out_pass7 stages a build without touching live files
 CACHE = os.path.join(OUT, 'cache')
 
 LAT0, LON0 = 25.7790, -80.1650

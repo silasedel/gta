@@ -29,3 +29,14 @@
 1. The `terrain/flora.js` owner should switch oak, gumbo, cypress, pine and seagrape trees, palmetto and sawgrass to `game.vegetation.field()` or `buildGeometry()`. The Lummus Park shade trees are still the old flora blobs.
 2. Set pieces (`keysBar.js palm()`, `nicoHouse/parts/50_plants.js`): use `game.vegetation.build('coconut', { seed })` and the other kinds.
 3. Add the `vegetation:ready` event and `game.vegetation` to V2_PLAN shared APIs.
+
+## Pass 2 (Nov 13 evening)
+- Lawn rebuilt from scratch (`src/world/vegetation/lawn.js`; `miami/grass.js` now delegates). It draws GPU-instanced blades (5 triangles each) placed in the vertex shader from gl_InstanceID with world-stable hashes. Clumps, height, width, lean, hue and dryness vary per blade. There are 3 rings: 0-9 m, 9-20 m and 20-40 m (about 351k blade slots, at most 1.76M triangles), in 3 draw calls with no shadow pass. Blades only render where the field says grass.
+- A 256x256 field over 128 m (rebuilt over several frames as the camera moves) stores height, dryness, weeds, bare/worn patches and mow-stripe parity. Short lawns regrow 1.1 cm per game day after mowing, up to 13 cm. Long grass is 22-52 cm with seed heads. The lawn ground material gets soil and thatch within 42 m, plus stripes, dryness and bare soil across the whole field.
+- `game.grass`: heightAt(x, z), mow({x,z,r} | {x0,z0,x1,z1,heading}), lastMowed(x, z) in game days, mower { start(area), stop(), active }, days, stats(), refresh(). In daytime the mower looks for an overgrown lawn near the camera every 90 s.
+- Wind: vegetation and grass copy game.wind (dir, speed, time) and evaluate the same travelling gust bands in the shader.
+- flora.js: trees now use the vegetation tree variants (live oak, gumbo limbo, slash pine, cypress, mangrove, sea grape). Palmetto and sawgrass use the vegetation sawpalmetto/sawgrass. Citrus is unchanged.
+- tilebuild: street palms have 3 LOD pools with min/max distance bands (pool minD added to cullPools) and dithered fades. The impostor is baked with game.renderer when it is available.
+- Keys bar: keysBar.js already calls opts.vegetation.build('coconut_palm' | 'sea_grape' | 'croton' | 'hibiscus', {radius, height, lean:[dx,dz]}). game.vegetation.build now understands those aliases and options, so no keysBar edit was needed. Not checked in a shot (Key Paloma is not in the live world).
+- Note for nico-house: the plants in `nicoHouse/parts/50_plants.js` can use `game.vegetation.build('coconut' | 'sabal' | 'seagrape' | 'hibiscus' | ..., { seed, height, lean })`. I did not touch that file.
+- Not verified: palm LOD transitions in the city (no motion capture), trampling (no walking capture), and the long-grass verge (the search landed on a lawn polygon without blades). Leaves look pale in the miami preview lighting; I reduced roughness and env reflections, but this still needs a check in-game at several times of day.

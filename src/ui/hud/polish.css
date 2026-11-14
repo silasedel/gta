@@ -1,0 +1,126 @@
+/* PORT SOLANA — V2 HUD polish: one visual language with the top-right corner.
+   White condensed type, soft dark shadows instead of heavy panels, round colored badges, light glass only where text needs it. */
+
+/* minimap: thin white rim and a soft drop shadow, no dark outer ring */
+.ps-hud .ps-mm-frame {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, .88),
+    0 2px 4px rgba(0, 0, 0, .35),
+    0 10px 26px rgba(0, 0, 0, .35);
+}
+.ps-hud .ps-mm-gloss {
+  background:
+    radial-gradient(120% 95% at 50% 60%, transparent 66%, rgba(5, 8, 14, .28) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, .06), transparent 24%);
+  box-shadow: inset 0 1px 8px rgba(0, 0, 0, .3);
+}
+.ps-hud .ps-mm-info {
+  font: 800 14px/1 var(--ps-cond);
+  letter-spacing: .12em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .7), 0 0 7px rgba(0, 0, 0, .3);
+}
+.ps-hud .ps-mm-dist {
+  border-radius: 11px;
+  padding: 4px 8px 3px;
+  background: #dc2f2c;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+
+/* street and district label */
+.ps-hud .ps-area small {
+  font: 700 12px/1 var(--ps-cond);
+  letter-spacing: .34em;
+  opacity: .85;
+}
+.ps-hud .ps-area span {
+  font: 800 italic 44px/1 var(--ps-cond);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .3);
+  border-bottom-width: 2px;
+}
+.ps-hud .ps-area-street {
+  font: 600 16px/1.2 var(--ps-sans);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 8px rgba(0, 0, 0, .3);
+}
+
+/* hint and notification cards: light glass, round accent dot, condensed caps title */
+.ps-hud .ps-help,
+.ps-hud .ps-notif {
+  padding: 11px 15px 12px 34px;
+  border-radius: 14px;
+  background: rgba(14, 16, 22, .58);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .22);
+  font: 500 14.5px/1.42 var(--ps-sans);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+}
+.ps-hud .ps-help::before,
+.ps-hud .ps-notif::before {
+  left: 13px;
+  top: 15px;
+  bottom: auto;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .9);
+  background: #6a4fd6;
+}
+.ps-hud .ps-notif::before {
+  background: #2fb8a9;
+}
+.ps-hud .ps-notif.msg::before {
+  background: #3aa64c;
+}
+.ps-hud .ps-notif.item::before {
+  background: #3aa64c;
+}
+.ps-hud .ps-notif.item.steal::before {
+  background: #e2763a;
+}
+.ps-hud .ps-notif.crime {
+  background: rgba(40, 10, 16, .66);
+}
+.ps-hud .ps-notif.crime::before {
+  background: #dc2f2c;
+  animation: none;
+}
+.ps-hud .ps-notif-from {
+  font: 800 13px/1.2 var(--ps-cond);
+  letter-spacing: .18em;
+  color: #fff;
+  opacity: .92;
+  margin-bottom: 2px;
+}
+
+/* mission line */
+.ps-hud .ps-mission {
+  font: 700 23px/1.3 var(--ps-cond);
+  background: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 0 10px rgba(0, 0, 0, .45);
+}
+
+/* speedometer: numerals in the same face as the money lines */
+.ps-hud .ps-spd {
+  font-family: var(--ps-cond);
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 8px rgba(0, 0, 0, .3);
+}
+.ps-hud .ps-gear {
+  border-radius: 50%;
+}
+
+/* pause map chrome: hints left, attribution right, both quiet */
+.ps-map-attrib {
+  left: auto;
+  right: 16px;
+  transform: none;
+  background: rgba(9, 11, 18, .55);
+}
+.ps-bigmap {
+  background: #074176;
+}
+.ps-map-frame {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 0 60px 12px rgba(4, 8, 14, .35);
+  background: none;
+}
