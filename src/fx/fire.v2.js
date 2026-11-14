@@ -131,7 +131,12 @@ export async function initV2(game) {
         if (!o.isMesh || !o.material || Array.isArray(o.material)) {
           return;
         }
-        const m = o.material.clone();
+        const src = o.material, m = src.clone();
+        // Material.clone() drops custom shader hooks: keep them, or lamp/decal sheets (wheel discs, badges),
+        // paint wear and glass fall back to plain materials and show as flat glowing discs on a burning car
+        if (Object.prototype.hasOwnProperty.call(src, 'onBeforeCompile')) m.onBeforeCompile = src.onBeforeCompile;
+        if (Object.prototype.hasOwnProperty.call(src, 'customProgramCacheKey')) m.customProgramCacheKey = src.customProgramCacheKey;
+        if (src.userData) m.userData = { ...src.userData };
         o.material = m;
         v._psChar.push({
           m,
