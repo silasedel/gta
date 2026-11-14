@@ -61,9 +61,9 @@ async function boot() {
     THREE, RAPIER, renderer, scene, camera, world,
     input: createInput(canvas),
     clock: { elapsed: 0, dt: 0 },
-    timeOfDay: 18.0,
+    timeOfDay: 9.0, // V2: a new game starts in the morning (about 9 AM)
     fixedHooks: [], updaters: [],
-    settings: { mouseSens: 1, quality: 'high', fov: 62 },
+    settings: { mouseSens: 1, quality: 'high', fov: 62, dayMinutes: 144 },
     ui: { phoneOpen: false, paused: false },
     player: {
       position: new THREE.Vector3(), heading: 0, velocity: new THREE.Vector3(),
@@ -164,6 +164,8 @@ async function boot() {
   function playerFixed(dt) {
     const st = P.state;
     if (st.inVehicle) return;
+    // V2: a module may take over the player (sitting, climbing, boarding, cutscenes) by setting game.player.script.
+    if (P.script) { try { P.script.fixed?.(dt); } catch (e) { console.error('[player.script]', e); P.script = null; } vy = 0; moveSpeed = 0; return; }
     const inp = game.input, blocked = game.ui.paused || game.ui.phoneOpen || hardBlocked();
     const f = (!blocked && inp.down('KeyW') ? 1 : 0) - (!blocked && inp.down('KeyS') ? 1 : 0);
     const r = (!blocked && inp.down('KeyD') ? 1 : 0) - (!blocked && inp.down('KeyA') ? 1 : 0);
@@ -595,6 +597,11 @@ async function boot() {
     pBody.setTranslation({ x, y: gy + CENTER + 0.1, z }, true); P.position.set(x, gy, z); vy = 0;
     if (typeof heading === 'number') { P.heading = heading; game.cameraYaw = heading + Math.PI; }
   };
+  // Move the player's kinematic body directly (for player.script.fixed). y is the feet height.
+  game.movePlayerTo = (x, y, z) => { pBody.setNextKinematicTranslation({ x, y: y + CENTER, z }); P.position.set(x, y, z); };
+  Object.defineProperty(game, 'playerCharacter', { get: () => character, configurable: true });
+  // Swap the player's visual model (CHARACTER track): pass an object with { root, update(dt, anim), setVisible(b) }.
+  game.setPlayerCharacter = (c) => { if (!c || c === character) return; if (character) scene.remove(character.root); character = c; scene.add(c.root); c.setVisible?.(!P.state.inVehicle); };
   loadMsg('LOADING V2 SYSTEMS', 92);
   {
     const v2 = import.meta.glob('./**/*.v2.js');
@@ -767,11 +774,12 @@ async function boot() {
     if (inp.pressed('Escape') || inp.pressed('KeyP')) { /* HUD toggles pause */ }
     const paused = game.ui.paused;
     if (!paused) {
-      game.timeOfDay = (game.timeOfDay + dt / 360) % 24; // 1 game hour = 6 real minutes: a full day lasts 144 minutes
+      // 1 game hour = 6 real minutes by default (a full day lasts 144 minutes). V2: a clock module may take over by setting game.timeExternal.
+      if (!game.timeExternal) game.timeOfDay = (game.timeOfDay + dt * 24 / ((game.settings.dayMinutes || 144) * 60)) % 24;
       // interactions
       enterCooldown -= dt; punchTimer -= dt;
       P.state.punch = false;
-      if (!game.ui.phoneOpen && inp.pressed('KeyF') && enterCooldown <= 0) {
+      if (!game.ui.phoneOpen && !P.script?.lock && inp.pressed('KeyF') && enterCooldown <= 0) {
         enterCooldown = 0.6;
         if (P.state.inVehicle) {
           if ((P.state.vehicle.speedKmh || 0) < 25 || (P.state.vehicle.submerged || 0) > 0.3) exitVehicle();
@@ -780,7 +788,7 @@ async function boot() {
           if (v && game.emit('enterVehicle', { vehicle: v })) enterVehicle(v);
         }
       }
-      if (!P.state.inVehicle && inp.mouseClicked && punchTimer <= 0 && !game.ui.phoneOpen && !game.ui.weaponWheel && !hardBlocked()) { P.state.punch = true; punchTimer = 0.45; game.emit('punch', { position: P.position.clone(), heading: P.heading }); }
+      if (!P.state.inVehicle && !P.script && inp.mouseClicked && punchTimer <= 0 && !game.ui.phoneOpen && !game.ui.weaponWheel && !hardBlocked()) { P.state.punch = true; punchTimer = 0.45; game.emit('punch', { position: P.position.clone(), heading: P.heading }); }
       if (P.state.inVehicle) vehicleControl();
       // boat boarding (VEHICLES): show the character climbing over the side / hopping onto the deck while the scripted move runs
       { const bb = game.vehicles?.boatBoarding;
@@ -840,6 +848,8 @@ async function boot() {
         L.animSpeed += (intended - L.animSpeed) * Math.min(1, dt * 8);
         const swim = P.swimming;
         const aSpeed = swim ? 1.2 + L.animSpeed * 0.9 : L.animSpeed;
+        if (P.script?.pose) { try { P.script.pose(simDt, character); } catch (e) { console.error('[player.script.pose]', e); } }
+        if (P.script?.anim) character.update(simDt, P.script.anim); else
         character.update(simDt, { speed: swim ? 0 : aSpeed, idleStyle: swim ? 'swim' : undefined, grounded: P.state.grounded || swim, jumping: P.state.jumping, sprint: P.state.sprint, driving: false, punch: P.state.punch, dead: P.health <= 0, swimming: swim, wading: !swim && P.waterDepth > 0.4 });
         // ripples while moving in water; stride footsteps fallback; swim strokes
         const pos = P.position;
@@ -864,7 +874,7 @@ async function boot() {
       { const t1 = performance.now(); try { game.interiors.update?.(simDt); } catch (e) { console.error(e); } tm('interiors', t1); }
       { const t1 = performance.now(); try { game.gameplay.update?.(dt); } catch (e) { console.error(e); } tm('gameplay', t1); }
     }
-    { const t1 = performance.now(); try { updateCamera(dt); } catch (e) { console.error('[camera]', e); } tm('camera', t1); }
+    { const t1 = performance.now(); try { if (!(game.cameraOverride && game.cameraOverride(dt, camera) === true)) updateCamera(dt); } catch (e) { console.error('[camera]', e); } tm('camera', t1); }
     if (dying) try {
       const k = 1 - Math.exp(-deathT * 0.9);            // eases 0 -> 1
       const yaw = L.deathYaw + deathT * 0.22;           // slow orbit

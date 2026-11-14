@@ -65,3 +65,7 @@ Every track is one agent with its own files, its own preview pages, its own prog
 ## Shared APIs added in V2 (lead keeps this list current)
 - `game.ready`, `game.v2 = { loaded, failed }`, `game.teleport(x, y|null, z, heading)`
 - More are added here as tracks report them.
+- **Scripted player control:** set `game.player.script = { lock: true, fixed(dt) {…}, pose(dt, character) {…}, anim: {…} }` to take over the player (sitting, climbing, boarding, cutscenes); move with `game.movePlayerTo(x, yFeet, z)` and set `game.player.heading`. Set it back to `null` to return control. While set, main.js skips its own locomotion; `anim` replaces the animation state passed to `character.update`.
+- `game.cameraOverride = (dt, camera) => true` takes over the camera for that frame (menus, cutscenes, interiors). Set to `null` to release.
+- `game.playerCharacter` (read), `game.setPlayerCharacter(c)` swaps the player's visual model.
+- **Clock:** a new game starts at 9 AM. `game.settings.dayMinutes` (default 144) sets the day length. A clock module may set `game.timeExternal = true` and drive `game.timeOfDay` itself (day counter, sleeping, time skips).

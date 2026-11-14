@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Port Solana V2 Build Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;0,800;1,800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* One visual world on purpose: a night harbor control board. Single theme. */
+  --ink: #0b1220;        /* page */
+  --deck: #121c2e;       /* panels */
+  --rail: #22304a;       /* lines, empty bars */
+  --fog: #8ea0bd;        /* secondary text */
+  --chalk: #eef3fb;      /* primary text */
+  --coral: #ff6b57;      /* accent: verified */
+  --sea: #2fd3c0;        /* built, live */
+  --sand: #f2c14e;       /* in progress */
+  --display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --body: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--chalk); font-family: var(--body); font-size: 15px; line-height: 1.4; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 22px 16px 60px; display: flex; flex-direction: column; gap: 22px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; border-bottom: 1px solid var(--rail); padding-bottom: 14px; }
+h1 { font-family: var(--display); font-weight: 800; font-style: italic; font-size: 40px; letter-spacing: .04em; margin: 0; line-height: 1; }
+h1 span { color: var(--coral); }
+.sub { color: var(--fog); font-size: 14px; }
+.live { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--fog); display: flex; align-items: center; gap: 8px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sea); box-shadow: 0 0 0 0 rgba(47,211,192,.6); animation: ping 1.8s infinite; }
+.snap .dot { background: var(--sand); animation: none; }
+@keyframes ping { 70% { box-shadow: 0 0 0 9px rgba(47,211,192,0); } 100% { box-shadow: 0 0 0 0 rgba(47,211,192,0); } }
+@media (prefers-reduced-motion: reduce) { .dot, .stripe { animation: none !important; } }
+
+.overall { background: var(--deck); border: 1px solid var(--rail); border-radius: 14px; padding: 20px; display: grid; grid-template-columns: auto 1fr; gap: 8px 26px; align-items: center; }
+.big { font-family: var(--display); font-weight: 800; font-size: 92px; line-height: .9; font-variant-numeric: tabular-nums; }
+.big small { font-size: 36px; color: var(--fog); font-weight: 700; }
+.biglabel { font-family: var(--display); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fog); font-size: 14px; }
+.obar { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--fog); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.bar { position: relative; height: 12px; background: var(--rail); border-radius: 6px; overflow: hidden; }
+.bar.tall { height: 22px; border-radius: 8px; }
+.bar > b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; transition: width .8s cubic-bezier(.2,.7,.2,1); }
+.bar .work { background: repeating-linear-gradient(-45deg, rgba(242,193,78,.55) 0 6px, rgba(242,193,78,.25) 6px 12px); background-size: 34px 100%; }
+.bar .work.stripe { animation: slide 1.2s linear infinite; }
+@keyframes slide { to { background-position: 34px 0; } }
+.bar .built { background: var(--sea); opacity: .8; }
+.bar .ver { background: var(--coral); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { background: var(--deck); border: 1px solid var(--rail); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.tile .n { font-family: var(--mono); font-weight: 600; font-size: 26px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tile .l { font-family: var(--display); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--fog); font-size: 13px; }
+.tile .d { font-family: var(--mono); font-size: 12px; color: var(--sea); }
+.tile.hot .n { color: var(--coral); }
+
+section.sec { display: flex; flex-direction: column; gap: 8px; }
+.sechead { display: grid; grid-template-columns: 1fr minmax(120px, 280px) 64px; gap: 14px; align-items: center; }
+.sechead h2 { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: .06em; text-transform: uppercase; margin: 0; }
+.pct { font-family: var(--mono); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.rows { display: flex; flex-direction: column; gap: 6px; }
+.row { background: var(--deck); border: 1px solid var(--rail); border-left: 4px solid var(--rail); border-radius: 10px; padding: 10px 14px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 96px; gap: 6px 16px; align-items: center; }
+.row.running { border-left-color: var(--sand); }
+.row.done { border-left-color: var(--coral); }
+.row.queued { border-left-color: var(--sea); }
+.row .t { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.row .now { color: var(--fog); font-size: 13px; overflow-wrap: anywhere; }
+.row .now em { color: var(--sand); font-style: normal; }
+.pill { display: inline-block; font-family: var(--display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 12px; padding: 1px 8px; border-radius: 20px; border: 1px solid var(--rail); color: var(--fog); margin-left: 8px; vertical-align: 1px; white-space: nowrap; }
+.pill.running { color: var(--ink); background: var(--sand); border-color: var(--sand); }
+.pill.done { color: var(--ink); background: var(--coral); border-color: var(--coral); }
+.pill.queued { color: var(--sea); border-color: var(--sea); }
+.row .cnt { font-family: var(--mono); font-size: 12px; color: var(--fog); text-align: right; white-space: nowrap; }
+.row .cnt strong { color: var(--chalk); font-size: 15px; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.panel { background: var(--deck); border: 1px solid var(--rail); border-radius: 12px; padding: 14px; min-width: 0; }
+.panel h3 { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 8px; }
+.files { font-family: var(--mono); font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+.files div { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
+.files span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.files .ln { color: var(--sea); }
+.files .ago { color: var(--fog); }
+.dirs { display: flex; flex-direction: column; gap: 5px; font-family: var(--mono); font-size: 12px; }
+.dirs div { display: grid; grid-template-columns: 150px 1fr 60px; gap: 10px; align-items: center; }
+.dirs .bar { height: 8px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.shots figure { margin: 0; }
+.shots img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; border: 1px solid var(--rail); display: block; background: var(--rail); }
+.shots figcaption { font-family: var(--mono); font-size: 11px; color: var(--fog); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+footer { color: var(--fog); font-size: 13px; border-top: 1px solid var(--rail); padding-top: 12px; }
+@media (max-width: 640px) {
+  .overall { grid-template-columns: 1fr; }
+  .big { font-size: 64px; }
+  .row { grid-template-columns: 1fr; }
+  .row .cnt { text-align: left; }
+  .sechead { grid-template-columns: 1fr 64px; } .sechead .bar { grid-column: 1 / -1; order: 3; }
+  .dirs div { grid-template-columns: 110px 1fr 54px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <h1>PORT SOLANA <span>V2</span></h1>
+    <div class="sub">Build tracker. Percentages count checklist items that are verified with a test or a screenshot.</div>
+    <div class="live" id="live"><span class="dot"></span><span id="livetxt">connecting</span></div>
+  </header>
+
+  <div class="overall">
+    <div>
+      <div class="biglabel">Overall verified</div>
+      <div class="big"><span id="ov">0</span><small>%</small></div>
+    </div>
+    <div class="obar">
+      <div class="bar tall" id="obar"><b class="work stripe"></b><b class="built"></b><b class="ver"></b></div>
+      <div class="legend"><span><i style="background:var(--coral)"></i>Verified <b id="lv">0</b></span><span><i style="background:var(--sea)"></i>Built, not yet verified <b id="lb">0</b></span><span><i style="background:var(--sand)"></i>Being built now <b id="lw">0</b></span><span>To do <b id="lt">0</b></span></div>
+    </div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+  <div id="sections" style="display:flex;flex-direction:column;gap:22px"></div>
+
+  <div class="two">
+    <div class="panel"><h3>Files being written</h3><div class="files" id="files"></div></div>
+    <div class="panel"><h3>Lines of code by area</h3><div class="dirs" id="dirs"></div></div>
+  </div>
+  <div class="panel" id="shotpanel"><h3>Latest test screenshots</h3><div class="shots" id="shots"></div></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/*__SNAP__*/
+const SNAP = window.__SNAP__ || null;
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => (n ?? 0).toLocaleString('en-US');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ago = (s) => s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h';
+let shown = { lines: 0 };
+
+async function getJSON(u) { try { const r = await fetch(u + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return null; return await r.json(); } catch (e) { return null; } }
+async function load() {
+  if (SNAP) return SNAP;
+  const plan = await getJSON('./progress/_plan.json'); if (!plan) return null;
+  const [agents, stats, ...tr] = await Promise.all([getJSON('./progress/_agents.json'), getJSON('./progress/_stats.json'), ...plan.planned.map((p) => getJSON('./progress/' + p.track + '.json'))]);
+  const tracks = {}; plan.planned.forEach((p, i) => { if (tr[i]) tracks[p.track] = tr[i]; });
+  return { plan, agents: agents || {}, stats: stats || {}, tracks, at: new Date().toISOString() };
+}
+function tally(t) {
+  const it = (t && t.items) || []; const n = it.length;
+  const c = { n, ver: 0, built: 0, work: 0 };
+  for (const i of it) { if (i.state === 'verified') c.ver++; else if (i.state === 'built') c.built++; else if (i.state === 'building') c.work++; }
+  c.now = (it.find((i) => i.state === 'building') || {}).name || '';
+  return c;
+}
+function setBar(el, c, n) {
+  const [w, b, v] = el.querySelectorAll('b'); const k = n ? 100 / n : 0;
+  v.style.width = (c.ver * k) + '%'; b.style.width = ((c.ver + c.built) * k) + '%'; w.style.width = ((c.ver + c.built + c.work) * k) + '%';
+}
+function barHTML(cls) { return '<div class="bar ' + (cls || '') + '"><b class="work stripe"></b><b class="built"></b><b class="ver"></b></div>'; }
+
+function render(d) {
+  const { plan, agents, stats, tracks } = d;
+  const run = new Set(agents.running || []), que = new Set(agents.queued || []), fin = new Set(agents.done || []);
+  // per-track fractions; a planned track with no checklist yet counts as 0 of 1
+  let sumVer = 0, sumBuilt = 0, sumWork = 0, items = { n: 0, ver: 0, built: 0, work: 0 };
+  const per = {};
+  for (const p of plan.planned) {
+    const c = tally(tracks[p.track]); per[p.track] = c;
+    if (c.n) { sumVer += c.ver / c.n; sumBuilt += c.built / c.n; sumWork += c.work / c.n; items.n += c.n; items.ver += c.ver; items.built += c.built; items.work += c.work; }
+  }
+  const N = plan.planned.length;
+  $('ov').textContent = (100 * sumVer / N).toFixed(1);
+  setBar($('obar'), { ver: sumVer, built: sumBuilt, work: sumWork }, N);
+  $('lv').textContent = fmt(items.ver); $('lb').textContent = fmt(items.built); $('lw').textContent = fmt(items.work); $('lt').textContent = fmt(items.n - items.ver - items.built - items.work);
+
+  const start = agents.startedAt ? new Date(agents.startedAt) : null;
+  const el = start ? Math.max(0, (new Date(d.at) - start) / 1000) : 0;
+  const hh = Math.floor(el / 3600), mm = Math.floor((el % 3600) / 60);
+  const tiles = [
+    ['Lines of code', '<span id="loc">' + fmt(shown.lines || stats.lines) + '</span>', '+' + fmt(stats.addedLines) + ' since v1', 'hot'],
+    ['Code files', fmt(stats.files), '+' + fmt(stats.addedFiles) + ' new'],
+    ['Agents working', fmt(run.size), fmt(que.size) + ' queued · ' + fmt(fin.size) + ' finished', run.size ? 'hot' : ''],
+    ['Agents launched', fmt(agents.launchedTotal || 0), agents.note || ''],
+    ['Checklist items', fmt(items.n), fmt(items.ver) + ' verified'],
+    ['Test screenshots', fmt(stats.screenshots), 'looked at by agents'],
+    ['Asset files', fmt(stats.assets), fmt(stats.assetMB) + ' MB'],
+    ['Build time', hh + 'h ' + String(mm).padStart(2, '0') + 'm', fmt(stats.commits) + ' commits'],
+  ];
+  $('tiles').innerHTML = tiles.map((t) => '<div class="tile ' + (t[3] || '') + '"><div class="l">' + t[0] + '</div><div class="n">' + t[1] + '</div><div class="d">' + esc(t[2]) + '</div></div>').join('');
+  // count-up for lines of code
+  const target = stats.lines || 0;
+  if (!shown.lines) shown.lines = target;
+  const from = shown.lines, t0 = performance.now();
+  (function tick(now) { const k = Math.min(1, (now - t0) / 900); const v = Math.round(from + (target - from) * k); const e = $('loc'); if (e) e.textContent = fmt(v); if (k < 1) requestAnimationFrame(tick); else shown.lines = target; })(t0);
+
+  let html = '';
+  for (const s of plan.sections) {
+    const ps = plan.planned.filter((p) => p.section === s); if (!ps.length) continue;
+    let sv = 0, sb = 0, sw = 0; ps.forEach((p) => { const c = per[p.track]; if (c.n) { sv += c.ver / c.n; sb += c.built / c.n; sw += c.work / c.n; } });
+    html += '<section class="sec"><div class="sechead"><h2>' + esc(s) + '</h2><div class="bar" data-sec="' + esc(s) + '"><b class="work stripe" style="width:' + (100 * (sv + sb + sw) / ps.length) + '%"></b><b class="built" style="width:' + (100 * (sv + sb) / ps.length) + '%"></b><b class="ver" style="width:' + (100 * sv / ps.length) + '%"></b></div><div class="pct">' + (100 * sv / ps.length).toFixed(0) + '%</div></div><div class="rows">';
+    for (const p of ps) {
+      const c = per[p.track], t = tracks[p.track];
+      const st = run.has(p.track) ? 'running' : fin.has(p.track) ? 'done' : que.has(p.track) ? 'queued' : '';
+      const label = st === 'running' ? 'agent working' : st === 'done' ? 'agent finished' : st === 'queued' ? 'queued' : 'wave ' + p.wave;
+      const k = c.n ? 100 / c.n : 0;
+      html += '<div class="row ' + st + '"><div><div class="t">' + esc((t && t.title) || p.title) + '<span class="pill ' + st + '">' + label + '</span></div><div class="now">' + (c.now ? '<em>Now:</em> ' + esc(c.now) : c.n ? (c.ver === c.n ? 'All items verified' : '') : 'Checklist appears when its agent starts') + '</div></div>'
+        + '<div class="bar"><b class="work' + (st === 'running' ? ' stripe' : '') + '" style="width:' + ((c.ver + c.built + c.work) * k) + '%"></b><b class="built" style="width:' + ((c.ver + c.built) * k) + '%"></b><b class="ver" style="width:' + (c.ver * k) + '%"></b></div>'
+        + '<div class="cnt"><strong>' + (c.n ? Math.round(c.ver * k) : 0) + '%</strong><br>' + c.ver + ' / ' + c.n + ' verified</div></div>';
+    }
+    html += '</div></section>';
+  }
+  $('sections').innerHTML = html;
+
+  $('files').innerHTML = (stats.recentFiles || []).map((f) => '<div><span title="' + esc(f.file) + '">&lrm;' + esc(f.file) + '</span><span class="ln">' + fmt(f.lines) + ' lines</span><span class="ago">' + ago(f.secondsAgo) + ' ago</span></div>').join('') || '<div>No data yet</div>';
+  const td = stats.topDirs || [], mx = td.length ? td[0][1] : 1;
+  $('dirs').innerHTML = td.map(([n, v]) => '<div><span>' + esc(n) + '</span><div class="bar"><b class="built" style="width:' + (100 * v / mx) + '%"></b></div><span style="text-align:right">' + fmt(v) + '</span></div>').join('');
+  const shots = d.shots || (stats.recentShots || []).slice(0, 12).map((s) => ({ src: '../../' + s.file, name: s.file.replace('docs/v2/shots/', '') }));
+  $('shotpanel').style.display = shots.length ? '' : 'none';
+  $('shots').innerHTML = shots.map((s) => '<figure><img loading="lazy" src="' + esc(s.src) + '" alt=""><figcaption>' + esc(s.name) + '</figcaption></figure>').join('');
+  $('live').className = 'live' + (SNAP ? ' snap' : '');
+  $('livetxt').textContent = SNAP ? 'snapshot ' + new Date(d.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'live · updated ' + new Date().toLocaleTimeString('en-US');
+  $('foot').textContent = SNAP ? 'This page is a snapshot, republished as agents report in. The always-live version runs on the build machine at http://127.0.0.1:5200/docs/v2/tracker.html' : 'Live: refreshes every 5 seconds from the progress files each agent keeps.';
+}
+async function cycle() { const d = await load(); if (d) render(d); else $('livetxt').textContent = 'waiting for progress files'; }
+cycle(); if (!SNAP) setInterval(cycle, 5000);
+</script>
+</body>
+</html>
