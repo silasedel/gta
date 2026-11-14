@@ -328,6 +328,21 @@ export function buildKeysBar(THREE, opts = {}) {
   }
   function stats() { let tris = 0, meshes = 0; group.traverse((o) => { if (o.isMesh) { meshes++; tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } }); return { triangles: Math.round(tris), drawCalls: meshes, colliders: colliders.length, patrons: anchors.patrons.length, staff: anchors.staff.length, lights: lights.length }; }
   function dispose() { group.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); for (const k of ['map', 'normalMap', 'roughnessMap', 'emissiveMap']) o.material[k]?.dispose?.(); o.material.dispose(); } }); }
+  // camera hull (perf pass, track: houses): the game's camera ray tests this group every frame (playtest P2 roofs). A
+  // low-poly hull (both roofs + the collider boxes) answers it; it is never drawn (material.visible = false, no draw call)
+  // and every other mesh skips raycasts, including meshes added later (vegetation, GLTF) on the next hull sweep.
+  {
+    const EZh = 3.72, EYh = RIDGE - PITCH * EZh + 0.07, RXh = 4.98, quads = [
+      [[-RXh, RIDGE + 0.07, ZC], [RXh, RIDGE + 0.07, ZC], [RXh, EYh, ZC + EZh], [-RXh, EYh, ZC + EZh]], [[RXh, RIDGE + 0.07, ZC], [-RXh, RIDGE + 0.07, ZC], [-RXh, EYh, ZC - EZh], [RXh, EYh, ZC - EZh]],
+      [[-4.95, PH, -0.75], [4.5, PH, -0.75], [7.9, PL, 2.65], [-4.95, PL, 2.65]], [[4.5, PH, -0.75], [4.5, PH, -7.7], [7.9, PL, -7.7], [7.9, PL, 2.65]]];
+    const pos = []; for (const [a, b2, c, d] of quads) pos.push(...a, ...b2, ...c, ...a, ...c, ...d);
+    const parts = [new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))];
+    for (const c of colliders) { const g = c.type === 'cyl' ? new THREE.BoxGeometry(c.r * 2, c.hh * 2, c.r * 2) : new THREE.BoxGeometry(c.hx * 2, c.hy * 2, c.hz * 2); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g.rotateY(c.ry || 0); g.translate(c.x, c.y, c.z); parts.push(g.toNonIndexed()); }
+    const hullGeo = mergeGeometries(parts, false); for (const g of parts) g.dispose();
+    const hull = new THREE.Mesh(hullGeo, new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })); hull.name = 'keysBar_cameraHull'; hull.frustumCulled = false; group.add(hull);
+    const noRay = () => {}; const sweep = () => group.traverse((o) => { if ((o.isMesh || o.isInstancedMesh || o.isPoints || o.isLine) && o !== hull && o.raycast !== noRay) o.raycast = noRay; });
+    sweep(); const u0 = update; update = (dt, c) => { if ((update.t = (update.t || 0) + dt) > 2) { update.t = 0; sweep(); } return u0(dt, c); };
+  }
   const out = { group, colliders, interact, lights, anchors, update, ready, stats, dispose, night: 0, name: ART.BAR.name, brandsUsed: [brandBeer?.id, brandRum?.id, brandCola?.id].filter(Boolean) };
   update(0, { timeOfDay: opts.timeOfDay ?? 12 });
   return out;
