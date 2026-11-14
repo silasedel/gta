@@ -72,3 +72,20 @@ export const occupancy = {
   stats() { return { items: count, cells: grid.size, owners: byOwner.size }; },
 };
 if (typeof globalThis !== 'undefined') globalThis.__southlineOccupancy = occupancy;
+// true when (x, z) or a point pad m around it lies inside a map building footprint (data tiles, CITY renderer format)
+export function inMapBuilding(game, x, z, pad = 0) {
+  const D = game && game.miamiData, TS = (game && game.city && game.city.streamer && game.city.streamer.tileSize) || 200;
+  if (!D || !D.getTile) return false;
+  const pts = pad > 0 ? [[x, z], [x + pad, z], [x - pad, z], [x, z + pad], [x, z - pad]] : [[x, z]];
+  for (const [px, pz] of pts) {
+    const tile = D.getTile(Math.floor(px / TS), Math.floor(pz / TS));
+    if (!tile || !tile.buildings) continue;
+    for (const b of tile.buildings) {
+      const ring = b.rings && b.rings[0]; if (!ring) continue;
+      let c = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const xi = ring[i][0], zi = ring[i][1], xj = ring[j][0], zj = ring[j][1]; if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c; }
+      if (c) return true;
+    }
+  }
+  return false;
+}

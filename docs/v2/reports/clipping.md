@@ -27,3 +27,23 @@ Fixes:
 Remaining (other owners): house/town LOD layers drawn together (houses), facade cornice overlaps (city-look), sabal fields from
 house yards inside map footprints (houses), elevated barrier lumps on ground streets under the ramps (highways), house-generator
 fences are solid but not breakable (merged per cluster). The Nico-house spot never streams in the audit browser (always 0 items).
+
+## Pass 2 (houses / city-look leftovers, ramps)
+
+| category | pass 1 | pass 2 |
+|---|---|---|
+| prop x prop overlap | 5 | 5 |
+| prop through building | 15 | 13 (MacArthur 2 -> 0; Little Havana 4 sabal left) |
+| floating / sunk base | 52 | 47 |
+| z-fight cells | 276 | 123 |
+
+- Houses: the lot-hide mask held 4,095 ids; later lots got id 0 and their merged copy was never hidden under the near build.
+  The mask is now 128 x 128, a lot without an id never gets a near build, and the audit skips masked lots.
+- House yard trees and palms: dropped inside map building footprints and registered in the occupancy index (`houses.v2.js`).
+- Every vegetation field: trees and palms are kept 0.7 m clear of map building footprints (`vegetation.v2.js`, `occupancy.inMapBuilding`).
+- Sand-on-sand: beach exit aprons sit 2 cm under the sand areas instead of 2 mm.
+- Ramps: jersey barriers only where the deck clears the ground beside it by more than 0.6 m, no orphan stubs under 8 m
+  (`elevated/network.js`). Shots: `pass2_before_ramp.png`, `pass2_after_ramp.png`.
+- Ground: off-slab props at curb height drop to the ground only where the slab visibly ends next to them (away from tile seams).
+Left: 4 sabal in Little Havana (a field that skips the clearance), town undersides and trims at about 0.3 m, houses shingle-on-wood,
+causeway verge props over a missing ground collider (North Venetian, 12).

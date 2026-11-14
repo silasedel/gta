@@ -10,16 +10,17 @@ export function createHouseKit(THREE, opts = {}) {
   const mat = kit.mat;
 
   // ---------- lot-hide mask ----------
-  const N = 64, maskData = new Uint8Array(N * N);
+  const N = 128, maskData = new Uint8Array(N * N);
   const mask = new THREE.DataTexture(maskData, N, N, THREE.RedFormat, THREE.UnsignedByteType);
   mask.minFilter = mask.magFilter = THREE.NearestFilter; mask.needsUpdate = true;
   const uMask = { value: mask };
   kit.lotMask = {
     size: N * N,
+    hidden(id) { return id > 0 && id < N * N && maskData[id] > 0; },
     set(id, hidden) { if (id > 0 && id < N * N && maskData[id] !== (hidden ? 255 : 0)) { maskData[id] = hidden ? 255 : 0; mask.needsUpdate = true; } },
   };
   const HIDE_PARS = 'attribute float aLot;\nuniform sampler2D uLotMask;\n';
-  const HIDE_MAIN = '{ int hl = int( aLot + 0.5 ); if ( hl > 0 && texelFetch( uLotMask, ivec2( hl % 64, hl / 64 ), 0 ).r > 0.5 ) transformed = vec3( 0.0 ); }\n';
+  const HIDE_MAIN = '{ int hl = int( aLot + 0.5 ); if ( hl > 0 && texelFetch( uLotMask, ivec2( hl % 128, hl / 128 ), 0 ).r > 0.5 ) transformed = vec3( 0.0 ); }\n';
   const wrapped = new WeakSet();
   kit.hideHook = (m) => {
     if (wrapped.has(m)) return m; wrapped.add(m);

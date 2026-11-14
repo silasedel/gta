@@ -156,7 +156,8 @@ float lNoise(vec2 p) {
       const s = it.s || 1, T = TALL[kind];
       if (T) {
         const o = { y: it.y || 0, h: T[1] * s, gap: 0.1, crown: { r: T[2] * s * 0.8, y0: (it.y || 0) + T[1] * s * 0.55 } };
-        if (occupancy.blocked(it.x, it.z, T[0] * s, o)) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
+        const inBld = data.surfaceAt ? [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => data.surfaceAt(it.x + dx * (T[0] * s + 0.4), it.z + dz * (T[0] * s + 0.4)) === 'building') : false; // trunk through a map building wall
+        if (inBld || occupancy.blocked(it.x, it.z, T[0] * s, o)) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
         occupancy.add({ x: it.x, z: it.z, r: T[0] * s, y: o.y, h: o.h, kind: 'palm', src: 'dressing.v2.js:addVeg', crown: o.crown, owner: 'dressing', audit: false });
       } else if (occupancy.blocked(it.x, it.z, 0.5 * s, { y: it.y || 0, h: 1.5, soft: true, gap: 0.05 })) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
     }

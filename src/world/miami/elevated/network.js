@@ -6,6 +6,7 @@
 import { P, rankOf } from './params.js';
 import { smoothConstrained, boxSmooth } from './solve.js';
 import { resolveOverrides, applyPlans, applyTargets, applyProfile } from './overrides.js';
+const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 
 const DEG = Math.PI / 180;
 
@@ -432,7 +433,9 @@ export function buildNetwork(data, opts = {}) {
     // no embankment islands shorter than 12 m between open spans
     for (let i = 0; i < n;) { if (c.type[i] !== 1) { i++; continue; } let j = i; while (j < n && c.type[j] === 1) j++; if (i > 0 && j < n && c.type[i - 1] === 2 && c.type[j] === 2 && c.s[j - 1] - c.s[i] < 12) for (let k = i; k < j; k++) c.type[k] = 2; i = j; }
     for (let i = 0; i < n; i++) {
-      const elevated = c.type[i] > 0 && c.vis[i];
+      // clipping sweep: a jersey barrier only where the deck stands clear of the ground beside it (> 0.6 m drop); the low
+      // feet of ramps over a street at grade got barrier lumps standing on the ground road
+      const elevated = c.type[i] > 0 && c.vis[i] && (CLIP_OFF || c.water[i] || c.y[i] - c.gY[i] > 0.6);
       c.barL[i] = elevated && !c.joinL[i] ? 1 : 0; c.barR[i] = elevated && !c.joinR[i] ? 1 : 0;
     }
     // a barrier must never stand on another deck's carriageway at about its level (gores, merges, crossings, OSM overlaps)
@@ -452,7 +455,7 @@ export function buildNetwork(data, opts = {}) {
     for (const side of [-1, 1]) { const bar = side < 0 ? c.barL : c.barR, jn = side < 0 ? c.joinL : c.joinR;
       for (let i = 0; i < n;) { if (!bar[i]) { i++; continue; } let j = i; while (j < n && bar[j]) j++;
         const len = c.s[Math.min(n - 1, j)] - c.s[i], before = i > 0 && jn[i - 1], after = j < n && jn[j];
-        if (len < 8 && (before || after)) for (let k = i; k < j; k++) bar[k] = 0;
+        if (len < 8 && (before || after || !CLIP_OFF)) for (let k = i; k < j; k++) bar[k] = 0; // clipping sweep: no orphan barrier stubs
         i = j; } }
     // trimmed ends (ground junctions) are never elevated; no barrier inside the trim
     for (let i = 0; i < n; i++) { if (c.s[i] < c.trimA + 0.01 || c.length - c.s[i] < c.trimB + 0.01) { c.barL[i] = c.barR[i] = 0; } }

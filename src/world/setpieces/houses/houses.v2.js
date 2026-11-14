@@ -10,6 +10,10 @@ import * as THREE from 'three';
 import { createHouseKit } from './materials.js';
 import { planHouse, buildHouse, buildHouseGen } from './generator.js';
 import { lots } from './lots.js';
+import { occupancy } from '../../ground/occupancy.js';
+// clipping sweep: yard palms / trees never inside a map building footprint or through a pole / another trunk (shared index)
+const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search);
+const TALLV = { coconut: [0.3, 9, 2.6], sabal: [0.3, 8, 2.4], royal: [0.35, 12, 2.6], liveoak: [0.35, 9, 3.2], gumbo: [0.35, 8, 3], seagrape: [0.25, 4, 2] };
 
 export const order = 75;   // after world-dressing (70), which registers the spawn-street lots
 
@@ -96,6 +100,11 @@ export async function initV2(game) {
       if (cl.dead) { for (const g of [cl.mid, cl.far]) g.traverse((o) => o.geometry?.dispose()); return; }
       root.add(cl.mid, cl.far); cl.ready = true;
       // yard planting: one instanced vegetation field per kind and cluster (the vegetation system's own LODs and impostors)
+      if (!CLIP_OFF) for (const kind of Object.keys(cl.plants)) { const T = TALLV[kind]; if (!T) continue; const D = game.miamiData, TS = game.city?.streamer?.tileSize || 200;
+        const inBld = (x, z, r) => { for (const [dx, dz] of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]]) { const px = x + dx, pz = z + dz, tile = D?.getTile?.(Math.floor(px / TS), Math.floor(pz / TS)); for (const b of (tile && tile.buildings) || []) { const ring = b.rings && b.rings[0]; if (!ring) continue; let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, zi] = ring[i], [xj, zj] = ring[j]; if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c; } if (c) return true; } } return false; };
+        cl.plants[kind] = cl.plants[kind].filter((it) => { const sc = it.s || 1, o = { y: it.y || 0, h: T[1] * sc, gap: 0.1, crown: { r: T[2] * sc * 0.8, y0: (it.y || 0) + T[1] * sc * 0.55 } };
+          if (inBld(it.x, it.z, T[0] * sc + 0.3) || occupancy.blocked(it.x, it.z, T[0] * sc, o)) return false;
+          occupancy.add({ x: it.x, z: it.z, r: T[0] * sc, y: o.y, h: o.h, kind: 'palm', src: 'houses.v2.js:yard plants', crown: o.crown, owner: 'houses:' + cl.key, audit: false }); return true; }); }
       if (game.vegetation?.field) for (const [kind, items] of Object.entries(cl.plants)) { yield; try { cl.fields.push(game.vegetation.field(kind, items, { variants: 2, seed: 7, parent: root })); } catch (e) { console.warn('[houses] plants', kind, e); } }
       stats.buildMs += performance.now() - t0;
     })();
@@ -103,7 +112,7 @@ export async function initV2(game) {
     return cl;
   }
   function removeCluster(cl) {
-    cl.dead = true;
+    cl.dead = true; occupancy.removeOwner('houses:' + cl.key);
     for (const L of cl.lots) { dropNear(L); dropCols(L); lots.remove(L.lotKey); dropId(L.id); }
     for (const g of [cl.mid, cl.far]) { if (!g) continue; g.traverse((o) => o.geometry?.dispose()); g.removeFromParent(); }
     for (const f of cl.fields) { try { f.remove(); } catch (e) { /* */ } }
@@ -256,7 +265,7 @@ export async function initV2(game) {
         for (const L of cl.lots) {
           const d = Math.hypot(L.x - cam.x, L.z - cam.z), dp = Math.hypot(L.x - P.x, L.z - P.z);
           if ((L.nearData || L.wantNear) && (d > NEAR_OUT || !vis)) dropNear(L);
-          else if (!L.nearData && !L.bad && d < NEAR_IN && vis) { L.wantNear = true; if (nearBusy !== L && d < bestD) { bestD = d; bestNear = L; } }
+          else if (!L.nearData && !L.bad && L.id && d < NEAR_IN && vis) { /* clipping sweep: a lot without a mask id cannot hide its merged copy, so it stays merged */ L.wantNear = true; if (nearBusy !== L && d < bestD) { bestD = d; bestNear = L; } }
           if (L.nearData) { stats.near++; setLamps(L, night); }
           if (!L.col && !L.bad && dp < COL_IN) makeCols(L); else if (L.col && dp > COL_OUT) dropCols(L);
         }

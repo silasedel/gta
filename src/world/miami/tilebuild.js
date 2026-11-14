@@ -23,6 +23,7 @@ const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(locatio
 import { occupancy } from '../ground/occupancy.js';
 import { breakables } from './breakables.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
+const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
 export function createTileBuilder(ctx) {
@@ -1528,6 +1529,12 @@ export function createTileBuilder(ctx) {
     const snapY = (p, r) => { if (!slab) return; const y = p.y || 0; if (y > 0.3 || y < -0.05) return; // piers, decks, planters, shallows: placed on purpose
       let on = 0, top = 0; for (const [dx, dz] of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]]) { const h = slab(p.x + dx, p.z + dz); if (h !== null) { on++; top = Math.max(top, h); } }
       if (on >= 3) { if (Math.abs(y - top) > 0.02) { p.y = top; placeStats.groundSnapped = (placeStats.groundSnapped || 0) + 1; } }
+      else if (on === 0 && y > 0.08) { // at curb height but off the slab: only where the slab visibly ends right here (clipped corner,
+        // driveway), away from the tile seam (the neighbor tile may own the slab under it)
+        const S0 = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? tile.tx * S0, z0 = tile.z0 ?? tile.tz * S0;
+        if (p.x - x0 < 3 || x0 + S0 - p.x < 3 || p.z - z0 < 3 || z0 + S0 - p.z < 3) return;
+        let near = 0; for (const [dx, dz] of [[2.5, 0], [-2.5, 0], [0, 2.5], [0, -2.5]]) if (slab(p.x + dx, p.z + dz) !== null) near++;
+        if (near >= 1) { p.y = Math.max(0, Math.min(0.03, gY0(p.x, p.z) > 0.1 ? 0 : gY0(p.x, p.z))); placeStats.groundSnapped = (placeStats.groundSnapped || 0) + 1; } }
       };
     const inB = (x, z, r) => insideBuilding(tile, x, z) || insideBuilding(tile, x + r, z) || insideBuilding(tile, x - r, z) || insideBuilding(tile, x, z + r) || insideBuilding(tile, x, z - r); // trunk / post through a wall
     for (const kind of Object.keys(OCC)) {
@@ -2395,8 +2402,8 @@ export function createTileBuilder(ctx) {
     for (const k of ex.skirts) if (k.band) { // inland sand band behind the waterline, ragged inner edge (6 m steps)
       const a = k.p, b2 = k.q, L = Math.hypot(b2[0] - a[0], b2[1] - a[1]), n = Math.max(1, Math.ceil(L / 6)), wAt = (x, z) => 26 + 16 * (Math.sin(x * 0.043 + Math.sin(z * 0.031) * 2) * 0.5 + 0.5);
       for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n, x0 = a[0] + (b2[0] - a[0]) * t0, z0 = a[1] + (b2[1] - a[1]) * t0, x1 = a[0] + (b2[0] - a[0]) * t1, z1 = a[1] + (b2[1] - a[1]) * t1, w0 = wAt(x0, z0), w1 = wAt(x1, z1);
-        quadUp(B.sand, [x0, 0.008, z0], [x1, 0.008, z1], [x1 - k.nx * w1, 0.008, z1 - k.nz * w1], [x0 - k.nx * w0, 0.008, z0 - k.nz * w0], new THREE.Color(0xffffff), 1 / 6); } }
-    for (const k of ex.skirts) { const a = k.p, b2 = k.q, D = 9, y1 = -1.6; quadUp(B.sand, [a[0], 0.008, a[1]], [b2[0], 0.008, b2[1]], [b2[0] + k.nx * D, y1, b2[1] + k.nz * D], [a[0] + k.nx * D, y1, a[1] + k.nz * D], new THREE.Color(0xffffff), 1 / 6); }
+        quadUp(B.sand, [x0, EXIT_Y, z0], [x1, EXIT_Y, z1], [x1 - k.nx * w1, EXIT_Y, z1 - k.nz * w1], [x0 - k.nx * w0, EXIT_Y, z0 - k.nz * w0], new THREE.Color(0xffffff), 1 / 6); } }
+    for (const k of ex.skirts) { const a = k.p, b2 = k.q, D = 9, y1 = -1.6; quadUp(B.sand, [a[0], EXIT_Y, a[1]], [b2[0], EXIT_Y, b2[1]], [b2[0] + k.nx * D, y1, b2[1] + k.nz * D], [a[0] + k.nx * D, y1, a[1] + k.nz * D], new THREE.Color(0xffffff), 1 / 6); }
   }
   function exitColliders(tile, tri, box) {
     const ex = exitsOf(tile);

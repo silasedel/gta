@@ -172,6 +172,7 @@ function zfight(game, A) {
   let tris = 0; const matName = new Map(), MK = new Map(); for (const [k, v] of Object.entries(game.city.materials || {})) if (v && v.uuid) MK.set(v.uuid, k); const matKey = (m) => MK.get(m.uuid) || m.name || m.type;
   const tEnd = performance.now() + 120000;
   meshes.forEach((o, mi) => { if (performance.now() > tEnd) return;
+    const LOT = o.geometry.attributes.aLot, LM = game.houses?.kit?.lotMask;
     const g = o.geometry, P = g.attributes.position, I = g.index, nT = I ? I.count / 3 : P.count / 3, mw = o.matrixWorld;
     const groups = g.groups && g.groups.length && Array.isArray(o.material) ? g.groups : null;
     const matAt = (f) => { if (!groups) return Array.isArray(o.material) ? o.material[0] : o.material; for (const gr of groups) if (f * 3 >= gr.start && f * 3 < gr.start + gr.count) return o.material[gr.materialIndex]; return o.material[0]; };
@@ -180,6 +181,8 @@ function zfight(game, A) {
       va.fromBufferAttribute(P, ia).applyMatrix4(mw); vb.fromBufferAttribute(P, ib).applyMatrix4(mw); vc.fromBufferAttribute(P, ic).applyMatrix4(mw);
       e1.subVectors(vb, va); e2.subVectors(vc, va); n.crossVectors(e1, e2); const L = n.length(); if (L < 1e-6) continue; n.divideScalar(L);
       if (Math.abs(n.y) < 0.97) continue; // up-facing (or down-facing double-sided) flat surfaces only
+      if (n.y < 0 && va.y < 0.5) continue; // undersides at ground level are never seen
+      if (LOT && LM && LM.hidden && LM.hidden(Math.round(LOT.getX(ia)))) continue; // house lot hidden in the merged mesh (its full build shows)
       const x0 = Math.min(va.x, vb.x, vc.x), x1 = Math.max(va.x, vb.x, vc.x), z0 = Math.min(va.z, vb.z, vc.z), z1 = Math.max(va.z, vb.z, vc.z);
       if (x1 < A.x - A.r || x0 > A.x + A.r || z1 < A.z - A.r || z0 > A.z + A.r) continue;
       if ((x1 - x0) * (z1 - z0) > 40000) continue; // map-scale planes (sea, land base): not a layer that can fight locally

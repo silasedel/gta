@@ -7,6 +7,7 @@ import { sharedVegMaterials, vegUniforms, updateVegetation, setVegCamera } from 
 import { createCountryside, CS_ON } from './countryside.js';
 import { createVegField } from './field.js';
 import { PALM_SPECIES } from './palms.js';
+import { inMapBuilding } from '../ground/occupancy.js';
 
 export const order = 60;
 const ALIAS = { coconut_palm: 'coconut', royal_palm: 'royal', sabal_palm: 'sabal', cabbage_palm: 'sabal', date_palm: 'date', queen_palm: 'queen', sea_grape: 'seagrape', saw_palmetto: 'sawpalmetto', live_oak: 'liveoak', slash_pine: 'slashpine', gumbo_limbo: 'gumbo', bald_cypress: 'cypress' };
@@ -21,6 +22,7 @@ export async function initV2(game) {
     const G = C.roadGraph; if (G && G.nearestEdge) { const e = G.nearestEdge(x, z, _ne, 40); if (e && e.dist - e.edge.width / 2 < r + 1.5) { clearStats.road++; return false; } }
     const E = C.elevated; if (E && E.footprintAt) for (const [dx, dz] of [[0, 0], [r + 2, 0], [-r - 2, 0], [0, r + 2], [0, -r - 2]]) { let f = null; try { f = E.footprintAt(x + dx, z + dz); } catch (e) { /* */ } if (f) { clearStats.deck++; return false; } }
     if (C.surfaceAt) { let s = ''; try { s = C.surfaceAt(x, z); } catch (e) { /* */ } if (BAD_SURF.test(String(s))) { clearStats.surface++; return false; } }
+    if (r >= 1 && !/[?&]clipfix=0/.test(location.search) && inMapBuilding(game, x, z, 0.7)) { clearStats.building = (clearStats.building || 0) + 1; return false; } // clipping sweep: no trunk through a building wall
     return true;
   }
   const fields = [];
