@@ -763,6 +763,11 @@ export function createBoats(game, opts = {}) {
       let ok = true;
       for (let k = 0; k < 8 && ok; k++) { const aa = (k / 8) * Math.PI * 2; if (!isWater(x + Math.cos(aa) * 6, z + Math.sin(aa) * 6)) ok = false; }
       if (!ok) continue;
+      // [car-bodies C4] water over a dock / pier / piling is not free water: keep 8 m clear of fixed structure
+      if (city?.collidersReadyAt && !city.collidersReadyAt(x, z)) continue; // docks not streamed in yet: try later (manager refills)
+      if (structAbove(x, z)) continue;
+      for (let k = 0; k < 12 && ok; k++) { const aa = (k / 12) * Math.PI * 2; for (const rr of [3, 5.5, 8]) if (structAbove(x + Math.cos(aa) * rr, z + Math.sin(aa) * rr)) { ok = false; break; } }
+      if (!ok) continue;
       return { x, z, heading: Math.random() * Math.PI * 2 };
     }
     return null;
@@ -782,6 +787,23 @@ export function createBoats(game, opts = {}) {
       if (s.length && s.length > L + 0.6) { const fx = Math.sin(s.heading ?? 0), fz = Math.cos(s.heading ?? 0);
         for (const end of [1, -1]) { const ex = s.x + fx * end * (s.length / 2 + 1.6), ez = s.z + fz * end * (s.length / 2 + 1.6);
           if (structAbove(ex, ez)) { const sh = (s.length - L) / 2 * 0.95; px = s.x + fx * end * sh; pz = s.z + fz * end * sh; break; } } }
+      // [car-bodies C4] keep the hull ends and the outboards (they hang ~1 m past the transom) off the dock / quay / pilings
+      { const fx = Math.sin(s.heading ?? 0), fz = Math.cos(s.heading ?? 0), side = [fz, -fx];
+        // samples inside the berth's own static boat footprint are skipped (its collider stays live while claimed)
+        const own = (s.length || 0) / 2 + 0.05;
+        const blocked = (x, z) => [[L / 2 + 0.35, 0], [-(L / 2 + 1.1), 0], [-(L / 2 + 0.9), 0.45], [-(L / 2 + 0.9), -0.45], [L / 2, 0.4], [L / 2, -0.4]].some(([a, l]) => {
+          const qx = x + fx * a + side[0] * l, qz = z + fz * a + side[1] * l;
+          if (Math.abs((qx - s.x) * fx + (qz - s.z) * fz) < own && Math.abs((qx - s.x) * side[0] + (qz - s.z) * side[1]) < 1.6) return false;
+          return structAbove(qx, qz);
+        });
+        const blockedAt = (x, z, a) => { const qx = x + fx * a, qz = z + fz * a; if (Math.abs((qx - s.x) * fx + (qz - s.z) * fz) < own) return false; return structAbove(qx, qz); };
+        for (let k = 0; k < 24 && blocked(px, pz); k++) {
+          const sb = blockedAt(px, pz, -(L / 2 + 1.1)), bb = blockedAt(px, pz, L / 2 + 0.35);
+          const dir = sb && !bb ? 1 : bb && !sb ? -1 : 0;
+          if (!dir) break;
+          px += fx * dir * 0.25; pz += fz * dir * 0.25;
+        }
+        if (blocked(px, pz)) { if (s.id != null) city?.releaseMooring?.(s.id); continue; } }
       const b = makeBoat(key, { x: px, z: pz }, s.heading ?? 0);
       b.moorId = s.id ?? null; if (b.moorId != null) { b.moorPos = { x: s.x, z: s.z }; pendingRelease.delete(b.moorId); }
     }

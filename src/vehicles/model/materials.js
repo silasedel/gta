@@ -87,7 +87,18 @@ uniform vec4 uTwoTone;     // rgb = second color, a = split height (y below it g
 uniform vec4 uPatchMin;    // xyz = box min, w = strength (0 disables): a replaced panel in another color
 uniform vec3 uPatchMax;
 uniform vec3 uPatchColor;
+uniform vec4 uRoofTone;    // rgb = roof / pillar color, a = height above which it applies (<= 0 disables)
+uniform float uFlake;      // metallic flake strength (0 = solid paint)
 float wearDirt; float wearRust; float wearFade;
+// metallic flake: sub-millimeter cells with random orientation; returns a normal tilt, faded out with distance (no shimmer)
+vec3 flakeTilt(vec3 p) {
+  vec3 c = floor(p * 900.0);
+  float h1 = fract(sin(dot(c, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+  float h2 = fract(sin(dot(c, vec3(269.5, 183.3, 246.1))) * 43758.5453);
+  float h3 = fract(sin(dot(c, vec3(113.5, 271.9, 124.6))) * 43758.5453);
+  float fw = length(fwidth(p)) * 900.0;
+  return (vec3(h1, h2, h3) - 0.5) * (1.0 - smoothstep(0.2, 0.6, fw));
+}
 vec4 grimeTri(vec3 p, vec3 w) {
   return texture2D(uGrime, p.zy) * w.x + texture2D(uGrime, p.zx) * w.y + texture2D(uGrime, p.xy) * w.z;
 }
@@ -101,6 +112,10 @@ void computeWear(inout vec3 albedo) {
   if (uTwoTone.a > 0.0) {
     float e = smoothstep(uTwoTone.a + 0.004, uTwoTone.a - 0.004, p.y);
     albedo = mix(albedo, uTwoTone.rgb, e);
+  }
+  if (uRoofTone.a > 0.0) {
+    float e = smoothstep(uRoofTone.a - 0.004, uRoofTone.a + 0.004, p.y);
+    albedo = mix(albedo, uRoofTone.rgb, e);
   }
   if (uPatchMin.w > 0.0) {
     vec3 inside = step(uPatchMin.xyz, p) * step(p, uPatchMax);
@@ -148,6 +163,7 @@ function injectWear(mat) {
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade)));\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
   };
   mat.customProgramCacheKey = () => 'ps-wear-v2';
@@ -202,6 +218,8 @@ export function carPaint(opts = {}) {
     uPatchMax: { value: pt ? new THREE.Vector3(...pt.max) : new THREE.Vector3() },
     uPatchColor: { value: hex(pt?.color ?? 0x6a6d70) },
     uWearOffset: { value: new THREE.Vector3() },
+    uRoofTone: { value: opts.roofTone ? new THREE.Vector4(...hex(opts.roofTone.color).toArray(), opts.roofTone.y) : new THREE.Vector4(0, 0, 0, 0) },
+    uFlake: { value: opts.flakeAmt ?? ({ metallic: 0.22, pearl: 0.16, satin: 0.12 }[finish] || 0) },
   };
   injectWear(m);
   return m;
@@ -209,7 +227,7 @@ export function carPaint(opts = {}) {
 /** A companion material that shares the wear uniforms of `paint` (same dirt on bumpers, cladding, trim, bed liner...). */
 export function wornMaterial(paint, params) {
   const m = new THREE.MeshPhysicalMaterial({ envMapIntensity: 1, ...params });
-  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
+  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
   injectWear(m);
   return m;
 }
