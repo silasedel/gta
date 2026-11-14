@@ -339,6 +339,10 @@ export function buildNetwork(data, opts = {}) {
       if (any) c.y = smoothConstrained(yt, w, eq, lo, hi, P.SMOOTH_LAMBDA, 24, P.TENSION);
     }
     for (let i = 0; i < n; i++) if (c.y[i] < 0 && Number.isNaN(eq[i])) c.y[i] = 0;
+    // clipping sweep: on hills (fictional land) a deck is never buried in the terrain: where the data profile dips under the
+    // ground the deck rides on the ground instead (the terrain collider used to sit on top of the buried deck: flat stretches,
+    // then a 1-2 m step where the deck came out again). Water samples keep their profile.
+    if (!CLIP_OFF && data.hasRelief) for (let i = 0; i < n; i++) { if (isWater(c.x[i], c.z[i])) continue; const g = terrainY(c.x[i], c.z[i]); if (g > 0.05 && c.y[i] < g + 0.02) c.y[i] = g + 0.02; }
     if (pass === 0) c.yPrev = Float64Array.from(c.y);
     solved[c.id] = 1;
     for (const [end, node] of [[0, c.nodeA], [1, c.nodeB]]) if (!nodeY.has(node)) nodeY.set(node, c.y[end === 0 ? 0 : n - 1]);

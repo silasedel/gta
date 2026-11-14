@@ -853,6 +853,10 @@ export function createTileBuilder(ctx) {
       if (!nt || nt.then || nt === tile) continue; const k = endKey(p);
       let yN = null; for (const r2 of nt.roads) { if (r2.pts.length < 2) continue; const e0 = endKey(r2.pts[0]) === k, e1 = endKey(r2.pts[r2.pts.length - 1]) === k; if (!e0 && !e1) continue; const b2 = profileBase(r2, nt); yN = b2.ys ? (e0 ? b2.ys[0] : b2.ys[b2.ys.length - 1]) : 0; break; }
       if (yN === null) continue;
+      // clipping sweep: on a relief tile every vertex is raised onto the terrain afterwards, so a piece without a deck profile (ground /
+      // terrain road) must not inherit the neighbour's ABSOLUTE deck height (it was lifted twice: the collider floated ~7 m over the
+      // ramp and cars fell through); compare against the terrain at the seam instead
+      if (!CLIP_OFF && !pr.ys && tile.relief && D) { yN = yN - TH(p[0], p[1]); if (yN < 0.3) continue; }
       const yS = pr.ys ? (atEnd ? pr.ys[pr.ys.length - 1] : pr.ys[0]) : 0, target = (yS + yN) / 2, d = target - yS; if (Math.abs(d) < 0.005) continue;
       if (!pr.ys) pr = { pts: P, ys: new Array(n).fill(0) };
       const Q = pr.pts, m = Q.length; let acc = 0;

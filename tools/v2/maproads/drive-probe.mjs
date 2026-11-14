@@ -98,7 +98,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 900) }, asy
             const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; }); })()`);
         for (let k = 0; k < hs.length; k++) hs[k] = again[k];
         // still missing: go to that very spot (its tile may be outside the teleport's streaming radius) and sample it alone
-        for (let k = 0, n = 0; k < hs.length && n < 12; k++) {
+        for (let k = 0, n = 0; k < hs.length && n < 60; k++) { // every miss (was 12: the rest of a 50-point chunk beyond the 250 m collider radius stayed -8)
           const [ref, y] = hs[k]; if (!(y == null || y < ref - 1.5)) continue; n++;
           const [px, pz, py] = chunk[k];
           await b.eval(`game.teleport(${px}, null, ${pz}, 0) || true`);
