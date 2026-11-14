@@ -88,13 +88,13 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 900) }, asy
       await b.sleep(400);
       const hs = await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, FIX = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS;
         const c = game.city; const pts = ${JSON.stringify(chunk)};
-        return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, y ?? undefined) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
+        return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, (y ?? 0) + 1.2) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
           const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; }); })()`);
       // a miss to the sea plane (-8) right after a teleport is usually a tile whose colliders are not in yet: wait and sample again
       if (hs.some(([ref, y]) => y == null || y < ref - 1.5)) {
         await b.sleep(4000);
         const again = await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, FIX = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS; const c = game.city; const pts = ${JSON.stringify(chunk)};
-          return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, y ?? undefined) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
+          return pts.map(([x, z, y]) => { const g = c.groundHeightAt ? c.groundHeightAt(x, z, (y ?? 0) + 1.2) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
             const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; }); })()`);
         for (let k = 0; k < hs.length; k++) hs[k] = again[k];
         // still missing: go to that very spot (its tile may be outside the teleport's streaming radius) and sample it alone
@@ -105,7 +105,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 900) }, asy
           await b.waitFor(`(() => { const s = game.city.streamer; return !s || !s.readyAround || s.readyAround(${px}, ${pz}, 120); })()`, 60).catch(() => {});
           await b.sleep(1500);
           hs[k] = await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, FIX = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS; const c = game.city; const x = ${px}, z = ${pz}, y = ${py ?? 'null'};
-            const g = c.groundHeightAt ? c.groundHeightAt(x, z, y ?? undefined) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
+            const g = c.groundHeightAt ? c.groundHeightAt(x, z, (y ?? 0) + 1.2) : null; const ref = (Number.isFinite(g) ? g : (y ?? 0)) || 0; const top = ref + 1.8;
             const h = W.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 40, true, FIX); return [ref, h ? +(top - h.timeOfImpact).toFixed(2) : null]; })()`);
         }
       }
