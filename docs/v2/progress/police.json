@@ -1,0 +1,22 @@
+{ "track": "police", "title": "Six-star wanted and evidence HUD", "section": "Police and combat", "agent": "paused",
+  "items": [
+    { "name": "Knowledge model: per-fact sources, confidence, staleness, pending/retracted sources (evidence.js)", "state": "verified", "evidence": "src/gameplay/police/tests/evidence.test.mjs (26 checks pass in Node)" },
+    { "name": "Invalidation rules: clothes, car swap/repaint/plates, weapon ditch, mask, shower, staleness, lie low, leave area", "state": "built", "evidence": "unit-tested in Node; not yet asserted in the full game" },
+    { "name": "Six-star core: heat, search area, pursuit/search phases, escape methods, cooling (wantedCore.js)", "state": "built", "evidence": "unit-tested in Node" },
+    { "name": "Takeover of the v1 wanted code, game.wanted facade, crime -> incident pipeline (police/law.js)", "state": "built", "evidence": "src/gameplay/police/tests/boot.mjs boots clean; assault produced 2 pending witness calls" },
+    { "name": "Senses: witnesses (intimidate, bribe, no phone), store cameras + destroyable recorder, traffic cameras + tickets (wantedSense.js)", "state": "built", "evidence": "" },
+    { "name": "Scripted BIG_UPDATE scenario in the full game (corner store at 3 stars)", "state": "todo", "evidence": "" },
+    { "name": "Silent crime with no witness -> no response (full-game test)", "state": "todo", "evidence": "" },
+    { "name": "Evidence HUD strip, icons, countdown rings, highlights (src/ui/evidenceHud.js/.css)", "state": "todo", "evidence": "" },
+    { "name": "What-they-know card for phone/pause; search-area map API", "state": "building", "evidence": "API exists: game.wanted.searchArea(), description(), snapshot(); no UI yet" },
+    { "name": "Police radio repeating the believed description (police/radio.js, event police:radio)", "state": "built", "evidence": "" },
+    { "name": "Dispatch from real station locations (police/stations.js)", "state": "built", "evidence": "boot test lists 5 stations reachable in the current map" },
+    { "name": "Officer personalities, recognition by description, vaulting, bystander line-of-fire check (police.js)", "state": "built", "evidence": "" },
+    { "name": "Star 3 roadblocks + spike strips, PIT; star 4 helicopter + boats; star 5 SWAT; star 6 Tidewall (police/response.js)", "state": "todo", "evidence": "response.js is an empty shell; models exist" },
+    { "name": "Search behavior: cordon, canvass, stop matching people/cars, K-9", "state": "todo", "evidence": "" },
+    { "name": "Arrest/lethal force rules, surrender, busted/hospital flow with cash vs. bank, impound", "state": "todo", "evidence": "v1 arrest flow still active" },
+    { "name": "Traffic stops, bribes, towing/impound, 911, security checkpoints, bounty hunters, gang hook (police/lowlevel.js)", "state": "todo", "evidence": "lowlevel.js is an empty shell" },
+    { "name": "Police models: helicopter, drone, K-9, spike strip, barriers, cameras, recorder, metal detector, impound lot, SWAT gear", "state": "built", "evidence": "docs/v2/shots/police/model_*.png rendered but NOT reviewed" },
+    { "name": "15-minute chase soak; per-star response screenshots", "state": "todo", "evidence": "" },
+    { "name": "docs/gameplay/police_tuning.md updated for V2", "state": "todo", "evidence": "" }
+  ] }

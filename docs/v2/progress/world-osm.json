@@ -1,0 +1,108 @@
+{
+ "track": "world-osm",
+ "title": "Real Miami + merged world data",
+ "section": "World",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Edge summary for world-layout (V1 rectangle: roads, corridors, land/water intervals, coast continuation)",
+   "state": "verified",
+   "evidence": "tools/osm/cache/edge_summary.json"
+  },
+  {
+   "name": "Fresh OSM pull, cached (tools/osm/cache/v2)",
+   "state": "verified",
+   "evidence": "tools/osm/cache/v2/fetch2.log"
+  },
+  {
+   "name": "Bigger real Miami (dropped by the lead: the real rectangle stays the V1 one)",
+   "state": "verified",
+   "evidence": "tools/osm/config.py"
+  },
+  {
+   "name": "Real shop/amenity/tourism/office/leisure types on buildings and storefronts (types only)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Real land use per block (fuel, hotel, school, worship, garage, office, hospital, police, fire, supermarket, car dealer, laundromat, gym, marina, park)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Building heights, levels, colors, materials, roof shapes, addresses, year where OSM has them",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Road attributes: names, refs, lanes, one-ways, speed limits, surface, toll, lit",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Turn restrictions, traffic signals, stop and yield signs, crossings on the graph",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Bus stops and routes, people-mover / metro / rail lines and stations",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Synthetic region ingest (features.json + heights.bin), tested on a fixture",
+   "state": "verified",
+   "evidence": "docs/v2/shots/world-osm/fixture_merge_preview.png"
+  },
+  {
+   "name": "Unified merged world from the real world-layout file: tiles, connected road graph, grid, map layers, names, places",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit.json + docs/v2/shots/world-osm/world_preview.png (build b20261113-175503, revised Keys, ALL CHECKS PASSED)"
+  },
+  {
+   "name": "Height field exposed through groundHeightAt / terrainHeightAt",
+   "state": "built",
+   "evidence": "audit heights.continuous PASS; in game the renderer still draws flat ground (city-look must drape it), so the park hills are not verified visually"
+  },
+  {
+   "name": "Region tile bundles loaded on demand, compact grid, boot time measured before/after",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm.md"
+  },
+  {
+   "name": "Atomic staging swap (world.json), build id in manifest",
+   "state": "verified",
+   "evidence": "public/assets/miami/world.json"
+  },
+  {
+   "name": "Programmatic audits (connectivity, geometry, storefronts, coverage, heights, transit)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit-real.json"
+  },
+  {
+   "name": "Rendered preview PNG of the world",
+   "state": "verified",
+   "evidence": "docs/v2/shots/world-osm/world_preview.png"
+  },
+  {
+   "name": "Game boots on the new data format (real Miami only)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/world-osm/game_port_cassia.png (data load 113 ms, 59 regions streamed, 0 failed)"
+  },
+  {
+   "name": "Game boots on the merged world, screenshots at 4+ new places",
+   "state": "built",
+   "evidence": "verified at 3 new places: docs/v2/shots/world-osm/game_key_paloma.png (final build), game_port_cassia.png, game_airport.png; a 4th (game_sawpalm_ridge.png) was taken but not reviewed"
+  },
+  {
+   "name": "README: New in V2 (area kinds, fields, region API) for the renderer",
+   "state": "verified",
+   "evidence": "tools/osm/README.md"
+  },
+  {
+   "name": "One re-runnable merge command (build + audit + atomic publish)",
+   "state": "verified",
+   "evidence": "tools/osm/merge.py (ran on the revised features.json: published b20261113-175503 in 32 s)"
+  }
+ ]
+}

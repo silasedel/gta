@@ -53,3 +53,9 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - User sent `references/ref_40_map_user_official.webp` (their own image) and wants an outline copy: accepted. world-layout agent aa7d6857ae7fa3d76 redirected to machine-trace it (uniform scale ~20 m/px, city aligned to the real Miami rectangle, OSM wins inside it). Hard stop 7:30 PM. World grows to about 16 x 22 km plus Keys.
 - Setpiece coordinates (nico_house, keys_sign, keys_bar) will move; world-layout report lists old to new. Tell nico-house/keys-bar agents to read `layout.json` setpieces, not hard-coded numbers.
 - After it reports: run merge.py, check side-by-side in docs/v2/compare/, send map to user, tell world-render agent the bounds changed.
+
+## 6:25 PM
+- Usage 62% all / 69% Fable. Deadline relaxed to about noon Nov 14. User set this session to medium effort.
+- New standard 5 in CONTRACT5 (wear, imperfection, fine detail, polished shading). User wants: palms/bushes redesigned, great shaders/atmosphere, sand footprints, talk to people, everything on the list.
+- Launched: environment a8371d771747b3b73 (Fable), vegetation a5ced4667cbd7a698 (Opus). keys-bar agent a5bac553f75291b48 resumed as `sand-wear` (sand material, footprints, bar wear pass).
+- Map: user re-sent the same official map (ref_40); bigger size accepted.

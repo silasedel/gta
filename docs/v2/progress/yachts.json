@@ -1,0 +1,138 @@
+{
+ "track": "yachts",
+ "title": "Yachts",
+ "section": "Vehicles",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Yacht kit: hull loft, decks, houses, stairs, rails, PBR materials",
+   "state": "built",
+   "evidence": "docs/v2/shots/yachts/_kitcheck_e.png"
+  },
+  {
+   "name": "Fleet of 10+ distinct original yachts (40 ft to 150 ft), each with name, builder, port, lore",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Deck-by-deck interiors: salon, galley, dining, cabins, heads, engine room, crew, tender garage",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Flybridge and helm with instruments, working wheel and throttles",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Sundeck, loungers, working hot tub you can sit in",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Food and drink you can eat aboard",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Navigation, deck, underwater and interior lights",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Music system audible across the water",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Moving-platform physics: walk every deck, stair and rail while under way (no fall-through, no jitter)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Ship motion: displacement and semi-planing roll, pitch, slow turning, big wake",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Mooring at marinas, anchoring offshore, cruising AI routes",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Boarding: swim platform, tender, dock",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helm: ask the captain or take over by force; hang out (eat, hot tub, dance)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scenario: party yacht",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scenario: rich family yacht (confrontation, police call, return to shore)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scenario: crewed charter (booking check, security)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helm takeover escalation (wanted stars, panic, overboard jump)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Captains, crew and guests as distinct people with roles, lines and routines",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Standalone walkable preview page with deck-by-deck cameras",
+   "state": "building",
+   "evidence": "src/vehicles/yachts/preview.html (orbit and fixed cameras only, no walk mode yet)"
+  },
+  {
+   "name": "Fleet contact sheet proving distinctness",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Exterior and every-deck interior shots of each yacht",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scripted walk through every deck and stair of every yacht (static and under way)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Stern shot compared with ref_34",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "LODs and triangle / draw-call budgets",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Full-game integration (yachts.v2.js, registerKind)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Notes and readable fields for the audio track",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

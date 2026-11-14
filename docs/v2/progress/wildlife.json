@@ -1,0 +1,118 @@
+{
+ "track": "wildlife",
+ "title": "Wildlife and the pet dog",
+ "section": "People",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Creature kit: procedural skins (albedo/normal/roughness), lofted bodies, rigs, IK, preview stage",
+   "state": "verified",
+   "evidence": "docs/v2/shots/wildlife/_wip_iguana_head.png"
+  },
+  {
+   "name": "Birds: pelican, gulls, terns, herons, egrets, ibis, osprey, spoonbill, cormorant, anhinga, vultures, pigeons, grackles, night heron, peacock, rooster",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Birds on wires that scatter (game.wildlife.perchLine)",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Green iguanas: basking, head-bob, road crossing, cold-morning stunned drop",
+   "state": "built",
+   "evidence": "docs/v2/shots/wildlife/_wip_iguana_states.png"
+  },
+  {
+   "name": "Anoles and geckos on walls",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Alligators: basking, floating, sliding in, attack",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Turtles (freshwater and sea)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Raccoons, feral cats, Key deer, bats",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Butterflies, dragonflies, dusk mosquitoes",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Manatees in canals and marinas",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Dolphins: surfacing, bow-riding (ref_34)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Rays, nurse sharks, jellyfish, crabs, lobsters",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Fish schools by species and habitat, bait balls with diving birds",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Rare open-water shark encounter that can bite",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Underwater dressing: corals, sea fans, sponges, seagrass, rocks, shells (ref_33)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Caves with light shafts (ref_32), wrecks, rare seabed finds",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Fishing: cast/wait/bite/fight/land, species by place/time/tide, bait shops, catch log, selling",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Pet dog: shelter adoption, breeds, follow, car, swim, fetch, training, needs, save",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Reactions and ecology: threats, weather, time of day, road-kill avoidance",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Habitat spawner in the full game (wildlife.v2.js), LODs, performance budget",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Audio hooks and notes for the audio track",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Reference comparisons (ref_32, ref_33, ref_34) and frame times",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

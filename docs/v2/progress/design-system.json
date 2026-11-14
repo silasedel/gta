@@ -1,0 +1,23 @@
+{ "track": "design-system", "title": "Brands, materials and products", "section": "Buildings and stores", "agent": "done",
+  "items": [
+    { "name": "Public API published (src/design/README.md, index.js, design.v2.js sets game.design)", "state": "verified", "evidence": "src/design/tools/smoke.js: 2911 generator checks, 0 failed; node src/design/check.mjs: 0 failures; full game boot: game.design present, game.v2.failed empty" },
+    { "name": "Mark library: 350 symbols drawn in code (logos, label art, icons)", "state": "verified", "evidence": "docs/v2/shots/design-system/marks.png" },
+    { "name": "Invented brands with logos: 206 brands in 76 of 123 categories (fuel, convenience, grocery, pharmacy, fast food, cafes, bars, clubs, hotels, banks, fashion, shoes, drinks, spirits, snacks, tobacco, tech, media, civic, cars, boats)", "state": "verified", "evidence": "docs/v2/shots/design-system/brands_main.png, brands_core.png (all 206 render with no errors; the first 71 logos were reviewed by eye)" },
+    { "name": "Visual review of the remaining 135 brand logos", "state": "built", "evidence": "docs/v2/shots/design-system/brands_main.png covers only the top of the sheet" },
+    { "name": "Brand breadth: 47 categories still empty (bookstore, toys, pet-store, florist, laundromat, pawn, gun-store, souvenir, home-store, cinema, church, education and others)", "state": "todo", "evidence": "node src/design/check.mjs lists missingCategories; agent briefs ready in src/design/tools/brand_brief.md" },
+    { "name": "Car maker badges for the 15 catalog brands", "state": "built", "evidence": "in brands_main sheet below the reviewed area" },
+    { "name": "Manufacturer families: 22 makers, 79 object kinds (elevators, lamps, benches, docks, HVAC, plumbing, pumps, coolers, cameras)", "state": "built", "evidence": "data and logos pass the smoke test; not reviewed by eye" },
+    { "name": "Shared PBR material library: 79 procedural sets (albedo, normal, roughness, AO) with wear", "state": "verified", "evidence": "docs/v2/shots/design-system/materials.png (60 of 79 spheres seen)" },
+    { "name": "Shared PBR material library: CC0 photo texture sets (Poly Haven / ambientCG)", "state": "todo", "evidence": "not downloaded: time ran out; materials.get API is ready to take file-based sets" },
+    { "name": "Product catalog: 85 products with prices, nutrition and effects", "state": "verified", "evidence": "node src/design/check.mjs (0 failures)" },
+    { "name": "Product models with brand label art: cans, bottles, bags, cartons, packs, jars, tubes, cups, scratch-offs", "state": "verified", "evidence": "docs/v2/shots/design-system/products.png, products_close.png" },
+    { "name": "Prepared food models (hot dog, burgers, donuts, pastelitos, croqueta, Cuban sandwich, pizza, nigiri, coconut, cafecito)", "state": "built", "evidence": "docs/v2/shots/design-system/products.png (small in frame; only the hot dog seen close)" },
+    { "name": "Bite stages carved into food geometry", "state": "built", "evidence": "products_close.png shows a bitten hot dog; other foods build without errors but were not inspected" },
+    { "name": "Phones (5) and sneakers (5)", "state": "built", "evidence": "phones look right in products_close.png; sneakers are blocky and need a modeling pass" },
+    { "name": "Products for fashion (handbags, clothing), jewelry, watches, cosmetics, hardware, luxury shoes", "state": "todo", "evidence": "" },
+    { "name": "Storefront signs per sign style (16 styles on 6 constructions) and billboards", "state": "built", "evidence": "docs/v2/shots/design-system/signs.png: pylons, plaques and painted boards read well; two hand-painted signs z-fought, patched with polygon offset and not re-shot" },
+    { "name": "Print generators: posters, menus, price tags, receipts, flyers, stickers, plate frames, liveries, bags, cups, labels", "state": "built", "evidence": "all run for every brand in the smoke test; output images were not reviewed by eye" },
+    { "name": "Style guides per district (21), tier and brand", "state": "built", "evidence": "src/design/styleguide.js, styleguide.md" },
+    { "name": "Automated checks: unique names, banned names, product has model and brand, brand has logo", "state": "verified", "evidence": "node src/design/check.mjs" },
+    { "name": "Bundled cross-platform fonts", "state": "todo", "evidence": "logos use macOS system faces through font roles; needs the lead to approve an open font license" }
+  ] }

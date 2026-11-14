@@ -1,0 +1,163 @@
+{
+ "track": "npc-ai",
+ "title": "People: personalities, routines, talking",
+ "section": "People",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Person generator: ages, bodies, heights, faces, hair, outfits by district/income/job/weather/time",
+   "state": "built",
+   "evidence": "src/npc/identity.js, src/npc/look.js (not yet wired into peds.js)"
+  },
+  {
+   "name": "Accessories: phones, bags, strollers, leashed dogs, mobility scooters, walkers, bikes, skateboards, coolers, beach chairs",
+   "state": "building",
+   "evidence": "src/npc/props.js (70 merged-mesh props, parses, not yet viewed)"
+  },
+  {
+   "name": "Uniqueness audit: zero duplicate signatures in a 20-minute soak",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Seeded identities: name, age, home, job, income, traits, mood, likes, relationships",
+   "state": "built",
+   "evidence": "src/npc/identity.js (node test: 60,000 people, 0 duplicate names)"
+  },
+  {
+   "name": "Identity visibly changes gait, posture, reactions, talk and decisions",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Daily schedules per district and hour (rush hour, noon beach, 1 AM clubs, dawn crews, opening routines)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Schedule test: one district sampled every game hour",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Tier D street activities (coffee line, dominoes, fruit cart, unloading, car wash, dog walks, performers, food-truck line, smokers, couples, tourists, kids, construction, fishermen, bus stops)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Beach life: sunbathers, umbrellas, volleyball, swimmers, lifeguards in towers",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "General sit system shared with the player (game.sit.nearest)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Group behavior and NPC-to-NPC conversations",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Reactions by personality: gunfire (flee, freeze, fight, call 911, film), crash crowds, helping the injured",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Honk reactions: jump back, yell, flip off",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Comments on outfit, car, weather, time and what the player just did",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Home intrusion reactions: scream, call 911, grab a bat",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Witness reports with accurate or flawed descriptions (witness event for police)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Ragdolls for cars, falls and explosions; paramedics sometimes arrive",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Line bank: thousands of original lines by personality, context, district, time, weather, relationship",
+   "state": "todo",
+   "evidence": "format spec only: src/npc/lines/_spec.js"
+  },
+  {
+   "name": "Smart line picker and repeat-rate measurement",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "NPCs speak with purpose: hiring, flirting, deals, warnings, asking for help",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Dialogue wheel with real outcomes (job, discount, friend, fight, police call)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Subtitles, speech bubbles and voice blips",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Optional AI dialogue hook (off by default, no key shipped)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Memory across days, persisted through the save API",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Named locals with lore, schedules, memory, deals and jobs",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Influencer flavor: ring lights, selfies, livestreaming crimes",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scale: 300+ visible people with LODs, instanced crowd and time-sliced AI at 60 fps",
+   "state": "building",
+   "evidence": "src/npc/crowd.js + docs/v2/shots/npc-ai/dev_crowd_poses.png (preview only)"
+  },
+  {
+   "name": "Reaction tests with outcome distributions by personality",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Dialogue test: every wheel option to its outcome",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Street-life screenshots: 6 places x 3 times of day, reviewed",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Liveliness comparison with ref_30 and ref_35",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

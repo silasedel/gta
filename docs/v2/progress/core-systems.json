@@ -1,0 +1,143 @@
+{
+ "track": "core-systems",
+ "title": "Saves, clock, items, food, money",
+ "section": "Systems",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "API published for other tracks (src/systems/README.md)",
+   "state": "built",
+   "evidence": "src/systems/README.md"
+  },
+  {
+   "name": "Save system: versioned slots, IndexedDB + localStorage fallback, checksums, last-good backup",
+   "state": "built",
+   "evidence": "src/systems/save.js"
+  },
+  {
+   "name": "Save registry: every track persists its own slice (register/save/load/migrate)",
+   "state": "built",
+   "evidence": "src/systems/save.js"
+  },
+  {
+   "name": "Save: export/import to a file, Continue and New Game flows, autosave and sleep save",
+   "state": "built",
+   "evidence": "src/systems/save.js"
+  },
+  {
+   "name": "Resume exactly where you left off in the full game (position, heading, vehicle, time, money, health, outfit)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Clock: 9 AM start, 144-minute day with setting, day counter, weekdays, date",
+   "state": "built",
+   "evidence": "src/systems/time.js"
+  },
+  {
+   "name": "Clock: time skip with world catch-up, scheduler (at / every / onHour), moon and tide phases",
+   "state": "built",
+   "evidence": "src/systems/time.js"
+  },
+  {
+   "name": "Settings store with difficulty and assist options",
+   "state": "built",
+   "evidence": "src/systems/settings.js"
+  },
+  {
+   "name": "Items: definitions from the design catalog, instances, stacking, stolen flag, spoilage",
+   "state": "built",
+   "evidence": "src/systems/items.js"
+  },
+  {
+   "name": "Inventory: pockets/bag capacity and weight, hand, give/drop/throw, use actions",
+   "state": "built",
+   "evidence": "src/systems/inventory.js"
+  },
+  {
+   "name": "World persistence of dropped items and world deltas (shelves, recorders)",
+   "state": "built",
+   "evidence": "src/systems/inventory.js"
+  },
+  {
+   "name": "Eating and drinking: bites and sips, calories and nutrition restoring health and stamina",
+   "state": "built",
+   "evidence": "src/systems/needs.js"
+  },
+  {
+   "name": "Effects: coffee sprint boost, blood-alcohol wobble, junk vs. real meals, spoiled-food sickness",
+   "state": "built",
+   "evidence": "src/systems/needs.js"
+  },
+  {
+   "name": "Long-term body change (fat/muscle; gradual, subtle, capped)",
+   "state": "built",
+   "evidence": "src/systems/needs.js"
+  },
+  {
+   "name": "Light needs: tiredness, sleeping (skip time and save), showers ('shower' event)",
+   "state": "built",
+   "evidence": "src/systems/needs.js"
+  },
+  {
+   "name": "Money: cash vs. bank, ATMs, card payments, ledger, death and arrest rules",
+   "state": "built",
+   "evidence": "src/systems/money.js"
+  },
+  {
+   "name": "Fines and tickets mailed to the safehouse, insurance, wages, loans",
+   "state": "built",
+   "evidence": "src/systems/money.js"
+  },
+  {
+   "name": "Economy sheet (src/systems/economy.md) balanced against job income and prices",
+   "state": "building",
+   "evidence": "src/systems/economy.js"
+  },
+  {
+   "name": "Property: buy/rent apartments and houses, hotel nights, garages, marina slips, safehouse features",
+   "state": "built",
+   "evidence": "src/systems/property.js"
+  },
+  {
+   "name": "Vehicle ownership registry: keys, insurance recovery, impound",
+   "state": "built",
+   "evidence": "src/systems/property.js"
+  },
+  {
+   "name": "Businesses you own and run: staff, prices, upgrades, raids, income over elapsed time",
+   "state": "built",
+   "evidence": "src/systems/business.js"
+  },
+  {
+   "name": "Stock market of design-system companies reacting to the player and to news",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Sports and race betting",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scratch-off lottery with real odds tables",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "World services: shop hours, district income levels, stats and achievements, news bus",
+   "state": "built",
+   "evidence": "src/systems/worldstate.js"
+  },
+  {
+   "name": "Automated test suite (src/systems/tests)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Full-game check: play, save, reload, resume (screenshots before/after)",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

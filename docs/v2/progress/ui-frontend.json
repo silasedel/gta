@@ -1,0 +1,163 @@
+{
+ "track": "ui-frontend",
+ "title": "Main menu, map, phone, settings",
+ "section": "Systems",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Read spec, contracts, plan and all of src/ui",
+   "state": "verified",
+   "evidence": "docs/v2/reports/ui-frontend.md"
+  },
+  {
+   "name": "Original UI identity: tokens, component kit, icon set, PORT SOLANA wordmark (SVG)",
+   "state": "built",
+   "evidence": "src/ui/dev/kit.html?s=logo (logo looked at once; kit and icon pages not yet viewed)"
+  },
+  {
+   "name": "Input layer: full key rebinding, controller (Gamepad API), glyphs that follow bindings",
+   "state": "built",
+   "evidence": "src/ui/input/bindings.js (parses; untested)"
+  },
+  {
+   "name": "Keyboard and controller focus navigation for every menu",
+   "state": "built",
+   "evidence": "src/ui/core/focusNav.js (parses; untested)"
+  },
+  {
+   "name": "Settings store: schema, presets, auto-detect, persistence, live apply, 'settings:changed'",
+   "state": "built",
+   "evidence": "src/ui/settings/store.js + schema.js (parses; untested)"
+  },
+  {
+   "name": "Settings UI: graphics, audio buses, controls and rebinding, mouse, subtitles, accessibility, gameplay, language",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Cinematic main menu with live 3D background (game.cameraOverride), scenes rotate between visits",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Fit showcase: rotatable Nico, Outfit/Wardrobe button",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Menu screens: Continue, Story/Missions, Free Roam, Play with Friends, Wardrobe, Garage, Settings, Credits",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "News/updates panel from CHANGELOG.md; version on title and pause menu",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Menu music hook for audio; animated transitions; reduced-motion path",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Pause map rebuilt: vector tiles with LOD, cached, HiDPI, no flicker",
+   "state": "building",
+   "evidence": "src/ui/map/mapCore.js (engine written, parses; never run; no view/minimap yet)"
+  },
+  {
+   "name": "Pause map interaction: cursor-anchored zoom, inertial pan, pinch, keyboard and controller",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Map content: land cover, water depths, roads by class with shields, decluttered labels, places, footprints",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Map overlays: GPS route, POI icons by category with filterable legend, waypoints, friends, missions, police search area",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Fog of discovery and fast travel to discovered places; OSM attribution",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Whole ~15x17 km world supported (verified on a synthetic full-size world and on real Miami data)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Map zoom/pan sweep test: no missing tiles or flicker (frame-to-frame pixel diff)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Minimap on the same renderer (rotating, route, turn arrow)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "HUD: health/armor/stamina, cash vs bank, six stars with evidence-strip slot, clock and date",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "HUD: weapon and ammo, speedometer with gear/fuel/damage warnings",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "HUD: location and street toasts, objective tracker, notifications feed, first-run controls card",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "HUD: subtitles and dialogue wheel container, interaction prompts with live key glyphs",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "HUD overlap tests at 1280x720, 1920x1080, 3440x1440 (on foot, driving, wanted, in water)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Phone OS shell: original design, open/close animation, usable while walking",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Phone apps: contacts and calls (911), messages, missions/jobs, camera and gallery, map",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Phone apps: banking, stocks, rideshare, social feed, news, music/radio, settings, clock/weather",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Loading and title flow restyled",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Keyboard-only navigation test through every menu",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Gamepad-emulated navigation test through every menu",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Full-game integration check (boots, no console errors, menu to gameplay and back)",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

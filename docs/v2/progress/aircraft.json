@@ -1,0 +1,213 @@
+{
+ "track": "aircraft",
+ "title": "Helicopters and planes",
+ "section": "Vehicles",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Fleet data, hard points and internal contract (17 original types)",
+   "state": "built",
+   "evidence": "src/vehicles/air/fleet.js"
+  },
+  {
+   "name": "Model kit: lofted riveted skins, wings, liveries, parts",
+   "state": "built",
+   "evidence": "src/vehicles/air/kit/core.js"
+  },
+  {
+   "name": "Cockpit kit: working instruments, controls, seats",
+   "state": "built",
+   "evidence": "src/vehicles/air/kit/cockpit.js"
+  },
+  {
+   "name": "Helicopter: piston two-seater (Limpkin 2)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helicopter: news / tour turbine (Anhinga 5T)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helicopter: police with working searchlight (Gallinule 4P)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helicopter: twin-engine executive / medevac (Spoonbill 900)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Helicopter: coast-guard-style rescue with hoist (Frigate SAR)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Plane: high-wing trainer (Skimmer)",
+   "state": "building",
+   "evidence": "src/vehicles/air/models/plane.js"
+  },
+  {
+   "name": "Plane: low-wing tourer (Tarpon GT)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Plane: aerobatic biplane (Mockingbird)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Plane: piston twin (Kingfish Twin)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Seaplane / floatplane (Skipjack 8)",
+   "state": "building",
+   "evidence": "src/vehicles/air/models/plane.js"
+  },
+  {
+   "name": "Business jet (Solstice 45)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Crop duster (Canebrake)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Banner-tow plane with banner (Scrub Jay)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Blimp with ad screen (Sundowner A-60)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Airliners: narrow-body, wide-body, regional turboprop, original airline liveries",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Seeded identity per airframe: livery, wear, tail number",
+   "state": "built",
+   "evidence": "src/vehicles/air/kit/livery.js"
+  },
+  {
+   "name": "Flight model: fixed-wing (lift, drag, stall, flaps, ground roll, crosswind)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Flight model: helicopters (collective, cyclic, pedals, ground effect, translational lift, autorotation)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Flight model: floats (water takeoff, landing, docking)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Flight model: blimp",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Assisted and realistic modes, keyboard + mouse controls",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Scripted flight tests with telemetry (takeoff, pattern, landing, hover, transition, autorotation, water landing)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Crashes: damage, fire, smoke, eject / ragdoll hooks",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Rotor wash on water, sand and trees",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Chase and cockpit cameras, flight HUD",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Game integration: enter / exit, registerKind('aircraft'), stealing emits crime",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Airliner traffic at Solana International: approach, landing, taxi, gate, pushback, departure",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Airliner over the highway shot compared with ref_19",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Contrails, landing lights at night, ground shadows",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "General-aviation traffic at Tern Key Airfield",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Seaplane tours in the Keys and at the bay seaplane base (rentable)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Blimp and banner-tow traffic over the beach",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "game.air.spawnPoliceHeli(target): orbit and spotlight tracking",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "News helicopters at big crimes, medevac",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Homes: rooftop and yacht helipads, hangars, tie-downs, seaplane docks",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Standalone preview: studio turntable and flight sandbox",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Contact sheet and close-ups of every aircraft and cockpit",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Notes for the audio track",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

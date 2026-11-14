@@ -1,0 +1,203 @@
+{
+  "track": "vehicles-core",
+  "title": "Cars, damage, driving feel and traffic AI",
+  "section": "Vehicles",
+  "agent": "paused",
+  "items": [
+    {
+      "name": "Registration hooks: registerModel, registerKind, per-vehicle fields, events (README)",
+      "state": "verified",
+      "evidence": "src/vehicles/README.md (smoke test: registerKind + registerModel + spawn returned OK in drive.html)"
+    },
+    {
+      "name": "Car bodies rebuilt: smooth high-detail shells, readable per type",
+      "state": "building",
+      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+    },
+    {
+      "name": "PBR paint, glass, chrome, rubber; detailed wheels and light clusters",
+      "state": "building",
+      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+    },
+    {
+      "name": "Cockpits with driver and passengers visible",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Everyday fleet: sedans, SUVs, pickups, vans, taxis, muscle, coupes, roadsters, hot hatches",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Service fleet: delivery trucks, buses, garbage trucks, tow trucks, ambulances, fire trucks",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Police cruisers, police SUVs, SWAT vans",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Motorcycles, dirt bike, mobility scooter, e-scooters",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Fleet matched to neighborhood income (supercars rich, old sedans poor)",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "No repeating car: seeded trim, wheels, color, two-tone, wear, dirt, dents, rust, stickers, racks, ladders, tint, dash items",
+      "state": "building",
+      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+    },
+    {
+      "name": "Original state license plate, unique per car",
+      "state": "building",
+      "evidence": "src/vehicles/model/*.js, src/vehicles/carModel2.js.wip (not wired, not yet rendered)"
+    },
+    {
+      "name": "Trailers (boat and jet-ski trailers)",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Uniqueness audit: 500 spawned cars, zero identical signatures",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Visual damage: crumpling panels, broken lights and glass, detached bumpers, doors, hoods",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Smoke and fire states",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Mechanical damage: bent steering, radiator overheat, tire blowouts, engine power loss, stall, fuel leak and fire",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Windshield ejection hook in big crashes",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Drift and slide retune, tire smoke, sports-car boost",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Accurate collision surfaces, natural jumps",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Wet-weather grip, puddle hydroplaning, automatic wipers and headlights",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Fuel, tire wear and flats, breakdowns, insurance hooks",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Customization data model and garage API (paint, wheels, tint, body kits, engine, neon)",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Driver personalities that visibly change driving (careful, aggressive, distracted, lost, in a hurry, elderly, tourist, show-off)",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Traffic lights, stop signs, right-of-way",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Lane changes with turn signals",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Yielding to pedestrians at crosswalks",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Pulling over for sirens",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Parking and pulling out",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Honking, road rage, honk-reaction hook for peds",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Accidents and their aftermath",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Rush-hour density by time of day and district",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Delivery trucks, buses and garbage trucks on routes with stops (garbage at dawn)",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Double-parked delivery trucks with hazards",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Big-world spawning on city.roadGraph, highway driving at speed, ramps",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Crash/ram tests re-run and extended: every class at 60/120/200 km/h",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Traffic-behavior test: lights obeyed, personalities measurably different, 10-minute soak without gridlock",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Damage scenarios scripted and screenshotted",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Contact sheet of every model",
+      "state": "todo",
+      "evidence": ""
+    },
+    {
+      "name": "Frame-time and GPU-memory numbers before and after",
+      "state": "todo",
+      "evidence": ""
+    }
+  ]
+}

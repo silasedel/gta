@@ -1,0 +1,193 @@
+{
+ "track": "combat",
+ "title": "Combat, cover, melee, destruction and traversal",
+ "section": "Systems",
+ "agent": "paused",
+ "items": [
+  {
+   "name": "Shared combat conventions (materials, player/camera arbitration, damage routing)",
+   "state": "built",
+   "evidence": "src/gameplay/combat/shared.js"
+  },
+  {
+   "name": "Standalone range / arena page and harness",
+   "state": "built",
+   "evidence": "src/gameplay/combat/range.html"
+  },
+  {
+   "name": "Weapon models: every gun re-modeled (slides, bolts, magazines, sights, moving parts, wear, PBR)",
+   "state": "built",
+   "evidence": "docs/v2/shots/combat/weapons_sheet_factory.png"
+  },
+  {
+   "name": "Melee weapon models: bat, knife, crowbar, bottle (breaks)",
+   "state": "built",
+   "evidence": "docs/v2/shots/combat/weapons_sheet_melee.png"
+  },
+  {
+   "name": "Attachment models on the gun: sights, extended magazines, suppressors, grips, lasers, flashlights, skins",
+   "state": "built",
+   "evidence": "docs/v2/shots/combat/weapons_sheet_kitted.png"
+  },
+  {
+   "name": "Contact sheet of all weapon models with attachments",
+   "state": "verified",
+   "evidence": "docs/v2/shots/combat/weapons_sheet_factory.png, weapons_sheet_kitted.png, weapons_sheet_parts.png, weapons_sheet_melee.png"
+  },
+  {
+   "name": "Shooting feel: recoil patterns, spread bloom, tracers, muzzle flash and smoke",
+   "state": "built",
+   "evidence": "src/gameplay/weapons.js"
+  },
+  {
+   "name": "Ejected casings that land and roll",
+   "state": "built",
+   "evidence": "src/gameplay/gunfx.js"
+  },
+  {
+   "name": "Impact decals and particles per surface (concrete, wood, glass, metal, water, sand, flesh)",
+   "state": "built",
+   "evidence": "range test output only (screenshots not reviewed)"
+  },
+  {
+   "name": "Bullet penetration by material and ricochets",
+   "state": "built",
+   "evidence": "range test: penetrations and ricochets counted per gun and material"
+  },
+  {
+   "name": "Near-miss whizz hooks for audio; suppressed fire heard less by witnesses",
+   "state": "built",
+   "evidence": "src/gameplay/weapons.js"
+  },
+  {
+   "name": "Aiming: over-the-shoulder camera with shoulder swap, hip fire, aim sway and breath",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Aiming: soft lock-on, scopes, reticles per weapon class, hit markers",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Aim and shoot from car and boat windows",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Per-limb damage with reactions (limps, dropped weapons, staggers)",
+   "state": "built",
+   "evidence": "src/gameplay/weapons.js"
+  },
+  {
+   "name": "Cover: snap to walls, corners, cars, pillars, low objects from real collision geometry",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Cover: move along, corner peeks, blind fire, vault over, cover-to-cover",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Cover API for NPCs and police: game.cover.find(pos, threatPos); penetrable / destructible cover",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Weapon upgrades: stats, persistence, game.weapons.customize bench UI",
+   "state": "building",
+   "evidence": "stats and API in weapons.js; bench UI not built"
+  },
+  {
+   "name": "Melee: combos, blocks, dodges, hit-stop",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Melee: grabs, stealth and frontal takedowns, environmental finishers, knockouts vs. kills",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Melee weapons in use: bat, knife, crowbar, bottle that breaks",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "People drop what they carry and wear (uniforms, bags, hats, IDs, keys) as pickups",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Destructibles: glass that shatters into real shards, windows",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Destructibles: fruit stands spill fruit, store shelves drop products, parking meters spill coins",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Destructibles: hydrants spray water, light poles and sign posts bend and fall, fences break",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Destructibles: trash cans and newspaper boxes tumble, explosive barrels and propane",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Destructibles: debris lifetime and cleanup, accurate colliders before and after, game.destructibles.register API",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Ragdolls: reactions to cars, falls, explosions; blend to and from animation; getting up (player and NPCs)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Flying through the windshield in big crashes",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Explosion shockwaves; fire that spreads and burns people and cars",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Traversal: vault fences and low walls, mantle ledges",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Traversal: climb ladders and fire escapes, lifeguard towers, rooftops, drop-and-hang",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Traversal: jump off bridges and piers into water with a dive animation",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Hitbox accuracy sweep harness (people, cars, props) and stuck-spot report",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Full-game scripted tests: each weapon at each surface, cover scenario, melee, destructibles, ragdoll, traversal",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Frame times during a heavy firefight",
+   "state": "todo",
+   "evidence": ""
+  }
+ ]
+}

@@ -1,0 +1,26 @@
+{
+  "track": "nav-gps",
+  "title": "Real GPS navigation engine",
+  "section": "Systems",
+  "agent": "paused",
+  "items": [
+    { "name": "Travel-time routing (class speed, lanes, speed limit, curve speed)", "state": "built", "evidence": "src/nav/graph.js, src/nav/engine.js (Node run only, no committed test yet)" },
+    { "name": "Turn-aware edge-expanded graph (left/right/U-turn, signals, stop signs)", "state": "built", "evidence": "src/nav/graph.js" },
+    { "name": "Rules: one-ways, ramps, turn restrictions, no median crossing, bridges and causeways", "state": "built", "evidence": "restriction input supported but no restriction data exists yet; untested" },
+    { "name": "Live traffic: rush hour by time and district, crashes, roadblocks", "state": "built", "evidence": "src/nav/traffic.js (never run)" },
+    { "name": "Fast re-route on a missed turn (reverse tree, Web Worker, timing measured)", "state": "built", "evidence": "Router.tree/fromTree: 0.04 ms walk, 3.6 ms tree in Node on the v1 graph; worker path never run" },
+    { "name": "Cross-map route under 30 ms on the big world (ALT landmarks, measured)", "state": "building", "evidence": "v1 graph only: avg 0.4 ms, max 2.5 ms over 200 pairs; big world not measured" },
+    { "name": "Lane-level smooth route polyline for minimap and pause map", "state": "built", "evidence": "src/nav/route.js (never rendered or looked at)" },
+    { "name": "Turn-by-turn maneuvers (exits, roundabouts, keep left/right, arrive) in miles/feet", "state": "built", "evidence": "src/nav/maneuvers.js (text output read for 4 routes)" },
+    { "name": "Lane guidance, ETA and distance readout, spoken-prompt hook", "state": "built", "evidence": "src/nav/nav.js readout()/navPrompt (never run)" },
+    { "name": "Walking mode (sidewalks, crosswalks, parks, paths, boardwalks, piers)", "state": "built", "evidence": "src/nav/walk.js (4 routes run in Node; instruction text still repetitive)" },
+    { "name": "Boat mode (channels, under bridges) and mode auto-switch", "state": "built", "evidence": "src/nav/boat.js (4 routes run in Node); auto-switch in nav.js never run" },
+    { "name": "Consumer API: route / eta / nearestRoad / search area / fares / fast-travel cost", "state": "built", "evidence": "src/nav/nav.js (never run)" },
+    { "name": "Destination search by name and category, waypoints, multi-stop routes", "state": "built", "evidence": "src/nav/places.js, nav.js (never run)" },
+    { "name": "GPS UI: maneuver banner, ETA chip, search panel, map drawing helper", "state": "building", "evidence": "src/nav/draw.js written (never run); banner, chip and search panel not started" },
+    { "name": "Game wiring: src/nav/nav.v2.js and src/ui/gps.js facade", "state": "todo", "evidence": "" },
+    { "name": "Automated test suite (200 random pairs, known Miami routes, re-route timing, walk, boat)", "state": "todo", "evidence": "only src/nav/tests/loadData.mjs exists" },
+    { "name": "Before/after route pictures and HUD banner screenshots", "state": "todo", "evidence": "" },
+    { "name": "In-game verification through tools/v2/browser.mjs", "state": "todo", "evidence": "" }
+  ]
+}

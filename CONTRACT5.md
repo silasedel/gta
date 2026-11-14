@@ -8,6 +8,7 @@ No deadline, no budget limit, no shortcuts, no placeholders, no "good enough". W
 2. **Nothing repeats:** no repeating boat (every yacht and boat distinct, at full quality), no repeating car, no repeating NPC.
 3. **Everyone acts smart:** NPCs have real personalities and behave differently from each other. Traffic drivers too: careful, aggressive, distracted, lost, in a hurry.
 4. **Every surface is textured:** smooth and shiny, or rough and bumpy, but real. No flat, untextured surfaces anywhere.
+5. **Nothing looks factory-new or generic (user, Nov 13, 6:20 PM; "the biggest thing single-handedly is the graphics"):** every object carries real-world imperfection and fine detail. Wood has cracks, warps, chipped paint and the odd bent or broken part; cloth and flags have wrinkles, fading and marks; bottles and glasses hold different amounts (most empty, some part full); bark, sand, concrete and metal have real fine texture, not generic lines or flat noise; sand takes footprints. Vary the wear per instance so no two copies match. Shading, lighting and atmosphere must look polished and deliberate, never like default AI-made models.
 
 ## Hard rules
 - **Work only in this folder** (`.../GTA 6/V2`), branch `v2`. Never touch `../V1`, the `main` branch, port **5173** or **5180**, or the live site. Never push, merge or deploy. **Never run git commands that change state** (`add`, `commit`, `stash`, `checkout`, `reset`, `clean`): the lead commits. `git status`/`diff`/`log` are fine.

@@ -1,0 +1,204 @@
+{
+ "track": "character",
+ "title": "Nico and the wardrobe",
+ "section": "People",
+ "agent": "done",
+ "items": [
+  {
+   "name": "v1 baseline shots of the player (full body, face, hands, back)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/before/v1_sheet.png"
+  },
+  {
+   "name": "Nico body: original design, proportions, hero-density mesh, LODs",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/nico_full_front.png"
+  },
+  {
+   "name": "Nico face: eyes with cornea/iris, lashes, brows, teeth, tongue",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_face.png"
+  },
+  {
+   "name": "Facial animation: blinking, eye tracking, expressions, lip movement",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_face_smile.png"
+  },
+  {
+   "name": "Hair: hair cards with strand texture, stubble",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_face.png"
+  },
+  {
+   "name": "Skin shading: subsurface approximation, pore normal detail, 4K maps",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/nico_face.png"
+  },
+  {
+   "name": "Skin states: sweat, wetness (swim, rain), sunburn and tan",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Hands: fingers that grip, forearm twist",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Tattoo, watch and chain options",
+   "state": "building",
+   "evidence": "docs/v2/shots/character/nico_torso.png"
+  },
+  {
+   "name": "Signature tropical shirt: original 4K print, weave normal, collar, placket, buttons, hem",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_torso.png"
+  },
+  {
+   "name": "Cloth that moves (secondary-motion bones and wind)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Tropical shirt store variants (3)",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_walk_sunset.png"
+  },
+  {
+   "name": "Wardrobe: shirts, tees, tanks, jackets",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Wardrobe: pants, shorts, swimwear",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Wardrobe: shoes (sneakers, boots, sandals, dress shoes)",
+   "state": "building",
+   "evidence": "docs/v2/shots/character/nico_feet.png"
+  },
+  {
+   "name": "Wardrobe: hats, sunglasses, masks",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Wardrobe: jewelry, watches, bags",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Wardrobe: uniforms and disguises (delivery, security, staff, valet, lifeguard, paramedic, police)",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Layering without clipping (body and inner-layer masking)",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/nico_full_back.png"
+  },
+  {
+   "name": "game.wardrobe API: list, wear, current, saveOutfit, describe, outfit:changed",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/game_nico.png"
+  },
+  {
+   "name": "Wardrobe UI scene (rotatable character, slot tabs) via game.wardrobe.openUI()",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Body changes: fat blend (game.player.body.fat) and gym muscle, capped",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Animation library without Mixamo data (CC0 mocap or procedural), clean retarget",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Locomotion: walk/run/sprint/idle variations, start/stop, turn-in-place",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Foot IK on slopes and stairs",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Jump, land, vault, ladder climb",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Vehicles: enter/exit car and boat, driving with hands on the wheel",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Swimming: crawl, breaststroke, underwater, dive",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Sitting: bench, chair, stool, car seat",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Reach-and-grab hand IK: character.reachTo(point), holdItem(obj)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Eat, drink, phone, smoke",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Combat poses: aim, shoot, reload, melee, cover, hit reactions",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Dance",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "LOD and performance for many characters",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Standalone character viewer (turntable, face camera, outfits, animation scrubber, lighting presets)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/nico_full_front.png"
+  },
+  {
+   "name": "Before/after and reference comparison sheets",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Full game check: player walks, drives and swims with the new character",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/game_nico.png"
+  },
+  {
+   "name": "Existing ped models and createCharacter/preloadCharacters API still work",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Credits for every asset",
+   "state": "verified",
+   "evidence": "CREDITS.md"
+  }
+ ],
+ "note": "Stopped at the 6:30 PM budget stop. Verified = seen in a screenshot or measured in the running game. Built = code runs but was not checked closely. See docs/v2/reports/character.md for flaws and open work."
+}
