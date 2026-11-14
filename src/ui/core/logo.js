@@ -39,7 +39,7 @@ function tideSun(cx, cy, r, id, accent, o = {}) {
 function fallbackSVG(opts, id) {
   const { variant = 'full', accent = 'var(--ps-coral, #ff6a4d)', color = 'currentColor' } = opts;
   const big = String(BRAND.line2 || BRAND.name).toUpperCase(), small = String(BRAND.line1 || '').toUpperCase();
-  const font = "'Barlow Condensed','Avenir Next Condensed','Arial Narrow',sans-serif";
+  const font = "'Archivo Black','Avenir Next Condensed','Arial Narrow',sans-serif";
   if (variant === 'line') { const w = 130 + (small.length + big.length + 1) * 52; return `<svg class="ps-logo ps-logo-line" viewBox="0 0 ${w} 112" role="img" aria-label="${BRAND.name}" fill="none">${tideSun(52, 56, 44, id, accent)}<text x="118" y="92" fill="${color}" style="font:800 104px ${font};letter-spacing:.04em">${small ? small + ' ' : ''}${big}</text></svg>`; }
   const w = Math.max(520, big.length * 86 + 120);
   return `<svg class="ps-logo ps-logo-full" viewBox="0 0 ${w} 250" role="img" aria-label="${BRAND.name}" fill="none">${tideSun(50, 150, 46, id, accent)}<text x="4" y="52" fill="${color}" opacity=".85" style="font:700 44px ${font};letter-spacing:.5em">${small}</text><text x="112" y="196" fill="${color}" style="font:800 150px ${font};letter-spacing:.03em">${big}</text><text x="4" y="240" fill="${color}" opacity=".8" style="font:600 19px ${font};letter-spacing:.42em">${opts.caption === false ? '' : BRAND.tagline}</text></svg>`;
@@ -79,9 +79,9 @@ export function logoSVG(opts = {}) {
     + `<g transform="translate(${px} ${padTop}) scale(${ps})"><rect x="-12" y="-12" width="${p.width + 24}" height="124" fill="${color}" mask="url(#${id}p)"/></g>`
     + `<path d="M${px + p.width * ps + 22} ${ruleY}H${solW - 150}" stroke="${color}" stroke-width="1.600" opacity=".55"/>`
     + `<path d="M${solW - 150} ${ruleY - 6}v12" stroke="${color}" stroke-width="1.600" opacity=".55"/>`
-    + `<text x="${solW}" y="${ruleY + 6.500}" text-anchor="end" fill="${color}" opacity=".8" style="font:600 17px 'Barlow Condensed','Avenir Next Condensed','Arial Narrow',sans-serif;letter-spacing:.2em">${BRAND.coords}</text>`
+    + `<text x="${solW}" y="${ruleY + 6.500}" text-anchor="end" fill="${color}" opacity=".8" style="font:600 17px 'Archivo Black','Avenir Next Condensed','Arial Narrow',sans-serif;letter-spacing:.2em">${BRAND.coords}</text>`
     + `<g transform="translate(0 ${solY})"><rect x="-12" y="-12" width="${solW + 24}" height="124" fill="${color}" mask="url(#${id}s)"/>${sunX >= 0 ? tideSun(sunX, 50, sunR, id, accent) : ''}</g>`
-    + (caption ? `<g transform="translate(0 ${solY + 100 + 30})"><path d="M0 -6h26" stroke="${accent}" stroke-width="3"/><text x="38" y="0" fill="${color}" opacity=".86" style="font:600 19px 'Barlow Condensed','Avenir Next Condensed','Arial Narrow',sans-serif;letter-spacing:.42em">${opts.captionText || BRAND.tagline}</text></g>` : '')
+    + (caption ? `<g transform="translate(0 ${solY + 100 + 30})"><path d="M0 -6h26" stroke="${accent}" stroke-width="3"/><text x="38" y="0" fill="${color}" opacity=".86" style="font:600 19px 'Archivo Black','Avenir Next Condensed','Arial Narrow',sans-serif;letter-spacing:.42em">${opts.captionText || BRAND.tagline}</text></g>` : '')
     + '</svg>';
 }
 /** Element helper. */

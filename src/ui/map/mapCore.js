@@ -304,7 +304,7 @@ export function createMapCore(game, ctx) {
   }
 
   // ------------------------------------------------------------------ label layout per zoom step (stable under pan)
-  const FONT_C = '"Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif', FONT_S = 'Inter, system-ui, sans-serif';
+  const FONT_C = '"Archivo Black", "Avenir Next Condensed", "Arial Narrow", sans-serif', FONT_S = 'Inter, system-ui, sans-serif';
   let measureCtx = null;
   const tw = (font, text) => { if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d'); measureCtx.font = font; return measureCtx.measureText(text).width; };
   const stepOf = (ppm) => Math.round(Math.log2(Math.max(0.02, ppm)) * 2) / 2;     // half-octave steps

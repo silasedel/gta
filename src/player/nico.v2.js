@@ -47,7 +47,7 @@ export async function initV2(game) {
 function openPanel(game, W, o) {
   W.closeUI(); if (game.ui) game.ui.wardrobeOpen = true;
   const el = document.createElement('div'); el.id = 'ps-wardrobe';
-  el.style.cssText = 'position:fixed;right:24px;top:24px;bottom:24px;width:340px;z-index:60;background:rgba(14,18,24,.88);backdrop-filter:blur(8px);border-radius:14px;color:#f2efe6;font:14px/1.35 "Barlow Condensed",system-ui,sans-serif;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.5)';
+  el.style.cssText = 'position:fixed;right:24px;top:24px;bottom:24px;width:340px;z-index:60;background:rgba(14,18,24,.88);backdrop-filter:blur(8px);border-radius:14px;color:#f2efe6;font:14px/1.35 "Archivo Black",system-ui,sans-serif;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.5)';
   let slot = o.slot || 'top';
   const draw = () => {
     const cur = W.current();

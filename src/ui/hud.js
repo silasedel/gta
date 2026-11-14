@@ -1,6 +1,7 @@
 // PORT SOLANA — HUD (original design). Owns: minimap, status cluster, speedometer,
 // help/notifications/mission, district toast, phone, pause menu, title + death screens.
 import { VERSION } from '../version.js';
+import './styles/fonts.css';
 import './hud.css';
 import { createCorner } from './hud/corner.js';
 import { createMapRenderer, MAP_COLORS, setMapPalette } from './mapRender.js';
@@ -95,7 +96,7 @@ const APPS = [
 ];
 
 export function createHUD(game) {
-  injectFonts();
+  // fonts: bundled (src/ui/styles/fonts.css)
   const ui = (game.ui = game.ui || {});
   ui.phoneOpen = false; ui.paused = false; ui.title = true;
   const settings = loadSettings(game);
@@ -715,7 +716,7 @@ export function createHUD(game) {
       const [ex, ey] = edgePoint(nx, ny, cx - 13, ny < 0 ? cy - 13 : MH - cy - 13);
       g.fillStyle = 'rgba(10,14,22,.85)'; g.beginPath(); g.arc(cx + ex, cy + ey, 9, 0, TAU); g.fill();
       g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1; g.stroke();
-      g.fillStyle = '#fff'; g.font = '700 11px "Barlow Condensed", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#fff'; g.font = '700 11px "Archivo Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText('N', cx + ex, cy + ey + 0.5);
     }
     // player arrow
@@ -910,7 +911,7 @@ export function createHUD(game) {
   }
   function countBadge(g, x, y, n) {
     const t = n > 99 ? '99+' : String(n);
-    g.save(); g.font = '800 9px "Barlow Condensed", sans-serif'; const w = Math.max(11, g.measureText(t).width + 6);
+    g.save(); g.font = '800 9px "Archivo Black", sans-serif'; const w = Math.max(11, g.measureText(t).width + 6);
     g.fillStyle = '#0b0f17'; roundRect(g, x - w / 2, y - 5.5, w, 11, 5.5); g.fill(); g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 1; g.stroke();
     g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, x, y + 0.5); g.restore();
   }
@@ -1024,7 +1025,7 @@ export function createHUD(game) {
       if (sx < 40 || sy < 20 || sx > r.width - 40 || sy > r.height - 20) continue;
       if (DL.length && size < 3 && k < 0.6) continue;
       const fs = Math.round(fsBase * (DL.length ? clamp(0.8 + Math.sqrt(size) * 0.05, 0.8, 1.35) : 1));
-      g.font = `800 ${fs}px "Barlow Condensed", sans-serif`;
+      g.font = `800 ${fs}px "Archivo Black", sans-serif`;
       const txt = n.toUpperCase(), tw = g.measureText(txt).width;
       if (labelBoxes.some((q) => Math.abs(q[0] - sx) < (q[2] + tw) / 2 + 10 && Math.abs(q[1] - sy) < fs + 4)) continue;
       if (reserved.some((q) => Math.abs(q[0] - sx) < tw / 2 + 14 && Math.abs(q[1] - sy) < fs)) continue;
@@ -1045,7 +1046,7 @@ export function createHUD(game) {
       }
       if (p) {
         const dist = routeShown ? routeLen : Math.hypot(wp.x - p.x, wp.z - p.z);
-        g.font = '700 14px "Barlow Condensed", sans-serif'; g.textAlign = 'center';
+        g.font = '700 14px "Archivo Black", sans-serif'; g.textAlign = 'center';
         g.lineWidth = 3; g.strokeStyle = 'rgba(6,9,14,.8)'; const t = dist > 999 ? (dist / 1000).toFixed(2) + ' KM' : Math.round(dist) + ' M';
         g.strokeText(t, wx, wy + 14); g.fillStyle = '#fff'; g.fillText(t, wx, wy + 14);
       }
@@ -1083,7 +1084,7 @@ export function createHUD(game) {
       }
     }
     // compass
-    g.fillStyle = 'rgba(255,255,255,.75)'; g.font = '700 14px "Barlow Condensed", sans-serif'; g.textAlign = 'center';
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.font = '700 14px "Archivo Black", sans-serif'; g.textAlign = 'center';
     g.fillText('N', r.width - 30, 26); g.fillRect(r.width - 31, 34, 2, 18);
   }
   function drawSetPiece(g, x, y, id, name) {
@@ -1113,7 +1114,7 @@ export function createHUD(game) {
       g.restore();
       return;
     }
-    g.font = 'italic 800 14px "Barlow Condensed", sans-serif';
+    g.font = 'italic 800 14px "Archivo Black", sans-serif';
     g.textAlign = 'left';
     g.textBaseline = 'middle';
     g.lineWidth = 3.5;
@@ -1573,7 +1574,7 @@ function drawGlyph(g, kind) {
   g.beginPath();
   switch (kind) {
     case 'plus': g.fillRect(-1.3, -4.2, 2.6, 8.4); g.fillRect(-4.2, -1.3, 8.4, 2.6); return;
-    case 'dollar': g.font = '800 10px "Barlow Condensed", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', 0, 0.5); return;
+    case 'dollar': g.font = '800 10px "Archivo Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', 0, 0.5); return;
     case 'wrench': g.moveTo(-3.5, 3.5); g.lineTo(1.2, -1.2); g.stroke(); g.beginPath(); g.arc(2.2, -2.2, 2.2, Math.PI * 0.9, Math.PI * 2.6); g.stroke(); return;
     case 'shirt': g.moveTo(-1.6, -3.6); g.lineTo(-4.4, -2); g.lineTo(-3.4, 0); g.lineTo(-2.4, -0.6); g.lineTo(-2.4, 3.8); g.lineTo(2.4, 3.8); g.lineTo(2.4, -0.6); g.lineTo(3.4, 0); g.lineTo(4.4, -2); g.lineTo(1.6, -3.6); g.quadraticCurveTo(0, -2, -1.6, -3.6); g.fill(); return;
     case 'cup': g.moveTo(-3.4, -2); g.lineTo(2.4, -2); g.lineTo(1.8, 3.4); g.lineTo(-2.8, 3.4); g.closePath(); g.fill(); g.beginPath(); g.arc(2.6, 0.2, 1.5, -Math.PI / 2, Math.PI / 2); g.stroke(); g.beginPath(); g.moveTo(-1.5, -3.2); g.lineTo(-1, -4.6); g.moveTo(0.6, -3.2); g.lineTo(1.1, -4.6); g.lineWidth = 1; g.stroke(); return;
@@ -1603,7 +1604,7 @@ function drawPickup(g, x, y, kind, s = 1) {
     case 'ammo': for (let i = -1; i <= 1; i++) { g.fillRect(i * 2.4 * q - 0.8 * q, -2 * q, 1.6 * q, 4.5 * q); g.beginPath(); g.arc(i * 2.4 * q, -2 * q, 0.8 * q, Math.PI, 0); g.fill(); } break;
     case 'plus': g.fillRect(-0.9 * q * 1.6, -3.2 * q * 1.2, 1.8 * q * 1.6, 6.4 * q * 1.2); g.fillRect(-3.8 * q, -1.4 * q, 7.6 * q, 2.8 * q); break;
     case 'shield': g.moveTo(0, -3.8 * q); g.lineTo(3.4 * q, -2.4 * q); g.lineTo(3 * q, 1 * q); g.quadraticCurveTo(2 * q, 3.4 * q, 0, 4.2 * q); g.quadraticCurveTo(-2 * q, 3.4 * q, -3 * q, 1 * q); g.lineTo(-3.4 * q, -2.4 * q); g.closePath(); g.fill(); break;
-    case 'dollar': g.font = `800 ${Math.round(9 * q * 1.2)}px "Barlow Condensed", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', 0, 0.5); break;
+    case 'dollar': g.font = `800 ${Math.round(9 * q * 1.2)}px "Archivo Black", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', 0, 0.5); break;
     default: g.arc(0, 0, 1.6, 0, TAU); g.fill();
   }
   g.restore();
@@ -1619,14 +1620,7 @@ function drawPOI(g, x, y, poi, s = 1) {
   drawGlyph(g, poi.glyph);
   g.restore();
 }
-if (typeof document !== 'undefined') { try { injectFonts(); } catch (e) { /* ignore */ } }
-function injectFonts() {
-  if (document.getElementById('ps-fonts')) return;
-  const pre = document.createElement('link'); pre.rel = 'preconnect'; pre.href = 'https://fonts.gstatic.com'; pre.crossOrigin = '';
-  const l = document.createElement('link'); l.id = 'ps-fonts'; l.rel = 'stylesheet';
-  l.href = 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap';
-  document.head.append(pre, l);
-}
+// fonts: bundled locally (src/ui/styles/fonts.css, OFL); no font CDN at runtime
 function loadSettings(game) {
   const s = game.settings || {};
   let saved = {};

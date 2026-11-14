@@ -1,0 +1,7 @@
+/* PORT SOLANA: bundled fonts (SIL OFL 1.1, see public/assets/fonts/OFL.txt). Served locally: the desktop app is offline,
+ * so no font CDN is ever contacted. Barlow Condensed ships one Bold cut (used for every display weight, no faux bold). */
+@font-face { font-family: 'Archivo Black'; font-style: normal; font-weight: 100 900; font-display: block; src: url('/assets/fonts/ArchivoBlack-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 500 900; font-display: swap; src: url('/assets/fonts/BarlowCondensed-Bold.otf') format('opentype'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: italic; font-weight: 500 900; font-display: swap; src: url('/assets/fonts/BarlowCondensed-BoldItalic.otf') format('opentype'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/assets/fonts/Inter-Variable.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 600 900; font-display: swap; src: url('/assets/fonts/BarlowSemiCondensed-800.woff2') format('woff2'); }

@@ -195,7 +195,7 @@
 }
 .ps-corner .ps-mval,
 .ps-corner .ps-money {
-  font: 700 28px/1 'Barlow Semi Condensed', var(--ps-cond);
+  font: 700 28px/1 'Archivo Black', var(--ps-cond);
   letter-spacing: .015em;
   font-variant-numeric: tabular-nums;
   color: #fff;

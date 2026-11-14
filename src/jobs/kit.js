@@ -107,10 +107,10 @@ const CSS = `
 .v21-panel{position:fixed;right:28px;top:50%;transform:translateY(-50%);width:400px;max-height:80vh;overflow:auto;z-index:60;
   background:rgba(10,13,20,.9);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#eef2f6;
   font:14px/1.4 Inter,system-ui,sans-serif;padding:18px 20px;box-shadow:0 18px 50px rgba(0,0,0,.5);display:none}
-.v21-panel h2{margin:0 0 2px;font:800 24px "Barlow Condensed",sans-serif;letter-spacing:.5px;text-transform:uppercase}
+.v21-panel h2{margin:0 0 2px;font:800 24px "Archivo Black",sans-serif;letter-spacing:.5px;text-transform:uppercase}
 .v21-panel .sub{color:#9fb0c2;font-size:12px;margin-bottom:12px}
 .v21-panel .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.v21-panel .big{font:800 30px "Barlow Condensed",sans-serif;color:#7dffb0}
+.v21-panel .big{font:800 30px "Archivo Black",sans-serif;color:#7dffb0}
 .v21-panel button{display:block;width:100%;margin:6px 0 0;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.07);color:#fff;font:600 13px Inter,system-ui,sans-serif;text-align:left;cursor:pointer}
 .v21-panel button:hover{background:rgba(47,224,208,.18)}

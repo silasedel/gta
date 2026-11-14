@@ -574,7 +574,7 @@ export async function initV2(game) {
         g.strokeStyle = col;
         g.stroke();
         if (k > 0.25) {
-          g.font = '700 12px "Barlow Condensed", sans-serif';
+          g.font = '700 12px "Archivo Black", sans-serif';
           g.textAlign = 'center';
           g.lineWidth = 3;
           g.strokeStyle = 'rgba(6,9,14,.8)';

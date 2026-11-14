@@ -6,8 +6,8 @@
   --ps-ink: rgba(10, 13, 20, 0.52);
   --ps-ink-strong: rgba(9, 11, 18, 0.78);
   --ps-line: rgba(255, 255, 255, 0.12);
-  --ps-cond: 'Barlow Condensed', 'Oswald', 'Arial Narrow', 'Helvetica Neue', system-ui, sans-serif;
-  --ps-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ps-cond: 'Archivo Black', 'Oswald', 'Arial Narrow', 'Helvetica Neue', system-ui, sans-serif;
+  --ps-sans: 'Archivo Black', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ps-ease: cubic-bezier(.22, 1, .36, 1);
   --ps-glow: 0 1px 2px rgba(0, 0, 0, .75), 0 0 12px rgba(0, 0, 0, .35);
 }

@@ -239,7 +239,7 @@ export async function startSession(game, opts) {
     scene.add(ch.root);
     applyLook(ch, info.get(id));
     const tag = document.createElement('div');
-    tag.style.cssText = 'position:absolute;left:0;top:0;transform:translate(-9999px,0);font:600 13px/1.2 "Barlow Condensed",system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;text-align:center;white-space:nowrap;letter-spacing:.04em';
+    tag.style.cssText = 'position:absolute;left:0;top:0;transform:translate(-9999px,0);font:600 13px/1.2 "Archivo Black",system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;text-align:center;white-space:nowrap;letter-spacing:.04em';
     const nameEl = document.createElement('div');
     const bar = document.createElement('div');
     bar.style.cssText = 'margin:3px auto 0;width:56px;height:4px;border-radius:2px;background:rgba(0,0,0,.5);overflow:hidden';

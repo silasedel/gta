@@ -769,3 +769,6 @@ All songs by Kevin MacLeod (incompetech.com), licensed under Creative Commons: B
 ## Port Solana theme (custom)
 - `public/assets/audio/music/theme/port_solana_theme.aac`: original theme written for this game by a friend of the project owner, used with permission.
 - `public/assets/audio/stingers/job_passed.ogg`: a 10.5 s cut of that theme starting on its drop (9.90 s), used for the "Job Passed" moment.
+
+## Fonts
+- Archivo Black (Omnibus-Type), SIL Open Font License 1.1: `public/assets/fonts/ArchivoBlack-Regular.ttf`, license in `public/assets/fonts/OFL-ArchivoBlack.txt`. Now the UI font everywhere.
