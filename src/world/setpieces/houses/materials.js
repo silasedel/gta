@@ -47,7 +47,7 @@ export function createHouseKit(THREE, opts = {}) {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aWear;\nvarying float vLit;\n').replace('#include <begin_vertex>', '#include <begin_vertex>\nvLit = aWear;\n');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vLit;\nuniform float uNight;\n')
       .replace('#include <color_fragment>', '#include <color_fragment>\n  vec3 hwTint = diffuseColor.rgb;\n  diffuseColor.rgb = hwTint * 0.09 + vec3( 0.012, 0.016, 0.02 );\n')
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += mix( vec3( 1.0, 0.62, 0.3 ), hwTint * vec3( 1.25, 1.0, 0.75 ), 0.45 ) * vLit * uNight * 2.2;\n');
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += mix( vec3( 1.0, 0.62, 0.3 ), hwTint * vec3( 1.25, 1.0, 0.75 ), 0.45 ) * vLit * uNight * 2.2 + hwTint * vLit * ( 1.0 - uNight ) * 0.05;   // by day a lit room reads through the glass\n');
   };
   win.customProgramCacheKey = () => 'house:window';
   mat.houseWindow = () => win;

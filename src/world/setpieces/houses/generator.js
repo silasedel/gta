@@ -66,7 +66,10 @@ export function planHouse(inp) {
 }
 
 // ---------------------------------------------------------------- build
-export function buildHouse(hk, sp, lod = 0) {
+// sync build (preview, mid / far merges); buildHouseGen yields between sections so the world module can spread a
+// full-detail build over several frames
+export function buildHouse(hk, sp, lod = 0) { const g = buildHouseGen(hk, sp, lod); let r = g.next(); while (!r.done) r = g.next(); return r.value; }
+export function* buildHouseGen(hk, sp, lod = 0) {
   const THREE = hk.THREE, kit = hk, M = kit.M, mat = kit.mat;
   const B = kit.batch('house'), cols = [], lamps = [];
   let s = (sp.seed * 7919 + lod * 13 + 5) >>> 0 || 1; const r = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
@@ -169,6 +172,7 @@ export function buildHouse(hk, sp, lod = 0) {
   col(0, F + (top - F) / 2, 0, w, top - F, d);
   if (!sp.stilt) col(0, F / 2, 0, w + 0.1, F, d + 0.1);
 
+  yield;
   // ---------- walls with openings ----------
   for (const Wl of wallList) {
     const holes = Wl.open.map((o) => ({ u0: o.u - o.w / 2 - (o.kind === 'window' && sp.window === 'arched' ? 0 : 0), u1: o.u + o.w / 2, y0: o.sill, y1: o.sill + o.h + (o.arch || (o.kind === 'window' && o.type === 'arched') ? o.w / 2 : 0) }));
@@ -188,17 +192,22 @@ export function buildHouse(hk, sp, lod = 0) {
     if (sp.style === 'deco' && L1) box(STUCCO, Wl.L + 0.18, 0.12, 0.12, ...wp(Wl, Wl.L / 2, F + H1 + 0.02, 0.06), { color: C.trim, wear: 0.3 }, Wl.ry);
     if (sp.stone && Wl.id === 'front' && L1) { const ua = sp.drvU > 0 ? 0.3 : Wl.L - 2.5, ub = ua + 2.2; if (!holes.some((h) => h.u1 > ua && h.u0 < ub)) box(mat.stoneVeneer(), ub - ua, top - F, 0.06, ...wp(Wl, (ua + ub) / 2, (F + top) / 2, 0.03), { color: 0xd8cfc0, wear: 0.3 }, Wl.ry); }
     for (const o of Wl.open) opening(Wl, o);
+    yield;
   }
 
   // ---------- roof ----------
   roof();
+  yield;
 
   // ---------- porch / entry ----------
   porch();
+  yield;
   if (sp.carport) carport();
   extras();
+  yield;
   const plants = [], cars = [];
   if (sp.yard) yard();
+  if (lod < 2) livedIn();
 
   return { batch: B, colliders: cols, lamps, plants, cars, spec: sp };
 
@@ -301,32 +310,33 @@ export function buildHouse(hk, sp, lod = 0) {
         const cnr = new THREE.Shape(); cnr.moveTo(-R, 0); cnr.lineTo(-R, R); cnr.lineTo(R, R); cnr.lineTo(R, 0); cnr.absarc(0, 0, R, 0, PI, false);
         B.geo(STUCCO, new THREE.ShapeGeometry(cnr, 8), Wl.m(uc, cy, -0.004), { color: C.body, wear: 0.3, uvMul: [1 / 1.4, 1 / 1.4] });
       }
-      if (lod === 1) return;
+      // mid range keeps shutters, awnings and AC units as single solids (slats, struts, bars only up close)
       // shutters
       const sh = o.type === 'sash' || o.type === 'arched' || o.type === 'jalousie' ? sp.shutter : 'none';
       if (sh === 'bahama' && o.floor === 0) { // top-hinged, propped open on two struts
         const sw = ow + 0.16, sh2 = o.h + 0.08, ang = 0.55 + r() * 0.25, cy = y1 + 0.08 - Math.cos(ang) * sh2 / 2, oo = Math.sin(ang) * sh2 / 2 + 0.05;
         B2(PEEL, sw, sh2, 0.035, uc, cy, oo, { color: vary(C.accent), wear: wr(0.2) }, ang);
-        for (let k = 0; k < 9; k++) B2(PEEL, sw - 0.1, 0.11, 0.012, uc, y1 + 0.08 - (k + 0.6) * sh2 / 9.5 * Math.cos(ang), 0.05 + (k + 0.6) * sh2 / 9.5 * Math.sin(ang) + 0.03, { color: vary(C.accent, 0.04), wear: wr(0.25) }, ang - 0.5);
-        for (const s2 of [-1, 1]) B.rod(STEEL, wp(Wl, uc + s2 * (sw / 2 - 0.1), y0 + 0.15, 0.04), wp(Wl, uc + s2 * (sw / 2 - 0.1), cy - Math.cos(ang) * sh2 / 2 + 0.02, oo + Math.sin(ang) * sh2 / 2), 0.008, { color: 0x8a8a86 });
+        if (L0) for (let k = 0; k < 9; k++) B2(PEEL, sw - 0.1, 0.11, 0.012, uc, y1 + 0.08 - (k + 0.6) * sh2 / 9.5 * Math.cos(ang), 0.05 + (k + 0.6) * sh2 / 9.5 * Math.sin(ang) + 0.03, { color: vary(C.accent, 0.04), wear: wr(0.25) }, ang - 0.5);
+        if (L0) for (const s2 of [-1, 1]) B.rod(STEEL, wp(Wl, uc + s2 * (sw / 2 - 0.1), y0 + 0.15, 0.04), wp(Wl, uc + s2 * (sw / 2 - 0.1), cy - Math.cos(ang) * sh2 / 2 + 0.02, oo + Math.sin(ang) * sh2 / 2), 0.008, { color: 0x8a8a86 });
       } else if (sh === 'louver' || sh === 'panel' || (sh === 'bahama' && o.floor > 0)) { // side-hinged pair, open against the wall
         for (const s2 of [-1, 1]) {
           const cu = uc + s2 * (ow / 2 + 0.06 + ow / 4);
           B2(PEEL, ow / 2, o.h + 0.06, 0.03, cu, (y0 + y1) / 2, 0.05, { color: vary(C.accent), wear: wr(0.2) });
-          if (sh !== 'panel') for (let k = 0; k < Math.floor(o.h / 0.075); k++) B2(PEEL, ow / 2 - 0.08, 0.06, 0.008, cu, y0 + 0.08 + k * 0.075, 0.068, { color: vary(C.accent, 0.03), wear: wr(0.25) }, -0.6);
-          else for (const fy of [0.3, 0.72]) B2(PEEL, ow / 2 - 0.1, o.h * 0.36, 0.01, cu, y0 + o.h * fy, 0.07, { color: kit.mul(C.accent, 0.92), wear: wr(0.2) });
-          if (sh !== 'panel') B2(STEEL, 0.03, 0.05, 0.03, cu + s2 * (ow / 4 - 0.02), (y0 + y1) / 2, 0.08, { color: 0x2a2a2a });
+          if (sh !== 'panel' && L0) for (let k = 0; k < Math.floor(o.h / 0.075); k++) B2(PEEL, ow / 2 - 0.08, 0.06, 0.008, cu, y0 + 0.08 + k * 0.075, 0.068, { color: vary(C.accent, 0.03), wear: wr(0.25) }, -0.6);
+          else if (L0) for (const fy of [0.3, 0.72]) B2(PEEL, ow / 2 - 0.1, o.h * 0.36, 0.01, cu, y0 + o.h * fy, 0.07, { color: kit.mul(C.accent, 0.92), wear: wr(0.2) });
+          if (sh !== 'panel' && L0) B2(STEEL, 0.03, 0.05, 0.03, cu + s2 * (ow / 4 - 0.02), (y0 + y1) / 2, 0.08, { color: 0x2a2a2a });
         }
       }
       // metal awning (ranch / bungalow): striped aluminum hood on arms
       if (sp.awning && o.floor === 0 && Wl.id !== 'back' && o.h > 1) {
         const aw = ow + 0.35, dep = 0.65, ya = y1 + 0.22;
-        for (let k = 0; k < Math.round(aw / 0.15); k++) B2(METAL, 0.15, 0.012, dep + 0.06, uc - aw / 2 + 0.075 + k * 0.15, ya - dep * 0.35, dep / 2, { color: k % 2 ? 0xf2f0ea : vary(C.accent, 0.03) }, 0.62);
+        if (!L0) B2(METAL, aw, 0.03, dep + 0.06, uc, ya - dep * 0.35, dep / 2, { color: vary(C.accent, 0.03) }, 0.62);
+        else for (let k = 0; k < Math.round(aw / 0.15); k++) B2(METAL, 0.15, 0.012, dep + 0.06, uc - aw / 2 + 0.075 + k * 0.15, ya - dep * 0.35, dep / 2, { color: k % 2 ? 0xf2f0ea : vary(C.accent, 0.03) }, 0.62);
         B2(METAL, aw, 0.12, 0.012, uc, ya - dep * 0.62 - 0.03, dep - 0.02, { color: 0xf2f0ea });
-        for (const s2 of [-1, 1]) B.rod(STEEL, wp(Wl, uc + s2 * aw / 2, y1 - 0.25, 0.02), wp(Wl, uc + s2 * aw / 2, ya - dep * 0.6, dep - 0.04), 0.01, { color: 0xb8b8b4 });
+        if (L0) for (const s2 of [-1, 1]) B.rod(STEEL, wp(Wl, uc + s2 * aw / 2, y1 - 0.25, 0.02), wp(Wl, uc + s2 * aw / 2, ya - dep * 0.6, dep - 0.04), 0.01, { color: 0xb8b8b4 });
       }
       // security bars / iron grille
-      if ((sp.bars || sp.grille) && o.floor === 0) {
+      if ((sp.bars || sp.grille) && o.floor === 0 && L0) {
         const n = Math.round(ow / 0.12), ga = o.type === 'arched' ? o.h + ow * 0.4 : o.h;
         for (let k = 0; k <= n; k++) B2(METAL, 0.018, ga, 0.018, uc - ow / 2 + (ow * k) / n, y0 + ga / 2, 0.06, { color: 0x1c1c1c });
         for (const fy of [0.08, 0.5, 0.92]) B2(METAL, ow + 0.04, 0.025, 0.015, uc, y0 + ga * fy, 0.06, { color: 0x1c1c1c });
@@ -335,7 +345,7 @@ export function buildHouse(hk, sp, lod = 0) {
       // window AC unit in some lower sashes
       if (sp.windowAC && o.floor === 0 && Wl.id !== 'front' && o.type === 'sash' && r() < 0.35) {
         B2(METAL, ow - 0.12, 0.38, 0.55, uc, y0 + 0.22, 0.12, { color: 0xd8d6cc, wear: 0.4 });
-        for (let k = 0; k < 7; k++) B2(METAL, ow - 0.25, 0.012, 0.01, uc, y0 + 0.08 + k * 0.04, 0.4, { color: 0x8a8a84 });
+        if (L0) for (let k = 0; k < 7; k++) B2(METAL, ow - 0.25, 0.012, 0.01, uc, y0 + 0.08 + k * 0.04, 0.4, { color: 0x8a8a84 });
         B2(METAL, ow - 0.1, 0.03, 0.4, uc, y0 + 0.02, 0.25, { color: 0x6a6a64 });
       }
       return;
@@ -689,6 +699,36 @@ export function buildHouse(hk, sp, lod = 0) {
       else if (type === 'wall' || type === 'pipe' || type === 'breeze') { const h = type === 'pipe' ? 0.6 : 1.1; box(type === 'breeze' ? mat.breeze() : STUCCO, len, h, 0.2, cx, h / 2, z, { color: type === 'breeze' ? 0xf0ede6 : C.body, wear: 0.4 }); box(STUCCO, len + 0.05, 0.06, 0.28, cx, h + 0.03, z, { color: C.trim, wear: 0.3 }); for (const x of [p, q]) box(STUCCO, 0.38, h + 0.25, 0.38, x, (h + 0.25) / 2, z, { color: C.trim, wear: 0.3 }); if (type === 'pipe') { box(STEEL, len, 0.04, 0.04, cx, h + 0.45, z, { color: 0xe8e8e8 }); if (L0) for (let x = p + 1; x < q; x += 1.2) box(STEEL, 0.04, 0.45, 0.04, x, h + 0.22, z, { color: 0xe8e8e8 }); } }
       cols.push({ shape: 'box', p: [cx, 0.6, z], h: [len / 2, 0.6, 0.08], ry: 0 });
     }
+  }
+
+  // ---------------------------------------------------------------- lived-in layer (every lot, mid and near)
+  // foundation planting along the front and the quiet side (instanced vegetation, kept out of the porch, steps, stair and
+  // carport volumes), pots by the entry, and the back yard: clothesline, kettle grill and chairs, a kid's bike or a kayak.
+  function livedIn() {
+    const pd = sp.porch ? sp.porch.d : 0, door = walls.front.open.find((o) => o.kind === 'door'), xDoor = door ? x0 + door.u : 0, drvSide = sp.drvU > 0 ? 1 : -1;
+    const stairX = sp.stilt ? (sp.drvU > 0 ? x1 - 0.65 : x0 + 0.65) : null, zf = z1 + pd + 0.75;
+    const blocked = (x, z) => (Math.abs(x - xDoor) < 1.1 && z > z1 - 0.2) || (stairX !== null && Math.abs(x - stairX) < 1.1 && z > z1) || (x * drvSide > w / 2 + 0.2 && sp.carport);
+    const kinds = { keys: ['seagrape', 'croton', 'hibiscus'], ranch: ['ixora', 'croton', 'hedge'], med: ['bougainvillea', 'hibiscus', 'ixora'], deco: ['croton', 'ixora', 'hibiscus'], mcm: ['croton', 'sawpalmetto', 'ixora'], bungalow: ['hibiscus', 'croton', 'bougainvillea'] }[sp.style];
+    if (!sp.yard) { // street lots: foundation planting (map lots plant in yard())
+      for (let x = x0 + 0.5; x < x1 - 0.3; x += 1.25 + r() * 0.5) { if (blocked(x, zf) || r() < 0.2) continue; plants.push({ kind: kinds[(r() * kinds.length) | 0], x, z: zf + (r() - 0.5) * 0.3, s: 0.55 + r() * 0.3 }); }
+      const xs = -drvSide * (w / 2 + 0.9);
+      for (let z = z0 + 0.6; z < z1; z += 1.5 + r()) if (r() < 0.75) plants.push({ kind: r() < 0.3 ? 'seagrape' : kinds[(r() * kinds.length) | 0], x: xs + (r() - 0.5) * 0.4, z, s: 0.6 + r() * 0.35 });
+      if (r() < 0.7) plants.push({ kind: sp.style === 'med' ? 'royal' : 'coconut', x: -drvSide * (w / 2 + 1.6 + r()), z: z1 + pd + 1.6 + r() * 1.5, s: 0.8 + r() * 0.35 });
+    }
+    // entry pots
+    if (L1 && door) { const y = sp.porch?.kind === 'porch' || sp.porch?.kind === 'deck' ? F : 0.05, zz = sp.porch?.kind === 'deck' ? z1 + 0.5 : z1 + pd + 0.35; for (const s2 of [-1, 1]) if (r() < 0.75) { const px = xDoor + s2 * 0.95; if (stairX !== null && Math.abs(px - stairX) < 0.9) continue; B.cyl(PLAST, 0.2, 0.14, 0.36, M(px, y + 0.18, zz), { seg: L0 ? 10 : 6, color: [0xb8643c, 0x2a5a8a, 0xe8e2d2, 0x3a3a3a][(r() * 4) | 0] }); if (L0) potPlant(px, y + 0.06, zz, 0x5a3a24, r() < 0.5); else B.geo(PLAST, new THREE.SphereGeometry(0.3, 6, 4), M(px, y + 0.6, zz, 0, 0, 0, 1, 1.2, 1), { color: vary(0x3f6a2a, 0.12) }); } }
+    if (lod > 1) return;
+    // back yard
+    const zb = z0 - 2.6 - r() * 1.5, xb = (r() - 0.5) * (w - 2);
+    if (r() < 0.6 && sp.style !== 'deco') { // clothesline: two T posts, three lines, a few things pegged out
+      const xa = xb - 2.2, xc = xb + 2.2; for (const x of [xa, xc]) { box(STEEL, 0.06, 1.9, 0.06, x, 0.95, zb, { color: 0x8a8c88 }); box(STEEL, 0.06, 0.06, 0.9, x, 1.9, zb, { color: 0x8a8c88 }); }
+      if (L0) for (const dz of [-0.35, 0, 0.35]) B.rod(STEEL, [xa, 1.88, zb + dz], [xc, 1.88, zb + dz], 0.006, { color: 0xd8d8d0 });
+      for (let k = 0; k < 4; k++) if (r() < 0.8) box(PLAST, 0.5 + r() * 0.4, 0.6 + r() * 0.4, 0.01, xa + 0.6 + k * 1.0, 1.5, zb + [-0.35, 0, 0.35][k % 3], { color: [0xf2f0ea, 0x2a6a9a, 0xd84a4a, 0xf0c94a, 0x3a8a5a][(r() * 5) | 0] });
+    }
+    if (r() < 0.7) { const gx = -drvSide * (w / 2 - 1.2), gz = z0 - 1.4; B.cyl(METAL, 0.28, 0.22, 0.32, M(gx, 0.95, gz), { seg: L0 ? 12 : 6, color: 0x1a1a1a }); B.geo(METAL, new THREE.SphereGeometry(0.29, L0 ? 12 : 6, 4, 0, PI * 2, 0, PI / 2), M(gx, 1.11, gz), { color: 0x1a1a1a }); if (L0) for (let k = 0; k < 3; k++) { const a = k * 2.09; B.rod(STEEL, [gx + Math.cos(a) * 0.2, 0.85, gz + Math.sin(a) * 0.2], [gx + Math.cos(a) * 0.3, 0, gz + Math.sin(a) * 0.3], 0.012, { color: 0x3a3a3a }); }
+      for (let k = 0; k < 2; k++) chair(gx + 1.2 + k * 0.8, 0.02, gz - 0.8 - r() * 0.5, r() * 6, [0xf2f0ea, 0x2a6a4a, 0x2a4a6a][(r() * 3) | 0]); }
+    if (r() < 0.35) { const kx = xb + (r() - 0.5) * 2, kz = zb - 1.5; B.geo(PLAST, new THREE.CapsuleGeometry(0.28, 2.6, 4, L0 ? 10 : 5), M(kx, 0.25, kz, PI / 2, r() * 0.5 + PI / 2, 0, 1, 1, 0.5), { color: [0xe85a2a, 0x2a8ab8, 0xe8c82a, 0x3aa86a][(r() * 4) | 0] }); }
+    else if (r() < 0.4) { const bx2 = xDoor + 1.6, bz2 = z1 + pd + 1.2; for (const dz of [-0.45, 0.45]) B.geo(mat.plastic(), new THREE.TorusGeometry(0.25, 0.03, 5, L0 ? 14 : 8), M(bx2 + 0.1, 0.27, bz2 + dz, 0.35, PI / 2), { color: 0x1a1a1a }); box(METAL, 0.04, 0.04, 0.9, bx2 + 0.1, 0.5, bz2, { color: [0xd82a4a, 0x2a6ad8, 0xf0a020][(r() * 3) | 0] }, 0, 0.35); }
   }
 
 }

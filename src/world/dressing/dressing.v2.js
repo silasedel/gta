@@ -13,6 +13,11 @@ import { createPropMaterial } from '../city/propmat.js';
 import { loadSet } from '../city/pbr.js';
 import * as K from './kit.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
+import { occupancy } from '../ground/occupancy.js';
+import { breakables } from '../miami/breakables.js';
+const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
+// clipping sweep: trunk radius, height, crown radius of the tall plants placed here (shared occupancy index, src/world/ground/occupancy.js)
+const TALL = { coconut: [0.3, 9, 2.6], sabal: [0.3, 8, 2.4], liveoak: [0.35, 9, 3.2], royal: [0.35, 12, 2.6], gumbo: [0.35, 8, 3] };
 
 export const order = 70;
 
@@ -146,7 +151,17 @@ float lNoise(vec2 p) {
     return r ? r.dist - r.edge.width / 2 : 99;
   };
   const vegKinds = {};
-  const addVeg = (kind, it) => (vegKinds[kind] ||= []).push(it);
+  const addVeg = (kind, it) => {
+    if (!CLIP_OFF && kind !== 'mangrove') { // never through a pole, lamp, sign, bench or another trunk (city tile props included)
+      const s = it.s || 1, T = TALL[kind];
+      if (T) {
+        const o = { y: it.y || 0, h: T[1] * s, gap: 0.1, crown: { r: T[2] * s * 0.8, y0: (it.y || 0) + T[1] * s * 0.55 } };
+        if (occupancy.blocked(it.x, it.z, T[0] * s, o)) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
+        occupancy.add({ x: it.x, z: it.z, r: T[0] * s, y: o.y, h: o.h, kind: 'palm', src: 'dressing.v2.js:addVeg', crown: o.crown, owner: 'dressing', audit: false });
+      } else if (occupancy.blocked(it.x, it.z, 0.5 * s, { y: it.y || 0, h: 1.5, soft: true, gap: 0.05 })) { stats.clipDropped = (stats.clipDropped || 0) + 1; return; }
+    }
+    (vegKinds[kind] ||= []).push(it);
+  };
   const geos = [];
   const tmpM = new THREE.Matrix4();
   const tmpQ = new THREE.Quaternion();
@@ -157,6 +172,17 @@ float lNoise(vec2 p) {
     const g = geo.clone();
     g.applyMatrix4(tmpM);
     geos.push(g);
+  }
+  // X1: breakable small props (fences, mailboxes, wheelie bins): their own merged mesh (vertex range per piece, collapsed when a car
+  // knocks one over) and their own box collider through src/world/miami/breakables.js
+  const brkGeos = [];
+  function placeBreak(geo, x, y, z, ry, box, kind) {
+    if (CLIP_OFF || !breakables.enabled) return place(geo, x, y, z, ry);
+    tmpQ.setFromAxisAngle(Y, ry);
+    tmpM.compose(new THREE.Vector3(x, y, z), tmpQ, new THREE.Vector3(1, 1, 1));
+    const g = geo.clone();
+    g.applyMatrix4(tmpM);
+    brkGeos.push({ g, x, y, z, ry, box, kind });
   }
   const colliders = [];
   function boxCol(x, y, z, hx, hy, hz, ry) {
@@ -225,10 +251,17 @@ float lNoise(vec2 p) {
       const nx = -q.dz;
       const nz = q.dx;
       const side = -1;
-      const x = q.x + nx * side * (q.hw + 2.6);
-      const z = q.z + nz * side * (q.hw + 2.6);
+      let x = q.x + nx * side * (q.hw + 2.6);
+      let z = q.z + nz * side * (q.hw + 2.6);
       if (isWater(x, z) || !clear(x, z, 2)) continue;
+      if (!CLIP_OFF) { // slide along the verge off any tile prop / palm crown; the line skips a pole rather than clip one
+        const f = occupancy.free(x, z, 0.16, { y: groundY(x, z), h: 10.4, pole: true, gap: 0.12, dir: [q.dx, q.dz] }, 4, (ax, az) => !isWater(ax, az) && clear(ax, az, 2));
+        if (!f) continue;
+        x = f[0];
+        z = f[1];
+      }
       const y = groundY(x, z);
+      if (!CLIP_OFF) occupancy.add({ x, z, r: 0.16, y, h: 10.4, kind: 'upole', src: 'dressing.v2.js:spawn power line', pole: true, owner: 'dressing' });
       const ry = Math.atan2(q.dx, q.dz);
       const pole = { x, y, z, ry, top: y + 10.36 };
       place(K.utilityPole(poleR, i % 21 === 0), x, y, z, ry);
@@ -334,10 +367,10 @@ float lNoise(vec2 p) {
       const drive = new K.Parts().box(0, 0.025, 0, 3.4, 0.05, dlen, K.SURF.plaster, 0xe6e0d0);
       place(drive.build(), dx0, groundY(dx0, dz0), dz0, L.ry);
       const [mx, mz] = at(drvU + 2.3, roadV - 1.2);
-      place(K.mailbox(r), mx, groundY(mx, mz), mz, L.ry);
+      placeBreak(K.mailbox(r), mx, groundY(mx, mz), mz, L.ry, [0.14, 0.7, 0.3], 'mailbox');
       const [bx, bz] = at(drvU - 2.3, roadV - 1.6);
-      place(K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44), bx, groundY(bx, bz), bz, L.ry + (r() - 0.5) * 0.4);
-      if (r() < 0.5) place(K.wheelieBin(0x2c4f7c), bx - rx * 0.8, groundY(bx, bz), bz - rz * 0.8, L.ry + (r() - 0.5) * 0.4);
+      placeBreak(K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44), bx, groundY(bx, bz), bz, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin');
+      if (r() < 0.5) placeBreak(K.wheelieBin(0x2c4f7c), bx - rx * 0.8, groundY(bx, bz), bz - rz * 0.8, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin');
       if (L.bait) {
         carSpots.push({ x: at(-3, H.d / 2 + 6)[0], z: at(-3, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
         carSpots.push({ x: at(3.5, H.d / 2 + 6)[0], z: at(3.5, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
@@ -369,7 +402,7 @@ float lNoise(vec2 p) {
           for (let v = -H.d / 2; v < roadV - 3; v += 3) {
             const [fx2, fz2] = at(u, v + 1.5);
             if (isWater(fx2, fz2) || r() < 0.07) continue;
-            place(K.fenceSegment(type, 3, r), fx2, groundY(fx2, fz2), fz2, L.ry + Math.PI / 2 + (r() - 0.5) * 0.05);
+            placeBreak(K.fenceSegment(type, 3, r), fx2, groundY(fx2, fz2), fz2, L.ry + Math.PI / 2 + (r() - 0.5) * 0.05, [1.5, 0.75, 0.08], type === 'chain' ? 'chain' : 'fence');
           }
         }
       }
@@ -419,16 +452,18 @@ float lNoise(vec2 p) {
           pp = P;
         }
       }
-      // planting: palms, sea grape, hibiscus, croton
+      // planting: palms, sea grape, hibiscus, croton (never inside the house volume: porch, deck, stairs, carport; houses track)
+      const inHouse = (px, pz) => { const dx = px - L.x, dz = pz - L.z, u = (dx * rx + dz * rz) * Math.sign(drvU || 1), v = dx * fx + dz * fz;
+        return v > -H.d / 2 - 1.6 && v < H.d / 2 + (L.gen ? 8 : 3.5) && u < H.w / 2 + (L.gen ? 4.4 : 1.5) && u > -H.w / 2 - 1.6; };
       const np = 2 + ((r() * 3) | 0);
       for (let i = 0; i < np; i++) {
         const [px, pz] = at((r() - 0.5) * (H.w + 10), (r() - 0.3) * (H.d + 10));
-        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1.5) continue;
+        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1.5 || inHouse(px, pz)) continue;
         addVeg(r() < 0.75 ? 'coconut' : 'sabal', { x: px, y: groundY(px, pz), z: pz, ry: r() * 6.28, s: 0.8 + r() * 0.4 });
       }
       for (let i = 0; i < 6; i++) {
         const [px, pz] = at((r() - 0.5) * (H.w + 8), (r() - 0.5) * (H.d + 8));
-        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1) continue;
+        if (isWater(px, pz) || Math.hypot(px - L.x, pz - L.z) < Math.max(H.w, H.d) / 2 + 1 || inHouse(px, pz)) continue;
         addVeg(['seagrape', 'hibiscus', 'croton', 'seagrape'][(r() * 4) | 0], { x: px, y: groundY(px, pz), z: pz, ry: r() * 6.28, s: 0.7 + r() * 0.6 });
       }
     }
@@ -507,6 +542,26 @@ float lNoise(vec2 p) {
     mesh.matrixAutoUpdate = false;
     scene.add(mesh);
     stats.spawnTris = (merged.attributes.position.count / 3) | 0;
+  }
+  if (brkGeos.length) { // X1 breakables: one mesh, one box collider per piece
+    const merged = mergeGeometries(brkGeos.map((b) => b.g), false);
+    const mesh = new THREE.Mesh(merged, propMat);
+    mesh.name = 'dressing-breakables';
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.matrixAutoUpdate = false;
+    scene.add(mesh);
+    const P = merged.attributes.position;
+    let off = 0;
+    for (const b of brkGeos) {
+      const n = b.g.attributes.position.count, v0 = off;
+      off += n;
+      b.g.dispose();
+      breakables.add({ x: b.x, y: b.y, z: b.z, hx: b.box[0], hy: b.box[1], hz: b.box[2], ry: b.ry, kind: b.kind, owner: 'dressing',
+        hide: () => { for (let i = v0; i < v0 + n; i++) P.setXYZ(i, b.x, b.y - 1, b.z); P.needsUpdate = true; } });
+      occupancy.add({ x: b.x, z: b.z, r: Math.min(b.box[0], b.box[2]) + 0.1, y: b.y, h: b.box[1] * 2, kind: b.kind, src: 'dressing.v2.js:spawn yards', owner: 'dressing' });
+    }
+    stats.breakables = brkGeos.length;
   }
   for (const e of extras) {
     e.updateMatrix();

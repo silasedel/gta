@@ -21,6 +21,7 @@ import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import { occupancy } from '../ground/occupancy.js';
+import { breakables } from './breakables.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
@@ -42,7 +43,7 @@ export function createTileBuilder(ctx) {
     for (const k in props) { const L = props[k]; if (!Array.isArray(L)) continue; for (const it of L) { if (!it || typeof it.x !== 'number' || typeof it.z !== 'number') continue; const h = TH(it.x, it.z); if (h > 0.3 && (it.y || 0) < h - 0.25) it.y = (it.y || 0) + h; } } }
   const densify = (pts, step) => { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 1; k <= n; k++) out.push(k === n ? b : [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; };
   function* floraInto(t, tile, props) { if (props.veg !== undefined) return; props.veg = null; const T0 = provider.tileSize || 200, V = {};
-    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) || houseLots.claimedNear(buildingsOf(tile, false), x, z, 4) || !!(CLAIMS.list.length && CLAIMS.at(x, z, 1.5)) }, V);
+    yield* flora.scatter(t.tx * T0, t.tz * T0, T0, { data: D, terrain, roadDist, inBuilding: (x, z) => insideBuilding(tile, x, z) || houseLots.claimedNear(buildingsOf(tile, false), x, z, 4) || (houseLots.reserved.length > 0 && houseLots.reservedAt(x, z, 3.5)) || !!(CLAIMS.list.length && CLAIMS.at(x, z, 1.5)) }, V);
     if (V.palm) props.palm.push(...V.palm); if (V.oats) props.oats.push(...V.oats); if (V.tree) props.tree.push(...V.tree); props.veg = V; }
   function stiltPiles(B, b) { // timber piles under a raised Keys house (minH set in buildingsOf)
     const r = b.rings[0], H = b.minH || 2.7; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
@@ -1156,11 +1157,14 @@ export function createTileBuilder(ctx) {
         if (cw) for (const side of [-1, 1]) for (let s2 = 8 + (side > 0 ? 0 : 9); s2 < L - 4; s2 += 18) { const q = sampleAt(fr, s2), o = side * (hw + 2.4), x = q.x + q.nx * o, z = q.z + q.nz * o; if (isWater && (isWater(x, z) || isWater(x + q.nx * side * 1.5, z + q.nz * side * 1.5))) continue; props.palm.push({ x, y: 0, z, ry: hash(((x * 3) | 0) + ((z * 7) | 0)) * 6, s: 1.05 }); }
         if (cw && L > 20) { const walk = pathIndex(tile), eh = hash((r.edgeId ?? r.id ?? 0) * 977 + 5);
           for (const side of [-1, 1]) { // guardrail only where the carriageway edge runs right along the water (no verge to stop in)
-            let gA = -1; const flush = (sEnd) => { if (gA >= 0 && sEnd - gA > 8 && coll) { coll.tag = 'guardrail'; sideWall(coll, fr, 0, side * (hw + 0.5), 0.8, 0, 0xffffff, -side, gA, sEnd); } if (gA >= 0 && sEnd - gA > 8 && B && B.guard) { const o = side * (hw + 0.5); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xc8ccd0, -side, gA, sEnd); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xb8bcc0, side, gA, sEnd); sideWall(B.guard, fr, 0, o + side * 0.08, 0.74, 0.0, 0x8a8f94, -side, gA, sEnd);
+            let gA = -1; const longRun = (sEnd) => sEnd - gA > 8 || (!CLIP_OFF && ((gA <= 0.01 && trimA === 0) || (sEnd >= L - 0.01 && trimB === 0))); const flush = (sEnd) => { if (gA >= 0 && longRun(sEnd) && coll) { coll.tag = 'guardrail'; sideWall(coll, fr, 0, side * (hw + 0.5), 0.8, 0, 0xffffff, -side, gA, sEnd); } if (gA >= 0 && longRun(sEnd) && B && B.guard) { const o = side * (hw + 0.5); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xc8ccd0, -side, gA, sEnd); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xb8bcc0, side, gA, sEnd); sideWall(B.guard, fr, 0, o + side * 0.08, 0.74, 0.0, 0x8a8f94, -side, gA, sEnd);
                 for (let s3 = gA; s3 <= sEnd; s3 += 2) { const q = sampleAt(fr, s3); B.guard.addGeometry(BOXG, m4(q.x + q.nx * (o + side * 0.12), 0.38, q.z + q.nz * (o + side * 0.12), Math.atan2(q.nx, q.nz), 0.1, 0.76, 0.1), 0x7d8287); } } gA = -1; };
-            for (let s2 = Math.max(2, trimA); s2 < L - Math.max(2, trimB); s2 += 3) { const q = sampleAt(fr, s2), x = q.x + q.nx * side * (hw + 3.5), z = q.z + q.nz * side * (hw + 3.5); const wet = isWater && isWater(x, z);
+            // clipping sweep: a piece cut at a tile seam (trim 0) runs its rail right to the seam, so the neighbor tile's rail continues it
+            // without a gap (the old 2 m end margin left a 4 m hole at every seam and dropped the short seam stubs)
+            const gS = CLIP_OFF ? Math.max(2, trimA) : trimA, gE = L - (CLIP_OFF ? Math.max(2, trimB) : trimB);
+            for (let s2 = gS; s2 < gE; s2 += 3) { const q = sampleAt(fr, s2), x = q.x + q.nx * side * (hw + 3.5), z = q.z + q.nz * side * (hw + 3.5); const wet = isWater && isWater(x, z);
               if (wet && gA < 0) gA = s2; else if (!wet && gA >= 0) flush(s2); }
-            flush(L - Math.max(2, trimB));
+            flush(gE);
             // bus stop where a sidewalk runs along the verge (one per long piece, right-hand side of travel per direction)
             if (L > 140 && eh < 0.6 && !props.realBus) { const s2 = L * (0.35 + eh * 0.3), q = sampleAt(fr, s2), o = side * (hw + 2.2), x = q.x + q.nx * o, z = q.z + q.nz * o;
               if (walk(x, z).d < 5 && !(isWater && isWater(x, z))) { props.shelter.push({ x, y: gY0(x, z), z, ry: Math.atan2(-q.nx * side, -q.nz * side) }); props.bin.push({ x: x + q.dx * 3, y: gY0(x, z), z: z + q.dz * 3, ry: 0, k: 1 }); props.signPost.push({ x: x - q.dx * 3, y: gY0(x, z), z: z - q.dz * 3 }); } } }
@@ -1469,6 +1473,7 @@ export function createTileBuilder(ctx) {
       for (const p of list) {
         placeStats.checked++;
         if (p.elev) { keep.push(p); continue; } // ELEVATED's deck lamps: already on the barrier tops
+        if (houseLots.reserved.length && houseLots.reservedAt(p.x, p.z, tree ? 3.5 : 0.6)) { placeStats.rejected++; continue; } // town shops / plaza (setpieces/towns): no city prop or palm through them
         // never a city / OSM prop on or over a deck: below a low deck / embankment, or anywhere at deck height (raw OSM bridge heights)
         if (elevated) { const f = safeCall(() => elevated.footprintAt(p.x, p.z), null); if (f && (f.type === 1 || f.y < 4.5 || (p.y || 0) > 0.3 || f.y - 1.3 < (p.y || 0) + (PROP_H[kind] || 1.2) * (p.s || 1))) { placeStats.rejected++; placeStats.deckDropped = (placeStats.deckDropped || 0) + 1; placeStats.byKind[kind] = (placeStats.byKind[kind] || 0) + 1; continue; } }
         if ((p.y || 0) > 1.5 && kind !== 'bulb') { placeStats.rejected++; placeStats.deckDropped = (placeStats.deckDropped || 0) + 1; continue; } // above pier height = a bridge deck height from the OSM data
@@ -1522,6 +1527,15 @@ export function createTileBuilder(ctx) {
       }
       list.length = 0; for (const p of keep) list.push(p);
     }
+  }
+  // X1: hide a knocked-over prop (the near build's instance at the same spot; zero scale until the tile is rebuilt)
+  const _zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
+  function hideProp(t, kind, p) {
+    const list = (t.props && t.props[kind]) || []; let q = p._vis ? p : null;
+    if (!q) for (const c of list) if (c._vis && Math.abs(c.x - p.x) < 0.05 && Math.abs(c.z - p.z) < 0.05) { q = c; break; }
+    if (!q) return false; q.broken = true;
+    for (const [h, k] of q._vis) { const i = h.idx[k]; if (i !== undefined && h.p && i < h.p.count) poolSetMatrix(h.p, i, _zeroM); }
+    return true;
   }
   function* ensureProps(t, tile) {
     if (t.props) return t.props;
@@ -1959,9 +1973,10 @@ export function createTileBuilder(ctx) {
     if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }
     yield;
     modelOrProc(group, 'bench', benchG, props.bench);
-    modelOrProc(group, 'hydrant', hydrantG, props.hydrant, { cast: false });
-    modelOrProc(group, 'trash', binG[0], props.bin.filter((b) => b.k !== 1), { cast: false });
-    inst(group, binG[1], vcMat, props.bin.filter((b) => b.k === 1), { cast: false });
+    const tagVis = (items, fn) => { const H = (group.userData.handles ||= []), h0 = H.length; fn(items); const hs = H.slice(h0); items.forEach((p, k) => { p._vis = hs.map((h) => [h, k]); }); }; // X1: which pool instances draw each breakable prop
+    tagVis(props.hydrant, (it) => modelOrProc(group, 'hydrant', hydrantG, it, { cast: false }));
+    tagVis(props.bin.filter((b) => b.k !== 1), (it) => modelOrProc(group, 'trash', binG[0], it, { cast: false }));
+    tagVis(props.bin.filter((b) => b.k === 1), (it) => inst(group, binG[1], vcMat, it, { cast: false }));
     inst(group, shelterG, vcMat, props.shelter);
     inst(group, litterG, litterMat, props.litter, { cast: false, colors: true });
     // street-name blades: per-tile name atlas (2 columns x up to 16 rows)
@@ -1974,7 +1989,7 @@ export function createTileBuilder(ctx) {
       const sb = new Batch(), pg = new THREE.PlaneGeometry(2.0, 0.25);
       for (const s2 of props.signs) { const i = names.indexOf(s2.name); if (i < 0) continue; sb.addGeometry(pg, mat4(s2.x + s2.dx * 1.0, s2.y, s2.z + s2.dz * 1.0, Math.atan2(-s2.dz, s2.dx)), 0xffffff, [0.5, 1 / rows], [(i % 2) * 0.5, 1 - (Math.floor(i / 2) + 1) / rows]); }
       const m = meshOf(sb, sm, { cast: false }); if (m) { m.userData.ownedMaterial = sm; group.add(m); }
-      inst(group, signPostG, vcMat, props.signPost);
+      tagVis(props.signPost, (it) => inst(group, signPostG, vcMat, it));
     }
     if (props.graffiti.length) {
       const gb = new Batch();
@@ -2278,15 +2293,19 @@ export function createTileBuilder(ctx) {
     sol('palm');
     for (const p of P.palm) { cyl(p.x, p.y, p.z, 2, 0.28); if (++c % 60 === 0) yield; }
     sol('tree'); for (const p of P.tree || []) { cyl(p.x, p.y, p.z, 2.4, (p.sp === 'banyan' ? 0.75 : /citrus|seagrape|mangrove/.test(p.sp) ? 0.14 : 0.34) * (p.s || 1)); if (++c % 60 === 0) yield; }
+    // X1 breakables: small street props get their own box (a car above ~15 km/h knocks them over: src/world/miami/breakables.js)
+    const BRK = !audit && breakables.enabled, bOwner = 'tile:' + t.tx + ',' + t.tz;
+    if (BRK) breakables.removeOwner(bOwner);
+    const brk = (kind, p, hx, hy, hz) => { const rec = breakables.add({ x: p.x, y: p.y || 0, z: p.z, hx, hy, hz, ry: p.ry || 0, kind, owner: bOwner, hide: () => hideProp(t, kind, p) }); if (rec) handles.push(rec.collider); return !!rec; };
     sol('hydrant');
-    for (const p of P.hydrant) cyl(p.x, p.y, p.z, 0.4, 0.17);
+    for (const p of P.hydrant) if (!(BRK && brk('hydrant', p, 0.17, 0.4, 0.17))) cyl(p.x, p.y, p.z, 0.4, 0.17);
     sol('bin');
-    for (const p of P.bin) cyl(p.x, p.y, p.z, 0.5, 0.34);
+    for (const p of P.bin) if (!(BRK && brk('bin', p, 0.32, 0.5, 0.3))) cyl(p.x, p.y, p.z, 0.5, 0.34);
     sol('upole'); for (const p of P.upole) cyl(p.x, p.y, p.z, 5, 0.15);
     sol('mast');
     for (const p of P.mast) cyl(p.x, p.y, p.z, 3.2, 0.16);
     sol('signPost');
-    for (const p of P.signPost) cyl(p.x, p.y, p.z, 1.6, 0.08);
+    for (const p of P.signPost) if (!(BRK && brk('signPost', p, 0.08, 1.6, 0.08))) cyl(p.x, p.y, p.z, 1.6, 0.08);
     { // container stacks: one cuboid per block column (stacks 0.36 m apart = solid wall), never across an aisle
       const cols = new Map();
       for (const p of P.stack) { let c = cols.get(p.col); if (!c) cols.set(p.col, (c = { x: p.x, z0: p.z, z1: p.z, n: 0 })); c.z0 = Math.min(c.z0, p.z); c.z1 = Math.max(c.z1, p.z); c.n = Math.max(c.n, p.n); }

@@ -68,6 +68,36 @@
    "name": "60 fps on the Mac app in Nico's neighborhood",
    "state": "todo",
    "evidence": "headless Chrome, Nico street: before (box houses) 558 draw calls / 4.41M tris; after 712 calls / 4.51M tris. Not measured in the Mac app"
+  },
+  {
+   "name": "Draw-call pass: full detail within 40 m, every near house merged per material into one group, builds and merges spread over frames (about 3 ms a frame, no 50 ms hitch)",
+   "state": "verified",
+   "evidence": "in game: worst single job step 6-24 ms (the 24 ms one is a town tile cluster), merge spread over frames"
+  },
+  {
+   "name": "Nico's house far shell past 55 m (6 batches in place of the 64 exterior batches); site, palms and plants stay",
+   "state": "verified",
+   "evidence": "preview at 62 m: 95 draw calls, 0.53M tris (full detail at 40 m: 280 calls, 1.53M)"
+  },
+  {
+   "name": "Playtest H1: sliding door frame sealed to the siding (wide casing, jamb and head liners, drip cap, sill)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/nicoSlider.png"
+  },
+  {
+   "name": "Playtest H2: sea grape kept clear of the deck rail; city flora and dressing plants kept out of house and town footprints",
+   "state": "verified",
+   "evidence": "docs/v2/shots/houses/nicoRail.png"
+  },
+  {
+   "name": "Playtest X3: mid range keeps shutters, awnings and AC units; every lot gets foundation planting, entry pots and a lived-in back yard",
+   "state": "built",
+   "evidence": "docs/v2/shots/houses/highway.png, street.png"
+  },
+  {
+   "name": "Town center (Port Calabash): main street with distinct shops and civic places (original names, signs, awnings, lit glass), lamps, benches, bins, planters, cafe seating, plaza with fountain and palms; footprint index for every placement",
+   "state": "built",
+   "evidence": "docs/v2/shots/houses/townMain.png, townPlaza.png, townNight.png, before_townCenter.png"
   }
  ]
 }

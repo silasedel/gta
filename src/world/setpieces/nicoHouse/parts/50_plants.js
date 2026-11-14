@@ -450,7 +450,7 @@ gl_Position = projectionMatrix * mvPosition;
     for (let i = 0; i < o.fallen; i++) { const a = r() * 6.28, dd = Math.sqrt(r()) * o.H * 0.75, fx = x + Math.cos(a) * dd, fz = z + Math.sin(a) * dd; if (fx > 11.2 || fz < -13.9 || (fx < 6.85 && fz < 5.6 && fx > -9)) continue; const size = 0.14 + r() * 0.1, b = 0.7 + r() * 0.5; leaf(discs, new V3(fx, 0.014 + r() * 0.012, fz), new V3(Math.cos(a * 7), 0, Math.sin(a * 7)), new V3((r() - 0.5) * 0.35, 1, (r() - 0.5) * 0.35), size, size, size * 0.5, [b, b, b], ZERO, r() < 0.62 ? 3 : r() < 0.7 ? 2 : 1); }
     col.cyl(x, 0.7, z, 0.34, 1.4, { tag: 'tree' });
   };
-  seaGrape(9.2, 1.5, { seed: 21, H: 4.7, trunks: 5, az0: -1.9, arc: 4.3, len: 2.15, rad: 0.14, leaves: 3300, amp: 0.05, grapes: 0.07, fallen: 230, bound: (p) => { if (p.x < 7.35) p.x = 7.35; if (p.y > 4.8) p.y = 4.8; }, ok: (q) => q.x > 7.1 });
+  seaGrape(9.2, 1.5, { seed: 21, H: 4.7, trunks: 5, az0: -1.9, arc: 4.3, len: 2.15, rad: 0.14, leaves: 3300, amp: 0.05, grapes: 0.07, fallen: 230, bound: (p) => { if (p.x < 8.45) p.x = 8.45; if (p.y > 4.8) p.y = 4.8; }, ok: (q) => q.x > 8.4 });   // clear of the east deck rail (x 8.1): playtest H2
   seaGrape(-13.0, -11.0, { seed: 22, H: 2.7, trunks: 4, az0: 0, arc: 6.28, len: 1.2, rad: 0.085, leaves: 1000, amp: 0.035, grapes: 0.05, fallen: 70, bound: (p) => { if (p.z < -13.6) p.z = -13.6; if (p.y > 2.9) p.y = 2.9; } });
 
   // ---------- bougainvillea ----------

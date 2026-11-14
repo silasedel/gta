@@ -422,8 +422,8 @@ export function createContext(THREE, kit, plan, opts = {}) {
   const ctx = {
     THREE, kit, plan, opts, group, mat: kit.mat,
     // static merged geometry: exterior (always visible), interior (hidden at distance), detail (small clutter, hidden farther out)
-    ext: kit.batch('ext'), int: kit.batch('int'), detail: kit.batch('detail'), imat: kit.imat,
-    groups: { ext: new THREE.Group(), int: new THREE.Group(), detail: new THREE.Group(), dyn: new THREE.Group() },
+    ext: kit.batch('ext'), int: kit.batch('int'), detail: kit.batch('detail'), site: kit.batch('site'), imat: kit.imat,
+    groups: { ext: new THREE.Group(), int: new THREE.Group(), detail: new THREE.Group(), dyn: new THREE.Group(), site: new THREE.Group(), shell: new THREE.Group() },
     colliders: [], interact: [], lights: [], anchors: {}, updaters: [], async: [], stats: {},
     M: kit.M,
   };

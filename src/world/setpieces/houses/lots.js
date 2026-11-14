@@ -55,6 +55,19 @@ export const lots = {
     b._houseClaim = ok;
     return ok;
   },
+  // flora / props guard: true when (x, z) is within pad m of a claimed house footprint's box (porch, deck, stairs, carport
+  // and yard planting are the generator's). Pure, like claims(), so tiles built before the houses module agree.
+  claimedNear(buildings, x, z, pad = 4) {
+    for (const b of buildings || []) { if (!lots.claims(b)) continue; let bb = b._hbb; if (!bb) { let a0 = Infinity, a1 = -Infinity, c0 = Infinity, c1 = -Infinity; for (const [px, pz] of b.rings[0]) { a0 = Math.min(a0, px); a1 = Math.max(a1, px); c0 = Math.min(c0, pz); c1 = Math.max(c1, pz); } bb = b._hbb = [a0, a1, c0, c1]; }
+      if (x > bb[0] - pad && x < bb[1] + pad && z > bb[2] - pad && z < bb[3] + pad) return true; }
+    return false;
+  },
+  // town centers (towns.v2.js): shop / plaza footprints reserved before the house generator builds the map houses there
+  towns: [],
+  reserved: [],
+  reserve(q) { lots.reserved.push(q); },
+  reservedAt(x, z, pad = 0) { for (const q of lots.reserved) { const dx = x - q.x, dz = z - q.z; if (dx * dx + dz * dz > (q.hw + q.hd + pad + 2) ** 2) continue; const c = Math.cos(q.ry), s = Math.sin(q.ry), u = dx * c - dz * s, v = dx * s + dz * c; if (Math.abs(u) <= q.hw + pad && Math.abs(v) <= q.hd + pad) return true; } return false; },
+  townPending(x, z) { return lots.towns.some((t) => !t.planned && Math.hypot(t.x - x, t.z - z) < (t.R || 400) + 250); },
   add(l) {
     if (lots.list.has(l.id)) lots.remove(l.id);
     l._cells = cellsOf(l); lots.list.set(l.id, l);

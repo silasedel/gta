@@ -193,6 +193,16 @@ export function build(ctx) {
     for (const u of [u0 + 0.02, u1 - 0.02]) B.box(STEEL, 0.04, o.h, T + 0.02, wm(u, (y0 + y1) / 2, -T / 2 + 0.01), { color: AL, bevel: 0.003 });
     B.box(STEEL, o.w, 0.04, T + 0.02, wm(o.u, y1 - 0.02, -T / 2 + 0.01), { color: AL, bevel: 0.003 }); B.box(STEEL, o.w, 0.022, T + 0.04, wm(o.u, y0 + 0.011, -T / 2 + 0.01), { color: 0x9c9e99, bevel: 0.003 });
     for (const [oo, b2, m2] of [[0.03, B, PAINT], [-T - 0.01, I, IPAINT]]) { for (const s of [-1, 1]) b2.box(m2, 0.09, o.h + 0.03, 0.022, wm(o.u + s * (o.w / 2 + 0.034), y0 + (o.h + 0.03) / 2, oo), { grain: 1, ...tr(b2 === B ? 0.45 : 0.05) }); b2.box(m2, o.w + 0.2, 0.11, 0.022, wm(o.u, y1 + 0.05, oo), { grain: 0, ...tr(b2 === B ? 0.35 : 0.05) }); }
+    // playtest H1: seal the frame to the cut siding. Wide outside casing lapping over the board ends on both jambs and the head,
+    // jamb / head liners filling the reveal between the aluminum frame and the rough opening, and a sill plate on the deck
+    for (const s of [-1, 1]) {
+      B.box(PAINT, 0.2, o.h + 0.24, 0.03, wm(o.u + s * (o.w / 2 + 0.07), y0 + (o.h + 0.24) / 2 - 0.02, 0.045), { grain: 1, ...tr(0.45) });
+      B.box(PAINT, 0.03, o.h, T + 0.06, wm(o.u + s * (o.w / 2 + 0.005), (y0 + y1) / 2, -T / 2 + 0.02), { grain: 1, ...tr(0.3) });
+    }
+    B.box(PAINT, o.w + 0.44, 0.24, 0.035, wm(o.u, y1 + 0.1, 0.047), { grain: 0, ...tr(0.4) });
+    B.box(PAINT, o.w + 0.5, 0.03, 0.08, wm(o.u, y1 + 0.235, 0.07, 0.15, 0, 0), { grain: 0, ...tr(0.5) });          // drip cap
+    B.box(PAINT, o.w, 0.06, T + 0.06, wm(o.u, y1 + 0.01, -T / 2 + 0.02), { grain: 0, ...tr(0.3) });
+    B.box(PAINT, o.w + 0.4, 0.035, 0.14, wm(o.u, y0 + 0.015, 0.06), { grain: 0, ...tr(0.6), bevel: 0.006 });
     const panel = (bt, L) => { const pw = half + 0.02, ph = o.h - 0.07; for (const x of [0.022, pw - 0.022]) bt.box(STEEL, 0.044, ph, 0.03, L(x, ph / 2, 0), { color: AL, bevel: 0.003 }); for (const y of [0.03, ph - 0.022]) bt.box(STEEL, pw - 0.088, y < 0.1 ? 0.06 : 0.044, 0.03, L(pw / 2, y, 0), { color: AL, bevel: 0.003 }); bt.box(GLASS, pw - 0.08, ph - 0.09, 0.005, L(pw / 2, ph / 2 + 0.008, 0), { uvS: 0 }); return pw; };
     panel(B, (x, y, z) => wm(u0 + 0.04 + x, y0 + 0.024 + y, -0.045 + z));                                                             // fixed (east) panel
     const slide = new THREE.Group(); slide.position.copy(w.pt(o.u - 0.02, F + 0.024, -0.085)); slide.rotation.y = Math.atan2(w.ux, w.uz) - Math.PI / 2;
