@@ -125,7 +125,7 @@ export function createTime(sys) {
     get weekdayName() { return WEEKDAYS[T.weekday]; },
     get isWeekend() { const w = T.weekday; return w === 0 || w === 6; },
     get date() { return dateOfDay(T.day); },
-    get dayMinutes() { const v = Number(host.settings?.dayMinutes); return Number.isFinite(v) && v > 0 ? clamp(v, 1, 14400) : 144; },
+    get dayMinutes() { return 144; }, // fixed: day length is part of the game, not a player setting
     set dayMinutes(v) { if (sys.settingsStore) sys.settingsStore.set('dayMinutes', v); else if (host.settings) host.settings.dayMinutes = v; },
     // game minutes per real second
     get scale() { return DAY / (T.dayMinutes * 60); },

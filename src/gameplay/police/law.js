@@ -9,7 +9,7 @@ import { describe, describeParts, factLine, changeLine, crimeName, CONDITION } f
 
 export function createLaw(game, G) {
   const P = game.player, now = () => game.clock.elapsed;
-  const dayLeft = () => { const h = ((5 - (game.timeOfDay ?? 12)) + 24) % 24 || 24; return h * ((game.settings?.dayMinutes || 144) * 60 / 24); };
+  const dayLeft = () => { const h = ((5 - (game.timeOfDay ?? 12)) + 24) % 24 || 24; return h * (144 * 60 / 24); };
   const ev = createEvidence({ now, dayLeft });
   const core = createWantedCore({ now, evidence: ev, emit: (n, d) => game.emit?.(n, d) });
   const S = core.S;

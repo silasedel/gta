@@ -10,10 +10,10 @@ const mult = (v) => (+v).toFixed(2) + 'x';
 const C = (value, label, hint) => ({ value, label, hint });
 
 export const PRESETS = {
-  low: { resolutionScale: 0.85, renderDistance: 'near', shadows: 'low', reflections: 'off', antialias: 'fxaa', ambientOcclusion: false, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'medium', vegetation: 'low', trafficDensity: 0.6, pedDensity: 0.6, interiorDetail: 'medium' },
-  medium: { resolutionScale: 1, renderDistance: 'medium', shadows: 'medium', reflections: 'low', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'high', vegetation: 'medium', trafficDensity: 0.8, pedDensity: 0.8, interiorDetail: 'high' },
-  high: { resolutionScale: 1, renderDistance: 'far', shadows: 'high', reflections: 'high', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'high', vegetation: 'high', trafficDensity: 1, pedDensity: 1, interiorDetail: 'high' },
-  ultra: { resolutionScale: 1, renderDistance: 'ultra', shadows: 'ultra', reflections: 'ultra', antialias: 'taa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'ultra', vegetation: 'ultra', trafficDensity: 1.2, pedDensity: 1.2, interiorDetail: 'ultra' },
+  low: { resolutionScale: 0.85, renderDistance: 'near', shadows: 'low', reflections: 'off', antialias: 'fxaa', ambientOcclusion: false, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'medium', vegetation: 'low', interiorDetail: 'medium' },
+  medium: { resolutionScale: 1, renderDistance: 'medium', shadows: 'medium', reflections: 'low', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: false, motionBlur: false, depthOfField: false, textureQuality: 'high', vegetation: 'medium', interiorDetail: 'high' },
+  high: { resolutionScale: 1, renderDistance: 'far', shadows: 'high', reflections: 'high', antialias: 'smaa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'high', vegetation: 'high', interiorDetail: 'high' },
+  ultra: { resolutionScale: 1, renderDistance: 'ultra', shadows: 'ultra', reflections: 'ultra', antialias: 'taa', ambientOcclusion: true, bloom: true, volumetrics: true, motionBlur: true, depthOfField: true, textureQuality: 'ultra', vegetation: 'ultra', interiorDetail: 'ultra' },
 };
 export const PRESET_KEYS = Object.keys(PRESETS.high);
 export const RENDER_DISTANCE = { near: 0.6, medium: 1, far: 1.5, ultra: 2.2 };
@@ -42,8 +42,6 @@ export const SCHEMA = [
       { key: 'filmGrain', label: 'Film grain', type: 'range', min: 0, max: 1, step: 0.05, default: 0.5, fmt: pct, owner: 'ui' },
     ] },
     { title: 'World', items: [
-      { key: 'trafficDensity', label: 'Traffic density', type: 'range', min: 0.2, max: 1.5, step: 0.1, default: 1, fmt: pct, owner: 'vehicles-core' },
-      { key: 'pedDensity', label: 'Pedestrian density', type: 'range', min: 0.2, max: 1.5, step: 0.1, default: 1, fmt: pct, owner: 'npc-ai' },
     ] },
     { title: 'Camera and window', items: [
       { key: 'fov', label: 'Field of view', type: 'range', min: 50, max: 100, step: 1, default: 62, fmt: (v) => Math.round(v) + '°', owner: 'ui' },
@@ -143,7 +141,6 @@ export const SCHEMA = [
   ] },
   { id: 'game', label: 'Game', icon: 'compass', sections: [
     { title: 'World', items: [
-      { key: 'dayMinutes', label: 'Length of a full day', type: 'choice', default: 144, owner: 'core-systems', options: [C(24, '24 min'), C(48, '48 min'), C(96, '96 min'), C(144, '144 min'), C(288, '288 min'), C(1440, 'Real time')], desc: '144 minutes is the default: one game minute every six seconds.' },
       { key: 'units', label: 'Units', type: 'choice', default: 'imperial', owner: 'ui', options: [C('imperial', 'Miles, mph, °F'), C('metric', 'Kilometers, km/h, °C')] },
       { key: 'clock24h', label: '24-hour clock', type: 'toggle', default: false, owner: 'ui' },
     ] },

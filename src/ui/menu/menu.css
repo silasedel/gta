@@ -272,7 +272,7 @@ body.pm-intro #ps-hud { opacity: 0 !important; transition: opacity .4s; }
 .pm-tog.on, .pm-ward-cat.on { background: #ff2e8a !important; }
 .pm-row.is-focus::before, .pm-set-tab::after { background: #ff2e8a !important; box-shadow: 0 0 10px #ff2e8a !important; }
 .pm-range input::-webkit-slider-runnable-track { background: linear-gradient(90deg, #ff2e8a, #ffd23f var(--p), rgba(243, 237, 226, .16) var(--p)) !important; }
-.pm-set-panel { width: min(62vw, 860px) !important; top: calc(var(--safe-y) + 1vh) !important; bottom: calc(var(--safe-y) + 1vh) !important; }
+.pm-set-panel { width: min(94vw, calc(1240 * var(--u))) !important; top: calc(var(--safe-y) + 1vh) !important; bottom: calc(var(--safe-y) + 1vh) !important; }
 .pm-set-note { background: rgba(138, 77, 255, .14) !important; box-shadow: inset 2px 0 0 #8a4dff !important; }
 .pm-set-note svg { color: #b48bff !important; }
 .ps-ui .pm-seg { padding: calc(7 * var(--u)) calc(9 * var(--u)) !important; font-size: clamp(9px, .72vw, 12px) !important; }
@@ -280,3 +280,8 @@ body.pm-intro #ps-hud { opacity: 0 !important; transition: opacity .4s; }
 @keyframes sl-kb { from { transform: scale(1.03); } to { transform: scale(1.12) translate(-1.6%, -1%); } }
 .pm-titlerays { position: absolute; inset: -30%; pointer-events: none; mix-blend-mode: screen; opacity: .3; background: repeating-conic-gradient(from 0deg at 57.5% 53.2%, rgba(255, 214, 140, .55) 0deg 3deg, transparent 3deg 11deg, rgba(255, 140, 190, .35) 11deg 13deg, transparent 13deg 22deg); -webkit-mask: radial-gradient(circle at 57.5% 53.2%, #000, transparent 48%); mask: radial-gradient(circle at 57.5% 53.2%, #000, transparent 48%); transform-origin: 57.5% 53.2%; animation: pm-rays 60s linear infinite; }
 @keyframes pm-rays { to { transform: rotate(18deg); } }
+
+/* settings: nothing may run past the panel edge (choice groups wrap, the value column never overflows) */
+.pm-set-body { overflow-x: hidden; }
+.pm-row > :last-child { flex: 0 1 auto; min-width: 0; max-width: 72%; display: flex; flex-wrap: wrap; justify-content: flex-end; }
+.pm-set-note { overflow-wrap: anywhere; }

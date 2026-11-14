@@ -10,6 +10,7 @@ import { createPeds } from './npc/peds.js';
 import { createHUD } from './ui/hud.js';
 import { createPost } from './render/post.js';
 import { createAudio } from './core/audio.js';
+const DAY_MINUTES = 144; // a full in-game day is fixed (part of the game, not a setting)
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
@@ -827,7 +828,7 @@ async function boot() {
     const paused = game.ui.paused;
     if (!paused) {
       // 1 game hour = 6 real minutes by default (a full day lasts 144 minutes). V2: a clock module may take over by setting game.timeExternal.
-      if (!game.timeExternal) game.timeOfDay = (game.timeOfDay + dt * 24 / ((game.settings.dayMinutes || 144) * 60)) % 24;
+      if (!game.timeExternal) game.timeOfDay = (game.timeOfDay + dt * 24 / (DAY_MINUTES * 60)) % 24;
       // interactions
       enterCooldown -= dt; punchTimer -= dt;
       P.state.punch = false;
