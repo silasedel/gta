@@ -8,7 +8,7 @@ import { loadArray, loadSet, setParams } from '../city/pbr.js';
 // key, Poly Haven set, uv scale (1 / meters per repeat), tint, wet (standing water amount), rows (farm furrows), macro variation
 export const LAYERS = [
   { key: 'lawn', name: 'leafy_grass', scale: 1 / 4.5, tint: 0xeef4dc },
-  { key: 'scrub', name: 'sparse_grass', scale: 1 / 6, tint: 0xeef0d2, level: 0.42 },
+  { key: 'scrub', name: 'sparse_grass', scale: 1 / 6, tint: 0xcfe4b6, level: 0.42 }, // ground-continuity R2: green verges, not orange
   { key: 'forest', name: 'forest_leaves_02', scale: 1 / 5, tint: 0xd8d4c8 },
   { key: 'pine', name: 'forest_ground_04', scale: 1 / 5, tint: 0xe6dccb },
   { key: 'sawgrass', name: 'sparse_grass', scale: 1 / 5, tint: 0xe6d49a, wet: 0.55, level: 0.4 },
@@ -22,7 +22,7 @@ export const LAYERS = [
   { key: 'gravel', name: 'gravel_floor', scale: 1 / 3, tint: 0xf0ebe0 },
   { key: 'damp', name: 'damp_sand', scale: 1 / 4, tint: 0xf0e6d2, wet: 0.25 },
   { key: 'base', name: 'sandy_gravel', scale: 1 / 4, tint: 0xe8e2d6 },
-  { key: 'meadow', name: 'aerial_grass_rock', scale: 1 / 14, tint: 0xe6ecd0 },
+  { key: 'meadow', name: 'aerial_grass_rock', scale: 1 / 14, tint: 0xcfe2bc },
 ];
 const LI = Object.fromEntries(LAYERS.map((l, i) => [l.key, i]));
 const CLS = {
@@ -118,13 +118,13 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     let k = CLS[cls];
     if (k === 'sand' && !(data.isWater && [[40, 0], [-40, 0], [0, 40], [0, -40], [28, 28], [-28, 28], [28, -28], [-28, -28]].some(([dx, dz]) => data.isWater(x + dx, z + dz)))) { // inland sand fields (Keys lots): bare sand broken by shell, scrub, rough meadow and mown patches; beaches within 40 m of water stay sand
       const nk = vnoise(x * 0.018 + 2.3, z * 0.018 - 7.1) * 0.65 + vnoise(x * 0.06, z * 0.06) * 0.35;
-      k = nk < 0.4 ? 'sand' : nk < 0.62 ? 'scrub' : nk < 0.78 ? 'meadow' : 'lawn';
+      k = nk < 0.22 ? 'sand' : nk < 0.45 ? 'scrub' : nk < 0.62 ? 'meadow' : 'lawn';
     }
     if (!k) { // unclassified land: by zone / region, broken into patches
       const zn = data.zoneAt ? data.zoneAt(x, z) : '', nz = vnoise(x * 0.02, z * 0.02);
       if (isKeys(x, z)) { // Keys: scrub, crushed shell, mown green, rough meadow and sand in two scales of patches (no single flat field)
         const nk = nz * 0.65 + vnoise(x * 0.071 + 13.7, z * 0.071 - 4.1) * 0.35;
-        k = nk < 0.36 ? 'scrub' : nk < 0.43 ? 'shell' : nk < 0.62 ? 'lawn' : nk < 0.74 ? 'meadow' : nk < 0.8 ? 'dirt' : nk < 0.9 ? 'scrub' : 'sand'; }
+        k = nk < 0.3 ? 'scrub' : nk < 0.36 ? 'shell' : nk < 0.66 ? 'lawn' : nk < 0.82 ? 'meadow' : nk < 0.94 ? 'scrub' : 'sand'; }
       else if (zn === 'airport') k = 'lawn';
       else if (zn === 'wilderness') k = nz < 0.6 ? 'scrub' : 'meadow';
       else if (zn === 'rural') k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';

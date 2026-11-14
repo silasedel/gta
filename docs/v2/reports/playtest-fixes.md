@@ -228,3 +228,32 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
 - **Crosswalk and footway navigation from OSM:** large; npc-ai or npc-life.
 - **`src/npc/streetlife.js:98`:** still calls `groundHeightAt(x, z)` without a height hint, so it can return deck heights. Its owner should pass a feet-level hint.
 - **P7, spawn sweep, and the headless proofs requested:** MacArthur Causeway and I-95 counts, overpass walk and drive, downtown crosswalk shot. Not done; the machine load made every in-game run unreliable.
+
+## Pass 3 (Nov 13, about 23:55)
+**Run conditions:** one headless browser on a snapshot build at noon (11:45-12:05). Machine load was 77-93, so frame rates are low (20-26 fps); the counts are what matter here.
+
+### Changes
+- `src/npc/streetlife.js`: ground spots now take the street-level height, with a feet-level hint, never the deck.
+- `src/npc/peds.js`: mid-block jaywalking is only allowed on quiet local streets (residential, service, living, unclassified, footway). On primary, secondary, tertiary and trunk roads, people cross at junctions, where they already wait for the walk signal.
+- `src/vehicles/vehicles.js`:
+  - The traffic target is now about 14.5 × district density × hour factor, capped at 5-24. It was 11 ×, capped at 4-16.
+  - Stuck AI cars are recycled after 8 s instead of 10 s, out of view.
+- `src/render/warmup.v2.js`: the background full-scene `compileAsync` is removed. Three.js threw inside it (`isReady` of a disposed program) when streamed tiles were freed during the polling. The per-tile warm-up in perfGuards stays.
+
+### Proof counts (`proofs.mjs`, within 150 m)
+| Place | People (near + crowd) | People on decks | Idle people on a road | Cars / moving | Stuck 10 s or more | Cars on decks |
+|---|---|---|---|---|---|---|
+| Downtown (-2700, 450) after 60 s | 22 + 21 = 43 | 0 | 0 | 16 / 8 | 1 | 0 |
+| MacArthur Causeway | 13 + 26 | 0 | 0 | 17 / 11 | 0 | 5 |
+| I-95 (-3437, 969) | 17 + 49 | 0 | 0 | 9 / 3 | 0 | 1 |
+
+- **Overpass:** I walked for 8 s under the deck at (-2908, 803), with the street at 0 m and the deck at 6.9 m. The player's maximum height was 0 m, so there was no pop-up.
+- **Targets:** the downtown target of 25+ people is met (43). The target of 10+ moving cars is not quite met: 8 moving, out of 16. That measurement predates the higher traffic target.
+- **Shots:** `proof_downtown.jpg`, `proof_causeway.jpg`, `proof_i95.jpg`, `proof_underdeck.jpg`.
+
+### Not done
+- **X1, breakable props:** fences, mailboxes, bins, signs and bushes breaking into Rapier pieces, with car damage. This needs prop colliders and physics break-off in city-look's prop pools; I didn't start it.
+- **Driving under an overpass:** not tested.
+- **Downtown crosswalk shot:** not taken.
+- **Footway and path edges from OSM:** not added to pedestrian navigation.
+- **Seen in the proof run, belongs to vehicles-core:** `[vehicles] tick ... Cannot read properties of undefined (reading 'current_vehicle_speed')`. A Rapier vehicle controller is used after it was freed.

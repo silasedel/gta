@@ -95,7 +95,27 @@
    "evidence": ""
   },
   {
-   "name": "G3 dock (planks over land, slabs under dock, rail lines, step-on), G4 footstep FX by collider surface, R1 road gaps at junctions, R2 ground grain",
+   "name": "R1: road ribbons are only cut back for a junction disc that is actually drawn (junctionDrawn mirrors the junction loop), so no grass gaps where the elevated module skips the disc",
+   "state": "built",
+   "evidence": "docs/v2/shots/ground-continuity/after_xroad.png"
+  },
+  {
+   "name": "R2: thin concrete edge strip on open roads, mid-grey asphalt, greener scrub / meadow verges and fewer bare patches in the Keys mix",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_xroad.png"
+  },
+  {
+   "name": "G3: dock runs from the seawall out to the real waterline on piles, deck 0.28 m (one step), no seawall cap under it",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ground-continuity/after_nico_dock.png"
+  },
+  {
+   "name": "G4: game.surfaceAt returns the structure (wood / paved) when the player stands above the ground there; footprints and landing dust skip decks",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Still open: concrete lots with joints and curb strip, less ground grain, orange verge patches on mid-LOD terrain, GPU footprint deformation, R1 proof at the 61.webp spot",
    "state": "todo",
    "evidence": ""
   }

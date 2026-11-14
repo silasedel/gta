@@ -876,7 +876,7 @@ export async function createPeds(game) {
               try { ped.body.setTranslation({ x: ped.pos.x, y: ped.pos.y + 0.9, z: ped.pos.z }, true); } catch (e) { /* ignore */ }
               continue;
             }
-            if ((ped.getUpT <= 0 && rag.isSettled?.(ped.rag) !== false) || ped.getUpT < -2.5) {
+            if (rag.readyToGetUp(ped.rag) || ped.getUpT < -2.5) { // get up once the body has settled (cap: getUpT + 2.5 s)
               const info = rag.poseInfo(ped.rag);
               const rd0 = ped.rag; ped.rag = null;
               if (!info) rag.remove(rd0);
@@ -1089,7 +1089,8 @@ export async function createPeds(game) {
             if (ped.act !== 'jog' && Math.random() < dt / (ped.P.pauseEvery || 45)) { ped.pause = rand(4, 12); const ids = ped.P.idles; ped.pauseStyle = ids[(Math.random() * ids.length) | 0]; }
           }
           // impatient people cut across the street mid-block; honked-at people hurry
-          if (ped.nav && !ped.nav.cross && ped.act === 'walk' && ped.P.jaywalk && Math.random() < dt * ped.P.jaywalk / 40) { ped.nav.hand *= -1; ped.jaywalks = (ped.jaywalks || 0) + 1; }
+          // (only on quiet local streets: busy primary / secondary / tertiary / trunk roads are crossed at junctions only)
+          if (ped.nav && !ped.nav.cross && ped.act === 'walk' && ped.P.jaywalk && /residential|service|living|unclassified|pedestrian|footway|path/.test(ped.nav.edge?.kind || '') && Math.random() < dt * ped.P.jaywalk / 40) { ped.nav.hand *= -1; ped.jaywalks = (ped.jaywalks || 0) + 1; }
           if (ped.walkBoostT > 0) { ped.walkBoostT -= dt; targetSpeed *= 1.6; }
           // step aside when the player walks into us; stumble when shoved by a sprinting player
           if (dPlayer < 1.15 && pSpeed > 0.6 && !inCar) {

@@ -175,17 +175,6 @@ export async function initV2(game) {
       }
     }, 4000);
     stats.restoredAt = performance.now();
-    // cars, people and set pieces stream in after loading: compile everything in the scene again in the background
-    // (parallel compile, no stall), including hidden car interiors and wear variants used on first car entry
-    for (const delay of [400, 15000]) {
-      setTimeout(() => {
-        try {
-          game.renderer.compileAsync?.(game.scene, game.camera, game.scene)?.catch?.(() => {});
-        } catch (e) {
-          // not fatal
-        }
-      }, delay);
-    }
   };
   const wait = () => {
     if (game.ready) {

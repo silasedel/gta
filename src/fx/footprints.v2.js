@@ -92,6 +92,7 @@ export async function initV2(game) {
       let yaw = game.player?.heading ?? game.player?.rotation?.y ?? 0;
       if (last && t - last.t < 1.5) { const dx = p.x - last.x, dz = p.z - last.z, d = Math.hypot(dx, dz); if (d > 0.25 && d < 2.6) yaw = Math.atan2(dx, dz); }
       last = { x: p.x, z: p.z, t }; side = !side;
+      const gY = game.city?.groundHeightAt?.(p.x, p.z); if (Number.isFinite(gY) && Number.isFinite(p.y) && p.y > gY + 0.18) return; // ground-continuity G4: standing on a deck / dock / slab, not the sand below
       if (!sandAt(p.x, p.z, e.surface)) return;
       step(p.x, p.y, p.z, yaw, side, !!e.run, 1, e.surface !== 'sand');     // the fx module already puffs on 'sand' surfaces
     } catch (err) { /* never break the footstep bus */ }

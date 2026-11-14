@@ -1,7 +1,7 @@
 // Nico's house in the world (track: nico-house). Thin placement module: reads the anchor from the world layout
 // (`setpieces.nico_house`: x, z, heading), builds the self-contained set piece there, creates its Rapier colliders,
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
-import { buildNicoHouse } from './index.js';
+import { buildNicoHouse, PLAN } from './index.js';
 export const order = 65;   // after vegetation (60)
 
 export async function initV2(game) {
@@ -32,7 +32,17 @@ export async function initV2(game) {
       });
     });
   }
+  // ground-continuity G3: run the dock out from the seawall to the real waterline (the layout's water lies well past the
+  // plan's dock head), so its head stands in water on piles; deck 0.28 m above the yard (one walkable step over the seawall cap)
+  let dock = null;
+  if (!gcOff && game.city?.isWater) {
+    const D0 = PLAN.dock, c = Math.cos(spot.heading || 0), s = Math.sin(spot.heading || 0), cx = (D0.x0 + D0.x1) / 2;
+    const wAt = (lz) => game.city.isWater(spot.x + cx * c + lz * s, spot.z - cx * s + lz * c);
+    let zw = null; for (let lz = D0.z1 - 2; lz > D0.z1 - 140; lz -= 1) if (wAt(lz) && wAt(lz - 2) && wAt(lz - 4)) { zw = lz; break; }
+    if (zw !== null) { const z0 = Math.min(D0.z0, zw - 7); dock = { ...D0, z0, headZ0: z0, headZ1: z0 + (D0.headZ1 - D0.headZ0), y: 0.28 }; }
+  }
   const house = await buildNicoHouse(THREE, {
+    dock,
     seaY: sea - yGround,
     timeOfDay: game.timeOfDay,
     residentName: game.player?.fullName,

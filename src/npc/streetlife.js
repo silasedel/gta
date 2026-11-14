@@ -95,7 +95,8 @@ export function createSpots(game) {
   const keyOf = (x, z) => Math.round(x * 4) + ':' + Math.round(z * 4);
   const ground = (x, z) => {
     try {
-      const g = city.groundHeightAt?.(x, z);
+      // street level (a hint just above the ground), never the elevated deck overhead
+      const g = city.groundHeightAt?.(x, z, 1.5);
       return Number.isFinite(g) ? g : 0;
     } catch (e) {
       return 0;

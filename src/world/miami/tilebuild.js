@@ -165,7 +165,7 @@ export function createTileBuilder(ctx) {
       const a = pg.args, g1 = palmGeometry(a[0], a[1], a[2], pr, { ...a[3], lod: 1 }); // same seed -> same palm, fewer triangles
       pg.trunk.userData.lodMax = pg.fronds.userData.lodMax = PL.e0; g1.trunk.userData.lodMin = g1.fronds.userData.lodMin = PL.b0; g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = PL.e1;
       const L = { g0: pg, g1, m0, m1, imp: null };
-      if (ren) { try { const im = bakeImpostor(ren, 'street_palm', v, { bark: pg.trunk, leaf: pg.fronds }, makeVegMaterial('bark').mat, makeVegMaterial('leaf').mat); im.geometry.userData.lodMin = PL.b1; im.geometry.userData.lodMax = 480; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [PL.b1, PL.e1, 0, 0], alphaTest: 0.5, transl: 0.3 }) }; } catch (e) { console.warn('[vegetation] palm impostor bake failed', e); } }
+      if (ren) { try { const im = bakeImpostor(ren, 'street_palm', v, { bark: pg.trunk, leaf: pg.fronds }, makeVegMaterial('bark').mat, makeVegMaterial('leaf').mat); im.geometry.userData.lodMin = PL.b1; im.geometry.userData.lodMax = 480; L.imp = { geo: im.geometry, mat: makeVegMaterial('imp', { map: im.texture, fade: [PL.b1, PL.e1, 0, 0], alphaTest: 0.5, transl: 0.5 }) }; } catch (e) { console.warn('[vegetation] palm impostor bake failed', e); } }
       if (!L.imp) g1.trunk.userData.lodMax = g1.fronds.userData.lodMax = 480;
       palmLod.push(L);
     });
@@ -654,8 +654,8 @@ export function createTileBuilder(ctx) {
       if (FB && sf) { // ground floor around the shop fronts: the building's own windows and doors on every side (no blank back walls)
         const G = groundStyle(FS, false, false) || FS;
         wallGaps(sview(FB, G, G.bayW, GF - y0), outer, y0, GF, G.bayW, GF - y0, FS.tint, 7.37, 0, openings);
-      } else if (FB) facadeWalls(FB, outer, y0, GF, groundStyle(FS, true, false) || FS, 7); else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
-      if (sf && B.shopGlass) for (const f of sf) glassFront(B, outer, f, y0, GF, color);
+      } else if (FB) { const G1 = groundStyle(FS, true, false); facadeWalls(FB, outer, y0, GF, G1 || FS, 7); if (G1 && G1.type === WIN.storefront) streetShopDress(B, outer, y0, GF, G1, seed, opts.props); } else wallGaps(B.shop, outer, y0, GF, 64, GF - y0, new THREE.Color(0xffffff), ((hash(seed + 3) * 8) | 0) / 8, -y0 / (GF - y0), openings);
+      if (sf && B.shopGlass) for (const f of sf) glassFront(B, outer, f, y0, GF, color, opts.props);
       if (FB) facadeWalls(FB, outer, GF, h, FS, 20); else wallStrip(B[fstyle], outer, GF, h, tw, th, color, uOff, vOff - GF / th);
       if (sf) fillPolyDown(B.trim, b.rings, GF - 0.02, new THREE.Color(0xe6e2da));
       if (h <= GF + 0.01) { /* single storey: roof sits right above the shop */ }
@@ -673,6 +673,7 @@ export function createTileBuilder(ctx) {
     // roof
     const roofC = new THREE.Color(FB ? FS.roofTint : style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
+    if (FB && FS && style !== 'house' && style !== 'warehouse' && style !== 'glass') corniceBands(B, b, outer, y0, h, FS, opts.lod);
     if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
     if (opts.props && style === 'house' && !sf && y0 < 0.5 && !b.part && h < 14 && outer.length <= 24) { // villa garden: clipped hedge ring + a pair of palms
       const ring = scalePoly(outer, b.cx, b.cz, 1.6), seedH = hash(seed + 301);
@@ -858,6 +859,18 @@ export function createTileBuilder(ctx) {
 
   const nodeLvCache = new WeakMap();
   // per node: which level gets a junction fill ('ground' at 0, 'deck' at the shared deck height) or none (overpass crossing)
+  // ground-continuity R1: mirrors the junction loop in buildRoads: true when a junction fill is drawn at road end p
+  let gNodeIdx = null;
+  function junctionDrawn(tile, p) {
+    if (GC_OFF) return true;
+    const k = endKey(p);
+    if (!gNodeIdx) { gNodeIdx = new Map(); for (const n of (D && D.roadGraph && D.roadGraph.nodes) || []) gNodeIdx.set(endKey([n.x, n.z]), n); }
+    const gn = gNodeIdx.get(k), lv = nodeLevel(tile, { x: p[0], z: p[1] });
+    if (!lv.kind) return false;
+    if (elevated) { const es = endsOf(tile).get(k) || [], ow = es.filter((e) => owned(e.r)).length;
+      if (ow && (ow === es.length || (gn && safeCall(() => elevated.isGroundJunctionBlocked(gn.id), false)))) return false; }
+    return true;
+  }
   function nodeLevel(tile, n) {
     let m = nodeLvCache.get(tile); if (!m) nodeLvCache.set(tile, (m = new Map()));
     const k = endKey([n.x, n.z]); if (m.has(k)) return m.get(k);
@@ -1043,7 +1056,7 @@ export function createTileBuilder(ctx) {
       // stop the ribbon just inside a junction fill drawn at this end's level (no road-over-road duplicates)
       const lvA = trimA ? nodeLevel(tile, na) : null, lvB = trimB ? nodeLevel(tile, nb) : null;
       const yA = ys ? ys[0] : 0, yB = ys ? ys[ys.length - 1] : 0;
-      let rA = lvA && lvA.kind && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;
+      let rA = lvA && lvA.kind && junctionDrawn(tile, r.pts[0]) && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && junctionDrawn(tile, r.pts[r.pts.length - 1]) && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;  // ground-continuity R1: only cut back for a junction disc that is really drawn (no grass gap between road pieces)
       // ground-continuity: dead ends finish as a cul-de-sac bulb / rounded cap, or (inside a set piece's own ground) stop at its edge with a concrete apron
       const capA = ys ? null : endCap(r, fr, L, hw, false, tile), capB = ys ? null : endCap(r, fr, L, hw, true, tile);
       let cA = 0, cB = 0; // collider trims
@@ -1052,6 +1065,8 @@ export function createTileBuilder(ctx) {
       const dw = ys ? deckWidths(fr, ys, r, hw, tile) : null;
       if (dw && dw.shrunk) { if (rB > rA + 0.2) vribbon(B.asphalt, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = 'deck'; vribbon(coll, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1); } }
       else { if (rB > rA + 0.2) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
+      // ground-continuity R2: a thin concrete edge strip where an open road meets the verge (no raw asphalt-to-grass cut)
+      if (!ys && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
       // markings
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total);
       const mY = yRoad + 0.015, s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
@@ -1226,7 +1241,81 @@ export function createTileBuilder(ctx) {
     }
   }
   // transparent shopfront: kick plate, glass panes + transom, header band; door opening left clear
-  function glassFront(B, outer, f, y0, GF, bColor) {
+  // shop-front dressing: striped canvas awning (livery per shop), granite planters with clipped topiary by the door
+  const AWN = [0x8c2f2a, 0x2f5a52, 0x283a52, 0x6b4a2a, 0x7a2f45, 0x2e5f6e, 0x3f4a2a];
+  function shopFrontDress(B, p, tx, tz, nx, nz, s0, s1, y0, top, GF, fx, fz, props) {
+    const hA = hash(((fx * 11) | 0) * 31 + ((fz * 17) | 0) * 7 + 3);
+    const P = (sv, o, y) => [p[0] + tx * sv + nx * o, y, p[1] + tz * sv + nz * o];
+    const quad2 = (A, Bq, C, D, col) => {
+      for (const [v, n] of [[[A, Bq, C, A, C, D], 1], [[A, C, Bq, A, D, C], -1]]) {
+        for (const q of v) B.trim.vert(q[0], q[1], q[2], nx * 0.5 * n, 0.85 * n, nz * 0.5 * n, 0, 0, col);
+      }
+    };
+    if (hA < 0.85 && s1 - s0 > 1.5) {
+      const cA = new THREE.Color(AWN[(hA * 1.17 * AWN.length | 0) % AWN.length]);
+      const cB = hA < 0.5 ? new THREE.Color(0xe9e3d3) : cA.clone().multiplyScalar(0.72);
+      const yT = Math.min(GF - 0.15, top + 0.5), yB = Math.max(top - 0.35, y0 + 2.35), dep = 1.3 + hA * 0.4;
+      const n = Math.max(2, Math.round((s1 - s0 + 0.4) / 0.45));
+      for (let k = 0; k < n; k++) {
+        const a = s0 - 0.2 + (s1 - s0 + 0.4) * k / n, b = s0 - 0.2 + (s1 - s0 + 0.4) * (k + 1) / n, col = k % 2 ? cB : cA;
+        quad2(P(a, 0.03, yT), P(b, 0.03, yT), P(b, dep, yB), P(a, dep, yB), col);
+        quad2(P(a, dep, yB), P(b, dep, yB), P(b, dep, yB - 0.3), P(a, dep, yB - 0.3), col);
+      }
+      for (const sv of [s0 - 0.2, s1 + 0.2]) { // side cheeks
+        const A = P(sv, 0.03, yT), Bq = P(sv, dep, yB), C = P(sv, dep, yB - 0.3);
+        for (const q of [A, Bq, C, A, C, Bq]) B.trim.vert(q[0], q[1], q[2], tx, 0, tz, 0, 0, cA);
+      }
+    }
+    if (props && hash(((fx * 5) | 0) + ((fz * 13) | 0) * 3) < 0.75) {
+      const pc = new THREE.Color(hA < 0.5 ? 0x4a4c4e : 0x8a857c);
+      for (const sv of [s0 + 0.45, s1 - 0.45]) {
+        const c = P(sv, 0.75, y0);
+        B.trim.addGeometry(BOXG, mat4(c[0], y0 + 0.32, c[2], Math.atan2(tx, tz), 0.62, 0.64, 0.62), pc);
+        props.blob.push({ x: c[0], y: y0 + 0.62, z: c[2], ry: hA * 9, s: 0.62 + hA * 0.2, color: new THREE.Color().setHSL(0.27 + hA * 0.05, 0.42, 0.3) });
+        if (hA > 0.6) props.flower.push({ x: c[0], y: y0 + 0.66, z: c[2], ry: hA * 5, s: 0.5 });
+      }
+    }
+  }
+  // stone cornice at the roof line and a string course over the ground floor (near and mid LOD; far keeps the plain parapet)
+  function corniceBands(B, b, outer, y0, h, FS, lod) {
+    if (lod === 2 || outer.length > 40 || h < 6) return;
+    const stone = new THREE.Color(FS.tint).lerp(new THREE.Color(0xe2dccf), 0.55);
+    const heavy = FS.parapet === 'cornice' || FS.fam === 'stoneBank' || FS.fam === 'brickRow' || FS.fam === 'precast';
+    const d = heavy ? 0.42 : 0.2;
+    const ring = scalePoly(outer, b.cx, b.cz, d), ring2 = scalePoly(outer, b.cx, b.cz, d * 0.55);
+    wallStrip(B.trim, ring, h - (heavy ? 0.8 : 0.45), h - 0.1, 4, 4, stone);
+    fillPolyDown(B.trim, [ring], h - (heavy ? 0.8 : 0.45), stone.clone().multiplyScalar(0.8));
+    if (heavy) {
+      wallStrip(B.trim, ring2, h - 1.25, h - 0.8, 4, 4, stone.clone().multiplyScalar(0.94));
+      fillPolyDown(B.trim, [ring2], h - 1.25, stone.clone().multiplyScalar(0.75));
+    }
+    if (h > 9.5 && y0 < 0.5) { // string course over the ground floor
+      const gr = scalePoly(outer, b.cx, b.cz, 0.12), gy = 4.2;
+      wallStrip(B.trim, gr, gy - 0.05, gy + 0.28, 4, 4, stone);
+      fillPolyDown(B.trim, [gr], gy - 0.05, stone.clone().multiplyScalar(0.8));
+      capPoly(B.trim, gr, gy + 0.28, stone);
+    }
+  }
+  // ground-floor shop bays drawn by the facade shader (no mapped shop lot): awnings and planters on the street-facing bays
+  function streetShopDress(B, outer, y0, GF, G, seed, props) {
+    const top = Math.min(GLASS_TOP, GF - 0.35);
+    for (let i = 0; i < outer.length; i++) {
+      const p = outer[i], q = outer[(i + 1) % outer.length], dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz);
+      if (L < 4) continue;
+      const tx = dx / L, tz = dz / L, nx = -tz, nz = tx;
+      const mx = p[0] + dx / 2 + nx * 3, mz = p[1] + dz / 2 + nz * 3;
+      if (roadDist && roadDist(mx, mz) > 14) continue; // only the faces that front a street
+      const nb = Math.max(1, Math.round(L / G.bayW)), bw = L / nb;
+      for (let k = 0; k < nb; k++) {
+        if (hash(seed * 31 + i * 7 + k) > 0.6) continue;
+        const sA = k * bw + 0.35, sB = (k + 1) * bw - 0.35;
+        if (sB - sA < 1.6) continue;
+        const cx = p[0] + tx * (sA + sB) / 2, cz = p[1] + tz * (sA + sB) / 2;
+        shopFrontDress(B, p, tx, tz, nx, nz, sA, sB, y0, top, GF, cx, cz, props);
+      }
+    }
+  }
+  function glassFront(B, outer, f, y0, GF, bColor, props = null) {
     const fx = f.fx ?? f.x, fz = f.fz ?? f.z;
     let best = null;
     for (let i = 0; i < outer.length; i++) {
@@ -1250,6 +1339,7 @@ export function createTileBuilder(ctx) {
     q(B.trim, s0, s1, top, GF, header);
     // slim frames (slightly proud of the glass)
     for (const sv of [s0, d0, d1, s1]) q(B.trim, sv - 0.05, sv + 0.05, y0, top, frame, 0.03);
+    shopFrontDress(B, p, tx, tz, nx, nz, s0, s1, y0, top, GF, fx, fz, props);
     q(B.trim, s0, s1, top - 0.06, top, frame, 0.03); q(B.trim, d0, d1, DOOR_H - 0.06, DOOR_H, frame, 0.03);
   }
   const NULL_BATCH = { vert() {}, addGeometry() {}, hquad() {}, empty: true };

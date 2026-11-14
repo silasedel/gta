@@ -281,7 +281,7 @@ export async function createVehicles(game) {
         if (hd) col1 = world.createCollider(hd.setDensity(0).setFriction(0.6).setRestitution(0.15), body);
       }
     } catch (e) { col1 = null; }
-    if (!col1) { col1 = world.createCollider(c1, body); world.createCollider(c2, body); }
+    if (!col1) { col1 = world.createCollider(c1, body); if (!(spec.convertible || spec.cls === 'roadster' || spec.roadster)) world.createCollider(c2, body); } // [car-bodies C2] open cars: no cabin box
     // vertical bumper blocks at both ends (0.28-0.68 m): car-to-car hits push horizontally instead of ramping
     for (const zs of [1, -1]) {
       const bh = 0.2, by = 0.48 - groundOff, bz = zs * (L / 2 - 0.16);
@@ -1318,13 +1318,14 @@ export async function createVehicles(game) {
     if (pendingSpecials.length && (game.clock?.elapsed ?? 0) < 90) trySpecials();
     const h = game.timeOfDay ?? 12;
     const tf = h < 5 ? 0.4 : h < 6.5 ? 0.6 : (h > 7 && h < 9.5) || (h > 16 && h < 19) ? 1.2 : h > 22 ? 0.65 : 1;
-    const target = trafficDebug.target ?? clamp(Math.round(11 * (DENS[zoneAt(pp)] ?? 1) * tf), 4, 16);
+    // busier streets (playtest: downtown looked empty at noon): about 21 cars around the player downtown at midday
+    const target = trafficDebug.target ?? clamp(Math.round(14.5 * (DENS[zoneAt(pp)] ?? 1) * tf), 5, 24);
     const ais = list.filter((v) => v.ai && !v.chaseTarget && !v.playerDriven && !v.disabled && !v.external);
     // recycle far / stuck traffic
     let moved = 0;
     for (const v of ais) {
       const t = v.body.translation();
-      const far = distXZ(t, pp) > PHYS_R + 15, stuck = v.ai.stuckT > 10;
+      const far = distXZ(t, pp) > PHYS_R + 15, stuck = v.ai.stuckT > 8; // stalled cars recover within 8 s (out of view)
       if ((far || stuck) && moved < 2) {
         if (stuck && !far && inView(new THREE.Vector3(t.x, t.y, t.z))) continue;
         if (ais.length > target + 1 && far) { removeVehicle(v); moved++; continue; }
@@ -1475,7 +1476,7 @@ export async function createVehicles(game) {
         const w = v.car.wheels[i];
         const sl = vc.wheelSuspensionLength(i) ?? v.restLen;
         w.steer.position.set(w.x, -sl, w.z);
-        w.steer.rotation.y = vc.wheelSteering(i) || 0;
+        { const sa = vc.wheelSteering(i) || 0, sm = v.car.steerMax || 0.7; w.steer.rotation.y = sa > sm ? sm : sa < -sm ? -sm : sa; } // [car-bodies C1] visual lock limit
         w.spin.rotation.x = vc.wheelRotation(i) || 0;
       }
       if (v.car.steeringWheel) v.car.steeringWheel.rotation.z = -v.steerCur * 7;
@@ -1486,8 +1487,8 @@ export async function createVehicles(game) {
       if (v.flooded && !v.lightsOn) lm.head.emissiveIntensity = 0;
       if (lm.drl) lm.drl.emissiveIntensity = v.headBroken ? 0 : alive ? 6 : 0;
       if (lm.lens) lm.lens.emissiveIntensity = v.headBroken ? 0 : v.lightsOn ? 12 : 0;
-      if (lm.tailLed) lm.tailLed.emissiveIntensity = v.disabled ? 0 : v.braking && alive ? 14 : v.lightsOn ? 4 : alive ? 1.2 : 0.2;
-      lm.tail.emissiveIntensity = v.disabled ? 0 : v.braking && (v.ai || v.playerDriven) ? 7 : (v.lightsOn ? 2.2 : 0.15);
+      if (lm.tailLed) lm.tailLed.emissiveIntensity = v.disabled ? 0 : v.braking && alive ? 14 : v.lightsOn ? 6 : alive ? 3 : 0.2;
+      lm.tail.emissiveIntensity = v.disabled ? 0 : v.braking && (v.ai || v.playerDriven) ? 6 : (v.lightsOn ? 1.4 : 0.15);
       // exhaust backfire pops when lifting off at high revs (player car)
       if (v.playerDriven && !v.disabled) {
         const thr = v.ctrl.throttle;

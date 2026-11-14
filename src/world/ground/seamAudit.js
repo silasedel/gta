@@ -26,16 +26,16 @@ function tools(game) {
 }
 
 export function auditSpot(game, spot) {
-  const t = tools(game), { city } = t, rg = city.roadGraph, res = { name: spot.name, x: spot.x, z: spot.z, r: spot.r, roadEnds: { n: 0, abrupt: 0, step: 0, list: [] }, pads: { n: 0, step: 0, maxStep: 0, list: [] }, holes: { n: 0, list: [] }, waterSolid: { n: 0, list: [] }, islets: { n: 0, list: [] } };
+  const t = tools(game), { city } = t, rg = game.miamiData?.roadGraph || city.roadGraph, res = { name: spot.name, x: spot.x, z: spot.z, r: spot.r, roadEnds: { n: 0, abrupt: 0, step: 0, list: [] }, pads: { n: 0, step: 0, maxStep: 0, list: [] }, holes: { n: 0, list: [] }, waterSolid: { n: 0, list: [] }, islets: { n: 0, list: [] } };
   const isW = (x, z) => city.isWater(x, z), gh = (x, z) => city.groundHeightAt(x, z);
   // road materials seen on ribbons / junctions in this area (anything drawn with them counts as a finished road end)
   const roadMats = new Set();
   const near = (x, z) => Math.hypot(x - spot.x, z - spot.z) < spot.r;
   for (const e of rg.edges) { const m = e.pts[(e.pts.length / 2) | 0]; if (!near(m[0], m[1]) || e.elevated) continue; const h = t.render(m[0], m[1], 0.1); if (h) roadMats.add(h.object.material); if (roadMats.size > 6) break; }
-  for (const n of rg.nodes) { if (n.edges.length >= 3 && near(n.x, n.z)) { const h = t.render(n.x, n.z, 0.1); if (h) roadMats.add(h.object.material); } }
+  for (const n of rg.nodes) { if ((n.edges || []).length >= 3 && near(n.x, n.z)) { const h = t.render(n.x, n.z, 0.1); if (h) roadMats.add(h.object.material); } }
   // ---- dead ends ----
   for (const n of rg.nodes) {
-    if (n.edges.length !== 1 || !near(n.x, n.z)) continue;
+    if ((n.edges || []).length !== 1 || !near(n.x, n.z)) continue;
     const e = rg.edges[n.edges[0]]; if (!e || !e.pts || e.elevated) continue;
     const atB = Math.hypot(e.pts[e.pts.length - 1][0] - n.x, e.pts[e.pts.length - 1][1] - n.z) < 1, p = atB ? e.pts[e.pts.length - 1] : e.pts[0], q = atB ? e.pts[e.pts.length - 2] : e.pts[1];
     let ox = p[0] - q[0], oz = p[1] - q[1]; const l = Math.hypot(ox, oz) || 1; ox /= l; oz /= l;

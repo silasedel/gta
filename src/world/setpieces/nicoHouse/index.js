@@ -18,7 +18,7 @@ import { PLAN, WALLS, PARTITIONS } from './plan.js';
 const partMods = import.meta.glob('./parts/*.js', { eager: true });
 
 export async function buildNicoHouse(THREE, opts = {}) {
-  const plan = { ...PLAN, seaY: opts.seaY ?? PLAN.seaY, WALLS, PARTITIONS };
+  const plan = { ...PLAN, seaY: opts.seaY ?? PLAN.seaY, dock: opts.dock ?? PLAN.dock, WALLS, PARTITIONS }; // dock: placed on the real waterline by nicoHouse.v2.js
   const kit = createKit(THREE, { ...opts, seaY: plan.seaY });
   opts = { ...opts, residentName: opts.residentName ?? 'N. Marrero' };
   const ctx = createContext(THREE, kit, plan, opts);
@@ -33,7 +33,8 @@ export async function buildNicoHouse(THREE, opts = {}) {
     partMs[p.name] = Math.round(performance.now() - t1);
   }
   const count = { ext: ctx.ext.count(), int: ctx.int.count(), detail: ctx.detail.count() };
-  ctx.ext.build(ctx.groups.ext); ctx.int.build(ctx.groups.int); ctx.detail.build(ctx.groups.detail);
+  ctx.ext.build(ctx.groups.ext); ctx.int.build(ctx.groups.int); ctx.detail.build(ctx.groups.detail); ctx.site.build(ctx.groups.site);
+  if (opts.shell !== false) { buildShell(ctx); ctx.groups.shell.visible = false; }
   ctx.stats.parts = partMs; ctx.stats.buildMs = Math.round(performance.now() - t0); ctx.stats.batched = count;
 
   // ---- importance LOD (perf pass, track: houses) ----
@@ -77,12 +78,18 @@ export async function buildNicoHouse(THREE, opts = {}) {
       // distance LOD: interior and small clutter are hidden when the camera is far away
       if (env.camera) {
         const d = Math.hypot(env.camera.x, env.camera.z - 2);
+        // far shell (perf pass): beyond ~55 m the full exterior (64 material batches) swaps for a 6-batch shell; site, palms and plants stay
+        const shell = opts.shell !== false && (ctx.groups.shell.visible ? d > (opts.shellDist ?? 55) - 6 : d > (opts.shellDist ?? 55));
+        if (shell !== ctx.groups.shell.visible) { ctx.groups.shell.visible = shell; for (const o of ctx.groups.ext.children) if (!/^vegPalm|^plants/.test(o.name)) o.visible = !shell; }
+        if (shell) { ctx.groups.int.visible = ctx.groups.detail.visible = ctx.groups.dyn.visible = false; }
+        else {
         ctx.groups.int.visible = d < (opts.intDist ?? 70); ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
         if (opts.lod !== false && (lodScanT -= dt) <= 0) { lodScanT = 2; scanLod(); }
         if (opts.lod !== false && (lodT -= dt) <= 0 && d < (opts.detailDist ?? 110) + 10) {
           lodT = 0.2; let cul = 0; const cy = env.camera.y ?? 1.7;
           for (const o of lodList) { const L = o.userData.nhLod, v = Math.hypot(env.camera.x - L.c.x, cy - L.c.y, env.camera.z - L.c.z) < L.d; if (o.visible !== v) o.visible = v; if (!v) cul++; }
           lodStats.culled = cul;
+        }
         }
       }
       for (const u of ctx.updaters) { try { u(dt, env, ctx); } catch (e) { if (!u._err) { u._err = true; console.error('[nicoHouse] updater failed', e); } } }
@@ -92,3 +99,47 @@ export async function buildNicoHouse(THREE, opts = {}) {
   return house;
 }
 export { PLAN };
+
+// Far shell of the house (perf pass, track: houses): massing, siding color, window and shutter cards, tin roofs, decks with
+// rails, piles and stairs, from the same plan. About 6 draw calls in place of the 64 exterior batches past ~55 m.
+function buildShell(ctx) {
+  const { THREE, kit, plan: P } = ctx, M = kit.M, B = kit.batch('shell'), mat = kit.mat, C = P.colors, F = P.F, top = F + P.wallH;
+  const PAINT = mat.paint({ peel: 'a', fade: 0.28 }), TIN = mat.tin(), WOOD = mat.wood(), GL = mat.plasticGloss();
+  const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => B.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), o);
+  for (const x of P.pileXs) for (const z of P.pileZs) box(WOOD, 0.3, F, 0.3, x, F / 2 - 0.3, z, { color: C.pile, wear: 0.5 });
+  for (const r of [P.A, P.B, P.porch, P.deckW, P.deckN]) box(WOOD, r.x1 - r.x0, 0.3, r.z1 - r.z0, (r.x0 + r.x1) / 2, F - 0.15, (r.z0 + r.z1) / 2, { color: C.deck, wear: 0.4 });
+  for (const r of [P.A, P.B]) box(PAINT, r.x1 - r.x0, top - F + 0.4, r.z1 - r.z0, (r.x0 + r.x1) / 2, (F + top + 0.4) / 2, (r.z0 + r.z1) / 2, { color: C.body, wear: 0.45 });
+  // windows, doors and shutters as cards on the outside faces
+  for (const w of P.WALLS) {
+    const [ax, az] = w.a, [bx, bz] = w.b, L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, nx = -uz, nz = ux, ry = Math.atan2(-uz, ux);
+    for (const o of w.openings) {
+      const x = ax + ux * o.u + nx * 0.03, z = az + uz * o.u + nz * 0.03, yc = F + o.sill + o.h / 2;
+      if (o.kind === 'vent') { box(PAINT, o.w, o.h, 0.04, x, yc, z, { color: C.trim, wear: 0.3 }, 0, ry); continue; }
+      box(PAINT, o.w + 0.16, o.h + 0.16, 0.03, x, yc, z, { color: C.trim, wear: 0.3 }, 0, ry);
+      box(o.kind === 'door' && !o.glazed ? PAINT : GL, o.w, o.h, 0.03, x + nx * 0.015, yc, z + nz * 0.015, { color: o.kind === 'door' && !o.glazed ? C.accent : 0x1c2426 }, 0, ry);
+      if (o.shutter && o.shutter !== 'none') for (const sg of [-1, 1]) box(PAINT, o.w * 0.5, o.h + 0.05, 0.03, x + ux * sg * (o.w * 0.75 + 0.06), yc, z + uz * sg * (o.w * 0.75 + 0.06), { color: C.accent, wear: 0.5 }, 0, ry);
+    }
+    if (w.gable && (w.id === 'B_south' || w.id === 'B_north')) { const half = (P.B.x1 - P.B.x0) / 2, rise = P.ridgeB.y - top - 0.05, tri = new THREE.Shape(); tri.moveTo(0, 0); tri.lineTo(L, 0); tri.lineTo(w.gable.u, rise); tri.lineTo(0, 0);
+      B.geo(PAINT, new THREE.ShapeGeometry(tri), M(ax + nx * 0.01, top + 0.4, az + nz * 0.01, 0, ry), { color: C.body, wear: 0.45, uvMul: [1 / 0.75, 1 / 0.75] }); void half; }
+  }
+  // roofs: low shed over the main block, gable over the wing, porch roof
+  const sh = P.shed, dz = sh.z1 - sh.z0, a = Math.atan(sh.pitch);
+  box(TIN, sh.x1 - sh.x0, 0.08, dz / Math.cos(a), (sh.x0 + sh.x1) / 2, sh.y0 - dz / 2 * sh.pitch, (sh.z0 + sh.z1) / 2, { color: 0xb8bcc0, wear: 0.6 }, a);
+  const hw = (P.B.x1 - P.B.x0) / 2 + P.eaveOv, ab = Math.atan(P.pitchB), zl = P.B.z1 - P.B.z0 + 2 * P.rakeOv;
+  for (const sg of [-1, 1]) box(TIN, hw / Math.cos(ab), 0.08, zl, P.ridgeB.x + sg * hw / 2, P.ridgeB.y - hw / 2 * P.pitchB, (P.B.z0 + P.B.z1) / 2, { color: 0xb8bcc0, wear: 0.6 }, 0, 0, -sg * ab);
+  const pr = P.porchRoof, pd = pr.zOut - P.A.z1, ap = Math.atan(pr.pitch);
+  box(TIN, pr.x1 - pr.x0, 0.08, pd / Math.cos(ap), (pr.x0 + pr.x1) / 2, pr.yWall - pd / 2 * pr.pitch, (P.A.z1 + pr.zOut) / 2, { color: 0xb8bcc0, wear: 0.6 }, ap);
+  for (const x of [pr.x0 + 0.1, (pr.x0 + pr.x1) / 2, pr.x1 - 0.1]) box(PAINT, 0.12, pr.yWall - F - 0.3, 0.12, x, (F + pr.yWall - 0.3) / 2, P.porch.z1 - 0.1, { color: C.trim, wear: 0.3 });
+  // deck rails (top and bottom rails, posts) along the open deck edges
+  const rail = (x0, z0, x1, z1) => { const L = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(-(z1 - z0), x1 - x0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    for (const y of [F + 1.04, F + 0.12]) box(PAINT, L, 0.07, 0.07, cx, y, cz, { color: C.trim, wear: 0.4 }, 0, ry);
+    for (let t = 0; t <= L; t += 1.4) box(PAINT, 0.09, 1.07, 0.09, x0 + (x1 - x0) * t / L, F + 0.53, z0 + (z1 - z0) * t / L, { color: C.trim, wear: 0.4 });
+    box(PAINT, L, 0.85, 0.01, cx, F + 0.56, cz, { color: kit.mul(C.trim, 0.55), wear: 0.4 }, 0, ry); };
+  rail(P.deckW.x0, P.deckN.z0, P.deckW.x0, P.deckW.z1); rail(P.deckN.x0, P.deckN.z0, P.deckN.x1, P.deckN.z0); rail(P.deckW.x0, P.deckW.z1, P.deckW.x1, P.deckW.z1); rail(P.porch.x0, P.porch.z1, P.porch.x1, P.porch.z1);
+  // west stair (two flights) as stringer slabs
+  const ld = P.stairW.landing;
+  B.strut(WOOD, [P.deckW.x0, F - 0.1, (ld.z0 + ld.z1) / 2], [ld.x1, ld.y, (ld.z0 + ld.z1) / 2], 1.2, 0.12, { color: C.deck, roll: Math.PI / 2 });
+  B.strut(WOOD, [(ld.x0 + ld.x1) / 2, ld.y, ld.z1], [(ld.x0 + ld.x1) / 2, 0.05, ld.z1 + ld.y / P.rise * P.run], 1.2, 0.12, { color: C.deck, roll: Math.PI / 2 });
+  box(WOOD, ld.x1 - ld.x0, 0.1, ld.z1 - ld.z0, (ld.x0 + ld.x1) / 2, ld.y, (ld.z0 + ld.z1) / 2, { color: C.deck });
+  B.build(ctx.groups.shell);
+}

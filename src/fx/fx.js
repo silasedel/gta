@@ -483,7 +483,8 @@ export function createFX(game, env) {
       // landing puffs on sand / grass
       const g = !!pl.state?.grounded;
       if (g && !wasGrounded && airT > 0.35 && !wet) {
-        const surf = game.city?.surfaceAt?.(p.x, p.z) || game.surfaceAt?.(p.x, p.z) || null;
+        const gY = game.city?.groundHeightAt?.(p.x, p.z), onDeck = Number.isFinite(gY) && p.y > gY + 0.18; // G4: decks, docks, slabs above the ground
+        const surf = onDeck ? 'wood' : game.city?.surfaceAt?.(p.x, p.z) || game.surfaceAt?.(p.x, p.z) || null;
         if (surf === 'sand') { fx.dust(p); fx.dust(p); }
         else if (surf === 'grass' || surf === 'grass_short' || surf === 'grass_long' || surf === 'dirt') fx.dust(p, tmpC.setRGB(0.45, 0.42, 0.3));
       }

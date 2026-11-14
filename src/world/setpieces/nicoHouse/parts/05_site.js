@@ -41,7 +41,7 @@ export function build(ctx) {
   const wall = (ax, az, bx, bz) => { const len = Math.hypot(bx - ax, bz - az), n = Math.ceil(len / 4.9), ry = Math.atan2(-(bz - az), bx - ax);
     for (let i = 0; i < n; i++) { const t = (i + 0.5) / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t;
       B.box(SW, len / n - 0.015, 3.4, 0.3, M(x, 0.1 - 1.7, z, 0, ry, 0), { color: kit.vary(0xc4bfb0, r, 0.06), wear: 1, bevel: 0.01, rand: r });
-      B.box(SW, len / n - 0.01, 0.16, 0.5, M(x, 0.16, z, 0, ry, 0), { color: kit.vary(0xd0cabb, r, 0.05), wear: 0.8, bevel: 0.02, rand: r }); }
+      if (!(Math.abs(z - P.lot.z0) < 0.5 && x + len / n / 2 > P.dock.x0 - 0.3 && x - len / n / 2 < P.dock.x1 + 0.3)) B.box(SW, len / n - 0.01, 0.16, 0.5, M(x, 0.16, z, 0, ry, 0), { color: kit.vary(0xd0cabb, r, 0.05), wear: 0.8, bevel: 0.02, rand: r }); } // no cap poking up under the dock
     col.box((ax + bx) / 2, -1.2, (az + bz) / 2, len, 2.9, 0.5, { ry, tag: 'seawall' }); };
   wall(L.x0 - 22, L.z0, L.x1 + 0.15, L.z0); wall(L.x1, L.z0 - 0.15, L.x1, L.z1 + 22);
   { const g = new THREE.PlaneGeometry(400, 400, 1, 1); g.rotateX(-Math.PI / 2); B.geo(mat.pbr('sand_01', { rep: 5, gain: 1.6, grunge: true }), g, M(L.x1 - 60, sea - 1.5, L.z0 + 40), { color: [0.75, 0.82, 0.7], uvMul: [80, 80] }); g.dispose(); }

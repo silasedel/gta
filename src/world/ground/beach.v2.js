@@ -7,6 +7,21 @@ export const order = 62;
 
 export async function initV2(game) {
   const city = game.city, d = game.miamiData;
+  // G4: the surface under the player's feet. Footstep FX, prints and sounds ask game.surfaceAt(x, z) at the player's
+  // position; when the feet are clearly above the ground there (a deck, dock, porch, slab) the answer is that structure
+  // (wood unless the map says paved), not the sand or dirt below it.
+  if (typeof game.surfaceAt === 'function' && !game.surfaceAt._gc) {
+    const base = game.surfaceAt;
+    const wrapped = (x, z, y) => {
+      const s = base(x, z), P = game.player?.position;
+      const py = Number.isFinite(y) ? y : P && Math.abs(P.x - x) < 0.6 && Math.abs(P.z - z) < 0.6 ? P.y : null;
+      if (py === null || s === 'water') return s;
+      let g = null; try { g = city?.groundHeightAt?.(x, z); } catch (e) { g = null; }
+      if (!Number.isFinite(g) || py < g + 0.18) return s;
+      return s === 'asphalt' || s === 'concrete' || s === 'metal' || s === 'tile' ? s : 'wood';
+    };
+    wrapped._gc = true; game.surfaceAt = wrapped;
+  }
   const sand = city?.materials?.sand?.userData?.sand;
   if (!city || !d || !sand) return;
   const R = d.realRect, CELL = 4, MAXD = 40;
