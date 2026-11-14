@@ -7,3 +7,10 @@ contextBridge.exposeInMainWorld('portSolanaDesktop', {
   electron: process.versions.electron,
   chrome: process.versions.chrome,
 });
+
+// Ask Chromium to keep this origin's storage (saves) even under disk pressure.
+try {
+  navigator.storage.persist().catch(() => {});
+} catch (e) {
+  // not fatal
+}

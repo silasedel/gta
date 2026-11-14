@@ -130,3 +130,31 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
    - `src/npc/people.v2.js`
    - `src/npc/peds.js`
    - `src/gameplay/pickups.js`
+
+## Update (about 20:55): quality presets, frame pacing, shader warm-up, measured runs
+- **Quality presets** (`src/render/quality.v2.js`; the look agent owns this file now):
+  - Four presets: Ultra, High, Medium and Low.
+  - Each preset sets shadow map size and radius (through `env.setShadowQuality`), draw distance (camera far), crowd target, near-ped scale and character LOD budget.
+  - Each preset also sets the pixel ratio: native (up to 2), mid, or the minimum that still renders a 1920x1080-class picture. It never goes lower.
+  - Auto-pick: the game measures 10 s windows and steps down while the slowest 2% of frames exceed 18.5 ms or the average exceeds 16.9 ms. The result is stored per GPU. A manual choice, through `settings:changed` `gfxPreset` or `game.quality.set(name, { manual: true })`, always wins.
+- **GTAO regression (my mistake, now fixed):** my first preset table enabled GTAO on 'ultra'. That rendered the whole scene twice: RenderPass 21 ms plus GTAOPass 21 ms on M3 Max at 1512x949, DPR 2. The look agent has turned GTAO off in every preset, and auto-pick now starts on 'high'.
+- **Even frame pacing** (`perfGuards.v2.js`): on displays at 90 Hz or above, `requestAnimationFrame` callbacks run on every second refresh, an even 16.7 ms. This replaces the 60/40 judder the desktop agent measured on the 120 Hz panel. Status is in `game.framePacing`.
+- **Shader warm-up for streamed tiles** (`perfGuards.v2.js`): new city tiles stay hidden from the main camera until `compileAsync` finishes, and are never held back more than 1.5 s. Status is in `game.shaderWarm`.
+- **Physics:** with nothing stuck, `world.step` takes 1 ms; putting far cars to sleep only brings it to 0.5 ms. The 25 to 37 ms steps happened while the test car was stuck against geometry, which points to a contact problem in vehicles-core. Calling `enterVehicle` itself takes 0.1 ms; I could not reproduce the 1.9 s car-entry frame.
+
+### Measured runs: 150 s each, walk then drive speed, 1512x949 at DPR 2 (MacBook Pro size), M3 Max, headless Chrome
+| Build | Place | Load | Avg fps | 1% low | p99 | Worst | Frames > 33 ms | Auto preset / buffer |
+|---|---|---|---|---|---|---|---|---|
+| perf fixes + GTAO off | South Beach | 12-15 | 55.7 | 13.1 | 33.4 ms | 533 ms | 53 | medium / 1814x1138 |
+| perf fixes + GTAO off | Nico's house | 12-15 | 57.9 | 15.1 | 33.3 ms | 633 ms | 15 | high / 2419x1518 |
+| + pacing + warm-up | South Beach | 58-138 | (21.2) | (1.1) | - | - | - | invalid, machine overloaded |
+| + pacing + warm-up | Nico's house | 58-138 | (11.5) | (0.2) | - | - | - | invalid, machine overloaded |
+
+- The last two runs are invalid: the machine load rose to 122 while they ran.
+- The packaged-app run (desktop agent's `measure.mjs app`) needs an app rebuilt from current src. Their latest app numbers come from a 19:34 build that has none of these fixes; I sent them the details.
+- **Not met yet:** 60 fps with no frame over 25 ms. The headless runs at normal load came close on average (56-58 fps), but the 1% lows are still 13-15 fps.
+- **Remaining spikes:** render CPU of 10-17 ms with about 800 draw calls, and the occasional 0.5 s frame.
+- **Next steps:**
+  - Fewer draw calls through merged and instanced city geometry (city-look).
+  - Moving tile building into a worker (city-look).
+  - Re-measuring in the app at low load.

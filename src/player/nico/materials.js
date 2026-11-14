@@ -281,8 +281,12 @@ export function makeClothMaterial(o = {}) {
         #endif
         float fl = color.b * uFlutter;
         float ph = position.x * 9.0 + position.y * 13.0 + position.z * 7.0;
-        transformed += normal * ( sin( uTime * 5.3 + ph ) * 0.0035 + sin( uTime * 8.1 + ph * 1.7 ) * 0.0018 + sin( uTime * 11.0 + ph * 2.3 ) * 0.0022 * length( uWind ) ) * fl * ( 0.5 + length( uWind ) );
-        transformed += uWind * ( 0.012 * fl * ( 0.6 + 0.4 * sin( uTime * 2.1 + ph * 0.3 ) ) );
+        // woven cotton holds its shape: no idle ripple. Only real air (uWind is about 0.12 x m/s) makes a slow travelling
+        // wave run across the loose panels, and it is small; a calm day leaves the fabric still.
+        float windAmt = smoothstep( 0.12, 0.6, length( uWind ) );
+        float wave = sin( uTime * 2.4 - dot( position, vec3( 6.0, 3.0, 6.0 ) ) ) * 0.7 + sin( uTime * 3.7 - dot( position, vec3( 9.0, 5.0, 4.0 ) ) ) * 0.3;
+        transformed += normal * wave * 0.0012 * fl * windAmt;
+        transformed += uWind * ( 0.006 * fl * windAmt );
         // spring-simulated swing (hem, sleeve ends, collar tips): lower / looser cloth lags more; never pushed into the body
         {
           vec3 sw = uSwing * color.b * uFlutter * ( 0.85 + 0.15 * sin( ph * 0.7 ) );

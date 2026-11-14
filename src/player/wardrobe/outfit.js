@@ -32,7 +32,7 @@ export const CATALOG = [
     noun: 'shirt',
     price: 0,
     signature: true,
-    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xd6dede, repeatM: 0.52, roughness: 0.92, specular: 0.35, sheen: 0.25, sheenRoughness: 0.5, sheenColor: 0x4f8f88 },
+    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xf2f2ee, repeatM: 0.42, roughness: 0.92, specular: 0.3, sheen: 0.2, sheenRoughness: 0.55, sheenColor: 0x5e8a80 },
     buttons: 0xe9e4d8,
     thread: 0x2f7f7c,
   },
@@ -308,12 +308,13 @@ export function createOutfit({ character, model, bone, skin, meta, game }) {
       _tg.copy(_rel).multiplyScalar(0.0075 * Math.min(1, 0.35 + air * 0.12));
       _tg.y = Math.min(0.012, air * 0.0018);
       const accL = _w.copy(sim.acc).applyQuaternion(_qi).clampLength(0, 30);
-      const k = 70, c = 5.5;
-      sim.v.addScaledVector(_w.subVectors(_tg, sim.x).multiplyScalar(k).addScaledVector(sim.v, -c).addScaledVector(accL, -0.35), h);
-      sim.x.addScaledVector(sim.v, h).clampLength(0, 0.06);
-      // walking / running bob: the hem keeps bouncing a little behind the stride
+      // real fabric: stiff (about 2 Hz) and close to critically damped (zeta 0.85), so it settles without bouncing
+      const k = 160, c = 2 * 0.85 * Math.sqrt(k);
+      sim.v.addScaledVector(_w.subVectors(_tg, sim.x).multiplyScalar(k).addScaledVector(sim.v, -c).addScaledVector(accL, -0.2), h);
+      sim.x.addScaledVector(sim.v, h).clampLength(0, 0.035);
+      // walking / running: the hem only settles a few millimeters with each footfall
       const sp = anim?.speed || 0;
-      const bob = Math.sin(time.value * (5.5 + sp * 1.2)) * Math.min(0.006, sp * 0.0016);
+      const bob = Math.sin(time.value * (5.5 + sp * 1.2)) * Math.min(0.0015, sp * 0.0004);
       swing.value.set(sim.x.x, sim.x.y + bob, sim.x.z);
       wind.value.copy(_rel).multiplyScalar(0.12).clampLength(0, 1.2);
     },

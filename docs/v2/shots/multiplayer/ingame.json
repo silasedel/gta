@@ -1,0 +1,55 @@
+{
+ "anchor": {
+  "x": -6411.983887465776,
+  "y": 0.8799998760223389,
+  "z": 12421.176757053518,
+  "yaw": 7.5242853071795865
+ },
+ "motion": {
+  "0": {
+   "frames": 106,
+   "maxStepM": 0.515,
+   "maxSpeedChangePerFrame": 10.17
+  },
+  "1": {
+   "frames": 106,
+   "maxStepM": 0,
+   "maxSpeedChangePerFrame": 0
+  },
+  "car2049": {
+   "frames": 106,
+   "maxStepM": 0.969,
+   "maxSpeedChangePerFrame": 17.76
+  }
+ },
+ "page": {
+  "stats": {
+   "remotes": 2,
+   "avatars": 2,
+   "proxies": 1,
+   "interpDelay": 236.21244047504211,
+   "bytesIn": 41697,
+   "bytesOut": 11546
+  },
+  "fps": 46.50664875648082,
+  "tod": 10.229207744914682,
+  "weather": {
+   "kind": "clear",
+   "rain": 0
+  }
+ },
+ "botSeesBrowser": {
+  "server": [
+   -6411.98,
+   12421.17
+  ],
+  "bot": [
+   -6411.98,
+   12421.17
+  ]
+ },
+ "errors": [
+  "EXC SyntaxError: Unexpected token 'else'",
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

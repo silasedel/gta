@@ -2,17 +2,19 @@
  "track": "desktop",
  "title": "Desktop app (Electron, Mac)",
  "section": "Platform",
- "agent": "running",
+ "agent": "done",
  "items": [
-  { "name": "Port Solana.app (Electron 45.2.1 pinned) packaged to .app and .dmg, unsigned", "state": "built", "evidence": "desktop/dist/mac-arm64/Port Solana.app" },
-  { "name": "Production build served from local files over app://game (assets, GLBs, tiles, workers, WASM)", "state": "built", "evidence": "" },
-  { "name": "Performance switches: high-performance GPU, no throttling, 8 GB heap flag, WebGPU, GPU blocklist off, ANGLE Metal", "state": "built", "evidence": "" },
-  { "name": "Native fullscreen (F11, Cmd+Ctrl+F), pointer lock, large window, minimal menu, locked-down process", "state": "built", "evidence": "" },
-  { "name": "Crash guard: auto reload on renderer/GPU crash or hang, notice, crash.log in userData", "state": "built", "evidence": "" },
-  { "name": "Saves persist in the app (localStorage and IndexedDB under userData)", "state": "todo", "evidence": "" },
-  { "name": "npm run desktop:build and desktop:dev; copy to ~/Desktop", "state": "built", "evidence": "" },
-  { "name": "5-minute fps (avg, 1% low) and memory: app vs headless Chrome", "state": "building", "evidence": "" },
-  { "name": "WebGPU renderer path", "state": "todo", "evidence": "" },
-  { "name": "Windows build", "state": "todo", "evidence": "" }
+  { "name": "Port Solana.app (Electron 45.2.1 pinned) packaged to .app and .dmg, unsigned, copied to ~/Desktop", "state": "verified", "evidence": "~/Desktop/Port Solana.app launched to game.ready, failed [] (docs/v2/reports/desktop.md)" },
+  { "name": "Production build served from local files over app://game (assets, GLBs, tiles, workers, WASM)", "state": "verified", "evidence": "docs/v2/shots/desktop/app_end.png" },
+  { "name": "Performance switches: high-performance GPU, no throttling, heap flag, WebGPU flag, GPU blocklist off, ANGLE Metal", "state": "verified", "evidence": "app.log GPU status; ANGLE Metal M3 Max; rAF full rate unfocused (heap ceiling stays 4 GB: pointer compression)" },
+  { "name": "Native fullscreen on launch, edge to edge at Retina DPR 2, zoom locked to 1, resize events after transitions", "state": "verified", "evidence": "docs/v2/shots/desktop/app_default_launch.png" },
+  { "name": "F11 / Cmd+Ctrl+F fullscreen toggle", "state": "built", "evidence": "wired; not exercised (synthetic keys bypass it)" },
+  { "name": "Crash guard: auto reload on renderer/GPU crash or hang, notice, crash.log in userData", "state": "built", "evidence": "no crash occurred to trigger it" },
+  { "name": "Saves persist in the app (IndexedDB and localStorage under userData, flushed on quit)", "state": "verified", "evidence": "marker survived quit and relaunch (docs/v2/reports/desktop.md)" },
+  { "name": "npm run desktop:build and desktop:dev", "state": "verified", "evidence": "desktop/dist/Port Solana-2.0.0-arm64.dmg" },
+  { "name": "5-minute fps (avg, 1% low) and memory: app vs headless Chrome", "state": "verified", "evidence": "docs/v2/reports/desktop-measure-app.json, desktop-measure-chrome.json (high machine load)" },
+  { "name": "Solid 60 fps in the app", "state": "todo", "evidence": "game-side frame time and pacing; numbers sent to playtest-fixes" },
+  { "name": "WebGPU renderer path", "state": "todo", "evidence": "skipped by lead; needs TSL rewrite of 81 onBeforeCompile patches" },
+  { "name": "Windows build", "state": "todo", "evidence": "skipped by lead" }
  ]
 }

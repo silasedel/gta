@@ -196,6 +196,9 @@ const SAMPLE = `(() => {
     geometries: r ? r.memory.geometries : null,
     textures: r ? r.memory.textures : null,
     pos: p ? [Math.round(p.x), Math.round(p.z)] : null,
+    pixelRatio: game.renderer ? game.renderer.getPixelRatio() : null,
+    pacing: game.framePacing ? { hz: game.framePacing.hz, on: game.framePacing.on, skipped: game.framePacing.skipped } : null,
+    shaderWarm: game.shaderWarm ? JSON.parse(JSON.stringify(game.shaderWarm)) : null,
   };
 })()`;
 

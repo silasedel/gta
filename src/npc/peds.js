@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { createCharacter, humansLoaded, humansTotal } from '../player/characterModel.js';
 import { createRagdollSystem } from './ragdoll.js';
 import { PERSONAS, pickPersona } from './personality.js';
+import { createSignals } from './streetlife.js';
 
 const DESPAWN = 300, SPAWN_MIN = 20, SPAWN_MAX = 165;
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _q = new THREE.Quaternion();
@@ -47,6 +48,7 @@ export async function createPeds(game) {
     kcc.setMaxSlopeClimbAngle(50 * Math.PI / 180);
   } catch (e) { kcc = null; console.warn('[peds] no character controller', e); }
 
+  const signals = createSignals(game);
   // ---------------------------------------------------------------- road graph sidewalk navigation
   const RG = city.roadGraph && city.roadGraph.edges && city.roadGraph.nearestEdge ? city.roadGraph : null;
   const cumCache = new WeakMap();
@@ -117,6 +119,9 @@ export async function createPeds(game) {
         n.edge = ch.e; n.dir = ch.fwd ? 1 : -1; n.s = ch.fwd ? 0.01 : edgeLen(ch.e) - 0.01;
         const t = _nt; navTarget(ped, t);
         n.cross = { x: t.x, z: t.z }; n.crossT = 0;
+        // npc-life: remember the corner, so walkers can wait for the walk signal there (streetlife.js)
+        n.cross.node = node;
+        n.cross.sig = 0;
         // patient people wait at the corner before crossing; impatient ones go straight (people.v2.js traits)
         if (ped.P && ped.P.patience !== undefined && ped.state === 'walk' && ped.P.patience > 0.4 && Math.random() < 0.7) ped.waitT = rand(0.8, 1.5 + ped.P.patience * 4);
         return Math.atan2(t.x - ped.pos.x, t.z - ped.pos.z);
@@ -626,7 +631,9 @@ export async function createPeds(game) {
     const fps = game.perf?.fps || 60;
     // playtest: more people on the street; a dip in frame rate trims the crowd gently instead of halving it
     const cap = fps >= 50 ? 40 : fps >= 38 ? 34 : 28;
-    return Math.min(base, cap);
+    // quality preset (src/render/quality.v2.js) scales how many full characters walk around
+    const qs = game.quality?.current?.pedScale ?? 1;
+    return Math.round(Math.min(base, cap) * qs);
   }
   let frameN = 0;
   function update(dt) {
@@ -905,6 +912,16 @@ export async function createPeds(game) {
         }
         default: { // walk / jog / dog / shore
           ped.handsUp = false;
+          // npc-life: at a signalized corner, wait for the walk phase (impatient people sometimes go anyway)
+          const nc = ped.nav?.cross;
+          if (nc && nc.node !== undefined && ped.act !== 'jog' && (nc.sig -= dt) <= 0) {
+            nc.sig = 0.5;
+            const ws = signals.walkState(nc.node, nc.x - ped.pos.x, nc.z - ped.pos.z);
+            const bold = (ped.P?.jaywalk || 0) > 0.5 && Math.random() < 0.15;
+            if (!ws || ws.walk || bold) { nc.node = undefined; ped.sigWaitT = 0; }
+            else { ped.sigWaitT = 0.6; }
+          }
+          if (ped.sigWaitT > 0) { ped.sigWaitT -= dt; targetSpeed = 0; ped.speed *= Math.exp(-dt * 8); ped.idleStyle = ped.call ? 'phone' : null; break; }
           if (ped.waitT > 0) { ped.waitT -= dt; targetSpeed = 0; ped.idleStyle = ped.call ? 'phone' : null; break; } // waiting at the corner
           if (ped.pause > 0) {
             ped.pause -= dt; targetSpeed = 0;

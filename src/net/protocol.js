@@ -264,7 +264,7 @@ export function encodeState(w, s) {
 // decodes into `out` (a reusable object); returns out or null when malformed
 export function decodeState(data, out) {
   const r = new Reader(data);
-  if (r.left < 34 || r.r8() !== MSG_STATE) {
+  if (r.left < 33 || r.r8() !== MSG_STATE) {
     return null;
   }
   out.seq = r.r16();

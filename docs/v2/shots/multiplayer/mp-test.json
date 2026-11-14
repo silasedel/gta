@@ -1,0 +1,190 @@
+[
+ {
+  "label": "clean link",
+  "link": {},
+  "port": 5301,
+  "seconds": 21.5,
+  "convergence": [
+   {
+    "observer": 0,
+    "target": 1,
+    "err": 0.008
+   },
+   {
+    "observer": 0,
+    "target": 2,
+    "err": 0.007
+   },
+   {
+    "observer": 1,
+    "target": 0,
+    "err": 0.008
+   },
+   {
+    "observer": 1,
+    "target": 2,
+    "err": 0.007
+   },
+   {
+    "observer": 2,
+    "target": 0,
+    "err": 0.008
+   },
+   {
+    "observer": 2,
+    "target": 1,
+    "err": 0.008
+   }
+  ],
+  "convergedMax": 0.008,
+  "renderErr": {
+   "mean": 0.01,
+   "p50": 0.007,
+   "p95": 0.018,
+   "p99": 0.08,
+   "max": 0.548
+  },
+  "frameSnap": {
+   "mean": 0.004,
+   "p50": 0.004,
+   "p95": 0.01,
+   "p99": 0.016,
+   "max": 0.273
+  },
+  "framesMeasured": 4384,
+  "vehicleFramesSeen": 944,
+  "bandwidth": [
+   {
+    "bot": 0,
+    "downBps": 1581,
+    "upBps": 985
+   },
+   {
+    "bot": 1,
+    "downBps": 1500,
+    "upBps": 998
+   },
+   {
+    "bot": 2,
+    "downBps": 1612,
+    "upBps": 914
+   }
+  ],
+  "shots": 11,
+  "hits": 11,
+  "hitsConfirmed": 11,
+  "hitsTaken": 10,
+  "speedHackCorrections": 2,
+  "speedHackStrikes": 45,
+  "declaredTeleportsAccepted": 1,
+  "finalBot3X": 297.9,
+  "tick": {
+   "hz": 30,
+   "n": 642,
+   "avgMs": 0.07100434267916879,
+   "maxMs": 0.4758330000000228
+  },
+  "interpDelayMs": [
+   100,
+   100,
+   100
+  ],
+  "pass": true
+ },
+ {
+  "label": "100 ms lag, 30 ms jitter, 2 % loss",
+  "link": {
+   "lag": 100,
+   "jitter": 30,
+   "loss": 0.02
+  },
+  "port": 5301,
+  "seconds": 21.5,
+  "convergence": [
+   {
+    "observer": 0,
+    "target": 1,
+    "err": 0.008
+   },
+   {
+    "observer": 0,
+    "target": 2,
+    "err": 0.007
+   },
+   {
+    "observer": 1,
+    "target": 0,
+    "err": 0.008
+   },
+   {
+    "observer": 1,
+    "target": 2,
+    "err": 0.007
+   },
+   {
+    "observer": 2,
+    "target": 1,
+    "err": 0.008
+   },
+   {
+    "observer": 2,
+    "target": 0,
+    "err": 0.008
+   }
+  ],
+  "convergedMax": 0.008,
+  "renderErr": {
+   "mean": 0.098,
+   "p50": 0.037,
+   "p95": 0.357,
+   "p99": 0.97,
+   "max": 2.638
+  },
+  "frameSnap": {
+   "mean": 0.013,
+   "p50": 0.006,
+   "p95": 0.043,
+   "p99": 0.112,
+   "max": 0.454
+  },
+  "framesMeasured": 4456,
+  "vehicleFramesSeen": 965,
+  "bandwidth": [
+   {
+    "bot": 0,
+    "downBps": 1212,
+    "upBps": 996
+   },
+   {
+    "bot": 1,
+    "downBps": 1118,
+    "upBps": 1009
+   },
+   {
+    "bot": 2,
+    "downBps": 1170,
+    "upBps": 925
+   }
+  ],
+  "shots": 11,
+  "hits": 11,
+  "hitsConfirmed": 11,
+  "hitsTaken": 11,
+  "speedHackCorrections": 2,
+  "speedHackStrikes": 42,
+  "declaredTeleportsAccepted": 1,
+  "finalBot3X": 297.9,
+  "tick": {
+   "hz": 30,
+   "n": 665,
+   "avgMs": 0.10897499849626255,
+   "maxMs": 0.4294170000030135
+  },
+  "interpDelayMs": [
+   182.9,
+   146.3,
+   159.1
+  ],
+  "pass": true
+ }
+]

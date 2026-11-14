@@ -172,7 +172,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
     }
     const local = d.rest.clone().applyMatrix4(mesh.bindMatrix).applyMatrix4(skin.boneInverses[bb]);
     const nLocal = d.nrm.clone().transformDirection(_m.copy(skin.boneInverses[bb]).multiply(mesh.bindMatrix));
-    return { ...d, b: skin.bones[bb], local, nLocal, x: new THREE.Vector3(), px: new THREE.Vector3(), anchor: new THREE.Vector3(), an: new THREE.Vector3(), init: false };
+    return { ...d, b: skin.bones[bb], local, nLocal, x: new THREE.Vector3(), px: new THREE.Vector3(), anchor: new THREE.Vector3(), an: new THREE.Vector3(), pa: new THREE.Vector3(), av: new THREE.Vector3(), init: false };
   });
   const thighs = ['Left', 'Right'].map((s) => [bone(s + 'UpLeg'), bone(s + 'Leg')]);
   let acc = 0;
@@ -205,23 +205,27 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
   function step(h) {
     t += h;
     for (const p of P) {
-      // verlet with spring back to the anchor, damping and air drag
+      // verlet with a stiff spring back to the anchor; damping acts on motion RELATIVE to the body, so the shirt moves
+      // with him instead of trailing behind, and settles in one soft overshoot at most (woven cotton, not silk)
       _v.subVectors(p.x, p.px);                                    // velocity * h
-      const vel = _w.copy(_v).divideScalar(h);
+      _c.copy(p.av);                                               // the body's own motion this substep
+      _v.sub(_c);                                                  // relative motion * h
+      const vel = _w.copy(_v).add(_c).divideScalar(h);
       const s = wind(p.x, _a);
       const gust = game?.wind?.gust ?? 0.3;
-      // turbulence: each point gets its own flapping on top of the mean flow
-      const ph = p.k * 1.7 + (p.group.length * 0.9);
-      const turb = 0.35 + 0.65 * Math.abs(Math.sin(t * 7.0 + ph) * Math.sin(t * 3.1 + ph * 0.5));
+      // turbulence: slow, coherent along each edge (neighbors move together), never a per-point flutter
+      const ph = p.k * 0.35 + (p.group.length * 0.9);
+      const turb = 0.7 + 0.3 * Math.sin(t * 1.6 + ph) * Math.sin(t * 0.9 + ph * 0.5);
       _a.multiplyScalar(s * turb);
       _a.sub(vel).sub(tread);                                      // air relative to the cloth
       const air = _a.length();
-      const k = 70 * (1.1 - p.loose * 0.5) * (1 + soak * 2.5);
+      const k = 240 * (1.15 - p.loose * 0.35) * (1 + soak * 1.5);
+      const damp = Math.exp(-2 * 0.8 * Math.sqrt(k) * h);          // zeta about 0.8
       _b.subVectors(p.anchor, p.x).multiplyScalar(k);              // spring
-      _b.addScaledVector(_a, 0.24 * air * p.loose * (1 - soak * 0.8));                // quadratic drag: 6 m/s pushes the loose cloth 4 to 7 cm
-      _b.y += air * air * 0.08 * gust * turb * p.loose * (p.group === 'hem' ? 1 : 0.5) * (1 - soak); // gusts lift the hem
+      _b.addScaledVector(_a, 0.12 * air * p.loose * (1 - soak * 0.8));                // quadratic drag: 6 m/s pushes the loose cloth 1 to 2 cm
+      _b.y += air * air * 0.03 * gust * p.loose * (p.group === 'hem' ? 1 : 0.4) * (1 - soak); // strong gusts lift the hem a little
       p.px.copy(p.x);
-      p.x.addScaledVector(_v, 0.975).addScaledVector(_b, h * h);
+      p.x.add(_c).addScaledVector(_v, damp).addScaledVector(_b, h * h);
     }
     // keep chains coherent (neighbor distance near the rest distance)
     for (const c of chains) {
@@ -234,7 +238,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
         _v.subVectors(b.x, a.x);
         const d = _v.length();
         if (d < 1e-6) continue;
-        const corr = (d - r) / d * 0.25;
+        const corr = (d - r) / d * 0.45;                            // fabric barely stretches along an edge
         a.x.addScaledVector(_v, corr);
         b.x.addScaledVector(_v, -corr);
       }
@@ -245,7 +249,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       const dn = _v.dot(p.an);
       if (dn < 0) p.x.addScaledVector(p.an, -dn);
       _v.subVectors(p.x, p.anchor);
-      const maxR = (0.015 + 0.035 * p.loose) * (1 - soak * 0.6);          // panels sway, never balloon
+      const maxR = (0.01 + 0.022 * p.loose) * (1 - soak * 0.6);           // panels shift, never balloon or flap
       if (_v.length() > maxR) p.x.copy(p.anchor).add(_v.setLength(maxR));
       if (p.group === 'hem') {
         for (const [u, l] of thighs) {
@@ -280,10 +284,20 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
         if (!p.init || p.x.distanceToSquared(p.anchor) > 1) {          // first frame and teleports
           p.x.copy(p.anchor);
           p.px.copy(p.anchor);
+          p.pa.copy(p.anchor);
           p.init = true;
         }
       }
       acc = Math.min(acc + Math.min(dt, 0.1), STEP * 8);
+      const nSteps = Math.floor(acc / STEP + 1e-6);
+      // the body's motion since the last simulated step, split evenly over this frame's substeps, so the carried motion
+      // adds up to exactly where the body went (no jitter from uneven frame times)
+      if (nSteps > 0) {
+        for (const p of P) {
+          p.av.subVectors(p.anchor, p.pa).divideScalar(nSteps);
+          p.pa.copy(p.anchor);
+        }
+      }
       while (acc >= STEP) {
         step(STEP);
         acc -= STEP;

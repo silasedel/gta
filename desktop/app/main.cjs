@@ -219,6 +219,7 @@ function lockDown(ses) {
     'pointerLock',
     'fullscreen',
     'clipboard-sanitized-write',
+    'persistent-storage',
   ]);
   ses.setPermissionRequestHandler((wc, permission, cb) => {
     cb(allowed.has(permission));
@@ -234,7 +235,8 @@ function lockDown(ses) {
       || font
       || u.startsWith('devtools:')
       || u.startsWith('data:')
-      || u.startsWith('blob:');
+      || u.startsWith('blob:')
+      || u.startsWith('ws://') || u.startsWith('wss://');   // multiplayer server (?mp=)
     if (!ok) {
       log.info('blocked request ' + u.slice(0, 200));
     }
@@ -426,6 +428,23 @@ app.whenReady().then(async () => {
     }
   }, 15000).unref();
 });
+
+// Saves live in this profile (<userData>/IndexedDB and Local Storage). Flush them to disk before quitting
+// so the last autosave is never lost, and every few minutes in case the app is force-quit.
+app.on('before-quit', () => {
+  try {
+    session.defaultSession.flushStorageData();
+  } catch (e) {
+    // ignore
+  }
+});
+setInterval(() => {
+  try {
+    session.defaultSession.flushStorageData();
+  } catch (e) {
+    // ignore
+  }
+}, 2 * 60 * 1000).unref();
 
 app.on('window-all-closed', () => {
   app.quit();

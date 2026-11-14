@@ -34,8 +34,8 @@
    "evidence": "docs/v2/reports/playtest-fixes.md"
   },
   {
-   "name": "Quality presets Low/Medium/High/Ultra with auto-pick (schema exists in src/ui/settings, store not wired into the game)",
-   "state": "todo"
+   "name": "Quality presets Ultra/High/Medium/Low with measured auto-pick (shadows, draw distance, crowd, LOD, pixel ratio never below a 1080p-class picture); src/render/quality.v2.js",
+   "state": "built"
   },
   {
    "name": "NPC gait: crowd stride and cadence from speed and height (feet plant), varied leg swing; near people animate every frame in view up to 60 m (was every 2nd-5th frame)",
@@ -63,6 +63,10 @@
   {
    "name": "Fire checked inside the running game (burning wreck, explosion)",
    "state": "todo"
+  },
+  {
+   "name": "Even 60 fps frame pacing on 120 Hz displays and shader warm-up for streamed tiles (perfGuards.v2.js)",
+   "state": "built"
   }
  ]
 }

@@ -2,26 +2,102 @@
  "track": "multiplayer",
  "title": "Multiplayer (server, netcode, remote players)",
  "section": "Platform",
- "agent": "running",
+ "agent": "idle",
  "items": [
-  { "name": "Authoritative Node server (ws), 30 Hz tick, rooms up to 16", "state": "building", "evidence": "" },
-  { "name": "Player state sync: position, heading, anim, vehicle seat, weapon, health, wanted", "state": "todo", "evidence": "" },
-  { "name": "Owner-authoritative vehicles with server validation, claim of parked cars", "state": "todo", "evidence": "" },
-  { "name": "Chat", "state": "todo", "evidence": "" },
-  { "name": "Anti-cheat: speed and teleport sanity checks with corrections", "state": "todo", "evidence": "" },
-  { "name": "Interpolation ~100 ms with adaptive jitter buffer", "state": "todo", "evidence": "" },
-  { "name": "Client prediction and reconciliation (on foot and vehicle)", "state": "todo", "evidence": "" },
-  { "name": "Interest management (400 m)", "state": "todo", "evidence": "" },
-  { "name": "Delta + quantized binary snapshots", "state": "todo", "evidence": "" },
-  { "name": "Remote players with the game's character system, outfits, name tags", "state": "todo", "evidence": "" },
-  { "name": "Server-validated shooting and melee with lag compensation", "state": "todo", "evidence": "" },
-  { "name": "Shared time of day and weather from the server", "state": "todo", "evidence": "" },
-  { "name": "Join/host UI, ?mp= URL entry, pause-menu entry", "state": "todo", "evidence": "" },
-  { "name": "Single-player unaffected without a server", "state": "todo", "evidence": "" },
-  { "name": "tools/v2/mp-test.mjs: 3 clients, move/drive/shoot, convergence, bandwidth, tick cost", "state": "todo", "evidence": "" },
-  { "name": "Latency sim 100 ms / 30 ms jitter / 2% loss: smoothness figures and screenshots", "state": "todo", "evidence": "" },
-  { "name": "npm run server + server/README.md hosting guide", "state": "todo", "evidence": "" },
-  { "name": "Electron Mac app: client works (needs ws:// allowed in desktop lockdown)", "state": "todo", "evidence": "" },
-  { "name": "Passengers (several players in one car), voice chat, synced NPC traffic", "state": "todo", "evidence": "" }
+  {
+   "name": "Authoritative Node server (ws), 30 Hz tick, rooms up to 16",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Player state sync: position, heading, anim, vehicle seat, weapon, health, wanted",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Owner-authoritative vehicles with server validation, claim of parked cars",
+   "state": "built",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Chat",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Anti-cheat: speed and teleport sanity checks with corrections",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Interpolation ~100 ms with adaptive jitter buffer",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Client prediction and reconciliation (on foot and vehicle)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Interest management (400 m)",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "Delta + quantized binary snapshots",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Remote players with the game's character system, outfits, name tags",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/ingame_0.png"
+  },
+  {
+   "name": "Server-validated shooting and melee with lag compensation",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Shared time of day and weather from the server",
+   "state": "built",
+   "evidence": "docs/v2/shots/multiplayer/ingame.json"
+  },
+  {
+   "name": "?mp= URL entry (done); pause-menu entry and join/host UI (not done, skipped for budget)",
+   "state": "building",
+   "evidence": ""
+  },
+  {
+   "name": "Single-player unaffected without a server",
+   "state": "built",
+   "evidence": ""
+  },
+  {
+   "name": "tools/v2/mp-test.mjs: 3 clients, move/drive/shoot, convergence, bandwidth, tick cost",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "Latency sim 100 ms / 30 ms jitter / 2% loss: smoothness figures and screenshots",
+   "state": "verified",
+   "evidence": "docs/v2/shots/multiplayer/mp-test.json"
+  },
+  {
+   "name": "npm run server + server/README.md hosting guide",
+   "state": "built",
+   "evidence": "server/README.md"
+  },
+  {
+   "name": "Electron Mac app: client works (needs ws:// allowed in desktop lockdown)",
+   "state": "todo",
+   "evidence": ""
+  },
+  {
+   "name": "Passengers (several players in one car), voice chat, synced NPC traffic",
+   "state": "todo",
+   "evidence": ""
+  }
  ]
 }
