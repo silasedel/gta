@@ -9,10 +9,29 @@
    "punch_body_06.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.39
+  "avg_dur": 0.39,
+  "gain_prev": 1.5,
+  "norm": [
+   1.573,
+   1.552,
+   1.588,
+   1.199,
+   1.599,
+   1.595
+  ],
+  "lufs": [
+   -20.4,
+   -20.9,
+   -20.9,
+   -17.6,
+   -20.5,
+   -21.3
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "punch_head": {
   "files": [
@@ -24,10 +43,29 @@
    "punch_head_06.ogg"
   ],
   "loop": false,
-  "gain": 0.95,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.43
+  "avg_dur": 0.43,
+  "gain_prev": 0.95,
+  "norm": [
+   1.131,
+   1.062,
+   0.68,
+   0.84,
+   0.854,
+   0.797
+  ],
+  "lufs": [
+   -17.1,
+   -16.5,
+   -12.7,
+   -14.5,
+   -14.6,
+   -14.0
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "punch_heavy": {
   "files": [
@@ -39,10 +77,29 @@
    "punch_heavy_06.ogg"
   ],
   "loop": false,
-  "gain": 0.91,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.39
+  "avg_dur": 0.39,
+  "gain_prev": 0.91,
+  "norm": [
+   0.888,
+   0.927,
+   0.873,
+   0.934,
+   0.942,
+   0.905
+  ],
+  "lufs": [
+   -15.0,
+   -15.3,
+   -14.8,
+   -15.4,
+   -15.5,
+   -15.1
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "kick": {
   "files": [
@@ -54,10 +111,29 @@
    "kick_06.ogg"
   ],
   "loop": false,
-  "gain": 0.86,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.48
+  "avg_dur": 0.48,
+  "gain_prev": 0.86,
+  "norm": [
+   0.759,
+   0.893,
+   0.883,
+   0.753,
+   0.858,
+   1.176
+  ],
+  "lufs": [
+   -13.6,
+   -15.0,
+   -14.9,
+   -13.5,
+   -14.7,
+   -17.4
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "slap": {
   "files": [
@@ -69,10 +145,29 @@
    "slap_06.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.36
+  "avg_dur": 0.36,
+  "gain_prev": 1.5,
+  "norm": [
+   1.586,
+   1.584,
+   1.562,
+   1.576,
+   1.406,
+   1.573
+  ],
+  "lufs": [
+   -26.3,
+   -23.5,
+   -21.8,
+   -20.4,
+   -19.0,
+   -20.1
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "swing_fist": {
   "files": [
@@ -84,10 +179,29 @@
    "swing_fist_06.ogg"
   ],
   "loop": false,
-  "gain": 0.5,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.23
+  "avg_dur": 0.23,
+  "gain_prev": 0.5,
+  "norm": [
+   0.638,
+   0.794,
+   1.103,
+   0.685,
+   0.825,
+   0.725
+  ],
+  "lufs": [
+   -12.1,
+   -14.0,
+   -16.8,
+   -12.7,
+   -14.3,
+   -13.2
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bat_swing": {
   "files": [
@@ -98,10 +212,27 @@
    "bat_swing_05.ogg"
   ],
   "loop": false,
-  "gain": 0.5,
+  "gain": 1,
   "category": "melee",
   "variants": 5,
-  "avg_dur": 0.38
+  "avg_dur": 0.38,
+  "gain_prev": 0.5,
+  "norm": [
+   0.747,
+   0.85,
+   0.82,
+   0.688,
+   0.784
+  ],
+  "lufs": [
+   -13.5,
+   -14.6,
+   -14.3,
+   -12.8,
+   -13.9
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bat_hit_body": {
   "files": [
@@ -113,10 +244,29 @@
    "bat_hit_body_06.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.46
+  "avg_dur": 0.46,
+  "gain_prev": 1.5,
+  "norm": [
+   1.446,
+   1.523,
+   1.637,
+   1.605,
+   1.59,
+   1.561
+  ],
+  "lufs": [
+   -19.2,
+   -19.7,
+   -21.8,
+   -22.3,
+   -21.8,
+   -22.7
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bat_hit_head": {
   "files": [
@@ -127,11 +277,28 @@
    "bat_hit_head_05.ogg"
   ],
   "loop": false,
-  "gain": 0.86,
+  "gain": 1,
   "category": "melee",
   "variants": 5,
   "avg_dur": 0.28,
-  "note": "each file = real wooden-stick-on-medicine-ball hit layered with a real cantaloupe-head impact"
+  "note": "each file = real wooden-stick-on-medicine-ball hit layered with a real cantaloupe-head impact",
+  "gain_prev": 0.86,
+  "norm": [
+   0.744,
+   0.692,
+   0.683,
+   0.731,
+   0.784
+  ],
+  "lufs": [
+   -13.4,
+   -12.8,
+   -12.7,
+   -13.3,
+   -13.9
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bat_hit_world": {
   "files": [
@@ -143,10 +310,29 @@
    "bat_hit_world_06.ogg"
   ],
   "loop": false,
-  "gain": 1.42,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.45
+  "avg_dur": 0.45,
+  "gain_prev": 1.42,
+  "norm": [
+   0.637,
+   1.606,
+   0.866,
+   0.829,
+   0.79,
+   1.075
+  ],
+  "lufs": [
+   -12.1,
+   -22.3,
+   -14.7,
+   -14.4,
+   -14.0,
+   -16.6
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "knife_swing": {
   "files": [
@@ -158,10 +344,29 @@
    "knife_swing_06.ogg"
   ],
   "loop": false,
-  "gain": 0.68,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.33
+  "avg_dur": 0.33,
+  "gain_prev": 0.68,
+  "norm": [
+   0.728,
+   1.357,
+   0.57,
+   0.584,
+   0.709,
+   1.281
+  ],
+  "lufs": [
+   -13.2,
+   -18.6,
+   -11.1,
+   -11.3,
+   -13.0,
+   -18.2
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "knife_slash": {
   "files": [
@@ -173,10 +378,29 @@
    "knife_slash_06.ogg"
   ],
   "loop": false,
-  "gain": 0.93,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.41
+  "avg_dur": 0.41,
+  "gain_prev": 0.93,
+  "norm": [
+   0.377,
+   1.538,
+   0.859,
+   0.66,
+   0.463,
+   0.464
+  ],
+  "lufs": [
+   -7.5,
+   -19.7,
+   -14.7,
+   -12.4,
+   -9.3,
+   -9.3
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "knife_stab": {
   "files": [
@@ -188,10 +412,29 @@
    "knife_stab_06.ogg"
   ],
   "loop": false,
-  "gain": 1.11,
+  "gain": 1,
   "category": "melee",
   "variants": 6,
-  "avg_dur": 0.34
+  "avg_dur": 0.34,
+  "gain_prev": 1.11,
+  "norm": [
+   0.928,
+   0.67,
+   0.766,
+   0.809,
+   1.074,
+   1.605
+  ],
+  "lufs": [
+   -15.3,
+   -12.5,
+   -13.7,
+   -14.2,
+   -16.6,
+   -21.7
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_concrete": {
   "files": [
@@ -203,10 +446,29 @@
    "bullet_impact_concrete_06.ogg"
   ],
   "loop": false,
-  "gain": 0.81,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.56
+  "avg_dur": 0.56,
+  "gain_prev": 0.81,
+  "norm": [
+   1.046,
+   1.113,
+   1.226,
+   1.131,
+   0.739,
+   0.988
+  ],
+  "lufs": [
+   -16.4,
+   -16.9,
+   -17.8,
+   -17.1,
+   -13.4,
+   -15.9
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_metal": {
   "files": [
@@ -219,10 +481,31 @@
    "bullet_impact_metal_07.ogg"
   ],
   "loop": false,
-  "gain": 1.38,
+  "gain": 1,
   "category": "impact",
   "variants": 7,
-  "avg_dur": 0.56
+  "avg_dur": 0.56,
+  "gain_prev": 1.38,
+  "norm": [
+   1.301,
+   1.013,
+   1.127,
+   1.165,
+   1.466,
+   1.277,
+   0.425
+  ],
+  "lufs": [
+   -18.3,
+   -16.1,
+   -17.0,
+   -17.3,
+   -19.3,
+   -18.1,
+   -8.6
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_glass": {
   "files": [
@@ -233,10 +516,27 @@
    "bullet_impact_glass_05.ogg"
   ],
   "loop": false,
-  "gain": 0.46,
+  "gain": 1,
   "category": "impact",
   "variants": 5,
-  "avg_dur": 0.53
+  "avg_dur": 0.53,
+  "gain_prev": 0.46,
+  "norm": [
+   0.646,
+   0.474,
+   0.345,
+   0.36,
+   0.399
+  ],
+  "lufs": [
+   -12.2,
+   -9.5,
+   -6.8,
+   -7.1,
+   -8.0
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_wood": {
   "files": [
@@ -248,10 +548,29 @@
    "bullet_impact_wood_06.ogg"
   ],
   "loop": false,
-  "gain": 1.22,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.21
+  "avg_dur": 0.21,
+  "gain_prev": 1.22,
+  "norm": [
+   1.563,
+   1.576,
+   1.627,
+   1.598,
+   1.44,
+   0.862
+  ],
+  "lufs": [
+   -19.9,
+   -20.0,
+   -21.7,
+   -21.6,
+   -19.2,
+   -14.7
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_flesh": {
   "files": [
@@ -263,10 +582,29 @@
    "bullet_impact_flesh_06.ogg"
   ],
   "loop": false,
-  "gain": 0.72,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.17
+  "avg_dur": 0.17,
+  "gain_prev": 0.72,
+  "norm": [
+   1.081,
+   0.83,
+   0.876,
+   0.704,
+   0.757,
+   1.156
+  ],
+  "lufs": [
+   -16.7,
+   -14.4,
+   -14.8,
+   -12.9,
+   -13.6,
+   -17.3
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_water": {
   "files": [
@@ -278,10 +616,29 @@
    "bullet_impact_water_06.ogg"
   ],
   "loop": false,
-  "gain": 0.56,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.51
+  "avg_dur": 0.51,
+  "gain_prev": 0.56,
+  "norm": [
+   0.52,
+   0.639,
+   0.58,
+   0.545,
+   0.509,
+   0.785
+  ],
+  "lufs": [
+   -10.3,
+   -12.1,
+   -11.3,
+   -10.7,
+   -10.1,
+   -13.9
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_dirt": {
   "files": [
@@ -294,10 +651,31 @@
    "bullet_impact_dirt_07.ogg"
   ],
   "loop": false,
-  "gain": 1.04,
+  "gain": 1,
   "category": "impact",
   "variants": 7,
-  "avg_dur": 0.39
+  "avg_dur": 0.39,
+  "gain_prev": 1.04,
+  "norm": [
+   1.565,
+   1.592,
+   1.393,
+   1.613,
+   1.566,
+   1.157,
+   1.107
+  ],
+  "lufs": [
+   -19.9,
+   -21.4,
+   -18.9,
+   -20.2,
+   -23.5,
+   -17.3,
+   -16.9
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "bullet_impact_car": {
   "files": [
@@ -309,10 +687,29 @@
    "bullet_impact_car_06.ogg"
   ],
   "loop": false,
-  "gain": 0.57,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.52
+  "avg_dur": 0.52,
+  "gain_prev": 0.57,
+  "norm": [
+   0.433,
+   0.435,
+   0.385,
+   0.587,
+   1.182,
+   0.838
+  ],
+  "lufs": [
+   -8.7,
+   -8.8,
+   -7.7,
+   -11.4,
+   -17.5,
+   -14.5
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "ricochet": {
   "files": [
@@ -324,10 +721,29 @@
    "ricochet_06.ogg"
   ],
   "loop": false,
-  "gain": 0.97,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.52
+  "avg_dur": 0.52,
+  "gain_prev": 0.97,
+  "norm": [
+   1.228,
+   1.497,
+   1.369,
+   0.757,
+   0.44,
+   0.36
+  ],
+  "lufs": [
+   -17.8,
+   -19.5,
+   -18.7,
+   -13.6,
+   -8.9,
+   -7.1
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "flyby": {
   "files": [
@@ -339,10 +755,29 @@
    "flyby_06.ogg"
   ],
   "loop": false,
-  "gain": 0.56,
+  "gain": 1,
   "category": "impact",
   "variants": 6,
-  "avg_dur": 0.83
+  "avg_dur": 0.83,
+  "gain_prev": 0.56,
+  "norm": [
+   0.488,
+   0.456,
+   0.535,
+   0.558,
+   0.589,
+   0.65
+  ],
+  "lufs": [
+   -9.8,
+   -9.2,
+   -10.6,
+   -10.9,
+   -11.4,
+   -12.3
+  ],
+  "target": -16,
+  "measure": "max-100ms"
  },
  "casing_concrete": {
   "files": [
@@ -354,10 +789,29 @@
    "casing_concrete_06.ogg"
   ],
   "loop": false,
-  "gain": 0.41,
+  "gain": 1,
   "category": "casing",
   "variants": 6,
-  "avg_dur": 0.8
+  "avg_dur": 0.8,
+  "gain_prev": 0.41,
+  "norm": [
+   0.55,
+   0.942,
+   0.564,
+   0.978,
+   0.453,
+   0.365
+  ],
+  "lufs": [
+   -16.8,
+   -21.5,
+   -17.0,
+   -21.8,
+   -15.1,
+   -13.2
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "casing_wood": {
   "files": [
@@ -368,10 +822,27 @@
    "casing_wood_05.ogg"
   ],
   "loop": false,
-  "gain": 0.56,
+  "gain": 1,
   "category": "casing",
   "variants": 5,
-  "avg_dur": 0.77
+  "avg_dur": 0.77,
+  "gain_prev": 0.56,
+  "norm": [
+   1.132,
+   1.291,
+   1.246,
+   1.124,
+   0.537
+  ],
+  "lufs": [
+   -23.1,
+   -24.2,
+   -23.9,
+   -23.0,
+   -16.6
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "casing_grass": {
   "files": [
@@ -381,11 +852,26 @@
    "casing_grass_04.ogg"
   ],
   "loop": false,
-  "gain": 0.2,
+  "gain": 1,
   "category": "casing",
   "variants": 4,
   "avg_dur": 0.3,
-  "note": "no real casing-on-grass recording found: real stone-on-grass drop (pitch-varied) layered with a quiet low-passed real brass casing tick"
+  "note": "no real casing-on-grass recording found: real stone-on-grass drop (pitch-varied) layered with a quiet low-passed real brass casing tick",
+  "gain_prev": 0.2,
+  "norm": [
+   0.698,
+   0.822,
+   0.709,
+   0.847
+  ],
+  "lufs": [
+   -18.9,
+   -20.3,
+   -19.0,
+   -20.6
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "reload_pistol": {
   "files": [
@@ -395,10 +881,25 @@
    "reload_pistol_04.ogg"
   ],
   "loop": false,
-  "gain": 0.41,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 4,
-  "avg_dur": 2.9
+  "avg_dur": 2.9,
+  "gain_prev": 0.41,
+  "norm": [
+   0.251,
+   0.297,
+   0.276,
+   0.267
+  ],
+  "lufs": [
+   -10.0,
+   -11.5,
+   -10.8,
+   -10.5
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "reload_smg": {
   "files": [
@@ -408,10 +909,25 @@
    "reload_smg_04.ogg"
   ],
   "loop": false,
-  "gain": 0.49,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 4,
-  "avg_dur": 2.42
+  "avg_dur": 2.42,
+  "gain_prev": 0.49,
+  "norm": [
+   0.292,
+   0.345,
+   0.343,
+   0.54
+  ],
+  "lufs": [
+   -11.3,
+   -12.8,
+   -12.7,
+   -16.7
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "reload_rifle": {
   "files": [
@@ -422,10 +938,27 @@
    "reload_rifle_05.ogg"
   ],
   "loop": false,
-  "gain": 0.43,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 5,
-  "avg_dur": 2.25
+  "avg_dur": 2.25,
+  "gain_prev": 0.43,
+  "norm": [
+   0.192,
+   0.376,
+   0.299,
+   0.264,
+   0.727
+  ],
+  "lufs": [
+   -7.7,
+   -13.5,
+   -11.5,
+   -10.4,
+   -19.2
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "reload_shotgun": {
   "files": [
@@ -436,10 +969,27 @@
    "reload_shotgun_05.ogg"
   ],
   "loop": false,
-  "gain": 0.6,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 5,
-  "avg_dur": 0.38
+  "avg_dur": 0.38,
+  "gain_prev": 0.6,
+  "norm": [
+   0.738,
+   0.536,
+   0.67,
+   0.417,
+   0.25
+  ],
+  "lufs": [
+   -19.4,
+   -16.6,
+   -18.5,
+   -14.4,
+   -10.0
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "shotgun_pump": {
   "files": [
@@ -451,10 +1001,29 @@
    "shotgun_pump_06.ogg"
   ],
   "loop": false,
-  "gain": 0.83,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 6,
-  "avg_dur": 0.52
+  "avg_dur": 0.52,
+  "gain_prev": 0.83,
+  "norm": [
+   0.32,
+   0.309,
+   0.301,
+   0.29,
+   1.097,
+   1.047
+  ],
+  "lufs": [
+   -12.1,
+   -11.8,
+   -11.6,
+   -11.3,
+   -22.8,
+   -22.4
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "reload_revolver": {
   "files": [
@@ -465,10 +1034,27 @@
    "reload_revolver_05.ogg"
   ],
   "loop": false,
-  "gain": 0.65,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 5,
-  "avg_dur": 2.32
+  "avg_dur": 2.32,
+  "gain_prev": 0.65,
+  "norm": [
+   0.361,
+   0.865,
+   0.322,
+   0.239,
+   1.07
+  ],
+  "lufs": [
+   -13.2,
+   -20.7,
+   -12.2,
+   -9.6,
+   -22.6
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "dryfire": {
   "files": [
@@ -480,10 +1066,29 @@
    "dryfire_06.ogg"
   ],
   "loop": false,
-  "gain": 0.68,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 6,
-  "avg_dur": 0.38
+  "avg_dur": 0.38,
+  "gain_prev": 0.68,
+  "norm": [
+   0.777,
+   0.9,
+   0.975,
+   0.928,
+   0.287,
+   0.538
+  ],
+  "lufs": [
+   -19.8,
+   -21.1,
+   -21.8,
+   -21.3,
+   -11.2,
+   -16.6
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "weapon_switch": {
   "files": [
@@ -494,10 +1099,27 @@
    "weapon_switch_05.ogg"
   ],
   "loop": false,
-  "gain": 0.55,
+  "gain": 1,
   "category": "weapon_foley",
   "variants": 5,
-  "avg_dur": 0.68
+  "avg_dur": 0.68,
+  "gain_prev": 0.55,
+  "norm": [
+   0.554,
+   0.912,
+   0.679,
+   0.549,
+   0.252
+  ],
+  "lufs": [
+   -16.9,
+   -21.2,
+   -18.6,
+   -16.8,
+   -10.0
+  ],
+  "target": -22,
+  "measure": "max-100ms"
  },
  "gun_pistol": {
   "files": [
@@ -509,10 +1131,29 @@
    "gun_pistol_06.ogg"
   ],
   "loop": false,
-  "gain": 1.11,
+  "gain": 1,
   "category": "gunshot",
   "variants": 6,
-  "avg_dur": 0.87
+  "avg_dur": 0.87,
+  "gain_prev": 1.11,
+  "norm": [
+   0.923,
+   1.237,
+   0.757,
+   1.057,
+   1.542,
+   1.182
+  ],
+  "lufs": [
+   -9.3,
+   -11.8,
+   -7.6,
+   -10.5,
+   -14.1,
+   -11.4
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "gun_revolver": {
   "files": [
@@ -524,10 +1165,29 @@
    "gun_revolver_06.ogg"
   ],
   "loop": false,
-  "gain": 1.32,
+  "gain": 1,
   "category": "gunshot",
   "variants": 6,
-  "avg_dur": 0.99
+  "avg_dur": 0.99,
+  "gain_prev": 1.32,
+  "norm": [
+   1.379,
+   1.538,
+   0.854,
+   0.882,
+   0.788,
+   1.214
+  ],
+  "lufs": [
+   -12.8,
+   -16.0,
+   -8.6,
+   -8.9,
+   -7.9,
+   -11.7
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "gun_smg": {
   "files": [
@@ -538,11 +1198,28 @@
    "gun_smg_05.ogg"
   ],
   "loop": false,
-  "gain": 1.2,
+  "gain": 1,
   "category": "gunshot",
   "variants": 5,
   "avg_dur": 0.69,
-  "note": "no clean real SMG single shot found; uses layered real-gunshot 'automatic rifle single shot' designs + Dragout auto shots"
+  "note": "no clean real SMG single shot found; uses layered real-gunshot 'automatic rifle single shot' designs + Dragout auto shots",
+  "gain_prev": 1.2,
+  "norm": [
+   1.181,
+   0.901,
+   1.103,
+   1.258,
+   1.626
+  ],
+  "lufs": [
+   -11.4,
+   -9.1,
+   -10.9,
+   -12.0,
+   -15.3
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "gun_rifle": {
   "files": [
@@ -554,10 +1231,29 @@
    "gun_rifle_06.ogg"
   ],
   "loop": false,
-  "gain": 1.14,
+  "gain": 1,
   "category": "gunshot",
   "variants": 6,
-  "avg_dur": 1.03
+  "avg_dur": 1.03,
+  "gain_prev": 1.14,
+  "norm": [
+   0.965,
+   0.826,
+   1.174,
+   0.95,
+   0.922,
+   1.418
+  ],
+  "lufs": [
+   -9.7,
+   -8.3,
+   -11.4,
+   -9.6,
+   -9.3,
+   -13.0
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "gun_shotgun": {
   "files": [
@@ -568,10 +1264,27 @@
    "gun_shotgun_05.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "gunshot",
   "variants": 5,
-  "avg_dur": 1.0
+  "avg_dur": 1.0,
+  "gain_prev": 1.5,
+  "norm": [
+   1.587,
+   0.915,
+   1.565,
+   1.338,
+   0.795
+  ],
+  "lufs": [
+   -17.0,
+   -9.2,
+   -14.4,
+   -12.5,
+   -8.0
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "gun_sniper": {
   "files": [
@@ -583,10 +1296,29 @@
    "gun_sniper_06.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "gunshot",
   "variants": 6,
-  "avg_dur": 1.0
+  "avg_dur": 1.0,
+  "gain_prev": 1.5,
+  "norm": [
+   0.87,
+   1.249,
+   1.287,
+   0.726,
+   1.102,
+   1.117
+  ],
+  "lufs": [
+   -8.8,
+   -11.9,
+   -12.2,
+   -7.2,
+   -10.8,
+   -11.0
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "explosion": {
   "files": [
@@ -598,10 +1330,29 @@
    "explosion_06.ogg"
   ],
   "loop": false,
-  "gain": 1.5,
+  "gain": 1,
   "category": "gunshot",
   "variants": 6,
-  "avg_dur": 2.51
+  "avg_dur": 2.51,
+  "gain_prev": 1.5,
+  "norm": [
+   1.551,
+   1.228,
+   1.593,
+   1.027,
+   1.264,
+   1.582
+  ],
+  "lufs": [
+   -17.4,
+   -11.8,
+   -15.2,
+   -10.2,
+   -12.0,
+   -15.3
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "explosion_small": {
   "files": [
@@ -612,10 +1363,27 @@
    "explosion_small_05.ogg"
   ],
   "loop": false,
-  "gain": 1.22,
+  "gain": 1,
   "category": "gunshot",
   "variants": 5,
-  "avg_dur": 1.11
+  "avg_dur": 1.11,
+  "gain_prev": 1.22,
+  "norm": [
+   0.8,
+   1.558,
+   1.594,
+   0.953,
+   1.303
+  ],
+  "lufs": [
+   -8.1,
+   -14.2,
+   -14.2,
+   -9.6,
+   -12.3
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "distant_gunfire": {
   "files": [
@@ -626,10 +1394,27 @@
    "distant_gunfire_05.ogg"
   ],
   "loop": false,
-  "gain": 0.42,
+  "gain": 1,
   "category": "gunshot",
   "variants": 5,
-  "avg_dur": 1.54
+  "avg_dur": 1.54,
+  "gain_prev": 0.42,
+  "norm": [
+   0.998,
+   0.92,
+   0.929,
+   0.898,
+   0.861
+  ],
+  "lufs": [
+   -10.0,
+   -9.3,
+   -9.4,
+   -9.1,
+   -8.7
+  ],
+  "target": -10,
+  "measure": "max-100ms"
  },
  "grunt_male": {
   "files": [
@@ -641,10 +1426,29 @@
    "grunt_male_06.ogg"
   ],
   "loop": false,
-  "gain": 0.76,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 0.37
+  "avg_dur": 0.37,
+  "gain_prev": 0.76,
+  "norm": [
+   0.807,
+   1.056,
+   0.871,
+   0.734,
+   0.689,
+   0.8
+  ],
+  "lufs": [
+   -12.1,
+   -14.5,
+   -12.8,
+   -11.3,
+   -10.8,
+   -12.1
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "pain_male": {
   "files": [
@@ -656,10 +1460,29 @@
    "pain_male_06.ogg"
   ],
   "loop": false,
-  "gain": 0.63,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 0.62
+  "avg_dur": 0.62,
+  "gain_prev": 0.63,
+  "norm": [
+   0.978,
+   0.613,
+   0.561,
+   0.536,
+   0.732,
+   0.593
+  ],
+  "lufs": [
+   -13.8,
+   -9.8,
+   -9.0,
+   -8.6,
+   -11.3,
+   -9.5
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "death_male": {
   "files": [
@@ -671,10 +1494,29 @@
    "death_male_06.ogg"
   ],
   "loop": false,
-  "gain": 0.66,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 1.38
+  "avg_dur": 1.38,
+  "gain_prev": 0.66,
+  "norm": [
+   0.486,
+   0.747,
+   0.808,
+   0.553,
+   0.706,
+   0.633
+  ],
+  "lufs": [
+   -7.7,
+   -11.5,
+   -12.1,
+   -8.9,
+   -11.0,
+   -10.0
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "grunt_female": {
   "files": [
@@ -686,10 +1528,29 @@
    "grunt_female_06.ogg"
   ],
   "loop": false,
-  "gain": 0.59,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 0.45
+  "avg_dur": 0.45,
+  "gain_prev": 0.59,
+  "norm": [
+   0.597,
+   0.52,
+   0.511,
+   0.605,
+   0.931,
+   0.72
+  ],
+  "lufs": [
+   -9.5,
+   -8.3,
+   -8.2,
+   -9.6,
+   -13.4,
+   -11.1
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "pain_female": {
   "files": [
@@ -701,10 +1562,29 @@
    "pain_female_06.ogg"
   ],
   "loop": false,
-  "gain": 0.77,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 0.41
+  "avg_dur": 0.41,
+  "gain_prev": 0.77,
+  "norm": [
+   0.799,
+   0.733,
+   0.716,
+   0.767,
+   1.24,
+   0.631
+  ],
+  "lufs": [
+   -12.1,
+   -11.3,
+   -11.1,
+   -11.7,
+   -15.9,
+   -10.0
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "death_female": {
   "files": [
@@ -716,10 +1596,29 @@
    "death_female_06.ogg"
   ],
   "loop": false,
-  "gain": 0.61,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 1.13
+  "avg_dur": 1.13,
+  "gain_prev": 0.61,
+  "norm": [
+   0.749,
+   0.871,
+   0.548,
+   0.506,
+   0.534,
+   0.516
+  ],
+  "lufs": [
+   -11.5,
+   -12.8,
+   -8.8,
+   -8.1,
+   -8.6,
+   -8.3
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "scream_male": {
   "files": [
@@ -731,10 +1630,29 @@
    "scream_male_06.ogg"
   ],
   "loop": false,
-  "gain": 0.99,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 1.96
+  "avg_dur": 1.96,
+  "gain_prev": 0.99,
+  "norm": [
+   0.539,
+   0.624,
+   0.694,
+   0.67,
+   0.69,
+   0.837
+  ],
+  "lufs": [
+   -8.6,
+   -9.9,
+   -10.8,
+   -10.5,
+   -10.8,
+   -12.5
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  },
  "scream_female": {
   "files": [
@@ -746,9 +1664,28 @@
    "scream_female_06.ogg"
   ],
   "loop": false,
-  "gain": 0.7,
+  "gain": 1,
   "category": "vocal",
   "variants": 6,
-  "avg_dur": 1.51
+  "avg_dur": 1.51,
+  "gain_prev": 0.7,
+  "norm": [
+   0.476,
+   0.477,
+   0.478,
+   0.525,
+   0.235,
+   0.443
+  ],
+  "lufs": [
+   -7.6,
+   -7.6,
+   -7.6,
+   -8.4,
+   -1.4,
+   -6.9
+  ],
+  "target": -14,
+  "measure": "max-100ms"
  }
 }

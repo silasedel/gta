@@ -32,7 +32,7 @@ export const CATALOG = [
     noun: 'shirt',
     price: 0,
     signature: true,
-    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xa9b7b6, repeatM: 0.62, roughness: 0.92, specular: 0.35, sheen: 0.25, sheenRoughness: 0.5, sheenColor: 0x4f8f88 },
+    mat: { print: DIR + 'prints/palm_teal.webp', color: 0xd6dede, repeatM: 0.52, roughness: 0.92, specular: 0.35, sheen: 0.25, sheenRoughness: 0.5, sheenColor: 0x4f8f88 },
     buttons: 0xe9e4d8,
     thread: 0x2f7f7c,
   },
@@ -86,7 +86,7 @@ export const CATALOG = [
     colorName: 'khaki',
     noun: 'cargo pants',
     price: 0,
-    mat: { color: 0xa88a5c, roughness: 0.92, specular: 0.4, sheen: 0.25, weaveScale: 2200, fold: 0.7, flutter: 0.3 },
+    mat: { color: 0xa88a5c, roughness: 0.92, specular: 0.4, sheen: 0.25, weaveScale: 2200, fold: 0.35, flutter: 0.3 },
   },
   // ---- shoes
   {

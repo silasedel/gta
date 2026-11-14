@@ -103,6 +103,26 @@
    "name": "One re-runnable merge command (build + audit + atomic publish)",
    "state": "verified",
    "evidence": "tools/osm/merge.py (ran on the revised features.json: published b20261113-175503 in 32 s)"
+  },
+  {
+   "name": "Picture wins inside the real rectangle (city_mask): real land, areas, water clipped; real roads cut at the picture shore, causeways kept as bridge spans, cut-off pieces bridged; buildings/POIs/props/transit on picture water dropped",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit.json (b20261113-195853, ALL CHECKS PASSED) + docs/v2/compare/world-osm_city_vs_ref40.png"
+  },
+  {
+   "name": "Merge on layout pass 7 (31.2 x 45.3 km, maxZ 20440): 1081 regions, 17.5 MB, boot 519 ms in Node",
+   "state": "verified",
+   "evidence": "docs/v2/reports/world-osm-audit.json"
+  },
+  {
+   "name": "In game on the pass 7 merge: downtown, bay island over its bridge, main airport, nico_house, keys_bar, keys_sign (ground under the player); clipped shore point lands in water",
+   "state": "verified",
+   "evidence": "docs/v2/shots/world-osm/v4_downtown.png, v4_bay_island_causeway.png, v4_airport.png, v4_nico_house.png, v4_keys_bar.png, v4_keys_sign.png, v4_clipped_shore.png"
+  },
+  {
+   "name": "Seam: no straight box edge in land, water and land use at the rectangle line",
+   "state": "built",
+   "evidence": "not met yet: zones change across the line at 31% of samples (6-11% elsewhere); one 328 m land edge on the line"
   }
  ]
 }

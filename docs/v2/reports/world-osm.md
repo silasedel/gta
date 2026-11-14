@@ -72,3 +72,25 @@ read from features.json. Re-run it when world-layout rewrites the file. Details:
 - **lead:** decide the spawn (Nico's house) in `main.js`; list the new `data.*` APIs in V2_PLAN (README has them).
 - world-layout: `features.json` has top-level `powerlines` (not in FORMAT.md); passed through as `data.layoutExtras.powerlines`.
   Two interchange failures logged by their generator ("no crossing" for two diamonds) are theirs.
+
+## Pass 7 merge (Nov 13, 8:05 PM): the picture wins inside the real rectangle
+Live build: **`b20261113-195853`** (world-layout pass 7, rebuilt by me at the coordinator's request: `tools/world/build.py` + `audit.py` + `render.py`, then `merge.py`). World 31.2 x 45.3 km (bounds maxZ 20440). **Audit: ALL CHECKS PASSED.**
+
+**Code (all in `tools/osm/`).** New `citymask.py`; hooks in `build.py`, `roads.py`, `ingest.py`, `transit.py`.
+- Land inside the rectangle = (real land ∩ picture land) ∪ `newLand` ∪ picture land in a 150 m band along the rectangle edge; slivers under 400 m² dropped. 24.58 km² kept (picture 25.06, real 19.79); 3.19 km² of real land removed, 7.98 km² added. Real parks, beaches and land use are clipped to it; real inland water on picture sea is dropped; synthetic water, areas, paths, buildings and points now also come in on `newLand` (ingest no longer cuts them out of the whole rectangle).
+- Real roads: clipped to kept land + 6 m. A water run inside one way between two land parts (or between two real bridges) becomes a bridge span (up to 2.5 km); a run reaching the end of a way is cut at the shore; any piece left with an end over water is dropped (repeated until stable). One-way pieces turned into dead ends become two-way. 5383 → 4736 pieces; 752 cut, 50 dropped, 58 made two-way. Real roads kept just outside the rectangle are clipped to the picture's land too.
+- Mask causeways become two-way bridge roads where both ends have a road within 350 m and no bridge exists: 0 needed on pass 7 (the rest have a bridge or no road). Pieces still cut off are joined by one generated bridge each (shortest junction to junction, max 1.5 km; Fisher Island excluded as ferry-only): 8 bridges, 227 to 653 m.
+- Real buildings, POIs, props, benches, land-use sites, bus stops and stations on picture water are dropped (947 buildings in pass 6). Transit routes lose those stops, routes stay whole (audit: 0 discontinuities).
+- Zones: picture-added land takes synthetic zones like the land outside; just outside the rectangle, rural land within a noisy 120 to 500 m reach takes the city zone.
+- Terrain: the 16 m output grid is resampled once, vectorized (was 220 s, now 1 s), and roads sample that same grid, so road heights equal `terrainHeightAt` exactly (fixed the 2 mismatches on Cypress Belt Parkway at (-15689, -4825)).
+
+**Audit numbers (b20261113-195853).** 18,663 road edges, one network (1633.1 km main, only Fisher Island apart), max grade 8.6 %; 31,311 buildings; 3,291 storefronts; 637 stops, 92 routes; 13,837 tiles in **1081 regions, 17.5 MB**, largest 232 KB; region parse median 0.04 ms, p95 0.48 ms, max 3.98 ms; all regions 174 ms; boot `loadMiamiData` 519 ms in Node (fetch 93, decode 418), 16.5 MB at boot, heap 111 MB. Merge runtime 563 to 673 s on this load (ped sidewalk lines are the slow step, 3 to 5 min).
+
+**Seen in game (build b20261113-195853, `game.v2.failed` empty, boot 134 s under load):** `docs/v2/shots/world-osm/v4_downtown.png` (Downtown, ground), `v4_bay_island_causeway.png` (Biscayne Island at the end of its generated bridge, ground), `v4_airport.png` (Solana International apron, ground), `v4_nico_house.png`, `v4_keys_bar.png`, `v4_keys_sign.png` (Key Paloma, ground, house built by its track visible). `v4_clipped_shore.png`: the point I picked from pass 6 (-828.5, 449.7) is water in pass 7 (player swims in Biscayne Bay where real land was removed); no on-land shore shot at the new clipped coast.
+Side by side with the picture: `docs/v2/compare/world-osm_city_vs_ref40.png` (red box = real rectangle). Land and water inside the box follow the picture's islands, port and bay; looked at once.
+
+**Not done / not met.**
+- **Seam in land use not met:** zones change across the rectangle line at 31 % of samples (8 % at 300 m inside, 11 % at 300 m outside); mostly real "residential" vs synthetic "rural"/"commercial" on the west and north edges. One 328 m piece of land boundary still lies on the rectangle line (location not identified).
+- Generated bridges are straight junction-to-junction lines; not checked that they avoid buildings on the far bank. Not looked at from the air.
+- The preview shows real detail inside the box and plain synthetic land outside (texture differs; land shape does not).
+- `merge.py` keeps only the live build and the one before it, so the tracked folder `public/assets/miami/b20261113-193353/` was deleted by the publish (git shows it as deleted).

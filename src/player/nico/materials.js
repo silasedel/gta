@@ -450,7 +450,11 @@ export function makeClothMaterial(o = {}) {
           // leg hem topstitch, crotch whiskers and soft wear on the seat and thighs
           float px = vRest.x, py = vRest.y, pz = vRest.z, ax = abs( px );
           float front = step( 0.0, pz );
+          #ifdef CARGO
+          diffuseColor.rgb *= 0.95 + 0.08 * cn( vFab * vec2( 700.0, 700.0 ) ) + 0.04 * cn( vFab * 6.0 + 2.0 );          // cotton twill, washed
+          #else
           diffuseColor.rgb *= 0.82 + 0.3 * cn( vFab * vec2( 900.0, 60.0 ) ) * cn( vFab * 12.0 + 4.0 );
+          #endif
           float fwy = max( fwidth( py ), 1e-5 ), fwx = max( fwidth( px ), 1e-5 );
           float ln = 0.0, th = 0.0;
           // waistband 4 cm with a seam below it and topstitch

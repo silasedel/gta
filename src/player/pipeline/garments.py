@@ -192,20 +192,20 @@ def shirt_extra(ob, c0, used):
     NB = 72
     rmax = np.zeros(NB)
     for v in tv:
-        if 0.88 < v.co.z < 1.32:
+        if 0.97 < v.co.z < 1.10:
             th = math.atan2(v.co.y - yc, v.co.x)
             b = int((th + math.pi) / (2 * math.pi) * NB) % NB
             rmax[b] = max(rmax[b], math.hypot(v.co.x, v.co.y - yc))
     for _ in range(3):
         rmax = np.maximum(rmax, (np.roll(rmax, 1) + np.roll(rmax, -1)) * 0.5 * 0.995)
     for v in tv:
-        if v.co.z >= 1.30:
+        if v.co.z >= 1.06:
             continue
         th = math.atan2(v.co.y - yc, v.co.x)
         b = int((th + math.pi) / (2 * math.pi) * NB) % NB
         r = math.hypot(v.co.x, v.co.y - yc)
-        want = rmax[b] * (0.99 + 0.03 * (1.30 - v.co.z) / 0.42)
-        k = sm(1.30, 1.16, np.array([v.co.z]))[0]
+        want = rmax[b] * 0.99
+        k = sm(1.06, 0.98, np.array([v.co.z]))[0]
         if r > 1e-4 and want > r:
             f = (r + (want - r) * k) / r
             move(v, Vector((v.co.x * (f - 1), (v.co.y - yc) * (f - 1), 0)))

@@ -8,7 +8,14 @@
 //      one of the two source lists changes.
 //   2. Facade batches (FBatch) stored 16 floats per vertex in a growing JS array of doubles. They now
 //      write into a growing Float32Array (half the bytes, no boxed growth copies).
-// The owners (interiors-engine, city-look) should adopt these natively; see docs/v2/reports/playtest-fixes.md.
+//   3. Constant light counts. three.js bakes the number of point and spot lights into every shader, so each
+//      time a light entered or left the scene (store lights, police light bars, muzzle and fire lights,
+//      lazily created spotlights) EVERY material in view was recompiled: 250 programs after loading, in
+//      bursts of 60-70, each burst a freeze of half a second or more. The renderer now always sees exactly
+//      POINT_TARGET point lights and SPOT_TARGET spot lights: zero-intensity spares fill the gaps and, if
+//      more real lights are present, the farthest ones sit out that frame.
+// The owners (interiors-engine, city-look) should adopt 1 and 2 natively; see docs/v2/reports/playtest-fixes.md.
+import * as THREE from 'three';
 import { FBatch } from '../world/city/facade.js';
 import { Batch } from '../world/city/geo.js';
 
@@ -100,6 +107,163 @@ function guardFacadeBatch() {
   return true;
 }
 
+const POINT_TARGET = 16;
+const SPOT_TARGET = 4;
+let addPatched = false;
+const tracked = new Set();
+
+function register(o) {
+  if (o && (o.isPointLight || o.isSpotLight) && !o.userData.psSpareLight) {
+    tracked.add(o);
+  }
+}
+
+function effectiveIn(o, scene, layers) {
+  if (!o.layers.test(layers)) {
+    return false;
+  }
+  for (let n = o; n; n = n.parent) {
+    if (!n.visible) {
+      return false;
+    }
+    if (n === scene) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function stabilizeLights(game) {
+  const { scene } = game;
+  if (!scene || addPatched) {
+    return false;
+  }
+  addPatched = true;
+  // every light that is ever attached anywhere gets tracked (lights inside groups are added to the group first)
+  const origAdd = THREE.Object3D.prototype.add;
+  THREE.Object3D.prototype.add = function add(...objs) {
+    for (const o of objs) {
+      register(o);
+    }
+    return origAdd.apply(this, objs);
+  };
+  scene.traverse(register);
+
+  const spares = {
+    point: [],
+    spot: [],
+  };
+  for (let i = 0; i < POINT_TARGET; i++) {
+    const l = new THREE.PointLight(0x000000, 0, 0.01, 2);
+    l.userData.psSpareLight = true;
+    l.position.set(0, -20000, 0);
+    l.castShadow = false;
+    origAdd.call(scene, l);
+    spares.point.push(l);
+  }
+  for (let i = 0; i < SPOT_TARGET; i++) {
+    const l = new THREE.SpotLight(0x000000, 0, 0.01, 0.3, 0, 2);
+    l.userData.psSpareLight = true;
+    l.position.set(0, -20000, 0);
+    l.target.position.set(0, -20001, 0);
+    l.castShadow = false;
+    origAdd.call(scene, l);
+    origAdd.call(scene, l.target);
+    spares.spot.push(l);
+  }
+
+  const hiddenNow = [];
+  const livePoint = [];
+  const liveSpot = [];
+  const camPos = new THREE.Vector3();
+  const stats = {
+    point: 0,
+    spot: 0,
+    benched: 0,
+    tracked: 0,
+  };
+  const byDistance = (a, b) => a.userData.psD2 - b.userData.psD2;
+
+  function fit(list, target, spareList, cam) {
+    if (list.length > target) {
+      for (const l of list) {
+        l.getWorldPosition(camPos);
+        l.userData.psD2 = camPos.distanceToSquared(cam.position) / Math.max(0.05, l.intensity || 0.05);
+      }
+      list.sort(byDistance);
+      for (let i = target; i < list.length; i++) {
+        list[i].visible = false;
+        hiddenNow.push(list[i]);
+      }
+    }
+    const need = Math.max(0, target - list.length);
+    for (let i = 0; i < spareList.length; i++) {
+      spareList[i].visible = i < need;
+    }
+  }
+
+  let pruneT = 0;
+  const prevBefore = scene.onBeforeRender;
+  const prevAfter = scene.onAfterRender;
+  scene.onBeforeRender = function onBeforeRender(renderer, sc, cam, rt) {
+    try {
+      livePoint.length = 0;
+      liveSpot.length = 0;
+      const layers = cam.layers;
+      for (const l of tracked) {
+        if (!effectiveIn(l, scene, layers)) {
+          continue;
+        }
+        if (l.isSpotLight) {
+          liveSpot.push(l);
+        } else {
+          livePoint.push(l);
+        }
+      }
+      fit(livePoint, POINT_TARGET, spares.point, cam);
+      fit(liveSpot, SPOT_TARGET, spares.spot, cam);
+      stats.point = livePoint.length;
+      stats.spot = liveSpot.length;
+      stats.benched = hiddenNow.length;
+      stats.tracked = tracked.size;
+      // forget lights that left the scene for good (checked every few hundred renders)
+      if (++pruneT > 600) {
+        pruneT = 0;
+        for (const l of tracked) {
+          let top = l;
+          while (top.parent) {
+            top = top.parent;
+          }
+          if (top !== scene) {
+            l.userData.psGone = (l.userData.psGone || 0) + 1;
+            if (l.userData.psGone > 3) {
+              tracked.delete(l);
+            }
+          } else {
+            l.userData.psGone = 0;
+          }
+        }
+      }
+    } catch (e) {
+      // never break rendering
+    }
+    if (prevBefore) {
+      prevBefore.call(this, renderer, sc, cam, rt);
+    }
+  };
+  scene.onAfterRender = function onAfterRender(renderer, sc, cam, rt) {
+    for (const l of hiddenNow) {
+      l.visible = true;
+    }
+    hiddenNow.length = 0;
+    if (prevAfter) {
+      prevAfter.call(this, renderer, sc, cam, rt);
+    }
+  };
+  game.lightBudget = stats;
+  return true;
+}
+
 export async function initV2(game) {
   const done = {
     interiorsList: false,
@@ -114,6 +278,19 @@ export async function initV2(game) {
     done.interiorsList = guardInteriorsList(game);
   } catch (e) {
     console.warn('[perfGuards] interiors list', e);
+  }
+  try {
+    done.lights = stabilizeLights(game);
+  } catch (e) {
+    console.warn('[perfGuards] lights', e);
+  }
+  // production: do not stall on getProgramParameter right after every new program (the driver can link in parallel)
+  try {
+    if (!import.meta.env?.DEV && game.renderer?.debug) {
+      game.renderer.debug.checkShaderErrors = false;
+    }
+  } catch (e) {
+    // not fatal
   }
   game.perfGuards = done;
 }

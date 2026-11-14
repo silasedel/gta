@@ -103,7 +103,7 @@ export function decorateNico(character, { game, model, assets, opts = {} }) {
   setMeshLOD(opts.meshLOD ?? 1);
 
   // ---- body change (BIG_UPDATE 0a): subtle, capped
-  const body = { fat: 0.36, muscle: 0.75 };          // lean but muscular mid-30s build by default
+  const body = { fat: 0.5, muscle: 0.8 };            // strong mid-30s build (no thin morph: keeps chest, glutes, leg volume)
   const applyBody = () => {
     const f = THREE.MathUtils.clamp(body.fat, 0, 1), mu = THREE.MathUtils.clamp(body.muscle, 0, 1);
     const w = { fat: Math.max(0, (f - 0.5) * 2) * 0.85, thin: Math.max(0, (0.5 - f) * 2) * 0.7, muscle: mu * 0.8 };

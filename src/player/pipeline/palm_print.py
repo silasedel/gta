@@ -11,8 +11,8 @@ os.makedirs(OUT + "/prints", exist_ok=True)
 S = 2048
 SS = 2
 W = S * SS
-BG = np.array([34, 122, 124], dtype=np.float32)
-INK = (176, 222, 198)
+BG = np.array([30, 118, 120], dtype=np.float32)
+INK = (190, 228, 206)
 rng = np.random.RandomState(42)
 
 
@@ -63,14 +63,14 @@ def palm(dr, x, y, h, lean, r):
 ink = Image.new("L", (W, W), 0)
 dr = ImageDraw.Draw(ink)
 # scatter palms in a jittered grid (varied sizes, a few leaning), drawn with wrap so the tile repeats
-cells = 5
+cells = 4
 for gy in range(cells):
     for gx in range(cells):
         if rng.rand() < 0.18:
             continue
         x = (gx + 0.15 + 0.7 * rng.rand()) / cells * W
         y = (gy + 0.55 + 0.4 * rng.rand()) / cells * W
-        h = W * (0.10 + 0.13 * rng.rand())
+        h = W * (0.20 + 0.16 * rng.rand())
         lean = (rng.rand() - 0.5) * 0.5
         for ox in (-W, 0, W):
             for oy in (-W, 0, W):
@@ -97,8 +97,8 @@ def fbm(n, scale, octaves, seed):
 # distress: worn-through specks and a cracked, washed print; dye fade varies across the tile
 wear = fbm(S, 6, 4, 3)
 speck = fbm(S, 90, 2, 5)
-a = a * np.clip((wear - 0.22) * 2.2, 0.35, 1.0) * np.clip((speck - 0.18) * 3.0, 0.0, 1.0)
-a = a * (0.78 + 0.22 * fbm(S, 3, 2, 8))
+a = a * np.clip((wear - 0.15) * 2.6, 0.6, 1.0) * np.clip((speck - 0.10) * 4.0, 0.25, 1.0)
+a = a * (0.88 + 0.12 * fbm(S, 3, 2, 8))
 fade = 0.92 + 0.12 * fbm(S, 4, 3, 11)
 weave = 0.97 + 0.03 * fbm(S, 300, 1, 13)
 bg = BG[None, None, :] * fade[..., None] * weave[..., None]

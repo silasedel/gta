@@ -250,10 +250,23 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
   let crowd = null;
-  try { if (NAV) crowd = createCrowd(game, { max: 260, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
+  try { if (NAV) crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
   const walkers = [];
   let towelN = 0;
-  const crowdCfg = { target: 170, near: 30, far: 185, enabled: true };
+  // playtest: "too few people" -> 240 at full street density (was 170); people fade (dithered) instead of popping
+  const crowdCfg = { target: 240, near: 30, far: 185, enabled: true, fadeRate: 2.0 };
+  if (crowd) {
+    crowd.setBands(0, 0.01, crowdCfg.far - 18, crowdCfg.far);
+  }
+  // gait: stride length follows leg swing and body height, cadence follows speed, so feet plant without sliding
+  const STRIDE_REF = 1.41; // meters per full cycle of the crowd walk at amp 1 for a 1.75 m person
+  function gaitFor(w) {
+    const sc = (w.look?.height || 1.75) / 1.75;
+    const amp = clamp(0.78 + 0.3 * (w.speed / 1.35), 0.8, 1.15) * (w.ampJit || 1);
+    const stride = STRIDE_REF * amp * sc;
+    const cadence = (Math.PI * 2 * w.speed) / stride;
+    return { cadence, amp };
+  }
   const _fwd = new THREE.Vector3();
   function spawnWalker(cam, beachy) {
     // denser near the viewer and in front of the camera (people behind you are never seen)
@@ -266,7 +279,10 @@ export async function initV2(game) {
       const q = lounger ? NAV.sandPoint(cam, r) : shoreWalker ? NAV.sandPoint(cam, r, true) : NAV.sidewalkNear(cam, r);
       if (!q) continue;
       const dx = q.x - cam.x, dz = q.z - cam.z, dl = Math.hypot(dx, dz) || 1, dot = (dx * _fwd.x + dz * _fwd.z) / dl;
-      if (dot > bestDot) { bestDot = dot; pos = q; }
+      // far away: prefer in front (where people are seen); closer: prefer behind or beside the camera, so nobody
+      // appears in plain sight
+      const score = dl > 110 ? dot : -dot;
+      if (score > bestDot) { bestDot = score; pos = q; }
     }
     if (!pos) return false;
     const d = Math.hypot(pos.x - cam.x, pos.z - cam.z); if (d < crowdCfg.near + 6) return false;
@@ -277,7 +293,8 @@ export async function initV2(game) {
     const L = makeLook(pick.id, { zone: zk, hour: h, weather: weather(), activity: 'walk', onShift: /^work/.test(pick.act.act), noCarry: true }, bodies, null, 0);
     if (!L) { audit.lookFailed++; return false; }
     const i = crowd.alloc(); if (i < 0) return false;
-    const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger };
+    const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16 };
+    crowd.setFade(i, 0);
     crowd.setLook(i, crowdLook(L));
     if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
       const pose = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.volley, POSE.sip][(Math.random() * 12) | 0];
@@ -307,10 +324,12 @@ export async function initV2(game) {
       }
       w.heading = bestH;
       w.speed = Math.min(1.3, w.speed);
-      crowd.setPose(i, POSE.walk, 6 * w.speed / 1.35, w.phase, 1);
+      const g0 = gaitFor(w);
+      crowd.setPose(i, POSE.walk, g0.cadence, w.phase, g0.amp);
     } else {
       w.nav = NAV.navFromPos(w); if (!w.nav) { crowd.release(i); return false; }
-      crowd.setPose(i, POSE.walk, 6 * w.speed / 1.35, w.phase, 1);
+      const g1 = gaitFor(w);
+      crowd.setPose(i, POSE.walk, g1.cadence, w.phase, g1.amp);
     }
     walkers.push(w); audit.crowdSpawned++; record('crowd|' + L.sig, pick.id.id);
     return true;
@@ -322,13 +341,37 @@ export async function initV2(game) {
     crowdFrame++;
     const fps = game.perf?.fps || 60;
     const dens = streetDensity(zoneKey(NAV.zoneAt(cam.x, cam.z)), districtAt(cam.x, cam.z), hour());
-    const want = !crowdCfg.enabled ? 0 : Math.round(crowdCfg.target * clamp(dens / 0.6, 0.08, 1.15) * (fps >= 50 ? 1 : fps >= 38 ? 0.6 : 0.3));
+    // a frame-rate dip no longer wipes out most of the crowd at once (that read as mass pop-out)
+    const want = !crowdCfg.enabled ? 0 : Math.round(crowdCfg.target * clamp(dens / 0.6, 0.08, 1.15) * (fps >= 45 ? 1 : 0.8));
     const camZone = NAV.zoneAt(cam.x, cam.z), beachy = camZone === 'beach' || camZone === 'water' || /beach/i.test(districtAt(cam.x, cam.z));
-    for (let k = 0; k < 4 && walkers.length < want; k++) spawnWalker(cam, beachy);
+    let staying = 0;
+    for (const w of walkers) {
+      if (!w.leaving) {
+        staying++;
+      }
+    }
+    for (let k = 0; k < 4 && staying < want; k++) {
+      if (spawnWalker(cam, beachy)) {
+        staying++;
+      }
+    }
+    let excess = staying - (want + 8);
     for (let n = walkers.length - 1; n >= 0; n--) {
       const w = walkers[n];
       const d = Math.hypot(w.pos.x - cam.x, w.pos.z - cam.z);
-      if (d < (w.still || w.shore ? 14 : crowdCfg.near) || d > crowdCfg.far + 10 || walkers.length > want + 8) {
+      // leaving (too close for the crowd tier, too far, or over the target): fade out over about half a second
+      if (!w.leaving && (d < (w.still || w.shore ? 14 : crowdCfg.near) || d > crowdCfg.far + 10 || excess > 0)) {
+        if (excess > 0) {
+          excess--;
+        }
+        w.leaving = true;
+      }
+      const fadeTo = w.leaving ? 0 : 1;
+      if (w.fade !== fadeTo) {
+        w.fade = fadeTo > w.fade ? Math.min(1, w.fade + dt * crowdCfg.fadeRate) : Math.max(0, w.fade - dt * crowdCfg.fadeRate);
+        crowd.setFade(w.i, w.fade);
+      }
+      if (w.leaving && w.fade <= 0) {
         crowd.release(w.i);
         if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; }
         walkers.splice(n, 1);

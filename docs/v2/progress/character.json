@@ -2,7 +2,7 @@
  "track": "character",
  "title": "Nico and the wardrobe",
  "section": "People",
- "agent": "done",
+ "agent": "idle",
  "items": [
   {
    "name": "v1 baseline shots of the player (full body, face, hands, back)",
@@ -47,11 +47,6 @@
   {
    "name": "Tattoo, watch and chain options",
    "state": "building",
-   "evidence": "docs/v2/shots/character/nico_torso.png"
-  },
-  {
-   "name": "Signature tropical shirt: original 4K print, weave normal, collar, placket, buttons, hem",
-   "state": "built",
    "evidence": "docs/v2/shots/character/nico_torso.png"
   },
   {
@@ -200,54 +195,44 @@
    "evidence": "CREDITS.md"
   },
   {
-   "name": "Teal camp shirt: Nico's default top (solid teal linen-cotton), floral kept as a wardrobe option",
+   "name": "Signature look (ref_42/47/48): open palm-print camp shirt over white tee, khaki cargo pants, leather sneakers, silver chain, steel watch; default in game, old saves migrate",
    "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_front.png"
+   "evidence": "docs/v2/shots/character/p5_front.png"
   },
   {
-   "name": "Teal shirt construction: camp collar, placket, 5 pearl buttons with thread, buttonholes, pocket, yoke, seams, hems",
-   "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_collar_34.png"
-  },
-  {
-   "name": "Teal shirt fit in idle, walk, drive and sit poses (no clipping seen)",
-   "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_sit_pose.png"
-  },
-  {
-   "name": "Teal shirt in game, daylight, walk and run; wardrobe swap emits outfit:changed",
-   "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_ingame_run.png"
-  },
-  {
-   "name": "Relaxed standing pose layer (arms down, soft elbows, curled fingers, feet under hips, weight shift)",
-   "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_ingame_front.png"
-  },
-  {
-   "name": "Lean swimmer build by default (thin 0.21, muscle 0.44 morphs)",
-   "state": "verified",
-   "evidence": "docs/v2/shots/character/teal_front.png"
-  },
-  {
-   "name": "Cloth motion: spring-driven hem, sleeve ends and collar tips from body motion and wind (game.wind or breeze)",
+   "name": "Body rebuild (mid-30s, broader, thicker neck, real-size hands and feet, calves, forearms), heavy stubble, dark brown hair, soft hairline, tan with tan lines",
    "state": "built",
-   "evidence": "docs/v2/shots/character/teal_run_a.png"
+   "evidence": "docs/v2/shots/character/ref42_face_talk.png"
   },
   {
-   "name": "Sneakers: rubber sole band (built); toe shapes still show through the shell",
+   "name": "Relaxed stance layer (clavicles down, arms hang, curled fingers, feet shoulder width)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/p5_34.png"
+  },
+  {
+   "name": "Multi-point cloth (40 verlet particles: hem, sleeves, open front edges) with wind, gusts, body collision, clamped reach",
+   "state": "verified",
+   "evidence": "docs/v2/shots/character/ref42_run_a.png"
+  },
+  {
+   "name": "Wetness per body part (water line by depth) for skin and clothes, drying in about 1.5 min, wet cloth clings",
+   "state": "built",
+   "evidence": "docs/v2/shots/character/p4_front_wet.png"
+  },
+  {
+   "name": "Sneakers: toe box (no toes), rubber sole band, leather scuffs; laces and real panels not yet",
    "state": "building",
-   "evidence": "docs/v2/shots/character/teal_feet.png"
+   "evidence": "docs/v2/shots/character/ref42_feet.png"
   },
   {
-   "name": "Shirt fit polish: seat crease at the back, small chest bump, boxy shoulders, wavy lapel edge",
+   "name": "Pistol two-hand aim stance (needs weapons.js change by the combat owner)",
    "state": "todo",
-   "evidence": ""
+   "evidence": "docs/v2/shots/character/p5_aim_side.png"
   },
   {
-   "name": "Body rebuild: new proportions, neck/shoulder slope, hands and feet size, ears, hairline, tan lines",
+   "name": "Ref_48 bar: authored animations, sculpted/baked high-detail body and garments, face fidelity",
    "state": "todo",
-   "evidence": ""
+   "evidence": "docs/v2/compare/nico_ref48_ingame.png"
   }
  ],
  "note": "Stopped at the 6:30 PM budget stop. Verified = seen in a screenshot or measured in the running game. Built = code runs but was not checked closely. See docs/v2/reports/character.md for flaws and open work."

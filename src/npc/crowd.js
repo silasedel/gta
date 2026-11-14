@@ -108,6 +108,8 @@ attribute vec4 iShape;     // girth, shoulder width, hip width, bust (0 = male c
 attribute vec4 iFlags;     // sleeve (-1 shirtless .. 1 long), leg cover (0.1 .. 1), hair style, hat
 attribute vec3 iColA;      // packed skin, top, bottom
 attribute vec3 iColB;      // packed hair, shoes, hat
+attribute float iFade;     // 0..1 time-based fade (spawn in / leave out over about half a second)
+varying float vNpcFade;
 uniform float uNpcTime;
 varying vec3 vNpcA; varying vec3 vNpcB; varying vec3 vNpcObj; varying vec3 vNpcCut;
 vec3 npcP; vec3 npcN;
@@ -212,6 +214,7 @@ void npcPose() {
   p.y += rootY; p.z += rootZ;
   if (hide) p = vec3(0.0, ${J.headY} + rootY, 0.0);
   npcP = p; npcN = normalize(n);
+  vNpcFade = iFade;
   // ---- color
   float region = aInfo.y, len = aInfo.z;
   vec3 skin = unpackC(iColA.x), top = unpackC(iColA.y), bottom = unpackC(iColA.z), hair = unpackC(iColB.x), shoes = unpackC(iColB.y), hatC = unpackC(iColB.z);
@@ -230,7 +233,21 @@ void npcPose() {
 `;
 const FRAG_PARS = /* glsl */`
 varying vec3 vNpcA; varying vec3 vNpcB; varying vec3 vNpcObj; varying vec3 vNpcCut;
+varying float vNpcFade;
+uniform vec4 uNpcBands;   // near fade start/end, far fade start/end (meters from the camera)
+float npcBayer(vec2 f) {
+  vec2 q = mod(floor(f), 4.0);
+  float m[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+  return (m[int(q.y * 4.0 + q.x)] + 0.5) / 16.0;
+}
 float npcHash(vec3 p) { p = fract(p * vec3(127.1, 311.7, 74.7)); p += dot(p, p.yzx + 19.19); return fract((p.x + p.y) * p.z); }
+`;
+const FRAG_DITHER = /* glsl */`
+  {
+    float dCam = length(vViewPosition);
+    float a = vNpcFade * smoothstep(uNpcBands.x, uNpcBands.y, dCam) * (1.0 - smoothstep(uNpcBands.z, uNpcBands.w, dCam));
+    if (a < 0.999 && a <= npcBayer(gl_FragCoord.xy)) discard;
+  }
 `;
 const FRAG_COLOR = /* glsl */`
   {
@@ -255,19 +272,23 @@ export function createCrowd(game, opts = {}) {
   ig.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
   const mk = (n, size) => { const a = new THREE.InstancedBufferAttribute(new Float32Array(n * size), size); a.setUsage(THREE.DynamicDrawUsage); return a; };
   const aPose = mk(MAX, 4), aShape = mk(MAX, 4), aFlags = mk(MAX, 4), aColA = mk(MAX, 3), aColB = mk(MAX, 3);
+  const aFade = mk(MAX, 1);
+  ig.setAttribute('iFade', aFade);
+  const uBands = { value: new THREE.Vector4(opts.nearFade0 ?? 0, opts.nearFade1 ?? 0.01, opts.farFade0 ?? 1e5, opts.farFade1 ?? 1e5 + 1) };
   ig.setAttribute('iPose', aPose); ig.setAttribute('iShape', aShape); ig.setAttribute('iFlags', aFlags); ig.setAttribute('iColA', aColA); ig.setAttribute('iColB', aColB);
   const uTime = { value: 0 };
   const hook = (sh, depthOnly) => {
     sh.uniforms.uNpcTime = uTime;
+    sh.uniforms.uNpcBands = uBands;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + VERT_PARS)
       .replace('#include <begin_vertex>', 'vec3 transformed = npcP;');
     if (!depthOnly) sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', 'npcPose();\nvec3 objectNormal = npcN;\n#ifdef USE_TANGENT\nvec3 objectTangent = vec3(tangent.xyz);\n#endif');
     else sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', '').replace('vec3 transformed = npcP;', 'npcPose();\nvec3 transformed = npcP;');
-    if (!depthOnly) sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS).replace('#include <color_fragment>', '#include <color_fragment>\n' + FRAG_COLOR);
+    if (!depthOnly) sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS).replace('#include <color_fragment>', '#include <color_fragment>\n' + FRAG_COLOR).replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FRAG_DITHER);
   };
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.82, metalness: 0, name: 'npcCrowd' });
   mat.onBeforeCompile = (sh) => hook(sh, false);
-  mat.customProgramCacheKey = () => 'npcCrowd1';
+  mat.customProgramCacheKey = () => 'npcCrowd2';
   const mesh = new THREE.InstancedMesh(ig, mat, MAX);
   mesh.name = 'npc-crowd'; mesh.frustumCulled = false; mesh.castShadow = !!opts.castShadow; mesh.receiveShadow = true; mesh.count = 0;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -291,7 +312,7 @@ export function createCrowd(game, opts = {}) {
   const used = new Uint8Array(MAX);
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
   const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
-  const dirty = { pose: false, look: false, mat: false };
+  const dirty = { pose: false, look: false, mat: false, fade: false };
   const pack = (rgb) => { // [r,g,b] 0..1 sRGB or hex
     if (typeof rgb === 'number') return rgb & 0xffffff;
     return (Math.round(rgb[0] * 255) << 16) | (Math.round(rgb[1] * 255) << 8) | Math.round(rgb[2] * 255);
@@ -299,6 +320,20 @@ export function createCrowd(game, opts = {}) {
   const api = {
     mesh, blobs, max: MAX, POSE,
     alloc() { let i = free.length ? free.pop() : (high < MAX ? high++ : -1); if (i < 0) return -1; used[i] = 1; mesh.count = high; blobs.count = high; return i; },
+    /** 0..1 fade for one person (dithered; the caller ramps it over about 0.5 s) */
+    setFade(i, f) {
+      if (i < 0) {
+        return;
+      }
+      if (aFade.getX(i) !== f) {
+        aFade.setX(i, f);
+        dirty.fade = true;
+      }
+    },
+    /** distance bands for the dither fade: near tier hand-over and far edge (meters from the camera) */
+    setBands(n0, n1, f0, f1) {
+      uBands.value.set(n0, n1, f0, f1);
+    },
     release(i) { if (i < 0 || !used[i]) return; used[i] = 0; mesh.setMatrixAt(i, ZERO); blobs.setMatrixAt(i, ZERO); dirty.mat = true; free.push(i); },
     // look: { skin, top, bottom, hair, shoes, hat (hex colors), sleeve, leg, hairStyle, hatKind, girth, shoulders, hips, bust }
     setLook(i, L) {
@@ -325,6 +360,10 @@ export function createCrowd(game, opts = {}) {
       uTime.value += dt;
       if (dirty.mat) { mesh.instanceMatrix.needsUpdate = true; blobs.instanceMatrix.needsUpdate = true; dirty.mat = false; }
       if (dirty.pose) { aPose.needsUpdate = true; dirty.pose = false; }
+      if (dirty.fade) {
+        aFade.needsUpdate = true;
+        dirty.fade = false;
+      }
       if (dirty.look) { aColA.needsUpdate = true; aColB.needsUpdate = true; aShape.needsUpdate = true; aFlags.needsUpdate = true; dirty.look = false; }
     },
     get time() { return uTime.value; },

@@ -622,9 +622,10 @@ export async function createPeds(game) {
     const h = hourNow();
     let base = h >= 1 && h < 5 ? 10 : h < 7 ? 18 : h < 9 ? 26 : h < 20 ? 32 : h < 23 ? 30 : 20;
     // people.v2.js: who would really be out here at this hour (district x hour schedules)
-    try { const pp = playerPos(); const dn = game.people?.densityFor?.(pp.x, pp.z); if (Number.isFinite(dn)) base = Math.round(6 + 34 * dn); } catch (e) { /* ignore */ }
+    try { const pp = playerPos(); const dn = game.people?.densityFor?.(pp.x, pp.z); if (Number.isFinite(dn)) base = Math.round(8 + 40 * dn); } catch (e) { /* ignore */ }
     const fps = game.perf?.fps || 60;
-    const cap = fps >= 50 ? 32 : fps >= 38 ? 26 : 20;
+    // playtest: more people on the street; a dip in frame rate trims the crowd gently instead of halving it
+    const cap = fps >= 50 ? 40 : fps >= 38 ? 34 : 28;
     return Math.min(base, cap);
   }
   let frameN = 0;
@@ -1011,7 +1012,9 @@ export async function createPeds(game) {
       if (!root.visible) continue;
       _sph.center.set(ped.pos.x, ped.pos.y + 1, ped.pos.z);
       const inView = !camO || _frustum.intersectsSphere(_sph);
-      ped.char.setLOD?.(!inView ? 30 : dCam < 20 ? 1 : dCam < 45 ? 2 : dCam < 70 ? 4 : 5);
+      // in view: animate every frame up to 60 m, every other frame beyond (skipping more made walks look choppy and
+      // "stubbly" at a distance); off screen: rarely
+      ped.char.setLOD?.(!inView ? 30 : dCam < 60 ? 1 : 2);
       const swimming = ped.state === 'swim';
       ped.char.update(dt, {
         speed: swimming ? 0 : ped.speed, grounded: true, jumping: false, sprint: ped.state === 'flee', driving: false, punch,

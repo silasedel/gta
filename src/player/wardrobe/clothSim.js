@@ -219,7 +219,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       const k = 70 * (1.1 - p.loose * 0.5) * (1 + soak * 2.5);
       _b.subVectors(p.anchor, p.x).multiplyScalar(k);              // spring
       _b.addScaledVector(_a, 0.24 * air * p.loose * (1 - soak * 0.8));                // quadratic drag: 6 m/s pushes the loose cloth 4 to 7 cm
-      _b.y += air * air * 0.16 * gust * turb * p.loose * (p.group === 'hem' ? 1 : 0.5); // gusts lift the hem
+      _b.y += air * air * 0.08 * gust * turb * p.loose * (p.group === 'hem' ? 1 : 0.5) * (1 - soak); // gusts lift the hem
       p.px.copy(p.x);
       p.x.addScaledVector(_v, 0.975).addScaledVector(_b, h * h);
     }
@@ -245,7 +245,7 @@ export function createShirtCloth({ mesh, model, bone, game, open = false }) {
       const dn = _v.dot(p.an);
       if (dn < 0) p.x.addScaledVector(p.an, -dn);
       _v.subVectors(p.x, p.anchor);
-      const maxR = 0.03 + 0.07 * p.loose;
+      const maxR = (0.015 + 0.035 * p.loose) * (1 - soak * 0.6);          // panels sway, never balloon
       if (_v.length() > maxR) p.x.copy(p.anchor).add(_v.setLength(maxR));
       if (p.group === 'hem') {
         for (const [u, l] of thighs) {

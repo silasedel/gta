@@ -36,7 +36,7 @@ export async function initV2(game) {
     openUI(o = {}) { return openPanel(game, W, o); }, closeUI() { document.getElementById('ps-wardrobe')?.remove(); game.ui && (game.ui.wardrobeOpen = false); },
   };
   // body change: core-systems drives game.player.body.fat (0..1, 0.5 = Nico's normal build) and .muscle (0..1)
-  const body = { _fat: save.fat ?? 0.36, _muscle: save.muscle ?? 0.75 };
+  const body = { _fat: save.fat ?? 0.5, _muscle: save.muscle ?? 0.8 };
   game.player.body = {
     get fat() { return body._fat; }, set fat(v) { body._fat = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.fat = body._fat; },
     get muscle() { return body._muscle; }, set muscle(v) { body._muscle = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.muscle = body._muscle; },

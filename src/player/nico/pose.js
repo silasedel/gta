@@ -48,6 +48,11 @@ export function createRelaxedPose({ model, bone }) {
   return {
     update(dt, anim = {}) {
       t += dt;
+      // proportions: a thicker neck and a head a touch larger than the base mesh (about 7.5 heads tall)
+      const nk = B('Neck');
+      const hd = B('Head');
+      if (nk) nk.scale.set(1.12, 1.0, 1.12);
+      if (hd) hd.scale.set(1.06 / 1.12, 1.06, 1.06 / 1.12);
       const special = anim.driving || anim.swimming || anim.wading || anim.dead || anim.idleStyle || anim.punch
         || anim.handsUp || anim.guard || anim.throw || anim.call || anim.wave || anim.hit || anim.getUp || anim.jumping
         || anim.grounded === false;
@@ -60,6 +65,7 @@ export function createRelaxedPose({ model, bone }) {
       if (wArms < 0.01) return;
       const root = B('Hips');
       if (!root) return;
+
       model.updateMatrixWorld(true);
       // character frame: forward and right in world space
       const fwd = _t.set(0, 0, 1).applyQuaternion(model.getWorldQuaternion(_qp)).setY(0).normalize().clone();

@@ -1,447 +1,488 @@
 {
  "mode": "app",
- "when": "2026-11-14T02:41:17.620Z",
+ "when": "2026-11-14T02:53:59.260Z",
  "load": [
-  35.3,
-  38.1,
-  33.3
+  39.6,
+  40.2,
+  37.4
  ],
  "samples": [
   {
-   "heapMB": 1466,
+   "heapMB": 1325,
    "heapLimitMB": 4192,
-   "gameFps": 19,
-   "calls": 538,
-   "tris": 3210444,
-   "geometries": 1319,
-   "textures": 380,
+   "gameFps": 27,
+   "calls": 565,
+   "tris": 3265719,
+   "geometries": 1353,
+   "textures": 423,
    "pos": [
-    3442,
-    -120
+    3433,
+    -101
    ],
-   "t": 143,
+   "t": 50,
    "phase": "idle",
-   "rssMB": 5411
-  },
-  {
-   "heapMB": 1341,
-   "heapLimitMB": 4192,
-   "gameFps": 19,
-   "calls": 1005,
-   "tris": 4238897,
-   "geometries": 1520,
-   "textures": 420,
-   "pos": [
-    3440,
-    -114
-   ],
-   "t": 153,
-   "phase": "idle",
-   "rssMB": 5476
-  },
-  {
-   "heapMB": 1340,
-   "heapLimitMB": 4192,
-   "gameFps": 44,
-   "calls": 534,
-   "tris": 3272311,
-   "geometries": 1524,
-   "textures": 420,
-   "pos": [
-    3441,
-    -113
-   ],
-   "t": 164,
-   "phase": "idle",
-   "rssMB": 5475
-  },
-  {
-   "heapMB": 1478,
-   "heapLimitMB": 4192,
-   "gameFps": 39,
-   "calls": 534,
-   "tris": 3272311,
-   "geometries": 1524,
-   "textures": 420,
-   "pos": [
-    3441,
-    -113
-   ],
-   "t": 174,
-   "phase": "idle",
+   "wasPaused": false,
    "rssMB": 5535
   },
   {
-   "heapMB": 1602,
-   "heapLimitMB": 4192,
-   "gameFps": 56,
-   "calls": 534,
-   "tris": 3272311,
-   "geometries": 1524,
-   "textures": 420,
-   "pos": [
-    3441,
-    -113
-   ],
-   "t": 185,
-   "phase": "idle",
-   "rssMB": 5684
-  },
-  {
-   "heapMB": 1721,
-   "heapLimitMB": 4192,
-   "gameFps": 30,
-   "calls": 534,
-   "tris": 3286773,
-   "geometries": 1524,
-   "textures": 420,
-   "pos": [
-    3441,
-    -113
-   ],
-   "t": 196,
-   "phase": "idle",
-   "rssMB": 5819
-  },
-  {
-   "heapMB": 1913,
-   "heapLimitMB": 4192,
-   "gameFps": 22,
-   "calls": 435,
-   "tris": 3270057,
-   "geometries": 1660,
-   "textures": 420,
-   "pos": [
-    3427,
-    -74
-   ],
-   "t": 206,
-   "phase": "idle",
-   "rssMB": 6080
-  },
-  {
-   "heapMB": 1399,
+   "heapMB": 1678,
    "heapLimitMB": 4192,
    "gameFps": 25,
-   "calls": 727,
-   "tris": 4865496,
-   "geometries": 1754,
-   "textures": 422,
+   "calls": 583,
+   "tris": 3278020,
+   "geometries": 1385,
+   "textures": 423,
    "pos": [
-    3422,
-    -43
+    3433,
+    -101
    ],
-   "t": 256,
+   "t": 60,
    "phase": "idle",
-   "rssMB": 5865
+   "wasPaused": false,
+   "rssMB": 5841
   },
   {
-   "heapMB": 1467,
+   "heapMB": 2004,
    "heapLimitMB": 4192,
-   "gameFps": 35,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "gameFps": 29,
+   "calls": 606,
+   "tris": 3296298,
+   "geometries": 1402,
+   "textures": 428,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 269,
+   "t": 71,
    "phase": "idle",
-   "rssMB": 5705
+   "wasPaused": false,
+   "rssMB": 6143
   },
   {
-   "heapMB": 1561,
+   "heapMB": 2109,
    "heapLimitMB": 4192,
-   "gameFps": 33,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "gameFps": 27,
+   "calls": 613,
+   "tris": 3314399,
+   "geometries": 1415,
+   "textures": 428,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 279,
+   "t": 81,
    "phase": "idle",
-   "rssMB": 5769
+   "wasPaused": false,
+   "rssMB": 6256
   },
   {
-   "heapMB": 1670,
+   "heapMB": 2216,
    "heapLimitMB": 4192,
-   "gameFps": 44,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "gameFps": 29,
+   "calls": 615,
+   "tris": 3317009,
+   "geometries": 1416,
+   "textures": 428,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 289,
+   "t": 91,
    "phase": "idle",
-   "rssMB": 5876
+   "wasPaused": false,
+   "rssMB": 6368
   },
   {
-   "heapMB": 1443,
+   "heapMB": 1504,
+   "heapLimitMB": 4192,
+   "gameFps": 26,
+   "calls": 630,
+   "tris": 3350656,
+   "geometries": 1417,
+   "textures": 431,
+   "pos": [
+    3433,
+    -101
+   ],
+   "t": 102,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6036
+  },
+  {
+   "heapMB": 1611,
+   "heapLimitMB": 4192,
+   "gameFps": 46,
+   "calls": 650,
+   "tris": 3462672,
+   "geometries": 1461,
+   "textures": 431,
+   "pos": [
+    3433,
+    -101
+   ],
+   "t": 112,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6040
+  },
+  {
+   "heapMB": 1747,
    "heapLimitMB": 4192,
    "gameFps": 43,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "calls": 644,
+   "tris": 3428532,
+   "geometries": 1483,
+   "textures": 431,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 300,
-   "phase": "move",
-   "rssMB": 6126
+   "t": 122,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6041
   },
   {
-   "heapMB": 1626,
+   "heapMB": 1635,
    "heapLimitMB": 4192,
-   "gameFps": 34,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "gameFps": 40,
+   "calls": 663,
+   "tris": 3437219,
+   "geometries": 1488,
+   "textures": 434,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 310,
-   "phase": "move",
-   "rssMB": 6029
+   "t": 132,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5963
   },
   {
-   "heapMB": 1767,
+   "heapMB": 1724,
    "heapLimitMB": 4192,
-   "gameFps": 30,
-   "calls": 469,
-   "tris": 3416759,
-   "geometries": 1755,
-   "textures": 424,
+   "gameFps": 26,
+   "calls": 682,
+   "tris": 3440704,
+   "geometries": 1481,
+   "textures": 438,
    "pos": [
-    3421,
-    -41
+    3433,
+    -101
    ],
-   "t": 321,
-   "phase": "move",
+   "t": 142,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5965
+  },
+  {
+   "heapMB": 1798,
+   "heapLimitMB": 4192,
+   "gameFps": 31,
+   "calls": 685,
+   "tris": 3449624,
+   "geometries": 1482,
+   "textures": 439,
+   "pos": [
+    3433,
+    -101
+   ],
+   "t": 152,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5966
+  },
+  {
+   "heapMB": 1894,
+   "heapLimitMB": 4192,
+   "gameFps": 31,
+   "calls": 686,
+   "tris": 3508937,
+   "geometries": 1484,
+   "textures": 441,
+   "pos": [
+    3433,
+    -101
+   ],
+   "t": 162,
+   "phase": "idle",
+   "wasPaused": false,
    "rssMB": 6030
   },
   {
-   "heapMB": 1555,
+   "heapMB": 1980,
    "heapLimitMB": 4192,
-   "gameFps": 35,
-   "calls": 1346,
-   "tris": 3136074,
-   "geometries": 1858,
-   "textures": 426,
+   "gameFps": 31,
+   "calls": 688,
+   "tris": 3558722,
+   "geometries": 1486,
+   "textures": 442,
    "pos": [
-    -2505,
-    555
+    3433,
+    -101
    ],
-   "t": 341,
-   "phase": "move",
-   "rssMB": 6076
+   "t": 173,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6121
   },
   {
-   "heapMB": 1709,
+   "heapMB": 2047,
    "heapLimitMB": 4192,
-   "gameFps": 35,
-   "calls": 1346,
-   "tris": 3136074,
-   "geometries": 1858,
-   "textures": 426,
+   "gameFps": 29,
+   "calls": 696,
+   "tris": 3645759,
+   "geometries": 1491,
+   "textures": 447,
    "pos": [
-    -2505,
-    555
+    3433,
+    -101
    ],
-   "t": 352,
-   "phase": "move",
-   "rssMB": 5997
+   "t": 183,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6209
   },
   {
-   "heapMB": 1958,
+   "heapMB": 2124,
    "heapLimitMB": 4192,
-   "gameFps": 58,
-   "calls": 231,
-   "tris": 2427688,
-   "geometries": 1899,
-   "textures": 426,
+   "gameFps": 29,
+   "calls": 685,
+   "tris": 3601863,
+   "geometries": 1491,
+   "textures": 447,
    "pos": [
-    -900,
-    120
+    3433,
+    -101
    ],
-   "t": 366,
-   "phase": "move",
-   "rssMB": 6280
+   "t": 193,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6293
   },
   {
-   "heapMB": 2219,
+   "heapMB": 2243,
    "heapLimitMB": 4192,
-   "gameFps": 54,
-   "calls": 231,
-   "tris": 2427688,
-   "geometries": 1899,
-   "textures": 426,
+   "gameFps": 30,
+   "calls": 551,
+   "tris": 3387960,
+   "geometries": 1587,
+   "textures": 456,
    "pos": [
-    -900,
-    120
+    3439,
+    -59
    ],
-   "t": 377,
+   "t": 206,
    "phase": "move",
-   "rssMB": 6569
+   "wasPaused": false,
+   "rssMB": 6432
   },
   {
-   "heapMB": 1683,
+   "heapMB": 1575,
+   "heapLimitMB": 4192,
+   "gameFps": 19,
+   "calls": 453,
+   "tris": 3468353,
+   "geometries": 1734,
+   "textures": 461,
+   "pos": [
+    3443,
+    -18
+   ],
+   "t": 253,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 5745
+  },
+  {
+   "heapMB": 1625,
+   "heapLimitMB": 4192,
+   "gameFps": 31,
+   "calls": 440,
+   "tris": 2988667,
+   "geometries": 1493,
+   "textures": 427,
+   "pos": [
+    -2476,
+    563
+   ],
+   "t": 276,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 5538
+  },
+  {
+   "heapMB": 2070,
+   "heapLimitMB": 4192,
+   "gameFps": 37,
+   "calls": 447,
+   "tris": 2923698,
+   "geometries": 1712,
+   "textures": 424,
+   "pos": [
+    -895,
+    119
+   ],
+   "t": 286,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 5936
+  },
+  {
+   "heapMB": 2579,
+   "heapLimitMB": 4192,
+   "gameFps": 75,
+   "calls": 292,
+   "tris": 2638717,
+   "geometries": 1666,
+   "textures": 385,
+   "pos": [
+    1786,
+    -614
+   ],
+   "t": 297,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6411
+  },
+  {
+   "heapMB": 1664,
+   "heapLimitMB": 4192,
+   "gameFps": 70,
+   "calls": 295,
+   "tris": 2635956,
+   "geometries": 1658,
+   "textures": 385,
+   "pos": [
+    1771,
+    -630
+   ],
+   "t": 307,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 5771
+  },
+  {
+   "heapMB": 1876,
+   "heapLimitMB": 4192,
+   "gameFps": 91,
+   "calls": 297,
+   "tris": 2638525,
+   "geometries": 1614,
+   "textures": 385,
+   "pos": [
+    1756,
+    -645
+   ],
+   "t": 317,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 5769
+  },
+  {
+   "heapMB": 2126,
    "heapLimitMB": 4192,
    "gameFps": 42,
-   "calls": 231,
-   "tris": 2427688,
-   "geometries": 1899,
-   "textures": 426,
+   "calls": 764,
+   "tris": 3166377,
+   "geometries": 1985,
+   "textures": 420,
    "pos": [
-    -900,
-    120
+    3399,
+    -91
    ],
-   "t": 388,
+   "t": 329,
    "phase": "move",
-   "rssMB": 6020
+   "wasPaused": false,
+   "rssMB": 6094
   },
   {
-   "heapMB": 2002,
+   "heapMB": 2252,
    "heapLimitMB": 4192,
-   "gameFps": 76,
-   "calls": 144,
-   "tris": 2309695,
-   "geometries": 1905,
-   "textures": 426,
+   "gameFps": 39,
+   "calls": 601,
+   "tris": 3427422,
+   "geometries": 2126,
+   "textures": 473,
    "pos": [
-    1800,
-    -600
+    3371,
+    -82
    ],
-   "t": 399,
+   "t": 339,
    "phase": "move",
-   "rssMB": 6344
+   "wasPaused": false,
+   "rssMB": 6244
   },
   {
-   "heapMB": 1535,
+   "heapMB": 2357,
    "heapLimitMB": 4192,
-   "gameFps": 64,
-   "calls": 144,
-   "tris": 2309695,
-   "geometries": 1905,
-   "textures": 426,
+   "gameFps": 24,
+   "calls": 623,
+   "tris": 3600213,
+   "geometries": 2148,
+   "textures": 485,
    "pos": [
-    1800,
-    -600
+    3339,
+    -73
    ],
-   "t": 409,
+   "t": 349,
    "phase": "move",
-   "rssMB": 6604
-  },
-  {
-   "heapMB": 1842,
-   "heapLimitMB": 4192,
-   "gameFps": 51,
-   "calls": 722,
-   "tris": 3060980,
-   "geometries": 1907,
-   "textures": 426,
-   "pos": [
-    3421,
-    -41
-   ],
-   "t": 422,
-   "phase": "move",
-   "rssMB": 6189
-  },
-  {
-   "heapMB": 2101,
-   "heapLimitMB": 4192,
-   "gameFps": 40,
-   "calls": 722,
-   "tris": 3060980,
-   "geometries": 1907,
-   "textures": 426,
-   "pos": [
-    3421,
-    -41
-   ],
-   "t": 432,
-   "phase": "move",
-   "rssMB": 6442
-  },
-  {
-   "heapMB": 2267,
-   "heapLimitMB": 4192,
-   "gameFps": 60,
-   "calls": 722,
-   "tris": 3060980,
-   "geometries": 1907,
-   "textures": 426,
-   "pos": [
-    3421,
-    -41
-   ],
-   "t": 442,
-   "phase": "move",
-   "rssMB": 6618
+   "wasPaused": false,
+   "rssMB": 6351
   }
  ],
- "bootSeconds": 82,
+ "bootSeconds": 25,
  "failed": "[]",
  "loaded": 12,
- "env": "{\"desktop\":{\"isDesktop\":true,\"platform\":\"darwin\",\"electron\":\"45.2.1\",\"chrome\":\"156.0.8078.75\"},\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) PortSolana/2.0.0 Chrome/156.0.8078.75 Electron/45.2.1 Safari/537.36\",\"dpr\":1,\"size\":[1512,949],\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\",\"webgpu\":true}",
+ "env": "{\"desktop\":{\"isDesktop\":true,\"platform\":\"darwin\",\"electron\":\"45.2.1\",\"chrome\":\"156.0.8078.75\"},\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) PortSolana/2.0.0 Chrome/156.0.8078.75 Electron/45.2.1 Safari/537.36\",\"dpr\":2,\"drawingBuffer\":[1859,1167],\"size\":[1512,949],\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\",\"webgpu\":true}",
  "idle": {
-  "frames": 3860,
-  "seconds": 156.5,
-  "avgFps": 24.7,
-  "low1Fps": 0.6,
-  "p50Ms": 17.4,
-  "p99Ms": 83.3,
-  "maxMs": 44233.9,
-  "over25ms": 1373,
-  "over50ms": 255
+  "frames": 5002,
+  "seconds": 153.1,
+  "avgFps": 32.7,
+  "low1Fps": 17,
+  "p50Ms": 32.4,
+  "p99Ms": 46.7,
+  "maxMs": 273.9,
+  "over25ms": 3608,
+  "over50ms": 20
  },
  "move": {
-  "frames": 7034,
-  "seconds": 152.8,
-  "avgFps": 46,
-  "low1Fps": 3.6,
-  "p50Ms": 16.7,
-  "p99Ms": 75,
-  "maxMs": 10433.4,
-  "over25ms": 1235,
-  "over50ms": 251
+  "frames": 4416,
+  "seconds": 156.3,
+  "avgFps": 28.3,
+  "low1Fps": 0.8,
+  "p50Ms": 22.7,
+  "p99Ms": 56.9,
+  "maxMs": 33984,
+  "over25ms": 1613,
+  "over50ms": 65
  },
  "all": {
-  "frames": 10894,
-  "seconds": 309.3,
-  "avgFps": 35.2,
-  "low1Fps": 1.3,
-  "p50Ms": 16.7,
-  "p99Ms": 75.6,
-  "maxMs": 44233.9,
-  "over25ms": 2608,
-  "over50ms": 506
+  "frames": 9418,
+  "seconds": 309.4,
+  "avgFps": 30.4,
+  "low1Fps": 1.6,
+  "p50Ms": 25.8,
+  "p99Ms": 49.9,
+  "maxMs": 33984,
+  "over25ms": 5221,
+  "over50ms": 85
  },
  "memory": {
-  "rssStartMB": 5411,
-  "rssEndMB": 6618,
-  "rssMaxMB": 6618,
-  "heapStartMB": 1466,
-  "heapEndMB": 2267,
-  "heapMaxMB": 2267,
+  "rssStartMB": 5535,
+  "rssEndMB": 6351,
+  "rssMaxMB": 6432,
+  "heapStartMB": 1325,
+  "heapEndMB": 2357,
+  "heapMaxMB": 2579,
   "heapLimitMB": 4192
  },
  "loadEnd": [
-  27.5,
-  37,
-  35.7
+  20.2,
+  28.6,
+  32.9
  ],
  "pageErrors": []
 }
