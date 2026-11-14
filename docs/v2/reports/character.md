@@ -192,3 +192,25 @@ Not done: two-hand pistol stance, locomotion, VFX_NOTES items 6–9 (hair cards,
 - `main.js`: W walks (1.7 m/s), Shift runs (4.2), Shift held 1.5 s sprints (7.2). Ctrl/Alt still walk.
 
 **Not finished:** the denser, darker stubble repaint (`nico_textures.py`, 150k short hairs, darker warm brown) was stopped before writing. Re-run `nico_textures.py <w6> <skin> <out> head` and copy `head_*.webp` to `public/assets/characters/nico/tex/`.
+
+### Asset search for a 9/10 head (Nov 14, nothing downloaded)
+- **3DScanStore free male head** (https://3dart.it/en/free-3d-head-model): photogrammetry from 120 DSLRs; 7-level ZBrush tool; OBJ/FBX; 16K/8K color, spec, normal, gloss, translucency and cavity maps. Licence: "Personal use only", commercial use by request to the author. **Not usable as is.** The poly count is not stated. It would need a retopology to the hm08 topology (or a wrap) before it fits our rig.
+- **Ten24 free head scan** (https://www.cgchannel.com/2015/02/get-ten24s-free-ultra-detailed-3d-scan-of-a-human-head/): non-commercial only. **Not usable.**
+- **Blender Studio Human Base Meshes** (https://developer.blender.org/docs/features/asset_system/asset_bundles/human_base_meshes/): released as CC0 per CG Channel (https://www.cgchannel.com/2023/06/download-blender-studios-free-human-base-meshes); the docs page itself is CC-BY-SA. The head assets are a stylized head, a planar head, and generic head topology with shape keys: sculpt bases, not finished faces. **No gain over our MakeHuman head.**
+- **OpenGameArt "human male bust"** (https://opengameart.org/content/human-male-bust): CC-BY-SA 4.0, normal map included, not a scan. Share-alike would apply to the derived model.
+- **Hair cards:** no CC0 or CC-BY short men's sets found. Paid sets exist (about $15–55, "royalty free", for example https://superhivemarket.com/products/realistic-short-male-hair-cards-for-blender-eevee--cycles-compatible---game-ready-low-poly-textured-dark-brown-men-crop-cut-buzz-crew-cut-3d-hair-asset), with licence terms to check.
+- **Conclusion:** no free and clean (CC0/CC-BY) photoscanned or sculpted adult male head with baked maps turned up. Reaching 9/10 likely needs a paid scan with a commercial licence (3DScanStore retopologised heads are about £40) wrapped to hm08, or commissioned sculpt work. That is the user's call.
+
+### Pass 10 verified (Nov 14, 00:30; load under 40)
+- The stubble repaint is installed.
+- Evidence:
+  - `docs/v2/compare/nico_face_vs_ref54_pass10.png` (ref_54 face, our close front, close 3/4, gameplay distance);
+  - `hero_close_front.png`, `hero_close_34.png`, `hero_gameplay_front.png`, `hero_34.png`.
+- No console errors and `game.v2.failed` is empty.
+- **Honest read against ref_54:**
+  - The stubble is now dense, but it reads as a heavy dark jaw shadow with pale specks (the speckled strokes), not ref_54's fine even stubble.
+  - The eye whites look glassy and grey, and the lids still sit too open in the front view.
+  - The hair cards stand up as gelled spikes instead of a neat textured crop.
+  - The skin is matte (good), but the face shape is still the MakeHuman base: no cheek and temple planes, a soft nose.
+  - At gameplay distance the shirt shoulders look puffy.
+  - **Face 4/10, hair 3/10, stubble 4/10.**
