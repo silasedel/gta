@@ -1,0 +1,994 @@
+{
+ "build": "b20261113-195853",
+ "at": "2026-11-14T06:25:24.437Z",
+ "northShoreToCalabash": {
+  "ok": true,
+  "routeKm": 32.49,
+  "crowKm": 18.84,
+  "snap": [
+   212,
+   2
+  ],
+  "via": [
+   "Cypress Belt Parkway",
+   "Calabash Causeway"
+  ],
+  "problems": []
+ },
+ "places": [
+  {
+   "ok": true,
+   "routeKm": 2.1,
+   "crowKm": 1.66,
+   "snap": [
+    27,
+    6
+   ],
+   "via": [
+    "East Flagler Street",
+    "West Flagler Street",
+    "Northwest North River Drive",
+    "West Line Avenue",
+    "Spoonbill Circle"
+   ],
+   "problems": [],
+   "name": "West End",
+   "kind": "town",
+   "at": [
+    -4032,
+    -94
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 6.24,
+   "crowKm": 2.22,
+   "snap": [
+    27,
+    62
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Oleander Terrace",
+    "Doldrum Drive",
+    "Topaz Court",
+    "Guava Crossing",
+    "Coontie Crossing"
+   ],
+   "problems": [],
+   "name": "West End Outskirts",
+   "kind": "town",
+   "at": [
+    -4669,
+    62
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 4.21,
+   "crowKm": 3.55,
+   "snap": [
+    27,
+    212
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway"
+   ],
+   "problems": [],
+   "name": "North Shore",
+   "kind": "town",
+   "at": [
+    -1767,
+    -2924
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 14.03,
+   "crowKm": 4.1,
+   "snap": [
+    27,
+    39
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway"
+   ],
+   "problems": [],
+   "name": "North Shore Outskirts",
+   "kind": "town",
+   "at": [
+    -1931,
+    -3515
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 5.75,
+   "crowKm": 2.38,
+   "snap": [
+    27,
+    170
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Amber Court",
+    "Ibis Avenue",
+    "Halyard Loop"
+   ],
+   "problems": [],
+   "name": "South Shore",
+   "kind": "town",
+   "at": [
+    -2140,
+    2907
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 6.45,
+   "crowKm": 3.1,
+   "snap": [
+    27,
+    111
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Jororo Drive",
+    "Hibiscus Path",
+    "Windlass Avenue",
+    "Spoonbill Bend"
+   ],
+   "problems": [],
+   "name": "South Shore Outskirts",
+   "kind": "town",
+   "at": [
+    -2096,
+    3628
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 22.15,
+   "crowKm": 18.78,
+   "snap": [
+    27,
+    1
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Poinciana Walk",
+    "Snapper Street"
+   ],
+   "problems": [],
+   "name": "Tamarind Key",
+   "kind": "key",
+   "at": [
+    -11268,
+    17160
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 5.06,
+   "crowKm": 3.71,
+   "snap": [
+    27,
+    35
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "Airport Boulevard",
+    "Topaz Court",
+    "Whelk Avenue"
+   ],
+   "problems": [],
+   "name": "Sabal Grove",
+   "kind": "town",
+   "at": [
+    -5434,
+    2820
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 7.96,
+   "crowKm": 4.59,
+   "snap": [
+    27,
+    5
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Calamondin Run",
+    "Gumbo Circle",
+    "Corazon Terrace",
+    "Sereno Street",
+    "Cowrie Loop",
+    "Turquoise Row",
+    "Coontie Path",
+    "Gallinule Loop"
+   ],
+   "problems": [],
+   "name": "Limpkin Park",
+   "kind": "town",
+   "at": [
+    -3052,
+    -4002
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 10.25,
+   "crowKm": 8.71,
+   "snap": [
+    27,
+    31
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Coquina Terrace"
+   ],
+   "problems": [],
+   "name": "Coontie",
+   "kind": "town",
+   "at": [
+    -7455,
+    7719
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 10.99,
+   "crowKm": 9.78,
+   "snap": [
+    27,
+    30
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Calamondin Row",
+    "Marlin Trail",
+    "Luna Lane",
+    "Driftwood Loop"
+   ],
+   "problems": [],
+   "name": "Port Cassia",
+   "kind": "town",
+   "at": [
+    -1475,
+    -9176
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 28.06,
+   "crowKm": 20.17,
+   "snap": [
+    27,
+    2
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Calabash Causeway"
+   ],
+   "problems": [],
+   "name": "Port Calabash",
+   "kind": "town",
+   "at": [
+    -18236,
+    -12065
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 18.56,
+   "crowKm": 14.31,
+   "snap": [
+    27,
+    3
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Marisol Road",
+    "Ladyfish Court"
+   ],
+   "problems": [],
+   "name": "Punta Marisol",
+   "kind": "town",
+   "at": [
+    -16788,
+    -281
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 23.8,
+   "crowKm": 16.37,
+   "snap": [
+    27,
+    1
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway"
+   ],
+   "problems": [],
+   "name": "Tangelo",
+   "kind": "town",
+   "at": [
+    -15851,
+    -8928
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 17.92,
+   "crowKm": 15.31,
+   "snap": [
+    27,
+    25
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Sloop Road"
+   ],
+   "problems": [],
+   "name": "Key Paloma",
+   "kind": "key",
+   "at": [
+    -7673,
+    14958
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 15.39,
+   "crowKm": 11.22,
+   "snap": [
+    27,
+    0
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Citrus Belt Highway"
+   ],
+   "problems": [],
+   "name": "Amaro Landing",
+   "kind": "town",
+   "at": [
+    -7750,
+    -9370
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 14.66,
+   "crowKm": 12.1,
+   "snap": [
+    27,
+    52
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Tamiami Trail",
+    "Valencia Crossing"
+   ],
+   "problems": [],
+   "name": "Shellmound",
+   "kind": "town",
+   "at": [
+    -12438,
+    7451
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 32.2,
+   "crowKm": 6.34,
+   "snap": [
+    27,
+    2
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "Sabal Way"
+   ],
+   "problems": [
+    {
+     "kind": "detour",
+     "ratio": 5.08
+    }
+   ],
+   "name": "Corkwood",
+   "kind": "town",
+   "at": [
+    2378,
+    -3500
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 17.01,
+   "crowKm": 15.78,
+   "snap": [
+    27,
+    43
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "Schooner Path"
+   ],
+   "problems": [],
+   "name": "Playa Serena",
+   "kind": "town",
+   "at": [
+    -3089,
+    -15218
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 16.92,
+   "crowKm": 7.51,
+   "snap": [
+    27,
+    28
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Citrus Belt Highway",
+    "Corkwood Road",
+    "Tamarind Terrace",
+    "Starfish Lane",
+    "Spoonbill Trail"
+   ],
+   "problems": [],
+   "name": "Citrus Flats",
+   "kind": "town",
+   "at": [
+    -4238,
+    -6754
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 14.7,
+   "crowKm": 6.3,
+   "snap": [
+    27,
+    10
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Calamondin Row",
+    "Marlin Trail",
+    "Sheepshead Lane",
+    "Sabal Court",
+    "Coral Court",
+    "Sextant Bend",
+    "Corona Bridge North",
+    "Corona Loop"
+   ],
+   "problems": [],
+   "name": "Seagrape Heights",
+   "kind": "town",
+   "at": [
+    1046,
+    -4661
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 12.94,
+   "crowKm": 8.37,
+   "snap": [
+    27,
+    3
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Guava Drive",
+    "Capstan Run"
+   ],
+   "problems": [],
+   "name": "Buttonwood",
+   "kind": "town",
+   "at": [
+    -4750,
+    8612
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 37.05,
+   "crowKm": 6.01,
+   "snap": [
+    27,
+    1649
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "W 47th Street",
+    "Pine Tree Drive",
+    "Dade Boulevard",
+    "Washington Avenue"
+   ],
+   "problems": [
+    {
+     "kind": "not linked",
+     "snapTo": 1649
+    },
+    {
+     "kind": "detour",
+     "ratio": 6.17
+    }
+   ],
+   "name": "Sandspur",
+   "kind": "town",
+   "at": [
+    2983,
+    3006
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 16.84,
+   "crowKm": 11.99,
+   "snap": [
+    27,
+    51
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Citrus Belt Highway",
+    "Lake Amaro Road",
+    "Soledad Street",
+    "Frangipani Walk"
+   ],
+   "problems": [],
+   "name": "Honeybell",
+   "kind": "town",
+   "at": [
+    -8711,
+    -9701
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 29.4,
+   "crowKm": 7.83,
+   "snap": [
+    27,
+    1
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "Pompano Terrace"
+   ],
+   "problems": [
+    {
+     "kind": "detour",
+     "ratio": 3.76
+    }
+   ],
+   "name": "Spoonbill Flats",
+   "kind": "town",
+   "at": [
+    2030,
+    -5832
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 3.13,
+   "crowKm": 2.17,
+   "snap": [
+    27,
+    1
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Corazon Walk",
+    "Gumbo Bend",
+    "Corazon Walk"
+   ],
+   "problems": [],
+   "name": "Calamondin",
+   "kind": "town",
+   "at": [
+    -4114,
+    -894
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 25.46,
+   "crowKm": 9.43,
+   "snap": [
+    27,
+    11
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Ocean Drive North",
+    "Catboat Landing",
+    "Starfish Row"
+   ],
+   "problems": [],
+   "name": "Junonia",
+   "kind": "town",
+   "at": [
+    288,
+    -8457
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 9.72,
+   "crowKm": 3.86,
+   "snap": [
+    27,
+    66
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Jororo Drive",
+    "Hibiscus Path",
+    "Windlass Avenue",
+    "Spoonbill Bend"
+   ],
+   "problems": [],
+   "name": "Whelk Harbor",
+   "kind": "town",
+   "at": [
+    574,
+    2890
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 16.45,
+   "crowKm": 13.52,
+   "snap": [
+    27,
+    15
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Dorado Row",
+    "Lychee Bend"
+   ],
+   "problems": [],
+   "name": "Satsuma",
+   "kind": "town",
+   "at": [
+    -6317,
+    13516
+   ]
+  },
+  {
+   "ok": true,
+   "routeKm": 16.97,
+   "crowKm": 8.26,
+   "snap": [
+    27,
+    13
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "I-95",
+    "Interstate 95",
+    "West Line Avenue",
+    "Cypress Belt Parkway",
+    "Citrus Belt Highway",
+    "Corkwood Road",
+    "Papaya Bend",
+    "Sheepshead Avenue",
+    "Tideline Street"
+   ],
+   "problems": [],
+   "name": "Allapattah West",
+   "kind": "town",
+   "at": [
+    -3983,
+    -7572
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 7.9,
+   "crowKm": 5.08,
+   "snap": [
+    27,
+    633
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "Airport Boulevard",
+    "Terminal Loop"
+   ],
+   "problems": [
+    {
+     "kind": "not linked",
+     "snapTo": 633
+    }
+   ],
+   "name": "Solana International Airport",
+   "kind": "airport",
+   "at": [
+    -7460,
+    1642
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 27.39,
+   "crowKm": 21,
+   "snap": [
+    27,
+    1249
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "SW 28th Road",
+    "Cardinal Circle",
+    "Overseas Highway",
+    "Airfield Road"
+   ],
+   "problems": [
+    {
+     "kind": "not linked",
+     "snapTo": 1249
+    }
+   ],
+   "name": "Tern Key Airfield",
+   "kind": "airport",
+   "at": [
+    -17590,
+    15160
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 12.36,
+   "crowKm": 7,
+   "snap": [
+    27,
+    662
+   ],
+   "via": [
+    "East Flagler Street",
+    "Biscayne Boulevard",
+    "NW 30th Street",
+    "Cypress Belt Parkway",
+    "Calamondin Row",
+    "Marlin Trail",
+    "Sheepshead Lane",
+    "Sabal Court",
+    "Coral Court",
+    "Sextant Bend",
+    "Corona Bridge North",
+    "Corona Loop"
+   ],
+   "problems": [
+    {
+     "kind": "not linked",
+     "snapTo": 662
+    }
+   ],
+   "name": "Corona Island",
+   "kind": "island",
+   "at": [
+    -115,
+    -6034
+   ]
+  },
+  {
+   "ok": false,
+   "routeKm": 10.5,
+   "crowKm": 9.31,
+   "snap": [
+    27,
+    1897
+   ],
+   "via": [
+    "East Flagler Street",
+    "Southeast 2nd Avenue",
+    "US-1;SR 970",
+    "Downtown Distributor",
+    "I-95;US-1",
+    "Interstate 95",
+    "West Line Avenue",
+    "Airport Boulevard",
+    "Perimeter Road"
+   ],
+   "problems": [
+    {
+     "kind": "not linked",
+     "snapTo": 1897
+    }
+   ],
+   "name": "Solana Motor Speedway",
+   "kind": "district",
+   "at": [
+    -11650,
+    2260
+   ]
+  }
+ ]
+}

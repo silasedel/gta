@@ -1,0 +1,303 @@
+{
+ "at": "2026-11-14T07:17:40.452Z",
+ "build": "b20261114-001156",
+ "routes": [
+  {
+   "name": "Port Calabash",
+   "km": 31.61,
+   "samples": 5502,
+   "holes": [
+    {
+     "at": [
+      -3800,
+      -843.8
+     ],
+     "road": "West Line Avenue",
+     "expect": 5.82,
+     "got": 4.12
+    },
+    {
+     "at": [
+      -3800,
+      -849.2
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.15,
+     "got": 4.23
+    },
+    {
+     "at": [
+      -3800,
+      -854.6
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.48,
+     "got": 4.31
+    },
+    {
+     "at": [
+      -3800,
+      -860.1
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.38
+    },
+    {
+     "at": [
+      -3800,
+      -865.1
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.45
+    },
+    {
+     "at": [
+      -3800,
+      -870.1
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.5
+    },
+    {
+     "at": [
+      -3800,
+      -875
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.8
+    },
+    {
+     "at": [
+      -3800,
+      -880
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.67
+    },
+    {
+     "at": [
+      -3800,
+      -885
+     ],
+     "road": "West Line Avenue",
+     "expect": 6.8,
+     "got": 4.81
+    },
+    {
+     "at": [
+      -3800,
+      -890
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.8,
+     "got": 4.96
+    },
+    {
+     "at": [
+      -3801.6,
+      -892.9
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.64,
+     "got": 4.96
+    },
+    {
+     "at": [
+      -3803.1,
+      -895.7
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.48,
+     "got": 4.95
+    },
+    {
+     "at": [
+      -5603.6,
+      -1100.1
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": -8
+    },
+    {
+     "at": [
+      -5608.6,
+      -1099.5
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": -8
+    },
+    {
+     "at": [
+      -5613.5,
+      -1098.8
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": -8
+    },
+    {
+     "at": [
+      -5618.4,
+      -1098.2
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": -8
+    },
+    {
+     "at": [
+      -5623.4,
+      -1097.5
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 0,
+     "got": -8
+    },
+    {
+     "at": [
+      -7420.4,
+      -648.9
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.55,
+     "got": 4.99
+    },
+    {
+     "at": [
+      -7424.8,
+      -646.6
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.8,
+     "got": 5.01
+    },
+    {
+     "at": [
+      -7429.6,
+      -644.9
+     ],
+     "road": "Cypress Belt Parkway",
+     "expect": 6.55,
+     "got": 4.99
+    }
+   ],
+   "steps": [
+    {
+     "at": [
+      -5603.6,
+      -1100.1
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -8.05
+    },
+    {
+     "at": [
+      -5628.1,
+      -1095.7
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 8.05
+    },
+    {
+     "at": [
+      -7658.8,
+      -624
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 1.47
+    },
+    {
+     "at": [
+      -7664.5,
+      -624.1
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -1.49
+    },
+    {
+     "at": [
+      -10204.5,
+      -852.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -8.05
+    },
+    {
+     "at": [
+      -15786.7,
+      -2623
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 8.05
+    },
+    {
+     "at": [
+      -15777.4,
+      -3600.1
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -8.08
+    },
+    {
+     "at": [
+      -15775.9,
+      -3628.3
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 8.06
+    },
+    {
+     "at": [
+      -15759.8,
+      -4183.7
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -8.05
+    },
+    {
+     "at": [
+      -15759.4,
+      -4201.7
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 8.06
+    },
+    {
+     "at": [
+      -15745.2,
+      -5800.4
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -9.89
+    },
+    {
+     "at": [
+      -15766.1,
+      -5828.2
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": 8.99
+    },
+    {
+     "at": [
+      -16073.6,
+      -6124.8
+     ],
+     "road": "Cypress Belt Parkway",
+     "dy": -0.61
+    }
+   ],
+   "ok": false
+  }
+ ],
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "track": "maproads",
+ "title": "Full road network from the user's map",
+ "section": "World",
+ "agent": "done",
+ "items": [
+  {
+   "name": "Trace ref_40 roads: Sato ridge filter on a road-likeness channel, hysteresis, skeleton, graph, spur pruning, gap bridging (tools/v2/maproads/trace.py, vectorize.py)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/maproads/overlay.png"
+  },
+  {
+   "name": "Main roads re-routed along the picture's own roads (least-cost path on the traced raster): ring motorway, US-27, SR 49, CR 720, A1A, CR 64, CR 41, US-41, plus new Pond Apple Expressway (SR 951) and Sabal Grove Parkway (SR 945)",
+   "state": "verified",
+   "evidence": "tools/v2/maproads/out/maproads.json; overlay.png"
+  },
+  {
+   "name": "Traced rural network (roads of 700 m or more, 359 km) fed through tools/world/build.py section 4b; 4 extra ring interchanges; merged and published (b20261114-011057)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/maproads/road_gumbo_limbo_hills.png (in-game, with traffic)"
+  },
+  {
+   "name": "Towns: exact street counts from ref_40, 90-150 m blocks, Main Street with shop frontage, free town-square block",
+   "state": "built",
+   "evidence": "docs/v2/reports/maproads-town-counts.json: 31 of 32 match (Junonia 2x3 on the map, 2x2 in game)"
+  },
+  {
+   "name": "Every town and island reachable by road from downtown with no step, wall or missing link (headless A*)",
+   "state": "verified",
+   "evidence": "docs/v2/reports/maproads-towns.json: 34 of 34"
+  },
+  {
+   "name": "In-game collider probe along the Calabash route",
+   "state": "built",
+   "evidence": "docs/v2/reports/maproads-drive-probe.json (older build): deck/collider mismatches at the SR 836 / West Line Ave end and -8 m drops under ring overpasses; not re-run on the final build"
+  },
+  {
+   "name": "GPS North Shore -> Calabash well under 24.6 km",
+   "state": "todo",
+   "evidence": "after: 29.29 km to ref_63's pin (causeway east end), 31.9 km place to place (before: 32.49 km place to place); the picture has no direct diagonal"
+  },
+  {
+   "name": "Merge audit clean",
+   "state": "todo",
+   "evidence": "published with --force: roads.geometry (2 duplicate edges), roads.heightsContinuous (7 segments over 12.5 %), tiles.coverage (183 / 890 samples); the committed build passed all three"
+  },
+  {
+   "name": "In-game full-map shot",
+   "state": "todo",
+   "evidence": "pause map would not open in the headless game (title state); overlay.png is the substitute"
+  }
+ ]
+}

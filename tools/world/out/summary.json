@@ -9,226 +9,226 @@
   {
    "name": "West End",
    "type": "old_town",
-   "tint": "#a59f97",
-   "roofTint": "#ab9f90",
-   "areaHa": 286.3
+   "tint": "#a0958f",
+   "roofTint": "#a7948c",
+   "areaHa": 32.8
   },
   {
    "name": "West End Outskirts",
    "type": "suburb",
-   "tint": "#9f9890",
-   "roofTint": "#a69a89",
-   "areaHa": 279.5
+   "tint": "#a89e90",
+   "roofTint": "#ac9e8b",
+   "areaHa": 16.6
   },
   {
    "name": "North Shore",
    "type": "suburb",
-   "tint": "#a9a49b",
-   "roofTint": "#aea896",
-   "areaHa": 151.7
+   "tint": "#a9a29b",
+   "roofTint": "#afa896",
+   "areaHa": 22.9
   },
   {
    "name": "North Shore Outskirts",
    "type": "suburb",
-   "tint": "#a5a199",
-   "roofTint": "#aea493",
-   "areaHa": 177.3
+   "tint": "#b0a9a0",
+   "roofTint": "#beb4a8",
+   "areaHa": 16.6
   },
   {
    "name": "South Shore",
    "type": "suburb",
-   "tint": "#a69f95",
-   "roofTint": "#b0a79a",
-   "areaHa": 102.9
+   "tint": "#a29b94",
+   "roofTint": "#bcb0a2",
+   "areaHa": 11.8
   },
   {
    "name": "South Shore Outskirts",
    "type": "suburb",
-   "tint": "#a1998f",
-   "roofTint": "#9f9380",
-   "areaHa": 143.7
+   "tint": "#898371",
+   "roofTint": "#89816c",
+   "areaHa": 18.8
   },
   {
    "name": "Tamarind Key",
    "type": "resort",
-   "tint": "#babaaa",
-   "roofTint": "#b4a693",
-   "areaHa": 113.2
+   "tint": "#56693f",
+   "roofTint": "#8c8c63",
+   "areaHa": 3.9
   },
   {
    "name": "Sabal Grove",
-   "type": "suburb",
-   "tint": "#9f998e",
-   "roofTint": "#a39987",
-   "areaHa": 1217.9
+   "type": "rural_town",
+   "tint": "#8e8c8a",
+   "roofTint": "#999286",
+   "areaHa": 42.6
   },
   {
    "name": "Limpkin Park",
    "type": "downtown",
-   "tint": "#a09990",
-   "roofTint": "#a59a89",
-   "areaHa": 253.9
+   "tint": "#a8a39a",
+   "roofTint": "#b1a998",
+   "areaHa": 37.5
   },
   {
    "name": "Coontie",
-   "type": "suburb",
-   "tint": "#a8a297",
-   "roofTint": "#a69e8d",
-   "areaHa": 509.3
+   "type": "rural_town",
+   "tint": "#afa799",
+   "roofTint": "#a69b88",
+   "areaHa": 45.9
   },
   {
    "name": "Port Cassia",
-   "type": "suburb",
-   "tint": "#a8a39c",
-   "roofTint": "#afa595",
-   "areaHa": 391.5
+   "type": "rural_town",
+   "tint": "#aaa2a0",
+   "roofTint": "#a89184",
+   "areaHa": 27.5
   },
   {
    "name": "Port Calabash",
-   "type": "suburb",
-   "tint": "#a9a6a0",
-   "roofTint": "#aba598",
-   "areaHa": 327.8
+   "type": "rural_town",
+   "tint": "#a4a097",
+   "roofTint": "#b7b29f",
+   "areaHa": 36.1
   },
   {
    "name": "Punta Marisol",
-   "type": "suburb",
-   "tint": "#a6a298",
-   "roofTint": "#afa897",
-   "areaHa": 305.3
+   "type": "rural_town",
+   "tint": "#b2ac9f",
+   "roofTint": "#b7b09c",
+   "areaHa": 45.9
   },
   {
    "name": "Tangelo",
-   "type": "suburb",
-   "tint": "#aaa499",
-   "roofTint": "#aaa391",
-   "areaHa": 235.5
+   "type": "rural_town",
+   "tint": "#b0a89d",
+   "roofTint": "#b1a89b",
+   "areaHa": 21.4
   },
   {
    "name": "Key Paloma",
    "type": "resort",
-   "tint": "#b2aea5",
-   "roofTint": "#b1a99c",
-   "areaHa": 225.5
+   "tint": "#b8b4ac",
+   "roofTint": "#c0b7a9",
+   "areaHa": 26.2
   },
   {
    "name": "Amaro Landing",
    "type": "rural_florida",
-   "tint": "#aba598",
-   "roofTint": "#a8a08e",
-   "areaHa": 200.2
+   "tint": "#aba59d",
+   "roofTint": "#b2a598",
+   "areaHa": 29.5
   },
   {
    "name": "Gumbo Limbo",
    "type": "industrial_port",
-   "tint": "#999797",
-   "roofTint": "#9e958b",
-   "areaHa": 174.5
+   "tint": "#a29d98",
+   "roofTint": "#a3988b",
+   "areaHa": 18.7
   },
   {
    "name": "Shellmound",
-   "type": "suburb",
-   "tint": "#a19c95",
-   "roofTint": "#a49d8f",
-   "areaHa": 176.8
+   "type": "rural_town",
+   "tint": "#a39c98",
+   "roofTint": "#a39b91",
+   "areaHa": 40.0
   },
   {
    "name": "Corkwood",
    "type": "resort",
-   "tint": "#a7a298",
-   "roofTint": "#a89d8a",
-   "areaHa": 130.9
+   "tint": "#a9a49a",
+   "roofTint": "#b0a496",
+   "areaHa": 16.6
   },
   {
    "name": "Playa Serena",
-   "type": "suburb",
-   "tint": "#a2a197",
-   "roofTint": "#a7a291",
-   "areaHa": 136.2
+   "type": "rural_town",
+   "tint": "#cdc5b8",
+   "roofTint": "#c2bbac",
+   "areaHa": 11.8
   },
   {
    "name": "Citrus Flats",
-   "type": "suburb",
-   "tint": "#a19e95",
-   "roofTint": "#ada394",
-   "areaHa": 119.2
+   "type": "rural_town",
+   "tint": "#999e8d",
+   "roofTint": "#a6a48c",
+   "areaHa": 11.0
   },
   {
    "name": "Seagrape Heights",
-   "type": "suburb",
-   "tint": "#a19f94",
-   "roofTint": "#a49e8b",
-   "areaHa": 98.1
+   "type": "rural_town",
+   "tint": "#a9a49d",
+   "roofTint": "#a6a094",
+   "areaHa": 19.4
   },
   {
    "name": "Buttonwood",
-   "type": "suburb",
-   "tint": "#b3aba1",
-   "roofTint": "#aba291",
-   "areaHa": 99.0
+   "type": "rural_town",
+   "tint": "#a8a097",
+   "roofTint": "#b6aaa0",
+   "areaHa": 16.6
   },
   {
    "name": "Sandspur",
-   "type": "suburb",
-   "tint": "#ada8a0",
-   "roofTint": "#ada798",
-   "areaHa": 93.0
+   "type": "rural_town",
+   "tint": "#aeab9e",
+   "roofTint": "#b8aea1",
+   "areaHa": 19.4
   },
   {
    "name": "Mullet Creek",
-   "type": "downtown",
-   "tint": "#8c857b",
-   "roofTint": "#948672",
-   "areaHa": 70.6
+   "type": "rural_town",
+   "tint": "#868189",
+   "roofTint": "#8f817b",
+   "areaHa": 12.3
   },
   {
    "name": "Honeybell",
-   "type": "suburb",
-   "tint": "#ada99e",
-   "roofTint": "#a69f8c",
-   "areaHa": 63.3
+   "type": "rural_town",
+   "tint": "#aca69c",
+   "roofTint": "#b1a79c",
+   "areaHa": 15.2
   },
   {
    "name": "Spoonbill Flats",
    "type": "resort",
-   "tint": "#c3bbb0",
-   "roofTint": "#c7bcaf",
-   "areaHa": 56.1
+   "tint": "#a39e93",
+   "roofTint": "#ccc2ac",
+   "areaHa": 13.4
   },
   {
    "name": "Calamondin",
    "type": "rural_town",
-   "tint": "#a49e98",
+   "tint": "#a2978e",
    "roofTint": "#beada3",
-   "areaHa": 5.3
+   "areaHa": 6.3
   },
   {
    "name": "Junonia",
    "type": "rural_town",
-   "tint": "#abada1",
-   "roofTint": "#b2ab98",
-   "areaHa": 38.6
+   "tint": "#a4aca4",
+   "roofTint": "#a4a590",
+   "areaHa": 3.1
   },
   {
    "name": "Whelk Harbor",
    "type": "rural_town",
-   "tint": "#9f9787",
-   "roofTint": "#a09681",
-   "areaHa": 35.8
+   "tint": "#aba397",
+   "roofTint": "#a99c8a",
+   "areaHa": 11.8
   },
   {
    "name": "Satsuma",
    "type": "rural_town",
-   "tint": "#a69f8f",
-   "roofTint": "#a99e8a",
-   "areaHa": 32.0
+   "tint": "#a99f8e",
+   "roofTint": "#a9a38e",
+   "areaHa": 16.6
   },
   {
    "name": "Allapattah West",
    "type": "rural_town",
-   "tint": "#8f8b7e",
-   "roofTint": "#9b8f7e",
-   "areaHa": 7.0
+   "tint": "#8b887e",
+   "roofTint": "#968c7c",
+   "areaHa": 4.3
   }
  ],
  "grid_from_picture": {
@@ -303,8 +303,8 @@
  "ring_island_ha": 189.9,
  "relief": {
   "forest_median_m": 1.2,
-  "forest_p75_m": 93.6,
-  "forest_p95_m": 250.4,
+  "forest_p75_m": 81.9,
+  "forest_p95_m": 238.6,
   "share_of_forest_above_20m": 0.41
  },
  "city_mask": {
@@ -506,77 +506,99 @@
    112
   ]
  },
- "road_km": 1263.4,
- "roads": 11905,
- "bridges": 245,
- "buildings": 25198,
- "pois": 536,
+ "road_km": 850.5,
+ "roads": 4005,
+ "bridges": 220,
+ "buildings": 4744,
+ "pois": 925,
  "land_polys": 455,
- "water": 284,
- "areas": 1411,
+ "water": 285,
+ "areas": 1467,
  "joins": 134,
  "joins_expected": 134,
  "towns": {
-  "West End": 286,
-  "West End Outskirts": 279,
-  "North Shore": 152,
-  "North Shore Outskirts": 177,
-  "South Shore": 103,
-  "South Shore Outskirts": 144,
-  "Tamarind Key": 113,
-  "Sabal Grove": 1218,
-  "Limpkin Park": 254,
-  "Coontie": 509,
-  "Port Cassia": 392,
-  "Port Calabash": 328,
-  "Punta Marisol": 305,
-  "Tangelo": 235,
-  "Key Paloma": 225,
-  "Amaro Landing": 200,
-  "Gumbo Limbo": 174,
-  "Shellmound": 177,
-  "Corkwood": 131,
-  "Playa Serena": 136,
-  "Citrus Flats": 119,
-  "Seagrape Heights": 98,
-  "Buttonwood": 99,
-  "Sandspur": 93,
-  "Mullet Creek": 71,
-  "Honeybell": 63,
-  "Spoonbill Flats": 56,
-  "Calamondin": 5,
-  "Junonia": 39,
-  "Whelk Harbor": 36,
-  "Satsuma": 32,
-  "Allapattah West": 7
+  "West End": 33,
+  "West End Outskirts": 17,
+  "North Shore": 23,
+  "North Shore Outskirts": 17,
+  "South Shore": 12,
+  "South Shore Outskirts": 19,
+  "Tamarind Key": 4,
+  "Sabal Grove": 43,
+  "Limpkin Park": 38,
+  "Coontie": 46,
+  "Port Cassia": 27,
+  "Port Calabash": 36,
+  "Punta Marisol": 46,
+  "Tangelo": 21,
+  "Key Paloma": 26,
+  "Amaro Landing": 29,
+  "Gumbo Limbo": 19,
+  "Shellmound": 40,
+  "Corkwood": 17,
+  "Playa Serena": 12,
+  "Citrus Flats": 11,
+  "Seagrape Heights": 19,
+  "Buttonwood": 17,
+  "Sandspur": 19,
+  "Mullet Creek": 12,
+  "Honeybell": 15,
+  "Spoonbill Flats": 13,
+  "Calamondin": 6,
+  "Junonia": 3,
+  "Whelk Harbor": 12,
+  "Satsuma": 17,
+  "Allapattah West": 4
  },
  "stats": {
-  "Citrus Belt Highway": 4,
-  "Lake Amaro Road": 19,
-  "Ocean Drive North": 13,
-  "Calabash Causeway": 28,
-  "Marisol Road": 22,
-  "Tamiami Trail": 20,
-  "Overseas Highway": 140,
-  "West Line Avenue": 41,
-  "Airport Boulevard": 21,
-  "Port Cassia": 2348,
-  "Port Calabash": 2273,
-  "Punta Marisol": 1969,
-  "Key Paloma": 1681,
-  "Amaro Landing": 3317,
-  "Shellmound": 1363,
-  "Tamarind Key": 665,
-  "Sabal Grove": 7578,
-  "Coontie": 3544,
-  "signals": 49,
-  "stops": 15278,
-  "lamps": 3357
+  "Citrus Belt Highway": 1,
+  "Corkwood Road": 2,
+  "Lake Amaro Road": 1,
+  "Calabash Causeway": 10,
+  "Marisol Road": 7,
+  "Overseas Highway": 15,
+  "Sabal Grove Parkway": 18,
+  "West Line Avenue": 5,
+  "Punta Marisol": 294,
+  "Shellmound": 333,
+  "Port Calabash": 232,
+  "Amaro Landing": 333,
+  "Port Cassia": 209,
+  "Key Paloma": 148,
+  "Tamarind Key": 6,
+  "Coontie": 261,
+  "Sabal Grove": 306,
+  "Limpkin Park": 226,
+  "West End": 249,
+  "North Shore": 197,
+  "Tangelo": 197,
+  "Seagrape Heights": 155,
+  "Sandspur": 142,
+  "Gumbo Limbo": 124,
+  "Corkwood": 114,
+  "Satsuma": 98,
+  "Buttonwood": 111,
+  "Honeybell": 124,
+  "Spoonbill Flats": 83,
+  "Mullet Creek": 98,
+  "South Shore": 103,
+  "Playa Serena": 25,
+  "Whelk Harbor": 65,
+  "Citrus Flats": 63,
+  "Calamondin": 0,
+  "Allapattah West": 22,
+  "Junonia": 5,
+  "South Shore Outskirts": 67,
+  "West End Outskirts": 84,
+  "North Shore Outskirts": 25,
+  "signals": 116,
+  "stops": 2109,
+  "lamps": 9547
  },
  "peak": {
-  "x": -12914,
-  "z": -4882,
-  "y": 361.3
+  "x": -14114,
+  "z": -5362,
+  "y": 341.5
  },
  "setpieces": [
   {
@@ -669,46 +691,44 @@
   }
  },
  "log": [
-  "fill_district Port Cassia: could not place gas",
-  "fill_district Port Cassia: could not place church",
-  "fill_district Port Cassia: could not place park",
-  "fill_district Port Cassia: could not place fire_station",
-  "fill_district Port Cassia: could not place motel",
-  "fill_district Port Cassia: could not place bait_shop",
-  "fill_district Port Calabash: could not place gas",
-  "fill_district Port Calabash: could not place church",
-  "fill_district Port Calabash: could not place park",
-  "fill_district Port Calabash: could not place fire_station",
-  "fill_district Port Calabash: could not place motel",
-  "fill_district Punta Marisol: could not place gas",
-  "fill_district Punta Marisol: could not place church",
-  "fill_district Punta Marisol: could not place park",
-  "fill_district Punta Marisol: could not place fire_station",
-  "fill_district Punta Marisol: could not place motel",
-  "fill_district Key Paloma: could not place gas",
-  "fill_district Key Paloma: could not place church",
-  "fill_district Key Paloma: could not place park",
-  "fill_district Key Paloma: could not place fire_station",
   "fill_district Key Paloma: could not place motel",
-  "fill_district Amaro Landing: could not place bait_shop",
-  "fill_district Amaro Landing: could not place bait_shop",
-  "fill_district Amaro Landing: could not place rv_park",
-  "fill_district Amaro Landing: could not place gas",
-  "fill_district Amaro Landing: could not place church",
-  "fill_district Amaro Landing: could not place tiki_bar",
-  "fill_district Amaro Landing: could not place auto_repair",
-  "fill_district Shellmound: could not place gas",
-  "fill_district Shellmound: could not place church",
-  "fill_district Shellmound: could not place park",
-  "fill_district Shellmound: could not place fire_station",
-  "fill_district Shellmound: could not place motel",
   "fill_district Tamarind Key: could not place gas",
   "fill_district Tamarind Key: could not place church",
-  "fill_district Tamarind Key: could not place park",
-  "fill_district Tamarind Key: could not place fire_station",
   "fill_district Tamarind Key: could not place motel",
-  "fill_district Coontie: could not place church",
-  "fill_district Coontie: could not place fire_station"
+  "fill_district Tamarind Key: could not place bait_shop",
+  "fill_district Seagrape Heights: could not place fire_station",
+  "fill_district Seagrape Heights: could not place motel",
+  "fill_district Satsuma: could not place fire_station",
+  "fill_district Satsuma: could not place bait_shop",
+  "fill_district Honeybell: could not place park",
+  "fill_district Honeybell: could not place fire_station",
+  "fill_district Honeybell: could not place motel",
+  "fill_district Mullet Creek: could not place park",
+  "fill_district Mullet Creek: could not place motel",
+  "fill_district Mullet Creek: could not place bait_shop",
+  "fill_district Playa Serena: could not place gas",
+  "fill_district Playa Serena: could not place fire_station",
+  "fill_district Playa Serena: could not place motel",
+  "fill_district Playa Serena: could not place bait_shop",
+  "fill_district Whelk Harbor: could not place church",
+  "fill_district Whelk Harbor: could not place motel",
+  "fill_district Citrus Flats: could not place fire_station",
+  "fill_district Citrus Flats: could not place motel",
+  "fill_district Citrus Flats: could not place bait_shop",
+  "fill_district Calamondin: could not place gas",
+  "fill_district Calamondin: could not place church",
+  "fill_district Calamondin: could not place park",
+  "fill_district Calamondin: could not place fire_station",
+  "fill_district Calamondin: could not place motel",
+  "fill_district Calamondin: could not place bait_shop",
+  "fill_district Allapattah West: could not place gas",
+  "fill_district Allapattah West: could not place park",
+  "fill_district Allapattah West: could not place fire_station",
+  "fill_district Allapattah West: could not place motel",
+  "fill_district Allapattah West: could not place bait_shop",
+  "fill_district Junonia: could not place church",
+  "fill_district Junonia: could not place park",
+  "fill_district Junonia: could not place motel"
  ],
- "seconds": 169.3
+ "seconds": 61.3
 }

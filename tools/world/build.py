@@ -141,20 +141,38 @@ def main(px, kind, name, ref='', lanes=2, **kw):
     lf = max(1, lanes // 2)
     return W.road(resample(spl(PX(px)), 22), kind, name, ref=ref, lf=lf, lb=lf, **kw)
 ROADS = {}
-RING = RN.Motorway(W, PX([(780.67, 738.17), (795, 660), (800, 580), (790, 500), (770, 420), (735, 330), (690, 265), (610, 215), (520, 205), (440, 235), (375, 290), (345, 360), (330, 420), (322, 500),
-                           (320, 580), (325, 660), (335, 740), (355, 790), (430, 805), (500, 815), (570, 810), (640, 800), (721.67, 800)]), 'Cypress Belt Parkway', 'SR 836', lanes=3, region='hwy')
+# maproads track: main roads re-routed along the picture's own roads (least-cost path on the traced road raster between the
+# waypoints of the old hand-digitized lines) plus the traced rural network; data in tools/v2/maproads/out/maproads.json
+# (built by tools/v2/maproads/trace.py, vectorize.py, curate.py). Set NO_MAPROADS=1 to build without it.
+_MRP = os.path.join(ROOT, 'tools', 'v2', 'maproads', 'out', 'maproads.json')
+MR = json.load(open(_MRP)) if os.path.exists(_MRP) and not os.environ.get('NO_MAPROADS') else None
+def MRC(key, default): return [tuple(p_) for p_ in MR['main'][key]['px']] if MR and key in MR['main'] else default
+RING = RN.Motorway(W, PX(MRC('ring', [(780.67, 738.17), (795, 660), (800, 580), (790, 500), (770, 420), (735, 330), (690, 265), (610, 215), (520, 205), (440, 235), (375, 290), (345, 360), (330, 420), (322, 500),
+                           (320, 580), (325, 660), (335, 740), (355, 790), (430, 805), (500, 815), (570, 810), (640, 800), (721.67, 800)])), 'Cypress Belt Parkway', 'SR 836', lanes=3, region='hwy')
 W.road([(-2030, -2745), RING.fwd.pts[0]], 'trunk', 'Cypress Belt Parkway', ref='SR 836', lf=2, oneway=True); W.road([RING.back.pts[-1], (-2030, -2745)], 'trunk', 'Cypress Belt Parkway', ref='SR 836', lf=2, oneway=True)
 W.road([RING.fwd.pts[-1], (-3800, -890)], 'trunk', 'Cypress Belt Parkway', ref='SR 836', lf=2, oneway=True); W.road([(-3800, -890), RING.back.pts[0]], 'trunk', 'Cypress Belt Parkway', ref='SR 836', lf=2, oneway=True)
-ROADS['central'] = main([(610, 215), (600, 300), (595, 380), (590, 430), (590, 520), (590, 600), (592, 700), (596, 808)], 'trunk', 'Citrus Belt Highway', 'US-27', 6)
-ROADS['cross_a'] = main([(320, 580), (450, 598), (590, 600), (700, 585), (797, 560)], 'trunk', 'Corkwood Road', 'SR 49', 6)
-ROADS['cross_b'] = main([(322, 500), (450, 515), (590, 520), (700, 515), (790, 500)], 'trunk', 'Lake Amaro Road', 'CR 720', 6)
-ROADS['a1a'] = main([(977.33, 738.17), (962, 700), (945, 645), (925, 605), (895, 575), (860, 545), (845, 480), (825, 410), (800, 345), (770, 315), (735, 330)], 'primary', 'Ocean Drive North', 'SR A1A', zl='strip_small', zr='strip_small')
-ROADS['calabash'] = main([(330, 420), (300, 412), (250, 425), (212, 440)], 'secondary', 'Calabash Causeway', 'CR 64')
-ROADS['marisol'] = main([(335, 740), (300, 790), (272, 832)], 'secondary', 'Marisol Road', 'CR 41')
-ROADS['west'] = main([(355, 790), (345, 860), (370, 930), (410, 1000), (440, 1070), (500, 1085), (560, 1075), (600, 1062)], 'primary', 'Tamiami Trail', 'US-41')
+ROADS['central'] = main(MRC('central', [(610, 215), (600, 300), (595, 380), (590, 430), (590, 520), (590, 600), (592, 700), (596, 808)]), 'trunk', 'Citrus Belt Highway', 'US-27', 6)
+ROADS['cross_a'] = main(MRC('cross_a', [(320, 580), (450, 598), (590, 600), (700, 585), (797, 560)]), 'trunk', 'Corkwood Road', 'SR 49', 6)
+ROADS['cross_b'] = main(MRC('cross_b', [(322, 500), (450, 515), (590, 520), (700, 515), (790, 500)]), 'trunk', 'Lake Amaro Road', 'CR 720', 6)
+ROADS['a1a'] = main(MRC('a1a', [(977.33, 738.17), (962, 700), (945, 645), (925, 605), (895, 575), (860, 545), (845, 480), (825, 410), (800, 345), (770, 315), (735, 330)]), 'primary', 'Ocean Drive North', 'SR A1A', zl='strip_small', zr='strip_small')
+ROADS['calabash'] = main(MRC('calabash', [(330, 420), (300, 412), (250, 425), (212, 440)]), 'secondary', 'Calabash Causeway', 'CR 64')
+ROADS['marisol'] = main(MRC('marisol', [(335, 740), (300, 790), (272, 832)]), 'secondary', 'Marisol Road', 'CR 41')
+ROADS['west'] = main(MRC('west', [(355, 790), (345, 860), (370, 930), (410, 1000), (440, 1070), (500, 1085), (560, 1075), (600, 1062)]), 'primary', 'Tamiami Trail', 'US-41')
 ROADS['us1'] = main([(738.33, 921.17), (705, 960), (655, 1010), (612, 1050), (600, 1062), (620, 1130), (628, 1190), (640, 1235), (625, 1270), (600, 1310), (570, 1350), (548, 1372), (500, 1392), (465, 1396), (420, 1388),
                      (370, 1378), (332, 1366), (300, 1352)], 'trunk', 'Overseas Highway', 'US-1', 2, tags={'verge': 3.5})
 US1 = ROADS['us1']
+if MR:   # rural four- and six-lane highways (maproads track): 95 km/h like the real Florida arterials of this type
+    for k_ in ('central', 'cross_a', 'cross_b'): ROADS[k_].speed = 95
+if MR and 'diag' in MR['main']:
+    _dg = PX(MRC('diag', []))
+    _wl = LineString(ROADS['west'].pts); _q0 = _wl.interpolate(_wl.project(Point(_dg[min(8, len(_dg) - 1)])))
+    _dg = [(_q0.x, _q0.y)] + [p_ for p_ in _dg[8:]]
+    ROADS['diag'] = W.road(resample(spl(_dg), 22), 'trunk', MR['main']['diag']['name'], ref=MR['main']['diag']['ref'], lf=2, lb=2, speed=95)
+if MR and 'diag_n' in MR['main']:
+    _dn = PX(MRC('diag_n', []))
+    _cl_ = LineString(ROADS['cross_a'].pts); _q1 = _cl_.interpolate(_cl_.project(Point(_dn[min(4, len(_dn) - 1)])))
+    _dn = [(_q1.x, _q1.y)] + _dn[4:-1] + [(-3800.0, -2745.0)]                      # ends on the West Line Ave / NW 30th St corner
+    ROADS['diag_n'] = W.road(resample(spl(_dn), 22), 'primary', MR['main']['diag_n']['name'], ref=MR['main']['diag_n']['ref'], lf=2, lb=2, speed=80)
 def hook(pt, reach=150.0):
     s_ = RING.nearest_s(pt)
     for fwd in (True, False):
@@ -356,6 +374,77 @@ W.extra['airfield'] = dict(name='Tern Key Airfield', runways=[dict(name='main', 
                            terminal=[round(v, 1) for v in TP(_L * 0.55, _ao + 129)], bearingDeg=round(math.degrees(math.atan2(_ux, -_uz)) % 360, 1))
 XF.update(ac=(-4575.0, 6045.0), c=tc, sc=1.0, rot=0.0)
 
+# ---------------------------------------------------------------- 4b. traced rural network from the picture (maproads track)
+# Every extra road from tools/v2/maproads/out/maproads.json. Ends that met a main road in the picture are put exactly on that
+# main road (T junction); ends at the motorway ring are paired across it (one road passing over / under) or stopped short of it.
+MAPROADS_KM = 0.0
+if MR:
+    _mains = {k_: LineString(v_.pts) for k_, v_ in ROADS.items() if v_ is not None}
+    _ringc = LineString(RING.center)
+    _avoid = unary_union([AP.buffer(15), TERN_AF.buffer(10), lots_u.buffer(6), REALKEEP.buffer(20)])
+    _cands = []
+    for rd_ in MR['roads']:
+        pts_ = [tuple(p_) for p_ in rd_['pts']]
+        if len(pts_) < 2: continue
+        for end_ in (0, -1):
+            p_ = Point(pts_[end_])
+            if _ringc.distance(p_) < 140: continue                       # handled below
+            best_ = min(((ln_.distance(p_), ln_) for ln_ in _mains.values()), key=lambda t: t[0])
+            if best_[0] < 160:
+                q_ = best_[1].interpolate(best_[1].project(p_)); q_ = (q_.x, q_.y)
+                if end_ == 0: pts_.insert(0, q_)
+                else: pts_.append(q_)
+        _cands.append([rd_, pts_])
+    # pair ends at the ring across it
+    _rend = []
+    for i_, (rd_, pts_) in enumerate(_cands):
+        for end_ in (0, -1):
+            if _ringc.distance(Point(pts_[end_])) < 140: _rend.append((i_, end_))
+    _paired = set()
+    for a_ in range(len(_rend)):
+        for b_ in range(a_ + 1, len(_rend)):
+            (i1, e1), (i2, e2) = _rend[a_], _rend[b_]
+            if i1 == i2 or (i1, e1) in _paired or (i2, e2) in _paired: continue
+            p1, p2 = _cands[i1][1][e1], _cands[i2][1][e2]
+            if math.hypot(p1[0] - p2[0], p1[1] - p2[1]) < 260 and LineString([p1, p2]).crosses(_ringc):
+                if e1 == 0: _cands[i1][1].insert(0, p2)
+                else: _cands[i1][1].append(p2)
+                _paired.add((i1, e1)); _paired.add((i2, e2))
+    # the longest roads that end at the ring get their own interchange (4 ramps, as the main roads), at least 1.5 km apart
+    _hs = [RING.nearest_s(ROADS[k_].pts[e_]) for k_, ends in (('central', (0, -1)), ('cross_a', (0, -1)), ('cross_b', (0, -1)), ('a1a', (-1,)), ('calabash', (0,)), ('marisol', (0,)), ('west', (0,))) for e_ in ends]
+    _nh = 0; _glen = {}
+    for rd_, pts_ in _cands:
+        if len(pts_) > 1: _glen[rd_['name']] = _glen.get(rd_['name'], 0) + LineString(pts_).length
+    for i_, end_ in sorted([t for t in _rend if t not in _paired], key=lambda t: -_glen.get(_cands[t[0]][0]['name'], 0)):
+        pts_ = _cands[i_][1]
+        if len(pts_) < 2 or _glen.get(_cands[i_][0]['name'], 0) < 1000 or _nh >= 24: continue
+        s_ = RING.nearest_s(pts_[end_])
+        if min([abs(s_ - h_) for h_ in _hs] + [1e9]) < 1100 or not (400 < s_ < RING.length - 400): continue
+        q_ = _ringc.interpolate(_ringc.project(Point(pts_[end_]))); q_ = (q_.x, q_.y)
+        ln_ = LineString(pts_); cut_ = ln_.difference(_ringc.buffer(60))
+        g_ = max((cut_.geoms if hasattr(cut_, 'geoms') else [cut_]), key=lambda g: g.length) if not cut_.is_empty else None
+        if g_ is None or g_.length < 200: continue
+        cc_ = list(g_.coords)
+        cc_ = (cc_ + [q_]) if math.hypot(cc_[-1][0] - q_[0], cc_[-1][1] - q_[1]) < math.hypot(cc_[0][0] - q_[0], cc_[0][1] - q_[1]) else ([q_] + cc_)
+        _cands[i_][1] = cc_; hook(q_); _hs.append(s_); _paired.add((i_, end_)); _nh += 1
+    print('maproads: extra ring interchanges', _nh, flush=True)
+    for i_, end_ in _rend:
+        if (i_, end_) in _paired: continue
+        pts_ = _cands[i_][1]; ln_ = LineString(pts_)
+        if ln_.length < 200: _cands[i_][1] = []; continue
+        cut_ = ln_.difference(_ringc.buffer(55))
+        g_ = max((cut_.geoms if hasattr(cut_, 'geoms') else [cut_]), key=lambda g: g.length) if not cut_.is_empty else None
+        _cands[i_][1] = list(g_.coords) if g_ is not None and g_.length > 60 else []
+    _nmr = 0
+    for rd_, pts_ in _cands:
+        if len(pts_) < 2: continue
+        ln_ = LineString(pts_)
+        if ln_.length < 40 or ln_.intersects(_avoid): continue
+        W.road(pts_, rd_['kind'] if rd_['kind'] != 'unclassified' else 'residential', rd_['name'], lf=1, lb=1,
+               oneway=False, surface=rd_.get('surface'), region='maproads', tags={'maproads': 1, 'nolots': 1})
+        MAPROADS_KM += ln_.length / 1000; _nmr += 1
+    print('maproads: traced roads added', _nmr, round(MAPROADS_KM, 1), 'km', flush=True)
+
 # ---------------------------------------------------------------- 5. towns inside the traced urban outlines
 ANCH = [('Key Paloma', 600, 1305), ('Tern Key', 275, 1340), ('Coontie', 600, 1085), ('Shellmound', 440, 1075), ('Punta Marisol', 290, 830), ('Port Calabash', 245, 425),
         ('Port Cassia', 795, 515), ('Amaro Landing', 590, 490), ('Playa Serena', 750, 330), ('Citrus Flats', 710, 590), ('Brisa Heights', 690, 960), ('Allapattah West', 700, 620)]
@@ -394,6 +483,74 @@ def district_of(nm, poly):
     else: typ = 'suburb'
     d_ = dict(name=nm, type=typ, tint='#%02x%02x%02x' % tuple(int(v) for v in tint), roofTint='#%02x%02x%02x' % tuple(int(v) for v in roof), areaHa=round(area_ha, 1))
     DISTRICTS.append(d_); return d_
+# ---- counted towns (maproads track): each town gets exactly the number of streets ref_40 shows (tools/v2/maproads/towns.json),
+# at real small-town block sizes (cross-street spacing 110-150 m, long-street spacing 90-130 m; smaller only where the land is
+# too narrow), centered on the traced outline, oriented by the picture's grid angle with the long streets on the outline's long
+# axis. The middle long street is the town's Main Street (shop frontage); the block beside it at the center is a free town square.
+_TCP = os.path.join(ROOT, 'tools', 'v2', 'maproads', 'towns.json')
+TOWN_SPEC = json.load(open(_TCP))['towns'] if MR and os.path.exists(_TCP) else {}
+TOWN_COUNTS = {}; TOWN_SQUARES = {}
+def counted_town(nm, d, ang, region, avoid=None):
+    sp_ = TOWN_SPEC.get(nm)
+    if not sp_ or d is None or d.is_empty: return None
+    nl, nc = int(sp_['long']), int(sp_['cross'])
+    g_ = max((d.geoms if hasattr(d, 'geoms') else [d]), key=lambda q: q.area)
+    xy_ = np.asarray(g_.exterior.coords)
+    def ext(a): pr = xy_[:, 0] * math.cos(a) + xy_[:, 1] * math.sin(a); return float(pr.max() - pr.min())
+    if ext(ang + math.pi / 2) > ext(ang): ang += math.pi / 2
+    La, Lc = ext(ang), ext(ang + math.pi / 2)
+    du = min(150.0, max(55.0, 0.86 * La / max(nc - 1, 1)))          # spacing of the cross streets (along the long axis)
+    dv = min(120.0, max(48.0, 0.8 * Lc / max(nl - 1, 1)))           # spacing of the long streets
+    if nc > 1 and du > 110 and 0.86 * La / max(nc - 1, 1) < 110: du = 110.0
+    ca, sa = math.cos(ang), math.sin(ang)
+    c0 = g_.centroid if g_.contains(g_.centroid) else g_.representative_point()
+    # slide the grid center into the outline's middle along both axes
+    pa = xy_[:, 0] * ca + xy_[:, 1] * sa; pc = -xy_[:, 0] * sa + xy_[:, 1] * ca
+    ua, vc = (pa.max() + pa.min()) / 2, (pc.max() + pc.min()) / 2
+    cx, cz = ua * ca - vc * sa, ua * sa + vc * ca
+    if not g_.buffer(60).contains(Point(cx, cz)): cx, cz = c0.x, c0.y
+    W_ = lambda u, v: (cx + ca * u - sa * v, cz + sa * u + ca * v)
+    A = (nc - 1) / 2 * du; B = max((nl - 1) / 2 * dv, 48.0)
+    ok_ = dry.difference(AP.buffer(12)).difference(TERN_AF.buffer(10)).difference(lots_u).difference(REALKEEP.buffer(15))
+    if avoid is not None: ok_ = ok_.difference(avoid)
+    nmL, nmC = namer(nm), namer(nm + 'x'); mid = nl // 2; du0, dv0 = du, dv
+    def trial(sc_):
+        du_, dv_ = du0 * sc_, dv0 * sc_
+        A_ = (nc - 1) / 2 * du_; B_ = max((nl - 1) / 2 * dv_, 48.0 * sc_); A_l_ = A_ if nc > 1 else 60.0
+        Wl = lambda u, v: (cx + ca * u - sa * v, cz + sa * u + ca * v)
+        out_, cnt_ = [], [0, 0]
+        def put(a_, b_, kind, name, zone, tags, which):
+            seg = LineString([a_, b_]).intersection(ok_)
+            parts = [q for q in (seg.geoms if hasattr(seg, 'geoms') else [seg]) if q.geom_type == 'LineString' and q.length >= (40 if which == 0 else 12)]
+            if not parts: return
+            out_.append((list(max(parts, key=lambda t: t.length).coords), kind, name, zone, tags)); cnt_[which] += 1
+        for i in range(nl):
+            v = (i - (nl - 1) / 2) * dv_
+            if i == mid: put(Wl(-A_l_ - 30, v), Wl(A_l_ + 30, v), 'tertiary', f'{nm} Main Street', 'strip_small', {'main_street': 1}, 0)
+            else: put(Wl(-A_l_, v), Wl(A_l_, v), 'residential', nmL(i), None, None, 0)
+        for k in range(nc):
+            u = (k - (nc - 1) / 2) * du_ if nc > 1 else 0.0
+            put(Wl(u, -B_ - (12 if nl > 1 else 0)), Wl(u, B_ + (12 if nl > 1 else 0)), 'residential', nmC(k), None, None, 1)
+        return out_, cnt_, du_, dv_, A_, B_, A_l_
+    best_ = None
+    for sc_ in (1.0, 0.85, 0.7, 0.58, 0.48):
+        t_ = trial(sc_)
+        if best_ is None or abs(t_[1][0] - nl) + abs(t_[1][1] - nc) < abs(best_[1][0] - nl) + abs(best_[1][1] - nc): best_ = t_
+        if t_[1] == [nl, nc]: break
+    lines_, cnt, du, dv, A, B, A_l = best_
+    for co_, kind, name, zone, tags in lines_:
+        W.road(co_, kind, name, lf=1, lb=1, region=region, zl=zone, zr=zone, tags=dict(tags or {}, town_grid=nm))
+    # town square: the block on the far side of Main Street at the center
+    k0 = (nc - 1) // 2; u0 = (k0 - (nc - 1) / 2) * du if nc > 1 else -40.0; u1 = u0 + (du if nc > 1 else 80.0)
+    vm = (mid - (nl - 1) / 2) * dv; v1 = vm + (dv if mid + 1 < nl else -dv if nl > 1 else 45.0)
+    lo_, hi_ = sorted((vm, v1))
+    sq_ = Polygon([W_(u0 + 12, lo_ + 10), W_(u1 - 12, lo_ + 10), W_(u1 - 12, hi_ - 10), W_(u0 + 12, hi_ - 10)])
+    if ok_.contains(sq_) and sq_.area > 1500:
+        W.add_area(sq_, 'plaza', f'{nm} Town Square', block='reserved'); W.poi(sq_.centroid.x, sq_.centroid.y, 'town_square', f'{nm} Town Square')
+        TOWN_SQUARES[nm] = [round(sq_.centroid.x, 1), round(sq_.centroid.y, 1)]
+    TOWN_COUNTS[nm] = dict(map=[nl, nc], game=cnt, blockM=[round(du), round(dv)], angleDeg=round(math.degrees(ang) % 180, 1), center=[round(cx), round(cz)])
+    foot = Polygon([W_(-A_l - 35, -B - 40), W_(A_l + 35, -B - 40), W_(A_l + 35, B + 40), W_(-A_l - 35, B + 40)]).intersection(ok_)
+    return foot if not foot.is_empty else None
 TOWNS = {}
 FILLK = {}
 for nm_, inner, outer, org in (('West End', sbox(-4350, RZ0, RX0, RZ1), sbox(-5000, RZ0, -4350, RZ1), (RX0, 0.0)), ('North Shore', sbox(RX0, -3200, 1800, RZ0), sbox(RX0, -3900, 1800, -3200), (RX0, RZ0)),
@@ -402,12 +559,16 @@ for nm_, inner, outer, org in (('West End', sbox(-4350, RZ0, RX0, RZ1), sbox(-50
         d_ = band.intersection(dry).difference(keep_out).difference(LineString(RING.center).buffer(40))
         if d_.is_empty or d_.area < 20000: continue
         TOWNS[nm_ + part] = d_; FILLK[nm_ + part] = 1.0 if not part else 0.6
-        G.grid(W, d_, org, 0.0, 190, 100, namer(nm_ + part), namer(nm_ + part + 'x'), region=nm_, seed=nm_ + part, skip_u=skip, skip_v=skip)
+        _ct_ = counted_town(nm_ + part, d_, 0.0, nm_)
+        if _ct_ is not None: TOWNS[nm_ + part] = _ct_
+        else: G.grid(W, d_, org, 0.0, 190, 100, namer(nm_ + part), namer(nm_ + part + 'x'), region=nm_, seed=nm_ + part, skip_u=skip, skip_v=skip)
 _tk = local_island(TR.p2w(470, 1395), 900)
 _td = _tk.buffer(-22).difference(LineString(US1.pts).buffer(6))
 if not _td.is_empty and _td.area > 4000:
     TOWNS['Tamarind Key'] = _tk.buffer(-22)
-    G.grid(W, _tk.buffer(-22), (_tk.centroid.x, _tk.centroid.y), 0.2, 100, 70, namer('Tamarind Key'), namer('Tamarind Keyx'), region='Tamarind Key', seed='Tamarind Key', min_len=30)
+    _ct_ = counted_town('Tamarind Key', _td, 0.2, 'Tamarind Key', avoid=LineString(US1.pts).buffer(14))
+    if _ct_ is not None: TOWNS['Tamarind Key'] = _ct_
+    else: G.grid(W, _tk.buffer(-22), (_tk.centroid.x, _tk.centroid.y), 0.2, 100, 70, namer('Tamarind Key'), namer('Tamarind Keyx'), region='Tamarind Key', seed='Tamarind Key', min_len=30)
 keep_out = unary_union([keep_out] + list(TOWNS.values()))
 used_a = set(); ei = 0
 for up_ in sorted(URBAN, key=lambda p: -p.area):
@@ -426,13 +587,29 @@ for up_ in sorted(URBAN, key=lambda p: -p.area):
     ang, _from_pic = picture_grid_angle(up_, rr_.uniform(0, math.pi / 2))
     GRIDSRC = globals().setdefault('GRIDSRC', {}); GRIDSRC[nm] = _from_pic
     if nm == 'Key Paloma': ang = math.atan2(TR.p2w(548, 1372)[1] - TR.p2w(640, 1235)[1], TR.p2w(548, 1372)[0] - TR.p2w(640, 1235)[0])
-    G.grid(W, d, (c.x + 40, c.y + 40), ang, rr_.choice([96, 110, 124, 140, 160]), (rr_.choice([70, 82, 94, 106]) if not keys else 120), namer(nm), namer(nm + 'x'), region=nm, seed=nm, skip_u=rr_.choice([0.0, 0.06, 0.12]), skip_v=rr_.choice([0.0, 0.08, 0.16]), jitter=rr_.choice([0, 0, 6, 10]))
+    _ct_ = counted_town(nm, d, ang, nm)
+    if _ct_ is not None: TOWNS[nm] = d = _ct_; c = Point(*TOWN_COUNTS[nm]['center'])
+    else: G.grid(W, d, (c.x + 40, c.y + 40), ang, rr_.choice([96, 110, 124, 140, 160]), (rr_.choice([70, 82, 94, 106]) if not keys else 120), namer(nm), namer(nm + 'x'), region=nm, seed=nm, skip_u=rr_.choice([0.0, 0.06, 0.12]), skip_v=rr_.choice([0.0, 0.08, 0.16]), jitter=rr_.choice([0, 0, 6, 10]))
     # make sure the town hangs on the main network
-    mr_ = min((LineString(r.pts) for r in list(ROADS.values()) + [COLW, COLN, COLS]), key=lambda l: l.distance(c))
+    _pool_ = [r for r in list(ROADS.values()) + [COLW, COLN, COLS, COLB, COLV] if r is not None]
+    if MR: _pool_ += [r for r in W.raw_roads if r.region not in (nm, 'hwy') and r.kind not in ('motorway', 'motorway_link') and not r.bridge and r.layer == 0 and not (r.tags or {}).get('town_grid') == nm]
+    mr_ = min((LineString(r.pts) for r in _pool_), key=lambda l: l.distance(c))
     q = mr_.interpolate(mr_.project(c))
     _cl = LineString([(c.x, c.y), (q.x, q.y)])
-    if mr_.distance(up_) > 5 and not _cl.intersects(REALKEEP.buffer(5)) and _cl.difference(land).length < 650 and not _cl.intersects(AP): W.road([(c.x, c.y), (q.x, q.y)], 'tertiary', namer(nm + 'c')(), region=nm)
+    if not MR:
+        if mr_.distance(up_) > 5 and not _cl.intersects(REALKEEP.buffer(5)) and _cl.difference(land).length < 650 and not _cl.intersects(AP): W.road([(c.x, c.y), (q.x, q.y)], 'tertiary', namer(nm + 'c')(), region=nm)
+    elif mr_.distance(d) > 5:
+        # maproads: try the nearest roads in turn; the first link that stays off real Miami and the airport and needs at most
+        # 2.5 km of bridge wins (islands get their causeway this way)
+        _lines_ = sorted(((LineString(r.pts), r) for r in _pool_), key=lambda t: t[0].distance(c))[:60]
+        _linked_ = None
+        for ln_, r_ in _lines_:
+            q = ln_.interpolate(ln_.project(c)); _cl = LineString([(c.x, c.y), (q.x, q.y)])
+            if _cl.intersects(REALKEEP.buffer(5)) or _cl.intersects(AP) or _cl.difference(land).length > 2500: continue
+            W.road([(c.x, c.y), (q.x, q.y)], 'tertiary', f'{nm} Causeway' if _cl.difference(land).length > 120 else namer(nm + 'c')(), region=nm); _linked_ = round(_cl.length); break
+        LINKS = globals().setdefault('LINKS', {}); LINKS[nm] = _linked_
 print('towns', {k: round(v.area / 1e4) for k, v in TOWNS.items()})
+if MR: print('maproads: town links (m, None = no link found)', {k: v for k, v in globals().get('LINKS', {}).items()}, flush=True)
 
 towns_u = unary_union(list(TOWNS.values()))
 forest_u = unary_union(FOREST)
@@ -498,9 +675,10 @@ for _pass in range(2):
                 j = int(mt.nearest(Point(v))); d_ = mains[j].distance(Point(v))
                 if best is None or d_ < best[0]: best = (d_, v, j)
         d_, v, j = best
-        if d_ > 2000 or d_ < 0.5: continue
+        if MR and sum(plen(W.roads[i].pts) for i in comp) > 1500: print('maproads: relink candidate', round(sum(plen(W.roads[i].pts) for i in comp)), 'm at', [round(v) for v in v], 'gap', round(d_), flush=True)
+        if d_ > (3000 if MR else 2000) or d_ < 0.5: continue
         q = mains[j].interpolate(mains[j].project(Point(v))); ln_ = LineString([v, (q.x, q.y)])
-        if ln_.intersects(REALKEEP.buffer(5)) or ln_.intersects(AP) or ln_.intersects(lots_u) or ln_.intersects(TERN_AF) or ln_.intersection(wet).length > 650: continue
+        if ln_.intersects(REALKEEP.buffer(5)) or ln_.intersects(AP) or ln_.intersects(lots_u) or ln_.intersects(TERN_AF) or ln_.intersection(wet).length > (2500 if MR else 650): continue
         W.raw_roads.append(Road([v, (q.x, q.y)], 'tertiary', lk(), region='link')); added += 1
     relinked += added
     if not added: break
@@ -615,7 +793,7 @@ def hbil(x, z):
     fx, fz = (x - hx0) / CELLH - 0.5, (z - hz0) / CELLH - 0.5
     i, j = min(hnx - 2, max(0, int(fx))), min(hnz - 2, max(0, int(fz))); u, v = min(1.0, max(0.0, fx - i)), min(1.0, max(0.0, fz - j))
     return float((H[j, i] * (1 - u) + H[j, i + 1] * u) * (1 - v) + (H[j + 1, i] * (1 - u) + H[j + 1, i + 1] * u) * v)
-for _round in range(4):
+for _round in range(6):
     hv = {}; adj = {}
     for r in W.roads:
         pts = [r.pts[0]] + [r2(p) for p in resample(r.pts, 8.0)[1:-1]] + [r.pts[-1]]
@@ -640,6 +818,19 @@ for _round in range(4):
     H = np.where(near, np.minimum(H, Rh[ii, jj]) if _round == 0 else Rh[ii, jj], H)
     H = np.minimum(H, np.where(near, H, H))   # no-op, keeps dtype
     H = slope_limit(H.astype(np.float32))
+# maproads track: a traced dead-end road that still climbs more than 12 % somewhere after grading is dropped (leaf edges only,
+# so the network stays connected)
+_deg = {}
+for r in W.roads:
+    for p_ in (r.pts[0], r.pts[-1]): _deg[p_] = _deg.get(p_, 0) + 1
+_drop = set()
+for i_, r in enumerate(W.roads):
+    if r.region != 'maproads' or r.bridge or not (_deg[r.pts[0]] == 1 or _deg[r.pts[-1]] == 1): continue
+    pp_ = resample(r.pts, 8.0); hh_ = [hbil(*q_) for q_ in pp_]
+    if any(abs(hh_[k + 1] - hh_[k]) / max(0.5, math.hypot(pp_[k + 1][0] - pp_[k][0], pp_[k + 1][1] - pp_[k][1])) > 0.12 for k in range(len(pp_) - 1)): _drop.add(i_)
+if _drop:
+    W.roads = [r for i_, r in enumerate(W.roads) if i_ not in _drop]; W.raw_roads = list(W.roads)
+print('maproads: steep dead-end pieces dropped', len(_drop), flush=True)
 _fm = raster_polys(FOREST, (hnz, hnx), cell=CELLH) > 0
 RELIEF = dict(forest_median_m=round(float(np.median(H[_fm])), 1), forest_p75_m=round(float(np.percentile(H[_fm], 75)), 1), forest_p95_m=round(float(np.percentile(H[_fm], 95)), 1), share_of_forest_above_20m=round(float((H[_fm] > 20).mean()), 2))
 pk = np.unravel_index(int(np.argmax(H)), H.shape)
@@ -729,4 +920,8 @@ from collections import Counter
 summary = dict(nico_kept_at_pass6_position=NICO_KEPT, image_size=[1041, IH], coast_iou=COAST_IOU, districts=DISTRICTS, grid_from_picture=globals().get('GRIDSRC', {}), airport_measured=W.extra.get('airport_measured'), tern_measured=[dict(lengthM=round(math.hypot(b_[0] - a_[0], b_[1] - a_[1])), votes=c_) for a_, b_, c_ in TERN_STRIPS], speedway=(None if not RACE else [round(v) for v in RACE[0]]), ring_island_ha=(None if RING_ISLAND is None else round(RING_ISLAND.area / 1e4, 1)), relief=RELIEF, city_mask=dict(landPolys=len(CITY_MASK['land']), newLandKm2=round(land.intersection(realbox).difference(_real_in).area / 1e6, 2), removeRealLandKm2=round(_real_in.difference(land).area / 1e6, 2), islands=len(_isl), causeways=len(_cw)), lake_overlay=LAKES, palette=PAL, road_km=round(sum(plen(r.pts) for r in W.roads) / 1000, 1), roads=len(W.roads), bridges=sum(1 for r in W.roads if r.bridge), buildings=len(W.buildings), pois=len(W.pois), land_polys=len(land_out), water=len(W.water),
                areas=len(W.areas), joins=len(feat['joins']), joins_expected=njoin, towns={k: round(v.area / 1e4) for k, v in TOWNS.items()}, stats=stats, peak=PEAK, setpieces=W.setpieces, transform=TRANSFORM, log=W.log[:40], seconds=round(time.time() - T0, 1))
 with open(os.path.join(OUT, 'summary.json'), 'w') as f: json.dump(summary, f, indent=1)
+if TOWN_COUNTS:   # maproads track: map count vs game count per town (towns.json is the map count)
+    with open(os.path.join(OUT, 'town_counts.json'), 'w') as f: json.dump(dict(towns=TOWN_COUNTS, squares=TOWN_SQUARES, maproadsKm=round(MAPROADS_KM, 1)), f, indent=1)
+    print('town streets (long x cross)  map -> game')
+    for nm_, v_ in sorted(TOWN_COUNTS.items()): print(f"  {nm_:24s} {v_['map'][0]} x {v_['map'][1]}  ->  {v_['game'][0]} x {v_['game'][1]}  {'OK' if v_['map'] == v_['game'] else 'MISMATCH'}  blocks {v_['blockM']} m")
 print(json.dumps({k: summary[k] for k in ('road_km', 'roads', 'bridges', 'buildings', 'pois', 'land_polys', 'water', 'joins', 'joins_expected', 'peak', 'seconds')}), [(s['id'], s['x'], s['z']) for s in W.setpieces], W.log[:6])

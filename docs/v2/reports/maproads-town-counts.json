@@ -1,0 +1,719 @@
+{
+ "towns": {
+  "West End": {
+   "map": [
+    5,
+    5
+   ],
+   "game": [
+    5,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 90.0,
+   "center": [
+    -4037,
+    0
+   ]
+  },
+  "West End Outskirts": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 90.0,
+   "center": [
+    -4675,
+    861
+   ]
+  },
+  "North Shore": {
+   "map": [
+    4,
+    4
+   ],
+   "game": [
+    4,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 0.0,
+   "center": [
+    -2775,
+    -2927
+   ]
+  },
+  "North Shore Outskirts": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 0.0,
+   "center": [
+    -2952,
+    -3550
+   ]
+  },
+  "South Shore": {
+   "map": [
+    3,
+    3
+   ],
+   "game": [
+    3,
+    3
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 0.0,
+   "center": [
+    -3173,
+    2927
+   ]
+  },
+  "South Shore Outskirts": {
+   "map": [
+    4,
+    4
+   ],
+   "game": [
+    4,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 0.0,
+   "center": [
+    -1675,
+    3724
+   ]
+  },
+  "Tamarind Key": {
+   "map": [
+    1,
+    2
+   ],
+   "game": [
+    1,
+    2
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 11.5,
+   "center": [
+    -11389,
+    17176
+   ]
+  },
+  "Sabal Grove": {
+   "map": [
+    5,
+    7
+   ],
+   "game": [
+    5,
+    7
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 92.5,
+   "center": [
+    -4863,
+    2004
+   ]
+  },
+  "Limpkin Park": {
+   "map": [
+    5,
+    5
+   ],
+   "game": [
+    5,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 121.6,
+   "center": [
+    -3175,
+    -3609
+   ]
+  },
+  "Coontie": {
+   "map": [
+    5,
+    6
+   ],
+   "game": [
+    5,
+    6
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 97.5,
+   "center": [
+    -7464,
+    7775
+   ]
+  },
+  "Port Cassia": {
+   "map": [
+    4,
+    5
+   ],
+   "game": [
+    4,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 87.5,
+   "center": [
+    -1522,
+    -9164
+   ]
+  },
+  "Port Calabash": {
+   "map": [
+    4,
+    6
+   ],
+   "game": [
+    4,
+    6
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 162.5,
+   "center": [
+    -18071,
+    -12109
+   ]
+  },
+  "Punta Marisol": {
+   "map": [
+    5,
+    6
+   ],
+   "game": [
+    5,
+    6
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 47.5,
+   "center": [
+    -16696,
+    -173
+   ]
+  },
+  "Tangelo": {
+   "map": [
+    3,
+    5
+   ],
+   "game": [
+    3,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 82.3,
+   "center": [
+    -15791,
+    -8843
+   ]
+  },
+  "Key Paloma": {
+   "map": [
+    3,
+    6
+   ],
+   "game": [
+    3,
+    6
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 123.9,
+   "center": [
+    -7665,
+    14900
+   ]
+  },
+  "Amaro Landing": {
+   "map": [
+    4,
+    5
+   ],
+   "game": [
+    4,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 110.0,
+   "center": [
+    -7875,
+    -9419
+   ]
+  },
+  "Gumbo Limbo": {
+   "map": [
+    3,
+    6
+   ],
+   "game": [
+    3,
+    6
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 12.5,
+   "center": [
+    260,
+    1387
+   ]
+  },
+  "Shellmound": {
+   "map": [
+    4,
+    7
+   ],
+   "game": [
+    4,
+    7
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 57.5,
+   "center": [
+    -11892,
+    7514
+   ]
+  },
+  "Corkwood": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 77.5,
+   "center": [
+    2401,
+    -3343
+   ]
+  },
+  "Playa Serena": {
+   "map": [
+    3,
+    3
+   ],
+   "game": [
+    3,
+    3
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 57.5,
+   "center": [
+    -3212,
+    -15196
+   ]
+  },
+  "Citrus Flats": {
+   "map": [
+    3,
+    3
+   ],
+   "game": [
+    3,
+    3
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 2.5,
+   "center": [
+    -4281,
+    -6807
+   ]
+  },
+  "Seagrape Heights": {
+   "map": [
+    4,
+    4
+   ],
+   "game": [
+    4,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 32.5,
+   "center": [
+    986,
+    -4639
+   ]
+  },
+  "Buttonwood": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 137.5,
+   "center": [
+    -4685,
+    8673
+   ]
+  },
+  "Sandspur": {
+   "map": [
+    4,
+    4
+   ],
+   "game": [
+    4,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 137.5,
+   "center": [
+    2939,
+    3001
+   ]
+  },
+  "Mullet Creek": {
+   "map": [
+    4,
+    3
+   ],
+   "game": [
+    4,
+    3
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 108.8,
+   "center": [
+    -1808,
+    -1663
+   ]
+  },
+  "Honeybell": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 117.5,
+   "center": [
+    -8708,
+    -9700
+   ]
+  },
+  "Spoonbill Flats": {
+   "map": [
+    2,
+    5
+   ],
+   "game": [
+    2,
+    5
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 47.5,
+   "center": [
+    2102,
+    -5715
+   ]
+  },
+  "Calamondin": {
+   "map": [
+    3,
+    2
+   ],
+   "game": [
+    3,
+    2
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 97.5,
+   "center": [
+    -4105,
+    -907
+   ]
+  },
+  "Junonia": {
+   "map": [
+    2,
+    3
+   ],
+   "game": [
+    2,
+    2
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 62.5,
+   "center": [
+    163,
+    -8542
+   ]
+  },
+  "Whelk Harbor": {
+   "map": [
+    3,
+    3
+   ],
+   "game": [
+    3,
+    3
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 77.5,
+   "center": [
+    740,
+    3014
+   ]
+  },
+  "Satsuma": {
+   "map": [
+    3,
+    4
+   ],
+   "game": [
+    3,
+    4
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 42.5,
+   "center": [
+    -6337,
+    13484
+   ]
+  },
+  "Allapattah West": {
+   "map": [
+    3,
+    2
+   ],
+   "game": [
+    3,
+    2
+   ],
+   "blockM": [
+    150,
+    120
+   ],
+   "angleDeg": 137.3,
+   "center": [
+    -3960,
+    -7536
+   ]
+  }
+ },
+ "squares": {
+  "West End": [
+   -4097.0,
+   75.0
+  ],
+  "West End Outskirts": [
+   -4735.0,
+   861.5
+  ],
+  "North Shore": [
+   -2774.9,
+   -2806.9
+  ],
+  "North Shore Outskirts": [
+   -2951.8,
+   -3490.0
+  ],
+  "South Shore": [
+   -3098.4,
+   2986.9
+  ],
+  "South Shore Outskirts": [
+   -1675.0,
+   3843.9
+  ],
+  "Tamarind Key": [
+   -11393.1,
+   17198.5
+  ],
+  "Sabal Grove": [
+   -4926.5,
+   2075.8
+  ],
+  "Limpkin Park": [
+   -3265.4,
+   -3576.9
+  ],
+  "Coontie": [
+   -7523.1,
+   7766.8
+  ],
+  "Port Cassia": [
+   -1639.1,
+   -9083.5
+  ],
+  "Port Calabash": [
+   -18107.3,
+   -12223.6
+  ],
+  "Punta Marisol": [
+   -16740.1,
+   -132.9
+  ],
+  "Tangelo": [
+   -15840.8,
+   -8761.1
+  ],
+  "Key Paloma": [
+   -7714.8,
+   14866.9
+  ],
+  "Amaro Landing": [
+   -8013.8,
+   -9389.1
+  ],
+  "Gumbo Limbo": [
+   246.6,
+   1445.4
+  ],
+  "Corkwood": [
+   2342.0,
+   -3329.6
+  ],
+  "Playa Serena": [
+   -3222.5,
+   -15100.3
+  ],
+  "Citrus Flats": [
+   -4208.4,
+   -6743.7
+  ],
+  "Buttonwood": [
+   -4725.6,
+   8629.0
+  ],
+  "Sandspur": [
+   2857.4,
+   2912.7
+  ],
+  "Mullet Creek": [
+   -1945.9,
+   -1630.4
+  ],
+  "Spoonbill Flats": [
+   2152.7,
+   -5659.6
+  ],
+  "Whelk Harbor": [
+   698.0,
+   3100.0
+  ],
+  "Satsuma": [
+   -6377.7,
+   13527.8
+  ]
+ },
+ "maproadsKm": 355.8
+}

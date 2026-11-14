@@ -1,0 +1,175 @@
+{
+ "source": "counted by eye on ref_40 crops at 4x (maproads track); long = streets parallel to the town long axis, cross = streets across it",
+ "block": {
+  "alongM": [
+   110,
+   150
+  ],
+  "acrossM": [
+   90,
+   130
+  ]
+ },
+ "towns": {
+  "Port Calabash": {
+   "long": 4,
+   "cross": 6,
+   "note": "NW island town; long axis W-E"
+  },
+  "Punta Marisol": {
+   "long": 5,
+   "cross": 6,
+   "note": "SW coastal town, diagonal grid"
+  },
+  "Tangelo": {
+   "long": 3,
+   "cross": 5,
+   "note": "western coastal strip town"
+  },
+  "Key Paloma": {
+   "long": 3,
+   "cross": 6,
+   "note": "Keys strip, about 6 streets wide (user count)"
+  },
+  "Amaro Landing": {
+   "long": 4,
+   "cross": 5,
+   "note": "town on the round lake: 4 wide x 5 tall (user count)"
+  },
+  "Honeybell": {
+   "long": 3,
+   "cross": 4,
+   "note": "west block of the lake town cluster"
+  },
+  "Gumbo Limbo": {
+   "long": 3,
+   "cross": 6,
+   "note": "bay island"
+  },
+  "Shellmound": {
+   "long": 4,
+   "cross": 7,
+   "note": "south-west lagoon town"
+  },
+  "Coontie": {
+   "long": 5,
+   "cross": 6,
+   "note": "south city"
+  },
+  "Port Cassia": {
+   "long": 4,
+   "cross": 5,
+   "note": "stadium district east of the lake"
+  },
+  "Corkwood": {
+   "long": 3,
+   "cross": 4,
+   "note": "north beach town"
+  },
+  "Playa Serena": {
+   "long": 3,
+   "cross": 3,
+   "note": "north-east coastal strip"
+  },
+  "Citrus Flats": {
+   "long": 3,
+   "cross": 3,
+   "note": "stadium blocks"
+  },
+  "Seagrape Heights": {
+   "long": 4,
+   "cross": 4,
+   "note": "curved island"
+  },
+  "Buttonwood": {
+   "long": 3,
+   "cross": 4,
+   "note": "south island"
+  },
+  "Sandspur": {
+   "long": 4,
+   "cross": 4,
+   "note": "south-east island"
+  },
+  "Mullet Creek": {
+   "long": 4,
+   "cross": 3,
+   "note": "bay-front blocks"
+  },
+  "Spoonbill Flats": {
+   "long": 2,
+   "cross": 5,
+   "note": "barrier strip"
+  },
+  "Calamondin": {
+   "long": 3,
+   "cross": 2,
+   "note": "small bayside quarter"
+  },
+  "Junonia": {
+   "long": 2,
+   "cross": 3,
+   "note": "barrier marina strip"
+  },
+  "Whelk Harbor": {
+   "long": 3,
+   "cross": 3,
+   "note": "radial island"
+  },
+  "Satsuma": {
+   "long": 3,
+   "cross": 4,
+   "note": "Keys town"
+  },
+  "Allapattah West": {
+   "long": 3,
+   "cross": 2,
+   "note": "stadium edge"
+  },
+  "Tamarind Key": {
+   "long": 1,
+   "cross": 2,
+   "note": "one road down the middle, houses either side"
+  },
+  "West End": {
+   "long": 5,
+   "cross": 5,
+   "note": "city fringe west of the real rectangle"
+  },
+  "West End Outskirts": {
+   "long": 3,
+   "cross": 4,
+   "note": "city fringe"
+  },
+  "North Shore": {
+   "long": 4,
+   "cross": 4,
+   "note": "city fringe north"
+  },
+  "North Shore Outskirts": {
+   "long": 3,
+   "cross": 4,
+   "note": "city fringe north"
+  },
+  "South Shore": {
+   "long": 3,
+   "cross": 3,
+   "note": "city fringe south"
+  },
+  "South Shore Outskirts": {
+   "long": 4,
+   "cross": 4,
+   "note": "ring-road island south"
+  },
+  "Sabal Grove": {
+   "long": 5,
+   "cross": 7,
+   "note": "airport-side city"
+  },
+  "Limpkin Park": {
+   "long": 5,
+   "cross": 5,
+   "note": "north city"
+  }
+ }
+}
