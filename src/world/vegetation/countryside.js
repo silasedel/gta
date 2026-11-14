@@ -84,7 +84,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     let rdQ = null; // roadside row: rural stretches keep trees just outside the clear zone so their shade dapples the asphalt
     if (p >= dens) { if (!B.road || p >= B.road) continue; rdQ = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rdQ < 4.5 || rdQ > 15) continue; }
     const name = pick(B.trees, hh(i, j, 5)), K = TREE_KINDS[name];
-    const rd = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99); if (rd < (rdQ !== null ? 4.5 : (K.palm ? 4 : 5.5) + hh(i, j, 6) * 5)) continue;
+    const rd = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99); if (rd < (rdQ !== null ? (K.palm ? 4.5 : 9) : (K.palm ? 4 : 9) + hh(i, j, 6) * 5)) continue; // broadleaf crowns (~8 m) must not hang over the lanes
     if (inLot(x, z)) continue;
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
