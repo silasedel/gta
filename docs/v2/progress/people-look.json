@@ -61,13 +61,38 @@
   },
   {
    "name": "Coordinator: gold edge specks (exact material byte fetch, specular AA, capped sheen), bartender vest outfit (bartender_vest_m), seat at 0.46 m",
-   "state": "built",
-   "evidence": "materials.js, npc_specs.py, anim.js sit; specks and sit fix not re-shot"
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/pass2_club_inside_bar.webp"
   },
   {
    "name": "Impostors beyond LOD2, GPU texture compression, modelled collars/lapels, cloth sim, facial animation",
    "state": "todo",
    "evidence": ""
+  },
+  {
+   "name": "Pass 2: modelled collars and lapels, slimmer sleeves, dress straps, heels wear fitted shoes",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/pass2_collars_lineup.webp, pass2_collars_close.webp, pass2_heels_shoes_straps.webp"
+  },
+  {
+   "name": "Pass 2: individual faces (strong nose/jaw/brow/eye/mouth morphs per archetype)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/pass2_collars_lineup.webp, pass2_face_*.webp"
+  },
+  {
+   "name": "Pass 2: club specks gone (specular clamp, roughness floor), seated guests, from inside the club",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/pass2_club_inside_bar.webp, pass2_club_inside_seats.webp (before: pass2_club_specks_before_fix.webp)"
+  },
+  {
+   "name": "Pass 2: Ocean Drive promenade strollers at 17:00, street level",
+   "state": "verified",
+   "evidence": "docs/v2/shots/people-look/pass2_promenade_1700.webp (moderate density, about 8 people readable)"
+  },
+  {
+   "name": "Pass 2: ragged garment edges",
+   "state": "built",
+   "evidence": "boundary relax after drape; some stair-stepping remains on armholes/vest hems"
   }
  ]
 }

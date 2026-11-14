@@ -114,3 +114,36 @@ The lower 1% low comes from archetypes still loading during the measurement (cli
 - Cloth simulation.
 - Facial animation.
 - Re-verifying the specks fix and the sit fix in a dim room.
+
+## Pass 2 (Nov 14, 01:00-02:00 MST; coordinator's list)
+1. **Collars, sleeves, straps, shoes:**
+   - `gen_npc.py` `add_collar` extrudes real collars from the neckline: a stand for chef and bomber, a stand plus fall for shirt collars, fold-down collars for polo, camp and blouse, and lapels for the blazer.
+   - Sleeves are slimmer (less flare; the blazer standoff went from 22 to 16 mm).
+   - The slip dress and sundress get explicit shoulder straps (`make_straps`).
+   - Heel archetypes now wear the fitted CC0 shoe proxy (black dress shoe) and walk with the heel gait, and trouser hems end above the shoe. The pitched-foot pump experiment broke the arm skinning when combined with a fitted shoe, so it is off.
+   - Ankles stay visible above shoes.
+   - Evidence: `pass2_collars_lineup.webp`, `pass2_collars_close.webp`, `pass2_heels_shoes_straps.webp`.
+2. **Ragged edges:**
+   - Garment openings get 10 more boundary-relax passes after draping.
+   - Dress shoes no longer lose their uppers to the sock trim.
+   - Hair already uses alpha-to-coverage, which the game's MSAA scene pass resolves.
+   - Some stair-stepping remains on sleeveless armholes and vest hems.
+3. **Faces:** every archetype now gets one strong morph (0.45 to 0.85) from each of nose, jaw/head shape, brow, eye shape, mouth and cheek/ear groups, plus 8 random weaker ones. Faces read clearly different in the lineups.
+4. **Club from inside** (`pass2_club_inside_bar.webp`, `pass2_club_inside_seats.webp`):
+   - The gold and white specks were still there after the first fix (`pass2_club_specks_before_fix.webp`). The cause was specular from the micro-normals under the club's many small lights.
+   - Fixed with a per-light specular clamp, a cloth/skin roughness floor of 0.5, and micro-normal strength cut to 0.6.
+   - The NPCs are clean in the bar shot after the fix.
+   - Seated guests are on the booth seats and stools. The 0.46 m sit pose had already been fixed in pass 1.
+5. **Ocean Drive at 17:00, street level** (`pass2_promenade_1700.webp`):
+   - New promenade strollers in `arch.v2.js`: up to 30 archetype people walking both sidewalks of Ocean Drive (fewer outside 16:00 to 21:00), kept within about 140 m of the player. They only appear while the player is near and no interior is open.
+   - In the shot, about 8 people are readable on screen. That is busier than before, but not a dense crowd.
+
+**Honest score now: 6/10 against ref_52, short of the 6.5 target.**
+- **Better:** collars and lapels, real shoes, straps, distinct faces, no specks in the club, a busier promenade.
+- **Still behind:**
+  - Garment silhouettes are still body shells (no cloth simulation or sculpted folds).
+  - MakeHuman hair cards.
+  - Some edge stair-stepping.
+  - No true high heels.
+  - Club guests sometimes come from beach archetypes (barefoot).
+  - Promenade density is moderate.

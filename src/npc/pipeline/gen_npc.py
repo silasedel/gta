@@ -26,7 +26,7 @@ def log(*a): print("[npc]", *a); sys.stdout.flush()
 smooth = lambda e0, e1, x: (lambda t: t * t * (3 - 2 * t))(max(0.0, min(1.0, (x - e0) / (e1 - e0))))
 MH_HAIR = {"short01", "short02", "short03", "short04", "afro01", "bob01", "bob02", "braid01", "long01", "ponytail01"}
 MH_SHOES = {"sneaker_white": "shoes02", "sneaker_gray": "shoes02", "sneaker_black": "shoes02", "sneaker_gold": "shoes02",
-            "dress_black": "shoes04", "dress_brown": "shoes01", "boots_black": "shoes03", "boots_tan": "shoes03"}
+            "dress_black": "shoes04", "heels_black": "shoes04", "heels_wine": "shoes04", "heels_nude": "shoes04", "dress_brown": "shoes01", "boots_black": "shoes03", "boots_tan": "shoes03"}
 LONG_HAIR = {"afro01", "bob01", "bob02", "braid01", "long01", "ponytail01", "bun"}
 
 # ------------------------------------------------------------------ garment cut table
@@ -51,7 +51,7 @@ TOPS = {
     "bomber":       dict(sleeve=1.97, neck=0.035, hem=0.0, off=0.026, drape=0.5, collar="stand", thick=0.005, front=0.07, cuff=True, band=True),
     "vest":         dict(sleeve=-0.055, neck=0.0, hem=0.035, off=0.016, drape=0.2, collar="none", thick=0.003, vF=0.25, buttons=True),
     "hivis":        dict(sleeve=-0.07, neck=0.0, hem=0.08, off=0.03, drape=0.9, collar="none", thick=0.003, vF=0.2, front=0.05),
-    "blazer":       dict(sleeve=1.96, neck=0.03, hem=0.2, off=0.022, drape=0.8, collar="lapel", thick=0.004, vF=0.26, buttons=True),
+    "blazer":       dict(sleeve=1.96, neck=0.03, hem=0.2, off=0.016, drape=0.8, collar="lapel", thick=0.004, vF=0.26, buttons=True),
 }
 # leg: leg parameter (0 hip joint, 1 knee, 2 ankle); top: m above the hip joint; flare: extra width toward the hem
 BOTTOMS = {
@@ -254,8 +254,51 @@ def make_top(eb, P, kind, d, bvh, under=None):
     relax_boundary(bm, 6, 0.5)
     bm.to_mesh(sh.data); bm.free()
     clothify(sh, eb, bvh, P, d, top=True)
+    add_collar(sh, P, d)
     if under: clear_of(sh, under, 0.007)
     return sh
+
+def add_collar(sh, P, d):
+    """real collars: stand (chef, bomber), shirt collar (stand + fall), fold-down (polo, camp, blouse), lapels (blazer)"""
+    kind = d.get("collar", "none")
+    if kind in ("none", "rib"): return
+    mw = sh.matrix_world; mwi = mw.inverted(); nk = P["Neck"]
+    bm = bmesh.new(); bm.from_mesh(sh.data); bm.verts.ensure_lookup_table(); bm.normal_update()
+    zlim = P["neckBaseZ"] - (d.get("vF", 0.0) + 0.03)
+    def near_neck(v):
+        p = mw @ v.co
+        return p.z > zlim and math.hypot(p.x - nk.x, p.y - nk.y) < 0.13 and abs(p.x) < 0.14
+    edges = [e for e in bm.edges if e.is_boundary and near_neck(e.verts[0]) and near_neck(e.verts[1])]
+    if len(edges) < 6: bm.free(); return
+    def radial(p):
+        r = Vector((p.x - nk.x, p.y - nk.y, 0.0)); return r.normalized() if r.length > 1e-4 else Vector((0, -1, 0))
+    def extrude(es, move):
+        ret = bmesh.ops.extrude_edge_only(bm, edges=es)
+        nv = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMVert)]
+        ne = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMEdge) and all(v in nv for v in g.verts)]
+        for v in nv:
+            p = mw @ v.co; v.co = mwi @ (p + move(p))
+        return ne
+    front = lambda p: p.y < nk.y - 0.02 and p.z < P["neckBaseZ"] - 0.01
+    if kind == "stand":
+        extrude(edges, lambda p: Vector((0, 0, 0.032)) - radial(p) * 0.004)
+    elif kind in ("shirt", "fold"):
+        h = 0.026 if kind == "shirt" else 0.012
+        top = extrude(edges, lambda p: (Vector((0, 0, h)) - radial(p) * 0.003) * (0.35 if front(p) else 1.0))
+        if kind == "shirt":   # the fall folds back down over the stand, points a little longer at the front
+            extrude(top, lambda p: radial(p) * 0.009 + Vector((0, 0, -(h + 0.006) - (0.018 if front(p) else 0.0))))
+        else:                 # fold-down collar lies on the shoulders
+            extrude(top, lambda p: radial(p) * 0.018 + Vector((0, 0, -(h + 0.022))))
+    elif kind == "lapel":
+        top = extrude(edges, lambda p: (Vector((0, 0, 0.024)) - radial(p) * 0.003) * (0.25 if front(p) else 1.0))
+        def lap(p):
+            if front(p):   # lapel: folds out over the chest, wider toward the gorge
+                w = 0.05 + 0.035 * max(0.0, min(1.0, (p.z - (P["neckBaseZ"] - d.get("vF", 0.2))) / 0.15))
+                side = Vector((1 if p.x > 0 else -1, 0, 0))
+                return side * w * 0.6 + Vector((0, -0.006, -0.01))
+            return radial(p) * 0.012 + Vector((0, 0, -0.036))
+        extrude(top, lap)
+    bm.normal_update(); bm.to_mesh(sh.data); bm.free()
 
 def clear_of(sh, objs, gap):
     """keep an outer layer at least `gap` outside the layers under it (no shirt poking through a vest)"""
@@ -313,7 +356,7 @@ def clothify(sh, eb, bvh, P, d, top=False, bottom=False):
                 seg = 0 if t < 1 else 1; a, b = ch[seg], ch[seg + 1]; ax = (b - a).normalized()
                 c = a + ax * (p - a).dot(ax); rv = p - c
                 if rv.length < 1e-4 or rv.length > 0.13: continue
-                extra = 0.006 + 0.01 * min(1.0, t) if d["sleeve"] < 1.2 else 0.004
+                extra = 0.002 + 0.005 * min(1.0, t) if d["sleeve"] < 1.2 else 0.001
                 if d.get("cuff") and t > d["sleeve"] - 0.12: extra = -0.006
                 if d.get("roll") and t > d["sleeve"] - 0.1: extra += 0.006
                 v.co = mwi @ (c + rv.normalized() * (rv.length + extra))
@@ -351,6 +394,7 @@ def clothify(sh, eb, bvh, P, d, top=False, bottom=False):
                 side = abs(p.x) - abs(ch[0].x + (ch[1].x - ch[0].x) * min(1, t))
                 if 0.42 < t < 0.78 and side > 0.03 and abs(p.y - (ch[0].y + (ch[1].y - ch[0].y) * t)) < 0.06:
                     v.co = v.co + v.normal * 0.009 * smooth(0.42, 0.5, t) * smooth(0.78, 0.7, t)
+    relax_boundary(bm, 10, 0.5)
     bm.normal_update()
     hd = boundary_dist(bm); hl = [min(1.0, hd[v] / 0.1) for v in bm.verts]
     bm.to_mesh(sh.data); bm.free()
@@ -396,6 +440,22 @@ def make_bottom(eb, P, kind, d, bvh):
     relax_boundary(bm, 4, 0.5)
     bm.to_mesh(sh.data); bm.free()
     clothify(sh, eb, bvh, P, d, bottom=True)
+    return sh
+
+def make_straps(eb, P, bvh, sx=0.082, w=0.011):
+    """two shoulder straps over the shoulders, front bust line to the back"""
+    W = vweights(eb); mw = eb.matrix_world; co = [mw @ v.co for v in eb.data.vertices]
+    z0 = P["bustZ"] + 0.03
+    inc = [abs(abs(p.x) - sx) < w and p.z > z0 and ws(W[i], ("Head", "LeftArm", "RightArm")) < 0.2 for i, p in enumerate(co)]
+    sh = copy_obj(eb, "G_straps"); sh.modifiers.clear()
+    bm = bmesh.new(); bm.from_mesh(sh.data); bm.faces.ensure_lookup_table()
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if sum(inc[v.index] for v in f.verts) < len(f.verts)], context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    bm.normal_update()
+    for v in bm.verts: v.co = v.co + v.normal * 0.004
+    relax_boundary(bm, 6, 0.5)
+    hd = boundary_dist(bm); hl = [0.0 for v in bm.verts]
+    bm.to_mesh(sh.data); bm.free(); set_group_from(sh, "npc_hem", hl)
     return sh
 
 def make_bib(eb, P, d, bvh):
@@ -651,7 +711,7 @@ def heel_pose(arm, meshes, P, height=0.075):
     bpy.ops.object.mode_set(mode="OBJECT"); bpy.context.view_layer.update()
     return dz
 
-def make_heels(eb, P, page, color_kind):
+def make_heels(eb, P, page, color_kind, pumps=True):
     """pumps: a closed shell over the forefoot and heel cup, a sole plate and a slim heel to the ground"""
     out = []; mw = eb.matrix_world; W = vweights(eb)
     for side in ("Left", "Right"):
@@ -666,17 +726,29 @@ def make_heels(eb, P, page, color_kind):
             return h < 0.026 + 0.022 * max(0.0, f - 0.55) / 0.45 + (0.022 if f < 0.15 else 0.0)
         sh, bm = foot_shell(eb, side, test, "G_pump" + side)
         bm.normal_update()
-        for v in bm.verts: v.co = v.co + v.normal * 0.0035
+        for v in bm.verts: v.co = v.co + v.normal * 0.0045
+        toe = [v for v in bm.verts if fw(mw @ v.co) > 0.55]
+        if toe:   # one smooth rounded toe box (an ellipsoid fitted to the toes) instead of five toe tubes
+            ps = [mw @ v.co for v in toe]
+            lo = Vector((min(p.x for p in ps), min(p.y for p in ps), min(p.z for p in ps))); hi = Vector((max(p.x for p in ps), max(p.y for p in ps), max(p.z for p in ps)))
+            c = (lo + hi) * 0.5; rad = (hi - lo) * 0.5; rad = Vector((max(rad.x, 0.02) * 1.06, max(rad.y, 0.03) * 1.04, max(rad.z, 0.015) * 1.1))
+            for v, p in zip(toe, ps):
+                q = Vector(((p.x - c.x) / rad.x, (p.y - c.y) / rad.y, (p.z - c.z) / rad.z))
+                if q.length < 1e-4: continue
+                q.normalize(); t = min(1.0, (fw(p) - 0.55) / 0.2)
+                tgt = Vector((c.x + q.x * rad.x, c.y + q.y * rad.y, max(lo.z, c.z + q.z * rad.z)))
+                v.co = mw.inverted() @ p.lerp(tgt, t)
         relax_boundary(bm, 3, 0.5)
         hd = boundary_dist(bm); hl = [min(1.0, hd[v] / 0.03) for v in bm.verts]
         bm.to_mesh(sh.data); bm.free()
         set_group_from(sh, "npc_hem", hl)
-        out.append(sh)
+        if pumps: out.append(sh)
+        else: bpy.data.objects.remove(sh, do_unlink=True)   # the fitted shoe proxy is the shoe; we only add the heel post
         # heel: tapered square post from the heel cup to the floor
         heel_pts = [p for p in pts if p.y > ymax - 0.05 and p.z < zmin + 0.03]
         hx = sum(p.x for p in heel_pts) / max(1, len(heel_pts)); hy = ymax - 0.03; hz = min(p.z for p in heel_pts) if heel_pts else zmin
         bm = bmesh.new(); uvl = bm.loops.layers.uv.new("UVMap")
-        r0, r1 = 0.016, 0.006; N = 8
+        r0, r1 = 0.019, 0.008; N = 10
         top = [bm.verts.new((hx + math.cos(a) * r0, hy + math.sin(a) * r0 * 1.3, hz + 0.004)) for a in [2 * math.pi * i / N for i in range(N)]]
         bot = [bm.verts.new((hx + math.cos(a) * r1, hy + 0.012 + math.sin(a) * r1, 0.0)) for a in [2 * math.pi * i / N for i in range(N)]]
         for i in range(N):
@@ -781,7 +853,7 @@ def trim_shoes(o, P, keep):
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if (mw @ f.calc_center_median()).z > lim], context="FACES")
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
     bm.to_mesh(o.data); bm.free()
-SOCK_KEEP = {"shoes04": 0.004, "shoes01": 0.006, "shoes03": 0.12, "shoes02": 0.04}
+SOCK_KEEP = {"shoes04": 0.035, "shoes01": 0.035, "shoes03": 0.12, "shoes02": 0.04}
 
 # ------------------------------------------------------------------ UV packing for new pieces (free space of page 1)
 def free_rects(eb, n=64):
@@ -857,7 +929,8 @@ def build(spec):
         if k: prox[k] = o
         else: log("unknown proxy", o.name)
     # heels: pitch the feet into the rest pose before anything is fitted
-    heels = spec["shoes"].startswith("heels")
+    heels_style = spec["shoes"].startswith("heels")          # heel-walk gait at runtime
+    heels = heels_style and not shoe_src                       # pitched-foot pumps only without a fitted shoe
     if heels: heel_pose(arm, [eb] + list(prox.values()), None)
     P = landmarks(arm, eb)
     bvh = make_bvh(eb)
@@ -874,6 +947,7 @@ def build(spec):
         elif t in BOTTOMS:
             d = dict(BOTTOMS[t])
             if "legLen" in g: d["leg"] = g["legLen"]
+            if heels: d["leg"] = min(d["leg"], 1.8)   # show the shoe under a trouser hem
             if "fit" in g: d["off"] += g["fit"]
             o = make_bottom(eb, P, t, d, bvh); pieces.append((o, g, "inner", d))
             if d.get("bib"): pieces.append((make_bib(eb, P, d, bvh), dict(g, part="bib"), "inner", d))
@@ -884,6 +958,7 @@ def build(spec):
             D = DRESSES[t]; dt_ = dict(D["top"]); ds = dict(D["skirt"]); ds["hemLeg"] = g.get("hemLeg", ds["hemLeg"])
             if "sleeve" in g: dt_["sleeve"] = g["sleeve"]
             o = make_top(eb, P, t + "_top", dt_, bvh); pieces.append((o, dict(g, part="bodice"), "inner", dt_))
+            if dt_.get("straps"): pieces.append((make_straps(eb, P, bvh), dict(g, part="bodice"), "inner", {"thick": 0.002}))
             o2 = make_skirt(eb, arm, P, t + "_skirt", ds, bvh, page1); pieces.append((o2, dict(g, part="skirt"), "custom", ds))
         elif t == "bikini_top":
             d = dict(TOPS["sports_bra"]); d.update(off=0.003, thick=0.0015, neck=-0.09, hem=-0.24, vF=0.05)
@@ -897,7 +972,7 @@ def build(spec):
     if spec["shoes"] in ("flipflops", "sandals"):
         for o in make_soles(eb, P, spec["shoes"], page1): pieces.append((o, dict(type=spec["shoes"], part="sole" if "sole" in o.name else "strap"), "custom" if "sole" in o.name else "inner", {}))
     if heels:
-        for o in make_heels(eb, P, page1, spec["shoes"]): pieces.append((o, dict(type=spec["shoes"], part="heel" if "heel" in o.name else "pump"), "custom" if "heel" in o.name else "inner", {}))
+        for o in make_heels(eb, P, page1, spec["shoes"], pumps=not shoe_src): pieces.append((o, dict(type=spec["shoes"], part="heel" if "heel" in o.name else "pump"), "custom" if "heel" in o.name else "inner", {}))
     # hair edits: fades get our own short top shells (no hat) ; socks trimmed off dress shoes
     if fade and not hat_edge:
         sh = make_shell_hair(eb, P); sh.parent = arm
@@ -942,7 +1017,7 @@ def build(spec):
         cs = c
         if not c and shoe_bvh:
             loc, nn, fi, dist = shoe_bvh.find_nearest(p, 0.03)
-            if loc is not None and ws(Wb[v.index], ("LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase")) > 0.5 and p.z < P["ankleZ"] + 0.03: cs = True
+            if loc is not None and ws(Wb[v.index], ("LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase")) > 0.5 and p.z < P["ankleZ"] - 0.012: cs = True
         cov0.append(cs); cov1.append(c)
         # skin that stays (near hems) but sits under cloth is pulled in a little so it never pokes through
         if not c:
@@ -1069,7 +1144,7 @@ def build(spec):
     meta = {"id": spec["id"], "file": spec["id"] + ".glb", "height": max(zs) - min(zs), "minZ": min(zs), "hipH": hipH,
             "tris": {o.name: tris(o) for o in keep[1:]}, "atlas": [2048 if outer else 1024, 1024], "outer": outer,
             "hair": ("shell" if fade else hs) if "hair" in prox else None, "brows": spec["brows"], "lashes": spec["lashes"], "eyes": spec["eyes"], "shoes": spec["shoes"] if shoe_src else None,
-            "heels": heels, "hairColor": spec["hair"]["color"], "tone": spec["tone"], "beard": spec.get("beard"), "gender": spec["gender"], "years": spec["years"], "race": spec["race"], "place": spec["place"], "poses": spec.get("poses", []),
+            "heels": heels_style, "hairColor": spec["hair"]["color"], "tone": spec["tone"], "beard": spec.get("beard"), "gender": spec["gender"], "years": spec["years"], "race": spec["race"], "place": spec["place"], "poses": spec.get("poses", []),
             "placed": placed, "secs": round(__import__("time").time() - t0, 1)}
     json.dump(meta, open(os.path.join(OUT, spec["id"] + ".json"), "w"), indent=1)
     log("WROTE", spec["id"], os.path.getsize(out), meta["tris"], meta["secs"], "s")

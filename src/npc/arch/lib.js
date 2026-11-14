@@ -61,7 +61,7 @@ export function loadArchetype(id) {
       meta.hair ? loadTex(S + 'hair_' + (meta.hair === 'bun' ? 'ponytail01' : meta.hair) + '.webp', true) : null,
       loadTex(S + 'eye_' + (meta.eyes || 'brown') + '.webp', true),
       loadTex(S + 'brow_' + meta.brows + '.webp', true), loadTex(S + 'lash_' + meta.lashes + '.webp', true),
-      meta.shoes ? loadTex(S + 'shoe_' + meta.shoes + '.webp', true) : null,
+      meta.shoes ? loadTex(S + 'shoe_' + (/^heels/.test(meta.shoes) ? 'dress_black' : meta.shoes) + '.webp', true) : null,
     ]);
     const scene = gltf.scene;
     const bones = {}; scene.traverse((o) => { if (o.isBone) bones[normBone(o.name)] = o; });

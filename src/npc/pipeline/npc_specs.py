@@ -34,11 +34,20 @@ FACE_POOL = ["nose-hump-incr", "nose-hump-decr", "nose-width1-incr", "nose-width
     "l-eye-scale-decr|r-eye-scale-decr", "l-eye-scale-incr|r-eye-scale-incr", "l-eye-bag-incr|r-eye-bag-incr", "l-eye-eyefold-down|r-eye-eyefold-down", "l-eye-corner2-up|r-eye-corner2-up", "l-eye-trans-in|r-eye-trans-in", "l-eye-trans-out|r-eye-trans-out",
     "eyebrows-trans-down", "eyebrows-angle-up", "eyebrows-angle-down", "head-oval", "head-square", "head-round", "head-rectangular", "head-diamond", "head-fat-incr", "head-fat-decr",
     "l-ear-scale-decr|r-ear-scale-decr", "l-ear-flap-decr|r-ear-flap-decr", "l-ear-lobe-incr|r-ear-lobe-incr", "forehead-temple-decr", "neck-double-incr"]
-def face(seed, n=11, age=30):
+FACE_GROUPS = [   # one strong pick per feature so faces differ in nose, jaw, brow, eyes and mouth, not only in tone
+    ["nose-hump-incr", "nose-width1-incr", "nose-width1-decr", "nose-point-up", "nose-scale-vert-incr", "nose-scale-vert-decr", "nose-volume-incr", "nose-greek-incr", "nose-curve-convex", "nose-flaring-incr"],
+    ["chin-width-incr", "chin-width-decr", "chin-prominent-incr", "chin-prominent-decr", "head-square", "head-oval", "head-round", "head-rectangular", "head-diamond", "chin-height-incr"],
+    ["eyebrows-trans-down", "eyebrows-trans-up", "eyebrows-angle-up", "eyebrows-angle-down", "forehead-temple-decr"],
+    ["l-eye-scale-decr|r-eye-scale-decr", "l-eye-scale-incr|r-eye-scale-incr", "l-eye-eyefold-down|r-eye-eyefold-down", "l-eye-corner2-up|r-eye-corner2-up", "l-eye-trans-in|r-eye-trans-in", "l-eye-trans-out|r-eye-trans-out", "l-eye-height2-decr|r-eye-height2-decr", "l-eye-epicanthus-in|r-eye-epicanthus-in"],
+    ["mouth-scale-horiz-incr", "mouth-scale-horiz-decr", "mouth-lowerlip-volume-incr", "mouth-upperlip-volume-incr", "mouth-lowerlip-volume-decr", "mouth-angles-down", "mouth-cupidsbow-incr"],
+    ["l-cheek-bones-incr|r-cheek-bones-incr", "l-cheek-volume-incr|r-cheek-volume-incr", "l-cheek-volume-decr|r-cheek-volume-decr", "l-ear-scale-decr|r-ear-scale-decr", "l-ear-flap-decr|r-ear-flap-decr"]]
+def face(seed, n=8, age=30):
     r = random.Random(seed); d = {}
+    for grp in FACE_GROUPS:
+        for t in r.choice(grp).split("|"): d[t] = round(r.uniform(0.45, 0.85), 2)
     for name in r.sample(FACE_POOL, n):
-        w = round(r.uniform(0.12, 0.55), 2)
-        for t in name.split("|"): d[t] = w
+        w = round(r.uniform(0.15, 0.5), 2)
+        for t in name.split("|"): d.setdefault(t, w)
     if age > 50: d["head-age-incr"] = round(min(0.9, (age - 45) / 40), 2); d["l-eye-bag-incr"] = d["r-eye-bag-incr"] = 0.35
     return d
 
@@ -64,7 +73,7 @@ SPECS = [
       [G("henley", "#3b3734", "jersey", sleeve=1.95), G("bomber", "#2c3527", "nylon", outer=True, sleeve=1.97), G("jeans", "#27344a", "denim", fade=0.55)],
       "sneaker_white", H("short02", "#16100c", "fade"), hat=G("beanie", "#2e3e52", "knit"), beard="stubble", poses=["lean_cross", "cross_arms", "phone"]),
     P("club_slipdress_f", "f", 24, "black", "deep", (0.45, 0.38, 0.5, 0.65, 0.5, 0.7), ["nightlife"],
-      [G("slip_dress", "#7a1c2c", "satin", hemLeg=0.35)], "heels_nude", H("afro01", "#120d0a"), makeup="evening", poses=["dance", "idle_f", "talk"]),
+      [G("slip_dress", "#7a1c2c", "satin", hemLeg=0.35)], "heels_wine", H("afro01", "#120d0a"), makeup="evening", poses=["dance", "idle_f", "talk"]),
     P("club_printshirt_m", "m", 29, "black", "dark", (0.66, 0.45, 0.62, 0.62), ["nightlife", "street"],
       [G("camp", "#1d2b3a", "rayon", print="leaf_navy"), G("chinos", "#1a1a1c", "twill")], "dress_black", H("short04", "#0e0b09", "fade"), beard="goatee", poses=["dance", "talk", "drink"]),
     P("club_croptop_f", "f", 23, "asian", "light", (0.38, 0.32, 0.36, 0.6, 0.42, 0.6), ["nightlife"],
@@ -142,7 +151,7 @@ SPECS = [
     P("office_shirt_m", "m", 30, "asian", "light", (0.5, 0.4, 0.5, 0.6), ["business"],
       [G("dress_shirt", "#bcd3ea", "oxford"), G("chinos", "#3a3a3c", "twill")], "dress_brown", H("short02", "#0f0c0b"), poses=["phone", "walk", "talk"]),
     P("office_pants_f", "f", 42, "black", "dark", (0.42, 0.55, 0.52, 0.58, 0.6, 0.55), ["business"],
-      [G("dress_shirt", "#d9e3d6", "silk"), G("trousers", "#141416", "suiting")], "heels_nude", H("braid01", "#100b09"), makeup="day", poses=["phone", "walk_heels", "talk"]),
+      [G("dress_shirt", "#d9e3d6", "silk"), G("trousers", "#141416", "suiting")], "heels_wine", H("braid01", "#100b09"), makeup="day", poses=["phone", "walk_heels", "talk"]),
 
     # ---------------------------------------------------------------- police (invented department insignia)
     P("police_m", "m", 37, "latino", "olive", (0.72, 0.55, 0.6, 0.58), ["police"],

@@ -4,18 +4,18 @@
   {
    "id": "bartender_f",
    "file": "bartender_f.glb",
-   "height": 1.4282558262348175,
-   "minZ": 0.16892465949058533,
+   "height": 1.421024203300476,
+   "minZ": 0.16947829723358154,
    "hipH": 0.8635832071304321,
    "tris": {
-    "LOD0_body": 35190,
-    "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD0_body": 35712,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_hair": 5352,
-    "LOD0_shoes": 2360,
+    "LOD0_shoes": 3008,
     "LOD2_hair": 1605
    },
    "atlas": [
@@ -47,18 +47,18 @@
   {
    "id": "bartender_m",
    "file": "bartender_m.glb",
-   "height": 1.6216829270124435,
-   "minZ": 0.15925736725330353,
+   "height": 1.6184530556201935,
+   "minZ": 0.16046223044395447,
    "hipH": 1.0027143955230713,
    "tris": {
-    "LOD0_body": 35946,
+    "LOD0_body": 36384,
     "LOD1_body": 6999,
     "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2544,
-    "LOD0_hair": 720
+    "LOD0_shoes": 3088,
+    "LOD0_hair": 732
    },
    "atlas": [
     2048,
@@ -89,18 +89,18 @@
   {
    "id": "bartender_vest_m",
    "file": "bartender_vest_m.glb",
-   "height": 1.7295943796634674,
-   "minZ": 0.1765666902065277,
+   "height": 1.7224336862564087,
+   "minZ": 0.17778337001800537,
    "hipH": 1.0854237079620361,
    "tris": {
-    "LOD0_body": 36476,
-    "LOD1_body": 7000,
+    "LOD0_body": 36836,
+    "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2512,
-    "LOD0_hair": 660
+    "LOD0_shoes": 3032,
+    "LOD0_hair": 798
    },
    "atlas": [
     2048,
@@ -131,13 +131,13 @@
   {
    "id": "beach_bikini_f",
    "file": "beach_bikini_f.glb",
-   "height": 1.5696838394578663,
+   "height": 1.5648237959321705,
    "minZ": -4.925095709040761e-08,
    "hipH": 0.8487436771392822,
    "tris": {
-    "LOD0_body": 29674,
-    "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD0_body": 29600,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_hair": 4108,
@@ -173,17 +173,17 @@
   {
    "id": "beach_board_m",
    "file": "beach_board_m.glb",
-   "height": 1.9243796096998267,
+   "height": 1.922412060375791,
    "minZ": -2.2526364773511887e-08,
    "hipH": 1.0937103033065796,
    "tris": {
-    "LOD0_body": 29266,
-    "LOD1_body": 6999,
+    "LOD0_body": 29278,
+    "LOD1_body": 7000,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 660
+    "LOD0_hair": 708
    },
    "atlas": [
     1024,
@@ -214,18 +214,18 @@
   {
    "id": "beach_crop_f",
    "file": "beach_crop_f.glb",
-   "height": 1.5679725135851186,
+   "height": 1.566170545964269,
    "minZ": 2.727028913795948e-08,
    "hipH": 0.8410885334014893,
    "tris": {
-    "LOD0_body": 31314,
-    "LOD1_body": 6999,
+    "LOD0_body": 31300,
+    "LOD1_body": 7000,
     "LOD2_body": 1700,
     "LOD0_hair": 5518,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD2_hair": 1654
+    "LOD2_hair": 1655
    },
    "atlas": [
     1024,
@@ -257,11 +257,11 @@
   {
    "id": "beach_elder_f",
    "file": "beach_elder_f.glb",
-   "height": 1.4602138526533963,
+   "height": 1.453983855972183,
    "minZ": 4.695903044193983e-08,
    "hipH": 0.7744358777999878,
    "tris": {
-    "LOD0_body": 33438,
+    "LOD0_body": 33432,
     "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_hair": 8474,
@@ -300,17 +300,17 @@
   {
    "id": "beach_lifeguard_m",
    "file": "beach_lifeguard_m.glb",
-   "height": 1.9131549306912348,
+   "height": 1.919034928898327,
    "minZ": 2.898741513490677e-08,
    "hipH": 1.0873475074768066,
    "tris": {
-    "LOD0_body": 32320,
+    "LOD0_body": 32302,
     "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 672
+    "LOD0_hair": 642
    },
    "atlas": [
     1024,
@@ -341,17 +341,17 @@
   {
    "id": "beach_retiree_m",
    "file": "beach_retiree_m.glb",
-   "height": 1.520861878991127,
-   "minZ": 0.14872442185878754,
+   "height": 1.5182458460330963,
+   "minZ": 0.15038654208183289,
    "hipH": 0.9343340396881104,
    "tris": {
-    "LOD0_body": 30096,
+    "LOD0_body": 30592,
     "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2548,
+    "LOD0_shoes": 3104,
     "LOD0_hair": 1922
    },
    "atlas": [
@@ -384,18 +384,18 @@
   {
    "id": "beach_sundress_f",
    "file": "beach_sundress_f.glb",
-   "height": 1.5516868468266694,
+   "height": 1.5555028553944794,
    "minZ": 3.614604793256149e-08,
    "hipH": 0.8392719030380249,
    "tris": {
-    "LOD0_body": 31802,
-    "LOD1_body": 6991,
+    "LOD0_body": 31798,
+    "LOD1_body": 6992,
     "LOD2_body": 1692,
     "LOD0_hair": 2248,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD2_hair": 674
+    "LOD2_hair": 673
    },
    "atlas": [
     2048,
@@ -427,13 +427,13 @@
   {
    "id": "beach_tank_m",
    "file": "beach_tank_m.glb",
-   "height": 1.6367339765347424,
+   "height": 1.6311819230832043,
    "minZ": 3.225432010367513e-08,
    "hipH": 0.907434344291687,
    "tris": {
-    "LOD0_body": 32194,
-    "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD0_body": 32160,
+    "LOD1_body": 7000,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -469,18 +469,18 @@
   {
    "id": "beach_tourist_m",
    "file": "beach_tourist_m.glb",
-   "height": 1.6179948449134827,
+   "height": 1.6209291815757751,
    "minZ": 0.164226233959198,
    "hipH": 0.9991123676300049,
    "tris": {
-    "LOD0_body": 31324,
-    "LOD1_body": 6999,
+    "LOD0_body": 31430,
+    "LOD1_body": 6997,
     "LOD2_body": 1698,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 2848,
-    "LOD0_hair": 232
+    "LOD0_hair": 250
    },
    "atlas": [
     1024,
@@ -512,11 +512,11 @@
   {
    "id": "bouncer_m",
    "file": "bouncer_m.glb",
-   "height": 1.9027692675590515,
-   "minZ": 0.19401103258132935,
+   "height": 1.9039827436208725,
+   "minZ": 0.19540156424045563,
    "hipH": 1.2077971696853638,
    "tris": {
-    "LOD0_body": 29808,
+    "LOD0_body": 29800,
     "LOD1_body": 7000,
     "LOD2_body": 1699,
     "LOD0_brows": 192,
@@ -552,18 +552,18 @@
   {
    "id": "builder_m",
    "file": "builder_m.glb",
-   "height": 1.6051078736782074,
-   "minZ": 0.157449871301651,
+   "height": 1.604804903268814,
+   "minZ": 0.15838584303855896,
    "hipH": 0.9870889186859131,
    "tris": {
-    "LOD0_body": 37280,
-    "LOD1_body": 7000,
+    "LOD0_body": 37180,
+    "LOD1_body": 6999,
     "LOD2_body": 1697,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 4056,
-    "LOD0_hair": 774
+    "LOD0_hair": 778
    },
    "atlas": [
     2048,
@@ -595,11 +595,11 @@
   {
    "id": "club_bomber_m",
    "file": "club_bomber_m.glb",
-   "height": 1.6813022196292877,
-   "minZ": 0.1653643548488617,
+   "height": 1.6774632334709167,
+   "minZ": 0.1664331555366516,
    "hipH": 1.033270001411438,
    "tris": {
-    "LOD0_body": 43262,
+    "LOD0_body": 43740,
     "LOD1_body": 6999,
     "LOD2_body": 1698,
     "LOD0_brows": 192,
@@ -637,18 +637,19 @@
   {
    "id": "club_croptop_f",
    "file": "club_croptop_f.glb",
-   "height": 1.456120576709509,
-   "minZ": 0.011999998241662979,
-   "hipH": 0.8151107430458069,
+   "height": 1.2464757561683655,
+   "minZ": 0.1524534821510315,
+   "hipH": 0.7434742450714111,
    "tris": {
-    "LOD0_body": 31498,
+    "LOD0_body": 27224,
     "LOD1_body": 7000,
-    "LOD2_body": 1700,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_hair": 4108,
     "LOD0_eyes": 172,
-    "LOD2_hair": 1232
+    "LOD0_shoes": 3048,
+    "LOD2_hair": 1231
    },
    "atlas": [
     2048,
@@ -659,7 +660,7 @@
    "brows": "eyebrow007",
    "lashes": "eyelashes04",
    "eyes": "brown",
-   "shoes": null,
+   "shoes": "heels_black",
    "heels": true,
    "hairColor": "#0f0c0b",
    "tone": "light",
@@ -679,18 +680,19 @@
   {
    "id": "club_knitdress_f",
    "file": "club_knitdress_f.glb",
-   "height": 1.6143438443541527,
-   "minZ": 0.012000001966953278,
-   "hipH": 0.9108339548110962,
+   "height": 1.3803915977478027,
+   "minZ": 0.16662323474884033,
+   "hipH": 0.8330796957015991,
    "tris": {
-    "LOD0_body": 33296,
-    "LOD1_body": 7000,
-    "LOD2_body": 1700,
+    "LOD0_body": 28750,
+    "LOD1_body": 6999,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 2898,
-    "LOD2_hair": 868
+    "LOD0_hair": 2936,
+    "LOD0_shoes": 3024,
+    "LOD2_hair": 880
    },
    "atlas": [
     2048,
@@ -701,7 +703,7 @@
    "brows": "eyebrow005",
    "lashes": "eyelashes01",
    "eyes": "brown",
-   "shoes": null,
+   "shoes": "heels_black",
    "heels": true,
    "hairColor": "#1c130e",
    "tone": "olive",
@@ -722,17 +724,17 @@
   {
    "id": "club_printshirt_m",
    "file": "club_printshirt_m.glb",
-   "height": 1.7659625858068466,
-   "minZ": 0.18033958971500397,
+   "height": 1.7645504623651505,
+   "minZ": 0.18175171315670013,
    "hipH": 1.108815312385559,
    "tris": {
-    "LOD0_body": 29844,
-    "LOD1_body": 6999,
-    "LOD2_body": 1700,
+    "LOD0_body": 30380,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2516,
+    "LOD0_shoes": 3032,
     "LOD0_hair": 660
    },
    "atlas": [
@@ -765,18 +767,19 @@
   {
    "id": "club_slipdress_f",
    "file": "club_slipdress_f.glb",
-   "height": 1.7056629285216331,
-   "minZ": 0.012000001966953278,
-   "hipH": 0.971531093120575,
+   "height": 1.4658706486225128,
+   "minZ": 0.175191730260849,
+   "hipH": 0.8912205696105957,
    "tris": {
-    "LOD0_body": 32166,
-    "LOD1_body": 6994,
-    "LOD2_body": 1690,
+    "LOD0_body": 27678,
+    "LOD1_body": 6998,
+    "LOD2_body": 1692,
     "LOD0_hair": 2192,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD2_hair": 657
+    "LOD0_shoes": 2992,
+    "LOD2_hair": 656
    },
    "atlas": [
     2048,
@@ -787,7 +790,7 @@
    "brows": "eyebrow002",
    "lashes": "eyelashes04",
    "eyes": "brown",
-   "shoes": null,
+   "shoes": "heels_wine",
    "heels": true,
    "hairColor": "#120d0a",
    "tone": "deep",
@@ -807,12 +810,12 @@
   {
    "id": "club_tee_m",
    "file": "club_tee_m.glb",
-   "height": 1.76987923681736,
-   "minZ": 0.17670927941799164,
+   "height": 1.7686289846897125,
+   "minZ": 0.17795953154563904,
    "hipH": 1.1124889850616455,
    "tris": {
-    "LOD0_body": 29862,
-    "LOD1_body": 7000,
+    "LOD0_body": 29846,
+    "LOD1_body": 6999,
     "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
@@ -850,18 +853,18 @@
   {
    "id": "cook_m",
    "file": "cook_m.glb",
-   "height": 1.6081880033016205,
-   "minZ": 0.15759244561195374,
+   "height": 1.6046187281608582,
+   "minZ": 0.15880781412124634,
    "hipH": 0.9858574867248535,
    "tris": {
-    "LOD0_body": 34548,
-    "LOD1_body": 7000,
-    "LOD2_body": 1700,
+    "LOD0_body": 34580,
+    "LOD1_body": 6999,
+    "LOD2_body": 1698,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 4064,
-    "LOD0_hair": 738
+    "LOD0_hair": 768
    },
    "atlas": [
     2048,
@@ -892,13 +895,13 @@
   {
    "id": "courier_m",
    "file": "courier_m.glb",
-   "height": 1.7606829404830933,
+   "height": 1.7557014226913452,
    "minZ": 0.18117177486419678,
    "hipH": 1.0973654985427856,
    "tris": {
-    "LOD0_body": 30128,
-    "LOD1_body": 7000,
-    "LOD2_body": 1699,
+    "LOD0_body": 30652,
+    "LOD1_body": 6998,
+    "LOD2_body": 1697,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -934,13 +937,13 @@
   {
    "id": "dock_m",
    "file": "dock_m.glb",
-   "height": 1.5718604624271393,
-   "minZ": 0.15573617815971375,
+   "height": 1.5772068798542023,
+   "minZ": 0.15661737322807312,
    "hipH": 0.9725580215454102,
    "tris": {
-    "LOD0_body": 32374,
-    "LOD1_body": 7000,
-    "LOD2_body": 1695,
+    "LOD0_body": 32472,
+    "LOD1_body": 6997,
+    "LOD2_body": 1694,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -977,19 +980,19 @@
   {
    "id": "elder_f",
    "file": "elder_f.glb",
-   "height": 1.3424168676137924,
-   "minZ": 0.1614784151315689,
+   "height": 1.3425773978233337,
+   "minZ": 0.1626299023628235,
    "hipH": 0.8127787113189697,
    "tris": {
-    "LOD0_body": 30556,
-    "LOD1_body": 6999,
+    "LOD0_body": 31068,
+    "LOD1_body": 7000,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 3070,
-    "LOD0_shoes": 2444,
-    "LOD2_hair": 921
+    "LOD0_hair": 2996,
+    "LOD0_shoes": 3068,
+    "LOD2_hair": 897
    },
    "atlas": [
     1024,
@@ -1020,18 +1023,18 @@
   {
    "id": "elder_m",
    "file": "elder_m.glb",
-   "height": 1.5908938199281693,
-   "minZ": 0.16409973800182343,
+   "height": 1.5861221551895142,
+   "minZ": 0.164961576461792,
    "hipH": 0.992355227470398,
    "tris": {
-    "LOD0_body": 33112,
-    "LOD1_body": 6998,
-    "LOD2_body": 1698,
+    "LOD0_body": 33986,
+    "LOD1_body": 7000,
+    "LOD2_body": 1697,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2536,
-    "LOD0_hair": 228
+    "LOD0_shoes": 3080,
+    "LOD0_hair": 220
    },
    "atlas": [
     1024,
@@ -1062,18 +1065,18 @@
   {
    "id": "gang_garzas_m",
    "file": "gang_garzas_m.glb",
-   "height": 1.6139215975999832,
-   "minZ": 0.1605488508939743,
+   "height": 1.6113312542438507,
+   "minZ": 0.16168317198753357,
    "hipH": 1.001303791999817,
    "tris": {
-    "LOD0_body": 28592,
+    "LOD0_body": 28576,
     "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 2848,
-    "LOD0_hair": 894
+    "LOD0_hair": 948
    },
    "atlas": [
     1024,
@@ -1105,14 +1108,14 @@
   {
    "id": "gang_lyric_m",
    "file": "gang_lyric_m.glb",
-   "height": 1.7496112436056137,
-   "minZ": 0.17701436579227448,
+   "height": 1.744114339351654,
+   "minZ": 0.17842715978622437,
    "hipH": 1.0892159938812256,
    "tris": {
-    "LOD0_body": 31300,
-    "LOD1_body": 7000,
-    "LOD2_body": 1699,
-    "LOD0_hair": 4852,
+    "LOD0_body": 31304,
+    "LOD1_body": 6997,
+    "LOD2_body": 1697,
+    "LOD0_hair": 4850,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -1149,18 +1152,18 @@
   {
    "id": "gang_wolves_m",
    "file": "gang_wolves_m.glb",
-   "height": 1.719759851694107,
-   "minZ": 0.16863355040550232,
+   "height": 1.7148500978946686,
+   "minZ": 0.16984304785728455,
    "hipH": 1.0562790632247925,
    "tris": {
-    "LOD0_body": 31344,
-    "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD0_body": 31882,
+    "LOD1_body": 7000,
+    "LOD2_body": 1697,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 2848,
-    "LOD0_hair": 212
+    "LOD0_hair": 204
    },
    "atlas": [
     1024,
@@ -1192,19 +1195,19 @@
   {
    "id": "jogger_f",
    "file": "jogger_f.glb",
-   "height": 1.4256323277950287,
-   "minZ": 0.1713789999485016,
+   "height": 1.4271976351737976,
+   "minZ": 0.17157357931137085,
    "hipH": 0.8705429434776306,
    "tris": {
-    "LOD0_body": 27640,
+    "LOD0_body": 27576,
     "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_hair": 5352,
     "LOD0_shoes": 2812,
-    "LOD2_hair": 1604
+    "LOD2_hair": 1605
    },
    "atlas": [
     1024,
@@ -1235,11 +1238,11 @@
   {
    "id": "jogger_m",
    "file": "jogger_m.glb",
-   "height": 1.7350413352251053,
+   "height": 1.7374773770570755,
    "minZ": 0.1808660477399826,
    "hipH": 1.0922675132751465,
    "tris": {
-    "LOD0_body": 27014,
+    "LOD0_body": 26980,
     "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
@@ -1276,17 +1279,18 @@
   {
    "id": "office_blouse_f",
    "file": "office_blouse_f.glb",
-   "height": 1.6606891974806786,
-   "minZ": 0.012000001966953278,
-   "hipH": 0.9469528794288635,
+   "height": 1.4190036952495575,
+   "minZ": 0.17041471600532532,
+   "hipH": 0.8664271831512451,
    "tris": {
-    "LOD0_body": 33726,
+    "LOD0_body": 29620,
     "LOD1_body": 6999,
     "LOD2_body": 1699,
     "LOD0_hair": 8474,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
+    "LOD0_shoes": 3024,
     "LOD2_hair": 2542
    },
    "atlas": [
@@ -1298,7 +1302,7 @@
    "brows": "eyebrow003",
    "lashes": "eyelashes03",
    "eyes": "brown",
-   "shoes": null,
+   "shoes": "heels_black",
    "heels": true,
    "hairColor": "#1c130e",
    "tone": "olive",
@@ -1318,18 +1322,19 @@
   {
    "id": "office_pants_f",
    "file": "office_pants_f.glb",
-   "height": 1.7391124591231346,
-   "minZ": 0.012000001966953278,
-   "hipH": 0.9927535653114319,
+   "height": 1.4825546145439148,
+   "minZ": 0.176302969455719,
+   "hipH": 0.9074605703353882,
    "tris": {
-    "LOD0_body": 35556,
+    "LOD0_body": 31432,
     "LOD1_body": 7000,
-    "LOD2_body": 1699,
+    "LOD2_body": 1700,
     "LOD0_hair": 5518,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD2_hair": 1655
+    "LOD0_shoes": 3008,
+    "LOD2_hair": 1654
    },
    "atlas": [
     1024,
@@ -1340,7 +1345,7 @@
    "brows": "eyebrow007",
    "lashes": "eyelashes04",
    "eyes": "brown",
-   "shoes": null,
+   "shoes": "heels_wine",
    "heels": true,
    "hairColor": "#100b09",
    "tone": "dark",
@@ -1360,17 +1365,17 @@
   {
    "id": "office_shirt_m",
    "file": "office_shirt_m.glb",
-   "height": 1.4973796010017395,
-   "minZ": 0.14169436693191528,
+   "height": 1.4993042200803757,
+   "minZ": 0.1425296813249588,
    "hipH": 0.9086472392082214,
    "tris": {
-    "LOD0_body": 31170,
+    "LOD0_body": 31490,
     "LOD1_body": 6999,
     "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2620,
+    "LOD0_shoes": 3104,
     "LOD0_hair": 3344
    },
    "atlas": [
@@ -1402,17 +1407,17 @@
   {
    "id": "office_suit_m",
    "file": "office_suit_m.glb",
-   "height": 1.7169163972139359,
-   "minZ": 0.17082683742046356,
+   "height": 1.7210534512996674,
+   "minZ": 0.17201879620552063,
    "hipH": 1.077101707458496,
    "tris": {
-    "LOD0_body": 41056,
-    "LOD1_body": 7000,
-    "LOD2_body": 1700,
+    "LOD0_body": 41918,
+    "LOD1_body": 6998,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_shoes": 2540,
+    "LOD0_shoes": 3072,
     "LOD0_hair": 3678
    },
    "atlas": [
@@ -1444,19 +1449,19 @@
   {
    "id": "police_f",
    "file": "police_f.glb",
-   "height": 1.4778843224048615,
-   "minZ": 0.1750992238521576,
+   "height": 1.4896396845579147,
+   "minZ": 0.17565985023975372,
    "hipH": 0.9022284150123596,
    "tris": {
-    "LOD0_body": 29728,
+    "LOD0_body": 30096,
     "LOD1_body": 6999,
-    "LOD2_body": 1699,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 3076,
+    "LOD0_hair": 2838,
     "LOD0_shoes": 4056,
-    "LOD2_hair": 921
+    "LOD2_hair": 850
    },
    "atlas": [
     1024,
@@ -1487,13 +1492,13 @@
   {
    "id": "police_m",
    "file": "police_m.glb",
-   "height": 1.683594211935997,
-   "minZ": 0.1662544161081314,
+   "height": 1.685302495956421,
+   "minZ": 0.16727685928344727,
    "hipH": 1.0437021255493164,
    "tris": {
-    "LOD0_body": 31772,
+    "LOD0_body": 31756,
     "LOD1_body": 7000,
-    "LOD2_body": 1697,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -1528,13 +1533,13 @@
   {
    "id": "street_cap_m",
    "file": "street_cap_m.glb",
-   "height": 1.5952573418617249,
-   "minZ": 0.15832966566085815,
+   "height": 1.5944676101207733,
+   "minZ": 0.15939059853553772,
    "hipH": 0.9794578552246094,
    "tris": {
-    "LOD0_body": 32092,
-    "LOD1_body": 6999,
-    "LOD2_body": 1698,
+    "LOD0_body": 32158,
+    "LOD1_body": 7000,
+    "LOD2_body": 1697,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
@@ -1570,12 +1575,12 @@
   {
    "id": "street_tank_f",
    "file": "street_tank_f.glb",
-   "height": 1.4193875342607498,
-   "minZ": 0.16762928664684296,
+   "height": 1.4172423630952835,
+   "minZ": 0.16803447902202606,
    "hipH": 0.8614218831062317,
    "tris": {
     "LOD0_body": 28402,
-    "LOD1_body": 6999,
+    "LOD1_body": 7000,
     "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
@@ -1613,19 +1618,19 @@
   {
    "id": "tourist_couple_f",
    "file": "tourist_couple_f.glb",
-   "height": 1.2304730862379074,
-   "minZ": 0.15255410969257355,
+   "height": 1.2350649386644363,
+   "minZ": 0.15347425639629364,
    "hipH": 0.7462268471717834,
    "tris": {
-    "LOD0_body": 30412,
+    "LOD0_body": 30932,
     "LOD1_body": 7000,
-    "LOD2_body": 1700,
+    "LOD2_body": 1699,
     "LOD0_hair": 8474,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_shoes": 2848,
-    "LOD2_hair": 2541
+    "LOD2_hair": 2542
    },
    "atlas": [
     1024,
@@ -1656,17 +1661,17 @@
   {
    "id": "tourist_print_m",
    "file": "tourist_print_m.glb",
-   "height": 1.7343988323700614,
+   "height": 1.7441954517853446,
    "minZ": 9.487848728895187e-09,
    "hipH": 0.9688284397125244,
    "tris": {
-    "LOD0_body": 35990,
+    "LOD0_body": 35740,
     "LOD1_body": 6999,
-    "LOD2_body": 1698,
+    "LOD2_body": 1700,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
-    "LOD0_hair": 576
+    "LOD0_hair": 674
    },
    "atlas": [
     1024,
@@ -1698,19 +1703,19 @@
   {
    "id": "waiter_f",
    "file": "waiter_f.glb",
-   "height": 1.4149592369794846,
-   "minZ": 0.1665312796831131,
+   "height": 1.4144209325313568,
+   "minZ": 0.16706958413124084,
    "hipH": 0.8580814599990845,
    "tris": {
-    "LOD0_body": 31502,
-    "LOD1_body": 6999,
-    "LOD2_body": 1700,
+    "LOD0_body": 31862,
+    "LOD1_body": 7000,
+    "LOD2_body": 1699,
     "LOD0_brows": 192,
     "LOD0_lashes": 368,
     "LOD0_eyes": 172,
     "LOD0_hair": 5352,
-    "LOD0_shoes": 2356,
-    "LOD2_hair": 1604
+    "LOD0_shoes": 3012,
+    "LOD2_hair": 1605
    },
    "atlas": [
     2048,

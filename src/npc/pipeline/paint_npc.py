@@ -27,7 +27,7 @@ WOVEN = {"camp", "guayabera", "dress_shirt", "rolled_shirt", "blouse", "chef", "
 TONES = {"fair": (1.06, 1.0, 0.97), "light": (1.0, 0.97, 0.92), "olive": (0.93, 0.86, 0.73), "tan": (0.86, 0.75, 0.6),
          "brown": (0.86, 0.76, 0.66), "deep": (0.84, 0.77, 0.71), "dark": (0.74, 0.68, 0.64)}
 SHOE_COL = {"sneaker_white": "#ecebe6", "sneaker_gray": "#9a9ca0", "sneaker_black": "#1e1e20", "sneaker_gold": "#18181a", "dress_black": "#141414",
-            "dress_brown": "#6b4026", "boots_black": "#1c1a18", "boots_tan": "#8a6440", "heels_black": "#101012", "heels_nude": "#c9a283", "flipflops": "#2a3442", "sandals": "#8a6a46"}
+            "dress_brown": "#6b4026", "boots_black": "#1c1a18", "boots_tan": "#8a6440", "heels_black": "#101012", "heels_nude": "#c9a283", "heels_wine": "#141414", "flipflops": "#2a3442", "sandals": "#8a6a46"}
 
 def hexlin(h):
     h = h.lstrip("#"); c = np.array([int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)], dtype=np.float32)
@@ -769,7 +769,7 @@ def paint(spec, d, mhd, out):
         fab = g.get("fabric") or "jersey"
         slot = "outer" if nm["layer"] == "outer" else "top" if (t in TOP_T or part == "bodice") else "bottom" if (t in BOTTOM_T or t in ("mini_skirt", "pencil_skirt") or part == "skirt") else "hat" if part in ("crown", "brim") else "shoe" if part in ("sole", "heel", "strap", "pump") else "fixed"
         if fab == "denim" and not g.get("undyed"): slot = "fixed"
-        if part in ("sole", "heel", "strap", "pump"): fab = "patent" if t.startswith("heels") and t == "heels_black" else "leather" if part != "sole" else "rubber"
+        if part in ("sole", "heel", "strap", "pump"): fab = "patent" if t.startswith("heels") else "leather" if part != "sole" else "rubber"
         Pt = Paint(F, col, fab, slot, seed=i * 7 + 1)
         if part in ("crown", "brim"): paint_hat(Pt, g, L, F, part)
         elif t in TOP_T or part == "bodice": paint_top(Pt, t if part != "bodice" else t + "_top", g, L, F, TOPS_TUCK(g))

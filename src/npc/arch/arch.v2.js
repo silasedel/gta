@@ -90,6 +90,64 @@ export async function initV2(game) {
   game.updaters?.push?.((dt) => {
     for (const h of staged) { try { h.character.update(dt, { speed: h.speed || 0, grounded: true, lookAt: h.lookAt }); } catch (e) { console.warn('[npc] staged', e); staged.delete(h); } }
   });
+  // ---- promenade strollers: Ocean Drive's beach-side walk is busy from morning to night (couples, joggers, tourists)
+  // Archetype people walking the promenade both ways at their own pace, spawned only while the player is near.
+  const strollers = []; let promPath = null, promT = 0;
+  function buildPromenade() {   // both sidewalks of Ocean Drive (beach side and hotel side)
+    const nav = game.peds?._nav; if (!nav?.sidewalkNear) return null;
+    const paths = [];
+    for (const x0 of [3448, 3418]) {
+      const pts = [];
+      for (let z = -700; z <= 380; z += 16) { const q = nav.sidewalkNear({ x: x0, z }, 10); if (q && Math.abs(q.x - x0) < 14 && (!pts.length || Math.hypot(q.x - pts[pts.length - 1].x, q.z - pts[pts.length - 1].z) > 6)) pts.push({ x: q.x, z: q.z }); }
+      if (pts.length > 10) paths.push(pts);
+    }
+    return paths.length ? paths : null;
+  }
+  const nearIndex = (P, pp, lo, hi) => { const c = []; P.forEach((q, i) => { const d = Math.hypot(q.x - pp.x, q.z - pp.z); if (d > lo && d < hi && i < P.length - 1) c.push(i); }); return c.length ? c[(Math.random() * c.length) | 0] : -1; };
+  function promUpdate(dt) {
+    promT -= dt;
+    const pp = game.player?.position; if (!pp) return;
+    const h = (((game.timeOfDay ?? 14) % 24) + 24) % 24;
+    const near = pp.x > 3250 && pp.x < 3650 && pp.z > -800 && pp.z < 480 && !game.interiors?.current;
+    const want = near && h > 7.5 && h < 23.5 ? Math.round(30 * (h > 16 && h < 21 ? 1 : 0.6)) : 0;
+    if (promT <= 0) {
+      promT = 1.2;
+      if (want && !promPath) promPath = buildPromenade();
+      if (promPath && strollers.length < want) {
+        const ids = archetypesForSync('beach', idx).concat(archetypesForSync('tourist', idx), archetypesForSync('street', idx)).filter((a) => getBase(a.id));
+        if (ids.length) {
+          const a = ids[(Math.random() * ids.length) | 0];
+          const c = createNpc(game, { archetype: a.id, seed: (seedN++) * 7919, vary: 0.9 });
+          if (c) {
+            // start at a path point not too close to the player, out of the way of the camera
+            const P = promPath[(Math.random() * promPath.length) | 0];
+            let i = nearIndex(P, pp, 10, 95); if (i < 0) i = (Math.random() * (P.length - 1)) | 0;
+            const s = { c, P, i, f: Math.random(), dir: Math.random() < 0.5 ? 1 : -1, lat: (Math.random() - 0.5) * 3.2, v: 0.95 + Math.random() * 0.5, gy: 0 };
+            game.scene.add(c.root); track(c); strollers.push(s);
+          }
+        }
+      }
+      while (strollers.length > want) { const s = strollers.pop(); game.scene.remove(s.c.root); s.c.dispose(); }
+    }
+    for (const s of strollers) {
+      const P = s.P;
+      // people who walked far off come back around near the player (the stretch on screen stays busy)
+      if (Math.hypot(P[s.i].x - pp.x, P[s.i].z - pp.z) > 140) { const j = nearIndex(P, pp, 60, 110); if (j >= 0) { s.i = j; s.f = 0; } }
+      let a = P[s.i], b = P[s.i + s.dir];
+      if (!b) { s.dir = -s.dir; s.lat = -s.lat; b = P[s.i + s.dir]; if (!b) continue; }
+      const L = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+      s.f += (s.v * dt) / L;
+      if (s.f >= 1) { s.f -= 1; s.i += s.dir; a = P[s.i]; b = P[s.i + s.dir]; if (!b) { s.dir = -s.dir; s.lat = -s.lat; b = P[s.i + s.dir]; } if (!b) continue; }
+      const dx = (b.x - a.x) / L, dz = (b.z - a.z) / L;
+      const x = a.x + (b.x - a.x) * s.f - dz * s.lat, z = a.z + (b.z - a.z) * s.f + dx * s.lat;
+      if (!s.gyT || (s.gyT -= dt) <= 0) { s.gyT = 0.5; try { s.gy = game.city?.groundHeightAt?.(x, z) ?? s.gy; } catch (e) { /* */ } }
+      s.c.root.position.set(x, s.gy, z);
+      const hd = Math.atan2(dx, dz); s.c.root.rotation.y += Math.atan2(Math.sin(hd - s.c.root.rotation.y), Math.cos(hd - s.c.root.rotation.y)) * Math.min(1, dt * 6);
+      s.c.update(dt, { speed: s.v, grounded: true, lookAt: Math.hypot(x - pp.x, z - pp.z) < 8 ? pp : null });
+    }
+  }
+  game.updaters?.push?.((dt) => { try { promUpdate(Math.min(dt, 0.1)); } catch (e) { console.warn('[npc] promenade', e); } });
+
   game.npc = {
     createPed, spawnPosed,
     /** like spawnPosed, but loads the archetype first (resolves to the handle, or null) */
@@ -99,6 +157,6 @@ export async function initV2(game) {
     archetypes: (place) => (place ? archetypesForSync(place, idx) : idx.archetypes).map((a) => ({ id: a.id, gender: a.gender, years: a.years, place: a.place, poses: a.poses, loaded: !!getBase(a.id) })),
     poses: () => { const b = loadedBases()[0]; return b ? Object.keys(b.clips) : []; },
     places: () => Object.keys(PLACE_TAGS),
-    stats: () => ({ total: idx.archetypes.length, loaded: loadedBases().length, queued: queue.length, staged: staged.size, active: Object.fromEntries(active) }),
+    stats: () => ({ total: idx.archetypes.length, loaded: loadedBases().length, queued: queue.length, staged: staged.size, strollers: strollers.length, active: Object.fromEntries(active) }),
   };
 }

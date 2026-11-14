@@ -144,7 +144,7 @@ export function makeBodyMaterial(base) {
   m.normalScale.set(1, 1);
   const U = {
     uMicro: { value: microAtlas() }, uFab: { value: fabricTexture() }, uSkinTint: { value: new THREE.Color(1, 1, 1) }, uHairTint: { value: new THREE.Color(1, 1, 1) },
-    uSlot: { value: [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector4(0, 1, 0, 0)) }, uMicroK: { value: 1 },
+    uSlot: { value: [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector4(0, 1, 0, 0)) }, uMicroK: { value: 0.6 },
   };
   m.userData.u = U;
   m.onBeforeCompile = (sh) => {
@@ -155,7 +155,9 @@ export function makeBodyMaterial(base) {
       'vec3 irradiance = dotNL * directLight.color;',
       `float wrapK = 0.5 * gSkin; float nlRaw = dot( geometryNormal, directLight.direction );
        float nlW = saturate( ( nlRaw + wrapK ) / ( 1.0 + wrapK ) );
-       vec3 irradiance = ( dotNL + max( 0.0, nlW - dotNL ) * vec3( 1.0, 0.42, 0.28 ) * 1.4 * gSkin ) * directLight.color;`));
+       vec3 irradiance = ( dotNL + max( 0.0, nlW - dotNL ) * vec3( 1.0, 0.42, 0.28 ) * 1.4 * gSkin ) * directLight.color;`)
+      .replace('reflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material );',
+        'reflectedLight.directSpecular += irradiance * min( BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material ), vec3( 0.6 ) );'));
     f = f.replace('#include <map_fragment>', `#include <map_fragment>
       vec4 nmT = texture2D( normalMap, vNormalMapUv );
       ivec2 tsz = textureSize( map, 0 ); float codeB = floor( texelFetch( map, clamp( ivec2( vMapUv * vec2( tsz ) ), ivec2( 0 ), tsz - 1 ), 0 ).a * 255.0 + 0.5 ); float fabI = mod( codeB, 32.0 ); float slotI = floor( codeB / 32.0 );
@@ -167,7 +169,7 @@ export function makeBodyMaterial(base) {
       vec4 sv = si == 1 ? uSlot[1] : si == 2 ? uSlot[2] : si == 3 ? uSlot[3] : si == 4 ? uSlot[4] : si == 5 ? uSlot[5] : uSlot[0];
       if ( slotI > 0.5 && ( abs( sv.x ) > 0.001 || abs( sv.y - 1.0 ) > 0.001 ) ) diffuseColor.rgb = hueShift( diffuseColor.rgb, sv.x, sv.y );`);
     f = f.replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-      roughnessFactor = fabA.x;`);
+      roughnessFactor = fabB.x > 0.5 ? fabA.x : max( fabA.x, 0.5 );`);
     f = f.replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
       metalnessFactor = fabB.x;`);
     f = f.replace('vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;', `
