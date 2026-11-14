@@ -635,6 +635,83 @@ export async function createPeds(game) {
     const qs = game.quality?.current?.pedScale ?? 1;
     return Math.round(Math.min(base, cap) * qs);
   }
+  // ---- personal space (playtest: people clipped through each other and the player)
+  // Within SEP_R of the player, people on foot keep at least SEP_MIN apart (spatial hash, 2 m cells) and stay out
+  // of the player's body. Positions are nudged before the wall check, so the KCC still resolves walls afterward.
+  const SEP_R = 30;
+  const SEP_MIN = 0.62;
+  const SEP_PLAYER = 0.72;
+  const sepCells = new Map();
+  const sepList = [];
+  const SEP_SKIP = new Set(['swim', 'off', 'bench', 'sunbathe', 'convo', 'talk']);
+  function separate(pp, inCar) {
+    sepCells.clear();
+    sepList.length = 0;
+    for (const ped of list) {
+      if (!ped.active || ped.dead || ped.rag || SEP_SKIP.has(ped.state)) {
+        continue;
+      }
+      if (Math.abs(ped.pos.x - pp.x) > SEP_R || Math.abs(ped.pos.z - pp.z) > SEP_R) {
+        continue;
+      }
+      const k = (Math.floor(ped.pos.x / 2) * 73856093) ^ (Math.floor(ped.pos.z / 2) * 19349663);
+      let c = sepCells.get(k);
+      if (!c) {
+        c = [];
+        sepCells.set(k, c);
+      }
+      c.push(ped);
+      sepList.push(ped);
+    }
+    for (const a of sepList) {
+      const cx = Math.floor(a.pos.x / 2);
+      const cz = Math.floor(a.pos.z / 2);
+      for (let ix = cx - 1; ix <= cx + 1; ix++) {
+        for (let iz = cz - 1; iz <= cz + 1; iz++) {
+          const c = sepCells.get((ix * 73856093) ^ (iz * 19349663));
+          if (!c) {
+            continue;
+          }
+          for (const b of c) {
+            if (b.id <= a.id) {
+              continue;
+            }
+            const dx = b.pos.x - a.pos.x;
+            const dz = b.pos.z - a.pos.z;
+            const d2 = dx * dx + dz * dz;
+            if (d2 >= SEP_MIN * SEP_MIN) {
+              continue;
+            }
+            const d = Math.sqrt(d2) || 0.001;
+            const push = (SEP_MIN - d) * 0.5;
+            const nx = d2 > 1e-8 ? dx / d : Math.cos(a.id);
+            const nz = d2 > 1e-8 ? dz / d : Math.sin(a.id);
+            // people standing together (in a conversation group) give way less than walkers
+            const wa = NONMOVING.has(a.state) ? 0.3 : 1;
+            const wb = NONMOVING.has(b.state) ? 0.3 : 1;
+            const ws = wa + wb;
+            a.pos.x -= nx * push * 2 * (wa / ws);
+            a.pos.z -= nz * push * 2 * (wa / ws);
+            b.pos.x += nx * push * 2 * (wb / ws);
+            b.pos.z += nz * push * 2 * (wb / ws);
+          }
+        }
+      }
+      // the player on foot is solid to people
+      if (!inCar) {
+        const dx = a.pos.x - pp.x;
+        const dz = a.pos.z - pp.z;
+        const d2 = dx * dx + dz * dz;
+        if (d2 < SEP_PLAYER * SEP_PLAYER) {
+          const d = Math.sqrt(d2) || 0.001;
+          const nx = d2 > 1e-8 ? dx / d : Math.cos(a.id);
+          const nz = d2 > 1e-8 ? dz / d : Math.sin(a.id);
+          a.pos.x += nx * (SEP_PLAYER - d);
+          a.pos.z += nz * (SEP_PLAYER - d);
+        }
+      }
+    }
+  }
   let frameN = 0;
   function update(dt) {
     dt = Math.min(dt, 0.1);
@@ -704,6 +781,11 @@ export async function createPeds(game) {
 
     // colliders may have been added/removed this frame (tile streaming, ragdolls): refresh the query BVH before KCC queries
     try { world.updateSceneQueries?.(); } catch (e) { /* older rapier */ }
+    try {
+      separate(pp, inCar);
+    } catch (e) {
+      // separation is cosmetic: never break the crowd
+    }
     for (const ped of list) {
       if (!ped.active) continue;
       const dpx = ped.pos.x - pp.x, dpz = ped.pos.z - pp.z;
@@ -982,7 +1064,8 @@ export async function createPeds(game) {
       // ---- collide & slide (Rapier KCC) on loaded tiles; otherwise follow the ground height
       const groundOK = collidersReady(ped.pos.x, ped.pos.z);
       let kccOk = false;
-      const kccTurn = dPlayer < 25 && ((frameN + ped.id) % 3 === 0);
+      // wall checks: every frame close to the player (no clipping where it can be seen), every third frame to 25 m
+      const kccTurn = dPlayer < 10 || (dPlayer < 25 && ((frameN + ped.id) % 3 === 0));
       if (kccTurn && kcc && ped.collider && ped.collider.isEnabled?.() !== false && ped.state !== 'swim' && ped.state !== 'wade' && !ped.teleported && groundOK) {
         try {
           const base = ped.collider.translation();

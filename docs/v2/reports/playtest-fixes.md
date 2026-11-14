@@ -172,3 +172,16 @@ The 60 fps target with no frame over 25 ms is **not verified**. This machine can
 - **World data bug, for world-layout / city-look:** at South Beach (3594-3610, 300), `city.isWater` reports water, but sand terrain is drawn over it. On screen it is a rectangular pool cut into the sand next to a sidewalk, and Nico walks across it (`swim_after_wade.jpg`). Swimming in such a spot puts him under a sand slab, which is the other half of the user's report.
 - **NPC glitching through each other, walls and the player:** not investigated. Peds only collide (Rapier KCC) within 25 m, every 3rd frame. Beyond that they follow the ground without collisions. Peds have no separation from each other.
 - **Shader warm-up fix:** `game.shaderWarm` could finish a tile twice (the 1.5 s timeout and then the compile promise). That made `pending` negative and inflated `maxWaitMs`. Each tile now finishes once.
+
+## People clipping (about 21:10, `src/npc/peds.js`)
+- **Personal space:** within 30 m of the player, people on foot keep at least 0.62 m apart. A 2 m spatial hash finds neighbors.
+  - People standing in groups give way less than people walking.
+  - People stay at least 0.72 m from the player when the player is on foot.
+  - The push happens before the wall check, so walls still win.
+  - People who are seated, sunbathing, swimming, talking or ragdolled are left alone.
+- **Wall checks:** the KCC now runs every frame within 10 m of the player, every third frame from 10 to 25 m, and not at all beyond 25 m.
+- **Check at South Beach** (a cluster of about 5 people, 32 active, 20 s at 10 Hz):
+  - 4,649 people pairs within 30 m were sampled.
+  - The closest pair was 0.58 m apart.
+  - 0 pairs were under 0.45 m, and 0 people were inside the player.
+- **Cost:** `peds.update` averaged 2.1 ms at the cluster and 1.1 ms at an empty spot. The two runs are not comparable (people near the player do more work), and the separation pass on its own was not timed.
