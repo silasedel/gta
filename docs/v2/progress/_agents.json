@@ -2,13 +2,12 @@
  "startedAt": "2026-11-13T16:42:00-07:00",
  "limit": 20,
  "running": [
-  "design-system",
   "nico-house",
-  "character",
   "keys-bar",
   "world-render",
   "vehicles-core",
-  "npc-ai"
+  "npc-ai",
+  "world-layout"
  ],
  "queued": [
   "police",
@@ -25,18 +24,19 @@
   "hero-cars",
   "city-look",
   "world-osm",
-  "world-layout",
   "keys-sign",
-  "interiors-engine"
+  "interiors-engine",
+  "design-system",
+  "character"
  ],
  "launchedTotal": 24,
- "note": "4 on Fable, 3 on Opus 5.5",
+ "note": "3 on Fable, 3 on Opus 5.5",
  "etaTotalHours": 18.3,
  "usage": {
-  "all": 59,
-  "fable": 63,
-  "cap": 82,
-  "at": "6:06 PM",
+  "all": 61,
+  "fable": 67,
+  "cap": 85,
+  "at": "6:12 PM",
   "log": [
    [
     "17:36",
@@ -62,6 +62,11 @@
     "18:06",
     59,
     63
+   ],
+   [
+    "18:12",
+    61,
+    67
    ]
   ]
  },

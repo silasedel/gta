@@ -33,7 +33,7 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - Map: follow the user's concept arrangement and printed-map style; own coastline; real Miami stays the v1 rectangle.
 - User feedback to apply everywhere: far more micro-detail (invented brand logos, decals, labels, hardware), wear, imperfection, atmosphere; nothing flat or "AI game slop".
 - Game name: user wants a GTA-sounding name; nothing chosen (keep title strings in one constant).
-- Tracker: `node tools/v2/tracker-snapshot.mjs 6` then publish_files to slug 58c78707-885c-498b-b557-54dafad71427 (base_version from the last publish; last was 1794616610-cc6a).
+- Tracker: `node tools/v2/tracker-snapshot.mjs 6` then publish_files to slug 58c78707-885c-498b-b557-54dafad71427 (base_version from the last publish; last was 1794618787-2f57 at 6:13 PM; get_artifact gives the current one).
 - An empty duplicate artifact (slug 501d327a-db16-476f-9634-7769d22f06e7) exists; delete only if the user asks.
 
 ## Update 6:08 PM
@@ -47,3 +47,4 @@ Never launched: story-jobs, audio, environment, multiplayer, desktop (v2.1).
 - New user images in references/: ref_36 (house: match exactly), ref_37 (their satellite-style map: main layout guide), ref_38 (downtown beauty shot: mood/composition target), ref_39 (their flat map without names: map STYLE guide and arrangement). Still no tracing of coast outlines; real Miami stays.
 - world-layout pass 4 requested (north extended to z ≈ −8200, real mountains in the NW, flat printed map style, no speckle islets, single soft shallow gradient). Re-run `tools/osm/.venv/bin/python tools/osm/merge.py` when it finishes.
 - Finished since 6:08: design-system (206 brands, 85 products, 79 materials; `design:ready` event), character (Nico in game; walk test only moved 0.16 m: check; animations are v1 Mixamo clips: license flag for the final report).
+- 6:13 PM usage: 61% all / 67% Fable; cap 85% all. world-layout aa7d6857ae7fa3d76 is running pass 4 (due 6:50 PM).
