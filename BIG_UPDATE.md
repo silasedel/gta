@@ -18,6 +18,9 @@ User's concept layout, with Nico's home marked by the white dot and a scale of a
 ![Map scale, about 13 km](references/ref_26.webp)
 
 ### Nico's home (top priority): a Keys stilt house on the water
+**Updated target (user, Nov 13, 6 PM): `references/ref_36_nico_house_user_design.webp` is the user's own design for the house (made with ChatGPT). Match THIS image as exactly as possible: massing, window and shutter placement, colors, weathering, deck, umbrella, string lights, lattice with bougainvillea, surfboard, bins, workbench, plants, sandy puddled drive.** The older `ref_24` stays a quality and mood reference only.
+
+![Nico's house, the user's own design](references/ref_36_nico_house_user_design.webp)
 ![Keys stilt house reference](references/ref_24.webp)
 
 ### The Keys welcome sign (top priority)
