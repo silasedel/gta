@@ -130,7 +130,7 @@ export const ANCHORS = {
     hangar: { label: 'Airfield hangar', price: 310000, rentPerWeek: 900 },
   },
   hotelNight: { motel: 79, budget: 119, mid: 199, boutique: 329, luxury: 640, suite: 1850 },
-  businesses: { car_wash: 185000, garage: 430000, restaurant: 660000, marina: 1950000, nightclub: 2850000 },
+  businesses: { convenience: 120000, car_wash: 185000, garage: 430000, restaurant: 660000, marina: 1950000, nightclub: 2850000 },
   clothing: { budget_tee: 12, mid_shirt: 48, designer_shirt: 420, budget_shoes: 35, running_shoes: 130, sneaker_drop: 260, luxury_shoes: 890, luxury_bag: 3400, suit_mid: 380, suit_luxury: 3200, watch_luxury: 14500 },
   services: { haircut_barber: 28, haircut_salon: 85, tattoo_small: 120, tattoo_large: 650, gym_day: 15, gym_month: 49, car_wash: 14, car_repair_minor: 180, car_repair_major: 1400, respray: 650, fuel_per_gallon: 3.45, taxi_base: 2.95, taxi_per_mile: 2.4, rideshare_per_mile: 1.55, bus_fare: 2.25, scooter_unlock: 1, scooter_per_minute: 0.39, hospital_bill: 850, bail_per_star: 450, impound_fee: 180, impound_per_day: 35, bribe_one_star: 400 },
   fines: { parking: 45, littering: 100, red_light: 158, speeding_base: 129, speeding_per_mph: 11, reckless: 500, no_insurance: 150, dui: 1000, late_fee: 0.25 },

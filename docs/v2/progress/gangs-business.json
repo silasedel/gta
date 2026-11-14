@@ -1,0 +1,31 @@
+{
+  "track": "gangs-business",
+  "title": "Money, gangs, businesses, side jobs (v2.1)",
+  "section": "Systems",
+  "agent": "done",
+  "items": [
+    { "name": "Money wired in game: cash vs bank, earn/spend (systems.v2.js)", "state": "verified", "evidence": "docs/v2/shots/gangs-business/club_owned_income.png" },
+    { "name": "Save and reload: money, businesses, upgrades, turf, rep, clock, position", "state": "verified", "evidence": "docs/v2/reports/gangs-business.md" },
+    { "name": "3 gangs with names, colors, clothing kits, home districts, cars, behavior", "state": "verified", "evidence": "docs/v2/shots/gangs-business/corner_crew.png" },
+    { "name": "Territories on real corners, crews hanging out", "state": "verified", "evidence": "docs/v2/shots/gangs-business/corner_crew.png" },
+    { "name": "Pause-map turf and business layer", "state": "verified", "evidence": "docs/v2/shots/gangs-business/pause_map_turf.png" },
+    { "name": "Turf fight: clear the corner, 3 waves, hold, corner becomes yours", "state": "verified", "evidence": "docs/v2/shots/gangs-business/turf_fight_wave3.png" },
+    { "name": "Rep per gang (kills, taken corners, rivals)", "state": "verified", "evidence": "docs/v2/reports/gangs-business.md" },
+    { "name": "Rival street brawls", "state": "built", "evidence": "" },
+    { "name": "Passive turf income stash, collect with E", "state": "built", "evidence": "pot accrued in test; collect not pressed" },
+    { "name": "Drive-bys and corner raids in retaliation", "state": "built", "evidence": "" },
+    { "name": "Buy a business at a real storefront (nightclub verified)", "state": "verified", "evidence": "docs/v2/shots/gangs-business/club_for_sale.png" },
+    { "name": "Business income over time, collect the safe", "state": "verified", "evidence": "docs/v2/shots/gangs-business/club_owned_income.png" },
+    { "name": "Upgrades (staff/security/decor tiers), management panel", "state": "verified", "evidence": "docs/v2/shots/gangs-business/club_owned_income.png" },
+    { "name": "Robbery you defend", "state": "verified", "evidence": "docs/v2/shots/gangs-business/club_robbery.png" },
+    { "name": "Inspections and supply runs", "state": "built", "evidence": "" },
+    { "name": "Car wash and convenience store sites", "state": "built", "evidence": "placed; not bought in test" },
+    { "name": "game.club.open for club music", "state": "verified", "evidence": "club.open true at 2:30 AM in test" },
+    { "name": "Job board (K)", "state": "built", "evidence": "docs/v2/shots/gangs-business/job_board.png" },
+    { "name": "Parcel run", "state": "verified", "evidence": "completed, paid in test" },
+    { "name": "Debt collection (pay / run / fight)", "state": "verified", "evidence": "completed, paid in test" },
+    { "name": "Protect a shop", "state": "built", "evidence": "docs/v2/shots/gangs-business/job_protect_wave.png (wave 1 spawned; finish not seen)" },
+    { "name": "Bar, boat rental, tow yard businesses", "state": "todo", "evidence": "cut for budget" },
+    { "name": "Getaway, repo, smuggling jobs; gangs 4-5", "state": "todo", "evidence": "cut for budget" }
+  ]
+}

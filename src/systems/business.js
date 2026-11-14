@@ -19,10 +19,29 @@ export const BUSINESS_TYPES = {
   marina: { name: 'Marina', hours: 'marina', customers: 5, ticket: 96, cogs: 0.36, fixedDaily: 1250, capPerStaff: 2.2, serving: ['dockhand'], roles: { dockhand: 15, fuel_attendant: 15, mechanic: 28, harbormaster: 33 },
     cashShare: 0.2, curve: (h) => 0.4 + bump(h, 9, 1.8) + 0.9 * bump(h, 16.5, 1.8), weekend: 1.9, pull: (d) => 0.5 + 0.7 * d.income + 0.3 * d.tourist,
     upgrades: { fuel_dock: { name: 'Second fuel dock', cost: 120000, capacity: 0.4, ticket: 0.1 }, dry_stack: { name: 'Dry-stack storage', cost: 310000, demand: 0.35, ticket: 0.15 }, rentals: { name: 'Boat and jet ski rentals', cost: 165000, ticket: 0.3, demand: 0.2 }, security: { name: 'Gate, cameras and night watch', cost: 42000, security: 0.35 }, office: { name: 'Harbor office (daily bank deposits)', cost: 20000, autoDeposit: true } } },
+  convenience: { name: 'Convenience store', hours: 'convenience', customers: 22, ticket: 11, cogs: 0.55, fixedDaily: 210, capPerStaff: 14, serving: ['cashier'], roles: { cashier: 13, stocker: 12, manager: 22 },
+    cashShare: 0.6, curve: (h) => 0.3 + 0.7 * bump(h, 8, 1.5) + bump(h, 18, 2.5) + 0.4 * bump(h, 23, 1.5), weekend: 1.1, pull: (d) => 0.7 + 0.2 * d.tourist + 0.3 * d.nightlife,
+    upgrades: {} },
   nightclub: { name: 'Nightclub', hours: 'nightclub', customers: 62, ticket: 58, cogs: 0.22, fixedDaily: 2300, capPerStaff: 11, serving: ['bartender'], roles: { bartender: 12, bouncer: 22, dj: 60, server: 10, manager: 36 },
     cashShare: 0.55, curve: (h) => { const x = h < 8 ? h + 24 : h; return 0.2 + 1.2 * bump(x, 25, 1.7); }, weekend: 1.7, pull: (d) => 0.35 + 0.3 * d.income + 0.5 * d.nightlife + 0.3 * d.tourist,
     upgrades: { sound: { name: 'Sound and lighting rig', cost: 190000, demand: 0.3 }, vip: { name: 'VIP tables and bottle service', cost: 240000, ticket: 0.45 }, second_bar: { name: 'Second bar', cost: 95000, capacity: 0.5 }, security: { name: 'Door scanners and cameras', cost: 60000, security: 0.3 }, office: { name: 'Back office (daily bank deposits)', cost: 25000, autoDeposit: true } } },
 };
+
+// v2.1: every business also has three upgrade lines in two tiers (tier 2 needs tier 1): staff, security, decor.
+const TIERS = {
+  staff_1: { line: 'staff', tier: 1, name: 'Extra shift crew', costK: 0.06, capacity: 0.35 },
+  staff_2: { line: 'staff', tier: 2, name: 'Trained full-time team', costK: 0.12, capacity: 0.4, ticket: 0.08 },
+  security_1: { line: 'security', tier: 1, name: 'Cameras and alarm', costK: 0.04, security: 0.25 },
+  security_2: { line: 'security', tier: 2, name: 'Armed guard on nights', costK: 0.09, security: 0.3 },
+  decor_1: { line: 'decor', tier: 1, name: 'Fresh paint and signage', costK: 0.05, demand: 0.15 },
+  decor_2: { line: 'decor', tier: 2, name: 'Full remodel', costK: 0.11, demand: 0.2, ticket: 0.12 },
+};
+for (const [typeKey, T] of Object.entries(BUSINESS_TYPES)) {
+  for (const [k, u] of Object.entries(TIERS)) {
+    const base = ANCHORS.businesses[typeKey] || 200000;
+    T.upgrades[k] = { ...u, cost: Math.round(base * u.costK / 500) * 500 };
+  }
+}
 const FIRST = ['Alma', 'Benny', 'Carmen', 'Dario', 'Estela', 'Felix', 'Gloria', 'Hector', 'Ines', 'Joaquin', 'Keisha', 'Lazaro', 'Marisol', 'Nestor', 'Odalys', 'Pavel', 'Quinn', 'Rosa', 'Sandro', 'Tamika', 'Ulises', 'Vivian', 'Wendell', 'Ximena', 'Yusuf', 'Zoila', 'Andre', 'Bianca', 'Cedric', 'Dalia', 'Emilio', 'Farah', 'Gus', 'Hattie', 'Ivan', 'Jolene'];
 const LAST = ['Abreu', 'Baptiste', 'Calloway', 'Delgado', 'Estrada', 'Fontaine', 'Gallo', 'Herrera', 'Ibarra', 'Joseph', 'Kowalski', 'Lima', 'Montoya', 'Nunez', 'Okafor', 'Pruitt', 'Quintana', 'Rivas', 'Simmons', 'Toussaint', 'Urbina', 'Valdes', 'Whitaker', 'Xu', 'Ybarra', 'Zamora', 'Acosta', 'Brennan', 'Cruz', 'Dupree'];
 const TRAITS = ['punctual', 'charming', 'hard_worker', 'lazy', 'sticky_fingers', 'hothead', 'loyal', 'ambitious'];
@@ -126,15 +145,24 @@ export function createBusiness(sys) {
   B.setWage = (id, staffId, hourly) => { const s = biz(id)?.staff.find((x) => x.id === staffId); if (!s) return false; s.wage = clamp(Math.round(num(hourly) * 4) / 4, 7.25, 400); return true; };
   B.setPrice = (id, level) => { const b = biz(id); if (!b) return false; b.priceLevel = clamp(num(level, 1), 0.6, 1.6); return true; };
   B.setHours = (id, schedule) => { const b = biz(id); if (!b) return false; b.hoursOverride = schedule || null; return true; };
+  // tiered upgrades scale with what you paid for the place; the older fixed upgrades keep their own cost
+  B.upgradeCost = (id, key) => {
+    const b = biz(id);
+    const u = b && BUSINESS_TYPES[b.type].upgrades[key];
+    if (!u) return 0;
+    return u.costK ? Math.round(b.price * u.costK / 250) * 250 : u.cost;
+  };
   B.upgrade = (id, key) => {
     const b = biz(id); const u = b && BUSINESS_TYPES[b.type].upgrades[key];
     if (!u) return { ok: false, reason: 'no_upgrade' };
     if (b.upgrades[key]) return { ok: false, reason: 'already_built' };
-    const pay = sys.wallet.pay(u.cost, { to: 'Contractor', category: 'business', memo: `${b.name}: ${u.name}`, accepts: ['bank', 'cash'] });
-    if (!pay.ok) return { ok: false, reason: pay.reason, cost: u.cost };
+    if (u.tier === 2 && !b.upgrades[u.line + '_1']) return { ok: false, reason: 'needs_tier_1' };
+    const cost = B.upgradeCost(id, key);
+    const pay = sys.wallet.pay(cost, { to: 'Contractor', category: 'business', memo: `${b.name}: ${u.name}`, accepts: ['bank', 'cash'] });
+    if (!pay.ok) return { ok: false, reason: pay.reason, cost };
     b.upgrades[key] = Math.floor(now() / DAY) + 1;
-    emit('businessUpgraded', { id, key, cost: u.cost });
-    return { ok: true, cost: u.cost };
+    emit('businessUpgraded', { id, key, cost });
+    return { ok: true, cost };
   };
   const up = (b, field) => Object.keys(b.upgrades).reduce((s, k) => s + (BUSINESS_TYPES[b.type].upgrades[k]?.[field] || 0), 0);
   const hasUp = (b, field) => Object.keys(b.upgrades).some((k) => BUSINESS_TYPES[b.type].upgrades[k]?.[field]);
@@ -152,12 +180,13 @@ export function createBusiness(sys) {
   // ---------------------------------------------------------------- one simulated hour (the hour that just ended)
   function hour(b, ev) {
     const T = BUSINESS_TYPES[b.type], t = ev.now - 30, hourIdx = Math.round(ev.now / 60);
+    b.stock = clamp((b.stock ?? 1) - 0.012);
     const row = b.today;
     row.fixed += T.fixedDaily / 24; let cost = T.fixedDaily / 24, revenue = 0;
     if (isOpen(b, t)) {
       const d = district(b), h = ((t % DAY) + DAY) % DAY / 60, wd = (ev.weekday + (ev.hour < 0.5 ? 6 : 0)) % 7, weekend = wd === 0 || wd === 6 || (wd === 5 && h >= 17);
       const charm = b.staff.filter((s) => s.trait === 'charming').length * 0.02;
-      const demand = T.customers * T.curve(h) * (weekend ? T.weekend : 1) * T.pull(d) * (0.4 + 1.2 * b.reputation) * Math.pow(b.priceLevel, -1.6) * (1 + up(b, 'demand') + charm) * (0.85 + 0.3 * hash01('bz', b.id, hourIdx));
+      const demand = T.customers * T.curve(h) * (weekend ? T.weekend : 1) * T.pull(d) * (0.4 + 1.2 * b.reputation) * Math.pow(b.priceLevel, -1.6) * (1 + up(b, 'demand') + charm) * (0.55 + 0.45 * (b.stock ?? 1)) * (0.85 + 0.3 * hash01('bz', b.id, hourIdx));
       const cap = capacity(b), served = Math.min(demand, cap);
       revenue = served * T.ticket * b.priceLevel * (1 + up(b, 'ticket'));
       const wages = b.staff.reduce((s, p) => s + p.wage, 0), cogs = revenue * T.cogs;
@@ -221,8 +250,18 @@ export function createBusiness(sys) {
     }
   };
   B.dayTick = (ev) => { for (const b of [...S.owned]) day(b, ev); };
+  B.security = (id) => { const b = biz(id); return b ? security(b) : 0; };
+  B.restock = (id) => { const b = biz(id); if (!b) return false; b.stock = 1; return true; };
   B.raid = {
     pending: (id) => biz(id)?.raid || null,
+    // start a raid now (gameplay events): the player has `windowMinutes` game minutes to get there
+    start(id, opts = {}) {
+      const b = biz(id); if (!b || b.raid) return null;
+      const t = now();
+      b.raid = { at: t, deadline: t + (opts.windowMinutes ?? 90), attackers: opts.attackers ?? 4, strength: opts.strength ?? 0.5, warned: true, started: true };
+      emit('businessRaid', { id: b.id, deadline: b.raid.deadline, attackers: b.raid.attackers, strength: b.raid.strength, name: b.name });
+      return b.raid;
+    },
     resolve(id, res = {}) {
       const b = biz(id); if (!b || !b.raid) return null;
       const r = b.raid; b.raid = null; b.lastRaidDay = Math.floor(now() / DAY) + 1;
