@@ -11,6 +11,9 @@ import { pumpBakes, bakesPending } from './kit/bake.js';
 import { GLOBAL } from './kit/atlas.js';
 import { setDesign, getProduct } from './items/catalog.js';
 import { rng, hashStr, clamp } from './kit/util.js';
+import { probeJob, probePlaceholder } from './kit/probe.js';
+import { setProbePlaceholder } from './kit/materials.js';
+import { surfaceTextures } from './kit/surfaces.js';
 
 const ACTIVE_R = 70, DISPOSE_R = 140, MAX_ACTIVE = 3, CACHE = 2, WALL_T = 0.25, GF_H = 4.2, BUILD_MS = 4;
 export const isOpenAt = (h, hrs) => { const [o, c] = hrs; if (c - o >= 24) return true; return o < c ? h >= o && h < c : h >= o || h < c; };
@@ -21,6 +24,7 @@ export function createEngine(game, opts = {}) {
   const pool = createLightPool(scene, opts.poolLights ?? 4), hooks = { people: null, interact: null }, tmp = new THREE.Vector3();
   let current = null, pending = null, fitter = opts.fitter || null, ingN = 0, ingSrc = null, pollT = 0, scanT = 0, nearList = [], upMax = 0, buildMax = 0, clock = 0;
   try { if (game.design) setDesign(game.design); } catch (e) { /* */ }
+  try { if (game.renderer) setProbePlaceholder(probePlaceholder(game.renderer, 256)); } catch (e) { console.warn('[interiors] probe placeholder', e); }
 
   // ---------------------------------------------------------------- store records
   const keyOf = (sf) => (sf.id != null ? 'id' + sf.id : `${Math.round(sf.x * 10)},${Math.round(sf.z * 10)}`);
@@ -61,9 +65,23 @@ export function createEngine(game, opts = {}) {
     b.body = body; }
   function killBody(s) { const b = s.built; if (b?.body) { dead.push(b.body); b.body = null; for (const d of b.doors) d.col = null; } }
   function flushBodies(max = 3) { for (let i = 0; i < max && dead.length; i++) { const b = dead.shift(); try { world.removeRigidBody(b); } catch (e) { console.warn('[interiors] removeRigidBody', e); } } }
-  function show(s) { const b = s.built; if (!b || b.visible || !b.ready) return; b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); } }
+  // generate the store's surface textures in idle time before it is built (the build would otherwise draw them in one slice)
+  function prewarm(s) { s.warmQ = true; const p = s.profile, w = { wear: p.wear }, list = [];
+    const add = (spec, extra) => { if (Array.isArray(spec) && typeof spec[0] === 'string') list.push([spec[0], { ...(spec[1] || {}), ...extra }]); };
+    add(p.floor, w); add(p.wall?.surf, w); add(p.wall?.wainscot?.surf, w); try { for (const it of s.def.prewarm?.(p) || []) list.push(it); } catch (e) { /* */ }
+    const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 30)); const step = () => { const it = list.shift(); if (!it || s.built) return; try { surfaceTextures(it[0], it[1]); } catch (e) { /* unknown surface: the build reports it */ } idle(step, { timeout: 400 }); }; idle(step, { timeout: 400 }); }
+  // compile the interior's shaders in the background (KHR_parallel_shader_compile) before it is first drawn: no stall on show
+  let compileRT = null; // the game draws the scene into the post composer's HDR target: compile for that (tone mapping / color space are part of the program key)
+  function precompile(b) { const r = game.renderer; b.compiled = true; if (!r?.compileAsync || !game.camera || opts.noPrecompile) return; b.compiled = false; const g = b.group, v = g.visible, prevT = r.getRenderTarget(); let p = null;
+    const viaPost = !!(game.post?.composer || opts.compileToTarget); if (viaPost && !compileRT) compileRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType });
+    try { g.visible = true; r.setRenderTarget(viaPost ? compileRT : null); p = r.compileAsync(g, game.camera, scene); } catch (e) { b.compiled = true; } finally { r.setRenderTarget(prevT); g.visible = v; }
+    if (p) { const done = () => { b.compiled = true; }; p.then(done, done); setTimeout(done, 6000); }
+    // and upload its textures a few milliseconds per frame (first use would otherwise upload them all in one frame)
+    const tex = new Set(); g.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'alphaMap']) { const t = m[k] || m.uniforms?.[k]?.value; if (t && t.isTexture && !t.isRenderTargetTexture) tex.add(t); } }); b.texQ = [...tex]; }
+  function uploadTick(b, ms = 3) { const r = game.renderer, q = b.texQ; if (!q || !r?.initTexture) { b.texQ = null; return; } const t0 = performance.now(); while (q.length && performance.now() - t0 < ms) { try { r.initTexture(q.shift()); } catch (e) { /* */ } } if (!q.length) b.texQ = null; }
+  function show(s) { const b = s.built; if (!b || b.visible || !b.ready || b.compiled === false) return; if (b.texQ) { uploadTick(b); if (b.texQ) return; } b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); } }
   function hide(s) { const b = s.built; if (!b || !b.visible) return; b.visible = false; b.group.visible = false; killBody(s); try { hooks.people?.release(s); } catch (e) { /* */ } }
-  function dispose(s) { const b = s.built; if (!b) return; hide(s); try { hooks.interact?.forget(s); } catch (e) { /* */ } disposeBuilt(b); s.built = null; }
+  function dispose(s) { const b = s.built; if (!b) return; if (probeBusy === s) probeBusy = null; hide(s); try { hooks.interact?.forget(s); } catch (e) { /* */ } disposeBuilt(b); s.built = null; }
 
   // ---------------------------------------------------------------- frame update
   function levelsFor(s, hour) { const open = s.open, lightsOn = s.state.lights !== false; return [lightsOn ? (open ? 1 : 0.06) : 0, 1]; }
@@ -75,8 +93,9 @@ export function createEngine(game, opts = {}) {
     scanT -= dt; if (scanT <= 0) { scanT = 0.25; nearList = list.filter((s) => Math.abs(s.center.x - pp.x) < DISPOSE_R + 30 && Math.abs(s.center.z - pp.z) < DISPOSE_R + 30); }
     for (const s of nearList) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z); nearList.sort((a, b) => a.dist - b.dist);
     const wanted = []; for (const s of nearList) { if (s.dist > ACTIVE_R || wanted.length >= MAX_ACTIVE) break; if (!s.failed) wanted.push(s); }
+    for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
     for (const s of wanted) { if (!s.built) { if (!pending && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
-    if (pending) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
+    if (pending) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
     let hidden = 0;
     for (const s of list) { const b = s.built; if (!b) continue; if (!nearList.includes(s)) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z);
@@ -91,6 +110,7 @@ export function createEngine(game, opts = {}) {
     for (const s of nearList) { const b = s.built; if (!b || !b.visible) continue;
       const open = isOpenAt(hour, s.hours) && !(s.state.robbedUntil > (game.day ?? 0) * 24 + hour); if (open !== s.open) { s.open = open; try { game.emit?.('store-open', { store: s, open }); } catch (e) { /* */ } }
       const lv = levelsFor(s, hour); b.levels[0] += clamp(lv[0] - b.levels[0], -dt * 2.5, dt * 2.5); b.levels[1] = lv[1]; b.M.setLevels(b.levels[0], b.levels[1], 1);
+      if (b.ready && b.probe && s.dist < 45) probeTick(s, b);
       if (b.ctx.shaftMat) { const k = sky.day * 0.085; b.ctx.shaftMat.color.setRGB(k, k * 0.95, k * 0.82); }
       if (b.spill) { const k = sky.night * (0.25 + 0.75 * b.levels[0]) * 0.5; const c = s.profile.spillC || [1, 0.92, 0.78]; b.spill.material.color.setRGB(c[0] * k, c[1] * k, c[2] * k); b.spill.visible = k > 0.01; }
       // doors: player + people near the store, in store-local coordinates
@@ -103,6 +123,13 @@ export function createEngine(game, opts = {}) {
     if (lit?.built) { const l = lit.toLocal(cam.x, cam.z, {}); pool.update(dt, lit, { x: l.x, y: (cam.y ?? pp.y + 1.6) - lit.baseY, z: l.z }, lit.built.levels[0], lit.built.levels[1]); } else pool.update(dt, null, tmp, 0, 0);
     try { hooks.interact?.update(dt, inside, hour); } catch (e) { console.error('[interiors] interact', e); }
   }
+  // reflection probe (kit/probe.js): captured once the bake is applied and the interior is shown, again when its light levels move a lot
+  function probeTick(s, b) { const p = b.probe, lv = b.levels[0] * 0.6 + b.levels[1] * 0.4; if (!game.renderer) return;
+    if (!p.job) { if (p.rt && Math.abs(lv - p.lv) < 0.2) return; if (probeBusy && probeBusy !== s) return; probeBusy = s; p.lv = lv; p.t0 = 0; p.size = 256; // must match the placeholder size (kit/probe.js)
+      p.job = probeJob(game.renderer, s, b, p.box, p.at, p); }
+    const t0 = performance.now(); try { const r = p.job.next(); const dt = performance.now() - t0; p.t0 += dt; p.slice = Math.max(p.slice || 0, dt); (p.steps ||= []).push([r.value === undefined ? 'end' : String(r.value), Math.round(dt)]); if (p.steps.length > 40) p.steps.shift(); if (r.done) { p.rt?.dispose(); p.rt = r.value; p.job = null; p.ms = Math.round(p.t0); probeBusy = null; } }
+    catch (e) { console.warn('[interiors] probe', e); b.probe = null; probeBusy = null; } }
+  let probeBusy = null;
   // ---------------------------------------------------------------- persistence (core-systems save hooks)
   const saveState = () => { const o = {}; for (const [k, v] of state) if (v.taken.size || !v.dvr || v.robbedUntil > 0 || v.banned) o[k] = { ...v, taken: [...v.taken] }; return o; };
   const loadState = (o) => { for (const k of Object.keys(o || {})) { const v = o[k]; state.set(k, { dvr: true, lights: true, robbedUntil: -1, banned: false, ...v, taken: new Set(v.taken || []) }); const s = byKey.get(k); if (s) { s.state = state.get(k); if (s.built) dispose(s); } } };

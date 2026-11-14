@@ -8,6 +8,10 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createEngine } from './engine.js';
 import { createInteraction } from './interact.js';
 import { storeTypes } from './registry.js';
@@ -20,10 +24,10 @@ const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(
 const sun = new THREE.DirectionalLight(0xfff0d8, night ? 0.05 : 2.4); sun.position.set(-40, 80, 60); scene.add(sun, new THREE.HemisphereLight(0xcfe6ff, 0x806a50, night ? 0.06 : 0.8));
 const camera = new THREE.PerspectiveCamera(Number(q.get('fov') || 62), innerWidth / innerHeight, 0.05, 800), world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
 const sizes = [[11, 13], [9, 11], [14, 15], [8.5, 12], [10, 10], [12, 14]], lots = [];
-for (let i = 0; i < n; i++) { const [w, d] = q.get('w') ? [Number(q.get('w')), Number(q.get('d') || 12)] : sizes[i % sizes.length]; lots.push({ id: 100 + i, kind: 'convenience', storeType: type, variant: i, x: i * 26, z: 0, y: 0, w, d, h: 4.2, facing: 0, buildingId: 500 + i, doorX: [0, 1.5, -2, 0.8, 0, -1][i % 6] * (q.get('w') ? 0 : 1), doorW: 1.9 }); }
+for (let i = 0; i < n; i++) { const [w, d] = q.get('w') ? [Number(q.get('w')), Number(q.get('d') || 12)] : sizes[i % sizes.length]; lots.push({ id: 100 + i, kind: 'convenience', storeType: type, variant: (Number(q.get('v') || 0) + i) % 64, standout: i === 0 ? q.get('standout') || undefined : undefined, x: i * 26, z: 0, y: 0, w, d, h: 4.2, facing: 0, buildingId: 500 + i, doorX: [0, 1.5, -2, 0.8, 0, -1][i % 6] * (q.get('w') ? 0 : 1), doorW: 1.9 }); }
 // street: asphalt, sidewalk, plain building shells (side, back, roof; the street wall is left open like the city's shop shells)
 const mat = (c, r = 0.9) => new THREE.MeshStandardMaterial({ color: c, roughness: r }); const add = (m, x, y, z, sx, sy, sz) => { const o = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m); o.position.set(x, y, z); scene.add(o); return o; };
-add(mat(0x3a3a3c), n * 13, -0.06, 40, n * 26 + 120, 0.1, 60); add(mat(0x9a968e), n * 13, -0.03, 6, n * 26 + 120, 0.1, 14);
+add(mat(0x3a3a3c), n * 13, -0.06, 40, n * 26 + 120, 0.1, 60); add(mat(0x9a968e), n * 13, -0.055, 6, n * 26 + 120, 0.1, 14); // top just under the interior floor (FLOOR_Y 0.02): no z-fighting
 for (const s of lots) { const c = [0xe8d8c0, 0xd9c6b0, 0xcfd6d0, 0xe6cfa8, 0xd8e0d8, 0xcfc8d8][s.variant % 6], m = mat(c), T2 = 0.3; add(m, s.x, 3.5, s.z - s.d / 2 - T2 / 2, s.w + 2 * T2, 7, T2); for (const sx of [-1, 1]) add(m, s.x + sx * (s.w / 2 + T2 / 2), 3.5, s.z, T2, 7, s.d); add(m, s.x, 5.6, s.z + s.d / 2 - 0.12, s.w + 2 * T2, 2.8, 0.24); add(mat(0x8a8a86), s.x, 7.05, s.z, s.w + 2 * T2, 0.1, s.d + T2); }
 world.createCollider(RAPIER.ColliderDesc.cuboid(2000, 0.1, 400).setTranslation(0, -0.1, 0));
 const keys = new Set(), just = new Set(); addEventListener('keydown', (e) => { if (!keys.has(e.code)) just.add(e.code); keys.add(e.code); }); addEventListener('keyup', (e) => keys.delete(e.code));
@@ -31,18 +35,21 @@ const si = Number(q.get('store') || 0), s0 = lots[si];
 const player = { position: new THREE.Vector3(s0.x, 0, s0.z + s0.d / 2 + 6), heading: Math.PI, state: { inVehicle: false }, money: 200, bank: 1500, health: 80 };
 const ev = {}, log = []; const game = { THREE, RAPIER, renderer, scene, camera, world, timeOfDay: T, day: 1, player, updaters: [], fixedHooks: [], input: { pressed: (c) => just.has(c), down: (c) => keys.has(c) }, hud: { notify: (t) => { log.push(t); console.log('[notify]', t); }, help: (t) => { window.helpText = t; } }, city: { storefronts: lots }, on: (k, f) => ((ev[k] ||= []).push(f), f), emit: (k, d) => { log.push('emit:' + k); (window.events ||= []).push([k, d && { ...d, store: d.store?.name, position: undefined }]); for (const f of ev[k] || []) f(d); return true; } };
 window.game = game; window.log = log;
-const engine = createEngine(game, { standalone: true }); engine.hooks.interact = createInteraction(game, engine); game.interiorsV2 = engine; game.interiors = engine; window.engine = engine;
+const engine = createEngine(game, { standalone: true, compileToTarget: !!q.get('post') }); engine.hooks.interact = createInteraction(game, engine); game.interiorsV2 = engine; game.interiors = engine; window.engine = engine;
 const controls = new OrbitControls(camera, renderer.domElement), v = (k, d) => (q.get(k) || d).split(',').map(Number), view = q.get('view') || 'eye';
 const presets = { eye: [`${s0.x + (s0.doorX ? -s0.doorX : 0)},1.65,${s0.d / 2 - 1.2}`, `${s0.x - 0.6},1.25,${-s0.d / 2}`], top: [`${s0.x + 0.01},${Math.max(s0.w, s0.d) * 1.05},${s0.z + 2}`, `${s0.x},0,${s0.z}`], street: [`${s0.x + 3},1.7,${s0.d / 2 + 9}`, `${s0.x},1.8,${s0.d / 2}`] }[view];
 camera.position.set(...v('cam', presets[0])); controls.target.set(...v('look', presets[1])); controls.update();
 if (view === 'top' || q.get('cut')) { renderer.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), Number(q.get('cut') || 2.55))]; }
 const info = document.getElementById('i'); if (q.get('hud') === '0') info.style.display = 'none';
+// ?post=1: the game's post chain in short (HDR target, bloom, ACES output); ?bloom=strength,radius,threshold
+let composer = null; if (q.get('post')) { const [bs, br, bt] = (q.get('bloom') || '0.45,0.55,0.75').split(',').map(Number); composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType })); composer.addPass(new RenderPass(scene, camera)); composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), bs, br, bt)); composer.addPass(new OutputPass()); }
+window.renderer = renderer; window.scene = scene; window.camera = camera;
 let last = performance.now(), worst = 0, frames = 0; window.frameMax = 0; window.ready = false;
 window.tp = (x, z, h = 0) => { player.position.set(x, 0, z); player.heading = h; };
 function loop() {
   const now = performance.now(), ms = now - last, dt = Math.min(0.05, ms / 1000); last = now; if (frames++ > 30) { worst = Math.max(worst, ms); window.frameMax = Math.max(window.frameMax, ms); }
   if (q.get('pt') !== 'free') player.position.set(camera.position.x, 0, camera.position.z);
-  engine.update(dt); world.step(); just.clear(); renderer.render(scene, camera);
+  engine.update(dt); world.step(); just.clear(); renderer.info.autoReset = false; renderer.info.reset(); if (composer) composer.render(); else renderer.render(scene, camera); window.drawCalls = renderer.info.render.calls; window.tris = renderer.info.render.triangles;
   const st = engine.stats(), built = engine.list.filter((s) => s.built);
   window.ready = built.length > 0 && built.every((s) => s.built.ready) && !engine.pending() && engine.list.filter((s) => s.dist < 80).every((s) => s.built || s.failed);
   info.textContent = `calls ${renderer.info.render.calls} tris ${(renderer.info.render.triangles / 1000).toFixed(0)}k geo ${renderer.info.memory.geometries} tex ${renderer.info.memory.textures} frameMax ${window.frameMax.toFixed(0)}ms upd ${st.updMaxMs} slice ${st.buildSliceMaxMs}\n` + built.map((s) => `${s.name} ${s.W.toFixed(1)}x${s.D.toFixed(1)} v${s.profile.variant} verts ${s.built.verts} lights ${s.built.lights} items ${s.built.items.slots.length} build ${s.built.prof.total}ms bake ${s.built.prof.bake || '…'}ms`).join('\n') + `\n${window.helpText || ''}`;

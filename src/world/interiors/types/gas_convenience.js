@@ -23,7 +23,7 @@ registerStoreType({
   type: 'gas-convenience', label: 'Convenience store', kinds: ['convenience', 'fuel', 'gas', 'kiosk'], minSize: { w: 6.5, d: 7 }, variants: VARIANTS.length,
   profile(base, { design, R }) {
     const v = VARIANTS[base.variant]; let brand = null; try { brand = design?.pickBrand?.(base.seed, { category: 'fuel', storefront: true }) || null; } catch (e) { brand = null; }
-    return { v, name: brand?.name || v.name, brand, tier: v.tier, wear: clamp(v.wear + R.jit(0.1), 0, 1), accent: v.pal[0], secondary: v.pal[2], lamp: v.lamp, floor: v.floor, ceil: v.ceil, open24: !!v.open24, hours: v.hours || [0, 24], flip: R.chance(0.5), bounce: v.tier === 'luxury' ? 0.38 : 0.5,
+    return { v, name: brand?.name || v.name, brand, tier: v.tier, wear: clamp(v.wear + R.jit(0.1), 0, 1), accent: v.pal[0], secondary: v.pal[2], lamp: v.lamp, floor: [v.floor[0], { ...(v.floor[1] || {}), probe: v.floor[0] === 'concrete' ? 0.35 : v.floor[0] === 'wood' ? 0.4 : 0.6 }], ceil: v.ceil, open24: !!v.open24, hours: v.hours || [0, 24], flip: R.chance(0.5), bounce: v.tier === 'luxury' ? 0.38 : 0.5,
       wall: { surf: ['paint', { c: v.tier === 'luxury' ? [226, 220, 206] : [232, 226, 210] }], wainscot: v.wain ? { h: 1.0, surf: v.wain } : null, base: '#3a3d42', band: v.band ? { y: 2.25, h: 0.14, c: v.band } : null },
       facade: { style: v.facade }, lore: { story: `${v.name} has been on this corner since ${base.since}. ${base.owner} runs the day shift and knows every regular's lottery numbers.` } };
   },
@@ -114,6 +114,8 @@ registerStoreType({
     handTruck(ctx, K.cx + R.jit(0.5), K.z1 - 0.5, R() * 3); mopBucket(ctx, K.x0 + 0.5, K.z1 - 0.45, R() * 3); lockers(ctx, K.x1 - 0.55, K.z0 + 0.02, 0, 2); breakerPanel(ctx, K.x0 + 0.02, 1.5, K.cz, Math.PI / 2); stack(ctx, 'cayo-12', K.cx, y0, K.cz + 0.2, 2, 2, 5, { fill: 0.5 });
     { const sp = P.spans(O, 'back', 1.2)[0] || P.spans(O, null, 1.2)[0]; if (sp) { const at = P.onFace(sp.face, (sp.a + sp.b) / 2, 0); officeDesk(ctx, at.x, at.z, at.ry, { w: Math.min(1.3, sp.len - 0.1) }); } safe(ctx, O.x1 - 0.4, O.z1 - 0.4, Math.PI); const n = prints.notice('nocash'); G.plane(n.mat, O.cx, 1.6, O.z1 - 0.07, 0.26, 0.2, { ry: Math.PI, uvRect: n.rect }); }
     { const sp = P.spans(WC, 'back', 1)[0]; if (sp) { const at = P.onFace(sp.face, (sp.a + sp.b) / 2, 0); restroom(ctx, at.x, at.z, at.ry, { w: Math.min(1.6, sp.len) }); } }
+    // waxed floor: the sales floor reflects its own lights and coolers (interior art kit, kit/probe.js)
+    ctx.probe = { box: { x0: S.x0, x1: S.x1, z0: S.z0, z1: S.z1, y0: 0, y1: S.ceilY }, at: { x: 0, y: 1.5, z: S.cz }, size: 256 };
   },
   staff(ctx) { return [{ role: 'clerk', post: 'post', routine: ['ring', 'restock-cooler', 'sweep', 'break'] }, { role: 'stocker', routine: ['restock', 'restock-cooler', 'mop'], chance: 0.6 }]; },
   behaviors: { customers: ['browse', 'cooler', 'coffee', 'hotfood', 'lotto', 'queue', 'pay', 'leave'], regulars: ['lotto'] },

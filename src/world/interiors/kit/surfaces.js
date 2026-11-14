@@ -88,7 +88,7 @@ export function surfaceTextures(name, o = {}) {
   const def = SURFACES[name]; if (!def) throw new Error('unknown surface ' + name);
   const wear = Math.round(clamp(o.wear ?? 0.3) * 2) / 2, key = `${name}|${col3(o.c)}|${col3(o.c2)}|${col3(o.c3)}|${wear}`;
   let t = TEX.get(key); if (t) return t;
-  const S = o.size || 256, A = cv(S), H = cv(S), G = cv(S), R = rng(key);
+  const S = o.size || def.size || 256, A = cv(S), H = cv(S), G = cv(S), R = rng(key);
   def.draw(A.getContext('2d'), H.getContext('2d'), G.getContext('2d'), S, R, { ...o, wear });
   const mk = (c, srgb) => { const x = new THREE.CanvasTexture(c); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
   t = { map: mk(A, true), normalMap: mk(normalMap(H, S, def.bump || 2.2), false), roughnessMap: mk(G, false), m: def.m, rough: def.rough ?? 1, metal: def.metal || 0 };

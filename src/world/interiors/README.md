@@ -94,9 +94,35 @@ door locks outside `profile.hours`), opening hours, wall clocks on game time, ta
 receipt canvas in `game.emit('purchase')`), shoplifting on exit (`game.emit('crime', { type: 'shoplift' })` and
 `game.emit('evidence', { kind: 'witness' | 'camera', ... })`), a destroyable camera recorder (`dvr`, `game.emit('evidence-destroyed')`).
 
+## Interior art kit (venues: clubs, bars, restaurants, cafes)
+The quality bar is `references/ref_52_club_interior_quality_bar.webp`. Everything below is procedural and original (no real brands).
+| Module | What it gives you |
+|---|---|
+| `kit/venueSurfaces.js` | extra surfaces for `M.surf`: `stoneTile` (large-format polished stone, grout, roughness variation), `marble` (veined), `velvet` (channel tufted), `tufted` (diamond buttons), `fluted`, `plaster`, `walnut`, `brass` |
+| `kit/probe.js` | reflection probe: `ctx.probe = { box, at, size }` in `fixtures()` makes the engine capture the room once (one cube face per frame, PMREM) and give it, box-projected, to every material made with `{ probe: k }` (floors, marble, metals, mirrors, bottles) |
+| `kit/bottles.js` | `new BottleField(ctx)`: `add(x, y, z, ry, o)`, `row(x0, x1, y, z, o)`, then `build()` at the end of `fixtures()`. 8 shapes, 40 invented brands in one label atlas, 2 draw calls per shape, baked light per bottle, liquid glow (`o.glow`) for lit shelves |
+| `kit/neon.js` | `neonSign(ctx, x, y, z, ry, { lines, icon: 'palm'|'cocktail'|'star'|'wave'|'moon', font: 'script'|'casual'|'block'|'deco'|'serif', color, h })`: additive tube look on the accent circuit, throws baked light |
+| `kit/fx.js` | `discoBall()` (mirror ball + moving spots on the surfaces you list), `hazeCone()` (light shafts, `up` for uplights), `flame()` (per-candle flicker) |
+| `fixtures/venue.js` | `venuePalette venueMats barCounter backBar stool banquette sofa armchair cocktailTable candleLantern glassware stanchions pottedPalm venueSconce pillar flutedWall hostBar cofferedCeiling entryPortal speakerStack artFrame artPrint` |
+| `fixtures/dining.js` | `diningTable diningChair tableSetting boothPair espressoMachine pastryCase menuBoard beerTaps tvScreen ceilingFan wallShelf plantPot kitchenPass woodBeams hangingBulbs poolTable` |
+| `fixtures/fashion.js` | `garmentRack wallBay foldTable mannequin fittingRooms sneakerWall` |
+| `venuePeople.js` | `engine.hooks.people`: stores that set `ctx.store.venue = { kind, busy }` get staff and guests from `game.peds`, posed at their POIs (`bartend`, `dj`, `door`, `sit`, `stool`, `dance`, `lean`, `serve`, `host`, `counter`, `queue`) |
+
+Store types built on it: `types/nightclub.js` (standout: Velvet Undertow, storefront 39), `types/bar.js` (bar/pub), `types/restaurant.js`
+(restaurant, fast_food as a diner), `types/cafe.js` (cafe, coffee, bakery), `types/lobby.js` (hotel, motel, guest house),
+`types/boutique.js` (clothes, boutique, fashion, shoes, bags).
+Rules of thumb that make a room read like the reference: light comes from fixtures you can see (coves, shelf edges, under-glow, sconces,
+candles, neon) on the accent circuit, the main circuit only for downlights; dark materials with a probe-reflective floor; one strong
+color accent plus one counter color; a focal wall (neon + feature panel + glowing counter) on the axis you enter on; haze cones under a
+few downlights. Keep real lights at the pooled four (engine), everything else is baked.
+Streaming cost of a venue (engine.js): its surfaces are generated in idle callbacks once it is within 160 m (`def.prewarm(profile)` adds
+type-specific ones), its shaders are compiled with `compileAsync` against the post composer's target and its textures uploaded a few ms
+per frame before it is first shown, and the probe is captured one face per frame into a placeholder of the same size (no recompile).
+`?noart` keeps the legacy interiors for the kit's categories (before/after captures).
+Preview with bloom like the game at night: `preview.html?type=nightclub&n=1&w=9&d=10&t=23&standout=velvet-undertow&post=1&exp=1.9`.
+
 ## Not finished (do not rely on it yet)
-- **Staff and customers:** `staff()`, `behaviors` and `ctx.poi` are recorded but no people module spawns anyone yet (planned `people.js`,
-  hooked at `engine.hooks.people = { update(store, dt, hour, sky), release(store) }`, actors listed in `built.people`).
+- **Staff and customers:** only venues (`store.venue`) get people (`venuePeople.js`); shops still record `staff()` / `ctx.poi` only.
 - Stairs, elevators and upper floors; a stuck-spot walker; music per venue; openable drawers/cabinets other than cooler doors.
 - First build of a type draws its textures and labels on the main thread (one-time slices over 25 ms).
 - Only `gas-convenience` exists as a V2 type; Cuban cafe and sneaker boutique are not built.

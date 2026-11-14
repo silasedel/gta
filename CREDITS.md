@@ -787,10 +787,6 @@ Epidemic Sound, licensed by the project owner, local build only. These files are
 - "Club Song 10 - Dark:EDM.mp3" (Dark, Edm; 128 BPM, F major) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_10_dark_edm.mp3
 - "Club Song 11 - Hard:Dubstep.mp3" (Hard, Dubstep; 127 BPM, A minor) — Epidemic Sound, licensed by the project owner, local build only → music/club_licensed/club_song_11_hard_dubstep.mp3
 
-## Interior art kit (interiors-art, src/world/interiors/kit, fixtures/venue.js, fixtures/dining.js, types/nightclub|bar|restaurant|cafe.js)
-No third-party assets. Every surface (polished stone tile, marble, velvet, tufting, fluting, plaster, walnut, brass), the bottle
-shapes and their label atlas (40 invented brands), neon signs (club names and icons), menus, art prints, palm fronds and effects are
-generated in code. Neon and menu lettering use typefaces referenced by name from the operating system (no font files are distributed).
 
 ## Front end: title screen, menus, settings, wardrobe, arrival intros (main-menu track)
 - Title screen, key-art stills (`public/assets/ui/keyart_*.webp`), loading screen and arrival intros are rendered from the game itself (our own scenes, our own graded frames). No outside images.
@@ -803,3 +799,8 @@ generated in code. Neon and menu lettering use typefaces referenced by name from
 - **MakeHuman system asset pack** (CC0, files.makehumancommunity.org): skin photo textures (repainted per archetype: tone, scalp, fades, beards, make-up), eyes, eyebrows, eyelashes, hair card meshes and textures (short01-04, afro01, bob01/02, braid01, long01, ponytail01; the bun is ours, built from ponytail01), shoes01-04 meshes (recolored; sock parts trimmed).
 - Garments, hats, heels, sandals, short fade hair shells, the hair strand texture, every atlas (seams, stitching, folds, denim fades, prints, insignia), micro-normal tiles and all shaders: original procedural work (`src/npc/pipeline/*.py`, `src/npc/arch/materials.js`). No real brands; police insignia and work-wear text are invented.
 - Animation: all NPC clips are original and procedural (`src/npc/arch/anim.js` gait generator, idles, poses, dances, bar and kitchen work) plus the project's own procedural action clips (`src/player/proceduralClips.js`). Archetype people no longer use the Mixamo-derived idle/walk/run clips.
+
+## Interior art kit (interiors-art: src/world/interiors/kit, fixtures/venue.js, dining.js, fashion.js, types/nightclub|bar|restaurant|cafe|lobby|boutique.js)
+No third-party assets. Every surface (polished stone tile, marble, velvet, tufting, fluting, plaster, walnut, brass), the bottle shapes
+and their label atlas (40 invented brands), neon signs (club names and icons), menus, art prints, garments, palm fronds and effects are
+generated in code. Neon, menu and logo lettering use typefaces referenced by name from the operating system (no font files are distributed).

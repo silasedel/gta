@@ -15,7 +15,7 @@ export function buildShell(ctx) {
     G.plane(fl, r.cx, y, r.cz, r.w, r.d, { rx: -Math.PI / 2, step: 0.25 });
     const ct = r.ceil?.type || profile.ceil.type, ch = r.y0 + (ct === 'open' ? plan.H : r.h);
     const cs = r.ceil?.surf || (ct === 'drop' ? ['dropTile', { c: [228 - Math.round(wear * 4) * 4, 224 - Math.round(wear * 4) * 6, 214 - Math.round(wear * 4) * 11] }] : ct === 'tin' ? ['tin', { c: profile.ceil.c }] : ct === 'open' ? ['deck', { c: profile.ceil.c || [28, 28, 30] }] : ['paint', { c: profile.ceil.c || [232, 230, 224] }]);
-    G.plane(S(M, cs, { wear }), r.cx, ch, r.cz, r.w, r.d, { rx: Math.PI / 2, step: 0.6 });
+    if (ct !== 'none') G.plane(S(M, cs, { wear }), r.cx, ch, r.cz, r.w, r.d, { rx: Math.PI / 2, step: 0.6 }); // 'none': the store type builds its own (coffers, vaults)
     r.ceilY = ch; r.ceilType = ct;
     if (ct === 'open') { // exposed structure: bar joists, a spiral duct run with diffusers, conduit
       const dark = M.flat(profile.ceil.c || [30, 30, 32], { rough: 0.8, metal: 0.3 });

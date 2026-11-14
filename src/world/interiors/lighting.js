@@ -14,6 +14,9 @@ const lens = (lamp) => (LAMPS[lamp] || LAMPS.neutral)[1];
 function reg(ctx, L) { const p = ctx.G.local(L.p[0], L.p[1], L.p[2]); const e = ctx.G.cur.elements; let d = L.d; if (d) { d = [e[0] * d[0] + e[4] * d[1] + e[8] * d[2], e[1] * d[0] + e[5] * d[1] + e[9] * d[2], e[2] * d[0] + e[6] * d[1] + e[10] * d[2]]; }
   const out = { ...L, p: [p.x, p.y, p.z], d }; ctx.lights.push(out); if (!L.noPool) ctx.fixtureLights.push({ x: p.x, y: p.y, z: p.z, c: L.c, ch: L.ch || 0, w: Math.max(L.c[0], L.c[1], L.c[2]) * (L.type === 'omni' ? 2 : 1) }); return out; }
 
+// register a baked light in the current G frame: { p, c (linear rgb), ch, type: 'omni'|'area'|'spot', d, cone, soft, wrap, amb, noPool }
+export const addLight = (ctx, L) => reg(ctx, L);
+export { lampC, lens };
 export const FIXTURES = {
   // 2 x 4 ft lay-in troffer for drop ceilings. o: { lamp, k, dead (0 | 1 = one tube out | 2 = dark), w, l, ry }
   troffer(ctx, x, y, z, o = {}) { const { G, M } = ctx, w = o.w || 0.6, l = o.l || 1.21, k = (o.k ?? 9) * (o.dead === 1 ? 0.55 : o.dead === 2 ? 0 : o.dead === 3 ? 0.4 : 1);
@@ -42,7 +45,7 @@ export const FIXTURES = {
     else if (sh === 'cone') G.lathe(sm, [[r, 0], [r * 0.6, r * 0.6], [0.035, r * 1.1]], x, by, z, { seg: 14 });
     else if (sh === 'drum') { G.cyl(M.surf('fabric', { c: o.c || [226, 214, 190], side: THREE.DoubleSide, uvw: 0.3 }), x, by + r * 0.5, z, r, r, { seg: 18, open: true }); }
     else if (sh === 'cage') { for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; G.cyl(sm, x + Math.cos(a) * r * 0.55, by + r * 0.5, z + Math.sin(a) * r * 0.55, 0.004, r * 1.1, { seg: 4 }); } G.cyl(sm, x, by, z, r * 0.56, 0.008, { seg: 12, open: true }); G.cyl(sm, x, by + r * 1.05, z, r * 0.56, 0.008, { seg: 12 }); }
-    const glowing = sh === 'globe' || sh === 'schoolhouse'; if (glowing) { G.sphere(M.glow(lens(o.lamp || 'warm'), 1.7, 0), x, by + r * 0.6, z, r * 0.78, { seg: 12, sy: sh === 'schoolhouse' ? 0.85 : 1 }); G.cyl(sm, x, by + r * 1.25, z, r * 0.3, r * 0.2, { seg: 10 }); }
+    const glowing = sh === 'globe' || sh === 'schoolhouse'; if (glowing) { G.sphere(M.glow(lens(o.lamp || 'warm'), o.glow ?? 1.7, 0), x, by + r * 0.6, z, r * 0.78, { seg: 12, sy: sh === 'schoolhouse' ? 0.85 : 1 }); G.cyl(sm, x, by + r * 1.25, z, r * 0.3, r * 0.2, { seg: 10 }); }
     else G.sphere(M.glow(lens(o.lamp || 'warm'), 3, 0), x, by + r * 0.32, z, 0.032, { seg: 8 });
     G.push(new THREE.Matrix4()); if (glowing || sh === 'cage') reg(ctx, { p: [x, by + r * 0.5, z], c: lampC(o.lamp || 'warm', (o.k ?? 5) * 0.7), ch: 0, type: 'omni', soft: 0.25 }); else reg(ctx, { p: [x, by + 0.02, z], c: lampC(o.lamp || 'warm', o.k ?? 5), ch: 0, type: 'spot', d: [0, -1, 0], cone: sh === 'cone' ? 0.3 : 0.12, soft: 0.25, amb: 1.2 }); G.pop(); },
   // bare bulb on a cord or porcelain socket (stock rooms, closets)
@@ -97,7 +100,7 @@ export function createLightPool(scene, n = 4) {
   const tmp = new THREE.Vector3();
   function update(dt, store, camLocal, levelMain, levelAccent) {
     const fl = store?.built?.fixtureLights; let want = [];
-    if (fl && fl.length) { for (const f of fl) { const lv = f.ch === 0 ? levelMain : f.ch === 1 ? levelAccent : 1; f.s = f.w * lv / (1.5 + (f.x - camLocal.x) ** 2 + (f.y - camLocal.y) ** 2 * 0.3 + (f.z - camLocal.z) ** 2); } want = fl.filter((f) => f.s > 0.02).sort((a, b) => b.s - a.s).slice(0, n); }
+    if (fl && fl.length) { for (const f of fl) { const lv = f.ch === 0 ? levelMain : f.ch === 1 ? levelAccent : 1; f.s = f.w * lv / (1.5 + (f.x - camLocal.x) ** 2 + (f.y - camLocal.y) ** 2 * 0.3 + (f.z - camLocal.z) ** 2); } want = fl.filter((f) => f.s > 0.02 && f.y > 0.7).sort((a, b) => b.s - a.s).slice(0, n); } // never a real light hugging the floor (hot spots on polished floors)
     for (const l of lights) { const f = l.userData.slot; if (f && want.includes(f) && l.userData.store === store) { l.userData.target = 1; want.splice(want.indexOf(f), 1); } else l.userData.target = 0; }
     for (const l of lights) { if (l.userData.target === 0 && l.intensity <= 0.001 && want.length) { const f = want.shift(); l.userData.slot = f; l.userData.store = store; l.userData.target = 1; store.toWorld(f.x, f.z, tmp); l.position.set(tmp.x, store.baseY + f.y - 0.15, tmp.z); const m = Math.max(f.c[0], f.c[1], f.c[2]) || 1; l.color.setRGB(f.c[0] / m, f.c[1] / m, f.c[2] / m); l.userData.power = Math.min(14, m * 1.6 + 2); l.distance = 10; }
       const f = l.userData.slot, lv = !f ? 0 : f.ch === 0 ? levelMain : f.ch === 1 ? levelAccent : 1, goal = l.userData.target ? (l.userData.power || 0) * lv : 0; l.intensity += clamp(goal - l.intensity, -dt * 40, dt * 40); if (l.intensity < 0.001) l.intensity = 0; }

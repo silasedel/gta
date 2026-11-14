@@ -1,0 +1,20 @@
+{
+  "track": "interiors-art",
+  "title": "Interior art: Velvet Undertow to the quality bar, venue art kit, interior audit",
+  "section": "Buildings and stores",
+  "agent": "done",
+  "items": [
+    { "name": "Velvet Undertow rebuilt as a V2 nightclub (standout of storefront 39): back bar with lit shelves and ~250 bottles, marble bar with teal under-glow, stools, coffered ceiling with magenta coves and downlights, mirror ball with moving spots, fluted wall with uplights, neon sign with palm, glowing host/DJ stand, velvet-rope lounge, candle lanterns, palms with uplights, entry portal and pillars, sconces, haze", "state": "verified", "evidence": "docs/v2/shots/interiors-art/club_vs_reference.jpg, final2_club.jpg, final2_club_2.jpg, final2_club_3.jpg" },
+    { "name": "Club side by side with ref_52 and with the old in-game club (ref_53); self score 6.5/10", "state": "verified", "evidence": "docs/v2/shots/interiors-art/club_before_after.jpg" },
+    { "name": "Polished stone floor reflecting the room: box-projected reflection probe, one cube face per frame, NaN-safe, same-size placeholder so the swap never recompiles", "state": "verified", "evidence": "docs/v2/shots/interiors-art/kit_preview_contact_sheet.jpg" },
+    { "name": "Procedural bottle generator: 8 shapes, 40 invented brands in one label atlas, 2 draw calls per shape, baked light per bottle, liquid glow", "state": "verified", "evidence": "docs/v2/shots/interiors-art/final2_club_2.jpg" },
+    { "name": "Neon sign generator (script, block, deco, casual, serif lettering; palm, cocktail, star, wave, moon icons)", "state": "verified", "evidence": "docs/v2/shots/interiors-art/after3_bar.jpg" },
+    { "name": "Interior art kit: venue, dining and fashion fixtures, premium surfaces, haze, candles, mirror ball (src/world/interiors/kit, fixtures/venue.js, dining.js, fashion.js)", "state": "verified", "evidence": "docs/v2/shots/interiors-art/kit_preview_contact_sheet.jpg" },
+    { "name": "Kit applied in game: bars (lounge, dive, sports, tiki), restaurants (cuban, trattoria, steak, seafood, noodle; diner for fast food), cafes (ventanita, roaster, cozy; bakeries), hotel lobbies (deco, luxury, motel), clothing and shoe stores (resort, streetwear/sneakers, luxury)", "state": "verified", "evidence": "docs/v2/shots/interiors-art/ba_bar.jpg, ba_restaurant.jpg, ba_cafe.jpg, ba_clothing.jpg, after3_lobby.jpg, after3_diner.jpg, final2_shoes.jpg" },
+    { "name": "Convenience store (Night Owl Mart business type): waxed-floor reflection probe", "state": "built", "evidence": "docs/v2/shots/interiors-art/final_audit_convenience.jpg (before the probe was added)" },
+    { "name": "Venue staff and guests placed and posed from the ped system (bartenders, DJ, bouncer, seated, standing at the bar, dancing, leaning; clerks and browsers in shops)", "state": "verified", "evidence": "docs/v2/shots/interiors-art/final2_club.jpg (14 people), final2_boutique.jpg" },
+    { "name": "Streaming cost: idle-time texture prewarm, async shader precompile against the post target, budgeted texture upload, probe one face per frame", "state": "built", "evidence": "club shell step 611 ms -> 53-212 ms; largest build slice still 0.6-0.9 s under load 50-90" },
+    { "name": "Audit: 15 legacy categories shot in game; clothing fixed; bank, pharmacy, liquor, ice cream, gift, laundromat, supermarket, hardware, auto parts, salon/beauty, electronics, jewelry still legacy (flat, over-bright)", "state": "verified", "evidence": "docs/v2/shots/interiors-art/audit_contact_sheet.jpg" },
+    { "name": "Clean fps in the club (every run had machine load 40 to 90; interior alone is 139 draw calls / 127k triangles in the preview)", "state": "building", "evidence": "docs/v2/shots/interiors-art/final2_club.jpg" },
+    { "name": "Upgrade the remaining legacy retail (bank, pharmacy, liquor, ice cream, gift, laundromat, grocery, hardware, auto, salon, electronics, jewelry)", "state": "todo", "evidence": "" }
+  ] }

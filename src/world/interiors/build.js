@@ -61,13 +61,13 @@ export function* buildInterior(game, store, def) {
   pos.set(ib.pos, off * 3); nor.set(ib.nor, off * 3); gain.set(ib.gain, off); const itemOff = off;
   const rooms = plan.rooms.map((r) => ({ x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, y0: r.y0, y1: r.ceilY }));
   const input = { pos, nor, gain, count: n, lights: ctx.lights, occ: new Float32Array(ctx.occ), rooms, bounce: (store.profile.bounce ?? 0.55) * 0.85, ao: 0.85 };
-  const b = { ctx, group, plan, M: ctx.M, prints: ctx.prints, items: ctx.items, doors, colliders: ctx.colliders, nav, pois: ctx.pois, uses: ctx.uses, anim: ctx.anim, seats: ctx.seats, fixtureLights: ctx.fixtureLights, spill: ctx.spill, front: ctx.front, disposables: ctx.disposables, meshes: built.meshes, body: null, ready: false, visible: false, levels: [1, 1], prof, verts: n, lights: ctx.lights.length, people: [], t0 };
+  const b = { probe: ctx.probe || null, ctx, group, plan, M: ctx.M, prints: ctx.prints, items: ctx.items, doors, colliders: ctx.colliders, nav, pois: ctx.pois, uses: ctx.uses, anim: ctx.anim, seats: ctx.seats, fixtureLights: ctx.fixtureLights, spill: ctx.spill, front: ctx.front, disposables: ctx.disposables, meshes: built.meshes, body: null, ready: false, visible: false, levels: [1, 1], prof, verts: n, lights: ctx.lights.length, people: [], t0 };
   b.baked = bake(input).then((out) => { if (b.disposed) return; for (const [p, o] of parts) p.apply(out[0], out[1], out[2], o); ctx.items.applyBake(out[0], out[1], out[2], itemOff); b.ready = true; prof.bake = Math.round(performance.now() - t0); }).catch((e) => { console.warn('[interiors] bake failed', store.name, e); b.ready = true; b.M.uBk.value.set(0, 0, 0); });
   ctx.bakeParts = null; lap('total');
   return b;
 }
 export function disposeBuilt(b) {
-  b.disposed = true; b.group.traverse((o) => { if (o.isInstancedMesh) return; if (o.isMesh && !o.geometry.userData.shared) o.geometry.dispose(); });
+  b.disposed = true; try { b.probe?.job?.return?.(); b.probe?.rt?.dispose(); } catch (e) { /* */ } b.group.traverse((o) => { if (o.isInstancedMesh) return; if (o.isMesh && !o.geometry.userData.shared) o.geometry.dispose(); });
   b.items.dispose(); b.M.dispose(); b.prints.dispose(); for (const d of b.disposables) d.dispose?.(); b.group.removeFromParent();
 }
 export { M4 };

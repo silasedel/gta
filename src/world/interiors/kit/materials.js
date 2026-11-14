@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { surfaceTextures } from './surfaces.js';
 import { hexNum, rgbOf } from './util.js';
+import { probeUniforms, probePatch } from './probe.js';
 
 // global daylight color * strength, driven by the time of day (lighting.js updates it)
 export const SKY = { value: new THREE.Color(1, 1, 1) };
@@ -17,24 +18,31 @@ const VERT_HEAD = 'attribute vec3 bk0;\nattribute vec3 bk1;\nattribute vec3 bk2;
 
 function bakeable(mat, set, o = {}) {
   mat.userData.baked = true;
-  const spec = o.spec ?? 1, direct = o.direct ?? 0.22;
+  const spec = o.spec ?? 1, direct = o.direct ?? 0.22, probe = o.probe ? 1 : 0;
+  // o.probe = k: this surface reflects the room's reflection probe (kit/probe.js) at strength k once it is captured
+  if (probe) { mat.userData.probeK = o.probe; set.probeMats.push(mat); if (PROBE_PLACEHOLDER) { mat.envMap = PROBE_PLACEHOLDER; mat.envMapIntensity = o.probe; } }
+  const radianceK = probe ? `mix( clamp( dot( vBk, vec3( 0.22 ) ), 0.02, 1.0 ) * ${spec.toFixed(3)}, uPrK, uPrOn )` : `clamp( dot( vBk, vec3( 0.22 ) ), 0.02, 1.0 ) * ${spec.toFixed(3)}`;
   mat.onBeforeCompile = (sh) => {
-    sh.uniforms.uBk = set.uBk; sh.uniforms.uSky = SKY;
+    sh.uniforms.uBk = set.uBk; sh.uniforms.uSky = SKY; if (probe) { probePatch(sh, set.uProbe); sh.fragmentShader = 'uniform float uPrOn;\n' + sh.fragmentShader; }
     sh.vertexShader = VERT_HEAD + (o.instUv ? 'attribute vec4 iUv;\n' : '') + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvBk = bk0 * uBk.x + bk1 * uBk.y + bk2 * uSky * uBk.z;');
     if (o.instUv) sh.vertexShader = sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n\t#ifdef USE_MAP\n\tvMapUv = uv * iUv.zw + iUv.xy;\n\t#endif');
     sh.fragmentShader = 'varying vec3 vBk;\n' + sh.fragmentShader
       .replace('#include <lights_fragment_begin>', NO_DIR + `\n\tfloat bkL = max( dot( vBk, vec3( 0.3333 ) ), 0.001 );\n\tirradiance = vBk * clamp( pow( bkL / 1.3, 0.5 ), 0.42, 1.7 );\n\treflectedLight.directDiffuse *= ${direct.toFixed(3)};\n\treflectedLight.directSpecular *= ${spec.toFixed(3)};`)
-      .replace('#include <lights_fragment_maps>', `#include <lights_fragment_maps>\n\t#if defined( RE_IndirectSpecular )\n\tiblIrradiance = vec3( 0.0 );\n\tradiance *= clamp( dot( vBk, vec3( 0.22 ) ), 0.02, 1.0 ) * ${spec.toFixed(3)};\n\t#endif`);
+      .replace('#include <lights_fragment_maps>', `#include <lights_fragment_maps>\n\t#if defined( RE_IndirectSpecular )\n\tiblIrradiance = vec3( 0.0 );\n\tradiance *= ${radianceK};${probe ? '\n\tradiance = min( radiance, vec3( 6.0 ) );' : ''}\n\t#endif`);
   };
-  mat.customProgramCacheKey = () => `ibk4:${direct.toFixed(3)}:${spec.toFixed(3)}:${o.instUv ? 1 : 0}`;
+  mat.customProgramCacheKey = () => `ibk4:${direct.toFixed(3)}:${spec.toFixed(3)}:${o.instUv ? 1 : 0}:${probe}`;
   return mat;
 }
 
+let PROBE_PLACEHOLDER = null; // set by the engine (kit/probe.js probePlaceholder)
+export function setProbePlaceholder(t) { PROBE_PLACEHOLDER = t; }
 let designMats = null; // optional shared library from the design system: (name, opts) => { map, normalMap, roughnessMap, m, rough, metal } | null
 export function setDesignMaterials(fn) { designMats = fn; }
 
 export class MatSet {
-  constructor() { this.uBk = { value: new THREE.Vector3(1, 1, 1) }; this.cache = new Map(); this.glows = []; this.owned = []; }
+  constructor() { this.uBk = { value: new THREE.Vector3(1, 1, 1) }; this.cache = new Map(); this.glows = []; this.owned = []; this.probeMats = []; this.uProbe = probeUniforms(); this.uProbe.uPrOn = { value: 0 }; }
+  // reflection probe captured (kit/probe.js): every material made with { probe: k } now reflects it
+  setProbe(tex) { for (const m of this.probeMats) { const same = m.envMap && tex && m.envMap.image?.height === tex.image?.height; m.envMap = tex; m.envMapIntensity = m.userData.probeK; if (!same) m.needsUpdate = true; } this.uProbe.uPrOn.value = tex ? 1 : 0; }
   _keep(key, make) { let m = this.cache.get(key); if (!m) { m = make(); this.cache.set(key, m); this.owned.push(m); } return m; }
   // textured surface. o: { c, c2, c3 (baked into the texture), tint (multiplies), wear, rough (multiplier), metal, uvw, side, spec }
   surf(name, o = {}) {
@@ -69,6 +77,8 @@ export class MatSet {
       const m = new THREE.MeshStandardMaterial({ map: tex, roughness: o.rough ?? 0.75, metalness: 0, transparent: !!o.alpha, alphaTest: o.alpha ? 0.4 : 0, side: o.side || THREE.FrontSide }); if (o.decal) { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.transparent = true; m.alphaTest = 0; m.depthWrite = false; m.userData.order = 2; } return bakeable(m, this, o);
     });
   }
+  // any material lit by this interior's bake (instanced meshes need per-instance bk0..bk2 attributes). make() -> material; o: bakeable opts + { patch(sh) }
+  baked(key, make, o = {}) { return this._keep('bk:' + key, () => { const m = bakeable(make(), this, o); if (o.patch) { const f = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { f(sh, r); o.patch(sh); }; const k = m.customProgramCacheKey; m.customProgramCacheKey = () => k() + ':' + key.split(':')[0]; } return m; }); }
   // instanced products: one atlas page, per-instance uv rect (iUv) and per-instance baked light
   items(tex) { return this._keep('it:' + tex.id, () => bakeable(new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, metalness: 0.0 }), this, { instUv: true, direct: 0.3 })); }
   // adopt a foreign material (design-system product part) so it is lit by this interior's bake
