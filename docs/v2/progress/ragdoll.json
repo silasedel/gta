@@ -7,7 +7,7 @@
   {
    "name": "Anatomical joint limits: Rapier spherical joints with per-axis swing/twist limits (spine, neck, shoulders, hips, ankles) measured from the rig's rest pose; revolute knees and elbows that flex one way only",
    "state": "verified",
-   "evidence": "src/npc/ragdoll.js LIMITS; wrong-way / over-folded knees: gun 3.12 -> 0.17 rad, stairs 3.02 -> 0.42; car still spikes once (3.13) while the 1.4 t car is on top of the legs (docs/v2/shots/ragdoll/before.json, after.json)"
+   "evidence": "src/npc/ragdoll.js LIMITS + hinge guard; wrong-way / over-folded knees: gun 3.12 -> 0.24 rad, car 3.13 -> 0.87, stairs 3.02 -> 0.30 (docs/v2/shots/ragdoll/before.json, after.json)"
   },
   {
    "name": "No self-intersection: 15 capsules sized to body parts (wide pelvis and chest), 5 collision classes (torso, each arm, each leg) that collide with each other, jointed neighbours skip contacts",
@@ -35,14 +35,14 @@
    "evidence": "docs/v2/shots/ragdoll/after_car.png (40 km/h)"
   },
   {
-   "name": "Getting up / death: settle detection, dead frozen in their pose, living hand the pose back under the moved root before the get-up blend (no root-offset pop)",
-   "state": "built",
-   "evidence": "ragdoll.handoff(); punch strip 3.2 -> 4.5 s"
+   "name": "Getting up / death: get up as soon as the body has lain still 0.5 s (cap getUpT + 2.5 s), dead frozen in their pose, pose handed back under the moved root before the get-up blend (no pop)",
+   "state": "verified",
+   "evidence": "city slope punch: down -> gettingUp at 3.8 s -> flee (docs/v2/shots/ragdoll/city.json)"
   },
   {
    "name": "Physics: muscles and balance run per fixed substep in game.fixedHooks, bodies sleep when still, cap on active ragdolls (oldest frozen first)",
-   "state": "built",
-   "evidence": "peds.js keeps cap 6; harness 8"
+   "state": "verified",
+   "evidence": "city, 6 lethal ragdolls at once: ragdoll physics 0.17 ms per substep avg (0.3 max), all 6 frozen within 5 s (city.json, city_six.png)"
   },
   {
    "name": "Bench: src/npc/bench/ragdoll.html + tools/v2/ragdoll-shots.mjs (frame strips + interpenetration / knee / neck metrics)",
@@ -50,14 +50,24 @@
    "evidence": "docs/v2/shots/ragdoll/*.png"
   },
   {
-   "name": "In-city playtest of ragdolls (real cars, slopes, crowds)",
-   "state": "todo",
-   "evidence": "only tested on the range bench"
+   "name": "Braced stumble: core, neck and hip extension limits tighter while balancing, 65% of the blow moves the whole body, so the person steps instead of folding",
+   "state": "verified",
+   "evidence": "after_punch.png, after_shove.png; spine extension -0.43 -> -0.20 rad (node check)"
   },
   {
-   "name": "Spine arches backwards a lot during a stumble; muscles weaker than ideal (effective inertia capped for solver stability)",
+   "name": "Car hit on a real street (vehicles module's own hit test at 40 km/h)",
+   "state": "verified",
+   "evidence": "docs/v2/shots/ragdoll/city_car_1.png .. city_car_3.png"
+  },
+  {
+   "name": "Heavy punch on an 8.5 degree slope",
+   "state": "verified",
+   "evidence": "city_slope_1.png / city_slope_2.png: falls, gets up when settled, flees"
+  },
+  {
+   "name": "Remaining: still a visible backward lean from the ankles and hips in a heavy-punch stumble; on slopes the balance controller cannot keep the feet (falls); car tumble after landing still rough; neck can over-bend under a car (2.0 rad once)",
    "state": "todo",
-   "evidence": "after_punch.png / after_shove.png 0.45-1.0 s"
+   "evidence": "after_punch.png 0.45-1.0 s, city.json slope, after.json car"
   }
  ]
 }

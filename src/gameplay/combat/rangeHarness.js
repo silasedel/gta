@@ -260,7 +260,7 @@ export async function createRangeGame(opts = {}) {
             const info = rag.poseInfo(ped.rag);
             if (info) { ped.pos.set(info.pelvis.x, pedGround(info.pelvis.x, info.pelvis.z, info.pelvis.y), info.pelvis.z); ped.heading = info.heading; ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading; }
             rag.handoff ? rag.handoff(ped.rag) : rag.remove(ped.rag); ped.rag = null; ped.char.snapshotPose?.(0.4); ped.state = 'idle'; ped.collider.setEnabled(true); ped.hitNow = false;
-          } else if ((ped.getUpT <= 0 && rag.isSettled?.(ped.rag) !== false) || ped.getUpT < -2.5) {
+          } else if (rag.readyToGetUp?.(ped.rag) || ped.getUpT < -2.5) {
             const info = rag.poseInfo(ped.rag);
             if (info) { ped.pos.set(info.pelvis.x, pedGround(info.pelvis.x, info.pelvis.z, info.pelvis.y), info.pelvis.z); ped.heading = Math.atan2(info.head.x - info.pelvis.x, info.head.z - info.pelvis.z) + (info.faceUp ? Math.PI : 0); ped.root.position.copy(ped.pos); ped.root.rotation.y = ped.heading; }
             rag.handoff ? rag.handoff(ped.rag) : rag.remove(ped.rag); ped.rag = null; ped.char.snapshotPose?.(0.6); ped.getUp = info && !info.faceUp ? 'fwd' : 'back'; ped.getUpClock = 2.4; ped.state = 'getup'; ped.collider.setEnabled(true);

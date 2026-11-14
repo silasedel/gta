@@ -47,6 +47,7 @@ const LIMITS = {
   knee: [-0.03, 2.4],
   elbow: [-0.03, 2.5],
 };
+const BRACED = { hipL: [-2.0, 0.15, -0.5, 0.5, -0.3, 0.8], hipR: [-2.0, 0.15, -0.5, 0.5, -0.8, 0.3], spine: [-0.08, 0.55, -0.25, 0.25, -0.25, 0.25], chest: [-0.06, 0.45, -0.25, 0.25, -0.2, 0.2], neck: [-0.3, 0.7, -0.9, 0.9, -0.45, 0.45] };
 // muscle natural frequency (rad/s) per joint type, and which fade group it belongs to
 const MUSCLE = { spine: [15, 'core'], chest: [15, 'core'], neck: [13, 'neck'], shoulderL: [11, 'arm'], shoulderR: [11, 'arm'], elbow: [10, 'arm'], hipL: [15, 'leg'], hipR: [15, 'leg'], knee: [15, 'leg'], ankle: [12, 'leg'] };
 // hinge fallback axes (rest frame) for straight limbs: positive rotation = flexion
@@ -79,6 +80,7 @@ function fadeTime(kind, strength, lethal) {
   if (kind === 'fall') return 1.0;
   return 1.5 - 0.5 * s; // melee / push
 }
+const lethalOpt = (o) => o.lethal !== false;
 const smooth = (x) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 const vec = (v) => new THREE.Vector3(v.x, v.y, v.z);
 const quat = (r) => new THREE.Quaternion(r.x, r.y, r.z, r.w);
@@ -182,7 +184,7 @@ export function createRagdollSystem(game, maxActive = 6) {
         if (rest && rest[bn]) B = _q2.clone().multiply(rest[bn].clone().invert()).multiply(rootQ);
         else B = segFrame(dir, left).multiply(segFrame(new THREE.Vector3(0, 1, 0).applyQuaternion(rootQ), left).invert()).multiply(rootQ); // fallback: impact pose is neutral
         const pa = parentKey ? byKey[parentKey] : null;
-        let hingeAxis = null, hinge0 = 0;
+        let hingeAxis = null, hinge0 = 0, hingeLim = null;
         if (pa && (jt === 'knee' || jt === 'elbow')) {
           // hinge: child frame = parent frame turned about the flexion axis only (forearm / shin twist goes to the bone offset)
           const pDir = pa.dir; const fb = HINGE_AXIS[key];
@@ -213,7 +215,7 @@ export function createRagdollSystem(game, maxActive = 6) {
         const desc = RAPIER.RigidBodyDesc.dynamic().setTranslation(center.x, center.y, center.z).setRotation({ x: B.x, y: B.y, z: B.z, w: B.w })
           .setLinvel(lv.x, lv.y, lv.z).setLinearDamping(0.05).setAngularDamping(key.startsWith('foot') ? 3 : key.startsWith('lArm') || key === 'head' ? 1.0 : 0.5)
           .setCcdEnabled(kind === 'car' || kind === 'explosion').setCanSleep(true);
-        try { desc.setAdditionalSolverIterations?.(2); } catch (e) { /* older rapier */ }
+        try { desc.setAdditionalSolverIterations?.(kind === 'car' || kind === 'explosion' ? 6 : 2); } catch (e) { /* older rapier */ }
         const body = world.createRigidBody(desc);
         const Binv = B.clone().invert();
         const cq = Binv.clone().multiply(colQ);
@@ -225,7 +227,8 @@ export function createRagdollSystem(game, maxActive = 6) {
         const part = {
           key, bone, body, cls, mass, jt, len, rad, dir: dir.clone(), B0: B.clone(), c0: center.clone(), anchor: a.clone(),
           offQ: Binv.clone().multiply(_q2), offP: _p.clone().sub(center).applyQuaternion(Binv), scale: _s.clone(),
-          parent: null, joint: null, rel0: null, relT: null, gain: 1, Ired: 1, wn: 0, group: 'core', hingeAxis,
+          axisL: new THREE.Vector3(0, 1, 0).applyQuaternion(cq), twistK: Math.min(1, (rad * rad / 2) / ((len * len) / 12 + rad * rad / 4)),
+          parent: null, joint: null, rel0: null, relT: null, gain: 1, Ired: 1, wn: 0, group: 'core', hingeAxis, hingeLim: null,
         };
         if (pa) {
           part.parent = pa;
@@ -235,21 +238,22 @@ export function createRagdollSystem(game, maxActive = 6) {
           if (hingeAxis) {
             jd = RAPIER.JointData.revolute({ x: a1.x, y: a1.y, z: a1.z }, { x: a2.x, y: a2.y, z: a2.z }, { x: hingeAxis.x, y: hingeAxis.y, z: hingeAxis.z });
             const L = LIMITS[jt];
-            jd.limitsEnabled = true; jd.limits = [Math.min(L[0], hinge0 - 0.05), Math.max(L[1], hinge0 + 0.05)];
+            jd.limitsEnabled = true; jd.limits = [Math.min(L[0], hinge0 - 0.05), Math.max(L[1], hinge0 + 0.05)]; hingeLim = jd.limits.slice();
           } else jd = RAPIER.JointData.spherical({ x: a1.x, y: a1.y, z: a1.z }, { x: a2.x, y: a2.y, z: a2.z });
           const j = world.createImpulseJoint(jd, pa.body, body, true);
           try { j.setContactsEnabled(false); } catch (e) { /* ignore */ }
           part.rel0 = pa.B0.clone().invert().multiply(B);
           if (!hingeAxis && LIMITS[jt] && rest) {
             // per-axis swing / twist limits; widened if the animation pose already sits outside them (no pop)
-            const L = LIMITS[jt], r = part.rel0.w < 0 ? part.rel0.clone().set(-part.rel0.x, -part.rel0.y, -part.rel0.z, -part.rel0.w) : part.rel0;
+            // a person bracing against a blow (balance mode) holds the trunk: much less back extension than a limp body
+            const L = opts.balance && BRACED[jt] ? BRACED[jt] : LIMITS[jt], r = part.rel0.w < 0 ? part.rel0.clone().set(-part.rel0.x, -part.rel0.y, -part.rel0.z, -part.rel0.w) : part.rel0;
             const cur = [2 * Math.asin(THREE.MathUtils.clamp(r.x, -1, 1)), 2 * Math.asin(THREE.MathUtils.clamp(r.y, -1, 1)), 2 * Math.asin(THREE.MathUtils.clamp(r.z, -1, 1))];
             ['x', 'y', 'z'].forEach((k, i) => {
               const lo = Math.min(L[i * 2], cur[i] - 0.05), hi = Math.max(L[i * 2 + 1], cur[i] + 0.05);
               try { j.rawSet.jointSetLimits(j.handle, AXIS[k], lo, hi); } catch (e) { /* ignore */ }
             });
           }
-          part.joint = j;
+          part.joint = j; part.hingeLim = hingeLim;
           part.relT = part.rel0.clone();
           const M = MUSCLE[jt] || [12, 'core']; part.wn = M[0]; part.group = M[1];
         }
@@ -285,8 +289,11 @@ export function createRagdollSystem(game, maxActive = 6) {
       if (!tgt && pt) { let bd = Infinity; for (const p of parts) { const t = p.body.translation(); const d = (t.x - pt.x) ** 2 + (t.y - pt.y) ** 2 + (t.z - pt.z) ** 2; if (d < bd) { bd = d; tgt = p; } } }
       if (tgt) {
         hitPart = tgt;
-        const I = opts.hit.impulse;
-        try { if (pt) tgt.body.applyImpulseAtPoint({ x: I.x, y: I.y, z: I.z }, { x: pt.x, y: pt.y, z: pt.z }, true); else tgt.body.applyImpulse({ x: I.x, y: I.y, z: I.z }, true); } catch (e) { /* ignore */ }
+        // a braced (balancing) body is stiff: most of the blow moves the whole person, so they step instead of folding
+        const share = opts.balance && !lethalOpt(opts) ? 0.35 : 1;
+        const I = { x: opts.hit.impulse.x * share, y: opts.hit.impulse.y * share, z: opts.hit.impulse.z * share };
+        try { if (pt) tgt.body.applyImpulseAtPoint(I, { x: pt.x, y: pt.y, z: pt.z }, true); else tgt.body.applyImpulse(I, true); } catch (e) { /* ignore */ }
+        if (share < 1) { let M = 0; for (const p of parts) M += p.mass; const k = (1 - share) / M; for (const p of parts) p.body.applyImpulse({ x: opts.hit.impulse.x * k * p.mass, y: opts.hit.impulse.y * k * p.mass, z: opts.hit.impulse.z * k * p.mass }, true); }
       }
     }
     const meshes = []; character.model.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; meshes.push(o); } });
@@ -338,6 +345,11 @@ export function createRagdollSystem(game, maxActive = 6) {
       _v.copy(_e).multiplyScalar(kp).addScaledVector(_w, -(kp * h + kd)).multiplyScalar(p.Ired * h / den);
       if (!Number.isFinite(_v.x + _v.y + _v.z)) continue;
       if (_v.lengthSq() < 1e-10) continue;
+      // a thin capsule has far less inertia about its own long axis: scale the twist part down to match (no spinning feet)
+      if (p.twistK < 0.9 && p.key !== 'pelvis' && p.key !== 'chest') {
+        _v2.copy(p.axisL).applyQuaternion(_cq); const tw = _v.dot(_v2);
+        _v.addScaledVector(_v2, -tw * (1 - p.twistK));
+      }
       p.body.applyTorqueImpulse({ x: _v.x, y: _v.y, z: _v.z }, false); // never wakes a sleeping body
       pa.body.applyTorqueImpulse({ x: -_v.x, y: -_v.y, z: -_v.z }, false);
     }
@@ -379,9 +391,11 @@ export function createRagdollSystem(game, maxActive = 6) {
       const k = Math.min(1, st.t / st.dur);
       const tx = st.from.x + (st.to.x - st.from.x) * smooth(k), tz = st.from.z + (st.to.z - st.from.z) * smooth(k);
       const ty = rd.groundY + 0.06 + Math.sin(Math.PI * k) * 0.12;
-      const m = 6; // carried leg mass
-      const Fsx = m * (260 * (tx - ft.x) - 26 * fv.x), Fsy = m * (260 * (ty - ft.y) - 26 * fv.y), Fsz = m * (260 * (tz - ft.z) - 26 * fv.z);
-      f.body.applyImpulse({ x: Fsx * h, y: Fsy * h, z: Fsz * h }, true);
+      const sh = f.parent, m = f.mass + (sh ? sh.mass : 0); // carried lower leg: force shared by shin and foot (no flick)
+      const Fsx = m * (160 * (tx - ft.x) - 22 * fv.x), Fsy = m * (160 * (ty - ft.y) - 22 * fv.y), Fsz = m * (160 * (tz - ft.z) - 22 * fv.z);
+      const kf = sh ? f.mass / m : 1;
+      f.body.applyImpulse({ x: Fsx * h * kf, y: Fsy * h * kf, z: Fsz * h * kf }, true);
+      if (sh) sh.body.applyImpulse({ x: Fsx * h * (1 - kf), y: Fsy * h * (1 - kf), z: Fsz * h * (1 - kf) }, true);
       P.body.applyImpulse({ x: -Fsx * h, y: -Fsy * h, z: -Fsz * h }, true);
     }
   }
@@ -395,10 +409,28 @@ export function createRagdollSystem(game, maxActive = 6) {
     for (const p of rd.parts) { const t = p.body.translation(); out.x += t.x * p.mass; out.y += t.y * p.mass; out.z += t.z * p.mass; }
     return out.multiplyScalar(1 / rd.Mtot);
   }
+  // hinge guard: under heavy contact (a car on the legs) the solver can be overpowered and a knee / elbow pushed past
+  // its limit. Remove the child's relative spin that drives it further out and pull it back, every substep.
+  function hingeGuard(rd) {
+    for (const p of rd.parts) {
+      if (!p.hingeLim || p.body.isSleeping()) continue;
+      const a = relAngle(p), lo = p.hingeLim[0], hi = p.hingeLim[1];
+      const over = a > hi ? a - hi : a < lo ? a - lo : 0;
+      if (Math.abs(over) < 0.02) continue;
+      _v2.copy(p.hingeAxis).applyQuaternion(quat(p.parent.body.rotation())); // world hinge axis
+      const wc = p.body.angvel(), wp = p.parent.body.angvel();
+      const rel = (wc.x - wp.x) * _v2.x + (wc.y - wp.y) * _v2.y + (wc.z - wp.z) * _v2.z;
+      let dw = 0;
+      if (rel * over > 0) dw -= rel;           // stop moving further past the limit
+      dw -= over * 12;                          // and come back (rad/s)
+      p.body.setAngvel({ x: wc.x + _v2.x * dw, y: wc.y + _v2.y * dw, z: wc.z + _v2.z * dw }, true);
+    }
+  }
   function ragdollFixed(h) {
     for (const rd of active) {
       if (rd.frozen) continue;
       try {
+        hingeGuard(rd);
         muscles(rd, h);
         if (rd.mode === 'balance') balanceForces(rd, h);
       } catch (e) { /* body removed mid-step */ }
@@ -510,8 +542,13 @@ export function createRagdollSystem(game, maxActive = 6) {
       }
       if (!Number.isFinite(maxV) || maxV > 70) { rd.why = 'blowup ' + maxV; console.warn('[ragdoll] unstable, frozen', maxV); freeze(rd); continue; }
       if (rd.mode === 'balance') { rd.still = 0; continue; }
-      rd.still = (maxV < 0.15 && maxW < 1.0) || asleep ? rd.still + dt : 0;
-      rd.settled = rd.still > 0.35 && rd.modeT > 0.6;
+      // car victims: once down on the road the tumble is damped hard (no cartwheeling across the street)
+      if ((rd.kind === 'car' || rd.kind === 'explosion') && !rd.landDamped && rd.modeT > 0.6 && rd.byKey.pelvis.body.translation().y - rd.groundY < 0.45) {
+        rd.landDamped = true; for (const p of rd.parts) p.body.setAngularDamping(2.2);
+      }
+      // settled = the body has stopped travelling (small limbs may still twitch a little)
+      rd.still = (maxV < 0.2 && maxW < 2.5) || asleep ? rd.still + dt : 0;
+      rd.settled = rd.still > 0.3 && rd.modeT > 0.6;
       if ((rd.lethal && (rd.still > 0.6 || asleep)) || rd.age > 12) { rd.why = 'settled ' + rd.age.toFixed(2); freeze(rd); }
       else if (!rd.lethal && rd.age > 8) freeze(rd);
     }
@@ -541,5 +578,7 @@ export function createRagdollSystem(game, maxActive = 6) {
     remove(rd);
   }
   const isSettled = (rd) => !!rd && (rd.frozen || rd.settled);
-  return { start, update, remove, handoff, freeze, pelvisPos, poseInfo, chestForward, isSettled, active, stats, maxActive };
+  // ready to get up: lying still for half a second (the get-up starts from a settled pose, not from a timer)
+  const readyToGetUp = (rd) => !!rd && !rd.lethal && (rd.frozen || (rd.settled && rd.still > 0.5));
+  return { start, update, remove, handoff, readyToGetUp, freeze, pelvisPos, poseInfo, chestForward, isSettled, active, stats, maxActive };
 }
