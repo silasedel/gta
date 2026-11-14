@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Job passed preview</title>
+<body style="margin:0;background:#2a3c4a;height:100vh">
+<script type="module">
+import { initV2 } from './passed.v2.js';
+const ev = {}; const ctx = new AudioContext();
+const vols = { master: 1, music: 1, radio: 0.8 };
+const game = { on: (n, f) => (ev[n] ||= []).push(f), emit: (n, d) => (ev[n] || []).forEach((f) => f(d)),
+  audio: { ctx, muted: false, get busVolumes() { return { ...vols }; }, setBusVolume: (k, v) => { vols[k] = v; } } };
+window.game = game;
+await initV2(game);
+window.ready = true;
+</script></body>

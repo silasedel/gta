@@ -761,3 +761,11 @@ All songs by Kevin MacLeod (incompetech.com), licensed under Creative Commons: B
   - "Dream Culture" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dream%20Culture.mp3 → music/lowtide/dream_culture.ogg
   - "Groove Grove" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Groove%20Grove.mp3 → music/lowtide/groove_grove.ogg
   - "Cool Vibes" Kevin MacLeod (incompetech.com), CC BY 4.0 — https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cool%20Vibes.mp3 → music/lowtide/cool_vibes.ogg
+
+## Houses — V2 (houses track): generated residential houses
+- `src/world/setpieces/houses/` uses no new asset files. It reuses the Nico house texture sets already credited above (Poly Haven, CC0: rough_wood, concrete_wall_008, coral_stone_wall, scuffed_cement, corrugated_iron, rusty_metal, grunge / peel / tin wear maps) and `assets/env/waternormals.jpg`.
+- Shingles, chain-link, insect screen, breeze block and house-number digits are drawn at runtime on canvases (original work).
+
+## Port Solana theme (custom)
+- `public/assets/audio/music/theme/port_solana_theme.aac`: original theme written for this game by a friend of the project owner, used with permission.
+- `public/assets/audio/stingers/job_passed.ogg`: a 10.5 s cut of that theme starting on its drop (9.90 s), used for the "Job Passed" moment.
