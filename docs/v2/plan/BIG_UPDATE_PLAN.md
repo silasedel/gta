@@ -216,7 +216,7 @@ Each car also varies in rims, tint, dirt and parts.
 
 ## 6b. HUD corner (top right): match `hud_corner_target.webp` exactly
 The user designed this target. Replicate it pixel for pixel, scaled to the screen:
-- **Wanted stars: SIX stars** in one evenly spaced row, chunky, with a thick black outline. Earned stars are mid-grey
+- **Wanted stars: SIX stars** in one evenly spaced row, chunky, with a thick black outline. Earned stars are dark charcoal
   (the example shows 4 earned); unearned stars are near-white. No gap between the two groups.
 - **Evidence icons** below the stars: dark-red circles with a black outline and a white glyph, in this order: camera,
   witnesses (two heads), clothing (hanger), face seen (one head), weapon seen (pistol). Show only the ones that
