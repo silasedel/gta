@@ -428,3 +428,9 @@ These override anything above that conflicts. "Priority" lines say what gets cut
 **Not in scope for now:** free typed/spoken AI conversation; clothing-store and shoe-wearing changes beyond what the shoe store needs; owning or working at a business; extra activities (volleyball, hoops, fishing, golf); a long story chain; many different heist types.
 
 **Heist (conditional):** one decently large heist with a decent story, only if usage allows or the trajectory looks good. Build it last, after everything above works. Do not build several heist types.
+
+**Round 2 answers (2026-11-15):**
+- Nico's look does not change (no outfit or shoe changes). The shoe store is still a required, enterable shop; shoes are for sale/display only unless the user decides otherwise. Disguises therefore work through vehicle swaps (and any simple one-off cover like a hat only if cheap); confirm with the user.
+- Every map area gets finished detail: downtown, Nico's neighborhood, beaches and bay, island and countryside.
+- Driving should feel realistic (weight, real suspension, spin-outs), still controllable.
+- Audience is both: great in the video and playable by anyone on the website (so 60 fps on ordinary hardware stays a hard rule).
