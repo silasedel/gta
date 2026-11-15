@@ -349,8 +349,37 @@ the object is. Each choice has its own realistic animation, timing, noise and ri
 4. **Characters** (section 5) and **bugs** (section 8).
 5. **Real-Miami districts** (2.3) and **shops** (6).
 6. **Missions and heists** (section 7).
-7. Final polish pass, rebuild the Mac app, publish to https://silasedel.github.io/gta-v2/ (repo `silasedel/gta-v2`;
-   push with `git push gtav2 v2:main`, only when the user asks).
+7. Final polish pass, rebuild the Mac app, and publish as **V2.1** (see "Publishing as V2.1" below).
 
 Budget estimate with the asset library: about 1.5–2 weeks of plan usage, or about 1 week with capped extra usage
 (about $800–1,500). Missions and heists add about 0.5 week. Re-estimate after step 1.
+
+## 10. Publishing as V2.1 (keep the current V2 as it is)
+The current build, V2, stays live and untouched at https://silasedel.github.io/gta-v2/ (repo `silasedel/gta-v2`,
+branch `main`). The big update uploads as a separate **V2.1** so the user can compare the two and fall back to V2:
+- **Repo:** same repo `silasedel/gta-v2`, on a new branch named **`v2.1`**. `main` is not touched.
+- **Website:** published at its own address, **https://silasedel.github.io/gta-v2-1/**. Create a separate repo
+  `silasedel/gta-v2-1` for that, because a Pages site lives at the repo's address, and push the `v2.1` branch to its
+  `main`. In that repo's `.github/workflows/pages.yml`, set `PAGES_BASE: /gta-v2-1/` (it rewrites the absolute
+  `/assets/` paths; see `vite.config.js`).
+- **Mac app:** built as "Southline V2.1" in the same way, so both versions can sit side by side on the Desktop.
+- **Order:** push only when the user asks. `main` of `silasedel/gta` and its live site are never touched.
+- Everything is tagged in the plan and in release notes as V2.1.
+
+## 11. Model pipeline: tweakable, consistent, and varied
+All imported 3D models (cars, boats, props, buildings, NPCs) go through one pipeline so they share a style and so
+many variants can be made from each one:
+1. **Adjustable color and texture.** For every model, find its paint, trim and material regions and expose them as
+   parameters. That lets the user, and the game's variation system, change color, roughness, metalness, dirt and
+   texture without re-exporting the model.
+2. **One shared style.** A material profile and color grade apply to every model so that "too matte" and "too shiny"
+   models match their neighbors, and so mixed sources feel like one game.
+3. **Swappable parts.** Break models into parts (bumpers, grilles, spoilers, wheels, mirrors, roof racks; signs,
+   awnings and doors on buildings) so the variation system can swap them.
+4. **Variants from one model.** From each base model, generate several versions by changing small things: paint,
+   wheels, bumpers, tint, decals, wear and damage, and which parts are attached. This makes one body read as many
+   different cars, and works the same way for props and buildings.
+5. **Rare duplicates.** The traffic system picks bodies and variants by realistic frequency, so the same car is
+   rarely seen twice in sight (Miami color statistics are in section 4).
+6. **Editor for the user.** A simple local page (`tools/v2/modelstudio`) lets the user pick a model, change its
+   colors and textures, swap parts, and save a variant, with a live 3D preview.
