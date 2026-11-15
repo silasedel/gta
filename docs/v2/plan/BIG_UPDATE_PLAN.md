@@ -411,3 +411,20 @@ many variants can be made from each one:
    rarely seen twice in sight (Miami color statistics are in section 4).
 6. **Editor for the user.** A simple local page (`tools/v2/modelstudio`) lets the user pick a model, change its
    colors and textures, swap parts, and save a variant, with a live 3D preview.
+
+## 12. Scope decisions (user answers, 2026-11-15)
+These override anything above that conflicts. "Priority" lines say what gets cut first if usage runs low.
+
+**Priority:** graphics come first and are cut last. Features can be thin; the look cannot.
+
+**In scope (build to a good standard):**
+- Police: witnesses and security cameras, police remember your face/clothes/car, disguises, six-star escalation.
+- NPC talk: a dialogue wheel (friendly / rude / threaten / ask), and relationships (NPCs remember how you treated them). No free typed/AI talk.
+- Shops: walk in and buy (real interiors, staff, items), and rob them (threaten the clerk, cash, alarms, police sent). The required shoe store stays.
+- Vehicles: basic theft only (smash a window, a simple hotwire; no carjacking set pieces), real damage (dents, glass, smoke, fire, wheels), boats and jet skis, a basic helicopter and plane system, and some police air units (no news helicopters).
+- World: day/night and weather, busy streets (traffic and crowds), animals.
+- Missions: small side jobs and random street events.
+
+**Not in scope for now:** free typed/spoken AI conversation; clothing-store and shoe-wearing changes beyond what the shoe store needs; owning or working at a business; extra activities (volleyball, hoops, fishing, golf); a long story chain; many different heist types.
+
+**Heist (conditional):** one decently large heist with a decent story, only if usage allows or the trajectory looks good. Build it last, after everything above works. Do not build several heist types.
