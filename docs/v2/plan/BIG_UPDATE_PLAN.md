@@ -107,6 +107,17 @@ scale is a guess and is probably too big.
    - the island towns have about 6 streets, or one road down the middle.
 5. Write the result to `docs/v2/plan/map_scale.json`: px boxes, real meters, the chosen m/px, and the new transform.
 
+### 2.1b Preliminary size estimate (measured 2026-11-15, rough; redo properly in the map job)
+Measured on the road map (1053×1493 px):
+- The island's bounding box is about 893×1321 px; land plus roads cover 28% of the image.
+- Downtown street spacing is about 9 px (short direction) and 13 px (long direction); other towns run 4–8 px.
+- Real downtown Miami blocks are about 80–100 m by 150–170 m, so the scale comes out at about **10–12 m per pixel**
+  (the current world uses 30 m per pixel).
+- At 11 m/px the island is about **9.8 × 14.5 km** (now 26.8 × 39.6 km), roughly **7 times smaller by area**.
+- Road pixels are 16% of land: about 24,000 px of line at a typical 3 px width, so roughly **250 km of roads**
+  (now about 850 km of made-up roads, plus the real Miami ones).
+These are first estimates. The map job re-measures the downtown span against the real Miami OSM data.
+
 ### 2.2 Trace the roads exactly
 - [ ] Skeletonize the white road pixels of `map_roads_target.webp` into a graph. Line width in pixels tells you the
   road class: motorway, arterial, local.
