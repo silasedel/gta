@@ -214,6 +214,18 @@ Each car also varies in rims, tint, dirt and parts.
 - [ ] **Police and wanted:** the existing system, polished and verified.
 - [ ] Settings: only real options. Removed: traffic and pedestrian density, day length (b9cde62).
 
+## 6b. HUD corner (top right): match `hud_corner_target.webp` exactly
+The user designed this target. Replicate it pixel for pixel, scaled to the screen:
+- **Wanted stars:** 5 chunky stars with a thick black outline. Earned stars are dark charcoal; unearned stars are
+  light grey. There's a gap between the earned and unearned groups, as in the image.
+- **Evidence icons** below the stars: dark-red circles with a black outline and a white glyph, in this order: camera,
+  witnesses (two heads), clothing (hanger), face seen (one head), weapon seen (pistol). Show only the ones that
+  apply, keeping the same style.
+- **Ammo:** a big bold number with a black outline. The clip count is white ("20"); the reserve is grey ("73").
+- **Weapon icon:** a glossy, slightly 3D illustration of the current weapon (dark blue-steel pistol, black outline),
+  under the ammo. Every weapon gets the same illustrated style.
+- Everything right-aligned, with the same proportions and spacing as the image. Check it in the Mac app.
+
 ## 7. Missions, heists and things to do (so it's a game, not just a sandbox)
 - [ ] A story arc of 8–12 missions with Nico, using the systems that exist: cars, boats, yachts, clubs, shops,
   police.
