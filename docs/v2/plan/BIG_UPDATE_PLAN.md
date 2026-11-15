@@ -5,26 +5,42 @@ Every session that works on V2 reads this first, then the section for its job.
 
 ## 0. The goal and the bar
 
-- **Goal:** a polished, explorable open-world game in the style of a modern AAA Florida crime game (original IP: no
-  real brands, logos or names from other games). It should look and play well enough to be the centrepiece of a
-  YouTube video.
-- **Visual bar:** 9/10 or better against the user's "after" reference images, judged in the **Mac app at full Retina
-  resolution**, never only in a small headless shot. Anything that can't reach 9/10 from code gets a real model
-  (section 4).
-- **Feel:** smooth, clean, shiny where it should be, no grain, no dots, no flicker, no pop-in, no clipping, no bugs.
+- **Goal:** an original open-world crime game set in a Florida world (real Miami geography plus our own island),
+  at the quality level of current AAA open-world games, and good enough to be the centerpiece of a YouTube video.
+  Original IP throughout: our own characters, story, map design, art and music. Real-world brands are replaced by
+  made-up brands in a similar spirit, with original logos.
+- **The visual style: photoreal with a smooth game finish.**
+  - Realistic light and materials, simplified the way a real-time game is: clean, solid, continuous surfaces.
+  - Soft natural shadows and bounce light, a light atmospheric haze, and believable reflections on cars, glass and
+    water.
+  - Nothing should look "layered": no flat cards, no stacked decals or strips floating on top of each other, no
+    surfaces that flicker or fight, no objects that light differently from their neighbors.
+  - Every object should look like one solid, real thing sitting in one shared light.
+- **The bar:** 9/10 or better against the user's "after" reference images, judged in the **Mac app**, never only in
+  a small headless shot. Anything that can't reach 9/10 from code gets a real model (section 4).
 - **Explorable:** the whole map. Hand-made detail goes first where the camera spends the most time, and the whole
   map must still be clean and bug-free.
+- **Choices, not buttons:** the player makes real decisions everywhere (section 6d). Nothing should be a single
+  "press F" shortcut where a real process would be more fun.
 
-### How work is done (lessons from the first V2 push, which the user called "a shortcut job")
-1. **No 15-agent swarms.** One lead session plus at most 2–3 helper agents. Sonnet does the bulk work; Opus plans
-   and reviews.
-2. **Every job has a reviewer and a glitch-hunter pass**, the way the user's car channel works (`SilasCars/CHANNEL.md`).
-3. **Judge in the Mac app.** Rebuild with `npm run desktop:build -- --no-dmg`, take screenshots in the real window,
+### How work is done
+1. **Models:**
+   - **Opus 5.5** is the default for leads and most agents.
+   - Use Sonnet only for basic, mechanical tasks (renaming, conversion, batch file work).
+   - Use **Fable** (currently Fable 5.1) for the hardest problems: rendering architecture, physics, the map rebuild.
+2. **Agent count:** as many as the job needs, but no more than the Mac can run well. That's about 4–6 at once;
+   watch the load average.
+3. **Reviewer and glitch-hunter on every job,** the way the user's car channel works (`SilasCars/CHANNEL.md`).
+4. **Judge in the Mac app.** Rebuild with `npm run desktop:build -- --no-dmg`, take screenshots in the real window,
    and compare with the reference. Agents' self-reported scores don't count.
-4. **Don't claim done** until it's checked. Report honestly what's unverified.
-5. **Real models over code models.** Use `~/Downloads/Models` (136 assets) and `~/Downloads/Cars`, plus Tripo
-   models the user makes (section 4). Code only builds what no model can be: roads, terrain, layout and systems.
-6. **Budget:** check usage at every milestone. The cap is decided by the user each week.
+5. **User approval checkpoints:** when a section or a model is done, the lead sends the user screenshots
+   (SendUserFile) and asks **Approve / Decline** (AskUserQuestion). A decline comes with notes, and the work goes
+   back. A section isn't "done" until the user approves it.
+6. **Don't claim done** until it's verified. Report honestly what's unverified.
+7. **Real models over code models** (section 4). Code builds only what no model can be: roads, terrain, layout and
+   systems.
+8. **Budget:** check usage at every milestone. The user sets the cap each week.
+9. **American English** everywhere: in docs, in the UI and in-game text.
 
 ## 1. Image quality and rendering (top priority, map-wide)
 
@@ -45,8 +61,11 @@ To do:
   - Hair: alpha-to-coverage under MSAA, or opaque cards with a soft edge texture.
   - Glass: real blended transparency, sorted, with a Fresnel reflection.
   - Leaves and plants: alpha-to-coverage, not hashed.
-- [ ] Resolution: at least 1080p internal at all times, native on High/Ultra. Find the real cost, then fix it with
-  LOD and culling, not resolution.
+- [ ] **Resolution locked at 1920×1080 (Full HD)**, always, on every machine. It never goes up or down; it's
+  upscaled cleanly to the window or screen.
+- [ ] **60 fps on ordinary hardware,** not just the user's M3 Max. Minimum target: a base Apple-silicon MacBook (M1 or
+  M2) and a mid-range Windows PC GPU, at the default preset. Pay for it with LOD, culling, instancing and baked
+  lighting, never with resolution.
 - [ ] Anti-aliasing: TAA tuned for no ghosting in motion, with light sharpening only. Verify while driving at speed.
 - [ ] No film grain in gameplay. A subtle grain may stay in cutscenes only.
 - [ ] Pop-in: streaming and LOD distances far enough that nothing visibly changes within about 60 m. Trees, props
@@ -57,9 +76,9 @@ To do:
   - realistic sunset and night (night clouds, street-lamp pools and awnings fixed);
   - proper reflections on cars, glass and water;
   - ambient occlusion that grounds objects.
-- [ ] A consistent material profile: every imported model is normalised (roughness and metalness ranges, albedo
-  brightness, normal strength) so nothing looks too matte or too shiny next to its neighbours.
-- [ ] Steady 60 fps on the user's M3 Max at Ultra, in downtown, by Nico's house, on the highway and inside the club.
+- [ ] A consistent material profile: every imported model is normalized (roughness and metalness ranges, albedo
+  brightness, normal strength) so nothing looks too matte or too shiny next to its neighbors.
+- [ ] Measured: 60 fps in downtown, by Nico's house, on the highway and inside the club, on the minimum-spec target.
 - **Acceptance:** side-by-side shots from the Mac app at noon, sunset and night in 5 spots, scored 9/10 or better
   against the "after" references (ref_57, 58, 59, 64). There's a separate 10-second capture driving at speed, to
   check for shimmer and ghosting.
@@ -67,10 +86,12 @@ To do:
 ## 2. The map: rebuild to the user's road map, at the right scale
 
 Targets in this folder:
-- `map_roads_target.webp` (1041×1511): black land, white roads. This is **the** road layout. Trace it pixel for pixel.
-- `map_colour_target.webp` (1041×1511, the same frame): the colour version (water, land, parks, towns).
+- `map_roads_target.webp` (1053×1493, updated 2026-11-14): black land, white roads. This is **the** road layout.
+  Trace it pixel for pixel. It is a slightly different size from the color map, so first align the two (match
+  the coastlines) and store the transform.
+- `map_color_target.webp` (1041×1511, the same frame): the color version (water, land, parks, towns).
 
-They line up. The current world maps them with `x = -25450 + 30·px`, `z = -24890 + 30·py` (30 m per pixel). That
+The old road map lined up with the color map; the new one must be aligned (above). The current world maps them with `x = -25450 + 30·px`, `z = -24890 + 30·py` (30 m per pixel). That
 scale is a guess and is probably too big.
 
 ### 2.1 Work out the true scale from downtown
@@ -78,16 +99,16 @@ scale is a guess and is probably too big.
    (from the water to where the grid ends) and along.
 2. Match it to **real downtown Miami**. Measure the real span on the OSM data in `public/assets/miami/` (Biscayne
    Blvd to I-95, and from the Miami River to I-395). Measure; don't guess.
-3. The **metres per pixel** = real metres ÷ map pixels. Apply that one scale to the whole island. The user expects
+3. The **meters per pixel** = real meters ÷ map pixels. Apply that one scale to the whole island. The user expects
    the island to come out **smaller** than now.
 4. Re-check against the user's own street counts (memory: fictional-land-scale):
    - downtown is 3–5 streets across (8–9 at the widest) and 15–16 long;
    - the round-lake town is 4×5;
    - the island towns have about 6 streets, or one road down the middle.
-5. Write the result to `docs/v2/plan/map_scale.json`: px boxes, real metres, the chosen m/px, and the new transform.
+5. Write the result to `docs/v2/plan/map_scale.json`: px boxes, real meters, the chosen m/px, and the new transform.
 
 ### 2.2 Trace the roads exactly
-- [ ] Skeletonise the white road pixels of `map_roads_target.webp` into a graph. Line width in pixels tells you the
+- [ ] Skeletonize the white road pixels of `map_roads_target.webp` into a graph. Line width in pixels tells you the
   road class: motorway, arterial, local.
 - [ ] Keep every road in the image and add none, except bridges and ramps the image clearly implies.
 - [ ] **Count the roads per section** and check them against the image: each town grid, downtown, the highway ring
@@ -96,7 +117,7 @@ scale is a guess and is probably too big.
 - [ ] Every island and town reachable by road; no 1.6 m lips or steps (`tools/v2/maproads/drive-probe.mjs`).
 
 ### 2.3 Pieces of real Miami, placed onto the map
-- Downtown, Brickell, South Beach / Ocean Drive, Wynwood and Little Havana are modelled on the real places: street
+- Downtown, Brickell, South Beach / Ocean Drive, Wynwood and Little Havana are modeled on the real places: street
   layout, building heights, typical facades, landmark-like (but unbranded) buildings, palms, street furniture.
 - They're placed where the map puts them, fitted to the traced roads.
 - Hand-check every block in those districts: no doubled buildings, no plain boxes on visible corners, real shops at
@@ -128,16 +149,16 @@ The user: "sloppy", "grass over the road", "crosswalks that don't match", "a sig
 ## 4. Models: what to use, what the user should make or find
 
 All imported models go through one pipeline (`docs/v2/plan/` will hold the scripts' notes):
-1. Remove brands; add Southline logos and Florida plates.
-2. Normalise materials (section 1).
+1. Replace real brands with made-up brands in a similar style, with original logos and badges; add Florida plates.
+2. Normalize materials (section 1).
 3. Make LODs.
 4. Fit colliders and hitboxes.
 
 Vehicles also get split wheels that spin and steer, per-wheel suspension, door, seat, light and exhaust points, and
 damage pieces.
 
-**Car colours:** realistic for Miami. Roughly:
-- white 25%, black 20%, grey 18%, silver 12%, blue 9%, red 8%;
+**Car colors:** realistic for Miami. Roughly:
+- white 25%, black 20%, gray 18%, silver 12%, blue 9%, red 8%;
 - the rest beige, brown, green, gold, orange and yellow;
 - white and silver run higher than the US average in hot, sunny places.
 
@@ -161,7 +182,7 @@ Each car also varies in rims, tint, dirt and parts.
 2. **NPC types (10–15)** in A-pose: a beach woman, a beach man, a tourist couple, an office man, an office woman,
    a club woman, a club man, a bartender, a cop, a gang member ×2, an elderly person, a jogger, a construction
    worker.
-3. **Shop staff** (the regular owners and clerks): bodega clerk, diner cook, jeweller, pawn-shop owner, gun-store
+3. **Shop staff** (the regular owners and clerks): bodega clerk, diner cook, jeweler, pawn-shop owner, gun-store
    owner, shoe-store clerk.
 4. **Hero props** that are missing: an ATM, a vending machine, a newspaper box, a fire hydrant, a mailbox, a
    lifeguard tower, beach chairs and umbrellas (if not enough), a food truck, a hot-dog cart, a phone booth
@@ -170,7 +191,7 @@ Each car also varies in rims, tint, dirt and parts.
 ### Wanted from downloads (the user and ChatGPT are finding these)
 - **Trees and palms (most needed):** coconut palm, royal palm, sabal palm, live oak, sea grape, mangrove, banyan,
   bushes and hedges, grass clumps. These replace the "copy-paste splotchy" trees.
-- **Storefronts and shop interiors:** shelves, counters, registers, displays, clothing racks, a shoe wall, a jewellery
+- **Storefronts and shop interiors:** shelves, counters, registers, displays, clothing racks, a shoe wall, a jewelry
   case, a diner booth, a bar, club furniture.
 - **Building kits:** Art Deco facades (Ocean Drive), glass towers (Brickell and downtown), Mediterranean houses,
   warehouses (Wynwood), strip malls.
@@ -208,8 +229,8 @@ Each car also varies in rims, tint, dirt and parts.
   dancing crowds, bar, bouncer.
 - [ ] **Shops:**
   - **every store usable**, including a **shoe store downtown**;
-  - each has its own regular staff member with their own look, voice and behaviour, its own stock and prices, and
-    a security level (a jeweller has a guard and cameras, a bodega has one nervous clerk);
+  - each has its own regular staff member with their own look, voice and behavior, its own stock and prices, and
+    a security level (a jeweler has a guard and cameras, a bodega has one nervous clerk);
   - templates for the rest.
 - [ ] **Police and wanted:** the existing system, polished and verified.
 - [ ] Settings: only real options. Removed: traffic and pedestrian density, day length (b9cde62).
@@ -221,7 +242,7 @@ The user designed this target. Replicate it pixel for pixel, scaled to the scree
 - **Evidence icons** below the stars: dark-red circles with a black outline and a white glyph, in this order: camera,
   witnesses (two heads), clothing (hanger), face seen (one head), weapon seen (pistol). Show only the ones that
   apply, keeping the same style.
-- **Ammo:** a big bold number with a black outline. The clip count is white ("20"); the reserve is grey ("73").
+- **Ammo:** a big bold number with a black outline. The clip count is white ("20"); the reserve is gray ("73").
 - **Weapon icon:** a glossy, slightly 3D illustration of the current weapon (dark blue-steel pistol, black outline),
   under the ammo. Every weapon gets the same illustrated style.
 - Everything right-aligned, with the same proportions and spacing as the image. Check it in the Mac app.
@@ -232,13 +253,13 @@ The user designed this target. Replicate it pixel for pixel, scaled to the scree
 - [ ] Witnesses: NPCs report crimes; security cameras can identify suspects.
 - [ ] Police recognition: officers remember the player's appearance, clothing and vehicle.
 - [ ] Disguises: changing clothes or vehicle helps you escape.
-- [ ] Realistic pursuits: police can recognise the player again after a chase.
+- [ ] Realistic pursuits: police can recognize the player again after a chase.
 
 **Vehicles**
 - [ ] Vehicle security: older cars are easier to steal; expensive cars have better security.
 - [ ] Alarms and trackers on some stolen vehicles.
 - [ ] Ownership: register stolen vehicles to keep them for good.
-- [ ] Fuel: cars sometimes need refuelling, and electric cars need charging (gas pumps are in the model library).
+- [ ] Fuel: cars sometimes need refueling, and electric cars need charging (gas pumps are in the model library).
 - [ ] Storage: garages, and trunks that hold vehicles, weapons and equipment.
 
 **Weapons and combat**
@@ -267,12 +288,35 @@ The user designed this target. Replicate it pixel for pixel, scaled to the scree
 Some of this already exists in part: wanted evidence icons, witnesses, cameras, property and business income,
 economy and money. Polish what exists, then build what's missing, after the look and the map (section 9).
 
+## 6d. Real choices in every interaction (game-wide principle)
+No single-button shortcuts. What you can do depends on where you stand, what you carry, what's around you and what
+the object is. Each choice has its own realistic animation, timing, noise and risk.
+
+**Example: stealing a car**
+- Context prompts by position:
+  - at the window: **smash the window** (an elbow, or a tool if carried, then reach in to unlock and climb in);
+  - at the door: **slim jim** (needs the tool; slower, but quiet);
+  - an owner getting out with the door open: **carjack** them;
+  - you have the keys (stolen from the owner or a valet): **use the key**.
+- The car's age decides the steps:
+  - older cars: open the door, then **hotwire** under the dash;
+  - modern cars: they need the key or fob, a **relay hack** (with a gadget), or stealing the key.
+  - Alarms and trackers depend on value (section 6c).
+- Every step is animated and takes time. Witnesses and cameras react to noise and to what they see.
+
+**The same idea everywhere else**
+- **Robberies:** threaten the clerk, sneak to the back, go in through a side door, or after hours.
+- **Doors:** knock, pick the lock, kick it in, or find another way in.
+- **Police:** comply, talk your way out, run, hide, or change your clothes or car.
+- **Shops:** browse, try things on, buy, haggle, or shoplift.
+- **Missions:** stealth, combat or a smart alternative route.
+
 ## 7. Missions, heists and things to do (so it's a game, not just a sandbox)
 - [ ] A story arc of 8–12 missions with Nico, using the systems that exist: cars, boats, yachts, clubs, shops,
   police.
 - [ ] **Heists (3–4):** planning phase (scout, crew, gear), setup missions, then the job, with branching approaches
   (quiet or loud). Ideas:
-  - a jewellery store downtown;
+  - a jewelry store downtown;
   - a yacht party safe;
   - an armoured truck on the causeway;
   - a club's back office.
