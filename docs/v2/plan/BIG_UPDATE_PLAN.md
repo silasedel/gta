@@ -273,6 +273,9 @@ The user designed this target. Replicate it pixel for pixel, scaled to the scree
 - Everything right-aligned, with the same proportions and spacing as the image. Check it in the Mac app.
 
 ## 6c. Features to add (user's list, 2026-11-14)
+**Required shop (user requirement, for fun)**
+- [ ] There must be a shoe store somewhere on the map: a real, enterable shop with shoes on display and a clerk, usable like the other stores (buy shoes, change what Nico wears).
+
 **Police and crime**
 - [ ] A six-star wanted system with police responses that escalate at each level.
 - [ ] Witnesses: NPCs report crimes; security cameras can identify suspects.
