@@ -216,8 +216,8 @@ Each car also varies in rims, tint, dirt and parts.
 
 ## 6b. HUD corner (top right): match `hud_corner_target.webp` exactly
 The user designed this target. Replicate it pixel for pixel, scaled to the screen:
-- **Wanted stars:** 5 chunky stars with a thick black outline. Earned stars are dark charcoal; unearned stars are
-  light grey. There's a gap between the earned and unearned groups, as in the image.
+- **Wanted stars: SIX stars** in one evenly spaced row, chunky, with a thick black outline. Earned stars are mid-grey
+  (the example shows 4 earned); unearned stars are near-white. No gap between the two groups.
 - **Evidence icons** below the stars: dark-red circles with a black outline and a white glyph, in this order: camera,
   witnesses (two heads), clothing (hanger), face seen (one head), weapon seen (pistol). Show only the ones that
   apply, keeping the same style.
@@ -225,6 +225,47 @@ The user designed this target. Replicate it pixel for pixel, scaled to the scree
 - **Weapon icon:** a glossy, slightly 3D illustration of the current weapon (dark blue-steel pistol, black outline),
   under the ammo. Every weapon gets the same illustrated style.
 - Everything right-aligned, with the same proportions and spacing as the image. Check it in the Mac app.
+
+## 6c. Features to add (user's list, 2026-11-14)
+**Police and crime**
+- [ ] A six-star wanted system with police responses that escalate at each level.
+- [ ] Witnesses: NPCs report crimes; security cameras can identify suspects.
+- [ ] Police recognition: officers remember the player's appearance, clothing and vehicle.
+- [ ] Disguises: changing clothes or vehicle helps you escape.
+- [ ] Realistic pursuits: police can recognise the player again after a chase.
+
+**Vehicles**
+- [ ] Vehicle security: older cars are easier to steal; expensive cars have better security.
+- [ ] Alarms and trackers on some stolen vehicles.
+- [ ] Ownership: register stolen vehicles to keep them for good.
+- [ ] Fuel: cars sometimes need refuelling, and electric cars need charging (gas pumps are in the model library).
+- [ ] Storage: garages, and trunks that hold vehicles, weapons and equipment.
+
+**Weapons and combat**
+- [ ] Limited carrying: only a few weapons at once.
+- [ ] Extra weapons stored in vehicles.
+- [ ] Civilians react to large weapons carried openly.
+- [ ] Non-lethal takedowns.
+- [ ] Suppressing fire: enemies react to nearby gunfire and take cover.
+
+**World and activities**
+- [ ] More enterable buildings: shops, gas stations, restaurants, banks, houses.
+- [ ] Robberies of stores and other places, with different approaches.
+- [ ] Dynamic traffic: realistic density and rush-hour congestion.
+- [ ] Drive-through restaurants: order food without leaving the car.
+- [ ] Gym: working out improves strength, stamina and appearance.
+- [ ] Food and health: different foods give temporary benefits.
+- [ ] Interactive interiors: watch TV, sleep, eat, use objects.
+
+**Missions and progression**
+- [ ] Flexible missions: stealth, combat or alternative routes.
+- [ ] Side missions discovered through NPC conversations and the environment.
+- [ ] Money: separate cash, bank balance and stolen valuables.
+- [ ] Safe houses: save, sleep, change clothes and store items.
+- [ ] Fast travel by taxi and rideshare.
+
+Some of this already exists in part: wanted evidence icons, witnesses, cameras, property and business income,
+economy and money. Polish what exists, then build what's missing, after the look and the map (section 9).
 
 ## 7. Missions, heists and things to do (so it's a game, not just a sandbox)
 - [ ] A story arc of 8–12 missions with Nico, using the systems that exist: cars, boats, yachts, clubs, shops,
