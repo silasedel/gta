@@ -434,3 +434,8 @@ These override anything above that conflicts. "Priority" lines say what gets cut
 - Every map area gets finished detail: downtown, Nico's neighborhood, beaches and bay, island and countryside.
 - Driving should feel realistic (weight, real suspension, spin-outs), still controllable.
 - Audience is both: great in the video and playable by anyone on the website (so 60 fps on ordinary hardware stays a hard rule).
+
+**Round 3 answers (2026-11-15):**
+- Disguises: vehicle swaps definitely count. No outfit changes. A hat and a mask are allowed as simple toggles; a mask worn during a store robbery hides the player's face so witnesses and cameras cannot identify them.
+- Shoe store: enterable, normal-looking shop with shoppers inside. Shoes can be bought or stolen and kept at home (a closet or shelf), but cannot be worn. Purely for fun.
+- Wanted scale: copy GTA V's structure (1-2 stars: warrant style, police only act if they clearly see and recognize you and may stop and question you; higher stars add more cars, aggressive pursuit, helicopters, SWAT, roadblocks, then military at 5). Star 6 is an over-the-top, nearly inescapable extreme version beyond 5. Check GTA V's exact scale before building; do not invent a different one.
