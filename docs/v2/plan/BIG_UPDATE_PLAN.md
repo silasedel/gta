@@ -209,30 +209,19 @@ Each car also varies in rims, tint, dirt and parts.
 - **Marina:** piers, boat lifts, fuel dock, bollards, buoys.
 - **Interiors for the safehouse** and the main mission locations.
 
-## 4b. Nico's house: exact target (`nico_house_exterior_target.webp`, designed by the user)
-The user's design is the reference for the main house exterior and its lot. Whenever the house is touched, match it
-to this image. In their words, everything is modeled to it. What the image shows:
-- **House:** a two-story Florida stilt house with a gable roof, with weathered teal vertical board siding and worn,
-  peeling paint. A wide covered upper deck runs along the whole front, with a wooden railing, potted plants and
-  flowers, and a satellite dish mounted at the end.
-- **Details:** window AC units, an open upper door with a warm light, drain pipes, a roof vent and a rooftop flue.
-  A basketball hoop sits on the side wall.
-- **Stairs:** a long wooden staircase with railings on the right side, up to the deck.
-- **Ground level:** open carport and workshop underneath, on wooden piles with diagonal braces. A pendant lamp hangs
-  under the deck, a teal classic car is parked inside, and shelves with tools and supplies line the back.
-- **Yard:** a crushed-shell and gravel drive with scattered rocks, weeds and tufts of grass. A silver pickup is
-  parked on the right. Trash bins stand next to the stairs, one blue recycling bin and one gray.
-- **Plants:** a coconut palm group on the left, bright pink flowering bushes (bougainvillea or hibiscus) at the front
-  left, and a dense tree on the right.
-- **Street and neighbors:** a utility pole with wires and a junction box on the left, power lines overhead, wooden
-  fence posts, and neighboring houses on both sides (a yellow one on the left, a white and blue-gray one on the
-  right). The bay is visible behind the house on the left.
-- **Road:** worn asphalt with a double yellow line and standing puddles that reflect the sky, in front of the house.
-- **Lighting:** a bright blue sky with soft clouds, strong afternoon sun, soft real shadows and warm bounce light.
+## 4b. Nico's house: copy these images exactly (`docs/v2/plan/nico_house/`)
+The user designed the main house and its surroundings. **Copy the design exactly, including the neighborhood
+around it.** Where the images show more than the game has, build what they show.
+1. `1_front_street.webp`: front, from the street.
+2. `2_back_dock.webp`: back, from the water (dock, boat, rocks).
+3. `3_side_yard.webp`: side and yard (propane tank, lattice, chain-link fence).
+4. `4_side_stairs.webp`: side with the stairs, basketball hoop and satellite dish.
+5. `5_aerial_neighborhood.webp`: aerial view of the whole neighborhood: the street, neighbor houses, the marina,
+   the bay with small islands, and a bridge in the distance. This is the reference for the surroundings.
+6. `6_interior.webp`: interior (living room, kitchen, hallway).
 
-Make the existing house (`src/world/setpieces/nicoHouse/`) match this: siding color and wear, deck, staircase, stilts
-and carport, the basketball hoop, satellite dish, AC units, the plants and the street scene. The lot should read like
-this image from the street, in the Mac app, at the same time of day.
+Match the existing house (`src/world/setpieces/nicoHouse/`) to them, check it in the Mac app, and send the user
+side-by-side comparisons for approval.
 
 ## 5. Characters and animation
 - [ ] Nico from Tripo (section 4), rigged by us:
