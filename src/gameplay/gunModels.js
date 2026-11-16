@@ -263,7 +263,7 @@ function muzzleDev(b, M, kind, y, z, r = 0.017, len = 0.17) {
   if (kind === 'suppressor') {
     b.cyl(r * 0.55, r * 0.55, 0.012, M.steelDark, 0, y, z + 0.006, 14); b.cyl(r, r, len, M.steelDark, 0, y, z + 0.012 + len / 2, 22);
     b.cyl(r * 1.02, r * 1.02, len * 0.14, M.knurl, 0, y, z + 0.012 + len * 0.1, 22); b.cyl(r * 1.02, r * 1.02, 0.006, M.knurl, 0, y, z + 0.012 + len - 0.003, 22);
-    b.cyl(r * 0.42, r * 0.42, 0.003, M.bore, 0, y, z + 0.0125 + len, 14); b.mark('SALTWORKS  QD-9  PORT SOLANA FL', r * 0.72, y + r * 0.72, z + len * 0.55, len * 0.6, 0.007);
+    b.cyl(r * 0.42, r * 0.42, 0.003, M.bore, 0, y, z + 0.0125 + len, 14); b.mark('SALTWORKS  QD-9  SOUTHLINE FL', r * 0.72, y + r * 0.72, z + len * 0.55, len * 0.6, 0.007);
     return 0.012 + len;
   }
   if (kind === 'comp') {
@@ -322,7 +322,7 @@ const BUILD = {
     b.serrations(0.092, 0.114, 0.006, 0.028, 0.0152, 5, M.steelDark).serrations(0.092, 0.114, 0.006, 0.028, -0.0152, 5, M.steelDark);
     b.box(0.012, 0.012, 0.038, M.stainless, -0.0085, 0.025, 0.02); b.box(0.004, 0.004, 0.012, M.steelDark, -0.0152, 0.024, -0.008);       // barrel hood, extractor
     b.box(0.014, 0.012, 0.003, M.steelDark, 0, 0.014, -0.0585);                                                                     // striker plate
-    b.mark('SERVICE 9', 0.0153, 0.017, 0.06, 0.05, 0.009); b.mark('PORT SOLANA FL', -0.0153, 0.017, 0.055, 0.06, 0.007);
+    b.mark('SERVICE 9', 0.0153, 0.017, 0.06, 0.05, 0.009); b.mark('SOUTHLINE FL', -0.0153, 0.017, 0.055, 0.06, 0.007);
     if (A.sight === 'reddot') { optic(b, M, 'reddot', -0.022, 0.035, { mini: true }); irons(b, M, -0.05, 0.12, 0.035, true); } else irons(b, M, -0.047, 0.12, 0.035);
     b.end();
     const ml = muzzleDev(b, M, A.muzzle, 0.017, 0.136, 0.0165, 0.16);
@@ -509,7 +509,7 @@ const BUILD = {
   },
 };
 function labelMat() {
-  const c = canvas(256, 128, (g, w, h) => { g.fillStyle = '#f2e6c8'; g.fillRect(0, 0, w, h); g.fillStyle = '#b3261e'; g.fillRect(0, 0, w, 16); g.fillRect(0, h - 16, w, 16); g.fillStyle = '#1d3b5a'; g.font = '900 34px Georgia, serif'; g.textAlign = 'center'; g.fillText('TERN KEY', w / 2, 62); g.font = '600 15px Arial'; g.fillText('ISLAND LAGER  ·  PORT SOLANA', w / 2, 88); g.beginPath(); g.arc(w / 2, 100, 6, 0, 6.3); g.fill(); });
+  const c = canvas(256, 128, (g, w, h) => { g.fillStyle = '#f2e6c8'; g.fillRect(0, 0, w, h); g.fillStyle = '#b3261e'; g.fillRect(0, 0, w, 16); g.fillRect(0, h - 16, w, 16); g.fillStyle = '#1d3b5a'; g.font = '900 34px Georgia, serif'; g.textAlign = 'center'; g.fillText('TERN KEY', w / 2, 62); g.font = '600 15px Arial'; g.fillText('ISLAND LAGER  ·  SOUTHLINE', w / 2, 88); g.beginPath(); g.arc(w / 2, 100, 6, 0, 6.3); g.fill(); });
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(2, 1);
   return new THREE.MeshStandardMaterial({ map: t, roughness: 0.75, side: THREE.DoubleSide });
 }

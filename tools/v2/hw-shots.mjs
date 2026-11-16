@@ -18,6 +18,12 @@ const SPOTS = {
   jt_deck: { deck: [-700, -3492], dir: [1, 0.015], h: 1.6 },            // Julia Tuttle Causeway, eastbound deck
   jt_air: { eye: [-1300, 70, -3200], look: [200, 4, -3500] },         // Julia Tuttle from above the bay
   macarthur: { eye: [-900, 40, -250], look: [0, 2, 120] },             // MacArthur over the restored Watson run
+  wall_i95: { eye: [-3448, 1.8, 2010], look: [-3492, 2.4, 1935] },     // I-95 / US-1 embankment: retaining wall, coping, panels
+  wall_mac: { eye: [-2195, 1.8, -775], look: [-2262, 2.4, -846] },     // MacArthur west approach embankment + ramp split
+  wall_port: { eye: [636, 1.7, 897], look: [655, 2.2, 868] },          // East Port Boulevard embankment: retaining wall, coping, panels
+  wall_22: { eye: [3364, 1.7, -2161], look: [3384, 2.2, -2131] },      // 22nd Street ramp embankment (Miami Beach)
+  jt_med: { eye: [-660, 21, -3528], look: [-540, 12, -3500] },         // Julia Tuttle: the two decks side by side (median)
+  join_air: { eye: [-2230, 26, -760], look: [-2330, 6, -830] },        // MacArthur / I-395 ramp split from above: barrier joins, lines
 };
 const HIDE = `(() => { game.timeExternal = true; game.timeOfDay = ${o.tod || 11}; if (!window.__hw) { window.__hw = document.createElement('style'); window.__hw.textContent = 'body > *:not(canvas) { visibility: hidden !important; } #title, #ps-hud, #ps-hud * { display: none !important; }'; document.head.appendChild(window.__hw); } return true; })()`;
 const CAM = (s) => `(() => { const s = ${JSON.stringify(s)}, C = game.city; let eye, look;

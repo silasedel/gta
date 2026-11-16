@@ -871,13 +871,13 @@ function addDecals(shell, t, typeKey) {
       } else if (typeKey === 'fire') {
         c.fillStyle = '#f2d14b'; c.fillRect(0, 96, 512, 14);
         c.fillStyle = '#f7f2e0'; c.font = 'bold 34px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.fillText('PORT SOLANA FIRE RESCUE', 256, 52, 490);
+        c.fillText('SOUTHLINE FIRE RESCUE', 256, 52, 490);
       } else {
         c.fillStyle = '#f2f4f7'; c.fillRect(0, 0, 512, 128);
         c.fillStyle = '#c9a227'; c.fillRect(0, 0, 512, 10); c.fillRect(0, 118, 512, 10);
         c.fillStyle = '#0b1a33'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.fillText('PSPD', 256, 52);
-        c.font = 'bold 20px sans-serif'; c.fillText('PORT SOLANA POLICE', 256, 100);
+        c.font = 'bold 20px sans-serif'; c.fillText('SOUTHLINE POLICE', 256, 100);
       }
     });
   }

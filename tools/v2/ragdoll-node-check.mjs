@@ -41,8 +41,11 @@ const O = {
 const rd = rag.start(ch, O);
 const h = 1 / 60; world.timestep = h;
 const P = (n) => ch.bones[n].getWorldPosition(new THREE.Vector3());
+let arch = 0, knee = 0;
+const relX = (a, b) => { const r = new THREE.Quaternion().copy(a.body.rotation()).invert().multiply(new THREE.Quaternion().copy(b.body.rotation())); if (r.w < 0) r.set(-r.x, -r.y, -r.z, -r.w); return 2 * Math.asin(Math.max(-1, Math.min(1, r.x))); };
 for (let i = 0; i < 300; i++) {
   for (const f of game.fixedHooks) f(h); world.step(); rag.update(h);
+  if (!rd.frozen && !rd.recovered) { arch = Math.min(arch, relX(rd.byKey.pelvis, rd.byKey.chest)); for (const k of ['shinL', 'shinR']) { const p = rd.byKey[k]; const r = new THREE.Quaternion().copy(p.parent.body.rotation()).invert().multiply(new THREE.Quaternion().copy(p.body.rotation())); if (r.w < 0) r.set(-r.x, -r.y, -r.z, -r.w); const a = 2 * Math.acos(Math.min(1, r.w)); knee = Math.max(knee, a); } }
   if (i % (process.env.EVERY ? +process.env.EVERY : 15) === (process.env.EVERY ? 0 : 14) || rd.frozen) {
     let mv = 0, mw = 0, wk = ''; if (!rd.frozen) for (const p of rd.parts) { const v = p.body.linvel(), w = p.body.angvel(); mv = Math.max(mv, Math.hypot(v.x, v.y, v.z)); const ww = Math.hypot(w.x, w.y, w.z); if (ww > mw) { mw = ww; wk = p.key; } } mv = mv.toFixed(2) + ' w' + mw.toFixed(2) + wk + ' still' + rd.still.toFixed(2);
     const hp = P('Hips'), hd = P('Head');
@@ -50,3 +53,4 @@ for (let i = 0; i < 300; i++) {
     if (rd.frozen || rd.recovered) break;
   }
 }
+console.log('worst spine extension (rad, negative = arch back)', arch.toFixed(2), 'worst knee bend', knee.toFixed(2));

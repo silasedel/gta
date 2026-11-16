@@ -22,7 +22,7 @@ export function buildPoliceHeli(THREE, o = {}) {
       // text: mirror so it reads correctly from outside on each side
       g.save(); g.translate(w * 0.33, y - (flipY ? -1 : 1) * 16); g.scale(vc < 0.5 ? -1 : 1, flipY ? -1 : 1);
       g.fillStyle = PSPD.navy; g.font = '900 54px Arial'; g.textAlign = 'center'; g.fillText('POLICE', 0, 0);
-      g.font = 'bold 20px Arial'; g.fillText('PORT SOLANA · SKYWATCH ' + unit, 0, 22);
+      g.font = 'bold 20px Arial'; g.fillText('SOUTHLINE · SKYWATCH ' + unit, 0, 22);
       g.restore();
       drawBadge(g, w * 0.14, y - (flipY ? -1 : 1) * 14, 30);
     }
