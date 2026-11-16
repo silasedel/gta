@@ -1,6 +1,6 @@
 # Southline: your full brief
 
-You are one stage in a relay. Five Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
+You are one stage in a relay. Four Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
@@ -120,22 +120,26 @@ Where an answer says "whatever GTA 6 will likely do", copy GTA 6 behavior. These
 **Process:** show screenshots after every big step.
 
 
-# YOUR STAGE: 4 of 5, STORY SYSTEMS
-Budget: 0.5 of a weekly $200 plan. Starting point: the game from stage 3 (world, people, shops, cars, police).
+
+# YOUR STAGE: 4 of 4, JOBS, HEIST AND FINAL CHECK
+Budget: 0.5 of a weekly $200 plan. Starting point: the game from stage 3 (world, people, shops, cars, police, HUD, dialogue). This is the last stage.
 
 ## Jobs (in order)
-1. **HUD, 0.08.** The corner HUD exactly as `docs/v2/plan/hud_corner_target.webp` (6 stars in one row, earned stars charcoal, evidence icons, ammo "20" / "73", pistol art). Keep the current title and menu. Remove the volleyball people. Fix the "CALORA / CLICK TO PLAY" overlay. DONE TEST: HUD screenshots at 0-6 stars match the target.
-2. **Dialogue wheel and NPC memory, 0.15.** Context-based options (friendly, rude, threaten, ask for info, trade). First meeting: basic starters. Later meetings: refer to what happened last time (kept for every NPC you met). Relationships: treating people well helps, robbing them is remembered. DONE TEST: two conversations with the same NPC show the memory.
-3. **Shops: buy and rob, 0.08.** Buying menus in every shop. Robbery: threaten the clerk, take cash, alarm, police sent; a mask hides your face. DONE TEST: buy something and rob a store, each end to end.
-4. **Jobs, 0.10.** Car theft orders, taxi, bounty, with money as the reward. DONE TEST: each job can be started, completed and paid.
-5. **Weapons, radio, save, 0.09.** Pistols, shotguns, rifles, melee from `~/Downloads/Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs from the user's music folder. Save and load game. DONE TEST: use each weapon type; radio changes stations; save, quit, load.
+1. **Shops: buy and rob, 0.08.** Buying menus in every shop. Robbery: threaten the clerk, take cash, alarm, police sent; a mask hides your face. TEST: buy something and rob a store, each end to end.
+2. **Jobs, 0.10.** Car theft orders, taxi, bounty, with money as the reward. TEST: each job can be started, completed and paid.
+3. **Weapons, radio, save, 0.09.** Pistols, shotguns, rifles, melee from `~/Downloads/Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs from the user's music folder. Save and load game. TEST: use each weapon type; radio changes stations; save, quit, load.
+4. **Simple casino heist, 0.15.** One heist with a few steps and a short story, built on the casino from stage 2 and the police from stage 3 (for example: case the casino, get in, reach the vault, get out, escape the chase). Mission flow, a payout. TEST: play it start to finish; it can be failed and retried; no soft locks.
+5. **Final check and fixes, 0.08.** Walk through the plan's section 13 and `references/playtest_1114/BUGS.md` and fix the worst: anything broken, floating, clipping, sliding, see-through, grainy or slow. List remaining issues honestly in `docs/v2/briefs/FINAL_CHECKLIST.md` (pass or fail per item).
+
+## Not in this version (cut to fit the budget; do not build these)
+Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (first-meeting vs later-meeting lines only), barber and hotel-lobby interiors, random street events beyond police chases, weather beyond rain and fog, a long heist (build only the simple one in stage 4), extra polish passes. Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
 
 ## Models the user prepares for this stage
-Small items for shops and jobs (cash, wallets, bags); weapons are already in the library. The user prepares the heist props for stage 5: vault door, cash stacks, duffel bag.
+Heist props (vault door, cash stacks, duffel bag, from Tripo); anything the final check shows missing.
 (If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage
-A project where a full loop works: commit a crime, get chased, escape or get arrested, buy something, take a job, talk to NPCs, all with the exact HUD. Update `CONVENTIONS.md`.
+The finished version: the full loop works (commit a crime, get chased, escape or be arrested, buy, talk, take a job, do the heist), 60 fps, checklist written. Do not build or publish; tell the user it is ready.
 
 ## Start
 Set up the app, take a first screenshot of the current state, then do the jobs in order, checking every step visually and measuring fps.

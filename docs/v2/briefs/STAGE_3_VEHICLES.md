@@ -1,6 +1,6 @@
 # Southline: your full brief
 
-You are one stage in a relay. Five Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
+You are one stage in a relay. Four Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
@@ -120,17 +120,22 @@ Where an answer says "whatever GTA 6 will likely do", copy GTA 6 behavior. These
 **Process:** show screenshots after every big step.
 
 
-# YOUR STAGE: 3 of 5, VEHICLES AND LAW
+
+# YOUR STAGE: 3 of 4, VEHICLES AND LAW
 Budget: 0.9 of a weekly $200 plan. Starting point: the world with people and interiors from stage 2.
 
 ## Jobs (in order)
-1. **Cars, 0.35.** Import about 100 cars from `~/Downloads/Models/Cars` and the other vehicle folders: split wheels, per-wheel raycast suspension, fitted hitboxes, glass and paint materials, color variants (colors only, realistic Miami color mix), made-up brands, Florida-style plates. Taxi, 2-3 police cruisers, police bike, SWAT truck, ambulance, fire truck, garbage truck, delivery vans, buses. Driving: realistic but forgiving (weight, suspension, spin-outs). Fix: player pushing cars, pass-through pedestrians, engine sound after unpausing. DONE TEST: 12 representative cars drive, crash and park correctly; 40 cars active at 60 fps.
-2. **Damage, theft, parking, 0.15.** Dents, broken glass, smoke, fire, parts and wheels falling off (burning-car wheels must not glow red; see `src/fx/fire.v2.js`). Theft: smash a window then hotwire, or just start, depending on the car. Park anywhere; cars left in the open can be reported stolen and found by police. DONE TEST: video-like screenshot series of a crash, a fire and a hotwire.
-3. **Water and air, 0.10.** Many boats, one or two yachts, a few jet skis, helicopter and plane that fly well, police helicopter. DONE TEST: each vehicle works in the app.
-4. **Police and wanted system, 0.30.** Use GTA V's scale: 1-2 stars are warrant-style (police act only if they clearly see and recognize you, may stop and question you); higher stars add more cars, pursuit, helicopters, SWAT, roadblocks, military at 5. Star 6 is an extreme manhunt with a huge bounty and aerial units. Witnesses report crimes; speed and red-light cameras (more downtown, none rural); police remember face, clothes and vehicle; a mask hides your face; swapping vehicles helps escape. Minor speeding without a camera is fine. Outcome: arrest or death; jail where the player can break out or stay. DONE TEST: you can commit each crime type, get chased at stars 1-6, escape and get arrested; 60 fps during a 5-star chase.
+1. **Cars, 0.30.** Import about 70 cars from `~/Downloads/Models/Cars` and the other vehicle folders: split wheels, per-wheel raycast suspension, fitted hitboxes, glass and paint materials, color variants (colors only, realistic Miami color mix), made-up brands, Florida-style plates. Taxi, 2-3 police cruisers, police bike, SWAT truck, ambulance, fire truck, garbage truck, delivery vans, buses. Driving: realistic but forgiving. Fix: player pushing cars, pass-through pedestrians, engine sound after unpausing. TEST: 12 representative cars drive, crash and park correctly; 40 cars active at 60 fps.
+2. **Damage, theft, parking, 0.12.** Dents, broken glass, smoke, fire, parts and wheels falling off (burning-car wheels must not glow red; see `src/fx/fire.v2.js`). Theft: smash a window then hotwire, or just start, depending on the car. Park anywhere; cars left in the open can be reported stolen and found by police. TEST: series of screenshots of a crash, a fire and a hotwire.
+3. **Water and air, 0.08.** Many boats, one or two yachts, a few jet skis, a helicopter and a plane that fly well, a police helicopter. TEST: each vehicle works.
+4. **Police and wanted system, 0.30.** Use GTA V's scale: 1-2 stars are warrant-style (police act only if they clearly see and recognize you, may stop and question you); higher stars add more cars, pursuit, helicopters, SWAT, roadblocks, military at 5. Star 6 is an extreme manhunt with a huge bounty and aerial units. Witnesses report crimes; speed and red-light cameras (more downtown, none rural); police remember face, clothes and vehicle; a mask hides your face; swapping vehicles helps escape; minor speeding without a camera is fine. Outcome: arrest (short jail scene, then respawn) or death. Drive the HUD stars from stage 1 using the events in `CONVENTIONS.md`. TEST: commit each crime type, get chased at stars 1-6, escape, get arrested; 60 fps during a 5-star chase.
+5. **Integration check, 0.10.** Play the world with traffic, people, shops and police together and fix anything that fights (cars hitting people wrongly, police ignoring interiors, fps drops).
+
+## Not in this version (cut to fit the budget; do not build these)
+Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (first-meeting vs later-meeting lines only), barber and hotel-lobby interiors, random street events beyond police chases, weather beyond rain and fog, a long heist (build only the simple one in stage 4), extra polish passes. Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
 
 ## Models the user prepares for this stage
-About 50 more cars (sedans, SUVs, trucks, vans, sports), taxi, 2-3 police cruisers, police bike, SWAT truck, ambulance, fire truck, garbage truck, delivery vans, 3 more buses, 1-2 yachts, 2 more jet skis, police helicopter. The user downloads all of these.
+About 20 more cars on top of the 50 you have (sedans, SUVs, trucks, vans, sports), taxi, 2-3 police cruisers, police bike, SWAT truck, ambulance, fire truck, garbage truck, delivery vans, 3 more buses, 1-2 yachts, 2 more jet skis, police helicopter. The user downloads all of these.
 (If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage

@@ -1,6 +1,6 @@
 # Southline: your full brief
 
-You are one stage in a relay. Five Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
+You are one stage in a relay. Four Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
@@ -120,23 +120,28 @@ Where an answer says "whatever GTA 6 will likely do", copy GTA 6 behavior. These
 **Process:** show screenshots after every big step.
 
 
-# YOUR STAGE: 1 of 5, WORLD FOUNDATION
+
+# YOUR STAGE: 1 of 4, WORLD FOUNDATION
 Budget: 0.9 of a weekly $200 plan. Starting point: the project as it is now (the old world).
 
-## Jobs (do in this order; the budget is a share of your 0.9)
-1. **Rendering and look, 0.30.** Find and remove every source of grain, dots, dithering, pixelation and shimmer: alpha-hashed transparency (hair, LOD fades, glass, vegetation), shadow and SSAO noise, film grain, TAA/MSAA misconfiguration. Lock 1080p. Photoreal with a game finish: sky, sun, golden hour, tone mapping, color grade, bloom, reflections on paint, glass and water, wet roads at night, working lamps. Fix shoreline flicker and ground glitching in water. Move the third-person camera closer (GTA 6 distance) without clipping. DONE TEST: clean, smooth screenshots at spawn, downtown, bay, Nico's house, night, rain; fps >= 60 at those 5 places (report ms).
-2. **Day/night and weather, 0.10.** Time of day cycle (fixed length, not a setting), rain, storms, fog, with matching lighting and road wetness. DONE TEST: screenshots of each weather at noon and night; fps still >= 60.
-3. **Map rebuild and trace, 0.30.** Rebuild the map about 7x smaller (plan section 2.1b) and trace every road exactly from `docs/v2/plan/map_roads_target.webp`, using `map_colour_target.webp` for land and water. Real-style districts on it: downtown towers, beach strip, marina, residential, industrial port, airport, swamp, small towns, farmland and forest. Nico's neighborhood matches the 6 images in `docs/v2/plan/nico_house/`. DONE TEST: overlay of your road network on the target image shows every road within about one road width; a 5-minute drive across the map has no pop-in, no gaps and no floating roads.
-4. **Road system, 0.10.** Lane markings, crosswalks, curbs, sidewalks, intersections with working traffic lights, stop and speed-limit signs, street names. No roads or crosswalks on grass, no trees or props on roads. Simple AI traffic that follows lanes and obeys lights; amount varies by place and time. DONE TEST: drive through 10 intersections with correct light behavior and AI cars stopping.
-5. **Buildings and dressing, 0.10.** Place the library buildings and kit-bashed variants by district, instanced, grounded, no overlaps or z-fighting; street lamps, signs, bins, benches, palms. Make every building footprint and door position follow `CONVENTIONS.md`. DONE TEST: screenshots of 6 districts; fps >= 60.
-6. **Write `docs/v2/CONVENTIONS.md`.** How to find: spawn points for people and cars, road graph, parking spaces, shop slots (building door markers with an interior id), police station and jail locations, camera positions, airport and docks, the casino building. Later stages depend on it.
+## Jobs (in order; budget is a share of your 0.9; do not start the next job until the current one passes its test)
+1. **Rendering and look, 0.30.** Remove every source of grain, dots, dithering, pixelation and shimmer: alpha-hashed transparency (hair, LOD fades, glass, vegetation), shadow and SSAO noise, film grain, TAA/MSAA misconfiguration. Lock 1080p. Photoreal with a game finish: sky, sun, golden hour, tone mapping, color grade, bloom, reflections on paint, glass and water, wet roads at night, working lamps. Fix shoreline flicker and ground glitching in water. Move the third-person camera closer (GTA 6 distance) without clipping. TEST: clean smooth screenshots at spawn, downtown, bay, Nico's house, night; fps >= 60 at those places (report ms).
+2. **Day/night and rain, 0.05.** A fixed-length day cycle (not a setting), rain and fog with matching lighting and wet roads. TEST: screenshots at noon, sunset, night, rain; fps >= 60.
+3. **Map rebuild and trace, 0.30.** Rebuild the map about 7x smaller (plan section 2.1b) and trace every road exactly from `docs/v2/plan/map_roads_target.webp`, using `map_colour_target.webp` for land and water. Real-style districts: downtown towers, beach strip, marina, residential, industrial port, airport, swamp, small towns, farmland and forest. Nico's neighborhood matches the images in `docs/v2/plan/nico_house/`. TEST: an overlay of your roads on the target image matches within about one road width; a 5-minute drive across the map has no pop-in, gaps or floating roads.
+4. **Road system, 0.10.** Lane markings, crosswalks, curbs, sidewalks, intersections with working traffic lights, stop and speed-limit signs, street names. No roads or crosswalks on grass, no trees or props on roads. Simple AI traffic that follows lanes and obeys lights, amount varying by place and time. TEST: drive through 10 intersections with correct light behavior and AI cars stopping.
+5. **Buildings and dressing, 0.08.** Place the library buildings and kit-bashed variants by district, instanced, grounded, no overlaps or z-fighting; street lamps, signs, bins, benches, palms. TEST: screenshots of 6 districts; fps >= 60.
+6. **HUD, 0.07.** The corner HUD exactly as `docs/v2/plan/hud_corner_target.webp` (6 stars in one row, earned stars charcoal, five evidence icons, ammo "20" / "73", pistol art), wired to a wanted-level value others will drive. Keep the current title and menu. Remove the volleyball people. Fix the "CALORA / CLICK TO PLAY" overlay. TEST: HUD screenshots at 0-6 stars match the target.
+7. **Write `docs/v2/CONVENTIONS.md`.** Where to find: spawn points for people and cars, road graph, parking spaces, shop slots (building door markers with an interior id), police station and jail locations, camera positions, airport and docks, the casino. Also the event names for crimes (`crime` with type, position, witnesses), stars (`wanted`), money, and missions, so later stages and the story systems connect.
+
+## Not in this version (cut to fit the budget; do not build these)
+Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (first-meeting vs later-meeting lines only), barber and hotel-lobby interiors, random street events beyond police chases, weather beyond rain and fog, a long heist (build only the simple one in stage 4), extra polish passes. Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
 
 ## Models the user prepares for this stage
-Buildings (about 45 more: downtown towers 15, apartments 8, houses 10, shop fronts and strip malls 10, hotels 4, port and warehouses 6); street props (traffic lights, street lamps, signs, bus stops, parking meters, news boxes, billboards); palms and trees; free CC0 textures for road, wall, floor, carpet. The user downloads all of these (big and polished things are downloaded, never AI-generated).
+Buildings (about 45: downtown towers 15, apartments 8, houses 10, shop fronts and strip malls 10, hotels 4, port and warehouses 6); street props (traffic lights, street lamps, signs, bus stops, parking meters, news boxes, billboards); palms and trees; free CC0 textures for road, wall, floor, carpet. The user downloads all of these (big and polished things are downloaded, never AI-generated).
 (If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage
-A project that runs at 60 fps with the new traced map, roads, traffic lights, buildings, clean smooth graphics, and `CONVENTIONS.md`. Include a tour of screenshots.
+A project running at 60 fps with the new traced map, roads, traffic lights, buildings, clean smooth graphics, the exact HUD, and `CONVENTIONS.md`. Include a tour of screenshots.
 
 ## Start
 Set up the app, take a first screenshot of the current state, then do the jobs in order, checking every step visually and measuring fps.

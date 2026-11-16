@@ -1,6 +1,6 @@
 # Southline: your full brief
 
-You are one stage in a relay. Five Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
+You are one stage in a relay. Four Claude Code sessions, each on a different account, build this game one after another. Each stage starts from the finished, tested result of the stage before it, does its own exact job, and hands back a better game to the next one. This document is everything you need.
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
@@ -120,20 +120,25 @@ Where an answer says "whatever GTA 6 will likely do", copy GTA 6 behavior. These
 **Process:** show screenshots after every big step.
 
 
-# YOUR STAGE: 2 of 5, PEOPLE AND PLACES
-Budget: 0.9 of a weekly $200 plan. Starting point: the finished world from stage 1 (new map, roads, traffic, buildings, look).
+
+# YOUR STAGE: 2 of 4, PEOPLE AND PLACES
+Budget: 0.9 of a weekly $200 plan. Starting point: the finished world from stage 1.
 
 ## Jobs (in order)
-1. **People pipeline, 0.35.** The user has about 100 Tripo people (T-pose GLBs, clothes baked in, in `~/Downloads/Models/Characters` or the folder the user names) and Nico's reference. Clean seams, replace flat hands on important ones, rig onto the game skeleton (reuse Nico's), build color variants, give each person a role (neighbors seen often, strangers rarely; workers by job). Crowd system: instancing and LOD so 100+ people hold 60 fps; they walk on sidewalks, sit, jog, talk, shop, walk dogs, avoid cars; no foot sliding; ragdoll and fights. Nico: face and body match the reference, hair, eyes, watch. DONE TEST: close-up screenshots of 15 different people; a street with 60 people at 60 fps; no sliding in a walk test video.
-2. **Interiors and shops, 0.45.** Build in code with downloaded props. Every shop: walk in through a real door, shoppers and staff inside, items on shelves, a working counter, no see-through walls, no door transparency glitches. List: grocery, gas station, gun shop, **shoe store** (shoes can be bought or stolen and kept at home, not worn), clothing store, restaurants, pawn shop, barber (walk in only), **casino** (floor with roulette, poker, slot machines, a bar you build in code, cashier cage, vault room and security rooms laid out for a heist), police station, jail with cells, hotel lobbies, apartment and office entrances with lobbies and hallways (no rooms). DONE TEST: screenshots of 12 interiors; enter and leave each; fps >= 60 in the busiest.
-3. **Nico's house and neighborhood, 0.10.** Match the six images in `docs/v2/plan/nico_house/` exactly (front, back dock, side yard, stairs, aerial neighborhood, interior), including the surroundings. Garage-like area under the house for parked cars. DONE TEST: six side-by-side comparisons with the reference images.
+1. **People pipeline, 0.30.** The user has about 100 Tripo people (T-pose GLBs, clothes baked in) and Nico's reference. Clean seams, replace flat hands on important ones, rig onto the game skeleton (reuse Nico's), build color variants, give each person a role (neighbors seen often, strangers rarely, workers by job). Crowd system: instancing and LOD so 100+ people hold 60 fps; they walk on sidewalks, sit, jog, talk, shop, walk dogs, avoid cars; no foot sliding; ragdoll and fights. Nico: face and body match the reference, with hair, eyes and watch. TEST: close-ups of 15 different people; a street with 60 people at 60 fps; no sliding.
+2. **Interiors and shops, 0.35.** Build in code with downloaded props. Each: a real door, shoppers and staff inside, items on shelves, a working counter, no see-through walls, no door transparency glitches. List: grocery, gas station, gun shop, **shoe store** (shoes can be bought or stolen and kept at home, not worn), clothing store, restaurants, pawn shop, **casino** (roulette, poker, slot machines, a bar you build in code, cashier cage, a vault room and security rooms laid out for a heist), police station, jail with cells, apartment and office entrances with lobbies and hallways (no rooms). TEST: screenshots of 10 interiors; enter and leave each; fps >= 60 in the busiest.
+3. **Nico's house and neighborhood, 0.10.** Match the six images in `docs/v2/plan/nico_house/` exactly, including the surroundings. Garage-like area under the house for parked cars. TEST: six side-by-side comparisons with the reference images.
+4. **Dialogue wheel, 0.10.** Press a key near a person and choose: friendly, rude, threaten, ask for info, trade. First meeting gives basic starters; later meetings refer to what happened last time (kept per NPC). TEST: two conversations with the same NPC show the memory.
+
+## Not in this version (cut to fit the budget; do not build these)
+Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (first-meeting vs later-meeting lines only), barber and hotel-lobby interiors, random street events beyond police chases, weather beyond rain and fog, a long heist (build only the simple one in stage 4), extra polish passes. Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
 
 ## Models the user prepares for this stage
-Shop props (bottles, glasses, bar stools, grocery shelves and coolers, registers, clothing racks, shoe shelves, chairs, couches, beds, desks, lockers, jail bunks, ceiling lamps); Tripo: slot machine (3 variants), 5 shoe styles, mask and cap, vault door for stage 5. The user prepares these while stage 1 runs.
+Shop props (bottles, glasses, bar stools, grocery shelves and coolers, registers, clothing racks, shoe shelves, chairs, couches, beds, desks, lockers, jail bunks, ceiling lamps); Tripo: slot machine (3 variants), 5 shoe styles, mask and cap, vault door and cash props for the heist in stage 4. The user prepares these while stage 1 runs.
 (If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage
-A project where you can walk the new world among believable crowds, enter every listed building, and see Nico's house match the references, at 60 fps. Update `CONVENTIONS.md` with interior ids, person roles and crowd settings.
+A project where you can walk the new world among believable crowds, enter every listed building, talk to people with memory, and see Nico's house match the references, at 60 fps. Update `CONVENTIONS.md` with interior ids, roles, crowd settings and the dialogue API.
 
 ## Start
 Set up the app, take a first screenshot of the current state, then do the jobs in order, checking every step visually and measuring fps.
