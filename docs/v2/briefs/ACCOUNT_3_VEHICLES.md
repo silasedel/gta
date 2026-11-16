@@ -85,7 +85,8 @@ Owner of: `src/vehicles/**`, boats, aircraft, car damage and fire, vehicle audio
 Done when: every car class drives, parks, crashes and burns correctly in the real app; screenshots of 12 representative cars; 60 fps with 40 cars active.
 
 ## Police (from the story lane)
-2. **HUD corner** exactly as `docs/v2/plan/hud_corner_target.webp`. Keep the current title/menu. Remove the volleyball people. Fix "CALORA / CLICK TO PLAY" overlay.
+1. **Police:** GTA V wanted scale, star 6 = extreme manhunt with a huge bounty and aerial units. 1-2 stars are warrant-style (they only act if they clearly see and recognize you). Witnesses, speed/red-light cameras, police remember face, clothes (mask hides face), vehicle; vehicle swap to escape. Arrest or death; jail with break-out or stay.
+Owner of: `src/gameplay/police/**` and wanted/witness/camera/jail code (account 4 owns HUD and dialogue; coordinate through REQUESTS.md).
 
 ## If your budget runs short, cut in this order
 Casino heist beyond a simple version; jail break-out (keep arrest and respawn); NPC memory depth; cars beyond 70; barber, hotel lobbies and extra interiors; weather beyond rain; extra polish. Never cut: the grain and pixelation fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
