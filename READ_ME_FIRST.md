@@ -5,6 +5,17 @@ The user is handing you this folder. It contains everything for the game: the co
 ## The situation
 Southline is an original open-world crime game for the web and Mac (Vite, three.js, Rapier), set in a real-scale Miami-style city plus an island, built to the user's own road map. The user is a YouTuber making a video series about getting AI to build a GTA-style game. The first attempts looked bad (grain, pixelation, flat "slop"), and the user is very unhappy with anything that looks cheap. The work is being done as a **relay of four stages on four different accounts, one after another**. Each stage gets the folder exactly as the previous stage left it, does its own exact job, and hands back a better game. The accounts belong to the user's family and friends, who lent their weekly usage. Do not waste it.
 
+## Folder map
+- `READ_ME_FIRST.md` (this file) and `HANDOFF_ORDER.md` (the relay order the user follows).
+- `docs/v2/briefs/STAGE_1..4_*.md`: your job description. `docs/v2/plan/BIG_UPDATE_PLAN.md`: the master plan (sections 12 to 14 and the user's final answers in section 13 win over older text). `docs/v2/CONVENTIONS.md`: how the systems connect (stage 1 writes it; every stage keeps it current).
+- `docs/v2/plan/*.webp`: the road map, color map, HUD target, Nico's house photos (`nico_house/`).
+- `Models/`: about 350 downloaded models in category folders, `Models/catalog.csv` (names, licenses) and `Models/README.txt`; `Models/NPCs/` holds the generated people.
+- `references/user_references/`: the user's reference images (locations, Nico, NPC source photos, slot machines). `references/playtest_1114/BUGS.md`: the known bug list.
+- `public/assets/`: the game's own assets, including `audio/music/` (club songs) and `audio/sfx/southline_death.mp3`.
+- `src/`: the game; `tools/`: build and measurement scripts; `desktop/`: the Mac app.
+- Old files (`V2_PLAN.md`, `OVERNIGHT.md`, `CONTRACT*.md`, `BIG_UPDATE.md`, `README.md`, `docs/v2/plan/EXECUTION_PLAN.md`) are history. If they conflict with this file or your stage brief, this file and your brief win.
+- Some small uncommitted edits from earlier sessions exist (`git status`). Look at them with `git diff`; keep what works, fix or drop what does not. The dot-files in `src/render/` are old look-test helpers; you may delete them.
+
 ## What you are here to do
 Do your stage's jobs, in order, to the best of your ability, to a **professional, shippable standard**. You are trusted to do this alone:
 - **You have full permission to make every decision yourself.** Do not stop to ask the user questions that the code, the plans or the references already answer. If something is unclear, decide the way a senior game developer would, pick the more GTA-like option, write a short note in your STATUS file, and move on.

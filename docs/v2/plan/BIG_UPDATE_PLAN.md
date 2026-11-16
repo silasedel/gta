@@ -1,3 +1,5 @@
+> **How the work is organized:** see `HANDOFF_ORDER.md` and `docs/v2/briefs/STAGE_*.md` in the project root. Sections 12 to 14 and the stage briefs override anything above that conflicts.
+
 # Southline V2: the big update, the master plan
 
 Living document. Started 2026-11-14 after the user's playtests (screenshots in `references/playtest_1114/`, local).
@@ -138,7 +140,7 @@ These are first estimates. The map job re-measures the downtown span against the
 
 The user: "sloppy", "grass over the road", "crosswalks that don't match", "a sign in the middle of the road".
 
-- [ ] **Use the downloaded road templates** (`~/Downloads/Models/Roads`: pieces with sides, overpasses, tunnels) as
+- [ ] **Use the downloaded road templates** (`Models//Roads`: pieces with sides, overpasses, tunnels) as
   the visual kit. Code places and deforms them along the traced graph.
 - [ ] **Intersections:** one merged surface per junction, built from the actual roads meeting there:
   - corner curbs and sidewalks with real radii;
@@ -175,7 +177,7 @@ damage pieces.
 
 Each car also varies in rims, tint, dirt and parts.
 
-### Already downloaded (`~/Downloads/Models`, 136 assets, 13 GB)
+### Already downloaded (`Models/`, 136 assets, 13 GB)
 - **Vehicles:**
   - cars: about 58 (sedans, SUVs, trucks, vans, ambulances, supercars, a graffiti wreck, an electric cargo van);
   - a transit bus, motorcycles, ATVs, jet skis, helicopters, seaplanes;

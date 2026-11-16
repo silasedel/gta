@@ -1,6 +1,8 @@
+> **SUPERSEDED.** The accounts, lanes and schedule in this file were replaced by the relay plan in `HANDOFF_ORDER.md` and `docs/v2/briefs/STAGE_*.md` (3 full accounts, then a half account last). Ignore the lanes, branches and dates below; only the gap tables (what exists vs what is missing) are still useful.
+
 # Execution plan: who does what (2026-11-15)
 
-Inputs: section 13 of BIG_UPDATE_PLAN.md (the user's 50 answers), `~/Downloads/Models` (354 catalog rows: 50 cars, 36 NPC rows so far with about 102 Tripo people being organized, 15 buildings, 24 weapons, 14 boats, 21 trees), the road map and house images in `docs/v2/plan/`.
+Inputs: section 13 of BIG_UPDATE_PLAN.md (the user's 50 answers), `Models/` (354 catalog rows: 50 cars, 36 NPC rows so far with about 102 Tripo people being organized, 15 buildings, 24 weapons, 14 boats, 21 trees), the road map and house images in `docs/v2/plan/`.
 
 ## Accounts (usage = weeks of a $200 plan)
 | Lane | Account | Work | Estimate |
@@ -67,6 +69,6 @@ If only 3 accounts exist, merge lanes 1+2, 3+4, 5+6 (each then needs about 0.8 w
 Casino heist, jail break-out, NPC relationship depth, extra polish, V2.1 publish.
 
 ## Needs from the user
-- Give each helper account write access to the repo `silasedel/gta-v2` (or send a zip), and a copy of `~/Downloads/Models` (about 13 GB, share by drive link).
+- Give each helper account write access to the repo `silasedel/gta-v2` (or send a zip), and a copy of `Models/` (about 13 GB, share by drive link).
 - Send each helper the lane brief; the lead writes one short brief per lane.
 - Confirm in advance which accounts are really free this week (5-hour limits also cap how fast one account can burn a week).
