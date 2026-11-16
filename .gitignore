@@ -17,3 +17,6 @@ server/node_modules/
 
 # Epidemic Sound tracks licensed to the user: local only, never pushed
 __pycache__/
+
+# user asset folders kept inside the project folder
+/Models/
