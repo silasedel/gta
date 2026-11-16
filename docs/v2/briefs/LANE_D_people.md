@@ -1,0 +1,7 @@
+# Lane D: People, interiors, shops
+Owner of: `src/characters/**`, `src/people/**`, `src/world/interiors/**`, `src/world/setpieces/**`, shop/casino/jail interiors, Nico's house interior.
+1. **People:** import about 100 Tripo people from the user's folder (T-pose GLBs; clothes baked in), clean seams, replace flat hands for important ones, rig onto the game skeleton (reuse the Nico skeleton), recolor variants, crowd LOD and instancing so 100+ people hold 60 fps. Each person has a role (neighbors seen often, strangers rarely). Realistic walk/idle/sit/run, no foot sliding, ragdoll and fights. Nico: his own face (match references; hair, eyes, watch).
+2. **Interiors:** build in code with downloaded props: grocery, gas station, gun shop, shoe store (required), clothing store, restaurant, pawn shop, barber (walk-in only), casino (tables from library, slot machines from Tripo, a bar built in code), police station and jail, hotel lobbies, apartment and office entrances, lobbies and hallways (no rooms). Real staff and shoppers inside, items on shelves, working doors, no see-through walls, no sliding door transparency.
+3. **Shoe store:** enterable, shoppers inside; shoes can be bought or stolen and kept at home but not worn.
+4. **Nico's house** must match `docs/v2/plan/nico_house/*.webp` exactly, including the surroundings.
+Done when: walk into every shop and the casino; screenshots of 10 interiors and 10 people close-up; 60 fps in the busiest interior.
