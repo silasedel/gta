@@ -1,0 +1,230 @@
+{
+ "set": "before",
+ "url": "http://127.0.0.1:5200/?mute&groundfix=0",
+ "when": "2026-11-14T06:09:18.789Z",
+ "spots": {
+  "nico": {
+   "name": "Nico house (Pelican Point Lane)",
+   "x": -6406.19352182439,
+   "z": 12436.687225061316,
+   "r": 140,
+   "roadEnds": {
+    "n": 1,
+    "abrupt": 1,
+    "step": 1,
+    "list": [
+     {
+      "x": -6386.2,
+      "z": 12427.7,
+      "name": "Pelican Point Lane",
+      "abrupt": true,
+      "step": 0.83
+     }
+    ]
+   },
+   "pads": {
+    "n": 118,
+    "step": 117,
+    "maxStep": 0.88,
+    "list": [
+     {
+      "id": "nico_house",
+      "x": -6448.3,
+      "z": 12454,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6447.6,
+      "z": 12452.1,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6447,
+      "z": 12450.2,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6446.3,
+      "z": 12448.3,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6445.7,
+      "z": 12446.4,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6445,
+      "z": 12444.5,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6444.4,
+      "z": 12442.6,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6443.7,
+      "z": 12440.8,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6443.1,
+      "z": 12438.9,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6442.4,
+      "z": 12437,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6441.8,
+      "z": 12435.1,
+      "step": 0.88
+     },
+     {
+      "id": "nico_house",
+      "x": -6441.1,
+      "z": 12433.2,
+      "step": 0.88
+     }
+    ]
+   },
+   "holes": {
+    "n": 0,
+    "list": []
+   },
+   "waterSolid": {
+    "n": 0,
+    "list": []
+   },
+   "islets": [
+    {
+     "x": -6534,
+     "z": 11125,
+     "cells": 1
+    },
+    {
+     "x": -7206,
+     "z": 11301,
+     "cells": 1
+    },
+    {
+     "x": -5494,
+     "z": 11413,
+     "cells": 3
+    },
+    {
+     "x": -6262,
+     "z": 11573,
+     "cells": 1
+    },
+    {
+     "x": -7094,
+     "z": 11597,
+     "cells": 2
+    },
+    {
+     "x": -6550,
+     "z": 11749,
+     "cells": 3
+    },
+    {
+     "x": -6566,
+     "z": 11781,
+     "cells": 1
+    },
+    {
+     "x": -5726,
+     "z": 11813,
+     "cells": 2
+    },
+    {
+     "x": -5718,
+     "z": 11909,
+     "cells": 1
+    },
+    {
+     "x": -4966,
+     "z": 12021,
+     "cells": 9
+    },
+    {
+     "x": -5862,
+     "z": 11973,
+     "cells": 1
+    },
+    {
+     "x": -5454,
+     "z": 12037,
+     "cells": 4
+    },
+    {
+     "x": -5030,
+     "z": 12053,
+     "cells": 3
+    },
+    {
+     "x": -6310,
+     "z": 12165,
+     "cells": 1
+    },
+    {
+     "x": -6062,
+     "z": 12165,
+     "cells": 2
+    },
+    {
+     "x": -6294,
+     "z": 12181,
+     "cells": 1
+    },
+    {
+     "x": -7646,
+     "z": 12925,
+     "cells": 4
+    },
+    {
+     "x": -6134,
+     "z": 13685,
+     "cells": 9
+    },
+    {
+     "x": -6462,
+     "z": 13693,
+     "cells": 6
+    },
+    {
+     "x": -7338,
+     "z": 13701,
+     "cells": 4
+    }
+   ],
+   "caps": "{\"bulb\":0,\"cap\":0,\"apron\":0}"
+  }
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ],
+ "totals": {
+  "roadEndsChecked": 1,
+  "abruptRoadEnds": 1,
+  "roadEndSteps": 1,
+  "padBorderSamples": 118,
+  "padSteps": 117,
+  "colliderHoles": 0,
+  "solidOverWater": 0,
+  "waterMaskSliversStillWater": null
+ }
+}

@@ -2,7 +2,7 @@
 
 ## Where it is and how to open it
 - App: `~/Desktop/Port Solana.app`, a copy of `desktop/dist/mac-arm64/Port Solana.app`.
-- Installer: `desktop/dist/Port Solana-2.0.0-arm64.dmg` (749 MB; the game assets are about 470 MB of it).
+- Installer: `desktop/dist/` (the DMG and build output) was deleted on Nov 13 to free disk space. The `.app` on the Desktop is the 20:50 build and is intact. The next `npm run desktop:build` recreates the DMG (about 750 MB); hold it until the lead asks for the final build.
 - The app is unsigned. To open it the first time, right-click (or Control-click) the app, choose **Open**, then **Open** again in the dialog. After that it opens with a normal double-click. If macOS still refuses ("damaged" or "can't be opened"), run `xattr -dr com.apple.quarantine "/Users/silasedel/Desktop/Port Solana.app"` once. A locally built copy normally has no quarantine flag.
 - It starts in native macOS fullscreen. **Cmd+Ctrl+F** or **F11** toggles fullscreen. The app remembers windowed or fullscreen between launches.
 - Menu: Port Solana → Open Log Folder; View → Reload Game (Cmd+Shift+R) and Developer Tools.
@@ -91,6 +91,16 @@ Same web build, same CSS size (1512x949) and DPR 2 in both. The machine was shar
   - The game's own spike log shows render at 120 to 256 ms whenever 7 to 8 new shader programs compile while streaming, plus one 1.3 s long task.
 - **Not verified:** the 60 fps target. The app is not the bottleneck; frame time is in the game's render pass and its streaming shader compiles.
 
+### Re-run on the 20:50 build (perfGuards frame pacing, shader warm-up, light-count and far-LOD fixes)
+- **Load average was 101–133 while it ran** (other agents' builds), so these numbers are pessimistic and not comparable to anything above.
+- Setup: boot took 191 s. The spawn is now at Nico's house in the Keys (-6412, 12421). `game.framePacing` was `{hz: 120, on: true}`. The game's pixelRatio was 1.6 for the first sample and then 1.2 (drawing buffer at env time 2419x1518).
+- Idle avg **34.7 fps**, 1% low 4.1, p50 25.1 ms, p99 50.2 ms, worst frame 4.6 s.
+- Moving avg **37.7 fps**, 1% low 4.6, p99 83.5 ms, worst frame 3.1 s.
+  - The game's own counter showed a steady 58–60 at (-895, 120) and (1800, -600), and 23–43 at the Keys spawn (4.0–4.4M triangles).
+- **Memory now levels off:** the JS heap was 1515 MB at the start, 1561 MB at the end and 2660 MB at peak. RSS was 5.9 to 6.8 GB (peak 7.6 GB). The about 1 GB per 5 minutes growth is gone.
+- `game.shaderWarm` at the end: `{warmed: 368, pending: -10, maxWaitMs: 5861}`. The pending counter goes negative, and the worst hold was 5.9 s, against the stated 1.5 s cap. Both were reported to playtest-fixes.
+- The app quit cleanly afterwards. `crash.log` is empty.
+
 ## For the lead and playtest-fixes (src changes I cannot make)
 The numbers and suggestions 1 to 3 below were also sent to playtest-fixes (agent ac3c263de7d0daca3).
 1. **Frame pacing:** on displays at 90 Hz or above, cap to an even 60 (skip rAF callbacks so presents land every 16.7 ms), or steer `resScale` to keep work under about 14 ms. An even 60 is smoother than a 40/60 alternation.
@@ -105,4 +115,4 @@ The numbers and suggestions 1 to 3 below were also sent to playtest-fixes (agent
 - **WebGPU renderer:** skipped on the lead's instruction. Moving to three's WebGPURenderer would mean rewriting 81 `onBeforeCompile` GLSL patches in 28 files, 17 `ShaderMaterial` files and the EffectComposer post stack in TSL. It is not a desktop-shell change.
 - **Windows build:** skipped. The config has an NSIS target, but it was never built or tested.
 - **F11 toggle:** wired through `before-input-event`, but CDP-synthesized keys do not pass through that path, so it was not exercised. Cmd+Ctrl+F is a native menu accelerator; fullscreen on launch is verified.
-- **Latest src in the app:** the last web build packed into the app is from 19:40. A rebuild at 20:35 failed because `src/render/post.js` line 267 was mid-edit by another agent (syntax error). Run `npm run desktop:build` again once src parses, so the app picks up the newest src.
+- **Latest src in the app:** the app on the Desktop and the DMG were rebuilt from src at 20:50 (`npm run desktop:build`). It includes perfGuards and commit 45c394b. Run the command again to pick up later src.

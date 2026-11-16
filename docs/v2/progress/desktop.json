@@ -11,7 +11,7 @@
   { "name": "F11 / Cmd+Ctrl+F fullscreen toggle", "state": "built", "evidence": "wired; not exercised (synthetic keys bypass it)" },
   { "name": "Crash guard: auto reload on renderer/GPU crash or hang, notice, crash.log in userData", "state": "built", "evidence": "no crash occurred to trigger it" },
   { "name": "Saves persist in the app (IndexedDB and localStorage under userData, flushed on quit)", "state": "verified", "evidence": "marker survived quit and relaunch (docs/v2/reports/desktop.md)" },
-  { "name": "npm run desktop:build and desktop:dev", "state": "verified", "evidence": "desktop/dist/Port Solana-2.0.0-arm64.dmg" },
+  { "name": "npm run desktop:build and desktop:dev", "state": "verified", "evidence": "built the DMG and the Desktop copy at 20:50 (desktop/dist deleted afterwards to free disk; rebuild on request)" },
   { "name": "5-minute fps (avg, 1% low) and memory: app vs headless Chrome", "state": "verified", "evidence": "docs/v2/reports/desktop-measure-app.json, desktop-measure-chrome.json (high machine load)" },
   { "name": "Solid 60 fps in the app", "state": "todo", "evidence": "game-side frame time and pacing; numbers sent to playtest-fixes" },
   { "name": "WebGPU renderer path", "state": "todo", "evidence": "skipped by lead; needs TSL rewrite of 81 onBeforeCompile patches" },

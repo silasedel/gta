@@ -1,5 +1,5 @@
 {
- "at": "2026-11-14T10:59:45.123Z",
+ "at": "2026-11-14T12:42:23.874Z",
  "build": "b20261114-035906",
  "routes": [
   {
@@ -7,177 +7,6 @@
    "km": 0,
    "samples": 8234,
    "holes": [
-    {
-     "at": [
-      -16279.5,
-      -9297.4
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 6.5,
-     "got": 7.06
-    },
-    {
-     "at": [
-      -16219.7,
-      -9009
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16218.3,
-      -9004.2
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16216.9,
-      -8999.4
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16215.6,
-      -8994.6
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16214.2,
-      -8989.8
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16212.8,
-      -8985
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16211.4,
-      -8980.2
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16210,
-      -8975.4
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16208.7,
-      -8970.6
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -16207.3,
-      -8965.8
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "expect": 0,
-     "got": -8
-    },
-    {
-     "at": [
-      -15740.9,
-      -4834.7
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 10.07,
-     "got": 10.23
-    },
-    {
-     "at": [
-      -15741.2,
-      -4830.7
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 9.82,
-     "got": 10.17
-    },
-    {
-     "at": [
-      -15741.4,
-      -4826.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 9.55,
-     "got": 10.12
-    },
-    {
-     "at": [
-      -15741.7,
-      -4822.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 9.27,
-     "got": 10.06
-    },
-    {
-     "at": [
-      -15742,
-      -4818.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 8.99,
-     "got": 9.99
-    },
-    {
-     "at": [
-      -15742.3,
-      -4814.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 8.7,
-     "got": 9.91
-    },
-    {
-     "at": [
-      -15742.6,
-      -4810.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 8.42,
-     "got": 9.84
-    },
-    {
-     "at": [
-      -15742.9,
-      -4806.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "expect": 8.14,
-     "got": 9.77
-    },
     {
      "at": [
       -15763.9,
@@ -234,473 +63,30 @@
     },
     {
      "at": [
-      -15768.5,
-      -4627.5
+      -15710.5,
+      -4579.5
      ],
-     "road": "motorway_link#7768",
-     "expect": 6.67,
-     "got": -8
+     "road": "motorway_link#7771",
+     "expect": 3.71,
+     "got": 3.86
     },
     {
      "at": [
-      -15770.5,
-      -4622.9
+      -15711.9,
+      -4582.6
      ],
-     "road": "motorway_link#7768",
-     "expect": 6.66,
-     "got": -8
+     "road": "motorway_link#7771",
+     "expect": 3.77,
+     "got": 4.02
     },
     {
      "at": [
-      -15772.4,
-      -4618.3
+      -15713.3,
+      -4585.6
      ],
-     "road": "motorway_link#7768",
-     "expect": 6.66,
-     "got": -8
-    },
-    {
-     "at": [
-      -15775,
-      -4614
-     ],
-     "road": "motorway_link#7768",
-     "expect": 6.69,
-     "got": -8
-    },
-    {
-     "at": [
-      -15777.5,
-      -4609.7
-     ],
-     "road": "motorway_link#7768",
-     "expect": 6.71,
-     "got": -8
-    },
-    {
-     "at": [
-      -15780,
-      -4605.4
-     ],
-     "road": "motorway_link#7768",
-     "expect": 6.73,
-     "got": -8
-    },
-    {
-     "at": [
-      -15782.5,
-      -4601.1
-     ],
-     "road": "motorway_link#7768",
-     "expect": 6.74,
-     "got": -8
-    },
-    {
-     "at": [
-      -15784.2,
-      -4598.2
-     ],
-     "road": "motorway_link#7768",
-     "expect": 6.76,
-     "got": -8
-    },
-    {
-     "at": [
-      -15937,
-      -4365.8
-     ],
-     "road": "motorway_link#7768",
-     "expect": 4.5,
-     "got": 4.67
-    },
-    {
-     "at": [
-      -15716.9,
-      -4807
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 8.36,
-     "got": 10
-    },
-    {
-     "at": [
-      -15716.6,
-      -4810.9
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 8.63,
-     "got": 10.07
-    },
-    {
-     "at": [
-      -15716.4,
-      -4814.8
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 8.91,
-     "got": 10.14
-    },
-    {
-     "at": [
-      -15716.1,
-      -4818.7
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 9.18,
-     "got": 10.21
-    },
-    {
-     "at": [
-      -15715.8,
-      -4822.6
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 9.46,
-     "got": 10.28
-    },
-    {
-     "at": [
-      -15715.5,
-      -4826.4
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "expect": 9.73,
-     "got": 10.37
-    }
-   ],
-   "steps": [
-    {
-     "at": [
-      -16279.5,
-      -9297.4
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "dy": 7.01,
-     "expectDy": 6.5
-    },
-    {
-     "at": [
-      -16278.6,
-      -9292.5
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "dy": -0.63,
-     "expectDy": -0.07
-    },
-    {
-     "at": [
-      -16219.7,
-      -9009
-     ],
-     "road": "Cypress Belt Parkway#6858",
-     "dy": -8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15741.2,
-      -4830.7
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.06,
-     "expectDy": -0.25
-    },
-    {
-     "at": [
-      -15741.4,
-      -4826.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.05,
-     "expectDy": -0.27
-    },
-    {
-     "at": [
-      -15741.7,
-      -4822.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.06,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15742,
-      -4818.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.07,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15742.3,
-      -4814.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.08,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15742.6,
-      -4810.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.07,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15742.9,
-      -4806.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -0.07,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15743.2,
-      -4802.8
-     ],
-     "road": "Cypress Belt Parkway#10531",
-     "dy": -1.91,
-     "expectDy": -0.28
-    },
-    {
-     "at": [
-      -15768.5,
-      -4627.5
-     ],
-     "road": "motorway_link#7768",
-     "dy": -14.75,
-     "expectDy": -0.03
-    },
-    {
-     "at": [
-      -15785.9,
-      -4595.3
-     ],
-     "road": "motorway_link#7768",
-     "dy": 14.83,
-     "expectDy": 0.02
-    },
-    {
-     "at": [
-      -15716.9,
-      -4807
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 1.92,
-     "expectDy": 0.28
-    },
-    {
-     "at": [
-      -15716.6,
-      -4810.9
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.07,
-     "expectDy": 0.28
-    },
-    {
-     "at": [
-      -15716.4,
-      -4814.8
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.07,
-     "expectDy": 0.27
-    },
-    {
-     "at": [
-      -15716.1,
-      -4818.7
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.07,
-     "expectDy": 0.28
-    },
-    {
-     "at": [
-      -15715.8,
-      -4822.6
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.07,
-     "expectDy": 0.28
-    },
-    {
-     "at": [
-      -15715.5,
-      -4826.4
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.09,
-     "expectDy": 0.27
-    },
-    {
-     "at": [
-      -15715.2,
-      -4830.3
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.1,
-     "expectDy": 0.28
-    },
-    {
-     "at": [
-      -15714.9,
-      -4834.2
-     ],
-     "road": "Cypress Belt Parkway#6879",
-     "dy": 0.1,
-     "expectDy": 0.27
-    },
-    {
-     "at": [
-      -15761.9,
-      -4081.6
-     ],
-     "road": "Cypress Belt Parkway#6878",
-     "dy": -8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15761.3,
-      -4112.6
-     ],
-     "road": "Cypress Belt Parkway#6878",
-     "dy": 8.06,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15195.9,
-      -1684.2
-     ],
-     "road": "Cypress Belt Parkway#6862",
-     "dy": -8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15156.1,
-      -1659.7
-     ],
-     "road": "Cypress Belt Parkway#6862",
-     "dy": 8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15085.2,
-      -1649.1
-     ],
-     "road": "Cypress Belt Parkway#6862",
-     "dy": 0.07,
-     "expectDy": -0.45
-    },
-    {
-     "at": [
-      -15049.2,
-      -1675.6
-     ],
-     "road": "Cypress Belt Parkway#6862",
-     "dy": 0.16,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -15045.4,
-      -1678.8
-     ],
-     "road": "Cypress Belt Parkway#6862",
-     "dy": 0.17,
-     "expectDy": 1.78
-    },
-    {
-     "at": [
-      -14837.9,
-      -13880.1
-     ],
-     "road": "motorway_link#7844",
-     "dy": 0.05,
-     "expectDy": -0.48
-    },
-    {
-     "at": [
-      -14864.5,
-      -13837.8
-     ],
-     "road": "motorway_link#7844",
-     "dy": 0.16,
-     "expectDy": 1.71
-    },
-    {
-     "at": [
-      -14656.3,
-      -14517.5
-     ],
-     "road": "Cypress Belt Parkway#6904",
-     "dy": -8.14,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -14933.8,
-      -1896.3
-     ],
-     "road": "motorway_link#7327",
-     "dy": -8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -14944.2,
-      -1890.2
-     ],
-     "road": "motorway_link#7327",
-     "dy": 8.05,
-     "expectDy": 0
-    },
-    {
-     "at": [
-      -14886.7,
-      -1664.5
-     ],
-     "road": "Cypress Belt Parkway#6863",
-     "dy": -0.12,
-     "expectDy": -1.74
-    },
-    {
-     "at": [
-      -14846.4,
-      -1635
-     ],
-     "road": "Cypress Belt Parkway#6863",
-     "dy": -0.05,
-     "expectDy": 0.48
-    },
-    {
-     "at": [
-      -14744.6,
-      -1661.2
-     ],
-     "road": "Cypress Belt Parkway#6876",
-     "dy": 7.46,
-     "expectDy": 6.44
-    },
-    {
-     "at": [
-      -14748.9,
-      -1660.5
-     ],
-     "road": "Cypress Belt Parkway#6876",
-     "dy": -1.11,
-     "expectDy": -0.03
+     "road": "motorway_link#7771",
+     "expect": 4.02,
+     "got": 4.19
     },
     {
      "at": [
@@ -708,8 +94,19 @@
       -1651.8
      ],
      "road": "Cypress Belt Parkway#6876",
-     "dy": 4.07,
-     "expectDy": 3.06
+     "expect": 0,
+     "got": 1.8
+    }
+   ],
+   "steps": [
+    {
+     "at": [
+      -14800.2,
+      -1651.8
+     ],
+     "road": "Cypress Belt Parkway#6876",
+     "dy": 1.75,
+     "expectDy": 0
     },
     {
      "at": [
@@ -717,22 +114,13 @@
       -1652
      ],
      "road": "Cypress Belt Parkway#6876",
-     "dy": -4.07,
-     "expectDy": -3.06
-    },
-    {
-     "at": [
-      -14963,
-      -1775.3
-     ],
-     "road": "Cypress Belt Parkway#6876",
-     "dy": 1.1,
-     "expectDy": 0.03
+     "dy": -1.75,
+     "expectDy": 0
     }
    ],
    "ok": false,
-   "nHoles": 220,
-   "nSteps": 76
+   "nHoles": 10,
+   "nSteps": 2
   }
  ],
  "consoleErrors": [

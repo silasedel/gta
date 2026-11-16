@@ -1,488 +1,847 @@
 {
  "mode": "app",
- "when": "2026-11-14T02:53:59.260Z",
+ "when": "2026-11-14T03:51:49.458Z",
  "load": [
-  39.6,
-  40.2,
-  37.4
+  101.5,
+  131.6,
+  81.2
  ],
  "samples": [
   {
-   "heapMB": 1325,
+   "heapMB": 1515,
    "heapLimitMB": 4192,
-   "gameFps": 27,
-   "calls": 565,
-   "tris": 3265719,
-   "geometries": 1353,
-   "textures": 423,
+   "gameFps": 20,
+   "calls": 601,
+   "tris": 4080183,
+   "geometries": 981,
+   "textures": 507,
    "pos": [
-    3433,
-    -101
+    -6412,
+    12421
    ],
-   "t": 50,
+   "pixelRatio": 1.6,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 215,
    "phase": "idle",
    "wasPaused": false,
-   "rssMB": 5535
+   "rssMB": 5925
   },
   {
-   "heapMB": 1678,
+   "heapMB": 1540,
    "heapLimitMB": 4192,
-   "gameFps": 25,
-   "calls": 583,
-   "tris": 3278020,
-   "geometries": 1385,
-   "textures": 423,
+   "gameFps": 32,
+   "calls": 550,
+   "tris": 4067486,
+   "geometries": 982,
+   "textures": 511,
    "pos": [
-    3433,
-    -101
+    -6412,
+    12421
    ],
-   "t": 60,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 5841
-  },
-  {
-   "heapMB": 2004,
-   "heapLimitMB": 4192,
-   "gameFps": 29,
-   "calls": 606,
-   "tris": 3296298,
-   "geometries": 1402,
-   "textures": 428,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 71,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6143
-  },
-  {
-   "heapMB": 2109,
-   "heapLimitMB": 4192,
-   "gameFps": 27,
-   "calls": 613,
-   "tris": 3314399,
-   "geometries": 1415,
-   "textures": 428,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 81,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6256
-  },
-  {
-   "heapMB": 2216,
-   "heapLimitMB": 4192,
-   "gameFps": 29,
-   "calls": 615,
-   "tris": 3317009,
-   "geometries": 1416,
-   "textures": 428,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 91,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6368
-  },
-  {
-   "heapMB": 1504,
-   "heapLimitMB": 4192,
-   "gameFps": 26,
-   "calls": 630,
-   "tris": 3350656,
-   "geometries": 1417,
-   "textures": 431,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 102,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6036
-  },
-  {
-   "heapMB": 1611,
-   "heapLimitMB": 4192,
-   "gameFps": 46,
-   "calls": 650,
-   "tris": 3462672,
-   "geometries": 1461,
-   "textures": 431,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 112,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6040
-  },
-  {
-   "heapMB": 1747,
-   "heapLimitMB": 4192,
-   "gameFps": 43,
-   "calls": 644,
-   "tris": 3428532,
-   "geometries": 1483,
-   "textures": 431,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 122,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6041
-  },
-  {
-   "heapMB": 1635,
-   "heapLimitMB": 4192,
-   "gameFps": 40,
-   "calls": 663,
-   "tris": 3437219,
-   "geometries": 1488,
-   "textures": 434,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 132,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 5963
-  },
-  {
-   "heapMB": 1724,
-   "heapLimitMB": 4192,
-   "gameFps": 26,
-   "calls": 682,
-   "tris": 3440704,
-   "geometries": 1481,
-   "textures": 438,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 142,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 225,
    "phase": "idle",
    "wasPaused": false,
    "rssMB": 5965
   },
   {
-   "heapMB": 1798,
-   "heapLimitMB": 4192,
-   "gameFps": 31,
-   "calls": 685,
-   "tris": 3449624,
-   "geometries": 1482,
-   "textures": 439,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 152,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 5966
-  },
-  {
-   "heapMB": 1894,
-   "heapLimitMB": 4192,
-   "gameFps": 31,
-   "calls": 686,
-   "tris": 3508937,
-   "geometries": 1484,
-   "textures": 441,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 162,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6030
-  },
-  {
-   "heapMB": 1980,
-   "heapLimitMB": 4192,
-   "gameFps": 31,
-   "calls": 688,
-   "tris": 3558722,
-   "geometries": 1486,
-   "textures": 442,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 173,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6121
-  },
-  {
-   "heapMB": 2047,
-   "heapLimitMB": 4192,
-   "gameFps": 29,
-   "calls": 696,
-   "tris": 3645759,
-   "geometries": 1491,
-   "textures": 447,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 183,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6209
-  },
-  {
-   "heapMB": 2124,
-   "heapLimitMB": 4192,
-   "gameFps": 29,
-   "calls": 685,
-   "tris": 3601863,
-   "geometries": 1491,
-   "textures": 447,
-   "pos": [
-    3433,
-    -101
-   ],
-   "t": 193,
-   "phase": "idle",
-   "wasPaused": false,
-   "rssMB": 6293
-  },
-  {
-   "heapMB": 2243,
-   "heapLimitMB": 4192,
-   "gameFps": 30,
-   "calls": 551,
-   "tris": 3387960,
-   "geometries": 1587,
-   "textures": 456,
-   "pos": [
-    3439,
-    -59
-   ],
-   "t": 206,
-   "phase": "move",
-   "wasPaused": false,
-   "rssMB": 6432
-  },
-  {
-   "heapMB": 1575,
-   "heapLimitMB": 4192,
-   "gameFps": 19,
-   "calls": 453,
-   "tris": 3468353,
-   "geometries": 1734,
-   "textures": 461,
-   "pos": [
-    3443,
-    -18
-   ],
-   "t": 253,
-   "phase": "move",
-   "wasPaused": false,
-   "rssMB": 5745
-  },
-  {
-   "heapMB": 1625,
-   "heapLimitMB": 4192,
-   "gameFps": 31,
-   "calls": 440,
-   "tris": 2988667,
-   "geometries": 1493,
-   "textures": 427,
-   "pos": [
-    -2476,
-    563
-   ],
-   "t": 276,
-   "phase": "move",
-   "wasPaused": false,
-   "rssMB": 5538
-  },
-  {
-   "heapMB": 2070,
+   "heapMB": 1470,
    "heapLimitMB": 4192,
    "gameFps": 37,
-   "calls": 447,
-   "tris": 2923698,
-   "geometries": 1712,
-   "textures": 424,
+   "calls": 556,
+   "tris": 4089595,
+   "geometries": 985,
+   "textures": 514,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 237,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5950
+  },
+  {
+   "heapMB": 1474,
+   "heapLimitMB": 4192,
+   "gameFps": 38,
+   "calls": 529,
+   "tris": 4041296,
+   "geometries": 979,
+   "textures": 514,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 247,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5955
+  },
+  {
+   "heapMB": 1443,
+   "heapLimitMB": 4192,
+   "gameFps": 38,
+   "calls": 521,
+   "tris": 4012983,
+   "geometries": 979,
+   "textures": 514,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 257,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5986
+  },
+  {
+   "heapMB": 1472,
+   "heapLimitMB": 4192,
+   "gameFps": 41,
+   "calls": 521,
+   "tris": 4021265,
+   "geometries": 980,
+   "textures": 515,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 267,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5986
+  },
+  {
+   "heapMB": 1499,
+   "heapLimitMB": 4192,
+   "gameFps": 43,
+   "calls": 523,
+   "tris": 4039892,
+   "geometries": 982,
+   "textures": 517,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1432
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 278,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 5988
+  },
+  {
+   "heapMB": 1443,
+   "heapLimitMB": 4192,
+   "gameFps": 38,
+   "calls": 502,
+   "tris": 3969130,
+   "geometries": 993,
+   "textures": 518,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 288,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6011
+  },
+  {
+   "heapMB": 1457,
+   "heapLimitMB": 4192,
+   "gameFps": 33,
+   "calls": 515,
+   "tris": 4033746,
+   "geometries": 1152,
+   "textures": 572,
+   "pos": [
+    -6412,
+    12421
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 301,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6071
+  },
+  {
+   "heapMB": 1483,
+   "heapLimitMB": 4192,
+   "gameFps": 36,
+   "calls": 521,
+   "tris": 4025934,
+   "geometries": 1551,
+   "textures": 646,
+   "pos": [
+    -6408,
+    12427
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 311,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6174
+  },
+  {
+   "heapMB": 1438,
+   "heapLimitMB": 4192,
+   "gameFps": 37,
+   "calls": 520,
+   "tris": 4045882,
+   "geometries": 1551,
+   "textures": 646,
+   "pos": [
+    -6409,
+    12426
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 322,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6151
+  },
+  {
+   "heapMB": 1496,
+   "heapLimitMB": 4192,
+   "gameFps": 43,
+   "calls": 519,
+   "tris": 4043856,
+   "geometries": 1551,
+   "textures": 647,
+   "pos": [
+    -6409,
+    12426
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 333,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6151
+  },
+  {
+   "heapMB": 1445,
+   "heapLimitMB": 4192,
+   "gameFps": 38,
+   "calls": 516,
+   "tris": 4040794,
+   "geometries": 1551,
+   "textures": 647,
+   "pos": [
+    -6409,
+    12426
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 343,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6169
+  },
+  {
+   "heapMB": 1491,
+   "heapLimitMB": 4192,
+   "gameFps": 41,
+   "calls": 517,
+   "tris": 4061009,
+   "geometries": 1552,
+   "textures": 648,
+   "pos": [
+    -6409,
+    12426
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 353,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6155
+  },
+  {
+   "heapMB": 1521,
+   "heapLimitMB": 4192,
+   "gameFps": 38,
+   "calls": 521,
+   "tris": 4083897,
+   "geometries": 1553,
+   "textures": 649,
+   "pos": [
+    -6409,
+    12426
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 364,
+   "phase": "idle",
+   "wasPaused": false,
+   "rssMB": 6165
+  },
+  {
+   "heapMB": 1471,
+   "heapLimitMB": 4192,
+   "gameFps": 29,
+   "calls": 408,
+   "tris": 4048793,
+   "geometries": 1556,
+   "textures": 653,
+   "pos": [
+    -6418,
+    12418
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 393,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6254
+  },
+  {
+   "heapMB": 1497,
+   "heapLimitMB": 4192,
+   "gameFps": 26,
+   "calls": 411,
+   "tris": 4050981,
+   "geometries": 1558,
+   "textures": 653,
+   "pos": [
+    -6418,
+    12418
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 406,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6214
+  },
+  {
+   "heapMB": 1488,
+   "heapLimitMB": 4192,
+   "gameFps": 26,
+   "calls": 413,
+   "tris": 4058363,
+   "geometries": 1561,
+   "textures": 656,
+   "pos": [
+    -6418,
+    12418
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1434
+   },
+   "shaderWarm": {
+    "warmed": 97,
+    "pending": -9,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 420,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6236
+  },
+  {
+   "heapMB": 1479,
+   "heapLimitMB": 4192,
+   "gameFps": 23,
+   "calls": 288,
+   "tris": 3212043,
+   "geometries": 1314,
+   "textures": 625,
+   "pos": [
+    -2504,
+    553
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1537
+   },
+   "shaderWarm": {
+    "warmed": 114,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 436,
+   "phase": "move",
+   "wasPaused": true,
+   "rssMB": 6389
+  },
+  {
+   "heapMB": 2128,
+   "heapLimitMB": 4192,
+   "gameFps": 33,
+   "calls": 317,
+   "tris": 3156979,
+   "geometries": 1355,
+   "textures": 626,
+   "pos": [
+    -2505,
+    554
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1537
+   },
+   "shaderWarm": {
+    "warmed": 168,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 447,
+   "phase": "move",
+   "wasPaused": false,
+   "rssMB": 6857
+  },
+  {
+   "heapMB": 2318,
+   "heapLimitMB": 4192,
+   "gameFps": 58,
+   "calls": 209,
+   "tris": 2661629,
+   "geometries": 1607,
+   "textures": 626,
    "pos": [
     -895,
-    119
+    130
    ],
-   "t": 286,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 1924
+   },
+   "shaderWarm": {
+    "warmed": 286,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 457,
    "phase": "move",
    "wasPaused": false,
-   "rssMB": 5936
+   "rssMB": 7177
   },
   {
-   "heapMB": 2579,
+   "heapMB": 2385,
    "heapLimitMB": 4192,
-   "gameFps": 75,
-   "calls": 292,
-   "tris": 2638717,
-   "geometries": 1666,
-   "textures": 385,
+   "gameFps": 60,
+   "calls": 173,
+   "tris": 2749087,
+   "geometries": 1619,
+   "textures": 629,
    "pos": [
-    1786,
-    -614
+    -896,
+    157
    ],
-   "t": 297,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 2857
+   },
+   "shaderWarm": {
+    "warmed": 287,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 474,
    "phase": "move",
-   "wasPaused": false,
-   "rssMB": 6411
+   "wasPaused": true,
+   "rssMB": 7320
   },
   {
-   "heapMB": 1664,
+   "heapMB": 2629,
    "heapLimitMB": 4192,
-   "gameFps": 70,
-   "calls": 295,
-   "tris": 2635956,
-   "geometries": 1658,
-   "textures": 385,
+   "gameFps": 60,
+   "calls": 166,
+   "tris": 2684207,
+   "geometries": 1537,
+   "textures": 606,
    "pos": [
-    1771,
-    -630
+    1799,
+    -599
    ],
-   "t": 307,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3273
+   },
+   "shaderWarm": {
+    "warmed": 314,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 485,
    "phase": "move",
    "wasPaused": false,
-   "rssMB": 5771
+   "rssMB": 7531
   },
   {
-   "heapMB": 1876,
+   "heapMB": 2660,
    "heapLimitMB": 4192,
-   "gameFps": 91,
-   "calls": 297,
-   "tris": 2638525,
-   "geometries": 1614,
-   "textures": 385,
+   "gameFps": 30,
+   "calls": 254,
+   "tris": 2767642,
+   "geometries": 1602,
+   "textures": 612,
    "pos": [
-    1756,
-    -645
+    1797,
+    -598
    ],
-   "t": 317,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3785
+   },
+   "shaderWarm": {
+    "warmed": 314,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 496,
    "phase": "move",
-   "wasPaused": false,
-   "rssMB": 5769
+   "wasPaused": true,
+   "rssMB": 7610
   },
   {
-   "heapMB": 2126,
+   "heapMB": 1721,
    "heapLimitMB": 4192,
-   "gameFps": 42,
-   "calls": 764,
-   "tris": 3166377,
-   "geometries": 1985,
-   "textures": 420,
+   "gameFps": 58,
+   "calls": 257,
+   "tris": 2767738,
+   "geometries": 1604,
+   "textures": 612,
    "pos": [
-    3399,
-    -91
+    1795,
+    -597
    ],
-   "t": 329,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3844
+   },
+   "shaderWarm": {
+    "warmed": 314,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 507,
    "phase": "move",
    "wasPaused": false,
-   "rssMB": 6094
+   "rssMB": 6958
   },
   {
-   "heapMB": 2252,
+   "heapMB": 1554,
    "heapLimitMB": 4192,
-   "gameFps": 39,
-   "calls": 601,
-   "tris": 3427422,
-   "geometries": 2126,
-   "textures": 473,
+   "gameFps": 37,
+   "calls": 510,
+   "tris": 3569197,
+   "geometries": 1787,
+   "textures": 645,
    "pos": [
-    3371,
-    -82
+    -6386,
+    12430
    ],
-   "t": 339,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3846
+   },
+   "shaderWarm": {
+    "warmed": 368,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 521,
    "phase": "move",
    "wasPaused": false,
-   "rssMB": 6244
+   "rssMB": 6779
   },
   {
-   "heapMB": 2357,
+   "heapMB": 1559,
    "heapLimitMB": 4192,
-   "gameFps": 24,
-   "calls": 623,
-   "tris": 3600213,
-   "geometries": 2148,
-   "textures": 485,
+   "gameFps": 23,
+   "calls": 687,
+   "tris": 4381176,
+   "geometries": 1827,
+   "textures": 656,
    "pos": [
-    3339,
-    -73
+    -6371,
+    12432
    ],
-   "t": 349,
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3846
+   },
+   "shaderWarm": {
+    "warmed": 368,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 531,
    "phase": "move",
    "wasPaused": false,
-   "rssMB": 6351
+   "rssMB": 6771
+  },
+  {
+   "heapMB": 1561,
+   "heapLimitMB": 4192,
+   "gameFps": 34,
+   "calls": 687,
+   "tris": 4381176,
+   "geometries": 1827,
+   "textures": 656,
+   "pos": [
+    -6371,
+    12432
+   ],
+   "pixelRatio": 1.2,
+   "pacing": {
+    "hz": 120,
+    "on": true,
+    "skipped": 3846
+   },
+   "shaderWarm": {
+    "warmed": 368,
+    "pending": -10,
+    "maxWaitMs": 5860.699999988079
+   },
+   "t": 542,
+   "phase": "move",
+   "wasPaused": true,
+   "rssMB": 6781
   }
  ],
- "bootSeconds": 25,
+ "bootSeconds": 190.8,
  "failed": "[]",
- "loaded": 12,
- "env": "{\"desktop\":{\"isDesktop\":true,\"platform\":\"darwin\",\"electron\":\"45.2.1\",\"chrome\":\"156.0.8078.75\"},\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) PortSolana/2.0.0 Chrome/156.0.8078.75 Electron/45.2.1 Safari/537.36\",\"dpr\":2,\"drawingBuffer\":[1859,1167],\"size\":[1512,949],\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\",\"webgpu\":true}",
+ "loaded": 21,
+ "env": "{\"desktop\":{\"isDesktop\":true,\"platform\":\"darwin\",\"electron\":\"45.2.1\",\"chrome\":\"156.0.8078.75\"},\"ua\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) PortSolana/2.0.0 Chrome/156.0.8078.75 Electron/45.2.1 Safari/537.36\",\"dpr\":2,\"drawingBuffer\":[2419,1518],\"size\":[1512,949],\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\",\"webgpu\":true}",
  "idle": {
-  "frames": 5002,
-  "seconds": 153.1,
-  "avgFps": 32.7,
-  "low1Fps": 17,
-  "p50Ms": 32.4,
-  "p99Ms": 46.7,
-  "maxMs": 273.9,
-  "over25ms": 3608,
-  "over50ms": 20
+  "frames": 5546,
+  "seconds": 159.9,
+  "avgFps": 34.7,
+  "low1Fps": 4.1,
+  "p50Ms": 25.1,
+  "p99Ms": 50.2,
+  "maxMs": 4628.9,
+  "over25ms": 2805,
+  "over50ms": 66
  },
  "move": {
-  "frames": 4416,
-  "seconds": 156.3,
-  "avgFps": 28.3,
-  "low1Fps": 0.8,
-  "p50Ms": 22.7,
-  "p99Ms": 56.9,
-  "maxMs": 33984,
-  "over25ms": 1613,
-  "over50ms": 65
+  "frames": 6705,
+  "seconds": 177.7,
+  "avgFps": 37.7,
+  "low1Fps": 4.6,
+  "p50Ms": 22.4,
+  "p99Ms": 83.5,
+  "maxMs": 3130.3,
+  "over25ms": 2610,
+  "over50ms": 193
  },
  "all": {
-  "frames": 9418,
-  "seconds": 309.4,
-  "avgFps": 30.4,
-  "low1Fps": 1.6,
-  "p50Ms": 25.8,
-  "p99Ms": 49.9,
-  "maxMs": 33984,
-  "over25ms": 5221,
-  "over50ms": 85
+  "frames": 12251,
+  "seconds": 337.7,
+  "avgFps": 36.3,
+  "low1Fps": 4.2,
+  "p50Ms": 24.6,
+  "p99Ms": 64.9,
+  "maxMs": 4628.9,
+  "over25ms": 5415,
+  "over50ms": 259
  },
  "memory": {
-  "rssStartMB": 5535,
-  "rssEndMB": 6351,
-  "rssMaxMB": 6432,
-  "heapStartMB": 1325,
-  "heapEndMB": 2357,
-  "heapMaxMB": 2579,
+  "rssStartMB": 5925,
+  "rssEndMB": 6781,
+  "rssMaxMB": 7610,
+  "heapStartMB": 1515,
+  "heapEndMB": 1561,
+  "heapMaxMB": 2660,
   "heapLimitMB": 4192
  },
  "loadEnd": [
-  20.2,
-  28.6,
-  32.9
+  56.2,
+  75.9,
+  76.8
  ],
  "pageErrors": []
 }

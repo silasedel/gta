@@ -456,3 +456,6 @@ Where an answer says "whatever GTA 6 will likely do", copy GTA 6 behavior. These
 **Missions:** side jobs: car theft orders, taxi, bounty. Street events: chases/crashes and muggings. The one big heist is a casino heist: just the heist, with a few steps (conditional on usage, per section 12). Reward: money.
 **Audio and release:** several radio stations, all using the user's music-folder songs. Short voice lines. Keep the current title/menu. Release both as a website and a Mac app (V2.1). Save game yes.
 **Process:** show screenshots after every big step.
+
+## 14. The casino heist (design, 2026-11-16)
+Made-up "Golden Palm Casino". Not a smash-and-grab: something big has to happen first to pull security away. Prep 1: case the floor (learn guard routes, cameras, staff corridor, security room, vault, loading dock, and that a big win draws the pit boss and guards). Prep 2: choose a getaway (stash a car or van at the back loading dock, or steal the casino's delivery van in the moment). Finale: choose a distraction (rig a slot jackpot for a planted accomplice, win big yourself at roulette, or pull a fire alarm), slip through the staff corridor, handle the security room, open the vault within a 60-90 second window, fill the duffel (heavy), leave through the loading dock and escape the chase. Full text is in `docs/v2/briefs/STAGE_4_FINISH.md`.

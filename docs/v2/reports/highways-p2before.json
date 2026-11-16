@@ -1,0 +1,57 @@
+{
+ "set": "p2before",
+ "when": "2026-11-14T07:47:29.374Z",
+ "shots": {
+  "ramp_deck": {
+   "eye": [
+    -2800,
+    8.2,
+    816
+   ],
+   "street": "US-1 / SR 970"
+  },
+  "jt_deck": {
+   "eye": [
+    -700,
+    13.6,
+    -3492
+   ],
+   "street": "Julia Tuttle Causeway"
+  },
+  "wall_i95": {
+   "eye": [
+    -3448,
+    1.8,
+    2010
+   ],
+   "street": "Southwest 17th Road"
+  },
+  "wall_mac": {
+   "eye": [
+    -2195,
+    1.8,
+    -775
+   ],
+   "street": "MacArthur Causeway Path"
+  },
+  "jt_med": {
+   "eye": [
+    -660,
+    21,
+    -3528
+   ],
+   "street": "Julia Tuttle Causeway"
+  },
+  "join_air": {
+   "eye": [
+    -2230,
+    26,
+    -760
+   ],
+   "street": "MacArthur Causeway Path"
+  }
+ },
+ "consoleErrors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5290/favicon.ico"
+ ]
+}
