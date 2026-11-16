@@ -4,7 +4,7 @@ You are one stage in a relay. Four Claude Code sessions, each on a different acc
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
-Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` exporting `initV2(game)` and `order`. Plans and images: `docs/v2/plan/` (road map `map_roads_target.webp`, colour map, HUD `hud_corner_target.webp`, Nico's house photos `nico_house/1..6`). Model library: `~/Downloads/Models` (README.txt, catalog.csv; do not use the 4 rows marked "personal use only").
+Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` exporting `initV2(game)` and `order`. Plans and images: `docs/v2/plan/` (road map `map_roads_target.webp`, colour map, HUD `hud_corner_target.webp`, Nico's house photos `nico_house/1..6`). Model library: ``Models/` (`Models/README.txt`, `Models/catalog.csv`; do not use the 4 rows marked "personal use only").
 
 ## How you work
 - Work on branch `stage-<your number>`, created from the project exactly as the user gives it to you (it already contains every earlier stage). Never touch `main` or `v2`. Commit small and often.
@@ -18,14 +18,14 @@ Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` expo
 - Never publish, push to a public place, enter credentials, or delete assets.
 
 ## Models: what you need, and how to ask for them
-You cannot download models yourself. If you need a model that is not in `~/Downloads/Models`, do not wait for it: build a simple code placeholder and keep going, and add the request to `docs/v2/briefs/MODEL_REQUESTS_<your number>.md`. Batch requests and send the file to the user whenever it has something new. For each model write: name, what it is, where it is used, size (small / medium / big), and search keywords. The user will handle each one like this:
+You cannot download models yourself. If you need a model that is not in ``Models/`, do not wait for it: build a simple code placeholder and keep going, and add the request to `docs/v2/briefs/MODEL_REQUESTS_<your number>.md`. Batch requests and send the file to the user whenever it has something new. For each model write: name, what it is, where it is used, size (small / medium / big), and search keywords. The user will handle each one like this:
 - **Common, simple, small items** (props, street furniture, bottles, chairs, signs): the user downloads them from the free asset site.
 - **Anything big or that must look polished** (buildings, large interiors, vehicles, boats, terrain pieces): the user downloads it from the free asset site. These are never made with AI generation.
 - **Custom or unusual single items** (a slot machine, special shoes, a vault door, a specific person): the user generates them with the AI model tool (Tripo), from a reference image. That tool is good for custom single props and people, and bad at big, smooth, perfectly polished objects.
 Tell the user the priority of each request so they can do the important ones first.
 
 ## Hand-back
-When all jobs pass their tests, or your budget is nearly spent, return the whole project as `git bundle create stage-<number>.bundle --all` (or a zip of the project with `.git`, without `node_modules`), plus your STATUS and MODEL_REQUESTS files and your best screenshots. The next stage starts from exactly this. Update `docs/v2/CONVENTIONS.md` with anything the next stage must know.
+Everything lives in one folder: this project folder (it also holds `Models/` with all downloaded models, `references/user_references/` with the user's reference photos, and `public/assets/audio/sfx/southline_death.mp3`). You may edit anything in it. When all jobs pass their tests, or your budget is nearly spent, give the user the whole project folder back as a zip, in exactly the same layout (leave out `node_modules`; do not rename, move or delete the existing folders; do not change anything inside `Models/` except adding files in the right category folder if the user asks). Include your STATUS and MODEL_REQUESTS files and your best screenshots inside the folder. The next stage starts from exactly this folder. Update `docs/v2/CONVENTIONS.md` with anything the next stage must know.
 
 ## The user's final decisions (these override anything else)
 ## 12. Scope decisions (user answers, 2026-11-15)
@@ -128,7 +128,7 @@ Budget: 0.5 of a weekly $200 plan. Starting point: the game from stage 3 (world,
 ## Jobs (in order)
 1. **Shops: buy and rob, 0.08.** Buying menus in every shop. Robbery: threaten the clerk, take cash, alarm, police sent; a mask hides your face. TEST: buy something and rob a store, each end to end.
 2. **Jobs, 0.08.** Car theft orders, taxi, bounty, with money as the reward. TEST: each job can be started, completed and paid.
-3. **Weapons, radio, save, 0.07.** Pistols, shotguns, rifles, melee from `~/Downloads/Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs from the user's music folder. Save and load game. TEST: use each weapon type; radio changes stations; save, quit, load.
+3. **Weapons, radio, save, 0.07.** Pistols, shotguns, rifles, melee from ``Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs in `public/assets/audio/music/` (the licensed club songs the user added). Save and load game. TEST: use each weapon type; radio changes stations; save, quit, load.
 4. **Casino heist, 0.20.** One heist in the style of GTA V (setup missions, then a finale), at the made-up "Golden Palm Casino" built in stage 2. You never just walk in and steal: something big has to happen first to pull security away. Every step offers real choices.
    - **Prep 1, case the floor (about 3-5 minutes).** Go in as a guest. Learn the guard routes, find the camera blind spots, the staff corridor, the security room with the camera monitors, the vault and the back loading dock. You also learn what draws security in: when someone wins big, the pit boss, dealers and most floor guards rush to the table to celebrate and verify the win, and the camera operator watches that table.
    - **Prep 2, gear and getaway (about 3-5 minutes).** Choose: (a) steal a fast car or van and hide it at the back loading dock before the job, or (b) skip it and plan to steal the casino's own delivery van at the loading dock in the moment (harder, riskier escape). Optionally get a guard uniform or a hacking device for the distraction.
@@ -141,7 +141,7 @@ Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory
 
 ## Models the user prepares for this stage
 Heist props (vault door, cash stacks, duffel bag, from Tripo); anything the final check shows missing.
-(If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
+(If you need something that is not listed or not in ``Models/`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage
 The finished version: the full loop works (commit a crime, get chased, escape or be arrested, buy, talk, take a job, do the heist), 60 fps, checklist written. Do not build or publish; tell the user it is ready.

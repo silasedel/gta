@@ -4,7 +4,7 @@ You are one stage in a relay. Four Claude Code sessions, each on a different acc
 
 ## The game and the quality bar
 Southline is an original open-world crime game (Vite, three.js 0.170, Rapier) in a real-scale Miami-style city plus a fictional island, built to the user's own road map. It is for a YouTube video and a playable website/Mac app. The bar is GTA 6 footage: **photoreal with a game finish**, smooth surfaces (no grain, no dot or dither patterns, no pixelation, no flat "slop" layers), **locked 1080p, 60 fps on ordinary hardware**. Graphics are cut last. Everything uses made-up brands, American spelling, and only files that are free for game use.
-Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` exporting `initV2(game)` and `order`. Plans and images: `docs/v2/plan/` (road map `map_roads_target.webp`, colour map, HUD `hud_corner_target.webp`, Nico's house photos `nico_house/1..6`). Model library: `~/Downloads/Models` (README.txt, catalog.csv; do not use the 4 rows marked "personal use only").
+Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` exporting `initV2(game)` and `order`. Plans and images: `docs/v2/plan/` (road map `map_roads_target.webp`, colour map, HUD `hud_corner_target.webp`, Nico's house photos `nico_house/1..6`). Model library: ``Models/` (`Models/README.txt`, `Models/catalog.csv`; do not use the 4 rows marked "personal use only").
 
 ## How you work
 - Work on branch `stage-<your number>`, created from the project exactly as the user gives it to you (it already contains every earlier stage). Never touch `main` or `v2`. Commit small and often.
@@ -18,14 +18,14 @@ Repo: this folder. Modules auto-load via `import.meta.glob('./**/*.v2.js')` expo
 - Never publish, push to a public place, enter credentials, or delete assets.
 
 ## Models: what you need, and how to ask for them
-You cannot download models yourself. If you need a model that is not in `~/Downloads/Models`, do not wait for it: build a simple code placeholder and keep going, and add the request to `docs/v2/briefs/MODEL_REQUESTS_<your number>.md`. Batch requests and send the file to the user whenever it has something new. For each model write: name, what it is, where it is used, size (small / medium / big), and search keywords. The user will handle each one like this:
+You cannot download models yourself. If you need a model that is not in ``Models/`, do not wait for it: build a simple code placeholder and keep going, and add the request to `docs/v2/briefs/MODEL_REQUESTS_<your number>.md`. Batch requests and send the file to the user whenever it has something new. For each model write: name, what it is, where it is used, size (small / medium / big), and search keywords. The user will handle each one like this:
 - **Common, simple, small items** (props, street furniture, bottles, chairs, signs): the user downloads them from the free asset site.
 - **Anything big or that must look polished** (buildings, large interiors, vehicles, boats, terrain pieces): the user downloads it from the free asset site. These are never made with AI generation.
 - **Custom or unusual single items** (a slot machine, special shoes, a vault door, a specific person): the user generates them with the AI model tool (Tripo), from a reference image. That tool is good for custom single props and people, and bad at big, smooth, perfectly polished objects.
 Tell the user the priority of each request so they can do the important ones first.
 
 ## Hand-back
-When all jobs pass their tests, or your budget is nearly spent, return the whole project as `git bundle create stage-<number>.bundle --all` (or a zip of the project with `.git`, without `node_modules`), plus your STATUS and MODEL_REQUESTS files and your best screenshots. The next stage starts from exactly this. Update `docs/v2/CONVENTIONS.md` with anything the next stage must know.
+Everything lives in one folder: this project folder (it also holds `Models/` with all downloaded models, `references/user_references/` with the user's reference photos, and `public/assets/audio/sfx/southline_death.mp3`). You may edit anything in it. When all jobs pass their tests, or your budget is nearly spent, give the user the whole project folder back as a zip, in exactly the same layout (leave out `node_modules`; do not rename, move or delete the existing folders; do not change anything inside `Models/` except adding files in the right category folder if the user asks). Include your STATUS and MODEL_REQUESTS files and your best screenshots inside the folder. The next stage starts from exactly this folder. Update `docs/v2/CONVENTIONS.md` with anything the next stage must know.
 
 ## The user's final decisions (these override anything else)
 ## 12. Scope decisions (user answers, 2026-11-15)
@@ -136,7 +136,7 @@ Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory
 
 ## Models the user prepares for this stage
 Shop props (bottles, glasses, bar stools, grocery shelves and coolers, registers, clothing racks, shoe shelves, chairs, couches, beds, desks, lockers, jail bunks, ceiling lamps); Tripo: slot machine (3 variants), 5 shoe styles, mask and cap, vault door and cash props for the heist in stage 4. The user prepares these while stage 1 runs.
-(If you need something that is not listed or not in `~/Downloads/Models`, use a code placeholder and add it to your model request file.)
+(If you need something that is not listed or not in ``Models/`, use a code placeholder and add it to your model request file.)
 
 ## Hand-back test for this stage
 A project where you can walk the new world among believable crowds, enter every listed building, talk to people with memory, and see Nico's house match the references, at 60 fps. Update `CONVENTIONS.md` with interior ids, roles, crowd settings and the dialogue API.
