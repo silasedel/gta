@@ -1,6 +1,6 @@
 # Southline: read this first (every lane)
 
-You are one of 5 Claude Code sessions, each on a different account, building the same game in parallel for a YouTube video due Wednesday Nov 18. Goal: **professional-quality** open-world crime game (original; real-scale Miami-style city plus an island, on the user's road map). The bar is GTA 6 footage: photoreal with a game finish, smooth (no grain, no dots, no pixelation), locked 1080p, **60 fps on ordinary hardware**. Graphics are cut last.
+You are one of 4 Claude Code sessions (see `01_FOUR_ACCOUNT_PLAN.md`, which overrides lane letters), each on a different account, building the same game in parallel for a YouTube video due Wednesday Nov 18. Goal: **professional-quality** open-world crime game (original; real-scale Miami-style city plus an island, on the user's road map). The bar is GTA 6 footage: photoreal with a game finish, smooth (no grain, no dots, no pixelation), locked 1080p, **60 fps on ordinary hardware**. Graphics are cut last.
 
 ## Read, in this order
 1. `docs/v2/plan/BIG_UPDATE_PLAN.md` (esp. sections 0-2, 13 = the user's final answers, 12 scope).
@@ -16,8 +16,8 @@ Model library: `~/Downloads/Models` (README.txt, catalog.csv). Never copy brand 
 - **Performance:** every change is measured; the frame budget is 16.6 ms at 1080p on a mid laptop GPU. Use instancing, LOD, culling. Report ms before/after.
 - **Usage:** you have about 0.9 of a weekly plan. Use Opus-class models for design and hard work, cheaper models for mechanical checks. Run heavy commands in the background. Ask nothing the code or docs already answer.
 - **Reports:** append a short status to `docs/v2/briefs/STATUS_<letter>.md` at every checkpoint: done, in progress, blocked, screenshots, fps.
-- **Checkpoints (user local time):** Mon 12:00, Mon 22:00, Tue 12:00, Tue 22:00 (feature freeze), Wed 12:00 (final merge, Mac app build, V2.1 publish by lane A's account).
+- **Checkpoints (user local time):** Mon 12:00, Mon 22:00, Tue 12:00, Tue 22:00 (feature freeze), Wed 12:00 (final merge, Mac app build, V2.1 publish by account 3).
 - **Do not:** touch the user's published repo history, delete assets, publish anything, enter credentials, or use files whose license is not free for games. 4 catalog rows are "personal use only": exclude them (see EXECUTION_PLAN.md).
 
 ## Integration
-Lane A merges lanes in order A, B, C, D, E at each checkpoint into branch `integration`, runs the game, and reports breakage into `REQUESTS.md`. Fixes go to the owning lane.
+Account 3 merges accounts 1, 2, 3, 4 at each checkpoint into branch `integration`, runs the game, and reports breakage into `REQUESTS.md`. Fixes go to the owning lane.
