@@ -126,13 +126,13 @@ Budget: 0.5 of a weekly $200 plan. Starting point: the game from stage 3 (world,
 
 ## Jobs (in order)
 1. **Shops: buy and rob, 0.08.** Buying menus in every shop. Robbery: threaten the clerk, take cash, alarm, police sent; a mask hides your face. TEST: buy something and rob a store, each end to end.
-2. **Jobs, 0.10.** Car theft orders, taxi, bounty, with money as the reward. TEST: each job can be started, completed and paid.
-3. **Weapons, radio, save, 0.09.** Pistols, shotguns, rifles, melee from `~/Downloads/Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs from the user's music folder. Save and load game. TEST: use each weapon type; radio changes stations; save, quit, load.
-4. **Simple casino heist, 0.15.** One heist with a few steps and a short story, built on the casino from stage 2 and the police from stage 3 (for example: case the casino, get in, reach the vault, get out, escape the chase). Mission flow, a payout. TEST: play it start to finish; it can be failed and retried; no soft locks.
-5. **Final check and fixes, 0.08.** Walk through the plan's section 13 and `references/playtest_1114/BUGS.md` and fix the worst: anything broken, floating, clipping, sliding, see-through, grainy or slow. List remaining issues honestly in `docs/v2/briefs/FINAL_CHECKLIST.md` (pass or fail per item).
+2. **Jobs, 0.08.** Car theft orders, taxi, bounty, with money as the reward. TEST: each job can be started, completed and paid.
+3. **Weapons, radio, save, 0.07.** Pistols, shotguns, rifles, melee from `~/Downloads/Models/Weapons`, realistic violence like GTA 5. Several radio stations playing the songs from the user's music folder. Save and load game. TEST: use each weapon type; radio changes stations; save, quit, load.
+4. **Casino heist, 0.20.** Structured like GTA V's heists: 2 short prep missions (about 3 to 5 minutes each, for example scout the casino and steal a getaway vehicle or gear) and one finale (about 10 to 15 minutes: get in, reach the vault, get out, escape the chase). A short story with a few dialogue beats and a payout. Built on the casino from stage 2 and the police from stage 3. TEST: play prep and finale start to finish; it can be failed and retried; no soft locks.
+5. **Final check, fixes and polish, 0.07.** Walk through the plan's section 13 and `references/playtest_1114/BUGS.md` and fix the worst: anything broken, floating, clipping, sliding, see-through, grainy or slow. List remaining issues honestly in `docs/v2/briefs/FINAL_CHECKLIST.md` (pass or fail per item).
 
 ## Not in this version (cut to fit the budget; do not build these)
-Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (first-meeting vs later-meeting lines only), barber and hotel-lobby interiors, random street events beyond police chases, weather beyond rain and fog, a long heist (build only the simple one in stage 4), extra polish passes. Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops.
+Jail break-out (arrest leads to a short jail scene and respawn), deep NPC memory (rough memory only), random street events beyond police chases, hurricanes and extreme weather, a long multi-heist campaign (build the single heist in stage 4). Never cut: the grain fix, 60 fps, the road trace, correctly imported models, police basics, usable shops, a clean polished look.
 
 ## Models the user prepares for this stage
 Heist props (vault door, cash stacks, duffel bag, from Tripo); anything the final check shows missing.
