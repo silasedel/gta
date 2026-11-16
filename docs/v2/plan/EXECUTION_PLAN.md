@@ -42,3 +42,31 @@ Nico (own face), 3 slot-machine variants, 5 shoe styles, mask, cap, cash duffel,
 - Catalog licenses are "unknown" for 312 rows and 4 are marked personal use only: record the license page and drop the 4 from the public build.
 - 60 fps with 100+ people and a dense map: crowd LOD and instancing needed in lane B.
 - Tripo hands are flat and clothes are baked in: fine for crowds, special handling for talking characters.
+
+---
+# Replan: done by Wednesday (Nov 18), without the user's own account
+The user's account resets Thursday, so every lane runs on other people's accounts. About 2.5 weeks of usage must be spent in about 3 days, so work is split into 6 lanes (about 0.4 week each), each on its own account, run in parallel.
+
+| Lane | Branch | Work | Account |
+|---|---|---|---|
+| 1 Look | lane-look | rendering, grain/pixelation, locked 1080p, 60 fps, lighting, water, shade | friend |
+| 2 Map | lane-map | smaller map traced from the road map, roads, crosswalks, signs, lights, cameras | dad |
+| 3 Vehicles | lane-cars | import about 100 cars, taxi/police/SWAT/etc., boats, air, damage, hotwire/theft, parking and stolen reports | account 3 |
+| 4 People + interiors | lane-people | rig and import about 100 Tripo people, recolor variants, crowd LOD, shop and casino shells, props | account 4 |
+| 5 Law + crime | lane-police | GTA V wanted scale and star 6, witnesses, speed/red-light cameras, police memory, jail, aircraft units | account 5 |
+| 6 Talk + jobs | lane-story | dialogue wheel with NPC memory, shops buy and rob, taxi, car theft orders, bounty, street events | account 6 |
+The casino heist is built by lane 6 last, only if usage remains. Final merge, Mac app build and V2.1 publish: one of the helper accounts (the user's account is empty), in the order 1, 2, 3, 4, 5, 6, then a fix pass.
+
+If only 3 accounts exist, merge lanes 1+2, 3+4, 5+6 (each then needs about 0.8 week, so Wednesday is not realistic for everything; cut the casino heist, jail break-out, NPC relationships depth and polish passes first).
+
+## Must be in by Wednesday, in this order of importance
+1. Look and 60 fps, map and roads, models imported (graphics are cut last).
+2. Police and wanted levels, theft and damage, shops (enter, buy, rob).
+3. NPC dialogue and street events, taxi/theft/bounty jobs.
+## Stretch (after Wednesday if short)
+Casino heist, jail break-out, NPC relationship depth, extra polish, V2.1 publish.
+
+## Needs from the user
+- Give each helper account write access to the repo `silasedel/gta-v2` (or send a zip), and a copy of `~/Downloads/Models` (about 13 GB, share by drive link).
+- Send each helper the lane brief; the lead writes one short brief per lane.
+- Confirm in advance which accounts are really free this week (5-hour limits also cap how fast one account can burn a week).
