@@ -17,6 +17,14 @@ Do your stage's jobs, in order, to the best of your ability, to a **professional
 - Use the strongest model for design and hard problems and cheaper ones for mechanical work. Run heavy commands in the background. Do not repeat work or re-read huge files for no reason.
 - Measure before and after. Take screenshots after every big step and look at them yourself.
 
+## Tell the user which model and effort to use (all through your stage)
+The user can change your model and effort setting at any time, and you cannot. So **you decide what is best and tell them**:
+- At the very start, after reading your brief, tell the user in one or two lines which model and effort you want for your first job, and why.
+- Every time the kind of work changes, before you start it, say whether to keep or change the setting. Examples: switch to the strongest model and high effort for a hard rendering bug, a new system design or a stuck problem; switch to a cheaper model and lower effort for mechanical work such as renaming files, importing many models with a script, running tests, or writing repetitive code.
+- Weigh both sides every time: **cost** (output tokens cost far more than input tokens, and higher effort and stronger models use the budget faster) against **capability** (a harder problem done wrongly costs more in retries than doing it once with the strongest setting). Never recommend the most expensive setting by default. Never recommend a cheap one for work where a mistake would be expensive to undo.
+- Keep it short: one line like "Next: balance the shadow cascades. Switch to the strongest model, high effort (hard, subtle problem)." The user will change the setting and say "done". If they do not change it, carry on with what you have and do not ask again.
+- Also tell the user once, early, how fast the usage meter is moving relative to your budget, and warn them if the pace means you will run out before your job list is done.
+
 ## The goal: as close to GTA as we can get
 We are not making "a crime game". We are making the closest thing to a **GTA 5 / GTA 6 style game** that we legally and technically can. Broadly copy everything about how GTA feels and plays; do not copy its names, logos, characters, story, music, maps or any of its actual assets (use made-up brands, original characters and the given models). When a decision is open, ask: "What does GTA do here?" and do that, in your own original wording and art.
 Match, as closely as is possible:
