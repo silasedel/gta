@@ -41,3 +41,14 @@ Model library: `Models/` (`Models/README.txt`, `Models/catalog.csv`): GLB/FBX pe
 Traffic Lights, Signs, Roads, Benches, Bins, Bus Shelters, Fire Hydrants, Parking Meters, Trees, Plants, ...).
 Vite serves the project root, so `/Models/<folder>/<file>.glb` is fetchable in the browser during development; for
 shipping, copy the used files into `public/assets/models/<category>/` (keep the license/catalog info).
+
+## Key Largo street design (user, Nov 16, from a front-deck mock-up of Nico's house)
+- The small roads in `keys_detail.webp` are simple PAVED neighborhood streets, not dirt roads: worn, patched, sun-faded
+  asphalt, about 6-7 m wide, NO curbs, NO sidewalks, NO lane markings (or a faded center line at most), sandy and
+  grassy shoulders where the asphalt edge crumbles into sand, puddles after rain, STOP signs at the corners, wooden
+  utility poles with overhead wires along the street, trash and recycling bins at the curb.
+- Only Nico's lot is unpaved: his yard and driveway are sandy, matted-down grass and sand (tire tracks, weeds, leaf
+  litter) running straight from the house to the street, where his pickup and an old rusty classic car park.
+- Neighbors: small single-story Florida cottages (pastel siding, metal roofs), low wooden and lattice fences, hedges,
+  flowering bushes (bougainvillea, hibiscus) and red-flowering poinciana trees, palms, a construction dumpster.
+- The overall feel: lived-in, slightly run-down Keys neighborhood, bright sun, GTA 6 look.
