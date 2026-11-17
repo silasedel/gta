@@ -956,6 +956,23 @@ export function createTileBuilder(ctx) {
       }
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
+    if (!ARTGEO_OFF && FB && FS && style === 'glass' && !opts.lod && y0 < 0.5 && !b.part && h > 8 && h < 62 && outer.length <= 12) {
+      // r2-art: glass mid-rises were sheer painted boxes: aluminum mullion fins (0.07 x 0.22 m) every bay and a slab-edge band every
+      // floor on the street faces, so the curtain wall has depth and casts thin shadows
+      const gy = shops ? GF : 4.2, fh = FS.floorH || 3.6, bay = Math.max(1.2, FS.bayW || 1.5), finC = new THREE.Color(0x5d646b), bandC = new THREE.Color(0x6e757c);
+      for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < 5) continue;
+        const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L, nx = -tz, nz = tx; // every face (glass boxes are seen from lots and plazas too)
+        const ry = Math.atan2(-tz, tx), nb = Math.max(1, Math.round(L / bay)), hh = h - 0.3 - gy;
+        if (hh > 2) for (let k = 1; k < nb; k++) { const u = k * L / nb; B.trim.addGeometry(BOXG, m4(p[0] + tx * u + nx * 0.11, gy + hh / 2, p[1] + tz * u + nz * 0.11, ry, 0.07, hh, 0.22), finC); }
+        for (let y = gy; y < h - 1; y += fh) edgeSlab(B.trim, p[0], p[1], q[0], q[1], nx, nz, y - 0.1, 0.12, 0.2, bandC); } }
+    if (!ARTGEO_OFF && FB && FS && style === 'deco' && !opts.lod && y0 < 0.5 && !b.part && h > 6 && h < 40 && outer.length <= 12 && hash(seed + 1401) < 0.75) {
+      // r2-art: Miami Beach deco "eyebrows": thin concrete sun shades over each window row, wrapping the street faces (the flat
+      // painted box was the giveaway); depth 0.4-0.6 m, a soft shadow line every floor
+      const gy = shops ? GF : 0, fh = FS.floorH || 3.2, nf = Math.max(1, Math.round((h - gy) / fh)), dep = 0.4 + hash(seed + 1402) * 0.2, ebC = new THREE.Color(FS.tint).lerp(new THREE.Color(0xf4f1ea), 0.6);
+      for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < 3) continue;
+        const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L, nx = -tz, nz = tx, street = !roadDist || roadDist((p[0] + q[0]) / 2 + nx * 4, (p[1] + q[1]) / 2 + nz * 4) <= 18; if (!street) continue;
+        for (let f = 0; f < Math.min(nf, 10); f++) { const y = gy + f * fh + ((FS.sill ?? 0.3) + (FS.winH ?? 0.5)) * fh + 0.1; if (y > h - 0.6) break;
+          edgeSlab(B.trim, p[0] + tx * 0.05, p[1] + tz * 0.05, q[0] - tx * 0.05, q[1] - tz * 0.05, nx, nz, y, dep, 0.08, ebC); } } }
     if (style === 'deco' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && roadDist && outer.length <= 8 && hash(seed + 601) < 0.4 && /Beach/.test(ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '')) { // Ocean Drive deco: a vertical sign fin with neon edges on the street corner
       let bi = 0, bd = Infinity; for (let i = 0; i < outer.length; i++) { const d = roadDist(outer[i][0], outer[i][1]); if (d < bd) { bd = d; bi = i; } }
       const c = outer[bi], p = outer[(bi - 1 + outer.length) % outer.length], q = outer[(bi + 1) % outer.length];
@@ -1808,7 +1825,8 @@ export function createTileBuilder(ctx) {
             // clipping sweep: a piece cut at a tile seam (trim 0) runs its rail right to the seam, so the neighbor tile's rail continues it
             // without a gap (the old 2 m end margin left a 4 m hole at every seam and dropped the short seam stubs)
             const gS = CLIP_OFF ? Math.max(2, trimA) : trimA, gE = L - (CLIP_OFF ? Math.max(2, trimB) : trimB);
-            for (let s2 = gS; s2 < gE; s2 += 3) { const q = sampleAt(fr, s2), x = q.x + q.nx * side * (hw + 3.5), z = q.z + q.nz * side * (hw + 3.5); const wet = isWater && isWater(x, z);
+            for (let s2 = gS; s2 < gE; s2 += 3) { const q = sampleAt(fr, s2), x = q.x + q.nx * side * (hw + 3.5), z = q.z + q.nz * side * (hw + 3.5); let wet = isWater && isWater(x, z);
+              if (wet && !SEAMS_OLD) { const rx = q.x + q.nx * side * (hw + 0.62), rz = q.z + q.nz * side * (hw + 0.62); if (isWater(rx, rz) || /sand|water/.test(String(surfAt(rx, rz)))) wet = false; } // r2-roads: the rail's own posts must stand on dry ground (no rail out in the water / on the beach)
               if (wet && gA < 0) gA = s2; else if (!wet && gA >= 0) flush(s2); }
             flush(gE);
             // bus stop where a sidewalk runs along the verge (one per long piece, right-hand side of travel per direction)
@@ -2946,10 +2964,15 @@ export function createTileBuilder(ctx) {
       const pw = walk(mid[0], mid[1]), prom = pw.d < 9 || island;
       if (!prom) continue;
       const len = r.sB - r.sA, ph = hash(((p[0] * 3) | 0) * 7 + ((p[1] * 5) | 0));
-      if (B && B.guard && !elevLow(mid[0], mid[1])) { // railing: posts every 2.4 m + top / mid rails (two-faced strips)
-        const fr = polyFrame([at(r.sA + 0.5, -0.25), at(r.sB - 0.5, -0.25)]);
-        for (const [y0, h] of [[1.0, 0.06], [0.52, 0.04]]) { sideWall(B.guard, fr, 0, 0, h, y0, rail, 1); sideWall(B.guard, fr, 0, 0, h, y0, rail, -1); }
-        for (let s2 = r.sA + 0.5; s2 <= r.sB - 0.4; s2 += 2.4) { const [x, z] = at(s2, -0.25); B.guard.addGeometry(BOXG, m4(x, 0.12 + 0.47, z, Math.atan2(tx, tz), 0.06, 0.94, 0.06), postC); }
+      if (B && B.guard && !elevLow(mid[0], mid[1]) && (SEAMS_OLD || !natShore)) { // railing: posts every 2.4 m + top / mid rails (two-faced strips)
+        // r2-roads: only on a real seawall (no railing along a natural beach), and only where each post stands on dry, paved-level
+        // ground (not sand / water, not below or above the walk): the railing is split into runs between grounded posts
+        const posts = []; for (let s2 = r.sA + 0.5; s2 <= r.sB - 0.4; s2 += 2.4) { const [x, z] = at(s2, -0.25); posts.push({ s2, x, z, ok: SEAMS_OLD || (!(isWater && isWater(x, z)) && !/sand|water/.test(String(surfAt(x, z))) && Math.abs(gY0(x, z)) < 0.3) }); }
+        for (let i = 0; i < posts.length;) { if (!posts[i].ok) { i++; continue; } let j = i; while (j + 1 < posts.length && posts[j + 1].ok) j++;
+          if (j > i) { const fr = polyFrame([at(posts[i].s2, -0.25), at(posts[j].s2, -0.25)]);
+            for (const [y0, h] of [[1.0, 0.06], [0.52, 0.04]]) { sideWall(B.guard, fr, 0, 0, h, y0, rail, 1); sideWall(B.guard, fr, 0, 0, h, y0, rail, -1); }
+            for (let k = i; k <= j; k++) B.guard.addGeometry(BOXG, m4(posts[k].x, 0.12 + 0.47, posts[k].z, Math.atan2(tx, tz), 0.06, 0.94, 0.06), postC); }
+          i = j + 1; }
       }
       for (let s2 = r.sA + 6 + ph * 10; s2 < r.sB - 4; s2 += 24) { const [x, z] = at(s2, -1.3); if (!elevLow(x, z)) props.lamp.push({ x, y: gY0(x, z), z, ry: Math.atan2(ox, oz) }); }
       for (let s2 = r.sA + 14 + ph * 8; s2 < r.sB - 4; s2 += 30) { const [x, z] = at(s2, -2.4); if (!insideBuilding(tile, x, z) && !elevLow(x, z)) props.bench.push({ x, y: gY0(x, z), z, ry: Math.atan2(ox, oz) + Math.PI }); }
@@ -3630,10 +3653,12 @@ export function createTileBuilder(ctx) {
     if (!isWater) { exitCache.set(tile, ex); return ex; }
     const T = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? tile.tx * T, z0 = tile.z0 ?? tile.tz * T, inT = (x, z) => x >= x0 && x < x0 + T && z >= z0 && z < z0 + T;
     const walk = (ring, cb) => { const o = orient(ring); for (let i = 0; i < o.length; i++) { const p = o[i], q = o[(i + 1) % o.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < 2) continue; if (Math.max(p[0], q[0]) < x0 - 5 || Math.min(p[0], q[0]) > x0 + T + 5 || Math.max(p[1], q[1]) < z0 - 5 || Math.min(p[1], q[1]) > z0 + T + 5) continue; const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L; let nx = -tz, nz = tx; const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2; if (isWater(mx - nx * 3, mz - nz * 3) && !isWater(mx + nx * 3, mz + nz * 3)) { nx = -nx; nz = -nz; } if (!isWater(mx + nx * 3, mz + nz * 3) || isWater(mx - nx * 2, mz - nz * 2)) continue; cb(p, q, L, tx, tz, nx, nz); } };
+    const natCoast = GM_ON && !!(terrain && tile.tx !== undefined && terrain.synthetic(tile.tx, tile.tz)); // generated terrain coasts are natural shores (ground pass)
     // seawalls (land edges on water): a stair flight every ~200 m of waterfront (deterministic phase from world position, so seams agree)
     for (const a of tile.areas || []) { if (a.kind !== 'land') continue;
       walk(a.rings[0], (p, q, L, tx, tz, nx, nz) => { for (let s2 = 6; s2 < L - 6; s2 += 4) { const x = p[0] + tx * s2, z = p[1] + tz * s2; if (!inT(x, z)) continue;
         const cell = Math.floor(x / 200) + ',' + Math.floor(z / 200); if (ex.steps.some((e) => e.cell === cell)) continue; if (roadDist && roadDist(x, z) < 6) continue; if (!GC_OFF && isBeachAt(x, z)) continue; // beaches slope into the sea: no seawall stair
+        if (!SEAMS_OLD && (/sand/.test(String(surfAt(x - nx * 2, z - nz * 2))) || /sand/.test(String(surfAt(x, z))) || (natCoast && !/port|downtown|business|commercial|nightlife/.test(String(zoneAt(x, z)))))) continue; // r2-roads: a natural shore has no seawall, so no stair flight (its buried treads left only the two handrails lying in the shallows)
         ex.steps.push({ cell, x, z, nx, nz, tx, tz, top: 0, w: 2.4 }); s2 += 150; } }); }
     // piers / marina docks: one flight at each pier's seaward end
     for (const pq of tile.piers || []) { let best = null; walk(pq.rings[0], (p, q, L, tx, tz, nx, nz) => { const x = (p[0] + q[0]) / 2, z = (p[1] + q[1]) / 2; if (!inT(x, z)) return; const d = roadDist ? roadDist(x, z) : 0; if (!best || d > best.d) best = { d, x, z, nx, nz, tx, tz }; }); if (best) ex.steps.push({ ...best, top: pq.y ?? 1.2, w: 1.6 }); }

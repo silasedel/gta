@@ -836,6 +836,27 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - The global after-rain wetness turns the whole yard and deck into a mirror (wet-surfaces side, not mine).
   - Nico's own shutter blades are still real geometry at mid range (r2-look suggested a baked slat panel past ~15 m).
 
+- **Afternoon passes (lead and user reviews), latest 3-way: `docs/v2/shots/keys/three_r2k23_deck.jpg` (mock-up | overnight | now).** Commits f540c118, 07f83d67, 17b901c2, 44f984f8, 6e31c66e, a86e4c23, b59c88f1.
+  - STOP signs re-anchored to the street (user shot_25): one per approach at the stop bar, right side, 0.9 m off the edge, facing traffic. There's no regulatory STOP at that corner.
+  - Yard floor:
+    - calibrated to r2-art and r2-look (shell L ~0.46, near neutral);
+    - the terrain no longer pokes through the dips (it showed as straight-edged patches, user shot_27);
+    - shell decal rims removed, damp mottling along the drive;
+    - out of the global wet sheen;
+    - a small always-wet puddle at the drive mouth plus the after-rain patchPuddles water;
+    - wet gutter strips with 4 puddles along both street legs;
+    - r2-ground's matted grass clumps, denser and greener.
+  - Roll-off: in the yard at the street edge behind the right-hand bins, low and rust-darkened. Its load is real-size torn drywall, 2x4s, a bent roofing sheet, a tarp and bags under the rim.
+  - Deck: sun-bleached silver-gray boards, bare-wood rails (they were brown paint), a real rail-mounted satellite dish at the left edge.
+  - Power lines: every span ends at a pole. The city generators (tilebuild, dressing) never leave dangling spans.
+  - Shared kit, r2-art calibration: weathered wood roughness, galvanized tin, dielectric rust, neutral concrete and slab, leaf litter, interior wood and leather; library wood roughness in keysLots.
+  - Mock-up camera refit at fov 56 (spots_refs r0b_deck).
+  - Seams from r2-roads' audit fixed: a neighbor's stair in the lane, coplanar shell drives, the yard edge band at the corner.
+  - Open:
+    - sun hour for the mock-up's long rail shadows (r2-look scanning);
+    - street and left-side density (r2-veg);
+    - the user's new truck model (r2-cars).
+
 ## r2-art
 - 09:50 **Started (art director, one style).**
   - Style guide: `docs/v2/briefs/ART_STYLE.md`. Material class ranges are grounded in real PBR values and agreed with r2-look on the locked exposure: 80% white = sRGB 228 in noon sun. It also covers the GTA 6 trailer bar (Fresnel, deep but never black shade, warm haze).
@@ -930,6 +951,17 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - Reported to owners:
     - r2-cars: the 'noPark' TDZ, now fixed
     - r2-keys: generated-house 'wood' roughness 0.51 (their kit fix doesn't reach the houses kit), and the 05_site.js 500
+- 13:20 Item 8 follow-up: the Keys-detail Overseas Highway / Card Sound Road pieces also get the fit (tube 3 m, nodes pinned, r2-keys
+  ok'd; worst kink 23.8 -> 11.3 deg at (-1256, 5518)); build b20261117-130138 published. Pelican Point Ln edges, graph nodes, names,
+  buildings, storefronts and layout byte-identical. Item 11 follow-ups (tilebuild): curb-return strips per segment (a slab wrapping
+  only part of a return left the rest without a curb); promenade railings only on real seawalls, between grounded posts on dry
+  paved-level ground. r2-ground's "guardrail lying in the Keys shallows" at (-1016, 4965) was the handrail pair of a seawall stair
+  flight generated on a natural sand shore (treads buried, rails sloping into the water): seawall stairs now only on non-sand shores
+  in port / downtown / business / commercial zones; roadside water guardrails only where their own posts stand on dry ground (they
+  were already clipped to the road piece). Audit: `railAudit()` in `src/world/surfaces/seamProbe.js` (wet / sunk / flat rail
+  triangles). Seam probe totals over the 22 types, old code -> new: raised 11 -> 1, z-fight 150 -> 2 (incl. r2-keys' fixes), gutter-pan
+  coverage on curbed returns 0 -> 0.98; the remaining "notch" flags are tree-lawn corners (curb strip, then lawn: checked in the shots).
+  Sheets: `docs/v2/shots/roads/R2_item8_sr916_before_after.jpg`, `R2_item11_curb_returns_before_after.jpg`, `R2_item13_covers_markings.jpg`.
 
 ## r2-physics
 - 12:10 In progress. Everything new sits behind `?carphys=2` (off by default) until it has passed an in-game boot.
@@ -1023,6 +1055,12 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     together with sea grape, gumbo limbo, sabal with boots, bougainvillea, hibiscus / croton / ixora, saw palmetto / sea oats /
     sawgrass, buttonwood and red mangrove.
   - **r2-art leaf_1_c rows:** gray leaves at South Beach under miami-city, and a vegField_coconut at L 0.455. Not yet traced to a model.
+- **13:10 (after the crash): denser and clumpier everywhere, live oaks no longer sunk** (commit "r2-veg: clumpy dense parks...").
+  - Park and rural roadside biomes now use the Keys clump distribution, with an understory under park trees.
+  - Trunk footprint is now the trunk itself, sink 4-10 cm. The 13:00 audit (docs/v2/reports/veg-r2-d1-audit-after.json) found live oaks /
+    shade trees at 15-18 cm (r2-ground's report too): 28 sunk at Nico's, 32 in the park, 84 rural. Re-audit: docs/v2/reports/veg-r2-d2-probe.json.
+  - Density at the same 120 m audits: Nico's 204 trees / 436 shrubs, park 164 / 581, rural road 292 / 508.
+    Shots: `docs/v2/shots/vegetation/r2/d1_park_eye.png`, `d1_rural_eye.png`, `d1_nico_deck.png`.
 
 ## r2-web
 - **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
@@ -1088,3 +1126,95 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Left / honest gaps:** relief stays off until verified with every placer; ocean far-field (beyond 256 m) still uses the
   coarse shore field; the shore field takes ~30-60 s after load to build; light triangle patches near docks in the shallows
   (underwater terrain strip vs seabed) are faint but visible from the air.
+
+## r2-cars
+- **Item 2, seats (shot_02, the woman through the hood):** cause = drivers were placed from a glass-derived "windshield base"
+  that is wrong on many models (sedan3's sits inside the hood). All library models now carry measured seat anchors (driver,
+  front passenger, rear row: hip / H-point, heel, steering wheel center + radius + tilt, headliner, inner door) from
+  `tools/v2/cars/seats.py` (template match on each interior section; 26 hand-corrected via cars.json `seatFix`). Manifests +
+  index.json carry `seats` / `wheel`; runtime `v.seatAnchor(i)`, `game.vehicles.seatAnchor / seatWorld / addDriver / removeDriver`
+  (README "Seats"). AI drivers sit on the hip; r2-people owns the pose (src/npc/seat.js seatCharacter, picked up automatically)
+  and Nico's seat (src/player/seat.js). Sheets: `docs/v2/shots/cars/r2/seats_a.jpg`, report `docs/v2/reports/cars-seats.json`.
+- **Item 3 + 16, Nico's cars (user's new models):** pickup = `truck9` (Models/Cars/Trucks/Truck 9 - Off-Road Performance
+  Pickup, catalog row added): silver metallic 0x8f949b, satin-black stripe = two boxes measured on the model (whole hood +
+  cab roof) on PAINT only (glass is its own slot), black fender flares (paint split by wheel-arch band), black grille surround
+  and rims, grille / tailgate lettering flattened + darkened, light sand dust. Second car = `coupe4` (the 1970 muscle hardtop):
+  own paint slot only, sun-faded powder blue 0x7a9198 solid enamel (no flake), fade 0.6 / rust 0.32 / salt crust, 'old' look
+  (flat milky chrome, chalky rubber, dusty hazy glass, faded interior, whitewalls). Spots from r2-keys (truck9 [-12.4, 8.4]
+  h 2.35, coupe4 [-18.8, 5.5] h 1.03). The old convertible conv1 got its real PBR atlas (tan interior, chrome, glass windshield)
+  and stays in the fleet; Coupe 5 (1965 pony coupe) joined the fleet as `coupe5`.
+- **Item 4, sand:** soft ground (sand 1, mud 0.8, dirt 0.45, grass 0.3 via game.sand + surfaceAt): -20 % engine, -30 % grip,
+  -22 % side stiffness, rolling resistance 1.1 + 0.045 v m/s2, 3.5 cm visual dig-in. "Tires show through" = two terrain layers
+  drawn 5-7 mm apart under the car (terrain + terrain-lod); r2-ground fixed it with a LOD polygon offset.
+  `docs/v2/shots/cars/r2/s2_sheet.jpg`, `docs/v2/reports/cars-r2-sand.json`.
+- **Item 14 + shot_26 (paint painted over everything):** paint only lands on paint now. Converter: texture paint masks for
+  atlas-painted models (`paintTex`: body-color texels -> paint, windows -> glass, chrome / lamps / grille / mirrors keep their
+  texture), conv1 / truck2 windows split out; truck2 (atlas mixes body, livery and windows) retired to parked work truck.
+  Root cause of the big black patches on one front + the opposite rear corner (sedan1 / 2 / 8 / 10 and other sideways-authored
+  models): stale face normals after the converter's rotation deleted panels as "inner skins"; fixed, flipped outer panels are
+  flipped back, black under-shells hidden behind the paint removed. Maker marks: flush lettering on painted panels deleted, other
+  badges filled from the dominant surrounding slot, plus boxes for the stubborn ones (~10 models). Still faint: suv5 rear roundel,
+  suv4 grille emblem relief, suv12 grille lettering relief. Studio checks in 3 paint colors: truck2 / conv1 / coupe2 / suv2 /
+  van1 / truck7 / sedan1.
+- **One style (user's 09:40 bar + r2-art audit):** trim pulled into class ranges at load (chrome neutral 0.55-0.8 / rough
+  0.08-0.5, dark "metal" -> dielectric, plastics 0.025-0.62 / rough >= 0.32), paint albedo cap 0.72, env 1.0, metallic 0.6 / 0.36,
+  'solid' enamel finish for classics, chalky fade, pitted rust with bloom + halo, +-4 % tone drift, clear-coat orange-peel
+  breakup near the camera, glass env 2.6 -> 1.35. Materials named car-paint / car-glass / car-trim / car-wheel.
+- **Also:** parked cars only on clear spots (r2-physics clearance.js: findCarSpot / watchParked), no curb parking 15 m around
+  Nico's STOP corner and his drive mouth (`game.vehicles.addNoParkZone`), visual wheel cap hook for carphys 2.
+  Model requests (minivan, school / city bus, garbage truck, motorcycle, scooter) in MODEL_REQUESTS_r2.md.
+- **Lamps (user: "the lights don't look like normal lights"):** the shared lamp shader now builds a real lamp on every car:
+  clear polycarbonate lens (clear coat 1 @ 0.035: sharp sun / sky reflection), faceted chrome reflector bowls behind head / fog /
+  reverse / DRL, deep tinted tail / brake / blinker lenses (color darkens at grazing angles, optics ridges), lit lamps glow from a
+  hot core through the facets (no flat emissive slab). Studio A/B with `?lampv1`, close-up views `lampF` / `lampR`.
+- **Paint colors (user: "way too many pink and orange cars"):** US / Miami table: white 25, black 22, gray 19, silver 11,
+  blue 9, red 8, earth 4, loud 2 %, with finishes per bucket (whites solid / pearl, silver / gray / blue mostly metallic). Cause of
+  the loud cars: models with a 'sport' palette (orange + yellow + light blue = 1/3 of their rolls) and palette models keeping the
+  catalog's own color; every everyday model now rolls the table (a 'pal' only shifts its weights); rare cars keep one factory color.
+- **Sheets:** Nico's yard at the deck camera `docs/v2/shots/cars/r2/nico_deck_3way.jpg` (mock-up / this morning / now);
+  lamps before / after, day + night `docs/v2/shots/cars/r2/lamps_ab.jpg`; Nico's cars studio + seats `docs/v2/shots/cars/r2/seats_a.jpg`.
+- **Passengers:** 0-2 per AI car (~30 % one, ~8 % two) on the measured seats via r2-people's createDriver + seatCharacter;
+  front-row anchors slid 6 cm toward the wheel (occupied seat), coupe2 hip lowered; side glass no longer an opaque mirror.
+
+## r2-people
+- 14:45 **Nico's posture** (user: "shoulders too low, like he's pulling them down"): the relaxed-stance layer
+  (`src/player/nico/pose.js`) dropped the clavicles 7 deg and pulled the arms in. Now chest up, clavicles up a touch
+  and back, arms hanging clear of the lats; also under the phone / talk / aim stand poses and lighter while walking.
+  Sheet `docs/v2/shots/player/r2_nico_posture_sheet.jpg` (before / after, back, 3/4, side); walk / run / stop
+  `docs/v2/shots/player/r2_n2_new_*.png`. A/B in-session: `globalThis.__nicoPoseOld = true`.
+- 14:20 **Nico in the driver's seat, 8 cars** (`src/player/seat.js` now uses the shared solver + a 0.55 s slide from the
+  door): `docs/v2/shots/people/r2seat/n1_nico_<car>_win|chase.png` (conv1, truck9, sedan3, suv2, hatch1, coupe2, van1,
+  super4; glass hidden for the window views). Hands on the wheel, hips on the cushion, head under the roof (the head
+  now wins over arm reach in low cars).
+- 14:10 **Hands, all 97 people re-weighted** (`tools/v2/npcs/hand_pass.py` / `hand_pass.sh`, rig-only, from the rigged
+  .blend files): the rigger's lane split put the thumb in the "Index" lane for most people (every finger one lane off,
+  Thumb bones empty and floating in front of the hand = the stub-thumb / claw look). Now the thumb is found as its own
+  lane along its own axis with joints inside it, fingers sit on their real lanes, joint blends are soft. Poses
+  (`src/npc/arch/anim.js`): fingers bend together with natural joint ratios, thumb rests along the index, fists / grips
+  on the action clips, fingers follow the gait swing and breathe at idle. 12 people at rest:
+  `docs/v2/shots/people/r2_hands_12.jpg`. Remaining: on 2-3 scans the thumb tip is a separate island that tears a little
+  when it flexes (flexion kept low for that reason).
+- 13:25 **Seating (item 2) and non-user people (item 15)**, committed:
+  - **Shared seat solver `src/npc/seat.js`** on r2-cars' measured seat anchors: hips on the H-point, torso reclined, head
+    kept under `roofY` (recline, cushion sink, chin tuck; convertibles skip it), legs IK to the footwell (right foot on the
+    pedal), driver's hands on the rim at ten-to-two following `v.steerCur`, passengers' hands on the thighs, elbows kept
+    inside the door, seat slides up to 8 cm toward the wheel. Used by AI drivers + passengers (vehicles.js), cop drivers
+    (police.js) and Nico. 8 cars x driver + passenger from both windows and the chase cam:
+    `docs/v2/shots/people/r2seat/t2_*` (glass on), `t3_*` (glass hidden); numbers `docs/v2/reports/r2-people-t2.json`.
+    The shot_02 "woman through the hood" class is gone.
+  - **Non-user people removed:** `game.npc.createDriver` (traffic uses the user's people; kids / teens never drive; no
+    police, lifeguards or swimwear in civilian cars); no archetype / old-library stand-ins while the cast is on (peds,
+    staged people, promenade strollers, legacy interior staff and guests, activity NPCs; mission spawns take the best
+    loaded civilian); police people preloaded at boot.
+  - **Far crowd tier** (30-185 m, was the procedural mannequin body) rebuilt from the user's people
+    (`src/npc/people/farCrowd.js`: each person's own LOD2 mesh + albedo, GPU-skinned from a bone texture baked from the
+    game's clips, one instanced draw per person in view). 120 far people from 50 people downtown, 0 errors:
+    `docs/v2/shots/people/r2crowd/f1_*.png`. Flag `?farcrowd=people` (A/B frame time running, then default on).
+  - **Lifeguards** c01 / c02 (Models/Characters 1-2): manual T-pose pass (`tools/v2/npcs/apose_lifeguard.py`), rigged,
+    lifeguard posts on the sand only. Shots `docs/v2/shots/people/r2_lifeguard_*.png`.
+  - Model requests (kids, elderly, swimwear, work uniforms, cyclists) in `docs/v2/briefs/MODEL_REQUESTS_r2.md`.
+- **Bug fix: all-blue minimap and "MIAMI" at the Key Largo spawn (play server).** The map renderer was not the cause. Both symptoms appear exactly when `loadMiamiData()` fails once, after which `city.js` builds the city with no map data (no land, `districtAt` -> 'Miami'). One failed fetch is enough, for example during a map republish or a network hiccup.
+  - Fix: `createMiamiCity` retries the data load up to 3 more times before falling back.
+  - Repro tool: `tools/v2/mapui/spawn-map-check.mjs <tag> <n>` fails the first n world.json fetches. Before (4 failures): blue minimap and pause map, "MIAMI". After (1 failure, retried): full minimap, Pelican Point Ln, Key Largo.
+  - Sheet: `docs/v2/shots/r2-mapui/sheet_spawn_minimap.jpg`.
+  - The play server on 5202 runs without a file watcher, so it serves the old city.js until it is restarted.
