@@ -98,7 +98,13 @@ function frame(r, side, out) {
   const P = side === 'R' ? 'RightHand' : 'LeftHand', h = side === 'R' ? r.hand : r.lhand;
   if (!(side === 'R' ? r.fingersR : r.fingersL)) {
     const ax = side === 'R' ? r.axR : r.axL; h.getWorldQuaternion(_q);
-    wp(h, out.o); out.F.copy(ax.F).applyQuaternion(_q); out.S.copy(ax.S).applyQuaternion(_q); out.N.copy(ax.N).applyQuaternion(_q); out.len = ax.len;
+    wp(h, out.o); out.S.copy(ax.S).applyQuaternion(_q); out.len = ax.len;
+    // F: the hand continues the forearm (robust on rigs whose bind frames differ from the runtime rest pose)
+    wp(side === 'R' ? r.fore : r.lfore, _a); out.F.subVectors(out.o, _a).normalize();
+    const Fb = _b.copy(ax.F).applyQuaternion(_q); if (Fb.dot(out.F) < 0.5) out.F.copy(Fb);   // a sharply bent wrist: trust the bone
+    out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
+    if (side === 'R') out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);
+    out.N.normalize();
     return out;
   }
   wp(h, out.o); wp(r[P + 'Middle1'], out.F).sub(out.o); out.len = out.F.length(); out.F.normalize();
