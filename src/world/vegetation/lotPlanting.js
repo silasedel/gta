@@ -12,8 +12,8 @@ import { lots as houseLots } from '../setpieces/houses/lots.js';
 const ON = typeof location === 'undefined' || !/[?&]vegyards=0\b/.test(location.search);
 const NEAR = 150, FAR = 400;
 const hh = (a, b, c) => { const s = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453; return s - Math.floor(s); };
-const FOUND = ['green_shrub', 'bush_round', 'bush_round', 'hibiscus', 'tropical_bed', 'bougainvillea', 'bush_leafy', 'bougainvillea_b', 'bush_round'];
-const CANOPY = ['poinciana_c', 'shade_tree', 'poinciana', 'rubber_fig', 'oak_pale_b'];
+const FOUND = ['green_shrub', 'bush_round', 'hibiscus_hd', 'hibiscus_hd', 'tropical_bed', 'bougainvillea', 'bush_leafy', 'bougainvillea_b', 'bush_round'];
+const CANOPY = ['poinciana_hd1', 'shade_tree', 'poinciana_hd2', 'rubber_fig', 'poinciana_hd3'];
 const UNDER = ['fern_clump', 'tropical_bed', 'fern_a', 'fern_b', 'tropical_bed'];
 
 let _ray = null;
@@ -65,11 +65,11 @@ export function createLotPlanting(game) {
     for (const [li, [su, sv]] of [[0, 1], [-1, 0], [1, 0], [0, -1]].entries()) { const len = su ? l.d : l.w, n = Math.floor((len - 1) / 1.35);
       for (let k = 0; k <= n; k++) { const t = -len / 2 + 0.5 + k * 1.35, g = hh(id + li * 13, k >> 2, 41); if (g < 0.22) continue; // runs and gaps
         const u = su ? su * (hw - 0.45) : t, v = sv ? sv * (hd - 0.45) : t, [x, z] = W(u, v); if (!free(x, z, 0.5) || !plantable(game, x, z)) continue;
-        const r = hh(id + li, k, 42), key = r < 0.55 ? 'bush_round' : r < 0.72 ? 'green_shrub' : r < 0.82 ? (li === 0 ? 'hibiscus' : 'bush_leafy') : r < 0.92 ? 'bougainvillea' : 'tropical_bed'; /* hedge runs mostly the light round shrub (244 tris; the dense green shrub is 14k) */
+        const r = hh(id + li, k, 42), key = r < 0.55 ? 'bush_round' : r < 0.72 ? 'green_shrub' : r < 0.82 ? (li === 0 ? 'hibiscus_hd' : 'bush_leafy') : r < 0.92 ? 'bougainvillea' : 'tropical_bed'; /* hedge runs mostly the light round shrub (244 tris; the dense green shrub is 14k) */
         if (put(key, x, z, 1.0 + hh(id + li, k, 43) * 0.45)) taken.push([x, z, 0.5]); } }
     // a canopy tree at a front corner, so the crown overhangs the street (Keys streets are tunnels of green)
     { const side = hh(id, 5, 51) < 0.5 ? -1 : 1; for (const sd of [side, -side]) { const [x, z] = W(sd * (hw - 1.6), hd - 1.6);
-      if (!free(x, z, 1.8) || !plantable(game, x, z, true)) continue; if (put(['poinciana_c', 'shade_tree', 'poinciana', 'oak_pale_b'][(hh(id, sd, 52) * 4) | 0], x, z, 1.05 + hh(id, sd, 53) * 0.25)) { taken.push([x, z, 1.8]); trees.push({ x, z, palm: false }); break; } } }
+      if (!free(x, z, 1.8) || !plantable(game, x, z, true)) continue; if (put(['poinciana_hd1', 'shade_tree', 'poinciana_hd3', 'poinciana_hd2'][(hh(id, sd, 52) * 4) | 0], x, z, 1.05 + hh(id, sd, 53) * 0.25)) { taken.push([x, z, 1.8]); trees.push({ x, z, palm: false }); break; } } }
     // understory / shade ground cover under every tree and palm in the lot
     for (const [i, q] of trees.entries()) { const n = 2 + (hh(id, i, 21) * 3 | 0);
       for (let k = 0; k < n; k++) { const a = hh(id, i * 7 + k, 22) * 6.283, d = (q.palm ? 0.9 : 1.5) + hh(id, i * 7 + k, 23) * 1.6, x = q.x + Math.cos(a) * d, z = q.z + Math.sin(a) * d;

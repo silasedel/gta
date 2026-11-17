@@ -4149,5 +4149,477 @@
   "grades": {},
   "kb0": 198,
   "kb1": 35
+ },
+ "poinciana_hd1": {
+  "key": "poinciana_hd1",
+  "src": "Models/Trees/Royal Poinciana Tree 1 - Realistic HD Flamboyant Tree (variant 1540)/source/inner_Delonix regia HD_Compact mat 100/zzz_LODs/LOD4/Delonix regia HD_Compact mat 100_LOD4.fbx",
+  "tris_src": 163174,
+  "tris0": 54081,
+  "tris1": 14355,
+  "leaf0": [
+   53224,
+   45082
+  ],
+  "bark0": [
+   109950,
+   8999
+  ],
+  "leaf1": [
+   45082,
+   12160
+  ],
+  "bark1": [
+   8999,
+   2195
+  ],
+  "height": 6.844,
+  "radius": 8.26,
+  "crownFrom": 0.372,
+  "bottom": -0.857,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "leaf_2",
+   "bark_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6",
+   "leaf_7",
+   "leaf_8"
+  ],
+  "grades": {
+   "color map:bark": {
+    "before": [
+     35.9,
+     0.35,
+     0.514
+    ],
+    "after": [
+     34.4,
+     0.313,
+     0.491
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.001:bark": {
+    "before": [
+     32.8,
+     0.396,
+     0.544
+    ],
+    "after": [
+     31.7,
+     0.327,
+     0.496
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.008:leaf": {
+    "before": [
+     87.7,
+     0.714,
+     0.427
+    ],
+    "after": [
+     86.3,
+     0.543,
+     0.389
+    ],
+    "target": [
+     86,
+     0.5,
+     0.38
+    ]
+   }
+  },
+  "kb0": 2682,
+  "kb1": 710
+ },
+ "poinciana_hd2": {
+  "key": "poinciana_hd2",
+  "src": "Models/Trees/Royal Poinciana Tree 2 - Realistic HD Flamboyant Tree (variant 1640)/source/inner_Delonix regia HD_Wild mat 0/zzz_LODs/LOD4/Delonix regia HD_Wild mat 0_LOD4.fbx",
+  "tris_src": 105433,
+  "tris0": 43814,
+  "tris1": 14306,
+  "leaf0": [
+   34816,
+   34816
+  ],
+  "bark0": [
+   70617,
+   8998
+  ],
+  "leaf1": [
+   34816,
+   12106
+  ],
+  "bark1": [
+   8998,
+   2200
+  ],
+  "height": 7.0,
+  "radius": 7.875,
+  "crownFrom": 0.454,
+  "bottom": -0.001,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "leaf_2",
+   "bark_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6",
+   "leaf_7",
+   "leaf_8"
+  ],
+  "grades": {
+   "color map:bark": {
+    "before": [
+     35.9,
+     0.35,
+     0.514
+    ],
+    "after": [
+     34.4,
+     0.313,
+     0.491
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.001:bark": {
+    "before": [
+     32.8,
+     0.396,
+     0.544
+    ],
+    "after": [
+     31.7,
+     0.327,
+     0.496
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.008:leaf": {
+    "before": [
+     87.7,
+     0.714,
+     0.427
+    ],
+    "after": [
+     86.3,
+     0.543,
+     0.389
+    ],
+    "target": [
+     86,
+     0.5,
+     0.38
+    ]
+   }
+  },
+  "kb0": 2153,
+  "kb1": 699
+ },
+ "poinciana_hd3": {
+  "key": "poinciana_hd3",
+  "src": "Models/Trees/Royal Poinciana Tree 3 - Realistic HD Flamboyant Tree (variant 1740)/source/inner_Delonix regia HD_Wild mat 25/zzz_LODs/LOD4/Delonix regia HD_Wild mat 25_LOD4.fbx",
+  "tris_src": 127850,
+  "tris0": 51228,
+  "tris1": 14200,
+  "leaf0": [
+   42230,
+   42230
+  ],
+  "bark0": [
+   85620,
+   8998
+  ],
+  "leaf1": [
+   42230,
+   12002
+  ],
+  "bark1": [
+   8998,
+   2198
+  ],
+  "height": 7.776,
+  "radius": 9.192,
+  "crownFrom": 0.447,
+  "bottom": -0.01,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "leaf_2",
+   "bark_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6",
+   "leaf_7",
+   "leaf_8"
+  ],
+  "grades": {
+   "color map:bark": {
+    "before": [
+     35.9,
+     0.35,
+     0.514
+    ],
+    "after": [
+     34.4,
+     0.313,
+     0.491
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.001:bark": {
+    "before": [
+     32.8,
+     0.396,
+     0.544
+    ],
+    "after": [
+     31.7,
+     0.327,
+     0.496
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.008:leaf": {
+    "before": [
+     87.7,
+     0.714,
+     0.427
+    ],
+    "after": [
+     86.3,
+     0.543,
+     0.389
+    ],
+    "target": [
+     86,
+     0.5,
+     0.38
+    ]
+   }
+  },
+  "kb0": 2520,
+  "kb1": 696
+ },
+ "hibiscus_hd": {
+  "key": "hibiscus_hd",
+  "src": "Models/Plants/Hibiscus 1 - Realistic HD Chinese Hibiscus Shrub/source/inner_Hibiscus rosa-sinensis HD_Small tree mat 25/zzz_LODs/LOD4/Hibiscus rosa-sinensis HD_Small tree mat 25_LOD4.fbx",
+  "tris_src": 6843,
+  "tris0": 6843,
+  "tris1": 5813,
+  "leaf0": [
+   5013,
+   5013
+  ],
+  "bark0": [
+   1830,
+   1830
+  ],
+  "leaf1": [
+   5013,
+   5013
+  ],
+  "bark1": [
+   1830,
+   800
+  ],
+  "height": 2.2,
+  "radius": 2.775,
+  "crownFrom": 0.058,
+  "bottom": -1.067,
+  "mats": [
+   "leaf_0",
+   "leaf_1",
+   "leaf_2",
+   "leaf_3",
+   "leaf_4",
+   "leaf_5",
+   "bark_6",
+   "bark_7",
+   "leaf_8"
+  ],
+  "grades": {
+   "color map.001:leaf": {
+    "before": [
+     74.7,
+     0.68,
+     0.443
+    ],
+    "after": [
+     88.5,
+     0.536,
+     0.361
+    ],
+    "target": [
+     92,
+     0.5,
+     0.34
+    ]
+   },
+   "color map.002:leaf": {
+    "before": [
+     74.7,
+     0.654,
+     0.47
+    ],
+    "after": [
+     88.5,
+     0.531,
+     0.366
+    ],
+    "target": [
+     92,
+     0.5,
+     0.34
+    ]
+   },
+   "color map.003:leaf": {
+    "before": [
+     56.3,
+     0.942,
+     0.72
+    ],
+    "after": [
+     84.9,
+     0.603,
+     0.461
+    ],
+    "target": [
+     92,
+     0.5,
+     0.34
+    ]
+   },
+   "color map.007:bark": {
+    "before": [
+     133.3,
+     0.026,
+     0.526
+    ],
+    "after": [
+     53.0,
+     0.041,
+     0.443
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "color map.008:leaf": {
+    "before": [
+     74.6,
+     0.726,
+     0.393
+    ],
+    "after": [
+     88.5,
+     0.545,
+     0.351
+    ],
+    "target": [
+     92,
+     0.5,
+     0.34
+    ]
+   }
+  },
+  "kb0": 412,
+  "kb1": 360
+ },
+ "croton_a": {
+  "key": "croton_a",
+  "src": "Models/Plants/Croton 2 - Croton Plant (FBX)/source/Croton.fbx",
+  "tris_src": 759,
+  "tris0": 759,
+  "tris1": 759,
+  "leaf0": [
+   759,
+   759
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   759,
+   759
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.2,
+  "radius": 0.496,
+  "crownFrom": 0.003,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {},
+  "kb0": 29,
+  "kb1": 28
+ },
+ "croton_b": {
+  "key": "croton_b",
+  "src": "Models/Plants/Croton 1 - Croton Leaf Plants (OBJ)/source/Croton_Leaf_Plants.obj",
+  "tris_src": 975,
+  "tris0": 975,
+  "tris1": 975,
+  "leaf0": [
+   975,
+   975
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   975,
+   975
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.0,
+  "radius": 7.175,
+  "crownFrom": 0.172,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {},
+  "kb0": 37,
+  "kb1": 37
  }
 }

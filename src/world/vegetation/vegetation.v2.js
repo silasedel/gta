@@ -125,7 +125,7 @@ export async function initV2(game) {
       const keys = direct ? [direct] : grp ? GROUPS[grp] : []; if (!keys.length) throw new Error('unknown vegetation kind ' + kind);
       const h = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1, key = o.model || keys[Math.floor(h * keys.length) % keys.length];
       if (!o.keepY && !o.onRoad) { const e = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 20); if (e && e.dist < e.edge.width / 2 + 0.2) { (game.vegetation.placeSkipped ||= []).push([kind, +x.toFixed(1), +z.toFixed(1)]); return { key, item: null, skipped: 'road', remove() {} }; } } // never in a road lane (onRoad: true to force)
-      const it = { x, z, y: o.y, ry: o.ry ?? h * 6.2832, s: o.s ?? 0.88 + ((h * 7.31) % 1) * 0.24, keepY: o.keepY };
+      const it = { x, z, y: o.y, ry: o.ry ?? h * 6.2832, s: (o.s ?? 0.88 + ((h * 7.31) % 1) * 0.24) * (VEG_LIB[key]?.scale || 1), keepY: o.keepY }; /* per-model base scale (the HD poincianas / hibiscus are drawn larger than the old stand-ins) */
       (placed.get(key) || placed.set(key, { items: [], field: null, grp: grp || direct }).get(key)).items.push(it); placedDirty.add(key);
       if (!lib[key]) loadVegModels(game.renderer, [key]).then((m) => { if (game.city?.flora?.models && m[key]) game.city.flora.models[key] = m[key]; placedDirty.add(key); });
       return { key, item: it, remove() { const P = placed.get(key); if (!P) return; const i = P.items.indexOf(it); if (i >= 0) { P.items.splice(i, 1); placedDirty.add(key); } } };
@@ -149,7 +149,8 @@ export async function initV2(game) {
     // (r2-veg) floating / sinking audit over EVERY drawn library plant (countryside, street / tile palms, set pieces, place()): the
     // trunk base (instance origin) against the ground as drawn, lowest point within 0.35 m of the trunk. -> counts + worst cases + list
     groundAt: (x, z) => { const C = game.city, T = C?.terrain; const cg = C?.groundHeightAt ? C.groundHeightAt(x, z) : NaN; if (T?.real?.(x, z) && Number.isFinite(cg)) return cg; const mg = T?.heightAt ? meshGround(T)(x, z) : cg;
-      return Number.isFinite(cg) && cg - mg > 0.06 ? cg : mg; }, // a raised city surface (curb, sidewalk, pad, median) over the terrain is the ground there
+      if (!(Number.isFinite(cg) && cg - mg > 0.06)) return mg; let sf = ''; try { sf = String(C.surfaceAt?.(x, z) || ''); } catch (e) { /* */ }
+      return /sidewalk|concrete|asphalt|pavers|tile/.test(sf) ? cg : mg; } /* r2-qa: only a real paved surface lifts a plant over the drawn terrain (a coconut stood 0.53 m up on an undrawn height) */, // a raised city surface (curb, sidewalk, pad, median) over the terrain is the ground there
     audit2(x, z, r = 120) {
       const out = { n: 0, floating: 0, deep: 0, sunk: 0, wetOk: 0, byKind: {}, worst: [], list: [] }, seen = new Set(), m = new THREE.Matrix4(), p = new THREE.Vector3(), C = game.city;
       game.scene.traverse((o) => { if (!o.isInstancedMesh || !o.visible || !o.count) return; const vg = o.material?.userData?.veg; if (!vg || vg.family === 'imp' || vg.family === 'plain') return;

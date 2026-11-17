@@ -67,11 +67,11 @@ const TREE_KINDS = {
   gumbo: { models: ['shade_tree', 'oak_pale_b', 'oak_pale_a'], fb: 'gumbo', sp: 'gumbo', s: [0.8, 1.12] },
   slashpine: { models: ['pine_a', 'pine_b', 'pine_c'], fb: 'slashpine', sp: 'pine', s: [0.85, 1.15] },
   cypress: { models: ['cypress_a', 'cypress_b'], fb: 'cypress', sp: 'cypress', s: [0.7, 1.1] }, // library pines regraded to bald-cypress green
-  mangrove: { models: ['mangrove_b', 'mangrove'], w: [2, 1], fb: 'mangrove', sp: 'mangrove', s: [0.7, 1.25] }, // + Mangrove Tree 2 with its stilt roots kept (bark budget 36k) // stilt-root red mangrove (shader variation per trunk)
+  mangrove: { models: ['mangrove'], w: [1], fb: 'mangrove', sp: 'mangrove', s: [0.7, 1.25] }, // + Mangrove Tree 2 with its stilt roots kept (bark budget 36k) // stilt-root red mangrove (shader variation per trunk)
   sabal: { models: ['sabal_palm', 'weathered_b', 'weathered_a'], w: [5, 0.6, 0.4], /* r2: dry-frond palms 10-20 % (r2-art) */ fb: 'sabal', palm: 1, s: [0.8, 1.12] }, // w: model weights (the dark weathered palm stays rare)
   coconut: { models: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], fb: 'coconut', palm: 1, s: [0.85, 1.15] },
   seagrapeT: { models: ['rubber_fig'], fb: 'seagrape', sp: 'seagrape', s: [0.55, 0.9], shrubLike: 1 }, // the mid layer: a 2.3-3.8 m broadleaf (sea grape stand-in; the low-poly bushes scaled up read blocky)
-  poinciana: { models: ['poinciana', 'poinciana_b', 'poinciana_c'], fb: 'poinciana', sp: 'oak', s: [0.85, 1.15] },
+  poinciana: { models: ['poinciana_hd1', 'poinciana_hd2', 'poinciana_hd3'], fb: 'poinciana', sp: 'oak', s: [0.6, 0.82] },
   coconutM: { models: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], fb: 'coconut', palm: 1, s: [0.85, 1.2] },
   banyan: { models: ['banyan', 'banyan_b'], fb: 'liveoak', sp: 'oak', s: [0.85, 1.1], wide: 1 },
   royal: { models: ['royal_palm'], fb: 'royal', palm: 1, s: [0.88, 1.12] },
@@ -80,8 +80,8 @@ const TREE_KINDS = {
   fan: { models: ['fan_palm'], fb: 'queen', palm: 1, s: [0.8, 1.2] }, // Palm Tree 10: Washingtonia (Mexican fan palm)
 };
 for (const K of Object.values(TREE_KINDS)) if (K.models) K.seeds = K.models.map(() => [1, 1]);
-const SHRUB_KINDS = { seagrape: { models: ['bush_round', 'green_shrub'], kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { models: ['fern_a', 'fern_b', 'fern_c'], custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { models: ['fern_clump', 'tropical_bed'], seeds: [[1, 1]] },
-  hibiscus: { models: ['hibiscus', 'flower_bush_a', 'flower_bush_b'], kind: 'hibiscus', seeds: [[2, 0.8], [7, 1]] }, bougainvillea: { models: ['bougainvillea', 'bougainvillea_b'], kind: 'bougainvillea', seeds: [[1, 0.8], [9, 1]] }, geranium: { models: ['geranium'], custom: 'fern', seeds: [[1, 1]] }, hedge: { models: ['bush_round', 'green_shrub'], kind: 'hedge', seeds: [[3, 0.8]] },
+const SHRUB_KINDS = { seagrape: { models: ['bush_round', 'green_shrub'], kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75]] }, sawpalmetto: { models: ['tropical_bed', 'fern_clump'], kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1]] } /* r2: library plants (volume look), was procedural cards */, fern: { models: ['fern_a', 'fern_b', 'fern_c'], custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { models: ['fern_clump', 'tropical_bed'], seeds: [[1, 1]] },
+  hibiscus: { models: ['hibiscus_hd', 'hibiscus', 'flower_bush_a'], kind: 'hibiscus', seeds: [[2, 0.8], [7, 1]] }, bougainvillea: { models: ['bougainvillea', 'bougainvillea_b'], kind: 'bougainvillea', seeds: [[1, 0.8], [9, 1]] }, geranium: { models: ['geranium'], custom: 'fern', seeds: [[1, 1]] }, hedge: { models: ['bush_round', 'green_shrub'], kind: 'hedge', seeds: [[3, 0.8]] },
   oleander: { models: ['oleander'], kind: 'hibiscus', seeds: [[3, 1]] }, agave: { models: ['agave'], kind: 'croton', seeds: [[1, 1]] }, redgrass: { models: ['red_grass'], kind: 'croton', seeds: [[1, 1]] }, tuft: { models: ['grass_tuft_a', 'grass_tuft_b'], custom: 'fern', seeds: [[1, 1]] }, moss: { models: ['moss_clump'], custom: 'fern', seeds: [[1, 1]] } };
 for (const K of Object.values(SHRUB_KINDS)) if (K.models) K.seeds = K.models.map(() => [1, 1]);
 

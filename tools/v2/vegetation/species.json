@@ -1089,6 +1089,125 @@
      "nograde": 1
     }
    }
+  },
+  "poinciana_hd1": {
+   "src": "Models/Trees/Royal Poinciana Tree 1 - Realistic HD Flamboyant Tree (variant 1540)/source/inner_Delonix regia HD_Compact mat 100/zzz_LODs/LOD4/Delonix regia HD_Compact mat 100_LOD4.fbx",
+   "height": 6.5,
+   "bark": "trunk|twig|stalk",
+   "seed": 61,
+   "leaf0": 45000,
+   "bark0": 9000,
+   "leaf1": 12000,
+   "bark1": 2200,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    86,
+    0.5,
+    0.38
+   ],
+   "texfix": {
+    "flower|bud": {
+     "nograde": 1
+    }
+   }
+  },
+  "poinciana_hd2": {
+   "src": "Models/Trees/Royal Poinciana Tree 2 - Realistic HD Flamboyant Tree (variant 1640)/source/inner_Delonix regia HD_Wild mat 0/zzz_LODs/LOD4/Delonix regia HD_Wild mat 0_LOD4.fbx",
+   "height": 7.0,
+   "bark": "trunk|twig|stalk",
+   "seed": 62,
+   "leaf0": 45000,
+   "bark0": 9000,
+   "leaf1": 12000,
+   "bark1": 2200,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    86,
+    0.5,
+    0.38
+   ],
+   "texfix": {
+    "flower|bud": {
+     "nograde": 1
+    }
+   }
+  },
+  "poinciana_hd3": {
+   "src": "Models/Trees/Royal Poinciana Tree 3 - Realistic HD Flamboyant Tree (variant 1740)/source/inner_Delonix regia HD_Wild mat 25/zzz_LODs/LOD4/Delonix regia HD_Wild mat 25_LOD4.fbx",
+   "height": 7.5,
+   "bark": "trunk|twig|stalk",
+   "seed": 63,
+   "leaf0": 45000,
+   "bark0": 9000,
+   "leaf1": 12000,
+   "bark1": 2200,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    86,
+    0.5,
+    0.38
+   ],
+   "texfix": {
+    "flower|bud": {
+     "nograde": 1
+    }
+   }
+  },
+  "hibiscus_hd": {
+   "src": "Models/Plants/Hibiscus 1 - Realistic HD Chinese Hibiscus Shrub/source/inner_Hibiscus rosa-sinensis HD_Small tree mat 25/zzz_LODs/LOD4/Hibiscus rosa-sinensis HD_Small tree mat 25_LOD4.fbx",
+   "height": 2.2,
+   "bark": "trunk|twig|branch|stem|stalk",
+   "seed": 71,
+   "leaf0": 24000,
+   "bark0": 3000,
+   "leaf1": 7000,
+   "bark1": 800,
+   "texLeaf": 1024,
+   "gradeLeaf": [
+    92,
+    0.5,
+    0.34
+   ],
+   "texfix": {
+    "flower|bud|petal": {
+     "nograde": 1
+    }
+   }
+  },
+  "croton_a": {
+   "src": "Models/Plants/Croton 2 - Croton Plant (FBX)/source/Croton.fbx",
+   "height": 1.2,
+   "bark": "stem|trunk|branch|pot|soil",
+   "seed": 73,
+   "leaf0": 16000,
+   "bark0": 2000,
+   "leaf1": 5000,
+   "bark1": 500,
+   "texLeaf": 1024,
+   "texfix": {
+    ".": {
+     "nograde": 1
+    }
+   }
+  },
+  "croton_b": {
+   "src": "Models/Plants/Croton 1 - Croton Leaf Plants (OBJ)/source/Croton_Leaf_Plants.obj",
+   "height": 1.0,
+   "bark": "stem|trunk|branch|pot|soil",
+   "seed": 79,
+   "leaf0": 16000,
+   "bark0": 2000,
+   "leaf1": 5000,
+   "bark1": 500,
+   "texLeaf": 1024,
+   "texfix": {
+    ".": {
+     "nograde": 1
+    }
+   }
   }
  }
 }

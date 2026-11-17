@@ -13,7 +13,7 @@ TRUNK = dict(h=(26, 38), s=(0.10, 0.18), v=(0.30, 0.36))  # r2-art: gray-brown, 
 PALMTRUNK = dict(h=(28, 36), s=(0.10, 0.18), v=(0.36, 0.41))  # gray-tan, none clean light gray, none dark brown
 BLOOM = dict(h=None, s=(0.72, 0.80), v=(0.52, 0.60))
 PALMS = {'royal_palm', 'coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d', 'date_palm', 'tropical_palm', 'palm_yellow', 'weathered_a', 'weathered_b', 'sabal_palm', 'fan_palm', 'bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'}
-SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'flower_bush_a', 'flower_bush_b'}
+SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'flower_bush_a', 'flower_bush_b', 'croton_a', 'croton_b'}
 # materials that are not what their family says (measured): stalks / crownshaft / petioles / hanging roots / flower atlases
 OVR = {
   ('royal_palm', 'bark_1'): 'skip',            # crownshaft (green by nature)
@@ -26,6 +26,10 @@ OVR = {
   ('pine_a', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_b', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_c', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)),
   ('cypress_a', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)), ('cypress_b', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)),
   ('mangrove', 'bark_0'): TRUNK,
+  ('hibiscus_hd', 'leaf_0'): 'skip', ('hibiscus_hd', 'leaf_4'): BLOOM, ('hibiscus_hd', 'leaf_5'): BLOOM, ('hibiscus_hd', 'bark_6'): 'skip',
+  ('poinciana_hd1', 'leaf_2'): BLOOM, ('poinciana_hd1', 'leaf_4'): BLOOM, ('poinciana_hd1', 'leaf_5'): 'skip', ('poinciana_hd1', 'leaf_6'): 'skip', ('poinciana_hd1', 'leaf_7'): 'skip', ('poinciana_hd1', 'bark_3'): 'skip',
+  ('poinciana_hd2', 'leaf_2'): BLOOM, ('poinciana_hd2', 'leaf_4'): BLOOM, ('poinciana_hd2', 'leaf_5'): 'skip', ('poinciana_hd2', 'leaf_6'): 'skip', ('poinciana_hd2', 'leaf_7'): 'skip', ('poinciana_hd2', 'bark_3'): 'skip',
+  ('poinciana_hd3', 'leaf_2'): BLOOM, ('poinciana_hd3', 'leaf_4'): BLOOM, ('poinciana_hd3', 'leaf_5'): 'skip', ('poinciana_hd3', 'leaf_6'): 'skip', ('poinciana_hd3', 'leaf_7'): 'skip', ('poinciana_hd3', 'bark_3'): 'skip',
   ('grass_tuft_a', 'leaf_0'): dict(h=(74, 78), s=(0.50, 0.55), v=(0.37, 0.40)),  # r2-ground lush grass target sRGB (84, 98, 46)
   ('grass_tuft_b', 'leaf_0'): dict(h=(45, 49), s=(0.33, 0.37), v=(0.49, 0.53)),  # r2-ground dry straw target (130, 120, 84)
 }

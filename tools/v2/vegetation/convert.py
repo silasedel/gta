@@ -19,7 +19,14 @@ TMP = os.path.join(OUT, '_tmp_' + KEY); os.makedirs(TMP, exist_ok=True)
 rnd = random.Random(S.get('seed', 7))
 log = lambda *a: print('[veg]', KEY, *a, flush=True)
 
-bpy.ops.wm.open_mainfile(filepath=SRC, load_ui=False, use_scripts=False)
+if SRC.lower().endswith('.fbx'):  # FBX sources (e.g. the HD royal poincianas): empty scene + import, textures resolve next to the file
+    bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.fbx(filepath=SRC)
+elif SRC.lower().endswith('.obj'):
+    bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.wm.obj_import(filepath=SRC)
+elif SRC.lower().endswith(('.gltf', '.glb')):
+    bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.gltf(filepath=SRC)
+else:
+    bpy.ops.wm.open_mainfile(filepath=SRC, load_ui=False, use_scripts=False)
 sc = bpy.context.scene; dg = bpy.context.evaluated_depsgraph_get()
 
 # ---------------- pick + bake objects ----------------
