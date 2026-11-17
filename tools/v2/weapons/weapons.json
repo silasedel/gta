@@ -1,0 +1,743 @@
+{
+ "library": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/Models/Weapons",
+ "models": {
+  "h1_compact": {
+   "dir": "Handgun 1 - Compact Black Pistol",
+   "length": 0.186,
+   "tris": 9000,
+   "fwd": "-y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.031
+   ],
+   "sight": [
+    0.0,
+    0.064,
+    -0.075
+   ],
+   "eject": [
+    -0.01,
+    0.055,
+    -0.005
+   ]
+  },
+  "h2_slim": {
+   "dir": "Handgun 2 - Slim Black Pistol",
+   "length": 0.178,
+   "tris": 9000,
+   "grip": [
+    0.0,
+    -0.02,
+    -0.054
+   ],
+   "sight": [
+    0.0,
+    0.053,
+    -0.08
+   ],
+   "eject": [
+    -0.009,
+    0.045,
+    -0.035
+   ]
+  },
+  "h3_chrome": {
+   "dir": "Handgun 3 - Chrome-Finish Service Pistol",
+   "length": 0.217,
+   "tris": 9000,
+   "mats": {
+    "9m1": {
+     "color": "LOW 9m 1 Color.png",
+     "normal": "LOW 9m 1 Normal.png",
+     "rough": "LOW 9m 1 Roughness.png",
+     "metal": "LOW 9m 1 Metallic.png"
+    },
+    "9m2": {
+     "color": "LOW 9m 2 Color.png",
+     "normal": "LOW 9m 2 Normal.png",
+     "rough": "LOW 9m 2 Roughness.png",
+     "metal": "LOW 9m 2 Metallic.png",
+     "patch": [
+      [
+       0.02,
+       0.455,
+       0.065,
+       0.55,
+       0.04,
+       0
+      ],
+      [
+       0.025,
+       0.345,
+       0.06,
+       0.39,
+       0.04,
+       0
+      ],
+      [
+       0.025,
+       0.175,
+       0.062,
+       0.235,
+       0.04,
+       0
+      ],
+      [
+       0.235,
+       0.175,
+       0.268,
+       0.24,
+       -0.03,
+       0
+      ]
+     ]
+    }
+   },
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.04
+   ],
+   "sight": [
+    0.0,
+    0.066,
+    -0.088
+   ],
+   "eject": [
+    -0.011,
+    0.058,
+    -0.035
+   ]
+  },
+  "h4_compact": {
+   "dir": "Handgun 4 - Compact Black-Slide Pistol",
+   "length": 0.186,
+   "tris": 9000,
+   "mats": {
+    "P-2": {
+     "color": "P-10S. LOWblend P-2 Color.png",
+     "normal": "P-10S. LOWblend P-2 Normal.png",
+     "rough": "P-10S. LOWblend P-2 Roughness.png",
+     "metal": "P-10S. LOWblend P-2 Metallic.png"
+    }
+   },
+   "fwd": "-y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.011
+   ],
+   "sight": [
+    0.0,
+    0.055,
+    -0.08
+   ],
+   "eject": [
+    -0.01,
+    0.048,
+    -0.01
+   ]
+  },
+  "h5_grey": {
+   "dir": "Handgun 5 - Untextured Grey Pistol With Magazine",
+   "length": 0.2,
+   "tris": 12000,
+   "drop": "^Text|^Cube\\.00[12]$|^Cylinder\\.00[1-4]$",
+   "mats": {
+    "*": {
+     "finish": "polymer"
+    },
+    "Clean Stainless": {
+     "finish": "gunmetal"
+    },
+    "Matal Solid Paint Black": {
+     "finish": "blued"
+    }
+   },
+   "grip": [
+    0.0,
+    -0.02,
+    -0.054
+   ],
+   "sight": [
+    0.0,
+    0.066,
+    -0.09
+   ],
+   "eject": [
+    -0.011,
+    0.06,
+    -0.03
+   ]
+  },
+  "h6_heavy": {
+   "dir": "Handgun 6 - Heavy Black Pistol With Loose Rounds",
+   "length": 0.27,
+   "tris": 12000,
+   "drop": "^DE_BODY_CLIP_Low(\\.00[2-5])?$",
+   "fwd": "-y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.06
+   ],
+   "sight": [
+    0.0,
+    0.069,
+    -0.11
+   ],
+   "eject": [
+    -0.012,
+    0.055,
+    -0.05
+   ],
+   "parts": {
+    "slide": "^DE_TOP_(SLIDER|PARTSA)_Low$",
+    "mag": "^DE_BODY_CLIP_Low\\.001$"
+   },
+   "mats": {
+    "Slider Parts": {
+     "patch": [
+      [
+       0.565,
+       0.535,
+       0.635,
+       0.675
+      ],
+      [
+       0.69,
+       0.125,
+       0.76,
+       0.335
+      ],
+      [
+       0.385,
+       0.665,
+       0.425,
+       0.715
+      ],
+      [
+       0.385,
+       0.51,
+       0.43,
+       0.56
+      ]
+     ]
+    }
+   }
+  },
+  "h7_service": {
+   "dir": "Handgun 7 - Black Polymer Service Pistol",
+   "length": 0.195,
+   "tris": 9000,
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.047
+   ],
+   "sight": [
+    0.0,
+    0.063,
+    -0.083
+   ],
+   "eject": [
+    -0.01,
+    0.055,
+    -0.03
+   ],
+   "parts": {
+    "slide": "^slide_lowpoly$"
+   },
+   "mats": {
+    "Material #33": {
+     "patch": [
+      [
+       0.025,
+       0.944,
+       0.26,
+       0.97
+      ],
+      [
+       0.18,
+       0.918,
+       0.32,
+       0.943
+      ],
+      [
+       0.04,
+       0.76,
+       0.08,
+       0.84
+      ]
+     ]
+    }
+   }
+  },
+  "smg1": {
+   "dir": "Submachine Gun 1 - Black Machine Pistol With Perforated Barrel",
+   "length": 0.32,
+   "tris": 10000,
+   "grip": [
+    0.0,
+    0.0,
+    -0.128
+   ],
+   "lgrip": [
+    0.0,
+    0.03,
+    0.0
+   ],
+   "sight": [
+    0.0,
+    0.105,
+    -0.15
+   ],
+   "eject": [
+    -0.015,
+    0.095,
+    -0.02
+   ]
+  },
+  "smg2": {
+   "dir": "Submachine Gun 2 - Compact Black Machine Pistol",
+   "length": 0.33,
+   "tris": 12000,
+   "fwd": "+y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.03,
+    0.012
+   ],
+   "lgrip": [
+    0.0,
+    0.03,
+    0.1
+   ],
+   "sight": [
+    0.0,
+    0.14,
+    -0.12
+   ],
+   "eject": [
+    -0.02,
+    0.11,
+    0.02
+   ],
+   "mats": {
+    "Material 90": {
+     "patch": [
+      [
+       0.765,
+       0.015,
+       0.825,
+       0.115
+      ]
+     ]
+    }
+   }
+  },
+  "mg1": {
+   "dir": "Machine Gun 1 - Black Belt-Fed Machine Gun",
+   "length": 1.03,
+   "tris": 16000,
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    0.0,
+    -0.245
+   ],
+   "lgrip": [
+    0.0,
+    0.06,
+    0.24
+   ],
+   "sight": [
+    0.0,
+    0.13,
+    -0.05
+   ],
+   "eject": [
+    -0.03,
+    0.08,
+    -0.05
+   ],
+   "mats": {
+    "Gun": {
+     "desat": 0.9,
+     "gain": 0.55
+    }
+   }
+  },
+  "r1_tactical": {
+   "dir": "Rifle 1 - Scoped Tactical Rifle",
+   "length": 0.9,
+   "tris": 16000,
+   "mats": {
+    "Rifle Body": {
+     "color": "Rifle Base Color.jpg",
+     "normal": "Rifle Normal Direct X.jpg",
+     "dx": true,
+     "rough": "Rifle Roughness.jpg",
+     "metal": "Rifle Metallic.jpg",
+     "ao": "Rifle Mixed AO.jpg"
+    },
+    "Attachment2 Glass": {
+     "auto": false,
+     "finish": "glass"
+    },
+    "Scope Glass": {
+     "auto": false,
+     "finish": "glass"
+    }
+   },
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.04,
+    -0.185
+   ],
+   "lgrip": [
+    0.0,
+    0.0,
+    0.1
+   ],
+   "sight": [
+    0.0,
+    0.15,
+    -0.15
+   ],
+   "eject": [
+    -0.03,
+    0.08,
+    -0.05
+   ]
+  },
+  "r2_wood": {
+   "dir": "Rifle 2 - Wood-Stock Assault Rifle",
+   "length": 0.88,
+   "tris": 15000,
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.03,
+    -0.19
+   ],
+   "lgrip": [
+    0.0,
+    0.055,
+    0.16
+   ],
+   "sight": [
+    0.0,
+    0.115,
+    -0.05
+   ],
+   "eject": [
+    -0.03,
+    0.08,
+    -0.04
+   ]
+  },
+  "r3_slim": {
+   "dir": "Rifle 3 - Dark Wood Slim Assault Rifle",
+   "length": 0.92,
+   "tris": 12000,
+   "fwd": "-y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.03,
+    -0.21
+   ],
+   "lgrip": [
+    0.0,
+    0.05,
+    0.13
+   ],
+   "sight": [
+    0.0,
+    0.105,
+    -0.05
+   ],
+   "eject": [
+    -0.03,
+    0.08,
+    -0.06
+   ]
+  },
+  "r4_modern": {
+   "dir": "Rifle 4 - Plain Grey Modern Assault Rifle",
+   "length": 0.93,
+   "tris": 14000,
+   "mats": {
+    "Material 25": {
+     "auto": false,
+     "base": [
+      0.2,
+      0.205,
+      0.215
+     ],
+     "roughv": 0.48,
+     "metalv": 0.55
+    }
+   },
+   "grip": [
+    0.0,
+    -0.03,
+    -0.2
+   ],
+   "lgrip": [
+    0.0,
+    -0.02,
+    0.1
+   ],
+   "sight": [
+    0.0,
+    0.11,
+    -0.09
+   ],
+   "eject": [
+    -0.03,
+    0.075,
+    -0.05
+   ]
+  },
+  "r5_blue": {
+   "dir": "Rifle 5 - Blue-Stock Modern Assault Rifle",
+   "length": 0.9,
+   "tris": 16000,
+   "grip": [
+    0.0,
+    -0.03,
+    -0.22
+   ],
+   "lgrip": [
+    0.0,
+    -0.02,
+    0.03
+   ],
+   "sight": [
+    0.0,
+    0.1,
+    -0.15
+   ],
+   "eject": [
+    -0.03,
+    0.07,
+    -0.06
+   ],
+   "mats": {
+    "Rifle Mat": {
+     "tint": [
+      0.42,
+      0.62,
+      1.0
+     ]
+    }
+   }
+  },
+  "r6_battle": {
+   "dir": "Rifle 6 - Plain Grey Scoped Battle Rifle",
+   "length": 1.0,
+   "tris": 16000,
+   "mats": {
+    "Gun 1": {
+     "color": "Base Color.png",
+     "normal": "Normal Direct X.png",
+     "dx": true,
+     "rough": "Roughness.jpg",
+     "metal": "Metallic.png",
+     "ao": "Mixed AO.png"
+    },
+    "GuN2": {
+     "color": "Base Color.jpg",
+     "normal": "Normal Direct X 2.png",
+     "dx": true,
+     "rough": "Roughness 2.jpg",
+     "metal": "Metallic 2.png",
+     "ao": "Mixed AO 2.png"
+    },
+    "scope 1": {
+     "finish": "anodized"
+    },
+    "scope 2": {
+     "finish": "glass"
+    }
+   },
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.02,
+    -0.17
+   ],
+   "lgrip": [
+    0.0,
+    -0.005,
+    0.12
+   ],
+   "sight": [
+    0.0,
+    0.11,
+    -0.12
+   ],
+   "eject": [
+    -0.03,
+    0.05,
+    -0.05
+   ]
+  },
+  "r7_sniper": {
+   "dir": "Rifle 7 - Black Bolt-Action Sniper Rifle",
+   "length": 1.18,
+   "tris": 14000,
+   "fwd": "-y",
+   "up": "+z",
+   "grip": [
+    0.0,
+    -0.035,
+    -0.245
+   ],
+   "lgrip": [
+    0.0,
+    -0.01,
+    0.05
+   ],
+   "sight": [
+    0.0,
+    0.09,
+    -0.2
+   ],
+   "eject": [
+    -0.03,
+    0.035,
+    -0.06
+   ]
+  },
+  "bat1_white": {
+   "dir": "Baseball Bat 1 - Plain White Baseball Bat",
+   "length": 0.84,
+   "tris": 2500,
+   "mats": {
+    "__none": {
+     "color": "Default Material Color.png",
+     "normal": "Default Material Normal.png",
+     "rough": "Default Material Roughness.png",
+     "metal": "Default Metallic.png"
+    }
+   },
+   "fwd": "-x",
+   "up": "+z",
+   "grip": [
+    0.0,
+    0.0,
+    -0.33
+   ]
+  },
+  "bat2_tape": {
+   "dir": "Baseball Bat 2 - Light Wood Bat With Grip Tape",
+   "length": 0.84,
+   "tris": 2500,
+   "grip": [
+    0.0,
+    0.0,
+    -0.33
+   ]
+  },
+  "bat3_dark": {
+   "dir": "Baseball Bat 3 - Dark Worn Wooden Bat",
+   "length": 0.84,
+   "tris": 3000,
+   "mats": {
+    "Baseball Bat": {
+     "normal": "Baseball Bat Nor Gl 2k.png"
+    }
+   },
+   "grip": [
+    0.0,
+    0.0,
+    -0.33
+   ]
+  },
+  "bat4_nails": {
+   "dir": "Baseball Bat 4 - Nail-Studded Wooden Bat",
+   "length": 0.86,
+   "tris": 7500,
+   "mats": {
+    "Nails": {
+     "auto": false,
+     "finish": "rust"
+    },
+    "Fabric": {
+     "auto": false,
+     "finish": "tape"
+    }
+   },
+   "grip": [
+    0.0,
+    0.0,
+    -0.33
+   ]
+  },
+  "crow1_red": {
+   "dir": "Crowbar 1 - Red Painted Crowbar",
+   "length": 0.76,
+   "tris": 2000,
+   "grip": [
+    0.0,
+    0.045,
+    -0.25
+   ]
+  },
+  "crow2_small": {
+   "dir": "Crowbar 2 - Small Black Crowbar",
+   "length": 0.46,
+   "tris": 2000,
+   "drop": "^Icosphere$",
+   "grip": [
+    0.0,
+    -0.025,
+    -0.15
+   ]
+  },
+  "crow3_black": {
+   "dir": "Crowbar 3 - Glossy Black Crowbar",
+   "length": 0.62,
+   "tris": 2000,
+   "mats": {
+    "Crowbar": {
+     "color": "TXT Crowbar Crowbar M Color.png",
+     "normal": "TXT Crowbar Crowbar M Normal.png",
+     "ao": "TXT Crowbar Crowbar M Ambient Occlusion.png"
+    }
+   },
+   "grip": [
+    0.0,
+    0.02,
+    -0.18
+   ]
+  },
+  "machete": {
+   "dir": "Machete 1 - Worn Machete With Black Handle",
+   "length": 0.6,
+   "tris": 3000,
+   "grip": [
+    0.0,
+    0.0,
+    -0.22
+   ]
+  }
+ }
+}
