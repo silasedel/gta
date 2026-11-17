@@ -23,6 +23,9 @@ export function build(ctx) {
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
+  // porous crushed shell does not turn into a mirror after rain (lead review): out of the global wet sheen; the standing water comes
+  // from the drive-end puddle (patchPuddles, nicoHouse.v2.js) and the small always-wet corner puddle (part 55)
+  SHELL.defines = { ...(SHELL.defines || {}), NO_WET: '' };
   const gA = ctx.opts.groundAt || (() => 0), rdF = ctx.opts.roadDist || (() => 25);
   // asphalt distance on a 1 m grid (bilinear): ~2.5k road queries once, then every surface query is cheap
   const RG = (() => { const nx = Math.ceil(x1 - x0) + 2, nz = Math.ceil(z1 - z0) + 2, a = new Float32Array(nx * nz); for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) a[j * nx + i] = rdF(x0 + i, z0 + j); return { nx, nz, a }; })();
@@ -54,7 +57,7 @@ export function build(ctx) {
       // multipliers land the floor at luminance ~0.46, saturation < 0.1 (crushed shell 0.42-0.52, near neutral), before the breakup below
       let c = [1.2, 1.44, 1.84];
       c = c.map((v) => v * (0.76 + 0.34 * n) * (0.86 + 0.24 * nC) * (1 - 0.28 * under) * (1 + 0.08 * drive));
-      const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9); c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
+      const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9) + drive * Math.max(0, nC - 0.45) * 1.4; c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
       { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - 0.1 * rut)); }   // faint tire ruts

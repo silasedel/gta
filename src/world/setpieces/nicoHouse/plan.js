@@ -41,8 +41,8 @@ export const PLAN = {
     accent: 0x8c7f6d,    // weathered lagoon blue-green (shutters, doors)
     porchCeil: 0xa9cfd6, // haint blue porch ceiling
     lattice: 0xe3ddcc,
-    deck: 0x9a9388,      // silver-gray weathered lumber (vertex tint over the wood texture)
-    deckDark: 0x6f675c,
+    deck: 0xbcb8ae,      // silver-gray weathered lumber (vertex tint over the wood texture); r2-keys: sun-bleached, L ~0.45-0.5 (mock-up)
+    deckDark: 0x8e887d,
     pile: 0x7d7467,
   },
   // rooms (interior clear spaces), y from F to F + ceilH

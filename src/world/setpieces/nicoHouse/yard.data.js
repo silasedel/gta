@@ -8,7 +8,7 @@
 // choice; nothing is scattered at random. Headings: 0 faces +Z, PI faces the house. Sizes in meters.
 
 // the mock-up camera (fitted to the deck rail corner and the STOP corner; tools/v2/keys/spots_refs.json r0b_deck)
-export const MOCKUP_CAM = { eye: [-8.33, 4.65, 1.25], look: [-16.75, -2.32, 18.0], fov: 51 };
+export const MOCKUP_CAM = { eye: [-8.39, 4.65, 1.34], look: [-16.29, -2.64, 18.21], fov: 56 };   // refit with the cars and the STOP corner as landmarks
 export const JUNCTION = [-20.9, 23.8];
 
 // ---- parked cars: the cars helper places them (src/vehicles/vehicles.js NICO_CARS); these spots document the mock-up and every
@@ -50,21 +50,23 @@ export const STOPS = [
 
 // ---- wooden utility poles: [x, z, height, lean, crossarm yaw (square to the wires)]; wires: [poleA, poleB | WIRE_ENDS key], sag in m.
 // Pole 0 is the corner pole of the mock-up (transformer, street lamp) and carries the house's service drop (part 40) ----
-export const POLES = [[-13.3, 25.5, 9.6, 0.012, 1.4], [3.0, 27.6, 9.4, -0.02, 1.57], [-33.5, 10.5, 9.4, 0.015, 1.05]];
-export const WIRE_ENDS = { east: [[24, 9.4, 27.2], [24.2, 9.4, 28.1], [24.4, 9.4, 29.0]], west: [[-40, 9.4, -2.5], [-40.8, 9.4, -2.1], [-41.6, 9.4, -1.7]], north: [[-33, 9.4, 44], [-33.8, 9.4, 43.6], [-34.6, 9.4, 43.2]] };
-export const WIRES = [{ a: 0, b: 1, n: 3, sag: 0.9 }, { a: 0, b: 2, n: 3, sag: 0.8 }, { a: 1, b: 'east', n: 3, sag: 1.0 }, { a: 2, b: 'west', n: 3, sag: 1.1 }, { a: 2, b: 'north', n: 2, sag: 1.0 }];
+// every span ends at a pole (user review: no wire may end in mid-air); the outer poles (3-5) are dead-end poles on the street edges
+export const POLES = [[-13.3, 25.5, 9.6, 0.012, 1.4], [3.0, 27.6, 9.4, -0.02, 1.57], [-33.5, 10.5, 9.4, 0.015, 1.05],
+  [24.0, 25.4, 9.3, -0.015, 1.75], [-39.0, -2.3, 9.2, 0.01, 0.4], [-31.6, 43.4, 9.4, 0.02, 2.4]];
+export const WIRE_ENDS = {};
+export const WIRES = [{ a: 0, b: 1, n: 3, sag: 0.9 }, { a: 0, b: 2, n: 3, sag: 0.8 }, { a: 1, b: 3, n: 3, sag: 1.0 }, { a: 2, b: 4, n: 3, sag: 0.7 }, { a: 0, b: 5, n: 2, sag: 1.1 }];
 export const SERVICE_POLE = 0;   // index into POLES: the service drop from the house mast lands here
 
 // ---- the mailbox at the drive mouth (part 45), facing the west leg ----
 export const MAILBOX = { x: -19.4, z: 18.2, h: -1.03 };
 
-// ---- red roll-off on the far verge of the west leg (the neighbor's tear-out): a long, LOW 20-yard box (sy) along the street past the
-// STOP corner, its far end behind the green mass (mock-up) ----
-export const DUMPSTER = { x: -31.5, z: 16.2, heading: 0.54, scale: 0.82, sy: 0.55, tint: [1.0, 1.0, 1.0] };
+// ---- red roll-off at the street edge of the yard, along the west leg, behind the right-hand bins (mock-up: mid-frame right): a long,
+// LOW 20-yard box (sy), rust-darkened ----
+export const DUMPSTER = { x: -22.0, z: 12.55, heading: 0.54, scale: 0.82, sy: 0.55, tint: [0.8, 0.64, 0.56] };   // rust-darkened
 
 // ---- pale limestone / coral boulders: [x, z, piece (1..6 of keys/rocks.glb), scale, heading, sink] ----
 export const ROCKS = [
-  [-17.9, 13.6, 2, 0.22, 0.4, 0.04], [-18.15, 12.7, 5, 0.18, 2.1, 0.03], [-19.6, 14.0, 1, 0.2, 1.2, 0.04], [-17.5, 8.0, 6, 0.2, 4.0, 0.04],   // drive edge (mock-up)
+  [-17.9, 13.6, 2, 0.22, 0.4, 0.04], [-18.15, 12.7, 5, 0.18, 2.1, 0.03], [-18.6, 14.4, 1, 0.2, 1.2, 0.04], [-17.5, 8.0, 6, 0.2, 4.0, 0.04],   // drive edge (mock-up)
   [-9.8, 26.6, 3, 0.26, 2.6, 0.05], [-6.0, 27.2, 4, 0.3, 0.9, 0.06], [-3.0, 27.6, 2, 0.24, 5.1, 0.04], [1.0, 27.6, 5, 0.26, 3.3, 0.05], [5.5, 27.6, 1, 0.22, 0.2, 0.04], [8.5, 27.3, 6, 0.28, 1.7, 0.05],   // frontage on the east leg
   [-25.2, 3.5, 3, 0.25, 1.0, 0.05], [-25.0, 8.6, 4, 0.22, 2.0, 0.04],   // west verge
   [-6.5, 15.0, 3, 0.16, 1.0, 0.03], [-3.0, 19.5, 6, 0.17, 0.5, 0.03], [-15.0, 2.0, 2, 0.2, 3.9, 0.04],
@@ -72,7 +74,7 @@ export const ROCKS = [
 
 // ---- clutter and debris (own models, part 55): kind, x, z, heading, extra ----
 export const DEBRIS = [
-  { k: 'pallet', x: -19.9, z: 16.0, h: 0.5, tilt: 0.05 }, { k: 'pallet', x: -19.75, z: 15.85, h: 0.62, y: 0.13 }, { k: 'drywall', x: -33.6, z: 13.6, h: 1.0 },
+  { k: 'pallet', x: -20.3, z: 11.8, h: 0.5, tilt: 0.05 }, { k: 'pallet', x: -20.15, z: 11.65, h: 0.62, y: 0.13 }, { k: 'drywall', x: -24.6, z: 8.6, h: 1.0 },
   { k: 'lumber', x: -21.0, z: 1.5, h: 1.3 }, { k: 'bucket', x: -19.6, z: 12.4, h: 0 }, { k: 'tire', x: -27.0, z: 24.4, h: 0, flat: true }, { k: 'cinder', x: -9.4, z: 7.1, h: 0.4 },
   { k: 'cinder', x: -9.1, z: 7.5, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
   { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -5.6, z: 14.2, h: 0 }, { k: 'husks', x: -2.0, z: 19.8, h: 1 },
@@ -81,7 +83,7 @@ export const DEBRIS = [
 
 // ---- yard surface: puddles (fill with the weather's puddle level), tire tracks, leaf-litter / shell / matted-grass patches ----
 // the drive-end puddle (user review): in the low spot where the drive meets the STOP corner; it fills after rain and dries out
-export const CORNER_PUDDLE = null;
+export const CORNER_PUDDLE = { x: -17.7, z: 19.0, a: 1.3, b: 0.55, rot: 0.55 };   // lead review: a small standing puddle at the drive mouth even in dry weather
 // small sticks, twigs, palm-frond bits and bark scraps: [x, z, radius, count]
 export const STICKS = [[-14.5, 12.5, 3.0, 24], [-19.5, 13.5, 2.5, 20], [-11.0, 7.5, 2.5, 16], [-20.5, 4.5, 3.0, 20], [-6.0, 18.0, 2.5, 14], [2.0, 16.0, 2.5, 14], [-21.0, -4.0, 3.0, 18]];
 // [x, z, half length, half width, yaw]: small rut puddles (decals). The drive-end puddle is r2-ground's patchPuddles on the yard sheet
@@ -112,8 +114,10 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 export const PLANTING = [   // inside the lot only (r2-veg plants the verges and the neighbors' yards from its own module)
   ['poinciana', -19.0, 2.3, { s: 1.15, seed: 7, model: 'poinciana_c' }],                       // red crown over the classic, right edge of the deck view (mock-up)
   // the big dense dark-green mass right of center, behind the right-hand bins, hiding the roll-off's far end (mock-up)
-  ['bush_round', -21.2, 9.8, { s: 2.2 }], ['bush_leafy', -22.6, 12.4, { s: 2.0 }], ['bush_round', -19.9, 11.9, { s: 1.6 }], ['rubber_fig', -23.6, 8.0, { s: 0.9 }],
-  ['bush_leafy', -20.4, 7.6, { s: 1.5 }], ['hibiscus', -23.4, 2.0, { s: 0.9 }],
+  ['bush_round', -20.2, 7.9, { s: 2.0 }], ['bush_leafy', -23.6, 6.4, { s: 2.0 }], ['rubber_fig', -25.2, 4.0, { s: 0.9 }], ['hibiscus', -23.4, 2.0, { s: 0.9 }],
+  // lush left side of the deck view (mock-up: palms and dense shrubs behind the planter, left of the truck)
+  ['coconut', -6.6, 16.5, { s: 1.1, lean: [0.3, 0.4], model: 'coconut_palm' }], ['bush_round', -6.0, 12.6, { s: 1.6 }], ['bush_leafy', -7.2, 19.8, { s: 1.8 }],
+  ['tropical_bed', -8.2, 14.6, { s: 1.2 }], ['tropical_palm', -5.6, 22.2, { s: 1.0 }], ['bush_leafy', -3.6, 15.8, { s: 1.6 }],
   ['coconut', -4.8, 13.5, { s: 1.0, lean: [0.5, 0.3], model: 'coconut_palm' }], ['coconut', -2.4, 19.0, { s: 1.1, lean: [-0.3, 0.5], model: 'coconut_palm' }],   // tall palms left of the deck view
   ['seagrape', 0.5, 23.5, { s: 1.0 }], ['hibiscus', -7.0, 21.0, { s: 1.0 }], ['bush_leafy', -10.5, 21.5, { s: 1.4 }],
   ['gumbo', -22.5, -9.5, { s: 1.05, seed: 3 }], ['coconut', -21.5, -2.0, { s: 1.0, lean: [0.8, 0.3] }], ['sabal', -22.0, -6.0, { s: 0.9 }],
@@ -129,6 +133,6 @@ export const WEEDS = [
   [-15.6, 12.0, 0.35, 22, 1.0], [-16.8, 16.2, 0.3, 18, 1.0], [-13.6, 8.0, 0.3, 16, 0.9],   // between the ruts
   [-21.5, 15.8, 1.8, 60, 1.2], [-14.5, 3.5, 2.0, 55, 1.2], [-11.5, 4.8, 1.2, 30, 1.0], [-22.0, 3.0, 2.5, 60, 1.3], [-6.0, 25.5, 2.5, 60, 1.2],
   [2.0, 26.0, 2.5, 55, 1.2], [8.5, 20.0, 2.5, 55, 1.3], [-22.0, -4.0, 2.5, 50, 1.3], [9.5, -2.0, 2.5, 50, 1.3],   // verges, lot edges
-  [-31.5, 16.2, 2.4, 60, 1.2], [-29.8, 19.0, 1.2, 30, 1.2],   // roll-off skirt
-  [-17.9, 13.6, 0.8, 20, 1.0], [-19.6, 14.0, 0.8, 20, 1.1], [-17.5, 8.0, 0.8, 18, 1.0], [-9.8, 26.6, 0.9, 22, 1.1], [-6.0, 27.2, 0.9, 22, 1.1], [1.0, 27.6, 0.8, 20, 1.0], [8.5, 27.3, 0.9, 22, 1.1], [-25.0, 8.6, 0.9, 22, 1.1],   // rocks
+  [-22.0, 12.55, 2.4, 60, 1.2], [-20.4, 15.6, 1.2, 30, 1.2],   // roll-off skirt
+  [-17.9, 13.6, 0.8, 20, 1.0], [-18.6, 14.4, 0.8, 20, 1.1], [-17.5, 8.0, 0.8, 18, 1.0], [-9.8, 26.6, 0.9, 22, 1.1], [-6.0, 27.2, 0.9, 22, 1.1], [1.0, 27.6, 0.8, 20, 1.0], [8.5, 27.3, 0.9, 22, 1.1], [-25.0, 8.6, 0.9, 22, 1.1],   // rocks
 ];

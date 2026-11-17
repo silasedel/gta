@@ -135,7 +135,7 @@ export function build(ctx) {
   // ---------- railings ----------
   const R = P.rail, railY = F + R.h;
   const PAINT_W = { fade: 0.5 };
-  const trim = (w) => ({ color: kit.vary(0x7a5b3c, r, 0.08), wear: w ?? (0.42 + r() * 0.3), bevel: 0.004, rand: r });
+  const trim = (w) => ({ color: kit.vary(0x9c9282, r, 0.08), wear: Math.max(0.78, w ?? (0.42 + r() * 0.3)), bevel: 0.004, rand: r });   // r2-keys: rails are sun-bleached bare wood with a few flecks of old stain (mock-up), not brown paint
   // straight level run from a to b (plan points). posts at both ends unless told otherwise.
   const railRun = (ax, az, bx, bz, o = {}) => {
     const len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len, ry = Math.atan2(-uz, ux), n = Math.max(1, Math.round(len / 1.55));
