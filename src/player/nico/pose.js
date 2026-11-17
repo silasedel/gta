@@ -44,6 +44,7 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
   let w = 0;
   let wArms = 0;
   let wLoco = 0;
+  let wPost = 0;
   let t = 0;
   // locomotion layer, locked to the gait phase (0 = left foot plant, 0.5 = right): the pelvis rolls down toward the
   // swinging leg and yaws with it, the chest counter-rotates, the arms swing opposite to the legs; when running the
@@ -99,6 +100,27 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
       const wantLoco = special ? 0 : THREE.MathUtils.smoothstep(0.3, 1.2, speed);
       wLoco += (wantLoco - wLoco) * r;
       if (wLoco > 0.01 && character && typeof character.gaitPhase === 'number') locomotion(character.gaitPhase, speed, wLoco);
+      // athletic posture (user, Nov 17: "his shoulders are too low ... keep him decently buff"): chest up, clavicles
+      // neutral-to-slightly raised and back. Also under the standing styles (phone, talk, aim rest) and, lighter, while
+      // walking; off when seated, swimming, down or airborne. '__nicoPoseOld' = the old dropped-shoulder layer (A/B).
+      const OLD = !!globalThis.__nicoPoseOld;
+      const postureOK = !(anim.driving || anim.swimming || anim.wading || anim.dead || anim.getUp || anim.jumping || anim.grounded === false || anim.idleStyle === 'cower');
+      const wantPost = OLD || !postureOK ? 0 : 0.45 + 0.55 * THREE.MathUtils.smoothstep(2.5, 0.3, speed);
+      wPost += (wantPost - wPost) * r;
+      if (wPost > 0.01) {
+        model.updateMatrixWorld(true);
+        const pf = _t.set(0, 0, 1).applyQuaternion(model.getWorldQuaternion(_qp)).setY(0).normalize().clone();
+        const pr = new THREE.Vector3().crossVectors(UP, pf).normalize().negate();      // character's right
+        const s1 = B('Spine1'), s2 = B('Spine2'), nk2 = B('Neck');
+        if (s1) rotateWorld(s1, pr, 0.05 * wPost);                    // chest up / sternum lifted
+        if (s2) rotateWorld(s2, pr, 0.045 * wPost);
+        if (nk2) rotateWorld(nk2, pr, -0.08 * wPost);                  // eyes stay level
+        for (const side of ['Left', 'Right']) {
+          const sgn = side === 'Left' ? -1 : 1;
+          const sh = B(side + 'Shoulder');
+          if (sh) { rotateWorld(sh, pf, -sgn * 0.08 * wPost); rotateWorld(sh, UP, -sgn * 0.1 * wPost); }   // clavicle up a touch and back
+        }
+      }
       if (wArms < 0.01) return;
       const root = B('Hips');
       if (!root) return;
@@ -113,9 +135,10 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
         const out = right.clone().multiplyScalar(sgn);
         // shoulders down and slightly back
         const sh = B(side + 'Shoulder');
-        if (sh) rotateWorld(sh, fwd, sgn * (0.13 + breathe) * wArms);      // clavicle drops (lowers the shoulder point)
+        if (sh && OLD) rotateWorld(sh, fwd, sgn * (0.13 + breathe) * wArms);      // old layer: clavicle drops (the user's 'pulled down' shoulders)
+        else if (sh) rotateWorld(sh, fwd, sgn * breathe * 0.6 * wArms);            // breathing only
         // upper arm hangs close to the body, a touch forward
-        const want = new THREE.Vector3(0, -1, 0).addScaledVector(out, 0.17).addScaledVector(fwd, -0.01).normalize();     // at the sides, clear of the lats
+        const want = new THREE.Vector3(0, -1, 0).addScaledVector(out, OLD ? 0.17 : 0.36).addScaledVector(fwd, OLD ? -0.01 : 0.02).normalize();     // hanging clear of the lats (bulk), a touch forward
         aimToward(B(side + 'Arm'), B(side + 'ForeArm'), want, 0.85 * wArms);
         // soft elbow: forearm swings ~16 degrees forward
         const fa = B(side + 'ForeArm');

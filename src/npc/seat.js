@@ -204,7 +204,7 @@ function solve(ch, S, dt) {
     const crown = V().copy(hd).addScaledVector(V().copy(hd).sub(nk).normalize(), 0.17 * scale);
     const crownY = V().copy(crown).applyMatrix4(inv).y;
     const over = crownY - (A.roofY - 0.02);
-    if (over > 0.004 && S.fit < 24) { S.fit++; if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if (sink < 0.06) S.sink = Math.min(0.06, sink + Math.max(0.005, over)); else S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); }
+    if (over > 0.004 && S.fit < 30) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if (sink < 0.06) S.sink = Math.min(0.06, sink + Math.max(0.005, over)); else S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); }
   }
   // ---- 4. legs to the footwell
   const heelW = toW(A.heel);
@@ -270,9 +270,10 @@ function solve(ch, S, dt) {
       twoBone(Ar, Fa, Hn, wrist, pole, w);
       // out of reach: sit up / lean toward the wheel a little (next frames), never through the roof
       { const armLen = wp(Ar, _a).distanceTo(wp(Fa, _b)) + wp(Fa, _a).distanceTo(wp(Hn, _b)); const short = sh.distanceTo(wrist) - armLen * 0.94;   // elbows keep a bend
-        if (short > 0.004 && S.reachFit < 24) { S.reachFit = (S.reachFit || 0) + 1; if ((S.slide || 0) < 0.08) S.slide = Math.min(0.08, (S.slide || 0) + Math.max(0.01, short * 0.8)); else S.reachLean = Math.min(12, (S.reachLean || 0) + Math.max(0.8, short * 50)); } }
+        if (short > 0.004 && S.reachFit < 24 && !S.headFirst) {   // the head under the roof wins over arm reach
+ S.reachFit = (S.reachFit || 0) + 1; if ((S.slide || 0) < 0.08) S.slide = Math.min(0.08, (S.slide || 0) + Math.max(0.01, short * 0.8)); else S.reachLean = Math.min(12, (S.reachLean || 0) + Math.max(0.8, short * 50)); } }
       orientHand(ch, s, fDes, aDes, w);
-      curlHand(ch, s, [58 * w, 78 * w, 44 * w], [18 * w, 22 * w, 20 * w], 0);
+      curlHand(ch, s, [58 * w, 78 * w, 44 * w], [14 * w, 14 * w, 8 * w], 0);
     } else {
       // passenger (or a driver with no wheel): hands rest on the thighs, palms down, fingers relaxed
       const U = bone(ch, s + 'UpLeg'), L = bone(ch, s + 'Leg'); if (!U || !L) continue;

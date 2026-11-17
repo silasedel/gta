@@ -35,12 +35,12 @@ function handPose(side, curl, thumb = 0.3, spread = 0) {
   const sg = side === 'Left' ? -1 : 1; const o = {};
   FING.forEach((f, i) => {
     const c = curl * (1 + i * 0.05);
-    o[side + 'Hand' + f + '1'] = [['z', sg * c * 1.0], ['y', sg * (spread - 1.2) * (i - 1.5) * 2.5]];
+    o[side + 'Hand' + f + '1'] = [['z', sg * c * 1.0], ['y', sg * (spread - 0.6) * (i - 1.5) * 2.5]];
     o[side + 'Hand' + f + '2'] = [['z', sg * c * 0.9]];
     o[side + 'Hand' + f + '3'] = [['z', sg * c * 0.55]];
   });
   const th = Math.max(0.25, thumb);
-  o[side + 'HandThumb1'] = [['y', sg * -22 * th], ['z', sg * 10 * th]]; o[side + 'HandThumb2'] = [['z', sg * 18 * th]]; o[side + 'HandThumb3'] = [['z', sg * 22 * th]];
+  o[side + 'HandThumb1'] = [['y', sg * -20 * th], ['z', sg * 8 * th]]; o[side + 'HandThumb2'] = [['z', sg * 12 * th]]; o[side + 'HandThumb3'] = [['z', sg * 10 * th]];   // the scanned thumb tip tears if its joints bend hard
   return o;
 }
 const HANDS_RELAX = merge(handPose('Left', 20, 0.55), handPose('Right', 20, 0.55));
