@@ -7,6 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GradeShader } from './gradeShader.js';
+import { advanceFrameNoise } from './frameNoise.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
@@ -711,6 +712,7 @@ export function createPost(game) {
         if (!LOOK_OFF) gu.uSharp.value = Math.max(gu.uSharp.value, game.quality?.current?.look?.taaSharpen ?? 0.8);
         taa.jitter(Math.floor(W * renderer.getPixelRatio() * renderScale), Math.floor(H * renderer.getPixelRatio() * renderScale));
       }
+      advanceFrameNoise();
       try {
         composer.render(dt);
       } finally {

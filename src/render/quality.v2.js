@@ -17,10 +17,10 @@ export const PRESETS = {
   ultra: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.55, scaleMin: 1.0, scaleMax: 1.0, msaa: 4 },
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 4 },
     label: 'Ultra',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
-    dpr: 'native',
+    dpr: 'min', // stage 1: locked 1080p-class internal picture (Retina native was ~3x the pixels)
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
@@ -32,11 +32,11 @@ export const PRESETS = {
   high: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.6, scaleMin: 1.0, scaleMax: 1.0, msaa: 2 }, // 4x measured +2.35 ms at 1600x900; 2x on high
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 2 }, // 4x measured +2.35 ms at 1600x900; 2x on high
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
-    dpr: 'native',
+    dpr: 'min', // stage 1: locked 1080p-class internal picture (Retina native was ~3x the pixels)
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
@@ -48,7 +48,7 @@ export const PRESETS = {
   medium: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.5, taa: 'auto', taaSharpen: 1.1, scaleMin: 0.75, scaleMax: 0.9, msaa: 2 },
+    look: { sharpen: 0.5, taa: 'always', taaSharpen: 0.35, scaleMin: 0.75, scaleMax: 0.9, msaa: 2 },
     label: 'Medium',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     dpr: 'min',
@@ -63,7 +63,7 @@ export const PRESETS = {
   low: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.35, taa: 'auto', taaSharpen: 1.1, scaleMin: 0.75, scaleMax: 0.85 },
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.35, scaleMin: 0.75, scaleMax: 0.85 },
     label: 'Low',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     dpr: 'min',

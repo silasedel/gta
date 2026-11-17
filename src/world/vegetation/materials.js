@@ -8,8 +8,10 @@
 //  - LOD cross-fade: uFade = (inNear, inFar, outNear, outFar) in m; a screen-space dither makes LOD swaps invisible.
 import * as THREE from 'three';
 import { barkAtlas, leafAtlas } from './textures.js';
+import { FRAME_NOISE } from '../../render/frameNoise.js';
 
 export const vegUniforms = {
+  uFrameN: FRAME_NOISE, // stage 1: temporal dither offset (TAA resolves the LOD cross-fade instead of a fixed dot pattern)
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
   uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
   // shared wind (copied every frame from game.wind when it exists): direction the air moves to, mean speed, clock of the gust field
@@ -56,9 +58,10 @@ const VERT_BODY = `
   vegW = modelMatrix * vegW; vVegW = vegW.xyz; vVegDist = distance(vIw, uVegCamOn > 0.5 ? uVegCam : cameraPosition); // the view camera, also in the shadow pass (LOD fades match)
 `;
 const FRAG_HEAD = `
-uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt;
+uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt; uniform float uFrameN;
 varying vec2 vVegHash; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
-float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
+float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
+float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
 `;
 // LOD dither + per-instance tint/wear; runs right after the map is sampled
 const FRAG_COLOR = `
@@ -138,7 +141,7 @@ function patch(kind, local) {
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
     } else { // depth material: dither only
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <alphatest_fragment>', `#include <alphatest_fragment>
-        { float dn = vegDither(); if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard; if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard; }`);
+        { float dn = vegDitherS(); if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard; if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard; }`);
     }
   };
 }

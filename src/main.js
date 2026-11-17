@@ -531,7 +531,7 @@ async function boot() {
       const t = st.vehicle.mesh.position;
       pivot = tmp.set(t.x, t.y + 1.6, t.z);
       const kmh = st.vehicle.speedKmh || 0;
-      wantDist = 6.8 + Math.min(kmh / 60, 2.5);
+      wantDist = 5.7 + Math.min(kmh / 70, 2.0); // stage 1: GTA 6 chase-cam distance
       // auto-follow behind car
       if (game.clock.elapsed - lastMouseTime > 1.2 && kmh > 8) {
         const want = P.heading + Math.PI;
@@ -550,8 +550,8 @@ async function boot() {
       const baseY = swim ? seaLevel(game) + 0.35 - (L.dive || 0) : P.position.y + 1.55;
       pivot = tmp.set(P.position.x + Math.cos(game.cameraYaw) * sway, baseY + bobY, P.position.z - Math.sin(game.cameraYaw) * sway);
       const zoom = Math.max(0.3, Math.min(1.5, game.cameraZoom || 1));
-      wantDist = (swim ? 4.4 : st.sprint ? 4.6 : 3.8) * zoom;
-      sideOff = 0.45 + (zoom < 1 ? (1 - zoom) * 0.9 : 0);
+      wantDist = (swim ? 3.8 : st.sprint ? 3.4 : 2.85) * zoom; // stage 1: GTA 6 over-the-shoulder distance
+      sideOff = 0.55 + (zoom < 1 ? (1 - zoom) * 0.9 : 0);
       // slight lag on sprint (body pulls ahead of the camera), tight otherwise
       if (camDriving !== false || pivS.distanceToSquared(pivot) > 9) pivS.copy(pivot);
       else pivS.lerp(pivot, 1 - Math.exp(-dt * ((game.cameraZoom || 1) < 0.95 ? 25 : st.sprint ? 8 : swim ? 6 : 18)));
@@ -921,7 +921,7 @@ async function boot() {
           }
         }
       } catch (e) { console.error('[player visual]', e); }
-      for (const u of game.updaters) { const t1 = performance.now(); try { u(simDt); } catch (e) { console.error(e); } tm('upd:' + (u.name || 'anon'), t1); }
+      for (const u of game.updaters) { const t1 = performance.now(); try { u(simDt); } catch (e) { console.error(e); } tm('upd:' + (u.name || 'anon#' + game.updaters.indexOf(u)), t1); }
       { const t1 = performance.now(); try { game.vehicles.update?.(simDt); } catch (e) { console.error(e); } tm('vehicles', t1); }
       { const t1 = performance.now(); try { game.peds.update?.(simDt); } catch (e) { console.error(e); } tm('peds', t1); }
       { const t1 = performance.now(); try { game.interiors.update?.(simDt); } catch (e) { console.error(e); } tm('interiors', t1); }
@@ -945,6 +945,8 @@ async function boot() {
     const dProg = (renderer.info.programs?.length || 0) - progs0, dTex = renderer.info.memory.textures - tex0, dGeo = renderer.info.memory.geometries - geo0;
     inp.endFrame();
     const work = performance.now() - fStart;
+    // rolling per-system CPU averages (ms, EMA) for profiling: game.perf.sysAvg / game.perf.workAvg
+    { const A = (game.perf.sysAvg ||= {}); for (const k in PT) A[k] = (A[k] || 0) * 0.95 + PT[k] * 0.05; game.perf.workAvg = (game.perf.workAvg || 0) * 0.95 + work * 0.05; game.perf.gapAvg = (game.perf.gapAvg || 0) * 0.95 + gap * 0.05; }
     if ((gap > 25 || work > 25) && game.clock.elapsed > 3) {
       const top = Object.entries(PT).filter(([, v]) => v > 2).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} ${v.toFixed(1)}`);
       spikes.push({ t: +game.clock.elapsed.toFixed(1), gap: Math.round(gap), work: Math.round(work), top, newPrograms: dProg, newTextures: dTex, newGeometries: dGeo, calls: renderer.info.render.calls });

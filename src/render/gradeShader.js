@@ -10,7 +10,7 @@ export const GradeShader = {
     uAspect: { value: 1 },
     uSpeed: { value: 0 },
     uCA: { value: 0.0 }, // no constant edge fringe: aberration only appears with speed (uSpeed)
-    uGrain: { value: 0.012 },
+    uGrain: { value: 0.0 }, // stage 1: no film grain in gameplay (user: grain is the main complaint); cinema.js may scale it
     uSharp: { value: 0.45 },
     uVignette: { value: 0.2 },
     uSat: { value: 1.14 },
@@ -168,8 +168,12 @@ export const GradeShader = {
       col *= mix( 1.0, vig, uVignette );
 
       // grain (luma-weighted, stronger in mids)
-      float g = hash12( uv * uRes + fract( uTime * 61.7 ) * 400.0 ) - 0.5;
-      col += g * uGrain * ( 0.35 + 0.65 * ( 1.0 - abs( l - 0.5 ) * 2.0 ) );
+      if ( uGrain > 0.0 ) {
+        float g = hash12( uv * uRes + fract( uTime * 61.7 ) * 400.0 ) - 0.5;
+        col += g * uGrain * ( 0.35 + 0.65 * ( 1.0 - abs( l - 0.5 ) * 2.0 ) );
+      }
+      // static sub-LSB dither (+-0.5/255): removes 8-bit banding in sky gradients, invisible as noise
+      col += ( hash12( gl_FragCoord.xy ) - 0.5 ) / 255.0;
 
       gl_FragColor = vec4( clamp( col, 0.0, 1.0 ), 1.0 );
     }`,

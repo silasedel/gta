@@ -1,6 +1,7 @@
 // Port Solana V2 — Nico materials (CHARACTER track): skin (subsurface approximation, pore + micro normal detail,
 // sweat / wetness / sunburn / tan), eyes (refractive cornea, parallax iris, socket shadow), hair shells, lashes, teeth, cloth.
 import * as THREE from 'three';
+import { FRAME_NOISE } from '../../render/frameNoise.js';
 
 const TEX = '/assets/characters/nico/tex/';
 const loader = new THREE.TextureLoader();
@@ -223,7 +224,7 @@ export function makeMouthMaterial(kind, mouth) {
 // keeps a strand only while the layer is below that strand's length (strand id from a hashed cell pattern in head UV space).
 export function makeHairShellMaterial(layer, layers, state) {
   const k = layer / (layers - 1);
-  const u = { uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
+  const u = { uFrameN: FRAME_NOISE, uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
   const m = new THREE.MeshStandardMaterial({ name: 'hairShell', color: 0xffffff, roughness: 0.42, metalness: 0, side: THREE.DoubleSide, envMapIntensity: 0.35 });
   m.userData.u = u; m.userData.layer = layer;
   m.onBeforeCompile = (sh) => {
@@ -238,7 +239,8 @@ export function makeHairShellMaterial(layer, layers, state) {
         transformed += normal * ( hl * uK * ( 1.0 - 0.35 * uK ) ) + comb * ( hl * uK * uK * 0.85 ) + vec3( 0.0, - hl * uK * uK * 0.22, 0.0 );`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', /* glsl */`#include <common>
-        uniform float uK, uWetH; uniform vec3 uHairC; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;
+        uniform float uK, uWetH, uFrameN; uniform vec3 uHairC; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;
+        float ignT( vec2 p ) { return fract( 52.9829189 * fract( dot( p + 5.588238 * uFrameN, vec2( 0.06711056, 0.00583715 ) ) ) ); }
         float hh( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }`)
       .replace('#include <map_fragment>', /* glsl */`
         vec4 hm = texture2D( uHairMask, vHUv );
@@ -252,18 +254,31 @@ export function makeHairShellMaterial(layer, layers, state) {
           }
           soft /= 8.0;
           float keep = smoothstep( 0.25, 1.0, soft );
-          if ( hh( floor( vHUv * 1250.0 ) + 11.3 ) > keep * 1.2 - 0.1 ) discard;
+          // stage 1 anti-grain: when a strand cell is smaller than ~2 px the hashed pattern aliases into "sand"; switch to a
+          // temporal dither (TAA averages it into a soft edge)
+          float pxl = max( fwidth( vHUv.x ), fwidth( vHUv.y ) ) * 1250.0;
+          float rnd = mix( hh( floor( vHUv * 1250.0 ) + 11.3 ), ignT( gl_FragCoord.xy ), smoothstep( 0.3, 0.7, pxl ) );
+          if ( rnd > keep * 1.2 - 0.1 ) discard;
         }
         // strands: two cell scales (clumps + single hairs); each cell holds one strand of random length and position
         float dens = mix( 1250.0, 760.0, hm.g );
         vec2 g = vHUv * dens; vec2 c = floor( g ); vec2 f = fract( g ) - 0.5;
+        // strand LOD: cells under ~2 px wide cannot show single strands without aliasing. Fade the outer shells out with a
+        // temporal dither (coverage ~ the average strand coverage at that height) and let the base shell carry the color.
+        float sLod = smoothstep( 0.35, 0.8, max( fwidth( g.x ), fwidth( g.y ) ) );
         float id = hh( c ); vec2 off = ( vec2( hh( c + 7.1 ), hh( c + 3.7 ) ) - 0.5 ) * 0.55;
         float clump = hh( floor( vHUv * dens * 0.17 ) );
         float slen = ( 0.45 + 0.55 * id ) * ( 0.75 + 0.25 * clump );
         float rad = mix( 0.42, 0.10, uK ) * ( 0.8 + 0.4 * hh( c + 1.3 ) );
-        if ( uK > slen || length( f - off * ( 1.0 - uK * 0.5 ) ) > rad ) { if ( uK > 0.001 ) discard; }
+        if ( uK > 0.001 ) {
+          bool strand = !( uK > slen || length( f - off * ( 1.0 - uK * 0.5 ) ) > rad );
+          float cover = ( 1.0 - smoothstep( 0.45, 1.0, uK ) ) * 0.55; // rough average strand coverage at this shell height
+          bool keepT = ignT( gl_FragCoord.xy + uK * 37.0 ) < cover;
+          if ( !( sLod < 0.5 ? strand : keepT ) ) discard;
+        }
         float tip = uK / max( slen, 0.01 );
         vec3 hc = uHairC * ( 0.55 + 0.85 * id ) * mix( 0.42, 1.25, tip ) * mix( 1.0, 0.7, uWetH );     // dark at the roots (self-shadow), lighter tips
+        hc = mix( hc, uHairC * 0.95 * mix( 0.5, 1.15, uK ) * mix( 1.0, 0.7, uWetH ), sLod ); // LOD: average strand color, no per-cell noise
         if ( uK <= 0.001 ) hc = uHairC * 0.35;
         diffuseColor.rgb = hc;`)
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix( 0.62, 0.3, uWetH );');

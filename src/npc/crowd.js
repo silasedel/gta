@@ -4,6 +4,7 @@
 // clothing cut (sleeve and leg length) and colors, and hat. Looks are derived from the same `look` record as the
 // full-detail character, so a person keeps their appearance when they change detail level.
 import * as THREE from 'three';
+import { FRAME_NOISE } from '../render/frameNoise.js';
 import { hexToRgb01 } from './rand.js';
 
 export const POSE = { stand: 0, walk: 1, run: 2, sit: 3, sitGround: 4, lie: 5, talk: 6, phone: 7, call: 8, dance: 9, cower: 10, film: 11, kneel: 12, push: 13, swim: 14, lean: 15, wave: 16, dead: 17, ride: 18, volley: 19, work: 20, panic: 21, carry: 22, sitEat: 23, lounge: 24, bike: 25, sip: 26, lieFront: 27, argue: 28, fish: 29 };
@@ -234,7 +235,7 @@ void npcPose() {
 const FRAG_PARS = /* glsl */`
 varying vec3 vNpcA; varying vec3 vNpcB; varying vec3 vNpcObj; varying vec3 vNpcCut;
 varying float vNpcFade;
-uniform vec4 uNpcBands;   // near fade start/end, far fade start/end (meters from the camera)
+uniform vec4 uNpcBands; uniform float uFrameN;   // near fade start/end, far fade start/end (meters from the camera)
 float npcBayer(vec2 f) {
   vec2 q = mod(floor(f), 4.0);
   float m[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
@@ -246,7 +247,7 @@ const FRAG_DITHER = /* glsl */`
   {
     float dCam = length(vViewPosition);
     float a = vNpcFade * smoothstep(uNpcBands.x, uNpcBands.y, dCam) * (1.0 - smoothstep(uNpcBands.z, uNpcBands.w, dCam));
-    if (a < 0.999 && a <= npcBayer(gl_FragCoord.xy)) discard;
+    if (a < 0.999 && a <= fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715))))) discard; // stage 1: temporal IGN (TAA resolves it)
   }
 `;
 const FRAG_COLOR = /* glsl */`
@@ -279,7 +280,7 @@ export function createCrowd(game, opts = {}) {
   const uTime = { value: 0 };
   const hook = (sh, depthOnly) => {
     sh.uniforms.uNpcTime = uTime;
-    sh.uniforms.uNpcBands = uBands;
+    sh.uniforms.uNpcBands = uBands; sh.uniforms.uFrameN = FRAME_NOISE;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + VERT_PARS)
       .replace('#include <begin_vertex>', 'vec3 transformed = npcP;');
     if (!depthOnly) sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', 'npcPose();\nvec3 objectNormal = npcN;\n#ifdef USE_TANGENT\nvec3 objectTangent = vec3(tangent.xyz);\n#endif');
