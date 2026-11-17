@@ -205,5 +205,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   const tk = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial()); tk.geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, -1e4, 0, 0, -1e4, 0, 0, -1e4, 0], 3));
   tk.frustumCulled = false; tk.name = 'library-buildings-ticker'; tk.onBeforeRender = (r, s, c) => tick(r, c); group.add(tk);
   const stats = () => { const o = {}; for (const [k, cm] of cells) { const n = k.slice(0, k.indexOf('|')); o[n] = o[n] || { cells: 0, inst: 0, mats: cm.length }; if (cm[0].im && cm[0].im.visible) { o[n].cells++; o[n].inst += cm[0].im.count; } } return { entries: entries.size, models: o }; };
-  return { pick, register, addFixed, stats, entries, group, LIB };
+  const api = { pick, register, addFixed, stats, entries, group, LIB };
+  globalThis.__libBuildings = api; // debugging / audits: __libBuildings.stats(), .entries
+  return api;
 }

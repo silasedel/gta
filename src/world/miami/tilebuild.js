@@ -685,7 +685,7 @@ export function createTileBuilder(ctx) {
     let style = styleFor(b, b.zone || zone, seed);
     const y0 = b.minH || 0, h = Math.max(b.h, y0 + 2.5);
     { // library model lot: register the instance, keep only a box collider
-      const LP = opts.lod === 2 || b._podOf || b._noTower ? null : LIBM.pick(b, style, b.zone || zone);
+      const LP = opts.lod === 2 || b._podOf || b._noTower || houseLots.claims(b) ? null : LIBM.pick(b, style, b.zone || zone); // lots the house generator owns keep its house
       if (LP) { LIBM.register(b, LP, D ? Math.max(0, baseOf(b) + 0.05) : 0); if (opts.coll) { const rr2 = orient(LP.rect); wallStrip(opts.coll, rr2, 0, LP.h, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [rr2], LP.h, 0xffffff, 1); } return; }
     }
     if (style === 'canopy') { // roof on posts (fuel stations, carports)
