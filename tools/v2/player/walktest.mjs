@@ -57,13 +57,8 @@ const LIB = `(() => {
       const e = f.err[k]; S.plantedSamples++; S.errSum += Math.abs(e); S.errMax = Math.max(S.errMax, Math.abs(e)); S.errAbs.push(+Math.abs(e).toFixed(4));
       if (e > 0.03) S.float++; if (e < -0.03) S.sink++; if (f.stair?.[k]) S.stairSamples++;
     }
-    // foot sliding: horizontal speed of a firmly planted foot (should be ~0 m/s while the body moves)
-    const ch = game.playerCharacter;
-    if (ch?.getBone && f && P.state.grounded && dt > 0) for (let k = 0; k < 2; k++) {
-      const fb = ch.getBone(k ? 'RightFoot' : 'LeftFoot'); if (!fb) continue; const w = fb.getWorldPosition(new THREE.Vector3());
-      const prev = wt.fp[k]; wt.fp[k] = w;
-      if (prev && (f.plant?.[k] ?? 0) > 0.95 && sp > 0.8) S.slide.push(+(Math.hypot(w.x - prev.x, w.z - prev.z) / dt).toFixed(3));
-    }
+    // foot sliding: horizontal speed of a firmly planted sole (footIK measures it on the skinned mesh)
+    if (f && f.active && P.state.grounded && sp > 0.8) for (let k = 0; k < 2; k++) if ((f.plant?.[k] ?? 0) > 0.95 && !f.stair?.[k]) S.slide.push(+(f.slide?.[k] ?? 0).toFixed(3));
     if (wt.stuck > 3) { wt.stop(); wt.done = 'stuck'; wt.stuckAt = [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]; try { const H = game.nicoHouse; const l = H.group.worldToLocal(p.clone()); wt.stuckLocal = [+l.x.toFixed(2), +l.y.toFixed(2), +l.z.toFixed(2)]; } catch (e) {} }
   });
   return 1; })()`;
@@ -71,7 +66,7 @@ const LIB = `(() => {
 const COURSES = {
   // house-local waypoints (converted with game.nicoHouse.toWorld): yard -> west stair flight 2 -> landing -> flight 1 ->
   // deck -> north deck -> bay stair platform -> down the bay stair -> yard -> dock -> dock head
-  house: { local: true, start: [-11.2, 0, 8.6], pts: [[-11.2, 6.2], [-11.2, 3.6], [-10.2, 3.6], [-8.1, 3.6], [-7.5, 3.0], [-7.5, -4.8], [5.3, -4.8], [5.3, -7.0], [4.2, -7.0], [0.3, -7.0], [-0.3, -9.5], [1.8, -12.8], [1.8, -15.5], [1.8, -24.0]], shots: [1, 3, 5, 8, 9, 12, 13] },
+  house: { local: true, start: [-11.2, 0, 8.6], pts: [[-11.2, 6.2], [-11.2, 3.6], [-10.2, 3.6], [-8.1, 3.6], [-7.5, 3.0], [-7.5, -4.8], [5.3, -4.8], [5.3, -7.0], [4.2, -7.0], [0.3, -7.0], [1.8, -8.6], [1.8, -12.6], [1.8, -15.5], [1.8, -24.0]], shots: [1, 3, 5, 8, 9, 12, 13] },
   // downtown: road center -> across the curb onto the sidewalk and back (found at run time)
   curb: { find: 'curb' },
   // steepest walkable land slope near the house (found at run time)
@@ -111,17 +106,26 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       if (C.find === 'slope') {
         const R = game.RAPIER, W = game.world, P = game.player;
         const H = game.nicoHouse?.spot || { x: -873.6, z: 4825.2 }; let best = null;
-        for (let r = 20; r < 420; r += 12) for (let k = 0; k < 24; k++) { const an = k / 24 * Math.PI * 2, x = H.x + Math.sin(an) * r, z = H.z + Math.cos(an) * r;
+        for (let r = 20; r < 2600; r += r < 400 ? 12 : 30) for (let k = 0; k < 20; k++) { const an = k / 20 * Math.PI * 2, x = H.x + Math.sin(an) * r, z = H.z + Math.cos(an) * r;
           if (city.isWater?.(x, z)) continue; for (let j = 0; j < 8; j++) { const b2 = j / 8 * Math.PI * 2, x2 = x + Math.sin(b2) * 14, z2 = z + Math.cos(b2) * 14; if (city.isWater?.(x2, z2)) continue;
             const h0 = city.groundHeightAt(x, z), h2 = city.groundHeightAt(x2, z2), g = (h2 - h0) / 14; if (!Number.isFinite(g)) continue;
-            if (!(g > 0.06 && g < 0.45) || (best && g <= best.g)) continue;
+            if (!(g > 0.05 && g < 0.45) || (best && g <= best.g)) continue;
             // a real, even slope (not a seawall / curb edge) with nothing in the way
             let ok = true;
             for (let k = 1; k < 7 && ok; k++) { const f = k / 7, xx = x + (x2 - x) * f, zz = z + (z2 - z) * f, hh = city.groundHeightAt(xx, zz);
               if (!Number.isFinite(hh) || Math.abs(hh - (h0 + (h2 - h0) * f)) > 0.25 || city.isWater?.(xx, zz)) ok = false;
               else if (W.intersectionWithShape({ x: xx, y: hh + 1.2, z: zz }, { x: 0, y: 0, z: 0, w: 1 }, new R.Ball(0.9), R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, P.collider)) ok = false; }
             if (ok) best = { g, x, z, x2, z2 }; } }
-        if (!best) return JSON.stringify({ err: 'no slope' });
+        if (!best) { // fallback: a bridge approach ramp of the road network (the Keys are flat), walked at the road edge
+          const G = city.roadGraph; let bb = null;
+          for (const e of G.edges) { if (!(e.bridge || e.elevated) || !e.pts || e.pts.length < 2) continue; const q0 = e.pts[0], qx = q0.x ?? q0[0], qz = q0.z ?? q0[1];
+            const dd = Math.hypot(qx - H.x, qz - H.z); if (!bb || dd < bb.dd) bb = { e, dd, qx, qz }; }
+          if (!bb) return JSON.stringify({ err: 'no slope' });
+          const pts = bb.e.pts.map((q) => ({ x: q.x ?? q[0], z: q.z ?? q[1] })); let i = 1; while (i < pts.length - 1 && Math.hypot(pts[i].x - pts[0].x, pts[i].z - pts[0].z) < 40) i++;
+          let dx = pts[i].x - pts[0].x, dz = pts[i].z - pts[0].z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L; const off = (bb.e.width || 8) / 2 - 0.8;
+          const a0 = { x: pts[0].x - dx * 25 - dz * off, z: pts[0].z - dz * 25 + dx * off }, a1 = { x: pts[i].x - dz * off, z: pts[i].z + dx * off };
+          return JSON.stringify({ start: [a0.x - dx * 2, a0.z - dz * 2], pts: [a1, a0], grade: 'bridge ramp ' + (bb.e.name || bb.e.id) });
+        }
         return JSON.stringify({ start: [best.x, best.z], pts: [{ x: best.x2, z: best.z2 }, { x: best.x, z: best.z }], grade: best.g });
       }
       return '{}'; })()`));

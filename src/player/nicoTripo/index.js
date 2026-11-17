@@ -100,7 +100,7 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
   const outfit = createBakedOutfit({ character, game, material: mat });
   const ik = { right: createArmIK(model, bone, 'Right'), left: createArmIK(model, bone, 'Left') };
   const relaxed = createRelaxedPose({ model, bone, character, proportions: false });
-  const feet = createFootIK({ game, model, bone, root: character.root });
+  const feet = createFootIK({ game, model, bone, root: character.root, mesh: lod[0][0] || null });
 
   // body change (game.player.body): subtle and capped, through bone scale (no morph targets on a scanned body)
   const body = { fat: 0.5, muscle: 0.8 };
@@ -122,9 +122,17 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
   const skin = { wetness: 0, sweat: 0, sunburn: 0, tan: 0.7, flush: 0, wetLine: 0 };
   let lookTarget = null, lodT = 0;
   const baseUpdate = character.update;
+  // The mixer only writes a bone when its animated value changed since the last frame (three's PropertyMixer), so on a
+  // still pose the layers below (relaxed stance, hand IK, foot IK) would find last frame's result and add to it again
+  // (a leg folding up over a few seconds), and so would gunHold / scripts that pose bones later in the frame. Every bone
+  // goes back to last frame's animated value first; the mixer then overwrites the ones whose animation moved.
+  const allBones = []; model.traverse((o) => { if (o.isBone) allBones.push(o); });
+  const preQ = allBones.map((b) => b.quaternion.clone()), preP = allBones.map((b) => b.position.clone());
   character.update = (dt, anim = {}) => {
     if (lookTarget && !anim.lookAt) anim = Object.assign({}, anim, { lookAt: lookTarget });
+    for (let i = 0; i < allBones.length; i++) { allBones[i].quaternion.copy(preQ[i]); allBones[i].position.copy(preP[i]); }
     baseUpdate(dt, anim);
+    for (let i = 0; i < allBones.length; i++) { preQ[i].copy(allBones[i].quaternion); preP[i].copy(allBones[i].position); }
     try { relaxed.update(dt, anim); } catch (e) { /* cosmetic layer */ }
     ik.right.update(dt); ik.left.update(dt);
     try { feet.update(dt, anim); } catch (e) { /* cosmetic layer */ }

@@ -22,19 +22,32 @@ function setWorldQuat(bone, qw) {
   bone.updateMatrixWorld(true);
 }
 
-export function createFootIK({ game, model, bone, root }) {
-  const legs = ['Left', 'Right'].map((s) => ({ s, up: bone(s + 'UpLeg'), lo: bone(s + 'Leg'), ft: bone(s + 'Foot'), toe: bone(s + 'ToeBase'), off: 0, n: new THREE.Vector3(0, 1, 0), plant: 0, gy: null }));
+export function createFootIK({ game, model, bone, root, mesh = null }) {
+  const legs = ['Left', 'Right'].map((s) => ({ s, up: bone(s + 'UpLeg'), lo: bone(s + 'Leg'), ft: bone(s + 'Foot'), toe: bone(s + 'ToeBase'), off: 0, n: new THREE.Vector3(0, 1, 0), plant: 0, gy: null, marks: [], c: new THREE.Vector3(), prevC: null }));
   const ok = legs.every((l) => l.up && l.lo && l.ft);
-  const st = { w: 0, pelvis: 0, ankleH: null, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], stair: [false, false], pelvis: 0, active: false } };
+  const st = { w: 0, pelvis: 0, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], stair: [false, false], slide: [0, 0], pelvis: 0, active: false } };
   const stairs = createStairs(game);
-  // ankle height above the sole in the bind pose (feet flat on the ground at y = 0)
-  const restAnkle = () => {
-    if (st.ankleH !== null) return st.ankleH;
-    model.updateMatrixWorld(true);
-    const y0 = root.getWorldPosition(_t).y;
-    st.ankleH = Math.max(0.05, Math.min(0.14, legs[0].ft.getWorldPosition(_a).y - y0));
-    return st.ankleH;
-  };
+  // sole markers: the lowest vertices of each shoe in the bind pose (heel to toe). Their skinned positions give the real
+  // sole height every frame, so a planted foot is put exactly on the ground and the error is measured on the mesh itself.
+  if (mesh?.geometry?.attributes?.position) {
+    const pos = mesh.geometry.attributes.position; let minY = Infinity;
+    for (let i = 0; i < pos.count; i++) minY = Math.min(minY, pos.getY(i));
+    for (const [k, l] of legs.entries()) {
+      const cand = [];
+      for (let i = 0; i < pos.count; i++) { const y = pos.getY(i), x = pos.getX(i); if (y < minY + 0.012 && (k === 0 ? x > 0.02 : x < -0.02)) cand.push([pos.getZ(i), i]); }
+      cand.sort((p, q) => p[0] - q[0]);
+      const n = Math.min(16, cand.length);
+      for (let j = 0; j < n; j++) l.marks.push(cand[Math.floor(j * (cand.length - 1) / Math.max(1, n - 1))][1]);
+    }
+  }
+  const _m = new THREE.Vector3();
+  // world sole height (min of the markers) and marker center -> l.sole, l.c
+  function sole(l) {
+    if (!l.marks.length) { l.ft.getWorldPosition(l.c); l.sole = l.c.y - 0.09; return l.sole; }
+    let lo = Infinity; l.c.set(0, 0, 0);
+    for (const i of l.marks) { mesh.getVertexPosition(i, _m); _m.applyMatrix4(mesh.matrixWorld); lo = Math.min(lo, _m.y); l.c.add(_m); }
+    l.c.multiplyScalar(1 / l.marks.length); l.sole = lo; return lo;
+  }
   function ground(x, y, z) {
     const R = game?.RAPIER, W = game?.world; if (!R || !W) return null;
     const QF = R.QueryFilterFlags;
@@ -64,7 +77,7 @@ export function createFootIK({ game, model, bone, root }) {
     rotateWorld(l.up, _q.setFromUnitVectors(_u.subVectors(_a, _h).normalize(), _w.subVectors(T, _h).normalize()));
   }
   return {
-    stats: st.stats, stairs,
+    stats: st.stats, stairs, legs, sole, mesh,
     update(dt, anim = {}) {
       if (!ok) return;
       const P = game?.player;
@@ -80,23 +93,24 @@ export function createFootIK({ game, model, bone, root }) {
       if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; return; }
       let dip = 0;
       if (st.land) { st.landT += dt; const k = st.landT / 0.42; dip = k >= 1 ? 0 : -0.11 * st.land * Math.sin(Math.PI * Math.min(1, k * 1.15)) * (1 - k * 0.3); if (k >= 1) st.land = 0; }
-      const ankH = restAnkle();
       model.position.y = 0; model.updateMatrixWorld(true);
       const rootY = root.getWorldPosition(_t).y;
       _f.set(0, 0, 1).applyQuaternion(root.getWorldQuaternion(_qf)).setY(0).normalize();
-      // 1) ground under each foot (relative to the root plane the animation stands on)
+      // 1) ground under each sole, the animation's own lift, and the shift each foot needs (relative to the animation)
       for (const l of legs) {
-        l.ft.getWorldPosition(_a);
-        const g = ground(_a.x, rootY, _a.z);
+        const so = sole(l);
+        const g = ground(l.c.x, rootY, l.c.z);
         const want = g ? THREE.MathUtils.clamp(g.y - rootY, -0.4, 0.4) : 0;
         l.off += (want - l.off) * Math.min(1, dt * 18);
         if (g) l.n.set(g.n.x, g.n.y, g.n.z); else l.n.copy(UP);
-        const lift = _a.y - rootY - ankH;                  // the animation's own foot lift (swing)
-        l.plant += ((lift < 0.045 ? 1 : 0) - l.plant) * Math.min(1, dt * 12);
-        l.gy = g ? g.y : null; l.lift = lift; l.stair = !!g?.stair;
+        const lift = so - rootY;                            // > 0: the clip lifts this foot (swing); ~0: planted
+        l.plant += ((lift < 0.035 ? 1 : 0) - l.plant) * Math.min(1, dt * 12);
+        // planted: pull the sole exactly onto the plane (clips float / sink a few cm after retargeting)
+        l.shift = l.off - THREE.MathUtils.clamp(lift, -0.06, 0.06) * l.plant;
+        l.gy = g ? g.y : null; l.stair = !!g?.stair;
       }
       // 2) pelvis down so the lower foot reaches (never up: the capsule already stands on the higher ground)
-      const pv = Math.min(0, legs[0].off, legs[1].off) * st.w;
+      const pv = Math.min(0, legs[0].shift, legs[1].shift) * st.w;
       st.pelvis += (pv - st.pelvis) * Math.min(1, dt * 14);
       model.position.y = st.pelvis + dip; model.updateMatrixWorld(true);
       // 3) each leg reaches its own ground; planted feet follow the slope
@@ -104,7 +118,7 @@ export function createFootIK({ game, model, bone, root }) {
         const l = legs[i];
         const fq = l.ft.getWorldQuaternion(new THREE.Quaternion());
         l.ft.getWorldPosition(_a);
-        const raise = (l.off - st.pelvis) * st.w - dip;
+        const raise = (l.shift - st.pelvis) * st.w - dip;
         if (Math.abs(raise) > 0.002) { _t.copy(_a); _t.y += raise; solve(l, _t, _f); }
         setWorldQuat(l.ft, fq);                            // the foot keeps its animated orientation...
         const tilt = Math.min(0.45, Math.acos(THREE.MathUtils.clamp(l.n.y, -1, 1)));
@@ -112,8 +126,11 @@ export function createFootIK({ game, model, bone, root }) {
           _n.crossVectors(UP, l.n).normalize();
           rotateWorld(l.ft, _q.setFromAxisAngle(_n, tilt * l.plant * st.w));
         }
-        l.ft.getWorldPosition(_a);
-        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : (_a.y - ankH) - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair;
+        // measured on the skinned mesh after IK: sole-to-ground error and planted-foot slide speed
+        const so = sole(l);
+        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : so - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair;
+        st.stats.slide[i] = l.prevC && dt > 0 ? Math.hypot(l.c.x - l.prevC.x, l.c.z - l.prevC.z) / dt : 0;
+        (l.prevC ||= new THREE.Vector3()).copy(l.c);
       }
       st.stats.pelvis = st.pelvis;
     },
