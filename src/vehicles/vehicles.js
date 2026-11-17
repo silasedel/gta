@@ -1226,6 +1226,7 @@ export async function createVehicles(game) {
   // spawnParked(key, { x, z, heading, color, wear 0..1, y?, locked?, seed? }) -> Promise<vehicle>: a parked car that the
   // traffic manager never recycles (driveways, set pieces).  Waits for the library model to load; wheels settle on the ground.
   async function spawnParked(key, o = {}) {
+    if (fleet && !CAR_TYPES[key]?.glb) key = fleet.resolve(key); // generic keys ('sedan', 'pickup'...) -> a library model of that class
     if (fleet && CAR_TYPES[key]?.glb && !fleet.loaded(key)) { try { await loadCarModel(CAR_TYPES[key].fileKey || key); } catch (e) { /* falls back below */ } }
     // the ground (streamed colliders) must exist under the spot, or the car drops through / lands hard and dents itself
     for (let i = 0; i < 120 && city?.collidersReadyAt && !city.collidersReadyAt(o.x, o.z); i++) await new Promise((r) => setTimeout(r, 250));

@@ -94,10 +94,11 @@ function mergeSafe(list) {
 }
 
 // collision hull: the body's extreme points along 98 directions (a convex hull of ~100 points instead of 1500; same shape)
-function hullPoints(h0, belt = 1) {
+function hullPoints(h0, belt = 1, floor = 0.24) {
   // mirrors stick out above the belt: points wider than the lower body are left out (the hull hugs the body, not the mirrors)
   let wLow = 0; for (let i = 0; i < h0.length; i += 3) if (h0[i + 1] < belt - 0.05) wLow = Math.max(wLow, Math.abs(h0[i]));
-  const hs = []; for (let i = 0; i < h0.length; i += 3) if (!(wLow > 0.5 && Math.abs(h0[i]) > wLow + 0.01)) hs.push(h0[i], h0[i + 1], h0[i + 2]);
+  // floor: nothing below 0.24 m (spoilers and sills would scrape the road under hard compression and trip the car)
+  const hs = []; for (let i = 0; i < h0.length; i += 3) if (!(wLow > 0.5 && Math.abs(h0[i]) > wLow + 0.01)) hs.push(h0[i], Math.max(h0[i + 1], floor), h0[i + 2]);
   const h = hs, n = h.length / 3, keep = new Set(), dirs = [];
   for (let i = 0; i < 98; i++) { const y = 1 - (i + 0.5) / 98 * 2, r = Math.sqrt(1 - y * y), a = i * 2.39996; dirs.push([Math.cos(a) * r, y, Math.sin(a) * r]); }
   for (const d of dirs) { let best = -1, bv = -1e9; for (let i = 0; i < n; i++) { const v = h[i * 3] * d[0] + h[i * 3 + 1] * d[1] * 1.0 + h[i * 3 + 2] * d[2]; if (v > bv) { bv = v; best = i; } } keep.add(best); }

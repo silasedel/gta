@@ -22,15 +22,18 @@ const PROBE = `(() => {
     const errs = [];
     for (const w of v.car.wheels) {
       w.steer.getWorldPosition(v3);
-      const g = game.city.groundHeightAt(v3.x, v3.z, v3.y);
+      let g = game.city.groundHeightAt(v3.x, v3.z, v3.y);
+      try { const R = game.RAPIER, QF = R.QueryFilterFlags; const hit = game.world.castRay(new R.Ray({ x: v3.x, y: v3.y + 0.4, z: v3.z }, { x: 0, y: -1, z: 0 }), 4, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS); if (hit) g = v3.y + 0.4 - (hit.timeOfImpact ?? hit.toi); } catch (e) { /* drawn-ground fallback */ }
       const e = v3.y - v.spec.r - g; errs.push(+e.toFixed(3));
       if (!v.ghost && !v.frozen && Math.abs(e) < 1) { worst = Math.max(worst, Math.abs(e)); sum += Math.abs(e); n++; }
     }
     let lod = -1; v.car.lod?.levels?.forEach((l, i) => { if (l.object.visible) lod = i; });
-    out.cars.push({ key: v.typeKey, glb: !!v.car.glb, cls: v.spec.cls, d: Math.round(d), ai: !!v.ai, ghost: !!v.ghost, frozen: !!v.frozen, lod, wheelErr: errs, sleeping: v.body.isSleeping() });
+    const up = new T.Vector3(0, 1, 0).applyQuaternion(v.mesh.quaternion).y;
+    out.cars.push({ up: +up.toFixed(2), key: v.typeKey, glb: !!v.car.glb, cls: v.spec.cls, d: Math.round(d), ai: !!v.ai, ghost: !!v.ghost, frozen: !!v.frozen, lod, wheelErr: errs, sleeping: v.body.isSleeping() });
   }
   out.wheel = { worstAbs: +worst.toFixed(3), meanAbs: n ? +(sum / n).toFixed(3) : null, n };
   out.counts = {}; for (const c of out.cars) out.counts[c.key] = (out.counts[c.key] || 0) + 1;
+  out.tilted = out.cars.filter((c) => c.up < 0.85).map((c) => c.key + (c.ai ? ':ai' : ':pk') + ':' + c.up);
   out.glbShare = out.cars.length ? +(out.cars.filter((c) => c.glb).length / out.cars.length).toFixed(2) : null;
   return JSON.stringify(out);
 })()`;
@@ -56,7 +59,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     const out = path.join(DIR, `${SET}_${id}.png`);
     await b.screenshot(out);
     rep.spots[id] = { perf: JSON.parse(perf), ...probe };
-    console.log(id, perf, JSON.stringify({ fleet: probe.fleet, wheel: probe.wheel, glbShare: probe.glbShare, counts: probe.counts }));
+    console.log(id, perf, JSON.stringify({ wheel: probe.wheel, glbShare: probe.glbShare, tilted: probe.tilted, n: probe.cars.length }));
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }
 });

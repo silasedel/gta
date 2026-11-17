@@ -120,7 +120,10 @@ export function specFor(e, man) {
   };
   // suspension travel: compression from the resting height is limited to the measured room above the tire (arch gap), so a
   // compressed wheel never disappears into the fender and the tire never has to be pushed into the road to hide it
-  { const sag = 9.81 / (4 * spec.susp[1]), gap = Math.max(0.04, Math.min(0.16, man.archGap ?? 0.08)); spec.travel = sag + gap; spec.archGap = gap; }
+  { const sag = 9.81 / (4 * spec.susp[1]), gap = Math.max(0.04, Math.min(0.16, man.archGap ?? 0.08)); spec.archGap = gap;
+    // physics keeps real bump travel (a bottomed-out ray suspension drops the hull onto the road and trips the car over);
+    // the visual wheel is held under the fender by the arch cap in glbCar.syncWheels
+    spec.travel = Math.max(0.2, sag + gap); }
   if (e.convertible) spec.convertible = true;
   if (e.police) spec.police = e.police;
   if (e.taxi) spec.taxi = true;
