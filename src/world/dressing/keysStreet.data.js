@@ -47,10 +47,30 @@ export const KEYS_LOTS = [
     car: { kind: 'suv', look: 'faded', u: 6.5, v: 6.0, h: Math.PI },
   },
   { // F: peach cottage inside the loop, facing the south leg, iron fence and a boat on blocks
-    id: 'pp_peach', x: -11.5, z: 64.0, face: 1.57, w: 8.0, d: 7.6, style: 'keys', stilt: false, base: 0.5, gap: 3.4, side: 3.0, back: 8,
+    id: 'pp_peach', x: -11.5, z: 64.0, face: 1.57, w: 8.0, d: 7.6, style: 'keys', stilt: false, base: 0.5, gap: 4.0, side: 3.0, back: 8,
     over: { colors: { body: 0xe8b8a0, trim: 0xf4efe2, accent: 0x2a6a8a, roof: 0x9aa0a8 }, fence: 'picket', frontHedge: true, hedge: false, car: false, bins: true, palms: 1, shrubs: 3, flamingos: 0 },
     extras: [{ k: 'boatTrailer', u: 5.6, v: -4.0, h: 0.0, seed: 8 }, { k: 'grill', u: -3.0, v: -5.5, h: 0.4 }],
     car: { kind: 'sedan', look: 'old', u: -6.0, v: 4.4, h: Math.PI },
+  },
+  { // G: sea-green cottage on the loop's west side, screened porch, a boat on blocks behind
+    id: 'pp_sea', x: -45.0, z: 62.0, face: -2.06, w: 8.8, d: 7.6, style: 'keys', stilt: false, base: 0.6, gap: 8.4, side: 3.2, back: 7,
+    over: { colors: { body: 0x7fb5b0, trim: 0xf2f0ea, accent: 0x2a4a6a, roof: 0x9aa0a8 }, fence: 'chain', frontHedge: false, hedge: true, car: false, bins: true, palms: 2, shrubs: 3, porchStuff: 2 },
+    extras: [{ k: 'boatTrailer', u: -6.4, v: -3.0, h: 0.2, seed: 5 }, { k: 'buoys', u: 5.0, v: -4.0 }], car: { kind: 'pickup', look: 'old', u: 6.2, v: 5.0, h: Math.PI },
+  },
+  { // H: cream cottage at the south end of the loop, picket fence, flamingos
+    id: 'pp_cream', x: -25.0, z: 80.0, face: -0.38, w: 9.0, d: 7.4, style: 'keys', stilt: false, base: 0.5, gap: 5.6, side: 3.0, back: 6,
+    over: { colors: { body: 0xf0ece0, trim: 0xffffff, accent: 0xa0524a, roof: 0xb8bcc0 }, fence: 'picket', frontHedge: false, hedge: false, car: false, bins: true, palms: 1, shrubs: 5, flamingos: 2 },
+    extras: [{ k: 'chairs', u: 3.0, v: 4.0, h: -0.2 }], car: { kind: 'compact', look: 'faded', u: -6.0, v: 5.0, h: Math.PI },
+  },
+  { // I: orange stilt house on the far side of the south leg, kayaks under it
+    id: 'pp_orange', x: 14.0, z: 58.0, face: 0.85, w: 8.4, d: 7.8, style: 'keys', stilt: true, base: 2.8, gap: 5.8, side: 3.5, back: 6,
+    over: { colors: { body: 0xe8b8a0, trim: 0xf2f0ea, accent: 0x3a5a4a, roof: 0x8e9a8e }, fence: 'none', frontHedge: false, hedge: false, car: false, bins: true, palms: 2, shrubs: 2, lattice: true, storage: false },
+    extras: [{ k: 'kayaks', u: -1.0, v: 0.0, h: 1.57 }, { k: 'crabTraps', u: 5.5, v: -2.5, h: 0.3 }], car: { kind: 'suv', look: 'old', u: -6.2, v: 5.0, h: Math.PI },
+  },
+  { // K: lime cottage on the corner between the two lanes, iron fence
+    id: 'pp_lime', x: -50.0, z: 22.0, face: 2.46, w: 8.2, d: 7.4, style: 'keys', stilt: false, base: 0.55, gap: 7.4, side: 3.0, back: 6,
+    over: { colors: { body: 0xc8d8a0, trim: 0xf6f3ec, accent: 0x6a5a4a, roof: 0x9aa0a8 }, fence: 'picket', frontHedge: true, hedge: false, car: false, bins: true, palms: 1, shrubs: 3 },
+    extras: [{ k: 'grill', u: -4.0, v: -4.5, h: 0.4 }, { k: 'propane', u: 5.0, v: -2.0, h: 0 }], car: { kind: 'sedan', look: 'sun_faded', u: 6.0, v: 5.0, h: Math.PI },
   },
 ];
 
@@ -64,7 +84,7 @@ export const KEYS_SHORE_LOTS = [
     car: { kind: 'pickup', look: 'rusty', u: 6.3, v: 5.0, h: Math.PI },
   },
   { // W2: lavender cottage, the boathouse at the water
-    id: 'pp_w2', x: -88.0, z: -43.0, face: 0.35, w: 9.4, d: 7.6, style: 'keys', stilt: false, base: 0.7, gap: 8.0, side: 4.0, back: 8,
+    id: 'pp_w2', x: -88.0, z: -43.0, face: 0.35, w: 9.4, d: 7.6, style: 'keys', stilt: false, base: 0.7, gap: 13.5, side: 4.0, back: 8,
     over: { colors: { body: 0xd9c1e0, trim: 0xf6f3ec, accent: 0x2a4a6a, roof: 0xb8bcc0 }, fence: 'picket', frontHedge: false, hedge: false, car: false, bins: true, palms: 2, shrubs: 4, flamingos: 2 },
     extras: [{ k: 'boatTrailer', u: -7.0, v: 1.0, h: 0.0, seed: 12 }, { k: 'chairs', u: 2.0, v: -6.5, h: 3.1 }],
     car: { kind: 'sedan', look: 'old', u: 6.5, v: 6.0, h: Math.PI },

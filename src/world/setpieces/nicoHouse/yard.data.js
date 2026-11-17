@@ -71,7 +71,12 @@ export const TRACKS = [   // polylines of the left / right tire, width 0.3 (soft
   { pts: [[-4.4, 26.6], [-4.6, 21.0], [-4.3, 16.6], [-3.9, 12.6]], gauge: 1.7 },
   { pts: [[-7.6, 25.8], [-9.0, 21.4], [-10.2, 17.6], [-10.8, 14.4]], gauge: 1.55 },
 ];
-export const LITTER = [   // [x, z, radius, density 0..1, kind: 'leaves' | 'matted' | 'needles']
+export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed shell / marl dust) | 'matted' | 'leaves']
+  // pale crushed-shell ground where the cars park and turn, from the house to the street (mock-up)
+  [-2.5, 12.5, 6.5, 1.0, 'shell'], [-4.5, 20.0, 6.0, 0.95, 'shell'], [2.5, 17.5, 5.0, 0.85, 'shell'], [-10.5, 16.0, 5.5, 0.85, 'shell'], [4.0, 10.5, 4.5, 0.8, 'shell'],
+  [-8.0, 24.5, 4.0, 0.75, 'shell'], [-15.5, 19.5, 4.5, 0.7, 'shell'], [6.5, 21.5, 3.5, 0.7, 'shell'],
+  // matted, sun-dried grass in the low-traffic corners
+  [-17.5, 13.0, 3.8, 0.75, 'matted'], [8.5, 13.5, 3.2, 0.7, 'matted'], [-1.0, 24.0, 2.8, 0.6, 'matted'], [-20.5, 6.5, 4.0, 0.8, 'matted'], [9.5, 6.5, 3.0, 0.7, 'matted'],
   [-14.5, 8.5, 4.5, 0.8, 'leaves'], [8.8, 17.0, 3.8, 0.9, 'leaves'], [-19.0, 4.0, 5.5, 0.7, 'leaves'], [-6.5, 21.0, 3.5, 0.5, 'matted'],
   [1.5, 20.5, 4.0, 0.6, 'matted'], [-13.0, 20.0, 3.0, 0.6, 'matted'], [-21.0, 12.0, 4.0, 0.7, 'matted'], [3.0, 26.0, 2.5, 0.8, 'leaves'],
 ];
@@ -84,5 +89,11 @@ export const PLANTING = [
   ['hibiscus', -8.6, 23.6, { s: 1.0 }], ['hibiscus', -1.6, 25.2, { s: 0.85 }], ['bougainvillea', 9.2, 23.8, { s: 1.1 }], ['bougainvillea', -14.8, 21.8, { s: 0.9 }],
   ['seagrape', -22.5, 1.0, { s: 1.1 }], ['seagrape', 10.8, 4.0, { s: 1.0 }], ['croton', -12.0, 6.8, { s: 0.9 }], ['croton', 0.8, 9.6, { s: 0.8 }],
   ['poinciana', -23.5, 35.5, { s: 1.1, seed: 12 }], ['poinciana', 9.5, 37.5, { s: 0.9, seed: 3 }], ['poinciana', -4.5, 47.0, { s: 1.0, seed: 7 }],   // across the street (mock-up: red crowns over the far yards)
+  // the neighbors' yards and the verges (keysStreet.data.js lots): shade trees and palms so the street reads dense and green
+  ['gumbo', -20.0, 50.5, { s: 1.0 }], ['coconut', -7.5, 51.0, { s: 1.05 }], ['sabal', -22.5, 41.0, { s: 0.95 }], ['gumbo', 26.5, 49.0, { s: 1.1 }], ['coconut', 11.0, 53.0, { s: 0.95 }],
+  ['liveoak', -41.0, -7.0, { s: 0.8 }], ['coconut', -27.5, -8.5, { s: 1.0 }], ['sabal', -43.0, 7.0, { s: 1.0 }], ['gumbo', -40.5, 48.0, { s: 1.0 }], ['coconut', -26.5, 49.5, { s: 1.1 }],
+  ['gumbo', 31.0, -1.0, { s: 1.05 }], ['coconut', 15.5, -5.0, { s: 1.0 }], ['sabal', 29.0, 13.0, { s: 0.9 }], ['gumbo', -18.5, 71.0, { s: 1.0 }], ['coconut', -5.5, 72.0, { s: 1.0 }],
+  ['coconut', -68.0, -52.0, { s: 1.05 }], ['sabal', -58.0, -50.0, { s: 0.95 }], ['coconut', -93.0, -52.0, { s: 1.1 }], ['seagrape', -80.0, -54.0, { s: 1.2 }], ['seagrape', -50.0, -48.0, { s: 1.1 }],
+  ['seagrape', -27.0, 35.0, { s: 1.0 }], ['hibiscus', -4.0, 37.5, { s: 1.0 }], ['seagrape', 7.0, 46.0, { s: 1.1 }], ['hibiscus', 14.0, 36.0, { s: 0.9 }], ['seagrape', -36.0, 12.0, { s: 1.1 }],
   ['hibiscus', -21.2, 15.6, { s: 1.15 }], ['seagrape', -23.2, 13.0, { s: 1.0 }], ['fern', 8.4, 9.0, { s: 1.0 }], ['sawpalmetto', -19.5, -6.5, { s: 1.0 }],
 ];

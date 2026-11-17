@@ -126,6 +126,12 @@ export function build(ctx) {
       g.beginPath(); g.ellipse(0, 0, l, l * (0.3 + q() * 0.25), 0, 0, 6.28); g.fill(); g.strokeStyle = 'rgba(60,40,20,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-l, 0); g.lineTo(l * 1.2, 0); g.stroke(); g.restore(); } });
   const MATTED = decal('matted', 512, 512, (g, w, h) => { const q = kit.rng(92); g.clearRect(0, 0, w, h);
     for (let i = 0; i < 2600; i++) { const x = q() * w, y = q() * h, l = 6 + q() * 22, a = 0.4 + (q() - 0.5) * 0.9 + (x / w) * 0.6, k = q(); g.strokeStyle = k < 0.55 ? `rgba(${150 + q() * 40},${150 + q() * 30},${80 + q() * 20},0.75)` : `rgba(${86 + q() * 30},${110 + q() * 30},${50 + q() * 20},0.8)`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5, y + Math.sin(a) * l * 0.5 - 2, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } });
+  // crushed shell / marl dust: the pale, almost white yard surface of the mock-up, laid over the sand where cars and feet go
+  const SHELLD = decal('shell', 512, 512, (g, w, h) => { const q = kit.rng(94); g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 9000; i++) { const x = q() * w, y = q() * h, s = 0.6 + q() * q() * 3.2, v = 196 + q() * 52; g.fillStyle = `rgba(${v},${v - 4 - q() * 8},${v - 14 - q() * 16},${0.35 + q() * 0.5})`; g.beginPath(); g.ellipse(x, y, s, s * (0.5 + q() * 0.5), q() * 3, 0, 6.28); g.fill(); }
+    for (let i = 0; i < 260; i++) { const x = q() * w, y = q() * h, s = 2 + q() * 4; g.fillStyle = `rgba(${236 + q() * 18},${228 + q() * 20},${214 + q() * 20},0.9)`; g.beginPath(); g.moveTo(x, y); g.lineTo(x + s, y + s * 0.3); g.lineTo(x + s * 0.4, y + s); g.closePath(); g.fill(); }   // shell chips
+    for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(90,82,70,${0.15 + q() * 0.25})`; g.fillRect(q() * w, q() * h, 1, 1); } });
+  SHELLD.roughness = 0.97;
   const RUTS = decal('ruts', 64, 512, (g, w, h) => { const q = kit.rng(93); g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(70,58,42,0)'); gr.addColorStop(0.25, 'rgba(70,58,42,0.42)'); gr.addColorStop(0.75, 'rgba(70,58,42,0.42)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += 9) { g.fillStyle = 'rgba(50,40,28,0.35)'; g.fillRect(10, y, w - 20, 3); } for (let i = 0; i < 200; i++) { g.fillStyle = `rgba(230,220,200,${q() * 0.3})`; g.fillRect(q() * w, q() * h, 2, 2); } });
   RUTS.roughness = 1;
@@ -134,7 +140,10 @@ export function build(ctx) {
       p.setX(i, px * k); p.setY(i, py * k); const ux = px * k, uy = py * k; uv.setXY(i, (ux * Math.cos(a0) - uy * Math.sin(a0)) * s, (ux * Math.sin(a0) + uy * Math.cos(a0)) * s); const f = Math.max(0, 1 - d) * dens; c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = 1; }
     g.rotateX(-PI / 2); g.translate(x, 0.015 + seed * 0.0001, z);
     D.geo(m, g, null, { keepColor: false, wear: (vx, vy, vz) => Math.max(0, Math.min(1, (1 - Math.hypot(vx - x, vz - z) / (rad * 1.3)) * 2.4)) * dens }); g.dispose(); };
-  LITTER.forEach(([x, z, rad, dens, kind], i) => patch(kind === 'matted' ? MATTED : LEAVES, x, z, rad, dens, 300 + i));
+  LITTER.forEach(([x, z, rad, dens, kind], i) => patch(kind === 'matted' ? MATTED : kind === 'shell' ? SHELLD : LEAVES, x, z, rad, dens, 300 + i));
+  // draw order of the overlapping ground layers (they do not write depth): shell dust, matted grass, ruts, leaves, puddles
+  { let done = false; const ord = { 'keys:shell': 3, 'keys:matted': 4, 'keys:ruts': 5, 'keys:leaves': 6, 'keys:puddle': 7 };
+    ctx.updaters.push(() => { if (done) return; done = true; ctx.groups.detail.traverse((o) => { const n = o.material?.name; if (n && ord[n]) o.renderOrder = ord[n]; }); }); }
   for (const t of TRACKS) for (const s of [-1, 1]) { // two ruts per track, a strip along the polyline
     const P = t.pts, pos = [], uvs = [], idx = []; let v = 0;
     for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L, cx = P[i][0] + nx * s * t.gauge / 2, cz = P[i][1] + nz * s * t.gauge / 2;
