@@ -1,0 +1,78 @@
+{
+  "set": "r4",
+  "cases": {
+    "car": {
+      "carAt": [
+        -866.4,
+        0.7,
+        4859.2
+      ],
+      "log": [
+        [
+          "phase",
+          null,
+          1.73
+        ],
+        [
+          "start",
+          "car",
+          false,
+          5.65
+        ],
+        [
+          "phase",
+          "rag",
+          5.75
+        ],
+        [
+          "phase",
+          "getup",
+          8.53
+        ],
+        [
+          "phase",
+          null,
+          11.17
+        ]
+      ],
+      "health": 91.89704643490282,
+      "phase": null,
+      "pos": [
+        -860.09,
+        0.05,
+        4854.96
+      ]
+    },
+    "fall": {
+      "log": [
+        [
+          "start",
+          "fall",
+          false,
+          17.7
+        ],
+        [
+          "phase",
+          "rag",
+          17.7
+        ],
+        [
+          "phase",
+          "getup",
+          19.45
+        ],
+        [
+          "phase",
+          null,
+          22.05
+        ]
+      ],
+      "health": 69.8,
+      "phase": null
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico",
+    "ERR THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: PortSolanaOcean\nMaterial Type: ShaderMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:436: 'uLookV' : undeclared identifier\nERROR: 0:436: 'x' :  field selection requires structure, vector, or interface block on left hand side\nERROR: 0:436: 'uLookV' : undeclared identifier\nERROR: 0:436: 'x' :  field selection requires structure, vector, or interface block on left hand side\n\n  431: \t\t\tfloat f"
+  ]
+}
