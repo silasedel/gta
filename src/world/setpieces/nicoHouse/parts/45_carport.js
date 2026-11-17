@@ -514,6 +514,10 @@ export async function build(ctx) {
   }
   { // mailbox at the street end of the driveway on a leaning 4x4
     const MB = MAILBOX, mby = Math.max(ctx.yardY ? ctx.yardY(MB.x, MB.z) : 0, ctx.opts.groundAt ? ctx.opts.groundAt(MB.x, MB.z) : 0) - 0.03, o = obj(MB.x, mby, MB.z, MB.h + 0.06, 0.035, 0.07), pc = () => V(0x8d857a, 0.1);   // r2-keys: at the drive mouth (yard.data.js)
+    // r2-keys (Nov 17 pm): the user's library mailbox (Mailbox 6, faded blue box on a wooden post: keys/mailbox_post.glb) placed by part 55;
+    // the hand-built 4x4 + arched steel box below stays as the fallback (LIBMB = false)
+    const LIBMB = true; if (LIBMB) (ctx.libProps ||= []).push(['mailbox_post', M(MB.x, mby + 0.01, MB.z, 0, MB.h - PI / 2, 0)]);
+    if (!LIBMB) {
     o.box(W, 0.089, 1.3, 0.089, 0, 0.5, 0, { grain: 1, color: pc(), wear: 0.9 }).box(W, 0.14, 0.038, 0.6, 0, 1.15, 0.12, { grain: 2, color: pc(), wear: 0.8 }).strut(W, [0, 0.7, 0.05], [0, 1.12, 0.36], 0.038, 0.089, { color: pc(), wear: 0.8 });
     const arch = () => { const sh = new THREE.Shape(); sh.moveTo(-0.085, 0); sh.lineTo(0.085, 0); sh.lineTo(0.085, 0.12); sh.absarc(0, 0.12, 0.085, 0, PI, false); sh.lineTo(-0.085, 0); return sh; };
     const b = o.sub(0, 1.171, 0.13, 0, 0, 0.025), bg = new THREE.ExtrudeGeometry(arch(), { depth: 0.48, bevelEnabled: false, curveSegments: 12 }); bg.translate(0, 0, -0.24); b.geo(STEEL, bg, null, { color: 0x9da2a2, uvMul: [5, 5] });
@@ -523,6 +527,7 @@ export async function build(ctx) {
     label(b, REG.mail, 0.43, 0.108, -0.0858, 0.062, 0, 0, -PI / 2, 0); label(b, REG.mail, 0.43, 0.108, 0.0858, 0.062, -0.02, 0, PI / 2, 0); label(b, REG.dive, 0.06, 0.045, -0.0858, 0.14, -0.17, 0, -PI / 2, 0.1);
     for (let i = 0; i < 8; i++) { const s = r() > 0.5 ? 1 : -1; b.box(MATTE, 0.0012, 0.004 + r() * 0.012, 0.01 + r() * 0.03, s * 0.0855, 0.002 + r() * 0.012, rs(0.22), { color: V(0x5a4636, 0.15), bevel: 0 }); }
     b.sph(MATTE, 0.03, 0.03, 0.2, -0.1, { color: 0x7a7d7e }, 1.4, 0.3, 1.8).sph(MATTE, 0.03, -0.04, 0.198, 0.08, { color: 0x5a4636 }, 1, 0.3, 1.5);
+    }
     for (let i = 0; i < 9; i++) D.box(CONC, 0.06 + r() * 0.05, 0.04, 0.06 + r() * 0.05, M(MB.x + rs(0.16), mby + 0.04, MB.z + rs(0.16), rs(0.4), r() * 3, rs(0.4)), { color: V(0xcfc8b8, 0.1), bevel: 0.012, wear: 0.8 });
     col.cyl(MB.x, mby + 0.6, MB.z, 0.1, 1.2, { tag: 'post' }); col.box(MB.x + Math.sin(MB.h) * 0.13, mby + 1.28, MB.z + Math.cos(MB.h) * 0.13, 0.2, 0.26, 0.52, { ry: MB.h, tag: 'clutter' });
     ctx.anchors.mailbox = { pos: new THREE.Vector3(MB.x + Math.sin(MB.h) * 0.85, 0, MB.z + Math.cos(MB.h) * 0.85), heading: MB.h + PI };

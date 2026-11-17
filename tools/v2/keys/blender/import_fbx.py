@@ -4,7 +4,15 @@
 # Maps are matched by name: *basecolor*/*albedo*/*diffuse* (sRGB), *rough*, *normal*, *metal* (non-color); AO / ground-AO maps are ignored.
 import bpy, os, re, sys
 for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
-bpy.ops.import_scene.fbx(filepath=os.environ['FBX'])
+SRC = os.environ['FBX']   # .fbx, .obj or .glb (Maya .ma / .mel files next to an .obj are never touched)
+if SRC.lower().endswith('.obj'): bpy.ops.wm.obj_import(filepath=SRC)
+elif SRC.lower().endswith(('.glb', '.gltf')): bpy.ops.import_scene.gltf(filepath=SRC)
+else: bpy.ops.import_scene.fbx(filepath=SRC)
+if os.environ.get('DROPBIG'):   # drop huge faces (a ground / backdrop plane shipped inside the model's mesh), in source units^2
+    import bmesh
+    for o in [x for x in bpy.data.objects if x.type == 'MESH']:
+        bm = bmesh.new(); bm.from_mesh(o.data); big = [f for f in bm.faces if f.calc_area() > float(os.environ['DROPBIG'])]
+        bmesh.ops.delete(bm, geom=list({v for f in big for v in f.verts}), context='VERTS'); bm.to_mesh(o.data); bm.free(); print('DROPPED', o.name, len(big))
 TEX = os.environ.get('TEX')
 files = sorted(os.listdir(TEX)) if TEX and os.path.isdir(TEX) else []
 def pick(rx, mname=''):
@@ -17,6 +25,9 @@ for m in bpy.data.materials:
     if not m.use_nodes: continue
     nt = m.node_tree; bsdf = next((x for x in nt.nodes if x.type == 'BSDF_PRINCIPLED'), None)
     if not bsdf: continue
+    for nm_, v in (('Transmission Weight', 0.0), ('Transmission', 0.0), ('Specular IOR Level', 0.5), ('Specular', 0.5), ('Coat Weight', 0.0)):   # Arnold / Maya imports come in as glass
+        if nm_ in bsdf.inputs and not bsdf.inputs[nm_].links: bsdf.inputs[nm_].default_value = v
+    if not files: continue   # no loose maps: keep the file's own (embedded) textures
     for n in [x for x in nt.nodes if x.type in ('TEX_IMAGE', 'NORMAL_MAP')]: nt.nodes.remove(n)
     def img(f, color):
         t = nt.nodes.new('ShaderNodeTexImage'); t.image = bpy.data.images.load(f); t.image.colorspace_settings.name = 'sRGB' if color else 'Non-Color'; return t

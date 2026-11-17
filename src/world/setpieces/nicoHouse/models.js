@@ -13,6 +13,8 @@ const FILES = {
   loose_platforms: 'assets/models/docks/loose_platforms.glb', boathouse: 'assets/models/docks/boathouse.glb',
   rolloff: 'assets/models/keys/rolloff.glb', rocks: 'assets/models/keys/rocks.glb', bins: 'assets/models/keys/bins.glb', fence_rustic: 'assets/models/keys/fence_rustic.glb',
   utility_pole: 'assets/models/keys/utility_pole.glb',
+  coolers: 'assets/models/keys/coolers.glb', patio_chair: 'assets/models/keys/patio_chair.glb',
+  window_ac: 'assets/models/keys/window_ac.glb', galv_can: 'assets/models/keys/galv_can.glb', mailbox_post: 'assets/models/keys/mailbox_post.glb',
   rowboat: 'assets/models/keys/rowboat.glb', skiff: 'assets/models/keys/skiff.glb', lifebuoy: 'assets/models/keys/lifebuoy.glb',
 };
 let shared = null;
@@ -55,6 +57,7 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
   function tune(m, k) {
     if (m.userData.keysTuned) return m; m.userData.keysTuned = true;
     m.metalness = 0; if (m.metalnessMap) m.metalnessMap = null;
+    if (m.isMeshPhysicalMaterial) { m.transmission = 0; m.thickness = 0; m.clearcoat = 0; m.sheen = 0; m.specularIntensity = 1; }   // no glass / transmission pass from a converted Maya / Arnold surface
     if (m.map) { m.map.anisotropy = 8; }
     if (/pier|dock|planks|poles|section/i.test(k + m.name)) { m.color.setRGB(1.55, 1.48, 1.38); m.roughness = 1; }   // the kit's albedo is very dark (wet look): dry, sun-bleached lumber
     if (k === 'mossy_pier' || k === 'clean_pier') m.color.setRGB(1.12, 1.1, 1.05);
@@ -62,6 +65,12 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
       m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { float l = dot( diffuseColor.rgb, vec3( 0.3, 0.55, 0.15 ) ); diffuseColor.rgb = mix( vec3( l ) * vec3( 1.0, 0.98, 0.93 ), diffuseColor.rgb, 0.22 ); }'); };   // the scan's moss and brown are taken out (78% desaturated)
       m.customProgramCacheKey = () => 'keys:limestone'; }
     if (k === 'rolloff') { m.roughness = Math.max(0.6, m.roughness); m.metalness = 0; m.color.setRGB(1.0, 1.0, 1.0); if (/Part 02/.test(m.name || '')) m.color.setRGB(1.5, 0.62, 0.5); }   // Part 02 (the side plates) is a gray scan: painted the same faded red   // r2-keys: the body texture itself is now chipped faded red enamel over rust (tools/v2/keys/tex/repaint_dumpster2.py); no flat tint
+    if (k === 'coolers') { m.roughness = Math.max(0.55, m.roughness); if (/Cooler2/.test(m.name || '')) m.color.setRGB(0.92, 0.8, 0.78); }   // sun-faded red, no candy shine
+    if (k === 'patio_chair') { m.color.setRGB(1.8, 1.72, 1.62); m.roughness = 0.9; }   // dark stained scan -> weathered, sun-bleached lumber
+    if (k === 'window_ac') { m.roughness = Math.max(0.55, m.roughness); m.color.setRGB(0.95, 0.93, 0.88); if (m.normalMap) m.normalScale.set(1, -1); }   // its normal map is DirectX (green down): flipped here
+    if (k === 'galv_can') { m.roughness = 0.6; m.color.setRGB(1.05, 1.05, 1.02); }   // dull zinc spangle, no chrome
+    if (k === 'mailbox_post') { m.roughness = Math.max(0.6, m.roughness); m.color.setRGB(1.2, 1.17, 0.86);   // the saturated royal blue -> a sun-faded gray-blue (ART_STYLE)
+      if (m.emissiveMap) { m.emissiveMap = null; m.emissive?.setRGB(0, 0, 0); } }
     if (k === 'utility_pole') { m.color.setRGB(1.3, 1.24, 1.15); m.roughness = 1; }   // dark creosote scan -> sun-weathered gray-brown pine (ART_STYLE)
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;

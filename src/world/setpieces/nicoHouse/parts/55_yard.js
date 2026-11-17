@@ -47,7 +47,10 @@ export function build(ctx) {
   }
 
   // ======================================================================= galvanized can (own model) for BINS with can: 'galv'
-  for (const b of BINS) if (b.can === 'galv') {
+  // r2-keys (Nov 17 pm): the user's galvanized can with lid (Trash Can 7 -> keys/galv_can.glb); the hand-built can is the fallback
+  const LIBGALV = true;
+  for (const b of BINS) if (b.can === 'galv' && LIBGALV) { const gy = yG(b.x, b.z); (ctx.libProps ||= []).push(['galv_can', M(b.x, gy, b.z, 0, (b.h || 0) + b.x * 1.7, 0)]); col.cyl(b.x, 0.38 + gy, b.z, 0.28, 0.76, { tag: 'bin' }); }
+  for (const b of BINS) if (b.can === 'galv' && !LIBGALV) {
     const x = b.x, z = b.z, gy = yG(x, z), M = (x2, y2, z2, ...a) => kit.M(x2, y2 + gy, z2, ...a); D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });
     for (const y of [0.16, 0.38, 0.6]) D.geo(ST, new THREE.TorusGeometry(0.255 + y * 0.03, 0.009, 4, 24), M(x, y, z, PI / 2, 0, 0), { color: 0x9a9d97 });
     D.cyl(ST, 0.24, 0.24, 0.01, M(x, 0.02, z), { color: 0x6b6d68 });
@@ -105,6 +108,7 @@ export function build(ctx) {
 
   // ======================================================================= debris and clutter (own models)
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });
+  const LIBP = [];   // library props placed with the keys models below (r2-keys Nov 17 pm: the user's cooler set and patio chair)
   for (const d of DEBRIS) {
     const x = d.x, z = d.z, h = d.h || 0, y0 = (d.y || 0) + yS(x, z), base = M(x, y0, z, d.tilt || 0, h, 0), L = (lx, ly, lz, a = 0, b = 0, c = 0, s = 1) => kit.mulM(base, M(lx, ly, lz, a, b, c, s, s, s));
     if (d.k === 'pallet') {
@@ -126,8 +130,9 @@ export function build(ctx) {
       const cb = (lx, ly, lz, a) => { D.box(CONC, 0.39, 0.19, 0.19, L(lx, ly, lz, 0, a, 0), { color: V(0xa7a39a, 0.05), wear: 0.9, bevel: 0.01 }); };
       cb(0, 0.095, 0, 0); cb(0.42, 0.095, 0.05, 0.1); cb(0.2, 0.285, 0.02, -0.15);
     } else if (d.k === 'cooler') {
-      D.box(PLG, 0.62, 0.36, 0.38, L(0, 0.2, 0), { color: 0xe9e6dc, bevel: 0.03 }); D.box(PLG, 0.64, 0.05, 0.4, L(0, 0.4, 0), { color: 0x2f6f9a, bevel: 0.02 });
-      for (const s of [-1, 1]) D.box(PL, 0.05, 0.03, 0.16, L(s * 0.33, 0.33, 0), { color: 0x2f6f9a }); col.box(x, 0.21, z, 0.64, 0.42, 0.4, { ry: h, tag: 'prop' });
+      LIBP.push(['coolers', base]); col.box(x, y0 + 0.19, z, 1.35, 0.38, 0.42, { ry: h, tag: 'prop' });   // a big white chest and a small faded red one side by side
+    } else if (d.k === 'chair' && !d.tipped) {   // weathered wood patio chair (library)
+      LIBP.push(['patio_chair', base]); col.box(x, y0 + 0.45, z, 0.8, 0.9, 0.64, { ry: h, tag: 'prop' });
     } else if (d.k === 'chair') {   // white resin patio chair (tipped: lying on its back)
       const cb = d.tipped ? kit.mulM(base, M(0, 0.42, 0, -PI / 2 + 0.1, 0, 0)) : base, C2 = (lx, ly, lz, a = 0, b = 0, c = 0) => kit.mulM(cb, M(lx, ly, lz, a, b, c));
       const c = V(0xeeeae0, 0.03); D.box(PLG, 0.46, 0.03, 0.44, C2(0, 0.42, 0), { color: c, bevel: 0.015 }); D.box(PLG, 0.46, 0.5, 0.03, C2(0, 0.7, -0.21, -0.18, 0, 0), { color: c, bevel: 0.015 });
@@ -273,11 +278,12 @@ export function build(ctx) {
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
-  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole']);
+  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
     for (const m of POLE_M) I.add('utility_pole', 'dock', m);
+    for (const [k, m] of [...LIBP, ...(ctx.libProps || [])]) I.add(k, 'dock', m);
     { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
     for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }

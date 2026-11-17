@@ -26,3 +26,13 @@ c "Crates/Crate 1 - Plain Wooden Crate/Crate 1.blend" public/assets/models/keys/
 # utility pole (r2-keys, Nov 17 pm): FBX + loose maps -> import_fbx.py wires them, then convert_dock.py
 P="$M/Utility Poles/Utility Pole 1 - Utility Pole With Crossarms (2K textures)"
 FBX="$P/source/Utility Pole.fbx" TEX="$P/textures" "$B" -b -Y --factory-startup --python-exit-code 1 --python tools/v2/keys/blender/import_fbx.py -- public/assets/models/keys/utility_pole.glb 1 1024 join "" 0 base 2>&1 | grep -E "CONV|rror" | head
+# yard props from the Nov 17 pm intake (r2-keys): FBX / OBJ + loose maps through import_fbx.py; archives are unpacked with unar into a scratch dir first
+fx() { FBX="$1" TEX="$2" "$B" -b -Y --factory-startup --python-exit-code 1 --python tools/v2/keys/blender/import_fbx.py -- "$3" "$4" 1024 join "" 0 base 2>&1 | grep -E "CONV|rror" | head -4; }
+X=$(mktemp -d); mkdir -p "$X/ac" "$X/can" "$X/mb6"
+unar -q -o "$X/ac" "$M/Ventilators/Window AC 1 - Window Air Conditioner Unit/source/window Ac.rar"; unar -q -o "$X/can" "$M/Bins/Trash Can 7 - Galvanized Steel Trash Can With Lid/source/Trash_01.rar"; unar -q -o "$X/mb6" "$M/Mailboxes/Mailbox 6 - Blue Mailbox On A Wooden Post/source/MailBox_upl.7z"
+P="$M/Beach Stuff/Cooler 1 - Hard Beach Coolers Set"; fx "$P/source/Coolers.fbx" "$P/textures" public/assets/models/keys/coolers.glb 0.75
+P="$M/Chairs/Patio Chair 1 - Outdoor Patio Chair"; fx "$P/source/PatioChair1.fbx" "$P/textures" public/assets/models/keys/patio_chair.glb 1
+fx "$X/ac/window Ac/window Ac.fbx" "$X/ac/window Ac/Textures" public/assets/models/keys/window_ac.glb 5.5
+DROPBIG=5000 fx "$X/can/Trash_01/wee2_trash_01_geo.obj" "$M/Bins/Trash Can 7 - Galvanized Steel Trash Can With Lid/textures" public/assets/models/keys/galv_can.glb 0.01   # drops the 2 m ground plane in the mesh
+fx "$X/mb6/MailBox_upl/MailBox_J_low.fbx" "$X/mb6/MailBox_upl/Mailbox_UE_4K" public/assets/models/keys/mailbox_post.glb 0.37
+rm -rf "$X"

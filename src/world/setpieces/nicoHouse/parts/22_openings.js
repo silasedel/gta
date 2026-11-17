@@ -122,7 +122,7 @@ export function build(ctx) {
         for (const y of [h / 2 - 0.2, -h / 2 + 0.2]) B.box(mat.rust(), 0.05, 0.08, 0.008, L(-s * (sw / 2 - 0.02), y, 0.018), { color: 0x9a8a80 });
       }
     }
-    if (o.ac) ctx.acWindow = o;
+    if (o.ac) { ctx.acWindow = o; (ctx.libProps ||= []).push(['window_ac', o.wall.wm(o.u, o.y0 + 0.01, 0.16)]); }   // r2-keys: the user's window AC (keys/window_ac.glb), placed by part 55
   }
 
   // ---------- gable louver vents ----------

@@ -118,22 +118,22 @@ export const PLANTING = [   // inside the lot only (r2-veg plants the verges and
   // a big loose cascading mound (lead review): three overlapping plants at different scales / turns, two hanging over the box's street and
   // deck-side edges (lower yOff: they spill down the lattice), green tropical foliage at the base
   ['bougainvillea', -10.4, 12.35, { s: 1.25, ry: 0.4, yOff: 0.62 }], ['bougainvillea_b', -11.6, 12.55, { s: 1.05, ry: 2.3, yOff: 0.62 }],
-  ['bougainvillea', -9.4, 11.75, { s: 0.9, ry: 4.4, yOff: 0.3 }], ['bougainvillea_b', -11.9, 11.7, { s: 0.75, ry: 5.6, yOff: 0.25 }],
+  ['bougainvillea', -9.4, 11.75, { s: 0.9, ry: 4.4, yOff: 0.3 }], ['bougainvillea_b', -10.85, 11.7, { s: 0.75, ry: 5.6, yOff: 0.25 }],
   ['tropical_bed', -10.9, 13.1, { s: 0.55 }], ['fern_clump', -9.2, 12.9, { s: 1.0 }],
   // palmetto-like clumps (volume-shaded library beds / ferns in place of the card palmettos of part 50)
   ['tropical_bed', -22.4, -9.2, { s: 0.75 }], ['fern_clump', -20.9, -5.4, { s: 1.3 }], ['tropical_bed', -22.8, -0.8, { s: 0.75 }], ['fern_clump', -20.6, 3.6, { s: 1.3 }],
   ['tropical_bed', -18.9, 12.9, { s: 0.75 }], ['fern_clump', -19.3, 11.0, { s: 1.3 }], ['tropical_bed', -13.6, 18.2, { s: 0.7 }], ['tropical_bed', -11.0, 23.5, { s: 0.7 }],
   ['fern_clump', -19.2, -11.4, { s: 1.2 }], ['fern_clump', -11.6, 16.0, { s: 1.2 }],
-  ['poinciana', -19.0, 2.3, { s: 1.15, seed: 7, model: 'poinciana_c' }],                       // red crown over the classic, right edge of the deck view (mock-up)
+  ['poinciana', -19.0, 2.3, { s: 0.8, seed: 7, model: 'poinciana_hd1' }],                          // red crown over the classic, right edge of the deck view (mock-up)
   // the big dense dark-green mass right of center, behind the right-hand bins, hiding the roll-off's far end (mock-up)
-  ['bush_round', -20.2, 7.9, { s: 2.0 }], ['bush_leafy', -23.6, 6.4, { s: 2.0 }], ['rubber_fig', -25.2, 4.0, { s: 0.9 }], ['hibiscus', -23.4, 2.0, { s: 0.9 }],
+  ['bush_round', -20.2, 7.9, { s: 2.0 }], ['bush_leafy', -23.6, 6.4, { s: 2.0 }], ['rubber_fig', -25.2, 4.0, { s: 0.9 }], ['hibiscus', -23.4, 2.0, { s: 0.7, model: 'hibiscus_hd' }],
   // lush left side of the deck view (mock-up: palms and dense shrubs behind the planter, left of the truck)
   ['coconut', -6.6, 16.5, { s: 1.1, lean: [0.3, 0.4], model: 'coconut_palm' }], ['bush_round', -6.0, 12.6, { s: 1.6 }], ['bush_leafy', -7.2, 19.8, { s: 1.8 }],
   ['tropical_bed', -8.2, 14.6, { s: 1.2 }], ['tropical_palm', -5.6, 22.2, { s: 1.0 }], ['bush_leafy', -3.6, 15.8, { s: 1.6 }],
   ['coconut', -4.8, 13.5, { s: 1.0, lean: [0.5, 0.3], model: 'coconut_palm' }], ['coconut', -2.4, 19.0, { s: 1.1, lean: [-0.3, 0.5], model: 'coconut_palm' }],   // tall palms left of the deck view
-  ['seagrape', 0.5, 23.5, { s: 1.0 }], ['hibiscus', -7.0, 21.0, { s: 1.0 }], ['bush_leafy', -10.5, 21.5, { s: 1.4 }],
+  ['seagrape', 0.5, 23.5, { s: 1.0 }], ['hibiscus', -7.0, 21.0, { s: 0.75, model: 'hibiscus_hd' }], ['bush_leafy', -10.5, 21.5, { s: 1.4 }],
   ['gumbo', -22.5, -9.5, { s: 1.05, seed: 3 }], ['coconut', -21.5, -2.0, { s: 1.0, lean: [0.8, 0.3] }], ['sabal', -22.0, -6.0, { s: 0.9 }],
-  ['seagrape', 9.0, 4.0, { s: 1.0 }], ['coconut', 9.5, -4.0, { s: 0.95, lean: [-0.4, 0.6] }], ['hibiscus', -12.6, 1.2, { s: 0.8 }],
+  ['seagrape', 9.0, 4.0, { s: 1.0 }], ['coconut', 9.5, -4.0, { s: 0.95, lean: [-0.4, 0.6] }], ['hibiscus', -12.6, 1.2, { s: 0.6, model: 'hibiscus_hd' }],
 ];
 
 // ---- weed clumps (part 05 weeds): [x, z, radius, count, size] where weeds really grow: around rocks, posts, bins, the planter
