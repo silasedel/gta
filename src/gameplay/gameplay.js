@@ -258,7 +258,7 @@ export async function createGameplay(game) {
     if (P.state.inVehicle) tryCall('exitVehicle', () => game.exitVehicle?.());
     const gy = groundAt(game, p.x, p.z, 20);
     const y = Math.max(gy, p.y || 0);
-    tryCall('teleport', () => P.body?.setTranslation?.({ x: p.x, y: y + 0.87 + 0.05, z: p.z }, true));
+    tryCall('teleport', () => P.body?.setTranslation?.({ x: p.x, y: y + (P.capsule?.center ?? 0.9) + 0.05, z: p.z }, true));     // capsule center: src/player/controller/capsule.js
     P.position.set(p.x, y, p.z);
   }
   function die() {
