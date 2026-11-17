@@ -153,7 +153,9 @@ const PROBES = new Map();
 const _rc = new THREE.Raycaster();
 function isPersonPart(o) { for (let p = o; p; p = p.parent) { if (p.name && /^(npc-|character-)/.test(p.name)) return true; } return false; }
 export function probeSeat(shell, anchor, key = null) {
-  const k = key ? key + ':' + (anchor.id || anchor.i) : null;
+  // per car MODEL + seat: the model key when given, else the anchor's own numbers (identical for every car of a model)
+  const h0 = anchor.hip;
+  const k = (key || ('a' + h0.x.toFixed(3) + ',' + h0.y.toFixed(3) + ',' + h0.z.toFixed(3) + ',' + (anchor.roofY ?? 0).toFixed?.(3))) + ':' + (anchor.id || anchor.i);
   if (k && PROBES.has(k)) return PROBES.get(k);
   const out = { cushionY: null, roofY: null };
   try {
@@ -256,9 +258,9 @@ function solve(ch, S, dt) {
   const roofY = Number.isFinite(S.roofY) ? S.roofY : A.roofY;
   if (Head && Neck && Number.isFinite(roofY) && !S.open) {
     const hd = wp(Head, V()), nk = wp(Neck, V());
-    const crown = V().copy(hd).addScaledVector(V().copy(hd).sub(nk).normalize(), 0.17 * scale);
+    const crown = V().copy(hd).addScaledVector(V().copy(hd).sub(nk).normalize(), 0.2 * scale);   // same crown as tools/v2/cars/headroom.mjs
     const crownY = V().copy(crown).applyMatrix4(inv).y;
-    const over = crownY - (roofY - 0.025);
+    const over = crownY - (roofY - 0.04);
     if (over > 0.004 && S.fit < 60) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if (sink < 0.08) S.sink = Math.min(0.08, sink + Math.max(0.006, over));   // upright first: sink into the cushion
       else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else S.extraRecline = Math.min(26, S.extraRecline + Math.max(1, over * 60)); }
   }
@@ -416,7 +418,7 @@ export function seatMaxHeight(shell, anchor, opts = {}) {
   const cushion = Number.isFinite(pr.cushionY) && !anchor.fixed ? pr.cushionY : anchor.hip.y - 0.1;
   const roof = Number.isFinite(pr.roofY) ? (Number.isFinite(anchor.roofY) ? Math.min(anchor.roofY, pr.roofY) : pr.roofY) : anchor.roofY;
   if (!Number.isFinite(roof)) return Infinity;
-  return (roof - cushion - 0.05 + 0.02) / 0.52;
+  return (roof - cushion - 0.08) / 0.56;   // r2-cars' headroom run 4: 0.52 / 5 cm let 4-8 cm more head through
 }
 /** create one of the user's people, add it to the shell and seat it (null while none fits / is loaded yet) */
 export function createSeatedPerson(game, shell, anchor, opts = {}) {

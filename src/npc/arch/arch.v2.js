@@ -42,13 +42,13 @@ export async function initV2(game) {
   }
   const P = game.player?.position;
   const z0 = P ? zoneOf(P.x, P.z) : 'residential';
-  want(archetypesForSync(z0, idx).map((a) => a.id));
-  want(archetypesForSync('cop', idx).map((a) => a.id));
-  pump();
+  // the user's people replace the archetypes: with the cast on, no archetype is loaded at all (each one cost a clip bind)
+  if (!cast) { want(archetypesForSync(z0, idx).map((a) => a.id)); want(archetypesForSync('cop', idx).map((a) => a.id)); pump(); }
   // later places: whatever the player walks into (and night life after dark), one archetype at a time, never all at once
   let zT = 0;
   game.updaters?.push?.((dt) => {
     zT -= dt; if (zT > 0) return; zT = 4;
+    if (cast) return;
     const pp = game.player?.position; if (!pp) return;
     const h = (((game.timeOfDay ?? 14) % 24) + 24) % 24;
     want(archetypesForSync(zoneOf(pp.x, pp.z), idx).map((a) => a.id));
