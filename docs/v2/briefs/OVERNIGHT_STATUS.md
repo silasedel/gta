@@ -1189,6 +1189,26 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   lamps before / after, day + night `docs/v2/shots/cars/r2/lamps_ab.jpg`; Nico's cars studio + seats `docs/v2/shots/cars/r2/seats_a.jpg`.
 - **Passengers:** 0-2 per AI car (~30 % one, ~8 % two) on the measured seats via r2-people's createDriver + seatCharacter;
   front-row anchors slid 6 cm toward the wheel (occupied seat), coupe2 hip lowered; side glass no longer an opaque mirror.
+- **Lettering audit (lead lamps review item 1):** new converter tools: `patchBoxes` (delete a lettered area, close it with one
+  flat panel 2 mm behind the skin; `fit` follows a raked panel; `mat: trim` + `oval` = a blank dark badge), `cloneBoxes`
+  (copy the grille mesh from the next row over raised letters), `lampkill` cut mode (letters modeled in the lamp slot),
+  `paintBoxes`, fitted `flattenBoxes`. Clean now: suv10 / suv14 / truck9 tailgates, truck9 grille (plain honeycomb), suv5 rear
+  roundel, suv4 grille (blank oval badge) + rear badge hole. super5's horseshoe keeps faint grille marks (a fix broke its hood
+  spine; reverted to HEAD).
+- **Truck9 (lead truck review + user screenshots):** window glass no longer goes through the LOD0 collapse (planar dissolve
+  instead; the collapse had folded the side windows into a few long triangles = the white triangles in the cab and the
+  "missing" driver window), black B-pillar applique, molded black flares drawn per pixel by the paint shader (no sawtooth),
+  grille-surround teeth on the hood edge gone, light warm silver 0xc9c7c1 metallic, graphite stripe panels (~0.13 linear,
+  satin under a soft clear coat) with a lighter 2 cm pinstripe edge, roof band 0.78 m with silver both sides. Scale checked
+  against the class (L 5.89, wheelbase 3.62, tire 0.89 m: correct); the game model's cab is low (cushion 0.93, headliner
+  1.86 m), so the seats are dropped 14 cm front / 10 cm rear in the converter (`seatDrop`) and the anchors re-derived.
+- **Paint audit (measured in game, 61 cars at 4 spots, binned by the US table bucket each car rolled):** table cars: white
+  13, black 8, blue 7, gray 6, silver 5, red 2, loud 2, earth 1; 17 rare / hero cars keep factory colors (7 earth-toned, 5
+  white, 2 red, 1 blue, taxi orange). No pink; the only orange is the taxi livery. (The first run's "34 % earth" was the old
+  classifier reading the shaded material: wear and tone drift tint near-black paint.)
+- **Names:** real model names removed from the fleet and the procedural catalog (Raptor -> Ridgeback Sandhawk TR; Vesta,
+  Meridian, Sovereign, Scirocco, Uno, Volt, Grandeur, Corsa, Breeze, Terra, Scout, Interceptor, Traveller, Elan, Brisa, Testa
+  renamed).
 
 ## r2-people
 - 14:45 **Nico's posture** (user: "shoulders too low, like he's pulling them down"): the relaxed-stance layer
@@ -1237,3 +1257,55 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - Both loads boot with a clean console.
   - Follow-up (tilebuild): the hip pitch is now ~28° (0.21 read as a flat lid), and the roofs are weathered asphalt shingle or barrel tile instead of the pale roof-slab tint.
   - Debug counters `__artGeo` (balc / eyebrow / fins / hip) confirm in game which buildings got each detail.
+
+## r2-perf
+- **14:00 Summary:** frame rate at 1080p is CPU-bound everywhere on the M3 Max. Draw submission is 12-27 ms per
+  frame, physics 3-8 ms, and Nico's yard adds 6-9 ms of character-controller cost. A ranked plan with a method, a
+  saving and a visual risk for each cost is in `docs/v2/reports/PERF_PLAN.md`. The tiers, dynamic resolution, perf
+  overlay, LOD bias and tile culling are built, all OFF by default. No look changes so far.
+- **Profile** (`node tools/v2/perf/r2-prof.mjs`; data `docs/v2/reports/r2-perf-base.json`):
+  - places: Nico's spawn, Keys street, downtown, beach, Everglades, night, plus a 30 s street drive
+  - per place: frames, CPU per system, render CPU split, GPU per pass, draws, triangles, programs, texture / geometry
+    MB, physics bodies, JS heap, per-group submit cost, CPU sampling profile
+  - GPU timer queries are unusable under ANGLE-Metal (bloom read 250 ms), so GPU is measured on a readPixels-serialized
+    frame. Post passes total 4.3-6.8 ms GPU (bloom 1.6-2.2, AO 0.5-0.8, TAA, grade and output 0.2-0.4 each). The scene
+    GPU time hides under its 17-25 ms CPU issue time.
+- **Built, flags off.** perfHud, dynres, tiers and lodBias booted inert in another helper's 13:49 boot (no errors from
+  them). The flags-on boot check (`tools/v2/perf/r2-boot.mjs`) is still to do.
+  - `src/render/perfHud.v2.js`: `?perf=1` or Shift+F3 overlay. Frame-time graph with 16.7 / 33.3 lines, CPU work,
+    GPU (where the timer is sane), render scale, preset, draws, triangles, programs, top 5 systems.
+  - `src/render/dynres.v2.js`: `?dynres=1`. Holds the preset's target frame time with the internal render scale,
+    within per-preset bounds, in 0.05 steps with hysteresis and an anti-pump block. It never scales down when the frame
+    is CPU-bound.
+  - Hook in `post.js` governor() / scaleFloor() (2 hunks). r2-render carries it in their TAA commit.
+  - `src/render/tiers.v2.js`: `?tiers=1`. 3.5 s GPU benchmark plus a renderer-string class pick a preset and a target:
+    good -> High at 60, top -> Ultra at 60, mid -> Medium at 30, weak -> Low at 30. `?tier=mid` forces a tier.
+  - Guard in `quality.v2.js`: a tier pick is never stepped down by the old 60 fps auto-pick.
+  - `src/render/lodBias.v2.js`: `?lodbias=1`. One LOD bias (preset bias / render scale) over THREE.LOD (cars, props),
+    the human LOD manager and the detail cull. Bias 1 = today's behavior exactly.
+  - `src/render/tileCull.js`: hierarchical view culling of whole city.root children for the main view only (shown
+    again around the shadow pass). Parked outside the auto-loader until it is booted and A/B'd.
+  - Frame-rate limit option 30 (`src/ui/settings/schema.js`).
+  - `src/world/env/shoreFill.js`: a faster drop-in for ocean.js's shore land fill, for r2-ground to merge.
+  - `src/render/lod/lodChain.js` + `tools/v2/perf/lodgen.mjs`: meshoptimizer index-only LOD sidecars (`<model>.lod.bin`)
+    that keep UV seams, normals and skin, with a hash check. `tools/v2/perf/lodpop.mjs` is the pop test.
+  - `tools/v2/perf/cardprune.mjs`: leaf-card pruning with a coverage solve. Not needed: r2-veg's LOD1s are already light.
+  - `src/render/taau.js`: draft output-resolution TAAU for r2-render (not wired).
+- 14:40 **Facade kit step (lead review of sheet_geo2_mbres_0).** Before/after for all of these is `?artgeo=0`.
+  - Magenta bar fixed: it was the Ocean Drive deco sign fins' unlit neon tubes, which drew at full strength by day (MeshBasic, not tone-mapped). They're now dark glass by day and light up at dusk. The fix is in `materials.js` (one line, in the shared working copy).
+  - Facade shader:
+    - wall tints fade toward Florida sun-bleached paint (linear saturation ≤ 0.5, painted walls lum ≥ 0.16, so no navy / teal cartoon walls)
+    - trim and shutter paint saturation ≤ 0.6
+    - very low-frequency repaint / mildew patchiness on big walls
+    - a 0.45 m darker base course at grade
+  - Silhouette: rooftop package units on curbs (sized to clear the parapet), plus a mast or a satellite dish on ~40%, for every procedural block 3.5-46 m.
+  - Library share for mid-rises and shops up 0.42 / 0.40 → 0.50 (calibrated library models carry more modeled detail). The 7 px/m motel is retired.
+  - Audit `art-audit-rm1.md` (nico + beach, roughness / metalness measured on screen): library vs code-built agree on foliage (0.01 stop) and bark (-0.16 stop).
+- **14:20 Stopped on the lead's budget order.**
+  - GPU at 1080p (serialized frame): post 4.3-6.8 ms (bloom 1.6-2.2). The scene GPU time hides under its CPU issue time.
+  - Hiding the vegetation at the spawn halves the draws (598 -> 317) and the triangles (6.9 -> 3.5 M).
+  - The 31 ms beach updater was `city.update` doing teleport catch-up.
+  - The queued probe (yard colliders, material census, static-matrix / tile-cull / AE A/Bs, shoreFill equivalence)
+    never got a browser slot. The command is in PERF_PLAN.md "Next steps".
+  - Committed: my tools and flag-off modules (see the commit).
+  - The post.js hunks travel with r2-render's commit.
