@@ -20,17 +20,19 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: 1500 }, async (b) => {
   const cam = (v) => `(() => { const P = game.player; const T = P.position.constructor; const [ox, oy, oz, ly] = ${JSON.stringify(v)};
     game.cameraOverride = (dt, cam) => { const h = P.heading, c = Math.cos(h), s = Math.sin(h); const p = P.position;
       cam.position.set(p.x + ox * c + oz * s, p.y + oy, p.z - ox * s + oz * c); cam.lookAt(p.x, p.y + ly, p.z); if (cam.fov !== 45) { cam.fov = 45; cam.updateProjectionMatrix(); } return true; }; return 1; })()`;
-  for (const mode of ['old', 'new']) {
+  if (!o.skipPose) for (const mode of ['old', 'new']) {
     await b.eval(`(globalThis.__nicoPoseOld = ${mode === 'old'}, 1)`);
     await b.sleep(1500);
     for (const [vn, v] of Object.entries(VIEWS)) { await b.eval(cam(v)); await b.sleep(500); await b.screenshot(`${D}/r2_${SET}_${mode}_${vn}.png`); }
   }
   // walk and run with the new posture (W, then Shift+W), chase camera
   const key = (code, down) => `dispatchEvent(new KeyboardEvent('${down ? 'keydown' : 'keyup'}', { code: '${code}', key: '${code}' }))`;
+  if (!o.skipPose) {
   await b.eval(cam(VIEWS.q34));
   await b.eval(key('KeyW', true)); await b.sleep(1600); await b.screenshot(`${D}/r2_${SET}_new_walk.png`);
   await b.eval(key('ShiftLeft', true)); await b.sleep(1400); await b.screenshot(`${D}/r2_${SET}_new_run.png`);
   await b.eval(key('ShiftLeft', false)); await b.eval(key('KeyW', false)); await b.sleep(1200); await b.screenshot(`${D}/r2_${SET}_new_stop.png`);
+  }
   if (o.cars) {
     for (const key2 of String(o.cars).split(',')) {
       const r = await b.eval(`(async () => { const pp = game.player.position; for (const v of window.__cars || []) { try { game.vehicles.remove(v); } catch (e) {} } window.__cars = [];
@@ -40,7 +42,7 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: 1500 }, async (b) => {
       await b.sleep(900);
       await b.eval('(game.enterVehicle(window.__cv), 1)');
       await b.sleep(1300);
-      const fit = await b.eval(`JSON.stringify((() => { const c = game.playerCharacter; const s = c?._seat; if (!s) return null; const sh = window.__cv.car.shell; const g = (n) => sh.worldToLocal(c.getBone(n).getWorldPosition(new (game.player.position.constructor)())); const hd = g('Head'), nk = g('Neck'); const crown = hd.clone().add(hd.clone().sub(nk).normalize().multiplyScalar(0.17)); return { crownToRoof: +(s.anchor.roofY - crown.y).toFixed(3), slide: s.slide, recl: s.extraRecline, lean: s.reachLean, open: s.open, lh: g('LeftHand').toArray().map((x) => +x.toFixed(2)), wheel: s.anchor.wheel?.c.toArray().map((x) => +x.toFixed(2)) }; })())`);
+      const fit = await b.eval(`JSON.stringify((() => { const c = game.playerCharacter; const s = c?._seat; if (!s) return null; const sh = window.__cv.car.shell; const g = (n) => sh.worldToLocal(c.getBone(n).getWorldPosition(new (game.player.position.constructor)())); const hd = g('Head'), nk = g('Neck'); const crown = hd.clone().add(hd.clone().sub(nk).normalize().multiplyScalar(0.17)); return { probe: s.probe, hipY: s.hip ? +s.hip.y.toFixed(3) : null, anchorHipY: +s.anchor.hip.y.toFixed(3), roofUsed: s.roofY ?? s.anchor.roofY, crownToRoofUsed: +((s.roofY ?? s.anchor.roofY) - crown.y).toFixed(3), sink: s.sink, chin: s.chin, crownToRoof: +(s.anchor.roofY - crown.y).toFixed(3), slide: s.slide, recl: s.extraRecline, lean: s.reachLean, open: s.open, lh: g('LeftHand').toArray().map((x) => +x.toFixed(2)), wheel: s.anchor.wheel?.c.toArray().map((x) => +x.toFixed(2)) }; })())`);
       console.log('nico in', r, fit);
       for (const [vn, off] of Object.entries({ win: [2.4, 0.3, 0.25], chase: [0, 2.0, -6.2] })) {
         await b.eval(`(() => { const T = game.player.position.constructor; const v = window.__cv; const a = v.seatAnchor(0); const off = [${off.join(',')}];

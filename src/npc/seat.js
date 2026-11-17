@@ -144,6 +144,58 @@ function curlHand(ch, S, c, thumb, spread = 0) {
   }
 }
 
+
+// ---------------------------------------------------------------- seat probe (never trust a stale anchor)
+// Rays against the car's own meshes, once per car model + seat: down from above the anchor's hip onto the cushion
+// (the H-point sits ~10 cm above the compressed cushion) and up to the headliner. A re-converted or swapped model whose
+// anchor was not re-derived still seats people on its real cushion and under its real roof.
+const PROBES = new Map();
+const _rc = new THREE.Raycaster();
+function isPersonPart(o) { for (let p = o; p; p = p.parent) { if (p.name && /^(npc-|character-)/.test(p.name)) return true; } return false; }
+export function probeSeat(shell, anchor, key = null) {
+  const k = key ? key + ':' + (anchor.id || anchor.i) : null;
+  if (k && PROBES.has(k)) return PROBES.get(k);
+  const out = { cushionY: null, roofY: null };
+  try {
+    shell.updateWorldMatrix(true, true);
+    const meshes = []; shell.traverse((o) => { if (o.isMesh && o.visible !== false && !o.isSkinnedMesh && !o.isInstancedMesh && !isPersonPart(o)) meshes.push(o); });
+    const glass = (o) => { const m = Array.isArray(o.material) ? o.material[0] : o.material; return !!(m && (m.transparent || m.transmission > 0 || /glass|window/i.test((m.name || '') + (o.name || '')))); };
+    const W = (x, y, z) => shell.localToWorld(new THREE.Vector3(x, y, z));
+    const h = anchor.hip;
+    const dn = shell.localToWorld(new THREE.Vector3(0, -1, 0)).sub(shell.localToWorld(new THREE.Vector3())).normalize();
+    // single-sided shells must still stop the rays from inside (the roof seen from below is a back face)
+    const sides = []; for (const o of meshes) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) if (m && m.side !== THREE.DoubleSide) { sides.push([m, m.side]); m.side = THREE.DoubleSide; }
+    try {
+      // cushion: under the thighs (a little ahead of the hip joint), the highest plausible hit of three rays
+      let best = null;
+      for (const [dx, dz] of [[0, 0.08], [0.06, 0.14], [-0.06, 0.14]]) {
+        _rc.set(W(h.x + dx, h.y + 0.32, h.z + dz), dn); _rc.far = 0.95;
+        for (const i of _rc.intersectObjects(meshes, false)) {
+          if (glass(i.object)) continue;
+          const y = shell.worldToLocal(i.point.clone()).y;
+          if (y > h.y + 0.2) continue;                 // a roof / visor above a too-high anchor: keep looking down
+          if (y > h.y - 0.5 && (best === null || y > best)) best = y;
+          break;
+        }
+      }
+      out.cushionY = best;
+      // headliner: straight up from where the head is (a little behind the hip), glass roofs count as roof
+      const y0 = (best ?? h.y - 0.1) + 0.35;
+      let roof = null;
+      for (const [dx, dz] of [[0, -0.12], [0, -0.02]]) {
+        _rc.set(W(h.x + dx, y0, h.z + dz), dn.clone().negate()); _rc.far = 1.4;
+        const hit = _rc.intersectObjects(meshes, false)[0];
+        if (!hit) continue;
+        const y = shell.worldToLocal(hit.point.clone()).y;
+        if (roof === null || y < roof) roof = y;
+      }
+      out.roofY = roof;
+    } finally { for (const [m, sd] of sides) m.side = sd; }
+  } catch (e) { /* keep the anchor */ }
+  if (k) PROBES.set(k, out);
+  return out;
+}
+
 // ---------------------------------------------------------------- the solver
 function changed(ch, S) {
   // the mixer only runs on some frames for far people: when no bone moved since our last solve, skip (the solve is not
@@ -179,7 +231,7 @@ function solve(ch, S, dt) {
   }
   // ---- 2. hips on the H-point
   const mid = V().addVectors(wp(LU, _a), wp(RU, _b)).multiplyScalar(0.5);
-  const hipW = toW(A.hip);
+  const hipW = toW(S.hip || A.hip);   // probed: the cushion under a stale / high anchor
   // a short driver slides the seat forward on its track before leaning in
   if (S.slide) hipW.addScaledVector(fwd, S.slide);
   const sink = S.sink || 0;
@@ -199,12 +251,13 @@ function solve(ch, S, dt) {
     _q.setFromAxisAngle(left, (hp - want) * D2R * w); rotWorld(Neck, _q);
   }
   // ---- 3. head under the roof: crown = head joint + 0.2 m along the neck -> head line
-  if (Head && Neck && Number.isFinite(A.roofY) && !S.open) {
+  const roofY = Number.isFinite(S.roofY) ? S.roofY : A.roofY;
+  if (Head && Neck && Number.isFinite(roofY) && !S.open) {
     const hd = wp(Head, V()), nk = wp(Neck, V());
     const crown = V().copy(hd).addScaledVector(V().copy(hd).sub(nk).normalize(), 0.17 * scale);
     const crownY = V().copy(crown).applyMatrix4(inv).y;
-    const over = crownY - (A.roofY - 0.02);
-    if (over > 0.004 && S.fit < 30) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if (sink < 0.06) S.sink = Math.min(0.06, sink + Math.max(0.005, over)); else S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); }
+    const over = crownY - (roofY - 0.025);
+    if (over > 0.004 && S.fit < 60) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else S.extraRecline = Math.min(26, S.extraRecline + Math.max(1, over * 60)); }
   }
   // ---- 4. legs to the footwell
   const heelW = toW(A.heel);
@@ -310,6 +363,16 @@ export function seatCharacter(ch, anchor, opts = {}) {
   const S = { open: !!(opts.open ?? (vs && (vs.convertible || vs.roadster || vs.cls === 'roadster' || vs.bike))), anchor, role, vehicle: opts.vehicle || null, fit: 0, reachFit: 0, reachLean: 0, slide: 0, elbowFix: 0, sink: 0, extraRecline: 0, chin: 0, steer: 0,
     scale: (ch.archetype?.height || ch.personMeta?.height || 1.78) / 1.78, isPlayer: !!(ch.isNico || opts.player) };
   ch._seat = S;
+  // probe the real cushion and headliner of this car (cached per model + seat)
+  if (opts.probe !== false && ch.root.parent) {
+    const v = opts.vehicle; const pr = probeSeat(ch.root.parent, anchor, v ? (v.typeKey || v.spec?.key || v.spec?.name || null) : null);
+    S.probe = pr;
+    if (Number.isFinite(pr.cushionY)) {
+      const want = pr.cushionY + 0.1;      // H-point ~10 cm above the compressed cushion
+      if (Math.abs(anchor.hip.y - want) > 0.04) S.hip = anchor.hip.clone().setY(want);
+    }
+    if (Number.isFinite(pr.roofY) && !S.open) S.roofY = Number.isFinite(anchor.roofY) ? Math.min(anchor.roofY, pr.roofY) : pr.roofY;
+  }
   if (!ch._seatWrapped) {
     const orig = ch.update;
     ch.update = function (dt, anim = {}) {
