@@ -27,11 +27,13 @@ export function shopAprons(list, B, env) {
     // march out from the facade until a road edge (or water) is reached under any of three lateral samples
     let ext = 0, road = false;
     for (let d = 0.5; d <= MAX_REACH; d += 0.5) {
-      let hit = false; for (const u of [uL + 0.2, 0, uR - 0.2]) { const p = at(u, d); if (roadDist(p[0], p[1]) < 0.35 || (isWater && isWater(p[0], p[1]))) { hit = true; break; } }
+      let hit = false; for (const u of [-hw + 0.2, 0, hw - 0.2]) { const p = at(u, d); if (roadDist(p[0], p[1]) < 0.35 || (isWater && isWater(p[0], p[1]))) { hit = true; break; } }
       if (hit) { road = true; break; } ext = d;
     }
     if (!road) ext = Math.min(ext, NO_ROAD);
     ext = Math.max(0, ext - 0.15); if (ext < 1.2) continue;
+    const clear = (u) => { for (const d of [0.5, ext * 0.5, ext]) { const p = at(u, d); if (roadDist(p[0], p[1]) < 0.35 || (isWater && isWater(p[0], p[1]))) return false; } return true; }; // the joined strip never runs onto a side street
+    while (uR > hw && !clear(uR)) uR = Math.max(hw, uR - 0.5); while (uL < -hw && !clear(uL)) uL = Math.min(-hw, uL + 0.5);
     const h = hash(Math.round(fx * 7) * 31 + Math.round(fz * 5));
     const rect = (d0, d1, u0 = uL, u1 = uR) => { const a = at(u0, d0), b = at(u1, d0), c = at(u1, d1), e = at(u0, d1); return [a, b, c, e]; };
     const walk = Math.min(ext, ext > 8 ? WALK + h * 0.6 : ext);
