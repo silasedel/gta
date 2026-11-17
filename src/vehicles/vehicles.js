@@ -1345,7 +1345,17 @@ export async function createVehicles(game) {
     }
   }
   const noPark = []; // (declared before the boot spawn loops below: parkChecked reads it)
-  const addNoParkZone = (x, z, r = 12) => { if (Number.isFinite(x) && Number.isFinite(z)) noPark.push({ x, z, r }); return noPark.length; };
+  // registering a zone also clears parked cars already standing in it (zones arrive after the boot spawn)
+  const addNoParkZone = (x, z, r = 12) => {
+    if (!Number.isFinite(x) || !Number.isFinite(z)) return noPark.length;
+    noPark.push({ x, z, r });
+    for (const v of list.slice()) {
+      if (!v.parked || v.pinned || v.playerDriven || v.ai || v.everDriven) continue;
+      const t = v.body?.translation?.(); if (!t || Math.hypot(t.x - x, t.z - z) >= r) continue;
+      try { removeVehicle(v); } catch (e) { /* gone */ }
+    }
+    return noPark.length;
+  };
   trySpecials();
   await breathe(); // stage 1 boot pacing (src/core/pace.js): the spawn loops run in short tasks
   for (let k = 0; k < 40 && list.length < 14; k++) {

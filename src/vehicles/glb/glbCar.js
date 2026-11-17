@@ -430,11 +430,13 @@ export function buildGlbCar(key, look, t, info) {
   return car;
 }
 
+let _canvas = null;
 /** a static library prop (car under a cover): LOD group of trim meshes, ground at y = 0, faces +Z */
 export function buildStaticCar(key) {
   const M = models.get(key);
   if (!M) return null;
-  const lod = new THREE.LOD(), trim = trimMaterial();
+  // a car under a cover: faded gray-tan canvas (matte, albedo ~0.27), not the model's black cover (a black hole at distance)
+  const lod = new THREE.LOD(), trim = key === 'covered1' ? (_canvas ||= new THREE.MeshStandardMaterial({ color: 0x8f877a, roughness: 0.95, metalness: 0, name: 'car-cover-canvas' })) : trimMaterial();
   M.lv.forEach((L, i) => {
     const g = new THREE.Group();
     if (L.trim) { const m = new THREE.Mesh(L.trim, trim); m.castShadow = i < 2; m.receiveShadow = i === 0; g.add(m); }
