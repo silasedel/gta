@@ -196,33 +196,5 @@
    "green iron",
    "faded"
   ]
- },
- "ptable": {
-  "glb": "patio_table.glb",
-  "mat": "Plastic Table",
-  "n": 6,
-  "size": 512,
-  "layers": [
-   "red",
-   "white",
-   "mint green",
-   "sky blue",
-   "beige, grime",
-   "faded red"
-  ]
- },
- "umbrella": {
-  "glb": "umbrella_cafe.glb",
-  "mat": "Canopy",
-  "n": 6,
-  "size": 1024,
-  "layers": [
-   "blue stripes",
-   "red stripes",
-   "green stripes",
-   "yellow stripes",
-   "teal stripes",
-   "beige, faded"
-  ]
  }
 }

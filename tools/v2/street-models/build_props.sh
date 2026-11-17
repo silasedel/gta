@@ -28,12 +28,3 @@ CO="$M/Construction/Construction Set 1 - Construction Site Machinery And Cabin S
 run cabin '{"src":"'$CO'","out":"'$O'/site_cabin.glb","keep":"^Portable_Cabin","height":2.9,"tris":2000,"maxtex":1024}'
 
 # not used: Sign Set 7 (stripes lost in conversion), Crate 2 (maker name embossed), pack PostBox (real postal logo), pack Utility (broken split)
-# cafe patio umbrella (stands in the patio table) and Street Props Pack 2 pieces for downtown sidewalks
-run umbrella '{"src":"'$M'/Beach Stuff/Umbrella 3 - Cafe Patio Umbrella/Umbrella 3.blend","out":"'$O'/umbrella_cafe.glb","height":2.45,"tris":4000,"maxtex":1024}'
-P2="$M/Prop Packs/Street Props Pack 2 - Town Square Signs Subway Entrance Parking Valet And Kiosks/Street Props Pack 2.blend"
-run p2pot '{"src":"'$P2'","out":"'$O'/planter_pot.glb","keep":"^planter_pot$","height":0.6,"tris":1520,"maxtex":1024}'
-run p2planter '{"src":"'$P2'","out":"'$O'/planter_box.glb","keep":"^planter$","height":0.76,"tris":162,"maxtex":1024}'
-
-# not used: pack 2 trash / trash_bin0 / trash_bin1 (real waste-company logos BFI / WM in the textures)
-# food cart for plaza / beach kiosk spots
-run foodcart '{"src":"'$M'/Food Carts/Food Cart 1 - Red-Yellow Hot Dog Cart/Food Cart 1.blend","out":"'$O'/food_cart.glb","rotz":90,"height":2.03,"tris":6042,"maxtex":1024,"texmat":{"Hot-dog":{"color":"'$PWD'/tools/v2/street-models/fixed/foodcart_color.png"}}}'

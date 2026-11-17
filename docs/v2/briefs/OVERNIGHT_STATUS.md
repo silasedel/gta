@@ -92,6 +92,7 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 04:05 LEAD (repeat): tilebuild.js commits from other helpers keep dropping my furniture hunks in HEAD because their index holds an older staged tilebuild.js: 765e12c (buildings), d3a7601 (vegetation), 6a4afb8 (ground pass) all have no workZones/propJitter/setPropMatrix; I re-add them each commit (4a6a721 has them). Working tree is fine. Fix for everyone: before committing tilebuild.js, `git reset -q -- src/world/miami/tilebuild.js` then stage only your hunks (tools/v2/street-models/stage_hunks.py <file> <regex> does that in 0.5 s), or use commit_mine.sh's compare-and-swap pattern.
 - 03:55 cafes now the user's models (0373e59): patio table + 2-4 plastic chairs per table (one color per cafe, 6 colors), striped cafe umbrellas (6 colors) - docs/v2/shots/props/t9_cafe1.png, t9_cafe2.png; hydrant water column - t9_spray.png; sidewalk planters with shrubs downtown; kiosk spots -> library hot dog cart ("Crunch" wordmark painted out). Not used for brand reasons: pack-2 bins (BFI / WM logos), pack-1 post box (postal logo), Crate 2 (maker name).
 - 03:25 LEAD: Keys commit bc887bf reverted my committed tilebuild.js hunks (187 lines: variants, jitter, moved poses, work zones, construction sites, prop colliders) and hydrantSpray.v2.js in HEAD (the working tree was never affected); I re-committed them. Same stale-index pattern as my 606790d mistake: tools/v2/street-models/commit_mine.sh shows a compare-and-swap way to commit (read HEAD, private index from it, commit-tree -p HEAD, update-ref HEAD new old).
 - 03:10 Nico's street from the front deck (docs/v2/shots/props/t8_deck11.png) reads like the mock-up: cart pairs at the curb per house, post mailboxes at the driveways, poles + wires. NOTE for the Keys helper / lead: public/assets/models/keys/rolloff.glb still carries the source's "Waste recycling company +0098240725" print (visible in t8_deck11.png); public/assets/models/street/rolloff.glb is the same Dumpster 3 with that text + phone painted out and replaced ("SUNCOAST ROLL-OFF 305-555-0142", readable on both sides) - please switch to it or reuse tools/v2/street-models/fixed/rolloff_color4.png.
@@ -201,8 +202,8 @@
   rust-orange dry grass / soil (straw and soil tints neutralized, scrub / meadow greener), airport edges crumbling next to the
   runways (airfield pavement joins the mask and uses the road asphalt / concrete scans instead of the flat black sets), ramp / deck
   seams (elevated deck asphalt joins the mask), land base 3 cm under the terrain z-fighting far away (depth-biased).
-  **keys / houses owner:** layer audit at Nico's street finds each spawn-street house three times at the same spot
-  (`houses:near:*`, `houses:spawn:1:*`, `houses:spawn:2:*`, 40-120 coincident hits each) - z-fight / dithered shimmer on walls.
+  (Retracted: the "houses drawn 3x" audit finding was a false positive - my ray audit ignored hidden LOD parent groups; the
+  keys helper confirmed mid / far / near are exclusive per lot. The audit now skips meshes under hidden groups.)
   Nico's yard details (`nh_detail` weeds 79, strap plants 276, grass 125, palmetto 13 instances) stood on the road carriageway:
   the ground mask now hides them on asphalt (auto-patched at runtime), but the placement itself should skip the road.
 - 01:05 Committed 7bf6df8 (surface mask, terrain shoulders, crumbling open edges, decals from the road's own asphalt, 2K scans,
@@ -211,9 +212,7 @@
   terrain recipes over the user's scans (`ground/groundMaterial.js patchRecipeGround`), lots / aprons use the user's Concrete 3.
   Test slots are scarce (3 Chromes for ~10 helpers): runs are batched; the probe now has per-step timeouts.
 - 00:50 Layer audit (new `src/world/ground/layerAudit.js`, ray grid over the whole scene, `docs/v2/reports/stage1-la1.json`) at Nico's
-  street: **for keys / houses owner:** every spawn-street house is drawn twice at the same spot, `houses:spawn:1:*` and
-  `houses:spawn:2:*` (identical walls / wood / paint, same height, 30-60 hits each) = z-fight / "dotted, wobbling house" (brief item 8)
-  unless one of them is fully discarded in its shader. The pale flat polygons on Keys lots were the world-dressing crushed-shell
+  street (house duplicate finding later retracted, see 01:35). The pale flat polygons on Keys lots were the world-dressing crushed-shell
   driveway boxes (plaster slab at road height, z-fighting with the asphalt where they touch): now drawn into the ground by the
   terrain shader (surface-mask drive channel, ragged shell edges, a few weeds) - one-line hook in dressing.v2.js, box kept as fallback.
 - 00:25 Baseline shots `docs/v2/shots/stage1/gp0_*.png` (Keys close/graze/side/aerial, downtown). Found: lane sealed patches = dark
@@ -260,6 +259,15 @@
     'kitchen'|'bar'|'hotel'|'lifeguard'|'dock'|... })` gives staff from the user's people.
 
 ## weapons
+- 02:45 **Verified in game, every weapon** (`docs/v2/shots/weapons/fin_sheet_handguns_aim.png`, `fin_sheet_long_aim.png`,
+  `fin_sheet_tp.png`, `fin_sheet_melee.png`, `fin_sheet_pickups_cop.png`; studio renders `lib_renders_handguns.png`,
+  `lib_renders_rifles.png`, `lib_renders_melee.png`). Pickups: the real model turning ~30 cm above the surface with a
+  faint halo and a rim glow that only reads at grazing angles / at night; no beams (fixed: models were offset by their
+  world position). Draw calls: a held weapon is 1-8 (procedural ones were 8-20); a pickup is its model + rim shells within
+  40 m + halo (the beam is gone). Assets 18.5 MB total, loaded per weapon on demand (pistol + bat preloaded).
+  Cop holding his service pistol at his side: `docs/v2/shots/weapons/fin3_cop_idle.png`. Open: cop aim pose is coded
+  (same IK as Nico) but not caught on camera yet (the AI stays in 'check' mode in the test); the cop / NPC rigs have no finger weights,
+  so their hands stay open on the grip; sniper close-up is the scope view by design.
 - 01:55 Hands verified on the new Nico (his rig has finger joints): fingers curl round grips and handguards, rifles at the
   shoulder with the left hand on the handguard, GTA low ready when not aiming, two-handed pistol grip, pistol low at the
   thigh at idle. Asset fixes from Blender studio renders (`tools/v2/weapons/render_sheet.py`): materials had collapsed onto
