@@ -165,6 +165,9 @@
   (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
 
 ## buildings
+- 03:55 Lead FINAL_sheet follow-up: (a) downtown/procedural street faces now have real depth: stone pilasters between storefront bays, granite kick plates, sign boards, a projecting ledge (with colliders), projecting window sills on every street-facing punched/arched window up to 6 floors (+ lintels on masonry families), stronger base grime, no camo peeling paint on ordinary rows. Shots `docs/v2/shots/stage1/GF2_gf_{havana,havana2,overtown,edge}.png` (several downtown street shots get hijacked by gameplay: turf-fight mission camera, arrests, cutscene letterbox). (b) Keys navy rectangles: not mine. Probe at (-930, 4930) (`tools/v2/buildings/nearprobe.js`, `navyprobe.js`): 0 library instances / fences / clutter within 250 m; the only navy flat-colored meshes there are cars (LOD groups, #1d3f8f / #1c2528) and one `MeshStandardMaterial #2a3550` under Group < Group (owner unknown, below my size filter) - keys / props helper please check. (c) construction-site ground: ground pass / props.
+- Rough district verified at street level: chain-link fences with posts around vacant lots and a blue tarp squatter shack inside (`GF2_gf_overtown.png`).
+- Casino far LOD 70k tris (was 329k at every distance).
 - 03:15 Final review tour done: `docs/v2/shots/stage1/BLD_{dt,brick,sobe,havana,overtown,liberty,clew}_{st,air,stn,airn}.png` + `BLD_apt_{gate,air,hangar,airn}.png` (noon 12:00 / night 21:30, clear weather). Fixed from it: glittering night panes (library glass was a perfect mirror of the starry sky), low-res stucco on library walls (re-grained), fire station out of the core, runway lights too small to see.
 - Lead commit rule noted (pathspec commits only, `git show --stat HEAD` checked). My ab3fb52 / 765e12c had swept in other helpers' staged index (street-props deletions, a tilebuild block move); the props helper re-committed their files in 8c62bdc; nothing of mine is pending in other files.
 - Lead FINAL_sheet items: (a) downtown ground floors: stone pilasters between bays, granite kick plates, sign boards and a projecting ledge over storefront ground floors (real geometry, in tilebuild `streetShopDress`), stronger base grime; verifying now. (b) Keys navy rectangles near (-930, 4930): NOT library objects (probe: 0 library instances / fences within 250 m); a dark-navy `MeshStandardMaterial #2a3550` mesh under a Group < Group is there, identifying its owner now. (c) construction-site tile: the flat orange ground is the `construction` land area (ground pass) and the site props (props helper); not in my files.
@@ -357,6 +360,25 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   helpers' changes in it).
 
 ## vegetation
+- 03:35 **Far squares fixed (lead's k7_r5_aerial).** They were my impostors: hiding them at that camera removed every
+  square, and forcing no-mip filtering turned them back into trees. Two causes. (1) The bake is one short, wide strip
+  (2048 x ~150-600), so the box-filtered mips averaged a whole view column into one half-alpha texel. (2) The per-pixel
+  dither between two views jumped the uv between views, so the GPU picked the coarsest mip. Now (`models.js`
+  `impostorMips`, `materials.js`): views go in a 4 x 2 atlas of power-of-two tiles (128 px trees, 64 px shrubs), the mip
+  chain is built by hand and stops at 2 texels per tile (views never bleed), alpha is scaled per tile and level so the
+  0.5-test coverage matches level 0, transparent texels are push-pull filled with the nearest color (no dark rims), and
+  sampling uses `textureGrad` from the continuous uv. Mip build: 8-50 ms per model once warm. Pan test
+  (`tools/v2/vegetation/pan.mjs` + `pan_metric.py`, slow yaw over the far shore, sparkle = frame-to-frame Laplacian
+  change after alignment): new impostors 8.7, impostors hidden 8.8 (floor), no-mip impostors 10.2.
+  Shots: `t10_keys_air.png`, `t10_homestead_air.png` (mainland suburb: distant forest reads as trees).
+- 03:35 **Keys mid layer.** Hedge, sea grape and flowering-shrub runs along the side and back lot lines (0.7-1.1 m inside the
+  fences, broken into runs). Taller sea grape clumps (2.5-3 m) stand in the runs. Lots get up to 5 trees, mostly sea
+  grape, gumbo limbo and buttonwood. The Keys biome and the sandy lots are evenly wooded (no longer only in grove
+  patches). Poincianas went from about 1 in 5 trees to about 1 in 30. Audit: Keys 324 trees in view (was 221), 0
+  floating, on road or in solids. Shots: `t9_keys_yard.png`, `t10_keys_air.png`.
+- 03:35 Street palms in paving (sidewalks, plazas): the root flare is pulled into the trunk with only a slight collar
+  bulge, the base sinks less, and a cast-iron grate goes under every palm in paving (also plaza palms that are not
+  curbside). Root flares stay in soil, lawn and sand. Shot: `t10_downtown.png`, `t10_havana.png`.
 - 02:15 Commits 54ec63e + 810d62f: city parks / big lawns now get shade-tree and palm groves (the South Beach park lawn was
   empty in `t6_southbeach.png`), contact darkening at trunk bases (the royal palm root flare read as white hair in
   `t6_grate_close.png`, the new cast-iron tree grate is visible there), darker royal trunks. t7 re-shoot queued.
