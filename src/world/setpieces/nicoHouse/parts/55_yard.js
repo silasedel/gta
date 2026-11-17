@@ -151,25 +151,27 @@ export function build(ctx) {
   // INSIDE the bin just under the rim: broken drywall with thickness and torn edges, 2x4 studs, a bent sheet of roofing tin, a folded tarp
   { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x, y, z, a, b, c)), q = kit.rng(5577);
     const GYP = mat.pbr('concrete_wall_008', { rep: 0.7, tint: 0xdfe8ff, gain: 2.6, grunge: true });   // (the scan is warm: a blue tint lands it on off-white)   // gypsum board: paper face with a chalky grain
-    const rim = 3.37 * sc * sy, hx = 3.26 * sc / 2 - 0.16, hz = 8.81 * sc / 2 - 0.2, fill = rim - 0.32;
-    { const g = new THREE.PlaneGeometry(hx * 2, hz * 2, 24, 48), pp = g.attributes.position;   // the settled rubble: a lumpy heap, higher in the middle, dirty
-      for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i), edge = Math.min(1, (hx - Math.abs(x)) / 0.5, (hz - Math.abs(y)) / 0.8);
-        pp.setZ(i, (0.18 * Math.max(0, edge) + Math.sin(x * 4.1 + y * 1.3) * 0.06 + Math.sin(y * 2.7 - x * 3.3) * 0.08 + Math.sin(x * 11 + y * 9) * 0.02) * Math.max(0, edge)); }
-      g.rotateX(-PI / 2); g.computeVertexNormals(); D.geo(GYP, g, L(0, fill - 0.06, 0), { color: 0x6a6258, wear: 0.9 }); g.dispose(); }
+    const rim = 3.37 * sc * sy, hx = 3.26 * sc / 2 - 0.16, hz = 8.81 * sc / 2 - 0.2, fill = rim - 0.62;
+    // a real heap: a mound that rises from just under the rim at the walls to above it in the middle, and every piece is stacked on
+    // that surface (partly buried, tilted), so no floor shows
+    const mound = (x, z) => { const e = Math.max(0, Math.min(1, (hx - Math.abs(x)) / 0.6, (hz - Math.abs(z)) / 1.0)); return fill + e * (0.45 + 0.12 * Math.sin(x * 2.3 + z * 0.9) + 0.1 * Math.sin(z * 1.7 - x * 3.1)) + 0.025 * Math.sin(x * 9 + z * 7); };
+    { const g = new THREE.PlaneGeometry(hx * 2, hz * 2, 24, 56), pp = g.attributes.position; g.rotateX(-PI / 2);
+      for (let i = 0; i < pp.count; i++) pp.setY(i, mound(pp.getX(i), pp.getZ(i)) - 0.06); g.computeVertexNormals(); D.geo(GYP, g, L(0, 0, 0), { color: 0x6a6258, wear: 0.9 }); g.dispose(); }
     const torn = (w, h, k) => { const sh = new THREE.Shape(), n = 9; for (let i = 0; i <= n; i++) { const t = i / n * 6.283, rr = 0.82 + 0.22 * Math.sin(t * 3 + k) * q() + (q() < 0.3 ? -0.15 : 0); const px = Math.cos(t) * w / 2 * rr, py = Math.sin(t) * h / 2 * rr; i ? sh.lineTo(px, py) : sh.moveTo(px, py); }
-      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.016, bevelEnabled: false }); g.rotateX(-PI / 2); return g; };
-    for (let i = 0; i < 18; i++) { const w = 0.4 + q() * 0.55, h = 0.3 + q() * 0.45, g = torn(w, h, i);   // broken drywall: paper faces, gypsum edges
-      D.geo(GYP, g, L((q() - 0.5) * hx * 1.6, fill + 0.05 + q() * 0.22, (q() - 0.5) * hz * 1.7, (q() - 0.5) * 0.9, q() * 6.28, (q() - 0.5) * 0.7), { color: V(q() < 0.7 ? 0xece8df : 0xd2cdc2, 0.04), wear: 0.5 }); g.dispose(); }
-    for (let i = 0; i < 12; i++) { const len = 1.2 + q() * 2.0, a = (q() - 0.5) * 0.5;   // 2x4 studs and offcuts, a few ends over the rim
-      D.box(W, 0.038, 0.089, len, L((q() - 0.5) * hx * 1.4, fill + 0.08 + q() * 0.25 + Math.abs(a) * 0.4, (q() - 0.5) * (hz * 2 - len) * 0.9, a, (q() - 0.5) * 0.5, (q() - 0.5) * 0.3), { grain: 2, color: V(q() < 0.3 ? 0xb39a74 : 0x9a8e7a, 0.1), wear: 0.6 }); }
+      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.022, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.006, bevelSegments: 1 }); g.rotateX(-PI / 2); return g; };   // board thickness with a crumbled gypsum edge
+    const onHeap = (x, z, up = 0) => mound(x, z) + up;
+    for (let i = 0; i < 26; i++) { const w = 0.22 + q() * 0.4, h = 0.18 + q() * 0.3, g = torn(w, h, i), x = (q() - 0.5) * hx * 1.7, z = (q() - 0.5) * hz * 1.8;   // broken drywall chunks
+      D.geo(GYP, g, L(x, onHeap(x, z, 0.02 + q() * 0.08), z, (q() - 0.5) * 1.4, q() * 6.28, (q() - 0.5) * 1.1), { color: V(q() < 0.7 ? 0xece8df : 0xd2cdc2, 0.04), wear: 0.5 }); g.dispose(); }
+    for (let i = 0; i < 14; i++) { const len = 0.9 + q() * 2.2, a = (q() - 0.5) * 0.8, x = (q() - 0.5) * hx * 1.3, z = (q() - 0.5) * (hz * 2 - len) * 0.9;   // studs and offcuts, stacked and angled, some ends over the rim
+      D.box(W, 0.038, 0.089, len, L(x, onHeap(x, z, 0.08 + Math.abs(a) * 0.35), z, a, (q() - 0.5) * 0.9, (q() - 0.5) * 0.6), { grain: 2, color: V(q() < 0.3 ? 0xb39a74 : 0x9a8e7a, 0.1), wear: 0.6 }); }
     { const g = new THREE.PlaneGeometry(0.75, 1.9, 6, 12), pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i); pp.setZ(i, Math.sin(x * 26) * 0.012 + Math.max(0, y - 0.2) ** 2 * 0.35); } g.computeVertexNormals();   // a bent sheet of roofing tin
-      D.geo(mat.tin(), g, L(hx * 0.35, fill + 0.22, -hz * 0.3, -PI / 2 + 0.25, 0.4, 0.1), { color: 0xb9bcbd, wear: 0.8 }); g.dispose(); }
-    { const g = new THREE.PlaneGeometry(1.7, 1.2, 34, 24), pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i), e = Math.max(0, Math.abs(x) - 0.55) * 1.4;   // a blue poly tarp, slumped in big folds with a crinkle, its edge flopping over
+      D.geo(mat.tin(), g, L(hx * 0.35, onHeap(hx * 0.35, -hz * 0.3, 0.25), -hz * 0.3, -PI / 2 + 0.35, 0.4, 0.15), { color: 0xb9bcbd, wear: 0.8 }); g.dispose(); }
+    { const g = new THREE.PlaneGeometry(1.7, 1.2, 34, 24), pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i), e = Math.max(0, Math.abs(x) - 0.55) * 1.4;   // a blue poly tarp draped over the heap
         pp.setZ(i, Math.sin(x * 5.5 + y * 2) * 0.08 + Math.sin(y * 9 + x * 1.5) * 0.035 + Math.sin(x * 23 + y * 17) * 0.006 + Math.cos(x * 31 - y * 27) * 0.004 - e * e * 0.5); } g.computeVertexNormals();
-      D.geo(PLG, g, L(-hx * 0.3, fill + 0.14, hz * 0.45, -PI / 2, 1.1, 0), { color: 0x2c5b94 }); g.dispose(); }
-    for (let i = 0; i < 4; i++) { const g = new THREE.SphereGeometry(0.3, 14, 10), pp = g.attributes.position, k0 = q() * 9;   // black contractor bags: lumpy, slumped, glossy
-      for (let j = 0; j < pp.count; j++) { const x = pp.getX(j), y = pp.getY(j), z = pp.getZ(j), w = 1 + 0.16 * Math.sin(x * 11 + k0) * Math.cos(z * 9 - k0) + 0.08 * Math.sin(y * 19 + x * 7); pp.setXYZ(j, x * w * 1.05, Math.max(-0.17, y * w * 0.72), z * w * 1.25); }
-      pp.needsUpdate = true; g.computeVertexNormals(); D.geo(PLG, g, L((q() - 0.5) * hx * 1.2, fill + 0.2, (q() - 0.5) * hz * 1.4, (q() - 0.5) * 0.3, q() * 6.28, 0), { color: V(0x141414, 0.05) }); g.dispose(); }
+      D.geo(PLG, g, L(-hx * 0.3, onHeap(-hx * 0.3, hz * 0.45, 0.1), hz * 0.45, -PI / 2, 1.1, 0), { color: 0x2c5b94 }); g.dispose(); }
+    for (let i = 0; i < 5; i++) { const g = new THREE.SphereGeometry(0.3, 14, 10), pp = g.attributes.position, k0 = q() * 9, x = (q() - 0.5) * hx * 1.2, z = (q() - 0.5) * hz * 1.5;   // black contractor bags: lumpy, slumped, glossy
+      for (let j = 0; j < pp.count; j++) { const px = pp.getX(j), py = pp.getY(j), pz = pp.getZ(j), w = 1 + 0.16 * Math.sin(px * 11 + k0) * Math.cos(pz * 9 - k0) + 0.08 * Math.sin(py * 19 + px * 7); pp.setXYZ(j, px * w * 1.05, Math.max(-0.17, py * w * 0.72), pz * w * 1.25); }
+      pp.needsUpdate = true; g.computeVertexNormals(); D.geo(PLG, g, L(x, onHeap(x, z, 0.12), z, (q() - 0.5) * 0.4, q() * 6.28, (q() - 0.5) * 0.3), { color: V(0x141414, 0.05) }); g.dispose(); }
     for (let i = 0; i < 6; i++) { const sd = i % 2 ? 1 : -1, g = torn(0.18 + q() * 0.25, 0.14 + q() * 0.2, 20 + i);   // spill at the base: drywall shards and offcuts in the dirt
       D.geo(GYP, g, L(sd * (hx + 0.35 + q() * 0.7), 0.012, (q() - 0.5) * hz * 1.6, (q() - 0.5) * 0.2, q() * 6.28, (q() - 0.5) * 0.2), { color: V(0xe2ddd2, 0.05), wear: 0.7 }); g.dispose();
       if (i < 3) D.box(W, 0.038, 0.089, 0.3 + q() * 0.4, L(-sd * (hx + 0.3 + q() * 0.6), 0.05, (q() - 0.5) * hz * 1.4, 0, q() * 3, PI / 2), { grain: 2, color: V(0x9a8e7a, 0.1), wear: 0.7 }); }

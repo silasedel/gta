@@ -62,7 +62,7 @@ export const MAILBOX = { x: -19.4, z: 18.2, h: -1.03 };
 
 // ---- red roll-off at the street edge of the yard, along the west leg, behind the right-hand bins (mock-up: mid-frame right): a long,
 // LOW 20-yard box (sy), rust-darkened ----
-export const DUMPSTER = { x: -22.0, z: 12.55, heading: 0.54, scale: 0.82, sy: 0.55, tint: [0.96, 0.93, 0.9] };
+export const DUMPSTER = { x: -22.0, z: 12.55, heading: 0.54, scale: 0.82, sy: 1, tint: [0.96, 0.93, 0.9] };   // full height (squashed ribs looked wrong up close)
 
 // ---- pale limestone / coral boulders: [x, z, piece (1..6 of keys/rocks.glb), scale, heading, sink] ----
 export const ROCKS = [

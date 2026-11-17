@@ -60,7 +60,7 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
     if (k === 'rocks') { m.color.setRGB(1.75, 1.72, 1.64); m.roughness = 1;   // mossy brown boulders -> pale Keys limestone / coral rock:
       m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { float l = dot( diffuseColor.rgb, vec3( 0.3, 0.55, 0.15 ) ); diffuseColor.rgb = mix( vec3( l ) * vec3( 1.0, 0.98, 0.93 ), diffuseColor.rgb, 0.22 ); }'); };   // the scan's moss and brown are taken out (78% desaturated)
       m.customProgramCacheKey = () => 'keys:limestone'; }
-    if (k === 'rolloff') { m.roughness = Math.max(0.6, m.roughness); m.metalness = 0; m.color.setRGB(1.0, 1.0, 1.0); }   // r2-keys: the body texture itself is now chipped faded red enamel over rust (tools/v2/keys/tex/repaint_dumpster2.py); no flat tint
+    if (k === 'rolloff') { m.roughness = Math.max(0.6, m.roughness); m.metalness = 0; m.color.setRGB(1.0, 1.0, 1.0); if (/Part 02/.test(m.name || '')) m.color.setRGB(1.5, 0.62, 0.5); }   // Part 02 (the side plates) is a gray scan: painted the same faded red   // r2-keys: the body texture itself is now chipped faded red enamel over rust (tools/v2/keys/tex/repaint_dumpster2.py); no flat tint
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;
   }
