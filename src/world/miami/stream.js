@@ -81,6 +81,12 @@ export function createStreamer(opts) {
     }
     // ---- visibility: chunk far meshes, tile mid/near ----
     for (const c of chunks.values()) { if (c.far) c.far.visible = !(c.active && c.mid); if (c.mid) c.mid.visible = c.active; }
+    // stage 1 perf: every tile ever touched stayed in the map and was tested against every focus point (camera, player,
+    // car, look-ahead and one anchor per streamed car / ped) every frame, with a hypot per pair. After a few minutes of
+    // driving that was thousands of tiles x ~70 anchors (several ms a frame). Now: squared distances (no sqrt), and an
+    // empty tile (no near build, colliders or jobs) far outside the camera window and every anchor's reach is dropped
+    // (tileOf recreates it on demand). Same decisions as before: wantCol = some anchor within r (+60 m to keep).
+    const pruneM = 60 + 2 * tileSize;
     for (const t of tiles.values()) {
       const ch = chunks.get(key(Math.floor(t.tx / CH), Math.floor(t.tz / CH)));
       if (!ch.active) { // chunk went far: drop the near build
@@ -88,12 +94,21 @@ export function createStreamer(opts) {
         if (t.near) { dispose(t.near); t.near = null; }
       }
       // ---- colliders: kept within each anchor's radius (focus[i].r, default colR) ----
-      let excess = Infinity, dc = Infinity;
-      for (const f of focus) { const d2 = distRect(f.x, f.z, t.x0, t.z0, tileSize); const e = d2 - (f.r ?? colR); if (e < excess) excess = e; if (d2 < dc) dc = d2; }
-      const wantCol = t.col ? excess < 60 : excess < 0;
-      if (wantCol && !t.col && !t.colJob) t.colJob = enqueue('col', t, buildColliders(t), dc - 500, (res) => { t.col = res; t.colJob = null; });
+      let in0 = false, in60 = false, inReach = false;
+      const x1 = t.x0 + tileSize, z1 = t.z0 + tileSize;
+      for (let fi = 0; fi < focus.length; fi++) {
+        const f = focus[fi], r = f.r ?? colR;
+        const dx = Math.max(t.x0 - f.x, 0, f.x - x1), dz = Math.max(t.z0 - f.z, 0, f.z - z1), d2 = dx * dx + dz * dz;
+        if (d2 < (r + pruneM) * (r + pruneM)) { inReach = true; if (d2 < (r + 60) * (r + 60)) { in60 = true; if (d2 < r * r) { in0 = true; break; } } }
+      }
+      const wantCol = t.col ? in60 : in0;
+      if (wantCol && !t.col && !t.colJob) {
+        let dc = Infinity; for (const f of focus) { const d = distRect(f.x, f.z, t.x0, t.z0, tileSize); if (d < dc) dc = d; }
+        t.colJob = enqueue('col', t, buildColliders(t), dc - 500, (res) => { t.col = res; t.colJob = null; });
+      }
       if (!wantCol && t.col) { removeTileCols(t, t.col); t.col = null; }
       if (!wantCol && t.colJob) { t.colJob.cancelled = true; t.colJob = null; if (t._colPartial) { removeTileCols(t, t._colPartial); t._colPartial = null; } }
+      if (!inReach && !t.near && !t.col && !t.job && !t.colJob && !t._colPartial && (Math.abs(t.tx - ctx) > tr || Math.abs(t.tz - ctz) > tr)) tiles.delete(t.k);
     }
     // ---- run jobs within the time budget ----
     const t0 = performance.now();
