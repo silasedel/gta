@@ -1,7 +1,7 @@
 /* SOUTHLINE — top-right HUD corner (see corner.js). Matches docs/v2/plan/hud_corner_target.webp:
    heavy black outlines, charcoal earned stars, near-white open stars, deep red evidence badges, white clip / gray reserve. */
 .ps-hud .ps-corner {
-  --u: .1538;
+  --u: .1923;
   top: 22px;
   right: 26px;
   gap: 0;
@@ -125,7 +125,14 @@
   100% { opacity: 1; transform: none; }
 }
 
-/* ---- cash, bank, clock */
+/* ---- cash, bank, clock (ref_46 rows: bank with the house badge, cash with the wallet badge). With a weapon out the
+   ammo and the weapon art take their place; money then shows only for a few seconds after it changes (.money-on). */
+.ps-hud .ps-corner.armed:not(.money-on) .hc-money {
+  display: none;
+}
+.ps-corner .hc-money { margin-top: calc(var(--u) * -18px); }
+.ps-corner .hc-bank + .hc-cash { margin-top: calc(var(--u) * -52px); }
+.ps-corner .hc-clock { margin-top: calc(var(--u) * -10px); opacity: .92; }
 .ps-hud .ps-corner .hc-line {
   position: relative;
   display: block;

@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><base href="/"><title>HUD corner on white</title>
+<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}</style></head>
+<body>
+<script type="module">
+// r2-mapui: the real top-right HUD corner (src/ui/hud/corner.js) alone on a flat white page, for side-by-side sheets
+// against docs/v2/plan/hud_corner_target.webp. Params: wanted=0..6, weapon=<id>|none, clip, reserve, cash, bank, clock.
+import '/src/ui/hud.css';
+import { createCorner } from '/src/ui/hud/corner.js';
+const P = new URLSearchParams(location.search);
+const hud = document.createElement('div'); hud.className = 'ps-hud live'; hud.id = 'ps-hud';
+hud.style.cssText = 'position:fixed;inset:0;pointer-events:none';
+document.body.appendChild(hud);
+const game = { evidence: null, bank: P.get('bank') ? { balance: +P.get('bank') } : null };
+const c = createCorner(game);
+c.root.style.position = 'absolute';
+hud.appendChild(c.root);
+c.setKnown({ cameras: 1, witnesses: 1, outfit: 1, face: 1, weapon: 1 });
+c.setCash('$' + (+(P.get('cash') ?? 3146)).toLocaleString('en-US'));
+const weapon = P.get('weapon') || 'pistol', armed = weapon !== 'none';
+const st = { wanted: +(P.get('wanted') ?? 4), evading: false, weapon: armed ? weapon : 'fist', weaponSvg: '',
+  ammo: armed && !/bat|knife|crowbar|machete|bottle/.test(weapon) ? { clip: +(P.get('clip') ?? 20), reserve: +(P.get('reserve') ?? 73), total: 93 } : null, reloading: false, low: false, empty: false, clock: P.get('clock') || '13:00' };
+let last = performance.now();
+function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; c.update(dt, st); }
+requestAnimationFrame(loop);
+setTimeout(() => { window.cornerReady = true; }, 1200);
+</script>
+</body></html>

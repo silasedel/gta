@@ -1,11 +1,14 @@
 // SOUTHLINE — top-right HUD corner, built to match docs/v2/plan/hud_corner_target.webp.
-// Rows, top to bottom: six wanted stars in one row, five "what the police know" badges, ammo (clip / reserve),
-// the weapon art, cash and bank, the clock. Every row is an inline SVG drawn in the target image's own pixel
+// Rows, top to bottom: six wanted stars in one row, five "what the police know" badges, then either ammo (clip /
+// reserve) and the weapon art (weapon out) or the money rows in the style of references/ref_46 (bank with the house badge,
+// cash with the wallet badge; with a weapon out they only show for a few seconds after a change), and the clock last. Every row is an inline SVG drawn in the target image's own pixel
 // space (1 unit = 1 px of the 1536x1024 target), so sizes, spacing and outlines match it; the whole corner is
 // then scaled to the screen (UNIT px per unit at 1080p). All art is original: the numerals are our own squared
 // heavy digits (no font file), the icons and the pistol are drawn here.
 //
 // API (returned object, also reachable as game.hud.* through hud.js):
+// Weapon art: the hand-drawn pistol for 'pistol', every other weapon from public/assets/ui/weapons/<id>.png (baked from
+// the game's own weapon models in the same flat, outlined style by tools/v2/hudcorner/bake-icons.mjs).
 //   update(dt, s)          s = { wanted 0..6, evading bool, weapon id, weaponSvg (fallback art), ammo {clip,reserve,total,throw}|null,
 //                                reloading, low, empty, clock 'HH:MM', tod 'sun'|'dusk'|'moon' }
 //   setCash(text) / cashFly(diff) / setBank(text|null)
@@ -16,7 +19,7 @@ import './polish.css';
 import '../styles/fonts.css';
 
 const NS = 'http://www.w3.org/2000/svg';
-export const UNIT = 1 / 6.5;           // px per target unit at 1080p (six stars = 191 px wide)
+export const UNIT = 1 / 5.2;           // px per target unit at 1080p (six stars = 238 px wide, r2: was 191)
 const VX0 = 150, VW = 1240;            // shared horizontal window of the target (x 150..1390)
 const ROWS = { stars: [40, 222], known: [262, 246], ammo: [508, 208], gun: [716, 300] }; // [y0, height] per row
 
@@ -73,6 +76,20 @@ function runPaths(str, xr, y, h, color) {
     ol: `<path d="${d}" fill="#000" stroke="#000" stroke-width="${(sw + 2 * OL * k).toFixed(1)}" stroke-linejoin="round"/>`,
     fill: `<path d="${d}" fill="${color}" stroke="${color}" stroke-width="${sw.toFixed(1)}" stroke-linejoin="round"/>`,
   };
+}
+// money / clock text (ref_46): the same squared digits with a thin dark outline
+function textSVGThin(runs, xr, y, h) {
+  let x = xr, ol = '', fill = '';
+  for (let i = runs.length - 1; i >= 0; i--) {
+    const r = runs[i], k = h / GH;
+    let xx = x - textWidth(r.t, h), d = '';
+    for (const ch of String(r.t)) { const g = GLYPHS[ch]; if (!g) continue; d += glyphPath(g, xx, y, k); xx += (g.w + GAP) * k; }
+    const sw = 2 * IN * k;
+    ol += `<path d="${d}" fill="#14161c" stroke="#14161c" stroke-width="${(sw + 2 * 8 * k).toFixed(1)}" stroke-linejoin="round" opacity=".9"/>`;
+    fill += `<path d="${d}" fill="${r.color}" stroke="${r.color}" stroke-width="${sw.toFixed(1)}" stroke-linejoin="round"/>`;
+    x -= textWidth(r.t, h) + (r.gap ?? 82) * k;
+  }
+  return `<g class="gl-thin"><g class="gl-ol">${ol}</g>${fill}</g>`;
 }
 // several runs laid right-to-left; runs = [{ t, color, gap }] (gap = space before the run to its left)
 function textSVG(runs, xr, y, h, cls = '') {
@@ -182,6 +199,20 @@ function pistolSVG() {
 }
 // other weapons: the HUD's own silhouettes (64x64, barrel right) shown in the same slate finish with a black outline,
 // mirrored so every gun points the same way as the pistol.
+// baked icons: public/assets/ui/weapons/index.json = { id: { w, h } } in target units (outline included)
+const ICONS = { idx: null, p: null };
+function loadIcons() {
+  if (!ICONS.p) ICONS.p = fetch(new URL('assets/ui/weapons/index.json', document.baseURI)).then((r) => (r.ok ? r.json() : {})).then((j) => (ICONS.idx = j || {})).catch(() => (ICONS.idx = {}));
+  return ICONS.p;
+}
+function iconSVG(id) {
+  const m = ICONS.idx && ICONS.idx[id];
+  if (!m) return null;
+  // right edge and baseline match the hand-drawn pistol's outline box (x 1295, y 1012); taller art grows upward
+  const k = Math.min(1, 288 / m.h, 940 / m.w), w = m.w * k, h = m.h * k;
+  const href = new URL(`assets/ui/weapons/${id}.png`, document.baseURI).href;
+  return `<image href="${href}" x="${(1295 - w).toFixed(1)}" y="${(1012 - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" preserveAspectRatio="xMaxYMax meet"/>`;
+}
 function genericGunSVG(svg) {
   const inner = String(svg || '').replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
   return `<g transform="translate(1292 736) scale(-7.7 7.7) translate(0 -8)"><g class="gx-ol">${inner}</g><g class="gx-fill">${inner}</g></g>`;
@@ -269,17 +300,18 @@ export function createCorner(game) {
   const gunEl = svgRow('hc-gun', ROWS.gun[0], ROWS.gun[1]);
 
   // money and clock (HTML rows holding SVG text so the cash fly-out can sit beside them)
-  const cashLine = div('hc-line hc-cash');
-  const cashSvg = svgRow('hc-text', 0, 150);
+  const cashLine = div('hc-line hc-money hc-cash');
+  const cashSvg = svgRow('hc-text', 0, 245);
   cashLine.appendChild(cashSvg);
-  const bankLine = div('hc-line hc-bank none');
-  const bankSvg = svgRow('hc-text', 0, 130);
+  const bankLine = div('hc-line hc-money hc-bank none');
+  const bankSvg = svgRow('hc-text', 0, 245);
   bankLine.appendChild(bankSvg);
   const clockLine = div('hc-line hc-clock');
-  const clockSvg = svgRow('hc-text', 0, 110);
+  const clockSvg = svgRow('hc-text', 0, 128);
   clockLine.appendChild(clockSvg);
 
-  root.append(starsEl, knownEl, ammoEl, gunEl, cashLine, bankLine, clockLine);
+  root.append(starsEl, knownEl, ammoEl, gunEl, bankLine, cashLine, clockLine);
+  loadIcons().then(() => { if (lastWeapon && lastWeapon !== 'pistol') setWeapon(lastWeapon, lastWeaponSvg); });
 
   // scale with the window (designed at 1080p)
   const fit = () => {
@@ -292,45 +324,44 @@ export function createCorner(game) {
   // ---- state
   let manual = null, flashForce = null;
   let lastKnownKey = '', knownShown = null, pollT = 0;
-  let lastW = -1, lastFlash = null, lastWeapon = null, lastAmmoKey = null;
+  let lastW = -1, lastFlash = null, lastWeapon = null, lastWeaponSvg = null, lastAmmoKey = null;
   let cashText = '', bankText = null, clockText = '';
 
-  function moneyLine(svg, text, h, color, badge) {
-    // text right-aligned to leave room for a badge at the stars' right edge
-    const bx = 1302, br = 62;
-    const xr = badge ? bx - br - 28 : 1358;
-    const top = (svg.viewBox.baseVal.height - h) / 2;
-    let inner = textSVG([{ t: text, color }], xr, top + 4, h);
-    if (badge) {
-      const B = BADGE[badge], cy = svg.viewBox.baseVal.height / 2;
-      inner += `<g transform="translate(${bx} ${cy})"><circle r="${br + 9}" fill="#000"/><circle r="${br}" fill="${B.color}"/><g fill="#fff" transform="scale(${(br / 95).toFixed(3)})">${B.art}</g></g>`;
-    }
+  // ref_46 money rows: squared digits with a light outline, right-aligned against a badge whose right edge lines up
+  // with the stars; badges are the evidence badges' size (r 95 + 11 ring)
+  const MB = { bx: 1262, r: 95, ring: 11, h: 140, gap: 40, rowH: 245 };
+  const moneyRight = () => MB.bx - MB.r - MB.ring - MB.gap;
+  function moneyLine(svg, text, color, badge) {
+    const H = MB.rowH, top = (H - MB.h) / 2;
+    let inner = textSVGThin([{ t: text, color }], moneyRight(), top, MB.h);
+    const B = BADGE[badge], cy = H / 2;
+    inner += `<g transform="translate(${MB.bx} ${cy})"><circle r="${MB.r + MB.ring}" fill="#000"/><circle r="${MB.r}" fill="${B.color}"/><g fill="#fff">${B.art}</g></g>`;
     svg.innerHTML = inner;
   }
+  let moneyHold = 0;
+  function showMoney(sec = 5) { moneyHold = Math.max(moneyHold, sec); root.classList.add('money-on'); }
   function setCash(text) {
     text = String(text);
     if (text === cashText) return;
     cashText = text;
-    moneyLine(cashSvg, text, 118, '#ffffff', bankText != null ? 'cash' : null);
+    moneyLine(cashSvg, text, '#ffffff', 'cash');
   }
   function setBank(text) {
     const t = text == null ? null : String(text);
     if (t === bankText) return;
-    const hadBadge = bankText != null;
     bankText = t;
     bankLine.classList.toggle('none', t == null);
-    if (t != null) moneyLine(bankSvg, t, 98, '#d9dde6', 'bank');
-    if (hadBadge !== (t != null)) { const c = cashText; cashText = ''; setCash(c); }
+    if (t != null) moneyLine(bankSvg, t, '#ffffff', 'bank');
   }
   function cashFly(diff) {
     if (!diff) return;
+    showMoney(5);
     const up = diff > 0;
     const t = (up ? '+' : '-') + '$' + Math.round(Math.abs(diff)).toLocaleString('en-US');
     const fly = div('hc-fly ' + (up ? 'up' : 'down'));
-    const xr = bankText != null ? 1302 - 62 - 28 : 1358;
-    fly.style.right = `calc(var(--u) * ${(VX0 + VW - (xr - textWidth(cashText, 118)) + 30).toFixed(0)}px)`;
-    const w = textWidth(t, 96) + 40;
-    fly.innerHTML = `<svg viewBox="0 0 ${w} 150" style="--w:${w};--h:150" aria-hidden="true">${textSVG([{ t, color: up ? '#8fe07a' : '#ff6f61' }], w - 20, 27, 96)}</svg>`;
+    fly.style.right = `calc(var(--u) * ${(VX0 + VW - (moneyRight() - textWidth(cashText, MB.h)) + 30).toFixed(0)}px)`;
+    const w = textWidth(t, 104) + 40;
+    fly.innerHTML = `<svg viewBox="0 0 ${w} ${MB.rowH}" style="--w:${w};--h:${MB.rowH}" aria-hidden="true">${textSVGThin([{ t, color: up ? '#8fe07a' : '#ff6f61' }], w - 20, (MB.rowH - 104) / 2, 104)}</svg>`;
     cashLine.appendChild(fly);
     setTimeout(() => fly.remove(), 1700);
     restart(cashLine, 'pop');
@@ -338,7 +369,7 @@ export function createCorner(game) {
   function setClock(text) {
     if (text === clockText) return;
     clockText = text;
-    clockSvg.innerHTML = textSVG([{ t: text, color: '#eceef2' }], 1358, 14, 82);
+    clockSvg.innerHTML = textSVGThin([{ t: text, color: '#eceef2' }], 1358, 18, 92);
   }
 
   function setKnown(k) {
@@ -353,7 +384,7 @@ export function createCorner(game) {
     const armed = !!id && id !== 'fist';
     root.classList.toggle('armed', armed);
     if (!armed) { gunEl.innerHTML = ''; return; }
-    gunEl.innerHTML = id === 'pistol' ? pistolSVG() : genericGunSVG(fallbackSvg);
+    gunEl.innerHTML = id === 'pistol' ? pistolSVG() : (iconSVG(id) || genericGunSVG(fallbackSvg));
     gunEl.dataset.weapon = id;
     restart(gunEl, 'swap');
   }
@@ -410,7 +441,8 @@ export function createCorner(game) {
     }
 
     // weapon + ammo
-    if (s.weapon !== lastWeapon) { lastWeapon = s.weapon; setWeapon(s.weapon, s.weaponSvg); lastAmmoKey = null; }
+    if (s.weapon !== lastWeapon) { lastWeapon = s.weapon; lastWeaponSvg = s.weaponSvg; setWeapon(s.weapon, s.weaponSvg); lastAmmoKey = null; }
+    if (moneyHold > 0) { moneyHold -= dt; if (moneyHold <= 0) root.classList.remove('money-on'); }
     const ai = s.ammo;
     const akey = !ai ? '' : `${ai.throw ? 'T' : ''}${ai.clip ?? ''}/${ai.reserve ?? ai.total}|${s.reloading ? 1 : 0}${s.empty ? 1 : 0}${s.low ? 1 : 0}`;
     if (akey !== lastAmmoKey) { lastAmmoKey = akey; setAmmo(ai, s); }

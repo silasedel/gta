@@ -1,0 +1,175 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><base href="/"><title>HUD weapon icon bake</title>
+<style>html,body{margin:0;background:#fff}canvas{display:block;margin:6px;background:#fff}</style></head>
+<body>
+<script type="module">
+// Bakes the HUD weapon icons (top-right corner) from the game's own weapon models (the user's GLBs where they exist,
+// the code-built ones otherwise), in the style of the hand-drawn pistol of docs/v2/plan/hud_corner_target.webp:
+// a flat side view, barrel left, cel-shaded in a few flat tones (gunmetal reads as the target's slate blue), a thick
+// black outline. Every icon is fitted into the same box (ICON_W x ICON_H units, 2 px per unit for Retina), so the
+// outline weight is identical on every weapon. Results: window.bake = { id: dataURL, ... }, window.bakeDone = true.
+import * as THREE from 'three';
+import { buildWeaponModel, preloadWeaponLibrary, LIB } from '/src/gameplay/gunModels.js';
+import { ORDER } from '/src/gameplay/weapons.js';
+
+const P = new URLSearchParams(location.search);
+const ONLY = P.get('only') ? P.get('only').split(',') : null;
+const PX = 2;                    // px per HUD unit (Retina)
+const ICON_W = 900, ICON_H = 250, OL = 12; // largest box in HUD units, black outline width (the target pistol's)
+// per-class boxes (HUD units) so a bottle is not drawn as big as a rifle; handguns match the target pistol (~475 x 250)
+const BOX = { handgun: [500, 250], smg: [560, 270], rifle: [900, 250], shotgun: [900, 230], sniper: [900, 230], knife: [520, 120],
+  longmelee: [880, 170], bottle: [460, 190], molotov: [460, 190], grenade: [190, 250] };
+const CLS = { knife: 'knife', bat: 'longmelee', nailbat: 'longmelee', crowbar: 'longmelee', machete: 'longmelee', bottle: 'bottle',
+  molotov: 'molotov', grenade: 'grenade', microsmg: 'smg', smg: 'smg', shotgun: 'shotgun', sawnoff: 'rifle', sniper: 'sniper', lmg: 'rifle' };
+const boxOf = (id) => BOX[CLS[id] || (/pistol|revolver/.test(id) ? 'handgun' : 'rifle')];
+const PAD = OL + 4;
+const W = (ICON_W + 2 * PAD) * PX, H = (ICON_H + 2 * PAD) * PX;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W * 2, H * 2); // 2x supersampled, downsampled into the icon
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
+renderer.setClearColor(0x000000, 0);
+
+// cel ramp: shadow / mid / lit / highlight (nearest filtered, so tones stay flat like the hand-drawn pistol)
+const ramp = new THREE.DataTexture(new Uint8Array([70, 70, 70, 255, 128, 128, 128, 255, 190, 190, 190, 255, 255, 255, 255, 255]), 4, 1, THREE.RGBAFormat);
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+
+// average color of a material (its color x the average of its base-color texture)
+const avgCanvas = document.createElement('canvas'); avgCanvas.width = avgCanvas.height = 8;
+const avgCtx = avgCanvas.getContext('2d', { willReadFrequently: true });
+function materialColor(m) {
+  const c = new THREE.Color(m.color ? m.color : 0x808080);
+  const img = m.map?.image;
+  if (img) {
+    try {
+      avgCtx.clearRect(0, 0, 8, 8); avgCtx.drawImage(img, 0, 0, 8, 8);
+      const d = avgCtx.getImageData(0, 0, 8, 8).data; let r = 0, g = 0, b = 0, n = 0;
+      for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 8) continue; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+      if (n) { const t = new THREE.Color().setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace); c.multiply(t); }
+    } catch (e) { /* tainted / not ready: keep the factor */ }
+  }
+  return c;
+}
+// one palette for every icon: gunmetal and polymer -> the target's slate blue, bright metal -> pale steel,
+// colored parts keep their hue but are calmed to the same value range
+const SLATE = new THREE.Color('#4a5278'), SLATE_MID = new THREE.Color('#6b7395'), STEEL = new THREE.Color('#bcc2d6');
+function iconColor(src, m) {
+  const hsl = {}; src.getHSL(hsl, THREE.SRGBColorSpace);
+  const metal = (m.metalness ?? 0) > 0.5;
+  if (hsl.s < 0.2 || (metal && hsl.s < 0.35)) {
+    if (hsl.l > 0.62) return STEEL.clone();
+    if (hsl.l > 0.36) return SLATE_MID.clone();
+    return SLATE.clone();
+  }
+  const out = new THREE.Color().setHSL(hsl.h, Math.min(0.62, hsl.s * 0.9), Math.max(0.3, Math.min(0.58, hsl.l)), THREE.SRGBColorSpace);
+  return out;
+}
+
+const scene = new THREE.Scene();
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(2.2, 6, 1.5); scene.add(key);   // from above, a touch toward the viewer
+const fill = new THREE.DirectionalLight(0xffffff, 0.35); fill.position.set(2, -2, -3); scene.add(fill);
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 50);
+
+function stylize(root) {
+  const mats = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.castShadow = o.receiveShadow = false;
+    const list = Array.isArray(o.material) ? o.material : [o.material];
+    const out = list.map((m) => {
+      if (!m) return m;
+      if (m.transparent && (m.opacity ?? 1) < 0.5) return new THREE.MeshBasicMaterial({ visible: false });
+      let t = mats.get(m);
+      if (!t) {
+        const col = iconColor(materialColor(m), m);
+        t = new THREE.MeshToonMaterial({ color: col, gradientMap: ramp, side: THREE.DoubleSide });
+        mats.set(m, t);
+      }
+      return t;
+    });
+    o.material = Array.isArray(o.material) ? out : out[0];
+  });
+}
+
+const rt = new THREE.WebGLRenderTarget(W * 2, H * 2, { samples: 4, colorSpace: THREE.SRGBColorSpace });
+async function bakeOne(id) {
+  const g = buildWeaponModel(id, { attachments: {} });
+  // library models swap in asynchronously: wait until the procedural stand-in is gone
+  for (let i = 0; i < 100 && LIB[id] && !g.children.some((c) => String(c.name).startsWith('lib-')); i++) await new Promise((r) => setTimeout(r, 50));
+  for (const k of ['laser', 'light']) { const n = g.userData[k]; if (n) n.visible = false; }
+  g.traverse((o) => { if (/flash|muzzleflash|beam|laser|glow/i.test(o.name)) o.visible = false; });
+  stylize(g);
+  const holder = new THREE.Group(); holder.add(g); scene.add(holder);
+  holder.updateMatrixWorld(true);
+  // side view from the gun's left (+X), barrel (+Z) to the left of the image
+  cam.position.set(5, 0, 0); cam.up.set(0, 1, 0); cam.lookAt(0, 0, 0); cam.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(g, true);
+  const zs = box.max.z - box.min.z, ys = box.max.y - box.min.y, [BW, BH] = boxOf(id);
+  const s = Math.min(BW / zs, BH / ys);                        // HUD units per meter
+  const hw = (W / PX) / 2 / s, hh = (H / PX) / 2 / s;
+  const cz = (box.min.z + box.max.z) / 2, cy = (box.min.y + box.max.y) / 2;
+  // right-align in the box (the HUD right-aligns the art): shift the center so the butt / grip end sits at the right pad
+  const offR = ((W / PX) / 2 - PAD - (zs * s) / 2) / s;
+  cam.left = -hw; cam.right = hw; cam.top = hh; cam.bottom = -hh;
+  const EL = 0.2; // ~11 degrees above the side view
+  cam.position.set(5, cy + 5 * EL, cz - offR); cam.lookAt(0, cy, cz - offR); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+  renderer.setRenderTarget(rt); renderer.clear(); renderer.render(scene, cam); renderer.setRenderTarget(null);
+  const buf = new Uint8Array(W * 2 * H * 2 * 4); renderer.readRenderTargetPixels(rt, 0, 0, W * 2, H * 2, buf);
+  scene.remove(holder);
+  // to a canvas (flip Y), then downsample 2x
+  const big = document.createElement('canvas'); big.width = W * 2; big.height = H * 2;
+  const bg = big.getContext('2d'); const im = bg.createImageData(W * 2, H * 2);
+  for (let y = 0; y < H * 2; y++) im.data.set(buf.subarray((H * 2 - 1 - y) * W * 2 * 4, (H * 2 - y) * W * 2 * 4), y * W * 2 * 4);
+  bg.putImageData(im, 0, 0);
+  const art = document.createElement('canvas'); art.width = W; art.height = H;
+  const ag = art.getContext('2d'); ag.imageSmoothingQuality = 'high'; ag.drawImage(big, 0, 0, W, H);
+  // painted light, as on the target pistol: a pale highlight band along every top edge (light from above) and a soft
+  // darker band along every bottom edge, measured per column inside the silhouette
+  {
+    const id2 = ag.getImageData(0, 0, W, H), px = id2.data, HI = [214, 219, 234], LO = [24, 27, 46];
+    const T1 = 3 * PX, T2 = 9 * PX, B1 = 6 * PX;
+    for (let x = 0; x < W; x++) {
+      let run = -1; // distance (px) below the last transparent pixel
+      for (let y = 0; y < H; y++) {
+        const k = (y * W + x) * 4;
+        if (px[k + 3] < 128) { run = -1; continue; }
+        run++;
+        let hi = run < T1 ? 0.62 : run < T2 ? 0.62 * (1 - (run - T1) / (T2 - T1)) ** 2 : 0;
+        // distance to the next transparent pixel below
+        let dn = 0; while (dn < B1 && y + dn + 1 < H && px[((y + dn + 1) * W + x) * 4 + 3] >= 128) dn++;
+        const lo = dn < B1 ? 0.28 * (1 - dn / B1) : 0;
+        if (hi > 0) for (let c = 0; c < 3; c++) px[k + c] += (HI[c] - px[k + c]) * hi;
+        if (lo > 0) for (let c = 0; c < 3; c++) px[k + c] += (LO[c] - px[k + c]) * lo;
+      }
+    }
+    ag.putImageData(id2, 0, 0);
+  }
+  // thick black outline: the silhouette stamped around a circle of radius OL units, then the art on top
+  const sil = document.createElement('canvas'); sil.width = W; sil.height = H;
+  const sg = sil.getContext('2d'); sg.drawImage(art, 0, 0); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = '#000'; sg.fillRect(0, 0, W, H);
+  const out = document.createElement('canvas'); out.width = W; out.height = H;
+  const og = out.getContext('2d');
+  const R = OL * PX;
+  for (let a = 0; a < 48; a++) { const t = (a / 48) * Math.PI * 2; og.drawImage(sil, Math.cos(t) * R, Math.sin(t) * R); }
+  for (let rr = R * 0.5; rr > 0; rr -= R * 0.25) for (let a = 0; a < 24; a++) { const t = (a / 24) * Math.PI * 2; og.drawImage(sil, Math.cos(t) * rr, Math.sin(t) * rr); }
+  og.drawImage(art, 0, 0);
+  // crop to content (keeping the pad) so the HUD can size by aspect
+  const d = og.getImageData(0, 0, W, H).data; let x0 = W, x1 = 0, y0 = H, y1 = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const cw = x1 - x0 + 3, ch = y1 - y0 + 3, crop = document.createElement('canvas'); crop.width = cw; crop.height = ch;
+  crop.getContext('2d').drawImage(out, x0 - 1, y0 - 1, cw, ch, 0, 0, cw, ch);
+  document.body.appendChild(crop);
+  return { url: crop.toDataURL('image/png'), w: cw / PX, h: ch / PX };
+}
+
+window.bake = {};
+await preloadWeaponLibrary(Object.keys(LIB));
+for (const id of ORDER) {
+  if (id === 'fist' || (ONLY && !ONLY.includes(id))) continue;
+  try { window.bake[id] = await bakeOne(id); } catch (e) { console.error('bake', id, e); }
+}
+window.bakeDone = true;
+</script>
+</body></html>
