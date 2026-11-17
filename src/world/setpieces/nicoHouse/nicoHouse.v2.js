@@ -101,10 +101,9 @@ export async function initV2(game) {
 
   // ---- keys pass: yard planting through the vegetation helper, parked cars through the cars helper (yard.data.js) ----
   if (!KEYS_OFF) try { plantYard(game, g); } catch (e) { console.warn('[nicoHouse] planting', e); }
-  const parked = []; const spawnCars = () => { const V = game.vehicles; if (!V?.spawnParked || parked.length) return !!parked.length;
-    for (const c of CAR_SPOTS) { const p = toWorld(new THREE.Vector3(c.x, 0, c.z)); try { const v = V.spawnParked({ ...c, x: p.x, y: p.y, z: p.z, heading: c.heading + (spot.heading || 0), pos: p }); if (v) parked.push(v); } catch (e) { console.warn('[nicoHouse] spawnParked', c.id, e); } }
-    return true; };
-  if (!spawnCars()) { let tries = 0; const iv = setInterval(() => { if (spawnCars() || ++tries > 120) clearInterval(iv); }, 1000); }
+  // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
+  // CAR_SPOTS documents the mock-up spots and is kept clear of props
+  const parked = [];
   game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS };
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json

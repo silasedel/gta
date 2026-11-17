@@ -7,7 +7,8 @@
 // (3210) heads east-north-east. Every item below is an explicit choice; nothing is scattered at random.
 // Headings: 0 faces +Z (toward the street), PI faces the house. Sizes in meters.
 
-// ---- parked cars: spots for the cars helper (game.vehicles.spawnParked, Nov 17). Until it exists, nothing spawns here. ----
+// ---- parked cars: the cars helper places them (src/vehicles/vehicles.js NICO_CARS: truck2 at (-1.6, 12.6), conv1 at (7.4, 13.8),
+// covered1 at (-19.5, 12.5), van2 at (24, 20)); these spots document the mock-up and every prop below stays clear of them ----
 export const CAR_SPOTS = [
   // the gray lifted pickup, nose in toward the deck, a little skewed (mock-up: right below the front deck)
   { id: 'nico_pickup', kind: 'pickup', look: 'gray_lifted', x: -3.6, z: 14.6, heading: Math.PI - 0.12, locked: false, owner: 'nico' },
@@ -51,17 +52,17 @@ export const ROCKS = [
   [-22.6, 20.0, 2, 0.32, 0.4, 0.06], [-20.3, 20.9, 5, 0.28, 2.1, 0.05], [-16.1, 22.2, 1, 0.3, 1.2, 0.06], [-11.8, 23.6, 6, 0.26, 4.0, 0.05],
   [-9.9, 24.2, 3, 0.24, 2.6, 0.04], [-6.4, 25.3, 4, 0.3, 0.9, 0.06], [-4.9, 25.9, 2, 0.22, 5.1, 0.04], [7.8, 27.0, 5, 0.26, 3.3, 0.05],
   [9.0, 26.4, 1, 0.22, 0.2, 0.04], [10.6, 25.9, 6, 0.3, 1.7, 0.06], [-0.9, 18.5, 3, 0.16, 1.0, 0.03], [-6.2, 19.4, 4, 0.18, 2.2, 0.03],
-  [3.4, 12.6, 6, 0.17, 0.5, 0.03], [-12.6, 9.8, 2, 0.2, 3.9, 0.04], [-15.2, 12.6, 5, 0.24, 1.4, 0.05],
+  [1.0, 17.6, 6, 0.17, 0.5, 0.03], [-12.6, 9.8, 2, 0.2, 3.9, 0.04], [-15.2, 12.6, 5, 0.24, 1.4, 0.05],
 ];
 
 // ---- clutter and debris (own models, part 55): kind, x, z, heading, extra ----
 export const DEBRIS = [
   { k: 'pallet', x: -15.6, z: 17.8, h: 0.3, tilt: 0.05 }, { k: 'pallet', x: -15.2, z: 17.6, h: 0.42, y: 0.13 },
-  { k: 'drywall', x: -20.6, z: 16.6, h: 1.1 }, { k: 'drywall', x: -21.4, z: 17.4, h: 0.6 }, { k: 'lumber', x: -16.8, z: 21.4, h: 1.3 },
+  { k: 'drywall', x: -23.2, z: 16.9, h: 1.1 }, { k: 'drywall', x: -13.9, z: 20.2, h: 0.6 }, { k: 'lumber', x: -16.8, z: 21.4, h: 1.3 },
   { k: 'bucket', x: -14.6, z: 19.3, h: 0 }, { k: 'tire', x: -19.6, z: 22.0, h: 0, flat: true }, { k: 'cinder', x: 7.6, z: 21.0, h: 0.4 },
-  { k: 'cinder', x: 7.9, z: 20.7, h: 1.1 }, { k: 'cooler', x: 5.2, z: 12.6, h: 2.3 }, { k: 'chair', x: 4.4, z: 13.4, h: 3.6 },
-  { k: 'chair', x: 5.9, z: 13.9, h: 2.4, tipped: true }, { k: 'husks', x: -8.8, z: 10.3, h: 0 }, { k: 'husks', x: 9.8, z: 15.6, h: 1 },
-  { k: 'tarp', x: -19.0, z: 13.2, h: 0.4 }, { k: 'bucket', x: 2.4, z: 9.8, h: 0, color: 0xe25a1c },
+  { k: 'cinder', x: 7.9, z: 20.7, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
+  { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -8.8, z: 10.3, h: 0 }, { k: 'husks', x: 10.6, z: 17.4, h: 1 },
+  { k: 'tarp', x: -22.6, z: 8.8, h: 0.4 }, { k: 'bucket', x: 2.4, z: 9.8, h: 0, color: 0xe25a1c },
 ];
 
 // ---- yard surface: puddles (after rain they fill), tire tracks (pairs of ruts), leaf-litter and matted-grass patches ----
@@ -82,5 +83,6 @@ export const PLANTING = [
   ['coconut', -23.0, 7.5, { s: 1.0, lean: [0.8, 0.3] }], ['coconut', 11.0, 11.5, { s: 0.92, lean: [-0.4, 0.6] }], ['sabal', -22.4, -3.0, { s: 0.9 }],
   ['hibiscus', -8.6, 23.6, { s: 1.0 }], ['hibiscus', -1.6, 25.2, { s: 0.85 }], ['bougainvillea', 9.2, 23.8, { s: 1.1 }], ['bougainvillea', -14.8, 21.8, { s: 0.9 }],
   ['seagrape', -22.5, 1.0, { s: 1.1 }], ['seagrape', 10.8, 4.0, { s: 1.0 }], ['croton', -12.0, 6.8, { s: 0.9 }], ['croton', 0.8, 9.6, { s: 0.8 }],
+  ['poinciana', -23.5, 35.5, { s: 1.1, seed: 12 }], ['poinciana', 9.5, 37.5, { s: 0.9, seed: 3 }], ['poinciana', -4.5, 47.0, { s: 1.0, seed: 7 }],   // across the street (mock-up: red crowns over the far yards)
   ['hibiscus', -21.2, 15.6, { s: 1.15 }], ['seagrape', -23.2, 13.0, { s: 1.0 }], ['fern', 8.4, 9.0, { s: 1.0 }], ['sawpalmetto', -19.5, -6.5, { s: 1.0 }],
 ];

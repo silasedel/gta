@@ -84,7 +84,8 @@ export function buildKeysLots(game, api) {
     if (boats.length) game.updaters?.push(() => { const tt = performance.now() / 1000; for (const b of boats) if (b.g) { b.g.position.y = sea - (b.k === 'skiff' ? 0.3 : 0.12) + Math.sin(tt * 0.9 + b.ph) * 0.035; b.g.rotation.z = Math.sin(tt * 0.7 + b.ph) * 0.025; } });
   });
   // ---- parked cars (cars helper) ----
-  const spawnCars = () => { const V = game.vehicles; if (!V?.spawnParked) return false; for (const c of out.cars || []) { try { V.spawnParked({ ...c, pos: new THREE.Vector3(c.x, c.y, c.z), owner: 'keys:' + c.id }); } catch (e) { /* */ } } return true; };
+  const spawnCars = () => { const V = game.vehicles; if (!V?.spawnParked) return false; for (const c of out.cars || []) { const key = { sedan: 'sedan', suv: 'suv', pickup: 'pickup', van: 'van', compact: 'compact' }[c.kind] || 'sedan'; const look = { faded: [0xb8b4a8, 0.55], work: [0xd8d6d0, 0.7], sun_faded: [0xb0473a, 0.7], old: [0x5a6a72, 0.8], rusty: [0x7a6a52, 0.95] }[c.look] || [null, 0.5];
+    V.spawnParked(key, { x: c.x, z: c.z, heading: c.heading, color: look[0] ?? undefined, wear: look[1], locked: true }).catch(() => {}); } return true; };
   if (!spawnCars()) { let n = 0; const iv = setInterval(() => { if (spawnCars() || ++n > 120) clearInterval(iv); }, 1000); }
   game.keysLots = out;
   return out;
