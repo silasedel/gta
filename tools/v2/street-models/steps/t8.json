@@ -1,0 +1,10 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":4000,"shot":false},
+ {"id":"deck11","eval":"(()=>{const hx=-873.6,hz=4825.2,h=1.0569,fx=Math.sin(h),fz=Math.cos(h); window.__cam(hx+fx*7,5.2,hz+fz*7, hx+fx*30-fz*6,0.6,hz+fz*30+fx*6); return 1;})()","tod":11,"wait":3000},
+ {"id":"deck18","tod":18.5,"wait":3000},
+ {"id":"lot0_18","eval":"__lookLot(-866,4836,1,6,2.5,1.9)","tod":18.5,"wait":2500},
+ {"id":"lot1_11","eval":"__lookLot(-866,4836,2,6,-2.5,1.9)","tod":11,"wait":2500},
+ {"id":"lot2_11","eval":"__lookLot(-866,4836,5,6,2.5,1.9)","tod":11,"wait":2500},
+ {"id":"street_air","eval":"window.__cam(-840,28,4880,-850,0,4840)","tod":11,"wait":2500}
+]
