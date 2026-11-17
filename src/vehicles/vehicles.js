@@ -236,6 +236,7 @@ export async function createVehicles(game) {
       look = opts.look || rollUniqueLook(typeKey, pos, opts.seed);
       if (fleet?.isGlb(typeKey) && !opts.look) fleet.look(typeKey, look);
       if (opts.stripe) look.stripe = opts.stripe;
+      if (opts.ride != null) look.ride = opts.ride;
       if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.25 ? Math.min(0.8, w * 0.75) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
       if (color != null && !opts.look) { look.color = color; look.twoTone = opts.twoTone ?? null; if (opts.wear == null) { look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; } look.signature = lookSignature(look); }
       if (!isBuilt(typeKey, look.kit)) look.kit = 'base';
@@ -1226,16 +1227,19 @@ export async function createVehicles(game) {
   // traffic manager never recycles (driveways, set pieces).  Waits for the library model to load; wheels settle on the ground.
   async function spawnParked(key, o = {}) {
     if (fleet && CAR_TYPES[key]?.glb && !fleet.loaded(key)) { try { await loadCarModel(CAR_TYPES[key].fileKey || key); } catch (e) { /* falls back below */ } }
+    // the ground (streamed colliders) must exist under the spot, or the car drops through / lands hard and dents itself
+    for (let i = 0; i < 120 && city?.collidersReadyAt && !city.collidersReadyAt(o.x, o.z); i++) await new Promise((r) => setTimeout(r, 250));
+    try { syncQueries(); } catch (e) { /* */ }
     const y = o.y ?? groundY(o.x, o.z);
     const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
-      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe });
+      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride });
     specials.add(v); v.pinned = true;
     return v;
   }
   // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
-    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x8d9196, wear: 0.35, stripe: true },
+    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x8d9196, wear: 0.35, stripe: true, ride: 0.07 },
     { key: 'conv1', local: [7.4, 13.8], heading: -Math.PI / 2 + 0.08, color: 0x9fc3c8, wear: 0.9 },
   ];
   const nicoCars = [];
@@ -1252,7 +1256,7 @@ export async function createVehicles(game) {
     }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.62, color: 0x0c0d0f } : null }); nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.62, color: 0x0c0d0f } : null, ride: c.ride }); nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();

@@ -322,12 +322,12 @@ export function buildGlbCar(key, look, t, info) {
     levels.push(g);
   }
   lod.addLevel(levels[0], 0);
-  lod.addLevel(levels[1], 34 * big, 0.12);
-  lod.addLevel(levels[2], 105 * big, 0.12);
+  lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (10k) holds well to ~100 m
+  lod.addLevel(levels[2], 100 * big, 0.12);
   shell.add(lod);
   if (t.taxi) addTaxi(levels, t, M, lightMats);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
-  contact.scale.set(t.W + 0.5, t.L + 0.7, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
+  contact.scale.set(t.W + 0.25, t.L + 0.35, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
   shell.add(contact);
   const maxY = t.r + (t.archGap ?? Math.max(0.04, man.archGap ?? 0.06)) + 0.015;
   const lodUpdate = lod.update.bind(lod);

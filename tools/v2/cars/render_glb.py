@@ -16,7 +16,7 @@ for g in glbs:
     bpy.ops.import_scene.gltf(filepath=g)
     for o in sc.objects:
         if o.type == 'MESH' and not o.name.startswith('body0') and not o.name.startswith('wheel0'): o.hide_render = True
-        if o.name.startswith('wheel0'): o.location = (0, 0, 0)
+        pass
     for o in sc.objects:
         if o.type == 'MESH' and o.data.color_attributes: o.data.color_attributes.active_color = o.data.color_attributes[0]
     mx = max((max((o.matrix_world @ Vector(c)).length for c in o.bound_box) for o in sc.objects if o.type == 'MESH' and not o.hide_render), default=3)

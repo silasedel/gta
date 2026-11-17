@@ -774,7 +774,14 @@ if not CFG.get('keepBadges'):
         cntf[j] += 1; trimf[j] += f.material_index == 2; metal[j] += (a >= 0.5 and f.material_index == 2)
     diag = np.linalg.norm(mx2 - mn2, axis=1)
     gzc = -c2[:, 1]
-    bad = (isl2_w < 0) & (diag < CFG.get('badgeMax', 0.26)) & ((np.abs(c2[:, 0]) < 0.33) | ((diag < 0.2) & (np.abs(c2[:, 0]) < 0.62))) & ((gzc > fz_front - 0.75) | (gzc < fz_rear + 0.75)) & (cntf > 0) & (metal > 0.6 * np.maximum(cntf, 1)) & (c2[:, 2] > 0.25)
+    nose = (gzc > fz_front - 0.75) | (gzc < fz_rear + 0.75)
+    metalish = metal > 0.6 * np.maximum(cntf, 1)
+    paintish = trimf < 0.5 * np.maximum(cntf, 1)          # mostly paint / glass / lamp faces: not an emblem
+    bad = (isl2_w < 0) & nose & (cntf > 0) & (c2[:, 2] > 0.25) & ~paintish & (
+        ((diag < CFG.get('badgeMax', 0.26)) & ((np.abs(c2[:, 0]) < 0.33) | ((diag < 0.2) & (np.abs(c2[:, 0]) < 0.62))) & metalish) |
+        # emblems and model lettering of any finish: small, thin, on the centerline of the nose / tail
+        ((diag < 0.3) & (np.abs(c2[:, 0]) < 0.26) & ((mx2 - mn2).min(axis=1) < 0.06)) |
+        ((diag < 0.16) & (np.abs(c2[:, 0]) < 0.7) & ((mx2 - mn2).min(axis=1) < 0.03) & (gzc < fz_rear + 0.75)))
     if bad.any():
         dead = [f for f in b3.faces if bad[inv2[f.verts[0].index]]]
         bmesh.ops.delete(b3, geom=dead, context='FACES'); b3.to_mesh(me_all)
