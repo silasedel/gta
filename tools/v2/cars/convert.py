@@ -265,9 +265,14 @@ for f in bm.faces:
     elif REAR.search(nm) and not FRONT.search(nm): rsum[0] += c; rsum[1] += 1
 fwd = CFG.get('fwd')
 if not fwd:
+    mid_ = (lo[lenAx] + hi[lenAx]) / 2
     if fsum[1] > 20 and rsum[1] > 20:
         sgn = 1 if fsum[0] / fsum[1] > rsum[0] / rsum[1] else -1
         fwd = ('+' if sgn > 0 else '-') + 'xy'[lenAx]
+    elif rsum[1] > 20:   # only rear cues: the front is the other end
+        fwd = ('-' if rsum[0] / rsum[1] > mid_ else '+') + 'xy'[lenAx]
+    elif fsum[1] > 20:
+        fwd = ('+' if fsum[0] / fsum[1] > mid_ else '-') + 'xy'[lenAx]
     else:
         fwd = '-y' if lenAx == 1 else '+x'
     log('auto fwd', fwd, 'front cues', fsum[1], 'rear cues', rsum[1])

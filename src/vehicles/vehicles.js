@@ -1295,8 +1295,15 @@ export async function createVehicles(game) {
       const d = Math.hypot(pp.x - P.at[0], pp.z - P.at[1]);
       if (d > 320 || d < 40) continue;
       if (!fleet.loaded(P.key)) { loadCarModel(CAR_TYPES[P.key].fileKey || P.key); continue; }
-      const sp = parkedSpot(new THREE.Vector3(P.at[0], 0, P.at[1]), 0, P.r, false, CAR_TYPES[P.key]);
-      if (!sp) continue;
+      // the best of several curb spots: farthest from both ends of its street (never on a corner or a crosswalk)
+      let sp = null, best = -1;
+      for (let k = 0; k < 14; k++) {
+        const c = parkedSpot(new THREE.Vector3(P.at[0], 0, P.at[1]), 0, P.r, false, CAR_TYPES[P.key]); if (!c) continue;
+        const pts = c.edge?.pts || [], a0 = pts[0], a1 = pts[pts.length - 1];
+        const dEnd = a0 && a1 ? Math.min(Math.hypot((a0.x ?? a0[0]) - c.pos.x, (a0.z ?? a0[1]) - c.pos.z), Math.hypot((a1.x ?? a1[0]) - c.pos.x, (a1.z ?? a1[1]) - c.pos.z)) : 20;
+        if (dEnd > best) { best = dEnd; sp = c; }
+      }
+      if (!sp || best < 18) continue;
       rareDone.add(P.key);
       const v = createVehicle(P.key, P.color ?? null, sp.pos, sp.heading, { locked: true, exact: true });
       specials.add(v); v.pinned = true; v.rare = true;

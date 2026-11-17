@@ -34,27 +34,32 @@
      0.85
     ]
    }
-  ]
+  ],
+  "fwd": "-y"
  },
  "conv2": {
   "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
   "L": 4.63,
-  "keepEngine": true
+  "keepEngine": true,
+  "fwd": "-y"
  },
  "coupe2": {
   "src": "Coupes/Coupe 2 - American V8 Muscle/Coupe 2.blend",
-  "L": 4.81
+  "L": 4.81,
+  "fwd": "-y"
  },
  "coupe3": {
   "src": "Coupes/Coupe 3 - German Sport Coupe/Coupe 3.blend",
   "L": 4.8,
   "slots": {
    "#692$|#694$|#698$|#751$|#753$|#752$": "paint"
-  }
+  },
+  "fwd": "-y"
  },
  "hatch1": {
   "src": "Hatchbacks/Hatchback 1 - Japanese Sporty Hatch/Hatchback 1.blend",
-  "L": 4.46
+  "L": 4.46,
+  "fwd": "-y"
  },
  "hatch2": {
   "src": "Other/Random Car 1 - Japanese Hybrid Hatchback/Random Car 1.obj",
@@ -65,19 +70,23 @@
    "Wiper": "trim",
    "Trunk": "trim"
   },
-  "noPaint": true
+  "noPaint": true,
+  "fwd": "+y"
  },
  "suv1": {
   "src": "SUVs/SUV 1 - Boxy Luxury Off-Roader/SUV 1.blend",
-  "L": 4.87
+  "L": 4.87,
+  "fwd": "-y"
  },
  "suv2": {
   "src": "SUVs/SUV 2 - Classic Off-Road 4x4/SUV 2.blend",
-  "L": 4.88
+  "L": 4.88,
+  "fwd": "-y"
  },
  "suv3": {
   "src": "SUVs/SUV 3 - Full-Size American Luxury/SUV 3.blend",
-  "L": 5.38
+  "L": 5.38,
+  "fwd": "-y"
  },
  "suv4": {
   "src": "SUVs/SUV 4 - Compact Family Crossover/SUV 4.blend",
@@ -85,33 +94,39 @@
   "slots": {
    "dummy Material 0 085": "paint"
   },
-  "noPaint": false
+  "noPaint": false,
+  "fwd": "-y"
  },
  "suv5": {
   "src": "SUVs/SUV 5 - German Three-Row Crossover/SUV 5.blend",
-  "L": 4.7
+  "L": 4.7,
+  "fwd": "-y"
  },
  "suv6": {
   "src": "SUVs/SUV 6 - Korean Angular Crossover/SUV 6.blend",
   "L": 4.63,
   "slots": {
    "^MI 008$": "paint"
-  }
+  },
+  "fwd": "-y"
  },
  "suv7": {
   "src": "SUVs/SUV 7 - British Ultra-Luxury/SUV 7.blend",
-  "L": 5.34
+  "L": 5.34,
+  "fwd": "-y"
  },
  "suv8": {
   "src": "SUVs/SUV 8 - Small City Crossover/SUV 8.blend",
-  "L": 4.27
+  "L": 4.27,
+  "fwd": "-y"
  },
  "suv9": {
   "src": "SUVs/SUV 9 - Japanese Family Crossover/SUV 9.blend",
   "L": 4.69,
   "slots": {
    "SlateGrayPearl": "paint"
-  }
+  },
+  "fwd": "+x"
  },
  "suv10": {
   "src": "SUVs/SUV 10 - Korean Compact Crossover/SUV 10.blend",
@@ -119,11 +134,13 @@
   "slots": {
    "Wolf Gray": "paint",
    "Primary": "trim"
-  }
+  },
+  "fwd": "-y"
  },
  "suv11": {
   "src": "SUVs/SUV 11 - Japanese Sleek Crossover/SUV 11.blend",
-  "L": 4.55
+  "L": 4.55,
+  "fwd": "-y"
  },
  "suv12": {
   "src": "SUVs/SUV 12 - Retro Two-Door 4x4/SUV 12.blend",
@@ -131,7 +148,9 @@
   "slots": {
    "Chassis XZSG1$": "paint",
    "BumperFront XSG7": "trim"
-  }
+  },
+  "fwd": "-y",
+  "emblemHalfW": 0.45
  },
  "suv13": {
   "src": "SUVs/SUV 13 - Japanese Lifted Crossover/SUV 13.blend",
@@ -139,15 +158,18 @@
   "slots": {
    "^Mat 11 #1": "paint"
   },
-  "recalcNormals": true
+  "recalcNormals": true,
+  "fwd": "-y"
  },
  "suv14": {
   "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
-  "L": 4.82
+  "L": 4.82,
+  "fwd": "-y"
  },
  "suv15": {
   "src": "SUVs/SUV 15 - Japanese Three-Row Family/SUV 15.blend",
-  "L": 4.95
+  "L": 4.95,
+  "fwd": "-y"
  },
  "sedan1": {
   "src": "Sedans/Sedan 1 - Japanese Family Sedan/Sedan 1.blend",
@@ -156,42 +178,51 @@
  },
  "sedan2": {
   "src": "Sedans/Sedan 2 - German Sport Sedan/Sedan 2.obj",
-  "L": 4.67
+  "L": 4.67,
+  "fwd": "+x"
  },
  "sedan3": {
   "src": "Sedans/Sedan 3 - German Luxury Sedan/Sedan 3.blend",
-  "L": 4.75
+  "L": 4.75,
+  "fwd": "-y"
  },
  "sedan4": {
   "src": "Sedans/Sedan 4 - Electric Fastback/Sedan 4.blend",
-  "L": 4.69
+  "L": 4.69,
+  "fwd": "-y"
  },
  "sedan5": {
   "src": "Sedans/Sedan 5 - Japanese Compact Sedan/Sedan 5.blend",
-  "L": 4.64
+  "L": 4.64,
+  "fwd": "-y"
  },
  "sedan6": {
   "src": "Sedans/Sedan 6 - American Midsize Sedan/Sedan 6.blend",
-  "L": 4.93
+  "L": 4.93,
+  "fwd": "-y"
  },
  "sedan7": {
   "src": "Sedans/Sedan 7 - German Compact Sedan/Sedan 7.blend",
-  "L": 4.7
+  "L": 4.7,
+  "fwd": "-y"
  },
  "sedan8": {
   "src": "Sedans/Sedan 8 - Japanese Midsize Fastback/Sedan 8.blend",
-  "L": 4.97
+  "L": 4.97,
+  "fwd": "-x"
  },
  "sedan9": {
   "src": "Sedans/Sedan 9 - Korean Sport Sedan/Sedan 9.blend",
   "L": 4.68,
   "slots": {
    "NRewardRecycled\\.019$": "paint"
-  }
+  },
+  "fwd": "-y"
  },
  "sedan10": {
   "src": "Sedans/Sedan 10 - Korean Compact Sedan/Sedan 10.blend",
-  "L": 4.64
+  "L": 4.64,
+  "fwd": "-x"
  },
  "police1": {
   "src": "Sedans/Sedan 11 - American Police Interceptor/Sedan 11.blend",
@@ -202,30 +233,37 @@
    "Police Door Decal": "liveries/police_door.png",
    "Police Hood Decal": "liveries/police_hood.png"
   },
-  "police": true
+  "police": true,
+  "fwd": "-y"
  },
  "super3": {
   "src": "Supercars/Super Car 3 - Italian Mid-Engine V8/Super Car 3.blend",
   "L": 4.57,
-  "keepEngine": true
+  "keepEngine": true,
+  "fwd": "-y"
  },
  "super4": {
   "src": "Supercars/Super Car 4 - Rear-Engine Track Coupe/Super Car 4.blend",
   "L": 4.57,
-  "keepEngine": true
+  "keepEngine": true,
+  "fwd": "-y"
  },
  "super5": {
   "src": "Supercars/Super Car 5 - French Quad-Turbo Hypercar/Super Car 5.blend",
   "L": 4.54,
   "keepEngine": true,
   "slots": {
-   "^Textured": "trim#141416"
-  }
+   "^Textured": "trim#141416",
+   "^Grille": "trim#101012",
+   "CalliperBadge": "trim#141416"
+  },
+  "fwd": "+y"
  },
  "super6": {
   "src": "Supercars/Super Car 6 - Classic Wedge Mid-Engine Sports Coupe/Super Car 6.blend",
   "L": 4.49,
-  "keepEngine": true
+  "keepEngine": true,
+  "fwd": "-y"
  },
  "truck2": {
   "src": "Trucks/Truck 2 - Heavy-Duty Work Pickup/Truck 2.blend",
@@ -272,7 +310,8 @@
      1.0
     ]
    }
-  ]
+  ],
+  "fwd": "-y"
  },
  "truck4": {
   "src": "Trucks/Truck 4 - Old-Style Box Truck/Truck 4.blend",
@@ -362,7 +401,8 @@
  "truck7": {
   "src": "Trucks/Truck 7 - Modern Box Truck/Truck 7.blend",
   "L": 7.0,
-  "textured": true
+  "textured": true,
+  "fwd": "+x"
  },
  "van1": {
   "src": "Vans/Van 1 - European Cargo Van/Van 1.blend",
@@ -384,7 +424,8 @@
      1.5
     ]
    }
-  ]
+  ],
+  "fwd": "-y"
  },
  "van2": {
   "src": "Vans/Van 2 - Classic Graffiti Van (broken)/Van 2.blend",
@@ -421,7 +462,8 @@
      1.6
     ]
    }
-  ]
+  ],
+  "fwd": "-y"
  },
  "van4": {
   "src": "Vans/Van 4 - Ambulance Box Body/Van 4.blend",
@@ -439,11 +481,13 @@
  "van5": {
   "src": "Vans/Van 5 - Boxy Silver Passenger Van With Spare Tire And Brush Guard/Van 5.blend",
   "L": 5.2,
-  "textured": true
+  "textured": true,
+  "fwd": "+x"
  },
  "covered1": {
   "src": "Other/Covered Car 1 - Black Tarp Over Parked Sedan/Covered Car 1.blend",
   "L": 4.4,
-  "static": true
+  "static": true,
+  "fwd": "-y"
  }
 }
