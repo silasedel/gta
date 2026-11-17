@@ -216,7 +216,7 @@ export async function initV2(game) {
     const deck = cur.deck, gloom = Math.max(deck, cur.storm);
     // direct light: clouds block the sun (shadows fade with it)
     if (env.sun) env.sun.intensity *= cur.sun;
-    // ambient: an overcast sky is a big soft light; brighter, greyer fill
+    // ambient: an overcast sky is a big soft light; brighter, grayer fill
     if (env.hemi) {
       env.hemi.intensity *= 1 + 0.9 * deck * day - 0.35 * cur.storm;
       tmpC.setRGB(0.55, 0.58, 0.62).multiplyScalar(lerp(1, 0.25, night));
@@ -226,7 +226,7 @@ export async function initV2(game) {
       const glow = night * deck;
       if (glow > 0.01) { env.hemi.intensity += 0.55 * glow; env.hemi.color.lerp(tmpC.setRGB(0.36, 0.28, 0.22), glow); env.hemi.groundColor.lerp(tmpC.setRGB(0.12, 0.09, 0.07), glow); }
     }
-    // fog: denser and greyer
+    // fog: denser and grayer
     const sf = game.scene.fog;
     if (sf) {
       sf.density += cur.fog * (1 - 0.8 * (env.indoor || 0));

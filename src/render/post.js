@@ -673,8 +673,8 @@ export function createPost(game) {
           scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl) * (1 - 0.65 * night * (L.nightEnv ?? 1));
         }
         // neutral shade (navy-concrete fix): shaded faces were lit only by a saturated blue sky. By day the hemisphere
-        // sky colour is pulled toward its own grey and the ground colour gets a warm sun bounce (sun x dry ground
-        // albedo), so shade reads neutral grey while the sunlit side is unchanged. Colours are re-captured whenever
+        // sky colour is pulled toward its own gray and the ground colour gets a warm sun bounce (sun x dry ground
+        // albedo), so shade reads neutral gray while the sunlit side is unchanged. Colours are re-captured whenever
         // environment.js wrote new ones, so nothing compounds.
         if (env.hemi && L.neutral) {
           const dn = day * (1 - (env.indoor || 0)) * THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.05, 0.25);

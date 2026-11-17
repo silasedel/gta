@@ -43,8 +43,8 @@ Open (carried into job 3 where the world is rebuilt):
 - `src/world/env/weather.v2.js` (game.weather): clear, partly, overcast, rain, storm (thunder + lightning), fog; weighted
   random by part of day (fog mornings, storms afternoons), 90 s transitions, few-hour durations; `set(kind,{instant})`,
   `hold()`, `next()`, `forecast`, `?weather=storm` URL override; events `weather`, `lightning`.
-- Sky: overcast deck layer + lightning flash in `skyShader.js`; sun dims under cloud (shadows fade), grey soft fill,
-  denser grey fog, exposure compensation; overcast nights glow orange with city light.
+- Sky: overcast deck layer + lightning flash in `skyShader.js`; sun dims under cloud (shadows fade), gray soft fill,
+  denser gray fog, exposure compensation; overcast nights glow orange with city light.
 - Rain: 9000 camera-wrapped streaks in one draw call, wind-slanted; synthesized rain bed + delayed thunder on the
   ambience bus (`audio.ambienceBus`), muffled in cars and indoors.
 - Wet surfaces for every standard/physical material (`src/render/wetSurfaces.js`): darker, glossier hard surfaces,
