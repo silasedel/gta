@@ -50,7 +50,8 @@ export function buildJunction(G, n, opts = {}) {
     const atA = e.a === n.id, P = atA ? e.pts : e.pts.slice().reverse();
     if (P.length < 2) return null;
     // at grade near the node (a bridge far along the edge is fine; a ramp that starts within 60 m is not)
-    if (e.y && e.y.length && !e.terrain) { const cum = e.cum, L0 = e.length || 0; for (let i = 0; i < e.y.length; i++) { const d = cum ? (atA ? cum[i] : L0 - cum[i]) : 0; if (d < 60 && Math.abs(e.y[i]) > 0.3) return null; } }
+    // (a low hump under 2 m that never reaches a real deck is drawn at grade by the road builder, so it does not count)
+    if (e.y && e.y.length && !e.terrain) { const cum = e.cum, L0 = e.length || 0; let ym = 0; for (const v of e.y) ym = Math.max(ym, v); for (let i = 0; i < e.y.length; i++) { const d = cum ? (atA ? cum[i] : L0 - cum[i]) : 0; if (d < 60 && Math.abs(e.y[i]) > (ym >= 2 ? 0.3 : 2)) return null; } }
     const dx0 = P[1][0] - P[0][0], dz0 = P[1][1] - P[0][1], l0 = Math.hypot(dx0, dz0) || 1;
     legs.push({ edge: e, edgeId: k, atA, P, fr: frameOf(P), dx: dx0 / l0, dz: dz0 / l0, hw: e.width / 2, len: e.length || l0, sw: opts.swOf ? opts.swOf(e) : e.sidewalk || 0, kind: e.kind || '', th: Math.atan2(dz0 / l0, dx0 / l0), tA: 0, tB: 0 });
   }

@@ -1185,13 +1185,16 @@ export function createTileBuilder(ctx) {
   }
   // atlas columns of lines_col.jpg: white line, yellow line, second white line, plain asphalt (sealed patches); v repeats every 9 m
   const LINE_U = { w: [0.02, 0.23], y: [0.27, 0.48], w2: [0.52, 0.73], a: [0.78, 0.97] }, LINE_V = 9, _mc = new THREE.Color(), _mv = new THREE.Color();
-  let skipClip = false, NGRID = null; const CLIP_PAINT = !(typeof location !== 'undefined' && /[?&]paintclip=0/.test(location.search)); // before/after switch (audit only)
-  function paintBlocked(x, z) { // inside a junction outline (0.15 m in) or an old deck / ramp disc
+  let skipClip = false, NGRID = null, paintEdge = null; const CLIP_PAINT = !(typeof location !== 'undefined' && /[?&]paintclip=0/.test(location.search)); // before/after switch (audit only)
+  function paintBlocked(x, z, noDisc = false) { // inside a junction outline (0.15 m in) or an old deck / ramp disc
     if (!NGRID) { NGRID = new Map(); const G = D && D.roadGraph; for (const n of (G && G.nodes) || []) { if ((n.edges || []).length < 3) continue; const k = Math.floor(n.x / 64) * 100003 + Math.floor(n.z / 64); let c = NGRID.get(k); if (!c) NGRID.set(k, (c = [])); c.push(n); } }
     const gx = Math.floor(x / 64), gz = Math.floor(z / 64);
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const c = NGRID.get((gx + i) * 100003 + gz + j); if (!c) continue;
       for (const n of c) { const dn = Math.hypot(n.x - x, n.z - z); if (dn > 70) continue; const J = junctionOf(n.id);
-        if (!J) { if (n.y > 0.3 && !n.terrain) continue; let w = 0; for (const k of n.edges) { const e = D.roadGraph.edges[k]; if (e && e.width > w) w = e.width; } if (dn < w / 2 + JUNC_PAD) return true; continue; }
+        if (paintEdge !== null && dn < 60 && !noDisc) for (const k of n.edges) { if (k === paintEdge) continue; // inside another road's carriageway near a junction (overlapping legs, close node clusters)
+          const e2 = D.roadGraph.edges[k]; if (!e2 || e2.elevated) continue; const P2 = e2.a === n.id ? e2.pts : e2.pts.slice().reverse(), hw2 = e2.width / 2 - 0.2; let acc = 0;
+          for (let i = 0; i < P2.length - 1 && acc < 60; i++) { const ax = P2[i][0], az = P2[i][1], dx = P2[i + 1][0] - ax, dz = P2[i + 1][1] - az, L2 = dx * dx + dz * dz || 1; acc += Math.sqrt(L2); let t = ((x - ax) * dx + (z - az) * dz) / L2; if (t < 0 || t > 1) continue; if (Math.hypot(ax + dx * t - x, az + dz * t - z) < hw2) return true; } }
+        if (!J) { if (noDisc || (n.y > 0.3 && !n.terrain)) continue; let w = 0; for (const k of n.edges) { const e = D.roadGraph.edges[k]; if (e && e.width > w) w = e.width; } if (dn < w / 2 + JUNC_PAD) return true; continue; }
         const P = J.poly; let ins = false, bd = 1e9; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins; }
         if (!ins) continue; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], dx = P[b][0] - xa, dz = P[b][1] - za, L2 = dx * dx + dz * dz || 1; let t = ((x - xa) * dx + (z - za) * dz) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t; bd = Math.min(bd, Math.hypot(xa + dx * t - x, za + dz * t - z)); }
         if (bd > 0.15) return true; } }
@@ -1242,7 +1245,8 @@ export function createTileBuilder(ctx) {
     const L = atB ? pe.B : pe.A; if (!L) return;
     const loc = (s) => (atB ? pe.LE - s - pe.s0 : s - pe.s0), span = (a, b) => { const p = loc(a), q = loc(b); return p < q ? [p, q] : [q, p]; };
     const PAINT = 0xf2f1ec;
-    if (L.cw) { const [c0, c1] = span(L.cw[0], L.cw[1]), W = 2 * hw - 0.5, n = Math.max(2, Math.floor((W + 0.6) / 1.2)), o0 = -(n * 1.2 - 0.6) / 2;
+    const cwFree = () => { if (!CLIP_PAINT) return true; const [c0, c1] = span(L.cw[0], L.cw[1]); for (const sc of [c0, (c0 + c1) / 2, c1]) for (const o of [-hw * 0.8, 0, hw * 0.8]) { const q = sampleAt(fr, Math.max(0, sc)); if (paintBlocked(q.x + q.nx * o, q.z + q.nz * o, true)) return false; } return true; }; // a crosswalk that would reach into a neighbouring junction (close node pairs) is left out whole
+    if (L.cw && cwFree()) { const [c0, c1] = span(L.cw[0], L.cw[1]), W = 2 * hw - 0.5, n = Math.max(2, Math.floor((W + 0.6) / 1.2)), o0 = -(n * 1.2 - 0.6) / 2;
       for (let k = 0; k < n; k++) markRibbon(B, fr, ys, o0 + k * 1.2, o0 + k * 1.2 + 0.6, mY, PAINT, 1, c0, c1); }
     if (L.bar) { const [b0, b1] = span(L.bar[0], L.bar[1]), total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), c = -hw + r.lanesBack * lw;
       if (atB && r.lanesFwd) markRibbon(B, fr, ys, r.oneway ? -hw + 0.3 : c + 0.3, hw - 0.3, mY, PAINT, 1, b0, b1);
@@ -1317,6 +1321,7 @@ export function createTileBuilder(ctx) {
       if (r.pts.length < 2) continue;
       if (++rc % 10 === 0) { if (flush) flush(); yield; }
       if (owned(r)) continue; // decks / ramps come from elevated.js
+      paintEdge = r.edgeId ?? null; // job 4: paint clip also keeps this road's lines off the other legs where legs overlap near a sharp junction
       const prof = roadProfile(r, tile);
       const fr = polyFrame(prof.pts), L = fr[fr.length - 1].s, hw = r.width / 2, ys = prof.ys;
       // trim ends at intersections so markings/sidewalks stop at the junction
@@ -1520,7 +1525,7 @@ export function createTileBuilder(ctx) {
         if (/service|footway/.test(kind) || highwayNode) continue; // no zebra crossings on causeway / highway merges
         { const e = (endsOf(tile).get(endKey([n.x, n.z])) || []).find((q) => q.dx * dx + q.dz * dz > 0.95); if (e && roadProfile(e.r, tile).ys) continue; } // ramp approach
         const rx = -dz, rz = dx, d0 = n.width / 2 + 0.6;
-        if (!J) for (let o = -w / 2 + 0.4; o < w / 2 - 0.3; o += 1.1) {
+        if (!J && (JOB4_OFF || !CLIP_PAINT)) for (let o = -w / 2 + 0.4; o < w / 2 - 0.3; o += 1.1) { // job 4: the old disc crosswalks overlapped each other on 5+ leg discs; deck / ramp discs get none
           const a = [n.x + dx * d0 + rx * o, 0.065, n.z + dz * d0 + rz * o], b = [a[0] + rx * 0.55, 0.065, a[2] + rz * 0.55];
           const c = [b[0] + dx * 3, 0.065, b[2] + dz * 3], d = [a[0] + dx * 3, 0.065, a[2] + dz * 3];
           quadUp(B.marks, a, b, c, d, new THREE.Color(0xf4f4f0), 1);

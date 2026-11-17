@@ -1,10 +1,10 @@
 {
  "set": "fixed",
- "when": "2026-11-17T04:32:53.243Z",
+ "when": "2026-11-17T05:14:01.070Z",
  "spots": [
   {
    "junctions": 95,
-   "tris": 3940,
+   "tris": 3572,
    "bad": 0,
    "worst": [],
    "spot": [
@@ -14,7 +14,7 @@
   },
   {
    "junctions": 93,
-   "tris": 3858,
+   "tris": 3818,
    "bad": 0,
    "worst": [],
    "spot": [
@@ -24,7 +24,7 @@
   },
   {
    "junctions": 89,
-   "tris": 3394,
+   "tris": 3406,
    "bad": 0,
    "worst": [],
    "spot": [
@@ -34,7 +34,7 @@
   },
   {
    "junctions": 58,
-   "tris": 4178,
+   "tris": 4160,
    "bad": 0,
    "worst": [],
    "spot": [
@@ -74,7 +74,7 @@
   },
   {
    "junctions": 51,
-   "tris": 2932,
+   "tris": 2904,
    "bad": 0,
    "worst": [],
    "spot": [
@@ -86,6 +86,6 @@
  "total": {
   "junctions": 471,
   "bad": 0,
-  "tris": 22406
+  "tris": 21964
  }
 }
