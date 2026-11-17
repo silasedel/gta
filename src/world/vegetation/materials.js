@@ -28,7 +28,7 @@ float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): pal
   float c = sin(6.2831 * ((along - s * 0.6 * t) / 9.5) + across * 0.11 + 4.1);
   return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
 }
-varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
+varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist; varying float vVegH;
 uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; // model height, bend, twist (rad), frond droop; crown attachment height (m)
 float vegInstH() {
 #ifdef USE_INSTANCING
@@ -58,7 +58,7 @@ const VERT_BODY = `
   vec3 vIw = (modelMatrix * vec4(vIp, 1.0)).xyz;
   float vh = fract(sin(dot(vIw.xz, vec2(12.9898, 78.233))) * 43758.5453);
   float vh2 = fract(vh * 91.7 + 0.13), vh3 = fract(vh * 37.13 + 0.61), vh4 = fract(vh * 251.9 + 0.37), vh5 = fract(vh * 13.71 + 0.83), vh6 = fract(vh * 547.3 + 0.19);
-  vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y;
+  vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y; vVegH = position.y;
 #ifndef VEG_IMP
 #ifdef VEG_MIRROR
   if (fract(vh * 173.31 + 0.27) > 0.5) transformed.x = -transformed.x; // per-instance mirror (normals flipped in beginnormal)
@@ -99,6 +99,7 @@ const VERT_BODY = `
 `;
 const FRAG_HEAD = `
 uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt; uniform float uFrameN;
+uniform float uBaseAO; varying float vVegH;
 uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
 float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
@@ -124,6 +125,7 @@ const FRAG_COLOR = `
       c *= vec3(1.0 + 0.5 * hj, 1.0 + 0.08 * hj, 1.0 - 0.8 * hj); // warm (sun-bleached, yellower) <-> cool (shaded, bluer green)
       float l1 = dot(c, vec3(0.2126, 0.7152, 0.0722)); c *= l0 / max(l1, 1e-4);
       diffuseColor.rgb = max(mix(vec3(l0), c, sj) * bj, 0.0);
+      diffuseColor.rgb *= mix(1.0 - uBaseAO, 1.0, smoothstep(0.0, 0.9, vVegH)); // contact darkening at the trunk base / root flare (soil, shade): no pale roots on the ground
     }
     float wear = uWear * smoothstep(0.35, 1.0, vVegHash.y);
     float lum = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
@@ -204,7 +206,7 @@ function localUniforms(o) {
   return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
     uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
-    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.

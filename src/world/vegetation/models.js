@@ -120,7 +120,7 @@ async function buildOne(renderer, key, def, g0, g1) {
     tris: [L0.parts.reduce((a, p) => a + p.tris, 0), L1.parts.reduce((a, p) => a + p.tris, 0)],
     // materials for one set of LOD bands (fade vec4 per band); shared shader programs with every other library plant
     materials(f0, f1, fi, o = {}) {
-      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, ...o };
+      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, baseAO: def.cls === 'shrub' ? 0.3 : 0.5, ...o };
       const mk = (parts, f) => parts.map((p) => { const m = vm(p.fam, p, { fade: f, wear: p.fam === 'leaf' ? 0.35 : 0.25, jitter: p.fam === 'leaf' ? C.jitLeaf : C.jitBark, ...base }); return { geo: p.geometry, mat: m.mat, depth: m.depth, fam: p.fam }; });
       const out = { near: mk(L0.parts, f0), mid: f1 ? mk(L1.parts, f1) : [], imp: null };
       if (imp && fi) { const m = makeVegMaterial('imp', { map: imp.texture, fade: fi, alphaTest: 0.5, transl: 0.5, jitter: C.jitLeaf, ...base }); out.imp = { geo: imp.geometry, mat: m.mat, depth: m.depth }; }
