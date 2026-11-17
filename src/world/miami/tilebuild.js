@@ -3028,19 +3028,19 @@ export function createTileBuilder(ctx) {
       const TS = (t.cx - t.x0) * 2; lawnIndex.set(group, { minX: t.x0, minZ: t.z0, maxX: t.x0 + TS, maxZ: t.z0 + TS, lawns, walks });
     }
     yield; sidewalksOf(tile); yield; roadIndex(tile, true); yield;
-    curWeeds = (props.curbWeed ||= []); // ground pass: curb-crack weeds collected while the slabs are built
     for (const rings of sidewalksOf(tile)) {
       yield* clipGen(rings, tile);
       const r0 = rings[0]; let cx = 0, cz = 0; for (const [x, z] of r0) { cx += x; cz += z; } cx /= r0.length; cz /= r0.length;
       const zn = zoneAt(cx, cz);
+      curWeeds = (props.curbWeed ||= []); // ground pass: curb-crack weeds collected while this slab is built (set / cleared around the synchronous call: tile builds interleave)
       if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile);
       else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile);
       else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile);
+      curWeeds = null;
       yield;
     }
     for (const p of tile.piers || []) pierDeck(B, p, null, props);
     yield;
-    curWeeds = null;
     yield* buildRoads(B, tile, props, null);
     yield;
     let k = 0;
