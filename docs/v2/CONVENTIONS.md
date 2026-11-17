@@ -41,6 +41,7 @@ How the world and the systems connect. If something here is wrong, fix the code 
   lot ring, spawnX/Z in the yard), `keys_sign` (start of the Overseas Highway), `keys_bar` (Key Largo strip).
 - **School:** `layout.json` setpiece `school` (~(457, -1354), Edgewater, 179 m from the Edgewater police substation) for
   the user's mission `docs/v2/plan/MISSION_SCHOOL_ABANDONED_CLASSROOM.md` (stage 2 builds the school, stage 4 the mission).
+- **Fire alarm distraction:** `docs/v2/plan/DISTRACTION_FIRE_ALARM.md` (pull stations in casino, hotels, school, offices).
 - **Rough district:** Overtown and Liberty City (district kind `ghetto`), buildings tagged `condition: rundown|abandoned`.
 - **Police stations:** `src/gameplay/police/stations.js` `STATION_SITES` (district centers, snapped to the nearest road at
   run time). HQ: Southline PD Headquarters, Downtown (407, -110).

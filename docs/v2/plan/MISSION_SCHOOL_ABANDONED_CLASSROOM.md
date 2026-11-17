@@ -40,6 +40,9 @@ Goal: get an item hidden in the school (in the principal's office or elsewhere i
 - Fail: arrested, caught with the item, or the item lost; retry from the last checkpoint (GTA style).
 - Reward: the item / money; consequences: wanted level and charges if seen (trespass, burglary, vandalism).
 
+- **Alternative day route:** pull a fire alarm (`docs/v2/plan/DISTRACTION_FIRE_ALARM.md`): the school evacuates and you
+  search the empty halls before people return (risky: headcount, guard sweep, police next door).
+
 ## Systems this needs
 - Interior with occupancy schedule (stage 2), suspicion meter for "trespassing in a school during the day",
   confrontation dialogue (stage 2 dialogue wheel), door lock schedule, breakable windows with an alarm, high-priority
