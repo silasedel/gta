@@ -230,10 +230,10 @@ export function createTileBuilder(ctx) {
     if (TREE_LIB[sp] && flora?.models) { for (const k of TREE_LIB[sp][0]) { const md = flora.models[k]; if (md) r = Math.max(r, md.radius * TREE_LIB[sp][1] * 0.85); } if (r > 0) return (crownR[sp] = r); } // (greenery, overnight) library crowns for (const g of flora?.VT?.[sp] || []) { const P = g.leaf.attributes.position; for (let i = 0; i < P.count; i++) r = Math.max(r, Math.hypot(P.getX(i), P.getZ(i))); } return (crownR[sp] = r);
   }
   function vegTrees(group, sp, items) {
+    if (TREE_LIB[sp] && libInst(group, TREE_LIB[sp][0], items, 'tree', TREE_LIB[sp][1])) return true; // (greenery, overnight) library models first
     const VT = flora?.VT?.[sp]; if (!VT || !VT.length || !M.vegLeaf) return false;
     const per = VT.map(() => []); items.forEach((it, i) => per[(i + Math.abs((it.x * 3) | 0)) % per.length].push(it));
     per.forEach((it, v) => { if (!it.length) return; const L = treeLodOf(sp, v);
-    if (TREE_LIB[sp] && libInst(group, TREE_LIB[sp][0], items, 'tree', TREE_LIB[sp][1])) return true; // (greenery, overnight) library models first
       for (const p of it) { const h = hash(((p.x * 17) | 0) * 13 + ((p.z * 5) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.9 + h * 0.2); p.sy = s * (0.88 + ((h * 7.13) % 1) * 0.24); } // no two the same size / shape
       if (L) { inst(group, VT[v].bark, L.b.mat, it, { cast: true, depth: L.b.depth }); inst(group, VT[v].leaf, L.l.mat, it, { cast: true, depth: L.l.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat.mat, it, { cast: false }); }
       else { inst(group, VT[v].bark, M.vegBark, it, { cast: true, depth: M.vegBarkDepth }); inst(group, VT[v].leaf, M.vegLeaf, it, { cast: true, depth: M.vegLeafDepth }); } });
