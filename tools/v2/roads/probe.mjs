@@ -24,6 +24,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
     if (!(await startGame(b))) console.log('WARN: title did not close');
     await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; if (game.weather && game.weather.set) game.weather.set('clear', { instant: true }); return 1; })()`);
+    if (b.errors.length) console.log('LOAD ERRORS', [...new Set(b.errors)].slice(0, 8).map((e) => String(e).slice(0, 400)).join('\n'));
     if (o.eval) console.log('eval', q, await b.eval(String(o.eval)));
     const R = (rep.runs[q || 'default'] = {});
     for (const id of only) {

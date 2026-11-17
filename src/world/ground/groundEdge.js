@@ -46,7 +46,7 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
           // asphalt: ragged shoulder 1-2.5 m; pavement: a narrow worn strip
           // city verge (pavement within ~2 m: a tree lawn between curb and sidewalk, a lawn beside a plaza): no rural shoulder
           float urban = smoothstep(0.05, 0.2, gmP) * (1.0 - keys * 0.7);
-          float t = gmA * 2.1 + gmP * 1.1 - 0.36 + (n3 - 0.5) * 0.9 + (n1 - 0.5) * 0.45 + (n2 - 0.5) * 0.18 + (sh.h - gs.h) * 0.55;
+          float t = gmA * 2.1 + gmP * 1.1 - mix(0.5, 0.36, keys) + (n3 - 0.5) * 0.9 + (n1 - 0.5) * 0.45 + (n2 - 0.5) * 0.18 + (sh.h - gs.h) * 0.55;
           gmSh = smoothstep(0.32, 0.5, t) * (1.0 - urban);
           // between shoulder and grass: a band of bare dirt / thin grass (height based: the grass texture's tall blades survive longest)
           float tb = smoothstep(0.12, 0.32, t) * (1.0 - gmSh) * (1.0 - urban);
@@ -106,13 +106,15 @@ float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
           float open = (1.0 - smoothstep(0.06, 0.18, gn.g)) * fine;
           if (open > 0.01 && gn.r < 0.82) {
             float n1 = reN(w * 1.6 + 3.1), n2 = reN(w * 5.3 - 1.7), n3 = reN(w * 17.0 + 0.3);
-            float cut = 0.5 + (n1 * 0.55 + n2 * 0.3 + n3 * 0.15) * 0.2 * open + 0.012;
+            float g1 = reN(w * 41.0 + 5.5);
+            float cut = 0.5 + (n1 * 0.45 + n2 * 0.3 + n3 * 0.25) * 0.2 * open + (g1 - 0.5) * 0.035 * open + 0.012; // ragged at 3 scales, grit at the very edge
             if (gn.r < cut) discard;
             float keys = smoothstep(4150.0, 4500.0, w.y);
             float edge = 1.0 - smoothstep(cut, cut + 0.13, gn.r); // last ~0.4 m before the break
-            float drift = edge * smoothstep(0.35, 0.7, reN(w * 0.8 + 7.7) * 0.6 + n2 * 0.4) * open;
-            vec3 sandC = mix(vec3(0.42, 0.38, 0.31), vec3(0.62, 0.56, 0.45), keys);
-            diffuseColor.rgb = mix(diffuseColor.rgb * mix(1.0, 1.12, edge * open), sandC * (0.85 + 0.3 * n3), drift * 0.85);
+            float drift = edge * smoothstep(0.45, 0.8, reN(w * 0.8 + 7.7) * 0.6 + n2 * 0.4) * open * mix(0.45, 0.85, keys);
+            drift *= smoothstep(0.25, 0.75, g1 * 0.6 + n3 * 0.4); // granular, not a smooth film
+            vec3 sandC = mix(vec3(0.3, 0.28, 0.24), vec3(0.55, 0.5, 0.41), keys);
+            diffuseColor.rgb = mix(diffuseColor.rgb * mix(1.0, 1.08, edge * open), sandC * (0.8 + 0.4 * g1), drift);
             roughnessFactor = mix(roughnessFactor, 0.96, max(drift, edge * 0.5));
             // after rain: puddles in the sunken strip along the open edge
             float pz = (1.0 - smoothstep(cut + 0.06, cut + 0.36, gn.r)) * open;

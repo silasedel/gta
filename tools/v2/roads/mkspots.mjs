@@ -24,3 +24,7 @@ const TERR = { cityLots: [-660, -55], park: [-300, -1700], beach: [2398, 660], d
   okeechobee: [-2200, -6200], naples: [-4730, -220], fortMyers: [-5335, -3960], highway: [-1900, 4300], causeway: [1100, -400], airport: [-1210, 1045], homestead: [-1320, 3190], keyWest: [-4895, 5940], marathon: [-2783, 6600] };
 const T2 = {}; for (const [k, [x, z]] of Object.entries(TERR)) { T2[`${k}_aerial`] = cam(x, z, 'aerial', 11); T2[`${k}_graze`] = cam(x, z, 'graze', 11); }
 fs.writeFileSync(new URL('./spots/terrain.json', import.meta.url), JSON.stringify(T2, null, 1));
+// city verges (lead, 01:45): tree lawns between curb and sidewalk around downtown / State Road 1042
+const VERGE = { v1: [430, -90], v2: [380, -150], v3: [460, -160], v4: [350, -60], v5: [-640, -40], v6: [-700, 80] };
+const V2 = {}; for (const [k, [x, z]] of Object.entries(VERGE)) { V2[`verge_${k}`] = cam(x, z, 'side', 11.5); }
+fs.writeFileSync(new URL('./spots/verge.json', import.meta.url), JSON.stringify(V2, null, 1));
