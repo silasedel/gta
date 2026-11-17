@@ -246,6 +246,12 @@ if bloom:
     px = np.empty(bimg.size[0] * bimg.size[1] * 4, np.float32); bimg.pixels.foreach_get(px); px = px.reshape(bimg.size[1], bimg.size[0], 4)
     rgb = px[..., :3]; hh, ss, vv = rgb2hsv(rgb); w = green_w(hh, ss)[..., None]; lum = rgb.mean(-1, keepdims=True)
     t = np.array(bloom['tint'], np.float32); var = 0.75 + 0.5 * np.clip(lum / max(float(lum.mean()), 0.05), 0, 2) * 0.5
+    if bloom.get('clusters'):  # flower clusters with green leaflets between them (not a full red shell): a blobby mask in texture space
+        rs = np.random.RandomState(S.get('seed', 7) + 11); g = rs.rand(28, 28).astype(np.float32); H, Wd = rgb.shape[:2]
+        yi = np.linspace(0, 27, H); xi = np.linspace(0, 27, Wd); y0 = np.floor(yi).astype(int); x0 = np.floor(xi).astype(int); y1 = np.minimum(y0 + 1, 27); x1 = np.minimum(x0 + 1, 27); fy = (yi - y0)[:, None]; fx = (xi - x0)[None, :]
+        up = g[y0][:, x0] * (1 - fy) * (1 - fx) + g[y0][:, x1] * (1 - fy) * fx + g[y1][:, x0] * fy * (1 - fx) + g[y1][:, x1] * fy * fx
+        c = float(bloom['clusters']); m = np.clip((up - (1 - c) + 0.08) / 0.16, 0, 1)
+        w = w * m[..., None]
     rgb2 = rgb * (1 - w * bloom.get('amount', 0.92)) + np.clip(t * var, 0, 1) * w * bloom.get('amount', 0.92)
     bi = save_img('leafbloom_c', np.concatenate([rgb2, px[..., 3:4]], -1), alpha=True)
     bloom_mat = build_mat('leafbloom', bi, base.node_tree.nodes.get('Image Texture.001').image if base.node_tree.nodes.get('Image Texture.001') else None, 'leaf')

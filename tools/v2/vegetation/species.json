@@ -371,13 +371,14 @@
     0.4
    ],
    "bloom": {
-    "fraction": 0.7,
+    "fraction": 0.68,
     "tint": [
-     0.86,
-     0.17,
-     0.06
+     0.8,
+     0.13,
+     0.08
     ],
-    "amount": 0.95
+    "amount": 0.94,
+    "clusters": 0.78
    }
   },
   "oak_pale_a": {
@@ -903,13 +904,14 @@
     0.38
    ],
    "bloom": {
-    "fraction": 0.68,
+    "fraction": 0.62,
     "tint": [
-     0.88,
-     0.2,
-     0.06
+     0.8,
+     0.13,
+     0.08
     ],
-    "amount": 0.95
+    "amount": 0.94,
+    "clusters": 0.78
    }
   },
   "poinciana_c": {
@@ -927,13 +929,14 @@
     0.38
    ],
    "bloom": {
-    "fraction": 0.6,
+    "fraction": 0.58,
     "tint": [
-     0.84,
-     0.16,
-     0.07
+     0.8,
+     0.13,
+     0.08
     ],
-    "amount": 0.95
+    "amount": 0.94,
+    "clusters": 0.78
    }
   },
   "cypress_a": {

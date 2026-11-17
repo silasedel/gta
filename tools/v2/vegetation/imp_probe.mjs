@@ -3,12 +3,12 @@
 // default = keys r5 aerial). Shoots the view, then the view with vegetation impostors hidden, then lists the visible far meshes.
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const [out = 'imp', ...nums] = process.argv.slice(2); const v = nums.map(Number);
-const eye = v.length >= 6 ? v.slice(0, 3) : [-70, 48, 95], look = v.length >= 6 ? v.slice(3, 6) : [-5, 0, 5];
+const eye = v.length >= 6 ? v.slice(0, 3) : [-70, 48, 95], look = v.length >= 6 ? v.slice(3, 6) : [-5, 0, 5], fov = v[6] || 50;
 await withBrowser({ width: 1600, height: 900, maxSeconds: 900 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute'); await b.waitFor(GAME_READY + " && !!game.nicoHouse", 600); await startGame(b, 60);
   await b.eval(`(() => { const NH = game.nicoHouse, V = (p) => NH.toWorld(new game.THREE.Vector3(...p)); const e = V(${JSON.stringify(eye)}), l = V(${JSON.stringify(look)});
     game.timeOfDay = 11; window.__E = e; try { game.teleport(e.x, undefined, e.z + 3, 0); } catch (x) {}
-    game.cameraOverride = (dt, cam) => { cam.position.copy(e); cam.lookAt(l); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
+    game.cameraOverride = (dt, cam) => { cam.position.copy(e); cam.lookAt(l); if (cam.fov !== ${fov}) { cam.fov = ${fov}; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
   await b.sleep(15000);
   await b.screenshot(out + '_a.png');
   const list = await b.eval(`(() => { const e = window.__E, rows = {}; game.scene.traverseVisible((o) => { if (!o.isMesh) return; const m = Array.isArray(o.material) ? o.material[0] : o.material; const fam = m?.userData?.veg?.family;

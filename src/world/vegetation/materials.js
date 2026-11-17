@@ -104,7 +104,7 @@ const VERT_BODY = `
 const FRAG_HEAD = `
 uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt; uniform float uFrameN;
 uniform float uBaseAO; varying float vVegH;
-uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
+uniform float uBloom; uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
 float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
 float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
@@ -117,6 +117,12 @@ const FRAG_COLOR = `
     diffuseColor.a *= 1.0 + max(0.0, 0.5 * log2(max(dot(tdx, tdx), dot(tdy, tdy)))) * 0.3;
   }
   #endif
+  if (uBloom > 0.0) { // flowering trees (poinciana): per tree a share of the flower clusters is still green (some trees only partly in bloom)
+    float bh = fract(vVegHash.x * 7.31 + 0.5), keep = bh < 0.25 ? 0.45 + bh * 1.4 : 1.0; // a quarter of the trees only partly in bloom (45-80 % of the clusters), the rest in full bloom
+    float cn = fract(sin(dot(floor(vVegW.xz * 0.9 + vVegW.y * 0.35), vec2(12.9898, 78.233))) * 43758.5453); // ~1 m clusters, world-fixed (TAA-stable)
+    float red = clamp((diffuseColor.r - max(diffuseColor.g, diffuseColor.b)) * 3.0, 0.0, 1.0);
+    if (cn > keep) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.62, 0.22) * dot(diffuseColor.rgb, vec3(0.6)), red);
+  }
   {
     float dn = vegDither();
     if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard;
@@ -211,7 +217,7 @@ function localUniforms(o) {
   return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uImpA: { value: new THREE.Vector4(im && im.cols ? im.cols : im ? im.views : 8, im && im.rows ? im.rows : 1, im && im.fy ? im.fy : 1, 0) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
     uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
-    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBloom: { value: o.bloom ? 1 : 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.
