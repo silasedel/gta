@@ -74,8 +74,8 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       return 'cop ' + u.gunKey + ' lib=' + u.gun.userData.lib + ' ready=' + !!u.gun.userData.libReady + ' vis=' + u.gun.visible + ' pos=' + gp.toArray().map((v) => v.toFixed(2)) + ' cop=' + u.pos.toArray().map((v) => v.toFixed(2)) + ' hd=' + JSON.stringify(hd);
     })()`);
     console.log(r); await b.screenshot(path.join(DIR, `${SET}_cop_idle.png`));
-    const r2 = await b.eval(`(async () => { const u = window.__cop; (game.wanted || {}).level = 2; u.mode = 'chase'; u.sees = true;
-      await new Promise((res) => setTimeout(res, 1800)); return 'cop aim ' + u.mode; })()`);
+    const r2 = await b.eval(`(async () => { const u = window.__cop; try { game.wanted.setStars ? game.wanted.setStars(2, 'test') : (game.wanted.level = 2); } catch (e) { /* */ } u.mode = 'chase'; u.sees = true;
+      await new Promise((res) => setTimeout(res, 1800)); return 'cop aim ' + u.mode + ' sees=' + u.sees + ' stars=' + game.wanted.level; })()`);
     console.log(r2); await b.screenshot(path.join(DIR, `${SET}_cop_aim.png`));
   }
   if (o.pickups) {
