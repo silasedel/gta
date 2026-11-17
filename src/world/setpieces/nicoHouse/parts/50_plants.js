@@ -614,11 +614,12 @@ gl_Position = projectionMatrix * mvPosition;
     }
   };
   { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.8, 12.6], [10.7, 16.2], [10.9, 20.6], [10.6, -12.6]]) seaOats(x, z, r); }
-  // periwinkle, weeds and grass at pile footings and stair feet
+  // periwinkle, weeds and grass at pile footings and stair feet (not on the carport / front-bay slabs)
+  const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);
   { const r = kit.rng(65);
     for (const [x, z, pw] of [[-8.42, 5.02, 1], [-8.42, 2.8, 0], [-8.42, -0.2, 1], [-8.42, -3.2, 0], [-8.42, -6.22, 1], [-6.4, 5.02, 1], [-3.6, 5.02, 0], [-0.8, 5.02, 1], [2.0, 5.02, 1], [-6.4, -6.22, 0], [-3.6, -6.22, 1], [-0.8, -6.22, 0], [6.42, -6.22, 1], [2.0, -6.22, 0], [-11.95, 6.75, 1], [-10.4, 6.85, 1], [-11.75, 3.0, 0], [0.1, -7.05, 1], [-10.65, 3.05, 0], [6.9, -3.0, 0], [6.95, 0.6, 1]]) {
       const a0 = r() * 6.28;
-      for (let i = 0; i < 4 + (r() * 3 | 0); i++) { const a = a0 + i * 1.3 + r(), d = 0.36 + r() * 0.18; tuft(x + Math.cos(a) * d, 0, z + Math.sin(a) * d, 0.18 + r() * 0.32, 0.3 + r() * 0.2, grassC(r), 0.02, r); }
+      for (let i = 0; i < 4 + (r() * 3 | 0); i++) { const a = a0 + i * 1.3 + r(), d = 0.36 + r() * 0.18, tx = x + Math.cos(a) * d, tz = z + Math.sin(a) * d, h = 0.18 + r() * 0.32, w = 0.3 + r() * 0.2, gc = grassC(r); if (onSlab(tx, tz)) continue; tuft(tx, 0, tz, h, w, gc, 0.02, r); }   // never through the slabs
       if (pw) { const a = a0 + 2.5, d = 0.42; periwinkle(x + Math.cos(a) * d, z + Math.sin(a) * d, 1 + r() * 0.3, 0, r); if (r() < 0.5) periwinkle(x + Math.cos(a + 1.2) * (d + 0.1), z + Math.sin(a + 1.2) * (d + 0.1), 0.85, 0, r); }
       else rosette(x + Math.cos(a0) * 0.42, 0, z + Math.sin(a0) * 0.42, { n: 8, el: [1.2, 0.3], l: 0.28, w: 0.4, bend: 0.5, tile: 11, color: (r2) => cv([0.8, 1.05, 0.7], r2, 0.15), amp: 0.01 }, r);   // a volunteer fern
     }

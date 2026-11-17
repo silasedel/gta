@@ -107,10 +107,11 @@ export function build(ctx) {
       const g0 = 0.16 + q() * 0.1; for (let v = 0; v < 6; v++) { const tip = v === 2 || v >= 4 ? 1.5 : 0.8; bc.push(0.13 * tip * (0.8 + q() * 0.5), g0 * 0.95 * tip, 0.05 * tip); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(blades, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(bc, 3)); g.computeVertexNormals();
     const gm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 0.4 }), ms = [], cs = [];
-    const put = (x, z, s = 1) => { ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
+    const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
+    const put = (x, z, s = 1) => { if (onSlab(x, z)) return; ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
     const line = (ax, az, bx, bz, n, spread = 0.25, s = 1) => { for (let i = 0; i < n; i++) { const t = q(); put(ax + (bx - ax) * t + (q() - 0.5) * spread, az + (bz - az) * t + (q() - 0.5) * spread, s); } };
     for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
-    line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.05, 8.0, 8.05, 120, 0.5, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5);
+    line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5);
     for (const sgn of [-1, 1]) for (let z = 6; z < L.z1 + 15; z += 0.22) { const hw = 5.6 + Math.max(0, z - 14) * 0.5 + Math.sin(z * 0.4) * 0.6; put(-2 + sgn * (hw + 1.2 + q() * q() * 6), z + q() * 0.3, 0.8 + q() * 0.9); }
     line(L.x0 - 20, L.z0 + 0.7, L.x1 - 0.5, L.z0 + 0.7, 260, 0.8, 1.2); line(L.x1 - 0.7, L.z0, L.x1 - 0.7, L.z1 + 15, 300, 0.8, 1.2); line(-13.5, 6.6, -9.5, 6.9, 40, 0.5); line(-12.2, 2.8, -12.2, 4.4, 20, 0.3);
     for (const [wx, wz, wr, wn, ws] of WEEDS) for (let i = 0; i < wn; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * wr; put(wx + Math.cos(a) * d, wz + Math.sin(a) * d, ws * (0.8 + q() * 0.6)); }   // keys pass: hand-placed clumps (yard.data.js WEEDS)
