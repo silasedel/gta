@@ -210,12 +210,19 @@ export function createTileBuilder(ctx) {
       if (L.imp) { L.imp.geo.userData.lodMin = PL.b1; L.imp.geo.userData.lodMax = 480; }
       for (const q of [...L.near, ...L.mid, ...(L.imp ? [L.imp] : [])]) greenMats.push(q.mat); return (modelPalm[ck] = L); } catch (e) { console.warn('[vegetation] model palm unavailable', k, e); return null; } }
   modelPalmOf('royal_palm'); modelPalmOf('coconut_palm'); // shared programs compile with the city materials
-  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['date_palm'], queen: ['tropical_palm', 'palm_yellow'], fan: ['fan_palm'], sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
+  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['date_palm'], queen: ['tropical_palm', 'date_palm'], fan: ['fan_palm'], sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
   // palm species by place (Miami planting): royal palms on boulevards, downtown and the causeways, coconut palms at the beach,
   // a residential mix of coconut / sabal / queen. One species per ~70 m stretch so a street is planted in one species.
   const PALM_MIX = { beach: [['coconut', 5], ['bent', 4], ['sabal', 1], ['royal', 1]], nightlife: [['coconut', 5], ['bent', 1], ['royal', 3], ['fan', 2]], downtown: [['royal', 7], ['date', 2], ['coconut', 1]], business: [['royal', 7], ['date', 2], ['coconut', 1]],
     brickell: [['royal', 8], ['date', 2]], midtown: [['royal', 5], ['date', 2], ['coconut', 2], ['fan', 1]], edgewater: [['royal', 5], ['coconut', 3]], causeway: [['royal', 7], ['coconut', 3]], park: [['royal', 4], ['coconut', 3], ['sabal', 3]],
     residential: [['coconut', 4], ['sabal', 3], ['queen', 2], ['fan', 2], ['royal', 1], ['date', 1]], rural: [['sabal', 6], ['coconut', 2]], wilderness: [['sabal', 7], ['coconut', 1]], _: [['coconut', 3], ['sabal', 3], ['queen', 2], ['royal', 2], ['date', 1]] };
+  const PALM_INLAND_RES = [['sabal', 3], ['queen', 2], ['fan', 2], ['date', 1]], palmCoastC = new Map();
+  function palmCoast(x, z) { // open / salt water within ~250 m (beach, bay, Keys): where coconut palms grow (r2-veg)
+    if (!isWater) return true; const k = Math.floor(x / 50) + ',' + Math.floor(z / 50); let v = palmCoastC.get(k); if (v !== undefined) return v; v = false;
+    const cx0 = (Math.floor(x / 50) + 0.5) * 50, cz0 = (Math.floor(z / 50) + 0.5) * 50;
+    for (const d of [60, 140, 240]) { let n = 0; for (let a = 0; a < 8; a++) if (isWater(cx0 + Math.cos(a * 0.785) * d, cz0 + Math.sin(a * 0.785) * d)) n++; if (n >= (d < 100 ? 1 : 2)) { v = true; break; } } // >= 2 of 8 far samples: open water, not a canal
+    palmCoastC.set(k, v); return v;
+  }
   const pickW = (list, r) => { let t = 0; for (const e of list) t += e[1]; let a = r * t; for (const e of list) { a -= e[1]; if (a <= 0) return e[0]; } return list[list.length - 1][0]; };
   const palmProc = {}; palmVariants.forEach((pg, v) => (palmProc[pg.species] ||= []).push(v));
   function palmKindOf(p) { // -> 'm:<library model key>' | procedural variant index (only when the model files are missing)
@@ -223,6 +230,13 @@ export function createTileBuilder(ctx) {
     const cx = Math.floor(p.x / 70), cz = Math.floor(p.z / 70), hc = hash(cx * 7919 + cz * 104729 + 17), hp = hash(((p.x * 13.1) | 0) * 31 + ((p.z * 7.7) | 0));
     let sp = pickW(PALM_MIX[zone] || PALM_MIX._, hc);
     if ((p.street || (p.y || 0) > 0.1) && /downtown|business|brickell|midtown|causeway|edgewater/.test(zone) && hp < 0.8) sp = 'royal'; // curbside palms on the commercial boulevards
+    { // (r2-veg, item 12) each palm where it fits: royal palms only in avenue rows (curbside, medians, causeways), coconut / bent
+      // coconut only near salt or open water (beach, bay, Keys), sabal inland, queen / fan / date in residential and commercial yards
+      const ave = !!(p.ave || p.street || p.pit || (p.y || 0) > 0.1), hz = hash(cx * 131 + cz * 7919 + 29);
+      if (p.park) sp = p.park === 'royal' && ave ? 'royal' : palmCoast(p.x, p.z) ? 'coconut' : 'sabal';
+      if (sp === 'royal' && !ave) sp = palmCoast(p.x, p.z) ? 'coconut' : /residential|nightlife|midtown/.test(zone) ? pickW(PALM_INLAND_RES, hz) : 'sabal';
+      if ((sp === 'coconut' || sp === 'bent') && !palmCoast(p.x, p.z)) sp = /residential|nightlife|midtown|_/.test(zone) ? pickW(PALM_INLAND_RES, hz) : /downtown|business|brickell|edgewater/.test(zone) ? 'date' : 'sabal';
+    }
     const list = PALM_MODELS[sp] || PALM_MODELS.coconut; // one species per stretch, a different model / pose per palm
     for (let k = 0; k < list.length; k++) { const key = list[((hp * 997 | 0) + k) % list.length]; if (modelPalmOf(key)) return 'm:' + key; }
     const vs = palmProc[sp] || palmProc.coconut || [0]; return vs[(hp * 997 | 0) % vs.length];
@@ -1662,14 +1676,14 @@ export function createTileBuilder(ctx) {
         for (let s2 = Math.max(8, trimA + 4); s2 < L - Math.max(8, trimB + 4); s2 += 13) { const q = sampleAt(fr, s2); let w = 0;
           for (let o = hw + 1.0; o <= hw + 16; o += 0.5) { const x = q.x - q.nx * o, z = q.z - q.nz * o; if (ri(x, z).gap < 0 || (isWater && isWater(x, z))) { w = o - hw; break; } if (onSidewalk && onSidewalk(x, z)) { w = -1; break; } }
           if (w < 3.2 || w > 16) continue; const o = hw + w / 2, x = q.x - q.nx * o, z = q.z - q.nz * o; if (insideBuilding(tile, x, z)) continue;
-          props.palm.push({ x, y: 0.02, z, ry: hash(((x * 5) | 0) + ((z * 3) | 0)) * 6, s: 1.0 + hash((x | 0) * 3) * 0.25 });
+          props.palm.push({ x, y: 0.02, z, ry: hash(((x * 5) | 0) + ((z * 3) | 0)) * 6, s: 1.0 + hash((x | 0) * 3) * 0.25, ave: 1 });
           if (w > 4.5) for (const d of [-4, 4]) { const bx = x + q.dx * d, bz = z + q.dz * d, hb = hash(((bx * 7) | 0) + ((bz * 11) | 0)); props.blob.push({ x: bx, y: 0.02, z: bz, ry: hb * 6, s: 0.8 + hb * 0.3, color: new THREE.Color().setHSL(0.25 + hb * 0.06, 0.4, 0.45 + hb * 0.12) }); } } }
       // port roads: tall yard lamps + bollards; causeway fill: royal palm rows on the verges
       if (!ys && props) { const zn0 = zoneAt(r.pts[0][0], r.pts[0][1]);
         if (zn0 === 'port' && L > 40) for (const side of [-1, 1]) for (let s2 = 25 + (side > 0 ? 0 : 35); s2 < L - 10; s2 += 100) { const q = sampleAt(fr, s2), o = side * (hw + 1.2), x = q.x + q.nx * o, z = q.z + q.nz * o; if (!(isWater && isWater(x, z))) props.signPost.push({ x, y: 0, z, ry: Math.atan2(-q.nx * side, -q.nz * side) + Math.PI / 2 }); } // yard speed / regulation signs
         if (zn0 === 'port') for (const side of [-1, 1]) for (let s2 = 10 + (side > 0 ? 0 : 15); s2 < L - 5; s2 += 30) { const q = sampleAt(fr, s2), o = side * (hw + 0.8), x = q.x + q.nx * o, z = q.z + q.nz * o; if (isWater && isWater(x, z)) continue; props.lamp.push({ x, y: 0, z, ry: Math.atan2(-q.nx * side, -q.nz * side), s: 1.35 }); props.hydrant.push({ x: q.x + q.dx * 4 + q.nx * o, y: 0, z: q.z + q.dz * 4 + q.nz * o, ry: 0 }); }
         const cw = !/service|footway|path/.test(r.kind) && (zn0 === 'causeway' || /Causeway|Venetian Way/.test(r.name || '') || ISLAND_D.test(distAt(r.pts[r.pts.length >> 1][0], r.pts[r.pts.length >> 1][1])));
-        if (cw) for (const side of [-1, 1]) for (let s2 = 8 + (side > 0 ? 0 : 9); s2 < L - 4; s2 += 18) { const q = sampleAt(fr, s2), o = side * (hw + 2.4), x = q.x + q.nx * o, z = q.z + q.nz * o; if (isWater && (isWater(x, z) || isWater(x + q.nx * side * 1.5, z + q.nz * side * 1.5))) continue; props.palm.push({ x, y: 0, z, ry: hash(((x * 3) | 0) + ((z * 7) | 0)) * 6, s: 1.05 }); }
+        if (cw) for (const side of [-1, 1]) for (let s2 = 8 + (side > 0 ? 0 : 9); s2 < L - 4; s2 += 18) { const q = sampleAt(fr, s2), o = side * (hw + 2.4), x = q.x + q.nx * o, z = q.z + q.nz * o; if (isWater && (isWater(x, z) || isWater(x + q.nx * side * 1.5, z + q.nz * side * 1.5))) continue; props.palm.push({ x, y: 0, z, ry: hash(((x * 3) | 0) + ((z * 7) | 0)) * 6, s: 1.05, ave: 1 }); }
         if (cw && L > 20) { const walk = pathIndex(tile), eh = hash((r.edgeId ?? r.id ?? 0) * 977 + 5);
           for (const side of [-1, 1]) { // guardrail only where the carriageway edge runs right along the water (no verge to stop in)
             let gA = -1; const longRun = (sEnd) => sEnd - gA > 8 || (!CLIP_OFF && ((gA <= 0.01 && trimA === 0) || (sEnd >= L - 0.01 && trimB === 0))); const flush = (sEnd) => { if (gA >= 0 && longRun(sEnd) && coll) { coll.tag = 'guardrail'; sideWall(coll, fr, 0, side * (hw + 0.5), 0.8, 0, 0xffffff, -side, gA, sEnd); } if (gA >= 0 && longRun(sEnd) && B && B.guard) { const o = side * (hw + 0.5); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xc8ccd0, -side, gA, sEnd); sideWall(B.guard, fr, 0, o, 0.32, 0.42, 0xb8bcc0, side, gA, sEnd); sideWall(B.guard, fr, 0, o + side * 0.08, 0.74, 0.0, 0x8a8f94, -side, gA, sEnd);
