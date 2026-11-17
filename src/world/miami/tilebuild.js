@@ -17,7 +17,7 @@ const SIDEWALK_W = 3.0, CURB = 0.15;
 import { VARIANTS, pickFacade } from './facades.js';
 import { boatVariants, BOAT_LEN } from './boats.js';
 import { FBatch, facadeWalls, WL, WIN, BIT } from '../city/facade.js';
-import { createBuildingModels, CASINO, LIB as LIBMODELS } from './bldmodels.js';
+import { createBuildingModels, CASINO, AIRPORT, LIB as LIBMODELS } from './bldmodels.js';
 import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
@@ -445,7 +445,7 @@ export function createTileBuilder(ctx) {
   }
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
   // ---- library building models (bldmodels.js): picked lots draw the user's models (instanced city-wide), not a procedural shell ----
-  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt, near: (b) => nearBuildings(b) });
+  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt, near: (b) => nearBuildings(b), ground: D ? TH : null });
   const casinoH = LIBMODELS[CASINO.name], inCasino = (x, z) => { const dx = x - CASINO.x, dz = z - CASINO.z, c = Math.cos(CASINO.ry), s = Math.sin(CASINO.ry), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < casinoH.w / 2 + 4 && Math.abs(lz) < casinoH.d / 2 + 4; };
   if (!/[?&]libmodels=0/.test(typeof location !== 'undefined' ? location.search : '')) LIBM.addFixed(-77, CASINO.name, CASINO.x, CASINO.y || 0, CASINO.z, CASINO.ry, CASINO.s);
   // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
@@ -727,8 +727,8 @@ export function createTileBuilder(ctx) {
     let style = styleFor(b, b.zone || zone, seed);
     const y0 = b.minH || 0, h = Math.max(b.h, y0 + 2.5);
     { // library model lot: register the instance, keep only a box collider
-      const LP = opts.lod === 2 || b._podOf || b._noTower || houseLots.claims(b) ? null : LIBM.pick(b, style, b.zone || zone); // lots the house generator owns keep its house
-      if (LP) { LIBM.register(b, LP, D ? Math.max(0, baseOf(b) + 0.05) : 0); if (opts.coll) { const rr2 = orient(LP.rect); wallStrip(opts.coll, rr2, 0, LP.h, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [rr2], LP.h, 0xffffff, 1); } return; }
+      const LP = (opts.lod === 2 && !LIBM.has(b.id)) || b._podOf || b._noTower || houseLots.claims(b) ? null : LIBM.pick(b, style, b.zone || zone); // lots the house generator owns keep its house; far LOD: only lots already carrying a model
+      if (LP) { LIBM.register(b, LP, D ? Math.max(0, baseOf(b) + 0.05) : 0); if (opts.coll) LIBM.collide(opts.coll, LP, opts.relief ? -baseOf(b) : 0); return; } // collider: the model's own collision mesh (steps, porches, overhangs)
     }
     if (style === 'canopy') { // roof on posts (fuel stations, carports)
       fillPoly(B.roof, b.rings, h, new THREE.Color(0xe8e8e4), 1 / 6); fillPolyDown(B.trim, b.rings, h - 0.05, new THREE.Color(0xd0d0cc));
@@ -779,6 +779,14 @@ export function createTileBuilder(ctx) {
     const roofC = new THREE.Color(FB ? FS.roofTint : style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
     if (FB && FS && style !== 'house' && style !== 'warehouse' && style !== 'glass') corniceBands(B, b, outer, y0, h, FS, opts.lod);
+    if (b.kind === 'terminal' && b.id === -9101) { // airport terminal: a deep flat canopy roof on slim columns over the curb and the gates
+      const cv = scalePoly(outer, b.cx, b.cz, 7), cc = new THREE.Color(0xe4e2dc);
+      fillPoly(B.roof, [cv], h + 1.5, new THREE.Color(0xd8d6d0), 1 / 6); fillPolyDown(B.trim, [cv], h + 0.5, cc); wallStrip(B.trim, cv, h + 0.5, h + 1.5, 10, 10, cc);
+      if (opts.coll) { fillPoly(opts.coll, [cv], h + 1.5, 0xffffff, 1); fillPolyDown(opts.coll, [cv], h + 0.5, 0xffffff); }
+      for (let i = 0; i < cv.length; i++) { const p = cv[i], q = cv[(i + 1) % cv.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]), n = Math.max(1, Math.round(L / 24));
+        for (let k = 0; k < n; k++) { const x = p[0] + (q[0] - p[0]) * (k + 0.5) / n, z = p[1] + (q[1] - p[1]) * (k + 0.5) / n, mx = x + (b.cx - x) * 0.03, mz = z + (b.cz - z) * 0.03;
+          B.trim.addGeometry(CYLG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), new THREE.Color(0xcfd2d4)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), 0xffffff); } }
+    }
     if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
     if (style !== 'house' && style !== 'warehouse' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && (b.area || 0) > 160) { // roof dressing: stair / elevator bulkhead, timber-and-steel water tank on legs
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), hb = hash(seed + 401);
@@ -802,7 +810,7 @@ export function createTileBuilder(ctx) {
     if (style === 'house' && outer.length <= 6 && b.area < 600) { // hip roof over the footprint's bounding box (Mediterranean terracotta)
       let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of outer) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
       const rg = new THREE.ConeGeometry(1, 1, 4, 1); rg.rotateY(Math.PI / 4);
-      (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
+      (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0])); // per-house roof shade (faded / weathered tile)
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
     if (style === 'deco' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && roadDist && outer.length <= 8 && hash(seed + 601) < 0.4 && /Beach/.test(ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '')) { // Ocean Drive deco: a vertical sign fin with neon edges on the street corner
@@ -817,7 +825,7 @@ export function createTileBuilder(ctx) {
     }
     if (opts.props && style !== 'house' && b.area > 120 && h < 120) { const n = Math.min(5, 1 + ((b.area / 300) | 0)); for (let k = 0; k < n; k++) { const p = outer[(hash(seed + 10 + k) * outer.length) | 0]; opts.props.ac.push({ x: b.cx + (p[0] - b.cx) * 0.45, y: h, z: b.cz + (p[1] - b.cz) * 0.45, ry: hash(seed + 20 + k) < 0.5 ? 0 : 1.57, s: 0.9 + hash(seed + 30 + k) * 0.4 }); } }
     if (opts.props && h > 90) opts.props.beacon.push({ x: b.cx, y: h + 2, z: b.cz, s: 2.5 });
-    if (opts.props && (style === 'warehouse' || zone === 'industrial' || zone === 'port' || zone === 'commercial' || zone === 'residential') && hash(seed + 77) < 0.14 && h > 3.5) {
+    if (opts.props && (style === 'warehouse' || zone === 'industrial' || zone === 'port' || zone === 'commercial' || zone === 'residential') && hash(seed + 77) < (FS && FS.cond ? 0.75 : 0.14) && h > 3.5) { // rough side: most walls are tagged
       let bi = 0, bl = 0; for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]); if (l > bl) { bl = l; bi = i; } }
       if (bl > 5) { const p = outer[bi], q = outer[(bi + 1) % outer.length], dx = (q[0] - p[0]) / bl, dz = (q[1] - p[1]) / bl, nx = -dz, nz = dx, u = 0.3 + hash(seed + 78) * 0.4, sz = 2.2 + hash(seed + 79) * 1.6;
         opts.props.graffiti.push({ x: p[0] + dx * bl * u + nx * 0.04, y: y0 + 0.9 + sz / 4, z: p[1] + dz * bl * u + nz * 0.04, ry: Math.atan2(nx, nz), s: sz, k: (hash(seed + 80) * 8) | 0 }); }
@@ -877,6 +885,10 @@ export function createTileBuilder(ctx) {
   function buildingsOf(tile, synth = true) {
     let out = bldCache.get(tile); if (out) { if (synth && !tile._far && !out._synthDone) runSynth(tile, out); return out; }
     for (const b0 of tile.buildings || []) if (b0.style === 'stilt' && !b0.minH) b0.minH = 2.7; // Keys stilt houses stand on piles
+    if (tile.x0 !== undefined && !tile._apt) { tile._apt = true; // Miami International terminal (bldmodels.js AIRPORT): synthetic lots in the tile holding their center
+      for (const t of AIRPORT.terminal) { let cx = 0, cz = 0; for (const [x, z] of t.ring) { cx += x; cz += z; } cx /= t.ring.length; cz /= t.ring.length;
+        if (cx < tile.x0 || cx >= tile.x0 + (tile.size || provider.tileSize || 200) || cz < tile.z0 || cz >= tile.z0 + (tile.size || provider.tileSize || 200)) continue;
+        (tile.buildings || (tile.buildings = [])).push({ id: t.id, rings: [t.ring.map((p) => p.slice())], h: t.h, minH: 0, levels: Math.round(t.h / 5), kind: 'terminal', type: 'terminal', style: 'terminal', zone: 'airport', part: false, cx, cz, area: Math.abs(polyArea(t.ring)) }); } }
     const all = tile.buildings || [], bbs = all.map((b) => { let a = Infinity, c = -Infinity, d = Infinity, e = -Infinity; for (const [x, z] of b.rings[0]) { a = Math.min(a, x); c = Math.max(c, x); d = Math.min(d, z); e = Math.max(e, z); } return [a, c, d, e]; });
     const inP = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
     const cen = (b) => { if (b.cx !== undefined) return [b.cx, b.cz]; let x = 0, z = 0; for (const p of b.rings[0]) { x += p[0]; z += p[1]; } return [x / b.rings[0].length, z / b.rings[0].length]; };
@@ -3077,7 +3089,7 @@ export function createTileBuilder(ctx) {
     let bb = new Batch(), k = 0;
     for (const b of buildingsOf(tile)) {
       if (b.part || houseLots.claims(b)) continue; // claimed houses bring their own colliders (setpieces/houses)
-      buildBuilding(NULLB, b, { coll: bb, shops: false }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
+      buildBuilding(NULLB, b, { coll: bb, shops: false, relief: LFc }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
     add(bb, audit ? soupOf('building') : solid); yield;

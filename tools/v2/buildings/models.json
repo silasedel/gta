@@ -1,0 +1,281 @@
+{
+ "hotel_tower": {
+  "src": "Hotels/Hotel 1 - Tall Beige Tower With Curved Balconies And Pool Deck/Hotel 1.glb",
+  "tris": 45000,
+  "lod1": 6000,
+  "dropm": "Palm|Pot Plant|Groundcover",
+  "weld": 0,
+  "minpart": 0.25,
+  "minpart1": 3
+ },
+ "grid_tower": {
+  "src": "Office Buildings/Office Building 1 - Tall Black Grid Glass Tower With Lobby Trimsheet/Office Building 1.glb",
+  "tris": 0,
+  "lod1": 5000
+ },
+ "deco_tower": {
+  "src": "Office Buildings/Office Building 11 - Stepped Art Deco Stripe Tower/Office Building 11.glb",
+  "tris": 0,
+  "lod1": 1500
+ },
+ "old_brick_towers": {
+  "src": "Office Buildings/Office Building 10 - Old Brick And Orange Panel Apartment-Office Towers/Office Building 10.glb",
+  "tris": 0,
+  "lod1": 2000
+ },
+ "black_glass_14": {
+  "src": "Office Buildings/Office Building 7 - Black Glass Fourteen-Story With Light Podium And Plaza Slab/Office Building 7.glb",
+  "tris": 0,
+  "lod1": 2000
+ },
+ "stepped_midrise": {
+  "src": "Office Buildings/Office Building 6 - Tall Stepped Dark Mid-Rise With Curved Corner/Office Building 6.glb",
+  "tris": 0
+ },
+ "curved_res_tower": {
+  "src": "Buildings/Building 17 - Tall Curved Glass Residential Tower With Podium/Building 17.glb",
+  "tris": 30000,
+  "lod1": 5000
+ },
+ "concrete_tower": {
+  "src": "Buildings/Building 18 - Weathered Concrete High-Rise On Round Base/Building 18.glb",
+  "drop": "Text|leaf|svg|Plane.001",
+  "tris": 0
+ },
+ "ribbed_tower": {
+  "src": "Buildings/Building 22 - Slim Ribbed Balcony Office Tower/Building 22.glb",
+  "tris": 0,
+  "lod1": 2500
+ },
+ "gold_crown_tower": {
+  "src": "Buildings/Building 24 - Tall Curved Glass Residential Tower With Balconies/Building 24.glb",
+  "tris": 0,
+  "lod1": 2000
+ },
+ "blue_glass_tower": {
+  "src": "Buildings/Building 25 - Curved Blue-Glass High-Rise On Plaza Plinth/Building 25.glb",
+  "tris": 24000,
+  "lod1": 4000
+ },
+ "grid_block": {
+  "src": "Office Buildings/Office Building 4 - Seven-Story Dark Grid Block With Roof Plant Boxes/Office Building 4.glb",
+  "tris": 0
+ },
+ "angular_block": {
+  "src": "Office Buildings/Office Building 5 - Angular Dark Office Block With Shop Strip Base/Office Building 5.glb",
+  "tris": 0
+ },
+ "strip_office": {
+  "src": "Office Buildings/Office Building 9 - Cheap Four-Story Glass Strip Office/Office Building 9.glb",
+  "tris": 0
+ },
+ "green_apartment": {
+  "src": "Buildings/Building 23 - Green Stucco Five-Story Apartment With Orange Base/Building 23.glb",
+  "drop": "LOGO",
+  "tris": 0,
+  "lod1": 6000
+ },
+ "fire_station": {
+  "src": "Buildings/Building 28 - Dark Grimy Brick Two-Story Fire Station With Roof Units/Building 28.glb",
+  "tris": 0,
+  "lod1": 1500
+ },
+ "garage_row": {
+  "src": "Buildings/Building 2 - Long Mossy Warehouse Row/Building 2.glb",
+  "tris": 8000,
+  "lod1": 2000
+ },
+ "gun_shop": {
+  "src": "Storefronts/Storefront 6 - Small Brick Gun Shop With Barred Windows And Roof Units/Storefront 6.glb",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 2500
+ },
+ "stone_shop": {
+  "src": "Storefronts/Storefront 5 - Two-Story Stone-Brick Shop With Terrace And Rooftop Skylight/Storefront 5.glb",
+  "drop": "Plant_",
+  "tris": 24000,
+  "tex": 2048,
+  "lod1": 4000
+ },
+ "brick_shopfront": {
+  "src": "Storefronts/Storefront 2 - Brick And Black Panel Shop Front With Awning And Glass Doors/Storefront 2.glb",
+  "tris": 16000,
+  "tex": 2048,
+  "lod1": 2500
+ },
+ "bookshop": {
+  "src": "Storefronts/Storefront 1 - Blue-Gray Two-Story Bookshop Front With Hanging Signs/Storefront 1.glb",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 3000
+ },
+ "shutter": {
+  "src": "Storefronts/Shutter 1 - Rolling Steel Shutters One Plain One With Graffiti/Shutter 1.glb",
+  "tris": 0,
+  "tex": 1024,
+  "col": 0
+ },
+ "motel": {
+  "src": "Motels/Motel 2 - Two-Building Roadside Motel With Parking Lot/Motel 2.glb",
+  "tris": 0,
+  "lod1": 4000
+ },
+ "strip_diner": {
+  "src": "Diners/Diner 3 - Long Low Strip Diner On Cracked Asphalt Lot/Diner 3.glb",
+  "dropm": "Asphalt Lot",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 1200
+ },
+ "gas_station": {
+  "src": "Gas Stations/Gas Station 1 - Canopy Station With Convenience Store And Props/Gas Station 1.glb",
+  "tris": 0,
+  "lod1": 3000,
+  "drop": "Bush|Tree|Arvore|Plant"
+ },
+ "factory_plant": {
+  "src": "Factories/Factory 1 - Abandoned Brick Power Plant With Twin Chimneys/Factory 1.glb",
+  "tris": 0,
+  "tex": 2048
+ },
+ "factory_sewing": {
+  "src": "Factories/Factory 2 - Brick Sewing Factory With Skylight Roof And Billboard/Factory 2.glb",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 1500
+ },
+ "blue_gable_house": {
+  "src": "Buildings/Building 26 - Blue Two-Story Gabled House With Porch/Building 26.glb",
+  "tris": 0,
+  "tex": 1024,
+  "lod1": 2000
+ },
+ "ranch_house": {
+  "src": "Buildings/Building 27 - White Siding Ranch House With Shingle Roof And Porch/Building 27.glb",
+  "tris": 0,
+  "tex": 1024
+ },
+ "control_tower": {
+  "src": "Airport/Control Tower 1 - Tall Modern Control Tower/Control Tower 1.glb",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 1500
+ },
+ "control_tower_sm": {
+  "src": "Airport/Control Tower 2 - Concrete Shaft Tower With Glass Cab/Control Tower 2.glb",
+  "tris": 0
+ },
+ "jet_bridge": {
+  "src": "Airport/Jet Bridge 1 - Passenger Boarding Bridge/Jet Bridge 1.glb",
+  "tris": 9000,
+  "tex": 1024
+ },
+ "hangar_arch": {
+  "src": "Hangars/Hangar 1 - Arched-Roof Airfield Hangar With Brick End Towers/Hangar 1.glb",
+  "tris": 0,
+  "tex": 2048,
+  "lod1": 2000
+ },
+ "hangar_quonset": {
+  "src": "Hangars/Hangar 2 - Rusty Barrel-Vault Hangar With Faded Number/Hangar 2.glb",
+  "tris": 0,
+  "lod1": 2500
+ },
+ "hangar_long": {
+  "src": "Hangars/Hangar 4 - Long Gray Multi-Bay Hangar Block/Hangar 4.glb",
+  "tris": 20000,
+  "lod1": 3000
+ },
+ "roof_vents": {
+  "src": "Ventilators/Ventilator 2 - Three Square Roof Vent Covers/Ventilator 2.fbx",
+  "tris": 0,
+  "scale": 0.01,
+  "col": 0
+ },
+ "roof_tank": {
+  "src": "Tanks/Tank 1 - Horizontal Gas Storage Tank/Tank 1.fbx",
+  "tris": 0,
+  "col": 0
+ },
+ "water_tower": {
+  "src": "Water Towers/Water Tower 2 - Tall Slim Steel Water Tower/Water Tower 2.fbx",
+  "tris": 6000,
+  "col": 0
+ },
+ "fire_escape": {
+  "src": "Stairs/Stairs 2 - Steel Fire-Escape Staircase/Stairs 2.fbx",
+  "tris": 12000,
+  "tex": 1024,
+  "col": 0
+ },
+ "util_cabinet": {
+  "src": "Transformers/Transformer 2 - Old Rusty Utility Cabinet/Transformer 2.glb",
+  "tris": 0,
+  "tex": 1024,
+  "scale": 0.004,
+  "col": 0
+ },
+ "podium_tower": {
+  "path": "public/assets/models/buildings/podium_tower.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 2500
+ },
+ "slim_residential": {
+  "path": "public/assets/models/buildings/slim_residential.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 2500
+ },
+ "red_band_tower": {
+  "path": "public/assets/models/buildings/red_band_tower.glb",
+  "colonly": true,
+  "col": 2500,
+  "weld": 0,
+  "lod1": 5000
+ },
+ "curved_glass_tower": {
+  "path": "public/assets/models/buildings/curved_glass_tower.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 8000
+ },
+ "brick_cottage": {
+  "path": "public/assets/models/buildings/brick_cottage.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 1500
+ },
+ "blue_house": {
+  "path": "public/assets/models/buildings/blue_house.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 2000
+ },
+ "brick_duplex": {
+  "path": "public/assets/models/buildings/brick_duplex.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 1500
+ },
+ "graffiti_shop": {
+  "path": "public/assets/models/buildings/graffiti_shop.glb",
+  "colonly": true,
+  "col": 2500
+ },
+ "stilt_shack": {
+  "path": "public/assets/models/buildings/stilt_shack.glb",
+  "colonly": true,
+  "col": 2500,
+  "lod1": 3000
+ },
+ "casino_tower": {
+  "path": "public/assets/models/buildings/casino_tower.glb",
+  "colonly": true,
+  "col": 5000,
+  "weld": 0,
+  "lod1": 30000,
+  "tex1": 512
+ }
+}

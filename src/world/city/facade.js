@@ -42,7 +42,7 @@ export const WALL_LAYERS = [
 export const WL = Object.fromEntries(WALL_LAYERS.map((l, i) => [l.key, i]));
 export const WIN = { punched: 0, ribbon: 1, curtain: 2, arched: 3, porthole: 4, blank: 5, storefront: 6, door: 7, garage: 8, roller: 9 };
 export const PROFILE = { office: 0, residential: 1, hotel: 2, retail: 3, industrial: 4, garage: 5, lobby: 6, restaurant: 7 };
-export const BIT = { awning: 65536, pilaster: 1, spandrel: 2, belt: 4, stripes: 8, cross: 16, vsplit: 32, jalousie: 64, shutters: 128, ac: 256, darkFrame: 512, fins: 1024, surround: 2048, sill: 4096, grime: 8192, solidDoor: 16384, awningWin: 32768 };
+export const BIT = { boarded: 131072, bars: 262144, awning: 65536, pilaster: 1, spandrel: 2, belt: 4, stripes: 8, cross: 16, vsplit: 32, jalousie: 64, shutters: 128, ac: 256, darkFrame: 512, fins: 1024, surround: 2048, sill: 4096, grime: 8192, solidDoor: 16384, awningWin: 32768 };
 export const GLASS = { clear: 0, blue: 1, green: 2, bronze: 3, gray: 4, silver: 5, teal: 6, dark: 7 };
 
 let wallP = null;
@@ -205,6 +205,7 @@ void facadeEval() {
       float warm = fH2(cell * 3.1 + seed + 5.0);
       litC = prof == 0 || prof == 5 || prof == 4 ? mix(vec3(0.82, 0.92, 1.0), vec3(1.0, 0.95, 0.84), warm * 0.7) : mix(vec3(1.0, 0.66, 0.36), vec3(1.0, 0.88, 0.70), warm);
       gFLitC = litC;
+      if ((bits & 131072) != 0) { lit = 0.0; gFLit = 0.0; } // abandoned: dark
       if (prof == 1 && warm > 0.84) litC = mix(litC, vec3(0.45, 0.6, 1.0) * (0.75 + 0.5 * fH2(vec2(floor(uFTime * 5.0), h1 * 91.0))), 0.75); // TV glow
     }
     if (type == 2) {
@@ -343,6 +344,17 @@ void facadeEval() {
           if (type == 7 && (bits & 16384) != 0) { // solid paneled door instead of glass
             vec2 pp = vec2(fract(wq.x * 2.0), fract(wq.y * 3.0)); float panel = step(0.14, pp.x) * step(pp.x, 0.86) * step(0.1, pp.y) * step(pp.y, 0.9);
             oAlb = acc * (0.8 + 0.2 * panel); oRough = 0.45; oMetal = 0.0; oEmi = vec3(0.0); oN = vec3(0.0, 0.0, 1.0);
+          }
+          if ((bits & 131072) != 0 && type != 8 && type != 9 && fH2(cell * 5.3 + seed + 19.0) < 0.8) { // abandoned: plywood boards nailed over the opening
+            float nB = type == 6 || type == 7 ? 2.0 : 3.0; float row = floor(wq.y * nB); float gr = fVN(vec2(pg.x * 2.5 + row * 7.0, pg.y * 34.0) + cell * 3.0);
+            float sh = fH2(vec2(row, h1 * 50.0) + cell);
+            vec3 ply = mix(vec3(0.58, 0.47, 0.33), vec3(0.40, 0.35, 0.29), sh) * (0.8 + 0.28 * gr) * (1.0 - 0.25 * smoothstep(0.4, 0.95, fVN(pg * 1.7 + cell)));
+            float seam = fLine(fract(wq.y * nB) - 0.5, 0.5 - 0.035 * nB / (hs.y * 2.0), px * nB / (hs.y * 2.0));
+            seam = 1.0 - seam; // dark gap between boards
+            oAlb = ply * (1.0 - 0.55 * seam * detail); oRough = 0.88; oMetal = 0.0; oEmi = vec3(0.0); oN = vec3(0.0, (fract(wq.y * nB) - 0.5) * 0.25 * detail, 1.0); cov = 0.0;
+          } else if ((bits & 262144) != 0 && type != 8 && type != 9) { // security bars over the glass
+            float bx = fract((pg.x - wmin.x) / 0.13); float bar = max(fLine(bx - 0.5, 0.11, px / 0.13), fLine(fract((pg.y - wmin.y) / 1.1) - 0.5, 0.03, px / 1.1)) * (0.4 + 0.6 * detail);
+            oAlb = mix(oAlb, vec3(0.08, 0.08, 0.085), bar); oRough = mix(oRough, 0.45, bar); oMetal = mix(oMetal, 0.6, bar); oEmi *= 1.0 - bar;
           }
           // frame + mullions over the glass
           float fm = max(fr, mu);

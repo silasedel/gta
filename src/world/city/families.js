@@ -107,7 +107,20 @@ export function buildingStyle(b, ctx, salt = 0) {
   if (S.accent.getHex() === S.tint.getHex()) S.accent.offsetHSL(0.5, 0, S.accent.getHSL({}).l > 0.6 ? -0.3 : 0.25);
   if (S.door) S.door.color = new THREE.Color(DOORS[pickI(DOORS, R(21))]);
   S.roofTint = [0xffffff, 0xe8e4dc, 0xd8d8d8, 0xf2ede2][pickI([0, 1, 2, 3], R(22))];
-  S.sig = `${fam}|L${S.layer}|t${ti}|w${S.type}|b${S.bits}|g${S.glass}|a${ai}|p${S.parapet}`;
+  if (S.roof === WL.roofTile) S.roofTint = [0xffffff, 0xe6cfc0, 0xd2bfb0, 0xf0d8c4, 0xbca89a, 0xdcc8bc, 0xc8b4a4][pickI([0, 1, 2, 3, 4, 5, 6], R(23))]; // sun-faded, weathered and newer clay tile
+  // the rough side of town (Overtown, Liberty City: CONVENTIONS "Rough district"): worn paint and block walls, grime, window AC
+  // units, security bars, roll-down shutters on the ground floor, rusty metal roofs; abandoned buildings are boarded up and dark.
+  // Same condition rule as bldmodels.js (hash of the id + 6101 < 0.18 = abandoned)
+  if (/Overtown|Liberty City/.test(district) && !tower && S.type !== WIN.curtain) {
+    const cond = hash(((b.id | 0) % 2147483647) + 6101) < 0.18 ? 'abandoned' : 'rundown'; S.cond = cond;
+    S.layer = one([WL.plasterWorn, WL.paintPeel, WL.stuccoRough, WL.cmu, WL.brickPaint, WL.plasterWorn, WL.paintPeel], 31);
+    S.bits = (S.bits & ~(BIT.stripes | BIT.awningWin)) | BIT.grime | BIT.sill | (R(32) < 0.6 ? BIT.ac : 0) | (cond === 'abandoned' ? BIT.boarded : R(33) < 0.5 ? BIT.bars : 0);
+    if (S.type === WIN.ribbon || S.type === WIN.porthole) { S.type = WIN.punched; S.winW = 0.42; S.winH = 0.5; S.sill = 0.28; }
+    if (R(34) < (cond === 'abandoned' ? 0.9 : 0.5)) S.gfType = WIN.roller;
+    const hsl = {}; S.tint.getHSL(hsl); S.tint.setHSL(hsl.h, hsl.s * 0.75, hsl.l * (cond === 'abandoned' ? 0.72 : 0.84));
+    S.roof = S.hip ? WL.roofMetal : WL.roofGravel; S.roofTint = S.hip ? 0xc4a088 : 0xb8b2a8; S.neon = false; S.profile = PROFILE.residential; S.glass = GLASS.gray; S.reflect = 0.1;
+  }
+  S.sig = `${fam}|L${S.layer}|t${ti}|w${S.type}|b${S.bits}|g${S.glass}|a${ai}|p${S.parapet}${S.cond || ''}`;
   return S;
 }
 function safeColor(c, fb) { try { return new THREE.Color(c); } catch (e) { return new THREE.Color(fb); } }
