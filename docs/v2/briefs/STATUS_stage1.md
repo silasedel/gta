@@ -95,3 +95,30 @@ neighbor houses ~140, NPC characters are expensive: ~80 us per draw).
   player character (it replaces the current code-built Nico), matching `references/user_references/Nico/`.
 - **Nico's neighborhood street design:** see "Key Largo street design" in `docs/v2/briefs/STAGE1_AGENT_NOTES.md`
   (worn paved lanes without curbs, sandy matted yard and driveway, cottages, poinciana trees, pickup + rusty classic car).
+
+## Progress log (Nov 16, evening) — helper passes
+- **Roads (job 4) DONE pass 1+2:** merged junction outlines with curb returns (`src/world/miami/roadgeo.js`), continental
+  crosswalks per leg, stop bars, lane markings, sidewalks/curbs cut along edges, curb ramps, Keys-lane style (no curbs or
+  sidewalks, worn asphalt, sand shoulders), downtown plazas flush with sidewalks (+ `data.js` ground height at curb).
+  Surfaces from the user's road scans (Road 6 asphalt, Road 4 sidewalk, Road 2 pavers, Road 1 paint, Road 11 shoulders):
+  `public/assets/textures/roads/`. Audit: `tools/v2/road-audit.mjs`; sheets `ROADS_before/after.png`.
+  Open: gore striping / turn arrows on 7-leg and highway junctions; sidewalk joints world-aligned.
+- **Greenery DONE:** user's palm/banyan/fern models (`public/assets/models/vegetation/`), duplicate trees fixed, species
+  by district, Everglades cypress swamp and sawgrass, street trees in grates, Keys poincianas + bougainvillea/hibiscus,
+  sandy Keys yards (small edit in `src/world/terrain/terrain.js`). Audit `tools/v2/veg-audit.mjs`; sheets `GREEN_*`.
+  Open: code-built live oaks and saw palmettos crude up close (no usable models).
+- **Buildings pass 1 DONE:** night far-facade glow fixed, district profiles (towers at the cores, Beach deco 3-6 floors,
+  towns shops + houses), library models on ~1/3 of fitting lots (`src/world/miami/bldmodels.js`,
+  `public/assets/models/buildings/`), casino tower at (2183, -370) Miami Beach facing Collins Ave (in CONVENTIONS).
+  Open: far towers flat boxes, Beach from the air uniform, casino model heavy (335k tris, no LOD), needs more models.
+- **Key Largo DONE:** rebuilt from `docs/v2/plan/keys_detail.webp` (`tools/v2/map3/keys_detail.py` ->
+  `out/keys_detail.json`, hook section 3b in build_v3): 26 roads (highway concrete trunk + paved keys lanes), 119
+  buildings, 32 piers, Nico's house at (-876, 4822) facing Pelican Point Ln, spawn in the yard; connected network.
+  Note: the main-map overlay test now differs in the Keys region on purpose (the user's detail image wins there).
+- **HUD (job 6) DONE** (see above). **Street furniture:** helper running (user's models for signals, lamps, signs,
+  shelters, hydrants, benches, bins, meters, mailboxes, utility poles).
+- Dev server: hot reload OFF while helpers test (`vite.config.js`, `VITE_HMR=1` restores) -> restore at hand-off.
+- Remaining for stage 1: furniture pass, 5-minute drive test (`tools/v2/drive-test.mjs`), perf pass (60 fps goal),
+  final tour + fps at the job-1 places, overlay re-run, restore HMR, hand-back zip.
+- User bar (Nov 16): better than GTA 5 everywhere; use the whole budget; P0 asset requests in MODEL_REQUESTS_stage1.md
+  (4K ground scans, grass card atlas, 40-60 buildings, mast-arm signals, cobra lamps).
