@@ -32,7 +32,7 @@ function rimMat(color) {
     m = new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color(color) }, uI: { value: 1 } },
       vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'uniform vec3 uColor; uniform float uI; varying vec3 vN; varying vec3 vV; void main(){ float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); f = pow(f, 2.2) * 0.85 + 0.06; gl_FragColor = vec4(uColor * f * uI, 1.0); }',
+      fragmentShader: 'uniform vec3 uColor; uniform float uI; varying vec3 vN; varying vec3 vV; void main(){ float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); f = pow(f, 3.2) * 0.75; gl_FragColor = vec4(uColor * f * uI, 1.0); }',
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, depthFunc: THREE.LessEqualDepth, toneMapped: false,
     });
     m.userData.noWet = true; _rimMats.set(color, m);
@@ -77,9 +77,10 @@ function buildPickupModel(type, color) {
 function settleWeapon(p) {
   const w = p.model.userData.weapon; if (!w || p.settled) return;
   if (!w.userData.libReady && w.userData.lib) return;          // still the stand-in: wait for the real model
-  w.position.set(0, 0, 0); w.rotation.set(0, 0, 0); w.updateMatrixWorld(true);
-  const bb = new THREE.Box3().setFromObject(w), c = bb.getCenter(new THREE.Vector3()).sub(w.getWorldPosition(new THREE.Vector3()));
-  w.position.set(-c.x, -c.y, -c.z);
+  // center the model on the pickup's pivot (bounds measured in the pivot's own frame)
+  w.position.set(0, 0, 0); w.rotation.set(0, 0, 0); p.root.updateMatrixWorld(true);
+  const c = new THREE.Box3().setFromObject(w, true).getCenter(new THREE.Vector3());
+  p.model.worldToLocal(c); w.position.copy(c).negate();
   addRim(w, p.color);
   p.settled = true; p.rimOn = undefined;
 }
@@ -118,8 +119,8 @@ export function createPickups(game, G) {
     root.add(model, halo);
     // sit on the real surface (sidewalk, curb, dock planks): ray down onto the fixed colliders around the given point
     let y = pos.y || 0;
-    const gy = tryCall('pickupGround', () => groundAt(game, pos.x, pos.z, y + 1.6), 0);
-    if (gy && Math.abs(gy - y) < 2.5) y = gy;
+    const gy = tryCall('pickupGround', () => groundAt(game, pos.x, pos.z, y + 0.5), 0);
+    if (gy && Math.abs(gy - y) < 1.0) y = gy;
     root.position.set(pos.x, y, pos.z);
     scene.add(root);
     const p = {
@@ -288,7 +289,7 @@ export function createPickups(game, G) {
       p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.025;
       const night = 1 - (game.env?.dayFactor ?? 1);
       p.halo.material.opacity = 0.32 + night * 0.35;
-      for (const m of _rimMats.values()) m.uniforms.uI.value = (0.75 + 0.25 * Math.sin(t * 2.2)) * (0.8 + night * 0.7);
+      for (const m of _rimMats.values()) m.uniforms.uI.value = (0.8 + 0.2 * Math.sin(t * 2.2)) * (0.55 + night * 0.5);
       const r = inCar ? 2.6 : 1.3;
       if (!dead && d < r && Math.abs(p.pos.y - pp.y) < 2.2 && (!inCar || p.type === 'cash' || p.type === 'health' || p.type === 'armor' || p.type === 'ammo')) {
         if (collect(p)) {
