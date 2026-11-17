@@ -17,6 +17,10 @@ never picked at random) and streams the GLBs in (common classes first). Procedur
 - `game.vehicles.placeStatic('covered1', { x, z, heading })` -> Promise<Object3D>: a static prop (car under a cover), box collider.
 - Rare cars (hypercar, supercars, ultra-luxury SUV, classic wedge): one each, `glb/placements.js`, parked when the player comes near.
 - Paint: US color mix for everyday cars (`glb/fleet.js US_MIX`), per-car wear/dirt/finish from `catalog.rollLook`.
+- Physics from the model: wheel radius, track and wheelbase measured by the converter; collision hull = the body's extreme
+  points without mirrors, floored at 0.24 m; mass / springs / steering per class (`glb/fleet.js PHYS`); bump travel >= 0.2 m
+  (the visual wheel is capped at the measured arch gap); AI traffic gets a righting torque past ~30 deg of lean.
+- Checks: `node src/vehicles/glb/tests/fleet.test.mjs` (registration, specs, pools), `tools/v2/cars/{boot,game,stability,carcost,closeups}.mjs`.
 
 ## 1. `game.vehicles.registerModel(entry, builder)` (cars built by another track)
 
