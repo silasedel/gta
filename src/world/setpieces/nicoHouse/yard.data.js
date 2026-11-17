@@ -84,11 +84,11 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 // ---- planting through the vegetation helper (game.vegetation.place when it exists, else game.vegetation.field) ----
 // [kind, x, z, opts]: poincianas (red flowering), hibiscus / bougainvillea bushes, sea grape, palms
 export const PLANTING = [
-  ['poinciana', -22.5, -9.5, { s: 1.05, seed: 3 }], ['poinciana', 10.4, 19.5, { s: 0.95, seed: 7 }],
+  ['gumbo', -22.5, -9.5, { s: 1.05, seed: 3 }], ['poinciana', 10.4, 19.5, { s: 0.95, seed: 7 }],
   ['coconut', -23.0, 7.5, { s: 1.0, lean: [0.8, 0.3] }], ['coconut', 11.0, 11.5, { s: 0.92, lean: [-0.4, 0.6] }], ['sabal', -22.4, -3.0, { s: 0.9 }],
   ['hibiscus', -8.6, 23.6, { s: 1.0 }], ['hibiscus', -1.6, 25.2, { s: 0.85 }], ['bougainvillea', 9.2, 23.8, { s: 1.1 }], ['bougainvillea', -14.8, 21.8, { s: 0.9 }],
   ['seagrape', -22.5, 1.0, { s: 1.1 }], ['seagrape', 10.8, 4.0, { s: 1.0 }], ['croton', -12.0, 6.8, { s: 0.9 }], ['croton', 0.8, 9.6, { s: 0.8 }],
-  ['poinciana', -23.5, 35.5, { s: 1.1, seed: 12 }], ['poinciana', 9.5, 37.5, { s: 0.9, seed: 3 }], ['poinciana', -4.5, 47.0, { s: 1.0, seed: 7 }],   // across the street (mock-up: red crowns over the far yards)
+  ['poinciana', -23.5, 35.5, { s: 1.1, seed: 12 }], ['poinciana', -4.5, 47.0, { s: 1.0, seed: 7 }],   // across the street (mock-up: red crowns over the far yards)
   // the neighbors' yards and the verges (keysStreet.data.js lots): shade trees and palms so the street reads dense and green
   ['gumbo', -20.0, 50.5, { s: 1.0 }], ['coconut', -7.5, 51.0, { s: 1.05 }], ['sabal', -22.5, 41.0, { s: 0.95 }], ['gumbo', 26.5, 49.0, { s: 1.1 }], ['coconut', 11.0, 53.0, { s: 0.95 }],
   ['liveoak', -41.0, -7.0, { s: 0.8 }], ['coconut', -27.5, -8.5, { s: 1.0 }], ['sabal', -43.0, 7.0, { s: 1.0 }], ['gumbo', -40.5, 48.0, { s: 1.0 }], ['coconut', -26.5, 49.5, { s: 1.1 }],
