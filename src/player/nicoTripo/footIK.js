@@ -91,7 +91,7 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
       else st.air = 0;
       st.w += ((on ? 1 : 0) - st.w) * Math.min(1, dt * (on ? 8 : 14));
       st.stats.active = st.w > 0.05;
-      if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; return; }
+      if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; for (const l of legs) l.prevOk = false; return; }
       let dip = 0;
       if (st.land) { st.landT += dt; const k = st.landT / 0.42; dip = k >= 1 ? 0 : -0.11 * st.land * Math.sin(Math.PI * Math.min(1, k * 1.15)) * (1 - k * 0.3); if (k >= 1) st.land = 0; }
       model.position.y = 0; model.updateMatrixWorld(true);
