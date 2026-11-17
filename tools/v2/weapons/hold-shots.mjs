@@ -112,7 +112,7 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       const aimCop = () => { try { const t = game.player.position.clone(); t.y += 1.3; H.holdWeapon(u.gun, u.char.root, { aim: t, dt: 0.016, time: game.clock.elapsed }); } catch (e) { window.__copErr = String(e); } };
       game.combat.late = game.combat.late || []; game.combat.late.push(aimCop);
       const keep = () => { aimCop(); u.mode = 'chase'; u.sees = true; u.fireCd = Math.max(u.fireCd || 0, 0.5); if (game.wanted.level < 3) { try { game.wanted.setStars(3, 'test'); } catch (e) { /* */ } } game.player.health = 100; };
-      const hh = u.heading; game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x + Math.sin(hh) * 1.6 - Math.cos(hh) * 0.9, hp.y + 0.15, hp.z + Math.cos(hh) * 1.6 + Math.sin(hh) * 0.9); cam.lookAt(hp.x, hp.y, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); keep(); return true; };
+      const hh = u.heading; game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x - Math.cos(hh) * 1.7 + Math.sin(hh) * 0.5, hp.y + 0.2, hp.z + Math.sin(hh) * 1.7 + Math.cos(hh) * 0.5); cam.lookAt(hp.x, hp.y, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); keep(); return true; };
       await new Promise((res) => setTimeout(res, 600)); return 'cop aim ' + u.mode + ' sees=' + u.sees + ' stars=' + game.wanted.level; })()`);
     console.log(r2); await b.screenshot(path.join(DIR, `${SET}_cop_aim.png`));
   }

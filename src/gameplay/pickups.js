@@ -308,10 +308,10 @@ export function createPickups(game, G) {
       p.model.rotation.y = t * 0.9 + p.phase;
       p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.04;
       // twinkle: a quick glint every ~2.6 s near the top of the model; it grows with distance so it stays a few pixels wide
-      const gp = ((t + p.phase * 0.43) % 2.6) / 2.6, flash = gp < 0.12 ? Math.sin(gp / 0.12 * Math.PI) : 0;
+      const gp = ((t + p.phase * 0.43) % 2.2) / 2.2, flash = gp < 0.14 ? Math.sin(gp / 0.12 * Math.PI) : 0;
       p.glint.material.opacity = (0.28 + 0.72 * flash) * (d > 3 ? 1 : d / 3);
       p.glint.position.set(Math.sin(t * 0.9 + p.phase) * 0.06, p.model.position.y + 0.1, Math.cos(t * 0.9 + p.phase) * 0.06);
-      p.glint.scale.setScalar((0.18 + Math.min(0.32, d * 0.018)) * (0.7 + 0.6 * flash));
+      p.glint.scale.setScalar((0.18 + Math.min(0.5, d * 0.03)) * (0.7 + 0.6 * flash));
       const night = 1 - (game.env?.dayFactor ?? 1);
       p.halo.material.opacity = 0.42 + night * 0.25;
       for (const m of _rimMats.values()) m.uniforms.uI.value = (0.8 + 0.2 * Math.sin(t * 2.2)) * (0.55 + night * 0.5);
