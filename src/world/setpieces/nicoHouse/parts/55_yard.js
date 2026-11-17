@@ -197,12 +197,11 @@ export function build(ctx) {
     for (let i = 0; i < 60 && !game.city?.streetKit?.signs?.stop; i++) await new Promise((res) => setTimeout(res, 500));
     const SK = game.city?.streetKit; if (!SK?.signs?.stop) return;
     const g = new THREE.Group(); g.name = 'keysStops';
-    const put = (part, m4) => { const mm = new THREE.Mesh(part.geometry, part.material); mm.matrixAutoUpdate = false; mm.matrix.copy(m4); mm.castShadow = true; mm.receiveShadow = true; mm.raycast = () => {}; g.add(mm); };
-    for (const st of STOPS) {
-      const base = M(st.x, 0, st.z, st.lean || 0, st.face, 0);
-      if (SK.signs.post) put(SK.signs.post, kit.mulM(base, M(0, -0.12, 0, 0, 0, 0, 2.4, 2.9, 2.4)));
-      put(SK.signs.stop, kit.mulM(base, M(0, 2.33, 0.045)));
-    }
+    // one instanced mesh per part for the three signs (post, plate)
+    const inst = (part, mats) => { const im = new THREE.InstancedMesh(part.geometry, part.material, mats.length); mats.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; im.computeBoundingSphere(); g.add(im); };
+    const bases = STOPS.map((st) => M(st.x, 0, st.z, st.lean || 0, st.face, 0));
+    if (SK.signs.post) inst(SK.signs.post, bases.map((b) => kit.mulM(b, M(0, -0.12, 0, 0, 0, 0, 2.4, 2.9, 2.4))));
+    inst(SK.signs.stop, bases.map((b) => kit.mulM(b, M(0, 2.33, 0.045))));
     ctx.groups.site.add(g);
   })());
 }
