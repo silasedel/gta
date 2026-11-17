@@ -64,6 +64,10 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 01:40 Boot with the library fleet verified headless: READY 37 s, 48 models registered, all 49 GLBs streamed in, no console
+  errors (`node tools/v2/cars/boot.mjs`). Boot set now covers every class (no procedural stand-ins while streaming). Lamps:
+  every car audited (`tools/v2/cars/lamps_audit.py`): reflectors behind lens glass and lamps painted in atlas textures now light
+  up (head, tail/brake, reverse, blinkers); police roof bar = red/blue strobes. In-game shots queued (browser slots are full).
 - 01:20 46 road models + 2 static props converted (all Models/Cars except the 4 personal-use rows): 47 GLBs, 32 MB total
   (Draco). Studio review of every car front + rear (blue paint test) done twice; fixed orientation (sedan1, truck2, 5 trucks),
   paint detection (9 cars by hand in `tools/v2/cars/cars.json`), white tires, inner door skins poking through, roof racks,
@@ -81,6 +85,7 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 02:55 pass 2 committed (606790d). INCIDENT: my private-index commit was built from a HEAD that moved during the (slow) commit, so it reverted 11 files of other helpers; vegetation restored theirs (f57d201), I restored the other 8 (8c0b3ac: weapons r5_blue/manifest, pickups, precompile, s1-perf, this file). commit_mine.sh is now compare-and-swap (commit-tree with the base HEAD as parent + update-ref HEAD new old; retries if HEAD moved). regulatory.v2.js baseOf error was fixed before that commit. Perf A/B in one session (s1-perf --ab, lotProps draw on/off, dynProps update on/off): +4 draw calls, render 25.1 -> 25.3 ms at spawn, downtown no change (57.5 vs 57.3 ms median, machine under load 40+).
 - 02:10 verified in game + committed (37822e5c): per-house library mailboxes/carts with texture variants at Nico's street (docs/v2/shots/props/dbg_close1.png, dbg_close2.png, t2_lot2.png); car sends a cart pair flying (t5_a..t5_d.png), player pushes carts (t5_walk_go.png, t5_walk_end.png). 6 more variant sets (plastic chairs 6 colors, cones, jersey stripes/tags, commercial bins, twin mailboxes). Hydrant hit hard -> water column + droplets (hydrantSpray.v2.js). Now: downtown / bus stop / work-zone / hydrant shots, perf A/B.
 - 01:00 built (not yet verified in game): 12 new library props converted (tools/v2/street-models/build_props.sh: curbside cart, cone, channelizer, flex bollard, ROAD CLOSED barricade, jersey barrier, roll-off dumpster [company name + phone repainted], site cabin, tarp crates, plastic chair/table, commercial bin); texture-array variants for 8 repeated props (variants.py -> public/assets/models/street/var/, 4-10 layers each: recolors, graffiti removed/moved/new tags, stickers, house numbers, rust, fade); src/world/props/{variants,dynamicProps,propShapes,lotProps}.v2.js; per-house mailbox + carts (lotProps) replace the code-built ones; keysLane no longer sprinkles mailboxes; hydrants only on curbed streets, one side, 90-150 m; benches only at stops / parks / beach; work zones + tower construction sites. NOTE for lead: 3 small guarded hooks outside my files (houses/generator.js yard curb spots, houses/houses.v2.js lotProps add/remove, dressing/dressing.v2.js spawn-street mailbox/bins -> lotProps; rng sequence kept, ?lotprops=0 restores the old boxes).
 - 00:20 started: read briefs + user shots; inventory of street GLBs/textures; plan = texture-array variants per prop (per-instance variant/brightness/fade in instanceColor), per-house mailbox/bin placement, Rapier push/knock props (src/world/props/), construction sites with library cones/barriers.
@@ -139,6 +144,7 @@
   (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
 
 ## buildings
+- 01:50 Verified in game (shots `docs/v2/shots/stage1/T2_{overtown,liberty,dt}_{st,air}.png`, `T2_apt_{gate,air}.png`, `T3_apt_top.png`): Overtown now reads as a rough mixed block (gun shop, gabled houses, rusty roofs, shutters), downtown aerial much more varied, terminal + tower + jet bridges + parked airliners (neutral livery) at MIA. A/B in one session (`node tools/v2/buildings/ab.mjs`, `docs/v2/reports/buildings-ab.json`, library models OFF vs ON, median ms / draw calls): downtown street 229->71 (first sample warm-up) / 531->1312, downtown air 31->40 / 426->766, Brickell air 32->45 / 348->871, Overtown air 27->37 / 317->944, airport air 23->28 / 222->784, Clewiston street 49->55 / 605->605. Too many draws: fixing now (no mirror variants, 1.5 km cells, no shadow draws for far LOD of low buildings, far LOD baked to ONE material atlas per model).
 - 01:05 Committed 9afa612 (fences, roof vents/tanks, utility cabinets, wall detail, load-order-independent picks); next: squatter shacks / booth ruins on vacant lots, fire escapes on brick walk-ups. Lead: my verification tour waited 25 min for a browser slot and timed out (`no free browser slot`), retrying; the 12-minute stale-slot rule also lets long runs lose their slot.
 - 00:50 Committed 3623851: 41 more of the user's models converted (`tools/v2/buildings/models.json` + `convert_v2.sh`: meters, ground at 0, front +Z, WebP 1-2K, `_lod1` far LOD, `_col` collision mesh) and placed by `src/world/miami/bldmodels.js`: towers (Hotel 1, Office Buildings 1/11, Buildings 17/18/22/24), mid-rise (Office Buildings 4/5/6/7/9/10, Buildings 23/25/28), shops/roadside (Storefronts 1/2/5/6, Diner 3, Motel 2, Gas Station 1), houses (Buildings 26/27), industry (Factories 1/2, Building 2), hangars (1/2/4), airport (Control Tower 1, Jet Bridge 1). Dropped after checking: Building 21 (interior-only after cleanup), Motel 1 (walls lost), Hangar 3 (broken texture), Gas Station 2 (617k tris, decimation destroys it), Building 19 (scene export, walls tagged as shop stalls), Building 12/20/29 (0.6-1.9M tris), Airport 1 terminal cut (5.7k-tri racing-game blob with a real city name).
 - Colliders (lead 00:30): library lots now use each model's own collision mesh (walls, steps, porches, overhangs), not a box; plinth colliders where the lot falls away.
@@ -223,6 +229,12 @@
     'kitchen'|'bar'|'hotel'|'lifeguard'|'dock'|... })` gives staff from the user's people.
 
 ## weapons
+- 01:55 Hands verified on the new Nico (his rig has finger joints): fingers curl round grips and handguards, rifles at the
+  shoulder with the left hand on the handguard, GTA low ready when not aiming, two-handed pistol grip, pistol low at the
+  thigh at idle. Asset fixes from Blender studio renders (`tools/v2/weapons/render_sheet.py`): materials had collapsed onto
+  one on multi-material guns (LMG was gold, tactical rifle flat), SMG 2 was backwards, more H&K / Desert Eagle engravings
+  painted out, baked finishes now land on the right faces (blue stock). Shots: `docs/v2/shots/weapons/t5_rifle_close.png`,
+  `t5_rifle_idleclose.png`, `t6_pistol_front.png`, `t6_lmg_idleclose.png`.
 - 01:10 **Wired in and running in the game** (commit 8440517): every gun / bat / crowbar key loads the user's model
   (on demand, procedural stand-in for a few frames), 13 new weapons with stats + slots + pickup pools, attachments built
   on the real muzzle / rail points, baked worn finishes for untextured parts (grey pistol, modern rifle body, nails).
@@ -247,6 +259,18 @@
   helpers' changes in it).
 
 ## vegetation
+- 01:52 Bug found by the new placement audit and fixed (00ff760): the dock / deck ray check took the tiles' trunk collider
+  prisms (4-5 m) for docks, so countryside trees near the player vanished once their colliders streamed in (since ~00:50).
+  Now only 0.3-2.6 m high surfaces block. Audit at the Keys house before the fix: 66 trees, 0 floating, 0 on roads.
+- 01:48 Lead / props: commit 606790d (street props pass 2) reverted my f919942 changes in `src/world/vegetation/countryside.js`,
+  `tools/v2/vegetation/hangtest.mjs`, `tools/v2/vegetation/shots.mjs` (stale entries in the shared git index). Restored in
+  f57d201. I now commit through a private index (`GIT_INDEX_FILE`, `commit-tree`, `update-ref` with the old value) and
+  re-sync the shared index for my paths afterwards; suggest the same for everyone.
+- 01:47 Same run, `?veglib=0` (procedural plants) for comparison: 10-19 fps, page answers 0.07-3.6 s after teleports; with the
+  library: 10-23 fps, 0.14-0.65 s. On this loaded machine the library costs nothing measurable.
+- 01:45 Commit f919942: stall finder with the library plants on (`tools/v2/vegetation/hangtest.mjs`): the page answers in
+  0.14-0.65 s after each teleport (Keys house, Overseas Hwy, downtown), the countryside ring is complete ~12 s after a jump
+  (1281 pending cells -> 0; streaming budget 6 ms/frame while > 150 cells are pending), 10-23 fps on the loaded machine.
 - 01:36 Browser queue: 24 test scripts waiting for 3 slots; my stall finder and the t5 tour (grate close-up, park, beach,
   mangroves, place() test, audit) are queued. Done so far (all committed): 1 conversion of every usable library plant (51 models,
   LOD0/LOD1, impostors, palette), 2 per-instance variation in the shader, 3 grounding (footprint min, sink, mangroves in the
