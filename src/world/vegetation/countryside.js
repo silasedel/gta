@@ -13,7 +13,7 @@ import { GB, rng, UP } from './geom.js';
 import { CELL } from './textures.js';
 import { cluster, cellRect, groundCard } from './plantkit.js';
 import { buildGeometry } from './index.js';
-import { makeVegMaterial } from './materials.js';
+import { makeVegMaterial, VEG_R2 } from './materials.js';
 import { bakeImpostor } from './field.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { grassCardMap, clumpCard, stripCard, bladeCards } from './grasscards.js';
@@ -30,6 +30,8 @@ export const CS_ON = typeof location === 'undefined' || !/[?&]veg2=0\b/.test(loc
 const hh = (i, j, k = 0) => { let h = Math.imul((i | 0) ^ Math.imul(j | 0, 0x27d4eb2d) ^ Math.imul(k + 1, 0x165667b1), 0x9e3779b1); h ^= h >>> 15; h = Math.imul(h, 0x85ebca77); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae3d); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 function vn(x, z) { const ix = Math.floor(x), iz = Math.floor(z); let fx = x - ix, fz = z - iz; fx = fx * fx * (3 - 2 * fx); fz = fz * fz * (3 - 2 * fz);
   const a = hh(ix, iz, 91), b = hh(ix + 1, iz, 91), c = hh(ix, iz + 1, 91), d = hh(ix + 1, iz + 1, 91); return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz; }
+// (r2-veg) the Keys weed-patch mask (0..1), shared with r2-ground's grass layer so both cluster in the same places
+export const weedPatch = (x, z) => sstep(0.5, 0.74, vn(x / 5.5 + 3.3, z / 5.5 - 1.1) * 0.75 + vn(x / 1.8 + 7.1, z / 1.8) * 0.25);
 const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const groveN = (x, z) => sstep(0.3, 0.72, vn(x / 95 + 3.1, z / 95 - 7.7) * 0.62 + vn(x / 27, z / 27 + 5.3) * 0.38); // groves + clearings
 const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x / 4.5 + k, z / 4.5) * 0.3;
@@ -466,7 +468,10 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
         if (p > 0.8 && rd > 1.0) pushItem(c, protoOf.short[0], x, y - 0.02, z, ry, 0.7 + hh(i, j, 37) * 0.4, _n, [0.95, 0.95, 0.75]);
         continue;
       }
-      const verge = rd < 8 ? 1.25 : 1, pat = patchN(x, z, 1), dense = B.grass * verge * (B.matted ? 0.15 + 0.85 * sstep(0.35, 0.8, pat) : 0.35 + 0.9 * sstep(0.25, 0.7, pat));
+      const verge = rd < 8 ? 1.25 : 1, pat = patchN(x, z, 1); let dense = B.grass * verge * (B.matted ? 0.15 + 0.85 * sstep(0.35, 0.8, pat) : 0.35 + 0.9 * sstep(0.25, 0.7, pat)), cl = 1;
+      if (VEG_R2 && B.matted) { // (r2-veg, lead: "polka-dot weeds") trodden Keys sand: weeds in patches of 5-30 tufts with soft edges, more along the street edge, almost none in between
+        cl = weedPatch(x, z); const edge = rd < 4.5 ? 0.35 * (1 - sstep(2.5, 4.5, rd)) * sstep(0.3, 0.6, pat) : 0;
+        dense = B.grass * Math.min(1, cl * 1.2 + edge); cl = Math.max(cl, edge * 2); }
       if (B.litter && hh(i, j, 49) < B.litter) { pushItem(c, protoOf.litter[(p * 77 | 0) % 2], x, y, z, ry, 0.8 + hh(i, j, 50) * 0.5, _n, col); continue; }
       const fl = patchN(x, z, 4), r2 = hh(i, j, 38);
       if (B.flower && fl > 0.62 && r2 < B.flower * 6 * sstep(0.62, 0.8, fl)) { const k = vn(x / 30, z / 30 + 2) > 0.5 ? 'daisy' : 'tick'; pushItem(c, protoOf[k][(r2 * 40 | 0) % 2], x, y - 0.02, z, ry, 0.8 + hh(i, j, 39) * 0.5, _n, col); continue; }
@@ -476,7 +481,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       const dry = sstep(0.5, 0.85, patchN(x, z, 7)) * B.dry + (rd < 4 ? 0.1 : 0), v = 0.85 + hh(i, j, 41) * 0.3;
       const gcol = [B.hue[0] * v * (1 + dry * 0.55), B.hue[1] * v * (1 + dry * 0.12), B.hue[2] * v * (1 - dry * 0.45)];
       const tall = B.tall && patchN(x, z, 9) < B.tall, kind0 = tall ? 'tall' : (rd < 5 && pat < 0.45) || pat < 0.3 ? 'short' : 'grass', kind = B.matted && !tall ? (hh(i, j, 48) < 0.7 ? 'flat' : 'short') : kind0 === 'grass' && hh(i, j, 48) < 0.5 ? 'half' : kind0, L = protoOf[kind];
-      pushItem(c, L[(p * 997 | 0) % L.length], x, y - 0.02, z, ry, 0.75 + hh(i, j, 42) * 0.55, _n, gcol);
+      pushItem(c, L[(p * 997 | 0) % L.length], x, y - 0.02, z, ry, VEG_R2 && B.matted ? 0.5 + 0.55 * cl + hh(i, j, 42) * 0.45 : 0.75 + hh(i, j, 42) * 0.55, _n, gcol); /* patch centers taller, the rim small */
     }
     c.lv.g = 1;
   }

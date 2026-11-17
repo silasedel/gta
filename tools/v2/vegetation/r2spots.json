@@ -869,5 +869,47 @@
   "tod": 11,
   "fov": 70,
   "post": "await new Promise((r) => setTimeout(r, 6000)); const T = game.THREE, NH = game.nicoHouse, c = NH.toWorld(new T.Vector3(-8, 0, 15)); const L = game.vegetation.trunksNear(c.x, c.z, 60); const g = new T.Group(); const mat = new T.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.45, depthTest: false }); for (const t of L) for (const [x0, y0, z0, x1, y1, z1, r] of t.segs) { const a = new T.Vector3(x0, y0, z0), b = new T.Vector3(x1, y1, z1), l = a.distanceTo(b); const m = new T.Mesh(new T.CylinderGeometry(r, r, l, 10), mat); m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), b.clone().sub(a).normalize()); m.renderOrder = 9; g.add(m); } game.scene.add(g); return { trunks: L.length, kinds: [...new Set(L.map((t) => t.kind))].slice(0, 12) };"
+ },
+ "mw_downtown": {
+  "eye": [
+   412,
+   2.0,
+   -130
+  ],
+  "look": [
+   407,
+   5,
+   -70
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "mw_everglades": {
+  "eye": [
+   -3180,
+   3,
+   1222
+  ],
+  "look": [
+   -3200,
+   3,
+   1200
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "mw_southbeach": {
+  "eye": [
+   2398,
+   2,
+   640
+  ],
+  "look": [
+   2398,
+   6,
+   700
+  ],
+  "tod": 11,
+  "fov": 60
  }
 }

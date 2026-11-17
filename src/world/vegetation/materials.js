@@ -217,6 +217,14 @@ const FRAG_ROUGH = `
   roughnessFactor = clamp(roughnessFactor + (0.12 - dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * 0.9 + 0.1 * (vVegHash.y - 0.5), 0.45, 0.86);
 #endif
 `;
+// round 2 (lead: shrubs read as blurry balls at 3-5 m): leaf maps sampled with a -0.7 mip bias, so leaf detail holds (TAA resolves
+// the extra aliasing)
+const MAP_SHARP = `
+#ifdef USE_MAP
+  vec4 sampledDiffuseColor = texture2D( map, vMapUv, -0.7 );
+  diffuseColor *= sampledDiffuseColor;
+#endif
+`;
 const FRAG_TRANSL = `
 #ifdef VEG_R2MIP
 #define VEG_R2T vec3(0.9, 1.05, 0.55)
@@ -317,7 +325,7 @@ function patch(kind, local) {
     }
     sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
-      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
+      sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', (kind === 'leaf' && VEG_R2 ? MAP_SHARP : '#include <map_fragment>') + '\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
       sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO).replace('#include <alphatest_fragment>', A2C_R2T_GLSL + NEAR_FADE); // r2-render: no fixed A2C checkerboard; camera-proximity fade
       if (kind === 'leaf') sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + FRAG_ROUGH);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)

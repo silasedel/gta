@@ -17,10 +17,10 @@ const CANOPY = ['poinciana_c', 'shade_tree', 'poinciana', 'rubber_fig', 'oak_pal
 const UNDER = ['fern_clump', 'tropical_bed', 'fern_a', 'fern_b', 'tropical_bed'];
 
 let _ray = null;
-function hitH(game, x, z) { // height above the ground of the first static collider over (x, z), or -1
+function hitH(game, x, z) { // height above the ground of the first collider over (x, z) (houses, fences, parked cars), or -1
   const W = game.world, R = game.RAPIER, C = game.city; if (!W || !R || !C) return -1;
   _ray ||= new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 }); const g = C.groundHeightAt(x, z) || 0; _ray.origin = { x, y: g + 20, z };
-  let hit = null; try { hit = W.castRay(_ray, 19.6, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC | R.QueryFilterFlags.EXCLUDE_SENSORS); } catch (e) { return -1; }
+  let hit = null; try { hit = W.castRay(_ray, 19.6, true, R.QueryFilterFlags.EXCLUDE_SENSORS); } catch (e) { return -1; }
   if (!hit) return -1; const sh = hit.collider?.shape?.type; if (sh === R.ShapeType.Cylinder || sh === R.ShapeType.Capsule || sh === R.ShapeType.Ball) return -1; // trunks / poles
   return 20 - (hit.timeOfImpact ?? hit.toi ?? 20);
 }
