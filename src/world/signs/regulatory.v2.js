@@ -91,7 +91,7 @@ export async function initV2(game) {
   const K = game.city.streetKit;
   if (K?.signs?.stop && K.signs.post) { // stage 1 job 5: the user's library sign set (worn US plates on a perforated U-channel post)
     const instS = (part, arr, name, y, fwd, scl) => { if (!arr.length || !part) return; const m = new THREE.InstancedMesh(part.geometry, part.material, arr.length); m.name = name; m.castShadow = true; m.receiveShadow = true;
-      arr.forEach((s, i) => { q.setFromAxisAngle(Y, s.h); m4.compose(pv.set(s.x + Math.sin(s.h) * fwd, s.y + y, s.z + Math.cos(s.h) * fwd), q, scl || one); m.setMatrixAt(i, m4); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); return m; };
+      arr.forEach((s, i) => { q.setFromAxisAngle(Y, s.h); m4.compose(pv.set(s.x + Math.sin(s.h) * fwd, s.y - 0.12 + y, s.z + Math.cos(s.h) * fwd), q, scl || one); m.setMatrixAt(i, m4); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); return m; };
     instS(K.signs.post, [...stops, ...allLim], 'reg-sign-posts', 0, 0, new THREE.Vector3(2.4, 2.9, 2.4));
     instS(K.signs.stop, stops, 'reg-stop', 2.45, 0.045);
     for (const [mph, arr] of limits) { const pl = K.speedPlate(mph); if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, 0.04); }
