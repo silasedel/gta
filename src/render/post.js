@@ -978,7 +978,7 @@ export function createPost(game) {
       r.setRenderTarget(dst);
       r.render(quadScene, quadCam);
       sharpMat.uniforms.tDiffuse.value = dst.texture;
-      sharpMat.uniforms.uSharp.value = game.renderSharp ?? 0.3;
+      sharpMat.uniforms.uSharp.value = game.renderSharp ?? 0; // r2-render: off by default (jag run: the sharpen doubled the frame-to-frame wobble and can re-step AA'd edges); 0.15 = subtle
       quad.material = sharpMat;
       r.setRenderTarget(writeBuffer);
       r.render(quadScene, quadCam);
