@@ -1,0 +1,35 @@
+{
+  "set": "r6",
+  "cases": {
+    "explosion": {
+      "log": [
+        [
+          "start",
+          "explosion",
+          false,
+          4.85
+        ],
+        [
+          "phase",
+          "rag",
+          4.95
+        ],
+        [
+          "phase",
+          "getup",
+          7.58
+        ],
+        [
+          "phase",
+          null,
+          10.25
+        ]
+      ],
+      "health": 96.6,
+      "phase": null
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

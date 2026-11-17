@@ -1,0 +1,478 @@
+{
+  "set": "w13",
+  "gaits": [
+    "jog"
+  ],
+  "when": "2026-11-17T11:25:58.065Z",
+  "courses": {
+    "house": {
+      "start": [
+        -871.6264413505318,
+        4839.220897506388
+      ],
+      "pts": [
+        {
+          "x": -873.7164472457009,
+          "z": 4838.041119833198
+        },
+        {
+          "x": -875.9806202988008,
+          "z": 4836.763027353908
+        },
+        {
+          "x": -875.4890462683048,
+          "z": 4835.892191564254
+        },
+        {
+          "x": -874.4567408042634,
+          "z": 4834.063436405981
+        },
+        {
+          "x": -874.6842978597581,
+          "z": 4833.245990513891
+        },
+        {
+          "x": -881.4768170190579,
+          "z": 4829.411713076023
+        },
+        {
+          "x": -875.1846694287099,
+          "z": 4818.265014968454
+        },
+        {
+          "x": -877.1005081659482,
+          "z": 4817.183552101363
+        },
+        {
+          "x": -877.6412395994938,
+          "z": 4818.141471469982
+        },
+        {
+          "x": -879.5583783184279,
+          "z": 4821.537731049632
+        },
+        {
+          "x": -880.2143545361301,
+          "z": 4819.444958916358
+        },
+        {
+          "x": -883.6976976947453,
+          "z": 4817.478662794374
+        },
+        {
+          "x": -886.2231214847415,
+          "z": 4816.0530981059355
+        },
+        {
+          "x": -893.6252256967988,
+          "z": 4811.8747188467205
+        }
+      ],
+      "blockedJitter": null,
+      "done": true,
+      "reached": 14,
+      "of": 14,
+      "frames": 98,
+      "dist": 55.4,
+      "plantedSamples": 80,
+      "footErrMean": 0.0053,
+      "footErrP50": 0.0023,
+      "footErrP95": 0.0194,
+      "footErrMax": 0.0534,
+      "floatFrames": 2,
+      "sinkFrames": 0,
+      "stairSamples": 13,
+      "stuckSecs": 0.07,
+      "stuckMax": 0.07,
+      "capsuleGroundErrMax": 0.106,
+      "slideP50": 0.049,
+      "slideP90": 5.582,
+      "slideN": 7,
+      "airFrames": 3,
+      "yRange": [
+        0,
+        3.06
+      ]
+    }
+  },
+  "shots": {
+    "shots": {
+      "front": {
+        "failed": "Error: timeout screenshot"
+      },
+      "car_window": {
+        "pos": [
+          -794.16,
+          0.77,
+          4848.39
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015723900073245992,
+            0.0013387956136804782
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.02076956513119322,
+            -0.020877189900962715
+          ],
+          "flat": [
+            0.05017431511820727,
+            0.04757655562814616
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.00016462266470735145,
+            0.0001991122251922329
+          ],
+          "pelvis": 0,
+          "active": false
+        },
+        "model": "tripo",
+        "vaultStats": {
+          "vaults": 0,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 4.8330000000000295,
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "car_chase": {
+        "pos": [
+          -792.5,
+          0.77,
+          4846.71
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015723900073245992,
+            0.0013387956136804782
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.02076956513119322,
+            -0.020877189900962715
+          ],
+          "flat": [
+            0.05017431511820727,
+            0.04757655562814616
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.00016462266470735145,
+            0.0001991122251922329
+          ],
+          "pelvis": 0,
+          "active": false
+        },
+        "model": "tripo",
+        "vaultStats": {
+          "vaults": 0,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 100,
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "vault": {
+        "pos": [
+          -807.08,
+          0.89,
+          4846.48
+        ],
+        "speed": 1.65,
+        "lod": 0,
+        "foot": {
+          "err": [
+            null,
+            null
+          ],
+          "off": [
+            -0.015385520399068764,
+            -0.015385520399068764
+          ],
+          "plant": [
+            0.0960640000000223,
+            1
+          ],
+          "lift": [
+            0.14957435335519842,
+            -0.03058193910957241
+          ],
+          "flat": [
+            0.1312148034219658,
+            0.24701395942540483
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            null,
+            null
+          ],
+          "pelvis": -0.007518973975342198,
+          "active": false
+        },
+        "model": "tripo",
+        "vault": {
+          "at": [
+            -807.5,
+            4847.2
+          ],
+          "h": 0.87,
+          "thick": 0.4
+        },
+        "vaultStats": {
+          "vaults": 1,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 2.166499999999942,
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "vault_mid": {
+        "pos": [
+          -805.57,
+          0.05,
+          4840.86
+        ],
+        "speed": 0.02,
+        "lod": 0,
+        "foot": {
+          "err": [
+            null,
+            null
+          ],
+          "off": [
+            0,
+            0
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020331664978094133,
+            -0.020614790379732018
+          ],
+          "flat": [
+            0.05064520000284789,
+            0.0417386579703547
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            null,
+            null
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "vault": {
+          "at": [
+            -807.5,
+            4847.2
+          ],
+          "h": 0.87,
+          "thick": 0.4
+        },
+        "vaultStats": {
+          "vaults": 1,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 11.749500000000117,
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "vault_end": {
+        "pos": [
+          -805.57,
+          0.05,
+          4840.9
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.004030474011201525,
+            0.004255847802614815
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.05365379201852935,
+            -0.05573673975335994
+          ],
+          "flat": [
+            0.06607352658482993,
+            0.06619643342511619
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.00020879324230659873,
+            0.0005266803488773237
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "vault": {
+          "at": [
+            -807.5,
+            4847.2
+          ],
+          "h": 0.87,
+          "thick": 0.4
+        },
+        "vaultStats": {
+          "vaults": 1,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 1.25,
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "pivot": {
+        "pos": [
+          -799.13,
+          0.05,
+          4851.16
+        ],
+        "speed": 1.01,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.009698484296572954,
+            -0.0012076268577136708
+          ],
+          "off": [
+            -3.341078752714847e-8,
+            -0.05000004533171648
+          ],
+          "plant": [
+            0.9520640640000224,
+            1
+          ],
+          "lift": [
+            -0.028521901702577408,
+            -0.017613062562019194
+          ],
+          "flat": [
+            0.31386090009136186,
+            0.05170492228370395
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            null,
+            0.22639644672024595
+          ],
+          "pelvis": -0.03492661918591427,
+          "active": true
+        },
+        "model": "tripo",
+        "vault": {
+          "at": [
+            -807.5,
+            4847.2
+          ],
+          "h": 0.87,
+          "thick": 0.4
+        },
+        "vaultStats": {
+          "vaults": 1,
+          "climbs": 0,
+          "refused": 0
+        },
+        "stamina": 3.182552380952375,
+        "piv": [
+          [
+            0,
+            0,
+            6.28
+          ],
+          [
+            425,
+            2.96,
+            0
+          ],
+          [
+            922,
+            4.19,
+            0
+          ],
+          [
+            1315,
+            4.19,
+            0
+          ],
+          [
+            1662,
+            4.19,
+            0.27
+          ],
+          [
+            1958,
+            1.16,
+            2.61
+          ]
+        ],
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "pivot_end": {
+        "failed": "Error: timeout eval"
+      }
+    },
+    "errors": [
+      "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+    ]
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}
