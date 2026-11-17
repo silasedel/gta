@@ -285,7 +285,7 @@ if CFG.get('cropToPaint'):
         lab_ = islands(bm); V_ = verts_np(bm); u_, inv_ = np.unique(lab_, return_inverse=True)
         mn_ = np.full((len(u_), 3), 1e9); mx_ = np.full((len(u_), 3), -1e9); np.minimum.at(mn_, inv_, V_); np.maximum.at(mx_, inv_, V_)
         ax = 1 if (phi[1] - plo[1]) > (phi[0] - plo[0]) else 0
-        bad_ = (mx_[:, 2] > phi[2] + 0.06) | (mn_[:, ax] < plo[ax] - 0.15) | (mx_[:, ax] > phi[ax] + 0.15)
+        bad_ = (mx_[:, 2] > phi[2] + 0.06) | (mn_[:, ax] < plo[ax] - 0.4) | (mx_[:, ax] > phi[ax] + 0.4)
         dead = [f for f in bm.faces if bad_[inv_[f.verts[0].index]]]
         ks = set(f.index for f in dead); face_obj = [face_obj[i] for i in range(len(face_obj)) if i not in ks]
         bmesh.ops.delete(bm, geom=dead, context='FACES'); log('cropped to paint box, faces', len(dead))
@@ -576,9 +576,32 @@ for f in bm.faces:
     if (abs(n_[0]) > 0.6 and n_[0] * c_[0] < 0 and abs(c_[0]) > 0.45) or (n_[2] < -0.6 and c_[2] > 0.62 * TOPZ): _pin += a_
 INNER_OK = not CFG.get('keepInner') and _pin / _ptot < 0.3
 log('inner paint share', round(_pin / _ptot, 3), 'removing' if INNER_OK else 'kept')
+# lamp units: lens glass at the nose / tail corners stays clear glass (aWin 0); the reflectors and bulbs behind each lens
+# (trim faces inside the lens' bounding box) become emissive lamp faces, so every car gets head, tail, brake and reverse lights
+_V = verts_np(bm); FRONTZ = float(-_V[:, 1].min()); REARZ = float(-_V[:, 1].max()); HALFW = float(np.abs(_V[:, 0]).max())
+def lamp_zone(c_):
+    gz_ = -c_[1]
+    return (gz_ > FRONTZ - 0.5 and c_[2] < 0.62 * TOPZ and c_[2] > 0.25) or (gz_ < REARZ + 0.42 and abs(c_[0]) > 0.3 * HALFW and c_[2] < 0.8 * TOPZ and c_[2] > 0.3)
+lens_box = {}
+for f in bm.faces:
+    s0 = slot_of[f.material_index]
+    if s0 == 'lens' or s0.startswith('lamp:') and minfo[f.material_index]['alpha'] < 0.95 or (s0 == 'glass' and lamp_zone(f.calc_center_median())):
+        j_ = int(inv[f.verts[0].index]) if f.verts[0].index < len(inv) else -1
+        P_ = np.array([v.co[:] for v in f.verts]); b_ = lens_box.get(j_)
+        lens_box[j_] = (np.minimum(b_[0], P_.min(0)), np.maximum(b_[1], P_.max(0))) if b_ else (P_.min(0), P_.max(0))
+LB = [(b[0] - 0.012, b[1] + 0.012) for b in lens_box.values() if np.max(b[1] - b[0]) < 1.4]
+log('lens units', len(LB))
+COLOR_LAMPS = not LB and not any(x.startswith('lamp:') for x in slot_of)   # lamps painted in an atlas texture
+if COLOR_LAMPS: log('lamps from texture colors')
+def in_lens(c_):
+    for lo_, hi_ in LB:
+        if lo_[0] <= c_[0] <= hi_[0] and lo_[1] <= c_[1] <= hi_[1] and lo_[2] <= c_[2] <= hi_[2]: return True
+    return False
 for f in bm.faces:
     mi = f.material_index; info = minfo[mi]; sl = slot_of[mi]
     if sl == 'drop': kill.append(f); continue
+    if sl == 'glass' and lamp_zone(f.calc_center_median()): sl = 'lens'
+    elif sl.startswith('trim') and sl != 'trim:interior' and LB and in_lens(f.calc_center_median()): sl = 'lamp:auto'
     _wf = int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1
     if sl == 'paint' and _wf >= 0: sl = 'trim'                      # wheels are never body paint
     if sl == 'paint' and INNER_OK:
@@ -638,12 +661,50 @@ for f in bm.faces:
             a = LAMP.get(kind, LAMP['head']) / 16.0
             if kind in ('tail', 'tailLed'): rgb = (max(rgb[0], 0.35), rgb[1] * 0.5, rgb[2] * 0.5)
         lp[col_layer] = (rgb[0], rgb[1], rgb[2], a)
+    if COLOR_LAMPS and sl.startswith('trim') and sl != 'trim:interior' and lamp_zone(cz):
+        cs_ = [lp[col_layer] for lp in f.loops]; r_ = sum(c[0] for c in cs_) / len(cs_); g_ = sum(c[1] for c in cs_) / len(cs_); b_ = sum(c[2] for c in cs_) / len(cs_)
+        L_ = 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; front_ = -cz[1] > 0
+        kind_ = None
+        if front_ and L_ > 0.45 and max(r_, g_, b_) - min(r_, g_, b_) < 0.25: kind_ = 'head'
+        elif not front_ and r_ > 0.18 and r_ > 2.2 * g_ and r_ > 2.2 * b_: kind_ = 'tail'
+        elif not front_ and L_ > 0.6: kind_ = 'reverse'
+        elif r_ > 0.35 and g_ > 0.12 and g_ < r_ * 0.75 and b_ < g_ * 0.5: kind_ = 'blinkL' if cz[0] > 0 else 'blinkR'
+        if kind_:
+            for lp in f.loops: c_ = lp[col_layer]; lp[col_layer] = (c_[0], c_[1], c_[2], LAMP[kind_] / 16.0)
+            lp_uv = None
+            for lp in f.loops: lp[uvl].uv = (-1.0, -1.0)
+            f.material_index = 3; continue
     f.material_index = {'paint': 0, 'glass': 1, 'lens': 1}.get(sl.split(':')[0], 3 if sl.startswith('lamp') or sl == 'plate' else 2)
     if (TEXTURED or (TEXSLOTS and TEXSLOTS.search(info['name']))) and f.material_index == 2 and info['img'] is not None and vw[f.verts[0].index] < 0:
         if mi not in tex_slot: tex_slot[mi] = 4 + len(tex_slot)
         f.material_index = tex_slot[mi]
         for lp in f.loops:
             c_ = lp[col_layer]; lp[col_layer] = (1.0, 1.0, 1.0, c_[3])
+# lamp safety net: every car needs head lamps, tail lamps (brake) and something for reverse
+def _chan(f): return round(f.loops[0][col_layer][3] * 16) if f.material_index == 3 else -1
+_kill = set(kill); _cnt = {}
+for f in bm.faces:
+    if f.is_valid and f not in _kill: c_ = _chan(f); _cnt[c_] = _cnt.get(c_, 0) + 1
+if not _cnt.get(LAMP['tail']) and _cnt.get(LAMP['reverse']):   # rear lamps read as white in the texture: they are the tail lamps
+    for f in bm.faces:
+        if f.material_index == 3 and _chan(f) == LAMP['reverse']:
+            for lp in f.loops: c_ = lp[col_layer]; lp[col_layer] = (max(c_[0], 0.45), c_[1] * 0.35, c_[2] * 0.35, LAMP['tail'] / 16.0)
+    log('reverse lamps used as tail lamps')
+def _geo_lamps(kind, front):
+    n = 0
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index == 0: continue
+        if f.material_index == 1 and not lamp_zone(f.calc_center_median()): continue
+        c_ = f.calc_center_median(); nr = f.normal; gz_ = -c_[1]
+        if front and not (gz_ > FRONTZ - 0.22 and -nr[1] > 0.55): continue
+        if not front and not (gz_ < REARZ + 0.22 and nr[1] > 0.55): continue
+        if not (0.38 * HALFW < abs(c_[0]) < 0.97 * HALFW and 0.36 * TOPZ < c_[2] < (0.7 if front else 0.82) * TOPZ): continue
+        col = (1.0, 0.97, 0.9) if front else (0.5, 0.03, 0.02)
+        for lp in f.loops: lp[col_layer] = (col[0], col[1], col[2], LAMP[kind] / 16.0); lp[uvl].uv = (-1.0, -1.0)
+        f.material_index = 3; n += 1
+    log('geometric', kind, 'lamps', n)
+if not _cnt.get(LAMP['head']) and not CFG.get('noHeadFix'): _geo_lamps('head', True)
+if not _cnt.get(LAMP['tail']) and not _cnt.get(LAMP['reverse']) and not CFG.get('noTailFix'): _geo_lamps('tail', False)
 # remap: 0 paint, 1 glass, 2 trim, 3 lamp
 if kill:
     ks = set(f.index for f in kill)

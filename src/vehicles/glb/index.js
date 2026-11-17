@@ -74,7 +74,11 @@ export async function initFleet(cat, opts = {}) {
     };
     next();
   });
-  const bootSet = order.filter((k) => prio(k) === 0).slice(0, opts.bootCount ?? 10).map(fileKey);
+  const bootSet = [];
+  for (const cls of ['sedan', 'suv', 'compact', 'pickup', 'van', 'police', 'taxi', 'truck', 'sports', 'muscle', 'sedan', 'suv']) {
+    const k = keys.find((x) => FLEET_BY_KEY[x].cls === cls && !FLEET_BY_KEY[x].rare && !bootSet.includes(fileKey(x)) && !FLEET_BY_KEY[x].service);
+    if (k && bootSet.length < (opts.bootCount ?? 12)) bootSet.push(fileKey(k));
+  }
   const t0 = performance.now();
   await Promise.race([Promise.all(bootSet.map(loadCarModel)), new Promise((r) => setTimeout(r, opts.bootTimeout ?? 15000))]);
   console.info(`[cars] library fleet: ${keys.length} models registered, ${glbStats.loaded} loaded in ${Math.round(performance.now() - t0)} ms`);
@@ -84,13 +88,22 @@ export async function initFleet(cat, opts = {}) {
     if (!ks.length) return null;
     return ks[(rnd() * ks.length) | 0];
   }
+  // a class with no loaded model yet (streaming): the nearest class that has one, never a procedural car
+  const NEAR = { compact: ['sedan', 'suv'], pickup: ['suv', 'sedan'], van: ['truck', 'suv'], truck: ['van', 'pickup', 'suv'], sports: ['muscle', 'sedan'], muscle: ['sports', 'sedan'],
+    suv: ['sedan', 'compact'], sedan: ['suv', 'compact'], taxi: ['sedan'], police: ['sedan'], ambulance: ['van'], firetruck: ['truck'], super: ['sports'], roadster: ['sports'] };
+  function pickNear(cls, rnd) {
+    let k = pick(cls, rnd); if (k) return k;
+    for (const c of NEAR[cls] || []) if ((k = pick(c, rnd))) return k;
+    for (const c of ['sedan', 'suv', 'compact']) if ((k = pick(c, rnd))) return k;
+    return null;
+  }
   function resolve(key, rnd = Math.random) {
-    if (FLEET_BY_KEY[key] && CAR_TYPES[key]?.glb) return loadedIn(key) ? key : (pick(FLEET_BY_KEY[key].cls, rnd) || key);
+    if (FLEET_BY_KEY[key] && CAR_TYPES[key]?.glb) return loadedIn(key) ? key : (pickNear(FLEET_BY_KEY[key].cls, rnd) || key);
     const a = ALIAS[key];
     if (a) { const list = (Array.isArray(a) ? a : [a]).filter((k) => CAR_TYPES[k]?.glb && loadedIn(k)); if (list.length) return list[(rnd() * list.length) | 0]; }
     const cls = CAR_TYPES[key]?.cls;
-    if (cls && pools[cls]) return pick(cls, rnd) || key;
-    if (cls && CLASS_FALLBACK[cls] !== undefined) { const fc = CLASS_FALLBACK[cls]; return fc ? (pick(fc, rnd) || key) : key; }
+    if (cls === 'bus' || cls === 'hero') return key;
+    if (cls) return pickNear(cls, rnd) || key;
     return key;
   }
   function look(key, L) {

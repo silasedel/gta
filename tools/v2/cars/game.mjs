@@ -34,7 +34,7 @@ const PROBE = `(() => {
   out.glbShare = out.cars.length ? +(out.cars.filter((c) => c.glb).length / out.cars.length).toFixed(2) : null;
   return JSON.stringify(out);
 })()`;
-await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 600) }, async (b) => {
+await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(o.max || 1100) }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');

@@ -1,0 +1,4 @@
+{
+  "perf_downtown": { "player": [407, -110, 0], "tod": 12, "settle": 16000 },
+  "perf_brickell": { "player": [0, 1760, 0], "tod": 12, "settle": 16000 }
+}
