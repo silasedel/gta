@@ -129,12 +129,14 @@ float lNoise(vec2 p) {
     return !!landMat;
   }
   findLand();
-  let landPoll = 0;
+  // stage 1 perf: each try walks the whole city tree. The new map has no 'miami-land-base' (and may have no land material
+  // of this kind), so this searched forever every 1.5 s (a periodic spike). Retry with back-off and stop after ~2 min.
+  let landPoll = 0, landWait = 1.5, landTries = 0;
   game.updaters.push((dt) => {
-    if (landMat && stats.landBase) return;
+    if ((landMat && stats.landBase) || landTries >= 8) return;
     landPoll += dt;
-    if (landPoll > 1.5) {
-      landPoll = 0;
+    if (landPoll > landWait) {
+      landPoll = 0; landWait = Math.min(30, landWait * 2); landTries++;
       findLand();
     }
   });
