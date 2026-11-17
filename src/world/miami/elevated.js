@@ -8,6 +8,7 @@
 //   isGroundJunctionBlocked(id)  true where a ground junction would sit under / inside a deck (no fill, no crosswalks)
 //   ownsEdge(edgeId)             true for the OSM edges this module renders (the city must skip them)
 import { buildNetwork, buildNetworkSteps } from './elevated/network.js';
+import { makeElevatedConcrete } from '../ground/concreteMaterial.js';
 export { buildNetworkSteps };
 import { createBuilder } from './elevated/build.js';
 import { P } from './elevated/params.js';
@@ -19,7 +20,7 @@ export function createElevated({ THREE, RAPIER, world = null, data, materials = 
   const mats = {
     asph: M.asphalt || new THREE.MeshStandardMaterial({ color: 0x8e8e8e, roughness: 0.92, vertexColors: true }),
     // highways track: weathered grey cast concrete (world-space CC0 concrete detail), not the city's beige plaster trim
-    conc: (() => { const m = new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0.0, vertexColors: true }); m.name = 'elevated-concrete'; if (M.detail) M.detail(m, 'concrete', 0.9, 1.0, 1.6); else if (M.trim) return M.trim; return m; })(),
+    conc: makeElevatedConcrete(THREE), // ground pass: world-space cast concrete from the user's Concrete 3 scan, formwork joints, grime, barrier scuff line + scuppers (ground/concreteMaterial.js); the old generic atlas detail was too faint to read
     mark: M.markings || new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
   };
   const toMesh = (buf, mat, name, cast) => {

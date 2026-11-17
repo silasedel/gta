@@ -9,7 +9,7 @@ import { GeoBuf, PosBuf, triClip } from './geobuf.js';
 // linear = sRGB 0.73 - 0.94) read near-white in the sun, which is why the barriers looked like flat white / beige slabs.
 const COL = { // a touch warm (not beige): the blue sky fill on shaded faces then reads neutral grey, not navy
   deck: [1, 1, 1], barrier: [0.34, 0.33, 0.305], barrierTop: [0.38, 0.37, 0.345], fascia: [0.3, 0.292, 0.27], wall: [0.28, 0.272, 0.25], coping: [0.36, 0.35, 0.325], /* ground pass: weathered cast concrete is light grey (~0.35 linear); at 0.21 the shaded barrier faces read as a flat navy wall */ joint: [0.03, 0.03, 0.032], footing: [0.128, 0.124, 0.113], drip: [0.058, 0.057, 0.053],
-  soffit: [0.09, 0.088, 0.083], walk: [0.254, 0.247, 0.228], curb: [0.201, 0.196, 0.181], girder: [0.128, 0.124, 0.114], pier: [0.201, 0.196, 0.181], cap: [0.181, 0.175, 0.161], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
+  soffit: [0.2, 0.196, 0.185], walk: [0.3, 0.292, 0.27], curb: [0.28, 0.272, 0.25], girder: [0.24, 0.234, 0.215], pier: [0.3, 0.292, 0.27], cap: [0.29, 0.282, 0.26], /* ground pass: undersides / piers read as concrete, not near-black */ white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
 export function createBuilder(net) {
@@ -187,10 +187,12 @@ export function createBuilder(net) {
             // weathering: road grime darkens the lower barrier (tyre spray), each 6 m cast section has its own tone
             const tone = panelTone(Math.floor((F0.s + F1.s) / 12) + c.id * 5 + (side > 0 ? 2 : 0));
             const g0 = (y, yb) => tone * (0.7 + 0.3 * Math.min(1, Math.max(0, (y - yb) / P.BAR_H))), gc = (y, yb) => { const f = k === 3 ? tone : g0(y, yb); return [col[0] * f, col[1] * f, col[2] * f]; };
-            setV(va, F0.x - F0.tz * o0a, y0a, F0.z + F0.tx * o0a, 0, 0, 0, F0.s * vS, y0a * vS, gc(y0a, pa[1]));
-            setV(vb, F0.x - F0.tz * o1a, y1a, F0.z + F0.tx * o1a, 0, 0, 0, F0.s * vS, y1a * vS, gc(y1a, pa[1]));
-            setV(vc, F1.x - F1.tz * o1b, y1b, F1.z + F1.tx * o1b, 0, 0, 0, F1.s * vS, y1b * vS, gc(y1b, pb[1]));
-            setV(vd, F1.x - F1.tz * o0b, y0b, F1.z + F1.tx * o0b, 0, 0, 0, F1.s * vS, y0b * vS, gc(y0b, pb[1]));
+            // ground pass: barrier faces carry (metres along, 100 + height fraction above the deck) for the concrete shader (scuff line, scuppers, spray)
+            const U = (F, y, yb) => (k < 3 ? [F.s, 100 + Math.max(0, Math.min(1, (y - yb) / P.BAR_H))] : [F.s * vS, y * vS]);
+            setV(va, F0.x - F0.tz * o0a, y0a, F0.z + F0.tx * o0a, 0, 0, 0, ...U(F0, y0a, pa[1]), gc(y0a, pa[1]));
+            setV(vb, F0.x - F0.tz * o1a, y1a, F0.z + F0.tx * o1a, 0, 0, 0, ...U(F0, y1a, pa[1]), gc(y1a, pa[1]));
+            setV(vc, F1.x - F1.tz * o1b, y1b, F1.z + F1.tx * o1b, 0, 0, 0, ...U(F1, y1b, pb[1]), gc(y1b, pb[1]));
+            setV(vd, F1.x - F1.tz * o0b, y0b, F1.z + F1.tx * o0b, 0, 0, 0, ...U(F1, y0b, pb[1]), gc(y0b, pb[1]));
             quad(conc, va, vb, vc, vd, hx, hy, hz, B);
           }
           // end caps where the run stops
