@@ -15,7 +15,7 @@ export const LIB = {
   podium_tower: { w: 94.97, d: 94.97, h: 152.53, k: 1, cls: 'tower', use: 'any', glow: 0.55 },
   slim_residential: { w: 66.66, d: 51.3, h: 162.49, k: 1, cls: 'tower', use: 'res', glow: 0.55 },
   red_band_tower: { w: 59.28, d: 56.44, h: 105.81, k: 1, cls: 'tower', use: 'office', glow: 0.5 },
-  curved_glass_tower: { w: 34.53, d: 51.67, h: 169.81, k: 1, cls: 'tower', use: 'office', glow: 0.45 },
+  curved_glass_tower: { w: 34.53, d: 51.67, h: 169.81, k: 1, cls: 'tower', use: 'office', glow: 0.45, wt: 0.45 },
   brick_cottage: { w: 20.12, d: 16.12, h: 7.2, k: 1, cls: 'house', glow: 0.25 },
   blue_house: { w: 1596.02, d: 1739.36, h: 1652.04, k: 0.0062, cls: 'house', glow: 0.25 },
   brick_duplex: { w: 10.2, d: 16.93, h: 8.03, k: 1, cls: 'house', glow: 0.25 },
@@ -24,7 +24,7 @@ export const LIB = {
   casino_tower: { w: 116.8, d: 129.8, h: 64.1, k: 1, cls: 'fixed', glow: 0.5 },
 };
 const RANGE = { tower: 7000, fixed: 7000, house: 420, shop: 420, stilt: 420 };
-const CHANCE = { tower: 0.34, house: 0.3, shop: 0.22, stilt: 0.3 };
+const CHANCE = { tower: 0.3, house: 0.3, shop: 0.22, stilt: 0.3 };
 // the Golden Palm Casino (stage 4 heist): one fixed site on a Miami Beach ocean block; lots under it are cleared
 export const CASINO = { name: 'casino_tower', x: 2183, z: -370, ry: -Math.PI / 2, s: 1 }; // Miami Beach superblock, entrance faces Collins Ave (west)
 
@@ -40,7 +40,7 @@ function frame(ring) { // oriented box of a footprint (principal axes)
 }
 const areaOf = (r) => { let a = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += (r[j][0] + r[i][0]) * (r[j][1] - r[i][1]); return Math.abs(a / 2); };
 
-export function createBuildingModels({ root, roadDist = null, districtAt = null }) {
+export function createBuildingModels({ root, roadDist = null, districtAt = null, near = null }) {
   const entries = new Map(); // building id -> { name, x, y, z, ry, s, sy, cls }
   const meshes = new Map(); // name -> [{ geo, mat, im }]
   const nightU = { value: 0 };
@@ -88,8 +88,16 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null 
       }
     }
     if (!cands.length) return null;
+    // variety: any model that fits about as well as the best (one orientation each), weighted, never the same model as a
+    // neighbor that already carries one
     cands.sort((a, c) => a.score - c.score);
-    const c = cands[Math.min(cands.length - 1, (hash(seed + 7781) * Math.min(3, cands.length)) | 0)], m = LIB[c.name];
+    const nbNames = new Set(near ? near(b).map((o) => o._lib && o._lib.name).filter(Boolean) : []);
+    const seenN = new Set(), pool = [];
+    for (const c0 of cands) { if (c0.score > cands[0].score + 0.6 || seenN.has(c0.name)) continue; seenN.add(c0.name); if (!nbNames.has(c0.name)) pool.push(c0); }
+    if (!pool.length) return null;
+    let wsum = 0; for (const c0 of pool) wsum += LIB[c0.name].wt ?? 1;
+    let r = hash(seed + 7781) * wsum, c = pool[0]; for (const c0 of pool) { r -= LIB[c0.name].wt ?? 1; if (r <= 0) { c = c0; break; } }
+    const m = LIB[c.name];
     // model +Z (its front) faces the nearest street
     const ax = c.rot ? [f.ux, f.uz] : [-f.uz, f.ux], ext = (c.rot ? m.w : m.d) * c.s / 2;
     let dir = 1;
@@ -112,7 +120,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null 
   function prepMaterial(mat, m) {
     const g = glassy.test(mat.name || '') || mat.transparent;
     if (mat.transparent || mat.alphaMode === 'BLEND') { mat.transparent = false; mat.depthWrite = true; mat.opacity = 1; mat.alphaTest = mat.map ? 0.5 : 0; }
-    if (g && !mat.map) { mat.color.multiplyScalar(0.55); mat.metalness = 0.85; mat.roughness = 0.08; }
+    if (g && !mat.map) { mat.color.lerp(new THREE.Color(0x8fa6bc), 0.5); mat.metalness = 0.9; mat.roughness = 0.1; }
     mat.envMapIntensity = g ? 1.3 : 0.8;
     mat.side = THREE.FrontSide;
     // night windows: dark (glass) texels in world-space window cells light up with the hour (towers bright, houses dim)

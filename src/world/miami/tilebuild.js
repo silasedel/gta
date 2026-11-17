@@ -403,7 +403,7 @@ export function createTileBuilder(ctx) {
   }
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
   // ---- library building models (bldmodels.js): picked lots draw the user's models (instanced city-wide), not a procedural shell ----
-  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt });
+  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt, near: (b) => nearBuildings(b) });
   const casinoH = LIBMODELS[CASINO.name], inCasino = (x, z) => { const dx = x - CASINO.x, dz = z - CASINO.z, c = Math.cos(CASINO.ry), s = Math.sin(CASINO.ry), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < casinoH.w / 2 + 4 && Math.abs(lz) < casinoH.d / 2 + 4; };
   if (!/[?&]libmodels=0/.test(typeof location !== 'undefined' ? location.search : '')) LIBM.addFixed(-77, CASINO.name, CASINO.x, CASINO.y || 0, CASINO.z, CASINO.ry, CASINO.s);
   // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
@@ -622,7 +622,7 @@ export function createTileBuilder(ctx) {
     const paint = FB ? fview(FB, WL.roofCoat) : B.roof;
     const mech = FB ? fview(FB, WL.cladding) : B.trim;
     let crownTop = h;
-    const building = TS.LM ? !!TS.LM.crane : h > 120 && hash(seed + 69) < 0.08; // topping out: bare slab edges, column frame and a tower crane
+    const building = TS.LM ? !!TS.LM.crane : h > 120 && hash(seed + 69) < 0.035; // topping out: bare slab edges, column frame and a tower crane
     if (building) {
       const frameC = new THREE.Color(0x9c9890);
       for (let y = h + 3.4; y <= h + 10.5; y += 3.5) capPoly(B.trim, top, y, frameC);

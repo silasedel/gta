@@ -63,6 +63,21 @@ if dropm:
     bmesh.ops.delete(bm, geom=bad, context='FACES'); bm.to_mesh(me); bm.free()
 bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.remove_doubles(threshold=0.012); bpy.ops.object.mode_set(mode='OBJECT')
 tris = sum(len(p.vertices) - 2 for p in me.polygons)
+if len(a) > 7 and a[7]:  # drop loose parts smaller than MINPART m (bolts, mullion bits): far LOD / heavy CAD models
+    import bmesh
+    minpart = float(a[7]); bm3 = bmesh.new(); bm3.from_mesh(me); bm3.faces.ensure_lookup_table(); seen = set(); kill = []
+    for f0 in bm3.faces:
+        if f0.index in seen: continue
+        comp = []; stack = [f0]; seen.add(f0.index)
+        while stack:
+            f = stack.pop(); comp.append(f)
+            for e in f.edges:
+                for g in e.link_faces:
+                    if g.index not in seen: seen.add(g.index); stack.append(g)
+        vs = [v.co for f in comp for v in f.verts]
+        d = (mathutils.Vector([max(v[i] for v in vs) for i in range(3)]) - mathutils.Vector([min(v[i] for v in vs) for i in range(3)])).length
+        if d < minpart: kill.extend(comp)
+    bmesh.ops.delete(bm3, geom=kill, context='FACES'); bm3.to_mesh(me); bm3.free(); print('MINPART removed faces', len(kill))
 bb0 = [ob.matrix_world @ mathutils.Vector(v) for v in ob.bound_box]
 lo0 = mathutils.Vector([min(v[i] for v in bb0) for i in range(3)]); hi0 = mathutils.Vector([max(v[i] for v in bb0) for i in range(3)])
 if target > 0 and tris > target * 1.25:  # CAD meshes: merge coplanar triangles first (lossless look), then collapse

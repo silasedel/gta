@@ -580,7 +580,7 @@ for blk in blocks:
             dcore = min(math.dist((lc.x, lc.y), t) for t in TOWER_CORE)
             k = max(0.0, 1.0 - dcore / 900.0)
             r_ = rb.random()
-            if r_ < 0.12 + 0.72 * k and fp.area > 500:
+            if r_ < 0.05 + 0.65 * k ** 1.4 and fp.area > 500:
                 h = 48 + (h1 - 48) * (k ** 1.15) * (0.3 + 0.7 * rb.random()) * (1.25 if rb.random() < 0.12 else 1.0)
                 st = 'tower'
             elif r_ < 0.8:
