@@ -36,7 +36,16 @@ export async function createMiamiCity(game, opts = {}) {
   try {
     // static path so Vite bundles data.js into production builds (a @vite-ignore URL import 404s after build)
     const mod = await import('./data.js');
-    data = await (mod.loadMiamiData || mod.createMiamiData || mod.default)?.(game);
+    const load = mod.loadMiamiData || mod.createMiamiData || mod.default;
+    // r2: a map republish (world.json swapped while a build folder is copied / pruned) or a network hiccup can fail one
+    // fetch; without data the game falls back to an empty map (all-blue minimap, district "Miami"), so retry first
+    for (let attempt = 0; attempt < 4 && load; attempt++) {
+      try { data = await load(game); break; } catch (e) {
+        if (attempt === 3) throw e;
+        console.warn(`[miami] map data load failed (attempt ${attempt + 1}), retrying`, e?.message || e);
+        await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+      }
+    }
   } catch (e) { console.info('[miami] data.js not available yet, using dev OSM cache provider', e?.message || e); }
   if (data && (data.getTile || data.loadTile)) provider = createDataProvider(data);
   else { const { loadDevProvider } = await import('./devProvider.js'); provider = await loadDevProvider(200); }
