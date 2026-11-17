@@ -88,3 +88,10 @@ neighbor houses ~140, NPC characters are expensive: ~80 us per draw).
 ## Notes for the user / next stages
 - This account is on the Ultra plan; weekly usage was 0% after the first hours.
 - Model requests: `docs/v2/briefs/MODEL_REQUESTS_stage1.md` (P1: CC0 textures and ~30 buildings).
+
+## For stage 2 (from the user, Nov 16)
+- **Nico (main character):** the user has a good model of Nico in `Models/Main Character/` ("Main Character 1 - Man In
+  Teal Palm Shirt And Cargo Pants", plus an alternate file). Stage 2 must rig it onto the game skeleton and make it the
+  player character (it replaces the current code-built Nico), matching `references/user_references/Nico/`.
+- **Nico's neighborhood street design:** see "Key Largo street design" in `docs/v2/briefs/STAGE1_AGENT_NOTES.md`
+  (worn paved lanes without curbs, sandy matted yard and driveway, cottages, poinciana trees, pickup + rusty classic car).
