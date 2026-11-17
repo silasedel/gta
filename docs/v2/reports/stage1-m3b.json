@@ -1,0 +1,74 @@
+{
+  "set": "m3b",
+  "when": "2026-11-17T01:11:23.525Z",
+  "shots": {
+    "spawn": {
+      "avgMs": 37.32,
+      "p95Ms": 53.2,
+      "fps": 26.8,
+      "calls": 872,
+      "tris": 4160844,
+      "pr": 1,
+      "pos": [
+        -678.3,
+        -3.9,
+        5363.5
+      ]
+    },
+    "house_air": {
+      "avgMs": 34.8,
+      "p95Ms": 63.3,
+      "fps": 28.7,
+      "calls": 672,
+      "tris": 3838228,
+      "pr": 1,
+      "pos": [
+        -678.3,
+        -3.9,
+        5363.5
+      ]
+    },
+    "keys_air": {
+      "avgMs": 29.46,
+      "p95Ms": 53.5,
+      "fps": 33.9,
+      "calls": 556,
+      "tris": 1995305,
+      "pr": 1,
+      "pos": [
+        -678.3,
+        -3.9,
+        5363.5
+      ]
+    },
+    "dt_street": {
+      "avgMs": 25.98,
+      "p95Ms": 36.3,
+      "fps": 38.5,
+      "calls": 328,
+      "tris": 3938267,
+      "pr": 1,
+      "pos": [
+        -678.3,
+        -3.9,
+        5363.5
+      ]
+    },
+    "dt_low": {
+      "avgMs": 23.46,
+      "p95Ms": 34.2,
+      "fps": 42.6,
+      "calls": 495,
+      "tris": 4340857,
+      "pr": 1,
+      "pos": [
+        -678.3,
+        -3.9,
+        5363.5
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

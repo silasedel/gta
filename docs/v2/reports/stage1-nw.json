@@ -1,0 +1,61 @@
+{
+  "set": "nw",
+  "when": "2026-11-17T00:35:40.092Z",
+  "shots": {
+    "n0": {
+      "avgMs": 72.02,
+      "p95Ms": 145.9,
+      "fps": 13.9,
+      "calls": 769,
+      "tris": 2302926,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "nff": {
+      "avgMs": 17.73,
+      "p95Ms": 20.4,
+      "fps": 56.4,
+      "calls": 506,
+      "tris": 2593629,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "nfar": {
+      "avgMs": 20.87,
+      "p95Ms": 27.5,
+      "fps": 47.9,
+      "calls": 465,
+      "tris": 2588125,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "gold": {
+      "avgMs": 17.31,
+      "p95Ms": 21.2,
+      "fps": 57.8,
+      "calls": 494,
+      "tris": 2792489,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

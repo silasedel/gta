@@ -1,0 +1,61 @@
+{
+  "set": "wx2",
+  "when": "2026-11-17T00:47:42.307Z",
+  "shots": {
+    "rain": {
+      "avgMs": 83.41,
+      "p95Ms": 451.7,
+      "fps": 12,
+      "calls": 771,
+      "tris": 2298387,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "rain_n": {
+      "avgMs": 17.4,
+      "p95Ms": 19.3,
+      "fps": 57.5,
+      "calls": 468,
+      "tris": 2782679,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "rain_nlow": {
+      "avgMs": 18.37,
+      "p95Ms": 20.6,
+      "fps": 54.5,
+      "calls": 820,
+      "tris": 2875307,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "overcast": {
+      "avgMs": 17.18,
+      "p95Ms": 21.7,
+      "fps": 58.2,
+      "calls": 842,
+      "tris": 2882504,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

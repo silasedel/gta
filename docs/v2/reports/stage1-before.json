@@ -1,0 +1,74 @@
+{
+  "set": "before",
+  "when": "2026-11-16T23:35:38.294Z",
+  "shots": {
+    "spawn": {
+      "avgMs": 76.59,
+      "p95Ms": 119.7,
+      "fps": 13.1,
+      "calls": 950,
+      "tris": 4675098,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "downtown": {
+      "avgMs": 28.99,
+      "p95Ms": 35.2,
+      "fps": 34.5,
+      "calls": 414,
+      "tris": 2653066,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "bay": {
+      "avgMs": 166.81,
+      "p95Ms": 780.7,
+      "fps": 6,
+      "calls": 143,
+      "tris": 2257357,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "house": {
+      "avgMs": 8636.4,
+      "p95Ms": 8636.4,
+      "fps": 0.1,
+      "calls": 493,
+      "tris": 4131260,
+      "pr": 1,
+      "pos": [
+        -6420.3,
+        0,
+        12430
+      ]
+    },
+    "night": {
+      "avgMs": 379.55,
+      "p95Ms": 475.6,
+      "fps": 2.6,
+      "calls": 504,
+      "tris": 4317631,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

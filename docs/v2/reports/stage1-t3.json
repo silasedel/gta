@@ -1,0 +1,48 @@
+{
+  "set": "t3",
+  "when": "2026-11-17T00:30:39.488Z",
+  "shots": {
+    "sunset": {
+      "avgMs": 22.39,
+      "p95Ms": 28.3,
+      "fps": 44.7,
+      "calls": 603,
+      "tris": 4927372,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "shore": {
+      "avgMs": 18.91,
+      "p95Ms": 21.4,
+      "fps": 52.9,
+      "calls": 406,
+      "tris": 4454850,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "shorelow": {
+      "avgMs": 16.67,
+      "p95Ms": 19.5,
+      "fps": 60,
+      "calls": 366,
+      "tris": 4445215,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

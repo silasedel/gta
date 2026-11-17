@@ -1,0 +1,87 @@
+{
+  "set": "look0",
+  "when": "2026-11-17T00:33:38.245Z",
+  "shots": {
+    "st_noon": {
+      "avgMs": 16.71,
+      "p95Ms": 19.2,
+      "fps": 59.8,
+      "calls": 459,
+      "tris": 2948222,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "st_gold": {
+      "avgMs": 17.53,
+      "p95Ms": 20.4,
+      "fps": 57,
+      "calls": 494,
+      "tris": 2986693,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "st_sun": {
+      "avgMs": 17.02,
+      "p95Ms": 20.4,
+      "fps": 58.7,
+      "calls": 494,
+      "tris": 2986693,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "st_night": {
+      "avgMs": 16.68,
+      "p95Ms": 19.3,
+      "fps": 59.9,
+      "calls": 455,
+      "tris": 2948777,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "east_gold": {
+      "avgMs": 16.65,
+      "p95Ms": 19.6,
+      "fps": 60.1,
+      "calls": 485,
+      "tris": 3050081,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    },
+    "bay_gold": {
+      "avgMs": 16.64,
+      "p95Ms": 19.8,
+      "fps": 60.1,
+      "calls": 179,
+      "tris": 2721564,
+      "pr": 1,
+      "pos": [
+        -6412,
+        0,
+        12421.2
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

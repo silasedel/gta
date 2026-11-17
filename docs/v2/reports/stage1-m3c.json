@@ -1,0 +1,48 @@
+{
+  "set": "m3c",
+  "when": "2026-11-17T01:13:53.232Z",
+  "shots": {
+    "spawn": {
+      "avgMs": 46.27,
+      "p95Ms": 80.4,
+      "fps": 21.6,
+      "calls": 982,
+      "tris": 4889125,
+      "pr": 1,
+      "pos": [
+        -829.7,
+        0,
+        5279.3
+      ]
+    },
+    "house_air": {
+      "avgMs": 42.87,
+      "p95Ms": 62.5,
+      "fps": 23.3,
+      "calls": 1040,
+      "tris": 4216158,
+      "pr": 1,
+      "pos": [
+        -829.7,
+        0,
+        5279.3
+      ]
+    },
+    "house_street": {
+      "avgMs": 41.12,
+      "p95Ms": 66.4,
+      "fps": 24.3,
+      "calls": 490,
+      "tris": 4357250,
+      "pr": 1,
+      "pos": [
+        -829.7,
+        0,
+        5279.3
+      ]
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}
