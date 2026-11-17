@@ -2688,7 +2688,34 @@ export function createTileBuilder(ctx) {
   // at least ~3.5 m wide (no building within 3 m of the pit); one species per block face: royal palms or shade trees (live oak,
   // gumbo limbo) kept small enough that the crown stays over the sidewalk. Never near a junction mouth or another street tree.
   const METRO_Z = /downtown|business|brickell|midtown|edgewater|arts/;
+  // (greenery, overnight) city parks / big lawns: shade trees and palms in loose groves (clumps and clearings, never a grid),
+  // 4 m off the lawn edge and paths, a few shrubs under the crowns; old neighborhoods lean to live oaks and banyans
+  const PARK_MIX = [['oak', 4], ['gumbo', 2], ['banyan', 0.8], ['poinciana', 0.8], ['royal', 1.5], ['sabal', 1.5]];
+  function parkTrees(tile, props) {
+    if (terrain && terrain.synthetic && terrain.synthetic(tile.tx ?? 0, tile.tz ?? 0)) return;
+    for (const a of tile.areas || []) {
+      if (a.kind !== 'park' && a.kind !== 'grass') continue; const r0 = a.rings[0]; if (!r0 || r0.length < 3) continue;
+      const area = Math.abs(polyArea(r0)); if (area < (a.kind === 'park' ? 600 : 2500)) continue;
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of r0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+      let dist = ''; try { dist = String(ctx.districtAt?.((x0 + x1) / 2, (z0 + z1) / 2)?.name || ctx.districtAt?.((x0 + x1) / 2, (z0 + z1) / 2) || ''); } catch (e) { /* */ }
+      const old = OLD_D.test(dist), G = 11;
+      for (let gx = Math.floor(x0 / G) * G; gx < x1; gx += G) for (let gz = Math.floor(z0 / G) * G; gz < z1; gz += G) {
+        const h0 = hash(((gx * 3.1) | 0) * 7919 + ((gz * 1.9) | 0) * 31 + 7), x = gx + G * (0.2 + 0.6 * hash(((gx * 7) | 0) + ((gz * 3) | 0) * 131)), z = gz + G * (0.2 + 0.6 * hash(((gx * 5) | 0) * 17 + ((gz * 11) | 0)));
+        const clump = hash(Math.floor(x / 45) * 7919 + Math.floor(z / 45) * 104729 + 3); if (h0 > 0.15 + 0.55 * clump) continue; // groves and open lawn
+        if (!pipR(r0, x, z) || a.rings.slice(1).some((hl) => pipR(hl, x, z))) continue;
+        if (!pipR(r0, x + 4, z) || !pipR(r0, x - 4, z) || !pipR(r0, x, z + 4) || !pipR(r0, x, z - 4)) continue;
+        if (insideBuilding(tile, x, z) || (isWater && isWater(x, z)) || (roadDist && roadDist(x, z) < 7)) continue;
+        if (props.tree.some((p) => Math.abs(p.x - x) < 7 && Math.abs(p.z - z) < 7) || props.palm.some((p) => Math.abs(p.x - x) < 5 && Math.abs(p.z - z) < 5)) continue;
+        const h = hash(((x * 13) | 0) * 131 + ((z * 7) | 0)), y = gY(x, z);
+        let sp = pickW(PARK_MIX, h); if (old && sp === 'gumbo') sp = h < 0.5 ? 'oak' : 'banyan';
+        if (sp === 'royal' || sp === 'sabal') { props.palm.push({ x, y, z, ry: h * 6.28, s: 0.85 + h * 0.3, park: sp }); continue; }
+        props.tree.push({ sp, x, y, z, ry: h * 6.28, s: (sp === 'banyan' ? 0.7 : 0.78) + h * 0.25, park: 1, color: new THREE.Color(0x6b8442) });
+        if (h > 0.55) for (let k = 0; k < 2; k++) { const an = h * 40 + k * 2.4, rr = 3 + k * 1.5; props.blob.push({ x: x + Math.cos(an) * rr, y, z: z + Math.sin(an) * rr, ry: an, s: 0.8 + h * 0.4 }); }
+      }
+    }
+  }
   function streetTrees(tile, props) {
+    parkTrees(tile, props);
     for (const r of tile.roads || []) {
       if (!r.pts || r.pts.length < 2 || (r.y && Math.max(...r.y) > 0.5) || !/primary|secondary|tertiary|residential|trunk/.test(r.kind || '')) continue;
       const fr = polyFrame(r.pts), L = fr[fr.length - 1].s, hw = r.width / 2; if (L < 30) continue;
