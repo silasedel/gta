@@ -126,3 +126,17 @@ neighbor houses ~140, NPC characters are expensive: ~80 us per draw).
   1 pop-in risk sample (at the start), avg 19.3 ms (loaded machine). 39 "floating" samples cluster on bridge ramps and
   come from the test interpolating sparse vertex heights (to re-check). Found: markings continuing through some junctions
   (drive_12, drive_14) -> sent to the roads pass. Report `docs/v2/reports/stage1-drive.json`, shots `drive_*.png`.
+
+## The rough side of town (user, Nov 16) — for stage 1 passes and stages 2-4
+- Map: **Overtown** (around x 0, z -682) and **Liberty City** (around x -528, z -1232) north-west of Downtown, as in
+  real Miami (Opa-locka further out is also rough). District kind `ghetto` in `tools/v2/map3/build_v3.py`: small lots,
+  1-3 floor walk-ups and corner stores, ~28 % vacant overgrown dirt lots, buildings tagged `condition: rundown` or
+  `abandoned` (~18 %) in features.json.
+- Look (building + furniture passes): boarded windows, rusty roll-down shutters, graffiti, chain-link fences, trash and
+  old mattresses, burned-out cars, dumpsters, overgrown lots; the user downloaded many abandoned / rusty / old models
+  (inside and outside pieces) for this — use them.
+- User's new building downloads: many have low-resolution ground floors / street-level textures; swap the bottom-level
+  outside textures for high-resolution ones (you see them up close).
+- **Stage 2 (people):** gang member NPCs (the user will make gang member models) hanging out in this area; residents.
+- **Stage 4 (gameplay):** gangs hide stashes in abandoned buildings; finding / stealing a stash angers the gang
+  (they react, chase or attack); the player can also hide things there.

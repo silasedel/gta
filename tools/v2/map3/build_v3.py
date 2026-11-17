@@ -132,6 +132,8 @@ ANCHORS = [
     ((930, 930), 'Virginia Key', 'islands', 45), ((840, 1000), 'Key Biscayne', 'islands', 45),
     ((590, 895), 'Miami International Airport', 'airport', 75), ((765, 520), 'Miami Gardens', 'city', 55), ((725, 330), 'Hialeah Gardens', 'suburb', 45),
     ((560, 545), 'Clewiston', 'town', 55), ((500, 215), 'Okeechobee', 'town', 40), ((685, 600), 'Opa-locka', 'town', 40),
+    # the rough side of town (real Miami: Overtown and Liberty City lie just north-west of downtown)
+    ((700, 738), 'Overtown', 'ghetto', 26), ((652, 688), 'Liberty City', 'ghetto', 48),
     ((215, 440), 'Fort Myers', 'town', 55), ((300, 525), 'Port Charlotte', 'town', 45), ((235, 578), 'Sanibel', 'town', 30),
     ((270, 780), 'Naples', 'town', 55), ((385, 1080), 'Everglades City', 'town', 35), ((580, 1090), 'Homestead', 'town', 55),
     ((670, 1120), 'Florida City', 'town', 35), ((595, 1300), 'Key Largo', 'keys', 75), ((447, 1400), 'Marathon', 'keys', 35),
@@ -238,7 +240,7 @@ def district_of(px, py):
         if d < 1.0 and (best is None or d < best[0]): best = (d, nm, kind)
     return (best[1], best[2]) if best else (None, 'rural')
 
-URBAN_KINDS = ('core', 'city', 'beach', 'port', 'islands', 'suburb', 'town', 'keys', 'airport')
+URBAN_KINDS = ('core', 'city', 'beach', 'port', 'islands', 'suburb', 'town', 'keys', 'airport', 'ghetto')
 def classify_road(e):
     mx, my = e['px'][len(e['px']) // 2]
     dist, dkind = district_of(mx, my)
@@ -532,6 +534,8 @@ PROFILE = {   # kind: (lot frontage m, lot depth max m, setback m, height range 
     'town':    (20, 30, 4.5, (4.5, 8.0), 'house', 'residential', 'house', 0.95),
     'keys':    (18, 26, 3.5, (5.5, 8.5), 'stilt', 'residential', 'house', 0.9),
     'airport': (70, 90, 8.0, (10, 18), 'hangar', 'airport', 'hangar', 0.4),
+    # run-down blocks: small lots, 1-3 floor walk-ups, corner stores, empty overgrown lots (tags condition: rundown)
+    'ghetto':  (18, 28, 3.0, (4.0, 10.0), 'lowrise', 'residential', 'apartments', 0.72),
 }
 # main streets (towns: 1-2 storey shop rows face these; side streets keep houses)
 main_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 24, cap_style=2) for r in W.roads if not r.bridge and r.kind in ('trunk', 'primary', 'secondary')])
@@ -569,7 +573,10 @@ for blk in blocks:
     for g in geoms(inner):
         if g.geom_type == 'Polygon': split_lots(g, front, depth, lots)
     for lt in lots:
-        if lt.area < 90 or rb.random() > fill: continue
+        if lt.area < 90: continue
+        if rb.random() > fill:
+            if dkind == 'ghetto': W.add_area(lt.buffer(-1.0, join_style=2), 'dirt', 'vacant lot')   # overgrown empty lot
+            continue
         fp = lt.buffer(-setback, join_style=2)
         if fp.is_empty: continue
         fp = max(geoms(fp), key=lambda g: g.area)
@@ -608,6 +615,7 @@ for blk in blocks:
         ring = [(round(x, 2), round(z, 2)) for x, z in list(fp.exterior.coords)[:-1]]
         if len(ring) < 3: continue
         b = W.building(ring, h, bk_ if st != 'tower' or bk_ == 'apartments' else 'office', st, bz_, region=dist or '', check=False)
+        if b and dkind == 'ghetto': b['condition'] = 'abandoned' if rb.random() < 0.18 else 'rundown'   # for the building/furniture passes (boarded windows, graffiti, fences)
         if b: nb_ += 1; perdist[dist] = perdist.get(dist, 0) + 1
 log(f'buildings {nb_}: ' + ', '.join(f'{k} {v}' for k, v in sorted(perdist.items(), key=lambda kv: -kv[1])[:16]))
 # keep lots off Nico's yard
