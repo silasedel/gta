@@ -349,8 +349,15 @@ export function buildGlbCar(key, look, t, info) {
     // hood: from just under the windshield base to where the hood bends down to the grille
     patch = { min: [-st.w / 2, hy0, hz0], max: [st.w / 2, t.roofY + 0.3, hz1], color: st.color ?? 0x0c0d0f, strength: 1, satin: st.satin ?? true };
     if (st.roofW) patch.min2 = [-st.roofW / 2, S.roofY ?? t.roofY - 0.2, S.roof?.[0] ?? t.zC - 0.1], patch.max2 = [st.roofW / 2, t.roofY + 0.3, S.roof?.[1] ?? t.zB + 0.3];
+    if (st.line) patch.line = st.line;   // { color, w }: lighter pinstripe edge around the stripe panels
   }
-  const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone }); paint.name = 'car-paint';
+  // molded black fender flares drawn by the paint shader (manifest .flares, radii in wheel radii): a clean arc, no sawtooth
+  let flare = null;
+  if (man.flares && man.wheels?.length) {
+    const zs = man.wheels.map((w) => w.pos[2]), r = man.r || t.r;
+    flare = { rIn: man.flares.rIn * r, rOut: man.flares.rOut * r, xMin: man.flares.xMin ?? 0.8, zF: Math.max(...zs), zR: Math.min(...zs), y: man.wheels[0].pos[1] };
+  }
+  const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone, flare }); paint.name = 'car-paint';
   // an old, sun-baked parked car (look.old, e.g. Nico's classic): flat milky chrome, chalky rubber, dusty hazy glass
   const glass = look.old ? glassMaterial(0, { dusty: true }) : glassMaterial(look.tint ?? 1); glass.name ||= 'car-glass';
   const trim = trimMaterial({ worn: !!look.old }); trim.name ||= 'car-trim';

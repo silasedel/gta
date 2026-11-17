@@ -91,9 +91,12 @@ uniform vec4 uPatch2Min;   // a second box in the patch color (w = strength, 0 d
 uniform vec3 uPatch2Max;
 uniform vec3 uPatchColor;
 uniform float uPatchSatin;  // 1 = the patch is a satin (non-metallic, no clear coat) panel, e.g. a matte black hood stripe
+uniform vec4 uPatchLine;   // rgb = outline color, a = outline width in m (0 = none): the lighter pinstripe edge of a stripe panel
+uniform vec4 uFlare;       // x = inner radius, y = outer radius (0 disables), z = |x| from where, w = front wheel z: black flares
+uniform vec2 uFlare2;      // x = rear wheel z, y = wheel center height
 uniform vec4 uRoofTone;    // rgb = roof / pillar color, a = height above which it applies (<= 0 disables)
 uniform float uFlake;      // metallic flake strength (0 = solid paint)
-float wearDirt; float wearRust; float wearFade; float wearPatch = 0.0;
+float wearDirt; float wearRust; float wearFade; float wearPatch = 0.0; float wearFlare = 0.0;
 // metallic flake: sub-millimeter cells with random orientation; returns a normal tilt, faded out with distance (no shimmer)
 vec3 flakeTilt(vec3 p) {
   vec3 c = floor(p * 900.0);
@@ -130,7 +133,27 @@ void computeWear(inout vec3 albedo) {
       vec3 i2 = smoothstep(uPatch2Min.xyz - e, uPatch2Min.xyz + e, p) * (1.0 - smoothstep(uPatch2Max - e, uPatch2Max + e, p));
       wearPatch = max(wearPatch, i2.x * i2.y * i2.z * min(1.0, uPatch2Min.w));
     }
-    albedo = mix(albedo, uPatchColor, wearPatch);
+    float core = wearPatch;
+    if (uPatchLine.a > 0.0) {   // the same boxes shrunk by the outline width (x / z only): the ring between is the pinstripe
+      vec3 sh = vec3(uPatchLine.a, 0.0, uPatchLine.a);
+      vec3 j1 = smoothstep(uPatchMin.xyz + sh - e, uPatchMin.xyz + sh + e, p) * (1.0 - smoothstep(uPatchMax - sh - e, uPatchMax - sh + e, p));
+      core = j1.x * j1.y * j1.z * min(1.0, uPatchMin.w);
+      if (uPatch2Min.w > 0.0) {
+        vec3 j2 = smoothstep(uPatch2Min.xyz + sh - e, uPatch2Min.xyz + sh + e, p) * (1.0 - smoothstep(uPatch2Max - sh - e, uPatch2Max - sh + e, p));
+        core = max(core, j2.x * j2.y * j2.z * min(1.0, uPatch2Min.w));
+      }
+      albedo = mix(albedo, uPatchLine.rgb, max(0.0, wearPatch - core));
+    }
+    albedo = mix(albedo, uPatchColor, core);
+  }
+  if (uFlare.y > 0.0) {   // molded black fender flares: a smooth arc band around each wheel (no per-face sawtooth)
+    vec3 e2 = max(fwidth(p), vec3(0.002)) * 1.5;
+    float d1 = length(vec2(p.y - uFlare2.y, p.z - uFlare.w)), d2 = length(vec2(p.y - uFlare2.y, p.z - uFlare2.x));
+    float b1 = smoothstep(uFlare.x - e2.z, uFlare.x + e2.z, d1) * (1.0 - smoothstep(uFlare.y - e2.z, uFlare.y + e2.z, d1));
+    float b2 = smoothstep(uFlare.x - e2.z, uFlare.x + e2.z, d2) * (1.0 - smoothstep(uFlare.y - e2.z, uFlare.y + e2.z, d2));
+    float fl = max(b1, b2) * smoothstep(uFlare.z - 0.01, uFlare.z + 0.01, abs(p.x)) * smoothstep(uFlare2.y - 0.12, uFlare2.y - 0.08, p.y);
+    albedo = mix(albedo, vec3(0.032, 0.033, 0.036), fl);
+    wearFlare = fl;   // molded textured plastic: no metal, no clear coat (see the roughness / clearcoat hooks)
   }
   // road film: strongest low on the body and thrown up behind the wheels; a little dust on upward faces
   float low = 1.0 - smoothstep(uWearShape.w * 0.6, uWearShape.x, p.y);
@@ -181,13 +204,13 @@ function injectWear(mat) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + WEAR_FRAG_DECL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);\n  computeBeads(vWearPos, normalize(vWearN));\n  diffuseColor.rgb *= 1.0 - uWet * 0.14 * (1.0 - wearDirt);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.62, wearPatch * uPatchSatin);')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - wearPatch * uPatchSatin;')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.9 * wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.5, wearPatch * uPatchSatin);\n  roughnessFactor = mix(roughnessFactor, 0.62, wearFlare);')
+      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - max(wearPatch * uPatchSatin, wearFlare);')
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.8 * wearPatch * uPatchSatin) * (1.0 - 0.95 * wearFlare);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.3, wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 37.0 + vWearPos.yy * 23.0); clearcoatNormal = normalize(clearcoatNormal + vec3((op.gb - 0.5) * 0.012 * opd, 0.0)); } }\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v6';
+  mat.customProgramCacheKey = () => 'ps-wear-v8';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
@@ -243,6 +266,9 @@ export function carPaint(opts = {}) {
     uPatch2Max: { value: pt?.max2 ? new THREE.Vector3(...pt.max2) : new THREE.Vector3() },
     uPatchColor: { value: hex(pt?.color ?? 0x6a6d70) },
     uPatchSatin: { value: pt?.satin ? 1 : 0 },
+    uPatchLine: { value: pt?.line ? new THREE.Vector4(...hex(pt.line.color).toArray(), pt.line.w) : new THREE.Vector4(0, 0, 0, 0) },
+    uFlare: { value: opts.flare ? new THREE.Vector4(opts.flare.rIn, opts.flare.rOut, opts.flare.xMin, opts.flare.zF) : new THREE.Vector4(0, 0, 0, 0) },
+    uFlare2: { value: opts.flare ? new THREE.Vector2(opts.flare.zR, opts.flare.y) : new THREE.Vector2() },
     uWearOffset: { value: new THREE.Vector3() },
     uRoofTone: { value: opts.roofTone ? new THREE.Vector4(...hex(opts.roofTone.color).toArray(), opts.roofTone.y) : new THREE.Vector4(0, 0, 0, 0) },
     uFlake: { value: opts.flakeAmt ?? ({ metallic: 0.22, pearl: 0.16, satin: 0.12 }[finish] || 0) },
@@ -253,7 +279,7 @@ export function carPaint(opts = {}) {
 /** A companion material that shares the wear uniforms of `paint` (same dirt on bumpers, cladding, trim, bed liner...). */
 export function wornMaterial(paint, params) {
   const m = linkEnv(new THREE.MeshPhysicalMaterial({ envMapIntensity: 1, ...params }));
-  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatch2Min: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
+  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatch2Min: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchLine: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlare: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlare2: { value: new THREE.Vector2() }, uWearOffset: { value: new THREE.Vector3() } };
   injectWear(m);
   return linkEnv(m);
 }
