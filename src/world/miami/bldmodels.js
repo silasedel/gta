@@ -40,7 +40,7 @@ export const LIB = {
   angular_block: { w: 65.51, d: 56.62, h: 29.23, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone' },
   strip_office: { w: 15.12, d: 36.12, h: 14, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'glass' },
   green_apartment: { w: 19.19, d: 21.93, h: 14.47, k: 1, beach: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
-  fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 1.75, lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
+  fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 2.1, not: 'Downtown|Brickell|Edgewater|Miami Beach|South Beach', lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
   // ---- shops and roadside (low) ----
   graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2 },
   gun_shop: { w: 9, d: 12.29, h: 5.68, k: 1, lod1: 1, cls: 'shop', glow: 0.3, tint: 'brick', rough: 2, wt: 0.3 },
