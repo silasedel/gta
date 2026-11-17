@@ -71,3 +71,30 @@ export function seamProbe(game, id) {
   rep.ms = Math.round(performance.now() - t0);
   return rep;
 }
+
+// Guardrail / railing audit (r2-roads): every triangle of the rail meshes (material M.guardrail) within R m of (x, z):
+//   wet    = rail or post over water / sand (centroid), i.e. a railing running off the paving onto the beach or the shallows
+//   sunk   = lowest vertex more than 0.3 m under the ground there (post or rail not standing on the ground)
+//   flat   = a rail strip lying down (a long thin triangle whose normal is near vertical while the strip is not a post top)
+export function railAudit(game, x, z, R = 120) {
+  const C = game.city, out = { tris: 0, wet: 0, sunk: 0, flat: 0, at: [] }, v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  const surf = (px, pz) => { try { return String(C.surfaceAt ? C.surfaceAt(px, pz) : ''); } catch (e) { return ''; } };
+  game.scene.traverse((o) => {
+    if (!o.isMesh || !visUp(o)) return; const m = Array.isArray(o.material) ? o.material[0] : o.material; if (!m || !/guardrail/i.test(m.name || '')) return;
+    if (/cable|wire/i.test(o.name || '')) return;
+    const g = o.geometry, P = g.attributes.position, idx = g.index, n = idx ? idx.count : P.count;
+    for (let t = 0; t < n; t += 3) {
+      for (let k = 0; k < 3; k++) v[k].fromBufferAttribute(P, idx ? idx.getX(t + k) : t + k).applyMatrix4(o.matrixWorld);
+      const cx = (v[0].x + v[1].x + v[2].x) / 3, cz = (v[0].z + v[1].z + v[2].z) / 3; if (Math.hypot(cx - x, cz - z) > R) continue;
+      const ymin = Math.min(v[0].y, v[1].y, v[2].y), ymax = Math.max(v[0].y, v[1].y, v[2].y); if (ymin > 3) continue; // decks / wires overhead
+      out.tris++;
+      const gy = C.groundHeightAt ? C.groundHeightAt(cx, cz) || 0 : 0, wet = (C.isWater && C.isWater(cx, cz)) || /sand|water/.test(surf(cx, cz));
+      const e1 = v[1].clone().sub(v[0]), e2 = v[2].clone().sub(v[0]), nrm = e1.clone().cross(e2), area = nrm.length() / 2; nrm.normalize();
+      const long = Math.max(e1.length(), e2.length(), v[2].distanceTo(v[1])), flat = Math.abs(nrm.y) > 0.9 && long > 1.5 && (ymax - ymin) < 0.05 && ymax < gy + 1.4 && area < long * 0.2;
+      const sunk = ymin < gy - 0.3;
+      if (wet) out.wet++; if (sunk) out.sunk++; if (flat) out.flat++;
+      if ((wet || sunk || flat) && out.at.length < 12) out.at.push([+cx.toFixed(1), +cz.toFixed(1), +ymin.toFixed(2), wet ? 'wet' : sunk ? 'sunk' : 'flat']);
+    }
+  });
+  return out;
+}
