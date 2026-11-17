@@ -119,9 +119,9 @@ export function createOcean(game, skyUniforms, normalsTex) {
         {
           float bn = oN( p / 90.0 ) * 0.6 + oN( p / 31.0 + 3.7 ) * 0.3 + oN( p / 9.0 ) * 0.1;
           float grass = smoothstep( 0.5, 0.62, bn ) * smoothstep( 6.0, 22.0, shoreM );
-          vec3 bottom = mix( vec3( 0.42, 0.74, 0.68 ), vec3( 0.04, 0.17, 0.13 ), grass );
+          vec3 bottom = mix( vec3( 0.26, 0.6, 0.58 ), vec3( 0.04, 0.17, 0.13 ), grass ) * mix( 0.85, 1.05, oN( p / 14.0 ) );
           float see = pow( 1.0 - smoothstep( 0.0, 70.0, shoreM ), 1.4 );
-          body = mix( body, bottom, see * 0.75 );
+          body = mix( body, bottom, see * 0.68 );
           // caustic shimmer over the sand
           float ca = texture2D( tNormal, p / 2.3 + t * vec2( 0.05, 0.03 ) ).r * texture2D( tNormal, p / 3.1 - t * vec2( 0.04, 0.06 ) ).g;
           body += vec3( 0.06, 0.09, 0.08 ) * smoothstep( 0.25, 0.45, ca ) * see * ( 1.0 - grass ) * sunUp;
