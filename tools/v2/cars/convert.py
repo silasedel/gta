@@ -932,7 +932,8 @@ for B in CFG.get('cutBoxes') or []:
         if not f.is_valid or f in _kill or (f.material_index in (0, 1, 3) and not B.get('all')): continue
         c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
         if B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]:
-            if B.get('mode') == 'paint' and f.material_index in (1, 3): continue
+            if B.get('mode') == 'lampkill' and f.material_index != 3: continue   # lettering built in the lamp slot, panel behind
+            if B.get('mode') == 'paint' and (f.material_index == 1 or (f.material_index == 3 and not B.get('lamps'))): continue
             if B.get('mode') == 'paint':   # lettering on a body panel: becomes plain body paint (no hole)
                 f.material_index = 0
                 for lp in f.loops: lp[col_layer] = (1.0, 1.0, 1.0, 0.0)
