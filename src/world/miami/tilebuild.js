@@ -903,6 +903,18 @@ export function createTileBuilder(ctx) {
         }
       }
     }
+    if (!ARTGEO_OFF && !opts.lod && style !== 'house' && h > 3.5 && h < 46 && y0 < 0.5 && !b.part && (b.area || 0) > 100 && outer.length <= 16) {
+      // r2-art silhouette: rooftop package units on curbs and a mast or dish, sized to clear the parapet so the roofline reads
+      // broken from the street (the vent covers alone sit below the parapet line)
+      const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), n = Math.min(3, 1 + ((b.area / 400) | 0)), unitC = new THREE.Color(0xc4c2ba), grilleC = new THREE.Color(0x45484a), curbC = new THREE.Color(0x8d8a84);
+      for (let k = 0; k < n; k++) { if (fr.L < 6 || fr.W < 5) break; const u = (hash(seed + 1501 + k) - 0.5) * (fr.L - 4), v = (hash(seed + 1511 + k) - 0.5) * (fr.W - 4), x = fr.cx + fr.ux * u - fr.uz * v, z = fr.cz + fr.uz * u + fr.ux * v, big = hash(seed + 1521 + k) < 0.5;
+        const sx = big ? 2.2 : 1.3, sz = big ? 1.4 : 1.1, sy = big ? 1.25 : 0.95;
+        B.trim.addGeometry(BOXG, m4(x, h + 0.1, z, ry, sx + 0.2, 0.2, sz + 0.2), curbC); B.trim.addGeometry(BOXG, m4(x, h + 0.2 + sy / 2, z, ry, sx, sy, sz), unitC);
+        if (big) B.trim.addGeometry(CYLG, m4(x + fr.ux * sx * 0.25, h + 0.2 + sy + 0.04, z + fr.uz * sx * 0.25, 0, 0.7, 0.08, 0.7), grilleC); else B.trim.addGeometry(BOXG, m4(x, h + 0.2 + sy * 0.5, z + 0.0, ry, sx * 0.85, sy * 0.7, sz + 0.02), grilleC); }
+      const hm = hash(seed + 1531);
+      if (hm < 0.22) { const x = fr.cx - fr.ux * fr.L * 0.3, z = fr.cz - fr.uz * fr.L * 0.3, mh = 3 + hash(seed + 1532) * 3; B.trim.addGeometry(BOXG, m4(x, h + mh / 2, z, 0, 0.07, mh, 0.07), new THREE.Color(0x9a9c9e)); for (let k = 0; k < 3; k++) B.trim.addGeometry(BOXG, m4(x, h + mh - 0.4 - k * 0.5, z, ry + 0.5, 1.2 - k * 0.25, 0.03, 0.03), new THREE.Color(0x9a9c9e)); }
+      else if (hm < 0.42) { const x = fr.cx + fr.ux * fr.L * 0.28 - fr.uz * fr.W * 0.2, z = fr.cz + fr.uz * fr.L * 0.28 + fr.ux * fr.W * 0.2; B.trim.addGeometry(BOXG, m4(x, h + 0.55, z, ry, 0.08, 1.1, 0.08), new THREE.Color(0x8a8a86)); B.trim.addGeometry(_dishG || (_dishG = new THREE.CylinderGeometry(0.32, 0.04, 0.12, 12)), m4(x, h + 1.2, z, ry + 2.2).multiply(new THREE.Matrix4().makeRotationX(1.1)).multiply(new THREE.Matrix4().makeScale(1.6, 1.6, 1.6)), new THREE.Color(0xe2e0da)); }
+    }
     if (opts.props && !opts.lod && style !== 'house' && (style !== 'warehouse' || !ARTGEO_OFF) && style !== 'glass' && h > (style === 'warehouse' || !ARTGEO_OFF ? 3.5 : 6) && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks (r2-art: warehouses too)
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), yb = h + (D ? baseOf(b) + 0.05 : 0), n = Math.min(4, 1 + ((b.area / 350) | 0));
       for (let k = 0; k < n; k++) { const u = (hash(seed + 801 + k) - 0.5) * Math.max(0, fr.L - 5), v = (hash(seed + 811 + k) - 0.5) * Math.max(0, fr.W - 3);
@@ -984,6 +996,8 @@ export function createTileBuilder(ctx) {
       let ax = c[0] - p[0], az = c[1] - p[1], bx = c[0] - q[0], bz = c[1] - q[1]; const la = Math.hypot(ax, az) || 1, lb = Math.hypot(bx, bz) || 1; ax /= la; az /= la; bx /= lb; bz /= lb;
       let dx = ax + bx, dz = az + bz; const ld = Math.hypot(dx, dz); if (ld > 0.3) { dx /= ld; dz /= ld; const ry = Math.atan2(-dz, dx), fh = Math.min(h - 1.5, 4 + (h - 4) * (0.7 + hash(seed + 602) * 0.25)), y1 = h - 0.2;
         B.trim.addGeometry(BOXG, m4(c[0] + dx * 0.75, y1 - fh / 2 + 0.6, c[1] + dz * 0.75, ry, 1.5, fh, 0.32), new THREE.Color(PASTELS[(hash(seed + 603) * 12) | 0]).lerp(new THREE.Color(0xffffff), 0.35));
+        if (!ARTGEO_OFF) { const gC = new THREE.Color(PASTELS[(hash(seed + 603) * 12) | 0]).lerp(new THREE.Color(0x8a8a86), 0.45); // r2-art: deco fin speed lines (horizontal grooves) so the fin reads as architecture, not a blank slab
+          for (let k = 0; k < 5; k++) B.trim.addGeometry(BOXG, m4(c[0] + dx * 0.75, y1 - 0.9 - k * 0.55, c[1] + dz * 0.75, ry, 1.54, 0.12, 0.36), gC); }
         const nc = new THREE.Color(NEONS[(hash(seed + 604) * 6) | 0]);
         B.neon.addGeometry(BOXG, m4(c[0] + dx * 1.52, y1 - fh / 2 + 0.6, c[1] + dz * 1.52, ry, 0.08, fh - 0.4, 0.36), nc);
         B.neon.addGeometry(BOXG, m4(c[0] + dx * 0.75, y1 + 0.62, c[1] + dz * 0.75, ry, 1.56, 0.08, 0.36), nc); }
@@ -1340,6 +1354,51 @@ export function createTileBuilder(ctx) {
   }
   const LANE_TINT = new THREE.Color(1.16, 1.13, 1.08); // sun-faded lane asphalt
   const laneOfRoad = (r) => { const G = D && D.roadGraph; return laneEdge(G && G.edges ? G.edges[r.edgeId] : null); };
+  // r2-roads (user, shot_12 follow-up): at a curb return the walk's BACK edge came from the sidewalk polygon, cut as one or two
+  // straight chamfers, so the walk changed width round the bend and kinked against the round curb. Where the walk runs along the
+  // curb on both legs and the block behind the corner is not paved, the slab inside the return's sector (from the arc center O to
+  // the curb arc) is cut away and redrawn as a band of constant width, concentric with the curb (back edge radius = curb radius -
+  // walk width, a vertex every <= 0.4 m), joints radiating from O; the lawn follows the same arc. A block paved right through
+  // (slab at O) keeps its square corner plaza. `?seams=old` = the polygon's own corner.
+  function slabAtWorld(x, z) { const T0 = provider.tileSize || 200, ht = provider.getTile ? provider.getTile(Math.floor(x / T0), Math.floor(z / T0)) : null; return !!(ht && !ht.then && ht.roads && slabAt(ht, x, z)); }
+  function roundWalkCorners(J) {
+    if (SEAMS_OLD || JOB4_OFF) return;
+    for (const c of J.corners) {
+      if (c.kind !== 'fillet' || !c.O || c.arc.length < 3) continue; const a = J.legs[c.i], b = J.legs[c.j]; if (!(a.sw > 0 && b.sw > 0) || a.lane || b.lane) continue;
+      const O = c.O, Ta = c.arc[0], Tb = c.arc[c.arc.length - 1], m = c.arc[c.arc.length >> 1];
+      const inw = (p, d) => { const dx = O[0] - p[0], dz = O[1] - p[1], L = Math.hypot(dx, dz) || 1; return [p[0] + dx / L * d, p[1] + dz / L * d]; };
+      if (!slabAtWorld(...inw(Ta, 0.5)) || !slabAtWorld(...inw(Tb, 0.5)) || !slabAtWorld(...inw(m, 0.5))) continue; // walk at the curb all round
+      if (slabAtWorld(O[0], O[1])) continue; // paved through behind the corner: square plaza stays
+      const ra = Math.hypot(Ta[0] - O[0], Ta[1] - O[1]), rb = Math.hypot(Tb[0] - O[0], Tb[1] - O[1]);
+      const width = (p, r) => { let d = 0.5; while (d < Math.min(6, r - 0.4) && slabAtWorld(...inw(p, d + 0.25))) d += 0.25; return d + 0.12; };
+      const wa = width(Ta, ra), wb = width(Tb, rb); if (ra - wa < 0.4 || rb - wb < 0.4) continue;
+      let g0 = Math.atan2(Ta[1] - O[1], Ta[0] - O[0]), g1 = Math.atan2(Tb[1] - O[1], Tb[0] - O[0]), sw = g1 - g0; while (sw > Math.PI) sw -= Math.PI * 2; while (sw < -Math.PI) sw += Math.PI * 2;
+      if (Math.abs(sw) > Math.PI * 0.95) continue;
+      c.walk = { g0, sw, ra, rb, wa, wb };
+      J.cuts.push(convexCCW([O, ...c.arc])); // the sector O-Ta-arc-Tb: the polygon's chamfered corner goes, the band below replaces it
+    }
+  }
+  function drawWalkCorners(tgt, curbTgt, coll, J) { // the constant-width corner bands planned by roundWalkCorners
+    const white = new THREE.Color(0xffffff), cc = new THREE.Color(0xd8d4cc), H = CURB;
+    for (const c of J.corners) { const W = c.walk; if (!W) continue; const O = c.O;
+      const len = Math.abs(W.sw) * Math.max(W.ra, W.rb), n = Math.max(6, Math.ceil(len / 0.4)), P = [];
+      for (let k = 0; k <= n; k++) { const t = k / n, g = W.g0 + W.sw * t, ro = W.ra + (W.rb - W.ra) * t, ri = ro - (W.wa + (W.wb - W.wa) * t), cx = Math.cos(g), sz = Math.sin(g);
+        P.push({ o: [O[0] + cx * ro, O[1] + sz * ro], i: [O[0] + cx * ri, O[1] + sz * ri], u: Math.abs(W.sw) * t * (ro + ri) / 2 / 2.5, ro, ri, cx, sz }); }
+      const tri = (bt, A, Bv, Cv) => { const ny = (Bv[2] - A[2]) * (Cv[0] - A[0]) - (Bv[0] - A[0]) * (Cv[2] - A[2]); for (const v of ny >= 0 ? [A, Bv, Cv] : [A, Cv, Bv]) bt.vert(v[0], H, v[2], 0, 1, 0, v[3], v[4], white); };
+      for (let k = 0; k < n; k++) { const p = P[k], q = P[k + 1]; // slab: u along the arc, v across the walk -> joints radiate from O
+        const A = [p.o[0], H, p.o[1], p.u, 0], Bv = [q.o[0], H, q.o[1], q.u, 0], Cv = [q.i[0], H, q.i[1], q.u, (q.ro - q.ri) / 2.5], D = [p.i[0], H, p.i[1], p.u, (p.ro - p.ri) / 2.5];
+        for (const bt of [tgt, coll]) if (bt) { tri(bt, A, Bv, Cv); tri(bt, A, Cv, D); }
+        // curb face along the curb arc (faces the road: away from O) and the back-edge chamfer down to the lawn (toward O)
+        if (curbTgt) { const fx = (p.cx + q.cx) / 2, fz = (p.sz + q.sz) / 2, fl = Math.hypot(fx, fz) || 1, nx = fx / fl, nz = fz / fl, L = Math.hypot(q.o[0] - p.o[0], q.o[1] - p.o[1]);
+          const f = [[p.o[0], 0, p.o[1]], [q.o[0], 0, q.o[1]], [q.o[0], H, q.o[1]], [p.o[0], H, p.o[1]]];
+          const out = (p.o[0] - O[0]) * (q.o[1] - p.o[1]) - (p.o[1] - O[1]) * (q.o[0] - p.o[0]) > 0; // winding so the face shows from the road side
+          for (const ii of out ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3]) curbTgt.vert(f[ii][0], f[ii][1], f[ii][2], nx, 0, nz, (ii === 1 || ii === 2 ? L : 0) * 0.4, f[ii][1] * 0.4, cc);
+          const w = 0.35, a1 = [p.i[0], H, p.i[1]], b1 = [q.i[0], H, q.i[1]], c1 = [q.i[0] - q.cx * w, 0, q.i[1] - q.sz * w], d1 = [p.i[0] - p.cx * w, 0, p.i[1] - p.sz * w], sl = Math.hypot(w, H);
+          const ny2 = (b1[2] - a1[2]) * (c1[0] - a1[0]) - (b1[0] - a1[0]) * (c1[2] - a1[2]);
+          for (const v2 of ny2 >= 0 ? [a1, b1, c1, a1, c1, d1] : [a1, c1, b1, a1, d1, c1]) curbTgt.vert(v2[0], v2[1], v2[2], -nx * H / sl, w / sl, -nz * H / sl, v2[0] * 0.4, v2[2] * 0.4, cc); }
+      }
+    }
+  }
   function junctionOf(id) { // graph node id -> junction record | null (decks, ramps, blocked crossings keep the old disc)
     if (JN.has(id)) return JN.get(id);
     const G = D && D.roadGraph, n = G && G.nodes ? G.nodes[id] : null; let J = null;
@@ -1374,6 +1433,7 @@ export function createTileBuilder(ctx) {
       J.cuts = [];
       for (const c of J.corners) if (c.kind === 'fillet') for (const t of spandrelFan(c)) J.cuts.push(t);
       for (const L of J.legs) for (const rp of L.ramps) J.cuts.push(rp.cut);
+      roundWalkCorners(J);
       J.cutBB = J.cuts.map(bboxOf);
     }
     if (J) { const bb = bboxOf(J.poly); for (let gx = Math.floor(bb[0] / 32); gx <= Math.floor(bb[2] / 32); gx++) for (let gz = Math.floor(bb[1] / 32); gz <= Math.floor(bb[3] / 32); gz++) { const k = gx * 100003 + gz; let c = JGRID.get(k); if (!c) JGRID.set(k, (c = [])); c.push(J); } }
@@ -1873,6 +1933,7 @@ export function createTileBuilder(ctx) {
         if (coll) { coll.tag = 'junction'; fillPoly(coll, [J.poly], 0.05, 0xffffff, 1); }
         const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
         rampsInto(swB && !swB.empty ? swB : null, coll, J);
+        drawWalkCorners(swB && !swB.empty ? swB : B.sidewalk, B.sidewalk, coll, J); // r2-roads: constant-width round walk corners
         if (B.lines) goreStripes(B, J);
         if (GM_ON && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // ground pass: curb returns along open corners between curbed legs (tree-lawn streets)
           if (c.kind !== 'fillet' || !(J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0) || J.legs[c.i].lane || J.legs[c.j].lane || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
@@ -3666,7 +3727,7 @@ export function createTileBuilder(ctx) {
         if (!SEAMS_OLD && (/sand/.test(String(surfAt(x - nx * 2, z - nz * 2))) || /sand/.test(String(surfAt(x, z))) || (natCoast && !/port|downtown|business|commercial|nightlife/.test(String(zoneAt(x, z)))))) continue; // r2-roads: a natural shore has no seawall, so no stair flight (its buried treads left only the two handrails lying in the shallows)
         ex.steps.push({ cell, x, z, nx, nz, tx, tz, top: 0, w: 2.4 }); s2 += 150; } }); }
     // piers / marina docks: one flight at each pier's seaward end
-    for (const pq of tile.piers || []) { let best = null; walk(pq.rings[0], (p, q, L, tx, tz, nx, nz) => { const x = (p[0] + q[0]) / 2, z = (p[1] + q[1]) / 2; if (!inT(x, z)) return; const d = roadDist ? roadDist(x, z) : 0; if (!best || d > best.d) best = { d, x, z, nx, nz, tx, tz }; }); if (best) ex.steps.push({ ...best, top: pq.y ?? 1.2, w: 1.6 }); }
+    for (const pq of tile.piers || []) { let best = null; walk(pq.rings[0], (p, q, L, tx, tz, nx, nz) => { const x = (p[0] + q[0]) / 2, z = (p[1] + q[1]) / 2; if (!inT(x, z)) return; const d = roadDist ? roadDist(x, z) : 0; if (!best || d > best.d) best = { d, x, z, nx, nz, tx, tz }; }); if (best) ex.steps.push({ ...best, top: pq.y ?? 1.2, w: 1.6, ladder: !SEAMS_OLD && !/port|downtown|business|commercial|nightlife/.test(String(zoneAt(best.x, best.z))) }); } // r2-roads: a galvanized dock ladder off Keys / residential / natural piers (concrete flights only at urban quays)
     // beaches: the sand keeps sloping into the water (no lip)
     for (const a of tile.areas || []) { if (a.kind !== 'beach' && a.kind !== 'sand') continue; walk(a.rings[0], (p, q, L, tx, tz, nx, nz) => ex.skirts.push({ p, q, nx, nz })); }
     // ground-continuity: plain land meeting open water inside a beach zone is a beach, not a dirt lawn ending at a seawall:
@@ -3680,7 +3741,16 @@ export function createTileBuilder(ctx) {
   }
   function exitVisuals(B, tile, noSand = false) {
     const ex = exitsOf(tile);
+    const rod = (a, b, r = 0.045) => { const d = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = d.length() || 1; // galvanized pipe from a to b
+      B.guard.addGeometry(CYLG, new THREE.Matrix4().compose(new THREE.Vector3((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()), new THREE.Vector3(r * 2, L, r * 2)), C_RAILX); };
     for (const e of ex.steps) { const ry = Math.atan2(e.tx, e.tz);
+      if (e.ladder) { // dock ladder: two rails 0.5 m apart, 0.12 m off the pier edge, from 1.3 m under water to grab handles 0.9 m above the deck that
+        // curve back onto the deck, round rungs every 0.3 m (no concrete flight: that read as a big white ramp out of the water)
+        const ox = e.x + e.nx * 0.12, oz = e.z + e.nz * 0.12, top = e.top, bot = -1.3;
+        for (const sd of [-0.25, 0.25]) { const x = ox + e.tx * sd, z = oz + e.tz * sd, xi = e.x - e.nx * 0.45 + e.tx * sd, zi = e.z - e.nz * 0.45 + e.tz * sd;
+          rod([x, bot, z], [x, top + 0.75, z]); rod([x, top + 0.75, z], [(x + xi) / 2, top + 0.92, (z + zi) / 2]); rod([(x + xi) / 2, top + 0.92, (z + zi) / 2], [xi, top + 0.75, zi]); rod([xi, top + 0.75, zi], [xi, top, zi]); }
+        for (let y = top - 0.3; y > bot + 0.1; y -= 0.3) rod([ox - e.tx * 0.25, y, oz - e.tz * 0.25], [ox + e.tx * 0.25, y, oz + e.tz * 0.25], 0.02);
+        continue; }
       for (const st of stairBoxes(e)) B.trim.addGeometry(BOXG, mat4(st.cx, (st.top - 2.2) / 2, st.cz, ry, e.w, st.top + 2.2, STEP_D), C_STEP);
       const n = stairBoxes(e).length, len = STEP_D * n; for (const side of [-1, 1]) { const ox = e.tx * side * (e.w / 2 - 0.05), oz = e.tz * side * (e.w / 2 - 0.05);
         B.guard.addGeometry(CYLG, new THREE.Matrix4().compose(new THREE.Vector3(e.x + e.nx * len / 2 + ox, e.top + 0.9 - (n * STEP_H) / 2, e.z + e.nz * len / 2 + oz), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(e.nx * len, -n * STEP_H, e.nz * len).normalize()), new THREE.Vector3(0.06, Math.hypot(len, n * STEP_H), 0.06)), C_RAILX); } }
@@ -3692,7 +3762,7 @@ export function createTileBuilder(ctx) {
   }
   function exitColliders(tile, tri, box) {
     const ex = exitsOf(tile);
-    for (const e of ex.steps) { const ry = Math.atan2(e.tx, e.tz); for (const st of stairBoxes(e)) box(st.cx, -2.2, st.cz, e.w / 2, (st.top + 2.2) / 2, STEP_D / 2, ry); }
+    for (const e of ex.steps) { if (e.ladder) continue; /* r2-roads: a ladder has no invisible stair under it */ const ry = Math.atan2(e.tx, e.tz); for (const st of stairBoxes(e)) box(st.cx, -2.2, st.cz, e.w / 2, (st.top + 2.2) / 2, STEP_D / 2, ry); }
     for (const k of ex.skirts) { const a = k.p, b2 = k.q, D = 9, y1 = -1.6; tri([a[0], 0.0, a[1]], [b2[0] + k.nx * D, y1, b2[1] + k.nz * D], [b2[0], 0.0, b2[1]]); tri([a[0], 0.0, a[1]], [a[0] + k.nx * D, y1, a[1] + k.nz * D], [b2[0] + k.nx * D, y1, b2[1] + k.nz * D]); }
   }
   // ---- moorings: static marina boats the VEHICLES agent can swap for a drivable one ----
