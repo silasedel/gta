@@ -124,7 +124,7 @@ Left: about +100-250 draw calls vs `?keys=0` (frame time unchanged within noise)
 
 ## cars
 - MORNING SUMMARY (06:20): (1) All road cars are the user's models (47 driving + 2 static props, 33 MB), with wheels, lights, class physics and the US paint mix; cost is the same as the procedural fleet (132 vs 128 draw calls).
-  (2) Brand marks: emblems are now filled in with the color of the paint or grille around them (no black blocks), 3D grille badges are deleted, and wheel center caps are plain chrome. Re-checked in close-ups: sedan3, sedan6, hatch1, conv1, coupe3, police1, suv12. About 20 of the 49 GLBs are reconverted; the rest still use the 03:00 conversion (`tools/v2/cars/convert_all.sh`, about 2 hours at today's machine load).
+  (2) Brand marks: emblems are now filled in with the color of the paint or grille around them (no black blocks), 3D grille badges are deleted, and wheel center caps are plain chrome. Re-checked in close-ups: sedan3, sedan6, hatch1, conv1, coupe3, police1, suv12. All 47 driving cars are reconverted with these rules. The other cars have not had a close-up review yet (`tools/v2/cars/render_review.py`).
   (3) Roll-overs: 0 in the 06:13 60 s downtown run (worst tilt 3.3 deg; `docs/v2/reports/cars-stability.json`). Fixes: COM height and anti-roll per class, suspension travel of at least 0.2 m, and a car that leaves ghost mode is set back down on the road surface. Parked cars stay 2 m clear of curbside carts.
 - 05:20 SUMMARY (cars): every road car is a user model. 46 of the Models/Cars entries converted (not the 4 personal-use
   rows), plus Covered Car 1 and the broken Van 2 as static props = 49 GLBs, 33 MB, `public/assets/vehicles/cars/`.
