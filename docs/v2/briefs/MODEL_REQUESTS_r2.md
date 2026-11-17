@@ -1,6 +1,21 @@
 # Model requests (round 2): what the helpers need the user to download
 One row per request: | what | used for | how many | style notes | requested by |
 
+**Already in the library (lead check, Nov 17 pm). Helpers: use these before requesting:**
+- Buses/Bus 1 (city transit bus)
+- Motorcycles 1-3, Scooter 1-2
+- Cars/Vans/Van 6-7 (minivans, new)
+- Hangars 1-5
+- Motels 1-2, Hotels, Office Buildings 1-12, School 1
+- Sewer Grates/Manhole 1-4 + Sewer Grate 1
+- Trees/Royal Poinciana 1-3 (new), Mangrove Tree 3 (red mangrove HD, new)
+- Plants/Hibiscus 1-3, Croton 1-3 (new)
+- Utility Poles 1-2 (new)
+- Beach Stuff/Cooler 1-2, Chairs/Patio Chair 1, Furniture/Patio Set 1, Fishing Gear/Fishing Rod 1 (new)
+
+**The user couldn't find:** school bus, garbage truck, curb storm inlet, sea grape, saw palmetto, sawgrass. These stay open.
+
+
 | what | used for | how many | style notes | requested by |
 |---|---|---|---|---|
 | wooden utility pole with crossarms, insulators, a pole-top transformer and a cobra-head street lamp arm (PBR, weathered creosote wood) | Nico's STOP corner and every Keys street (yard.data.js POLES, part 55 builds them from boxes today) | 1 pole + separate transformer / lamp parts | gray-brown checked wood, rusty hardware, 9-10 m; separate pieces so the lamp / transformer can be left off | r2-keys |
