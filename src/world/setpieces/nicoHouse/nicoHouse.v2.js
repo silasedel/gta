@@ -5,6 +5,23 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
+// r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
+// descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
+// yard (3 calls a frame at the spawn: ~7 ms); the trimesh is ~0.13 ms. Same surface. ?hftri=0 = the heightfield (A/B).
+const HF_TRI = !(typeof location !== 'undefined' && /[?&]hftri=0\b/.test(location.search));
+function hfTrimesh(RAPIER, c) {
+  const nr = c.nrows, nc = c.ncols, sx = c.scale[0], sy = c.scale[1], sz = c.scale[2], H = c.heights;
+  const v = new Float32Array((nr + 1) * (nc + 1) * 3), idx = new Uint32Array(nr * nc * 6);
+  // heights are column-major: (row i along z, column j along x) at j * (nr + 1) + i, centred on the collider origin
+  for (let j = 0; j <= nc; j++) for (let i = 0; i <= nr; i++) { const k = j * (nr + 1) + i; v[k * 3] = (j / nc - 0.5) * sx; v[k * 3 + 1] = H[k] * sy; v[k * 3 + 2] = (i / nr - 0.5) * sz; }
+  let o = 0;
+  for (let j = 0; j < nc; j++) for (let i = 0; i < nr; i++) {
+    const a = j * (nr + 1) + i, b = a + 1, cc = a + (nr + 1), d = cc + 1; // a (i,j)  b (i+1,j)  cc (i,j+1)  d (i+1,j+1)
+    idx[o++] = a; idx[o++] = b; idx[o++] = d; idx[o++] = a; idx[o++] = d; idx[o++] = cc;
+  }
+  return RAPIER.ColliderDesc.trimesh(v, idx);
+}
+
 export const order = 65;   // after vegetation (60)
 const KEYS_OFF = typeof location !== 'undefined' && /[?&]keys=0\b/.test(location.search);
 export const HOUSE_YAW = 0.72;   // rad, house frame vs the layout's street frame (see initV2)
@@ -88,7 +105,7 @@ export async function initV2(game) {
   const live = new Map();
   for (const c of house.colliders) {
     try {
-      const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] }) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);   // hf: yard ground (part 05)
+      const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? (HF_TRI ? hfTrimesh(RAPIER, c) : RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] })) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);   // hf: yard ground (part 05)
       d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
       const rc = world.createCollider(d, body); rc.setEnabled(c.enabled !== false); live.set(c, { rc, en: c.enabled !== false });
     } catch (e) { /* skip a bad descriptor */ }
