@@ -27,7 +27,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
     const px = p.x + d.x * 6, pz = p.z + d.z * 6; game.teleport(px, undefined, pz, Math.atan2(n.x, n.z)); P.health = 100;
     const gy = game.city.groundHeightAt(px, pz) || 0;
     const sx = px - d.x * 16, sz = pz - d.z * 16;
-    const v = game.vehicles.spawn('sedan', new T.Vector3(sx, gy + 0.6, sz), Math.atan2(d.x, d.z), {}); window.__car = v;
+    const v = game.vehicles.spawn('sedan', new T.Vector3(sx, gy + 0.5, sz), Math.atan2(d.x, d.z), { snap: false }); if (v) { v.ai = null; v.parked = false; } window.__car = v;
     window.__hitP = { x: px, z: pz, gy }; window.__cam({ x: px + n.x * 7.5 + d.x * 1.5, y: gy + 2.1, z: pz + n.z * 7.5 + d.z * 1.5 }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.8, z: game.player.position.z }));
     return JSON.stringify({ car: !!v, road: e.edge?.name }); })()`);
   console.log('car setup', carInfo);
@@ -44,14 +44,14 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
   await b.sleep(700); await shoot('car_3_getup');
   await b.sleep(1300); await shoot('car_4_getup2');
   await b.sleep(1500); await shoot('car_5_up');
-  rep.cases.car = JSON.parse(await ev(`JSON.stringify({ log: window.__log, health: game.player.health, phase: game.playerRagdoll?.phase || null, pos: game.player.position.toArray().map((x) => +x.toFixed(2)) })`));
+  rep.cases.car = JSON.parse(await ev(`JSON.stringify({ carAt: window.__car?.body ? Object.values(window.__car.body.translation()).map((x) => +x.toFixed(1)) : null, log: window.__log, health: game.player.health, phase: game.playerRagdoll?.phase || null, pos: game.player.position.toArray().map((x) => +x.toFixed(2)) })`));
   console.log('car', JSON.stringify(rep.cases.car));
   // ---- 2) 7 m fall beside Nico's deck (into the yard on the west side)
   await ev(`(() => { window.__log = []; game.player.health = 100; game.playerRagdoll?.release?.(); const T = game.THREE, H = game.nicoHouse, P = game.player;
-    const g = H.toWorld(new T.Vector3(-12.5, 0, -9.0)); game.teleport(g.x, undefined, g.z, 0); return 1; })()`);
+    const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); game.teleport(g.x, undefined, g.z, 0); return 1; })()`);
   await b.sleep(2500);
-  await ev(`(() => { const T = game.THREE, H = game.nicoHouse, P = game.player; const g = H.toWorld(new T.Vector3(-12.5, 0, -9.0)); const deck = H.toWorld(new T.Vector3(-8.6, 3.0, -5.0));
-    window.__cam({ x: g.x + (g.x - deck.x) * 0.9 + 3, y: g.y + 4.0, z: g.z + (g.z - deck.z) * 0.9 + 3 }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.8, z: game.player.position.z }));
+  await ev(`(() => { const T = game.THREE, H = game.nicoHouse, P = game.player; const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); const cm = H.toWorld(new T.Vector3(-4.5, 2.6, 23.0));
+    window.__cam({ x: cm.x, y: cm.y, z: cm.z }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.9, z: game.player.position.z }));
     P.body.setTranslation({ x: g.x, y: g.y + 7.0 + P.capsule.center, z: g.z }, true); P.state.grounded = false; return 1; })()`);
   await b.sleep(400); await shoot('fall_0_air');
   for (let i = 0; i < 40; i++) { if (await ev('!!game.playerRagdoll?.active')) break; await b.sleep(80); }
