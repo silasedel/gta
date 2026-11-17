@@ -8,7 +8,7 @@
 //  - LOD cross-fade: uFade = (inNear, inFar, outNear, outFar) in m; a screen-space dither makes LOD swaps invisible.
 import * as THREE from 'three';
 import { barkAtlas, leafAtlas } from './textures.js';
-import { FRAME_NOISE } from '../../render/frameNoise.js';
+import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL, A2C_R2_GLSL } from '../../render/frameNoise.js';
 
 const Q = typeof location === 'undefined' ? '' : location.search;
 const qn = (k, d) => { const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q); return m ? (isNaN(+m[1]) ? m[1] : +m[1]) : d; };
@@ -16,6 +16,7 @@ const qn = (k, d) => { const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q);
 export const VEG_R2 = qn('vegr2', 1) !== 0;
 const VEG_AA = qn('vegaa', 0); // A2C stays the default: under camera motion it holds leaf edges better than a hard cut (TAA alone shows stair steps on fronds; a4 m_bench)
 export const vegUniforms = {
+  uRenderR2: RENDER_R2, // r2-render: golden-ratio stepped LOD dither (frameNoise.js)
   uFrameN: FRAME_NOISE, // stage 1: temporal dither offset (TAA resolves the LOD cross-fade instead of a fixed dot pattern)
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
   uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
@@ -127,7 +128,9 @@ varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec
 #ifdef VEG_AO
 varying float vVegAO;
 #endif
-float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
+uniform float uRenderR2;
+${IGN_R2_GLSL}
+float vegDither() { return psIgnT(gl_FragCoord.xy); }
 float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
 `;
 // LOD dither + per-instance tint/wear; runs right after the map is sampled
@@ -168,6 +171,9 @@ const FRAG_COLOR = `
         vec2 bw = vec2((vVegW.x + vVegW.z) * 9.0, vVegW.y * 1.6); float fib = vegVN(bw) * 0.6 + vegVN(bw * vec2(2.3, 3.1) + 7.0) * 0.4, ring = smoothstep(0.82, 1.0, abs(sin(vVegH * 26.0 + vegVN(bw * 0.5) * 2.0)));
         diffuseColor.rgb *= mix(1.0, (0.86 + 0.26 * fib) * (1.0 - 0.18 * ring * uBarkDet), uBarkDet);
       }
+#ifdef VEG_AO
+      { float sl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(vec3(sl), diffuseColor.rgb, mix(0.9, 1.0, vVegAO)); } // r2-look: crown interior (shade) 10 % less saturated
+#endif
       diffuseColor.rgb *= mix(1.0 - uBaseAO, 1.0, smoothstep(0.0, 0.9, vVegH)); // contact darkening at the trunk base / root flare (soil, shade): no pale roots on the ground
     }
     float wear = uWear * smoothstep(0.35, 1.0, vVegHash.y);
@@ -185,19 +191,26 @@ const FRAG_ROUGH = `
 `;
 const FRAG_TRANSL = `
 #ifdef VEG_R2MIP
-#define VEG_R2T vec3(0.8, 1.0, 0.68)
+#define VEG_R2T vec3(0.9, 1.05, 0.55)
 #else
 #define VEG_R2T vec3(0.9, 1.05, 0.6)
 #endif
   {
     vec3 Vd = normalize(vVegW - cameraPosition);
+#ifdef VEG_R2MIP
+    float back = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 2.0) * 1.45; // r2-look: wider, stronger back-light lobe (leaves glow yellow-green against the sun)
+#else
     float back = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 3.0);
+#endif
     float up = clamp(uSunDir.y * 2.0, 0.0, 1.0);
     float tAO = 1.0;
 #ifdef VEG_AO
     tAO = mix(0.3, 1.0, vVegAO); // light through the crown's shell, not its core
 #endif
     totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (back * uTransl * 1.2 + uTransl * 0.06) * up * (VEG_R2T) * tAO;
+#ifdef VEG_R2MIP
+    totalEmissiveRadiance += diffuseColor.rgb * (uSunCol * 0.5 + vec3(0.32, 0.4, 0.5)) * 0.12 * up * mix(0.6, 1.0, tAO); // r2-look: always-on transmission, shade leaves never black
+#endif
   }
 `;
 
@@ -267,7 +280,7 @@ function patch(kind, local) {
     sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
-      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO);
+      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO).replace('#include <alphatest_fragment>', A2C_R2_GLSL); // r2-render: no fixed A2C checkerboard
       if (kind === 'leaf') sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + FRAG_ROUGH);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces

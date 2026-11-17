@@ -157,7 +157,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = K.w ? pickIdx(K.w, hh(i, j, 7)) : (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
     // grounding: lowest ground under the trunk footprint (slopes, shore banks): the base never hangs in the air
-    const fr = name === 'mangrove' ? 1.6 : K.palm ? 0.3 : K.wide ? 0.6 : 0.35, H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr], [fr * 0.7, fr * 0.7], [-fr * 0.7, fr * 0.7], [fr * 0.7, -fr * 0.7], [-fr * 0.7, -fr * 0.7]]) y = Math.min(y, H(x + dx, z + dz)); // (r2-veg) the rendered triangles, lowest point of the footprint decides
+    const fr = name === 'mangrove' ? 1.6 : K.palm ? 0.3 : K.wide ? 0.6 : 0.35, H = ctx.data?.groundAt || meshGround(ctx.terrain); /* the ground as drawn (city ground on real Miami) */ let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr], [fr * 0.7, fr * 0.7], [-fr * 0.7, fr * 0.7], [fr * 0.7, -fr * 0.7], [-fr * 0.7, -fr * 0.7]]) y = Math.min(y, H(x + dx, z + dz)); // (r2-veg) the rendered triangles, lowest point of the footprint decides
     emit({ name, v, x, z, y, ry: hh(i, j, 9) * 6.2832, s, sp: K.sp, palm: !!K.palm, b, wet, key: i + ',' + j });
     if (name === 'mangrove' && hh(i, j, 15) < 0.85) { // mangroves grow in clumps: 2-4 more trunks next to the first
       for (let k = 0; k < 2 + (hh(i, j, 16) * 3 | 0); k++) { const a2 = hh(i, j, 17 + k) * 6.28, d2 = 2.2 + hh(i, j, 19 + k) * 1.6, x2 = x + Math.cos(a2) * d2, z2 = z + Math.sin(a2) * d2;
@@ -190,7 +190,7 @@ function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids a
       const lu = u * (l.w / 2 - 1.3), lv = v <= -1 ? -(l.d / 2 - 1.3) : v * l.d, x = l.x + c * lu + sn * lv, z = l.z - sn * lu + c * lv;
       if ((ctx.roadDist ? ctx.roadDist(x, z) : 99) < 4.5 || (ctx.blocked && ctx.blocked(x, z, 1.6)) || ctx.data.isWater(x, z) || (houseLots.reservedAt && houseLots.reservedAt(x, z, 1.2))) continue;
       const name = palmFit(ctx, pick(L, hh(id, k, 202)), x, z, 99, hh(id, k, 206)), K = TREE_KINDS[name]; if (!K) continue;
-      const H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]]) y = Math.min(y, H(x + dx, z + dz));
+      const H = ctx.data?.groundAt || meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]]) y = Math.min(y, H(x + dx, z + dz));
       emit({ name, v: K.w ? pickIdx(K.w, hh(id, k, 203)) : (hh(id, k, 203) * K.seeds.length) | 0, x, z, y, ry: hh(id, k, 204) * 6.2832, s: K.s[0] + (K.s[1] - K.s[0]) * hh(id, k, 205) * 0.8, sp: K.sp, palm: !!K.palm, b: BIDX[keys ? 'keys' : 'rural'], key: 'lot' + id + ',' + k });
       n++;
     }
@@ -385,7 +385,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
           if ((roadDist ? roadDist(x, z) : 99) < 2.5 || data.isWater(x, z) || (deckAt && deckAt(x, z)) || trunks.some((q) => (q[0] - x) ** 2 + (q[1] - z) ** 2 < 2)) continue;
           const r = hh(id, li * 97 + k, 304), tall = keys && r < 0.22, name = tall ? 'seagrapeT' : pick(LH, hh(id, li * 97 + k, 305)), lst = protoOf[name]; if (!lst) continue;
           const s = tall ? 0.55 + r * 1.4 : 0.95 + hh(id, li * 97 + k, 306) * 0.45;
-          put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, meshGround(terrain)(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
+          put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, (data.groundAt || meshGround(terrain))(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
         }
       }
     }

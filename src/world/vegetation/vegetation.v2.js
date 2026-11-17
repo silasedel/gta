@@ -13,6 +13,7 @@ import { loadVegModels } from './models.js';
 import { plantNicoStreet } from './nicoStreet.js';
 import { meshGround } from './ground.js';
 import { createCollars } from './collar.js';
+import { createLotPlanting } from './lotPlanting.js';
 const PROXY = { palm: 'coconut', tree: 'liveoak', shrub: 'hibiscus' }; // LOD distance class of a library model in createVegField
 // older kind names used by set pieces / dressing -> species group
 const ALIAS_G = { coconut: 'coconut', royal: 'royal', sabal: 'sabal', date: 'date', queen: 'queen', seagrape: 'seagrape', liveoak: 'liveoak', slashpine: 'pine', gumbo: 'gumbo', cypress: null, hedge: 'hedge', croton: 'hibiscus', ixora: 'flowers', grass: 'grass_tuft', sawpalmetto: null, sawgrass: null };
@@ -74,7 +75,7 @@ export async function initV2(game) {
     let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.4); // prop roots into the shallow water / mud
     return { ...it, y };
   }
-  let t = 0, lastSeen = -1, cs = null, csFailed = false, nicoStreet = null, nsWait = 0, collars = null;
+  let t = 0, lastSeen = -1, cs = null, csFailed = false, nicoStreet = null, nsWait = 0, collars = null, yards = null;
   game.vegetation = {
     kinds: KINDS, types: KIND_TYPE, palms: PALM_SPECIES,
     // build one plant: opts { seed, height, lod, size, length (hedges), lean, wear } -> Group at the origin (base at y=0)
@@ -181,13 +182,14 @@ export async function initV2(game) {
       if (!nicoStreet && game.nicoHouse?.toWorld && game.city?.flora?.models && game.camera && !/[?&]nicostreet=0\b/.test(location.search) && game.nicoHouse.toWorld(new THREE.Vector3()).distanceTo(game.camera.position) < 300 && (nsWait += dt || 0) > 3) { nicoStreet = 1; /* planted once the camera has been near for 3 s (house and neighbor colliders streamed in) */ try { nicoStreet = plantNicoStreet(game) || 1; game.vegetation.nicoStreet = nicoStreet; nsWait = 0; } catch (e) { console.warn('[vegetation] nico street', e); } }
       else if (nicoStreet && nicoStreet.pending?.length && (nsWait += dt || 0) > 2) { nsWait = 0; try { plantNicoStreet(game, nicoStreet); } catch (e) { nicoStreet.pending = []; } } // retry the spots still streaming in // (r2-veg) the mock-up street around Nico's lot
       if (game.camera) { setVegCamera(game.camera); for (const f of fields) f.update(game.camera); }
-      if (collars === null && game.city?.terrain) collars = createCollars(game, (x, z) => game.vegetation.groundAt(x, z)) || 0; if (collars) collars.update(dt, game.camera); // (r2-veg) soil / litter collar at every near trunk
+      if (collars === null && game.city?.terrain) collars = createCollars(game, (x, z) => game.vegetation.groundAt(x, z)) || 0; if (collars) collars.update(dt, game.camera);
+      if (yards === null && game.city?.terrain && cs) yards = createLotPlanting(game) || 0; if (yards) { yards.update(dt, game.camera); game.vegetation.yards = yards; } /* (r2-veg) lush Keys yards */ // (r2-veg) soil / litter collar at every near trunk
       // countryside streamer (synthetic land): created once the city terrain exists; ?veg2=0 keeps the old per-tile flora
       const C = game.city;
       if (CS_ON && !cs && !csFailed && C && C.terrain && C.flora && C.flora.countryside && game.camera) {
         try { const D = C.roadGraph, nd = {}; const MD = game.miamiData, TS = C.streamer?.tileSize || 200; // junction mouths (curb returns reach past the leg edges) count as road too
           const roadDist = D && D.nearestEdge ? (x, z) => { const r = D.nearestEdge(x, z, nd, 40); let g = r ? r.dist - r.edge.width / 2 : 99; if (g < 14 && MD?.getTile) { const t = MD.getTile(Math.floor(x / TS), Math.floor(z / TS)); for (const n of t?.nodes || []) if (n.degree >= 3 && n.width) g = Math.min(g, Math.hypot(n.x - x, n.z - z) - n.width / 2 - 2); } return g; } : null;
-          cs = createCountryside({ renderer: game.renderer, scene: game.scene, models: C.flora.models || {}, blocked: (x, z, r) => blockedAt(x, z, r) || (nearCam(x, z, 260) && solidAt(x, z)), areas: (x, z, r) => blocks.length > 0 && blockedAt(x, z, r), solidRev: () => game.world?.colliders?.len?.() ?? 0, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), zoneAt: C.zoneAt, getTile: game.miamiData?.getTile ? (i, j) => game.miamiData.getTile(i, j) : null }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
+          cs = createCountryside({ renderer: game.renderer, scene: game.scene, models: C.flora.models || {}, blocked: (x, z, r) => blockedAt(x, z, r) || (nearCam(x, z, 260) && solidAt(x, z)), areas: (x, z, r) => blocks.length > 0 && blockedAt(x, z, r), solidRev: () => game.world?.colliders?.len?.() ?? 0, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), groundAt: (x, z) => game.vegetation.groundAt(x, z), zoneAt: C.zoneAt, getTile: game.miamiData?.getTile ? (i, j) => game.miamiData.getTile(i, j) : null }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
           game.vegetation.countryside = cs; C.flora.cs = cs; } catch (e) { csFailed = true; console.warn('[vegetation] countryside unavailable', e); }
       }
       if (cs && game.camera) cs.update(game.camera);
