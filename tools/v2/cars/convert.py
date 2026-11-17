@@ -946,11 +946,23 @@ for B in CFG.get('darkBoxes') or []:
     for f in bm.faces:
         if not f.is_valid or f in _kill or f.material_index not in (0, 2): continue
         c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if 'z' in B: d_ = B['dz'][0] if B['z'][0] <= gz_ <= B['z'][1] else -1e9   # absolute shell z range (pillars)
         if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
         if B.get('nf') is not None and (-f.normal[1] if front else f.normal[1]) < B['nf']: continue   # only faces looking out of the nose / tail
         for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.4, 0.0))
         f.material_index = 2; n += 1
     log('dark box', n)
+# hand-placed boxes where black trim pokes up through a painted panel (cars.json 'paintBoxes': {front, dz, ax, y, up}):
+# trim faces inside facing up (normal z > up) become body paint (truck9's grille surround teeth along the hood edge)
+for B in CFG.get('paintBoxes') or []:
+    n = 0; front = B.get('front', True)
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index != 2 or f.normal[2] < B.get('up', 0.5): continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
+        for lp in f.loops: lp[col_layer] = (1.0, 1.0, 1.0, 0.0)
+        f.material_index = 0; n += 1
+    log('paint box', n)
 # hand-placed boxes over embossed maker marks on flat panels (cars.json 'flattenBoxes'): the vertices inside are pressed onto
 # the panel plane (median depth of the box), so the relief no longer reads
 for B in CFG.get('flattenBoxes') or []:
@@ -1019,6 +1031,34 @@ for B in CFG.get('patchBoxes') or []:
     for lp in pf_.loops:
         lp[col_layer] = (0.05, 0.05, 0.055, pack_rm(0.4, 0.0)) if TR_ else (1.0, 1.0, 1.0, 0.0); lp[uvl].uv = mu_
     log('patch box', len(dead_), 'plane', round(py_, 4))
+# hand-placed clones over raised maker lettering in a mesh grille (cars.json 'cloneBoxes': {front, dz, ax, y: target band, dy}):
+# the trim faces in the target band are deleted and the grille mesh from the band dy above (or below) is copied in
+for B in CFG.get('cloneBoxes') or []:
+    front = B.get('front', True); dy_ = B['dy']
+    def _inb(c_, y0, y1):
+        gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        return B['dz'][0] <= d_ <= B['dz'][1] and abs(c_[0]) <= B['ax'][1] and y0 <= c_[2] <= y1
+    dead_ = [f for f in bm.faces if f.is_valid and f not in _kill and f.material_index == 2 and _inb(f.calc_center_median(), B['y'][0], B['y'][1])]
+    src_ = [f for f in bm.faces if f.is_valid and f not in _kill and f.material_index == 2 and _inb(f.calc_center_median(), B['y'][0] + dy_, B['y'][1] + dy_)]
+    for f in dead_: _kill.add(f); kill.append(f)
+    if src_:
+        dup_ = bmesh.ops.duplicate(bm, geom=src_)
+        nv_ = [e for e in dup_['geom'] if isinstance(e, bmesh.types.BMVert)]
+        bmesh.ops.translate(bm, verts=nv_, vec=(0.0, 0.0, -dy_))
+    log('clone box', len(dead_), 'from', len(src_))
+# cramped game-model cabs (cars.json 'seatDrop': [{x: [lo, hi], y: [lo, hi], z: [lo, hi], dy}]): every mesh island lying fully
+# inside the box (the seats) moves down by dy, so a 1.83 m driver sits upright under the headliner (truck9: cushion 0.93 m,
+# headliner 1.86 m)
+for B in CFG.get('seatDrop') or []:
+    lab_ = islands(bm); V_ = verts_np(bm); u_, inv_ = np.unique(lab_, return_inverse=True)
+    P_ = np.stack([V_[:, 0], V_[:, 2], -V_[:, 1]], 1)   # x, height, shell z
+    lo_ = np.full((len(u_), 3), 1e9); hi_ = np.full((len(u_), 3), -1e9)
+    np.minimum.at(lo_, inv_, P_); np.maximum.at(hi_, inv_, P_)
+    bl_ = np.array([B['x'][0], B['y'][0], B['z'][0]]); bh_ = np.array([B['x'][1], B['y'][1], B['z'][1]])
+    ok_ = np.all(lo_ >= bl_, 1) & np.all(hi_ <= bh_, 1)
+    mv_ = ok_[inv_]
+    for i_ in np.nonzero(mv_)[0]: bm.verts[int(i_)].co[2] -= B['dy']
+    log('seat drop', int(ok_.sum()), 'islands', int(mv_.sum()), 'verts')
 # metal trim inside the cabin box reads as white sheets once calibrated (visors, consoles of game-rip models):
 # cars.json 'cabinDark': {x, y: [lo, hi], z: [lo, hi]} -> dark satin plastic
 CD_ = CFG.get('cabinDark')
@@ -1036,7 +1076,7 @@ if CD_:
 # black plastic fender flares painted as body (cars.json 'flares': {rIn, rOut, xMin}): paint faces in a band around each
 # wheel arch (radius rIn..rOut x the wheel radius, in the side view) and out past xMin become satin black trim
 FL_ = CFG.get('flares')
-if FL_:
+if FL_ and not FL_.get('runtime'):   # 'runtime': the paint shader draws the band per pixel instead (manifest .flares)
     nfl = 0
     for f in bm.faces:
         if not f.is_valid or f in _kill or f.material_index != 0: continue
@@ -1327,12 +1367,20 @@ def join(objs_, name):
     bpy.ops.object.join(); objs_[0].name = name; return objs_[0]
 # LOD0: the paint shell is decimated gently (double-skinned panels poke through when it is collapsed hard), the rest
 # (interior, underbody, trim) takes the cut
-pp = split_slots(body, {0}); rest = split_slots(body, set(range(1, 64)))
-tp, tr_ = tris(pp), tris(rest)
+# glass is kept out of the collapse: a hard collapse folds thin window panels into a few long triangles that flash white
+# with the sky through the cab (truck9's missing side windows); planar dissolve keeps every window's outline instead
+pp = split_slots(body, {0}); gl = split_slots(body, {1}); rest = split_slots(body, set(range(2, 64)))
+if tris(gl) > 6000:
+    bpy.ops.object.select_all(action='DESELECT'); gl.select_set(True); bpy.context.view_layer.objects.active = gl
+    md = gl.modifiers.new('g', 'DECIMATE'); md.decimate_type = 'DISSOLVE'; md.angle_limit = math.radians(1.5); bpy.ops.object.modifier_apply(modifier='g')
+    md = gl.modifiers.new('t', 'TRIANGULATE'); bpy.ops.object.modifier_apply(modifier='t')
+log('glass tris', tris(gl))
+tp, tr_ = tris(pp), tris(rest) + tris(gl)
 pb = min(tp, max(int(T[0] * 0.8), int(CFG.get('paintTris', 0)) or 0, T[0] - tr_))
 if tp > pb * 1.08: decimate(pp, pb); transfer_normals(pp, body)
-if tr_ > (T[0] - tris(pp)) * 1.08: decimate(rest, max(T[0] - tris(pp), int(T[0] * 0.3))); transfer_normals(rest, body)
-b0 = join([pp, rest], 'body0')
+rb_ = T[0] - tris(pp) - tris(gl)
+if tris(rest) > rb_ * 1.08: decimate(rest, max(rb_, int(T[0] * 0.3))); transfer_normals(rest, body)
+b0 = join([pp, gl, rest], 'body0')
 b1 = dup(b0, 'body1')
 inset = 0.16
 def inner(f, cl):
@@ -1418,6 +1466,7 @@ for i, w in enumerate(wheels):
     extra.append({'pos': g(w['c']), 'r': round(float(w['r']), 4), 'side': 1 if w['c'][0] > 0 else -1})
 man = {
     'plates': PLATE_ANCH,
+    **({'flares': {k: FL_[k] for k in ('rIn', 'rOut', 'xMin') if k in FL_}} if FL_ and FL_.get('runtime') else {}),
     'key': KEY, 'src': os.path.relpath(SRC, os.path.join(os.path.dirname(__file__), '..', '..', '..')), 'fwd': fwd, 'scale': s,
     'dims': {'L': round(Lm, 3), 'W': round(W, 3), 'H': round(H, 3)},
     'wb': round(wb, 3), 'track': round(float(abs(wheels[iFL]['c'][0] - wheels[iFR]['c'][0])), 3),
