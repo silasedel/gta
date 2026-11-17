@@ -422,6 +422,15 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
     'kitchen'|'bar'|'hotel'|'lifeguard'|'dock'|... })` gives staff from the user's people.
 
 ## weapons
+**Summary (06:00):** all 24 user weapon models + the machete are in the game (`public/assets/weapons`, 13 new weapons),
+held by Nico with curled fingers, shouldered rifles, two-handed pistols, low ready; GTA-style pickups (real model, rim glow,
+glint, no beams); stash/cache crates, first-aid, ammo and armor pickups use the user's models. Open: cop two-handed aim pose
+reads now (`docs/v2/shots/weapons/cpC_cop2_aim_side.png`) but the gun still sits a little low in the NPC hand.
+- 05:55 Lead round 2: user's wooden crate (0.6 m, grounded, fixed collider) for the starter stash and weapon caches
+  (`cp5_stash_crate.png`), first-aid + ammo pickups converted from Models/First Aid and Models/Ammo
+  (`public/assets/models/pickups`), armor pickup = small user crate (the navy box is gone); cash bills stay code-built (no
+  model). Hands: palm normal from handedness, body / head forward from the skinned feet / head geometry, mirrored-name rigs,
+  bent elbows, head up along the sights. Cop shots: `cpC_cop2_idle_side.png`, `cpC_cop2_aim_side.png`, `cpC_cop2_aim_front.png`.
 - 03:40 Lead's open items done:
   - Cop aiming his service pistol in a two-handed stance: `docs/v2/shots/weapons/fx4_cop_aim.png`.
     Cop holding it at his side: `fx2_cop_idle.png`.

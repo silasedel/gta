@@ -116,7 +116,11 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
         S.c.root.position.copy(S.cp); S.c.root.updateMatrixWorld(true);
         const t = game.player.position.clone(); t.y += 1.35; H.holdWeapon(S.gun, S.c.root, { aim: S.mode === 'aim' ? t : null, dt: dt || 0.016, time: game.clock.elapsed }); };
       game.combat.late = game.combat.late || []; game.combat.late.push(pose); window.__cop2pose = pose;
-      return 'cop2 ok ' + gun.userData.lib;
+      await new Promise((res) => setTimeout(res, 300)); window.__cop2.mode = 'aim'; await new Promise((res) => setTimeout(res, 300));
+      const r = H.rigOf(c.root), fr = H.handFrame(c.root, 'R'), V3 = game.player.position.constructor;
+      const la = r.larm.getWorldPosition(new V3()), ra = r.arm.getWorldPosition(new V3()), pp = game.player.position;
+      const hd = H.holdDebug(c.root, gun); window.__cop2.mode = 'idle';
+      return 'cop2 ok ' + gun.userData.lib + ' mirror=' + r.mirror + ' fingers=' + r.fingersR + ' hipsFwd=' + !!r.hipsFwd + ' L-R=' + la.clone().sub(ra).toArray().map((v) => v.toFixed(2)) + ' toPlayer=' + pp.clone().sub(ra).toArray().map((v) => v.toFixed(2)) + ' F=' + fr.F.map((v) => v.toFixed(2)) + ' S=' + fr.S.map((v) => v.toFixed(2)) + ' N=' + fr.N.map((v) => v.toFixed(2)) + ' hd=' + JSON.stringify(hd);
     })()`);
     console.log(r);
     const cam = (side) => `(() => { const S = window.__cop2; let hb = null; S.c.root.traverse((o) => { if (!hb && o.isBone && /Head$/.test(o.name)) hb = o; });
