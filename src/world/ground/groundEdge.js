@@ -40,13 +40,13 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
           // tone-match: the shoulder keeps the surrounding ground's brightness and most of its hue (no pale polygon), only its
           // texture / roughness / height change; a touch lighter and warmer where traffic dust settles
           { float lg = dot(gs.alb, vec3(0.2126, 0.7152, 0.0722)), ls = max(dot(sh.alb, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
-            vec3 hue = mix(gs.alb / max(lg, 1e-3), sh.alb / ls, 0.75);
-            sh.alb = hue * mix(ls, lg, mix(0.6, 0.2, keys)) * mix(vec3(0.97, 0.95, 0.92), vec3(1.05, 1.03, 0.99), keys); } // Keys: the shoulder keeps its own pale shell / sand brightness
+            vec3 hue = mix(gs.alb / max(lg, 1e-3), sh.alb / ls, mix(0.88, 0.75, keys)); // mainland: a crisp gravel strip of its own color (ref_57), not dusty grass
+            sh.alb = hue * mix(ls, lg, mix(0.35, 0.2, keys)) * mix(vec3(0.97, 0.95, 0.92), vec3(1.05, 1.03, 0.99), keys); } // Keys: the shoulder keeps its own pale shell / sand brightness
           float n1 = gN(wp * 0.9 + 4.7), n2 = gN(wp * 3.1 - 2.3), n3 = gF(wp * 0.23 + 1.1);
           // asphalt: ragged shoulder 1-2.5 m; pavement: a narrow worn strip
           // city verge (pavement within ~2 m: a tree lawn between curb and sidewalk, a lawn beside a plaza): no rural shoulder
           float urban = smoothstep(0.05, 0.2, gmP) * (1.0 - keys * 0.7);
-          float t = gmA * 2.1 + gmP * 1.1 - mix(0.5, 0.36, keys) + (n3 - 0.5) * 0.9 + (n1 - 0.5) * 0.45 + (n2 - 0.5) * 0.18 + (sh.h - gs.h) * 0.55;
+          float t = gmA * 2.1 + gmP * 1.1 - mix(0.58, 0.36, keys) + (n3 - 0.5) * 0.7 + (n1 - 0.5) * 0.45 + (n2 - 0.5) * 0.18 + (sh.h - gs.h) * 0.55;
           gmSh = smoothstep(0.32, 0.5, t) * (1.0 - urban);
           // between shoulder and grass: a band of bare dirt / thin grass (height based: the grass texture's tall blades survive longest)
           float tb = smoothstep(0.12, 0.32, t) * (1.0 - gmSh) * (1.0 - urban);
