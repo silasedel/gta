@@ -14,7 +14,7 @@ export function buildKeysLots(game, api) {
   const H = spot.heading || 0, cH = Math.cos(H), sH = Math.sin(H);
   const toW = (lx, lz) => [spot.x + lx * cH + lz * sH, spot.z - lx * sH + lz * cH];
   const out = { lots: [], docks: 0, extras: 0 };
-  const lib = loadKeysModels(THREE, ['fence_rustic', 'pier_kit', 'mossy_pier', 'clean_pier', 'boathouse', 'rowboat', 'skiff']);
+  const lib = loadKeysModels(THREE, ['fence_rustic', 'pier_kit', 'mossy_pier', 'clean_pier', 'rowboat', 'skiff']);
   const libJobs = [];   // run once the models are in
   for (const L of [...KEYS_LOTS, ...KEYS_SHORE_LOTS]) {
     const [x, z] = toW(L.x, L.z), ry = L.face + H, y = groundY(x, z), seed = (Math.abs(Math.round(L.x * 31 + L.z * 17)) % 99991) + 7;
@@ -28,7 +28,7 @@ export function buildKeysLots(game, api) {
       const [ex, ez] = at(e.u, e.v), ey = groundY(ex, ez), eh = ry + (e.h || 0); if (isWater(ex, ez)) continue; out.extras++;
       if (e.k === 'boatTrailer') { // the user's boat (small fishing boat / rowboat) on a galvanized trailer; the trailer is built here
         place(trailer(K, 5.2), ex, ey, ez, eh); boxCol(ex, ey + 1.0, ez, 1.05, 1.0, 3.0, eh);
-        const bk = (e.seed || 1) % 2 ? 'skiff' : 'rowboat'; libJobs.push(() => I.add(bk, 'dock', new THREE.Matrix4().compose(new THREE.Vector3(ex, ey + 0.78, ez), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), eh + Math.PI), new THREE.Vector3(1, 1, 1)), { tint: [1, 1, 1] })); }
+        const bk = 'rowboat'; libJobs.push(() => I.add(bk, 'dock', new THREE.Matrix4().compose(new THREE.Vector3(ex, ey + 0.78, ez), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), eh + Math.PI), new THREE.Vector3(1, 1, 1)), { tint: [1, 1, 1] })); }
       else if (e.k === 'chairs') { for (const [du, dv, a] of [[-0.6, 0, 0.3], [0.6, 0.1, -0.2]]) { const [cx, cz] = at(e.u + du, e.v + dv); placeBreak(chair(K, r), cx, groundY(cx, cz), cz, eh + a, [0.3, 0.45, 0.3], 'fence'); } }
       else if (e.k === 'kayaks') { for (let i = 0; i < 2; i++) { const [cx, cz] = at(e.u + i * 0.75, e.v); place(K.kayak([0xe85a2a, 0x2a8ab8, 0xe8c82a, 0x3aa86a][(seed + i) % 4]), cx, groundY(cx, cz), cz, eh); } }
       else if (e.k === 'crabTraps') place(K.crabTrapStack(r), ex, ey, ez, eh);

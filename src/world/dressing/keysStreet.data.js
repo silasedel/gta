@@ -86,7 +86,7 @@ export const KEYS_SHORE_LOTS = [
   { // W2: lavender cottage, the boathouse at the water
     id: 'pp_w2', x: -88.0, z: -43.0, face: 0.35, w: 9.4, d: 7.6, style: 'keys', stilt: false, base: 0.7, gap: 13.5, side: 4.0, back: 8,
     over: { colors: { body: 0xd9c1e0, trim: 0xf6f3ec, accent: 0x2a4a6a, roof: 0xb8bcc0 }, fence: 'picket', frontHedge: false, hedge: false, car: false, bins: true, palms: 2, shrubs: 4, flamingos: 2 },
-    extras: [{ k: 'boatTrailer', u: -7.0, v: 1.0, h: 0.0, seed: 12 }, { k: 'chairs', u: 2.0, v: -6.5, h: 3.1 }],
+    extras: [{ k: 'boatTrailer', u: -7.0, v: 1.0, h: 0.0, seed: 12 }, { k: 'chairs', u: 2.0, v: -6.5, h: 3.1 }],   // W2
     car: { kind: 'sedan', look: 'old', u: 6.5, v: 6.0, h: Math.PI },
   },
 ];
@@ -95,8 +95,8 @@ export const KEYS_SHORE_LOTS = [
 // boats: [{ k: 'rowboat' | 'skiff', side: -1 | 1, along: 0..1 }]
 export const KEYS_DOCKS = [
   { id: 'dk_w1', model: 'mossy_pier', x: -63.0, z: -50.0, face: Math.PI + 0.05, boats: [{ k: 'rowboat', side: 1, along: 0.7 }] },
-  { id: 'dk_w2', model: 'boathouse', x: -90.0, z: -50.0, face: Math.PI + 0.3, boats: [] },
+  { id: 'dk_w2', model: 'clean_pier', x: -90.0, z: -50.0, face: Math.PI + 0.3, boats: [{ k: 'rowboat', side: 1, along: 0.55 }] },   // (the boathouse model has 29 materials: ~150 draw calls with shadows)
   { id: 'dk_nw', model: 'clean_pier', x: -34.0, z: -40.0, face: Math.PI - 0.55, boats: [{ k: 'skiff', side: -1, along: 0.65 }] },
   { id: 'dk_ne', model: 'mossy_pier', x: 33.0, z: -32.0, face: -1.75, boats: [{ k: 'rowboat', side: -1, along: 0.6 }] },   // behind the stilt house on the notch's east side
-  { id: 'dk_w3', model: 'clean_pier', x: -118.0, z: -48.0, face: Math.PI - 0.15, boats: [{ k: 'skiff', side: 1, along: 0.5 }] },
+  { id: 'dk_w3', model: 'mossy_pier', x: -118.0, z: -48.0, face: Math.PI - 0.15, boats: [{ k: 'rowboat', side: 1, along: 0.5 }] },
 ];
