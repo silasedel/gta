@@ -95,7 +95,7 @@ export function build(ctx) {
     const dyn = new THREE.Group(); dyn.name = 'keysDockBoats'; ctx.groups.site.add(dyn);
     for (const b of boats) {
       const p = lib.piece(b.k, 'dock'); if (!p) continue; const g = new THREE.Group(); g.position.set(b.x, sea - b.draft, b.z); g.rotation.y = b.h;
-      for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.receiveShadow = true; m.raycast = () => {}; g.add(m); }
+      for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = false; m.receiveShadow = true; m.raycast = () => {}; g.add(m); }   // on the water: no sun-shadow draw calls
       dyn.add(g); b.g = g; b.ph = r() * 6.28;
       // mooring line: cleat -> bow ring, sagging a little into the water
       const c = cleats[b.cleat], bow = new THREE.Vector3(0, 0.45, (p.box.max.z - 0.25)).applyAxisAngle(new THREE.Vector3(0, 1, 0), b.h).add(g.position);

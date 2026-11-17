@@ -7,6 +7,7 @@
 import { KEYS_LOTS, KEYS_SHORE_LOTS, KEYS_DOCKS } from './keysStreet.data.js';
 import * as THREE from 'three';
 import { loadKeysModels } from '../setpieces/nicoHouse/models.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export function buildKeysLots(game, api) {
   const { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots, K } = api;
@@ -79,17 +80,27 @@ export function buildKeysLots(game, api) {
     for (const m of I.build(group)) m.raycast = () => {};
     if (piles.length) { const im = new THREE.InstancedMesh(pileGeo, pileMat, piles.length); im.name = 'keysLots:piles'; const q = new THREE.Quaternion();
       piles.forEach(([x, y, z, len, r2], i) => im.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(r2, len, r2)))); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; group.add(im); }
-    for (const b of boats) { const p = lib.piece(b.k, 'dock'); if (!p) continue; const g = new THREE.Group(); g.position.set(b.x, sea - (b.k === 'skiff' ? 0.3 : 0.12), b.z); g.rotation.y = b.h;
-      for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.receiveShadow = true; m.raycast = () => {}; g.add(m); } group.add(g); b.g = g;
-      const bow = new THREE.Vector3(0, 0.45, p.box.max.z - 0.3).applyAxisAngle(new THREE.Vector3(0, 1, 0), b.h).add(g.position), a = new THREE.Vector3(b.cleat[0], deckY + 0.05, b.cleat[1]);
+    // moored boats: one instanced mesh per boat model material (bobbing through the instance matrices), all mooring lines merged
+    // into one mesh; neither casts sun shadows (they sit on the water, which takes none) -- draw calls stay flat
+    const byKind = {}, lineGeos = [], mm = new THREE.Matrix4(), qq = new THREE.Quaternion(), ee = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), pv = new THREE.Vector3();
+    for (const b of boats) { const p = lib.piece(b.k, 'dock'); if (!p) continue; b.y0 = sea - (b.k === 'skiff' ? 0.3 : 0.12); (byKind[b.k] ||= { p, list: [] }).list.push(b);
+      const bow = new THREE.Vector3(0, 0.45, p.box.max.z - 0.3).applyAxisAngle(new THREE.Vector3(0, 1, 0), b.h).add(new THREE.Vector3(b.x, b.y0, b.z)), a = new THREE.Vector3(b.cleat[0], deckY + 0.05, b.cleat[1]);
       const pts = []; for (let i = 0; i <= 10; i++) { const t2 = i / 10; pts.push(new THREE.Vector3().lerpVectors(a, bow, t2).add(new THREE.Vector3(0, -0.3 * 4 * t2 * (1 - t2), 0))); }
-      const line = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.012, 4), new THREE.MeshStandardMaterial({ color: 0xcfc4a2, roughness: 0.9 })); line.raycast = () => {}; group.add(line); }
-    if (boats.length) game.updaters?.push(() => { const tt = performance.now() / 1000; for (const b of boats) if (b.g) { b.g.position.y = sea - (b.k === 'skiff' ? 0.3 : 0.12) + Math.sin(tt * 0.9 + b.ph) * 0.035; b.g.rotation.z = Math.sin(tt * 0.7 + b.ph) * 0.025; } });
+      lineGeos.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.012, 4)); }
+    const ims = [];
+    for (const { p, list } of Object.values(byKind)) for (const q of p.parts) { const im = new THREE.InstancedMesh(q.geometry, q.material, list.length); im.castShadow = false; im.receiveShadow = true; im.raycast = () => {}; im.userData.list = list; im.frustumCulled = false; group.add(im); ims.push(im); }
+    if (lineGeos.length) { const lg = mergeGeometries(lineGeos.map((g) => g.index ? g.toNonIndexed() : g)); const line = new THREE.Mesh(lg, new THREE.MeshStandardMaterial({ color: 0xcfc4a2, roughness: 0.9 })); line.raycast = () => {}; group.add(line); }
+    const bob = () => { const tt = performance.now() / 1000; for (const im of ims) { im.userData.list.forEach((b, i) => { ee.set(Math.sin(tt * 0.55 + b.ph * 2) * 0.015, b.h, Math.sin(tt * 0.7 + b.ph) * 0.025, 'YXZ'); qq.setFromEuler(ee); mm.compose(pv.set(b.x, b.y0 + Math.sin(tt * 0.9 + b.ph) * 0.035, b.z), qq, one); im.setMatrixAt(i, mm); }); im.instanceMatrix.needsUpdate = true; } };
+    bob(); if (ims.length) game.updaters?.push(bob);
+    // shadow budget: piles under water and the low dock legs never cast
+    group.traverse((o) => { if (o.name === 'keysLots:piles') o.castShadow = false; });
   });
   // ---- parked cars (cars helper) ----
   const spawnCars = () => { const V = game.vehicles; if (!V?.spawnParked) return false; for (const c of out.cars || []) { const key = { sedan: 'sedan', suv: 'suv', pickup: 'pickup', van: 'van', compact: 'compact' }[c.kind] || 'sedan'; const look = { faded: [0xb8b4a8, 0.55], work: [0xd8d6d0, 0.7], sun_faded: [0xb0473a, 0.7], old: [0x5a6a72, 0.8], rusty: [0x7a6a52, 0.95] }[c.look] || [null, 0.5];
     V.spawnParked(key, { x: c.x, z: c.z, heading: c.heading, color: look[0] ?? undefined, wear: look[1], locked: true }).catch(() => {}); } return true; };
   if (!spawnCars()) { let n = 0; const iv = setInterval(() => { if (spawnCars() || ++n > 120) clearInterval(iv); }, 1000); }
+  // the whole hand-placed layer (fences, docks, boats, piles) only within 450 m of Nico's house
+  { const c = new THREE.Vector3(spot.x, 0, spot.z); game.updaters?.push(() => { const cam = game.camera; if (cam) group.visible = Math.hypot(cam.position.x - c.x, cam.position.z - c.z) < 450; }); }
   game.keysLots = out;
   return out;
 }
