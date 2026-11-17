@@ -1,0 +1,245 @@
+{
+ "nico_ped": {
+  "player": null,
+  "tod": 11,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "nico_graze": {
+  "eye": [
+   -866,
+   1.6,
+   4831
+  ],
+  "look": [
+   -842,
+   0.2,
+   4845
+  ],
+  "tod": 11,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "keys_drv": {
+  "eye": [
+   -848,
+   2.3,
+   4840
+  ],
+  "look": [
+   -790,
+   0.8,
+   4878
+  ],
+  "tod": 11,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "keys_air": {
+  "eye": [
+   -905,
+   55,
+   4760
+  ],
+  "look": [
+   -830,
+   0,
+   4840
+  ],
+  "tod": 11,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "keys_gold": {
+  "eye": [
+   -866,
+   1.6,
+   4831
+  ],
+  "look": [
+   -842,
+   0.2,
+   4845
+  ],
+  "tod": 18.4,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "suburb_ped": {
+  "eye": [
+   -1548,
+   1.6,
+   -2796
+  ],
+  "look": [
+   -1505,
+   0.1,
+   -2775
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "suburb_drv": {
+  "eye": [
+   -1580,
+   2.3,
+   -2817
+  ],
+  "look": [
+   -1500,
+   0.8,
+   -2803
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "suburb_air": {
+  "eye": [
+   -1560,
+   60,
+   -2880
+  ],
+  "look": [
+   -1530,
+   0,
+   -2790
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "park_ped": {
+  "eye": [
+   585,
+   1.6,
+   200
+  ],
+  "look": [
+   640,
+   0.1,
+   240
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "park_air": {
+  "eye": [
+   545,
+   60,
+   140
+  ],
+  "look": [
+   615,
+   0,
+   225
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "park_gold": {
+  "eye": [
+   585,
+   1.6,
+   200
+  ],
+  "look": [
+   640,
+   0.1,
+   240
+  ],
+  "tod": 18.4,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "beach_ped": {
+  "eye": [
+   2788,
+   1.6,
+   -600
+  ],
+  "look": [
+   2800,
+   0.0,
+   -470
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "beach_air": {
+  "eye": [
+   2700,
+   55,
+   -620
+  ],
+  "look": [
+   2795,
+   0,
+   -500
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "beach_gold": {
+  "eye": [
+   2788,
+   1.6,
+   -600
+  ],
+  "look": [
+   2800,
+   0.0,
+   -470
+  ],
+  "tod": 18.4,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "swamp_ped": {
+  "eye": [
+   -2386,
+   1.6,
+   2660
+  ],
+  "look": [
+   -2340,
+   0.2,
+   2705
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "swamp_air": {
+  "eye": [
+   -2460,
+   65,
+   2590
+  ],
+  "look": [
+   -2370,
+   0,
+   2680
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "rural_ped": {
+  "eye": [
+   -1700,
+   1.6,
+   -2560
+  ],
+  "look": [
+   -1650,
+   0.1,
+   -2520
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "rural_air": {
+  "eye": [
+   -1760,
+   70,
+   -2640
+  ],
+  "look": [
+   -1660,
+   0,
+   -2540
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "clewiston": {
+  "player": [
+   -1540,
+   -2805,
+   0
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "keys_spawn": {
+  "player": null,
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "park_dt": {
+  "player": [
+   600,
+   210,
+   0.8
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "glades": {
+  "player": [
+   -2386,
+   2660,
+   0.6
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "mbeach": {
+  "player": [
+   2420,
+   -500,
+   1.57
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ }
+}

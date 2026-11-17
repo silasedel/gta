@@ -4,6 +4,10 @@
 // tile stays one draw call and class borders are soft. The same height samples feed the Rapier trimesh (render == collider).
 import * as THREE from 'three';
 import { loadArray, loadSet, setParams } from '../city/pbr.js';
+import { loadGroundArrays } from './groundtex.js';
+import { patchGround, recipeUniforms } from './groundShader.js';
+// ground v2 (user's ground scans, hex-tiled recipes, shore bands): ?ground2=0 restores the previous Poly Haven array shader (A/B audits)
+export const GROUND2 = typeof location === 'undefined' || !/[?&]ground2=0\b/.test(location.search);
 
 // key, Poly Haven set, uv scale (1 / meters per repeat), tint, wet (standing water amount), rows (farm furrows), macro variation
 export const LAYERS = [
@@ -33,6 +37,7 @@ const CLS = {
   runway: 'lawn', taxiway: 'lawn', marina: 'base', pool: 'base',
 };
 export const LAYER_INDEX = LI;
+const YARD = LAYERS.length; // ground v2: render-only class for inland sand (Keys yards, sand lots); layerAt() still answers 'sand'
 
 const hash2 = (x, z) => { let h = Math.imul((x * 73856093) ^ (z * 19349663), 2654435761); h ^= h >>> 15; return (h >>> 0) / 4294967296; };
 // cheap value noise (same family as the shader's) for CPU-side patchiness
@@ -41,7 +46,8 @@ export function vnoise(x, z) { const ix = Math.floor(x), iz = Math.floor(z); let
 
 export async function createTerrain(renderer, data, opts = {}) {
   const T = data.tileSize || 200, WATER_Y = -0.55, Y_OFF = -0.02;
-  const arr = await loadArray(renderer, LAYERS.map((l) => ({ key: l.key, name: l.name, level: l.level })), { size: 512 });
+  const arr = GROUND2 ? null : await loadArray(renderer, LAYERS.map((l) => ({ key: l.key, name: l.name, level: l.level })), { size: 512 });
+  const gtex = GROUND2 ? await loadGroundArrays(renderer) : null, gU = GROUND2 ? recipeUniforms([...LAYERS.map((l) => l.key), 'yard']) : null;
   // w: how strongly the layer is graded toward living grass (vegetation track: lush, varied rural green instead of brown / orange)
   const GREEN = { lawn: 1, scrub: 0.95, meadow: 0.9, grove: 0.85, pine: 0.72, forest: 0.68, sawgrass: 0.45, farm: 0.15 };
   const uLay = LAYERS.map((l) => new THREE.Vector4(l.scale, l.wet || 0, l.rows || 0, GREEN[l.key] || 0));
@@ -113,8 +119,9 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     };
     return mat;
   }
-  const nearMat = patch(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), false); nearMat.name = 'terrain'; nearMat.userData.pbr = true;
-  const lodMat = patch(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), true); lodMat.name = 'terrain-lod'; lodMat.userData.pbr = true;
+  const P = GROUND2 ? (m, lod) => patchGround(m, lod, opts, gtex, gU) : patch;
+  const nearMat = P(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), false); nearMat.name = 'terrain'; nearMat.userData.pbr = true;
+  const lodMat = P(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), true); lodMat.name = 'terrain-lod'; lodMat.userData.pbr = true;
 
   // hard airport / service surfaces (polygons drawn above the terrain)
   const mk = async (name, o) => { const s = await loadSet(renderer, name); for (const t of [s.map, s.normalMap, s.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; }
@@ -123,6 +130,16 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   const surfaces = { runway, apron, taxiway };
 
   // ---- cover -> layer ----
+  // ground v2: open rural land is broken into rectangular crop fields (parcels on a 230 x 170 m grid, ~45 % plowed), with grass
+  // margins along the parcel edges and kept 26 m clear of roads (farmyards and houses sit by the road)
+  const _farmQ = {};
+  function farmAt(x, z) {
+    const u = x + 37, v = z - 53, fi = Math.floor(u / 230), fj = Math.floor(v / 170), fu = u - fi * 230, fv = v - fj * 170;
+    if (hash2(fi, fj) > 0.45 || fu < 6 || fu > 224 || fv < 6 || fv > 164) return false;
+    if (isKeys(x, z)) return false;
+    if (data.roadGraph && data.roadGraph.nearestEdge) { const r = data.roadGraph.nearestEdge(x, z, _farmQ, 30); if (r && r.dist - r.edge.width / 2 < 26) return false; }
+    return true;
+  }
   const _vergeQ = {};
   function layerAt(x, z) {
     const cls = data.coverAt ? data.coverAt(x, z) : 'none';
@@ -138,7 +155,8 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
         k = nk < 0.3 ? 'scrub' : nk < 0.38 ? 'shell' : nk < 0.5 ? 'lawn' : nk < 0.66 ? 'sand' : nk < 0.84 ? 'scrub' : nk < 0.92 ? 'meadow' : 'sand'; } // (greenery) sandy yards, less mown lawn
       else if (zn === 'airport') k = 'lawn';
       else if (zn === 'wilderness') k = nz < 0.6 ? 'scrub' : 'meadow';
-      else if (zn === 'rural') k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';
+      else if (zn === 'rural') { k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';
+        if (GROUND2 && farmAt(x, z)) k = 'farm'; }
       else k = nz < 0.75 ? 'lawn' : 'scrub';
     }
     // greenery: Keys yards and lots are sandy, matted ground broken by grass patches (user mock-up), not lush lawn
@@ -168,21 +186,31 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     return data.isWater(x, z) ? h : Math.max(h, Math.min(land, -0.1)); // land stays just above the sea (-0.12): matches its collider
   };
 
+  // ground v2: meters to the nearest water (0..48), for the beach dry / damp / wet bands and the yard / beach split of 'sand'
+  const SR = [2, 4, 7, 11, 16, 23, 32, 48], SD8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.707, 0.707], [-0.707, 0.707], [0.707, -0.707], [-0.707, -0.707]];
+  const shoreDist = (x, z) => {
+    if (!data.isWater) return 48; if (data.isWater(x, z)) return 0;
+    let any = false; for (const [dx, dz] of SD8) if (data.isWater(x + dx * 48, z + dz * 48) || data.isWater(x + dx * 23, z + dz * 23)) { any = true; break; }
+    if (!any) return 48;
+    let prev = 0; for (const r of SR) { for (const [dx, dz] of SD8) if (data.isWater(x + dx * r, z + dz * r)) return (prev + r) / 2; prev = r; }
+    return 48;
+  };
   // ---- grid builder (generator: yields every few rows so the streamer stays inside its frame budget) ----
   // returns { geometry, coll: Float32Array (triangle soup, same vertices) } ; skips triangles that are all water or all real Miami
   function* gridGen(x0, z0, x1, z1, cell, o = {}) {
     const nx = Math.max(1, Math.round((x1 - x0) / cell)), nz = Math.max(1, Math.round((z1 - z0) / cell)), W = nx + 3;
-    const H = new Float32Array(W * (nz + 3)), Lr = new Uint8Array(W * (nz + 3)), Wt = new Uint8Array(W * (nz + 3)), Rl = new Uint8Array(W * (nz + 3));
+    const H = new Float32Array(W * (nz + 3)), Lr = new Uint8Array(W * (nz + 3)), Wt = new Uint8Array(W * (nz + 3)), Rl = new Uint8Array(W * (nz + 3)), Sd = GROUND2 ? new Float32Array(W * (nz + 3)) : null;
     for (let j = -1; j <= nz + 1; j++) {
       for (let i = -1; i <= nx + 1; i++) { const x = x0 + i * cell, z = z0 + j * cell, k = (j + 1) * W + i + 1;
         const w = data.isWater ? data.isWater(x, z) : false; Wt[k] = w ? 1 : 0; H[k] = heightAt(x, z);
-        if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x, z); } }
+        if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x, z);
+          if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 12 : 30)) Lr[k] = YARD; } } }
       if ((j & 7) === 7) yield;
     }
     const at = (i, j) => (j + 1) * W + i + 1;
-    const P = [], Nn = [], A = [], TL = o.lod ? [] : null;
+    const P = [], Nn = [], A = [], SA = Sd ? [] : null, TL = o.lod ? [] : null;
     const nrm = (i, j) => { const hx = H[at(i + 1, j)] - H[at(i - 1, j)], hz = H[at(i, j + 1)] - H[at(i, j - 1)]; const nxv = -hx / (2 * cell), nzv = -hz / (2 * cell), l = Math.hypot(nxv, 1, nzv); return [nxv / l, 1 / l, nzv / l]; };
-    const vtx = (i, j, L) => { const k = at(i, j), n = nrm(i, j); P.push(x0 + i * cell, H[k], z0 + j * cell); Nn.push(n[0], n[1], n[2]); A.push(L[0], L[1], L[2]); };
+    const vtx = (i, j, L) => { const k = at(i, j), n = nrm(i, j); P.push(x0 + i * cell, H[k], z0 + j * cell); Nn.push(n[0], n[1], n[2]); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[k]); };
     const tri = (a, b, c) => { // a,b,c = [i, j]; counter-clockwise seen from above (+Y normal)
       const ka = at(a[0], a[1]), kb = at(b[0], b[1]), kc = at(c[0], c[1]);
       if (Wt[ka] && Wt[kb] && Wt[kc]) return; if (Rl[ka] && Rl[kb] && Rl[kc]) return;
@@ -200,13 +228,13 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     if (o.skirt) { // vertical skirt along the tile border hides cracks against the coarser mid-LOD terrain next door
       const S = o.skirt, edge = (i0, j0, i1, j1) => { const ka = at(i0, j0), kb = at(i1, j1); if (Wt[ka] && Wt[kb]) return; if (Rl[ka] && Rl[kb]) return;
         const xa = x0 + i0 * cell, za = z0 + j0 * cell, xb = x0 + i1 * cell, zb = z0 + j1 * cell, ya = H[ka], yb = H[kb], L = [Lr[ka], Lr[kb], Lr[ka]];
-        for (const [x, y, z] of [[xa, ya, za], [xa, ya - S, za], [xb, yb, zb], [xb, yb, zb], [xa, ya - S, za], [xb, yb - S, zb]]) { P.push(x, y, z); Nn.push(0, 1, 0); A.push(L[0], L[1], L[2]); } };
+        for (const [x, y, z] of [[xa, ya, za], [xa, ya - S, za], [xb, yb, zb], [xb, yb, zb], [xa, ya - S, za], [xb, yb - S, zb]]) { P.push(x, y, z); Nn.push(0, 1, 0); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[x === xa ? ka : kb]); } };
       for (let i = 0; i < nx; i++) { edge(i, 0, i + 1, 0); edge(i + 1, nz, i, nz); }
       for (let j = 0; j < nz; j++) { edge(nx, j, nx, j + 1); edge(0, j + 1, 0, j); }
     }
     if (!P.length) return null;
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); g.setAttribute('aL', new THREE.Float32BufferAttribute(A, 3));
+    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); g.setAttribute('aL', new THREE.Float32BufferAttribute(A, 3)); if (SA) g.setAttribute('aS', new THREE.Float32BufferAttribute(SA, 1));
     if (TL) g.setAttribute('aTile', new THREE.Float32BufferAttribute(TL, 2));
     g.computeBoundingSphere(); g.computeBoundingBox();
     return { geometry: g, coll: o.coll ? new Float32Array(P.slice(0, nColl)) : null };
