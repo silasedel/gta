@@ -43,6 +43,9 @@ How the world and the systems connect. If something here is wrong, fix the code 
   the user's mission `docs/v2/plan/MISSION_SCHOOL_ABANDONED_CLASSROOM.md` (stage 2 builds the school, stage 4 the mission).
 - **Fire alarm distraction:** `docs/v2/plan/DISTRACTION_FIRE_ALARM.md` (pull stations in casino, hotels, school, offices).
 - **Rough district:** Overtown and Liberty City (district kind `ghetto`), buildings tagged `condition: rundown|abandoned`.
+  At runtime the condition is `hash(id + 6101) < 0.18 ? abandoned : rundown` (same rule in `bldmodels.js` and
+  `src/world/city/families.js`): worn walls, grime, window AC units, security bars, roll-down shutters, boarded and dark
+  windows when abandoned, rusty metal roofs, graffiti, chain-link fences (with colliders) around the vacant dirt lots.
 - **Police stations:** `src/gameplay/police/stations.js` `STATION_SITES` (district centers, snapped to the nearest road at
   run time). HQ: Southline PD Headquarters, Downtown (407, -110).
 - **Jail:** use Southline PD Headquarters (407, -110) until a jail interior exists (stage 4 adds the scene).
@@ -54,12 +57,21 @@ How the world and the systems connect. If something here is wrong, fix the code 
   superblock centered at **(2183, -370)**, footprint about 130 m (x) by 117 m (z), main entrance facing **west onto Collins
   Ave**; Meridian Ave runs behind it (east side, ~40 m): use that side for the loading dock / back lot. Constant
   `CASINO` in `src/world/miami/bldmodels.js`; generated lots under it are cleared.
-- **Library building models:** `src/world/miami/bldmodels.js` places the user's Models/Buildings (converted GLBs in
-  `public/assets/models/buildings/`, see SOURCES.txt) on fitting generated lots: towers (podium, slim residential, red-band
-  office, curved glass), houses (brick cottage, blue house, brick duplex), the graffiti shop (town main streets) and the
-  Keys stilt shack. One InstancedMesh per model material city-wide; colliders are boxes; such lots get no shop shell.
-  `?libmodels=0` turns them off (procedural buildings everywhere). New models: convert with
-  `tools/v2/buildings/convert_all.sh`, add a row to `LIB`.
+- **Library building models:** `src/world/miami/bldmodels.js` places the user's models (converted GLBs in
+  `public/assets/models/buildings/`, see SOURCES.txt; converter `tools/v2/buildings/convert_v2.sh` + `models.json`: meters,
+  origin at the footprint center on the ground, front toward +Z, WebP textures, `<name>_lod1.glb` far LOD, `<name>_col.glb`
+  collision mesh) on fitting generated lots. Classes: `tower` (h > 60), `mid` (11-62 m office/band/glass/deco), `shop`
+  (strip / commercial low-rise, motel, gas station, diner), `house`, `ind` (factories, garage rows), `hangar` (airport hangar
+  lots), `rlow` (rough-side walk-ups and corner stores). Picks are deterministic per building id (neighbors with a smaller id
+  choose first, no two neighbors share a model). One InstancedMesh per (model, material, LOD, condition) per 900 m cell; per
+  instance: tint (instanceColor), mirrored copies of text-free models, shader weathering and lit-window share keyed on the
+  instance origin, far LOD past ~400 m (towers) / ~180 m (houses, shops). Colliders are each model's own collision mesh
+  (`collide()`), plus a plinth where the lot falls away. Roof / wall clutter (`addClutter`): roof vents and tanks on procedural
+  roofs, fire escapes on brick walk-ups, utility cabinets, squatter shacks. `?libmodels=0` turns it all off. New models: add a
+  row to `tools/v2/buildings/models.json`, run `convert_v2.sh <name>`, add a `LIB` row.
+- **Airport (Miami International):** `AIRPORT` in `bldmodels.js`: terminal footprints (synthetic lots, glass curtain wall, canopy
+  roof) at x -1480..-1172, z 1010..1070, Control Tower 1 at (-1060, 1075), five jet bridges on the terminal's south face, parked
+  airliners nose-in, runway edge / threshold / approach lights from the runway outlines. Hangar lots get the user's hangars.
 
 - **Street furniture (stage 1 jobs 4-5):** the user's library models, converted to `public/assets/models/street/*.glb`
   (`tools/v2/street-models/build.sh`, `signals.py`, `signs.py`; sources in `SOURCES.txt`), loaded by
