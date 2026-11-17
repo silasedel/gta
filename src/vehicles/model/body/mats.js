@@ -98,8 +98,10 @@ void applyPattern(inout vec3 col) {
   patMask = hole;
 }
 `;
-let _trim = null;
-export function trimMaterial() {
+let _trim = null, _trimWorn = null;
+/** trim of every library car; trimMaterial({ worn: true }): old cars - chrome gone flat and milky, rubber chalky (shared) */
+export function trimMaterial(o = {}) {
+  if (o.worn) return (_trimWorn ||= wornTrim());
   if (_trim) return _trim;
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.6, metalness: 0, envMapIntensity: 1.25, side: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
@@ -116,6 +118,17 @@ export function trimMaterial() {
   };
   m.customProgramCacheKey = () => 'ps-cartrim-v1';
   _trim = m;
+  return m;
+}
+function wornTrim() {
+  const base = trimMaterial(), m = base.clone(); m.name = 'car-trim-worn';
+  m.onBeforeCompile = (sh) => {
+    base.onBeforeCompile(sh);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = max(roughnessFactor, vRM.y > 0.5 ? 0.38 : 0.62);')
+      .replace('applyPattern(diffuseColor.rgb);', 'applyPattern(diffuseColor.rgb);\n  if (vRM.y > 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.41, 0.39), 0.35);\n  else if (dot(diffuseColor.rgb, vec3(0.33)) < 0.06) diffuseColor.rgb += vec3(0.022, 0.02, 0.018);');
+  };
+  m.customProgramCacheKey = () => 'ps-cartrim-worn-v1';
   return m;
 }
 
@@ -165,7 +178,16 @@ const TINTS = [
   { color: 0x0e1418, opacity: 0.8 },    // 2 dark
   { color: 0x030507, opacity: 0.92 },   // 3 limo
 ];
-export function glassMaterial(tint = 1) {
+let _dusty = null;
+/** glassMaterial(tint): windows by tint level; glassMaterial(0, { dusty: true }): an old parked car's dusty, hazy glass (shared) */
+export function glassMaterial(tint = 1, o = {}) {
+  if (o.dusty) {
+    if (_dusty) return _dusty;
+    const m = glassMaterial(0).clone(); m.onBeforeCompile = glassMaterial(0).onBeforeCompile; m.premultipliedAlpha = true;
+    m.color.set(0x6b6a62); m.opacity = 0.78; m.roughness = 0.34; m.clearcoatRoughness = 0.3; m.envMapIntensity = 0.75; m.name = 'car-glass-dusty';
+    m.customProgramCacheKey = () => 'ps-carglass-v2';
+    return (_dusty = m);
+  }
   const t = Math.max(0, Math.min(3, tint | 0));
   if (_glass[t]) return _glass[t];
   const P = TINTS[t];

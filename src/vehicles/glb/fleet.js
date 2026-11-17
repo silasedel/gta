@@ -70,6 +70,8 @@ c('hatch2', 'Pico', 'Eco', 'compact', 'compact', 4.54, 1.6, 'i4', 2012);
 c('coupe2', 'Brava', 'Thunder', 'muscle', 'muscle', 4.81, 3, 'v8', 2024, { pal: 'sport' });
 c('coupe3', 'Halcyon', 'Vesta Coupe', 'sports', 'sports', 4.80, 3.5, 'v6t', 2021, { pal: 'sport' });
 c('conv1', 'Brava', 'Bayline 65', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { convertible: true, classic: true, pal: 'sport' });
+// Nico's second car (user-provided model): a 1970 two-door muscle coupe, sun-faded; parked at his place only
+c('coupe4', 'Brava', 'Sovereign 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
 // rare: one of each on the map (placements.js), never random traffic
 c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, pal: 'sport' });
 c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v8s', 2017, { rare: true, palette: [0xb3121b] });
@@ -93,7 +95,7 @@ c('suv13', 'Kestrel', 'Terra X', 'compact', 'suv', 4.48, 2, 'i4', 2015);
 c('suv14', 'Ridgeback', 'Trail 4', 'pickup', 'offroad', 4.82, 2, 'v6', 2008);
 c('suv15', 'Marlin', 'Grand Ridge', 'suv', 'suv', 4.95, 2.5, 'v6', 2021);
 // work
-c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, { pal: 'work' });
+c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, { pal: 'work', parkedOnly: true }); // its atlas mixes body, livery and windows: parked work truck only
 // Nico's own truck (user-provided model): a wide high-performance off-road pickup; never in random traffic
 c('truck9', 'Ridgeback', 'Raptor Trail X', 'pickup', 'offroad', 5.9, 3, 'v6t', 2020, { parkedOnly: true });
 c('van1', 'Corvo', 'Cargo LWB', 'van', 'van', 6.95, 2, 'dsl', 2012, { pal: 'work' });

@@ -345,7 +345,8 @@
      0.96
     ]
    }
-  ]
+  ],
+  "keepUnderskin": true
  },
  "suv5": {
   "src": "SUVs/SUV 5 - German Three-Row Crossover/SUV 5.blend",
@@ -367,6 +368,22 @@
     "y": [
      0.73,
      1.09
+    ]
+   },
+   {
+    "front": false,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0,
+     0.2
+    ],
+    "y": [
+     0.85,
+     1.35
     ]
    }
   ]
@@ -447,7 +464,24 @@
     0.83,
     -0.03
    ]
-  }
+  },
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.55,
+     1.15
+    ]
+   }
+  ]
  },
  "suv9": {
   "src": "SUVs/SUV 9 - Japanese Family Crossover/SUV 9.blend",
@@ -495,7 +529,6 @@
   "cutBoxes": [
    {
     "front": true,
-    "all": true,
     "dz": [
      0,
      0.8
@@ -507,6 +540,21 @@
     "y": [
      0.74,
      0.9
+    ]
+   },
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.55,
+     1.15
     ]
    }
   ]
@@ -649,12 +697,78 @@
    "^Mat 11 #1": "paint"
   },
   "recalcNormals": true,
-  "fwd": "+y"
+  "fwd": "+y",
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.55,
+     1.15
+    ]
+   },
+   {
+    "front": false,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0.2,
+     0.7
+    ],
+    "y": [
+     0.75,
+     1.2
+    ]
+   }
+  ]
  },
  "suv14": {
   "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
   "L": 4.82,
-  "fwd": "-y"
+  "fwd": "-y",
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.55,
+     1.15
+    ]
+   },
+   {
+    "front": false,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0,
+     0.5
+    ],
+    "y": [
+     0.8,
+     1.2
+    ]
+   }
+  ]
  },
  "suv15": {
   "src": "SUVs/SUV 15 - Japanese Three-Row Family/SUV 15.blend",
@@ -1046,22 +1160,33 @@
     ]
    }
   ],
-  "paintTex": {
-   "mat": "^Material$",
-   "decals": true,
+  "paintSplit": {
+   "dark": 0.1,
    "beltY": 1.25,
    "glassZ": [
     -0.95,
     2.0
    ],
-   "nose": 0.6,
-   "minY": 0.6,
-   "body": [
-    205,
-    205,
-    205
-   ]
-  }
+   "nose": -9,
+   "tail": -9
+  },
+  "darkBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.56
+    ],
+    "y": [
+     1.0,
+     1.37
+    ]
+   }
+  ]
  },
  "truck3": {
   "src": "Trucks/Truck 3 - Cab-Over Box Truck/Truck 3.blend",
@@ -1393,37 +1518,98 @@
   },
   "killBoxes": [
    {
-    "front": true,
+    "front": false,
     "dz": [
      0,
-     0.5
+     0.7
     ],
     "ax": [
      0,
-     0.62
+     0.8
     ],
     "y": [
-     0.75,
-     1.25
+     0.8,
+     1.45
     ],
-    "maxSize": 0.3
+    "maxSize": 0.35
+   }
+  ],
+  "darkBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.4
+    ],
+    "ax": [
+     0,
+     0.58
+    ],
+    "y": [
+     0.98,
+     1.27
+    ]
+   }
+  ],
+  "emblemHalfW": 0.7,
+  "flattenBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.55
+    ],
+    "y": [
+     1.02,
+     1.25
+    ]
    },
    {
     "front": false,
     "dz": [
      0,
-     0.3
+     0.75
     ],
     "ax": [
      0,
-     0.75
+     0.8
     ],
     "y": [
-     0.8,
-     1.35
-    ],
-    "maxSize": 0.3
+     0.95,
+     1.28
+    ]
    }
   ]
+ },
+ "coupe4": {
+  "src": "Coupes/Coupe 4 - 1970 American Muscle Coupe/FINAL_MODEL_SS.fbx",
+  "L": 5.03,
+  "fwd": "-y",
+  "slots": {
+   "^CarPaint$": "paint",
+   "^EXT$": "trim",
+   "Ext_Metal": "trim:chrome",
+   "^window$": "glass",
+   "int_glass": "glass",
+   "Ligth_glass": "lens",
+   "^light$": "lamp:auto",
+   "rubber": "trim:rubber",
+   "INT_|Int_|int_|INt_": "trim:interior",
+   "^under$": "trim#151515",
+   "^rim$": "trim:chrome",
+   "mirror": "trim:chrome",
+   "EXT_Plsatic": "trim#18191b"
+  },
+  "whitewall": [
+   0.7,
+   0.8
+  ],
+  "emblemHalfW": 0.25,
+  "tireDark": true,
+  "tireRatio": 0.66
  }
 }

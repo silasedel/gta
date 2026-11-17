@@ -738,7 +738,7 @@ for f in bm.faces:
             rgb = (base[0] * t[0], base[1] * t[1], base[2] * t[2]); ta = t[3]
         else:
             rgb = (base[0], base[1], base[2]); ta = 1.0
-        if wfi >= 0 and sl.startswith('trim') and lum(rgb) > 0.4 and not sl.endswith('chrome'):
+        if wfi >= 0 and sl.startswith('trim') and (lum(rgb) > 0.4 or (CFG.get('tireDark') and lum(rgb) > 0.07)) and not sl.endswith('chrome'):
             wc_ = wheels[wfi]['c']; rad_ = math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2])
             if rad_ > CFG.get('tireRatio', 0.8) * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
             elif CFG.get('rimChrome'): sl = 'trim:chrome'

@@ -30,7 +30,7 @@ const E = {
 // procedural catalog keys -> library equivalents (so code that spawns 'police', 'taxi', 'ambulance'... gets real models)
 const ALIAS = { police: 'police1', police_suv: 'police1', unmarked: 'police1', taxi: 'taxi1', taxi_xl: 'taxi1', ambulance: ['van3', 'van4'], firetruck: 'truck6',
   atlas_box: ['truck7', 'truck3', 'truck4'], atlas_step: ['truck3', 'truck7'], van: ['van1', 'van5'], corvo_shuttle: 'van5', corvo_minibus: 'van1',
-  pickup: 'truck2', ridgeback_mid: 'truck2', ridgeback_3500: 'truck2', ridgeback_scout: ['suv14', 'suv12'], ridgeback_dune: 'suv2' };
+  pickup: ['suv14', 'suv12'], ridgeback_mid: ['suv14', 'suv12'], ridgeback_3500: 'truck2', ridgeback_scout: ['suv14', 'suv12'], ridgeback_dune: 'suv2' };
 const CLASS_FALLBACK = { roadster: 'sports', hero: null, bus: null };
 
 export async function initFleet(cat, opts = {}) {

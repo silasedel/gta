@@ -103,6 +103,17 @@ function prepWheel(g, fix) {
   g.deleteAttribute('aPat'); g.setAttribute('aPat', new THREE.BufferAttribute(new Float32Array(n), 1));
   return g;
 }
+// old bias-ply look (cars.json whitewall: [inner, outer] radius fraction): a dirty off-white band on the black sidewall
+function whitewall(g, R, tw, band) {
+  const [b0, b1] = Array.isArray(band) ? band : [0.7, 0.82];
+  const p = g.getAttribute('position'), c = g.getAttribute('color'), rm = g.getAttribute('aRM');
+  if (!p || !c || !rm) return;
+  for (let i = 0; i < p.count; i++) {
+    const rr = Math.hypot(p.getY(i), p.getZ(i)) / R, L = 0.2126 * c.getX(i) + 0.7152 * c.getY(i) + 0.0722 * c.getZ(i);
+    if (rr > b0 && rr < b1 && L < 0.08 && rm.getY(i) < 0.5 && Math.abs(p.getX(i)) > tw * 0.28) { c.setXYZ(i, 0.5, 0.48, 0.43); rm.setX(i, 0.85); }
+  }
+  c.needsUpdate = true; rm.needsUpdate = true;
+}
 function mergeSafe(list) {
   let gs = list.filter(Boolean);
   if (!gs.length) return null;
@@ -162,6 +173,7 @@ export function loadCarModel(key) {
       if (d?.wheel?.[0]) { const k = man.r / d.man.r; wheel = d.wheel.map((g) => g && g.clone().scale(k, k, k)); }
     }
     const wheelR = parts.wheelR0 ? [mergeSafe([wheelGeo('wheelR0'), cal]), wheelGeo('wheelR1')] : null;
+    if (man.cfg?.whitewall) for (const g of [...wheel, ...(wheelR || [])]) if (g) whitewall(g, man.r, man.tw || 0.22, man.cfg.whitewall);
     for (const L of lv) for (const k in L) if (L[k]?.isBufferGeometry) { L[k].computeBoundingSphere(); L[k].computeBoundingBox(); }
     // body side wall at door height between the axles (door decals sit on it)
     let sideX = 0;
@@ -331,8 +343,9 @@ export function buildGlbCar(key, look, t, info) {
     if (st.roofW) patch.min2 = [-st.roofW / 2, S.roofY ?? t.roofY - 0.2, S.roof?.[0] ?? t.zC - 0.1], patch.max2 = [st.roofW / 2, t.roofY + 0.3, S.roof?.[1] ?? t.zB + 0.3];
   }
   const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone }); paint.name = 'car-paint';
-  const glass = glassMaterial(look.tint ?? 1); glass.name ||= 'car-glass';
-  const trim = trimMaterial(); trim.name ||= 'car-trim';
+  // an old, sun-baked parked car (look.old, e.g. Nico's classic): flat milky chrome, chalky rubber, dusty hazy glass
+  const glass = look.old ? glassMaterial(0, { dusty: true }) : glassMaterial(look.tint ?? 1); glass.name ||= 'car-glass';
+  const trim = trimMaterial({ worn: !!look.old }); trim.name ||= 'car-trim';
   const sheet = decalSheet(look);
   const lamps = lampMaterial(sheet, { ambulance: t.police === 'ambulance', fire: t.police === 'fire', busSign: false });
   const lightMats = lamps.lightMats;

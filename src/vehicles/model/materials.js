@@ -185,9 +185,9 @@ function injectWear(mat) {
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - wearPatch * uPatchSatin;')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.9 * wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
-      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 3.1 + vWearPos.yy * 1.7); clearcoatNormal = normalize(clearcoatNormal + vec3((op.rg - 0.5) * 0.035 * opd, 0.0)); } }\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v4';
+  mat.customProgramCacheKey = () => 'ps-wear-v5';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
