@@ -514,6 +514,7 @@ async function boot() {
   const camVehPred = (c) => { const b = c.parent(); return !!b && camVeh.has(b.handle); };
   const pivS = new THREE.Vector3();
   const camRay = new THREE.Raycaster();
+  const _upV = new THREE.Vector3(0, 1, 0);
   const _occList = [];
   const _occSphere = new THREE.Sphere();
   const _occBox = new THREE.Box3();
@@ -583,8 +584,25 @@ async function boot() {
       pivot = tmp.copy(pivS);
     }
     camDriving = driving;
-    const cy = Math.cos(game.cameraPitch);
-    raydir.set(Math.sin(game.cameraYaw) * cy, Math.sin(game.cameraPitch), Math.cos(game.cameraYaw) * cy);
+    // low ceilings (under Nico's stilt house, porches, garages): like GTA the camera drops and levels out under the
+    // beams instead of diving into the back of his head. Ceiling = static colliders or the set-piece occluder meshes
+    // above the pivot; the pitch is capped so the camera stays ~0.3 m under it (smoothed both ways).
+    let camPitch = game.cameraPitch;
+    if (!driving && !P.swimming) {
+      let ceil = null;
+      try {
+        const up = world.castRay(new RAPIER.Ray(pivot, { x: 0, y: 1, z: 0 }), 2.6, true, STATIC_ONLY);
+        if (up) ceil = up.timeOfImpact;
+        const occ = camOccluders();
+        if (occ.length) { camRay.set(pivot, _upV); camRay.near = 0; camRay.far = ceil ?? 2.6;
+          for (const g of occ) { const h = camRay.intersectObject(g, true).find((x) => x.object.visible && !x.object.isSprite && !x.object.isPoints && !x.object.isLine); if (h && (ceil === null || h.distance < ceil)) ceil = h.distance; } }
+      } catch (e) { /* no cap */ }
+      const cap = ceil === null ? 1.4 : Math.asin(THREE.MathUtils.clamp((ceil - 0.32) / Math.max(0.8, camDist), -0.5, 1));
+      L.pitchCap = (L.pitchCap ?? 1.4) + (cap - (L.pitchCap ?? 1.4)) * Math.min(1, dt * (cap < (L.pitchCap ?? 1.4) ? 10 : 3));
+      camPitch = Math.min(camPitch, L.pitchCap);
+    } else L.pitchCap = 1.4;
+    const cy = Math.cos(camPitch);
+    raydir.set(Math.sin(game.cameraYaw) * cy, Math.sin(camPitch), Math.cos(game.cameraYaw) * cy);
     const rightX = Math.cos(game.cameraYaw), rightZ = -Math.sin(game.cameraYaw);
     const piv = new THREE.Vector3(pivot.x + rightX * sideOff, pivot.y, pivot.z + rightZ * sideOff);
     camDist += (wantDist - camDist) * Math.min(1, dt * 3);
