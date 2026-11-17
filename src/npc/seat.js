@@ -257,7 +257,8 @@ function solve(ch, S, dt) {
     const crown = V().copy(hd).addScaledVector(V().copy(hd).sub(nk).normalize(), 0.17 * scale);
     const crownY = V().copy(crown).applyMatrix4(inv).y;
     const over = crownY - (roofY - 0.025);
-    if (over > 0.004 && S.fit < 60) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else S.extraRecline = Math.min(26, S.extraRecline + Math.max(1, over * 60)); }
+    if (over > 0.004 && S.fit < 60) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if (sink < 0.08) S.sink = Math.min(0.08, sink + Math.max(0.006, over));   // upright first: sink into the cushion
+      else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else S.extraRecline = Math.min(26, S.extraRecline + Math.max(1, over * 60)); }
   }
   // ---- 4. legs to the footwell
   const heelW = toW(A.heel);
