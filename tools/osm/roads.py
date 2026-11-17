@@ -467,7 +467,7 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
     `terrain(x, z)`: ground height; edge 'y' is the ABSOLUTE road surface height (terrain + deck), None when flat at 0.
     Each edge carries 'ways' (set of OSM / synthetic way ids) so relations and profiles can be resolved."""
     ways, osm_xy, bnd, tunnels = osm_ways()
-    ways += rescue_outside(ways, log=log)
+    if ways: ways += rescue_outside(ways, log=log)   # stage 1 map v3 (MIAMI_NO_OSM): no OSM ways to rescue
     prof = {}
     for w in synthetic or []:
         ways.append((w['pts'], w['attrs'], w['id']))

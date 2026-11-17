@@ -24,6 +24,22 @@ def proj(lon, lat):
 
 
 REAL_RECT = (proj(V1_BBOX[1], V1_BBOX[2])[0], proj(V1_BBOX[1], V1_BBOX[2])[1], proj(V1_BBOX[3], V1_BBOX[0])[0], proj(V1_BBOX[3], V1_BBOX[0])[1])
+# Stage 1 map v3: MIAMI_NO_OSM=1 builds the world from features.json alone (the user's traced map, no real-Miami data).
+# The real rectangle then comes from features.json (a 10 m box parked in the open ocean) and every OSM load is empty.
+import os as _os0
+NO_OSM = _os0.environ.get('MIAMI_NO_OSM') == '1'
+if NO_OSM:
+    try:
+        import json as _j0
+        _fp = _os0.environ.get('WORLD_FEATURES') or _os0.path.join(_os0.path.dirname(_os0.path.abspath(__file__)), '..', 'world', 'out', 'features.json')
+        with open(_fp) as _f0:
+            _head = _f0.read(4000)
+        import re as _re0
+        _m = _re0.search(r'"realRect":(\{[^}]*\})', _head)
+        _rr = _j0.loads(_m.group(1)) if _m else None
+        if _rr: REAL_RECT = (_rr['minX'], _rr['minZ'], _rr['maxX'], _rr['maxZ'])
+    except Exception as _e0:
+        print('config: NO_OSM could not read realRect from features', _e0)
 
 
 def unproj(x, z):

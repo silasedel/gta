@@ -1,3 +1,4 @@
+import os as _os_nosm
 """Geometry helpers: OSM JSON (Overpass 'out body geom') -> shapely geometry in the world frame."""
 import json, os, re
 from shapely.geometry import LineString, Polygon, MultiPolygon, GeometryCollection, box
@@ -13,6 +14,8 @@ _loaded = {}
 
 
 def load(name):
+    if _os_nosm.environ.get('MIAMI_NO_OSM') == '1':
+        return []          # stage 1 map v3: no real-Miami data
     if name not in _loaded:
         with open(os.path.join(CACHE, name + '.json')) as f:
             _loaded[name] = json.load(f)['elements']

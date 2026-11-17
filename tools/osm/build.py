@@ -306,6 +306,7 @@ def main():
     import citymask as CMK
     CM = CMK.load(FEATURES, Lr['land'], RB, log)
     land_real = CM['land_in'] if CM else fix(Lr['land'].intersection(RB))
+    if land_real is None: land_real = Polygon()   # stage 1 map v3 (MIAMI_NO_OSM): no real land
     R.MASK, R._mlog = CM, log
     log(f'real land {land_real.area/1e6:.2f} km2 in a {RB.area/1e6:.1f} km2 rectangle; world {WB.area/1e6:.1f} km2')
 
@@ -588,7 +589,7 @@ def main():
             b['id'] = i
     ground_b = [b for b in bl if b['mh'] < 0.5]
     btree = STRtree([b['geom'] for b in ground_b])
-    log(f'buildings {len(bl)} (ground {len(ground_b)}), tallest {max(b["h"] for b in bl):.0f} m')
+    log(f'buildings {len(bl)} (ground {len(ground_b)}), tallest {max((b["h"] for b in bl), default=0):.0f} m')
 
     # ---- sidewalks / carriageways
     carr_lines = [e['line'].buffer(e['w'] / 2, quad_segs=4) for e in edges if e['y'] is None or e.get('tr')]
@@ -880,6 +881,14 @@ def main():
     else:
         spawn = (tx, CURB, tz)
     spawnHeading = math.pi  # facing north (-Z) along Ocean Drive: deco hotels on the left, Lummus Park + beach on the right
+    try:   # stage 1 map v3 (MIAMI_NO_OSM): spawn at Nico's house from features.json setpieces
+        import config as _cfg
+        if _cfg.NO_OSM and SY:
+            _sp = next((p for p in SY.get('setpieces', []) if p.get('id') == 'nico_house'), None) or next((p for p in SY.get('setpieces', [])), None)
+            if _sp:
+                spawn = (_sp.get('spawnX', _sp['x']), CURB, _sp.get('spawnZ', _sp['z'])); spawnHeading = _sp.get('heading', 0.0)
+    except Exception as _e:
+        log('spawn override failed', _e)
     log('spawn', spawn, 'dist', best[0] if best else None)
     places = list(SY['places']) if SY else []
     synth_other = SY.get('other', {}) if SY else {}

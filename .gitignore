@@ -20,3 +20,6 @@ __pycache__/
 
 # user asset folders kept inside the project folder
 /Models/
+# stage 1 map v3 staging (rebuild with tools/v2/map3/run.sh)
+tools/v2/map3/out/miami/
+tools/v2/map3/out/work/
