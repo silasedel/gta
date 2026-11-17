@@ -58,7 +58,7 @@ const LIB = `(() => {
       if (e > 0.03) S.float++; if (e < -0.03) S.sink++; if (f.stair?.[k]) S.stairSamples++;
     }
     // foot sliding: horizontal speed of a firmly planted sole (footIK measures it on the skinned mesh)
-    if (f && f.active && P.state.grounded && sp > 0.8) for (let k = 0; k < 2; k++) if ((f.plant?.[k] ?? 0) > 0.95 && !f.stair?.[k]) S.slide.push(+(f.slide?.[k] ?? 0).toFixed(3));
+    if (f && f.active && P.state.grounded && sp > 0.8) for (let k = 0; k < 2; k++) if ((f.plant?.[k] ?? 0) > 0.95 && (f.lift?.[k] ?? 1) < 0.012 && !f.stair?.[k]) S.slide.push(+(f.slide?.[k] ?? 0).toFixed(3));
     if (wt.stuck > 3) { wt.stop(); wt.done = 'stuck'; wt.stuckAt = [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]; try { const H = game.nicoHouse; const l = H.group.worldToLocal(p.clone()); wt.stuckLocal = [+l.x.toFixed(2), +l.y.toFixed(2), +l.z.toFixed(2)]; } catch (e) {} }
   });
   return 1; })()`;
@@ -144,6 +144,8 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
     const h0 = Math.atan2(plan.pts[0].x - plan.start[0], plan.pts[0].z - plan.start[1]);
     await b.eval(`(() => { game.teleport(${plan.start[0]}, undefined, ${plan.start[1]}, ${h0}); return 1; })()`);
     await b.sleep(3500);
+    for (let i = 0; i < 25; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); const g = await b.eval('!!game.player.state.grounded'); if (q < 3 && g) break; await b.sleep(1000); }
+    await b.eval(`(() => { const P = game.player; game.teleport(${plan.start[0]}, undefined, ${plan.start[1]}, ${h0}); return 1; })()`); await b.sleep(1500);
     await b.eval(`(() => { window.__wt.go(${JSON.stringify(plan.pts)}, ${gait === 'jog'}); return 1; })()`);
     const t0 = Date.now(); let lastI = -1, n = 0;
     while (Date.now() - t0 < 90000) {

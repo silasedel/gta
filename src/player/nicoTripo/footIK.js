@@ -25,7 +25,7 @@ function setWorldQuat(bone, qw) {
 export function createFootIK({ game, model, bone, root, mesh = null }) {
   const legs = ['Left', 'Right'].map((s) => ({ s, up: bone(s + 'UpLeg'), lo: bone(s + 'Leg'), ft: bone(s + 'Foot'), toe: bone(s + 'ToeBase'), off: 0, n: new THREE.Vector3(0, 1, 0), plant: 0, gy: null, marks: [], c: new THREE.Vector3(), prevC: null }));
   const ok = legs.every((l) => l.up && l.lo && l.ft);
-  const st = { w: 0, pelvis: 0, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], stair: [false, false], slide: [0, 0], pelvis: 0, active: false } };
+  const st = { w: 0, pelvis: 0, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], lift: [0, 0], stair: [false, false], slide: [0, 0], pelvis: 0, active: false } };
   const stairs = createStairs(game);
   // sole markers: the lowest vertices of each shoe in the bind pose (heel to toe). Their skinned positions give the real
   // sole height every frame, so a planted foot is put exactly on the ground and the error is measured on the mesh itself.
@@ -107,7 +107,7 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
         l.plant += ((lift < 0.035 ? 1 : 0) - l.plant) * Math.min(1, dt * 12);
         // planted: pull the sole exactly onto the plane (clips float / sink a few cm after retargeting)
         l.shift = l.off - THREE.MathUtils.clamp(lift, -0.06, 0.06) * l.plant;
-        l.gy = g ? g.y : null; l.stair = !!g?.stair;
+        l.gy = g ? g.y : null; l.stair = !!g?.stair; l.lift = lift;
       }
       // 2) pelvis down so the lower foot reaches (never up: the capsule already stands on the higher ground)
       const pv = Math.min(0, legs[0].shift, legs[1].shift) * st.w;
@@ -128,7 +128,7 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
         }
         // measured on the skinned mesh after IK: sole-to-ground error and planted-foot slide speed
         const so = sole(l);
-        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : so - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair;
+        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : so - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair; st.stats.lift[i] = l.lift;
         st.stats.slide[i] = l.prevC && dt > 0 ? Math.hypot(l.c.x - l.prevC.x, l.c.z - l.prevC.z) / dt : 0;
         (l.prevC ||= new THREE.Vector3()).copy(l.c);
       }

@@ -49,6 +49,9 @@ const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 // run the shot steps in an already running game page (used by walktest.mjs --shots to share one browser slot)
 export async function shotsIn(b, o2 = o, rep2 = rep) {
   const o = o2, rep = rep2, SET = o.set || 'p';
+  // every page call gets a time limit: a frame that never arrives (GPU busy on the shared machine) must not hang the run
+  const lim = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout ' + what)), ms))]);
+  const b0 = b; b = { ...b0, eval: (e, t) => lim(b0.eval(e, t), 60000, 'eval'), screenshot: (f, op) => lim(b0.screenshot(f, op), 45000, 'screenshot'), key: (...a) => lim(b0.key(...a), 10000, 'key'), sleep: b0.sleep, errors: b0.errors };
   const only = o.only ? String(o.only).split(',') : DEFAULT_ONLY;
   const at = o.at ? o.at.split(',').map(Number) : null;
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${+(o.tod || 11)};
@@ -69,6 +72,7 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
   await b.sleep(6000);
   for (const id of only) {
     const s = STEPS[id]; if (!s) continue;
+    try {
     const [yaw, dist, eh, lh] = ORBIT[s.orbit];
     if (s.reset !== false) { await b.eval(`(() => { const s = window.__spot; if (s && (game.player.position.distanceTo(new game.THREE.Vector3(s[0], game.player.position.y, s[1])) > 0.5 || game.player.swimming)) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(700); }
     await b.eval(`(async () => {
@@ -88,6 +92,7 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
     if (s.move) { await b.key(s.move.key, false); if (s.move.shift) await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800); await b.eval(`(() => { const s = window.__spot; if (s) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(1200); }
     if (s.after) await b.eval(`(async () => { ${s.after}; return 1; })()`);
     rep.shots[id] = JSON.parse(info); console.log(id, info);
+    } catch (e) { console.log(id, 'FAILED', String(e).slice(0, 200)); rep.shots[id] = { failed: String(e).slice(0, 200) }; }
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }}
 
