@@ -1747,6 +1747,8 @@ export function createAudio(game) {
     setDynamicRange(mode) { outMode.range = mode || 'full'; applyOutputMode(); },
     setMuted(m) { MUTED = !!m; if (outGain) outGain.gain.value = MUTED ? 0 : volume; },
     get muted() { return MUTED; },
+    // stage 1: weather and other procedural ambience beds connect here (follows the ambience volume, mute and master)
+    get ambienceBus() { return ambBus; },
     horn(position, vehicle) {
       if (!ctx) return;
       const car = vehicle || (position ? null : game.player?.state?.vehicle);

@@ -7,7 +7,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GradeShader } from './gradeShader.js';
-import { advanceFrameNoise } from './frameNoise.js';
+import { advanceFrameNoise, FRAME_NOISE } from './frameNoise.js';
+import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
@@ -183,6 +184,86 @@ export function createPost(game) {
   sanitize.material.depthTest = false; sanitize.material.depthWrite = false;
   composer.addPass(sanitize);
   game.postSanitize = sanitize;
+
+  // ---------- stage 1 weather: wet-ground screen-space reflections ----------
+  // GTA's rainy night: lit windows, neon, lamps and headlights stretch across wet streets. Only upward-facing ground
+  // (normal rebuilt from depth) reflects, by wetness and puddles (same puddle noise as src/render/wetSurfaces.js).
+  // A view-space ray march through the depth buffer (20 steps, jittered per frame so TAA smooths it). Runs only while
+  // WEATHER_U.x (wetness) > 0, before TAA and bloom (HDR).
+  let ssr = null;
+  try {
+    if (!target.depthTexture) throw new Error('depth texture unavailable');
+    ssr = new ShaderPass({
+      name: 'SouthlineWetSSR',
+      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProj: { value: new THREE.Matrix4() }, uProjInv: { value: new THREE.Matrix4() }, uViewInv: { value: new THREE.Matrix4() }, uRes: { value: new THREE.Vector2(1, 1) }, uWeather: { value: WEATHER_U }, uFrameN: FRAME_NOISE },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProj, uProjInv, uViewInv; uniform vec2 uRes; uniform vec4 uWeather; uniform float uFrameN;
+        varying vec2 vUv;
+        vec3 viewPos( vec2 uv ) { float d = texture2D( tDepth, uv ).x; vec4 v = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); return v.xyz / v.w; }
+        float wHash( vec2 p ) { p = fract( p * vec2( 123.34, 345.45 ) ); p += dot( p, p + 34.345 ); return fract( p.x * p.y ); }
+        float wNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f ); return mix( mix( wHash( i ), wHash( i + vec2( 1.0, 0.0 ) ), f.x ), mix( wHash( i + vec2( 0.0, 1.0 ) ), wHash( i + vec2( 1.0, 1.0 ) ), f.x ), f.y ); }
+        void main() {
+          vec4 c = texture2D( tDiffuse, vUv );
+          float d0 = texture2D( tDepth, vUv ).x;
+          if ( d0 >= 0.99995 ) { gl_FragColor = c; return; }
+          vec3 P = viewPos( vUv );
+          if ( -P.z > 140.0 ) { gl_FragColor = c; return; }
+          vec2 px = 1.0 / uRes;
+          vec3 dx = viewPos( vUv + vec2( px.x, 0.0 ) ) - P, dy = viewPos( vUv + vec2( 0.0, px.y ) ) - P;
+          vec3 N = normalize( cross( dx, dy ) );
+          vec3 Nw = ( uViewInv * vec4( N, 0.0 ) ).xyz;
+          if ( Nw.y < 0.0 ) { N = -N; Nw = -Nw; }
+          float up = smoothstep( 0.86, 0.97, Nw.y );
+          if ( up <= 0.0 ) { gl_FragColor = c; return; }
+          vec3 Pw = ( uViewInv * vec4( P, 1.0 ) ).xyz;
+          float pn = wNoise( Pw.xz * 0.11 ) * 0.65 + wNoise( Pw.xz * 0.43 + 7.0 ) * 0.35;
+          float puddle = uWeather.y * smoothstep( 0.52, 0.66, pn + 0.18 * uWeather.y );
+          // grass and planting do not mirror (green-dominant pixel, same idea as the wet material patch)
+          float leafy = smoothstep( 0.005, 0.04, c.g - max( c.r, c.b ) * 0.95 );
+          puddle *= 1.0 - leafy;
+          float amt = up * ( 0.22 * uWeather.x * ( 1.0 - 0.85 * leafy ) + 0.7 * puddle );
+          if ( amt < 0.01 ) { gl_FragColor = c; return; }
+          // reflect about world up (wet ground is flat at this scale)
+          vec3 upV = normalize( ( vec4( 0.0, 1.0, 0.0, 0.0 ) * uViewInv ).xyz );
+          vec3 V = normalize( P );
+          vec3 R = reflect( V, upV );
+          float jit = fract( 52.9829189 * fract( dot( gl_FragCoord.xy + 5.588238 * uFrameN, vec2( 0.06711056, 0.00583715 ) ) ) );
+          vec3 hitC = vec3( 0.0 ); float hitA = 0.0;
+          float t = 0.25 + 0.35 * jit;
+          for ( int i = 0; i < 20; i++ ) {
+            vec3 Q = P + R * t;
+            vec4 cq = uProj * vec4( Q, 1.0 ); vec2 uv = cq.xy / cq.w * 0.5 + 0.5;
+            if ( uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || cq.w <= 0.0 ) break;
+            float sz = viewPos( uv ).z;
+            float dz = sz - Q.z;                      // > 0: the ray is behind the visible surface
+            if ( dz > 0.0 && dz < 0.6 + t * 0.08 ) {
+              vec2 e = smoothstep( 0.0, 0.12, uv ) * smoothstep( 1.0, 0.88, uv );
+              hitC = texture2D( tDiffuse, uv ).rgb; hitA = e.x * e.y * ( 1.0 - float( i ) / 20.0 );
+              break;
+            }
+            t *= 1.32;
+          }
+          float fres = 0.04 + 0.96 * pow( 1.0 - max( dot( -V, upV ), 0.0 ), 5.0 );
+          float k = amt * hitA * mix( 0.35, 1.0, fres ) * ( 1.0 - smoothstep( 90.0, 140.0, -P.z ) );
+          c.rgb = mix( c.rgb, c.rgb * ( 1.0 - 0.5 * k ) + hitC * k, 1.0 );
+          gl_FragColor = c;
+        }`,
+    });
+    ssr.material.depthTest = false; ssr.material.depthWrite = false;
+    const ssrRender = ssr.render.bind(ssr);
+    ssr.render = (r, wb, rb, dt, mask) => {
+      const U = ssr.uniforms;
+      U.tDepth.value = sceneDepth || rb.depthTexture;
+      U.uProj.value.copy(camera.projectionMatrix);
+      U.uProjInv.value.copy(camera.projectionMatrixInverse);
+      U.uViewInv.value.copy(camera.matrixWorld);
+      U.uRes.value.set(rb.width, rb.height);
+      ssrRender(r, wb, rb, dt, mask);
+    };
+    ssr.enabled = false;
+    composer.addPass(ssr);
+  } catch (e) { console.warn('[post] wet SSR unavailable', e); ssr = null; }
 
   // ---------- look track: TAA (VFX_NOTES #4) ----------
   // The camera projection is jittered by a Halton(2,3) sub-pixel offset each frame. This pass blends the new HDR frame
@@ -533,7 +614,7 @@ export function createPost(game) {
     perf,
     setBasePixelRatio() { /* fixed native resolution: kept for callers, does nothing */ },
     fitWindow,
-    composer, bloom, grade, gtao, smaa, ao, taa,
+    composer, bloom, grade, gtao, smaa, ao, taa, ssr,
     get renderScale() { return renderScale; },
     // depth of this frame's scene pass (the MSAA target's depth when MSAA is on); other passes must read this
     get sceneDepth() { return sceneDepth; },
@@ -564,6 +645,7 @@ export function createPost(game) {
         aoAllowed = want;
         gtao.enabled = aoAllowed;
       }
+      if (ssr) ssr.enabled = WEATHER_U[0] > 0.02 && !env?.underwater && (env?.indoor ?? 0) < 0.5 && game.settings?.quality !== 'low';
       if (ao) { ao.enabled = !gtao?.enabled && game.settings?.ao !== false && aoSafe && game.settings?.quality !== 'low' && !env?.underwater; perf.ao = ao.enabled; }
 
       // ---------- look track: sun-to-shade ratio ----------

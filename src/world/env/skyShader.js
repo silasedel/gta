@@ -27,6 +27,8 @@ export function createSkyMaterial() {
       uFogColor: { value: new THREE.Color(0.7, 0.5, 0.4) },
       uHorizonBlend: { value: 1.0 },
       uCloudCover: { value: 0.385 },
+      // stage 1 weather: overcast deck (0..1), its color, and a lightning flash (0..1+)
+      uOvercast: { value: 0 }, uOvercastCol: { value: new THREE.Color(0.5, 0.52, 0.55) }, uFlash: { value: 0 },
       uNightCloud: { value: 1.0 }, // look track: 1 = moon-lit dim night clouds, 0 = old look (A/B)
       uCloudOff: { value: new THREE.Vector2() },
       uCirrus: { value: 0.4 },
@@ -81,7 +83,7 @@ export function createSkyMaterial() {
       uniform float uNight;
       uniform vec3 uFogColor;
       uniform float uHorizonBlend;
-      uniform float uCloudCover;
+      uniform float uCloudCover; uniform float uOvercast; uniform vec3 uOvercastCol; uniform float uFlash;
       uniform vec2 uCloudOff;
       uniform float uCirrus;
       uniform vec3 uCloudAmbient;
@@ -253,6 +255,16 @@ export function createSkyMaterial() {
           float ciA = smoothstep( 0.62, 0.92, ci ) * 0.6 * uCirrus * smoothstep( 0.0, 0.25, dir.y );
           col = mix( col, uCirrusColor * ( 1.05 + 1.6 * fwd ), ciA * ( 1.0 - cloudA ) );
           col = col * ( 1.0 - cloudA ) + C * horizonFade;
+          // stage 1 weather: overcast / storm deck, a layered grey ceiling with slow darker billows
+          if ( uOvercast > 0.001 ) {
+            vec2 op = dir.xz * cloudDist( dir.y, 1.0 ) * 0.9 + uCloudOff * 0.7;
+            float ob = fbm3( op * 1.3 ) * 0.6 + fbm3( op * 3.7 + 5.0 ) * 0.4;
+            vec3 deck = uOvercastCol * ( 0.72 + 0.5 * ob ) * ( 0.85 + 0.25 * pow( max( cosTheta, 0.0 ), 4.0 ) );
+            deck += vec3( 0.75, 0.8, 1.0 ) * uFlash * ( 0.6 + 0.8 * ob );
+            float oa = uOvercast * horizonFade;
+            col = mix( col, deck, oa );
+            cloudA = max( cloudA, oa );
+          }
         }
 
         // --- horizon / fog matching (same in-scatter as the fog chunk) ---
@@ -264,7 +276,8 @@ export function createSkyMaterial() {
         col = mix( col, fogCol, clamp( hb * uHorizonBlend, 0.0, 1.0 ) );
 
         // sun disk on top of horizon haze (dimmed by clouds)
-        col += sunDiskCol * sunDisk * ( 1.0 - cloudA * 0.9 ) * smoothstep( -0.012, 0.004, dir.y );
+        col += sunDiskCol * sunDisk * ( 1.0 - cloudA * 0.9 ) * ( 1.0 - uOvercast ) * smoothstep( -0.012, 0.004, dir.y );
+        col += vec3( 0.7, 0.75, 0.9 ) * uFlash * 0.35 * ( 1.0 - smoothstep( 0.0, 0.6, dir.y ) * 0.5 ); // lightning lights the haze too
         col = min( col, vec3( 80.0 ) );
         gl_FragColor = vec4( col, 1.0 );
         #include <tonemapping_fragment>

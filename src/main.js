@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import './render/specularAA.js'; // stage 1: must patch ShaderChunk before any material compiles
+import './render/wetSurfaces.js'; // stage 1 weather: wet surfaces / puddles (ShaderChunk patch, same rule)
 import './ui/menu/splash.js'; // [main-menu hook] key-art boot screen
 import RAPIER from '@dimforge/rapier3d-compat';
 import { createInput } from './core/input.js';
@@ -11,7 +12,7 @@ import { createPeds } from './npc/peds.js';
 import { createHUD } from './ui/hud.js';
 import { createPost } from './render/post.js';
 import { createAudio } from './core/audio.js';
-const DAY_MINUTES = 144; // a full in-game day is fixed (part of the game, not a setting)
+const DAY_MINUTES = 48; // stage 1: a full in-game day lasts 48 real minutes, as in GTA V (fixed, not a setting)
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
