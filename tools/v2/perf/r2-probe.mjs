@@ -20,6 +20,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.quality.set('high', { manual: true }); window.__spawn = [game.player.position.x, game.player.position.z, game.player.heading || 0]; return 1; })()`);
   console.log(await b.eval(PROF), await b.eval(PROBE));
+  // tileCull.js is parked outside the auto-loader: load it into this page for the A/B (stays off until the A/B turns it on)
+  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.js'); await m.initV2(game); } return !!game.tileCull; })()`));
   if (o.shoretest) {
     // shoreFill.js equivalence: fast fill vs the old per-cell loop on coastal windows (same land mask expected)
     rep.shoretest = JSON.parse(await b.eval(`(async () => {
@@ -101,6 +103,16 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
         const a = await px(${JSON.stringify(s1)}), b2 = await px(${JSON.stringify(s2)}), c3 = await px(${JSON.stringify(s3)});
         return JSON.stringify({ noise: d(a, b2), onVsOff: d(b2, c3) }); })()`));
       console.log('  tileCull A/B', JSON.stringify(P.tileCullAB));
+    }
+    if (o.farcrowd) {
+      const A = [], B = [];
+      for (let i = 0; i < +(o.rounds || 3); i++) {
+        await b.eval('(game.people.crowd.cfg.enabled = false, 1)'); await b.sleep(1500); A.push(await J(b, 'window.__r2p.frames(2500)'));
+        await b.eval('(game.people.crowd.cfg.enabled = true, 1)'); await b.sleep(4000); B.push({ ...(await J(b, 'window.__r2p.frames(2500)')), walkers: await b.eval('game.people.crowd.count') });
+      }
+      const c = (L) => ({ med: md(L.map((x) => x.med)), work: md(L.map((x) => x.work)), render: md(L.map((x) => x.sys.render || 0)), calls: md(L.map((x) => x.calls)), walkers: md(L.map((x) => x.walkers || 0)) });
+      P.farCrowdAB = { off: c(A), on: c(B) };
+      console.log('  farCrowd A/B', JSON.stringify(P.farCrowdAB));
     }
     if (o.ae && id === only[0]) {
       // auto-exposure readback A/B: CPU of the frame and the worst frames (the readback stall is periodic)

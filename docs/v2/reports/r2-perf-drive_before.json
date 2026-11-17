@@ -1,0 +1,8447 @@
+{
+ "set": "drive_before",
+ "q": "&streamfix=0&physcap=0",
+ "when": "2026-11-17T23:20:57.814Z",
+ "route": {
+  "from": [
+   -866,
+   4836
+  ],
+  "len": 6004,
+  "edges": 55
+ },
+ "drive": {
+  "frames": 598,
+  "med": 106,
+  "p90": 283.1,
+  "p99": 775.9,
+  "max": 1512,
+  "over50": 591,
+  "over100": 330,
+  "over250": 75,
+  "fpsAvg": 6.6,
+  "newProgramsTotal": 154,
+  "hitches": [
+   {
+    "t": 0.1,
+    "ms": 100,
+    "at": [
+     -797,
+     4872
+    ],
+    "work": 99,
+    "top": [
+     "render 27.0",
+     "fixed:playerFixed 20.3",
+     "world.step 14.9",
+     "upd:anon#2 7.8",
+     "audio 7.7",
+     "upd:anon#23 3.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 784
+   },
+   {
+    "t": 0.2,
+    "ms": 146,
+    "at": [
+     -789,
+     4878
+    ],
+    "work": 141,
+    "top": [
+     "upd:anon#23 37.4",
+     "render 24.7",
+     "world.step 14.6",
+     "fixed:playerFixed 11.1",
+     "upd:anon#2 10.1",
+     "upd:groundGrassTick 8.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -20,
+    "calls": 647
+   },
+   {
+    "t": 0.4,
+    "ms": 118,
+    "at": [
+     -783,
+     4883
+    ],
+    "work": 107,
+    "top": [
+     "render 26.0",
+     "fixed:playerFixed 20.1",
+     "world.step 13.7",
+     "upd:anon#23 10.4",
+     "upd:anon#2 8.6",
+     "upd:housesTick 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 1261
+   },
+   {
+    "t": 0.6,
+    "ms": 233,
+    "at": [
+     -770,
+     4892
+    ],
+    "work": 226,
+    "top": [
+     "upd:update 133.5",
+     "render 45.0",
+     "world.step 10.4",
+     "upd:anon#2 7.1",
+     "hud 4.5",
+     "upd:housesTick 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 8,
+    "newGeo": 36,
+    "heapDropMB": -9,
+    "calls": 829
+   },
+   {
+    "t": 1.1,
+    "ms": 487,
+    "at": [
+     -758,
+     4874
+    ],
+    "work": 472,
+    "top": [
+     "render 392.8",
+     "upd:anon#23 19.5",
+     "world.step 14.4",
+     "gameplay 7.9",
+     "upd:anon#2 7.1",
+     "fixed:vehiclesFixed 4.0"
+    ],
+    "newProgs": 1,
+    "newTex": 33,
+    "newGeo": 115,
+    "heapDropMB": 0,
+    "calls": 2263
+   },
+   {
+    "t": 1.3,
+    "ms": 241,
+    "at": [
+     -758,
+     4858
+    ],
+    "work": 162,
+    "top": [
+     "render 95.4",
+     "upd:anon#23 15.7",
+     "world.step 15.0",
+     "upd:anon#2 7.6",
+     "fixed:vehiclesFixed 4.2",
+     "upd:housesTick 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 25,
+    "newGeo": 108,
+    "heapDropMB": 0,
+    "calls": 1258
+   },
+   {
+    "t": 1.5,
+    "ms": 190,
+    "at": [
+     -759,
+     4846
+    ],
+    "work": 110,
+    "top": [
+     "render 34.1",
+     "upd:anon#23 18.3",
+     "world.step 12.5",
+     "upd:anon#2 10.1",
+     "upd:groundGrassTick 5.8",
+     "peds 4.6"
+    ],
+    "newProgs": 1,
+    "newTex": 3,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 1202
+   },
+   {
+    "t": 1.6,
+    "ms": 130,
+    "at": [
+     -760,
+     4837
+    ],
+    "work": 125,
+    "top": [
+     "render 48.2",
+     "world.step 13.6",
+     "upd:townsTick 11.1",
+     "upd:groundGrassTick 8.4",
+     "upd:anon#2 7.2",
+     "upd:housesTick 5.4"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 1687
+   },
+   {
+    "t": 1.8,
+    "ms": 136,
+    "at": [
+     -762,
+     4828
+    ],
+    "work": 133,
+    "top": [
+     "render 31.1",
+     "upd:anon#23 28.1",
+     "world.step 13.8",
+     "upd:townsTick 9.7",
+     "gameplay 8.3",
+     "upd:anon#2 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 4,
+    "heapDropMB": 0,
+    "calls": 1188
+   },
+   {
+    "t": 2,
+    "ms": 170,
+    "at": [
+     -766,
+     4817
+    ],
+    "work": 141,
+    "top": [
+     "render 54.4",
+     "world.step 16.7",
+     "upd:townsTick 9.2",
+     "upd:update 8.2",
+     "upd:anon#23 8.0",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 2185
+   },
+   {
+    "t": 2.1,
+    "ms": 138,
+    "at": [
+     -769,
+     4809
+    ],
+    "work": 114,
+    "top": [
+     "render 34.7",
+     "world.step 17.2",
+     "fixed:vehiclesFixed 9.4",
+     "upd:anon#2 7.4",
+     "hud 7.1",
+     "upd:housesTick 6.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 1136
+   },
+   {
+    "t": 2.4,
+    "ms": 311,
+    "at": [
+     -777,
+     4790
+    ],
+    "work": 261,
+    "top": [
+     "upd:update 164.6",
+     "render 24.2",
+     "world.step 14.5",
+     "upd:anon#2 9.6",
+     "fixed:vehiclesFixed 8.6",
+     "upd:housesTick 5.9"
+    ],
+    "newProgs": 0,
+    "newTex": 6,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 1059
+   },
+   {
+    "t": 2.7,
+    "ms": 105,
+    "at": [
+     -787,
+     4769
+    ],
+    "work": 89,
+    "top": [
+     "render 24.2",
+     "world.step 12.8",
+     "upd:update 10.1",
+     "upd:anon#2 7.0",
+     "fixed:vehiclesFixed 5.6",
+     "upd:townsTick 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 948
+   },
+   {
+    "t": 2.9,
+    "ms": 134,
+    "at": [
+     -791,
+     4761
+    ],
+    "work": 79,
+    "top": [
+     "render 21.5",
+     "world.step 11.8",
+     "upd:anon#2 8.3",
+     "fixed:vehiclesFixed 7.2",
+     "upd:townsTick 6.0",
+     "upd:housesTick 4.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 910
+   },
+   {
+    "t": 3,
+    "ms": 106,
+    "at": [
+     -795,
+     4755
+    ],
+    "work": 100,
+    "top": [
+     "render 26.6",
+     "world.step 14.7",
+     "upd:anon#2 11.5",
+     "fixed:vehiclesFixed 7.8",
+     "upd:anon#23 4.6",
+     "upd:townsTick 4.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 876
+   },
+   {
+    "t": 3.2,
+    "ms": 196,
+    "at": [
+     -801,
+     4744
+    ],
+    "work": 105,
+    "top": [
+     "render 36.1",
+     "world.step 13.3",
+     "upd:anon#2 7.6",
+     "fixed:vehiclesFixed 7.4",
+     "upd:townsTick 5.7",
+     "upd:housesTick 4.5"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": -14,
+    "calls": 1281
+   },
+   {
+    "t": 3.4,
+    "ms": 252,
+    "at": [
+     -808,
+     4728
+    ],
+    "work": 250,
+    "top": [
+     "upd:update 139.4",
+     "render 32.7",
+     "world.step 16.0",
+     "upd:anon#2 10.2",
+     "fixed:vehiclesFixed 10.2",
+     "upd:tick 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 1757
+   },
+   {
+    "t": 3.5,
+    "ms": 118,
+    "at": [
+     -812,
+     4721
+    ],
+    "work": 115,
+    "top": [
+     "render 21.0",
+     "world.step 16.8",
+     "upd:townsTick 12.3",
+     "upd:anon#23 10.9",
+     "upd:anon#2 9.2",
+     "fixed:vehiclesFixed 8.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 795
+   },
+   {
+    "t": 3.7,
+    "ms": 154,
+    "at": [
+     -817,
+     4712
+    ],
+    "work": 152,
+    "top": [
+     "render 52.1",
+     "upd:townsTick 15.6",
+     "world.step 15.4",
+     "upd:anon#23 10.9",
+     "upd:anon#2 9.1",
+     "fixed:vehiclesFixed 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 789
+   },
+   {
+    "t": 3.8,
+    "ms": 114,
+    "at": [
+     -821,
+     4706
+    ],
+    "work": 112,
+    "top": [
+     "render 41.9",
+     "world.step 15.0",
+     "fixed:vehiclesFixed 9.2",
+     "upd:anon#2 7.9",
+     "upd:housesTick 6.1",
+     "upd:townsTick 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": -8,
+    "calls": 1195
+   },
+   {
+    "t": 4,
+    "ms": 123,
+    "at": [
+     -829,
+     4694
+    ],
+    "work": 117,
+    "top": [
+     "render 35.6",
+     "world.step 16.1",
+     "upd:anon#2 10.2",
+     "env 9.8",
+     "fixed:vehiclesFixed 8.4",
+     "upd:housesTick 8.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 7,
+    "heapDropMB": -13,
+    "calls": 521
+   },
+   {
+    "t": 4.1,
+    "ms": 109,
+    "at": [
+     -833,
+     4687
+    ],
+    "work": 104,
+    "top": [
+     "render 20.3",
+     "world.step 17.2",
+     "fixed:vehiclesFixed 11.9",
+     "gameplay 10.0",
+     "upd:anon#2 7.8",
+     "upd:anon#23 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 351
+   },
+   {
+    "t": 4.4,
+    "ms": 140,
+    "at": [
+     -840,
+     4674
+    ],
+    "work": 121,
+    "top": [
+     "upd:anon#23 31.7",
+     "render 17.0",
+     "world.step 16.2",
+     "upd:update 10.4",
+     "fixed:vehiclesFixed 8.7",
+     "upd:anon#2 7.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 359
+   },
+   {
+    "t": 4.7,
+    "ms": 167,
+    "at": [
+     -850,
+     4654
+    ],
+    "work": 92,
+    "top": [
+     "render 17.5",
+     "world.step 12.7",
+     "upd:tick 8.8",
+     "upd:anon#2 8.6",
+     "fixed:vehiclesFixed 6.9",
+     "upd:update 6.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 330
+   },
+   {
+    "t": 5,
+    "ms": 115,
+    "at": [
+     -860,
+     4637
+    ],
+    "work": 103,
+    "top": [
+     "upd:update 22.0",
+     "render 18.9",
+     "world.step 12.9",
+     "upd:anon#2 8.0",
+     "upd:anon#23 6.1",
+     "fixed:vehiclesFixed 5.7"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": -14,
+    "calls": 340
+   },
+   {
+    "t": 5.1,
+    "ms": 107,
+    "at": [
+     -864,
+     4631
+    ],
+    "work": 103,
+    "top": [
+     "render 19.7",
+     "world.step 15.1",
+     "upd:update 13.6",
+     "upd:anon#2 13.1",
+     "gameplay 6.6",
+     "fixed:vehiclesFixed 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 402
+   },
+   {
+    "t": 5.2,
+    "ms": 113,
+    "at": [
+     -868,
+     4625
+    ],
+    "work": 83,
+    "top": [
+     "render 15.8",
+     "upd:housesTick 15.5",
+     "world.step 11.4",
+     "upd:anon#2 9.3",
+     "upd:anon#23 8.4",
+     "fixed:vehiclesFixed 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 317
+   },
+   {
+    "t": 5.9,
+    "ms": 143,
+    "at": [
+     -895,
+     4585
+    ],
+    "work": 73,
+    "top": [
+     "render 26.5",
+     "world.step 8.9",
+     "upd:anon#2 8.0",
+     "upd:anon#23 6.4",
+     "gameplay 6.4",
+     "fixed:vehiclesFixed 2.6"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 334
+   },
+   {
+    "t": 7,
+    "ms": 127,
+    "at": [
+     -933,
+     4526
+    ],
+    "work": 122,
+    "top": [
+     "world.step 51.3",
+     "render 21.4",
+     "upd:update 13.5",
+     "upd:anon#2 8.5",
+     "upd:anon#23 8.0",
+     "env 4.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -8,
+    "heapDropMB": 0,
+    "calls": 367
+   },
+   {
+    "t": 7.1,
+    "ms": 150,
+    "at": [
+     -938,
+     4518
+    ],
+    "work": 145,
+    "top": [
+     "world.step 65.2",
+     "render 16.7",
+     "upd:update 13.0",
+     "upd:anon#23 11.9",
+     "upd:anon#2 10.3",
+     "env 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -12,
+    "heapDropMB": -23,
+    "calls": 330
+   },
+   {
+    "t": 7.3,
+    "ms": 165,
+    "at": [
+     -942,
+     4507
+    ],
+    "work": 160,
+    "top": [
+     "world.step 60.5",
+     "upd:anon#23 44.7",
+     "render 18.4",
+     "upd:update 10.9",
+     "upd:anon#2 7.5",
+     "env 3.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 329
+   },
+   {
+    "t": 7.5,
+    "ms": 158,
+    "at": [
+     -947,
+     4498
+    ],
+    "work": 150,
+    "top": [
+     "world.step 75.0",
+     "render 19.9",
+     "upd:anon#23 12.3",
+     "upd:update 10.9",
+     "upd:anon#2 7.7",
+     "env 3.0"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 342
+   },
+   {
+    "t": 7.7,
+    "ms": 243,
+    "at": [
+     -954,
+     4483
+    ],
+    "work": 150,
+    "top": [
+     "world.step 84.1",
+     "render 13.4",
+     "upd:anon#23 13.1",
+     "upd:anon#2 10.6",
+     "upd:update 9.5",
+     "env 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": -5,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 325
+   },
+   {
+    "t": 8.5,
+    "ms": 101,
+    "at": [
+     -977,
+     4433
+    ],
+    "work": 97,
+    "top": [
+     "upd:anon#23 37.9",
+     "render 17.6",
+     "upd:anon#2 9.8",
+     "world.step 7.5",
+     "vehicles 6.3",
+     "env 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 403
+   },
+   {
+    "t": 8.7,
+    "ms": 136,
+    "at": [
+     -981,
+     4425
+    ],
+    "work": 131,
+    "top": [
+     "render 76.6",
+     "world.step 10.0",
+     "upd:anon#2 8.5",
+     "upd:anon#23 7.2",
+     "gameplay 6.8",
+     "vehicles 6.3"
+    ],
+    "newProgs": 3,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 460
+   },
+   {
+    "t": 9.2,
+    "ms": 183,
+    "at": [
+     -994,
+     4395
+    ],
+    "work": 103,
+    "top": [
+     "render 43.3",
+     "vehicles 13.2",
+     "world.step 8.4",
+     "upd:anon#23 7.6",
+     "gameplay 7.3",
+     "upd:anon#2 5.4"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -18,
+    "calls": 490
+   },
+   {
+    "t": 9.5,
+    "ms": 207,
+    "at": [
+     -1001,
+     4376
+    ],
+    "work": 204,
+    "top": [
+     "upd:update 125.2",
+     "render 20.7",
+     "world.step 15.3",
+     "upd:anon#23 8.0",
+     "upd:anon#2 7.4",
+     "upd:groundGrassTick 5.4"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": -12,
+    "calls": 564
+   },
+   {
+    "t": 9.7,
+    "ms": 110,
+    "at": [
+     -1007,
+     4363
+    ],
+    "work": 102,
+    "top": [
+     "upd:update 21.6",
+     "render 17.5",
+     "world.step 12.0",
+     "upd:anon#23 9.9",
+     "upd:anon#2 7.8",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -8,
+    "heapDropMB": -11,
+    "calls": 433
+   },
+   {
+    "t": 10,
+    "ms": 115,
+    "at": [
+     -1014,
+     4344
+    ],
+    "work": 113,
+    "top": [
+     "render 25.5",
+     "upd:update 23.1",
+     "upd:anon#23 16.5",
+     "world.step 10.0",
+     "upd:anon#2 7.7",
+     "vehicles 6.4"
+    ],
+    "newProgs": -1,
+    "newTex": 0,
+    "newGeo": -2,
+    "heapDropMB": -12,
+    "calls": 637
+   },
+   {
+    "t": 10.1,
+    "ms": 115,
+    "at": [
+     -1016,
+     4337
+    ],
+    "work": 112,
+    "top": [
+     "upd:update 42.4",
+     "render 14.4",
+     "world.step 9.9",
+     "upd:anon#2 7.7",
+     "vehicles 7.7",
+     "upd:anon#23 7.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -8,
+    "calls": 455
+   },
+   {
+    "t": 10.3,
+    "ms": 119,
+    "at": [
+     -1021,
+     4324
+    ],
+    "work": 106,
+    "top": [
+     "upd:update 24.5",
+     "render 21.3",
+     "upd:anon#23 13.1",
+     "world.step 10.7",
+     "upd:anon#2 8.7",
+     "vehicles 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 565
+   },
+   {
+    "t": 10.4,
+    "ms": 115,
+    "at": [
+     -1024,
+     4316
+    ],
+    "work": 113,
+    "top": [
+     "render 24.6",
+     "upd:update 23.2",
+     "vehicles 12.6",
+     "world.step 11.4",
+     "upd:anon#23 9.5",
+     "upd:anon#2 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 462
+   },
+   {
+    "t": 10.5,
+    "ms": 107,
+    "at": [
+     -1027,
+     4310
+    ],
+    "work": 102,
+    "top": [
+     "render 26.9",
+     "upd:update 24.0",
+     "upd:anon#23 9.9",
+     "upd:anon#2 9.5",
+     "world.step 8.1",
+     "env 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 3,
+    "heapDropMB": -20,
+    "calls": 700
+   },
+   {
+    "t": 10.7,
+    "ms": 190,
+    "at": [
+     -1031,
+     4298
+    ],
+    "work": 104,
+    "top": [
+     "render 28.5",
+     "upd:update 23.6",
+     "world.step 10.4",
+     "upd:anon#23 9.8",
+     "upd:anon#2 7.0",
+     "env 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 468
+   },
+   {
+    "t": 10.9,
+    "ms": 144,
+    "at": [
+     -1034,
+     4289
+    ],
+    "work": 140,
+    "top": [
+     "render 40.9",
+     "upd:update 30.5",
+     "upd:anon#23 12.3",
+     "world.step 10.1",
+     "vehicles 7.1",
+     "upd:anon#2 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 476
+   },
+   {
+    "t": 11,
+    "ms": 125,
+    "at": [
+     -1037,
+     4281
+    ],
+    "work": 118,
+    "top": [
+     "upd:update 27.5",
+     "render 23.8",
+     "upd:anon#23 15.5",
+     "world.step 12.9",
+     "upd:anon#2 7.2",
+     "vehicles 6.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 605
+   },
+   {
+    "t": 11.2,
+    "ms": 111,
+    "at": [
+     -1042,
+     4268
+    ],
+    "work": 109,
+    "top": [
+     "render 26.7",
+     "upd:anon#2 13.0",
+     "world.step 10.9",
+     "upd:anon#23 10.9",
+     "upd:update 10.0",
+     "upd:anon#46 8.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 767
+   },
+   {
+    "t": 11.4,
+    "ms": 120,
+    "at": [
+     -1046,
+     4255
+    ],
+    "work": 110,
+    "top": [
+     "upd:anon#23 35.3",
+     "render 19.3",
+     "world.step 11.0",
+     "upd:update 10.2",
+     "upd:anon#2 8.2",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 500
+   },
+   {
+    "t": 11.9,
+    "ms": 111,
+    "at": [
+     -1058,
+     4221
+    ],
+    "work": 107,
+    "top": [
+     "render 25.6",
+     "upd:anon#23 14.7",
+     "vehicles 14.4",
+     "gameplay 8.2",
+     "upd:tick 8.0",
+     "world.step 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -3,
+    "heapDropMB": 0,
+    "calls": 495
+   },
+   {
+    "t": 12.5,
+    "ms": 418,
+    "at": [
+     -1072,
+     4183
+    ],
+    "work": 83,
+    "top": [
+     "render 21.4",
+     "upd:anon#23 13.2",
+     "world.step 8.1",
+     "upd:anon#2 7.4",
+     "hud 6.0",
+     "upd:tick 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -443,
+    "calls": 489
+   },
+   {
+    "t": 13.3,
+    "ms": 118,
+    "at": [
+     -1087,
+     4133
+    ],
+    "work": 103,
+    "top": [
+     "render 25.1",
+     "vehicles 12.7",
+     "upd:anon#2 10.7",
+     "upd:anon#23 10.1",
+     "upd:tick 9.7",
+     "world.step 8.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 677
+   },
+   {
+    "t": 13.4,
+    "ms": 106,
+    "at": [
+     -1089,
+     4127
+    ],
+    "work": 99,
+    "top": [
+     "render 21.0",
+     "upd:update 10.6",
+     "world.step 10.3",
+     "upd:anon#23 9.2",
+     "vehicles 8.6",
+     "upd:anon#2 8.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": -13,
+    "calls": 486
+   },
+   {
+    "t": 14.1,
+    "ms": 189,
+    "at": [
+     -1097,
+     4083
+    ],
+    "work": 99,
+    "top": [
+     "upd:anon#23 20.3",
+     "render 18.5",
+     "upd:update 15.5",
+     "world.step 8.8",
+     "upd:anon#2 7.4",
+     "vehicles 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 503
+   },
+   {
+    "t": 14.2,
+    "ms": 111,
+    "at": [
+     -1099,
+     4076
+    ],
+    "work": 108,
+    "top": [
+     "render 26.3",
+     "upd:anon#2 20.7",
+     "upd:update 10.3",
+     "world.step 10.2",
+     "upd:anon#23 9.1",
+     "vehicles 6.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -1,
+    "heapDropMB": -12,
+    "calls": 617
+   },
+   {
+    "t": 14.5,
+    "ms": 111,
+    "at": [
+     -1101,
+     4056
+    ],
+    "work": 110,
+    "top": [
+     "render 19.8",
+     "upd:anon#2 15.0",
+     "world.step 10.6",
+     "upd:update 10.5",
+     "upd:anon#23 10.2",
+     "upd:tick 9.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -3,
+    "heapDropMB": 0,
+    "calls": 509
+   },
+   {
+    "t": 14.7,
+    "ms": 119,
+    "at": [
+     -1102,
+     4042
+    ],
+    "work": 119,
+    "top": [
+     "render 26.2",
+     "vehicles 19.0",
+     "upd:update 18.3",
+     "upd:anon#23 10.3",
+     "world.step 9.1",
+     "upd:anon#2 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 620
+   },
+   {
+    "t": 14.9,
+    "ms": 105,
+    "at": [
+     -1104,
+     4029
+    ],
+    "work": 100,
+    "top": [
+     "render 26.3",
+     "world.step 10.8",
+     "upd:anon#23 10.8",
+     "upd:update 8.0",
+     "upd:anon#2 7.5",
+     "vehicles 7.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -17,
+    "calls": 729
+   },
+   {
+    "t": 15,
+    "ms": 104,
+    "at": [
+     -1105,
+     4022
+    ],
+    "work": 99,
+    "top": [
+     "upd:anon#23 18.6",
+     "render 18.4",
+     "upd:update 13.2",
+     "world.step 10.2",
+     "upd:anon#2 9.9",
+     "vehicles 6.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 513
+   },
+   {
+    "t": 15.2,
+    "ms": 134,
+    "at": [
+     -1105,
+     4013
+    ],
+    "work": 131,
+    "top": [
+     "upd:anon#2 47.8",
+     "render 22.1",
+     "upd:anon#23 12.7",
+     "world.step 9.2",
+     "vehicles 6.7",
+     "gameplay 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 516
+   },
+   {
+    "t": 15.4,
+    "ms": 107,
+    "at": [
+     -1107,
+     3994
+    ],
+    "work": 101,
+    "top": [
+     "render 28.1",
+     "upd:anon#2 24.0",
+     "upd:anon#23 11.6",
+     "world.step 7.9",
+     "vehicles 6.6",
+     "env 4.0"
+    ],
+    "newProgs": 5,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 754
+   },
+   {
+    "t": 15.7,
+    "ms": 232,
+    "at": [
+     -1108,
+     3978
+    ],
+    "work": 135,
+    "top": [
+     "upd:anon#2 60.4",
+     "render 21.0",
+     "world.step 12.1",
+     "upd:anon#23 11.2",
+     "vehicles 6.7",
+     "env 4.4"
+    ],
+    "newProgs": 10,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 528
+   },
+   {
+    "t": 15.8,
+    "ms": 123,
+    "at": [
+     -1109,
+     3970
+    ],
+    "work": 107,
+    "top": [
+     "upd:anon#23 25.1",
+     "render 22.8",
+     "world.step 10.3",
+     "vehicles 7.9",
+     "upd:tick 7.4",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": -17,
+    "heapDropMB": 0,
+    "calls": 520
+   },
+   {
+    "t": 16.1,
+    "ms": 291,
+    "at": [
+     -1110,
+     3951
+    ],
+    "work": 288,
+    "top": [
+     "render 216.6",
+     "vehicles 15.1",
+     "world.step 10.2",
+     "upd:anon#23 8.9",
+     "upd:anon#2 6.7",
+     "upd:housesTick 4.8"
+    ],
+    "newProgs": 2,
+    "newTex": 3,
+    "newGeo": 4,
+    "heapDropMB": 0,
+    "calls": 645
+   },
+   {
+    "t": 16.2,
+    "ms": 134,
+    "at": [
+     -1110,
+     3942
+    ],
+    "work": 127,
+    "top": [
+     "upd:anon#23 51.8",
+     "render 17.7",
+     "world.step 8.1",
+     "upd:housesTick 7.8",
+     "vehicles 7.7",
+     "upd:anon#2 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 521
+   },
+   {
+    "t": 16.6,
+    "ms": 340,
+    "at": [
+     -1111,
+     3919
+    ],
+    "work": 334,
+    "top": [
+     "render 250.9",
+     "upd:anon#23 12.7",
+     "upd:anon#2 10.2",
+     "world.step 9.7",
+     "upd:groundGrassTick 7.2",
+     "vehicles 6.4"
+    ],
+    "newProgs": 3,
+    "newTex": 14,
+    "newGeo": 15,
+    "heapDropMB": 0,
+    "calls": 796
+   },
+   {
+    "t": 16.7,
+    "ms": 108,
+    "at": [
+     -1111,
+     3912
+    ],
+    "work": 104,
+    "top": [
+     "render 23.0",
+     "upd:anon#23 13.7",
+     "world.step 11.3",
+     "upd:anon#2 7.8",
+     "upd:housesTick 7.2",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 548
+   },
+   {
+    "t": 16.8,
+    "ms": 111,
+    "at": [
+     -1111,
+     3904
+    ],
+    "work": 109,
+    "top": [
+     "render 27.0",
+     "world.step 11.4",
+     "upd:anon#23 11.4",
+     "upd:housesTick 8.6",
+     "upd:anon#2 7.2",
+     "upd:groundGrassTick 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 553
+   },
+   {
+    "t": 16.9,
+    "ms": 105,
+    "at": [
+     -1111,
+     3897
+    ],
+    "work": 103,
+    "top": [
+     "render 27.2",
+     "world.step 12.2",
+     "upd:anon#23 9.3",
+     "upd:update 9.1",
+     "upd:anon#2 7.8",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 673
+   },
+   {
+    "t": 17.1,
+    "ms": 114,
+    "at": [
+     -1111,
+     3883
+    ],
+    "work": 106,
+    "top": [
+     "render 33.5",
+     "world.step 11.7",
+     "upd:anon#2 9.9",
+     "upd:anon#23 8.4",
+     "upd:update 6.5",
+     "vehicles 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 801
+   },
+   {
+    "t": 17.2,
+    "ms": 124,
+    "at": [
+     -1111,
+     3875
+    ],
+    "work": 115,
+    "top": [
+     "render 29.5",
+     "upd:anon#23 16.4",
+     "upd:anon#2 12.4",
+     "world.step 11.2",
+     "upd:update 10.2",
+     "vehicles 9.2"
+    ],
+    "newProgs": 1,
+    "newTex": 2,
+    "newGeo": 18,
+    "heapDropMB": 0,
+    "calls": 567
+   },
+   {
+    "t": 17.5,
+    "ms": 240,
+    "at": [
+     -1111,
+     3859
+    ],
+    "work": 138,
+    "top": [
+     "render 67.4",
+     "world.step 12.0",
+     "upd:anon#2 9.1",
+     "upd:anon#23 8.9",
+     "upd:update 6.7",
+     "peds 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 8,
+    "heapDropMB": -17,
+    "calls": 566
+   },
+   {
+    "t": 17.7,
+    "ms": 240,
+    "at": [
+     -1111,
+     3843
+    ],
+    "work": 229,
+    "top": [
+     "render 129.4",
+     "upd:anon#2 23.6",
+     "world.step 13.1",
+     "vehicles 9.6",
+     "upd:anon#23 8.0",
+     "upd:tick 6.9"
+    ],
+    "newProgs": 5,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 683
+   },
+   {
+    "t": 17.8,
+    "ms": 107,
+    "at": [
+     -1112,
+     3836
+    ],
+    "work": 99,
+    "top": [
+     "render 25.1",
+     "upd:anon#23 11.9",
+     "world.step 9.6",
+     "upd:anon#2 8.6",
+     "vehicles 6.7",
+     "upd:tick 5.6"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 563
+   },
+   {
+    "t": 18.1,
+    "ms": 315,
+    "at": [
+     -1113,
+     3815
+    ],
+    "work": 312,
+    "top": [
+     "render 238.8",
+     "upd:anon#23 15.5",
+     "world.step 9.0",
+     "upd:anon#2 7.6",
+     "vehicles 6.5",
+     "upd:housesTick 5.3"
+    ],
+    "newProgs": 3,
+    "newTex": 5,
+    "newGeo": 16,
+    "heapDropMB": 0,
+    "calls": 849
+   },
+   {
+    "t": 18.3,
+    "ms": 206,
+    "at": [
+     -1114,
+     3801
+    ],
+    "work": 204,
+    "top": [
+     "render 99.0",
+     "upd:anon#23 52.3",
+     "world.step 8.2",
+     "upd:anon#2 7.2",
+     "vehicles 6.5",
+     "env 5.1"
+    ],
+    "newProgs": 2,
+    "newTex": 2,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 590
+   },
+   {
+    "t": 18.5,
+    "ms": 154,
+    "at": [
+     -1114,
+     3791
+    ],
+    "work": 150,
+    "top": [
+     "render 65.6",
+     "upd:anon#23 19.4",
+     "upd:anon#2 12.1",
+     "world.step 8.2",
+     "upd:update 7.1",
+     "vehicles 6.5"
+    ],
+    "newProgs": 1,
+    "newTex": 5,
+    "newGeo": 17,
+    "heapDropMB": 0,
+    "calls": 654
+   },
+   {
+    "t": 18.6,
+    "ms": 113,
+    "at": [
+     -1115,
+     3783
+    ],
+    "work": 107,
+    "top": [
+     "render 43.8",
+     "upd:anon#23 10.1",
+     "world.step 9.0",
+     "upd:anon#2 6.9",
+     "vehicles 6.7",
+     "peds 4.0"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 2,
+    "heapDropMB": -9,
+    "calls": 884
+   },
+   {
+    "t": 18.8,
+    "ms": 112,
+    "at": [
+     -1117,
+     3770
+    ],
+    "work": 101,
+    "top": [
+     "render 37.6",
+     "upd:anon#2 11.6",
+     "vehicles 11.4",
+     "upd:anon#23 9.6",
+     "world.step 8.6",
+     "env 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 1171
+   },
+   {
+    "t": 19,
+    "ms": 108,
+    "at": [
+     -1118,
+     3756
+    ],
+    "work": 100,
+    "top": [
+     "render 32.3",
+     "upd:anon#23 19.1",
+     "world.step 9.1",
+     "upd:anon#2 8.2",
+     "vehicles 6.8",
+     "env 4.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 714
+   },
+   {
+    "t": 19.2,
+    "ms": 175,
+    "at": [
+     -1120,
+     3745
+    ],
+    "work": 95,
+    "top": [
+     "render 32.2",
+     "upd:anon#23 12.6",
+     "upd:anon#2 7.4",
+     "world.step 6.9",
+     "vehicles 6.4",
+     "env 5.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 944
+   },
+   {
+    "t": 19.3,
+    "ms": 125,
+    "at": [
+     -1121,
+     3736
+    ],
+    "work": 91,
+    "top": [
+     "render 26.6",
+     "upd:anon#23 12.2",
+     "upd:tick 9.1",
+     "world.step 7.4",
+     "upd:anon#2 7.4",
+     "env 5.5"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": 1,
+    "heapDropMB": -9,
+    "calls": 729
+   },
+   {
+    "t": 19.4,
+    "ms": 108,
+    "at": [
+     -1122,
+     3729
+    ],
+    "work": 106,
+    "top": [
+     "render 39.2",
+     "upd:anon#23 10.0",
+     "vehicles 9.8",
+     "world.step 7.7",
+     "upd:anon#2 6.8",
+     "gameplay 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 1208
+   },
+   {
+    "t": 19.5,
+    "ms": 120,
+    "at": [
+     -1122,
+     3721
+    ],
+    "work": 85,
+    "top": [
+     "render 29.8",
+     "upd:anon#2 13.1",
+     "upd:anon#23 9.6",
+     "world.step 6.2",
+     "env 4.5",
+     "upd:tick 4.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 744
+   },
+   {
+    "t": 19.9,
+    "ms": 310,
+    "at": [
+     -1124,
+     3700
+    ],
+    "work": 99,
+    "top": [
+     "render 31.2",
+     "upd:anon#23 20.4",
+     "world.step 9.0",
+     "upd:anon#2 7.8",
+     "env 4.3",
+     "upd:tick 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": -17,
+    "calls": 772
+   },
+   {
+    "t": 20.2,
+    "ms": 388,
+    "at": [
+     -1124,
+     3675
+    ],
+    "work": 294,
+    "top": [
+     "interiors 180.4",
+     "render 35.4",
+     "upd:anon#2 18.6",
+     "upd:update 11.0",
+     "world.step 10.6",
+     "upd:anon#23 9.1"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 977
+   },
+   {
+    "t": 20.5,
+    "ms": 250,
+    "at": [
+     -1122,
+     3658
+    ],
+    "work": 178,
+    "top": [
+     "interiors 74.4",
+     "render 30.4",
+     "upd:anon#23 19.0",
+     "upd:anon#2 9.1",
+     "world.step 6.9",
+     "upd:groundGrassTick 5.8"
+    ],
+    "newProgs": 0,
+    "newTex": 6,
+    "newGeo": 6,
+    "heapDropMB": -13,
+    "calls": 714
+   },
+   {
+    "t": 21.3,
+    "ms": 811,
+    "at": [
+     -1118,
+     3604
+    ],
+    "work": 802,
+    "top": [
+     "interiors 657.6",
+     "render 71.8",
+     "upd:anon#2 16.5",
+     "world.step 15.3",
+     "upd:anon#23 10.0",
+     "upd:groundGrassTick 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 7,
+    "newGeo": 17,
+    "heapDropMB": 0,
+    "calls": 1174
+   },
+   {
+    "t": 21.7,
+    "ms": 400,
+    "at": [
+     -1116,
+     3578
+    ],
+    "work": 394,
+    "top": [
+     "render 179.8",
+     "interiors 127.3",
+     "upd:anon#23 16.7",
+     "world.step 14.0",
+     "upd:groundGrassTick 9.9",
+     "hud 9.9"
+    ],
+    "newProgs": 0,
+    "newTex": 9,
+    "newGeo": 18,
+    "heapDropMB": -19,
+    "calls": 657
+   },
+   {
+    "t": 22,
+    "ms": 275,
+    "at": [
+     -1115,
+     3559
+    ],
+    "work": 131,
+    "top": [
+     "interiors 39.7",
+     "render 25.5",
+     "upd:anon#23 20.2",
+     "world.step 12.4",
+     "upd:anon#2 8.0",
+     "upd:groundGrassTick 5.0"
+    ],
+    "newProgs": 10,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 641
+   },
+   {
+    "t": 22.5,
+    "ms": 515,
+    "at": [
+     -1112,
+     3525
+    ],
+    "work": 211,
+    "top": [
+     "interiors 116.2",
+     "render 30.8",
+     "world.step 9.5",
+     "upd:housesTick 8.5",
+     "upd:groundGrassTick 8.0",
+     "upd:anon#23 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 867
+   },
+   {
+    "t": 22.7,
+    "ms": 238,
+    "at": [
+     -1111,
+     3509
+    ],
+    "work": 134,
+    "top": [
+     "upd:anon#23 51.2",
+     "render 20.6",
+     "interiors 17.1",
+     "world.step 8.4",
+     "upd:groundGrassTick 7.1",
+     "upd:anon#2 6.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 610
+   },
+   {
+    "t": 23.6,
+    "ms": 895,
+    "at": [
+     -1105,
+     3450
+    ],
+    "work": 884,
+    "top": [
+     "interiors 752.5",
+     "render 50.4",
+     "upd:anon#2 10.6",
+     "upd:anon#23 9.1",
+     "world.step 8.6",
+     "upd:tick 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 1088
+   },
+   {
+    "t": 23.9,
+    "ms": 287,
+    "at": [
+     -1103,
+     3431
+    ],
+    "work": 236,
+    "top": [
+     "upd:housesTick 49.7",
+     "world.step 45.6",
+     "render 27.3",
+     "fixed:vehiclesFixed 20.8",
+     "upd:anon#2 12.5",
+     "upd:anon#23 12.5"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": 19,
+    "heapDropMB": 0,
+    "calls": 672
+   },
+   {
+    "t": 24.4,
+    "ms": 453,
+    "at": [
+     -1099,
+     3401
+    ],
+    "work": 409,
+    "top": [
+     "interiors 221.0",
+     "upd:stream 59.3",
+     "render 37.5",
+     "upd:anon#23 18.6",
+     "upd:anon#2 14.7",
+     "world.step 10.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 615
+   },
+   {
+    "t": 24.5,
+    "ms": 180,
+    "at": [
+     -1097,
+     3389
+    ],
+    "work": 135,
+    "top": [
+     "render 37.4",
+     "world.step 18.4",
+     "interiors 11.6",
+     "upd:anon#23 8.6",
+     "upd:anon#2 7.7",
+     "upd:groundGrassTick 6.6"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 857
+   },
+   {
+    "t": 24.8,
+    "ms": 220,
+    "at": [
+     -1095,
+     3375
+    ],
+    "work": 138,
+    "top": [
+     "interiors 28.9",
+     "render 26.0",
+     "world.step 15.6",
+     "upd:anon#23 8.3",
+     "audio 8.0",
+     "upd:anon#2 7.3"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 2,
+    "heapDropMB": -14,
+    "calls": 602
+   },
+   {
+    "t": 24.9,
+    "ms": 163,
+    "at": [
+     -1094,
+     3364
+    ],
+    "work": 155,
+    "top": [
+     "interiors 44.5",
+     "render 43.6",
+     "world.step 11.4",
+     "upd:anon#23 9.6",
+     "upd:anon#2 7.3",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 1046
+   },
+   {
+    "t": 25.7,
+    "ms": 742,
+    "at": [
+     -1087,
+     3315
+    ],
+    "work": 732,
+    "top": [
+     "interiors 601.2",
+     "render 36.5",
+     "upd:update 17.0",
+     "world.step 13.1",
+     "upd:anon#23 13.0",
+     "upd:anon#2 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 573
+   },
+   {
+    "t": 25.9,
+    "ms": 240,
+    "at": [
+     -1085,
+     3299
+    ],
+    "work": 134,
+    "top": [
+     "render 30.4",
+     "world.step 17.9",
+     "upd:groundGrassTick 15.6",
+     "upd:anon#23 15.0",
+     "interiors 10.0",
+     "upd:anon#2 8.1"
+    ],
+    "newProgs": 0,
+    "newTex": -10,
+    "newGeo": 19,
+    "heapDropMB": 0,
+    "calls": 513
+   },
+   {
+    "t": 26.4,
+    "ms": 486,
+    "at": [
+     -1080,
+     3267
+    ],
+    "work": 243,
+    "top": [
+     "upd:anon#2 53.0",
+     "interiors 40.4",
+     "render 35.0",
+     "fixed:vehiclesFixed 21.2",
+     "upd:groundMaskTick 16.4",
+     "world.step 14.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": -339,
+    "calls": 657
+   },
+   {
+    "t": 26.6,
+    "ms": 196,
+    "at": [
+     -1079,
+     3254
+    ],
+    "work": 152,
+    "top": [
+     "render 52.9",
+     "interiors 20.3",
+     "world.step 14.4",
+     "upd:anon#23 11.9",
+     "upd:groundGrassTick 11.2",
+     "upd:anon#2 7.3"
+    ],
+    "newProgs": 5,
+    "newTex": 6,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 478
+   },
+   {
+    "t": 27.2,
+    "ms": 565,
+    "at": [
+     -1074,
+     3216
+    ],
+    "work": 419,
+    "top": [
+     "interiors 284.4",
+     "render 41.4",
+     "vehicles 19.7",
+     "world.step 14.9",
+     "upd:anon#2 11.5",
+     "upd:anon#23 8.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 737
+   },
+   {
+    "t": 27.3,
+    "ms": 189,
+    "at": [
+     -1071,
+     3204
+    ],
+    "work": 130,
+    "top": [
+     "interiors 24.5",
+     "render 22.4",
+     "world.step 15.0",
+     "upd:anon#2 11.9",
+     "upd:anon#23 8.3",
+     "upd:groundGrassTick 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 486
+   },
+   {
+    "t": 27.7,
+    "ms": 370,
+    "at": [
+     -1067,
+     3180
+    ],
+    "work": 367,
+    "top": [
+     "interiors 247.5",
+     "render 29.8",
+     "upd:anon#2 19.4",
+     "world.step 13.2",
+     "upd:anon#23 9.2",
+     "upd:update 8.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 484
+   },
+   {
+    "t": 28,
+    "ms": 276,
+    "at": [
+     -1063,
+     3162
+    ],
+    "work": 261,
+    "top": [
+     "interiors 142.8",
+     "render 36.5",
+     "world.step 16.0",
+     "upd:groundGrassTick 13.8",
+     "upd:anon#2 10.8",
+     "upd:anon#23 8.0"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 633
+   },
+   {
+    "t": 28.1,
+    "ms": 137,
+    "at": [
+     -1062,
+     3153
+    ],
+    "work": 134,
+    "top": [
+     "interiors 31.0",
+     "render 29.4",
+     "upd:anon#2 15.3",
+     "world.step 13.8",
+     "upd:anon#23 8.2",
+     "upd:housesTick 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 459
+   },
+   {
+    "t": 28.4,
+    "ms": 240,
+    "at": [
+     -1058,
+     3137
+    ],
+    "work": 234,
+    "top": [
+     "interiors 154.8",
+     "render 29.7",
+     "world.step 13.2",
+     "upd:anon#23 7.0",
+     "upd:anon#2 4.2",
+     "upd:housesTick 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 760
+   },
+   {
+    "t": 28.5,
+    "ms": 138,
+    "at": [
+     -1057,
+     3128
+    ],
+    "work": 123,
+    "top": [
+     "render 24.4",
+     "interiors 17.3",
+     "world.step 12.9",
+     "upd:groundGrassTick 10.5",
+     "hud 10.1",
+     "upd:anon#23 8.7"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": -31,
+    "heapDropMB": 0,
+    "calls": 446
+   },
+   {
+    "t": 28.7,
+    "ms": 213,
+    "at": [
+     -1051,
+     3115
+    ],
+    "work": 160,
+    "top": [
+     "interiors 67.8",
+     "render 23.2",
+     "upd:anon#23 20.1",
+     "world.step 12.4",
+     "upd:housesTick 10.9",
+     "env 4.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 461
+   },
+   {
+    "t": 29,
+    "ms": 235,
+    "at": [
+     -1047,
+     3100
+    ],
+    "work": 227,
+    "top": [
+     "interiors 111.1",
+     "render 30.5",
+     "upd:update 19.4",
+     "world.step 14.5",
+     "upd:anon#23 9.0",
+     "upd:unstuckTick 6.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 628
+   },
+   {
+    "t": 29.1,
+    "ms": 168,
+    "at": [
+     -1046,
+     3089
+    ],
+    "work": 80,
+    "top": [
+     "render 19.2",
+     "world.step 10.9",
+     "upd:groundGrassTick 9.3",
+     "upd:anon#23 7.4",
+     "upd:anon#2 5.1",
+     "interiors 4.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 473
+   },
+   {
+    "t": 29.5,
+    "ms": 266,
+    "at": [
+     -1045,
+     3065
+    ],
+    "work": 265,
+    "top": [
+     "render 158.7",
+     "gameplay 34.8",
+     "interiors 17.2",
+     "upd:anon#2 12.6",
+     "world.step 11.7",
+     "upd:anon#23 7.0"
+    ],
+    "newProgs": 2,
+    "newTex": 11,
+    "newGeo": 15,
+    "heapDropMB": -20,
+    "calls": 477
+   },
+   {
+    "t": 29.6,
+    "ms": 101,
+    "at": [
+     -1045,
+     3058
+    ],
+    "work": 95,
+    "top": [
+     "render 22.1",
+     "world.step 11.0",
+     "upd:anon#23 10.3",
+     "upd:tick 7.2",
+     "upd:anon#2 6.4",
+     "gameplay 5.5"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 455
+   },
+   {
+    "t": 29.7,
+    "ms": 156,
+    "at": [
+     -1046,
+     3048
+    ],
+    "work": 153,
+    "top": [
+     "upd:housesTick 47.0",
+     "upd:anon#2 30.0",
+     "render 28.4",
+     "world.step 12.4",
+     "upd:anon#23 8.1",
+     "env 4.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 569
+   },
+   {
+    "t": 29.9,
+    "ms": 186,
+    "at": [
+     -1049,
+     3035
+    ],
+    "work": 117,
+    "top": [
+     "upd:update 32.4",
+     "render 21.4",
+     "world.step 12.2",
+     "upd:anon#23 12.2",
+     "upd:anon#2 11.5",
+     "env 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -22,
+    "heapDropMB": 0,
+    "calls": 425
+   },
+   {
+    "t": 30.2,
+    "ms": 220,
+    "at": [
+     -1055,
+     3016
+    ],
+    "work": 94,
+    "top": [
+     "render 28.9",
+     "world.step 16.2",
+     "upd:anon#2 8.1",
+     "upd:anon#23 7.6",
+     "env 5.0",
+     "gameplay 4.8"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": -19,
+    "heapDropMB": 0,
+    "calls": 457
+   },
+   {
+    "t": 30.3,
+    "ms": 101,
+    "at": [
+     -1058,
+     3010
+    ],
+    "work": 95,
+    "top": [
+     "render 22.2",
+     "upd:anon#2 20.2",
+     "world.step 13.8",
+     "upd:anon#23 9.5",
+     "env 4.0",
+     "peds 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 451
+   },
+   {
+    "t": 30.6,
+    "ms": 103,
+    "at": [
+     -1066,
+     2992
+    ],
+    "work": 100,
+    "top": [
+     "render 39.3",
+     "upd:anon#23 10.9",
+     "world.step 9.7",
+     "upd:anon#2 7.4",
+     "upd:update 5.5",
+     "env 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 883
+   },
+   {
+    "t": 30.8,
+    "ms": 141,
+    "at": [
+     -1060,
+     2985
+    ],
+    "work": 133,
+    "top": [
+     "interiors 42.3",
+     "render 27.0",
+     "upd:anon#2 12.5",
+     "world.step 10.4",
+     "upd:anon#23 7.3",
+     "upd:housesTick 6.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 29,
+    "heapDropMB": 0,
+    "calls": 506
+   },
+   {
+    "t": 31.7,
+    "ms": 907,
+    "at": [
+     -1021,
+     2941
+    ],
+    "work": 733,
+    "top": [
+     "render 569.5",
+     "interiors 72.2",
+     "upd:housesTick 22.3",
+     "upd:anon#2 20.6",
+     "world.step 16.7",
+     "upd:anon#23 9.0"
+    ],
+    "newProgs": 0,
+    "newTex": 17,
+    "newGeo": 8,
+    "heapDropMB": 0,
+    "calls": 520
+   },
+   {
+    "t": 32,
+    "ms": 278,
+    "at": [
+     -1017,
+     2923
+    ],
+    "work": 267,
+    "top": [
+     "render 165.4",
+     "interiors 29.1",
+     "upd:anon#23 11.3",
+     "world.step 10.3",
+     "upd:anon#2 7.2",
+     "upd:groundGrassTick 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 761
+   },
+   {
+    "t": 32.1,
+    "ms": 157,
+    "at": [
+     -1015,
+     2912
+    ],
+    "work": 152,
+    "top": [
+     "render 46.6",
+     "upd:groundGrassTick 18.4",
+     "world.step 15.2",
+     "gameplay 14.8",
+     "interiors 10.4",
+     "upd:anon#23 9.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 509
+   },
+   {
+    "t": 32.3,
+    "ms": 137,
+    "at": [
+     -1013,
+     2903
+    ],
+    "work": 132,
+    "top": [
+     "render 40.5",
+     "interiors 19.5",
+     "upd:anon#23 17.2",
+     "world.step 13.5",
+     "upd:anon#2 7.6",
+     "upd:housesTick 5.4"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": 12,
+    "heapDropMB": 0,
+    "calls": 1003
+   },
+   {
+    "t": 32.4,
+    "ms": 164,
+    "at": [
+     -1012,
+     2893
+    ],
+    "work": 160,
+    "top": [
+     "render 53.3",
+     "upd:update 39.9",
+     "interiors 21.1",
+     "world.step 9.8",
+     "upd:anon#23 8.3",
+     "upd:anon#2 8.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 528
+   },
+   {
+    "t": 32.6,
+    "ms": 142,
+    "at": [
+     -1010,
+     2883
+    ],
+    "work": 137,
+    "top": [
+     "interiors 40.7",
+     "render 38.7",
+     "upd:anon#23 12.9",
+     "world.step 10.3",
+     "upd:anon#2 7.2",
+     "env 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 522
+   },
+   {
+    "t": 32.7,
+    "ms": 121,
+    "at": [
+     -1007,
+     2876
+    ],
+    "work": 115,
+    "top": [
+     "render 31.8",
+     "upd:anon#23 17.7",
+     "gameplay 12.4",
+     "world.step 11.2",
+     "interiors 11.0",
+     "upd:anon#2 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 732
+   },
+   {
+    "t": 32.8,
+    "ms": 119,
+    "at": [
+     -1004,
+     2869
+    ],
+    "work": 114,
+    "top": [
+     "render 26.7",
+     "interiors 17.1",
+     "audio 13.9",
+     "upd:anon#23 13.7",
+     "world.step 10.8",
+     "upd:anon#2 7.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 513
+   },
+   {
+    "t": 32.9,
+    "ms": 113,
+    "at": [
+     -1001,
+     2862
+    ],
+    "work": 110,
+    "top": [
+     "render 37.5",
+     "world.step 13.0",
+     "upd:anon#23 11.8",
+     "interiors 10.7",
+     "upd:anon#2 7.3",
+     "env 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": -5,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 939
+   },
+   {
+    "t": 33.2,
+    "ms": 252,
+    "at": [
+     -993,
+     2847
+    ],
+    "work": 155,
+    "top": [
+     "upd:anon#23 36.7",
+     "interiors 33.6",
+     "render 30.7",
+     "world.step 12.6",
+     "upd:anon#2 12.5",
+     "peds 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 509
+   },
+   {
+    "t": 33.3,
+    "ms": 109,
+    "at": [
+     -990,
+     2840
+    ],
+    "work": 97,
+    "top": [
+     "render 26.4",
+     "world.step 12.5",
+     "interiors 8.6",
+     "upd:anon#23 8.5",
+     "upd:update 7.6",
+     "gameplay 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 499
+   },
+   {
+    "t": 33.5,
+    "ms": 106,
+    "at": [
+     -982,
+     2829
+    ],
+    "work": 96,
+    "top": [
+     "render 22.6",
+     "world.step 15.0",
+     "upd:anon#23 11.1",
+     "upd:tick 9.2",
+     "upd:anon#2 7.5",
+     "fixed:vehiclesFixed 4.3"
+    ],
+    "newProgs": -5,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 478
+   },
+   {
+    "t": 33.6,
+    "ms": 101,
+    "at": [
+     -978,
+     2824
+    ],
+    "work": 100,
+    "top": [
+     "render 35.7",
+     "world.step 15.4",
+     "upd:anon#23 10.5",
+     "upd:anon#2 7.7",
+     "upd:tick 3.6",
+     "upd:groundGrassTick 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 910
+   },
+   {
+    "t": 34.1,
+    "ms": 120,
+    "at": [
+     -951,
+     2800
+    ],
+    "work": 116,
+    "top": [
+     "render 39.5",
+     "gameplay 16.0",
+     "world.step 14.0",
+     "upd:anon#2 9.4",
+     "upd:anon#23 9.0",
+     "upd:groundGrassTick 4.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -13,
+    "calls": 761
+   },
+   {
+    "t": 34.4,
+    "ms": 104,
+    "at": [
+     -935,
+     2787
+    ],
+    "work": 95,
+    "top": [
+     "render 25.8",
+     "upd:anon#2 14.3",
+     "upd:anon#23 12.7",
+     "world.step 11.3",
+     "upd:update 9.8",
+     "upd:groundGrassTick 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": -6,
+    "newGeo": 0,
+    "heapDropMB": -10,
+    "calls": 424
+   },
+   {
+    "t": 34.6,
+    "ms": 190,
+    "at": [
+     -926,
+     2779
+    ],
+    "work": 108,
+    "top": [
+     "render 24.3",
+     "world.step 13.3",
+     "upd:anon#23 12.5",
+     "vehicles 12.4",
+     "upd:anon#2 8.4",
+     "upd:tick 6.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 582
+   },
+   {
+    "t": 34.7,
+    "ms": 104,
+    "at": [
+     -921,
+     2774
+    ],
+    "work": 92,
+    "top": [
+     "render 32.7",
+     "upd:anon#23 11.8",
+     "world.step 11.5",
+     "upd:anon#2 7.2",
+     "vehicles 6.7",
+     "env 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 725
+   },
+   {
+    "t": 34.8,
+    "ms": 111,
+    "at": [
+     -916,
+     2769
+    ],
+    "work": 106,
+    "top": [
+     "render 26.0",
+     "world.step 18.1",
+     "upd:anon#2 10.1",
+     "upd:anon#23 10.0",
+     "vehicles 6.4",
+     "upd:tick 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 445
+   },
+   {
+    "t": 34.9,
+    "ms": 126,
+    "at": [
+     -910,
+     2763
+    ],
+    "work": 117,
+    "top": [
+     "render 29.9",
+     "world.step 15.8",
+     "upd:anon#23 13.5",
+     "upd:anon#2 11.9",
+     "vehicles 7.9",
+     "upd:tick 4.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 425
+   },
+   {
+    "t": 35.1,
+    "ms": 200,
+    "at": [
+     -901,
+     2753
+    ],
+    "work": 184,
+    "top": [
+     "upd:anon#23 90.2",
+     "render 24.7",
+     "world.step 16.3",
+     "upd:anon#2 9.7",
+     "vehicles 6.4",
+     "upd:tick 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -140,
+    "calls": 422
+   },
+   {
+    "t": 35.3,
+    "ms": 114,
+    "at": [
+     -896,
+     2748
+    ],
+    "work": 108,
+    "top": [
+     "render 25.7",
+     "world.step 18.1",
+     "upd:anon#23 13.7",
+     "upd:update 8.7",
+     "upd:anon#2 8.0",
+     "vehicles 6.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -100,
+    "calls": 538
+   },
+   {
+    "t": 35.4,
+    "ms": 113,
+    "at": [
+     -891,
+     2742
+    ],
+    "work": 106,
+    "top": [
+     "render 27.9",
+     "upd:anon#23 18.1",
+     "world.step 15.8",
+     "upd:anon#2 9.6",
+     "vehicles 6.5",
+     "env 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 582
+   },
+   {
+    "t": 35.8,
+    "ms": 195,
+    "at": [
+     -868,
+     2722
+    ],
+    "work": 188,
+    "top": [
+     "upd:anon#23 83.4",
+     "render 48.0",
+     "vehicles 11.6",
+     "upd:anon#2 10.0",
+     "world.step 9.8",
+     "upd:groundGrassTick 2.9"
+    ],
+    "newProgs": 5,
+    "newTex": -1,
+    "newGeo": -4,
+    "heapDropMB": -11,
+    "calls": 457
+   },
+   {
+    "t": 35.9,
+    "ms": 113,
+    "at": [
+     -861,
+     2718
+    ],
+    "work": 111,
+    "top": [
+     "render 26.3",
+     "world.step 12.3",
+     "upd:anon#23 12.1",
+     "upd:anon#2 10.7",
+     "upd:tick 9.6",
+     "vehicles 7.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 569
+   },
+   {
+    "t": 36.1,
+    "ms": 114,
+    "at": [
+     -855,
+     2714
+    ],
+    "work": 104,
+    "top": [
+     "render 20.7",
+     "upd:anon#23 12.7",
+     "upd:update 11.3",
+     "world.step 11.2",
+     "upd:anon#2 7.4",
+     "vehicles 6.6"
+    ],
+    "newProgs": 0,
+    "newTex": -5,
+    "newGeo": 0,
+    "heapDropMB": -13,
+    "calls": 367
+   },
+   {
+    "t": 36.2,
+    "ms": 186,
+    "at": [
+     -844,
+     2707
+    ],
+    "work": 95,
+    "top": [
+     "render 20.1",
+     "upd:anon#2 14.0",
+     "world.step 13.6",
+     "upd:anon#23 10.6",
+     "vehicles 6.5",
+     "upd:tick 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 362
+   },
+   {
+    "t": 36.3,
+    "ms": 104,
+    "at": [
+     -838,
+     2704
+    ],
+    "work": 97,
+    "top": [
+     "render 27.7",
+     "world.step 12.3",
+     "upd:anon#23 9.1",
+     "upd:anon#2 7.8",
+     "vehicles 6.4",
+     "upd:tick 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 470
+   },
+   {
+    "t": 36.5,
+    "ms": 106,
+    "at": [
+     -832,
+     2701
+    ],
+    "work": 102,
+    "top": [
+     "upd:anon#23 18.3",
+     "render 18.2",
+     "upd:anon#2 16.5",
+     "world.step 12.1",
+     "vehicles 6.5",
+     "upd:tick 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 353
+   },
+   {
+    "t": 36.6,
+    "ms": 106,
+    "at": [
+     -826,
+     2698
+    ],
+    "work": 95,
+    "top": [
+     "render 25.7",
+     "upd:anon#23 11.6",
+     "world.step 10.5",
+     "upd:anon#2 7.2",
+     "vehicles 6.4",
+     "upd:groundGrassTick 5.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 593
+   },
+   {
+    "t": 37.2,
+    "ms": 165,
+    "at": [
+     -782,
+     2683
+    ],
+    "work": 92,
+    "top": [
+     "render 20.7",
+     "world.step 11.4",
+     "upd:anon#2 11.3",
+     "upd:anon#23 9.4",
+     "vehicles 6.5",
+     "upd:update 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 387
+   },
+   {
+    "t": 37.4,
+    "ms": 104,
+    "at": [
+     -775,
+     2682
+    ],
+    "work": 100,
+    "top": [
+     "render 21.3",
+     "upd:anon#23 15.7",
+     "world.step 12.2",
+     "vehicles 8.8",
+     "upd:anon#2 7.3",
+     "gameplay 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 398
+   },
+   {
+    "t": 38.3,
+    "ms": 114,
+    "at": [
+     -713,
+     2663
+    ],
+    "work": 106,
+    "top": [
+     "render 29.8",
+     "world.step 13.1",
+     "upd:anon#23 11.9",
+     "upd:anon#2 8.4",
+     "upd:update 6.4",
+     "interiors 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 652
+   },
+   {
+    "t": 38.4,
+    "ms": 113,
+    "at": [
+     -706,
+     2660
+    ],
+    "work": 105,
+    "top": [
+     "render 31.5",
+     "world.step 12.1",
+     "upd:anon#23 11.7",
+     "upd:anon#2 9.0",
+     "vehicles 7.4",
+     "env 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 3,
+    "newGeo": 34,
+    "heapDropMB": 0,
+    "calls": 854
+   },
+   {
+    "t": 38.7,
+    "ms": 177,
+    "at": [
+     -689,
+     2653
+    ],
+    "work": 96,
+    "top": [
+     "render 25.6",
+     "world.step 14.0",
+     "upd:anon#23 8.9",
+     "upd:groundGrassTick 8.5",
+     "upd:anon#2 7.5",
+     "vehicles 6.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 507
+   },
+   {
+    "t": 38.8,
+    "ms": 119,
+    "at": [
+     -681,
+     2650
+    ],
+    "work": 113,
+    "top": [
+     "render 31.0",
+     "upd:anon#23 16.7",
+     "world.step 13.3",
+     "fixed:vehiclesFixed 8.1",
+     "upd:anon#2 7.4",
+     "env 6.8"
+    ],
+    "newProgs": 0,
+    "newTex": -6,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 684
+   },
+   {
+    "t": 39.1,
+    "ms": 115,
+    "at": [
+     -667,
+     2648
+    ],
+    "work": 110,
+    "top": [
+     "render 38.1",
+     "world.step 13.5",
+     "upd:anon#23 10.4",
+     "upd:anon#2 10.0",
+     "upd:update 7.0",
+     "vehicles 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 887
+   },
+   {
+    "t": 39.5,
+    "ms": 154,
+    "at": [
+     -636,
+     2642
+    ],
+    "work": 151,
+    "top": [
+     "upd:anon#23 59.1",
+     "render 34.2",
+     "upd:anon#2 10.9",
+     "world.step 10.9",
+     "vehicles 6.8",
+     "upd:tick 4.7"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 993
+   },
+   {
+    "t": 39.7,
+    "ms": 125,
+    "at": [
+     -628,
+     2640
+    ],
+    "work": 120,
+    "top": [
+     "interiors 28.3",
+     "render 19.6",
+     "upd:anon#23 11.1",
+     "world.step 10.7",
+     "upd:update 7.6",
+     "upd:anon#2 6.9"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 469
+   },
+   {
+    "t": 39.9,
+    "ms": 148,
+    "at": [
+     -612,
+     2637
+    ],
+    "work": 143,
+    "top": [
+     "interiors 67.3",
+     "render 24.6",
+     "upd:anon#2 8.8",
+     "upd:anon#23 8.5",
+     "world.step 6.7",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 473
+   },
+   {
+    "t": 40.1,
+    "ms": 150,
+    "at": [
+     -602,
+     2635
+    ],
+    "work": 143,
+    "top": [
+     "render 36.5",
+     "interiors 32.6",
+     "world.step 13.8",
+     "upd:anon#23 10.8",
+     "upd:housesTick 8.4",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": 9,
+    "heapDropMB": 0,
+    "calls": 713
+   },
+   {
+    "t": 40.2,
+    "ms": 136,
+    "at": [
+     -593,
+     2634
+    ],
+    "work": 125,
+    "top": [
+     "render 33.5",
+     "interiors 22.5",
+     "upd:anon#23 12.5",
+     "world.step 12.5",
+     "upd:anon#2 7.4",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 975
+   },
+   {
+    "t": 40.3,
+    "ms": 135,
+    "at": [
+     -584,
+     2632
+    ],
+    "work": 132,
+    "top": [
+     "render 33.9",
+     "interiors 31.2",
+     "world.step 10.8",
+     "upd:anon#23 8.6",
+     "upd:anon#2 7.4",
+     "vehicles 4.8"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 460
+   },
+   {
+    "t": 40.5,
+    "ms": 206,
+    "at": [
+     -571,
+     2630
+    ],
+    "work": 139,
+    "top": [
+     "render 52.7",
+     "upd:anon#23 13.5",
+     "interiors 12.9",
+     "vehicles 11.5",
+     "world.step 10.8",
+     "upd:update 7.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 443
+   },
+   {
+    "t": 40.6,
+    "ms": 103,
+    "at": [
+     -564,
+     2628
+    ],
+    "work": 94,
+    "top": [
+     "render 28.7",
+     "world.step 11.5",
+     "upd:anon#23 10.7",
+     "upd:anon#2 7.0",
+     "interiors 6.1",
+     "upd:update 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -16,
+    "heapDropMB": 0,
+    "calls": 660
+   },
+   {
+    "t": 40.8,
+    "ms": 131,
+    "at": [
+     -550,
+     2626
+    ],
+    "work": 127,
+    "top": [
+     "render 33.9",
+     "interiors 24.6",
+     "world.step 12.3",
+     "upd:anon#23 10.0",
+     "upd:tick 8.4",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 865
+   },
+   {
+    "t": 41.2,
+    "ms": 117,
+    "at": [
+     -525,
+     2621
+    ],
+    "work": 110,
+    "top": [
+     "render 32.6",
+     "gameplay 14.4",
+     "upd:anon#23 14.3",
+     "world.step 12.8",
+     "upd:anon#2 7.4",
+     "env 5.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 25,
+    "heapDropMB": -9,
+    "calls": 735
+   },
+   {
+    "t": 41.6,
+    "ms": 153,
+    "at": [
+     -505,
+     2608
+    ],
+    "work": 140,
+    "top": [
+     "upd:anon#23 53.1",
+     "render 40.9",
+     "upd:anon#2 14.7",
+     "world.step 9.3",
+     "fixed:vehiclesFixed 4.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 620
+   },
+   {
+    "t": 41.7,
+    "ms": 112,
+    "at": [
+     -502,
+     2602
+    ],
+    "work": 110,
+    "top": [
+     "render 29.2",
+     "upd:anon#2 23.6",
+     "world.step 13.5",
+     "upd:anon#23 11.6",
+     "upd:update 9.6",
+     "upd:groundGrassTick 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 838
+   },
+   {
+    "t": 41.8,
+    "ms": 107,
+    "at": [
+     -500,
+     2595
+    ],
+    "work": 102,
+    "top": [
+     "render 37.4",
+     "world.step 12.4",
+     "upd:anon#2 9.8",
+     "env 9.4",
+     "upd:anon#23 8.2",
+     "peds 4.1"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 1058
+   },
+   {
+    "t": 42,
+    "ms": 185,
+    "at": [
+     -495,
+     2584
+    ],
+    "work": 93,
+    "top": [
+     "render 28.4",
+     "world.step 13.1",
+     "upd:anon#23 11.9",
+     "upd:anon#2 7.6",
+     "env 6.9",
+     "interiors 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 549
+   },
+   {
+    "t": 42.1,
+    "ms": 114,
+    "at": [
+     -492,
+     2577
+    ],
+    "work": 110,
+    "top": [
+     "render 26.1",
+     "world.step 13.2",
+     "upd:anon#23 9.7",
+     "upd:anon#2 8.6",
+     "upd:tick 8.4",
+     "vehicles 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 543
+   },
+   {
+    "t": 42.2,
+    "ms": 104,
+    "at": [
+     -490,
+     2570
+    ],
+    "work": 98,
+    "top": [
+     "render 31.9",
+     "upd:anon#23 13.1",
+     "world.step 12.3",
+     "upd:anon#2 7.6",
+     "vehicles 6.4",
+     "upd:tick 4.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 775
+   },
+   {
+    "t": 42.5,
+    "ms": 108,
+    "at": [
+     -484,
+     2557
+    ],
+    "work": 106,
+    "top": [
+     "render 34.3",
+     "world.step 12.3",
+     "upd:update 12.2",
+     "upd:anon#23 8.9",
+     "upd:anon#2 8.5",
+     "vehicles 6.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 977
+   },
+   {
+    "t": 42.6,
+    "ms": 104,
+    "at": [
+     -480,
+     2552
+    ],
+    "work": 100,
+    "top": [
+     "render 28.1",
+     "upd:anon#2 13.2",
+     "world.step 12.1",
+     "upd:anon#23 9.0",
+     "vehicles 6.4",
+     "peds 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 0,
+    "heapDropMB": -10,
+    "calls": 449
+   },
+   {
+    "t": 43,
+    "ms": 139,
+    "at": [
+     -455,
+     2541
+    ],
+    "work": 116,
+    "top": [
+     "render 49.9",
+     "vehicles 12.7",
+     "world.step 11.7",
+     "upd:anon#23 11.1",
+     "upd:anon#2 7.4",
+     "fixed:vehiclesFixed 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 933
+   },
+   {
+    "t": 43.1,
+    "ms": 130,
+    "at": [
+     -448,
+     2536
+    ],
+    "work": 80,
+    "top": [
+     "render 22.8",
+     "upd:anon#23 16.3",
+     "world.step 9.8",
+     "upd:anon#2 7.2",
+     "upd:update 5.7",
+     "upd:groundGrassTick 2.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 2,
+    "heapDropMB": -233,
+    "calls": 478
+   },
+   {
+    "t": 43.3,
+    "ms": 104,
+    "at": [
+     -439,
+     2527
+    ],
+    "work": 94,
+    "top": [
+     "render 22.8",
+     "upd:anon#23 17.0",
+     "world.step 9.8",
+     "upd:tick 8.7",
+     "upd:anon#2 7.8",
+     "vehicles 6.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 471
+   },
+   {
+    "t": 43.4,
+    "ms": 127,
+    "at": [
+     -433,
+     2521
+    ],
+    "work": 120,
+    "top": [
+     "upd:anon#2 31.3",
+     "render 28.2",
+     "world.step 13.4",
+     "upd:anon#23 9.6",
+     "vehicles 7.3",
+     "env 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": -28,
+    "heapDropMB": 0,
+    "calls": 673
+   },
+   {
+    "t": 43.6,
+    "ms": 190,
+    "at": [
+     -425,
+     2512
+    ],
+    "work": 99,
+    "top": [
+     "render 32.2",
+     "upd:anon#2 10.9",
+     "world.step 10.7",
+     "upd:anon#23 8.7",
+     "vehicles 6.3",
+     "gameplay 5.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 887
+   },
+   {
+    "t": 44.2,
+    "ms": 220,
+    "at": [
+     -402,
+     2481
+    ],
+    "work": 214,
+    "top": [
+     "render 151.1",
+     "upd:anon#2 13.4",
+     "world.step 12.2",
+     "upd:anon#23 9.4",
+     "vehicles 6.5",
+     "interiors 2.3"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 36,
+    "heapDropMB": -16,
+    "calls": 1028
+   },
+   {
+    "t": 44.3,
+    "ms": 103,
+    "at": [
+     -396,
+     2478
+    ],
+    "work": 98,
+    "top": [
+     "render 22.0",
+     "world.step 13.4",
+     "upd:housesTick 12.0",
+     "upd:anon#23 10.4",
+     "upd:anon#2 8.5",
+     "vehicles 4.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 526
+   },
+   {
+    "t": 44.5,
+    "ms": 200,
+    "at": [
+     -385,
+     2470
+    ],
+    "work": 140,
+    "top": [
+     "upd:anon#23 49.0",
+     "render 27.8",
+     "upd:anon#2 14.7",
+     "world.step 11.4",
+     "vehicles 8.8",
+     "upd:groundGrassTick 6.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 527
+   },
+   {
+    "t": 44.6,
+    "ms": 110,
+    "at": [
+     -379,
+     2466
+    ],
+    "work": 107,
+    "top": [
+     "render 30.4",
+     "world.step 11.7",
+     "upd:anon#23 8.9",
+     "gameplay 8.6",
+     "upd:update 7.3",
+     "upd:anon#2 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 26,
+    "heapDropMB": 0,
+    "calls": 749
+   },
+   {
+    "t": 44.7,
+    "ms": 104,
+    "at": [
+     -374,
+     2462
+    ],
+    "work": 92,
+    "top": [
+     "render 24.2",
+     "world.step 14.0",
+     "upd:anon#23 8.5",
+     "upd:tick 8.0",
+     "upd:anon#2 7.3",
+     "upd:anon#46 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 520
+   },
+   {
+    "t": 44.9,
+    "ms": 201,
+    "at": [
+     -363,
+     2455
+    ],
+    "work": 114,
+    "top": [
+     "render 36.5",
+     "world.step 14.6",
+     "upd:anon#23 13.1",
+     "upd:anon#2 10.6",
+     "upd:update 10.2",
+     "upd:housesTick 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 1019
+   },
+   {
+    "t": 45,
+    "ms": 120,
+    "at": [
+     -356,
+     2450
+    ],
+    "work": 110,
+    "top": [
+     "render 47.2",
+     "world.step 12.0",
+     "fixed:vehiclesFixed 9.2",
+     "upd:anon#23 7.7",
+     "upd:anon#2 7.2",
+     "upd:housesTick 4.4"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": 1,
+    "heapDropMB": -9,
+    "calls": 571
+   },
+   {
+    "t": 45.4,
+    "ms": 174,
+    "at": [
+     -346,
+     2435
+    ],
+    "work": 93,
+    "top": [
+     "render 25.0",
+     "upd:anon#23 13.5",
+     "world.step 9.0",
+     "upd:housesTick 7.8",
+     "upd:anon#2 7.4",
+     "upd:update 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -12,
+    "calls": 638
+   },
+   {
+    "t": 45.5,
+    "ms": 110,
+    "at": [
+     -350,
+     2429
+    ],
+    "work": 105,
+    "top": [
+     "render 32.8",
+     "upd:anon#2 19.6",
+     "world.step 11.4",
+     "upd:anon#23 8.4",
+     "upd:housesTick 8.2",
+     "fixed:vehiclesFixed 2.6"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 1108
+   },
+   {
+    "t": 46,
+    "ms": 122,
+    "at": [
+     -356,
+     2398
+    ],
+    "work": 119,
+    "top": [
+     "render 39.9",
+     "world.step 12.3",
+     "upd:housesTick 9.1",
+     "vehicles 8.2",
+     "upd:anon#23 8.1",
+     "upd:anon#2 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 899
+   },
+   {
+    "t": 46.1,
+    "ms": 104,
+    "at": [
+     -354,
+     2392
+    ],
+    "work": 94,
+    "top": [
+     "render 25.4",
+     "world.step 12.9",
+     "upd:anon#23 8.2",
+     "upd:housesTick 7.2",
+     "upd:anon#2 6.9",
+     "vehicles 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 511
+   },
+   {
+    "t": 46.4,
+    "ms": 108,
+    "at": [
+     -347,
+     2374
+    ],
+    "work": 103,
+    "top": [
+     "render 37.1",
+     "world.step 11.2",
+     "upd:anon#23 10.8",
+     "upd:anon#2 7.1",
+     "vehicles 6.7",
+     "upd:housesTick 4.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 36,
+    "heapDropMB": 0,
+    "calls": 727
+   },
+   {
+    "t": 46.6,
+    "ms": 246,
+    "at": [
+     -343,
+     2358
+    ],
+    "work": 157,
+    "top": [
+     "render 40.5",
+     "upd:anon#23 34.6",
+     "upd:anon#2 23.8",
+     "upd:housesTick 19.6",
+     "interiors 8.3",
+     "world.step 7.9"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 995
+   },
+   {
+    "t": 46.8,
+    "ms": 150,
+    "at": [
+     -342,
+     2348
+    ],
+    "work": 128,
+    "top": [
+     "render 32.1",
+     "interiors 16.4",
+     "world.step 12.3",
+     "upd:anon#2 11.8",
+     "upd:update 9.5",
+     "upd:anon#23 8.5"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -21,
+    "calls": 533
+   },
+   {
+    "t": 47.2,
+    "ms": 435,
+    "at": [
+     -341,
+     2319
+    ],
+    "work": 98,
+    "top": [
+     "render 29.5",
+     "interiors 11.9",
+     "world.step 9.7",
+     "upd:anon#2 9.0",
+     "upd:anon#23 7.8",
+     "vehicles 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 4,
+    "newGeo": -45,
+    "heapDropMB": 0,
+    "calls": 506
+   },
+   {
+    "t": 47.5,
+    "ms": 243,
+    "at": [
+     -341,
+     2303
+    ],
+    "work": 121,
+    "top": [
+     "interiors 29.7",
+     "render 24.6",
+     "world.step 11.0",
+     "upd:groundGrassTick 8.7",
+     "upd:anon#23 8.4",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": -4,
+    "newGeo": -68,
+    "heapDropMB": 0,
+    "calls": 629
+   },
+   {
+    "t": 47.6,
+    "ms": 122,
+    "at": [
+     -341,
+     2295
+    ],
+    "work": 113,
+    "top": [
+     "render 32.0",
+     "interiors 14.7",
+     "vehicles 11.6",
+     "upd:anon#23 9.7",
+     "upd:anon#2 8.8",
+     "world.step 8.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 467
+   },
+   {
+    "t": 47.8,
+    "ms": 234,
+    "at": [
+     -341,
+     2279
+    ],
+    "work": 123,
+    "top": [
+     "render 31.0",
+     "upd:anon#2 29.3",
+     "interiors 16.0",
+     "world.step 10.3",
+     "upd:anon#23 9.7",
+     "upd:housesTick 3.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 38,
+    "heapDropMB": -157,
+    "calls": 788
+   },
+   {
+    "t": 48.1,
+    "ms": 293,
+    "at": [
+     -341,
+     2260
+    ],
+    "work": 112,
+    "top": [
+     "interiors 28.7",
+     "render 24.8",
+     "world.step 11.0",
+     "upd:anon#2 9.2",
+     "upd:anon#23 7.9",
+     "upd:tick 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -14,
+    "calls": 480
+   },
+   {
+    "t": 48.3,
+    "ms": 218,
+    "at": [
+     -341,
+     2245
+    ],
+    "work": 92,
+    "top": [
+     "render 18.4",
+     "upd:housesTick 12.0",
+     "world.step 9.6",
+     "interiors 9.3",
+     "upd:anon#2 8.3",
+     "upd:anon#23 7.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 417
+   },
+   {
+    "t": 48.5,
+    "ms": 181,
+    "at": [
+     -341,
+     2233
+    ],
+    "work": 118,
+    "top": [
+     "render 48.0",
+     "interiors 15.6",
+     "world.step 11.3",
+     "upd:anon#2 8.9",
+     "upd:anon#23 7.5",
+     "upd:housesTick 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 460
+   },
+   {
+    "t": 48.7,
+    "ms": 189,
+    "at": [
+     -341,
+     2220
+    ],
+    "work": 106,
+    "top": [
+     "render 40.1",
+     "upd:anon#2 19.4",
+     "world.step 13.4",
+     "upd:anon#23 8.9",
+     "fixed:vehiclesFixed 3.1",
+     "upd:housesTick 3.0"
+    ],
+    "newProgs": 1,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 344
+   },
+   {
+    "t": 48.8,
+    "ms": 132,
+    "at": [
+     -341,
+     2212
+    ],
+    "work": 122,
+    "top": [
+     "render 64.8",
+     "world.step 10.8",
+     "upd:anon#23 8.4",
+     "upd:anon#2 7.5",
+     "interiors 5.1",
+     "upd:housesTick 4.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 35,
+    "heapDropMB": 0,
+    "calls": 493
+   },
+   {
+    "t": 49,
+    "ms": 145,
+    "at": [
+     -341,
+     2202
+    ],
+    "work": 73,
+    "top": [
+     "render 24.7",
+     "world.step 10.4",
+     "upd:anon#23 7.2",
+     "upd:anon#2 6.5",
+     "upd:housesTick 4.7",
+     "fixed:vehiclesFixed 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -6,
+    "heapDropMB": 0,
+    "calls": 345
+   },
+   {
+    "t": 49.1,
+    "ms": 114,
+    "at": [
+     -341,
+     2194
+    ],
+    "work": 95,
+    "top": [
+     "render 33.4",
+     "upd:anon#23 15.9",
+     "upd:anon#2 15.5",
+     "world.step 9.7",
+     "upd:housesTick 3.0",
+     "fixed:vehiclesFixed 2.4"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": -17,
+    "calls": 338
+   },
+   {
+    "t": 49.4,
+    "ms": 120,
+    "at": [
+     -341,
+     2176
+    ],
+    "work": 118,
+    "top": [
+     "render 68.9",
+     "world.step 9.7",
+     "upd:anon#2 8.6",
+     "upd:anon#23 8.5",
+     "upd:housesTick 6.3",
+     "gameplay 2.8"
+    ],
+    "newProgs": 0,
+    "newTex": 15,
+    "newGeo": 5,
+    "heapDropMB": 0,
+    "calls": 495
+   },
+   {
+    "t": 49.5,
+    "ms": 178,
+    "at": [
+     -341,
+     2164
+    ],
+    "work": 84,
+    "top": [
+     "upd:anon#2 25.1",
+     "render 18.3",
+     "world.step 7.8",
+     "upd:anon#23 7.4",
+     "upd:housesTick 3.5",
+     "peds 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": -4,
+    "newGeo": 0,
+    "heapDropMB": -39,
+    "calls": 345
+   },
+   {
+    "t": 50,
+    "ms": 111,
+    "at": [
+     -340,
+     2135
+    ],
+    "work": 103,
+    "top": [
+     "interiors 27.5",
+     "render 23.6",
+     "upd:anon#23 9.7",
+     "world.step 9.0",
+     "upd:anon#2 8.2",
+     "hud 7.7"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": 38,
+    "heapDropMB": 0,
+    "calls": 366
+   },
+   {
+    "t": 50.7,
+    "ms": 636,
+    "at": [
+     -340,
+     2086
+    ],
+    "work": 630,
+    "top": [
+     "interiors 552.6",
+     "render 19.4",
+     "upd:anon#2 19.3",
+     "upd:anon#23 15.0",
+     "world.step 7.0",
+     "hud 2.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 373
+   },
+   {
+    "t": 50.8,
+    "ms": 137,
+    "at": [
+     -340,
+     2077
+    ],
+    "work": 85,
+    "top": [
+     "render 22.4",
+     "world.step 10.6",
+     "interiors 10.0",
+     "upd:anon#2 9.1",
+     "upd:groundGrassTick 8.0",
+     "upd:anon#23 7.3"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": -1,
+    "heapDropMB": 0,
+    "calls": 363
+   },
+   {
+    "t": 51.1,
+    "ms": 214,
+    "at": [
+     -339,
+     2063
+    ],
+    "work": 209,
+    "top": [
+     "interiors 128.0",
+     "render 24.6",
+     "world.step 11.3",
+     "upd:update 8.7",
+     "upd:anon#2 7.7",
+     "upd:anon#23 6.7"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 419
+   },
+   {
+    "t": 51.4,
+    "ms": 168,
+    "at": [
+     -338,
+     2041
+    ],
+    "work": 106,
+    "top": [
+     "upd:anon#2 31.5",
+     "render 23.6",
+     "interiors 11.7",
+     "world.step 9.0",
+     "upd:anon#23 7.6",
+     "upd:anon#46 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": 43,
+    "heapDropMB": 0,
+    "calls": 390
+   },
+   {
+    "t": 51.6,
+    "ms": 173,
+    "at": [
+     -336,
+     2030
+    ],
+    "work": 112,
+    "top": [
+     "render 26.2",
+     "interiors 25.4",
+     "upd:anon#2 17.3",
+     "world.step 8.9",
+     "upd:anon#23 7.8",
+     "peds 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 427
+   },
+   {
+    "t": 51.7,
+    "ms": 154,
+    "at": [
+     -331,
+     2021
+    ],
+    "work": 98,
+    "top": [
+     "render 30.6",
+     "upd:anon#2 14.2",
+     "interiors 10.4",
+     "world.step 10.2",
+     "upd:anon#23 7.3",
+     "peds 3.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 538
+   },
+   {
+    "t": 51.8,
+    "ms": 112,
+    "at": [
+     -331,
+     2014
+    ],
+    "work": 103,
+    "top": [
+     "render 33.0",
+     "interiors 17.3",
+     "world.step 11.4",
+     "upd:anon#2 8.2",
+     "upd:anon#23 6.9",
+     "upd:update 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 32,
+    "heapDropMB": 0,
+    "calls": 365
+   },
+   {
+    "t": 52.1,
+    "ms": 200,
+    "at": [
+     -330,
+     1994
+    ],
+    "work": 108,
+    "top": [
+     "render 23.1",
+     "fixed:vehiclesFixed 22.5",
+     "upd:anon#2 15.2",
+     "interiors 13.0",
+     "world.step 10.9",
+     "upd:anon#23 8.7"
+    ],
+    "newProgs": -2,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -59,
+    "calls": 429
+   },
+   {
+    "t": 52.5,
+    "ms": 362,
+    "at": [
+     -323,
+     1971
+    ],
+    "work": 82,
+    "top": [
+     "render 20.7",
+     "interiors 15.9",
+     "upd:anon#2 9.6",
+     "world.step 9.0",
+     "upd:anon#23 6.8",
+     "peds 2.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -13,
+    "heapDropMB": -28,
+    "calls": 324
+   },
+   {
+    "t": 52.7,
+    "ms": 187,
+    "at": [
+     -319,
+     1959
+    ],
+    "work": 104,
+    "top": [
+     "render 37.3",
+     "world.step 12.0",
+     "interiors 11.5",
+     "upd:anon#2 7.9",
+     "upd:anon#23 6.8",
+     "upd:groundGrassTick 5.2"
+    ],
+    "newProgs": 2,
+    "newTex": -6,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 387
+   },
+   {
+    "t": 52.8,
+    "ms": 137,
+    "at": [
+     -316,
+     1950
+    ],
+    "work": 106,
+    "top": [
+     "render 24.0",
+     "interiors 16.5",
+     "world.step 14.3",
+     "upd:anon#23 12.1",
+     "upd:anon#2 11.7",
+     "hud 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 294
+   },
+   {
+    "t": 53.1,
+    "ms": 208,
+    "at": [
+     -309,
+     1932
+    ],
+    "work": 93,
+    "top": [
+     "upd:anon#2 29.1",
+     "render 22.5",
+     "world.step 8.5",
+     "interiors 8.3",
+     "upd:anon#23 7.7",
+     "peds 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -10,
+    "calls": 298
+   },
+   {
+    "t": 53.2,
+    "ms": 118,
+    "at": [
+     -306,
+     1925
+    ],
+    "work": 110,
+    "top": [
+     "render 25.8",
+     "interiors 23.9",
+     "upd:anon#2 14.6",
+     "world.step 10.2",
+     "upd:anon#23 8.6",
+     "peds 3.1"
+    ],
+    "newProgs": 2,
+    "newTex": 11,
+    "newGeo": -24,
+    "heapDropMB": 0,
+    "calls": 352
+   },
+   {
+    "t": 53.4,
+    "ms": 153,
+    "at": [
+     -303,
+     1915
+    ],
+    "work": 84,
+    "top": [
+     "render 29.7",
+     "interiors 9.7",
+     "upd:anon#2 8.0",
+     "world.step 7.9",
+     "upd:anon#23 6.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 31,
+    "heapDropMB": 0,
+    "calls": 427
+   },
+   {
+    "t": 53.5,
+    "ms": 174,
+    "at": [
+     -299,
+     1904
+    ],
+    "work": 125,
+    "top": [
+     "world.step 40.4",
+     "render 39.5",
+     "upd:anon#2 7.8",
+     "upd:anon#23 6.7",
+     "interiors 5.6",
+     "hud 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 342
+   },
+   {
+    "t": 53.8,
+    "ms": 287,
+    "at": [
+     -292,
+     1886
+    ],
+    "work": 91,
+    "top": [
+     "render 20.9",
+     "world.step 17.0",
+     "upd:anon#23 11.8",
+     "upd:anon#2 11.6",
+     "interiors 10.5",
+     "upd:groundGrassTick 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 327
+   },
+   {
+    "t": 54,
+    "ms": 215,
+    "at": [
+     -287,
+     1873
+    ],
+    "work": 96,
+    "top": [
+     "render 22.3",
+     "interiors 16.8",
+     "world.step 11.6",
+     "upd:anon#2 7.7",
+     "upd:anon#23 7.0",
+     "upd:update 5.2"
+    ],
+    "newProgs": 6,
+    "newTex": 0,
+    "newGeo": -74,
+    "heapDropMB": -115,
+    "calls": 357
+   },
+   {
+    "t": 54.3,
+    "ms": 261,
+    "at": [
+     -282,
+     1856
+    ],
+    "work": 75,
+    "top": [
+     "render 19.5",
+     "interiors 12.9",
+     "world.step 9.7",
+     "upd:anon#23 8.6",
+     "upd:anon#2 7.0",
+     "upd:groundMaskTick 2.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 16,
+    "heapDropMB": 0,
+    "calls": 330
+   },
+   {
+    "t": 54.5,
+    "ms": 145,
+    "at": [
+     -279,
+     1847
+    ],
+    "work": 131,
+    "top": [
+     "upd:anon#2 34.4",
+     "interiors 31.7",
+     "render 28.4",
+     "world.step 8.8",
+     "upd:anon#23 7.0",
+     "upd:groundGrassTick 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": -48,
+    "heapDropMB": 0,
+    "calls": 455
+   },
+   {
+    "t": 54.6,
+    "ms": 190,
+    "at": [
+     -277,
+     1834
+    ],
+    "work": 77,
+    "top": [
+     "render 20.7",
+     "upd:anon#2 14.6",
+     "interiors 10.5",
+     "world.step 8.0",
+     "upd:anon#23 7.1",
+     "upd:groundGrassTick 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 309
+   },
+   {
+    "t": 54.8,
+    "ms": 142,
+    "at": [
+     -275,
+     1825
+    ],
+    "work": 138,
+    "top": [
+     "render 60.6",
+     "interiors 13.4",
+     "world.step 11.8",
+     "upd:anon#2 11.6",
+     "upd:anon#23 7.0",
+     "gameplay 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 12,
+    "newGeo": 8,
+    "heapDropMB": 0,
+    "calls": 321
+   },
+   {
+    "t": 54.9,
+    "ms": 116,
+    "at": [
+     -274,
+     1818
+    ],
+    "work": 115,
+    "top": [
+     "fixed:vehiclesFixed 33.7",
+     "render 23.5",
+     "interiors 16.3",
+     "world.step 11.6",
+     "upd:anon#2 7.8",
+     "upd:anon#23 7.3"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -31,
+    "calls": 344
+   },
+   {
+    "t": 55,
+    "ms": 116,
+    "at": [
+     -272,
+     1810
+    ],
+    "work": 109,
+    "top": [
+     "interiors 29.9",
+     "render 19.7",
+     "world.step 10.9",
+     "upd:anon#23 9.2",
+     "upd:anon#2 7.7",
+     "upd:groundGrassTick 6.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -12,
+    "calls": 300
+   },
+   {
+    "t": 55.2,
+    "ms": 215,
+    "at": [
+     -269,
+     1796
+    ],
+    "work": 97,
+    "top": [
+     "render 35.0",
+     "interiors 18.2",
+     "upd:anon#2 13.0",
+     "world.step 8.1",
+     "upd:anon#23 6.6",
+     "fixed:vehiclesFixed 2.8"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 377
+   },
+   {
+    "t": 55.4,
+    "ms": 120,
+    "at": [
+     -268,
+     1788
+    ],
+    "work": 113,
+    "top": [
+     "render 23.0",
+     "interiors 18.4",
+     "upd:anon#2 13.9",
+     "world.step 11.1",
+     "upd:anon#23 7.3",
+     "upd:groundGrassTick 5.3"
+    ],
+    "newProgs": -6,
+    "newTex": 0,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 295
+   },
+   {
+    "t": 55.5,
+    "ms": 174,
+    "at": [
+     -265,
+     1777
+    ],
+    "work": 120,
+    "top": [
+     "upd:anon#2 50.8",
+     "render 22.6",
+     "interiors 11.4",
+     "world.step 10.6",
+     "upd:anon#23 7.2",
+     "fixed:vehiclesFixed 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 25,
+    "heapDropMB": -64,
+    "calls": 322
+   },
+   {
+    "t": 55.6,
+    "ms": 101,
+    "at": [
+     -263,
+     1771
+    ],
+    "work": 94,
+    "top": [
+     "interiors 24.7",
+     "render 24.4",
+     "world.step 10.2",
+     "upd:anon#23 7.0",
+     "upd:anon#2 6.1",
+     "upd:unstuckTick 2.8"
+    ],
+    "newProgs": -1,
+    "newTex": 0,
+    "newGeo": -39,
+    "heapDropMB": 0,
+    "calls": 353
+   },
+   {
+    "t": 56.1,
+    "ms": 366,
+    "at": [
+     -252,
+     1742
+    ],
+    "work": 360,
+    "top": [
+     "interiors 278.6",
+     "render 37.2",
+     "world.step 9.3",
+     "upd:anon#23 6.6",
+     "upd:update 5.3",
+     "upd:anon#2 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 58,
+    "heapDropMB": 0,
+    "calls": 442
+   },
+   {
+    "t": 56.3,
+    "ms": 207,
+    "at": [
+     -248,
+     1730
+    ],
+    "work": 136,
+    "top": [
+     "interiors 74.4",
+     "render 16.0",
+     "world.step 10.1",
+     "upd:anon#23 6.6",
+     "upd:anon#2 5.0",
+     "upd:groundGrassTick 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -42,
+    "heapDropMB": -40,
+    "calls": 293
+   },
+   {
+    "t": 56.5,
+    "ms": 157,
+    "at": [
+     -242,
+     1714
+    ],
+    "work": 66,
+    "top": [
+     "render 15.8",
+     "interiors 14.2",
+     "world.step 7.5",
+     "upd:anon#23 7.3",
+     "upd:anon#2 4.5",
+     "fixed:vehiclesFixed 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": -5,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 317
+   },
+   {
+    "t": 56.9,
+    "ms": 160,
+    "at": [
+     -235,
+     1694
+    ],
+    "work": 154,
+    "top": [
+     "upd:update 74.6",
+     "render 25.9",
+     "interiors 16.1",
+     "world.step 8.3",
+     "upd:anon#23 6.9",
+     "upd:anon#2 5.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 305
+   },
+   {
+    "t": 57,
+    "ms": 121,
+    "at": [
+     -232,
+     1686
+    ],
+    "work": 118,
+    "top": [
+     "interiors 32.2",
+     "upd:anon#2 21.2",
+     "render 20.0",
+     "world.step 10.0",
+     "upd:anon#23 6.6",
+     "hud 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 296
+   },
+   {
+    "t": 57.2,
+    "ms": 146,
+    "at": [
+     -226,
+     1671
+    ],
+    "work": 70,
+    "top": [
+     "render 21.9",
+     "interiors 12.1",
+     "world.step 9.0",
+     "upd:anon#23 6.7",
+     "upd:anon#2 4.5",
+     "fixed:vehiclesFixed 2.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -39,
+    "calls": 400
+   },
+   {
+    "t": 57.6,
+    "ms": 360,
+    "at": [
+     -222,
+     1648
+    ],
+    "work": 86,
+    "top": [
+     "render 22.7",
+     "interiors 18.0",
+     "world.step 10.0",
+     "upd:anon#2 8.3",
+     "upd:anon#23 8.2",
+     "upd:groundMaskTick 3.1"
+    ],
+    "newProgs": 1,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -17,
+    "calls": 440
+   },
+   {
+    "t": 57.7,
+    "ms": 137,
+    "at": [
+     -221,
+     1639
+    ],
+    "work": 124,
+    "top": [
+     "interiors 39.0",
+     "render 19.3",
+     "upd:anon#2 13.2",
+     "world.step 11.5",
+     "upd:anon#23 9.7",
+     "hud 6.7"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": -33,
+    "heapDropMB": 0,
+    "calls": 330
+   },
+   {
+    "t": 58.6,
+    "ms": 854,
+    "at": [
+     -215,
+     1582
+    ],
+    "work": 847,
+    "top": [
+     "interiors 760.4",
+     "render 20.9",
+     "upd:update 17.2",
+     "world.step 10.7",
+     "upd:anon#2 9.4",
+     "upd:anon#23 7.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -13,
+    "calls": 321
+   },
+   {
+    "t": 58.8,
+    "ms": 245,
+    "at": [
+     -213,
+     1566
+    ],
+    "work": 106,
+    "top": [
+     "interiors 26.8",
+     "render 21.8",
+     "world.step 12.1",
+     "upd:groundGrassTick 8.8",
+     "upd:anon#2 7.1",
+     "upd:anon#23 6.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": -31,
+    "heapDropMB": 0,
+    "calls": 299
+   },
+   {
+    "t": 58.9,
+    "ms": 118,
+    "at": [
+     -210,
+     1559
+    ],
+    "work": 92,
+    "top": [
+     "render 23.0",
+     "interiors 17.2",
+     "upd:anon#2 11.8",
+     "world.step 11.7",
+     "upd:anon#23 7.3",
+     "fixed:vehiclesFixed 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 282
+   },
+   {
+    "t": 59.3,
+    "ms": 373,
+    "at": [
+     -200,
+     1536
+    ],
+    "work": 368,
+    "top": [
+     "upd:anon#2 279.7",
+     "render 26.4",
+     "interiors 14.9",
+     "world.step 10.5",
+     "upd:anon#23 7.7",
+     "peds 5.1"
+    ],
+    "newProgs": 1,
+    "newTex": 3,
+    "newGeo": -17,
+    "heapDropMB": 0,
+    "calls": 320
+   },
+   {
+    "t": 59.7,
+    "ms": 444,
+    "at": [
+     -188,
+     1508
+    ],
+    "work": 113,
+    "top": [
+     "interiors 29.1",
+     "render 26.6",
+     "world.step 9.3",
+     "upd:anon#23 8.4",
+     "upd:anon#2 7.3",
+     "peds 6.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 11,
+    "heapDropMB": 0,
+    "calls": 320
+   },
+   {
+    "t": 61.3,
+    "ms": 1512,
+    "at": [
+     -161,
+     1412
+    ],
+    "work": 1227,
+    "top": [
+     "interiors 1129.7",
+     "upd:anon#0 24.4",
+     "render 19.8",
+     "world.step 9.3",
+     "upd:anon#23 8.4",
+     "upd:anon#2 8.3"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -20,
+    "calls": 291
+   },
+   {
+    "t": 61.4,
+    "ms": 110,
+    "at": [
+     -160,
+     1404
+    ],
+    "work": 100,
+    "top": [
+     "render 23.3",
+     "interiors 12.2",
+     "upd:groundGrassTick 8.7",
+     "world.step 7.7",
+     "upd:anon#23 7.6",
+     "upd:anon#2 7.2"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": -26,
+    "heapDropMB": 0,
+    "calls": 358
+   },
+   {
+    "t": 61.6,
+    "ms": 256,
+    "at": [
+     -156,
+     1388
+    ],
+    "work": 82,
+    "top": [
+     "render 22.4",
+     "interiors 12.8",
+     "world.step 10.6",
+     "upd:anon#2 7.0",
+     "upd:anon#23 6.8",
+     "fixed:vehiclesFixed 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 271
+   },
+   {
+    "t": 61.8,
+    "ms": 165,
+    "at": [
+     -153,
+     1378
+    ],
+    "work": 90,
+    "top": [
+     "render 32.0",
+     "upd:anon#2 9.1",
+     "world.step 8.2",
+     "interiors 7.9",
+     "upd:anon#23 6.8",
+     "upd:groundGrassTick 5.4"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": -15,
+    "heapDropMB": 0,
+    "calls": 354
+   },
+   {
+    "t": 61.9,
+    "ms": 130,
+    "at": [
+     -146,
+     1372
+    ],
+    "work": 116,
+    "top": [
+     "peds 28.0",
+     "render 22.8",
+     "upd:anon#2 16.8",
+     "upd:anon#23 10.1",
+     "world.step 7.9",
+     "interiors 6.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 293
+   },
+   {
+    "t": 62,
+    "ms": 102,
+    "at": [
+     -140,
+     1368
+    ],
+    "work": 93,
+    "top": [
+     "render 22.0",
+     "upd:anon#2 15.4",
+     "interiors 13.6",
+     "world.step 8.3",
+     "upd:anon#23 7.8",
+     "hud 7.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 307
+   },
+   {
+    "t": 62.1,
+    "ms": 123,
+    "at": [
+     -136,
+     1362
+    ],
+    "work": 104,
+    "top": [
+     "render 47.1",
+     "world.step 8.3",
+     "upd:anon#2 8.0",
+     "upd:anon#23 7.2",
+     "interiors 6.7",
+     "hud 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -41,
+    "calls": 346
+   },
+   {
+    "t": 62.3,
+    "ms": 116,
+    "at": [
+     -134,
+     1354
+    ],
+    "work": 112,
+    "top": [
+     "upd:anon#2 35.4",
+     "render 23.3",
+     "gameplay 8.1",
+     "upd:anon#23 8.0",
+     "world.step 7.9",
+     "interiors 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 327
+   },
+   {
+    "t": 62.6,
+    "ms": 364,
+    "at": [
+     -130,
+     1330
+    ],
+    "work": 92,
+    "top": [
+     "render 29.7",
+     "upd:anon#2 17.9",
+     "world.step 8.4",
+     "upd:anon#23 7.4",
+     "peds 6.1",
+     "fixed:vehiclesFixed 4.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -26,
+    "calls": 390
+   },
+   {
+    "t": 63.3,
+    "ms": 126,
+    "at": [
+     -119,
+     1285
+    ],
+    "work": 121,
+    "top": [
+     "interiors 42.9",
+     "render 27.1",
+     "upd:anon#2 8.6",
+     "gameplay 8.6",
+     "upd:anon#23 7.3",
+     "world.step 7.0"
+    ],
+    "newProgs": 0,
+    "newTex": -6,
+    "newGeo": -28,
+    "heapDropMB": 0,
+    "calls": 327
+   },
+   {
+    "t": 63.6,
+    "ms": 236,
+    "at": [
+     -111,
+     1272
+    ],
+    "work": 113,
+    "top": [
+     "interiors 46.8",
+     "render 23.0",
+     "world.step 8.6",
+     "upd:anon#2 7.9",
+     "upd:anon#23 7.4",
+     "fixed:vehiclesFixed 3.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -23,
+    "calls": 372
+   },
+   {
+    "t": 63.7,
+    "ms": 113,
+    "at": [
+     -108,
+     1265
+    ],
+    "work": 83,
+    "top": [
+     "render 28.9",
+     "interiors 9.1",
+     "world.step 8.2",
+     "upd:anon#23 7.6",
+     "upd:anon#2 7.1",
+     "fixed:vehiclesFixed 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 398
+   },
+   {
+    "t": 64.1,
+    "ms": 351,
+    "at": [
+     -99,
+     1238
+    ],
+    "work": 344,
+    "top": [
+     "upd:anon#2 265.1",
+     "render 26.8",
+     "interiors 12.7",
+     "world.step 8.0",
+     "upd:anon#23 7.5",
+     "peds 5.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 30,
+    "heapDropMB": 0,
+    "calls": 367
+   },
+   {
+    "t": 64.2,
+    "ms": 136,
+    "at": [
+     -97,
+     1229
+    ],
+    "work": 128,
+    "top": [
+     "render 63.2",
+     "interiors 13.6",
+     "upd:anon#2 12.2",
+     "world.step 8.9",
+     "upd:anon#23 8.8",
+     "upd:groundGrassTick 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 9,
+    "newGeo": -32,
+    "heapDropMB": 0,
+    "calls": 354
+   },
+   {
+    "t": 64.4,
+    "ms": 115,
+    "at": [
+     -96,
+     1222
+    ],
+    "work": 72,
+    "top": [
+     "render 25.0",
+     "world.step 7.9",
+     "interiors 7.6",
+     "upd:anon#2 7.4",
+     "upd:anon#23 7.1",
+     "fixed:vehiclesFixed 2.3"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 390
+   },
+   {
+    "t": 64.6,
+    "ms": 215,
+    "at": [
+     -94,
+     1208
+    ],
+    "work": 207,
+    "top": [
+     "interiors 123.4",
+     "render 27.2",
+     "upd:anon#2 10.0",
+     "world.step 9.6",
+     "upd:anon#23 7.7",
+     "upd:tick 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -27,
+    "calls": 436
+   },
+   {
+    "t": 65,
+    "ms": 262,
+    "at": [
+     -89,
+     1179
+    ],
+    "work": 258,
+    "top": [
+     "upd:groundGrassTick 177.8",
+     "render 22.9",
+     "upd:gangsTick 8.8",
+     "interiors 8.6",
+     "upd:anon#23 7.9",
+     "upd:anon#2 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 330
+   },
+   {
+    "t": 65.5,
+    "ms": 274,
+    "at": [
+     -84,
+     1146
+    ],
+    "work": 258,
+    "top": [
+     "fixed:vehiclesFixed 196.8",
+     "render 22.4",
+     "world.step 9.0",
+     "upd:anon#23 7.3",
+     "upd:anon#46 5.8",
+     "upd:anon#2 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 345
+   },
+   {
+    "t": 65.8,
+    "ms": 300,
+    "at": [
+     -81,
+     1127
+    ],
+    "work": 91,
+    "top": [
+     "render 25.3",
+     "hud 14.6",
+     "world.step 8.5",
+     "upd:anon#2 8.5",
+     "upd:anon#23 7.7",
+     "upd:update 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 392
+   },
+   {
+    "t": 66.3,
+    "ms": 304,
+    "at": [
+     -65,
+     1095
+    ],
+    "work": 280,
+    "top": [
+     "vehicles 215.5",
+     "render 22.7",
+     "upd:anon#23 7.6",
+     "world.step 7.0",
+     "upd:anon#2 3.9",
+     "upd:tick 3.0"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 0,
+    "heapDropMB": -23,
+    "calls": 392
+   },
+   {
+    "t": 67.1,
+    "ms": 287,
+    "at": [
+     -40,
+     1051
+    ],
+    "work": 280,
+    "top": [
+     "peds 212.7",
+     "render 25.6",
+     "upd:anon#23 10.2",
+     "world.step 7.1",
+     "vehicles 6.3",
+     "upd:anon#2 4.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -18,
+    "calls": 415
+   },
+   {
+    "t": 67.8,
+    "ms": 436,
+    "at": [
+     -17,
+     1011
+    ],
+    "work": 433,
+    "top": [
+     "interiors 333.4",
+     "render 28.1",
+     "upd:anon#2 24.0",
+     "gameplay 11.7",
+     "upd:anon#23 7.5",
+     "world.step 6.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 456
+   },
+   {
+    "t": 68,
+    "ms": 169,
+    "at": [
+     -12,
+     1001
+    ],
+    "work": 116,
+    "top": [
+     "render 32.3",
+     "upd:anon#23 12.1",
+     "interiors 11.1",
+     "world.step 9.7",
+     "vehicles 7.7",
+     "upd:groundGrassTick 7.6"
+    ],
+    "newProgs": 1,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -10,
+    "calls": 492
+   },
+   {
+    "t": 68.1,
+    "ms": 109,
+    "at": [
+     -8,
+     994
+    ],
+    "work": 106,
+    "top": [
+     "render 31.3",
+     "world.step 11.9",
+     "upd:anon#2 11.6",
+     "interiors 10.3",
+     "upd:anon#23 7.6",
+     "vehicles 6.3"
+    ],
+    "newProgs": 0,
+    "newTex": -3,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 740
+   },
+   {
+    "t": 68.2,
+    "ms": 109,
+    "at": [
+     -5,
+     988
+    ],
+    "work": 105,
+    "top": [
+     "render 37.9",
+     "interiors 15.6",
+     "world.step 9.9",
+     "upd:anon#23 7.6",
+     "upd:anon#2 7.5",
+     "vehicles 6.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 16,
+    "heapDropMB": -13,
+    "calls": 1000
+   },
+   {
+    "t": 68.6,
+    "ms": 356,
+    "at": [
+     10,
+     962
+    ],
+    "work": 351,
+    "top": [
+     "vehicles 280.2",
+     "render 20.6",
+     "upd:anon#23 10.9",
+     "world.step 10.3",
+     "upd:anon#2 7.1",
+     "upd:groundGrassTick 5.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -24,
+    "calls": 503
+   },
+   {
+    "t": 68.7,
+    "ms": 113,
+    "at": [
+     13,
+     956
+    ],
+    "work": 107,
+    "top": [
+     "render 40.6",
+     "vehicles 15.0",
+     "world.step 11.6",
+     "upd:anon#23 8.5",
+     "upd:groundGrassTick 5.0",
+     "fixed:vehiclesFixed 4.5"
+    ],
+    "newProgs": 5,
+    "newTex": 0,
+    "newGeo": -38,
+    "heapDropMB": 0,
+    "calls": 496
+   },
+   {
+    "t": 68.9,
+    "ms": 104,
+    "at": [
+     19,
+     945
+    ],
+    "work": 94,
+    "top": [
+     "render 36.5",
+     "world.step 11.8",
+     "upd:anon#23 7.8",
+     "vehicles 6.4",
+     "gameplay 5.8",
+     "upd:anon#2 4.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -15,
+    "calls": 956
+   },
+   {
+    "t": 69.4,
+    "ms": 396,
+    "at": [
+     35,
+     916
+    ],
+    "work": 394,
+    "top": [
+     "vehicles 314.9",
+     "render 24.5",
+     "world.step 11.7",
+     "upd:anon#23 9.1",
+     "upd:update 7.4",
+     "upd:anon#2 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -19,
+    "calls": 494
+   },
+   {
+    "t": 69.7,
+    "ms": 108,
+    "at": [
+     44,
+     899
+    ],
+    "work": 104,
+    "top": [
+     "render 40.0",
+     "world.step 14.8",
+     "upd:anon#23 9.4",
+     "upd:anon#2 8.8",
+     "vehicles 6.3",
+     "fixed:vehiclesFixed 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": -2,
+    "newGeo": 0,
+    "heapDropMB": -18,
+    "calls": 932
+   },
+   {
+    "t": 70.4,
+    "ms": 465,
+    "at": [
+     68,
+     857
+    ],
+    "work": 99,
+    "top": [
+     "render 33.9",
+     "upd:anon#23 13.5",
+     "world.step 11.8",
+     "vehicles 7.2",
+     "peds 6.0",
+     "upd:anon#2 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 594
+   },
+   {
+    "t": 70.5,
+    "ms": 101,
+    "at": [
+     74,
+     854
+    ],
+    "work": 94,
+    "top": [
+     "render 37.7",
+     "world.step 12.8",
+     "upd:anon#23 7.4",
+     "upd:groundGrassTick 7.2",
+     "vehicles 6.7",
+     "upd:anon#2 4.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -15,
+    "calls": 826
+   },
+   {
+    "t": 70.8,
+    "ms": 100,
+    "at": [
+     90,
+     846
+    ],
+    "work": 97,
+    "top": [
+     "render 33.1",
+     "world.step 13.4",
+     "upd:anon#23 13.3",
+     "upd:anon#2 10.7",
+     "vehicles 6.7",
+     "upd:anon#46 2.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -12,
+    "calls": 437
+   },
+   {
+    "t": 71.3,
+    "ms": 458,
+    "at": [
+     113,
+     826
+    ],
+    "work": 452,
+    "top": [
+     "vehicles 252.7",
+     "upd:update 113.9",
+     "render 35.0",
+     "world.step 12.2",
+     "upd:anon#23 10.3",
+     "upd:anon#2 5.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -17,
+    "calls": 664
+   },
+   {
+    "t": 71.9,
+    "ms": 128,
+    "at": [
+     132,
+     792
+    ],
+    "work": 127,
+    "top": [
+     "render 46.5",
+     "upd:update 28.9",
+     "world.step 11.8",
+     "upd:anon#23 8.8",
+     "upd:anon#2 6.8",
+     "upd:detailCullTick 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 3,
+    "heapDropMB": -21,
+    "calls": 934
+   },
+   {
+    "t": 72.4,
+    "ms": 387,
+    "at": [
+     132,
+     755
+    ],
+    "work": 84,
+    "top": [
+     "upd:update 33.7",
+     "render 19.9",
+     "upd:anon#23 8.9",
+     "world.step 5.3",
+     "upd:anon#2 3.9"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 505
+   },
+   {
+    "t": 72.8,
+    "ms": 346,
+    "at": [
+     133,
+     732
+    ],
+    "work": 289,
+    "top": [
+     "render 113.0",
+     "gameplay 39.6",
+     "upd:groundGrassTick 23.1",
+     "audio 20.8",
+     "upd:anon#2 13.2",
+     "upd:anon#23 13.0"
+    ],
+    "newProgs": 2,
+    "newTex": -2,
+    "newGeo": 5,
+    "heapDropMB": 0,
+    "calls": 780
+   },
+   {
+    "t": 73.1,
+    "ms": 291,
+    "at": [
+     134,
+     713
+    ],
+    "work": 279,
+    "top": [
+     "render 109.9",
+     "upd:anon#2 36.3",
+     "hud 32.7",
+     "fixed:vehiclesFixed 29.0",
+     "fixed:boatsFixed 24.2",
+     "world.step 10.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -26,
+    "calls": 1031
+   },
+   {
+    "t": 73.6,
+    "ms": 371,
+    "at": [
+     136,
+     678
+    ],
+    "work": 367,
+    "top": [
+     "upd:anon#23 310.1",
+     "render 20.4",
+     "upd:groundGrassTick 7.3",
+     "upd:anon#2 7.2",
+     "world.step 6.2",
+     "upd:groundMaskTick 2.3"
+    ],
+    "newProgs": -1,
+    "newTex": 0,
+    "newGeo": -32,
+    "heapDropMB": 0,
+    "calls": 225
+   },
+   {
+    "t": 74,
+    "ms": 365,
+    "at": [
+     138,
+     649
+    ],
+    "work": 63,
+    "top": [
+     "render 21.8",
+     "upd:anon#2 8.3",
+     "world.step 7.4",
+     "upd:anon#23 6.6",
+     "env 3.0",
+     "fixed:vehiclesFixed 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -39,
+    "calls": 249
+   },
+   {
+    "t": 74.2,
+    "ms": 101,
+    "at": [
+     139,
+     636
+    ],
+    "work": 98,
+    "top": [
+     "render 29.2",
+     "upd:update 22.7",
+     "world.step 9.3",
+     "upd:anon#23 6.7",
+     "hud 5.7",
+     "upd:anon#2 4.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 1,
+    "heapDropMB": -22,
+    "calls": 224
+   },
+   {
+    "t": 74.8,
+    "ms": 244,
+    "at": [
+     141,
+     600
+    ],
+    "work": 53,
+    "top": [
+     "render 17.0",
+     "upd:anon#23 10.9",
+     "gameplay 7.9",
+     "upd:anon#2 4.0",
+     "world.step 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 217
+   },
+   {
+    "t": 75.5,
+    "ms": 121,
+    "at": [
+     158,
+     556
+    ],
+    "work": 116,
+    "top": [
+     "upd:update 60.1",
+     "render 24.6",
+     "upd:anon#23 9.0",
+     "world.step 6.4",
+     "upd:anon#2 3.7",
+     "upd:anon#46 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 242
+   },
+   {
+    "t": 75.8,
+    "ms": 283,
+    "at": [
+     171,
+     537
+    ],
+    "work": 50,
+    "top": [
+     "render 19.1",
+     "upd:anon#23 10.1",
+     "world.step 5.0",
+     "upd:anon#2 3.8",
+     "upd:anon#46 2.8"
+    ],
+    "newProgs": 1,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -10,
+    "calls": 218
+   },
+   {
+    "t": 76.4,
+    "ms": 256,
+    "at": [
+     176,
+     500
+    ],
+    "work": 255,
+    "top": [
+     "upd:update 209.7",
+     "render 14.6",
+     "upd:anon#23 7.1",
+     "world.step 6.8",
+     "upd:anon#2 4.2",
+     "upd:unstuckTick 2.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -14,
+    "calls": 224
+   },
+   {
+    "t": 76.8,
+    "ms": 272,
+    "at": [
+     169,
+     477
+    ],
+    "work": 271,
+    "top": [
+     "upd:anon#23 232.9",
+     "render 14.5",
+     "upd:anon#2 11.5",
+     "upd:anon#46 3.2",
+     "world.step 2.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -29,
+    "calls": 224
+   },
+   {
+    "t": 77.3,
+    "ms": 271,
+    "at": [
+     165,
+     445
+    ],
+    "work": 267,
+    "top": [
+     "upd:update 210.8",
+     "render 16.8",
+     "world.step 9.5",
+     "upd:anon#2 9.4",
+     "upd:anon#23 8.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -9,
+    "calls": 222
+   },
+   {
+    "t": 77.5,
+    "ms": 165,
+    "at": [
+     168,
+     429
+    ],
+    "work": 52,
+    "top": [
+     "render 18.8",
+     "world.step 8.4",
+     "upd:anon#23 6.6",
+     "upd:anon#2 3.7",
+     "upd:unstuckTick 2.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 218
+   },
+   {
+    "t": 77.9,
+    "ms": 383,
+    "at": [
+     164,
+     404
+    ],
+    "work": 52,
+    "top": [
+     "render 20.5",
+     "upd:anon#23 8.0",
+     "world.step 6.9",
+     "upd:anon#2 3.5",
+     "upd:anon#46 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 242
+   },
+   {
+    "t": 78.1,
+    "ms": 192,
+    "at": [
+     162,
+     391
+    ],
+    "work": 49,
+    "top": [
+     "render 14.4",
+     "upd:anon#23 6.7",
+     "world.step 6.1",
+     "upd:anon#2 3.7",
+     "upd:unstuckTick 2.6",
+     "upd:anon#46 2.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 218
+   },
+   {
+    "t": 78.8,
+    "ms": 399,
+    "at": [
+     173,
+     349
+    ],
+    "work": 43,
+    "top": [
+     "render 15.1",
+     "upd:anon#23 6.4",
+     "world.step 4.9",
+     "upd:anon#2 3.3",
+     "upd:anon#46 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -26,
+    "calls": 214
+   },
+   {
+    "t": 79,
+    "ms": 201,
+    "at": [
+     172,
+     336
+    ],
+    "work": 64,
+    "top": [
+     "render 18.1",
+     "upd:anon#2 9.8",
+     "world.step 9.0",
+     "upd:anon#23 8.0",
+     "fixed:vehiclesFixed 2.8",
+     "gameplay 2.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 216
+   },
+   {
+    "t": 79.2,
+    "ms": 213,
+    "at": [
+     171,
+     322
+    ],
+    "work": 57,
+    "top": [
+     "render 20.2",
+     "world.step 9.9",
+     "upd:anon#23 6.9",
+     "upd:anon#2 4.0",
+     "upd:anon#46 3.2",
+     "fixed:vehiclesFixed 2.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 215
+   },
+   {
+    "t": 79.3,
+    "ms": 123,
+    "at": [
+     170,
+     313
+    ],
+    "work": 118,
+    "top": [
+     "upd:update 50.0",
+     "render 20.5",
+     "world.step 12.4",
+     "upd:anon#23 9.4",
+     "upd:anon#2 4.7",
+     "fixed:vehiclesFixed 3.5"
+    ],
+    "newProgs": 0,
+    "newTex": -6,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 227
+   },
+   {
+    "t": 79.4,
+    "ms": 100,
+    "at": [
+     170,
+     307
+    ],
+    "work": 98,
+    "top": [
+     "upd:anon#2 39.1",
+     "render 22.5",
+     "world.step 9.2",
+     "upd:anon#23 6.9",
+     "fixed:vehiclesFixed 4.3",
+     "env 3.0"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 237
+   },
+   {
+    "t": 79.6,
+    "ms": 201,
+    "at": [
+     169,
+     293
+    ],
+    "work": 188,
+    "top": [
+     "render 148.2",
+     "world.step 9.5",
+     "upd:anon#23 6.9",
+     "upd:anon#2 4.8",
+     "fixed:vehiclesFixed 3.2",
+     "upd:unstuckTick 2.1"
+    ],
+    "newProgs": 3,
+    "newTex": 12,
+    "newGeo": 6,
+    "heapDropMB": 0,
+    "calls": 229
+   },
+   {
+    "t": 80,
+    "ms": 316,
+    "at": [
+     167,
+     272
+    ],
+    "work": 308,
+    "top": [
+     "upd:anon#2 254.2",
+     "render 16.6",
+     "world.step 8.5",
+     "fixed:vehiclesFixed 6.6",
+     "upd:anon#23 6.6",
+     "upd:tick 2.2"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": -34,
+    "calls": 229
+   },
+   {
+    "t": 80.5,
+    "ms": 442,
+    "at": [
+     167,
+     234
+    ],
+    "work": 178,
+    "top": [
+     "upd:update 117.5",
+     "render 22.6",
+     "upd:anon#23 9.7",
+     "world.step 8.7",
+     "upd:anon#2 3.7",
+     "fixed:vehiclesFixed 2.6"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 253
+   },
+   {
+    "t": 81,
+    "ms": 370,
+    "at": [
+     167,
+     204
+    ],
+    "work": 369,
+    "top": [
+     "hud 304.8",
+     "render 22.6",
+     "world.step 8.9",
+     "upd:anon#23 7.2",
+     "upd:groundGrassTick 7.1",
+     "upd:anon#2 4.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -26,
+    "calls": 231
+   },
+   {
+    "t": 81.4,
+    "ms": 438,
+    "at": [
+     166,
+     175
+    ],
+    "work": 401,
+    "top": [
+     "interiors 308.9",
+     "upd:anon#2 35.5",
+     "render 18.4",
+     "world.step 11.7",
+     "upd:anon#23 8.1",
+     "fixed:vehiclesFixed 3.1"
+    ],
+    "newProgs": 7,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 124
+   },
+   {
+    "t": 81.6,
+    "ms": 192,
+    "at": [
+     166,
+     162
+    ],
+    "work": 131,
+    "top": [
+     "upd:anon#23 49.3",
+     "render 22.5",
+     "interiors 9.7",
+     "world.step 9.5",
+     "upd:anon#2 7.3",
+     "upd:groundGrassTick 7.1"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 149
+   },
+   {
+    "t": 82.2,
+    "ms": 405,
+    "at": [
+     166,
+     122
+    ],
+    "work": 62,
+    "top": [
+     "render 19.7",
+     "upd:anon#23 7.6",
+     "world.step 7.3",
+     "peds 5.0",
+     "interiors 4.1",
+     "upd:anon#2 3.8"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 126
+   },
+   {
+    "t": 82.8,
+    "ms": 436,
+    "at": [
+     165,
+     84
+    ],
+    "work": 411,
+    "top": [
+     "upd:anon#23 331.2",
+     "upd:anon#2 37.8",
+     "render 23.2",
+     "world.step 4.5",
+     "hud 2.9",
+     "upd:anon#46 2.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -31,
+    "calls": 187
+   },
+   {
+    "t": 82.9,
+    "ms": 127,
+    "at": [
+     165,
+     76
+    ],
+    "work": 125,
+    "top": [
+     "render 76.7",
+     "upd:anon#23 10.4",
+     "interiors 10.1",
+     "world.step 6.6",
+     "upd:anon#2 4.0",
+     "fixed:vehiclesFixed 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": 17,
+    "newGeo": 11,
+    "heapDropMB": 0,
+    "calls": 144
+   },
+   {
+    "t": 83.1,
+    "ms": 152,
+    "at": [
+     165,
+     65
+    ],
+    "work": 72,
+    "top": [
+     "render 16.9",
+     "upd:anon#2 10.8",
+     "interiors 9.4",
+     "world.step 7.8",
+     "upd:anon#23 7.8",
+     "upd:update 7.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 144
+   },
+   {
+    "t": 83.3,
+    "ms": 267,
+    "at": [
+     165,
+     48
+    ],
+    "work": 68,
+    "top": [
+     "render 21.2",
+     "interiors 8.4",
+     "world.step 7.4",
+     "upd:anon#23 6.7",
+     "upd:anon#2 3.7",
+     "fixed:vehiclesFixed 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -23,
+    "calls": 171
+   },
+   {
+    "t": 84,
+    "ms": 668,
+    "at": [
+     165,
+     3
+    ],
+    "work": 640,
+    "top": [
+     "render 492.4",
+     "interiors 120.8",
+     "upd:anon#23 6.5",
+     "world.step 5.9",
+     "upd:anon#2 3.6",
+     "fixed:vehiclesFixed 3.0"
+    ],
+    "newProgs": 3,
+    "newTex": 14,
+    "newGeo": 12,
+    "heapDropMB": 0,
+    "calls": 226
+   },
+   {
+    "t": 84.4,
+    "ms": 341,
+    "at": [
+     165,
+     -25
+    ],
+    "work": 320,
+    "top": [
+     "interiors 275.1",
+     "render 12.7",
+     "world.step 8.5",
+     "upd:anon#23 7.5",
+     "fixed:vehiclesFixed 3.8",
+     "upd:anon#2 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -16,
+    "calls": 219
+   },
+   {
+    "t": 84.5,
+    "ms": 132,
+    "at": [
+     165,
+     -34
+    ],
+    "work": 70,
+    "top": [
+     "render 21.2",
+     "interiors 10.5",
+     "upd:anon#23 7.6",
+     "upd:anon#2 6.0",
+     "world.step 5.8",
+     "gameplay 4.4"
+    ],
+    "newProgs": 0,
+    "newTex": -1,
+    "newGeo": -2,
+    "heapDropMB": 0,
+    "calls": 220
+   },
+   {
+    "t": 85.3,
+    "ms": 776,
+    "at": [
+     190,
+     -61
+    ],
+    "work": 709,
+    "top": [
+     "upd:anon#23 357.9",
+     "upd:update 287.7",
+     "render 19.7",
+     "interiors 16.1",
+     "world.step 7.5",
+     "upd:anon#2 3.6"
+    ],
+    "newProgs": 18,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 220
+   },
+   {
+    "t": 85.9,
+    "ms": 320,
+    "at": [
+     228,
+     -62
+    ],
+    "work": 64,
+    "top": [
+     "render 20.9",
+     "upd:groundGrassTick 8.4",
+     "upd:anon#23 6.7",
+     "world.step 6.2",
+     "upd:anon#2 3.7",
+     "upd:anon#46 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 341
+   },
+   {
+    "t": 86.1,
+    "ms": 137,
+    "at": [
+     244,
+     -63
+    ],
+    "work": 133,
+    "top": [
+     "upd:update 67.1",
+     "render 34.7",
+     "upd:anon#23 7.5",
+     "world.step 6.7",
+     "upd:anon#2 3.9",
+     "fixed:vehiclesFixed 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 382
+   },
+   {
+    "t": 86.4,
+    "ms": 134,
+    "at": [
+     265,
+     -63
+    ],
+    "work": 112,
+    "top": [
+     "render 73.4",
+     "upd:anon#23 8.7",
+     "world.step 7.2",
+     "upd:anon#2 5.9",
+     "peds 3.9",
+     "fixed:vehiclesFixed 2.3"
+    ],
+    "newProgs": 3,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 341
+   },
+   {
+    "t": 86.6,
+    "ms": 133,
+    "at": [
+     274,
+     -63
+    ],
+    "work": 112,
+    "top": [
+     "fixed:vehiclesFixed 59.6",
+     "render 18.5",
+     "upd:anon#23 6.8",
+     "world.step 6.0",
+     "upd:anon#2 5.0"
+    ],
+    "newProgs": 0,
+    "newTex": -4,
+    "newGeo": -1,
+    "heapDropMB": -23,
+    "calls": 343
+   },
+   {
+    "t": 87.4,
+    "ms": 301,
+    "at": [
+     330,
+     -64
+    ],
+    "work": 46,
+    "top": [
+     "render 22.4",
+     "upd:anon#23 7.1",
+     "upd:anon#2 3.8",
+     "world.step 2.8",
+     "hud 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -24,
+    "calls": 403
+   },
+   {
+    "t": 87.6,
+    "ms": 202,
+    "at": [
+     343,
+     -65
+    ],
+    "work": 80,
+    "top": [
+     "render 21.5",
+     "upd:anon#2 17.9",
+     "upd:update 12.7",
+     "upd:anon#23 7.0",
+     "world.step 5.5",
+     "peds 3.2"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 1,
+    "heapDropMB": 0,
+    "calls": 304
+   },
+   {
+    "t": 87.9,
+    "ms": 249,
+    "at": [
+     363,
+     -67
+    ],
+    "work": 248,
+    "top": [
+     "hud 202.5",
+     "render 18.3",
+     "upd:anon#23 7.5",
+     "world.step 5.1",
+     "upd:anon#2 3.6"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 309
+   },
+   {
+    "t": 88.1,
+    "ms": 103,
+    "at": [
+     363,
+     -80
+    ],
+    "work": 83,
+    "top": [
+     "render 36.0",
+     "upd:anon#23 10.2",
+     "upd:groundGrassTick 8.1",
+     "world.step 7.9",
+     "upd:anon#2 5.6",
+     "fixed:vehiclesFixed 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 680
+   },
+   {
+    "t": 88.4,
+    "ms": 143,
+    "at": [
+     363,
+     -95
+    ],
+    "work": 124,
+    "top": [
+     "upd:anon#2 34.4",
+     "render 29.4",
+     "upd:update 9.7",
+     "world.step 8.6",
+     "gameplay 8.5",
+     "upd:anon#23 7.7"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": -20,
+    "calls": 608
+   },
+   {
+    "t": 88.7,
+    "ms": 223,
+    "at": [
+     363,
+     -114
+    ],
+    "work": 68,
+    "top": [
+     "render 30.4",
+     "upd:anon#2 9.4",
+     "upd:anon#23 8.3",
+     "world.step 5.1",
+     "upd:anon#46 2.6",
+     "fixed:vehiclesFixed 2.5"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": -17,
+    "calls": 613
+   },
+   {
+    "t": 88.9,
+    "ms": 100,
+    "at": [
+     363,
+     -133
+    ],
+    "work": 68,
+    "top": [
+     "render 31.6",
+     "world.step 8.5",
+     "upd:anon#23 8.1",
+     "fixed:vehiclesFixed 4.1",
+     "upd:anon#2 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 607
+   },
+   {
+    "t": 89.3,
+    "ms": 183,
+    "at": [
+     387,
+     -138
+    ],
+    "work": 55,
+    "top": [
+     "render 24.0",
+     "upd:anon#23 7.4",
+     "world.step 6.7",
+     "upd:anon#2 3.8",
+     "fixed:vehiclesFixed 2.9"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 565
+   },
+   {
+    "t": 89.5,
+    "ms": 249,
+    "at": [
+     403,
+     -141
+    ],
+    "work": 229,
+    "top": [
+     "interiors 156.9",
+     "render 36.6",
+     "upd:anon#23 7.8",
+     "world.step 6.5",
+     "upd:anon#2 3.5",
+     "hud 3.2"
+    ],
+    "newProgs": 0,
+    "newTex": 2,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 601
+   },
+   {
+    "t": 89.7,
+    "ms": 163,
+    "at": [
+     414,
+     -143
+    ],
+    "work": 104,
+    "top": [
+     "render 27.4",
+     "interiors 18.5",
+     "upd:anon#23 11.5",
+     "peds 10.9",
+     "world.step 10.2",
+     "fixed:vehiclesFixed 5.1"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 559
+   },
+   {
+    "t": 90.1,
+    "ms": 375,
+    "at": [
+     433,
+     -147
+    ],
+    "work": 373,
+    "top": [
+     "upd:update 286.0",
+     "render 28.6",
+     "interiors 14.7",
+     "world.step 11.3",
+     "upd:anon#23 7.1",
+     "fixed:vehiclesFixed 4.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 531
+   }
+  ],
+  "progStalls": {
+   "total": 1533,
+   "n": 72,
+   "byName": [
+    [
+     "",
+     [
+      26,
+      572
+     ]
+    ],
+    [
+     "Fire Hydrant",
+     [
+      1,
+      132
+     ]
+    ],
+    [
+     "EletricBox",
+     [
+      1,
+      116
+     ]
+    ],
+    [
+     "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     [
+      2,
+      84
+     ]
+    ],
+    [
+     "M.panels",
+     [
+      1,
+      77
+     ]
+    ],
+    [
+     "Cup Cap",
+     [
+      1,
+      75
+     ]
+    ],
+    [
+     "Bin Body",
+     [
+      1,
+      63
+     ]
+    ],
+    [
+     "Cup Sleeve Back",
+     [
+      1,
+      60
+     ]
+    ],
+    [
+     "Can Red Cola Baked",
+     [
+      1,
+      54
+     ]
+    ],
+    [
+     "cover-mh_storm",
+     [
+      1,
+      50
+     ]
+    ],
+    [
+     "cover-valve",
+     [
+      1,
+      42
+     ]
+    ],
+    [
+     "Body",
+     [
+      1,
+      36
+     ]
+    ],
+    [
+     "Material",
+     [
+      2,
+      20
+     ]
+    ],
+    [
+     "h5_grey_bake",
+     [
+      1,
+      16
+     ]
+    ],
+    [
+     "Concrete Blocks.001",
+     [
+      1,
+      16
+     ]
+    ],
+    [
+     "Roof",
+     [
+      1,
+      15
+     ]
+    ],
+    [
+     "curved_glass_tower_far",
+     [
+      1,
+      15
+     ]
+    ],
+    [
+     "Metal22-basecolor",
+     [
+      1,
+      11
+     ]
+    ],
+    [
+     "unspecified",
+     [
+      1,
+      8
+     ]
+    ],
+    [
+     "Part 03",
+     [
+      1,
+      6
+     ]
+    ],
+    [
+     "h7_service_Material33",
+     [
+      1,
+      6
+     ]
+    ],
+    [
+     "house:breeze",
+     [
+      1,
+      6
+     ]
+    ],
+    [
+     "Windows",
+     [
+      1,
+      6
+     ]
+    ],
+    [
+     "Emmisive",
+     [
+      1,
+      5
+     ]
+    ],
+    [
+     "Jetway",
+     [
+      1,
+      4
+     ]
+    ],
+    [
+     "MARBLE",
+     [
+      1,
+      4
+     ]
+    ],
+    [
+     "Lobby Interior Trimsheet",
+     [
+      1,
+      4
+     ]
+    ],
+    [
+     "house:shopGlass",
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "Surface 16",
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "AirTower01MAT",
+     [
+      1,
+      2
+     ]
+    ]
+   ],
+   "top": [
+    {
+     "ms": 141,
+     "name": "",
+     "isNew": false,
+     "keyLen": 54,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 132,
+     "name": "Fire Hydrant",
+     "isNew": true,
+     "keyLen": 77,
+     "nearestSameName": 3,
+     "diff": [
+      "37:3->4",
+      "38:1->16",
+      "39:0->4"
+     ]
+    },
+    {
+     "ms": 116,
+     "name": "EletricBox",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 112,
+     "name": "",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 2,
+     "diff": [
+      "11:false->uv",
+      "16:false->uv"
+     ]
+    },
+    {
+     "ms": 107,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 77,
+     "name": "M.panels",
+     "isNew": true,
+     "keyLen": 93,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 76,
+     "name": "",
+     "isNew": true,
+     "keyLen": 59,
+     "nearestSameName": 2,
+     "diff": [
+      "55:3111->3107",
+      "58:veg-leaf|gm21->veg-leaf"
+     ]
+    },
+    {
+     "ms": 75,
+     "name": "Cup Cap",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 68,
+     "name": "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 1,
+     "diff": [
+      "54:nh:pbrcoral_stone_wallg->nh:pbrcoral_stone_wallg|lotHide"
+     ]
+    },
+    {
+     "ms": 63,
+     "name": "Bin Body",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 60,
+     "name": "Cup Sleeve Back",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 54,
+     "name": "Can Red Cola Baked",
+     "isNew": true,
+     "keyLen": 75,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 50,
+     "name": "cover-mh_storm",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 42,
+     "name": "cover-valve",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 36,
+     "name": "Body",
+     "isNew": true,
+     "keyLen": 75,
+     "nearestSameName": 2,
+     "diff": [
+      "12:uv->false",
+      "51:167->39"
+     ]
+    },
+    {
+     "ms": 21,
+     "name": "",
+     "isNew": true,
+     "keyLen": 61,
+     "nearestSameName": 1,
+     "diff": [
+      "60:veg-depth-bark-m->veg-depth-bark-m|gm20"
+     ]
+    },
+    {
+     "ms": 17,
+     "name": "Material",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 16,
+     "name": "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 16,
+     "name": "h5_grey_bake",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 16,
+     "name": "Concrete Blocks.001",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 15,
+     "name": "Roof",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 15,
+     "name": "curved_glass_tower_far",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 13,
+     "name": "",
+     "isNew": true,
+     "keyLen": 61,
+     "nearestSameName": 1,
+     "diff": [
+      "57:1027->1031"
+     ]
+    },
+    {
+     "ms": 13,
+     "name": "",
+     "isNew": true,
+     "keyLen": 61,
+     "nearestSameName": 2,
+     "diff": [
+      "57:1027->1031",
+      "60:veg-depth-leaf-m->veg-depth-leaf-m|gm20"
+     ]
+    },
+    {
+     "ms": 12,
+     "name": "",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": 10,
+     "diff": [
+      "0:physical->depth",
+      "1:STANDARD->VEG_R2MIP",
+      "3:PHYSICAL->VEG_R2IMP",
+      "7:306->false",
+      "8:256->",
+      "33:true->false"
+     ]
+    },
+    {
+     "ms": 12,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 11,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 11,
+     "name": "Metal22-basecolor",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 11,
+     "name": "",
+     "isNew": true,
+     "keyLen": 54,
+     "nearestSameName": 2,
+     "diff": [
+      "0:44->75",
+      "1:45->76"
+     ]
+    },
+    {
+     "ms": 8,
+     "name": "unspecified",
+     "isNew": true,
+     "keyLen": 54,
+     "nearestSameName": 2,
+     "diff": [
+      "0:48->77",
+      "1:50->78"
+     ]
+    },
+    {
+     "ms": 6,
+     "name": "Part 03",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 6,
+     "name": "h7_service_Material33",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 6,
+     "name": "house:breeze",
+     "isNew": false,
+     "keyLen": 60,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 6,
+     "name": "",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": 1,
+     "diff": [
+      "53:289->545"
+     ]
+    },
+    {
+     "ms": 6,
+     "name": "Windows",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 5,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 5,
+     "name": "Emmisive",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 5,
+     "name": "",
+     "isNew": true,
+     "keyLen": 53,
+     "nearestSameName": 2,
+     "diff": [
+      "5:false->uv1",
+      "49:1->8193"
+     ]
+    },
+    {
+     "ms": 4,
+     "name": "",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 4,
+     "name": "",
+     "isNew": false,
+     "keyLen": 54,
+     "nearestSameName": 0,
+     "diff": []
+    }
+   ]
+  },
+  "longTasks": [],
+  "sys": {
+   "render": 30.7,
+   "upd:update": 20.57,
+   "interiors": 13.42,
+   "upd:anon#23": 12.92,
+   "world.step": 7.55,
+   "upd:anon#2": 7,
+   "hud": 6.89,
+   "fixed:vehiclesFixed": 3.78,
+   "peds": 1.71,
+   "upd:anon#46": 1.6,
+   "audio": 1.39,
+   "upd:groundGrassTick": 1.27,
+   "gameplay": 0.87,
+   "upd:unstuckTick": 0.8,
+   "upd:anon#37": 0.35,
+   "env": 0.33
+  },
+  "stream": {
+   "jobsRun": 257761,
+   "msLast": 3,
+   "near": 0,
+   "mid": 0,
+   "far": 223,
+   "col": 4,
+   "queued": 383,
+   "maxStep": {
+    "near": 58,
+    "mid": 20.199999999254942,
+    "far": 21,
+    "col": 278.2000000011176
+   },
+   "idleMs": 5622.400000018999
+  }
+ },
+ "cpuprof": {
+  "self": [
+   "  7.4%  (garbage collector) :0",
+   "  3.8%  wasm-function[27] 0057e15e:1",
+   "  3.2%  at venueSurfaces.js:10",
+   "  2.4%  getImageData :0",
+   "  2.2%  texSubImage2D :0",
+   "  2.0%  sliverLand data.js:129",
+   "  1.9%  wasm-function[146] 0057e15e:1",
+   "  1.9%  (program) :0",
+   "  1.9%  getProgramInfoLog :0",
+   "  1.8%  fillRings mapRender.js:380",
+   "  1.7%  heightAt terrain.js:191",
+   "  1.6%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+   "  1.4%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   "  1.3%  normalMap surfaces.js:78",
+   "  1.2%  traverseVisible chunk-UG26MVNH.js:4747",
+   "  1.2%  (idle) :0",
+   "  1.2%  toArray chunk-UG26MVNH.js:4223",
+   "  1.1%  isIslet data.js:152",
+   "  1.1%  drawTufted venueSurfaces.js:69",
+   "  1.1%  wasm-function[487] 0057e15e:1",
+   "  1.1%  multiplyMatrices chunk-UG26MVNH.js:3768",
+   "  1.0%  projectObject chunk-UG26MVNH.js:17733",
+   "  1.0%  drawWalnut venueSurfaces.js:104",
+   "  0.9%  work countryside.js:492",
+   "  0.8%  drawImage :0",
+   "  0.7%  minDepthAt data.js:206",
+   "  0.7%  upload chunk-UG26MVNH.js:11627",
+   "  0.7%  drawStone venueSurfaces.js:18",
+   "  0.7%  nearestSeg data.js:301",
+   "  0.7%  drawBrass venueSurfaces.js:116",
+   "  0.6%  inLotInner countryside.js:180",
+   "  0.6%  getBufferSubData :0",
+   "  0.6%  renderObject chunk-UG26MVNH.js:13628",
+   "  0.6%  wasm-function[102] 0057e15e:1",
+   "  0.6%  wasm-function[111] 0057e15e:1",
+   "  0.6%  traverse chunk-UG26MVNH.js:4740",
+   "  0.5%  fromBufferAttribute chunk-UG26MVNH.js:2789",
+   "  0.5%  update chunk-UG26MVNH.js:10968",
+   "  0.5%  setProgram chunk-UG26MVNH.js:17990",
+   "  0.5%  isPocket data.js:167"
+  ],
+  "incl": [
+   "100.0%  (root) :0",
+   " 78.1%  pump perfGuards.v2.js:307",
+   " 77.7%  frame main.js:963",
+   " 21.0%  post.render :218",
+   " 21.0%  post.render cinema.js:189",
+   " 21.0%  post.render :77",
+   " 21.0%  post.render perfHud.v2.js:41",
+   " 21.0%  post.render precompile.v2.js:154",
+   " 19.8%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+   " 19.7%  r.render detailCull.v2.js:43",
+   " 19.6%  render post.js:1216",
+   " 19.6%  renderImpl post.js:1221",
+   " 19.6%  render three_addons_postprocessing_EffectComposer__js.js:128",
+   " 19.5%  p.render :57",
+   " 18.8%  rp.render cinema.js:149",
+   " 18.8%  renderPass.render post.js:82",
+   " 18.8%  scenePass post.js:86",
+   " 18.8%  render three_addons_postprocessing_RenderPass__js.js:22",
+   " 13.2%  r.renderBufferDirect :204",
+   " 13.2%  surfaceTextures surfaces.js:87",
+   " 13.0%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   " 12.4%  renderScene chunk-UG26MVNH.js:17791",
+   " 12.3%  renderObjects chunk-UG26MVNH.js:17870",
+   " 12.3%  renderObject chunk-UG26MVNH.js:17883",
+   " 11.7%  update index.js:18",
+   " 11.2%  update engine.js:90",
+   " 11.2%  inner engine.js:107",
+   " 10.8%  buildInterior build.js:46",
+   "  9.9%  setProgram chunk-UG26MVNH.js:17990",
+   "  8.8%  _keep materials.js:46",
+   "  8.7%  surf materials.js:48",
+   "  8.7%  (anon) materials.js:50",
+   "  7.9%  (anon) vegetation.v2.js:189",
+   "  7.4%  (garbage collector) :0",
+   "  7.4%  update countryside.js:544",
+   "  6.8%  step @dimforge_rapier3d-compat.js:4374",
+   "  6.0%  venueMats venue.js:18",
+   "  5.9%  (anon) city.js:308",
+   "  5.9%  update city.js:260",
+   "  5.6%  work countryside.js:492",
+   "  5.3%  update stream.js:58",
+   "  5.3%  upload chunk-UG26MVNH.js:11627",
+   "  5.1%  runJobs stream.js:178",
+   "  5.0%  step @dimforge_rapier3d-compat.js:3996",
+   "  5.0%  step @dimforge_rapier3d-compat.js:1672",
+   "  5.0%  wasm-function[554] 0057e15e:1",
+   "  5.0%  wasm-function[26] 0057e15e:1",
+   "  4.5%  step engine.js:74",
+   "  4.4%  wasm-function[728] 0057e15e:1",
+   "  4.0%  wasm-function[27] 0057e15e:1",
+   "  4.0%  normalMap surfaces.js:78",
+   "  3.8%  update @dimforge_rapier3d-compat.js:4011",
+   "  3.8%  (anon) venueSurfaces.js:14",
+   "  3.7%  wasm-function[1204] 0057e15e:1",
+   "  3.6%  js-to-wasm::i 0057e15e:1",
+   "  3.6%  js-to-wasm:ii: :0",
+   "  3.5%  update @dimforge_rapier3d-compat.js:1761",
+   "  3.5%  buildColliders tilebuild.js:3566",
+   "  3.4%  n venueSurfaces.js:11",
+   "  3.3%  js-to-wasm:iiiiiiiiiii: :0",
+   "  3.2%  at venueSurfaces.js:10",
+   "  3.2%  fixtures restaurant.js:44",
+   "  2.9%  heightAt terrain.js:191",
+   "  2.9%  update vehicles.js:1694",
+   "  2.9%  projectObject chunk-UG26MVNH.js:17733",
+   "  2.9%  banquette venue.js:103",
+   "  2.8%  at geo.js:22",
+   "  2.6%  (anon) lib.js:56",
+   "  2.6%  drawWalnut venueSurfaces.js:104",
+   "  2.6%  buildClipsFor anim.js:438"
+  ],
+  "inclAll": [
+   "100.0%  (root) :0",
+   " 78.1%  pump perfGuards.v2.js:307",
+   " 77.7%  frame main.js:963",
+   " 21.0%  post.render :218",
+   " 21.0%  post.render cinema.js:189",
+   " 21.0%  post.render :77",
+   " 21.0%  post.render perfHud.v2.js:41",
+   " 21.0%  post.render precompile.v2.js:154",
+   " 19.8%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+   " 19.7%  r.render detailCull.v2.js:43",
+   " 19.6%  render post.js:1216",
+   " 19.6%  renderImpl post.js:1221",
+   " 19.6%  render three_addons_postprocessing_EffectComposer__js.js:128",
+   " 19.5%  p.render :57",
+   " 18.8%  rp.render cinema.js:149",
+   " 18.8%  renderPass.render post.js:82",
+   " 18.8%  scenePass post.js:86",
+   " 18.8%  render three_addons_postprocessing_RenderPass__js.js:22",
+   " 13.2%  r.renderBufferDirect :204",
+   " 13.2%  surfaceTextures surfaces.js:87",
+   " 13.0%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   " 12.4%  renderScene chunk-UG26MVNH.js:17791",
+   " 12.3%  renderObjects chunk-UG26MVNH.js:17870",
+   " 12.3%  renderObject chunk-UG26MVNH.js:17883",
+   " 11.7%  update index.js:18",
+   " 11.2%  update engine.js:90",
+   " 11.2%  inner engine.js:107",
+   " 10.8%  buildInterior build.js:46",
+   "  9.9%  setProgram chunk-UG26MVNH.js:17990",
+   "  8.8%  _keep materials.js:46",
+   "  8.7%  surf materials.js:48",
+   "  8.7%  (anon) materials.js:50",
+   "  7.9%  (anon) vegetation.v2.js:189",
+   "  7.4%  (garbage collector) :0",
+   "  7.4%  update countryside.js:544",
+   "  6.8%  step @dimforge_rapier3d-compat.js:4374",
+   "  6.0%  venueMats venue.js:18",
+   "  5.9%  (anon) city.js:308",
+   "  5.9%  update city.js:260",
+   "  5.6%  work countryside.js:492",
+   "  5.3%  update stream.js:58",
+   "  5.3%  upload chunk-UG26MVNH.js:11627",
+   "  5.1%  runJobs stream.js:178",
+   "  5.0%  step @dimforge_rapier3d-compat.js:3996",
+   "  5.0%  step @dimforge_rapier3d-compat.js:1672",
+   "  5.0%  wasm-function[554] 0057e15e:1",
+   "  5.0%  wasm-function[26] 0057e15e:1",
+   "  4.5%  step engine.js:74",
+   "  4.4%  wasm-function[728] 0057e15e:1",
+   "  4.0%  wasm-function[27] 0057e15e:1",
+   "  4.0%  normalMap surfaces.js:78",
+   "  3.8%  update @dimforge_rapier3d-compat.js:4011",
+   "  3.8%  (anon) venueSurfaces.js:14",
+   "  3.7%  wasm-function[1204] 0057e15e:1",
+   "  3.6%  js-to-wasm::i 0057e15e:1",
+   "  3.6%  js-to-wasm:ii: :0",
+   "  3.5%  update @dimforge_rapier3d-compat.js:1761",
+   "  3.5%  buildColliders tilebuild.js:3566",
+   "  3.4%  n venueSurfaces.js:11",
+   "  3.3%  js-to-wasm:iiiiiiiiiii: :0",
+   "  3.2%  at venueSurfaces.js:10",
+   "  3.2%  fixtures restaurant.js:44",
+   "  2.9%  heightAt terrain.js:191",
+   "  2.9%  update vehicles.js:1694",
+   "  2.9%  projectObject chunk-UG26MVNH.js:17733",
+   "  2.9%  banquette venue.js:103",
+   "  2.8%  at geo.js:22",
+   "  2.6%  (anon) lib.js:56",
+   "  2.6%  drawWalnut venueSurfaces.js:104",
+   "  2.6%  buildClipsFor anim.js:438",
+   "  2.6%  fixtures lobby.js:31",
+   "  2.6%  setTexture2D chunk-UG26MVNH.js:14845",
+   "  2.5%  gridOf countryside.js:414",
+   "  2.4%  update hud.js:1333",
+   "  2.4%  uploadTexture chunk-UG26MVNH.js:14969",
+   "  2.4%  genShrubs countryside.js:425",
+   "  2.4%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+   "  2.4%  WebGLRenderer.compile chunk-UG26MVNH.js:17555",
+   "  2.4%  getImageData :0",
+   "  2.4%  drawMinimap hud.js:582",
+   "  2.3%  compileForGame pace.js:87",
+   "  2.2%  sm.render :216",
+   "  2.2%  sm.render :67",
+   "  2.2%  sm.render detailCull.v2.js:47",
+   "  2.2%  sm.render shadows.js:146",
+   "  2.2%  WebGLShadowMap.render chunk-UG26MVNH.js:13485",
+   "  2.2%  renderObject chunk-UG26MVNH.js:13628",
+   "  2.2%  texSubImage2D chunk-UG26MVNH.js:14247",
+   "  2.2%  texSubImage2D :0",
+   "  2.1%  fixtures boutique.js:34",
+   "  2.1%  wasm-function[102] 0057e15e:1",
+   "  2.1%  WebGLProgram.getUniforms chunk-UG26MVNH.js:12240",
+   "  2.1%  onFirstUse chunk-UG26MVNH.js:12196",
+   "  2.0%  sliverLand data.js:129",
+   "  2.0%  gl.<computed> :4",
+   "  2.0%  updateSceneQueries @dimforge_rapier3d-compat.js:4380",
+   "  2.0%  draw mapRender.js:507",
+   "  1.9%  intersectionWithShape @dimforge_rapier3d-compat.js:4026",
+   "  1.9%  intersectionWithShape @dimforge_rapier3d-compat.js:4491",
+   "  1.9%  getTile mapRender.js:477",
+   "  1.9%  wasm-function[146] 0057e15e:1",
+   "  1.9%  intersectionWithShape @dimforge_rapier3d-compat.js:1789",
+   "  1.9%  renderTile mapRender.js:372",
+   "  1.9%  wasm-function[550] 0057e15e:1",
+   "  1.9%  (program) :0",
+   "  1.9%  setValueT1 chunk-UG26MVNH.js:11291",
+   "  1.9%  getProgramInfoLog :0",
+   "  1.9%  fillRings mapRender.js:380",
+   "  1.8%  scene.updateMatrixWorld :75",
+   "  1.7%  (anon) dining.js:54",
+   "  1.7%  boothPair dining.js:52",
+   "  1.7%  (anon) dining.js:55",
+   "  1.7%  updateAll vehicles.js:2158",
+   "  1.7%  update boats.js:1168",
+   "  1.6%  vehiclesFixed vehicles.js:1670",
+   "  1.6%  trafficManager vehicles.js:1620",
+   "  1.6%  buildNear tilebuild.js:3241",
+   "  1.5%  groundGrassTick grass.v2.js:140",
+   "  1.5%  gather grass.v2.js:115",
+   "  1.5%  env.update weather.v2.js:257",
+   "  1.5%  update environment.js:269",
+   "  1.5%  updateImpl environment.js:281",
+   "  1.5%  getProgram chunk-UG26MVNH.js:17901",
+   "  1.5%  surfCode data.js:176",
+   "  1.5%  buildBoatSteps catalog.js:40",
+   "  1.5%  upgradeStep boats.js:412",
+   "  1.5%  traverse chunk-UG26MVNH.js:4740",
+   "  1.5%  setup chunk-UG26MVNH.js:9251",
+   "  1.4%  drawTufted venueSurfaces.js:69",
+   "  1.4%  beforeFrame precompile.v2.js:69",
+   "  1.4%  update seabed.js:116",
+   "  1.4%  genGround countryside.js:460",
+   "  1.4%  stepBuild seabed.js:74",
+   "  1.4%  spotFree vehicles.js:48",
+   "  1.3%  update chunk-UG26MVNH.js:10968",
+   "  1.3%  traverseVisible chunk-UG26MVNH.js:4747",
+   "  1.3%  groundAndSpeed anim.js:393",
+   "  1.3%  update ocean.js:344",
+   "  1.3%  tick precompile.v2.js:168",
+   "  1.2%  physicsTick vehicles.js:674",
+   "  1.2%  drawPlaster venueSurfaces.js:93",
+   "  1.2%  buildShore ocean.js:223",
+   "  1.2%  swimDepthAt data.js:219",
+   "  1.2%  seabedDepthAt data.js:953",
+   "  1.2%  city.seabedDepthAt city.js:224",
+   "  1.2%  minDepthAt data.js:206",
+   "  1.2%  drawStone venueSurfaces.js:18",
+   "  1.2%  (idle) :0",
+   "  1.2%  housesTick houses.v2.js:260",
+   "  1.2%  isWater data.js:425",
+   "  1.2%  toArray chunk-UG26MVNH.js:4223",
+   "  1.1%  isIslet data.js:152",
+   "  1.1%  addDriver vehicles.js:493",
+   "  1.1%  fillLandFromWater shoreFill.js:14",
+   "  1.1%  createDriver arch.v2.js:174",
+   "  1.1%  intersect chunk-UG26MVNH.js:29856",
+   "  1.1%  probeSeat seat.js:155",
+   "  1.1%  seatMaxHeight seat.js:412",
+   "  1.1%  raycast chunk-UG26MVNH.js:7139",
+   "  1.1%  intersectObjects chunk-UG26MVNH.js:29845",
+   "  1.1%  cellInfo grass.v2.js:85",
+   "  1.1%  update peds.js:778",
+   "  1.1%  runJobs houses.v2.js:88",
+   "  1.1%  _computeIntersections chunk-UG26MVNH.js:7159",
+   "  1.1%  wasm-function[487] 0057e15e:1",
+   "  1.1%  wasm-function[111] 0057e15e:1",
+   "  1.1%  multiplyMatrices chunk-UG26MVNH.js:3768",
+   "  1.1%  (anon) people.v2.js:816",
+   "  1.0%  flush kit.js:92",
+   "  1.0%  (anon) city.js:223",
+   "  1.0%  evalClip anim.js:385",
+   "  1.0%  updateCrowd people.v2.js:705",
+   "  1.0%  cell atlas.js:14",
+   "  1.0%  placeTrees countryside.js:137",
+   "  1.0%  fixtures gas_convenience.js:42",
+   "  1.0%  flatten chunk-UG26MVNH.js:11048",
+   "  1.0%  drawMarble venueSurfaces.js:44",
+   "  1.0%  setValueM4Array chunk-UG26MVNH.js:11415",
+   "  1.0%  layerAt terrain.js:148",
+   "  0.9%  checkGeometryIntersection chunk-UG26MVNH.js:7257",
+   "  0.9%  make prints.js:19",
+   "  0.9%  randomLanePos vehicles.js:93",
+   "  0.9%  (anon) houses.v2.js:100",
+   "  0.9%  respawnAI vehicles.js:1226",
+   "  0.9%  (anon) chunk-UG26MVNH.js:17580",
+   "  0.9%  prepareMaterial chunk-UG26MVNH.js:17542",
+   "  0.9%  ensureProps tilebuild.js:2488",
+   "  0.9%  wasm-function[1753] 0057e15e:1",
+   "  0.9%  buildBuilding tilebuild.js:774",
+   "  0.9%  setValue chunk-UG26MVNH.js:11574",
+   "  0.8%  wasm-function[541] 0057e15e:1",
+   "  0.8%  buildShell shell.js:7",
+   "  0.8%  biomeOf countryside.js:89",
+   "  0.8%  update audio.js:1772",
+   "  0.8%  gridGen terrain.js:217",
+   "  0.8%  fromBufferAttribute chunk-UG26MVNH.js:2789",
+   "  0.8%  genTrees countryside.js:409",
+   "  0.8%  floraInto tilebuild.js:74",
+   "  0.8%  scatter flora.js:125",
+   "  0.8%  mergeClusterGen houses.v2.js:73",
+   "  0.8%  drawImage :0",
+   "  0.7%  S shell.js:5",
+   "  0.7%  playerFixed main.js:206",
+   "  0.7%  drawBrass venueSurfaces.js:116",
+   "  0.7%  bindClip anim.js:344",
+   "  0.7%  ch.update seat.js:390",
+   "  0.7%  update chunk-UG26MVNH.js:8279",
+   "  0.7%  character.update index.js:131",
+   "  0.7%  rebucket countryside.js:519",
+   "  0.7%  nearestSeg data.js:301",
+   "  0.7%  WebGLRenderer.initTexture chunk-UG26MVNH.js:18520",
+   "  0.7%  expand precompile.v2.js:115",
+   "  0.6%  shoreWet tilebuild.js:3612",
+   "  0.6%  inLotInner countryside.js:180",
+   "  0.6%  createCollider @dimforge_rapier3d-compat.js:4439",
+   "  0.6%  WebGLRenderer.readRenderTargetPixelsAsync chunk-UG26MVNH.js:18332",
+   "  0.6%  createCollider @dimforge_rapier3d-compat.js:4954",
+   "  0.6%  getBufferSubData :0",
+   "  0.6%  update gameplay.js:353",
+   "  0.6%  tryCall util.js:15",
+   "  0.6%  js-to-wasm:iiiiiiiiiiididi: :0",
+   "  0.6%  roadDist vegetation.v2.js:208",
+   "  0.6%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+   "  0.6%  unstuckTick main.js:911",
+   "  0.6%  buildHouseGen generator.js:73",
+   "  0.6%  KCC.computeColliderMovement solidCars.js:14",
+   "  0.6%  getVertexPosition chunk-UG26MVNH.js:7115",
+   "  0.6%  groundMaskTick surfaceMask.js:248",
+   "  0.6%  setValueV3f chunk-UG26MVNH.js:11109",
+   "  0.6%  update surfaceMask.js:213",
+   "  0.5%  parkedSpot vehicles.js:108",
+   "  0.5%  updateBuffer chunk-UG26MVNH.js:8230",
+   "  0.5%  attach farCrowd.js:221",
+   "  0.5%  bucketFor farCrowd.js:187",
+   "  0.5%  getBake farCrowd.js:165",
+   "  0.5%  glassFront tilebuild.js:2147",
+   "  0.5%  updateVehicle @dimforge_rapier3d-compat.js:4203",
+   "  0.5%  bakePerson farCrowd.js:41",
+   "  0.5%  isPocket data.js:167",
+   "  0.5%  update_vehicle @dimforge_rapier3d-compat.js:837",
+   "  0.5%  js-to-wasm:ifiiiiiii: 0057e15e:1",
+   "  0.5%  wasm-function[769] 0057e15e:1",
+   "  0.5%  render post.js:927",
+   "  0.5%  (anon) anim.js:355",
+   "  0.5%  render3 post.js:955",
+   "  0.5%  shopFrontDress tilebuild.js:2014",
+   "  0.5%  computeColliderMovement @dimforge_rapier3d-compat.js:4175",
+   "  0.5%  renderCascade surfaceMask.js:161",
+   "  0.5%  wasm-function[92] 0057e15e:1",
+   "  0.5%  setupVertexAttributes chunk-UG26MVNH.js:9411",
+   "  0.5%  pushItem countryside.js:356",
+   "  0.5%  computeColliderMovement @dimforge_rapier3d-compat.js:1519",
+   "  0.5%  setValue chunk-UG26MVNH.js:11619",
+   "  0.5%  reservedAt lots.js:69",
+   "  0.5%  tick stream.js:8",
+   "  0.5%  isIndoor audio.js:363",
+   "  0.5%  renderVelocity post.js:844",
+   "  0.5%  wasm-function[678] 0057e15e:1",
+   "  0.5%  buildHouse generator.js:72",
+   "  0.5%  wasm-function[103] 0057e15e:1",
+   "  0.5%  spawnWalker people.v2.js:346",
+   "  0.5%  update lawn.js:226",
+   "  0.5%  wasm-function[337] 0057e15e:1",
+   "  0.5%  update pose.js:84",
+   "  0.4%  setMatrixAt chunk-UG26MVNH.js:19577",
+   "  0.4%  wasm-function[1616] 0057e15e:1",
+   "  0.4%  tick rocks.js:18",
+   "  0.4%  stepJob lawn.js:80",
+   "  0.4%  (anon) kit.js:130",
+   "  0.4%  js-to-wasm:ii:i 0057e15e:1",
+   "  0.4%  intoRaw @dimforge_rapier3d-compat.js:3936",
+   "  0.4%  speck surfaces.js:11",
+   "  0.4%  wasm-function[1043] 0057e15e:1",
+   "  0.4%  convexHull @dimforge_rapier3d-compat.js:2383",
+   "  0.4%  inLot countryside.js:174",
+   "  0.4%  wasm-function[713] 0057e15e:1",
+   "  0.4%  RoundedBoxGeometry three_addons_geometries_RoundedBoxGeometry__js.js:25",
+   "  0.4%  (anon) chunk-63UPJPEN.js:2050",
+   "  0.4%  update manager.js:782",
+   "  0.4%  updateWorldMatrix chunk-UG26MVNH.js:4785",
+   "  0.4%  update farCrowd.js:280",
+   "  0.4%  updateInner manager.js:783",
+   "  0.4%  wasm-function[218] 0057e15e:1",
+   "  0.4%  normalizeSkinWeights chunk-UG26MVNH.js:19254",
+   "  0.4%  bil venueSurfaces.js:25",
+   "  0.4%  wasm-function[160] 0057e15e:1",
+   "  0.4%  lod.update glbCar.js:434",
+   "  0.4%  acquireProgram chunk-UG26MVNH.js:12764",
+   "  0.4%  buildRoads tilebuild.js:1721",
+   "  0.4%  castRay @dimforge_rapier3d-compat.js:4482",
+   "  0.4%  castRay @dimforge_rapier3d-compat.js:4014",
+   "  0.4%  getParameters chunk-UG26MVNH.js:12372",
+   "  0.4%  bindVertexArrayObject chunk-UG26MVNH.js:9274",
+   "  0.4%  measureText :0",
+   "  0.4%  boatsFixed boats.js:1148",
+   "  0.4%  onQuaternionChange chunk-UG26MVNH.js:4486",
+   "  0.4%  wasm-function[1765] 0057e15e:1",
+   "  0.4%  bufferSubData :0",
+   "  0.3%  canonicalClips anim.js:206",
+   "  0.3%  setValueM4 chunk-UG26MVNH.js:11175",
+   "  0.3%  bindVertexArray :0",
+   "  0.3%  wasm-to-js :1",
+   "  0.3%  (anon) fashion.js:60",
+   "  0.3%  wallBay fashion.js:58",
+   "  0.3%  boatTick2 boats.js:665",
+   "  0.3%  wasm-function[917] 0057e15e:1",
+   "  0.3%  dressFront frontDress.js:53",
+   "  0.3%  WebGLProgram chunk-UG26MVNH.js:11903",
+   "  0.3%  translation @dimforge_rapier3d-compat.js:2808",
+   "  0.3%  syncWheels glbCar.js:312",
+   "  0.3%  castRay @dimforge_rapier3d-compat.js:1764",
+   "  0.3%  wasm-function[41] 0057e15e:1",
+   "  0.3%  update character.js:147",
+   "  0.3%  checkIntersection$1 chunk-UG26MVNH.js:7239",
+   "  0.3%  fab fashion.js:9",
+   "  0.3%  wasm-function[24] 0057e15e:1",
+   "  0.3%  wrap surfaces.js:9",
+   "  0.3%  h surfaces.js:80",
+   "  0.3%  placeRare vehicles.js:1461",
+   "  0.3%  WebGLRenderer.compileAsync chunk-UG26MVNH.js:17602",
+   "  0.3%  computeBoundingSphere chunk-UG26MVNH.js:6698",
+   "  0.3%  wasm-function[546] 0057e15e:1",
+   "  0.3%  aiDrive vehicles.js:956",
+   "  0.3%  wasm-function[207] 0057e15e:1",
+   "  0.3%  isWater vegetation.v2.js:209",
+   "  0.3%  wasm-function[125] 0057e15e:1",
+   "  0.3%  randomSidewalkPoint city.js:245",
+   "  0.3%  wasm-function[43] 0057e15e:1",
+   "  0.3%  buildFacade facade.js:25",
+   "  0.3%  (anon) cast.js:92",
+   "  0.3%  randomSidewalkPoint data.js:550",
+   "  0.3%  fromBufferAttribute chunk-UG26MVNH.js:1843",
+   "  0.3%  refreshUniformsCommon chunk-UG26MVNH.js:16624",
+   "  0.3%  _add kit.js:98",
+   "  0.3%  setValueV4f chunk-UG26MVNH.js:11131",
+   "  0.3%  pickSidewalk data.js:527",
+   "  0.3%  (anon) audio.js:366",
+   "  0.3%  slerpFlat chunk-UG26MVNH.js:2019",
+   "  0.3%  wasm-function[67] 0057e15e:1",
+   "  0.3%  intersectTriangle chunk-UG26MVNH.js:3432",
+   "  0.3%  clumpK countryside.js:126",
+   "  0.3%  unlockAllBodies library.js:100",
+   "  0.3%  update pickups.js:307",
+   "  0.3%  (anon) gameplay.js:361",
+   "  0.3%  drawVelvet venueSurfaces.js:57",
+   "  0.3%  bindTexture chunk-UG26MVNH.js:14202",
+   "  0.3%  prepareHumanBase library.js:47",
+   "  0.3%  wasm-function[46] 0057e15e:1",
+   "  0.3%  wasm-function[322] 0057e15e:1",
+   "  0.3%  sidewalkPoint cityApi.js:58",
+   "  0.3%  one countryside.js:286",
+   "  0.3%  mergeBuckets houses.v2.js:41",
+   "  0.3%  pillar venue.js:219",
+   "  0.3%  vert geo.js:10",
+   "  0.2%  neonSign neon.js:52",
+   "  0.2%  arraysEqual chunk-UG26MVNH.js:11066",
+   "  0.2%  (anon) library.js:57",
+   "  0.2%  wasm-function[77] 0057e15e:1",
+   "  0.2%  neonCanvas neon.js:37",
+   "  0.2%  getObjectByProperty chunk-UG26MVNH.js:4700",
+   "  0.2%  B pose.js:43",
+   "  0.2%  getWorldPosition chunk-UG26MVNH.js:4719",
+   "  0.2%  toObject3D kit.js:245",
+   "  0.2%  computeBoundingBox chunk-UG26MVNH.js:19187",
+   "  0.2%  at data.js:45",
+   "  0.2%  (anon) surfaces.js:11",
+   "  0.2%  shelfRun stock.js:7",
+   "  0.2%  update world.js:384",
+   "  0.2%  (anon) gameplay.js:363",
+   "  0.2%  toArray chunk-UG26MVNH.js:2372",
+   "  0.2%  update collar.js:48",
+   "  0.2%  proto.intersectsObject detailCull.v2.js:27",
+   "  0.2%  spawnScenario peds.js:410",
+   "  0.2%  js-to-wasm:ifiiidiiifiiii: :0",
+   "  0.2%  activate peds.js:379",
+   "  0.2%  pass neon.js:41",
+   "  0.2%  rebuild collar.js:35",
+   "  0.2%  mergeBucketsGen houses.v2.js:42",
+   "  0.2%  geometries kit.js:221",
+   "  0.2%  box generator.js:88",
+   "  0.2%  (anon) neon.js:42",
+   "  0.2%  update chunk-UG26MVNH.js:29619",
+   "  0.2%  box kit.js:296",
+   "  0.2%  blocked vegetation.v2.js:209",
+   "  0.2%  garment fashion.js:38",
+   "  0.2%  scene.onBeforeRender talk.js:623",
+   "  0.2%  shoreDist terrain.js:208",
+   "  0.2%  quad2 tilebuild.js:2018",
+   "  0.2%  getX chunk-UG26MVNH.js:6283",
+   "  0.2%  precompile engine.js:77",
+   "  0.2%  mapIcons hud.js:755",
+   "  0.2%  getUniforms chunk-UG26MVNH.js:12753",
+   "  0.2%  applyBoneTransform chunk-UG26MVNH.js:19278",
+   "  0.2%  generate world.js:84",
+   "  0.2%  solidAt vegetation.v2.js:54",
+   "  0.2%  vertexAttribPointer chunk-UG26MVNH.js:9404",
+   "  0.2%  setFromRotationMatrix chunk-UG26MVNH.js:4308",
+   "  0.2%  wasm-function[314] 0057e15e:1",
+   "  0.2%  vertexAttribPointer :0",
+   "  0.2%  onBeforeRender perfGuards.v2.js:208"
+  ]
+ },
+ "heapNow": {
+  "usedMB": 2915,
+  "totalMB": 3020,
+  "limitMB": 4192
+ },
+ "errors": []
+}

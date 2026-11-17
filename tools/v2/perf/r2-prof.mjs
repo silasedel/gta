@@ -28,6 +28,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.quality.set('${o.preset || 'high'}', { manual: true }); window.__spawn = game.player ? [game.player.position.x, game.player.position.z, game.player.heading || 0] : null; return 1; })()`);
   console.log('instrument', await b.eval(PAGE));
   rep.boot = await b.eval('JSON.stringify({ ready: window.BOOT?.ready ?? null, gpu: window.__r2p.gpu })');
+  if (o.probe) console.log('probe', await b.eval(fs.readFileSync(new URL('./r2-probe.page.js', import.meta.url), 'utf8')));
+  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.js'); await m.initV2(game); } return !!game.tileCull; })()`));
   if (o.init) console.log('init', await b.eval(o.init));
   for (const id of only) {
     const s = PLACES[id]; if (!s) continue;
@@ -37,6 +39,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
     for (let i = 0; i < 60; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     await b.sleep(2500);
     const P = rep.places[id] = {};
+    if (o.before) console.log('  before', await b.eval(o.before, 60000));
     if (!CASES.length) {
       P.frames = await J(b, `window.__r2p.frames(${MS})`);
       P.frames2 = await J(b, `window.__r2p.frames(${MS})`);
@@ -63,13 +66,14 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
         const A = [], B = [];
         for (let i = 0; i < +(o.rounds || 3); i++) {
           await b.eval(`(() => { ${off}; return 1; })()`); await b.sleep(600);
-          A.push({ f: await J(b, `window.__r2p.frames(${MS})`), g: (await J(b, `window.__r2p.gpuSync(${MS})`)).gpu });
+          A.push({ f: await J(b, `window.__r2p.frames(${MS})`), g: o.nogpu ? {} : (await J(b, `window.__r2p.gpuSync(${MS})`)).gpu });
           await b.eval(`(() => { ${on}; return 1; })()`); await b.sleep(600);
-          B.push({ f: await J(b, `window.__r2p.frames(${MS})`), g: (await J(b, `window.__r2p.gpuSync(${MS})`)).gpu });
+          B.push({ f: await J(b, `window.__r2p.frames(${MS})`), g: o.nogpu ? {} : (await J(b, `window.__r2p.gpuSync(${MS})`)).gpu });
         }
         await b.eval(`(() => { ${off}; return 1; })()`);
         const md = (xs) => { const s = xs.slice().sort((p, q) => p - q); return s[s.length >> 1]; };
-        const comb = (L) => ({ med: md(L.map((x) => x.f.med)), work: md(L.map((x) => x.f.work)), render: md(L.map((x) => x.f.sys.render || 0)), calls: md(L.map((x) => x.f.calls)), tris: md(L.map((x) => x.f.tris)), gpu: md(L.map((x) => x.g.TOTAL)), gpuScene: md(L.map((x) => Object.entries(x.g).find(([k]) => k.includes('RenderPass'))?.[1] || 0)), shadow: md(L.map((x) => x.g.shadow || 0)) });
+        const comb = (L) => ({ med: md(L.map((x) => x.f.med)), work: md(L.map((x) => x.f.work)), render: md(L.map((x) => x.f.sys.render || 0)), calls: md(L.map((x) => x.f.calls)), tris: md(L.map((x) => x.f.tris)), gpu: md(L.map((x) => x.g.TOTAL)), gpuScene: md(L.map((x) => Object.entries(x.g).find(([k]) => k.includes('RenderPass'))?.[1] || 0)), shadow: md(L.map((x) => x.g.shadow || 0)),
+          step: md(L.map((x) => x.f.sys['world.step'] || 0)), player: md(L.map((x) => x.f.sys['fixed:playerFixed'] || 0)), peds: md(L.map((x) => x.f.sys.peds || 0)), veh: md(L.map((x) => x.f.sys['fixed:vehiclesFixed'] || 0)) });
         P[name] = { off: comb(A), on: comb(B) };
         console.log(id, name.padEnd(16), 'OFF', JSON.stringify(P[name].off), '\n', ' '.repeat(id.length + 17), 'ON ', JSON.stringify(P[name].on));
       }

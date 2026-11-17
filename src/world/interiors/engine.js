@@ -22,6 +22,8 @@ export function createEngine(game, opts = {}) {
   const { scene, world, RAPIER } = game, city = game.city || {}, list = [], byKey = new Map(), claimed = new WeakSet();
   const state = (game.interiorState ||= new Map()); // key -> persisted per-store state
   const pool = createLightPool(scene, opts.poolLights ?? 4), hooks = { people: null, interact: null }, tmp = new THREE.Vector3();
+  const fastS = { x: undefined, z: undefined, v: 0 }; // r2-perf: player ground speed (m/s, smoothed)
+  const INT_FAST_OLD = typeof location !== 'undefined' && /[?&]intfast=1\b/.test(location.search);
   let current = null, pending = null, fitter = opts.fitter || null, ingN = 0, ingSrc = null, pollT = 0, scanT = 0, nearList = [], upMax = 0, buildMax = 0, clock = 0;
   try { if (game.design) setDesign(game.design); } catch (e) { /* */ }
   try { if (game.renderer) setProbePlaceholder(probePlaceholder(game.renderer, 256)); } catch (e) { console.warn('[interiors] probe placeholder', e); }
@@ -109,9 +111,14 @@ export function createEngine(game, opts = {}) {
     scanT -= dt; if (scanT <= 0) { scanT = 0.25; nearList = list.filter((s) => Math.abs(s.center.x - pp.x) < DISPOSE_R + 30 && Math.abs(s.center.z - pp.z) < DISPOSE_R + 30); }
     for (const s of nearList) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z); nearList.sort((a, b) => a.dist - b.dist);
     const wanted = []; for (const s of nearList) { if (s.dist > ACTIVE_R || wanted.length >= MAX_ACTIVE) break; if (!s.failed) wanted.push(s); }
-    for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
-    for (const s of wanted) { if (!s.built) { if (!pending && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
-    if (pending) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
+    // r2-perf: passing at speed (car, > 12 m/s) never starts or steps an interior build, nor its idle texture prewarm: a
+    // build (procedural surface textures, ~250 meshes) cost 50 ms per frame on average and single steps up to 1 s while
+    // driving past shops. They resume as soon as the player slows down (walking, parking). ?intfast=1 = old behavior.
+    { const vx = pp.x - (fastS.x ?? pp.x), vz = pp.z - (fastS.z ?? pp.z); fastS.x = pp.x; fastS.z = pp.z; const v = dt > 0 ? Math.hypot(vx, vz) / dt : 0; fastS.v += (Math.min(v, 120) - fastS.v) * Math.min(1, dt * 3); }
+    const passing = !(game.intFastOld ?? INT_FAST_OLD) && fastS.v > 12 && !current; // game.intFastOld = true: old behavior (A/B)
+    if (!passing) for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
+    for (const s of wanted) { if (!s.built) { if (!pending && !passing && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
+    if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
     let hidden = 0;
     for (const s of list) { const b = s.built; if (!b) continue; if (!nearList.includes(s)) s.dist = Math.hypot(pp.x - s.center.x, pp.z - s.center.z);
