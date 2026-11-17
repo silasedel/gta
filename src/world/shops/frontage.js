@@ -19,24 +19,27 @@ export function shopAprons(list, B, env) {
     const fx = f.fx ?? f.x, fz = f.fz ?? f.z, key = Math.round(fx * 2) + ',' + Math.round(fz * 2); if (seen.has(key)) continue; seen.add(key);
     const fc = f.facing || 0, ox = Math.sin(fc), oz = Math.cos(fc), rx = -oz, rz = ox, hw = Math.max(3, (f.w || 6) / 2 + 1.1);
     const at = (u, d) => [fx + rx * u + ox * d, fz + rz * u + oz * d];
+    let uL = -hw, uR = hw; // close the grass gap to a neighboring shop on the same frontage (one continuous paved front)
+    for (const g of list) { if (g === f || !g || Math.abs(((g.facing || 0) - fc + 9.42478) % 6.28319 - 3.14159) > 0.12) continue; const gx = (g.fx ?? g.x) - fx, gz = (g.fz ?? g.z) - fz, u = gx * rx + gz * rz, v = gx * ox + gz * oz, gh = Math.max(3, (g.w || 6) / 2 + 1.1);
+      if (Math.abs(v) > 1.5 || Math.abs(u) > hw + gh + 9) continue; if (u > 0) uR = Math.max(uR, Math.min(u - gh + 0.05, hw + 4.5)); else uL = Math.min(uL, Math.max(u + gh - 0.05, -hw - 4.5)); }
     // already on a raised sidewalk / plaza: nothing to do
     if (onSidewalk) { let n = 0; for (const u of [-hw * 0.6, 0, hw * 0.6]) { const p = at(u, 1.2); if (onSidewalk(p[0], p[1])) n++; } if (n >= 2) continue; }
     // march out from the facade until a road edge (or water) is reached under any of three lateral samples
     let ext = 0, road = false;
     for (let d = 0.5; d <= MAX_REACH; d += 0.5) {
-      let hit = false; for (const u of [-hw + 0.2, 0, hw - 0.2]) { const p = at(u, d); if (roadDist(p[0], p[1]) < 0.35 || (isWater && isWater(p[0], p[1]))) { hit = true; break; } }
+      let hit = false; for (const u of [uL + 0.2, 0, uR - 0.2]) { const p = at(u, d); if (roadDist(p[0], p[1]) < 0.35 || (isWater && isWater(p[0], p[1]))) { hit = true; break; } }
       if (hit) { road = true; break; } ext = d;
     }
     if (!road) ext = Math.min(ext, NO_ROAD);
     ext = Math.max(0, ext - 0.15); if (ext < 1.2) continue;
     const h = hash(Math.round(fx * 7) * 31 + Math.round(fz * 5));
-    const rect = (d0, d1, u0 = -hw, u1 = hw) => { const a = at(u0, d0), b = at(u1, d0), c = at(u1, d1), e = at(u0, d1); return [a, b, c, e]; };
+    const rect = (d0, d1, u0 = uL, u1 = uR) => { const a = at(u0, d0), b = at(u1, d0), c = at(u1, d1), e = at(u0, d1); return [a, b, c, e]; };
     const walk = Math.min(ext, ext > 8 ? WALK + h * 0.6 : ext);
     const ringW = rect(0.02, walk); fillPoly(B.sidewalk, [ringW], Y_PAVE, pave, 1 / 2.5); out.push({ rings: [ringW] });
     if (ext > walk + 0.5 && (B.parking || B.asphalt)) { // parking strip out to the street
       const lot = B.parking || B.asphalt, ringP = rect(walk, ext); fillPoly(lot, [ringP], Y_PAVE - 0.004, 0xd8d8d8, 1 / 3); out.push({ rings: [ringP] });
       // curb line between walk and lot (a thin raised concrete strip reads as the walk's edge)
-      quad(B.sidewalk, at(-hw, walk - 0.12), at(hw, walk - 0.12), at(hw, walk + 0.02), at(-hw, walk + 0.02), Y_PAVE + 0.012, stop);
+      quad(B.sidewalk, at(uL, walk - 0.12), at(uR, walk - 0.12), at(uR, walk + 0.02), at(uL, walk + 0.02), Y_PAVE + 0.012, stop);
       const depth = ext - walk;
       if (depth >= 5 && B.marks) { // head-in stalls (2.7 m) perpendicular to the shop front, faded paint, concrete wheel stops
         const sl = Math.min(5.4, depth - 0.3), n = Math.floor((hw * 2 - 0.4) / 2.7), u0 = -n * 2.7 / 2, fade = white.clone().lerp(new THREE.Color(0x9a958c), 0.25 + h * 0.3);
