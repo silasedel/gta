@@ -8,7 +8,7 @@
 // person is first used, fingers folded into the hands. Instances pick a clip row range + phase, so hundreds of people
 // animate with zero per-frame CPU skinning. Only people the cast has loaded (src/npc/people/cast.js) are used.
 import * as THREE from 'three';
-import { FRAME_NOISE } from '../../render/frameNoise.js';
+import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL } from '../../render/frameNoise.js';
 import { getPerson, loadedPeople } from './lib.js';
 
 const POSE = { stand: 0, walk: 1, run: 2, sit: 3, sitGround: 4, lie: 5, talk: 6, phone: 7, call: 8, dance: 9, cower: 10, film: 11, kneel: 12, push: 13, swim: 14, lean: 15, wave: 16, dead: 17, ride: 18, volley: 19, work: 20, panic: 21, carry: 22, sitEat: 23, lounge: 24, bike: 25, sip: 26, lieFront: 27, argue: 28, fish: 29 };
@@ -38,7 +38,7 @@ export const FAR_IN_USE = new Set();
 
 // ---------------------------------------------------------------- per-person bake (rig posed by the shared clips)
 const _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4();
-function bakePerson(base) {
+function* bakePerson(base) {   // a generator: one clip per step, so a bake never costs a frame more than ~1-2 ms
   const scene = base.scene;
   let mesh = null; scene.traverse((o) => { if (o.isSkinnedMesh && /LOD2/.test(o.name) && /_body/.test(o.name)) mesh = o; });
   if (!mesh) scene.traverse((o) => { if (!mesh && o.isSkinnedMesh && /LOD2/.test(o.name)) mesh = o; });
@@ -66,6 +66,7 @@ function bakePerson(base) {
   scene.updateMatrixWorld(true);
   const bind = mesh.bindMatrix;
   const rootInv = new THREE.Matrix4().copy(scene.matrixWorld).invert();
+  const restore = () => { sk.bones.forEach((b, i) => { b.position.copy(saved[i][0]); b.quaternion.copy(saved[i][1]); b.scale.copy(saved[i][2]); }); scene.updateMatrixWorld(true); };
   for (const [nm, clip, fr, endOnly] of list) {
     const s = slots[nm];
     const names = Array.isArray(clip) ? clip : [clip];
@@ -90,6 +91,8 @@ function bakePerson(base) {
       }
     }
     for (const n of names) { const c = base.clips[n]; if (c) mixer.uncacheAction(c); }
+    restore();                      // the template stays in its rest pose between steps (people are cloned from it)
+    yield null;
   }
   mixer.stopAllAction(); mixer.uncacheRoot(scene);
   sk.bones.forEach((b, i) => { b.position.copy(saved[i][0]); b.quaternion.copy(saved[i][1]); b.scale.copy(saved[i][2]); });
@@ -124,13 +127,14 @@ const VERT_SKIN = /* glsl */`
 `;
 const FRAG_PARS = /* glsl */`
 varying float vNpcFade;
-uniform vec4 uNpcBands; uniform float uFrameN;
+uniform vec4 uNpcBands; uniform float uFrameN; uniform float uRenderR2;
+${IGN_R2_GLSL}
 `;
 const FRAG_DITHER = /* glsl */`
   {
     float dCam = length(vViewPosition);
     float a = vNpcFade * smoothstep(uNpcBands.x, uNpcBands.y, dCam) * (1.0 - smoothstep(uNpcBands.z, uNpcBands.w, dCam));
-    if (a < 0.999 && a <= fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715))))) discard;
+    if (a < 0.999 && a <= psIgnT(gl_FragCoord.xy)) discard;
   }
 `;
 
@@ -156,18 +160,21 @@ export function createPeopleCrowd(game, opts = {}) {
   const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
   let bakeBudget = 0;
 
+  const jobs = new Map();           // person id -> running bake generator
   function getBake(pid) {
     if (baked.has(pid)) return baked.get(pid);
     const b = getPerson(pid); if (!b) return null;
-    if (bakeBudget > 0) return null;          // at most one bake per frame (a few ms)
+    if (!jobs.has(pid)) { try { jobs.set(pid, bakePerson(b)); } catch (e) { baked.set(pid, null); return null; } }
+    if (bakeBudget > 0) return null;  // one bake step per frame
     bakeBudget = 1;
-    let r = null; try { r = bakePerson(b); } catch (e) { console.warn('[farCrowd] bake', pid, e); r = null; }
-    baked.set(pid, r); return r;
+    let r; try { r = jobs.get(pid).next(); } catch (e) { console.warn('[farCrowd] bake', pid, e); jobs.delete(pid); baked.set(pid, null); return null; }
+    if (r.done) { jobs.delete(pid); baked.set(pid, r.value || null); return r.value || null; }
+    return null;
   }
   function material(bk, base) {
     const m = new THREE.MeshStandardMaterial({ map: base.tex.a, roughness: 0.86, metalness: 0, name: 'npcPeopleFar' });
     m.onBeforeCompile = (sh) => {
-      sh.uniforms.uBoneTex = { value: bk.tex }; sh.uniforms.uNpcTime = uTime; sh.uniforms.uNpcBands = uBands; sh.uniforms.uFrameN = FRAME_NOISE;
+      sh.uniforms.uBoneTex = { value: bk.tex }; sh.uniforms.uNpcTime = uTime; sh.uniforms.uNpcBands = uBands; sh.uniforms.uFrameN = FRAME_NOISE; sh.uniforms.uRenderR2 = RENDER_R2;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + VERT_PARS)
         .replace('#include <beginnormal_vertex>', VERT_SKIN)
         .replace('#include <begin_vertex>', 'vec3 transformed = (fS * vec4(position, 1.0)).xyz;');
