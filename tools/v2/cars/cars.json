@@ -35,7 +35,9 @@
     ]
    }
   ],
-  "fwd": "-y"
+  "fwd": "-y",
+  "tireRatio": 0.62,
+  "rimChrome": true
  },
  "conv2": {
   "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
@@ -159,7 +161,7 @@
    "^Mat 11 #1": "paint"
   },
   "recalcNormals": true,
-  "fwd": "-y"
+  "fwd": "+y"
  },
  "suv14": {
   "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
@@ -189,7 +191,7 @@
  "sedan4": {
   "src": "Sedans/Sedan 4 - Electric Fastback/Sedan 4.blend",
   "L": 4.69,
-  "fwd": "-y"
+  "fwd": "+y"
  },
  "sedan5": {
   "src": "Sedans/Sedan 5 - Japanese Compact Sedan/Sedan 5.blend",
@@ -257,7 +259,26 @@
    "^Grille": "trim#101012",
    "CalliperBadge": "trim#141416"
   },
-  "fwd": "+y"
+  "fwd": "-y",
+  "emblemHalfW": 0.5,
+  "emblemDepth": 1.0,
+  "emblemLamps": true,
+  "darkBoxes": [
+   {
+    "dz": [
+     0.05,
+     1.1
+    ],
+    "ax": [
+     0,
+     0.62
+    ],
+    "y": [
+     0.7,
+     1.2
+    ]
+   }
+  ]
  },
  "super6": {
   "src": "Supercars/Super Car 6 - Classic Wedge Mid-Engine Sports Coupe/Super Car 6.blend",
@@ -363,7 +384,7 @@
   "L": 8.2,
   "textured": true,
   "wheelDonor": "truck7",
-  "fwd": "+y",
+  "fwd": "-y",
   "lampBoxes": [
    {
     "kind": "head",

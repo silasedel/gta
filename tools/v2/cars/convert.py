@@ -631,7 +631,8 @@ for f in bm.faces:
             rgb = (base[0], base[1], base[2]); ta = 1.0
         if wfi >= 0 and sl.startswith('trim') and lum(rgb) > 0.4 and not sl.endswith('chrome'):
             wc_ = wheels[wfi]['c']; rad_ = math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2])
-            if rad_ > 0.8 * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
+            if rad_ > CFG.get('tireRatio', 0.8) * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
+            elif CFG.get('rimChrome'): sl = 'trim:chrome'
         if sl == 'paint': a = 0.0; rgb = (1, 1, 1)
         elif sl.startswith('trim'):
             rough, metal = info['rough'], info['metal']
@@ -668,12 +669,12 @@ for f in bm.faces:
         lp[col_layer] = (rgb[0], rgb[1], rgb[2], a)
     # maker emblems built into grilles / trunk lids: chrome or bright faces on the centerline of the nose and tail are blanked
     # to a dark satin plastic (the badge shape may stay, the brand reads no more)
-    if sl.startswith('trim') and sl != 'trim:interior' and _wf < 0 and not CFG.get('keepBadges') and abs(cz[0]) < CFG.get('emblemHalfW', 0.14):
+    if (sl.startswith('trim') or (CFG.get('emblemLamps') and sl.startswith('lamp'))) and sl != 'trim:interior' and _wf < 0 and not CFG.get('keepBadges') and abs(cz[0]) < CFG.get('emblemHalfW', 0.14):
         gz_ = -cz[1]
-        if (gz_ > FRONTZ - 0.32 and 0.33 < cz[2] < 1.3) or (gz_ < REARZ + 0.32 and 0.45 < cz[2] < 1.45):
+        if (gz_ > FRONTZ - CFG.get('emblemDepth', 0.32) and 0.33 < cz[2] < 1.3) or (gz_ < REARZ + CFG.get('emblemDepth', 0.32) and 0.45 < cz[2] < 1.45):
             cs_ = [lp[col_layer] for lp in f.loops]; L_ = sum(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] for c in cs_) / len(cs_)
             if L_ > 0.3 or sum(c[3] for c in cs_) / len(cs_) >= 0.5:
-                for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.42, 0.0))
+                for lp in f.loops: c_ = lp[col_layer]; lp[col_layer] = (0.03, 0.03, 0.034, c_[3] if sl.startswith('lamp') else pack_rm(0.42, 0.0))
     if COLOR_LAMPS and sl.startswith('trim') and sl != 'trim:interior' and lamp_zone(cz):
         cs_ = [lp[col_layer] for lp in f.loops]; r_ = sum(c[0] for c in cs_) / len(cs_); g_ = sum(c[1] for c in cs_) / len(cs_); b_ = sum(c[2] for c in cs_) / len(cs_)
         L_ = 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; front_ = -cz[1] > 0
@@ -718,6 +719,16 @@ def _geo_lamps(kind, front):
     log('geometric', kind, 'lamps', n)
 if not _cnt.get(LAMP['head']) and not CFG.get('noHeadFix'): _geo_lamps('head', True)
 if not _cnt.get(LAMP['tail']) and not _cnt.get(LAMP['reverse']) and not CFG.get('noTailFix'): _geo_lamps('tail', False)
+# hand-placed boxes where painted lettering sits on black trim (cars.json 'darkBoxes'): paint faces inside become dark trim
+for B in CFG.get('darkBoxes') or []:
+    n = 0; front = B.get('front', False)
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index not in (0, 2): continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
+        for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.4, 0.0))
+        f.material_index = 2; n += 1
+    log('dark box', n)
 # hand-placed lamp boxes for models whose lamps cannot be found (cars.json 'lampBoxes'): any non-glass face inside
 for B in CFG.get('lampBoxes') or []:
     n = 0; kind = B['kind']; front = B.get('front', kind == 'head')
@@ -802,10 +813,11 @@ if not CFG.get('keepBadges'):
     nose = (gzc > fz_front - 0.75) | (gzc < fz_rear + 0.75)
     metalish = metal > 0.6 * np.maximum(cntf, 1)
     paintish = trimf < 0.5 * np.maximum(cntf, 1)          # mostly paint / glass / lamp faces: not an emblem
-    bad = (isl2_w < 0) & nose & (cntf > 0) & (c2[:, 2] > 0.25) & ~paintish & (
+    bad = (isl2_w < 0) & nose & (cntf > 0) & (c2[:, 2] > 0.25) & ((~paintish & (
         ((diag < CFG.get('badgeMax', 0.26)) & ((np.abs(c2[:, 0]) < 0.33) | ((diag < 0.2) & (np.abs(c2[:, 0]) < 0.62))) & metalish) |
         # emblems and model lettering of any finish: small, thin, on the centerline of the nose / tail
-        ((diag < 0.3) & (np.abs(c2[:, 0]) < 0.26) & ((mx2 - mn2).min(axis=1) < 0.06)) |
+        ((diag < 0.3) & (np.abs(c2[:, 0]) < 0.26) & ((mx2 - mn2).min(axis=1) < 0.06)))) |
+        # raised letters on the tail (any material, painted ones too): tiny and paper-thin
         ((diag < 0.16) & (np.abs(c2[:, 0]) < 0.7) & ((mx2 - mn2).min(axis=1) < 0.03) & (gzc < fz_rear + 0.75)))
     # grille meshes / slats repeat the same island many times: a pattern, never an emblem
     from collections import Counter
