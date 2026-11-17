@@ -1292,10 +1292,13 @@ export function createAudio(game) {
       if (Math.hypot(cam.x - camPrev.x, cam.z - camPrev.z) > 50) camVel.x = camVel.y = camVel.z = 0; // teleport
       camPrev.x = cam.x; camPrev.y = cam.y; camPrev.z = cam.z; camPrev.ok = true;
     }
-    if (pc !== lastPc) { // enter/exit: startup / shutdown (also triggered by 'engineStart'/'engineStop' events)
-      if (pc && pc.engineOn !== false) engineOneShot(pc, 'start');
-      if (lastPc && !pc && !muted && lastPc.engineOn !== true) engineOneShot(lastPc, 'stop');
-      lastPc = pc;
+    // enter/exit: startup / shutdown (also triggered by 'engineStart'/'engineStop' events). Track the REAL car the player is in,
+    // not the muted one: pausing (muted) used to read as "left the car", so unpausing replayed the startup crank (user report)
+    const inCar = st?.inVehicle && st.vehicle ? st.vehicle : null;
+    if (!muted && inCar !== lastPc) {
+      if (inCar && inCar.engineOn !== false) engineOneShot(inCar, 'start');
+      if (lastPc && !inCar && lastPc.engineOn !== true) engineOneShot(lastPc, 'stop');
+      lastPc = inCar;
     }
     const want = new Set();
     if (pc) want.add(pc);
