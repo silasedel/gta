@@ -3,6 +3,9 @@ import heapq, math
 from collections import defaultdict
 from shapely.geometry import LineString, Point
 from osmgeom import load, pts, world_box, parse_len, parse_speed
+# centerline simplify tolerance (m). Roads fitted by tools/v2/map3/survey.py (features road `surveyed`) keep 0.12 m: at 0.6 m
+# their arcs would turn into 30-60 m chords with 3-9 degree kinks. Every other road keeps 0.6 m (its graph must not change).
+SIMPLIFY, SIMPLIFY_FIT = 0.6, 0.12
 
 DRIVE = {'motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary',
          'secondary_link', 'tertiary', 'tertiary_link', 'unclassified', 'residential', 'living_street',
@@ -467,6 +470,8 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
     `terrain(x, z)`: ground height; edge 'y' is the ABSOLUTE road surface height (terrain + deck), None when flat at 0.
     Each edge carries 'ways' (set of OSM / synthetic way ids) so relations and profiles can be resolved."""
     ways, osm_xy, bnd, tunnels = osm_ways()
+    fit_ids = {w['id'] for w in (synthetic or []) if w.get('surveyed')}
+    tol = lambda e: SIMPLIFY_FIT if e.get('ways') and (e['ways'] & fit_ids) else SIMPLIFY
     if ways: ways += rescue_outside(ways, log=log)   # stage 1 map v3 (MIAMI_NO_OSM): no OSM ways to rescue
     prof = {}
     for w in synthetic or []:
@@ -552,7 +557,7 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
     node_key = {k: remap[v] for k, v in nid.items() if v in remap}
     # simplify + densify
     for e in edges:
-        ln = LineString(e['pts']).simplify(0.6, preserve_topology=False)
+        ln = LineString(e['pts']).simplify(tol(e), preserve_topology=False)
         e['pts'] = densify(list(ln.coords), 12.0)
         e['pts'][0] = tuple(nodes[e['a']])
         e['pts'][-1] = tuple(nodes[e['b']])
@@ -592,7 +597,7 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
                 e['_prof'] = bool(pw)
                 continue
         if deck < 0.05:
-            ln = LineString(e['pts']).simplify(0.6, preserve_topology=False)
+            ln = LineString(e['pts']).simplify(tol(e), preserve_topology=False)
             e['pts'] = list(ln.coords)
             e['y'] = None
         e['_prof'] = bool(pw)
@@ -741,7 +746,7 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
         e['y'] = ny
         if max(ny) < 0.05:
             e['y'] = None
-            e['pts'] = list(LineString(e['pts']).simplify(0.6, preserve_topology=False).coords)
+            e['pts'] = list(LineString(e['pts']).simplify(tol(e), preserve_topology=False).coords)
     if n_lim:
         log(f'roads: {n_lim} synthetic edges had steps in their deck profile turned into 8 % ramps')
     n_kill = sum(1 for e in edges if e.get('_kill'))

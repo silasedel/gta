@@ -155,7 +155,7 @@ def load(path, log=print):
                  spTag=True, tl=None, tlb=None, dst=r.get('destination'), dref=r.get('destinationRef'), brName=r.get('bridgeName'),
                  access=r.get('access'), junction=r.get('junction'), synthetic=True, sid=r.get('id'),
                  priv=r.get('access') in ('no', 'private'))
-        ways.append(dict(pts=c, attrs=a, id=r.get('id'), y=[float(v) for v in y] if y is not None else None))
+        ways.append(dict(pts=c, attrs=a, id=r.get('id'), y=[float(v) for v in y] if y is not None else None, surveyed=bool(r.get('surveyed'))))
     S['ways'] = ways
     S['joins'] = F.get('joins', [])
 

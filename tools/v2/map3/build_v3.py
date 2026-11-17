@@ -646,6 +646,50 @@ if KEYS:
         W.building(b['ring'], b.get('h', 6.5), b.get('kind', 'house'), b.get('style', 'stilt'), b.get('zone', 'residential'), name=b.get('name'), poi=b.get('poi'), region='Key Largo', check=False)
     if KEYS.get('keysBar'):
         W.setpieces = [p for p in W.setpieces if p['id'] != 'keys_bar']; _kb = KEYS['keysBar']; W.setpiece('keys_bar', _kb['x'], _kb['z'], _kb.get('heading', 0.0), note='Keys roadside bar')
+# ---------------------------------------------------------------- 9c. surveyed alignments (round 2, item 8)
+# The traced centerlines carry the skeleton's pixel steps as regular S-wiggles on long roads (shot_08, State Road 916).
+# survey.py moves each eligible road sideways inside a small tube to the shape of least bending (tangents, arcs, spiral-like
+# transitions). Runs AFTER blocks / lots / buildings so their generation (and its random sequence) is unchanged; junction
+# nodes, bridges, the city grids and the whole Keys detail region stay exactly where they are. MAP3_SURVEY=0 skips it (A/B).
+if os.environ.get('MAP3_SURVEY', '1') != '0':
+    import survey as SV
+    _keep_out = KREG.buffer(5) if KEYS else None      # the Keys detail region (its own hand-fitted roads are never eligible)
+    _GRID = ('core', 'city', 'beach', 'ghetto', 'port', 'islands', 'airport')
+    def _sv_ok(r):
+        if r.bridge or r.layer or r.tags.get('keysDetail') or r.tags.get('diamond') or 'link' in r.kind: return False
+        if r.tags.get('dkind') in _GRID: return False
+        if _keep_out is not None and _keep_out.contains(LineString(r.pts)): return False
+        return plen(r.pts) > 8
+    _bpolys = [Polygon(b['ring']) for b in W.buildings]; _btree = STRtree(_bpolys)
+    # the Keys detail stays put; so does the line within 45 m of any building: storefronts / shop slots / lean spots are derived
+    # from building facades and their nearest street, and their ids must not shift (interiors attach to storefront ids)
+    def _pin(x, z):
+        p = Point(x, z)
+        if _keep_out is not None and _keep_out.contains(p): return True
+        return any(_bpolys[k].distance(p) < 45.0 for k in _btree.query(p.buffer(45.0)))
+    _sv_tube = lambda r: 9.0 if r.kind in ('trunk', 'primary', 'secondary') or r.tags.get('dkind') == 'rural' else 5.5 if r.kind == 'residential' else 7.5   # ~0.8 px of the 11 m drawing
+    def _sv_clear(r, x, z, nx, nz):      # room on each side before the carriageway (+1 m) would touch a generated building
+        p = Point(x, z); room = [99.0, 99.0]
+        for k in _btree.query(p.buffer(r.width / 2 + 12)):
+            g = _bpolys[k]; dd = g.distance(p); c = g.centroid
+            side = 1 if (c.x - x) * nx + (c.y - z) * nz > 0 else 0
+            room[side] = min(room[side], dd - r.width / 2 - 1.4)
+        return room[0], room[1]
+    _sv_before = {id(r): list(r.pts) for r in W.roads}
+    SV.naturalize(W.roads, _sv_ok, _sv_tube, log, pin=_pin, clear=_sv_clear)
+    # a building generated next to the old line must not stand in the new carriageway
+    _chg = [r for r in W.roads if r.pts != _sv_before[id(r)]]
+    for r in _chg: r.tags['surveyed'] = 1
+    if _chg:
+        _cb = unary_union([LineString(r.pts).buffer(r.width / 2 + 1.0, cap_style=2) for r in _chg])
+        _ob = unary_union([LineString(_sv_before[id(r)]).buffer(r.width / 2 + 1.0, cap_style=2) for r in _chg])   # already touching before: not ours
+        _nb0 = len(W.buildings); W.buildings = [b for b in W.buildings if not (_cb.intersects(Polygon(b['ring'])) and not _ob.intersects(Polygon(b['ring'])))]
+        log(f'survey fit: {_nb0 - len(W.buildings)} buildings removed (inside a moved carriageway)')
+        if os.environ.get('MAP3_SURVEY_DEBUG'):
+            for b in [b for b in [dict(ring=list(p.exterior.coords)) for p in _bpolys] if _cb.intersects(Polygon(b['ring'])) and not _ob.intersects(Polygon(b['ring']))][:8]:
+                pg = Polygon(b['ring']); r = min(_chg, key=lambda r: LineString(r.pts).distance(pg))
+                log('  removed near', r.kind, r.width, 'dist old %.2f new %.2f' % (LineString(_sv_before[id(r)]).distance(pg), LineString(r.pts).distance(pg)), 'at', pg.centroid.x, pg.centroid.y)
+
 # ---------------------------------------------------------------- 10. street furniture, lamps, trees
 try:
     sig, stops = G.street_furniture(W)
@@ -691,6 +735,7 @@ for r in W.roads:
     if r.ref: d['ref'] = r.ref
     if r.y: d['y'] = r.y
     if r.tags.get('style'): d['style'] = r.tags['style']
+    if r.tags.get('surveyed'): d['surveyed'] = 1          # survey.py fitted it: tools/osm keeps its arcs round
     feat['roads'].append(d)
 with open(os.path.join(OUT, 'features.json'), 'w') as f: json.dump(feat, f, separators=(',', ':'))
 regions = {d['name']: d['outer'] for d in DISTRICTS}

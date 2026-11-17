@@ -1,11 +1,11 @@
 {
- "build": "b20261116-193122",
- "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-bz1t0skw",
+ "build": "b20261117-080220",
+ "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-l78tx8vc",
  "checks": {
   "roads.geometry": {
    "pass": false,
-   "edges": 3364,
-   "nodes": 2227,
+   "edges": 3246,
+   "nodes": 2178,
    "degenerate": 0,
    "nan": 0,
    "duplicateVertices": 0,
@@ -17,12 +17,12 @@
   "roads.connected": {
    "pass": false,
    "components": 6,
-   "mainKm": 418.2,
-   "totalKm": 428.6,
-   "mainShare": 0.9758,
+   "mainKm": 412,
+   "totalKm": 422.3,
+   "mainShare": 0.9756,
    "otherComponents": [
     {
-     "km": 3.03,
+     "km": 3,
      "at": [
       -253,
       3256
@@ -31,7 +31,7 @@
      "district": "Florida City"
     },
     {
-     "km": 2.86,
+     "km": 2.83,
      "at": [
       -4719,
       5335
@@ -40,7 +40,7 @@
      "district": "Key West"
     },
     {
-     "km": 2.79,
+     "km": 2.77,
      "at": [
       -4917,
       5687
@@ -75,7 +75,7 @@
    "maxNodeStepM": 0,
    "worstNode": null,
    "segmentsOver12_5pct": 0,
-   "maxGradePct": 8.1
+   "maxGradePct": 8.4
   },
   "roads.rules": {
    "pass": false,
@@ -83,42 +83,42 @@
    "turnOnly": 0,
    "turnVia": 0,
    "badTurn": 0,
-   "signalNodes": 1044,
+   "signalNodes": 975,
    "approaches": {
-    "signal": 3684,
-    "stop": 1109,
+    "signal": 3403,
+    "stop": 1117,
     "yield": 0
    },
-   "named": 3363,
-   "withRef": 411,
-   "postedSpeed": 3364,
-   "oneway": 3,
+   "named": 3245,
+   "withRef": 419,
+   "postedSpeed": 3246,
+   "oneway": 4,
    "refs": [
-    "SR 912",
+    "US-1",
     "SR 950",
     "SR 918",
     "SR 925",
-    "SR 916",
+    "SR 915",
     "SR 983",
     "SR 938",
     "I-75",
     "US-41",
     "SR 991",
-    "SR 913",
+    "SR 912",
     "SR 959",
     "SR 926",
-    "SR 1030",
+    "SR 1025",
     "SR 951",
-    "SR 1041",
+    "SR 1035",
     "SR 923",
     "SR 974",
     "SR 939",
     "SR 929",
-    "SR 1008",
+    "SR 1005",
     "SR 922",
     "SR 992",
-    "SR 997",
-    "US-1",
+    "US-27",
+    "SR 924",
     "SR 962",
     "SR 927",
     "SR 965",
@@ -128,87 +128,87 @@
   },
   "storefronts.typedAndFacing": {
    "pass": true,
-   "count": 4616,
-   "typedFromOSM": 2461,
+   "count": 4527,
+   "typedFromOSM": 2386,
    "noKind": 0,
    "noStreet": 0,
    "noFacing": 0,
    "notFacingARoad": 0,
    "kinds": 10,
    "top": {
-    "office": 1676,
-    "hotel": 785,
-    "liquor": 287,
-    "clothes": 285,
-    "hardware": 277,
-    "restaurant": 273,
-    "pharmacy": 266,
-    "fast_food": 261,
-    "salon": 257,
-    "convenience": 249
+    "office": 1588,
+    "hotel": 798,
+    "liquor": 285,
+    "salon": 273,
+    "restaurant": 272,
+    "hardware": 271,
+    "clothes": 264,
+    "convenience": 263,
+    "pharmacy": 260,
+    "fast_food": 253
    }
   },
   "tiles.coverage": {
-   "pass": true,
-   "tiles": 2126,
+   "pass": false,
+   "tiles": 2127,
    "regions": 176,
-   "landSamples": 35993,
+   "landSamples": 36103,
    "landWithoutTile": 0,
-   "landNotCoveredByLandPolygon": 12,
-   "waterSamples": 84761,
-   "waterCoveredByLandPolygon": 28,
+   "landNotCoveredByLandPolygon": 165,
+   "waterSamples": 84702,
+   "waterCoveredByLandPolygon": 25,
    "notLoaded": 0,
    "examples": [
     [
-     -4940,
-     -2820
+     -1060,
+     -6940
     ],
     [
-     -4980,
-     -2780
+     -1260,
+     -6220
     ],
     [
-     -4540,
-     -180
+     -1860,
+     -5900
     ],
     [
-     -4980,
-     -100
+     -1900,
+     -5860
     ],
     [
-     -2260,
-     980
+     140,
+     -5500
     ],
     [
-     2220,
-     1740
+     180,
+     -5500
     ],
     [
-     -3980,
-     2380
+     -1140,
+     -4980
     ],
     [
-     -3060,
-     2780
+     -1140,
+     -4900
     ]
    ]
   },
   "tiles.buildings": {
    "pass": true,
    "tilesMissing": 0,
-   "buildings": 13005,
+   "buildings": 13152,
    "duplicates": 0,
    "badRings": 0,
    "under4m2": 0,
    "noStyle": 0,
    "storefrontsWithoutBuilding": 0,
    "attrs": {
-    "use": 13005,
+    "use": 13152,
     "address": 0,
     "colour": 0,
     "roofShape": 0,
     "material": 0,
-    "levels": 13005,
+    "levels": 13152,
     "year": 0,
     "tier": 0,
     "tenants": 0,
@@ -218,11 +218,11 @@
   "landuse.realTypesPresent": {
    "pass": false,
    "fuel": 0,
-   "hotel": 1600,
+   "hotel": 1630,
    "school": 0,
    "worship": 0,
    "parking_garage": 0,
-   "office": 3372,
+   "office": 3193,
    "hospital": 0,
    "police": 0,
    "fire_station": 0,
@@ -241,7 +241,7 @@
    "at": null,
    "terrainRoadSamples": 0,
    "roadVsTerrainMismatch": 0,
-   "groundPairs": 60352,
+   "groundPairs": 60575,
    "groundStepsOver0_8m": 0,
    "inRealMiamiHeight": 0
   },
@@ -262,25 +262,26 @@
   "roads.geometry",
   "roads.connected",
   "roads.rules",
+  "tiles.coverage",
   "landuse.realTypesPresent",
   "transit"
  ],
  "boot": {
-  "ms": 515,
+  "ms": 359,
   "timings": {
    "fetchMs": 63,
-   "decodeMs": 446,
-   "bootRegionsMs": 4,
-   "totalMs": 513
+   "decodeMs": 293,
+   "bootRegionsMs": 2,
+   "totalMs": 359
   },
-  "files": 15,
+  "files": 13,
   "MB": 4.67,
-  "heapMB": 39.8,
-  "arrayBuffersMB": 12.1
+  "heapMB": 45,
+  "arrayBuffersMB": 14.5
  },
  "roadComponents": [
   {
-   "km": 3.03,
+   "km": 3,
    "at": [
     -253,
     3256
@@ -289,7 +290,7 @@
    "district": "Florida City"
   },
   {
-   "km": 2.86,
+   "km": 2.83,
    "at": [
     -4719,
     5335
@@ -298,7 +299,7 @@
    "district": "Key West"
   },
   {
-   "km": 2.79,
+   "km": 2.77,
    "at": [
     -4917,
     5687
@@ -325,42 +326,43 @@
    "district": "Virginia Key"
   }
  ],
- "mainNetworkShare": 0.9758,
+ "mainNetworkShare": 0.9756,
  "storefrontKinds": {
-  "office": 1676,
-  "hotel": 785,
-  "liquor": 287,
-  "clothes": 285,
-  "hardware": 277,
-  "restaurant": 273,
-  "pharmacy": 266,
-  "fast_food": 261,
-  "salon": 257,
-  "convenience": 249
+  "office": 1588,
+  "hotel": 798,
+  "liquor": 285,
+  "salon": 273,
+  "restaurant": 272,
+  "hardware": 271,
+  "clothes": 264,
+  "convenience": 263,
+  "pharmacy": 260,
+  "fast_food": 253
  },
  "regions": {
   "count": 176,
-  "loadAllMs": 75,
-  "parseMsMedian": 0.09,
-  "parseMsP95": 1.04,
-  "parseMsMax": 4.85,
-  "bytesMB": 3.5,
-  "largestKB": 195
+  "loadAllMs": 37,
+  "parseMsMedian": 0.04,
+  "parseMsP95": 0.42,
+  "parseMsMax": 1.77,
+  "bytesMB": 3.55,
+  "largestKB": 196
  },
  "buildingUses": {
-  "house": 4721,
-  "apartments": 4683,
-  "office": 1696,
-  "retail": 995,
-  "hotel": 800,
-  "warehouse": 110
+  "apartments": 5244,
+  "house": 4398,
+  "office": 1605,
+  "retail": 973,
+  "hotel": 815,
+  "warehouse": 117
  },
  "landcoverClasses": {
-  "sand": 569,
+  "sand": 542,
   "scrub": 256,
   "forest": 779,
   "wetland": 664,
-  "plaza": 977,
+  "plaza": 950,
+  "dirt": 313,
   "runway": 50,
   "apron": 45,
   "paved": 61
@@ -369,40 +371,40 @@
   "railPieces": 0,
   "sitePolygons": 0,
   "barrierLines": 0,
-  "props": 5205,
+  "props": 5065,
   "otherPropTypes": {
-   "lamp": 5205
+   "lamp": 5065
   }
  },
  "queryNs": {
-  "isWaterRandom": 53,
-  "isWaterCoherent": 84,
-  "groundHeightRandom": 1702,
-  "zoneAt": 95,
-  "districtAt": 31,
-  "surfaceAt": 81,
-  "terrainHeightAt": 7,
-  "nearestEdge": 1332
+  "isWaterRandom": 93,
+  "isWaterCoherent": 209,
+  "groundHeightRandom": 3552,
+  "zoneAt": 394,
+  "districtAt": 41,
+  "surfaceAt": 155,
+  "terrainHeightAt": 8,
+  "nearestEdge": 2227
  },
  "gridMemory": {
   "wkind": {
-   "runs": 29676,
+   "runs": 29870,
    "MB": 0.1
   },
   "district": {
-   "runs": 34987,
+   "runs": 35340,
    "MB": 0.11
   },
   "zone": {
-   "runs": 58004,
+   "runs": 58692,
    "MB": 0.18
   },
   "cover": {
-   "runs": 102307,
-   "MB": 0.32
+   "runs": 103013,
+   "MB": 0.33
   },
   "surface": {
-   "runs": 725038,
+   "runs": 726183,
    "MB": 2.21
   },
   "depth": {
@@ -410,35 +412,35 @@
   }
  },
  "stats": {
-  "buildings": 13005,
-  "edges": 3364,
-  "nodes": 2227,
-  "tiles": 2126,
+  "buildings": 13152,
+  "edges": 3246,
+  "nodes": 2178,
+  "tiles": 2127,
   "regions": 176,
-  "storefronts": 4616,
-  "storefrontsTyped": 2461,
-  "sidewalkLines": 2882,
+  "storefronts": 4527,
+  "storefrontsTyped": 2386,
+  "sidewalkLines": 2811,
   "paths": 0,
   "pois": 0,
-  "signals": 1044,
+  "signals": 975,
   "turnRestrictions": 0,
   "busStops": 0,
   "busRoutes": 0,
   "railLines": 0,
   "stations": 0,
   "roadComponents": 6,
-  "roadKm": 428.6,
-  "mainComponentKm": 418.2,
+  "roadKm": 422.3,
+  "mainComponentKm": 412,
   "bytes": {
-   "roadgraph.json": 783240,
-   "peds.json": 206329,
-   "spots.json": 1069039,
-   "map.json": 1233324,
-   "grid.bin": 1113020,
-   "names.json": 27488,
-   "places.json": 110729,
+   "roadgraph.json": 854320,
+   "peds.json": 203801,
+   "spots.json": 1046607,
+   "map.json": 1241100,
+   "grid.bin": 1117497,
+   "names.json": 26766,
+   "places.json": 114873,
    "transit.json": 56,
-   "regions/*": 3497023
+   "regions/*": 3552079
   }
  },
  "districts": [
@@ -475,6 +477,7 @@
   "Fort Myers",
   "Naples",
   "Homestead",
+  "Liberty City",
   "Coconut Grove",
   "Dodge Island Port",
   "Virginia Key",
@@ -494,10 +497,11 @@
   "Florida Bay",
   "Charlotte Harbor"
  ],
- "places": 37,
+ "places": 39,
  "setpieces": [
   "nico_house",
   "keys_sign",
+  "school",
   "keys_bar"
  ]
 }
