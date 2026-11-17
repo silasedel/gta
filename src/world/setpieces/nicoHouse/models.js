@@ -12,6 +12,7 @@ const FILES = {
   pier_kit: 'assets/models/docks/pier_kit.glb', mossy_pier: 'assets/models/docks/mossy_pier.glb', clean_pier: 'assets/models/docks/clean_pier.glb',
   loose_platforms: 'assets/models/docks/loose_platforms.glb', boathouse: 'assets/models/docks/boathouse.glb',
   rolloff: 'assets/models/keys/rolloff.glb', rocks: 'assets/models/keys/rocks.glb', bins: 'assets/models/keys/bins.glb', fence_rustic: 'assets/models/keys/fence_rustic.glb',
+  utility_pole: 'assets/models/keys/utility_pole.glb',
   rowboat: 'assets/models/keys/rowboat.glb', skiff: 'assets/models/keys/skiff.glb', lifebuoy: 'assets/models/keys/lifebuoy.glb',
 };
 let shared = null;
@@ -61,6 +62,7 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
       m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { float l = dot( diffuseColor.rgb, vec3( 0.3, 0.55, 0.15 ) ); diffuseColor.rgb = mix( vec3( l ) * vec3( 1.0, 0.98, 0.93 ), diffuseColor.rgb, 0.22 ); }'); };   // the scan's moss and brown are taken out (78% desaturated)
       m.customProgramCacheKey = () => 'keys:limestone'; }
     if (k === 'rolloff') { m.roughness = Math.max(0.6, m.roughness); m.metalness = 0; m.color.setRGB(1.0, 1.0, 1.0); if (/Part 02/.test(m.name || '')) m.color.setRGB(1.5, 0.62, 0.5); }   // Part 02 (the side plates) is a gray scan: painted the same faded red   // r2-keys: the body texture itself is now chipped faded red enamel over rust (tools/v2/keys/tex/repaint_dumpster2.py); no flat tint
+    if (k === 'utility_pole') { m.color.setRGB(1.3, 1.24, 1.15); m.roughness = 1; }   // dark creosote scan -> sun-weathered gray-brown pine (ART_STYLE)
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;
   }

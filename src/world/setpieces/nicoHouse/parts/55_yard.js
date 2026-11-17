@@ -58,15 +58,17 @@ export function build(ctx) {
 
   // ======================================================================= utility poles and wires
   const poleTop = [];
+  // r2-keys (Nov 17 pm): the poles are the user's library model (Models/Utility Poles/Utility Pole 1, crossarm with three insulators,
+  // tools/v2/keys/build_models.sh -> keys/utility_pole.glb: 6 m, arm 2 m, pole axis 0.183 m off its footprint center), scaled to
+  // a ~2.7 m arm and stretched so the arm sits where the code-built one did; wires hang from its insulator tops
+  const PS = 1.35, PZ = -0.183 * PS, POLE_M = [];
   POLES.forEach(([x, z, h0, lean, arm], i) => {
     const gy = yS(x, z), h = h0 + gy;   // h: crossarm height above the yard grade
     const ry = arm ?? 0.31 + i * 0.05;   // cross arms square to the wires
-    B.cyl(W, 0.11, 0.15, h0 + 1.6, M(x, gy + (h0 - 1.6) / 2, z, lean, r() * 6, lean * 0.6), { seg: 12, hseg: 4, color: V(0x6a5946, 0.06), wear: 0.9 });
-    B.box(W, 2.3, 0.1, 0.12, M(x, h - 0.45, z, 0, ry, 0), { grain: 0, color: 0x5f5040, wear: 0.8, bevel: 0.006 });
-    for (const s of [-1, 1]) B.strut(W, [x + Math.cos(ry) * s * 0.7, h - 0.5, z - Math.sin(ry) * s * 0.7], [x, h - 1.3, z], 0.05, 0.03, { color: 0x5f5040 });
-    const ins = []; for (const s of [-1.0, 0, 1.0]) { const ix = x + Math.cos(ry) * s, iz = z - Math.sin(ry) * s; B.cyl(mat.metalPaint(), 0.03, 0.045, 0.12, M(ix, h - 0.33, iz), { color: 0x6b7f8a, seg: 10 }); ins.push([ix, h - 0.25, iz]); }
+    const sy = (h0 - 0.35) / 5.906; POLE_M.push(M(x - PZ * Math.sin(ry), gy - 0.06, z - PZ * Math.cos(ry), 0, ry, 0, PS, sy, PS));
+    const ins = []; for (const s of [-1.0, 0, 1.0]) ins.push([x + Math.cos(ry) * s * 0.95 * PS, gy - 0.06 + (s ? 5.99 : 6.0) * sy + 0.02, z - Math.sin(ry) * s * 0.95 * PS]);
     if (i === 0) { B.cyl(mat.metalPaint(), 0.22, 0.22, 0.75, M(x + 0.3, h - 1.6, z + 0.12), { color: 0x7d8486, seg: 16 }); B.cyl(mat.metalPaint(), 0.23, 0.23, 0.04, M(x + 0.3, h - 1.2, z + 0.12), { color: 0x6d7476, seg: 16 }); }
-    B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, gy + 1.9, z + 0.14, 0, 0, 0), { color: 0xc9b23a });   // pole tag
+    B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, gy + 1.9, z + 0.09, 0, 0, 0), { color: 0xc9b23a });   // pole tag (on the library pole face)
     if (i === 0) { // street lamp over the corner (mock-up): a pipe arm toward the junction and a gray cobra head
       const la = Math.atan2(-20.9 - x, 23.8 - z), ax = Math.sin(la), az = Math.cos(la), y0 = h - 2.6;
       B.tube(ST, [[x + ax * 0.12, y0, z + az * 0.12], [x + ax * 0.9, y0 + 0.45, z + az * 0.9], [x + ax * 1.9, y0 + 0.6, z + az * 1.9]], 0.03, { seg: 6, color: 0x8a8c88 });
@@ -271,10 +273,11 @@ export function build(ctx) {
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
-  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks']);
+  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
+    for (const m of POLE_M) I.add('utility_pole', 'dock', m);
     { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
     for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }

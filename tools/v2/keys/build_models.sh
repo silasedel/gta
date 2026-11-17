@@ -23,3 +23,6 @@ c "Lifebuoys/Lifebuoy 3 - Weathered Red Ring With Gray Bands And Rope/Lifebuoy 3
 c "Bins/Trash Can 1 - Wheeled Curbside Bin Set/Trash Can 1.blend" public/assets/models/keys/bins.glb 1 1024 splitc "" 0 base
 c "Rocks/Rock 2 - Seven Mossy Brown Rocks/Rock 2.blend" public/assets/models/keys/rocks.glb 1 1024 splitc "" 900 base
 c "Crates/Crate 1 - Plain Wooden Crate/Crate 1.blend" public/assets/models/keys/crate.glb 0.3 1024 join "" 0 base "$M/Crates/Crate 1 - Plain Wooden Crate/textures"
+# utility pole (r2-keys, Nov 17 pm): FBX + loose maps -> import_fbx.py wires them, then convert_dock.py
+P="$M/Utility Poles/Utility Pole 1 - Utility Pole With Crossarms (2K textures)"
+FBX="$P/source/Utility Pole.fbx" TEX="$P/textures" "$B" -b -Y --factory-startup --python-exit-code 1 --python tools/v2/keys/blender/import_fbx.py -- public/assets/models/keys/utility_pole.glb 1 1024 join "" 0 base 2>&1 | grep -E "CONV|rror" | head
