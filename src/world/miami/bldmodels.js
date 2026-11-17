@@ -14,6 +14,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { compileForGame, programsReady } from '../../core/pace.js';
+import { calibrate, trackClone } from '../art/calibrate.js';
 
 const BASE = '/assets/models/buildings/';
 // w x d x h in model units (glTF x / z / y); k = meters per unit at real size; cls: which lots it may take.
@@ -277,17 +278,27 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   if (detailTex) { detailTex.wrapS = detailTex.wrapT = THREE.RepeatWrapping; detailTex.anisotropy = 8; detailTex.colorSpace = THREE.NoColorSpace; }
   const detailU = { value: detailTex };
   const matCache = new Map(); // source material -> variant -> material
-  function variantMat(mat0, m, cond) {
+  function variantMat(mat0, m, cond, name = '') {
     let vm = matCache.get(mat0); if (!vm) matCache.set(mat0, (vm = new Map()));
     if (vm.has(cond)) return vm.get(cond);
-    const mat = cond ? mat0.clone() : mat0;
-    const g = glassy.test(mat.name || '') || mat.transparent;
+    const g = mat0.userData.libGlass ?? (mat0.userData.libGlass = glassy.test(mat0.name || '') || !!mat0.transparent); // first visit (the opaque variant flips .transparent)
+    if (!mat0.userData.artCal) {
+      // r2-art: one style for every library model (src/world/art/calibrate.js): exporter-default metalness 1 on masonry, 98 %
+      // white marble, roughness 0 / 1 extremes and gray "glass" pulled into their class ranges; untagged materials of glass-skin
+      // towers are never brightened (their dark facade texture IS the curtain wall)
+      if (g && !mat0.map) mat0.color.lerp(new THREE.Color(0x6f7f8c), 0.6); // dielectric window glass, a little blue-gray (dark: the env reflection does the rest)
+      mat0.envMapIntensity = g ? 1.3 : 0.8;
+      for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap']) if (mat0[k] && mat0[k].anisotropy < 8) { mat0[k].anisotropy = 8; mat0[k].needsUpdate = true; } // glTF default 1: facades smeared at street-level grazing angles
+      calibrate(mat0, { hint: 'buildings/' + name, cls: g && !mat0.map ? 'glass' : null, fallback: 'building', lift: m.tint !== 'glass' });
+    }
+    const mat = cond ? trackClone(mat0.clone(), mat0) : mat0;
     if (mat.transparent || mat.alphaMode === 'BLEND') { mat.transparent = false; mat.depthWrite = true; mat.opacity = 1; mat.alphaTest = mat.map ? 0.5 : 0; }
-    if (g && !mat.map) { mat.color.lerp(new THREE.Color(0x8fa6bc), 0.5); mat.metalness = 0.9; mat.roughness = 0.24; } // not a perfect mirror: a starry night sky must not glitter in every pane
-    mat.envMapIntensity = g ? 1.3 : 0.8;
     mat.side = THREE.FrontSide;
     const glow = m.glow, rough = cond === 'r' ? 1 : cond === 'a' ? 2 : 0;
     const img = mat.map && mat.map.image, lowres = !!(img && Math.max(img.width || 0, img.height || 0) > 0 && Math.max(img.width, img.height) < 600 && !g); // tiny wall textures (275 px stucco): re-grained with the user's plaster scan
+    // r2-art: a map stretched below ~110 px/m (texel density, whatever the file size: 2K window-grid atlases on a 60 m facade) keeps its
+    // picture (windows) but gets the stronger street-level grain + detail normal, so close up it reads as material, not as blur
+    const lowDens = !lowres && !g && !!img && mat0.userData.texelPx > 0 && mat0.userData.texelPx < 110;
     mat.onBeforeCompile = (sh) => {
       sh.uniforms.uLibNight = nightU; sh.uniforms.uLibDetail = detailU; sh.uniforms.uLibGlow = { value: glow }; // per-material value, shared program
       sh.vertexShader = 'varying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
@@ -314,11 +325,11 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     float camD = distance(vLibW, cameraPosition), dK = (1.0 - smoothstep(30.0, 65.0, camD)) * side;
     if (dK > 0.001) {
       vec3 Tw = normalize(vec3(vLibN.z, 0.0, -vLibN.x) + vec3(1e-4, 0.0, 0.0));
-      vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / ${lowres ? '1.3' : '2.4'});
+      vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / ${lowres ? '1.3' : lowDens ? '1.8' : '2.4'});
       float street = 1.0 - smoothstep(4.5, 9.0, vLibW.y - vLibO.y), a = ${lowres ? 'dt.b' : 'mix(dt.b, dt.a, step(0.5, iS))'};
       ${lowres ? 'diffuseColor.rgb = mix(diffuseColor.rgb, texture2D(map, vMapUv, 6.0).rgb * diffuseColor.rgb / max(texture2D(map, vMapUv).rgb, vec3(0.04)), 0.8 * dK);' : ''}
-      diffuseColor.rgb *= 1.0 + (a - 0.5) * (${lowres ? '0.22' : '0.14'} + 0.2 * street) * dK;
-      libDN = (dt.rg - 0.5) * 2.0 * dK * (0.35 + 0.45 * street); libDT = Tw;
+      diffuseColor.rgb *= 1.0 + (a - 0.5) * (${lowres ? '0.22' : lowDens ? '0.2' : '0.14'} + 0.2 * street) * dK;
+      libDN = (dt.rg - 0.5) * 2.0 * dK * (${lowDens ? '0.5' : '0.35'} + 0.45 * street); libDT = Tw;
     }
   }`)
           .replace('void main() {', 'void main() {\n  vec2 libDN = vec2(0.0); vec3 libDT = vec3(1.0, 0.0, 0.0);')
@@ -342,7 +353,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * uLibGlow;
   }`);
     };
-    mat.customProgramCacheKey = () => 'libbld5-' + (g ? 'g' : 'w') + '-' + rough + (m.desat ? 'd' : '') + (lowres ? 'l' : '') + (mat.map ? 'm' : '');
+    mat.customProgramCacheKey = () => 'libbld5-' + (g ? 'g' : 'w') + '-' + rough + (m.desat ? 'd' : '') + (lowres ? 'l' : lowDens ? 'n' : '') + (mat.map ? 'm' : '');
     mat.needsUpdate = true;
     vm.set(cond, mat); return mat;
   }
@@ -367,7 +378,8 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
           else for (const gr of g0.groups) { const g1 = g0.clone(); g1.setIndex(g0.index ? Array.from(g0.index.array.slice(gr.start, gr.start + gr.count)) : null); g1.clearGroups(); parts.push({ geo: g1, mat: mats[gr.materialIndex] }); } });
         const byMat = new Map(); for (const q of parts) { if (!byMat.has(q.mat)) byMat.set(q.mat, []); byMat.get(q.mat).push(q.geo); }
         const out = [];
-        for (const [mat, geos] of byMat) { const geo = geos.length === 1 ? geos[0] : mergeGeos(geos); if (!geo) continue; geo.scale(m.k, m.k, m.k); geo.computeBoundingSphere(); out.push({ geo, mat }); }
+        for (const [mat, geos] of byMat) { const geo = geos.length === 1 ? geos[0] : mergeGeos(geos); if (!geo) continue; geo.scale(m.k, m.k, m.k); geo.computeBoundingSphere(); out.push({ geo, mat });
+          const tp = texelPx(geo, mat); if (tp && !(mat.userData.texelPx < tp)) mat.userData.texelPx = tp; } // r2-art: lowest texel density (px/m) this material is drawn at
         return out;
       } catch (e) { if (lod) return loadParts(name, 0); console.warn('[buildings] library model failed', name, e); return []; }
     })();
@@ -377,7 +389,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     if (meshes.has(key)) return; meshes.set(key, null);
     const [name, lod, mir, cond] = key.split('|');
     loadParts(name, +lod ? 1 : 0).then((parts) => {
-      const P2 = parts.map((q) => ({ geo: +mir ? mirrorGeo(q.geo) : q.geo, mat: variantMat(q.mat, LIB[name], cond) }));
+      const P2 = parts.map((q) => ({ geo: +mir ? mirrorGeo(q.geo) : q.geo, mat: variantMat(q.mat, LIB[name], cond, name) }));
       // compile the programs off the frame (parallel compile, the game's HDR target and light set) before the first draw:
       // a model variant first seen mid-game (e.g. far LODs when the camera lifts) otherwise stalled a frame for seconds
       if (R && CAM) { const tmp = new THREE.Group(); for (const q of P2) { const im = new THREE.InstancedMesh(q.geo, q.mat, 1); im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3).fill(1), 3); tmp.add(im); }
@@ -386,6 +398,21 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
         programsReady(R, 5000).then(() => { meshes.set(key, P2); dirty = true; }, () => { meshes.set(key, P2); dirty = true; });
       } else { meshes.set(key, P2); dirty = true; }
     });
+  }
+  // texel density of a material on a geometry (model meters): sqrt(uv area x map pixels / surface area), area-weighted
+  function texelPx(g, mat) {
+    const img = mat.map && mat.map.image, W = img && img.width, H = img && img.height, uv = g.attributes.uv, P = g.attributes.position;
+    if (!W || !H || !uv || !P) return 0;
+    const idx = g.index ? g.index.array : null, n = idx ? idx.length : P.count; let wa = 0, ua = 0;
+    const st = Math.max(1, Math.floor(n / 3 / 3000)) * 3;
+    for (let t = 0; t + 2 < n; t += st) {
+      const a = idx ? idx[t] : t, b = idx ? idx[t + 1] : t + 1, c = idx ? idx[t + 2] : t + 2;
+      const ax = P.getX(b) - P.getX(a), ay = P.getY(b) - P.getY(a), az = P.getZ(b) - P.getZ(a), bx = P.getX(c) - P.getX(a), by = P.getY(c) - P.getY(a), bz = P.getZ(c) - P.getZ(a);
+      const cx = ay * bz - az * by, cy = az * bx - ax * bz, cz = ax * by - ay * bx; const A = Math.sqrt(cx * cx + cy * cy + cz * cz) / 2;
+      const U = Math.abs((uv.getX(b) - uv.getX(a)) * (uv.getY(c) - uv.getY(a)) - (uv.getX(c) - uv.getX(a)) * (uv.getY(b) - uv.getY(a))) / 2;
+      if (A > 1e-6) { wa += A; ua += U; }
+    }
+    return wa > 0.5 ? Math.sqrt((ua * W * H) / wa) : 0;
   }
   function mergeGeos(geos) {
     const attrs = ['position', 'normal', 'uv']; let n = 0; for (const g of geos) n += (g.index ? g.index.count : g.attributes.position.count);

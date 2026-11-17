@@ -16,13 +16,14 @@ export async function initV2(game) {
   const root = new THREE.Group(); root.name = 'v2-signs'; scene.add(root);
   // shared materials
   const steelTex = (() => { const c = makeCanvas(128), x = c.getContext('2d'), id = x.createImageData(128, 128); for (let i = 0; i < 128 * 128; i++) { const v = 150 + vnoise((i % 128) * 0.35, (i / 128 | 0) * 0.35, 3) * 60 + vnoise((i % 128) * 0.04, (i / 128 | 0) * 0.5, 9) * 30; id.data[i * 4] = v * 0.96; id.data[i * 4 + 1] = v; id.data[i * 4 + 2] = v * 1.02; id.data[i * 4 + 3] = 255; } x.putImageData(id, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t; })();
-  const steel = new THREE.MeshStandardMaterial({ map: steelTex, roughness: 0.55, metalness: 0.6 });
+  // r2-art (ART_STYLE.md): bare galvanized steel is metal (1), the painted / oxidized sign backs are dielectric (0); no in-between
+  const steel = new THREE.MeshStandardMaterial({ map: steelTex, roughness: 0.5, metalness: 1, name: 'sign:galvanized' });
   const concrete = new THREE.MeshStandardMaterial({ map: steelTex, color: 0xcfcabb, roughness: 0.9 });
   const backTex = (() => { const c = makeCanvas(256, 256), x = c.getContext('2d'), R = rng(3); x.fillStyle = '#9fa5a6'; x.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 32) { x.fillStyle = 'rgba(40,44,46,0.35)'; x.fillRect(0, y, 256, 2); x.fillStyle = 'rgba(255,255,255,0.2)'; x.fillRect(0, y + 2, 256, 1.5); } for (let i = 0; i < 14; i++) { const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(60,50,40,0.25)'); g.addColorStop(1, 'rgba(60,50,40,0)'); x.fillStyle = g; x.fillRect(R() * 256, 0, 4 + R() * 10, 256); }
     // stickers and a tag, as found on the backs of real signs
     x.fillStyle = '#e8e2d0'; x.fillRect(150, 170, 34, 22); x.fillStyle = '#c23b2e'; x.fillRect(196, 186, 22, 22); x.strokeStyle = 'rgba(20,20,30,0.75)'; x.lineWidth = 3; x.beginPath(); x.moveTo(30, 210); x.bezierCurveTo(50, 170, 60, 230, 80, 190); x.bezierCurveTo(90, 170, 100, 220, 120, 200); x.stroke();
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
-  const backMat = new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.5, metalness: 0.5 });
+  const backMat = new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.58, metalness: 0, name: 'sign:back' });
   const faceMats = new Set();
   const box = (w, h, d, x, y, z, rx = 0, ry = 0, rz = 0) => { const g = new THREE.BoxGeometry(w, h, d).toNonIndexed(); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(1, 1, 1))); return g; };
   const tube = (r, len, x, y, z, rz = 0) => { const g = new THREE.CylinderGeometry(r, r, len, 12).toNonIndexed(); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, rz)), new THREE.Vector3(1, 1, 1))); return g; };

@@ -1,0 +1,888 @@
+{
+ "_doc": "r2-art material class targets (docs/v2/briefs/ART_STYLE.md is the readable version; keep both in sync). lum = linear luminance of the mean base color (color x map x vertex/instance color). sat = HSV saturation of the sRGB-encoded mean albedo. rough/metal = effective values (scalar x map mean). normal = normalScale range when a normal map is present. tex = [target, minimum] texel density in px per meter. env = envMapIntensity range (1.0 = standard dielectric against the look3 baseline).",
+ "classes": {
+  "asphalt": {
+   "lum": [
+    0.04,
+    0.14
+   ],
+   "rough": [
+    0.8,
+    0.97
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.14,
+   "normal": [
+    0.4,
+    1.0
+   ],
+   "tex": [
+    512,
+    256
+   ],
+   "env": [
+    0.6,
+    1.2
+   ]
+  },
+  "concrete": {
+   "lum": [
+    0.2,
+    0.42
+   ],
+   "rough": [
+    0.75,
+    0.96
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.14,
+   "normal": [
+    0.3,
+    1.0
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.6,
+    1.2
+   ]
+  },
+  "stucco": {
+   "lum": [
+    0.28,
+    0.8
+   ],
+   "rough": [
+    0.78,
+    0.96
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.42,
+   "normal": [
+    0.2,
+    0.8
+   ],
+   "tex": [
+    256,
+    128
+   ],
+   "env": [
+    0.5,
+    1.1
+   ]
+  },
+  "paintedWood": {
+   "lum": [
+    0.22,
+    0.8
+   ],
+   "rough": [
+    0.5,
+    0.82
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.45,
+   "normal": [
+    0.3,
+    0.9
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.6,
+    1.2
+   ]
+  },
+  "rawWood": {
+   "lum": [
+    0.08,
+    0.32
+   ],
+   "rough": [
+    0.68,
+    0.94
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.45,
+   "normal": [
+    0.4,
+    1.1
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.5,
+    1.1
+   ]
+  },
+  "brick": {
+   "lum": [
+    0.07,
+    0.26
+   ],
+   "rough": [
+    0.8,
+    0.96
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.55,
+   "normal": [
+    0.5,
+    1.2
+   ],
+   "tex": [
+    256,
+    128
+   ],
+   "env": [
+    0.5,
+    1.1
+   ]
+  },
+  "metalPainted": {
+   "lum": [
+    0.03,
+    0.75
+   ],
+   "rough": [
+    0.28,
+    0.7
+   ],
+   "metal": [
+    0,
+    0.15
+   ],
+   "sat": 0.55,
+   "normal": [
+    0.1,
+    0.6
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.8,
+    1.3
+   ]
+  },
+  "galvanized": {
+   "lum": [
+    0.4,
+    0.66
+   ],
+   "rough": [
+    0.32,
+    0.68
+   ],
+   "metal": [
+    0.75,
+    1.0
+   ],
+   "sat": 0.08,
+   "normal": [
+    0.1,
+    0.6
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.8,
+    1.3
+   ]
+  },
+  "rustyMetal": {
+   "lum": [
+    0.05,
+    0.2
+   ],
+   "rough": [
+    0.72,
+    0.96
+   ],
+   "metal": [
+    0,
+    0.35
+   ],
+   "sat": 0.62,
+   "normal": [
+    0.4,
+    1.1
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.5,
+    1.1
+   ]
+  },
+  "glass": {
+   "lum": [
+    0.01,
+    0.1
+   ],
+   "rough": [
+    0.02,
+    0.16
+   ],
+   "metal": [
+    0,
+    0.12
+   ],
+   "sat": 0.3,
+   "normal": [
+    0,
+    0.3
+   ],
+   "tex": [
+    256,
+    64
+   ],
+   "env": [
+    0.9,
+    1.6
+   ]
+  },
+  "carPaint": {
+   "lum": [
+    0.025,
+    0.76
+   ],
+   "rough": [
+    0.18,
+    0.55
+   ],
+   "metal": [
+    0,
+    0.72
+   ],
+   "sat": 0.75,
+   "normal": [
+    0,
+    0.3
+   ],
+   "tex": [
+    512,
+    128
+   ],
+   "env": [
+    0.9,
+    1.5
+   ]
+  },
+  "chrome": {
+   "lum": [
+    0.5,
+    0.92
+   ],
+   "rough": [
+    0.02,
+    0.22
+   ],
+   "metal": [
+    0.9,
+    1.0
+   ],
+   "sat": 0.08,
+   "normal": [
+    0,
+    0.4
+   ],
+   "tex": [
+    256,
+    64
+   ],
+   "env": [
+    0.9,
+    1.5
+   ]
+  },
+  "rubber": {
+   "lum": [
+    0.015,
+    0.06
+   ],
+   "rough": [
+    0.72,
+    0.94
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.2,
+   "normal": [
+    0.4,
+    1.2
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "foliage": {
+   "lum": [
+    0.045,
+    0.19
+   ],
+   "rough": [
+    0.42,
+    0.82
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.62,
+   "normal": [
+    0.2,
+    0.8
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "flowers": {
+   "lum": [
+    0.05,
+    0.45
+   ],
+   "rough": [
+    0.45,
+    0.85
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.82,
+   "normal": [
+    0.2,
+    0.8
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "bark": {
+   "lum": [
+    0.07,
+    0.28
+   ],
+   "rough": [
+    0.82,
+    0.98
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.38,
+   "normal": [
+    0.5,
+    1.2
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "sand": {
+   "lum": [
+    0.22,
+    0.5
+   ],
+   "rough": [
+    0.85,
+    1.0
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.18,
+   "normal": [
+    0.3,
+    1.0
+   ],
+   "tex": [
+    512,
+    256
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "soil": {
+   "lum": [
+    0.05,
+    0.2
+   ],
+   "rough": [
+    0.85,
+    1.0
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.42,
+   "normal": [
+    0.4,
+    1.1
+   ],
+   "tex": [
+    512,
+    256
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "grass": {
+   "lum": [
+    0.06,
+    0.2
+   ],
+   "rough": [
+    0.6,
+    0.92
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.58,
+   "normal": [
+    0.2,
+    0.9
+   ],
+   "tex": [
+    512,
+    256
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "stone": {
+   "lum": [
+    0.1,
+    0.4
+   ],
+   "rough": [
+    0.7,
+    0.96
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.3,
+   "normal": [
+    0.5,
+    1.2
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.5,
+    1.1
+   ]
+  },
+  "skin": {
+   "lum": [
+    0.03,
+    0.46
+   ],
+   "rough": [
+    0.4,
+    0.68
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.58,
+   "normal": [
+    0.2,
+    1.0
+   ],
+   "tex": [
+    1024,
+    400
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "hair": {
+   "lum": [
+    0.005,
+    0.4
+   ],
+   "rough": [
+    0.35,
+    0.75
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.6,
+   "normal": [
+    0,
+    1.0
+   ],
+   "tex": [
+    1024,
+    300
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
+  },
+  "cloth": {
+   "lum": [
+    0.02,
+    0.66
+   ],
+   "rough": [
+    0.68,
+    0.97
+   ],
+   "metal": [
+    0,
+    0.03
+   ],
+   "sat": 0.68,
+   "normal": [
+    0.3,
+    1.0
+   ],
+   "tex": [
+    512,
+    256
+   ],
+   "env": [
+    0.3,
+    1.0
+   ]
+  },
+  "plastic": {
+   "lum": [
+    0.02,
+    0.75
+   ],
+   "rough": [
+    0.28,
+    0.68
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.72,
+   "normal": [
+    0,
+    0.6
+   ],
+   "tex": [
+    512,
+    128
+   ],
+   "env": [
+    0.6,
+    1.2
+   ]
+  },
+  "water": {
+   "skip": true
+  },
+  "emissive": {
+   "skip": true
+  },
+  "sign": {
+   "lum": [
+    0.02,
+    0.78
+   ],
+   "rough": [
+    0.25,
+    0.7
+   ],
+   "metal": [
+    0,
+    0.15
+   ],
+   "sat": 0.85,
+   "normal": [
+    0,
+    0.4
+   ],
+   "tex": [
+    512,
+    128
+   ],
+   "env": [
+    0.6,
+    1.3
+   ]
+  },
+  "generic": {
+   "lum": [
+    0.015,
+    0.82
+   ],
+   "rough": [
+    0.08,
+    1.0
+   ],
+   "metal": [
+    0,
+    1.0
+   ],
+   "sat": 0.8,
+   "normal": [
+    0,
+    1.3
+   ],
+   "tex": [
+    256,
+    96
+   ],
+   "env": [
+    0.3,
+    1.6
+   ]
+  },
+  "marking": {
+   "lum": [
+    0.18,
+    0.72
+   ],
+   "rough": [
+    0.45,
+    0.92
+   ],
+   "metal": [
+    0,
+    0.05
+   ],
+   "sat": 0.75,
+   "normal": [
+    0,
+    1.0
+   ],
+   "tex": [
+    512,
+    128
+   ],
+   "env": [
+    0.5,
+    1.2
+   ]
+  },
+  "wetSurface": {
+   "skip": true
+  },
+  "building": {
+   "lum": [
+    0.03,
+    0.78
+   ],
+   "rough": [
+    0.3,
+    0.96
+   ],
+   "metal": [
+    0,
+    1.0
+   ],
+   "sat": 0.5,
+   "normal": [
+    0,
+    1.1
+   ],
+   "tex": [
+    160,
+    64
+   ],
+   "env": [
+    0.5,
+    1.4
+   ]
+  }
+ },
+ "classify": [
+  [
+   "wetSurface",
+   "puddle|wet_|wetness"
+  ],
+  [
+   "water",
+   "water|ocean|sea\\b|pool(?!_)|bay\\b|wave"
+  ],
+  [
+   "emissive",
+   "emissive|neon|lamp_?glow|bulb|light_?cone|led\\b|screen|flame|fire\\b|sky|cloud|glow"
+  ],
+  [
+   "glass",
+   "glass|window(?!_?frame)|\\bpanes?\\b|glazing|windshield|windscreen|lens"
+  ],
+  [
+   "chrome",
+   "chrome|mirror(?!_?frame)|polished|alumin|silver|stainless"
+  ],
+  [
+   "rubber",
+   "tire|tyre|rubber|wheel_?black|gasket"
+  ],
+  [
+   "carPaint",
+   "carpaint|car_paint|body_?paint|paint_?body|livery|clearcoat|bodywork"
+  ],
+  [
+   "skin",
+   "skin|\\bface\\b|\\bhead\\b|teeth|\\beyes?\\b"
+  ],
+  [
+   "hair",
+   "hair|beard|brow|lash"
+  ],
+  [
+   "cloth",
+   "cloth|fabric|shirt|pant|jean|denim|jacket|dress|shoe|sneaker|hat\\b|cap\\b|sock|towel|terry|wool|cotton|canvas|tarp|curtain|blind|awning|umbrella|cushion|seat_?cloth|carpet|rug|boucle|leather"
+  ],
+  [
+   "flowers",
+   "flower|bloom|blossom|bougain|hibiscus|poinciana_?flower|petal"
+  ],
+  [
+   "foliage",
+   "frond|leaf|leaves|foliage|palm(?!_?trunk)|crown|bush|shrub|hedge|fern|\\bplants?\\b|plants:|ivy|vine|canopy|needle|\\btree(?!_?grate)"
+  ],
+  [
+   "bark",
+   "bark|trunk|stem|branch|log\\b|stump|root"
+  ],
+  [
+   "grass",
+   "grass|lawn|turf|weed|tuft|meadow"
+  ],
+  [
+   "sand",
+   "sand|beach|shell_?floor|shell|dune|marl"
+  ],
+  [
+   "soil",
+   "soil|dirt|mud|earth|\\bground\\b|gravel|terrain|\\bland\\b"
+  ],
+  [
+   "marking",
+   "marking|roadlines|\\blines\\b|crosswalk|stripe|paint_?line"
+  ],
+  [
+   "asphalt",
+   "asphalt|\\broad(?!lines)|tarmac|pothole|patch_?road"
+  ],
+  [
+   "rustyMetal",
+   "rust|corrod|oxid"
+  ],
+  [
+   "galvanized",
+   "galvan|zinc|tin\\b|corrugat|sheet_?metal|steel(?!_?paint)|iron(?!_?paint)|metal(?!_?paint)|grate|pole|rail(?!ing_?wood)|chain|fence_?metal|hydrant_?body|lamp_?post"
+  ],
+  [
+   "metalPainted",
+   "metalpaint|metal_?paint|painted_?metal|dumpster|rolloff|roll-off|bin_?metal|mailbox|sig-pole|signal|hydrant"
+  ],
+  [
+   "brick",
+   "brick|masonry|block_?wall|cinder"
+  ],
+  [
+   "stucco",
+   "stucco|plaster|render|facade|wall(?!_?detail)|siding(?!.*wood)|lib-"
+  ],
+  [
+   "concrete",
+   "concrete|cement|curb|kerb|sidewalk|slab|plinth|jersey|barrier|step|stair|pier|pile|foundation"
+  ],
+  [
+   "stone",
+   "stone|rock|riprap|boulder|granite|marble|tile|coral|limestone"
+  ],
+  [
+   "paintedWood",
+   "painted_?wood|wood_?paint|paint:|trim|shutter|door|lattice|fence_?white|picket|porch|railing|clapboard"
+  ],
+  [
+   "rawWood",
+   "wood|plank|board|deck|dock|timber|crate|pallet|lumber|bench_wood|cabinet"
+  ],
+  [
+   "plastic",
+   "plastic|vinyl|pvc|bin|can\\b|cone|channelizer|flexpost|cooler|chair|toy|bottle|cup|trash"
+  ],
+  [
+   "sign",
+   "sign|label|decal|poster|billboard|logo|lettering|plate|graffiti|mural"
+  ]
+ ]
+}

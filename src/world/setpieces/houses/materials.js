@@ -83,7 +83,7 @@ export function createHouseKit(THREE, opts = {}) {
 
   // chain-link mesh (alpha-tested diamonds)
   const chainTex = kit.canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(200,205,205,1)'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w / 2, 0); g.lineTo(w, h / 2); g.lineTo(w / 2, h); g.closePath(); g.stroke(); });
-  mat.chainlink = () => kit.materials.get('house:chain') || (() => { const m = new THREE.MeshStandardMaterial({ map: chainTex, alphaTest: 0.4, transparent: false, metalness: 0.8, roughness: 0.45, side: THREE.DoubleSide, vertexColors: true }); m.name = 'house:chain'; m.userData.uvScale = 0.06; kit.materials.set(m.name, m); return m; })();
+  mat.chainlink = () => kit.materials.get('house:chain') || (() => { const m = new THREE.MeshStandardMaterial({ map: chainTex, alphaTest: 0.4, transparent: false, metalness: 1, roughness: 0.5, side: THREE.DoubleSide, vertexColors: true }); m.name = 'house:chain'; m.userData.uvScale = 0.06; kit.materials.set(m.name, m); return m; })();
 
   // insect screen (pool cages, porches)
   const screenTex = kit.canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(30,34,36,0.9)'; g.lineWidth = 1.2; for (let i = 0; i <= w; i += 4) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, h); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(w, i); g.stroke(); } });
@@ -106,16 +106,17 @@ export function createHouseKit(THREE, opts = {}) {
 
   // house-number digits (atlas 0-9, uv x = digit / 10)
   const digitTex = kit.canvasTex(640, 96, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = kit.font(84, 700, 'Georgia, serif'); for (let i = 0; i < 10; i++) g.fillText(String(i), i * 64 + 32, 50); }, { repeat: false });
-  mat.digits = () => kit.materials.get('house:digits') || (() => { const m = new THREE.MeshStandardMaterial({ map: digitTex, alphaTest: 0.5, vertexColors: true, roughness: 0.4, metalness: 0.6 }); m.name = 'house:digits'; m.userData.uvScale = 0; kit.materials.set(m.name, m); return m; })();
+  mat.digits = () => kit.materials.get('house:digits') || (() => { const m = new THREE.MeshStandardMaterial({ map: digitTex, alphaTest: 0.5, vertexColors: true, roughness: 0.45, metalness: 0 }); m.name = 'house:digits'; m.userData.uvScale = 0; kit.materials.set(m.name, m); return m; })();
 
   // pool water: bright, glossy, tile line under the surface by vertex shading
   const wn = new THREE.TextureLoader().load((import.meta.env?.BASE_URL ?? '/') + 'assets/env/waternormals.jpg'); wn.wrapS = wn.wrapT = THREE.RepeatWrapping;
   mat.poolWater = () => kit.materials.get('house:pool') || (() => { const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.04, metalness: 0.0, normalMap: wn, normalScale: new THREE.Vector2(0.25, 0.25), envMapIntensity: 1.4 }); m.name = 'house:pool'; m.userData.uvScale = 3; kit.materials.set(m.name, m); return m; })();
 
   // stucco: concrete scan with grunge, tinted by vertex color (painted CBS block)
-  mat.stucco = () => mat.pbr('concrete_wall_008', { rep: 1.4, grunge: true, gain: 2.25 });
-  mat.stoneVeneer = () => mat.pbr('coral_stone_wall', { rep: 1.2, grunge: true, gain: 1.6 });
-  mat.pavers = () => mat.pbr('scuffed_cement', { rep: 1.6, grunge: true, gain: 1.9 });
+  // r2-art (ART_STYLE.md): stucco / stone are matte (effective roughness ~0.85 over the scan's 0.74 mean) with a calmer normal
+  mat.stucco = () => mat.pbr('concrete_wall_008', { rep: 1.4, grunge: true, gain: 2.25, rough: 1.15, nscale: 0.7 });
+  mat.stoneVeneer = () => mat.pbr('coral_stone_wall', { rep: 1.2, grunge: true, gain: 1.6, rough: 1.15, nscale: 0.85 });
+  mat.pavers = () => mat.pbr('scuffed_cement', { rep: 1.6, grunge: true, tint: '#bcd2ff', gain: 3.4 }); // r2-art: brown scan tinted to neutral concrete (same material as the towns' walks)
   // ---------- shop glass with an interior (cheap interior mapping) ----------
   // Each glass quad (uv 0..1 across the pane) opens onto a box room behind it: ray from the eye through the pane, hit the
   // back wall, side walls, floor or ceiling, shade each procedurally. aWear = kind + lit (integer part = room kind,

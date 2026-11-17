@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { loadVariants } from '../props/variants.v2.js';
+import { calibrate } from '../art/calibrate.js';
 
 const BASE = '/assets/models/street/';
 const FILES = ['hydrant_a', 'hydrant_b', 'bench_wood', 'bench_iron', 'bin_metal', 'bin_wood', 'bin_wheel', 'bin_set', 'dumpster', 'shelter_glass', 'shelter_long', 'shelter_black', 'shelter_old',
@@ -32,7 +33,7 @@ export async function loadStreetKit({ M } = {}) {
   const load = async (f) => { try { const s = (await gl.loadAsync(BASE + f + '.glb')).scene; s.updateMatrixWorld(true); return s; } catch (e) { console.warn('[streetkit] missing', f, e?.message); return null; } };
   const meshesOf = (scene, pick) => { const out = []; scene.traverse((o) => { if (o.isMesh && (!pick || pick(o))) out.push(o); }); return out; };
   // all meshes of a scene merged per material
-  const partsOf = (scene, pick) => {
+  const partsOf = (scene, pick, file = '') => {
     if (!scene) return null;
     const by = new Map();
     for (const o of meshesOf(scene, pick)) { const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); const k = o.material.uuid; if (!by.has(k)) by.set(k, { mat: o.material, gs: [] }); by.get(k).gs.push(g); }
@@ -40,12 +41,12 @@ export async function loadStreetKit({ M } = {}) {
     for (const { mat, gs } of by.values()) {
       let g = gs[0];
       if (gs.length > 1) { try { const idx = gs.every((q) => q.index); g = mergeGeometries(idx ? gs : gs.map((q) => (q.index ? q.toNonIndexed() : q))) || gs[0]; } catch (e) { g = gs[0]; } }
-      g.computeBoundingSphere(); g.computeBoundingBox(); out.push({ geometry: g, material: tune(mat) });
+      g.computeBoundingSphere(); g.computeBoundingBox(); out.push({ geometry: g, material: tune(mat, file) });
     }
     return out;
   };
   const tuned = new Set();
-  function tune(m) {
+  function tune(m, file = '') {
     if (tuned.has(m)) return m; tuned.add(m);
     if (/glass/i.test(m.name)) { m.transparent = true; m.opacity = 0.28; m.roughness = 0.06; m.metalness = 0.1; m.depthWrite = false; m.side = THREE.DoubleSide; m.color?.multiplyScalar(0.75); m.map = null; m.needsUpdate = true; }
     if (m.map) m.map.anisotropy = 8;
@@ -54,11 +55,14 @@ export async function loadStreetKit({ M } = {}) {
     if (m.name === 'Material12 3') m.color.setRGB(0.42, 0.42, 0.42); // lamp base plate: weathered concrete, not bright white
     if (m.name === 'Material11') m.color.setRGB(1.5, 1.35, 1.2); // utility pole shaft: weathered timber, lighter than the dark CAD texture
     m.userData.streetKit = true;
+    // r2-art: library street furniture calibrated to the shared material ranges (src/world/art/calibrate.js); the glass
+    // panels above keep their see-through tuning
+    if (!/glass/i.test(m.name)) calibrate(m, { hint: 'street/' + file, fallback: 'generic' });
     return m;
   }
   const scenes = {}; await Promise.all(FILES.concat(['signal_kit', 'sign_set1', 'sign_set5']).map(async (f) => { scenes[f] = await load(f); }));
   const parts = {};
-  for (const f of FILES) { const p = partsOf(scenes[f]); if (p && p.length) parts[f] = p; }
+  for (const f of FILES) { const p = partsOf(scenes[f], null, f); if (p && p.length) parts[f] = p; }
   // the lantern post's origin goes to the foot of its post (the converter centered the whole post + arm footprint)
   if (parts.lantern_post) { let sx = 0, sz = 0, n = 0; for (const q of parts.lantern_post) { const P = q.geometry.attributes.position; for (let i = 0; i < P.count; i++) if (P.getY(i) < 0.8) { sx += P.getX(i); sz += P.getZ(i); n++; } }
     if (n) for (const q of parts.lantern_post) { q.geometry.translate(-sx / n, 0, -sz / n); q.geometry.computeBoundingSphere(); q.geometry.computeBoundingBox(); } }
@@ -72,7 +76,7 @@ export async function loadStreetKit({ M } = {}) {
   const sig = {};
   const sk = scenes.signal_kit;
   const node = (n) => { let r = null; sk?.traverse((o) => { if (!r && o.isMesh && (o.name === n || o.parent?.name === n)) r = o; }); return r; };
-  const basePaint = (m, surf) => { m.vertexColors = true; m.roughness = 0.5; m.metalness = 0.35; try { M?.propify?.(m, surf); } catch (e) { /* plain */ } return m; };
+  const basePaint = (m, surf) => { m.vertexColors = true; m.roughness = 0.5; m.metalness = 0; /* r2-art: painted mast arms / heads are dielectric (was 0.35: neither paint nor metal) */ try { M?.propify?.(m, surf); } catch (e) { /* plain */ } return m; };
   if (sk) {
     const piece = (n) => { const o = node(n); if (!o) return null; const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
       const c = g.attributes.color; if (c && c.itemSize === 4) { const a = new Float32Array(c.count * 3); for (let i = 0; i < c.count; i++) { a[i * 3] = c.getX(i); a[i * 3 + 1] = c.getY(i); a[i * 3 + 2] = c.getZ(i); } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); } // rgb only (prop shader expects vec3)

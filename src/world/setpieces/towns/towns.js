@@ -182,10 +182,10 @@ export function planTown(town, env) {
 // furniture and plaza geometry into a kit batch (world coordinates relative to an origin)
 export function buildStreetscape(hk, plan, ox, oz, lod = 0) {
   const kit = hk, THREE = hk.THREE, M = kit.M, mat = kit.mat, B = kit.batch('street'), cols = [], lamps = [], L0 = lod === 0;
-  const CONC = mat.concrete(), MET = mat.metalPaint(), WOOD = mat.wood(), STU = mat.stucco(), PAV = mat.pbr('scuffed_cement', { rep: 1.6, grunge: true, gain: 1.9 }), BULB = mat.houseBulb(), WATER = mat.poolWater(), PLAST = mat.plastic();
+  const CONC = mat.concrete(), MET = mat.metalPaint(), WOOD = mat.wood(), STU = mat.stucco(), PAV = mat.pbr('scuffed_cement', { rep: 1.6, grunge: true, tint: '#bcd2ff', gain: 3.4 }) /* r2-art: the scan is brown (r/b 2.2): tint to neutral concrete gray, L ~0.27 with the slab color */, BULB = mat.houseBulb(), WATER = mat.poolWater(), PLAST = mat.plastic();
   const P = (x, z) => [x - ox, z - oz];
   // sidewalks: 2 m slabs with curb faces and joints
-  for (const w of plan.walks) { const [x, z] = P(w.x, w.z), y = (w.y ?? 0); B.box(PAV, w.w, 0.14, w.len, M(x, y + 0.05, z, 0, w.ry), { color: 0xd8d2c6, wear: 0.3 });
+  for (const w of plan.walks) { const [x, z] = P(w.x, w.z), y = (w.y ?? 0); B.box(PAV, w.w, 0.14, w.len, M(x, y + 0.05, z, 0, w.ry), { color: 0xd6d4ce, wear: 0.3 });
     if (L0) B.box(CONC, 0.18, 0.16, w.len, M(x - w.nx * (w.w / 2 - 0.09), y + 0.06, z - w.nz * (w.w / 2 - 0.09), 0, w.ry), { color: 0xc4beb2 }); }
   // crosswalks: white bars across the road
   for (const c of plan.crossings) { const [x, z] = P(c.x, c.z), ry = Math.atan2(c.dx, c.dz), n = Math.floor(c.w / 0.9); for (let k = 0; k < n; k++) { const u = -c.w / 2 + 0.45 + k * 0.9; B.box(PLAST, 0.5, 0.012, 3.0, M(x + Math.cos(ry) * u, (c.y ?? 0) + 0.035, z - Math.sin(ry) * u, 0, ry), { color: 0xf2f2ee }); } }

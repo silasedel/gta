@@ -60,8 +60,9 @@ export async function initV2(game) {
     }
   }
   // ---------------- meshes ----------------
-  const metal = new THREE.MeshStandardMaterial({ color: 0x9aa0a4, roughness: 0.45, metalness: 0.8 });
-  const backMat = new THREE.MeshStandardMaterial({ color: 0x8c9297, roughness: 0.5, metalness: 0.6 });
+  // r2-art (ART_STYLE.md): galvanized post = metal 1 at a zinc base (~0.47 linear), sign back = dull oxidized plate (dielectric)
+  const metal = new THREE.MeshStandardMaterial({ color: 0xb4b9bc, roughness: 0.48, metalness: 1, name: 'reg:galvanized' });
+  const backMat = new THREE.MeshStandardMaterial({ color: 0x8c9297, roughness: 0.6, metalness: 0, name: 'reg:back' });
   const stopTex = faceTexture((x, W, H) => {
     x.clearRect(0, 0, W, H); octagon(x, W / 2, H / 2, W * 0.49); x.fillStyle = '#ffffff'; x.fill();
     octagon(x, W / 2, H / 2, W * 0.455); x.fillStyle = '#b8161b'; x.fill();
