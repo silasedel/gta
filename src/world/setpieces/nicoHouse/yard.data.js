@@ -66,6 +66,10 @@ export const DEBRIS = [
 ];
 
 // ---- yard surface: puddles (after rain they fill), tire tracks (pairs of ruts), leaf-litter and matted-grass patches ----
+// the corner puddle (lead review): a low spot at the asphalt edge by the corner that always holds water, with a mud rim
+export const CORNER_PUDDLE = { x: -2.6, z: 28.4, a: 2.6, b: 1.25, rot: -0.3 };
+// small sticks, twigs, palm-frond bits and bark scraps: [x, z, radius, count]
+export const STICKS = [[-2.0, 16.0, 3.0, 26], [4.0, 18.5, 2.5, 18], [-11.0, 12.5, 3.0, 24], [-16.5, 15.0, 2.5, 18], [8.5, 14.0, 2.4, 16], [-6.5, 23.0, 2.0, 14], [1.5, 22.5, 2.2, 14], [-20.0, 8.5, 3.0, 22]];
 export const PUDDLES = [[-3.0, 21.6, 1.6, 0.55, 0.2], [-5.2, 24.9, 2.3, 0.8, -0.3], [-1.6, 17.2, 1.1, 0.4, 0.1], [-9.4, 19.6, 1.2, 0.5, 0.6], [2.1, 27.1, 1.8, 0.6, 0.0]];
 export const TRACKS = [   // polylines of the left / right tire, width 0.3 (soft, darker, slightly sunk)
   { pts: [[-4.4, 26.6], [-4.6, 21.0], [-4.3, 16.6], [-3.9, 12.6]], gauge: 1.7 },
@@ -107,6 +111,9 @@ export const PLANTING = [
 // ---- weed clumps (part 05 weeds): [x, z, radius, count, size] where weeds really grow: around rocks, posts, bins, the planter
 // foot, the drive's middle strip between the ruts, and the lot edges (the rest of the yard is trodden bare)
 export const WEEDS = [
+  // dense matted grass around the bins, the planter and along the frontage edge (lead review)
+  [0.3, 27.4, 1.1, 46, 1.2], [-0.8, 26.2, 0.9, 34, 1.1], [1.6, 25.8, 1.0, 40, 1.1], [7.4, 24.4, 1.0, 40, 1.2], [7.4, 22.0, 0.9, 34, 1.1],
+  [-13.6, 23.4, 1.2, 46, 1.2], [-12.6, 21.6, 0.9, 30, 1.0], [-3.0, 27.0, 1.4, 44, 1.1], [-9.5, 25.0, 1.5, 50, 1.2], [-18.0, 22.2, 1.6, 54, 1.2], [-22.0, 18.0, 1.8, 50, 1.3],
   [-4.3, 19.0, 0.35, 26, 1.1], [-4.4, 23.5, 0.3, 22, 1.0], [-4.1, 15.0, 0.3, 18, 0.9], [-9.4, 19.5, 0.35, 22, 1.0], [-10.3, 22.4, 0.3, 18, 1.0],   // between the ruts
   [-9.0, 26.0, 0.6, 30, 1.2], [9.6, 27.0, 0.6, 28, 1.2], [-21.5, 15.5, 0.6, 26, 1.1], [-6.7, 34.4, 0.5, 18, 1.0], [5.6, 27.1, 0.5, 18, 1.0],   // pole and sign feet
   [4.0, 24.4, 2.8, 70, 1.1], [6.4, 23.6, 1.2, 30, 1.0], [0.4, 26.4, 0.9, 24, 1.0], [-13.6, 22.7, 0.9, 22, 1.0],   // planter foot, bins

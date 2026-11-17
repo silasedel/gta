@@ -6,15 +6,16 @@
 // resin chairs, coconut husks, a tarp), and the yard surface: tire ruts, leaf litter and matted grass patches, and puddles that
 // grow after rain. Library models: the user's (public/assets/models/keys, street kit STOP plates); the rest is built here.
 // Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
-import { PLANTER, BINS, STOPS, POLES, WIRES, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS } from '../yard.data.js';
+import { PLANTER, BINS, STOPS, POLES, WIRES, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS, CORNER_PUDDLE, STICKS } from '../yard.data.js';
 import { loadKeysModels } from '../models.js';
 import { breakables } from '../../../miami/breakables.js';
 export const order = 55;
 
 export function build(ctx) {
-  const { THREE, kit, mat, col } = ctx, B = ctx.site, D = ctx.detail, M = kit.M, PI = Math.PI, r = kit.rng(5501);
+  const { THREE, kit, mat, col } = ctx, B = ctx.site, D = ctx.site, M = kit.M,   // one batch: a material shared by poles, clutter and decals is one draw call, not two
+  PI = Math.PI, r = kit.rng(5501);
   const V = (c, a = 0.06) => kit.vary(c, r, a), rs = (a = 1) => (r() - 0.5) * 2 * a;
-  const PEEL = mat.paint({ peel: 'b', fade: 0.32 }), W = mat.wood(), CONC = mat.concrete(), PL = mat.plastic(), PLG = mat.plasticGloss(), ST = mat.steel(), RUB = mat.rubber(), MATTE = mat.matte();
+  const PEEL = mat.paint({ peel: 'b', fade: 0.32 }), W = mat.wood(), CONC = mat.concrete(), PLG = mat.plasticGloss(), PL = PLG, ST = mat.steel(), MATTE = mat.matte(), RUB = MATTE;
   ctx.anchors.carSpots = CAR_SPOTS.map((c) => ({ ...c, pos: new THREE.Vector3(c.x, 0, c.z) }));
 
   // ======================================================================= lattice planter box
@@ -37,7 +38,7 @@ export function build(ctx) {
         B.box(PEEL, len, 0.07, 0.035, M(cx + ox, 0.05, cz + oz, 0, ry, 0), { grain: 0, ...white(), wear: 0.8 }); }
       B.box(PEEL, len + 0.06, 0.035, Dp + 0.08, M(cx, H + 0.03, cz, 0, ry, 0), { grain: 0, ...white() });   // cap
       for (const t of [0, 1]) for (const side of [1, -1]) B.box(PEEL, 0.07, H + 0.04, 0.07, M(ax + (bx - ax) * t + nx * side * Dp / 2, (H + 0.04) / 2, az + (bz - az) * t + nz * side * Dp / 2, 0, ry, 0), { grain: 1, ...white() });
-      B.box(mat.pbr('sand_01', { rep: 1.5, gain: 0.6, grunge: true }), len - 0.05, 0.04, Dp - 0.06, M(cx, H - 0.1, cz, 0, ry, 0), { color: [0.32, 0.25, 0.18] });   // potting soil (dark, damp)
+      B.box(CONC, len - 0.05, 0.04, Dp - 0.06, M(cx, H - 0.1, cz, 0, ry, 0), { color: [0.32, 0.25, 0.18] });   // potting soil (dark, damp)
       B.box(CONC, len - 0.08, H - 0.18, Dp - 0.12, M(cx, (H - 0.18) / 2, cz, 0, ry, 0), { color: 0x3a3028, wear: 1 });   // liner, dark behind the lattice
       col.box(cx, H / 2, cz, len + 0.06, H + 0.06, Dp + 0.08, { ry, tag: 'planter' });
     }
@@ -60,7 +61,7 @@ export function build(ctx) {
     B.cyl(W, 0.11, 0.15, h + 1.6, M(x, (h - 1.6) / 2, z, lean, r() * 6, lean * 0.6), { seg: 12, hseg: 4, color: V(0x6a5946, 0.06), wear: 0.9 });
     B.box(W, 2.3, 0.1, 0.12, M(x, h - 0.45, z, 0, ry, 0), { grain: 0, color: 0x5f5040, wear: 0.8, bevel: 0.006 });
     for (const s of [-1, 1]) B.strut(W, [x + Math.cos(ry) * s * 0.7, h - 0.5, z - Math.sin(ry) * s * 0.7], [x, h - 1.3, z], 0.05, 0.03, { color: 0x5f5040 });
-    const ins = []; for (const s of [-1.0, 0, 1.0]) { const ix = x + Math.cos(ry) * s, iz = z - Math.sin(ry) * s; B.cyl(mat.ceramic(), 0.03, 0.045, 0.12, M(ix, h - 0.33, iz), { color: 0x6b7f8a, seg: 10 }); ins.push([ix, h - 0.25, iz]); }
+    const ins = []; for (const s of [-1.0, 0, 1.0]) { const ix = x + Math.cos(ry) * s, iz = z - Math.sin(ry) * s; B.cyl(mat.metalPaint(), 0.03, 0.045, 0.12, M(ix, h - 0.33, iz), { color: 0x6b7f8a, seg: 10 }); ins.push([ix, h - 0.25, iz]); }
     if (i === 0) { B.cyl(mat.metalPaint(), 0.22, 0.22, 0.75, M(x + 0.3, h - 1.6, z + 0.12), { color: 0x7d8486, seg: 16 }); B.cyl(mat.metalPaint(), 0.23, 0.23, 0.04, M(x + 0.3, h - 1.2, z + 0.12), { color: 0x6d7476, seg: 16 }); }
     B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, 1.9, z + 0.14, 0, 0, 0), { color: 0xc9b23a });   // pole tag
     poleTop.push(ins); col.cyl(x, h / 2, z, 0.15, h + 0.4, { tag: 'pole' });
@@ -112,6 +113,13 @@ export function build(ctx) {
       D.geo(PL, g, L(0, 0, 0), { color: 0x2f5f9a });
     }
   }
+
+  // ======================================================================= sticks, twigs, frond bits and bark scraps on the yard
+  { const q = kit.rng(5599), yYs = ctx.yardY || (() => 0);
+    for (const [cx, cz, rad, n] of STICKS) for (let i = 0; i < n; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * rad, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, k = q(), y = yYs(x, z);
+      if (k < 0.55) D.box(W, 0.18 + q() * 0.45, 0.012 + q() * 0.01, 0.014 + q() * 0.01, M(x, y + 0.012, z, (q() - 0.5) * 0.2, q() * 6.28, (q() - 0.5) * 0.1), { grain: 0, color: V(k < 0.3 ? 0x6b5640 : 0x8f7a5e, 0.15), wear: 0.8 });   // twigs
+      else if (k < 0.8) D.box(MATTE, 0.35 + q() * 0.6, 0.004, 0.05 + q() * 0.05, M(x, y + 0.008, z, 0, q() * 6.28, 0), { color: V(0x9a8a62, 0.12) });   // dry frond strips
+      else D.box(W, 0.08 + q() * 0.1, 0.01, 0.05 + q() * 0.06, M(x, y + 0.008, z, (q() - 0.5) * 0.3, q() * 6.28, 0), { grain: 1, color: V(0x5a4632, 0.15), wear: 1 }); } }   // bark scraps
 
   // ======================================================================= the roll-off's load: tear-out heaped above the rim
   { const d = DUMPSTER, sc = d.scale, base = M(d.x, 0, d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc, z * sc, a, b, c)), q = kit.rng(5577);
@@ -175,6 +183,13 @@ export function build(ctx) {
         diffuseColor.a = smoothstep( th - fw, th + fw, k ) * 0.92; diffuseColor.rgb *= mix( 1.25, 0.7, smoothstep( th, th + 0.35, k ) ); }`); };
     PUD.customProgramCacheKey = () => 'keys:puddle';
     for (const [x, z, a, b, rot] of PUDDLES) { const g = new THREE.PlaneGeometry(a * 2, b * 2, 8, 4); g.rotateX(-PI / 2); g.applyMatrix4(M(x, 0, z, 0, rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, yY(pp.getX(i), pp.getZ(i)) + 0.024); D.geo(PUD, g, null, {}); g.dispose(); }
+    // the corner puddle: always standing water (its own threshold), over a mud rim; rides on the asphalt or the yard, whichever is higher
+    { const CP = CORNER_PUDDLE, gA = ctx.opts.groundAt || (() => -1), surf = (x, z) => Math.max(yY(x, z) + 0.024, gA(x, z) + 0.085);
+      const P2 = PUD.clone(); P2.name = 'keys:puddleCorner'; const uC = { value: 0.82 }; P2.onBeforeCompile = (sh) => { PUD.onBeforeCompile(sh); sh.uniforms.uKWet = uC; }; P2.customProgramCacheKey = () => 'keys:puddleCorner';
+      const MUD = decal('mud', 256, 256, (g, w, h) => { const q = kit.rng(97); g.clearRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const x = q() * w, y = q() * h, d = Math.hypot(x / w - 0.5, y / h - 0.5); if (d > 0.48) continue; g.fillStyle = `rgba(${70 + q() * 30},${60 + q() * 24},${46 + q() * 18},${(0.5 - d) * 1.4})`; g.beginPath(); g.ellipse(x, y, 4 + q() * 10, 3 + q() * 6, q() * 3, 0, 6.28); g.fill(); } });
+      MUD.map.wrapS = MUD.map.wrapT = THREE.ClampToEdgeWrapping;
+      const mk = (m, sx, sy, dy) => { const g = new THREE.PlaneGeometry(CP.a * 2 * sx, CP.b * 2 * sy, 10, 5); g.rotateX(-PI / 2); g.applyMatrix4(M(CP.x, 0, CP.z, 0, CP.rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, surf(pp.getX(i), pp.getZ(i)) + dy); D.geo(m, g, null, { wear: 1 }); g.dispose(); };
+      mk(MUD, 1.35, 1.6, 0.0); mk(P2, 1.0, 1.0, 0.006); }
     ctx.updaters.push((dt, env) => { const w = env?.game?.weather; uWet.value = w ? Math.max(0.25, Math.min(1, 0.25 + (w.puddles || 0) * 0.9 + (w.wetness || 0) * 0.25)) : 0.25; });
   }
 

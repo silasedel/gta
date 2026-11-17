@@ -29,8 +29,8 @@ export function build(ctx) {
       const x = pa.getX(i), z = pa.getZ(i), drive = Math.max(0, 1 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2) / (5.5 + Math.max(0, z - 14) * 0.5)) * (z > 3 ? 1 : 0.3);
       const under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 4) - 20) / 14));
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
-      let c = [0.86, 0.85, 0.82]; c = c.map((v) => v * (0.84 + 0.22 * n) * (0.9 + 0.16 * nC) * (1 - 0.24 * under) * (1 + 0.05 * drive));
-      const damp = Math.max(0, nB - 0.62) * 2.2 * (1 - drive * 0.6); c = c.map((v, k) => v * (1 - 0.32 * damp * [1, 1.02, 1.08][k]));      // dark damp hollows
+      let c = [0.83, 0.84, 0.84];   // gray-white shell (the scan is beige: pull it toward gray) c = c.map((v) => v * (0.84 + 0.22 * n) * (0.9 + 0.16 * nC) * (1 - 0.24 * under) * (1 + 0.05 * drive));
+      const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)); c = c.map((v, k) => v * (1 - 0.46 * damp * [1, 1.02, 1.08][k]));      // dark damp hollows
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
       if (z > 5.5) { const rut = Math.max(Math.exp(-((x + 2.85 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12), Math.exp(-((x + 1.15 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12)); c = c.map((v) => v * (1 - 0.2 * rut)); }   // tire ruts

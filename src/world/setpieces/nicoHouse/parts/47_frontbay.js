@@ -538,7 +538,7 @@ export async function build(ctx) {
   // ---------- potted plants on the front deck rail (plants grown by part 50) ----------
   const TERRA = mat.pbr('plywood', { rep: 0.4 });
   const railY = P.F + (P.rail?.h ?? 1.07) + 0.02;
-  for (const [x, z, s] of [[0.67, 5.9, 1.0], [0.67, 7.2, 0.85]]) {   // (the corner pot at (1.4, 7.88) sat in the mock-up camera's face: removed)
+  for (const [x, z, s] of [[0.67, 5.9, 1.0]]) {   // (the pots at the deck corner sat in the mock-up camera's face: removed)   // (the corner pot at (1.4, 7.88) sat in the mock-up camera's face: removed)
     B.cyl(mat.ceramic(), 0.11 * s, 0.08 * s, 0.17 * s, M(x, railY + 0.085 * s, z), { color: V(0xb05f3a, 0.06), seg: 16 });
     B.cyl(mat.ceramic(), 0.118 * s, 0.118 * s, 0.03 * s, M(x, railY + 0.16 * s, z), { color: V(0xa0583a, 0.06), seg: 16 });
     B.cyl(TERRA, 0.1 * s, 0.1 * s, 0.01, M(x, railY + 0.15 * s, z), { color: 0x3a2c20, seg: 14 });
