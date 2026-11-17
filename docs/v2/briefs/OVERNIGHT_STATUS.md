@@ -165,6 +165,9 @@
   (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
 
 ## buildings
+- 03:50 Final review tour done: `docs/v2/shots/stage1/BLD_{dt,brick,sobe,havana,overtown,liberty,clew}_{st,air,stn,airn}.png` + `BLD_apt_{gate,air,hangar,airn}.png` (noon 12:00 / night 21:30, clear weather). Fixed from it: glittering night panes (library glass was a perfect mirror of the starry sky), low-res stucco on library walls (re-grained), fire station out of the core, runway lights too small to see.
+- Lead commit rule noted (pathspec commits only, `git show --stat HEAD` checked). My ab3fb52 / 765e12c had swept in other helpers' staged index (street-props deletions, a tilebuild block move); the props helper re-committed their files in 8c62bdc; nothing of mine is pending in other files.
+- Lead FINAL_sheet items: (a) downtown ground floors: stone pilasters between bays, granite kick plates, sign boards and a projecting ledge over storefront ground floors (real geometry, in tilebuild `streetShopDress`), stronger base grime; verifying now. (b) Keys navy rectangles near (-930, 4930): NOT library objects (probe: 0 library instances / fences within 250 m); a dark-navy `MeshStandardMaterial #2a3550` mesh under a Group < Group is there, identifying its owner now. (c) construction-site tile: the flat orange ground is the `construction` land area (ground pass) and the site props (props helper); not in my files.
 - 03:20 For the lead / vegetation helper: trees and flat impostor cards are now planted all over the MIA apron and taxiways, right in front of the terminal gates (`docs/v2/shots/stage1/BLD_apt_gate.png`, `BLD_apt_air.png`): the apron (features.json area a5, kind 'apron') and runways need to be a no-plant zone. Also: street-level review shots at the downtown core get taken over by gameplay (turf-fight mission camera, then an arrest: `BLD_dt_st.png`).
 - 02:55 Lead's question (dark rectangles in `keys/k7_r5_aerial.png`): NOT library buildings. Pick probe at the Keys aerial camera (`tools/v2/buildings/keysprobe.js`, 672 rays, distance > 120 m): 0 hits on `lib-*` meshes; far hits are miami-land-base, near tiles, the house generator, `vegField_*` and `countryside`. The same flat dark square cards stand on empty lawns at South Beach (`BLD_sobe_air.png`) and Liberty City (`T2_liberty_air.png`) where no building exists: vegetation impostors. Broken far LODs I found myself were removed at 02:40 (grid tower, blue glass tower, casino, long hangar, stilt shack, brick cottage; the first two rebuilt cleanly).
 - 02:30 Perf after the draw-call work (A/B one session, `docs/v2/reports/buildings-ab2.json`, OFF -> ON, median ms / calls): downtown air 34 -> 48 / 338 -> 518, Brickell air 30 -> 46 / 367 -> 588, Overtown air (OFF sample spiked) -> 42 / 337 -> 587, airport air 28 -> 23 / 244 -> 386, Clewiston street 56 -> 46 / 603 -> 619. Draw calls down ~35 % vs the first pass; remaining cost is triangles at tower close range (towers now switch to far LOD at 300 m).
@@ -180,6 +183,16 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+**Summary (03:40, keeps being updated below):** done - (1) road edges crumble into the shoulder (noise-cut asphalt, granular dust,
+asphalt crumbs, edge puddles in rain; curbed tree-lawn streets get a granite curb), (2) shoulders / verges / beaches blend
+(terrain shoulders tone-matched, dirt band, patchy grass regrowth, city verge lawn + soil lip + mulch rings, wandering land-cover
+borders, smooth waterline, foam lace, see-through shallows), (3) potholes = parallax dips with broken rims and rain water,
+patches = irregular, color-matched from the road's own asphalt, oil faint, (4) no plants on asphalt / pavement / slabs / drives /
+under cars (GPU surface mask), (5) layering: land base cut / depth-biased, seawall coping and straight sand slabs off natural
+coasts, terrain lowering removed, dressing driveways drawn into the ground, (6) Keys lanes: no curbs / sidewalks, pale bleached
+sandy asphalt with patches and puddles, (7) every terrain type toured (`gp6_*`, `gp10_*`, `gp11_*`, `gp12_*`), plus water
+(turquoise shallows) and 2K ground scans / Concrete 3. Perf: mask A/B in one session = no measurable cost.
+Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_sr1042.png`, `GROUNDPASS_keys_water_aerial.png`.
 - 03:20 Water + Nico's shore done: `docs/v2/shots/stage1/GROUNDPASS_keys_water_aerial.png` (turquoise shallows, sand flats and
   seagrass, deep blue offshore; the ocean's shore field now also comes from the water mask, so the Keys / Gulf coasts get
   shallows), `docs/v2/shots/keys/gw4_{dock,docktop}.png` (white beams = tilebuild seawall coping along the cover polygon: gone on
