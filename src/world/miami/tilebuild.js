@@ -772,6 +772,8 @@ export function createTileBuilder(ctx) {
       if (opts.coll) { wallGaps(opts.coll, outer, y0, GF, 64, 4, 0xffffff, 0, 0, gaps); wallStrip(opts.coll, outer, GF, h, 10, 10, new THREE.Color(0xffffff)); if (sf) fillPoly(opts.coll, b.rings, GF, 0xffffff, 1); }
     } else { if (FB) { const G0 = y0 < 0.5 && h > 7.5 ? groundStyle(FS, false, h > 45) : null, gh = G0 ? Math.min(G0.type === WIN.roller ? 5.2 : 4.4, h * 0.5) : 0; if (G0) facadeWalls(FB, outer, y0, y0 + gh, G0, 7); facadeWalls(FB, outer, y0 + gh, h, FS, 20); } else wallStrip(B[fstyle], outer, y0, h, tw, th, color, uOff, vOff - y0 / th); if (opts.coll) wallStrip(opts.coll, outer, y0, h, 10, 10, new THREE.Color(0xffffff)); }
     if (opts.coll) fillPoly(opts.coll, b.rings, h, 0xffffff, 1);
+    if (opts.coll && !sf && opts.relief !== undefined && y0 < 0.5 && h > 7 && (style === 'deco' || style === 'office' || style === 'band') && b.area > 150 && !b.part && h > 4.7) { // collider: the street-level pilasters, ledge and kick plates (streetShopDress)
+      const G1c = groundStyle(facStyle(b, zone, style, h), true, false); if (G1c && G1c.type === WIN.storefront) streetShopDress({ trim: opts.coll }, outer, y0, 4.2, G1c, seed, null); }
     if (y0 > 0.5 && !b.part) { fillPolyDown(B.trim, b.rings, y0, new THREE.Color(0xcfcac2)); if (opts.coll) fillPolyDown(opts.coll, b.rings, y0, 0xffffff); } // passage / overhang soffit
     if (b._passage) for (const [x, z] of outer) { if (roadDist && roadDist(x, z) < 0.8) continue; // columns at the corners that stand clear of the lanes
       B.trim.addGeometry(CYLG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), new THREE.Color(0xd9d4ca)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), 0xffffff); }
@@ -784,6 +786,17 @@ export function createTileBuilder(ctx) {
     const roofC = new THREE.Color(FB ? FS.roofTint : style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
     if (FB && FS && style !== 'house' && style !== 'warehouse' && style !== 'glass') corniceBands(B, b, outer, y0, h, FS, opts.lod);
+    if (FB && FS && opts.props && !opts.lod && y0 < 0.5 && !b.part && h < 40 && outer.length <= 12 && (FS.type === WIN.punched || FS.type === WIN.arched)) { // real window depth on the street faces: projecting sills (+ lintels on masonry)
+      const yU = shops ? GF : (h > 7.5 && groundStyle(FS, false, h > 45) ? Math.min(groundStyle(FS, false, h > 45).type === WIN.roller ? 5.2 : 4.4, h * 0.5) : y0), nf = Math.max(1, Math.round((h - yU) / FS.floorH)), fh = (h - yU) / nf;
+      const masonry = /brickRow|stoneBank|calleRow|decoMed|medHouse|precast/.test(FS.fam), sc = new THREE.Color(FS.tint).lerp(new THREE.Color(0xe6e0d4), 0.7);
+      for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < Math.max(1.5, FS.bayW * 0.62)) continue;
+        const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L, nx = -tz, nz = tx; if (roadDist && roadDist((p[0] + q[0]) / 2 + nx * 4, (p[1] + q[1]) / 2 + nz * 4) > 16) continue;
+        const nb = Math.max(1, Math.round(L / FS.bayW)), bw = L / nb, ww = FS.winW * bw, ry = Math.atan2(-tz, tx);
+        for (let f = 0; f < Math.min(nf, 6); f++) { const wy = yU + f * fh + FS.sill * fh, wt = wy + FS.winH * fh;
+          for (let k = 0; k < nb; k++) { const u = (k + 0.5) * bw, x = p[0] + tx * u, z = p[1] + tz * u;
+            B.trim.addGeometry(BOXG, m4(x + nx * 0.06, wy - 0.06, z + nz * 0.06, ry, ww + 0.18, 0.11, 0.12), sc);
+            if (masonry && FS.type === WIN.punched) B.trim.addGeometry(BOXG, m4(x + nx * 0.035, wt + 0.09, z + nz * 0.035, ry, ww + 0.24, 0.18, 0.07), sc.clone().multiplyScalar(0.95)); } } }
+    }
     if (b.kind === 'terminal' && b.id === -9101) { // airport terminal: a deep flat canopy roof on slim columns over the curb and the gates
       const cv = scalePoly(outer, b.cx, b.cz, 7), cc = new THREE.Color(0xe4e2dc);
       fillPoly(B.roof, [cv], h + 1.5, new THREE.Color(0xd8d6d0), 1 / 6); fillPolyDown(B.trim, [cv], h + 0.5, cc); wallStrip(B.trim, cv, h + 0.5, h + 1.5, 10, 10, cc);
