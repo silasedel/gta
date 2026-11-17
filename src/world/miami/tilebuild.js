@@ -176,7 +176,6 @@ export function createTileBuilder(ctx) {
       palmLod.push(L);
     });
   } catch (e) { console.warn('[vegetation] palm LODs unavailable', e); palmLod.length = 0; }
-  function vegTrees(group, sp, items) {
   // greenery: library-model palms (src/world/vegetation/models.js: royal palm, coconut palm) in the same LOD bands as the street palms
   const modelPalm = {}, greenMats = []; // greenMats: precompiled with the city materials (no first-sight shader stall)
   try { for (const k of ['royal', 'coconut']) { const md = flora?.models?.[k]; if (!md) continue;
@@ -214,6 +213,7 @@ export function createTileBuilder(ctx) {
   function treeCrownR(sp) { // horizontal crown radius of a species' street-tree meshes at scale 1
     if (sp in crownR) return crownR[sp]; let r = 0; for (const g of flora?.VT?.[sp] || []) { const P = g.leaf.attributes.position; for (let i = 0; i < P.count; i++) r = Math.max(r, Math.hypot(P.getX(i), P.getZ(i))); } return (crownR[sp] = r);
   }
+  function vegTrees(group, sp, items) {
     const VT = flora?.VT?.[sp]; if (!VT || !VT.length || !M.vegLeaf) return false;
     const per = VT.map(() => []); items.forEach((it, i) => per[(i + Math.abs((it.x * 3) | 0)) % per.length].push(it));
     per.forEach((it, v) => { if (!it.length) return; const L = treeLodOf(sp, v);
@@ -228,11 +228,11 @@ export function createTileBuilder(ctx) {
     for (const [k, s] of [['seagrape', 1], ['hibiscus', 2], ['croton', 3], ['ixora', 4], ['seagrape', 5], ['croton', 6], ['hibiscus', 11]]) vegBush.blob.push(vegGeometry(k, { seed: s, size: 0.72 }));
     for (const [k, s] of [['bougainvillea', 1], ['hibiscus', 7], ['ixora', 8], ['bougainvillea', 9]]) vegBush.flower.push(vegGeometry(k, { seed: s, size: 0.68 }));
   } catch (e) { console.warn('[vegetation] shrubs unavailable', e); vegBush.blob.length = vegBush.flower.length = 0; }
-  function vegBushes(group, items, list) {
   // (greenery) shrubs dissolve out between 105 and 135 m (dithered, TAA-resolved) instead of a hard cut at the pool draw distance
   let bushM = null;
-    const per = list.map(() => []); items.forEach((p, i) => per[(i + Math.abs((p.x * 7) | 0)) % per.length].push(p));
+  function vegBushes(group, items, list) {
     bushM ||= { b: makeVegMaterial('bark', { fade: [0, 0, 105, 135], lean: 0.006, sway: 0.0035 }), l: makeVegMaterial('leaf', { fade: [0, 0, 105, 135], lean: 0.006, sway: 0.0035 }) };
+    const per = list.map(() => []); items.forEach((p, i) => per[(i + Math.abs((p.x * 7) | 0)) % per.length].push(p));
     per.forEach((it, v) => { if (!it.length) return; const g = list[v]; g.bark.userData.lodMax = g.leaf.userData.lodMax = 138; if (g.bark.index.count) inst(group, g.bark, bushM.b.mat, it, { cast: true, depth: bushM.b.depth }); inst(group, g.leaf, bushM.l.mat, it, { cast: true, depth: bushM.l.depth }); });
   }
   const oatsG = (() => { const b = new Batch(), c = new THREE.PlaneGeometry(0.9, 1.1), w = new THREE.Color(1, 1, 1); for (let k = 0; k < 3; k++) b.addGeometry(c, m4(0, 0.55, 0, (k / 3) * Math.PI), w, [0.5, 1], [0, 0]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(b.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(b.n, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2)); return g; })();
@@ -365,7 +365,7 @@ export function createTileBuilder(ctx) {
     { name: 'Marisol Residences', style: 'band', mode: 2, amt: 5, cuts: [], kind: 0.9, wrap: true },
     { name: 'Coralline Tower', style: 'glass', mode: 2, amt: 60, cuts: [0.8], kind: 0.6 },
     { name: 'Bayline One', style: 'band', mode: 1, amt: 3, cuts: [0.74], kind: 0.8, wrap: true },
-    { name: 'Solana Center (topping out)', style: 'band', mode: 0, amt: 0, cuts: [], kind: 0.9, crane: true },
+    { name: 'Southline Center (topping out)', style: 'band', mode: 0, amt: 0, cuts: [], kind: 0.9, crane: true },
     { name: 'Stanton Plaza', style: 'office', mode: 0, amt: 0, cuts: [0.55, 0.8], kind: 0.2 },
     { name: 'Tidewater Point', style: 'glass', mode: 1, amt: 7, cuts: [0.66], kind: 0.65 },
     { name: 'Las Brisas Condominium', style: 'band', mode: 2, amt: 9, cuts: [0.85], kind: 0.45, wrap: true },
@@ -1099,57 +1099,6 @@ export function createTileBuilder(ctx) {
       for (const side of [-1, 1]) { let o = hw; while (o > 1.0) { const oy = null, dy = 0; if (dy >= 0.6 && oy !== null) { o -= 0.2; /* only the lower deck gives way */ shrunk = true; } else break; } (side < 0 ? oL : oR).push(side * o); } }
     return { oL, oR, shrunk };
   }
-  // ---- roads ----
-  // ---- ground-continuity: dead-end road caps ----
-  const CLAIMS = groundClaims(D && D.setpieces), BND = D && D.bounds, CUL_KIND = /residential|living|unclassified|tertiary/;
-  const capStats = { bulb: 0, cap: 0, apron: 0 };
-  // r's end (atB: the last point) at a degree-1 node -> { kind: 'bulb' | 'cap' | 'apron', cut (asphalt stops this far from the end), mk (markings stop), x, z, R, ox, oz }
-  function endCap(r, fr, L, hw, atB, tile) {
-    if (L < 4 || GC_OFF) return null;
-    const p = atB ? r.pts[r.pts.length - 1] : r.pts[0], nd = nodeAt(p);
-    if (!nd || nd.degree !== 1) return null;
-    if (BND && (p[0] < BND.minX + 60 || p[0] > BND.maxX - 60 || p[1] < BND.minZ + 60 || p[1] > BND.maxZ - 60)) return null; // the map edge cuts it, not a real end
-    const q = sampleAt(fr, atB ? L : 0), ox = atB ? q.dx : -q.dx, oz = atB ? q.dz : -q.dz;
-    if (CLAIMS.list.length && CLAIMS.at(p[0], p[1], 2)) { // runs into a set piece's own ground (its yard / drive takes over)
-      let s = 0; for (; s < Math.min(L - 2, 150); s += 0.5) { const w = sampleAt(fr, atB ? L - s : s); if (!CLAIMS.at(w.x, w.z, 0.2)) break; }
-      return { kind: 'apron', cut: s + 3, edge: s, mk: s + 4, ox, oz };
-    }
-    const free = (cx, cz, R) => { for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R; if ((isWater && isWater(x, z)) || insideBuilding(tile, x, z)) return false; } return !(isWater && isWater(cx, cz)); };
-    if (CUL_KIND.test(r.kind || '') && L > 30) { const R = Math.max(hw + 3, 8), o = R * 0.5, cx = p[0] + ox * o, cz = p[1] + oz * o;
-      if (free(cx, cz, R)) { capStats.bulb++; return { kind: 'bulb', x: cx, z: cz, R, cut: Math.max(0, Math.sqrt(R * R - hw * hw) - o - 0.3), mk: R - o + 2, ox, oz }; } }
-    capStats.cap++;
-    return { kind: 'cap', x: p[0], z: p[1], R: hw, cut: 0, mk: 1, ox, oz };
-  }
-  function drawCap(B, coll, fr, L, hw, c, atB) {
-    if (c.kind === 'apron') { // asphalt -> flared broom-finished concrete apron up to the set piece's edge
-      capStats.apron++;
-      const at = (s, o) => { const q = sampleAt(fr, atB ? L - s : s); return [q.x + q.nx * o, 0.06, q.z + q.nz * o]; };
-      const sIn = c.cut, sOut = c.edge, wIn = hw, wOut = hw + 1.4;
-      const a = at(sIn, -wIn), b = at(sIn, wIn), cc = at(sOut, wOut), d = at(sOut, -wOut);
-      quadUp(B.sidewalk, a, b, cc, d, new THREE.Color(0xd9d4c8), 1 / 2.5);
-      if (coll) { coll.tag = 'road'; quadUp(coll, a, b, cc, d, WHITE, 1); }
-      return;
-    }
-    const seg = c.kind === 'bulb' ? 28 : 16, ring = [];
-    for (let k = 0; k < seg; k++) { const a = (k / seg) * Math.PI * 2; ring.push([c.x + Math.cos(a) * c.R, c.z + Math.sin(a) * c.R]); }
-    fillPoly(B.junction || B.asphalt, [ring], 0.055, 0xffffff, 1 / 7);
-    if (coll) { coll.tag = 'junction'; fillPoly(coll, [ring], 0.05, 0xffffff, 1); }
-  }
-  // is (x, z) on a sidewalk slab this tile (or a neighbor) really draws? (the surface grid also marks slabs that were dropped)
-  const slabIdx = new WeakMap();
-  function slabAt(tile, x, z) {
-    let L = slabIdx.get(tile); if (!L) { L = []; const nb = [tile]; if (provider.getTile && tile.tx !== undefined) for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { if (!i && !j) continue; const o = provider.getTile(tile.tx + i, tile.tz + j); if (o && !o.then && o.roads) nb.push(o); }
-      for (const tt of nb) for (const rings of sidewalksOf(tt)) L.push({ rings, bb: bboxOf(rings[0]) }); slabIdx.set(tile, L); }
-    for (const e of L) if (x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z))) return true;
-    return false;
-  }
-  function* buildRoads(B, tile, props, coll, flush) {
-    resolveDecks(tile); let rc = 0;
-    for (const r of tile.roads) {
-      if (r.pts.length < 2) continue;
-      if (++rc % 10 === 0) { if (flush) flush(); yield; }
-      if (owned(r)) continue; // decks / ramps come from elevated.js
-      const prof = roadProfile(r, tile);
   // ---- road surfaces (stage 1 job 4): at-grade junction outlines from the approach carriageway edges with curb returns
   // (roadgeo.js), approach stations (crosswalk, stop bar, lane-marking start) and curb ramps. One global record per graph node,
   // so every tile (the node's own and the neighbors holding its approach pieces) agrees on where each ribbon starts.
@@ -1299,6 +1248,57 @@ export function createTileBuilder(ctx) {
       if (coll) { coll.tag = 'roadSidewalk'; quadUp(coll, P(rp.f0, Y0), P(rp.f1, Y0), P(rp.b1, Y1), P(rp.b0, Y1), WHITE, 1); quadUp(coll, P(rp.fl, Y1), P(rp.f0, Y0), P(rp.b0, Y1), P(rp.b0, Y1), WHITE, 1); quadUp(coll, P(rp.f1, Y0), P(rp.fr, Y1), P(rp.b1, Y1), P(rp.b1, Y1), WHITE, 1); }
     }
   }
+  // ---- roads ----
+  // ---- ground-continuity: dead-end road caps ----
+  const CLAIMS = groundClaims(D && D.setpieces), BND = D && D.bounds, CUL_KIND = /residential|living|unclassified|tertiary/;
+  const capStats = { bulb: 0, cap: 0, apron: 0 };
+  // r's end (atB: the last point) at a degree-1 node -> { kind: 'bulb' | 'cap' | 'apron', cut (asphalt stops this far from the end), mk (markings stop), x, z, R, ox, oz }
+  function endCap(r, fr, L, hw, atB, tile) {
+    if (L < 4 || GC_OFF) return null;
+    const p = atB ? r.pts[r.pts.length - 1] : r.pts[0], nd = nodeAt(p);
+    if (!nd || nd.degree !== 1) return null;
+    if (BND && (p[0] < BND.minX + 60 || p[0] > BND.maxX - 60 || p[1] < BND.minZ + 60 || p[1] > BND.maxZ - 60)) return null; // the map edge cuts it, not a real end
+    const q = sampleAt(fr, atB ? L : 0), ox = atB ? q.dx : -q.dx, oz = atB ? q.dz : -q.dz;
+    if (CLAIMS.list.length && CLAIMS.at(p[0], p[1], 2)) { // runs into a set piece's own ground (its yard / drive takes over)
+      let s = 0; for (; s < Math.min(L - 2, 150); s += 0.5) { const w = sampleAt(fr, atB ? L - s : s); if (!CLAIMS.at(w.x, w.z, 0.2)) break; }
+      return { kind: 'apron', cut: s + 3, edge: s, mk: s + 4, ox, oz };
+    }
+    const free = (cx, cz, R) => { for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R; if ((isWater && isWater(x, z)) || insideBuilding(tile, x, z)) return false; } return !(isWater && isWater(cx, cz)); };
+    if (CUL_KIND.test(r.kind || '') && L > 30) { const R = Math.max(hw + 3, 8), o = R * 0.5, cx = p[0] + ox * o, cz = p[1] + oz * o;
+      if (free(cx, cz, R)) { capStats.bulb++; return { kind: 'bulb', x: cx, z: cz, R, cut: Math.max(0, Math.sqrt(R * R - hw * hw) - o - 0.3), mk: R - o + 2, ox, oz }; } }
+    capStats.cap++;
+    return { kind: 'cap', x: p[0], z: p[1], R: hw, cut: 0, mk: 1, ox, oz };
+  }
+  function drawCap(B, coll, fr, L, hw, c, atB) {
+    if (c.kind === 'apron') { // asphalt -> flared broom-finished concrete apron up to the set piece's edge
+      capStats.apron++;
+      const at = (s, o) => { const q = sampleAt(fr, atB ? L - s : s); return [q.x + q.nx * o, 0.06, q.z + q.nz * o]; };
+      const sIn = c.cut, sOut = c.edge, wIn = hw, wOut = hw + 1.4;
+      const a = at(sIn, -wIn), b = at(sIn, wIn), cc = at(sOut, wOut), d = at(sOut, -wOut);
+      quadUp(B.sidewalk, a, b, cc, d, new THREE.Color(0xd9d4c8), 1 / 2.5);
+      if (coll) { coll.tag = 'road'; quadUp(coll, a, b, cc, d, WHITE, 1); }
+      return;
+    }
+    const seg = c.kind === 'bulb' ? 28 : 16, ring = [];
+    for (let k = 0; k < seg; k++) { const a = (k / seg) * Math.PI * 2; ring.push([c.x + Math.cos(a) * c.R, c.z + Math.sin(a) * c.R]); }
+    fillPoly(B.junction || B.asphalt, [ring], 0.055, 0xffffff, 1 / 7);
+    if (coll) { coll.tag = 'junction'; fillPoly(coll, [ring], 0.05, 0xffffff, 1); }
+  }
+  // is (x, z) on a sidewalk slab this tile (or a neighbor) really draws? (the surface grid also marks slabs that were dropped)
+  const slabIdx = new WeakMap();
+  function slabAt(tile, x, z) {
+    let L = slabIdx.get(tile); if (!L) { L = []; const nb = [tile]; if (provider.getTile && tile.tx !== undefined) for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { if (!i && !j) continue; const o = provider.getTile(tile.tx + i, tile.tz + j); if (o && !o.then && o.roads) nb.push(o); }
+      for (const tt of nb) for (const rings of sidewalksOf(tt)) L.push({ rings, bb: bboxOf(rings[0]) }); slabIdx.set(tile, L); }
+    for (const e of L) if (x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z))) return true;
+    return false;
+  }
+  function* buildRoads(B, tile, props, coll, flush) {
+    resolveDecks(tile); let rc = 0;
+    for (const r of tile.roads) {
+      if (r.pts.length < 2) continue;
+      if (++rc % 10 === 0) { if (flush) flush(); yield; }
+      if (owned(r)) continue; // decks / ramps come from elevated.js
+      const prof = roadProfile(r, tile);
       const fr = polyFrame(prof.pts), L = fr[fr.length - 1].s, hw = r.width / 2, ys = prof.ys;
       // trim ends at intersections so markings/sidewalks stop at the junction
       const na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]);
@@ -1313,6 +1313,8 @@ export function createTileBuilder(ctx) {
       const lvA = trimA && !jA ? nodeLevel(tile, na) : null, lvB = trimB && !jB ? nodeLevel(tile, nb) : null;
       const yA = ys ? ys[0] : 0, yB = ys ? ys[ys.length - 1] : 0;
       let rA = lvA && lvA.kind && junctionDrawn(tile, r.pts[0]) && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && junctionDrawn(tile, r.pts[r.pts.length - 1]) && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;  // ground-continuity R1: only cut back for a junction disc that is really drawn (no grass gap between road pieces)
+      if (jA) rA = jA.D - pe.s0;
+      if (jB) rB = pe.LE - jB.D - pe.s0;
       // ground-continuity: dead ends finish as a cul-de-sac bulb / rounded cap, or (inside a set piece's own ground) stop at its edge with a concrete apron
       const capA = ys ? null : endCap(r, fr, L, hw, false, tile), capB = ys ? null : endCap(r, fr, L, hw, true, tile);
       let cA = 0, cB = 0; // collider trims
@@ -1375,8 +1377,6 @@ export function createTileBuilder(ctx) {
           if (props) { // street lamps every ~32m, alternating sides
             const zR = zoneAt(r.pts[0][0], r.pts[0][1]), dense = !/beach|nightlife|port|industrial/.test(zR), lampSp = /beach|nightlife/.test(zR) || dense ? 24 : 32;
             for (let s = a + 6 + (side > 0 ? 0 : lampSp / 2); s < b2 - 4; s += lampSp) {
-      if (jA) rA = jA.D - pe.s0;
-      if (jB) rB = pe.LE - jB.D - pe.s0;
               const i = Math.max(0, fr.findIndex((f) => f.s >= s) - 1), A = fr[i], Bf = fr[Math.min(fr.length - 1, i + 1)], t = Bf.s > A.s ? (s - A.s) / (Bf.s - A.s) : 0;
               const x = A.x + (Bf.x - A.x) * t, z = A.z + (Bf.z - A.z) * t, nx = A.nx, nz = A.nz, o = side * (hw + 0.6);
               if ((!props.realLamps || (!/beach|nightlife/.test(zR) && !(tile.lamps || []).some((l) => Math.abs(l.x - x) < 20 && Math.abs(l.z - z) < 20))) && okFoot(x + nx * o, z + nz * o)) { /* mapped lamps cover their own stretch; fill the unmapped gaps */ props.lamp.push({ x: x + nx * o, y: CURB, z: z + nz * o, ry: Math.atan2(-nx * side, -nz * side) });
@@ -1475,10 +1475,26 @@ export function createTileBuilder(ctx) {
       const lv = nodeLevel(tile, n); if (!lv.kind) continue; // overpass crossing: the levels do not connect
       if (elevated) { const es = (endsOf(tile).get(endKey([n.x, n.z])) || []), ow = es.filter((e) => owned(e.r)).length;
         if (ow && (ow === es.length || safeCall(() => elevated.isGroundJunctionBlocked(n.id), false))) continue; lv.kind = 'ground'; lv.y = 0; }
+      const J = lv.kind === 'ground' ? junctionOf(n.id) : null;
+      if (J) { // job 4: one outline with curb returns, same layer / texture / height as the approach ribbons (no stacked fills)
+        fillPoly(B.asphalt, [J.poly], 0.05, J.legs.every((l) => l.lane) ? LANE_TINT : 0xffffff, 1 / 7);
+        if (coll) { coll.tag = 'junction'; fillPoly(coll, [J.poly], 0.05, 0xffffff, 1); }
+        const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
+        rampsInto(swB && !swB.empty ? swB : null, coll, J);
+        if (!GC_OFF && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
+          const paved = () => { const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], d = Math.hypot(dx, dz) || 1; return slabAt(tile, m[0] + dx / d * 1.6, m[1] + dz / d * 1.6); };
+          if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0 && paved()) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
+          if (M.shoulder && B.shoulder) { shoulderArc(B, c, J.legs[c.i].lane || J.legs[c.j].lane); continue; }
+          if (J.legs[c.i].lane || J.legs[c.j].lane) { if (B.sand) { const col = new THREE.Color(0xa49a84); for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], wa = (0.9 + hash(a[0] * 3 + a[1]) * 0.8) / c.R, wb = (0.9 + hash(b[0] * 3 + b[1]) * 0.8) / c.R; quadUp(B.sand, [a[0], 0.03, a[1]], [b[0], 0.03, b[1]], [b[0] + (c.O[0] - b[0]) * wb, 0.03, b[1] + (c.O[1] - b[1]) * wb], [a[0] + (c.O[0] - a[0]) * wa, 0.03, a[1] + (c.O[1] - a[1]) * wa], col, 1 / 6); } } continue; }
+          const col = new THREE.Color(0xd9d5cb), w = 0.32 / c.R;
+          for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
+            quadUp(B.sidewalk, [a[0], 0.053, a[1]], [b[0], 0.053, b[1]], [bi[0], 0.053, bi[1]], [ai[0], 0.053, ai[1]], col, 1 / 2.5); } }
+      } else {
       const R = n.width / 2 + (lv.kind === 'deck' ? 0 : JUNC_PAD), seg = 24, ring = [];
       for (let k = 0; k < seg; k++) { const a = (k / seg) * Math.PI * 2; ring.push([n.x + Math.cos(a) * R, n.z + Math.sin(a) * R]); }
       fillPoly(B.junction || B.asphalt, [ring], lv.y + 0.055, 0xffffff, 1 / 7);
       if (coll) { coll.tag = 'junction'; fillPoly(coll, [ring], lv.y + 0.05, 0xffffff, 1); }
+      }
       if (lv.kind === 'deck') continue; // ramp split / merge on the deck: no crossings, signals or street signs
       const highwayNode = n.dirs.some((d) => /motorway|trunk/.test(d[3]));
       for (const [dx, dz, w, kind] of n.dirs) {
@@ -1518,26 +1534,10 @@ export function createTileBuilder(ctx) {
   const PALM_ZONES = new Set(['beach', 'nightlife', 'park', 'residential', 'downtown', 'business', 'causeway', 'commercial', 'brickell', 'midtown', 'arts', 'edgewater', 'overtown']);
   const DOOR_W = 1.9, DOOR_H = 2.75, GLASS_TOP = 3.25;
   // contract fields for INTERIORS: interior clear height, door offset along the facade (to the right when looking OUT of the shop), door width
-      const J = lv.kind === 'ground' ? junctionOf(n.id) : null;
-      if (J) { // job 4: one outline with curb returns, same layer / texture / height as the approach ribbons (no stacked fills)
-        fillPoly(B.asphalt, [J.poly], 0.05, J.legs.every((l) => l.lane) ? LANE_TINT : 0xffffff, 1 / 7);
-        if (coll) { coll.tag = 'junction'; fillPoly(coll, [J.poly], 0.05, 0xffffff, 1); }
-        const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
-        rampsInto(swB && !swB.empty ? swB : null, coll, J);
-        if (!GC_OFF && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
-          const paved = () => { const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], d = Math.hypot(dx, dz) || 1; return slabAt(tile, m[0] + dx / d * 1.6, m[1] + dz / d * 1.6); };
-          if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0 && paved()) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
-          if (M.shoulder && B.shoulder) { shoulderArc(B, c, J.legs[c.i].lane || J.legs[c.j].lane); continue; }
-          if (J.legs[c.i].lane || J.legs[c.j].lane) { if (B.sand) { const col = new THREE.Color(0xa49a84); for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], wa = (0.9 + hash(a[0] * 3 + a[1]) * 0.8) / c.R, wb = (0.9 + hash(b[0] * 3 + b[1]) * 0.8) / c.R; quadUp(B.sand, [a[0], 0.03, a[1]], [b[0], 0.03, b[1]], [b[0] + (c.O[0] - b[0]) * wb, 0.03, b[1] + (c.O[1] - b[1]) * wb], [a[0] + (c.O[0] - a[0]) * wa, 0.03, a[1] + (c.O[1] - a[1]) * wa], col, 1 / 6); } } continue; }
-          const col = new THREE.Color(0xd9d5cb), w = 0.32 / c.R;
-          for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
-            quadUp(B.sidewalk, [a[0], 0.053, a[1]], [b[0], 0.053, b[1]], [bi[0], 0.053, bi[1]], [ai[0], 0.053, ai[1]], col, 1 / 2.5); } }
-      } else {
   function annotateStorefronts(list, GF) {
     for (const f of list) {
       if (f.doorW !== undefined && f._gf === GF) continue;
       const fx = f.fx ?? f.x, fz = f.fz ?? f.z, fc = f.facing || 0, rx = -Math.cos(fc), rz = Math.sin(fc);
-      }
       f.h = +(GF - 0.02 - (f.y || 0)).toFixed(2); f.doorW = DOOR_W; f.doorH = DOOR_H; f.doorX = +((fx - f.x) * rx + (fz - f.z) * rz).toFixed(2); f._gf = GF;
     }
   }
@@ -1685,6 +1685,7 @@ export function createTileBuilder(ctx) {
   // fixed ground stack (m): water -0.12 < land base -0.05 < land 0 < sand/dirt 0.01 < grass 0.02 < plazas/parking/wood 0.03 < road 0.05 < junction 0.055 < markings 0.065 < decals 0.07; sidewalks raised 0.15.
   // Each near layer also has its own material polygonOffset (materials.js); mid/far get a y-driven depth bias (city.js).
   const AREA_Y = { land: 0, grass: 0.02, park: 0.02, beach: 0.01, sand: 0.01, paved: 0.03, parking: 0.03, dirt: 0.01, wood: 0.03, pool: 0.06 };
+  const plazaRaised = (a) => !JOB4_OFF && a.cls === 'plaza' && a.kind === 'paved';
   function areaFill(B, a) {
     const k = a.kind, y = AREA_Y[k] ?? 0.004;
     if (synthArea(a)) return; // natural cover outside real Miami: drawn by the terrain mesh
@@ -1694,6 +1695,11 @@ export function createTileBuilder(ctx) {
       for (let i = 1; i < a.rings.length; i++) wallStrip(B.trim, orient(a.rings[i]).slice().reverse(), -1.6, 0, 6, 6, new THREE.Color(0xa8a49a));
     }
     const tgt = k === 'beach' || k === 'sand' ? B.sand : k === 'park' || k === 'grass' ? B.grass : k === 'paved' ? B.sidewalk : k === 'parking' ? (B.parking || B.asphalt) : k === 'pool' ? B.pool : k === 'wood' ? B.wood : B.land;
+    if (plazaRaised(a)) { // job 4: downtown block plazas sit flush with the sidewalk (same slab height and paving), raised edge where they meet open ground
+      const zn = zoneAt(a.rings[0][0][0], a.rings[0][0][1]), tg = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
+      fillPoly(tg, a.rings, CURB, 0xffffff, tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5);
+      const cc = new THREE.Color(0xc8c4bc); wallStrip(B.sidewalk, orient(a.rings[0]), 0, CURB, 2.5, 2.5, cc); for (let i = 1; i < a.rings.length; i++) wallStrip(B.sidewalk, orient(a.rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, cc);
+      return; }
     if (k === 'paved' && B.promenade && M.promenade && /beach|nightlife/.test(zoneAt(a.rings[0][0][0], a.rings[0][0][1]))) { fillPoly(B.promenade, a.rings, y, 0xffffff, 1 / 8); return; } // beachfront plazas / walks: terrazzo
     if (k === 'land' && B.grass && ISLAND_D.test(distAt(a.rings[0][0][0], a.rings[0][0][1]))) { fillPoly(B.grass, a.rings, y, 0xd8e0c0, 1 / 6); return; } // causeway islands: open fill is lawn, not bare ground
     fillPoly(tgt, a.rings, y, k === 'dirt' ? 0xb89a78 : k === 'paved' ? 0xe8e2d8 : 0xffffff, k === 'land' ? 1 / 8 : k === 'paved' ? 1 / 2.5 : 1 / 6);
@@ -1703,61 +1709,6 @@ export function createTileBuilder(ctx) {
   // curbs follow the clipped outline, so there is never a slab or curb in a lane or a turn path
   const swClip = new WeakMap();
   function clipSidewalk(rings, tile) { const c = swClip.get(rings); if (c) return c; const g = clipGen(rings, tile); let r = g.next(); while (!r.done) r = g.next(); return r.value; }
-  function* clipGen(rings, tile) {
-    let c = swClip.get(rings); if (c) return c; let tc0 = performance.now();
-    const near = roadIndex(tile, true), outer = orient(rings[0]), holes = rings.slice(1).map((h) => orient(h).slice().reverse());
-    let tris = [];
-    try { const ct = outer.map(([x, z]) => new THREE.Vector2(x, z)), hs = holes.map((h) => h.map(([x, z]) => new THREE.Vector2(x, z))), all = ct.concat(...hs);
-      for (const [a, b2, d] of THREE.ShapeUtils.triangulateShape(ct, hs)) tris.push([[all[a].x, all[a].y], [all[b2].x, all[b2].y], [all[d].x, all[d].y]]); } catch (e) { tris = []; }
-    const keep = [], stack = tris.slice(), gc_ = new Map(), gapAt = (p) => { const k = p[0] * 7919.13 + p[1]; let v = gc_.get(k); if (v === undefined) { v = near(p[0], p[1]).gap; gc_.set(k, v); } return v; };
-    let guard = 0;
-    while (stack.length && guard++ < 200000) {
-      if ((guard & 511) === 0 && performance.now() - tc0 > 2) { colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); yield; tc0 = performance.now(); }
-      const t = stack.pop(), [a, b2, d] = t, cx = (a[0] + b2[0] + d[0]) / 3, cz = (a[1] + b2[1] + d[1]) / 3;
-      const gc = gapAt([cx, cz]), ga = gapAt(a), gb = gapAt(b2), gd = gapAt(d);
-      if (gc > 0.05 && ga > -0.02 && gb > -0.02 && gd > -0.02) { keep.push(t); continue; }
-      const l0 = Math.hypot(b2[0] - a[0], b2[1] - a[1]), l1 = Math.hypot(d[0] - b2[0], d[1] - b2[1]), l2 = Math.hypot(a[0] - d[0], a[1] - d[1]), mx = Math.max(l0, l1, l2);
-      if (mx < 1.2) { if (gc > 0.05) keep.push(t); continue; } // small enough: keep only if mostly outside
-      if (gc < -2 && ga < -2 && gb < -2 && gd < -2 && mx < 3) continue; // deep inside the road
-      if (mx === l0) { const m = [(a[0] + b2[0]) / 2, (a[1] + b2[1]) / 2]; stack.push([a, m, d], [m, b2, d]); }
-      else if (mx === l1) { const m = [(b2[0] + d[0]) / 2, (b2[1] + d[1]) / 2]; stack.push([a, b2, m], [a, m, d]); }
-      else { const m = [(d[0] + a[0]) / 2, (d[1] + a[1]) / 2]; stack.push([a, b2, m], [m, b2, d]); }
-    }
-    // boundary edges (used once) -> curbs
-    const k = (p) => Math.round(p[0] * 100) + ',' + Math.round(p[1] * 100), cnt = new Map();
-    for (const t of keep) for (let i = 0; i < 3; i++) { const p = t[i], q = t[(i + 1) % 3], key = k(p) < k(q) ? k(p) + '|' + k(q) : k(q) + '|' + k(p); const e = cnt.get(key); if (e) e.n++; else cnt.set(key, { n: 1, p, q }); }
-    const edges = []; for (const e of cnt.values()) if (e.n === 1) edges.push([e.p, e.q]);
-    c = { tris: keep, edges }; swClip.set(rings, c); colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); return c;
-  const plazaRaised = (a) => !JOB4_OFF && a.cls === 'plaza' && a.kind === 'paved';
-  }
-  function slabInto(batch, clip, y, uvS, col) {
-    for (const [a, b2, d] of clip.tris) quadUp(batch, [a[0], y, a[1]], [b2[0], y, b2[1]], [d[0], y, d[1]], [d[0], y, d[1]], col, uvS);
-  }
-  function curbsInto(batch, clip, h, col) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
-    if (clip.oriented) { for (const [p, q, road] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = dz / L, nz = -dx / L;
-        if (road === false && !batch.tag) { // back edge (lawn / lot side): a 0.35 m chamfer down to the ground instead of a dark vertical step
-          const w = 0.35, a = [p[0], h, p[1]], b = [q[0], h, q[1]], c = [q[0] + nx * w, 0, q[1] + nz * w], d = [p[0] + nx * w, 0, p[1] + nz * w], sl = Math.hypot(w, h), ny = w / sl, nh = h / sl;
-          for (const v2 of [a, b, c, a, c, d]) batch.vert(v2[0], v2[1], v2[2], nx * nh, ny, nz * nh, v2[0] * 0.4, v2[2] * 0.4, col); continue; }
-        const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]];
-        for (const i of [0, 2, 1, 0, 3, 2]) batch.vert(v[i][0], v[i][1], v[i][2], nx, 0, nz, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } return; }
-    for (const [p, q] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
-      for (const s2 of [1, -1]) { const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]], o = s2 > 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]; for (const i of o) batch.vert(v[i][0], v[i][1], v[i][2], nx * s2, 0, nz * s2, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } }
-  }
-  function sidewalkPoly(tgt, rings, coll, curbTgt = tgt, uvS = 1 / 2.5, tile = null) {
-    if (plazaRaised(a)) { // job 4: downtown block plazas sit flush with the sidewalk (same slab height and paving), raised edge where they meet open ground
-      const zn = zoneAt(a.rings[0][0][0], a.rings[0][0][1]), tg = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
-      fillPoly(tg, a.rings, CURB, 0xffffff, tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5);
-      const cc = new THREE.Color(0xc8c4bc); wallStrip(B.sidewalk, orient(a.rings[0]), 0, CURB, 2.5, 2.5, cc); for (let i = 1; i < a.rings.length; i++) wallStrip(B.sidewalk, orient(a.rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, cc);
-      return; }
-    if (tile) { const clip = clipSidewalk(rings, tile), white = new THREE.Color(0xffffff), cc = new THREE.Color(0xd8d4cc);
-      if (tgt) { slabInto(tgt, clip, CURB, uvS, white); curbsInto(curbTgt, clip, CURB, cc); }
-      if (coll) { slabInto(coll, clip, CURB, 1, white); curbsInto(coll, clip, CURB, white); }
-      return; }
-    const outer = orient(rings[0]);
-    fillPoly(tgt, rings, CURB, 0xffffff, uvS);
-    wallStrip(curbTgt, outer, 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
-    for (let i = 1; i < rings.length; i++) wallStrip(curbTgt, orient(rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
-    if (coll) { fillPoly(coll, rings, CURB, 0xffffff, 1); wallStrip(coll, outer, 0, CURB, 10, 10, new THREE.Color(0xffffff)); for (let i = 1; i < rings.length; i++) wallStrip(coll, orient(rings[i]).slice().reverse(), 0, CURB, 10, 10, new THREE.Color(0xffffff)); }
   // job 4: exact clipping. The slab is triangulated once, then every triangle has the cut shapes subtracted exactly (convex
   // half-plane clipping, roadgeo.js): road ribbon quads, curb-return spandrels, curb ramps, old discs at deck/ramp nodes.
   // Outline edges (polygon outline + every cut edge) become curb faces, so curbs follow the curb returns smoothly.
@@ -1778,7 +1729,7 @@ export function createTileBuilder(ctx) {
       else { const R = n.width / 2 + JUNC_PAD, ring = []; for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; ring.push([n.x + Math.cos(a) * R, n.z + Math.sin(a) * R]); } put(ring); } }
     S = { list, grid, CELL }; clipShapeCache.set(tile, S); return S;
   }
-  }
+  function* clipGen(rings, tile) {
     let c = swClip.get(rings); if (c) return c; let tc0 = performance.now();
     if (JOB4_OFF) { c = yield* clipGenOld(rings, tile); return c; }
     const S = clipShapes(tile), outer = orient(rings[0]), holes = rings.slice(1).map((h) => orient(h).slice().reverse());
@@ -1803,6 +1754,55 @@ export function createTileBuilder(ctx) {
     c = { tris: outT, edges, oriented: true }; swClip.set(rings, c); colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); return c;
   }
   function* clipGenOld(rings, tile) {
+    let c = swClip.get(rings); if (c) return c; let tc0 = performance.now();
+    const near = roadIndex(tile, true), outer = orient(rings[0]), holes = rings.slice(1).map((h) => orient(h).slice().reverse());
+    let tris = [];
+    try { const ct = outer.map(([x, z]) => new THREE.Vector2(x, z)), hs = holes.map((h) => h.map(([x, z]) => new THREE.Vector2(x, z))), all = ct.concat(...hs);
+      for (const [a, b2, d] of THREE.ShapeUtils.triangulateShape(ct, hs)) tris.push([[all[a].x, all[a].y], [all[b2].x, all[b2].y], [all[d].x, all[d].y]]); } catch (e) { tris = []; }
+    const keep = [], stack = tris.slice(), gc_ = new Map(), gapAt = (p) => { const k = p[0] * 7919.13 + p[1]; let v = gc_.get(k); if (v === undefined) { v = near(p[0], p[1]).gap; gc_.set(k, v); } return v; };
+    let guard = 0;
+    while (stack.length && guard++ < 200000) {
+      if ((guard & 511) === 0 && performance.now() - tc0 > 2) { colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); yield; tc0 = performance.now(); }
+      const t = stack.pop(), [a, b2, d] = t, cx = (a[0] + b2[0] + d[0]) / 3, cz = (a[1] + b2[1] + d[1]) / 3;
+      const gc = gapAt([cx, cz]), ga = gapAt(a), gb = gapAt(b2), gd = gapAt(d);
+      if (gc > 0.05 && ga > -0.02 && gb > -0.02 && gd > -0.02) { keep.push(t); continue; }
+      const l0 = Math.hypot(b2[0] - a[0], b2[1] - a[1]), l1 = Math.hypot(d[0] - b2[0], d[1] - b2[1]), l2 = Math.hypot(a[0] - d[0], a[1] - d[1]), mx = Math.max(l0, l1, l2);
+      if (mx < 1.2) { if (gc > 0.05) keep.push(t); continue; } // small enough: keep only if mostly outside
+      if (gc < -2 && ga < -2 && gb < -2 && gd < -2 && mx < 3) continue; // deep inside the road
+      if (mx === l0) { const m = [(a[0] + b2[0]) / 2, (a[1] + b2[1]) / 2]; stack.push([a, m, d], [m, b2, d]); }
+      else if (mx === l1) { const m = [(b2[0] + d[0]) / 2, (b2[1] + d[1]) / 2]; stack.push([a, b2, m], [a, m, d]); }
+      else { const m = [(d[0] + a[0]) / 2, (d[1] + a[1]) / 2]; stack.push([a, b2, m], [m, b2, d]); }
+    }
+    // boundary edges (used once) -> curbs
+    const k = (p) => Math.round(p[0] * 100) + ',' + Math.round(p[1] * 100), cnt = new Map();
+    for (const t of keep) for (let i = 0; i < 3; i++) { const p = t[i], q = t[(i + 1) % 3], key = k(p) < k(q) ? k(p) + '|' + k(q) : k(q) + '|' + k(p); const e = cnt.get(key); if (e) e.n++; else cnt.set(key, { n: 1, p, q }); }
+    const edges = []; for (const e of cnt.values()) if (e.n === 1) edges.push([e.p, e.q]);
+    c = { tris: keep, edges }; swClip.set(rings, c); colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); return c;
+  }
+  function slabInto(batch, clip, y, uvS, col) {
+    for (const [a, b2, d] of clip.tris) quadUp(batch, [a[0], y, a[1]], [b2[0], y, b2[1]], [d[0], y, d[1]], [d[0], y, d[1]], col, uvS);
+  }
+  function curbsInto(batch, clip, h, col) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
+    if (clip.oriented) { for (const [p, q, road] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = dz / L, nz = -dx / L;
+        if (road === false && !batch.tag) { // back edge (lawn / lot side): a 0.35 m chamfer down to the ground instead of a dark vertical step
+          const w = 0.35, a = [p[0], h, p[1]], b = [q[0], h, q[1]], c = [q[0] + nx * w, 0, q[1] + nz * w], d = [p[0] + nx * w, 0, p[1] + nz * w], sl = Math.hypot(w, h), ny = w / sl, nh = h / sl;
+          for (const v2 of [a, b, c, a, c, d]) batch.vert(v2[0], v2[1], v2[2], nx * nh, ny, nz * nh, v2[0] * 0.4, v2[2] * 0.4, col); continue; }
+        const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]];
+        for (const i of [0, 2, 1, 0, 3, 2]) batch.vert(v[i][0], v[i][1], v[i][2], nx, 0, nz, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } return; }
+    for (const [p, q] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
+      for (const s2 of [1, -1]) { const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]], o = s2 > 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]; for (const i of o) batch.vert(v[i][0], v[i][1], v[i][2], nx * s2, 0, nz * s2, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } }
+  }
+  function sidewalkPoly(tgt, rings, coll, curbTgt = tgt, uvS = 1 / 2.5, tile = null) {
+    if (tile) { const clip = clipSidewalk(rings, tile), white = new THREE.Color(0xffffff), cc = new THREE.Color(0xd8d4cc);
+      if (tgt) { slabInto(tgt, clip, CURB, uvS, white); curbsInto(curbTgt, clip, CURB, cc); }
+      if (coll) { slabInto(coll, clip, CURB, 1, white); curbsInto(coll, clip, CURB, white); }
+      return; }
+    const outer = orient(rings[0]);
+    fillPoly(tgt, rings, CURB, 0xffffff, uvS);
+    wallStrip(curbTgt, outer, 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
+    for (let i = 1; i < rings.length; i++) wallStrip(curbTgt, orient(rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
+    if (coll) { fillPoly(coll, rings, CURB, 0xffffff, 1); wallStrip(coll, outer, 0, CURB, 10, 10, new THREE.Color(0xffffff)); for (let i = 1; i < rings.length; i++) wallStrip(coll, orient(rings[i]).slice().reverse(), 0, CURB, 10, 10, new THREE.Color(0xffffff)); }
+  }
   function pierDeck(B, p, coll, props) {
     const y = p.y ?? 1.2, outer = orient(p.rings[0]);
     if (B) { fillPoly(B.wood, p.rings, y, 0xffffff, 1 / 3); wallStrip(B.trim, outer, y - 0.35, y, 4, 4, new THREE.Color(0x8b6a4a)); }
@@ -1839,6 +1839,11 @@ export function createTileBuilder(ctx) {
     return (x, z) => { out.gap = 1e9; const key = Math.floor(x / CELL) * 100003 + Math.floor(z / CELL), c = grid.get(key);
       if (c) for (const i of c) { const [ax, az, bx, bz, hw] = segs[i], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - ax) * dx + (z - az) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
         const ex = x - (ax + dx * t), ez = z - (az + dz * t), d = Math.hypot(ex, ez), gap = d - hw; if (gap < out.gap) { out.gap = gap; out.nx = d > 1e-6 ? ex / d : 1; out.nz = d > 1e-6 ? ez / d : 0; } }
+      const pc = pgrid.get(key);
+      if (pc) for (const i of pc) { const P = polys[i]; let ins = false, bd = 1e9, bx = 0, bz = 0;
+        for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins;
+          const dx = xb - xa, dz = zb - za, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - xa) * dx + (z - za) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t; const px = xa + dx * t, pz = za + dz * t, d = Math.hypot(x - px, z - pz); if (d < bd) { bd = d; bx = px; bz = pz; } }
+        const gap = ins ? -bd : bd; if (gap < out.gap) { out.gap = gap; const ex = ins ? bx - x : x - bx, ez = ins ? bz - z : z - bz; out.nx = bd > 1e-6 ? ex / bd : 1; out.nz = bd > 1e-6 ? ez / bd : 0; } }
       return out; };
   }
   function pathIndex(tile) { // walking lines (OSM sidewalks / footways / pedestrian paths): nearest distance + unit normal toward the point
@@ -1904,11 +1909,6 @@ export function createTileBuilder(ctx) {
           const push = rad + 0.2 - q.gap, x2 = p.x + q.nx * push, z2 = p.z + q.nz * push, q2 = near(x2, z2);
           if (q2.gap >= rad && !(isWater && isWater(x2, z2))) { p.x = x2; p.z = z2; p.y = gY(x2, z2); keep.push(p); placeStats.snapped++; continue; }
         }
-      const pc = pgrid.get(key);
-      if (pc) for (const i of pc) { const P = polys[i]; let ins = false, bd = 1e9, bx = 0, bz = 0;
-        for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins;
-          const dx = xb - xa, dz = zb - za, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - xa) * dx + (z - za) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t; const px = xa + dx * t, pz = za + dz * t, d = Math.hypot(x - px, z - pz); if (d < bd) { bd = d; bx = px; bz = pz; } }
-        const gap = ins ? -bd : bd; if (gap < out.gap) { out.gap = gap; const ex = ins ? bx - x : x - bx, ez = ins ? bz - z : z - bz; out.nx = bd > 1e-6 ? ex / bd : 1; out.nz = bd > 1e-6 ? ez / bd : 0; } }
         placeStats.rejected++; placeStats.byKind[kind] = (placeStats.byKind[kind] || 0) + 1;
       }
       list.length = 0; for (const p of keep) list.push(p);
@@ -1937,7 +1937,6 @@ export function createTileBuilder(ctx) {
         for (let a = Math.floor(x0 / C); a <= Math.floor(x1 / C); a++) for (let c = Math.floor(z0 / C); c <= Math.floor(z1 / C); c++) { const k = kk(a, c); let arr = G.get(k); if (!arr) G.set(k, (arr = [])); arr.push(t); } } }
     if (!tris.length) return null;
     return (x, z) => { const arr = G.get(kk(Math.floor(x / C), Math.floor(z / C))); if (!arr) return null;
-    treeClearance(near, props);
       for (const t of arr) { const d1 = (x - t[2]) * (t[1] - t[3]) - (t[0] - t[2]) * (z - t[3]), d2 = (x - t[4]) * (t[3] - t[5]) - (t[2] - t[4]) * (z - t[5]), d3 = (x - t[0]) * (t[5] - t[1]) - (t[4] - t[0]) * (z - t[1]);
         if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) return t[6]; }
       return null; };
@@ -2188,6 +2187,7 @@ export function createTileBuilder(ctx) {
   function palmDress(props) {
     const rows = props.palm.filter((p) => p.y > 0.1);
     for (const p of rows) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z });
+    for (const p of props.tree) if (p.y > 0.1 && !p.cs) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z }); // (greenery) street trees stand in grates too
     const linked = new Set();
     for (let i = 0; i < rows.length; i++) {
       if (!/beach|nightlife/.test(zoneAt(rows[i].x, rows[i].z))) continue;
@@ -2211,7 +2211,6 @@ export function createTileBuilder(ctx) {
     let c = islandCache.get(tile); if (c) return c; c = [];
     if (!isWater) { islandCache.set(tile, c); return c; }
     for (const a of tile.areas || []) { if (a.kind !== 'land') continue;
-    for (const p of props.tree) if (p.y > 0.1 && !p.cs) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z }); // (greenery) street trees stand in grates too
       for (const ring of a.rings) { for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L < 3) continue;
         const tx = (q[0] - p[0]) / L, tz = (q[1] - p[1]) / L; let run = null;
         for (let s2 = 1; s2 <= L - 1; s2 += 2) { const x = p[0] + tx * s2, z = p[1] + tz * s2; let side = 0;
@@ -2322,29 +2321,6 @@ export function createTileBuilder(ctx) {
       }
     }
   }
-  function seedRealProps(props, tile, B = null) {
-    portYard(tile, props); marinaBoats(tile, props); beachDress(tile, props, B); islandDress(tile, props, B); shopDress(tile, props); plazaDress(tile, props); streetTrees(tile, props);
-    const toRoad = (x, z) => (roadDirAt ? roadDirAt(x, z) : 0);
-    if (tile.trees && tile.trees.length) { props.realTrees = tile.trees.length > 40; /* sparse mapped trees: keep generated street trees too */ for (const [x, z, sp0] of tile.trees) { const y = gY(x, z); if (flora && sp0 && flora.SPECIES.has(sp0)) { const spk = sp0 === 'tree' ? 'oak' : sp0; props.tree.push({ sp: spk, x, y, z, ry: hash(x * 13 + z) * 6, s: 0.5 + hash(x + z * 7) * 0.22, /* street-tree size: crowns stay over the sidewalk, not across the lanes */ color: new THREE.Color(flora.TINT[spk][0]).multiplyScalar(0.85 + hash(x * 3 + z) * 0.3) }); continue; } props.palm.push({ x, y, z, ry: hash(x * 13 + z) * 6, s: 0.8 + hash(x + z * 7) * 0.5, real: 1 });
-      if (y < 0.05) for (let k = 0; k < 3; k++) { const hk = hash(((x * 17) | 0) + k * 131 + ((z * 5) | 0)); if (hk < 0.35) continue; const a = hk * 6.28, rr2 = 1.6 + hk * 1.8; (hk > 0.9 ? props.flower : props.blob).push({ x: x + Math.cos(a) * rr2, y: 0, z: z + Math.sin(a) * rr2, ry: hk * 6, s: 0.7 + hk * 0.5, color: new THREE.Color().setHSL(0.24 + hk * 0.08, 0.4, 0.6 + hk * 0.2) }); } } }
-    if (tile.lamps && tile.lamps.length > 4) { props.realLamps = true; for (const l of tile.lamps) props.lamp.push({ x: l.x, y: gY(l.x, l.z), z: l.z, ry: toRoad(l.x, l.z) }); }
-    if (tile.busStops) for (const b of tile.busStops) { props.realBus = true; props.shelter.push({ x: b.x, y: gY(b.x, b.z), z: b.z, ry: toRoad(b.x, b.z) }); }
-    if (tile.hydrants) for (const h of tile.hydrants) props.hydrant.push({ x: h.x, y: gY(h.x, h.z), z: h.z, ry: hash(h.x) * 6 });
-    if (tile.bins) for (const w of tile.bins) props.bin.push({ x: w.x, y: gY(w.x, w.z), z: w.z, ry: hash(w.z) * 6, k: (hash(w.x + w.z) * 3) | 0 });
-    if (tile.benches && tile.benches.length) { props.realBenches = true; for (const b of tile.benches) props.bench.push({ x: b.pos.x, y: b.pos.y ?? gY(b.pos.x, b.pos.z), z: b.pos.z, ry: b.heading }); }
-  }
-  const lawnIndex = new Map();
-  const pipR = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
-  const inRings = (e, x, z) => x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z));
-  // true/false where a near tile is built, null where nothing is loaded yet (caller retries later)
-  function lawnAt(x, z) {
-    for (const e of lawnIndex.values()) {
-      if (x < e.minX || x >= e.maxX || z < e.minZ || z >= e.maxZ) continue;
-      if (!e.lawns.some((l) => inRings(l, x, z))) return false;
-      return !e.walks.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7) && !inJunction(x, z);
-    }
-    return null;
-  }
   // greenery: downtown / Brickell / midtown street trees in tree pits (1.3 m in from the curb, ~14 m apart) wherever the sidewalk is
   // at least ~3.5 m wide (no building within 3 m of the pit); one species per block face: royal palms or shade trees (live oak,
   // gumbo limbo) kept small enough that the crown stays over the sidewalk. Never near a junction mouth or another street tree.
@@ -2368,6 +2344,29 @@ export function createTileBuilder(ctx) {
         }
       }
     }
+  }
+  function seedRealProps(props, tile, B = null) {
+    portYard(tile, props); marinaBoats(tile, props); beachDress(tile, props, B); islandDress(tile, props, B); shopDress(tile, props); plazaDress(tile, props); streetTrees(tile, props);
+    const toRoad = (x, z) => (roadDirAt ? roadDirAt(x, z) : 0);
+    if (tile.trees && tile.trees.length) { props.realTrees = tile.trees.length > 40; /* sparse mapped trees: keep generated street trees too */ for (const [x, z, sp0] of tile.trees) { const y = gY(x, z); if (flora && sp0 && flora.SPECIES.has(sp0)) { const spk = sp0 === 'tree' ? 'oak' : sp0; props.tree.push({ sp: spk, x, y, z, ry: hash(x * 13 + z) * 6, s: 0.5 + hash(x + z * 7) * 0.22, /* street-tree size: crowns stay over the sidewalk, not across the lanes */ color: new THREE.Color(flora.TINT[spk][0]).multiplyScalar(0.85 + hash(x * 3 + z) * 0.3) }); continue; } props.palm.push({ x, y, z, ry: hash(x * 13 + z) * 6, s: 0.8 + hash(x + z * 7) * 0.5, real: 1 });
+      if (y < 0.05) for (let k = 0; k < 3; k++) { const hk = hash(((x * 17) | 0) + k * 131 + ((z * 5) | 0)); if (hk < 0.35) continue; const a = hk * 6.28, rr2 = 1.6 + hk * 1.8; (hk > 0.9 ? props.flower : props.blob).push({ x: x + Math.cos(a) * rr2, y: 0, z: z + Math.sin(a) * rr2, ry: hk * 6, s: 0.7 + hk * 0.5, color: new THREE.Color().setHSL(0.24 + hk * 0.08, 0.4, 0.6 + hk * 0.2) }); } } }
+    if (tile.lamps && tile.lamps.length > 4) { props.realLamps = true; for (const l of tile.lamps) props.lamp.push({ x: l.x, y: gY(l.x, l.z), z: l.z, ry: toRoad(l.x, l.z) }); }
+    if (tile.busStops) for (const b of tile.busStops) { props.realBus = true; props.shelter.push({ x: b.x, y: gY(b.x, b.z), z: b.z, ry: toRoad(b.x, b.z) }); }
+    if (tile.hydrants) for (const h of tile.hydrants) props.hydrant.push({ x: h.x, y: gY(h.x, h.z), z: h.z, ry: hash(h.x) * 6 });
+    if (tile.bins) for (const w of tile.bins) props.bin.push({ x: w.x, y: gY(w.x, w.z), z: w.z, ry: hash(w.z) * 6, k: (hash(w.x + w.z) * 3) | 0 });
+    if (tile.benches && tile.benches.length) { props.realBenches = true; for (const b of tile.benches) props.bench.push({ x: b.pos.x, y: b.pos.y ?? gY(b.pos.x, b.pos.z), z: b.pos.z, ry: b.heading }); }
+  }
+  const lawnIndex = new Map();
+  const pipR = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
+  const inRings = (e, x, z) => x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z));
+  // true/false where a near tile is built, null where nothing is loaded yet (caller retries later)
+  function lawnAt(x, z) {
+    for (const e of lawnIndex.values()) {
+      if (x < e.minX || x >= e.maxX || z < e.minZ || z >= e.maxZ) continue;
+      if (!e.lawns.some((l) => inRings(l, x, z))) return false;
+      return !e.walks.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7) && !inJunction(x, z);
+    }
+    return null;
   }
   // per-area tester (grass cells): prefilters lawn / sidewalk rings by bbox once; null if the tile is not built
   function lawnTester(x0, z0, x1, z1) {
