@@ -19,8 +19,9 @@ export function build(ctx) {
   // r2-keys (Nov 17): the house is turned in a corner lot (yard.data.js): the sheet runs out to the asphalt of the east leg (front)
   // and the west leg (west side) and sinks under it, follows the drive from the STOP corner past the pickup (DRIVE), and has gentle
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle
-  // shell fragments read in the normal map (lead review) without crunchy grazing-angle noise (r2-art: sand class 0.8-1.0), nscale 1.1
-  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true, nscale: 1.1 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
+  // shell fragments read in the normal map without crunchy grazing-angle noise (r2-art: sand class 0.8-1.0) or fine speckle at distance
+  // (lead): rep 3.2 m, nscale 0.85
+  const SHELL = mat.pbr('shell_floor_01', { rep: 3.2, gain: 1.5, grunge: true, nscale: 0.85 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
@@ -74,7 +75,7 @@ export function build(ctx) {
     // keys pass (lead review, Nov 17): the mock-up yard is PALE crushed shell and limestone dust, not the terrain's tan sand; the
     // shell scan carries it, vertex colors add gray-green matted grass, damp dark patches and the ruts. ?keysyard=terrain = old look
     const TERRAIN_YARD = GROUND2 && typeof location !== 'undefined' && /[?&]keysyard=terrain\b/.test(location.search);
-    B.geo(TERRAIN_YARD ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
+    B.geo(TERRAIN_YARD ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 3.2, (z1 - z0) / 3.2], wear: 0.5 }); g.dispose();
     // ground collider (r2-keys): a heightfield that follows the sheet's swells (feet and tires sit on what is drawn), over the yard
     // only; at the asphalt and the open edges the terrain's own collider carries on (the sheet is under it there)
     { const hx0 = L.x0 - 2, hx1 = Math.min(x1, L.x1), hz0 = Math.max(z0, L.z0), hz1 = L.z1 + 1, nX = Math.round((hx1 - hx0) / 0.5), nZ = Math.round((hz1 - hz0) / 0.5), hs = new Float32Array((nX + 1) * (nZ + 1));

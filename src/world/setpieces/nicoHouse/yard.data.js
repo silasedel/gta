@@ -115,7 +115,11 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 // only: every kind is its own instanced vegetation field (LOD meshes + shadows), so new kinds cost draw calls
 export const PLANTING = [   // inside the lot only (r2-veg plants the verges and the neighbors' yards from its own module)
   // the planter's bougainvillea (library, volume shaded), rooted in the box soil: yOff = the box's soil height
-  ['bougainvillea', -10.2, 12.35, { s: 1.0, yOff: 0.68 }], ['bougainvillea_b', -11.4, 12.4, { s: 0.85, yOff: 0.68 }],
+  ['bougainvillea', -10.2, 12.35, { s: 0.8, yOff: 0.68 }], ['bougainvillea_b', -11.3, 12.4, { s: 0.7, yOff: 0.68 }],
+  // palmetto-like clumps (volume-shaded library beds / ferns in place of the card palmettos of part 50)
+  ['tropical_bed', -22.4, -9.2, { s: 0.75 }], ['fern_clump', -20.9, -5.4, { s: 1.3 }], ['tropical_bed', -22.8, -0.8, { s: 0.75 }], ['fern_clump', -20.6, 3.6, { s: 1.3 }],
+  ['tropical_bed', -18.9, 12.9, { s: 0.75 }], ['fern_clump', -19.3, 11.0, { s: 1.3 }], ['tropical_bed', -13.6, 18.2, { s: 0.7 }], ['tropical_bed', -11.0, 23.5, { s: 0.7 }],
+  ['fern_clump', -19.2, -11.4, { s: 1.2 }], ['fern_clump', -11.6, 16.0, { s: 1.2 }],
   ['poinciana', -19.0, 2.3, { s: 1.15, seed: 7, model: 'poinciana_c' }],                       // red crown over the classic, right edge of the deck view (mock-up)
   // the big dense dark-green mass right of center, behind the right-hand bins, hiding the roll-off's far end (mock-up)
   ['bush_round', -20.2, 7.9, { s: 2.0 }], ['bush_leafy', -23.6, 6.4, { s: 2.0 }], ['rubber_fig', -25.2, 4.0, { s: 0.9 }], ['hibiscus', -23.4, 2.0, { s: 0.9 }],

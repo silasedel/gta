@@ -589,7 +589,7 @@ gl_Position = projectionMatrix * mvPosition;
     }
     stems.geo(sphere, M(x, 0.05, z, 0, r() * 3, 0, 0.2, 0.12, 0.16), cv([0.25, 0.18, 0.11], r, 0.1), ZERO);   // creeping trunk
   };
-  { const r = kit.rng(41); for (const [x, z, s] of [[-22.4, -9.2, 1.1], [-20.9, -5.4, 0.9], [-22.8, -0.8, 1.15], [-20.6, 3.6, 1.0], [-18.9, 12.9, 1.2], [-19.3, 11.0, 0.95], [-13.6, 18.2, 1.1], [-11.0, 23.5, 1.0], [-19.2, -11.4, 0.85], [-11.6, 16.0, 0.8]]) palmetto(x, z, s, r);   // r2-keys: the turned corner lot (west side, the green mass by the bins, left of the drive)
+  { const r = kit.rng(41); for (const [x, z, s] of [[-22.4, -9.2, 1.1], [-20.9, -5.4, 0.9], [-22.8, -0.8, 1.15], [-20.6, 3.6, 1.0], [-18.9, 12.9, 1.2], [-19.3, 11.0, 0.95], [-13.6, 18.2, 1.1], [-11.0, 23.5, 1.0], [-19.2, -11.4, 0.85], [-11.6, 16.0, 0.8]]) if (!PLANTER.library) palmetto(x, z, s, r);   // r2-keys: with the library planting these clumps are r2-veg's volume-shaded tropical beds (yard.data.js PLANTING)   // r2-keys: the turned corner lot (west side, the green mass by the bins, left of the drive)
     for (let i = 0; i < 9; i++) tuft(-11.4 + (r() - 0.5) * 1.8, 0, 16.6 + (r() - 0.5) * 1.6, 0.2 + r() * 0.3, 0.4, grassC(r), 0.03, r); periwinkle(-10.8, 16.9, 1.2, 0, r); }
   // silver buttonwood shrubs
   const buttonwood = (x, z, H, seed) => {
