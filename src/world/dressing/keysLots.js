@@ -5,6 +5,7 @@
 // cars helper for each lot's parked car (game.vehicles.spawnParked, when it exists).
 //   buildKeysLots(game, api) -> { lots, docks }   api: { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots, K }
 import { KEYS_LOTS, KEYS_SHORE_LOTS, KEYS_DOCKS } from './keysStreet.data.js';
+import * as THREE from 'three';
 import { loadKeysModels } from '../setpieces/nicoHouse/models.js';
 
 export function buildKeysLots(game, api) {
@@ -24,7 +25,9 @@ export function buildKeysLots(game, api) {
     const r = K.rng(seed);
     for (const e of L.extras || []) {
       const [ex, ez] = at(e.u, e.v), ey = groundY(ex, ez), eh = ry + (e.h || 0); if (isWater(ex, ez)) continue; out.extras++;
-      if (e.k === 'boatTrailer') { const B = K.boatOnTrailer(K.rng(seed + (e.seed || 1))); place(B.geo, ex, ey, ez, eh); boxCol(ex, ey + 1, ez, B.W / 2, 1, B.L / 2, eh); }
+      if (e.k === 'boatTrailer') { // the user's boat (small fishing boat / rowboat) on a galvanized trailer; the trailer is built here
+        place(trailer(K, 5.2), ex, ey, ez, eh); boxCol(ex, ey + 1.0, ez, 1.05, 1.0, 3.0, eh);
+        const bk = (e.seed || 1) % 2 ? 'skiff' : 'rowboat'; libJobs.push(() => I.add(bk, 'dock', new THREE.Matrix4().compose(new THREE.Vector3(ex, ey + 0.78, ez), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), eh + Math.PI), new THREE.Vector3(1, 1, 1)), { tint: [1, 1, 1] })); }
       else if (e.k === 'chairs') { for (const [du, dv, a] of [[-0.6, 0, 0.3], [0.6, 0.1, -0.2]]) { const [cx, cz] = at(e.u + du, e.v + dv); placeBreak(chair(K, r), cx, groundY(cx, cz), cz, eh + a, [0.3, 0.45, 0.3], 'fence'); } }
       else if (e.k === 'kayaks') { for (let i = 0; i < 2; i++) { const [cx, cz] = at(e.u + i * 0.75, e.v); place(K.kayak([0xe85a2a, 0x2a8ab8, 0xe8c82a, 0x3aa86a][(seed + i) % 4]), cx, groundY(cx, cz), cz, eh); } }
       else if (e.k === 'crabTraps') place(K.crabTrapStack(r), ex, ey, ez, eh);
@@ -104,5 +107,19 @@ function grill(K) {
   const p = new K.Parts(), S = K.SURF;
   p.cyl(0, 0.78, 0, 0.3, 0.32, S.rustPaint, 0x1d1d1d); p.cyl(0, 0.97, 0, 0.27, 0.08, S.rustPaint, 0x1d1d1d);
   for (const a of [0, 2.09, 4.19]) p.box(Math.cos(a) * 0.2, 0.33, Math.sin(a) * 0.2, 0.03, 0.66, 0.03, S.galv, 0x8a8a8a);
+  return p.build();
+}
+
+// galvanized boat trailer (no boat): rails, bunks, tongue, axle, wheels, fenders, jack; length L (m), tongue toward +Z
+function trailer(K, L) {
+  const p = new K.Parts(), S = K.SURF, G = 0xb0b4b8;
+  for (const s of [-1, 1]) { p.box(s * 0.75, 0.55, 0, 0.08, 0.1, L * 0.9, S.galv, G); p.box(s * 0.42, 0.72, -0.2, 0.12, 0.08, L * 0.7, S.planks, 0x5a4a3a); }   // rails, carpeted bunks
+  p.beam(new THREE.Vector3(-0.75, 0.55, L * 0.42), new THREE.Vector3(0, 0.55, L * 0.42 + 1.6), 0.09, S.galv, G);
+  p.beam(new THREE.Vector3(0.75, 0.55, L * 0.42), new THREE.Vector3(0, 0.55, L * 0.42 + 1.6), 0.09, S.galv, G);
+  p.box(0, 0.45, L * 0.42 + 1.75, 0.12, 0.12, 0.4, S.iron, 0x404040);
+  p.cyl(0.18, 0.3, L * 0.42 + 1.3, 0.04, 0.6, S.galv, 0xa0a0a0, { lo: 1 });
+  p.box(0, 0.38, -0.6, 1.9, 0.08, 0.08, S.galv, 0xa0a4a8);
+  for (const s of [-1, 1]) { p.cyl(s * 0.98, 0.33, -0.6, 0.33, 0.2, S.rubber, 0x1c1c1c, { rz: Math.PI / 2 }); p.cyl(s * 1.0, 0.33, -0.6, 0.16, 0.21, S.galv, 0xc0c0c0, { rz: Math.PI / 2 }); p.box(s * 0.98, 0.72, -0.6, 0.34, 0.04, 0.95, S.rustPaint, 0x8a8a8a); }
+  p.box(0, 1.0, L * 0.42 + 0.2, 0.08, 0.6, 0.08, S.galv, G);   // winch post
   return p.build();
 }
