@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson } from './lib.js';
 import { createNpc, LOD_CFG, SHADOW_PROXY } from '../arch/character.js';
 
-export const NEAR_DUP = 140;     // m: the same person never twice inside this radius
+export const NEAR_DUP = 320;     // m: the same person never twice inside this radius (= the crowd despawn radius: no twins on screen)
 const CAP = 48;                  // people loaded at once (crowd textures ~8 MB each; close-up sets stream separately)
 // person place -> the legacy zone tag peds.js pools by
 const TAG = { police: 'cop', police_swat: 'cop', business: 'business', beach: 'beach', swim: 'beach', lifeguard: 'beach', beach_walk: 'beach', nightlife: 'nightlife', bar: 'nightlife', work: 'port', port: 'port', industrial: 'port', dock: 'port', fishing: 'port', sport: 'sport', park: 'sport' };

@@ -2372,8 +2372,8 @@
    "places": [
     "kitchen"
    ],
-   "height": 2.041,
-   "hipH": 0.9542,
+   "height": 2.102,
+   "hipH": 0.9551,
    "tris": {
     "LOD0_body": 47920,
     "LOD1_body": 5000,
@@ -2382,11 +2382,11 @@
    "a2": true,
    "skirt": true,
    "cols": {
-    "skin": 10773314,
-    "top": 14802144,
-    "bottom": 14209753,
-    "hair": 14538461,
-    "shoes": 2367260,
+    "skin": 10641986,
+    "top": 14736350,
+    "bottom": 14143960,
+    "hair": 14209496,
+    "shoes": 2301724,
     "sleeve": 0.9,
     "leg": 1.0,
     "hat": true

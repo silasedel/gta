@@ -33,8 +33,11 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     await b.eval(`(() => { const L = game.peds.list.filter((p) => p.active && p.char && !p.dead);
       let best = null, bn = -1; for (const p of L) { let n = 0; for (const q of L) if (q !== p && q.pos.distanceTo(p.pos) < 12) n++; if (n > bn) { bn = n; best = p; } }
       if (!best) return 0; window.__focus = best;
-      game.cameraOverride = (dt, cam) => { const t = window.__focus.pos; const pp = game.player.position; let dx = t.x - pp.x, dz = t.z - pp.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d;
-        cam.position.set(t.x - dx * 9 + dz * 2, t.y + 2.0, t.z - dz * 9 - dx * 2); cam.lookAt(t.x, t.y + 1.1, t.z); return true; };
+      // camera on the same sidewalk, 11 m back along the street, eye height: a clear line of sight to the group
+      const t0 = best.pos.clone(); let dx = 0, dz = 1;
+      try { const r = game.city.roadGraph.nearestEdge(t0.x, t0.z); const e = r.edge; let bi = 1, bd = 1e9; for (let i = 1; i < e.pts.length; i++) { const d = Math.hypot((e.pts[i][0] + e.pts[i - 1][0]) / 2 - t0.x, (e.pts[i][1] + e.pts[i - 1][1]) / 2 - t0.z); if (d < bd) { bd = d; bi = i; } } dx = e.pts[bi][0] - e.pts[bi - 1][0]; dz = e.pts[bi][1] - e.pts[bi - 1][1]; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; } catch (e) { /* */ }
+      const cx = t0.x - dx * 11, cz = t0.z - dz * 11, cy = (game.city.groundHeightAt(cx, cz, t0.y + 1) ?? t0.y) + 1.7;
+      game.cameraOverride = (dt, cam) => { cam.position.set(cx, cy, cz); cam.lookAt(t0.x + dx * 4, t0.y + 1.2, t0.z + dz * 4); return true; };
       return bn; })()`);
     await b.sleep(1500);
     await b.screenshot(`${DIR}/${SET}_${id}_street.png`);
