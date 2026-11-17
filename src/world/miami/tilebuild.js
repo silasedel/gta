@@ -2797,25 +2797,6 @@ export function createTileBuilder(ctx) {
     if (terrain) { B.runway = new Batch(); B.taxiway = new Batch(); B.apron = new Batch(); }
     if (LF.on) for (const key in B) liftB(B[key], LF);
     const props = newProps(); buildingsOf(tile); yield; seedRealProps(props, tile, B); yield;
-    for (const a of tile.areas || []) areaFill(B, a);
-    if (!synth && D && D.isSliver && !GC_OFF) yield* sliverFill(B, X0, Z0, T0);
-    if (terrain) airportMarks(B, X0, Z0, T0);
-    if (synth) { const tr = yield* terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: tile.relief ? 4 : 0.8 }); if (tr) { const m = new THREE.Mesh(tr.geometry, terrain.nearMat); m.name = 'terrain'; m.receiveShadow = true; m.castShadow = !!tile.relief; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); } yield; }
-    exitVisuals(B, tile);
-    if (t.x0 !== undefined) { // visual lawn index (3D grass follows what is drawn: lawn rings minus raised sidewalks)
-      const bb = (r) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of r) { a = Math.min(a, x); b = Math.min(b, z); c = Math.max(c, x); d = Math.max(d, z); } return [a, b, c, d]; };
-      const lawns = (tile.areas || []).filter((a) => (a.kind === 'grass' || a.kind === 'park') && (!a.cls || LAWN_CLS.has(a.cls))).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }));
-      const walks = sidewalksOf(tile).map((rings) => ({ rings, bb: bb(rings[0]) })).concat((tile.areas || []).filter((a) => HARD_CLS.has(a.cls)).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }))); // no lawn grass through aprons / runways / lots
-      const TS = (t.cx - t.x0) * 2; lawnIndex.set(group, { minX: t.x0, minZ: t.z0, maxX: t.x0 + TS, maxZ: t.z0 + TS, lawns, walks });
-    }
-    yield; sidewalksOf(tile); yield; roadIndex(tile, true); yield;
-    for (const rings of sidewalksOf(tile)) {
-      yield* clipGen(rings, tile);
-      const r0 = rings[0]; let cx = 0, cz = 0; for (const [x, z] of r0) { cx += x; cz += z; } cx /= r0.length; cz /= r0.length;
-      const zn = zoneAt(cx, cz);
-      if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile);
-      else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile);
-      else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile);
   // (greenery, overnight) residential streets of the mainland city: shade trees in the swale behind the curb / sidewalk, ~22-34 m
   // apart, never on a driveway, house lot, building or in a junction mouth; old neighborhoods get live oaks and banyans, the
   // others gumbo limbo / shade trees and red poincianas (synthetic land: the countryside streamer plants those streets)
@@ -2836,6 +2817,25 @@ export function createTileBuilder(ctx) {
       }
     }
   }
+    for (const a of tile.areas || []) areaFill(B, a);
+    if (!synth && D && D.isSliver && !GC_OFF) yield* sliverFill(B, X0, Z0, T0);
+    if (terrain) airportMarks(B, X0, Z0, T0);
+    if (synth) { const tr = yield* terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: tile.relief ? 4 : 0.8 }); if (tr) { const m = new THREE.Mesh(tr.geometry, terrain.nearMat); m.name = 'terrain'; m.receiveShadow = true; m.castShadow = !!tile.relief; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); } yield; }
+    exitVisuals(B, tile);
+    if (t.x0 !== undefined) { // visual lawn index (3D grass follows what is drawn: lawn rings minus raised sidewalks)
+      const bb = (r) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of r) { a = Math.min(a, x); b = Math.min(b, z); c = Math.max(c, x); d = Math.max(d, z); } return [a, b, c, d]; };
+      const lawns = (tile.areas || []).filter((a) => (a.kind === 'grass' || a.kind === 'park') && (!a.cls || LAWN_CLS.has(a.cls))).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }));
+      const walks = sidewalksOf(tile).map((rings) => ({ rings, bb: bb(rings[0]) })).concat((tile.areas || []).filter((a) => HARD_CLS.has(a.cls)).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }))); // no lawn grass through aprons / runways / lots
+      const TS = (t.cx - t.x0) * 2; lawnIndex.set(group, { minX: t.x0, minZ: t.z0, maxX: t.x0 + TS, maxZ: t.z0 + TS, lawns, walks });
+    }
+    yield; sidewalksOf(tile); yield; roadIndex(tile, true); yield;
+    for (const rings of sidewalksOf(tile)) {
+      yield* clipGen(rings, tile);
+      const r0 = rings[0]; let cx = 0, cz = 0; for (const [x, z] of r0) { cx += x; cz += z; } cx /= r0.length; cz /= r0.length;
+      const zn = zoneAt(cx, cz);
+      if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile);
+      else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile);
+      else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile);
       yield;
     }
     for (const p of tile.piers || []) pierDeck(B, p, null, props);

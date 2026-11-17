@@ -48,6 +48,10 @@ const BIOMES = {
   // inland freshwater swamp (wetland away from the coast): cypress domes and strands, cabbage palms, ferns, tall sawgrass; no mangroves
   swamp: { tree: 0.42, dome: 1, trees: [['cypress', 6], ['sabal', 1.6], ['liveoak', 0.5], ['gumbo', 0.3]], shrub: 0.24, shrubs: [['fernM', 2], ['fern', 1.4], ['sawpalmetto', 1]], under: [['fern', 2], ['fernM', 1]], base: [['fern', 1], ['tuft', 1], ['moss', 1.2]], grass: 0.95, tall: 0.9, dry: 0.3, flower: 0.01, rock: 0, hue: [1.0, 1.0, 0.78] },
   mangrove: { tree: 0.75, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.15, tall: 0.5, dry: 0.1, flower: 0, rock: 0, hue: [0.95, 1.0, 0.85] },
+  // (vegetation, overnight) city lawns / parks on the synthetic map (the lawn layer outside house lots): shade-tree and palm groves
+  // with clearings, roadside rows along the streets; the lawn grass itself is the ground pass's (no grass tufts here)
+  park: { road: 0.3, tree: 0.3, trees: [['liveoak', 3], ['gumbo', 2], ['royal', 1.2], ['sabal', 1.2], ['poinciana', 1], ['banyan', 0.4], ['queen', 0.6]], shrub: 0.06, shrubs: [['hedge', 2], ['hibiscus', 1], ['bougainvillea', 1], ['fernM', 0.5]], under: [['fern', 1], ['hedge', 1]], base: [['tuft', 1]], grass: 0, dry: 0, flower: 0, rock: 0, hue: [1.0, 1.0, 0.86] },
+  parkBeach: { road: 0.3, tree: 0.28, trees: [['coconut', 3], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 1.5], ['royal', 0.5]], shrub: 0.05, shrubs: [['seagrape', 2], ['agave', 0.5], ['redgrass', 0.5]], base: [['tuft', 1]], grass: 0, dry: 0, flower: 0, rock: 0, hue: [1.02, 1.0, 0.82] },
 };
 const BKEYS = Object.keys(BIOMES), BIDX = Object.fromEntries(BKEYS.map((k, i) => [k, i + 1]));
 // tree kind -> geometry recipe, collider species for the tile props, palm flag
@@ -88,7 +92,8 @@ function biomeOf(ctx, x, z) {
   if (lay === L.forest) return BIDX.hammock;
   if (lay === L.pine) return BIDX.pine;
   if (keys) return lay === L.sand ? (shore ? 0 : BIDX.keysSand) : (lay === L.scrub || lay === L.meadow || lay === L.lawn || lay === L.shell) ? BIDX.keys : 0;
-  if (lay === L.scrub || lay === L.meadow) return D.zoneAt && D.zoneAt(x, z) === 'wilderness' ? BIDX.glade : BIDX.rural; // wilderness open land: sawgrass prairie with cypress domes / tree islands
+  if (lay === L.scrub || lay === L.meadow) return D.zoneAt && D.zoneAt(x, z) === 'wilderness' ? BIDX.glade : BIDX.rural;
+  if (lay === L.lawn) { const zn = (D.zoneAt && D.zoneAt(x, z)) || ''; return /beach|nightlife/.test(zn) ? BIDX.parkBeach : /rural|wilderness/.test(zn) ? BIDX.rural : BIDX.park; } // city lawns and parks // wilderness open land: sawgrass prairie with cypress domes / tree islands
   return 0;
 }
 const pickIdx = (w, r) => { let t = 0; for (const x of w) t += x; let a = r * t; for (let i = 0; i < w.length; i++) { a -= w[i]; if (a <= 0) return i; } return w.length - 1; };

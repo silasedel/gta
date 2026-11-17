@@ -1,0 +1,78 @@
+{
+ "southbeach": {
+  "street": [
+   2398,
+   660
+  ],
+  "side": 3,
+  "h": 2.0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "havana": {
+  "street": [
+   -660,
+   -55
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "gardens": {
+  "street": [
+   715,
+   -3080
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "brickell": {
+  "street": [
+   0,
+   1760
+  ],
+  "side": 2.2,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "city_air": {
+  "at": [
+   0,
+   1760
+  ],
+  "eyeRel": [
+   160,
+   110,
+   160
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "beach_air": {
+  "at": [
+   2398,
+   660
+  ],
+  "eyeRel": [
+   -140,
+   90,
+   140
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ }
+}
