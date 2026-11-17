@@ -1539,3 +1539,13 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
   (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
 - 16:20 **Magenta bar fixed at the source.** Dimming wasn't enough: the unlit neon tube still drew its gas color. M.neon now renders as pale gray glass by day (desaturated in the shader through `uNeonDay`) and shows its color only from dusk. Verified at the Miami Beach corner, console clean: `docs/v2/shots/art/after_neonfix_mbres_0.jpg`. The deco fin now reads as a pale fin with gray tube edges and speed-line grooves. Stopping at facade step (3), as agreed.
+- **HUD stars (user bug, commit 74fcd8f4).** Empty stars are semi-transparent gray (45 %) with a faint outline, which is the default at 0 wanted. Earned stars are solid white with the heavy black outline, earned from the right like GTA and the target. The evade flash blinks earned stars back to empty.
+  - Sheet: `docs/v2/shots/hudcorner/sheet_stars.jpg` (0 / 1 / 3 / 6 stars and the flash, next to ref_46 and the target).
+- **Dev mode (new feature, commit ca4e0372, `src/ui/dev/devMode.v2.js`).**
+  - Unlock: pause menu → CODES, code 6969 (keypad or keys). A wrong code shakes the field. The setting is stored in localStorage.
+  - DEV badge at the top left.
+  - Map teleport: a TELEPORT [T] button beside the waypoint pin. A black "Loading area" veil shows while the player is held kinematic (the car without gravity) until the tiles are in and a physics ray hits the collider under the exact landing point. On foot he lands on the closest sidewalk or open ground, and swims at the surface in deep water. A car lands on the nearest lane, heading along it.
+  - Police lock beside the stars (click, `;`, or L in the panel): crimes are filtered at the source, so there is never a star.
+  - Dev keys: `[` `]` time, `\` weather, `'` spawns the last car.
+  - Fixes QA-032 and QA-009/010/011. Shots and sheet: `docs/v2/shots/r2-mapui/dev/sheet_dev_mode.jpg`.
+- **Map blips hook for r2-metro:** `game.mapBlips` is drawn on the minimap and the pause map (`hud.js mapIcons`). It was committed with r2-phone's 3a72c80a.
