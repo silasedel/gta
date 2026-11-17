@@ -784,6 +784,24 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
 - **Dotted grain (items 3 and 10).** The contact AO multiplied a per-pixel, per-frame rotated 10-tap result straight into the image, and TAA left a fixed grain on every surface near the ground (calibration spheres, car bodies, walls). It now runs as AO plus a bilateral 4x4 resolve with an interleaved kernel (smooth in one frame). The PCSS rotation steps by the golden ratio per frame, with 12 taps. TAA now uses a 3x3 neighborhood with a gamma-1.25 variance box blended 25% toward min/max, so thin leaf edges, wires and blinds keep their history, and while driving the new-frame weight is capped at 0.25.
 - **Light response (item 1).** AO now only darkens the ambient share of each pixel (lit materials write it to alpha in the scene pass), so sunlit ground next to cars and walls has no dark halo. The env map has a surroundings ring (tree crowns and houses up to 4-10 degrees, sunlit on the sun side), so paint and glass reflect a dark horizon band instead of empty haze. The noon sun is closer to white, with a neutral day white balance (sand and white paint had turned cream-yellow) and slightly cool shade instead of teal. A near static shadow cascade (2 cm texels within 40 m, blended into the 7 cm city map) gives crisp deck-rail, house and tree shadows.
 - Albedo audit, screen coverage at Nico's lot (albedo view): mean 0.22-0.24, only 0.4-0.7% of pixels above 0.8. The global albedo is calibrated, so the pale look came from individual materials: the convertible paint was luminance 0.57 with metalness 0.35 and a mirror clear coat. Reported to r2-cars, who fixed it (solid finish, metalness 0). Targets agreed with r2-art (ART_STYLE.md).
+- **Committed:** 88d5b6cc (shadow flicker, grain, TAA, near cascade, env ring, neutral day light) and the shaded-ambient commit (deep shade under trees, decks and cars; faces turned away from the sun keep their sky light).
+- **Second pass (GTA 6 targets, user request).** Ordered by visible gain per ms:
+  1. Ground cloud shadows that drift with the wind, from the same cumulus field as the sky. The cloud field is now anchored to the world, so clouds pass overhead while you drive. A 512 x 512 coverage map over 4 km costs about 0.1 ms. The shadows darken only the direct-sun share of each pixel. A/B: `game.lookCloudShadows`.
+  2. Sky cumulus: the shapes are domain-warped (irregular outlines instead of round cotton balls), with crisper cauliflower edges and darker flat bases.
+  3. Volumetric sun shafts: ray-marched through the real near and city shadow maps, for beams through palm crowns and porch gaps toward a low sun. Being tuned now; off until verified (`game.lookShafts = true`).
+  - Next: reflections of the actual scene in car paint and glass (current state: sky plus the horizon ring env), then wet roads at night.
+- Testing is slow: machine load is 225-257 and every helper is queuing for the 3 browser slots, so each page load takes 10-20 min. Sheet for user shots 01/03/04/09 with the same framings: `docs/v2/shots/r2look/sheet_ab2_user.jpg`. That row's scene was mid-change (keys moved the yard); being re-shot as ab3.
+- **Mock-up camera (lead / outside critique: "brighter and harsher, less natural shading"):** 3-way sheet `docs/v2/shots/r2look/sheet_ab6_mock.jpg` (mock-up | before | after, same session).
+  - Exposure -0.15 stop. Softer sun vs sky fill: sun 1.22 -> 1.04, hemisphere 0.95 -> 1.2, env 0.42 -> 0.52.
+  - Bounce into cast shadows plus a sky-occlusion cut: deep shade that is not navy-black (r2-art review). Neutral sky fill.
+  - AO 1.9, applied to ambient only. Grazing-glare cut on very rough non-metals (up to 28%).
+  - Day haze x1.3, softer toe, warm highlights.
+  - The remaining gaps at that camera are content: the ground is beige instead of crushed white shell, and the truck rendered black from a car-paint shader error (r2-cars fixed it at 10:51).
+- **Second pass committed:**
+  - Ground cloud shadows, world-anchored clouds, irregular cumulus with crisp billows and dark bases: `sheet_ab3_clouds.jpg`.
+  - Volumetric sun shafts at low sun.
+  - User-shot framings: `sheet_ab3_user.jpg`.
+- Running now: drive + perf A/B (ab7) and golden hour at the mock-up camera (ab8).
 
 ## r2-keys
 **Round 2, item 16 (Nico's house and yard vs the front-deck mock-up) and the house side of item 10 (blinds, shutters).** Live on 5200.
@@ -807,4 +825,201 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - Shutter blades: 7 mm became 12 mm, with one paint coat per leaf instead of per-blade peel.
   - Generated houses: the louvered and Bahama shutters were a solid panel with 8 mm slats floating on and through its face. They are now real frames (stiles, rails, blades inside the frame depth) up close and one solid leaf at mid range.
   - Also fixed: the Bahama leaf tilt was mirrored on some walls (hidden by the symmetric panel).
-- Shots: `docs/v2/shots/keys/cmp_r2k11_r0b_deck.png` (mock-up camera, before the cars moved), `r2k11_*` (rain, planter, cottage), `r2k1*_top.png`.
+- Shots: `docs/v2/shots/keys/cmp_r2k16_r0b_deck.png` and `cmp_r2k15_r0b_deck.png` (mock-up camera, cars in place), `r2k15_spawnview.png` (spawn), `r2k14_planter.png`, `r2k14_hWhite.png` / `r2k14_shutterL.png` (cottage shutters), `r2k13_nicoBlinds.png`, `r2k16_dockpath.png`, `r2k14_top.png`. Before: `cmp_k21_r0b_deck.png`.
+- Verified on a clean boot (r2k14-r2k16, no console errors):
+  - The heightfield matches the drawn sheet to the centimeter.
+  - `game.nicoHouse.stairs` = 3 flights (the moved west stair is 2 of them).
+  - The spawn (-12.6, 5.4) stands clear of the pickup.
+  - Commits: 4573da0e, fcf045aa.
+- Open:
+  - The drive-end puddle now uses r2-ground's patchPuddles on the yard sheet; standing water isn't visible in my after-rain shots yet, so r2-ground is checking the uWeather hookup.
+  - The global after-rain wetness turns the whole yard and deck into a mirror (wet-surfaces side, not mine).
+  - Nico's own shutter blades are still real geometry at mid range (r2-look suggested a baked slat panel past ~15 m).
+
+## r2-art
+- 09:50 **Started (art director, one style).**
+  - Style guide: `docs/v2/briefs/ART_STYLE.md`. Material class ranges are grounded in real PBR values and agreed with r2-look on the locked exposure: 80% white = sRGB 228 in noon sun. It also covers the GTA 6 trailer bar (Fresnel, deep but never black shade, warm haze).
+  - Machine ranges: `src/world/art/ranges.json`.
+  - Audit tool: `node tools/v2/art/audit.mjs`. It runs a material-ID pass plus r2-look's albedo view at fixed cameras, measures coverage, on-screen albedo, roughness, metalness, normal strength, texel density and source, then ranks outliers by screen coverage. Output: `docs/v2/reports/art-audit.md`.
+  - Runtime calibration of library models: `src/world/art/calibrate.js`, applied to every library building (`bldmodels.js`) and street-furniture GLB (`streetkit.js`).
+    - It moves only out-of-range values back to the nearest edge of their class.
+    - Typical fixes: exporter-default metalness 1 on stucco / marble (casino, towers, bins), 98% white, mirror "glass" at roughness 1.
+    - In-session A/B: `__artCal(false/true)`. Kill switch: `?artcal=0`.
+  - Library walls stretched below 110 px/m get the stronger street-level grain and detail normal.
+  - Sign posts are galvanized (metal 1) and sign backs dielectric. House chain-link is galvanized.
+  - Found and reported: the miamiData TDZ (r2-ground, fixed) and the psSunVis shader error (r2-look, fixed).
+
+## r2-mapui
+**Round 2, items 9 (map water outline) and 7 (mission / race / job markers).** Item 9 is committed (f706e11d, da64e72a). Item 7 is committed (0988577a).
+- **Map water (item 9).** The minimap, pause map, phone map and GPS route all draw tiles through `src/ui/mapRender.js`, so they share one style.
+  - Removed: the two hard turquoise stroke bands around every coast (110 m solid, 300 m at 55%) and the lake outlines.
+  - New: one world-wide shore field. The land mask (lakes and canals cut out) is rasterized at 16 m/px and blurred three times: turquoise shallows at the sand (45 m, thresholded), a teal band (140 m) that keeps channels and bays deeper in the middle, and a broad shelf (320 m) fading into deep navy.
+  - A world-anchored reef / sandbank noise breaks up the shelf. Lakes and canals get deeper water with a soft rim.
+  - No seams: there is one global field, so every tile and zoom level samples the same values.
+  - Cost: the field is built once (~40 ms), in steps inside the tile budget. After that a tile only samples it (~1-2 ms per tile).
+  - Lead review notes are done: the minimap channel keeps its depth gradient, and the OSM credit is removed. The runtime map has no OSM data: map3 builds with MIAMI_NO_OSM=1, and the only direct cache read, the causeway, bails out.
+  - Still stale, not my file: the `source` / `attribution` strings that `tools/osm/output.py` writes into `world.json`.
+  - Sheet: `docs/v2/shots/r2-mapui/sheet_map_water.jpg` (user's shot_10, before, after, map_colour_target; Biscayne; whole map; Gulf coast; minimap).
+  - Tools: `tools/v2/mapui/map-shots.mjs` (light page `tools/v2/mapui/mapshot.html`; `src/ui/mapshot.html` is broken by a moved interiors import), `map-perf.mjs` and `sheet.py`.
+- **Markers (item 7).** One shared module, `src/gameplay/markers.js`, now drives every marker type. `activities.js` uses it for taxi, delivery, race start, checkpoints, finish, hit list, armored car and bounty. `jobs/kit.js makeMarker` uses it for jobs, business sites, supply runs and gang turf.
+  - Removed: the 30-40 m additive beams (the white beam was the street-race start flag) and the 5 m race arches.
+  - New: a soft translucent ground ring with a faint inner ring, and a knee-high glow. The glow is a shader that fades upward and toward the silhouette, so it never reads as a glass slab.
+  - New: a small floating chevron that turns slowly and bobs, with painted shading. It grows a little with distance (up to 2.8x at 90 m) so it reads at mid range. It is unlit (toneMapped off), so it glows by itself at night, and uses normal blending so it reads on bright sand by day.
+  - Race start: a car-sized cyan ring with a checkered card. Checkpoints: a road-wide ring with a screen-facing double chevron that points along the course. Finish: a checkered card.
+  - Kept: the old API, including `userData.ring.material.color`. business.v2's clone-and-recolor still recolors the whole marker; tested in game, and other markers of the same color stay untouched.
+  - Sheet: `docs/v2/shots/r2-mapui/sheet_markers.jpg`, old vs new on the same street, day and night, near and 70 m back. Tool: `tools/v2/mapui/marker-shots.mjs` (A/B in one session).
+
+## r2-roads
+Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US markings). In progress; updated below.
+- 08:05 **Item 8 done, map republished (b20261117-080220, commit "Map: surveyed road alignments").** The S-wiggles on State Road 916
+  (shot_08) were the trace's pixel steps: the skeleton of the 11 m/px drawing steps one pixel sideways every few hundred meters and
+  RDP + Chaikin turned each step into a small S. New `tools/v2/map3/survey.py` (called from build_v3 after buildings are placed) moves
+  each eligible road sideways inside a tube (<= 9 m, ~0.8 px) to the shape of least bending (curvature^2 + curvature change, weak pull
+  to the drawn line): long tangents, arcs, spiral-like transitions, no wiggles. Through-roads are solved together across nodes;
+  junction nodes, bridges, city grids, the Keys detail region (Pelican Point Ln untouched, r2-keys asked), small separate networks
+  and every line within 45 m of a building stay exactly put. tools/osm keeps fitted arcs round (0.12 m simplify for surveyed roads).
+  Verified against the live build: graph nodes, names, controls, buildings, storefronts / lean spots (spots.json), layout.json and
+  the spawn are byte-identical; audit failures are the same pre-existing ones. Turns > 6 deg on changed roads 3560 -> 1640.
+  Shots: top-down `docs/v2/shots/roads/r2_sr916_topdown.png`, in game `docs/v2/shots/roads/r2a_sr916_{chase_a,chase_b,chase_c,high,south}.jpg`.
+- 11:40 **Item 11 (curb triangle, shot_12):** the triangle was the concrete gutter pan. The asphalt shader paints the pan from each road
+  ribbon's lane frame, so it stopped square at every junction mouth while the curb ran on around the return: a dark asphalt wedge
+  between the pan's end and the curb return at every curbed corner. tilebuild `curbGutters()` now lays a 0.5 m strip from each leg's
+  mouth along its curb line, around the return and out to the next mouth, written with its own road frame so the same shader paints
+  the same pan, joints and grime (A/B: `?seams=old`). Tree-lawn granite curb strips / returns sit 4 mm under the slab top, so where a
+  slab reaches the curb it wins (was a `M.panels | M.sidewalk` z-fight band). Audit tool: `node tools/v2/roads/seams.mjs --set X`
+  (22 junction / road-end types picked from the graph, cached picks; probe `src/world/surfaces/seamProbe.js`: raised / notch / z-fight /
+  step / gutter coverage along every curb return and leg curb line; 3 views per type). Sheets: `docs/v2/shots/roads/before_seams_sheet.jpg`,
+  `after_seams_sheet.jpg`. Found for others (sent): a Keys neighbor stair in a lane and shell drives coplanar with the terrain (r2-keys fixed).
+- 11:40 **Item 13:** library utility covers (`src/world/surfaces/covers.js`, models `public/assets/models/roads/*.glb` by
+  `tools/v2/roads/covers.sh`): sanitary manholes on the centerline every ~110 m and near the middle of each curbed junction (in a
+  utility-cut patch), curb-inlet grates just past the curb returns / stop bars (~45 % of corners), a storm manhole now and then,
+  valve boxes behind the stop bars; only on curbed streets in town / city zones (rural roads, Keys lanes, decks: none); the old decal
+  manholes in random lanes, meter boxes in the gutter and grates every 45 m are gone (`?covers=0` = old). Markings: lane-use arrows
+  only in turn lanes (T-stem approaches with no through movement, exclusive left lanes of 3+ lane signalized approaches), never mid-block
+  (approaches with arrows 1418 -> ~60); local residential streets have no center line (US practice). `?arrows=old` = old markings.
+  Model requests added to MODEL_REQUESTS_r2.md (US curb inlet, sanitary / storm covers, valve / meter boxes, precast curb kit).
+- 11:40 **First audit + fixes.**
+  - Audit: before calibration 1258 materials / 278 outliers / 13 high-visibility; with it 1235 / 263 / 17. Same places, new cameras. The extra high-visibility rows are other helpers' rows that the new views now see: kit wood / tin / slab and keys leaves (r2-keys), liveoak bark (r2-veg), car glass env 2.6 (r2-cars).
+  - Report: `docs/v2/reports/art-audit.md` (before: `art-audit-before.md`). Views: `docs/v2/shots/art/audit/`.
+  - Owner lists sent:
+    - done: r2-keys (kit rows, f540c118), r2-cars (glass env 1.35, paint ≤ 0.72, trim), r2-ground (grass blades, sand neutral, elevated concrete), r2-roads (sidewalk slabs, tree grate)
+    - in progress: r2-veg (bark sat, leaf_1_c)
+    - r2-look: shade was navy-black. Fixed with a ground bounce into cast shadows, sky fill toward neutral, and the F90 cut capped at 28%.
+  - Mine:
+    - library buildings: exporter metalness 1 at roughness ≥ 0.6 made dielectric (casino, grid_block, stepped_midrise); a 'building' fallback class caps saturation at 0.5; anisotropic filtering 8 on every library map
+    - facade albedo capped at 0.78
+    - signal / sign / guard metals made 0 or 1
+    - town and house pavers neutral, house stucco and stone matte
+  - Sheets (in-session A/B of the calibration): `docs/v2/shots/art/sheet_r1_*.jpg`.
+  - Model requests (`MODEL_REQUESTS_r2.md`): hangar, motel, gas station, deco / brick mid-rises (6-30 px/m).
+- 12:05 **Architectural depth (lead's request).** Split agreed with r2-keys: they do the generated houses' kit, I do the procedural city buildings.
+  - Procedural OSM houses had a pyramid over the world-axis bounding box. They now have a real hip roof with a ridge on the footprint's own axis, 0.55 m eaves, fascia, soffit, K-style gutters, downspouts with kick-outs, a condenser on a pad with its line set, and an antenna mast or satellite dish on about 40%. Before/after: `?hiproof=0`.
+  - Style guide §5: geometry-depth rules (eaves, gutters, reveals, parapets, roof breakers).
+  - City buildings, more:
+    - punched-window sills and lintels now run on mid-rises up to 62 m and 8 floors (was 40 m and 6)
+    - warehouses get a low parapet with coping, plus roof vents
+    - town shops (`towns/shops.js`): the blank side walls now have a window every ~3.4 m on every floor, the floor band and cornice wrap the corner, downspouts with kick-outs, and a meter box with conduit
+  - Opaque library glass is lifted to L 0.12. At 0.05 it read as flat black panels.
+  - Before/after for the city geometry: `?artgeo=0`.
+  - **tilebuild ready: r2-art** (hip roofs + house services, `hipRoofGeo`, warehouse parapet / vents, window depth to 62 m).
+  - Machine load is 330-430, so test runs often hit the watchdog. Sheets are pending a quieter slot.
+- 12:40 **Second pass.**
+  - Committed 0bd...: town-shop side walls, raw brick color, glass lift.
+  - Re-audit (nico, downtown, rural): 761 materials, 113 outliers, **3 high-visibility** (was 13): `docs/v2/reports/art-audit.md`.
+  - Found: calibrate() skipped every material with an emissive map. That's most library towers (night windows), whose exporter roughness / metalness stayed as imported. Textured surfaces with emissive maps are now calibrated; only map-less light sources are skipped. A glass tower's 'Building Facade' atlas is treated as curtain wall (building class), not stucco.
+  - Reported to owners:
+    - r2-cars: the 'noPark' TDZ, now fixed
+    - r2-keys: generated-house 'wood' roughness 0.51 (their kit fix doesn't reach the houses kit), and the 05_site.js 500
+
+## r2-physics
+- 12:10 In progress. Everything new sits behind `?carphys=2` (off by default) until it has passed an in-game boot.
+  - **Suspension and tires** (`src/vehicles/physics/suspension.js`): a drop-in for Rapier's ray-cast controller.
+    - Contact: a tire-profile ray fan along the suspension axis (rays from the tire's lower arc and across its width). A step between rays is solved exactly as the tire circle on the corner, so the wheel climbs a curb along the true arc.
+    - Why not a shape cast: Rapier castShape's time of impact was off by up to 9 cm on flat ground (measured in Node), and the wheels chattered.
+    - Vertical: two-mass quarter car (unsprung mass, tire spring). Coil at the class ride frequency, preloaded so ride height is unchanged. Bump and rebound damping, progressive bump stop, hard stop at the arch gap + 4.5 cm tuck, droop limit, anti-roll bars.
+    - Tires: brush-style slip-angle curve with relaxation lag, load-sensitive mu, friction ellipse. Per-wheel surface grip / rolling resistance / roughness, and wet roads.
+  - Offline harness `node tools/v2/physics/sim.mjs --test curb|pothole|rock|bump|brake|corner` (sedan):
+    - curb 15 cm at 20 km/h: full bump, pitch +5.9 / -5.0 deg, speed 20 -> 17.9 km/h
+    - brake from 60 km/h: 1.09 g, dive 2.2 deg, 13.9 m stop
+    - skidpad: 1.0 g at 3.0 deg roll (SUV 3.7 deg)
+    - pothole 6.5 cm: right-front wheel drops 4.8 cm
+    - rock 12 cm: left-front wheel up 7.4 cm, 2 deg roll
+  - **Potholes**: tilebuild's decal() reports every pothole / patch / cover to `relief.js`, which ports the decal shader's bowl depth, so the tires feel the dip that is drawn.
+  - **Rocks**: the countryside ground-cover rocks get convex-hull colliders from their own mesh (`rocks.js`, r2-veg added `rocksNear`).
+  - **Parked cars** (shot_25): `game.physics.clearForCar / findCarSpot / watchParked`. r2-cars calls them in spawnParked and the parked-slot spawner.
+  - **Collider overlay**: F9 or `?colliders=1`. Ray audit tool: `tools/v2/physics/colaudit.mjs`.
+  - **Lot props** stand on the real ground at their own spot (r2-ground found Keys beach bins and rural mailboxes buried 0.15-0.6 m).
+  - **tilebuild ready: r2-physics**: one line in `decal()` (pothole / patch / cover relief registry, buffered until the module loads).
+- **HUD top-right corner (new item from the user, commit 479cbe58).** It keeps hud_corner_target's geometry: chunky stars with thick black outlines (charcoal when earned, near-white when open), five deep-red evidence badges, and the heavy squared ammo digits (clip white, reserve gray).
+  - Scale: the corner is 25% larger (six stars = 238 px at 1080p). It is vector art, so it stays sharp on Retina (DPR 2 checked).
+  - Weapon icons: all 28 weapons are baked from the game's own models (the user's GLBs, code-built ones for the rest). Each is a flat side view, cel-shaded in the target's slate palette, with a painted top highlight and the target's 12-unit black outline. The baker is `tools/v2/hudcorner/bake.html` (`node tools/v2/hudcorner/bake-icons.mjs`). Output is `public/assets/ui/weapons/<id>.png` and `index.json`; boxes are per class. The pistol keeps the hand-drawn target art.
+  - Money (ref_46): bank with the purple house badge, then cash with the green wallet badge, under the evidence badges when no weapon is out. With a weapon out, the money shows for 5 s after a change.
+  - Clock: a small last row.
+  - Sheets: `docs/v2/shots/hudcorner/sheet_corner.jpg` (on white, next to both references), `sheet_weapon_icons.jpg`, and `sheet_corner_ingame.jpg` (in game, before / after, day / night, Retina).
+
+## r2-veg
+**Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
+- **Volume, not paper (item 10):**
+  - Crowns and bushes shade as one volume. Per-vertex crown occlusion gives a dark core, a lit shell and a darker underside, and goes into
+    the lighting: ambient fully, the sun partly.
+  - Leaf normals bend toward the crown's ellipsoid. Translucency comes only through the shell.
+  - The sparse library trees are densified x3; the poinciana was the gnarled oak's 512 cards. The poinciana bloom sits on the outer shell only.
+  - Leaf normal maps are at 0.7, and leaf roughness varies per texel and per plant (r2-art).
+  - Leaf flutter is slower and smaller, because TAA has no vertex motion vectors and fast flutter turned into shimmer.
+  - The impostor view blend is a cross-blend with no dither. The mip alpha uses the real map size. A2C stays: the hard-cut A/B
+    (`?vegaa=1`) stair-steps under motion.
+- **One palette, palms where they fit (item 12):**
+  - Every library texture is graded into shared hue / saturation / value bands by per-material gains: tools/v2/vegetation/grade.py ->
+    src/world/vegetation/grade.json.
+  - The brown weathered palm and the clean gray royal palm now sit in one band. The near-white tropical palm trunk is fixed. Dry-frond
+    palms are about 17 % of the inland mix.
+  - Placement: royal palms only in avenue rows (curbside, medians, causeways), coconut only near open water, sabal inland, tropical / fan
+    palms in yards. The same rule applies in tilebuild (lead committed), the countryside, and set-piece fields (houses, towns).
+  - The paper-card models (flat-card oak, date palm, yellow palm) are no longer placed.
+- **Grounding (lead / user, urgent):**
+  - Every plant stands on the ground exactly as it's drawn: src/world/vegetation/ground.js uses the terrain's own 4 m triangles and
+    diagonals, the city ground on real Miami, and raised curbs / sidewalks.
+  - The trunk's footprint minimum decides. Sinks are 5-12 cm.
+  - Mangrove prop roots go 0.4 m under the sea line in the shallows.
+  - Cells near the camera re-sample when the terrain under them changes.
+  - A soil / leaf-litter collar decal sits under every near trunk (collar.js), on top of the contact AO and base tufts.
+  - Audit API: game.vegetation.audit2(x, z, r).
+- **Keys density (lead / user):** clumped noise plus attraction to street edges and lot lines replaces the even spacing. Up to 7 yard
+  trees per Keys lot, long hedge runs, and fern / palmetto / sea grape understory under every Keys tree.
+- **Nico's street (item 16, with r2-keys):** src/world/vegetation/nicoStreet.js plants the mock-up's off-lot masses: poinciana canopies down
+  the north leg and across the east leg, the cottage hedge and canopy, the tree wall behind the roll-off, and the skyline trees. The deck-to-pole
+  corridor and the STOP corner are kept clear.
+- **A/B flags:** `?vegr2=0` (overnight look), `?vegaa=1`, `?veggnd=0`, `?vegcollar=0`, `?nicostreet=0`.
+- **Floating audit** (game.vegetation.audit2 over every drawn library plant, within 150 m;
+  docs/v2/reports/veg-r2-c3-audit-after.json):
+  | place | plants | countryside floating |
+  |---|---|---|
+  | Keys shore | 824 | 0 (9 mangroves with their roots under water) |
+  | Nico's | 1519 | 0 |
+  | city park | 12111 | 0 |
+  | beach | 1643 | 0 |
+  | rural road | 982 | 0 |
+  - Remaining hits were tile palms that stood at curb height (0.08 m) on bare terrain with no sidewalk: Nico's 4, rural 17, the
+    worst at 10 cm. Fixed in tilebuild.js (the palm loop grounds non-paved palms on the drawn terrain), waiting for the lead's commit.
+  - City park: 13 tile blob bushes report y 0.62 over ground 0. They look like planter tops, not floating plants. Not mine to move
+    without the planter owner.
+  - r2-ground's independent ray audit agrees: 0 countryside floats > 3 cm.
+- **Sheets:**
+  - item 10 close-ups (bush 2 m, poinciana 4 m, shade tree 4 m): `docs/v2/shots/vegetation/r2/sheet_item10_closeups.jpg`
+  - SR 916 next to user shot_11: `docs/v2/shots/vegetation/r2/sheet_item10_street.jpg`
+  - palms next to user shot_13: `docs/v2/shots/vegetation/r2/sheet_item12_palms.jpg`
+  - mock-up vs game at the deck camera, and the north leg: `docs/v2/shots/vegetation/r2/sheet_item16_nico_deck.jpg`
+  - 10 trunk bases close up: `docs/v2/shots/vegetation/r2/sheet_trunk_bases.jpg`
+  - raw shots: `docs/v2/shots/vegetation/r2/*.png`, made with `tools/v2/vegetation/r2shots.mjs` (one-boot A/B, moving camera, post-settle hooks)
+- **Perf:** same session, same camera, current vs `?vegr2=0&veggnd=0&nicostreet=0&vegcollar=0`. Draw calls and triangles:
+  - nico deck: 702 / 7.9M vs 683 / 7.2M
+  - north leg: 725 / 8.7M vs 723 / 8.0M
+  - Keys aerial: 762 / 7.0M vs 761 / 6.8M
+  - Frame times were not comparable: load average ~380 while the runs went.
+- **Open / next:**
+  - **Mock-up density (biggest gap):** the deck view still lacks the far red canopy and the dark tree wall at the top right. The street
+    spots now plant reliably, but the sheet was shot while nicoHouse.v2.js failed to load in other runs.
+  - **Poinciana bloom:** still red leaf cards from a recolored oak. A real poinciana model is requested in MODEL_REQUESTS_r2.md,
+    together with sea grape, gumbo limbo, sabal with boots, bougainvillea, hibiscus / croton / ixora, saw palmetto / sea oats /
+    sawgrass, buttonwood and red mangrove.
+  - **r2-art leaf_1_c rows:** gray leaves at South Beach under miami-city, and a vegField_coconut at L 0.455. Not yet traced to a model.

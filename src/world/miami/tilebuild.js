@@ -6,6 +6,7 @@ import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { makeVegMaterial } from '../vegetation/materials.js';
 import { grassCardMap, weedCard, clumpCard } from '../vegetation/grasscards.js';
 import { bakeImpostor } from '../vegetation/field.js';
+import { meshGround } from '../vegetation/ground.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
 import { buildJunction, sampleFrame, convexCCW, subtractConvex, bboxOf, spandrelFan, clipToConvex } from './roadgeo.js';
 
@@ -38,6 +39,7 @@ import { variantColor } from '../props/variants.v2.js';
 import { signalLayout } from './signals.js';
 import { drawBlade } from '../signs/draw.js';
 import { bladeLabel } from '../signs/plan.js';
+import { covers as COVERS, placeCovers } from '../surfaces/covers.js'; // r2-roads: utility covers (library manholes / inlets / valves)
 import { attachRoadChannel, setRoad, applyRoadChannel } from '../surfaces/roadChannel.js'; import { SURF_OFF } from '../surfaces/surfaceShaders.js'; // surfaces pass: lane frame for the asphalt / paint / decal shaders
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
@@ -83,6 +85,21 @@ export function createTileBuilder(ctx) {
     const an = 0.5 * Math.atan2(2 * sxz, sxx - szz), ux = Math.cos(an), uz = Math.sin(an); let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
     for (const [x, z] of ring) { const s = (x - mx) * ux + (z - mz) * uz, q = -(x - mx) * uz + (z - mz) * ux; a0 = Math.min(a0, s); a1 = Math.max(a1, s); b0 = Math.min(b0, q); b1 = Math.max(b1, q); }
     const cs = (a0 + a1) / 2, cq = (b0 + b1) / 2; return { cx: mx + ux * cs - uz * cq, cz: mz + uz * cs + ux * cq, ux, uz, L: a1 - a0, W: b1 - b0 }; }
+  // r2-art: hip roof with a ridge (local: eaves on y = 0 over [-L/2, L/2] x [-W/2, W/2], L >= W, ridge along x at height rh),
+  // planar UVs in meters (x, z) like the roof slabs; cached per rounded size
+  let _dishG = null;
+  const _hipCache = new Map(), ARTGEO_OFF = typeof location !== 'undefined' && /[?&]artgeo=0\b/.test(location.search); // r2-art before/after: the old roofs, window depth only up to 40 m / 6 floors
+  function hipRoofGeo(L, W, rh) {
+    const k = `${L.toFixed(1)}|${W.toFixed(1)}|${rh.toFixed(1)}`; if (_hipCache.has(k)) return _hipCache.get(k);
+    const a = L / 2, c = W / 2, r = Math.max(0, a - c), P = [], U = [];
+    const tri = (p, q, t) => { for (const v of [p, q, t]) { P.push(v[0], v[1], v[2]); U.push(v[0] / 6, v[2] / 6); } };
+    const A = [-a, 0, -c], Bq = [a, 0, -c], C = [a, 0, c], Dd = [-a, 0, c], R0 = [-r, rh, 0], R1 = [r, rh, 0];
+    tri(Dd, C, R1); tri(Dd, R1, R0); // +z slope
+    tri(Bq, A, R0); tri(Bq, R0, R1); // -z slope
+    tri(C, Bq, R1); tri(A, Dd, R0); // hip ends
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.computeVertexNormals();
+    if (_hipCache.size > 400) _hipCache.clear(); _hipCache.set(k, g); return g;
+  }
   const SEG7 = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
   function buildAirMarks() {
     const out = new Map(), cov = D?.mapLayers?.cover || {}, TS = provider.tileSize || 200;
@@ -210,13 +227,14 @@ export function createTileBuilder(ctx) {
       if (L.imp) { L.imp.geo.userData.lodMin = PL.b1; L.imp.geo.userData.lodMax = 480; }
       for (const q of [...L.near, ...L.mid, ...(L.imp ? [L.imp] : [])]) greenMats.push(q.mat); return (modelPalm[ck] = L); } catch (e) { console.warn('[vegetation] model palm unavailable', k, e); return null; } }
   modelPalmOf('royal_palm'); modelPalmOf('coconut_palm'); // shared programs compile with the city materials
-  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['date_palm'], queen: ['tropical_palm', 'date_palm'], fan: ['fan_palm'], sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
+  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['tropical_palm', 'fan_palm'], queen: ['tropical_palm'], fan: ['fan_palm'], sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
   // palm species by place (Miami planting): royal palms on boulevards, downtown and the causeways, coconut palms at the beach,
   // a residential mix of coconut / sabal / queen. One species per ~70 m stretch so a street is planted in one species.
   const PALM_MIX = { beach: [['coconut', 5], ['bent', 4], ['sabal', 1], ['royal', 1]], nightlife: [['coconut', 5], ['bent', 1], ['royal', 3], ['fan', 2]], downtown: [['royal', 7], ['date', 2], ['coconut', 1]], business: [['royal', 7], ['date', 2], ['coconut', 1]],
     brickell: [['royal', 8], ['date', 2]], midtown: [['royal', 5], ['date', 2], ['coconut', 2], ['fan', 1]], edgewater: [['royal', 5], ['coconut', 3]], causeway: [['royal', 7], ['coconut', 3]], park: [['royal', 4], ['coconut', 3], ['sabal', 3]],
     residential: [['coconut', 4], ['sabal', 3], ['queen', 2], ['fan', 2], ['royal', 1], ['date', 1]], rural: [['sabal', 6], ['coconut', 2]], wilderness: [['sabal', 7], ['coconut', 1]], _: [['coconut', 3], ['sabal', 3], ['queen', 2], ['royal', 2], ['date', 1]] };
   const PALM_INLAND_RES = [['sabal', 3], ['queen', 2], ['fan', 2], ['date', 1]], palmCoastC = new Map();
+  const palmMG = terrain ? meshGround(terrain) : null, palmGround = (x, z) => { let g = palmMG(x, z); for (const [dx, dz] of [[0.4, 0], [-0.4, 0], [0, 0.4], [0, -0.4]]) g = Math.min(g, palmMG(x + dx, z + dz)); return g; }; // (r2-veg) the terrain as drawn
   function palmCoast(x, z) { // open / salt water within ~250 m (beach, bay, Keys): where coconut palms grow (r2-veg)
     if (!isWater) return true; const k = Math.floor(x / 50) + ',' + Math.floor(z / 50); let v = palmCoastC.get(k); if (v !== undefined) return v; v = false;
     const cx0 = (Math.floor(x / 50) + 0.5) * 50, cz0 = (Math.floor(z / 50) + 0.5) * 50;
@@ -321,7 +339,7 @@ export function createTileBuilder(ctx) {
     for (let k = 0; k < 20; k++) { const a = k / 20 * Math.PI * 2, r = 0.47; parts.push([BOXG, m4(Math.cos(a) * r, 0.008, Math.sin(a) * r, -a, 0.42, 0.014, 0.035), 0x3a3836]); }
     for (const r of [0.27, 0.68]) for (let k = 0; k < 16; k++) { const a = (k + 0.5) / 16 * Math.PI * 2; parts.push([BOXG, m4(Math.cos(a) * r, 0.009, Math.sin(a) * r, Math.PI / 2 - a, 2 * Math.PI * r / 16 + 0.01, 0.016, 0.04), 0x303030]); }
     return mergeParts(parts); })();
-  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.55 }); grateMat.name = 'tree-grate';
+  const grateMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, color: new THREE.Color(1.7, 1.7, 1.7) }); grateMat.name = 'tree-grate'; // r2-roads / r2-art: cast iron as a dielectric (metal 0, L 0.05-0.1, rough 0.75-0.85)
   const boatMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.1 });
   if (M.timeU) boatMat.onBeforeCompile = (sh) => {
     sh.uniforms.uBoatTime = M.timeU;
@@ -813,7 +831,7 @@ export function createTileBuilder(ctx) {
     const roofC = new THREE.Color(FB ? FS.roofTint : style === 'glass' ? 0x80868c : style === 'warehouse' ? 0xb8bcc0 : 0xd8d2c8);
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
     if (FB && FS && style !== 'house' && style !== 'warehouse' && style !== 'glass') corniceBands(B, b, outer, y0, h, FS, opts.lod);
-    if (FB && FS && opts.props && !opts.lod && y0 < 0.5 && !b.part && h < 40 && outer.length <= 12 && (FS.type === WIN.punched || FS.type === WIN.arched)) { // real window depth: projecting sills (+ lintels on masonry) on the street faces, window AC units, downspouts, a utility meter
+    if (FB && FS && opts.props && !opts.lod && y0 < 0.5 && !b.part && h < (ARTGEO_OFF ? 40 : 62) && outer.length <= 12 && (FS.type === WIN.punched || FS.type === WIN.arched)) { /* r2-art: was h < 40 (mid-rises up to ~18 floors read flat at street level) */ // real window depth: projecting sills (+ lintels on masonry) on the street faces, window AC units, downspouts, a utility meter
       const yU = shops ? GF : (h > 7.5 && groundStyle(FS, false, h > 45) ? Math.min(groundStyle(FS, false, h > 45).type === WIN.roller ? 5.2 : 4.4, h * 0.5) : y0), nf = Math.max(1, Math.round((h - yU) / FS.floorH)), fh = (h - yU) / nf;
       const masonry = /brickRow|stoneBank|calleRow|decoMed|medHouse|precast/.test(FS.fam), sc = new THREE.Color(FS.tint).lerp(new THREE.Color(0xe6e0d4), 0.7);
       const acC = [new THREE.Color(0xd9d7cf), new THREE.Color(0xbfbdb5), new THREE.Color(0xe6e2d6), new THREE.Color(0xa9a59b)], pipeC = new THREE.Color(FS.tint).lerp(new THREE.Color(0x9a9a96), 0.5);
@@ -824,7 +842,7 @@ export function createTileBuilder(ctx) {
         const nb = Math.max(1, Math.round(L / FS.bayW)), bw = L / nb, ww = FS.winW * bw, ry = Math.atan2(-tz, tx);
         for (let f = 0; f < Math.min(nf, 12); f++) { const wy = yU + f * fh + FS.sill * fh, wt = wy + FS.winH * fh;
           for (let k = 0; k < nb; k++) { const u = (k + 0.5) * bw, x = p[0] + tx * u, z = p[1] + tz * u;
-            if (street && f < 6) {
+            if (street && f < (ARTGEO_OFF ? 6 : 8)) {
               B.trim.addGeometry(BOXG, m4(x + nx * 0.06, wy - 0.06, z + nz * 0.06, ry, ww + 0.18, 0.11, 0.12), sc);
               if (masonry && FS.type === WIN.punched) B.trim.addGeometry(BOXG, m4(x + nx * 0.035, wt + 0.09, z + nz * 0.035, ry, ww + 0.24, 0.18, 0.07), sc.clone().multiplyScalar(0.95)); }
             const ha = hash(seed * 131 + i * 37 + f * 11 + k * 3);
@@ -853,6 +871,7 @@ export function createTileBuilder(ctx) {
           B.trim.addGeometry(CYLG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), new THREE.Color(0xcfd2d4)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), 0xffffff); } }
     }
     if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
+    else if (style === 'warehouse' && !ARTGEO_OFF && h > 4 && outer.length < 60) parapet(B.trim, outer, h, 0.55, 0.22, new THREE.Color(0xb9b6ae)); // r2-art: warehouses get a low parapet with coping (the roof edge was a knife edge)
     if (style !== 'house' && style !== 'warehouse' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && (b.area || 0) > 160) { // roof dressing: stair / elevator bulkhead, timber-and-steel water tank on legs
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), hb = hash(seed + 401);
       if (fr.L > 10 && fr.W > 8) {
@@ -867,7 +886,7 @@ export function createTileBuilder(ctx) {
         }
       }
     }
-    if (opts.props && !opts.lod && style !== 'house' && style !== 'warehouse' && style !== 'glass' && h > 6 && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks
+    if (opts.props && !opts.lod && style !== 'house' && (style !== 'warehouse' || !ARTGEO_OFF) && style !== 'glass' && h > (style === 'warehouse' ? 4 : 6) && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks (r2-art: warehouses too)
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), yb = h + (D ? baseOf(b) + 0.05 : 0), n = Math.min(4, 1 + ((b.area / 350) | 0));
       for (let k = 0; k < n; k++) { const u = (hash(seed + 801 + k) - 0.5) * Math.max(0, fr.L - 5), v = (hash(seed + 811 + k) - 0.5) * Math.max(0, fr.W - 3);
         LIBM.addClutter('rv' + b.id + '_' + k, 'roof_vents', fr.cx + fr.ux * u - fr.uz * v, yb, fr.cz + fr.uz * u + fr.ux * v, ry + (hash(seed + 821 + k) < 0.5 ? 0 : Math.PI / 2), 1); }
@@ -889,10 +908,37 @@ export function createTileBuilder(ctx) {
       for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); for (let s2 = 1; s2 < L - 0.5; s2 += 2.6) { const x = p[0] + (q[0] - p[0]) * s2 / L, z = p[1] + (q[1] - p[1]) * s2 / L, hb = hash(((x * 7) | 0) * 31 + ((z * 5) | 0)); if (hb < 0.45) continue; (hb > 0.93 ? opts.props.flower : opts.props.blob).push({ x, y: 0, z, ry: hb * 20, s: 0.7 + hb * 0.4, color: new THREE.Color().setHSL(0.22 + hb * 0.08, 0.4, 0.62) }); } }
       if (seedH < 0.8) for (const k of [0, 2]) { const p = ring[(k * ring.length / 4 | 0) % ring.length], dx = p[0] - b.cx, dz = p[1] - b.cz, l = Math.hypot(dx, dz) || 1; opts.props.palm.push({ x: p[0] + dx / l * 1.8, y: 0, z: p[1] + dz / l * 1.8, ry: seedH * 9 + k, s: 0.8 + seedH * 0.4 }); }
     }
-    if (style === 'house' && outer.length <= 6 && b.area < 600) { // hip roof over the footprint's bounding box (Mediterranean terracotta)
+    if (style === 'house' && outer.length <= 6 && b.area < 600 && ARTGEO_OFF) { /* unchanged before-state */ // before/after (?artgeo=0): the old pyramid over the world-axis bbox
       let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of outer) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
       const rg = new THREE.ConeGeometry(1, 1, 4, 1); rg.rotateY(Math.PI / 4);
-      (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0])); // per-house roof shade (faded / weathered tile)
+      (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
+    } else if (style === 'house' && outer.length <= 8 && b.area < 900) { // hip roof (r2-art: a real ridge on the footprint's own axis, 0.55 m eaves with fascia, soffit, gutters and downspouts; was a pyramid over the world-axis bbox)
+      const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), ov = 0.55, Lr = Math.max(fr.L, fr.W) + 2 * ov, Wr = Math.min(fr.L, fr.W) + 2 * ov, ryR = fr.L >= fr.W ? ry : ry + Math.PI / 2;
+      const rh = Math.min(3.2, Math.max(1.2, Wr * 0.21)), eY = h - 0.04, rC = new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]); // per-house roof shade (faded / weathered tile)
+      (FB ? B.roof : B.trim).addGeometry(hipRoofGeo(Lr, Wr, rh), mat4(fr.cx, eY, fr.cz, ryR), rC);
+      if (opts.lod !== 2) {
+        const fC = new THREE.Color(0xe7e3da), gC = new THREE.Color(0xd9d5cc), cr = Math.cos(ryR), sr = Math.sin(ryR), at = (lx, lz) => [fr.cx + lx * cr + lz * sr, fr.cz - lx * sr + lz * cr];
+        for (const [lx, lz, sx, sz] of [[0, Wr / 2, Lr, 0.05], [0, -Wr / 2, Lr, 0.05], [Lr / 2, 0, 0.05, Wr], [-Lr / 2, 0, 0.05, Wr]]) { const [x, z] = at(lx, lz); B.trim.addGeometry(BOXG, mat4(x, eY - 0.11, z, ryR, sx, 0.24, sz), fC); } // fascia boards
+        { const [x, z] = at(0, 0); B.trim.addGeometry(BOXG, mat4(x, eY - 0.21, z, ryR, Lr - 0.06, 0.03, Wr - 0.06), fC.clone().multiplyScalar(0.9)); } // soffit (vented underside of the eaves)
+        if (!opts.lod) {
+          for (const sg of [1, -1]) { const [x, z] = at(0, sg * (Wr / 2 + 0.07)); B.trim.addGeometry(BOXG, mat4(x, eY - 0.12, z, ryR, Lr, 0.12, 0.12), gC); } // K-style gutters on the eave sides
+          const yb = 0; // batch geometry is relative to the building base (like the other downspouts)
+          for (const [sx, sz] of [[1, 1], [-1, -1]]) { const lx = sx * (Lr / 2 - ov - 0.12), lz = sz * (Wr / 2 - ov + 0.06), [x, z] = at(lx, lz), dh = eY - 0.15 - (y0 + yb); { const [ex, ez] = at(lx, sz * (Wr / 2 - ov / 2 + 0.03)); B.trim.addGeometry(BOXG, mat4(ex, eY - 0.2, ez, ryR, 0.075, 0.075, ov + 0.1), gC); } // elbow back from the gutter to the wall // downspouts at two opposite corners, elbow at the gutter, kick-out shoe
+            B.trim.addGeometry(BOXG, mat4(x, (eY - 0.15 + y0 + yb) / 2, z, ryR, 0.075, dh, 0.075), gC);
+            const [kx, kz] = at(lx, lz + sz * 0.16); B.trim.addGeometry(BOXG, mat4(kx, y0 + yb + 0.07, kz, ryR, 0.075, 0.075, 0.3), gC); }
+          // condenser on a pad against the wall, and a roof breaker on some: TV antenna mast or a small satellite dish
+          if (hash(seed + 1201) < 0.75) { const sg = hash(seed + 1202) < 0.5 ? 1 : -1, lx = (hash(seed + 1203) - 0.5) * (Lr - 2 * ov - 1.6), lz = sg * (Wr / 2 - ov + 0.55), [x, z] = at(lx, lz);
+            B.trim.addGeometry(BOXG, mat4(x, y0 + 0.05, z, ryR, 1.05, 0.1, 1.0), new THREE.Color(0xa9a59c)); // concrete pad
+            B.trim.addGeometry(BOXG, mat4(x, y0 + 0.47, z, ryR, 0.78, 0.74, 0.78), new THREE.Color(0xc9c7bf)); // casing
+            B.trim.addGeometry(BOXG, mat4(x, y0 + 0.85, z, ryR, 0.66, 0.03, 0.66), new THREE.Color(0x3d3f40)); // fan grille
+            const [px, pz] = at(lx + 0.25, sg * (Wr / 2 - ov + 0.08)); B.trim.addGeometry(BOXG, mat4(px, y0 + 0.75, pz, ryR, 0.06, 0.9, 0.06), new THREE.Color(0x8e8c86)); } // line set into the wall
+          const hb = hash(seed + 1204);
+          if (hb < 0.18) { const [x, z] = at(-Lr / 2 + ov + 1.2, 0); B.trim.addGeometry(BOXG, mat4(x, eY + rh * 0.6 + 1.0, z, ryR, 0.05, 2.6, 0.05), new THREE.Color(0x9a9c9e)); // antenna mast + elements
+            for (let k = 0; k < 3; k++) B.trim.addGeometry(BOXG, mat4(x, eY + rh * 0.6 + 1.6 + k * 0.45, z, ryR + 0.6, 1.1 - k * 0.25, 0.025, 0.025), new THREE.Color(0x9a9c9e)); }
+          else if (hb < 0.38) { const [x, z] = at(Lr / 4, -Wr / 4); const dc = new THREE.Color(0xe2e0da); // dish on the rear slope
+            B.trim.addGeometry(_dishG || (_dishG = new THREE.CylinderGeometry(0.32, 0.04, 0.12, 12)), mat4(x, eY + rh * 0.55 + 0.35, z, ryR + 2.2).multiply(new THREE.Matrix4().makeRotationX(1.1)), dc); B.trim.addGeometry(BOXG, mat4(x, eY + rh * 0.55 + 0.12, z, ryR, 0.05, 0.3, 0.05), new THREE.Color(0x8a8a86)); }
+        }
+      }
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
     if (style === 'deco' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && roadDist && outer.length <= 8 && hash(seed + 601) < 0.4 && /Beach/.test(ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '')) { // Ocean Drive deco: a vertical sign fin with neon edges on the street corner
@@ -1385,6 +1431,7 @@ export function createTileBuilder(ctx) {
   function decal(B, x, z, ax, az, len, wid, cell, k = 1) {
     if (!B.decals || !M.roadDecals) return; const u0 = (cell % 4) * 0.25 + 0.002, v0 = Math.floor(cell / 4) * 0.25 + 0.002, u1 = u0 + 0.246, v1 = v0 + 0.246;
     const bx = -az, bz = ax, hl = len / 2, hw2 = wid / 2; _dc.setRGB(k, k, k); if (cell !== DEC.manhole && cell !== DEC.meterCover && cell !== DEC.grate && cell < DEC.arS || cell >= DEC.patch) _dc.multiply(decTint); // ground pass: asphalt-based decals carry the road's own tint (lanes: sun-faded)
+    if (cell >= DEC.pothole && cell <= DEC.meterCover) { if (globalThis.__r2Relief) globalThis.__r2Relief.add(cell, x, z, ax, az, len, wid); else { const Q = (globalThis.__r2ReliefQ ||= []); if (Q.length < 20000) Q.push([cell, x, z, ax, az, len, wid]); } } // r2-physics: tires feel the pothole bowl / patch / cover seat drawn here (src/vehicles/physics/relief.js)
     if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
     quadUV(B.decals, [[x + ax * hl - bx * hw2, DEC_Y, z + az * hl - bz * hw2, u0, v0], [x + ax * hl + bx * hw2, DEC_Y, z + az * hl + bz * hw2, u1, v0],
       [x - ax * hl + bx * hw2, DEC_Y, z - az * hl + bz * hw2, u1, v1], [x - ax * hl - bx * hw2, DEC_Y, z - az * hl - bz * hw2, u0, v1]], _dc);
@@ -1406,24 +1453,76 @@ export function createTileBuilder(ctx) {
     if (!main) step(lane ? 26 : 70, (s) => { const h = H(s, 7); if (h > 0.6) return; const o = (H(s, 8) - 0.5) * (2 * hw - 2.5), L2 = 1.4 + H(s, 9) * 2.4, W2 = 1.0 + H(s, 10) * 1.4; put(s + 3, o, DEC.patch, L2, W2, (H(s, 11) - 0.5) * 0.2, 0.95 + h * 0.15); });
     if (!main && !sec) step(lane ? 45 : 140, (s) => { const h = H(s, 12); if (h > (lane ? 0.65 : 0.35)) return; const o = (H(s, 13) - 0.5) * (2 * hw - 2.2), big = h < 0.25, sz = big ? 2.0 + H(s, 14) * 0.8 : 1.2 + H(s, 14) * 0.6; put(s + 5, o, big ? DEC.potholePatched : DEC.pothole, sz, sz, H(s, 15) * 6.28); });
     // manhole covers in the lanes (~1 per 60-90 m on city streets), water-meter covers near the curb
-    if (!lane) step(main ? 90 : 65, (s) => { const h = H(s, 16); const k = Math.floor(H(s, 17) * Math.max(1, total)), o = -hw + lw * (k + 0.5) + (H(s, 18) - 0.5) * 0.8; put(s + h * 20, o, DEC.manhole, 0.78, 0.78, H(s, 19) * 6.28); });
-    if (!lane && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) step(55, (s) => { const h = H(s, 20); if (h > 0.4) return; const side = h < 0.2 ? 1 : -1; put(s + 9, side * (hw - 0.6), DEC.meterCover, 0.52, 0.52, H(s, 21) * 6.28); });
+    // (r2-roads: replaced by the library cover models of surfaces/covers.js once they are loaded; `?covers=0` keeps these decals)
+    const libCovers = !!COVERS.parts;
+    if (!lane && !libCovers) step(main ? 90 : 65, (s) => { const h = H(s, 16); const k = Math.floor(H(s, 17) * Math.max(1, total)), o = -hw + lw * (k + 0.5) + (H(s, 18) - 0.5) * 0.8; put(s + h * 20, o, DEC.manhole, 0.78, 0.78, H(s, 19) * 6.28); });
+    if (!lane && !libCovers && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) step(55, (s) => { const h = H(s, 20); if (h > 0.4) return; const side = h < 0.2 ? 1 : -1; put(s + 9, side * (hw - 0.6), DEC.meterCover, 0.52, 0.52, H(s, 21) * 6.28); });
     // storm-drain grates at curbed edges: one every ~45 m per side and one just upstream of each junction mouth
-    if (!lane && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) for (const side of [-1, 1]) { step(45, (s) => put(s + 20 + H(s, 22 + side) * 8, side * (hw - 0.3), DEC.grate, 0.95, 0.5));
+    if (!lane && !libCovers && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) for (const side of [-1, 1]) { step(45, (s) => put(s + 20 + H(s, 22 + side) * 8, side * (hw - 0.3), DEC.grate, 0.95, 0.5));
       if (pe && pe.A && pe.A.D) put(pe.A.mk + 3 - pe.s0, side * (hw - 0.3), DEC.grate, 0.95, 0.5); if (pe && pe.B && pe.B.D) put(pe.LE - pe.B.mk - 3 - pe.s0, side * (hw - 0.3), DEC.grate, 0.95, 0.5); }
     // oil: drips down the lane centers, puddles where cars wait at stop bars
     if (!lane) step(main ? 30 : 40, (s) => { const h = H(s, 25); if (h > 0.3) return; /* ground pass: fewer drips */ const k = Math.floor(H(s, 26) * Math.max(1, total)), o = -hw + lw * (k + 0.5); put(s + h * 10, o, h < 0.27 ? DEC.oilA : DEC.oilB, 1.4 + H(s, 27), 0.9 + H(s, 28) * 0.6, H(s, 29) * 6.28, 0.7 + h); });
     if (pe) for (const [L, atB] of [[pe.A, false], [pe.B, true]]) { if (!L || !L.bar) continue; const n = atB ? r.lanesFwd : r.lanesBack, c = -hw + r.lanesBack * lw;
       for (let k = 0; k < n; k++) { const o = atB ? (r.oneway ? -hw : c) + lw * (k + 0.5) : (r.oneway ? hw : c) - lw * (k + 0.5), st = L.bar[1] + 2.5 + H(k * 13, 30) * 3, sl = atB ? pe.LE - st - pe.s0 : st - pe.s0; put(sl, o, (k & 1) ? DEC.oilA : DEC.oilB, 2.2, 1.3, 0, 0.9); } }
   }
-  // turn arrows on the multi-lane approaches of big junctions: left lane left (or straight+left), middle straight, right lane straight+right
+  // lane-use arrows (r2-roads, MUTCD 3B.20): only in TURN lanes approaching a junction, never on through / shared lanes and never
+  // mid-block. Movements come from the junction's legs (through within ~43 deg, left / right beyond; a one-way leg that only flows
+  // into the node is no exit). Turn lanes: the leftmost lane of a 3+ lane signalized approach that can turn left (exclusive left-turn
+  // lane), or every lane of a 2+ lane approach with no through movement (T stem: left half left, right half right). The first arrow
+  // sits ~6 m behind the stop bar; a second one ~36 m back only where the approach is long enough to be clear of the junction behind.
+  // `?arrows=old` restores the previous rule (arrows in every lane of every multi-lane approach) for A/B.
+  const ARROWS_OLD = typeof location !== 'undefined' && /[?&]arrows=old/.test(location.search);
+  function arrowCells(r, L, J, n) { // per lane (k = 0: leftmost, next to the center line): decal cell or -1 (no arrow)
+    const cells = new Array(n).fill(-1); if (L.lane) return cells;
+    const tx = -L.dx, tz = -L.dz; let hasL = false, hasS = false, hasR = false, sharpTurns = true;
+    for (const Mg of J.legs) { if (Mg === L) continue; const e = Mg.edge; if (e && e.oneway && !Mg.atA) continue;
+      const ang = Math.atan2(tx * Mg.dz - tz * Mg.dx, tx * Mg.dx + tz * Mg.dz); // + = right turn (x east, z south)
+      const cont = Math.abs(ang) < 1.25 && L.edge && ((L.edge.name && e.name === L.edge.name) || (e.kind === L.edge.kind && Math.abs((e.width || 0) - (L.edge.width || 0)) < 1)); // the same road bending on through the node
+      if (Math.abs(ang) < 0.75 || cont) hasS = true; else if (Math.abs(ang) < 2.6) { if (ang > 0) hasR = true; else hasL = true; if (Math.abs(ang) < 1.05) sharpTurns = false; } }
+    if (!hasS) { if (!sharpTurns) return cells; if (hasL && hasR) for (let k = 0; k < n; k++) cells[k] = k < n / 2 ? DEC.arL : DEC.arR; else if (hasL) cells.fill(DEC.arL); else if (hasR) cells.fill(DEC.arR); }
+    else if (hasL && n >= 3 && L.ctrl === 'signal') cells[0] = DEC.arL;
+    return cells;
+  }
   function turnArrows(B, fr, r, hw, pe) {
     if (!pe || !B.decals || !M.roadDecals) return; const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), c = -hw + r.lanesBack * lw;
     for (const [L, atB, J] of [[pe.A, false, pe.Ja], [pe.B, true, pe.Jb]]) {
       if (!L || !J || J.legs.length < 3) continue; const n = atB ? r.lanesFwd : r.lanesBack; if (n < 2 || !/motorway|trunk|primary|secondary|tertiary/.test(r.kind || '')) continue;
-      for (const d of [6, 32]) { const st = (L.bar ? L.bar[1] : L.mk) + d + 2.75, sl = atB ? pe.LE - st - pe.s0 : st - pe.s0; if (sl < 0 || sl > fr[fr.length - 1].s) continue; const q = sampleAt(fr, sl), dir = atB ? 1 : -1;
+      const cells = ARROWS_OLD ? null : arrowCells(r, L, J, n); if (cells && cells.every((v) => v < 0)) continue;
+      const far = atB ? pe.A : pe.B, farMk = far ? far.mk : 0; // the junction behind this approach (its marks end here)
+      for (const d of ARROWS_OLD ? [6, 32] : [6, 36]) { const st = (L.bar ? L.bar[1] : L.mk) + d + 2.75;
+        if (!ARROWS_OLD && (pe.LE < 40 || st + 2.75 > pe.LE - farMk - (d > 6 ? 25 : 8))) continue; // approach too short: no arrow in the next block's departure
+        const sl = atB ? pe.LE - st - pe.s0 : st - pe.s0; if (sl < 0 || sl > fr[fr.length - 1].s) continue; const q = sampleAt(fr, sl), dir = atB ? 1 : -1;
         for (let k = 0; k < n; k++) { const o = atB ? (r.oneway ? -hw : c) + lw * (n - 1 - k + 0.5) : (r.oneway ? hw : c) - lw * (n - 1 - k + 0.5); // k = 0: leftmost lane (next to the center line)
-          const cell = k === 0 ? (n >= 3 ? DEC.arL : DEC.arSL) : k === n - 1 ? DEC.arSR : DEC.arS, x = q.x + q.nx * o, z = q.z + q.nz * o; if (!paintBlocked(x, z)) decal(B, x, z, q.dx * dir, q.dz * dir, 5.5, Math.min(1.8, lw * 0.6), cell); } }
+          const cell = cells ? cells[k] : k === 0 ? (n >= 3 ? DEC.arL : DEC.arSL) : k === n - 1 ? DEC.arSR : DEC.arS; if (cell < 0) continue;
+          const x = q.x + q.nx * o, z = q.z + q.nz * o; if (!paintBlocked(x, z)) decal(B, x, z, q.dx * dir, q.dz * dir, 5.5, Math.min(1.8, lw * 0.6), cell); } }
+    }
+  }
+  // r2-roads (item 11): the concrete gutter pan of curbed streets runs on around every curb return. The pan is drawn by the asphalt
+  // shader from the road frame, so it stopped square at each junction mouth and left a dark asphalt wedge between its end and the
+  // curb return (the user's shot_12 "sharp triangle"). Each curbed side of a junction now gets a 0.5 m strip from the previous
+  // leg's mouth, along its curb line to the return tangent, around the return and out to the next leg's mouth, written with a
+  // road frame of its own (the strip's centerline, curbed class) so the same shader paints the same pan, joints and grime.
+  const SEAMS_OLD = typeof location !== 'undefined' && /[?&]seams=old/.test(location.search); // A/B: the old junction seams
+  function curbGutters(B, J) {
+    if (SURF_OFF || !B.asphalt || !B.asphalt._srf || SEAMS_OLD) return;
+    const at = (L, s, side, o) => { const q = sampleFrame(L.fr, s); return [q.x + q.nx * side * o, q.z + q.nz * side * o]; };
+    const pip = (x, z) => { const P = J.poly; let ins = false; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins; } return ins; };
+    for (const c of J.corners) {
+      const a = J.legs[c.i], b = J.legs[c.j]; if (!(a.sw > 0 && b.sw > 0) || a.lane || b.lane || /service|track/.test(a.kind + b.kind)) continue;
+      if (c.kind !== 'fillet' && c.kind !== 'line') continue;
+      const P = [];
+      for (let s = a.D + 0.03; s > (c.kind === 'line' ? 0 : c.sa) + 0.4; s -= 1.0) P.push(at(a, s, 1, a.hw)); // mouth -> tangent along leg a's curb line
+      if (c.kind === 'fillet') for (const p of c.arc) P.push(p); else P.push(at(a, 0, 1, a.hw), at(b, 0, -1, b.hw));
+      for (let s = (c.kind === 'line' ? 0 : c.sb) + 0.4; s < b.D + 0.03; s += 1.0) P.push(at(b, s, -1, b.hw));
+      P.push(at(b, b.D + 0.03, -1, b.hw));
+      const Q = []; for (const p of P) { const l = Q[Q.length - 1]; if (!l || Math.hypot(p[0] - l[0], p[1] - l[1]) > 0.05) Q.push(p); } if (Q.length < 2) continue;
+      // centerline 0.25 m inside the curb line (toward the carriageway)
+      const fr0 = polyFrame(Q), C0 = [];
+      for (const f of fr0) { const nl = Math.hypot(f.nx, f.nz) || 1; let sg = 1; if (!pip(f.x + f.nx / nl * 0.4, f.z + f.nz / nl * 0.4)) sg = -1; C0.push([f.x + f.nx / nl * 0.25 * sg, f.z + f.nz / nl * 0.25 * sg]); }
+      const fr = polyFrame(C0);
+      setRoad([B.asphalt], { width: 0.5, lanesFwd: 1, lanesBack: 0, kind: 'residential', edgeId: (a.edgeId * 31 + b.edgeId) % 100003 }, fr, { e: { sidewalk: 1 }, s0: 0 }, { a: null, b: null });
+      ribbon(B.asphalt, fr, null, -0.25, 0.25, 0.0535, 0xffffff, 1 / 7);
+      setRoad([B.asphalt], null);
     }
   }
   // gore striping where two legs split at a sharp angle on highways / big arterials: white border lines from the gore point to the
@@ -1567,7 +1666,7 @@ export function createTileBuilder(ctx) {
       if (GM_ON && curbedEdge && !ys && rB > rA + 1 && !/service|track|path|footway/.test(r.kind || '')) for (const side of [-1, 1]) { // ground pass: a city street whose sidewalk is set back (tree lawn) still has a granite curb at the asphalt edge
         if (!sideOpen(side)) continue; let a = rA, b = rB; if (pe && !capA && jA) a = (side > 0 ? jA.tB : jA.tA) - pe.s0; if (pe && !capB && jB) b = pe.LE - (side > 0 ? jB.tA : jB.tB) - pe.s0; if (b < a + 1) continue;
         const oIn = side * hw, o1 = side * (hw + 0.3);
-        if (B.sidewalk) { ribbon(B.sidewalk, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB, 0xc9c6bf, 1 / 2.5, a, b); sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b); sideWall(B.sidewalk, fr, 0, o1, CURB, 0, 0xb4b1aa, side, a, b); }
+        if (B.sidewalk) { ribbon(B.sidewalk, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB - 0.004, 0xc9c6bf, 1 / 2.5, a, b); /* r2-roads: 4 mm under the slab top, so where a slab also reaches the curb it wins (was a z-fight band) */ sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b); sideWall(B.sidewalk, fr, 0, o1, CURB, 0, 0xb4b1aa, side, a, b); }
         if (coll) { coll.tag = 'roadSidewalk'; ribbon(coll, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB, 0xffffff, 1, a, b); sideWall(coll, fr, 0, oIn, CURB, 0, 0xffffff, -side, a, b); }
       }
       if (!scanShoulder && !GM_ON && !ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
@@ -1577,7 +1676,9 @@ export function createTileBuilder(ctx) {
       let s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
       if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.discA && CLIP_PAINT ? pe.discA + 1 - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : pe.discB && CLIP_PAINT ? pe.discB + 1 - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); } // old-disc ends keep their trim
       if (pe && B && B.marks) { approachMarks(B, fr, ys, r, hw, pe, false, mY); approachMarks(B, fr, ys, r, hw, pe, true, mY); }
-      if (B && B.decals && !dirt && rB > rA + 2) { roadDecals(B, fr, ys, r, hw, pe, lane, Math.max(0, rA), Math.min(L, rB)); turnArrows(B, fr, r, hw, pe); } // job 4: lived-in asphalt
+      if (B && B.decals && !dirt && rB > rA + 2) { roadDecals(B, fr, ys, r, hw, pe, lane, Math.max(0, rA), Math.min(L, rB)); turnArrows(B, fr, r, hw, pe);
+        if (!ys && props && COVERS.parts) { decTint = WHITE_T; const cv = placeCovers({ r, pe, hw, lane, L, s0: Math.max(0, rA), s1: Math.min(L, rB), sample: (s) => sampleAt(fr, s), blocked: (x, z) => paintBlocked(x, z), zoneAt,
+          decal: (x, z, ax, az, len, wid, k) => decal(B, x, z, ax, az, len, wid, DEC.patch, k) }, hash); if (cv) for (const k in cv) if (cv[k].length) (props['cv_' + k] ||= []).push(...cv[k]); } } // job 4: lived-in asphalt; r2-roads: utility covers
       if (lane && B.marks && s1 > s0 + 2) { // Keys lane: a faded, broken center line on the wider ones, plus dark sealed patches
         if (r.width >= 6 && !r.oneway && hash((r.edgeId ?? 0) * 17 + 3) < 0.6) { const base = pe ? -pe.s0 : s0; for (let s = base + Math.floor((s0 - base) / 12) * 12; s < s1; s += 12) { const a = Math.max(s0, s), b = Math.min(s1, s + 4.5); if (b > a + 0.3) markRibbon(B, fr, ys, -0.06, 0.06, mY, 0xa89660, 1, a, b); } }
         if (B.decals && M.roadDecals) { decTint = LANE_TINT; const eid = r.edgeId ?? 0; // ground pass: sealed patches as irregular soft-edged decals in the lane's own asphalt (were dark rectangles)
@@ -1588,7 +1689,8 @@ export function createTileBuilder(ctx) {
       if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service' && !dirt && !lane) {
         const base = pe ? -pe.s0 : s0; // dash phase fixed to the edge
         const dash = (off, w, len, gap, col) => { const P = len + gap; for (let s = base + Math.floor((s0 - base) / P) * P; s < s1; s += P) { const a = Math.max(s0, s), b = Math.min(s1, s + len); if (b > a + 0.05) markRibbon(B, fr, ys, off - w, off + w, mY, col, 1, a, b); } };
-        if (!r.oneway) { // yellow double center line at the forward/back split
+        const localSt = !ARROWS_OLD && /residential|living_street/.test(r.kind || '') && total <= 2 && r.width < 9.5; // r2-roads: local residential streets carry no center line (US practice; MUTCD 3B.01 only asks for it on collectors / arterials)
+        if (!r.oneway && !localSt) { // yellow double center line at the forward/back split
           const c = -hw + r.lanesBack * lw;
           markRibbon(B, fr, ys, c - 0.26, c - 0.14, mY, 0xf2c230, 1, s0, s1); markRibbon(B, fr, ys, c + 0.14, c + 0.26, mY, 0xf2c230, 1, s0, s1);
         }
@@ -1729,16 +1831,19 @@ export function createTileBuilder(ctx) {
       const J = lv.kind === 'ground' ? junctionOf(n.id) : null;
       if (J) { // job 4: one outline with curb returns, same layer / texture / height as the approach ribbons (no stacked fills)
         fillPoly(B.asphalt, [J.poly], 0.05, J.legs.every((l) => l.lane) ? LANE_TINT : 0xffffff, 1 / 7);
+        curbGutters(B, J); // r2-roads: gutter pan around the curb returns
         if (coll) { coll.tag = 'junction'; fillPoly(coll, [J.poly], 0.05, 0xffffff, 1); }
         const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
         rampsInto(swB && !swB.empty ? swB : null, coll, J);
         if (B.lines) goreStripes(B, J);
         if (GM_ON && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // ground pass: curb returns along open corners between curbed legs (tree-lawn streets)
           if (c.kind !== 'fillet' || !(J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0) || J.legs[c.i].lane || J.legs[c.j].lane || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
-          const m0 = c.arc[c.arc.length >> 1], dx0 = c.O[0] - m0[0], dz0 = c.O[1] - m0[1], d0 = Math.hypot(dx0, dz0) || 1; if (slabAt(tile, m0[0] + dx0 / d0 * 1.0, m0[1] + dz0 / d0 * 1.0)) continue;
+          const m0 = c.arc[c.arc.length >> 1], dx0 = c.O[0] - m0[0], dz0 = c.O[1] - m0[1], d0 = Math.hypot(dx0, dz0) || 1; const midSlab = slabAt(tile, m0[0] + dx0 / d0 * 1.0, m0[1] + dz0 / d0 * 1.0); if (midSlab && SEAMS_OLD) continue;
           const col = new THREE.Color(0xc9c6bf), w = 0.3 / c.R;
-          for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
-            quadUp(B.sidewalk, [a[0], CURB, a[1]], [b[0], CURB, b[1]], [bi[0], CURB, bi[1]], [ai[0], CURB, ai[1]], col, 1 / 2.5);
+          // r2-roads: per segment, so a slab that wraps only part of the return no longer leaves the rest of it without a curb (asphalt straight onto the dirt)
+          const segSlab = (a, b) => { const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2, dx = c.O[0] - mx, dz = c.O[1] - mz, d = Math.hypot(dx, dz) || 1; return slabAt(tile, mx + dx / d * 0.5, mz + dz / d * 0.5); };
+          for (let k = 0; k < c.arc.length - 1; k++) { if (!SEAMS_OLD && segSlab(c.arc[k], c.arc[k + 1])) continue; const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
+            quadUp(B.sidewalk, [a[0], CURB - 0.004, a[1]], [b[0], CURB - 0.004, b[1]], [bi[0], CURB - 0.004, bi[1]], [ai[0], CURB - 0.004, ai[1]], col, 1 / 2.5); // r2-roads: under a slab that reaches the return
             for (const [p, q] of [[a, b], [ai, bi]]) { const ex = q[0] - p[0], ez = q[1] - p[1], L = Math.hypot(ex, ez) || 1; let nx = ez / L, nz = -ex / L; const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2; const toO = (c.O[0] - mx) * nx + (c.O[1] - mz) * nz; if ((p === a) === (toO > 0)) { nx = -nx; nz = -nz; }
               const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], CURB, q[1]], [p[0], CURB, p[1]]]; for (const [sg, ord] of [[1, [0, 1, 2, 0, 2, 3]], [-1, [0, 2, 1, 0, 3, 2]]]) for (const ii of ord) B.sidewalk.vert(v[ii][0], v[ii][1], v[ii][2], nx * sg, 0, nz * sg, ii === 1 || ii === 2 ? L * 0.4 : 0, v[ii][1] * 0.4, col); } } // both windings: the face shows whichever way the arc runs
         }
@@ -3137,6 +3242,7 @@ export function createTileBuilder(ctx) {
     if (SK && SK.parts.patio_table) kitParts(group, 'patio_table', withMoved('cafe', props.cafe), { cast: true }); else inst(group, cafeG, vcMat, props.cafe); // props pass: library patio table (+ chairs in props.work)
     if (SK && SK.parts.umbrella_cafe) kitParts(group, 'umbrella_cafe', props.umbrella, { cast: true }); else inst(group, umbG, umbMat, props.umbrella, { colors: true });
     inst(group, grateG, grateMat, props.grate);
+    if (COVERS.parts) for (const k in COVERS.parts) if (props['cv_' + k]?.length) inst(group, COVERS.parts[k].geometry, COVERS.parts[k].material, props['cv_' + k], { colors: true }); // r2-roads: utility covers
     if (M.bulb) inst(group, bulbG, M.bulb, props.bulb);
     if (props.wire.length) { // string-light cables: two crossed thin strips per segment so they read from every side
       const wb = new Batch(), wc = new THREE.Color(0x1c1c1c), w = 0.012;
@@ -3163,7 +3269,7 @@ export function createTileBuilder(ctx) {
     // palms: split over the shared variants
     // (greenery) species by place; trees / palms the countryside streamer draws (cs: 1) are only colliders here (no double crowns)
     const per = palmVariants.map(() => []), perM = {};
-    for (const p of props.palm) { if (p.cs || (roadDist && roadDist(p.x, p.z) < -0.1)) continue; const k = palmKindOf(p); /* (greenery) never in a lane */ if (typeof k === 'string') { const h = hash(((p.x * 7) | 0) * 131 + ((p.z * 11) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.86 + ((h * 5.71) % 1) * 0.28); const pv = !p.real && (onSidewalk ? onSidewalk(p.x, p.z) : (p.street && (p.y || 0) > 0.1)); (perM[(pv ? 'p' : 'm') + k.slice(1)] ||= []).push({ ...p, y: (p.y || 0) - (pv ? 0.03 : 0.08) * s }); } else per[k].push(p); } // (greenery) pv: in paving
+    for (const p of props.palm) { if (p.cs || (roadDist && roadDist(p.x, p.z) < -0.1)) continue; const k = palmKindOf(p); /* (greenery) never in a lane */ if (typeof k === 'string') { const h = hash(((p.x * 7) | 0) * 131 + ((p.z * 11) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.86 + ((h * 5.71) % 1) * 0.28); const pv = !p.real && (onSidewalk ? onSidewalk(p.x, p.z) : (p.street && (p.y || 0) > 0.1)); const gT = !pv && terrain?.real && !terrain.real(p.x, p.z) ? palmGround(p.x, p.z) : null; (perM[(pv ? 'p' : 'm') + k.slice(1)] ||= []).push({ ...p, y: gT !== null ? gT - 0.08 * s : (p.y || 0) - (pv ? 0.03 : 0.08) * s }); /* (r2-veg) palms out of paving on synthetic land stand on the drawn terrain (were up to 10 cm in the air at curb height) */ } else per[k].push(p); } // (greenery) pv: in paving
     for (const k in perM) { const items = perM[k], L = modelPalmOf(k.slice(2), k[0] === 'p'); if (!items.length || !L) continue;
       for (const q of L.near) inst(group, q.geo, q.mat, items, { cast: true, depth: q.depth }); for (const q of L.mid) inst(group, q.geo, q.mat, items, { cast: true, depth: q.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat, items, { cast: false }); }
     per.forEach((items, v) => { if (!items.length) return; const pg = palmVariants[v], L = palmLod[v];
