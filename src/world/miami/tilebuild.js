@@ -6,6 +6,7 @@ import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { makeVegMaterial } from '../vegetation/materials.js';
 import { bakeImpostor } from '../vegetation/field.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
+import { buildJunction, sampleFrame, convexCCW, subtractConvex, bboxOf, spandrelFan } from './roadgeo.js';
 
 const PASTELS = [0xff9eb8, 0x7fe3d0, 0xffe08a, 0xbfa6ff, 0xffbf80, 0xa8eba0, 0x80d4ff, 0xff8fa8, 0xf6efe4, 0xfff3d6, 0xffb3e6, 0x9ff0e8];
 const OFFICE_TINTS = [0xf2ece2, 0xe8d2b4, 0xf5c9a8, 0xcfdce6, 0xefe0c8, 0xd9c4b4, 0xfaf3e8, 0xe6b8a0, 0xc8d8c8, 0xf0d8a0, 0xd8c8e0];
@@ -1062,13 +1063,92 @@ export function createTileBuilder(ctx) {
       if (++rc % 10 === 0) { if (flush) flush(); yield; }
       if (owned(r)) continue; // decks / ramps come from elevated.js
       const prof = roadProfile(r, tile);
+  // ---- road surfaces (stage 1 job 4): at-grade junction outlines from the approach carriageway edges with curb returns
+  // (roadgeo.js), approach stations (crosswalk, stop bar, lane-marking start) and curb ramps. One global record per graph node,
+  // so every tile (the node's own and the neighbors holding its approach pieces) agrees on where each ribbon starts.
+  const JOB4_OFF = typeof location !== 'undefined' && /[?&]job4=0/.test(location.search); // before/after switch (audit only)
+  const JN = new Map(), CW_W = 3.0, CW_SET = 0.6, BAR_GAP = 1.2, BAR_D = 0.5, RAMP_RUN = 1.6, RAMP_FLARE = 0.75;
+  const URBAN_Z = /downtown|business|commercial|nightlife|beach|residential|brickell|midtown/;
+  function junctionOf(id) { // graph node id -> junction record | null (decks, ramps, blocked crossings keep the old disc)
+    if (JN.has(id)) return JN.get(id);
+    const G = D && D.roadGraph, n = G && G.nodes ? G.nodes[id] : null; let J = null;
+    if (n && !JOB4_OFF && (n.edges || []).length >= 3 && !(n.y > 0.3 && !n.terrain)) {
+      J = safeCall(() => buildJunction(G, n), null);
+      if (J && elevated && safeCall(() => elevated.isGroundJunctionBlocked(id), false)) J = null;
+      if (J && J.poly.length < 3) J = null;
+    }
+    if (J) { // approach stations per leg (arc length from the node)
+      const zn = String(zoneAt(n.x, n.z) || ''), hwyNode = J.legs.some((l) => /motorway|trunk/.test(l.kind)), urban = URBAN_Z.test(zn);
+      for (const L of J.legs) {
+        const e = L.edge, ctrl = n.signal ? 'signal' : (L.atA ? e.controlA : e.controlB) || null; L.ctrl = ctrl;
+        const walk = L.sw > 0 && urban && !hwyNode && !/service|track|footway|path/.test(L.kind) && e.surface !== 'dirt';
+        L.cw = walk ? [L.D + CW_SET, L.D + CW_SET + CW_W] : null;
+        const stop = ctrl === 'signal' || ctrl === 'stop';
+        L.bar = stop && !/service|track/.test(L.kind) ? (L.cw ? [L.cw[1] + BAR_GAP, L.cw[1] + BAR_GAP + BAR_D] : [L.D + 1.0, L.D + 1.0 + BAR_D]) : null;
+        L.mk = L.bar ? L.bar[1] + 0.3 : L.cw ? L.cw[1] + 0.6 : L.D + 1.0; // lane / center lines start here
+        L.ramps = [];
+        if (L.cw) for (const side of [-1, 1]) { // curb ramp where the crosswalk lands on a sidewalk
+          const sm = sampleFrame(L.fr, (L.cw[0] + L.cw[1]) / 2), ox = sm.nx * side, oz = sm.nz * side, x = sm.x + ox * (L.hw + 1.1), z = sm.z + oz * (L.hw + 1.1);
+          if (!okFoot(x, z) || (isWater && isWater(x, z))) continue;
+          const at = (s, o) => { const q = sampleFrame(L.fr, s); return [q.x + q.nx * side * o, q.z + q.nz * side * o]; };
+          const c0 = L.cw[0] - 0.1, c1 = L.cw[1] + 0.1, o0 = L.hw - 0.05, o1 = L.hw + RAMP_RUN;
+          L.ramps.push({ side, fl: at(c0 - RAMP_FLARE, L.hw), f0: at(c0, L.hw), f1: at(c1, L.hw), fr: at(c1 + RAMP_FLARE, L.hw), b0: at(c0, o1), b1: at(c1, o1), w0: at(c0, L.hw + 0.6), w1: at(c1, L.hw + 0.6),
+            cut: convexCCW([at(c0 - RAMP_FLARE, o0), at(c1 + RAMP_FLARE, o0), at(c1, o1), at(c0, o1)]) });
+        }
+      }
+      J.zone = zn; J.hwy = hwyNode; J.urban = urban;
+      // sidewalk cut shapes: curb-return spandrels (fan from the sharp curb corner), the node core and the curb ramps
+      J.cuts = [];
+      for (const c of J.corners) if (c.kind === 'fillet') for (const t of spandrelFan(c)) J.cuts.push(t);
+      for (const L of J.legs) for (const rp of L.ramps) J.cuts.push(rp.cut);
+      J.cutBB = J.cuts.map(bboxOf);
+    }
+    JN.set(id, J); return J;
+  }
+  // a road piece's position on its graph edge: { s0 (edge arc length at the piece start), LE (edge length), A / B (junction leg at
+  // the edge's start / end node, or null) }. Stations along the piece: node A station s -> s - s0; node B station s -> LE - s - s0.
+  const pieceCache = new WeakMap();
+  function pieceEnds(r) {
+    if (pieceCache.has(r)) return pieceCache.get(r);
+    let out = null; const G = D && D.roadGraph, e = G && G.edges ? G.edges[r.edgeId] : null;
+    if (e && e.cum && !JOB4_OFF) { let i = e.pts.indexOf(r.pts[0]); if (i < 0) for (let k = 0; k < e.pts.length; k++) if (Math.abs(e.pts[k][0] - r.pts[0][0]) < 0.01 && Math.abs(e.pts[k][1] - r.pts[0][1]) < 0.01) { i = k; break; }
+      if (i >= 0) { const Ja = junctionOf(e.a), Jb = junctionOf(e.b);
+        out = { s0: e.cum[i], LE: e.length, e, A: Ja ? Ja.legs.find((l) => l.edgeId === r.edgeId && l.atA) || null : null, B: Jb ? Jb.legs.find((l) => l.edgeId === r.edgeId && !l.atA) || null : null, Ja, Jb }; } }
+    pieceCache.set(r, out); return out;
+  }
+  // continental crosswalk (bars along the travel direction), stop bar, curb ramps for one approach leg drawn on this piece
+  function approachMarks(B, fr, ys, r, hw, pe, atB, mY) {
+    const L = atB ? pe.B : pe.A; if (!L) return;
+    const loc = (s) => (atB ? pe.LE - s - pe.s0 : s - pe.s0), span = (a, b) => { const p = loc(a), q = loc(b); return p < q ? [p, q] : [q, p]; };
+    const PAINT = 0xf2f1ec;
+    if (L.cw) { const [c0, c1] = span(L.cw[0], L.cw[1]), W = 2 * hw - 0.5, n = Math.max(2, Math.floor((W + 0.6) / 1.2)), o0 = -(n * 1.2 - 0.6) / 2;
+      for (let k = 0; k < n; k++) ribbon(B.marks, fr, ys, o0 + k * 1.2, o0 + k * 1.2 + 0.6, mY, PAINT, 1, c0, c1); }
+    if (L.bar) { const [b0, b1] = span(L.bar[0], L.bar[1]), total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), c = -hw + r.lanesBack * lw;
+      if (atB && r.lanesFwd) ribbon(B.marks, fr, ys, r.oneway ? -hw + 0.3 : c + 0.3, hw - 0.3, mY, PAINT, 1, b0, b1);
+      if (!atB && r.lanesBack) ribbon(B.marks, fr, ys, -hw + 0.3, r.oneway ? hw - 0.3 : c - 0.3, mY, PAINT, 1, b0, b1); }
+  }
+  // curb ramps (sloped concrete, yellow detectable-warning pad at the street edge) for every crosswalk landing on a sidewalk
+  function rampsInto(tgt, coll, J) {
+    const Y0 = 0.055, Y1 = CURB, white = new THREE.Color(0xffffff), warn = new THREE.Color(0xe8b830);
+    for (const L of J.legs) for (const rp of L.ramps) {
+      const P = (p, y) => [p[0], y, p[1]], yW = Y0 + (Y1 - Y0) * (0.6 / RAMP_RUN);
+      if (tgt) { quadUp(tgt, P(rp.f0, Y0), P(rp.f1, Y0), P(rp.w1, yW), P(rp.w0, yW), warn, 1 / 2.5); quadUp(tgt, P(rp.w0, yW), P(rp.w1, yW), P(rp.b1, Y1), P(rp.b0, Y1), white, 1 / 2.5);
+        quadUp(tgt, P(rp.fl, Y1), P(rp.f0, Y0), P(rp.b0, Y1), P(rp.b0, Y1), white, 1 / 2.5); quadUp(tgt, P(rp.f1, Y0), P(rp.fr, Y1), P(rp.b1, Y1), P(rp.b1, Y1), white, 1 / 2.5); }
+      if (coll) { coll.tag = 'roadSidewalk'; quadUp(coll, P(rp.f0, Y0), P(rp.f1, Y0), P(rp.b1, Y1), P(rp.b0, Y1), WHITE, 1); quadUp(coll, P(rp.fl, Y1), P(rp.f0, Y0), P(rp.b0, Y1), P(rp.b0, Y1), WHITE, 1); quadUp(coll, P(rp.f1, Y0), P(rp.fr, Y1), P(rp.b1, Y1), P(rp.b1, Y1), WHITE, 1); }
+    }
+  }
       const fr = polyFrame(prof.pts), L = fr[fr.length - 1].s, hw = r.width / 2, ys = prof.ys;
       // trim ends at intersections so markings/sidewalks stop at the junction
       const na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]);
-      const trimA = na && na.degree >= 3 ? na.width / 2 + 2.5 : 0, trimB = nb && nb.degree >= 3 ? nb.width / 2 + 2.5 : 0;
+      let trimA = na && na.degree >= 3 ? na.width / 2 + 2.5 : 0, trimB = nb && nb.degree >= 3 ? nb.width / 2 + 2.5 : 0;
+      // job 4: at a junction with a real outline the ribbon starts exactly at that leg's mouth (edge stations, so a piece cut by a
+      // tile seam near the node is trimmed too); markings and furniture keep clear of the curb returns
+      const pe = pieceEnds(r), jA = pe && pe.A, jB = pe && pe.B, tailB = pe ? pe.LE - pe.s0 - L : 0;
+      if (jA) trimA = Math.max(0, jA.D - pe.s0); else if (pe && pe.s0 > 0.01) trimA = 0;
+      if (jB) trimB = Math.max(0, jB.D - tailB); else if (pe && tailB > 0.01) trimB = 0;
       const yRoad = 0.05;
       // stop the ribbon just inside a junction fill drawn at this end's level (no road-over-road duplicates)
-      const lvA = trimA ? nodeLevel(tile, na) : null, lvB = trimB ? nodeLevel(tile, nb) : null;
+      const lvA = trimA && !jA ? nodeLevel(tile, na) : null, lvB = trimB && !jB ? nodeLevel(tile, nb) : null;
       const yA = ys ? ys[0] : 0, yB = ys ? ys[ys.length - 1] : 0;
       let rA = lvA && lvA.kind && junctionDrawn(tile, r.pts[0]) && Math.abs(lvA.y - yA) < 0.3 ? na.width / 2 + 0.5 : 0, rB = lvB && lvB.kind && junctionDrawn(tile, r.pts[r.pts.length - 1]) && Math.abs(lvB.y - yB) < 0.3 ? L - (nb.width / 2 + 0.5) : Infinity;  // ground-continuity R1: only cut back for a junction disc that is really drawn (no grass gap between road pieces)
       // ground-continuity: dead ends finish as a cul-de-sac bulb / rounded cap, or (inside a set piece's own ground) stop at its edge with a concrete apron
@@ -1078,23 +1158,30 @@ export function createTileBuilder(ctx) {
       if (capB) { rB = Math.min(rB, L - capB.cut); if (capB.kind === 'apron') cB = capB.cut; drawCap(B, coll, fr, L, hw, capB, true); }
       const dw = ys ? deckWidths(fr, ys, r, hw, tile) : null;
       if (dw && dw.shrunk) { if (rB > rA + 0.2) vribbon(B.asphalt, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1 / 7, rA, rB); if (coll) { coll.tag = 'deck'; vribbon(coll, fr, ys, dw.oL, dw.oR, yRoad, 0xffffff, 1); } }
-      else { if (rB > rA + 0.2) roadStrips(B.asphalt, fr, ys, hw, yRoad, rA, rB, r); if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
+      else { if (rB > rA + 0.2) { if (!ys && B.dirtRoad && (r.surface === 'dirt' || /track/.test(r.kind || ''))) ribbon(B.dirtRoad, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 4, rA, rB); else roadStrips(B.asphalt, fr, ys, hw, yRoad, rA, rB, r); } if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
       // ground-continuity R2: a thin concrete edge strip where an open road meets the verge (no raw asphalt-to-grass cut)
-      if (!ys && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
-      // markings
-      const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total);
-      const mY = yRoad + 0.015, s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
-      if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service') {
-        const dash = (off, w, len, gap, col) => { for (let s = s0; s < s1; s += len + gap) ribbon(B.marks, fr, ys, off - w, off + w, mY, col, 1, s, Math.min(s1, s + len)); };
-        if (!r.oneway) { // yellow double centre line at the forward/back split
+      if (!ys && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
+      // markings (job 4: per road class; stations on the graph edge so dashes and lines run on across tile seams)
+      const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), dirt = r.surface === 'dirt' || /track/.test(r.kind || '');
+      const mY = yRoad + 0.015;
+      let s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
+      if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); }
+      if (pe && B && B.marks) { approachMarks(B, fr, ys, r, hw, pe, false, mY); approachMarks(B, fr, ys, r, hw, pe, true, mY); }
+      if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service' && !dirt) {
+        const base = pe ? -pe.s0 : s0; // dash phase fixed to the edge
+        const dash = (off, w, len, gap, col) => { const P = len + gap; for (let s = base + Math.floor((s0 - base) / P) * P; s < s1; s += P) { const a = Math.max(s0, s), b = Math.min(s1, s + len); if (b > a + 0.05) ribbon(B.marks, fr, ys, off - w, off + w, mY, col, 1, a, b); } };
+        if (!r.oneway) { // yellow double center line at the forward/back split
           const c = -hw + r.lanesBack * lw;
           ribbon(B.marks, fr, ys, c - 0.26, c - 0.14, mY, 0xf2c230, 1, s0, s1); ribbon(B.marks, fr, ys, c + 0.14, c + 0.26, mY, 0xf2c230, 1, s0, s1);
         }
-        for (let k = 1; k < total; k++) { if (!r.oneway && k === r.lanesBack) continue; dash(-hw + k * lw, 0.07, 3, 6, 0xf4f4f0); }
-        if (r.width > 8 && !(dw && dw.shrunk)) { ribbon(B.marks, fr, ys, -hw + 0.35, -hw + 0.5, mY, 0xf4f4f0, 1, s0, s1); ribbon(B.marks, fr, ys, hw - 0.5, hw - 0.35, mY, 0xf4f4f0, 1, s0, s1); }
-        // stop bars (right-hand traffic: forward lanes are on the right half, o > 0)
-        if (trimB && r.lanesFwd) ribbon(B.marks, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
-        if (trimA && r.lanesBack) ribbon(B.marks, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
+        for (let k = 1; k < total; k++) { if (!r.oneway && k === r.lanesBack) continue; dash(-hw + k * lw, 0.07, 3, JOB4_OFF ? 6 : 9, 0xf4f4f0); } // 10 ft dashes, 30 ft gaps
+        // edge lines on open roads (no curb): white on the right, yellow on the left edge of a one-way (divided) carriageway
+        const curbed = pe ? (pe.e.sidewalk || 0) > 0 : !!r.sidewalks;
+        if ((JOB4_OFF ? r.width > 8 : (!curbed && r.width >= 6.5 && /motorway|trunk|primary|secondary|tertiary/.test(r.kind || '')) || /motorway|trunk/.test(r.kind || '')) && !(dw && dw.shrunk)) {
+          ribbon(B.marks, fr, ys, -hw + 0.35, -hw + 0.5, mY, r.oneway && !JOB4_OFF ? 0xf2c230 : 0xf4f4f0, 1, s0, s1); ribbon(B.marks, fr, ys, hw - 0.5, hw - 0.35, mY, 0xf4f4f0, 1, s0, s1); }
+        // stop bars at the old disc junctions (job-4 junctions draw theirs with the crosswalks)
+        if (trimB && !jB && !pe?.Jb && r.lanesFwd) ribbon(B.marks, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
+        if (trimA && !jA && !pe?.Ja && r.lanesBack) ribbon(B.marks, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
       }
       // sidewalks + curbs (raised, with colliders)
       if ((r.sidewalks || r.furniture) && !ys) {
@@ -1114,6 +1201,8 @@ export function createTileBuilder(ctx) {
           if (props) { // street lamps every ~32m, alternating sides
             const zR = zoneAt(r.pts[0][0], r.pts[0][1]), dense = !/beach|nightlife|port|industrial/.test(zR), lampSp = /beach|nightlife/.test(zR) || dense ? 24 : 32;
             for (let s = a + 6 + (side > 0 ? 0 : lampSp / 2); s < b2 - 4; s += lampSp) {
+      if (jA) rA = jA.D - pe.s0;
+      if (jB) rB = pe.LE - jB.D - pe.s0;
               const i = Math.max(0, fr.findIndex((f) => f.s >= s) - 1), A = fr[i], Bf = fr[Math.min(fr.length - 1, i + 1)], t = Bf.s > A.s ? (s - A.s) / (Bf.s - A.s) : 0;
               const x = A.x + (Bf.x - A.x) * t, z = A.z + (Bf.z - A.z) * t, nx = A.nx, nz = A.nz, o = side * (hw + 0.6);
               if ((!props.realLamps || (!/beach|nightlife/.test(zR) && !(tile.lamps || []).some((l) => Math.abs(l.x - x) < 20 && Math.abs(l.z - z) < 20))) && okFoot(x + nx * o, z + nz * o)) { /* mapped lamps cover their own stretch; fill the unmapped gaps */ props.lamp.push({ x: x + nx * o, y: CURB, z: z + nz * o, ry: Math.atan2(-nx * side, -nz * side) });
@@ -1222,7 +1311,7 @@ export function createTileBuilder(ctx) {
         if (/service|footway/.test(kind) || highwayNode) continue; // no zebra crossings on causeway / highway merges
         { const e = (endsOf(tile).get(endKey([n.x, n.z])) || []).find((q) => q.dx * dx + q.dz * dz > 0.95); if (e && roadProfile(e.r, tile).ys) continue; } // ramp approach
         const rx = -dz, rz = dx, d0 = n.width / 2 + 0.6;
-        for (let o = -w / 2 + 0.4; o < w / 2 - 0.3; o += 1.1) {
+        if (!J) for (let o = -w / 2 + 0.4; o < w / 2 - 0.3; o += 1.1) {
           const a = [n.x + dx * d0 + rx * o, 0.065, n.z + dz * d0 + rz * o], b = [a[0] + rx * 0.55, 0.065, a[2] + rz * 0.55];
           const c = [b[0] + dx * 3, 0.065, b[2] + dz * 3], d = [a[0] + dx * 3, 0.065, a[2] + dz * 3];
           quadUp(B.marks, a, b, c, d, new THREE.Color(0xf4f4f0), 1);
@@ -1255,10 +1344,23 @@ export function createTileBuilder(ctx) {
   const PALM_ZONES = new Set(['beach', 'nightlife', 'park', 'residential', 'downtown', 'business', 'causeway', 'commercial', 'brickell', 'midtown', 'arts', 'edgewater', 'overtown']);
   const DOOR_W = 1.9, DOOR_H = 2.75, GLASS_TOP = 3.25;
   // contract fields for INTERIORS: interior clear height, door offset along the facade (to the right when looking OUT of the shop), door width
+      const J = lv.kind === 'ground' ? junctionOf(n.id) : null;
+      if (J) { // job 4: one outline with curb returns, same layer / texture / height as the approach ribbons (no stacked fills)
+        fillPoly(B.asphalt, [J.poly], 0.05, 0xffffff, 1 / 7);
+        if (coll) { coll.tag = 'junction'; fillPoly(coll, [J.poly], 0.05, 0xffffff, 1); }
+        const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
+        rampsInto(swB && !swB.empty ? swB : null, coll, J);
+        if (!GC_OFF && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
+          if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
+          const col = new THREE.Color(0xd9d5cb), w = 0.32 / c.R;
+          for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
+            quadUp(B.sidewalk, [a[0], 0.053, a[1]], [b[0], 0.053, b[1]], [bi[0], 0.053, bi[1]], [ai[0], 0.053, ai[1]], col, 1 / 2.5); } }
+      } else {
   function annotateStorefronts(list, GF) {
     for (const f of list) {
       if (f.doorW !== undefined && f._gf === GF) continue;
       const fx = f.fx ?? f.x, fz = f.fz ?? f.z, fc = f.facing || 0, rx = -Math.cos(fc), rz = Math.sin(fc);
+      }
       f.h = +(GF - 0.02 - (f.y || 0)).toFixed(2); f.doorW = DOOR_W; f.doorH = DOOR_H; f.doorX = +((fx - f.x) * rx + (fz - f.z) * rz).toFixed(2); f._gf = GF;
     }
   }
@@ -1347,7 +1449,7 @@ export function createTileBuilder(ctx) {
     const cuts = [[-hw, 1]];
     for (let k = 0; k < lanes; k++) {
       const c = -hw + lw * (k + 0.5);
-      for (const [o0, o1, col] of [[c - 1.15, c - 0.6, 1.11], [c - 0.6, c - 0.12, 1], [c - 0.12, c + 0.12, 0.9], [c + 0.12, c + 0.6, 1], [c + 0.6, c + 1.15, 1.11]]) cuts.push([o0, col], [o1, 1]);
+      for (const [o0, o1, col] of JOB4_OFF ? [[c - 1.15, c - 0.6, 1.11], [c - 0.6, c - 0.12, 1], [c - 0.12, c + 0.12, 0.9], [c + 0.12, c + 0.6, 1], [c + 0.6, c + 1.15, 1.11]] : [[c - 1.15, c - 0.6, 1.035], [c - 0.6, c - 0.12, 1], [c - 0.12, c + 0.12, 0.965], [c + 0.12, c + 0.6, 1], [c + 0.6, c + 1.15, 1.035]]) cuts.push([o0, col], [o1, 1]); // job 4: subtle tire polish / drip line (bands read as stripes on the calmer asphalt)
     }
     cuts.push([hw, 1]);
     cuts.sort((p, q) => p[0] - q[0]);
@@ -1449,15 +1551,23 @@ export function createTileBuilder(ctx) {
     for (const t of keep) for (let i = 0; i < 3; i++) { const p = t[i], q = t[(i + 1) % 3], key = k(p) < k(q) ? k(p) + '|' + k(q) : k(q) + '|' + k(p); const e = cnt.get(key); if (e) e.n++; else cnt.set(key, { n: 1, p, q }); }
     const edges = []; for (const e of cnt.values()) if (e.n === 1) edges.push([e.p, e.q]);
     c = { tris: keep, edges }; swClip.set(rings, c); colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); return c;
+  const plazaRaised = (a) => !JOB4_OFF && a.cls === 'plaza' && a.kind === 'paved';
   }
   function slabInto(batch, clip, y, uvS, col) {
     for (const [a, b2, d] of clip.tris) quadUp(batch, [a[0], y, a[1]], [b2[0], y, b2[1]], [d[0], y, d[1]], [d[0], y, d[1]], col, uvS);
   }
-  function curbsInto(batch, clip, h, col) { // double-sided low curb faces along the clipped outline
+  function curbsInto(batch, clip, h, col) { // low curb faces along the clipped outline (job 4: one outward face per oriented edge)
+    if (clip.oriented) { for (const [p, q] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = dz / L, nz = -dx / L, v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]];
+        for (const i of [0, 2, 1, 0, 3, 2]) batch.vert(v[i][0], v[i][1], v[i][2], nx, 0, nz, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } return; }
     for (const [p, q] of clip.edges) { const dx = q[0] - p[0], dz = q[1] - p[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
       for (const s2 of [1, -1]) { const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], h, q[1]], [p[0], h, p[1]]], o = s2 > 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]; for (const i of o) batch.vert(v[i][0], v[i][1], v[i][2], nx * s2, 0, nz * s2, (i === 1 || i === 2 ? L : 0) * 0.4, v[i][1] * 0.4, col); } }
   }
   function sidewalkPoly(tgt, rings, coll, curbTgt = tgt, uvS = 1 / 2.5, tile = null) {
+    if (plazaRaised(a)) { // job 4: downtown block plazas sit flush with the sidewalk (same slab height and paving), raised edge where they meet open ground
+      const zn = zoneAt(a.rings[0][0][0], a.rings[0][0][1]), tg = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
+      fillPoly(tg, a.rings, CURB, 0xffffff, tg === B.promenade ? 1 / 8 : tg === B.panels ? 1 / 6 : 1 / 2.5);
+      const cc = new THREE.Color(0xc8c4bc); wallStrip(B.sidewalk, orient(a.rings[0]), 0, CURB, 2.5, 2.5, cc); for (let i = 1; i < a.rings.length; i++) wallStrip(B.sidewalk, orient(a.rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, cc);
+      return; }
     if (tile) { const clip = clipSidewalk(rings, tile), white = new THREE.Color(0xffffff), cc = new THREE.Color(0xd8d4cc);
       if (tgt) { slabInto(tgt, clip, CURB, uvS, white); curbsInto(curbTgt, clip, CURB, cc); }
       if (coll) { slabInto(coll, clip, CURB, 1, white); curbsInto(coll, clip, CURB, white); }
@@ -1467,7 +1577,51 @@ export function createTileBuilder(ctx) {
     wallStrip(curbTgt, outer, 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
     for (let i = 1; i < rings.length; i++) wallStrip(curbTgt, orient(rings[i]).slice().reverse(), 0, CURB, 2.5, 2.5, new THREE.Color(0xd8d4cc));
     if (coll) { fillPoly(coll, rings, CURB, 0xffffff, 1); wallStrip(coll, outer, 0, CURB, 10, 10, new THREE.Color(0xffffff)); for (let i = 1; i < rings.length; i++) wallStrip(coll, orient(rings[i]).slice().reverse(), 0, CURB, 10, 10, new THREE.Color(0xffffff)); }
+  // job 4: exact clipping. The slab is triangulated once, then every triangle has the cut shapes subtracted exactly (convex
+  // half-plane clipping, roadgeo.js): road ribbon quads, curb-return spandrels, curb ramps, old discs at deck/ramp nodes.
+  // Outline edges (polygon outline + every cut edge) become curb faces, so curbs follow the curb returns smoothly.
+  const clipShapeCache = new WeakMap();
+  function clipShapes(tile) {
+    let S = clipShapeCache.get(tile); if (S) return S;
+    const list = [], grid = new Map(), CELL = 10;
+    const put = (poly) => { if (!poly || poly.length < 3) return; const bb = bboxOf(poly), k0 = list.length; list.push({ p: poly, bb });
+      for (let gx = Math.floor(bb[0] / CELL); gx <= Math.floor(bb[2] / CELL); gx++) for (let gz = Math.floor(bb[1] / CELL); gz <= Math.floor(bb[3] / CELL); gz++) { const k = gx * 100003 + gz; let c = grid.get(k); if (!c) grid.set(k, (c = [])); c.push(k0); } };
+    const nb = [tile]; if (provider.getTile && tile.tx !== undefined) for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { if (!i && !j) continue; const o = provider.getTile(tile.tx + i, tile.tz + j); if (o && !o.then && o.roads) nb.push(o); }
+    const convex = (q) => { let sg = 0; for (let i = 0; i < q.length; i++) { const a = q[i], b = q[(i + 1) % q.length], c = q[(i + 2) % q.length], cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]); if (Math.abs(cr) < 1e-9) continue; if (!sg) sg = Math.sign(cr); else if (Math.sign(cr) !== sg) return false; } return true; };
+    for (const tt of nb) for (const r of tt.roads) { if (r.pts.length < 2) continue; const pr = roadProfile(r, tt); if (pr.ys) continue; const fr = polyFrame(pr.pts), hw = r.width / 2;
+      for (let i = 0; i < fr.length - 1; i++) { const A = fr[i], Bf = fr[i + 1]; if (Bf.s - A.s < 1e-3) continue;
+        const q = [[A.x - A.nx * hw, A.z - A.nz * hw], [A.x + A.nx * hw, A.z + A.nz * hw], [Bf.x + Bf.nx * hw, Bf.z + Bf.nz * hw], [Bf.x - Bf.nx * hw, Bf.z - Bf.nz * hw]];
+        if (convex(q)) put(convexCCW(q)); else { put(convexCCW([q[0], q[1], q[2]])); put(convexCCW([q[0], q[2], q[3]])); } } }
+    for (const tt of nb) for (const n of tt.nodes || []) { if (n.degree < 3 || nodeLevel(tt, n).kind !== 'ground') continue; const J = junctionOf(n.id);
+      if (J) for (const t of J.cuts) put(t);
+      else { const R = n.width / 2 + JUNC_PAD, ring = []; for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; ring.push([n.x + Math.cos(a) * R, n.z + Math.sin(a) * R]); } put(ring); } }
+    S = { list, grid, CELL }; clipShapeCache.set(tile, S); return S;
   }
+  }
+    let c = swClip.get(rings); if (c) return c; let tc0 = performance.now();
+    if (JOB4_OFF) { c = yield* clipGenOld(rings, tile); return c; }
+    const S = clipShapes(tile), outer = orient(rings[0]), holes = rings.slice(1).map((h) => orient(h).slice().reverse());
+    const tris = [];
+    try { const ct = outer.map(([x, z]) => new THREE.Vector2(x, z)), hs = holes.map((h) => h.map(([x, z]) => new THREE.Vector2(x, z))), all = ct.concat(...hs);
+      const ringOf = [], posIn = [], lens = [outer.length, ...holes.map((h) => h.length)]; lens.forEach((n, ri) => { for (let k = 0; k < n; k++) { ringOf.push(ri); posIn.push(k); } });
+      const rim = (u, v) => ringOf[u] === ringOf[v] && (Math.abs(posIn[u] - posIn[v]) === 1 || Math.abs(posIn[u] - posIn[v]) === lens[ringOf[u]] - 1);
+      for (const [a, b2, d] of THREE.ShapeUtils.triangulateShape(ct, hs)) tris.push({ p: [[all[a].x, all[a].y], [all[b2].x, all[b2].y], [all[d].x, all[d].y]], b: [rim(a, b2), rim(b2, d), rim(d, a)] }); } catch (e) { /* bad ring: no slab */ }
+    const keep = [], seen = new Set(); let guard = 0;
+    for (const t of tris) {
+      if ((++guard & 63) === 0 && performance.now() - tc0 > 2) { colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); yield; tc0 = performance.now(); }
+      const bb = bboxOf(t.p); seen.clear(); let pieces = [t];
+      for (let gx = Math.floor(bb[0] / S.CELL); gx <= Math.floor(bb[2] / S.CELL) && pieces.length; gx++) for (let gz = Math.floor(bb[1] / S.CELL); gz <= Math.floor(bb[3] / S.CELL) && pieces.length; gz++) {
+        const cell = S.grid.get(gx * 100003 + gz); if (!cell) continue;
+        for (const k of cell) { if (seen.has(k)) continue; seen.add(k); const sh = S.list[k]; if (sh.bb[2] < bb[0] || sh.bb[0] > bb[2] || sh.bb[3] < bb[1] || sh.bb[1] > bb[3]) continue;
+          const next = []; for (const pc of pieces) for (const q of subtractConvex(pc, sh.p, sh.bb)) next.push(q); pieces = next; if (!pieces.length) break; } }
+      for (const pc of pieces) { let a2 = 0; for (let i = 0; i < pc.p.length; i++) { const p = pc.p[i], q = pc.p[(i + 1) % pc.p.length]; a2 += p[0] * q[1] - q[0] * p[1]; } if (Math.abs(a2) > 0.008) { pc.ccw = a2 > 0; keep.push(pc); } }
+    }
+    const outT = [], edges = [];
+    for (const pc of keep) { const P = pc.p, n = P.length; for (let k = 1; k < n - 1; k++) outT.push([P[0], P[k], P[k + 1]]);
+      for (let i = 0; i < n; i++) if (pc.b[i]) { const p = P[i], q = P[(i + 1) % n]; if (Math.hypot(q[0] - p[0], q[1] - p[1]) > 0.01) edges.push(pc.ccw ? [p, q] : [q, p]); } }
+    c = { tris: outT, edges, oriented: true }; swClip.set(rings, c); colStats.clipMax = Math.max(colStats.clipMax || 0, performance.now() - tc0); return c;
+  }
+  function* clipGenOld(rings, tile) {
   function pierDeck(B, p, coll, props) {
     const y = p.y ?? 1.2, outer = orient(p.rings[0]);
     if (B) { fillPoly(B.wood, p.rings, y, 0xffffff, 1 / 3); wallStrip(B.trim, outer, y - 0.35, y, 4, 4, new THREE.Color(0x8b6a4a)); }
@@ -1495,11 +1649,14 @@ export function createTileBuilder(ctx) {
     const nb = [tile]; if (provider.getTile && tile.tx !== undefined) for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { if (!i && !j) continue; const o = provider.getTile(tile.tx + i, tile.tz + j); if (o && !o.then && o.roads) nb.push(o); }
     for (const tt of nb) for (const r of tt.roads) { if (r.pts.length < 2) continue; if (groundOnly && roadProfile(r, tt).ys) continue; const hw = r.width / 2;
       for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1]; segs.push([a[0], a[1], b[0], b[1], hw]); put(segs.length - 1, Math.min(a[0], b[0]) - hw - 3, Math.min(a[1], b[1]) - hw - 3, Math.max(a[0], b[0]) + hw + 3, Math.max(a[1], b[1]) + hw + 3); } }
-    for (const tt of nb) for (const n of tt.nodes || []) if (n.degree >= 3 && (!groundOnly || nodeLevel(tt, n).kind === 'ground')) { const R = n.width / 2 + JUNC_PAD; segs.push([n.x, n.z, n.x, n.z, R]); put(segs.length - 1, n.x - R - 3, n.z - R - 3, n.x + R + 3, n.z + R + 3); } // junction fill (crosswalks lie on the approach ribbons)
+    const polys = [], pgrid = new Map(); // job 4: junction outlines (curb returns) instead of discs
+    for (const tt of nb) for (const n of tt.nodes || []) if (n.degree >= 3 && (!groundOnly || nodeLevel(tt, n).kind === 'ground')) { const J = nodeLevel(tt, n).kind === 'ground' ? junctionOf(n.id) : null;
+      if (J) { const bb = bboxOf(J.poly), k0 = polys.length; polys.push(J.poly); for (let gx = Math.floor((bb[0] - 3) / CELL); gx <= Math.floor((bb[2] + 3) / CELL); gx++) for (let gz = Math.floor((bb[1] - 3) / CELL); gz <= Math.floor((bb[3] + 3) / CELL); gz++) { const k = gx * 100003 + gz; if (!pgrid.has(k)) pgrid.set(k, []); pgrid.get(k).push(k0); } continue; }
+      const R = n.width / 2 + JUNC_PAD; segs.push([n.x, n.z, n.x, n.z, R]); put(segs.length - 1, n.x - R - 3, n.z - R - 3, n.x + R + 3, n.z + R + 3); } // junction fill (crosswalks lie on the approach ribbons)
     // nearest road edge: returns {gap: distance outside the footprint (negative = inside), nx, nz: outward unit vector}
     const out = { gap: 1e9, nx: 0, nz: 0 };
-    return (x, z) => { out.gap = 1e9; const c = grid.get(Math.floor(x / CELL) * 100003 + Math.floor(z / CELL)); if (!c) return out;
-      for (const i of c) { const [ax, az, bx, bz, hw] = segs[i], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - ax) * dx + (z - az) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
+    return (x, z) => { out.gap = 1e9; const key = Math.floor(x / CELL) * 100003 + Math.floor(z / CELL), c = grid.get(key);
+      if (c) for (const i of c) { const [ax, az, bx, bz, hw] = segs[i], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - ax) * dx + (z - az) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
         const ex = x - (ax + dx * t), ez = z - (az + dz * t), d = Math.hypot(ex, ez), gap = d - hw; if (gap < out.gap) { out.gap = gap; out.nx = d > 1e-6 ? ex / d : 1; out.nz = d > 1e-6 ? ez / d : 0; } }
       return out; };
   }
@@ -1544,6 +1701,11 @@ export function createTileBuilder(ctx) {
           const push = rad + 0.2 - q.gap, x2 = p.x + q.nx * push, z2 = p.z + q.nz * push, q2 = near(x2, z2);
           if (q2.gap >= rad && !(isWater && isWater(x2, z2))) { p.x = x2; p.z = z2; p.y = gY(x2, z2); keep.push(p); placeStats.snapped++; continue; }
         }
+      const pc = pgrid.get(key);
+      if (pc) for (const i of pc) { const P = polys[i]; let ins = false, bd = 1e9, bx = 0, bz = 0;
+        for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins;
+          const dx = xb - xa, dz = zb - za, L2 = dx * dx + dz * dz; let t = L2 > 0 ? ((x - xa) * dx + (z - za) * dz) / L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t; const px = xa + dx * t, pz = za + dz * t, d = Math.hypot(x - px, z - pz); if (d < bd) { bd = d; bx = px; bz = pz; } }
+        const gap = ins ? -bd : bd; if (gap < out.gap) { out.gap = gap; const ex = ins ? bx - x : x - bx, ez = ins ? bz - z : z - bz; out.nx = bd > 1e-6 ? ex / bd : 1; out.nz = bd > 1e-6 ? ez / bd : 0; } }
         placeStats.rejected++; placeStats.byKind[kind] = (placeStats.byKind[kind] || 0) + 1;
       }
       list.length = 0; for (const p of keep) list.push(p);
@@ -1946,7 +2108,7 @@ export function createTileBuilder(ctx) {
         if (!pipR(r0, gx, gz) || a.rings.slice(1).some((h) => pipR(h, gx, gz))) continue;
         if (!pipR(r0, gx + 2.5, gz) || !pipR(r0, gx - 2.5, gz) || !pipR(r0, gx, gz + 2.5) || !pipR(r0, gx, gz - 2.5)) continue; // keep off the plaza edge
         if (insideBuilding(tile, gx, gz) || (isWater && isWater(gx, gz)) || (roadDist && roadDist(gx, gz) < 3)) continue;
-        const h0 = hash(((gx * 3.3) | 0) * 7907 + ((gz * 1.7) | 0)), y = gY0(gx, gz);
+        const h0 = hash(((gx * 3.3) | 0) * 7907 + ((gz * 1.7) | 0)), y = plazaRaised(a) ? CURB : gY0(gx, gz);
         if (h0 < 0.55) { props.palm.push({ x: gx, y, z: gz, ry: h0 * 40, s: 0.85 + h0 * 0.5 }); props.grate.push({ x: gx, y: y + 0.004, z: gz }); }
         else if (h0 < 0.72) props.bench.push({ x: gx, y, z: gz, ry: ((h0 * 4) | 0) * Math.PI / 2 });
         else if (h0 < 0.78) props.bin.push({ x: gx, y, z: gz, ry: 0, k: 0 });
@@ -2009,7 +2171,7 @@ export function createTileBuilder(ctx) {
     const tile = yield* getTileG(t.tx, t.tz);
     const group = new THREE.Group(); group.name = `tile-near-${t.tx},${t.tz}`;
     if (!tile) { root.add(group); return group; }
-    const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch() };
+    const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch(), dirtRoad: new Batch() };
     if (M.facade) { B.fac = new FBatch(); B.trim = fview(B.fac, WL.stucco); B.roof = fview(B.fac, WL.roofConcrete); }
     if (M.roomGlass) { B.roomGlass = new Batch(); B.roomGlass.w = []; }
     const T0 = provider.tileSize || 200, X0 = t.tx * T0, Z0 = t.tz * T0, synth = !!(terrain && terrain.synthetic(t.tx, t.tz)), LF = { on: !!(tile.relief && D), k: null };
@@ -2050,7 +2212,7 @@ export function createTileBuilder(ctx) {
     if (LF.on) liftProps(props);
     if (synth && flora) yield* floraInto(t, tile, props);
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
-    for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
+    for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
     }
@@ -2342,7 +2504,7 @@ export function createTileBuilder(ctx) {
     for (let r = it.next(); !r.done; r = it.next()) { dummyB.guard = new Batch(); dummyB.asphalt = new Batch(); dummyB.marks = new Batch(); dummyB.sidewalk = new Batch(); dummyB.trim = new Batch(); yield; }
     flush(); yield;
     if (LFc && terrain) { const T0 = provider.tileSize || 200, tr = yield* terrain.gridGen(t.tx * T0, t.tz * T0, (t.tx + 1) * T0, (t.tz + 1) * T0, 4, { coll: true }); if (tr) { const C3 = tr.coll; for (let i = 0; i < C3.length; i++) ground.push(C3[i]); tr.geometry.dispose(); } } // same vertices as the rendered terrain
-    else for (const a of tile.areas || []) if (a.kind !== 'pool') fillPoly(g, a.rings, 0, 0xffffff, 1);
+    else for (const a of tile.areas || []) if (a.kind !== 'pool') fillPoly(g, a.rings, plazaRaised(a) ? CURB : 0, 0xffffff, 1); // job 4: raised block plazas walk at slab height
     // ground cover: every 2 m cell of this tile that is land (not water) gets a floor at y = 0, so no land is ever without a collider
     // (OSM land polygons miss slivers along the coast, tile borders and whole map-edge tiles; the visual land base covers them)
     if (isWater && !(LFc && terrain)) { const T = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? t.x0, z0 = tile.z0 ?? t.z0, C = 2, N = Math.round(T / C);
@@ -2513,5 +2675,5 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
+  return { junctionOf, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat] };
 }

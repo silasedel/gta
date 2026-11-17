@@ -286,6 +286,17 @@ export async function createMaterials(renderer) {
     full(M.wood, sPlank, 1.9); full(M.roof, sConc, 1.9, 2);
     if (M.asphalt.normalScale) M.asphalt.normalScale.multiplyScalar(0.6); // calmer grain at car height
     M.markings.normalMap = M.asphalt.normalMap; M.markings.roughnessMap = M.asphalt.roughnessMap; M.markings.roughness = 1; M.markings.map = sConc.map; M.markings.color.setScalar(2.3); // paint over the road texture, worn by the grain
+    // stage 1 job 4 (road surfaces): photoreal fine-grained asphalt from the user's road library (Models/Roads/Road 6, 2048 px
+    // albedo + normal + roughness, about 3.2 m per tile) on roads, junctions and caps; plain white / yellow paint (no concrete
+    // albedo: crosswalks read cream before) with the same grain in its normal; calm poured concrete with 1.5 m control joints on sidewalks
+    if (!/[?&]job4=0/.test(typeof location !== 'undefined' ? location.search : '')) try {
+      const [sRoad, sWalk] = await Promise.all([loadSet(renderer, 'road_asphalt'), loadSet(renderer, 'gravel_concrete')]);
+      for (const m of [M.asphalt, M.junction]) { full(m, sRoad, undefined, 7 / 3.2); m.normalScale.set(0.7, 0.7); m.color.setScalar(0.62); m.userData.mipBias = 0.35; } // calm texture: no extra blur needed
+      const mk = (t) => { const c = t.clone(); c.repeat.set(1 / 3.2, 1 / 3.2); c.needsUpdate = true; return c; };
+      M.markings.map = null; M.markings.normalMap = mk(sRoad.normalMap); M.markings.roughnessMap = mk(sRoad.arm); M.markings.normalScale.set(0.5, 0.5); M.markings.roughness = 0.85; M.markings.color.setScalar(0.92); M.markings.needsUpdate = true;
+      full(M.sidewalk, sWalk, 1.25); M.sidewalk.normalScale.set(0.6, 0.6); M.sidewalk.userData.job4 = true;
+      const sDirt = await loadSet(renderer, 'dirt'); M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); // unpaved tracks (surface 'dirt')
+    } catch (e) { console.warn('[miami] road textures', e); }
     M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
     M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);
     // props: one shared triplanar PBR array (painted metal, galvanized, rust, wood, concrete ...)
@@ -351,7 +362,7 @@ export async function createMaterials(renderer) {
       const pv = mat.onBeforeCompile;
       mat.onBeforeCompile = (sh, r) => {
         pv(sh, r);
-        sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n  diffuseColor *= texture2D( map, vMapUv, 1.25 );\n#endif');
+        sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n  diffuseColor *= texture2D( map, vMapUv, ' + (mat.userData.mipBias ?? 1.25).toFixed(2) + ' );\n#endif');
       };
     }
     mat.customProgramCacheKey = () => prevKey() + '|wear' + key;
@@ -373,7 +384,8 @@ export async function createMaterials(renderer) {
   if (M.parking) groundWear(M.parking, 0.1, 0.75, 'k', 0.35, 1.0, 0, [4.5, 4.5, 0, 0.035, 0.5], 0.06);
   for (const m of [M.markings]) groundWear(m, 0.10, 0.0, 'm', 0.6); // worn, chipped paint over the same cracks
   // sidewalks: 0.6 x 0.6 m concrete pavers in a running bond, dark sand joints (panels / promenade keep their own sets)
-  groundWear(M.sidewalk, 0.08, 0.12, 'p2', 0, 1, 0, [0.6, 0.6, 1, 0.012, 0.45], 0.06);
+  if (M.sidewalk.userData.job4) groundWear(M.sidewalk, 0.07, 0.1, 'p3', 0.15, 1, 0, [1.5, 1.5, 0, 0.008, 0.38], 0.05); // US sidewalk: 1.5 m poured panels, tooled joints
+  else groundWear(M.sidewalk, 0.08, 0.12, 'p2', 0, 1, 0, [0.6, 0.6, 1, 0.012, 0.45], 0.06);
   for (const m of [M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
   for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
   for (const m of [M.land, M.roof]) groundWear(m, 0.14, 0.12, 'l');
