@@ -19,7 +19,7 @@ import os from 'node:os';
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const LOCK_DIR = path.join(os.tmpdir(), 'port-solana-v2-browser');
-const SLOTS = 3;   // 2 after the 12:35 crash; back to 3 now that a live owner keeps its slot (the crash came from the stale-slot bug letting 6+ Chromes run)
+const SLOTS = 4;   // 16 cores, 128 GB, load ~14 with 3; the 12:35 crash came from the stale-slot bug letting 6+ Chromes run, not from 3-4
 const STALE_MS = 50 * 60 * 1000;   // a live owner keeps its slot (12 min let long runs lose it, so 4+ Chromes ran at once)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
