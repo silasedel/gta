@@ -126,10 +126,11 @@ def green_w(hh, ss):  # foliage texels: yellow-green .. blue-green with some sat
     dh = np.abs(((hh * 360 - 100 + 180) % 360) - 180)
     return (1 - sstep(55, 80, dh)) * sstep(0.06, 0.16, ss)
 
-def grade(rgb, a, target, fam, k):
+def grade(rgb, a, target, fam, k, every=False):
     hh, ss, vv = rgb2hsv(rgb)
     m = a > 0.5
-    if fam == 'bark':
+    if every: w = m.astype(np.float32)
+    elif fam == 'bark':
         w = (1 - green_w(hh, ss)) * m
     else:
         w = green_w(hh, ss) * m
@@ -140,10 +141,11 @@ def grade(rgb, a, target, fam, k):
     th, ts, tv = target[0] / 360.0, target[1], target[2]
     dh = ((th - mh + 0.5) % 1) - 0.5
     fs = np.clip(ts / max(ms, 1e-3), 0.55, 1.8); fv = np.clip(tv / max(mv, 1e-3), 0.55, 1.9 if fam != 'bark' else 3.0)
-    ww = (green_w(hh, ss) if fam != 'bark' else (1 - green_w(hh, ss))) * k
+    ww = (np.ones_like(hh) if every else green_w(hh, ss) if fam != 'bark' else (1 - green_w(hh, ss))) * k
     h2 = (hh + dh * ww) % 1; s2 = np.clip(ss * (1 + (fs - 1) * ww), 0, 1); v2 = np.clip(vv * (1 + (fv - 1) * ww), 0, 1)
     out = hsv2rgb(h2, s2, v2)
-    return out, {'before': [round(mh * 360, 1), round(ms, 3), round(mv, 3)], 'target': target}
+    w2 = w; ang2 = h2 * 2 * np.pi; ah = math.atan2(float((np.sin(ang2) * w2).sum()), float((np.cos(ang2) * w2).sum())) / (2 * np.pi) % 1
+    return out, {'before': [round(mh * 360, 1), round(ms, 3), round(mv, 3)], 'after': [round(ah * 360, 1), round(float((s2 * w2).sum() / w2.sum()), 3), round(float((v2 * w2).sum() / w2.sum()), 3)], 'target': target}
 
 def bleed(rgb, a):  # fill transparent texels with the average of nearby opaque ones (pyramid push-pull)
     levels = []; c = rgb * a[..., None]; w = a.copy()
@@ -195,7 +197,7 @@ def processed(fam, cimg, aimg, akind, nimg, fx):
         rgb = np.clip(t * (lum / max(float(lum[a > 0.5].mean()) if (a > 0.5).any() else 0.5, 0.05)) * fx.get('tintGain', 0.9), 0, 1)
     tgt = fx.get('grade') or (S['gradeLeaf'] if fam == 'leaf' else S['gradeBark'])
     if tgt and not fx.get('nograde'):
-        rgb, st = grade(rgb, a, tgt, fam, S.get('gradeK', 0.85))
+        rgb, st = grade(rgb, a, tgt, fam, fx.get('gradeK', S.get('gradeK', 0.85)), bool(fx.get('gradeAll')))
         if st: grades[(cimg.name if cimg else '?') + ':' + fam] = st
     if fam == 'leaf': rgb = bleed(rgb, a)
     nm = ('leaf' if fam == 'leaf' else 'bark') + '_' + str(len(proc_cache))
@@ -231,7 +233,7 @@ for i, sl in enumerate(ob.material_slots):
         else: akind = 'colorA' if cimg and cimg.channels == 4 else 'none'
     elif fam == 'leaf' and akind not in ('colorA', 'lumakey', 'blackkey', 'none'): aimg = img_file(akind); akind = 'map'
     n = find_tex(mt, ['Normal']); nimg = img_file(fx['normal']) if 'normal' in fx else (n[0].image if n else None)
-    nm, oc, on = processed(fam, cimg, aimg, akind, nimg, {k: v for k, v in fx.items() if k in ('tint', 'tintGain', 'grade', 'nograde', 'keyLo', 'keyHi')})
+    nm, oc, on = processed(fam, cimg, aimg, akind, nimg, {k: v for k, v in fx.items() if k in ('tint', 'tintGain', 'grade', 'nograde', 'keyLo', 'keyHi', 'gradeAll', 'gradeK')})
     slot_map[i] = build_mat(nm, oc, on, fam)
     if fam == 'leaf': leaf_slots.add(i)
     log('mat', name, '->', nm, fam, akind, cimg.name if cimg else None, cimg.size[:] if cimg else None)

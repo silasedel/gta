@@ -29,7 +29,7 @@ float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): pal
   return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
 }
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
-uniform vec4 uShape; uniform float uCrownY; // model height, bend, twist (rad), frond droop; crown attachment height (m)
+uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; // model height, bend, twist (rad), frond droop; crown attachment height (m)
 float vegInstH() {
 #ifdef USE_INSTANCING
   vec3 p = (modelMatrix * vec4(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2], 1.0)).xyz;
@@ -63,17 +63,21 @@ const VERT_BODY = `
 #ifdef VEG_MIRROR
   if (fract(vh * 173.31 + 0.27) > 0.5) transformed.x = -transformed.x; // per-instance mirror (normals flipped in beginnormal)
 #endif
-  if (uShape.x > 0.0) { // per-instance shape: trunk twist + S-bend, crown spread, frond droop (all grow with height, the base stays planted)
+  if (uShape.x > 0.0) { // per-instance shape: crown spread + frond droop around the crown's own attachment point, then trunk twist + S-bend (grow with height, the base stays planted)
+    if (aWind.y > 0.0 && transformed.y > uCrownY) {
+      vec2 cc = uCrownC;
+#ifdef VEG_MIRROR
+      if (fract(vh * 173.31 + 0.27) > 0.5) cc.x = -cc.x;
+#endif
+      vec2 rel = transformed.xz - cc; float cr = length(rel);
+      transformed.xz = cc + rel * (1.0 + uSpread * (vh6 - 0.5));
+      transformed.y -= uShape.w * (vh6 - 0.3) * cr * cr * aWind.y;
+    }
     float st = clamp(transformed.y / uShape.x, 0.0, 1.0);
     float tw = uShape.z * (vh5 - 0.5) * 2.0 * st, ct = cos(tw), sn = sin(tw);
     transformed.xz = mat2(ct, sn, -sn, ct) * transformed.xz;
     vec2 bd = vec2(cos(vh3 * 6.2831), sin(vh3 * 6.2831));
     transformed.xz += bd * uShape.y * uShape.x * (vh4 - 0.35) * (st * st - 0.35 * st * st * st);
-    if (aWind.y > 0.0 && transformed.y > uCrownY) {
-      float cr = length(transformed.xz), sp = 1.0 + 0.18 * (vh6 - 0.5);
-      transformed.xz *= sp;
-      transformed.y -= uShape.w * (vh6 - 0.3) * cr * cr * aWind.y;
-    }
   }
 #endif
   float bh = max(aWind.x, 0.0), bend = pow(bh, 1.6);
@@ -199,7 +203,7 @@ function localUniforms(o) {
   const im = o.map && o.map.userData && o.map.userData.impostor;
   return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
-    uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
+    uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
     uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 

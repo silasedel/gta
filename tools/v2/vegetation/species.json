@@ -29,10 +29,10 @@
    "height": 17,
    "bark": "Trunk|Crownshaft",
    "leafMode": "decimate",
-   "leaf0": 12000,
-   "bark0": 2400,
-   "leaf1": 3000,
-   "bark1": 500,
+   "leaf0": 6500,
+   "bark0": 1800,
+   "leaf1": 1800,
+   "bark1": 400,
    "texBark": 1024,
    "gradeLeaf": [
     80,
@@ -586,10 +586,12 @@
    "texfix": {
     "Leaves": {
      "grade": [
-      165,
-      0.22,
-      0.55
-     ]
+      150,
+      0.2,
+      0.52
+     ],
+     "gradeAll": 1,
+     "gradeK": 1.0
     }
    },
    "width": 1.5,
@@ -801,7 +803,12 @@
      "color": "textures/Grass Medium 02 Diffuse.jpg",
      "alpha": "textures/Grass Medium 02 Alpha.png"
     }
-   }
+   },
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.36
+   ]
   },
   "grass_tuft_b": {
    "src": "Models/Plants/Grass Clump 1 - Medium Grass Clumps With Dry Variant/Grass Clump 1.blend",
@@ -818,9 +825,9 @@
      "color": "textures/Grass Medium 02 Diffuse Dead.png",
      "alpha": "textures/Grass Medium 02 Alpha.png",
      "grade": [
-      55,
-      0.35,
-      0.5
+      50,
+      0.4,
+      0.33
      ]
     }
    }
@@ -844,6 +851,154 @@
     ],
     "amount": 0.9
    }
+  },
+  "moss_clump": {
+   "src": "Models/Plants/Moss 1 - Round Moss Patches With Alpha Cards/Moss 1.blend",
+   "pick": {
+    "names": "^moss_01_geometry_nodes$"
+   },
+   "height": 0.22,
+   "bark": ".",
+   "bark0": 1800,
+   "bark1": 400,
+   "texBark": 512,
+   "normals": false,
+   "gradeBark": [
+    80,
+    0.4,
+    0.32
+   ],
+   "texfix": {
+    "Moss": {
+     "fam": "bark",
+     "color": "textures/Moss 01 Color.jpg",
+     "grade": [
+      78,
+      0.42,
+      0.3
+     ]
+    }
+   },
+   "width": 1.0,
+   "zheight": 0.16,
+   "pivotBox": 1,
+   "baseBand": 0.5
+  },
+  "poinciana_b": {
+   "src": "Models/Trees/Oak Tree 4 - Pair Of Pale-Green Oaks/Oak Tree 4.blend",
+   "pick": {
+    "box": [
+     -100,
+     100,
+     -2.6,
+     100
+    ]
+   },
+   "height": 8.0,
+   "bark": "Bark",
+   "seed": 29,
+   "gradeLeaf": [
+    88,
+    0.48,
+    0.38
+   ],
+   "bloom": {
+    "fraction": 0.68,
+    "tint": [
+     0.88,
+     0.2,
+     0.06
+    ],
+    "amount": 0.95
+   }
+  },
+  "poinciana_c": {
+   "src": "Models/Trees/Tree 1 - Fluffy Grey-Green Tree/Tree 1.blend",
+   "height": 9.0,
+   "bark": "Bark",
+   "seed": 41,
+   "leaf0": 16000,
+   "bark0": 4000,
+   "leaf1": 4000,
+   "bark1": 900,
+   "gradeLeaf": [
+    88,
+    0.48,
+    0.38
+   ],
+   "bloom": {
+    "fraction": 0.6,
+    "tint": [
+     0.84,
+     0.16,
+     0.07
+    ],
+    "amount": 0.95
+   }
+  },
+  "cypress_a": {
+   "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+   "pick": {
+    "names": "^Tree_(Branches|Trunk)_01",
+    "box": [
+     -41,
+     -29,
+     40,
+     60
+    ]
+   },
+   "height": 16,
+   "bark": "Trunk",
+   "gradeLeaf": [
+    78,
+    0.42,
+    0.46
+   ],
+   "texfix": {
+    "Branches": {
+     "alpha": "textures/Tree Branches 01 Alpha.png"
+    },
+    "Trunk": {
+     "grade": [
+      22,
+      0.22,
+      0.36
+     ]
+    }
+   },
+   "seed": 53
+  },
+  "cypress_b": {
+   "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+   "pick": {
+    "names": "^Tree_(Branches|Trunk)_01",
+    "box": [
+     -50,
+     -41,
+     40,
+     60
+    ]
+   },
+   "height": 12,
+   "bark": "Trunk",
+   "gradeLeaf": [
+    78,
+    0.42,
+    0.46
+   ],
+   "texfix": {
+    "Branches": {
+     "alpha": "textures/Tree Branches 01 Alpha.png"
+    },
+    "Trunk": {
+     "grade": [
+      22,
+      0.22,
+      0.36
+     ]
+    }
+   },
+   "seed": 59
   }
  }
 }

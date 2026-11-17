@@ -110,6 +110,18 @@ export async function initV2(game) {
     block(x, z, r = 2) { const b = typeof x === 'object' ? { ...x } : { x, z, r }; blocks.push(b); cs?.rejectArea?.(b); return blocks.length - 1; },
     unblock(id) { blocks[id] = null; },
     blockedAt, solidAt,
+    // placement audit around (x, z): countryside trees whose base floats above the ground under their footprint, stand on a road,
+    // in a building / on a dock (static collider above the ground), or crowd another trunk (< 1.2 m). -> counts + examples
+    audit(x, z, r = 200) {
+      const C = game.city, cs = this.countryside, T = C?.terrain, out = { trees: 0, floating: 0, onRoad: 0, solid: 0, crowded: 0, ex: [] }; if (!cs || !T) return out;
+      const list = cs.treesNear(x, z, r), G = C.roadGraph, ne = {};
+      for (const t of list) { out.trees++; const g = Math.min(T.heightAt(t.x, t.z), T.heightAt(t.x + 0.5, t.z), T.heightAt(t.x - 0.5, t.z), T.heightAt(t.x, t.z + 0.5), T.heightAt(t.x, t.z - 0.5));
+        if (t.y > g + 0.03) { out.floating++; if (out.ex.length < 12) out.ex.push(['float', t.kind, +t.x.toFixed(1), +t.z.toFixed(1), +(t.y - g).toFixed(2)]); }
+        const e = G?.nearestEdge?.(t.x, t.z, ne, 20); if (e && e.dist < e.edge.width / 2 + 0.3) { out.onRoad++; if (out.ex.length < 12) out.ex.push(['road', t.kind, +t.x.toFixed(1), +t.z.toFixed(1)]); }
+        if (solidAt(t.x, t.z)) { out.solid++; if (out.ex.length < 12) out.ex.push(['solid', t.kind, +t.x.toFixed(1), +t.z.toFixed(1)]); } }
+      for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) if ((list[i].x - list[j].x) ** 2 + (list[i].z - list[j].z) ** 2 < 1.44) out.crowded++;
+      return out;
+    },
     groups: GROUPS, library: VEG_LIB,
     stats() { return fields.map((f) => f.stats()); },
     clearAt, clearStats,

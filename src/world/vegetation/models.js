@@ -20,6 +20,10 @@ export const VEG_MODELS = Object.fromEntries(Object.entries(VEG_LIB).map(([k, d]
 
 const _cache = new Map();
 const _loader = new GLTFLoader();
+const _glb = new Map(); // file -> Promise<gltf>: fetched + parsed as soon as this module loads (overlaps terrain / city boot)
+const fetchGLB = (f) => { if (!_glb.has(f)) _glb.set(f, _loader.loadAsync(BASE + f)); return _glb.get(f); };
+const LIB_ON = typeof location === 'undefined' || !/[?&]veglib=0\b/.test(location.search);
+if (LIB_ON && typeof window !== 'undefined') for (const [k, d] of Object.entries(VEG_LIB)) if (!d.hidden) { fetchGLB(k + '.glb').catch(() => null); fetchGLB(k + '_lod1.glb').catch(() => null); }
 
 // one merged geometry per material, with the attributes the vegetation shader expects (aWind, color)
 function partsOf(scene, def) {
@@ -36,6 +40,10 @@ function partsOf(scene, def) {
   // crown attachment height: low percentile of the foliage vertex heights (palms: where the fronds leave the trunk)
   const ly = []; for (const [m, gs] of byMat) if (!def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i += 3) ly.push(P.getY(i)); }
   ly.sort((a, b) => a - b); const yCrown = ly.length ? ly[Math.floor(ly.length * 0.04)] : yTop * 0.7;
+  // crown attachment point (x, z): the foliage just above the crown start (palms: the top of the trunk, often off-axis)
+  let ccx = 0, ccz = 0, ccn = 0; const yBand = yCrown + 0.12 * Math.max(0.3, yTop - yCrown);
+  for (const [m, gs] of byMat) if (!def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y >= yCrown && y <= yBand) { ccx += P.getX(i); ccz += P.getZ(i); ccn++; } } }
+  const crownC = ccn ? [ccx / ccn, ccz / ccn] : [0, 0];
   let rMax = 0.3; for (const [, gs] of byMat) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) rMax = Math.max(rMax, Math.hypot(P.getX(i), P.getZ(i))); }
   for (const [m, gs] of byMat) {
     const keep = gs.map((g) => { const n = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) if (g.attributes[k]) n.setAttribute(k, g.attributes[k]); if (g.index) n.setIndex(g.index); return n; });
@@ -53,18 +61,23 @@ function partsOf(scene, def) {
       const sh = (def.cls === 'shrub' ? 0.72 : 0.62) + 0.38 * Math.min(1, t * 1.6) * (0.75 + 0.25 * Math.min(1, (y - yCrown) / Math.max(0.5, yTop - yCrown)));
       C[i * 3] = C[i * 3 + 1] = C[i * 3 + 2] = sh;
     }
+    if (!bark && def.cls !== 'palm') { // broadleaf crowns: bend the card normals toward the crown's outward direction (soft, volumetric
+      // crown lighting like GTA foliage; cards that faced down / inward rendered black)
+      const N = g.attributes.normal, cy = (yCrown + yTop) / 2, k = def.radialN ?? 0.5, v = new THREE.Vector3(), o = new THREE.Vector3();
+      for (let i = 0; i < n; i++) { o.set(P.getX(i), (P.getY(i) - cy) * 0.8 + 0.25 * (yTop - yCrown), P.getZ(i)).normalize(); v.set(N.getX(i), N.getY(i), N.getZ(i));
+        if (v.dot(o) < 0) v.negate(); v.lerp(o, k).normalize(); N.setXYZ(i, v.x, v.y, v.z); } N.needsUpdate = true; }
     g.setAttribute('aWind', new THREE.BufferAttribute(W, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3));
     g.computeBoundingSphere();
     const map = m.map || null; if (map) { map.anisotropy = 8; map.colorSpace = THREE.SRGBColorSpace; }
     out.push({ name: m.name, fam: bark ? 'bark' : 'leaf', geometry: g, map, normalMap: m.normalMap || null, tris: g.index.count / 3 });
   }
   out.sort((a, b) => (a.fam === b.fam ? 0 : a.fam === 'bark' ? -1 : 1));
-  return { parts: out, height: yTop, radius: rMax, crownY: yCrown };
+  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC };
 }
 
 async function loadOne(renderer, key) {
   const def = VEG_MODELS[key]; if (!def) throw new Error('unknown vegetation model ' + key);
-  const [g0, g1] = await Promise.all([_loader.loadAsync(BASE + def.file + '.glb'), _loader.loadAsync(BASE + def.file + '_lod1.glb').catch(() => null)]);
+  const [g0, g1] = await Promise.all([fetchGLB(def.file + '.glb'), fetchGLB(def.file + '_lod1.glb').catch(() => null)]);
   const L0 = partsOf(g0.scene, def), L1 = g1 ? partsOf(g1.scene, def) : L0;
   for (const p of L1.parts) { const q = L0.parts.find((x) => x.name === p.name); if (q) { p.map = q.map; p.normalMap = q.normalMap; } }
   const C = CLS[def.cls] || CLS.tree, shape = (def.shape || C.shape).slice(); shape[0] = L0.height;
@@ -73,14 +86,14 @@ async function loadOne(renderer, key) {
   let imp = null;
   try {
     const bakeParts = L0.parts.map((p) => ({ geometry: p.geometry, material: vm(p.fam, p, { lean: 0, sway: 0, tint: 0, wear: 0, transl: 0 }).mat }));
-    imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 128 : 256, 8);
+    const tb = performance.now(); imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 128 : 256, 8); (globalThis.__vegBake ||= {})[key] = Math.round(performance.now() - tb);
   } catch (e) { console.warn('[vegetation] model impostor bake failed', key, e); }
   const model = {
     key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, lods: [L0.parts, L1.parts], imp,
     tris: [L0.parts.reduce((a, p) => a + p.tris, 0), L1.parts.reduce((a, p) => a + p.tris, 0)],
     // materials for one set of LOD bands (fade vec4 per band); shared shader programs with every other library plant
     materials(f0, f1, fi, o = {}) {
-      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, ...o };
+      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, ...o };
       const mk = (parts, f) => parts.map((p) => { const m = vm(p.fam, p, { fade: f, wear: p.fam === 'leaf' ? 0.35 : 0.25, jitter: p.fam === 'leaf' ? C.jitLeaf : C.jitBark, ...base }); return { geo: p.geometry, mat: m.mat, depth: m.depth, fam: p.fam }; });
       const out = { near: mk(L0.parts, f0), mid: f1 ? mk(L1.parts, f1) : [], imp: null };
       if (imp && fi) { const m = makeVegMaterial('imp', { map: imp.texture, fade: fi, alphaTest: 0.5, transl: 0.5, jitter: C.jitLeaf, ...base }); out.imp = { geo: imp.geometry, mat: m.mat, depth: m.depth }; }
@@ -91,8 +104,9 @@ async function loadOne(renderer, key) {
 }
 
 export function loadVegModels(renderer, keys = Object.keys(VEG_MODELS).filter((k) => !VEG_MODELS[k].hidden)) {
-  if (typeof location !== 'undefined' && /[?&]veglib=0\b/.test(location.search)) return Promise.resolve({}); // A/B: procedural plants only
-  const want = [...new Set(keys.map((k) => LEGACY[k] || k))];
+  if (!LIB_ON) return Promise.resolve({}); // A/B: procedural plants only
+  const want = [...new Set(keys.map((k) => LEGACY[k] || k))], t0 = performance.now();
   return Promise.all(want.map((k) => { if (!_cache.has(k)) _cache.set(k, loadOne(renderer, k).catch((e) => { console.warn('[vegetation] model unavailable', k, e); return null; })); return _cache.get(k).then((m) => [k, m]); }))
-    .then((list) => { const o = Object.fromEntries(list.filter(([, m]) => m)); for (const [a, k] of Object.entries(LEGACY)) if (o[k] && !o[a]) o[a] = o[k]; return o; });
+    .then((list) => { const o = Object.fromEntries(list.filter(([, m]) => m)); for (const [a, k] of Object.entries(LEGACY)) if (o[k] && !o[a]) o[a] = o[k];
+      (globalThis.__vegLoad ||= []).push({ n: want.length, ms: Math.round(performance.now() - t0) }); return o; });
 }

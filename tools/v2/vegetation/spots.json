@@ -1,14 +1,194 @@
 {
- "keys_yard":   { "at": [-873.6, 4825.2], "eyeRel": [16, 3.2, -14], "lookRel": [0, 2, 0], "tod": 11, "hidePlayer": true },
- "keys_air":    { "at": [-873.6, 4825.2], "eyeRel": [80, 65, -80], "lookRel": [0, 0, 0], "tod": 11, "hidePlayer": true },
- "keys_street": { "street": [-873.6, 4825.2], "side": 1.5, "h": 1.7, "tod": 11, "hidePlayer": true },
- "keys_shore":  { "atExpr": "(() => { const C = game.city; for (let r = 20; r < 600; r += 8) for (let k = 0; k < 48; k++) { const a = k / 48 * 6.283, x = -873.6 + Math.cos(a) * r, z = 4825.2 + Math.sin(a) * r; if (C.isWater(x, z) && !C.isWater(x - Math.cos(a) * 14, z - Math.sin(a) * 14)) return [x - Math.cos(a) * 6, z - Math.sin(a) * 6, a]; } return null; })()", "tod": 11, "hidePlayer": true },
- "keys_road":   { "street": [-1155, 5500], "side": 3, "h": 2.0, "tod": 11, "hidePlayer": true },
- "downtown":    { "street": [407, -110], "side": 2.2, "h": 1.8, "tod": 11, "hidePlayer": true },
- "brickell":    { "street": [0, 1760], "side": 2.2, "h": 1.8, "tod": 11, "hidePlayer": true },
- "beach":       { "street": [2398, 660], "side": 3, "h": 2.0, "turn": 1.2, "tod": 11, "hidePlayer": true },
- "everglades":  { "at": [-3200, 1200], "eyeRel": [20, 3, 20], "lookRel": [0, 2, 0], "tod": 11, "hidePlayer": true },
- "everglades_air": { "at": [-3200, 1200], "eyeRel": [120, 80, 120], "lookRel": [0, 0, 0], "tod": 11, "hidePlayer": true },
- "homestead":   { "street": [-1320, 3190], "side": 3, "h": 1.8, "tod": 11, "hidePlayer": true },
- "pine":        { "street": [-2000, 3600], "side": 6, "h": 2.0, "turn": 0.6, "tod": 11, "hidePlayer": true }
+ "keys_yard": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   16,
+   3.2,
+   -14
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_close": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 0.7] : null; })()",
+  "back": 11,
+  "h": 1.6,
+  "lh": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_air": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 2.2] : null; })()",
+  "back": 45,
+  "h": 28,
+  "lh": 0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_air": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   80,
+   65,
+   -80
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_street": {
+  "street": [
+   -873.6,
+   4825.2
+  ],
+  "side": 1.5,
+  "h": 1.7,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_shore": {
+  "atExpr": "(() => { const C = game.city; let best = null; for (let r = 90; r < 900 && !best; r += 10) for (let k = 0; k < 64; k++) { const a = k / 64 * 6.283, x = -873.6 + Math.cos(a) * r, z = 4825.2 + Math.sin(a) * r; if (!C.isWater(x, z)) continue; let land = 0; for (let q = 0; q < 8; q++) { const b = q / 8 * 6.283; if (!C.isWater(x + Math.cos(b) * 7, z + Math.sin(b) * 7)) land++; } if (land >= 2 && land <= 4) { best = [x + Math.cos(a) * 25, z + Math.sin(a) * 25, a + Math.PI]; break; } } return best; })()",
+  "back": 2,
+  "h": 2.2,
+  "lh": 1.5,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_road": {
+  "street": [
+   -1155,
+   5500
+  ],
+  "side": 3,
+  "h": 2.0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "downtown": {
+  "street": [
+   407,
+   -110
+  ],
+  "side": 2.2,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "brickell": {
+  "street": [
+   0,
+   1760
+  ],
+  "side": 2.2,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "everglades": {
+  "at": [
+   -3200,
+   1200
+  ],
+  "eyeRel": [
+   20,
+   3,
+   20
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "everglades_air": {
+  "at": [
+   -3200,
+   1200
+  ],
+  "eyeRel": [
+   120,
+   80,
+   120
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "park": {
+  "atExpr": "(() => { const C = game.city; for (let r = 0; r < 3000; r += 40) for (let k = 0; k < Math.max(1, r / 20); k++) { const a = k / Math.max(1, r / 20) * 6.283, x = 407 + Math.cos(a) * r, z = -110 + Math.sin(a) * r; if (C.zoneAt(x, z) === 'park' && C.zoneAt(x + 30, z) === 'park' && C.zoneAt(x - 30, z) === 'park') return [x, z, a]; } return null; })()",
+  "back": 14,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "place_test": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eval": "(() => { const V = game.vegetation, x = -873.6 + 18, z = 4825.2 - 10, out = []; for (const [k, dx, dz] of [['poinciana', 0, 0], ['bougainvillea', 4, 3], ['bougainvillea', 5.5, 3.6], ['hibiscus', -3, 4], ['coconut_bent', -6, -4], ['agave', 2, -3], ['potted', 1, 5]]) { try { out.push(V.place(k, x + dx, z + dz).key); } catch (e) { out.push('ERR ' + e.message); } } return out; })()",
+  "eyeRel": [
+   30,
+   3.0,
+   -22
+  ],
+  "lookRel": [
+   18,
+   1.5,
+   -10
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "havana": {
+  "street": [
+   -660,
+   -55
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "gardens": {
+  "street": [
+   715,
+   -3080
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "southbeach": {
+  "street": [
+   2398,
+   660
+  ],
+  "side": 3,
+  "h": 2.0,
+  "tod": 11,
+  "hidePlayer": true
+ }
 }

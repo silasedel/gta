@@ -27,15 +27,19 @@ export const VEG_LIB = {
   liveoak_c: { cls: 'tree', src: 'Oak Tree 1 - Row Of Dense Oaks (3)', r: 0.5 },
   oak_gnarled: { cls: 'tree', src: 'Oak Tree 3 - Gnarled Spreading Oak', r: 0.6 },
   poinciana: { cls: 'tree', src: 'Oak Tree 3 - Gnarled Spreading Oak (red bloom recolor)', r: 0.4 },
+  poinciana_b: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (2, red bloom recolor)', r: 0.35 },
+  poinciana_c: { cls: 'tree', src: 'Tree 1 - Fluffy Grey-Green Tree (red bloom recolor)', r: 0.4 },
   oak_pale_a: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (1)', r: 0.35 },
   oak_pale_b: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (2)', r: 0.35 },
   shade_tree: { cls: 'tree', src: 'Tree 1 - Fluffy Grey-Green Tree', r: 0.4 },
-  rubber_fig: { cls: 'tree', src: 'Rubber Fig Tree 1 - Dark Glossy Rubber Fig', r: 0.2, hidden: 1 }, // leaves render near-black in game light: not placed yet
-  mangrove: { cls: 'tree', src: 'Mangrove Tree 2 - Red Mangrove With Stilt Roots (crown and trunk only: used as buttonwood)', r: 0.3, shape: [0, 0.05, 0.7, 0.004] },
+  rubber_fig: { cls: 'tree', src: 'Rubber Fig Tree 1 - Dark Glossy Rubber Fig', r: 0.2, hidden: 1, radialN: 0.75 }, // leaves rendered near-black: retest with radial normals before placing
+  mangrove: { cls: 'tree', src: 'Mangrove Tree 2 - Red Mangrove With Stilt Roots (crown and trunk only: used as buttonwood)', r: 0.3, shape: [0, 0.05, 0.7, 0.004], hidden: 1 }, // white twisted trunk without its roots: not placed
   mangrove_b: { cls: 'tree', src: 'Mangrove Tree 1 - Low-Poly Mangrove With Mud Base (stilt roots, mud plate dropped)', r: 0.3, shape: [0, 0.06, 0.9, 0.004] },
   pine_a: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 1)', r: 0.3 },
   pine_b: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 2)', r: 0.3 },
   pine_c: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 3)', r: 0.25 },
+  cypress_a: { cls: 'tree', src: 'Tree Pack 1 pine (2), regraded light feathery green: bald cypress', r: 0.35 },
+  cypress_b: { cls: 'tree', src: 'Tree Pack 1 pine (3), regraded light feathery green: bald cypress', r: 0.3 },
   bush_round: { cls: 'shrub', src: 'Shrub 1 - Round Green Cliff Shrub' },
   bush_leafy: { cls: 'shrub', src: 'Shrub 6 - Low-Poly Leafy Bush' },
   agave: { cls: 'shrub', src: 'Shrub 2 - Blue Agave Rosette', shape: [0, 0.02, 1.2, 0] },
@@ -53,6 +57,7 @@ export const VEG_LIB = {
   tropical_bed: { cls: 'shrub', src: 'Foliage Set 1 - Tropical Fern And Palm Foliage' },
   potted_ficus: { cls: 'shrub', src: 'Potted Plant 1 - Rubber Plant In Clay Pot', shape: [0, 0.02, 0.4, 0] },
   grass_tuft_a: { cls: 'shrub', src: 'Grass Clump 1 - Medium Grass Clumps With Dry Variant (green)' },
+  moss_clump: { cls: 'shrub', src: 'Moss 1 - Round Moss Patches With Alpha Cards (the moss dome, flattened into a mound)', shape: [0, 0, 1.0, 0] },
   grass_tuft_b: { cls: 'shrub', src: 'Grass Clump 1 - Medium Grass Clumps With Dry Variant (dry)' },
 };
 
@@ -75,12 +80,13 @@ export const GROUPS = {
   banyan: ['banyan', 'banyan_b'],
   liveoak: ['liveoak_b', 'liveoak_c', 'oak_gnarled'],
   oak: ['liveoak_b', 'liveoak_c', 'oak_gnarled', 'oak_pale_b'],
-  buttonwood: ['mangrove', 'oak_pale_a'],
+  buttonwood: ['oak_pale_a', 'oak_gnarled'],
   shade: ['shade_tree', 'banyan_b', 'oak_pale_a', 'oak_pale_b'],
   gumbo: ['shade_tree', 'oak_pale_b'],
-  poinciana: ['poinciana'],
+  poinciana: ['poinciana', 'poinciana_b', 'poinciana_c'],
   mangrove: ['mangrove_b'],
   pine: ['pine_a', 'pine_b', 'pine_c'],
+  cypress: ['cypress_a', 'cypress_b'],
   hedge: ['bush_round', 'bush_leafy'],
   shrub: ['bush_round', 'bush_leafy', 'fern_clump'],
   seagrape: ['bush_leafy', 'bush_round'],
@@ -94,6 +100,7 @@ export const GROUPS = {
   tropical_bed: ['tropical_bed'],
   potted: ['potted_ficus'],
   grass_tuft: ['grass_tuft_a', 'grass_tuft_b'],
+  moss: ['moss_clump'],
 };
 // kind names used elsewhere in the game -> group
 export const GROUP_ALIAS = { coconut_palm: 'coconut', royal_palm: 'royal', sabal_palm: 'sabal', cabbage_palm: 'sabal', date_palm: 'date', queen_palm: 'queen', palm: 'palm_mix',
