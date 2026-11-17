@@ -34,6 +34,10 @@ export function build(ctx) {
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
       if (z > 5.5) { const rut = Math.max(Math.exp(-((x + 2.85 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12), Math.exp(-((x + 1.15 + Math.sin(z * 0.2) * 1.2) ** 2) / 0.12)); c = c.map((v) => v * (1 - 0.2 * rut)); }   // tire ruts
+      { // toward the open edges (beach / neighbors) the shell yard takes on the terrain's sand tone, so where the sheet dips under
+        // the terrain there is no pale-on-tan cut line
+        const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
+        const SAND = [0.97, 0.84, 0.64]; for (let k = 0; k < 3; k++) c[k] = c[k] + (SAND[k] - c[k]) * f * 0.85; }
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
       // ground-continuity: on the open (west, street) sides the sheet sinks under the surrounding ground along a wobbly line,
       // so the yard fades into the terrain instead of ending in a straight raised edge (the drive keeps its level up to the road apron)

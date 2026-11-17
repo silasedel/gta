@@ -24,10 +24,13 @@ export function build(ctx) {
   // along the shore (ref 2_back_dock), reached from the sand by three timber steps; nothing of it lies on the beach ----
   const WD = mat.wood({ marine: true }), ST = mat.steel(), CONC = mat.concrete({ marine: true }), Ls = Dk.z1, wallZ = Ls + 0.35;
   for (const [x0, x1] of [[X - 3.2, X + 3.2]]) { B.box(CONC, x1 - x0, 1.9, 0.45, M((x0 + x1) / 2, y - 0.1 - 0.95, wallZ), { color: kit.vary(0xc4bfb0, r, 0.05), wear: 1, bevel: 0.015, rand: r }); B.box(CONC, x1 - x0 + 0.04, 0.14, 0.62, M((x0 + x1) / 2, y - 0.12, wallZ), { color: kit.vary(0xd2ccbd, r, 0.04), wear: 0.8, bevel: 0.02, rand: r }); col.box((x0 + x1) / 2, y - 0.6, wallZ, x1 - x0, 1.2, 0.62, { tag: 'seawall' }); }
-  const stepRise = (y - 0.02) / 3, stepRun = 0.34;
-  for (let k = 0; k < 3; k++) { const top = y - stepRise * (k + 1) + 0.02, zz = wallZ + 0.31 + stepRun * (k + 0.5); for (let b = 0; b < 2; b++) B.box(WD, W - 0.3, 0.045, 0.15, M(X, top - 0.022, zz - 0.08 + b * 0.16), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.6, bevel: 0.004, rand: r });
+  // beach sand banked against the landing's land face and around the step stringers (no exposed concrete face, no floating step)
+  { const g = new THREE.SphereGeometry(1, 28, 8, 0, PI * 2, 0, PI / 2); g.scale(4.2, y - 0.06, 1.7); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const a = Math.atan2(pp.getZ(i), pp.getX(i)); pp.setX(i, pp.getX(i) * (1 + 0.12 * Math.sin(a * 3 + 1))); } g.computeVertexNormals();
+    B.geo(mat.pbr('sand_01', { rep: 3, gain: 1.4, grunge: true }), g, M(X, -0.02, wallZ + 0.55), { color: [0.98, 0.86, 0.68], uvMul: [4, 4] }); g.dispose(); }
+  const stepRise = (y - 0.02) / 2, stepRun = 0.36;
+  for (let k = 0; k < 1; k++) { const top = y - stepRise * (k + 1) + 0.02, zz = wallZ + 0.31 + stepRun * (k + 0.5); for (let b = 0; b < 2; b++) B.box(WD, W - 0.3, 0.045, 0.15, M(X, top - 0.022, zz - 0.08 + b * 0.16), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.6, bevel: 0.004, rand: r });
     for (const s2 of [-1, 1]) B.box(WD, 0.06, top + 0.05, 0.3, M(X + s2 * (W / 2 - 0.2), (top - 0.05) / 2, zz), { grain: 1, color: 0x6f675c, wear: 0.8 }); }
-  { const L = stepRun * 3 + 0.3, a = Math.atan2(y - 0.02, L); col.box(X, (y + 0.02) / 2 - 0.08, wallZ + 0.31 + L / 2, W - 0.3, 0.16, Math.hypot(L, y), { rx: a, tag: 'dock', surface: 'wood' }); }   // smooth walk-up
+  { const L = stepRun * 2 + 0.6, a = Math.atan2(y - 0.02, L); col.box(X, (y + 0.02) / 2 - 0.08, wallZ + 0.31 + L / 2, W - 0.3, 0.16, Math.hypot(L, y), { rx: a, tag: 'dock', surface: 'wood' }); }   // smooth walk-up
   // riprap: pale limestone blocks along the waterline of Nico's frontage (both sides of the landing), half in the water
   const shore = []; const wAt = ctx.opts.waterAt;
   if (wAt) for (let x = -20; x <= 12; x += 1.1) { if (Math.abs(x - X) < 3.4) continue; let zz = null; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) { zz = z2; break; } if (zz !== null) shore.push([x, zz]); }

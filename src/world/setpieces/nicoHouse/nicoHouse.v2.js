@@ -48,7 +48,7 @@ export async function initV2(game) {
   let dock = null;
   if (!gcOff && waterAt && !KEYS_OFF) {
     const X = 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (waterAt(X, lz) && waterAt(X, lz - 1.5) && waterAt(X, lz - 3)) { zw = lz; break; }
-    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: zw + 0.2, zw, z0: zw - 12.5, y: 0.55 };   // starts at the waterline (lead review: nothing of the dock on the sand)
+    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: zw + 0.2, zw, z0: zw - 12.5, y: 0.4 };   // starts at the waterline (lead review: nothing of the dock on the sand)
   }
   const house = await buildNicoHouse(THREE, {
     dock,
