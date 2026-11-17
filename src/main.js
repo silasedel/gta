@@ -763,6 +763,8 @@ async function boot() {
     // UI watchdog: a weapon wheel left open without Tab held must never block mouse look
     if (game.ui.weaponWheel && !game.input.down('Tab')) { unstuck.wheelT += dt; if (unstuck.wheelT > 0.5) { try { game.hud?.closeWeaponWheel?.(); } catch (e) {} game.ui.weaponWheel = false; unstuck.wheelT = 0; } } else unstuck.wheelT = 0;
     if (st.inVehicle || game.ui.dead || P.swimming || !pCol.isEnabled()) { unstuck.t = 0; return; }
+    // stage 1 perf: the checks below cost ~2 ms (ground query + shape overlap); 5 times a second is plenty
+    unstuck.acc = (unstuck.acc || 0) + dt; if (unstuck.acc < 0.2) return; dt = unstuck.acc; unstuck.acc = 0;
     const t = pBody.translation();
     // fell through a hole in the ground? (on land, well below where the ground should be) -> put back on top
     const c = game.city;

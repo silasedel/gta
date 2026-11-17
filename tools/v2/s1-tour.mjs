@@ -39,6 +39,8 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       return 1; })()`;
     await b.eval(setup);
     await b.sleep(+(o.settle || 5000));
+    // steady state: wait (up to --stream seconds, default 60) until the city streamer has (almost) nothing queued
+    for (let i = 0; i < +(o.stream || 60); i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     // frame timing over ~3 s of real frames
     const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 3000) requestAnimationFrame(f); else { ts.sort((x, y) => x - y); const avg = ts.reduce((p, c) => p + c, 0) / ts.length; const ri = game.renderer.info.render; res(JSON.stringify({ avgMs: +avg.toFixed(2), p95Ms: +ts[Math.floor(ts.length * 0.95)].toFixed(2), fps: +(1000 / avg).toFixed(1), calls: ri.calls, tris: ri.triangles, pr: game.renderer.getPixelRatio(), q: game.quality?.current?.name, pos: game.player?.position?.toArray?.().map((v) => +v.toFixed(1)) })); } }; requestAnimationFrame(f); })`);
     const out = path.join(DIR, `${SET}_${id}.png`);

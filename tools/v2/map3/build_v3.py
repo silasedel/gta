@@ -485,9 +485,9 @@ road_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 3.2, cap_style=2,
 water_u = unary_union([w['poly'] for w in W.water])
 runway_u = unary_union([a['poly'] for a in W.areas if a['kind'] in ('runway', 'apron')])
 PROFILE = {   # kind: (lot frontage m, lot depth max m, setback m, height range m, style, zone, building kind, fill)
-    'core':    (34, 60, 2.5, (40, 190), 'tower', 'downtown', 'office', 0.95),
+    'core':    (34, 60, 2.5, (40, 190), 'tower', 'commercial', 'office', 0.95),
     'city':    (26, 45, 3.0, (12, 40), 'midrise', 'residential', 'apartments', 0.9),
-    'beach':   (24, 40, 3.0, (10, 24), 'deco', 'nightlife', 'hotel', 0.92),
+    'beach':   (24, 40, 3.0, (10, 24), 'deco', 'commercial', 'hotel', 0.92),
     'port':    (60, 90, 6.0, (9, 14), 'industrial', 'port', 'warehouse', 0.8),
     'islands': (40, 50, 8.0, (7, 10), 'house', 'residential', 'house', 0.7),
     'suburb':  (22, 32, 5.0, (4.5, 7.5), 'house', 'residential', 'house', 0.85),

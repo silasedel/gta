@@ -535,6 +535,15 @@ def main():
                   ('Julia Tuttle Causeway', 'causeway'), ('Rickenbacker Causeway', 'causeway')):
         if n in dn:
             zlab[(dlab == dn[n]) & land8 & inReal8] = Z[zn]
+    try:   # stage 1 map v3 (MIAMI_NO_OSM): the traced map's districts set the big-city zones directly
+        import config as _cfg
+        if _cfg.NO_OSM:
+            for n, zn in (('Downtown', 'downtown'), ('Brickell', 'business'), ('Edgewater', 'business'), ('South Beach', 'nightlife'),
+                          ('Dodge Island Port', 'port'), ('Little Havana', 'commercial')):
+                if n in dn:
+                    zlab[(dlab == dn[n]) & land8 & (zlab != Z['water'])] = Z[zn]
+    except Exception as _e:
+        log('zones (no osm) failed', _e)
     zlab[corrM & ~land8] = Z['causeway']
     for a in areas:
         if a.get('synthetic'):

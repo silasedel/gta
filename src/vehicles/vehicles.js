@@ -1188,7 +1188,7 @@ export async function createVehicles(game) {
   const trafficDebug = { target: null };
   // simulation tiers: full ray-cast physics within SIM_R; beyond it AI traffic becomes a kinematic
   // "ghost" that follows its lane on the road graph (no controller, no wheel rays), parked cars freeze.
-  const SIM_R = 180;
+  const SIM_R = 95; // stage 1 perf: full wheel-ray physics only near the player (was 180); farther AI cars glide on their lanes (identical at range)
   let playerCarRef = null;
   function physicsRange(pp) {
     playerCarRef = list.find((v) => v.playerDriven) || null;
