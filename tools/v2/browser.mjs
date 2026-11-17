@@ -112,6 +112,13 @@ export async function withBrowser(opts, fn) {
       } else if (d.method === 'Log.entryAdded' && d.params.entry.level === 'error') errors.push('LOG ' + `${d.params.entry.text} ${d.params.entry.url || ''}`.slice(0, 500));
     };
     await send('Page.enable'); await send('Runtime.enable'); await send('Log.enable');
+    // tests never hot-reload: several helpers save files at once, and a Vite full reload mid-test ruins the run. The Vite
+    // client's socket is replaced by a fake one that opens and then stays silent (no 'close', so no reconnect polling).
+    if (!process.env.V2_ALLOW_HMR) await send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => { const W = window.WebSocket;
+      window.WebSocket = function (url, proto) { const p = [].concat(proto || []); if (!p.some((x) => /^vite-/.test(x))) return new W(url, proto);
+        const f = new EventTarget(); f.readyState = 1; f.url = url; f.protocol = p[0]; f.send = () => {}; f.close = () => {};
+        setTimeout(() => { f.dispatchEvent(new Event('open')); f.onopen?.(new Event('open')); }, 0); return f; };
+      Object.assign(window.WebSocket, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 }); window.WebSocket.prototype = W.prototype; })();` });
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
 
     const api = {
