@@ -5,6 +5,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSkids } from './skids.js';
 import { MODELS as FLEET, loadModels, buildBoatSteps } from './boats/catalog.js';
 import { createWakeFx } from './boats/wakefx.js';
+import { hullSamples, hydroStep, HULL_MU } from './boats/hydro.js';
+import { AIRBOAT_SPEC, loadAirboat, buildAirboatVisual, createFanVoice } from './boats/airboat.js';
+import { createWaves } from '../world/env/waves.js';
+import { createGladesWater } from '../world/env/gladesWater.js';
+import { createCarWater } from './water/carWater.js';
+const CARWATER_Q = (() => { try { const m = /[?&]carwater=(\d)/.exec(location.search); return m ? +m[1] : null; } catch (e) { return null; } })();
+const GLADES_Q = (() => { try { const m = /[?&]glades=(\d)/.exec(location.search); return m ? +m[1] : null; } catch (e) { return null; } })();
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const fin = (x, f = 0) => (Number.isFinite(x) ? x : f);
@@ -25,7 +32,11 @@ export const BOAT_TYPES = {
   police: { trimDeg: 6.5, brand: 'Marlin', name: 'Patrol 29', L: 8.8, W: 2.8, draft: 0.5, sheer: 0.85, bowRise: 0.45, mass: 3200, thrust: 26000, vmax: 95, turn: 0.95,
     engine: 'outboard', engines: 2, colors: [0x0b1a33], stripe: 0xf2f2f2, console: true, tTop: true, police: true },
 };
-const MAXRPM = { outboard: 6000, inboard: 5200, jetski: 7500 };
+BOAT_TYPES.airboat = AIRBOAT_SPEC; // r2-water: the fan boat (user's Boat 10 model), drives over sawgrass and mud flats
+const MAXRPM = { outboard: 6000, inboard: 5200, jetski: 7500, airboat: 3000 };
+// r2-water: boat physics. 1 = v1 (8 float springs on a hidden swell), 2 = per-point hydro on the shared waves (hydro.js).
+// ?boatphys=1|2 or game.physics.boatphys at runtime.
+const BOATPHYS_Q = (() => { try { const m = /[?&]boatphys=(\d)/.exec(location.search); return m ? +m[1] : null; } catch (e) { return null; } })();
 // V2 fleet: these v1 types now get a rebuilt, individually seeded center console (src/vehicles/boats/models/cc.js)
 const NEWKEY = { console: 'cc26', skiff: 'cc21', cruiser: 'cc34', racer: 'cc42' };
 const hash2 = (x, z) => { let h = (Math.round(x * 3) * 73856093) ^ (Math.round(z * 3) * 19349663); h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; };
@@ -251,6 +262,16 @@ function buildBoatMesh(key, color) {
   return { root, lightMats, hullPts: G.hullPts, spec: t };
 }
 
+// r2-water: the airboat's physics shell (the GLB visual is attached when loaded): flat-bottom collider, dummy nav-light mats
+function airShell(t) {
+  const root = new THREE.Group(); root.name = 'airboat';
+  const lightMats = { red: new THREE.MeshStandardMaterial(), green: new THREE.MeshStandardMaterial(), white: new THREE.MeshStandardMaterial(), bar: new THREE.MeshStandardMaterial() };
+  const L = t.L, hw = t.W / 2, k = -t.draft, s = t.sheer, pts = [];
+  for (const [x, y, z] of [[hw * 0.97, k, -L / 2], [-hw * 0.97, k, -L / 2], [hw * 0.97, k, L * 0.22], [-hw * 0.97, k, L * 0.22], [hw * 0.82, k + 0.42, L / 2], [-hw * 0.82, k + 0.42, L / 2],
+    [hw, s, -L / 2], [-hw, s, -L / 2], [hw, s + 0.08, L / 2], [-hw, s + 0.08, L / 2]]) pts.push(x, y, z);
+  return { root, lightMats, hullPts: new Float32Array(pts), spec: t };
+}
+
 // ---------------------------------------------------------------- system
 export function createBoats(game, opts = {}) {
   const { RAPIER, world, scene } = game;
@@ -275,19 +296,77 @@ export function createBoats(game, opts = {}) {
   };
   const _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _w = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3();
   let nameN = 0;
+  // ---- r2-water: shared waves (one clock; the ocean shader reads the same function), physics mode, hydro environment
+  let W = game.waves; if (!W && !opts.sim) { try { W = game.waves = createWaves(game); } catch (e) { console.warn('[boats] waves', e); W = null; } }
+  const boatPhys = () => game.physics?.boatphys ?? BOATPHYS_Q ?? 1;
+  // ?waves=2: draw the swell now by patching the ocean material(s) at runtime (until the ocean.js hook lands; r2-ground)
+  if (!opts.sim && W && /[?&]waves=2\b/.test(globalThis.location?.search || '') && !W.shaderOn) {
+    try { const oc = game.env?.ocean; const mats = [...new Set([oc?.material, ...(oc?.materials || [])].filter(Boolean))];
+      let ok = mats.length > 0; for (const m of mats) ok = W.patchOceanMaterial(m) && ok;
+      if (ok) { const g = W.makeGrid(); for (const ms of [oc.mesh, ...(oc.meshes || [])].filter(Boolean)) { ms.geometry = g; ms.frustumCulled = false; } W.shaderOn = true; }
+      else console.warn('[boats] waves=2: ocean shader anchors not found'); } catch (e) { console.warn('[boats] waves=2', e); } }
+  // r2-water: floating / sinking cars (vehicles.js waterTick hands over); ?carwater=2 on
+  if (!opts.sim && (CARWATER_Q ?? 1) >= 2 && !game.carWater) { try { game.carWater = createCarWater(game); } catch (e) { console.warn('[boats] car water', e); } }
+  // Everglades sheet water (render + the surface the airboat glides on); ?glades=0 off
+  if (!opts.sim && (GLADES_Q ?? 0) > 0 && !game.gladesWater) { try { game.gladesWater = createGladesWater(game); } catch (e) { console.warn('[boats] glades water', e); } }
+  const LKEYS = city?.terrain?.LAYERS ? city.terrain.LAYERS.map((l) => l.key) : null;
+  const glades = () => game.gladesWater || null;
+  const _ws = { h: 0, nx: 0, ny: 1, nz: 0, a: 0 };
+  function groundKind(x, z) {
+    const sf = city?.surfaceAt?.(x, z) || '';
+    if (/asphalt|road|concrete|sidewalk|curb|plaza|paving|brick|tile/.test(sf)) return /asphalt|road/.test(sf) ? 'asphalt' : 'concrete';
+    if (/wood|pier|deck/.test(sf)) return 'wood';
+    if (LKEYS && city.terrain.layerAt) { const k = LKEYS[city.terrain.layerAt(x, z)]; if (k && HULL_MU[k] !== undefined) return k; if (k === 'farm' || k === 'base') return 'dirt'; if (k === 'forest' || k === 'pine' || k === 'grove' || k === 'meadow') return 'grass'; }
+    if (/sand|beach/.test(sf)) return 'sand';
+    if (/grass|lawn|park/.test(sf)) return 'grass';
+    return 'default';
+  }
+  const _gr = { y: 0, kind: 'default' }, gCache = new Map();
+  const HENV = {
+    t: 0, skip: null,
+    surface(x, z, out) {
+      if (isWater(x, z)) {
+        if (W) { W.sample(x, z, _ws); out.y = SEA + _ws.h; out.nx = _ws.nx; out.ny = _ws.ny; out.nz = _ws.nz; } else { out.y = SEA; out.nx = 0; out.ny = 1; out.nz = 0; }
+        if (wake) out.y += wake.heightAt(x, z, HENV.t, HENV.skip) * (W?.shaderOn ? 1 : 0.5);
+        out.kind = 'water'; return true;
+      }
+      const g = glades(); const lv = g ? g.levelAt(x, z) : null;
+      if (lv != null) { out.y = lv; out.nx = 0; out.ny = 1; out.nz = 0; out.kind = 'sheet'; return true; }
+      out.kind = null; return false;
+    },
+    ground(x, z) { // cached on a 0.25 m grid (static ground; the hull samples revisit the same cells every step)
+      const k = Math.round(x * 4) * 4000037 + Math.round(z * 4); let c = gCache.get(k);
+      if (!c) {
+        if (isWater(x, z)) { const y = bedY(x, z); c = { y, kind: y > SEA - 1.6 ? 'sand' : 'mud' }; }
+        else c = { y: city?.groundHeightAt ? city.groundHeightAt(x, z, SEA + 3) : SEA + 0.1, kind: groundKind(x, z) };
+        if (gCache.size > 30000) gCache.clear(); gCache.set(k, c);
+      }
+      _gr.y = c.y; _gr.kind = c.kind; return _gr;
+    },
+    deepAt(x, z, y) { return isWater(x, z) && bedY(x, z) < y - 3.0 && bedY(x + 6, z) < y - 3.0 && bedY(x - 6, z) < y - 3.0 && bedY(x, z + 6) < y - 3.0 && bedY(x, z - 6) < y - 3.0; },
+    mu(kind, wetKind, speed) {
+      const base = HULL_MU[kind] ?? HULL_MU.default;
+      if (wetKind === 'water' || wetKind === 'sheet') return Math.min(base, HULL_MU.marsh) * (1 - 0.45 * clamp(speed / 14, 0, 1)) + 0.03; // a wet hull hydroplanes
+      return base;
+    },
+  };
 
   function makeBoat(key, pos, heading, o = {}) {
     const t = BOAT_TYPES[key];
     const color = o.color ?? t.colors[(Math.random() * t.colors.length) | 0];
-    const mesh = buildBoatMesh(key, color);
+    const mesh = t.airboat ? airShell(t) : buildBoatMesh(key, color);
     scene.add(mesh.root);
     const q = new THREE.Quaternion().setFromAxisAngle(UP, heading);
     const m = t.mass, L = t.L, W = t.W, Hh = t.sheer + t.draft;
-    const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(pos.x, SEA + 0.05, pos.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
+    const v2 = !!t.airboat || boatPhys() >= 2;
+    const y0 = o.y ?? SEA + 0.05; // on land (airboat at a glades stand): the caller passes the ground height
+    const com = t.airboat ? { x: 0, y: 0.04, z: -L * 0.1 } : { x: 0, y: -t.draft * 0.3, z: -L * 0.05 }; // airboat: engine + fan high and aft
+    const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(pos.x, y0, pos.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
       .setLinearDamping(0.05).setAngularDamping(0.3).setCanSleep(false)
-      .setAdditionalMassProperties(m, { x: 0, y: -t.draft * 0.3, z: -L * 0.05 }, { x: m / 12 * (Hh * Hh + L * L), y: m / 12 * (W * W + L * L), z: m / 12 * (W * W + Hh * Hh) * 1.4 }, { x: 0, y: 0, z: 0, w: 1 }));
+      .setAdditionalMassProperties(m, com, { x: m / 12 * (Hh * Hh + L * L), y: m / 12 * (W * W + L * L), z: m / 12 * (W * W + Hh * Hh) * 1.4 }, { x: 0, y: 0, z: 0, w: 1 }));
     let col = null;
-    try { const hd = RAPIER.ColliderDesc.convexHull(mesh.hullPts); if (hd) col = world.createCollider(hd.setDensity(0).setFriction(0.6).setRestitution(0.2), body); } catch (e) { col = null; }
+    if (v2) { const hp = Float32Array.from(mesh.hullPts), floor = -t.draft + (t.airboat ? 0.07 : Math.min(0.14, t.draft * 0.3)); for (let i = 1; i < hp.length; i += 3) hp[i] = Math.max(hp[i], floor); mesh.hullPts = hp; }
+    try { const hd = RAPIER.ColliderDesc.convexHull(mesh.hullPts); if (hd) col = world.createCollider(hd.setDensity(0).setFriction(v2 ? 0.12 : 0.6).setRestitution(v2 ? 0.05 : 0.2), body); } catch (e) { col = null; }
     if (!col) col = world.createCollider(RAPIER.ColliderDesc.cuboid(W / 2, Hh / 2, L / 2).setTranslation(0, (t.sheer - t.draft) / 2, 0).setDensity(0).setFriction(0.6), body);
     try { body.recomputeMassPropertiesFromColliders(); } catch (e) { /* ignore */ }
     // float points (local): 3 stations x 2 sides + bow + stern keel
@@ -303,7 +382,7 @@ export function createBoats(game, opts = {}) {
       model: { key, brand: t.brand, name: t.name, class: 'boat', engine: t.engine, maxRpm: MAXRPM[t.engine], idleRpm: 700, gears: [1],
         sound: { engine: t.engine, cylinders: t.engine === 'inboard' ? 8 : t.engine === 'jetski' ? 3 : 6, aspiration: 'na', exhaust: t.engine === 'inboard' ? 'loud' : 'sporty', count: t.engines } },
       setControls(c) { this.ctrl.throttle = clamp(+c.throttle || 0, -1, 1); this.ctrl.steer = clamp(+c.steer || 0, -1, 1); this.ctrl.brake = clamp(+c.brake || 0, 0, 1); this.ctrl.handbrake = !!c.handbrake; },
-      seatPosition() { const tr = body.translation(), r = body.rotation(); _q.set(r.x, r.y, r.z, r.w); return new THREE.Vector3(0, t.sheer + 0.3, -L * 0.15).applyQuaternion(_q).add(_v.set(tr.x, tr.y, tr.z)); },
+      seatPosition() { const tr = body.translation(), r = body.rotation(); _q.set(r.x, r.y, r.z, r.w); return (t.seat ? new THREE.Vector3(t.seat[0], t.seat[1] + 0.3, t.seat[2]) : new THREE.Vector3(0, t.sheer + 0.3, -L * 0.15)).applyQuaternion(_q).add(_v.set(tr.x, tr.y, tr.z)); },
       exitPosition() { return exitSpot(this); },
       horn() { /* boats: no horn */ },
       flip() { const tr = body.translation(); placeBoat(this, { x: tr.x, z: tr.z }, this.heading); },
@@ -314,6 +393,10 @@ export function createBoats(game, opts = {}) {
       external: !!o.external,
     };
     b.seed = o.seed ?? hash2(pos.x, pos.z);
+    b.hydro = hullSamples(t); b.isAirboat = !!t.airboat;
+    if (t.airboat) { b.model.engine = 'v8'; b.model.class = 'boat'; b.model.idleRpm = 900; b.model.sound = { engine: 'airboat', cylinders: 8, aspiration: 'na', exhaust: 'loud', count: 1, fan: true };
+      if (!opts.sim) loadAirboat().then((src) => { if (b.disposed) return; const v = buildAirboatVisual(src, t); b.mesh.add(v.root); b.airVis = v; if (b.shell) b.shell.visible = false; })
+        .catch((e) => { console.warn('[boats] airboat model', e); if (b.shell) b.shell.visible = true; }); }
     if (NEWKEY[key] && !opts.sim && !fleetFailed) { b.mesh.visible = false; upgradeQ.push(b); }
     boats.push(b);
     return b;
@@ -372,6 +455,7 @@ export function createBoats(game, opts = {}) {
     if (b.moorId != null && !b.everDriven) pendingRelease.set(b.moorId, b.moorPos || b.body.translation());
     for (const k in b.lightMats) b.lightMats[k].dispose();
     try { b.visual?.dispose(); } catch (e) { /* ignore */ } b.visual = null; wake?.endWake(b); wake?.dropSource(b);
+    try { b.airVis?.dispose(); b.fanVoice?.stop(); } catch (e) { /* ignore */ } b.airVis = null; b.fanVoice = null;
     foam.end(b.name);
     try { world.removeRigidBody(b.body); } catch (e) { /* ignore */ }
     return true;
@@ -430,6 +514,7 @@ export function createBoats(game, opts = {}) {
     const hit = world.castRay(_dray, 2.25, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
     if (!hit) return false;
     const y = SEA + 2 - (hit.timeOfImpact ?? hit.toi);
+    if (boatPhys() >= 2 && city?.terrain?.heightAt) { const th = city.terrain.heightAt(x, z); if (Math.abs(y - th) < 0.3) return false; } // r2-water: sloping beach / bank, not a deck
     return y > SEA + 0.05 && y < SEA + 1.6;
   }
   function dockGuard(b, tr, lv) {
@@ -571,6 +656,134 @@ export function createBoats(game, opts = {}) {
       foam.end(b.name);
     }
     if (!b.beached && wf > 0.5) (b.lastGood ||= { x: 0, z: 0 }), (b.lastGood.x = tr.x), (b.lastGood.z = tr.z);
+  }
+
+  // ---- r2-water physics v2: per-point hydro (buoyancy on the shared waves + wakes, lateral resistance, ground contact) from
+  // hydro.js; this adds forward drag, planing lift, thrust, steering, weight transfer (trim + squat / bow-drop), effects.
+  const ss01 = (a, b2, x) => { const u = clamp((x - a) / (b2 - a), 0, 1); return u * u * (3 - 2 * u); };
+  function boatTick2(b, dt, time) {
+    const body = b.body, t = b.spec;
+    const tr = body.translation();
+    if (![tr.x, tr.y, tr.z].every(Number.isFinite)) { placeBoat(b, b.lastGood || { x: 0, z: 0 }, 0); return; }
+    const r = body.rotation(); _q.set(r.x, r.y, r.z, r.w);
+    let lv = body.linvel(); const av = body.angvel();
+    if (![lv.x, lv.y, lv.z, av.x, av.y, av.z].every(Number.isFinite) || Math.hypot(lv.x, lv.y, lv.z) > 80) { body.setLinvel({ x: 0, y: 0, z: 0 }, true); body.setAngvel({ x: 0, y: 0, z: 0 }, true); return; }
+    const m = t.mass, g = 9.81, air = !!t.airboat, vmax = t.vmax / 3.6;
+    _f.set(0, 0, 1).applyQuaternion(_q); _f.y = 0; _f.normalize(); _r.set(_f.z, 0, -_f.x); // bow, port (level)
+    let vF = lv.x * _f.x + lv.z * _f.z;
+    const sp0 = Math.abs(vF);
+    b.planingF = clamp((sp0 - vmax * 0.35) / (vmax * 0.25), 0, 1);
+    HENV.t = time; HENV.skip = b;
+    const H = hydroStep(b, dt, HENV);
+    const wf = H.wf;
+    dockGuard(b, tr, lv); lv = body.linvel();
+    vF = lv.x * _f.x + lv.z * _f.z; const vS = lv.x * _r.x + lv.z * _r.z;
+    const sp = Math.abs(vF);
+    b.speed = vF; b.speedKmh = Math.hypot(lv.x, lv.z) * 3.6;
+    b.submerged = 0; b.grounded = H.ground; b.groundKind = H.groundKind;
+    b.beached = !air && H.ground > 0.2 && wf < 0.55;
+    const water = wf > 0 && H.sheet < 0.5; // real water under the hull (not the glades sheet)
+    // forward drag: hull in the water (less once planing), air drag always; an airboat on a wet sheet barely drags
+    {
+      const cF = air ? 0.0016 * m * (water ? 1 : 0.35) : (0.9 - 0.45 * b.planingF) * m * 0.0045;
+      const fwd = (cF * vF * Math.abs(vF) + m * (air ? 0.012 : 0.04) * vF) * Math.min(1, wf * 1.6) + 0.35 * t.W * vF * Math.abs(vF);
+      _imp.x = -_f.x * fwd * dt; _imp.y = 0; _imp.z = -_f.z * fwd * dt;
+      body.applyImpulse(_imp, true);
+    }
+    // dynamic lift of the planing bottom: the hull climbs out and runs on its aft third (fewer wet points = less grip)
+    if (wf > 0 && vF > 0 && water) { // (an airboat on the glades sheet hydroplanes through the friction model instead)
+      const lift = m * g * (air ? 0.5 : 0.42) * ss01(0.2, 0.62, vF / vmax) * clamp(H.immersion / 0.55, 0, 1); // fades as the hull climbs out
+      _w.set(0, 0, -t.L * 0.08).applyQuaternion(_q); _pt.x = tr.x + _w.x; _pt.y = tr.y + _w.y; _pt.z = tr.z + _w.z;
+      _imp.x = 0; _imp.y = lift * dt; _imp.z = 0; body.applyImpulseAtPoint(_imp, _pt, true);
+    }
+    body.setAngularDamping(0.25 + 0.5 * wf + 0.8 * H.ground); body.setLinearDamping(0.02);
+    // controls
+    const c = (b.playerDriven && !b.boarding) || b.ai || b.chaseTarget ? b.ctrl : { throttle: 0, steer: 0 };
+    const on = b.engineOn && !b.disabled;
+    let thr = on ? c.throttle : 0;
+    const propWet = air || H.sternWet || (wf > 0 && isWater(tr.x, tr.z) && bedY(tr.x, tr.z) < SEA - 1.5);
+    if (b.beached && thr > 0 && H.ground > 0.45) thr *= 0.15; // hard aground: the prop just digs (backing off still works)
+    let thrust;
+    if (air) thrust = thr >= 0 ? thr * t.thrust * Math.max(0, 1 - (Math.max(0, vF) / vmax) ** 2) : thr * t.thrust * 0.28 * (vF > -4 ? 1 : 0); // fan: works anywhere; small reverse (thrust reverser)
+    else thrust = (thr >= 0 ? thr * t.thrust * Math.max(0, 1 - (Math.max(0, vF) / vmax) ** 2) : thr * t.thrust * 0.4 * (vF > -6 ? 1 : 0)) * (propWet ? 1 : 0);
+    if (thrust) {
+      if (air) _w.set(0, 0.95, -t.L * 0.5).applyQuaternion(_q); // the fan hub: high and aft -> thrust pushes the bow down a little
+      else _w.set(0, -t.draft * 0.6, -t.L * 0.45).applyQuaternion(_q);
+      _pt.x = tr.x + _w.x; _pt.y = tr.y + _w.y; _pt.z = tr.z + _w.z;
+      _imp.x = _f.x * thrust * dt; _imp.y = 0; _imp.z = _f.z * thrust * dt;
+      body.applyImpulseAtPoint(_imp, _pt, true);
+    }
+    // steering: yaw-rate servo. Boats: rudder / vectored prop needs flow. Airboat: air rudders in the prop wash steer even at
+    // a standstill with throttle, but lose most bite off the throttle (real airboat feel); the flat bottom lets it slide.
+    const Ix = m / 12 * ((t.sheer + t.draft) ** 2 + t.L * t.L);
+    {
+      b.steerF = (b.steerF || 0) + (c.steer - (b.steerF || 0)) * Math.min(1, dt * (sp > vmax * 0.5 ? 5 : 9));
+      const jet = !!t.jet;
+      const auth = air ? clamp(Math.abs(thr) * 1.0 + sp / 30, 0, 1) : clamp(jet ? Math.abs(thr) * 0.9 + sp / 12 : Math.abs(thr) * 0.8 + sp / 3, 0, 1);
+      const dockYaw = air ? 1.5 : clamp(3.3 / Math.pow(t.L, 0.75), 0.35, 1.5);
+      const latG = (air ? 0.62 : jet ? 1.3 : 0.85 * clamp(t.turn, 0.85, 1.3)) * 9.81;
+      const yawMax = Math.min(dockYaw * auth, latG / Math.max(sp, 2.5));
+      const dirS = air ? 1 : vF < -0.5 || (thr < 0 && vF < 0.5) ? -1 : 1;
+      const grip = air ? 1 : Math.min(1, wf * 3);
+      const wT = b.steerF * yawMax * dirS * grip, tau = air ? 0.22 : 0.12 + t.L * 0.02, blend = 1 - Math.exp(-dt / tau), damp = (0.8 * wf + 0.3 + 0.6 * H.ground) * dt;
+      const nw = grip > 0.05 || air ? av.y + (wT * (blend + damp) / blend - av.y) * blend : av.y;
+      const leanMax = (air ? 3 : jet ? 30 : t.cabin ? 6 : t.pointy ? 10 : 14) * Math.PI / 180, sf = clamp(sp / (vmax * 0.45), 0, 1) * (water ? 1 : 0.3);
+      _w.set(1, 0, 0).applyQuaternion(_q); const roll = Math.asin(clamp(_w.y, -1, 1));
+      const rollRate = av.x * _f.x + av.z * _f.z, dR = ((-b.steerF * leanMax * sf * dirS * (air ? -1 : 1) - roll) * 5 - rollRate) * sf * (1 - Math.exp(-dt / 0.18));
+      body.setAngvel({ x: av.x + _f.x * dR, y: nw, z: av.z + _f.z * dR }, true);
+      b.lean = roll;
+    }
+    // weight transfer: bow rises through the hump under power (stern squat), settles flatter at full plane; chopping the
+    // throttle at speed drops the bow and the hull falls off plane (the sudden decel pitches it forward)
+    {
+      const rel = Math.max(0, vF) / vmax;
+      const thMax = (t.trimDeg ?? 6.5) * Math.PI / 180;
+      let target = thr > 0 ? thMax * ss01(0.12, 0.38, rel) * (1 - 0.5 * ss01(0.45, 0.85, rel)) * (0.4 + 0.6 * thr) * Math.min(1, wf * 2) : 0;
+      const dec = (b._vF != null ? (b._vF - vF) / dt : 0); b._vF = vF;
+      if (thr <= 0.05 && rel > 0.15 && dec > 0.5 && water) target -= Math.min(thMax * 0.8, dec * 0.012); // bow-drop on the throttle chop
+      _w.set(0, 0, 1).applyQuaternion(_q); const pitch = Math.asin(clamp(_w.y, -1, 1));
+      const pRate = -(av.x * _r.x + av.z * _r.z);
+      const active = Math.abs(target) > 0.002 || (thr > 0.05 && rel > 0.1);
+      // PD toward the trim target (no stiffness feed-forward: with the bow points out of the water it ran away into a wheelie)
+      let tq = active ? (b.hydro.pitchK * target * 0.15 + Ix * (7 * (target - pitch) - 3 * pRate)) * Math.min(1, wf * 2) : 0;
+      const tqMax = b.hydro.pitchK * 0.12; tq = clamp(tq, -tqMax, tqMax);
+      if (tq) { _w.copy(_r).multiplyScalar(-tq * dt); body.applyTorqueImpulse(_w, true); }
+      b.trim = pitch;
+    }
+    // gauges for AUDIO / HUD
+    const mr = b.model.maxRpm;
+    b.throttle = Math.abs(thr); b.load = Math.abs(thr) * (propWet ? 1 : 0.2);
+    const tgt = on ? b.model.idleRpm + (mr - b.model.idleRpm) * clamp((air ? 0.7 : 0.25) * Math.abs(thr) + (air ? 0.3 : 0.75) * sp / vmax, 0, 1) * (propWet ? 1 : 1.25) : 0;
+    b.rpm += (Math.min(mr, tgt) - b.rpm) * Math.min(1, dt * (air ? 3.5 : 6));
+    // wake, spray, foam (water); mist over the glades sheet; the bottom grinding on sand / mud
+    b.wakeT -= dt;
+    if (b.wakeT <= 0 && sp > 2 && wf > 0) {
+      b.wakeT = wake ? 0.07 : 0.12;
+      _w.set(0, 0, -t.L / 2).applyQuaternion(_q);
+      const sx = tr.x + _w.x, sz = tr.z + _w.z, k = Math.min(1, sp / (vmax * 0.6)), wy = H.sheet > 0.5 ? (glades()?.levelAt(sx, sz) ?? SEA) + 0.01 : SEA + 0.035;
+      if (wake) {
+        if (water) {
+          wake.addWake(b, sx, wy, sz, _r.x, _r.z, t.W * (0.22 + 0.16 * k), Math.min(1, 0.3 + sp / 22), Math.min(0.8, sp / 18) * (air ? 0.4 : 1), time);
+          wake.source(b, tr.x, tr.z, time, Math.min(0.22, 0.02 * sp) * Math.min(1.5, t.mass / 2500));
+          if (b.planingF > 0.15 && !air) { _w.set(0, 0, t.L * (0.18 - 0.1 * b.planingF)).applyQuaternion(_q); const bx = tr.x + _w.x, bz = tr.z + _w.z, n = 2 + Math.round(b.planingF * 3);
+            for (const sd of [1, -1]) wake.burst(n, bx + _r.x * sd * t.W * 0.42, SEA + 0.12, bz + _r.z * sd * t.W * 0.42, _f.x * sp * 0.55 + _r.x * sd * (2.2 + sp * 0.12), 1.6 + sp * 0.07, _f.z * sp * 0.55 + _r.z * sd * (2.2 + sp * 0.12), 1.4, 0.13 + t.W * 0.02, 0.6, time); }
+          if (sp > vmax * 0.7 && !air) wake.burst(2, sx, SEA + 0.1, sz, _f.x * sp * 0.3, 2.2 + sp * 0.08, _f.z * sp * 0.3, 1.0, 0.16, 0.7, time);
+        } else { // glades sheet: a thin wet trail and a fan of mist thrown back by the prop wash
+          wake.addWake(b, sx, wy, sz, _r.x, _r.z, t.W * 0.42, Math.min(0.8, 0.3 + sp / 20), Math.min(0.5, sp / 30), time);
+          if (sp > 5) for (const sd of [1, -1]) { _w.set(sd * t.W * 0.5, 0, t.L * 0.2).applyQuaternion(_q); // chines throw a low sheet of water off the grass
+            wake.burst(2, tr.x + _w.x, wy + 0.05, tr.z + _w.z, _r.x * sd * (1.2 + sp * 0.08) + lv.x * 0.7, 0.9 + sp * 0.04, _r.z * sd * (1.2 + sp * 0.08) + lv.z * 0.7, 1.0, 0.2, 0.8, time); }
+        }
+        if (air && thr > 0.2) wake.burst(3 + Math.round(thr * 3), sx, wy + 0.3, sz, -_f.x * (5 + sp * 0.3) + lv.x * 0.5, 0.8 + thr, -_f.z * (5 + sp * 0.3) + lv.z * 0.5, 2.6, 0.3, 1.1, time); // prop blast lifts a mist
+        if (air && Math.abs(vS) > 2.5) { _w.set(0, 0, t.L * 0.1).applyQuaternion(_q); const sd = vS > 0 ? 1 : -1; // sliding sideways: the leading chine throws a sheet
+          wake.burst(3, tr.x + _w.x + _r.x * sd * t.W * 0.5, wy + 0.05, tr.z + _w.z + _r.z * sd * t.W * 0.5, _r.x * sd * (1.5 + Math.abs(vS) * 0.6) + lv.x * 0.6, 1.2 + Math.abs(vS) * 0.12, _r.z * sd * (1.5 + Math.abs(vS) * 0.6) + lv.z * 0.6, 1.2, 0.17, 0.7, time); }
+      } else {
+        foam.add(b.name, { x: sx, y: wy - 0.005, z: sz }, _r.x, _r.z, Math.min(t.W * 1.6, 0.8 + sp * 0.12), Math.min(0.8, 0.25 + sp / 30));
+      }
+    } else if (sp <= 2 || wf === 0) { foam.end(b.name); wake?.endWake(b); }
+    // grinding over sand / mud / land: audio event + spray of grit (throttled)
+    b.scrapeT = (b.scrapeT || 0) - dt;
+    if (H.scrape > 0.4 && b.scrapeT <= 0) { b.scrapeT = 0.25; game.emit?.('boatScrape', { vehicle: b, strength: Math.min(1, H.scrape / 6), surface: H.groundKind }); }
+    if (wf > 0.5 && !b.beached && water) (b.lastGood ||= { x: 0, z: 0 }), (b.lastGood.x = tr.x), (b.lastGood.z = tr.z);
   }
 
   // ---- water navigation grid (coarse, around the player): 8 m cells, blocked = land / shallow / pier / quay.
@@ -808,11 +1021,57 @@ export function createBoats(game, opts = {}) {
       b.moorId = s.id ?? null; if (b.moorId != null) { b.moorPos = { x: s.x, z: s.z }; pendingRelease.delete(b.moorId); }
     }
   }
+  // ---- r2-water: airboat stands along the roads through the Everglades (a pair of airboats on the sawgrass ~32 m off the
+  // road, bows out to the prairie, every ~1.4 km of trunk / primary / secondary road in the glades districts)
+  const GL_D = /^(Everglades|Everglades City|Big Cypress)$/;
+  let gladeSites = null;
+  function buildGladeSites() {
+    gladeSites = [];
+    const G = city?.roadGraph, T = city?.terrain; if (!G?.edges || !T?.layerAt || !city.districtAt || !LKEYS) return;
+    const wet = (x, z) => { const k = LKEYS[T.layerAt(x, z)]; return (k === 'sawgrass' || k === 'marsh') && !isWater(x, z); };
+    const MAJOR = /trunk|primary|secondary/;
+    for (const e of G.edges) {
+      if (!MAJOR.test(e.kind || '') || e.elevated || !e.pts?.length) continue;
+      const mid = e.pts[e.pts.length >> 1]; if (!GL_D.test(city.districtAt(mid[0], mid[1]) || '')) continue;
+      for (let sAt = 300; sAt < e.length - 100; sAt += 1400) {
+        let i = 1; while (i < e.pts.length - 1 && e.cum[i] < sAt) i++;
+        const p0 = e.pts[i - 1], p1 = e.pts[i], u = (sAt - e.cum[i - 1]) / Math.max(1e-3, e.cum[i] - e.cum[i - 1]);
+        const x = p0[0] + (p1[0] - p0[0]) * u, z = p0[1] + (p1[1] - p0[1]) * u, dl = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, dx = (p1[0] - p0[0]) / dl, dz = (p1[1] - p0[1]) / dl;
+        if (!GL_D.test(city.districtAt(x, z) || '')) continue;
+        for (const sd of [1, -1]) {
+          const nx = dz * sd, nz = -dx * sd, off = (e.width || 8) / 2 + 30, sx = x + nx * off, sz = z + nz * off;
+          let ok = true; for (const [a, b2] of [[0, 0], [12, 0], [40, 0], [80, 0], [0, 8], [0, -8], [40, 25], [40, -25]]) if (!wet(sx + nx * a + dx * b2, sz + nz * a + dz * b2)) { ok = false; break; }
+          if (!ok) continue;
+          const ne = G.nearestEdge?.(sx, sz, {}, 60); if (ne && ne.dist < (ne.edge.width || 8) / 2 + 18) continue; // another road too close
+          gladeSites.push({ x: sx, z: sz, heading: Math.atan2(nx, nz), along: [dx, dz], road: e.name || e.kind, boats: [] });
+          break;
+        }
+      }
+    }
+  }
+  function airboatStands(pp) {
+    if (!city?.districtAt) return;
+    if (!gladeSites) { if (!GL_D.test(city.districtAt(pp.x, pp.z) || '')) { // build once the player is within ~3 km of the glades
+        let near = false; for (const [a, b2] of [[3000, 0], [-3000, 0], [0, 3000], [0, -3000]]) if (GL_D.test(city.districtAt(pp.x + a, pp.z + b2) || '')) near = true; if (!near) return; }
+      try { buildGladeSites(); } catch (e) { console.warn('[boats] glade sites', e); gladeSites = []; } }
+    for (const st of gladeSites) {
+      const d = Math.hypot(st.x - pp.x, st.z - pp.z);
+      st.boats = st.boats.filter((b) => b.alive && !b.disposed);
+      if (d > 520 || st.boats.length) continue;
+      if (city.collidersReadyAt && !city.collidersReadyAt(st.x, st.z)) continue;
+      for (const k of [-1.7, 1.7]) {
+        const x = st.x + st.along[0] * k, z = st.z + st.along[1] * k, gy = city.groundHeightAt(x, z, SEA + 3);
+        const b = makeBoat('airboat', { x, z }, st.heading + (k > 0 ? 0.06 : -0.04), { y: gy + BOAT_TYPES.airboat.draft + 0.04 });
+        b.site = st; st.boats.push(b);
+      }
+    }
+  }
   let mgrT = 0;
   function manager(dt) {
     mgrT -= dt; if (mgrT > 0) return; mgrT = 1.0;
     if (pendingRelease.size) flushReleases();
     const pp = game.player?.position; if (!pp || !city?.isWater) return;
+    if (!opts.sim && (GLADES_Q ?? 0) > 0) { try { airboatStands(pp); } catch (e) { console.warn('[boats] airboat stands', e); } }
     // far boats are parked out of the simulation (or recycled)
     for (const b of boats.slice()) {
       const t = b.body.translation(), d = Math.hypot(t.x - pp.x, t.z - pp.z);
@@ -873,13 +1132,15 @@ export function createBoats(game, opts = {}) {
       const wantCcd = b.playerDriven || !!b.chaseTarget;
       if (wantCcd !== b.ccd) { b.body.enableCcd(wantCcd); b.ccd = wantCcd; }
       if (b.chaseTarget && !b.playerDriven) aiTick(b, dt);
-      try { boatTick(b, dt, time); } catch (e) { console.error('[boats]', e); }
+      try { (b.isAirboat || boatPhys() >= 2 ? boatTick2 : boatTick)(b, dt, time); } catch (e) { console.error('[boats]', e); }
     }
   }
   Object.defineProperty(boatsFixed, 'name', { value: 'boatsFixed' });
   game.fixedHooks.push(boatsFixed);
 
   function update(dt) {
+    try { W?.tick(dt); } catch (e) { /* ignore */ }
+    try { game.gladesWater?.update(dt); } catch (e) { console.warn('[boats] glades water', e); }
     try { manager(dt); } catch (e) { console.error('[boats] manager', e); }
     navStep(1.2);
     try { proximitySwap(dt); } catch (e) { console.warn('[boats] swap', e); }
@@ -899,6 +1160,11 @@ export function createBoats(game, opts = {}) {
         const vy = lv.y; if (b._vy != null && b._vy < -1.6 && vy > b._vy + 1.2 && sp > 5) { b.slam = Math.min(1, -b._vy / 5); game.emit?.('boatSlam', { vehicle: b, strength: b.slam });
           if (wake) { const f = b.heading, fx = Math.sin(f), fz = Math.cos(f); wake.burst(14, tr.x + fx * b.spec.L * 0.25, SEA + 0.15, tr.z + fz * b.spec.L * 0.25, fx * sp * 0.4, 3.5 * b.slam + 1.5, fz * sp * 0.4, 5, 0.2, 0.8, time); } }
         b._vy = vy; b.slam = Math.max(0, (b.slam || 0) - dt * 2.5); }
+      if (b.airVis) { try { b.airVis.update(b, dt); } catch (e) { /* ignore */ }
+        // the fan's own sound layer while it runs near the camera (the audio system plays the engine voice itself)
+        const cp = game.camera?.position, near = cp && Math.hypot(cp.x - tr.x, cp.z - tr.z) < 260 && b.engineOn;
+        if (near && !b.fanVoice && game.audio?.ctx) { try { b.fanVoice = createFanVoice(game); } catch (e) { b.fanVoice = null; } }
+        if (b.fanVoice) { if (!near) { b.fanVoice.stop(); b.fanVoice = null; } else b.fanVoice.update(b, b === game.player?.state?.vehicle); } }
       if (b.visual) { try { animateVisual(b, dt, night); } catch (e) { /* ignore */ }
         // cooling-water telltale from each running outboard and a bilge pump stream now and then
         if (wake && b.engineOn && (b.fxT = (b.fxT || 0) - dt) <= 0) { b.fxT = 0.05; const q = b.mesh.quaternion;
@@ -912,7 +1178,7 @@ export function createBoats(game, opts = {}) {
   // at BOARD.position while BOARD.active; the boat ignores the controls meanwhile, the player collider stays off)
   const BOARD = { active: false, type: null, t: 0, dur: 0.8, vehicle: null, position: new THREE.Vector3(), heading: 0, from: new THREE.Vector3(), side: 1 };
   const _bq = new THREE.Quaternion(), _bv = new THREE.Vector3();
-  function seatLocal(t, out) { return out.set(0, t.sheer * 0.55, -t.L * 0.12); }
+  function seatLocal(t, out) { return t.seat ? out.set(t.seat[0], t.seat[1], t.seat[2]) : out.set(0, t.sheer * 0.55, -t.L * 0.12); }
   function startBoarding(b) {
     const P = game.player, pp = P?.position; if (!pp) return;
     const tr = b.body.translation();
@@ -976,6 +1242,6 @@ export function createBoats(game, opts = {}) {
     return best;
   }
   return { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES, hullDist, boarding: BOARD,
-    wake, wakeHeightAt: (x, z) => (wake ? wake.heightAt(x, z, time, null) : 0), fleet: FLEET, get fleetReady() { return fleetReady; },
+    wake, wakeHeightAt: (x, z) => (wake ? wake.heightAt(x, z, time, null) : 0), waves: W, get physMode() { return boatPhys(); }, get gladeSites() { return gladeSites; }, fleet: FLEET, get fleetReady() { return fleetReady; },
     nav: { stats: NAV.stats, get grid() { return NAV.grid; }, get building() { return !!NAV.gen; }, path: navPath, spawnSpot: navSpawnSpot, ensure: navEnsure } };
 }

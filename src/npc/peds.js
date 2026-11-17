@@ -1179,7 +1179,7 @@ export async function createPeds(game) {
       }
       ped.teleported = false;
       if (!kccOk) {
-        if (ped.state === 'swim') ped.pos.y = seaLevel - 0.05;
+        if (ped.state === 'swim') ped.pos.y = seaLevel - 0.05 + (game.waves?.shaderOn ? game.waves.heightAt(ped.pos.x, ped.pos.z) : 0); // r2-water: swimmers ride the drawn swell
         else {
           if (ped.gy === undefined || ((frameN + ped.id) & 3) === 0) ped.gy = groundAt(ped.pos.x, ped.pos.z, ped.pos.y);
           if (dPlayer >= 25 || ped.teleported) ped.pos.y += (ped.gy - ped.pos.y) * Math.min(1, dt * 10);
