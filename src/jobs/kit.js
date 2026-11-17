@@ -2,68 +2,18 @@
 // ownership, hostile peds dressed in a kit, and enemy gunfire through the combat track's own tracer and damage.
 import * as THREE from 'three';
 import { applyLook } from '../npc/look.js';
+import { createMarker } from '../gameplay/markers.js';
 
 export const fmt = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
 export const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
-// ---------------------------------------------------------------- markers (shared geometry, one material per color)
-let beamGeo = null;
-let ringGeo = null;
-let beamTex = null;
-const mats = new Map();
-function beamTexture() {
-  const c = document.createElement('canvas');
-  c.width = 4;
-  c.height = 128;
-  const g = c.getContext('2d');
-  const gr = g.createLinearGradient(0, 0, 0, 128);
-  gr.addColorStop(0, 'rgba(255,255,255,0)');
-  gr.addColorStop(0.75, 'rgba(255,255,255,0.28)');
-  gr.addColorStop(1, 'rgba(255,255,255,0.85)');
-  g.fillStyle = gr;
-  g.fillRect(0, 0, 4, 128);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-function mat(kind, color) {
-  const k = kind + color;
-  let m = mats.get(k);
-  if (m) return m;
-  if (kind === 'beam') {
-    m = new THREE.MeshBasicMaterial({
-      map: beamTex,
-      color,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide,
-      opacity: 0.5,
-      toneMapped: false,
-    });
-  } else {
-    m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false });
-  }
-  mats.set(k, m);
-  return m;
-}
+// ---------------------------------------------------------------- markers
+// r2: the shared subtle GTA-style marker (../gameplay/markers.js): soft ground ring, knee-high glow, small floating
+// chevron. No light pillar. opts.r scales the ring like before; userData.ring.material.color still recolors it.
 export function makeMarker(game, pos, color = 0xffd25a, opts = {}) {
-  if (!beamGeo) {
-    beamGeo = new THREE.CylinderGeometry(0.9, 1.1, 30, 18, 1, true).translate(0, 15, 0);
-    ringGeo = new THREE.TorusGeometry(1.8, 0.1, 8, 40);
-    beamTex = beamTexture();
-  }
-  const g = new THREE.Group();
-  const beam = new THREE.Mesh(beamGeo, mat('beam', color));
-  beam.scale.set(opts.r || 1, opts.h || 1, opts.r || 1);
-  const ring = new THREE.Mesh(ringGeo, mat('ring', color));
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.1;
-  ring.scale.setScalar(opts.r || 1);
-  g.add(beam, ring);
+  const g = createMarker(THREE, { color, radius: opts.radius ?? 1.8 * (opts.r || 1), icon: opts.icon, iconY: opts.iconY });
   const y = pos.y ?? groundY(game, pos.x, pos.z);
   g.position.set(pos.x, y + 0.03, pos.z);
-  g.userData.ring = ring;
   game.scene.add(g);
   return g;
 }

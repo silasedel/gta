@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { createCharacter } from '../player/characterModel.js';
 import { rand, pick, sfx, tryCall, distXZ, groundAt, inView, removeBodySafe, vAlive } from './util.js';
 import { createCellStreamer } from './stream.js';
+import { createMarker } from './markers.js';
 
 const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
 const NAMES = ['Rico "Two-Tone" Valdés', 'Marisol Cray', 'Dex Okafor', 'Lenny Shoals', 'Tavi Brandt', 'Corinne "Gator" Mays', 'Jules Ferro', 'Big Sal Ortega', 'Nadia Quill', 'Hollis Reef'];
@@ -18,49 +19,20 @@ export function createActivities(game, G) {
   game.activities = A;
 
   // ---------------------------------------------------------------- markers
-  const beamGeo = new THREE.CylinderGeometry(0.9, 1.1, 40, 18, 1, true).translate(0, 20, 0);
-  const ringGeo = new THREE.TorusGeometry(2.2, 0.12, 8, 40);
-  function beamTex() {
-    const c = document.createElement('canvas'); c.width = 4; c.height = 128; const g = c.getContext('2d');
-    const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0.8)');
-    g.fillStyle = gr; g.fillRect(0, 0, 4, 128); return new THREE.CanvasTexture(c);
-  }
-  const BT = beamTex();
-  const _mats = new Map();
-  function cmat(kind, color, make) { const k = kind + color; let m = _mats.get(k); if (!m) { m = make(); _mats.set(k, m); } return m; }
-  const _archGeo = new Map();
-  function archGeo(width) { let g = _archGeo.get(width); if (!g) { g = { post: new THREE.BoxGeometry(0.35, 5, 0.35), top: new THREE.BoxGeometry(width, 0.4, 0.35), flag: new THREE.PlaneGeometry(width * 0.9, 0.8) }; _archGeo.set(width, g); } return g; }
+  // r2: subtle GTA-style markers from ./markers.js (soft ground ring, knee-high glow, small floating chevron / card);
+  // no light pillars. opts.r scales the ring like before; opts.iconY lifts the chevron over a car or a person.
   function marker(pos, color = 0xffd25a, opts = {}) {
-    const g = new THREE.Group();
-    const beam = new THREE.Mesh(beamGeo, cmat('beam', color, () => new THREE.MeshBasicMaterial({ map: BT, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, opacity: 0.55, toneMapped: false })));
-    beam.scale.set(opts.r || 1, opts.h || 1, opts.r || 1);
-    const ring = new THREE.Mesh(ringGeo, cmat('ring', color, () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false })));
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.12; ring.scale.setScalar(opts.r || 1);
-    g.add(beam, ring);
+    const g = createMarker(THREE, { color, radius: opts.radius ?? 2 * (opts.r || 0.7), icon: opts.icon, iconY: opts.iconY });
     g.position.set(pos.x, (pos.y ?? C.groundHeight(pos.x, pos.z)) + 0.02, pos.z);
     scene.add(g);
-    g.userData.ring = ring;
     return g;
   }
-  function arch(pos, heading, color = 0x2fe0d0, width = 12) { // race checkpoint gate
-    const g = new THREE.Group();
-    const mat = cmat('arch', color, () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, toneMapped: false }));
-    const AG = archGeo(width);
-    const l = new THREE.Mesh(AG.post, mat), r = new THREE.Mesh(AG.post, mat), top = new THREE.Mesh(AG.top, mat);
-    l.position.set(-width / 2, 2.5, 0); r.position.set(width / 2, 2.5, 0); top.position.set(0, 5, 0);
-    const flag = new THREE.Mesh(AG.flag, cmat('flag', 0, () => new THREE.MeshBasicMaterial({ map: checkerTex(), transparent: true, side: THREE.DoubleSide, toneMapped: false })));
-    flag.position.set(0, 4.4, 0);
-    g.add(l, r, top, flag);
-    g.position.set(pos.x, pos.y ?? C.groundHeight(pos.x, pos.z), pos.z); g.rotation.y = heading;
+  // race checkpoint: a road-wide ring with a screen-facing double chevron pointing along the course (checkered card at the finish)
+  function arch(pos, heading, color = 0x2fe0d0, width = 12, finish = false) {
+    const g = createMarker(THREE, { color, radius: width / 2, wall: 1.4, icon: finish ? 'flag' : 'arrow', iconY: 3.4, iconSize: 2.2, dir: { x: Math.sin(heading), z: Math.cos(heading) } });
+    g.position.set(pos.x, (pos.y ?? C.groundHeight(pos.x, pos.z)) + 0.02, pos.z);
     scene.add(g);
     return g;
-  }
-  let _ck = null;
-  function checkerTex() {
-    if (_ck) return _ck;
-    const c = document.createElement('canvas'); c.width = 64; c.height = 8; const g = c.getContext('2d');
-    for (let i = 0; i < 16; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? '#111' : '#f4f4f4'; g.fillRect(i * 4, j * 4, 4, 4); }
-    _ck = new THREE.CanvasTexture(c); _ck.magFilter = THREE.NearestFilter; return _ck;
   }
   const rm = (o) => { if (o) scene.remove(o); };
 
@@ -299,7 +271,7 @@ export function createActivities(game, G) {
     P.money -= buyIn;
     const a = { id: 'race', title: 'Street race', course, cp: 0, gates: [], rivals: [], t: -3.5, buyIn, cleanup() { for (const g of a.gates) rm(g); for (const r of a.rivals) { tryCall('rm rival', () => { r.v.setChaseTarget?.(null); game.vehicles?.remove?.(r.v); }); } } };
     A.active = a;
-    course.cps.forEach((c, i) => { if (i < 3) a.gates[i] = arch({ x: c.x, z: c.z }, Math.atan2(c.dir.x, c.dir.z), c.finish ? 0xffd25a : 0x2fe0d0); });
+    course.cps.forEach((c, i) => { if (i < 3) a.gates[i] = arch({ x: c.x, z: c.z }, Math.atan2(c.dir.x, c.dir.z), c.finish ? 0xffd25a : 0x2fe0d0, 12, !!c.finish); });
     // rivals line up beside/behind the player
     const right = { x: Math.cos(Math.atan2(fwd.x, fwd.z)), z: -Math.sin(Math.atan2(fwd.x, fwd.z)) };
     const spots = [[3.2, 0], [0, -8], [3.2, -8]];
@@ -339,7 +311,7 @@ export function createActivities(game, G) {
       rm(a.gates[a.cp]); a.gates[a.cp] = null;
       a.cp++; sfx(game, 'beep', P.position, 0.8);
       const nxt = a.cp + 2;
-      if (nxt < cps.length) a.gates[nxt] = arch({ x: cps[nxt].x, z: cps[nxt].z }, Math.atan2(cps[nxt].dir.x, cps[nxt].dir.z), cps[nxt].finish ? 0xffd25a : 0x2fe0d0);
+      if (nxt < cps.length) a.gates[nxt] = arch({ x: cps[nxt].x, z: cps[nxt].z }, Math.atan2(cps[nxt].dir.x, cps[nxt].dir.z), cps[nxt].finish ? 0xffd25a : 0x2fe0d0, 12, !!cps[nxt].finish);
       if (a.cp >= cps.length) {
         const place = 1 + a.rivals.filter((r) => r.done).length;
         const prize = place === 1 ? a.buyIn * 4 : place === 2 ? a.buyIn * 1.5 : 0;
@@ -390,7 +362,7 @@ export function createActivities(game, G) {
     if (!vAlive(game, v)) { end(false, 'The armored truck got away.'); return; }
     const t = v.body.translation();
     setWaypoint({ x: t.x, z: t.z }, 'Armored truck');
-    if (!a.mk) a.mk = marker({ x: t.x, z: t.z }, 0xff4d5e, { r: 0.6, h: 0.5 });
+    if (!a.mk) a.mk = marker({ x: t.x, z: t.z }, 0xff4d5e, { radius: 2.6, iconY: 3.4 });
     a.mk.position.set(t.x, t.y - 0.6, t.z);
     if (a.stage === 'chase') {
       const disabled = (v.health ?? 1000) < a.startHp * 0.45 || ((v.speedKmh || 0) < 2 && distXZ(t, P.position) < 25 && a.hitOnce);
@@ -431,7 +403,7 @@ export function createActivities(game, G) {
   function tickBounty(a, dt) {
     const n = a.npc; if (!n) return;
     const d = distXZ(n.pos, P.position);
-    if (!a.spotted && d < 28) { a.spotted = true; a.mk = marker(n.pos, 0xff4d5e, { r: 0.35, h: 0.2 }); game.hud?.notify?.(`That's ${a.name}!`, 2000); setWaypoint(null); }
+    if (!a.spotted && d < 28) { a.spotted = true; a.mk = marker(n.pos, 0xff4d5e, { radius: 0.9, iconY: 2.35 }); game.hud?.notify?.(`That's ${a.name}!`, 2000); setWaypoint(null); }
     if (a.mk) a.mk.position.set(n.pos.x, n.pos.y + 0.02, n.pos.z);
     if (!n.dead) {
       if (d < 16 || n.run) { // flee: run away from the player along open ground
@@ -543,7 +515,7 @@ export function createActivities(game, G) {
       const r = C.roadPoint(new THREE.Vector3(cell.cx, 0, cell.cz), 0, 180, { tries: 6 });
       return { flag: r ? { x: r.position.x, y: r.position.y, z: r.position.z, h: r.heading } : null };
     },
-    load(cell) { const f = cell.data.flag; if (!f) return; cell.data.mk = marker(f, 0xffffff, { r: 0.7, h: 0.6 }); cell.data.mk.userData.ring.material.color.setHex(0x2fe0d0); flags.push(cell.data); },
+    load(cell) { const f = cell.data.flag; if (!f) return; cell.data.mk = marker(f, 0x2fe0d0, { radius: 3.2, icon: 'flag', iconY: 2.4 }); flags.push(cell.data); },
     unload(cell) { rm(cell.data.mk); cell.data.mk = null; const i = flags.indexOf(cell.data); if (i >= 0) flags.splice(i, 1); },
   });
   const flags = [];
@@ -573,7 +545,6 @@ export function createActivities(game, G) {
       if (f && carSpeed() < 25) { help = 'Press <b>E</b> to start a street race ($100 buy-in)'; if (inp.pressed('KeyE')) A.start('race'); }
       else if (isTaxi(v) && !taxiHinted) { taxiHinted = true; game.hud?.notify?.('Taxi: press J and pick "Taxi fares" to go on duty.', 3500); }
     }
-    for (const f of flags) if (f.mk) f.mk.userData.ring.rotation.z += dt;
     if (help) { tryCall('help', () => game.hud?.help?.(help)); helpOwned = true; } else if (helpOwned) { tryCall('help', () => game.hud?.help?.(null)); helpOwned = false; }
   }
   return A.api = { update, list: A.list, start: A.start, cancel: A.cancel, npcs };
