@@ -12,6 +12,8 @@ c "Docks/Dock 4 - Loose Wooden Dock Platforms/Dock 4.blend" public/assets/models
 c "Docks/Dock 5 - Wooden Boardwalk Pier Segments/Dock 5.blend" public/assets/models/docks/boardwalk.glb 1 1024 split "" 0 deck "$M/Docks/Dock 5 - Wooden Boardwalk Pier Segments/textures"
 c "Docks/Dock 1 - Rustic Boathouse Dock/Dock 1.blend" public/assets/models/docks/boathouse.glb 1 1024 join "" 24000 deck
 # props
+mkdir -p tools/v2/keys/tex/dumpster3; cp "$M/Bins/Dumpster 3 - Large Open Roll-Off Container/textures/"*.png tools/v2/keys/tex/dumpster3/
+python3 tools/v2/keys/tex/repaint_dumpster.py "$M/Bins/Dumpster 3 - Large Open Roll-Off Container/textures/Color 4.png" "tools/v2/keys/tex/dumpster3/Color 4.png"   # invented lettering
 c "Bins/Dumpster 3 - Large Open Roll-Off Container/Dumpster 3.blend" public/assets/models/keys/rolloff.glb 1 1024 join "" 0 base "tools/v2/keys/tex/dumpster3"
 c "Fences/Fence 4 - Dark Rustic Wooden Fence/Fence 4.blend" public/assets/models/keys/fence_rustic.glb 1 1024 join "" 0 base
 c "Fences/Fence 5 - Low Wooden Picket Fence/Fence 5.blend" public/assets/models/keys/fence_picket.glb 1 1024 join "" 0 base
