@@ -6,6 +6,7 @@
 // are not counted as overlaps.
 import * as THREE from 'three';
 const OVERLAY = /roadDecals|roadLines|markings|graffiti|shoulder/;
+const visUp = (o) => { for (let a = o; a; a = a.parent) if (a.visible === false) return false; return true; }; // a mesh under a hidden LOD group does not draw
 export function layerScan(game, o = {}) {
   const T = THREE;
   const { x = game.camera.position.x, z = game.camera.position.z, r = 30, step = 1, top = 3, depth = 4 } = o;
@@ -17,7 +18,7 @@ export function layerScan(game, o = {}) {
   for (let gz = z - r; gz <= z + r; gz += step) for (let gx = x - r; gx <= x + r; gx += step) {
     const gy = game.city.groundHeightAt ? game.city.groundHeightAt(gx, gz) || 0 : 0;
     org.set(gx, gy + top, gz); rc.set(org, down); rc.far = top + depth; pts++;
-    let hs0 = []; try { hs0 = rc.intersectObjects(roots, true); } catch (e) { continue; } const hs = hs0.filter((h) => h.object.isMesh && !h.object.isSprite && !h.object.isInstancedMesh && h.object.visible && !h.object.isSkinnedMesh && Math.abs(h.face?.normal?.y ?? 1) > 0.7);
+    let hs0 = []; try { hs0 = rc.intersectObjects(roots, true); } catch (e) { continue; } const hs = hs0.filter((h) => visUp(h.object) && h.object.isMesh && !h.object.isSprite && !h.object.isInstancedMesh && h.object.visible && !h.object.isSkinnedMesh && Math.abs(h.face?.normal?.y ?? 1) > 0.7);
     // ground-ish hits only: within 0.6 m of the first hit's height
     if (!hs.length) continue; const y0 = hs[0].point.y; const g = hs.filter((h) => h.point.y > y0 - 0.6);
     for (const h of g) { const k = name(h); mats[k] = (mats[k] || 0) + 1; }
