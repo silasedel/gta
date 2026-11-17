@@ -40,7 +40,41 @@ float psShadowEdge( vec4 sc ) {
 		directLight.color *= ( directLight.visible && receiveShadow ) ? mix( getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ 1 ] ) ) : 1.0;
 		#endif`);
   void anchor;
+  guardLightLoops();
   return true;
+}
+
+// Stage 1 perf: three.js shades every point / spot / directional light for every fragment, even a light whose color is
+// zero. The light budget (src/render/perfGuards.v2.js) always keeps 16 point + 4 spot lights in every shader (most are
+// zero-intensity spares or lamps that are off by day), and the dynamic-shadow twin of the sun has zero intensity but
+// still sampled its whole PCF shadow map. Each light's work (shadow lookups + BRDF) now runs only when its color at this
+// fragment is non-zero (also skips point/spot lights beyond their range or outside their cone). A zero-color light adds
+// exactly nothing, so the picture is unchanged. ?nolightguard turns this off (A/B tests).
+export function guardLightLoops() {
+  if (typeof location !== 'undefined' && /[?&]nolightguard\b/.test(location.search)) return false;
+  const C = THREE.ShaderChunk;
+  let s = C.lights_fragment_begin;
+  const RE = 'RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+  const IF = '\n\t\tif ( any( notEqual( directLight.color, vec3( 0.0 ) ) ) ) {\n';
+  let ok = 0;
+  for (const [sec, info] of [
+    ['#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )', 'getPointLightInfo( pointLight, geometryPosition, directLight );'],
+    ['#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )', 'getSpotLightInfo( spotLight, geometryPosition, directLight );'],
+    ['#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )', 'getDirectionalLightInfo( directionalLight, directLight );'],
+  ]) {
+    const a = s.indexOf(sec); if (a < 0) continue;
+    const end = s.indexOf('#pragma unroll_loop_end', a); if (end < 0) continue;
+    const body = s.slice(a, end);
+    const i1 = body.indexOf(info), i2 = body.lastIndexOf(RE);
+    if (i1 < 0 || i2 < i1) continue;
+    const nb = body.slice(0, i1 + info.length) + IF + body.slice(i1 + info.length, i2 + RE.length) + '\n\t\t}\n' + body.slice(i2 + RE.length);
+    s = s.slice(0, a) + nb + s.slice(end);
+    ok++;
+  }
+  if (ok !== 3) { console.warn('[shadows] light-loop guard: only', ok, 'of 3 loops patched'); }
+  guardLightLoops.unguarded = C.lights_fragment_begin; guardLightLoops.guarded = s; guardLightLoops.chunks = C; // A/B tests (tools/v2/s1-perf.mjs)
+  C.lights_fragment_begin = s;
+  return ok;
 }
 
 export function createSplitShadows(game, sun, dyn) {
