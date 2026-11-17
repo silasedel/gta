@@ -1,0 +1,186 @@
+[
+  {
+    "name": "player",
+    "meshes": 3,
+    "front": {
+      "rays": 3116,
+      "bodyRays": 1117,
+      "hitWhenAimedAtBody": 0.995,
+      "hitWhenAimedPastBody": 185,
+      "falseHitShare": 0.143,
+      "missInsideBody": 2,
+      "hitsInClearAir": 27,
+      "clearAirShare": 0.021,
+      "zones": {
+        "leg": 408,
+        "arm": 249,
+        "torso": 387,
+        "head": 67
+      }
+    },
+    "side": {
+      "rays": 3116,
+      "bodyRays": 647,
+      "hitWhenAimedAtBody": 0.983,
+      "hitWhenAimedPastBody": 94,
+      "falseHitShare": 0.129,
+      "missInsideBody": 0,
+      "hitsInClearAir": 14,
+      "clearAirShare": 0.019,
+      "zones": {
+        "leg": 258,
+        "arm": 172,
+        "torso": 142,
+        "head": 64
+      }
+    }
+  },
+  {
+    "name": "npc:p04",
+    "person": true,
+    "meshes": 3,
+    "front": {
+      "rays": 3116,
+      "bodyRays": 892,
+      "hitWhenAimedAtBody": 0.96,
+      "hitWhenAimedPastBody": 255,
+      "falseHitShare": 0.23,
+      "missInsideBody": 5,
+      "hitsInClearAir": 75,
+      "clearAirShare": 0.068,
+      "zones": {
+        "leg": 337,
+        "torso": 305,
+        "arm": 119,
+        "head": 95
+      }
+    },
+    "side": {
+      "rays": 3116,
+      "bodyRays": 750,
+      "hitWhenAimedAtBody": 0.955,
+      "hitWhenAimedPastBody": 231,
+      "falseHitShare": 0.244,
+      "missInsideBody": 3,
+      "hitsInClearAir": 83,
+      "clearAirShare": 0.088,
+      "zones": {
+        "leg": 384,
+        "torso": 149,
+        "arm": 88,
+        "head": 95
+      }
+    }
+  },
+  {
+    "name": "npc:beach_elder_f",
+    "person": false,
+    "meshes": 5,
+    "front": {
+      "rays": 3116,
+      "bodyRays": 733,
+      "hitWhenAimedAtBody": 0.99,
+      "hitWhenAimedPastBody": 207,
+      "falseHitShare": 0.222,
+      "missInsideBody": 0,
+      "hitsInClearAir": 19,
+      "clearAirShare": 0.02,
+      "zones": {
+        "leg": 304,
+        "torso": 247,
+        "arm": 118,
+        "head": 57
+      }
+    },
+    "side": {
+      "rays": 3116,
+      "bodyRays": 442,
+      "hitWhenAimedAtBody": 0.966,
+      "hitWhenAimedPastBody": 129,
+      "falseHitShare": 0.232,
+      "missInsideBody": 0,
+      "hitsInClearAir": 28,
+      "clearAirShare": 0.05,
+      "zones": {
+        "leg": 187,
+        "torso": 100,
+        "arm": 83,
+        "head": 57
+      }
+    }
+  },
+  {
+    "name": "npc:beach_elder_f",
+    "person": false,
+    "meshes": 5,
+    "front": {
+      "rays": 3116,
+      "bodyRays": 710,
+      "hitWhenAimedAtBody": 0.966,
+      "hitWhenAimedPastBody": 163,
+      "falseHitShare": 0.192,
+      "missInsideBody": 2,
+      "hitsInClearAir": 16,
+      "clearAirShare": 0.019,
+      "zones": {
+        "leg": 279,
+        "torso": 227,
+        "arm": 116,
+        "head": 64
+      }
+    },
+    "side": {
+      "rays": 3116,
+      "bodyRays": 603,
+      "hitWhenAimedAtBody": 0.949,
+      "hitWhenAimedPastBody": 165,
+      "falseHitShare": 0.224,
+      "missInsideBody": 1,
+      "hitsInClearAir": 30,
+      "clearAirShare": 0.041,
+      "zones": {
+        "leg": 321,
+        "torso": 135,
+        "arm": 64,
+        "head": 52
+      }
+    }
+  },
+  {
+    "name": "npc:beach_elder_f",
+    "person": false,
+    "meshes": 5,
+    "front": {
+      "rays": 3116,
+      "bodyRays": 703,
+      "hitWhenAimedAtBody": 0.991,
+      "hitWhenAimedPastBody": 161,
+      "falseHitShare": 0.188,
+      "missInsideBody": 0,
+      "hitsInClearAir": 10,
+      "clearAirShare": 0.012,
+      "zones": {
+        "leg": 280,
+        "torso": 234,
+        "arm": 122,
+        "head": 61
+      }
+    },
+    "side": {
+      "rays": 3116,
+      "bodyRays": 596,
+      "hitWhenAimedAtBody": 0.943,
+      "hitWhenAimedPastBody": 196,
+      "falseHitShare": 0.259,
+      "missInsideBody": 1,
+      "hitsInClearAir": 55,
+      "clearAirShare": 0.073,
+      "zones": {
+        "leg": 311,
+        "torso": 99,
+        "arm": 95,
+        "head": 57
+      }
+    }
+  }
+]

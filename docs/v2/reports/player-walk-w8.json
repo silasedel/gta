@@ -1,0 +1,1388 @@
+{
+  "set": "w8",
+  "gaits": [
+    "walk",
+    "jog"
+  ],
+  "when": "2026-11-17T10:07:13.654Z",
+  "courses": {
+    "house_walk": {
+      "start": [
+        -871.6264413505318,
+        4839.220897506388
+      ],
+      "pts": [
+        {
+          "x": -873.7164472457009,
+          "z": 4838.041119833198
+        },
+        {
+          "x": -875.9806202988008,
+          "z": 4836.763027353908
+        },
+        {
+          "x": -875.4890462683048,
+          "z": 4835.892191564254
+        },
+        {
+          "x": -874.4567408042634,
+          "z": 4834.063436405981
+        },
+        {
+          "x": -874.6842978597581,
+          "z": 4833.245990513891
+        },
+        {
+          "x": -881.4768170190579,
+          "z": 4829.411713076023
+        },
+        {
+          "x": -875.1846694287099,
+          "z": 4818.265014968454
+        },
+        {
+          "x": -877.1005081659482,
+          "z": 4817.183552101363
+        },
+        {
+          "x": -877.6412395994938,
+          "z": 4818.141471469982
+        },
+        {
+          "x": -879.5583783184279,
+          "z": 4821.537731049632
+        },
+        {
+          "x": -880.2143545361301,
+          "z": 4819.444958916358
+        },
+        {
+          "x": -883.6976976947453,
+          "z": 4817.478662794374
+        },
+        {
+          "x": -886.2231214847415,
+          "z": 4816.0530981059355
+        },
+        {
+          "x": -893.6252256967988,
+          "z": 4811.8747188467205
+        }
+      ],
+      "blockedJitter": null,
+      "done": true,
+      "reached": 14,
+      "of": 14,
+      "frames": 776,
+      "dist": 52.4,
+      "plantedSamples": 1018,
+      "footErrMean": 0.0072,
+      "footErrP50": 0.0026,
+      "footErrP95": 0.0423,
+      "footErrMax": 0.0833,
+      "floatFrames": 66,
+      "sinkFrames": 2,
+      "stairSamples": 211,
+      "stuckSecs": 0.07,
+      "stuckMax": 0.07,
+      "capsuleGroundErrMax": 0.211,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 0,
+      "yRange": [
+        0,
+        3.05
+      ]
+    },
+    "curb_walk": {
+      "start": [
+        390.120052085257,
+        -549.5527153620294
+      ],
+      "pts": [
+        {
+          "x": 390.5543509371831,
+          "z": -550.4534842043056
+        },
+        {
+          "x": 392.98642450796916,
+          "z": -555.4977897210525
+        },
+        {
+          "x": 390.5543509371831,
+          "z": -550.4534842043056
+        },
+        {
+          "x": 392.98642450796916,
+          "z": -555.4977897210525
+        }
+      ],
+      "step": 0.15,
+      "blockedJitter": null,
+      "done": true,
+      "reached": 4,
+      "of": 4,
+      "frames": 236,
+      "dist": 16.6,
+      "plantedSamples": 334,
+      "footErrMean": 0.0025,
+      "footErrP50": 0.0018,
+      "footErrP95": 0.0073,
+      "footErrMax": 0.0326,
+      "floatFrames": 0,
+      "sinkFrames": 1,
+      "stairSamples": 0,
+      "stuckSecs": 0.03,
+      "stuckMax": 0.03,
+      "capsuleGroundErrMax": 0.169,
+      "slideP50": 0.499,
+      "slideP90": 0.499,
+      "slideN": 1,
+      "airFrames": 0,
+      "yRange": [
+        0,
+        0.15
+      ]
+    },
+    "slope_walk": {
+      "start": [
+        2104.602979441754,
+        255.8388538569348
+      ],
+      "pts": [
+        {
+          "x": 2090.602979441754,
+          "z": 255.8388538569348
+        },
+        {
+          "x": 2104.602979441754,
+          "z": 255.8388538569348
+        }
+      ],
+      "grade": 0.06100427318053568,
+      "blockedJitter": null,
+      "done": true,
+      "reached": 2,
+      "of": 2,
+      "frames": 434,
+      "dist": 27,
+      "plantedSamples": 553,
+      "footErrMean": 0.0091,
+      "footErrP50": 0.0096,
+      "footErrP95": 0.0151,
+      "footErrMax": 0.0182,
+      "floatFrames": 0,
+      "sinkFrames": 0,
+      "stairSamples": 0,
+      "stuckSecs": 0.07,
+      "stuckMax": 0.07,
+      "capsuleGroundErrMax": 0.024,
+      "slideP50": 0.457,
+      "slideP90": 0.457,
+      "slideN": 1,
+      "airFrames": 0,
+      "yRange": [
+        2.19,
+        3.03
+      ]
+    },
+    "wall_walk": {
+      "start": [
+        -866.8539407602068,
+        4831.580005011701
+      ],
+      "pts": [
+        {
+          "x": -868.5956123395143,
+          "z": 4830.5968569507095
+        },
+        {
+          "x": -873.8206270774373,
+          "z": 4827.647412767734
+        }
+      ],
+      "blockedJitter": null,
+      "done": true,
+      "reached": 2,
+      "of": 2,
+      "frames": 100,
+      "dist": 7.4,
+      "plantedSamples": 136,
+      "footErrMean": 0.0028,
+      "footErrP50": 0.0027,
+      "footErrP95": 0.0062,
+      "footErrMax": 0.0071,
+      "floatFrames": 0,
+      "sinkFrames": 0,
+      "stairSamples": 0,
+      "stuckSecs": 0.05,
+      "stuckMax": 0.05,
+      "capsuleGroundErrMax": 0.049,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 0,
+      "yRange": [
+        0.04,
+        0.07
+      ]
+    },
+    "house_jog": {
+      "start": [
+        -871.6264413505318,
+        4839.220897506388
+      ],
+      "pts": [
+        {
+          "x": -873.7164472457009,
+          "z": 4838.041119833198
+        },
+        {
+          "x": -875.9806202988008,
+          "z": 4836.763027353908
+        },
+        {
+          "x": -875.4890462683048,
+          "z": 4835.892191564254
+        },
+        {
+          "x": -874.4567408042634,
+          "z": 4834.063436405981
+        },
+        {
+          "x": -874.6842978597581,
+          "z": 4833.245990513891
+        },
+        {
+          "x": -881.4768170190579,
+          "z": 4829.411713076023
+        },
+        {
+          "x": -875.1846694287099,
+          "z": 4818.265014968454
+        },
+        {
+          "x": -877.1005081659482,
+          "z": 4817.183552101363
+        },
+        {
+          "x": -877.6412395994938,
+          "z": 4818.141471469982
+        },
+        {
+          "x": -879.5583783184279,
+          "z": 4821.537731049632
+        },
+        {
+          "x": -880.2143545361301,
+          "z": 4819.444958916358
+        },
+        {
+          "x": -883.6976976947453,
+          "z": 4817.478662794374
+        },
+        {
+          "x": -886.2231214847415,
+          "z": 4816.0530981059355
+        },
+        {
+          "x": -893.6252256967988,
+          "z": 4811.8747188467205
+        }
+      ],
+      "blockedJitter": null,
+      "done": true,
+      "reached": 14,
+      "of": 14,
+      "frames": 235,
+      "dist": 59.1,
+      "plantedSamples": 106,
+      "footErrMean": 0.0089,
+      "footErrP50": 0.0027,
+      "footErrP95": 0.0438,
+      "footErrMax": 0.11,
+      "floatFrames": 8,
+      "sinkFrames": 0,
+      "stairSamples": 16,
+      "stuckSecs": 0.03,
+      "stuckMax": 0.03,
+      "capsuleGroundErrMax": 0.277,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 14,
+      "yRange": [
+        0,
+        3.28
+      ]
+    },
+    "curb_jog": {
+      "start": [
+        390.120052085257,
+        -549.5527153620294
+      ],
+      "pts": [
+        {
+          "x": 390.5543509371831,
+          "z": -550.4534842043056
+        },
+        {
+          "x": 392.98642450796916,
+          "z": -555.4977897210525
+        },
+        {
+          "x": 390.5543509371831,
+          "z": -550.4534842043056
+        },
+        {
+          "x": 392.98642450796916,
+          "z": -555.4977897210525
+        }
+      ],
+      "step": 0.15,
+      "blockedJitter": null,
+      "done": true,
+      "reached": 4,
+      "of": 4,
+      "frames": 125,
+      "dist": 25.3,
+      "plantedSamples": 84,
+      "footErrMean": 0.0022,
+      "footErrP50": 0.0012,
+      "footErrP95": 0.0059,
+      "footErrMax": 0.0396,
+      "floatFrames": 1,
+      "sinkFrames": 0,
+      "stairSamples": 0,
+      "stuckSecs": 0.03,
+      "stuckMax": 0.03,
+      "capsuleGroundErrMax": 0.174,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 5,
+      "yRange": [
+        0,
+        0.35
+      ]
+    },
+    "slope_jog": {
+      "start": [
+        2104.1073740930096,
+        258.17777600866356
+      ],
+      "pts": [
+        {
+          "x": 2090.1073740930096,
+          "z": 258.17777600866356
+        },
+        {
+          "x": 2104.1073740930096,
+          "z": 258.17777600866356
+        }
+      ],
+      "grade": 0.06605673390629731,
+      "blockedJitter": null,
+      "done": true,
+      "reached": 2,
+      "of": 2,
+      "frames": 149,
+      "dist": 30.5,
+      "plantedSamples": 75,
+      "footErrMean": 0.0107,
+      "footErrP50": 0.0104,
+      "footErrP95": 0.0219,
+      "footErrMax": 0.0247,
+      "floatFrames": 0,
+      "sinkFrames": 0,
+      "stairSamples": 0,
+      "stuckSecs": 0.07,
+      "stuckMax": 0.07,
+      "capsuleGroundErrMax": 0.033,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 0,
+      "yRange": [
+        2.15,
+        3.14
+      ]
+    },
+    "wall_jog": {
+      "start": [
+        -866.8539407602068,
+        4831.580005011701
+      ],
+      "pts": [
+        {
+          "x": -868.5956123395143,
+          "z": 4830.5968569507095
+        },
+        {
+          "x": -873.8206270774373,
+          "z": 4827.647412767734
+        }
+      ],
+      "blockedJitter": null,
+      "done": true,
+      "reached": 2,
+      "of": 2,
+      "frames": 34,
+      "dist": 7.2,
+      "plantedSamples": 30,
+      "footErrMean": 0.0035,
+      "footErrP50": 0.0031,
+      "footErrP95": 0.008,
+      "footErrMax": 0.0101,
+      "floatFrames": 0,
+      "sinkFrames": 0,
+      "stairSamples": 0,
+      "stuckSecs": 0.07,
+      "stuckMax": 0.07,
+      "capsuleGroundErrMax": 0.027,
+      "slideP50": null,
+      "slideP90": null,
+      "slideN": 0,
+      "airFrames": 0,
+      "yRange": [
+        0.04,
+        0.07
+      ]
+    }
+  },
+  "shots": {
+    "shots": {
+      "front": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015694557850053404,
+            0.0013507458102280533
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020622271075449415,
+            -0.02077040710403438
+          ],
+          "flat": [
+            0.049949145601172175,
+            0.04760979891363492
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.00249696484743246,
+            0.001906813669456015
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "side": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015706494208013219,
+            0.0013363542713524961
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020791106855566115,
+            -0.02078274998590872
+          ],
+          "flat": [
+            0.05012847516041881,
+            0.04749886984780977
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0005685836822980888,
+            0.0014281232423114286
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "back": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015783065101876036,
+            0.0013295445259569791
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020587482915944488,
+            -0.020526716140398426
+          ],
+          "flat": [
+            0.04994755588466392,
+            0.04738144347746301
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0005189047121001522,
+            0.00252791483859536
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "q34": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015882271392232106,
+            0.0012882152031431229
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020732849540654484,
+            -0.020277373476847577
+          ],
+          "flat": [
+            0.04989660078291095,
+            0.04699834347021655
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0001960881241579332,
+            0.0019855245660153247
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "face": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015672387449043041,
+            0.0013073139194761747
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020889072254726186,
+            -0.020621102618706474
+          ],
+          "flat": [
+            0.0499232584631472,
+            0.047166271189195044
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0005160395258374715,
+            0.0011509068030467798
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "feet": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015660003036299028,
+            0.0013533772974942426
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020678270909293816,
+            -0.020893072843615502
+          ],
+          "flat": [
+            0.05008928291113517,
+            0.04770872845825642
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0009871520549416459,
+            0.00222650326949319
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "walk": {
+        "pos": [
+          -799,
+          0,
+          4844.99
+        ],
+        "speed": 1.67,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0022102743912193606,
+            0.02336701899480487
+          ],
+          "off": [
+            -6.4272947365285985e-9,
+            -6.4272947365285985e-9
+          ],
+          "plant": [
+            0.983930508031129,
+            0.3597528074005106
+          ],
+          "lift": [
+            -0.013955093106901358,
+            0.03624886416393202
+          ],
+          "flat": [
+            0.054033547532889956,
+            0.26846518572634176
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.15005301923327605,
+            4.270657932784516
+          ],
+          "pelvis": -0.01694879081176315,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "run": {
+        "pos": [
+          -799,
+          0,
+          4845.93
+        ],
+        "speed": 4.2,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.131087732082486,
+            0.04020993761510873
+          ],
+          "off": [
+            -1.192092987513493e-8,
+            -1.192092987513493e-8
+          ],
+          "plant": [
+            0.35444273047491404,
+            0.003610947403772167
+          ],
+          "lift": [
+            0.15233358585332282,
+            0.0357337825088573
+          ],
+          "flat": [
+            0.27996993436139783,
+            0.1390503216041482
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            4.732013547088698,
+            3.9842883306352035
+          ],
+          "pelvis": -0.019213986995910086,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "sprint": {
+        "pos": [
+          -798.66,
+          0,
+          4857.8
+        ],
+        "speed": 7.15,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.04348663025321044,
+            0.059720219791801754
+          ],
+          "off": [
+            -1.1921023073402054e-8,
+            -1.1921023073402054e-8
+          ],
+          "plant": [
+            0.7388625232806151,
+            0.03453454051907741
+          ],
+          "lift": [
+            0.0894201896629278,
+            0.058142972450005985
+          ],
+          "flat": [
+            0.26847464405474564,
+            0.12660965594675855
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            5.249710077034083,
+            8.524188714390297
+          ],
+          "pelvis": -0.0176955615914592,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "hitzones": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015666014956252899,
+            0.0013520325594198917
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020626652696742784,
+            -0.020807382371094096
+          ],
+          "flat": [
+            0.05003424665804501,
+            0.047668216990336264
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0017441873300514286,
+            0.002096015646602306
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "hitzones_side": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015855789789604132,
+            0.0013045371324738163
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020677959352946775,
+            -0.02026387697705838
+          ],
+          "flat": [
+            0.04995426513432628,
+            0.04710116614440926
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0021005875704272693,
+            0.0013574262182159975
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "aim": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015655571013028686,
+            0.0013297082797111056
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020954802340252775,
+            -0.020790391844369857
+          ],
+          "flat": [
+            0.05003847770447484,
+            0.047391773411588
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0009604062817109945,
+            0.0005376537053782103
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "aim_q": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.00156988716356849,
+            0.0013527977537381875
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020617775239327348,
+            -0.020799926009422876
+          ],
+          "flat": [
+            0.0500001090750236,
+            0.047657981298142325
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.002330656663135614,
+            0.0025100579426385497
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "disguise": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015795565369809796,
+            0.0013272198770654495
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020596163288859166,
+            -0.02047539787147554
+          ],
+          "flat": [
+            0.04994847034086561,
+            0.04735141720567241
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.001400709646201512,
+            0.0020097725877508557
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, red uniform shirt over a white tee, navy shorts, black sneakers",
+        "disguise": "lifeguard"
+      },
+      "car": {
+        "pos": [
+          -804.21,
+          0.85,
+          4847.68
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0015796315494489993,
+            0.001333619260696926
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.020757862703963553,
+            -0.020750212000340898
+          ],
+          "flat": [
+            0.050062240841682905,
+            0.04745689055217036
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0008028898459008854,
+            0.001005170284196959
+          ],
+          "pelvis": 0,
+          "active": false
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "ragdoll": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            0.0016827375267463418,
+            0.001385888928087652
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.02225011318810284,
+            -0.021844228968769176
+          ],
+          "flat": [
+            0.050103734528534685,
+            0.04729616499963405
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.011452782074489529,
+            0.010554962770436311
+          ],
+          "pelvis": -8.200646811193109e-16,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "jump": {
+        "pos": [
+          -799,
+          0.25,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            -0.026686833877459588,
+            -0.015754156457313068
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            0.9999414709243502,
+            0.9999414709243502
+          ],
+          "lift": [
+            -0.10309100725175442,
+            -0.08987314948480277
+          ],
+          "flat": [
+            0.06831222565729012,
+            0.05440018205997736
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0023050234528082564,
+            0.0019872719740116284
+          ],
+          "pelvis": -1.0643849308961729e-14,
+          "active": false
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "land": {
+        "pos": [
+          -799,
+          0,
+          4840.92
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            -0.020381908503835842,
+            -0.011318128372018833
+          ],
+          "off": [
+            -7.152557368605983e-8,
+            -7.152557368605983e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.09957185349616644,
+            -0.08800633581964445
+          ],
+          "flat": [
+            0.07007634662397944,
+            0.056928557226423634
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.06459361911523895,
+            0.12196542973154499
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "cam_car": {
+        "pos": [
+          -801.92,
+          0.05,
+          4847.93
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            -0.030073704359649955,
+            -0.008211467515344018
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.10163017805451993,
+            -0.0874306704226229
+          ],
+          "flat": [
+            0.08012068971120778,
+            0.05120526100758849
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.002396688806340931,
+            0.001387655964903467
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "cam_house": {
+        "pos": [
+          -873.56,
+          0.07,
+          4827.79
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            -0.022370023106102352,
+            -0.017526848065433975
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.10256338910011564,
+            -0.08959152650708242
+          ],
+          "flat": [
+            0.06392101180933488,
+            0.05764027640698717
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.001567227088312151,
+            0.0013799938458435774
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      },
+      "cam_house2": {
+        "pos": [
+          -873.56,
+          0.07,
+          4827.79
+        ],
+        "speed": 0,
+        "lod": 0,
+        "foot": {
+          "err": [
+            -0.022514753233170988,
+            -0.017185802042182265
+          ],
+          "off": [
+            -1.1920928910669204e-8,
+            -1.1920928910669204e-8
+          ],
+          "plant": [
+            1,
+            1
+          ],
+          "lift": [
+            -0.1026673321717905,
+            -0.08915520827983989
+          ],
+          "flat": [
+            0.063709801226287,
+            0.05737439465301392
+          ],
+          "stair": [
+            false,
+            false
+          ],
+          "slide": [
+            0.0012494177183982888,
+            0.001286695434972361
+          ],
+          "pelvis": 0,
+          "active": true
+        },
+        "model": "tripo",
+        "desc": "male, teal palm print shirt over a white tee, khaki cargo pants, off-white sneakers",
+        "disguise": null
+      }
+    },
+    "errors": [
+      "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+    ]
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}
