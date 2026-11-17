@@ -254,12 +254,11 @@ def bake_procedural():
     td = tempfile.mkdtemp(prefix='wbake_')
     sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = int(C.get('bakeSamples', 24)); sc.cycles.use_denoising = False
     sc.render.bake.margin = 6; sc.render.bake.use_clear = True
-    me.materials.clear()
-    for mn, m in mats: me.materials.append(m or bpy.data.materials.new('ph_' + mn))
     uv = me.uv_layers.new(name='BakeUV'); me.uv_layers['UVMap'].active_render = True
     me.uv_layers.active = uv
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='DESELECT'); bpy.ops.object.mode_set(mode='OBJECT')
     for p in me.polygons: p.select = p.material_index in proc
+    print('BAKE faces', sum(1 for p in me.polygons if p.material_index in proc), 'of', len(me.polygons), 'proc', proc, 'mats', [x[0] for x in mats])
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.uv.smart_project(angle_limit=math.radians(55), island_margin=0.004, area_weight=0.0, scale_to_bounds=True); bpy.ops.object.mode_set(mode='OBJECT')
     RESB = C.get('bakeRes', 1024)
     imgs = {k: bpy.data.images.new('bake_' + k, RESB, RESB, alpha=False, float_buffer=k == 'normal') for k in ('color', 'rough', 'metal', 'normal')}
