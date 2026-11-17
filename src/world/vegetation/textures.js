@@ -4,11 +4,11 @@
 //     2 sabal boot-jack (crisscross leaf bases), 3 date (diamond leaf-base scars), 4 queen (close rings, lichen),
 //     5 royal crownshaft (glossy green), 6 fiber (frond stubs, petioles, dead rachis), 7 tree bark (furrows, plates).
 //     Albedo + normal + roughness, all derived from one height field per column.
-//   leafAtlas(): 2048 x 2560, 4 x 5 cells of 512 px, alpha-cut (see CELL below for the layout).
+//   leafAtlas(): 2048 x 3072, 4 x 6 cells of 512 px, alpha-cut (see CELL below for the layout).
 import * as THREE from 'three';
 
 export const BARK = { coconut: 0, royal: 1, sabal: 2, date: 3, queen: 4, shaft: 5, fiber: 6, tree: 7, COLS: 8 };
-export const CELL = { coconut: 0, plume: 1, date: 2, dead: 3, fan: 4, seagrape: 5, hibiscus: 6, croton: 7, bougainvillea: 8, ixora: 9, hedge: 10, grass: 11, pine: 12, oak: 13, moss: 14, mangrove: 15, litter: 16, cypress: 17, fern: 18, deadfan: 19, COLS: 4, ROWS: 5 };
+export const CELL = { coconut: 0, plume: 1, date: 2, dead: 3, fan: 4, seagrape: 5, hibiscus: 6, croton: 7, bougainvillea: 8, ixora: 9, hedge: 10, grass: 11, pine: 12, oak: 13, moss: 14, mangrove: 15, litter: 16, cypress: 17, fern: 18, deadfan: 19, poinciana: 20, COLS: 4, ROWS: 6 };
 // opaque swatches painted in the corners of the fan cell (fan disc is round, corners are free): [u0, v0, u1, v1] in cell units
 export const SWATCH = { husk: [0.01, 0.89, 0.1, 0.99], fruit: [0.9, 0.89, 0.99, 0.99], petiole: [0.01, 0.01, 0.1, 0.11], dates: [0.9, 0.01, 0.99, 0.11] };
 
@@ -239,6 +239,12 @@ function leafCells(x, r) {
   cluster(CELL.mangrove, { n: 130, twigCol: '#6a4a3a', leaf: (cx, cy, a, d, lit) => broad(cx, cy, a, 36 + r() * 16, 14 + r() * 5, hsl(85 + r() * 18, 50, 22 + lit + r() * 6), 'rgba(200,210,120,0.45)', { shine: true }) });
   cluster(CELL.litter, { n: 160, twigs: 10, twigCol: '#5a4430', leaf: (cx, cy, a, d, lit) => { const k = r(); if (k < 0.35) broad(cx, cy, a, 30 + r() * 26, 14 + r() * 8, hsl(30 + r() * 15, 40 + r() * 20, 30 + r() * 20), 'rgba(80,50,20,0.4)', { round: r() < 0.5 }); else if (k < 0.55) broad(cx, cy, a, 16, 6, hsl(45, 30, 40), null); else if (k < 0.62) leaflet(cx, cy, a, 80, 4, [hsl(35, 40, 40), hsl(38, 40, 50), hsl(40, 40, 58)], null, 10); } });
   cluster(CELL.cypress, { n: 60, twigCol: '#6a4a38', leaf: (cx, cy, a, d, lit) => { const L = 60 + r() * 40, ca = Math.cos(a), sa = Math.sin(a); x.strokeStyle = '#6a5a3a'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + ca * L, cy + sa * L); x.stroke(); for (let k = 0; k < 22; k++) { const t = k / 22, px = cx + ca * L * t, py = cy + sa * L * t; for (const sg of [-1, 1]) { x.strokeStyle = hsl(90 + r() * 15, 40, 26 + lit + r() * 8); x.lineWidth = 1.4; x.beginPath(); x.moveTo(px, py); x.lineTo(px - sa * sg * 9 + ca * 3, py + ca * sg * 9 + sa * 3); x.stroke(); } } } });
+  // royal poinciana (flamboyant): feathery bipinnate leaves under clusters of scarlet-orange spoon-petal flowers
+  cluster(CELL.poinciana, { n: 300, twigCol: '#4a3a2a', twigs: 8, leaf: (cx, cy, a, d, lit) => {
+    if (r() < 0.32) { const L = 50 + r() * 40, ca = Math.cos(a), sa = Math.sin(a); x.fillStyle = hsl(92 + r() * 22, 50, 22 + lit + r() * 8);
+      for (let k = 0; k < 14; k++) { const t = k / 14, px = cx + ca * L * t, py = cy + sa * L * t; for (const sg of [-1, 1]) { x.beginPath(); x.ellipse(px - sa * sg * 5, py + ca * sg * 5, 4, 1.8, a + sg * 1.2, 0, 7); x.fill(); } } }
+    else { const hue = r() < 0.8 ? 356 + r() * 10 : 12 + r() * 8, R = 7 + r() * 5; for (let p = 0; p < 5; p++) { const aa = a + p * 1.2566; x.fillStyle = hsl(hue % 360, 88 + r() * 10, 42 + r() * 12 + lit * 0.3); x.beginPath(); x.ellipse(cx + Math.cos(aa) * R * 0.7, cy + Math.sin(aa) * R * 0.7, R * 0.75, R * 0.5, aa, 0, 7); x.fill(); }
+      if (r() < 0.3) { x.fillStyle = hsl(48, 70, 82); x.fillRect(cx - 1.5, cy - 1.5, 3, 3); } } } });
   { // fern / bromeliad fill (used for understory and palm skirts)
     cluster(CELL.fern, { n: 18, twigs: 0, leaf: (cx, cy, a, d, lit) => { const L = 120 + r() * 90, ca = Math.cos(a), sa = Math.sin(a); for (let k = 0; k < 26; k++) { const t = k / 26, px = 256 + ca * L * t, py = 300 + sa * L * t; for (const sg of [-1, 1]) leaflet(px, py, a + sg * 1.2, 26 * (1 - t * 0.7), 4, [hsl(100, 50, 20 + lit), hsl(95, 50, 28 + lit), hsl(90, 45, 34 + lit)], null, 3); } } });
   }
@@ -246,7 +252,7 @@ function leafCells(x, r) {
 
 export function leafAtlas() {
   if (_leaf) return _leaf;
-  const c = document.createElement('canvas'); c.width = 2048; c.height = 2560; const x = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 512 * CELL.ROWS; const x = c.getContext('2d');
   x.clearRect(0, 0, c.width, c.height); leafCells(x, mkRng(2468));
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
   _leaf = { map: t, canvas: c };

@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { vegUniforms } from './materials.js';
 
+const MOWN_Z = /beach|nightlife|park|residential|downtown|business|brickell|midtown|edgewater|arts|causeway|commercial/;
 const FN = 256, FSIZE = 128, FRES = FSIZE / FN, LANE = 1.3;
 const RINGS = [{ dk: 0.055, R: 9 }, { dk: 0.11, R: 20 }, { dk: 0.24, R: 40 }];
 
@@ -55,7 +56,7 @@ export function createLawn({ M, root, data, lawnTester = null, game = globalThis
     if (lawn === false || (lawn === null && s !== 'grass_short' && s !== 'grass_long')) return null;
     if (s === 'water' || s === 'asphalt') return null;
     const y = gh ? gh(x, z) : 0; if (!(y > -0.5 && y < 0.3)) return null;
-    const long = s === 'grass_long', dry = Math.max(0, n2(x, z, 23) * 1.4 - 0.75) + 0.25 * Math.max(0, n2(x + 50, z, 7) - 0.6);
+    const long = s === 'grass_long' && !(data?.zoneAt && MOWN_Z.test(data.zoneAt(x, z) || '')), dry = Math.max(0, n2(x, z, 23) * 1.4 - 0.75) + 0.25 * Math.max(0, n2(x + 50, z, 7) - 0.6); // (greenery) city parks / verges / beach lawns are mown; long grass stays in rural / wild areas
     const path = Math.abs(Math.sin((x * 0.71 + z * 0.7) * 0.045 + n2(x, z, 30) * 5.0)) < 0.035 && n2(x - 9, z + 4, 45) > 0.55; // desire paths
     const bare = Math.max(path ? 0.9 : 0, Math.max(0, n2(x + 13, z - 7, 5) - 0.78) * 4);
     const weed = Math.max(0, n2(x - 70, z + 21, 3.5) - 0.55) * 2.2 + (long ? 0.15 : 0);

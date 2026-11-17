@@ -129,18 +129,20 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     let k = CLS[cls];
     if (k === 'sand' && !(data.isWater && [[40, 0], [-40, 0], [0, 40], [0, -40], [28, 28], [-28, 28], [28, -28], [-28, -28]].some(([dx, dz]) => data.isWater(x + dx, z + dz)))) { // inland sand fields (Keys lots): bare sand broken by shell, scrub, rough meadow and mown patches; beaches within 40 m of water stay sand
       const nk = vnoise(x * 0.018 + 2.3, z * 0.018 - 7.1) * 0.65 + vnoise(x * 0.06, z * 0.06) * 0.35;
-      k = nk < 0.22 ? 'sand' : nk < 0.45 ? 'scrub' : nk < 0.62 ? 'meadow' : 'lawn';
+      k = nk < 0.22 ? 'sand' : nk < 0.45 ? 'scrub' : nk < 0.62 ? 'meadow' : isKeys(x, z) && nk < 0.8 ? 'sand' : 'lawn'; // (greenery) Keys lots: sandy, matted yards, little lush lawn
     }
     if (!k) { // unclassified land: by zone / region, broken into patches
       const zn = data.zoneAt ? data.zoneAt(x, z) : '', nz = vnoise(x * 0.02, z * 0.02);
       if (isKeys(x, z)) { // Keys: scrub, crushed shell, mown green, rough meadow and sand in two scales of patches (no single flat field)
         const nk = nz * 0.65 + vnoise(x * 0.071 + 13.7, z * 0.071 - 4.1) * 0.35;
-        k = nk < 0.3 ? 'scrub' : nk < 0.36 ? 'shell' : nk < 0.66 ? 'lawn' : nk < 0.82 ? 'meadow' : nk < 0.94 ? 'scrub' : 'sand'; }
+        k = nk < 0.3 ? 'scrub' : nk < 0.38 ? 'shell' : nk < 0.5 ? 'lawn' : nk < 0.66 ? 'sand' : nk < 0.84 ? 'scrub' : nk < 0.92 ? 'meadow' : 'sand'; } // (greenery) sandy yards, less mown lawn
       else if (zn === 'airport') k = 'lawn';
       else if (zn === 'wilderness') k = nz < 0.6 ? 'scrub' : 'meadow';
       else if (zn === 'rural') k = nz < 0.55 ? 'meadow' : nz < 0.8 ? 'scrub' : 'dirt';
       else k = nz < 0.75 ? 'lawn' : 'scrub';
     }
+    // greenery: Keys yards and lots are sandy, matted ground broken by grass patches (user mock-up), not lush lawn
+    if (isKeys(x, z) && (k === 'lawn' || k === 'meadow' || k === 'scrub') && !(cls === 'park' || cls === 'golf' || cls === 'pitch') && vnoise(x * 0.045 + 5.1, z * 0.045 - 3.3) * 0.7 + vnoise(x * 0.13, z * 0.13) * 0.3 < 0.55) k = 'sand';
     // vegetation track: road verges through hammock / pine / glade cover are mown grass, not leaf litter (the 'forest' layer read
     // olive-orange along the Overseas Highway); 9-13 m from the carriageway edge, wobbling so the edge is not a ruled line
     if ((k === 'forest' || k === 'pine' || k === 'sawgrass') && data.roadGraph && data.roadGraph.nearestEdge) {

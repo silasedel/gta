@@ -1798,7 +1798,18 @@ export function createTileBuilder(ctx) {
   // greenery: a street tree's crown must stay clear of the traffic lanes (no limbs hanging into the road below ~5 m): a tree whose
   // crown radius reaches over the curb is scaled down to fit the strip (crown edge at most 0.6 m past the curb); one that would be
   // a sapling becomes a palm (crown far above the lanes) instead
-  function treeClearance(near, props) {
+  function treeClearance(near, props, tile) {
+    // junction mouths: no palm / tree trunk inside a junction's curb-return area (node disc + 2 m); slide it out along the
+    // node -> trunk direction onto the corner, or drop it when that spot is road, building or water
+    const J = (tile && tile.nodes || []).filter((n) => n.degree >= 3 && n.width);
+    if (J.length) for (const kind of ['palm', 'tree']) { const list = props[kind]; if (!list || !list.length) continue; const keep = [];
+      for (const p of list) { if (p.cs || p.elev) { keep.push(p); continue; } let ok = true;
+        for (const n of J) { const dx = p.x - n.x, dz = p.z - n.z, d = Math.hypot(dx, dz), need = n.width / 2 + 2.2; if (d >= need) continue;
+          const x2 = n.x + (d > 0.01 ? dx / d : 1) * need, z2 = n.z + (d > 0.01 ? dz / d : 0) * need;
+          if (near(x2, z2).gap >= 0.95 && !insideBuilding(tile, x2, z2) && !(isWater && isWater(x2, z2))) { p.x = x2; p.z = z2; if ((p.y || 0) < 0.5) p.y = gY(x2, z2); placeStats.junctionMoved = (placeStats.junctionMoved || 0) + 1; }
+          else { ok = false; placeStats.junctionDropped = (placeStats.junctionDropped || 0) + 1; } break; }
+        if (ok) keep.push(p); }
+      list.length = 0; for (const p of keep) list.push(p); }
     if (!props.tree || !props.tree.length) return; const keep = [];
     for (const p of props.tree) { const cr = treeCrownR(p.sp); if (!cr) { keep.push(p); continue; }
       const q = near(p.x, p.z), room = q.gap + 0.6;
@@ -1843,6 +1854,7 @@ export function createTileBuilder(ctx) {
       }
       list.length = 0; for (const p of keep) list.push(p);
     }
+    treeClearance(near, props, tile);
     if (!CLIP_OFF) resolveClips(tile, props);
   }
   // ---- clipping sweep: one occupancy pass over every solid prop of the tile against the shared index (src/world/ground/occupancy.js):

@@ -6,7 +6,7 @@ import { CELL, BARK, barkU } from './textures.js';
 import { branch, cluster, groundCard, cellRect } from './plantkit.js';
 
 const V3 = THREE.Vector3;
-export const TREE_KINDS = ['liveoak', 'gumbo', 'slashpine', 'cypress', 'mangrove'];
+export const TREE_KINDS = ['liveoak', 'gumbo', 'slashpine', 'cypress', 'mangrove', 'poinciana'];
 
 // hanging Spanish moss: vertical strips under a limb point
 function moss(gb, R, p, len) {
@@ -29,6 +29,15 @@ export function buildTree(opts = {}) {
     const top = branch(gb, R, new V3(), new V3((R() - 0.5) * 0.25, 1, (R() - 0.5) * 0.25), trunkH, 0.3 * sz, 0, { ...P, children: [0], onLeaf: null }, lod);
     const nL = 3 + ((R() * 2) | 0);
     for (let k = 0; k < nL; k++) { const a = k * 6.28 / nL + R() * 0.7; branch(gb, R, top.clone().add(new V3(0, -0.15, 0)), new V3(Math.cos(a) * 0.6, 1, Math.sin(a) * 0.6), Hc * (0.55 + R() * 0.3), (0.16 + R() * 0.05) * sz, 0, { ...P, children: [3, 2] }, lod); }
+  } else if (kind === 'poinciana') { // royal poinciana: short pale trunk, low wide limbs, flat umbrella crown, flame-red bloom over fine leaves
+    const trunkH = (2.0 + R() * 0.9) * sz, spread = (6 + R() * 2.5) * sz; H = trunkH + 3.4 * sz; ctr.set(0, trunkH + 2.2 * sz, 0);
+    const bloom = 0.45 + R() * 0.25;
+    const P = { radial: 8, segLen: 0.7, children: [4, 3, 2], spread: 1.0, lenK: 0.55, rK: 0.6, up: 0.04, sag: 0, wobble: 0.3, childStart: 0.3, barkCol: [0.86, 0.82, 0.76], barkRep: 1.4, flare: 0.45, leafFrom: 2, leafPerSeg: 1.3, leafSpan: 0.9,
+      onLeaf: (p) => { const fl = R() < bloom; cluster(gb, R, p.clone().add(new V3(0, 0.35, 0)), (lod ? 2.1 : 1.45) * (0.8 + R() * 0.4), fl ? CELL.poinciana : CELL.mangrove, ctr, fl ? [1.05, 1, 1] : leafCol([0.9, 1.08, 0.8]), lod ? 2 : 3, 0.12, 0.6); } };
+    const top = branch(gb, R, new V3(), new V3((R() - 0.5) * 0.25, 1, (R() - 0.5) * 0.25), trunkH, 0.3 * sz, 0, { ...P, children: [0], onLeaf: null }, lod);
+    const nL = 5 + ((R() * 3) | 0);
+    for (let k = 0; k < nL; k++) { const a = k * 6.28 / nL + R() * 0.5, el = 0.3 + R() * 0.25; branch(gb, R, top.clone().add(new V3(0, -0.15, 0)), new V3(Math.cos(a), el, Math.sin(a)), spread * (0.5 + R() * 0.3), (0.16 + R() * 0.05) * sz, 0, { ...P, children: [4, 3, 2] }, lod); }
+    if (!lod) for (let i = 0; i < 4; i++) { const a = R() * 6.28, d = R() * spread * 0.5; groundCard(gb, R, new V3(Math.cos(a) * d, 0, Math.sin(a) * d), 0.5 + R() * 0.4, CELL.poinciana, [0.75, 0.6, 0.58]); } // fallen petals
   } else if (kind === 'liveoak') {
     const trunkH = (2.2 + R() * 1.4) * sz, spread = (7 + R() * 4) * sz; H = trunkH + spread * 0.5; ctr.set(0, trunkH + 1.5, 0);
     const mossy = 0.3 + R() * 0.6;

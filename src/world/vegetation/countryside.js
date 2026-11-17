@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GB, rng, UP } from './geom.js';
 import { CELL } from './textures.js';
-import { cluster, cellRect } from './plantkit.js';
+import { cluster, cellRect, groundCard } from './plantkit.js';
 import { buildGeometry } from './index.js';
 import { makeVegMaterial } from './materials.js';
 import { bakeImpostor } from './field.js';
@@ -31,8 +31,10 @@ const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x
 // ---------------- biomes ----------------
 // tree: max acceptance on the 8 m candidate grid inside groves; shrub: on the 3 m grid; grass: on the 1.1 m grid
 const BIOMES = {
-  keys: { road: 0.3, tree: 0.32, trees: [['gumbo', 3], ['buttonwood', 2.5], ['sabal', 2], ['coconut', 0.6], ['coconutM', 1.2], ['seagrapeT', 2]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 2], ['fern', 0.6]], grass: 0.8, dry: 0.22, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
-  keysSand: { tree: 0.06, trees: [['coconut', 0.8], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 2]], shrub: 0.08, shrubs: [['seagrape', 3]], grass: 0.35, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
+  // Keys neighborhoods (user mock-up): red-flowering poincianas, bougainvillea / hibiscus along the yard frontages, palms; yards are sandy,
+  // matted-down grass with leaf litter, not lush lawn (matted: flattened short tufts, sparse; yard: flowering shrub band 2.5-10 m off the street)
+  keys: { road: 0.3, tree: 0.34, trees: [['gumbo', 2.4], ['buttonwood', 2], ['sabal', 2], ['coconut', 0.6], ['coconutM', 1.4], ['seagrapeT', 1.6], ['poinciana', 2.4]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 1.5], ['fern', 0.5], ['hibiscus', 1.2], ['bougainvillea', 1.2]], yard: [['bougainvillea', 3], ['hibiscus', 3], ['seagrape', 1], ['hedge', 1.2]], matted: 1, litter: 0.05, grass: 0.62, dry: 0.45, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
+  keysSand: { tree: 0.06, trees: [['coconut', 0.8], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 2], ['poinciana', 0.5]], shrub: 0.08, shrubs: [['seagrape', 3]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
   pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.3, shrubs: [['sawpalmetto', 5], ['fern', 0.5], ['fernM', 0.8]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
   hammock: { road: 0.35, tree: 0.72, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2], ['banyan', 0.25]], shrub: 0.38, shrubs: [['fern', 1.4], ['fernM', 2], ['seagrape', 1], ['sawpalmetto', 1]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
   rural: { road: 0.4, tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1], ['banyan', 0.15]], shrub: 0.12, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
@@ -55,10 +57,11 @@ const TREE_KINDS = {
   coconut: { kind: 'coconut', seeds: [[3, 1], [7, 1]], palm: 1, s: [0.85, 1.15] },
   seagrapeT: { kind: 'seagrape', seeds: [[4, 1.5], [12, 1.7]], sp: 'seagrape', s: [0.8, 1.2], shrubLike: 1 },
   // library models (models.js); without the model file the procedural kind in `fb` is drawn instead
+  poinciana: { kind: 'poinciana', seeds: [[3, 1], [7, 1], [12, 1]], sp: 'oak', s: [0.8, 1.1] },
   coconutM: { model: 'coconut', fb: 'coconut', seeds: [[1, 1]], palm: 1, s: [0.8, 1.25] },
   banyan: { model: 'banyan', fb: 'liveoak', seeds: [[1, 1]], sp: 'oak', s: [0.75, 1.05], wide: 1 },
 };
-const SHRUB_KINDS = { seagrape: { kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75], [13, 0.9]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { model: 'fern', seeds: [[1, 1]] } };
+const SHRUB_KINDS = { seagrape: { kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75], [13, 0.9]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { model: 'fern', seeds: [[1, 1]] }, hibiscus: { kind: 'hibiscus', seeds: [[2, 0.8], [7, 1]] }, bougainvillea: { kind: 'bougainvillea', seeds: [[1, 0.8], [9, 1]] }, hedge: { kind: 'hedge', seeds: [[3, 0.8]] } };
 
 function biomeOf(ctx, x, z) {
   const { terrain: T, data: D } = ctx;
@@ -148,6 +151,10 @@ function flowerClump(seed, petal, center) { // daisies / tickseed: thin stems, a
   }
   return { plain: gb.build(), tris: gb.tris };
 }
+function litterPatch(seed) { // a few fallen leaves / twigs flat on the sand (atlas litter cell)
+  const R = rng(seed), gb = { leaf: new GB() }; for (let k = 0; k < 3; k++) groundCard(gb, R, new V3((R() - 0.5) * 0.8, -0.005, (R() - 0.5) * 0.8), 0.3 + R() * 0.3, CELL.litter, [0.7 + R() * 0.08, 0.62, 0.5]);
+  return { leaf: gb.leaf.build(), tris: gb.leaf.tris };
+}
 function rock(seed, col) { // limestone / coral rock: displaced, flattened icosphere, smooth normals, sunk into the ground
   const R = rng(seed); let g = new THREE.IcosahedronGeometry(1, 2); g.deleteAttribute('uv'); g.deleteAttribute('normal'); g = mergeVertices(g);
   const P = g.attributes.position, v = new V3(), sx = 0.8 + R() * 0.6, sz = 0.7 + R() * 0.5, sy = 0.45 + R() * 0.3, ph = R() * 10;
@@ -222,6 +229,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     grass: [1, 2, 3, 4].map((s) => bladeTuft(s * 11, { n: 12, h: 0.42, w: 0.01, lean: 0.55, r: 0.28 })), // 12 blades: this layer reaches 52 m
     fillG: [1, 2, 3, 4].map((s) => bladeTuft(s * 13, { n: 13, h: 0.4, w: 0.008, lean: 0.55, r: 0.3 })), // dense near layer (<26 m)
     short: [1, 2].map((s) => bladeTuft(s * 17, { n: 22, h: 0.2, w: 0.006, lean: 0.6, r: 0.3 })),
+    flat: [1, 2, 3].map((s) => bladeTuft(s * 19, { n: 16, h: 0.15, w: 0.007, lean: 1.5, r: 0.34 })), // matted down (walked / driven on)
+    litter: [1, 2].map((s) => litterPatch(s * 53)),
     tall: [1, 2].map((s) => bladeTuft(s * 23, { n: 22, h: 0.95, w: 0.009, lean: 0.4, r: 0.22 })),
     daisy: [1, 2].map((s) => flowerClump(s * 31, [0.92, 0.92, 0.88], [0.95, 0.7, 0.08])),
     tick: [1, 2].map((s) => flowerClump(s * 37, [0.98, 0.78, 0.06], [0.45, 0.25, 0.05])),
@@ -263,10 +272,11 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     for (let j = Math.ceil(c.z0 / ST); j * ST < c.z0 + CELLS; j++) for (let i = Math.ceil(c.x0 / ST); i * ST < c.x0 + CELLS; i++) {
       const p = hh(i, j, 21); if (p > 0.3) continue;
       const x = (i + 0.1 + hh(i, j, 22) * 0.8) * ST, z = (j + 0.1 + hh(i, j, 23) * 0.8) * ST, b = biomeAtG(G, x, z, c); if (!b) continue;
-      const B = BIOMES[BKEYS[b - 1]]; if (!B.shrub || p > B.shrub * (0.25 + 0.75 * sstep(0.35, 0.7, patchN(x / 3, z / 3, 2)) * (0.6 + 0.6 * groveN(x, z)))) continue;
-      const rd = bil(G, G.RD, x, z, c); if (rd < 2.2 + hh(i, j, 24) * 2.5) continue;
+      const B = BIOMES[BKEYS[b - 1]], rd = bil(G, G.RD, x, z, c), yk = B.yard && rd > 2.6 && rd < 10 ? 2.4 : 1; // yard frontage: flowering shrubs / hedges along the street
+      if (!B.shrub || p > B.shrub * yk * (0.25 + 0.75 * sstep(0.35, 0.7, patchN(x / 3, z / 3, 2)) * (0.6 + 0.6 * groveN(x, z)))) continue;
+      if (rd < 2.2 + hh(i, j, 24) * 2.5) continue;
       if (trunks.some((t) => (t[0] - x) ** 2 + (t[1] - z) ** 2 < 6.5)) continue; // never on a trunk
-      const name = pick(B.shrubs, hh(i, j, 25)), list = protoOf[name], pi = list[(hh(i, j, 26) * list.length) | 0], s = 0.7 + hh(i, j, 27) * 0.6;
+      const name = pick(yk > 1 && hh(i, j, 30) < 0.7 ? B.yard : B.shrubs, hh(i, j, 25)), list = protoOf[name], pi = list[(hh(i, j, 26) * list.length) | 0], s = 0.7 + hh(i, j, 27) * 0.6;
       normalAt(G, x, z, c, _n).lerp(UP, 0.5).normalize();
       pushItem(c, pi, x, bil(G, G.H, x, z, c) - 0.06, z, hh(i, j, 28) * 6.28, s, _n, leafCol(b, x, z, hh(i, j, 29)));
     }
@@ -283,15 +293,16 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
         if (p > 0.8 && rd > 1.0) pushItem(c, protoOf.short[0], x, y - 0.02, z, ry, 0.7 + hh(i, j, 37) * 0.4, _n, [0.95, 0.95, 0.75]);
         continue;
       }
-      const verge = rd < 8 ? 1.25 : 1, pat = patchN(x, z, 1), dense = B.grass * verge * (0.35 + 0.9 * sstep(0.25, 0.7, pat));
+      const verge = rd < 8 ? 1.25 : 1, pat = patchN(x, z, 1), dense = B.grass * verge * (B.matted ? 0.15 + 0.85 * sstep(0.35, 0.8, pat) : 0.35 + 0.9 * sstep(0.25, 0.7, pat));
+      if (B.litter && hh(i, j, 49) < B.litter) { pushItem(c, protoOf.litter[(p * 77 | 0) % 2], x, y, z, ry, 0.8 + hh(i, j, 50) * 0.5, _n, col); continue; }
       const fl = patchN(x, z, 4), r2 = hh(i, j, 38);
       if (B.flower && fl > 0.62 && r2 < B.flower * 6 * sstep(0.62, 0.8, fl)) { const k = vn(x / 30, z / 30 + 2) > 0.5 ? 'daisy' : 'tick'; pushItem(c, protoOf[k][(r2 * 40 | 0) % 2], x, y - 0.02, z, ry, 0.8 + hh(i, j, 39) * 0.5, _n, col); continue; }
       if (B.rock && r2 > 1 - B.rock * (rd < 6 ? 0.5 : 1)) { const s = 0.15 + Math.pow(hh(i, j, 40), 2.5) * 0.7; pushItem(c, protoOf.rock[(r2 * 300 | 0) % 3], x, y - s * 0.18, z, ry, s, _n, col); continue; }
-      if (p > dense) { if (hh(i, j, 44) < dense * 1.6 && !B.tall) pushItem(c, protoOf.fill[(p * 331 | 0) % 4], x + 0.4, y - 0.02, z - 0.3, ry + 2, 0.8 + hh(i, j, 45) * 0.5, _n, [B.hue[0] * 0.95, B.hue[1], B.hue[2] * 0.9]); continue; }
-      if (hh(i, j, 46) < 0.8) pushItem(c, protoOf.fill[(p * 517 | 0) % 4], x - 0.35, y - 0.02, z + 0.4, ry + 1, 0.75 + hh(i, j, 47) * 0.5, _n, [B.hue[0], B.hue[1], B.hue[2] * 0.95]);
+      if (p > dense) { if (hh(i, j, 44) < dense * (B.matted ? 0.5 : 1.6) && !B.tall) pushItem(c, protoOf.fill[(p * 331 | 0) % 4], x + 0.4, y - 0.02, z - 0.3, ry + 2, 0.8 + hh(i, j, 45) * 0.5, _n, [B.hue[0] * 0.95, B.hue[1], B.hue[2] * 0.9]); continue; }
+      if (hh(i, j, 46) < (B.matted ? 0.25 : 0.8)) pushItem(c, protoOf.fill[(p * 517 | 0) % 4], x - 0.35, y - 0.02, z + 0.4, ry + 1, 0.75 + hh(i, j, 47) * 0.5, _n, [B.hue[0], B.hue[1], B.hue[2] * 0.95]);
       const dry = sstep(0.5, 0.85, patchN(x, z, 7)) * B.dry + (rd < 4 ? 0.1 : 0), v = 0.85 + hh(i, j, 41) * 0.3;
       const gcol = [B.hue[0] * v * (1 + dry * 0.55), B.hue[1] * v * (1 + dry * 0.12), B.hue[2] * v * (1 - dry * 0.45)];
-      const tall = B.tall && patchN(x, z, 9) < B.tall, kind0 = tall ? 'tall' : (rd < 5 && pat < 0.45) || pat < 0.3 ? 'short' : 'grass', kind = kind0 === 'grass' && hh(i, j, 48) < 0.5 ? 'half' : kind0, L = protoOf[kind];
+      const tall = B.tall && patchN(x, z, 9) < B.tall, kind0 = tall ? 'tall' : (rd < 5 && pat < 0.45) || pat < 0.3 ? 'short' : 'grass', kind = B.matted && !tall ? (hh(i, j, 48) < 0.7 ? 'flat' : 'short') : kind0 === 'grass' && hh(i, j, 48) < 0.5 ? 'half' : kind0, L = protoOf[kind];
       pushItem(c, L[(p * 997 | 0) % L.length], x, y - 0.02, z, ry, 0.75 + hh(i, j, 42) * 0.55, _n, gcol);
     }
     c.lv.g = 1;
