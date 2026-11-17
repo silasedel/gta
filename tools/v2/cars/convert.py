@@ -614,7 +614,7 @@ for f in bm.faces:
     wfi = int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1
     if sl == 'plate':
         plate_faces.append(f); slot = 'lamp'
-    if arr is not None and sl.startswith('trim') and info['aimg']:
+    if arr is not None and sl.startswith('trim') and info['aimg'] and not CFG.get('noAlphaGlass'):
         al = sum(sample(arr, lp[uvl].uv[0], lp[uvl].uv[1])[3] for lp in f.loops) / len(f.loops)
         if al < 0.06: kill.append(f); continue          # fully cut out (decal holes)
         if al < 0.85: sl = 'glass'
@@ -661,6 +661,14 @@ for f in bm.faces:
             a = LAMP.get(kind, LAMP['head']) / 16.0
             if kind in ('tail', 'tailLed'): rgb = (max(rgb[0], 0.35), rgb[1] * 0.5, rgb[2] * 0.5)
         lp[col_layer] = (rgb[0], rgb[1], rgb[2], a)
+    # maker emblems built into grilles / trunk lids: chrome or bright faces on the centerline of the nose and tail are blanked
+    # to a dark satin plastic (the badge shape may stay, the brand reads no more)
+    if sl.startswith('trim') and sl != 'trim:interior' and _wf < 0 and not CFG.get('keepBadges') and abs(cz[0]) < CFG.get('emblemHalfW', 0.14):
+        gz_ = -cz[1]
+        if (gz_ > FRONTZ - 0.32 and 0.33 < cz[2] < 1.3) or (gz_ < REARZ + 0.32 and 0.45 < cz[2] < 1.45):
+            cs_ = [lp[col_layer] for lp in f.loops]; L_ = sum(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] for c in cs_) / len(cs_)
+            if L_ > 0.3 or sum(c[3] for c in cs_) / len(cs_) >= 0.5:
+                for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.42, 0.0))
     if COLOR_LAMPS and sl.startswith('trim') and sl != 'trim:interior' and lamp_zone(cz):
         cs_ = [lp[col_layer] for lp in f.loops]; r_ = sum(c[0] for c in cs_) / len(cs_); g_ = sum(c[1] for c in cs_) / len(cs_); b_ = sum(c[2] for c in cs_) / len(cs_)
         L_ = 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; front_ = -cz[1] > 0
@@ -705,6 +713,18 @@ def _geo_lamps(kind, front):
     log('geometric', kind, 'lamps', n)
 if not _cnt.get(LAMP['head']) and not CFG.get('noHeadFix'): _geo_lamps('head', True)
 if not _cnt.get(LAMP['tail']) and not _cnt.get(LAMP['reverse']) and not CFG.get('noTailFix'): _geo_lamps('tail', False)
+# hand-placed lamp boxes for models whose lamps cannot be found (cars.json 'lampBoxes'): any non-glass face inside
+for B in CFG.get('lampBoxes') or []:
+    n = 0; kind = B['kind']; front = B.get('front', kind == 'head')
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index in (0, 1): continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
+        k_ = kind if kind not in ('blink',) else ('blinkL' if c_[0] > 0 else 'blinkR')
+        col = (1.0, 0.97, 0.9) if k_ == 'head' else (0.55, 0.03, 0.02) if k_ == 'tail' else (1, 0.5, 0.05)
+        for lp in f.loops: lp[col_layer] = (col[0], col[1], col[2], LAMP[k_] / 16.0); lp[uvl].uv = (-1.0, -1.0)
+        f.material_index = 3; n += 1
+    log('lamp box', kind, n)
 # remap: 0 paint, 1 glass, 2 trim, 3 lamp
 if kill:
     ks = set(f.index for f in kill)
@@ -1013,5 +1033,5 @@ bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', use_selection=True,
                           export_draco_color_quantization=10, export_animations=False, export_image_format='WEBP' if (TEXTURED or tex_slot) else 'NONE', export_image_quality=82)
 man['bytes'] = os.path.getsize(out)
 os.replace(out, out_final)
-json.dump(man, open(os.path.join(OUTDIR, KEY + '.json.tmp'), 'w'), indent=1); os.replace(os.path.join(OUTDIR, KEY + '.json.tmp'), os.path.join(OUTDIR, KEY + '.json'))
+json.dump(man, open(os.path.join(OUTDIR, KEY + '.json.tmp'), 'w'), separators=(',', ':')); os.replace(os.path.join(OUTDIR, KEY + '.json.tmp'), os.path.join(OUTDIR, KEY + '.json'))
 log('DONE', json.dumps({k: man[k] for k in ('dims', 'wb', 'r', 'tris', 'bytes')}), 'secs', round(time.time() - T0, 1))

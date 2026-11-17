@@ -1,7 +1,40 @@
 {
  "conv1": {
   "src": "Convertibles/Convertible 1 - American Muscle Drop-Top/Convertible 1.obj",
-  "L": 4.61
+  "L": 4.61,
+  "lampBoxes": [
+   {
+    "kind": "head",
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0.42,
+     0.75
+    ],
+    "y": [
+     0.55,
+     0.85
+    ]
+   },
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0.25,
+     0.75
+    ],
+    "y": [
+     0.55,
+     0.85
+    ]
+   }
+  ]
  },
  "conv2": {
   "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
@@ -184,7 +217,10 @@
  "super5": {
   "src": "Supercars/Super Car 5 - French Quad-Turbo Hypercar/Super Car 5.blend",
   "L": 4.54,
-  "keepEngine": true
+  "keepEngine": true,
+  "slots": {
+   "^Textured": "trim#141416"
+  }
  },
  "super6": {
   "src": "Supercars/Super Car 6 - Classic Wedge Mid-Engine Sports Coupe/Super Car 6.blend",
@@ -196,12 +232,47 @@
   "L": 6.2,
   "fwd": "-y",
   "cropToPaint": true,
-  "paint": "Material$"
+  "paint": "Material$",
+  "lampBoxes": [
+   {
+    "kind": "head",
+    "dz": [
+     0,
+     0.6
+    ],
+    "ax": [
+     0.45,
+     1.15
+    ],
+    "y": [
+     0.75,
+     1.5
+    ]
+   }
+  ]
  },
  "truck3": {
   "src": "Trucks/Truck 3 - Cab-Over Box Truck/Truck 3.blend",
   "L": 6.6,
-  "textured": true
+  "textured": true,
+  "lampBoxes": [
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0.3,
+     1.35
+    ],
+    "y": [
+     0.25,
+     1.0
+    ]
+   }
+  ]
  },
  "truck4": {
   "src": "Trucks/Truck 4 - Old-Style Box Truck/Truck 4.blend",
@@ -213,14 +284,80 @@
   "src": "Trucks/Truck 5 - Long-Nose Semi Tractor/Truck 5.blend",
   "L": 7.4,
   "textured": true,
-  "fwd": "+y"
+  "fwd": "+y",
+  "lampBoxes": [
+   {
+    "kind": "head",
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0.5,
+     1.1
+    ],
+    "y": [
+     0.6,
+     1.2
+    ]
+   },
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0.5,
+     1.2
+    ],
+    "y": [
+     0.4,
+     1.0
+    ]
+   }
+  ]
  },
  "truck6": {
   "src": "Trucks/Truck 6 - Fire Engine/Truck 6.blend",
   "L": 8.2,
   "textured": true,
   "wheelDonor": "truck7",
-  "fwd": "+y"
+  "fwd": "+y",
+  "lampBoxes": [
+   {
+    "kind": "head",
+    "dz": [
+     0,
+     0.4
+    ],
+    "ax": [
+     0.6,
+     1.3
+    ],
+    "y": [
+     0.5,
+     1.1
+    ]
+   },
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0.7,
+     1.4
+    ],
+    "y": [
+     0.4,
+     1.2
+    ]
+   }
+  ]
  },
  "truck7": {
   "src": "Trucks/Truck 7 - Modern Box Truck/Truck 7.blend",
@@ -229,7 +366,25 @@
  },
  "van1": {
   "src": "Vans/Van 1 - European Cargo Van/Van 1.blend",
-  "L": 6.95
+  "L": 6.95,
+  "lampBoxes": [
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0.6,
+     1.2
+    ],
+    "y": [
+     0.5,
+     1.5
+    ]
+   }
+  ]
  },
  "van2": {
   "src": "Vans/Van 2 - Classic Graffiti Van (broken)/Van 2.blend",
@@ -241,7 +396,32 @@
  "van3": {
   "src": "Vans/Van 3 - Boxy Ambulance/Van 3.blend",
   "L": 6.6,
-  "textured": true
+  "textured": true,
+  "noAlphaGlass": true,
+  "slots": {
+   "^Body": "trim",
+   "^Interior": "trim:interior",
+   "Shadow": "drop",
+   "^Glass": "paint"
+  },
+  "lampBoxes": [
+   {
+    "kind": "tail",
+    "front": false,
+    "dz": [
+     0,
+     0.4
+    ],
+    "ax": [
+     0.4,
+     1.4
+    ],
+    "y": [
+     0.35,
+     1.6
+    ]
+   }
+  ]
  },
  "van4": {
   "src": "Vans/Van 4 - Ambulance Box Body/Van 4.blend",
