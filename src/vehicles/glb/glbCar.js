@@ -39,9 +39,29 @@ function col4(g) {
   for (let i = 0; i < n; i++) { rgb[i * 3] = c.getX(i); rgb[i * 3 + 1] = c.getY(i); rgb[i * 3 + 2] = c.getZ(i); a[i] = c.itemSize > 3 ? c.getW(i) : 0.5; }
   return { rgb, a };
 }
+// ONE fleet style: every library model's trim is pulled into the same calibrated ranges per material class, so 47 cars from
+// different sources share one light response (no pure-black CG plastic, no paper-white trim, no mirror-rough chrome).
+//   metal (chrome, alloy, brushed):  neutral, albedo luminance 0.55..0.8, roughness 0.08..0.5; dark "metal" -> painted (metal 0)
+//   dielectric (plastic, rubber, interior, fabric): albedo luminance 0.025..0.62, roughness 0.32..0.95
+//   near-black plastics / rubber: roughness >= 0.5 unless authored as gloss piano black (< 0.25 stays at 0.22)
+const lum3 = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+function calibrate(rgb, rm, i) {
+  let r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2], ro = rm[i * 2]; const metal = rm[i * 2 + 1] > 0.5;
+  const L = lum3(r, g, b);
+  let lo = 0.025, hi = 0.62;
+  if (metal && L < 0.12) { rm[i * 2 + 1] = 0; ro = Math.max(0.35, Math.min(0.7, ro)); }   // dark "metal" trim is painted / plastic (art guide)
+  else if (metal) { // chrome / alloy: neutral (sat <= 0.08) and bright, 0.55-0.8
+    const m = (r + g + b) / 3; r = m + (r - m) * 0.25; g = m + (g - m) * 0.25; b = m + (b - m) * 0.25;
+    lo = 0.55; hi = 0.8; ro = Math.min(0.5, Math.max(0.08, ro));
+  }
+  else if (L < 0.06) ro = ro < 0.25 ? 0.22 : Math.max(0.5, Math.min(0.95, ro));
+  else ro = Math.min(0.95, Math.max(0.32, ro));
+  if (L > hi) { const k = hi / L; r *= k; g *= k; b *= k; } else if (L < lo) { const k = L > 1e-4 ? lo / L : 0; if (k) { r *= k; g *= k; b *= k; } else { r = g = b = lo; } }
+  rgb[i * 3] = r; rgb[i * 3 + 1] = g; rgb[i * 3 + 2] = b; rm[i * 2] = ro;
+}
 function prepTrim(g) {
   const { rgb, a } = col4(g), n = a.length, rm = new Float32Array(n * 2);
-  for (let i = 0; i < n; i++) { const [r, m] = unpackRM(a[i]); rm[i * 2] = r; rm[i * 2 + 1] = m; }
+  for (let i = 0; i < n; i++) { const [r, m] = unpackRM(a[i]); rm[i * 2] = r; rm[i * 2 + 1] = m; calibrate(rgb, rm, i); }
   g.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
   g.setAttribute('aRM', new THREE.BufferAttribute(rm, 2));
   g.setAttribute('aPat', new THREE.BufferAttribute(new Float32Array(n), 1));
@@ -195,10 +215,10 @@ function texturedMaterial(src) {
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aRM;\nvarying vec2 vRM;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vRM = aRM;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vRM;')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = max(vRM.x, 0.25);')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y;');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = clamp(vRM.x, 0.3, 0.85);')
+      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y * step(0.3, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)));');
   };
-  m.customProgramCacheKey = () => 'ps-cartex-v1';
+  m.customProgramCacheKey = () => 'ps-cartex-v2';
   return m;
 }
 // ------------------------------------------------------------------ taxi: roof sign (lit at night) + door lettering
@@ -256,7 +276,7 @@ function addServiceLivery(levels, t, M) {
 }
 // one wheel material for every library car (the rims keep their own baked colors; aTint = 0 everywhere)
 let _wmat = null;
-const wheelMaterial = () => (_wmat ||= wheelMat(0xffffff, 'alloy'));
+const wheelMaterial = () => (_wmat ||= Object.assign(wheelMat(0xffffff, 'alloy'), { name: 'car-wheel' }));
 
 // wheel instances: N visual wheels follow the four physics wheel nodes (extra axles hang off the rear nodes)
 const _m = new THREE.Matrix4(), _inv = new THREE.Matrix4(), _flip = new THREE.Matrix4().makeRotationY(Math.PI);
@@ -295,16 +315,24 @@ export function buildGlbCar(key, look, t, info) {
   root.add(shell);
   const wear = { dirt: 0, rust: 0, fade: 0, seed: 0, ...(look.wear || {}) };
   const shape = { dirtTop: t.belt + 0.05, halfL: t.L / 2, halfWb: t.wb / 2, r: t.r };
-  const finish = look.finish || (t.taxi || t.heavy ? 'gloss' : 'metallic');
+  const finish = look.finish || (t.classic ? 'solid' : t.taxi || t.heavy ? 'gloss' : 'metallic');
   const tt = look.twoTone && look.twoTone.y != null ? { color: look.twoTone.color, y: t.yb + (t.belt - t.yb) * look.twoTone.y } : null;
   const roofColor = t.livery === 'police' ? 0xf2f2f2 : look.twoTone?.roof ?? null;
   const roofTone = roofColor != null ? { color: roofColor, y: t.belt + 0.07 } : null;
-  // hood stripe (Nico's pickup): the paint shader's patch box over the hood, from the windshield base to the nose
+  // racing stripe (Nico's pickup, mock-up): one paint-shader box over the hood (windshield base -> where the hood drops to the
+  // grille) and one over the cab roof.  Paint faces only: glass, lamps, grille and trim are other slots and never get it.
   const st = look.stripe;
-  const patch = st ? { min: [-st.w / 2, t.noseY - 0.12, t.zA - 0.15], max: [st.w / 2, t.roofY + 0.5, t.L / 2 + 0.3], color: st.color ?? 0x0c0d0f, strength: 1, satin: st.satin ?? true } : null;
-  const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone });
-  const glass = glassMaterial(look.tint ?? 1);
-  const trim = trimMaterial();
+  let patch = null;
+  if (st) {
+    const S = { ...(man.stripe || {}), ...st }, front = man.shape?.front ?? t.L / 2;
+    const hz0 = S.hood?.[0] ?? t.zA - 0.2, hz1 = S.hood?.[1] ?? front - 0.3, hy0 = S.hoodY ?? t.noseY - 0.1;
+    // hood: from just under the windshield base to where the hood bends down to the grille
+    patch = { min: [-st.w / 2, hy0, hz0], max: [st.w / 2, t.roofY + 0.3, hz1], color: st.color ?? 0x0c0d0f, strength: 1, satin: st.satin ?? true };
+    if (st.roofW) patch.min2 = [-st.roofW / 2, S.roofY ?? t.roofY - 0.2, S.roof?.[0] ?? t.zC - 0.1], patch.max2 = [st.roofW / 2, t.roofY + 0.3, S.roof?.[1] ?? t.zB + 0.3];
+  }
+  const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone }); paint.name = 'car-paint';
+  const glass = glassMaterial(look.tint ?? 1); glass.name ||= 'car-glass';
+  const trim = trimMaterial(); trim.name ||= 'car-trim';
   const sheet = decalSheet(look);
   const lamps = lampMaterial(sheet, { ambulance: t.police === 'ambulance', fire: t.police === 'fire', busSign: false });
   const lightMats = lamps.lightMats;

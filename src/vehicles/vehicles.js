@@ -247,6 +247,7 @@ export async function createVehicles(game) {
       if (fleet?.isGlb(typeKey) && !opts.look) fleet.look(typeKey, look);
       if (opts.stripe) look.stripe = opts.stripe;
       if (opts.ride != null) look.ride = opts.ride;
+      if (opts.finish) look.finish = opts.finish;
       if (opts.wear && typeof opts.wear === 'object' && !opts.look) { const W = opts.wear; for (const k of ['dirt', 'rust', 'fade', 'age']) if (W[k] != null) look.wear[k] = W[k]; if (W.dirtColor) look.wear.dirtColor = W.dirtColor; look.signature = lookSignature(look); }
       else if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.4 ? Math.min(0.8, (w - 0.4) * 1.3) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
       if (color != null && !opts.look) { look.color = color; look.twoTone = opts.twoTone ?? null; if (opts.wear == null) { look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; } look.signature = lookSignature(look); }
@@ -417,6 +418,18 @@ export async function createVehicles(game) {
     return { drv: null, lcT: 2 + Math.random() * 4, signal: 0, phoneT: 0, wanderT: 0, wanderK: 1, seenBlock: null, edge: null, dir: 1, d: 0, lane: 0, next: null, cruiseK: 0.85 + Math.random() * 0.25, stuckT: 0, blockedT: 0, fleeT: 0, honkT: 0, chase: null };
   }
 
+  // ------------------------------------------------------------ soft ground under a car: 1 = loose sand, 0 = pavement
+  const SOFT = [[/^(sand|dune|beach|shell|island|sandbar)$/, 1], [/mud|swamp|wetland/, 0.8], [/damp/, 0.75], [/dirt|gravel|soil|track|farm/, 0.45], [/grass|lawn|turf|field|park|meadow|scrub/, 0.3]];
+  function softAt(x, z, y) {
+    try {
+      const k = String((game.surfaceAt || city?.surfaceAt)?.(x, z, y) ?? '');
+      if (/asphalt|concrete|paved|metal|wood|tile|brick|stone|pier/.test(k)) return 0;
+      if (game.sand?.isSand?.(x, z)) return 1;
+      for (const [re, s] of SOFT) if (re.test(k)) return s;
+    } catch (e) { /* no surface data */ }
+    return 0;
+  }
+
   // ------------------------------------------------------------ seat anchors (src/vehicles/README.md "Seats")
   // Shell space (children of v.car.shell): ground y = 0, +Z forward, +X = the car's left (US driver side), z = 0 mid-wheelbase.
   // Library models carry seats measured from their interior (tools/v2/cars/seats.py -> manifest `seats` / `wheel`); procedural
@@ -458,7 +471,7 @@ export async function createVehicles(game) {
   function placeInSeat(ch, v, i, role) {
     const a = seatAnchor(v, i);
     if (!a) return false;
-    if (seatMod?.seatCharacter) { try { seatMod.seatCharacter(ch, a, { role }); return true; } catch (e) { console.warn('[cars] seatCharacter', e); } }
+    if (seatMod?.seatCharacter) { try { seatMod.seatCharacter(ch, a, { role, vehicle: v }); return true; } catch (e) { console.warn('[cars] seatCharacter', e); } }
     ch.root.rotation.set(0, a.yaw, 0);
     ch.root.position.copy(a.hip).sub(HIP_IN_ROOT);
     return true;
@@ -725,6 +738,11 @@ export async function createVehicles(game) {
     if (!v.engineOn) engine = 0;
     gearbox(v, speed, c, engine, brake, dt);
     if (v.shiftT > 0) engine *= 0.2;
+    // soft ground (beach sand, dunes, mud, dirt, grass): the tires dig in a little, the car rolls heavier, grips and steers less
+    if ((v.softT = (v.softT ?? 0) - dt) <= 0) { v.softT = 0.25 + Math.random() * 0.05; const tp = body.translation(); v.softTarget = softAt(tp.x, tp.z, tp.y - v.groundOff); }
+    v.soft = (v.soft ?? 0) + ((v.softTarget || 0) - (v.soft ?? 0)) * Math.min(1, dt * 3);
+    const soft = v.inWater ? 0 : v.soft;
+    if (soft > 0.01) engine *= 1 - 0.2 * soft;
     const brakeImpulse = brake * spec.mass * 2.6 * dt; // per wheel
     const drive = spec.drive;
     const nDrive = drive === 'awd' ? 4 : 2;
@@ -743,6 +761,7 @@ export async function createVehicles(game) {
         b = Math.max(b, spec.mass * 0.9 * dt);
         slip = spec.grip * 0.45; side = 0.75;
       }
+      if (soft > 0.01) { slip *= 1 - 0.3 * soft; side *= 1 - 0.22 * soft; }
       vc.setWheelBrake(i, fin(b, 0, spec.mass * 10));
       vc.setWheelFrictionSlip(i, fin(v.inWater ? 0.03 : slip, spec.grip, 10));
       vc.setWheelSideFrictionStiffness(i, fin(side, 1, 2));
@@ -756,6 +775,11 @@ export async function createVehicles(game) {
     if (!(body.mass() > 0)) { try { body.recomputeMassPropertiesFromColliders(); } catch (e) { /* ignore */ } if (!(body.mass() > 0)) return; }
     const pl = body.linvel(), pa = body.angvel();
     vc.updateVehicle(dt, wheelFilter);
+    if (soft > 0.01) { // rolling resistance of tires plowing sand: ~1.2 m/s2 at walking pace, ~2 m/s2 at 70 km/h
+      let gr = 0; for (let i = 0; i < 4; i++) if (vc.wheelIsInContact(i)) gr++;
+      const lv = body.linvel(), vh = Math.hypot(lv.x, lv.z);
+      if (gr >= 2 && vh > 0.05) { const k = Math.max(0, 1 - soft * (1.1 + 0.045 * vh) * dt / vh); body.setLinvel({ x: lv.x * k, y: lv.y, z: lv.z * k }, true); }
+    }
     // anti-roll bars: per axle, the side that compresses more is pushed up and the other pulled down (the ray-cast
     // controller has none: without them tall cars lean far, unload the inner wheels and trip over in corners)
     if (spec.antiRoll) {
@@ -1298,7 +1322,7 @@ export async function createVehicles(game) {
   await breathe(); // stage 1 boot pacing (src/core/pace.js): the spawn loops run in short tasks
   for (let k = 0; k < 40 && list.length < 14; k++) {
     const s = parkedSpot(spawn, 10, 170 + k * 8);
-    if (s) { const type = parkedTypeFor(s.pos); createVehicle(type, colorFor(type), s.pos, s.heading, { locked: Math.random() < 0.4 }); }
+    if (s) { const type = parkedTypeFor(s.pos); parkChecked(type, s.pos, s.heading); }
     await breathe();
   }
   for (let k = 0; k < 60 && list.filter((v) => v.ai).length < 12; k++) {
@@ -1313,23 +1337,46 @@ export async function createVehicles(game) {
   // ------------------------------------------------------------ hand-placed cars
   // spawnParked(key, { x, z, heading, color, wear 0..1, y?, locked?, seed? }) -> Promise<vehicle>: a parked car that the
   // traffic manager never recycles (driveways, set pieces).  Waits for the library model to load; wheels settle on the ground.
+  // a parked car only where its footprint is clear of fences, walls, props and other cars (r2-physics clearance.js);
+  // slid to the nearest free spot, skipped when there is none; re-checked after spawn (colliders that stream in later)
+  function parkChecked(type, pos, heading) {
+    const t = CAR_TYPES[type] || CAR_TYPES.sedan;
+    let p = pos, h = heading;
+    if (game.physics?.findCarSpot) {
+      const s = game.physics.findCarSpot(pos.x, pos.z, heading, t.L, t.W);
+      if (!s) return null;
+      p = new THREE.Vector3(s.x, s.y ?? pos.y, s.z); h = s.heading ?? heading;
+    }
+    const v = createVehicle(type, colorFor(type), p, h, { locked: Math.random() < 0.4 });
+    try { game.physics?.watchParked?.(v); } catch (e) { /* optional */ }
+    return v;
+  }
   async function spawnParked(key, o = {}) {
     if (fleet && !CAR_TYPES[key]?.glb) key = fleet.resolve(key); // generic keys ('sedan', 'pickup'...) -> a library model of that class
     if (fleet && CAR_TYPES[key]?.glb && !fleet.loaded(key)) { try { await loadCarModel(CAR_TYPES[key].fileKey || key); } catch (e) { /* falls back below */ } }
     // the ground (streamed colliders) must exist under the spot, or the car drops through / lands hard and dents itself
     for (let i = 0; i < 120 && city?.collidersReadyAt && !city.collidersReadyAt(o.x, o.z); i++) await new Promise((r) => setTimeout(r, 250));
     try { syncQueries(); } catch (e) { /* */ }
+    if (!o.keepSpot && game.physics?.findCarSpot && CAR_TYPES[key]) {
+      const s = game.physics.findCarSpot(o.x, o.z, o.heading || 0, CAR_TYPES[key].L, CAR_TYPES[key].W);
+      if (!s) return null;
+      o = { ...o, x: s.x, z: s.z, y: s.y ?? o.y };
+    }
     const y = o.y ?? groundY(o.x, o.z);
     const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
-      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride });
+      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride, finish: o.finish });
     specials.add(v); v.pinned = true;
+    if (!o.keepSpot) { try { game.physics?.watchParked?.(v); } catch (e) { /* optional */ } }
     return v;
   }
   // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
-    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x5f646a, wear: { dirt: 0.26, rust: 0, fade: 0, dirtColor: 'sand' }, stripe: true, ride: 0.07 }, // metallic mid gray (dust and fade whiten paint)
-    { key: 'conv1', local: [-8.5, 14.5], heading: Math.PI + 0.3, color: 0xa9cdd2, wear: { dirt: 0.2, rust: 0.24, fade: 0.32, age: 0.85, dirtColor: 'salt' } }, // pale blue, soft rust (mock-up)
+    // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
+    { key: 'truck9', local: [-12.4, 8.4], heading: 2.35, color: 0x8f949b, finish: 'metallic', wear: { dirt: 0.2, rust: 0, fade: 0, dirtColor: 'sand' },
+      stripe: { w: 0.74, roofW: 1.02, color: 0x16181c, satin: true } /* hood / roof boxes measured per model (manifest .stripe, seats.py) */, ride: 0.07 },
+    // the old faded powder-blue drop-top: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches
+    { key: 'conv1', local: [-18.8, 5.5], heading: 1.03, color: 0x5e7f8a, finish: 'solid', wear: { dirt: 0.22, rust: 0.26, fade: 0.4, age: 0.85, dirtColor: 'salt' } },
   ];
   const nicoCars = [];
   (async () => {
@@ -1339,13 +1386,13 @@ export async function createVehicles(game) {
     const NH = game.nicoHouse; if (!NH?.toWorld) return;
     const h0 = NH.spot?.heading || 0;
     // the neighbors: a sedan under a cover in the next yard, the old graffiti van rusting on the lot across the lane
-    for (const [k, lx, lz, h] of [['covered1', -19.5, 12.5, 0.35], ['van2', 30.5, 6.5, 2.3]]) {
+    for (const [k, lx, lz, h] of [['covered1', -22.9, -3.5, -0.37], ['van2', 18.6, 25.0, 1.58]]) { // spots from r2-keys (rotated house, mock-up frame)
       const p = NH.toWorld(new THREE.Vector3(lx, 0, lz));
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.66, color: 0x0a0a0b, satin: true } : null, ride: c.ride }); nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, keepSpot: true }); nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();
@@ -1562,7 +1609,7 @@ export async function createVehicles(game) {
       const sp = parkedSpot(pp, 70, PHYS_R - 15, true);
       if (sp) {
         if (farP) { placeVehicle(farP, sp.pos, sp.heading); farP.locked = Math.random() < 0.4; }
-        else if (parked.length < 18) { const type = parkedTypeFor(sp.pos); createVehicle(type, colorFor(type), sp.pos, sp.heading, { locked: Math.random() < 0.4 }); }
+        else if (parked.length < 18) { const type = parkedTypeFor(sp.pos); parkChecked(type, sp.pos, sp.heading); }
       }
     }
   }
@@ -1618,7 +1665,8 @@ export async function createVehicles(game) {
     let fireBest = null, fireBestD = 1e9;
     for (const v of list) {
       const t = v.body.translation(), r = v.body.rotation();
-      v.mesh.position.set(t.x, t.y, t.z);
+      // tires dig ~3.5 cm into loose sand (visual only; the sand is opaque and depth-tested, so the buried part is hidden)
+      v.mesh.position.set(t.x, t.y - (v.soft > 0.01 && !v.inWater ? 0.035 * v.soft : 0), t.z);
       v.mesh.quaternion.set(r.x, r.y, r.z, r.w);
       v.speedKmh = Math.abs(v.speed) * 3.6;
       { const lv = v.body.linvel(); v.velocity.set(lv.x, lv.y, lv.z); }
@@ -2084,6 +2132,6 @@ export async function createVehicles(game) {
   } catch (e) { /* no glob support (plain esbuild check) */ }
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }

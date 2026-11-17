@@ -87,6 +87,8 @@ uniform vec4 uWearShape;   // dirtTopY, bodyLength/2, wheelbase/2, wheel radius
 uniform vec4 uTwoTone;     // rgb = second color, a = split height (y below it gets the second color; <= 0 disables)
 uniform vec4 uPatchMin;    // xyz = box min, w = strength (0 disables): a replaced panel in another color
 uniform vec3 uPatchMax;
+uniform vec4 uPatch2Min;   // a second box in the patch color (w = strength, 0 disables): e.g. the roof half of a racing stripe
+uniform vec3 uPatch2Max;
 uniform vec3 uPatchColor;
 uniform float uPatchSatin;  // 1 = the patch is a satin (non-metallic, no clear coat) panel, e.g. a matte black hood stripe
 uniform vec4 uRoofTone;    // rgb = roof / pillar color, a = height above which it applies (<= 0 disables)
@@ -120,8 +122,14 @@ void computeWear(inout vec3 albedo) {
     albedo = mix(albedo, uRoofTone.rgb, e);
   }
   if (uPatchMin.w > 0.0) {
-    vec3 inside = step(uPatchMin.xyz, p) * step(p, uPatchMax);
+    // soft 4 mm edge (a stripe is a film, not a pixel step) and no aliasing staircase along the box sides
+    vec3 e = max(fwidth(p), vec3(0.002));
+    vec3 inside = smoothstep(uPatchMin.xyz - e, uPatchMin.xyz + e, p) * (1.0 - smoothstep(uPatchMax - e, uPatchMax + e, p));
     wearPatch = inside.x * inside.y * inside.z * min(1.0, uPatchMin.w);
+    if (uPatch2Min.w > 0.0) {
+      vec3 i2 = smoothstep(uPatch2Min.xyz - e, uPatch2Min.xyz + e, p) * (1.0 - smoothstep(uPatch2Max - e, uPatch2Max + e, p));
+      wearPatch = max(wearPatch, i2.x * i2.y * i2.z * min(1.0, uPatch2Min.w));
+    }
     albedo = mix(albedo, uPatchColor, wearPatch);
   }
   // road film: strongest low on the body and thrown up behind the wheels; a little dust on upward faces
@@ -144,10 +152,20 @@ void computeWear(inout vec3 albedo) {
   float rA = 1.15 - uWear.y * (0.45 + 0.6 * edge);
   float r = smoothstep(rA, rA + 0.07, rustN + edge * 0.25);
   wearRust = clamp(r * step(0.02, uWear.y), 0.0, 1.0);
-  vec3 faded = mix(albedo, vec3(dot(albedo, vec3(0.33))) * 1.25 + 0.08, 0.6);
-  albedo = mix(albedo, faded, wearFade);
-  vec3 rustCol = mix(vec3(0.06, 0.02, 0.008), vec3(0.2, 0.075, 0.02), nHi.g);
+  // paint is never one flat color: +-4% low-frequency tone drift (panel to panel, orange peel, old polish marks)
+  albedo *= 0.96 + 0.08 * nLo.g;
+  // oxidized single-stage paint: chalky (less saturated, a little lighter, never white), mottled by the noise
+  float lumA = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
+  vec3 faded = mix(albedo, vec3(lumA), 0.55) * 1.12 + vec3(0.018);
+  albedo = mix(albedo, faded, wearFade * (0.7 + 0.3 * nHi.r));
+  // rust: a dark brown pitted core, orange-brown bloom at the rim, and a tea-stain halo bleeding into the paint below it
+  float core = smoothstep(rA + 0.03, rA + 0.12, rustN + edge * 0.25);
+  float halo = smoothstep(rA - 0.09, rA, rustN + edge * 0.25) * (1.0 - wearRust);
+  vec3 rustDark = vec3(0.075, 0.032, 0.014) * (0.7 + 0.6 * nHi.g);
+  vec3 rustBloom = mix(vec3(0.24, 0.095, 0.03), vec3(0.32, 0.15, 0.06), nHi.r);
+  vec3 rustCol = mix(rustBloom, rustDark, core);
   albedo = mix(albedo, rustCol, wearRust);
+  albedo = mix(albedo, albedo * vec3(0.78, 0.66, 0.56), halo * step(0.02, uWear.y) * 0.8);
   albedo = mix(albedo, uDirtColor * (0.75 + 0.5 * nHi.r), wearDirt * 0.88);
 }
 `;
@@ -169,7 +187,7 @@ function injectWear(mat) {
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v3';
+  mat.customProgramCacheKey = () => 'ps-wear-v4';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
@@ -192,8 +210,10 @@ const hex = (h) => new THREE.Color(h);
 export function carPaint(opts = {}) {
   const finish = opts.finish || 'metallic';
   const F = {
-    gloss: { metalness: 0.05, roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.025 },
-    metallic: { metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.025 },
+    gloss: { metalness: 0.05, roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.03 },
+    metallic: { metalness: 0.6, roughness: 0.36, clearcoat: 1, clearcoatRoughness: 0.045 },
+    // old single-stage enamel (classics, beaters): no metal flake, a thin tired clear coat that blurs the sky
+    solid: { metalness: 0, roughness: 0.46, clearcoat: 0.38, clearcoatRoughness: 0.17 },
     pearl: { metalness: 0.35, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.03, sheen: 0.6, iridescence: 0.35 },
     matte: { metalness: 0.2, roughness: 0.78, clearcoat: 0, clearcoatRoughness: 0.5 },
     satin: { metalness: 0.4, roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.35 },
@@ -202,7 +222,7 @@ export function carPaint(opts = {}) {
     plastic: { metalness: 0, roughness: 0.62, clearcoat: 0, clearcoatRoughness: 0.5 },
   }[finish] || {};
   const m = new THREE.MeshPhysicalMaterial({
-    color: opts.color ?? 0x888888, envMapIntensity: 1.2,
+    color: paintAlbedo(opts.color ?? 0x888888), envMapIntensity: 1.0,
     metalness: opts.flake ?? F.metalness, roughness: F.roughness, clearcoat: F.clearcoat, clearcoatRoughness: F.clearcoatRoughness,
   });
   if (F.sheen) { m.sheen = F.sheen; m.sheenRoughness = 0.3; m.sheenColor = hex(opts.color ?? 0x888888).offsetHSL(0.08, 0, 0.1); }
@@ -219,6 +239,8 @@ export function carPaint(opts = {}) {
     uTwoTone: { value: tt ? new THREE.Vector4(...hex(tt.color).toArray(), tt.y ?? 0.6) : new THREE.Vector4(0, 0, 0, 0) },
     uPatchMin: { value: pt ? new THREE.Vector4(pt.min[0], pt.min[1], pt.min[2], pt.strength ?? 1) : new THREE.Vector4(0, 0, 0, 0) },
     uPatchMax: { value: pt ? new THREE.Vector3(...pt.max) : new THREE.Vector3() },
+    uPatch2Min: { value: pt?.min2 ? new THREE.Vector4(pt.min2[0], pt.min2[1], pt.min2[2], pt.strength ?? 1) : new THREE.Vector4(0, 0, 0, 0) },
+    uPatch2Max: { value: pt?.max2 ? new THREE.Vector3(...pt.max2) : new THREE.Vector3() },
     uPatchColor: { value: hex(pt?.color ?? 0x6a6d70) },
     uPatchSatin: { value: pt?.satin ? 1 : 0 },
     uWearOffset: { value: new THREE.Vector3() },
@@ -231,12 +253,20 @@ export function carPaint(opts = {}) {
 /** A companion material that shares the wear uniforms of `paint` (same dirt on bumpers, cladding, trim, bed liner...). */
 export function wornMaterial(paint, params) {
   const m = linkEnv(new THREE.MeshPhysicalMaterial({ envMapIntensity: 1, ...params }));
-  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
+  m.userData.wearUniforms = { ...paint.userData.wearUniforms, uRoofTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uFlake: { value: 0 }, uTwoTone: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatchMin: { value: new THREE.Vector4(0, 0, 0, 0) }, uPatch2Min: { value: new THREE.Vector4(0, 0, 0, 0) }, uWearOffset: { value: new THREE.Vector3() } };
   injectWear(m);
   return linkEnv(m);
 }
+// real paint albedo tops out near 0.72 (linear luminance; fresh white): brighter values blow out under the sun and read as
+// a flat color layer instead of a painted surface
+export function paintAlbedo(color) {
+  const c = color?.isColor ? color.clone() : new THREE.Color(color);
+  const L = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  if (L > 0.72) c.multiplyScalar(0.72 / L);
+  return c;
+}
 export function setPaintColor(mat, color, finish) {
-  mat.color.set(color);
+  mat.color.copy(paintAlbedo(color));
   if (finish && finish !== mat.userData.finish) { const n = carPaint({ color, finish }); for (const k of ['metalness', 'roughness', 'clearcoat', 'clearcoatRoughness', 'sheen', 'iridescence']) mat[k] = n[k]; mat.userData.finish = finish; n.dispose(); }
 }
 export function setWear(mat, { dirt, rust, fade, dirtColor } = {}) {

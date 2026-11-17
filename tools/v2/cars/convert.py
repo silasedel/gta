@@ -202,6 +202,24 @@ for rx_, path in (CFG.get('texOverride') or {}).items():
         if re.search(rx_, inf['name'], re.I) and inf['img'] is not None:
             p_ = os.path.join(os.path.dirname(__file__), path)
             im_ = bpy.data.images.load(p_); inf['img'].filepath = p_; inf['img'].reload(); log('texture override', inf['name'], path)
+# textures that exist in the car's folder but are not linked by the source (OBJ without .mtl): {matRegex: {color, rough, metal}}
+for rx_, sp_ in (CFG.get('texLink') or {}).items():
+    def _ld(p_, data=False):
+        im_ = bpy.data.images.load(os.path.join(srcdir, p_), check_existing=True)
+        if data: im_.colorspace_settings.name = 'Non-Color'
+        return im_
+    for inf in minfo:
+        if not re.search(rx_, inf['name'], re.I): continue
+        if sp_.get('color'): inf['img'] = _ld(sp_['color']); inf['base'] = (1.0, 1.0, 1.0, 1.0)
+        if sp_.get('rough'): inf['rimg'] = (_ld(sp_['rough'], True), 0)
+        if sp_.get('metal'): inf['mimg'] = (_ld(sp_['metal'], True), 0)
+        log('texture link', inf['name'], sp_)
+# body paint painted into an atlas (paintHue): faces whose texture color has this hue become the repaintable paint slot
+PAINT_HUE = CFG.get('paintHue')
+def _is_paint_rgb(c):
+    r_, g_, b_ = c[0], c[1], c[2]
+    if PAINT_HUE == 'blue': return b_ > r_ * 2.2 and b_ > g_ * 1.25 and b_ > 0.012
+    return False
 TEXSLOTS = rx(CFG.get('texSlots'))
 objnames = [o.name for o in objs]
 
@@ -281,6 +299,7 @@ ang = {'-y': 0.0, '+y': math.pi, '+x': -math.pi / 2, '-x': math.pi / 2}[fwd]
 # rotate about Z: a vector along +x rotated by -90 deg -> -y. (Rz(theta) * (1,0,0) = (cos, sin, 0)); theta = -pi/2 -> (0,-1,0)
 R = Matrix.Rotation(ang, 4, 'Z')
 bm.transform(R)
+bm.normal_update()   # bm.transform leaves cached face normals stale: rotated cars had front / rear panels judged as 'inner skins'
 if CFG.get('cropToPaint'):
     PR_ = rx(CFG.get('paint')) or re.compile(r'paint', re.I)
     bm.faces.ensure_lookup_table()
@@ -465,6 +484,7 @@ xc = float(np.mean([w['c'][0] for w in wheels]))
 ymid = (yF + yR) / 2
 gz = min(float(w['lo'][2]) for w in wheels)
 bm.transform(Matrix.Translation((-xc, -ymid, -gz)))
+bm.normal_update()
 for w in wheels:
     w['c'] = w['c'] - np.array([xc, ymid, gz]); w['lo'] -= np.array([xc, ymid, gz]); w['hi'] -= np.array([xc, ymid, gz])
 yF -= ymid; yR -= ymid
@@ -553,6 +573,39 @@ if (not any(s == 'paint' for s in slot_of) and not CFG.get('textured') and not C
         log('paint by area ->', minfo[best]['name'])
 log('slots', {minfo[i]['name']: (slot_of[i], round(float(area[i]), 2), 'img' if minfo[i]['img'] else '', 'aimg' if minfo[i]['aimg'] else '', round(minfo[i]['metal'],2), round(minfo[i]['rough'],2)) for i in range(len(minfo)) if area[i] > 0})
 
+# ------------------------------------------------------------------ texture paint mask (cars.json 'paintTex')
+# A paint material whose atlas also holds windows, lamps, chrome, grille, mirrors, step bars and decals: only the texels of
+# the body color become the repaintable paint slot; everything else keeps its own texture color as trim (dark cabin texels ->
+# glass).  The body color is the area-weighted mode of the material's texels.  {mat, tol, decals, beltY, glassZ, maxUp}
+PT_ = CFG.get('paintTex'); PT_BODY = {}
+if PT_:
+    _hist = {}; uvl = bm.loops.layers.uv.get(uv_name) or bm.loops.layers.uv.verify()
+    def sample(arr, u, v):
+        h, w_ = arr.shape[0], arr.shape[1]
+        return arr[int((v % 1.0) * h) % h, int((u % 1.0) * w_) % w_]
+    for f in bm.faces:
+        inf_ = minfo[f.material_index]
+        if not re.search(PT_.get('mat', '.'), inf_['name'], re.I) or inf_['img'] is None: continue
+        a_ = image_array(inf_['img']);
+        if a_ is None: continue
+        ar_ = f.calc_area()
+        for lp in f.loops:
+            c_ = sample(a_, lp[uvl].uv[0], lp[uvl].uv[1]); k_ = (f.material_index, int(c_[0] * 12), int(c_[1] * 12), int(c_[2] * 12))
+            if not PT_.get('darkBody') and 0.2126 * c_[0] + 0.7152 * c_[1] + 0.0722 * c_[2] < 0.06: continue   # windows / decals / tires are not the body
+            h_ = _hist.setdefault(k_, [0.0, 0.0, 0.0, 0.0]); h_[0] += ar_; h_[1] += c_[0] * ar_; h_[2] += c_[1] * ar_; h_[3] += c_[2] * ar_
+    if PT_.get('body'):
+        for f in bm.faces:
+            if re.search(PT_.get('mat', '.'), minfo[f.material_index]['name'], re.I): PT_BODY[f.material_index] = tuple(((c / 255) / 12.92 if c / 255 <= 0.04045 else (((c / 255) + 0.055) / 1.055) ** 2.4) for c in PT_['body'])
+    for k_, h_ in sorted(_hist.items(), key=lambda kv: -kv[1][0]):
+        if k_[0] not in PT_BODY: PT_BODY[k_[0]] = (h_[1] / h_[0], h_[2] / h_[0], h_[3] / h_[0])
+    log('paintTex body colors', {minfo[m]['name']: [round(x, 3) for x in c] for m, c in PT_BODY.items()})
+def _pt_dist(c, b):
+    # chroma-aware distance: lightness ratio + color direction (shading baked into atlases varies the lightness)
+    lc = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; lb = 0.2126 * b[0] + 0.7152 * b[1] + 0.0722 * b[2]
+    dl = abs(math.log((lc + 0.02) / (lb + 0.02)))
+    nc = [x / (lc + 1e-4) for x in c[:3]]; nb = [x / (lb + 1e-4) for x in b[:3]]
+    return dl * PT_.get("lw", 0.3) + max(abs(nc[i] - nb[i]) for i in range(3)) * 0.35
+
 # ------------------------------------------------------------------ per-corner colors (rgb = albedo, a = packed param)
 uvl = bm.loops.layers.uv.get(uv_name) or bm.loops.layers.uv.verify()
 for _l in list(bm.loops.layers.float_color.keys()) + list(bm.loops.layers.color.keys()) if hasattr(bm.loops.layers, 'color') else []: pass
@@ -581,6 +634,21 @@ for f in bm.faces:
     a_ = f.calc_area(); _ptot += a_; n_ = f.normal; c_ = f.calc_center_median()
     if (abs(n_[0]) > 0.6 and n_[0] * c_[0] < 0 and abs(c_[0]) > 0.45) or (n_[2] < -0.6 and c_[2] > 0.62 * TOPZ): _pin += a_
 INNER_OK = not CFG.get('keepInner') and _pin / _ptot < 0.3
+# outer-skin maps of the paint: per (height, length) cell the outermost |x| on each side, per (x, length) cell the top height.
+# A paint face whose normal points inward but that IS the outermost skin is a flipped panel (mirrored halves of some models):
+# it is flipped back, never deleted (deleting it opened black holes along one side of sedan1 / 2 / 8 / 10).
+from mathutils.bvhtree import BVHTree as _BVH
+bm.verts.index_update(); bm.verts.ensure_lookup_table()
+_pf = [f for f in bm.faces if slot_of[f.material_index] == 'paint']
+_bv = _BVH.FromPolygons([v.co.copy() for v in bm.verts], [[v.index for v in f.verts] for f in _pf]) if _pf else None
+def _outer_skin(f):
+    # ray from the face straight out of the body (sideways for side panels, up for roof panels): nothing paint in the way
+    # -> this is the outer skin (with flipped winding), not an inner door / roof skin
+    if _bv is None: return False
+    c_ = f.calc_center_median(); d_ = Vector((1.0 if c_[0] > 0 else -1.0, 0, 0)) if abs(f.normal[0]) > 0.6 else Vector((0, 0, 1.0))
+    hit = _bv.ray_cast(c_ + d_ * 0.004, d_, 1.5)
+    return hit[0] is None
+_flipped = 0; _DBG = {}
 log('inner paint share', round(_pin / _ptot, 3), 'removing' if INNER_OK else 'kept')
 # lamp units: lens glass at the nose / tail corners stays clear glass (aWin 0); the reflectors and bulbs behind each lens
 # (trim faces inside the lens' bounding box) become emissive lamp faces, so every car gets head, tail, brake and reverse lights
@@ -613,8 +681,48 @@ for f in bm.faces:
     if sl == 'paint' and INNER_OK:
         n_ = f.normal; c_ = f.calc_center_median()
         if (abs(n_[0]) > 0.6 and n_[0] * c_[0] < 0 and abs(c_[0]) > 0.45) or (n_[2] < -0.6 and c_[2] > 0.62 * TOPZ):
-            kill.append(f); continue                                 # inner skins of doors / roof: hidden, poke through after decimation
+            if _outer_skin(f): f.normal_flip(); _flipped += 1         # a flipped outer panel: keep it, facing out
+            else:
+                if os.environ.get('CARDBG'): _q = ('L' if c_[0] > 0 else 'R') + ('F' if -c_[1] > 1.0 else 'B' if -c_[1] < -1.0 else 'M'); _DBG[_q] = _DBG.get(_q, 0) + f.calc_area()
+                kill.append(f); continue                           # inner skins of doors / roof: hidden, poke through after decimation
     arr = image_array(info['img']) if info['img'] is not None and sl not in ('paint',) else None
+    if PAINT_HUE and arr is not None and sl.startswith('trim') and sl != 'trim:interior' and _wf < 0:
+        cs_ = [sample(arr, lp[uvl].uv[0], lp[uvl].uv[1]) for lp in f.loops]
+        if sum(1 for c_ in cs_ if _is_paint_rgb(c_)) * 2 > len(cs_): sl = 'paint'; arr = None
+    GT_ = CFG.get('glassTexel')
+    if GT_ and arr is not None and sl.startswith('trim') and re.search(GT_['mat'], info['name'], re.I):
+        # windows painted into an atlas without a glass material: faces whose texels are the window color become glass
+        tgt_ = [((c / 255) / 12.92 if c / 255 <= 0.04045 else (((c / 255) + 0.055) / 1.055) ** 2.4) for c in GT_['rgb']]
+        cs_ = [sample(arr, lp[uvl].uv[0], lp[uvl].uv[1]) for lp in f.loops]
+        if f.calc_center_median()[2] > GT_.get('minY', 0) and all(max(abs(c_[k] - tgt_[k]) for k in range(3)) < GT_.get('tol', 0.04) for c_ in cs_): sl = 'glass'; arr = None
+    if PT_ and f.material_index in PT_BODY and _wf < 0 and sl in ('paint', 'trim'):
+        a2_ = image_array(info['img'])
+        if a2_ is not None:
+            cs_ = [sample(a2_, lp[uvl].uv[0], lp[uvl].uv[1]) for lp in f.loops]
+            body_ = PT_BODY[f.material_index]
+            near_ = sum(1 for c_ in cs_ if _pt_dist(c_, body_) < PT_.get('tol', 0.35))
+            L2_ = sum(0.2126 * c_[0] + 0.7152 * c_[1] + 0.0722 * c_[2] for c_ in cs_) / len(cs_)
+            c2_ = f.calc_center_median(); gz2_ = -c2_[1]; gzr = PT_.get('glassZ', [-9, 9])
+            if near_ * 2 >= len(cs_): sl = 'paint'; arr = None
+            elif L2_ < PT_.get('dark', 0.08) and c2_[2] > PT_.get('beltY', 9) and gzr[0] < gz2_ < gzr[1] and f.normal[2] < PT_.get('maxUp', 0.8): sl = 'glass'; arr = None
+            elif PT_.get('decals') and L2_ < PT_.get('dark', 0.08) and not (gz2_ > FRONTZ - PT_.get('nose', 0.6) and -f.normal[1] > 0.5) and not (gz2_ < REARZ + 0.35 and f.normal[1] > 0.5) and c2_[2] > PT_.get('minY', 0.45):
+                sl = 'paint'; arr = None   # a painted-on decal on a door / fender side: body paint (the user wants plain cars)
+            else:
+                sl = 'trim'; arr = a2_; info = dict(info, base=(1.0, 1.0, 1.0, 1.0), rough=0.55 if L2_ < 0.2 else 0.35, metal=1.0 if L2_ > 0.25 and max(cs_[0][:3]) - min(cs_[0][:3]) < 0.06 else 0.0, rimg=None, mimg=None)
+    PS_ = CFG.get('paintSplit')
+    if PS_ and sl == 'paint' and info['img'] is not None and _wf < 0:
+        # paint material whose atlas also holds the windows and black trim: dark texels above the belt inside the cabin
+        # become tinted glass, dark texels at the nose / tail become black plastic, everything else stays repaintable paint
+        a2_ = image_array(info['img'])
+        if a2_ is not None:
+            cs_ = [sample(a2_, lp[uvl].uv[0], lp[uvl].uv[1]) for lp in f.loops]
+            L2_ = sum(0.2126 * c_[0] + 0.7152 * c_[1] + 0.0722 * c_[2] for c_ in cs_) / len(cs_)
+            c2_ = f.calc_center_median(); gz2_ = -c2_[1]
+            if L2_ < PS_.get('dark', 0.1):
+                gzr = PS_.get('glassZ', [-9, 9])
+                if c2_[2] > PS_.get('beltY', 9) and gzr[0] < gz2_ < gzr[1] and f.normal[2] < PS_.get('maxUp', 0.8): sl = 'glass'   # hood / roof decals are flat: not glass
+                elif gz2_ > FRONTZ - PS_.get('nose', 0.7) or gz2_ < REARZ + PS_.get('tail', 0.35):
+                    sl = 'trim'; arr = a2_; info = dict(info, rough=0.6, metal=0.0, rimg=None, mimg=None)
     base = info['base']
     cz = f.calc_center_median()
     wfi = int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1
@@ -733,18 +841,37 @@ if EMB:
         if abs(c_[0]) > 0.9 or not (gz_ > FRONTZ - 1.4 or gz_ < REARZ + 1.4): continue
         H.setdefault((int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)), []).append(g)
     filled = 0
+    # a badge with a panel right behind it (3.5 cm: lettering on a lid, a logo on a grille insert) is deleted, the panel shows;
+    # a free-standing badge is filled from the dominant surrounding slot
+    bm.verts.index_update(); bm.faces.ensure_lookup_table()
+    _bf = [g for g in bm.faces if g.is_valid and g not in embset and g not in killset_]
+    _bvE = _BVH.FromPolygons([v.co.copy() for v in bm.verts], [[v.index for v in g.verts] for g in _bf]) if _bf else None
     for f in EMB:
         if not f.is_valid: continue
-        c_ = f.calc_center_median(); k0 = (int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)); best, bd = None, 0.15
+        c_ = f.calc_center_median(); k0 = (int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)); best = None
+        if _bvE is not None:
+            for sgn_ in (-1.0, 1.0):   # into the car first; flipped badge faces: the other way
+                hit = _bvE.ray_cast(c_ - f.normal * 0.0015 * sgn_ * -1, f.normal * sgn_, 0.035)   # mounted flush (lettering on a lid)
+                if hit[2] is not None and _bf[hit[2]].material_index == 0: best = _bf[hit[2]]; break
+        if best is not None:
+            kill.append(f); continue   # lettering mounted flush on a painted panel: delete it, the panel right behind it shows
         for R_ in (2, 5):   # near first, then up to 0.3 m (a badge in the middle of a big grille opening)
             if best is not None: break
-            bd = 0.15 if R_ == 2 else 0.33
+            rad_ = 0.15 if R_ == 2 else 0.33; cands = []
             for dx in range(-R_, R_ + 1):
                 for dy in range(-R_, R_ + 1):
                     for dz in range(-R_, R_ + 1):
                         for g in H.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
                             d_ = (g.calc_center_median() - c_).length
-                            if d_ < bd: bd, best = d_, g
+                            if d_ < rad_: cands.append((d_, g))
+            if not cands: continue
+            # the surface the badge sits on = the slot with the most area around it (body panel -> paint, grille -> its trim),
+            # then the nearest face of that slot facing the same way (no white shards in grilles, no black logos on panels)
+            share = {}
+            for d_, g in cands: share[g.material_index] = share.get(g.material_index, 0.0) + g.calc_area()
+            mi_best = max(share, key=share.get)
+            pool = [(d_ + (0.1 if g.normal.dot(f.normal) < 0.3 else 0.0), g) for d_, g in cands if g.material_index == mi_best]
+            best = min(pool, key=lambda t: t[0])[1]
         if best is None:
             kill.append(f); continue   # nothing around it to match: drop the badge face (never a white or black block)
         else:
@@ -761,6 +888,7 @@ if EMB:
             for lp in f.loops: lp[uvl].uv = mu_
         filled += 1
     log('emblems inpainted', filled)
+log('flipped outer paint panels', _flipped, _DBG if os.environ.get('CARDBG') else '')
 # hand-placed boxes around 3D maker emblems (cars.json 'killBoxes'): a connected island lying wholly inside the box is deleted
 # (grille ornaments, hood mascots); a surface that leaves the box (the grille itself, the hood) is kept
 _AUTO_KILL = [] if CFG.get('keepBadges') or CFG.get('noAutoKill') else [
@@ -821,6 +949,20 @@ for B in CFG.get('darkBoxes') or []:
         for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.4, 0.0))
         f.material_index = 2; n += 1
     log('dark box', n)
+# hand-placed boxes over embossed maker marks on flat panels (cars.json 'flattenBoxes'): the vertices inside are pressed onto
+# the panel plane (median depth of the box), so the relief no longer reads
+for B in CFG.get('flattenBoxes') or []:
+    front = B.get('front', False); vs_ = set()
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index not in (0, 2): continue
+        if abs(f.normal[1]) < 0.5: continue
+        for v in f.verts:
+            gz_ = -v.co[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+            if B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(v.co[0]) <= B['ax'][1] and B['y'][0] <= v.co[2] <= B['y'][1]: vs_.add(v)
+    if vs_:
+        ys_ = sorted(v.co[1] for v in vs_); mid_ = ys_[len(ys_) // 2]
+        for v in vs_: v.co[1] = mid_
+    log('flatten box', len(vs_))
 # hand-placed lamp boxes for models whose lamps cannot be found (cars.json 'lampBoxes'): any non-glass face inside
 for B in CFG.get('lampBoxes') or []:
     n = 0; kind = B['kind']; front = B.get('front', kind == 'head')
@@ -833,8 +975,33 @@ for B in CFG.get('lampBoxes') or []:
         for lp in f.loops: lp[col_layer] = (col[0], col[1], col[2], LAMP[k_] / 16.0); lp[uvl].uv = (-1.0, -1.0)
         f.material_index = 3; n += 1
     log('lamp box', kind, n)
+# hidden under-skins: trim faces (black inner shells, primer layers) lying 0..3 cm behind a paint face that faces the same way
+# are never seen, but once the LODs are decimated they poke through the paint as jagged black patches.  Deleted here.
+if not CFG.get('keepUnderskin'):
+    _ks = set(kill); _G = 0.03; _PG = {}
+    for f in bm.faces:
+        if f.material_index != 0 or not f.is_valid or f in _ks: continue
+        c_ = f.calc_center_median(); _PG.setdefault((int(c_[0] // _G), int(c_[1] // _G), int(c_[2] // _G)), []).append((c_.copy(), f.normal.copy()))
+    _nu = 0
+    for f in bm.faces:
+        if f.material_index != 2 or not f.is_valid or f in _ks: continue
+        if (int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1) >= 0: continue
+        c_ = f.calc_center_median(); n_ = f.normal; k0 = (int(c_[0] // _G), int(c_[1] // _G), int(c_[2] // _G)); hid = False
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for dz in (-1, 0, 1):
+                    for pc, pn in _PG.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
+                        if abs(pn.dot(n_)) < 0.8: continue
+                        d_ = c_ - pc; along = d_.dot(pn)
+                        if -0.03 < along < 0.0015 and (d_ - pn * along).length < 0.025: hid = True; break
+                    if hid: break
+                if hid: break
+            if hid: break
+        if hid: kill.append(f); _ks.add(f); _nu += 1
+    log('hidden under-skin trim faces removed', _nu)
 # remap: 0 paint, 1 glass, 2 trim, 3 lamp
 if kill:
+    kill = list(dict.fromkeys(f for f in kill if f.is_valid))
     ks = set(f.index for f in kill)
     vkeep = None
     bmesh.ops.delete(bm, geom=kill, context='FACES')

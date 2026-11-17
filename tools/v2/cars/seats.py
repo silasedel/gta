@@ -203,6 +203,30 @@ def measure(key):
     for s_ in seats: s_.pop('rearHeel')
     return man, seats, wheel, res
 
+def stripe_boxes(key, man):
+    # racing-stripe boxes measured on the paint shell (glbCar reads man.stripe): the hood = up-facing paint along the centerline
+    # from the windshield base to where the hood drops to the grille; the roof = up-facing paint above the glass line
+    d = np.load(NPZ + key + '.npz')
+    if 'body0:paint_v' not in d.files: return None
+    v = d['body0:paint_v'].astype(np.float64); f = d['body0:paint_f']; a, b, c = v[f[:, 0]], v[f[:, 1]], v[f[:, 2]]
+    n = np.cross(b - a, c - a); n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12; cen = (a + b + c) / 3
+    sh = man['shape']; up = (np.abs(n[:, 1]) > 0.75) & (np.abs(cen[:, 0]) < 0.3)
+    zs = np.arange(sh['rear'], sh['front'], 0.1); prof = []
+    for z0 in zs:
+        m = up & (cen[:, 2] >= z0) & (cen[:, 2] < z0 + 0.1)
+        prof.append(float(np.percentile(cen[m, 1], 90)) if m.sum() >= 3 else np.nan)
+    prof = np.array(prof); zA = sh['zA']
+    hood = [(z, y) for z, y in zip(zs, prof) if not np.isnan(y) and z > zA - 0.25 and y > sh['belt'] - 0.15]
+    roof = [(z, y) for z, y in zip(zs, prof) if not np.isnan(y) and y > sh['roofY'] - 0.3]
+    out = {}
+    if hood:
+        hy = np.median([y for _, y in hood]); hz = [z for z, y in hood if abs(y - hy) < 0.12]
+        if hz: out['hood'] = [round(min(hz), 3), round(max(hz) + 0.1, 3)]; out['hoodY'] = round(hy - 0.12, 3)
+    if roof:
+        ry = np.median([y for _, y in roof]); rz = [z for z, y in roof if abs(y - ry) < 0.1]
+        if rz: out['roof'] = [round(min(rz), 3), round(max(rz) + 0.1, 3)]; out['roofY'] = round(ry - 0.12, 3)
+    return out or None
+
 if __name__ == '__main__':
     NPZ = sys.argv[1].rstrip('/') + '/'
     keys = sys.argv[2:] or sorted(k[:-4] for k in os.listdir(NPZ) if k.endswith('.npz'))
@@ -213,6 +237,10 @@ if __name__ == '__main__':
         np.random.seed(7)
         man, seats, wheel, res = measure(k)
         man['seats'] = seats; man['wheel'] = wheel
+        try:
+            st = stripe_boxes(k, man)
+            if st: man['stripe'] = st
+        except Exception as e: print('stripe', k, e)
         json.dump(man, open(os.path.join(OUT, k + '.json'), 'w'))
         rep[k] = {'seats': seats, 'wheel': wheel, 'debug': res}
         d = seats[0]

@@ -94,6 +94,8 @@ c('suv14', 'Ridgeback', 'Trail 4', 'pickup', 'offroad', 4.82, 2, 'v6', 2008);
 c('suv15', 'Marlin', 'Grand Ridge', 'suv', 'suv', 4.95, 2.5, 'v6', 2021);
 // work
 c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, { pal: 'work' });
+// Nico's own truck (user-provided model): a wide high-performance off-road pickup; never in random traffic
+c('truck9', 'Ridgeback', 'Raptor Trail X', 'pickup', 'offroad', 5.9, 3, 'v6t', 2020, { parkedOnly: true });
 c('van1', 'Corvo', 'Cargo LWB', 'van', 'van', 6.95, 2, 'dsl', 2012, { pal: 'work' });
 c('van5', 'Corvo', 'Traveller', 'van', 'van', 5.2, 1.2, 'v6', 1992, { pal: 'work' });
 c('truck3', 'Atlas', 'Cab 14', 'truck', 'box', 6.6, 2, 'dsl', 2006, { palette: [0xf2f2f2] });

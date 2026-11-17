@@ -14,6 +14,7 @@
  "bytes": 225780,
  "cfg": {
   "L": 4.4,
-  "static": true
+  "static": true,
+  "fwd": "-y"
  }
 }
