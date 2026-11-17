@@ -55,25 +55,26 @@ const SUN_DEPTH_M = 899.0;
 		float searchR = max( 0.55 / mPerUv, minR * 2.0 ); // finds occluders up to ~25 m away
 		float a0 = psIgn( gl_FragCoord.xy ) * 6.2831853;
 		float bSum = 0.0, bN = 0.0;
-		for ( int i = 0; i < 8; i ++ ) {
+		for ( int i = 0; i < 6; i ++ ) {
 			float fi = float( i );
 			float a = a0 + fi * 2.39996323;
-			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 8.0 ) * searchR;
+			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 6.0 ) * searchR;
 			float d = unpackRGBAToDepth( texture2D( shadowMap, sc.xy + o ) );
 			float zr = sc.z + dot( dz, o ) - 0.06 / ${SUN_DEPTH_M.toFixed(1)};
 			if ( d < zr ) { bSum += d; bN += 1.0; }
 		}
 		if ( bN < 0.5 ) return 1.0;
+		if ( bN > 5.5 ) return 0.0; // every search tap blocked: inside the umbra (the filter disk is never wider than the search)
 		float dzM = max( sc.z - bSum / bN, 0.0 ) * ${SUN_DEPTH_M.toFixed(1)};
 		float penR = clamp( dzM * uLookU.z * 0.5 / mPerUv, minR, searchR );
 		float sum = 0.0;
-		for ( int i = 0; i < 12; i ++ ) {
+		for ( int i = 0; i < 10; i ++ ) {
 			float fi = float( i );
 			float a = a0 + 1.1 + fi * 2.39996323;
-			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 12.0 ) * penR;
+			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 10.0 ) * penR;
 			sum += step( sc.z + dot( dz, o ), unpackRGBAToDepth( texture2D( shadowMap, sc.xy + o ) ) );
 		}
-		return sum / 12.0;
+		return sum / 10.0;
 	}
 `;
   // the helper must sit before getShadow (same #ifdef USE_SHADOWMAP block)

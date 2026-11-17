@@ -178,7 +178,7 @@ export function createPost(game) {
       U.uProjY.value = camera.projectionMatrix.elements[5];
       U.uAspect.value = W / H;
       U.uRes.value.set(rb.width, rb.height);
-      U.uLook3.value = game.look3 ? 1 : 0;
+      U.uLook3.value = game.look3 && game.look3Parts?.ao !== false ? 1 : 0;
       aoRender(r, wb, rb, dt, mask);
     };
     composer.addPass(ao);
@@ -513,7 +513,7 @@ export function createPost(game) {
     enabled: true, needsSwap: false, clear: false, renderToScreen: false,
     setSize() {},
     render(r, wb, rb) {
-      if (!game.look3 || !ae.ok || ae.pending || (ae.frame++ % 6) !== 0) return;
+      if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending || (ae.frame++ % 6) !== 0) return;
       lumMat.uniforms.tDiffuse.value = rb.texture;
       const prev = r.getRenderTarget();
       r.setRenderTarget(lumRT); r.render(lumScene, lumCam); r.setRenderTarget(prev);
@@ -805,7 +805,7 @@ export function createPost(game) {
       {
         const A = game.lookAE || (game.lookAE = { ref: -2.2, strength: 0.55, min: -0.6, max: 1.1, up: 0.9, down: 1.8 });
         let want = 0;
-        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max);
+        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max * (1 - 0.45 * night)); // nights stay night (lamps pool, sky deep)
         const rate = want > ae.comp ? A.up : A.down;
         ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate));
         if (game.lookAEInstant) ae.comp = want;
@@ -896,7 +896,8 @@ export function createPost(game) {
       // look pass 3 (game.look3, runtime A/B): soft shadows + per-frame noise index for the shadow / AO kernels
       if (game.look3 === undefined) game.look3 = LOOK3_DEFAULT && !LOOK_OFF;
       LOOK_U[0] = FRAME_NOISE.value;
-      LOOK_U[1] = game.look3 ? 1 : 0;
+      const L3P = game.look3Parts || (game.look3Parts = { pcss: true, ao: true, ae: true }); // per-part switches (perf A/B)
+      LOOK_U[1] = game.look3 && L3P.pcss ? 1 : 0;
       {
         // aerial perspective (clear weather): humid Florida air, a touch more by day than the old cap, thick at golden hour
         const sy = game.env?.sunDir?.y ?? 0.5;

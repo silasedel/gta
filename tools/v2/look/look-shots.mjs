@@ -13,7 +13,7 @@ const SET = o.set || 'look';
 const DIR = path.resolve('docs/v2/shots/look'); fs.mkdirSync(DIR, { recursive: true });
 const SPOTS = {
   nico_deck: { eye: [-871.5, 6.8, 4828.5], look: [-852, 1.2, 4858], player: [-866.1, 4836.4] },
-  nico_street: { eye: [-852, 1.7, 4852], look: [-874, 3.5, 4826], player: [-866.1, 4836.4] },
+  nico_street: { eye: [-840, 1.8, 4851], look: [-873, 3.0, 4826], player: [-866.1, 4836.4] },
   downtown: { eye: [380, 22, -60], look: [430, 6, -140], player: [407, -110] },
   beach: { eye: [2380, 4, 640], look: [2450, 2.5, 700], player: [2398, 660] },
   glades: { eye: [-2200, 14, -1100], look: [-2120, 2, -1180], player: [-2200, -1100] },
@@ -28,7 +28,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q ?? '&look3'));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.weather?.hold?.(true); game.lookAEInstant = true; const st = document.createElement('style'); st.textContent = '#ps-hud,#hud,#minimap,#radar,.ps-toast,[class*=toast],[class*=notif]{display:none!important}'; document.head.appendChild(st); return 1; })()`);
+  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.weather?.hold?.(true); game.lookAEInstant = true; if (game.intros?.places) game.intros.places.length = 0; const st = document.createElement('style'); st.textContent = '#ps-hud,#hud,#minimap,#radar,.ps-toast,[class*=toast],[class*=notif]{display:none!important}'; document.head.appendChild(st); return 1; })()`);
   if (o.weather === 'wet') await b.eval(`(() => { game.weather.set('rain', { instant: true }); game.weather.set('clear', { seconds: 0.05 }); return 1; })()`);
   else if (o.weather && o.weather !== 'clear') await b.eval(`game.weather.set(${JSON.stringify(o.weather)}, { instant: true }), 1`);
   else await b.eval(`game.weather?.set?.('clear', { instant: true }), 1`);
@@ -40,13 +40,15 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     await b.eval(`(() => { const s = ${JSON.stringify(s)}; const g = (x, z) => { try { return game.city?.groundHeightAt?.(x, z) ?? 0; } catch (e) { return 0; } };
       const e = [s.eye[0], g(s.eye[0], s.eye[2]) + s.eye[1], s.eye[2]], l = [s.look[0], g(s.look[0], s.look[2]) + s.look[1], s.look[2]];
       game.cameraOverride = (dt, cam) => { cam.position.fromArray(e); cam.lookAt(l[0], l[1], l[2]); return true; }; return 1; })()`);
-    for (const h of hours) {
+    const plan = hours.map((h) => [h, '']).concat((o.wethours ? String(o.wethours).split(',').map(Number) : []).map((h) => [h, 'wet']));
+    for (const [h, wx] of plan) {
+      if (wx === 'wet') await b.eval(`(() => { game.weather.set('rain', { instant: true }); game.weather.set('clear', { seconds: 0.05 }); return 1; })()`);
       await b.eval(`game.timeOfDay = ${h}, game.env?.regenerateEnvMap?.(), setTimeout(() => game.env?.setShadowQuality?.({}), 300), 1`);
       await b.sleep(2500);
       for (const [vn, ve] of variants) {
         if (ve) await b.eval(`(() => { ${ve}; game.env?.regenerateEnvMap?.(); return 1; })()`);
         await b.sleep(+(o.settle || 1800));
-        const tag = `${SET}_${id}_${String(h).replace('.', 'h')}${vn ? '_' + vn : ''}`;
+        const tag = `${SET}_${id}_${wx}${String(h).replace('.', 'h')}${vn ? '_' + vn : ''}`;
         const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 1500) requestAnimationFrame(f); else { const avg = ts.reduce((p, c) => p + c, 0) / ts.length; res(JSON.stringify({ fps: +(1000 / avg).toFixed(1), calls: game.renderer.info.render.calls, ae: game.lookAE ? [+(game.lookAE.avgLog ?? 0).toFixed(2), +game.lookAE.comp.toFixed(2)] : null, exp: +game.renderer.toneMappingExposure.toFixed(3) })); } }; requestAnimationFrame(f); })`);
         await b.screenshot(path.join(DIR, tag + '.png'));
         if (o.shimmer) { await b.sleep(400); await b.screenshot(path.join(DIR, tag + '_s2.png')); }
@@ -54,6 +56,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
         console.log(tag, perf);
       }
     }
+    if (o.wethours) await b.eval(`game.weather?.set?.('clear', { instant: true }), 1`);
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }
 });

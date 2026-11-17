@@ -1,0 +1,4 @@
+[["look3", "game.look3 = true; game.look3Parts = { pcss: true, ao: true, ae: true }", "game.look3 = false"],
+ ["pcss", "game.look3 = true; game.look3Parts = { pcss: true, ao: false, ae: false }", "game.look3 = true; game.look3Parts = { pcss: false, ao: false, ae: false }"],
+ ["ao", "game.look3 = true; game.look3Parts = { pcss: false, ao: true, ae: false }", "game.look3 = true; game.look3Parts = { pcss: false, ao: false, ae: false }"],
+ ["ae", "game.look3 = true; game.look3Parts = { pcss: false, ao: false, ae: true }", "game.look3 = true; game.look3Parts = { pcss: false, ao: false, ae: false }"]]
