@@ -126,7 +126,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     if (name === 'mangrove' && hh(i, j, 15) < 0.85) { // mangroves grow in clumps: 2-4 more trunks next to the first
       for (let k = 0; k < 2 + (hh(i, j, 16) * 3 | 0); k++) { const a2 = hh(i, j, 17 + k) * 6.28, d2 = 2.2 + hh(i, j, 19 + k) * 1.6, x2 = x + Math.cos(a2) * d2, z2 = z + Math.sin(a2) * d2;
         if (ctx.blocked && ctx.blocked(x2, z2, 2)) continue; if (!ctx.data.isWater(x2, z2) && (ctx.roadDist ? ctx.roadDist(x2, z2) : 99) < 6) continue;
-        emit({ name, v: 0, x: x2, z: z2, y: Math.min(H(x2, z2), H(x2 + 0.6, z2), H(x2 - 0.6, z2)), ry: hh(i, j, 21 + k) * 6.28, s: s * (0.7 + hh(i, j, 23 + k) * 0.35), sp: K.sp, palm: false, b, wet, key: i + ',' + j + ',' + k }); } }
+        emit({ name, v: 0, x: x2, z: z2, y: Math.min(H(x2, z2), H(x2 + 0.7, z2), H(x2 - 0.7, z2), H(x2, z2 + 0.7), H(x2, z2 - 0.7)), ry: hh(i, j, 21 + k) * 6.28, s: s * (0.7 + hh(i, j, 23 + k) * 0.35), sp: K.sp, palm: false, b, wet, key: i + ',' + j + ',' + k }); } }
   }
   lotTrees(ctx, x0, z0, S, emit, ctx.lotSeen || null); // yard trees in house lots
 }

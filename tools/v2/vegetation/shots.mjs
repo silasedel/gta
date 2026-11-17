@@ -31,7 +31,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
       lg(id + ' teleported'); let it = 0;
       for (let i = 0; i < 40; i++) { it = i; await b.sleep(1000); const ok = await b.eval(`(() => { const st = game.city.streamer; const cs = game.vegetation?.countryside?.stats?.(); return (!st || st.pending() === 0) && (!cs || !cs.pending); })()`).catch(() => false); if (ok && i > 3) break; }
       if (CAMS[id]) { s.eye = CAMS[id][0]; s.look = CAMS[id][1]; } // pass B: the very same camera as pass A
-      CAMS[id] = await b.eval(`(() => { const s = ${JSON.stringify(s)}; const C = game.city; const gy = (x, z) => { const h = C.groundHeightAt(x, z); return Number.isFinite(h) ? h : 0; };
+      CAMS[id] = await b.eval(`(() => { const s = ${JSON.stringify(s)}; const C = game.city; const gy = (x, z) => { const h = C.groundHeightAt(x, z); return Math.max(Number.isFinite(h) ? h : 0, C.isWater?.(x, z) ? (C.seaLevel ?? -0.12) : -1e9); }; // eyes over water stay above the surface
         if (s.at.length > 2) { const a = s.at[2] + (s.turn || 0), bk = s.back ?? 12; s.eyeRel = [-Math.cos(a) * bk, s.h ?? 2.4, -Math.sin(a) * bk]; s.lookRel = [Math.cos(a) * 14, s.lh ?? 1, Math.sin(a) * 14]; }
         const eye = s.eye || [s.at[0] + s.eyeRel[0], gy(s.at[0] + s.eyeRel[0], s.at[1] + s.eyeRel[2]) + s.eyeRel[1], s.at[1] + s.eyeRel[2]];
         const look = s.look || [s.at[0] + (s.lookRel ? s.lookRel[0] : 0), gy(s.at[0], s.at[1]) + (s.lookRel ? s.lookRel[1] : 1), s.at[1] + (s.lookRel ? s.lookRel[2] : 0)];
