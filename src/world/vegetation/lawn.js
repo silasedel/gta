@@ -12,6 +12,7 @@
 //  - A ride-on mower with a driver mows park lawns in daytime, cutting stripes lane by lane.
 import * as THREE from 'three';
 import { vegUniforms } from './materials.js';
+import { GM_GLSL, gmUniforms } from '../ground/surfaceMask.js';
 
 const MOWN_Z = /beach|nightlife|park|residential|downtown|business|brickell|midtown|edgewater|arts|causeway|commercial/;
 const FN = 256, FSIZE = 128, FRES = FSIZE / FN, LANE = 1.3;
@@ -104,7 +105,8 @@ export function createLawn({ M, root, data, lawnTester = null, game = globalThis
     const lu = { uSnap: { value: new THREE.Vector2() }, uN: { value: n }, uDk: { value: ring.dk }, uRin: { value: Rin }, uRout: { value: ring.R }, uWk: { value: k === 0 ? 1 : k === 1 ? 1.7 : 3.2 } };
     mat.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, U, lu, { uVegTime: vegUniforms.uVegTime, uVegWindDir: vegUniforms.uVegWindDir, uVegWindSpeed: vegUniforms.uVegWindSpeed, uVegWindT: vegUniforms.uVegWindT });
-      sh.vertexShader = `uniform sampler2D uField; uniform vec2 uFieldO; uniform float uFieldS; uniform vec4 uPress[16]; uniform vec2 uSnap; uniform float uN, uDk, uRin, uRout, uWk;
+      gmUniforms(sh.uniforms);
+      sh.vertexShader = GM_GLSL + `uniform sampler2D uField; uniform vec2 uFieldO; uniform float uFieldS; uniform vec4 uPress[16]; uniform vec2 uSnap; uniform float uN, uDk, uRin, uRout, uWk;
 uniform float uVegTime; uniform vec2 uVegWindDir; uniform float uVegWindSpeed; uniform float uVegWindT;
 varying vec3 vGc;
 float gh1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -125,6 +127,7 @@ float gGust(vec2 p) { vec2 d = uVegWindDir; float along = dot(p, d), across = -p
   vec4 fld = texture2D(uField, (bp - uFieldO) / uFieldS);
   float H = fld.r * 0.6, dry = fld.g, wb = fld.b, weed = wb < 0.5 ? wb * 2.0 : 0.0, stripe = fld.a * 2.0 - 1.0;
   if (h3 > keep || H < 0.008 || dC > uRout) H = 0.0;
+  { vec4 gmh = gmHard(bp); if (max(max(gmh.r, gmh.g), gmh.b) > 0.35) H = 0.0; } // ground pass: no blades on pavement / roads / under cars
   bool isWeed = h4 < weed * 0.35, seed = H > 0.2 && h4 > 0.94;
   float bh = H * (0.55 + 0.9 * h5) * shrink * (isWeed ? 0.55 : 1.0) * (seed ? 1.45 : 1.0);
   float bw = (0.007 + 0.006 * h2) * uWk * (isWeed ? 2.6 : 1.0) * (H > 0.2 ? 1.25 : 1.0);

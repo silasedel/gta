@@ -157,7 +157,9 @@ export function patchGround(mat, lod, opts, tex, U) {
         GS s1 = s0; if (c1 != c0) s1 = gRecipe(c1, wp, gdx, gdy, gWantN);
         GS s2 = s0; if (c2 == c1) s2 = s1; else if (c2 != c0) s2 = gRecipe(c2, wp, gdx, gdy, gWantN);
         float bn = gN(wp * 0.45) * 0.6 + gN(wp * 1.7 + 3.3) * 0.4;
-        vec3 tw = vBary + vec3(s0.h, s1.h, s2.h) * 0.55 + (bn - 0.5) * 0.5 * vBary;
+        // ground pass: per-corner world noise (two scales) breaks the triangle-shaped class borders into irregular patches
+        vec3 bnc = vec3(gN(wp * 0.37 + 11.0), gN(wp * 0.37 - 7.0), gN(wp * 0.37 + 23.0)) * 0.65 + vec3(gN(wp * 1.9 + 3.0), gN(wp * 1.9 - 5.0), gN(wp * 1.9 + 9.0)) * 0.35;
+        vec3 tw = vBary * mix(vec3(0.3), vec3(1.7), bnc) + vec3(s0.h, s1.h, s2.h) * 0.55 + (bn - 0.5) * 0.5 * vBary; // multiplicative: a corner's weight still vanishes on the far edge (no seam to the next triangle)
         float tmx = max(tw.x, max(tw.y, tw.z)) - 0.24; tw = max(tw - tmx, vec3(0.0)); tw /= max(1e-4, tw.x + tw.y + tw.z);
         gs.alb = s0.alb * tw.x + s1.alb * tw.y + s2.alb * tw.z; gs.tilt = s0.tilt * tw.x + s1.tilt * tw.y + s2.tilt * tw.z;
         gs.ao = s0.ao * tw.x + s1.ao * tw.y + s2.ao * tw.z; gs.rough = s0.rough * tw.x + s1.rough * tw.y + s2.rough * tw.z;
@@ -166,12 +168,22 @@ export function patchGround(mat, lod, opts, tex, U) {
       // macro variation over everything: brightness and hue drift at 40-400 m (aerial views never read as one flat color)
       vec3 alb = gs.alb * mix(0.86, 1.1, gF(wp * 0.0095)) * mix(0.94, 1.05, gN(wp * 0.0023 + 5.0));
       alb *= mix(vec3(1.0), vec3(1.05, 1.0, 0.9), smoothstep(0.55, 0.85, gN(wp * 0.0041 + 9.0)) * 0.7);
+      if (gdC < 32.0) { // ground pass: close-range micro detail (dominant layer at 3.7x frequency, luminance only): crisp grit at the feet, no blur
+        float dL = uRA[c0].x, dS = uRA[c0].y * 3.7; vec4 dcol = gHexC(dL, wp * dS + 0.71, gdx * dS, gdy * dS);
+        float dAvg = dot(textureLod(tGC, vec3(0.5, 0.5, dL), 12.0).rgb, vec3(0.333)), dR = clamp(dot(dcol.rgb, vec3(0.333)) / max(dAvg, 0.02), 0.55, 1.5);
+        alb *= mix(1.0, dR, 0.3 * (1.0 - smoothstep(14.0, 32.0, gdC)));
+      }
       float tRough = gs.rough;
       // shore: damp band, then the wet swash line breathing with time (sand: full strength)
       float sj = (gF(wp * 0.13 + 3.0) - 0.5) * 3.0, sd = vShore + sj;
       float dampB = (1.0 - smoothstep(2.5, 11.0, sd)) * gs.shore, wetB = (1.0 - smoothstep(0.4, 2.6 + 1.3 * sin(uVegTime * 0.45 + wp.x * 0.031 + wp.y * 0.017), vShore + sj * 0.3)) * gs.shore;
       alb *= mix(vec3(1.0), vec3(0.62, 0.57, 0.5), dampB * 0.85); alb *= 1.0 - wetB * 0.3;
       tRough = mix(tRough, tRough * 0.8, dampB); tRough = mix(tRough, 0.16, wetB * 0.9);
+      { // ground pass: thin foam lace at the swash line (moves with the wash, broken by noise), only where the shore band applies
+        float sw = 1.1 + 1.0 * sin(uVegTime * 0.45 + wp.x * 0.031 + wp.y * 0.017), fd = abs(vShore + sj * 0.3 - sw);
+        float lace = (1.0 - smoothstep(0.0, 0.35, fd)) * smoothstep(0.45, 0.75, gN(wp * 2.3 + vec2(uVegTime * 0.05, 0.0)) * 0.6 + gN(wp * 7.1) * 0.4) * gs.shore * step(vShore, 6.0);
+        alb = mix(alb, vec3(0.78, 0.8, 0.8), lace * 0.7); tRough = mix(tRough, 0.4, lace);
+      }
       float pud = gs.wet * smoothstep(0.5, 0.58, gF(wp * 0.067 + 3.1) * 0.6 + gN(wp * 0.29 + 7.7) * 0.4); // standing water in marsh / mud
       alb = mix(alb, alb * 0.2 + vec3(0.008, 0.012, 0.01), pud); tRough = mix(tRough, 0.05, pud); tRough = mix(tRough, tRough * 0.78, gs.wet * 0.5);
       vec2 gTilt = gs.tilt * (1.0 - pud) * (1.0 - wetB * 0.6);

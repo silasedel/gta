@@ -1,0 +1,4 @@
+{
+ "dockAudit": { "tod": 11, "eval": "game.teleport(-905, undefined, 4808, 0); game.cameraOverride = (dt, c) => { c.position.set(-880, 25, 4830); c.lookAt(-910, 0, 4805); return true; }; setTimeout(() => import('/src/world/ground/layerAudit.js').then((A) => { window.__la = A.layerScan(game, { x: -905, z: 4808, r: 35, step: 0.75 }); }), 3000);", "report": "window.__la && { mats: window.__la.mats, pairs: window.__la.pairs, samples: window.__la.samples }" },
+ "dockLow": { "tod": 11, "eval": "game.cameraOverride = (dt, c) => { c.position.set(-890, 3, 4818); c.lookAt(-915, 0, 4800); return true; };" }
+}

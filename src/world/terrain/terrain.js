@@ -214,7 +214,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     const vtx = (i, j, L) => { const k = at(i, j), n = nrm(i, j); P.push(x0 + i * cell, H[k], z0 + j * cell); Nn.push(n[0], n[1], n[2]); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[k]); };
     const tri = (a, b, c) => { // a,b,c = [i, j]; counter-clockwise seen from above (+Y normal)
       const ka = at(a[0], a[1]), kb = at(b[0], b[1]), kc = at(c[0], c[1]);
-      if (Wt[ka] && Wt[kb] && Wt[kc]) return; if (Rl[ka] && Rl[kb] && Rl[kc]) return;
+      if (Wt[ka] && Wt[kb] && Wt[kc] && H[ka] < -0.22 && H[kb] < -0.22 && H[kc] < -0.22) return; if (Rl[ka] && Rl[kb] && Rl[kc]) return; // ground pass: keep water-flagged triangles that still rise above the sea, so the shoreline is where the ground meets the water plane (no stair-step triangle edge)
       const L = [Lr[ka], Lr[kb], Lr[kc]]; vtx(a[0], a[1], L); vtx(b[0], b[1], L); vtx(c[0], c[1], L);
       if (TL) { const cx = x0 + (a[0] + b[0] + c[0]) / 3 * cell, cz = z0 + (a[1] + b[1] + c[1]) / 3 * cell, tx = Math.floor(cx / T), tz = Math.floor(cz / T); for (let q = 0; q < 3; q++) TL.push(tx, tz); }
     };

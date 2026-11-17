@@ -1,0 +1,4 @@
+{
+ "keysB": { "tod": 11, "eval": "game.teleport(-836, undefined, 5272, 0); game.cameraOverride = (dt, c) => { c.position.set(-836, 60, 5312); c.lookAt(-836, 0, 5272); return true; }; setTimeout(() => import('/src/world/ground/layerAudit.js').then((A) => { window.__la = A.layerScan(game, { x: -836, z: 5272, r: 45, step: 1.5 }); }), 2500);", "report": "window.__la" },
+ "keysC": { "tod": 11, "eval": "game.teleport(-820, undefined, 4860, 0); game.cameraOverride = (dt, c) => { c.position.set(-820, 60, 4900); c.lookAt(-820, 0, 4860); return true; }; setTimeout(() => import('/src/world/ground/layerAudit.js').then((A) => { window.__la = A.layerScan(game, { x: -820, z: 4860, r: 45, step: 1.5 }); }), 2500);", "report": "window.__la" }
+}

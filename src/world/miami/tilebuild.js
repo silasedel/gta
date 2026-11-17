@@ -23,6 +23,9 @@ import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import { occupancy } from '../ground/occupancy.js';
+import { surfaceMask } from '../ground/surfaceMask.js';
+import { patchTerrainEdges } from '../ground/groundEdge.js';
+const GM_KIND = { asphalt: 'asphalt', junction: 'asphalt', dirtRoad: 'asphalt', parking: 'paved', promenade: 'paved', panels: 'paved', sidewalk: 'paved', wood: 'paved', runway: 'paved', taxiway: 'paved', apron: 'paved' }; // ground pass: hard surfaces in the ground mask
 import { breakables } from './breakables.js';
 import { signalLayout } from './signals.js';
 import { drawBlade } from '../signs/draw.js';
@@ -35,6 +38,8 @@ export function createTileBuilder(ctx) {
   const { M, provider, root, world, RAPIER, zoneAt, nodeAt, models = {}, onProps = null, onSidewalk = null, groundAt = null, roadDirAt = null, isWater = null, roadDist = null } = ctx;
   // ---- V2 world-render: terrain, flora and relief (src/world/terrain/) ----
   const terrain = ctx.terrain || null, flora = ctx.flora || null, D = ctx.data || null;
+  const GMASK = surfaceMask(), GM_ON = !GMASK.off; // ground pass: top-down hard-surface mask (src/world/ground/surfaceMask.js)
+  if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell }); // ground pass: shoulders / crumbs / no ground through roads
   const TH = (x, z) => (D && D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0);
   const HARD_CLS = new Set(['paved', 'parking', 'plaza', 'marina', 'pool', 'runway', 'taxiway', 'apron']);
   const LAWN_CLS = new Set(['park', 'grass', 'garden', 'cemetery', 'golf', 'pitch', 'playground']);
@@ -1280,11 +1285,11 @@ export function createTileBuilder(ctx) {
   // ---- job 4: road decals (atlas from the user's road-detail scans, tools/v2/roads): cracks, tar-sealed cracks, potholes, patches,
   // manhole covers, storm-drain grates, oil stains, turn arrows. Alpha-blended quads in one merged mesh per tile (B.decals). ----
   const DEC = { crack: 0, crackNet: 1, pothole: 2, potholePatched: 3, manhole: 4, meterCover: 5, grate: 6, oilA: 7, oilB: 8, arS: 9, arL: 10, arR: 11, arSL: 12, arSR: 13, patch: 14, tarCrack: 15 };
-  const _dc = new THREE.Color(1, 1, 1), DEC_Y = 0.062;
+  const _dc = new THREE.Color(1, 1, 1), DEC_Y = 0.062, WHITE_T = new THREE.Color(1, 1, 1); let decTint = WHITE_T;
   // (x, z) center; (ax, az) unit direction the image's top points to; len along it, wid across; cell index
   function decal(B, x, z, ax, az, len, wid, cell, k = 1) {
     if (!B.decals || !M.roadDecals) return; const u0 = (cell % 4) * 0.25 + 0.002, v0 = Math.floor(cell / 4) * 0.25 + 0.002, u1 = u0 + 0.246, v1 = v0 + 0.246;
-    const bx = -az, bz = ax, hl = len / 2, hw2 = wid / 2; _dc.setRGB(k, k, k);
+    const bx = -az, bz = ax, hl = len / 2, hw2 = wid / 2; _dc.setRGB(k, k, k); if (cell !== DEC.manhole && cell !== DEC.meterCover && cell !== DEC.grate && cell < DEC.arS || cell >= DEC.patch) _dc.multiply(decTint); // ground pass: asphalt-based decals carry the road's own tint (lanes: sun-faded)
     quadUV(B.decals, [[x + ax * hl - bx * hw2, DEC_Y, z + az * hl - bz * hw2, u0, v0], [x + ax * hl + bx * hw2, DEC_Y, z + az * hl + bz * hw2, u1, v0],
       [x - ax * hl + bx * hw2, DEC_Y, z - az * hl + bz * hw2, u1, v1], [x - ax * hl - bx * hw2, DEC_Y, z - az * hl - bz * hw2, u0, v1]], _dc);
   }
@@ -1308,6 +1313,7 @@ export function createTileBuilder(ctx) {
     if (!lane && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) step(55, (s) => { const h = H(s, 20); if (h > 0.4) return; const side = h < 0.2 ? 1 : -1; put(s + 9, side * (hw - 0.6), DEC.meterCover, 0.52, 0.52, H(s, 21) * 6.28); });
     // storm-drain grates at curbed edges: one every ~45 m per side and one just upstream of each junction mouth
     if (!lane && (pe ? (pe.e.sidewalk || 0) > 0 : r.sidewalks)) for (const side of [-1, 1]) { step(45, (s) => put(s + 20 + H(s, 22 + side) * 8, side * (hw - 0.3), DEC.grate, 0.95, 0.5));
+    decTint = lane ? LANE_TINT : WHITE_T;
       if (pe && pe.A && pe.A.D) put(pe.A.mk + 3 - pe.s0, side * (hw - 0.3), DEC.grate, 0.95, 0.5); if (pe && pe.B && pe.B.D) put(pe.LE - pe.B.mk - 3 - pe.s0, side * (hw - 0.3), DEC.grate, 0.95, 0.5); }
     // oil: drips down the lane centers, puddles where cars wait at stop bars
     if (!lane) step(main ? 30 : 40, (s) => { const h = H(s, 25); if (h > 0.55) return; const k = Math.floor(H(s, 26) * Math.max(1, total)), o = -hw + lw * (k + 0.5); put(s + h * 10, o, h < 0.27 ? DEC.oilA : DEC.oilB, 1.4 + H(s, 27), 0.9 + H(s, 28) * 0.6, H(s, 29) * 6.28, 0.7 + h); });
@@ -1452,12 +1458,12 @@ export function createTileBuilder(ctx) {
       const lane = !ys && laneOfRoad(r);
       const curbedEdge = !lane && (pe ? (pe.e.sidewalk || 0) > 0 : !!r.sidewalks);
       const sideOpen = (side) => { if (!curbedEdge) return true; for (const f of [0.2, 0.5, 0.8]) { const q = sampleAt(fr, rA + (Math.min(rB, L) - rA) * f), o = side * (hw + 1.2); if (slabAt(tile, q.x + q.nx * o, q.z + q.nz * o)) return false; } return true; }; // a curbed street can still have one open side
-      const scanShoulder = !ys && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && M.shoulder && B.shoulder && rB > rA + 1;
+      const scanShoulder = !ys && !GC_OFF && !GM_ON && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && M.shoulder && B.shoulder && rB > rA + 1;
       if (scanShoulder) for (const side of [-1, 1]) { if (!sideOpen(side)) continue; // shoulders run from each side's curb-return tangent (straight-through sides: from the node)
         let a = rA, b = rB; if (pe && !capA && jA) a = (side > 0 ? jA.tB : jA.tA) - pe.s0; if (pe && !capB && jB) b = pe.LE - (side > 0 ? jB.tA : jB.tB) - pe.s0;
         shoulderRibbon(B, fr, hw, a, b, side, r.edgeId ?? 0, lane); }
-      else if (lane && B.sand && rB > rA + 1) laneShoulders(B, fr, hw, rA, rB, r);
-      if (!scanShoulder && !ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
+      else if (lane && B.sand && rB > rA + 1 && !GM_ON) laneShoulders(B, fr, hw, rA, rB, r); // ground pass: with the surface mask the terrain / fill shaders draw the shoulders
+      if (!scanShoulder && !GM_ON && !ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
       // markings (job 4: per road class; stations on the graph edge so dashes and lines run on across tile seams)
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), dirt = r.surface === 'dirt' || /track/.test(r.kind || '');
       const mY = yRoad + 0.015;
@@ -1467,7 +1473,10 @@ export function createTileBuilder(ctx) {
       if (B && B.decals && !dirt && rB > rA + 2) { roadDecals(B, fr, ys, r, hw, pe, lane, Math.max(0, rA), Math.min(L, rB)); turnArrows(B, fr, r, hw, pe); } // job 4: lived-in asphalt
       if (lane && B.marks && s1 > s0 + 2) { // Keys lane: a faded, broken center line on the wider ones, plus dark sealed patches
         if (r.width >= 6 && !r.oneway && hash((r.edgeId ?? 0) * 17 + 3) < 0.6) { const base = pe ? -pe.s0 : s0; for (let s = base + Math.floor((s0 - base) / 12) * 12; s < s1; s += 12) { const a = Math.max(s0, s), b = Math.min(s1, s + 4.5); if (b > a + 0.3) markRibbon(B, fr, ys, -0.06, 0.06, mY, 0xa89660, 1, a, b); } }
-        for (let s = s0 + 2 + hash((r.edgeId ?? 0) * 7) * 6; s < s1 - 2; s += 5 + hash(s * 3.1 + (r.edgeId ?? 0)) * 10) { const h = hash(s * 17 + (r.edgeId ?? 0) * 5), o = (h - 0.5) * (hw - 0.8), w = 0.5 + hash(s * 5 + 1) * 1.6, len = 0.8 + hash(s + 9) * 3.2; markRibbon(B, fr, ys, o - w / 2, o + w / 2, mY - 0.004, h < 0.4 ? 0x4a4844 : h < 0.75 ? 0x5a5751 : 0x63605a, 1, s, s + len); } // sealed patches, a shade darker than the faded lane
+        if (B.decals && M.roadDecals) { decTint = LANE_TINT; const eid = r.edgeId ?? 0; // ground pass: sealed patches as irregular soft-edged decals in the lane's own asphalt (were dark rectangles)
+          for (let s = s0 + 3 + hash(eid * 7) * 8; s < s1 - 2; s += 8 + hash(s * 3.1 + eid) * 16) { const h = hash(s * 17 + eid * 5), q = sampleAt(fr, s), len = 1.1 + hash(s + 9) * 2.6, w = 0.8 + hash(s * 5 + 1) * 1.5, o = (h - 0.5) * Math.max(0, 2 * hw - w - 0.6);
+            const x = q.x + q.nx * o, z = q.z + q.nz * o; if (paintBlocked(x, z)) continue; const rot = (hash(s * 7 + 3) - 0.5) * 0.5, ca = Math.cos(rot), sa = Math.sin(rot), nl = Math.hypot(q.nx, q.nz) || 1;
+            decal(B, x, z, q.dx * ca - q.nx / nl * sa, q.dz * ca - q.nz / nl * sa, len, w, h < 0.18 ? DEC.potholePatched : DEC.patch, 0.94 + hash(s + 2) * 0.12); } }
       }
       if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service' && !dirt && !lane) {
         const base = pe ? -pe.s0 : s0; // dash phase fixed to the edge
@@ -1613,7 +1622,7 @@ export function createTileBuilder(ctx) {
         const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
         rampsInto(swB && !swB.empty ? swB : null, coll, J);
         if (B.lines) goreStripes(B, J);
-        if (!GC_OFF && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
+        if (!GC_OFF && !GM_ON && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
           const paved = () => { const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], d = Math.hypot(dx, dz) || 1; return slabAt(tile, m[0] + dx / d * 1.6, m[1] + dz / d * 1.6); };
           if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0 && paved()) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
           if (M.shoulder && B.shoulder) { shoulderArc(B, c, J.legs[c.i].lane || J.legs[c.j].lane); continue; }
@@ -2753,7 +2762,7 @@ export function createTileBuilder(ctx) {
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['shoulder', M.shoulder || M.sidewalk, false], ['marks', M.markings, false], ['lines', M.lines || M.markings, false], ['decals', M.roadDecals || M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
-      const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
+      const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); const gk = GM_KIND[name]; if (gk) GMASK.register(m, gk); yield; }
     }
     if (B.roomGlass && B.roomGlass.p.length) { // shop rooms behind street-front glass (aWear = room kind + how lit)
       const m = meshOf(B.roomGlass, M.roomGlass, { cast: false });

@@ -17,6 +17,7 @@ import { makeVegMaterial } from './materials.js';
 import { bakeImpostor } from './field.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { grassCardMap, clumpCard, stripCard, bladeCards } from './grasscards.js';
+import { gmVeg } from '../ground/surfaceMask.js';
 
 // ground pass: close-up grass from the user's photographed grass cards (?gcards=0: the procedural blade tufts)
 const GCARDS = typeof location === 'undefined' || !/[?&]gcards=0\b/.test(location.search);
@@ -230,6 +231,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   MAT.gc = { leaf: vegMat('leaf', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0.35, transl: 0.7 }), plain: vegMat('plain', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0 }), rock: vegMat('plain', BAND.gc[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), peb: vegMat('plain', BAND.peb[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), fill: vegMat('plain', BAND.gcn[0], { lean: 0.02, sway: 0.03, wear: 0 }), half: vegMat('plain', BAND.gch[0], { lean: 0.02, sway: 0.03, wear: 0 }) };
   if (GCARDS) { const map = grassCardMap(renderer), co = { map, lean: 0.03, sway: 0.035, wear: 0.12, transl: 0.65, alphaTest: 0.38, tint: 0.8 };
     MAT.gc.card = vegMat('leaf', BAND.gc[0], co); MAT.gc.cardFill = vegMat('leaf', BAND.gcn[0], co); MAT.gc.cardHalf = vegMat('leaf', BAND.gch[0], co); }
+  for (const k in MAT.gc) for (const x of [MAT.gc[k].mat, MAT.gc[k].depth]) gmVeg(x, { edge: k !== 'rock' && k !== 'peb' }); for (const k of ['bark', 'leaf']) for (const x of [MAT.shrub[0][k].mat, MAT.shrub[0][k].depth]) gmVeg(x); // ground pass: nothing grows on hard surfaces or under cars (ground/surfaceMask.js)
   const bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
   // ---- prototypes ----
   const protos = [], protoOf = {};
@@ -237,6 +239,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     const P = { cls, key, lods: [], tris: [g0.tris, g1?.tris || 0, 4] }, idx = protos.length;
     if (g0.model) { // library model: own materials per part, impostor baked at load (models.js)
       const bands = MBAND[cls] || BAND[cls], L = g0.model.materials(bands[0], bands[1], bands[2]); // library model: own LOD1 mesh in the mid band (same tree, thinned)
+      if (cls === 'shrub') for (const q of [...(L.near || []), ...(L.mid || [])]) { gmVeg(q.mat); gmVeg(q.depth); } // ground pass: no library shrubs on hard surfaces
       P.lods.push({ band: bands[0], slots: L.near.map((q) => new Slot(group, q.geo, q.mat, q.depth, true, colored && q.fam === 'leaf')) });
       if (L.mid.length) P.lods.push({ band: bands[1], slots: L.mid.map((q) => new Slot(group, q.geo, q.mat, q.depth, true, colored && q.fam === 'leaf')) });
       if (L.imp) P.lods.push({ band: bands[2], slots: [new Slot(group, L.imp.geo, L.imp.mat, L.imp.depth, false, colored)] });

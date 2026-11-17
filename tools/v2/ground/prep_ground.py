@@ -23,7 +23,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')
 SRC = os.path.join(ROOT, 'Models', 'Textures')
 PH = os.path.join(ROOT, 'public', 'assets', 'city', 'pbr')
 OUT = os.path.join(ROOT, 'public', 'assets', 'textures', 'ground')
-COL, AUX = 1024, 512
+COL, AUX = 2048, 1024  # ground pass (overnight): 2K albedo / height, 1K normal + arm (looks first)
 
 G1 = 'Ground 1 - Mottled Green Lawn With Dirt Patches/'
 S2 = 'Sand 2 - Fine Peach Beach Sand With Footprints/'
@@ -40,6 +40,7 @@ LAYERS = [
     dict(key='gravel', col=D1 + 'Dirt Color.png', nrm=D1 + 'Dirt Normal DX.png', conv='dx', h=D1 + 'Dirt Height.png', rough=D1 + 'Dirt Roughness.png', luma=0.56, std=0.08, delight=0.8),
     dict(key='soil', col=G4 + 'Ground Close 04 Color.jpeg', nrm=G4 + 'Ground Close 04 Normal GL.jpeg', conv='gl', h=G4 + 'Ground Close 04 High.jpg', ao=G4 + 'Ground Close 04 Occlusion.jpeg', luma=0.36, std=0.09, delight=0.8, rough=0.9, desat=0.55),  # pink fallen leaves read purple in lawns
     dict(key='mud', col=G2 + 'Mud Tile Color.jpeg', nrm=G2 + 'Mud Tile Normal GL.jpeg', conv='gl', rough=G2 + 'Mud Tile Roughness (green channel).png', rough_ch=1, luma=0.30, std=0.07, delight=0.7),
+    # Gravel 1 (pebble beach) was tried: its color map is the scan's UV atlas (islands + blurred padding), not a usable ground texture
     dict(key='leaves', ph='forest_leaves_02', luma=0.38, std=0.11, delight=0.6),
     dict(key='stony', ph='forest_ground_04', luma=0.42, std=0.09, delight=0.6),
 ]
