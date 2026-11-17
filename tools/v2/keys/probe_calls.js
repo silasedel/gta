@@ -1,6 +1,6 @@
 // draw-call cost per group at the current camera: hide one group, read renderer.info over a few frames, restore
 (async () => { const NH = game.nicoHouse, T = game.THREE; const sp = NH.toWorld(new T.Vector3(1.4, 4.9, 6.9)), lk = NH.toWorld(new T.Vector3(-6.5, 0, 23));
-  game.cameraOverride = (dt, cam) => { cam.position.copy(sp); cam.lookAt(lk); return true; }; game.timeOfDay = 11;
+  game.cameraOverride = (dt, cam) => { cam.position.copy(sp); cam.lookAt(lk); return true; }; game.timeOfDay = window.__tod ?? 11;
   const frames = (n) => new Promise((res) => { let k = 0, s = 0; const f = () => { if (k++ > 1) s += game.renderer.info.render.calls; if (k < n + 2) requestAnimationFrame(f); else res(Math.round(s / n)); }; requestAnimationFrame(f); });
   await new Promise((r) => setTimeout(r, 3000));
   const groups = { nh_site: NH.group.getObjectByName('nh_site'), nh_detail: NH.group.getObjectByName('nh_detail'), nh_ext: NH.group.getObjectByName('nh_ext'), nh_int: NH.group.getObjectByName('nh_int'), keysLots: game.scene.getObjectByName('keysLots'), houses: game.scene.getObjectByName('houses') };
