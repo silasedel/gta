@@ -21,4 +21,7 @@ export default defineConfig({
   base: './',
   plugins: [pagesAssets()],
   build: { chunkSizeWarningLimit: 4000 },
+  // stage 1: several helpers edit files while headless tests run; with hot reload every save reloaded every open test
+  // page mid-run. Set VITE_HMR=1 to get live reload back (stage 1 restores it at hand-off).
+  server: { hmr: process.env.VITE_HMR === '1' },
 });
