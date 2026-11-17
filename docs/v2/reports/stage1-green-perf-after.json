@@ -1,0 +1,63 @@
+{
+  "set": "after",
+  "when": "2026-11-17T02:58:55.134Z",
+  "spots": {
+    "clewiston": {
+      "avgMs": 60.37,
+      "p95Ms": 92.7,
+      "calls": 660,
+      "tris": 3843904,
+      "veg": {
+        "vegCalls": 291,
+        "vegInst": 6649,
+        "vegTris": 386100,
+        "cs": {
+          "drawCalls": 64,
+          "instances": 5489,
+          "tris": 141402,
+          "rebucketAvgMs": 1.61,
+          "genAvgMs": 0.26
+        }
+      }
+    },
+    "keylargo": {
+      "avgMs": 128.71,
+      "p95Ms": 182.3,
+      "calls": 756,
+      "tris": 4963487,
+      "veg": {
+        "vegCalls": 248,
+        "vegInst": 8958,
+        "vegTris": 678359,
+        "cs": {
+          "drawCalls": 70,
+          "instances": 6259,
+          "tris": 386234,
+          "rebucketAvgMs": 1.49,
+          "genAvgMs": 0.29
+        }
+      }
+    },
+    "everglades": {
+      "avgMs": 68.02,
+      "p95Ms": 95,
+      "calls": 452,
+      "tris": 3968675,
+      "veg": {
+        "vegCalls": 143,
+        "vegInst": 18000,
+        "vegTris": 1176826,
+        "cs": {
+          "drawCalls": 80,
+          "instances": 17937,
+          "tris": 1126105,
+          "rebucketAvgMs": 1.7,
+          "genAvgMs": 0.34
+        }
+      }
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5211/favicon.ico"
+  ]
+}

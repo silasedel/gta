@@ -1,0 +1,126 @@
+{
+  "set": "before",
+  "when": "2026-11-17T02:52:52.421Z",
+  "R": 260,
+  "spots": {
+    "clewiston": {
+      "n": 363,
+      "bySrc": {
+        "tile": 253,
+        "countryside": 110
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "keylargo": {
+      "n": 223,
+      "bySrc": {
+        "tile": 109,
+        "countryside": 114
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "downtown": {
+      "n": 506,
+      "bySrc": {
+        "tile": 506
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "beach": {
+      "n": 678,
+      "bySrc": {
+        "tile": 678
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "everglades": {
+      "n": 218,
+      "bySrc": {
+        "countryside": 218
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "homestead": {
+      "n": 492,
+      "bySrc": {
+        "tile": 464,
+        "countryside": 28
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    },
+    "brickell": {
+      "n": 505,
+      "bySrc": {
+        "tile": 503,
+        "countryside": 2
+      },
+      "road": [],
+      "crown": [],
+      "sidewalk": [],
+      "building": [],
+      "counts": {
+        "road": 0,
+        "crown": 0,
+        "sidewalk": 0,
+        "building": 0
+      }
+    }
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5212/favicon.ico"
+  ]
+}

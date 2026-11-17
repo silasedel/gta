@@ -22,7 +22,7 @@ const VEG = `(() => { // vegetation draw calls / triangles this frame (instanced
 })()`;
 const rep = { set: SET, when: new Date().toISOString(), spots: {} };
 await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
-  await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute');
+  await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute&weather=clear');
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 12; return 1; })()`);
