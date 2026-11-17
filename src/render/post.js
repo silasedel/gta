@@ -633,13 +633,13 @@ export function createPost(game) {
       uniforms: {
         tCur: { value: null }, tHist: { value: null }, tDepth: { value: null }, tVel: { value: null },
         uInvVP: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uTexel: { value: new THREE.Vector2(1, 1) },
-        uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 }, uBlendRest: { value: 0.08 }, uDisocc: { value: 1 }, uBoxMix: { value: 0.5 },
+        uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 }, uBlendRest: { value: 0.08 }, uDisocc: { value: 1 }, uBoxMix: { value: 0.5 }, uCross: { value: 0 },
       },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
       fragmentShader: /* glsl */`
         #include <packing>
         uniform sampler2D tCur; uniform sampler2D tHist; uniform sampler2D tDepth; uniform sampler2D tVel;
-        uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uTexel; uniform float uReset, uVelOn, uNear, uFar, uBlendRest, uDisocc, uBoxMix;
+        uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uTexel; uniform float uReset, uVelOn, uNear, uFar, uBlendRest, uDisocc, uBoxMix, uCross;
         float linZ( vec2 uv ) { float d = texture2D( tDepth, uv ).x; return d >= 0.99995 ? 6.0e4 : -perspectiveDepthToViewZ( d, uNear, uFar ); }
         varying vec2 vUv;
         vec3 toY( vec3 c ) { return vec3( 0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b ); }
@@ -680,10 +680,12 @@ export function createPost(game) {
           vec3 yc = toY( cur ), mn = yc, mx = yc, m1 = yc, m2 = yc * yc;
           for ( int j = -1; j <= 1; j++ ) for ( int i = -1; i <= 1; i++ ) {
             if ( i == 0 && j == 0 ) continue;
+            if ( uCross > 0.5 && i != 0 && j != 0 ) continue; // Medium / Low: 5-tap cross (r2-perf: GPU cost)
             vec3 y = toY( tm( texture2D( tCur, vUv + vec2( float( i ), float( j ) ) * uTexel ).rgb ) );
             mn = min( mn, y ); mx = max( mx, y ); m1 += y; m2 += y * y;
           }
-          vec3 mu = m1 / 9.0, sd = sqrt( max( m2 / 9.0 - mu * mu, 0.0 ) );
+          float nN = uCross > 0.5 ? 5.0 : 9.0;
+          vec3 mu = m1 / nN, sd = sqrt( max( m2 / nN - mu * mu, 0.0 ) );
           // moving surface: nearest velocity sample in a 5-tap cross (dilated silhouettes), only where it is not hidden
           vec4 vel = vec4( 0.0 );
           if ( uVelOn > 0.5 ) {
@@ -754,6 +756,12 @@ export function createPost(game) {
         }`,
       depthTest: false,
       depthWrite: false,
+    });
+    const copy1Mat = new THREE.ShaderMaterial({
+      uniforms: { tDiffuse: { value: null } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main() { gl_FragColor = vec4( texture2D( tDiffuse, vUv ).rgb, 1.0 ); }',
+      depthTest: false, depthWrite: false,
     });
     const velRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, generateMipmaps: false });
     const velMat = new THREE.ShaderMaterial({
@@ -836,7 +844,11 @@ export function createPost(game) {
         let moved = false;
         for (let i = 0; i < 16; i++) if (Math.abs(e[i] - m.e[i]) > 1e-5) { moved = true; break; }
         if (moved) { for (let i = 0; i < 16; i++) m.e[i] = e[i]; m.still = 0; } else m.still++;
-        if (m.still < 3) velDraw.push(c);
+        if (m.still >= 3) continue;
+        // r2-perf: only movers within game.renderVelMaxDist (60 m) of the camera; farther ones are a few pixels and reproject
+        // well enough from depth (clipped)
+        const dx = e[12] - camera.position.x, dy = e[13] - camera.position.y, dz = e[14] - camera.position.z, R = game.renderVelMaxDist ?? 60;
+        if (dx * dx + dy * dy + dz * dz < R * R) velDraw.push(c);
       }
       return velDraw;
     }
@@ -971,15 +983,16 @@ export function createPost(game) {
       U.uNear.value = camera.near; U.uFar.value = camera.far;
       U.uBlendRest.value = game.renderTaaRest ?? 0.08;
       U.uDisocc.value = game.renderDisocc === true ? 1 : 0; // off: the depth test still misfired on textured ground at rest (ablation abl1: 3x the frame-to-frame noise); velocity + clipping handle ghosting
-      U.uBoxMix.value = game.renderBoxMix ?? 0.2; // r2-render: 0.5 let wind-moved leaves (no motion vectors) keep a smudged history (r2-veg: shrubs as blurry balls)
+      U.uBoxMix.value = game.renderBoxMix ?? 0.2;
+      U.uCross.value = game.renderTaaCross ?? (game.quality?.name === 'medium' || game.quality?.name === 'low') ? 1 : 0; // r2-render: 0.5 let wind-moved leaves (no motion vectors) keep a smudged history (r2-veg: shrubs as blurry balls)
       U.uReset.value = reset ? 1 : 0;
       reset = false;
       quad.material = taaMat3;
       r.setRenderTarget(dst);
       r.render(quadScene, quadCam);
-      sharpMat.uniforms.tDiffuse.value = dst.texture;
-      sharpMat.uniforms.uSharp.value = game.renderSharp ?? 0; // r2-render: off by default (jag run: the sharpen doubled the frame-to-frame wobble and can re-step AA'd edges); 0.15 = subtle
-      quad.material = sharpMat;
+      const sh = game.renderSharp ?? 0; // r2-render: off by default (jag run: the sharpen doubled the frame-to-frame wobble and can re-step AA'd edges); 0.15 = subtle
+      if (sh > 0) { sharpMat.uniforms.tDiffuse.value = dst.texture; sharpMat.uniforms.uSharp.value = sh; quad.material = sharpMat; }
+      else { copy1Mat.uniforms.tDiffuse.value = dst.texture; quad.material = copy1Mat; } // one tap, alpha 1 (r2-perf: GPU cost)
       r.setRenderTarget(writeBuffer);
       r.render(quadScene, quadCam);
       flip = 1 - flip;
