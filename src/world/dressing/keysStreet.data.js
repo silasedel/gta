@@ -66,7 +66,7 @@ export const KEYS_LOTS = [
     extras: [{ k: 'chairs', u: 3.0, v: 4.0, h: -0.2 }], car: { kind: 'compact', look: 'faded', u: -6.0, v: 5.0, h: Math.PI },
   },
   { // I: orange stilt house on the far side of the south leg, kayaks under it
-    id: 'pp_orange', x: 14.0, z: 58.0, face: 0.85, w: 8.4, d: 7.8, style: 'keys', stilt: true, base: 2.8, gap: 5.8, side: 3.5, back: 6,
+    id: 'pp_orange', x: 12.5, z: 56.7, face: 0.85, w: 8.4, d: 7.8, style: 'keys', stilt: true, base: 2.8, gap: 5.8, side: 3.5, back: 6,
     over: { colors: { body: 0xe8b8a0, trim: 0xf2f0ea, accent: 0x3a5a4a, roof: 0x8e9a8e }, fence: 'none', frontHedge: false, hedge: false, car: false, bins: true, palms: 2, shrubs: 2, lattice: true, storage: false },
     extras: [{ k: 'kayaks', u: -1.0, v: 0.0, h: 1.57 }, { k: 'crabTraps', u: 5.5, v: -2.5, h: 0.3 }], car: { kind: 'suv', look: 'old', u: -6.2, v: 5.0, h: Math.PI },
   },

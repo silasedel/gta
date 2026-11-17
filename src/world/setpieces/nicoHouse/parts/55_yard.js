@@ -85,12 +85,12 @@ export function build(ctx) {
   }
 
   // ======================================================================= satellite dish on the west deck (mock-up: left edge of the deck view)
-  { const F = ctx.plan.F, x = -7.75, z = 4.35, ry = -2.2, MD = mat.metalPaint();
-    for (const [dx, dz] of [[-0.2, -0.16], [0.2, -0.16], [0, 0.24]]) B.strut(ST, [x + dx, F, z + dz], [x, F + 0.5, z], 0.016, 0.016, { color: 0xa9aba6 });   // light tripod stand
-    const dg = new THREE.CylinderGeometry(0.46, 0.07, 0.13, 28, 1, false); B.geo(MD, dg, M(x, F + 0.72, z, -1.2, ry, 0), { color: 0xd8d6cf, wear: 0.4 }); dg.dispose();   // shallow closed dish (seen from both sides)
-    const ax = Math.sin(ry), az = Math.cos(ry); B.rod(ST, [x + ax * 0.05, F + 0.62, z + az * 0.05], [x + ax * 0.55, F + 0.95, z + az * 0.55], 0.012, { color: 0x8a8c88 });
-    B.box(PLG, 0.09, 0.08, 0.14, M(x + ax * 0.58, F + 0.97, z + az * 0.58, 0, ry, 0), { color: 0xdedcd4, bevel: 0.01 });
-    col.box(x, F + 0.6, z, 0.9, 1.2, 0.9, { tag: 'prop' }); }
+  { const F = ctx.plan.F, x = -7.45, z = 4.75, ry = -2.2, MD = mat.metalPaint();
+    for (const [dx, dz] of [[-0.2, -0.16], [0.2, -0.16], [0, 0.24]]) B.strut(ST, [x + dx, F, z + dz], [x, F + 0.36, z], 0.016, 0.016, { color: 0xa9aba6 });   // light tripod stand
+    const dg = new THREE.CylinderGeometry(0.46, 0.07, 0.13, 28, 1, false); B.geo(MD, dg, M(x, F + 0.56, z, -1.2, ry, 0), { color: 0xc9c7bf, wear: 0.6 }); dg.dispose();   // shallow closed dish (seen from both sides)
+    const ax = Math.sin(ry), az = Math.cos(ry); B.rod(ST, [x + ax * 0.05, F + 0.46, z + az * 0.05], [x + ax * 0.55, F + 0.79, z + az * 0.55], 0.012, { color: 0x8a8c88 });
+    B.box(PLG, 0.09, 0.08, 0.14, M(x + ax * 0.58, F + 0.81, z + az * 0.58, 0, ry, 0), { color: 0xdedcd4, bevel: 0.01 });
+    col.box(x, F + 0.5, z, 0.9, 1.0, 0.9, { tag: 'prop' }); }
 
   // ======================================================================= debris and clutter (own models)
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });

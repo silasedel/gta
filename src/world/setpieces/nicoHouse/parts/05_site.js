@@ -44,7 +44,7 @@ export function build(ctx) {
       // never under the terrain inside the yard: where a swell dips below the terrain surface the terrain's own triangles poked
       // through as straight-edged patches (user review shot_27); the low spots bottom out 2 cm over it instead
       const y = Math.max((fine + swell + bowl) * (1 - under * 0.8), gA(x, z) + 0.02);
-      return y + ((Math.min(0, gA(x, z)) - 0.12) - y) * sink; };   // at the asphalt and the open edges: under the terrain surface
+      return y + ((Math.min(0, gA(x, z)) - 0.3) - y) * Math.sqrt(sink); };   // steep dive at the edges: one crossing line with the terrain, no coplanar band   // at the asphalt and the open edges: under the terrain surface
     ctx.yardY = yardY;
     for (let i = 0; i < pa.count; i++) {
       const x = pa.getX(i), z = pa.getZ(i), dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2));
