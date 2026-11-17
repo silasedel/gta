@@ -92,11 +92,12 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     const j = picks[id]; if (!j) continue;
     await ensure();
     const ce = await b.eval(`(() => { const J = game.city.junctionOf ? game.city.junctionOf(${j.id}) : null; if (!J) return null; const c = J.corners.filter((c) => c.kind === 'fillet').sort((p, q) => (J.legs[q.i].sw > 0 && J.legs[q.j].sw > 0 ? 1 : 0) - (J.legs[p.i].sw > 0 && J.legs[p.j].sw > 0 ? 1 : 0))[0]; if (!c) return null; const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], l = Math.hypot(dx, dz) || 1; return [m[0] + dx / l * 2.5, 1.75, m[1] + dz / l * 2.5]; })()`).catch(() => null);
-    if (ce) { j.cornerEye = ce; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); } // saved: a later job4=0 run stands on the same corner
+    if (ce && !o.views) { j.cornerEye = ce; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); } // saved: a later job4=0 run stands on the same corner
     const vs = VIEWS(j); rep.junctions[id] = { node: j.id, x: j.x, z: j.z, zone: j.zone, dist: j.dist, kinds: j.kinds, views: {} };
     // park the player out of frame (40 m off the junction on the corner side, streams the tiles), then wait for streaming
     const tk = `tile-near-${Math.floor(j.x / 200)},${Math.floor(j.z / 200)}`;
     for (const [vk, v] of Object.entries(vs)) {
+      if (o.views && !String(o.views).split(',').includes(vk)) continue;
       for (let attempt = 0; attempt < 4; attempt++) { try {
         await ensure();
         await b.eval(`(() => { const v = ${JSON.stringify(v)}; game.teleport(${j.x}, undefined, ${j.z + 60}, 0); game.cameraOverride = (dt, cam) => { cam.position.fromArray(v.eye); cam.lookAt(v.look[0], v.look[1], v.look[2]); return true; }; if (game.player) game.player.visible = false; return 1; })()`);
@@ -118,7 +119,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     }
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }
-  fs.writeFileSync(`docs/v2/reports/road-audit-${SET}.json`, JSON.stringify(rep, null, 1));
+  fs.writeFileSync(`docs/v2/reports/road-audit-${SET}${o.views ? '-' + String(o.views).replace(/,/g, '_') : ''}.json`, JSON.stringify(rep, null, 1));
   // per-junction sheets (3 views side by side) + one overview sheet
   for (const id of only) { const fs3 = sheet.filter((p) => path.basename(p).startsWith(`${SET}_${id}_`)); if (fs3.length) try { execFileSync('python3', ['tools/v2/montage.py', path.join(DIR, `sheet_${SET}_${id}.png`), ...fs3, '--w', '800']); } catch (e) { console.log('montage failed', e.message); } }
 });

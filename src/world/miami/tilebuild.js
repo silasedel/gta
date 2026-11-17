@@ -2463,6 +2463,7 @@ export function createTileBuilder(ctx) {
       for (const pq of tile.piers || []) fillPoly(b, pq.rings, pq.y ?? 1.2, 0x8b6a4a, 0);
       const lodE = !!(elevated && elevated.buildTileLod);
       for (const r of tile.roads) { if (r.pts.length < 2 || (lodE && owned(r))) continue; const pr = roadProfile(r, tile); ribbon(b, polyFrame(pr.pts), pr.ys, -r.width / 2, r.width / 2, 0.05, 0x3a3a3c, 0); if (pr.ys) for (const side of [-1, 1]) sideWall(b, polyFrame(pr.pts), pr.ys, side * r.width / 2, 1.8, -0.9, 0xb8b4ac, side); }
+      for (const n of tile.nodes || []) { if (n.degree < 3) continue; const J = junctionOf(n.id); if (J) fillPoly(b, [J.poly], 0.05, 0x3a3a3c, 0); } // job 4: curb returns at mid range too (no grass corners popping in)
       if (lodE) { elevLodInto(b, tx, tz); yield; }
       if (LB) yield* lodBuildings(LB, tile, false);
       else {
