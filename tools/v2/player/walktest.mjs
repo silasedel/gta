@@ -124,7 +124,11 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
           if (h && h.timeOfImpact > 2.5 && Math.abs(h.normal.y) < 0.3 && Math.abs(h.normal.x * d.x + h.normal.z * d.z) > 0.8) {
             // tall enough to be a wall (not a curb / step): a second ray at knee height and one at head height hit too
             const h2 = W.castRay(new R.Ray({ x: o.x, y: y + 0.7, z: o.z }, d), 9, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS, undefined, P.collider);
-            if (h2 && Math.abs(h2.timeOfImpact - h.timeOfImpact) < 0.4 && (!best || h.timeOfImpact < best.t)) best = { t: h.timeOfImpact, d, o }; } } }
+            // wide enough to be a wall (not a pile / post): parallel rays 0.7 m to each side hit it at about the same distance
+            const side = (k2) => W.castRay(new R.Ray({ x: o.x - d.z * k2, y, z: o.z + d.x * k2 }, d), 9, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS, undefined, P.collider);
+            const sa = side(0.7), sb = side(-0.7);
+            const wide = sa && sb && Math.abs(sa.timeOfImpact - h.timeOfImpact) < 0.5 && Math.abs(sb.timeOfImpact - h.timeOfImpact) < 0.5;
+            if (wide && h2 && Math.abs(h2.timeOfImpact - h.timeOfImpact) < 0.4 && (!best || h.timeOfImpact < best.t)) best = { t: h.timeOfImpact, d, o }; } } }
         if (!best) return JSON.stringify({ err: 'no wall' });
         const o = best.o;
         const T = { x: o.x + best.d.x * (best.t + 2), z: o.z + best.d.z * (best.t + 2) };

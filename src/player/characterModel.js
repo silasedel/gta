@@ -174,6 +174,30 @@ function retarget(src, clip, tgt, opts = {}) {
   return out;
 }
 
+// Stance-foot speed measured on the TARGET rig (the retarget estimate scales the source rig's stride by hip height
+// only; a body with other leg proportions then slides its planted feet). Samples the in-place clip on the rig and
+// takes the median backward speed of whichever foot is down. Sets clip.userData.speed (used for gait playback rate).
+function measureGait(rig, clip, N = 90) {
+  const L = rig.bones.LeftFoot, R = rig.bones.RightFoot; if (!L || !R) return;
+  const yaw = (setRest(rig), rig.root.updateMatrixWorld(true), facingYaw(rig)), fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+  const P = { L: [], R: [] }, v = new THREE.Vector3();
+  for (let i = 0; i < N; i++) {
+    const t = (i / N) * clip.duration;
+    setRest(rig); applyClip(rig, clip, t); rig.root.updateMatrixWorld(true);
+    for (const [k, b] of [['L', L], ['R', R]]) { b.getWorldPosition(v); P[k].push({ z: v.dot(fwd), y: v.y }); }
+  }
+  setRest(rig); rig.root.updateMatrixWorld(true);
+  const dt = clip.duration / N, vs = [];
+  for (const k of ['L', 'R']) {
+    const f = P[k], minY = Math.min(...f.map((p) => p.y));
+    for (let i = 0; i < N; i++) { const a = f[i], b = f[(i + 1) % N]; if (a.y < minY + 0.03 && b.y < minY + 0.03) { const s = -(b.z - a.z) / dt; if (s > 0) vs.push(s); } }
+  }
+  if (vs.length < 4) return;
+  vs.sort((x, y) => x - y);
+  const m = vs[Math.floor(vs.length / 2)];
+  if (m > 0.3 && m < 12) { clip.userData.speedRetarget = clip.userData.speed; clip.userData.speed = m; }
+}
+
 const UPPER = new Set(['Spine', 'Spine1', 'Spine2', 'Neck', 'Head']);
 function isUpperBody(n) { return UPPER.has(n) || /Shoulder|Arm|Hand/.test(n); }
 
@@ -473,6 +497,7 @@ export async function preloadCharacters(game) {
       alignRestTo(rig, sources.xbot); setRest(rig); scene.updateMatrixWorld(true);
       const B = { kind: 'nico', tripo: true, assets: A, scene, rig, yaw: facingYaw(rig), height: A.meta.height, targetH: A.meta.height, minY: 0, clips: {}, headTop: null };
       buildClipsFor(B, g, sources, procClips);
+      try { for (const n of ['walk', 'walk2', 'run', 'sprint']) if (B.clips[n]) measureGait(rig, B.clips[n]); } catch (e) { console.warn('[nico] gait measure', e); }
       if (B.clips.idle && B.clips.walk) LIB.nico = B;
     }
   } catch (e) { console.warn('[nico] user model unavailable, using the pipeline Nico', e); }
