@@ -13,19 +13,40 @@ vs = [v.co for v in me.vertices]; mn = mathutils.Vector([min(v[i] for v in vs) f
 c = (mn + mx) / 2; me.transform(mathutils.Matrix.Translation((-c.x, -c.y, -mn.z)))
 L = mx.x - mn.x  # long axis X (3.6 m)
 bm = bmesh.new(); bm.from_mesh(me)
-cut = L / 2 - 0.40  # keep the outer 0.40 m of the -X end (post + bend + top-rail stub)
-bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(-cut, 0, 0), plane_no=(1, 0, 0))
-bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().x > -cut], context='FACES')
-bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
-for v in bm.verts: v.co.x += cut  # end piece now spans [-0.40, 0]
-ys = [v.co.y for v in bm.verts]; yc = (min(ys) + max(ys)) / 2
-for v in bm.verts: v.co.y -= yc
-mir = bmesh.ops.duplicate(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:])
-mv = [e for e in mir['geom'] if isinstance(e, bmesh.types.BMVert)]
-for v in mv: v.co.x = -v.co.x  # mirror: the other half of the hoop
-bmesh.ops.reverse_faces(bm, faces=[e for e in mir['geom'] if isinstance(e, bmesh.types.BMFace)])
-bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=0.004)
-print('HOOP x', round(min(v.co.x for v in bm.verts),3), round(max(v.co.x for v in bm.verts),3), 'y', round(min(v.co.y for v in bm.verts),3), round(max(v.co.y for v in bm.verts),3), 'z', round(min(v.co.z for v in bm.verts),3), round(max(v.co.z for v in bm.verts),3), 'faces', len(bm.faces))
+# a "staple" hoop (the common US sidewalk rack): 0.9 m of the railing's straight top tube as the bar, two more copies of it
+# stood up as legs, and the end post's ground flange under each leg
+top = max(v.co.z for v in bm.verts)
+def piece(x0, x1, z0, z1):
+    g = bm.copy(); 
+    for pl, nrm in (((x0, 0, 0), (1, 0, 0)), ((x1, 0, 0), (1, 0, 0))): bmesh.ops.bisect_plane(g, geom=g.verts[:] + g.edges[:] + g.faces[:], plane_co=pl, plane_no=nrm)
+    bmesh.ops.delete(g, geom=[f for f in g.faces if not (x0 <= f.calc_center_median().x <= x1 and z0 <= f.calc_center_median().z <= z1)], context='FACES')
+    bmesh.ops.delete(g, geom=[v for v in g.verts if not v.link_faces], context='VERTS'); return g
+bar = piece(-0.5, 0.5, top - 0.12, top + 1)  # a straight stretch of the top tube
+import numpy as np
+V = np.array([v.co[:] for v in bar.verts]); c0 = V.mean(0); w, vecs = np.linalg.eigh(np.cov((V - c0).T)); ax = vecs[:, np.argmax(w)]
+if ax[0] < 0: ax = -ax
+R = mathutils.Vector(ax.tolist()).rotation_difference(mathutils.Vector((1, 0, 0))).to_matrix().to_4x4()
+bmesh.ops.transform(bar, matrix=R @ mathutils.Matrix.Translation((-c0[0], -c0[1], -c0[2])), verts=bar.verts[:])
+L0 = max(v.co.x for v in bar.verts) - min(v.co.x for v in bar.verts)
+bmesh.ops.transform(bar, matrix=mathutils.Matrix.Diagonal((0.9 / L0, 1, 1, 1)), verts=bar.verts[:])  # exactly 0.9 m along X, centered
+H = 0.92  # bar center height
+out = bmesh.new()
+def add(g, M):
+    tmp = bpy.data.meshes.new('t'); g2 = g.copy(); bmesh.ops.transform(g2, matrix=M, verts=g2.verts[:]); g2.to_mesh(tmp); g2.free(); out.from_mesh(tmp); bpy.data.meshes.remove(tmp)
+add(bar, mathutils.Matrix.Translation((0, 0, H)))
+for sx in (-1, 1):  # legs: the bar turned upright, its 0.9 m stretched to the leg length, standing at x = +-0.45
+    L2 = H + 0.06; M = mathutils.Matrix.Translation((sx * 0.45, 0, L2 / 2 - 0.03)) @ mathutils.Matrix.Rotation(math.radians(90), 4, 'Y') @ mathutils.Matrix.Diagonal((L2 / 0.9, 1, 1, 1))
+    add(bar, M)
+# ground flanges from the railing's end post foot
+xs = [v.co.x for v in bm.verts]; xe = min(xs)
+foot = piece(xe - 0.05, xe + 0.25, -0.01, 0.08)
+fx = [v.co.x for v in foot.verts]; fyy = [v.co.y for v in foot.verts]
+if fx:
+    fc = ((min(fx) + max(fx)) / 2, (min(fyy) + max(fyy)) / 2)
+    for sx in (-1, 1): add(foot, mathutils.Matrix.Translation((sx * 0.45 - fc[0], -fc[1], 0)))
+bm.free(); bm = out
+bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=0.002)
+print('HOOP x', round(min(v.co.x for v in bm.verts),3), round(max(v.co.x for v in bm.verts),3), 'z', round(min(v.co.z for v in bm.verts),3), round(max(v.co.z for v in bm.verts),3), 'faces', len(bm.faces))
 bm.to_mesh(me); bm.free()
 hoop = bpy.data.objects.new('hoop', me); bpy.context.scene.collection.objects.link(hoop)
 parts = [hoop]

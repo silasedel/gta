@@ -1,0 +1,7 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"go1","eval":"game.teleport(650,undefined,9,0); window.__siteAt=[650,9]; 1","tod":10.5,"stream":true,"wait":4000,"shot":false},
+ {"id":"gate_a","evalFile":"sitegate.js","tod":10.5,"wait":3500},
+ {"id":"go2","eval":"game.teleport(364,undefined,129,0); window.__siteAt=[364,129]; 1","tod":10.5,"stream":true,"wait":4000,"shot":false},
+ {"id":"gate_b","evalFile":"sitegate.js","tod":10.5,"wait":3500}
+]
