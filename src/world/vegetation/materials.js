@@ -10,6 +10,11 @@ import * as THREE from 'three';
 import { barkAtlas, leafAtlas } from './textures.js';
 import { FRAME_NOISE } from '../../render/frameNoise.js';
 
+const Q = typeof location === 'undefined' ? '' : location.search;
+const qn = (k, d) => { const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q); return m ? (isNaN(+m[1]) ? m[1] : +m[1]) : d; };
+// round 2 (r2-veg): ?vegr2=0 = the overnight look (A/B); ?vegaa=1 hard alpha cut instead of alpha-to-coverage (A/B)
+export const VEG_R2 = qn('vegr2', 1) !== 0;
+const VEG_AA = qn('vegaa', 0); // A2C stays the default: under camera motion it holds leaf edges better than a hard cut (TAA alone shows stair steps on fronds; a4 m_bench)
 export const vegUniforms = {
   uFrameN: FRAME_NOISE, // stage 1: temporal dither offset (TAA resolves the LOD cross-fade instead of a fixed dot pattern)
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
@@ -29,6 +34,9 @@ float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): pal
   return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
 }
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist; varying float vVegH;
+#ifdef VEG_AO
+attribute float aVegAO; varying float vVegAO;
+#endif
 uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; uniform vec3 uBaseClamp; // uBaseClamp: (height, trunk radius, on) for plants in paving // model height, bend, twist (rad), frond droop; crown attachment height (m)
 float vegInstH() {
 #ifdef USE_INSTANCING
@@ -59,6 +67,9 @@ const VERT_BODY = `
   float vh = fract(sin(dot(vIw.xz, vec2(12.9898, 78.233))) * 43758.5453);
   float vh2 = fract(vh * 91.7 + 0.13), vh3 = fract(vh * 37.13 + 0.61), vh4 = fract(vh * 251.9 + 0.37), vh5 = fract(vh * 13.71 + 0.83), vh6 = fract(vh * 547.3 + 0.19);
   vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y; vVegH = position.y;
+#ifdef VEG_AO
+  vVegAO = aVegAO;
+#endif
 #ifndef VEG_IMP
   if (uBaseClamp.z > 0.0 && transformed.y < uBaseClamp.x) { // in paving: root flare pulled in to the trunk, a slight bulge at the collar
     float bt = clamp(transformed.y / uBaseClamp.x, 0.0, 1.0), rm = uBaseClamp.y * (1.0 + 0.22 * (1.0 - bt) * (1.0 - bt)), br = length(transformed.xz);
@@ -106,6 +117,9 @@ uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float
 uniform float uBaseAO; varying float vVegH;
 uniform float uBloom; uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
+#ifdef VEG_AO
+varying float vVegAO;
+#endif
 float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
 float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
 `;
@@ -113,14 +127,22 @@ float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0
 const FRAG_COLOR = `
   #ifdef USE_MAP
   { // keep thin leaflets from dissolving in the mip chain: scale alpha up with the sampled mip level
+#ifdef VEG_R2MIP
+    vec2 tsz = vec2(textureSize(map, 0)), tdx = dFdx(vMapUv * tsz), tdy = dFdy(vMapUv * tsz); // r2: the map's own size (was 2048 for every map)
+    diffuseColor.a *= 1.0 + max(0.0, 0.5 * log2(max(dot(tdx, tdx), dot(tdy, tdy)))) * 0.25;
+#else
     vec2 tdx = dFdx(vMapUv * 2048.0), tdy = dFdy(vMapUv * 2048.0);
     diffuseColor.a *= 1.0 + max(0.0, 0.5 * log2(max(dot(tdx, tdx), dot(tdy, tdy)))) * 0.3;
+#endif
   }
   #endif
   if (uBloom > 0.0) { // flowering trees (poinciana): per tree a share of the flower clusters is still green (some trees only partly in bloom)
     float bh = fract(vVegHash.x * 7.31 + 0.5), keep = bh < 0.25 ? 0.45 + bh * 1.4 : 1.0; // a quarter of the trees only partly in bloom (45-80 % of the clusters), the rest in full bloom
     float cn = fract(sin(dot(floor(vVegW.xz * 0.9 + vVegW.y * 0.35), vec2(12.9898, 78.233))) * 43758.5453); // ~1 m clusters, world-fixed (TAA-stable)
     float red = clamp((diffuseColor.r - max(diffuseColor.g, diffuseColor.b)) * 3.0, 0.0, 1.0);
+#ifdef VEG_AO
+    if (vVegAO < 0.62 - 0.12 * cn) cn = 1.0; // r2: flowers on the crown's sunlit shell only, the inside of the crown stays leafy green
+#endif
     if (cn > keep) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.62, 0.22) * dot(diffuseColor.rgb, vec3(0.6)), red);
   }
   {
@@ -144,12 +166,28 @@ const FRAG_COLOR = `
   }
 `;
 const FRAG_TRANSL = `
+#ifdef VEG_R2MIP
+#define VEG_R2T vec3(0.8, 1.0, 0.68)
+#else
+#define VEG_R2T vec3(0.9, 1.05, 0.6)
+#endif
   {
     vec3 Vd = normalize(vVegW - cameraPosition);
     float back = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 3.0);
     float up = clamp(uSunDir.y * 2.0, 0.0, 1.0);
-    totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (back * uTransl * 1.2 + uTransl * 0.06) * up * vec3(0.9, 1.05, 0.6);
+    float tAO = 1.0;
+#ifdef VEG_AO
+    tAO = mix(0.3, 1.0, vVegAO); // light through the crown's shell, not its core
+#endif
+    totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (back * uTransl * 1.2 + uTransl * 0.06) * up * (VEG_R2T) * tAO;
   }
+`;
+
+// round 2: crown occlusion (models.js aVegAO): ambient and reflections fully, the sun partly (the shadow map misses leaf-scale occlusion)
+const FRAG_AO = `
+#ifdef VEG_AO
+  reflectedLight.indirectDiffuse *= vVegAO; reflectedLight.indirectSpecular *= vVegAO; reflectedLight.directDiffuse *= mix(0.55, 1.0, vVegAO); reflectedLight.directSpecular *= vVegAO;
+#endif
 `;
 
 // multi-view impostor (field.js bakeImpostor): camera-facing quad around the plant's axis, nearest two baked azimuths
@@ -185,11 +223,20 @@ const IMP_FRAG_HEAD = `
 uniform vec4 uImp; varying vec2 vImpUv0; varying vec2 vImpUv1; varying float vImpF;
 `;
 const IMP_MAP = `
+#ifdef VEG_R2IMP
+  { // r2: cross-blend the two nearest baked azimuths (color and alpha, then one alpha test): no per-pixel view dither, no dots
+    vec4 c0 = textureGrad( map, vImpUv0, dFdx(vImpUv0), dFdy(vImpUv0) ), c1 = textureGrad( map, vImpUv1, dFdx(vImpUv0), dFdy(vImpUv0) );
+    float f = smoothstep(0.15, 0.85, vImpF);
+    vec4 sampledDiffuseColor = vec4(mix(c0.rgb * c0.a, c1.rgb * c1.a, f) / max(mix(c0.a, c1.a, f), 1e-3), max(mix(c0.a, c1.a, f), max(c0.a, c1.a) * 0.55));
+    diffuseColor *= sampledDiffuseColor;
+  }
+#else
   { // blend the two nearest baked azimuths by a screen-space dither (no ghosted double image)
     vec2 impUv = vegDither() < vImpF ? vImpUv1 : vImpUv0;
     vec4 sampledDiffuseColor = textureGrad( map, impUv, dFdx(vImpUv0), dFdy(vImpUv0) ); // gradients of the continuous uv: the per-pixel view pick jumps tiles (else the coarsest mip, blobs)
     diffuseColor *= sampledDiffuseColor;
   }
+#endif
 `;
 
 function patch(kind, local) {
@@ -202,6 +249,7 @@ function patch(kind, local) {
     sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
+      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
       else if (local.uMirrorOn && local.uMirrorOn.value) sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // mirrored bark: winding flips, keep the transformed normal
@@ -231,12 +279,12 @@ export function makeVegMaterial(family, o = {}) {
     mat = new THREE.MeshStandardMaterial({ map: o.map || B.map, normalMap: o.map ? (o.normalMap || null) : B.normalMap, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1.1, 1.1), roughnessMap: o.map ? null : B.roughnessMap, roughness: o.map ? (o.roughness ?? 0.9) : 1, metalness: 0, vertexColors: true, side: o.side ?? THREE.FrontSide });
   } else {
     const map = family === 'imp' || o.map ? o.map : leafAtlas().map;
-    mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: true });
+    mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? (VEG_AA ? 0.5 : 0.42), side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: !VEG_AA });
   }
-  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = '';
+  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = ''; if (o.ao && family !== 'imp') defs.VEG_AO = ''; if (VEG_R2) { defs.VEG_R2MIP = ''; defs.VEG_R2IMP = ''; }
   if (o.mirror && family === 'bark') mat.side = THREE.DoubleSide; // mirrored instances flip the winding
   mat.defines = { ...(mat.defines || {}), ...defs };
-  const pk = 'veg-' + family + (o.mirror ? '-m' : '');
+  const pk = 'veg-' + family + (o.mirror ? '-m' : '') + (defs.VEG_AO !== undefined ? '-ao' : '');
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => pk;
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' || family === 'plain' ? null : mat.map, alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });

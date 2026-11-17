@@ -422,14 +422,14 @@
    "height": 11,
    "bark": "Bark",
    "leaf0": 16000,
-   "bark0": 4000,
+   "bark0": 12000,
    "gradeLeaf": [
     88,
     0.42,
     0.4
    ],
    "leaf1": 4000,
-   "bark1": 900
+   "bark1": 2500
   },
   "rubber_fig": {
    "src": "Models/Trees/Rubber Fig Tree 1 - Dark Glossy Rubber Fig/Rubber Fig Tree 1.blend",
@@ -920,9 +920,9 @@
    "bark": "Bark",
    "seed": 41,
    "leaf0": 16000,
-   "bark0": 4000,
+   "bark0": 12000,
    "leaf1": 4000,
-   "bark1": 900,
+   "bark1": 2500,
    "gradeLeaf": [
     88,
     0.48,

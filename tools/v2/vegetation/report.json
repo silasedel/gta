@@ -3283,23 +3283,23 @@
   "key": "shade_tree",
   "src": "Models/Trees/Tree 1 - Fluffy Grey-Green Tree/Tree 1.blend",
   "tris_src": 108096,
-  "tris0": 20488,
-  "tris1": 4938,
+  "tris0": 28497,
+  "tris1": 6539,
   "leaf0": [
    31856,
    16504
   ],
   "bark0": [
    76240,
-   3984
+   11993
   ],
   "leaf1": [
    16504,
    4064
   ],
   "bark1": [
-   3984,
-   874
+   11993,
+   2475
   ],
   "height": 11.042,
   "radius": 5.955,
@@ -3399,8 +3399,8 @@
     ]
    }
   },
-  "kb0": 1389,
-  "kb1": 191
+  "kb0": 1643,
+  "kb1": 241
  },
  "bent_b": {
   "key": "bent_b",
@@ -3630,23 +3630,23 @@
   "key": "poinciana_c",
   "src": "Models/Trees/Tree 1 - Fluffy Grey-Green Tree/Tree 1.blend",
   "tris_src": 108096,
-  "tris0": 20104,
-  "tris1": 5052,
+  "tris0": 28113,
+  "tris1": 6672,
   "leaf0": [
    31856,
    16120
   ],
   "bark0": [
    76240,
-   3984
+   11993
   ],
   "leaf1": [
    16120,
    4176
   ],
   "bark1": [
-   3984,
-   876
+   11993,
+   2496
   ],
   "height": 8.952,
   "radius": 4.872,
@@ -3747,8 +3747,8 @@
     ]
    }
   },
-  "kb0": 1622,
-  "kb1": 197
+  "kb0": 1876,
+  "kb1": 247
  },
  "cypress_a": {
   "key": "cypress_a",

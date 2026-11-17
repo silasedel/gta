@@ -10,7 +10,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { makeVegMaterial } from './materials.js';
+import { makeVegMaterial, VEG_R2 } from './materials.js';
+import GRADE from './grade.json';
 import { bakeImpostor } from './field.js';
 import { VEG_LIB, CLS } from './species.js';
 import { yieldTask, breathe, initTexturesSliced } from '../../core/pace.js';
@@ -27,7 +28,34 @@ const LIB_ON = typeof location === 'undefined' || !/[?&]veglib=0\b/.test(locatio
 if (LIB_ON && typeof window !== 'undefined') for (const [k, d] of Object.entries(VEG_LIB)) if (!d.hidden) { fetchGLB(k + '.glb').catch(() => null); fetchGLB(k + '_lod1.glb').catch(() => null); }
 
 // one merged geometry per material, with the attributes the vegetation shader expects (aWind, color)
-function partsOf(scene, def) {
+// round 2: thicker crowns for library trees whose source crown is only a few hundred leaf cards (the poinciana / gnarled oak has 512):
+// every card is cloned n - 1 times, turned up to ~35 deg about a random axis, scaled 0.85-1.1 and pushed mostly inward along the crown
+// radius, so the crown fills in (no see-through gaps, no cut-paper layers). Deterministic per model.
+function densify(g, n, E, seed) {
+  if (!(n > 1) || !E || !g.index) return g;
+  const P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv, I = g.index.array, nv = P.count, par = new Int32Array(nv).map((_, i) => i);
+  const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  for (let t = 0; t < I.length; t += 3) { const a = find(I[t]); for (const v of [I[t + 1], I[t + 2]]) { const b = find(v); if (b !== a) par[b] = a; } }
+  const comp = new Map(); for (let i = 0; i < nv; i++) { const r = find(i); let c = comp.get(r); if (!c) comp.set(r, (c = { v: [], cx: 0, cy: 0, cz: 0 })); c.v.push(i); c.cx += P.getX(i); c.cy += P.getY(i); c.cz += P.getZ(i); }
+  const vComp = new Int32Array(nv), comps = [...comp.values()]; comps.forEach((c, k) => { c.cx /= c.v.length; c.cy /= c.v.length; c.cz /= c.v.length; for (const i of c.v) vComp[i] = k; });
+  let st = seed >>> 0 || 1; const rnd = () => { st ^= st << 13; st >>>= 0; st ^= st >>> 17; st ^= st << 5; st >>>= 0; return st / 4294967296; };
+  const pos = new Float32Array(nv * 3 * n), nor = new Float32Array(nv * 3 * n), uv = new Float32Array(nv * 2 * n), idx = new Uint32Array(I.length * n);
+  for (let i = 0; i < nv; i++) { pos[i * 3] = P.getX(i); pos[i * 3 + 1] = P.getY(i); pos[i * 3 + 2] = P.getZ(i); nor[i * 3] = N.getX(i); nor[i * 3 + 1] = N.getY(i); nor[i * 3 + 2] = N.getZ(i); uv[i * 2] = U.getX(i); uv[i * 2 + 1] = U.getY(i); } idx.set(I);
+  const q = new THREE.Quaternion(), ax = new THREE.Vector3(), v = new THREE.Vector3(), Rm = (E.r[0] + E.r[1] + E.r[2]) / 3;
+  for (let c = 1; c < n; c++) {
+    const T = comps.map((cp) => { ax.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(); const qq = new THREE.Quaternion().setFromAxisAngle(ax, (rnd() - 0.5) * 1.2);
+      const dx = cp.cx - E.c[0], dy = cp.cy - E.c[1], dz = cp.cz - E.c[2], dl = Math.hypot(dx, dy, dz) || 1, push = (-0.3 + rnd() * 0.38) * Math.min(dl, Rm) / dl, j = 0.12 * Rm;
+      return { q: qq, s: 0.85 + rnd() * 0.25, ox: cp.cx + dx * push + (rnd() - 0.5) * j, oy: cp.cy + dy * push + (rnd() - 0.5) * j * 0.6, oz: cp.cz + dz * push + (rnd() - 0.5) * j }; });
+    for (let i = 0; i < nv; i++) { const cp = comps[vComp[i]], t = T[vComp[i]], o = (c * nv + i);
+      v.set(P.getX(i) - cp.cx, P.getY(i) - cp.cy, P.getZ(i) - cp.cz).applyQuaternion(t.q).multiplyScalar(t.s); pos[o * 3] = t.ox + v.x; pos[o * 3 + 1] = t.oy + v.y; pos[o * 3 + 2] = t.oz + v.z;
+      v.set(N.getX(i), N.getY(i), N.getZ(i)).applyQuaternion(t.q); nor[o * 3] = v.x; nor[o * 3 + 1] = v.y; nor[o * 3 + 2] = v.z; uv[o * 2] = U.getX(i); uv[o * 2 + 1] = U.getY(i); }
+    for (let k = 0; k < I.length; k++) idx[c * I.length + k] = I[k] + c * nv;
+  }
+  const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); out.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); out.setIndex(new THREE.BufferAttribute(idx, 1));
+  return out;
+}
+
+function partsOf(scene, def, E0 = null, lod = 0) {
   scene.updateMatrixWorld(true);
   const byMat = new Map();
   scene.traverse((o) => { if (!o.isMesh) return; const mats = Array.isArray(o.material) ? o.material : [o.material];
@@ -49,34 +77,59 @@ function partsOf(scene, def) {
   const tr = []; for (const [m, gs] of byMat) if (def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > 0.9 && y < 1.6) tr.push(Math.hypot(P.getX(i), P.getZ(i))); } }
   tr.sort((a, b) => a - b); const trunkR = tr.length ? tr[Math.floor(tr.length * 0.8)] : 0.2;
   let rMax = 0.3; for (const [, gs] of byMat) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) rMax = Math.max(rMax, Math.hypot(P.getX(i), P.getZ(i))); }
+  // round 2: the crown as an ellipsoid (4-96 % of the foliage above the crown start), from LOD0 and reused for LOD1 so both shade
+  // alike. It drives crown ambient occlusion (dark inside, lit shell, darker underside) and the volumetric normals.
+  let E = E0;
+  if (!E) { const X = [], Y = [], Z = [];
+    for (const [m, gs] of byMat) if (!def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i += 2) { const y = P.getY(i); if (def.cls === 'palm' || y >= yCrown) { X.push(P.getX(i)); Y.push(y); Z.push(P.getZ(i)); } } }
+    const pc = (A, q) => A[Math.min(A.length - 1, Math.floor(A.length * q))];
+    if (X.length > 8) { for (const A of [X, Y, Z]) A.sort((a, b) => a - b);
+      E = { c: [(pc(X, 0.04) + pc(X, 0.96)) / 2, (pc(Y, 0.04) + pc(Y, 0.96)) / 2, (pc(Z, 0.04) + pc(Z, 0.96)) / 2], r: [Math.max(0.25, (pc(X, 0.96) - pc(X, 0.04)) / 2), Math.max(0.25, (pc(Y, 0.96) - pc(Y, 0.04)) / 2), Math.max(0.25, (pc(Z, 0.96) - pc(Z, 0.04)) / 2)] }; }
+  }
+  const AOIN = def.cls === 'shrub' ? 0.38 : 0.3, ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const crownAO = (x, y, z) => { // 0..1 ambient visibility of a point in the crown
+    if (!E) return 1;
+    if (def.cls === 'palm') { const t = Math.hypot(x - crownC[0], z - crownC[1]) / Math.max(0.5, rMax), up = ss(E.c[1] - E.r[1], E.c[1] + E.r[1] * 0.5, y); return (0.5 + 0.5 * ss(0.0, 0.6, t)) * (0.78 + 0.22 * up); }
+    const dx = (x - E.c[0]) / E.r[0], dy = (y - E.c[1]) / E.r[1], dz = (z - E.c[2]) / E.r[2], e = Math.hypot(dx, dy, dz);
+    return (AOIN + (1 - AOIN) * Math.pow(ss(0.12, 1.0, e), 0.9)) * (0.7 + 0.3 * ss(-1, 1, dy));
+  };
   for (const [m, gs] of byMat) {
     const keep = gs.map((g) => { const n = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) if (g.attributes[k]) n.setAttribute(k, g.attributes[k]); if (g.index) n.setIndex(g.index); return n; });
     let g = keep.length > 1 ? mergeGeometries(keep, false) : keep[0]; if (!g) continue;
     if (!g.index) { const I = []; for (let i = 0; i < g.attributes.position.count; i++) I.push(i); g.setIndex(I); }
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     if (!g.attributes.normal) g.computeVertexNormals();
-    const bark = def.bark.test(m.name || ''), P = g.attributes.position, n = P.count, W = new Float32Array(n * 3), C = new Float32Array(n * 3);
+    if (VEG_R2 && def.dens && !def.bark.test(m.name || '')) g = densify(g, def.dens[lod] || 1, E, 9173 + lod * 31 + (m.name || '').length * 7);
+    const bark = def.bark.test(m.name || ''), P = g.attributes.position, n = P.count, W = new Float32Array(n * 3), C = new Float32Array(n * 3), AO = new Float32Array(n).fill(1);
     for (let i = 0; i < n; i++) {
       const x = P.getX(i), y = P.getY(i), z = P.getZ(i), r = Math.hypot(x, z), ph = Math.atan2(z, x);
-      if (bark) { W[i * 3] = y; W[i * 3 + 1] = 0; W[i * 3 + 2] = 0; C[i * 3] = C[i * 3 + 1] = C[i * 3 + 2] = 1; continue; }
+      if (bark) { W[i * 3] = y; W[i * 3 + 1] = 0; W[i * 3 + 2] = 0; C[i * 3] = C[i * 3 + 1] = C[i * 3 + 2] = 1; if (def.cls !== 'palm' && y > yCrown * 0.85) AO[i] = Math.max(0.4, crownAO(x, y, z)); continue; } // branches inside the crown sit in its shade
       // foliage: the crown sways as one piece from its attachment height (palms: no rubbery fronds), tips flutter; crown self-shadow inside
       const t = Math.min(1, r / (rMax * 0.85));
       W[i * 3] = def.palm ? Math.max(yCrown, Math.min(y, yTop)) : y; W[i * 3 + 1] = Math.max(0.02, Math.pow(t, 1.3)); W[i * 3 + 2] = ph * 3;
       const sh = (def.cls === 'shrub' ? 0.72 : 0.62) + 0.38 * Math.min(1, t * 1.6) * (0.75 + 0.25 * Math.min(1, (y - yCrown) / Math.max(0.5, yTop - yCrown)));
-      C[i * 3] = C[i * 3 + 1] = C[i * 3 + 2] = sh;
+      C[i * 3] = C[i * 3 + 1] = C[i * 3 + 2] = VEG_R2 ? 1 : sh; AO[i] = crownAO(x, y, z); // r2: occlusion goes to the lighting (ambient, part of the sun), not the albedo
     }
-    if (!bark && def.cls !== 'palm') { // broadleaf crowns: bend the card normals toward the crown's outward direction (soft, volumetric
+    if (!bark && def.cls !== 'palm' && !(VEG_R2 && E)) { // broadleaf crowns: bend the card normals toward the crown's outward direction (soft, volumetric
       // crown lighting like GTA foliage; cards that faced down / inward rendered black)
       const N = g.attributes.normal, cy = (yCrown + yTop) / 2, k = def.radialN ?? 0.5, v = new THREE.Vector3(), o = new THREE.Vector3();
       for (let i = 0; i < n; i++) { o.set(P.getX(i), (P.getY(i) - cy) * 0.8 + 0.25 * (yTop - yCrown), P.getZ(i)).normalize(); v.set(N.getX(i), N.getY(i), N.getZ(i));
         if (v.dot(o) < 0) v.negate(); v.lerp(o, k).normalize(); N.setXYZ(i, v.x, v.y, v.z); } N.needsUpdate = true; }
+    if (!bark && VEG_R2 && E) { // volumetric crown normals: card normals bent toward the crown ellipsoid's surface normal (broadleaf / shrubs strongly,
+      // palm fronds mildly, toward outward + up), so the crown shades as one lit / shaded volume instead of flat paper layers
+      const N = g.attributes.normal, v = new THREE.Vector3(), o = new THREE.Vector3(), palm = def.cls === 'palm', k = palm ? 0.3 : def.cls === 'shrub' ? 0.85 : (def.radialN ?? 0.78);
+      for (let i = 0; i < n; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+        if (palm) o.set((x - crownC[0]) * 0.7, Math.max(0.6, 1.2 * Math.hypot(x - crownC[0], z - crownC[1]) / Math.max(1, rMax)), (z - crownC[1]) * 0.7).normalize();
+        else o.set((x - E.c[0]) / (E.r[0] * E.r[0]), (y - E.c[1]) / (E.r[1] * E.r[1]) + 0.15 / E.r[1], (z - E.c[2]) / (E.r[2] * E.r[2])).normalize();
+        v.set(N.getX(i), N.getY(i), N.getZ(i)); if (v.dot(o) < 0) v.negate(); v.lerp(o, k).normalize(); N.setXYZ(i, v.x, v.y, v.z); } N.needsUpdate = true; }
+    if (VEG_R2) g.setAttribute('aVegAO', new THREE.BufferAttribute(AO, 1));
     g.setAttribute('aWind', new THREE.BufferAttribute(W, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3));
     g.computeBoundingSphere();
     const map = m.map || null; if (map) { map.anisotropy = 8; map.colorSpace = THREE.SRGBColorSpace; }
     out.push({ name: m.name, fam: bark ? 'bark' : 'leaf', geometry: g, map, normalMap: m.normalMap || null, tris: g.index.count / 3 });
   }
   out.sort((a, b) => (a.fam === b.fam ? 0 : a.fam === 'bark' ? -1 : 1));
-  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC, trunkR };
+  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC, trunkR, E };
 }
 
 // impostor texture: the bake renders the 8 views as one 4x MSAA strip (2048 x up to 1024 px). It is resolved, read back once and
@@ -146,12 +199,13 @@ async function loadOne(renderer, key) {
   return serial(() => buildOne(renderer, key, def, g0, g1));
 }
 async function buildOne(renderer, key, def, g0, g1) {
-  const L0 = partsOf(g0.scene, def); await breathe(8); const L1 = g1 ? partsOf(g1.scene, def) : L0; await breathe(8);
+  const L0 = partsOf(g0.scene, def); await breathe(8); const L1 = g1 ? partsOf(g1.scene, def, L0.E, 1) : L0; await breathe(8);
   for (const g of [g0, g1]) if (g) g.scene.traverse((o) => { if (o.isMesh) o.geometry.dispose(); }); _glb.delete(def.file + '.glb'); _glb.delete(def.file + '_lod1.glb'); // parts hold their own copies
   for (const p of L1.parts) { const q = L0.parts.find((x) => x.name === p.name); if (q) { p.map = q.map; p.normalMap = q.normalMap; } }
   const C = CLS[def.cls] || CLS.tree, shape = (def.shape || C.shape).slice(); shape[0] = L0.height;
   // glTF normal maps: green flipped without tangents
-  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: [1, -1], roughness: fam === 'bark' ? 0.9 : 0.72, ...o });
+  const GR = VEG_R2 ? GRADE[key] || {} : {}; // round 2: per-material gain into the shared palette (tools/v2/vegetation/grade.py)
+  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: [1, -1], roughness: fam === 'bark' ? 0.9 : 0.72, grade: GR[p.name], ao: VEG_R2 && !!p.geometry.attributes.aVegAO, ...o });
   await initTexturesSliced(renderer, L0.parts.flatMap((p) => [p.map, p.normalMap]).filter(Boolean), 8); await yieldTask();
   let imp = null;
   try {

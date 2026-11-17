@@ -1,0 +1,471 @@
+{
+ "nico_deck": {
+  "house": true,
+  "eye": [
+   1.4,
+   4.9,
+   6.9
+  ],
+  "look": [
+   -6.5,
+   0.0,
+   23.0
+  ],
+  "tod": 11,
+  "fov": 62
+ },
+ "sr916": {
+  "eye": [
+   -1112,
+   2.2,
+   3540
+  ],
+  "look": [
+   -1100,
+   3.5,
+   3600
+  ],
+  "tod": 10.5,
+  "fov": 60
+ },
+ "sr955": {
+  "eye": [
+   -1250,
+   1.8,
+   2975
+  ],
+  "look": [
+   -1290,
+   4,
+   2930
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "m916": {
+  "eye": [
+   -1112,
+   2.2,
+   3520
+  ],
+  "look": [
+   -1100,
+   3.5,
+   3580
+  ],
+  "tod": 10.5,
+  "fov": 60,
+  "move": [
+   0,
+   0,
+   9
+  ],
+  "moveMs": 1200
+ },
+ "m955": {
+  "eye": [
+   -1240,
+   1.8,
+   2985
+  ],
+  "look": [
+   -1290,
+   4,
+   2935
+  ],
+  "tod": 11,
+  "fov": 60,
+  "move": [
+   -6,
+   0,
+   -6
+  ],
+  "moveMs": 1200
+ },
+ "b_bush_round": {
+  "eye": [
+   -1072.8,
+   1.5,
+   3598.4
+  ],
+  "look": [
+   -1075.0,
+   0.75,
+   3600.0
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1081.0,
+   3592.0
+  ]
+ },
+ "b_green_shrub": {
+  "eye": [
+   -1058.8,
+   1.5,
+   3598.4
+  ],
+  "look": [
+   -1061.0,
+   0.75,
+   3600.0
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1067.0,
+   3592.0
+  ]
+ },
+ "b_hibiscus": {
+  "eye": [
+   -1044.8,
+   1.5,
+   3598.4
+  ],
+  "look": [
+   -1047.0,
+   0.75,
+   3600.0
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1053.0,
+   3592.0
+  ]
+ },
+ "b_bougainvillea": {
+  "eye": [
+   -1030.8,
+   1.5,
+   3598.4
+  ],
+  "look": [
+   -1033.0,
+   0.75,
+   3600.0
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1039.0,
+   3592.0
+  ]
+ },
+ "b_poinciana": {
+  "eye": [
+   -1070.5,
+   3.0,
+   3610.6
+  ],
+  "look": [
+   -1075.0,
+   4.0,
+   3614.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1081.0,
+   3606.0
+  ]
+ },
+ "b_shade_tree": {
+  "eye": [
+   -1056.5,
+   3.0,
+   3610.6
+  ],
+  "look": [
+   -1061.0,
+   4.0,
+   3614.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1067.0,
+   3606.0
+  ]
+ },
+ "b_liveoak_b": {
+  "eye": [
+   -1042.5,
+   3.0,
+   3610.6
+  ],
+  "look": [
+   -1047.0,
+   4.0,
+   3614.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1053.0,
+   3606.0
+  ]
+ },
+ "b_oak_pale_a": {
+  "eye": [
+   -1028.5,
+   3.0,
+   3610.6
+  ],
+  "look": [
+   -1033.0,
+   4.0,
+   3614.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1039.0,
+   3606.0
+  ]
+ },
+ "palms_row": {
+  "eye": [
+   -1050.0,
+   2.0,
+   3618.0
+  ],
+  "look": [
+   -1050.0,
+   6,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 75,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1050.0,
+   3614.0
+  ]
+ },
+ "palms_row_back": {
+  "eye": [
+   -1050.0,
+   2.0,
+   3678.0
+  ],
+  "look": [
+   -1050.0,
+   6,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 75,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1050.0,
+   3674.0
+  ]
+ },
+ "trees_row": {
+  "eye": [
+   -1045.0,
+   2.0,
+   3656.0
+  ],
+  "look": [
+   -1045.0,
+   5,
+   3680.0
+  ],
+  "tod": 11,
+  "fov": 80,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1045.0,
+   3652.0
+  ]
+ },
+ "b_royal_crown": {
+  "eye": [
+   -1081.0,
+   13,
+   3643.0
+  ],
+  "look": [
+   -1085.0,
+   15,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1091.0,
+   3640.0
+  ]
+ },
+ "b_coconut_crown": {
+  "eye": [
+   -1074.0,
+   10,
+   3643.0
+  ],
+  "look": [
+   -1078.0,
+   11.5,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1084.0,
+   3640.0
+  ]
+ },
+ "bench_air": {
+  "eye": [
+   -1089.0,
+   14,
+   3584.0
+  ],
+  "look": [
+   -1054.0,
+   3,
+   3621.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1085.0,
+   3590.0
+  ]
+ },
+ "m_bench": {
+  "eye": [
+   -1095.0,
+   6,
+   3590.0
+  ],
+  "look": [
+   -1054.0,
+   4,
+   3621.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "move": [
+   0,
+   0,
+   6
+  ],
+  "moveMs": 1200,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1085.0,
+   3590.0
+  ]
+ },
+ "b_sabal_crown": {
+  "eye": [
+   -1060.0,
+   6,
+   3642.0
+  ],
+  "look": [
+   -1064.0,
+   8,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1070.0,
+   3640.0
+  ]
+ },
+ "b_fan_crown": {
+  "eye": [
+   -1053.0,
+   6,
+   3642.0
+  ],
+  "look": [
+   -1057.0,
+   8,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1063.0,
+   3640.0
+  ]
+ },
+ "b_weathered_crown": {
+  "eye": [
+   -1046.0,
+   6,
+   3642.0
+  ],
+  "look": [
+   -1050.0,
+   8,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1056.0,
+   3640.0
+  ]
+ },
+ "b_tropical_crown": {
+  "eye": [
+   -1025.0,
+   6,
+   3642.0
+  ],
+  "look": [
+   -1029.0,
+   8,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1035.0,
+   3640.0
+  ]
+ },
+ "b_date_crown": {
+  "eye": [
+   -1011.0,
+   6,
+   3642.0
+  ],
+  "look": [
+   -1015.0,
+   8,
+   3648.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "if (!window.__bench) { window.__bench = 1; game.vegetation.block({ x0: -1105.000000, z0: 3575.000000, x1: -985.000000, z1: 3700.000000 }); const B = [[\"bush_round\", -1075.0, 3600.0], [\"green_shrub\", -1061.0, 3600.0], [\"hibiscus\", -1047.0, 3600.0], [\"bougainvillea\", -1033.0, 3600.0], [\"poinciana\", -1075.0, 3614.0], [\"shade_tree\", -1061.0, 3614.0], [\"liveoak_b\", -1047.0, 3614.0], [\"oak_pale_a\", -1033.0, 3614.0], [\"royal_palm\", -1085.0, 3648.0], [\"coconut_palm\", -1078.0, 3648.0], [\"coconut_b\", -1071.0, 3648.0], [\"sabal_palm\", -1064.0, 3648.0], [\"fan_palm\", -1057.0, 3648.0], [\"weathered_a\", -1050.0, 3648.0], [\"weathered_b\", -1043.0, 3648.0], [\"bent_c\", -1036.0, 3648.0], [\"tropical_palm\", -1029.0, 3648.0], [\"palm_yellow\", -1022.0, 3648.0], [\"date_palm\", -1015.0, 3648.0], [\"poinciana\", -1085.0, 3680.0], [\"poinciana_b\", -1075.0, 3680.0], [\"poinciana_c\", -1065.0, 3680.0], [\"shade_tree\", -1055.0, 3680.0], [\"liveoak_b\", -1045.0, 3680.0], [\"oak_gnarled\", -1035.0, 3680.0], [\"oak_pale_a\", -1025.0, 3680.0], [\"banyan_b\", -1015.0, 3680.0], [\"rubber_fig\", -1005.0, 3680.0]]; B.forEach(([k, x, z]) => game.vegetation.place(k, x, z, { model: k, ry: 0.5, s: 1, onRoad: true })); }",
+  "at": [
+   -1021.0,
+   3640.0
+  ]
+ }
+}
