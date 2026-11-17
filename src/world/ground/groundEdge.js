@@ -34,14 +34,14 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
         }
         if (gmNr > 0.015) {
           float keys = smoothstep(4150.0, 4500.0, wp.y);
-          GS shS = gRecipe(${SAND}, wp, gdx, gdy, gWantN); // Keys: sand (tone-matched to the yard below)
+          GS shS = gRecipe(${SAND}, wp, gdx, gdy, gWantN); { GS shC = gRecipe(${SHELL}, wp, gdx, gdy, gWantN); shS = gsMix(shS, shC, 0.55 * smoothstep(0.3, 0.7, gN(wp * 0.6 + 2.2))); } // Keys: sand and crushed shell / limestone in patches
           GS shG = shS; if (keys < 0.99) shG = gRecipe(${GRAV}, wp, gdx, gdy, gWantN);
           GS sh = gsMix(shG, shS, keys);
           // tone-match: the shoulder keeps the surrounding ground's brightness and most of its hue (no pale polygon), only its
           // texture / roughness / height change; a touch lighter and warmer where traffic dust settles
           { float lg = dot(gs.alb, vec3(0.2126, 0.7152, 0.0722)), ls = max(dot(sh.alb, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
             vec3 hue = mix(gs.alb / max(lg, 1e-3), sh.alb / ls, 0.75);
-            sh.alb = hue * mix(ls, lg, 0.6) * mix(vec3(0.97, 0.95, 0.92), vec3(1.05, 1.03, 0.99), keys); }
+            sh.alb = hue * mix(ls, lg, mix(0.6, 0.2, keys)) * mix(vec3(0.97, 0.95, 0.92), vec3(1.05, 1.03, 0.99), keys); } // Keys: the shoulder keeps its own pale shell / sand brightness
           float n1 = gN(wp * 0.9 + 4.7), n2 = gN(wp * 3.1 - 2.3), n3 = gF(wp * 0.23 + 1.1);
           // asphalt: ragged shoulder 1-2.5 m; pavement: a narrow worn strip
           // city verge (pavement within ~2 m: a tree lawn between curb and sidewalk, a lawn beside a plaza): no rural shoulder
@@ -58,7 +58,7 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
             float wl = max(worn * 0.75, lip * 0.8) * urban;
             if (wl > 0.01) { GS so = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); so.alb *= mix(1.0, 0.7, lip); so.tilt *= 1.4; gs = gsMix(gs, so, wl); }
           }
-          if (tb > 0.01) { GS dt = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); dt.alb = mix(dt.alb, sh.alb, 0.45); gs = gsMix(gs, dt, tb * smoothstep(0.35, 0.65, 1.0 - gs.h + (n2 - 0.5) * 0.6) * 0.85); }
+          if (tb > 0.01) { GS dt = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); if (keys > 0.01) { GS dk = gRecipe(${SHELL}, wp, gdx, gdy, gWantN); dt = gsMix(dt, dk, keys); } dt.alb = mix(dt.alb, sh.alb, 0.45); gs = gsMix(gs, dt, tb * smoothstep(0.35, 0.65, 1.0 - gs.h + (n2 - 0.5) * 0.6) * 0.85); }
           gs = gsMix(gs, sh, gmSh);
           // asphalt crumbs and broken chunks in the first ~0.8 m beyond the edge (only where fine mask detail exists)
           float cz = smoothstep(0.16, 0.36, gmA) * (1.0 - smoothstep(0.5, 0.62, gmA)) * gmFine(wp);

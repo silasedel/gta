@@ -111,9 +111,9 @@ vec3 gGrade(vec3 c, float k, float lush, vec2 wp) {
 vec3 gKeysGrade(vec3 c, vec2 wp) {
   float k = smoothstep(4150.0, 4500.0, wp.y); if (k <= 0.0) return c;
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  vec3 g = vec3(l) * vec3(1.03, 1.0, 0.93);
+  vec3 g = vec3(l) * vec3(1.05, 1.0, 0.9);
   vec3 d = mix(c, g, 0.5);
-  d *= mix(1.0, 1.05, smoothstep(0.18, 0.45, l)) * mix(1.0, 0.9, smoothstep(0.45, 0.75, l)); // pale, but no blown-out white
+  d *= mix(1.3, 1.0, smoothstep(0.12, 0.32, l)) * mix(1.0, 1.05, smoothstep(0.18, 0.45, l)) * mix(1.0, 0.9, smoothstep(0.45, 0.75, l)); // marl / limestone soil: dark dirt lifted toward pale gray-beige, no blown-out white
   return mix(c, d, k);
 }
 struct GS { vec3 alb; vec2 tilt; float ao; float rough; float h; float wet; float shore; };
