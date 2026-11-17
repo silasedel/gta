@@ -115,7 +115,11 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 // only: every kind is its own instanced vegetation field (LOD meshes + shadows), so new kinds cost draw calls
 export const PLANTING = [   // inside the lot only (r2-veg plants the verges and the neighbors' yards from its own module)
   // the planter's bougainvillea (library, volume shaded), rooted in the box soil: yOff = the box's soil height
-  ['bougainvillea', -10.2, 12.35, { s: 0.8, yOff: 0.68 }], ['bougainvillea_b', -11.3, 12.4, { s: 0.7, yOff: 0.68 }],
+  // a big loose cascading mound (lead review): three overlapping plants at different scales / turns, two hanging over the box's street and
+  // deck-side edges (lower yOff: they spill down the lattice), green tropical foliage at the base
+  ['bougainvillea', -10.4, 12.35, { s: 1.25, ry: 0.4, yOff: 0.62 }], ['bougainvillea_b', -11.6, 12.55, { s: 1.05, ry: 2.3, yOff: 0.62 }],
+  ['bougainvillea', -9.4, 11.75, { s: 0.9, ry: 4.4, yOff: 0.3 }], ['bougainvillea_b', -11.9, 11.7, { s: 0.75, ry: 5.6, yOff: 0.25 }],
+  ['tropical_bed', -10.9, 13.1, { s: 0.55 }], ['fern_clump', -9.2, 12.9, { s: 1.0 }],
   // palmetto-like clumps (volume-shaded library beds / ferns in place of the card palmettos of part 50)
   ['tropical_bed', -22.4, -9.2, { s: 0.75 }], ['fern_clump', -20.9, -5.4, { s: 1.3 }], ['tropical_bed', -22.8, -0.8, { s: 0.75 }], ['fern_clump', -20.6, 3.6, { s: 1.3 }],
   ['tropical_bed', -18.9, 12.9, { s: 0.75 }], ['fern_clump', -19.3, 11.0, { s: 1.3 }], ['tropical_bed', -13.6, 18.2, { s: 0.7 }], ['tropical_bed', -11.0, 23.5, { s: 0.7 }],
