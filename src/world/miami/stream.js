@@ -4,6 +4,20 @@
 // Static colliders exist only for tiles within colR of any focus point (player, player car).
 // All heavy work runs as generator jobs, resumed each frame until the time budget is spent.
 
+// r2-perf streaming fix (QA-045, QA-009/010: far chunk drawn and no colliders within 70 m of the player after a teleport):
+//   - readyAround(x, z, r) checks EVERY tile whose rectangle lies within r (missing tiles count as not ready), by distance
+//     to the tile rectangle (not its centre), and needs the near build AND the colliders
+//   - collidersReadyAt(x, z) needs the colliders of every tile within 3 m of the point
+//   - near / collider job priorities are refreshed every frame from the current camera, player and look-ahead (they kept
+//     the priority of the place they were queued at, so after a teleport the old area's jobs ran first), and near jobs
+//     for tiles now far from all of them are cancelled (never within nearR + 160 m of the player)
+//   - the mid build of a chunk under / next to the player runs ahead of other chunks' mids (its far mesh, drawn until the
+//     mid exists, was what showed within 70 m)
+// Verified Nov 17 (tools/v2/perf/r2-tele.mjs, 7 spots): before, readiness said yes with 19 near tiles missing within 120 m
+// and 13 far chunks drawn within 70 m of the player; after, 0 and 0 (2 spots honestly not ready yet under a 100+ job
+// backlog). ?streamfix=0 restores the old behavior (A/B).
+const STREAM_FIX = !(typeof location !== 'undefined' && /[?&]streamfix=0\b/.test(location.search));
+
 export function createStreamer(opts) {
   const {
     tileSize = 200, chunkTiles = 4, nearR = 350, midR = 1500, colR = 250, budgetMs = 3,
@@ -59,7 +73,9 @@ export function createStreamer(opts) {
         if (c.job) { c.job.cancelled = true; c.job = null; }
         if (c.far) { dispose(c.far); c.far = null; }
       }
-      if (c.active && !c.mid && !c.midJob) c.midJob = enqueue('mid', c, buildMid(c.a, c.b, CS), dmin + 2000, (res) => { c.mid = res; c.midJob = null; });
+      const midPrio = STREAM_FIX && Math.min(dmin, dP) < nearR ? Math.min(dmin, dP) : dmin + 2000;
+      if (c.active && !c.mid && !c.midJob) c.midJob = enqueue('mid', c, buildMid(c.a, c.b, CS), midPrio, (res) => { c.mid = res; c.midJob = null; });
+      else if (STREAM_FIX && c.midJob && !c.midJob.cancelled) c.midJob.prio = midPrio;
       if (!c.active) { if (c.midJob) { c.midJob.cancelled = true; c.midJob = null; } if (c.mid) { dispose(c.mid); c.mid = null; } }
     }
     // ---- tile level ----
@@ -129,6 +145,24 @@ export function createStreamer(opts) {
       if (!wantCol && t.colJob) { t.colJob.cancelled = true; t.colJob = null; if (t._colPartial) { removeTileCols(t, t._colPartial); t._colPartial = null; } }
       if (!inReach && !t.near && !t.col && !t.job && !t.colJob && !t._colPartial && (Math.abs(t.tx - ctx) > tr || Math.abs(t.tz - ctz) > tr)) tiles.delete(t.k);
     }
+    // ---- refresh near / collider job priorities from where the camera, player and look-ahead are NOW ----
+    if (STREAM_FIX && jobs.length) {
+      const la = focus.lookAhead;
+      for (const j of jobs) {
+        if (j.cancelled) { j.prio = -1e9; continue; } // cleared at the head of the queue right away
+        const t = j.owner;
+        if (j.kind === 'near') {
+          let dn = Math.hypot(t.cx - cam.x, t.cz - cam.z);
+          if (la) dn = Math.min(dn, Math.hypot(t.cx - la.x, t.cz - la.z) + 40);
+          let dpl = Infinity; if (pl) { dpl = Math.hypot(t.cx - pl.x, t.cz - pl.z); dn = Math.min(dn, dpl); }
+          j.prio = dn;
+          if (dn > nearR + 160 && dpl > nearR + 160) { j.cancelled = true; j.prio = -1e9; if (t.job === j) t.job = null; }
+        } else if (j.kind === 'col') {
+          let dc = Infinity; for (const f of focus) { const d = distRect(f.x, f.z, t.x0, t.z0, tileSize); if (d < dc) dc = d; }
+          j.prio = dc - 500;
+        }
+      }
+    }
     // ---- run jobs within the time budget ----
     const t0 = performance.now();
     if (jobs.length) {
@@ -182,10 +216,35 @@ export function createStreamer(opts) {
   }
   function pending() { return jobs.length; }
   function readyAround(x, z, r) {
-    for (const t of tiles.values()) { if (distRect(x, z, t.x0, t.z0, tileSize) < Math.min(r, colR) && !t.col) return false; if (Math.hypot(t.cx - x, t.cz - z) < Math.min(r, nearR) && !t.near) return false; }
-    return tiles.size > 0;
+    if (!STREAM_FIX) {
+      for (const t of tiles.values()) { if (distRect(x, z, t.x0, t.z0, tileSize) < Math.min(r, colR) && !t.col) return false; if (Math.hypot(t.cx - x, t.cz - z) < Math.min(r, nearR) && !t.near) return false; }
+      return tiles.size > 0;
+    }
+    // every tile whose rectangle is within r: near build (within nearR) and colliders (within colR); a tile that does not
+    // exist yet is not ready
+    const rc = Math.min(r, colR), rn = Math.min(r, nearR), R = Math.max(rc, rn);
+    const a0 = Math.max(tx0, Math.floor((x - R - OX) / tileSize)), a1 = Math.min(tx1, Math.floor((x + R - OX) / tileSize));
+    const b0 = Math.max(tz0, Math.floor((z - R - OZ) / tileSize)), b1 = Math.min(tz1, Math.floor((z + R - OZ) / tileSize));
+    let any = false;
+    for (let tx = a0; tx <= a1; tx++) for (let tz = b0; tz <= b1; tz++) {
+      const d = distRect(x, z, OX + tx * tileSize, OZ + tz * tileSize, tileSize);
+      if (d >= R) continue;
+      const t = tiles.get(key(tx, tz)); if (!t) return false;
+      if (d < rc && !t.col) return false;
+      if (d < rn && !t.near) return false;
+      any = true;
+    }
+    return any;
   }
-  function collidersReadyAt(x, z) { const t = tiles.get(key(Math.floor((x - OX) / tileSize), Math.floor((z - OZ) / tileSize))); return !!(t && t.col); }
+  function collidersReadyAt(x, z) {
+    if (!STREAM_FIX) { const t = tiles.get(key(Math.floor((x - OX) / tileSize), Math.floor((z - OZ) / tileSize))); return !!(t && t.col); }
+    const M = 3; // a body at a tile edge touches the neighbour's colliders too
+    for (let tx = Math.floor((x - M - OX) / tileSize); tx <= Math.floor((x + M - OX) / tileSize); tx++) for (let tz = Math.floor((z - M - OZ) / tileSize); tz <= Math.floor((z + M - OZ) / tileSize); tz++) {
+      if (tx < tx0 || tx > tx1 || tz < tz0 || tz > tz1) continue;
+      const t = tiles.get(key(tx, tz)); if (!t || !t.col) return false;
+    }
+    return true;
+  }
   function onTileCollidersRemoving(fn) { removingCbs.push(fn); return () => { const i = removingCbs.indexOf(fn); if (i >= 0) removingCbs.splice(i, 1); }; }
   return { update, stats, tiles, chunks, pending, readyAround, tileSize, nearMask, collidersReadyAt, onTileCollidersRemoving };
 }

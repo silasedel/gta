@@ -1,0 +1,475 @@
+{
+ "set": "tele_old",
+ "q": "",
+ "when": "2026-11-17T22:38:41.705Z",
+ "spots": [
+  {
+   "id": "qa045",
+   "round": 0,
+   "ready": true,
+   "waited": 18315,
+   "noNear": 3,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 1,
+   "heightMismatch": 50,
+   "gridPts": 149,
+   "badPts": [
+    [
+     410,
+     -187,
+     104.1,
+     99.6,
+     "Mesh<chunk-far-0,-1 | facade-far"
+    ],
+    [
+     410,
+     -167,
+     27.7,
+     24.2,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     410,
+     -157,
+     21.3,
+     0.1,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     420,
+     -197,
+     25.8,
+     18.6,
+     "Mesh<chunk-far-0,-1 | facade-far"
+    ],
+    [
+     420,
+     -187,
+     25.8,
+     18.6,
+     "Mesh<chunk-far-0,-1 | facade-far"
+    ],
+    [
+     440,
+     -137,
+     3,
+     0.1,
+     "facades<tile-near-2,-1 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0.1,
+   "miss": [
+    "near 1,-2 d82",
+    "near 1,-1 d70",
+    "near 2,-2 d43"
+   ],
+   "pending": 295
+  },
+  {
+   "id": "qa045b",
+   "round": 0,
+   "ready": true,
+   "waited": 215,
+   "noNear": 3,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 1,
+   "heightMismatch": 65,
+   "gridPts": 149,
+   "badPts": [
+    [
+     449,
+     -196,
+     112.3,
+     101.3,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     449,
+     -186,
+     112.3,
+     101.3,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     449,
+     -176,
+     18.2,
+     0.1,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     449,
+     -166,
+     152.2,
+     146.2,
+     "Mesh<chunk-far-0,-1 | facade-far"
+    ],
+    [
+     459,
+     -196,
+     112.3,
+     101.3,
+     "facades<tile-near-2,-1 | M.facade"
+    ],
+    [
+     459,
+     -186,
+     112.3,
+     101.3,
+     "facades<tile-near-2,-1 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0.1,
+   "miss": [
+    "near 1,-2 d108",
+    "near 3,-2 d110",
+    "near 3,-1 d101"
+   ],
+   "pending": 290
+  },
+  {
+   "id": "beach",
+   "round": 0,
+   "ready": true,
+   "waited": 6709,
+   "noNear": 3,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 2,
+   "heightMismatch": 9,
+   "gridPts": 149,
+   "badPts": [
+    [
+     2312,
+     -690,
+     11,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2332,
+     -690,
+     3,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2332,
+     -670,
+     3.1,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2342,
+     -700,
+     10.5,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2342,
+     -690,
+     2.8,
+     1.2,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2352,
+     -700,
+     10.5,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0.1,
+   "miss": [
+    "near 11,-3 d60",
+    "near 12,-4 d68",
+    "near 12,-3 d91"
+   ],
+   "pending": 303
+  },
+  {
+   "id": "keys",
+   "round": 0,
+   "ready": true,
+   "waited": 2016,
+   "noNear": 2,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 2,
+   "heightMismatch": 17,
+   "gridPts": 60,
+   "badPts": [
+    [
+     -896,
+     5292,
+     -0.3,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -896,
+     5302,
+     -0.4,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -886,
+     5292,
+     -0.3,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -886,
+     5302,
+     -0.4,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -876,
+     5292,
+     -0.4,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -876,
+     5302,
+     -0.4,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ]
+   ],
+   "fell": false,
+   "py": -2.7,
+   "gy": -5.1,
+   "miss": [
+    "near -5,25 d72",
+    "near -4,25 d80"
+   ],
+   "pending": 235
+  },
+  {
+   "id": "glades",
+   "round": 0,
+   "ready": true,
+   "waited": 1258,
+   "noNear": 3,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 2,
+   "heightMismatch": 0,
+   "gridPts": 149,
+   "badPts": [],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0.1,
+   "miss": [
+    "near -13,12 d62",
+    "near -13,13 d14",
+    "near -12,12 d60"
+   ],
+   "pending": 259
+  },
+  {
+   "id": "brickell",
+   "round": 0,
+   "ready": true,
+   "waited": 3008,
+   "noNear": 2,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 2,
+   "heightMismatch": 40,
+   "gridPts": 149,
+   "badPts": [
+    [
+     -60,
+     1760,
+     24.9,
+     22.1,
+     "Mesh<chunk-far--1,2 | facade-far"
+    ],
+    [
+     -50,
+     1740,
+     24.9,
+     0.1,
+     "Mesh<chunk-far--1,2 | facade-far"
+    ],
+    [
+     -50,
+     1770,
+     25.8,
+     18.6,
+     "Mesh<chunk-far--1,2 | facade-far"
+    ],
+    [
+     -40,
+     1710,
+     102,
+     8.6,
+     "lib-grid_tower[i]<library-buildings | Material"
+    ],
+    [
+     -40,
+     1750,
+     36.5,
+     18.3,
+     "Mesh<chunk-far--1,2 | facade-far"
+    ],
+    [
+     -40,
+     1760,
+     36.5,
+     19,
+     "Mesh<chunk-far--1,2 | facade-far"
+    ]
+   ],
+   "fell": false,
+   "py": 0.2,
+   "gy": 0.1,
+   "miss": [
+    "near -1,9 d40",
+    "near 0,9 d40"
+   ],
+   "pending": 295
+  },
+  {
+   "id": "spawn",
+   "round": 0,
+   "ready": true,
+   "waited": 1875,
+   "noNear": 3,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 3,
+   "heightMismatch": 12,
+   "gridPts": 149,
+   "badPts": [
+    [
+     -936,
+     4836,
+     -0.2,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -926,
+     4806,
+     -0.5,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -926,
+     4816,
+     -0.3,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -916,
+     4796,
+     -0.5,
+     -8,
+     "terrain-lod<chunk-far--2,5 | terrain-lod"
+    ],
+    [
+     -916,
+     4806,
+     -0.4,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ],
+    [
+     -916,
+     4816,
+     -0.3,
+     -8,
+     "terrain-lod<chunk-far--2,6 | terrain-lod"
+    ]
+   ],
+   "fell": false,
+   "py": 0,
+   "gy": 0,
+   "miss": [
+    "near -5,23 d36",
+    "near -4,23 d75",
+    "near -4,24 d66"
+   ],
+   "pending": 303
+  }
+ ],
+ "badNames": [
+  [
+   "Mesh<chunk-far-0,-1 | facade-far",
+   74
+  ],
+  [
+   "facades<tile-near-2,-1 | M.facade",
+   31
+  ],
+  [
+   "terrain-lod<chunk-far--2,6 | terrain-lod",
+   26
+  ],
+  [
+   "Mesh<chunk-far--1,2 | facade-far",
+   24
+  ],
+  [
+   "facades<tile-near-0,8 | M.facade",
+   9
+  ],
+  [
+   "facades<tile-near-11,-4 | M.facade",
+   8
+  ],
+  [
+   "lib-grid_tower[i]<library-buildings | Material",
+   6
+  ],
+  [
+   "Mesh<chunk-far-0,2 | facade-far",
+   6
+  ],
+  [
+   "Mesh[i] | MeshStandardMaterial",
+   4
+  ],
+  [
+   "terrain-lod<chunk-far--2,5 | terrain-lod",
+   3
+  ],
+  [
+   "lib-fire_escape[i]<library-buildings | Steps",
+   2
+  ]
+ ],
+ "errors": [],
+ "summary": {
+  "spots": 7,
+  "notReady": 0,
+  "noNear": 19,
+  "noCol": 0,
+  "missingFromMap": 0,
+  "farDrawnWithin70": 13,
+  "heightMismatch": 193,
+  "fell": 0,
+  "avgWaitMs": 4771
+ }
+}
