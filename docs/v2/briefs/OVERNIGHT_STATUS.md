@@ -1192,6 +1192,14 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Left / honest gaps:** relief stays off until verified with every placer; ocean far-field (beyond 256 m) still uses the
   coarse shore field; the shore field takes ~30-60 s after load to build; light triangle patches near docks in the shallows
   (underwater terrain strip vs seabed) are faint but visible from the air.
+- **Second pass (14:xx), committed:** physically shaded water: two passes over one surface (multiply = per-channel
+  Beer-Lambert transmission of the drawn seabed over the refracted view + sun path, sigma (0.42, 0.072, 0.034) /m; additive =
+  in-scatter, Schlick Fresnel sky reflection, glitter, foam). No painted teal ramp; clear in the first 0.5 m, aqua at 1-3 m,
+  blue past 6-10 m. Seabed: gentle flats (0.7 m at 20 m, 1.6 m at 40 m, 5 m at ~90 m), carbonate sand + seagrass, and it is a
+  Rapier heightfield at the drawn height (user bug: truck fell through 30 cm of water). Probe `tools/v2/ground/probe_shallow.js`:
+  200 shallow points at two Keys shores, 0 missing colliders. Remaining 'off' points = flat 0.00 tile collider over water
+  (QA-030, tilebuild). Dark sticks in the shallows = tilebuild guardrail (routed). Keys sand grass now in clumped patches.
+  Shots: `docs/v2/shots/ground/w2_*.png` (physical water), `d3_*.png` (depth / data debug). Relief stays OFF (?relief=1).
 
 ## r2-cars
 - **Item 2, seats (shot_02, the woman through the hood):** cause = drivers were placed from a glass-derived "windshield base"
@@ -1514,7 +1522,12 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   frame 30.6 vs 29.6 ms, render CPU 19.7 vs 19.7 ms: inside the noise.
 - **Sheets:** `docs/v2/shots/render/sheet_ab3_zoom2x.jpg` (2x crops, old | new), `sheet_ab3_stills.jpg`, `sheet_ab3_noise.jpg`
   (temporal diff x8), `sheet_ab3_drive.jpg` (moving convertible); final default (old | new | new without sharpen):
-  `sheet_jag_zoom2x.jpg`, `sheet_jag_noise.jpg`, `sheet_jag_stills.jpg`. Retina perf A/B: `docs/v2/reports/render-perf-p1.json`.
+  `sheet_jag_zoom2x.jpg`, `sheet_jag_noise.jpg`, `sheet_jag_stills.jpg`.
+- **Perf, MSAA 4x + new TAA vs this morning's High** (1512x945, same session, 3 alternating reps, `tools/v2/render/perfab.mjs`,
+  `docs/v2/reports/render-perf-p1.json`): spawn frame 107 -> 98 ms, render CPU 32.9 -> 33.0 ms; downtown 81 -> 75 ms, render CPU
+  27.5 -> 28.6 ms. The machine was at load ~90, so only the CPU column means much: about +0-1 ms. Headless Chrome ignored
+  --force-device-scale-factor, so the Retina DPR 1.5 / 2.0 cost is NOT measured here. Check fps on the user's Mac; if High drops
+  under 30, set High's dpr back to 'min' (quality.v2.js) and keep MSAA 4x.
 - **Still not right:** far palm frond tips can show a fine moire where the leaflet comb is about a pixel wide (the frond mip
   chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
   (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
