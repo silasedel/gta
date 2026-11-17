@@ -341,8 +341,18 @@ for o in lods:
     # weights of the nearest weighted vertex: an unweighted vertex would collapse to the origin as a long spike
     from mathutils import kdtree
     vs = o.data.vertices
-    good = [v.index for v in vs if sum(g.weight for g in v.groups) > 0.5]
-    bad = [v.index for v in vs if sum(g.weight for g in v.groups) <= 0.5]
+    # ... and vertices whose strongest bone is far away (bone heat sometimes hands a detached proxy island, e.g. a
+    # fingertip, to a foot bone): they would be dragged across the body as a long spike
+    from mathutils.geometry import intersect_point_line
+    names0 = {g.index: g.name for g in o.vertex_groups}
+    segs = {b.name: (rig.matrix_world @ b.head_local, rig.matrix_world @ b.tail_local) for b in arm_data.bones}
+    def far(v):
+        if not v.groups: return True
+        g = max(v.groups, key=lambda e: e.weight); a, b = segs[names0[g.group]]
+        p, t = intersect_point_line(v.co, a, b); t = max(0.0, min(1.0, t))
+        return (v.co - (a + (b - a) * t)).length > 0.2 * H
+    good, bad = [], []
+    for v in vs: (bad if sum(g.weight for g in v.groups) <= 0.5 or far(v) else good).append(v.index)
     if bad and good:
         kd = kdtree.KDTree(len(good))
         for i, vi in enumerate(good): kd.insert(vs[vi].co, i)
