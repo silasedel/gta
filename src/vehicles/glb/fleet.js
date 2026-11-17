@@ -132,6 +132,10 @@ export function specFor(e, man) {
   if (P.heavy) spec.heavy = true;
   if (e.phys === 'super' || e.phys === 'hyper' || e.phys === 'sports' || e.cls === 'muscle') spec.coupe = true;
   if (e.cls === 'muscle' || e.phys === 'sports' || e.phys === 'super' || e.phys === 'hyper') spec.coupe = !/sedan/.test(e.phys);
+  // center of mass height above the ground (m) and anti-roll stiffness (body weights per meter of left/right travel)
+  spec.comY = ({ super: 0.4, hyper: 0.4, sports: 0.44, sportsedan: 0.46, compact: 0.5, sedan: 0.48, ev: 0.46, muscle: 0.48, classic: 0.5, suv: 0.6, luxsuv: 0.62,
+    offroad: 0.66, pickup: 0.68, van: 0.74, box: 0.9, semi: 0.95, fire: 0.95 })[e.phys] ?? 0.5;
+  spec.antiRoll = ({ super: 7, hyper: 7, sports: 6, sportsedan: 6, compact: 5, sedan: 5, ev: 6, muscle: 5, classic: 3, suv: 6, luxsuv: 6, offroad: 4.5, pickup: 4.5, van: 6.5, box: 7, semi: 7, fire: 7 })[e.phys] ?? 5;
   spec.palette = e.palette || PAL[e.pal] || US_MIX.flatMap((x) => x[1]);
   if (!e.palette && !e.pal) spec.paletteMix = true; // fleet.look() rolls the US color mix
   spec.exhaustPos = [[spec.W / 2 - 0.45, spec.yb + 0.1, -spec.L / 2]];

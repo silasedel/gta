@@ -269,7 +269,7 @@ function wheelInstances(geo, n, L) {
   im.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.4, 0), L / 2 + 1);
   return im;
 }
-function syncWheels(im, vis, maxY) {
+function syncWheels(im, vis, maxY, mud = 0) {
   _inv.copy(im.matrixWorld).invert();
   for (let i = 0; i < vis.length; i++) {
     const w = vis[i];
@@ -278,7 +278,7 @@ function syncWheels(im, vis, maxY) {
     if (maxY != null && _m.elements[13] > maxY) _m.elements[13] = maxY;
     if (w.side < 0) _m.multiply(_flip);
     im.setMatrixAt(i, _m);
-    im.instanceColor.setX(i, (w.side < 0 ? -1 : 1) * w.spin.rotation.x);
+    im.instanceColor.setX(i, (w.side < 0 ? -1 : 1) * w.spin.rotation.x); im.instanceColor.setY(i, mud);
   }
   im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true;
 }
@@ -358,11 +358,12 @@ export function buildGlbCar(key, look, t, info) {
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
   contact.scale.set(t.W + 0.25, t.L + 0.35, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
   shell.add(contact);
+  const mud = Math.min(0.9, (look.wear?.dirt ?? 0) * 1.6 + (look.wear?.rust ?? 0) * 0.3); // per-car tire dust / mud
   const maxY = t.r + (t.archGap ?? Math.max(0.04, man.archGap ?? 0.06)) + 0.015;
   const lodUpdate = lod.update.bind(lod);
   lod.update = (camera) => {
     lodUpdate(camera);
-    for (const [im, list] of sets) if (im.parent.visible) syncWheels(im, list, maxY);
+    for (const [im, list] of sets) if (im.parent.visible) syncWheels(im, list, maxY, mud);
     lamps.sync();
   };
   lamps.sync();

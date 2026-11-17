@@ -65,7 +65,7 @@ for (const [i, k] of keys.entries()) {
   const rec = await G.loadCarModel(FL.fileKey(k)); if (!rec) { console.error('no model', k); continue; }
   const t = CAR_TYPES[k] = FL.specFor(e, rec.man); MODELS[k] = FL.modelFor(e);
   const col0 = q.get('color') ? +('0x' + q.get('color')) : (t.palette?.[0] ?? fixed[i % fixed.length]);
-  const look = { color: col0, finish: q.get('finish') || 'metallic', tint: 1, wear: { dirt: +(q.get('dirt') || 0.04), rust: +(q.get('rust') || 0), fade: +(q.get('fade') || 0), dirtColor: 'dust', seed: i }, plate: { text: 'SLN ' + (400 + i * 37), style: i % 4 }, stripe: q.has('stripe') ? { w: 0.62, color: 0x0c0d0f } : null };
+  const look = { color: col0, finish: q.get('finish') || 'metallic', tint: 1, wear: { dirt: +(q.get('dirt') || 0.04), dirtColor: q.get('dirtColor') || 'dust', rust: +(q.get('rust') || 0), fade: +(q.get('fade') || 0), dirtColor: 'dust', seed: i }, plate: { text: 'SLN ' + (400 + i * 37), style: i % 4 }, stripe: q.has('stripe') ? { w: 0.66, color: 0x0a0a0b, satin: true } : null };
   const c = G.buildGlbCar(FL.fileKey(k), look, t, MODELS[k]);
   c.shell.position.y = 0;
   c.wheels.forEach((w) => { w.steer.position.set(w.x, t.r, w.z); if (w.front && q.get('steer')) w.steer.rotation.y = +q.get('steer'); });

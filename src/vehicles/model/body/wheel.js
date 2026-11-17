@@ -79,7 +79,7 @@ export function wheelMat(rimColor = 0xc9ced3, finish = 'alloy') {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>
 attribute vec2 aRM; attribute float aPat; attribute float aTint; attribute float aFix;
-varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; varying vec2 vUv2; varying float vTint;`)
+varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; varying vec2 vUv2; varying float vTint; varying float vMud;`)
       .replace('#include <color_vertex>', `#if defined( USE_COLOR_ALPHA )
   vColor = vec4( 1.0 );
 #elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )
@@ -89,9 +89,10 @@ varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; 
   vColor *= color;
 #endif`)
       .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
-  float spinA = 0.0;
+  float spinA = 0.0; vMud = 0.0;
   #ifdef USE_INSTANCING_COLOR
     spinA = instanceColor.r * (1.0 - aFix);
+    vMud = instanceColor.g;
   #endif
   float spC = cos(spinA), spS = sin(spinA);
   objectNormal = vec3(objectNormal.x, spC * objectNormal.y - spS * objectNormal.z, spS * objectNormal.y + spC * objectNormal.z);`)
@@ -101,7 +102,7 @@ varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; 
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform vec3 uRim; uniform vec2 uRimRM;
-varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; varying vec2 vUv2; varying float vTint;
+varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; varying vec2 vUv2; varying float vTint; varying float vMud;
 float patMask = 0.0;
 void wheelPattern(inout vec3 col) {
   int pt = int(vPat + 0.5);
@@ -122,11 +123,11 @@ void wheelPattern(inout vec3 col) {
   col *= 1.0 - hole * 0.6;
   patMask = hole;
 }`)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), uRim, vTint);\n  wheelPattern(diffuseColor.rgb);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask);')
+      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), uRim, vTint);\n  wheelPattern(diffuseColor.rgb);\n  float mudK = vMud * (0.55 + 0.45 * fract(sin(dot(floor(vObjPos * 40.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453));\n  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.36, 0.31, 0.24), clamp(mudK, 0.0, 0.85));')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask), 0.95, clamp(vMud, 0.0, 0.9));')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = mix(vRM.y, uRimRM.y, vTint) * (1.0 - patMask);');
   };
-  m.customProgramCacheKey = () => 'ps-carwheel-v2';
+  m.customProgramCacheKey = () => 'ps-carwheel-v3';
   return m;
 }
 

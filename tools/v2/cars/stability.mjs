@@ -16,7 +16,8 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 900 }, async (b) => {
     window.__stTick = () => { for (const v of game.vehicles.list) { if (!v.car?.wheels) continue;
       const k = v.typeKey, s = (window.__st[k] ||= { n: 0, maxTilt: 0, flips: 0, worstGap: 0, worstSink: 0, samples: 0, ai: 0 });
       const up = new T.Vector3(0, 1, 0).applyQuaternion(v.mesh.quaternion).y; s.samples++; if (v.ai) s.ai++;
-      s.maxTilt = Math.max(s.maxTilt, Math.acos(Math.max(-1, Math.min(1, up))) * 57.3); if (up < 0.5 && !v.__flip) { v.__flip = 1; s.flips++; }
+      s.maxTilt = Math.max(s.maxTilt, Math.acos(Math.max(-1, Math.min(1, up))) * 57.3); if (up < 0.5 && !v.__flip) { v.__flip = 1; s.flips++; const now = game.clock?.elapsed ?? 0; const t = v.body.translation(); (window.__flips ||= []).push({ key: k, ai: !!v.ai, state: v.ai?.state || null, kmh: Math.round(v.speedKmh || 0), sinceGhost: v.fromGhostT != null ? +(now - v.fromGhostT).toFixed(1) : null, sinceImpact: v.lastImpactT != null ? +(now - v.lastImpactT).toFixed(1) : null, impactDv: v.lastImpactDv ? +v.lastImpactDv.toFixed(1) : null, maxKmh: Math.round(v.__maxKmh || 0), maxTiltRate: +(v.__maxRoll || 0).toFixed(2), pos: [Math.round(t.x), Math.round(t.y), Math.round(t.z)], ghost: !!v.ghost, frozen: !!v.frozen, edgeKind: v.ai?.edge?.kind || null }); }
+      v.__maxKmh = Math.max(v.__maxKmh || 0, v.speedKmh || 0); if (up < 0.95) { const av = v.body.angvel(); v.__maxRoll = Math.max(v.__maxRoll || 0, Math.hypot(av.x, av.z)); }
       if (v.ghost || v.frozen || !v.vc) continue;
       for (const w of v.car.wheels) { w.steer.getWorldPosition(v3); const h = game.world.castRay(new R.Ray({ x: v3.x, y: v3.y + 0.4, z: v3.z }, { x: 0, y: -1, z: 0 }), 3, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
         if (!h) continue; const g = v3.y + 0.4 - (h.timeOfImpact ?? h.toi), e = v3.y - v.spec.r - g;
@@ -26,6 +27,7 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 900 }, async (b) => {
   for (let t = 0; t < secs; t += 10) { await b.sleep(10000); }
   const r = JSON.parse(await b.eval(`(() => { clearInterval(window.__stI); const out = {}; for (const [k, s] of Object.entries(window.__st)) out[k] = { maxTiltDeg: +s.maxTilt.toFixed(1), flips: s.flips, restGap: +s.worstGap.toFixed(3), restSink: +s.worstSink.toFixed(3), moveGap: +(s.worstGapMoving || 0).toFixed(3), moveSink: +(s.worstSinkMoving || 0).toFixed(3), samples: s.samples, aiShare: +(s.ai / s.samples).toFixed(2) }; return JSON.stringify(out); })()`));
   console.log(JSON.stringify(r, null, 0).replace(/},/g, '},\n'));
+  console.log('FLIPS', await b.eval('JSON.stringify(window.__flips || [])'));
   fs.mkdirSync('docs/v2/reports', { recursive: true }); fs.writeFileSync('docs/v2/reports/cars-stability.json', JSON.stringify(r, null, 1));
   if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 10));
 });

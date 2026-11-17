@@ -278,7 +278,8 @@ export async function createVehicles(game) {
       .setCanSleep(true)
       .setAdditionalMassProperties(
         mass,
-        { x: 0, y: spec.comHigh ? 0.05 : spec.wedge ? -0.24 : -0.18, z: spec.wedge ? -0.15 : 0.05 },
+        // library cars: center of mass at a real height above the ground (spec.comY, per class), else the old offsets
+        { x: 0, y: spec.comY != null ? spec.comY - groundOff : spec.comHigh ? 0.05 : spec.wedge ? -0.24 : -0.18, z: spec.wedge ? -0.15 : 0.05 },
         { x: mass / 12 * (H * H + L * L) * 1.15, y: mass / 12 * (W * W + L * L) * 1.15, z: mass / 12 * (W * W + H * H) * 1.3 },
         { x: 0, y: 0, z: 0, w: 1 },
       );
@@ -700,6 +701,23 @@ export async function createVehicles(game) {
     if (!(body.mass() > 0)) { try { body.recomputeMassPropertiesFromColliders(); } catch (e) { /* ignore */ } if (!(body.mass() > 0)) return; }
     const pl = body.linvel(), pa = body.angvel();
     vc.updateVehicle(dt, wheelFilter);
+    // anti-roll bars: per axle, the side that compresses more is pushed up and the other pulled down (the ray-cast
+    // controller has none: without them tall cars lean far, unload the inner wheels and trip over in corners)
+    if (spec.antiRoll) {
+      const R = body.rotation(); _q.set(R.x, R.y, R.z, R.w); _up.set(0, 1, 0).applyQuaternion(_q);
+      const T0 = body.translation();
+      for (const [a, b] of [[0, 1], [2, 3]]) {
+        if (!vc.wheelIsInContact(a) && !vc.wheelIsInContact(b)) continue;
+        const la = vc.wheelSuspensionLength(a) ?? v.restLen, lb = vc.wheelSuspensionLength(b) ?? v.restLen;
+        const d = clamp(lb - la, -0.25, 0.25); // > 0: wheel a compressed more
+        if (Math.abs(d) < 1e-4) continue;
+        const J = spec.antiRoll * spec.mass * 9.81 * d * dt * (a === 0 ? 1.1 : 0.9);
+        for (const [i, sg] of [[a, 1], [b, -1]]) {
+          const w = v.car.wheels[i]; _fw.set(w.x, 0, w.z).applyQuaternion(_q);
+          body.applyImpulseAtPoint({ x: _up.x * J * sg, y: _up.y * J * sg, z: _up.z * J * sg }, { x: T0.x + _fw.x, y: T0.y + _fw.y, z: T0.z + _fw.z }, true);
+        }
+      }
+    }
     {
       // a degenerate ground triangle can make the ray-cast suspension produce NaN: undo and rebuild the controller
       const nl = body.linvel(), na = body.angvel();
@@ -1366,7 +1384,7 @@ export async function createVehicles(game) {
     v.body.setLinvel({ x: _v.x * sp, y: 0, z: _v.z * sp }, true);
     v.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     v.vc = makeController(v.body, v.car.wheels, v.spec, v.restLen, v.stiff);
-    v.ghost = false; v.bodySway = null; v.hitCd = 0.6;
+    v.ghost = false; v.bodySway = null; v.hitCd = 0.6; v.fromGhostT = game.clock?.elapsed ?? performance.now() / 1000;
   }
   const _gp = {}, _gq = new THREE.Quaternion(), _gTr = { x: 0, y: 0, z: 0 }, _gRo = { x: 0, y: 0, z: 0, w: 1 };
   function ghostTick(v, dt) {
@@ -1565,7 +1583,7 @@ export async function createVehicles(game) {
           const dv = Math.hypot(_v.x, _v.z, Math.min(0, _v.y + 9.81) * 0.5) * dt; // horizontal-ish velocity change this frame (m/s)
           if (v.ghost || v.frozen) v.hitCd = 0.6; // kinematic/frozen tiers: no impact damage from tier switches
           if (dv > 3.2 && (v.hitCd || 0) <= 0) {
-            v.hitCd = 0.25;
+            v.hitCd = 0.25; v.lastImpactT = et; v.lastImpactDv = dv;
             // impact point: opposite of the acceleration direction, projected to the body box
             _lp.set(-_v.x, 0, -_v.z).normalize();
             const sx = Math.abs(_lp.x) > 1e-3 ? (v.spec.W / 2) / Math.abs(_lp.x) : 1e9;
