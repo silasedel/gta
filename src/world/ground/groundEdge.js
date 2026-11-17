@@ -107,7 +107,7 @@ float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
             float b1 = reN(w * 0.21 + 1.3), b2 = reN(w * 1.7 - 4.1), b3 = reN(w * 6.3 + 2.2);
             float l = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
             vec3 bleached = mix(diffuseColor.rgb, vec3(l) * vec3(1.06, 1.03, 0.96), 0.5) * 1.22;
-            float film = smoothstep(0.45, 0.8, b1 * 0.6 + b2 * 0.4) * (0.55 + 0.45 * b3);
+            float g4 = reN(w * 23.0 + 9.9); float film = smoothstep(0.5, 0.8, b1 * 0.55 + b2 * 0.45) * smoothstep(0.2, 0.7, b3 * 0.5 + g4 * 0.5); // drifted sand: patchy at 3 scales and grainy, not a soft cloud
             diffuseColor.rgb = mix(diffuseColor.rgb, bleached, kk * 0.85);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.47, 0.41) * (0.85 + 0.3 * b3), film * 0.4 * kk);
             roughnessFactor = mix(roughnessFactor, 0.97, film * 0.5 * kk);
