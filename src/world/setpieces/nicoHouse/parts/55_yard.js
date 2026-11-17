@@ -147,14 +147,23 @@ export function build(ctx) {
       else if (k < 0.8) D.box(MATTE, 0.35 + q() * 0.6, 0.004, 0.05 + q() * 0.05, M(x, y + 0.008, z, 0, q() * 6.28, 0), { color: V(0x9a8a62, 0.12) });   // dry frond strips
       else D.box(W, 0.08 + q() * 0.1, 0.01, 0.05 + q() * 0.06, M(x, y + 0.008, z, (q() - 0.5) * 0.3, q() * 6.28, 0), { grain: 1, color: V(0x5a4632, 0.15), wear: 1 }); } }   // bark scraps
 
-  // ======================================================================= the roll-off's load: tear-out heaped above the rim
-  { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc * sy, z * sc, a, b, c)), q = kit.rng(5577);
-    D.box(MATTE, 2.7 * sc, 0.1, 7.6 * sc, L(0, 3.0, 0), { color: 0x4a4038 });   // the heap's floor (hides the empty bin from above)
-    for (let i = 0; i < 26; i++) { const x = (q() - 0.5) * 2.2, z = (q() - 0.5) * 7.0, y = 3.1 + q() * 0.6, k = q();
-      if (k < 0.45) D.box(W, 0.09, 0.04 + q() * 0.06, 1.6 + q() * 2.2, L(x, y, z, (q() - 0.5) * 0.8, q() * 3, (q() - 0.5) * 0.6), { grain: 2, color: V(k < 0.2 ? 0xb39a74 : 0x8f8676, 0.12), wear: 0.6 });   // studs, joists
-      else if (k < 0.75) D.box(MATTE, 1.2, 0.014, 0.8, L(x, y, z, (q() - 0.5) * 1.4, q() * 3, (q() - 0.5) * 1.2), { color: V(0xd4d0c6, 0.05) });   // drywall
-      else if (k < 0.88) D.box(PL, 0.5 + q() * 0.5, 0.3 + q() * 0.3, 0.4 + q() * 0.4, L(x, y, z, q(), q() * 3, q()), { color: V([0x7a8a96, 0xc9c1ae, 0x8b5a3c][(q() * 3) | 0], 0.08) });   // bags, boxes
-      else D.box(PEEL, 0.9, 1.9, 0.05, L(x, y + 0.3, z, (q() - 0.5) * 0.9, q() * 3, 0.5 + q() * 0.5), { color: V(0xe6e1d2, 0.04), wear: 0.7 }); } }   // an old door
+  // ======================================================================= the roll-off's load (r2-keys, lead review): real tear-out at real sizes, lying
+  // INSIDE the bin just under the rim: broken drywall with thickness and torn edges, 2x4 studs, a bent sheet of roofing tin, a folded tarp
+  { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x, y, z, a, b, c)), q = kit.rng(5577);
+    const rim = 3.37 * sc * sy, hx = 3.26 * sc / 2 - 0.16, hz = 8.81 * sc / 2 - 0.2, fill = rim - 0.32;
+    D.box(MATTE, hx * 2, 0.06, hz * 2, L(0, fill, 0), { color: 0x3f3a33 });   // the settled rubble layer
+    const torn = (w, h, k) => { const sh = new THREE.Shape(), n = 9; for (let i = 0; i <= n; i++) { const t = i / n * 6.283, rr = 0.82 + 0.22 * Math.sin(t * 3 + k) * q() + (q() < 0.3 ? -0.15 : 0); const px = Math.cos(t) * w / 2 * rr, py = Math.sin(t) * h / 2 * rr; i ? sh.lineTo(px, py) : sh.moveTo(px, py); }
+      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.016, bevelEnabled: false }); g.rotateX(-PI / 2); return g; };
+    for (let i = 0; i < 9; i++) { const w = 0.45 + q() * 0.5, h = 0.35 + q() * 0.45, g = torn(w, h, i);   // broken drywall: paper faces, gypsum edges
+      D.geo(MATTE, g, L((q() - 0.5) * hx * 1.6, fill + 0.05 + q() * 0.22, (q() - 0.5) * hz * 1.7, (q() - 0.5) * 0.9, q() * 6.28, (q() - 0.5) * 0.7), { color: V(q() < 0.7 ? 0xd6d2c8 : 0xbdb8ad, 0.04) }); g.dispose(); }
+    for (let i = 0; i < 7; i++) { const len = 2.0 + q() * 1.2, a = (q() - 0.5) * 0.5;   // 2x4 studs, a few ends over the rim
+      D.box(W, 0.038, 0.089, len, L((q() - 0.5) * hx * 1.4, fill + 0.08 + q() * 0.25 + Math.abs(a) * 0.4, (q() - 0.5) * (hz * 2 - len) * 0.9, a, (q() - 0.5) * 0.5, (q() - 0.5) * 0.3), { grain: 2, color: V(q() < 0.3 ? 0xb39a74 : 0x9a8e7a, 0.1), wear: 0.6 }); }
+    { const g = new THREE.PlaneGeometry(0.75, 1.9, 6, 12), pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i); pp.setZ(i, Math.sin(x * 26) * 0.012 + Math.max(0, y - 0.2) ** 2 * 0.35); } g.computeVertexNormals();   // a bent sheet of roofing tin
+      D.geo(mat.tin(), g, L(hx * 0.35, fill + 0.22, -hz * 0.3, -PI / 2 + 0.25, 0.4, 0.1), { color: 0xb9bcbd, wear: 0.8 }); g.dispose(); }
+    { const g = new THREE.PlaneGeometry(1.5, 1.1, 14, 10), pp = g.attributes.position; for (let i = 0; i < pp.count; i++) { const x = pp.getX(i), y = pp.getY(i); pp.setZ(i, Math.sin(x * 5.5 + y * 2) * 0.07 + Math.sin(y * 9) * 0.03 + Math.cos(x * 13) * 0.015); } g.computeVertexNormals();   // a blue tarp, folded and slumped
+      D.geo(PL, g, L(-hx * 0.3, fill + 0.12, hz * 0.45, -PI / 2, 1.1, 0), { color: 0x2f5f9a }); g.dispose(); }
+    for (let i = 0; i < 3; i++) D.box(PL, 0.42, 0.34, 0.5, L((q() - 0.5) * hx, fill + 0.17, (q() - 0.5) * hz * 1.4, 0, q() * 3, (q() - 0.5) * 0.2), { color: V([0x6f6a62, 0x8a8478, 0x55524c][i], 0.06) });   // contractor bags
+  }
 
   // ======================================================================= yard surface decals: litter, matted grass, tire ruts, puddles
   const decal = (name, w, h, draw) => { const t = kit.canvasTex(w, h, draw, { srgb: true }); t.wrapS = t.wrapT = THREE.RepeatWrapping;
