@@ -14,7 +14,10 @@
  },
  "coupe3": {
   "src": "Coupes/Coupe 3 - German Sport Coupe/Coupe 3.blend",
-  "L": 4.8
+  "L": 4.8,
+  "slots": {
+   "#692$|#694$|#698$|#751$|#753$|#752$": "paint"
+  }
  },
  "hatch1": {
   "src": "Hatchbacks/Hatchback 1 - Japanese Sporty Hatch/Hatchback 1.blend",
@@ -22,7 +25,11 @@
  },
  "hatch2": {
   "src": "Other/Random Car 1 - Japanese Hybrid Hatchback/Random Car 1.obj",
-  "L": 4.54
+  "L": 4.54,
+  "textured": true,
+  "slots": {
+   "^Color": "trim"
+  }
  },
  "suv1": {
   "src": "SUVs/SUV 1 - Boxy Luxury Off-Roader/SUV 1.blend",
@@ -58,11 +65,18 @@
  },
  "suv9": {
   "src": "SUVs/SUV 9 - Japanese Family Crossover/SUV 9.blend",
-  "L": 4.69
+  "L": 4.69,
+  "slots": {
+   "SlateGrayPearl": "paint"
+  }
  },
  "suv10": {
   "src": "SUVs/SUV 10 - Korean Compact Crossover/SUV 10.blend",
-  "L": 4.66
+  "L": 4.66,
+  "slots": {
+   "Wolf Gray": "paint",
+   "Primary": "trim"
+  }
  },
  "suv11": {
   "src": "SUVs/SUV 11 - Japanese Sleek Crossover/SUV 11.blend",
@@ -70,11 +84,18 @@
  },
  "suv12": {
   "src": "SUVs/SUV 12 - Retro Two-Door 4x4/SUV 12.blend",
-  "L": 4.41
+  "L": 4.41,
+  "slots": {
+   "Chassis XZSG1$": "paint",
+   "BumperFront XSG7": "trim"
+  }
  },
  "suv13": {
   "src": "SUVs/SUV 13 - Japanese Lifted Crossover/SUV 13.blend",
-  "L": 4.48
+  "L": 4.48,
+  "slots": {
+   "^Mat 11 #1": "paint"
+  }
  },
  "suv14": {
   "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
@@ -86,7 +107,8 @@
  },
  "sedan1": {
   "src": "Sedans/Sedan 1 - Japanese Family Sedan/Sedan 1.blend",
-  "L": 4.88
+  "L": 4.88,
+  "fwd": "-x"
  },
  "sedan2": {
   "src": "Sedans/Sedan 2 - German Sport Sedan/Sedan 2.obj",
@@ -118,7 +140,10 @@
  },
  "sedan9": {
   "src": "Sedans/Sedan 9 - Korean Sport Sedan/Sedan 9.blend",
-  "L": 4.68
+  "L": 4.68,
+  "slots": {
+   "NRewardRecycled\\.019$": "paint"
+  }
  },
  "sedan10": {
   "src": "Sedans/Sedan 10 - Korean Compact Sedan/Sedan 10.blend",
@@ -132,7 +157,8 @@
   "texOverride": {
    "Police Door Decal": "liveries/police_door.png",
    "Police Hood Decal": "liveries/police_hood.png"
-  }
+  },
+  "police": true
  },
  "super3": {
   "src": "Supercars/Super Car 3 - Italian Mid-Engine V8/Super Car 3.blend",
@@ -156,7 +182,10 @@
  },
  "truck2": {
   "src": "Trucks/Truck 2 - Heavy-Duty Work Pickup/Truck 2.blend",
-  "L": 6.2
+  "L": 6.2,
+  "fwd": "-y",
+  "cropToPaint": true,
+  "paint": "Material$"
  },
  "truck3": {
   "src": "Trucks/Truck 3 - Cab-Over Box Truck/Truck 3.blend",
@@ -166,17 +195,21 @@
  "truck4": {
   "src": "Trucks/Truck 4 - Old-Style Box Truck/Truck 4.blend",
   "L": 7.6,
-  "textured": true
+  "textured": true,
+  "fwd": "-x"
  },
  "truck5": {
   "src": "Trucks/Truck 5 - Long-Nose Semi Tractor/Truck 5.blend",
   "L": 7.4,
-  "textured": true
+  "textured": true,
+  "fwd": "+y"
  },
  "truck6": {
   "src": "Trucks/Truck 6 - Fire Engine/Truck 6.blend",
   "L": 10.4,
-  "textured": true
+  "textured": true,
+  "wheelDonor": "truck7",
+  "fwd": "+y"
  },
  "truck7": {
   "src": "Trucks/Truck 7 - Modern Box Truck/Truck 7.blend",
@@ -200,16 +233,24 @@
  "van4": {
   "src": "Vans/Van 4 - Ambulance Box Body/Van 4.blend",
   "L": 6.9,
-  "textured": true
+  "textured": true,
+  "fwd": "-x",
+  "dropObj": "^Box\\.00[24567]$"
  },
  "truck8": {
   "src": "Trucks/Truck 8 - Black Armored Cash-In-Transit Truck/Truck 8.blend",
   "L": 6.3,
-  "textured": true
+  "textured": true,
+  "fwd": "+x"
  },
  "van5": {
   "src": "Vans/Van 5 - Boxy Silver Passenger Van With Spare Tire And Brush Guard/Van 5.blend",
   "L": 5.2,
   "textured": true
+ },
+ "covered1": {
+  "src": "Other/Covered Car 1 - Black Tarp Over Parked Sedan/Covered Car 1.blend",
+  "L": 4.4,
+  "static": true
  }
 }

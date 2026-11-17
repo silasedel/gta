@@ -1,0 +1,849 @@
+{
+ "_doc": "One entry per game model (key = output file name in public/assets/models/vegetation/). src: library .blend (Models/...). height: m. pick: objects (names regex / bbox-center box [x0,x1,y0,y1] in source units). bark: regex of source material names drawn as bark (opaque); the rest are leaves (alpha-tested). leaf0/bark0, leaf1/bark1: triangle budgets LOD0 / LOD1. leafMode thin (whole cards dropped) or decimate. grade: [hue deg, saturation, value] of the green texels (sRGB HSV); texfix: per source material regex {color, alpha (file | colorA | lumakey | blackkey | none), normal, fam, tint, grade, nograde}. bloom: tinted copy of the leaf material on a share of the leaf cards.",
+ "defaults": {
+  "height": 10,
+  "leaf0": 14000,
+  "bark0": 5000,
+  "leaf1": 3500,
+  "bark1": 900,
+  "texLeaf": 1024,
+  "texBark": 1024,
+  "texNormal": 512,
+  "gradeLeaf": [
+   84,
+   0.5,
+   0.42
+  ],
+  "gradeBark": [
+   30,
+   0.2,
+   0.42
+  ],
+  "gradeK": 0.8,
+  "seed": 7,
+  "webpQ": 86
+ },
+ "species": {
+  "royal_palm": {
+   "src": "Models/Trees/Palm Tree 7 - Tall Royal Palm/Palm Tree 7.blend",
+   "height": 17,
+   "bark": "Trunk|Crownshaft",
+   "leafMode": "decimate",
+   "leaf0": 12000,
+   "bark0": 2400,
+   "leaf1": 3000,
+   "bark1": 500,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.48,
+    0.44
+   ],
+   "texfix": {
+    "Leaf Stalk": {
+     "fam": "leaf",
+     "alpha": "none"
+    },
+    "Crownshaft": {
+     "grade": [
+      95,
+      0.22,
+      0.5
+     ]
+    },
+    "Trunk": {
+     "grade": [
+      40,
+      0.07,
+      0.62
+     ]
+    }
+   }
+  },
+  "coconut_palm": {
+   "src": "Models/Trees/Palm Tree 2 - Tall Slim Coconut Palm/Palm Tree 2.blend",
+   "height": 14,
+   "bark": "Trunk",
+   "leafMode": "decimate",
+   "leaf0": 8000,
+   "bark0": 1500,
+   "leaf1": 2000,
+   "bark1": 400,
+   "gradeLeaf": [
+    78,
+    0.5,
+    0.46
+   ],
+   "texfix": {
+    "Leafs": {
+     "alpha": "none"
+    }
+   }
+  },
+  "coconut_b": {
+   "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+   "pick": {
+    "names": "^PALMLOW$"
+   },
+   "height": 10.5,
+   "bark": "trunk|Base",
+   "leaf0": 6000,
+   "bark0": 1500,
+   "leaf1": 1500,
+   "bark1": 400,
+   "texfix": {
+    "PalmtrunkLOW": {
+     "color": "textures/Trunk 1k.png"
+    }
+   }
+  },
+  "coconut_c": {
+   "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+   "pick": {
+    "names": "^PALMLOW2$"
+   },
+   "height": 9.5,
+   "bark": "trunk|Base",
+   "leaf0": 6000,
+   "bark0": 1500,
+   "leaf1": 1500,
+   "bark1": 400,
+   "texfix": {
+    "PalmtrunkLOW": {
+     "color": "textures/Trunk 1k.png"
+    }
+   }
+  },
+  "coconut_d": {
+   "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+   "pick": {
+    "names": "^PALMLOW3$"
+   },
+   "height": 11.5,
+   "bark": "trunk|Base",
+   "leaf0": 6000,
+   "bark0": 1500,
+   "leaf1": 1500,
+   "bark1": 400,
+   "texfix": {
+    "PalmtrunkLOW": {
+     "color": "textures/Trunk 1k.png"
+    }
+   }
+  },
+  "bent_a": {
+   "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+   "pick": {
+    "names": "^Palm_002$"
+   },
+   "height": 10,
+   "bark": "^$",
+   "leafMode": "none"
+  },
+  "bent_b": {
+   "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+   "pick": {
+    "names": "^Palm_003$"
+   },
+   "height": 8.5,
+   "bark": "^$",
+   "leafMode": "none"
+  },
+  "bent_c": {
+   "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+   "pick": {
+    "names": "^Palm_004$"
+   },
+   "height": 7.5,
+   "bark": "^$",
+   "leafMode": "none"
+  },
+  "bent_d": {
+   "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+   "pick": {
+    "names": "^Palm_005$"
+   },
+   "height": 8.2,
+   "bark": "^$",
+   "leafMode": "none"
+  },
+  "bent_e": {
+   "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+   "pick": {
+    "names": "^Palm_006$"
+   },
+   "height": 7.8,
+   "bark": "^$",
+   "leafMode": "none"
+  },
+  "date_palm": {
+   "src": "Models/Trees/Palm Tree 1 - Slender Date-Leaf Palm/Palm Tree 1.blend",
+   "height": 9,
+   "bark": "Palm02",
+   "gradeLeaf": [
+    74,
+    0.4,
+    0.44
+   ]
+  },
+  "tropical_palm": {
+   "src": "Models/Trees/Palm Tree 9 - Bright Green Tropical Palm/Palm Tree 9.blend",
+   "height": 11,
+   "bark": "Trunk",
+   "texfix": {
+    "Palm Leaves": {
+     "alpha": "blackkey"
+    },
+    "Palm Trunk": {
+     "grade": [
+      32,
+      0.18,
+      0.3
+     ]
+    }
+   },
+   "gradeLeaf": [
+    84,
+    0.42,
+    0.38
+   ]
+  },
+  "palm_yellow": {
+   "src": "Models/Trees/Palm Tree 4 - Yellow-Green Realistic Palm/Palm Tree 4.blend",
+   "height": 8.5,
+   "bark": "^$",
+   "texfix": {
+    "Palm": {
+     "alpha": "lumakey",
+     "keyLo": 0.8,
+     "keyHi": 0.95
+    }
+   },
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.4
+   ]
+  },
+  "weathered_a": {
+   "src": "Models/Trees/Palm Tree 5 - Pair Of Dark Weathered Palms/Palm Tree 5.blend",
+   "pick": {
+    "names": "_001_"
+   },
+   "height": 12,
+   "bark": "Bark",
+   "gradeLeaf": [
+    70,
+    0.4,
+    0.4
+   ],
+   "texfix": {
+    "Frond": {
+     "alpha": "blackkey"
+    }
+   }
+  },
+  "weathered_b": {
+   "src": "Models/Trees/Palm Tree 5 - Pair Of Dark Weathered Palms/Palm Tree 5.blend",
+   "pick": {
+    "names": "_002_"
+   },
+   "height": 15,
+   "bark": "Bark",
+   "gradeLeaf": [
+    76,
+    0.42,
+    0.42
+   ],
+   "texfix": {
+    "Frond": {
+     "alpha": "blackkey"
+    }
+   }
+  },
+  "sabal_palm": {
+   "src": "Models/Trees/Palm Tree 6 - Low Bushy Palm/Palm Tree 6.blend",
+   "height": 11,
+   "bark": "Bark",
+   "gradeLeaf": [
+    82,
+    0.42,
+    0.4
+   ]
+  },
+  "banyan": {
+   "src": "Models/Trees/Banyan Tree 2 - Large Banyan With Hanging Roots/Banyan Tree 2.blend",
+   "height": 18,
+   "bark": "Bark|Cap",
+   "leaf0": 30000,
+   "bark0": 12000,
+   "leaf1": 7000,
+   "bark1": 2500,
+   "gradeLeaf": [
+    92,
+    0.42,
+    0.36
+   ]
+  },
+  "banyan_b": {
+   "src": "Models/Trees/Banyan Tree 1 - Compact Banyan Tree/Banyan Tree 1.blend",
+   "height": 13,
+   "bark": "Bark|^SHD",
+   "leaf0": 20000,
+   "bark0": 5000,
+   "leaf1": 5000,
+   "bark1": 1200,
+   "gradeLeaf": [
+    90,
+    0.45,
+    0.38
+   ]
+  },
+  "liveoak_a": {
+   "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+   "pick": {
+    "names": "^(foliage|structure)$"
+   },
+   "height": 13,
+   "bark": "Bark",
+   "leaf0": 18000,
+   "bark0": 4000,
+   "leaf1": 5000,
+   "bark1": 1200,
+   "gradeLeaf": [
+    86,
+    0.42,
+    0.36
+   ]
+  },
+  "liveoak_b": {
+   "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+   "pick": {
+    "names": "\\.001$"
+   },
+   "height": 12,
+   "bark": "Bark",
+   "leaf0": 18000,
+   "bark0": 4000,
+   "leaf1": 5000,
+   "bark1": 1200,
+   "gradeLeaf": [
+    86,
+    0.42,
+    0.36
+   ]
+  },
+  "liveoak_c": {
+   "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+   "pick": {
+    "names": "\\.002$"
+   },
+   "height": 11,
+   "bark": "Bark",
+   "leaf0": 18000,
+   "bark0": 4000,
+   "leaf1": 5000,
+   "bark1": 1200,
+   "gradeLeaf": [
+    86,
+    0.42,
+    0.36
+   ]
+  },
+  "oak_gnarled": {
+   "src": "Models/Trees/Oak Tree 3 - Gnarled Spreading Oak/Oak Tree 3.blend",
+   "height": 12,
+   "bark": "bark",
+   "gradeLeaf": [
+    86,
+    0.42,
+    0.38
+   ]
+  },
+  "poinciana": {
+   "src": "Models/Trees/Oak Tree 3 - Gnarled Spreading Oak/Oak Tree 3.blend",
+   "height": 8.5,
+   "bark": "bark",
+   "seed": 19,
+   "gradeLeaf": [
+    88,
+    0.5,
+    0.4
+   ],
+   "bloom": {
+    "fraction": 0.7,
+    "tint": [
+     0.86,
+     0.17,
+     0.06
+    ],
+    "amount": 0.95
+   }
+  },
+  "oak_pale_a": {
+   "src": "Models/Trees/Oak Tree 4 - Pair Of Pale-Green Oaks/Oak Tree 4.blend",
+   "pick": {
+    "box": [
+     -100,
+     100,
+     -100,
+     -2.6
+    ]
+   },
+   "height": 9,
+   "bark": "Bark",
+   "gradeLeaf": [
+    84,
+    0.4,
+    0.4
+   ]
+  },
+  "oak_pale_b": {
+   "src": "Models/Trees/Oak Tree 4 - Pair Of Pale-Green Oaks/Oak Tree 4.blend",
+   "pick": {
+    "box": [
+     -100,
+     100,
+     -2.6,
+     100
+    ]
+   },
+   "height": 10,
+   "bark": "Bark",
+   "gradeLeaf": [
+    84,
+    0.4,
+    0.4
+   ]
+  },
+  "shade_tree": {
+   "src": "Models/Trees/Tree 1 - Fluffy Grey-Green Tree/Tree 1.blend",
+   "height": 11,
+   "bark": "Bark",
+   "leaf0": 16000,
+   "bark0": 4000,
+   "gradeLeaf": [
+    88,
+    0.42,
+    0.4
+   ],
+   "leaf1": 4000,
+   "bark1": 900
+  },
+  "rubber_fig": {
+   "src": "Models/Trees/Rubber Fig Tree 1 - Dark Glossy Rubber Fig/Rubber Fig Tree 1.blend",
+   "height": 4.2,
+   "bark": "Bark|^SHD",
+   "gradeLeaf": [
+    100,
+    0.5,
+    0.3
+   ]
+  },
+  "mangrove": {
+   "src": "Models/Trees/Mangrove Tree 2 - Red Mangrove With Stilt Roots/Mangrove Tree 2.blend",
+   "height": 7,
+   "bark": "Bark",
+   "leaf0": 14000,
+   "bark0": 16000,
+   "leaf1": 4000,
+   "bark1": 4000,
+   "gradeLeaf": [
+    96,
+    0.48,
+    0.34
+   ],
+   "texfix": {
+    "RedMangroveBark": {
+     "fam": "bark",
+     "grade": [
+      28,
+      0.16,
+      0.36
+     ]
+    },
+    "Branch|Cap|Pod": {
+     "fam": "leaf",
+     "alpha": "textures/Cap 03 Mat Alpha.jpeg"
+    }
+   }
+  },
+  "mangrove_b": {
+   "src": "Models/Trees/Mangrove Tree 1 - Low-Poly Mangrove With Mud Base/Mangrove Tree 1.blend",
+   "height": 6,
+   "bark": "Bark|Mud",
+   "drop": "Mud",
+   "gradeLeaf": [
+    96,
+    0.48,
+    0.34
+   ],
+   "texfix": {
+    "Mangrove Leaves": {
+     "color": "textures/Mangrove Bark Color.png",
+     "alpha": "colorA"
+    }
+   }
+  },
+  "pine_a": {
+   "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+   "pick": {
+    "names": "^Tree_(Branches|Trunk)_01",
+    "box": [
+     -29,
+     -19,
+     40,
+     60
+    ]
+   },
+   "height": 22,
+   "bark": "Trunk",
+   "gradeLeaf": [
+    95,
+    0.32,
+    0.36
+   ],
+   "texfix": {
+    "Branches": {
+     "alpha": "textures/Tree Branches 01 Alpha.png"
+    }
+   }
+  },
+  "pine_b": {
+   "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+   "pick": {
+    "names": "^Tree_(Branches|Trunk)_01",
+    "box": [
+     -41,
+     -29,
+     40,
+     60
+    ]
+   },
+   "height": 17,
+   "bark": "Trunk",
+   "gradeLeaf": [
+    95,
+    0.32,
+    0.36
+   ],
+   "texfix": {
+    "Branches": {
+     "alpha": "textures/Tree Branches 01 Alpha.png"
+    }
+   }
+  },
+  "pine_c": {
+   "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+   "pick": {
+    "names": "^Tree_(Branches|Trunk)_01",
+    "box": [
+     -50,
+     -41,
+     40,
+     60
+    ]
+   },
+   "height": 11,
+   "bark": "Trunk",
+   "gradeLeaf": [
+    95,
+    0.32,
+    0.36
+   ],
+   "texfix": {
+    "Branches": {
+     "alpha": "textures/Tree Branches 01 Alpha.png"
+    }
+   }
+  },
+  "bush_round": {
+   "src": "Models/Plants/Shrub 1 - Round Green Cliff Shrub/Shrub 1.blend",
+   "height": 1.3,
+   "bark": "^$",
+   "gradeLeaf": [
+    88,
+    0.48,
+    0.38
+   ],
+   "texLeaf": 1024
+  },
+  "bush_leafy": {
+   "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+   "height": 1.5,
+   "bark": "^$",
+   "gradeLeaf": [
+    86,
+    0.5,
+    0.4
+   ],
+   "texLeaf": 1024
+  },
+  "agave": {
+   "src": "Models/Plants/Shrub 2 - Blue Agave Rosette/Shrub 2.blend",
+   "bark": "^$",
+   "texLeaf": 512,
+   "texfix": {
+    "Leaves": {
+     "grade": [
+      165,
+      0.22,
+      0.55
+     ]
+    }
+   },
+   "width": 1.5,
+   "height": 0.7,
+   "zheight": 0.85,
+   "pivotBox": 1
+  },
+  "red_grass": {
+   "src": "Models/Plants/Shrub 3 - Red Grass Cards/Shrub 3.blend",
+   "height": 0.95,
+   "bark": "^$",
+   "texLeaf": 512,
+   "texfix": {
+    "Grass": {
+     "alpha": "lumakey",
+     "nograde": 1
+    }
+   },
+   "pivotBox": 1,
+   "width": 1.4,
+   "zheight": 0.85
+  },
+  "fern_clump": {
+   "src": "Models/Plants/Shrub 5 - Low-Poly Fern Clump/Shrub 5.blend",
+   "height": 0.85,
+   "bark": "^$",
+   "texLeaf": 1024
+  },
+  "fern_a": {
+   "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+   "pick": {
+    "names": "fern_02_b"
+   },
+   "height": 0.75,
+   "bark": "^$",
+   "leaf0": 2400,
+   "leaf1": 700,
+   "texfix": {
+    "Fern": {
+     "color": "textures/Fern 02 Color.jpg",
+     "alpha": "textures/Fern 02 Alpha.png"
+    }
+   }
+  },
+  "fern_b": {
+   "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+   "pick": {
+    "names": "fern_02_c"
+   },
+   "height": 0.6,
+   "bark": "^$",
+   "leaf0": 2400,
+   "leaf1": 700,
+   "texfix": {
+    "Fern": {
+     "color": "textures/Fern 02 Color.jpg",
+     "alpha": "textures/Fern 02 Alpha.png"
+    }
+   }
+  },
+  "fern_c": {
+   "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+   "pick": {
+    "names": "fern_02_[ad]",
+    "box": [
+     -100,
+     0.5,
+     -100,
+     100
+    ]
+   },
+   "height": 0.45,
+   "bark": "^$",
+   "leaf0": 2400,
+   "leaf1": 700,
+   "texfix": {
+    "Fern": {
+     "color": "textures/Fern 02 Color.jpg",
+     "alpha": "textures/Fern 02 Alpha.png"
+    }
+   }
+  },
+  "bougainvillea": {
+   "src": "Models/Plants/Shrub 1 - Round Green Cliff Shrub/Shrub 1.blend",
+   "height": 1.7,
+   "bark": "^$",
+   "seed": 3,
+   "gradeLeaf": [
+    88,
+    0.48,
+    0.38
+   ],
+   "bloom": {
+    "fraction": 0.55,
+    "tint": [
+     0.8,
+     0.1,
+     0.48
+    ],
+    "amount": 0.9
+   }
+  },
+  "hibiscus": {
+   "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+   "height": 1.6,
+   "bark": "^$",
+   "seed": 9,
+   "gradeLeaf": [
+    92,
+    0.5,
+    0.34
+   ],
+   "bloom": {
+    "fraction": 0.22,
+    "tint": [
+     0.85,
+     0.08,
+     0.07
+    ],
+    "amount": 0.85
+   }
+  },
+  "oleander": {
+   "src": "Models/Plants/Flower 2 - Flowering White Shrub/Flower 2.blend",
+   "height": 1.9,
+   "seed": 31,
+   "bark": "Bark",
+   "leaf0": 26000,
+   "bark0": 1500,
+   "leaf1": 6000,
+   "bark1": 300,
+   "texfix": {
+    "Flower": {
+     "nograde": 1
+    }
+   },
+   "grow0": 1.6
+  },
+  "flower_bush_a": {
+   "src": "Models/Plants/Flower Bush 1 - Low-Poly Pink-Flower Bushes/Flower Bush 1.blend",
+   "pick": {
+    "box": [
+     -100,
+     0,
+     -100,
+     100
+    ]
+   },
+   "height": 1.2,
+   "bark": "^$",
+   "texfix": {
+    "Material": {
+     "alpha": "textures/Default Material Opacity.jpg"
+    }
+   }
+  },
+  "flower_bush_b": {
+   "src": "Models/Plants/Flower Bush 1 - Low-Poly Pink-Flower Bushes/Flower Bush 1.blend",
+   "pick": {
+    "box": [
+     0,
+     100,
+     -100,
+     100
+    ]
+   },
+   "height": 1.4,
+   "bark": "^$",
+   "texfix": {
+    "Material": {
+     "alpha": "textures/Default Material Opacity.jpg"
+    }
+   }
+  },
+  "tropical_bed": {
+   "src": "Models/Plants/Foliage Set 1 - Tropical Fern And Palm Foliage/Foliage Set 1.blend",
+   "height": 1.8,
+   "bark": "^$",
+   "leaf0": 9000,
+   "leaf1": 2200,
+   "gradeLeaf": [
+    92,
+    0.5,
+    0.38
+   ]
+  },
+  "potted_ficus": {
+   "src": "Models/Plants/Potted Plant 1 - Rubber Plant In Clay Pot/Potted Plant 1.blend",
+   "height": 1.4,
+   "bark": "^$",
+   "gradeLeaf": [
+    100,
+    0.5,
+    0.32
+   ]
+  },
+  "grass_tuft_a": {
+   "src": "Models/Plants/Grass Clump 1 - Medium Grass Clumps With Dry Variant/Grass Clump 1.blend",
+   "pick": {
+    "names": "^grass_medium_02_[cd]$"
+   },
+   "height": 0.42,
+   "bark": "^$",
+   "leaf0": 1400,
+   "leaf1": 400,
+   "texLeaf": 1024,
+   "texfix": {
+    "Grass": {
+     "color": "textures/Grass Medium 02 Diffuse.jpg",
+     "alpha": "textures/Grass Medium 02 Alpha.png"
+    }
+   }
+  },
+  "grass_tuft_b": {
+   "src": "Models/Plants/Grass Clump 1 - Medium Grass Clumps With Dry Variant/Grass Clump 1.blend",
+   "pick": {
+    "names": "^grass_medium_02_e$"
+   },
+   "height": 0.5,
+   "bark": "^$",
+   "leaf0": 1400,
+   "leaf1": 400,
+   "texLeaf": 1024,
+   "texfix": {
+    "Grass": {
+     "color": "textures/Grass Medium 02 Diffuse Dead.png",
+     "alpha": "textures/Grass Medium 02 Alpha.png",
+     "grade": [
+      55,
+      0.35,
+      0.5
+     ]
+    }
+   }
+  },
+  "bougainvillea_b": {
+   "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+   "height": 1.5,
+   "bark": "^$",
+   "seed": 5,
+   "gradeLeaf": [
+    86,
+    0.5,
+    0.4
+   ],
+   "bloom": {
+    "fraction": 0.45,
+    "tint": [
+     0.86,
+     0.22,
+     0.62
+    ],
+    "amount": 0.9
+   }
+  }
+ }
+}

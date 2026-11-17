@@ -276,6 +276,19 @@ ang = {'-y': 0.0, '+y': math.pi, '+x': -math.pi / 2, '-x': math.pi / 2}[fwd]
 # rotate about Z: a vector along +x rotated by -90 deg -> -y. (Rz(theta) * (1,0,0) = (cos, sin, 0)); theta = -pi/2 -> (0,-1,0)
 R = Matrix.Rotation(ang, 4, 'Z')
 bm.transform(R)
+if CFG.get('cropToPaint'):
+    PR_ = rx(CFG.get('paint')) or re.compile(r'paint', re.I)
+    bm.faces.ensure_lookup_table()
+    pv = np.array([v.co[:] for f in bm.faces if PR_.search(minfo[f.material_index]['name']) for v in f.verts])
+    if len(pv):
+        plo, phi = pv.min(0), pv.max(0)
+        lab_ = islands(bm); V_ = verts_np(bm); u_, inv_ = np.unique(lab_, return_inverse=True)
+        mn_ = np.full((len(u_), 3), 1e9); mx_ = np.full((len(u_), 3), -1e9); np.minimum.at(mn_, inv_, V_); np.maximum.at(mx_, inv_, V_)
+        ax = 1 if (phi[1] - plo[1]) > (phi[0] - plo[0]) else 0
+        bad_ = (mx_[:, 2] > phi[2] + 0.06) | (mn_[:, ax] < plo[ax] - 0.15) | (mx_[:, ax] > phi[ax] + 0.15)
+        dead = [f for f in bm.faces if bad_[inv_[f.verts[0].index]]]
+        ks = set(f.index for f in dead); face_obj = [face_obj[i] for i in range(len(face_obj)) if i not in ks]
+        bmesh.ops.delete(bm, geom=dead, context='FACES'); log('cropped to paint box, faces', len(dead))
 V = verts_np(bm); lo, hi = V.min(0), V.max(0)
 L0 = hi[1] - lo[1]
 L = CFG.get('L')
@@ -286,6 +299,54 @@ V = verts_np(bm); lo, hi = V.min(0), V.max(0)
 bm.transform(Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, 0)))  # center in X / Y before the wheel search
 V = verts_np(bm); lo, hi = V.min(0), V.max(0)
 log('fwd', fwd, 'scale', round(s, 5), 'dims', np.round(hi - lo, 3).tolist())
+
+# ------------------------------------------------------------------ static props (a car under a cover): no wheels, one trim slot
+if CFG.get('static'):
+    V = verts_np(bm); lo, hi = V.min(0), V.max(0)
+    bm.transform(Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2])))
+    uvl = bm.loops.layers.uv.get(uv_name) or bm.loops.layers.uv.verify()
+    cl = bm.loops.layers.float_color.new('SLcol')
+    for f in bm.faces:
+        info = minfo[f.material_index]; arr = image_array(info['img']) if info['img'] is not None else None
+        ra = image_array(info['rimg'][0]) if info.get('rimg') else None
+        for lp in f.loops:
+            uv = lp[uvl].uv
+            if arr is not None:
+                h_, w_ = arr.shape[0], arr.shape[1]; t = arr[int((uv[1] % 1) * h_) % h_, int((uv[0] % 1) * w_) % w_]
+            else: t = (1, 1, 1, 1)
+            b = info['base']; rough = info['rough']
+            if ra is not None: h_, w_ = ra.shape[0], ra.shape[1]; rough = float(ra[int((uv[1] % 1) * h_) % h_, int((uv[0] % 1) * w_) % w_][info['rimg'][1]])
+            lp[cl] = (b[0] * t[0], b[1] * t[1], b[2] * t[2], min(1.0, max(0.02, rough)) * 0.49)
+        f.material_index = 2
+    sm = []
+    for nm in ['S_paint', 'S_glass', 'S_trim', 'S_lamp']:
+        m = bpy.data.materials.new(nm); m.use_nodes = True; sm.append(m)
+    me_ = bpy.data.meshes.new('body'); [me_.materials.append(m) for m in sm]; bm.to_mesh(me_); bm.free()
+    src_o = bpy.data.objects.new('src', me_); sc.collection.objects.link(src_o)
+    for o in list(sc.objects):
+        if o is not src_o: bpy.data.objects.remove(o, do_unlink=True)
+    def _tris(o): return sum(len(p.vertices) - 2 for p in o.data.polygons)
+    outs = []
+    for i, tgt in enumerate(CFG.get('tris') or [16000, 4000, 900]):
+        o = bpy.data.objects.new('body%d' % i, me_.copy()); sc.collection.objects.link(o)
+        if _tris(o) > tgt * 1.1:
+            bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+            md = o.modifiers.new('d', 'DECIMATE'); md.ratio = tgt / _tris(o); bpy.ops.object.modifier_apply(modifier='d')
+            md = o.modifiers.new('tn', 'DATA_TRANSFER'); md.object = src_o; md.use_loop_data = True; md.data_types_loops = {'CUSTOM_NORMAL'}; md.loop_mapping = 'POLYINTERP_NEAREST'
+            bpy.ops.object.modifier_apply(modifier='tn')
+        o.data.color_attributes.active_color = o.data.color_attributes.get('SLcol'); outs.append(o)
+    bpy.data.objects.remove(src_o, do_unlink=True)
+    P = np.array([v.co[:] for v in outs[0].data.vertices]); lo0, hi0 = P.min(0), P.max(0)
+    out = os.path.join(OUTDIR, KEY + '.glb')
+    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', use_selection=True, export_yup=True, export_texcoords=True, export_normals=True, export_materials='EXPORT',
+        export_vertex_color='NAME', export_vertex_color_name='SLcol', export_all_vertex_colors=False, export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=7,
+        export_animations=False, export_image_format='NONE')
+    man = {'key': KEY, 'static': True, 'dims': {'L': round(float(hi0[1] - lo0[1]), 3), 'W': round(float(hi0[0] - lo0[0]), 3), 'H': round(float(hi0[2]), 3)},
+           'tris': {'lod%d' % i: _tris(o) for i, o in enumerate(outs)}, 'bytes': os.path.getsize(out), 'cfg': CFG}
+    json.dump(man, open(os.path.join(OUTDIR, KEY + '.json'), 'w'), indent=1)
+    log('DONE static', json.dumps(man['dims']), man['tris'])
+    raise SystemExit(0)
 
 # ------------------------------------------------------------------ 4. wheels
 lab = islands(bm)
@@ -303,7 +364,7 @@ for i in range(nI):
     dx, dy, dz = isz[i]
     if not (0.42 < dz < 1.5): continue
     if not (0.8 < dy / dz < 1.2): continue
-    if not (0.08 < dx < 0.75): continue
+    if not (0.08 < dx < (1.05 if dz > 0.9 else 0.75)): continue
     if imin[i, 2] > gz + 0.12 * dz: continue
     cx = (imin[i, 0] + imax[i, 0]) / 2
     if abs(cx) < 0.25: continue
@@ -323,6 +384,15 @@ for w in wheels:
 rmed = float(np.median([w['r'] for w in wheels])) if wheels else 0
 wheels = [w for w in wheels if abs(w['r'] - rmed) < 0.25 * rmed]
 log('wheel clusters', len(wheels), [(round(w['c'][0], 2), round(w['c'][1], 2), round(w['r'], 3)) for w in wheels])
+if len(wheels) == 2:  # one axle found: the other is a tandem / dual block in one island -> virtual physics wheels, tires stay on the body
+    for i in range(nI):
+        dx, dy, dz = isz[i]
+        if not (0.42 < dz < 1.5 and 1.5 < dy / dz < 3.2 and 0.1 < dx < 0.9 and imin[i, 2] < gz + 0.12 * dz): continue
+        c_ = (imin[i] + imax[i]) / 2
+        if abs(c_[0]) < 0.25 or abs(c_[1] - wheels[0]['c'][1]) < 1.0: continue
+        wheels.append({'c': c_.copy(), 'r': dz / 2, 'isl': [], 'lo': imin[i].copy(), 'hi': imax[i].copy(), 'virtual': True})
+    for w in wheels: w.setdefault('w', w['hi'][0] - w['lo'][0])
+    log('virtual wheels', sum(1 for w in wheels if w.get('virtual')))
 if len(wheels) == 3:  # one tire merged into something else: mirror its axle partner (its parts stay on the body)
     ys = [w['c'][1] for w in wheels]
     for w in list(wheels):
@@ -404,7 +474,7 @@ TAIL = re.compile(r'tail|rear ?light|rearlamp|rear ?lamp|back ?light|backlight|s
 REV = re.compile(r'reverse|backup', re.I)
 IND = re.compile(r'indicator|signal|blinker|turn|amber|orange|oraange|indi\b|side ?marker', re.I)
 FOG = re.compile(r'fog', re.I)
-LIGHT = re.compile(r'light|lamp|lens|led\b|drl', re.I)
+LIGHT = re.compile(r'light|lamp|lens|\bled\b|\bdrl\b', re.I)
 PLATE = re.compile(r'plate|license|licence|platnomor|number', re.I)
 CHROME = re.compile(r'chrome|crom|alum|silver|polish|mirror|miroir|hg\b|metal|steel|exhaust|muffler', re.I)
 RUBBER = re.compile(r'tire|tyre|rubber|tread|seal', re.I)
@@ -428,7 +498,7 @@ for mi, info in enumerate(minfo):
                 info['base'] = (lin(c_ >> 16 & 255), lin(c_ >> 8 & 255), lin(c_ & 255), 1.0); info['img'] = None
             break
     if sl is None:
-        isglass = info['alpha'] < 0.92 or info['trans'] > 0.3 or GLASS.search(n)
+        isglass = info['alpha'] < 0.92 or (info['trans'] > 0.3 and not SRC.lower().endswith('.obj')) or GLASS.search(n)
         if PLATE.search(n) and not GLASS.search(n): sl = 'plate'
         elif isglass and LENSY.search(n) and not re.search(r'window|windscreen|windshield|frontglass|rearglass|side glass|dark glass|^glass$', n, re.I):
             base = info['base']; ta = tex_avg(info) if info['img'] else None
@@ -494,6 +564,7 @@ def pack_rm(rough, metal):
     return 0.5 + rough * 0.49 if metal > 0.5 else rough * 0.49
 kill = []
 plate_faces = []
+TOPZ = float(verts_np(bm)[:, 2].max())
 TEXTURED = bool(CFG.get('textured')); tex_slot = {}
 for f in bm.faces:
     mi = f.material_index; info = minfo[mi]; sl = slot_of[mi]
@@ -501,6 +572,7 @@ for f in bm.faces:
     arr = image_array(info['img']) if info['img'] is not None and sl not in ('paint',) else None
     base = info['base']
     cz = f.calc_center_median()
+    wfi = int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1
     if sl == 'plate':
         plate_faces.append(f); slot = 'lamp'
     if arr is not None and sl.startswith('trim') and info['aimg']:
@@ -513,6 +585,9 @@ for f in bm.faces:
             rgb = (base[0] * t[0], base[1] * t[1], base[2] * t[2]); ta = t[3]
         else:
             rgb = (base[0], base[1], base[2]); ta = 1.0
+        if wfi >= 0 and sl.startswith('trim') and lum(rgb) > 0.4 and not sl.endswith('chrome'):
+            wc_ = wheels[wfi]['c']; rad_ = math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2])
+            if rad_ > 0.8 * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
         if sl == 'paint': a = 0.0; rgb = (1, 1, 1)
         elif sl.startswith('trim'):
             rough, metal = info['rough'], info['metal']
@@ -538,6 +613,10 @@ for f in bm.faces:
                 if orang: kind = 'amber'
                 elif gy < 0: kind = 'tail' if redish or TAIL.search(info['name']) else 'reverse' if lum(rgb) > 0.55 else 'tail'
                 else: kind = 'fog' if FOG.search(info['name']) else 'head'
+            if cz[2] > TOPZ - 0.32 and CFG.get('police'):  # roof light bar / beacons: red and blue strobes, amber = sign
+                blu = rgb[2] > rgb[0] * 1.4 and rgb[2] > 0.15
+                red = rgb[0] > rgb[2] * 1.4 and rgb[0] > 0.15
+                kind = 'blue' if blu else 'red' if red else ('red' if cz[0] > 0 else 'blue') if CFG.get('police') else kind
             if kind == 'amber': kind = 'blinkL' if cz[0] > 0 else 'blinkR'
             if kind == 'tail' and gy > 0: kind = 'blinkL' if cz[0] > 0 else 'blinkR'  # red/amber lens at the front = side marker
             a = LAMP.get(kind, LAMP['head']) / 16.0
@@ -710,7 +789,7 @@ def drop_faces(o, pred):
     dead = [f for f in b.faces if pred(f, cl)]
     bmesh.ops.delete(b, geom=dead, context='FACES'); b.to_mesh(o.data); b.free()
 
-T = CFG.get('tris') or [60000, 10000, 2200]
+T = CFG.get('tris') or [80000, 10000, 2200]
 WT = CFG.get('wheelTris') or [3600, 500]
 raw = tris(body)
 # interior faces for LOD1/2: trim faces whose material was interior -> we no longer know the material; use geometry:
@@ -732,7 +811,7 @@ def join(objs_, name):
 # (interior, underbody, trim) takes the cut
 pp = split_slots(body, {0}); rest = split_slots(body, set(range(1, 64)))
 tp, tr_ = tris(pp), tris(rest)
-pb = min(tp, max(int(T[0] * 0.6), int(CFG.get('paintTris', 0)) or 0, T[0] - tr_))
+pb = min(tp, max(int(T[0] * 0.8), int(CFG.get('paintTris', 0)) or 0, T[0] - tr_))
 if tp > pb * 1.08: decimate(pp, pb); transfer_normals(pp, body)
 if tr_ > (T[0] - tris(pp)) * 1.08: decimate(rest, max(T[0] - tris(pp), int(T[0] * 0.3))); transfer_normals(rest, body)
 b0 = join([pp, rest], 'body0')
@@ -814,7 +893,7 @@ archGap = max(0.0, min(ag)) if ag else 0.06
 def g(p): return [round(float(p[0]), 4), round(float(p[2]), 4), round(float(-p[1]), 4)]  # blender -> game (x, y, z)
 wl = []
 for nm_, i in (('FL', iFL), ('FR', iFR), ('RL', iRL), ('RR', iRR)):
-    w = wheels[i]; wl.append({'id': nm_, 'pos': g(w['c']), 'r': round(float(w['r']), 4), 'w': round(float(w['w']), 4)})
+    w = wheels[i]; wl.append({'id': nm_, 'pos': g(w['c']), 'r': round(float(w['r']), 4), 'w': round(float(w['w']), 4), **({'virtual': True} if w.get('virtual') else {})})
 extra = []
 for i, w in enumerate(wheels):
     if i in (iFL, iFR, iRL, iRR): continue
@@ -826,10 +905,10 @@ man = {
     'r': round(rF, 4), 'rR': round(rR, 4), 'tw': round(float(np.mean([wheels[i]['w'] for i in (iFL, iFR, iRL, iRR)])), 4),
     'archGap': round(archGap, 3), 'wheels': wl, 'extraWheels': extra, 'calipers': bool(cal), 'wheelR': bool(whlR),
     'shape': {'yb': round(yb, 3), 'belt': round(belt, 3), 'roofY': round(roofY, 3), 'noseY': round(noseY, 3), 'tailY': round(tailY, 3),
-              'zA': round(zA, 3), 'zB': round(zB, 3), 'zC': round(zC, 3), 'zD': round(zD, 3), 'front': round(float(-lo0[1]), 3), 'rear': round(float(-hi0[1]), 3)},
+              'bodyW': round(float(2 * np.abs(Bv[(Bv[:, 2] < belt - 0.05) & (Bv[:, 2] > yb + 0.05)][:, 0]).max()) if ((Bv[:, 2] < belt - 0.05) & (Bv[:, 2] > yb + 0.05)).any() else W, 3), 'zA': round(zA, 3), 'zB': round(zB, 3), 'zC': round(zC, 3), 'zD': round(zD, 3), 'front': round(float(-lo0[1]), 3), 'rear': round(float(-hi0[1]), 3)},
     'tris': {'src': raw, 'lod0': tris(b0), 'lod1': tris(b1), 'lod2': tris(b2), 'wheel0': tris(w0), 'wheel1': tris(w1)},
     'hull': [round(float(x), 3) for p in hull for x in g(p)],
-    'cfg': CFG,
+    'cfg': CFG, 'wheelDonor': CFG.get('wheelDonor'),
 }
 # ------------------------------------------------------------------ export
 out = os.path.join(OUTDIR, KEY + '.glb')

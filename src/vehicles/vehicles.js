@@ -13,7 +13,7 @@ import { createCharacter } from '../player/characterModel.js';
 import { createSkids, createScreech, createSmoke, createShards, playImpact } from './skids.js';
 import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistry, externalModelKeys } from './registry.js';
 import { initFleet } from './glb/index.js';
-import { loadCarModel } from './glb/glbCar.js';
+import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
 
 const PALETTE = [
@@ -391,7 +391,7 @@ export async function createVehicles(game) {
       vc.setWheelSuspensionStiffness(i, stiff);
       vc.setWheelSuspensionCompression(i, 0.55 * 2 * Math.sqrt(stiff));
       vc.setWheelSuspensionRelaxation(i, 0.75 * 2 * Math.sqrt(stiff));
-      vc.setWheelMaxSuspensionTravel(i, 0.25);
+      vc.setWheelMaxSuspensionTravel(i, spec.travel ?? 0.25); // library cars: compression limited to the real room under the fender
       vc.setWheelMaxSuspensionForce(i, spec.mass * 40);
       vc.setWheelFrictionSlip(i, spec.grip);
       vc.setWheelSideFrictionStiffness(i, 1.0);
@@ -1251,6 +1251,20 @@ export async function createVehicles(game) {
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();
+  // placeStatic('covered1', { x, z, heading }) -> Promise<Object3D>: a static library prop (car under a cover) with a box collider
+  async function placeStatic(key, o = {}) {
+    const rec = await loadCarModel(key); if (!rec) return null;
+    const g = buildStaticCar(key); if (!g) return null;
+    const y = o.y ?? groundY(o.x, o.z), d = g.userData.dims;
+    g.position.set(o.x, y, o.z); g.rotation.y = o.heading || 0; scene.add(g);
+    try {
+      const q = new THREE.Quaternion().setFromAxisAngle(UP, o.heading || 0);
+      const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(o.x, y + d.H / 2, o.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }));
+      world.createCollider(RAPIER.ColliderDesc.roundCuboid(d.W / 2 - 0.12, d.H / 2 - 0.12, d.L / 2 - 0.12, 0.1).setFriction(0.7), body);
+      g.userData.body = body;
+    } catch (e) { /* no physics */ }
+    return g;
+  }
   const rareDone = new Set();
   function placeRare(pp) {
     if (!fleet) return;
@@ -1958,6 +1972,6 @@ export async function createVehicles(game) {
   } catch (e) { /* no glob support (plain esbuild check) */ }
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, fleet, nicoCars, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }

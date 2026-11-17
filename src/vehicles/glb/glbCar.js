@@ -92,6 +92,18 @@ function mergeSafe(list) {
   return mergeGeometries(gs, false);
 }
 
+// collision hull: the body's extreme points along 98 directions (a convex hull of ~100 points instead of 1500; same shape)
+function hullPoints(h0, belt = 1) {
+  // mirrors stick out above the belt: points wider than the lower body are left out (the hull hugs the body, not the mirrors)
+  let wLow = 0; for (let i = 0; i < h0.length; i += 3) if (h0[i + 1] < belt - 0.05) wLow = Math.max(wLow, Math.abs(h0[i]));
+  const hs = []; for (let i = 0; i < h0.length; i += 3) if (!(wLow > 0.5 && Math.abs(h0[i]) > wLow + 0.01)) hs.push(h0[i], h0[i + 1], h0[i + 2]);
+  const h = hs, n = h.length / 3, keep = new Set(), dirs = [];
+  for (let i = 0; i < 98; i++) { const y = 1 - (i + 0.5) / 98 * 2, r = Math.sqrt(1 - y * y), a = i * 2.39996; dirs.push([Math.cos(a) * r, y, Math.sin(a) * r]); }
+  for (const d of dirs) { let best = -1, bv = -1e9; for (let i = 0; i < n; i++) { const v = h[i * 3] * d[0] + h[i * 3 + 1] * d[1] * 1.0 + h[i * 3 + 2] * d[2]; if (v > bv) { bv = v; best = i; } } keep.add(best); }
+  const out = new Float32Array(keep.size * 3); let k = 0;
+  for (const i of keep) { out[k++] = h[i * 3]; out[k++] = h[i * 3 + 1]; out[k++] = h[i * 3 + 2]; }
+  return out;
+}
 /** load (once) and convert a model; resolves to the model record or null */
 export function loadCarModel(key) {
   if (models.has(key)) return Promise.resolve(models.get(key));
@@ -122,10 +134,18 @@ export function loadCarModel(key) {
       return mergeSafe(list);
     };
     const cal = parts.caliper0 ? mergeSafe(Object.values(parts.caliper0).map((g) => prepWheel(g, true))) : null;
-    const wheel = [mergeSafe([wheelGeo('wheel0'), cal]), wheelGeo('wheel1')];
+    let wheel = [mergeSafe([wheelGeo('wheel0'), cal]), wheelGeo('wheel1')];
+    if (man.wheelDonor && man.wheelDonor !== key) { // crude source wheels (8-sided): borrow a better wheel, scaled to this tire
+      const d = await loadCarModel(man.wheelDonor);
+      if (d?.wheel?.[0]) { const k = man.r / d.man.r; wheel = d.wheel.map((g) => g && g.clone().scale(k, k, k)); }
+    }
     const wheelR = parts.wheelR0 ? [mergeSafe([wheelGeo('wheelR0'), cal]), wheelGeo('wheelR1')] : null;
     for (const L of lv) for (const k in L) if (L[k]?.isBufferGeometry) { L[k].computeBoundingSphere(); L[k].computeBoundingBox(); }
-    const rec = { key, man, lv, wheel, wheelR, hull: man.hull ? new Float32Array(man.hull) : null };
+    // body side wall at door height between the axles (door decals sit on it)
+    let sideX = 0;
+    { const P = lv[1].paint || lv[0].paint, a = P?.getAttribute('position'), s_ = man.shape, wb = man.wb, r = man.r;
+      if (a) for (let i = 0; i < a.count; i++) { const y = a.getY(i), z = a.getZ(i); if (y > s_.yb + 0.25 && y < s_.belt - 0.08 && Math.abs(z) < wb / 2 - r * 1.2) sideX = Math.max(sideX, Math.abs(a.getX(i))); } }
+    const rec = { key, man, lv, wheel, wheelR, sideX: sideX || man.dims.W / 2 - 0.1, hull: man.hull ? hullPoints(man.hull, man.shape?.belt) : null };
     models.set(key, rec);
     glbStats.loaded++; glbStats.ms += performance.now() - t0; glbStats.bytes += man.bytes || 0;
     return rec;
@@ -178,6 +198,32 @@ function texturedMaterial(src) {
   };
   m.customProgramCacheKey = () => 'ps-cartex-v1';
   return m;
+}
+// ------------------------------------------------------------------ taxi: roof sign (lit at night) + door lettering
+let _taxi = null;
+function taxiAssets() {
+  if (_taxi) return _taxi;
+  const cv = (w, h, f) => { const c = document.createElement('canvas'); c.width = w; c.height = h; f(c.getContext('2d')); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
+  const sign = cv(256, 64, (c) => { c.fillStyle = '#f7f2e4'; c.fillRect(0, 0, 256, 64); c.fillStyle = '#121212'; c.font = 'bold 30px "Arial Black", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('TAXI', 128, 34); c.fillStyle = '#121212'; for (let i = 0; i < 16; i++) c.fillRect(i * 16 + (i % 2) * 0, 0, 8, 6); });
+  const door = cv(512, 128, (c) => { c.clearRect(0, 0, 512, 128); for (let i = 0; i < 32; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 96 + j * 14, 16, 14); }
+    c.fillStyle = '#111'; c.font = 'bold 46px "Arial Black", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE CAB', 256, 64); c.font = 'bold 18px Arial, sans-serif'; c.fillText('305-555-0199', 256, 88); });
+  const signMat = new THREE.MeshStandardMaterial({ map: sign, emissiveMap: sign, emissive: new THREE.Color(0xfff0c0), emissiveIntensity: 0.4, roughness: 0.4 });
+  const doorMat = new THREE.MeshStandardMaterial({ map: door, transparent: true, roughness: 0.35, metalness: 0.05, polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false });
+  return (_taxi = { signMat, doorMat, signGeo: new THREE.BoxGeometry(0.86, 0.26, 0.3) });
+}
+function addTaxi(levels, t, M, lightMats) {
+  const A = taxiAssets();
+  const roofZ = (t.zB + t.zC) / 2, sign = new THREE.Mesh(A.signGeo, A.signMat);
+  sign.position.set(0, t.roofY + 0.12, roofZ); sign.rotation.y = Math.PI / 2;
+  const sign2 = sign.clone();
+  levels[0].add(sign); levels[1].add(sign2);
+  sign.onBeforeRender = () => { A.signMat.emissiveIntensity = Math.max(0.35, lightMats.sign?.emissiveIntensity ?? 0.4); };
+  const ln = Math.min(t.wb - 2 * (t.r + 0.2), 2.4), h = ln / 4.2, y = Math.min(t.belt - h / 2 - 0.08, t.yb + 0.25 + h / 2 + (t.belt - t.yb) * 0.25);
+  for (const sd of [1, -1]) {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(ln, h), A.doorMat);
+    p.rotation.y = sd * Math.PI / 2; p.position.set(sd * (M.sideX + 0.012), y, 0); p.renderOrder = 3;
+    levels[0].add(p); levels[1].add(p.clone());
+  }
 }
 // one wheel material for every library car (the rims keep their own baked colors; aTint = 0 everywhere)
 let _wmat = null;
@@ -248,15 +294,15 @@ export function buildGlbCar(key, look, t, info) {
     wheels.push({ steer, spin, side, front, detail: [], lo: null, tireMesh: null, flatGeo: null, tireGeo: null, x, z, r: t.r });
   });
   // visual wheel list (extra axles: children of the nearest rear node, same spin)
-  const vis = wheels.map((w, i) => { const n = new THREE.Object3D(); n.position.z = W4[i].pos[2] - w.z; w.steer.add(n); return { node: n, spin: w.spin, side: w.side }; });
+  const vis = wheels.map((w, i) => { const n = new THREE.Object3D(); n.position.z = W4[i].pos[2] - w.z; w.steer.add(n); return { node: n, spin: w.spin, side: w.side, front: w.front, virtual: !!W4[i].virtual }; }).filter((v) => !v.virtual);
   const visR = [];
   for (const e of man.extraWheels || []) {
     const zg = e.pos[2];
     const host = wheels[e.side > 0 ? 2 : 3];
     const n = new THREE.Object3D(); n.position.set(e.side * Math.abs(e.pos[0]) - host.x, 0, zg - host.z); host.steer.add(n);
-    (M.wheelR ? visR : vis).push({ node: n, spin: host.spin, side: e.side });
+    (M.wheelR ? visR : vis).push({ node: n, spin: host.spin, side: e.side, front: false });
   }
-  const front = vis.filter((w, i) => i < 2), rear = vis.filter((w, i) => i >= 2);
+  const front = vis.filter((w) => w.front), rear = vis.filter((w) => !w.front);
   for (const level of [0, 1, 2]) {
     const G = M.lv[level], g = new THREE.Group();
     if (G.paint) { const m = new THREE.Mesh(G.paint, paint); m.castShadow = level < 2; m.receiveShadow = level === 0; g.add(m); slots.paint.push(m); if (level === 0) paint0 = m; }
@@ -278,10 +324,11 @@ export function buildGlbCar(key, look, t, info) {
   lod.addLevel(levels[1], 34 * big, 0.12);
   lod.addLevel(levels[2], 105 * big, 0.12);
   shell.add(lod);
+  if (t.taxi) addTaxi(levels, t, M, lightMats);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
   contact.scale.set(t.W + 0.5, t.L + 0.7, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
   shell.add(contact);
-  const maxY = t.r + Math.max(0.03, (man.archGap ?? 0.06));
+  const maxY = t.r + (t.archGap ?? Math.max(0.04, man.archGap ?? 0.06)) + 0.015;
   const lodUpdate = lod.update.bind(lod);
   lod.update = (camera) => {
     lodUpdate(camera);
@@ -303,4 +350,22 @@ export function buildGlbCar(key, look, t, info) {
     },
   };
   return car;
+}
+
+/** a static library prop (car under a cover): LOD group of trim meshes, ground at y = 0, faces +Z */
+export function buildStaticCar(key) {
+  const M = models.get(key);
+  if (!M) return null;
+  const lod = new THREE.LOD(), trim = trimMaterial();
+  M.lv.forEach((L, i) => {
+    const g = new THREE.Group();
+    if (L.trim) { const m = new THREE.Mesh(L.trim, trim); m.castShadow = i < 2; m.receiveShadow = i === 0; g.add(m); }
+    lod.addLevel(g, [0, 30, 90][i], 0.12);
+  });
+  const root = new THREE.Group(); root.add(lod);
+  const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
+  contact.scale.set(M.man.dims.W + 0.4, M.man.dims.L + 0.5, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.02; contact.renderOrder = 1;
+  root.add(contact);
+  root.userData.dims = M.man.dims;
+  return root;
 }

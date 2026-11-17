@@ -113,14 +113,15 @@ export const fileKey = (key) => FLEET_BY_KEY[key]?.model || key;
 export function specFor(e, man) {
   const P = PHYS[e.phys] || PHYS.sedan, s = man.shape, d = man.dims;
   const spec = {
-    ...P, L: d.L, W: d.W, wb: man.wb, r: man.r, tw: Math.max(0.18, Math.min(0.4, man.tw)),
+    ...P, L: d.L, W: Math.min(d.W, s.bodyW || d.W), Wm: d.W, wb: man.wb, r: man.r, tw: Math.max(0.18, Math.min(0.4, man.tw)),
     yb: Math.max(0.1, s.yb), belt: s.belt, noseY: s.noseY, tailY: s.tailY, roofY: s.roofY,
     zA: s.zA, zB: s.zB, zC: s.zC, zD: s.zD, cabInset: 0.14,
     label: `${e.brand} ${e.name}`, cls: e.cls, arch: e.phys, vmax: (P.vmax) / 3.6, tier: e.tier, year: e.year, era: e.year < 1996 ? 0 : e.year < 2012 ? 1 : 2,
     rimColor: 0xc9ced3, caliper: 0x333333, spokes: 5, glb: true, fileKey: fileKey(e.key),
   };
-  // the converted model's suspension: the visual tire must sit on the ground at rest -> rest length from the hub height
-  // (physics body origin height = rest + r); keep the class stiffness
+  // suspension travel: compression from the resting height is limited to the measured room above the tire (arch gap), so a
+  // compressed wheel never disappears into the fender and the tire never has to be pushed into the road to hide it
+  { const sag = 9.81 / (4 * spec.susp[1]), gap = Math.max(0.04, Math.min(0.16, man.archGap ?? 0.08)); spec.travel = sag + gap; spec.archGap = gap; }
   if (e.convertible) spec.convertible = true;
   if (e.police) spec.police = e.police;
   if (e.taxi) spec.taxi = true;

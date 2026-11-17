@@ -1,0 +1,14 @@
+{
+ "keys_yard":   { "at": [-873.6, 4825.2], "eyeRel": [16, 3.2, -14], "lookRel": [0, 2, 0], "tod": 11, "hidePlayer": true },
+ "keys_air":    { "at": [-873.6, 4825.2], "eyeRel": [80, 65, -80], "lookRel": [0, 0, 0], "tod": 11, "hidePlayer": true },
+ "keys_street": { "street": [-873.6, 4825.2], "side": 1.5, "h": 1.7, "tod": 11, "hidePlayer": true },
+ "keys_shore":  { "atExpr": "(() => { const C = game.city; for (let r = 20; r < 600; r += 8) for (let k = 0; k < 48; k++) { const a = k / 48 * 6.283, x = -873.6 + Math.cos(a) * r, z = 4825.2 + Math.sin(a) * r; if (C.isWater(x, z) && !C.isWater(x - Math.cos(a) * 14, z - Math.sin(a) * 14)) return [x - Math.cos(a) * 6, z - Math.sin(a) * 6, a]; } return null; })()", "tod": 11, "hidePlayer": true },
+ "keys_road":   { "street": [-1155, 5500], "side": 3, "h": 2.0, "tod": 11, "hidePlayer": true },
+ "downtown":    { "street": [407, -110], "side": 2.2, "h": 1.8, "tod": 11, "hidePlayer": true },
+ "brickell":    { "street": [0, 1760], "side": 2.2, "h": 1.8, "tod": 11, "hidePlayer": true },
+ "beach":       { "street": [2398, 660], "side": 3, "h": 2.0, "turn": 1.2, "tod": 11, "hidePlayer": true },
+ "everglades":  { "at": [-3200, 1200], "eyeRel": [20, 3, 20], "lookRel": [0, 2, 0], "tod": 11, "hidePlayer": true },
+ "everglades_air": { "at": [-3200, 1200], "eyeRel": [120, 80, 120], "lookRel": [0, 0, 0], "tod": 11, "hidePlayer": true },
+ "homestead":   { "street": [-1320, 3190], "side": 3, "h": 1.8, "tod": 11, "hidePlayer": true },
+ "pine":        { "street": [-2000, 3600], "side": 6, "h": 2.0, "turn": 0.6, "tod": 11, "hidePlayer": true }
+}

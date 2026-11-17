@@ -1,0 +1,101 @@
+// Library plant registry (the user's Models/Trees + Models/Plants, converted by tools/v2/vegetation/build.sh into
+// public/assets/models/vegetation/<file>.glb + <file>_lod1.glb). One row per converted model:
+//   cls: palm | tree | shrub (LOD bands, wind, shape-variation defaults), src: library folder (provenance)
+//   shape / jitter overrides (see materials.js uShape / uJit), r: collider / spacing radius of the trunk (m)
+// GROUPS: the species names the placement code asks for -> the models drawn for it (several = per-instance variety).
+export const VEG_LIB = {
+  royal_palm: { cls: 'palm', src: 'Palm Tree 7 - Tall Royal Palm' },
+  coconut_palm: { cls: 'palm', src: 'Palm Tree 2 - Tall Slim Coconut Palm' },
+  coconut_b: { cls: 'palm', src: 'Palm Tree 3 - Slim Coconut Palm Trio (left)' },
+  coconut_c: { cls: 'palm', src: 'Palm Tree 3 - Slim Coconut Palm Trio (middle)' },
+  coconut_d: { cls: 'palm', src: 'Palm Tree 3 - Slim Coconut Palm Trio (right)' },
+  bent_a: { cls: 'palm', src: 'Palm Tree 8 - Low-Poly Bent Palm Trio (1)' },
+  bent_b: { cls: 'palm', src: 'Palm Tree 8 - Low-Poly Bent Palm Trio (2)' },
+  bent_c: { cls: 'palm', src: 'Palm Tree 8 - Low-Poly Bent Palm Trio (3)' },
+  bent_d: { cls: 'palm', src: 'Palm Tree 8 - Low-Poly Bent Palm Trio (4)' },
+  bent_e: { cls: 'palm', src: 'Palm Tree 8 - Low-Poly Bent Palm Trio (5)' },
+  date_palm: { cls: 'palm', src: 'Palm Tree 1 - Slender Date-Leaf Palm' },
+  tropical_palm: { cls: 'palm', src: 'Palm Tree 9 - Bright Green Tropical Palm' },
+  palm_yellow: { cls: 'palm', src: 'Palm Tree 4 - Yellow-Green Realistic Palm' },
+  weathered_a: { cls: 'palm', src: 'Palm Tree 5 - Pair Of Dark Weathered Palms (1)' },
+  weathered_b: { cls: 'palm', src: 'Palm Tree 5 - Pair Of Dark Weathered Palms (2)' },
+  sabal_palm: { cls: 'palm', src: 'Palm Tree 6 - Low Bushy Palm' },
+  banyan: { cls: 'tree', src: 'Banyan Tree 2 - Large Banyan With Hanging Roots', r: 1.2 },
+  banyan_b: { cls: 'tree', src: 'Banyan Tree 1 - Compact Banyan Tree', r: 0.6 },
+  liveoak_a: { cls: 'tree', src: 'Oak Tree 1 - Row Of Dense Oaks (1)', r: 0.5, hidden: 1 }, // crown off its trunk after the split: not placed
+  liveoak_b: { cls: 'tree', src: 'Oak Tree 1 - Row Of Dense Oaks (2)', r: 0.5 },
+  liveoak_c: { cls: 'tree', src: 'Oak Tree 1 - Row Of Dense Oaks (3)', r: 0.5 },
+  oak_gnarled: { cls: 'tree', src: 'Oak Tree 3 - Gnarled Spreading Oak', r: 0.6 },
+  poinciana: { cls: 'tree', src: 'Oak Tree 3 - Gnarled Spreading Oak (red bloom recolor)', r: 0.4 },
+  oak_pale_a: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (1)', r: 0.35 },
+  oak_pale_b: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (2)', r: 0.35 },
+  shade_tree: { cls: 'tree', src: 'Tree 1 - Fluffy Grey-Green Tree', r: 0.4 },
+  rubber_fig: { cls: 'tree', src: 'Rubber Fig Tree 1 - Dark Glossy Rubber Fig', r: 0.2, hidden: 1 }, // leaves render near-black in game light: not placed yet
+  mangrove: { cls: 'tree', src: 'Mangrove Tree 2 - Red Mangrove With Stilt Roots (crown and trunk only: used as buttonwood)', r: 0.3, shape: [0, 0.05, 0.7, 0.004] },
+  mangrove_b: { cls: 'tree', src: 'Mangrove Tree 1 - Low-Poly Mangrove With Mud Base (stilt roots, mud plate dropped)', r: 0.3, shape: [0, 0.06, 0.9, 0.004] },
+  pine_a: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 1)', r: 0.3 },
+  pine_b: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 2)', r: 0.3 },
+  pine_c: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 3)', r: 0.25 },
+  bush_round: { cls: 'shrub', src: 'Shrub 1 - Round Green Cliff Shrub' },
+  bush_leafy: { cls: 'shrub', src: 'Shrub 6 - Low-Poly Leafy Bush' },
+  agave: { cls: 'shrub', src: 'Shrub 2 - Blue Agave Rosette', shape: [0, 0.02, 1.2, 0] },
+  red_grass: { cls: 'shrub', src: 'Shrub 3 - Red Grass Cards' },
+  fern_clump: { cls: 'shrub', src: 'Shrub 5 - Low-Poly Fern Clump' },
+  fern_a: { cls: 'shrub', src: 'Fern 1 - Four Lush Fern Plants With Alpha Cards (1)' },
+  fern_b: { cls: 'shrub', src: 'Fern 1 - Four Lush Fern Plants With Alpha Cards (2)' },
+  fern_c: { cls: 'shrub', src: 'Fern 1 - Four Lush Fern Plants With Alpha Cards (3)' },
+  bougainvillea: { cls: 'shrub', src: 'Shrub 1 - Round Green Cliff Shrub (magenta bloom on half the leaf cards)' },
+  bougainvillea_b: { cls: 'shrub', src: 'Shrub 6 - Low-Poly Leafy Bush (pink bloom on half the leaf cards)' },
+  hibiscus: { cls: 'shrub', src: 'Shrub 6 - Low-Poly Leafy Bush (red bloom on a fifth of the leaf cards)' },
+  oleander: { cls: 'shrub', src: 'Flower 2 - Flowering White Shrub' },
+  flower_bush_a: { cls: 'shrub', src: 'Flower Bush 1 - Low-Poly Pink-Flower Bushes (1)' },
+  flower_bush_b: { cls: 'shrub', src: 'Flower Bush 1 - Low-Poly Pink-Flower Bushes (2)' },
+  tropical_bed: { cls: 'shrub', src: 'Foliage Set 1 - Tropical Fern And Palm Foliage' },
+  potted_ficus: { cls: 'shrub', src: 'Potted Plant 1 - Rubber Plant In Clay Pot', shape: [0, 0.02, 0.4, 0] },
+  grass_tuft_a: { cls: 'shrub', src: 'Grass Clump 1 - Medium Grass Clumps With Dry Variant (green)' },
+  grass_tuft_b: { cls: 'shrub', src: 'Grass Clump 1 - Medium Grass Clumps With Dry Variant (dry)' },
+};
+
+// per class: LOD bands handled by the callers; shader variation defaults (shape = [height (filled at load), bend, twist rad, droop])
+export const CLS = {
+  palm: { shape: [0, 0.085, 0.35, 0.035], jitLeaf: [0.35, 0.2, 0.1], jitBark: [0.15, 0.12, 0.1], lean: 0.006, sway: 0.0035 },
+  tree: { shape: [0, 0.045, 0.55, 0.004], jitLeaf: [0.3, 0.18, 0.1], jitBark: [0.12, 0.1, 0.1], lean: 0.004, sway: 0.0028 },
+  shrub: { shape: [0, 0.06, 0.8, 0.02], jitLeaf: [0.3, 0.2, 0.12], jitBark: [0.1, 0.1, 0.1], lean: 0.02, sway: 0.006 },
+};
+
+// species groups used by placement (countryside biomes, street trees, set pieces, game.vegetation.place)
+export const GROUPS = {
+  royal: ['royal_palm'],
+  coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'],
+  coconut_bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e', 'coconut_b', 'coconut_d'],
+  date: ['date_palm'],
+  queen: ['tropical_palm', 'palm_yellow'],
+  sabal: ['sabal_palm', 'weathered_a', 'weathered_b'],
+  palm_mix: ['coconut_palm', 'coconut_c', 'tropical_palm', 'palm_yellow', 'date_palm', 'weathered_a'],
+  banyan: ['banyan', 'banyan_b'],
+  liveoak: ['liveoak_b', 'liveoak_c', 'oak_gnarled'],
+  oak: ['liveoak_b', 'liveoak_c', 'oak_gnarled', 'oak_pale_b'],
+  buttonwood: ['mangrove', 'oak_pale_a'],
+  shade: ['shade_tree', 'banyan_b', 'oak_pale_a', 'oak_pale_b'],
+  gumbo: ['shade_tree', 'oak_pale_b'],
+  poinciana: ['poinciana'],
+  mangrove: ['mangrove_b'],
+  pine: ['pine_a', 'pine_b', 'pine_c'],
+  hedge: ['bush_round', 'bush_leafy'],
+  shrub: ['bush_round', 'bush_leafy', 'fern_clump'],
+  seagrape: ['bush_leafy', 'bush_round'],
+  bougainvillea: ['bougainvillea', 'bougainvillea_b'],
+  hibiscus: ['hibiscus', 'flower_bush_a', 'flower_bush_b'],
+  oleander: ['oleander'],
+  flowers: ['bougainvillea', 'bougainvillea_b', 'hibiscus', 'oleander', 'flower_bush_a', 'flower_bush_b'],
+  fern: ['fern_a', 'fern_b', 'fern_c', 'fern_clump'],
+  agave: ['agave'],
+  red_grass: ['red_grass'],
+  tropical_bed: ['tropical_bed'],
+  potted: ['potted_ficus'],
+  grass_tuft: ['grass_tuft_a', 'grass_tuft_b'],
+};
+// kind names used elsewhere in the game -> group
+export const GROUP_ALIAS = { coconut_palm: 'coconut', royal_palm: 'royal', sabal_palm: 'sabal', cabbage_palm: 'sabal', date_palm: 'date', queen_palm: 'queen', palm: 'palm_mix',
+  live_oak: 'liveoak', sea_grape: 'seagrape', slash_pine: 'pine', slashpine: 'pine', gumbo_limbo: 'gumbo', banyan_tree: 'banyan', flower: 'flowers', bush: 'shrub', fern_clump: 'fern', ferns: 'fern' };
+export const groupOf = (kind) => GROUPS[kind] ? kind : GROUP_ALIAS[kind] && GROUPS[GROUP_ALIAS[kind]] ? GROUP_ALIAS[kind] : null;

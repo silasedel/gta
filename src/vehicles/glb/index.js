@@ -102,6 +102,8 @@ export async function initFleet(cat, opts = {}) {
     // no lower-body two-tone on library models; black roofs on a few modern cars only
     if (L.twoTone && (L.twoTone.y != null || t.classic || t.convertible || e.service || e.police || r() < 0.6)) L.twoTone = null;
     if (e.livery === 'police') L.twoTone = null;
+    // pre-existing dents clone the 80k-triangle paint shell per car: beaters only, at most one
+    L.dents = (L.wear?.age ?? 0) > 0.62 ? (L.dents || []).slice(0, 1) : [];
     if (e.service || e.police || e.taxi) { L.finish = 'gloss'; L.wear.dirt = Math.min(L.wear.dirt, 0.12); L.wear.rust = 0; }
     if (e.rare) { L.wear.dirt = Math.min(L.wear.dirt, 0.03); L.wear.rust = 0; L.wear.fade = 0; L.finish = r() < 0.5 ? 'metallic' : 'gloss'; }
     return L;

@@ -28,7 +28,26 @@ float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): pal
   float c = sin(6.2831 * ((along - s * 0.6 * t) / 9.5) + across * 0.11 + 4.1);
   return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
 }
-varying vec2 vVegHash; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
+varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
+uniform vec4 uShape; uniform float uCrownY; // model height, bend, twist (rad), frond droop; crown attachment height (m)
+float vegInstH() {
+#ifdef USE_INSTANCING
+  vec3 p = (modelMatrix * vec4(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2], 1.0)).xyz;
+#else
+  vec3 p = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+#endif
+  return fract(sin(dot(p.xz, vec2(12.9898, 78.233))) * 43758.5453);
+}
+bool vegMirrored() { return fract(vegInstH() * 173.31 + 0.27) > 0.5; }
+`;
+const VERT_MIRROR_N = `
+#if defined(VEG_MIRROR) && !defined(VEG_IMP)
+  if (vegMirrored()) { objectNormal.x = -objectNormal.x;
+  #ifdef USE_TANGENT
+    objectTangent.x = -objectTangent.x;
+  #endif
+  }
+#endif
 `;
 const VERT_BODY = `
 #ifdef USE_INSTANCING
@@ -38,8 +57,25 @@ const VERT_BODY = `
 #endif
   vec3 vIw = (modelMatrix * vec4(vIp, 1.0)).xyz;
   float vh = fract(sin(dot(vIw.xz, vec2(12.9898, 78.233))) * 43758.5453);
-  float vh2 = fract(vh * 91.7 + 0.13);
-  vVegHash = vec2(vh, vh2); vVegFl = aWind.y;
+  float vh2 = fract(vh * 91.7 + 0.13), vh3 = fract(vh * 37.13 + 0.61), vh4 = fract(vh * 251.9 + 0.37), vh5 = fract(vh * 13.71 + 0.83), vh6 = fract(vh * 547.3 + 0.19);
+  vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y;
+#ifndef VEG_IMP
+#ifdef VEG_MIRROR
+  if (fract(vh * 173.31 + 0.27) > 0.5) transformed.x = -transformed.x; // per-instance mirror (normals flipped in beginnormal)
+#endif
+  if (uShape.x > 0.0) { // per-instance shape: trunk twist + S-bend, crown spread, frond droop (all grow with height, the base stays planted)
+    float st = clamp(transformed.y / uShape.x, 0.0, 1.0);
+    float tw = uShape.z * (vh5 - 0.5) * 2.0 * st, ct = cos(tw), sn = sin(tw);
+    transformed.xz = mat2(ct, sn, -sn, ct) * transformed.xz;
+    vec2 bd = vec2(cos(vh3 * 6.2831), sin(vh3 * 6.2831));
+    transformed.xz += bd * uShape.y * uShape.x * (vh4 - 0.35) * (st * st - 0.35 * st * st * st);
+    if (aWind.y > 0.0 && transformed.y > uCrownY) {
+      float cr = length(transformed.xz), sp = 1.0 + 0.18 * (vh6 - 0.5);
+      transformed.xz *= sp;
+      transformed.y -= uShape.w * (vh6 - 0.3) * cr * cr * aWind.y;
+    }
+  }
+#endif
   float bh = max(aWind.x, 0.0), bend = pow(bh, 1.6);
   vec2 ld = vec2(cos(vh * 6.2831), sin(vh * 6.2831));
   transformed.xz += ld * bend * uLean * (vh2 - 0.25);
@@ -59,7 +95,8 @@ const VERT_BODY = `
 `;
 const FRAG_HEAD = `
 uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt; uniform float uFrameN;
-varying vec2 vVegHash; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
+uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
+varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
 float vegDither() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }
 float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
 `;
@@ -77,6 +114,13 @@ const FRAG_COLOR = `
     if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard;
     vec3 tj = vec3(0.92 + 0.16 * vVegHash.x, 0.93 + 0.14 * vVegHash.y, 0.88 + 0.2 * fract(vVegHash.x * 13.7));
     diffuseColor.rgb *= mix(vec3(1.0), tj, uTintAmt);
+    {
+      vec3 c = diffuseColor.rgb * uGrade.rgb; float l0 = dot(c, vec3(0.2126, 0.7152, 0.0722));
+      float hj = uJit.x * (vVegHash2.x - 0.5) * 2.0, sj = uGrade.w * (1.0 + uJit.y * (vVegHash2.y - 0.5) * 2.0), bj = 1.0 + uJit.z * (fract(vVegHash.x * 7.31 + vVegHash2.y) - 0.5) * 2.0;
+      c *= vec3(1.0 + 0.5 * hj, 1.0 + 0.08 * hj, 1.0 - 0.8 * hj); // warm (sun-bleached, yellower) <-> cool (shaded, bluer green)
+      float l1 = dot(c, vec3(0.2126, 0.7152, 0.0722)); c *= l0 / max(l1, 1e-4);
+      diffuseColor.rgb = max(mix(vec3(l0), c, sj) * bj, 0.0);
+    }
     float wear = uWear * smoothstep(0.35, 1.0, vVegHash.y);
     float lum = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
     vec3 dry = vec3(lum * 1.25, lum * 1.05, lum * 0.45);
@@ -108,9 +152,13 @@ const IMP_NORMAL = `
     vec3 camL = (inverse(impM) * vec4(uVegCamOn > 0.5 ? uVegCam : cameraPosition, 1.0)).xyz;
     impDir = camL.xz; float l = length(impDir); impDir = l > 1e-4 ? impDir / l : vec2(0.0, 1.0);
     objectNormal = normalize(vec3(impDir.x, 0.0, impDir.y) * 0.45 + vec3(0.0, 0.9, 0.0));
-    float V = uImp.x, ph = atan(impDir.x, impDir.y) / 6.2831853; ph = ph < 0.0 ? ph + 1.0 : ph;
+    vec2 vd = impDir; float ux = uv.x;
+  #ifdef VEG_MIRROR
+    if (vegMirrored()) { vd.x = -vd.x; ux = 1.0 - ux; } // a mirrored plant seen from azimuth a = the baked plant seen from -a, flipped
+  #endif
+    float V = uImp.x, ph = atan(vd.x, vd.y) / 6.2831853; ph = ph < 0.0 ? ph + 1.0 : ph;
     float fk = ph * V, k0 = floor(fk); vImpF = fk - k0; float k1 = mod(k0 + 1.0, V); k0 = mod(k0, V);
-    vImpUv0 = vec2((k0 + uv.x) / V, uv.y); vImpUv1 = vec2((k1 + uv.x) / V, uv.y);
+    vImpUv0 = vec2((k0 + ux) / V, uv.y); vImpUv1 = vec2((k1 + ux) / V, uv.y);
   }
 `;
 const IMP_POS = `
@@ -134,11 +182,12 @@ function patch(kind, local) {
       sh.vertexShader = IMP_VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', IMP_NORMAL).replace('#include <begin_vertex>', IMP_POS);
       sh.fragmentShader = IMP_FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment_imp>');
     }
-    sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
+    sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
+      else if (local.uMirrorOn && local.uMirrorOn.value) sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // mirrored bark: winding flips, keep the transformed normal
     } else { // depth material: dither only
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <alphatest_fragment>', `#include <alphatest_fragment>
         { float dn = vegDitherS(); if (uFade.y > 0.0 && dn >= smoothstep(uFade.x, uFade.y, vVegDist)) discard; if (uFade.w > 0.0 && dn < smoothstep(uFade.z, uFade.w, vVegDist)) discard; }`);
@@ -149,7 +198,9 @@ function patch(kind, local) {
 function localUniforms(o) {
   const im = o.map && o.map.userData && o.map.userData.impostor;
   return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
-    uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) } };
+    uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
+    uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.
@@ -165,11 +216,16 @@ export function makeVegMaterial(family, o = {}) {
     const map = family === 'imp' || o.map ? o.map : leafAtlas().map;
     mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: true });
   }
+  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = '';
+  if (o.mirror && family === 'bark') mat.side = THREE.DoubleSide; // mirrored instances flip the winding
+  mat.defines = { ...(mat.defines || {}), ...defs };
+  const pk = 'veg-' + family + (o.mirror ? '-m' : '');
   mat.onBeforeCompile = patch(family, u);
-  mat.customProgramCacheKey = () => 'veg-' + family;
+  mat.customProgramCacheKey = () => pk;
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' || family === 'plain' ? null : mat.map, alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });
+  depth.defines = { ...(depth.defines || {}), ...defs }; if (o.mirror) depth.side = THREE.DoubleSide;
   depth.onBeforeCompile = patch('depth', u);
-  depth.customProgramCacheKey = () => 'veg-depth-' + family;
+  depth.customProgramCacheKey = () => 'veg-depth-' + family + (o.mirror ? '-m' : '');
   mat.userData.veg = { family, u, depth };
   return { mat, depth, u };
 }

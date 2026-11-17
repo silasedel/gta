@@ -76,3 +76,12 @@ Medium to big, downloaded, textured, game-ready (under ~50k triangles each if po
 | 1 | Marina floating dock + boat slips | marina | "marina dock" |
 | 1 | Airport hangar + control tower | airport | "hangar", "control tower" |
 | 1 | Farm barn + silo | farmland | "barn", "silo" |
+
+## Cars (from the cars helper, Nov 17)
+| Priority | Count | Item | Use | Size | Search words |
+|---|---|---|---|---|---|
+| P1 | 1 | Late-1950s American full-size sedan with tail fins (4-door, chrome bumpers), any condition | Nico's yard in the user's mock-up (old rusty pale-blue classic); today the '65 drop-top (Convertible 1) stands in | medium | "1959 sedan tail fins", "50s classic car", "old american car fins" |
+| P1 | 2-3 | Full-size pickups (regular cab, crew cab, an older 90s one) | the Keys and rural roads should be full of pickups; only Truck 2 is usable (Truck 1 is personal use only) | medium | "pickup truck", "f150 style truck", "old pickup 1990s" |
+| P2 | 2 | Minivan, compact hatch (cheap city car) | everyday traffic variety | medium | "minivan", "compact hatchback" |
+| P2 | 1 | Garbage truck, tow truck | service traffic (procedural stand-ins today) | big | "garbage truck", "tow truck wrecker" |
+| P3 | 1 | City bus | the bus is the last procedural road vehicle | big | "city bus" |

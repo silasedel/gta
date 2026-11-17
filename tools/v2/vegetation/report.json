@@ -1,0 +1,3008 @@
+{
+ "bent_a": {
+  "key": "bent_a",
+  "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+  "tris_src": 1284,
+  "tris0": 1284,
+  "tris1": 1284,
+  "leaf0": [
+   1284,
+   1284
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1284,
+   1284
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 10.0,
+  "radius": 4.572,
+  "crownFrom": 0.306,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Material Color:leaf": {
+    "before": [
+     66.0,
+     0.292,
+     0.283
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 207,
+  "kb1": 55
+ },
+ "date_palm": {
+  "key": "date_palm",
+  "src": "Models/Trees/Palm Tree 1 - Slender Date-Leaf Palm/Palm Tree 1.blend",
+  "tris_src": 1562,
+  "tris0": 1562,
+  "tris1": 1562,
+  "leaf0": [
+   800,
+   800
+  ],
+  "bark0": [
+   762,
+   762
+  ],
+  "leaf1": [
+   800,
+   800
+  ],
+  "bark1": [
+   762,
+   762
+  ],
+  "height": 9.0,
+  "radius": 2.622,
+  "crownFrom": 0.617,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Palm02 Color:bark": {
+    "before": [
+     26.5,
+     0.359,
+     0.74
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Date Palm Leaf Color:leaf": {
+    "before": [
+     66.6,
+     0.868,
+     0.62
+    ],
+    "target": [
+     74,
+     0.4,
+     0.44
+    ]
+   }
+  },
+  "kb0": 432,
+  "kb1": 153
+ },
+ "pine_b": {
+  "key": "pine_b",
+  "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+  "tris_src": 624,
+  "tris0": 624,
+  "tris1": 624,
+  "leaf0": [
+   286,
+   286
+  ],
+  "bark0": [
+   338,
+   338
+  ],
+  "leaf1": [
+   286,
+   286
+  ],
+  "bark1": [
+   338,
+   338
+  ],
+  "height": 17.0,
+  "radius": 4.908,
+  "crownFrom": 0.162,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Tree Branches 01 Color:leaf": {
+    "before": [
+     110.1,
+     0.181,
+     0.272
+    ],
+    "target": [
+     95,
+     0.32,
+     0.36
+    ]
+   }
+  },
+  "kb0": 296,
+  "kb1": 38
+ },
+ "weathered_b": {
+  "key": "weathered_b",
+  "src": "Models/Trees/Palm Tree 5 - Pair Of Dark Weathered Palms/Palm Tree 5.blend",
+  "tris_src": 8912,
+  "tris0": 6545,
+  "tris1": 2106,
+  "leaf0": [
+   2104,
+   2104
+  ],
+  "bark0": [
+   6808,
+   4441
+  ],
+  "leaf1": [
+   2104,
+   2104
+  ],
+  "bark1": [
+   4441,
+   2
+  ],
+  "height": 15.0,
+  "radius": 5.092,
+  "crownFrom": 0.457,
+  "bottom": -0.001,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Bark Hair Inst Color:bark": {
+    "before": [
+     28.4,
+     0.279,
+     0.229
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Frond 01 Inst Color:leaf": {
+    "before": [
+     35.7,
+     0.455,
+     0.263
+    ],
+    "target": [
+     76,
+     0.42,
+     0.42
+    ]
+   }
+  },
+  "kb0": 800,
+  "kb1": 105
+ },
+ "palm_yellow": {
+  "key": "palm_yellow",
+  "src": "Models/Trees/Palm Tree 4 - Yellow-Green Realistic Palm/Palm Tree 4.blend",
+  "tris_src": 1812,
+  "tris0": 1812,
+  "tris1": 1812,
+  "leaf0": [
+   1812,
+   1812
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1812,
+   1812
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 8.5,
+  "radius": 2.333,
+  "crownFrom": 0.21,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Color:leaf": {
+    "before": [
+     62.5,
+     0.705,
+     0.534
+    ],
+    "target": [
+     80,
+     0.45,
+     0.4
+    ]
+   }
+  },
+  "kb0": 155,
+  "kb1": 59
+ },
+ "hibiscus": {
+  "key": "hibiscus",
+  "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+  "tris_src": 334,
+  "tris0": 334,
+  "tris1": 334,
+  "leaf0": [
+   334,
+   334
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   334,
+   334
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.6,
+  "radius": 2.11,
+  "crownFrom": 0.119,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "leafbloom"
+  ],
+  "grades": {
+   "Gbushy Color:leaf": {
+    "before": [
+     80.5,
+     0.509,
+     0.703
+    ],
+    "target": [
+     92,
+     0.5,
+     0.34
+    ]
+   }
+  },
+  "kb0": 175,
+  "kb1": 24
+ },
+ "pine_c": {
+  "key": "pine_c",
+  "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+  "tris_src": 624,
+  "tris0": 624,
+  "tris1": 624,
+  "leaf0": [
+   286,
+   286
+  ],
+  "bark0": [
+   338,
+   338
+  ],
+  "leaf1": [
+   286,
+   286
+  ],
+  "bark1": [
+   338,
+   338
+  ],
+  "height": 11.0,
+  "radius": 3.175,
+  "crownFrom": 0.162,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Tree Branches 01 Color:leaf": {
+    "before": [
+     110.1,
+     0.181,
+     0.272
+    ],
+    "target": [
+     95,
+     0.32,
+     0.36
+    ]
+   }
+  },
+  "kb0": 295,
+  "kb1": 37
+ },
+ "mangrove": {
+  "key": "mangrove",
+  "src": "Models/Trees/Mangrove Tree 2 - Red Mangrove With Stilt Roots/Mangrove Tree 2.blend",
+  "tris_src": 406008,
+  "tris0": 31107,
+  "tris1": 8003,
+  "leaf0": [
+   249184,
+   13984
+  ],
+  "bark0": [
+   156824,
+   17123
+  ],
+  "leaf1": [
+   13984,
+   4011
+  ],
+  "bark1": [
+   17123,
+   3992
+  ],
+  "height": 6.993,
+  "radius": 2.786,
+  "crownFrom": 0.545,
+  "bottom": 0.531,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Cap 03 Mat Color:bark": {
+    "before": [
+     321.9,
+     0.069,
+     0.438
+    ],
+    "target": [
+     28,
+     0.16,
+     0.36
+    ]
+   },
+   "Cap 03 Mat Color:leaf": {
+    "before": [
+     65.0,
+     0.493,
+     0.477
+    ],
+    "target": [
+     96,
+     0.48,
+     0.34
+    ]
+   }
+  },
+  "kb0": 1819,
+  "kb1": 376
+ },
+ "bougainvillea": {
+  "key": "bougainvillea",
+  "src": "Models/Plants/Shrub 1 - Round Green Cliff Shrub/Shrub 1.blend",
+  "tris_src": 244,
+  "tris0": 244,
+  "tris1": 244,
+  "leaf0": [
+   244,
+   244
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   244,
+   244
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.7,
+  "radius": 1.238,
+  "crownFrom": 0.11,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "leafbloom"
+  ],
+  "grades": {
+   "Gbushy Color:leaf": {
+    "before": [
+     80.5,
+     0.82,
+     0.592
+    ],
+    "target": [
+     88,
+     0.48,
+     0.38
+    ]
+   }
+  },
+  "kb0": 365,
+  "kb1": 18
+ },
+ "grass_tuft_a": {
+  "key": "grass_tuft_a",
+  "src": "Models/Plants/Grass Clump 1 - Medium Grass Clumps With Dry Variant/Grass Clump 1.blend",
+  "tris_src": 3704,
+  "tris0": 2983,
+  "tris1": 318,
+  "leaf0": [
+   3704,
+   2983
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   2983,
+   318
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.441,
+  "radius": 0.589,
+  "crownFrom": 0.0,
+  "bottom": -0.019,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Grass Medium 02 Diffuse:leaf": {
+    "before": [
+     64.5,
+     0.36,
+     0.585
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 184,
+  "kb1": 11
+ },
+ "oak_pale_b": {
+  "key": "oak_pale_b",
+  "src": "Models/Trees/Oak Tree 4 - Pair Of Pale-Green Oaks/Oak Tree 4.blend",
+  "tris_src": 8032,
+  "tris0": 6724,
+  "tris1": 2078,
+  "leaf0": [
+   2060,
+   2060
+  ],
+  "bark0": [
+   5972,
+   4664
+  ],
+  "leaf1": [
+   2060,
+   2060
+  ],
+  "bark1": [
+   4664,
+   18
+  ],
+  "height": 10.0,
+  "radius": 5.586,
+  "crownFrom": 0.263,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Leaf1 Color:leaf": {
+    "before": [
+     54.1,
+     0.608,
+     0.48
+    ],
+    "target": [
+     84,
+     0.4,
+     0.4
+    ]
+   },
+   "Bark1 Color:bark": {
+    "before": [
+     37.7,
+     0.333,
+     0.405
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 825,
+  "kb1": 74
+ },
+ "potted_ficus": {
+  "key": "potted_ficus",
+  "src": "Models/Plants/Potted Plant 1 - Rubber Plant In Clay Pot/Potted Plant 1.blend",
+  "tris_src": 1216,
+  "tris0": 1216,
+  "tris1": 1216,
+  "leaf0": [
+   1216,
+   1216
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1216,
+   1216
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.4,
+  "radius": 0.711,
+  "crownFrom": 0.089,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Ficus Color:leaf": {
+    "before": [
+     65.1,
+     0.633,
+     0.432
+    ],
+    "target": [
+     100,
+     0.5,
+     0.32
+    ]
+   }
+  },
+  "kb0": 241,
+  "kb1": 35
+ },
+ "poinciana": {
+  "key": "poinciana",
+  "src": "Models/Trees/Oak Tree 3 - Gnarled Spreading Oak/Oak Tree 3.blend",
+  "tris_src": 8364,
+  "tris0": 5696,
+  "tris1": 1635,
+  "leaf0": [
+   1024,
+   1024
+  ],
+  "bark0": [
+   7340,
+   4672
+  ],
+  "leaf1": [
+   1024,
+   1024
+  ],
+  "bark1": [
+   4672,
+   611
+  ],
+  "height": 8.5,
+  "radius": 6.167,
+  "crownFrom": 0.187,
+  "bottom": -0.001,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "leafbloom"
+  ],
+  "grades": {
+   "Mossybark02 Color:bark": {
+    "before": [
+     30.0,
+     0.289,
+     0.541
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Oak Leaf Color:leaf": {
+    "before": [
+     88.2,
+     0.994,
+     0.301
+    ],
+    "target": [
+     88,
+     0.5,
+     0.4
+    ]
+   }
+  },
+  "kb0": 1134,
+  "kb1": 165
+ },
+ "liveoak_c": {
+  "key": "liveoak_c",
+  "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+  "tris_src": 136965,
+  "tris0": 22110,
+  "tris1": 7708,
+  "leaf0": [
+   78240,
+   18110
+  ],
+  "bark0": [
+   58725,
+   4000
+  ],
+  "leaf1": [
+   18110,
+   4977
+  ],
+  "bark1": [
+   4000,
+   2731
+  ],
+  "height": 11.028,
+  "radius": 8.528,
+  "crownFrom": 0.313,
+  "bottom": -0.003,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Foliage Color:leaf": {
+    "before": [
+     82.3,
+     0.608,
+     0.382
+    ],
+    "target": [
+     86,
+     0.42,
+     0.36
+    ]
+   },
+   "Bark Color:bark": {
+    "before": [
+     26.6,
+     0.411,
+     0.246
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 2093,
+  "kb1": 502
+ },
+ "fern_c": {
+  "key": "fern_c",
+  "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+  "tris_src": 784,
+  "tris0": 784,
+  "tris1": 784,
+  "leaf0": [
+   784,
+   784
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   784,
+   784
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.45,
+  "radius": 0.536,
+  "crownFrom": 0.101,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Fern 02 Color:leaf": {
+    "before": [
+     77.9,
+     0.638,
+     0.354
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 127,
+  "kb1": 22
+ },
+ "tropical_palm": {
+  "key": "tropical_palm",
+  "src": "Models/Trees/Palm Tree 9 - Bright Green Tropical Palm/Palm Tree 9.blend",
+  "tris_src": 3461,
+  "tris0": 3461,
+  "tris1": 3461,
+  "leaf0": [
+   3333,
+   3333
+  ],
+  "bark0": [
+   128,
+   128
+  ],
+  "leaf1": [
+   3333,
+   3333
+  ],
+  "bark1": [
+   128,
+   128
+  ],
+  "height": 11.0,
+  "radius": 4.525,
+  "crownFrom": 0.752,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Palm Leaves Color:leaf": {
+    "before": [
+     100.0,
+     0.764,
+     0.42
+    ],
+    "target": [
+     84,
+     0.42,
+     0.38
+    ]
+   },
+   "Palm Trunk Color:bark": {
+    "before": [
+     357.9,
+     0.017,
+     0.104
+    ],
+    "target": [
+     32,
+     0.18,
+     0.3
+    ]
+   }
+  },
+  "kb0": 250,
+  "kb1": 106
+ },
+ "tropical_bed": {
+  "key": "tropical_bed",
+  "src": "Models/Plants/Foliage Set 1 - Tropical Fern And Palm Foliage/Foliage Set 1.blend",
+  "tris_src": 43804,
+  "tris0": 9834,
+  "tris1": 2135,
+  "leaf0": [
+   43804,
+   9834
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   9834,
+   2135
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.85,
+  "radius": 1.767,
+  "crownFrom": 0.016,
+  "bottom": -0.07,
+  "mats": [
+   "leaf_0",
+   "leaf_1",
+   "leaf_2",
+   "leaf_3",
+   "leaf_4",
+   "leaf_5"
+  ],
+  "grades": {
+   "Fern Color:leaf": {
+    "before": [
+     79.9,
+     0.577,
+     0.454
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   },
+   "Fern1 Color:leaf": {
+    "before": [
+     87.1,
+     0.547,
+     0.424
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   },
+   "Skin Color:leaf": {
+    "before": [
+     78.8,
+     0.486,
+     0.514
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   },
+   "Material 1 Color:leaf": {
+    "before": [
+     56.1,
+     0.397,
+     0.533
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   },
+   "Palm Plant Color:leaf": {
+    "before": [
+     76.6,
+     0.695,
+     0.456
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   },
+   "Material 2 Color:leaf": {
+    "before": [
+     93.4,
+     0.413,
+     0.399
+    ],
+    "target": [
+     92,
+     0.5,
+     0.38
+    ]
+   }
+  },
+  "kb0": 1190,
+  "kb1": 73
+ },
+ "fern_b": {
+  "key": "fern_b",
+  "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+  "tris_src": 2248,
+  "tris0": 2248,
+  "tris1": 1176,
+  "leaf0": [
+   2248,
+   2248
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   2248,
+   1176
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.6,
+  "radius": 0.829,
+  "crownFrom": 0.084,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Fern 02 Color:leaf": {
+    "before": [
+     77.9,
+     0.638,
+     0.354
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 167,
+  "kb1": 33
+ },
+ "liveoak_b": {
+  "key": "liveoak_b",
+  "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+  "tris_src": 70194,
+  "tris0": 22218,
+  "tris1": 6312,
+  "leaf0": [
+   39696,
+   18218
+  ],
+  "bark0": [
+   30498,
+   4000
+  ],
+  "leaf1": [
+   18218,
+   4969
+  ],
+  "bark1": [
+   4000,
+   1343
+  ],
+  "height": 12.026,
+  "radius": 8.527,
+  "crownFrom": 0.204,
+  "bottom": -0.009,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Foliage Color:leaf": {
+    "before": [
+     82.3,
+     0.608,
+     0.382
+    ],
+    "target": [
+     86,
+     0.42,
+     0.36
+    ]
+   },
+   "Bark Color:bark": {
+    "before": [
+     26.6,
+     0.411,
+     0.246
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 2092,
+  "kb1": 428
+ },
+ "flower_bush_a": {
+  "key": "flower_bush_a",
+  "src": "Models/Plants/Flower Bush 1 - Low-Poly Pink-Flower Bushes/Flower Bush 1.blend",
+  "tris_src": 385,
+  "tris0": 385,
+  "tris1": 385,
+  "leaf0": [
+   385,
+   385
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   385,
+   385
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.2,
+  "radius": 1.302,
+  "crownFrom": 0.074,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Material Color:leaf": {
+    "before": [
+     132.3,
+     0.572,
+     0.432
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 153,
+  "kb1": 18
+ },
+ "oleander": {
+  "key": "oleander",
+  "src": "Models/Plants/Flower 2 - Flowering White Shrub/Flower 2.blend",
+  "tris_src": 194223,
+  "tris0": 26753,
+  "tris1": 6705,
+  "leaf0": [
+   183070,
+   25254
+  ],
+  "bark0": [
+   11153,
+   1499
+  ],
+  "leaf1": [
+   25254,
+   6405
+  ],
+  "bark1": [
+   1499,
+   300
+  ],
+  "height": 1.904,
+  "radius": 0.888,
+  "crownFrom": 0.107,
+  "bottom": -0.026,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "leaf_2"
+  ],
+  "grades": {
+   "Bark 01 LargeF Mat A:bark": {
+    "before": [
+     28.1,
+     0.331,
+     0.278
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Leaf Green LargeF Mat A:leaf": {
+    "before": [
+     98.6,
+     0.589,
+     0.422
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1049,
+  "kb1": 205
+ },
+ "royal_palm": {
+  "key": "royal_palm",
+  "src": "Models/Trees/Palm Tree 7 - Tall Royal Palm/Palm Tree 7.blend",
+  "tris_src": 255672,
+  "tris0": 14399,
+  "tris1": 3500,
+  "leaf0": [
+   202980,
+   12000
+  ],
+  "bark0": [
+   52692,
+   2399
+  ],
+  "leaf1": [
+   12000,
+   3000
+  ],
+  "bark1": [
+   2087,
+   500
+  ],
+  "height": 16.974,
+  "radius": 3.936,
+  "crownFrom": 0.621,
+  "bottom": 0.003,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "leaf_2",
+   "leaf_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6",
+   "leaf_7"
+  ],
+  "grades": {
+   "Roy Trunk Color:bark": {
+    "before": [
+     251.1,
+     0.07,
+     0.533
+    ],
+    "target": [
+     40,
+     0.07,
+     0.62
+    ]
+   },
+   "Roy Crownshaft Color:bark": {
+    "before": [
+     17.4,
+     0.353,
+     0.365
+    ],
+    "target": [
+     95,
+     0.22,
+     0.5
+    ]
+   },
+   "Roy Leaf Stalk 01 Color:leaf": {
+    "before": [
+     74.8,
+     0.56,
+     0.44
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   },
+   "Roy Leaflet 01 Color:leaf": {
+    "before": [
+     67.9,
+     0.652,
+     0.432
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   },
+   "Roy Leaf Stalk 02 Color:leaf": {
+    "before": [
+     65.3,
+     0.737,
+     0.476
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   },
+   "Roy Leaflet 02 Color:leaf": {
+    "before": [
+     68.7,
+     0.671,
+     0.415
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   },
+   "Roy Leaflet 03 Color:leaf": {
+    "before": [
+     69.1,
+     0.68,
+     0.418
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   },
+   "Roy Leaf Stalk 03 Color:leaf": {
+    "before": [
+     58.9,
+     0.833,
+     0.526
+    ],
+    "target": [
+     80,
+     0.48,
+     0.44
+    ]
+   }
+  },
+  "kb0": 792,
+  "kb1": 282
+ },
+ "fern_a": {
+  "key": "fern_a",
+  "src": "Models/Plants/Fern 1 - Four Lush Fern Plants With Alpha Cards/Fern 1.blend",
+  "tris_src": 2384,
+  "tris0": 2384,
+  "tris1": 1216,
+  "leaf0": [
+   2384,
+   2384
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   2384,
+   1216
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.75,
+  "radius": 1.356,
+  "crownFrom": 0.072,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Fern 02 Color:leaf": {
+    "before": [
+     77.9,
+     0.638,
+     0.354
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 171,
+  "kb1": 34
+ },
+ "liveoak_a": {
+  "key": "liveoak_a",
+  "src": "Models/Trees/Oak Tree 1 - Row Of Dense Oaks/Oak Tree 1.blend",
+  "tris_src": 137065,
+  "tris0": 22073,
+  "tris1": 8015,
+  "leaf0": [
+   78112,
+   18073
+  ],
+  "bark0": [
+   58953,
+   4000
+  ],
+  "leaf1": [
+   18073,
+   5009
+  ],
+  "bark1": [
+   4000,
+   3006
+  ],
+  "height": 13.037,
+  "radius": 13.04,
+  "crownFrom": 0.117,
+  "bottom": -0.422,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Foliage Color:leaf": {
+    "before": [
+     82.3,
+     0.608,
+     0.382
+    ],
+    "target": [
+     86,
+     0.42,
+     0.36
+    ]
+   },
+   "Bark Color:bark": {
+    "before": [
+     26.6,
+     0.411,
+     0.246
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 2095,
+  "kb1": 518
+ },
+ "flower_bush_b": {
+  "key": "flower_bush_b",
+  "src": "Models/Plants/Flower Bush 1 - Low-Poly Pink-Flower Bushes/Flower Bush 1.blend",
+  "tris_src": 1360,
+  "tris0": 1360,
+  "tris1": 1360,
+  "leaf0": [
+   1360,
+   1360
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1360,
+   1360
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.4,
+  "radius": 1.071,
+  "crownFrom": 0.063,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Material Color:leaf": {
+    "before": [
+     132.3,
+     0.572,
+     0.432
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 216,
+  "kb1": 82
+ },
+ "oak_gnarled": {
+  "key": "oak_gnarled",
+  "src": "Models/Trees/Oak Tree 3 - Gnarled Spreading Oak/Oak Tree 3.blend",
+  "tris_src": 8364,
+  "tris0": 5696,
+  "tris1": 1635,
+  "leaf0": [
+   1024,
+   1024
+  ],
+  "bark0": [
+   7340,
+   4672
+  ],
+  "leaf1": [
+   1024,
+   1024
+  ],
+  "bark1": [
+   4672,
+   611
+  ],
+  "height": 12.0,
+  "radius": 8.706,
+  "crownFrom": 0.187,
+  "bottom": -0.002,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Mossybark02 Color:bark": {
+    "before": [
+     30.0,
+     0.289,
+     0.541
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Oak Leaf Color:leaf": {
+    "before": [
+     88.2,
+     0.994,
+     0.301
+    ],
+    "target": [
+     86,
+     0.42,
+     0.38
+    ]
+   }
+  },
+  "kb0": 1078,
+  "kb1": 164
+ },
+ "fern_clump": {
+  "key": "fern_clump",
+  "src": "Models/Plants/Shrub 5 - Low-Poly Fern Clump/Shrub 5.blend",
+  "tris_src": 800,
+  "tris0": 800,
+  "tris1": 800,
+  "leaf0": [
+   800,
+   800
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   800,
+   800
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.85,
+  "radius": 0.486,
+  "crownFrom": 0.01,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Lambert2 Color:leaf": {
+    "before": [
+     73.1,
+     0.573,
+     0.369
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 208,
+  "kb1": 21
+ },
+ "bush_leafy": {
+  "key": "bush_leafy",
+  "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+  "tris_src": 334,
+  "tris0": 334,
+  "tris1": 334,
+  "leaf0": [
+   334,
+   334
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   334,
+   334
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.5,
+  "radius": 1.978,
+  "crownFrom": 0.119,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Gbushy Color:leaf": {
+    "before": [
+     80.5,
+     0.509,
+     0.703
+    ],
+    "target": [
+     86,
+     0.5,
+     0.4
+    ]
+   }
+  },
+  "kb0": 117,
+  "kb1": 24
+ },
+ "bent_e": {
+  "key": "bent_e",
+  "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+  "tris_src": 1284,
+  "tris0": 1284,
+  "tris1": 1284,
+  "leaf0": [
+   1284,
+   1284
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1284,
+   1284
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 7.8,
+  "radius": 3.086,
+  "crownFrom": 0.299,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Material Color:leaf": {
+    "before": [
+     66.0,
+     0.292,
+     0.283
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 207,
+  "kb1": 54
+ },
+ "banyan_b": {
+  "key": "banyan_b",
+  "src": "Models/Trees/Banyan Tree 1 - Compact Banyan Tree/Banyan Tree 1.blend",
+  "tris_src": 372214,
+  "tris0": 24995,
+  "tris1": 6163,
+  "leaf0": [
+   115388,
+   20000
+  ],
+  "bark0": [
+   256826,
+   4995
+  ],
+  "leaf1": [
+   20000,
+   4972
+  ],
+  "bark1": [
+   4995,
+   1191
+  ],
+  "height": 12.731,
+  "radius": 6.496,
+  "crownFrom": 0.279,
+  "bottom": -0.009,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "leaf_2",
+   "leaf_3"
+  ],
+  "grades": {
+   "Bark01 SHD Color:bark": {
+    "before": [
+     37.7,
+     0.171,
+     0.383
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Leaf01 Su SHD Color:leaf": {
+    "before": [
+     79.3,
+     0.73,
+     0.285
+    ],
+    "target": [
+     90,
+     0.45,
+     0.38
+    ]
+   },
+   "Leaf02 Su SHD Color:leaf": {
+    "before": [
+     79.4,
+     0.736,
+     0.285
+    ],
+    "target": [
+     90,
+     0.45,
+     0.38
+    ]
+   }
+  },
+  "kb0": 1437,
+  "kb1": 295
+ },
+ "sabal_palm": {
+  "key": "sabal_palm",
+  "src": "Models/Trees/Palm Tree 6 - Low Bushy Palm/Palm Tree 6.blend",
+  "tris_src": 3392,
+  "tris0": 3392,
+  "tris1": 1907,
+  "leaf0": [
+   1792,
+   1792
+  ],
+  "bark0": [
+   1600,
+   1600
+  ],
+  "leaf1": [
+   1792,
+   1792
+  ],
+  "bark1": [
+   1600,
+   115
+  ],
+  "height": 11.0,
+  "radius": 2.936,
+  "crownFrom": 0.579,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "PalmBark Color:bark": {
+    "before": [
+     23.1,
+     0.55,
+     0.212
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "PalmLeaf Color:leaf": {
+    "before": [
+     68.1,
+     0.452,
+     0.393
+    ],
+    "target": [
+     82,
+     0.42,
+     0.4
+    ]
+   }
+  },
+  "kb0": 382,
+  "kb1": 93
+ },
+ "bent_d": {
+  "key": "bent_d",
+  "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+  "tris_src": 1244,
+  "tris0": 1244,
+  "tris1": 1244,
+  "leaf0": [
+   1244,
+   1244
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1244,
+   1244
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 8.2,
+  "radius": 4.507,
+  "crownFrom": 0.334,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Material Color:leaf": {
+    "before": [
+     66.0,
+     0.292,
+     0.283
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 207,
+  "kb1": 54
+ },
+ "mangrove_b": {
+  "key": "mangrove_b",
+  "src": "Models/Trees/Mangrove Tree 1 - Low-Poly Mangrove With Mud Base/Mangrove Tree 1.blend",
+  "tris_src": 4140,
+  "tris0": 4140,
+  "tris1": 2130,
+  "leaf0": [
+   1231,
+   1231
+  ],
+  "bark0": [
+   2909,
+   2909
+  ],
+  "leaf1": [
+   1231,
+   1231
+  ],
+  "bark1": [
+   2909,
+   899
+  ],
+  "height": 6.0,
+  "radius": 4.749,
+  "crownFrom": 0.008,
+  "bottom": -0.132,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Mangrove Bark Color:bark": {
+    "before": [
+     34.3,
+     0.371,
+     0.391
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Mangrove Bark Color:leaf": {
+    "before": [
+     50.7,
+     0.525,
+     0.348
+    ],
+    "target": [
+     96,
+     0.48,
+     0.34
+    ]
+   }
+  },
+  "kb0": 340,
+  "kb1": 96
+ },
+ "coconut_d": {
+  "key": "coconut_d",
+  "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+  "tris_src": 2995,
+  "tris0": 1742,
+  "tris1": 527,
+  "leaf0": [
+   420,
+   420
+  ],
+  "bark0": [
+   2575,
+   1322
+  ],
+  "leaf1": [
+   420,
+   420
+  ],
+  "bark1": [
+   1322,
+   107
+  ],
+  "height": 11.5,
+  "radius": 2.685,
+  "crownFrom": 0.777,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "bark_2"
+  ],
+  "grades": {
+   "Trunk 1k.png:bark": {
+    "before": [
+     21.9,
+     0.181,
+     0.399
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "PalmFrondLOW Color:leaf": {
+    "before": [
+     80.1,
+     0.557,
+     0.366
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   },
+   "PalmBaseLOW Color:bark": {
+    "before": [
+     9.0,
+     0.072,
+     0.215
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1053,
+  "kb1": 37
+ },
+ "bush_round": {
+  "key": "bush_round",
+  "src": "Models/Plants/Shrub 1 - Round Green Cliff Shrub/Shrub 1.blend",
+  "tris_src": 244,
+  "tris0": 244,
+  "tris1": 244,
+  "leaf0": [
+   244,
+   244
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   244,
+   244
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.3,
+  "radius": 0.947,
+  "crownFrom": 0.11,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Gbushy Color:leaf": {
+    "before": [
+     80.5,
+     0.82,
+     0.592
+    ],
+    "target": [
+     88,
+     0.48,
+     0.38
+    ]
+   }
+  },
+  "kb0": 214,
+  "kb1": 17
+ },
+ "red_grass": {
+  "key": "red_grass",
+  "src": "Models/Plants/Shrub 3 - Red Grass Cards/Shrub 3.blend",
+  "tris_src": 200,
+  "tris0": 200,
+  "tris1": 200,
+  "leaf0": [
+   200,
+   200
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   200,
+   200
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.85,
+  "radius": 0.881,
+  "crownFrom": 0.0,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {},
+  "kb0": 31,
+  "kb1": 14
+ },
+ "rubber_fig": {
+  "key": "rubber_fig",
+  "src": "Models/Trees/Rubber Fig Tree 1 - Dark Glossy Rubber Fig/Rubber Fig Tree 1.blend",
+  "tris_src": 20332,
+  "tris0": 9257,
+  "tris1": 5461,
+  "leaf0": [
+   7068,
+   7068
+  ],
+  "bark0": [
+   13264,
+   2189
+  ],
+  "leaf1": [
+   7068,
+   3392
+  ],
+  "bark1": [
+   2189,
+   2069
+  ],
+  "height": 4.2,
+  "radius": 2.2,
+  "crownFrom": 0.319,
+  "bottom": 0.258,
+  "mats": [
+   "bark_0",
+   "bark_1",
+   "bark_2",
+   "bark_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6"
+  ],
+  "grades": {
+   "Bark01 SHD Color:bark": {
+    "before": [
+     36.3,
+     0.345,
+     0.418
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "SHD Color:bark": {
+    "before": [
+     27.7,
+     0.3,
+     0.455
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "SHD Color 3:bark": {
+    "before": [
+     10.7,
+     0.539,
+     0.551
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Leaf01 Su SHD Color:leaf": {
+    "before": [
+     105.4,
+     0.651,
+     0.191
+    ],
+    "target": [
+     100,
+     0.5,
+     0.3
+    ]
+   },
+   "Leaf02 Su SHD Color:leaf": {
+    "before": [
+     100.9,
+     0.486,
+     0.207
+    ],
+    "target": [
+     100,
+     0.5,
+     0.3
+    ]
+   },
+   "Leaf03 Su SHD Color:leaf": {
+    "before": [
+     55.7,
+     0.423,
+     0.174
+    ],
+    "target": [
+     100,
+     0.5,
+     0.3
+    ]
+   }
+  },
+  "kb0": 727,
+  "kb1": 224
+ },
+ "grass_tuft_b": {
+  "key": "grass_tuft_b",
+  "src": "Models/Plants/Grass Clump 1 - Medium Grass Clumps With Dry Variant/Grass Clump 1.blend",
+  "tris_src": 1664,
+  "tris0": 1664,
+  "tris1": 377,
+  "leaf0": [
+   1664,
+   1664
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1664,
+   377
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.5,
+  "radius": 0.326,
+  "crownFrom": 0.006,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Grass Medium 02 Diffuse Dead:leaf": {
+    "before": [
+     27.8,
+     0.577,
+     0.468
+    ],
+    "target": [
+     55,
+     0.35,
+     0.5
+    ]
+   }
+  },
+  "kb0": 142,
+  "kb1": 14
+ },
+ "bent_c": {
+  "key": "bent_c",
+  "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+  "tris_src": 1284,
+  "tris0": 1284,
+  "tris1": 1284,
+  "leaf0": [
+   1284,
+   1284
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1284,
+   1284
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 7.5,
+  "radius": 3.725,
+  "crownFrom": 0.307,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Material Color:leaf": {
+    "before": [
+     66.0,
+     0.292,
+     0.283
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 207,
+  "kb1": 54
+ },
+ "coconut_palm": {
+  "key": "coconut_palm",
+  "src": "Models/Trees/Palm Tree 2 - Tall Slim Coconut Palm/Palm Tree 2.blend",
+  "tris_src": 178006,
+  "tris0": 8036,
+  "tris1": 1800,
+  "leaf0": [
+   177190,
+   7220
+  ],
+  "bark0": [
+   816,
+   816
+  ],
+  "leaf1": [
+   7220,
+   1792
+  ],
+  "bark1": [
+   816,
+   8
+  ],
+  "height": 13.954,
+  "radius": 2.44,
+  "crownFrom": 0.713,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Coconut Tree-Trunk Color:bark": {
+    "before": [
+     27.1,
+     0.178,
+     0.711
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Coconut Tree-Leafs Color:leaf": {
+    "before": [
+     66.1,
+     0.496,
+     0.479
+    ],
+    "target": [
+     78,
+     0.5,
+     0.46
+    ]
+   }
+  },
+  "kb0": 488,
+  "kb1": 128
+ },
+ "oak_pale_a": {
+  "key": "oak_pale_a",
+  "src": "Models/Trees/Oak Tree 4 - Pair Of Pale-Green Oaks/Oak Tree 4.blend",
+  "tris_src": 6443,
+  "tris0": 6028,
+  "tris1": 1213,
+  "leaf0": [
+   1099,
+   1099
+  ],
+  "bark0": [
+   5344,
+   4929
+  ],
+  "leaf1": [
+   1099,
+   1099
+  ],
+  "bark1": [
+   4929,
+   114
+  ],
+  "height": 9.0,
+  "radius": 6.855,
+  "crownFrom": 0.241,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Leaf1 Color:leaf": {
+    "before": [
+     54.1,
+     0.608,
+     0.48
+    ],
+    "target": [
+     84,
+     0.4,
+     0.4
+    ]
+   },
+   "Bark1 Color:bark": {
+    "before": [
+     37.7,
+     0.333,
+     0.405
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 795,
+  "kb1": 44
+ },
+ "agave": {
+  "key": "agave",
+  "src": "Models/Plants/Shrub 2 - Blue Agave Rosette/Shrub 2.blend",
+  "tris_src": 360,
+  "tris0": 360,
+  "tris1": 360,
+  "leaf0": [
+   360,
+   360
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   360,
+   360
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.85,
+  "radius": 0.779,
+  "crownFrom": 0.087,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Leaves Color:leaf": {
+    "before": [
+     115.8,
+     0.233,
+     0.742
+    ],
+    "target": [
+     165,
+     0.22,
+     0.55
+    ]
+   }
+  },
+  "kb0": 31,
+  "kb1": 12
+ },
+ "banyan": {
+  "key": "banyan",
+  "src": "Models/Trees/Banyan Tree 2 - Large Banyan With Hanging Roots/Banyan Tree 2.blend",
+  "tris_src": 111392,
+  "tris0": 32711,
+  "tris1": 8772,
+  "leaf0": [
+   30808,
+   30022
+  ],
+  "bark0": [
+   80584,
+   2689
+  ],
+  "leaf1": [
+   30022,
+   6748
+  ],
+  "bark1": [
+   2689,
+   2024
+  ],
+  "height": 18.006,
+  "radius": 8.933,
+  "crownFrom": 0.276,
+  "bottom": -0.253,
+  "mats": [
+   "leaf_0",
+   "leaf_1",
+   "bark_2",
+   "bark_3",
+   "leaf_4",
+   "leaf_5",
+   "leaf_6"
+  ],
+  "grades": {
+   "Branches 03 Color:leaf": {
+    "before": [
+     54.2,
+     0.201,
+     0.292
+    ],
+    "target": [
+     92,
+     0.42,
+     0.36
+    ]
+   },
+   "Branches 04 Color:leaf": {
+    "before": [
+     59.0,
+     0.171,
+     0.39
+    ],
+    "target": [
+     92,
+     0.42,
+     0.36
+    ]
+   },
+   "Cap 03 Color:bark": {
+    "before": [
+     187.8,
+     0.04,
+     0.486
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "BanyanTreeBark Color:bark": {
+    "before": [
+     56.1,
+     0.108,
+     0.505
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "BanyanTreeLeaves 1 Color:leaf": {
+    "before": [
+     98.0,
+     0.429,
+     0.342
+    ],
+    "target": [
+     92,
+     0.42,
+     0.36
+    ]
+   },
+   "BanyanTreeLeaves 2 Color:leaf": {
+    "before": [
+     96.3,
+     0.394,
+     0.363
+    ],
+    "target": [
+     92,
+     0.42,
+     0.36
+    ]
+   },
+   "Vines 01 Color:leaf": {
+    "before": [
+     61.8,
+     0.172,
+     0.291
+    ],
+    "target": [
+     92,
+     0.42,
+     0.36
+    ]
+   }
+  },
+  "kb0": 1618,
+  "kb1": 346
+ },
+ "coconut_c": {
+  "key": "coconut_c",
+  "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+  "tris_src": 2931,
+  "tris0": 1748,
+  "tris1": 525,
+  "leaf0": [
+   420,
+   420
+  ],
+  "bark0": [
+   2511,
+   1328
+  ],
+  "leaf1": [
+   420,
+   420
+  ],
+  "bark1": [
+   1328,
+   105
+  ],
+  "height": 9.5,
+  "radius": 2.515,
+  "crownFrom": 0.687,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "bark_2"
+  ],
+  "grades": {
+   "Trunk 1k.png:bark": {
+    "before": [
+     21.9,
+     0.181,
+     0.399
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "PalmFrondLOW Color:leaf": {
+    "before": [
+     80.1,
+     0.557,
+     0.366
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   },
+   "PalmBaseLOW Color:bark": {
+    "before": [
+     9.0,
+     0.072,
+     0.215
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1053,
+  "kb1": 37
+ },
+ "coconut_b": {
+  "key": "coconut_b",
+  "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
+  "tris_src": 2995,
+  "tris0": 1742,
+  "tris1": 526,
+  "leaf0": [
+   420,
+   420
+  ],
+  "bark0": [
+   2575,
+   1322
+  ],
+  "leaf1": [
+   420,
+   420
+  ],
+  "bark1": [
+   1322,
+   106
+  ],
+  "height": 10.5,
+  "radius": 2.756,
+  "crownFrom": 0.754,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "bark_2"
+  ],
+  "grades": {
+   "Trunk 1k.png:bark": {
+    "before": [
+     21.9,
+     0.181,
+     0.399
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "PalmFrondLOW Color:leaf": {
+    "before": [
+     80.1,
+     0.557,
+     0.366
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   },
+   "PalmBaseLOW Color:bark": {
+    "before": [
+     9.0,
+     0.072,
+     0.215
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1053,
+  "kb1": 37
+ },
+ "pine_a": {
+  "key": "pine_a",
+  "src": "Models/Trees/Tree Pack 1 - Low-Poly Forest Tree And Rock Pack/Tree Pack 1.blend",
+  "tris_src": 630,
+  "tris0": 630,
+  "tris1": 630,
+  "leaf0": [
+   366,
+   366
+  ],
+  "bark0": [
+   264,
+   264
+  ],
+  "leaf1": [
+   366,
+   366
+  ],
+  "bark1": [
+   264,
+   264
+  ],
+  "height": 22.0,
+  "radius": 3.851,
+  "crownFrom": 0.236,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "bark_1"
+  ],
+  "grades": {
+   "Tree Branches 01 Color:leaf": {
+    "before": [
+     110.1,
+     0.181,
+     0.272
+    ],
+    "target": [
+     95,
+     0.32,
+     0.36
+    ]
+   }
+  },
+  "kb0": 296,
+  "kb1": 38
+ },
+ "weathered_a": {
+  "key": "weathered_a",
+  "src": "Models/Trees/Palm Tree 5 - Pair Of Dark Weathered Palms/Palm Tree 5.blend",
+  "tris_src": 15207,
+  "tris0": 12168,
+  "tris1": 4399,
+  "leaf0": [
+   7168,
+   7168
+  ],
+  "bark0": [
+   8039,
+   5000
+  ],
+  "leaf1": [
+   7168,
+   3499
+  ],
+  "bark1": [
+   5000,
+   900
+  ],
+  "height": 12.0,
+  "radius": 3.8,
+  "crownFrom": 0.357,
+  "bottom": -0.002,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Bark Hair Inst Color:bark": {
+    "before": [
+     28.4,
+     0.279,
+     0.229
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Frond 01 Inst Color:leaf": {
+    "before": [
+     35.7,
+     0.455,
+     0.263
+    ],
+    "target": [
+     70,
+     0.4,
+     0.4
+    ]
+   }
+  },
+  "kb0": 915,
+  "kb1": 134
+ },
+ "fern_cards": {
+  "key": "fern_cards",
+  "src": "Models/Plants/Shrub 4 - Fern Cards/Shrub 4.blend",
+  "tris_src": 200,
+  "tris0": 200,
+  "tris1": 200,
+  "leaf0": [
+   200,
+   200
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   200,
+   200
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.8,
+  "radius": 2.073,
+  "crownFrom": 0.0,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Grass Cards Color:leaf": {
+    "before": [
+     72.3,
+     0.365,
+     0.484
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 31,
+  "kb1": 14
+ },
+ "shade_tree": {
+  "key": "shade_tree",
+  "src": "Models/Trees/Tree 1 - Fluffy Grey-Green Tree/Tree 1.blend",
+  "tris_src": 108096,
+  "tris0": 20488,
+  "tris1": 4938,
+  "leaf0": [
+   31856,
+   16504
+  ],
+  "bark0": [
+   76240,
+   3984
+  ],
+  "leaf1": [
+   16504,
+   4064
+  ],
+  "bark1": [
+   3984,
+   874
+  ],
+  "height": 11.042,
+  "radius": 5.955,
+  "crownFrom": 0.243,
+  "bottom": 0.009,
+  "mats": [
+   "leaf_0",
+   "leaf_1",
+   "leaf_2",
+   "leaf_3",
+   "bark_4"
+  ],
+  "grades": {
+   "A.001:leaf": {
+    "before": [
+     92.6,
+     0.482,
+     0.415
+    ],
+    "target": [
+     88,
+     0.42,
+     0.4
+    ]
+   },
+   "Yellow Small Color:leaf": {
+    "before": [
+     80.2,
+     0.396,
+     0.402
+    ],
+    "target": [
+     88,
+     0.42,
+     0.4
+    ]
+   },
+   "Yellow Small Color 2:leaf": {
+    "before": [
+     84.5,
+     0.397,
+     0.387
+    ],
+    "target": [
+     88,
+     0.42,
+     0.4
+    ]
+   },
+   "Tree Leaf Small 2.001:leaf": {
+    "before": [
+     85.2,
+     0.397,
+     0.374
+    ],
+    "target": [
+     88,
+     0.42,
+     0.4
+    ]
+   },
+   "BarkMat Color:bark": {
+    "before": [
+     27.8,
+     0.175,
+     0.359
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1389,
+  "kb1": 191
+ },
+ "bent_b": {
+  "key": "bent_b",
+  "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
+  "tris_src": 1244,
+  "tris0": 1244,
+  "tris1": 1244,
+  "leaf0": [
+   1244,
+   1244
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   1244,
+   1244
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 8.5,
+  "radius": 4.13,
+  "crownFrom": 0.321,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {
+   "Palm Material Color:leaf": {
+    "before": [
+     66.0,
+     0.292,
+     0.283
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 207,
+  "kb1": 54
+ },
+ "bougainvillea_b": {
+  "key": "bougainvillea_b",
+  "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
+  "tris_src": 334,
+  "tris0": 334,
+  "tris1": 334,
+  "leaf0": [
+   334,
+   334
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   334,
+   334
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 1.5,
+  "radius": 1.978,
+  "crownFrom": 0.119,
+  "bottom": 0.0,
+  "mats": [
+   "leaf_0",
+   "leafbloom"
+  ],
+  "grades": {
+   "Gbushy Color:leaf": {
+    "before": [
+     80.5,
+     0.509,
+     0.703
+    ],
+    "target": [
+     86,
+     0.5,
+     0.4
+    ]
+   }
+  },
+  "kb0": 178,
+  "kb1": 24
+ }
+}

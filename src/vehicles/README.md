@@ -4,6 +4,20 @@
 
 Coordinates everywhere: meters, `y` up, a vehicle faces `+Z` at heading 0, `+X` is the vehicle's **left**, ground is `y = 0` in model ("shell") space, `z = 0` is the middle of the wheelbase.
 
+
+## 0. Library fleet (the user's car models; `src/vehicles/glb/`)
+
+Every road car is one of the user's models (`Models/Cars`, converted by `tools/v2/cars/`). At boot `initFleet` registers them
+into `CAR_TYPES` / `MODELS` / `CLASSES` (class pools: library models replace the procedural ones; `rare` and `beater` pools are
+never picked at random) and streams the GLBs in (common classes first). Procedural keys alias to library models
+(`spawn('police')` -> police1, `'taxi'` -> taxi1, `'ambulance'` -> van3/van4, ...). `?libcars=0` = procedural cars only.
+
+- `game.vehicles.spawnParked(key, { x, z, heading, color, wear 0..1, stripe?: { w, color }, locked? })` -> Promise<vehicle>:
+  a parked car the traffic manager never recycles (driveways, set pieces). `wear` = dirt, faded paint, rust.
+- `game.vehicles.placeStatic('covered1', { x, z, heading })` -> Promise<Object3D>: a static prop (car under a cover), box collider.
+- Rare cars (hypercar, supercars, ultra-luxury SUV, classic wedge): one each, `glb/placements.js`, parked when the player comes near.
+- Paint: US color mix for everyday cars (`glb/fleet.js US_MIX`), per-car wear/dirt/finish from `catalog.rollLook`.
+
 ## 1. `game.vehicles.registerModel(entry, builder)` (cars built by another track)
 
 Used by `hero-cars` (and anyone adding a four-wheeled road vehicle). Physics, damage, traffic, lights, audio fields and enter/exit all come from vehicles-core; you deliver the model.
