@@ -129,6 +129,7 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
   const allBones = []; model.traverse((o) => { if (o.isBone) allBones.push(o); });
   const preQ = allBones.map((b) => b.quaternion.clone()), preP = allBones.map((b) => b.position.clone());
   character.update = (dt, anim = {}) => {
+    if (character.__ragdoll) return;         // src/player/ragdoll.v2.js: the ragdoll bodies drive the bones
     if (lookTarget && !anim.lookAt) anim = Object.assign({}, anim, { lookAt: lookTarget });
     for (let i = 0; i < allBones.length; i++) { allBones[i].quaternion.copy(preQ[i]); allBones[i].position.copy(preP[i]); }
     baseUpdate(dt, anim);
