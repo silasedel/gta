@@ -5,3 +5,38 @@
 export const FRAME_NOISE = { value: 0 };
 export const IGN_T_GLSL = 'float ignT(vec2 p) { return fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
 export function advanceFrameNoise() { FRAME_NOISE.value = (FRAME_NOISE.value + 1) % 16; }
+// r2-render (game.renderR2): the dithers step a fixed per-pixel IGN by the golden ratio each frame instead of offsetting
+// the pixel position. Every pixel then walks evenly through all thresholds over the TAA history, so the average converges
+// to the true fade with no per-pixel bias (the position offset left a fixed residual dot pattern at rest).
+// RENDER_R2.value is set by post.js every frame. GLSL: uniform float uRenderR2; float psIgnT(vec2 p) (needs uFrameN).
+export const RENDER_R2 = { value: 0 };
+export const IGN_R2_GLSL = 'float psIgnT(vec2 p) { return uRenderR2 > 0.5 ? fract(fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))) + 0.61803399 * uFrameN) : fract(52.9829189 * fract(dot(p + 5.588238 * uFrameN, vec2(0.06711056, 0.00583715)))); }';
+// r2-render: alpha-to-coverage with a centered, width-capped edge. three's chunk spreads coverage over the alpha's
+// screen gradient; on far foliage (leaflets near a pixel wide) that gradient is huge, so whole frond tips got fractional
+// coverage, which the GPU dithers into a fixed 1-pixel checkerboard at 2x MSAA (it never moves, TAA cannot remove it).
+// Capped, the coverage is near binary per pixel (MSAA still smooths the geometric edge) and the sub-pixel jitter turns
+// it into real coverage over the TAA history. Drop-in for #include <alphatest_fragment>; needs uniform float uRenderR2.
+export const A2C_R2_GLSL = `#ifdef USE_ALPHATEST
+	#ifdef ALPHA_TO_COVERAGE
+	{ float psW = fwidth( diffuseColor.a );
+	if ( uRenderR2 > 0.5 ) { psW = min( psW, 0.06 ); diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); }
+	else diffuseColor.a = smoothstep( alphaTest, alphaTest + psW, diffuseColor.a ); }
+	if ( diffuseColor.a == 0.0 ) discard;
+	#else
+	if ( diffuseColor.a < alphaTest ) discard;
+	#endif
+#endif`;
+// r2-render page flag (the material states that need a shader variant, e.g. alpha-to-coverage, are fixed at load):
+// ?render2=1 / ?render2=0, else RENDER_R2_DEFAULT. post.js starts game.renderR2 from it (runtime A/B for the rest).
+export const RENDER_R2_DEFAULT = false;
+export const RENDER_R2_PAGE = (() => {
+  const q = typeof location !== 'undefined' ? location.search : '';
+  return /[?&]render2=1\b/.test(q) ? true : /[?&]render2=0\b/.test(q) ? false : RENDER_R2_DEFAULT;
+})();
+// Same, plus a small per-frame offset on fractional coverage only (needs uFrameN and IGN_R2_GLSL's psIgnT). Far fronds
+// whose mip-averaged alpha sits near the threshold over whole areas still get fractional coverage, which the GPU turns into
+// a fixed checkerboard at 2x MSAA; the offset changes which samples are covered each frame, so the TAA history averages
+// it to the true coverage. Solid (coverage 1) and empty texels are untouched.
+export const A2C_R2T_GLSL = A2C_R2_GLSL.replace(
+  'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); }',
+  'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); diffuseColor.a = clamp( diffuseColor.a + ( psIgnT( gl_FragCoord.xy ) - 0.5 ) * 2.0 * diffuseColor.a * ( 1.0 - diffuseColor.a ), 0.0, 1.0 ); }');

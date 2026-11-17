@@ -7,15 +7,28 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GradeShader } from './gradeShader.js';
-import { advanceFrameNoise, FRAME_NOISE } from './frameNoise.js';
+import { advanceFrameNoise, FRAME_NOISE, RENDER_R2, RENDER_R2_PAGE } from './frameNoise.js';
 import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
 import { LOOK_U, LOOK_V, LOOK_W, LOOK3_DEFAULT } from './look3.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
+// r2-render image-stability pass (TAA with motion vectors, disocclusion, clipping, sharpen; stable shadow taps).
+// Runtime A/B: game.renderR2 = true / false. Page default: ?render2=1 / ?render2=0, else RENDER_R2_DEFAULT (frameNoise.js).
+// r2-render: anisotropic filtering on every mipmapped texture created from now on (ground, roads, facades, models). three
+// clamps it to the GPU's maximum and applies it only to trilinear-filtered textures (render targets and data textures keep
+// theirs). Set at module load, before the city builds its materials. ?aniso=N overrides (1 = off).
+{
+  const q = typeof location !== 'undefined' ? location.search : '';
+  const m = /[?&]aniso=(\d+)/.exec(q);
+  const on = RENDER_R2_PAGE;
+  const n = m ? +m[1] : on ? 8 : 0;
+  if (n > 0 && THREE.Texture.DEFAULT_ANISOTROPY < n) THREE.Texture.DEFAULT_ANISOTROPY = n;
+}
 export function createPost(game) {
   const { renderer, scene, camera } = game;
+  if (game.renderR2 === undefined) game.renderR2 = RENDER_R2_PAGE;
   // Native resolution, fixed (playtest-fixes): the full window at the display's own pixel ratio (Retina up to 2x).
   // Nothing ever scales this down at run time; speed comes from engineering, not from a blurrier picture.
   const NATIVE_PR = Math.min(window.devicePixelRatio || 1, 2);
@@ -228,7 +241,7 @@ export function createPost(game) {
           vec2 p = ( q - uCam ) * 1.9 / uBase + uOff;        // the sky's own cloud coordinates (uCloudOff is world-anchored)
           float n = cloudShape( p );
           float cov = 1.03 - uCov;
-          gl_FragColor = vec4( vec3( smoothstep( cov - 0.01, cov + 0.11, n ) ), 1.0 ); // a little wider than the visible cloud: soft penumbra
+          gl_FragColor = vec4( vec3( smoothstep( cov + 0.02, cov + 0.14, n ) ), 1.0 ); // the cloud cores only (r2-look: a whole yard under a cloud read flat and dark at the reference camera)
         }`,
       depthTest: false,
       depthWrite: false,
@@ -284,12 +297,12 @@ export function createPost(game) {
       U.uAspect.value = W / H;
       U.uRes.value.set(rb.width, rb.height);
       U.uLook3.value = game.look3 && game.look3Parts?.ao !== false ? 1 : 0;
-      U.uIntensity.value = game.look3 && game.lookR2 !== false ? (game.lookAOR2 ?? 1.9) : 1.5; // r2-look: more contact AO (corners, under cars, porches)
+      U.uIntensity.value = game.look3 && game.lookR2 !== false ? (game.lookAOR2 ?? 1.4) : 1.5; // r2-look: contact AO (user: shade went muddy at 1.9; AO darkens contact, not whole shade areas)
       {
         // ground cloud shadows (look3 + round 2, by day, fading out with overcast where the whole sky already dims the sun)
         const env = game.env, sky = env?.sky?.material?.uniforms, sd = env?.sunDir;
         const strength = game.look3 && game.lookR2 !== false && game.lookCloudShadows !== false && sky && sd && sd.y > 0.02
-          ? (game.lookCloudShadow ?? 0.7) * (env.dayFactor ?? 1) * (1 - (sky.uOvercast?.value ?? 0)) * (1 - (env.indoor || 0)) * THREE.MathUtils.smoothstep(sd.y, 0.02, 0.12) : 0;
+          ? (game.lookCloudShadow ?? 0.45) * (env.dayFactor ?? 1) * (1 - (sky.uOvercast?.value ?? 0)) * (1 - (env.indoor || 0)) * THREE.MathUtils.smoothstep(sd.y, 0.02, 0.12) : 0;
         U.uCloudWin.value.w = strength;
         if (strength > 0) {
           const cam = camera.position, tex = CLOUD_WIN / 512, base = env.cloudBase || 1100;
@@ -606,6 +619,251 @@ export function createPost(game) {
       depthTest: false,
       depthWrite: false,
     });
+    // ---------- r2-render (game.renderR2): TAA with motion vectors, disocclusion rejection, YCoCg variance clipping ----------
+    // 1. Velocity pass: only the moving objects (vehicles, characters: the shadow module's dynamic layer) are drawn again
+    //    with a tiny shader into a half-float target: rg = screen motion since the last frame (per-object previous world
+    //    matrix), b = view depth, a = expected previous view depth. Static world pixels reproject from depth as before.
+    // 2. Resolve: history fetched where the surface really was last frame (velocity, dilated to the nearest moving surface
+    //    in a 5-tap cross so moving silhouettes carry their own motion), rejected when the depth stored with the history
+    //    (alpha) does not match (disocclusion: no ghost trails behind cars and people), clipped (not clamped) toward the
+    //    3x3 YCoCg mean inside the variance box, and blended with luma weights.
+    // 3. Output: a clamped 5-tap sharpen in tone-mapped space (CAS-like, never rings); the history itself stays unsharpened.
+    const taaMat3 = new THREE.ShaderMaterial({
+      name: 'SouthlineTAA3',
+      uniforms: {
+        tCur: { value: null }, tHist: { value: null }, tDepth: { value: null }, tVel: { value: null },
+        uInvVP: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uTexel: { value: new THREE.Vector2(1, 1) },
+        uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 }, uBlendRest: { value: 0.08 }, uDisocc: { value: 1 }, uBoxMix: { value: 0.5 },
+      },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: /* glsl */`
+        #include <packing>
+        uniform sampler2D tCur; uniform sampler2D tHist; uniform sampler2D tDepth; uniform sampler2D tVel;
+        uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uTexel; uniform float uReset, uVelOn, uNear, uFar, uBlendRest, uDisocc, uBoxMix;
+        float linZ( vec2 uv ) { float d = texture2D( tDepth, uv ).x; return d >= 0.99995 ? 6.0e4 : -perspectiveDepthToViewZ( d, uNear, uFar ); }
+        varying vec2 vUv;
+        vec3 toY( vec3 c ) { return vec3( 0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b ); }
+        vec3 fromY( vec3 y ) { return vec3( y.x + y.y - y.z, y.x + y.z, y.x - y.y - y.z ); }
+        vec3 tm( vec3 c ) { return c / ( 1.0 + max( c.r, max( c.g, c.b ) ) ); }
+        vec3 itm( vec3 c ) { return c / max( 1.0 - max( c.r, max( c.g, c.b ) ), 1e-3 ); }
+        vec3 histCR( vec2 uv ) {
+          vec2 tsz = 1.0 / uTexel, sp = uv * tsz, tp = floor( sp - 0.5 ) + 0.5, f = sp - tp;
+          vec2 w0 = f * ( -0.5 + f * ( 1.0 - 0.5 * f ) ), w1 = 1.0 + f * f * ( -2.5 + 1.5 * f ), w2 = f * ( 0.5 + f * ( 2.0 - 1.5 * f ) ), w3 = f * f * ( -0.5 + 0.5 * f );
+          vec2 w12 = w1 + w2, tc12 = ( tp + w2 / w12 ) * uTexel, tc0 = ( tp - 1.0 ) * uTexel, tc3 = ( tp + 2.0 ) * uTexel;
+          vec3 r = texture2D( tHist, vec2( tc12.x, tc0.y ) ).rgb * ( w12.x * w0.y ) + texture2D( tHist, vec2( tc0.x, tc12.y ) ).rgb * ( w0.x * w12.y )
+            + texture2D( tHist, vec2( tc12.x, tc12.y ) ).rgb * ( w12.x * w12.y ) + texture2D( tHist, vec2( tc3.x, tc12.y ) ).rgb * ( w3.x * w12.y )
+            + texture2D( tHist, vec2( tc12.x, tc3.y ) ).rgb * ( w12.x * w3.y );
+          float ws = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y;
+          return max( r / ws, 0.0 );
+        }
+        // the history depth (alpha) of the 2x2 texels around uv that best matches the expected depth
+        float histDepthErr( vec2 uv, float expD ) {
+          vec2 p = uv / uTexel - 0.5, b = floor( p );
+          float e = 1e9;
+          for ( int j = 0; j < 2; j++ ) for ( int i = 0; i < 2; i++ ) {
+            float hd = texture2D( tHist, ( b + vec2( float( i ), float( j ) ) + 0.5 ) * uTexel ).a;
+            e = min( e, abs( hd - expD ) );
+          }
+          return e;
+        }
+        // clip h toward the box center c (Playdead): keeps the hue of the history instead of a per-channel clamp
+        vec3 clipBox( vec3 h, vec3 mn, vec3 mx ) {
+          vec3 c = 0.5 * ( mx + mn ), e = 0.5 * ( mx - mn ) + 1e-5, v = h - c, u = abs( v / e );
+          float m = max( u.x, max( u.y, u.z ) );
+          return m > 1.0 ? c + v / m : h;
+        }
+        void main() {
+          float d = texture2D( tDepth, vUv ).x;
+          float vz = d >= 0.99995 ? 6.0e4 : -perspectiveDepthToViewZ( d, uNear, uFar );
+          vec3 cur = tm( texture2D( tCur, vUv ).rgb );
+          if ( uReset > 0.5 ) { gl_FragColor = vec4( itm( cur ), vz ); return; }
+          vec3 yc = toY( cur ), mn = yc, mx = yc, m1 = yc, m2 = yc * yc;
+          for ( int j = -1; j <= 1; j++ ) for ( int i = -1; i <= 1; i++ ) {
+            if ( i == 0 && j == 0 ) continue;
+            vec3 y = toY( tm( texture2D( tCur, vUv + vec2( float( i ), float( j ) ) * uTexel ).rgb ) );
+            mn = min( mn, y ); mx = max( mx, y ); m1 += y; m2 += y * y;
+          }
+          vec3 mu = m1 / 9.0, sd = sqrt( max( m2 / 9.0 - mu * mu, 0.0 ) );
+          // moving surface: nearest velocity sample in a 5-tap cross (dilated silhouettes), only where it is not hidden
+          vec4 vel = vec4( 0.0 );
+          if ( uVelOn > 0.5 ) {
+            float bz = 1e9;
+            for ( int k = 0; k < 5; k++ ) {
+              vec2 o = k == 0 ? vec2( 0.0 ) : k == 1 ? vec2( 1.0, 0.0 ) : k == 2 ? vec2( -1.0, 0.0 ) : k == 3 ? vec2( 0.0, 1.0 ) : vec2( 0.0, -1.0 );
+              vec4 s = texture2D( tVel, vUv + o * uTexel );
+              if ( s.a > 0.0 && s.b < bz ) { bz = s.b; vel = s; }
+            }
+            if ( vel.a > 0.0 && vel.b > vz + 0.02 * vz + 0.08 ) vel = vec4( 0.0 ); // behind the visible surface
+          }
+          vec2 puv; float expD;
+          if ( vel.a > 0.0 ) { puv = vUv - vel.rg; expD = vel.a; }
+          else {
+            vec4 w = uInvVP * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
+            vec4 pc = uPrevVP * w;
+            puv = pc.xy / pc.w * 0.5 + 0.5; expD = d >= 0.99995 ? 6.0e4 : pc.w;
+          }
+          bool inside = all( greaterThanEqual( puv, vec2( 0.0 ) ) ) && all( lessThanEqual( puv, vec2( 1.0 ) ) );
+          if ( !inside ) { gl_FragColor = vec4( itm( cur ), vz ); return; }
+          float motion = length( ( puv - vUv ) / uTexel );
+          // disocclusion: the history pixel at puv belonged to another surface
+          // edges are exempt: under the sub-pixel jitter an edge pixel flips between the near and the far surface every
+          // frame, so its history legitimately holds the other depth. The local depth range of the 3x3 (relative) widens
+          // the tolerance there; a real disocclusion (the ground behind a moving car) has a flat neighborhood.
+          float disocc = 0.0;
+          if ( uDisocc > 0.5 && expD < 5.0e4 ) {
+            float zx0 = linZ( vUv + vec2( uTexel.x, 0.0 ) ), zx1 = linZ( vUv - vec2( uTexel.x, 0.0 ) ), zy0 = linZ( vUv + vec2( 0.0, uTexel.y ) ), zy1 = linZ( vUv - vec2( 0.0, uTexel.y ) );
+            float zr = max( max( abs( zx0 - vz ), abs( zx1 - vz ) ), max( abs( zy0 - vz ), abs( zy1 - vz ) ) );
+            float tol = 0.03 * expD + 0.06 + min( zr, 1.0e4 ) * 1.5;
+            disocc = smoothstep( tol, tol * 2.5 + 0.15, histDepthErr( puv, expD ) );
+          }
+          // variance box: wide at rest (thin detail keeps its history), tight in motion; never wider than min / max
+          float g = mix( mix( 1.25, 0.9, clamp( motion / 6.0, 0.0, 1.0 ) ), 0.6, disocc );
+          vec3 bmn = max( mn, mu - g * sd ), bmx = min( mx, mu + g * sd );
+          // at rest the box opens toward the full min / max of the 3x3: textured surfaces and thin detail keep their
+          // converged history instead of following the jitter wobble of the new frame (that read as a crawling grain)
+          float rest = ( 1.0 - clamp( motion / 2.0, 0.0, 1.0 ) ) * ( 1.0 - disocc ) * uBoxMix;
+          bmn = mix( bmn, mn, rest ); bmx = mix( bmx, mx, rest );
+          vec3 hY = toY( tm( histCR( puv ) ) );
+          vec3 h = clipBox( hY, bmn, bmx );
+          float a = mix( uBlendRest, 0.2, clamp( motion / 24.0, 0.0, 1.0 ) );
+          a = mix( a, 0.6, disocc ); // not 1: sub-pixel wires and leaf tips flip between surfaces under jitter and must keep some history
+          float wc = a / ( 1.0 + yc.x ), wh = ( 1.0 - a ) / ( 1.0 + h.x );
+          vec3 o = ( yc * wc + h * wh ) / ( wc + wh );
+          gl_FragColor = vec4( itm( max( fromY( o ), 0.0 ) ), vz );
+        }`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    // output of the resolve: clamped sharpen in tone-mapped space (alpha 1: later passes never see the stored depth)
+    const sharpMat = new THREE.ShaderMaterial({
+      uniforms: { tDiffuse: { value: null }, uTexel: { value: new THREE.Vector2(1, 1) }, uSharp: { value: 0.3 } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse; uniform vec2 uTexel; uniform float uSharp; varying vec2 vUv;
+        vec3 tm( vec3 c ) { return c / ( 1.0 + max( c.r, max( c.g, c.b ) ) ); }
+        vec3 itm( vec3 c ) { return c / max( 1.0 - max( c.r, max( c.g, c.b ) ), 1e-3 ); }
+        void main() {
+          vec3 c = tm( texture2D( tDiffuse, vUv ).rgb );
+          vec3 a = tm( texture2D( tDiffuse, vUv + vec2( uTexel.x, 0.0 ) ).rgb ), b = tm( texture2D( tDiffuse, vUv - vec2( uTexel.x, 0.0 ) ).rgb );
+          vec3 e = tm( texture2D( tDiffuse, vUv + vec2( 0.0, uTexel.y ) ).rgb ), f = tm( texture2D( tDiffuse, vUv - vec2( 0.0, uTexel.y ) ).rgb );
+          vec3 mn = min( c, min( min( a, b ), min( e, f ) ) ), mx = max( c, max( max( a, b ), max( e, f ) ) );
+          // CAS-style: less sharpening where the local contrast is already high (no halos on hard edges)
+          vec3 amp = sqrt( clamp( min( mn, 1.0 - mx ) / max( mx, 1e-4 ), 0.0, 1.0 ) );
+          vec3 o = c + ( c - 0.25 * ( a + b + e + f ) ) * uSharp * amp * 2.0;
+          gl_FragColor = vec4( itm( clamp( o, mn, mx ) ), 1.0 );
+        }`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const velRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, generateMipmaps: false });
+    const velMat = new THREE.ShaderMaterial({
+      name: 'SouthlineVelocity',
+      uniforms: { uPrevModel: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uSkip: { value: 0 } },
+      vertexShader: /* glsl */`
+        #include <common>
+        #include <batching_pars_vertex>
+        #include <skinning_pars_vertex>
+        uniform mat4 uPrevModel; uniform mat4 uPrevVP;
+        varying vec4 vCur; varying vec4 vPrev; varying float vVz;
+        void main() {
+          #include <batching_vertex>
+          #include <skinbase_vertex>
+          #include <begin_vertex>
+          #include <skinning_vertex>
+          vec4 lp = vec4( transformed, 1.0 );
+          #ifdef USE_BATCHING
+          lp = batchingMatrix * lp;
+          #endif
+          #ifdef USE_INSTANCING
+          lp = instanceMatrix * lp;
+          #endif
+          vec4 mv = viewMatrix * ( modelMatrix * lp );
+          vVz = -mv.z;
+          gl_Position = projectionMatrix * mv;
+          vCur = gl_Position;
+          vPrev = uPrevVP * ( uPrevModel * lp );
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uSkip; varying vec4 vCur; varying vec4 vPrev; varying float vVz;
+        void main() {
+          if ( uSkip > 0.5 ) discard;
+          vec2 c = vCur.xy / vCur.w, p = vPrev.xy / max( vPrev.w, 1e-4 );
+          gl_FragColor = vec4( ( c - p ) * 0.5, vVz, max( vPrev.w, 1e-3 ) );
+        }`,
+      side: THREE.DoubleSide,
+    });
+    // previous world matrix per drawn object (two slots: several material groups of one object read the same previous one)
+    const prevM = new WeakMap();
+    let velFrame = 0;
+    velMat.onBeforeRender = (r, s, c, g, obj, group) => {
+      let e = prevM.get(obj);
+      if (!e) { e = { cur: obj.matrixWorld.clone(), prev: obj.matrixWorld.clone(), f: velFrame, pf: -9 }; prevM.set(obj, e); }
+      if (e.f !== velFrame) { e.prev.copy(e.cur); e.pf = e.f; e.cur.copy(obj.matrixWorld); e.f = velFrame; }
+      velMat.uniforms.uPrevModel.value.copy(e.pf >= 0 ? e.prev : obj.matrixWorld); // last drawn = previous (its root was still in between)
+      const om = Array.isArray(obj.material) ? obj.material[group?.materialIndex ?? 0] : obj.material;
+      velMat.uniforms.uSkip.value = !om || om.transparent || om.visible === false || om.colorWrite === false ? 1 : 0; // glass: what is seen through it is not the car
+      velMat.uniformsNeedUpdate = true;
+    };
+    // proxy scene: the dynamic top-level children (re-listed twice a second), drawn without reparenting them
+    const velScene = new THREE.Scene();
+    velScene.matrixWorldAutoUpdate = false;
+    velScene.overrideMaterial = velMat;
+    let velRoots = [], velListT = 0;
+    const DYN_BIT = 1 << 7; // env/shadows.js LAYER_DYNAMIC: vehicles and anything with a skinned mesh
+    // candidates: dynamic top-level children, or the children of a container group (all peds under one group): each
+    // candidate is drawn only on frames where it actually moved (parked cars and idle people cost nothing; static
+    // reprojection already gives them the right history)
+    function listDynamic() {
+      const out = [];
+      const push = (c, depth) => {
+        if (!c.visible) return;
+        if (depth < 2 && c.children.length > 6 && !c.children.some((k) => k.isMesh)) { for (const k of c.children) push(k, depth + 1); return; }
+        let dyn = false, n = 0;
+        c.traverse((o) => { if (dyn || n > 400) return; if (o.isMesh) { n++; if (o.layers.mask & DYN_BIT) dyn = true; } });
+        if (dyn) out.push(c);
+      };
+      for (const c of scene.children) if (c !== game.city?.root) push(c, 0);
+      return out;
+    }
+    const moveM = new WeakMap(), velDraw = [];
+    function movingRoots() {
+      velDraw.length = 0;
+      for (const c of velRoots) {
+        if (!c.visible || !c.parent) continue;
+        const e = c.matrixWorld.elements;
+        let m = moveM.get(c);
+        if (!m) { m = { e: e.slice(), still: 99 }; moveM.set(c, m); }
+        let moved = false;
+        for (let i = 0; i < 16; i++) if (Math.abs(e[i] - m.e[i]) > 1e-5) { moved = true; break; }
+        if (moved) { for (let i = 0; i < 16; i++) m.e[i] = e[i]; m.still = 0; } else m.still++;
+        if (m.still < 3) velDraw.push(c);
+      }
+      return velDraw;
+    }
+    const clearC = new THREE.Color();
+    function renderVelocity(r, w, h) {
+      if (velRT.width !== w || velRT.height !== h) velRT.setSize(w, h);
+      const now = performance.now();
+      if (now - velListT > 500) { velListT = now; velRoots = listDynamic(); }
+      velFrame++;
+      const draw = movingRoots();
+      if (!draw.length) return false;
+      velMat.uniforms.uPrevVP.value.copy(prevVP);
+      const sm = r.shadowMap, au = sm.autoUpdate, nu = sm.needsUpdate, ac = r.autoClear, ca = r.getClearAlpha();
+      r.getClearColor(clearC);
+      velScene.children = draw; // projection walks .children only; parents and world matrices stay untouched
+      try {
+        sm.autoUpdate = false; sm.needsUpdate = false;
+        r.setClearColor(0x000000, 0); r.autoClear = true;
+        r.setRenderTarget(velRT);
+        r.render(velScene, camera);
+      } finally {
+        velScene.children = [];
+        sm.autoUpdate = au; sm.needsUpdate = nu; r.autoClear = ac; r.setClearColor(clearC, ca);
+      }
+      return true;
+    }
+    let r3Was = false;
     const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), taaMat);
     quad.frustumCulled = false;
@@ -629,6 +887,8 @@ export function createPost(game) {
         hist[0].setSize(w, h);
         hist[1].setSize(w, h);
         taaMat.uniforms.uTexel.value.set(1 / w, 1 / h);
+        taaMat3.uniforms.uTexel.value.set(1 / w, 1 / h);
+        sharpMat.uniforms.uTexel.value.set(1 / w, 1 / h);
         reset = true;
       },
       // called right before composer.render: jitter the projection (restored by unjitter after the frame)
@@ -647,6 +907,9 @@ export function createPost(game) {
         };
         taa.jx = (hal(taa.frame + 1, 2) - 0.5) * 2 / w;
         taa.jy = (hal(taa.frame + 1, 3) - 0.5) * 2 / h;
+        // r2-render: this frame's view (game code moved the camera after the last render; without this the reprojection
+        // used the view of one frame earlier, so every camera move smeared the history by one frame of motion)
+        if (game.renderR2 || game.renderVPFix) camera.updateMatrixWorld();
         curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
         const e = camera.projectionMatrix.elements;
         e[8] += taa.jx;
@@ -661,6 +924,11 @@ export function createPost(game) {
         prevVP.copy(curVP);
       },
       render(r, writeBuffer, readBuffer) {
+        const r3 = !!game.renderR2;
+        if (r3 !== r3Was) { r3Was = r3; reset = true; } // the two resolves store different things in the history alpha
+        if (r3) {
+          try { return render3(r, writeBuffer, readBuffer); } catch (e) { console.warn('[post] renderR2 TAA failed, back to the old resolve', e); game.renderR2 = false; r3Was = false; reset = true; }
+        }
         const U = taaMat.uniforms;
         const dst = hist[flip];
         const src = hist[1 - flip];
@@ -683,6 +951,37 @@ export function createPost(game) {
         flip = 1 - flip;
       },
     };
+    function render3(r, writeBuffer, readBuffer) {
+      const U = taaMat3.uniforms;
+      const dst = hist[flip], src = hist[1 - flip];
+      let velOn = false;
+      if (game.renderVel !== false && !reset) {
+        try { velOn = renderVelocity(r, readBuffer.width, readBuffer.height); } catch (e) { console.warn('[post] velocity pass off', e); game.renderVel = false; }
+      }
+      U.tCur.value = readBuffer.texture;
+      U.tHist.value = src.texture;
+      U.tDepth.value = sceneDepth || target.depthTexture;
+      U.tVel.value = velRT.texture;
+      U.uVelOn.value = velOn ? 1 : 0;
+      U.uInvVP.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert();
+      U.uPrevVP.value.copy(prevVP);
+      U.uNear.value = camera.near; U.uFar.value = camera.far;
+      U.uBlendRest.value = game.renderTaaRest ?? 0.08;
+      U.uDisocc.value = game.renderDisocc === false ? 0 : 1;
+      U.uBoxMix.value = game.renderBoxMix ?? 0.5;
+      U.uReset.value = reset ? 1 : 0;
+      reset = false;
+      quad.material = taaMat3;
+      r.setRenderTarget(dst);
+      r.render(quadScene, quadCam);
+      sharpMat.uniforms.tDiffuse.value = dst.texture;
+      sharpMat.uniforms.uSharp.value = game.renderSharp ?? 0.3;
+      quad.material = sharpMat;
+      r.setRenderTarget(writeBuffer);
+      r.render(quadScene, quadCam);
+      flip = 1 - flip;
+    }
+    taa.velRT = velRT;
     composer.addPass(taa);
   } catch (e) {
     console.warn('[post] TAA unavailable', e);
@@ -724,7 +1023,7 @@ export function createPost(game) {
     enabled: true, needsSwap: false, clear: false, renderToScreen: false,
     setSize() {},
     render(r, wb, rb) {
-      if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending || (ae.frame++ % 6) !== 0) return;
+      if (!game.look3 || game.look3Parts?.ae === false || !ae.ok || ae.pending || (ae.frame++ % 24) !== 0) return; // r2-perf: every 24th frame (the readback synced the GPU queue under ANGLE-Metal; exposure eases at 0.9-1.8 per s, so 2-3 readings a second give the same result)
       lumMat.uniforms.tDiffuse.value = rb.texture;
       const prev = r.getRenderTarget();
       r.setRenderTarget(lumRT); r.render(lumScene, lumCam); r.setRenderTarget(prev);
@@ -781,6 +1080,7 @@ export function createPost(game) {
   let renderScale = 1;
   // hard floor (user requirement): the internal picture never has fewer pixels than 1920x1080
   function scaleFloor() {
+    if (game.dynres?.active) return game.dynres.floor ?? 0.5; // r2-perf dynamic resolution (src/render/dynres.v2.js, off by default): its own per-preset floor
     const full = Math.max(1, W * H) * renderer.getPixelRatio() * renderer.getPixelRatio();
     return Math.min(1, Math.sqrt((1920 * 1080) / full));
   }
@@ -828,6 +1128,10 @@ export function createPost(game) {
       const rsMin = Math.max(lk?.scaleMin ?? 1, scaleFloor());
       const rsMax = Math.max(lk?.scaleMax ?? 1, rsMin);
       let want = Math.min(rsMax, Math.max(rsMin, renderScale));
+      // r2-perf dynamic resolution: while active it owns the scale (target frame time per preset); try/catch -> old governor
+      let dr = null;
+      try { dr = game.dynres?.active ? game.dynres.pick(ms, perf) : null; } catch (e) { dr = null; }
+      if (Number.isFinite(dr)) { want = dr; rsOver = rsUnder = 0; }
       rsBlock -= ms / 1000;
       rsSinceUp += ms / 1000;
       // CPU-bound frames (main-thread work fills the frame) gain nothing from fewer pixels: only a frame that waits
@@ -951,10 +1255,10 @@ export function createPost(game) {
         // a stronger sun, shade keeps a little of the sky's blue instead of going gray
         const L = game.look3 ? (game.look3L || (game.look3L = { ...L0, hemiDay: 0.95, envDay: 0.42, sunDay: 1.22, skyDesat: 0.5, bounce: 0.75, shadeTint: 0.35 })) : L0;
         // r2-look / r2-art: open shade read navy; the sky fill is pulled further toward neutral in round 2
-        const skyDesat = game.look3 && game.lookR2 !== false ? (game.lookSkyDesat ?? 0.72) : L.skyDesat;
+        const skyDesat = game.look3 && game.lookR2 !== false ? (game.lookSkyDesat ?? 0.5) : L.skyDesat;
         // r2-look (lead / outside critique at the mock-up camera: "brighter and harsher, less natural shading"): softer sun,
         // more sky fill. Round 2 keeps the shade deep through the cast-shadow terms (shadows.js), not through a weak sky.
-        const LR = game.look3 && game.lookR2 !== false ? (game.lookR2L || (game.lookR2L = { hemiDay: 1.2, envDay: 0.52, sunDay: 1.04 })) : L;
+        const LR = game.look3 && game.lookR2 !== false ? (game.lookR2L || (game.lookR2L = { hemiDay: 1.5, envDay: 0.66, sunDay: 1.12 })) : L;
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));
@@ -1034,13 +1338,13 @@ export function createPost(game) {
       {
         const A = game.lookAE || (game.lookAE = { ref: -2.0, strength: 0.55, min: -0.3, max: 1.1, up: 0.9, down: 1.8 });
         let want = 0;
-        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max * (1 - 0.45 * night) * (1 - 0.65 * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); // nights stay night; at high sun shaded streets open at most ~0.4 stop (downtown noon washed out at +0.9)
+        if (game.look3 && ae.avgLog !== null && !env?.underwater) { const r2a = game.lookR2 !== false; want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, r2a ? Math.max(A.min, -0.1) : A.min, A.max * (1 - 0.45 * night) * (1 - (r2a ? 0.5 : 0.65) * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); } // nights stay night; at high sun shaded streets open at most ~0.4 stop (downtown noon washed out at +0.9)
         const rate = want > ae.comp ? A.up : A.down;
         ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate));
         if (game.lookAEInstant) ae.comp = want;
         A.avgLog = ae.avgLog; A.comp = ae.comp;
       }
-      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 0.9) : 1); // r2-look: -0.15 stop (mock-up)
+      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 1.12) : 1); // r2-look (user, Nov 17 afternoon: "too dark"): +0.16 stop; sunlit pale ground ~0.8 display
       // god rays: only when the sun is on/near screen; stronger when low (golden hour)
       const low = 1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.1, 0.5);
       gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (LOOK_OFF ? 0.3 + 0.25 * low : 0.12 + 0.13 * low) : 0; // look track: shafts halved (user: glare too strong and hazy)
@@ -1080,7 +1384,7 @@ export function createPost(game) {
           gu.uGain.value.set(1.03 - 0.015 * r2d - 0.012 * gc, 1.0 + 0.03 * gc, 0.96 + 0.02 * r2d - 0.008 * gc);
           gu.uContrast.value = G.contrast + 0.06 * dayOnly;
           gu.uShadowTint.value.y *= 1 - 0.8 * r2d; // r2-look / r2-art: shade neutral-to-slightly-cool by day, not teal
-          gu.uToe.value = G.toe * (0.6 + 0.4 * day) * (game.lookR2 !== false ? 0.5 : 1); // r2-look: slightly lifted, hazy filmic blacks
+          gu.uToe.value = G.toe * (0.6 + 0.4 * day); // (r2-look: the lifted toe read as a gray cast at the deck; back to the overnight toe)
           gu.uHighTint.value.set(0.024 - 0.005 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
         }
       }
@@ -1119,6 +1423,7 @@ export function createPost(game) {
       smaa.enabled = !taaOn;
       if (taaOn) {
         if (!LOOK_OFF) gu.uSharp.value = Math.max(gu.uSharp.value, game.quality?.current?.look?.taaSharpen ?? 0.8);
+        if (game.renderR2) gu.uSharp.value = game.renderGradeSharp ?? 0.08; // r2-render: the TAA output already sharpens (clamped, in HDR)
         taa.jitter(Math.floor(W * renderer.getPixelRatio() * renderScale), Math.floor(H * renderer.getPixelRatio() * renderScale));
       }
       {
@@ -1128,17 +1433,19 @@ export function createPost(game) {
         if (renderer.toneMapping !== want) renderer.toneMapping = want;
       }
       advanceFrameNoise();
+      RENDER_R2.value = game.renderR2 && taaOn ? 1 : 0; // r2-render: golden-ratio stepped dithers (only where TAA resolves them)
       // look pass 3 (game.look3, runtime A/B): soft shadows + per-frame noise index for the shadow / AO kernels
       if (game.look3 === undefined) game.look3 = LOOK3_DEFAULT && !LOOK_OFF;
       LOOK_U[0] = FRAME_NOISE.value;
       const L3P = game.look3Parts || (game.look3Parts = { pcss: true, ao: true, ae: true }); // per-part switches (perf A/B)
       LOOK_U[1] = game.look3 && L3P.pcss ? (game.lookR2 !== false ? 2 : 1) : 0; // r2-look in-session A/B: game.lookR2 = false
+      if (LOOK_U[1] === 2 && game.renderR2 && game.renderShadowBil !== false) LOOK_U[1] = 3; // r2-render: bilinear narrow-penumbra filter (look3.js)
       // r2-look shaded ambient (shadows.js): share of sky / bounce light lost in a cast shadow, by day, outdoors (game.lookShadeAmb)
-      LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.35) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
+      LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.15) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
       {
         // bounce into cast shadows: sun irradiance on the ground x surrounding albedo (~0.2) x the share of the view it fills
         const e = game.env, on = game.look3 && game.lookR2 !== false && e?.sun && e.sunDir;
-        const k = on ? (game.lookShadeBounce ?? 0.13) * e.sun.intensity * Math.max(0, e.sunDir.y) * (e.dayFactor ?? 1) * (1 - (e.indoor || 0)) : 0;
+        const k = on ? (game.lookShadeBounce ?? 0.22) * e.sun.intensity * Math.max(0, e.sunDir.y) * (e.dayFactor ?? 1) * (1 - (e.indoor || 0)) : 0;
         const c = e?.sun?.color;
         LOOK_W[1] = c ? c.r * k : 0; LOOK_W[2] = c ? c.g * k * 0.98 : 0; LOOK_W[3] = c ? c.b * k * 0.93 : 0; // a touch warm (sand, stucco)
       }
@@ -1147,7 +1454,7 @@ export function createPost(game) {
         const sy = game.env?.sunDir?.y ?? 0.5;
         const gold = (game.env?.dayFactor ?? 1) * (1 - THREE.MathUtils.smoothstep(sy, 0.04, 0.3));
         const H = game.lookHaze || (game.lookHaze = { day: 0.00026, golden: 0.00046, night: 0.00021 });
-        const hz = game.lookR2 !== false ? (game.lookHazeR2 ?? 1.6) : 1; // r2-look: humid, slightly hazy distance (mock-up)
+        const hz = game.lookR2 !== false ? (game.lookHazeR2 ?? 1.3) : 1; // r2-look: humid, slightly hazy distance (mock-up)
         LOOK_V[0] = game.look3 ? THREE.MathUtils.lerp(THREE.MathUtils.lerp(H.night, H.day * hz, game.env?.dayFactor ?? 1), H.golden, gold) : 0;
       }
       try {

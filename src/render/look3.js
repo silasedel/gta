@@ -106,6 +106,26 @@ if ( uLookV.z > 0.5 ) { // only inside the main scene pass (post.js sets it): im
 		if ( bN > 5.5 ) return 0.0; // every search tap blocked: inside the umbra (the filter disk is never wider than the search)
 		float dzM = max( sc.z - bSum / bN, 0.0 ) * ${SUN_DEPTH_M.toFixed(1)};
 		float penR = clamp( dzM * uLookU.z * 0.5 / mPerUv, minR, searchR );
+		// r2-render (uLookU.y == 3): a narrow penumbra (contact shadows, the near cascade's crisp edges) is filtered with four
+		// bilinear comparison taps on a fixed grid: a smooth, noise-free edge that is the same every frame. A dozen hard
+		// point taps rotated per pixel over a 1.6-3 texel disk drew those edges as dots that TAA never fully averaged.
+		float bilW = uLookU.y > 2.5 ? 1.0 - smoothstep( 3.0, 4.5, penR / texel ) : 0.0;
+		float bil = 0.0;
+		if ( bilW > 0.0 ) {
+			vec2 sz = shadowMapSize;
+			for ( int k = 0; k < 4; k ++ ) {
+				vec2 o = vec2( k == 0 || k == 2 ? -0.5 : 0.5, k < 2 ? -0.5 : 0.5 ) * penR;
+				vec2 p = ( sc.xy + o ) * sz - 0.5, f = fract( p ), b = ( floor( p ) + 0.5 ) / sz;
+				float z = sc.z + dot( dz, o );
+				float s00 = step( z, unpackRGBAToDepth( texture2D( shadowMap, b ) ) );
+				float s10 = step( z, unpackRGBAToDepth( texture2D( shadowMap, b + vec2( texel, 0.0 ) ) ) );
+				float s01 = step( z, unpackRGBAToDepth( texture2D( shadowMap, b + vec2( 0.0, texel ) ) ) );
+				float s11 = step( z, unpackRGBAToDepth( texture2D( shadowMap, b + vec2( texel, texel ) ) ) );
+				bil += mix( mix( s00, s10, f.x ), mix( s01, s11, f.x ), f.y );
+			}
+			bil *= 0.25;
+			if ( bilW > 0.999 ) return bil;
+		}
 		float sum = 0.0;
 		float nT = uLookU.y > 1.5 ? 12.0 : 10.0; // r2-look: 12 taps (overnight look3: 10)
 		for ( int i = 0; i < 12; i ++ ) {
@@ -115,7 +135,7 @@ if ( uLookV.z > 0.5 ) { // only inside the main scene pass (post.js sets it): im
 			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / nT ) * penR;
 			sum += step( sc.z + dot( dz, o ), unpackRGBAToDepth( texture2D( shadowMap, sc.xy + o ) ) );
 		}
-		return sum / nT;
+		return mix( sum / nT, bil, bilW );
 	}
 `;
   // the helper must sit before getShadow (same #ifdef USE_SHADOWMAP block)
