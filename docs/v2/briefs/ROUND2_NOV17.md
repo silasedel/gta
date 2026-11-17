@@ -69,6 +69,7 @@ bunch of models downloaded from the internet. Same for placement and for everyth
 
 ## Rules (unchanged from OVERNIGHT_NOV17.md, all still apply)
 - **Looks first.** No load freezes, and the frame rate should not get worse. Compare A/B in one session.
+- **SHARED TREE SAFETY:** everyone's test pages load your unsaved work. Any change to a shared or core path (data loading, terrain heights, render pipeline, tilebuild) goes behind a flag that is OFF by default, wrapped in try/catch with a fallback, until you have booted the game with it on yourself (city loads, tiles stream, 0 console errors). Only then switch it on.
 - **Commits:** commit ONLY with `git commit -m "..." -- <your files>`, then check `git show --stat HEAD`.
   - Never `git add -A`, stash, restore or checkout others' files.
   - Never `pkill -f`; kill only by PID.
