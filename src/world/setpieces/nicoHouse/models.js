@@ -58,7 +58,7 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
     if (/pier|dock|planks|poles|section/i.test(k + m.name)) { m.color.setRGB(1.55, 1.48, 1.38); m.roughness = 1; }   // the kit's albedo is very dark (wet look): dry, sun-bleached lumber
     if (k === 'mossy_pier' || k === 'clean_pier') m.color.setRGB(1.12, 1.1, 1.05);
     if (k === 'rocks') { m.color.setRGB(1.9, 1.82, 1.66); m.roughness = 1; }   // mossy brown boulders -> pale Keys limestone / coral rock
-    if (k === 'rolloff') { m.roughness = Math.max(0.55, m.roughness); m.color.setRGB(2.1, 0.95, 0.78); }   // dark rust-brown scan -> the faded red roll-off of the mock-up
+    if (k === 'rolloff') { m.roughness = Math.max(0.55, m.roughness); m.color.setRGB(2.9, 1.0, 0.8); }   // dark rust-brown scan -> the faded red roll-off of the mock-up
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;
   }

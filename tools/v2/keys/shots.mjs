@@ -27,6 +27,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     fs.writeFileSync(`docs/v2/reports/keys-${SET}-probe.json`, typeof pr === 'string' ? pr : JSON.stringify(pr, null, 1));
     console.log('probe written');
   }
+  const runSpots = async (tag) => {
   for (const id of only) {
     const s = SPOTS[id]; if (!s) continue;
     const setup = `(() => { const s = ${JSON.stringify(s)}; const NH = game.nicoHouse, V = (p) => s.world ? new game.THREE.Vector3(...p) : NH.toWorld(new game.THREE.Vector3(...p));
@@ -42,7 +43,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     for (let i = 0; i < +(o.stream || 40); i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     await b.sleep(1500);
     const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 2500) requestAnimationFrame(f); else { ts.sort((x, y) => x - y); const avg = ts.reduce((p, c) => p + c, 0) / ts.length; const ri = game.renderer.info.render; res(JSON.stringify({ avgMs: +avg.toFixed(2), p95Ms: +ts[Math.floor(ts.length * 0.95)].toFixed(2), calls: ri.calls, tris: ri.triangles })); } }; requestAnimationFrame(f); })`);
-    const out = path.join(DIR, `${SET}_${id}.png`);
+    const out = path.join(DIR, `${SET}_${id}${tag}.png`);
     await b.screenshot(out);
     // flicker check: more frames of the same still camera (or a slow dolly with "dolly":[dx,dy,dz] m per frame-step)
     for (let f = 1; f < +(o.frames || 1); f++) {
@@ -50,9 +51,15 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       await b.sleep(+(o.fgap || 250));
       await b.screenshot(path.join(DIR, `${SET}_${id}_f${f}.png`));
     }
-    rep.shots[id] = JSON.parse(perf);
+    rep.shots[id + tag] = JSON.parse(perf);
     console.log(id, perf);
   }
+  };
+  await runSpots('');
+  // --ab "&keys=0": same Chrome, the page reloaded with the alternate query, the same spots again (perf A/B in one run)
+  if (o.ab) { await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || '') + o.ab); await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && !!game.nicoHouse", 600); await startGame(b);
+    await b.eval(`(() => { game.timeExternal = true; const st = document.createElement('style'); st.textContent = 'body * { visibility: hidden !important; } canvas.keys-shot { visibility: visible !important; }'; document.head.appendChild(st); game.renderer.domElement.classList.add('keys-shot'); return 1; })()`);
+    await runSpots('_ab'); }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 30); console.log('ERRORS', rep.errors.join('\n')); }
 });
 fs.writeFileSync(`docs/v2/reports/keys-${SET}.json`, JSON.stringify(rep, null, 2));
