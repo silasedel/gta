@@ -1,7 +1,7 @@
 // Per-house curb furniture from the user's library models (overnight props pass, Nov 17; track: props).
 // One mailbox per house at the end of its driveway (post mailbox facing the street, upright, aligned to the road edge;
 // a twin box on a few duplex lots), and the household's trash + recycling carts: at the curb beside the driveway on the
-// street's collection day, otherwise beside the house. No two neighbors alike: model, texture layer (recolors, rust, house
+// street's collection day (all streets: the side-of-house spot proved unreliable). No two neighbors alike: model, texture layer (recolors, rust, house
 // numbers, stickers, tags; src/world/props/variants.v2.js), size +-6 %, a slight lean and yaw for the carts.
 // The house generator (src/world/setpieces/houses) and the spawn street (src/world/dressing) hand over their spots instead of
 // drawing their own code-built boxes:
@@ -117,7 +117,9 @@ function create(game) {
         const sideOk = (q) => { if (!q) return false; if (occupancy.blocked(q.x, q.z, 0.55, { y: q.y ?? L.y, h: 1.1 })) return false;
           try { const R = game.RAPIER, hit = game.world.castRay(new R.Ray({ x: q.x, y: (q.y ?? L.y) + 3.5, z: q.z }, { x: 0, y: -1, z: 0 }), 3.4, true); if (hit && 3.5 - hit.timeOfImpact > 0.35) return false; } catch (e) { /* */ }
           return true; };
-        const day = hash(Math.floor(L.x / 120) * 31 + Math.floor(L.z / 120) * 17 + 5) < 0.65, at = day || !sideOk(L.side) ? L : L.side;
+        // collection day everywhere: the collider audit showed the 'beside the house' spots landing under stilt decks and in yard
+        // planting (house colliders / shrubs are often not there yet when the lot is added), so the pair always stands at the curb
+        const at = L;
         const wheel = hash(seed * 2.3) < 0.22, sx = Math.cos(at.ry), sz = -Math.sin(at.ry), gap = 0.36 + hash(seed * 4.1) * 0.25;
         const second = hash(seed * 6.7) < 0.75 ? CART_RECYCLE : CART_YARD;
         for (const [k, name, layers] of [[-1, wheel ? 'bin_wheel' : 'cart', wheel ? null : CART_TRASH], [1, 'cart', second]]) {
