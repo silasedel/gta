@@ -50,6 +50,7 @@ They wake up at 7:00 and expect every point below fixed, by hand, verified with 
 - Tests: headless test pages no longer hot-reload when other helpers save files (tools/v2/browser.mjs). The dev server
   is at http://127.0.0.1:5200 - never start/stop it. The machine is shared by ~9 helpers: keep test runs short, compare
   performance as A/B inside one run, not across runs.
+- Never `pkill -f <pattern>` or `killall`: other helpers' jobs match too. Kill only your own processes by PID or full path.
 - Commit often, only your own files (`git add <files>`), message ends with
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never push.
 - Write your progress at the top of your own section in `docs/v2/briefs/OVERNIGHT_STATUS.md` (create your section if
