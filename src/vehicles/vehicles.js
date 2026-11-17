@@ -12,6 +12,9 @@ import { buildRoadNet, project, sampleEdge, laneOffset, laneCount, driveLaneMax,
 import { createCharacter } from '../player/characterModel.js';
 import { createSkids, createScreech, createSmoke, createShards, playImpact } from './skids.js';
 import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistry, externalModelKeys } from './registry.js';
+import { initFleet } from './glb/index.js';
+import { loadCarModel } from './glb/glbCar.js';
+import { RARE_PLACEMENTS } from './glb/placements.js';
 
 const PALETTE = [
   0xff6a2b, 0x1fb5b0, 0x173b8f, 0xeeeeea, 0x101214, 0xa9aeb4, 0xb3121b, 0x7c2fbf,
@@ -32,6 +35,9 @@ export async function createVehicles(game) {
 
   // ------------------------------------------------------------ road network (city.roadGraph or legacy grid)
   const net = buildRoadNet(city); net.game = game; // signalState reads game.traffic?.signalAt when a world module drives the lights
+  // the user's library cars (src/vehicles/glb): registered into CAR_TYPES / MODELS / CLASSES, GLBs stream in; ?libcars=0 = procedural only
+  let fleet = null;
+  try { if (!/[?&]libcars=0/.test(globalThis.location?.search || '')) fleet = await initFleet({ CAR_TYPES, MODELS, CLASSES, ALL_KEYS }); } catch (e) { console.error('[cars] library fleet failed', e); fleet = null; }
   const groundY = (x, z, y) => (y != null ? y : (city?.groundHeightAt?.(x, z) ?? 0));
   const isNear = (p, R) => list.some((v) => v.body && distXZ(v.body.translation(), p) < Math.max(R, (v.spec.L + 5) / 2 + 1.2));
   // footprint test: inflated chassis box vs every existing collider (buildings, props, kerbs above 0.3 m, other cars)
@@ -219,19 +225,26 @@ export async function createVehicles(game) {
 
   // ------------------------------------------------------------ vehicle factory
   let nameCounter = 0;
+  const PROC_FOR = { suv: 'suv', pickup: 'pickup', van: 'van', truck: 'atlas_box', compact: 'compact', sports: 'sports', muscle: 'muscle', super: 'super', police: 'police', taxi: 'taxi', ambulance: 'ambulance', firetruck: 'firetruck' };
   function createVehicle(typeKey, color, pos, heading, opts = {}) {
+    if (fleet && !opts.look && !opts.exact && !hasExternalModel(typeKey)) typeKey = fleet.resolve(typeKey);
     if (!CAR_TYPES[typeKey]) typeKey = 'sedan';
     const spec = CAR_TYPES[typeKey];
     const isExt = hasExternalModel(typeKey);
     let look = null;
     if (!isExt) {
       look = opts.look || rollUniqueLook(typeKey, pos, opts.seed);
-      if (color != null && !opts.look) { look.color = color; look.twoTone = null; look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; look.signature = lookSignature(look); }
+      if (fleet?.isGlb(typeKey) && !opts.look) fleet.look(typeKey, look);
+      if (opts.stripe) look.stripe = opts.stripe;
+      if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.25 ? Math.min(0.8, w * 0.75) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
+      if (color != null && !opts.look) { look.color = color; look.twoTone = opts.twoTone ?? null; if (opts.wear == null) { look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; } look.signature = lookSignature(look); }
       if (!isBuilt(typeKey, look.kit)) look.kit = 'base';
     }
     const variant = opts.variant || (isExt ? { color: spec.palette[(Math.random() * spec.palette.length) | 0], kit: 'base', wheel: null, blackRoof: false } : { color: look.color, kit: look.kit, wheel: look.wheel, blackRoof: !!look.twoTone });
     if (color == null) color = variant.color;
     let model = isExt ? buildExternalCar(typeKey, color, { variant, seed: opts.seed ?? ((Math.random() * 0x7fffffff) | 0), custom: opts.custom }) : null;
+    if (!model && fleet && spec.glb) { try { model = fleet.build(typeKey, look); } catch (e) { console.error('[cars] build failed', typeKey, e); model = null; } }
+    if (!model && spec.glb) { const pk = PROC_FOR[spec.cls] || 'sedan'; model = buildCar(pk, color ?? look?.color ?? 0xa9aeb4, {}); }
     if (!model) model = buildCar(CAR_TYPES[typeKey] && !isExt ? typeKey : (spec.cls === 'super' ? 'super' : spec.cls === 'suv' ? 'suv' : 'sports'), !isExt && look ? look : color, { kit: variant.kit === 'base' || !isExt ? variant.kit : 'base', wheel: variant.wheel, blackRoof: variant.blackRoof });
     const [restLen, stiff] = spec.susp || [0.36, 34];
     const eqLen = restLen - 9.81 / (4 * stiff);
@@ -1109,7 +1122,9 @@ export async function createVehicles(game) {
   const RICH = new Set(['beach', 'nightlife', 'downtown', 'business']);
   // neighborhood-matched fleet: class mix and model tier follow the income of the zone (catalog.fleetMix / tierWeight)
   function pickModel(mix, income) {
-    const ks = CLASSES[pickW(mix)] || CLASSES.sedan;
+    const ks0 = CLASSES[pickW(mix)] || CLASSES.sedan;
+    let ks = fleet ? ks0.filter((k) => !CAR_TYPES[k]?.glb || fleet.loaded(k)) : ks0;
+    if (!ks.length) ks = ks0;
     let tot = 0; for (const k of ks) tot += tierWeight(k, income);
     let r = Math.random() * tot;
     for (const k of ks) { r -= tierWeight(k, income); if (r <= 0) return k; }
@@ -1117,13 +1132,13 @@ export async function createVehicles(game) {
   }
   function parkedTypeFor(pos) {
     const inc = incomeFor(zoneAt(pos));
-    let k = pickModel(fleetMix(inc, true), inc);
+    let k = pickModel(fleet ? fleet.zoneMix(zoneAt(pos), inc, true, envAt(pos)) : fleetMix(inc, true), inc);
     if (CAR_TYPES[k].police && CAR_TYPES[k].police !== 'hidden' && Math.random() < 0.7) k = 'sedan';
     return k;
   }
   function trafficTypeFor(pos) {
     const inc = pos ? incomeFor(zoneAt(pos)) : 0.5;
-    let k = pickModel(fleetMix(inc), inc);
+    let k = pickModel(fleet ? fleet.zoneMix(pos ? zoneAt(pos) : 'commercial', inc, false, pos ? envAt(pos) : {}) : fleetMix(inc), inc);
     if ((k === 'firetruck' || k === 'ambulance') && Math.random() < 0.6) k = 'atlas_box';
     if (CAR_TYPES[k].cls === 'super' && inc < 0.7 && Math.random() < 0.5) k = fromClass('sports');
     return k;
@@ -1179,7 +1194,8 @@ export async function createVehicles(game) {
   }
   // a hero sports car right next to the player spawn + special spawns close by so they are found quickly
   const specials = new Set();
-  const pendingSpecials = [['sports', 0xff5a1f, 'Solano GT 400', 18], ['super', 0xffc21a, null, 30], ['muscle', 0x1d3f8f, null, 30], ['roadster', 0xb3121b, null, 30]];
+  const pendingSpecials = fleet ? [['sports', 0xff5a1f, null, 18], ['muscle', 0x1d3f8f, null, 30]] // library fleet: the rare cars are placed by hand (glb/placements.js)
+    : [['sports', 0xff5a1f, 'Solano GT 400', 18], ['super', 0xffc21a, null, 30], ['muscle', 0x1d3f8f, null, 30], ['roadster', 0xb3121b, null, 30]];
   function trySpecials() {
     try { world.updateSceneQueries?.(); } catch (e) { /* older rapier */ }
     for (const entry of pendingSpecials.slice()) {
@@ -1203,6 +1219,52 @@ export async function createVehicles(game) {
     const type = trafficTypeFor(info.pos);
     const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true });
     aiAssign(v, info);
+  }
+
+  // ------------------------------------------------------------ hand-placed cars
+  // spawnParked(key, { x, z, heading, color, wear 0..1, y?, locked?, seed? }) -> Promise<vehicle>: a parked car that the
+  // traffic manager never recycles (driveways, set pieces).  Waits for the library model to load; wheels settle on the ground.
+  async function spawnParked(key, o = {}) {
+    if (fleet && CAR_TYPES[key]?.glb && !fleet.loaded(key)) { try { await loadCarModel(CAR_TYPES[key].fileKey || key); } catch (e) { /* falls back below */ } }
+    const y = o.y ?? groundY(o.x, o.z);
+    const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
+      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe });
+    specials.add(v); v.pinned = true;
+    return v;
+  }
+  // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
+  // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
+  const NICO_CARS = [
+    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x8d9196, wear: 0.35, stripe: true },
+    { key: 'conv1', local: [7.4, 13.8], heading: -Math.PI / 2 + 0.08, color: 0x9fc3c8, wear: 0.9 },
+  ];
+  const nicoCars = [];
+  (async () => {
+    if (!fleet) return;
+    await new Promise((r) => setTimeout(r, 1500));
+    for (let i = 0; i < 240 && !game.nicoHouse?.toWorld; i++) await new Promise((r) => setTimeout(r, 1000));
+    const NH = game.nicoHouse; if (!NH?.toWorld) return;
+    const h0 = NH.spot?.heading || 0;
+    for (const c of NICO_CARS) {
+      const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.62, color: 0x0c0d0f } : null }); nicoCars.push(v); }
+      catch (e) { console.warn('[cars] nico yard car', c.key, e); }
+    }
+  })();
+  const rareDone = new Set();
+  function placeRare(pp) {
+    if (!fleet) return;
+    for (const P of RARE_PLACEMENTS) {
+      if (rareDone.has(P.key) || !CAR_TYPES[P.key]?.glb) continue;
+      const d = Math.hypot(pp.x - P.at[0], pp.z - P.at[1]);
+      if (d > 320 || d < 40) continue;
+      if (!fleet.loaded(P.key)) { loadCarModel(CAR_TYPES[P.key].fileKey || P.key); continue; }
+      const sp = parkedSpot(new THREE.Vector3(P.at[0], 0, P.at[1]), 0, P.r, false, CAR_TYPES[P.key]);
+      if (!sp) continue;
+      rareDone.add(P.key);
+      const v = createVehicle(P.key, P.color ?? null, sp.pos, sp.heading, { locked: true, exact: true });
+      specials.add(v); v.pinned = true; v.rare = true;
+    }
   }
 
   // ------------------------------------------------------------ traffic density manager (stream around the player)
@@ -1344,6 +1406,7 @@ export async function createVehicles(game) {
     if (!pp) return;
     physicsRange(pp);
     if (pendingSpecials.length && (game.clock?.elapsed ?? 0) < 90) trySpecials();
+    placeRare(pp);
     const h = game.timeOfDay ?? 12;
     const tf = h < 5 ? 0.4 : h < 6.5 ? 0.6 : (h > 7 && h < 9.5) || (h > 16 && h < 19) ? 1.2 : h > 22 ? 0.65 : 1;
     // busier streets (playtest: downtown looked empty at noon): about 21 cars around the player downtown at midday
@@ -1895,6 +1958,6 @@ export async function createVehicles(game) {
   } catch (e) { /* no glob support (plain esbuild check) */ }
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, fleet, nicoCars, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }

@@ -1,0 +1,215 @@
+{
+ "conv1": {
+  "src": "Convertibles/Convertible 1 - American Muscle Drop-Top/Convertible 1.obj",
+  "L": 4.61
+ },
+ "conv2": {
+  "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
+  "L": 4.63,
+  "keepEngine": true
+ },
+ "coupe2": {
+  "src": "Coupes/Coupe 2 - American V8 Muscle/Coupe 2.blend",
+  "L": 4.81
+ },
+ "coupe3": {
+  "src": "Coupes/Coupe 3 - German Sport Coupe/Coupe 3.blend",
+  "L": 4.8
+ },
+ "hatch1": {
+  "src": "Hatchbacks/Hatchback 1 - Japanese Sporty Hatch/Hatchback 1.blend",
+  "L": 4.46
+ },
+ "hatch2": {
+  "src": "Other/Random Car 1 - Japanese Hybrid Hatchback/Random Car 1.obj",
+  "L": 4.54
+ },
+ "suv1": {
+  "src": "SUVs/SUV 1 - Boxy Luxury Off-Roader/SUV 1.blend",
+  "L": 4.87
+ },
+ "suv2": {
+  "src": "SUVs/SUV 2 - Classic Off-Road 4x4/SUV 2.blend",
+  "L": 4.88
+ },
+ "suv3": {
+  "src": "SUVs/SUV 3 - Full-Size American Luxury/SUV 3.blend",
+  "L": 5.38
+ },
+ "suv4": {
+  "src": "SUVs/SUV 4 - Compact Family Crossover/SUV 4.blend",
+  "L": 4.6
+ },
+ "suv5": {
+  "src": "SUVs/SUV 5 - German Three-Row Crossover/SUV 5.blend",
+  "L": 4.7
+ },
+ "suv6": {
+  "src": "SUVs/SUV 6 - Korean Angular Crossover/SUV 6.blend",
+  "L": 4.63
+ },
+ "suv7": {
+  "src": "SUVs/SUV 7 - British Ultra-Luxury/SUV 7.blend",
+  "L": 5.34
+ },
+ "suv8": {
+  "src": "SUVs/SUV 8 - Small City Crossover/SUV 8.blend",
+  "L": 4.27
+ },
+ "suv9": {
+  "src": "SUVs/SUV 9 - Japanese Family Crossover/SUV 9.blend",
+  "L": 4.69
+ },
+ "suv10": {
+  "src": "SUVs/SUV 10 - Korean Compact Crossover/SUV 10.blend",
+  "L": 4.66
+ },
+ "suv11": {
+  "src": "SUVs/SUV 11 - Japanese Sleek Crossover/SUV 11.blend",
+  "L": 4.55
+ },
+ "suv12": {
+  "src": "SUVs/SUV 12 - Retro Two-Door 4x4/SUV 12.blend",
+  "L": 4.41
+ },
+ "suv13": {
+  "src": "SUVs/SUV 13 - Japanese Lifted Crossover/SUV 13.blend",
+  "L": 4.48
+ },
+ "suv14": {
+  "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
+  "L": 4.82
+ },
+ "suv15": {
+  "src": "SUVs/SUV 15 - Japanese Three-Row Family/SUV 15.blend",
+  "L": 4.95
+ },
+ "sedan1": {
+  "src": "Sedans/Sedan 1 - Japanese Family Sedan/Sedan 1.blend",
+  "L": 4.88
+ },
+ "sedan2": {
+  "src": "Sedans/Sedan 2 - German Sport Sedan/Sedan 2.obj",
+  "L": 4.67
+ },
+ "sedan3": {
+  "src": "Sedans/Sedan 3 - German Luxury Sedan/Sedan 3.blend",
+  "L": 4.75
+ },
+ "sedan4": {
+  "src": "Sedans/Sedan 4 - Electric Fastback/Sedan 4.blend",
+  "L": 4.69
+ },
+ "sedan5": {
+  "src": "Sedans/Sedan 5 - Japanese Compact Sedan/Sedan 5.blend",
+  "L": 4.64
+ },
+ "sedan6": {
+  "src": "Sedans/Sedan 6 - American Midsize Sedan/Sedan 6.blend",
+  "L": 4.93
+ },
+ "sedan7": {
+  "src": "Sedans/Sedan 7 - German Compact Sedan/Sedan 7.blend",
+  "L": 4.7
+ },
+ "sedan8": {
+  "src": "Sedans/Sedan 8 - Japanese Midsize Fastback/Sedan 8.blend",
+  "L": 4.97
+ },
+ "sedan9": {
+  "src": "Sedans/Sedan 9 - Korean Sport Sedan/Sedan 9.blend",
+  "L": 4.68
+ },
+ "sedan10": {
+  "src": "Sedans/Sedan 10 - Korean Compact Sedan/Sedan 10.blend",
+  "L": 4.64
+ },
+ "police1": {
+  "src": "Sedans/Sedan 11 - American Police Interceptor/Sedan 11.blend",
+  "L": 5.1,
+  "keepBadges": false,
+  "texSlots": "Door Decal|Hood Decal|Emergency Decal",
+  "texOverride": {
+   "Police Door Decal": "liveries/police_door.png",
+   "Police Hood Decal": "liveries/police_hood.png"
+  }
+ },
+ "super3": {
+  "src": "Supercars/Super Car 3 - Italian Mid-Engine V8/Super Car 3.blend",
+  "L": 4.57,
+  "keepEngine": true
+ },
+ "super4": {
+  "src": "Supercars/Super Car 4 - Rear-Engine Track Coupe/Super Car 4.blend",
+  "L": 4.57,
+  "keepEngine": true
+ },
+ "super5": {
+  "src": "Supercars/Super Car 5 - French Quad-Turbo Hypercar/Super Car 5.blend",
+  "L": 4.54,
+  "keepEngine": true
+ },
+ "super6": {
+  "src": "Supercars/Super Car 6 - Classic Wedge Mid-Engine Sports Coupe/Super Car 6.blend",
+  "L": 4.49,
+  "keepEngine": true
+ },
+ "truck2": {
+  "src": "Trucks/Truck 2 - Heavy-Duty Work Pickup/Truck 2.blend",
+  "L": 6.2
+ },
+ "truck3": {
+  "src": "Trucks/Truck 3 - Cab-Over Box Truck/Truck 3.blend",
+  "L": 6.6,
+  "textured": true
+ },
+ "truck4": {
+  "src": "Trucks/Truck 4 - Old-Style Box Truck/Truck 4.blend",
+  "L": 7.6,
+  "textured": true
+ },
+ "truck5": {
+  "src": "Trucks/Truck 5 - Long-Nose Semi Tractor/Truck 5.blend",
+  "L": 7.4,
+  "textured": true
+ },
+ "truck6": {
+  "src": "Trucks/Truck 6 - Fire Engine/Truck 6.blend",
+  "L": 10.4,
+  "textured": true
+ },
+ "truck7": {
+  "src": "Trucks/Truck 7 - Modern Box Truck/Truck 7.blend",
+  "L": 7.0,
+  "textured": true
+ },
+ "van1": {
+  "src": "Vans/Van 1 - European Cargo Van/Van 1.blend",
+  "L": 6.95
+ },
+ "van2": {
+  "src": "Vans/Van 2 - Classic Graffiti Van (broken)/Van 2.blend",
+  "L": 5.0,
+  "textured": true
+ },
+ "van3": {
+  "src": "Vans/Van 3 - Boxy Ambulance/Van 3.blend",
+  "L": 6.6,
+  "textured": true
+ },
+ "van4": {
+  "src": "Vans/Van 4 - Ambulance Box Body/Van 4.blend",
+  "L": 6.9,
+  "textured": true
+ },
+ "truck8": {
+  "src": "Trucks/Truck 8 - Black Armored Cash-In-Transit Truck/Truck 8.blend",
+  "L": 6.3,
+  "textured": true
+ },
+ "van5": {
+  "src": "Vans/Van 5 - Boxy Silver Passenger Van With Spare Tire And Brush Guard/Van 5.blend",
+  "L": 5.2,
+  "textured": true
+ }
+}
