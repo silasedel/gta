@@ -84,13 +84,22 @@ export function build(ctx) {
     }
   }
 
-  // ======================================================================= satellite dish on the west deck (mock-up: left edge of the deck view)
-  { const F = ctx.plan.F, x = -7.45, z = 4.75, ry = -2.2, MD = mat.metalPaint();
-    for (const [dx, dz] of [[-0.2, -0.16], [0.2, -0.16], [0, 0.24]]) B.strut(ST, [x + dx, F, z + dz], [x, F + 0.36, z], 0.016, 0.016, { color: 0xa9aba6 });   // light tripod stand
-    const dg = new THREE.CylinderGeometry(0.46, 0.07, 0.13, 28, 1, false); B.geo(MD, dg, M(x, F + 0.56, z, -1.2, ry, 0), { color: 0xc9c7bf, wear: 0.6 }); dg.dispose();   // shallow closed dish (seen from both sides)
-    const ax = Math.sin(ry), az = Math.cos(ry); B.rod(ST, [x + ax * 0.05, F + 0.46, z + az * 0.05], [x + ax * 0.55, F + 0.79, z + az * 0.55], 0.012, { color: 0x8a8c88 });
-    B.box(PLG, 0.09, 0.08, 0.14, M(x + ax * 0.58, F + 0.81, z + az * 0.58, 0, ry, 0), { color: 0xdedcd4, bevel: 0.01 });
-    col.box(x, F + 0.5, z, 0.9, 1.0, 0.9, { tag: 'prop' }); }
+  // ======================================================================= satellite dish (mock-up: a big round dish low at the left edge of the deck view)
+  // a real offset-free prime-focus dish: parabolic reflector (closed lathe, so it reads from both sides), feed arm to the LNB at the
+  // focus, back bracket to a short mast clamped to the porch-front rail post
+  { const F = ctx.plan.F, mx = -7.32, mz = 5.06, R = 0.4, f = 0.32, MD = mat.metalPaint(), V3 = THREE.Vector3;
+    const pts = []; for (let k = 0; k <= 10; k++) { const r = R * k / 10; pts.push(new THREE.Vector2(r, r * r / (4 * f))); } for (let k = 10; k >= 0; k--) { const r = R * k / 10 * 0.985; pts.push(new THREE.Vector2(r, r * r / (4 * f) - 0.018)); }
+    const dg = new THREE.LatheGeometry(pts, 32); const axis = new V3(-0.32, 0.72, 0.62).normalize(), q = new THREE.Quaternion().setFromUnitVectors(new V3(0, 1, 0), axis);
+    const c = new V3(mx - 0.05, F + 0.78, mz + 0.34), mD = new THREE.Matrix4().compose(c, q, new V3(1, 1, 1));
+    B.geo(MD, dg, mD, { color: 0xcfcdc5, wear: 0.55 }); dg.dispose();
+    const at = (x, y, z) => new V3(x, y, z).applyQuaternion(q).add(c), rim = at(0, R * R / (4 * f), -R * 0.96), foc = at(0, f, 0), back = at(0, -0.05, 0);
+    B.rod(ST, [rim.x, rim.y, rim.z], [foc.x, foc.y, foc.z], 0.011, { color: 0x8f918c });
+    B.box(PLG, 0.07, 0.11, 0.07, M(foc.x, foc.y, foc.z, 0, 0, 0), { color: 0xdedcd4, bevel: 0.01 });
+    B.rod(ST, [back.x, back.y, back.z], [mx, F + 0.72, mz], 0.022, { color: 0x8f918c });                     // bracket to the mast
+    B.cyl(ST, 0.024, 0.024, 0.95, M(mx, F + 0.5, mz), { color: 0x8f918c, seg: 10 });                       // short mast on the rail post
+    for (const y of [F + 0.2, F + 0.86]) B.box(ST, 0.07, 0.05, 0.07, M(mx, y, mz), { color: 0x7d7f7a });     // U-bolt clamps
+    B.tube(RUB, [[foc.x, foc.y - 0.05, foc.z], [mx + 0.02, F + 0.9, mz], [mx + 0.03, F + 0.1, mz + 0.02]], 0.004, { seg: 4, color: 0x1a1a1a });   // coax
+    col.box(c.x, c.y, c.z, 0.85, 0.85, 0.5, { tag: 'prop' }); }
 
   // ======================================================================= debris and clutter (own models)
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });

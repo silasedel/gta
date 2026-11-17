@@ -50,8 +50,8 @@ export function build(ctx) {
       const x = pa.getX(i), z = pa.getZ(i), dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2));
       const under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 2) - 19) / 12));
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
-      let c = [0.79, 0.82, 0.87];   // gray-white shell (the scan is beige: pull it toward gray)
-      c = c.map((v) => v * (0.84 + 0.22 * n) * (0.9 + 0.16 * nC) * (1 - 0.24 * under) * (1 + 0.05 * drive));
+      let c = [0.71, 0.73, 0.77];   // gray-white shell (the scan is beige: pull it toward gray); r2-keys: a notch darker with more breakup (lead: too bright and flat)
+      c = c.map((v) => v * (0.76 + 0.34 * n) * (0.86 + 0.24 * nC) * (1 - 0.28 * under) * (1 + 0.08 * drive));
       const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9); c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass

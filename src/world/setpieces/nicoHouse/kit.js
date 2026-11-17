@@ -214,8 +214,12 @@ export function createKit(THREE, opts = {}) {
     });
   });
 
-  // Generic CC0 PBR set (vertex color tints it). o: { rep: meters per tile, rough, metal, marine, tint, side, nscale }
-  mat.pbr = (id, o = {}) => memo(`pbr:${id}:${o.rep ?? 1}:${o.marine ? 1 : 0}:${o.metal ?? 0}:${o.side ?? 0}:${o.tint ?? ''}:${o.env ?? ''}:${o.gain ?? ''}:${o.grunge ? 1 : 0}:${o.rlift ?? ''}:${o.nscale ?? ''}`, () => {
+  // r2-art calibration per scan (art audit rows 8-10): albedo gain, saturation (1 = as scanned) and roughness lift, applied wherever
+  // the scan is used (the interior batches included)
+  const PBR_CAL = { wood_table_worn: { gainK: 3.2, sat: 0.5, rlift: 0.15 }, wood_floor_worn: { sat: 0.6, rlift: 0.25 }, fabric_leather_01: { gainK: 1.8, sat: 0.7 } };
+  // Generic CC0 PBR set (vertex color tints it). o: { rep: meters per tile, rough, metal, marine, tint, side, nscale, rlift, sat }
+  mat.pbr = (id, o = {}) => { const c = PBR_CAL[id]; if (c && !o.cal) o = { ...o, cal: 1, grunge: true, gain: (o.gain ?? 1) * (c.gainK ?? 1), sat: c.sat, rlift: c.rlift ?? o.rlift }; return mat.pbr0(id, o); };
+  mat.pbr0 = (id, o = {}) => memo(`pbr:${id}:${o.rep ?? 1}:${o.marine ? 1 : 0}:${o.metal ?? 0}:${o.side ?? 0}:${o.tint ?? ''}:${o.env ?? ''}:${o.gain ?? ''}:${o.grunge ? 1 : 0}:${o.rlift ?? ''}:${o.nscale ?? ''}:${o.sat ?? ''}`, () => {
     const m = new THREE.MeshStandardMaterial({ ...pbrSet(id), vertexColors: true, roughness: o.rough ?? 1, metalness: o.metal ?? 0, side: o.side ?? THREE.FrontSide });
     if (o.tint != null) m.color.set(o.tint);
     if (o.gain) m.color.multiplyScalar(o.gain);
@@ -224,13 +228,14 @@ export function createKit(THREE, opts = {}) {
     m.userData.uvScale = o.rep ?? 1;
     if (!o.marine && !o.grunge) return m;
     return kit.extend(m, {
-      key: 'pbr' + id + (o.marine ? 'm' : 'g'), uniforms: { uSeaY: kit.uSeaY }, fpars: 'uniform float uSeaY;\n',
+      key: 'pbr' + id + (o.marine ? 'm' : 'g') + (o.sat != null ? 's' + o.sat : '') + (o.rlift ? 'r' + o.rlift : ''), uniforms: { uSeaY: kit.uSeaY }, fpars: 'uniform float uSeaY;\n',
       map: `
   float nhWetness = 0.0;
   { ${GRUNGE}
     vec4 nhT = texture2D( map, vMapUv );
     diffuseColor.rgb *= nhT.rgb * vColor.rgb * ( 0.82 + 0.36 * nhG.r );   // diffuseColor already carries material.color (tint x gain)
     diffuseColor.rgb *= 1.0 - 0.3 * nhG.g * vWear;
+    ${o.sat != null ? `diffuseColor.rgb = mix( vec3( dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ) ), diffuseColor.rgb, ${o.sat.toFixed(3)} );` : ''}
     ${o.marine ? MARINE : ''} }
 `,
       rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv ).g;\n' + (o.rlift ? `  roughnessFactor = mix( roughnessFactor, 1.0, ${o.rlift.toFixed(3)} );\n` : '') + '  roughnessFactor = mix( roughnessFactor, 0.2, nhWetness * 0.8 );\n',
