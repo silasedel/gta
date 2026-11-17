@@ -27,4 +27,4 @@ for r, (s, hr) in enumerate(rows):
         M.paste(Image.open(p).convert('RGB').resize((w, h), Image.LANCZOS), (c * w, r * h))
         t = f'{s} {hr.replace("h", ".")}h  {v}'
         dr.rectangle((c * w, r * h, c * w + 8 + 7 * len(t), r * h + 16), fill=(0, 0, 0)); dr.text((c * w + 4, r * h + 2), t, fill=(255, 255, 0))
-M.save(out); print(out)
+M.save(out, quality=90) if out.lower().endswith((".jpg", ".jpeg")) else M.save(out); print(out)

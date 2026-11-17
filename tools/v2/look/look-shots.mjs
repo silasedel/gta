@@ -39,7 +39,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     for (let i = 0; i < +(o.stream || 40); i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     await b.eval(`(() => { const s = ${JSON.stringify(s)}; const g = (x, z) => { try { return game.city?.groundHeightAt?.(x, z) ?? 0; } catch (e) { return 0; } };
       const e = [s.eye[0], g(s.eye[0], s.eye[2]) + s.eye[1], s.eye[2]], l = [s.look[0], g(s.look[0], s.look[2]) + s.look[1], s.look[2]];
-      game.cameraOverride = (dt, cam) => { cam.position.fromArray(e); cam.lookAt(l[0], l[1], l[2]); return true; }; return 1; })()`);
+      window.__lookCam = game.cameraOverride = (dt, cam) => { cam.position.fromArray(e); cam.lookAt(l[0], l[1], l[2]); return true; }; return 1; })()`);
     const plan = hours.map((h) => [h, '']).concat((o.wethours ? String(o.wethours).split(',').map(Number) : []).map((h) => [h, 'wet']));
     for (const [h, wx] of plan) {
       if (wx === 'wet') await b.eval(`(() => { game.weather.set('rain', { instant: true }); game.weather.set('clear', { seconds: 0.05 }); return 1; })()`);
@@ -47,6 +47,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       await b.sleep(2500);
       for (const [vn, ve] of variants) {
         if (ve) await b.eval(`(() => { ${ve}; game.env?.regenerateEnvMap?.(); return 1; })()`);
+        await b.eval(`(() => { if (window.__lookCam) game.cameraOverride = window.__lookCam; if (game.intros?.places) game.intros.places.length = 0; return 1; })()`);
         await b.sleep(+(o.settle || 1800));
         const tag = `${SET}_${id}_${wx}${String(h).replace('.', 'h')}${vn ? '_' + vn : ''}`;
         const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 1500) requestAnimationFrame(f); else { const avg = ts.reduce((p, c) => p + c, 0) / ts.length; res(JSON.stringify({ fps: +(1000 / avg).toFixed(1), calls: game.renderer.info.render.calls, ae: game.lookAE ? [+(game.lookAE.avgLog ?? 0).toFixed(2), +game.lookAE.comp.toFixed(2)] : null, exp: +game.renderer.toneMappingExposure.toFixed(3) })); } }; requestAnimationFrame(f); })`);
