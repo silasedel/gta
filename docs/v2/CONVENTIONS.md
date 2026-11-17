@@ -64,7 +64,11 @@ How the world and the systems connect. If something here is wrong, fix the code 
   `src/gameplay/wantedCore.js SEV` (assault, shoplift, vehicle_theft, carjack, trespass, vandalism, speeding, red_light,
   reckless, weapon_display, ...). Stars exist only once a crime is known to the police.
 - `wantedChange` `{ level, before, reason }` — `game.wanted` (0..6 stars, `MAX_STARS = 6`, search radius per star
-  `SEARCH_R`); the HUD reads it.
+  `SEARCH_R`); the HUD reads it. The top-right corner (`src/ui/hud/corner.js`, matches
+  `docs/v2/plan/hud_corner_target.webp`) shows `game.wanted.level` as charcoal stars and flashes them while
+  `game.wanted.evading` (police lost sight); `game.hud.setWantedFlash(true|false|null)` forces the flash (null = auto),
+  `game.hud.setKnown({ cameras, witnesses, outfit, face, weapon })` forces the five evidence badges (null = read
+  `game.evidence`). Test: `node tools/v2/hud-shots.mjs`.
 - `money` `{ account, amount, balance, entry }` (`src/systems/money.js`).
 - `mission:start` `{ id, replay? }`; missions also emit progress through `game.story` (stage 4).
 - `weather` `{ kind, prev }`, `lightning` `{ x, z, distance }` (`game.weather`, stage 1).

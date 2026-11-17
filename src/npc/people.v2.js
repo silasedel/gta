@@ -355,7 +355,8 @@ export async function initV2(game) {
     if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
       // sit on the surface that is really there (physics ground), so neither the person nor the towel hovers (playtest P4)
       w.gy = surfaceY(w.pos.x, w.pos.z, w.gy);
-      const pose = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.volley, POSE.sip][(Math.random() * 12) | 0];
+      const LP = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.sip]; // no volleyball players
+      const pose = LP[(Math.random() * LP.length) | 0];
       w.pose = pose; crowd.setPose(i, pose, pose === POSE.talk || pose === POSE.volley ? 2.2 : 1, w.phase, 1);
       crowd.setTransform(i, w.pos.x, w.gy, w.pos.z, w.heading, L.height, pose === POSE.lie || pose === POSE.lieFront ? 1.5 : 1);
       if ((pose === POSE.lie || pose === POSE.lieFront || pose === POSE.sitGround || pose === POSE.lounge) && towelN < 60) {

@@ -29,7 +29,7 @@ const _ev = {}; game.on = (n, f) => ((_ev[n] ||= []).push(f), f); game.emit = (n
 if (params.get('demo')?.includes('osm')) { const { makeSyntheticCity } = await import('./hudtest_osm.js'); game.city = makeSyntheticCity(); game.player.position.set(-400, 0, 300); }
 window.game = game;
 game.hud = createHUD(game);
-if (params.has('play')) document.querySelector('.ps-title').click();
+if (params.has('play')) game.hud.startPlay();
 const demo = params.get('demo') || '';
 const kd = (c) => window.dispatchEvent(new KeyboardEvent('keydown', { code: c }));
 setTimeout(() => {

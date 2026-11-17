@@ -1,226 +1,160 @@
-/* SOUTHLINE — top-right HUD corner (stars, police-knowledge badges, bank and cash).
-   No boxes: everything is white or colored glyphs with a soft dark shadow so it reads over bright sky. */
+/* SOUTHLINE — top-right HUD corner (see corner.js). Matches docs/v2/plan/hud_corner_target.webp:
+   heavy black outlines, charcoal earned stars, near-white open stars, deep red evidence badges, white clip / gray reserve. */
 .ps-hud .ps-corner {
-  --ps-c-shadow: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .55)) drop-shadow(0 0 6px rgba(0, 0, 0, .28));
+  --u: .1538;
   top: 22px;
-  right: 28px;
+  right: 26px;
   gap: 0;
   align-items: flex-end;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .28));
 }
-
-/* clock and weapon: one quiet line above the stars */
-.ps-corner .ps-toprow {
-  gap: 10px;
-  margin-bottom: 6px;
-  min-height: 26px;
-}
-.ps-corner .ps-clock {
-  font: 700 19px/1 var(--ps-cond);
-  letter-spacing: .06em;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  gap: 6px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .7), 0 0 8px rgba(0, 0, 0, .3);
-}
-.ps-corner .ps-tod {
-  width: 9px;
-  height: 9px;
-}
-.ps-corner .ps-weapon {
-  min-width: 0;
-  width: auto;
-  height: 28px;
-  padding: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  gap: 4px;
-  filter: var(--ps-c-shadow);
-}
-.ps-corner .ps-weapon-ico {
-  width: 30px;
-  height: 28px;
-}
-.ps-corner .ps-weapon-ico svg,
-.ps-corner .ps-weapon[data-weapon] .ps-weapon-ico svg {
-  width: 28px;
-  height: 28px;
-  filter: none;
-}
-.ps-corner .ps-weapon[data-weapon="fist"] {
-  opacity: .8;
-}
-.ps-corner .ps-ammo {
-  padding-right: 2px;
-}
-.ps-corner .ps-ammo b {
-  font: 800 19px/1 var(--ps-cond);
-}
-.ps-corner .ps-ammo span {
-  font: 700 14px/1 var(--ps-cond);
-}
-
-/* six stars */
-.ps-hud .ps-corner .ps-cstars {
-  display: flex;
-  gap: 2px;
-  margin: 0;
-  opacity: 1;
-  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .45));
-}
-.ps-corner .ps-cstar {
+.ps-corner .hc-row {
   display: block;
-  width: 28px;
-  height: 28px;
-  animation: none;
+  flex: none;
+  width: calc(var(--u) * 1240px);
+  height: calc(var(--u) * var(--h) * 1px);
+  overflow: visible;
 }
-.ps-corner .ps-cstar svg {
-  width: 28px;
-  height: 28px;
-  fill: #57595e;
-  fill-opacity: .94;
-  stroke: #1c1d20;
-  stroke-width: 1.3;
+
+/* ---- stars */
+.ps-corner .hc-star-ol polygon {
+  fill: #000;
+  stroke: #000;
+  stroke-width: 36;
   stroke-linejoin: round;
-  transition: fill .35s var(--ps-ease), stroke .35s var(--ps-ease), transform .35s var(--ps-ease);
-  animation: none;
 }
-.ps-corner .ps-cstar.on {
-  animation: ps-c-star-in .45s var(--ps-ease) both;
+.ps-corner .hc-star {
+  fill: #e8e8e8;
+  stroke: #e8e8e8;
+  stroke-width: 8;
+  stroke-linejoin: round;
+  transition: fill .25s ease, stroke .25s ease;
 }
-.ps-corner .ps-cstar.on svg {
-  fill: #ffffff;
-  fill-opacity: 1;
-  stroke: #2a2b30;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, .55));
-  animation: none;
+.ps-corner .hc-star.on {
+  fill: #525152;
+  stroke: #525152;
 }
-.ps-corner.evading .ps-cstar.on svg {
-  animation: ps-c-star-evade 1.1s ease-in-out infinite;
+.ps-corner .hc-star.pop {
+  animation: hc-star-pop .45s cubic-bezier(.22, 1, .36, 1);
 }
-.ps-corner.evading .ps-cstar.on {
-  animation: none;
+/* GTA-style flash while the police have lost sight of you: earned stars blink back to open */
+.ps-corner.evading .hc-star.on {
+  animation: hc-star-flash .9s steps(1) infinite;
 }
-.ps-corner .ps-cstars.bump {
-  animation: ps-c-bump .5s var(--ps-ease);
+.ps-corner .hc-stars.bump {
+  animation: hc-bump .5s cubic-bezier(.22, 1, .36, 1);
 }
-@keyframes ps-c-star-in {
-  0% { transform: scale(.6); }
-  55% { transform: scale(1.28); }
+@keyframes hc-star-pop {
+  0% { transform: scale(.55); }
+  55% { transform: scale(1.22); }
   100% { transform: scale(1); }
 }
-@keyframes ps-c-star-evade {
-  0%, 100% { fill: #ffffff; }
-  50% { fill: #8b8d93; }
+@keyframes hc-star-flash {
+  0% { fill: #525152; stroke: #525152; }
+  50% { fill: #e8e8e8; stroke: #e8e8e8; }
 }
-@keyframes ps-c-bump {
+@keyframes hc-bump {
   0% { transform: translateX(0); }
   30% { transform: translateX(-4px); }
   60% { transform: translateX(2px); }
   100% { transform: translateX(0); }
 }
 
-/* what the police know: outfit, face, vehicle */
-.ps-known {
-  display: flex;
-  gap: 5px;
-  height: 0;
-  margin-top: 0;
-  opacity: 0;
-  transform: translateY(-6px);
-  overflow: visible;
-  transition: opacity .3s var(--ps-ease), transform .35s var(--ps-ease), height .35s var(--ps-ease), margin .35s var(--ps-ease);
-}
-.ps-known.show {
-  height: 24px;
-  margin-top: 7px;
-  opacity: 1;
-  transform: none;
-}
-.ps-kbadge {
-  --ps-badge: #5b5e64;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--ps-badge);
-  display: grid;
-  place-items: center;
-  opacity: .55;
-  box-shadow: 0 0 0 1.5px rgba(22, 22, 26, .8), 0 1px 3px rgba(0, 0, 0, .4);
-  transition: background .35s var(--ps-ease), opacity .35s var(--ps-ease);
-}
-.ps-kbadge svg {
-  width: 18px;
-  height: 18px;
-}
-.ps-kbadge .ps-k-cut {
-  fill: var(--ps-badge);
-  transition: fill .35s var(--ps-ease);
-}
-.ps-kbadge.on {
-  --ps-badge: #dc2f2c;
-  opacity: 1;
-}
-.ps-kbadge.pop {
-  animation: ps-c-badge-pop .5s var(--ps-ease);
-}
-@keyframes ps-c-badge-pop {
-  0% { transform: scale(.5); box-shadow: 0 0 0 0 rgba(220, 47, 44, .7); }
-  55% { transform: scale(1.22); }
-  100% { transform: scale(1); box-shadow: 0 0 0 9px rgba(220, 47, 44, 0); }
-}
-
-/* money */
-.ps-mcol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  margin-top: 16px;
-}
-.ps-hud .ps-corner .ps-mline {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 7px;
-}
-.ps-hud .ps-corner .ps-mline.none {
+/* ---- what the police know */
+.ps-corner .hc-known {
   display: none;
 }
-.ps-corner .ps-mval,
-.ps-corner .ps-money {
-  font: 700 28px/1 'Archivo Black', var(--ps-cond);
-  letter-spacing: .015em;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 7px rgba(0, 0, 0, .3);
+.ps-corner.known .hc-known {
+  display: block;
 }
-.ps-mbadge {
-  width: 25px;
-  height: 25px;
-  flex: none;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 0 1.5px rgba(22, 22, 26, .8), 0 1px 3px rgba(0, 0, 0, .4);
+.ps-corner .hc-k-ring { fill: #000; }
+.ps-corner .hc-k-bg { fill: #800c0b; transition: fill .3s ease; }
+.ps-corner .hc-k-art { fill: #fff; transition: opacity .3s ease; }
+.ps-corner .hc-k-art .cut { fill: #800c0b; transition: fill .3s ease; }
+.ps-corner .hc-k-art .sep > * { stroke: #800c0b; stroke-width: 7; paint-order: stroke; transition: stroke .3s ease; }
+.ps-corner .hc-k-art .line { fill: none; stroke: #fff; stroke-width: 10; stroke-linejoin: round; stroke-linecap: round; }
+.ps-corner .hc-k:not(.on) .hc-k-bg,
+.ps-corner .hc-k:not(.on) .hc-k-art .cut { fill: #3a3a3c; }
+.ps-corner .hc-k:not(.on) .hc-k-art .sep > * { stroke: #3a3a3c; }
+.ps-corner .hc-k:not(.on) .hc-k-art { opacity: .38; }
+.ps-corner .hc-k {
+  transform-box: fill-box;
 }
-.ps-mbadge svg {
-  width: 18px;
-  height: 18px;
+.ps-corner .hc-k.pop .hc-k-bg {
+  animation: hc-badge-flash .6s ease-out;
 }
-.ps-mbadge-bank {
-  background: #6a4fd6;
+@keyframes hc-badge-flash {
+  0% { fill: #ff3b30; }
+  100% { fill: #800c0b; }
 }
-.ps-mbadge-cash {
-  background: #e8a317;
+
+/* ---- ammo and weapon art */
+.ps-corner .hc-ammo,
+.ps-corner .hc-gun {
+  display: none;
 }
-.ps-corner .ps-money-delta,
-.ps-corner .ps-money-fly {
-  top: 3px;
+.ps-corner.armed .hc-gun { display: block; }
+.ps-corner.armed.has-ammo .hc-ammo { display: block; }
+.ps-corner .hc-ammo.reloading .hc-clip {
+  animation: hc-blink .6s ease-in-out infinite;
+}
+.ps-corner .hc-ammo.low .hc-clip path {
+  fill: #ffd27a;
+  stroke: #ffd27a;
+}
+.ps-corner .hc-gun.swap {
+  animation: hc-swap .3s cubic-bezier(.22, 1, .36, 1);
+}
+.ps-corner .hc-gun .gx-ol * {
+  fill: #000 !important;
+  stroke: #000 !important;
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+.ps-corner .hc-gun .gx-fill {
+  color: #464d72;
+}
+.ps-corner .hc-gun .gx-fill [fill^="rgba(0,0,0"] {
+  fill: rgba(16, 18, 34, .45);
+}
+@keyframes hc-blink {
+  50% { opacity: .35; }
+}
+@keyframes hc-swap {
+  0% { opacity: 0; transform: translateX(10px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ---- cash, bank, clock */
+.ps-hud .ps-corner .hc-line {
+  position: relative;
+  display: block;
+}
+.ps-hud .ps-corner .hc-line.none {
+  display: none;
+}
+.ps-corner .hc-cash { margin-top: 2px; }
+.ps-corner .hc-cash.pop .hc-text {
+  animation: hc-pop .35s cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes hc-pop {
+  40% { transform: scale(1.06); }
+}
+.ps-corner .hc-cash .hc-text { transform-origin: 92% 50%; }
+.ps-corner .hc-fly {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  animation: hc-fly 1.6s cubic-bezier(.22, 1, .36, 1) both;
+}
+.ps-corner .hc-fly svg {
+  display: block;
+  width: calc(var(--u) * var(--w) * 1px);
+  height: calc(var(--u) * var(--h) * 1px);
+}
+@keyframes hc-fly {
+  0% { opacity: 0; transform: translate(14px, 0) scale(.9); }
+  15% { opacity: 1; transform: translate(0, 0) scale(1.04); }
+  65% { opacity: 1; transform: translate(0, -4px) scale(1); }
+  100% { opacity: 0; transform: translate(0, -24px); }
 }

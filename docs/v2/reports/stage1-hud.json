@@ -1,0 +1,50 @@
+{
+  "levels": [
+    {
+      "n": 0,
+      "wanted": 0,
+      "starsOn": 0
+    },
+    {
+      "n": 1,
+      "wanted": 1,
+      "starsOn": 1
+    },
+    {
+      "n": 2,
+      "wanted": 2,
+      "starsOn": 2
+    },
+    {
+      "n": 3,
+      "wanted": 3,
+      "starsOn": 3
+    },
+    {
+      "n": 4,
+      "wanted": 4,
+      "starsOn": 4
+    },
+    {
+      "n": 5,
+      "wanted": 5,
+      "starsOn": 5
+    },
+    {
+      "n": 6,
+      "wanted": 6,
+      "starsOn": 6
+    }
+  ],
+  "title": {
+    "oldTitle": false,
+    "calora": false,
+    "clickToPlay": false,
+    "frontend": true
+  },
+  "errors": [],
+  "flashFills": [
+    "rgb(82, 81, 82)",
+    "rgb(232, 232, 232)"
+  ]
+}

@@ -420,7 +420,7 @@ export async function createPeds(game) {
     if (beachNear && budget >= 2 && !night && r < 0.65) {
       const k = Math.random();
       if (k < 0.38) { const c = sandPoint(pp, 140); if (c) return sunbathers(c, Math.min(budget, 1 + (Math.random() * 3 | 0))); }
-      else if (k < 0.5 && budget >= 4 && countGroups('ball') < 1) { const c = sandPoint(pp, 140); if (c) return volleyball(c); }
+      // (no beach volleyball games: removed in stage 1 job 6)
       else if (k < 0.6 && countGroups('disc') < 2) { const c = sandPoint(pp, 130); if (c) return frisbee(c); }
       else if (k < 0.8) { const w = waterPoint(pp, 140, Math.random() < 0.5); if (w) return swimmer(w); }
       else { const c = shorePoint(pp, 140); if (c) return [activate(freePeds(1)[0], c, 'beach', 'shore')]; }

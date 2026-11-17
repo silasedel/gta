@@ -41,7 +41,7 @@ game.gameplayCity = { respawnPoint: (kind) => { const q = data.randomSidewalkPoi
 game.peds = { list: [] };
 window.game = game;
 game.hud = createHUD(game);
-document.querySelector('.ps-title')?.click();
+game.hud.startPlay?.();
 if (P.get('wp')) { const [x, z] = P.get('wp').split(',').map(Number); game.waypoint = { x, z }; }
 let last = performance.now();
 function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; game.clock.elapsed += dt; camera.rotation.set(0, 0.6, 0, 'YXZ'); camera.updateMatrixWorld(); game.hud.update(dt); }

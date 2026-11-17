@@ -145,21 +145,11 @@ export function createHUD(game) {
   const mctx = mmCanvas.getContext('2d');
 
   // ---------- Status cluster (top-right) ----------
-  const clockEl = el('div', 'ps-clock', '<i class="ps-tod"></i><span></span>');
-  const clockTxt = clockEl.lastChild, todEl = clockEl.firstChild;
-  const weaponEl = el('div', 'ps-weapon', `<div class="ps-weapon-ico">${ICON.fist}</div><div class="ps-ammo"></div>`);
-  const weaponIco = weaponEl.firstChild, ammoEl = weaponEl.lastChild;
-  let lastWeapon = 'fist', lastAmmo = null;
-  const topRow = el('div', 'ps-toprow');
-  topRow.append(weaponEl, clockEl);
-  const moneyEl = el('div', 'ps-money', '$0');
-  const moneyDelta = el('div', 'ps-money-delta');
-  // V2 corner (src/ui/hud/corner.js): clock + weapon, six stars, police-knowledge badges, bank and cash lines
-  const corner = createCorner(game, { topRow, moneyEl, moneyDelta });
+  // V2 corner (src/ui/hud/corner.js, matches docs/v2/plan/hud_corner_target.webp): six stars, five evidence badges,
+  // ammo, weapon art, cash / bank and the clock
+  let lastClock = '';
+  const corner = createCorner(game);
   const status = corner.root;
-  const moneyWrap = corner.cashLine;
-  const starsEl = corner.starsEl;
-  const starEls = corner.starEls;
   root.appendChild(status);
 
   // ---------- Speedometer ----------
@@ -266,7 +256,7 @@ export function createHUD(game) {
       <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>
       <div class="ps-page ps-page-controls"><div class="ps-controls"></div></div>
     </div>
-    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · CALORA · EST. 1921 <i>· Map data © OpenStreetMap contributors (ODbL)</i></span></div>`;
+    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · ${BRAND.name.toUpperCase()} <i>· Map data © OpenStreetMap contributors (ODbL)</i></span></div>`;
   root.appendChild(pause);
   const tabs = [...pause.querySelectorAll('.ps-tab')], pages = [...pause.querySelectorAll('.ps-page')];
   const bigmap = pause.querySelector('.ps-bigmap'), bctx = bigmap.getContext('2d');
@@ -284,32 +274,18 @@ export function createHUD(game) {
   buildControls(pause.querySelector('.ps-controls'));
 
   // ---------- Title ----------
-  const title = el('div', 'ps-title');
-  title.id = 'title';
-  title.innerHTML = `
-    <div class="ps-title-sky"></div>
-    <div class="ps-title-sun"></div>
-    <div class="ps-title-sea"></div>
-    <div class="ps-title-palm ps-palm-l">${ICON.palm}</div>
-    <div class="ps-title-palm ps-palm-r">${ICON.palm}</div>
-    <div class="ps-logo">
-      <div class="ps-logo-solana">${BRAND.name.toUpperCase()}</div>
-      <div class="ps-logo-sub"><i></i>CALORA<i></i></div>
-    </div>
-    <div class="ps-title-cta">CLICK TO PLAY<span style="display:block;margin-top:8px;font-size:11px;letter-spacing:.25em;opacity:.65;font-weight:500">OR PRESS ENTER</span></div>
-    <div class="ps-title-foot">WASD move · Mouse look · F vehicles · ▲ phone · Esc pause<span style="display:block;margin-top:6px;opacity:.55;letter-spacing:.2em">v${VERSION}</span></div>`;
-  root.appendChild(title);
-  // Robust start: pointerdown fires even if a click gets swallowed; Enter/Space also start; a failed mouse
-  // capture never blocks starting (the player can click the game view to capture the mouse later).
-  const startGame = (e) => { try { e?.preventDefault?.(); } catch (_) {} requestLock(); hideTitle(); };
-  title.addEventListener('pointerdown', startGame);
-  title.addEventListener('click', startGame);
+  // The only title screen and main menu is the frontend (src/ui/menu/frontend.v2.js). The old "SOUTHLINE / CLICK TO
+  // PLAY" card that used to live here is gone. When the frontend does not run (?nomenu, ?menu=0, automated browsers)
+  // the game simply waits for Enter, Space or a click on the game view, so tests can still start it the same way.
+  const frontendRuns = (() => { try { const q = new URLSearchParams(location.search), f = q.get('menu'); return f === '1' || (f !== '0' && !q.has('nomenu') && !navigator.webdriver); } catch (e) { return false; } })();
+  const startGame = (e) => { if (!ui.title || frontendRuns || game.frontEnd?.active) return; try { e?.preventDefault?.(); } catch (_) {} requestLock(); hideTitle(); };
   addEventListener('keydown', (e) => { if (ui.title && (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space')) startGame(e); });
+  addEventListener('pointerdown', (e) => { if (ui.title && e.target === game.renderer?.domElement) startGame(e); });
   document.addEventListener('pointerlockerror', () => { if (!ui.title) { try { game.hud?.notify?.('Click the game view to capture the mouse', 3000); } catch (_) {} } });
 
   // ---------- state ----------
   let bake = null, bakeTried = -1e9;
-  let mmZoom = 1.0, moneyShown = num(game.player?.money), moneyTarget = moneyShown, deltaTimer = 0;
+  let mmZoom = 1.0, moneyShown = num(game.player?.money), moneyTarget = moneyShown;
   let mmAngle = 0;
   let deadShown = false;
   let lastHp = 999, lastAr = -1, lastKmh = -1;
@@ -491,7 +467,7 @@ export function createHUD(game) {
 
   // ---------- functions ----------
   function requestLock() { try { const c = game.renderer?.domElement; c?.requestPointerLock && c.requestPointerLock()?.catch?.(() => {}); } catch (e) { /* ignore */ } }
-  function hideTitle() { if (!ui.title) return; ui.title = false; title.classList.add('out'); root.classList.add('live'); setTimeout(() => (title.style.display = 'none'), 900); }
+  function hideTitle() { if (!ui.title || game.frontEnd?.active) return; ui.title = false; root.classList.add('live'); }
 
   function setPaused(p, relock) {
     if (ui.paused === p) return;
@@ -564,8 +540,8 @@ export function createHUD(game) {
       case 'wavvy': return `<div class="ps-feed">
           ${post('@sunsetsally', 'Golden hour on Coral Beach never misses 🌅', 'linear-gradient(160deg,#ff9a5a,#ff5f8a 55%,#5a3c8a)', 2481)}
           ${post('@neonrow_eats', 'Late-night empanadas, open till 4. Line around the block.', 'linear-gradient(160deg,#ff5fb8,#3b2a7a)', 932)}
-          ${post('@spd_calora', 'Reminder: the speed limit on Ocean Blvd is NOT a suggestion.', 'linear-gradient(160deg,#2a4b8a,#121a33)', 17)}</div>`;
-      case 'bank': return `<div class="ps-bank"><div class="ps-bank-card"><span>FIRST CALORA</span><b>${fmtMoney(money)}</b><small>•••• 0721</small></div>
+          ${post('@southline_pd', 'Reminder: the speed limit on Ocean Blvd is NOT a suggestion.', 'linear-gradient(160deg,#2a4b8a,#121a33)', 17)}</div>`;
+      case 'bank': return `<div class="ps-bank"><div class="ps-bank-card"><span>FIRST ${BRAND.name.toUpperCase()}</span><b>${fmtMoney(money)}</b><small>•••• 0721</small></div>
           ${list([['Coral Cabs', '-$18'], ['Pier 7 Bait & Tackle', '-$42'], ['Transfer · M. Vega', '+$1,500'], ['Solana Gas', '-$64']])}</div>`;
       case 'settings': return list([['Airplane mode', 'Off'], ['Ringtone', 'Lagoon Pulse'], ['Wallpaper', 'Sunset Gradient'], ['Graphics', String(settings.quality).toUpperCase()], ['Mouse sensitivity', settings.mouseSens.toFixed(2)], ['Version', 'SolanaOS 7.2']]);
     }
@@ -1422,59 +1398,35 @@ export function createHUD(game) {
 
     // clock / money
     const clk = fmtClock(game.timeOfDay);
-    if (clockTxt.textContent !== clk) {
-      clockTxt.textContent = clk;
-      const tod = num(game.timeOfDay, 18), night = tod < 6 || tod >= 19.5;
-      todEl.className = 'ps-tod ' + (night ? 'moon' : tod >= 17 || tod < 7.5 ? 'dusk' : 'sun'); phTime.textContent = clk; phBig.textContent = clk; }
+    if (lastClock !== clk) { lastClock = clk; phTime.textContent = clk; phBig.textContent = clk; }
     const money = num(pl.money);
     if (money !== moneyTarget) {
       const diff = money - moneyTarget; moneyTarget = money;
-      const fly = el('div', 'ps-money-fly ' + (diff > 0 ? 'up' : 'down'));
-      fly.textContent = (diff > 0 ? '+' : '−') + fmtMoney(Math.abs(diff));
-      moneyWrap.appendChild(fly); setTimeout(() => fly.remove(), 1700);
-      moneyEl.classList.remove('pop'); void moneyEl.offsetWidth; moneyEl.classList.add('pop');
-      deltaTimer = 2.4;
+      corner.cashFly(diff);
     }
     if (moneyShown !== moneyTarget) {
       const d = moneyTarget - moneyShown;
       moneyShown = Math.abs(d) < 1 ? moneyTarget : moneyShown + d * Math.min(1, dt * 5) + Math.sign(d) * 0.5;
-      moneyEl.textContent = fmtMoney(moneyShown);
-      moneyEl.classList.add('ticking');
-    } else moneyEl.classList.remove('ticking');
-    if (deltaTimer > 0) { deltaTimer -= dt; if (deltaTimer <= 0) moneyDelta.classList.remove('show'); }
+      corner.setCash(fmtMoney(moneyShown));
+    }
 
-    // wanted
+    // wanted: game.wanted.level (0..6) drives the stars; game.wanted.evading (police lost sight, searching) makes them
+    // flash. game.hud.setWantedFlash(bool|null) can force the flash for scripted moments.
     const w = clamp(Math.round(num(game.wanted?.level, num(pl.wanted))), 0, 6);
     const evading = w > 0 && !!game.wanted?.evading;
-    if (evading !== status.classList.contains('evading')) { status.classList.toggle('evading', evading); mm.classList.toggle('evading', evading); }
-    if (w !== lastWanted) {
-      starEls.forEach((s, i) => s.classList.toggle('on', i < w));
-      status.classList.toggle('wanted', w > 0);
-      mm.classList.toggle('wanted', w > 0);
-      if (w > lastWanted) { starsEl.classList.remove('bump'); void starsEl.offsetWidth; starsEl.classList.add('bump'); }
-      lastWanted = w;
-    }
-    corner.update(dt, w);
+    if (evading !== mm.classList.contains('evading')) mm.classList.toggle('evading', evading);
+    if (w !== lastWanted) { mm.classList.toggle('wanted', w > 0); lastWanted = w; }
+    // weapon and ammo
     const wpn = typeof pl.weapon === 'string' && pl.weapon ? pl.weapon : 'fist';
-    if (wpn !== lastWeapon) {
-      lastWeapon = wpn; weaponIco.innerHTML = weaponIcon(wpn); weaponEl.dataset.weapon = wpn;
-      weaponEl.dataset.cls = wDefs().defs[wpn]?.cls || '';
-      weaponEl.classList.remove('swap'); void weaponEl.offsetWidth; weaponEl.classList.add('swap');
-    }
     const reloading = !!game.weapons?.reloading;
     const ai = ammoInfo(wpn);
-    const akey = reloading ? 'R' : !ai ? '' : ai.throw || ai.clip == null ? 'T' + ai.total : ai.clip + '/' + ai.reserve;
-    if (akey !== lastAmmo) {
-      lastAmmo = akey;
-      if (!ai) ammoEl.innerHTML = '';
-      else if (reloading) ammoEl.innerHTML = '<b>RELOAD</b>';
-      else if (ai.throw || ai.clip == null) ammoEl.innerHTML = `<b>${ai.throw ? '×' : ''}${ai.total}</b>`;
-      else ammoEl.innerHTML = `<b>${ai.clip}</b><span>${ai.reserve}</span>`;
-      weaponEl.classList.toggle('has-ammo', !!ai);
-      weaponEl.classList.toggle('reloading', reloading);
-      weaponEl.classList.toggle('empty', !!ai && !reloading && (ai.clip != null ? ai.clip === 0 : ai.total === 0));
-      weaponEl.classList.toggle('low', !!ai && !reloading && ai.clip != null && ai.clip > 0 && ai.clip <= Math.max(1, Math.ceil(num(wDefs().defs[wpn]?.clip, 10) * 0.25)));
-    }
+    const tod = num(game.timeOfDay, 18);
+    corner.update(dt, {
+      wanted: w, evading, weapon: wpn, weaponSvg: weaponIcon(wpn), ammo: ai, reloading,
+      empty: !!ai && !reloading && (ai.clip != null ? ai.clip === 0 : ai.total === 0),
+      low: !!ai && !reloading && ai.clip != null && ai.clip > 0 && ai.clip <= Math.max(1, Math.ceil(num(wDefs().defs[wpn]?.clip, 10) * 0.25)),
+      clock: clk, tod: tod < 6 || tod >= 19.5 ? 'moon' : tod >= 17 || tod < 7.5 ? 'dusk' : 'sun',
+    });
     // crosshair
     const aiming = !!(pl.aiming || st.aiming) && !inVeh && !ui.paused && !ui.scoped;
     root.classList.toggle('aiming', aiming);
@@ -1544,9 +1496,9 @@ export function createHUD(game) {
 
   // initial
   refreshPhoneSel();
-  moneyEl.textContent = fmtMoney(moneyShown);
+  corner.setCash(fmtMoney(moneyShown));
   if (document.pointerLockElement) hideTitle();
-  const api = { setKnown: corner.setKnown, update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,
+  const api = { setKnown: corner.setKnown, setWantedFlash: corner.setWantedFlash, startPlay: () => hideTitle(), update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,
     _mapZoom(ppm, cx, cz) { const pp = game.player?.position; if (cx != null) { mapView.cx = cx; mapView.cz = cz; } else if (pp) { mapView.cx = pp.x; mapView.cz = pp.z; } mapView.ppm = ppm; drawBigMap(); },
     _mapPan(dx, dz) { mapView.cx += dx; mapView.cz += dz; clampView(); drawBigMap(); return [mapView.cx, mapView.cz]; },
     _mapFit() { fitMap(); return mapView.ppm; } };
@@ -1562,7 +1514,7 @@ function roundRect(g, x, y, w, h, r) {
 // original POI glyphs, drawn in a 0..1 box centred on 0
 const POIS = [
   { x: -205, z: 205, c: '#ff5d6c', glyph: 'plus', name: 'Solana General' },
-  { x: 10, z: -45, c: '#3fcf8e', glyph: 'dollar', name: 'First Calora Bank' },
+  { x: 10, z: -45, c: '#3fcf8e', glyph: 'dollar', name: 'First Southline Bank' },
   { x: 205, z: 255, c: '#ffb35a', glyph: 'wrench', name: "Tiny's Garage" },
   { x: -95, z: -250, c: '#c58cff', glyph: 'shirt', name: 'Threads' },
   { x: 300, z: -105, c: '#ff8fc8', glyph: 'cup', name: 'Neon Diner' },
