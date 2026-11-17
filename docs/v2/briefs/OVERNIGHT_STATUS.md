@@ -802,6 +802,16 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - Volumetric sun shafts at low sun.
   - User-shot framings: `sheet_ab3_user.jpg`.
 - Running now: drive + perf A/B (ab7) and golden hour at the mock-up camera (ab8).
+- **Afternoon (user: "too dark, doesn't look real and cinematic"), committed:**
+  - Brighter, readable round-2 lighting: exposure +0.3 stop vs the morning; auto exposure never darkens below -0.1 stop; sky fill and bounce into shade; contact AO 1.4, contact only; overnight toe (no gray cast); haze x1.3.
+  - Matched-grade LUT (Oklab, from the mock-up camera's statistics; `tools/v2/look/lut-match.py`); high-chroma roll-off.
+  - Cloud shadows 0.45 on the cloud cores only. A full cloud over the yard had erased the cast shadows at 12:30.
+  - AE readback every 24th frame (r2-perf stall).
+  - Sheets: `sheet_g2_truck.jpg` (9:05 / 12:30 / 16 / 18:36), `sheet_g1_spawn.jpg`, `sheet_g3_street.jpg` (11 / 16 / 18:36 / 22), `sheet_f5_mock.jpg` (mock-up camera at its best sun hour, 12:30), `sheet_f3_mock15.jpg`.
+- **Sun hour at r0b_deck:** computed over every quarter hour. With the real road layout the sun is never in front of the deck camera; the best match is 12:30, now the reference tod set by r2-keys. The mock-up's lower-left rail stripes are geometrically impossible there.
+- **Asked of others:** r2-veg for backlit leaf transmission and brighter, less saturated shade foliage; r2-cars fixed the car-paint shader error (black truck).
+- **Pending:** cast-shadow crispness at 12:30 (shade sky cut 0.25 / bounce 0.17, in post.js, to be committed with r2-render's hunks); a re-shoot of the truck at 12:30 with and without cloud shadows is queued.
+- **Left:** night is very dark on side streets (lamps / windows are other helpers'); reflections of the actual scene in car paint (only the sky + env ring today).
 
 ## r2-keys
 **Round 2, item 16 (Nico's house and yard vs the front-deck mock-up) and the house side of item 10 (blinds, shutters).** Live on 5200.
@@ -1211,6 +1221,18 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   renamed).
 
 ## r2-people
+- 16:10 **Final state.** All committed (pathspec). (1) **Seat solver never trusts a stale anchor** (lead: Nico's head
+  through the re-converted truck9): per car model + seat it raycasts the car's own meshes down onto the cushion (hip =
+  cushion + 10 cm when the anchor is off) and up to the headliner (roof = min(anchor, probed)); head-room ladder: arm-reach
+  lean off -> sink up to 8 cm -> recline +14 -> chin tuck -> sink 12 cm -> recline +26. truck9: Nico's crown 3 cm under
+  the real roof; truck2's hip raised 6 cm onto its cushion (`docs/v2/shots/people/r2seat/n3_nico_truck*`).
+  `probeSeat()` is exported for r2-cars' fleet headroom test (`tools/v2/cars/headroom.mjs`). Seated people beyond 45 m hold
+  their pose (no mixer / solve). (2) **Far crowd of the user's people: built, visually verified (120 far people, 0 errors),
+  NOT switched on.** The frame-time A/B (`node tools/v2/npcs/crowd-ab.mjs`, report
+  `docs/v2/reports/r2-people-crowd-ab.json`) could not finish on the loaded machine (one pair: old 78 ms vs people 189 ms
+  median, both noisy; the watchdog killed the second pair). Bakes are now incremental (one clip per frame). To turn it on:
+  rerun the A/B on a quiet machine and flip `FAR_PEOPLE` in `src/npc/people.v2.js` to default on if there is no loss.
+  (3) Open: 2-3 scans have a separate thumb-tip island that tears a little when flexed (flexion kept low).
 - 14:45 **Nico's posture** (user: "shoulders too low, like he's pulling them down"): the relaxed-stance layer
   (`src/player/nico/pose.js`) dropped the clavicles 7 deg and pulled the arms in. Now chest up, clavicles up a touch
   and back, arms hanging clear of the lats; also under the phone / talk / aim stand poses and lighter while walking.
@@ -1352,3 +1374,56 @@ The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the 
   - **After:** 8 / 17 / 50 / 78 / 91 % at 10 / 25 / 50 / 75 / 90 % of the time. It never goes backward; the longest stall is 2.0 s. The one 3.4 s stall is during a 3.2 s main-thread block in the first warm-up frame, when nothing can repaint.
   - **How:** `src/core/loadProgress.js` + `loadWeights.json` (each browser keeps a running average in localStorage); phase labels under the bar; `?lp=0` = old milestones; `node tools/v2/web/loadbar.mjs --boots 2` traces it.
   - Stopped here on the budget order.
+
+## r2-water
+**Summary (r2-water, Nov 17 afternoon):** boats now float on real per-point hydrostatics, carve, plane, pitch and drop their bow, and beach on their bottoms. There is a drivable airboat (fan boat) built from the user's Boat 10, with stands along the Everglades roads and sheet water over the sawgrass. Cars wade through shallows and sink believably in deep water. Sheets (JPG q90, left = before, right = after):
+- `docs/v2/shots/water/sheet_airboat_glades.jpg`: sawgrass glide, chase cam, close-up
+- `docs/v2/shots/water/sheet_speedboat_waves.jpg`: racer in the swell
+- `docs/v2/shots/water/sheet_beaching.jpg`: center console run onto sand at 60 km/h
+- `docs/v2/shots/water/sheet_car_sinks.jpg`: sedan off a seawall
+
+Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both runs: `tools/v2/water/spots.json`). Test: `node tools/v2/water/drive.mjs --scene airboat,speedboat,beach,car,wade,stand`.
+- **Boat physics v2** (`src/vehicles/boats/hydro.js`, used by `boatTick2` in `boats.js`; **on by default**, `?boatphys=1` = old):
+  - **Buoyancy:** ~21 hull sample points per boat (keel line + both chines, stem to transom). Each point lifts by its own submerged depth against the shared swell plus other boats' wakes, pushes along the wave normal, and is damped on its own velocity (v + w x r). Pitch, roll and heave come out of it.
+  - **Drag:** lateral grip is per point and stronger aft (the boat carves). It loosens as the hull planes. Forward drag and air drag are separate.
+  - **Planing:** planing lift fades as the hull climbs out.
+  - **Weight transfer:** a PD trim gives squat in the hump, 4-7 deg running trim (was a 15-23 deg wheelie with the hull 1.2 m out of the water), and a bow-drop on a throttle chop.
+  - **Ground contact:** a spring + Coulomb friction on the slope normal with sand / mud plowing. A beached hull grinds up the sand on its bottom.
+  - **Colliders:** the hull collider floor is lifted 7-14 cm, so the convex hull no longer catches terrain triangle edges. Hopping is gone.
+  - **dockGuard:** no longer mistakes a sloping beach for a pier deck (was sliding beached boats back at 9 km/h).
+- **Shared waves** (`src/world/env/waves.js`): one Gerstner sum for the shader, buoyancy, the player swimmer (`main.js`) and NPC swimmers (`peds.js`). Calm (exactly 0) within 12 m of the shore, full from 60 m, read from r2-ground's shore field. Agreed with r2-ground: one `// r2-water` block in `ocean.js` after their two-pass commit. Until then `?waves=2` patches both ocean passes at runtime. Waves are off by default, and the physics uses a 16 % chop so no hull bobs against a flat plane.
+- **Airboat** (`src/vehicles/boats/airboat.js`, `public/assets/vehicles/boats/airboat.glb`, 3.2 MB):
+  - **Model:** the user's Boat 10, converted by `tools/v2/water/airboat_tex.py` + `airboat_convert.py` (our script only, autoexec off). Changes:
+    - engine maker name and logo replaced by the invented VANTRO
+    - Maryland registration and sticker replaced by an invented FL number
+    - toy speckle softened, grime added, light grays knee-compressed
+    - scale 1.2x (4.3 m)
+    - wire cage alpha-tested
+  - **Rig:** 3-blade prop on its hub with a blur disc at speed, and both rudders turning with steering.
+  - **Handling:**
+    - thrust is applied at the fan hub
+    - air rudders steer at a standstill with throttle and lose bite off it
+    - the flat bottom slides into drifts
+    - hydroplaning friction on wet sawgrass
+    - slows over dry land (sawgrass 0.14, asphalt 0.55) without stopping dead
+  - **Sound:** the engine voice plus a positional fan layer (blade-pass buzz + air roar), muted with the game.
+  - **Stands:** along trunk / primary / secondary roads in Everglades / Big Cypress, two airboats beside the user's mossy pier, deck collider included. Max speed 66-71 km/h.
+  - **Boat 9 is not used:** the lead decided it's another game's asset.
+- **Everglades sheet water** (`src/world/env/gladesWater.js`, **on**, `?glades=0` off): over the sawgrass / marsh layers, ~5 cm deep (deeper sloughs, dry tussock patches), tea-dark with Fresnel sky reflection, fading at its edges, streamed in 48 m chunks within 300 m. `levelAt()` is the surface the airboat glides on.
+- **Cars in water** (`src/vehicles/water/carWater.js` via a one-line hook in `vehicles.js waterTick`, **on**, `?carwater=1` = old):
+  - **Wading:** below the intake (0.5 m cars, 0.8 m trucks / SUVs) the car keeps driving, with depth drag, wheel spray and a wake.
+  - **Deeper:** the engine stalls, 8-point buoyancy, per-zone flooding (engine bay first), a nose-first sink with bubbles, and it settles on the bottom. Before: nose-up, gone in 3 s.
+  - **Seabed:** bed depth uses r2-ground's new seabed heightfield (`city.seabed.heightAt`).
+- **Cost:**
+  - Boat physics: 0.13-0.17 ms per fixed step for 2-3 boats with v2, vs 0.06-0.09 ms for v1, measured in-session.
+  - Glades water: within the frame-time noise at load 10-15 (frame-time samples on 19.5 / 5.9 ms vs off 12.6 / 16.7 ms).
+  - Drive-test fps: after 49.7, before 47.7 (same spots, different scenes, so a sanity check, not an A/B).
+  - Console errors: 0 in the after run.
+- **Not good enough yet:**
+  1. The driver isn't drawn on the airboat (`player/seat.js` skips boats, owned by r2-people).
+  2. The swell is not drawn by default until the `ocean.js` hook lands (r2-ground's two-pass commit).
+  3. The airboat's interior benches still read light in noon sun.
+  4. Glades sheet water uses its own noise, not the ground shader's puddle pattern.
+  5. There is no scrape or slam audio (`boatScrape` / `boatSlam` events are emitted, but the audio system doesn't use them).
+  6. NPC airboat tours (AI driving) are not done.
+- **For the lead:** `src/main.js` (swimmer on the swell + seabed in the wade / swim probe, 5 lines) and `src/vehicles/vehicles.js` (the 1-line car-water hook) hold other helpers' uncommitted work too, so I did not commit them. Please commit them with yours.
