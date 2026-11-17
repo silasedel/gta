@@ -246,11 +246,11 @@ async function boot() {
     // W walks, Shift runs, Shift held for 1.5 s while moving breaks into the sprint (character track, pass 10)
     const sprintKey = inp.down('ShiftLeft');
     st.shiftT = sprintKey && hasInput ? (st.shiftT || 0) + dt : 0;
-    // stamina (GTA feel): about 14 s of full sprint, back in about 6 s; when empty he drops to a run until 25 % is back
-    P.stamina = P.stamina ?? 1;
+    // stamina is owned by the needs system (src/systems/needs.js, P.stamina 0..100, drained while sprinting): when it
+    // runs out he is winded and drops to a run until 25 is back (GTA feel)
     const wantSprint = hasInput && sprintKey && st.shiftT > 1.5 && !swim;
-    if (wantSprint && !L.winded) P.stamina = Math.max(0, P.stamina - dt / 14); else P.stamina = Math.min(1, P.stamina + dt / (moveSpeed > 0.5 ? 9 : 6));
-    if (P.stamina <= 0.001) L.winded = true; else if (L.winded && P.stamina > 0.25) L.winded = false;
+    const stam = Number.isFinite(P.stamina) ? P.stamina : 100;
+    if (stam <= 0.5) L.winded = true; else if (L.winded && stam > 25) L.winded = false;
     st.sprint = wantSprint && !L.winded;
     const walk = !sprintKey || inp.down('AltLeft') || inp.down('ControlLeft');
     let target = hasInput ? (swim ? (sprintKey ? 3.0 : 1.8) : st.sprint ? 7.2 : walk ? 1.7 : 4.2) : 0;
@@ -461,6 +461,18 @@ async function boot() {
     }
   });
   const knock = new THREE.Vector3();
+  // the character controller pushes dynamic bodies it walks into; a parked car must only budge, never slide away
+  // (sprinting into a coupe pushed it at ~3 m/s): cap the speed of driverless cars Nico is touching
+  game.fixedHooks.push(function parkedCarNudgeCap() {
+    if (P.state.inVehicle) return;
+    for (const v of game.vehicles?.list || []) {
+      if (!v?.body || v.ai || v.playerDriven || v.frozen || v.disposed) continue;
+      let t; try { t = v.body.translation(); } catch (e) { continue; }
+      if ((t.x - P.position.x) ** 2 + (t.z - P.position.z) ** 2 > 12) continue;
+      const lv = v.body.linvel(), sp = Math.hypot(lv.x, lv.z);
+      if (sp > 0.6 && sp < 6) { const k = 0.6 / sp; v.body.setLinvel({ x: lv.x * k, y: lv.y, z: lv.z * k }, true); }
+    }
+  });
   game.fixedHooks.push((dt) => {
     if (knock.lengthSq() < 0.01 || P.state.inVehicle) { knock.set(0, 0, 0); return; }
     kcc.computeColliderMovement(pCol, { x: knock.x * dt, y: vy * dt, z: knock.z * dt }, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
