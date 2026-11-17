@@ -16,6 +16,8 @@ export const MAP_COLORS = {
   water: '#0b4d7c',
   sea: '#074176',
   shallow: '#238895',
+  shelf: '#126f9d',      // mid-depth teal-blue of the shelf fade
+  surf: '#8fe2d6',       // palest wash right at the sand
   waterDeep: '#06365f',
   land: '#909d64',
   beach: '#eedba7',
@@ -78,6 +80,59 @@ const ROAD_STYLE = {
 };
 const KIND_ORDER = ['footway', 'path', 'cycleway', 'service', 'pedestrian', 'living_street', 'unclassified', 'residential', 'default', 'tertiary', 'secondary', 'primary', 'trunk', 'motorway'];
 const kindKey = (k) => (k && ROAD_STYLE[String(k).replace(/_link$/, '')] ? String(k).replace(/_link$/, '') : 'default');
+
+// ---------- shallow water (r2: replaces the hard turquoise coast bands) ----------
+// The sea color is a smooth function of "how much land is near": one world-wide land mask is blurred twice (a tight shore
+// glow and a broad shelf fade), so the coast reads like the user's map references (turquoise right at the sand, fading
+// through teal into deep navy, no outline). The field and a world-anchored reef / sandbank noise live in world space, so
+// neighboring tiles and every zoom level agree.
+const SHORE_NEAR_M = 75;          // tight bright shallows right at the coast (blur sigma, meters)
+const SHORE_FAR_M = 320;          // broad shelf fade into deep water
+const SHORE_MARGIN_M = 1000;      // > 3 x SHORE_FAR_M of open sea around the land in the shore raster
+const SHORE_FINE_M = 16;          // shore raster resolution (meters per px)
+const hexRgb = (h) => { const s = String(h).replace('#', ''); return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]; };
+const mixC = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+function hash2(i, j) { let h = (i * 374761393 + j * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function vnoise(x, z) {
+  const i = Math.floor(x), j = Math.floor(z), fx = x - i, fz = z - j, ux = fx * fx * (3 - 2 * fx), uz = fz * fz * (3 - 2 * fz);
+  const a = hash2(i, j), b = hash2(i + 1, j), c = hash2(i, j + 1), d = hash2(i + 1, j + 1);
+  return a + (b - a) * ux + (c - a) * uz + (a - b - c + d) * ux * uz;
+}
+// separable box blur in place, 3 passes ~ gaussian with sigma ~ r + 0.5 (r rounded); sliding window, O(1) per pixel,
+// edges clamped. A generator: yields after every pass so the one-time build can be spread over frames.
+function* boxBlur(src, w, h, rf) {
+  const r = Math.round(rf);
+  if (r < 1) return src;
+  const tmp = new Float32Array(w * h), inv = 1 / (2 * r + 1);
+  const pass = (inp, out, n, stride, lines, lstride) => {
+    for (let l = 0; l < lines; l++) {
+      const base = l * lstride, last = base + (n - 1) * stride;
+      let sum = inp[base] * (r + 1);
+      for (let i = 1; i <= r; i++) sum += inp[i < n ? base + i * stride : last];
+      for (let i = 0; i < n; i++) {
+        out[base + i * stride] = sum * inv;
+        const ia = i + r + 1, ib = i - r;
+        sum += (ia < n ? inp[base + ia * stride] : inp[last]) - (ib > 0 ? inp[base + ib * stride] : inp[base]);
+      }
+    }
+  };
+  for (let it = 0; it < 3; it++) { pass(src, tmp, w, 1, h, w); yield; pass(tmp, src, h, w, w, 1); yield; }
+  return src;
+}
+// land mask of a world rect at m meters per pixel (alpha 0..1), lakes / rivers cut out; thin keys get a hairline
+function landMask(land, water, x0, z0, W, H, m) {
+  const mc = document.createElement('canvas'); mc.width = W; mc.height = H;
+  const mg = mc.getContext('2d', { willReadFrequently: true });
+  mg.setTransform(1 / m, 0, 0, 1 / m, -x0 / m, -z0 / m);
+  const trace = (items) => { mg.beginPath(); for (const it of items) for (const rr of it.rings) { mg.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) mg.lineTo(rr[i][0], rr[i][1]); mg.closePath(); } };
+  mg.fillStyle = '#fff'; trace(land); mg.fill('evenodd');
+  mg.strokeStyle = '#fff'; mg.lineJoin = 'round'; mg.lineWidth = Math.min(m * 0.9, 18); mg.stroke();
+  if (water.length) { mg.globalCompositeOperation = 'destination-out'; trace(water); mg.fill('evenodd'); }
+  const px = mg.getImageData(0, 0, W, H).data, out = new Float32Array(W * H);
+  let any = false;
+  for (let i = 0; i < out.length; i++) { const v = px[i * 4 + 3] / 255; out[i] = v; if (v > 0) any = true; }
+  return any ? out : null;
+}
 
 function isRingList(p) { return Array.isArray(p) && Array.isArray(p[0]) && Array.isArray(p[0][0]); }
 function ringsOf(p) {
@@ -225,7 +280,87 @@ export function createMapRenderer(game) {
 
   // ---------- tile rendering ----------
   function tileSize(level) { return BASE_TILE_M * Math.pow(2, level); }
-  function ringPath(g, ring) { g.beginPath(); g.moveTo(ring[0][0], ring[0][1]); for (let i = 1; i < ring.length; i++) g.lineTo(ring[i][0], ring[i][1]); g.closePath(); }
+  const tileStats = { tiles: 0, shoreMs: 0, ms: 0, fieldMs: 0 };
+  // Shore fields, built once per city: the whole world's land mask (lakes / rivers cut out) at SHORE_FINE_M per px,
+  // blurred into a tight shore glow, and a 4x coarser copy blurred into the broad shelf fade. One global raster means
+  // tiles of every level sample the very same field (no seams) and a tile only does a cheap bilinear lookup.
+  // The build (~40 ms) runs as small steps inside the tile budget (shoreStep), never as one long frame.
+  function* shoreBuild(B) {
+    const land = [], water = [];
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    const seen = new Set();
+    const take = (rec) => {
+      if (seen.has(rec)) return; seen.add(rec);
+      if (rec.layer === 'land') { land.push(rec.item); x0 = Math.min(x0, rec.bb[0]); z0 = Math.min(z0, rec.bb[1]); x1 = Math.max(x1, rec.bb[2]); z1 = Math.max(z1, rec.bb[3]); } else if (rec.layer === 'water') water.push(rec.item);
+    };
+    for (const rec of B.big) take(rec);
+    for (const a of B.grid.values()) for (const rec of a) take(rec);
+    if (!land.length) return null;
+    const M = SHORE_MARGIN_M, m = SHORE_FINE_M;
+    x0 = Math.floor((x0 - M) / (4 * m)) * 4 * m; z0 = Math.floor((z0 - M) / (4 * m)) * 4 * m;
+    const W = Math.ceil((x1 + M - x0) / (4 * m)) * 4, H = Math.ceil((z1 + M - z0) / (4 * m)) * 4;
+    if (W * H > 6e6) return null; // absurdly large world: keep the plain sea rather than stall
+    yield;
+    const mask = landMask(land, water, x0, z0, W, H, m);
+    if (!mask) return null;
+    yield;
+    // coarse copy (4x4 average) for the shelf
+    const CW = W / 4, CH = H / 4, coarse = new Float32Array(CW * CH);
+    for (let j = 0; j < H; j++) { const row = (j >> 2) * CW, src = j * W; for (let i = 0; i < W; i++) coarse[row + (i >> 2)] += mask[src + i] * 0.0625; }
+    yield;
+    const near = yield* boxBlur(mask, W, H, SHORE_NEAR_M / m - 0.5);
+    const far = yield* boxBlur(coarse, CW, CH, SHORE_FAR_M / (4 * m) - 0.5);
+    return { near, far, x0, z0, W, H, CW, CH, m };
+  }
+  // advance the build by up to budgetMs; true once the fields are settled (built, or impossible -> plain sea)
+  function shoreStep(budgetMs) {
+    const B = build();
+    if (B.shore !== undefined) return true;
+    if (!B.shoreJob) B.shoreJob = shoreBuild(B);
+    const t0 = performance.now();
+    do {
+      let r;
+      try { r = B.shoreJob.next(); } catch (e) { console.warn('[hud map] shore field failed', e); r = { done: true, value: null }; }
+      if (r.done) { B.shore = r.value || null; B.shoreJob = null; tileStats.fieldMs += performance.now() - t0; return true; }
+    } while (performance.now() - t0 < budgetMs);
+    tileStats.fieldMs += performance.now() - t0;
+    return false;
+  }
+  function shoreFields() { const B = build(); return B.shore || null; }
+  const sampleF = (f, w, h, gx, gz) => {
+    gx = Math.min(w - 1.001, Math.max(0, gx)); gz = Math.min(h - 1.001, Math.max(0, gz));
+    const ix = Math.floor(gx), iz = Math.floor(gz), ax = gx - ix, az = gz - iz, b = iz * w + ix;
+    return (f[b] * (1 - ax) + f[b + 1] * ax) * (1 - az) + (f[b + w] * (1 - ax) + f[b + w + 1] * ax) * az;
+  };
+  // Shallow-water image for one tile: { open: canvas (sea colors), inland: canvas (lakes / canals), x, z, w, h } or null
+  // when no land is near. Output px sit on world multiples of their size, so adjacent tiles sample alike.
+  function shoreTile(x0, z0, S, wantInland) {
+    const F = shoreFields(); if (!F) return null;
+    const m = Math.max(S / 160, F.m), pad = 2 * m;
+    const ox = Math.floor((x0 - pad) / m) * m, oz = Math.floor((z0 - pad) / m) * m;
+    const W = Math.ceil((x0 + S + pad - ox) / m), H = Math.ceil((z0 + S + pad - oz) / m);
+    const sea = hexRgb(MAP_COLORS.sea), shelf = hexRgb(MAP_COLORS.shelf), shallow = hexRgb(MAP_COLORS.shallow), surf = hexRgb(MAP_COLORS.surf), inlandC = hexRgb(MAP_COLORS.water);
+    const imO = new ImageData(W, H), imI = wantInland ? new ImageData(W, H) : null, o = imO.data, q = imI ? imI.data : null;
+    let any = false;
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const k = j * W + i, wx = ox + (i + 0.5) * m, wz = oz + (j + 0.5) * m;
+      const fv = sampleF(F.far, F.CW, F.CH, (wx - F.x0) / (4 * F.m) - 0.5, (wz - F.z0) / (4 * F.m) - 0.5);
+      const nv = sampleF(F.near, F.W, F.H, (wx - F.x0) / F.m - 0.5, (wz - F.z0) / F.m - 0.5);
+      if (fv > 0.002 || nv > 0.002) any = true;
+      // reef / sandbank breakup of the shelf, anchored to the world
+      const nz = vnoise(wx / 1400, wz / 1400) * 0.65 + vnoise(wx / 430 + 17.3, wz / 430 - 5.1) * 0.35;
+      const sf = Math.min(1, Math.min(1, fv * 3.4) * (0.55 + 0.7 * nz)), s1 = sf * sf * (3 - 2 * sf);
+      const tn = Math.min(1, nv * 2.2), tn2 = tn * tn * (3 - 2 * tn);
+      let c = mixC(sea, shelf, s1 * 0.95);
+      c = mixC(c, shallow, Math.min(1, tn2 * 0.9 + s1 * 0.12));
+      c = mixC(c, surf, Math.max(0, tn - 0.72) / 0.28 * 0.45);
+      o[k * 4] = c[0]; o[k * 4 + 1] = c[1]; o[k * 4 + 2] = c[2]; o[k * 4 + 3] = 255;
+      if (q) { const ci = mixC(inlandC, shallow, tn2 * 0.38); q[k * 4] = ci[0]; q[k * 4 + 1] = ci[1]; q[k * 4 + 2] = ci[2]; q[k * 4 + 3] = 255; }
+    }
+    if (!any && !q) return null;
+    const mk = (im) => { const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').putImageData(im, 0, 0); return c; };
+    return { open: any ? mk(imO) : null, inland: imI ? mk(imI) : null, x: ox, z: oz, w: W * m, h: H * m };
+  }
   function renderTile(level, tx, tz) {
     const S = tileSize(level), x0 = tx * S, z0 = tz * S, ppm = TILE_PX / S;
     const cv = document.createElement('canvas'); cv.width = cv.height = TILE_PX;
@@ -254,23 +389,13 @@ export function createMapRenderer(game) {
     }
     const by = { land: [], beach: [], park: [], water: [], building: [], road: [], cover: [] };
     for (const r of recs) { if ((r.layer === 'building' || r.layer === 'road') && r.item.inside === false) continue; by[r.layer]?.push(r.item); }
+    // soft shallow-water fade from every coast into deep water (no outline band); also feeds lakes / canals below
+    const tS = performance.now();
+    const shore = B.hasLand ? shoreTile(x0, z0, S, by.water.length > 0) : null;
+    tileStats.shoreMs += performance.now() - tS; tileStats.tiles++;
+    if (shore && shore.open) { g.save(); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(shore.open, shore.x, shore.z, shore.w, shore.h); g.restore(); }
     if (!B.hasLand) { g.fillStyle = MAP_COLORS.land; g.fillRect(x0, z0, S, S); }
-    else if (by.land.length) {
-      // turquoise shallows: a wide soft band hugging every coast, under the land fill
-      g.save();
-      g.lineJoin = 'round';
-      g.strokeStyle = MAP_COLORS.shallow;
-      g.globalAlpha = 0.55;
-      g.lineWidth = 300;
-      g.beginPath();
-      for (const it of by.land) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
-      g.stroke();
-      g.globalAlpha = 1;
-      g.lineWidth = 110;
-      g.stroke();
-      g.restore();
-      fillRings(by.land, MAP_COLORS.land);
-    }
+    else if (by.land.length) fillRings(by.land, MAP_COLORS.land);
     if (by.cover.length) {
       const groups = new Map();
       for (const it of by.cover) { let a = groups.get(it.cls); if (!a) groups.set(it.cls, (a = [])); a.push(it); }
@@ -280,10 +405,13 @@ export function createMapRenderer(game) {
     if (by.park.length) fillRings(by.park, MAP_COLORS.park);
     if (by.beach.length) fillRings(by.beach, MAP_COLORS.beach);
     if (by.water.length) {
-      fillRings(by.water, MAP_COLORS.water);
-      g.strokeStyle = 'rgba(35,136,149,.55)'; g.lineWidth = 2.5 / ppm; g.beginPath();
-      for (const it of by.water) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
-      g.stroke();
+      // lakes, rivers and canals: deeper water with only a soft lighter rim near their banks (no outline)
+      if (shore && shore.inland) {
+        g.save(); g.beginPath();
+        for (const it of by.water) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
+        g.clip('evenodd'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        g.drawImage(shore.inland, shore.x, shore.z, shore.w, shore.h); g.restore();
+      } else fillRings(by.water, MAP_COLORS.water);
     }
     // buildings at every level (cheap flat fill when zoomed out)
     if (by.building.length) {
@@ -347,8 +475,10 @@ export function createMapRenderer(game) {
     if (fid !== frameId) { frameId = fid; spentThisFrame = 0; }
     if (!force && spentThisFrame > frameBudgetMs) return null;
     const t0 = performance.now();
+    // the shore fields must exist before any tile is drawn (else the tile would be cached without its shallows)
+    if (build().hasLand && !shoreStep(force ? 40 : Math.max(2, frameBudgetMs - spentThisFrame))) { spentThisFrame += performance.now() - t0; return null; }
     let c = null;
-    try { c = renderTile(level, tx, tz); } catch (e) { console.warn('[hud map] tile failed', e); c = document.createElement('canvas'); c.width = c.height = 2; }
+    try { c = renderTile(level, tx, tz); tileStats.ms += performance.now() - t0; } catch (e) { console.warn('[hud map] tile failed', e); c = document.createElement('canvas'); c.width = c.height = 2; }
     spentThisFrame += performance.now() - t0;
     cache.set(key, { c, used: drawSeq });
     if (cache.size > MAX_TILES) {
@@ -381,7 +511,9 @@ export function createMapRenderer(game) {
       let c = hit ? hit.c : null;
       if (hit) hit.used = drawSeq;
       else if (!forcedOne) { forcedOne = true; c = getTile(OVERVIEW, tx, tz, true, spentThisFrame < 40); }
-      if (c && !(tx * S4 > x1 || (tx + 1) * S4 < x0 || tz * S4 > z1 || (tz + 1) * S4 < z0)) g.drawImage(c, tx * S4, tz * S4, S4 + 2 / ppmDevice, S4 + 2 / ppmDevice);
+      const vis = !(tx * S4 > x1 || (tx + 1) * S4 < x0 || tz * S4 > z1 || (tz + 1) * S4 < z0);
+      if (c && vis) g.drawImage(c, tx * S4, tz * S4, S4 + 2 / ppmDevice, S4 + 2 / ppmDevice);
+      else if (!c && vis) lastPending++; // still being built: the caller redraws (pause map timer, minimap every frame)
     }
     // 2) level with hysteresis, never more than ~36 tiles on screen
     const q = opts.quality ?? 0.9, id = opts.id || 'default';
@@ -480,5 +612,5 @@ export function createMapRenderer(game) {
   function bounds() { return ok() ? build().bounds : null; }
   function boundary() { return ok() ? build().ring : null; }
   function invalidate() { built = null; builtFor = null; cache.clear(); districtCache = null; }
-  return { ok, draw, districts, drawStreetLabels, bounds, boundary, inside: insideB, invalidate, query, get pending() { return lastPending; } };
+  return { ok, draw, districts, drawStreetLabels, bounds, boundary, inside: insideB, invalidate, query, get pending() { return lastPending; }, get stats() { return tileStats; } };
 }

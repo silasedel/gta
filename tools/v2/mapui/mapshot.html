@@ -1,0 +1,60 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><base href="/"><title>r2-mapui map shots</title>
+<style>html,body{margin:0;height:100%;background:linear-gradient(180deg,#5a7fa8,#e8a07a 60%,#4a4a52 61%,#2e2f36);overflow:hidden}</style></head>
+<body>
+<script type="module">
+// r2-mapui copy of src/ui/mapshot.html (that one imports a moved interiors module). UI-only page: real Miami map data + HUD, no 3D / audio. Params: view=pause|mini, ppm=<px per m>, wanted=0..5
+import * as THREE from 'three';
+import { loadMiamiData } from '/src/world/miami/data.js';
+import { createHUD } from '/src/ui/hud.js';
+const P = new URLSearchParams(location.search);
+const data = await loadMiamiData(null, { bundle: false });
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 100);
+const _ev = {};
+const hour = +(P.get('hour') ?? 15);
+const spawn = data.playerSpawn.clone();
+if (P.get('x')) spawn.set(+P.get('x'), 0, +P.get('z'));
+const game = {
+  THREE, camera, renderer: { domElement: document.body }, timeOfDay: hour, clock: { dt: 0.016, elapsed: 0 },
+  settings: { mouseSens: 1, quality: 'high', fov: 62 }, ui: { phoneOpen: false, paused: false },
+  input: { pressed: () => false, down: () => false }, city: data,
+  on: (n, f) => ((_ev[n] ||= []).push(f), f), emit: (n, d) => { for (const f of _ev[n] || []) f(d); return true; },
+  player: { position: spawn, heading: 2.2, state: { speed: 0, inVehicle: false }, health: 100, armor: 50, money: 2450, wanted: 0, weapon: 'pistol', inventory: ['fist', 'pistol'], ammo: { pistol: 60 }, clip: { pistol: 15 } },
+};
+// real entities, built the same way the game builds them
+game.interiors = { list: [] };
+const kinds = ['weapon', 'weapon', 'ammo', 'health', 'armor', 'cash'];
+const pick = [];
+for (let i = 0; i < 150; i++) { const q = data.randomSidewalkPoint(spawn, 1600); if (q) pick.push({ pos: q, mapIcon: kinds[i % kinds.length], active: true }); }
+game.pickups = { list: pick };
+const W = +(P.get('wanted') ?? 2);
+const units = [], cars = [];
+if (W > 0) {
+  for (let i = 0; i < 6; i++) { const q = data.randomSidewalkPoint(spawn, 380); if (q) units.push({ pos: q, active: true, dead: false, isCop: true }); }
+  for (let i = 0; i < 3; i++) { const r = data.randomRoadPoint(spawn, 350); if (r) cars.push({ v: { mesh: { position: r.position }, police: true } }); }
+  game.wanted = { level: W, evading: false, searchCenter: { x: spawn.x + 120, z: spawn.z - 60 }, searchRadius: 160 };
+}
+game.police = { units, cars };
+game.vehicles = { list: [] };
+game.gameplayCity = { respawnPoint: (kind) => { const q = data.randomSidewalkPoint(spawn, kind === 'hospital' ? 900 : 700); return q; } };
+game.peds = { list: [] };
+window.game = game;
+game.hud = createHUD(game);
+game.hud.startPlay?.();
+window.mapReady = true;
+if (P.get('wp')) { const [x, z] = P.get('wp').split(',').map(Number); game.waypoint = { x, z }; }
+let last = performance.now();
+function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; game.clock.elapsed += dt; camera.rotation.set(0, 0.6, 0, 'YXZ'); camera.updateMatrixWorld(); game.hud.update(dt); }
+requestAnimationFrame(loop);
+setTimeout(() => {
+  if (P.get('view') === 'pause') {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP' }));
+    setTimeout(() => {
+      if (P.get('fit')) game.hud._mapFit();
+      else if (P.get('ppm')) game.hud._mapZoom?.(+P.get('ppm'), P.get('cx') != null ? +P.get('cx') : null, P.get('cz') != null ? +P.get('cz') : null);
+      if (P.get('pan')) { const [dx, dz] = P.get('pan').split(',').map(Number); game.hud._mapPan(dx, dz); }
+    }, 1500);
+  }
+}, 400);
+</script>
+</body></html>
