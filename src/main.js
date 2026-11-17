@@ -604,6 +604,15 @@ async function boot() {
     const cy = Math.cos(camPitch);
     raydir.set(Math.sin(game.cameraYaw) * cy, Math.sin(camPitch), Math.cos(game.cameraYaw) * cy);
     const rightX = Math.cos(game.cameraYaw), rightZ = -Math.sin(game.cameraYaw);
+    // over-the-shoulder offset: a wall / pile / car right beside the shoulder shortens it (smoothly), so the camera
+    // does not get pushed into the back of his head in tight spots
+    if (!driving && sideOff > 0) {
+      let room = sideOff;
+      try { const sh = world.castShape(pivot, IDQ, { x: rightX, y: 0, z: rightZ }, camSphere, 0, sideOff + 0.05, false, STATIC_ONLY);
+        if (sh && Number.isFinite(sh.time_of_impact)) room = Math.max(0, sh.time_of_impact - 0.05); } catch (e) { /* keep */ }
+      L.sideRoom = (L.sideRoom ?? sideOff) + (room - (L.sideRoom ?? sideOff)) * Math.min(1, dt * (room < (L.sideRoom ?? sideOff) ? 12 : 3));
+      sideOff = Math.min(sideOff, L.sideRoom);
+    }
     const piv = new THREE.Vector3(pivot.x + rightX * sideOff, pivot.y, pivot.z + rightZ * sideOff);
     camDist += (wantDist - camDist) * Math.min(1, dt * 3);
     // camera collision: static world + vehicles (peds and the player never snap the camera)
