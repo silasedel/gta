@@ -227,6 +227,33 @@ function addTaxi(levels, t, M, lightMats) {
     levels[0].add(p); levels[1].add(p.clone());
   }
 }
+// ------------------------------------------------------------------ ambulance / fire engine: side lettering (Southline)
+const _svc = {};
+function serviceMat(kind) {
+  if (_svc[kind]) return _svc[kind];
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
+  g.clearRect(0, 0, 1024, 256);
+  if (kind === 'ambulance') {
+    g.fillStyle = '#c8141c'; g.fillRect(0, 196, 1024, 26); g.fillStyle = '#1a3f8f'; g.fillRect(0, 226, 1024, 10);
+    g.fillStyle = '#c8141c'; g.font = 'bold 118px "Arial Black", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('AMBULANCE', 512, 92);
+    g.fillStyle = '#1a3f8f'; g.font = 'bold 38px Arial, sans-serif'; g.fillText('SOUTHLINE FIRE RESCUE  ·  EMS', 512, 168);
+  } else {
+    g.fillStyle = '#f2d14b'; g.fillRect(0, 200, 1024, 20);
+    g.fillStyle = '#f7f2e0'; g.font = 'bold 74px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('SOUTHLINE FIRE RESCUE', 512, 110);
+  }
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4;
+  return (_svc[kind] = new THREE.MeshStandardMaterial({ map: tx, transparent: true, roughness: 0.4, metalness: 0.05, polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false }));
+}
+function addServiceLivery(levels, t, M) {
+  const sh = M.man.shape, half = Math.max(M.sideX, (sh.bodyW || t.W) / 2, M.man.dims.W / 2 - 0.2) + 0.015;
+  const rear = sh.rear ?? -t.L / 2, ln = Math.abs(rear) * 1.25, h = ln / 4;
+  const y = t.livery === 'ambulance' ? t.belt + (t.roofY - t.belt) * 0.45 : t.yb + (t.belt - t.yb) * 0.75, z = rear * 0.45;
+  for (const sd of [1, -1]) {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(ln, h), serviceMat(t.livery));
+    p.rotation.y = sd * Math.PI / 2; p.position.set(sd * half, y, z); p.renderOrder = 3;
+    levels[0].add(p); levels[1].add(p.clone());
+  }
+}
 // one wheel material for every library car (the rims keep their own baked colors; aTint = 0 everywhere)
 let _wmat = null;
 const wheelMaterial = () => (_wmat ||= wheelMat(0xffffff, 'alloy'));
@@ -327,6 +354,7 @@ export function buildGlbCar(key, look, t, info) {
   lod.addLevel(levels[2], 100 * big, 0.12);
   shell.add(lod);
   if (t.taxi) addTaxi(levels, t, M, lightMats);
+  if (t.livery === 'ambulance' || t.livery === 'fire') addServiceLivery(levels, t, M);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
   contact.scale.set(t.W + 0.25, t.L + 0.35, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
   shell.add(contact);
