@@ -160,7 +160,19 @@ export async function loadMiamiData(game, opts = {}) {
     if (isletCache.size > 200000) isletCache.clear();
     isletCache.set(k, v); return v;
   }
-  const surfCode = (x, z) => { const s = surfRaw(x, z); if (GC_OFF) return s; if (s !== S_WATER) return s !== S_BUILDING && s !== S_PIER && isIslet(x, z) ? S_WATER : s; const l = sliverLand(x, z); return l >= 0 ? l : s; };
+  // ground pass: small enclosed specks of water inside land (traced-map noise: blue pockets inside city blocks, < ~90 m across, land
+  // within 72 m in all 8 directions) are land - they rendered as open sea (with a moored boat) in downtown / Little Havana / Clewiston
+  const S_GRASS = Math.max(0, SURF.indexOf('grass_short')), pocketCache = new Map();
+  function isPocket(x, z) {
+    const k = Math.floor(x / 8) * 100003 + Math.floor(z / 8); let v = pocketCache.get(k);
+    if (v !== undefined) return v;
+    v = true; const d = [];
+    for (const [dx, dz] of ISLET_DIRS) { let h = 0; for (let s2 = 6; s2 <= 72; s2 += 6) if (surfRaw(x + dx * s2, z + dz * s2) !== S_WATER) { h = s2; break; } if (!h) { v = false; break; } d.push(h); }
+    if (v) v = d[0] + d[1] <= 90 && d[2] + d[3] <= 90 && d[4] + d[5] <= 90 && d[6] + d[7] <= 90;
+    if (pocketCache.size > 200000) pocketCache.clear();
+    pocketCache.set(k, v); return v;
+  }
+  const surfCode = (x, z) => { const s = surfRaw(x, z); if (GC_OFF) return s; if (s !== S_WATER) return s !== S_BUILDING && s !== S_PIER && isIslet(x, z) ? S_WATER : s; const l = sliverLand(x, z); return l >= 0 ? l : isPocket(x, z) ? S_GRASS : s; };
   surfCode.cell = surfRaw.cell;
   const isSliver = (x, z) => surfRaw(x, z) === S_WATER && sliverLand(x, z) >= 0;
   const isWaterRaw = (x, z) => surfRaw(x, z) === S_WATER;
