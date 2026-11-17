@@ -89,7 +89,7 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 3.0 + rx * 0.9, y + 0.7, z + fz * 3.0 + rz * 0.9); cam.lookAt(x + fx * 4.2, y + 0.3, z + fz * 4.2); cam.fov = 40; cam.updateProjectionMatrix(); return true; }; game.timeOfDay = 11.5; return 1; })()`);
     await b.sleep(2500); await b.screenshot(path.join(DIR, `${SET}_pickups_close.png`));
     await b.eval(`(() => { const [x, z, h] = window.__P0; const fx = Math.sin(h), fz = Math.cos(h);
-      game.cameraOverride = (dt, cam) => { const y = game.player.position.y; const rx = -Math.cos(h), rz = Math.sin(h); cam.position.set(x - fx * 8 + rx * 2.5, y + 1.7, z - fz * 8 + rz * 2.5); cam.lookAt(x + fx * 4.2, y + 0.3, z + fz * 4.2); cam.fov = 55; cam.updateProjectionMatrix(); return true; }; return 1; })()`);
+      game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 16.2, y + 1.7, z + fz * 16.2); cam.lookAt(x + fx * 4.2, y + 0.3, z + fz * 4.2); cam.fov = 55; cam.updateProjectionMatrix(); return true; }; return 1; })()`);
     for (const [i, ms] of [[1, 400], [2, 1100], [3, 900]]) { await b.sleep(ms); await b.screenshot(path.join(DIR, `${SET}_pickups_12m_${i}.png`)); }
   }
   if (o.cop) {
@@ -108,7 +108,10 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
     })()`);
     console.log(r); await b.screenshot(path.join(DIR, `${SET}_cop_idle.png`));
     const r2 = await b.eval(`(async () => { const u = window.__cop; try { game.wanted.setStars ? game.wanted.setStars(3, 'test') : (game.wanted.level = 3); } catch (e) { /* */ } u.mode = 'chase'; u.sees = true;
-      const keep = () => { u.mode = 'chase'; u.sees = true; u.fireCd = Math.max(u.fireCd || 0, 0.5); if (game.wanted.level < 3) { try { game.wanted.setStars(3, 'test'); } catch (e) { /* */ } } game.player.health = 100; };
+      const H = await import('/src/gameplay/gunHold.js');
+      const aimCop = () => { try { const t = game.player.position.clone(); t.y += 1.3; H.holdWeapon(u.gun, u.char.root, { aim: t, dt: 0.016, time: game.clock.elapsed }); } catch (e) { window.__copErr = String(e); } };
+      game.combat.late = game.combat.late || []; game.combat.late.push(aimCop);
+      const keep = () => { aimCop(); u.mode = 'chase'; u.sees = true; u.fireCd = Math.max(u.fireCd || 0, 0.5); if (game.wanted.level < 3) { try { game.wanted.setStars(3, 'test'); } catch (e) { /* */ } } game.player.health = 100; };
       const hh = u.heading; game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x + Math.sin(hh) * 1.6 - Math.cos(hh) * 0.9, hp.y + 0.15, hp.z + Math.cos(hh) * 1.6 + Math.sin(hh) * 0.9); cam.lookAt(hp.x, hp.y, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); keep(); return true; };
       await new Promise((res) => setTimeout(res, 600)); return 'cop aim ' + u.mode + ' sees=' + u.sees + ' stars=' + game.wanted.level; })()`);
     console.log(r2); await b.screenshot(path.join(DIR, `${SET}_cop_aim.png`));
