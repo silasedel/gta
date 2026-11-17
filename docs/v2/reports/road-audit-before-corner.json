@@ -1,0 +1,225 @@
+{
+ "set": "before",
+ "when": "2026-11-17T03:03:07.528Z",
+ "junctions": {
+  "ruralT": {
+   "node": 1933,
+   "x": -99,
+   "z": 2409,
+   "zone": "rural",
+   "dist": "Coconut Grove",
+   "kinds": "primary,residential,primary",
+   "views": {
+    "corner": {
+     "avgMs": 31.47,
+     "med": 31.6,
+     "calls": 486,
+     "tris": 3882649,
+     "nearTiles": 8,
+     "meshesPerTile": 8.8
+    }
+   }
+  },
+  "resT": {
+   "node": 5,
+   "x": -2057,
+   "z": -6347.700000000001,
+   "zone": "residential",
+   "dist": "Okeechobee",
+   "kinds": "tertiary,tertiary,tertiary",
+   "views": {
+    "corner": {
+     "avgMs": 32.37,
+     "med": 32.2,
+     "calls": 509,
+     "tris": 3722135,
+     "nearTiles": 9,
+     "meshesPerTile": 5.8
+    }
+   }
+  },
+  "highway": {
+   "node": 587,
+   "x": -1429.3000000000002,
+   "z": -1551,
+   "zone": "rural",
+   "dist": "Big Cypress",
+   "kinds": "trunk,tertiary,trunk",
+   "views": {
+    "corner": {
+     "avgMs": 19.65,
+     "med": 19.4,
+     "calls": 276,
+     "tris": 3642138,
+     "nearTiles": 10,
+     "meshesPerTile": 3.3
+    }
+   }
+  },
+  "skewed": {
+   "node": 667,
+   "x": 15.5,
+   "z": -1343.1000000000001,
+   "zone": "business",
+   "dist": "Edgewater",
+   "kinds": "primary,secondary,secondary",
+   "views": {
+    "corner": {
+     "avgMs": 26.73,
+     "med": 26.2,
+     "calls": 321,
+     "tris": 3813333,
+     "nearTiles": 9,
+     "meshesPerTile": 8
+    }
+   }
+  },
+  "urbanT": {
+   "node": 146,
+   "x": -5514.6,
+   "z": -3967.4,
+   "zone": "commercial",
+   "dist": "Fort Myers",
+   "kinds": "primary,tertiary,tertiary",
+   "views": {
+    "corner": {
+     "avgMs": 34.09,
+     "med": 30.6,
+     "calls": 371,
+     "tris": 4161664,
+     "nearTiles": 10,
+     "meshesPerTile": 7.2
+    }
+   }
+  },
+  "res4": {
+   "node": 215,
+   "x": -1394.1000000000001,
+   "z": -3378.4,
+   "zone": "residential",
+   "dist": "Clewiston",
+   "kinds": "tertiary,tertiary,tertiary,tertiary",
+   "views": {
+    "corner": {
+     "avgMs": 52.81,
+     "med": 49.6,
+     "calls": 647,
+     "tris": 4894107,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    }
+   }
+  },
+  "urban4": {
+   "node": 1063,
+   "x": 297,
+   "z": -338.70000000000005,
+   "zone": "downtown",
+   "dist": "Downtown",
+   "kinds": "secondary,secondary,secondary,secondary",
+   "views": {
+    "corner": {
+     "avgMs": 334.14,
+     "med": 311.8,
+     "calls": 656,
+     "tris": 5161144,
+     "nearTiles": 9,
+     "meshesPerTile": 10.9
+    }
+   }
+  },
+  "town": {
+   "node": 450,
+   "x": -1334.6000000000001,
+   "z": -2493.4,
+   "zone": "commercial",
+   "dist": "Clewiston",
+   "kinds": "trunk,tertiary,trunk",
+   "views": {
+    "corner": {
+     "avgMs": 45.78,
+     "med": 45.8,
+     "calls": 662,
+     "tris": 4817678,
+     "nearTiles": 9,
+     "meshesPerTile": 8.1
+    }
+   }
+  },
+  "five": {
+   "node": 1510,
+   "x": -436.70000000000005,
+   "z": 557.1,
+   "zone": "commercial",
+   "dist": "Little Havana",
+   "kinds": "primary,secondary,secondary,secondary,tertiary,secondary,tertiary",
+   "views": {
+    "corner": {
+     "avgMs": 45.93,
+     "med": 44.7,
+     "calls": 469,
+     "tris": 4401407,
+     "nearTiles": 10,
+     "meshesPerTile": 9.9
+    }
+   }
+  },
+  "beach": {
+   "node": 1509,
+   "x": 2498.3,
+   "z": 481,
+   "zone": "nightlife",
+   "dist": "South Beach",
+   "kinds": "secondary,secondary,secondary,secondary",
+   "views": {
+    "corner": {
+     "avgMs": 54.97,
+     "med": 50.1,
+     "calls": 883,
+     "tris": 4363994,
+     "nearTiles": 9,
+     "meshesPerTile": 9.2
+    }
+   }
+  },
+  "industrial": {
+   "node": 1641,
+   "x": 1448.4,
+   "z": 883.6,
+   "zone": "port",
+   "dist": "Dodge Island Port",
+   "kinds": "tertiary,tertiary,tertiary",
+   "views": {
+    "corner": {
+     "avgMs": 27.14,
+     "med": 27.1,
+     "calls": 289,
+     "tris": 4165995,
+     "nearTiles": 9,
+     "meshesPerTile": 8.9
+    }
+   }
+  },
+  "keys": {
+   "node": 2144,
+   "x": -926,
+   "z": 5253.700000000001,
+   "zone": "residential",
+   "dist": "Key Largo",
+   "kinds": "primary,primary,primary,trunk",
+   "views": {
+    "corner": {
+     "avgMs": 66.63,
+     "med": 68.3,
+     "calls": 701,
+     "tris": 5413196,
+     "nearTiles": 10,
+     "meshesPerTile": 9.5
+    }
+   }
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "set": "before",
+ "when": "2026-11-17T03:24:48.707Z",
+ "junctions": {
+  "keysLane": {
+   "node": 2133,
+   "x": -652.6,
+   "z": 5162.6,
+   "zone": "residential",
+   "dist": "Key Largo",
+   "kinds": "residential,residential,residential",
+   "views": {
+    "top": {
+     "avgMs": 22.83,
+     "med": 22.2,
+     "calls": 283,
+     "tris": 3159070,
+     "nearTiles": 10,
+     "meshesPerTile": 8
+    },
+    "drive": {
+     "avgMs": 37.56,
+     "med": 38.6,
+     "calls": 883,
+     "tris": 4407453,
+     "nearTiles": 10,
+     "meshesPerTile": 7
+    },
+    "corner": {
+     "avgMs": 23.78,
+     "med": 24.1,
+     "calls": 369,
+     "tris": 3254959,
+     "nearTiles": 10,
+     "meshesPerTile": 7
+    }
+   }
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}
