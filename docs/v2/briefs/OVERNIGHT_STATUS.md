@@ -1034,6 +1034,18 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     - rock 12 cm: +8 cm travel, 3.1 deg roll
     - Matches the offline harness.
   - Browser slots are the bottleneck: runs wait 20-60 min.
+- 17:10 Done and committed:
+  - **People never move cars.** `solidCars.js` + reseat. Walk / sprint 5 s into sedan3 / suv12 / truck9, head-on and at 35 deg: 0-0.77 mm on 10 of 12 runs, idle drift 0. The 1.27 and 1.33 mm runs came before the reseat fix, which now puts a person-only-touched parked car back exactly. QA's own run: 0-0.1 mm.
+  - **Trunk colliders** follow the drawn trunks (r2-veg's `trunksNear`, plus a countryside fallback). Walk-into audit at Nico's: 12 palms, 2 trees, 5 lamps, 7 poles and 4 mailboxes are solid at the bark. QA's "walk-through countryside trees" (-826.2,4822.7 / -833.2,4856.4 / -742.4,4894.0) are bush_round shrubs, which are soft by design.
+  - **Sign posts (signs.v2 street-name blades)** have breakable colliders (QA-002/005).
+  - **Prop impacts are ON by default** (`?impacts=0` to turn off). Sign post at 18 km/h: -11.5 %. At 50 km/h: -6.5 %, with a crumpled grille / bumper corner, scratches and the headlight on that side smashed. Shots: `docs/v2/shots/r2-physics/hits/sign50_damage_a.jpg` and the chase frames `sign20_chase_*`. Wall / car crashes put damage at the contact, through `damageAt`; that hunk sits in vehicles.js and r2-cars will ship it.
+  - **QA-035 houses:** root cause handed to r2-keys (LOD-seeded RNG, colliders taken from LOD1); they fixed it in d8e66ba0.
+- Open:
+  - Committed by the lead in e9e041b3 (buildColliders): building parts get colliders (QA-045); no fallback land floor where the terrain is drawn under water (QA-030/037); that floor sits at the land base's -0.05 (QA-007/036). Not yet re-probed in game.
+  - Tower 7940 at 499,-156 (h 155.9 m) still has no roof collider in a probe from above. Next step: its library collision mesh (bldmodels collide uses the model's col mesh when present).
+  - QA-030 dock -895,4806: the -0.31 floor is r2-ground's seabed heightfield (the drawn shelf), not tilebuild.
+  - truck9 wheels sink 15 cm (QA-024/031): handed to r2-cars (wheel radius vs model).
+  - carphys 2 (suspension) is still off by default: the lab is verified (curb / pothole / rock / hump), but the traffic A/B (roll-overs, fps) never got a browser slot.
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
