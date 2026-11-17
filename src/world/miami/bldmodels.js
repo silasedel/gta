@@ -13,6 +13,7 @@
 // per-building lit-window share and color at night. Rough districts (Overtown, Liberty City): rundown / abandoned variants.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { compileForGame, programsReady } from '../../core/pace.js';
 
 const BASE = '/assets/models/buildings/';
 // w x d x h in model units (glTF x / z / y); k = meters per unit at real size; cls: which lots it may take.
@@ -287,12 +288,12 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const glow = m.glow, rough = cond === 'r' ? 1 : cond === 'a' ? 2 : 0;
     const img = mat.map && mat.map.image, lowres = !!(img && Math.max(img.width || 0, img.height || 0) > 0 && Math.max(img.width, img.height) < 600 && !g); // tiny wall textures (275 px stucco): re-grained with the user's plaster scan
     mat.onBeforeCompile = (sh) => {
-      sh.uniforms.uLibNight = nightU; sh.uniforms.uLibDetail = detailU;
+      sh.uniforms.uLibNight = nightU; sh.uniforms.uLibDetail = detailU; sh.uniforms.uLibGlow = { value: glow }; // per-material value, shared program
       sh.vertexShader = 'varying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
   vLibW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
   vLibO = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vLibN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);`);
-      sh.fragmentShader = 'uniform float uLibNight; uniform sampler2D uLibDetail;\nvarying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\nfloat libH(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\n'
+      sh.fragmentShader = 'uniform float uLibNight; uniform float uLibGlow; uniform sampler2D uLibDetail;\nvarying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\nfloat libH(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\n'
         + 'float libN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = libH(vec3(i, 0.0)), b = libH(vec3(i + vec2(1.0, 0.0), 0.0)), c = libH(vec3(i + vec2(0.0, 1.0), 0.0)), d = libH(vec3(i + vec2(1.0, 1.0), 0.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }\n'
         + sh.fragmentShader
           .replace('#include <color_fragment>', `#include <color_fragment>
@@ -332,13 +333,15 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     ${mat.map && !g ? 'lum = dot(texture2D(map, vMapUv, 3.0).rgb * diffuse, vec3(0.3, 0.55, 0.15));' : ''}
     float glassK = ${g ? '0.85' : '1.0 - smoothstep(0.14, 0.3, lum)'};
     float share = ${rough === 2 ? '0.0' : rough ? '0.12 + 0.12 * iS2' : '0.14 + 0.32 * iS2'};
-    float on = step(hh, share) * glassK * step(2.5, vLibW.y - vLibO.y);
+    float gfl = 1.0 - step(4.6, vLibW.y - vLibO.y); // lobbies and shop floors stay lit in the evening (not on abandoned buildings)
+    share = mix(share, ${rough === 2 || !g ? 'share' : '0.75'}, gfl); // only real glass materials (dark texels of masonry must not glow)
+    float on = step(hh, share) * glassK * step(${g ? '0.4' : '2.5'}, vLibW.y - vLibO.y);
     vec3 wc = mix(vec3(1.0, 0.7, 0.42), vec3(0.8, 0.88, 1.0), step(0.62 - 0.3 * iS3, libH(vec3(cellP, 7.1))));
     wc *= 0.75 + 0.5 * libH(vec3(cellP, 11.0));
-    totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * ${glow.toFixed(2)};
+    totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * uLibGlow;
   }`);
     };
-    mat.customProgramCacheKey = () => 'libbld4-' + (g ? 'g' : 'w') + glow + '-' + rough + (m.desat ? 'd' : '') + (lowres ? 'l' : '') + (mat.map ? 'm' : '');
+    mat.customProgramCacheKey = () => 'libbld5-' + (g ? 'g' : 'w') + '-' + rough + (m.desat ? 'd' : '') + (lowres ? 'l' : '') + (mat.map ? 'm' : '');
     mat.needsUpdate = true;
     vm.set(cond, mat); return mat;
   }
@@ -372,7 +375,16 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   function ensure(key) { // key 'name|lod|mir|cond'
     if (meshes.has(key)) return; meshes.set(key, null);
     const [name, lod, mir, cond] = key.split('|');
-    loadParts(name, +lod).then((parts) => { meshes.set(key, parts.map((q) => ({ geo: +mir ? mirrorGeo(q.geo) : q.geo, mat: variantMat(q.mat, LIB[name], cond) }))); dirty = true; });
+    loadParts(name, +lod ? 1 : 0).then((parts) => {
+      const P2 = parts.map((q) => ({ geo: +mir ? mirrorGeo(q.geo) : q.geo, mat: variantMat(q.mat, LIB[name], cond) }));
+      // compile the programs off the frame (parallel compile, the game's HDR target and light set) before the first draw:
+      // a model variant first seen mid-game (e.g. far LODs when the camera lifts) otherwise stalled a frame for seconds
+      if (R && CAM) { const tmp = new THREE.Group(); for (const q of P2) { const im = new THREE.InstancedMesh(q.geo, q.mat, 1); im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3).fill(1), 3); tmp.add(im); }
+        let sc = group; while (sc.parent) sc = sc.parent;
+        try { compileForGame(R, THREE, tmp, CAM, sc); } catch (e) { /* compiled on first draw instead */ }
+        programsReady(R, 5000).then(() => { meshes.set(key, P2); dirty = true; }, () => { meshes.set(key, P2); dirty = true; });
+      } else { meshes.set(key, P2); dirty = true; }
+    });
   }
   function mergeGeos(geos) {
     const attrs = ['position', 'normal', 'uv']; let n = 0; for (const g of geos) n += (g.index ? g.index.count : g.attributes.position.count);
@@ -390,7 +402,9 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   // ---- per-frame fill (driven by a tiny always-drawn mesh; cheap: only when the camera moved or entries changed) ----
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), C = new THREE.Color();
   function nightOf(h) { return h >= 19.5 || h < 6 ? 1 : h > 18.6 ? (h - 18.6) / 0.9 : h < 7 ? 1 - (h - 6) : 0; }
+  let R = null, CAM = null;
   function tick(renderer, cam) {
+    R = renderer; CAM = cam;
     const fr = renderer.info.render.frame; if (fr === tickFrame) return; tickFrame = fr;
     const tod = globalThis.game && Number.isFinite(globalThis.game.timeOfDay) ? globalThis.game.timeOfDay : 12; nightU.value = nightOf(((tod % 24) + 24) % 24);
     const now = performance.now();
@@ -404,7 +418,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue;
       const cx = Math.floor(e.x / CELL), cz = Math.floor(e.z / CELL);
       const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~250 m, houses / shops to ~110 m
-      const lod = LIB[e.name].lod1 && Math.hypot(e.x - lastX, e.z - lastZ) > ld ? 1 : 0;
+      const dd = Math.hypot(e.x - lastX, e.z - lastZ), lod = LIB[e.name].lod1 && dd > ld ? (dd > 700 || e.cls !== 'tower' ? 2 : 1) : 0; // 1 = far LOD that still casts (towers to 700 m), 2 = far LOD without shadow
       const key = e.name + '|' + lod + '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
       ensure(key);
       const k = key + '|' + cx + ',' + cz; if (!lists.has(k)) lists.set(k, []); lists.get(k).push(e);
@@ -421,7 +435,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       const name = key.slice(0, key.indexOf('|')), m = LIB[name];
       let cm = cells.get(k); if (!cm) { cm = parts.map((p) => ({ p, im: null, cap: 0 })); cells.set(k, cm); }
       for (const c of cm) {
-        if (L.length > c.cap) { if (c.im) { group.remove(c.im); c.im.dispose(); } c.cap = Math.max(4, 1 << Math.ceil(Math.log2(L.length))); c.im = new THREE.InstancedMesh(c.p.geo, c.p.mat, c.cap); c.im.castShadow = key.split('|')[1] === '0' || LIB[name].cls === 'tower'; /* far LOD of low buildings: no shadow draw */ c.im.receiveShadow = true; c.im.name = 'lib-' + name; c.im.userData.noDetailCull = true; c.im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(c.cap * 3).fill(1), 3); group.add(c.im); }
+        if (L.length > c.cap) { if (c.im) { group.remove(c.im); c.im.dispose(); } c.cap = Math.max(4, 1 << Math.ceil(Math.log2(L.length))); c.im = new THREE.InstancedMesh(c.p.geo, c.p.mat, c.cap); c.im.castShadow = key.split('|')[1] !== '2'; /* past 700 m (towers) / the LOD distance (others): no shadow draw (a 1.5 km cell's bounds hit every cascade) */ c.im.receiveShadow = true; c.im.name = 'lib-' + name; c.im.userData.noDetailCull = true; c.im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(c.cap * 3).fill(1), 3); group.add(c.im); }
         L.forEach((e, i) => { Q.setFromAxisAngle(Y, e.ry); V.set(e.x, e.y, e.z); S.set(e.s / m.k, e.sy / m.k, e.s / m.k); M4.compose(V, Q, S); c.im.setMatrixAt(i, M4); const t = e.tint || [1, 1, 1]; C.setRGB(t[0], t[1], t[2]); c.im.setColorAt(i, C); });
         c.im.count = L.length; c.im.instanceMatrix.needsUpdate = true; c.im.instanceColor.needsUpdate = true; c.im.visible = true; c.im.computeBoundingSphere();
       }

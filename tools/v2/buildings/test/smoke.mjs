@@ -16,3 +16,4 @@ console.log('fences', api.lotFences(tile)?.length);
 const coll = { n: 0, vert() { this.n++; } }; api.fenceCollide(coll, tile, false); console.log('fence coll verts', coll.n);
 api.addClutter('x', 'roof_vents', 0, 0, 0, 0, 1);
 console.log(api.stats());
+process.exit(0);
