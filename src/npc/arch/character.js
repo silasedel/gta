@@ -10,6 +10,8 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { getBase } from './lib.js';
 import { makeBodyMaterial, makeHairMaterial, makeEyeMaterial, makeBrowMaterial, makeShoeMaterial } from './materials.js';
 import { PERSONAS } from '../personality.js';
+// shadow-only proxy layer for the user's people (enabled on the shadow cameras by src/npc/people/cast.js)
+export const SHADOW_PROXY = { on: false, layer: 5 };
 
 export const LOD_DIST = [15, 60];
 export const LOD_CFG = { maxFull: 8, shadowDist: 26 };
@@ -278,6 +280,12 @@ export function createNpc(game, opts = {}) {
     if (lv === 1) for (const m of hairL0) m.visible = true;
     if (lv === 2 && !hasL2Hair && /afro|long|bob|braid|pony|bun/.test(meta.hair || '')) for (const m of hairL0) m.visible = true;
     for (const m of meshes) m.castShadow = sh && !detail.includes(m) && m.visible;
+    // the user's people: a full-detail person (LOD0 = the whole scan) casts its shadow with the 5k LOD1 mesh on the
+    // shadow-only layer (src/npc/people/lib.js SHADOW_LAYER), the same silhouette for a fraction of the skinning cost
+    if (isPerson && SHADOW_PROXY.on) {
+      for (const m of lods[1]) m.layers.set(0);
+      if (lv === 0 && sh) { for (const m of lods[0]) m.castShadow = false; for (const m of lods[1]) { m.visible = true; m.castShadow = true; m.layers.set(SHADOW_PROXY.layer); } }
+    }
     character.lodLevel = lv;
   }
 

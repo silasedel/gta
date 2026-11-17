@@ -273,7 +273,13 @@ export async function createPeds(game) {
       if (c.zoneTag && zoneFits(c.zoneTag, want) && (!opts.gender || (c.human?.gender === (opts.gender[0] === 'f' ? 'f' : 'm')))) { pool.splice(i, 1); c.root.visible = true; return c; }
     }
     if (createdThisFrame >= 1 && !opts.force) { // creation budget (<=1 per frame) spent: reuse any pooled person
-      if (pool.length) { let k = pool.length - 1; if (opts.pos && game.npc?.fitsPlace) for (let j = pool.length - 1; j >= 0; j--) if (game.npc.fitsPlace(pool[j], want, opts.pos)) { k = j; break; } const c = pool.splice(k, 1)[0]; c.root.visible = true; return c; }
+      if (pool.length) {
+        // never a pooled person whose role does not belong here, or whose twin is close by (wait a frame instead)
+        let k = -1;
+        for (let j = pool.length - 1; j >= 0; j--) { const c = pool[j]; if (c.human && activeIds.has(c.human.id)) continue; if (!c.personMeta || (game.npc?.fitsPlace?.(c, want, opts.pos) ?? true)) { k = j; break; } }
+        if (k < 0) return null;
+        const c = pool.splice(k, 1)[0]; c.root.visible = true; return c;
+      }
       return null;
     }
     createdThisFrame++;

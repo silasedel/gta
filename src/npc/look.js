@@ -255,7 +255,8 @@ function applyArchLook(char, L, out) {
   char.root.updateMatrixWorld(true);
   const hp = head ? head.getWorldPosition(new THREE.Vector3()) : null;
   const add = (bone, mesh, x, y, z, kind) => { if (!bone || !mesh) return; attachAt(bone, mesh, x, y, z); out.props.push(mesh); out.accKinds.push(kind); };
-  for (const a of L.acc || []) {
+  // the user's people (src/npc/people) are complete scans: no added glasses, necklaces or bags (they float on them)
+  for (const a of (char.human?.person ? [] : L.acc || [])) {
     try {
       if ((a.kind === 'sunglasses' || a.kind === 'glasses') && hp && !char.archetype?.noGlasses) add(head, PR.sunglasses(a.seed, a.kind === 'glasses'), hp.x, hp.y + 0.085, hp.z + 0.095, a.kind);
       else if (a.slot === 'neck' && neck && spine) { const np = neck.getWorldPosition(new THREE.Vector3()); add(spine, PR[a.kind](a.seed), np.x, np.y - 0.02, np.z + 0.02, a.kind); }

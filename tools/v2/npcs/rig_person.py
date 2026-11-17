@@ -194,7 +194,7 @@ def put(n, v): J[n] = Vector(v)
 _, hy, hd = slice_center(hipZ + 0.02 * H, 0.2)
 put('Hips', (0, hy + 0.1 * hd, hipZ + 0.02 * H))
 neckZ = zArm + 0.03 * H
-headZ = zArm + 0.56 * (H - zArm)
+headZ = zArm + 0.44 * (H - zArm)   # skull base (0.56 sat at the nose: jaw weighted to the neck)
 for n, f in (('Spine', 0.2), ('Spine1', 0.45), ('Spine2', 0.7)):
     z = J['Hips'].z + (neckZ - J['Hips'].z) * f
     _, y, dd = slice_center(z, 0.16)

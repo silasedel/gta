@@ -75,6 +75,19 @@ How the world and the systems connect. If something here is wrong, fix the code 
   pole, carts and rural mailboxes (`keysLane`). Regulatory signs (`src/world/signs/regulatory.v2.js`) use the library
   STOP plate and a repainted library plate for SPEED LIMIT. Audit: `node tools/v2/furniture-audit.mjs`.
 
+- **Cars (overnight Nov 17):** every road car is one of the user's models (`Models/Cars`, converted by `tools/v2/cars/`,
+  runtime `src/vehicles/glb/`, see `src/vehicles/README.md` section 0). Park a specific car with
+  `game.vehicles.spawnParked(key, { x, z, heading, color, wear })`; static covered car: `game.vehicles.placeStatic('covered1', ...)`.
+  Nico's yard cars: `game.vehicles.nicoCars` (gray pickup with a black hood stripe, faded pale-blue classic).
+
+- **Vegetation (overnight Nov 17):** every tree / palm / shrub is one of the user's library plants: converted by
+  `tools/v2/vegetation/build.sh` (`species.json` -> `public/assets/models/vegetation/<key>.glb` + `_lod1.glb`), registered in
+  `src/world/vegetation/species.js` (models + species GROUPS), loaded by `models.js` (impostor baked at load). Placement:
+  countryside streamer (`countryside.js`, biomes), city tiles (`tilebuild.js` greenery: palms by zone, street trees, bushes,
+  tree grates only on city sidewalks), set pieces via `game.vegetation.field(kind, items)` / `place(kind, x, z, opts)`.
+  `game.vegetation.block(x, z, r)` keeps an area free; plants never stand where a static collider sits above the ground.
+  `?veglib=0`: procedural plants only (A/B). Shader variation per instance: mirror, twist, bend, crown spread, frond droop, color jitter.
+
 ## 3. Rendering rules (stage 1)
 - Locked 1080p-class internal resolution; TAA in every preset; no film grain. Any screen-space dither must use the
   per-frame offset `uFrameN` from `src/render/frameNoise.js` (TAA resolves it).
@@ -99,6 +112,23 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - `mission:start` `{ id, replay? }`; missions also emit progress through `game.story` (stage 4).
 - `weather` `{ kind, prev }`, `lightning` `{ x, z, distance }` (`game.weather`, stage 1).
 - Other common ones: `enterVehicle`, `crash`, `shot`, `hit`, `punch`, `arrest`, `witness`, `footstep`.
+
+## 4b. People (the user's Tripo people, Nov 17)
+- Assets: `public/assets/npc/people/<id>.glb` (p01..p95 = `Models/NPCs/NPC n`), textures `<id>_a.webp` (1K albedo),
+  `_n.webp` (512 normal), `_o.webp` (ORM), close-up `_a2.webp` (2K), `_a4.webp` (4K) + `_n2.webp` (2K normal);
+  `index.json` rows: `{ id, name, g, age, years, role, places, height, hipH, tris, cols }`. Cast list (heights, roles,
+  places, hat height, logo boxes): `tools/v2/npcs/people.json`; rebuild `tools/v2/npcs/build.sh [ids]`.
+- Skeleton: the 52 Mixamo-named joints of the archetypes (`mixamorig:Hips` ... fingers), canonical T-pose rest; the clip
+  library `src/npc/arch/anim.js` drives everybody (`src/npc/people/lib.js` shares one bound clip set).
+- Places (roles -> where they spawn, `src/npc/people/cast.js placesFor`): street, residential, keys, rural, farm, dock,
+  fishing, port, work, industrial, business, nightlife, bar, tourist, beach, beach_walk, swim, sport, park, rough,
+  shop_staff, shop_guest, kitchen, hotel_staff, security, medic, lifeguard, police, police_swat, police_detective.
+- API: `game.npc.createPed({ zone, act, pos, gender })` (crowd; people first, archetypes as fallback, `?people=0` off),
+  `game.npc.createCop({ pos })` (police model hook, SWAT armor at 4+ stars), `game.npc.spawnPosed({ place: 'cashier' |
+  'kitchen' | 'bar' | 'hotel' | 'security' | 'lifeguard' | 'dock' | 'medic' | 'farm' | ..., pos, rot, pose })` (staff),
+  `game.npc.cast` (people list, `stats()`, role posts: lifeguards on the sand by day, fishermen at moorings).
+  A character with `c.human.person === true` is one of the user's people; `c.personMeta` is its index row.
+- Rules: the same person never twice within 140 m; per spawn height +-3 % and a slight tint; no added glasses/bags.
 
 ## 5. Notes for later stages
 - Stage 1 status, open items and measured fps: `docs/v2/briefs/STATUS_stage1.md`.

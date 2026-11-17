@@ -30,7 +30,7 @@ const HARNESS = `(() => {
   cp.spawn = (kind, n) => {
     cp.clear(); cp.kind = kind;
     const mk = [];
-    if (kind === 'people') { const L = game.npc.cast.people.map((p) => p.id); let k = 0; for (let i = 0; i < n; i++) { let c = null; for (let t = 0; t < L.length && !c; t++) { const id = L[(k++) % L.length]; const b = game.npc.cast && window.__getPerson(id); if (b) c = game.npc.cast.make(b, { seed: 1000 + i }); } if (c) mk.push(c); } }
+    if (kind === 'people') { const L = game.npc.cast.people.map((p) => p.id); let k = 0; for (let i = 0; i < n; i++) { let c = null; for (let t = 0; t < L.length && !c; t++) { const id = L[(k++) % L.length]; const b = game.npc.cast.get(id); if (b) c = game.npc.cast.make(b, { seed: 1000 + i }); } if (c) mk.push(c); } }
     else { const ids = game.npc.archetypes().filter((x) => x.loaded).map((x) => x.id); for (let i = 0; i < n; i++) { const h = game.npc.spawnPosed({ archetype: ids[i % ids.length], pos: { x: 0, y: -500, z: 0 }, people: false }); if (h) { game.scene.remove(h.root); mk.push(h.character); } } }
     mk.forEach((c, i) => {
       const lane = (i % 3) - 1; const f = (i * 0.618) % 1; const dir = i % 2 ? 1 : -1;
@@ -42,7 +42,7 @@ const HARNESS = `(() => {
   const L = path.length;
   game.updaters.push((dt) => {
     for (const it of cp.list) {
-      it.f += it.dir * it.v * dt / (L * 2); if (it.f > 0.98) it.dir = -1; if (it.f < 0.02) it.dir = 1;
+      it.f += it.dir * it.v * dt / (L * 2); if (it.f > 0.98) it.dir = -1; if (it.f < 0.02) it.dir = 1; it.f = Math.min(0.999, Math.max(0, it.f));
       const fi = it.f * (L - 1), i0 = Math.floor(fi), q = path[i0], q1 = path[Math.min(L - 1, i0 + 1)], k = fi - i0;
       const x = q.x + (q1.x - q.x) * k, z = q.z + (q1.z - q.z) * k;
       const hd = it.dir > 0 ? q.h : q.h + Math.PI; const ox = Math.cos(q.h) * it.lane * 0.9, oz = -Math.sin(q.h) * it.lane * 0.9;
@@ -64,7 +64,6 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
   await b.sleep(8000);
   for (let i = 0; i < 60; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
   // load people and archetypes
-  await b.eval(`import('/src/npc/people/lib.js').then((m) => { window.__getPerson = m.getPerson; return 1; })`);
   await b.eval(`(async () => { const ids = game.npc.cast.people.map((p) => p.id); game.npc.cast.want(ids.slice(0, 34)); for (let i = 0; i < 240; i++) { if (game.npc.cast.stats().loaded >= Math.min(34, ids.length)) break; await new Promise((r) => setTimeout(r, 500)); } await Promise.all(game.npc.archetypes().slice(0, 30).map((a) => game.npc.load(a.id).catch(() => null))); return game.npc.cast.stats().loaded; })()`, 300000);
   console.log('people', await b.eval('JSON.stringify(game.npc.peopleStats())'), 'archetypes', await b.eval('game.npc.archetypes().filter((x) => x.loaded).length'));
   console.log('harness', await b.eval(HARNESS));

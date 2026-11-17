@@ -24,6 +24,28 @@ def webp(im, path, q):
     subprocess.run(['cwebp', '-quiet', '-q', str(q), '-m', '6', '-sharp_yuv', tmp, '-o', path], check=True)
     os.remove(tmp)
 A = Image.open(bc).convert('RGB')
+# brand logos (made-up brands only): boxes from people.json "erase" (1024-px atlas coordinates). Pixels that stand out
+# from the box's median are replaced by a blur of their surroundings (the cloth weave stays, the logo goes)
+import json as _json
+from PIL import ImageFilter, ImageChops
+_cast = _json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'people.json')))['people']
+_row = next((c for c in _cast if ('p%02d' % c['n'] if 'n' in c else 'c%02d' % c.get('char', 0)) == pid), {})
+for (x0, y0, x1, y1) in _row.get('erase', []):
+    k = A.width / 1024; box = (int(x0 * k), int(y0 * k), int(x1 * k), int(y1 * k))
+    pad = int(14 * k); outer = (max(0, box[0] - pad), max(0, box[1] - pad), min(A.width, box[2] + pad), min(A.height, box[3] + pad))
+    reg = A.crop(outer); g = reg.convert('L')
+    import statistics
+    med = statistics.median(list(g.tobytes()))
+    mask = g.point(lambda v: 255 if abs(v - med) > 28 else 0).filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(1.5))
+    inner = Image.new('L', reg.size, 0); inner.paste(255, (box[0] - outer[0], box[1] - outer[1], box[2] - outer[0], box[3] - outer[1]))
+    mask = ImageChops.multiply(mask, inner)
+    import numpy as _np
+    ra = _np.asarray(reg, dtype=_np.float32); ma = _np.asarray(mask) > 20
+    mc = _np.median(ra[~ma], axis=0) if (~ma).any() else ra.reshape(-1, 3).mean(0)
+    flat = ra.copy(); flat[ma] = mc
+    fill = Image.fromarray(flat.clip(0, 255).astype(_np.uint8)).filter(ImageFilter.GaussianBlur(3 * k))
+    mask = mask.filter(ImageFilter.MaxFilter(3))
+    A.paste(Image.composite(fill, reg, mask), outer[:2])
 # full-resolution set for the few people right next to the camera (user: full-res textures up close)
 webp(A, os.path.join(out, pid + '_a4.webp'), 88)
 webp(A.resize((2048, 2048), Image.LANCZOS), os.path.join(out, pid + '_a2.webp'), 84)

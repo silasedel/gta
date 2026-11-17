@@ -7,10 +7,10 @@
 // idle time, and are unloaded again when unused (LRU, CAP loaded at once).
 import * as THREE from 'three';
 import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson } from './lib.js';
-import { createNpc, LOD_CFG } from '../arch/character.js';
+import { createNpc, LOD_CFG, SHADOW_PROXY } from '../arch/character.js';
 
 export const NEAR_DUP = 140;     // m: the same person never twice inside this radius
-const CAP = 34;                  // people loaded at once (GPU textures ~8 MB each)
+const CAP = 48;                  // people loaded at once (crowd textures ~8 MB each; close-up sets stream separately)
 // person place -> the legacy zone tag peds.js pools by
 const TAG = { police: 'cop', police_swat: 'cop', business: 'business', beach: 'beach', swim: 'beach', lifeguard: 'beach', beach_walk: 'beach', nightlife: 'nightlife', bar: 'nightlife', work: 'port', port: 'port', industrial: 'port', dock: 'port', fishing: 'port', sport: 'sport', park: 'sport' };
 
@@ -31,6 +31,15 @@ export function placesFor(zone, act, ctx = {}) {
     case 'park': case 'causeway': return ['sport', 'park', 'street', 'tourist'];
     case 'airport': return ['tourist', 'business', 'street'];
     case 'dock': case 'fishing': return ['dock', 'fishing', 'keys'];
+    // venue / interior roles (src/world/interiors/venuePeople.js passes the role as the outfit)
+    case 'bartender': return ['bar'];
+    case 'server': case 'barista': case 'host': return ['bar', 'shop_staff'];
+    case 'cashier': case 'clerk': case 'shop': case 'shop_staff': return ['shop_staff'];
+    case 'cook': case 'kitchen': case 'chef': return ['kitchen'];
+    case 'bouncer': case 'security': return ['security'];
+    case 'club': case 'guest': case 'dj': return ['nightlife', 'tourist'];
+    case 'hotel': case 'maid': case 'bellhop': return ['hotel_staff'];
+    case 'casual': return keys ? ['keys', 'street', 'tourist'] : ['street', 'shop_guest', 'tourist', 'residential'];
     case 'residential': default:
       if (keys) return ['keys', 'residential', 'dock', 'tourist'];
       if (rough) return ['rough', 'street', 'residential'];
@@ -99,7 +108,7 @@ export async function createCast(game) {
       let s = (1 / (1 + rank(p, places) * 0.6)) * (0.55 + Math.random() * 0.45);
       let near = 1e9, n = 0;
       for (const c of live) {
-        if (c.npcArch !== b.id || !c.root.parent || !c.root.visible) continue;
+        if (c.npcArch !== b.id || !c.root.visible || (!c.root.parent && now() - c._born > 0.5)) continue;
         n++; if (pos) near = Math.min(near, Math.hypot(c.root.position.x - pos.x, c.root.position.z - pos.z));
       }
       if (n && (!pos || near < NEAR_DUP)) continue;        // never the same person close by
@@ -109,7 +118,7 @@ export async function createCast(game) {
     }
     // ask for more people of these places (so the next spawn has fresh faces)
     const loadedN = people.filter((p) => has(p, places) && getPerson(p.id)).length;
-    if (loadedN < 10) { wantPlaces(places, loadedN + 4); pump(); }
+    if (loadedN < 14) { wantPlaces(places, loadedN + 6); pump(); }
     return best;
   }
   function make(b, opts = {}) {
@@ -120,6 +129,8 @@ export async function createCast(game) {
     const p = byId.get(b.id);
     c.zoneTag = TAG[p.places[0]] || 'casual'; c.human.zone = c.zoneTag;
     c.personMeta = p;
+    if (opts.pos) c.root.position.set(opts.pos.x, opts.pos.y || 0, opts.pos.z);   // so the next pick in this frame sees it here
+    c._born = now();
     live.add(c); lastUse.set(b.id, now());
     const d = c.dispose; c.dispose = () => { live.delete(c); d(); };
     return c;
@@ -179,6 +190,52 @@ export async function createCast(game) {
     for (const [id, cur] of hiOn) if (!lv.has(id) && t - cur.t > 6) { const b = getPerson(id); if (b) hiRes(b, 0); hiOn.delete(id); }
   });
 
+  // ---------------------------------------------------------------- shadow proxies: shadow cameras also see the shadow-only layer
+  // (full-detail people cast their shadow with LOD1; '?pshadow=0' turns it off for A/B)
+  if (!(typeof location !== 'undefined' && /[?&]pshadow=0/.test(location.search))) {
+    let lt = 0;
+    const enable = () => { let n = 0; game.scene?.traverse?.((o) => { if (o.isLight && o.castShadow && o.shadow?.camera) { o.shadow.camera.layers.enable(SHADOW_PROXY.layer); n++; } }); return n; };
+    if (enable()) SHADOW_PROXY.on = true;
+    game.updaters?.push?.((dt) => { lt -= dt; if (lt > 0) return; lt = 5; if (enable()) SHADOW_PROXY.on = true; });
+  }
+
+  // ---------------------------------------------------------------- role posts: lifeguards on the sand by day, fishermen at the docks
+  const posts = []; let postT = 2;
+  const isWater = (x, z) => { try { return !!game.city?.isWater?.(x, z); } catch (e) { return false; } };
+  const gy = (x, z) => { try { const g = game.city?.groundHeightAt?.(x, z, 2); return Number.isFinite(g) ? g : 0; } catch (e) { return 0; } };
+  function addPost(kind, places, x, z, heading, pose) {
+    const b = pick(places, { x, z }); if (!b) return false;
+    const c = make(b, { pose }); if (!c) return false;
+    c.root.position.set(x, gy(x, z), z); c.root.rotation.y = heading; game.scene.add(c.root);
+    posts.push({ kind, c, x, z }); return true;
+  }
+  function waterDir(x, z) { let best = null; for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; for (const r of [8, 16, 30]) if (isWater(x + Math.sin(a) * r, z + Math.cos(a) * r)) { if (!best || r < best.r) best = { a, r }; break; } } return best; }
+  game.updaters?.push?.((dt) => {
+    for (const p of posts) p.c.update(dt, { speed: 0, grounded: true, lookAt: game.player?.position && p.c.root.position.distanceTo(game.player.position) < 7 ? game.player.position : null });
+    postT -= dt; if (postT > 0) return; postT = 2;
+    const pp = game.player?.position; if (!pp || game.interiors?.current) return;
+    for (let i = posts.length - 1; i >= 0; i--) { const p = posts[i]; if (Math.hypot(p.x - pp.x, p.z - pp.z) > 220) { game.scene.remove(p.c.root); p.c.dispose(); posts.splice(i, 1); } }
+    const h = hour(); const z0 = zoneAt(pp.x, pp.z); const nav = game.peds?._nav;
+    // lifeguard: one per ~150 m of beach, 8:00-19:00, on the sand near the water, facing the sea
+    if (nav && h > 8 && h < 19 && (z0 === 'beach' || z0 === 'water') && posts.filter((p) => p.kind === 'lifeguard').length < 2) {
+      const s = nav.sandPoint?.(pp, 120, true);
+      if (s && !posts.some((p) => p.kind === 'lifeguard' && Math.hypot(p.x - s.x, p.z - s.z) < 150) && Math.hypot(s.x - pp.x, s.z - pp.z) > 25) {
+        const w = waterDir(s.x, s.z); if (w) addPost('lifeguard', ['lifeguard'], s.x, s.z, w.a, Math.random() < 0.5 ? 'cross_arms' : 'idle');
+      }
+    }
+    // dock people: at a mooring, standing on the closest dry spot beside the boat, looking at the water
+    if (h > 6 && h < 20 && posts.filter((p) => p.kind === 'dock').length < 3) {
+      let ms = []; try { ms = game.city?.moorings?.(pp.x, pp.z, 160) || []; } catch (e) { ms = []; }
+      for (const m of ms) {
+        if (posts.some((p) => Math.hypot(p.x - m.x, p.z - m.z) < 40)) continue;
+        if (Math.hypot(m.x - pp.x, m.z - pp.z) < 20) continue;
+        let spot = null;
+        for (let r = 3; r <= 12 && !spot; r += 1.5) for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; const x = m.x + Math.sin(a) * r, z = m.z + Math.cos(a) * r; if (!isWater(x, z) && !isWater(x + Math.sin(a) * 1.2, z + Math.cos(a) * 1.2)) { spot = { x, z, a: a + Math.PI }; break; } }
+        if (spot && addPost('dock', ['fishing', 'dock'], spot.x, spot.z, spot.a, Math.random() < 0.4 ? 'cross_arms' : 'idle')) break;
+      }
+    }
+  });
+
   // ---------------------------------------------------------------- warm the places around the player
   let zT = 0;
   game.updaters?.push?.((dt) => {
@@ -206,8 +263,9 @@ export async function createCast(game) {
   }
   return {
     people, createPed, createCop, createFor, fits, placesFor, farPerson, pick: (places, pos) => pick(places, pos),
-    make, want: (ids) => { want(ids); pump(); }, wantPlaces: (pl, n) => { wantPlaces(pl, n); pump(); },
-    stats: () => ({ total: people.length, loaded: loadedPeople().length, queued: queue.length, live: live.size, visible: [...live].filter((c) => c.root.visible && c.root.parent).length, hi: hiOn.size, lodMax: LOD_CFG.maxFull }),
+    make, get: getPerson, want: (ids) => { want(ids); pump(); }, wantPlaces: (pl, n) => { wantPlaces(pl, n); pump(); },
+    posts,
+    stats: () => ({ posts: posts.map((p) => p.kind + ':' + p.c.npcArch), total: people.length, loaded: loadedPeople().length, queued: queue.length, live: live.size, visible: [...live].filter((c) => c.root.visible && c.root.parent).length, hi: hiOn.size, lodMax: LOD_CFG.maxFull }),
     live,
   };
 }

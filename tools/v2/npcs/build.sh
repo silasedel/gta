@@ -22,7 +22,7 @@ run() {
   IFS=$'\t' read -r pid src tex h hat <<< "$1"
   /opt/homebrew/bin/blender -b --python-exit-code 1 -P tools/v2/npcs/rig_person.py -- --in "$src" --id "$pid" --height "$h" --hat "$hat" --out "$BL" --blend 1 > "$LOG/$pid.log" 2>&1 || { echo "FAIL $pid"; return 0; }
   mv "$BL/$pid.json" "$META/$pid.json"; mv "$BL/$pid.glb" "$OUT/$pid.glb"
-  python3 -I tools/v2/npcs/textures.py "$tex" "$pid" "$OUT" >> "$LOG/$pid.log" 2>&1 || echo "TEXFAIL $pid"
+  python3 -P -E tools/v2/npcs/textures.py "$tex" "$pid" "$OUT" >> "$LOG/$pid.log" 2>&1 || echo "TEXFAIL $pid"
   python3 -P -E tools/v2/npcs/colors.py "$BL" "$tex" "$pid" >> "$LOG/$pid.log" 2>&1 && mv "$BL/${pid}_cols.json" "$META/" || echo "COLFAIL $pid"
   echo "ok $pid $(grep '\[rig\].*done' "$LOG/$pid.log" | cut -c1-160)"
 }
