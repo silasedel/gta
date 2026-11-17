@@ -127,7 +127,9 @@ float fOpen(int type, vec2 p, vec2 hs) {
   if (type == 4) return length(p) - min(hs.x, hs.y);
   return fBox(p, hs);
 }
-float fLine(float d, float w, float px) { return 1.0 - smoothstep(w - px, w + px, abs(d)); }
+// anti-aliased line; once the line is thinner than a pixel its coverage fades toward its true area share instead of
+// settling at ~0.5 (mullions / frames covered half of every distant facade and washed far towers out pale gray)
+float fLine(float d, float w, float px) { return (1.0 - smoothstep(w - px, w + px, abs(d))) * min(1.0, 1.6 * w / max(px, 1e-5)); }
 void facadeEval() {
   vec3 Nw = normalize(vFWN);
   vec3 Vw = normalize(vFWP - cameraPosition);
@@ -354,6 +356,12 @@ void facadeEval() {
         alb = mix(alb, oAlb, inOpen); rough = mix(rough, oRough, inOpen); metal = mix(metal, oMetal, inOpen); ao = mix(ao, oAO, inOpen); emi = oEmi * inOpen;
         nOver = oN; useOver = inOpen;
       }
+    }
+    { // distant facades (windows under a pixel): blend toward the glass by the glazed share, so far towers read as tinted,
+      // sky-reflecting glass and stone instead of washed-out plaster boxes
+      float gz = type == 2 ? 0.8 : (type == 1 ? 0.5 : clamp(vFb.x * vFb.y * 1.15, 0.0, 0.7));
+      float fk = smoothstep(0.4, 2.0, px / min(cs.x, cs.y)) * gz;
+      alb = mix(alb, gTint * 0.36, fk); metal = mix(metal, 0.72, fk); rough = mix(rough, 0.14, fk);
     }
   }
   if ((bits & 65536) != 0 && uFAwn > 0.5) { // shop awning canvas: bounce from the lit shop window below (stronger on the underside) and a

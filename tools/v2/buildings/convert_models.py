@@ -14,6 +14,19 @@ if len(a) > 6 and a[6]:  # drop stray objects whose center lies farther than R f
     Rmax = float(a[6]); cs = [o.matrix_world @ (sum((mathutils.Vector(v) for v in o.bound_box), mathutils.Vector()) / 8) for o in meshes]
     med = mathutils.Vector([sorted(c[i] for c in cs)[len(cs) // 2] for i in range(3)])
     meshes = [o for o, c in zip(meshes, cs) if (c - med).xy.length <= Rmax]
+# heavy CAD models: decimate every object on its own first (collapse stalls on one huge joined mesh)
+import bmesh as _bm
+_tot = sum(len(o.data.polygons) for o in meshes)
+if target > 0 and _tot > target * 1.5:
+    for o in meshes:
+        if len(o.data.polygons) < 1500: continue
+        b_ = _bm.new(); b_.from_mesh(o.data); _bm.ops.remove_doubles(b_, verts=b_.verts, dist=0.01); b_.to_mesh(o.data); b_.free()
+        bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+        for _ in range(3):
+            n_ = len(o.data.polygons); want = max(200, n_ * target / _tot)
+            if n_ <= want * 1.3: break
+            md = o.modifiers.new('d', 'DECIMATE'); md.ratio = max(0.002, want / n_); bpy.ops.object.modifier_apply(modifier='d')
+    print('PEROBJ', _tot, '->', sum(len(o.data.polygons) for o in meshes))
 allm = []; mi = {}
 bm = bmesh.new()
 for o in meshes:

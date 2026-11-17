@@ -23,7 +23,7 @@ export const LIB = {
   stilt_shack: { w: 0.77, d: 1.0, h: 0.67, k: 11, cls: 'stilt', glow: 0.2 },
   casino_tower: { w: 116.8, d: 129.8, h: 64.1, k: 1, cls: 'fixed', glow: 0.5 },
 };
-const RANGE = { tower: 7000, fixed: 7000, house: 420, shop: 420, stilt: 420 };
+const RANGE = { tower: 7000, fixed: 7000, house: 420, shop: 420, stilt: 420 }, CELL = 900;
 const CHANCE = { tower: 0.3, house: 0.3, shop: 0.22, stilt: 0.3 };
 // the Golden Palm Casino (stage 4 heist): one fixed site on a Miami Beach ocean block; lots under it are cleared
 export const CASINO = { name: 'casino_tower', x: 2183, z: -370, ry: -Math.PI / 2, s: 1 }; // Miami Beach superblock, entrance faces Collins Ave (west)
@@ -42,7 +42,8 @@ const areaOf = (r) => { let a = 0; for (let i = 0, j = r.length - 1; i < r.lengt
 
 export function createBuildingModels({ root, roadDist = null, districtAt = null, near = null }) {
   const entries = new Map(); // building id -> { name, x, y, z, ry, s, sy, cls }
-  const meshes = new Map(); // name -> [{ geo, mat, im }]
+  const meshes = new Map(); // name -> [{ geo, mat }]
+  const cells = new Map(); // 'name|cx,cz' -> [{ p, im, cap }] (one InstancedMesh per part per cell)
   const nightU = { value: 0 };
   let tickFrame = -1, lastX = 1e9, lastZ = 1e9, dirty = true, lastT = 0;
   const group = new THREE.Group(); group.name = 'library-buildings'; root.add(group);
@@ -158,7 +159,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
         const geo = geos.length === 1 ? geos[0] : mergeGeos(geos); if (!geo) continue;
         geo.scale(m.k, m.k, m.k); geo.computeBoundingSphere();
         prepMaterial(mat, m);
-        out.push({ geo, mat, im: null, cap: 0 });
+        out.push({ geo, mat });
       }
       meshes.set(name, out); dirty = true;
     } catch (e) { console.warn('[buildings] library model failed', name, e); meshes.set(name, []); }
@@ -185,21 +186,24 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const moved = Math.hypot(cam.position.x - lastX, cam.position.z - lastZ) > 25;
     if (!dirty && !moved) return; if (!moved && now - lastT < 250) return;
     lastX = cam.position.x; lastZ = cam.position.z; lastT = now; dirty = false;
+    // instances grouped per model and 900 m cell: each cell's meshes get a tight bounding sphere, so off-screen cells are
+    // culled in the main view and in the shadow passes
     const lists = new Map();
-    for (const e of entries.values()) { const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue; ensure(e.name); if (!lists.has(e.name)) lists.set(e.name, []); lists.get(e.name).push(e); }
-    for (const [name, parts] of meshes) {
-      const L = lists.get(name) || [];
-      for (const p of parts) {
-        if (L.length > p.cap) { if (p.im) { group.remove(p.im); p.im.dispose(); } p.cap = Math.max(8, 1 << Math.ceil(Math.log2(L.length))); p.im = new THREE.InstancedMesh(p.geo, p.mat, p.cap); p.im.frustumCulled = false; p.im.castShadow = true; p.im.receiveShadow = true; p.im.name = 'lib-' + name; p.im.onBeforeRender = (r, s, c) => tick(r, c); group.add(p.im); }
-        if (!p.im) continue;
-        L.forEach((e, i) => { Q.setFromAxisAngle(Y, e.ry); V.set(e.x, e.y, e.z); S.set(e.s / LIB[name].k, e.sy / LIB[name].k, e.s / LIB[name].k); M4.compose(V, Q, S); p.im.setMatrixAt(i, M4); });
-        p.im.count = L.length; p.im.instanceMatrix.needsUpdate = true; p.im.visible = L.length > 0;
+    for (const e of entries.values()) { const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue; ensure(e.name); const k = e.name + '|' + Math.floor(e.x / CELL) + ',' + Math.floor(e.z / CELL); if (!lists.has(k)) lists.set(k, []); lists.get(k).push(e); }
+    for (const [k, cm] of cells) if (!lists.has(k)) for (const p of cm) p.im.visible = false;
+    for (const [k, L] of lists) {
+      const name = k.slice(0, k.indexOf('|')), parts = meshes.get(name); if (!parts || !parts.length) continue;
+      let cm = cells.get(k); if (!cm) { cm = parts.map((p) => ({ p, im: null, cap: 0 })); cells.set(k, cm); }
+      for (const c of cm) {
+        if (L.length > c.cap) { if (c.im) { group.remove(c.im); c.im.dispose(); } c.cap = Math.max(4, 1 << Math.ceil(Math.log2(L.length))); c.im = new THREE.InstancedMesh(c.p.geo, c.p.mat, c.cap); c.im.castShadow = true; c.im.receiveShadow = true; c.im.name = 'lib-' + name; c.im.userData.noDetailCull = true; group.add(c.im); }
+        L.forEach((e, i) => { Q.setFromAxisAngle(Y, e.ry); V.set(e.x, e.y, e.z); S.set(e.s / LIB[name].k, e.sy / LIB[name].k, e.s / LIB[name].k); M4.compose(V, Q, S); c.im.setMatrixAt(i, M4); });
+        c.im.count = L.length; c.im.instanceMatrix.needsUpdate = true; c.im.visible = true; c.im.computeBoundingSphere();
       }
     }
   }
   // a tiny always-drawn ticker so instances appear even before any library mesh exists
   const tk = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial()); tk.geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, -1e4, 0, 0, -1e4, 0, 0, -1e4, 0], 3));
   tk.frustumCulled = false; tk.name = 'library-buildings-ticker'; tk.onBeforeRender = (r, s, c) => tick(r, c); group.add(tk);
-  const stats = () => { const o = {}; for (const [n, ps] of meshes) o[n] = { draws: ps.length, inst: ps[0]?.im?.count || 0 }; return { entries: entries.size, models: o }; };
+  const stats = () => { const o = {}; for (const [k, cm] of cells) { const n = k.slice(0, k.indexOf('|')); o[n] = o[n] || { cells: 0, inst: 0, mats: cm.length }; if (cm[0].im && cm[0].im.visible) { o[n].cells++; o[n].inst += cm[0].im.count; } } return { entries: entries.size, models: o }; };
   return { pick, register, addFixed, stats, entries, group, LIB };
 }

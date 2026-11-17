@@ -46,8 +46,16 @@ How the world and the systems connect. If something here is wrong, fix the code 
   zones (none in rural zones), security cameras on storefronts (stage 2/3).
 - **Airport and docks:** Miami International runways in `layout.json airport.runways`; Key West airfield
   `layout.json airfield`; moorings `city.moorings` / `claimMooring` (boats); the port is Dodge Island (1595, 792).
-- **Casino:** the curved spiral casino tower (Models/Buildings "Building 15") — location recorded here by the buildings
-  pass; its back lot and loading-dock road are the service road behind it (see section 5 when filled in).
+- **Casino (Golden Palm Casino):** the curved spiral casino tower (Models/Buildings "Building 15") stands on a Miami Beach
+  superblock centered at **(2183, -370)**, footprint about 130 m (x) by 117 m (z), main entrance facing **west onto Collins
+  Ave**; Meridian Ave runs behind it (east side, ~40 m): use that side for the loading dock / back lot. Constant
+  `CASINO` in `src/world/miami/bldmodels.js`; generated lots under it are cleared.
+- **Library building models:** `src/world/miami/bldmodels.js` places the user's Models/Buildings (converted GLBs in
+  `public/assets/models/buildings/`, see SOURCES.txt) on fitting generated lots: towers (podium, slim residential, red-band
+  office, curved glass), houses (brick cottage, blue house, brick duplex), the graffiti shop (town main streets) and the
+  Keys stilt shack. One InstancedMesh per model material city-wide; colliders are boxes; such lots get no shop shell.
+  `?libmodels=0` turns them off (procedural buildings everywhere). New models: convert with
+  `tools/v2/buildings/convert_all.sh`, add a row to `LIB`.
 
 ## 3. Rendering rules (stage 1)
 - Locked 1080p-class internal resolution; TAA in every preset; no film grain. Any screen-space dither must use the
