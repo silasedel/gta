@@ -267,6 +267,37 @@ for e in edges:
     nroad += 1
 log(f'roads added {nroad}, {sum(plen(r.pts) for r in W.raw_roads) / 1000:.0f} km')
 
+# ---------------------------------------------------------------- 3b. Key Largo detail (user's detailed image)
+# tools/v2/map3/out/keys_detail.json (made by tools/v2/map3/keys_detail.py from docs/v2/plan/keys_detail.webp) replaces
+# everything of the main map inside its `region` polygon (world meters): land, roads, buildings, Nico's house.
+#   { region: [[x,z],...], land: [ring,...], roads: [{pts, kind, surface, name, lanes?, width?, oneway?}],
+#     buildings: [{ring, h, style, kind, zone, name?, poi?}], piers: [{pts, width}], nico: {x, z, heading, spawnX, spawnZ, lot?},
+#     keysBar?: {x, z, heading}, joins: [[x,z],...] (points where detail roads meet main-map roads outside the region) }
+KEYS = None
+_kp = os.path.join(MAP3, 'keys_detail.json')
+if os.path.exists(_kp):
+    KEYS = json.load(open(_kp))
+    KREG = Polygon(KEYS['region']).buffer(0)
+    _land = unary_union([Polygon(r).buffer(0) for r in KEYS.get('land', [])]) if KEYS.get('land') else None
+    W.set_land(W.land.difference(KREG).union(_land) if _land is not None else W.land.difference(KREG))
+    # main-map roads: drop the parts inside the region (keep the pieces outside so the network still meets it)
+    _kept = []
+    for r in W.raw_roads:
+        ln = LineString(r.pts)
+        if not ln.intersects(KREG): _kept.append(r); continue
+        rest = ln.difference(KREG)
+        for g_ in geoms(rest):
+            if g_.geom_type == 'LineString' and g_.length > 25: _kept.append(r.copy_with(list(g_.coords)))
+    W.raw_roads = _kept
+    for rd_ in KEYS.get('roads', []):
+        kind = rd_.get('kind', 'residential'); lanes = int(rd_.get('lanes', 1))
+        r = W.road(rd_['pts'], kind, rd_.get('name', ''), lf=lanes, lb=0 if rd_.get('oneway') else lanes, oneway=bool(rd_.get('oneway')),
+                   speed=rd_.get('speedKmh') or (80 if kind == 'trunk' else 30 if rd_.get('surface') == 'dirt' else 40),
+                   surface=rd_.get('surface'), region='Key Largo', tags={'keysDetail': 1, 'dkind': 'keys'})
+        if r is not None: r.width = rd_.get('width') or (11.0 if kind == 'trunk' else 5.2 if rd_.get('surface') == 'dirt' else 7.0)
+    for pr in KEYS.get('piers', []): W.path(pr['pts'], 'pier', pr.get('width', 2.2), 'wood', None, y=None)
+    log(f"keys detail: region {KREG.area / 1e6:.2f} km2, roads {len(KEYS.get('roads', []))}, buildings {len(KEYS.get('buildings', []))}, piers {len(KEYS.get('piers', []))}")
+
 # ---------------------------------------------------------------- 4. airports (areas; roads around them come from the trace)
 for (ax, ay), (bx, by), w in RUNWAYS_PX:
     a, b = p2w(ax, ay), p2w(bx, by)
@@ -443,6 +474,8 @@ for ch in sorted(chains(others), key=lambda c: -sum(plen(others[i].pts) for i in
 
 # ---------------------------------------------------------------- 8. Nico's house: waterfront lot on the Key Largo bay side
 NICO_PX = (634.0, 1287.0)        # Key Largo, bay (east) side
+if KEYS and KEYS.get('nico'):
+    _n = KEYS['nico']; NICO_PX = w2p(_n['x'], _n['z'])
 from shapely import affinity
 _np = Point(*p2w(*NICO_PX))
 road_near = min((r for r in W.roads if r.kind != 'trunk' and not r.bridge), key=lambda r: LineString(r.pts).distance(_np))
@@ -465,6 +498,10 @@ for r in W.roads:
     if r is not road_near and r.region == 'Key Largo' and LineString(r.pts).distance(_np) < 60 and r.kind != 'trunk': r.name = 'Pelican Point Ln'
 yard = hl(-6.0, 12.0)
 log(f'nico house at {nx_:.0f},{nz_:.0f} heading {NICO_HEAD:.2f} (road {road_near.name}, normal {nx1:.2f},{nz1:.2f})')
+if KEYS and KEYS.get('nico') and 'heading' in KEYS['nico']:   # the detail places the house exactly (house frame: +Z street side)
+    _n = KEYS['nico']; nx_, nz_, NICO_HEAD = _n['x'], _n['z'], _n['heading']; sh_, ch_ = math.sin(NICO_HEAD), math.cos(NICO_HEAD)
+    lot = Polygon([hl(-24, -14.2), hl(11.4, -14.2), hl(11.4, 27 + 6), hl(-24, 27 + 6)]); W.reserve(lot.buffer(3), 'reserved')
+    yard = (_n['spawnX'], _n['spawnZ']) if 'spawnX' in _n else hl(-6.0, 12.0)
 W.setpiece('nico_house', nx_, nz_, NICO_HEAD, note="Nico's stilt house, Pelican Point Ln, Key Largo (bay side)", lot=[[round(x, 1), round(z, 1)] for x, z in list(lot.exterior.coords)[:-1]],
            spawnX=round(yard[0], 1), spawnZ=round(yard[1], 1))
 # the Keys welcome sign at the start of the Overseas Highway, and the bar on the strip
@@ -485,16 +522,18 @@ road_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 3.2, cap_style=2,
 water_u = unary_union([w['poly'] for w in W.water])
 runway_u = unary_union([a['poly'] for a in W.areas if a['kind'] in ('runway', 'apron')])
 PROFILE = {   # kind: (lot frontage m, lot depth max m, setback m, height range m, style, zone, building kind, fill)
-    'core':    (34, 60, 2.5, (40, 190), 'tower', 'commercial', 'office', 0.95),
-    'city':    (26, 45, 3.0, (12, 40), 'midrise', 'residential', 'apartments', 0.9),
-    'beach':   (24, 40, 3.0, (10, 24), 'deco', 'commercial', 'hotel', 0.92),
-    'port':    (60, 90, 6.0, (9, 14), 'industrial', 'port', 'warehouse', 0.8),
-    'islands': (40, 50, 8.0, (7, 10), 'house', 'residential', 'house', 0.7),
-    'suburb':  (22, 32, 5.0, (4.5, 7.5), 'house', 'residential', 'house', 0.85),
-    'town':    (22, 30, 4.5, (4.5, 8.0), 'house', 'residential', 'house', 0.85),
-    'keys':    (18, 26, 3.5, (5.5, 8.5), 'stilt', 'residential', 'house', 0.85),
+    'core':    (32, 55, 2.0, (40, 200), 'tower', 'commercial', 'office', 0.96),
+    'city':    (22, 40, 2.5, (7, 40), 'midrise', 'residential', 'apartments', 0.95),
+    'beach':   (20, 34, 2.5, (10, 21), 'deco', 'commercial', 'hotel', 0.96),
+    'port':    (60, 90, 6.0, (9, 16), 'industrial', 'port', 'warehouse', 0.85),
+    'islands': (40, 50, 8.0, (7, 10), 'house', 'residential', 'house', 0.8),
+    'suburb':  (22, 32, 5.0, (4.5, 7.5), 'house', 'residential', 'house', 0.95),
+    'town':    (20, 30, 4.5, (4.5, 8.0), 'house', 'residential', 'house', 0.95),
+    'keys':    (18, 26, 3.5, (5.5, 8.5), 'stilt', 'residential', 'house', 0.9),
     'airport': (70, 90, 8.0, (10, 18), 'hangar', 'airport', 'hangar', 0.4),
 }
+# main streets (towns: 1-2 storey shop rows face these; side streets keep houses)
+main_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 24, cap_style=2) for r in W.roads if not r.bridge and r.kind in ('trunk', 'primary', 'secondary')])
 def split_lots(poly, front, depth, out, depthc=0):
     """Recursive oriented split until each piece is at most `front` wide and `depth` deep."""
     if poly.is_empty or poly.area < 60: return
@@ -535,27 +574,51 @@ for blk in blocks:
         fp = max(geoms(fp), key=lambda g: g.area)
         if fp.area < 40: continue
         fp = fp.simplify(0.6)
-        # height: towers concentrate near the downtown and Brickell cores
+        # height: towers concentrate near the downtown and Brickell cores (podium towers among mid- and low-rise blocks)
+        lc = fp.centroid; bz_ = zone; bk_ = bkind
         if dkind == 'core':
-            dcore = min(math.dist((c.x, c.y), t) for t in TOWER_CORE)
+            dcore = min(math.dist((lc.x, lc.y), t) for t in TOWER_CORE)
             k = max(0.0, 1.0 - dcore / 900.0)
-            h = h0 + (h1 - h0) * (k ** 1.3) * (0.45 + 0.55 * rb.random())
-            st = 'tower' if h > 34 else 'midrise'
+            r_ = rb.random()
+            if r_ < 0.12 + 0.72 * k and fp.area > 500:
+                h = 48 + (h1 - 48) * (k ** 1.15) * (0.3 + 0.7 * rb.random()) * (1.25 if rb.random() < 0.12 else 1.0)
+                st = 'tower'
+            elif r_ < 0.8:
+                h = rb.uniform(14, 38); st = 'midrise'
+            else:
+                h = rb.uniform(6, 13); st = 'strip'; bk_ = 'retail'
         elif dkind == 'beach':
-            near_ocean = c.x > p2w(925, 0)[0]
-            h = rb.uniform(h0, h1) if rb.random() > 0.18 else rb.uniform(30, 75)
-            st = 'deco' if h < 26 else 'midrise'
+            # Miami Beach: 3-6 floor Art Deco hotels on the ocean blocks, a few condo towers, 2-4 floor deco apartments inland
+            ocean = any(water_u.contains(Point(lc.x + d_, lc.y)) for d_ in (45, 90, 140, 190))
+            r_ = rb.random()
+            if ocean and r_ < 0.07 and fp.area > 450: h = rb.uniform(55, 125); st = 'tower'; bk_ = 'apartments'; bz_ = 'residential'
+            elif ocean: h = rb.uniform(10.5, 20.5); st = 'deco'
+            elif r_ < 0.08: h = rb.uniform(18, 32); st = 'midrise'; bk_ = 'apartments'
+            else: h = rb.uniform(7, 14); st = 'deco'; bk_ = 'apartments' if rb.random() < 0.6 else 'hotel'
+        elif dkind == 'city':
+            r_ = rb.random()
+            if r_ < 0.5: h = rb.uniform(7, 13); st = 'lowrise'; bz_ = 'commercial' if rb.random() < 0.45 else zone
+            elif r_ < 0.9: h = rb.uniform(14, 27); st = 'midrise'
+            else: h = rb.uniform(30, 44); st = 'midrise'
+        elif (dkind == 'town' or (dkind == 'suburb' and rb.random() < 0.3)) and main_buf.contains(lc):
+            h = rb.uniform(4.2, 7.6); st = 'strip'; bz_ = 'commercial'; bk_ = 'retail'
         else:
             h = rb.uniform(h0, h1); st = style
         ring = [(round(x, 2), round(z, 2)) for x, z in list(fp.exterior.coords)[:-1]]
         if len(ring) < 3: continue
-        b = W.building(ring, h, bkind if st != 'tower' else 'office', st, zone, region=dist or '', check=False)
+        b = W.building(ring, h, bk_ if st != 'tower' or bk_ == 'apartments' else 'office', st, bz_, region=dist or '', check=False)
         if b: nb_ += 1; perdist[dist] = perdist.get(dist, 0) + 1
 log(f'buildings {nb_}: ' + ', '.join(f'{k} {v}' for k, v in sorted(perdist.items(), key=lambda kv: -kv[1])[:16]))
 # keep lots off Nico's yard
 _resv = lot.buffer(6)
 W.buildings = [b for b in W.buildings if not Polygon(b['ring']).intersects(_resv)]
 
+if KEYS:
+    W.buildings = [b for b in W.buildings if not KREG.intersects(Polygon(b['ring']))]
+    for b in KEYS.get('buildings', []):
+        W.building(b['ring'], b.get('h', 6.5), b.get('kind', 'house'), b.get('style', 'stilt'), b.get('zone', 'residential'), name=b.get('name'), poi=b.get('poi'), region='Key Largo', check=False)
+    if KEYS.get('keysBar'):
+        W.setpieces = [p for p in W.setpieces if p['id'] != 'keys_bar']; _kb = KEYS['keysBar']; W.setpiece('keys_bar', _kb['x'], _kb['z'], _kb.get('heading', 0.0), note='Keys roadside bar')
 # ---------------------------------------------------------------- 10. street furniture, lamps, trees
 try:
     sig, stops = G.street_furniture(W)
