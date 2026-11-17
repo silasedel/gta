@@ -198,11 +198,11 @@ const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(
 const _hf = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hi = new THREE.Quaternion();
 function lookAlong(r, target, down, fw) {
   if (!r.head) return;
-  wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y -= down; _ht.normalize();
+  wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y = THREE.MathUtils.clamp(_ht.y - down, -0.35, 0.3); _ht.normalize();   // keep the chin up: eyes down the sights, not a bow
   _hf.copy(fw);   // the animated head faces roughly where the shoulders face
   const ang = _hf.angleTo(_ht); if (ang < 1e-3) return;
   const k = Math.min(1, 1.2 / ang);
-  for (const [bone, w] of [[r.neck, 0.35], [r.head, 0.65]]) {
+  for (const [bone, w] of [[r.neck, 0.3], [r.head, 0.5]]) {
     if (!bone) continue;
     _hq.setFromUnitVectors(_hf, _ht); _hq.slerp(_hi.identity(), 1 - w * k); rotW(bone, _hq.clone());
   }
