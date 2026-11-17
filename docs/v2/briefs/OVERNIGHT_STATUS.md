@@ -144,6 +144,14 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 01:50 Lead's notes: (1) `roadDecals` 'mapTransform' compile error: that was the first decal shader at ~00:15, fixed at 00:20
+  (uv offset via a uniform; mapTransform only in the vertex shader under USE_MAP); every test page since then has no shader
+  errors, and decals render: `docs/v2/shots/stage1/gp5_{pothole,pothole_low,patch}.png` (a page loaded before 00:20 would still
+  show it - reload). (2) Downtown tree-lawn: the dark blobs are the countryside's loose rocks / shoulder pebbles (flattened dark
+  stones scattered at road edges), not decals: hidden near pavement now (mask), pebbles thin out at every road edge. Tree-lawn
+  streets get a real granite curb at the asphalt edge (and curb returns at open corners) when the sidewalk is set back; the verge
+  between curb and sidewalk is drawn as trimmed lawn (St. Augustine tone) with worn soil patches near the curb, a thin soil lip at
+  the paving edge, mulch rings under street / park trees; no rural sand shoulder there. Shots in the next entry.
 - 01:35 Terrain tour (aerial + grazing per terrain type, before these fixes): `docs/v2/shots/stage1/gp6_<place>_{aerial,graze}.png`
   for cityLots, park, beach, dunes, everglades, cypress, farm, okeechobee, naples, fortMyers, highway, causeway, airport, homestead,
   keyWest, marathon. Fixed from it: pale saw-tooth triangles along roads (my terrain lowering exposed the land base: removed),
@@ -233,6 +241,17 @@
   helpers' changes in it).
 
 ## vegetation
+- 01:36 Browser queue: 24 test scripts waiting for 3 slots; my stall finder and the t5 tour (grate close-up, park, beach,
+  mangroves, place() test, audit) are queued. Done so far (all committed): 1 conversion of every usable library plant (51 models,
+  LOD0/LOD1, impostors, palette), 2 per-instance variation in the shader, 3 grounding (footprint min, sink, mangroves in the
+  shallow fringe, no docks), 4 placement by zone (royal boulevards, coconut/bent palms on beaches + Keys, mangroves + sea grape
+  on shores, live oak / banyan in old neighborhoods, pines + cypress inland, understory, yard trees, flowering shrubs by
+  houses, grates only on city sidewalks), 5 perf (instanced per model + LOD band, impostors far, paced load, ray checks
+  near the camera only), 6 shots (t3 set + sheets). API `game.vegetation.place / block / audit`.
+- 01:31 Lead: test pages teleported to the Keys house stop answering (main thread busy for minutes): seen in my tours and right
+  now in keys `shots.mjs --set k5` (port 61524, `Runtime.evaluate` times out). Spawn without teleport is fine (CPU profile above).
+  Vegetation side checked: placeTrees + yard trees run in node on 100 cells / 400 lots in 210 ms (terminates, ~2 ms/cell);
+  `tools/v2/vegetation/hangtest.mjs` (A/B library vs `?veglib=0`, teleports with response times) is queued for a slot.
 - 01:20 CPU profile after the perf fix (8 s at the spawn, `tools/v2/vegetation/cpuprof.mjs`): vegetation streamer `rebucket`
   100 ms + `work` 81 ms of 9254 ms sampled (~2 %); physics wasm, three.js culling / matrices and `sliverLand` (data.js)
   dominate. Spawn frame 49.5 ms / 753 draws on the loaded machine (load avg ~30-56).

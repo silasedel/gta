@@ -86,6 +86,16 @@ export function createSurfaceMask() {
   const stats = { meshes: 0, renders: 0, ms: 0, cars: 0 };
 
   // an unpaved drive / track: center (x, z), heading ry (three.js rotation.y, local +z along the drive), width w, length len (m)
+  // per-tile point features in the B channel at half value (B > 0.75 = car, 0.3-0.7 = mulch ring at a tree): [[x, z, r], ...];
+  // the set follows `owner` (a tile group): it leaves the mask when the owner leaves the scene
+  const discGeo = new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2), mulchMat = maxMat(new THREE.Color(0, 0, 0.5));
+  function registerPoints(owner, pts) {
+    if (OFF || !owner || !pts || !pts.length || proxies.has(owner)) return;
+    const im = new THREE.InstancedMesh(discGeo, mulchMat, pts.length); im.frustumCulled = false; im.matrixAutoUpdate = false; im.matrixWorldAutoUpdate = false;
+    pts.forEach(([x, z, r], i) => { _m.makeScale(r, 1, r); _m.setPosition(x, 0, z); im.setMatrixAt(i, _m); });
+    im.userData.src = owner; im.userData.t0 = performance.now(); im.visible = false; im.userData.points = true;
+    proxies.set(owner, im); scene.add(im); registered++;
+  }
   function addDrive(x, z, ry, w, len) {
     if (OFF || drvList.length >= DRV_N || !Number.isFinite(x + z + ry + w + len)) return false;
     _q.setFromAxisAngle(_p.set(0, 1, 0), ry); _m.compose(_p.set(x, 0, z), _q, _s.set(w, 1, len));
@@ -103,7 +113,7 @@ export function createSurfaceMask() {
       const on = top === root;
       if (!on) { p.visible = false; if (p.userData.seen || performance.now() - p.userData.t0 > 120000) { scene.remove(p); proxies.delete(src); dropped++; } continue; } // built but not attached yet: wait; detached after showing: gone
       p.userData.seen = true; p.visible = vis;
-      p.matrixWorld.copy(src.matrixWorld);
+      if (!p.userData.points) p.matrixWorld.copy(src.matrixWorld);
     }
     stats.meshes = proxies.size;
   }
@@ -161,7 +171,7 @@ export function createSurfaceMask() {
     const buf = new Uint8Array(4); game.renderer.readRenderTargetPixels(c.hard, Math.floor(u * c.size), Math.floor(v * c.size), 1, 1, buf); return Array.from(buf);
   }
   const debug = () => { let seen = 0, vis = 0, reg = registered; for (const p of proxies.values()) { if (p.userData.seen) seen++; if (p.visible) vis++; } return { proxies: proxies.size, seen, vis, reg, dropped, drives: drvList.length, rect0: U.uGMR0.value.toArray(), rect1: U.uGMR1.value.toArray() }; };
-  const api = { enabled: true, register, addDrive, debug, drives: drvList, update, stats, debugRead, get ready() { return built; }, off: OFF, uniforms: U, cascades: C };
+  const api = { enabled: true, register, registerPoints, addDrive, debug, drives: drvList, update, stats, debugRead, get ready() { return built; }, off: OFF, uniforms: U, cascades: C };
   return api;
 }
 
@@ -195,13 +205,14 @@ export function gmVeg(mat, o = {}) {
         vec4 gmh = gmHard(gmo);
         float gmk = 1.0 - smoothstep(0.25, 0.55, max(max(gmh.r, gmh.g), max(gmh.b, gmh.a * ${edge ? '0.0' : '1.0'})));
         ${edge ? 'gmk *= 1.0 - smoothstep(0.3, 0.6, gmh.a) * step(gmH1(floor(gmo * 2.7) + 5.0), 0.86); // drives: a few weeds survive' : ''}
+        ${o.noPaved ? '{ vec4 gmp = gmNear(gmo); gmk *= 1.0 - smoothstep(0.04, 0.15, gmp.g); } // city verges: no loose rocks / pebbles near pavement' : ''}
         ${edge ? `vec4 gmn = gmNear(gmo); float gme = max(gmn.r, gmn.g * 0.85), gmr = gmH1(floor(gmo * 3.0));
         gmk *= smoothstep(0.0, 0.3, 1.0 - gme * 1.75 + gmr * 0.55 - 0.08);` : ''}
         transformed *= gmk;
       }
       #endif`);
   };
-  mat.customProgramCacheKey = () => prevKey() + '|gm' + edge;
+  mat.customProgramCacheKey = () => prevKey() + '|gm' + edge + (o.noPaved ? 'p' : '');
   mat.needsUpdate = true;
   return mat;
 }

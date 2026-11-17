@@ -83,12 +83,13 @@ float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r =
           float rimZ = smoothstep(0.5, 0.62, e) * (1.0 - smoothstep(0.78, 0.92, e));
           // broken rim: crumbled asphalt lumps and cracks around the hole
           float lump = smoothstep(0.55, 0.7, dN(vDecW.xz * 9.0) * 0.6 + dN(vDecW.xz * 23.0) * 0.4);
-          float crk = 1.0 - smoothstep(0.0, 0.06, abs(dN(vDecW.xz * 4.0 + dN(vDecW.xz * 9.0)) - 0.5));
+          float crk = 0.0;
           A = 1.0 - smoothstep(0.84, 0.95, e + (dN(vDecW.xz * 7.0) - 0.5) * 0.12);
-          vec3 grav = alb * mix(0.62, 1.15, clamp(dLum - 0.35, 0.0, 1.0));
-          alb = mix(alb, grav * mix(0.95, 0.5, dDepth), dHole);
+          // exposed base course: gravel and dust, a bit warmer / lighter than the wearing course, darker only deep in the hole
+          vec3 grav = alb * vec3(1.06, 1.0, 0.92) * mix(0.7, 1.25, clamp(dLum - 0.4, 0.0, 1.0)) * (0.85 + 0.3 * dN(wH * 23.0));
+          alb = mix(alb, grav * mix(1.0, 0.68, dDepth), dHole);
           alb *= 1.0 - rimZ * (0.18 * lump + 0.45 * crk);
-          float wall = dHole * smoothstep(0.15, 0.75, dDepth) * (1.0 - smoothstep(0.85, 1.0, dDepth)); alb *= 1.0 - 0.35 * wall;
+          float wall = dHole * smoothstep(0.15, 0.75, dDepth) * (1.0 - smoothstep(0.85, 1.0, dDepth)); alb *= 1.0 - 0.22 * wall;
           rgh = mix(rgh, 0.95, dHole * 0.6);
           // inner wall normals: the bowl gradient (faces the hole center)
           vec2 g = (dLc - 0.5); rim = -normalize(dL2W * g + 1e-5) * (wall * 0.9 + rimZ * lump * 0.25);
@@ -101,7 +102,7 @@ float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r =
           float e = dBlob(dLc, vDecW.xz, pp ? 0.8 : 1.3);
           A = 1.0 - smoothstep(0.8, 0.9, e);
           float seam = smoothstep(0.74, 0.81, e) * (1.0 - smoothstep(0.84, 0.9, e));
-          alb *= (pp ? 0.72 : 0.8) * mix(0.93, 1.06, dN(vDecW.xz * 2.3)) * mix(1.0, 0.7, seam * (pp ? 1.0 : 0.6));
+          alb *= (pp ? 0.76 : 0.82) * mix(0.93, 1.06, dN(vDecW.xz * 2.3)) * mix(1.0, 0.86, seam * (pp ? 1.0 : 0.5));
           rgh *= pp ? 0.86 : 0.9;
           // raised (patch) or sunken (patched pothole) rim: tilt along the blob gradient in the edge band
           vec2 g = dLc - 0.5; rim = normalize(dL2W * g + 1e-5) * seam * (pp ? -0.22 : 0.3);

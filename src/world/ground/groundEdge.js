@@ -13,7 +13,7 @@ const OFF = typeof location !== 'undefined' && /[?&](gmask|gedge)=0\b/.test(loca
 export function patchTerrainEdges(mat, o = {}) {
   if (!mat || OFF || mat.userData.gmEdge) return mat; mat.userData.gmEdge = true;
   const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : () => '';
-  const SAND = o.sand ?? 6, GRAV = o.gravel ?? 14, DIRT = o.dirt ?? 8, SHELL = o.shell ?? 7;
+  const SAND = o.sand ?? 6, GRAV = o.gravel ?? 14, DIRT = o.dirt ?? 8, SHELL = o.shell ?? 7, LAWN = o.lawn ?? 0, MULCH = o.mulch ?? 2;
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     if (!sh.fragmentShader.includes('// macro variation over everything')) { console.warn('[ground] terrain shader anchor missing: edges off'); return; }
@@ -44,10 +44,20 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
             sh.alb = hue * mix(ls, lg, 0.6) * mix(vec3(0.97, 0.95, 0.92), vec3(1.05, 1.03, 0.99), keys); }
           float n1 = gN(wp * 0.9 + 4.7), n2 = gN(wp * 3.1 - 2.3), n3 = gF(wp * 0.23 + 1.1);
           // asphalt: ragged shoulder 1-2.5 m; pavement: a narrow worn strip
+          // city verge (pavement within ~2 m: a tree lawn between curb and sidewalk, a lawn beside a plaza): no rural shoulder
+          float urban = smoothstep(0.05, 0.2, gmP) * (1.0 - keys * 0.7);
           float t = gmA * 2.1 + gmP * 1.1 - 0.36 + (n3 - 0.5) * 0.9 + (n1 - 0.5) * 0.45 + (n2 - 0.5) * 0.18 + (sh.h - gs.h) * 0.55;
-          gmSh = smoothstep(0.32, 0.5, t);
+          gmSh = smoothstep(0.32, 0.5, t) * (1.0 - urban);
           // between shoulder and grass: a band of bare dirt / thin grass (height based: the grass texture's tall blades survive longest)
-          float tb = smoothstep(0.12, 0.32, t) * (1.0 - gmSh);
+          float tb = smoothstep(0.12, 0.32, t) * (1.0 - gmSh) * (1.0 - urban);
+          if (urban > 0.01) { // trimmed St. Augustine: lush, even lawn; worn soil patches near the curb; a thin soil lip at the paving edge
+            GS lw = gRecipe(${LAWN}, wp, gdx, gdy, gWantN); lw.alb *= vec3(0.9, 1.0, 0.86);
+            gs = gsMix(gs, lw, urban * 0.9);
+            float worn = smoothstep(0.26, 0.42, gmA + (n1 - 0.5) * 0.3) * smoothstep(0.5, 0.72, n2 * 0.55 + n3 * 0.45);
+            float lip = smoothstep(0.38, 0.47, gmP + (n2 - 0.5) * 0.06 + (gN(wp * 9.0) - 0.5) * 0.04);
+            float wl = max(worn * 0.75, lip * 0.8) * urban;
+            if (wl > 0.01) { GS so = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); so.alb *= mix(1.0, 0.82, lip); gs = gsMix(gs, so, wl); }
+          }
           if (tb > 0.01) { GS dt = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); dt.alb = mix(dt.alb, sh.alb, 0.45); gs = gsMix(gs, dt, tb * smoothstep(0.35, 0.65, 1.0 - gs.h + (n2 - 0.5) * 0.6) * 0.85); }
           gs = gsMix(gs, sh, gmSh);
           // asphalt crumbs and broken chunks in the first ~0.8 m beyond the edge (only where fine mask detail exists)
@@ -61,6 +71,12 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
             gs.alb = mix(gs.alb, vec3(0.16, 0.155, 0.148) * (0.8 + 0.4 * c2), gmCrumb); gs.rough = mix(gs.rough, 0.85, gmCrumb); gs.h = mix(gs.h, 0.75, gmCrumb);
           }
         }
+      }
+      { // mulch rings at street trees (mask B channel, half value; cars are full value): dark shredded bark, ragged edge
+        float mj = (gN(wp * 2.3 + 1.0) - 0.5) * 0.35;
+        float mu = gmHard(wp + vec2(mj, -mj)).b;
+        float mw = smoothstep(0.22, 0.34, mu) * (1.0 - smoothstep(0.72, 0.86, mu)) * gmFine(wp);
+        if (mw > 0.01) { GS ml = gRecipe(${MULCH}, wp, gdx, gdy, gWantN); ml.alb *= vec3(0.62, 0.48, 0.36); ml.rough = 0.95; gs = gsMix(gs, ml, mw); }
       }
       // macro variation over everything`);
   };

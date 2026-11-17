@@ -39,7 +39,7 @@ export function createTileBuilder(ctx) {
   // ---- V2 world-render: terrain, flora and relief (src/world/terrain/) ----
   const terrain = ctx.terrain || null, flora = ctx.flora || null, D = ctx.data || null;
   const GMASK = surfaceMask(), GM_ON = !GMASK.off; // ground pass: top-down hard-surface mask (src/world/ground/surfaceMask.js)
-  if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell }); // ground pass: shoulders / crumbs / no ground through roads
+  if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell, lawn: ctx.terrain.LI?.lawn, mulch: ctx.terrain.LI?.forest }); // ground pass: shoulders / crumbs / no ground through roads
   const TH = (x, z) => (D && D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0);
   const HARD_CLS = new Set(['paved', 'parking', 'plaza', 'marina', 'pool', 'runway', 'taxiway', 'apron']);
   const LAWN_CLS = new Set(['park', 'grass', 'garden', 'cemetery', 'golf', 'pitch', 'playground']);
@@ -1498,6 +1498,12 @@ export function createTileBuilder(ctx) {
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), dirt = r.surface === 'dirt' || /track/.test(r.kind || '');
       const mY = yRoad + 0.015;
       let s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
+      if (GM_ON && curbedEdge && !ys && rB > rA + 1 && !/service|track|path|footway/.test(r.kind || '')) for (const side of [-1, 1]) { // ground pass: a city street whose sidewalk is set back (tree lawn) still has a granite curb at the asphalt edge
+        if (!sideOpen(side)) continue; let a = rA, b = rB; if (pe && !capA && jA) a = (side > 0 ? jA.tB : jA.tA) - pe.s0; if (pe && !capB && jB) b = pe.LE - (side > 0 ? jB.tA : jB.tB) - pe.s0; if (b < a + 1) continue;
+        const oIn = side * hw, o1 = side * (hw + 0.3);
+        if (B.sidewalk) { ribbon(B.sidewalk, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB, 0xc9c6bf, 1 / 2.5, a, b); sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b); sideWall(B.sidewalk, fr, 0, o1, CURB, 0, 0xb4b1aa, side, a, b); }
+        if (coll) { coll.tag = 'roadSidewalk'; ribbon(coll, fr, 0, Math.min(oIn, o1), Math.max(oIn, o1), CURB, 0xffffff, 1, a, b); sideWall(coll, fr, 0, oIn, CURB, 0, 0xffffff, -side, a, b); }
+      }
       if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.discA && CLIP_PAINT ? pe.discA + 1 - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : pe.discB && CLIP_PAINT ? pe.discB + 1 - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); } // old-disc ends keep their trim
       if (pe && B && B.marks) { approachMarks(B, fr, ys, r, hw, pe, false, mY); approachMarks(B, fr, ys, r, hw, pe, true, mY); }
       if (B && B.decals && !dirt && rB > rA + 2) { roadDecals(B, fr, ys, r, hw, pe, lane, Math.max(0, rA), Math.min(L, rB)); turnArrows(B, fr, r, hw, pe); } // job 4: lived-in asphalt
@@ -1657,6 +1663,15 @@ export function createTileBuilder(ctx) {
           if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0 && paved()) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
           if (M.shoulder && B.shoulder) { shoulderArc(B, c, J.legs[c.i].lane || J.legs[c.j].lane); continue; }
           if (J.legs[c.i].lane || J.legs[c.j].lane) { if (B.sand) { const col = new THREE.Color(0xa49a84); for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], wa = (0.9 + hash(a[0] * 3 + a[1]) * 0.8) / c.R, wb = (0.9 + hash(b[0] * 3 + b[1]) * 0.8) / c.R; quadUp(B.sand, [a[0], 0.03, a[1]], [b[0], 0.03, b[1]], [b[0] + (c.O[0] - b[0]) * wb, 0.03, b[1] + (c.O[1] - b[1]) * wb], [a[0] + (c.O[0] - a[0]) * wa, 0.03, a[1] + (c.O[1] - a[1]) * wa], col, 1 / 6); } } continue; }
+        if (GM_ON && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // ground pass: curb returns along open corners between curbed legs (tree-lawn streets)
+          if (c.kind !== 'fillet' || !(J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0) || J.legs[c.i].lane || J.legs[c.j].lane || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
+          const m0 = c.arc[c.arc.length >> 1], dx0 = c.O[0] - m0[0], dz0 = c.O[1] - m0[1], d0 = Math.hypot(dx0, dz0) || 1; if (slabAt(tile, m0[0] + dx0 / d0 * 1.0, m0[1] + dz0 / d0 * 1.0)) continue;
+          const col = new THREE.Color(0xc9c6bf), w = 0.3 / c.R;
+          for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
+            quadUp(B.sidewalk, [a[0], CURB, a[1]], [b[0], CURB, b[1]], [bi[0], CURB, bi[1]], [ai[0], CURB, ai[1]], col, 1 / 2.5);
+            for (const [p, q] of [[a, b], [ai, bi]]) { const ex = q[0] - p[0], ez = q[1] - p[1], L = Math.hypot(ex, ez) || 1; let nx = ez / L, nz = -ex / L; const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2; const toO = (c.O[0] - mx) * nx + (c.O[1] - mz) * nz; if ((p === a) === (toO > 0)) { nx = -nx; nz = -nz; }
+              const v = [[p[0], 0, p[1]], [q[0], 0, q[1]], [q[0], CURB, q[1]], [p[0], CURB, p[1]]]; for (const [sg, ord] of [[1, [0, 1, 2, 0, 2, 3]], [-1, [0, 2, 1, 0, 3, 2]]]) for (const ii of ord) B.sidewalk.vert(v[ii][0], v[ii][1], v[ii][2], nx * sg, 0, nz * sg, ii === 1 || ii === 2 ? L * 0.4 : 0, v[ii][1] * 0.4, col); } } // both windings: the face shows whichever way the arc runs
+        }
           const col = new THREE.Color(0xd9d5cb), w = 0.32 / c.R;
           for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
             quadUp(B.sidewalk, [a[0], 0.053, a[1]], [b[0], 0.053, b[1]], [bi[0], 0.053, bi[1]], [ai[0], 0.053, ai[1]], col, 1 / 2.5); } }
@@ -2911,6 +2926,7 @@ export function createTileBuilder(ctx) {
       if (b.empty) continue;
       const g = new THREE.BufferGeometry();
       // copy the big JS arrays into typed arrays in slices (one-shot Float32BufferAttribute(array) took ~10 ms per attribute in the browser)
+    if (GM_ON) { const mp = []; for (const it of [...(props.palm || []), ...(props.tree || [])]) { if (!it || it.cs || (it.y || 0) > 0.1) continue; const z0 = String(zoneAt(it.x, it.z) || ''); if (!URBAN_Z.test(z0) && !/park/.test(z0)) continue; mp.push([it.x, it.z, 0.75 + hash(((it.x * 7) | 0) + ((it.z * 3) | 0)) * 0.5]); } if (mp.length) GMASK.registerPoints(group, mp); } // ground pass: mulch rings at street / park trees (terrain draws them)
       for (const [name, src, k] of [['position', b.p, 3], ['normal', b.n, 3], ['uv', b.uv, 2], ['color', b.c, 3]]) {
         const out = new Float32Array(src.length);
         for (let i0 = 0; i0 < src.length; i0 += 60000) { const i1 = Math.min(src.length, i0 + 60000); for (let i = i0; i < i1; i++) out[i] = src[i]; yield; }
