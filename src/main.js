@@ -246,7 +246,12 @@ async function boot() {
     // W walks, Shift runs, Shift held for 1.5 s while moving breaks into the sprint (character track, pass 10)
     const sprintKey = inp.down('ShiftLeft');
     st.shiftT = sprintKey && hasInput ? (st.shiftT || 0) + dt : 0;
-    st.sprint = hasInput && sprintKey && st.shiftT > 1.5 && !swim;
+    // stamina (GTA feel): about 14 s of full sprint, back in about 6 s; when empty he drops to a run until 25 % is back
+    P.stamina = P.stamina ?? 1;
+    const wantSprint = hasInput && sprintKey && st.shiftT > 1.5 && !swim;
+    if (wantSprint && !L.winded) P.stamina = Math.max(0, P.stamina - dt / 14); else P.stamina = Math.min(1, P.stamina + dt / (moveSpeed > 0.5 ? 9 : 6));
+    if (P.stamina <= 0.001) L.winded = true; else if (L.winded && P.stamina > 0.25) L.winded = false;
+    st.sprint = wantSprint && !L.winded;
     const walk = !sprintKey || inp.down('AltLeft') || inp.down('ControlLeft');
     let target = hasInput ? (swim ? (sprintKey ? 3.0 : 1.8) : st.sprint ? 7.2 : walk ? 1.7 : 4.2) : 0;
     if (!swim && game.city?.bushAt) { // pushing through bushes and flower beds: slower, no sprinting through the middle

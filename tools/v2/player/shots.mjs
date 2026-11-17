@@ -43,6 +43,33 @@ const STEPS = {
       const rd = window.__rag.start(ch, { vel: { x: Math.sin(P.heading) * -3, y: 1.2, z: Math.cos(P.heading) * -3 }, kind: 'melee', strength: 0.4, lethal: true });
       window.__ragUpd = (dt) => { try { window.__rag.update(dt); } catch (e) {} }; game.updaters.push(window.__ragUpd);`,
     after: `const ch = game.playerCharacter; ch.update = ch.__upd; const i = game.updaters.indexOf(window.__ragUpd); if (i >= 0) game.updaters.splice(i, 1); ch.snapshotPose?.(0.3);` },
+  // in the driver's seat: from just outside the driver window, then the real chase camera behind the car
+  car_window: { orbit: 'front', noOrbit: true, wait: 3000, eval: `const P = game.player, T = game.THREE; const v = game.vehicles.nearest?.(P.position, 60); window.__car = v; if (v) game.enterVehicle(v);
+      game.cameraOverride = (dt, cam) => { const m = v.car?.shell || v.mesh; const q = m.getWorldQuaternion(new T.Quaternion()), p = m.getWorldPosition(new T.Vector3());
+        const left = new T.Vector3(1, 0, 0).applyQuaternion(q), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
+        const seat = p.clone().addScaledVector(left, 0.38).addScaledVector(up, (v.spec?.belt ?? 1) - 0.05).addScaledVector(fwd, (v.spec?.zA ?? 1.4) - 1.1);
+        cam.position.copy(seat).addScaledVector(left, 1.55).addScaledVector(fwd, 0.35).addScaledVector(up, 0.12); cam.lookAt(seat.x, seat.y + 0.05, seat.z); return true; };`, after: '' },
+  car_chase: { orbit: 'front', noOrbit: true, wait: 3000, reset: false, eval: `game.cameraOverride = null; const v = window.__car; if (v) { const r = v.body.rotation(), q = new game.THREE.Quaternion(r.x, r.y, r.z, r.w), f = new game.THREE.Vector3(0, 0, 1).applyQuaternion(q); game.cameraYaw = Math.atan2(f.x, f.z) + Math.PI; game.cameraPitch = 0.16; }`,
+    after: 'if (window.__car) game.exitVehicle();' },
+  // vault: find a low wall / fence / rail he can hop (0.5 - 1.2 m) near the spot, run at it, press jump
+  vault: { orbit: 'front', noOrbit: true, wait: 1880, eval: `const T = game.THREE, P = game.player, V = game.playerVault, c0 = P.position.clone(); let best = null;
+      for (let r = 2; r <= 45 && !best; r += 1.5) for (let k = 0; k < Math.max(8, r * 3) && !best; k++) { const a = k / Math.max(8, r * 3) * Math.PI * 2, x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r, y = game.city.groundHeightAt(x, z);
+        if (!Number.isFinite(y) || game.city.isWater?.(x, z)) continue; for (let j = 0; j < 12 && !best; j++) { const h = j / 12 * Math.PI * 2; const pr = V?.probe(new T.Vector3(x, y, z), h); if (pr && pr.kind === 'vault' && pr.dist > 1.2 && pr.dist < 2.2) best = { x, y, z, h, pr }; } }
+      window.__vault = best ? { at: [+best.x.toFixed(1), +best.z.toFixed(1)], h: +best.pr.hgt.toFixed(2), thick: +best.pr.thick.toFixed(2) } : null;
+      if (best) { game.teleport(best.x, undefined, best.z, best.h); game.cameraYaw = best.h + Math.PI;
+        const sx = best.x + Math.sin(best.h) * 1.5 + Math.cos(best.h) * 4.2, sz = best.z + Math.cos(best.h) * 1.5 - Math.sin(best.h) * 4.2;
+        game.cameraOverride = (dt, cam) => { cam.position.set(sx, best.y + 1.5, sz); cam.lookAt(game.player.position.x, game.player.position.y + 0.9, game.player.position.z); return true; };
+        const key = (c, d) => dispatchEvent(new KeyboardEvent(d ? 'keydown' : 'keyup', { code: c, key: c }));
+        setTimeout(() => key('KeyW', true), 1200); setTimeout(() => { key('Space', true); }, 1200 + 420); setTimeout(() => key('Space', false), 1200 + 520); setTimeout(() => key('KeyW', false), 1200 + 1500); }`, after: '' },
+  vault_mid: { orbit: 'front', noOrbit: true, reset: false, wait: 260, eval: '', after: '' },
+  vault_end: { orbit: 'front', noOrbit: true, reset: false, wait: 1100, eval: '', after: 'window.__vaultStats = JSON.stringify(game.playerVault?.stats);' },
+  // pivot: run, then reverse the stick (S) -> plant and turn around
+  pivot: { orbit: 'side', noOrbit: true, wait: 2000, eval: `const P = game.player; game.cameraYaw = P.heading + Math.PI; const c = P.position.clone(), h = P.heading;
+      game.cameraOverride = (dt, cam) => { cam.position.set(c.x + Math.sin(h) * 4 + Math.cos(h) * 6, c.y + 1.8, c.z + Math.cos(h) * 4 - Math.sin(h) * 6); cam.lookAt(P.position.x, P.position.y + 0.9, P.position.z); return true; };
+      const key = (k, d) => dispatchEvent(new KeyboardEvent(d ? 'keydown' : 'keyup', { code: k, key: k })); window.__piv = [];
+      const t0 = performance.now(); const rec = () => { const t = performance.now() - t0; window.__piv.push([Math.round(t), +P.state.speed.toFixed(2), +P.heading.toFixed(2)]); if (t < 3200) setTimeout(rec, 80); }; rec();
+      key('ShiftLeft', true); key('KeyW', true); setTimeout(() => { key('KeyW', false); key('KeyS', true); }, 1500); setTimeout(() => { key('KeyS', false); key('ShiftLeft', false); }, 3200);`, after: '' },
+  pivot_end: { orbit: 'side', noOrbit: true, reset: false, wait: 1500, eval: '', after: '' },
   // the real game camera (no override): a parked car between the camera and Nico, and under the stilt house beams
   cam_car: { orbit: 'front', noOrbit: true, wait: 2500, eval: `game.cameraOverride = null; const P = game.player, T = game.THREE;
       const v = (game.vehicles?.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - P.position.x)[0] && (game.vehicles.list.filter((x) => x.body).map((x) => [x, Math.hypot(x.body.translation().x - P.position.x, x.body.translation().z - P.position.z)]).sort((a, b) => a[1] - b[1])[0] || [])[0];
@@ -98,7 +125,7 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
       await b.key(s.move.key, true);
       await b.sleep(s.move.secs * 1000);
     } else await b.sleep(s.wait || 1500);
-    const info = await b.eval(`JSON.stringify({ pos: game.player.position.toArray().map((v) => +v.toFixed(2)), speed: +(game.player.state.speed || 0).toFixed(2), lod: game.playerCharacter?.meshLOD, foot: game.playerCharacter?.footIK?.stats, model: game.playerCharacter?.tripo ? 'tripo' : 'old', desc: game.wardrobe?.describe?.(), disguise: game.wardrobe?.disguise?.() })`);
+    const info = await b.eval(`JSON.stringify({ pos: game.player.position.toArray().map((v) => +v.toFixed(2)), speed: +(game.player.state.speed || 0).toFixed(2), lod: game.playerCharacter?.meshLOD, foot: game.playerCharacter?.footIK?.stats, model: game.playerCharacter?.tripo ? 'tripo' : 'old', vault: window.__vault, vaultStats: game.playerVault?.stats, stamina: game.player.stamina, piv: window.__piv?.filter((x, i) => i % 3 === 0), desc: game.wardrobe?.describe?.(), disguise: game.wardrobe?.disguise?.() })`);
     await b.screenshot(path.join(DIR, `${SET}_${id}.png`));
     if (s.move) { await b.key(s.move.key, false); if (s.move.shift) await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800); await b.eval(`(() => { const s = window.__spot; if (s) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(1200); }
     if (s.after) await b.eval(`(async () => { ${s.after}; return 1; })()`);
