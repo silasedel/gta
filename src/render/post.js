@@ -752,6 +752,11 @@ export function createPost(game) {
   composer.addPass(grade);
 
   const gu = grade.uniforms;
+  // r2-look: matched grade LUT (loaded once; until it arrives the grade runs without it)
+  new THREE.TextureLoader().load('/assets/look/r2_grade_lut.png', (t) => {
+    t.flipY = false; t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = false; t.minFilter = t.magFilter = THREE.LinearFilter;
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true; gu.tLut.value = t;
+  }, undefined, (e) => console.warn('[post] grade LUT', e));
   // ShaderPass clones uniforms: arrays -> use vectors for safety
   gu.uRes.value = new THREE.Vector2(W * pr, H * pr);
   for (const k of ['uLift', 'uGamma', 'uGain', 'uShadowTint', 'uHighTint', 'uSunColor']) gu[k].value = new THREE.Vector3().fromArray(gu[k].value);
@@ -1079,6 +1084,7 @@ export function createPost(game) {
           gu.uHighTint.value.set(0.024 - 0.005 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
         }
       }
+      gu.uLutMix.value = !LOOK_OFF && game.look3 && game.lookR2 !== false && gu.tLut.value ? (game.lookLut ?? 1) * (0.35 + 0.65 * day) * (1 - 0.92 * (game.deathFade || 0)) : 0; // r2-look matched grade (built from a day frame: weaker at night) (A/B: game.lookLut = 0)
       if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
       gu.uVignette.value = gu._vigBase + Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) * Math.min(1, (game.deathFade || 0) * 4);
       // look track: cap HDR before bloom (believable sparkle, not a glare disc on wet sand or water at low sun)
@@ -1141,7 +1147,7 @@ export function createPost(game) {
         const sy = game.env?.sunDir?.y ?? 0.5;
         const gold = (game.env?.dayFactor ?? 1) * (1 - THREE.MathUtils.smoothstep(sy, 0.04, 0.3));
         const H = game.lookHaze || (game.lookHaze = { day: 0.00026, golden: 0.00046, night: 0.00021 });
-        const hz = game.lookR2 !== false ? (game.lookHazeR2 ?? 1.3) : 1; // r2-look: humid, slightly hazy distance (mock-up)
+        const hz = game.lookR2 !== false ? (game.lookHazeR2 ?? 1.6) : 1; // r2-look: humid, slightly hazy distance (mock-up)
         LOOK_V[0] = game.look3 ? THREE.MathUtils.lerp(THREE.MathUtils.lerp(H.night, H.day * hz, game.env?.dayFactor ?? 1), H.golden, gold) : 0;
       }
       try {

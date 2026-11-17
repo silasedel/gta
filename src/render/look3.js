@@ -52,10 +52,14 @@ const SUN_DEPTH_M = 899.0;
 #endif`);
     }
   }
-  // r2-look material debug view (LOOK_V.w = 1: lit materials output their base color / albedo), used by
+  // r2-look material debug views (LOOK_V.w = 1: lit materials output their base color / albedo; 2: roughness, metalness in R, G
+  // for MeshStandard / Physical), used by
   // tools/v2/look/albedo-view.page.js to measure what is on screen. One uniform branch; 0 in the game.
   C.opaque_fragment = `#if defined( PS_LOOKU ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
 if ( uLookV.w > 0.5 ) outgoingLight = diffuseColor.rgb;
+#endif
+#if defined( PS_LOOKU ) && defined( STANDARD )
+if ( uLookV.w > 1.5 ) outgoingLight = vec3( material.roughness, metalnessFactor, 0.0 ); // r2-art audit: final roughness (after maps, patches and specular AA), metalness
 #endif
 ` + C.opaque_fragment + `
 #if defined( PS_LOOKU ) && defined( OPAQUE ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )

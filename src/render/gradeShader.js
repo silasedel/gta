@@ -27,12 +27,25 @@ export const GradeShader = {
     uUnder: { value: 0 },
     uSunColor: { value: [1, 0.7, 0.4] },
     uStable: { value: 0 }, // look3: sun-shaft ray offsets stay fixed per pixel (a per-frame random offset after TAA is grain)
+    // r2-look: matched color grade (tools/v2/look/lut-match.py): 32^3 LUT as a 1024 x 32 strip, display values in / out
+    tLut: { value: null },
+    uLutMix: { value: 0 },
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
     void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
   fragmentShader: /* glsl */`
     uniform sampler2D tDiffuse;
+    uniform sampler2D tLut;
+    uniform float uLutMix;
+    vec3 lutS( vec3 c ) {
+      c = clamp( c, 0.0, 1.0 );
+      float b = c.b * 31.0, b0 = floor( b ), b1 = min( b0 + 1.0, 31.0 );
+      vec2 p = vec2( c.r * 31.0 + 0.5, c.g * 31.0 + 0.5 );
+      vec3 s0 = texture2D( tLut, vec2( ( b0 * 32.0 + p.x ) / 1024.0, p.y / 32.0 ) ).rgb;
+      vec3 s1 = texture2D( tLut, vec2( ( b1 * 32.0 + p.x ) / 1024.0, p.y / 32.0 ) ).rgb;
+      return mix( s0, s1, b - b0 );
+    }
     uniform float uTime;
     uniform vec2 uRes;
     uniform float uAspect;
@@ -164,6 +177,9 @@ export const GradeShader = {
       col = mix( col, sc * sc * ( 3.0 - 2.0 * sc ), uContrast );
       l = luma( col );
       col = mix( vec3( l ), col, uSat );
+
+      // r2-look matched grade (the mock-up's tonal / color statistics, regularized)
+      if ( uLutMix > 0.001 ) col = mix( col, lutS( col ), uLutMix );
 
       // vignette
       float vig = smoothstep( 1.05, 0.2, sqrt( r2 ) * 1.35 );

@@ -126,12 +126,12 @@ export async function createEnvironment(game) {
       const a = (i / N) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
       // crown line: a few octaves of hashed bumps (trees 4-9 deg, a house roof now and then, rare taller palm heads)
       const k = i % N, n1 = hsh(Math.floor(k / 6)), n2 = hsh(k + 17), n3 = hsh(Math.floor(k / 2) + 91);
-      const house = n1 < 0.28;
+      const house = n1 < 0.4;
       let el = house ? 3.2 + 2.0 * n3 : 4.5 + 3.5 * n2 + 2.0 * n3;
       if (!house && hsh(k + 401) > 0.93) el += 3.5; // palm heads
       const top = R * Math.tan((el * Math.PI) / 180);
       pos.push(R * ca, -1.2, R * sa, R * ca, top, R * sa);
-      const alb = house ? [0.36 + 0.1 * n2, 0.33 + 0.06 * n3, 0.30 + 0.05 * n2] : [0.075 + 0.03 * n3, 0.10 + 0.04 * n2, 0.05 + 0.02 * n3];
+      const alb = house ? [0.40 + 0.1 * n2, 0.38 + 0.06 * n3, 0.36 + 0.05 * n2] : [0.11 + 0.03 * n3, 0.15 + 0.04 * n2, 0.08 + 0.02 * n3]; // r2-art: glass facades reflect mostly this band: mid, not asphalt-dark
       const topK = house ? 1.0 : 1.25; // crown tops catch more sky
       col.push(alb[0] * 0.8, alb[1] * 0.8, alb[2] * 0.8, alb[0] * topK, alb[1] * topK, alb[2] * topK);
       if (i < N) { const b = i * 2; idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
@@ -494,12 +494,12 @@ export async function createEnvironment(game) {
             const px = P.getX(i), pz = P.getZ(i), pl = Math.hypot(px, pz) || 1;
             const facing = Math.max(0, -(px * lx + pz * lz) / (pl * ll)); // inner face lit when the sun is behind the viewer
             const e = 0.25 + 0.75 * facing * (0.45 + 0.55 * Math.max(0, 1 - lightDir.y)); // vertical faces: less sun at noon
-            const hf = (i & 1) ? 0.18 : 0.0; // aerial haze toward the crown line
+            const hf = (i & 1) ? 0.45 : 0.18; // aerial haze (the band sits ~300 m out): lighter and bluer toward the crown line
             for (let c = 0; c < 3; c++) {
               const sc = c === 0 ? sun.color.r : c === 1 ? sun.color.g : sun.color.b, hc = c === 0 ? hemi.color.r : c === 1 ? hemi.color.g : hemi.color.b;
               const hzc = c === 0 ? hz.r : c === 1 ? hz.g : hz.b;
               const v = A.getComponent(i, c) * (sc * sunE * e + hc * hemi.intensity * 0.9);
-              C.setComponent(i, c, v * (1 - hf) + hzc * hf * 0.5);
+              C.setComponent(i, c, v * (1 - hf) + hzc * hf * 0.85);
             }
           }
           C.needsUpdate = true;
