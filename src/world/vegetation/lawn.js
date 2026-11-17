@@ -16,13 +16,14 @@ import { vegUniforms } from './materials.js';
 const FN = 256, FSIZE = 128, FRES = FSIZE / FN, LANE = 1.3;
 const RINGS = [{ dk: 0.055, R: 9 }, { dk: 0.11, R: 20 }, { dk: 0.24, R: 40 }];
 
-function soilTexture() { // dark loam, grit, thatch (dead blades), a few live sprigs; 2 m tile
+function soilTexture() { // dark loam, grit, thatch (dead blades), a few live sprigs; 2 m tile. Low contrast (greenery): read as one
+  // soft ground tone at grazing light, not as bright specks (grain)
   const S = 512, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
   let sd = 4242; const r = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
-  x.fillStyle = '#4a3f2c'; x.fillRect(0, 0, S, S);
-  for (let i = 0; i < 9000; i++) { const v = 40 + r() * 70; x.fillStyle = `rgba(${v + 15},${v + 5},${v * 0.7},${0.3 + r() * 0.5})`; const w = 1 + r() * 3; x.fillRect(r() * S, r() * S, w, w); }
-  for (let i = 0; i < 2600; i++) { const px = r() * S, py = r() * S, a = r() * 6.28, L = 6 + r() * 22, l = 38 + r() * 30; x.strokeStyle = `hsla(${32 + r() * 18},${25 + r() * 25}%,${l}%,${0.55 + r() * 0.4})`; x.lineWidth = 0.8 + r() * 1.4; x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + Math.cos(a) * L * 0.5 + (r() - 0.5) * 6, py + Math.sin(a) * L * 0.5 + (r() - 0.5) * 6, px + Math.cos(a) * L, py + Math.sin(a) * L); x.stroke(); }
-  for (let i = 0; i < 1800; i++) { const px = r() * S, py = r() * S, a = r() * 6.28, L = 4 + r() * 10; x.strokeStyle = `hsla(${85 + r() * 25},${40 + r() * 20}%,${22 + r() * 18}%,0.85)`; x.lineWidth = 1 + r(); x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * L, py + Math.sin(a) * L); x.stroke(); }
+  x.fillStyle = '#4b432f'; x.fillRect(0, 0, S, S);
+  for (let i = 0; i < 9000; i++) { const v = 58 + r() * 32; x.fillStyle = `rgba(${v + 12},${v + 5},${v * 0.72},${0.18 + r() * 0.25})`; const w = 1 + r() * 3; x.fillRect(r() * S, r() * S, w, w); }
+  for (let i = 0; i < 2600; i++) { const px = r() * S, py = r() * S, a = r() * 6.28, L = 6 + r() * 22, l = 32 + r() * 14; x.strokeStyle = `hsla(${34 + r() * 16},${22 + r() * 18}%,${l}%,${0.35 + r() * 0.3})`; x.lineWidth = 0.8 + r() * 1.4; x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + Math.cos(a) * L * 0.5 + (r() - 0.5) * 6, py + Math.sin(a) * L * 0.5 + (r() - 0.5) * 6, px + Math.cos(a) * L, py + Math.sin(a) * L); x.stroke(); }
+  for (let i = 0; i < 1800; i++) { const px = r() * S, py = r() * S, a = r() * 6.28, L = 4 + r() * 10; x.strokeStyle = `hsla(${85 + r() * 25},${35 + r() * 15}%,${24 + r() * 10}%,0.6)`; x.lineWidth = 1 + r(); x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * L, py + Math.sin(a) * L); x.stroke(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
 }
 

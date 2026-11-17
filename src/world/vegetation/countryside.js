@@ -31,13 +31,15 @@ const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x
 // ---------------- biomes ----------------
 // tree: max acceptance on the 8 m candidate grid inside groves; shrub: on the 3 m grid; grass: on the 1.1 m grid
 const BIOMES = {
-  keys: { road: 0.3, tree: 0.32, trees: [['gumbo', 3], ['buttonwood', 2.5], ['sabal', 2], ['coconut', 1], ['seagrapeT', 2]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 2], ['fern', 0.6]], grass: 0.8, dry: 0.22, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
-  keysSand: { tree: 0.06, trees: [['coconut', 2], ['sabal', 1], ['seagrapeT', 2]], shrub: 0.08, shrubs: [['seagrape', 3]], grass: 0.35, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
-  pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.3, shrubs: [['sawpalmetto', 5], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
-  hammock: { road: 0.35, tree: 0.6, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2]], shrub: 0.28, shrubs: [['fern', 3], ['seagrape', 1], ['sawpalmetto', 1]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
-  rural: { road: 0.4, tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1]], shrub: 0.12, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
+  keys: { road: 0.3, tree: 0.32, trees: [['gumbo', 3], ['buttonwood', 2.5], ['sabal', 2], ['coconut', 0.6], ['coconutM', 1.2], ['seagrapeT', 2]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 2], ['fern', 0.6]], grass: 0.8, dry: 0.22, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
+  keysSand: { tree: 0.06, trees: [['coconut', 0.8], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 2]], shrub: 0.08, shrubs: [['seagrape', 3]], grass: 0.35, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
+  pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.3, shrubs: [['sawpalmetto', 5], ['fern', 0.5], ['fernM', 0.8]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
+  hammock: { road: 0.35, tree: 0.72, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2], ['banyan', 0.25]], shrub: 0.38, shrubs: [['fern', 1.4], ['fernM', 2], ['seagrape', 1], ['sawpalmetto', 1]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
+  rural: { road: 0.4, tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1], ['banyan', 0.15]], shrub: 0.12, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
   glade: { tree: 0.14, dome: 1, trees: [['cypress', 5], ['liveoak', 1], ['sabal', 1.2]], shrub: 0.04, shrubs: [['sawpalmetto', 1]], grass: 0.95, tall: 0.75, dry: 0.5, flower: 0.025, rock: 0, hue: [1.06, 1.0, 0.76] },
   marsh: { tree: 0.07, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.85, tall: 1, dry: 0.25, flower: 0, rock: 0, hue: [0.95, 1.0, 0.8] },
+  // inland freshwater swamp (wetland away from the coast): cypress domes and strands, cabbage palms, ferns, tall sawgrass; no mangroves
+  swamp: { tree: 0.42, dome: 1, trees: [['cypress', 6], ['sabal', 1.6], ['liveoak', 0.5], ['gumbo', 0.3]], shrub: 0.2, shrubs: [['fernM', 2], ['fern', 1], ['sawpalmetto', 1]], grass: 0.95, tall: 0.9, dry: 0.3, flower: 0.01, rock: 0, hue: [1.0, 1.0, 0.78] },
   mangrove: { tree: 0.75, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.15, tall: 0.5, dry: 0.1, flower: 0, rock: 0, hue: [0.95, 1.0, 0.85] },
 };
 const BKEYS = Object.keys(BIOMES), BIDX = Object.fromEntries(BKEYS.map((k, i) => [k, i + 1]));
@@ -52,8 +54,11 @@ const TREE_KINDS = {
   sabal: { kind: 'sabal', seeds: [[2, 1], [5, 1], [11, 1]], palm: 1, s: [0.75, 1.2] },
   coconut: { kind: 'coconut', seeds: [[3, 1], [7, 1]], palm: 1, s: [0.85, 1.15] },
   seagrapeT: { kind: 'seagrape', seeds: [[4, 1.5], [12, 1.7]], sp: 'seagrape', s: [0.8, 1.2], shrubLike: 1 },
+  // library models (models.js); without the model file the procedural kind in `fb` is drawn instead
+  coconutM: { model: 'coconut', fb: 'coconut', seeds: [[1, 1]], palm: 1, s: [0.8, 1.25] },
+  banyan: { model: 'banyan', fb: 'liveoak', seeds: [[1, 1]], sp: 'oak', s: [0.75, 1.05], wide: 1 },
 };
-const SHRUB_KINDS = { seagrape: { kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75], [13, 0.9]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { custom: 'fern', seeds: [[1, 1], [2, 1]] } };
+const SHRUB_KINDS = { seagrape: { kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75], [13, 0.9]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { model: 'fern', seeds: [[1, 1]] } };
 
 function biomeOf(ctx, x, z) {
   const { terrain: T, data: D } = ctx;
@@ -63,11 +68,11 @@ function biomeOf(ctx, x, z) {
   const shore = D.isWater(x + 7, z) || D.isWater(x - 7, z) || D.isWater(x, z + 7) || D.isWater(x, z - 7);
   if (shore && (lay === L.marsh || ((keys || (D.zoneAt && D.zoneAt(x, z) === 'wilderness')) && vn(x / 33, z / 33) > 0.45 && lay !== L.sand))) return BIDX.mangrove;
   if (lay === L.sawgrass) return BIDX.glade;
-  if (lay === L.marsh) return BIDX.marsh;
+  if (lay === L.marsh) return (keys || D.isWater(x + 45, z) || D.isWater(x - 45, z) || D.isWater(x, z + 45) || D.isWater(x, z - 45)) ? BIDX.marsh : BIDX.swamp; // salt marsh by open water, freshwater swamp inland
   if (lay === L.forest) return BIDX.hammock;
   if (lay === L.pine) return BIDX.pine;
   if (keys) return lay === L.sand ? (shore ? 0 : BIDX.keysSand) : (lay === L.scrub || lay === L.meadow || lay === L.lawn || lay === L.shell) ? BIDX.keys : 0;
-  if (lay === L.scrub || lay === L.meadow) return BIDX.rural;
+  if (lay === L.scrub || lay === L.meadow) return D.zoneAt && D.zoneAt(x, z) === 'wilderness' ? BIDX.glade : BIDX.rural; // wilderness open land: sawgrass prairie with cypress domes / tree islands
   return 0;
 }
 const pick = (list, r) => { let t = 0; for (const [, w] of list) t += w; let a = r * t; for (const e of list) { a -= e[1]; if (a <= 0) return e[0]; } return list[list.length - 1][0]; };
@@ -84,13 +89,17 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     let rdQ = null; // roadside row: rural stretches keep trees just outside the clear zone so their shade dapples the asphalt
     if (p >= dens) { if (!B.road || p >= B.road) continue; rdQ = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rdQ < 4.5 || rdQ > 15) continue; }
     const name = pick(B.trees, hh(i, j, 5)), K = TREE_KINDS[name];
-    const rd = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99); if (rd < (rdQ !== null ? (K.palm ? 4.5 : 9) : (K.palm ? 4 : 9) + hh(i, j, 6) * 5)) continue; // broadleaf crowns (~8 m) must not hang over the lanes
+    const rd = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99); if (rd < (rdQ !== null ? (K.palm ? 4.5 : 9) : (K.palm ? 4 : K.wide ? 13 : 9) + hh(i, j, 6) * 5)) continue; // broadleaf crowns (~8 m) must not hang over the lanes
     if (inLot(x, z)) continue;
+    if (junctionGap(ctx.data, x, z) < (K.palm ? 3 : K.wide ? 12 : 8)) continue; // junction mouths: curb returns reach past the leg edges
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
     emit({ name, v, x, z, y: ctx.terrain.heightAt(x, z), ry: hh(i, j, 9) * 6.2832, s, sp: K.sp, palm: !!K.palm, b, key: i + ',' + j });
   }
 }
+function junctionGap(D, x, z) { // distance outside the nearest junction disc (node width / 2 + 2 m of curb return); the same test in both the tile collider pass and the streamer
+  if (!D || !D.getTile) return 99; const t = D.getTile(Math.floor(x / 200), Math.floor(z / 200)); let g = 99;
+  for (const n of (t && t.nodes) || []) if (n.degree >= 3 && n.width) g = Math.min(g, Math.hypot(n.x - x, n.z - z) - n.width / 2 - 2); return g; }
 const inLot = (x, z) => { try { return !!(houseLots.enabled && (houseLots.at(x, z) || houseLots.reservedAt(x, z, 2))); } catch (e) { return false; } }; // house lots (yards, decks, under stilt houses) belong to the houses track
 const rejected = new Set(); let active = null;
 export function csReject(x, z) { const k = Math.floor(x / TSTEP) + ',' + Math.floor(z / TSTEP); if (rejected.has(k)) return; rejected.add(k); active?.reject(x, z); }
@@ -109,7 +118,7 @@ function grassTuft(seed, o) { // a clump of curved grass cards (atlas grass cell
   return { leaf: gb.leaf.build(), tris: gb.leaf.tris };
 }
 function bladeTuft(seed, o) { // real grass blades (no texture): tapered 2-segment blades arching out from one root, dark base to light tip
-  const R = rng(seed), gb = new GB(), base = [0.045, 0.085, 0.022], mid = [0.12, 0.2, 0.05], tip = [0.24, 0.31, 0.1];
+  const R = rng(seed), gb = new GB(), base = [0.065, 0.105, 0.032], mid = [0.12, 0.19, 0.05], tip = [0.205, 0.275, 0.088]; // (greenery) softer root-to-tip ramp: less speckle at grazing light
   for (let k = 0; k < o.n; k++) {
     const az = R() * 6.283, ca = Math.cos(az), sa = Math.sin(az), d = Math.sqrt(R()) * o.r, bx = ca * d, bz = sa * d, h = o.h * (0.55 + R() * 0.6), lean = o.lean * (0.4 + R()), w = o.w * (0.7 + R() * 0.6);
     const fa = az + (R() - 0.5) * 1.2, side = new V3(-Math.sin(fa), 0, Math.cos(fa)), out = new V3(Math.cos(fa), 0, Math.sin(fa)), g = 0.85 + R() * 0.3, nn = new V3(ca * 0.3, 1, sa * 0.3).normalize();
@@ -175,7 +184,7 @@ class Slot { // one InstancedMesh whose content is rebuilt from the cells on eve
   end() { const im = this.im; im.count = this.n; im.visible = this.n > 0; if (this.n) { im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, this.n * 16); im.instanceMatrix.needsUpdate = true; if (this.colored) { im.instanceColor.clearUpdateRanges(); im.instanceColor.addUpdateRange(0, this.n * 3); im.instanceColor.needsUpdate = true; } } }
 }
 
-export function createCountryside({ renderer, scene, terrain, data, roadDist, deckAt = null }) {
+export function createCountryside({ renderer, scene, terrain, data, roadDist, deckAt = null, models = {} }) {
   const ctx = { terrain, data, roadDist, deckAt }, group = new THREE.Group(); group.name = 'countryside'; scene.add(group);
   const t0 = performance.now();
   // ---- materials: one bark + leaf pair per LOD band and class (shared programs), impostors per prototype ----
@@ -188,7 +197,12 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   const protos = [], protoOf = {};
   function addProto(cls, key, g0, g1, colored = true) {
     const P = { cls, key, lods: [], tris: [g0.tris, g1?.tris || 0, 4] }, idx = protos.length;
-    if (cls === 'tree' || cls === 'shrub') {
+    if (g0.model) { // library model: own materials per part, impostor baked at load (models.js)
+      const bands = BAND[cls], L = g0.model.materials(bands[0], null, bands[2], { lean: 0.006, sway: 0.0035 });
+      P.lods.push({ band: bands[0], slots: L.near.map((q) => new Slot(group, q.geo, q.mat, q.depth, true, colored && q.fam === 'leaf')) });
+      if (L.imp) P.lods.push({ band: bands[2], slots: [new Slot(group, L.imp.geo, L.imp.mat, L.imp.depth, false, colored)] });
+      P.tris = [g0.model.tris[0], 0, 4];
+    } else if (cls === 'tree' || cls === 'shrub') {
       const M0 = MAT[cls][0], bands = BAND[cls];
       const mk = (g, M, cast) => { const s = []; if (g.bark && g.bark.index && g.bark.index.count) s.push(new Slot(group, g.bark, M.bark.mat, M.bark.depth, cast, false)); if (g.leaf && g.leaf.index.count) s.push(new Slot(group, g.leaf, M.leaf.mat, M.leaf.depth, cast, colored)); return s; };
       P.lods.push({ band: bands[0], slots: mk(g0, M0, true) });
@@ -200,8 +214,10 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     }
     protos.push(P); (protoOf[key.replace(/#\d+$/, '')] ||= []).push(idx); return idx;
   }
-  for (const [name, K] of Object.entries(TREE_KINDS)) K.seeds.forEach(([seed, size], v) => { const o = { seed, size }; addProto(K.shrubLike ? 'shrub' : 'tree', name + '#' + v, buildGeometry(K.kind, { ...o, lod: 0 }), null); });
-  for (const [name, K] of Object.entries(SHRUB_KINDS)) K.seeds.forEach(([seed, size], v) => { const g0 = K.custom ? fernClump(seed) : buildGeometry(K.kind, { seed, size, lod: 0 }); addProto('shrub', name + '#' + v, g0, null); });
+  for (const [name, K] of Object.entries(TREE_KINDS)) K.seeds.forEach(([seed, size], v) => { const o = { seed, size };
+    if (K.model) { const md = models && models[K.model]; if (md) addProto('tree', name + '#' + v, { model: md }, null); else { const F = TREE_KINDS[K.fb]; addProto('tree', name + '#' + v, buildGeometry(F.kind, { seed: F.seeds[0][0], size: F.seeds[0][1], lod: 0 }), null); } return; }
+    addProto(K.shrubLike ? 'shrub' : 'tree', name + '#' + v, buildGeometry(K.kind, { ...o, lod: 0 }), null); });
+  for (const [name, K] of Object.entries(SHRUB_KINDS)) K.seeds.forEach(([seed, size], v) => { const md = K.model && models && models[K.model]; const g0 = md ? { model: md } : K.custom || K.model ? fernClump(seed) : buildGeometry(K.kind, { seed, size, lod: 0 }); addProto('shrub', name + '#' + v, g0, null); });
   const GC = {
     grass: [1, 2, 3, 4].map((s) => bladeTuft(s * 11, { n: 12, h: 0.42, w: 0.01, lean: 0.55, r: 0.28 })), // 12 blades: this layer reaches 52 m
     fillG: [1, 2, 3, 4].map((s) => bladeTuft(s * 13, { n: 13, h: 0.4, w: 0.008, lean: 0.55, r: 0.3 })), // dense near layer (<26 m)
@@ -228,7 +244,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   function seal(c) { let ys = 0, yn = 0; for (const L of c.lists.values()) { if (Array.isArray(L.m)) { L.m = new Float32Array(L.m); L.c = new Float32Array(L.c); } L.n = L.m.length / 16; for (let i = 0; i < L.n; i += 7) { ys += L.m[i * 16 + 13]; yn++; } } if (yn) c.cy = ys / yn; dirty = true; }
   const leafCol = (b, x, z, r) => { const B = BIOMES[BKEYS[b - 1]], w = vn(x / 40 + 9, z / 40) - 0.5, v = 0.86 + r * 0.24; return [B.hue[0] * v * (1 + w * 0.22), B.hue[1] * v * (1 + w * 0.05), B.hue[2] * v * (1 - w * 0.25)]; };
   function genTrees(c) {
-    placeTrees(ctx, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key)) return; const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - 0.12 * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12))); });
+    placeTrees(ctx, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key)) return; const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - 0.12 * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
     c.lv.t = 1;
   }
   // 4 m sample grid of height / road distance / biome / water for the shrub and ground-cover passes

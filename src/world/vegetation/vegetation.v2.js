@@ -11,6 +11,7 @@ import { inMapBuilding } from '../ground/occupancy.js';
 
 export const order = 60;
 const ALIAS = { coconut_palm: 'coconut', royal_palm: 'royal', sabal_palm: 'sabal', cabbage_palm: 'sabal', date_palm: 'date', queen_palm: 'queen', sea_grape: 'seagrape', saw_palmetto: 'sawpalmetto', live_oak: 'liveoak', slash_pine: 'slashpine', gumbo_limbo: 'gumbo', bald_cypress: 'cypress' };
+const MODEL_KIND = { coconut: ['coconut', 0.5], royal: ['royal', 1] }; // kind -> [model, share of the items]
 const SHRUB_H = { seagrape: 2.2, hibiscus: 1.75, croton: 1.1, bougainvillea: 2.05, ixora: 1.05, hedge: 1.25, sawpalmetto: 1.4, grass: 1.0, sawgrass: 1.9 };
 export async function initV2(game) {
   // clearance: no plant inside a road (edge width + margin), on / under / over a bridge, deck or ramp footprint, on a sidewalk,
@@ -44,6 +45,13 @@ export async function initV2(game) {
     materials: sharedVegMaterials(),
     // instanced field with LODs: items [{x,y,z,ry,s}] in world space; added to game.scene unless opts.parent is given
     field(kind, items, opts = {}) {
+      // greenery: library-model palms (models.js) take a share of every coconut field and all royal palm fields
+      const k0 = ALIAS[kind] || kind, mk = !opts.model && !opts.noModel && MODEL_KIND[k0], md = mk && game.city?.flora?.models?.[mk[0]];
+      if (md) {
+        const A = [], B = []; for (const it of items) { const h = Math.abs(Math.sin(it.x * 12.9898 + it.z * 78.233) * 43758.5453) % 1; (h < mk[1] ? A : B).push(it); }
+        const subs = [A.length ? game.vegetation.field(kind, A, { ...opts, model: md }) : null, B.length ? game.vegetation.field(kind, B, { ...opts, noModel: true }) : null].filter(Boolean);
+        return { group: subs[0]?.group || new THREE.Group(), subs, update(c, f) { for (const x of subs) x.update(c, f); }, stats() { return subs.map((x) => x.stats()); }, remove() { for (const x of subs) x.remove(); }, dispose() { for (const x of subs) x.remove(); } };
+      }
       if (!opts.noClear) { const n0 = items.length; items = items.filter((it) => clearAt(it.x, it.z, KIND_TYPE[ALIAS[kind] || kind] === 'shrub' ? 0.6 : 1.2)); clearStats.fieldDropped += n0 - items.length; }
       const f = createVegField(game.renderer, kind, items, opts); (opts.parent || game.scene).add(f.group); fields.push(f);
       f.remove = () => { const i = fields.indexOf(f); if (i >= 0) fields.splice(i, 1); f.group.removeFromParent(); f.dispose(); };
@@ -64,8 +72,9 @@ export async function initV2(game) {
       // countryside streamer (synthetic land): created once the city terrain exists; ?veg2=0 keeps the old per-tile flora
       const C = game.city;
       if (CS_ON && !cs && !csFailed && C && C.terrain && C.flora && C.flora.countryside && game.camera) {
-        try { const D = C.roadGraph, nd = {}; const roadDist = D && D.nearestEdge ? (x, z) => { const r = D.nearestEdge(x, z, nd, 40); return r ? r.dist - r.edge.width / 2 : 99; } : null;
-          cs = createCountryside({ renderer: game.renderer, scene: game.scene, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), zoneAt: C.zoneAt }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
+        try { const D = C.roadGraph, nd = {}; const MD = game.miamiData, TS = C.streamer?.tileSize || 200; // junction mouths (curb returns reach past the leg edges) count as road too
+          const roadDist = D && D.nearestEdge ? (x, z) => { const r = D.nearestEdge(x, z, nd, 40); let g = r ? r.dist - r.edge.width / 2 : 99; if (g < 14 && MD?.getTile) { const t = MD.getTile(Math.floor(x / TS), Math.floor(z / TS)); for (const n of t?.nodes || []) if (n.degree >= 3 && n.width) g = Math.min(g, Math.hypot(n.x - x, n.z - z) - n.width / 2 - 2); } return g; } : null;
+          cs = createCountryside({ renderer: game.renderer, scene: game.scene, models: C.flora.models || {}, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), zoneAt: C.zoneAt, getTile: game.miamiData?.getTile ? (i, j) => game.miamiData.getTile(i, j) : null }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
           game.vegetation.countryside = cs; C.flora.cs = cs; } catch (e) { csFailed = true; console.warn('[vegetation] countryside unavailable', e); }
       }
       if (cs && game.camera) cs.update(game.camera);
