@@ -1,0 +1,1121 @@
+{
+ "set": "after3",
+ "url": "http://127.0.0.1:5200/",
+ "when": "2026-11-17T21:12:26.907Z",
+ "boots": [
+  {
+   "boot": 1,
+   "ready": 31770,
+   "samples": [
+    [
+     28,
+     0,
+     ""
+    ],
+    [
+     130,
+     0,
+     "LOADING"
+    ],
+    [
+     687,
+     0,
+     "Building the sky · textures 0/1"
+    ],
+    [
+     790,
+     0,
+     "Loading the map · textures 4/6"
+    ],
+    [
+     893,
+     1,
+     "Loading the map"
+    ],
+    [
+     1701,
+     4,
+     "Loading the map"
+    ],
+    [
+     1869,
+     5,
+     "Loading the map · textures 28/55"
+    ],
+    [
+     1989,
+     5,
+     "Loading the map · textures 56/61"
+    ],
+    [
+     2210,
+     6,
+     "Loading the map"
+    ],
+    [
+     2315,
+     6,
+     "Loading the map · textures 86/88"
+    ],
+    [
+     2424,
+     7,
+     "Loading the map · textures 98/100"
+    ],
+    [
+     2531,
+     7,
+     "Loading the map · textures 110/112"
+    ],
+    [
+     2633,
+     8,
+     "Loading the map"
+    ],
+    [
+     2960,
+     9,
+     "Loading the map · textures 158/160"
+    ],
+    [
+     3080,
+     9,
+     "Loading the map"
+    ],
+    [
+     3183,
+     9,
+     "Loading the map · models 20/58"
+    ],
+    [
+     3305,
+     10,
+     "Loading the map"
+    ],
+    [
+     3523,
+     11,
+     "Loading the map · textures 205/208"
+    ],
+    [
+     3624,
+     11,
+     "Loading the map"
+    ],
+    [
+     4622,
+     14,
+     "Loading the map · textures 213/219"
+    ],
+    [
+     4738,
+     14,
+     "Loading the map · models 114/174"
+    ],
+    [
+     4890,
+     14,
+     "Loading the map"
+    ],
+    [
+     5039,
+     15,
+     "Loading the map · textures 224/227"
+    ],
+    [
+     7834,
+     21,
+     "Loading the map · textures 234/236"
+    ],
+    [
+     8461,
+     22,
+     "Loading the map · models 174/221"
+    ],
+    [
+     8568,
+     22,
+     "Loading the map"
+    ],
+    [
+     9462,
+     23,
+     "Loading the map"
+    ],
+    [
+     9565,
+     24,
+     "Loading the map"
+    ],
+    [
+     10186,
+     25,
+     "Loading the map"
+    ],
+    [
+     10995,
+     26,
+     "Loading the map · data 13/15"
+    ],
+    [
+     11336,
+     37,
+     "Loading characters"
+    ],
+    [
+     11531,
+     37,
+     "Loading characters · models 5/44"
+    ],
+    [
+     11647,
+     37,
+     "Loading characters"
+    ],
+    [
+     11756,
+     38,
+     "Loading characters"
+    ],
+    [
+     12052,
+     38,
+     "Loading cars · data 0/1"
+    ],
+    [
+     12197,
+     39,
+     "Loading cars"
+    ],
+    [
+     12371,
+     40,
+     "Loading cars · data 18/19"
+    ],
+    [
+     12530,
+     40,
+     "Loading cars · models 14/15"
+    ],
+    [
+     12692,
+     41,
+     "Loading cars"
+    ],
+    [
+     12833,
+     42,
+     "Loading cars"
+    ],
+    [
+     13106,
+     43,
+     "Loading cars"
+    ],
+    [
+     13237,
+     43,
+     "Loading cars · models 24/26"
+    ],
+    [
+     13364,
+     44,
+     "Loading cars · data 34/36"
+    ],
+    [
+     13525,
+     44,
+     "Loading cars · data 36/38"
+    ],
+    [
+     13706,
+     45,
+     "Loading cars · data 39/41"
+    ],
+    [
+     13863,
+     45,
+     "Loading cars · data 44/47"
+    ],
+    [
+     14008,
+     46,
+     "Loading cars · data 47/48"
+    ],
+    [
+     14136,
+     46,
+     "Loading cars"
+    ],
+    [
+     14379,
+     47,
+     "Loading cars · data 54/55"
+    ],
+    [
+     14529,
+     47,
+     "Loading cars · data 55/56"
+    ],
+    [
+     14673,
+     47,
+     "Loading cars"
+    ],
+    [
+     14845,
+     48,
+     "Loading cars"
+    ],
+    [
+     15215,
+     49,
+     "Loading cars"
+    ],
+    [
+     15721,
+     50,
+     "Loading cars"
+    ],
+    [
+     16255,
+     51,
+     "Loading cars"
+    ],
+    [
+     16897,
+     52,
+     "Loading cars"
+    ],
+    [
+     17547,
+     53,
+     "Loading cars"
+    ],
+    [
+     18583,
+     54,
+     "Loading cars"
+    ],
+    [
+     19951,
+     61,
+     "Opening stores"
+    ],
+    [
+     20425,
+     62,
+     "Loading game systems"
+    ],
+    [
+     20528,
+     63,
+     "Loading game systems"
+    ],
+    [
+     20744,
+     64,
+     "Loading game systems"
+    ],
+    [
+     20848,
+     65,
+     "Loading game systems"
+    ],
+    [
+     20961,
+     66,
+     "Loading game systems"
+    ],
+    [
+     21307,
+     68,
+     "Building Nico's house · textures 0/53"
+    ],
+    [
+     21417,
+     69,
+     "Building Nico's house"
+    ],
+    [
+     21919,
+     71,
+     "Planting trees · models 0/6"
+    ],
+    [
+     22212,
+     72,
+     "Building the Keys sign · data 0/1"
+    ],
+    [
+     22522,
+     73,
+     "Building the Keys bar · data 0/1"
+    ],
+    [
+     22870,
+     74,
+     "Building the towns · data 0/1"
+    ],
+    [
+     23558,
+     81,
+     "Compiling shaders 1390/1419"
+    ],
+    [
+     23968,
+     83,
+     "Linking shaders 366/660"
+    ],
+    [
+     24103,
+     84,
+     "Linking shaders 502/660"
+    ],
+    [
+     25570,
+     84,
+     "Warming up 0/60 frames"
+    ],
+    [
+     29000,
+     91,
+     "Warming up 5/60 frames"
+    ],
+    [
+     30725,
+     94,
+     "Warming up 10/60 frames"
+    ],
+    [
+     31214,
+     94,
+     "Warming up 15/60 frames"
+    ],
+    [
+     31770,
+     100,
+     "READY"
+    ]
+   ],
+   "stalls": [
+    [
+     3430,
+     84,
+     "Warming up 0/60 frames"
+    ],
+    [
+     2795,
+     15,
+     "Loading the map · textures 224/227"
+    ],
+    [
+     1725,
+     91,
+     "Warming up 5/60 frames"
+    ],
+    [
+     1467,
+     84,
+     "Linking shaders 502/660"
+    ],
+    [
+     1368,
+     54,
+     "Loading cars"
+    ],
+    [
+     1036,
+     53,
+     "Loading cars"
+    ],
+    [
+     998,
+     11,
+     "Loading the map"
+    ],
+    [
+     894,
+     22,
+     "Loading the map"
+    ]
+   ],
+   "blocks": [
+    [
+     25819,
+     3181
+    ],
+    [
+     5039,
+     2796
+    ],
+    [
+     29000,
+     1725
+    ],
+    [
+     24103,
+     1468
+    ]
+   ],
+   "phases": {
+    "rapier": 15.299999999813735,
+    "env": 52.40000000037253,
+    "miami": 10262,
+    "chars": 1033.800000000745,
+    "playerModel": 7.7000000001862645,
+    "vehicles": 7180.200000000186,
+    "npcAtlas": 618.4000000003725,
+    "peds": 0.7000000001862645,
+    "interiors": 323,
+    "gameplay": 217.40000000037253,
+    "hud": 11.5,
+    "post": 3.699999999254942,
+    "v2:./audio/passed.v2.js": 33,
+    "v2:./design/design.v2.js": 3,
+    "v2:./fx/fire.v2.js": 21,
+    "v2:./fx/footprints.v2.js": 18.09999999962747,
+    "v2:./gameplay/business/business.v2.js": 18.59999999962747,
+    "v2:./gameplay/gangs/gangs.v2.js": 24,
+    "v2:./jobs/jobs.v2.js": 3.800000000745058,
+    "v2:./net/mp.v2.js": 13,
+    "v2:./npc/arch/arch.v2.js": 34.5,
+    "v2:./npc/people.v2.js": 32,
+    "v2:./player/nico.v2.js": 2,
+    "v2:./player/ragdoll.v2.js": 13.799999999813735,
+    "v2:./player/vault.v2.js": 1.8999999994412065,
+    "v2:./render/contextGuard.v2.js": 1.1000000005587935,
+    "v2:./render/detailCull.v2.js": 1.2000000001862645,
+    "v2:./render/drawOrder.v2.js": 12.799999999813735,
+    "v2:./render/dynres.v2.js": 1.900000000372529,
+    "v2:./render/lodBias.v2.js": 1.8999999994412065,
+    "v2:./render/perfGuards.v2.js": 12.800000000745058,
+    "v2:./render/perfHud.v2.js": 1.400000000372529,
+    "v2:./render/precompile.v2.js": 2.2999999998137355,
+    "v2:./render/quality.v2.js": 12.5,
+    "v2:./render/tiers.v2.js": 1.7000000001862645,
+    "v2:./render/warmup.v2.js": 1.3999999994412065,
+    "v2:./systems/systems.v2.js": 32.60000000055879,
+    "v2:./ui/dev/devMode.v2.js": 16,
+    "v2:./ui/menu/frontend.v2.js": 51.89999999944121,
+    "v2:./ui/menu/intros.v2.js": 14.700000000186265,
+    "v2:./vehicles/envlink.v2.js": 0.7000000001862645,
+    "v2:./vehicles/hero/hero.v2.js": 0.6999999992549419,
+    "v2:./vehicles/physics/physics.v2.js": 17.700000000186265,
+    "v2:./web/offline.v2.js": 12.5,
+    "v2:./world/dressing/dressing.v2.js": 33.299999999813735,
+    "v2:./world/env/weather.v2.js": 3,
+    "v2:./world/ground/beach.v2.js": 13.400000000372529,
+    "v2:./world/ground/grass.v2.js": 2.6000000005587935,
+    "v2:./world/ground/sand.v2.js": 1.7000000001862645,
+    "v2:./world/props/dynamicProps.v2.js": 0,
+    "v2:./world/props/hydrantSpray.v2.js": 0.09999999962747097,
+    "v2:./world/props/lotProps.v2.js": 0,
+    "v2:./world/props/propShapes.v2.js": 0,
+    "v2:./world/props/variants.v2.js": 0.10000000055879354,
+    "v2:./world/setpieces/houses/houses.v2.js": 30.399999999441206,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 19.40000000037253,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 29.700000000186265,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 67.79999999981374,
+    "v2:./world/setpieces/towns/towns.v2.js": 31.700000000186265,
+    "v2:./world/signs/regulatory.v2.js": 2.5,
+    "v2:./world/signs/signs.v2.js": 14.099999999627471,
+    "v2:./world/vegetation/vegetation.v2.js": 17,
+    "init:render/dynres.v2.js": 1.099999999627471,
+    "init:render/detailCull.v2.js": 0.10000000055879354,
+    "init:render/perfGuards.v2.js": 1.5,
+    "init:render/contextGuard.v2.js": 0.20000000018626451,
+    "init:render/drawOrder.v2.js": 0,
+    "init:systems/systems.v2.js": 3.5,
+    "init:vehicles/physics/physics.v2.js": 12.199999999254942,
+    "init:render/quality.v2.js": 0.40000000037252903,
+    "init:render/tiers.v2.js": 0.20000000018626451,
+    "init:render/lodBias.v2.js": 0.09999999962747097,
+    "init:world/env/weather.v2.js": 0.900000000372529,
+    "init:design/design.v2.js": 0,
+    "init:player/nico.v2.js": 0.39999999944120646,
+    "init:player/ragdoll.v2.js": 0.10000000055879354,
+    "init:player/vault.v2.js": 0,
+    "init:world/ground/sand.v2.js": 0,
+    "init:world/signs/signs.v2.js": 4,
+    "init:world/vegetation/vegetation.v2.js": 0.09999999962747097,
+    "init:world/signs/regulatory.v2.js": 16.90000000037253,
+    "init:world/ground/beach.v2.js": 0.20000000018626451,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 722.5,
+    "init:world/ground/grass.v2.js": 152.79999999981374,
+    "init:world/dressing/dressing.v2.js": 213.8999999994412,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 311.70000000018626,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 197.90000000037253,
+    "init:world/setpieces/houses/houses.v2.js": 66.70000000018626,
+    "init:world/setpieces/towns/towns.v2.js": 85.8999999994412,
+    "init:fx/footprints.v2.js": 0.5,
+    "init:npc/arch/arch.v2.js": 12.299999999813735,
+    "init:audio/passed.v2.js": 0.20000000018626451,
+    "init:gameplay/gangs/gangs.v2.js": 2.699999999254942,
+    "init:npc/people.v2.js": 2.6000000005587935,
+    "init:vehicles/hero/hero.v2.js": 4.8999999994412065,
+    "init:gameplay/business/business.v2.js": 8.300000000745058,
+    "init:jobs/jobs.v2.js": 0.39999999944120646,
+    "init:fx/fire.v2.js": 0.5,
+    "init:net/mp.v2.js": 0,
+    "init:vehicles/envlink.v2.js": 0,
+    "init:ui/dev/devMode.v2.js": 0.40000000037252903,
+    "init:render/precompile.v2.js": 0.09999999962747097,
+    "init:render/perfHud.v2.js": 0.10000000055879354,
+    "init:render/warmup.v2.js": 63.59999999962747,
+    "init:ui/menu/frontend.v2.js": 1.900000000372529,
+    "init:ui/menu/intros.v2.js": 0.09999999962747097,
+    "init:web/offline.v2.js": 0,
+    "shaders": 2279.7999999998137,
+    "warmup": 6202.9000000003725
+   },
+   "storedWeights": 109,
+   "shots": [],
+   "errors": []
+  },
+  {
+   "boot": 2,
+   "ready": 28419,
+   "samples": [
+    [
+     519,
+     0,
+     ""
+    ],
+    [
+     651,
+     0,
+     "Building the sky · textures 0/1"
+    ],
+    [
+     784,
+     0,
+     "Loading the map · data 8/12"
+    ],
+    [
+     1245,
+     2,
+     "Loading the map"
+    ],
+    [
+     1397,
+     3,
+     "Loading the map · textures 28/55"
+    ],
+    [
+     1536,
+     3,
+     "Loading the map · textures 62/64"
+    ],
+    [
+     1701,
+     4,
+     "Loading the map"
+    ],
+    [
+     1909,
+     5,
+     "Loading the map · textures 104/106"
+    ],
+    [
+     2016,
+     5,
+     "Loading the map · textures 119/121"
+    ],
+    [
+     2120,
+     6,
+     "Loading the map · textures 131/133"
+    ],
+    [
+     2231,
+     6,
+     "Loading the map · textures 137/154"
+    ],
+    [
+     2334,
+     6,
+     "Loading the map"
+    ],
+    [
+     2438,
+     7,
+     "Loading the map"
+    ],
+    [
+     2653,
+     8,
+     "Loading the map · textures 183/186"
+    ],
+    [
+     2776,
+     8,
+     "Loading the map"
+    ],
+    [
+     3678,
+     11,
+     "Loading the map"
+    ],
+    [
+     4003,
+     12,
+     "Loading the map"
+    ],
+    [
+     6040,
+     17,
+     "Loading the map · textures 234/236"
+    ],
+    [
+     6263,
+     17,
+     "Loading the map · models 174/221"
+    ],
+    [
+     6363,
+     17,
+     "Loading the map"
+    ],
+    [
+     7813,
+     20,
+     "Loading the map"
+    ],
+    [
+     8169,
+     21,
+     "Loading the map"
+    ],
+    [
+     8756,
+     35,
+     "Loading characters · data 0/1"
+    ],
+    [
+     8916,
+     35,
+     "Loading characters · models 5/44"
+    ],
+    [
+     9019,
+     35,
+     "Loading characters"
+    ],
+    [
+     9319,
+     36,
+     "Loading cars · data 0/1"
+    ],
+    [
+     9453,
+     37,
+     "Loading cars"
+    ],
+    [
+     9627,
+     38,
+     "Loading cars · data 16/18"
+    ],
+    [
+     9763,
+     38,
+     "Loading cars · models 14/15"
+    ],
+    [
+     9926,
+     39,
+     "Loading cars"
+    ],
+    [
+     10049,
+     39,
+     "Loading cars · data 22/23"
+    ],
+    [
+     10162,
+     40,
+     "Loading cars"
+    ],
+    [
+     10411,
+     41,
+     "Loading cars · data 29/32"
+    ],
+    [
+     10547,
+     41,
+     "Loading cars · data 32/35"
+    ],
+    [
+     10679,
+     42,
+     "Loading cars · data 36/39"
+    ],
+    [
+     10789,
+     42,
+     "Loading cars · data 39/40"
+    ],
+    [
+     10915,
+     42,
+     "Loading cars · data 42/43"
+    ],
+    [
+     11043,
+     43,
+     "Loading cars · data 44/46"
+    ],
+    [
+     11155,
+     43,
+     "Loading cars"
+    ],
+    [
+     11266,
+     44,
+     "Loading cars · models 45/46"
+    ],
+    [
+     11407,
+     44,
+     "Loading cars · models 48/49"
+    ],
+    [
+     11527,
+     44,
+     "Loading cars"
+    ],
+    [
+     11661,
+     45,
+     "Loading cars"
+    ],
+    [
+     12140,
+     46,
+     "Loading cars"
+    ],
+    [
+     12543,
+     47,
+     "Loading cars"
+    ],
+    [
+     13045,
+     48,
+     "Loading cars"
+    ],
+    [
+     13570,
+     49,
+     "Loading cars"
+    ],
+    [
+     14174,
+     50,
+     "Loading cars"
+    ],
+    [
+     15059,
+     51,
+     "Loading cars"
+    ],
+    [
+     16388,
+     59,
+     "Opening stores"
+    ],
+    [
+     16814,
+     61,
+     "Loading game systems"
+    ],
+    [
+     17020,
+     62,
+     "Loading game systems"
+    ],
+    [
+     17120,
+     63,
+     "Loading game systems"
+    ],
+    [
+     17505,
+     66,
+     "Building Nico's house · textures 0/53"
+    ],
+    [
+     18026,
+     68,
+     "Planting trees · models 0/6"
+    ],
+    [
+     18129,
+     68,
+     "Dressing the streets · textures 1/9"
+    ],
+    [
+     18334,
+     69,
+     "Building the Keys sign · data 0/1"
+    ],
+    [
+     18655,
+     70,
+     "Building the Keys bar · data 0/1"
+    ],
+    [
+     18879,
+     71,
+     "Building the towns · data 0/1"
+    ],
+    [
+     19695,
+     78,
+     "Linking shaders 329/658"
+    ],
+    [
+     19900,
+     78,
+     "Linking shaders 330/658"
+    ],
+    [
+     20064,
+     78,
+     "Linking shaders 331/658"
+    ],
+    [
+     21542,
+     81,
+     "Warming up 0/60 frames"
+    ],
+    [
+     22914,
+     86,
+     "Warming up 5/60 frames"
+    ],
+    [
+     23154,
+     87,
+     "Warming up 5/60 frames"
+    ],
+    [
+     24382,
+     90,
+     "Warming up 10/60 frames"
+    ],
+    [
+     24916,
+     91,
+     "Warming up 15/60 frames"
+    ],
+    [
+     25745,
+     92,
+     "Warming up 25/60 frames"
+    ],
+    [
+     27144,
+     98,
+     "Warming up 55/60 frames"
+    ],
+    [
+     28419,
+     100,
+     "READY"
+    ]
+   ],
+   "stalls": [
+    [
+     2037,
+     12,
+     "Loading the map"
+    ],
+    [
+     1478,
+     78,
+     "Linking shaders 331/658"
+    ],
+    [
+     1450,
+     17,
+     "Loading the map"
+    ],
+    [
+     1399,
+     92,
+     "Warming up 25/60 frames"
+    ],
+    [
+     1372,
+     81,
+     "Warming up 0/60 frames"
+    ],
+    [
+     1329,
+     51,
+     "Loading cars"
+    ],
+    [
+     1275,
+     98,
+     "Warming up 55/60 frames"
+    ],
+    [
+     1228,
+     87,
+     "Warming up 5/60 frames"
+    ]
+   ],
+   "blocks": [
+    [
+     4125,
+     1915
+    ],
+    [
+     20064,
+     1478
+    ],
+    [
+     6363,
+     1450
+    ],
+    [
+     25745,
+     1399
+    ],
+    [
+     21542,
+     1372
+    ],
+    [
+     23154,
+     1229
+    ]
+   ],
+   "phases": {
+    "rapier": 41.60000000055879,
+    "env": 29,
+    "miami": 7808.200000000186,
+    "chars": 817.9000000003725,
+    "playerModel": 4.900000000372529,
+    "vehicles": 6354.0999999996275,
+    "npcAtlas": 613.7999999998137,
+    "peds": 0.20000000018626451,
+    "interiors": 279.79999999981374,
+    "gameplay": 232.90000000037253,
+    "hud": 1.7999999998137355,
+    "post": 2.7000000001862645,
+    "v2:./audio/passed.v2.js": 23.899999999441206,
+    "v2:./design/design.v2.js": 21.100000000558794,
+    "v2:./fx/fire.v2.js": 24.09999999962747,
+    "v2:./fx/footprints.v2.js": 12.399999999441206,
+    "v2:./gameplay/business/business.v2.js": 14.700000000186265,
+    "v2:./gameplay/gangs/gangs.v2.js": 15.900000000372529,
+    "v2:./jobs/jobs.v2.js": 2.099999999627471,
+    "v2:./net/mp.v2.js": 12.5,
+    "v2:./npc/arch/arch.v2.js": 17.40000000037253,
+    "v2:./npc/people.v2.js": 16.09999999962747,
+    "v2:./player/nico.v2.js": 1.800000000745058,
+    "v2:./player/ragdoll.v2.js": 1.2999999998137355,
+    "v2:./player/vault.v2.js": 13.099999999627471,
+    "v2:./render/contextGuard.v2.js": 1.2000000001862645,
+    "v2:./render/detailCull.v2.js": 0.900000000372529,
+    "v2:./render/drawOrder.v2.js": 0.599999999627471,
+    "v2:./render/dynres.v2.js": 0.7000000001862645,
+    "v2:./render/lodBias.v2.js": 13.799999999813735,
+    "v2:./render/perfGuards.v2.js": 1.400000000372529,
+    "v2:./render/perfHud.v2.js": 0.8999999994412065,
+    "v2:./render/precompile.v2.js": 1.5,
+    "v2:./render/quality.v2.js": 13.599999999627471,
+    "v2:./render/tiers.v2.js": 1.300000000745058,
+    "v2:./render/warmup.v2.js": 1.3999999994412065,
+    "v2:./systems/systems.v2.js": 29.5,
+    "v2:./ui/dev/devMode.v2.js": 3.199999999254942,
+    "v2:./ui/menu/frontend.v2.js": 31.600000000558794,
+    "v2:./ui/menu/intros.v2.js": 15.099999999627471,
+    "v2:./vehicles/envlink.v2.js": 1.2999999998137355,
+    "v2:./vehicles/hero/hero.v2.js": 1.1000000005587935,
+    "v2:./vehicles/physics/physics.v2.js": 14.099999999627471,
+    "v2:./web/offline.v2.js": 2.1000000005587935,
+    "v2:./world/dressing/dressing.v2.js": 31.699999999254942,
+    "v2:./world/env/weather.v2.js": 1.800000000745058,
+    "v2:./world/ground/beach.v2.js": 13.099999999627471,
+    "v2:./world/ground/grass.v2.js": 2.099999999627471,
+    "v2:./world/ground/sand.v2.js": 1,
+    "v2:./world/props/dynamicProps.v2.js": 0,
+    "v2:./world/props/hydrantSpray.v2.js": 0.10000000055879354,
+    "v2:./world/props/lotProps.v2.js": 0,
+    "v2:./world/props/propShapes.v2.js": 0.09999999962747097,
+    "v2:./world/props/variants.v2.js": 0,
+    "v2:./world/setpieces/houses/houses.v2.js": 16.40000000037253,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 18.200000000186265,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 14.899999999441206,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 32.200000000186265,
+    "v2:./world/setpieces/towns/towns.v2.js": 17.5,
+    "v2:./world/signs/regulatory.v2.js": 2.1000000005587935,
+    "v2:./world/signs/signs.v2.js": 13,
+    "v2:./world/vegetation/vegetation.v2.js": 3.7999999998137355,
+    "init:render/dynres.v2.js": 1.099999999627471,
+    "init:render/detailCull.v2.js": 0,
+    "init:render/perfGuards.v2.js": 1.400000000372529,
+    "init:render/contextGuard.v2.js": 0.09999999962747097,
+    "init:render/drawOrder.v2.js": 0,
+    "init:systems/systems.v2.js": 0.5,
+    "init:vehicles/physics/physics.v2.js": 12.5,
+    "init:render/quality.v2.js": 0.8999999994412065,
+    "init:render/tiers.v2.js": 0.5,
+    "init:render/lodBias.v2.js": 0,
+    "init:world/env/weather.v2.js": 1,
+    "init:design/design.v2.js": 0,
+    "init:player/nico.v2.js": 0.10000000055879354,
+    "init:player/ragdoll.v2.js": 0.20000000018626451,
+    "init:player/vault.v2.js": 0,
+    "init:world/ground/sand.v2.js": 0,
+    "init:world/signs/signs.v2.js": 4.2999999998137355,
+    "init:world/vegetation/vegetation.v2.js": 0,
+    "init:world/signs/regulatory.v2.js": 18.299999999813735,
+    "init:world/ground/beach.v2.js": 0.09999999962747097,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 690.4000000003725,
+    "init:world/ground/grass.v2.js": 115.70000000018626,
+    "init:world/dressing/dressing.v2.js": 210.8999999994412,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 321,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 126.1000000005588,
+    "init:world/setpieces/houses/houses.v2.js": 64,
+    "init:world/setpieces/towns/towns.v2.js": 37.799999999813735,
+    "init:fx/footprints.v2.js": 0.2999999998137355,
+    "init:npc/arch/arch.v2.js": 10.299999999813735,
+    "init:audio/passed.v2.js": 0.10000000055879354,
+    "init:gameplay/gangs/gangs.v2.js": 2,
+    "init:npc/people.v2.js": 1.2000000001862645,
+    "init:vehicles/hero/hero.v2.js": 14.399999999441206,
+    "init:gameplay/business/business.v2.js": 4.1000000005587935,
+    "init:jobs/jobs.v2.js": 0.39999999944120646,
+    "init:fx/fire.v2.js": 0.10000000055879354,
+    "init:net/mp.v2.js": 0,
+    "init:vehicles/envlink.v2.js": 0,
+    "init:ui/dev/devMode.v2.js": 0.19999999925494194,
+    "init:render/precompile.v2.js": 0.10000000055879354,
+    "init:render/perfHud.v2.js": 0,
+    "init:render/warmup.v2.js": 62.200000000186265,
+    "init:ui/menu/frontend.v2.js": 0.7999999998137355,
+    "init:ui/menu/intros.v2.js": 0.09999999962747097,
+    "init:web/offline.v2.js": 0,
+    "shaders": 2224,
+    "warmup": 7093.700000000186
+   },
+   "storedWeights": 109,
+   "shots": [
+    "docs/v2/shots/r2web/loadbar_after3_0.jpg",
+    "docs/v2/shots/r2web/loadbar_after3_1.jpg",
+    "docs/v2/shots/r2web/loadbar_after3_2.jpg",
+    "docs/v2/shots/r2web/loadbar_after3_3.jpg",
+    "docs/v2/shots/r2web/loadbar_after3_4.jpg"
+   ],
+   "errors": []
+  }
+ ]
+}

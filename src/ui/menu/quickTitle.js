@@ -146,7 +146,7 @@ export function installQuickTitle() {
     const m = msg();
     if (/^ERROR/.test(m)) { finish(true); return; } // the boot failed: show its error screen
     const p = pct();
-    if (st.load) st.load.set(Math.min(60, p * 0.6), p < 100 ? (m ? m.charAt(0) + m.slice(1).toLowerCase() : 'Loading') : 'Starting');
+    if (st.load) st.load.set(Math.min(60, p * 0.6), p < 100 ? (m ? (m === m.toUpperCase() ? m.charAt(0) + m.slice(1).toLowerCase() : m) : 'Loading') : 'Starting');
     else { wait.textContent = p < 100 ? `Loading the world  ${Math.floor(p)}%` : ''; wait.classList.toggle('show', st.screen !== 'attract' || p > 3); }
     const g = window.game, q = g?.frontEnd?.quick;
     if (g?.ready && (q || !g.frontEnd?.active)) handOver(g, q);

@@ -52,6 +52,8 @@ export async function initTexturesSliced(renderer, textures, budgetMs = 12) {
 
 // wait until every program the renderer has created is linked, polling a few per slice (never a blocking query on a
 // program that is still compiling). Gives up after maxMs (the first draw then waits as it did before).
+// r2-web: counters for the loading bar (src/core/loadProgress.js): compile units submitted / done, programs linked / created
+export const compileProgress = { units: 0, unitsDone: 0, programs: 0, linked: 0 };
 export async function programsReady(renderer, maxMs = 20000) {
   const t0 = performance.now();
   const gl = renderer.getContext();
@@ -64,6 +66,7 @@ export async function programsReady(renderer, maxMs = 20000) {
     while (i < progs.length && performance.now() - ts < 6) {
       if (!progs[i].isReady || progs[i].isReady()) i++; else break;
     }
+    compileProgress.programs = progs.length; compileProgress.linked = i;
     if (i >= progs.length) return;
     await new Promise((r) => setTimeout(r, 16));
     last = performance.now();
@@ -104,6 +107,7 @@ function units(o, out) {
 export async function compileSliced(renderer, THREE, objects, camera, scene, budgetMs = 12) {
   const list = [];
   for (const o of objects) if (o) units(o, list);
+  compileProgress.units = list.length; compileProgress.unitsDone = 0;
   for (const u of list) {
     try {
       if (u.__self) { // a node with its own material and many children: compile just that node
@@ -111,6 +115,7 @@ export async function compileSliced(renderer, THREE, objects, camera, scene, bud
         try { compileForGame(renderer, THREE, o, camera, scene); } finally { o.children = kids; }
       } else compileForGame(renderer, THREE, u, camera, scene);
     } catch (e) { console.warn('[pace] compile', e); }
+    compileProgress.unitsDone++;
     await breathe(budgetMs);
   }
   await programsReady(renderer);

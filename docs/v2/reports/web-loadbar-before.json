@@ -1,0 +1,333 @@
+{
+ "set": "before",
+ "url": "http://127.0.0.1:5200/&lp=0",
+ "when": "2026-11-17T20:29:04.959Z",
+ "boots": [
+  {
+   "boot": 1,
+   "ready": 58267,
+   "samples": [
+    [
+     58,
+     0,
+     ""
+    ],
+    [
+     158,
+     0,
+     "LOADING"
+    ],
+    [
+     916,
+     4,
+     "BUILDING SKY"
+    ],
+    [
+     1019,
+     24,
+     "LOADING MIAMI"
+    ],
+    [
+     1120,
+     30,
+     "LOADING MIAMI"
+    ],
+    [
+     1256,
+     33,
+     "LOADING MIAMI"
+    ],
+    [
+     1772,
+     34,
+     "LOADING MIAMI"
+    ],
+    [
+     2020,
+     35,
+     "LOADING MIAMI"
+    ],
+    [
+     2191,
+     36,
+     "LOADING MIAMI"
+    ],
+    [
+     2293,
+     37,
+     "LOADING MIAMI"
+    ],
+    [
+     2423,
+     38,
+     "LOADING MIAMI"
+    ],
+    [
+     2523,
+     39,
+     "LOADING MIAMI"
+    ],
+    [
+     2628,
+     40,
+     "LOADING MIAMI"
+    ],
+    [
+     2732,
+     42,
+     "LOADING MIAMI"
+    ],
+    [
+     2935,
+     43,
+     "LOADING MIAMI"
+    ],
+    [
+     3044,
+     44,
+     "LOADING MIAMI"
+    ],
+    [
+     3145,
+     45,
+     "LOADING MIAMI"
+    ],
+    [
+     3351,
+     46,
+     "LOADING MIAMI"
+    ],
+    [
+     3584,
+     47,
+     "LOADING MIAMI"
+    ],
+    [
+     3875,
+     48,
+     "LOADING MIAMI"
+    ],
+    [
+     5191,
+     49,
+     "LOADING MIAMI"
+    ],
+    [
+     5561,
+     50,
+     "LOADING MIAMI"
+    ],
+    [
+     8767,
+     51,
+     "LOADING MIAMI"
+    ],
+    [
+     9605,
+     52,
+     "LOADING MIAMI"
+    ],
+    [
+     11217,
+     53,
+     "LOADING MIAMI"
+    ],
+    [
+     12786,
+     54,
+     "LOADING MIAMI"
+    ],
+    [
+     16923,
+     54,
+     "LOADING CHARACTERS"
+    ],
+    [
+     17197,
+     56,
+     "LOADING CHARACTERS"
+    ],
+    [
+     17453,
+     57,
+     "LOADING CHARACTERS"
+    ],
+    [
+     17560,
+     58,
+     "LOADING CHARACTERS"
+    ],
+    [
+     17710,
+     61,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     17848,
+     69,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     18029,
+     70,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     18171,
+     71,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     18431,
+     72,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     18664,
+     73,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     18943,
+     74,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     19348,
+     75,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     19606,
+     76,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     20270,
+     77,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     20936,
+     78,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     22466,
+     79,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     25118,
+     82,
+     "OPENING STORES"
+    ],
+    [
+     25449,
+     86,
+     "LOADING V2 SYSTEMS"
+    ],
+    [
+     25559,
+     89,
+     "LOADING V2 SYSTEMS"
+    ],
+    [
+     27117,
+     91,
+     "LOADING V2 SYSTEMS"
+    ],
+    [
+     27394,
+     92,
+     "LOADING V2 SYSTEMS"
+    ],
+    [
+     28225,
+     93,
+     "LOADING V2 SYSTEMS"
+    ],
+    [
+     29444,
+     96,
+     "COMPILING SHADERS"
+    ],
+    [
+     29879,
+     97,
+     "COMPILING SHADERS"
+    ],
+    [
+     30715,
+     98,
+     "COMPILING SHADERS"
+    ],
+    [
+     32281,
+     99,
+     "COMPILING SHADERS"
+    ],
+    [
+     58267,
+     99,
+     "READY"
+    ]
+   ],
+   "stalls": [
+    [
+     25986,
+     99,
+     "COMPILING SHADERS"
+    ],
+    [
+     4137,
+     54,
+     "LOADING MIAMI"
+    ],
+    [
+     3206,
+     50,
+     "LOADING MIAMI"
+    ],
+    [
+     2652,
+     79,
+     "SPAWNING TRAFFIC"
+    ],
+    [
+     1612,
+     52,
+     "LOADING MIAMI"
+    ],
+    [
+     1569,
+     53,
+     "LOADING MIAMI"
+    ],
+    [
+     1566,
+     98,
+     "COMPILING SHADERS"
+    ],
+    [
+     1558,
+     89,
+     "LOADING V2 SYSTEMS"
+    ]
+   ],
+   "phases": null,
+   "storedWeights": 0,
+   "shots": [
+    "docs/v2/shots/r2web/loadbar_before_0.jpg",
+    "docs/v2/shots/r2web/loadbar_before_1.jpg",
+    "docs/v2/shots/r2web/loadbar_before_2.jpg",
+    "docs/v2/shots/r2web/loadbar_before_3.jpg",
+    "docs/v2/shots/r2web/loadbar_before_4.jpg",
+    "docs/v2/shots/r2web/loadbar_before_5.jpg",
+    "docs/v2/shots/r2web/loadbar_before_6.jpg",
+    "docs/v2/shots/r2web/loadbar_before_7.jpg"
+   ],
+   "errors": []
+  }
+ ]
+}

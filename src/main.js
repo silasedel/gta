@@ -18,40 +18,58 @@ import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
 import { PLAYER_CAPSULE, PLAYER_CENTER } from './player/controller/capsule.js';
 import { createPlayerSeat } from './player/seat.js';
-import { yieldTask, breathe, compileSliced, compileForGame, programsReady } from './core/pace.js';
+import { yieldTask, breathe, compileSliced, compileForGame, programsReady, compileProgress } from './core/pace.js';
+import { createLoadProgress } from './core/loadProgress.js';
 
-// Loading bar with a live percentage. Each boot step sets a milestone; between milestones the shown value keeps
-// creeping toward (but never reaching) the next one, so long steps (loading Miami) never look frozen.
+// Loading bar with a live percentage (r2-web): weighted by how long each boot phase really takes, with real counters
+// inside long phases and a phase label under the bar (src/core/loadProgress.js). Never goes backward. If the progress
+// module fails, the bar falls back to the old fixed milestones.
+let LP = null;
+try { if (!/[?&]lp=0\b/.test(location.search)) LP = createLoadProgress(); } catch (e) { console.warn('[boot] load progress', e); } // ?lp=0: old milestones
 const LOAD_STEPS = [0, 5, 15, 30, 32, 55, 70, 80, 86, 90, 96, 100];
-const loadState = { target: 0, shown: 0, raf: 0 };
+const loadState = { target: 0, shown: 0, raf: 0, done: false };
 function loadTick() {
-  const s = loadState, next = LOAD_STEPS.find((v) => v > s.target) ?? 100, ceil = s.target >= 100 ? 100 : next - 0.5;
-  if (s.shown < s.target) s.shown += Math.max(0.6, (s.target - s.shown) * 0.25); // catch up quickly to a reached milestone
-  else if (s.shown < ceil) s.shown += (ceil - s.shown) * 0.012;                   // then creep toward the next one
-  s.shown = Math.min(s.shown, s.target >= 100 ? 100 : ceil);
-  const v = Math.floor(s.shown);
+  const s = loadState;
+  let v, label = null;
+  if (LP && !LP.error) {
+    try { v = s.done ? 100 : LP.sample(); label = s.done ? null : LP.label; } catch (e) { LP = null; }
+  }
+  if (v == null) {
+    const next = LOAD_STEPS.find((x) => x > s.target) ?? 100, ceil = s.target >= 100 ? 100 : next - 0.5;
+    if (s.shown < s.target) s.shown += Math.max(0.6, (s.target - s.shown) * 0.25);
+    else if (s.shown < ceil) s.shown += (ceil - s.shown) * 0.012;
+    v = Math.min(s.shown, s.target >= 100 ? 100 : ceil);
+  }
+  s.shown = Math.max(s.shown, v);
   const b = document.getElementById('loadbar'); if (b) b.style.width = `${s.shown}%`;
-  const pc = document.getElementById('loadpct'); if (pc) pc.textContent = `${v}%`;
-  if (s.target >= 100 && s.shown >= 100) { s.raf = 0; return; }
+  const pc = document.getElementById('loadpct'); if (pc) pc.textContent = `${Math.floor(s.shown)}%`;
+  if (label) { const m = document.getElementById('loadmsg'); if (m && m.textContent !== label) m.textContent = label; }
+  if (s.done && s.shown >= 100) { s.raf = 0; return; }
   s.raf = requestAnimationFrame(loadTick);
 }
 const loadMsg = (t, p) => {
-  const m = document.getElementById('loadmsg'); if (m) m.textContent = t;
+  // with the progress module the label under the bar comes from it (phase + counter); the step names stay for errors
+  const m = document.getElementById('loadmsg'); if (m && (!LP || p >= 100 || /^ERROR/.test(t))) m.textContent = t;
+  try { LP?.msg(t); } catch (e) { /* */ }
   loadState.target = Math.max(loadState.target, Math.min(100, p));
+  if (p >= 100) { loadState.done = true; if (!/^ERROR/.test(t)) { try { LP?.finish(); } catch (e) { /* */ } } }
   if (!loadState.raf) loadState.raf = requestAnimationFrame(loadTick);
   if (p >= 100 && /^ERROR/.test(t)) { const pc = document.getElementById('loadpct'); if (pc) pc.textContent = ''; }
 };
+const lpBegin = (n) => { try { LP?.begin(n); } catch (e) { /* */ } };
+const lpEnd = (n) => { try { LP?.end(n); } catch (e) { /* */ } };
+const lpSub = (f, l) => { try { LP?.sub(f, l); } catch (e) { /* */ } };
 
 // Boot timeline (stage 1 perf): every boot stage and V2 module init is timed into window.__boot.stages
 // ([name, startMs, durationMs]); tools/v2/s1-boot.mjs reads it together with the long-task list.
 const BOOT = (window.__boot ||= { t0: performance.now(), stages: [] });
 async function stage(name, fn) {
-  const t = performance.now();
-  try { return await fn(); } finally { BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
+  const t = performance.now(); lpBegin(name);
+  try { return await fn(); } finally { lpEnd(name); BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
 }
 async function safe(name, fn, fallback) {
-  const t = performance.now();
-  try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; } finally { BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
+  const t = performance.now(); lpBegin(name);
+  try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; } finally { lpEnd(name); BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
 }
 
 async function boot() {
@@ -184,7 +202,7 @@ async function boot() {
     if (st.inVehicle) return;
     // V2: a module may take over the player (sitting, climbing, boarding, cutscenes) by setting game.player.script.
     if (P.script) { try { P.script.fixed?.(dt); } catch (e) { console.error('[player.script]', e); P.script = null; } vy = 0; moveSpeed = 0; return; }
-    const inp = game.input, blocked = game.ui.paused || game.ui.phoneOpen || hardBlocked();
+    const inp = game.input, blocked = game.ui.paused || (game.ui.phoneOpen && game.uiSettings?.get?.('phoneWalk') === false) || hardBlocked(); // phone up: walk and drive on unless the setting is off (r2-phone)
     const f = (!blocked && inp.down('KeyW') ? 1 : 0) - (!blocked && inp.down('KeyS') ? 1 : 0);
     const r = (!blocked && inp.down('KeyD') ? 1 : 0) - (!blocked && inp.down('KeyA') ? 1 : 0);
     const fwd = camForward();
@@ -509,7 +527,7 @@ async function boot() {
 
   function vehicleControl() {
     const v = P.state.vehicle; if (!v) return;
-    const inp = game.input, blocked = game.ui.paused || game.ui.phoneOpen || hardBlocked();
+    const inp = game.input, blocked = game.ui.paused || (game.ui.phoneOpen && game.uiSettings?.get?.('phoneWalk') === false) || hardBlocked(); // phone up: walk and drive on unless the setting is off (r2-phone)
     const W = !blocked && inp.down('KeyW') ? 1 : 0, S = !blocked && inp.down('KeyS') ? 1 : 0;
     const A = !blocked && inp.down('KeyA') ? 1 : 0, D = !blocked && inp.down('KeyD') ? 1 : 0;
     const lv = v.body.linvel(); const rot = v.body.rotation();
@@ -755,8 +773,9 @@ async function boot() {
     game.v2 = { loaded: [], failed: [] };
     for (const [, k, m] of mods) {
       let ok = true;
-      const t = performance.now();
+      const t = performance.now(); lpBegin('init:' + k.replace('./', ''));
       try { await m.initV2(game); } catch (e) { ok = false; console.error('[v2:' + k + '] init failed', e); }
+      lpEnd('init:' + k.replace('./', ''));
       BOOT.stages.push(['init:' + k.replace('./', ''), Math.round(t), Math.round(performance.now() - t)]);
       (ok ? game.v2.loaded : game.v2.failed).push(k);
     }
@@ -767,6 +786,14 @@ async function boot() {
   // visible frame doesn't stall for seconds compiling materials.
   loadMsg('COMPILING SHADERS', 96);
   const tShaders = performance.now();
+  // loading bar: shader units submitted / done, then programs linked / created (KHR_parallel_shader_compile)
+  const CP = compileProgress;
+  const shaderProbe = () => {
+    const fu = CP.units ? CP.unitsDone / CP.units : 0, fp = CP.programs ? CP.linked / CP.programs : 0;
+    return fu < 1 ? { f: 0.6 * fu, label: `Compiling shaders ${CP.unitsDone}/${CP.units}` }
+      : { f: 0.6 + 0.4 * fp, label: `Linking shaders ${CP.linked}/${CP.programs}` };
+  };
+  lpBegin('shaders'); try { LP?.probe(shaderProbe); } catch (e) { /* */ }
   try {
     updateCamera(1 / 60);
     // stage 1 boot pacing: compile per top-level object in short slices, for the HDR target the game draws into (the
@@ -774,6 +801,18 @@ async function boot() {
     await compileSliced(renderer, THREE, scene.children.slice(), camera, scene);
     game.post.render(1 / 60);
     await yieldTask();
+    lpEnd('shaders');
+    // warm-up: frames run, and the tiles around the spawn that are built (with colliders) / needed
+    let warmI = 0;
+    const warmProbe = () => {
+      const stm = game.city?.streamer, px = P.position.x, pz = P.position.z;
+      let need = 0, built = 0;
+      if (stm?.tiles) for (const t of stm.tiles.values()) { if (Math.hypot(t.cx - px, t.cz - pz) < 300) { need++; if (t.col && t.near) built++; } }
+      const ff = warmI / 60, ft = need ? built / need : 1;
+      if (need && built < need) { let place = ''; try { place = game.city.districtAt?.(px, pz) || ''; } catch (e) { /* */ } return { f: Math.min(ft, ff), label: `Building ${place || 'the spawn area'} ${built}/${need} tiles` }; }
+      return { f: ff, label: `Warming up ${warmI}/60 frames` };
+    };
+    lpBegin('warmup'); try { LP?.probe(warmProbe); } catch (e) { /* */ }
     // Run ~1 s of real frames behind the loading screen: streams the spawn area, renders the
     // shadow maps (their depth-only shader variants are not covered by compileAsync) and lets
     // every system create its first-use materials before the player sees anything.
@@ -789,11 +828,13 @@ async function boot() {
       // frame's render does not stop to compile them (src/core/pace.js)
       if (i % 5 === 0) { try { compileForGame(renderer, THREE, scene, camera, scene); } catch (e) { /* render compiles them */ } await yieldTask(); await programsReady(renderer, 3000); }
       game.post.render(wdt);
+      warmI = i + 1;
       if (i % 6 === 0) loadMsg('WARMING UP', 96 + Math.min(3, i / 20));
       await yieldTask(); // every warm-up frame is its own task (the loading bar keeps moving)
     }
     await compileSliced(renderer, THREE, scene.children.slice(), camera, scene);
   } catch (e) { console.warn('[boot] shader warm-up skipped', e); }
+  lpEnd('shaders'); lpEnd('warmup');
   BOOT.stages.push(['shaders+warmup', Math.round(tShaders), Math.round(performance.now() - tShaders)]);
   loadMsg('READY', 100);
   BOOT.ready = Math.round(performance.now());
