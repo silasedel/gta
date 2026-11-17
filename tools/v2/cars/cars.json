@@ -695,7 +695,25 @@
      1.07
     ]
    }
-  ]
+  ],
+  "flattenBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.5
+    ],
+    "y": [
+     0.86,
+     1.1
+    ]
+   }
+  ],
+  "clearNormals": true
  },
  "suv13": {
   "src": "SUVs/SUV 13 - Japanese Lifted Crossover/SUV 13.blend",

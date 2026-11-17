@@ -268,8 +268,10 @@ export function lampMaterial(sheet, opts = {}) {
     float ndv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
     // optics: fine reflector facets / lens ridges in the lamp's own space (no UVs needed), fading out with distance
     float near = 1.0 - smoothstep(4.0, 14.0, length(vViewPosition));
-    float facet = 0.5 + 0.5 * sin(vLampP.x * 260.0) * sin(vLampP.y * 260.0 + vLampP.z * 180.0);
-    float ridge = 0.5 + 0.5 * sin((vLampP.y + vLampP.x * 0.3) * 420.0);
+    // parallax: the reflector / optics sit ~3 cm behind the lens, so their pattern slides against the lens with the view
+    vec3 lp3 = vLampP + vec3(normalize(vViewPosition).xy * 0.03, 0.0);
+    float facet = 0.5 + 0.5 * sin(lp3.x * 260.0) * sin(lp3.y * 260.0 + lp3.z * 180.0);
+    float ridge = 0.5 + 0.5 * sin((lp3.y + lp3.x * 0.3) * 420.0);
     bool white = ch == 1 || ch == 2 || ch == 3 || ch == 4 || ch == 7;
     bool colored = ch == 5 || ch == 6 || ch == 8 || ch == 9 || ch == 10 || ch == 13;
     #ifdef LAMP_LEGACY
@@ -283,14 +285,16 @@ export function lampMaterial(sheet, opts = {}) {
       metalnessFactor = 0.0; roughnessFactor = 0.12;
     }
     vec3 E = uLampE[ch];
-    // lit: a hot core seen head-on, the light breaking through facets / ridges; never a flat slab
-    float core = 0.45 + 0.75 * pow(ndv, 1.6);
+    // lit: a tight hot core seen head-on, the light breaking through facets / ridges; the lens body stays readable (head lamps
+    // are capped so bloom does not swallow the front end: the beam goes onto the road, not into the lens)
+    if (white) E = min(E, vec3(1.6));
+    float core = white ? 0.35 + 2.6 * pow(ndv, 9.0) : 0.45 + 0.75 * pow(ndv, 1.6);
     float tex = white ? 0.75 + 0.5 * facet * near : colored ? 0.7 + 0.45 * ridge * near : 1.0;
     totalEmissiveRadiance = E * core * tex;
   }`);
   };
   if (globalThis.__lampLegacy) { m.defines = { LAMP_LEGACY: '' }; m.clearcoat = 0; } // A/B: the old flat lamp (studio ?lampv1)
-  m.customProgramCacheKey = () => 'ps-carlamp-v2' + (globalThis.__lampLegacy ? 'L' : '');
+  m.customProgramCacheKey = () => 'ps-carlamp-v3' + (globalThis.__lampLegacy ? 'L' : '');
   const broken = new Set();
   const sync = () => {
     for (let i = 1; i < 15; i++) {

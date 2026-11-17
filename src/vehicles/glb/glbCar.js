@@ -202,6 +202,14 @@ function decalSheet(look) {
   return { texture: tx };
 }
 
+// a US plate (30.5 x 15.2 cm) mapped onto the plate region of the per-car decal sheet
+let _plateGeo = null;
+function plateGeo() {
+  if (_plateGeo) return _plateGeo;
+  const g = new THREE.PlaneGeometry(0.305, 0.152), uv = g.getAttribute('uv'), [px, py, pw, ph] = SHEET.plate;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (px + uv.getX(i) * pw) / SHEET.w, 1 - (py + (1 - uv.getY(i)) * ph) / SHEET.h);
+  return (_plateGeo = g);
+}
 // shared contact shadow (same look as carModel2)
 let _contactMat = null;
 const CONTACT_GEO = new THREE.PlaneGeometry(1, 1);
@@ -394,6 +402,15 @@ export function buildGlbCar(key, look, t, info) {
   lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (10k) holds well to ~100 m
   lod.addLevel(levels[2], 100 * big, 0.12);
   shell.add(lod);
+  // rear license plate on the measured plate mount (Florida needs no front plate; the front recess stays a dark bracket)
+  let plateMat = null;
+  const PA = man.plates?.rear;
+  if (PA) {
+    plateMat = new THREE.MeshStandardMaterial({ map: sheet.texture, roughness: 0.45, metalness: 0.2, name: 'car-plate', polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+    const g = plateGeo(), pm0 = new THREE.Mesh(g, plateMat);
+    pm0.position.set(PA[0], PA[1], PA[2] - 0.006); pm0.rotation.y = Math.PI;
+    levels[0].add(pm0); levels[1].add(pm0.clone());
+  }
   if (t.taxi) addTaxi(levels, t, M, lightMats);
   if (t.livery === 'ambulance' || t.livery === 'fire') addServiceLivery(levels, t, M);
   const contact = new THREE.Mesh(CONTACT_GEO, contactMat());
@@ -422,7 +439,7 @@ export function buildGlbCar(key, look, t, info) {
       : [{ x: 0.38, y: t.belt - 0.25, z: seatZ }, { x: -0.38, y: t.belt - 0.25, z: seatZ }, ...(t.coupe ? [] : [{ x: 0.38, y: t.belt - 0.25, z: seatZ - 0.95 }, { x: -0.38, y: t.belt - 0.25, z: seatZ - 0.95 }])],
     seatAnchors: man.seats || null, steerWheel: man.wheel || null,
     dispose() {
-      paint.dispose(); lamps.material.dispose(); sheet.texture.dispose();
+      paint.dispose(); lamps.material.dispose(); sheet.texture.dispose(); plateMat?.dispose();
       for (const [im] of sets) im.dispose();
       if (paint0?.userData.ownGeo) paint0.geometry.dispose();
     },

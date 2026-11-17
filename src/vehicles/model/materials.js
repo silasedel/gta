@@ -137,7 +137,7 @@ void computeWear(inout vec3 albedo) {
   float behindF = exp(-pow((p.z - (uWearShape.z - uWearShape.w * 1.6)) / (uWearShape.w * 1.3), 2.0));
   float behindR = exp(-pow((p.z - (-uWearShape.z - uWearShape.w * 1.6)) / (uWearShape.w * 1.3), 2.0));
   float spray = max(behindF, behindR) * (1.0 - smoothstep(uWearShape.w * 1.2, uWearShape.w * 3.2, p.y));
-  float topDust = smoothstep(0.55, 0.95, n.y) * 0.35;
+  float topDust = smoothstep(0.55, 0.95, n.y) * 0.08;   // dust settles low (sills, arches), barely on roofs / hoods
   float streaks = texture2D(uGrime, vec2(p.z * 2.3 + seed, p.y * 0.21)).b * w.x;
   float d = uWear.x * (low * 1.25 + spray * 0.9 + topDust + streaks * 0.45 + 0.12);
   d *= 0.55 + 0.9 * nLo.r;
@@ -153,7 +153,7 @@ void computeWear(inout vec3 albedo) {
   float r = smoothstep(rA, rA + 0.07, rustN + edge * 0.25);
   wearRust = clamp(r * step(0.02, uWear.y), 0.0, 1.0);
   // paint is never one flat color: +-4% low-frequency tone drift (panel to panel, orange peel, old polish marks)
-  albedo *= 0.96 + 0.08 * nLo.g;
+  albedo *= 0.98 + 0.04 * nLo.g;
   // oxidized single-stage paint: chalky (less saturated, a little lighter, never white), mottled by the noise
   float lumA = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
   vec3 faded = mix(albedo, vec3(lumA), 0.55) * 1.12 + vec3(0.018);
@@ -185,9 +185,9 @@ function injectWear(mat) {
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - wearPatch * uPatchSatin;')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.9 * wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
-      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 3.1 + vWearPos.yy * 1.7); clearcoatNormal = normalize(clearcoatNormal + vec3((op.rg - 0.5) * 0.035 * opd, 0.0)); } }\n  #endif');
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 37.0 + vWearPos.yy * 23.0); clearcoatNormal = normalize(clearcoatNormal + vec3((op.gb - 0.5) * 0.012 * opd, 0.0)); } }\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v5';
+  mat.customProgramCacheKey = () => 'ps-wear-v6';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).

@@ -1030,6 +1030,42 @@ if not CFG.get('keepUnderskin'):
             if hid: break
         if hid: kill.append(f); _ks.add(f); _nu += 1
     log('hidden under-skin trim faces removed', _nu)
+# license plates where the model only has a dark plate recess (most library cars): the largest flat, dark, outward-facing
+# trim patch at the nose / tail center is the plate mount; its center goes into the manifest (`plates`) and glbCar mounts a
+# Southline plate there (a real 30.5 x 15.2 cm plate mesh, the car's own plate text)
+PLATE_ANCH = {}
+if not CFG.get('noAutoPlate'):
+    _ks2 = set(kill)
+    for front in (True, False):
+        cand = set()
+        for f in bm.faces:
+            if not f.is_valid or f in _ks2 or f.material_index not in (2, 3): continue
+            c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+            fy_ = -f.normal[1] if front else f.normal[1]
+            if d_ > 0.45 or abs(c_[0]) > 0.34 or fy_ < 0.85 or not (0.2 < c_[2] < 1.3): continue
+            cs_ = [lp[col_layer] for lp in f.loops]
+            if f.material_index == 2 and sum(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] for c in cs_) / len(cs_) > 0.12: continue
+            if f.material_index == 3 and f not in plate_faces: continue
+            cand.add(f)
+        best_, seen_ = None, set()
+        for f in cand:
+            if f in seen_: continue
+            isl = [f]; seen_.add(f); i_ = 0
+            while i_ < len(isl):
+                g = isl[i_]; i_ += 1
+                for e in g.edges:
+                    for h in e.link_faces:
+                        if h in cand and h not in seen_: seen_.add(h); isl.append(h)
+            P_ = np.array([v.co[:] for g in isl for v in g.verts]); w_ = P_[:, 0].max() - P_[:, 0].min(); h_ = P_[:, 2].max() - P_[:, 2].min()
+            dep_ = P_[:, 1].max() - P_[:, 1].min()
+            if 0.26 < w_ < 0.8 and 0.07 < h_ < 0.3 and dep_ < 0.08 and abs((P_[:, 0].max() + P_[:, 0].min()) / 2) < 0.12:
+                ar_ = sum(g.calc_area() for g in isl)
+                if best_ is None or ar_ > best_[0]: best_ = (ar_, P_)
+        if best_:
+            P_ = best_[1]; cx = float((P_[:, 0].max() + P_[:, 0].min()) / 2); cy = float((P_[:, 2].max() + P_[:, 2].min()) / 2)
+            cz = float(-(P_[:, 1].min() if front else P_[:, 1].max()))   # game z of the outer face
+            PLATE_ANCH['front' if front else 'rear'] = [round(cx, 4), round(cy, 4), round(cz, 4), round(float(min(0.305, P_[:, 0].max() - P_[:, 0].min())), 3)]
+            log('auto plate', 'front' if front else 'rear', PLATE_ANCH['front' if front else 'rear'])
 # remap: 0 paint, 1 glass, 2 trim, 3 lamp
 if kill:
     kill = list(dict.fromkeys(f for f in kill if f.is_valid))
@@ -1326,6 +1362,7 @@ for i, w in enumerate(wheels):
     if i in (iFL, iFR, iRL, iRR): continue
     extra.append({'pos': g(w['c']), 'r': round(float(w['r']), 4), 'side': 1 if w['c'][0] > 0 else -1})
 man = {
+    'plates': PLATE_ANCH,
     'key': KEY, 'src': os.path.relpath(SRC, os.path.join(os.path.dirname(__file__), '..', '..', '..')), 'fwd': fwd, 'scale': s,
     'dims': {'L': round(Lm, 3), 'W': round(W, 3), 'H': round(H, 3)},
     'wb': round(wb, 3), 'track': round(float(abs(wheels[iFL]['c'][0] - wheels[iFR]['c'][0])), 3),
