@@ -9,6 +9,7 @@ Rules the prompts follow:
 - Clothing is close to the body. Loose capes, scarves or open flapping shirts are avoided.
 - Hair is short, braided, slicked back or tied up, never long and loose.
 - All people are adults unless the line says kid. No brands.
+- Every prompt names a different age, ethnicity, build and face or hair detail, so the AI doesn't repeat the same face.
 
 ## Beachgoers and swimwear
 1. Fit tanned woman in her 20s in a string bikini, hair in a tight bun
@@ -36,52 +37,52 @@ Rules the prompts follow:
 21. Construction worker in a yellow hi-vis vest, jeans and work boots, short hair
 22. Landscaper in a sweat-stained green t-shirt, work pants and boots
 23. Hotel maid in a gray housekeeping dress and white apron, hair in a bun
-24. Restaurant cook in a white chef's coat, black pants and kitchen clogs
-25. Waitress in a black polo, short black apron and black pants, hair tied back
-26. Valet in a red vest, white shirt and black pants
-27. Nurse in fitted blue scrubs and white sneakers, hair tied back
-28. Paramedic in a navy uniform with reflective stripes on the pants
-29. Firefighter in tan turnout pants and jacket with reflective stripes, short hair
-30. Mail carrier in a light blue short-sleeve shirt and navy shorts
-31. Security guard in a black fitted uniform shirt and black pants
-32. Mechanic in grease-stained gray coveralls
-33. Office worker man in a light blue dress shirt tucked into slacks
-34. Office worker woman in a fitted blouse, pencil skirt and flats, hair in a bun
+24. 45-year-old heavyset Dominican man, round face, thin mustache, shaved head, white chef's coat, black pants and kitchen clogs
+25. 22-year-old freckled Irish-American waitress, red hair in a long braid over one shoulder, black polo, short black apron, black pants
+26. 19-year-old lanky Haitian-American valet, dark skin, short twists, red vest over a white shirt, black pants
+27. 38-year-old Filipino-American nurse, round cheeks, black hair to the shoulders tucked behind the ears, fitted blue scrubs, white sneakers
+28. 33-year-old stocky Puerto Rican paramedic, goatee, buzz cut, navy uniform with reflective stripes on the pants
+29. 41-year-old tall white firefighter with a square jaw and a sandy crew cut, tan turnout pants and jacket with reflective stripes
+30. 58-year-old Black mail carrier, gray close-cropped hair, gray stubble, slight belly, light blue short-sleeve shirt, navy shorts
+31. 36-year-old broad-shouldered Samoan security guard, very large build, black hair slicked back, black fitted uniform shirt and pants
+32. 30-year-old rugged rural Southern white man mechanic, sunburned face, scruffy brown beard, mullet, grease-stained gray coveralls
+33. 29-year-old slim Korean-American office worker, sharp cheekbones, neat side-part haircut, light blue dress shirt tucked into slacks
+34. 47-year-old Venezuelan businesswoman, olive skin, shoulder-length dark wavy hair, fitted blouse, pencil skirt and flats
 
 ## Police (invented department, no real patches)
-35. Male police officer in a dark navy uniform shirt and pants, short haircut
-36. Female police officer in a dark navy uniform shirt and pants, hair in a tight bun
-37. Older male police sergeant in a navy uniform, slight belly, mustache
-38. Beach patrol officer in a light blue polo and navy shorts
+35. 34-year-old Cuban-American male police officer, olive skin, short fade haircut, clean-shaven, dark navy uniform shirt and pants
+36. 29-year-old Black female police officer, slim, hair in tight cornrows close to the head, dark navy uniform shirt and pants
+37. 55-year-old heavyset white police sergeant, ruddy cheeks, gray walrus mustache, receding hair, navy uniform
+38. 27-year-old Mexican-American beach patrol officer, athletic, short wavy black hair, light blue polo, navy shorts
 
 ## Women (everyday Miami)
-39. Young woman in a fitted crop top, high-waisted denim shorts and white sneakers, hair in a ponytail
-40. Woman in a fitted sundress and flat sandals, hair braided
-41. Woman in gym leggings, a sports bra and running shoes, hair in a bun
-42. Woman in a tight short club dress and heels, hair slicked back
-43. Middle-aged Cuban woman in a fitted floral blouse and capri pants, short hair
-44. Businesswoman in a tailored pantsuit, hair in a bun
-45. College-age woman in a fitted t-shirt, bike shorts and sneakers, ponytail
-46. Woman in a fitted tank top and jeans, short pixie haircut
+39. 21-year-old Colombian woman, tanned olive skin, long dark wavy hair down past the shoulders, fitted crop top, high-waisted denim shorts, white sneakers
+40. 26-year-old Black American woman, dark skin, shoulder-length natural curls, fitted sundress, flat sandals
+41. 31-year-old blonde white fitness woman, Scandinavian look, long straight hair down, gym leggings, sports bra, running shoes
+42. 24-year-old Brazilian woman, light brown skin, long sleek black hair down the back, tight short club dress, heels
+43. 52-year-old Cuban woman, plump, short curly dyed-auburn hair, fitted floral blouse, capri pants
+44. 39-year-old Indian-American businesswoman, slim, long black hair in a low braid over one shoulder, tailored pantsuit
+45. 19-year-old Vietnamese-American college girl, petite, straight black hair to the chin, fitted t-shirt, bike shorts, sneakers
+46. 28-year-old pale white woman with a sharp pixie haircut dyed platinum, tattooed forearms, fitted tank top, jeans
 
 ## Elderly
-47. Elderly Cuban man in a white guayabera shirt and slacks, short white hair
-48. Elderly woman in a fitted cardigan, knee-length skirt and flat shoes, short white hair
-49. Retired man in a polo shirt, khaki shorts, white socks and sneakers
-50. Elderly woman in a bright fitted tracksuit, short white hair
+47. 78-year-old thin Cuban man, wrinkled tan skin, short white hair, white guayabera shirt, slacks
+48. 82-year-old Jewish grandmother from New York, short curled white hair, soft round face, fitted cardigan, knee-length skirt, flat shoes
+49. 70-year-old retired white Midwestern man, bald with a gray horseshoe of hair, potbelly, polo shirt, khaki shorts, white socks, sneakers
+50. 74-year-old Black woman, short gray natural hair, kind round face, bright fitted tracksuit
 
 ## Kids (fully clothed)
-51. Boy about 8 in a t-shirt, shorts and sneakers, short hair
-52. Girl about 8 in a t-shirt, shorts and sneakers, hair in two braids
-53. Boy about 12 in a fitted basketball jersey, shorts and sneakers
-54. Girl about 12 in a t-shirt, jean shorts and sneakers, ponytail
+51. 8-year-old Mexican-American boy, chubby cheeks, short black hair, t-shirt, shorts, sneakers
+52. 8-year-old Black girl, dark skin, two puff ponytails, t-shirt, shorts, sneakers
+53. 12-year-old skinny white boy, freckles, messy brown hair, fitted basketball jersey, shorts, sneakers
+54. 12-year-old Chinese-American girl, straight black hair in a ponytail, t-shirt, jean shorts, sneakers
 
 ## Others
-55. Road cyclist in a fitted cycling jersey and bike shorts, cycling shoes, short hair
-56. Tourist man in a fitted printed short-sleeve shirt, cargo shorts and sneakers
-57. Gym guy in a fitted stringer tank top and joggers, big arms, buzz cut
-58. Homeless man in layered worn fitted clothes, short beard, short hair
-59. Street vendor in a fitted t-shirt, apron and jeans
+55. 35-year-old lean German tourist cyclist, pale skin, short blond hair, fitted cycling jersey, bike shorts, cycling shoes
+56. 48-year-old pudgy Canadian tourist, sunburned pink skin, thinning brown hair, fitted printed short-sleeve shirt, cargo shorts, sneakers
+57. 26-year-old muscular Dominican gym guy, brown skin, big arms, buzz cut with a line shaved in, fitted stringer tank top, joggers
+58. 50-year-old weathered homeless white man, long gray beard trimmed close, sun-damaged skin, layered worn fitted clothes, short hair
+59. 44-year-old Honduran street vendor, short and stocky, short black hair, mustache, fitted t-shirt, apron, jeans
 
 ## Search terms for hard-to-find models (for the free model site)
 - **Plants:** "tropical shrub", "beach plant", "dune grass", "marsh grass", "fan palm small", "palmetto", "tropical tree", "flowering tree", "coastal shrub", "agave", "succulent bush", "jungle plant pack"
