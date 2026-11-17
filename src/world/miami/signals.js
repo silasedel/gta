@@ -41,7 +41,7 @@ export function signalLayout(G, n, J, opts = {}) {
   };
   const station = (B) => (B.cw ? B.cw[1] + RAMP_FLARE + 0.75 : B.D + 1.4);
   const setback = (B) => B.hw + (B.sw > 0 ? 0.75 : 1.8);
-  const headItem = (x, y, z, ry, ph) => ({ x, y, z, ry, sig: [ph.off / 34, ph.phase, ph.live ? 1 : 0] });
+  const headItem = (x, y, z, ry, ph, e) => ({ x, y, z, ry, sig: [ph.off / 34, ph.phase, ph.live ? 1 : 0], nid: n.id, eid: e ? e.id : null }); // nid / eid: audit compares the lit lamp with roadnet.signalState
   legs.forEach((A, ia) => {
     const li = info[ia]; if (li.nIn < 1) return; // outbound-only one-way leg: no approach
     const ph = signalPhase(G, n, A.edge);
@@ -55,7 +55,7 @@ export function signalLayout(G, n, J, opts = {}) {
       const armLen = Math.min(15.5, dists[dists.length - 1] + 0.35);
       const pole = { x: p.x, y, z: p.z, ry, arm: true, leg: legs.indexOf(B), side: 1 }; out.poles.push(pole);
       out.arms.push({ x: p.x, y, z: p.z, ry, sx: Math.max(0.55, armLen / SIG.armTip), sy: 1, sz: 1, pole });
-      for (const d of dists) out.heads.push({ ...headItem(p.x + armX * d, y + SIG.headTop, p.z + armZ * d, ry, ph), pole });
+      for (const d of dists) out.heads.push({ ...headItem(p.x + armX * d, y + SIG.headTop, p.z + armZ * d, ry, ph, A.edge), pole });
       // street-name blade on the arm (names the street being crossed), readable from both sides
       const cross = legs.find((L) => Math.abs(L.dx * A.dx + L.dz * A.dz) < 0.5 && L.edge.name && L.edge.name !== A.edge.name);
       if (cross && armLen > 3.2) { const d = Math.min(armLen - 1.2, Math.max(2.1, armLen * 0.42)); out.blades.push({ x: p.x + armX * d, y: y + 6.62, z: p.z + armZ * d, ry, dx: armX, dz: armZ, name: cross.edge.name, len: Math.min(2.4, Math.max(1.5, armLen * 0.28)), pole }); }
@@ -64,7 +64,7 @@ export function signalLayout(G, n, J, opts = {}) {
     }
     // ---- post-mounted heads (narrow junction or T stem) ----
     const F = [A.dx, A.dz]; // faces the approaching drivers (they travel -A.d)
-    const post = (x, z, leg, side) => { const y = Y(x, z), pole = { x, y, z, ry: ryFace(F[0], F[1]), sy: 0.78, arm: false, leg, side }; out.poles.push(pole); out.heads.push({ ...headItem(x + F[0] * 0.34, y + 5.15, z + F[1] * 0.34, ryFace(F[0], F[1]), ph), pole }); poleAt.push({ leg, side, x, z, pole }); };
+    const post = (x, z, leg, side) => { const y = Y(x, z), pole = { x, y, z, ry: ryFace(F[0], F[1]), sy: 0.78, arm: false, leg, side }; out.poles.push(pole); out.heads.push({ ...headItem(x + F[0] * 0.34, y + 5.15, z + F[1] * 0.34, ryFace(F[0], F[1]), ph, A.edge), pole }); poleAt.push({ leg, side, x, z, pole }); };
     if (B) {
       const p = spot(B, 1, station(B), setback(B)); if (p) post(p.x, p.z, legs.indexOf(B), 1); else out.skipped++;
       if (!B.edge.oneway) { const q = spot(B, -1, station(B), setback(B)); if (q) post(q.x, q.z, legs.indexOf(B), -1); }

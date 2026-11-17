@@ -1,0 +1,2178 @@
+{
+ "set": "before",
+ "when": "2026-11-17T04:26:59.426Z",
+ "shots": {
+  "dt_drive": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_dt_drive.png",
+   "avgMs": 54.92,
+   "medMs": 42.7,
+   "calls": 625,
+   "tris": 4788460,
+   "cpu": 50.25
+  },
+  "dt_corner": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_dt_corner.png",
+   "avgMs": 64.84,
+   "medMs": 40.6,
+   "calls": 549,
+   "tris": 4885739,
+   "cpu": 84.36
+  },
+  "dt_high": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_dt_high.png",
+   "avgMs": 64.46,
+   "medMs": 65.5,
+   "calls": 646,
+   "tris": 4539619,
+   "cpu": 61.31
+  },
+  "dt_night": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_dt_night.png",
+   "avgMs": 52.41,
+   "medMs": 48.9,
+   "calls": 705,
+   "tris": 4983251,
+   "cpu": 47.65
+  },
+  "dt_nightcorner": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_dt_nightcorner.png",
+   "avgMs": 43.31,
+   "medMs": 43.6,
+   "calls": 589,
+   "tris": 4365561,
+   "cpu": 43.44
+  },
+  "town_drive": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_town_drive.png",
+   "avgMs": 38.58,
+   "medMs": 38.1,
+   "calls": 702,
+   "tris": 3463548,
+   "cpu": 37.43
+  },
+  "town_corner": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_town_corner.png",
+   "avgMs": 43.52,
+   "medMs": 40,
+   "calls": 525,
+   "tris": 3683621,
+   "cpu": 38.77
+  },
+  "town_high": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_town_high.png",
+   "avgMs": 41.62,
+   "medMs": 39.9,
+   "calls": 605,
+   "tris": 3577909,
+   "cpu": 40.29
+  },
+  "keys_drive": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_keys_drive.png",
+   "avgMs": 51.81,
+   "medMs": 47.2,
+   "calls": 718,
+   "tris": 3430405,
+   "cpu": 47.19
+  },
+  "keys_corner": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_keys_corner.png",
+   "avgMs": 44.34,
+   "medMs": 42.8,
+   "calls": 599,
+   "tris": 3480653,
+   "cpu": 42.44
+  },
+  "keys_high": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_keys_high.png",
+   "avgMs": 54.92,
+   "medMs": 54.5,
+   "calls": 595,
+   "tris": 3279154,
+   "cpu": 45.99
+  },
+  "keys_street": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_keys_street.png",
+   "avgMs": 62.97,
+   "medMs": 64.6,
+   "calls": 448,
+   "tris": 3192789,
+   "cpu": 46.19
+  },
+  "beach_drive": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_beach_drive.png",
+   "avgMs": 67.97,
+   "medMs": 70.4,
+   "calls": 1165,
+   "tris": 3906024,
+   "cpu": 65.01
+  },
+  "beach_corner": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_beach_corner.png",
+   "avgMs": 63.03,
+   "medMs": 61.3,
+   "calls": 872,
+   "tris": 4056697,
+   "cpu": 63.22
+  },
+  "beach_high": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_beach_high.png",
+   "avgMs": 96.89,
+   "medMs": 93.9,
+   "calls": 1087,
+   "tris": 3808846,
+   "cpu": 100.73
+  },
+  "bus": {
+   "file": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/docs/v2/shots/stage1/furniture/before_bus.png",
+   "avgMs": 42.03,
+   "medMs": 42.2,
+   "calls": 1033,
+   "tris": 5776360,
+   "cpu": 41.77
+  }
+ },
+ "check": {
+  "481,-145": {
+   "kinds": {
+    "lamp": {
+     "n": 150,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 3,
+     "sunk": 30,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "mast": {
+     "n": 44,
+     "inRoad": 0,
+     "ramp": 4,
+     "crosswalk": 4,
+     "float": 5,
+     "sunk": 8,
+     "gapMin": 1.02,
+     "gapAvg": 1.02
+    },
+    "hydrant": {
+     "n": 27,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 4,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 78,
+     "inRoad": 0,
+     "ramp": 17,
+     "crosswalk": 10,
+     "float": 0,
+     "sunk": 14,
+     "gapMin": 0.4,
+     "gapAvg": 2.61
+    },
+    "bench": {
+     "n": 76,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 6.57
+    },
+    "signPost": {
+     "n": 29,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 5,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "shelter": {
+     "n": 2,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "regSign": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.35,
+     "gapAvg": 1.35
+    }
+   },
+   "bad": [
+    [
+     "lamp",
+     450,
+     -140.6,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     474.1,
+     -127.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     472.8,
+     -103.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     582,
+     -102.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     582.1,
+     -108.8,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     562.1,
+     -129,
+     "float 0.15"
+    ],
+    [
+     "lamp",
+     470.2,
+     -45.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     469.4,
+     -21.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     580.9,
+     -33.3,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     581,
+     -36.2,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     560.5,
+     -15.6,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     471.1,
+     -151.9,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     473.9,
+     -136.2,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     425.9,
+     -193.4,
+     "ramp"
+    ],
+    [
+     "bin",
+     488.4,
+     -192.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     477,
+     -193.9,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     495.8,
+     -139,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     485.5,
+     -129,
+     "ramp"
+    ],
+    [
+     "bin",
+     474.1,
+     -129.8,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     472.9,
+     -106.6,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     582.3,
+     -117.2,
+     "sunk 0.15"
+    ],
+    [
+     "signPost",
+     472.5,
+     -95.6,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     591.2,
+     -352.5,
+     "sunk 0.15"
+    ],
+    [
+     "hydrant",
+     590.9,
+     -350.1,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     592.8,
+     -377.9,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     448,
+     -215.5,
+     "ramp"
+    ],
+    [
+     "bin",
+     499.8,
+     -217.1,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     501.3,
+     -205.8,
+     "ramp,crosswalk"
+    ],
+    [
+     "lamp",
+     357.5,
+     -193.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     357.4,
+     -169.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     382.1,
+     -126.3,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     403.2,
+     -130.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     379.6,
+     -146.4,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     368.8,
+     -197.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "lamp",
+     264.6,
+     -212.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     317.4,
+     -209.2,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     341.4,
+     -207.9,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     287.9,
+     -222.9,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     353.9,
+     -219,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     247.2,
+     -231.2,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     313.2,
+     -332.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     413.2,
+     -331.3,
+     "ramp"
+    ],
+    [
+     "bin",
+     413.8,
+     -342.7,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     302.7,
+     -322.4,
+     "ramp"
+    ],
+    [
+     "bin",
+     368.7,
+     -322,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     357.3,
+     -322.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     262.2,
+     -212.9,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     316.2,
+     -220.6,
+     "ramp"
+    ],
+    [
+     "bin",
+     316.3,
+     -209.2,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     579.2,
+     57.1,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     578.9,
+     72.2,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     537.8,
+     86.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     513.9,
+     85.1,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     479.1,
+     110.7,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     464.7,
+     -6.2,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     482.8,
+     83.8,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     418.9,
+     80.5,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     432.5,
+     95,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     415.6,
+     101.3,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "hydrant",
+     579.1,
+     56.4,
+     "sunk 0.15"
+    ]
+   ]
+  },
+  "-1365,-2983": {
+   "kinds": {
+    "lamp": {
+     "n": 113,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "mast": {
+     "n": 8,
+     "inRoad": 0,
+     "ramp": 1,
+     "crosswalk": 1,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 1.02,
+     "gapAvg": 1.18
+    },
+    "hydrant": {
+     "n": 16,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 34,
+     "inRoad": 0,
+     "ramp": 14,
+     "crosswalk": 8,
+     "float": 0,
+     "sunk": 4,
+     "gapMin": 0.4,
+     "gapAvg": 0.4
+    },
+    "signPost": {
+     "n": 23,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 33,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 0.3
+    },
+    "bench": {
+     "n": 12,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 2
+    },
+    "regSign": {
+     "n": 57,
+     "inRoad": 4,
+     "ramp": 6,
+     "crosswalk": 7,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.89,
+     "gapAvg": 1.34
+    }
+   },
+   "bad": [
+    [
+     "lamp",
+     -1335.3,
+     -2944.4,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -1389.9,
+     -2842.9,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     -1236.1,
+     -3167.7,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     -1315.7,
+     -3023.3,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -1220.7,
+     -3175.1,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1363.3,
+     -3158.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1368.8,
+     -3149.8,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1244,
+     -3062.4,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1583.8,
+     -3041.7,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1459,
+     -2883.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1479.3,
+     -3198.6,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1482.8,
+     -3208.5,
+     "crosswalk"
+    ],
+    [
+     "bin",
+     -1464.8,
+     -3193.2,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1377.6,
+     -2732.9,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1438.4,
+     -2771.8,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1450.6,
+     -2763.3,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1459.7,
+     -2768.4,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1414.1,
+     -3226.2,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "regSign",
+     -1265.6,
+     -3174.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1420.1,
+     -3141.6,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1381.3,
+     -3149.6,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1479.2,
+     -2905.7,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1372.8,
+     -2972.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1311.8,
+     -2805.7,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1469,
+     -2910.5,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1563.8,
+     -2819.9,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1354.8,
+     -2811.8,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1498.9,
+     -2805.7,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1402,
+     -2780.4,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1381,
+     -2800.4,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1346.1,
+     -2961.3,
+     "inJunction"
+    ]
+   ]
+  },
+  "-1063,5344": {
+   "kinds": {
+    "lamp": {
+     "n": 51,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "hydrant": {
+     "n": 5,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 0.4
+    },
+    "bench": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 2
+    },
+    "signPost": {
+     "n": 9,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 2,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 0.3
+    },
+    "regSign": {
+     "n": 13,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.35,
+     "gapAvg": 1.35
+    }
+   },
+   "bad": []
+  },
+  "0,1760": {
+   "kinds": {
+    "lamp": {
+     "n": 139,
+     "inRoad": 0,
+     "ramp": 1,
+     "crosswalk": 1,
+     "float": 1,
+     "sunk": 11,
+     "gapMin": 0.35,
+     "gapAvg": 0.45
+    },
+    "mast": {
+     "n": 34,
+     "inRoad": 0,
+     "ramp": 9,
+     "crosswalk": 7,
+     "float": 4,
+     "sunk": 8,
+     "gapMin": 0.58,
+     "gapAvg": 0.99
+    },
+    "hydrant": {
+     "n": 28,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 2,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 64,
+     "inRoad": 0,
+     "ramp": 7,
+     "crosswalk": 3,
+     "float": 0,
+     "sunk": 4,
+     "gapMin": 0.4,
+     "gapAvg": 2.91
+    },
+    "bench": {
+     "n": 107,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 2,
+     "gapMin": 2,
+     "gapAvg": 6.6
+    },
+    "shelter": {
+     "n": 4,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "signPost": {
+     "n": 26,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 2,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "regSign": {
+     "n": 15,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.21,
+     "gapAvg": 1.34
+    }
+   },
+   "bad": [
+    [
+     "lamp",
+     139.5,
+     1622.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     162.1,
+     1631,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     184.7,
+     1639,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     116.5,
+     1641.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     108.4,
+     1664.4,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     103.3,
+     1688.9,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     95.3,
+     1710.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     84.8,
+     1732.7,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     107.9,
+     1619.3,
+     "ramp"
+    ],
+    [
+     "mast",
+     64.8,
+     1779,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     40.1,
+     1790.5,
+     "ramp,float 0.15"
+    ],
+    [
+     "mast",
+     61.8,
+     1802,
+     "ramp"
+    ],
+    [
+     "hydrant",
+     177.1,
+     1636.1,
+     "sunk 0.15"
+    ],
+    [
+     "hydrant",
+     110,
+     1657.9,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     137.8,
+     1622.4,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     121.9,
+     1628.7,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     96.1,
+     1706.8,
+     "sunk 0.15"
+    ],
+    [
+     "signPost",
+     110.7,
+     1656.4,
+     "sunk 0.15"
+    ],
+    [
+     "signPost",
+     103.4,
+     1688.5,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     -157,
+     1663.1,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     -168,
+     1669.4,
+     "crosswalk"
+    ],
+    [
+     "mast",
+     -157.3,
+     1697.2,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "lamp",
+     81.7,
+     1817.8,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     82.1,
+     1843.6,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     76,
+     1868.3,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     13.9,
+     1804.1,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     12.7,
+     1824.9,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     49,
+     1935.9,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     42.8,
+     1954.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     86.6,
+     1965.3,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     40,
+     1791.2,
+     "ramp"
+    ],
+    [
+     "bench",
+     72.7,
+     1878.7,
+     "sunk 0.15"
+    ],
+    [
+     "bench",
+     59.2,
+     1907.2,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     -121.5,
+     1854.5,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -190,
+     1890.5,
+     "ramp"
+    ],
+    [
+     "bin",
+     -21.8,
+     1955.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     47.3,
+     1570.1,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -11.4,
+     1566.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     74.5,
+     1581.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     -94.5,
+     1530.7,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -109.6,
+     1537.6,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     222.9,
+     1640.5,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     -254.5,
+     1773.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     -219,
+     1865.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -203.3,
+     1898.6,
+     "ramp"
+    ]
+   ]
+  },
+  "2296,-679": {
+   "kinds": {
+    "lamp": {
+     "n": 134,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 6,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "mast": {
+     "n": 75,
+     "inRoad": 0,
+     "ramp": 6,
+     "crosswalk": 6,
+     "float": 2,
+     "sunk": 6,
+     "gapMin": 0.9,
+     "gapAvg": 1.02
+    },
+    "hydrant": {
+     "n": 27,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 92,
+     "inRoad": 0,
+     "ramp": 17,
+     "crosswalk": 10,
+     "float": 0,
+     "sunk": 5,
+     "gapMin": 0.4,
+     "gapAvg": 4.63
+    },
+    "bench": {
+     "n": 147,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 7.33
+    },
+    "shelter": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "signPost": {
+     "n": 39,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "regSign": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.35,
+     "gapAvg": 1.35
+    }
+   },
+   "bad": [
+    [
+     "mast",
+     2229,
+     -758.6,
+     "ramp"
+    ],
+    [
+     "mast",
+     2301.8,
+     -690.9,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     2296.8,
+     -805.5,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     2232.3,
+     -732.4,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     2221.1,
+     -730.1,
+     "ramp"
+    ],
+    [
+     "bin",
+     2247.4,
+     -671.4,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     2304.7,
+     -662.4,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "mast",
+     2292.6,
+     -559.8,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     2394.6,
+     -566.1,
+     "ramp"
+    ],
+    [
+     "bin",
+     2383.2,
+     -566,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     2293.1,
+     -557.1,
+     "ramp"
+    ],
+    [
+     "bin",
+     2315.7,
+     -467.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     2294.7,
+     -457.5,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "lamp",
+     2150,
+     -776.6,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     2151.9,
+     -728.6,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     2038.6,
+     -651.3,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     2082.4,
+     -661.6,
+     "float 0.15"
+    ],
+    [
+     "mast",
+     2148.4,
+     -672.2,
+     "crosswalk"
+    ],
+    [
+     "bin",
+     2156.3,
+     -663.3,
+     "ramp"
+    ],
+    [
+     "bin",
+     2491.7,
+     -743.9,
+     "ramp"
+    ],
+    [
+     "bin",
+     2480.3,
+     -743.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     2491.7,
+     -676.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "lamp",
+     2294.3,
+     -872.7,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     2295.1,
+     -848.7,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     2320.4,
+     -828.4,
+     "sunk 0.15"
+    ],
+    [
+     "lamp",
+     2344.4,
+     -830.1,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     2296.4,
+     -830.6,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     2280.6,
+     -826.5,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     2355.8,
+     -831.4,
+     "sunk 0.15"
+    ],
+    [
+     "bin",
+     2306.7,
+     -816.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     2076.7,
+     -581.7,
+     "sunk 0.15"
+    ],
+    [
+     "mast",
+     2492.2,
+     -608.9,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     2473.1,
+     -601.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "mast",
+     2524.2,
+     -567.9,
+     "ramp,crosswalk"
+    ],
+    [
+     "hydrant",
+     2422.1,
+     -593,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     2473.4,
+     -589.2,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     2410.8,
+     -478.6,
+     "ramp"
+    ],
+    [
+     "mast",
+     2159.9,
+     -824.6,
+     "sunk 0.15"
+    ]
+   ]
+  },
+  "-1320,3190": {
+   "kinds": {
+    "lamp": {
+     "n": 179,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 3,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "hydrant": {
+     "n": 39,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 71,
+     "inRoad": 0,
+     "ramp": 22,
+     "crosswalk": 14,
+     "float": 1,
+     "sunk": 10,
+     "gapMin": 0.4,
+     "gapAvg": 0.4
+    },
+    "bench": {
+     "n": 21,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 2
+    },
+    "signPost": {
+     "n": 40,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 61,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 0.3
+    },
+    "mast": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 1,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 1.02,
+     "gapAvg": 1.02
+    },
+    "regSign": {
+     "n": 82,
+     "inRoad": 3,
+     "ramp": 16,
+     "crosswalk": 16,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.35,
+     "gapAvg": 1.35
+    }
+   },
+   "bad": [
+    [
+     "bin",
+     -1237.4,
+     3028.7,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1321.8,
+     3053.9,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1284.1,
+     3064.4,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1327.2,
+     3117.6,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1228.6,
+     3220.6,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1339.8,
+     3265.2,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1339.8,
+     3275.6,
+     "ramp"
+    ],
+    [
+     "mast",
+     -1535.8,
+     3178.5,
+     "crosswalk,float 0.15"
+    ],
+    [
+     "bin",
+     -1429.5,
+     3078.3,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -1537.1,
+     3129.4,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1512.3,
+     3111.2,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1552.9,
+     3215.8,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1551.7,
+     3280.7,
+     "ramp,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1466.7,
+     3335.8,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1477.1,
+     3335.3,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1183.1,
+     3027.9,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1115.6,
+     3118.8,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1135.5,
+     3138.1,
+     "ramp"
+    ],
+    [
+     "lamp",
+     -1067.7,
+     3248.2,
+     "float 0.15"
+    ],
+    [
+     "bin",
+     -1207.3,
+     3212.9,
+     "ramp,crosswalk"
+    ],
+    [
+     "bin",
+     -1118.3,
+     3207.4,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1119.3,
+     3217.8,
+     "ramp"
+    ],
+    [
+     "bin",
+     -1130.3,
+     3227.3,
+     "crosswalk"
+    ],
+    [
+     "bin",
+     -1130.9,
+     3285.5,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1131.6,
+     3295.9,
+     "ramp,crosswalk,sunk 0.15"
+    ],
+    [
+     "bin",
+     -1152.7,
+     3303.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "lamp",
+     -1356.1,
+     2968.2,
+     "float 0.15"
+    ],
+    [
+     "lamp",
+     -1309.5,
+     2950.2,
+     "float 0.15"
+    ],
+    [
+     "regSign",
+     -1202.1,
+     3017.8,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1257.5,
+     3011.7,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1210.3,
+     3033.6,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1239.1,
+     3017.2,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1414.5,
+     3049.4,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1290.4,
+     3056,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1325.1,
+     3042.6,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1330.9,
+     3058.9,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1273.2,
+     3060.8,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1135.2,
+     3113.1,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1119.3,
+     3118.1,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1138.5,
+     3201.1,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1124.3,
+     3134.6,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1363.8,
+     3205.1,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1358.9,
+     3258.7,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1236.3,
+     3269,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1122.2,
+     3206.5,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1535.9,
+     3260.9,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1540.3,
+     3277.6,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1378,
+     3340.5,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1342,
+     3264.3,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1247.5,
+     3352,
+     "ramp,crosswalk"
+    ],
+    [
+     "regSign",
+     -1227.5,
+     3291.4,
+     "ramp"
+    ],
+    [
+     "regSign",
+     -1157.2,
+     3294.7,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1141.3,
+     3301.1,
+     "crosswalk"
+    ],
+    [
+     "regSign",
+     -1465.6,
+     3321.7,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1364.1,
+     3415.8,
+     "crosswalk"
+    ]
+   ]
+  }
+ },
+ "perf": {
+  "downtown": {
+   "a": {
+    "avgMs": 51.47,
+    "medMs": 48.8,
+    "calls": 522,
+    "tris": 4397281,
+    "cpu": 45.83
+   },
+   "b": {
+    "avgMs": 67.76,
+    "medMs": 65.8,
+    "calls": 497,
+    "tris": 4099260,
+    "cpu": 48.19
+   }
+  },
+  "clewiston": {
+   "a": {
+    "avgMs": 43.56,
+    "medMs": 41.8,
+    "calls": 445,
+    "tris": 3504563,
+    "cpu": 39.11
+   },
+   "b": {
+    "avgMs": 36.89,
+    "medMs": 36.7,
+    "calls": 406,
+    "tris": 3164224,
+    "cpu": 34.62
+   }
+  },
+  "keywest": {
+   "a": {
+    "avgMs": 29.47,
+    "medMs": 28.4,
+    "calls": 315,
+    "tris": 3164926,
+    "cpu": 24.05
+   },
+   "b": {
+    "avgMs": 28.12,
+    "medMs": 26.9,
+    "calls": 331,
+    "tris": 3186097,
+    "cpu": 25.56
+   }
+  }
+ },
+ "checkTotal": {
+  "lamp": {
+   "n": 766,
+   "inRoad": 0,
+   "ramp": 1,
+   "crosswalk": 1,
+   "float": 8,
+   "sunk": 47,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.6000000000000005,
+   "gapAvg": 2.7
+  },
+  "mast": {
+   "n": 164,
+   "inRoad": 0,
+   "ramp": 20,
+   "crosswalk": 19,
+   "float": 13,
+   "sunk": 22,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 4.54,
+   "gapAvg": 5.23
+  },
+  "hydrant": {
+   "n": 142,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 6,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 1.6800000000000002,
+   "gapAvg": 1.6800000000000002
+  },
+  "bin": {
+   "n": 345,
+   "inRoad": 0,
+   "ramp": 77,
+   "crosswalk": 45,
+   "float": 1,
+   "sunk": 37,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.4,
+   "gapAvg": 11.35
+  },
+  "bench": {
+   "n": 369,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 2,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 12,
+   "gapAvg": 26.5
+  },
+  "signPost": {
+   "n": 166,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 7,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.9400000000000004,
+   "gapAvg": 2.9400000000000004
+  },
+  "shelter": {
+   "n": 9,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 3.3000000000000003,
+   "gapAvg": 3.3000000000000003
+  },
+  "regSign": {
+   "n": 176,
+   "inRoad": 7,
+   "ramp": 22,
+   "crosswalk": 23,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 7.5,
+   "gapAvg": 8.08
+  },
+  "upole": {
+   "n": 96,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 0.8999999999999999,
+   "gapAvg": 0.8999999999999999
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

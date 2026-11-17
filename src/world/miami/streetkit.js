@@ -44,6 +44,10 @@ export async function loadStreetKit({ M } = {}) {
     if (tuned.has(m)) return m; tuned.add(m);
     if (/glass/i.test(m.name)) { m.transparent = true; m.opacity = 0.28; m.roughness = 0.06; m.metalness = 0.1; m.depthWrite = false; m.side = THREE.DoubleSide; m.color?.multiplyScalar(0.75); m.map = null; m.needsUpdate = true; }
     if (m.map) m.map.anisotropy = 8;
+    if (m.metalnessMap && m.metalness > 0.6) m.metalness = 0.6; // library metal maps read near-black without a city reflection probe
+    if (m.name === '86 86 1') m.color.setRGB(0.16, 0.165, 0.17); // davit lamp: galvanized gray, not near-white
+    if (m.name === 'Material12 3') m.color.setRGB(0.42, 0.42, 0.42); // lamp base plate: weathered concrete, not bright white
+    if (m.name === 'Material11') m.color.setRGB(1.5, 1.35, 1.2); // utility pole shaft: weathered timber, lighter than the dark CAD texture
     m.userData.streetKit = true;
     return m;
   }
@@ -67,7 +71,7 @@ export async function loadStreetKit({ M } = {}) {
   if (sk) {
     const piece = (n) => { const o = node(n); if (!o) return null; const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
       const c = g.attributes.color; if (c && c.itemSize === 4) { const a = new Float32Array(c.count * 3); for (let i = 0; i < c.count; i++) { a[i * 3] = c.getX(i); a[i * 3 + 1] = c.getY(i); a[i * 3 + 2] = c.getZ(i); } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); } // rgb only (prop shader expects vec3)
-      g.computeBoundingSphere(); g.userData.lodMax = 460; return g; };
+      g.computeBoundingSphere(); g.userData.lodMax = /^(lens|ped_)/.test(n) ? 460 : n === 'head' || n === 'ped' ? 330 : 420; return g; }; // lit lenses carry furthest (night)
     const poleMat = basePaint(new THREE.MeshStandardMaterial({ name: 'sig-pole' }), 'paint');
     const headMat = basePaint(new THREE.MeshStandardMaterial({ name: 'sig-head' }), 'paint');
     for (const [k, n, m] of [['pole', 'pole', poleMat], ['arm', 'arm', poleMat], ['head', 'head', headMat], ['ped', 'ped', headMat]]) { const g = piece(n); if (g) sig[k] = { geometry: g, material: m }; }

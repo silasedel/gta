@@ -1,0 +1,1123 @@
+{
+ "set": "after2",
+ "when": "2026-11-17T06:06:56.727Z",
+ "shots": {},
+ "check": {
+  "481,-145": {
+   "kinds": {
+    "bin": {
+     "n": 70,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 2.2
+    },
+    "bench": {
+     "n": 70,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 4,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 6.46
+    },
+    "lamp": {
+     "n": 150,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 2,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "sigPole": {
+     "n": 76,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 3,
+     "sunk": 0,
+     "gapMin": 0.37,
+     "gapAvg": 0.75
+    },
+    "pedPost": {
+     "n": 39,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.37,
+     "gapAvg": 0.56
+    },
+    "hydrant": {
+     "n": 27,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "signPost": {
+     "n": 29,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "meter": {
+     "n": 33,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.35,
+     "gapAvg": 0.35
+    },
+    "cabinet": {
+     "n": 20,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.65,
+     "gapAvg": 1.82
+    },
+    "shelter": {
+     "n": 2,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "mailbox": {
+     "n": 1,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.5,
+     "gapAvg": 0.5
+    },
+    "mast": {
+     "n": 5,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.02,
+     "gapAvg": 1.02
+    },
+    "regSign": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.55,
+     "gapAvg": 0.55
+    }
+   },
+   "bad": [
+    [
+     "lamp",
+     405.7,
+     -131,
+     "float 0.10"
+    ],
+    [
+     "bin",
+     415.4,
+     -132.8,
+     "float 0.10"
+    ],
+    [
+     "bench",
+     393.5,
+     -126.7,
+     "float 0.17"
+    ],
+    [
+     "sigPole",
+     357.3,
+     -195.3,
+     "float 0.10"
+    ],
+    [
+     "lamp",
+     601.9,
+     -217.5,
+     "float 0.10"
+    ],
+    [
+     "bench",
+     626.5,
+     -217.7,
+     "float 0.17"
+    ],
+    [
+     "bench",
+     658.4,
+     -220.5,
+     "float 0.17"
+    ],
+    [
+     "sigPole",
+     580.8,
+     -14.9,
+     "float 0.10"
+    ],
+    [
+     "sigPole",
+     580.8,
+     2.5,
+     "float 0.10"
+    ],
+    [
+     "bench",
+     523.8,
+     87.5,
+     "float 0.17"
+    ]
+   ]
+  },
+  "-1365,-2983": {
+   "kinds": {
+    "lamp": {
+     "n": 113,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "sigPole": {
+     "n": 8,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.55,
+     "gapAvg": 0.65
+    },
+    "pedPost": {
+     "n": 7,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.55,
+     "gapAvg": 0.57
+    },
+    "hydrant": {
+     "n": 16,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 33,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 0.4
+    },
+    "signPost": {
+     "n": 23,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 32,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 0.3
+    },
+    "mailbox": {
+     "n": 1,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 3.15,
+     "gapAvg": 3.15
+    },
+    "cabinet": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.65,
+     "gapAvg": 1.65
+    },
+    "bench": {
+     "n": 12,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 0.8,
+     "gapAvg": 1.6
+    },
+    "regSign": {
+     "n": 56,
+     "inRoad": 2,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.48,
+     "gapAvg": 0.63
+    }
+   },
+   "bad": [
+    [
+     "lamp",
+     -1199.7,
+     -3143.3,
+     "float 0.15"
+    ],
+    [
+     "bench",
+     -1584.6,
+     -3023.1,
+     "float 0.10"
+    ],
+    [
+     "regSign",
+     -1468.5,
+     -2910.2,
+     "inJunction"
+    ],
+    [
+     "regSign",
+     -1345.4,
+     -2961.8,
+     "inJunction"
+    ]
+   ]
+  },
+  "-1006,5395": {
+   "kinds": {
+    "lamp": {
+     "n": 50,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "sigPole": {
+     "n": 8,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.61,
+     "gapAvg": 1.66
+    },
+    "hydrant": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 30,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.38,
+     "gapAvg": 0.76
+    },
+    "bench": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 2
+    },
+    "signPost": {
+     "n": 8,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 38,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 1.48
+    },
+    "mailbox": {
+     "n": 23,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.34,
+     "gapAvg": 1.56
+    },
+    "cabinet": {
+     "n": 1,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 2.59,
+     "gapAvg": 2.59
+    },
+    "regSign": {
+     "n": 13,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.55,
+     "gapAvg": 0.83
+    }
+   },
+   "bad": []
+  },
+  "0,1760": {
+   "kinds": {
+    "lamp": {
+     "n": 139,
+     "inRoad": 0,
+     "ramp": 2,
+     "crosswalk": 1,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.35,
+     "gapAvg": 0.45
+    },
+    "mast": {
+     "n": 2,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.02,
+     "gapAvg": 1.02
+    },
+    "sigPole": {
+     "n": 56,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.32,
+     "gapAvg": 0.7
+    },
+    "pedPost": {
+     "n": 37,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.37,
+     "gapAvg": 0.6
+    },
+    "hydrant": {
+     "n": 27,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 64,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 2.75
+    },
+    "bench": {
+     "n": 106,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 2,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 6.57
+    },
+    "shelter": {
+     "n": 4,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "signPost": {
+     "n": 26,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "meter": {
+     "n": 43,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.35,
+     "gapAvg": 0.35
+    },
+    "cabinet": {
+     "n": 16,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.58,
+     "gapAvg": 1.69
+    },
+    "mailbox": {
+     "n": 1,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.5,
+     "gapAvg": 0.5
+    },
+    "regSign": {
+     "n": 15,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.44,
+     "gapAvg": 0.54
+    }
+   },
+   "bad": [
+    [
+     "bench",
+     159.5,
+     1632,
+     "float 0.17"
+    ],
+    [
+     "bench",
+     108.8,
+     1676.2,
+     "float 0.17"
+    ],
+    [
+     "lamp",
+     -157,
+     1663.1,
+     "ramp,crosswalk"
+    ],
+    [
+     "lamp",
+     46.1,
+     1596.6,
+     "ramp"
+    ]
+   ]
+  },
+  "2296,-679": {
+   "kinds": {
+    "lamp": {
+     "n": 127,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "sigPole": {
+     "n": 78,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.37,
+     "gapAvg": 0.73
+    },
+    "pedPost": {
+     "n": 62,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.37,
+     "gapAvg": 0.56
+    },
+    "hydrant": {
+     "n": 26,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 86,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 4.43
+    },
+    "bench": {
+     "n": 135,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 4,
+     "sunk": 0,
+     "gapMin": 2,
+     "gapAvg": 7.6
+    },
+    "shelter": {
+     "n": 4,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.1
+    },
+    "signPost": {
+     "n": 36,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "cabinet": {
+     "n": 20,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 1.65,
+     "gapAvg": 1.7
+    },
+    "mast": {
+     "n": 4,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 1.02,
+     "gapAvg": 1.02
+    },
+    "regSign": {
+     "n": 6,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.55,
+     "gapAvg": 0.55
+    }
+   },
+   "bad": [
+    [
+     "bench",
+     2148.4,
+     -770.8,
+     "float 0.17"
+    ],
+    [
+     "shelter",
+     2150.2,
+     -738.8,
+     "float 0.17"
+    ],
+    [
+     "mast",
+     2201.2,
+     -822.5,
+     "float 0.10"
+    ],
+    [
+     "bench",
+     2297,
+     -848.5,
+     "float 0.17"
+    ],
+    [
+     "bench",
+     2330,
+     -830.9,
+     "float 0.17"
+    ],
+    [
+     "cabinet",
+     2147.9,
+     -794,
+     "float 0.17"
+    ],
+    [
+     "bench",
+     2430.8,
+     -838.2,
+     "float 0.17"
+    ]
+   ]
+  },
+  "-1320,3190": {
+   "kinds": {
+    "lamp": {
+     "n": 179,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.45,
+     "gapAvg": 0.45
+    },
+    "hydrant": {
+     "n": 39,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.28
+    },
+    "bin": {
+     "n": 66,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.4,
+     "gapAvg": 0.4
+    },
+    "bench": {
+     "n": 21,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 1.1,
+     "gapAvg": 1.44
+    },
+    "signPost": {
+     "n": 40,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.49,
+     "gapAvg": 0.49
+    },
+    "upole": {
+     "n": 61,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.3,
+     "gapAvg": 0.3
+    },
+    "sigPole": {
+     "n": 18,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.28,
+     "gapAvg": 0.6
+    },
+    "pedPost": {
+     "n": 3,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.57,
+     "gapAvg": 0.57
+    },
+    "mailbox": {
+     "n": 2,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 1,
+     "sunk": 0,
+     "gapMin": 3.15,
+     "gapAvg": 3.15
+    },
+    "cabinet": {
+     "n": 4,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 1,
+     "gapMin": 1.65,
+     "gapAvg": 1.65
+    },
+    "regSign": {
+     "n": 81,
+     "inRoad": 0,
+     "ramp": 0,
+     "crosswalk": 0,
+     "float": 0,
+     "sunk": 0,
+     "gapMin": 0.54,
+     "gapAvg": 0.55
+    }
+   },
+   "bad": [
+    [
+     "mailbox",
+     -1396.2,
+     3189.5,
+     "float 0.17"
+    ],
+    [
+     "cabinet",
+     -1554.4,
+     3219.2,
+     "sunk 0.15"
+    ]
+   ]
+  }
+ },
+ "perf": {
+  "downtown": {
+   "a": {
+    "avgMs": 30.44,
+    "medMs": 29.9,
+    "calls": 518,
+    "tris": 4817282,
+    "cpu": 28.66
+   },
+   "b": {
+    "avgMs": 29.19,
+    "medMs": 29,
+    "calls": 465,
+    "tris": 4403896,
+    "cpu": 28.21
+   }
+  },
+  "clewiston": {
+   "a": {
+    "avgMs": 30.53,
+    "medMs": 30.4,
+    "calls": 405,
+    "tris": 3496893,
+    "cpu": 28.92
+   },
+   "b": {
+    "avgMs": 37.08,
+    "medMs": 36.9,
+    "calls": 408,
+    "tris": 3530339,
+    "cpu": 36.39
+   }
+  },
+  "keywest": {
+   "a": {
+    "avgMs": 27.56,
+    "medMs": 27,
+    "calls": 301,
+    "tris": 2980779,
+    "cpu": 29.21
+   },
+   "b": {
+    "avgMs": 29.76,
+    "medMs": 29.4,
+    "calls": 301,
+    "tris": 2977585,
+    "cpu": 28.69
+   }
+  }
+ },
+ "sigmatch": {
+  "heads": 297,
+  "samples": 1782,
+  "match": 1782,
+  "bad": []
+ },
+ "checkTotal": {
+  "bin": {
+   "n": 349,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.38,
+   "gapAvg": 10.94
+  },
+  "bench": {
+   "n": 350,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 11,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 9.9,
+   "gapAvg": 25.670000000000005
+  },
+  "lamp": {
+   "n": 758,
+   "inRoad": 0,
+   "ramp": 2,
+   "crosswalk": 1,
+   "float": 3,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.6000000000000005,
+   "gapAvg": 2.7
+  },
+  "sigPole": {
+   "n": 244,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 3,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 3.5,
+   "gapAvg": 5.09
+  },
+  "pedPost": {
+   "n": 148,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.23,
+   "gapAvg": 2.86
+  },
+  "hydrant": {
+   "n": 141,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 1.6800000000000002,
+   "gapAvg": 1.6800000000000002
+  },
+  "signPost": {
+   "n": 162,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 2.9400000000000004,
+   "gapAvg": 2.9400000000000004
+  },
+  "meter": {
+   "n": 76,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 0.7,
+   "gapAvg": 0.7
+  },
+  "cabinet": {
+   "n": 64,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 1,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 10.77,
+   "gapAvg": 11.1
+  },
+  "shelter": {
+   "n": 10,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 3.3000000000000003,
+   "gapAvg": 3.3000000000000003
+  },
+  "mailbox": {
+   "n": 28,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 7.640000000000001,
+   "gapAvg": 8.86
+  },
+  "mast": {
+   "n": 11,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 1,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 3.06,
+   "gapAvg": 3.06
+  },
+  "regSign": {
+   "n": 174,
+   "inRoad": 2,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 3.1100000000000003,
+   "gapAvg": 3.6500000000000004
+  },
+  "upole": {
+   "n": 131,
+   "inRoad": 0,
+   "ramp": 0,
+   "crosswalk": 0,
+   "float": 0,
+   "sunk": 0,
+   "building": 0,
+   "junctionMissing": 0,
+   "gapMin": 0.8999999999999999,
+   "gapAvg": 2.08
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}

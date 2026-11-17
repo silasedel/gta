@@ -45,8 +45,8 @@ const CHECK_JS = `((x0, z0) => {
       if (pip(J.poly, p.x, p.z) || segD(J.poly, p.x, p.z) < r + 0.1 && pip(J.poly, p.x, p.z)) bad.push('inJunction');
       for (const L of J.legs) for (const rp of L.ramps || []) if (pip(rp.cut, p.x, p.z) || segD(rp.cut, p.x, p.z) < r + 0.25) bad.push('ramp');
       for (const L of J.legs) if (L.cw) { const dx = p.x - J.node.x, dz = p.z - J.node.z, s = dx * L.dx + dz * L.dz, lat = Math.abs(-dx * L.dz + dz * L.dx); if (s > L.cw[0] - 0.15 - r && s < L.cw[1] + 0.15 + r && lat < L.hw + 1.6) bad.push('crosswalk'); } }
-    const gh = drawnY(p.x, p.z, p.y || 0), y = p.y || 0; // height of the surface really drawn under the item (raycast)
-    if (Number.isFinite(gh) && gh < 1.5 && y < 1.5) { if (y - gh > 0.06) bad.push('float ' + (y - gh).toFixed(2)); if (gh - y > 0.06) bad.push('sunk ' + (gh - y).toFixed(2)); }
+    const gh = drawnY(p.x, p.z, p.y || 0), y = (p.y || 0) - (k === 'regSign' ? 0.12 : 0); // regulatory posts are drawn 12 cm into the ground // height of the surface really drawn under the item (raycast)
+    if (Number.isFinite(gh) && gh < 1.5 && y < 1.5) { if (y - gh > 0.06) bad.push('float ' + (y - gh).toFixed(2)); if (gh - y > (/lamp|Pole|Post|upole|regSign|mast/.test(k) ? 0.3 : 0.06)) bad.push('sunk ' + (gh - y).toFixed(2)); } // poles / posts may be set into the ground
     for (const b of new Set(bad.map((s) => s.split(' ')[0]))) { const key = b === 'inJunction' ? 'inRoad' : b; t[key] = (t[key] || 0) + 1; }
     if (bad.length && out.bad.length < 60) out.bad.push([k, +p.x.toFixed(1), +p.z.toFixed(1), [...new Set(bad)].join(',')]);
   }
@@ -88,7 +88,14 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
   let picks = !o.repick && fs.existsSync(PICKS) ? JSON.parse(fs.readFileSync(PICKS, 'utf8')) : null;
   if (!picks) { picks = JSON.parse(await b.eval(PICK_JS)); fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); }
   console.log('picks', Object.fromEntries(Object.entries(picks).map(([k, v]) => [k, v && [v.id, Math.round(v.x), Math.round(v.z), v.deg, v.signal]])));
-  const settle = async (x, z, secs = 60) => {
+  // another helper's file save hot-reloads the page: wait for the game again and leave the title screen
+  const live = async () => { if (await b.eval("!!(window.game && game.ready && typeof game.teleport === 'function' && !(game.ui && game.ui.title))").catch(() => false)) return;
+    console.log('page reloaded: restarting the game'); await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480); await startGame(b);
+    await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; try { game.weather?.set?.('clear', { instant: true }); game.weather?.hold?.(); } catch (e) {} return 1; })()`); };
+  const settle = async (x, z, secs = 60, again = true) => {
+    await live();
+    if (again) { await settle(x, z, secs, false); const nt = await b.eval("(() => { let n = 0; game.scene.traverse((g) => { if (g.name && g.name.startsWith('tile-near') && g.userData?.tile?.props) n++; }); return n; })()").catch(() => 0);
+      if (nt > 0) return; console.log('no near tiles after settle: reloading the page'); await b.goto('http://127.0.0.1:5200/?mute' + (o.q || '')); await live(); return settle(x, z, secs, false); }
     await b.eval(`(() => { game.cameraOverride = null; game.teleport(${x}, undefined, ${z}); return 1; })()`);
     await b.sleep(4000);
     for (let i = 0; i < secs; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 2) break; await b.sleep(1000); }
@@ -97,7 +104,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
   const cam = (v) => b.eval(`(() => { const v = ${JSON.stringify(v)}; game.cameraOverride = (dt, c) => { c.position.fromArray(v.eye); c.lookAt(v.look[0], v.look[1], v.look[2]); if (v.fov && c.fov !== v.fov) { c.fov = v.fov; c.updateProjectionMatrix(); } return true; }; return 1; })()`);
   const frame = () => b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 2500) requestAnimationFrame(f); else { ts.sort((x, y) => x - y); const avg = ts.reduce((p, c) => p + c, 0) / ts.length; const ri = game.renderer.info.render; res(JSON.stringify({ avgMs: +avg.toFixed(2), medMs: +ts[ts.length >> 1].toFixed(2), calls: ri.calls, tris: ri.triangles, cpu: +(game.perf?.workAvg || 0).toFixed(2) })); } }; requestAnimationFrame(f); })`).then(JSON.parse);
   const shot = async (id, v, tod) => {
-    await b.eval(`(() => { game.timeOfDay = ${tod}; return 1; })()`); await cam(v); await b.sleep(2500);
+    await live();
+    await b.eval(`(() => { game.timeOfDay = ${tod}; try { game.wanted?.clear?.('audit'); } catch (e) {} return 1; })()`); await cam(v); await b.sleep(2500);
     const f = path.join(DIR, `${SET}_${id}.png`); await b.screenshot(f); rep.shots[id] = { file: f, ...(await frame()) }; console.log('shot', id, JSON.stringify(rep.shots[id]));
   };
 
@@ -136,13 +144,25 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
         const best = {}; game.scene.traverse((g) => { const P = g.userData?.tile?.props; if (!P || !g.name.startsWith('tile-near')) return; for (const k of KIND) for (const it of P[k] || []) { const d = (it.x - px) ** 2 + (it.z - pz) ** 2; if (d > 200 * 200) continue; if (!best[k] || d < best[k].d) best[k] = { d, it }; } });
         for (const k in best) { const it = best[k].it, ry = it.ry || 0, H = { sigPole: 4.2, upole: 5, lamp: 4.5, shelter: 1.3 }[k] || 0.9, D = { sigPole: 11, upole: 13, lamp: 10, shelter: 7.5 }[k] || 4.2;
           // view from the road side, 35 degrees off the facing direction
-          const fx = Math.sin(ry), fz = Math.cos(ry), a = 0.6, vx = fx * Math.cos(a) - fz * Math.sin(a), vz = fz * Math.cos(a) + fx * Math.sin(a), sgn = k === 'sigPole' || k === 'pedPost' ? -1 : 1;
+          const fx = Math.sin(ry), fz = Math.cos(ry), a = 0.6, vx = fx * Math.cos(a) - fz * Math.sin(a), vz = fz * Math.cos(a) + fx * Math.sin(a), sgn = k === 'sigPole' || k === 'pedPost' || k === 'upole' ? -1 : 1;
           out[k] = { eye: [it.x + vx * D * sgn, (it.y || 0) + 1.65, it.z + vz * D * sgn], look: [it.x, (it.y || 0) + H, it.z], at: [+it.x.toFixed(1), +it.z.toFixed(1)] }; }
         return JSON.stringify(out); })()`));
-      for (const [k, v] of Object.entries(V)) await shot(`${tag}_${k}`, v, 12);
+      for (const [k, v] of Object.entries(V)) { await shot(`${tag}_${k}`, v, 12); if (k === 'lamp' || k === 'sigPole' || k === 'pedPost') await shot(`${tag}_${k}Night`, v, 22); }
     }
-    const files = Object.keys(rep.shots).filter((k) => /_(sigPole|pedPost|cabinet|shelter|hydrant|bin|bench|meter|mailbox|upole|lamp|signPost)$/.test(k)).map((k) => rep.shots[k].file);
+    const files = Object.keys(rep.shots).filter((k) => /_(sigPole|pedPost|cabinet|shelter|hydrant|bin|bench|meter|mailbox|upole|lamp|signPost|lampNight|sigPoleNight|pedPostNight)$/.test(k)).map((k) => rep.shots[k].file);
     if (files.length) try { execFileSync('python3', ['tools/v2/montage.py', `docs/v2/shots/stage1/furniture/${SET}_details.png`, ...files, '--w', '480']); } catch (e) { /* */ }
+  }
+
+  // ---------- lit lamp vs traffic AI: the shader's state for every head == roadnet.signalState for its approach edge ----------
+  if (only.has('sigmatch')) {
+    await settle(picks.downtown.x, picks.downtown.z, 45);
+    const r = JSON.parse(await b.eval(`(async () => { const { buildRoadNet, signalState } = await import('/src/vehicles/roadnet.js'); const net = buildRoadNet(game.city); net.game = game;
+      const heads = []; game.scene.traverse((g) => { const P = g.userData?.tile?.props; if (P && g.name.startsWith('tile-near')) for (const h of P.sigHead || []) if (h.eid != null) heads.push(h); });
+      const shader = (h, t) => { const k = ((t + h.sig[0] * 34) % 34 + 34) % 34, s = h.sig[1] < 0.5 ? k : (k + 17) % 34; return h.sig[2] < 0.5 ? 'flash' : s < 13 ? 'green' : s < 16 ? 'yellow' : 'red'; };
+      let n = 0, ok = 0; const bad = [];
+      for (let i = 0; i < 6; i++) { const t = performance.now() / 1000; for (const h of heads) { const e = net.edgeById.get(h.eid); if (!e) continue; const ai = signalState(net, h.nid, e) || 'none', sh = shader(h, t); n++; if (ai === sh) ok++; else if (bad.length < 12) bad.push([h.nid, h.eid, ai, sh]); } await new Promise((res) => setTimeout(res, 3100)); }
+      return JSON.stringify({ heads: heads.length, samples: n, match: ok, bad }); })()`));
+    rep.sigmatch = r; console.log('sigmatch', JSON.stringify(r));
   }
 
   // ---------- placement checks ----------
