@@ -31,7 +31,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
     console.warn = (...m) => { if (/fell below|freed/.test(String(m[0]))) L.warn.push([String(m[0]), +game.clock.elapsed.toFixed(2)]); cw(...m); };
     let prev = null;
     game.updaters.push(function carTestRec(dt) { if (!window.__rec) return; const p = P.position, lv = v.body.linvel(), t = v.body.translation();
-      const sp = prev && dt > 0 ? Math.hypot(p.x - prev.x, p.z - prev.z) / dt : 0; prev = p.clone();
+      const sp = prev && dt > 0 && prev.k === window.__rec ? Math.hypot(p.x - prev.x, p.z - prev.z) / dt : 0; prev = p.clone(); prev.k = window.__rec;
       L.frames.push([+game.clock.elapsed.toFixed(2), window.__rec, +sp.toFixed(2), +p.y.toFixed(2), +Math.hypot(lv.x, lv.y, lv.z).toFixed(2), +(t.y).toFixed(2), P.state.grounded ? 1 : 0]); });
     const t = v.body.translation(); return JSON.stringify({ car: v.name || v.typeKey, at: [+t.x.toFixed(1), +t.y.toFixed(2), +t.z.toFixed(1)], type: v.body.isDynamic() ? 'dynamic' : v.body.isKinematic() ? 'kinematic' : 'fixed', sleeping: v.body.isSleeping(), frozen: !!v.frozen, enabled: v.body.isEnabled?.(), roofY: v.spec.roofY }); })()`);
   console.log('setup', setup); rep.setup = JSON.parse(setup); if (rep.setup.err) return;

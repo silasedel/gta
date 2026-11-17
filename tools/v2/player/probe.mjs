@@ -3,7 +3,7 @@
 //   node tools/v2/player/probe.mjs "<js expression>" [--q "&nico=old"] [--at x,z]
 import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const expr = process.argv[2]; const qi = process.argv.indexOf('--q'); const q = qi > 0 ? process.argv[qi + 1] : '';
-await withBrowser({ width: 960, height: 540, maxSeconds: 420 }, async (b) => {
+const mi = process.argv.indexOf('--max'); await withBrowser({ width: 960, height: 540, maxSeconds: mi > 0 ? +process.argv[mi + 1] : 420 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + q);
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 400);
   await startGame(b);
