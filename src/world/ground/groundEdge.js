@@ -122,7 +122,7 @@ float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
           if (open > 0.01 && gn.r < 0.82) {
             float n1 = reN(w * 1.6 + 3.1), n2 = reN(w * 5.3 - 1.7), n3 = reN(w * 17.0 + 0.3);
             float g1 = reN(w * 41.0 + 5.5);
-            float cut = 0.5 + (n1 * 0.45 + n2 * 0.3 + n3 * 0.25) * 0.2 * open + (g1 - 0.5) * 0.035 * open + 0.012; // ragged at 3 scales, grit at the very edge
+            float cut = 0.5 + (n1 * 0.45 + n2 * 0.3 + n3 * 0.25) * 0.15 * open + (g1 - 0.5) * 0.035 * open + 0.01; // ragged at 3 scales, grit at the very edge
             if (gn.r < cut) discard;
             float keys = smoothstep(4150.0, 4500.0, w.y);
             float edge = 1.0 - smoothstep(cut, cut + 0.13, gn.r); // last ~0.4 m before the break
