@@ -4,6 +4,7 @@
 // alpha-test + alpha-to-coverage, matte (low gloss), darker at the roots. The shells underneath stay as the short
 // undercoat and the barber fade, so the cards only add the volume and broken silhouette on top.
 import * as THREE from 'three';
+import { RENDER_R2, A2C_R2_GLSL } from '../../render/frameNoise.js';
 
 let ATLAS = null;
 function strandAtlas() {
@@ -131,5 +132,8 @@ export function buildHairCards(scalpGeo, mask, state, { count = 2200, seed = 3 }
     name: 'hairCards', map: strandAtlas(), color: state.uHairC.value.clone().multiplyScalar(1.6), vertexColors: true,
     alphaTest: 0.42, alphaToCoverage: true, side: THREE.DoubleSide, roughness: 0.74, metalness: 0, envMapIntensity: 0.3,
   });
+  // r2-render: capped A2C edge (no fixed checkerboard where the strands get thinner than a pixel)
+  m.onBeforeCompile = (sh) => { sh.uniforms.uRenderR2 = RENDER_R2; sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uRenderR2;').replace('#include <alphatest_fragment>', A2C_R2_GLSL); };
+  m.customProgramCacheKey = () => 'nicoHairCardsR2';
   return { geometry: g, material: m };
 }

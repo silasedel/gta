@@ -7,6 +7,7 @@
 // - Hair: matte cards, alpha-tested, Kajiya-Kay specular with two weak shifted lobes (no shiny helmet).
 // - Eyes, brows, lashes, shoes: small standard materials on shared textures.
 import * as THREE from 'three';
+import { RENDER_R2, A2C_R2_GLSL } from '../../render/frameNoise.js';
 
 // fabric table: [roughness, specular, sheen, sheenRough, metal, microTile, microRepeat (per UV unit), microStrength]
 export const FABRICS = [
@@ -223,7 +224,8 @@ export function makeHairMaterial(tex, color) {
   m.name = 'npcHair'; m.alphaToCoverage = true;
   m.onBeforeCompile = (sh) => {
     let f = sh.fragmentShader;
-    f = f.replace('#include <common>', '#include <common>\n' + HAIR_HEAD);
+    sh.uniforms.uRenderR2 = RENDER_R2; // r2-render: capped A2C edge (no fixed checkerboard on far hair)
+    f = f.replace('#include <common>', '#include <common>\nuniform float uRenderR2;\n' + HAIR_HEAD).replace('#include <alphatest_fragment>', A2C_R2_GLSL);
     f = f.replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment
       .replace('vec3 irradiance = dotNL * directLight.color;', 'float nlW = saturate( ( dot( geometryNormal, directLight.direction ) + 0.35 ) / 1.35 ); vec3 irradiance = nlW * directLight.color;')
       .replace('reflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material );',

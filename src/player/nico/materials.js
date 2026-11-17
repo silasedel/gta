@@ -1,7 +1,7 @@
 // Southline V2 — Nico materials (CHARACTER track): skin (subsurface approximation, pore + micro normal detail,
 // sweat / wetness / sunburn / tan), eyes (refractive cornea, parallax iris, socket shadow), hair shells, lashes, teeth, cloth.
 import * as THREE from 'three';
-import { FRAME_NOISE } from '../../render/frameNoise.js';
+import { FRAME_NOISE, RENDER_R2 } from '../../render/frameNoise.js';
 
 const TEX = '/assets/characters/nico/tex/';
 const loader = new THREE.TextureLoader();
@@ -224,7 +224,7 @@ export function makeMouthMaterial(kind, mouth) {
 // keeps a strand only while the layer is below that strand's length (strand id from a hashed cell pattern in head UV space).
 export function makeHairShellMaterial(layer, layers, state) {
   const k = layer / (layers - 1);
-  const u = { uFrameN: FRAME_NOISE, uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
+  const u = { uFrameN: FRAME_NOISE, uRenderR2: RENDER_R2, uK: { value: k }, uLen: state.uHairLen, uHairC: state.uHairC, uHairMask: { value: tex('head_hair.webp') }, uComb: state.uComb, uWetH: state.uWet };
   const m = new THREE.MeshStandardMaterial({ name: 'hairShell', color: 0xffffff, roughness: 0.42, metalness: 0, side: THREE.DoubleSide, envMapIntensity: 0.35 });
   m.userData.u = u; m.userData.layer = layer;
   m.onBeforeCompile = (sh) => {
@@ -239,8 +239,8 @@ export function makeHairShellMaterial(layer, layers, state) {
         transformed += normal * ( hl * uK * ( 1.0 - 0.35 * uK ) ) + comb * ( hl * uK * uK * 0.85 ) + vec3( 0.0, - hl * uK * uK * 0.22, 0.0 );`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', /* glsl */`#include <common>
-        uniform float uK, uWetH, uFrameN; uniform vec3 uHairC; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;
-        float ignT( vec2 p ) { return fract( 52.9829189 * fract( dot( p + 5.588238 * uFrameN, vec2( 0.06711056, 0.00583715 ) ) ) ); }
+        uniform float uK, uWetH, uFrameN, uRenderR2; uniform vec3 uHairC; uniform sampler2D uHairMask; varying vec2 vHUv; varying float vHLen;
+        float ignT( vec2 p ) { return uRenderR2 > 0.5 ? fract( fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ) + 0.61803399 * uFrameN ) : fract( 52.9829189 * fract( dot( p + 5.588238 * uFrameN, vec2( 0.06711056, 0.00583715 ) ) ) ); }
         float hh( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }`)
       .replace('#include <map_fragment>', /* glsl */`
         vec4 hm = texture2D( uHairMask, vHUv );

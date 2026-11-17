@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GradeShader } from './gradeShader.js';
-import { advanceFrameNoise, FRAME_NOISE, RENDER_R2, RENDER_R2_PAGE } from './frameNoise.js';
+import { advanceFrameNoise, FRAME_NOISE, RENDER_R2, RENDER_R2_PAGE, CAM_FOCUS } from './frameNoise.js';
 import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
 import { LOOK_U, LOOK_V, LOOK_W, LOOK3_DEFAULT } from './look3.js';
@@ -758,12 +758,12 @@ export function createPost(game) {
     const velRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, generateMipmaps: false });
     const velMat = new THREE.ShaderMaterial({
       name: 'SouthlineVelocity',
-      uniforms: { uPrevModel: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uSkip: { value: 0 } },
+      uniforms: { uPrevModel: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uCurVP: { value: new THREE.Matrix4() }, uSkip: { value: 0 } },
       vertexShader: /* glsl */`
         #include <common>
         #include <batching_pars_vertex>
         #include <skinning_pars_vertex>
-        uniform mat4 uPrevModel; uniform mat4 uPrevVP;
+        uniform mat4 uPrevModel; uniform mat4 uPrevVP; uniform mat4 uCurVP;
         varying vec4 vCur; varying vec4 vPrev; varying float vVz;
         void main() {
           #include <batching_vertex>
@@ -777,10 +777,10 @@ export function createPost(game) {
           #ifdef USE_INSTANCING
           lp = instanceMatrix * lp;
           #endif
-          vec4 mv = viewMatrix * ( modelMatrix * lp );
+          vec4 wp = modelMatrix * lp, mv = viewMatrix * wp;
           vVz = -mv.z;
           gl_Position = projectionMatrix * mv;
-          vCur = gl_Position;
+          vCur = uCurVP * wp; // unjittered: motion only, the jitter stays out of the history fetch
           vPrev = uPrevVP * ( uPrevModel * lp );
         }`,
       fragmentShader: /* glsl */`
@@ -849,6 +849,7 @@ export function createPost(game) {
       const draw = movingRoots();
       if (!draw.length) return false;
       velMat.uniforms.uPrevVP.value.copy(prevVP);
+      velMat.uniforms.uCurVP.value.copy(curVP);
       const sm = r.shadowMap, au = sm.autoUpdate, nu = sm.needsUpdate, ac = r.autoClear, ca = r.getClearAlpha();
       r.getClearColor(clearC);
       velScene.children = draw; // projection walks .children only; parents and world matrices stay untouched
@@ -963,11 +964,13 @@ export function createPost(game) {
       U.tDepth.value = sceneDepth || target.depthTexture;
       U.tVel.value = velRT.texture;
       U.uVelOn.value = velOn ? 1 : 0;
-      U.uInvVP.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert();
+      // unjittered current view-projection: a still pixel fetches its history at its own texel center (no resampling
+      // with the jitter offset every frame, which shimmered fine texture), and the jittered samples accumulate there
+      U.uInvVP.value.copy(curVP).invert();
       U.uPrevVP.value.copy(prevVP);
       U.uNear.value = camera.near; U.uFar.value = camera.far;
       U.uBlendRest.value = game.renderTaaRest ?? 0.08;
-      U.uDisocc.value = game.renderDisocc === false ? 0 : 1;
+      U.uDisocc.value = game.renderDisocc === true ? 1 : 0; // off: the depth test still misfired on textured ground at rest (ablation abl1: 3x the frame-to-frame noise); velocity + clipping handle ghosting
       U.uBoxMix.value = game.renderBoxMix ?? 0.5;
       U.uReset.value = reset ? 1 : 0;
       reset = false;
@@ -1388,6 +1391,7 @@ export function createPost(game) {
           gu.uHighTint.value.set(0.024 - 0.005 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
         }
       }
+      gu.uChromaKnee.value = !LOOK_OFF && game.look3 && game.lookR2 !== false ? (game.lookChromaKnee ?? 1) : 0; // r2-look: photographic roll-off of the most saturated greens / magentas
       gu.uLutMix.value = !LOOK_OFF && game.look3 && game.lookR2 !== false && gu.tLut.value ? (game.lookLut ?? 1) * (0.35 + 0.65 * day) * (1 - 0.92 * (game.deathFade || 0)) : 0; // r2-look matched grade (built from a day frame: weaker at night) (A/B: game.lookLut = 0)
       if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
       gu.uVignette.value = gu._vigBase + Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) * Math.min(1, (game.deathFade || 0) * 4);
@@ -1433,7 +1437,11 @@ export function createPost(game) {
         if (renderer.toneMapping !== want) renderer.toneMapping = want;
       }
       advanceFrameNoise();
-      RENDER_R2.value = game.renderR2 && taaOn ? 1 : 0; // r2-render: golden-ratio stepped dithers (only where TAA resolves them)
+      RENDER_R2.value = game.renderR2 && taaOn && game.renderDither !== false ? 1 : 0; // r2-render: golden-ratio stepped dithers (only where TAA resolves them)
+      { // r2-render: camera focus for the foliage proximity fade (third-person only: no fade in cutscenes / free cameras)
+        const P = game.player?.position, F = CAM_FOCUS.value;
+        if (P && !game.cameraOverride && game.renderNearFade !== false) { F[0] = P.x; F[1] = P.y + 1.2; F[2] = P.z; } else F[1] = -1e5;
+      }
       // look pass 3 (game.look3, runtime A/B): soft shadows + per-frame noise index for the shadow / AO kernels
       if (game.look3 === undefined) game.look3 = LOOK3_DEFAULT && !LOOK_OFF;
       LOOK_U[0] = FRAME_NOISE.value;
@@ -1441,11 +1449,11 @@ export function createPost(game) {
       LOOK_U[1] = game.look3 && L3P.pcss ? (game.lookR2 !== false ? 2 : 1) : 0; // r2-look in-session A/B: game.lookR2 = false
       if (LOOK_U[1] === 2 && game.renderR2 && game.renderShadowBil !== false) LOOK_U[1] = 3; // r2-render: bilinear narrow-penumbra filter (look3.js)
       // r2-look shaded ambient (shadows.js): share of sky / bounce light lost in a cast shadow, by day, outdoors (game.lookShadeAmb)
-      LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.15) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
+      LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.25) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
       {
         // bounce into cast shadows: sun irradiance on the ground x surrounding albedo (~0.2) x the share of the view it fills
         const e = game.env, on = game.look3 && game.lookR2 !== false && e?.sun && e.sunDir;
-        const k = on ? (game.lookShadeBounce ?? 0.22) * e.sun.intensity * Math.max(0, e.sunDir.y) * (e.dayFactor ?? 1) * (1 - (e.indoor || 0)) : 0;
+        const k = on ? (game.lookShadeBounce ?? 0.17) * e.sun.intensity * Math.max(0, e.sunDir.y) * (e.dayFactor ?? 1) * (1 - (e.indoor || 0)) : 0;
         const c = e?.sun?.color;
         LOOK_W[1] = c ? c.r * k : 0; LOOK_W[2] = c ? c.g * k * 0.98 : 0; LOOK_W[3] = c ? c.b * k * 0.93 : 0; // a touch warm (sand, stucco)
       }

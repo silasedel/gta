@@ -28,7 +28,7 @@ export const A2C_R2_GLSL = `#ifdef USE_ALPHATEST
 #endif`;
 // r2-render page flag (the material states that need a shader variant, e.g. alpha-to-coverage, are fixed at load):
 // ?render2=1 / ?render2=0, else RENDER_R2_DEFAULT. post.js starts game.renderR2 from it (runtime A/B for the rest).
-export const RENDER_R2_DEFAULT = false;
+export const RENDER_R2_DEFAULT = true; // on since Nov 17 15:00 (abl1 / ab3: 0 console errors with ?render2=1, deck frame-to-frame noise half of the old TAA, no ghost doubles, crisp moving cars)
 export const RENDER_R2_PAGE = (() => {
   const q = typeof location !== 'undefined' ? location.search : '';
   return /[?&]render2=1\b/.test(q) ? true : /[?&]render2=0\b/.test(q) ? false : RENDER_R2_DEFAULT;
@@ -40,3 +40,6 @@ export const RENDER_R2_PAGE = (() => {
 export const A2C_R2T_GLSL = A2C_R2_GLSL.replace(
   'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); }',
   'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); diffuseColor.a = clamp( diffuseColor.a + ( psIgnT( gl_FragCoord.xy ) - 0.5 ) * 2.0 * diffuseColor.a * ( 1.0 - diffuseColor.a ), 0.0, 1.0 ); }');
+// r2-render: the third-person camera's focus (player chest, world m), set by post.js each frame. Foliage between the
+// camera and the focus, or within ~1.3 m of the camera, fades out by coverage (vegetation/materials.js).
+export const CAM_FOCUS = { value: new Float32Array([0, -1e5, 0]) };
