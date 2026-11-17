@@ -34,7 +34,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
   await b.sleep(2500);
   const kmh = +(o.kmh || 32);
   await ev(`(() => { const v = window.__car; if (!v?.body) return 0; const P = window.__hitP; const p0 = v.body.translation(); const dx = P.x - p0.x, dz = P.z - p0.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, sp = ${kmh} / 3.6;
-    let t = 0; game.updaters.push((dt) => { t += dt; if (t > 2.6 || !v.body) return; const lv = v.body.linvel(); v.body.wakeUp(); v.body.setLinvel({ x: ux * sp * (t < 2.0 ? 1 : 0.3), y: lv.y, z: uz * sp * (t < 2.0 ? 1 : 0.3) }, true); }); return 1; })()`);
+    let t = 0; game.updaters.push((dt) => { t += dt; if (t > 4.0 || !v.body) return; const lv = v.body.linvel(); v.body.wakeUp(); v.body.setLinvel({ x: ux * sp * (t < 3.2 ? 1 : 0.3), y: lv.y, z: uz * sp * (t < 3.2 ? 1 : 0.3) }, true); }); return 1; })()`);
   // wait for the impact, then shots along the timeline
   for (let i = 0; i < 40; i++) { if (await ev('!!game.playerRagdoll?.active')) break; await b.sleep(100); }
   await b.sleep(150); await shoot('car_0_impact');
