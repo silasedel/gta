@@ -3642,9 +3642,12 @@ export function createTileBuilder(ctx) {
     let c = 0;
     sol('lamp');
     for (const p of P.lamp) { cyl(p.x, p.y, p.z, 3.6, 0.14); if (++c % 60 === 0) yield; }
+    // r2-physics: palms / trees get trunk-following capsules from src/vehicles/physics/trunks.js (game.vegetation.trunksNear covers these
+    // instances); the old vertical cylinders stood beside leaning trunks (invisible wall) and are skipped then (?trunks=0 keeps them)
+    const TRUNKS = !!globalThis.__r2TrunkColliders;
     sol('palm');
-    for (const p of P.palm) { cyl(p.x, p.y, p.z, 2, 0.28); if (++c % 60 === 0) yield; }
-    sol('tree'); for (const p of P.tree || []) { cyl(p.x, p.y, p.z, 2.4, (p.sp === 'banyan' ? 0.75 : /citrus|seagrape|mangrove/.test(p.sp) ? 0.14 : 0.34) * (p.s || 1)); if (++c % 60 === 0) yield; }
+    if (!TRUNKS) for (const p of P.palm) { cyl(p.x, p.y, p.z, 2, 0.28); if (++c % 60 === 0) yield; }
+    sol('tree'); if (!TRUNKS) for (const p of P.tree || []) { cyl(p.x, p.y, p.z, 2.4, (p.sp === 'banyan' ? 0.75 : /citrus|seagrape|mangrove/.test(p.sp) ? 0.14 : 0.34) * (p.s || 1)); if (++c % 60 === 0) yield; }
     // X1 breakables: small street props get their own box (a car above ~15 km/h knocks them over: src/world/miami/breakables.js)
     const BRK = !audit && breakables.enabled, bOwner = 'tile:' + t.tx + ',' + t.tz;
     if (BRK) breakables.removeOwner(bOwner);
