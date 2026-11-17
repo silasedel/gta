@@ -809,7 +809,9 @@ export function createCharacter(game, opts = {}) {
     loco.forEach((l, i) => { D += ws[i] * l.v * l.c.duration; wsum += ws[i]; });
     if (wsum > 0.001) {
       D /= wsum;
-      const effS = Math.max(s, loco[0].v * 0.55); // walk cadence never too slow while blending out
+      // walk cadence never too slow while blending out. The player passes its real ground speed: the cycle then advances
+      // exactly as far as the body travels (stride per clip measured on the rig), so planted feet do not slide.
+      const effS = Math.max(Number.isFinite(anim.groundSpeed) && s > 0.3 ? anim.groundSpeed : s, loco[0].v * 0.55);
       const prevPh = st.phase;
       st.phase = (st.phase + dt * effS / Math.max(D, 0.3)) % 1;
       if (character) character.gaitPhase = st.phase;      // phase 0 = left foot plant, 0.5 = right (nico/pose.js layers on it)

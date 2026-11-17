@@ -91,7 +91,7 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
       else st.air = 0;
       st.w += ((on ? 1 : 0) - st.w) * Math.min(1, dt * (on ? 8 : 14));
       st.stats.active = st.w > 0.05;
-      if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; for (const l of legs) l.prevOk = false; return; }
+      if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; for (const l of legs) { l.prevOk = false; l.prevPreOk = false; l.corr?.set(0, 0, 0); } return; }
       let dip = 0;
       if (st.land) { st.landT += dt; const k = st.landT / 0.42; dip = k >= 1 ? 0 : -0.11 * st.land * Math.sin(Math.PI * Math.min(1, k * 1.15)) * (1 - k * 0.3); if (k >= 1) st.land = 0; }
       model.position.y = 0; model.updateMatrixWorld(true);
@@ -109,6 +109,26 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
         // planted: pull the sole exactly onto the plane (clips float / sink a few cm after retargeting)
         l.shift = l.off - THREE.MathUtils.clamp(lift, -0.06, 0.06) * l.plant;
         l.gy = g ? g.y : null; l.stair = !!g?.stair; l.lift = lift;
+        // stance foot locking: the sole vertices touching the ground (in the animation, this frame and the last) should
+        // not move in the world. Whatever they do move (clip speed vs ground speed, blends, turning in place) is
+        // collected as a correction that holds the foot where it was planted; it fades out while the foot swings.
+        if (l.marks.length) {
+          l.pre ||= l.marks.map(() => new THREE.Vector3()); l.prevPre ||= l.marks.map(() => new THREE.Vector3());
+          for (let k = 0; k < l.mp.length; k++) l.pre[k].copy(l.mp[k]);
+          let n = 0; const dxs = l.dxs || (l.dxs = []), dzs = l.dzs || (l.dzs = []); dxs.length = 0; dzs.length = 0;
+          if (l.prevPreOk) for (let k = 0; k < l.pre.length; k++) {
+            if (l.pre[k].y - rootY < 0.012 && l.prevPre[k].y - (l.prevRootY ?? rootY) < 0.012) { dxs.push(l.pre[k].x - l.prevPre[k].x); dzs.push(l.pre[k].z - l.prevPre[k].z); n++; }
+          }
+          l.corr ||= new THREE.Vector3();
+          if (n >= 3) {
+            dxs.sort((x, y) => x - y); dzs.sort((x, y) => x - y);
+            const mx = dxs[n >> 1], mz = dzs[n >> 1];
+            if (Math.hypot(mx, mz) < 0.3) { l.corr.x -= mx; l.corr.z -= mz; } else l.corr.set(0, 0, 0);    // a teleport is not a slide
+            l.corr.clampLength(0, 0.15);
+          } else l.corr.multiplyScalar(Math.exp(-dt * 9));
+          for (let k = 0; k < l.pre.length; k++) l.prevPre[k].copy(l.pre[k]);
+          l.prevRootY = rootY; l.prevPreOk = true;
+        }
       }
       // 2) pelvis down so the lower foot reaches (never up: the capsule already stands on the higher ground)
       const pv = Math.min(0, legs[0].shift, legs[1].shift) * st.w;
@@ -120,7 +140,8 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
         const fq = l.ft.getWorldQuaternion(new THREE.Quaternion());
         l.ft.getWorldPosition(_a);
         const raise = (l.shift - st.pelvis) * st.w - dip;
-        if (Math.abs(raise) > 0.002) { _t.copy(_a); _t.y += raise; solve(l, _t, _f); }
+        const cx = (l.corr?.x || 0) * st.w, cz = (l.corr?.z || 0) * st.w;
+        if (Math.abs(raise) > 0.002 || cx * cx + cz * cz > 1e-6) { _t.copy(_a); _t.y += raise; _t.x += cx; _t.z += cz; solve(l, _t, _f); }
         setWorldQuat(l.ft, fq);                            // the foot keeps its animated orientation...
         const tilt = Math.min(0.45, Math.acos(THREE.MathUtils.clamp(l.n.y, -1, 1)));
         if (tilt > 0.01 && l.plant > 0.05) {               // ...then lies flat on the slope / ramp when planted

@@ -982,7 +982,7 @@ async function boot() {
         const aSpeed = swim ? 1.2 + L.animSpeed * 0.9 : L.animSpeed;
         if (P.script?.pose) { try { P.script.pose(simDt, character); } catch (e) { console.error('[player.script.pose]', e); } }
         if (P.script?.anim) character.update(simDt, P.script.anim); else
-        character.update(simDt, { speed: swim ? 0 : aSpeed, idleStyle: swim ? 'swim' : undefined, grounded: P.state.grounded || swim, jumping: P.state.jumping, sprint: P.state.sprint, driving: false, punch: P.state.punch, dead: P.health <= 0, swimming: swim, wading: !swim && P.waterDepth > 0.4 });
+        character.update(simDt, { speed: swim ? 0 : aSpeed, groundSpeed: swim ? undefined : L.speedF, idleStyle: swim ? 'swim' : undefined, grounded: P.state.grounded || swim, jumping: P.state.jumping, sprint: P.state.sprint, driving: false, punch: P.state.punch, dead: P.health <= 0, swimming: swim, wading: !swim && P.waterDepth > 0.4 });
         // ripples while moving in water; stride footsteps fallback; swim strokes
         const pos = P.position;
         if (P.waterDepth > 0.15) {
