@@ -37,6 +37,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     for (let k = 0; k < 4; k++) { const an = k * Math.PI / 2; cams['eye' + k] = [P.p[0] - Math.sin(an) * 5, 2.1, P.p[1] - Math.cos(an) * 5, P.p[0] + Math.sin(an) * 30, 1.0, P.p[1] + Math.cos(an) * 30]; }
     for (const k of [0, 1]) { const an = Math.PI / 4 + k * Math.PI; cams['drive' + k] = [P.p[0] - Math.sin(an) * 9, 4.2, P.p[1] - Math.cos(an) * 9, P.p[0] + Math.sin(an) * 40, 0.5, P.p[1] + Math.cos(an) * 40]; }
     for (const [cn, c] of Object.entries(cams)) {
+      if (P.skip && P.skip.includes(cn)) continue;
       await b.eval(`(() => { const c = ${JSON.stringify(c)}; const g = (x, z) => { try { const v = game.city?.groundHeightAt?.(x, z); return Number.isFinite(v) ? v : 0; } catch (e) { return 0; } };
         const e = [c[0], g(c[0], c[2]) + c[1], c[2]], l = [c[3], g(c[3], c[5]) + c[4], c[5]];
         game.cameraOverride = (dt, cam) => { cam.position.fromArray(e); cam.lookAt(l[0], l[1], l[2]); return true; }; return 1; })()`);

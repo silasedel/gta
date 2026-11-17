@@ -6,7 +6,7 @@ const a = process.argv.slice(2), o = {}, ex = [];
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; } else ex.push(a[i]);
 await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 600) }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
-  await b.waitFor(GAME_READY, 480);
+  try { await b.waitFor(GAME_READY, +(o.ready || 480)); } catch (e) { console.log('NOT READY', String(e).slice(0, 200)); console.log('ERRORS', JSON.stringify([...new Set(b.errors)].slice(0, 20), null, 1)); try { console.log('STATE', JSON.stringify(await b.eval('({ ready: window.game?.ready, v2: !!window.game?.v2, boot: window.game?.bootStage || window.__bootStage || null })'))); } catch (e2) { /* */ } return; }
   if (!o['no-start']) await startGame(b);
   await b.sleep(+(o.wait || 3000));
   for (const e of ex) { try { console.log('>', e.slice(0, 80), '\n', JSON.stringify(await b.eval(e)).slice(0, 4000)); } catch (err) { console.log('> FAIL', e.slice(0, 80), String(err).slice(0, 400)); } }

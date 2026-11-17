@@ -190,6 +190,7 @@
         normal: m.normalMap ? { scale: +(m.normalScale?.x ?? 1).toFixed(2), tilt: ni && ni.tilt != null ? +ni.tilt.toFixed(3) : null, res: ni ? [ni.w, ni.h] : null } : null,
         bump: m.bumpMap ? +(m.bumpScale ?? 1).toFixed(3) : null,
         shaderPBR: !!(m.onBeforeCompile && /roughnessFactor\s*=|metalnessFactor\s*=/.test(m.onBeforeCompile.toString())),
+        calCls: m.userData?.artCal?.cls || null,
         noColor: m.colorWrite === false || (m.opacity === 0 && m.transparent), ud: Object.keys(m.userData || {}).slice(0, 8).join(' '), src: m.userData?.src || '',
         env: m.envMapIntensity ?? null, cc: m.clearcoat ?? null, ccR: m.clearcoatRoughness ?? null, emissive: m.emissive ? +(Math.max(m.emissive.r, m.emissive.g, m.emissive.b) * (m.emissiveIntensity ?? 1)).toFixed(3) : 0, emMap: !!m.emissiveMap,
         transparent: !!m.transparent, alphaTest: m.alphaTest || 0, side: m.side, opacity: m.opacity,

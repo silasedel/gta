@@ -247,7 +247,7 @@
   "glass": {
    "lum": [
     0.01,
-    0.1
+    0.16
    ],
    "rough": [
     0.02,
@@ -765,6 +765,33 @@
     0.5,
     1.4
    ]
+  },
+  "terrain": {
+   "lum": [
+    0.06,
+    0.45
+   ],
+   "rough": [
+    0.7,
+    1.0
+   ],
+   "metal": [
+    0,
+    0.02
+   ],
+   "sat": 0.4,
+   "normal": [
+    0.3,
+    1.1
+   ],
+   "tex": [
+    512,
+    200
+   ],
+   "env": [
+    0.4,
+    1.0
+   ]
   }
  },
  "classify": [
@@ -825,6 +852,10 @@
    "grass|lawn|turf|weed|tuft|meadow"
   ],
   [
+   "terrain",
+   "\\bterrain|land-base|\\bland\\b"
+  ],
+  [
    "sand",
    "sand|beach|shell_?floor|shell|dune|marl"
   ],
@@ -870,7 +901,7 @@
   ],
   [
    "paintedWood",
-   "painted_?wood|wood_?paint|paint:|trim|shutter|door|lattice|fence_?white|picket|porch|railing|clapboard"
+   "painted_?wood|white_?planks|wood_?paint|paint:|trim|shutter|door|lattice|fence_?white|picket|porch|railing|clapboard"
   ],
   [
    "rawWood",

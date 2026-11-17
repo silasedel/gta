@@ -49,7 +49,7 @@ export function buildShop(hk, s, lod = 0) {
   const front = K.front, SG = mat.shopGlass(), room = ROOM[s.kind] ?? 0, rw = (lit) => room + Math.min(0.98, Math.max(0, lit));
   // facade material by rule (set by the town: quarter, kind, neighbors): stucco, painted brick or raw brick, board and batten, stone
   const FAC = s.facade === 'brick' ? mat.brick() : s.facade === 'batten' ? PAINT : s.facade === 'stone' ? mat.stoneVeneer() : STU;
-  const facC = s.facade === 'brick' ? (s.paintedBrick ? body : 0xffffff) : s.facade === 'stone' ? 0xf0e8d8 : body;
+  const facC = s.facade === 'brick' ? (s.paintedBrick ? body : 0xa86450) /* r2-art: raw brick is brick-red (L ~0.1), the white multiplier left the pale canvas brick reading as painted (L 0.46) */ : s.facade === 'stone' ? 0xf0e8d8 : body;
 
   // ---------- shell ----------
   if (front === 'church') return church();
@@ -97,7 +97,20 @@ export function buildShop(hk, s, lod = 0) {
   // upper floors
   for (let fl = 1; fl < s.stories; fl++) upperFloor(fl);
   // side walls: two windows and a back door
-  for (const sx of [-1, 1]) for (let k = 0; k < Math.max(1, Math.floor(d / 5)); k++) { const z = z0 + (d / (Math.floor(d / 5) + 1)) * (k + 1); win(sx * (w / 2 + 0.01), 1.1, z, 1.0, 1.3, sx > 0 ? PI / 2 : -PI / 2, k + sx); }
+  // r2-art (architectural depth): side walls were one blank slab with two windows. Now: a window every ~3.4 m on every floor,
+  // the floor band and the cornice wrap the corner, downspouts with kick-outs at the back corners, a meter box + conduit
+  const nSide = Math.max(1, Math.floor((d - 1.0) / 3.4));
+  for (const sx of [-1, 1]) {
+    const ry = sx > 0 ? PI / 2 : -PI / 2, xw = sx * (w / 2 + 0.01);
+    for (let fl = 0; fl < s.stories; fl++) for (let k = 0; k < nSide; k++) { const z = z0 + (d / (nSide + 1)) * (k + 1); win(xw, fl * FL + (fl ? 0.9 : 1.1), z, 1.0, fl ? 1.5 : 1.3, ry, k + sx + fl * 5); }
+    if (L1) {
+      for (let fl = 1; fl < s.stories; fl++) box(STU, 0.12, 0.12, d + 0.1, sx * (w / 2 + 0.05), fl * FL + 0.05, 0, { color: trim, wear: 0.25 }); // floor band around the corner
+      box(STU, 0.2, 0.2, d + 0.22, sx * (w / 2 + 0.06), h - 0.06, 0, { color: trim, wear: 0.25 }); // cornice return
+      const zs = z0 + 0.25; box(MET, 0.08, h - 0.2, 0.08, sx * (w / 2 + 0.07), (h - 0.2) / 2 + 0.05, zs, { color: kit.mul(body, 0.8), wear: 0.4 }); // downspout
+      box(MET, 0.08, 0.08, 0.32, sx * (w / 2 + 0.07), 0.1, zs - 0.16, { color: kit.mul(body, 0.8), wear: 0.4 }); // kick-out shoe
+      if (L0 && sx < 0) { box(MET, 0.36, 0.48, 0.16, sx * (w / 2 + 0.09), 1.5, z0 + d * 0.3, { color: 0x8e918f, wear: 0.4 }, ry); box(MET, 0.05, 1.6, 0.05, sx * (w / 2 + 0.04), 2.55, z0 + d * 0.3, { color: 0x7c7f7d }); } // meter + conduit
+    }
+  }
   box(PAINT, 1.0, 2.1, 0.06, x0 + 1.5, 1.05 + 0.1, z0 - 0.02, { color: 0x5a5a58, wear: 0.4 });
   return { batch: B, colliders: cols, lamps };
 

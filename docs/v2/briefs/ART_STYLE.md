@@ -103,7 +103,7 @@ map mean). Texel density is target / minimum in px per meter.
 | painted metal (dumpster, bins, poles, mailbox) | 0.03-0.75 by paint | 0.28-0.70 | 0-0.15 | 0.1-0.6 | 0.55 | 512 / 200 | chipped edges to rust, scuffs, faded top |
 | galvanized / bare steel | base 0.40-0.66 | 0.32-0.68 | 1 | 0.1-0.6 | 0.08 | 512 / 200 | white zinc bloom, dull spangle, rust at cuts |
 | rusty metal | 0.05-0.20 (63-124) | 0.72-0.96 | 0 (mask over 1) | 0.4-1.1 | 0.62 | 512 / 200 | runs downward from the rust source |
-| glass (windows) | 0.01-0.10 base | 0.02-0.16 | 0-0.12 | 0-0.3 | 0.30 | 256 / 64 | dust film at the bottom edge, salt haze near the beach |
+| glass (windows) | 0.01-0.16 base (opaque glazing proxies 0.08-0.14: a hint of the room behind) | 0.02-0.16 | 0-0.12 | 0-0.3 | 0.30 | 256 / 64 | dust film at the bottom edge, salt haze near the beach |
 | car paint | black 0.025-0.05, white 0.70-0.76, colors 0.15-0.45 | coat 0.03-0.08 new / 0.12-0.25 old; base 0.3-0.55 | solid 0, metallic 0.5-0.7 | 0-0.3 | 0.75 | 512 / 128 | dust on horizontal panels, sun-faded roof and hood on old cars, mud on sills |
 | chrome / polished metal | chrome 0.50-0.65, polished aluminum 0.85-0.92 | 0.02-0.22 | 1 | 0-0.4 | 0.08 | 256 / 64 | water spots, pitting on old cars |
 | rubber (tires, seals) | 0.015-0.06 | 0.72-0.94 | 0 | 0.4-1.2 | 0.20 | 512 / 200 | gray-brown sidewall dust, sand in tread |
@@ -127,7 +127,7 @@ Notes:
 - **Foliage and bark** (r2-veg's palette is inside these ranges):
   - broadleaf / palm fronds: HSV value 0.34-0.39, sat 0.40-0.50, which is linear L about 0.08-0.11
   - trunks: value 0.33-0.41, sat 0.10-0.22
-- **Glass in library buildings:** metalness 0-0.1, base 0.03-0.06, roughness 0.05-0.12, `envMapIntensity` 1.2-1.4.
+- **Glass in library buildings:** metalness 0-0.1, base 0.08-0.14 (a hint of the room behind; 0.05 reads as black panels), roughness 0.05-0.12, `envMapIntensity` 1.2-1.4.
   Windows read dark with reflected sky, not as blue-gray mirrors.
 
 ## 3. Color grade: warm, humid Florida (r2-look owns the pass, this is the target)

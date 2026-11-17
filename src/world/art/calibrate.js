@@ -102,9 +102,9 @@ export function calibrate(m, { hint = '', cls = null, fallback = 'generic', vc =
     let L = lum(mean); const L0 = L;
     if (c === 'glass') {
       // exterior windows: dark base (the env reflection does the rest); keep the hue
-      if (L > 0.07) { const g = 0.05 / L; m.color.multiplyScalar(g); }
+      if (L > 0.16) { const g = 0.12 / L; m.color.multiplyScalar(g); } // opaque glazing proxy: dark, but with a hint of the room / blinds behind it (0.05 read as black panels)
       if (std && !keepEnv) m.envMapIntensity = Math.min(Math.max(m.envMapIntensity ?? 1, 1.1), 1.4);
-      rep.L = [+L0.toFixed(3), +lum(mean.map((x) => x * Math.min(1, 0.05 / Math.max(L, 1e-4)))).toFixed(3)];
+      rep.L = [+L0.toFixed(3), +lum(mean.map((x) => x * (L > 0.16 ? 0.12 / L : 1))).toFixed(3)];
     } else if (L > 1e-4) {
       let gain = [1, 1, 1];
       const sat = satOf(mean);

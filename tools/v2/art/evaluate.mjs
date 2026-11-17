@@ -74,7 +74,7 @@ function score(s, cls) {
 export function evaluate(stats, views, meta = {}) {
   const rows = [];
   for (const s of stats || []) {
-    let cls = classify(s); const owner = ownerOf(s);
+    let cls = s.calCls || classify(s); const owner = ownerOf(s); // calibrate()'s own class when the material went through it
     if ((cls === 'galvanized' || cls === 'chrome') && s.metal != null && s.metal < 0.5) cls = 'metalPainted'; // named metal, authored dielectric: painted
     if (cls === 'generic' && /lib-|^buildings\//.test(`${s.obj} ${s.src || ''}`)) cls = 'building'; // same fallback as calibrate() for library buildings
     if ((cls === 'generic' || cls === 'building') && s.metal != null && s.metal >= 0.5 && !s.shaderPBR) cls = 'galvanized';
