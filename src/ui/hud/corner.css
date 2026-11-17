@@ -16,30 +16,41 @@
   overflow: visible;
 }
 
-/* ---- stars */
+/* ---- stars: empty = semi-transparent gray with a faint dark outline (the default, as in ref_46); earned = solid white
+   with the heavy black outline (hud_corner_target); earned from the right like GTA */
 .ps-corner .hc-star-ol polygon {
+  fill: none;
+  stroke: rgba(0, 0, 0, .5);
+  stroke-width: 16;
+  stroke-linejoin: round;
+  transition: stroke .25s ease;
+}
+.ps-corner .hc-star-ol polygon.on {
   fill: #000;
   stroke: #000;
   stroke-width: 36;
-  stroke-linejoin: round;
 }
 .ps-corner .hc-star {
-  fill: #e8e8e8;
-  stroke: #e8e8e8;
-  stroke-width: 8;
+  fill: rgba(60, 60, 62, .45);
+  stroke: rgba(60, 60, 62, .45);
+  stroke-width: 4;
   stroke-linejoin: round;
   transition: fill .25s ease, stroke .25s ease;
 }
 .ps-corner .hc-star.on {
-  fill: #525152;
-  stroke: #525152;
+  fill: #f6f6f4;
+  stroke: #f6f6f4;
+  stroke-width: 8;
 }
 .ps-corner .hc-star.pop {
   animation: hc-star-pop .45s cubic-bezier(.22, 1, .36, 1);
 }
-/* GTA-style flash while the police have lost sight of you: earned stars blink back to open */
+/* GTA-style flash while the police have lost sight of you: earned stars blink back to empty */
 .ps-corner.evading .hc-star.on {
   animation: hc-star-flash .9s steps(1) infinite;
+}
+.ps-corner.evading .hc-star-ol polygon.on {
+  animation: hc-star-ol-flash .9s steps(1) infinite;
 }
 .ps-corner .hc-stars.bump {
   animation: hc-bump .5s cubic-bezier(.22, 1, .36, 1);
@@ -50,8 +61,12 @@
   100% { transform: scale(1); }
 }
 @keyframes hc-star-flash {
-  0% { fill: #525152; stroke: #525152; }
-  50% { fill: #e8e8e8; stroke: #e8e8e8; }
+  0% { fill: #f6f6f4; stroke: #f6f6f4; }
+  50% { fill: rgba(60, 60, 62, .45); stroke: rgba(60, 60, 62, .45); }
+}
+@keyframes hc-star-ol-flash {
+  0% { fill: #000; stroke: #000; stroke-width: 36; }
+  50% { fill: none; stroke: rgba(0, 0, 0, .5); stroke-width: 16; }
 }
 @keyframes hc-bump {
   0% { transform: translateX(0); }

@@ -8,6 +8,7 @@
 import '/src/ui/hud.css';
 import { createCorner } from '/src/ui/hud/corner.js';
 const P = new URLSearchParams(location.search);
+if (P.get('bg') === 'sky') document.body.style.background = 'linear-gradient(180deg, #5f8fc9 0%, #8fb4e0 55%, #b9d2ee 100%)';
 const hud = document.createElement('div'); hud.className = 'ps-hud live'; hud.id = 'ps-hud';
 hud.style.cssText = 'position:fixed;inset:0;pointer-events:none';
 document.body.appendChild(hud);
@@ -15,10 +16,11 @@ const game = { evidence: null, bank: P.get('bank') ? { balance: +P.get('bank') }
 const c = createCorner(game);
 c.root.style.position = 'absolute';
 hud.appendChild(c.root);
-c.setKnown({ cameras: 1, witnesses: 1, outfit: 1, face: 1, weapon: 1 });
+if (P.get('known') !== '0') c.setKnown({ cameras: 1, witnesses: 1, outfit: 1, face: 1, weapon: 1 });
+if (P.get('dev') === '1') { c.root.classList.add('dev'); }
 c.setCash('$' + (+(P.get('cash') ?? 3146)).toLocaleString('en-US'));
 const weapon = P.get('weapon') || 'pistol', armed = weapon !== 'none';
-const st = { wanted: +(P.get('wanted') ?? 4), evading: false, weapon: armed ? weapon : 'fist', weaponSvg: '',
+const st = { wanted: +(P.get('wanted') ?? 4), evading: P.get('evading') === '1', weapon: armed ? weapon : 'fist', weaponSvg: '',
   ammo: armed && !/bat|knife|crowbar|machete|bottle/.test(weapon) ? { clip: +(P.get('clip') ?? 20), reserve: +(P.get('reserve') ?? 73), total: 93 } : null, reloading: false, low: false, empty: false, clock: P.get('clock') || '13:00' };
 let last = performance.now();
 function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; c.update(dt, st); }

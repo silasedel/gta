@@ -278,12 +278,14 @@ export function createCorner(game) {
   const root = div('ps-status ps-corner');
 
   // stars: one SVG, outlines first so neighbors never cut into each other
+  // the user's rule (hud_corner_target / ref_46): earned stars are solid white with the heavy black outline, empty stars
+  // are semi-transparent gray with a faint outline; like GTA, stars are earned from the right (1 star = the rightmost)
   let starsInner = '<g class="hc-star-ol">';
-  for (let i = 0; i < 6; i++) starsInner += `<polygon points="${starPoints(STAR_CX0 + i * STAR_DX, STAR_CY, STAR_R)}"/>`;
+  for (let i = 0; i < 6; i++) starsInner += `<polygon class="hc-star-o" points="${starPoints(STAR_CX0 + i * STAR_DX, STAR_CY, STAR_R)}"/>`;
   starsInner += '</g>';
   for (let i = 0; i < 6; i++) starsInner += `<polygon class="hc-star" style="transform-origin:${STAR_CX0 + i * STAR_DX}px ${STAR_CY}px" points="${starPoints(STAR_CX0 + i * STAR_DX, STAR_CY, STAR_R)}"/>`;
   const starsEl = svgRow('hc-stars', ROWS.stars[0], ROWS.stars[1], starsInner);
-  const starEls = [...starsEl.querySelectorAll('.hc-star')];
+  const starEls = [...starsEl.querySelectorAll('.hc-star')], starOls = [...starsEl.querySelectorAll('.hc-star-o')];
 
   // evidence badges
   let kn = '';
@@ -415,9 +417,10 @@ export function createCorner(game) {
     const w = Math.max(0, Math.min(6, s.wanted | 0));
     if (w !== lastW) {
       starEls.forEach((el, i) => {
-        const on = i < w;
+        const on = i >= 6 - w;
         if (on && !el.classList.contains('on') && lastW >= 0) restart(el, 'pop');
         el.classList.toggle('on', on);
+        starOls[i].classList.toggle('on', on);
       });
       root.classList.toggle('wanted', w > 0);
       if (w > lastW && lastW >= 0) restart(starsEl, 'bump');
