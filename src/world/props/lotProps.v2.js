@@ -119,7 +119,11 @@ function create(game) {
           return true; };
         // collection day everywhere: the collider audit showed the 'beside the house' spots landing under stilt decks and in yard
         // planting (house colliders / shrubs are often not there yet when the lot is added), so the pair always stands at the curb
-        const at = L;
+        let at = L;
+        // a car already parked on the spot (spawned before this lot's carts): slide the pair along the curb until it is clear
+        { const cars = []; for (const v of game.vehicles?.list || []) { try { if (v.ai && !v.parked) continue; const t = v.body.translation(); if (Math.hypot(t.x - L.x, t.z - L.z) < 8) cars.push(t); } catch (e) { /* */ } }
+          if (cars.length) { const ux = Math.cos(L.ry), uz = -Math.sin(L.ry), clear = (x, z) => cars.every((t) => Math.hypot(t.x - x, t.z - z) > 3.2);
+            for (const d of [0, 2.5, -2.5, 5, -5]) { const x = L.x + ux * d, z = L.z + uz * d; if (clear(x, z)) { at = { ...L, x, z }; break; } } } }
         const wheel = hash(seed * 2.3) < 0.22, sx = Math.cos(at.ry), sz = -Math.sin(at.ry), gap = 0.36 + hash(seed * 4.1) * 0.25;
         const second = hash(seed * 6.7) < 0.75 ? CART_RECYCLE : CART_YARD;
         for (const [k, name, layers] of [[-1, wheel ? 'bin_wheel' : 'cart', wheel ? null : CART_TRASH], [1, 'cart', second]]) {
