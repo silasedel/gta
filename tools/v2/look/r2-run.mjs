@@ -9,7 +9,7 @@ import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const a = process.argv.slice(2), o = {}; const pos = [];
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; } else pos.push(a[i]);
 const steps = (await import(pathToFileURL(path.resolve(pos[0])).href)).default;
-await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 600) }, async (b) => {
+await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 1800) }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');

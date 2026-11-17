@@ -33,6 +33,20 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
       await both(k);
     }
   }
+  if (only.includes('mock')) {
+    // the mock-up camera (tools/v2/keys/spots_refs.json r0b_deck: Nico's house-local frame, fov 51, 11:00)
+    const R = JSON.parse(fs.readFileSync('tools/v2/keys/spots_refs.json', 'utf8')).r0b_deck;
+    await b.eval(`(() => { const NH = game.nicoHouse; const p = NH.toWorld(new game.THREE.Vector3(${R.eye[0]}, 0, ${R.eye[2] + 3})); game.teleport(p.x, undefined, p.z, 0); game.timeOfDay = ${R.tod}; return 1; })()`);
+    await b.sleep(5000); await stream();
+    await b.eval(`(() => { const NH = game.nicoHouse, V = (a) => new game.THREE.Vector3(...a); const E = NH.toWorld(V(${JSON.stringify(R.eye)})), L = NH.toWorld(V(${JSON.stringify(R.look)}));
+      game.cameraOverride = (dt, cam) => { cam.position.copy(E); cam.lookAt(L); if (cam.fov !== ${R.fov}) { cam.fov = ${R.fov}; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
+    await both('mock');
+    await b.eval(`game.camera.fov = 55, game.camera.updateProjectionMatrix(), game.timeOfDay = ${HOUR}, 1`);
+  }
+  if (only.includes('beach')) {
+    await b.eval(`game.teleport(2398, undefined, 660, 0), 1`); await b.sleep(5000); await stream();
+    await cam([2380, 4, 640], [2450, 2.5, 700]); await both('beach');
+  }
   if (only.includes('user')) {
     // the user's shot_01 / shot_03 framings, relative to where the truck and the convertible are parked today
     await b.eval(`game.teleport(-866.1, undefined, 4836.4, 0), 1`); await b.sleep(5000); await stream();
@@ -44,6 +58,15 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
       await cam([p[0] - f[0] * 6 - f[1] * 3, 3.0, p[1] - f[1] * 6 + f[0] * 3], [p[0], 0.4, p[1]]); await both('user03_conv'); }
     { const { p, f } = L.conv; // shot_04: low side view of the convertible
       await cam([p[0] - f[1] * 6, 0.9, p[1] + f[0] * 6], [p[0], 0.7, p[1]]); await both('user04_conv'); }
+  }
+  if (only.includes('clouds')) {
+    // ground cloud shadows (aerial + street, on / off) and the sky (old / new cumulus)
+    await b.eval(`game.teleport(-866.1, undefined, 4836.4, 0), 1`); await b.sleep(4000); await stream();
+    for (const [k, e, l] of [['clouds_aerial', [-700, 160, 4700], [-1000, 0, 5100]], ['clouds_street', [-866, 2, 4836], [-800, 1, 4900]]]) {
+      await cam(e, l);
+      for (const [m, v] of [['off', 'false'], ['on', 'true']]) { await b.eval(`game.lookCloudShadows = ${v}, 1`); await b.sleep(2200); await b.screenshot(`${D}/${TAG}_${k}_${m}.png`); }
+    }
+    await cam([-866, 2, 4836], [-700, 300, 4950]); await both('sky');
   }
   if (only.includes('probes')) {
     await b.eval(`game.teleport(-30, undefined, 4190, 0), 1`); await b.sleep(5000); await stream();
@@ -64,7 +87,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
     await b.sleep(1000);
     for (const [m, v] of MODES) {
       await mode(v);
-      await b.eval(`JSON.stringify(window.__cruise(window.__car, -866, 4836, 90, 400))`); await b.sleep(3500); // same start each mode
+      await b.eval(`JSON.stringify(window.__cruise(window.__car, -30, 4190, 90, 160))`); await b.sleep(2500); await stream(15); // same start each mode (the beach road of shot_09)
+      await b.eval(`JSON.stringify(window.__cruise(window.__car, -30, 4190, 90, 160))`); await b.sleep(3000);
       await b.screenshot(`${D}/${TAG}_drive_${m}.png`);
       const fr = await b.eval(`window.__grab(8, [460, 380, 1000, 700], 0.6)`);
       fr.forEach((u, i) => fs.writeFileSync(`${D}/frames/${TAG}_drive_${m}_${i}.jpg`, Buffer.from(u.split(',')[1], 'base64')));

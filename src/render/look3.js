@@ -20,8 +20,8 @@ export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // toward the warm sun side, z = 1 while post.js renders the main scene (ambient share -> alpha), w = debug view. Shared with every fogged built-in material (and ShaderMaterials that merge
 // UniformsLib.fog after this module loaded).
 export const LOOK_V = new Float32Array([0, 0, 0, 0]);
-// LOOK_W (r2-look): x = how much of the sky / bounce light a point in the sun's cast shadow loses (0..1, by day; shadows.js
-// lights_fragment_end patch), y/z/w spare.
+// LOOK_W (r2-look): x = how much of the sky / env light a point in the sun's cast shadow loses (0..1, by day), yzw = the
+// bounce irradiance (linear RGB) it gains from the sunlit ground and walls around it (shadows.js lights_fragment_end patch).
 export const LOOK_W = new Float32Array([0, 0, 0, 0]);
 export const LOOKU_DECL = '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\nuniform vec4 uLookW;\n#endif\n';
 // depth range of the sun shadow cameras (environment.js: near 1, far 900): converts a shadow-depth difference to meters
@@ -39,6 +39,19 @@ const SUN_DEPTH_M = 899.0;
     if (U && !U.uLookU) { U.uLookU = { value: LOOK_U }; U.uLookV = { value: LOOK_V }; U.uLookW = { value: LOOK_W }; }
   }
   C.fog_pars_fragment = LOOKU_DECL + C.fog_pars_fragment;
+  // r2-look (lead / outside critique: "specular glare on sand and paint"; r2-art: keep a soft sheen): very rough
+  // dielectrics (roughness > 0.8: dry sand, dirt, raw concrete) lose up to 28% of their grazing-angle Fresnel boost
+  // (microshadowing); wet roads, paint and glass are untouched. Env specular in cast shadow is already cut (shadows.js).
+  // Active in round 2 only (uLookW.x > 0 by day).
+  {
+    const f = 'material.roughness = min( material.roughness, 1.0 );';
+    if (C.lights_physical_fragment.includes(f) && !C.lights_physical_fragment.includes('psGlare')) {
+      C.lights_physical_fragment = C.lights_physical_fragment.replace(f, `${f}
+#ifdef PS_LOOKU
+{ float psGlare = step( 1e-4, uLookW.x ) * smoothstep( 0.78, 0.95, material.roughness ) * ( 1.0 - metalnessFactor ); material.specularF90 *= 1.0 - 0.28 * psGlare; }
+#endif`);
+    }
+  }
   // r2-look material debug view (LOOK_V.w = 1: lit materials output their base color / albedo), used by
   // tools/v2/look/albedo-view.page.js to measure what is on screen. One uniform branch; 0 in the game.
   C.opaque_fragment = `#if defined( PS_LOOKU ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )

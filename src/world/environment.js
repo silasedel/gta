@@ -72,6 +72,8 @@ const L3_CLOUD_AMB = [[-0.3, [0.012, 0.016, 0.03]], [-0.05, [0.06, 0.065, 0.10]]
 const L3_CIRRUS = [[-0.2, [0.01, 0.012, 0.025]], [-0.06, [0.30, 0.10, 0.08]], [0.0, [1.0, 0.45, 0.25]], [0.1, [1.0, 0.72, 0.48]], [0.25, [0.98, 0.92, 0.86]], [1.0, [1.0, 1.0, 1.0]]];
 const tmpC = new THREE.Color();
 let envFrame = 0;
+const CLOUD_BASE_M = 1100; // r2-look: fair-weather cumulus base height (m) for the world-anchored cloud field and its ground shadows
+const cloudWind = new THREE.Vector2();
 const NIGHT_WATER = new THREE.Color().setRGB(0.002, 0.008, 0.016);
 
 export async function createEnvironment(game) {
@@ -423,7 +425,13 @@ export async function createEnvironment(game) {
       ramp(L3 ? L3_SKY_HORIZON_SUN : SKY_HORIZON_SUN, s, u.uHorizonSun.value);
       ramp(SKY_GLOW, s, u.uSunGlow.value);
       u.uCloudCover.value = 0.40 + 0.07 * env.golden;
-      if (wind) { u.uCloudOff.value.x -= wind.dir.x * wind.speed * dt * 0.0012; u.uCloudOff.value.y -= wind.dir.y * wind.speed * dt * 0.0012; }
+      if (wind) { cloudWind.x -= wind.dir.x * wind.speed * dt * 0.0012; cloudWind.y -= wind.dir.y * wind.speed * dt * 0.0012; }
+      // r2-look: the cloud field is anchored to the world (it used to ride along with the camera): driving under the clouds
+      // shows them drift past, and the ground cloud shadows (post.js) use the same field. 1 cloud unit = CLOUD_BASE_M / 1.9 m.
+      if (game.look3 === true && game.lookR2 !== false) u.uCloudOff.value.set(cloudWind.x + camera.position.x * 1.9 / CLOUD_BASE_M, cloudWind.y + camera.position.z * 1.9 / CLOUD_BASE_M);
+      else u.uCloudOff.value.copy(cloudWind);
+      env.cloudBase = CLOUD_BASE_M;
+      u.uCloudR2.value = game.look3 === true && game.lookR2 !== false ? 1 : 0;
       { const dayN = Math.floor(game.day ?? game.clock?.day ?? 0); const hsh = Math.abs(Math.sin(dayN * 12.9898 + 4.1)) % 1; u.uCirrus.value = hsh < 0.45 ? 0.12 : 0.25 + 0.6 * hsh; } // thin cirrus only on some days // bigger, softer cloud banks toward sunset
 
       if (wind) wind.update(dt, env, camera);

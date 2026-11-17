@@ -35,6 +35,7 @@ export function createSkyMaterial() {
       uCloudAmbient: { value: new THREE.Color(0.5, 0.45, 0.5) },
       uCloudSun: { value: new THREE.Color(1, 0.6, 0.3) },
       uCirrusColor: { value: new THREE.Color(1, 0.5, 0.4) },
+      uCloudR2: { value: 0 }, // r2-look: 1 = warped, crisper cumulus with darker bases (environment.js sets it from game.lookR2)
     },
     vertexShader: /* glsl */`
       uniform vec3 sunDir;
@@ -89,6 +90,7 @@ export function createSkyMaterial() {
       uniform vec3 uCloudAmbient;
       uniform float uNightCloud;
       uniform vec3 uCloudSun;
+      uniform float uCloudR2;
       uniform vec3 uCirrusColor;
       varying vec3 vDir;
       varying vec3 vBetaR;
@@ -132,6 +134,9 @@ export function createSkyMaterial() {
         return 1.0 - md;
       }
       float cloudShape( vec2 p ) {
+        // r2-look: a low-frequency domain warp breaks the round worley cells into irregular cumulus outlines
+        // (post.js cloud-shadow map repeats this function: keep both in sync)
+        if ( uCloudR2 > 0.5 ) p += ( vec2( vnoise( p * 0.45 + 3.1 ), vnoise( p * 0.45 + 8.7 ) ) - 0.5 ) * 0.35;
         float base = vnoise( p * 0.33 + 31.0 ) * 0.65 + vnoise( p * 0.71 ) * 0.35;                                   // where the cloud fields are
         float cells = worley( p * 0.85 + 11.0 );                          // round individual clouds of varied size                         // individual clouds of varied size
         float bil = worley( p * 3.1 + 7.0 );                                 // billows
@@ -231,12 +236,14 @@ export function createSkyMaterial() {
             vec2 p = dir.xz * cloudDist( dir.y, 1.0 + 0.09 * hf ) * 1.9 + uCloudOff;
             float n = cloudShape( p );
             float thr = cov + 0.15 * hf * hf;                 // tops are narrower than bases
-            float d = smoothstep( thr, thr + 0.075, n );
+            // r2-look: crisper cauliflower edges (narrower transition, fine erosion only near the edge)
+            if ( uCloudR2 > 0.5 ) n += ( worley( p * 7.0 + 2.3 ) - 0.62 ) * 0.07 * ( 1.0 - smoothstep( thr, thr + 0.12, n ) ); // cauliflower billows at the rim
+            float d = smoothstep( thr, thr + mix( 0.075, 0.05, uCloudR2 ), n );
             if ( d > 0.001 ) {
               float n2 = cloudShape( p + toSun * 0.14 );
               float shade = clamp( 0.50 + ( n - n2 ) * 9.0, 0.0, 1.0 );   // side facing the sun
               float thick = smoothstep( thr, thr + 0.16, n );             // 0 at the wispy edge, 1 deep inside
-              vec3 amb = uCloudAmbient * ( 0.50 + 0.56 * hf ) * ( 1.0 - 0.42 * thick * ( 1.0 - hf ) );
+              vec3 amb = uCloudAmbient * ( 0.50 + 0.56 * hf ) * ( 1.0 - 0.42 * thick * ( 1.0 - hf ) ) * mix( 1.0, 0.8 + 0.2 * hf, uCloudR2 ); // r2-look: darker flat bases
               vec3 lit = uCloudSun * ( shade * ( 0.35 + 0.95 * hf ) + lowS * ( 1.0 - hf ) * 0.55 * ( 0.4 + 0.6 * shade ) );
               lit += uCloudSun * fwd * ( 1.0 - thick ) * ( 2.2 + 3.0 * lowS );   // backlit silver / pink rim
               float a = d * ( 0.50 + 0.30 * hf );

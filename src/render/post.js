@@ -122,10 +122,22 @@ export function createPost(game) {
     const aoRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
     const aoMat = new THREE.ShaderMaterial({
       name: 'PortSolanaContactAO',
-      uniforms: { tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uFar: { value: 3.2 }, uR2: { value: 1 } },
+      uniforms: { tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uFar: { value: 3.2 }, uR2: { value: 1 },
+        tCloud: { value: null }, uViewInv: { value: new THREE.Matrix4() }, uCloudWin: { value: new THREE.Vector4(0, 0, 1, 0) }, uCloudSun: { value: new THREE.Vector4(0, 1, 0, 0) } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
       fragmentShader: /* glsl */`
         uniform sampler2D tDepth; uniform mat4 uProjInv; uniform float uProjY, uAspect, uRadius, uIntensity, uFrameN, uLook3, uFar, uR2; uniform vec2 uRes;
+        uniform sampler2D tCloud; uniform mat4 uViewInv; uniform vec4 uCloudWin; uniform vec4 uCloudSun; // win: x0, z0, size, strength; sun: dir xyz, cloud base m
+        // r2-look: ground cloud shadows. The world point is moved along the sun direction up to the cloud base and looked up in
+        // the cloud-coverage map (cloudShadow pass, same field as the sky). 1 = full sun.
+        float cloudVis( vec3 P ) {
+          if ( uCloudWin.w <= 0.0 ) return 1.0;
+          vec3 wp = ( uViewInv * vec4( P, 1.0 ) ).xyz;
+          vec2 q = wp.xz + uCloudSun.xz / max( uCloudSun.y, 0.08 ) * max( uCloudSun.w - wp.y, 0.0 );
+          vec2 uv = ( q - uCloudWin.xy ) / uCloudWin.z;
+          float edge = smoothstep( 0.0, 0.08, min( min( uv.x, uv.y ), min( 1.0 - uv.x, 1.0 - uv.y ) ) );
+          return 1.0 - texture2D( tCloud, uv ).r * uCloudWin.w * edge;
+        }
         varying vec2 vUv;
         vec3 viewPos( vec2 uv ) { float d = texture2D( tDepth, uv ).x; vec4 v = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); return v.xyz / v.w; }
         float bayer4( vec2 p ) { // 0..15, every 4x4 block holds each value once
@@ -139,14 +151,15 @@ export function createPost(game) {
           float d = texture2D( tDepth, vUv ).x;
           if ( d >= 0.99995 ) { gl_FragColor = vec4( 1.0, 6e4, 0.0, 1.0 ); return; }
           vec3 P = viewPos( vUv );
+          float cV = cloudVis( P );
           float fade = 1.0 - smoothstep( 55.0, 130.0, -P.z );
-          if ( fade <= 0.0 ) { gl_FragColor = vec4( 1.0, -P.z, 0.0, 1.0 ); return; }
+          if ( fade <= 0.0 ) { gl_FragColor = vec4( 1.0, -P.z, cV, 1.0 ); return; }
           vec2 px = 1.0 / uRes;
           vec3 dx1 = viewPos( vUv + vec2( px.x, 0.0 ) ) - P, dx2 = P - viewPos( vUv - vec2( px.x, 0.0 ) );
           vec3 dy1 = viewPos( vUv + vec2( 0.0, px.y ) ) - P, dy2 = P - viewPos( vUv - vec2( 0.0, px.y ) );
           vec3 Nc = cross( abs( dx1.z ) < abs( dx2.z ) ? dx1 : dx2, abs( dy1.z ) < abs( dy2.z ) ? dy1 : dy2 );
           float nl = dot( Nc, Nc );
-          if ( !( nl > 1e-16 ) ) { gl_FragColor = vec4( 1.0, -P.z, 0.0, 1.0 ); return; }
+          if ( !( nl > 1e-16 ) ) { gl_FragColor = vec4( 1.0, -P.z, cV, 1.0 ); return; }
           vec3 N = Nc * inversesqrt( nl );
           float rad = clamp( uRadius * uProjY * 0.5 / max( -P.z, 0.3 ), 3.0 * px.y, 0.09 );
           float worldR = rad * 2.0 * max( -P.z, 0.3 ) / uProjY; // radius actually covered after clamping
@@ -178,11 +191,53 @@ export function createPost(game) {
             aoV = pow( aoV, 1.15 );
           }
           if ( !( aoV == aoV ) ) aoV = 1.0;
-          gl_FragColor = vec4( mix( 1.0, aoV, fade ), -P.z, 0.0, 1.0 );
+          gl_FragColor = vec4( mix( 1.0, aoV, fade ), -P.z, cV, 1.0 );
         }`,
       depthTest: false,
       depthWrite: false,
     });
+    // r2-look: cloud coverage map for the ground cloud shadows: 512 x 512 texels over a 4 km window around the camera,
+    // redrawn every frame (the clouds drift) from the same cumulus field as the sky (skyShader.js cloudShape, keep in sync)
+    const cloudRT = new THREE.WebGLRenderTarget(512, 512, { type: THREE.UnsignedByteType, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+    const cloudMat = new THREE.ShaderMaterial({
+      name: 'PortSolanaCloudShadowMap',
+      uniforms: { uWin: { value: new THREE.Vector4() }, uCam: { value: new THREE.Vector2() }, uOff: { value: new THREE.Vector2() }, uCov: { value: 0.4 }, uBase: { value: 1100 } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+      fragmentShader: /* glsl */`
+        uniform vec4 uWin; uniform vec2 uCam; uniform vec2 uOff; uniform float uCov; uniform float uBase;
+        varying vec2 vUv;
+        float hash12( vec2 p ) { vec3 p3 = fract( vec3( p.xyx ) * 0.1031 ); p3 += dot( p3, p3.yzx + 33.33 ); return fract( ( p3.x + p3.y ) * p3.z ); }
+        vec3 hash33( vec3 p3 ) { p3 = fract( p3 * vec3( 0.1031, 0.1030, 0.0973 ) ); p3 += dot( p3, p3.yxz + 33.33 ); return fract( ( p3.xxy + p3.yxx ) * p3.zyx ); }
+        float vnoise( vec2 p ) { vec2 i = floor( p ); vec2 f = fract( p ); vec2 u = f * f * ( 3.0 - 2.0 * f );
+          return mix( mix( hash12( i ), hash12( i + vec2( 1.0, 0.0 ) ), u.x ), mix( hash12( i + vec2( 0.0, 1.0 ) ), hash12( i + vec2( 1.0, 1.0 ) ), u.x ), u.y ); }
+        const mat2 ROT = mat2( 0.8, -0.6, 0.6, 0.8 );
+        float fbm3( vec2 p ) { float a = 0.5, s = 0.0; for ( int i = 0; i < 3; i++ ) { s += a * vnoise( p ); p = ROT * p * 2.1 + 5.3; a *= 0.5; } return s; }
+        float worley( vec2 p ) { vec2 i = floor( p ), f = fract( p ); float md = 1.0;
+          for ( int y = -1; y <= 1; y++ ) for ( int x = -1; x <= 1; x++ ) { vec2 g = vec2( float( x ), float( y ) ); vec2 o = hash33( vec3( i + g, 7.0 ) ).xy; md = min( md, length( g + o - f ) ); }
+          return 1.0 - md; }
+        float cloudShape( vec2 p ) {
+          p += ( vec2( vnoise( p * 0.45 + 3.1 ), vnoise( p * 0.45 + 8.7 ) ) - 0.5 ) * 0.35; // same warp as the sky (uCloudR2)
+          float base = vnoise( p * 0.33 + 31.0 ) * 0.65 + vnoise( p * 0.71 ) * 0.35;
+          float cells = worley( p * 0.85 + 11.0 );
+          float bil = worley( p * 3.1 + 7.0 );
+          float det = fbm3( p * 5.2 + 3.0 );
+          return base * 0.28 + cells * 0.39 + bil * 0.18 + det * 0.15;
+        }
+        void main() {
+          vec2 q = uWin.xy + vUv * uWin.z;                   // world xz on the cloud layer
+          vec2 p = ( q - uCam ) * 1.9 / uBase + uOff;        // the sky's own cloud coordinates (uCloudOff is world-anchored)
+          float n = cloudShape( p );
+          float cov = 1.03 - uCov;
+          gl_FragColor = vec4( vec3( smoothstep( cov - 0.01, cov + 0.11, n ) ), 1.0 ); // a little wider than the visible cloud: soft penumbra
+        }`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const cloudQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), cloudMat);
+    cloudQuad.frustumCulled = false;
+    const cloudScene = new THREE.Scene();
+    cloudScene.add(cloudQuad);
+    const CLOUD_WIN = 4096;
     const aoQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), aoMat);
     aoQuad.frustumCulled = false;
     const aoScene = new THREE.Scene();
@@ -209,8 +264,11 @@ export function createPost(game) {
           float aoV = sw > 0.01 && uBlur > 0.5 ? sa / sw : a0.x;
           float l = dot( c.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
           aoV = mix( aoV, 1.0, 0.5 * smoothstep( 0.8, 3.0, l ) ); // emissives and hot highlights keep their energy
-          // look3: lit opaque materials store their ambient share in alpha (look3.js): AO only darkens that share
-          c.rgb *= mix( 1.0, aoV, uShare > 0.5 ? clamp( c.a, 0.0, 1.0 ) : 1.0 );
+          // look3: lit opaque materials store their ambient share in alpha (look3.js): AO only darkens that share,
+          // the cloud shadow only the direct (sun) share
+          float sh = uShare > 0.5 ? clamp( c.a, 0.0, 1.0 ) : 1.0;
+          float cV = uShare > 0.5 ? texture2D( tAO, vUv ).z : 1.0;
+          c.rgb *= sh * aoV + ( 1.0 - sh ) * cV;
           gl_FragColor = vec4( c.rgb, 1.0 );
         }`,
     });
@@ -226,6 +284,26 @@ export function createPost(game) {
       U.uAspect.value = W / H;
       U.uRes.value.set(rb.width, rb.height);
       U.uLook3.value = game.look3 && game.look3Parts?.ao !== false ? 1 : 0;
+      U.uIntensity.value = game.look3 && game.lookR2 !== false ? (game.lookAOR2 ?? 1.9) : 1.5; // r2-look: more contact AO (corners, under cars, porches)
+      {
+        // ground cloud shadows (look3 + round 2, by day, fading out with overcast where the whole sky already dims the sun)
+        const env = game.env, sky = env?.sky?.material?.uniforms, sd = env?.sunDir;
+        const strength = game.look3 && game.lookR2 !== false && game.lookCloudShadows !== false && sky && sd && sd.y > 0.02
+          ? (game.lookCloudShadow ?? 0.7) * (env.dayFactor ?? 1) * (1 - (sky.uOvercast?.value ?? 0)) * (1 - (env.indoor || 0)) * THREE.MathUtils.smoothstep(sd.y, 0.02, 0.12) : 0;
+        U.uCloudWin.value.w = strength;
+        if (strength > 0) {
+          const cam = camera.position, tex = CLOUD_WIN / 512, base = env.cloudBase || 1100;
+          const x0 = Math.round((cam.x - CLOUD_WIN / 2) / tex) * tex, z0 = Math.round((cam.z - CLOUD_WIN / 2) / tex) * tex;
+          U.uCloudWin.value.set(x0, z0, CLOUD_WIN, strength);
+          U.uCloudSun.value.set(sd.x, sd.y, sd.z, base);
+          const C = cloudMat.uniforms;
+          C.uWin.value.set(x0, z0, CLOUD_WIN, 0); C.uCam.value.set(cam.x, cam.z); C.uOff.value.copy(sky.uCloudOff.value); C.uCov.value = sky.uCloudCover.value; C.uBase.value = base;
+          r.setRenderTarget(cloudRT);
+          r.render(cloudScene, aoCam);
+          U.tCloud.value = cloudRT.texture;
+          U.uViewInv.value.copy(camera.matrixWorld);
+        }
+      }
       r.setRenderTarget(aoRT);
       r.render(aoScene, aoCam);
       ao.material.uniforms.tAO.value = aoRT.texture;
@@ -238,6 +316,70 @@ export function createPost(game) {
     };
     composer.addPass(ao);
   } catch (e) { console.warn('[post] contact AO unavailable', e); ao = null; }
+
+  // ---------- r2-look: volumetric sun shafts (humid air in-scatter, shadowed by the real sun shadow maps) ----------
+  // Every pixel marches its view ray (up to 90 m, 8 steps, jittered per frame: TAA resolves it) through the near static
+  // cascade (+-40 m) and the city map beyond it. Lit steps add sun in-scatter with a forward-scattering phase, so beams
+  // open up through palm crowns, porch gaps and between buildings, strongest toward a low sun. Additive and small: the
+  // fog keeps the overall haze. On by itself only with a low sun (morning / golden hour, where beams read; about 1 ms);
+  // game.lookShafts = true forces it at any hour, false turns it off; game.lookShaftK scales it.
+  let shafts = null;
+  try {
+    if (!target.depthTexture) throw new Error('depth texture unavailable');
+    shafts = new ShaderPass({
+      name: 'SouthlineSunShafts',
+      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uViewInv: { value: new THREE.Matrix4() },
+        tNear: { value: null }, uNearM: { value: new THREE.Matrix4() }, tFar: { value: null }, uFarM: { value: new THREE.Matrix4() },
+        uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color() }, uK: { value: 0 }, uFrameN: FRAME_NOISE },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: /* glsl */`
+        #include <packing>
+        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProjInv, uViewInv, uNearM, uFarM;
+        uniform sampler2D tNear; uniform sampler2D tFar; uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uK, uFrameN;
+        varying vec2 vUv;
+        float lit( sampler2D m, mat4 M, vec3 w, out bool inside ) {
+          vec4 sc = M * vec4( w, 1.0 ); sc.xyz /= sc.w;
+          inside = all( greaterThan( sc.xy, vec2( 0.01 ) ) ) && all( lessThan( sc.xy, vec2( 0.99 ) ) ) && sc.z < 1.0;
+          return step( sc.z - 0.0008, unpackRGBAToDepth( texture2D( m, sc.xy ) ) );
+        }
+        void main() {
+          vec4 c = texture2D( tDiffuse, vUv );
+          float d = texture2D( tDepth, vUv ).x;
+          vec4 v = uProjInv * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); vec3 P = v.xyz / v.w;
+          float L = min( length( P ), 90.0 );
+          vec3 dirV = normalize( P );
+          vec3 o = ( uViewInv * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz, dw = normalize( ( uViewInv * vec4( dirV, 0.0 ) ).xyz );
+          float cosT = dot( dw, uSunDir );
+          float g = 0.72, ph = ( 1.0 - g * g ) / pow( 1.0 + g * g - 2.0 * g * cosT, 1.5 ) * 0.0796; // Henyey-Greenstein
+          float j = fract( fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) ) + 0.61803399 * uFrameN );
+          float acc = 0.0; const int N = 8;
+          for ( int i = 0; i < N; i++ ) {
+            float t = ( float( i ) + j ) / float( N ); t = t * t * L; // denser near the camera
+            vec3 w = o + dw * t; bool inN, inF;
+            float ln = lit( tNear, uNearM, w, inN );
+            acc += inN ? ln : lit( tFar, uFarM, w, inF );
+          }
+          acc /= float( N );
+          c.rgb += uSunCol * ( acc * ph * uK * L );
+          gl_FragColor = c;
+        }`,
+    });
+    shafts.material.depthTest = false; shafts.material.depthWrite = false;
+    const shRender = shafts.render.bind(shafts);
+    shafts.render = (r, wb, rb, dt, mask) => {
+      const U = shafts.uniforms, env = game.env;
+      U.tDepth.value = sceneDepth || rb.depthTexture;
+      U.uProjInv.value.copy(camera.projectionMatrixInverse);
+      U.uViewInv.value.copy(camera.matrixWorld);
+      U.tNear.value = env.sunNear.shadow.map.texture; U.uNearM.value.copy(env.sunNear.shadow.matrix);
+      U.tFar.value = env.sun.shadow.map.texture; U.uFarM.value.copy(env.sun.shadow.matrix);
+      U.uSunDir.value.copy(env.sunDir);
+      U.uSunCol.value.copy(env.sun.color).multiplyScalar(env.sun.intensity);
+      shRender(r, wb, rb, dt, mask);
+    };
+    shafts.enabled = false;
+    composer.addPass(shafts);
+  } catch (e) { console.warn('[post] sun shafts unavailable', e); shafts = null; }
 
   // Sanitize the HDR image before bloom: a single NaN / Inf pixel (an overflowing specular or emissive highlight, a 0/0 in
   // some material) gets spread by bloom's down-sampled blur into flickering black squares. Replace non-finite values and
@@ -753,7 +895,7 @@ export function createPost(game) {
     perf,
     setBasePixelRatio() { /* fixed native resolution: kept for callers, does nothing */ },
     fitWindow,
-    composer, bloom, grade, gtao, smaa, ao, taa, ssr,
+    composer, bloom, grade, gtao, smaa, ao, taa, ssr, shafts,
     get renderScale() { return renderScale; },
     // depth of this frame's scene pass (the MSAA target's depth when MSAA is on); other passes must read this
     get sceneDepth() { return sceneDepth; },
@@ -784,6 +926,13 @@ export function createPost(game) {
         aoAllowed = want;
         gtao.enabled = aoAllowed;
       }
+      if (shafts) {
+        // humid in-scatter: a trace at noon, more in the morning / golden hour, scaled down by cloud cover / overcast
+        const env2 = game.env, sy = env2?.sunDir?.y ?? 1, skyU = env2?.sky?.material?.uniforms;
+        const k = (game.lookShaftK ?? 1) * 0.0016 * (env2?.dayFactor ?? 0) * (0.35 + 0.65 * (1 - THREE.MathUtils.smoothstep(sy, 0.1, 0.6))) * (1 - (skyU?.uOvercast?.value ?? 0)) * (1 - (env2?.indoor || 0));
+        shafts.uniforms.uK.value = k;
+        shafts.enabled = !!(game.look3 && game.lookR2 !== false && game.lookShafts !== false && (game.lookShafts === true || sy < 0.35) && k > 1e-6 && !env2?.underwater && env2?.sunNear?.shadow?.map && env2?.sun?.shadow?.map && env2.sunNear.castShadow);
+      }
       if (ssr) ssr.enabled = WEATHER_U[0] > 0.02 && !env?.underwater && (env?.indoor ?? 0) < 0.5 && game.settings?.quality !== 'low';
       if (ao) { ao.enabled = !gtao?.enabled && game.settings?.ao !== false && aoSafe && game.settings?.quality !== 'low' && !env?.underwater; perf.ao = ao.enabled; }
 
@@ -796,23 +945,28 @@ export function createPost(game) {
         // look3: a real sun-to-shade ratio (about 5:1 on flat ground at noon, as in the mock-ups): less flat sky fill,
         // a stronger sun, shade keeps a little of the sky's blue instead of going gray
         const L = game.look3 ? (game.look3L || (game.look3L = { ...L0, hemiDay: 0.95, envDay: 0.42, sunDay: 1.22, skyDesat: 0.5, bounce: 0.75, shadeTint: 0.35 })) : L0;
+        // r2-look / r2-art: open shade read navy; the sky fill is pulled further toward neutral in round 2
+        const skyDesat = game.look3 && game.lookR2 !== false ? (game.lookSkyDesat ?? 0.72) : L.skyDesat;
+        // r2-look (lead / outside critique at the mock-up camera: "brighter and harsher, less natural shading"): softer sun,
+        // more sky fill. Round 2 keeps the shade deep through the cast-shadow terms (shadows.js), not through a weak sky.
+        const LR = game.look3 && game.lookR2 !== false ? (game.lookR2L || (game.lookR2L = { hemiDay: 1.2, envDay: 0.52, sunDay: 1.04 })) : L;
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));
         // rescale only values environment.js wrote this frame (if it skipped a frame, e.g. paused, nothing compounds)
         if (env.hemi) {
           if (env.hemi.intensity !== lookW.hemi) lookB.hemi = env.hemi.intensity;
-          env.hemi.intensity = lookW.hemi = lookB.hemi * (1 + (L.hemiDay - 1) * dl);
+          env.hemi.intensity = lookW.hemi = lookB.hemi * (1 + (LR.hemiDay - 1) * dl);
         }
         if (env.sun) {
           if (env.sun.intensity !== lookW.sun) lookB.sun = env.sun.intensity;
-          env.sun.intensity = lookW.sun = lookB.sun * (1 + (L.sunDay - 1) * dl);
+          env.sun.intensity = lookW.sun = lookB.sun * (1 + (LR.sunDay - 1) * dl);
         }
         if ('environmentIntensity' in scene) {
           if (scene.environmentIntensity !== lookW.env) lookB.env = scene.environmentIntensity;
           // at night the sky env map is mostly a blurred moon: it put round hotspots in glass and lifted the street,
           // so it drops to 35% (night should be dark, lit by lamps and windows)
-          scene.environmentIntensity = lookW.env = lookB.env * (1 + (L.envDay - 1) * dl) * (1 - 0.65 * night * (L.nightEnv ?? 1));
+          scene.environmentIntensity = lookW.env = lookB.env * (1 + (LR.envDay - 1) * dl) * (1 - 0.65 * night * (L.nightEnv ?? 1));
         }
         // neutral shade (navy-concrete fix): shaded faces were lit only by a saturated blue sky. By day the hemisphere
         // sky colour is pulled toward its own gray and the ground colour gets a warm sun bounce (sun x dry ground
@@ -825,7 +979,7 @@ export function createPost(game) {
           if (!hc.equals(lookCW.sky)) lookCB.sky.copy(hc);
           if (!hg.equals(lookCW.gnd)) lookCB.gnd.copy(hg);
           const lum = lookCB.sky.r * 0.2126 + lookCB.sky.g * 0.7152 + lookCB.sky.b * 0.0722;
-          const k = L.skyDesat * dn;
+          const k = skyDesat * dn;
           hc.setRGB(lookCB.sky.r + (lum * 1.02 - lookCB.sky.r) * k, lookCB.sky.g + (lum * 1.0 - lookCB.sky.g) * k, lookCB.sky.b + (lum * 1.04 - lookCB.sky.b) * k);
           const sc = env.sun ? env.sun.color : hc;
           const b = L.bounce * dn;
@@ -881,7 +1035,7 @@ export function createPost(game) {
         if (game.lookAEInstant) ae.comp = want;
         A.avgLog = ae.avgLog; A.comp = ae.comp;
       }
-      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp);
+      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp) * (game.look3 && game.lookR2 !== false ? (game.lookExpR2 ?? 0.9) : 1); // r2-look: -0.15 stop (mock-up)
       // god rays: only when the sun is on/near screen; stronger when low (golden hour)
       const low = 1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.1, 0.5);
       gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (LOOK_OFF ? 0.3 + 0.25 * low : 0.12 + 0.13 * low) : 0; // look track: shafts halved (user: glare too strong and hazy)
@@ -921,8 +1075,8 @@ export function createPost(game) {
           gu.uGain.value.set(1.03 - 0.015 * r2d - 0.012 * gc, 1.0 + 0.03 * gc, 0.96 + 0.02 * r2d - 0.008 * gc);
           gu.uContrast.value = G.contrast + 0.06 * dayOnly;
           gu.uShadowTint.value.y *= 1 - 0.8 * r2d; // r2-look / r2-art: shade neutral-to-slightly-cool by day, not teal
-          gu.uToe.value = G.toe * (0.6 + 0.4 * day);
-          gu.uHighTint.value.set(0.024 - 0.012 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
+          gu.uToe.value = G.toe * (0.6 + 0.4 * day) * (game.lookR2 !== false ? 0.5 : 1); // r2-look: slightly lifted, hazy filmic blacks
+          gu.uHighTint.value.set(0.024 - 0.005 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
         }
       }
       if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
@@ -976,11 +1130,19 @@ export function createPost(game) {
       // r2-look shaded ambient (shadows.js): share of sky / bounce light lost in a cast shadow, by day, outdoors (game.lookShadeAmb)
       LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.35) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
       {
+        // bounce into cast shadows: sun irradiance on the ground x surrounding albedo (~0.2) x the share of the view it fills
+        const e = game.env, on = game.look3 && game.lookR2 !== false && e?.sun && e.sunDir;
+        const k = on ? (game.lookShadeBounce ?? 0.13) * e.sun.intensity * Math.max(0, e.sunDir.y) * (e.dayFactor ?? 1) * (1 - (e.indoor || 0)) : 0;
+        const c = e?.sun?.color;
+        LOOK_W[1] = c ? c.r * k : 0; LOOK_W[2] = c ? c.g * k * 0.98 : 0; LOOK_W[3] = c ? c.b * k * 0.93 : 0; // a touch warm (sand, stucco)
+      }
+      {
         // aerial perspective (clear weather): humid Florida air, a touch more by day than the old cap, thick at golden hour
         const sy = game.env?.sunDir?.y ?? 0.5;
         const gold = (game.env?.dayFactor ?? 1) * (1 - THREE.MathUtils.smoothstep(sy, 0.04, 0.3));
         const H = game.lookHaze || (game.lookHaze = { day: 0.00026, golden: 0.00046, night: 0.00021 });
-        LOOK_V[0] = game.look3 ? THREE.MathUtils.lerp(THREE.MathUtils.lerp(H.night, H.day, game.env?.dayFactor ?? 1), H.golden, gold) : 0;
+        const hz = game.lookR2 !== false ? (game.lookHazeR2 ?? 1.3) : 1; // r2-look: humid, slightly hazy distance (mock-up)
+        LOOK_V[0] = game.look3 ? THREE.MathUtils.lerp(THREE.MathUtils.lerp(H.night, H.day * hz, game.env?.dayFactor ?? 1), H.golden, gold) : 0;
       }
       try {
         composer.render(dt);

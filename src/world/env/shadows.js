@@ -87,7 +87,9 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
 {
 	float psAmb = mix( 1.0 - uLookW.x, 1.0, psSunVis );
 	#if defined( RE_IndirectDiffuse )
-	irradiance *= psAmb;
+	// ...and gains the light bounced off the sunlit ground and walls around it (uLookW.yzw, set per frame from the sun):
+	// shade stays deep but readable and neutral instead of navy-black (r2-art review)
+	irradiance = irradiance * psAmb + uLookW.yzw * ( 1.0 - psSunVis );
 	#endif
 	#if defined( RE_IndirectSpecular )
 	iblIrradiance *= psAmb;
