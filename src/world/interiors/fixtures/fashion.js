@@ -90,10 +90,16 @@ export function fittingRooms(ctx, x, z, ry, o = {}) {
     G.box(wall, 0, 2.38, 0.6, W + 0.06, 0.16, 1.2); });
 }
 // sneaker wall (local z = 0 is the wall): lit shelves, one shoe per slot (two-box sneaker form)
+// side-on sneaker (heel -> toe along x, 0.27 m): upper with collar dip and tongue rise, a thicker cupsole; shared per part
+const SHOE = {};
+function shoeGeo(part) { if (SHOE[part]) return SHOE[part]; const sh = new THREE.Shape();
+  if (part === 'sole') { sh.moveTo(-0.135, 0); sh.lineTo(0.12, 0); sh.quadraticCurveTo(0.14, 0, 0.14, 0.018); sh.lineTo(-0.137, 0.024); sh.lineTo(-0.135, 0); }
+  else { sh.moveTo(-0.13, 0.02); sh.lineTo(-0.133, 0.075); sh.quadraticCurveTo(-0.12, 0.09, -0.1, 0.085); sh.quadraticCurveTo(-0.05, 0.062, 0.0, 0.08); sh.lineTo(0.035, 0.07); sh.quadraticCurveTo(0.1, 0.05, 0.128, 0.032); sh.quadraticCurveTo(0.14, 0.022, 0.136, 0.018); sh.lineTo(-0.13, 0.02); }
+  const g = new THREE.ExtrudeGeometry(sh, { depth: part === 'sole' ? 0.1 : 0.088, bevelEnabled: false, curveSegments: 4 }); g.translate(0, 0, part === 'sole' ? -0.05 : -0.044); return (SHOE[part] = g); }
 export function sneakerWall(ctx, x, z, ry, o = {}) {
   const { G, M } = ctx, R = ctx.R, L = o.l || 2.4, rows = o.rows || 6, shelf = M.flat(o.shelfC || '#e8e8e4', { rough: 0.3 }), cols = o.colors || [[240, 240, 236], [20, 20, 22], [220, 40, 50], [40, 120, 220], [250, 200, 40]];
   G.at(x, z, ry, () => { G.plane(M.flat(o.backC || '#16161a', { rough: 0.6 }), 0, 1.4, 0.01, L, 2.4);
     for (let r = 0; r < rows; r++) { const y = 0.45 + r * 0.34; G.box(shelf, 0, y, 0.15, L - 0.06, 0.02, 0.26); FIXTURES.led(ctx, [-L / 2 + 0.05, y - 0.015, 0.27], [L / 2 - 0.05, y - 0.015, 0.27], { color: o.led || '#eaf6ff', k: 0.45, glow: 2.2, w: 0.008, d: [0, -1, 0.1], every: 1.2 });
-      for (let u = -L / 2 + 0.18; u < L / 2 - 0.12; u += 0.3) { if (R.chance(0.08)) continue; const c = R.pick(cols), c2 = R.pick(cols); G.box(fab(ctx, c), u, y + 0.045, 0.15, 0.1, 0.07, 0.26); G.box(M.flat('#f2f2ee', { rough: 0.6 }), u, y + 0.018, 0.15, 0.105, 0.02, 0.27); G.box(fab(ctx, c2), u, y + 0.07, 0.07, 0.09, 0.05, 0.08); } }
+      for (let u = -L / 2 + 0.18; u < L / 2 - 0.12; u += 0.3) { if (R.chance(0.08)) continue; const c = R.pick(cols), c2 = R.pick(cols); const fl = R.chance(0.5) ? 1 : -1, ms = new THREE.Matrix4().compose(new THREE.Vector3(u, y + 0.01, 0.15), new THREE.Quaternion(), new THREE.Vector3(fl, 1, 1)); G.add(fab(ctx, c), shoeGeo('upper'), ms); G.add(R.chance(0.7) ? M.flat('#f2f2ee', { rough: 0.6 }) : fab(ctx, c2), shoeGeo('sole'), ms); } }
     ctx.solid(-L / 2, 0, 0, L / 2, 2.6, 0.3, { occ: false }); });
 }
