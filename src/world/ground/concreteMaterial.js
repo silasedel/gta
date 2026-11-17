@@ -41,7 +41,7 @@ vec3 ccNrmT = vec3(0.0);
         vec3 c1 = ccTri(tCcC, vCcP, bw, 1.0 / 1.7).rgb, c2 = ccTri(tCcC, vCcP + 17.3, bw, 1.0 / 9.0).rgb;
         vec3 avg = max(textureLod(tCcC, vec2(0.5), 11.0).rgb, vec3(0.05));
         float l1 = dot(c1 / avg, vec3(0.333)), l2 = dot(c2 / avg, vec3(0.333));
-        float det = clamp(mix(1.0, l1, 0.42) * mix(1.0, l2, 0.35), 0.7, 1.3); // cast concrete is smooth-ish: fine pitting, soft tone drift
+        float det = clamp(mix(1.0, l1, 0.3) * mix(1.0, l2, 0.3), 0.78, 1.22); // cast concrete is smooth-ish: fine pitting, soft tone drift
         // run coordinate along the wall (dominant horizontal axis), height
         float run = abs(wn.x) > abs(wn.z) ? vCcP.z : vCcP.x, hy = vCcP.y;
         float vert = 1.0 - abs(wn.y);
