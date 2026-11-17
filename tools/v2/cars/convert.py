@@ -1386,7 +1386,7 @@ inset = 0.16
 def inner(f, cl):
     c = f.calc_center_median()
     return (abs(c[0]) < bhi[0] - inset - 0.1 and c[2] > rW * 1.5 and c[2] < bhi[2] - 0.12 and blo[1] + 0.6 < c[1] < bhi[1] - 0.6 and f.material_index == 2)
-drop_faces(b1, inner)
+if not CFG.get('keepInnerLod'): drop_faces(b1, inner)   # (police1 / suv13: tinted windows are dark trim inside the inset box)
 # mid / far LODs are decimated PER SLOT (user: "from a distance the paint jobs get screwed up, splotches of other colors"):
 # one collapse over the whole body let lamp / trim / glass triangles stretch across the paint and tore the double-skinned
 # panels into shards (suv12 / truck9 LOD2 had spikes meters long).  Glass gets a planar dissolve; every other slot is welded
