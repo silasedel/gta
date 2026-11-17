@@ -37,11 +37,12 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     await b.eval(`(() => { const L = game.peds.list.filter((p) => p.active && p.char && !p.dead);
       let best = null, bn = -1; for (const p of L) { let n = 0; for (const q of L) if (q !== p && q.pos.distanceTo(p.pos) < 12) n++; if (n > bn) { bn = n; best = p; } }
       if (!best) return 0; window.__focus = best;
-      // camera on the same sidewalk, 11 m back along the street, eye height: a clear line of sight to the group
-      const t0 = best.pos.clone(); let dx = 0, dz = 1;
-      try { const r = game.city.roadGraph.nearestEdge(t0.x, t0.z); const e = r.edge; let bi = 1, bd = 1e9; for (let i = 1; i < e.pts.length; i++) { const d = Math.hypot((e.pts[i][0] + e.pts[i - 1][0]) / 2 - t0.x, (e.pts[i][1] + e.pts[i - 1][1]) / 2 - t0.z); if (d < bd) { bd = d; bi = i; } } dx = e.pts[bi][0] - e.pts[bi - 1][0]; dz = e.pts[bi][1] - e.pts[bi - 1][1]; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; } catch (e) { /* */ }
-      const cx = t0.x - dx * 11, cz = t0.z - dz * 11, cy = (game.city.groundHeightAt(cx, cz, t0.y + 1) ?? t0.y) + 1.7;
-      game.cameraOverride = (dt, cam) => { cam.position.set(cx, cy, cz); cam.lookAt(t0.x + dx * 4, t0.y + 1.2, t0.z + dz * 4); return true; };
+      // camera on the open road next to the group (roads are clear sight lines), 9 m back along the street, eye height
+      const t0 = best.pos.clone(); let dx = 0, dz = 1, ex = t0.x, ez = t0.z;
+      try { const r = game.city.roadGraph.nearestEdge(t0.x, t0.z); const e = r.edge; let bi = 1, bd = 1e9; for (let i = 1; i < e.pts.length; i++) { const d = Math.hypot((e.pts[i][0] + e.pts[i - 1][0]) / 2 - t0.x, (e.pts[i][1] + e.pts[i - 1][1]) / 2 - t0.z); if (d < bd) { bd = d; bi = i; } } const ax = e.pts[bi - 1][0], az = e.pts[bi - 1][1]; dx = e.pts[bi][0] - ax; dz = e.pts[bi][1] - az; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; const tt = (t0.x - ax) * dx + (t0.z - az) * dz; ex = ax + dx * tt; ez = az + dz * tt; } catch (e) { /* */ }
+      // stand between the road center and the curb
+      const cx = ex + (t0.x - ex) * 0.45 - dx * 9, cz = ez + (t0.z - ez) * 0.45 - dz * 9, cy = (game.city.groundHeightAt(cx, cz, t0.y + 1) ?? t0.y) + 1.65;
+      game.cameraOverride = (dt, cam) => { cam.position.set(cx, cy, cz); cam.lookAt(t0.x + dx * 3, t0.y + 1.1, t0.z + dz * 3); return true; };
       return bn; })()`);
     await b.sleep(1500);
     await b.screenshot(`${DIR}/${SET}_${id}_street.png`);
@@ -61,7 +62,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     if (o.ragdoll) {
       // knock one of the user's people down (car-hit strength) and film the fall and the ground pose
       const who = await b.eval(`(() => { const p = game.peds.list.find((q) => q.active && !q.dead && q.char?.human?.person && q.pos.distanceTo(game.player.position) < 60); if (!p) return 'none'; window.__rag = p;
-        game.cameraOverride = (dt, cam) => { const t = window.__rag.root ? window.__rag.char.getBone('Hips').getWorldPosition(new (game.player.position.constructor)()) : window.__rag.pos; cam.position.set(t.x + 3.2, t.y + 1.6, t.z + 3.2); cam.lookAt(t.x, t.y + 0.2, t.z); return true; };
+        game.cameraOverride = (dt, cam) => { const t = window.__rag.root ? window.__rag.char.getBone('Hips').getWorldPosition(new (game.player.position.constructor)()) : window.__rag.pos; const e = game.city.roadGraph.nearestEdge(t.x, t.z); const q = e?.point || null; let ox = 3.2, oz = 3.2; if (q) { const l = Math.hypot(q.x - t.x, q.z - t.z) || 1; ox = (q.x - t.x) / l * 4.5; oz = (q.z - t.z) / l * 4.5; } cam.position.set(t.x + ox, t.y + 1.7, t.z + oz); cam.lookAt(t.x, t.y + 0.3, t.z); return true; };
         game.peds.damage(p, 30, { x: 1, z: 0.3 }, 'car', { impulse: 6000 }); return p.char.npcArch + ' ' + p.state; })()`);
       console.log('  ragdoll', who);
       if (who !== 'none') { await b.sleep(450); await b.screenshot(`${DIR}/${SET}_${id}_rag0.png`); await b.sleep(2200); await b.screenshot(`${DIR}/${SET}_${id}_rag1.png`); }
