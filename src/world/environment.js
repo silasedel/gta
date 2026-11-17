@@ -94,6 +94,14 @@ export async function createEnvironment(game) {
   const envSky = new THREE.Mesh(skyGeo, skyMat);
   envSky.frustumCulled = false; envSky.scale.setScalar(50);
   envScene.add(envSky);
+  // look3: the lower half of the environment map is ground (sun- and sky-lit sand / asphalt / grass), not more haze:
+  // car paint, glass and wet roads reflected a bright fog-colored floor and every underside got lit from below
+  const envGroundMat = new THREE.MeshBasicMaterial({ color: 0x404040, fog: false, side: THREE.DoubleSide, toneMapped: false });
+  const envGround = new THREE.Mesh(new THREE.CircleGeometry(400, 48).rotateX(-Math.PI / 2), envGroundMat);
+  envGround.position.y = -1.2; // about 0.2 degrees below the horizon at 400 m: the haze band stays above the ground line
+  envGround.frustumCulled = false;
+  envScene.add(envGround);
+  const envGroundCol = new THREE.Color();
   // env map: sky -> 128 cube (CubeCamera) -> PMREM into a *reused* target; the two steps run on different frames
   const pmrem = new THREE.PMREMGenerator(renderer);
   const ENV_CUBE = 64;
@@ -117,7 +125,7 @@ export async function createEnvironment(game) {
   sun.shadow.camera.updateProjectionMatrix();
   sun.shadow.bias = -0.0003;
   sun.shadow.normalBias = 0.07;
-  sun.shadow.radius = 3;
+  sun.shadow.radius = 2 * SHADOW_R; // look3: soft-shadow filter reads the frustum width in meters from here
   scene.add(sun, sun.target);
   // zero-intensity twin of the sun that only provides the per-frame dynamic shadow map
   const sunDyn = new THREE.DirectionalLight(0xffffff, 0);
@@ -126,7 +134,7 @@ export async function createEnvironment(game) {
   sunDyn.shadow.mapSize.set(DYN_SIZE, DYN_SIZE);
   Object.assign(sunDyn.shadow.camera, { left: -DYN_R, right: DYN_R, top: DYN_R, bottom: -DYN_R, near: 1, far: 900 });
   sunDyn.shadow.camera.updateProjectionMatrix();
-  sunDyn.shadow.bias = -0.0003; sunDyn.shadow.normalBias = 0.03; sunDyn.shadow.radius = 2;
+  sunDyn.shadow.bias = -0.0003; sunDyn.shadow.normalBias = 0.03; sunDyn.shadow.radius = 2 * DYN_R;
   scene.add(sunDyn, sunDyn.target);
   const split = splitOK ? createSplitShadows(game, sun, sunDyn) : null;
   game.__psSplit = split;
@@ -181,6 +189,7 @@ export async function createEnvironment(game) {
           }
         }
         Object.assign(light.shadow.camera, { left: -R, right: R, top: R, bottom: -R });
+        light.shadow.radius = 2 * R; // look3 soft shadows: frustum width in meters
         light.shadow.camera.updateProjectionMatrix();
       };
       SHADOW_SIZE = q.size ?? SHADOW_SIZE;
@@ -379,6 +388,15 @@ export async function createEnvironment(game) {
       } else if (envTimer > 6 || lastEnvSun.distanceToSquared(sunDir) > 0.0006) {
         // step 1: render the sky into a small cube
         envTimer = 0; lastEnvSun.copy(sunDir);
+        // ground irradiance for the env map floor: sun on flat ground + sky fill, times a warm sandy/paved albedo (~0.22)
+        envGround.visible = game.look3 !== false;
+        if (envGround.visible) {
+          const sunE = sun.intensity * Math.max(0, lightDir.y) / Math.PI;
+          envGroundCol.copy(sun.color).multiplyScalar(sunE).add(tmpC.copy(hemi.color).multiplyScalar(hemi.intensity * 0.9));
+          envGroundCol.multiply(tmpC.setRGB(0.24, 0.21, 0.17));
+          // blend toward the haze color so the floor meets the horizon without a dark band
+          envGroundMat.color.copy(envGroundCol).lerp(scene.fog.color, 0.25);
+        }
         envCubeCam.update(renderer, envScene);
         envPhase = 1;
       }

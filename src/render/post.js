@@ -10,6 +10,7 @@ import { GradeShader } from './gradeShader.js';
 import { advanceFrameNoise, FRAME_NOISE } from './frameNoise.js';
 import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
+import { LOOK_U, LOOK_V, LOOK3_DEFAULT } from './look3.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
@@ -111,10 +112,10 @@ export function createPost(game) {
     if (!target.depthTexture) throw new Error('depth texture unavailable');
     ao = new ShaderPass({
       name: 'PortSolanaContactAO',
-      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 } },
+      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uFar: { value: 3.2 } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: /* glsl */`
-        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProjInv; uniform float uProjY, uAspect, uRadius, uIntensity; uniform vec2 uRes;
+        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProjInv; uniform float uProjY, uAspect, uRadius, uIntensity, uFrameN, uLook3, uFar; uniform vec2 uRes;
         varying vec2 vUv;
         vec3 viewPos( vec2 uv ) { float d = texture2D( tDepth, uv ).x; vec4 v = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); return v.xyz / v.w; }
         void main() {
@@ -133,7 +134,8 @@ export function createPost(game) {
           vec3 N = Nc * inversesqrt( nl );
           float rad = clamp( uRadius * uProjY * 0.5 / max( -P.z, 0.3 ), 3.0 * px.y, 0.09 );
           float worldR = rad * 2.0 * max( -P.z, 0.3 ) / uProjY; // radius actually covered after clamping
-          float n = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) ) * 6.2831853;
+          // look3: the kernel rotation moves every frame (uFrameN) so TAA averages it out (a fixed rotation is a fixed dot pattern)
+          float n = fract( 52.9829189 * fract( dot( gl_FragCoord.xy + 5.588238 * uFrameN * uLook3, vec2( 0.06711056, 0.00583715 ) ) ) ) * 6.2831853;
           float occ = 0.0;
           for ( int i = 0; i < 10; i++ ) {
             float fi = float( i );
@@ -144,6 +146,22 @@ export function createPost(game) {
             occ += max( dot( N, v ) * inversesqrt( d2 + 1e-5 ) - 0.12, 0.0 ) * max( 1.0 - d2 / ( worldR * worldR ), 0.0 );
           }
           float aoV = clamp( 1.0 - uIntensity * occ / 10.0 * 2.2, 0.0, 1.0 );
+          if ( uLook3 > 0.5 ) {
+            // look3: a wider ring (about 3 m) for the soft ambient darkening where objects meet the ground (cars, walls, bins)
+            float radF = clamp( uFar * uProjY * 0.5 / max( -P.z, 0.3 ), 3.0 * px.y, 0.16 );
+            float worldF = radF * 2.0 * max( -P.z, 0.3 ) / uProjY;
+            float occF = 0.0;
+            for ( int i = 0; i < 6; i++ ) {
+              float fi = float( i );
+              float a = n + 1.7 + fi * 2.39996323;
+              float r = sqrt( ( fi + 0.5 ) / 6.0 ) * radF;
+              vec3 v = viewPos( vUv + vec2( cos( a ) / uAspect, sin( a ) ) * r ) - P;
+              float d2 = dot( v, v );
+              occF += max( dot( N, v ) * inversesqrt( d2 + 1e-5 ) - 0.2, 0.0 ) * max( 1.0 - d2 / ( worldF * worldF ), 0.0 );
+            }
+            aoV *= clamp( 1.0 - occF / 6.0 * 1.25, 0.55, 1.0 );
+            aoV = pow( aoV, 1.15 );
+          }
           if ( !( aoV == aoV ) ) aoV = 1.0;
           float l = dot( c.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
           aoV = mix( aoV, 1.0, 0.5 * smoothstep( 0.8, 3.0, l ) ); // emissives and hot highlights keep their energy
@@ -160,6 +178,7 @@ export function createPost(game) {
       U.uProjY.value = camera.projectionMatrix.elements[5];
       U.uAspect.value = W / H;
       U.uRes.value.set(rb.width, rb.height);
+      U.uLook3.value = game.look3 ? 1 : 0;
       aoRender(r, wb, rb, dt, mask);
     };
     composer.addPass(ao);
@@ -459,6 +478,56 @@ export function createPost(game) {
     taa = null;
   }
 
+  // ---------- look3: auto exposure (eye adaptation) ----------
+  // A tiny center-weighted log-luminance image of the HDR frame (32x18, 8-bit with a 16-bit log encoding) is read back
+  // asynchronously (no GPU stall) every few frames; the exposure follows it partially (game.lookAE: strength, limits),
+  // so dusk streets and night blocks open up and bright sand / sky stop down, on top of the time-of-day exposure ramp.
+  const lumRT = new THREE.WebGLRenderTarget(32, 18, { type: THREE.UnsignedByteType, depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+  const lumMat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+    fragmentShader: /* glsl */`
+      uniform sampler2D tDiffuse; varying vec2 vUv;
+      void main() {
+        // 4 x 4 taps over this texel's 1/32 x 1/18 of the screen, luminance clamped (the sun disk must not rule it)
+        float acc = 0.0;
+        for ( int j = 0; j < 4; j++ ) for ( int i = 0; i < 4; i++ ) {
+          vec2 o = ( vec2( float( i ), float( j ) ) - 1.5 ) / 4.0 * vec2( 1.0 / 32.0, 1.0 / 18.0 );
+          float L = dot( texture2D( tDiffuse, vUv + o ).rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+          acc += log2( clamp( L, 1.0 / 4096.0, 6.0 ) );
+        }
+        float e = clamp( ( acc / 16.0 + 12.0 ) / 16.0, 0.0, 1.0 ) * 65535.0; // log2 range -12..+4 in 16 bits
+        float hi = floor( e / 256.0 );
+        gl_FragColor = vec4( hi / 255.0, ( e - hi * 256.0 ) / 255.0, 0.0, 1.0 );
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  const lumQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), lumMat); lumQuad.frustumCulled = false;
+  const lumScene = new THREE.Scene(); lumScene.add(lumQuad);
+  const lumCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const lumBuf = new Uint8Array(32 * 18 * 4);
+  const lumW = new Float32Array(32 * 18);
+  { let ws = 0; for (let y = 0; y < 18; y++) for (let x = 0; x < 32; x++) { const dx = (x + 0.5) / 32 - 0.5, dy = (y + 0.5) / 18 - 0.45; const w = Math.exp(-(dx * dx * 5 + dy * dy * 7)); lumW[y * 32 + x] = w; ws += w; } for (let i = 0; i < lumW.length; i++) lumW[i] /= ws; }
+  const ae = { pending: false, frame: 0, avgLog: null, comp: 0, ok: true };
+  const aePass = {
+    enabled: true, needsSwap: false, clear: false, renderToScreen: false,
+    setSize() {},
+    render(r, wb, rb) {
+      if (!game.look3 || !ae.ok || ae.pending || (ae.frame++ % 6) !== 0) return;
+      lumMat.uniforms.tDiffuse.value = rb.texture;
+      const prev = r.getRenderTarget();
+      r.setRenderTarget(lumRT); r.render(lumScene, lumCam); r.setRenderTarget(prev);
+      ae.pending = true;
+      r.readRenderTargetPixelsAsync(lumRT, 0, 0, 32, 18, lumBuf).then(() => {
+        let s = 0;
+        for (let i = 0; i < lumW.length; i++) s += lumW[i] * (((lumBuf[i * 4] * 256 + lumBuf[i * 4 + 1]) / 65535) * 16 - 12);
+        ae.avgLog = s;
+        ae.pending = false;
+      }).catch((e) => { ae.ok = false; ae.pending = false; console.warn('[post] auto exposure off', e); });
+    },
+  };
+  composer.addPass(aePass);
+
   const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.32, 0.55, 0.92);
   composer.addPass(bloom);
 
@@ -653,7 +722,10 @@ export function createPost(game) {
       // By day the flat sky fill (hemisphere + PMREM diffuse) is cut and the sun pushed, so shade reads as shade.
       // ?lookoff restores the old balance. Tunables live on game.look.
       if (!LOOK_OFF && env && !env.underwater) {
-        const L = game.look || (game.look = { hemiDay: 1.65, envDay: 0.6, sunDay: 1.14, skyDesat: 0.75, bounce: 0.6, neutral: 1, shadeTint: 0.25 });
+        const L0 = game.look || (game.look = { hemiDay: 1.65, envDay: 0.6, sunDay: 1.14, skyDesat: 0.75, bounce: 0.6, neutral: 1, shadeTint: 0.25 });
+        // look3: a real sun-to-shade ratio (about 5:1 on flat ground at noon, as in the mock-ups): less flat sky fill,
+        // a stronger sun, shade keeps a little of the sky's blue instead of going gray
+        const L = game.look3 ? (game.look3L || (game.look3L = { ...L0, hemiDay: 0.95, envDay: 0.42, sunDay: 1.22, skyDesat: 0.5, bounce: 0.75, shadeTint: 0.35 })) : L0;
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));
@@ -725,10 +797,21 @@ export function createPost(game) {
       }
       sunOn *= 1 - (env?.indoor || 0);
       gu.uSunOn.value = sunOn;
+      gu.uStable.value = game.look3 ? 1 : 0;
       // simple eye adaptation: stop down when staring into the sun, open up slightly otherwise
       const adaptTarget = 1.0 - 0.3 * sunOn * day;
       adapt += (adaptTarget - adapt) * Math.min(1, dt * 1.5);
-      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt;
+      // look3 auto exposure: partial adaptation toward a reference scene luminance, limited to -0.6 / +1.1 stops
+      {
+        const A = game.lookAE || (game.lookAE = { ref: -2.2, strength: 0.55, min: -0.6, max: 1.1, up: 0.9, down: 1.8 });
+        let want = 0;
+        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max);
+        const rate = want > ae.comp ? A.up : A.down;
+        ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate));
+        if (game.lookAEInstant) ae.comp = want;
+        A.avgLog = ae.avgLog; A.comp = ae.comp;
+      }
+      if (env?.exposure) renderer.toneMappingExposure = env.exposure * adapt * Math.pow(2, ae.comp);
       // god rays: only when the sun is on/near screen; stronger when low (golden hour)
       const low = 1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.1, 0.5);
       gu.uRays.value = sunOn > 0 ? Math.min(1, sunOn * 1.5) * (LOOK_OFF ? 0.3 + 0.25 * low : 0.12 + 0.13 * low) : 0; // look track: shafts halved (user: glare too strong and hazy)
@@ -757,6 +840,15 @@ export function createPost(game) {
         gu.uToe.value = 0.012 * dayOnly + 0.008 * golden;
         gu.uContrast.value = 0.37 + 0.08 * dayOnly;
         gu.uSharp.value = game.quality?.current?.look?.sharpen ?? 0.6;
+        if (game.look3) {
+          // look3 grade: the contrast now comes from the light (sun vs shade), so the display S-curve and saturation
+          // relax (sat 1.1 -> 0.97 by day: neon reds and orange sand), a soft warm-humid highlight roll and a firmer toe
+          const G = game.look3G || (game.look3G = { sat: 0.93, satGold: 1.02, contrast: 0.3, toe: 0.012 });
+          gu.uSat.value = (G.sat + (G.satGold - G.sat) * golden - 0.12 * gc) * (1 - 0.92 * (game.deathFade || 0));
+          gu.uContrast.value = G.contrast + 0.06 * dayOnly;
+          gu.uToe.value = G.toe * (0.6 + 0.4 * day);
+          gu.uHighTint.value.set(0.024 + 0.03 * golden - 0.02 * night, 0.013 - 0.006 * golden - 0.006 * night, -0.012 + 0.012 * golden + 0.025 * night);
+        }
       }
       if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
       gu.uVignette.value = gu._vigBase + Math.max(0, 0.35 + 0.55 * (game.deathFade || 0) - gu._vigBase) * Math.min(1, (game.deathFade || 0) * 4);
@@ -794,7 +886,24 @@ export function createPost(game) {
         if (!LOOK_OFF) gu.uSharp.value = Math.max(gu.uSharp.value, game.quality?.current?.look?.taaSharpen ?? 0.8);
         taa.jitter(Math.floor(W * renderer.getPixelRatio() * renderScale), Math.floor(H * renderer.getPixelRatio() * renderScale));
       }
+      {
+        const TM = { aces: THREE.ACESFilmicToneMapping, agx: THREE.AgXToneMapping, neutral: THREE.NeutralToneMapping };
+        // look3: Khronos PBR Neutral (hue- and saturation-true, deep skies; ACES pushed reds to neon and skies to cyan)
+        const want = TM[game.look3 ? (game.lookTM || 'neutral') : 'aces'] ?? THREE.ACESFilmicToneMapping;
+        if (renderer.toneMapping !== want) renderer.toneMapping = want;
+      }
       advanceFrameNoise();
+      // look pass 3 (game.look3, runtime A/B): soft shadows + per-frame noise index for the shadow / AO kernels
+      if (game.look3 === undefined) game.look3 = LOOK3_DEFAULT && !LOOK_OFF;
+      LOOK_U[0] = FRAME_NOISE.value;
+      LOOK_U[1] = game.look3 ? 1 : 0;
+      {
+        // aerial perspective (clear weather): humid Florida air, a touch more by day than the old cap, thick at golden hour
+        const sy = game.env?.sunDir?.y ?? 0.5;
+        const gold = (game.env?.dayFactor ?? 1) * (1 - THREE.MathUtils.smoothstep(sy, 0.04, 0.3));
+        const H = game.lookHaze || (game.lookHaze = { day: 0.00026, golden: 0.00046, night: 0.00021 });
+        LOOK_V[0] = game.look3 ? THREE.MathUtils.lerp(THREE.MathUtils.lerp(H.night, H.day, game.env?.dayFactor ?? 1), H.golden, gold) : 0;
+      }
       try {
         composer.render(dt);
       } finally {

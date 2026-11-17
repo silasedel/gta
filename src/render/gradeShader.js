@@ -26,6 +26,7 @@ export const GradeShader = {
     uRays: { value: 0 },
     uUnder: { value: 0 },
     uSunColor: { value: [1, 0.7, 0.4] },
+    uStable: { value: 0 }, // look3: sun-shaft ray offsets stay fixed per pixel (a per-frame random offset after TAA is grain)
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -53,6 +54,7 @@ export const GradeShader = {
     uniform float uRays;
     uniform float uUnder;
     uniform vec3 uSunColor;
+    uniform float uStable;
     varying vec2 vUv;
 
     float hash12( vec2 p ) { vec3 p3 = fract( vec3( p.xyx ) * 0.1031 ); p3 += dot( p3, p3.yzx + 33.33 ); return fract( ( p3.x + p3.y ) * p3.z ); }
@@ -131,7 +133,7 @@ export const GradeShader = {
         vec2 delta = ( uv - uSunPos );
         float dl = length( delta * vec2( uAspect, 1.0 ) );
         vec2 stp = delta * ( 0.85 / 20.0 );
-        vec2 ruv = uv - stp * hash12( uv * uRes + uTime );
+        vec2 ruv = uv - stp * ( uStable > 0.5 ? fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) ) : hash12( uv * uRes + uTime ) );
         float illum = 1.0;
         float acc = 0.0;
         for ( int i = 0; i < 20; i++ ) {
