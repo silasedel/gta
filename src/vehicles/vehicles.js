@@ -597,6 +597,7 @@ export async function createVehicles(game) {
       }
     }
     if (!v.playerDriven && (!v.ai || v.disabled) && body.isSleeping()) { v.speed = 0; v.rpm = 0; v.throttle = 0; v.load = 0; return; }
+    if (v.playerDriven && body.isSleeping()) body.wakeUp();
     const spec = v.spec;
     if (v.ai && !v.playerDriven) aiDrive(v, dt);
     waterTick(v, dt);
@@ -716,6 +717,25 @@ export async function createVehicles(game) {
       if (Math.abs(av.y) > cap) body.setAngvel({ x: av.x, y: av.y - (av.y - Math.sign(av.y) * cap) * 0.15, z: av.z }, true);
     }
     v.speed = speed;
+    // stage 1 perf: a parked car standing still on all four wheels is put to sleep. The ray-cast suspension nudged it
+    // every step, so Rapier never slept it and every parked car near the player cost a full controller update (four
+    // wheel ray casts + suspension and friction) per sub-step. Asleep it does not move at all (it was at rest anyway); any contact, impulse, bullet
+    // or the player getting in wakes it and the controller runs again from the next step. game.vehicles.parkSleep = false
+    // turns this off.
+    // (the suspension leaves a ~0.06 m/s jitter on the velocity of a car at rest, so "still" is judged by how far it
+    // actually moved over the 1.5 s window: under 3 cm)
+    if (!v.playerDriven && (!v.ai || v.disabled) && !v.inWater && grounded === 4 && aspd < 0.2 && game.vehicles?.parkSleep !== false) {
+      const lv = body.linvel(), av = body.angvel(), tp = body.translation();
+      if (lv.x * lv.x + lv.y * lv.y + lv.z * lv.z < 0.04 && av.x * av.x + av.y * av.y + av.z * av.z < 0.04) {
+        if (!v.restP || !(v.restT > 0)) { (v.restP ||= new THREE.Vector3()).set(tp.x, tp.y, tp.z); v.restT = 0; }
+        v.restT += dt;
+        if (v.restT > 1.5) {
+          const moved = Math.hypot(tp.x - v.restP.x, tp.y - v.restP.y, tp.z - v.restP.z);
+          v.restT = 0;
+          if (moved < 0.03) { body.setLinvel({ x: 0, y: 0, z: 0 }, false); body.setAngvel({ x: 0, y: 0, z: 0 }, false); body.sleep(); }
+        }
+      } else v.restT = 0;
+    } else v.restT = 0;
   }
 
   // ------------------------------------------------------------ AI
