@@ -251,8 +251,8 @@ export async function createCast(game) {
 
   /** far crowd tier (src/npc/crowd.js): any of the user's people for this zone (needs no loading: index palette only) */
   const farPool = new Map();
-  function farPerson(zone, pos) {
-    const ctx = ctxAt(pos); const places = placesFor(zone, null, ctx);
+  function farPerson(zone, pos, act = null) {
+    const ctx = ctxAt(pos); const places = placesFor(zone, act, ctx);
     const key = places.join(',');
     let L = farPool.get(key);
     if (!L) { L = people.filter((p) => p.cols && has(p, places) && !p.places.includes('police') && !p.places.includes('police_swat')); farPool.set(key, L); }

@@ -1,6 +1,0 @@
-[
- {"id":"helpers","evalFile":"helpers.js","shot":false},
- {"id":"nico_player","player":null,"tod":11,"stream":true,"wait":4000,"log":"JSON.stringify({p:[game.player.position.x,game.player.position.z], lots:(game.lots? [...game.lots.list.values()].filter(l=>Math.hypot(l.x+873,l.z-4825)<160).map(l=>({id:l.id,x:+l.x.toFixed(1),z:+l.z.toFixed(1),h:+l.heading.toFixed(2),w:l.w,d:l.d,front:l.front,gap:l.roadGap,src:l.source})):null), kit: __kitNear(-873,4825,160), edges: game.city.roadGraph.edges.filter(e=>e.pts.some(p=>Math.hypot(p[0]+873,p[1]-4825)<160)).map(e=>({id:e.id,kind:e.kind,name:e.name,w:e.width,pts:e.pts.map(p=>[Math.round(p[0]),Math.round(p[1])])})), brk: game.breakables? game.breakables.near(-873,4825,160).map(r=>[r.kind,+r.x.toFixed(1),+r.z.toFixed(1)]):null})"},
- {"id":"nico_aerial","eye":[-873,60,4880],"look":[-873,0,4825],"tod":11,"wait":2500},
- {"id":"nico_aerial2","eye":[-820,45,4800],"look":[-873,0,4825],"tod":11,"wait":2500}
-]

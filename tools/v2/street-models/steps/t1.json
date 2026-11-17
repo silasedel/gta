@@ -1,7 +1,0 @@
-[
- {"id":"helpers","evalFile":"helpers.js","shot":false},
- {"id":"nico_player","player":null,"tod":11,"stream":true,"wait":5000,"log":"JSON.stringify({lot: game.lotProps && game.lotProps.stats, dyn: game.dynProps && game.dynProps.stats, kitVar: Object.keys(game.city.streetKit.variants||{}), near: (game.dynProps? game.dynProps.near(-873,4825,120).map(r=>[r.kind,r.cls,+r.px.toFixed(1),+r.pz.toFixed(1)]).slice(0,40):null)})"},
- {"id":"nico_aerial","eye":[-841,22,4905],"look":[-841,0,4887],"tod":11,"wait":2500},
- {"id":"nico_low","eye":[-830,2.2,4875],"look":[-845,0.5,4890],"tod":11,"wait":2500},
- {"id":"nico_low2","eye":[-866,3,4850],"look":[-850,0.5,4880],"tod":11,"wait":2500}
-]

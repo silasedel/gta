@@ -7,6 +7,11 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 if a[0].lower().endswith('.fbx'): bpy.ops.import_scene.fbx(filepath=a[0])
 else: bpy.ops.import_scene.gltf(filepath=a[0])
 ms = [o for o in bpy.data.objects if o.type == 'MESH']
+# workbench shows the active image node: make it the base color, not an emission / mask map
+for m in bpy.data.materials:
+    if m.node_tree:
+        for n in m.node_tree.nodes:
+            if n.type == 'TEX_IMAGE' and n.image and 'color' in n.image.name.lower() and 'emission' not in n.image.name.lower(): m.node_tree.nodes.active = n
 pts = [o.matrix_world @ Vector(c) for o in ms for c in o.bound_box]
 mn = Vector([min(p[i] for p in pts) for i in range(3)]); mx = Vector([max(p[i] for p in pts) for i in range(3)])
 c = (mn + mx) / 2; ext = mx - mn; size = max(ext) * 1.1

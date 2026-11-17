@@ -1,6 +1,0 @@
-[
- {"id":"helpers","evalFile":"helpers.js","shot":false},
- {"id":"spawn","player":null,"tod":12,"stream":true,"wait":3000,"shot":false,"log":"JSON.stringify(Object.entries(game.city.streetKit.variants).map(([k,v])=>{const t=v.material.userData.varTex; const d=t.image.data; let s=0; for(let i=0;i<d.length;i+=997) s+=d[i]; return [k,v.n,t.image.width,t.image.height,t.image.depth,d.length,+(s/(d.length/997)).toFixed(1), v.material.map? v.material.map.image && v.material.map.image.width : null, !!v.material.onBeforeCompile];}))"},
- {"id":"close1","eval":"__lookLot(-866,4836,1,2.2,0.8,1.3)","tod":12,"wait":2500},
- {"id":"close2","eval":"__lookLot(-866,4836,2,2.2,-0.8,1.3)","tod":12,"wait":2000,"log":"(()=>{const gl=game.renderer.getContext(); return 'glerr '+gl.getError();})()"}
-]

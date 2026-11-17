@@ -72,7 +72,7 @@
   {"n": 69, "g": "m", "age": "adult",   "years": 43, "h": 1.78, "role": "ranger",       "places": ["park", "rural", "keys"], "hat": 0.03},
   {"n": 70, "g": "m", "age": "adult",   "years": 38, "h": 1.80, "role": "road_worker",  "places": ["work", "industrial", "rural"], "hat": 0.07},
   {"n": 71, "g": "m", "age": "older",   "years": 55, "h": 1.78, "role": "boat_captain", "places": ["dock", "port", "keys", "fishing"], "hat": 0.05},
-  {"n": 72, "g": "m", "age": "older",   "years": 52, "h": 1.79, "role": "chef",         "places": ["kitchen"], "hat": 0.24},
+  {"n": 72, "g": "m", "age": "older",   "years": 52, "h": 1.79, "role": "chef",         "places": ["kitchen"], "hat": 0.30},
   {"n": 73, "g": "f", "age": "adult",   "years": 30, "h": 1.69, "role": "police",       "places": ["police"]},
   {"n": 74, "g": "m", "age": "adult",   "years": 49, "h": 1.77, "role": "maintenance",  "places": ["work", "hotel_staff", "industrial", "street"]},
   {"n": 75, "g": "m", "age": "older",   "years": 67, "h": 1.75, "role": "tourist",      "places": ["tourist", "beach_walk", "keys"]},

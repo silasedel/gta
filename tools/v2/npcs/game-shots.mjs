@@ -38,6 +38,14 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       return bn; })()`);
     await b.sleep(1500);
     await b.screenshot(`${DIR}/${SET}_${id}_street.png`);
+    if (o.cops) {
+      // police model hook: officers from the user's people (game.npc.createCop via police.js spawnCop)
+      const cs = await b.eval(`(() => { const pp = game.player.position; const out = []; for (let k = 0; k < ${+o.cops}; k++) { const a = k * 1.3; const u = game.police.spawnCop(new THREE.Vector3(pp.x + Math.sin(a) * 7, pp.y, pp.z + Math.cos(a) * 7), a + Math.PI); if (u) { u.mode = 'idle'; out.push((u.char.npcArch || 'legacy') + (u.char.human?.person ? '*' : '')); } } window.__cop = game.police.units.find((u) => u.active); return JSON.stringify(out); })()`.replace('new THREE.Vector3', 'new (game.player.position.constructor)'));
+      console.log('  cops', cs);
+      await b.eval(`(() => { game.cameraOverride = (dt, cam) => { const t = game.player.position; cam.position.set(t.x + 4, t.y + 2.2, t.z - 9); cam.lookAt(t.x, t.y + 1.1, t.z + 2); return true; }; return 1; })()`);
+      await b.sleep(1500);
+      await b.screenshot(`${DIR}/${SET}_${id}_police.png`);
+    }
     // close-ups: different people, camera 1.9 m in front of them, chest/face height
     const n = +(o.close ?? 4);
     const ids = JSON.parse(await b.eval(`JSON.stringify(game.peds.list.filter((p) => p.active && p.char?.human?.person && !p.dead).map((p) => p.id))`));
@@ -49,6 +57,14 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       const who = await b.eval(`(() => { const c = window.__focus.char; return c.npcArch + ' ' + (c.personMeta?.name || '') + ' ' + window.__focus.state + ' lod' + c.lodLevel; })()`);
       await b.screenshot(`${DIR}/${SET}_${id}_close${k}.png`);
       console.log('  close', k, who);
+    }
+    if (o.ragdoll) {
+      // knock one of the user's people down (car-hit strength) and film the fall and the ground pose
+      const who = await b.eval(`(() => { const p = game.peds.list.find((q) => q.active && !q.dead && q.char?.human?.person && q.pos.distanceTo(game.player.position) < 60); if (!p) return 'none'; window.__rag = p;
+        game.cameraOverride = (dt, cam) => { const t = window.__rag.root ? window.__rag.char.getBone('Hips').getWorldPosition(new (game.player.position.constructor)()) : window.__rag.pos; cam.position.set(t.x + 3.2, t.y + 1.6, t.z + 3.2); cam.lookAt(t.x, t.y + 0.2, t.z); return true; };
+        game.peds.damage(p, 30, { x: 1, z: 0.3 }, 'car', { impulse: 6000 }); return p.char.npcArch + ' ' + p.state; })()`);
+      console.log('  ragdoll', who);
+      if (who !== 'none') { await b.sleep(450); await b.screenshot(`${DIR}/${SET}_${id}_rag0.png`); await b.sleep(2200); await b.screenshot(`${DIR}/${SET}_${id}_rag1.png`); }
     }
     await b.eval('(game.cameraOverride = null, 1)');
   }

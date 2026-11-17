@@ -5,8 +5,7 @@
 // solid, so a car never ends up inside a static prop.
 //   import { breakables } from './breakables.js'; breakables.add({ x, y, z, hx, hy, hz, ry, kind, owner, hide, color }) -> rec
 //   breakables.removeOwner(owner); breakables.stats. Uses the global game (window.game); its update runs as a game updater.
-import { initHydrantSpray } from '../props/hydrantSpray.v2.js';
-const BREAK_SPEED = 15 / 3.6, HYDRANT_SPEED = 28 / 3.6;
+const BREAK_SPEED = 15 / 3.6;
 const CELL = 8;
 
 export function createBreakables(game) {
@@ -99,7 +98,6 @@ export function createBreakables(game) {
         for (let k = a.length - 1; k >= 0; k--) {
           const rec = a[k]; if (Math.abs((rec.y || 0) + rec.hy - p.y) > 2.5) continue;
           const dx = rec.x - p.x, dz = rec.z - p.z, lx = dx * c - dz * s, lz = dx * s + dz * c; // car local: z forward
-          if (rec.kind === 'hydrant' && speed < HYDRANT_SPEED) continue; // props pass: a cast-iron hydrant only shears off in a real hit
           if (Math.abs(lx) < hw + rec.r * 0.8 && Math.abs(lz) < hl + rec.r * 0.8 + ahead) breakIt(rec, v, speed, { x: p.x, z: p.z, c, s, hw, hl });
         }
       }
@@ -112,7 +110,7 @@ export function createBreakables(game) {
 // lazy singleton on the global game (tiles, world-dressing and set pieces all register into the same one)
 let inst = null;
 const OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search);
-function get() { if (inst) return inst; const g = globalThis.game; if (!g || !g.world || !g.RAPIER || !g.scene) return null; inst = createBreakables(g); if (g) g.breakables = inst; try { initHydrantSpray(g); } catch (e) { /* optional */ } return inst; }
+function get() { if (inst) return inst; const g = globalThis.game; if (!g || !g.world || !g.RAPIER || !g.scene) return null; inst = createBreakables(g); if (g) g.breakables = inst; return inst; }
 export const breakables = {
   get enabled() { return !OFF && !!get(); },
   add(rec) { const b = get(); return b ? b.add(rec) : null; },
