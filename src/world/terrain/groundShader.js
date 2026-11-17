@@ -219,7 +219,7 @@ export function patchGround(mat, lod, opts, tex, U) {
         if (under > 0.0) {
           float cdp = clamp(-hsea, 0.0, 3.0);
           float ca = r2Caustic(wp, uVegTime);
-          alb = mix(alb * 0.8, vec3(0.34, 0.315, 0.25), under * 0.7) * (1.0 + ca * 0.55 * under * smoothstep(0.02, 0.18, cdp) * (1.0 - smoothstep(1.0, 3.0, cdp)));
+          alb = mix(alb * 0.8, vec3(0.45, 0.42, 0.355), under * mix(0.7, 1.0, smoothstep(0.03, 0.12, cdp))) /* deeper than ~10 cm: exactly the seabed's wet sand, no lighter terrain triangles near docks */ * (1.0 + ca * 0.55 * under * smoothstep(0.02, 0.18, cdp) * (1.0 - smoothstep(1.0, 3.0, cdp)));
           tRough = mix(tRough, 0.55, under);
         }
       }

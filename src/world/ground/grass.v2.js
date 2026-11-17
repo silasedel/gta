@@ -89,12 +89,12 @@ export async function initV2(game) {
       if (!(city.isWater && city.isWater(x, z))) {
         const real = terr ? terr.real(x, z) : true;
         if (!real && terr) { const L = KEYS[terr.layerAt(x, z)] || 'base'; [dens, dry] = LAYER_G[L] || [0.08, 0.5];
-          if (L === 'sand' && terr.isKeys(x, z)) { dens = 0.42 * ss(0.48, 0.72, vn(x / 9 + 3.3, z / 9 - 1.1) * 0.7 + vn(x / 3.1, z / 3.1) * 0.3); dry = 0.62; } // Keys yards: grass in patches in the sand
+          if (L === 'sand' && terr.isKeys(x, z)) { dens = 0.75 * ss(0.5, 0.74, vn(x / 5.5 + 3.3, z / 5.5 - 1.1) * 0.75 + vn(x / 1.8 + 7.1, z / 1.8) * 0.25); dry = 0.62; handF = Math.max(handF, 0.001); } // Keys sand: grass only in clumped patches (same scales as r2-veg's ground cover), bare sand between // Keys yards: grass in patches in the sand
           y = terr.heightAt(x, z) - 0.02; gx = (terr.heightAt(x + 0.6, z) - 0.02 - y) / 0.6; gz = (terr.heightAt(x, z + 0.6) - 0.02 - y) / 0.6;
         } else { const s = data && data.surfaceAt ? data.surfaceAt(x, z) : 'grass_short'; dens = s === 'grass_long' ? 0.55 : s === 'dirt' ? 0.12 : s === 'grass_short' ? 0.03 : s === 'sand' ? 0.03 : 0; dry = 0.4;
           y = city.groundHeightAt ? city.groundHeightAt(x, z) : 0; }
         for (const p of hand) { const d = Math.hypot(x - p.x, z - p.z); if (d < p.r) { const f = ss(p.r, p.r * 0.45, d) * (p.density ?? 0.8); handF = Math.max(handF, f); if (p.kind === 'dry') dry = Math.max(dry, 0.7); if (p.kind === 'moss') dry = -1; } }
-        if (dens > 0 && handF < 0.05) {
+        if (dens > 0 && handF < 0.0005) {
           dens *= ss(0.22, 0.62, vn(x / 6.5 + 1.7, z / 6.5 - 8.2) * 0.65 + vn(x / 2.2 - 4.4, z / 2.2 + 2.9) * 0.35) * 1.6; // clustered: clumps gather, gaps between
           const lo = lowAt ? lowAt(x, z) : 0; if (lo > 0.05) { dens = Math.min(1, dens + lo * 0.5); dry *= 1 - lo * 0.6; } // greener, thicker in the wet lows
           dry = Math.min(1, Math.max(dry < 0 ? -1 : 0, dry + (vn(x / 23 - 5.1, z / 23 + 2.2) - 0.5) * 0.5));

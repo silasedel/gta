@@ -67,6 +67,13 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     for (let f = 1; f < +(s.frames || 1); f++) { await b.sleep(300); await b.screenshot(path.join(DIR, `${SET}_${id}_f${f}.png`)); }
     if (s.car && s.car.drive && s.car.stop === false) { await b.key('KeyW', false, 'w'); if (s.car.turn) await b.key('Key' + s.car.turn.toUpperCase(), false, s.car.turn); }
     if (s.car && s.car.drive) await b.eval('(() => { try { game.exitVehicle?.(); } catch (e) {} return 1; })()');
+    if (s.pick) { // raycast the listed screen pixels [[x, y] in the shot's pixel frame] and name what they hit
+      const pk = await b.eval(`(() => { const T = game.THREE, cam = game.camera, rc = new T.Raycaster(), W = game.renderer.domElement.clientWidth, H = game.renderer.domElement.clientHeight, out = [];
+        for (const [px, py] of ${JSON.stringify(s.pick)}) { rc.setFromCamera(new T.Vector2(px / ${+(o.w || 1600)} * 2 - 1, -(py / ${+(o.h || 900)}) * 2 + 1), cam); const hits = rc.intersectObjects(game.scene.children, true).filter((h) => h.object.visible && h.object.name !== 'ocean' && !/sky/i.test(h.object.name)).slice(0, 3);
+          out.push([px, py, hits.map((h) => { const o = h.object, m = Array.isArray(o.material) ? o.material[0] : o.material, ch = []; for (let q = o; q && ch.length < 6; q = q.parent) ch.push(q.name || q.type); return { d: +h.distance.toFixed(1), p: h.point.toArray().map((v) => +v.toFixed(2)), mat: m && m.name, type: o.type, inst: h.instanceId, chain: ch.join('<') }; })]); }
+        return JSON.stringify(out); })()`);
+      console.log('PICK', id, pk); rep.picks = rep.picks || {}; rep.picks[id] = JSON.parse(pk);
+    }
     rep.shots[id] = JSON.parse(perf); console.log(id, perf);
   }
   if (o.after) { const pr = await b.eval(fs.readFileSync(o.after, 'utf8')); fs.writeFileSync(`docs/v2/reports/ground-${SET}-after.json`, typeof pr === 'string' ? pr : JSON.stringify(pr, null, 1)); console.log('AFTER', typeof pr === 'string' ? pr.slice(0, 3000) : JSON.stringify(pr).slice(0, 3000)); }

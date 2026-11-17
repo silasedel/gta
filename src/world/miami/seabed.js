@@ -40,13 +40,33 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
     const a = hash(xi, zi), b = hash(xi + 1, zi), c = hash(xi, zi + 1), d = hash(xi + 1, zi + 1);
     return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
   };
-  const SAND = new THREE.Color().setRGB(0.4, 0.37, 0.295), WET = new THREE.Color().setRGB(0.3, 0.28, 0.22) /* linear: the terrain's own wet sand under water */, GRASS = new THREE.Color(0x3f5a2e), ROCK = new THREE.Color(0x6b6558), _c = new THREE.Color();
+  const SAND = new THREE.Color().setRGB(0.5, 0.47, 0.4), WET = new THREE.Color().setRGB(0.4, 0.375, 0.315) /* linear: the terrain's own wet sand under water */, GRASS = new THREE.Color(0x3f5a2e), ROCK = new THREE.Color(0x6b6558), _c = new THREE.Color();
 
   let center = null, job = null, cur = 0;
   // r2-ground: the shelf follows the distance to land, measured on the grid itself (one water test per vertex + a chamfer
   // distance pass) instead of 48+ probes per vertex. It runs out ~40 m and deepens smoothly (0.4 m at 1.5 m out, ~1.8 m at
   // 14 m, ~4 m at 28 m), so the depth-colored shallows fade into deep water over tens of meters instead of a step at 14 m.
-  const shelfDepth = (r) => 0.08 + r * 0.05 + r * r * 0.0028; // 0.16 m at 1.5 m out (meets the terrain's waterline triangles), 0.33 m at 4 m, 1.3 m at 14 m, 3.6 m at 28 m
+  const shelfDepth = (r) => 0.08 + r * 0.025 + r * r * 0.00035; // Keys flats: 0.2 m at 4 m out, 0.7 m at 20 m, 1.6 m at 40 m, 2.8 m at 60 m, 5.2 m at 90 m (same profile as the ocean's far estimate)
+  // r2-ground: the seabed you see is the seabed you stand / drive on. A Rapier heightfield built from the very same grid heights
+  // (column-major: rows along z, columns along x), swapped with every rebuild; city.seabed.heightAt reads the same grid.
+  const W = game.world, R = game.RAPIER || globalThis.RAPIER; let col = null, hfData = null;
+  function setCollider(j) {
+    if (!W || !R || !R.ColliderDesc || !R.ColliderDesc.heightfield) return;
+    try {
+      if (col) { W.removeCollider(col, false); col = null; }
+      if (!(j.water > 0)) { hfData = null; return; }
+      const pos = j.g.attributes.position.array, hs = new Float32Array(N * N);
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) hs[r + c * N] = pos[(r * N + c) * 3 + 1];
+      col = W.createCollider(R.ColliderDesc.heightfield(N - 1, N - 1, hs, { x: SIZE, y: 1, z: SIZE }).setTranslation(j.cx, 0, j.cz));
+      hfData = { cx: j.cx, cz: j.cz, pos };
+    } catch (e) { console.warn('[seabed] collider failed', e); }
+  }
+  function heightAt(x, z) { // bilinear over the current grid (null outside it)
+    if (!hfData) return null; const fx = (x - (hfData.cx - SIZE / 2)) / STEP, fz = (z - (hfData.cz - SIZE / 2)) / STEP;
+    const i = Math.floor(fx), r = Math.floor(fz); if (i < 0 || r < 0 || i >= N - 1 || r >= N - 1) return null;
+    const u = fx - i, v = fz - r, P = hfData.pos, y = (rr, cc) => P[(rr * N + cc) * 3 + 1];
+    return (y(r, i) * (1 - u) + y(r, i + 1) * u) * (1 - v) + (y(r + 1, i) * (1 - u) + y(r + 1, i + 1) * u) * v;
+  }
   function startBuild(cx, cz) {
     const g = geoms[1 - cur];
     job = { g, cx, cz, row: 0, water: 0, phase: 0, W: new Uint8Array(N * N), D: new Float32Array(N * N) };
@@ -72,7 +92,9 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
         const water = !!j.W[k];
         let y = water ? SEA - Math.max(0.2, Math.min(city.seabedDepthAt(x, z), j.D[k] < 1e5 ? shelfDepth(Math.max(0, j.D[k] - 0.5)) : 99)) : -0.35; // under land: hidden by the land surface, forms the shore slope
         if (!Number.isFinite(y)) y = SEA - 3;
-        if (water) { j.water++; y += (noise(x * 0.35, z * 0.35) - 0.5) * 0.35 * Math.min(1, j.D[k] / 12); }
+        if (water) { j.water++; y += (noise(x * 0.35, z * 0.35) - 0.5) * 0.35 * Math.min(1, j.D[k] / 12);
+          const eb = Math.min(i, j.row, N - 1 - i, N - 1 - j.row); if (eb < 2) y -= 1.5; } // the outer rim tucks down (the ocean fades its see-through out before it: uSbRect)
+        if (water && j.D[k] < 12 && city.terrain && city.terrain.heightAt) { const th = city.terrain.heightAt(x, z); if (th > y && th > -0.6) y = th - 0.005; } // r2-ground: meet the terrain's under-water strip, so the collider is the drawn bottom there too
         pos[k * 3] = x; pos[k * 3 + 1] = y; pos[k * 3 + 2] = z;
         const n1 = noise(x * 0.08, z * 0.08), n2 = noise(x * 0.6 + 17, z * 0.6 - 9);
         _c.copy(SAND).lerp(WET, 0.2 + 0.3 * n2); // pale coral sand like the beach above (r2-ground)
@@ -86,7 +108,9 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
       j.g.attributes.position.needsUpdate = true; j.g.attributes.color.needsUpdate = true;
       j.g.computeVertexNormals(); j.g.computeBoundingSphere();
       cur = 1 - cur; mesh.geometry = j.g; mesh.visible = j.water > 0;
+      setCollider(j);
       center = { x: j.cx, z: j.cz }; job = null;
+      const oc = game.env && game.env.ocean; if (oc && oc.uniforms && oc.uniforms.uSbRect) oc.uniforms.uSbRect.value.set(j.cx, j.cz, SIZE / 2, j.water > 0 ? 1 : 0); // r2-ground: the ocean fades its see-through out at the grid rim
     }
   }
   function update() {
@@ -99,5 +123,5 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
     if (job) { if (!center) { while (job) stepBuild(N); } else stepBuild(6); } // first build at once (loading), later builds spread over ~30 frames
   }
   game.updaters.push(update);
-  return { mesh, update };
+  return { mesh, update, heightAt, get collider() { return col; } };
 }
