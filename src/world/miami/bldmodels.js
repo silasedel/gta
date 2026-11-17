@@ -281,10 +281,11 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const mat = cond ? mat0.clone() : mat0;
     const g = glassy.test(mat.name || '') || mat.transparent;
     if (mat.transparent || mat.alphaMode === 'BLEND') { mat.transparent = false; mat.depthWrite = true; mat.opacity = 1; mat.alphaTest = mat.map ? 0.5 : 0; }
-    if (g && !mat.map) { mat.color.lerp(new THREE.Color(0x8fa6bc), 0.5); mat.metalness = 0.9; mat.roughness = 0.1; }
+    if (g && !mat.map) { mat.color.lerp(new THREE.Color(0x8fa6bc), 0.5); mat.metalness = 0.9; mat.roughness = 0.24; } // not a perfect mirror: a starry night sky must not glitter in every pane
     mat.envMapIntensity = g ? 1.3 : 0.8;
     mat.side = THREE.FrontSide;
     const glow = m.glow, rough = cond === 'r' ? 1 : cond === 'a' ? 2 : 0;
+    const img = mat.map && mat.map.image, lowres = !!(img && Math.max(img.width || 0, img.height || 0) > 0 && Math.max(img.width, img.height) < 600 && !g); // tiny wall textures (275 px stucco): re-grained with the user's plaster scan
     mat.onBeforeCompile = (sh) => {
       sh.uniforms.uLibNight = nightU; sh.uniforms.uLibDetail = detailU;
       sh.vertexShader = 'varying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
@@ -311,9 +312,10 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     float camD = distance(vLibW, cameraPosition), dK = (1.0 - smoothstep(30.0, 65.0, camD)) * side;
     if (dK > 0.001) {
       vec3 Tw = normalize(vec3(vLibN.z, 0.0, -vLibN.x) + vec3(1e-4, 0.0, 0.0));
-      vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / 2.4);
-      float street = 1.0 - smoothstep(4.5, 9.0, vLibW.y - vLibO.y), a = mix(dt.b, dt.a, step(0.5, iS));
-      diffuseColor.rgb *= 1.0 + (a - 0.5) * (0.14 + 0.2 * street) * dK;
+      vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / ${lowres ? '1.3' : '2.4'});
+      float street = 1.0 - smoothstep(4.5, 9.0, vLibW.y - vLibO.y), a = ${lowres ? 'dt.b' : 'mix(dt.b, dt.a, step(0.5, iS))'};
+      ${lowres ? 'diffuseColor.rgb = mix(diffuseColor.rgb, texture2D(map, vMapUv, 6.0).rgb * diffuseColor.rgb / max(texture2D(map, vMapUv).rgb, vec3(0.04)), 0.8 * dK);' : ''}
+      diffuseColor.rgb *= 1.0 + (a - 0.5) * (${lowres ? '0.22' : '0.14'} + 0.2 * street) * dK;
       libDN = (dt.rg - 0.5) * 2.0 * dK * (0.35 + 0.45 * street); libDT = Tw;
     }
   }`)
@@ -327,6 +329,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     float cw = 2.6 + 1.2 * iS3;
     vec2 cellP = floor(vec2((vLibW.x + vLibW.z) / cw, (vLibW.y - vLibO.y) / 3.4));
     float hh = mix(libH(vec3(cellP, 1.0 + iS2)), libH(vec3(0.0, cellP.y, 3.0 + iS2)), 0.35 + 0.4 * iS3), lum = dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15));
+    ${mat.map && !g ? 'lum = dot(texture2D(map, vMapUv, 3.0).rgb * diffuse, vec3(0.3, 0.55, 0.15));' : ''}
     float glassK = ${g ? '0.85' : '1.0 - smoothstep(0.14, 0.3, lum)'};
     float share = ${rough === 2 ? '0.0' : rough ? '0.12 + 0.12 * iS2' : '0.14 + 0.32 * iS2'};
     float on = step(hh, share) * glassK * step(2.5, vLibW.y - vLibO.y);
@@ -335,7 +338,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * ${glow.toFixed(2)};
   }`);
     };
-    mat.customProgramCacheKey = () => 'libbld3-' + (g ? 'g' : 'w') + glow + '-' + rough + (m.desat ? 'd' : '');
+    mat.customProgramCacheKey = () => 'libbld4-' + (g ? 'g' : 'w') + glow + '-' + rough + (m.desat ? 'd' : '') + (lowres ? 'l' : '') + (mat.map ? 'm' : '');
     mat.needsUpdate = true;
     vm.set(cond, mat); return mat;
   }

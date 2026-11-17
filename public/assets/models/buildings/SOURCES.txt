@@ -56,3 +56,7 @@ water_tower.glb    <- Models/Water Towers/Water Tower 2 - Tall Slim Steel Water 
 fire_escape.glb    <- Models/Stairs/Stairs 2 - Steel Fire-Escape Staircase
 util_cabinet.glb   <- Models/Transformers/Transformer 2 - Old Rusty Utility Cabinet
 Collision-only (_col.glb) added for the batch-1 models above; casino_tower_lod1.glb (37k tris) added.
+booth_ruin.glb     <- Models/Booths/Booth 1 - Overgrown Concrete Booth Ruin
+tarp_shack.glb     <- Models/Buildings/Building 6 - Ramshackle Tarp Shack
+airliner.glb       <- Models/Planes/Plane 7 - Narrow-Body Twin-Jet Airliner
+Far LODs (_lod1.glb) of multi-material models are baked into ONE atlas material (Cycles diffuse bake, glass baked dark); airliner livery colors neutralized in the shader.
