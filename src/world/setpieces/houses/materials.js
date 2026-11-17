@@ -96,6 +96,12 @@ export function createHouseKit(THREE, opts = {}) {
     g.globalCompositeOperation = 'source-over'; g.fillStyle = '#fff'; g.fillRect(62, 0, 4, h); g.fillRect(0, 62, w, 4);
     for (const [cx, cy] of [[32, 32], [96, 32], [32, 96], [96, 96]]) { g.beginPath(); g.arc(cx, cy, 6, 0, 6.3); g.fill(); }
   });
+  // soft oil / tire stains on driveways (lead review): a noise-edged, low-opacity blotch texture, no hard rectangles
+  mat.oilStain = () => kit.materials.get('house:oil') || (() => { const t = kit.canvasTex(128, 128, (g, w, h) => { const q = kit.rng(41); g.clearRect(0, 0, w, h);
+      for (let i = 0; i < 70; i++) { const a = q() * 6.28, d = Math.sqrt(q()) * 0.36 * w, x = w / 2 + Math.cos(a) * d, y = h / 2 + Math.sin(a) * d * 0.8, r2 = 6 + q() * 18, gr = g.createRadialGradient(x, y, 0, x, y, r2);
+        gr.addColorStop(0, `rgba(38,34,30,${0.10 + q() * 0.12})`); gr.addColorStop(1, 'rgba(38,34,30,0)'); g.fillStyle = gr; g.fillRect(x - r2, y - r2, r2 * 2, r2 * 2); } }, { srgb: true });
+    const m = new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.55, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+    m.name = 'house:oil'; m.userData.uvScale = 1; kit.materials.set(m.name, m); return m; })();
   mat.breeze = () => kit.materials.get('house:breeze') || (() => { const m = new THREE.MeshStandardMaterial({ map: breezeTex, alphaTest: 0.5, vertexColors: true, roughness: 0.9, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 1 }); m.name = 'house:breeze'; m.userData.uvScale = 0.4; kit.materials.set(m.name, m); return m; })();
 
   // house-number digits (atlas 0-9, uv x = digit / 10)

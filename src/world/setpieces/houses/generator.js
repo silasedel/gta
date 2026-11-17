@@ -658,7 +658,9 @@ export function* buildHouseGen(hk, sp, lod = 0) {
       if (sp.style === 'keys' && !sp.pavedDrive) { // keys lots: a crushed-shell drive worn into the sand, not poured concrete (Nov 17 mock-up)
         const SH = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.4, grunge: true }); box(SH, dw + 0.4, 0.03, len + 0.2, xd, -0.005, zd0 + len / 2, { color: vary(0xd6cdb8, 0.05), wear: 0.5 }); }
       else for (let k = 0; k < n; k++) { const za = zd0 + (len * k) / n, zb = zd0 + (len * (k + 1)) / n; box(CONC, dw - 0.02, 0.06, zb - za - (L0 ? 0.02 : 0), xd, 0.0, (za + zb) / 2, { color: vary(0xbfbfba, 0.035), wear: 0.3 + r() * 0.4 }); }   // neutral weathered concrete (was tan)
-      if (L0) for (let k = 0; k < 3; k++) box(CONC, 0.4 + r() * 0.5, 0.002, 0.3 + r() * 0.6, xd + (r() - 0.5) * 1.6, 0.031, zd0 + 1 + r() * (len - 2), { color: 0x4a4640 }, r() * 3);
+      if (L0) for (let k = 0; k < 3; k++) { // soft oil stains (same r() calls as the old dark boxes, so the lot layout does not shift)
+        const sw = 0.7 + r() * 0.8, sl = 0.6 + r() * 0.9, sx = xd + (r() - 0.5) * 1.2, sz = zd0 + 1 + r() * (len - 2), sr = r() * 3, g = new THREE.PlaneGeometry(sw, sl); g.rotateX(-PI / 2);
+        B.geo(mat.oilStain(), g, M(sx, 0.032, sz, 0, sr, 0), {}); g.dispose(); }
       // walkway from the entry steps to the driveway / street (pavers)
       const door = walls.front.open.find((o) => o.kind === 'door'), xw = door ? x0 + door.u : 0, zw0 = z1 + (sp.porch?.d ?? 1) + 0.2;
       if (zRoad - zw0 > 0.6) { const n2 = L0 ? Math.max(1, Math.round((zRoad - zw0) / 0.62)) : 1; for (let k = 0; k < n2; k++) { const za = zw0 + ((zRoad - zw0) * k) / n2, zb = zw0 + ((zRoad - zw0) * (k + 1)) / n2; box(matX.pavers(), 1.1, 0.05, zb - za - (L0 ? 0.04 : 0), xw, 0.0, (za + zb) / 2, { color: vary(0xd8ccb4, 0.05), wear: 0.3 }); } }
