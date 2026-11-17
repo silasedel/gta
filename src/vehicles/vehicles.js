@@ -1255,7 +1255,7 @@ export async function createVehicles(game) {
   // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
-    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x5f646a, wear: { dirt: 0.07, rust: 0, fade: 0, dirtColor: 'sand' }, stripe: true, ride: 0.07 }, // metallic mid gray (dust and fade whiten paint)
+    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x5f646a, wear: { dirt: 0.26, rust: 0, fade: 0, dirtColor: 'sand' }, stripe: true, ride: 0.07 }, // metallic mid gray (dust and fade whiten paint)
     { key: 'conv1', local: [-8.5, 14.5], heading: Math.PI + 0.3, color: 0xa9cdd2, wear: { dirt: 0.2, rust: 0.24, fade: 0.32, age: 0.85, dirtColor: 'salt' } }, // pale blue, soft rust (mock-up)
   ];
   const nicoCars = [];
@@ -1272,7 +1272,7 @@ export async function createVehicles(game) {
     }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.62, color: 0x0c0d0f } : null, ride: c.ride }); nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.66, color: 0x0a0a0b, satin: true } : null, ride: c.ride }); nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();

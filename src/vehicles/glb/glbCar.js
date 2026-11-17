@@ -301,7 +301,7 @@ export function buildGlbCar(key, look, t, info) {
   const roofTone = roofColor != null ? { color: roofColor, y: t.belt + 0.07 } : null;
   // hood stripe (Nico's pickup): the paint shader's patch box over the hood, from the windshield base to the nose
   const st = look.stripe;
-  const patch = st ? { min: [-st.w / 2, t.noseY - 0.12, t.zA - 0.15], max: [st.w / 2, t.roofY + 0.5, t.L / 2 + 0.3], color: st.color ?? 0x0c0d0f, strength: 1 } : null;
+  const patch = st ? { min: [-st.w / 2, t.noseY - 0.12, t.zA - 0.15], max: [st.w / 2, t.roofY + 0.5, t.L / 2 + 0.3], color: st.color ?? 0x0c0d0f, strength: 1, satin: st.satin ?? true } : null;
   const paint = carPaint({ color: look.color, finish, wear, shape, twoTone: tt, patch, roofTone });
   const glass = glassMaterial(look.tint ?? 1);
   const trim = trimMaterial();

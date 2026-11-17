@@ -88,9 +88,10 @@ uniform vec4 uTwoTone;     // rgb = second color, a = split height (y below it g
 uniform vec4 uPatchMin;    // xyz = box min, w = strength (0 disables): a replaced panel in another color
 uniform vec3 uPatchMax;
 uniform vec3 uPatchColor;
+uniform float uPatchSatin;  // 1 = the patch is a satin (non-metallic, no clear coat) panel, e.g. a matte black hood stripe
 uniform vec4 uRoofTone;    // rgb = roof / pillar color, a = height above which it applies (<= 0 disables)
 uniform float uFlake;      // metallic flake strength (0 = solid paint)
-float wearDirt; float wearRust; float wearFade;
+float wearDirt; float wearRust; float wearFade; float wearPatch = 0.0;
 // metallic flake: sub-millimeter cells with random orientation; returns a normal tilt, faded out with distance (no shimmer)
 vec3 flakeTilt(vec3 p) {
   vec3 c = floor(p * 900.0);
@@ -120,7 +121,8 @@ void computeWear(inout vec3 albedo) {
   }
   if (uPatchMin.w > 0.0) {
     vec3 inside = step(uPatchMin.xyz, p) * step(p, uPatchMax);
-    albedo = mix(albedo, uPatchColor, inside.x * inside.y * inside.z * uPatchMin.w);
+    wearPatch = inside.x * inside.y * inside.z * min(1.0, uPatchMin.w);
+    albedo = mix(albedo, uPatchColor, wearPatch);
   }
   // road film: strongest low on the body and thrown up behind the wheels; a little dust on upward faces
   float low = 1.0 - smoothstep(uWearShape.w * 0.6, uWearShape.x, p.y);
@@ -161,13 +163,13 @@ function injectWear(mat) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + WEAR_FRAG_DECL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);\n  computeBeads(vWearPos, normalize(vWearN));\n  diffuseColor.rgb *= 1.0 - uWet * 0.14 * (1.0 - wearDirt);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));')
-      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade)));\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.62, wearPatch * uPatchSatin);')
+      .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - wearPatch * uPatchSatin;')
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.9 * wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v2';
+  mat.customProgramCacheKey = () => 'ps-wear-v3';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
@@ -218,6 +220,7 @@ export function carPaint(opts = {}) {
     uPatchMin: { value: pt ? new THREE.Vector4(pt.min[0], pt.min[1], pt.min[2], pt.strength ?? 1) : new THREE.Vector4(0, 0, 0, 0) },
     uPatchMax: { value: pt ? new THREE.Vector3(...pt.max) : new THREE.Vector3() },
     uPatchColor: { value: hex(pt?.color ?? 0x6a6d70) },
+    uPatchSatin: { value: pt?.satin ? 1 : 0 },
     uWearOffset: { value: new THREE.Vector3() },
     uRoofTone: { value: opts.roofTone ? new THREE.Vector4(...hex(opts.roofTone.color).toArray(), opts.roofTone.y) : new THREE.Vector4(0, 0, 0, 0) },
     uFlake: { value: opts.flakeAmt ?? ({ metallic: 0.22, pearl: 0.16, satin: 0.12 }[finish] || 0) },
