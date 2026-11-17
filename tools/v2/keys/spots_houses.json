@@ -1,46 +1,4 @@
 {
- "h_havana": {
-  "eye": [
-   -660,
-   40,
-   -55
-  ],
-  "look": [
-   -660,
-   0,
-   -55
-  ],
-  "world": true,
-  "player": [
-   -660,
-   0,
-   -55
-  ],
-  "tod": 11,
-  "fov": 55,
-  "eval": "window.__L = null; const C = new game.THREE.Vector3(-660, 0, -55); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 160) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
- },
- "h_gables": {
-  "eye": [
-   -500,
-   40,
-   1200
-  ],
-  "look": [
-   -500,
-   0,
-   1200
-  ],
-  "world": true,
-  "player": [
-   -500,
-   0,
-   1200
-  ],
-  "tod": 11,
-  "fov": 55,
-  "eval": "window.__L = null; const C = new game.THREE.Vector3(-500, 0, 1200); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 160) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
- },
  "h_homestead": {
   "eye": [
    -1320,
@@ -60,6 +18,48 @@
   ],
   "tod": 11,
   "fov": 55,
-  "eval": "window.__L = null; const C = new game.THREE.Vector3(-1320, 0, 3190); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 160) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
+  "eval": "window.__L = null; const C = new game.THREE.Vector3(-1320, 0, 3190); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 400) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
+ },
+ "h_home_n": {
+  "eye": [
+   -1320,
+   40,
+   3010
+  ],
+  "look": [
+   -1320,
+   0,
+   3010
+  ],
+  "world": true,
+  "player": [
+   -1320,
+   0,
+   3010
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "window.__L = null; const C = new game.THREE.Vector3(-1320, 0, 3010); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 400) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
+ },
+ "h_home_e": {
+  "eye": [
+   -1140,
+   40,
+   3190
+  ],
+  "look": [
+   -1140,
+   0,
+   3190
+  ],
+  "world": true,
+  "player": [
+   -1140,
+   0,
+   3190
+  ],
+  "tod": 11,
+  "fov": 55,
+  "eval": "window.__L = null; const C = new game.THREE.Vector3(-1140, 0, 3190); game.cameraOverride = (dt, cam) => { if (!window.__L && game.lots) { let best = null, bd = 1e9; for (const l of game.lots.list.values()) { if (l.source !== 'map') continue; const d = Math.hypot(l.x - C.x, l.z - C.z); if (d < bd) { bd = d; best = l; } } if (best && bd < 400) window.__L = best; } const L = window.__L; if (!L) { cam.position.set(C.x, 40, C.z + 30); cam.lookAt(C.x, 0, C.z); return true; } const fx = Math.sin(L.heading), fz = Math.cos(L.heading), rx = Math.cos(L.heading), rz = -Math.sin(L.heading), dd = L.d / 2 + 13; cam.position.set(L.x + fx * dd + rx * 5, (L.y || 0) + 1.7, L.z + fz * dd + rz * 5); cam.lookAt(L.x, (L.y || 0) + 2.4, L.z); return true; };"
  }
 }
