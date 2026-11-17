@@ -115,6 +115,8 @@ void computeWear(inout vec3 albedo) {
   float seed = uWear.w;
   vec4 nLo = grimeTri(p * 0.37 + seed * 0.731, w);
   vec4 nHi = grimeTri(p * 1.9 + seed * 1.37, w);
+  // far away the fine grime speckle can't be resolved: fade it to its mean (r2-render: it crawled / splotched at low mips)
+  { float fq = smoothstep(0.004, 0.03, length(fwidth(p))); nHi = mix(nHi, vec4(0.5), fq); nLo = mix(nLo, vec4(0.5), fq * 0.5); }
   // two-tone split and a replaced panel (both before dirt, so grime lies over them)
   if (uTwoTone.a > 0.0) {
     float e = smoothstep(uTwoTone.a + 0.004, uTwoTone.a - 0.004, p.y);
@@ -204,13 +206,13 @@ function injectWear(mat) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + WEAR_FRAG_DECL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);\n  computeBeads(vWearPos, normalize(vWearN));\n  diffuseColor.rgb *= 1.0 - uWet * 0.14 * (1.0 - wearDirt);')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.5, wearPatch * uPatchSatin);\n  roughnessFactor = mix(roughnessFactor, 0.62, wearFlare);')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.48, wearPatch * uPatchSatin);\n  roughnessFactor = mix(roughnessFactor, 0.62, wearFlare);')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - max(wearPatch * uPatchSatin, wearFlare);')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.8 * wearPatch * uPatchSatin) * (1.0 - 0.95 * wearFlare);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.3, wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n  #ifdef USE_CLEARCOAT\n  material.clearcoat *= (1.0 - max(wearDirt * 0.95, max(wearRust, wearFade))) * (1.0 - 0.92 * wearPatch * uPatchSatin) * (1.0 - 0.95 * wearFlare);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.35, wearPatch * uPatchSatin);\n  material.clearcoat = max(material.clearcoat, uWet * 0.9);\n  material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.015, uWet);\n  #endif')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 37.0 + vWearPos.yy * 23.0); clearcoatNormal = normalize(clearcoatNormal + vec3((op.gb - 0.5) * 0.012 * opd, 0.0)); } }\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v8';
+  mat.customProgramCacheKey = () => 'ps-wear-v10';
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).

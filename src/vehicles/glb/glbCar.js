@@ -406,8 +406,8 @@ export function buildGlbCar(key, look, t, info) {
     levels.push(g);
   }
   lod.addLevel(levels[0], 0);
-  lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (10k) holds well to ~100 m
-  lod.addLevel(levels[2], 100 * big, 0.12);
+  lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (20k, per-slot) to 160 m
+  lod.addLevel(levels[2], 160 * big, 0.12);   // 100 m showed LOD2's torn panels on a few models (d1 distance sheet); LOD1 is 20k now
   shell.add(lod);
   // rear license plate on the measured plate mount (Florida needs no front plate; the front recess stays a dark bracket)
   let plateMat = null;
