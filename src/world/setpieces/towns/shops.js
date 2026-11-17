@@ -113,6 +113,8 @@ export function buildShop(hk, s, lod = 0) {
     }
   }
   box(PAINT, 1.0, 2.1, 0.06, x0 + 1.5, 1.05 + 0.1, z0 - 0.02, { color: 0x5a5a58, wear: 0.4 });
+  if (!ARTGEO_OFF && L1 && s.stories > 1) { const nR = Math.max(1, Math.floor((w - 1.0) / 3.0)); for (let fl = 1; fl < s.stories; fl++) for (let k = 0; k < nR; k++) win(x0 + (w / (nR + 1)) * (k + 1), fl * FL + 0.9, z0 - 0.01, 1.0, 1.4, PI, k + fl * 7 + 3); } // r2-art: upper-floor windows on the back wall
+  if (!ARTGEO_OFF && L1) box(MET, 0.45, 0.06, 0.6, x0 + 1.5, 2.45, z0 - 0.3, { color: 0x6a6a66, wear: 0.4 }); // hood over the back door
   return { batch: B, colliders: cols, lamps };
 
   // =============================================================== parts

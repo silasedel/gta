@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // r2-art A/B street shots across page variants (geometry changes that need a reload, e.g. ?hiproof=0): same cameras, same hour.
-//   [--bld "10-46:residential|beach"]  frame map buildings in that height range / zone instead of the road
+//   [--bld "10-46:residential|beach"] [--style "deco|office"] [--crop] (also a 2x center-crop pair)
+//   spots "name:x,z[:h0-h1]": a third field frames map buildings of that height (zones from --zones) instead of the road  frame map buildings in that height range / zone instead of the road
 //   node tools/v2/art/ab.mjs --set roofs --a "&hiproof=0" --b "" --spots "grove:-440,2420;havana:-660,-55" [--per 2] [--hour 11]
 // Per spot: the nearest road point, cameras at 1.8 m looking along the road both ways (+ 30 deg toward the curb side).
 // Writes docs/v2/shots/art/<set>_<spot>_<k>_{a,b}.jpg and the pair docs/v2/shots/art/sheet_<set>_<spot>_<k>.jpg (q90).
@@ -12,7 +13,7 @@ import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] !== undefined && !a[i + 1].startsWith('--') ? a[++i] : ''; }
 const SET = o.set || 'ab', DIR = path.resolve('docs/v2/shots/art'); fs.mkdirSync(DIR, { recursive: true });
-const spots = String(o.spots || 'grove:-440,2420').split(';').map((s) => { const [n, xy] = s.split(':'); const [x, z] = xy.split(',').map(Number); return { n, x, z }; });
+const spots = String(o.spots || 'grove:-440,2420').split(';').map((s) => { const [n, xy, bh] = s.split(':'); const [x, z] = xy.split(',').map(Number); return { n, x, z, bld: bh ? bh + ':' + (o.zones || '.') : o.bld }; });
 const per = +(o.per || 2);
 let cams = null;
 for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']]) {
@@ -26,11 +27,11 @@ for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']]) {
       await b.eval(`(() => { game.cameraOverride = null; game.teleport(${S.x}, undefined, ${S.z}, 0); return 1; })()`);
       await b.sleep(6000);
       for (let i = 0; i < 60; i++) { const n = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (n < 3) break; await b.sleep(1000); }
-      if (!cams[S.n] && o.bld) cams[S.n] = await b.eval(`(() => { // building-framed cameras: map buildings near the spot that match --bld (h range, zones), seen square-on from 24 m off their longest face
-        const D = game.miamiData, TS = D.tileSize || 200, [h0, h1] = ${JSON.stringify(String(o.bld).split(':')[0].split('-').map(Number))}, zr = new RegExp(${JSON.stringify(String(o.bld).split(':')[1] || '.')});
+      if (!cams[S.n] && S.bld) cams[S.n] = await b.eval(`(() => { // building-framed cameras: map buildings near the spot that match --bld (h range, zones), seen square-on from 24 m off their longest face
+        const D = game.miamiData, TS = D.tileSize || 200, [h0, h1] = ${JSON.stringify(String(S.bld).split(':')[0].split('-').map(Number))}, zr = new RegExp(${JSON.stringify(String(S.bld).split(':')[1] || '.')});
         const out = [], seen = new Set();
         for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) { const t = D.getTile(Math.floor(${S.x} / TS) + dx, Math.floor(${S.z} / TS) + dz); for (const b of (t && t.buildings) || []) {
-          if (seen.has(b.id) || !b.rings || b.rings[0].length > 12 || b.part || !(b.h >= h0 && b.h <= h1) || !zr.test(b.zone || '')) continue; seen.add(b.id);
+          if (seen.has(b.id) || !b.rings || b.rings[0].length > 12 || b.part || !(b.h >= h0 && b.h <= h1) || !zr.test(b.zone || '') || (${JSON.stringify(o.style || '')} && !new RegExp(${JSON.stringify(o.style || '.')}).test(b.style || ''))) continue; seen.add(b.id);
           const r = b.rings[0]; let best = null; for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (!best || L > best.L) best = { p, q, L }; }
           if (!best || best.L < 10) continue; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
           const mx = (best.p[0] + best.q[0]) / 2, mz = (best.p[1] + best.q[1]) / 2; let nx = -(best.q[1] - best.p[1]) / best.L, nz = (best.q[0] - best.p[0]) / best.L; if ((mx - cx) * nx + (mz - cz) * nz < 0) { nx = -nx; nz = -nz; }
@@ -59,5 +60,6 @@ for (const S of spots) for (let k = 0; k < per; k++) {
   const fa = path.join(DIR, `${SET}_${S.n}_${k}_a.jpg`), fb = path.join(DIR, `${SET}_${S.n}_${k}_b.jpg`); if (!fs.existsSync(fa) || !fs.existsSync(fb)) continue;
   const out = path.join(DIR, `sheet_${SET}_${S.n}_${k}.jpg`);
   execFileSync('python3', ['-I', path.resolve('tools/v2/art/pair.py'), fa, fb, out, S.n, 'BEFORE ' + (o.a || '(default)'), 'AFTER ' + (o.b || '(default)')]);
+  if (o.crop !== undefined) { const oc = path.join(DIR, `sheet_${SET}_${S.n}_${k}_crop2x.jpg`); execFileSync('python3', ['-I', path.resolve('tools/v2/art/pair.py'), fa, fb, oc, S.n + ' 2x center crop', 'BEFORE ' + (o.a || '(default)'), 'AFTER ' + (o.b || '(default)'), 'crop']); console.log('sheet', path.relative(process.cwd(), oc)); }
   console.log('sheet', path.relative(process.cwd(), out));
 }
