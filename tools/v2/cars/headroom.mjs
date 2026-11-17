@@ -54,11 +54,14 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: +(o.max || 2400) }, as
   await b.sleep(9000);
   for (let i = 0; i < 30; i++) { const n = await b.eval('(game.npc?.peopleStats?.()?.loaded || 0)'); if (n >= 6) break; await b.sleep(1000); }
   await b.eval(`(async () => { window.__seat = await import('/src/npc/seat.js'); window.__seated = []; game.updaters.push((dt) => { for (const c of window.__seated) { try { c.update(dt, { driving: true, speed: 0, grounded: true }); } catch (e) {} } }); return 1; })()`);
-  for (const key of CARS) {
-    const r = await b.eval(`(async () => { const pp = game.player.position;
+  for (let ci = 0; ci < CARS.length; ci++) {
+    const key = CARS[ci];
+    // a fresh spot per car (a removed car's spot can stay reserved for a moment: spawnParked then returns null)
+    await b.eval(`(() => { game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`); await b.sleep(400);
+    const r = await b.eval(`(async () => { const pp = { x: ${AT[0]} + (${ci} % 6) * 7 - 17, z: ${AT[1]} + 10 + ((${ci} / 6) | 0) % 4 * 8 };
       for (const v of window.__cars || []) { try { game.vehicles.remove(v); } catch (e) {} } window.__cars = [];
       for (const c of window.__seated) { try { c.root.parent?.remove(c.root); c.dispose?.(); } catch (e) {} } window.__seated = [];
-      const v = await game.vehicles.spawnParked('${key}', { x: pp.x + 9, z: pp.z + 4, heading: 0 }); if (!v) return 'no car';
+      let v = null; for (let t = 0; t < 3 && !v; t++) v = await game.vehicles.spawnParked('${key}', { x: pp.x + t * 3, z: pp.z, heading: 0, keepSpot: true }); if (!v) return 'no car';
       window.__cars.push(v); window.__cv = v; const n = v.seatCount || 2;
       // the tallest loaded NPC in every passenger seat (and the driver's seat when Nico is not tested)
       for (let i = ${NICO ? 1 : 0}; i < n; i++) { const an = v.seatAnchor(i); if (!an) continue; let ch = null;
