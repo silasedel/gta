@@ -52,3 +52,14 @@ shipping, copy the used files into `public/assets/models/<category>/` (keep the 
 - Neighbors: small single-story Florida cottages (pastel siding, metal roofs), low wooden and lattice fences, hedges,
   flowering bushes (bougainvillea, hibiscus) and red-flowering poinciana trees, palms, a construction dumpster.
 - The overall feel: lived-in, slightly run-down Keys neighborhood, bright sun, GTA 6 look.
+
+## Texture rules (user, Nov 16)
+- New ground textures and scans from the user: `Models/Textures/*` (inventory: `Models/INTAKE_2026-11-16.md`).
+- **No visible repetition:** never show a texture tiling pattern. Use stochastic / hex-tile sampling or texture bombing
+  (random rotation + offset per cell), at least two scales mixed (detail + macro variation), and several variants of the
+  same surface blended by low-frequency noise.
+- **Blend styles:** the user's set mixes clean tiling textures and photoreal-but-splotchy scans. Blend them so they
+  read as one surface: match color/brightness (normalize albedo, remove baked lighting/shadows from scans), use the scan
+  as macro variation over a tiling detail texture, height-based blending at transitions (grass into dirt into sand),
+  no hard edges between materials.
+- Always verify at grazing angles and from the air (repetition and splotches show most there).
