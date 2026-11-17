@@ -29,7 +29,7 @@ float vegGust(vec2 p) { // same travelling gust bands as game.wind.sample(): pal
   return clamp(0.5 + 0.3 * a + 0.16 * b + 0.07 * c, 0.0, 1.0);
 }
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist; varying float vVegH;
-uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; // model height, bend, twist (rad), frond droop; crown attachment height (m)
+uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; uniform vec3 uBaseClamp; // uBaseClamp: (height, trunk radius, on) for plants in paving // model height, bend, twist (rad), frond droop; crown attachment height (m)
 float vegInstH() {
 #ifdef USE_INSTANCING
   vec3 p = (modelMatrix * vec4(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2], 1.0)).xyz;
@@ -60,6 +60,10 @@ const VERT_BODY = `
   float vh2 = fract(vh * 91.7 + 0.13), vh3 = fract(vh * 37.13 + 0.61), vh4 = fract(vh * 251.9 + 0.37), vh5 = fract(vh * 13.71 + 0.83), vh6 = fract(vh * 547.3 + 0.19);
   vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y; vVegH = position.y;
 #ifndef VEG_IMP
+  if (uBaseClamp.z > 0.0 && transformed.y < uBaseClamp.x) { // in paving: root flare pulled in to the trunk, a slight bulge at the collar
+    float bt = clamp(transformed.y / uBaseClamp.x, 0.0, 1.0), rm = uBaseClamp.y * (1.0 + 0.22 * (1.0 - bt) * (1.0 - bt)), br = length(transformed.xz);
+    if (br > rm) transformed.xz *= rm / br;
+  }
 #ifdef VEG_MIRROR
   if (fract(vh * 173.31 + 0.27) > 0.5) transformed.x = -transformed.x; // per-instance mirror (normals flipped in beginnormal)
 #endif
@@ -145,6 +149,7 @@ const FRAG_TRANSL = `
 // multi-view impostor (field.js bakeImpostor): camera-facing quad around the plant's axis, nearest two baked azimuths
 const IMP_VERT_HEAD = `
 uniform vec4 uImp; // views, radius, y0, height
+uniform vec4 uImpA; // atlas: tile columns, tile rows, view height / tile height (models.js impostorMips; a strip: views, 1, 1)
 varying vec2 vImpUv0; varying vec2 vImpUv1; varying float vImpF;
 `;
 const IMP_NORMAL = `
@@ -164,7 +169,7 @@ const IMP_NORMAL = `
   #endif
     float V = uImp.x, ph = atan(vd.x, vd.y) / 6.2831853; ph = ph < 0.0 ? ph + 1.0 : ph;
     float fk = ph * V, k0 = floor(fk); vImpF = fk - k0; float k1 = mod(k0 + 1.0, V); k0 = mod(k0, V);
-    vImpUv0 = vec2((k0 + ux) / V, uv.y); vImpUv1 = vec2((k1 + ux) / V, uv.y);
+    float AC = uImpA.x, AR = uImpA.y; vImpUv0 = vec2((mod(k0, AC) + ux) / AC, (floor(k0 / AC) + uv.y * uImpA.z) / AR); vImpUv1 = vec2((mod(k1, AC) + ux) / AC, (floor(k1 / AC) + uv.y * uImpA.z) / AR);
   }
 `;
 const IMP_POS = `
@@ -176,7 +181,7 @@ uniform vec4 uImp; varying vec2 vImpUv0; varying vec2 vImpUv1; varying float vIm
 const IMP_MAP = `
   { // blend the two nearest baked azimuths by a screen-space dither (no ghosted double image)
     vec2 impUv = vegDither() < vImpF ? vImpUv1 : vImpUv0;
-    vec4 sampledDiffuseColor = texture2D( map, impUv );
+    vec4 sampledDiffuseColor = textureGrad( map, impUv, dFdx(vImpUv0), dFdy(vImpUv0) ); // gradients of the continuous uv: the per-pixel view pick jumps tiles (else the coarsest mip, blobs)
     diffuseColor *= sampledDiffuseColor;
   }
 `;
@@ -203,10 +208,10 @@ function patch(kind, local) {
 
 function localUniforms(o) {
   const im = o.map && o.map.userData && o.map.userData.impostor;
-  return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
+  return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uImpA: { value: new THREE.Vector4(im && im.cols ? im.cols : im ? im.views : 8, im && im.rows ? im.rows : 1, im && im.fy ? im.fy : 1, 0) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
     uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
-    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.

@@ -1,0 +1,84 @@
+{
+ "grate_close": {
+  "atExpr": "(() => { let best = null; const T = new game.THREE.Matrix4(), P = new game.THREE.Vector3(), c = game.camera.position; game.scene.traverse((o) => { if (!o.isInstancedMesh || o.material?.name !== 'tree-grate') return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, T); P.setFromMatrixPosition(T); const d = (P.x - c.x) ** 2 + (P.z - c.z) ** 2; if (!best || d < best[3]) best = [P.x, P.z, 0.6, d]; } }); return best ? best.slice(0, 3) : null; })()",
+  "back": 4.5,
+  "h": 1.7,
+  "lh": 0.0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "downtown": {
+  "street": [
+   407,
+   -110
+  ],
+  "side": 2.2,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "havana": {
+  "street": [
+   -660,
+   -55
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "homestead_air": {
+  "at": [
+   -1320,
+   3190
+  ],
+  "eyeRel": [
+   -70,
+   48,
+   95
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_yard": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   34,
+   4.5,
+   -30
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_air": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   -70,
+   48,
+   95
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ }
+}

@@ -38,8 +38,8 @@ const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x
 const BIOMES = {
   // Keys neighborhoods (user mock-up): red-flowering poincianas, bougainvillea / hibiscus along the yard frontages, palms; yards are sandy,
   // matted-down grass with leaf litter, not lush lawn (matted: flattened short tufts, sparse; yard: flowering shrub band 2.5-10 m off the street)
-  keys: { road: 0.4, tree: 0.5, trees: [['gumbo', 2.2], ['buttonwood', 1.5], ['sabal', 1.5], ['coconut', 2.2], ['coconutM', 2.2], ['seagrapeT', 1.6], ['poinciana', 2.2], ['queen', 0.6], ['rubber', 0.7]], shrub: 0.16, shrubs: [['seagrape', 3], ['sawpalmetto', 1.4], ['fern', 0.6], ['hibiscus', 0.25], ['bougainvillea', 0.25], ['agave', 0.4], ['redgrass', 0.3], ['tuft', 1.5]], yard: [['bougainvillea', 3], ['hibiscus', 3], ['seagrape', 1], ['hedge', 1.5], ['oleander', 1], ['agave', 0.6]], under: [['seagrape', 2], ['fern', 1], ['hibiscus', 0.6], ['fernM', 0.5]], base: [['tuft', 3], ['fern', 1]], matted: 1, litter: 0.05, grass: 0.62, dry: 0.45, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
-  keysSand: { tree: 0.12, trees: [['coconut', 1.5], ['coconutM', 2.5], ['sabal', 1], ['seagrapeT', 2], ['poinciana', 0.5]], shrub: 0.1, shrubs: [['seagrape', 3], ['agave', 0.6], ['redgrass', 0.5]], under: [['seagrape', 2]], base: [['tuft', 2]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
+  keys: { road: 0.4, tree: 0.66, even: 1, trees: [['gumbo', 2.6], ['buttonwood', 2.2], ['sabal', 1.3], ['coconut', 2.4], ['coconutM', 1.8], ['seagrapeT', 2.6], ['poinciana', 0.45], ['queen', 0.5], ['rubber', 0.6]], shrub: 0.22, shrubs: [['seagrape', 3], ['sawpalmetto', 1.4], ['fern', 0.6], ['hibiscus', 0.25], ['bougainvillea', 0.25], ['agave', 0.4], ['redgrass', 0.3], ['tuft', 1.5]], yard: [['bougainvillea', 3], ['hibiscus', 3], ['seagrape', 1], ['hedge', 1.5], ['oleander', 1], ['agave', 0.6]], under: [['seagrape', 2], ['fern', 1], ['hibiscus', 0.6], ['fernM', 0.5]], base: [['tuft', 3], ['fern', 1]], matted: 1, litter: 0.05, grass: 0.62, dry: 0.45, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
+  keysSand: { tree: 0.4, even: 1, trees: [['coconut', 2.5], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 3.5], ['gumbo', 1], ['buttonwood', 1.5], ['poinciana', 0.2]], shrub: 0.22, shrubs: [['seagrape', 3], ['agave', 0.6], ['redgrass', 0.5]], under: [['seagrape', 2]], base: [['tuft', 2]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
   pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.34, shrubs: [['sawpalmetto', 5], ['fern', 0.6], ['fernM', 0.8], ['tuft', 1]], under: [['sawpalmetto', 3], ['fern', 1]], base: [['tuft', 2], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
   hammock: { road: 0.35, tree: 0.72, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2], ['banyan', 0.25]], shrub: 0.45, shrubs: [['fern', 1.6], ['fernM', 2], ['seagrape', 1], ['sawpalmetto', 1]], under: [['fern', 3], ['fernM', 2], ['seagrape', 1]], underN: 3.5, base: [['fern', 2], ['tuft', 1], ['moss', 1.5]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
   rural: { road: 0.4, tree: 0.24, trees: [['liveoak', 4], ['gumbo', 1.2], ['sabal', 2], ['slashpine', 1], ['banyan', 0.15]], shrub: 0.16, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4], ['tuft', 1.2], ['hedge', 0.4]], under: [['seagrape', 1], ['fern', 1], ['sawpalmetto', 1]], base: [['tuft', 3]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [0.98, 1.02, 0.84] },
@@ -107,7 +107,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
   for (let j = Math.ceil(z0 / TSTEP); j * TSTEP < z0 + S; j++) for (let i = Math.ceil(x0 / TSTEP); i * TSTEP < x0 + S; i++) {
     const p = hh(i, j, 3), x = (i + 0.22 + hh(i, j, 1) * 0.56) * TSTEP, z = (j + 0.22 + hh(i, j, 2) * 0.56) * TSTEP; // trunks >= 3.5 m apart
     const g = groveN(x, z), gd = vn(x / 60 - 11, z / 60 + 4); // gd: cypress domes / tree islands
-    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.4)) continue; // 0.4: roadside-row candidates
+    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.62)) continue; // 0.4: roadside-row candidates, up to 0.62: evenly wooded biomes (Keys)
     let b = biomeOf(ctx, x, z), wet = false;
     if (!b) { // shallows along wild / Keys shores: red mangroves stand IN the water, roots in the mud (clumps along the shoreline, never offshore)
       const D = ctx.data; if (!D.isWater(x, z) || (ctx.terrain.real && ctx.terrain.real(x, z))) continue;
@@ -116,7 +116,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
       if (!land || vn(x / 41 + 2.7, z / 41 - 1.3) < 0.36 || p > 0.8) continue;
       b = BIDX.mangrove; wet = true;
     }
-    const B = BIOMES[BKEYS[b - 1]], dens = B.dome ? (gd > 0.68 ? 0.7 : B.tree * g * 0.35) : B.tree * (0.15 + 0.85 * g);
+    const B = BIOMES[BKEYS[b - 1]], dens = B.dome ? (gd > 0.68 ? 0.7 : B.tree * g * 0.35) : B.tree * (B.even ? 0.4 + 0.6 * g : 0.15 + 0.85 * g);
     let rdQ = null; // roadside row: rural stretches keep trees just outside the clear zone so their shade dapples the asphalt
     if (p >= dens) { if (!B.road || p >= B.road) continue; rdQ = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rdQ < 4.5 || rdQ > 15) continue; }
     const name = pick(B.trees, hh(i, j, 5)), K = TREE_KINDS[name];
@@ -144,7 +144,9 @@ const inLot = (x, z) => { try { return !!(houseLots.enabled && (houseLots.at(x, 
 const lotInset = (l, x, z) => { const c = Math.cos(l.heading), s = Math.sin(l.heading), dx = x - l.x, dz = z - l.z, u = dx * c - dz * s, v = dx * s + dz * c;
   return Math.min(l.w / 2 - Math.abs(u), v < 0 ? l.d / 2 + v : l.d / 2 + (l.roadGap || 0) - v); };
 const inLotCore = (x, z) => { try { if (!houseLots.enabled) return false; if (houseLots.reservedAt(x, z, 2)) return true; const l = houseLots.at(x, z); return !!l && lotInset(l, x, z) > 2.2; } catch (e) { return false; } };
-const LOT_TREES = { keys: [['poinciana', 3], ['gumbo', 2], ['coconut', 2.5], ['coconutM', 1.5], ['rubber', 1.2], ['sabal', 1], ['buttonwood', 1]], main: [['liveoak', 3], ['gumbo', 2], ['sabal', 1.5], ['coconut', 1], ['poinciana', 1], ['banyan', 0.3]] };
+const inLotInner = (x, z) => { try { if (!houseLots.enabled) return false; if (houseLots.reservedAt(x, z, 2)) return true; const l = houseLots.at(x, z); if (!l) return false; const c = Math.cos(l.heading), s = Math.sin(l.heading), dx = x - l.x, dz = z - l.z, v = dx * s + dz * c; return lotInset(l, x, z) > 1.25 || v > l.d * 0.2; } catch (e) { return false; } }; // the side / back lot-line band keeps its hedges
+const LOT_TREES = { keys: [['seagrapeT', 2.6], ['gumbo', 2.4], ['buttonwood', 2], ['coconut', 2.5], ['coconutM', 1.2], ['rubber', 0.8], ['sabal', 1], ['poinciana', 0.5]], main: [['liveoak', 3], ['gumbo', 2], ['sabal', 1.5], ['coconut', 1], ['poinciana', 1], ['banyan', 0.3]] };
+const LOT_HEDGE = { keys: [['hedge', 3], ['seagrape', 3], ['hibiscus', 0.5], ['bougainvillea', 0.5], ['oleander', 0.3]], main: [['hedge', 5], ['hibiscus', 0.4], ['bougainvillea', 0.3]] };
 function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids already planted in this cell (skipped)
   if (!houseLots.enabled || !houseLots.near) return; let list = []; try { list = houseLots.near(x0 + S / 2, z0 + S / 2, S * 0.75, []).slice(); } catch (e) { return; }
   for (const l of list) {
@@ -152,10 +154,10 @@ function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids a
     if (seen) { if (seen.has(l.id)) continue; seen.add(l.id); }
     const id = Math.abs(Math.round(l.x * 7.31 + l.z * 3.17)), keys = ctx.terrain.isKeys(l.x, l.z), L = keys ? LOT_TREES.keys : LOT_TREES.main, c = Math.cos(l.heading), sn = Math.sin(l.heading);
     let n = 0;
-    for (const [k, [u, v]] of [[-1, -1], [1, -1], [-1, 0.05], [1, 0.05], [0, -1]].entries()) {
-      if (hh(id, k, 201) > (keys ? 0.62 : 0.5) || n >= 3) continue;
-      const lu = u * (l.w / 2 - 1.3), lv = v < 0 ? -(l.d / 2 - 1.3) : v * l.d, x = l.x + c * lu + sn * lv, z = l.z - sn * lu + c * lv;
-      if ((ctx.roadDist ? ctx.roadDist(x, z) : 99) < 4.5 || (ctx.blocked && ctx.blocked(x, z, 1.6)) || ctx.data.isWater(x, z)) continue;
+    for (const [k, [u, v]] of [[-1, -1], [1, -1], [-1, 0.05], [1, 0.05], [0, -1], [-1, -0.25], [1, -0.25], [-0.5, -1], [0.5, -1]].entries()) { // corners, side yards, back line
+      if (hh(id, k, 201) > (keys ? 0.7 : 0.5) || n >= (keys ? 5 : 3)) continue;
+      const lu = u * (l.w / 2 - 1.3), lv = v <= -1 ? -(l.d / 2 - 1.3) : v * l.d, x = l.x + c * lu + sn * lv, z = l.z - sn * lu + c * lv;
+      if ((ctx.roadDist ? ctx.roadDist(x, z) : 99) < 4.5 || (ctx.blocked && ctx.blocked(x, z, 1.6)) || ctx.data.isWater(x, z) || (houseLots.reservedAt && houseLots.reservedAt(x, z, 1.2))) continue;
       const name = pick(L, hh(id, k, 202)), K = TREE_KINDS[name]; if (!K) continue;
       const H = ctx.terrain.heightAt; let y = H(x, z); for (const [dx, dz] of [[0.6, 0], [-0.6, 0], [0, 0.6], [0, -0.6]]) y = Math.min(y, H(x + dx, z + dz));
       emit({ name, v: K.w ? pickIdx(K.w, hh(id, k, 203)) : (hh(id, k, 203) * K.seeds.length) | 0, x, z, y, ry: hh(id, k, 204) * 6.2832, s: K.s[0] + (K.s[1] - K.s[0]) * hh(id, k, 205) * 0.8, sp: K.sp, palm: !!K.palm, b: BIDX[keys ? 'keys' : 'rural'], key: 'lot' + id + ',' + k });
@@ -302,8 +304,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     tall: [1, 2].map((s) => bladeTuft(s * 23, { n: 22, h: 0.95, w: 0.009, lean: 0.4, r: 0.22 })),
     daisy: [1, 2].map((s) => flowerClump(s * 31, [0.92, 0.92, 0.88], [0.95, 0.7, 0.08])),
     tick: [1, 2].map((s) => flowerClump(s * 37, [0.98, 0.78, 0.06], [0.45, 0.25, 0.05])),
-    rock: [1, 2, 3].map((s) => rock(s * 41, [0.13, 0.125, 0.11])), // linear albedo: weathered grey limestone, not chalk white
-    peb: [1, 2].map((s) => rock(s * 47, [0.12, 0.11, 0.095])),
+    rock: [1, 2, 3].map((s) => rock(s * 41, [0.4, 0.385, 0.35])), // ground pass: weathered pale limestone / coral rock (x material tint 0.6 = ~0.24 linear albedo; the old 0.13 rendered as black splats)
+    peb: [1, 2].map((s) => rock(s * 47, [0.42, 0.4, 0.36])),
   };
   if (GCARDS) { // photographed grass: wild clumps + dense dry strips for the main layer, strips for the near fill, single blades for tall grass
     GC.grass = [clumpCard(11, { h: 0.55 }), clumpCard(23, { h: 0.5 }), stripCard(33, { h: 0.36, w: 0.8 }), stripCard(44, { h: 0.32, w: 0.75 })];
@@ -337,6 +339,40 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       const m = new Float32Array((L.n + k) * 16), cc = new Float32Array((L.n + k) * 3); m.set(L.m.subarray(0, L.n * 16)); cc.set(L.c.subarray(0, L.n * 3)); m.set(A.m, L.n * 16); cc.set(A.c, L.n * 3); L.m = m; L.c = cc; L.n += k; }
     if (add.size) dirty = true;
   }
+  // (vegetation, overnight) lot-line hedges: the side and back lines of each house lot (along the fences) get runs of hedge /
+  // sea grape / flowering shrubs 0.7-1.1 m inside the line, broken into runs and gaps, with taller sea grape clumps (2.5-3 m) in
+  // the runs as the mid layer; the side lines stop short of the front yard (driveway, walk). Keys lots: denser, more varied.
+  function lotHedges(c, lots, trunks, put) {
+    c.hedgeIds ||= new Set();
+    for (const l of lots) { if (l.x < c.x0 || l.x >= c.x0 + CELLS || l.z < c.z0 || l.z >= c.z0 + CELLS || !(l.w > 7 && l.d > 7) || c.hedgeIds.has(l.id)) continue; c.hedgeIds.add(l.id);
+      const keys = terrain.isKeys(l.x, l.z), id = Math.abs(Math.round(l.x * 7.31 + l.z * 3.17)), co = Math.cos(l.heading), sn = Math.sin(l.heading), LH = keys ? LOT_HEDGE.keys : LOT_HEDGE.main, b = BIDX[keys ? 'keys' : 'rural'], hd = l.d / 2, hw = l.w / 2;
+      for (const [li, [su, sv]] of [[-1, 0], [1, 0], [0, -1]].entries()) { if (hh(id, li, 301) < (keys ? 0.12 : 0.4)) continue; // some lines stay bare
+        const a0 = su ? -hd + 0.9 : -hw + 0.9, a1 = su ? hd * 0.3 : hw - 0.9;
+        for (let t = a0, k = 0; t < a1; t += 1.4 + hh(id, li * 97 + k, 302) * 0.9, k++) {
+          if (vn(t / 6.5 + (id % 89), li * 3.7 + (id % 13)) < (keys ? 0.36 : 0.44)) continue; // runs and gaps
+          const ins = 0.7 + hh(id, li * 97 + k, 303) * 0.4, lu = su ? su * (hw - ins) : t, lv = su ? t : -(hd - ins), x = l.x + co * lu + sn * lv, z = l.z - sn * lu + co * lv;
+          if ((roadDist ? roadDist(x, z) : 99) < 2.5 || data.isWater(x, z) || (deckAt && deckAt(x, z)) || trunks.some((q) => (q[0] - x) ** 2 + (q[1] - z) ** 2 < 2)) continue;
+          const r = hh(id, li * 97 + k, 304), tall = keys && r < 0.22, name = tall ? 'seagrape' : pick(LH, hh(id, li * 97 + k, 305)), lst = protoOf[name]; if (!lst) continue;
+          const s = tall ? 1.7 + r * 1.8 : 0.95 + hh(id, li * 97 + k, 306) * 0.45;
+          put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, terrain.heightAt(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
+        }
+      }
+    }
+  }
+  // lots planned after a cell's shrubs were generated: their hedges join the sealed lists (no regeneration, no blink)
+  function addLotHedges(c) {
+    const add = new Map(), trunks = []; for (const [pi, L] of c.lists) if (TREE_KINDS[protos[pi].key.split('#')[0]]) for (let k = 0; k < L.n; k++) trunks.push([L.m[k * 16 + 12], L.m[k * 16 + 14]]);
+    lotHedges(c, houseLots.near ? houseLots.near(c.cx, c.cz, CELLS * 0.75 + 24, []).slice() : [], trunks, (pi, x, y, z, ry, sc, col, sy) => { if (BLOCKED && BLOCKED(x, z, 0.3)) return;
+      _q.setFromAxisAngle(UP, ry); _m.compose(_p.set(x, y, z), _q, _s.set(sc, sy, sc)); let A = add.get(pi); if (!A) add.set(pi, (A = { m: [], c: [] })); A.m.push(..._m.elements); A.c.push(...col); });
+    mergeAdd(c, add);
+  }
+  function mergeAdd(c, add) {
+    for (const [pi, A] of add) { let L = c.lists.get(pi); const k = A.m.length / 16;
+      if (!L) { L = { m: new Float32Array(A.m), c: new Float32Array(A.c), cls: protos[pi].cls, n: k }; c.lists.set(pi, L); continue; }
+      if (Array.isArray(L.m)) { for (const v of A.m) L.m.push(v); for (const v of A.c) L.c.push(v); L.n = L.m.length / 16; continue; }
+      const m = new Float32Array((L.n + k) * 16), cc = new Float32Array((L.n + k) * 3); m.set(L.m.subarray(0, L.n * 16)); cc.set(L.c.subarray(0, L.n * 3)); m.set(A.m, L.n * 16); cc.set(A.c, L.n * 3); L.m = m; L.c = cc; L.n += k; }
+    if (add.size) dirty = true;
+  }
   function genTrees(c) {
     c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - (t.name === 'mangrove' ? 0.28 : t.palm ? 0.1 : 0.16) * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
     c.lv.t = 1;
@@ -367,6 +403,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       normalAt(G, x, z, c, _n).lerp(UP, 0.5).normalize();
       pushItem(c, pi, x, bil(G, G.H, x, z, c) - 0.06, z, hh(i, j, 28) * 6.28, s, _n, leafCol(b, x, z, hh(i, j, 29)));
     }
+    lotHedges(c, lotsHere, trunks, (pi, x, y, z, ry, sc, col, sy) => pushItem(c, pi, x, y, z, ry, sc, null, col, sy));
     // understory (vegetation track): every tree gets a skirt: grass tufts / ferns hugging the trunk (soft ground contact, no bare
     // pole standing on the ground) and a few shrubs under the crown, species by biome
     for (const [pi, L] of [...c.lists]) { const P = protos[pi], kn = P.key.split('#')[0], TK = TREE_KINDS[kn]; if (!TK || TK.shrubLike || !L.n) continue;
@@ -392,7 +429,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       const B = BIOMES[BKEYS[b - 1]], rd = bil(G, G.RD, x, z, c); if (rd < 0.15) continue;
       const p = hh(i, j, 33), y = bil(G, G.H, x, z, c), ry = hh(i, j, 34) * 6.28; normalAt(G, x, z, c, _n);
       if (rd < 1.7) { // gravel / dirt shoulder: pebbles and the odd low tuft
-        if (p < 0.55) { const pi = protoOf.peb[(p * 20 | 0) % 2], s = 0.05 + hh(i, j, 35) * 0.11, g = 0.85 + hh(i, j, 36) * 0.3; pushItem(c, pi, x, y - s * 0.12, z, ry, s, _n, [g, g * 0.97, g * 0.92], s * 0.8); }
+        if (p < 0.22) { const pi = protoOf.peb[(p * 50 | 0) % 2], s = 0.04 + hh(i, j, 35) * 0.09, g = 0.8 + hh(i, j, 36) * 0.35; pushItem(c, pi, x, y - s * 0.3, z, ry, s, _n, [g, g * 0.97, g * 0.92], s * 0.8); }
         if (p > 0.8 && rd > 1.0) pushItem(c, protoOf.short[0], x, y - 0.02, z, ry, 0.7 + hh(i, j, 37) * 0.4, _n, [0.95, 0.95, 0.75]);
         continue;
       }
@@ -463,8 +500,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     // houses planned after a cell was generated: regenerate nearby plant levels so nothing grows under / inside a new house
     // (filter in place, at most once a second: the other plants stay exactly where they are)
     const nl = houseLots.list ? houseLots.list.size + houseLots.reserved.length : 0, now = performance.now();
-    if (nl !== lotsSeen && now - lotsT > 1000) { lotsSeen = nl; lotsT = now; for (const c of cells.values()) { if (Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) > 800) continue; c.grid = null; if (c.lv.t && Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) < 450) addLotTrees(c);
-      for (const L of c.lists.values()) { const tr = L.cls === 'tree'; let w = 0; for (let i = 0; i < L.n; i++) { if (tr ? inLotCore(L.m[i * 16 + 12], L.m[i * 16 + 14]) : inLot(L.m[i * 16 + 12], L.m[i * 16 + 14])) continue; if (w !== i) { L.m.copyWithin(w * 16, i * 16, i * 16 + 16); L.c.copyWithin(w * 3, i * 3, i * 3 + 3); } w++; } if (w !== L.n) { L.n = w; dirty = true; } } } }
+    if (nl !== lotsSeen && now - lotsT > 1000) { lotsSeen = nl; lotsT = now; for (const c of cells.values()) { if (Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) > 800) continue; c.grid = null; if (c.lv.t && Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) < 450) addLotTrees(c); if (c.lv.s && Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) < 450) addLotHedges(c);
+      for (const L of c.lists.values()) { const tr = L.cls === 'tree'; let w = 0; for (let i = 0; i < L.n; i++) { if (tr ? inLotCore(L.m[i * 16 + 12], L.m[i * 16 + 14]) : inLotInner(L.m[i * 16 + 12], L.m[i * 16 + 14])) continue; if (w !== i) { L.m.copyWithin(w * 16, i * 16, i * 16 + 16); L.c.copyWithin(w * 3, i * 3, i * 3 + 3); } w++; } if (w !== L.n) { L.n = w; dirty = true; } } } }
     // docks / decks / piers built after a cell was generated (static colliders appear as tiles and set pieces stream in): drop the
     // trees and plants now standing in one (mangroves beside a dock were growing through it)
     if (solidRev && now - solidT > 1000) { const rv = solidRev(); if (rv !== solidSeen) { solidSeen = rv; solidT = now;

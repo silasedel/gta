@@ -45,6 +45,9 @@ function partsOf(scene, def) {
   let ccx = 0, ccz = 0, ccn = 0; const yBand = yCrown + 0.12 * Math.max(0.3, yTop - yCrown);
   for (const [m, gs] of byMat) if (!def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y >= yCrown && y <= yBand) { ccx += P.getX(i); ccz += P.getZ(i); ccn++; } } }
   const crownC = ccn ? [ccx / ccn, ccz / ccn] : [0, 0];
+  // trunk radius 0.9-1.6 m up (80th percentile of the bark around the base axis): street palms in paving clamp their root flare to it
+  const tr = []; for (const [m, gs] of byMat) if (def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > 0.9 && y < 1.6) tr.push(Math.hypot(P.getX(i), P.getZ(i))); } }
+  tr.sort((a, b) => a - b); const trunkR = tr.length ? tr[Math.floor(tr.length * 0.8)] : 0.2;
   let rMax = 0.3; for (const [, gs] of byMat) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) rMax = Math.max(rMax, Math.hypot(P.getX(i), P.getZ(i))); }
   for (const [m, gs] of byMat) {
     const keep = gs.map((g) => { const n = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) if (g.attributes[k]) n.setAttribute(k, g.attributes[k]); if (g.index) n.setIndex(g.index); return n; });
@@ -73,24 +76,65 @@ function partsOf(scene, def) {
     out.push({ name: m.name, fam: bark ? 'bark' : 'leaf', geometry: g, map, normalMap: m.normalMap || null, tris: g.index.count / 3 });
   }
   out.sort((a, b) => (a.fam === b.fam ? 0 : a.fam === 'bark' ? -1 : 1));
-  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC };
+  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC, trunkR };
 }
 
-// impostor memory: the bake renders into a 4x MSAA target (2048 x up to 1024 px, ~32 MB of multisample buffers each, kept alive
-// by the target). Copy the resolved image into a plain mipmapped target and free the MSAA one (50 models: ~1.5 GB of GPU memory).
+// impostor texture: the bake renders the 8 views as one 4x MSAA strip (2048 x up to 1024 px). It is resolved, read back once and
+// rebuilt as an atlas of 4 x 2 tiles (S x Th each, Th = power of two >= the view height, the view at the bottom of its tile) with a
+// hand-built mip chain, then the MSAA target is freed (~1.5 GB of GPU memory for 50 models):
+//  - mips stop at 2 texels per tile, every coarser texel lies inside one tile: views never bleed into each other (a short-wide
+//    strip collapsed a whole view column into one half-alpha texel: far trees drew as solid / dithered rectangles)
+//  - coverage-preserving alpha: per tile and level, alpha is scaled so the share of texels passing the 0.5 alpha test equals
+//    level 0's (a far tree keeps its silhouette density: no thinning out, no blob, no crawl from a coverage jump between levels)
+//  - push-pull color dilation: transparent texels take the alpha-weighted color of the nearest coarser level (no dark rims)
 let _blit = null;
+function impostorMips(src, w, S, V, rh) {
+  const C = Math.min(V, 4), Rn = Math.ceil(V / C), Th = 1 << Math.ceil(Math.log2(Math.max(2, rh))), AW = C * S, AH = Rn * Th;
+  const nL = Math.max(1, Math.log2(Math.min(S, Th)) | 0), lv = [];
+  let P = new Float32Array(AW * AH * 4); // premultiplied rgb, alpha
+  for (let k = 0; k < V; k++) { const tx = (k % C) * S, ty = ((k / C) | 0) * Th;
+    for (let y = 0; y < rh; y++) { let si = (y * w + k * S) * 4, di = ((ty + y) * AW + tx) * 4;
+      for (let x = 0; x < S; x++, si += 4, di += 4) { const a = src[si + 3] / 255; P[di] = src[si] / 255 * a; P[di + 1] = src[si + 1] / 255 * a; P[di + 2] = src[si + 2] / 255 * a; P[di + 3] = a; } } }
+  lv.push({ P, w: AW, h: AH });
+  for (let l = 1; l < nL; l++) { const q = lv[l - 1], W = q.w >> 1, H = q.h >> 1, D = new Float32Array(W * H * 4);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 4, a = ((2 * y) * q.w + 2 * x) * 4, b = a + q.w * 4;
+      for (let c = 0; c < 4; c++) D[o + c] = (q.P[a + c] + q.P[a + 4 + c] + q.P[b + c] + q.P[b + 4 + c]) * 0.25; }
+    lv.push({ P: D, w: W, h: H }); }
+  // straight color: rgb / alpha where covered, else the coarser level's color (filled from the coarsest level up)
+  const RGB = lv.map((q) => new Float32Array(q.w * q.h * 3));
+  for (let l = nL - 1; l >= 0; l--) { const q = lv[l], O = RGB[l], up = l + 1 < nL ? lv[l + 1] : null, U = up ? RGB[l + 1] : null;
+    let fr = 0, fg = 0, fb = 0, fw = 0; if (!up) for (let i = 0; i < q.w * q.h; i++) { fr += q.P[i * 4]; fg += q.P[i * 4 + 1]; fb += q.P[i * 4 + 2]; fw += q.P[i * 4 + 3]; }
+    for (let y = 0; y < q.h; y++) for (let x = 0; x < q.w; x++) { const i = y * q.w + x, a = q.P[i * 4 + 3];
+      if (a > 1e-3) { O[i * 3] = q.P[i * 4] / a; O[i * 3 + 1] = q.P[i * 4 + 1] / a; O[i * 3 + 2] = q.P[i * 4 + 2] / a; }
+      else if (up) { const j = ((y >> 1) * up.w + (x >> 1)) * 3; O[i * 3] = U[j]; O[i * 3 + 1] = U[j + 1]; O[i * 3 + 2] = U[j + 2]; }
+      else if (fw > 0) { O[i * 3] = fr / fw; O[i * 3 + 1] = fg / fw; O[i * 3 + 2] = fb / fw; } } }
+  // per tile coverage at the 0.5 alpha test, kept at every level by an alpha scale (threshold from a 256-bin histogram)
+  const cov = new Float32Array(V), hist = new Uint32Array(256), out = [];
+  for (let l = 0; l < nL; l++) { const q = lv[l], tw = S >> l, th = Th >> l, D = new Uint8Array(q.w * q.h * 4), O = RGB[l];
+    for (let k = 0; k < C * Rn; k++) { const tx = (k % C) * tw, ty = ((k / C) | 0) * th; let sc = 1;
+      if (k < V) { hist.fill(0); for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) hist[Math.min(255, (q.P[((ty + y) * q.w + tx + x) * 4 + 3] * 255) | 0)]++;
+        const n = tw * th; if (l === 0) { let c = 0; for (let b = 128; b < 256; b++) c += hist[b]; cov[k] = c / n; }
+        else if (cov[k] > 0) { const want = cov[k] * n; let c = 0, b = 255; for (; b > 0; b--) { c += hist[b]; if (c >= want) break; } sc = Math.min(6, Math.max(0.5, 0.5 / Math.max(1 / 255, (b + 0.5) / 255))); } }
+      for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) { const i = (ty + y) * q.w + tx + x;
+        D[i * 4] = Math.min(255, O[i * 3] * 255 + 0.5); D[i * 4 + 1] = Math.min(255, O[i * 3 + 1] * 255 + 0.5); D[i * 4 + 2] = Math.min(255, O[i * 3 + 2] * 255 + 0.5); D[i * 4 + 3] = Math.min(255, q.P[i * 4 + 3] * sc * 255 + 0.5); } }
+    out.push({ data: D, width: q.w, height: q.h }); }
+  return { mips: out, AW, AH, C, Rn, fy: rh / Th };
+}
 function compactImpostor(renderer, imp) {
   if (!imp || !imp.rt || !(imp.rt.samples > 0)) return imp;
-  const w = imp.rt.width, h = imp.rt.height;
-  const rt2 = new THREE.WebGLRenderTarget(w, h, { samples: 0, colorSpace: THREE.NoColorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
+  const w = imp.rt.width, h = imp.rt.height, im = imp.texture.userData.impostor, V = im.views, S = w / V;
+  const rt2 = new THREE.WebGLRenderTarget(w, h, { samples: 0, colorSpace: THREE.NoColorSpace });
   _blit ||= (() => { const m = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null } }, vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: 'uniform sampler2D tSrc; varying vec2 vUv; void main() { gl_FragColor = texture2D(tSrc, vUv); }', depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false });
     const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m); q.frustumCulled = false; const sc = new THREE.Scene(); sc.add(q); return { m, sc, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) }; })();
   const prev = renderer.getRenderTarget(), ac = renderer.autoClear;
-  _blit.m.uniforms.tSrc.value = imp.texture; renderer.autoClear = true; renderer.setRenderTarget(rt2); renderer.render(_blit.sc, _blit.cam); renderer.setRenderTarget(prev); renderer.autoClear = ac;
-  rt2.texture.userData.impostor = imp.texture.userData.impostor; _blit.m.uniforms.tSrc.value = null;
-  imp.rt.dispose();
-  return { geometry: imp.geometry, texture: rt2.texture, rt: rt2 };
+  _blit.m.uniforms.tSrc.value = imp.texture; renderer.autoClear = true; renderer.setRenderTarget(rt2); renderer.render(_blit.sc, _blit.cam); renderer.setRenderTarget(prev); renderer.autoClear = ac; _blit.m.uniforms.tSrc.value = null;
+  const px = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(rt2, 0, 0, w, h, px); rt2.dispose(); imp.rt.dispose();
+  const M = impostorMips(px, w, S, V, h), tex = new THREE.DataTexture(M.mips[0].data, M.AW, M.AH, THREE.RGBAFormat, THREE.UnsignedByteType);
+  tex.mipmaps = M.mips; tex.generateMipmaps = false; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.colorSpace = THREE.NoColorSpace; tex.flipY = false; tex.anisotropy = 4;
+  tex.userData.impostor = { ...im, cols: M.C, rows: M.Rn, fy: M.fy }; tex.needsUpdate = true;
+  tex.onUpdate = () => { for (const m of tex.mipmaps) m.data = null; tex.image.data = null; tex.onUpdate = null; }; // uploaded once: drop the CPU copies
+  return { geometry: imp.geometry, texture: tex, rt: null };
 }
 // boot pacing: every model's CPU work (merge, attributes), texture upload and impostor bake runs one model at a time, in its own
 // tasks (the 50 library models used to finish together and block the page for seconds)
@@ -112,15 +156,15 @@ async function buildOne(renderer, key, def, g0, g1) {
   let imp = null;
   try {
     const bakeParts = L0.parts.map((p) => ({ geometry: p.geometry, material: vm(p.fam, p, { lean: 0, sway: 0, tint: 0, wear: 0, transl: 0 }).mat }));
-    const tb = performance.now(); imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 128 : 256, 8); imp = compactImpostor(renderer, imp); (globalThis.__vegBake ||= {})[key] = Math.round(performance.now() - tb);
+    const tb = performance.now(); imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 64 : 128, 8); imp = compactImpostor(renderer, imp); (globalThis.__vegBake ||= {})[key] = Math.round(performance.now() - tb);
   } catch (e) { console.warn('[vegetation] model impostor bake failed', key, e); }
   await yieldTask();
   const model = {
-    key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, lods: [L0.parts, L1.parts], imp,
+    key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, trunkR: L0.trunkR, lods: [L0.parts, L1.parts], imp,
     tris: [L0.parts.reduce((a, p) => a + p.tris, 0), L1.parts.reduce((a, p) => a + p.tris, 0)],
     // materials for one set of LOD bands (fade vec4 per band); shared shader programs with every other library plant
     materials(f0, f1, fi, o = {}) {
-      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, baseAO: def.cls === 'shrub' ? 0.3 : 0.5, ...o };
+      const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, baseAO: def.cls === 'shrub' ? 0.3 : 0.5, ...o, baseClamp: o.paved ? [1.1, L0.trunkR * 1.05, 1] : null }; // paved: root flare pulled into the trunk (a clean base out of the grate)
       const mk = (parts, f) => parts.map((p) => { const m = vm(p.fam, p, { fade: f, wear: p.fam === 'leaf' ? 0.35 : 0.25, jitter: p.fam === 'leaf' ? C.jitLeaf : C.jitBark, ...base }); return { geo: p.geometry, mat: m.mat, depth: m.depth, fam: p.fam }; });
       const out = { near: mk(L0.parts, f0), mid: f1 ? mk(L1.parts, f1) : [], imp: null };
       if (imp && fi) { const m = makeVegMaterial('imp', { map: imp.texture, fade: fi, alphaTest: 0.5, transl: 0.5, jitter: C.jitLeaf, ...base }); out.imp = { geo: imp.geometry, mat: m.mat, depth: m.depth }; }
