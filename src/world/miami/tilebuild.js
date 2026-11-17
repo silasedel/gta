@@ -1803,6 +1803,18 @@ export function createTileBuilder(ctx) {
       const mx = p[0] + dx / 2 + nx * 3, mz = p[1] + dz / 2 + nz * 3;
       if (roadDist && roadDist(mx, mz) > 14) continue; // only the faces that front a street
       const nb = Math.max(1, Math.round(L / G.bayW)), bw = L / nb;
+      { // real depth at street level: stone pilasters between the bays, a granite kick plate under each window, sign boards and a
+        // projecting ledge over the shop fronts (the glass reads recessed behind them)
+        const ry = Math.atan2(-tz, tx), hS = hash(seed * 17 + i * 3), base = G.tint ? new THREE.Color(G.tint) : new THREE.Color(0xd8d2c6);
+        const stone = base.clone().lerp(new THREE.Color([0xd9d3c7, 0xc9c1b4, 0xb8b2a8, 0xe4ddd0][(hS * 4) | 0]), 0.65), granite = new THREE.Color([0x2e3034, 0x3b352f, 0x4a4743][(hS * 3) | 0]);
+        const box = (s0, s1, ya, yb, d, col) => { const sm = (s0 + s1) / 2; B.trim.addGeometry(BOXG, m4(p[0] + tx * sm + nx * d / 2, (ya + yb) / 2, p[1] + tz * sm + nz * d / 2, ry, s1 - s0, yb - ya, d), col); };
+        for (let k = 0; k <= nb; k++) { const sv = Math.min(L - 0.26, Math.max(0.26, k * bw)); box(sv - 0.26, sv + 0.26, y0, GF - 0.04, 0.24, stone); box(sv - 0.3, sv + 0.3, y0, y0 + 0.5, 0.3, stone.clone().multiplyScalar(0.86)); }
+        box(0, L, GF - 0.04, GF + 0.3, 0.34, stone.clone().multiplyScalar(0.93)); // ledge over the shop fronts
+        for (let k = 0; k < nb; k++) { const sA = k * bw + 0.26, sB = (k + 1) * bw - 0.26; if (sB - sA < 1.2) continue;
+          box(sA, sB, y0, y0 + 0.42, 0.07, granite); // kick plate
+          const hB = hash(seed * 23 + i * 11 + k); if (hB < 0.55) { const sc = new THREE.Color(AWN[(hB * 7.3 * AWN.length | 0) % AWN.length]).multiplyScalar(0.8);
+            box(sA + 0.1, sB - 0.1, top + 0.06, Math.min(GF - 0.12, top + 0.62), 0.1, sc); box(sA + 0.35, sB - 0.35, top + 0.18, Math.min(GF - 0.24, top + 0.5), 0.12, sc.clone().lerp(new THREE.Color(0xf2ece0), 0.75)); } } // sign board with a lighter panel
+      }
       for (let k = 0; k < nb; k++) {
         const sA = k * bw + 0.35, sB = (k + 1) * bw - 0.35;
         if (sB - sA < 1.6) continue;
@@ -3182,7 +3194,10 @@ export function createTileBuilder(ctx) {
     let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
     const m = meshOf(b, lbMat, { cast: false });
     if (m) { const pa = m.geometry.attributes.position.array, nv = m.geometry.attributes.position.count, at = new Float32Array(nv * 2), TS = provider.tileSize || 200;
-      if (GM_ON) for (let i = 0; i < nv; i++) { at[i * 2] = pa[i * 3] / TS - 0.5; at[i * 2 + 1] = pa[i * 3 + 2] / TS - 0.5; } else at.fill(-1e6); // ground pass: tile coords are linear in position, so the near-tile cut is exact per pixel: the base is dropped wherever full-detail ground exists (it rose above the shore slope as a pale band)
+      at.fill(-1e6);
+      if (GM_ON && terrain && !m.geometry.index) for (let i = 0; i + 2 < nv; i += 3) { // only triangles wholly on synthetic (terrain) land: real-Miami fills keep the base as their gap filler
+        let syn = true; for (let k = i; k < i + 3; k++) if (terrain.real(pa[k * 3], pa[k * 3 + 2])) { syn = false; break; }
+        if (syn) for (let k = i; k < i + 3; k++) { at[k * 2] = pa[k * 3] / TS - 0.5; at[k * 2 + 1] = pa[k * 3 + 2] / TS - 0.5; } } // ground pass: tile coords are linear in position, so the near-tile cut is exact per pixel: the base is dropped wherever full-detail ground exists (it rose above the shore slope as a pale band)
       m.geometry.setAttribute('aTile', new THREE.BufferAttribute(at, 2)); group.add(m); }
     root.add(group); return group;
   }
