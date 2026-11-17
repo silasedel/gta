@@ -1479,3 +1479,40 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
   - the wall array at native 1024
   - wall roughness breakup
   Left: geometry window reveals on the near LOD, and 2K neutral wall scans (needs new sources). The materials.js neon line goes in with r2-render's commit.
+
+## r2-render
+**Image-stability overhaul (the user's "dotty, fringy, layered").** On by default (`game.renderR2`, page `?render2=0` = old pipeline).
+Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a851 (shop-window rooms + r2-art neon), afce3e49
+(r2-veg carried the vegetation hunks); the 15:30 follow-up (binary foliage coverage, MSAA / DPR, auto-pick) is in the commit after them.
+- **Inventory** (runtime walk of every visible material + its compiled shader; `tools/v2/render/stab.mjs --only inv`,
+  `invtable.mjs`, raw data `docs/v2/reports/render-ab3-inventory.json`):
+  | source | technique (before) | where | now |
+  |---|---|---|---|
+  | vegetation LOD cross-fades | temporal IGN, pixel offset per frame (left a fixed per-pixel bias) | every tree / palm / shrub band | IGN stepped by the golden ratio per frame (converges under TAA) |
+  | crowd + far crowd fades, Nico hair shells | same | NPC tiers, Nico's hair LOD | same fix |
+  | shop-window rooms 55-70 m | FIXED screen hash (a dot pattern that never moved) | every storefront | stepped IGN |
+  | foliage / hair cards | alpha-to-coverage, fractional coverage | all leaves, hair | binary coverage + TAA jitter (fractional A2C became an ordered dot hatch at 2x MSAA) |
+  | Nico's card plants, chain-link, breeze blocks | hard alpha test | Nico's yard, houses | unchanged (alpha test + TAA supersampling) |
+  | PCSS sun shadows | 12 point taps rotated per pixel and frame | every lit surface | narrow penumbrae: 4 bilinear taps on a fixed grid (no dotted edges); wide: as before |
+  | contact AO, sun shafts | interleaved / IGN + golden ratio (r2-look) | | unchanged (already resolved) |
+  | TAA itself | stale view matrix, no motion vectors, history resampled at the jitter offset | everything | see below |
+- **TAA** (`src/render/post.js`, SouthlineTAA3): the jitter used the previous frame's camera matrix (every camera move and
+  even still shots kept semi-transparent ghost copies: the "layered" rails, slats, truck edges and tires); a velocity pass for
+  moving vehicles / people (per-object previous matrix, only roots that moved: +~40 draws while traffic moves, 0 when still);
+  unjittered reprojection (a still pixel reads its history at its own texel); YCoCg variance clip toward the box center, the
+  box opening toward min / max at rest; a clamped CAS sharpen on the output only (grade sharpen 0.08). Depth disocclusion
+  rejection exists (`game.renderDisocc = true`) but is off: it tripled the noise on textured ground at rest.
+- **Resolution / AA:** MSAA 4x on High and Ultra (was 2x on High); render DPR High = 1.5x, Ultra = native (were 1080p-class,
+  upscaled by the browser); anisotropic 8x on every mipmapped texture; the auto-pick only steps down on GPU-bound windows
+  (CPU-bound M3 Max frames were stepping the user to Medium / Low) and old stored auto results are dropped.
+- **Camera-proximity foliage fade:** leaves within 1.3 m of the camera or between the camera and the player fade out (per-frame
+  stepped threshold, TAA-averaged) instead of filling the screen.
+- **Measured** (Nico's deck camera, wind frozen, 8 consecutive frames, same session): frame-to-frame noise 2.42 -> 1.12 luma/255,
+  noise / detail ratio 0.122 -> 0.063, no ghost doubles. Perf (1600x900, load 40-60 on this machine, 3 alternating reps):
+  frame 30.6 vs 29.6 ms, render CPU 19.7 vs 19.7 ms: inside the noise.
+- **Sheets:** `docs/v2/shots/render/sheet_ab3_zoom2x.jpg` (2x crops, old | new), `sheet_ab3_stills.jpg`, `sheet_ab3_noise.jpg`
+  (temporal diff x8), `sheet_ab3_drive.jpg` (moving convertible); the 15:30 follow-up: `sheet_jag_*.jpg`.
+- **Still not right:** far palm frond tips can show a fine moire where the leaflet comb is about a pixel wide (the frond mip
+  chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
+  (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
+- 16:20 **Magenta bar fixed at the source.** Dimming wasn't enough: the unlit neon tube still drew its gas color. M.neon now renders as pale gray glass by day (desaturated in the shader through `uNeonDay`) and shows its color only from dusk. Verified at the Miami Beach corner, console clean: `docs/v2/shots/art/after_neonfix_mbres_0.jpg`. The deco fin now reads as a pale fin with gray tube edges and speed-line grooves. Stopping at facade step (3), as agreed.

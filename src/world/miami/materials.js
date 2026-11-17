@@ -69,7 +69,10 @@ export async function createMaterials(renderer) {
     trim: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.05, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.4, 0.4) }),
     metal: new THREE.MeshStandardMaterial({ color: 0x3b4046, roughness: 0.45, metalness: 0.8 }),
     markings: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
-    neon: new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+    neon: (() => { // r2-art: unlit by day the tube is pale gray glass (its vertex color is the gas color, which only shows lit); uNeonDay 1 = day
+      const m = new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }); m.userData.uNeonDay = { value: 1 };
+      m.onBeforeCompile = (sh) => { sh.uniforms.uNeonDay = m.userData.uNeonDay; sh.fragmentShader = 'uniform float uNeonDay;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.56, 0.57) * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)) + vec3(0.06), uNeonDay);'); };
+      m.customProgramCacheKey = () => 'neon-day'; return m; })(),
     far: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1, emissive: 0xffd9a0, emissiveIntensity: 0 }),
     // colour 0x232323 (not 0x222222) opts the pooled heads out of env/lamps.js signature scanning; tiles publish userData.psLamps instead
     lampHead: new THREE.MeshStandardMaterial({ color: 0x232323, emissive: 0xffd7a0, emissiveIntensity: 0, roughness: 0.4 }),
@@ -473,7 +476,7 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     for (const m of [M.office, M.deco, M.band, M.warehouse, ...Object.keys(VARIANTS).map((k) => M[k])]) m.emissiveIntensity = 0.04 + 1.0 * n;
     M.glass.emissiveIntensity = 0.03 + 0.9 * n; M.farGlass.emissiveIntensity = 0.03 + 0.9 * n; M.shop.emissiveIntensity = 0.35 + 1.1 * n; M.far.emissiveIntensity = 0.9 * n;
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;
-    M.neon.color.setScalar(0.06 + 3.3 * dusk); // r2-art: unlit neon tubes by day are dull colored glass (a full-strength unlit magenta read as a missing-texture bar)
+    M.neon.color.setScalar(dusk > 0.02 ? 0.3 + 3.0 * dusk : 1.0); if (M.neon.userData.uNeonDay) M.neon.userData.uNeonDay.value = 1 - Math.min(1, dusk * 1.5); // r2-art: unlit neon tubes by day are dull colored glass (a full-strength unlit magenta read as a missing-texture bar)
     if (dusk > 0.02) M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk); else M.bulb.color.setRGB(0.2, 0.19, 0.17); // unlit by day: dull glass bulb, not a glowing beige dot
     if (M.roomGlassKit) {
       M.roomGlassKit.uNight.value = Math.max(n, dusk * 0.8);
