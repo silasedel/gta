@@ -137,9 +137,10 @@
       else if (mode === 'leftside') { const d = o.d ?? 6.2; cam.position.set(p.x - rx * d, p.y + (o.up ?? 0.15), p.z - rz * d); cam.lookAt(p.x, p.y - 0.25, p.z); }
       else if (mode === 'rear3q') { cam.position.set(p.x - fx * 6.5 + rx * 3.2, p.y + 1.3, p.z - fz * 6.5 + rz * 3.2); cam.lookAt(p.x + fx * 1.5, p.y - 0.1, p.z + fz * 1.5); }
       else if (mode === 'front3q') { cam.position.set(p.x + fx * 6.8 + rx * 3.4, p.y + 0.9, p.z + fz * 6.8 + rz * 3.4); cam.lookAt(p.x, p.y - 0.15, p.z); }
-      else if (mode === 'damage') { // close-up of the front corner on the hit side
-        const sd = o.side ?? 1, q = v.mesh.quaternion, cp = new T.Vector3(sd * (v.spec.W / 2 - 0.2), 0.25, v.spec.L / 2 - 0.25).applyQuaternion(q).add(p), ep = new T.Vector3(sd * (v.spec.W / 2 + 1.5), 0.55, v.spec.L / 2 + 1.7).applyQuaternion(q).add(p);
-        cam.position.copy(ep); cam.lookAt(cp); }
+      else if (mode === 'damage') { // close-up of the recorded contact point (shell space, game.physics.impactLog) or the front corner
+        const sh = v.car.shell; sh.updateMatrixWorld(true); const at = o.at || [(o.side ?? 1) * (v.spec.W / 2 - 0.2), 0.5, v.spec.L / 2 - 0.1];
+        const cp = new T.Vector3(at[0], at[1], at[2]).applyMatrix4(sh.matrixWorld), out = new T.Vector3(at[0] * 0.6, 0, Math.sign(at[2] || 1) * 1).normalize().transformDirection(sh.matrixWorld);
+        cam.position.copy(cp).addScaledVector(out, 1.25).add(new T.Vector3(0, 0.35, 0)); cam.lookAt(cp); if (cam.fov !== 50) { cam.fov = 50; cam.updateProjectionMatrix(); } }
       else if (mode === 'wheel') { const w = o.wheel ?? 1, wx = v.car.wheels[w]; const wp = new T.Vector3(wx.x, 0, wx.z).applyQuaternion(v.mesh.quaternion).add(p); const sd = wx.x > 0 ? -1 : 1; cam.position.set(wp.x + rx * sd * 2.4 + fx * 1.2, wp.y + 0.05, wp.z + rz * sd * 2.4 + fz * 1.2); cam.lookAt(wp.x, wp.y - 0.35, wp.z); }
       if (o.fov) { cam.fov = o.fov; cam.updateProjectionMatrix(); }
       return true;

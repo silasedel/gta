@@ -26,6 +26,7 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 2400 }, async (b) => {
     try { for (const s of game.city.colliderSourceAt?.(P.x, P.z, ${RAD}) || []) if (s.kind !== 'building' && RR[s.kind] != null) push('tile:' + s.kind, s.x, s.y, s.z, RR[s.kind]); } catch (e) { /* */ }
     try { for (const t of game.vegetation?.treesNear?.(P.x, P.z, ${RAD}) || []) push((t.palm ? 'palm:' : 'tree:') + t.kind, t.x, t.y, t.z, 0.25 * (t.s || 1)); } catch (e) { /* */ }
     try { for (const its of game.lotProps?.owners?.values?.() || []) for (const it of its) push('lot:' + it.name, it.x, it.y, it.z, it.name.startsWith('mailbox') ? 0.12 : it.name === 'rolloff' ? 1.2 : 0.32); } catch (e) { /* */ }
+    for (const [x, z] of ${JSON.stringify(String(o.targets || '').split(';').filter(Boolean).map((q) => q.split(',').map(Number)))}) { let y = 0; try { y = game.city.groundHeightAt(x, z); } catch (e) { /* */ } out.push({ kind: 'qa:tree', x, y, z, r: 0.3 }); }
     return { out, per }; })())`));
   out.inventory = targets.per; console.log('inventory', JSON.stringify(targets.per));
   for (const T of targets.out) {
@@ -33,16 +34,16 @@ await withBrowser({ width: 960, height: 540, maxSeconds: 2400 }, async (b) => {
     for (let d = 0; d < 4; d++) {
       const r = JSON.parse(await b.eval(`(async () => { const T = ${JSON.stringify(T)}, a = ${d} * Math.PI / 2 + 0.3, D = 2.4 + T.r;
         const px = T.x - Math.sin(a) * D, pz = T.z - Math.cos(a) * D; game.teleport(px, undefined, pz, a); await new Promise((r) => setTimeout(r, 500));
-        const P = game.player.position; const s0 = { x: P.x, z: P.z }; let minD = 1e9; const iv = setInterval(() => { const q = game.player.position; minD = Math.min(minD, Math.hypot(q.x - T.x, q.z - T.z)); }, 30);
+        const P = game.player.position; const s0 = { x: P.x, z: P.z }; window.__walkMin = 1e9; const iv = setInterval(() => { const q = game.player.position; window.__walkMin = Math.min(window.__walkMin, Math.hypot(q.x - T.x, q.z - T.z)); }, 30);
         window.__walk = { iv }; return JSON.stringify({ sx: s0.x, sz: s0.z }); })()`));
       await b.key('KeyW', true, 'w'); await b.sleep(2200); await b.key('KeyW', false, 'w'); await b.sleep(250);
       const e = JSON.parse(await b.eval(`(() => { clearInterval(window.__walk.iv); const T = ${JSON.stringify(T)}, P = game.player.position, a = ${d} * Math.PI / 2 + 0.3;
         const along = (P.x - T.x) * Math.sin(a) + (P.z - T.z) * Math.cos(a); // > 0: past the object's base
         return JSON.stringify({ endDist: +Math.hypot(P.x - T.x, P.z - T.z).toFixed(2), along: +along.toFixed(2), moved: +Math.hypot(P.x - ${r.sx}, P.z - ${r.sz}).toFixed(2) }); })()`));
-      const thr = e.along > 0.05 || e.endDist < T.r * 0.4; if (thr) through++; dirs.push(e);
+      e.minD = JSON.parse(await b.eval('JSON.stringify(window.__walkMin ?? null)')); const thr = (e.minD ?? e.endDist) < (0.28 + T.r) * 0.55; if (thr) through++; dirs.push(e);
     }
     const row = { ...T, through, dirs }; out.results.push(row);
-    console.log(through ? 'THROUGH' : 'solid  ', T.kind, `(${T.x.toFixed(1)}, ${T.z.toFixed(1)})`, through + '/4', JSON.stringify(dirs.map((q) => q.endDist)));
+    console.log(through ? 'THROUGH' : 'solid  ', T.kind, `(${T.x.toFixed(1)}, ${T.z.toFixed(1)})`, through + '/4', JSON.stringify(dirs.map((q) => [q.endDist, +(q.minD ?? 0).toFixed(2)])));
   }
   for (const r of out.results) { const s = (out.summary[r.kind] ||= { n: 0, through: 0 }); s.n++; if (r.through) s.through++; }
   out.errors = [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 8);

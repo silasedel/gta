@@ -48,7 +48,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 2400 }, async (b) => {
     console.log('sign', kmh, JSON.stringify(sum));
     // damage close-ups once stopped
     await b.sleep(2500);
-    await b.eval(`(() => { __lab.cam('damage', { side: -1 }); return 1; })()`); await b.sleep(1200);
+    await b.eval(`(() => { const L = game.physics.impactLog.filter((e) => e.car === __lab.v.typeKey && e.hit); const at = L.length ? L[0].at : null; __lab.cam('damage', { side: -1, at }); return 1; })()`); await b.sleep(1200);
     await b.screenshot(`${OUT}/sign${kmh}_damage_a.jpg`, { quality: 90 });
     await b.eval(`(() => { __lab.cam('front3q'); return 1; })()`); await b.sleep(1200);
     await b.screenshot(`${OUT}/sign${kmh}_damage_b.jpg`, { quality: 90 });

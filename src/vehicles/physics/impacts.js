@@ -123,7 +123,8 @@ export function installImpacts(game) {
       return d;
     } catch (e) { return null; }
   }
-  function tierOf(kmh, hardness) { const ve = kmh * Math.min(1, 0.45 + 0.55 * hardness); return ve < 15 ? 1 : ve < 40 ? 2 : ve < 80 ? 3 : 4; }
+  // tiers by impact speed (the user's spec); the object's hardness scales how deep it goes and whether lamps / hood / glass break
+  function tierOf(kmh, hardness) { const ve = hardness < 0.15 ? kmh * 0.4 : kmh; return ve < 15 ? 1 : ve < 40 ? 2 : ve < 80 ? 3 : 4; }
 
   // damage at a world-space contact on car v (dirWorld: direction of the impact INTO the car, horizontal unit)
   function damageAt(v, worldPoint, o = {}) {
@@ -153,10 +154,10 @@ export function installImpacts(game) {
     // scratches / scuff decal on the paint (always, sized by tier)
     if (paint) decalOn(v, paint, wp, wn, [0, 0.32, 0.5, 0.75, 1.0][tier], decalMat(), (Math.random() - 0.5) * 0.4);
     // a lamp at the contact breaks from tier 3 (or a hard hit in tier 2)
-    let lamps = 0; if (tier >= 3 || (tier === 2 && hard > 0.8)) for (const m of lod0) lamps += smashLamp(m, c, radius * 0.8);
-    for (const { o: m, lod } of meshes) if (lod === 1 && (tier >= 3 || (tier === 2 && hard > 0.8))) smashLamp(m, c, radius * 0.8);
+    let lamps = 0; if ((tier >= 3 && hard >= 0.3) || (tier === 2 && hard > 0.8)) for (const m of lod0) lamps += smashLamp(m, c, radius * 0.8);
+    for (const { o: m, lod } of meshes) if (lod === 1 && ((tier >= 3 && hard >= 0.3) || (tier === 2 && hard > 0.8))) smashLamp(m, c, radius * 0.8);
     // severe frontal: buckled hood (a crease across it, lifted toward the front) and a cracked windshield
-    if (tier >= 4 && front) {
+    if (tier >= 4 && front && hard >= 0.45) {
       const belt = spec.belt || 1.0, zc = L / 2 - 0.75;
       for (const { o: m } of meshes) { const g = own(m), pos = g.attributes.position; let n = 0;
         for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i); if (y < belt - 0.12 || z < zc - 0.7 || z > L / 2 - 0.05 || Math.abs(x) > (spec.W || 1.9) / 2 - 0.12) continue;
