@@ -62,7 +62,7 @@ export function dressFront(ctx, def) {
   // ---- brand sign on the fascia (types that paint their own sign skip this)
   if (!NO_SIGN.has(def.type) && fas > 0.42 && prints) {
     const lo = ctx.store?.sf?.shellAwning ? gh + 0.36 : gh + 0.1, sw = Math.min(W - 2 * pier - 0.4, 5.6), sh = Math.min((H - 0.12 - lo) * 0.88, sw / 3.2), style = p.v?.key === 'luxe' ? 'channel' : p.v?.key === 'street' ? 'box' : wear > 0.5 ? 'painted' : R.pick(['box', 'channel', 'painted', 'box']);
-    const sg = prints.storeSign({ style, aspect: sw / sh, font: p.v?.font === 'script' ? 'script' : undefined, upper: style === 'channel' }), sy = (lo + H - 0.12) / 2;
+    const sg = prints.storeSign({ style, aspect: sw / sh, font: p.v?.font === 'script' ? 'script' : undefined, upper: style === 'channel' && p.v?.font !== 'script' }), sy = (lo + H - 0.12) / 2;
     if (style === 'box') { G.box(M.flat('#1c1d20', { rough: 0.4, metal: 0.6 }), 0, sy, zl + 0.14, sw + 0.1, sh + 0.1, 0.12); G.plane(sg.mat, 0, sy, zl + 0.202, sw, sh, { uvRect: sg.rect }); }
     else if (style === 'channel') { G.plane(sg.mat, 0, sy, zl + 0.1, sw, sh, { uvRect: sg.rect }); G.plane(sg.mat, 0, sy - 0.006, zl + 0.094, sw, sh, { uvRect: sg.rect }); }
     else { G.box(M.flat(accent, { rough: 0.7 }), 0, sy, zl + 0.09, sw + 0.16, sh + 0.12, 0.03); G.plane(sg.mat, 0, sy, zl + 0.107, sw, sh, { uvRect: sg.rect }); }
