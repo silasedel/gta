@@ -38,7 +38,20 @@ Open (carried into job 3 where the world is rebuilt):
 - Coplanar road layers (road 0.05 / junction 0.055 / markings 0.065 m) cause far z-fighting: new road system uses
   merged junction meshes and polygon-offset decals. Reversed-Z was considered and deferred (shadow + 4 depth readers).
 
-## Job 2: day/night and weather — next
+## Job 2: day/night and weather — DONE (test sheet: `docs/v2/shots/stage1/JOB2_weather_sheet.png`, fog `job2b_fog.png`)
+- Fixed 48-minute day (GTA V length) in both clocks (`main.js` DAY_MINUTES, `systems/time.js` dayMinutes).
+- `src/world/env/weather.v2.js` (game.weather): clear, partly, overcast, rain, storm (thunder + lightning), fog; weighted
+  random by part of day (fog mornings, storms afternoons), 90 s transitions, few-hour durations; `set(kind,{instant})`,
+  `hold()`, `next()`, `forecast`, `?weather=storm` URL override; events `weather`, `lightning`.
+- Sky: overcast deck layer + lightning flash in `skyShader.js`; sun dims under cloud (shadows fade), grey soft fill,
+  denser grey fog, exposure compensation; overcast nights glow orange with city light.
+- Rain: 9000 camera-wrapped streaks in one draw call, wind-slanted; synthesized rain bed + delayed thunder on the
+  ambience bus (`audio.ambienceBus`), muffled in cars and indoors.
+- Wet surfaces for every standard/physical material (`src/render/wetSurfaces.js`): darker, glossier hard surfaces,
+  puddles with rain ripples on flat ground; grass and leaves only darken. Opt out with `material.defines.NO_WET`.
+- Wet-ground screen-space reflections (post pass, only while wet): lights and buildings mirror in wet streets.
+- Wind: existing `game.wind` already strengthens with game.weather rain/storm (palms and grass sway more).
+- fps at the test street: 58-60 in every weather.
 ## Job 3..7 — not started
 
 ## Notes for the user / next stages

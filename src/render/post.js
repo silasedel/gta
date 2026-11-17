@@ -751,7 +751,7 @@ export function createPost(game) {
         // toward green and less golden-hour saturation (game.look.sunsetFix: 1 = on, 0 = old look)
         // twilight weight (the pink cast lives where dayFactor is already small, so golden alone missed it)
         const twi = (1 - night) * (1 - THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 1, 0.05, 0.35));
-        const gc = twi * (game.look?.sunsetFix ?? 1);
+        const gc = twi * (game.look?.sunsetFix ?? 1) * (1 - 0.5 * Math.max(game.weather?.fog ?? 0, (game.weather?.cloud ?? 0) > 0.85 ? 0.7 : 0)); // stage 1: no green cast in fog / under overcast
         gu.uGain.value.set(1.03 - 0.03 * gc, 1.0 + 0.09 * gc, 0.96 - 0.02 * gc);
         gu.uSat.value = (1.1 + 0.1 * golden - 0.16 * gc) * (1 - 0.92 * (game.deathFade || 0));
         gu.uToe.value = 0.012 * dayOnly + 0.008 * golden;

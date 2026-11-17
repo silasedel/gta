@@ -26,7 +26,7 @@ const STATES = {
   overcast: { cloud: 0.80, deck: 0.92, sun: 0.12, fog: 0.00045, rain: 0,   storm: 0, hours: [2, 5], w: [1.5, 1.5, 2] },
   rain:     { cloud: 0.90, deck: 0.97, sun: 0.14, fog: 0.0010,  rain: 0.55, storm: 0, hours: [1, 3], w: [1, 1, 1.6] },
   storm:    { cloud: 1.00, deck: 1.0,  sun: 0.06, fog: 0.0016,  rain: 1.0, storm: 1, hours: [1, 2], w: [0.4, 0.3, 1.3] },
-  fog:      { cloud: 0.45, deck: 0.55, sun: 0.45, fog: 0.0065,  rain: 0,   storm: 0, hours: [1, 3], w: [1.2, 2.2, 0] },
+  fog:      { cloud: 0.45, deck: 0.9,  sun: 0.45, fog: 0.0065,  rain: 0,   storm: 0, hours: [1, 3], w: [1.2, 2.2, 0] },
 };
 const KINDS = Object.keys(STATES);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -231,6 +231,7 @@ export async function initV2(game) {
     if (sf) {
       sf.density += cur.fog * (1 - 0.8 * (env.indoor || 0));
       fogCol.setRGB(0.52, 0.55, 0.58).multiplyScalar(lerp(1, 0.08, night) * lerp(1, 0.55, cur.storm));
+      if (cur.fog > 0.003) fogCol.lerp(tmpC.setRGB(0.66, 0.66, 0.65).multiplyScalar(lerp(1, 0.07, night)), Math.min(1, (cur.fog - 0.003) / 0.003));
       sf.color.lerp(fogCol, Math.min(1, 0.8 * gloom + (cur.fog > 0.003 ? 0.6 : 0)));
     }
     // exposure: compensate part of the lost sunlight (cameras open up under cloud)
@@ -241,6 +242,7 @@ export async function initV2(game) {
     skyU.uOvercast.value = deck;
     deckCol.setRGB(0.4, 0.425, 0.46).multiplyScalar(lerp(1, 0.035, night) * lerp(1, 0.5, cur.storm) * lerp(1, 0.75, 1 - THREE.MathUtils.smoothstep(s, 0.0, 0.3)));
     deckCol.lerp(tmpC.setRGB(0.085, 0.062, 0.05).multiplyScalar(lerp(1, 0.6, cur.storm)), night); // night: the deck glows with city light from below
+    if (sf && cur.fog > 0.002) deckCol.lerp(sf.color, Math.min(1, cur.fog / 0.005)); // fog: the sky is the fog itself
     skyU.uOvercastCol.value.copy(deckCol);
     skyU.uFogColor.value.copy(sf ? sf.color : deckCol);
     skyU.uCloudSun.value.multiplyScalar(1 - 0.7 * deck);
