@@ -4,6 +4,7 @@ Paste this same ending after every prompt:
 **", full body, T-pose with arms straight out to the sides, fingers spread, feet shoulder-width apart, facing the camera, no accessories, no sunglasses, no jewelry, no hat, nothing in the hands, hair close to the head, plain white background, even studio lighting, photorealistic, no logos or text."**
 
 Rules the prompts follow:
+- Bikini prompts only use the two phrasings that worked: "string bikini" or "thong-back bikini".
 - Nothing that sticks out from the body: no sunglasses, earrings, necklaces, hats, bags, lanyards, whistles, radios, tools, phones or held items. These come out badly in 3D.
 - Clothing is close to the body. Loose capes, scarves or open flapping shirts are avoided.
 - Hair is short, braided, slicked back or tied up, never long and loose.
@@ -11,12 +12,12 @@ Rules the prompts follow:
 
 ## Beachgoers and swimwear
 1. Fit tanned woman in her 20s in a string bikini, hair in a tight bun
-2. Slim woman in her 20s in a thong bikini, blonde hair in a braid
-3. Athletic woman in her 20s in a Brazilian-cut bikini, dark hair slicked back
-4. Woman in her 20s in a micro bikini with thin side ties, hair in a ponytail tied close
-5. Curvy Latina woman in her 30s in a cheeky-cut two-piece bikini, hair in a low bun
-6. Toned woman in her 30s in a minimal triangle-top bikini with high-cut bottoms, short hair
-7. Tall woman in her 20s in a strappy one-piece swimsuit with a high-cut leg, hair braided
+2. Slim woman in her 20s in a thong-back bikini, blonde hair in a braid
+3. Athletic woman in her 20s in a black string bikini, dark hair slicked back
+4. Woman in her 20s in a white thong-back bikini, hair in a ponytail tied close
+5. Curvy Latina woman in her 30s in a red string bikini, hair in a low bun
+6. Toned woman in her 30s in a neon green thong-back bikini, short hair
+7. Tall woman in her 20s in a floral string bikini, hair braided
 8. Woman in her 40s in a modest one-piece swimsuit, short bob haircut
 9. Older woman in her 60s in a floral one-piece swimsuit, short gray hair
 10. Muscular man in his 20s in short swim trunks, shirtless, tanned, buzz cut
