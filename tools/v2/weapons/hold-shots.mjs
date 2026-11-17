@@ -93,15 +93,22 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 16.2, y + 1.7, z + fz * 16.2); cam.lookAt(x + fx * 4.2, y + 0.3, z + fz * 4.2); cam.fov = 55; cam.updateProjectionMatrix(); return true; }; return 1; })()`);
     for (const [i, ms] of [[1, 400], [2, 1100], [3, 900]]) { await b.sleep(ms); await b.screenshot(path.join(DIR, `${SET}_pickups_12m_${i}.png`)); }
   }
+  if (o.crate) {   // the starter stash: the user's crate beside the pistol + ammo pickups
+    const r = await b.eval(`(() => { const st = game.pickups.list.find((p) => p.starter && p.type === 'pistol'); if (!st) return 'no stash'; const c = st.pos.clone(); c.x -= 1.0; c.z -= 0.6;
+      game.teleport(c.x + 4, undefined, c.z + 4, 0); try { game.wanted?.clear?.('test'); game.police?.clearAll?.(); } catch (e) { /* */ } game.weapons.select('fist'); game.combatInput.aim = null;
+      game.cameraOverride = (dt, cam) => { cam.position.set(c.x + 2.1, c.y + 1.3, c.z + 1.9); cam.lookAt(c.x + 0.6, c.y + 0.3, c.z + 0.4); cam.fov = 50; cam.updateProjectionMatrix(); return true; };
+      const crate = game.scene.getObjectByName('prop-crate'); return 'crate ' + (crate ? crate.position.toArray().map((v) => v.toFixed(2)) + ' kids=' + crate.children.length : 'missing') + ' stash ' + st.pos.toArray().map((v) => v.toFixed(2)); })()`);
+    console.log(r); await b.sleep(2500); await b.screenshot(path.join(DIR, `${SET}_stash_crate.png`));
+  }
   if (o.cop) {
     const r = await b.eval(`(async () => {
       const P = game.player; const pol = game.police; if (!pol) return 'no police';
       const [x, z, h] = window.__P0; game.teleport(x, undefined, z, h); game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
       try { game.wanted?.clear?.('test'); } catch (e) { /* */ }
       const fx = Math.sin(h), fz = Math.cos(h);
-      const rx = -Math.cos(h), rz = Math.sin(h); const u = pol.spawnCop(new (game.player.position.constructor)(x + fx * 7, P.position.y, z + fz * 7), h + Math.PI); if (!u) return 'no cop';
+      const rx = -Math.cos(h), rz = Math.sin(h); const u = pol.spawnCop(new (game.player.position.constructor)(x + fx * 6 + Math.cos(h) * 2.5, P.position.y, z + fz * 6 - Math.sin(h) * 2.5), h + Math.PI); if (!u) return 'no cop';
       window.__cop = u; u.mode = 'idle';
-      game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x - Math.cos(h) * 1.4 + fx * 0.6, hp.y + 0.25, hp.z + Math.sin(h) * 1.4 + fz * 0.6); cam.lookAt(hp.x, hp.y - 0.05, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); return true; };
+      game.cameraOverride = (dt, cam) => { const c = u.pos, pp = game.player.position, dx = pp.x - c.x, dz = pp.z - c.z, L = Math.hypot(dx, dz) || 1, fx2 = dx / L, fz2 = dz / L, rx2 = -fz2, rz2 = fx2; cam.position.set(c.x + rx2 * -2.0 + fx2 * 0.6, c.y + 1.45, c.z + rz2 * -2.0 + fz2 * 0.6); cam.lookAt(c.x + fx2 * 0.45, c.y + 1.3, c.z + fz2 * 0.45); cam.fov = 45; cam.updateProjectionMatrix(); try { window.__copKeep && window.__copKeep(); } catch (e) { /* */ } return true; };
       await new Promise((res) => setTimeout(res, 2500));
       let hd = null; try { const H = await import('/src/gameplay/gunHold.js'); hd = H.holdDebug(u.char.root, u.gun); } catch (e) { hd = String(e); }
       const gp = u.gun.getWorldPosition(new (game.player.position.constructor)());
@@ -114,14 +121,14 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       const aimCop = () => { try { u.pos.copy(pin); u.heading = pinH; u.speed = 0; u.char.root.position.copy(pin); u.char.root.rotation.y = pinH; u.char.root.updateMatrixWorld(true); const t = game.player.position.clone(); t.y += 1.3; H.holdWeapon(u.gun, u.char.root, { aim: t, dt: 0.016, time: game.clock.elapsed }); } catch (e) { window.__copErr = String(e); } };
       game.combat.late = game.combat.late || []; game.combat.late.push(aimCop);
       const keep = window.__copKeep = () => { aimCop(); u.mode = 'chase'; u.sees = true; u.fireCd = Math.max(u.fireCd || 0, 0.5); if (game.wanted.level < 3) { try { game.wanted.setStars(3, 'test'); } catch (e) { /* */ } } game.player.health = 100; };
-      const hh = u.heading; game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x - Math.cos(hh) * 1.7 + Math.sin(hh) * 0.5, hp.y + 0.2, hp.z + Math.sin(hh) * 1.7 + Math.cos(hh) * 0.5); cam.lookAt(hp.x, hp.y, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); keep(); return true; };
+      const hh = u.heading; game.cameraOverride = (dt, cam) => { const c = u.pos, pp = game.player.position, dx = pp.x - c.x, dz = pp.z - c.z, L = Math.hypot(dx, dz) || 1, fx2 = dx / L, fz2 = dz / L, rx2 = -fz2, rz2 = fx2; cam.position.set(c.x + rx2 * -2.0 + fx2 * 0.6, c.y + 1.45, c.z + rz2 * -2.0 + fz2 * 0.6); cam.lookAt(c.x + fx2 * 0.45, c.y + 1.3, c.z + fz2 * 0.45); cam.fov = 45; cam.updateProjectionMatrix(); try { window.__copKeep && window.__copKeep(); } catch (e) { /* */ } return true; };
       await new Promise((res) => setTimeout(res, 600));
       window.__copFrame = JSON.stringify({ R: H.handFrame(u.char.root, 'R'), L: H.handFrame(u.char.root, 'L'), dbg: H.holdDebug(u.char.root, u.gun), bones: (() => { const n = []; u.char.root.traverse((b) => { if (b.isBone && /Hand|Arm|Head|Neck/.test(b.name)) n.push(b.name.replace('mixamorig', '')); }); return n.join(','); })() });
       return 'cop aim ' + u.mode + ' sees=' + u.sees + ' stars=' + game.wanted.level; })()`);
     console.log(r2); await b.screenshot(path.join(DIR, `${SET}_cop_aim.png`));
     console.log('COPFRAME', await b.eval('window.__copFrame'));
     // front view of the aiming cop
-    await b.eval(`(() => { const u = window.__cop, hh = u.heading; game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x + Math.sin(hh) * 1.8 + Math.cos(hh) * 0.3, hp.y + 0.15, hp.z + Math.cos(hh) * 1.8 - Math.sin(hh) * 0.3); cam.lookAt(hp.x, hp.y - 0.05, hp.z); cam.fov = 40; cam.updateProjectionMatrix(); try { window.__copKeep && window.__copKeep(); } catch (e) { /* */ } return true; }; return 1; })()`);
+    await b.eval(`(() => { const u = window.__cop; game.cameraOverride = (dt, cam) => { const c = u.pos, pp = game.player.position, dx = pp.x - c.x, dz = pp.z - c.z, L = Math.hypot(dx, dz) || 1, fx2 = dx / L, fz2 = dz / L, rx2 = -fz2, rz2 = fx2; cam.position.set(c.x + fx2 * 2.6 + rx2 * -0.6, c.y + 1.5, c.z + fz2 * 2.6 + rz2 * -0.6); cam.lookAt(c.x, c.y + 1.3, c.z); cam.fov = 45; cam.updateProjectionMatrix(); try { window.__copKeep && window.__copKeep(); } catch (e) { /* */ } return true; }; return 1; })()`);
     await b.sleep(500); await b.screenshot(path.join(DIR, `${SET}_cop_aim_front.png`));
   }
   if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].slice(0, 20).join('\n'));

@@ -116,9 +116,9 @@ function frame(r, side, out) {
   }
   wp(h, out.o); wp(r[P + 'Middle1'], out.F).sub(out.o); out.len = out.F.length(); out.F.normalize();
   wp(r[P + 'Index1'], out.S); wp(r[P + 'Pinky1'], _a); out.S.sub(_a); out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
-  out.N.crossVectors(out.F, out.S).normalize();
-  const th = r[P + 'Thumb2'] || r[P + 'Thumb1'];
-  if (th) { wp(th, _a).sub(out.o); if (_a.dot(out.N) < 0) out.N.negate(); }
+  // palm normal from handedness: right hand N = S x F, left hand N = F x S (the thumb is unreliable on mitten-like scans)
+  if (side === 'R') out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);
+  out.N.normalize();
   return out;
 }
 const mkFrame = () => ({ o: new THREE.Vector3(), F: new THREE.Vector3(), S: new THREE.Vector3(), N: new THREE.Vector3(), len: 0.09 });
@@ -196,16 +196,15 @@ function gunFromHand(model, kind, fr, out) {
 const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
 // look down the sights: turn neck + head toward the target, a few degrees nose-down (cheek on the gun)
 const _hf = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hi = new THREE.Quaternion();
-function lookAlong(r, target, down) {
-  if (!r.head || !r.headFwd) return;
-  for (const [bone, w] of [[r.neck, 0.4], [r.head, 1]]) {
+function lookAlong(r, target, down, fw) {
+  if (!r.head) return;
+  wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y -= down; _ht.normalize();
+  _hf.copy(fw);   // the animated head faces roughly where the shoulders face
+  const ang = _hf.angleTo(_ht); if (ang < 1e-3) return;
+  const k = Math.min(1, 1.2 / ang);
+  for (const [bone, w] of [[r.neck, 0.35], [r.head, 0.65]]) {
     if (!bone) continue;
-    r.head.getWorldQuaternion(_hq); _hf.copy(r.headFwd).applyQuaternion(_hq).normalize();
-    wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y -= down; _ht.normalize();
-    const ang = _hf.angleTo(_ht); if (ang < 1e-3) continue;
-    const k = w * Math.min(1, 1.1 / ang);   // never more than ~63 degrees in one frame
-    _hq.setFromUnitVectors(_hf, _ht); _hq.slerp(_hi.identity(), 1 - k);
-    rotW(bone, _hq.clone());
+    _hq.setFromUnitVectors(_hf, _ht); _hq.slerp(_hi.identity(), 1 - w * k); rotW(bone, _hq.clone());
   }
 }
 const _Z = new THREE.Vector3(), _Y = new THREE.Vector3(), _X = new THREE.Vector3(), _O = new THREE.Vector3(), _fw = new THREE.Vector3(), _lf = new THREE.Vector3(), _sh = new THREE.Vector3();
@@ -307,7 +306,7 @@ export function holdWeapon(model, root, o = {}) {
     }
     curl(r, 'L', CURL.supportL);
   } else if (r.lok) relax(r, 'L');
-  if (aiming && o.look !== false) lookAlong(r, o.aim, kind === 'long' ? 0.12 : 0.07);
+  if (aiming && o.look !== false) lookAlong(r, o.aim, kind === 'long' ? 0.12 : 0.07, _fw);
   r.curled = true;
   return true;
 }
