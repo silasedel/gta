@@ -8,6 +8,7 @@
 
 
 ## keys
+- 03:35 (times above were off by an hour; these are real) Roll-off: repainted lettering panels again, the GLB's texture shows only "KEYS ROLL-OFF" (checked by extracting it). Commits now `git commit -- <my files>` only; told the lead which earlier keys commits had swept in others' staged files (bc887bf, 8a245bc, e17ffd2). Draw calls: measured per group at the deck (base 1262): keysLots 369 (boathouse model has 29 materials; boats as meshes with shadows), houses 452, Nico exterior 396, interior 273 even though the deck views look away from the house. Fixed: no boathouse (clean pier), boats instanced + no sun shadows, lines merged, piles no shadows, neighbor layer hidden past 450 m, interior only while the camera faces the house. Slab joints closed, nothing grows through the slabs, landing sand bank in the yard's scan. Ground helper removed the white seawall copings + land-base band on Nico's beach. Sheets: `cmp_k12_*.png` (all reference cameras); final A/B `k14` running.
 - 03:40 Lead review fixes: yard is now pale crushed shell/limestone dust (shell scan + gray-green matted grass, damp patches, 31 hand-placed weed clumps, more matted decals); Nico's dock starts AT the waterline on a short seawall landing with timber steps (nothing on the sand), limestone riprap along his shore, chain-link fences down both lot lines to the water, mangroves at the riprap ends, shell path from the bay stair; all walkway sections from the kit piece that renders (two kit pieces dropped out of the draw); planter bougainvillea now cascades over the lattice; blob shrubs by the planter removed; corner rail pot removed. Cars helper fixed Nico's gray striped pickup + moved the classic beside it; the van moved off pp_blue's front yard. Ground helper added a shelf + bleached Keys asphalt; the remaining white line on the beach (-18,-24.8)->(0.5,-19.4) is not a mesh of mine or the tiles: sent to ground. Sheets: `cmp_k9_r7_dock_close.png`, `cmp_k9_r0b_deck.png`, `cmp_k9_r2_back.png`; re-shoot `k10` running.
 - 02:45 Reference sheets (reference | game): `docs/v2/shots/keys/cmp_k5_r0b_deck.png` (mock-up camera), `cmp_k5_r0_deck_dusk.png` (18:30), `cmp_k5_r0_deck_rain.png`, `cmp_k5_r1_front.png`, `cmp_k5_r2_back.png`, `cmp_k5_r5_aerial.png`. Flicker: house siding no longer crawls (temporal std of a still camera, front view: mean 2.84 -> 1.79, p99 23.8 -> 15.4; what remains is wind in palms/plants and their shadows). Perf A/B same run (`k6`, keys on vs `?keys=0`): deck 28.1 vs 29.6 ms, aerial 39.1 vs 41.2 ms, street 35.3 vs 29.1 ms (load avg 200-400, noisy); draw calls +157 deck / +95 street (STOP signs now instanced, rocks 3 shapes). Added: pale crushed-shell + matted-grass ground in Nico's yard, 4 more cottages (12 hand lots), shade trees/palms for density, invented hauler name on the roll-off (the scan had a company + phone number). Next: k7 sheets, rain puddle check, dock close-ups, trim draw calls.
 - 01:20 Cars: the cars helper already parks Nico's pickup + classic (vehicles.js NICO_CARS), so my yard spots are documentation only and all yard props were moved clear of its 4 car spots; neighbors' cars go through `spawnParked(key, opts)`. Dock starts clear of the bay stair, has a light. Curb carts breakable. Keys lots get shell drives. Machine load 100-190: each shot run waits 10-20 min for a browser slot; reference set `k5` queued (tools/v2/keys/spots_refs.json -> `cmp_k5_*.png` sheets via tools/v2/keys/sheets.py).
@@ -179,6 +180,12 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 03:20 Water + Nico's shore done: `docs/v2/shots/stage1/GROUNDPASS_keys_water_aerial.png` (turquoise shallows, sand flats and
+  seagrass, deep blue offshore; the ocean's shore field now also comes from the water mask, so the Keys / Gulf coasts get
+  shallows), `docs/v2/shots/keys/gw4_{dock,docktop}.png` (white beams = tilebuild seawall coping along the cover polygon: gone on
+  natural terrain coasts; pale band = land base: cut under full-detail tiles). Lead's bus-shelter dark oval = oil stain decal:
+  oil is now faint, broken and half as frequent; potholes / patches all go through the new 3D color-matched decal shader (there is
+  no other pothole path left: lane patches were moved to it at 00:40). Commits now `git commit -- <files>` per the new rule.
 - 03:00 Keys follow-ups (keys helper + lead): seabed shelf along shores (no 5 m cliff), Keys asphalt bleached pale with sand film
   and lingering low-spot puddles (`docs/v2/shots/keys/gw2_aerial.png`, `gw2_front.png`), Keys grade softened (yards were blown
   out), the pale band + line along Nico's shore = global land base rising above the shore slope: now cut per pixel under
@@ -240,6 +247,17 @@
   broken rims and rain water, irregular color-matched patches; 2K ground scans + Gravel 1 pebble layer (prep running).
 
 ## people
+- 04:10 Fixes from the shot review: (1) twins downtown came from copies of a person made while another copy sat
+  hidden in the ped pool; the cast now allows exactly one copy of each person (pooled copies count), people for the
+  place the player is in load first (2 at a time), archetypes fill in while they load. (2) spikes from a few hands
+  (fingertip islands weighted to a foot bone) found by `tools/v2/npcs/weight_audit.py` on all 95 and fixed in the rigger.
+  (3) weighted finger joints at the real knuckles (hand frame from the scan, 4 finger lanes + thumb) so cops curl
+  their fingers around guns (weapons helper's gunHold.js) and idle hands relax; re-rig of all 95 running.
+  (4) shot tool: South Beach on a checked sidewalk, police shot last, wanted cleared before close-ups.
+  Shots: 15 people in daylight `docs/v2/shots/people/closeups_0..2.png` (4K close-up textures), mid-stride sheet
+  `closeups_3.png`, Key Largo street/close-ups/police `g3_keys_*.png`, downtown sidewalk with 60 people
+  `perf_a2_people.png`. Characters 1-2 (lifeguards) are posed scans (hand on hip): not riggable to the T-pose
+  skeleton without a manual pass; left out.
 - 03:05 **All 95 NPC people rigged and in the crowd** (Models/NPCs 1-95; Character 3 left out because it wears Nico's
   teal palm shirt + cargo pants; Characters 1-2 lifeguards are arms-down scans, need an A-pose pass, open). Re-rig pass
   running (nearest-weight fix for fingertip spikes, skull-base head joint per the player helper, far-crowd palettes,
