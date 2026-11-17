@@ -21,7 +21,7 @@ export default defineConfig({
   base: './',
   plugins: [pagesAssets()],
   build: { chunkSizeWarningLimit: 4000 },
-  // stage 1: several helpers edit files while headless tests run; with hot reload every save reloaded every open test
-  // page mid-run. Set VITE_HMR=1 to get live reload back (stage 1 restores it at hand-off).
-  server: { hmr: process.env.VITE_HMR === '1' },
+  // stage 1: model loaders pre-bundled up front, so adding a model never triggers a dependency re-optimization that leaves
+  // open browser tabs stuck on outdated library chunks (the game hung at 0 % in the user's browser)
+  optimizeDeps: { include: ['three', 'three/examples/jsm/loaders/GLTFLoader.js', 'three/examples/jsm/loaders/FBXLoader.js', 'three/examples/jsm/loaders/DRACOLoader.js', 'three/addons/loaders/GLTFLoader.js', 'three/addons/utils/BufferGeometryUtils.js'] },
 });
