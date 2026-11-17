@@ -28,3 +28,13 @@ a = paint(a, '305-555-0142', (330 / S, 88 / S), 0.04, seed=4)
 a = paint(a, 'SUNCOAST ROLL-OFF', (330 / S, 232 / S), 0.052, seed=5)
 a = paint(a, '305-555-0142', (330 / S, 275 / S), 0.04, seed=6)
 V.img(a).save(os.path.join(H, 'fixed', 'rolloff_color4.png')); print('FIXED rolloff_color4.png')
+
+# Food Cart 1: the small "Crunch" wordmark printed 4x on the second umbrella's hem (a real candy-bar brand) painted out
+src = os.path.join(ROOT, 'Models/Food Carts/Food Cart 1 - Red-Yellow Hot Dog Cart/textures/Hot-dog Color.png')
+a = np.asarray(Image.open(src).convert('RGB'), np.float32) / 255; S = a.shape[0]
+for (u0, v0, u1, v1) in [(0.385, 0.69, 0.485, 0.72), (0.395, 0.965, 0.495, 0.998), (0.285, 0.795, 0.315, 0.885), (0.56, 0.795, 0.59, 0.885)]:
+    box = (slice(int(v0 * S), int(v1 * S)), slice(int(u0 * S), int(u1 * S))); P = a[box]
+    med = np.median(P.reshape(-1, 3), 0); d = np.abs(P - med).sum(-1)
+    m = np.zeros(a.shape[:2], np.float32); m[box] = (d > 0.25).astype(np.float32)
+    a = V.remove_marks(a, m, 4)
+V.img(a).save(os.path.join(H, 'fixed', 'foodcart_color.png')); print('FIXED foodcart_color.png')
