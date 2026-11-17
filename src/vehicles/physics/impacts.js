@@ -1,5 +1,5 @@
 // r2-physics: what a car feels and keeps when it hits street furniture (user: "if you hit a sign you slow down to some extent
-// and the car gets damaged, different depending on speed"). Behind a flag until verified: ?impacts=1 / game.physics.impacts = true.
+// and the car gets damaged, different depending on speed"). On by default; ?impacts=0 / game.physics.impacts = false turns it off.
 //
 // game.physics.propImpact(v, { kind, x, y, z, top?, broke? }) -> { J, dv, tier } | null
 //   Called by the prop systems when a car breaks / knocks / bends something (src/world/miami/breakables.js, src/world/props/
@@ -70,7 +70,7 @@ const crackMat = () => new THREE.MeshStandardMaterial({ map: (crackTex ||= makeC
 
 export function installImpacts(game) {
   const P = (game.physics ||= {});
-  if (P.impacts == null) P.impacts = /[?&]impacts=1/.test(globalThis.location?.search || '');
+  if (P.impacts == null) P.impacts = !/[?&]impacts=0/.test(globalThis.location?.search || ''); // on by default (verified 17 Nov: sign 18 / 50 km/h); ?impacts=0 = the old flat slowdown
   const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4();
   const ray = new THREE.Raycaster();
   const jolt = { t: 0, amp: 0, yaw: 0, pitch: 0 };
@@ -134,6 +134,8 @@ export function installImpacts(game) {
       v.car.dispose = () => { try { for (const { o: m } of bodyMeshes(v)) if (m.userData.ownGeo && m !== v.car.parts?.paint) m.geometry.dispose(); for (const d of v._r2Decals || []) { d.geometry.dispose(); d.material.dispose(); } } catch (e) { /* */ } d0?.(); };
     }
     const kmh = o.speedKmh ?? (v.speedKmh || 0), hard = o.hardness ?? 0.5, tier = tierOf(kmh, hard);
+    // geometry work (dents, decals) only where someone can see it: the player's car or within 60 m of the player
+    { const pp = game.player?.position, t0 = v.body.translation(); if (!v.playerDriven && pp && (t0.x - pp.x) ** 2 + (t0.z - pp.z) ** 2 > 3600) return tier; }
     const shell = v.car.shell; shell.updateMatrixWorld(true);
     const inv = _m.copy(shell.matrixWorld).invert();
     // contact on the real surface: ray from just outside the point toward the car's center at that height
