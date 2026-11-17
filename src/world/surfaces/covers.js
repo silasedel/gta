@@ -91,7 +91,7 @@ export function placeCovers(ctx, h) {
     const st = (d) => (atB ? LE - d : d), sideE = (side) => (atB ? -side : side); // leg frame -> edge frame
     for (const side of [-1, 1]) { const tan = side > 0 ? L.tB : L.tA, s = Math.max(tan, L.bar ? L.bar[1] : L.cw ? L.cw[1] : 0) + 1.2 + H(side * 5 + (atB ? 9 : 0), 20) * 1.5; // just past the return / stop bar
       if (H(side * 7 + (atB ? 3 : 0), 21) < 0.45 && s < LE * 0.45) { const got = put('inlet', st(s), sideE(side) * (hw - 0.36), undefined, 0.8 + H(side, 22) * 0.2);
-        if (got && H(side * 11 + (atB ? 5 : 0), 23) < 0.25) put('mh_storm', st(s + 2.6), sideE(side) * (hw - 1.3), H(side, 24) * 6.283, 0.62 + H(side, 25) * 0.15); } }
+        if (got && H(side * 11 + (atB ? 5 : 0), 23) < 0.25) put('mh_storm', st(s + 2.6), sideE(side) * (hw - 1.3), H(side, 24) * 6.283, 0.5 + H(side, 25) * 0.12); } }
     const nv = H(atB ? 31 : 37, 26) < 0.55 ? 1 : 0;
     for (let k = 0; k < nv + (L.ctrl === 'signal' ? 1 : 0); k++) { const side = H(k * 3 + (atB ? 1 : 0), 27) < 0.5 ? -1 : 1, s = (L.bar ? L.bar[1] : L.cw ? L.cw[1] : L.D) + 1.5 + H(k, 28) * 4; // on the approach behind the stop bar / crosswalk (no paint over the lid)
       if (s > 0.5 && s < LE * 0.45) put('valve', st(s), sideE(side) * hw * (0.35 + H(k, 29) * 0.25), H(k, 30) * 6.283, 0.8 + H(k, 31) * 0.2); }
