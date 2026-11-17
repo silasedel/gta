@@ -20,3 +20,4 @@ c "Boats/Boat 3 - Small Fishing Boat/Boat 3.blend" public/assets/models/keys/ski
 c "Lifebuoys/Lifebuoy 3 - Weathered Red Ring With Gray Bands And Rope/Lifebuoy 3.blend" public/assets/models/keys/lifebuoy.glb 1 512 join "" 1500 base
 c "Bins/Trash Can 1 - Wheeled Curbside Bin Set/Trash Can 1.blend" public/assets/models/keys/bins.glb 1 1024 splitc "" 0 base
 c "Rocks/Rock 2 - Seven Mossy Brown Rocks/Rock 2.blend" public/assets/models/keys/rocks.glb 1 1024 splitc "" 900 base
+c "Crates/Crate 1 - Plain Wooden Crate/Crate 1.blend" public/assets/models/keys/crate.glb 0.3 1024 join "" 0 base "$M/Crates/Crate 1 - Plain Wooden Crate/textures"

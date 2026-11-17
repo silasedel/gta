@@ -20,6 +20,11 @@ sc = bpy.context.scene
 WIRE = a[7] if len(a) > 7 and a[7] else None
 if WIRE:
     import os.path as osp
+    for o in sc.objects:   # objects without any material get an empty 'Part 01' to wire into
+        if o.type == 'MESH' and not any(sl.material for sl in o.material_slots):
+            m = bpy.data.materials.get('Part 01') or bpy.data.materials.new('Part 01'); m.use_nodes = True
+            if o.data.materials: o.data.materials[0] = m
+            else: o.data.materials.append(m)
     for m in bpy.data.materials:
         mm = re.match(r'Part (\d+)', m.name or '')
         if not mm or not m.use_nodes or any(n.type == 'TEX_IMAGE' for n in m.node_tree.nodes): continue

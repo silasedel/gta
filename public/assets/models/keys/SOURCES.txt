@@ -10,3 +10,4 @@ fence_picket.glb   Fences/Fence 5 - Low Wooden Picket Fence
 rowboat.glb        Boats/Boat 14 - Worn White Rowboat With Red Interior                  x0.01 (cm source)
 skiff.glb          Boats/Boat 3 - Small Fishing Boat
 lifebuoy.glb       Lifebuoys/Lifebuoy 3 - Weathered Red Ring With Gray Bands And Rope    Poly Haven pack
+crate.glb          Crates/Crate 1 - Plain Wooden Crate                                   x0.3 (0.6 m cube), loose maps wired
