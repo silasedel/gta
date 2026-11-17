@@ -16,6 +16,7 @@ import * as THREE from 'three';
 import { dynProps } from './dynamicProps.v2.js';
 import { physOf } from './propShapes.v2.js';
 import { variantColor } from './variants.v2.js';
+import { occupancy } from '../ground/occupancy.js';
 
 const OFF = typeof location !== 'undefined' && /[?&]lotprops=0/.test(location.search);
 const hash = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
@@ -82,6 +83,7 @@ function create(game) {
         for (const sh of ph.shapes) game.world.createCollider((sh.t === 'box' ? R.ColliderDesc.cuboid(sh.hx * s, sh.hy * s, sh.hz * s) : R.ColliderDesc.cylinder(sh.hh * s, sh.r * s)).setTranslation((sh.x || 0) * s, (sh.y || 0) * s, (sh.z || 0) * s), b);
         it.fixed = b; } catch (e) { /* no collider */ } }
     stats.items++;
+    try { occupancy.add({ x, z, r: name.startsWith('mailbox') ? 0.25 : 0.33, y, h: 1.2, kind: name.startsWith('mailbox') ? 'mailbox' : 'bin', src: 'lotProps.v2.js', owner: 'lot:' + owner }); } catch (e) { /* */ }
     return it;
   }
   function add(owner, list) {
@@ -99,7 +101,12 @@ function create(game) {
         const it = place(owner, name, L.x, L.y, L.z, L.ry + (twin ? 0 : -Math.PI / 2), seed, { lean: 0.045 });
         if (it) { it.kindTag = 'mailbox'; out.push(it); stats.mailboxes++; }
       } else if (L.kind === 'carts') {
-        const day = hash(Math.floor(L.x / 120) * 31 + Math.floor(L.z / 120) * 17 + 5) < 0.6, at = day || !L.side ? L : L.side;
+        // beside the house only where that spot is open ground: not under a stilt deck / stairs (a collider overhead) and not
+        // inside yard planting (occupancy index); otherwise the pair stays out at the curb
+        const sideOk = (q) => { if (!q) return false; if (occupancy.blocked(q.x, q.z, 0.55, { y: q.y ?? L.y, h: 1.1 })) return false;
+          try { const R = game.RAPIER, hit = game.world.castRay(new R.Ray({ x: q.x, y: (q.y ?? L.y) + 3.5, z: q.z }, { x: 0, y: -1, z: 0 }), 3.4, true); if (hit && 3.5 - hit.timeOfImpact > 0.35) return false; } catch (e) { /* */ }
+          return true; };
+        const day = hash(Math.floor(L.x / 120) * 31 + Math.floor(L.z / 120) * 17 + 5) < 0.65, at = day || !sideOk(L.side) ? L : L.side;
         const wheel = hash(seed * 2.3) < 0.22, sx = Math.cos(at.ry), sz = -Math.sin(at.ry), gap = 0.36 + hash(seed * 4.1) * 0.25;
         const second = hash(seed * 6.7) < 0.75 ? CART_RECYCLE : CART_YARD;
         for (const [k, name, layers] of [[-1, wheel ? 'bin_wheel' : 'cart', wheel ? null : CART_TRASH], [1, 'cart', second]]) {
@@ -116,7 +123,7 @@ function create(game) {
   }
   function remove(owner) {
     const out = owners.get(owner); if (!out) return;
-    dynProps.removeOwner('lot:' + owner);
+    dynProps.removeOwner('lot:' + owner); try { occupancy.removeOwner('lot:' + owner); } catch (e) { /* */ }
     for (const it of out) { for (const P of pools.values()) { const i = P.items.indexOf(it); if (i >= 0) { P.items.splice(i, 1); P.dirty = true; } } if (it.fixed) { try { game.world.removeRigidBody(it.fixed); } catch (e) { /* */ } } stats.items--; if (it.kindTag === 'mailbox') stats.mailboxes--; else if (it.kindTag === 'carts') stats.carts--; }
     owners.delete(owner); stats.owners--; flush();
   }
