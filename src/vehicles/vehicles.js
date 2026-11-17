@@ -1414,9 +1414,9 @@ export async function createVehicles(game) {
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
     // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
-    // (user: "shiny gray in the sun, normal gray on the shaded sides": medium-light cool silver ~0.45 linear, like the sedans; graphite ~0.13 linear stripe
+    // (user: "shiny gray in the sun, normal gray on the shaded sides": medium cool silver ~0.33 linear (t9b: 0xb0b4b9 still read near-white next to the mock-up's gray body); graphite ~0.13 linear stripe
     // panels with a lighter pinstripe edge, the roof band down the middle with silver both sides)
-    { key: 'truck9', local: [-12.4, 8.4], heading: 2.35, color: 0xb0b4b9, finish: 'metallic', wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
+    { key: 'truck9', local: [-12.4, 8.4], heading: 2.35, color: 0x9a9ea3, finish: 'metallic', wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
       stripe: { w: 0.86, roofW: 0.78, color: 0x63666a, satin: true, line: { color: 0xa9acb0, w: 0.022 } } /* hood / roof boxes measured per model (manifest .stripe, seats.py) */, ride: 0.07 },
     // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
     { key: 'coupe4', local: [-18.8, 5.5], heading: 1.03, color: 0x7a9198, finish: 'solid', old: true, wear: { dirt: 0.3, rust: 0.32, fade: 0.6, age: 0.9, dirtColor: 'salt' } }, // the 1970 two-door muscle coupe, sun-faded powder blue (user model)
