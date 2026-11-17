@@ -803,7 +803,7 @@ export function createPost(game) {
       adapt += (adaptTarget - adapt) * Math.min(1, dt * 1.5);
       // look3 auto exposure: partial adaptation toward a reference scene luminance, limited to -0.6 / +1.1 stops
       {
-        const A = game.lookAE || (game.lookAE = { ref: -2.2, strength: 0.55, min: -0.6, max: 1.1, up: 0.9, down: 1.8 });
+        const A = game.lookAE || (game.lookAE = { ref: -2.0, strength: 0.55, min: -0.3, max: 1.1, up: 0.9, down: 1.8 });
         let want = 0;
         if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max * (1 - 0.45 * night)); // nights stay night (lamps pool, sky deep)
         const rate = want > ae.comp ? A.up : A.down;

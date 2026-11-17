@@ -10,9 +10,10 @@
 // ShaderMaterials that include the shadow chunk get the declaration but no value (all zero): they keep the stock filter.
 import * as THREE from 'three';
 
-// OFF by default until verified (lead): the shader patches are only installed with ?look3 in the URL; then game.look3
-// (default true in such a session) switches the look at run time for in-session A/B
-export const LOOK3_ENABLED = typeof location !== 'undefined' && /[?&]look3\b/.test(location.search) && !/[?&]look3=0\b/.test(location.search);
+// ON by default since 05:10 Nov 17 (console clean on both paths, frame A/B within noise, lead OK). Rollback: ?look3=0
+// (no look3 shader patch installed at all: the previous, stable picture). In a look3 page game.look3 = false switches the
+// look back at run time for in-session A/B.
+export const LOOK3_ENABLED = !(typeof location !== 'undefined' && /[?&]look3=0\b/.test(location.search));
 export const LOOK3_DEFAULT = LOOK3_ENABLED;
 export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze color pull
@@ -49,7 +50,7 @@ const SUN_DEPTH_M = 899.0;
 		vec3 dx = dFdx( sc ), dy = dFdy( sc );
 		float det = dx.x * dy.y - dx.y * dy.x;
 		vec2 dz = abs( det ) > 1e-12 ? vec2( dy.y * dx.z - dx.y * dy.z, dx.x * dy.z - dy.x * dx.z ) / det : vec2( 0.0 );
-		float dzMax = 5.0 * mPerUv / ${SUN_DEPTH_M.toFixed(1)}; // slopes up to ~79 degrees to the light
+		float dzMax = 40.0 * mPerUv / ${SUN_DEPTH_M.toFixed(1)}; // slopes up to ~88.5 degrees to the light (low sun, moon)
 		dz = clamp( dz, vec2( -dzMax ), vec2( dzMax ) );
 		float minR = uLookU.w * texel;
 		float searchR = max( 0.55 / mPerUv, minR * 2.0 ); // finds occluders up to ~25 m away
@@ -60,7 +61,7 @@ const SUN_DEPTH_M = 899.0;
 			float a = a0 + fi * 2.39996323;
 			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 6.0 ) * searchR;
 			float d = unpackRGBAToDepth( texture2D( shadowMap, sc.xy + o ) );
-			float zr = sc.z + dot( dz, o ) - 0.06 / ${SUN_DEPTH_M.toFixed(1)};
+			float zr = sc.z + dot( dz, o ) - ( 0.06 + 0.2 * length( o ) * mPerUv ) / ${SUN_DEPTH_M.toFixed(1)}; // + slope tolerance (bumpy ground)
 			if ( d < zr ) { bSum += d; bN += 1.0; }
 		}
 		if ( bN < 0.5 ) return 1.0;
