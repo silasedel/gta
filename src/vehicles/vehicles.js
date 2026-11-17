@@ -261,6 +261,9 @@ export async function createVehicles(game) {
     tailPool.visible = false; tailPool.renderOrder = 1;
     model.root.add(pool, tailPool);
     model.pool = pool; model.tailPool = tailPool;
+    // sun shadows: every car mesh is a caster of the per-frame dynamic shadow map (world/env/shadows.js LAYER_DYNAMIC = 7)
+    // right away, not only once the shadow tagger has discovered the car (parked cars spawned early were missed)
+    model.root.traverse((o) => { if (o.isMesh || o.isInstancedMesh) { o.layers.enable(7); o.layers.disable(6); } });
 
     // rigid body
     const q = new THREE.Quaternion().setFromAxisAngle(UP, heading);
