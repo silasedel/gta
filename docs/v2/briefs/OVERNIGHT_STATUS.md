@@ -1006,6 +1006,25 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - Money (ref_46): bank with the purple house badge, then cash with the green wallet badge, under the evidence badges when no weapon is out. With a weapon out, the money shows for 5 s after a change.
   - Clock: a small last row.
   - Sheets: `docs/v2/shots/hudcorner/sheet_corner.jpg` (on white, next to both references), `sheet_weapon_icons.jpg`, and `sheet_corner_ingame.jpg` (in game, before / after, day / night, Retina).
+- 16:40 Commits f6568e7e (suspension behind ?carphys=2, relief, rocks, clearance, overlay, lot props on real ground, noPark boot-crash fix) and the next one (solidCars, trunks, impacts behind ?impacts=1).
+  - **People never move cars** (`solidCars.js`). Walk / sprint 5 s into a parked car, head-on and at 35 deg; car displacement:
+    - sedan3: 0.01 / 0.21 / 0.00 / 0.24 mm
+    - suv12: 0.21 / 1.27 / 0.00 / 0.74 mm
+    - truck9: 0.00 / 0.00 / 2.83 / 0.66 mm
+    - The over-1 mm cases look like settle drift (cars spawned 2.5 s before the walk). A re-run with a 6 s settle and an idle control is queued. Report: `docs/v2/reports/physics-push.json`.
+  - **Trunk colliders** (`trunks.js`): 2-4 capsules along each drawn trunk (lean / S-bend), from r2-veg's `trunksNear` (afce3e49), plus mangrove prop roots. The tilebuild vertical cylinders are off while these are on; `?trunks=0` brings them back. The walk-into audit (`tools/v2/physics/walkaudit.mjs`: palms, trees, props, 4 directions) is queued.
+  - **Prop impacts** (`impacts.js`, `?impacts=1`, off):
+    - Momentum = object mass x closing speed x (1+e) + snap impulse, applied at the contact point.
+    - Break, slowdown and damage wait until the body reaches the object.
+    - Damage lands at the contact: dents on LOD0 + LOD1, scratch decal, smashed lamp, bumper sag, buckled hood, cracked windshield.
+    - First sign run, speed loss at the hit: 11 % at 19 km/h, 6.3 % at 50, 4 % at 64. That run predates the contact-deferral fix, so the damage landed at the wrong spot. Re-run queued (sign at 20 / 50 / 90 km/h, chase frames + close-ups in `docs/v2/shots/r2-physics/hits/`).
+  - **carphys 2 in-game lab** (sedan3, `docs/v2/reports/physics-lab-2.json`, strips and chase frames in `docs/v2/shots/r2-physics/lab/`):
+    - curb 20 km/h: pitch +5.9 / -4.8 deg, travel to the 8.3 cm bump stop, speed out 20.2
+    - curb 40 km/h: pitch +5.9 / -2.9 deg, no speed loss after
+    - pothole: a wheel drops 3-4 cm
+    - rock 12 cm: +8 cm travel, 3.1 deg roll
+    - Matches the offline harness.
+  - Browser slots are the bottleneck: runs wait 20-60 min.
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
