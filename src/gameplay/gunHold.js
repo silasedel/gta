@@ -204,8 +204,9 @@ function curl(r, side, set) {
 // grip offsets in the hand frame (meters): palm center along F, out of the palm along N, along S
 const GRIP = { pistol: { a: 0.062, b: 0.022, c: -0.018 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.07, b: 0.022, c: 0.0 } };
 // gun pose from the right hand frame
+const gripFor = (kind, len) => { const g = GRIP[kind] || GRIP.pistol, k = THREE.MathUtils.clamp((len || 0.17) / 0.17, 0.7, 1.25); return { a: g.a * k, b: g.b * k, c: g.c * k }; };
 function gunFromHand(model, kind, fr, out) {
-  const g = GRIP[kind] || GRIP.pistol, hp = model.userData.holdPoint;
+  const g = gripFor(kind, fr.len), hp = model.userData.holdPoint;
   if (kind === 'melee') { _c.copy(fr.S).multiplyScalar(0.85).addScaledVector(fr.F, 0.53).normalize(); _b.copy(fr.N); }   // business end out of the index side of the fist, tipped down along the fingers
   else { _c.copy(fr.F); _b.copy(fr.S); }
   // basis X = Y x Z
@@ -235,8 +236,8 @@ function basisFrom(dir, roll = 0) {
   if (roll) { _q.setFromAxisAngle(_Z, roll); _X.applyQuaternion(_q); _Y.applyQuaternion(_q); }
 }
 // wrist target for a wanted gun origin + basis (inverse of gunFromHand for guns: F = Z, S = Y, N = X)
-function wristFor(model, kind, origin, out, hs = 1) {
-  const g = GRIP[kind] || GRIP.pistol, hp = model.userData.holdPoint;
+function wristFor(model, kind, origin, out, hs = 1, len = 0.17) {
+  const g = gripFor(kind, len), hp = model.userData.holdPoint;
   out.copy(origin);
   if (hp && hp.lengthSq() > 0) out.add(_d.set(0, 0, 0).addScaledVector(_X, hp.x).addScaledVector(_Y, hp.y).addScaledVector(_Z, hp.z));
   return out.addScaledVector(_Z, -g.a).addScaledVector(_X, -g.b * hs).addScaledVector(_Y, -g.c);
@@ -292,7 +293,7 @@ export function holdWeapon(model, root, o = {}) {
     s.o.lerp(_O, k); s.z.lerp(_Z, k).normalize(); s.y.lerp(_Y, k); s.y.addScaledVector(s.z, -s.y.dot(s.z)).normalize();
     _O.copy(s.o); _Z.copy(s.z); _Y.copy(s.y); _X.crossVectors(_Y, _Z).normalize();
     // right arm to the grip, hand aligned with the gun
-    wristFor(model, kind, _O, _W, hs);
+    wristFor(model, kind, _O, _W, hs, frame(r, 'R', FR).len);
     wp(r.fore, _pole); _pole.copy(_sh).addScaledVector(UP, -0.6).addScaledVector(_lf, -0.35).addScaledVector(_fw, -0.1);
     ik2(r.arm, r.fore, r.hand, _W, _pole);
     orientHand(r, 'R', _Z, _Y);
