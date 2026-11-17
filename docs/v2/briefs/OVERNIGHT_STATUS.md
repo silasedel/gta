@@ -866,6 +866,15 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
     - sun hour for the mock-up's long rail shadows (r2-look scanning);
     - street and left-side density (r2-veg);
     - the user's new truck model (r2-cars).
+- **Nov 17 pm: user library models in the yard** (commits d52bba0e, f1db1d97; shots `docs/v2/shots/keys/r2k33_r0b_deck.png`, `r2k39_*.png`, `r2k40_*.png`, 0 console errors):
+  - The utility poles are now Utility Pole 1 (crossarm, three insulators; Pole 2 is a concrete-stub style and doesn't fit). Wires hang from the insulators, and the STOP-corner pole keeps its transformer and lamp.
+  - New props: Window AC 1 in Nico's W3 sash; a galvanized can with lid at the planter (Trash Can 7); a faded blue mailbox on a wooden post at the drive mouth (Mailbox 6); the cooler pair and a weathered wood patio chair in the side yard. All are grounded and have colliders.
+  - The new tool `tools/v2/keys/blender/import_fbx.py` takes FBX / OBJ / GLB files and wires loose maps per material. It zeroes Arnold transmission: the can arrived as glass, which broke the shader link and blacked out the whole frame. `models.js` also strips transmission from any physical material.
+  - Not done yet: Window AC on the generated houses (they build their AC in generator.js; this needs instancing in houses.v2.js), the fishing rod (rigged, nested zip), pallets / cinder blocks / buckets by the roll-off, and a cooler or chairs on the deck (the mock-up's wicker set is still code-built).
+- **QA fixes** (d8e66ba0):
+  - Sea oats and vines no longer float on the open north edge.
+  - Generated houses take their colliders from the LOD 0 build (QA-035).
+  - HD poinciana and HD hibiscus (r2-veg) are in the lot; the bougainvillea mound is now a big, loose cascade (9d6133c8).
 
 ## r2-art
 - 09:50 **Started (art director, one style).**
