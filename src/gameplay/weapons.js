@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { rand, sfx, tryCall, findBone, aimArm, removeBodySafe } from './util.js';
 import { buildWeaponModel, WEAPON_ATTACH, DEFAULT_ATTACH, SKINS, normalizeAttach } from './gunModels.js';
-import { rayLimbs, segLimbs, hitTargets } from './hitbox.js';
+import { rayLimbs, segLimbs, hitTargets } from './hitZones.js';
 import { createGunFX } from './gunfx.js';
 import { ensureCombat, MATERIALS, materialOf, KEYS, livingNear, damageTarget } from './combat/shared.js';
 
