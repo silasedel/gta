@@ -13,7 +13,7 @@
 //   car: spot for the cars helper (game.vehicles.spawnParked) in the lot frame;
 //   dock: { model: 'pier_kit' | 'mossy_pier' | 'clean_pier' | 'boathouse', x, z, face, len?, boats: [...] } house-local, face
 //         = direction from the shore out over the water.
-export const HAND_R = 100;   // auto lots (dressing.v2.js spawn street) stay this far from Nico's house
+export const HAND_R = 115;   // auto lots (dressing.v2.js spawn street) stay this far from Nico's house
 
 export const KEYS_LOTS = [
   { // A: the white cottage across the street (mock-up: white siding, board fence and a clipped hedge along the front)

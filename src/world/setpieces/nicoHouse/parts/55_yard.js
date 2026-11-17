@@ -163,15 +163,15 @@ export function build(ctx) {
   const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56, b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
   { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2, d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
-  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[(k - 1) % 6]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink, z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
+  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink, z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3, st.z, 0.05, 2.6, { tag: 'sign' });
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, 0, b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
     { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, 0, d.z, 0, d.heading, 0, d.scale, d.scale, d.scale), { tint: d.tint }); }
-    const rockNames = lib.names('rocks').sort();
-    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[(k - 1) % rockNames.length]; I.add('rocks', n, M(x, -sink, z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
+    const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
+    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink, z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
     if (BRK) { // register the carts in world space once the house group is placed; hiding a cart collapses its instance
       const binMeshes = (piece) => meshes.filter((m) => lib.piece('bins', piece)?.parts.some((q) => q.geometry === m.geometry)), idx = {}, zero = new THREE.Matrix4().makeScale(0, 0, 0);
