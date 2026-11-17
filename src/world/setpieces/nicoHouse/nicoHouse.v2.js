@@ -130,7 +130,7 @@ export async function initV2(game) {
   // r2-keys: the yard's matted-grass patches also get the ground helper's grass clumps (the user's Grass Clump / Moss models, r2-ground
   // grass.v2.js; queued if that module is not up yet). Not on the drive (the ruts stay bare)
   if (!KEYS_OFF) try { const T = THREE, dD = (x, z) => { let b = 1e9; const P = DRIVE.main; for (let i = 0; i < P.length - 1; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); b = Math.min(b, Math.hypot(x - ax - dx * t, z - az - dz * t)); } return b; };
-    const L = LITTER.filter(([x, z, , , k]) => k === 'matted' && dD(x, z) > DRIVE.halfWidth + 0.5).map(([x, z, r, d], i) => { const p = new T.Vector3(x, 0, z).applyMatrix4(g.matrixWorld); return { x: p.x, z: p.z, r: r * 0.85, density: Math.min(1, d * 0.8), kind: i % 3 ? 'dry' : 'clump' }; });
+    const L = LITTER.filter(([x, z, , , k]) => k === 'matted' && dD(x, z) > DRIVE.halfWidth + 0.5).map(([x, z, r, d], i) => { const p = new T.Vector3(x, 0, z).applyMatrix4(g.matrixWorld); return { x: p.x, z: p.z, r: r * 0.95, density: Math.min(1, d * 1.15), kind: i % 4 === 3 ? 'dry' : 'clump' }; });   // lead: denser, lower, greener mats
     if (L.length) { if (game.groundGrass?.patches) game.groundGrass.patches(L); else (game.groundGrassQueue ||= []).push(...L); } } catch (e) { console.warn('[nicoHouse] grass patches', e); }
   // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
   // CAR_SPOTS documents the mock-up spots and is kept clear of props

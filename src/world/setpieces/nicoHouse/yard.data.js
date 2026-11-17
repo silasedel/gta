@@ -106,6 +106,8 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
   // the deck-view foreground (mock-up: green-gray matted grass between the ruts, around the tires and along the drive edges)
   [-12.5, 4.5, 2.6, 0.95, 'matted'], [-15.8, 6.6, 2.0, 0.9, 'matted'], [-17.2, 11.6, 2.2, 0.9, 'matted'], [-13.2, 16.6, 2.5, 0.85, 'matted'], [-9.6, 9.2, 2.0, 0.8, 'matted'],
   [-11.2, 19.2, 2.4, 0.85, 'matted'], [-19.5, 17.0, 1.8, 0.85, 'matted'], [-14.0, 14.0, 2.0, 0.6, 'leaves'], [-10.6, 6.2, 1.6, 0.55, 'leaves'],
+  // lead review k23: big low green mats around the truck and in the right foreground (mock-up)
+  [-16.2, 4.6, 2.6, 0.95, 'matted'], [-13.6, 2.8, 2.2, 0.9, 'matted'], [-19.0, 8.6, 1.8, 0.85, 'matted'], [-9.8, 3.4, 2.0, 0.9, 'matted'], [-12.2, 10.6, 1.6, 0.8, 'matted'],
 ];
 
 // ---- planting through the vegetation helper (game.vegetation.place when it exists, else game.vegetation.field) ----

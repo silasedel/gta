@@ -19,7 +19,8 @@ export function build(ctx) {
   // r2-keys (Nov 17): the house is turned in a corner lot (yard.data.js): the sheet runs out to the asphalt of the east leg (front)
   // and the west leg (west side) and sinks under it, follows the drive from the STOP corner past the pickup (DRIVE), and has gentle
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle
-  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
+  // coarser: the shell fragments read in the normal map (lead review), nscale 1.7
+  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true, nscale: 1.7 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
@@ -137,7 +138,7 @@ export function build(ctx) {
     for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
     line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5);
     { const D2 = DRIVE.main; for (let i = 0; i < D2.length - 1; i++) { const [ax, az] = D2[i], [bx, bz] = D2[i + 1], len = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / len, nz = (bx - ax) / len;   // drive margins (r2-keys)
-      for (let t = 0; t < len; t += 0.2) for (const sgn of [-1, 1]) { const off = DRIVE.halfWidth + 0.6 + q() * q() * 4; put(ax + (bx - ax) * t / len + nx * sgn * off, az + (bz - az) * t / len + nz * sgn * off, 0.8 + q() * 0.9); }
+      for (let t = 0; t < len; t += 0.45) for (const sgn of [-1, 1]) { const off = DRIVE.halfWidth + 0.6 + q() * q() * 4; put(ax + (bx - ax) * t / len + nx * sgn * off, az + (bz - az) * t / len + nz * sgn * off, 0.8 + q() * 0.9); }
       for (let t = 0; t < len; t += 0.5) put(ax + (bx - ax) * t / len + (q() - 0.5) * 0.4, az + (bz - az) * t / len + (q() - 0.5) * 0.4, 0.7 + q() * 0.4); } }   // the hump between the ruts
     if (wallN) line(L.x0 - 20, L.z0 + 0.7, L.x1 - 0.5, L.z0 + 0.7, 260, 0.8, 1.2); if (wallE) line(L.x1 - 0.7, L.z0, L.x1 - 0.7, L.z1 + 15, 300, 0.8, 1.2);   // only along a seawall line(-13.5, 6.6 + P.stairW.dz, -9.5, 6.9 + P.stairW.dz, 40, 0.5); line(-12.2, 2.8 + P.stairW.dz, -12.2, 4.4 + P.stairW.dz, 20, 0.3);   // west stair foot / landing (moved)
     for (const [wx, wz, wr, wn, ws] of WEEDS) for (let i = 0; i < wn; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * wr; put(wx + Math.cos(a) * d, wz + Math.sin(a) * d, ws * (0.8 + q() * 0.6)); }   // keys pass: hand-placed clumps (yard.data.js WEEDS)

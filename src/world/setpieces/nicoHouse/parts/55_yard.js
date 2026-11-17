@@ -229,7 +229,25 @@ export function build(ctx) {
       MUD.map.wrapS = MUD.map.wrapT = THREE.ClampToEdgeWrapping;
       for (const CP of RIMS) {
       const mk = (m, sx, sy, dy) => { const g = new THREE.PlaneGeometry(CP.a * 2 * sx, CP.b * 2 * sy, 10, 5); g.rotateX(-PI / 2); g.applyMatrix4(M(CP.x, 0, CP.z, 0, CP.rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, surf(pp.getX(i), pp.getZ(i)) + dy); D.geo(m, g, null, { wear: 1 }); g.dispose(); };
-      mk(MUD, 1.35, 1.6, 0.0); if (!CP.rimOnly) mk(P2, 1.0, 1.0, 0.006); } }
+      mk(MUD, 1.35, 1.6, 0.0); if (!CP.rimOnly) mk(P2, 1.0, 1.0, 0.006); }
+      // the street after a morning shower (lead review): a wet gutter strip along Nico's edges of Pelican Point Ln and a few standing
+      // puddles in it, dry weather too (same always-wet water as the drive-mouth puddle)
+      const WETS = decal('wetgutter', 64, 64, (g, w, h) => { g.fillStyle = 'rgba(28,26,24,0.55)'; g.fillRect(0, 0, w, h); });
+      WETS.roughness = 0.22; WETS.map.wrapS = WETS.map.wrapT = THREE.ClampToEdgeWrapping;
+      const ribbon = (m, pts, side, o0, o1, dy, fade) => { const pos = [], idx = []; let n = 0;
+        for (let i = 0; i < pts.length; i++) { const a2 = pts[Math.max(0, i - 1)], b2 = pts[Math.min(pts.length - 1, i + 1)], dx = b2[0] - a2[0], dz = b2[1] - a2[1], L2 = Math.hypot(dx, dz) || 1, nx = -dz / L2 * side, nz = dx / L2 * side;
+          for (const o of [o0, o1]) { const x = pts[i][0] + nx * o, z = pts[i][1] + nz * o; pos.push(x, surf(x, z) + dy, z); }
+          if (i) idx.push(n - 2, n - 1, n, n - 1, n + 1, n); n += 2; }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 2).fill(0.5), 2)); g.setIndex(idx); g.computeVertexNormals();
+        if (g.attributes.normal.getY(0) < 0) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i]; ix[i] = ix[i + 1]; ix[i + 1] = t; } g.computeVertexNormals(); }
+        D.geo(m, g, null, { wear: (vx, vy, vz) => fade(vx, vz) }); g.dispose(); };
+      const dense = (P, step = 0.8) => { const out = []; for (let i = 0; i < P.length - 1; i++) { const n2 = Math.max(1, Math.ceil(Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]) / step)); for (let k = 0; k < n2; k++) out.push([P[i][0] + (P[i + 1][0] - P[i][0]) * k / n2, P[i][1] + (P[i + 1][1] - P[i][1]) * k / n2]); } out.push(P[P.length - 1]); return out; };
+      const EAST = dense([[8.0, 31.75], [5.4, 31.8], [-4.2, 31.6], [-13.8, 29.8], [-20.9, 23.8]]), WEST = dense([[-20.9, 23.8], [-27.5, 12.6]]);
+      const patchy = (x, z) => Math.max(0, Math.min(1, 0.55 + 0.45 * Math.sin(x * 0.37 + z * 0.21) * Math.cos(z * 0.29 - x * 0.13)));
+      ribbon(WETS, EAST, -1, 2.45, 3.2, 0.004, patchy); ribbon(WETS, WEST, -1, 2.45, 3.2, 0.004, patchy);   // the yard-side gutter of each leg
+      for (const [x, z, a2, b2, rot] of [[-8.6, 27.9, 1.5, 0.45, -0.18], [-0.8, 28.75, 1.1, 0.36, -0.02], [5.0, 28.95, 1.3, 0.38, 0.03], [-23.3, 14.3, 1.2, 0.42, -1.03]]) {
+        const g = new THREE.PlaneGeometry(a2 * 2, b2 * 2, 8, 3); g.rotateX(-PI / 2); g.applyMatrix4(M(x, 0, z, 0, rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, surf(pp.getX(i), pp.getZ(i)) + 0.008); D.geo(P2, g, null, { wear: 1 }); g.dispose(); }
+    }
     ctx.updaters.push((dt, env) => { const w = env?.game?.weather; uWet.value = w ? Math.max(0.25, Math.min(1, 0.25 + (w.puddles || 0) * 0.9 + (w.wetness || 0) * 0.25)) : 0.25; });
   }
 
