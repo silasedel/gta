@@ -100,6 +100,41 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
       R.exited = await b.eval('!game.player.state.inVehicle');
     }
     { const f = R.samples.map((x) => x.fps).filter(Boolean); R.fps = f.length ? +(f.reduce((a2, x) => a2 + x, 0) / f.length).toFixed(1) : null; R.maxKmh = Math.max(0, ...R.samples.map((x) => x.kmh || 0)); }
+    if (sc === 'stand') {
+      // an airboat stand on the Tamiami-style glades roads: two airboats + the mossy pier landing; enter one and drive off
+      const g = FIX.airboat || { x: -4280, z: 1040 }; await tele(g.x, g.z); await b.sleep(3000);
+      const site = JSON.parse(await b.eval(`(() => { const S = game.boatSystem?.gladeSites || []; const p = game.player.position; let best = null, bd = 1e9;
+        for (const s2 of S) { const d = Math.hypot(s2.x - p.x, s2.z - p.z); if (d < bd) { bd = d; best = s2; } }
+        return JSON.stringify({ n: S.length, site: best ? { x: best.x, z: best.z, heading: best.heading, along: best.along, road: best.road } : null }); })()`));
+      R.sites = site.n; R.site = site.site; if (!site.site) { R.error = 'no stands'; continue; }
+      const st = site.site, rx = st.x - Math.sin(st.heading) * 14, rz = st.z - Math.cos(st.heading) * 14;
+      await tele(rx, rz); await b.sleep(9000);
+      R.standBoats = await b.eval(`game.vehicles.boats.filter((x) => x.isAirboat && x.site && Math.hypot(x.site.x - ${st.x}, x.site.z - ${st.z}) < 1).length`);
+      R.pier = await b.eval(`(() => { const s2 = (game.boatSystem.gladeSites || []).find((q) => Math.hypot(q.x - ${st.x}, q.z - ${st.z}) < 1); return !!(s2 && s2.pier && s2.pier.mesh); })()`);
+      await b.eval(`(() => { const s = ${JSON.stringify(st)}; game.cameraOverride = (dt, cam) => { const fx = Math.sin(s.heading), fz = Math.cos(s.heading); cam.position.set(s.x - fx * 9 + s.along[0] * 12, game.city.groundHeightAt(s.x, s.z) + 3.2, s.z - fz * 9 + s.along[1] * 12); cam.lookAt(s.x + fx * 3 + s.along[0] * 2, 0.6, s.z + fz * 3 + s.along[1] * 2); return true; }; return 1; })()`);
+      await b.sleep(1200); await shot();
+      const ok = await b.eval(`(() => { const v = game.vehicles.boats.find((x) => x.isAirboat && x.site && Math.hypot(x.site.x - ${st.x}, x.site.z - ${st.z}) < 1); if (!v) return false; window.__boat = v; game.enterVehicle(v); return true; })()`);
+      R.entered = ok;
+      if (ok) { await b.sleep(1500); await chase(7.5, 2.7, 2); await b.key('KeyW', true); for (let i = 0; i < 10; i++) { await b.sleep(500); R.samples.push(await sample()); if (i === 7) await shot(); } await b.key('KeyW', false);
+        await b.sleep(2500); await b.eval('(() => { game.exitVehicle(); return 1; })()'); await b.sleep(1200); R.exited = await b.eval('!game.player.state.inVehicle'); }
+    }
+    if (sc === 'wade') {
+      // a pickup driven through ~30 cm of water off a beach: should keep driving (drag, spray, wake), engine running
+      const spot = FIX.wade || JSON.parse(await b.eval(`(() => { const c = game.city, p = game.player.position; let best = null;
+        for (let r = 100; r < 4000 && !best; r += 60) for (let k = 0; k < 32 && !best; k++) { const a = k / 32 * Math.PI * 2, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r; if (!c.isWater(x, z)) continue;
+          const bed = (qx, qz) => { const g = c.groundHeightAt(qx, qz), sb = c.seabed?.heightAt?.(qx, qz); return Number.isFinite(sb) ? Math.max(g, sb) : g; }; const d = c.seaLevel - bed(x, z); if (d < 0.2 || d > 0.4) continue; let ok = 0; for (let j = 1; j <= 6; j++) { const d2 = c.seaLevel - bed(x + Math.cos(a) * j * 4, z + Math.sin(a) * j * 4); if (c.isWater(x + Math.cos(a) * j * 4, z + Math.sin(a) * j * 4) && d2 > 0.15 && d2 < 0.5) ok++; } if (ok >= 5) best = { x, z, h: Math.atan2(Math.cos(a), Math.sin(a)) }; }
+        return JSON.stringify(best); })()`, 200000));
+      R.spot = spot; if (!spot) { R.error = 'no shallow spot'; continue; }
+      await tele(spot.x, spot.z); await b.sleep(3000);
+      R.bedCollider = await b.eval(`(() => { const RA = game.RAPIER; const h = game.world.castRay(new RA.Ray({ x: ${spot.x}, y: 3, z: ${spot.z} }, { x: 0, y: -1, z: 0 }), 10, true); return h ? +(3 - (h.timeOfImpact ?? h.toi)).toFixed(2) : null; })()`);
+      await b.eval(`(() => { const v = game.vehicles.spawn('pickup', new (game.camera.position.constructor)(${spot.x}, game.city.groundHeightAt(${spot.x}, ${spot.z}) + 1.2, ${spot.z}), ${spot.h}); window.__car = v; game.enterVehicle(v); return 1; })()`);
+      await b.sleep(2000); await chase(9, 3, 4);
+      await b.key('KeyW', true);
+      for (let i = 0; i < 12; i++) { await b.sleep(500); R.samples.push(JSON.parse(await b.eval(`(() => { const v = window.__car, t = v.body.translation(); return JSON.stringify({ kmh: +(v.speedKmh ?? Math.abs(v.speed * 3.6) ?? 0).toFixed(1), y: +t.y.toFixed(2), wading: +(v.wading || 0).toFixed(2), depth: +(v.waterDepth || 0).toFixed(2), flooded: !!v.flooded, engineOn: !!v.engineOn, fps: game.perf?.fps ?? null }); })()`))); if (i === 6) await shot(); }
+      await b.key('KeyW', false); await shot();
+      await b.eval('(() => { game.exitVehicle(); game.cameraOverride = null; return 1; })()'); await b.sleep(1000);
+      await b.eval('(() => { try { game.vehicles.remove(window.__car); } catch (e) {} return 1; })()');
+    }
     if (sc === 'car') {
       // a sedan launched off a seawall into 4+ m of water: float, nose down, sink, settle (car water physics)
       const spot = FIX[sc] || JSON.parse(await b.eval(`(() => { const c = game.city, p = game.player.position; let best = null;

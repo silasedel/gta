@@ -15,7 +15,7 @@ const _q = new THREE.Quaternion(), _w = new THREE.Vector3(), _pt = { x: 0, y: 0,
 export function createCarWater(game) {
   const city = game.city, SEA = city?.seaLevel ?? -0.12;
   const isWater = (x, z) => (city?.isWater ? city.isWater(x, z) : false);
-  const bedY = (x, z) => (city?.groundHeightAt ? city.groundHeightAt(x, z) : SEA - 5);
+  const bedY = (x, z) => { const g = city?.groundHeightAt ? city.groundHeightAt(x, z) : SEA - 5; const sb = city?.seabed?.heightAt?.(x, z); return Number.isFinite(sb) ? Math.max(g, sb) : g; }; // r2-ground's seabed floor
   const surfY = (x, z) => SEA + (game.waves?.shaderOn ? game.waves.heightAt(x, z) : 0);
   function points(v) {
     const s = v.spec, L = s.L, W = s.W, go = v.groundOff, lo = (s.yb ?? 0.3) - go + 0.05, hi = (s.belt ?? 1.0) - go, roof = (s.roofY ?? 1.4) - go;
@@ -26,9 +26,33 @@ export function createCarWater(game) {
   // returns true when it handled the tick (the caller then skips its own water code)
   return function carWaterTick(v, dt) {
     const body = v.body, t = body.translation();
-    const below = t.y < SEA + 0.6 && isWater(t.x, t.z);
-    v.submerged = v.inWater ? clamp((surfY(t.x, t.z) - (t.y - v.groundOff + v.spec.roofY)) / 0.3, 0, 1) : 0;
-    if (!below) { if (v.inWater && !isWater(t.x, t.z)) { v.inWater = false; body.setLinearDamping(0.05); body.setAngularDamping(0.1); } return !!v.cw; }
+    const wet = t.y < SEA + 1.2 && isWater(t.x, t.z);
+    const sy = surfY(t.x, t.z), floor = t.y - v.groundOff; // the car's ground-contact level (wheel bottoms at rest)
+    const onCar = sy - floor;                              // water depth over the wheel bottoms
+    v.submerged = v.inWater ? clamp((sy - (floor + v.spec.roofY)) / 0.3, 0, 1) : 0;
+    v.waterDepth = wet ? Math.max(0, onCar) : 0;
+    if (!wet || onCar <= 0.02) { if (v.inWater && !isWater(t.x, t.z)) { v.inWater = false; v.cw = null; body.setLinearDamping(0.05); body.setAngularDamping(0.1); } return !!v.cw && wet; }
+    // wading: water below the air intake (~0.5 m cars, ~0.8 m trucks / SUVs / vans) and the wheels still on the bottom: it
+    // drives on, with heavy water drag by depth, a little lift, and spray + a wake off the wheels
+    const tall = /truck|pickup|suv|van|bus|jeep|4x4|offroad/.test(String(v.spec.cls || v.model?.class || '')) || (v.spec.r || 0.33) > 0.38;
+    const intake = tall ? 0.8 : 0.5;
+    const bed = bedY(t.x, t.z), touching = floor - bed < 0.25;
+    if (!v.cw && onCar < intake && touching) {
+      const lv = body.linvel(), sp = Math.hypot(lv.x, lv.z), m0 = v.spec.mass, d = Math.min(onCar, intake);
+      const k = m0 * (0.32 * d) * (1 + 0.15 * sp);
+      body.applyImpulse({ x: -lv.x * k * dt, y: m0 * 9.81 * 0.12 * (d / intake) * dt, z: -lv.z * k * dt }, true);
+      v.wading = d;
+      const wk = game.boatSystem?.wake;
+      if (wk && sp > 1.5 && ((v._spT = (v._spT || 0) - dt) <= 0)) {
+        v._spT = 0.08; const r = body.rotation(); _q.set(r.x, r.y, r.z, r.w); const tm = game.clock?.elapsed ?? performance.now() / 1000;
+        for (const [sx, sz] of [[0.45, 0.32], [-0.45, 0.32], [0.45, -0.32], [-0.45, -0.32]]) { _w.set(sx * v.spec.W, 0, sz * v.spec.L).applyQuaternion(_q);
+          wk.burst(Math.min(5, 1 + Math.round(sp / 5)), t.x + _w.x, sy + 0.05, t.z + _w.z, lv.x * 0.25 + _w.x * 0.8, 0.6 + sp * 0.12 * Math.min(1, d / 0.3), lv.z * 0.25 + _w.z * 0.8, 1.2 + sp * 0.05, 0.16 + d * 0.3, 0.8, game.boatSystem.timeNow?.() ?? tm); }
+        _w.set(0, 0, -v.spec.L / 2).applyQuaternion(_q); const rx = Math.cos(Math.atan2(lv.x, lv.z)), rz = -Math.sin(Math.atan2(lv.x, lv.z));
+        wk.addWake(v, t.x + _w.x, sy + 0.03, t.z + _w.z, rx, rz, v.spec.W * 0.5, Math.min(0.9, 0.3 + sp / 15), Math.min(0.8, sp / 12), game.boatSystem.timeNow?.() ?? tm);
+      }
+      return true; // keep driving (vehicles.js does not flood it)
+    }
+    v.wading = 0;
     const m = v.spec.mass, g = 9.81;
     if (!v.inWater || !v.cw) {
       if (!v.inWater) {
@@ -70,7 +94,7 @@ export function createCarWater(game) {
     }
     // flooding: engine bay first, cabin as the water climbs the doors and glass, trunk last
     const sub = wetN / C.P.length, glass = deepTop / C.P.length;
-    const rate = [0.45, 0.07 + 0.22 * glass, 0.045 + 0.1 * glass];
+    const rate = [0.3, 0.035 + 0.12 * glass, 0.025 + 0.06 * glass]; // engine bay ~3 s, cabin ~15-25 s, trunk last
     for (let i = 0; i < 3; i++) C.air[i] = Math.max(0, C.air[i] - C.air[i] * rate[i] * dt * (0.4 + sub));
     // air escaping: bubbles at the surface above the car
     C.bubbleT -= dt; const airLeft = (C.air[0] + C.air[1] + C.air[2]) / 3;

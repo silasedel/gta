@@ -35,7 +35,7 @@ export const BOAT_TYPES = {
 BOAT_TYPES.airboat = AIRBOAT_SPEC; // r2-water: the fan boat (user's Boat 10 model), drives over sawgrass and mud flats
 const MAXRPM = { outboard: 6000, inboard: 5200, jetski: 7500, airboat: 3000 };
 // r2-water: boat physics. 1 = v1 (8 float springs on a hidden swell), 2 = per-point hydro on the shared waves (hydro.js).
-// ?boatphys=1|2 or game.physics.boatphys at runtime.
+// ?boatphys=1|2 or game.physics.boatphys at runtime (default 2).
 const BOATPHYS_Q = (() => { try { const m = /[?&]boatphys=(\d)/.exec(location.search); return m ? +m[1] : null; } catch (e) { return null; } })();
 // V2 fleet: these v1 types now get a rebuilt, individually seeded center console (src/vehicles/boats/models/cc.js)
 const NEWKEY = { console: 'cc26', skiff: 'cc21', cruiser: 'cc34', racer: 'cc42' };
@@ -286,7 +286,8 @@ export function createBoats(game, opts = {}) {
   foam.mesh.material.uniforms.color.value.setRGB(0.95, 0.97, 1.0);
   foam.mesh.material.depthTest = true;
   const isWater = (x, z) => (city?.isWater ? city.isWater(x, z) : false);
-  const bedY = (x, z) => (city?.groundHeightAt ? city.groundHeightAt(x, z) : SEA - 5);
+  // bottom under water: the drawn seabed (r2-ground's heightfield, city.seabed.heightAt) where it exists, else the data depth
+  const bedY = (x, z) => { const g = city?.groundHeightAt ? city.groundHeightAt(x, z) : SEA - 5; const sb = city?.seabed?.heightAt?.(x, z); return Number.isFinite(sb) ? Math.max(g, sb) : g; };
   const env = game.env;
   // water surface: the ocean module's height if it exposes one, else gentle swell
   const waterY = (x, z, t) => {
@@ -298,17 +299,17 @@ export function createBoats(game, opts = {}) {
   let nameN = 0;
   // ---- r2-water: shared waves (one clock; the ocean shader reads the same function), physics mode, hydro environment
   let W = game.waves; if (!W && !opts.sim) { try { W = game.waves = createWaves(game); } catch (e) { console.warn('[boats] waves', e); W = null; } }
-  const boatPhys = () => game.physics?.boatphys ?? BOATPHYS_Q ?? 1;
+  const boatPhys = () => game.physics?.boatphys ?? BOATPHYS_Q ?? 2; // v2 on (booted clean: water-drive-after.json); ?boatphys=1 = v1
   // ?waves=2: draw the swell now by patching the ocean material(s) at runtime (until the ocean.js hook lands; r2-ground)
   if (!opts.sim && W && /[?&]waves=2\b/.test(globalThis.location?.search || '') && !W.shaderOn) {
-    try { const oc = game.env?.ocean; const mats = [...new Set([oc?.material, ...(oc?.materials || [])].filter(Boolean))];
-      let ok = mats.length > 0; for (const m of mats) ok = W.patchOceanMaterial(m) && ok;
-      if (ok) { const g = W.makeGrid(); for (const ms of [oc.mesh, ...(oc.meshes || [])].filter(Boolean)) { ms.geometry = g; ms.frustumCulled = false; } W.shaderOn = true; }
+    try { const oc = game.env?.ocean, meshes = []; oc?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) meshes.push(o); }); // every ocean pass (r2-ground: surface + transmit)
+      let ok = meshes.length > 0; for (const m of new Set(meshes.map((x) => x.material))) ok = W.patchOceanMaterial(m) && ok;
+      if (ok) { const g = W.makeGrid(); for (const ms of meshes) { ms.geometry = g; ms.frustumCulled = false; } W.shaderOn = true; }
       else console.warn('[boats] waves=2: ocean shader anchors not found'); } catch (e) { console.warn('[boats] waves=2', e); } }
   // r2-water: floating / sinking cars (vehicles.js waterTick hands over); ?carwater=2 on
-  if (!opts.sim && (CARWATER_Q ?? 1) >= 2 && !game.carWater) { try { game.carWater = createCarWater(game); } catch (e) { console.warn('[boats] car water', e); } }
+  if (!opts.sim && (CARWATER_Q ?? 2) >= 2 && !game.carWater) { try { game.carWater = createCarWater(game); } catch (e) { console.warn('[boats] car water', e); } }
   // Everglades sheet water (render + the surface the airboat glides on); ?glades=0 off
-  if (!opts.sim && (GLADES_Q ?? 0) > 0 && !game.gladesWater) { try { game.gladesWater = createGladesWater(game); } catch (e) { console.warn('[boats] glades water', e); } }
+  if (!opts.sim && (GLADES_Q ?? 1) > 0 && !game.gladesWater) { try { game.gladesWater = createGladesWater(game); } catch (e) { console.warn('[boats] glades water', e); } }
   const LKEYS = city?.terrain?.LAYERS ? city.terrain.LAYERS.map((l) => l.key) : null;
   const glades = () => game.gladesWater || null;
   const _ws = { h: 0, nx: 0, ny: 1, nz: 0, a: 0 };
@@ -1033,7 +1034,10 @@ export function createBoats(game, opts = {}) {
     for (const e of G.edges) {
       if (!MAJOR.test(e.kind || '') || e.elevated || !e.pts?.length) continue;
       const mid = e.pts[e.pts.length >> 1]; if (!GL_D.test(city.districtAt(mid[0], mid[1]) || '')) continue;
-      for (let sAt = 300; sAt < e.length - 100; sAt += 1400) {
+      // short edges (the road graph splits at every node): one stand at mid-edge with a chance of length / 1400 m (deterministic)
+      const stations = []; if (e.length >= 1500) for (let sAt = 300; sAt < e.length - 100; sAt += 1400) stations.push(sAt);
+      else { const h = Math.abs(Math.sin(e.id * 12.9898 + 4.1) * 43758.5453) % 1; if (h < e.length / 1400) stations.push(e.length / 2); }
+      for (const sAt of stations) {
         let i = 1; while (i < e.pts.length - 1 && e.cum[i] < sAt) i++;
         const p0 = e.pts[i - 1], p1 = e.pts[i], u = (sAt - e.cum[i - 1]) / Math.max(1e-3, e.cum[i] - e.cum[i - 1]);
         const x = p0[0] + (p1[0] - p0[0]) * u, z = p0[1] + (p1[1] - p0[1]) * u, dl = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, dx = (p1[0] - p0[0]) / dl, dz = (p1[1] - p0[1]) / dl;
@@ -1049,6 +1053,24 @@ export function createBoats(game, opts = {}) {
       }
     }
   }
+  // the stand's landing: the user's weathered mossy pier (public/assets/models/docks/mossy_pier.glb) beside the boats, deck
+  // 0.4 m over the sawgrass, a fixed deck collider so you can walk out to the boats
+  let pierP = null;
+  const loadPier = () => pierP || (pierP = import('three/addons/loaders/GLTFLoader.js').then(({ GLTFLoader }) => new GLTFLoader().loadAsync((import.meta.env?.BASE_URL || '/') + 'assets/models/docks/mossy_pier.glb')).then((g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); return g.scene; }));
+  function addPier(st) {
+    st.pier = { pending: true };
+    loadPier().then((src) => {
+      if (!st.pier?.pending) return;
+      const ox = st.x + st.along[0] * 4.9, oz = st.z + st.along[1] * 4.9, fx = Math.sin(st.heading), fz = Math.cos(st.heading);
+      const cx = ox + fx * 2.2, cz = oz + fz * 2.2, gy = city.groundHeightAt(cx, cz, SEA + 3), y = gy + 0.42;
+      const m = src.clone(true); m.position.set(cx, y, cz); m.rotation.y = st.heading; scene.add(m);
+      const q = new THREE.Quaternion().setFromAxisAngle(UP, st.heading);
+      const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(cx, y - 0.08, cz).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }));
+      world.createCollider(RAPIER.ColliderDesc.cuboid(1.42, 0.08, 4.55).setFriction(0.8), body);
+      st.pier = { mesh: m, body };
+    }).catch((e) => { console.warn('[boats] stand pier', e); st.pier = null; });
+  }
+  function dropPier(st) { const p = st.pier; st.pier = null; if (!p || p.pending) return; scene.remove(p.mesh); try { world.removeRigidBody(p.body); } catch (e) { /* ignore */ } }
   function airboatStands(pp) {
     if (!city?.districtAt) return;
     if (!gladeSites) { if (!GL_D.test(city.districtAt(pp.x, pp.z) || '')) { // build once the player is within ~3 km of the glades
@@ -1057,6 +1079,8 @@ export function createBoats(game, opts = {}) {
     for (const st of gladeSites) {
       const d = Math.hypot(st.x - pp.x, st.z - pp.z);
       st.boats = st.boats.filter((b) => b.alive && !b.disposed);
+      if (d > 900 && st.pier) dropPier(st);
+      if (d < 520 && !st.pier && (!city.collidersReadyAt || city.collidersReadyAt(st.x, st.z))) addPier(st);
       if (d > 520 || st.boats.length) continue;
       if (city.collidersReadyAt && !city.collidersReadyAt(st.x, st.z)) continue;
       for (const k of [-1.7, 1.7]) {
@@ -1071,7 +1095,7 @@ export function createBoats(game, opts = {}) {
     mgrT -= dt; if (mgrT > 0) return; mgrT = 1.0;
     if (pendingRelease.size) flushReleases();
     const pp = game.player?.position; if (!pp || !city?.isWater) return;
-    if (!opts.sim && (GLADES_Q ?? 0) > 0) { try { airboatStands(pp); } catch (e) { console.warn('[boats] airboat stands', e); } }
+    if (!opts.sim && (GLADES_Q ?? 1) > 0) { try { airboatStands(pp); } catch (e) { console.warn('[boats] airboat stands', e); } }
     // far boats are parked out of the simulation (or recycled)
     for (const b of boats.slice()) {
       const t = b.body.translation(), d = Math.hypot(t.x - pp.x, t.z - pp.z);
@@ -1241,7 +1265,7 @@ export function createBoats(game, opts = {}) {
     }
     return best;
   }
-  return { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES, hullDist, boarding: BOARD,
-    wake, wakeHeightAt: (x, z) => (wake ? wake.heightAt(x, z, time, null) : 0), waves: W, get physMode() { return boatPhys(); }, get gladeSites() { return gladeSites; }, fleet: FLEET, get fleetReady() { return fleetReady; },
+  return game.boatSystem = { list: boats, nearest, update, spawn: (key, pos, heading = 0, o = {}) => makeBoat(BOAT_TYPES[key] ? key : 'console', pos, heading, { ...o, external: true }), remove: removeBoat, types: BOAT_TYPES, hullDist, boarding: BOARD,
+    wake, timeNow: () => time, wakeHeightAt: (x, z) => (wake ? wake.heightAt(x, z, time, null) : 0), waves: W, get physMode() { return boatPhys(); }, get gladeSites() { return gladeSites; }, fleet: FLEET, get fleetReady() { return fleetReady; },
     nav: { stats: NAV.stats, get grid() { return NAV.grid; }, get building() { return !!NAV.gen; }, path: navPath, spawnSpot: navSpawnSpot, ensure: navEnsure } };
 }

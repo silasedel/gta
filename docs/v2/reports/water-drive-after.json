@@ -1,0 +1,1445 @@
+{
+ "q": "boatphys=2&glades=1&waves=2&carwater=2",
+ "tag": "after",
+ "scenes": {
+  "airboat": {
+   "samples": [
+    {
+     "kmh": 17.4,
+     "x": -4275.2,
+     "y": 0.09,
+     "z": 1041.2,
+     "ground": 0.71,
+     "gk": "sawgrass",
+     "trim": 0.1,
+     "lean": 0,
+     "rpm": 2241,
+     "fps": 40.382486659942124,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 31.8,
+     "x": -4273.2,
+     "y": 0.12,
+     "z": 1044.1,
+     "ground": 0.38,
+     "gk": "sawgrass",
+     "trim": 2,
+     "lean": -0.4,
+     "rpm": 2525,
+     "fps": 38.6022214819597,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 43.7,
+     "x": -4269.9,
+     "y": 0.11,
+     "z": 1048.8,
+     "ground": 0.43,
+     "gk": "sawgrass",
+     "trim": 1.5,
+     "lean": -0.6,
+     "rpm": 2654,
+     "fps": 42.11031676666578,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 52.6,
+     "x": -4266,
+     "y": 0.11,
+     "z": 1054.6,
+     "ground": 0.38,
+     "gk": "sawgrass",
+     "trim": 1.4,
+     "lean": -1.1,
+     "rpm": 2738,
+     "fps": 34.05966919365438,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 59.4,
+     "x": -4261.4,
+     "y": 0.11,
+     "z": 1061.3,
+     "ground": 0.48,
+     "gk": "sawgrass",
+     "trim": 1.4,
+     "lean": 0.1,
+     "rpm": 2799,
+     "fps": 40.94659776040342,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 63.8,
+     "x": -4256.4,
+     "y": 0.09,
+     "z": 1068.7,
+     "ground": 0.67,
+     "gk": "sawgrass",
+     "trim": 0.3,
+     "lean": -0.7,
+     "rpm": 2842,
+     "fps": 37.38895655066818,
+     "water": false,
+     "sheet": 0.01828510113668652
+    },
+    {
+     "kmh": 66.5,
+     "x": -4251.3,
+     "y": 0.08,
+     "z": 1076.2,
+     "ground": 0.71,
+     "gk": "sawgrass",
+     "trim": 0.8,
+     "lean": 0.2,
+     "rpm": 2869,
+     "fps": 37.916538822027825,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 65.4,
+     "x": -4244.1,
+     "y": 0.43,
+     "z": 1087.3,
+     "ground": 0.14,
+     "gk": "sawgrass",
+     "trim": -23.3,
+     "lean": 1,
+     "rpm": 2854,
+     "fps": 36.451871723191736,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 63.9,
+     "x": -4239.4,
+     "y": 0.08,
+     "z": 1094.6,
+     "ground": 0.62,
+     "gk": "sawgrass",
+     "trim": 0.5,
+     "lean": -0.7,
+     "rpm": 2859,
+     "fps": 43.23924802810251,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 66.3,
+     "x": -4234.4,
+     "y": 0.09,
+     "z": 1102.2,
+     "ground": 0.62,
+     "gk": "sawgrass",
+     "trim": 0.9,
+     "lean": -0.6,
+     "rpm": 2871,
+     "fps": 40.10771056267179,
+     "water": false,
+     "sheet": -0.0005009732936801375
+    },
+    {
+     "kmh": 68.2,
+     "x": -4229.5,
+     "y": 0.09,
+     "z": 1109.8,
+     "ground": 0.62,
+     "gk": "sawgrass",
+     "trim": 1,
+     "lean": -0.3,
+     "rpm": 2884,
+     "fps": 37.818415802363745,
+     "water": false,
+     "sheet": 0.04989536863021524
+    },
+    {
+     "kmh": 69.9,
+     "x": -4224.4,
+     "y": 0.11,
+     "z": 1118.1,
+     "ground": 0.48,
+     "gk": "sawgrass",
+     "trim": 1.6,
+     "lean": -0.1,
+     "rpm": 2888,
+     "fps": 36.99839765605916,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 70.7,
+     "x": -4219.6,
+     "y": 0.08,
+     "z": 1127.4,
+     "ground": 0.76,
+     "gk": "sawgrass",
+     "trim": -0.2,
+     "lean": -0.8,
+     "rpm": 2882,
+     "fps": 33.16669730839367,
+     "water": false,
+     "sheet": 0.03296429354479535
+    },
+    {
+     "kmh": 28.9,
+     "x": -4215.5,
+     "y": 0.34,
+     "z": 1139.8,
+     "ground": 0,
+     "gk": null,
+     "trim": 1.5,
+     "lean": -0.9,
+     "rpm": 2810,
+     "fps": 35.28018336636953,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 40.3,
+     "x": -4217.8,
+     "y": 0.73,
+     "z": 1143.9,
+     "ground": 0,
+     "gk": null,
+     "trim": 11.5,
+     "lean": -8.3,
+     "rpm": 2675,
+     "fps": 38.5947824949005,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 43.6,
+     "x": -4220.7,
+     "y": 0.28,
+     "z": 1149.6,
+     "ground": 0,
+     "gk": null,
+     "trim": 2.7,
+     "lean": 2.5,
+     "rpm": 2701,
+     "fps": 38.96933909120622,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 41.4,
+     "x": -4223.5,
+     "y": 0.08,
+     "z": 1155.2,
+     "ground": 0.48,
+     "gk": "dirt",
+     "trim": -1.7,
+     "lean": 0.2,
+     "rpm": 1475,
+     "fps": 48.42088438239821,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 36.6,
+     "x": -4226.1,
+     "y": 0.07,
+     "z": 1160.2,
+     "ground": 0.86,
+     "gk": "sawgrass",
+     "trim": -0.7,
+     "lean": -0.1,
+     "rpm": 1241,
+     "fps": 44.782421675056,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 33.5,
+     "x": -4228.3,
+     "y": 0.12,
+     "z": 1164.5,
+     "ground": 0.48,
+     "gk": "sawgrass",
+     "trim": 2.1,
+     "lean": -0.1,
+     "rpm": 1176,
+     "fps": 39.84464258148272,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 29.5,
+     "x": -4230.1,
+     "y": 0.1,
+     "z": 1168.4,
+     "ground": 0.52,
+     "gk": "sawgrass",
+     "trim": 0,
+     "lean": -2.2,
+     "rpm": 1139,
+     "fps": 42.34991895242788,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 27.7,
+     "x": -4232.1,
+     "y": 0.09,
+     "z": 1172.4,
+     "ground": 0.71,
+     "gk": "sawgrass",
+     "trim": 0.1,
+     "lean": -0.3,
+     "rpm": 1119,
+     "fps": 49.37509722127674,
+     "water": false,
+     "sheet": 0.05
+    },
+    {
+     "kmh": 26.1,
+     "x": -4233.8,
+     "y": 0.1,
+     "z": 1175.8,
+     "ground": 0.52,
+     "gk": "sawgrass",
+     "trim": 0.6,
+     "lean": 0.9,
+     "rpm": 1106,
+     "fps": 57.360976276852085,
+     "water": false,
+     "sheet": 0.05
+    }
+   ],
+   "spot": {
+    "x": -4280,
+    "z": 1040,
+    "rd": 126
+   },
+   "loaded": true,
+   "shots": [
+    "docs/v2/shots/water/airboat_after_0.jpg",
+    "docs/v2/shots/water/airboat_after_1.jpg",
+    "docs/v2/shots/water/airboat_after_2.jpg",
+    "docs/v2/shots/water/airboat_after_3.jpg",
+    "docs/v2/shots/water/airboat_after_4.jpg"
+   ],
+   "entered": true,
+   "exited": true,
+   "stands": {
+    "standBoats": 0,
+    "near": null
+   },
+   "abGlades": [
+    {
+     "on": true,
+     "ms": 19.5
+    },
+    {
+     "on": false,
+     "ms": 12.58
+    },
+    {
+     "on": true,
+     "ms": 5.88
+    },
+    {
+     "on": false,
+     "ms": 16.67
+    }
+   ],
+   "fps": 40.6,
+   "maxKmh": 70.7
+  },
+  "speedboat": {
+   "samples": [
+    {
+     "kmh": 11.1,
+     "x": -4798.4,
+     "y": -0.26,
+     "z": 1636.9,
+     "ground": 0,
+     "gk": null,
+     "trim": 1.1,
+     "lean": -0.6,
+     "rpm": 2244,
+     "fps": 54.65102871577808,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 22.7,
+     "x": -4799.3,
+     "y": -0.26,
+     "z": 1634.8,
+     "ground": 0,
+     "gk": null,
+     "trim": 0.8,
+     "lean": -0.1,
+     "rpm": 2750,
+     "fps": 57.012607888593806,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 29.7,
+     "x": -4800.3,
+     "y": -0.21,
+     "z": 1632.6,
+     "ground": 0,
+     "gk": null,
+     "trim": 1.4,
+     "lean": 0.1,
+     "rpm": 3026,
+     "fps": 52.29203203149195,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 41.2,
+     "x": -4802.7,
+     "y": 0,
+     "z": 1627.2,
+     "ground": 0,
+     "gk": null,
+     "trim": 4.7,
+     "lean": 0,
+     "rpm": 3490,
+     "fps": 51.37669711034693,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 50,
+     "x": -4805.4,
+     "y": 0.17,
+     "z": 1621.2,
+     "ground": 0,
+     "gk": null,
+     "trim": 6.6,
+     "lean": 0,
+     "rpm": 3838,
+     "fps": 55.852714654145956,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 58,
+     "x": -4808.8,
+     "y": 0.23,
+     "z": 1613.6,
+     "ground": 0,
+     "gk": null,
+     "trim": 6.7,
+     "lean": 0,
+     "rpm": 4157,
+     "fps": 50.84232733737804,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 63.9,
+     "x": -4812.2,
+     "y": 0.29,
+     "z": 1605.8,
+     "ground": 0,
+     "gk": null,
+     "trim": 6.1,
+     "lean": 0,
+     "rpm": 4397,
+     "fps": 46.67852955169272,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 68.8,
+     "x": -4816.2,
+     "y": 0.36,
+     "z": 1596.8,
+     "ground": 0,
+     "gk": null,
+     "trim": 5.5,
+     "lean": 0,
+     "rpm": 4602,
+     "fps": 54.90713554012224,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 72.9,
+     "x": -4820.4,
+     "y": 0.32,
+     "z": 1587.5,
+     "ground": 0,
+     "gk": null,
+     "trim": 4.8,
+     "lean": 0,
+     "rpm": 4766,
+     "fps": 59.74220890791325,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 76.5,
+     "x": -4825.3,
+     "y": 0.18,
+     "z": 1576.4,
+     "ground": 0,
+     "gk": null,
+     "trim": 4.1,
+     "lean": 0,
+     "rpm": 4915,
+     "fps": 60.00051628003988,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 78.7,
+     "x": -4829.7,
+     "y": 0.15,
+     "z": 1566.5,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.9,
+     "lean": 0,
+     "rpm": 5010,
+     "fps": 60.16479429785684,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 80.2,
+     "x": -4834.5,
+     "y": 0.17,
+     "z": 1556.1,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.7,
+     "lean": -6.7,
+     "rpm": 5075,
+     "fps": 60.73721987387667,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 81.3,
+     "x": -4839.5,
+     "y": 0.19,
+     "z": 1546.1,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.4,
+     "lean": -10.5,
+     "rpm": 5106,
+     "fps": 60.15331685904371,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 81.5,
+     "x": -4845.5,
+     "y": 0.12,
+     "z": 1536.5,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.5,
+     "lean": -10,
+     "rpm": 5105,
+     "fps": 60.50424608358536,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 81.5,
+     "x": -4852.7,
+     "y": 0.02,
+     "z": 1527.8,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.8,
+     "lean": -3.6,
+     "rpm": 5100,
+     "fps": 60.36819068780426,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 81.6,
+     "x": -4862.3,
+     "y": 0.03,
+     "z": 1518.2,
+     "ground": 0,
+     "gk": null,
+     "trim": 3.9,
+     "lean": 0.4,
+     "rpm": 5125,
+     "fps": 60.47926675244911,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 77.2,
+     "x": -4870.6,
+     "y": 0.05,
+     "z": 1510.9,
+     "ground": 0,
+     "gk": null,
+     "trim": 1,
+     "lean": 0,
+     "rpm": 3750,
+     "fps": 60.08253357433933,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 73.1,
+     "x": -4878.6,
+     "y": -0.08,
+     "z": 1504.2,
+     "ground": 0,
+     "gk": null,
+     "trim": -1.9,
+     "lean": 0,
+     "rpm": 3541,
+     "fps": 59.842285220544426,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 69.2,
+     "x": -4886.2,
+     "y": 0.02,
+     "z": 1498,
+     "ground": 0,
+     "gk": null,
+     "trim": -2.6,
+     "lean": 0,
+     "rpm": 3389,
+     "fps": 59.6896698876437,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 65.7,
+     "x": -4893.5,
+     "y": 0.18,
+     "z": 1492.2,
+     "ground": 0,
+     "gk": null,
+     "trim": -2.3,
+     "lean": 0,
+     "rpm": 3251,
+     "fps": 60.52217466651783,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 62.4,
+     "x": -4900.7,
+     "y": 0.2,
+     "z": 1486.5,
+     "ground": 0,
+     "gk": null,
+     "trim": -2,
+     "lean": 0,
+     "rpm": 3123,
+     "fps": 60.69747132187015,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 59.5,
+     "x": -4907.6,
+     "y": 0.12,
+     "z": 1481.1,
+     "ground": 0,
+     "gk": null,
+     "trim": -1.7,
+     "lean": 0,
+     "rpm": 3006,
+     "fps": 55.81014593573106,
+     "water": true,
+     "sheet": null
+    }
+   ],
+   "spot": {
+    "x": -4798.051636363699,
+    "z": 1637.6865235820505,
+    "h": 2.356194490192345
+   },
+   "entered": true,
+   "shots": [
+    "docs/v2/shots/water/speedboat_after_0.jpg",
+    "docs/v2/shots/water/speedboat_after_1.jpg",
+    "docs/v2/shots/water/speedboat_after_2.jpg"
+   ],
+   "abPhys": [
+    {
+     "mode": 1,
+     "msPerStep": 0.06,
+     "boats": 2
+    },
+    {
+     "mode": 2,
+     "msPerStep": 0.134,
+     "boats": 2
+    },
+    {
+     "mode": 1,
+     "msPerStep": 0.086,
+     "boats": 3
+    },
+    {
+     "mode": 2,
+     "msPerStep": 0.171,
+     "boats": 3
+    }
+   ],
+   "exited": true,
+   "fps": 57.4,
+   "maxKmh": 81.6
+  },
+  "beach": {
+   "samples": [
+    {
+     "kmh": 14.6,
+     "x": -4569.6,
+     "y": 0.08,
+     "z": 1579.9,
+     "ground": 0,
+     "gk": null,
+     "trim": 5.5,
+     "lean": -2.9,
+     "rpm": 2459,
+     "fps": 49.59153059983323,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 28.1,
+     "x": -4566.7,
+     "y": -0.03,
+     "z": 1581.1,
+     "ground": 0,
+     "gk": null,
+     "trim": 4.3,
+     "lean": 0.3,
+     "rpm": 3163,
+     "fps": 49.800796812795184,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 39.4,
+     "x": -4562.2,
+     "y": 0.16,
+     "z": 1583,
+     "ground": 0,
+     "gk": null,
+     "trim": 8.3,
+     "lean": 0.2,
+     "rpm": 3730,
+     "fps": 52.19206680574349,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 48.8,
+     "x": -4556.3,
+     "y": 0.33,
+     "z": 1585.4,
+     "ground": 0,
+     "gk": null,
+     "trim": 10.4,
+     "lean": 0,
+     "rpm": 4205,
+     "fps": 49.98558108233253,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 56.1,
+     "x": -4549.5,
+     "y": 0.28,
+     "z": 1588.2,
+     "ground": 0,
+     "gk": null,
+     "trim": 8.8,
+     "lean": 0,
+     "rpm": 4580,
+     "fps": 49.800796812564215,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 61.3,
+     "x": -4541.9,
+     "y": 0.19,
+     "z": 1591.4,
+     "ground": 0,
+     "gk": null,
+     "trim": 7.2,
+     "lean": 0,
+     "rpm": 4856,
+     "fps": 47.92604353702051,
+     "water": true,
+     "sheet": null
+    },
+    {
+     "kmh": 58.2,
+     "x": -4534.2,
+     "y": 1.07,
+     "z": 1594.6,
+     "ground": 0,
+     "gk": null,
+     "trim": 10.5,
+     "lean": -0.3,
+     "rpm": 5000,
+     "fps": 37.94166827111242,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 55.6,
+     "x": -4524.7,
+     "y": 0.6,
+     "z": 1598.8,
+     "ground": 0.1,
+     "gk": "sand",
+     "trim": 4.4,
+     "lean": -0.1,
+     "rpm": 5719,
+     "fps": 48.97813578689212,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 43,
+     "x": -4518.4,
+     "y": 0.41,
+     "z": 1601.3,
+     "ground": 0.19,
+     "gk": "sand",
+     "trim": 1.2,
+     "lean": -4.2,
+     "rpm": 5031,
+     "fps": 56.87348595117275,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 32.6,
+     "x": -4513.8,
+     "y": 0.45,
+     "z": 1603.3,
+     "ground": 0.14,
+     "gk": "sand",
+     "trim": 1.8,
+     "lean": -2.8,
+     "rpm": 4417,
+     "fps": 59.9125531952487,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 21.3,
+     "x": -4510.2,
+     "y": 0.33,
+     "z": 1604.8,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0.1,
+     "lean": 0.5,
+     "rpm": 3811,
+     "fps": 59.46560821063691,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 8.2,
+     "x": -4508.3,
+     "y": 0.38,
+     "z": 1605.6,
+     "ground": 0.19,
+     "gk": "sand",
+     "trim": 0.9,
+     "lean": 2.1,
+     "rpm": 3076,
+     "fps": 58.66372192475312,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0.1,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 2.6,
+     "rpm": 2500,
+     "fps": 51.55506097536123,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 3.4,
+     "rpm": 2358,
+     "fps": 40.26013715718666,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 4.2,
+     "rpm": 2357,
+     "fps": 45.47903140767849,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.3,
+     "rpm": 2356,
+     "fps": 54.15270380849472,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.5,
+     "rpm": 2357,
+     "fps": 43.876552393946774,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.5,
+     "rpm": 2356,
+     "fps": 52.20138377699927,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.3,
+     "rpm": 2357,
+     "fps": 53.08524343352843,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.2,
+     "rpm": 2357,
+     "fps": 55.7446651077757,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.5,
+     "rpm": 2357,
+     "fps": 55.24628783343387,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.4,
+     "rpm": 2357,
+     "fps": 41.12960670551857,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.4,
+     "rpm": 760,
+     "fps": 46.2766513470148,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.5,
+     "rpm": 703,
+     "fps": 56.50023184617545,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.3,
+     "rpm": 701,
+     "fps": 52.41832521095216,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.3,
+     "rpm": 700,
+     "fps": 54.68616285457539,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.6,
+     "rpm": 700,
+     "fps": 49.88987040134672,
+     "water": false,
+     "sheet": null
+    },
+    {
+     "kmh": 0,
+     "x": -4507.8,
+     "y": 0.32,
+     "z": 1605.9,
+     "ground": 0.24,
+     "gk": "sand",
+     "trim": 0,
+     "lean": 5.5,
+     "rpm": 700,
+     "fps": 48.04948203474399,
+     "water": false,
+     "sheet": null
+    }
+   ],
+   "spot": {
+    "x": -4570.665218611326,
+    "z": 1579.5367390280699,
+    "h": 1.1780972450961724,
+    "beachX": -4529.090639648318,
+    "beachZ": 1596.7574934844988
+   },
+   "entered": true,
+   "shots": [
+    "docs/v2/shots/water/beach_after_0.jpg",
+    "docs/v2/shots/water/beach_after_1.jpg",
+    "docs/v2/shots/water/beach_after_2.jpg"
+   ],
+   "final": {
+    "onSand": true,
+    "surf": "sand",
+    "ground": 0,
+    "keelY": -0.14,
+    "beached": true
+   },
+   "exited": true,
+   "fps": 50.8,
+   "maxKmh": 61.3
+  },
+  "car": {
+   "samples": [
+    {
+     "y": 1.36,
+     "pitch": 0,
+     "sub": 0,
+     "air": null,
+     "fps": 58.66111047059698
+    },
+    {
+     "y": -0.57,
+     "pitch": -5.8,
+     "sub": 0,
+     "air": [
+      0.83,
+      0.97,
+      0.98
+     ],
+     "fps": 58.23044005887741
+    },
+    {
+     "y": -0.46,
+     "pitch": -9.5,
+     "sub": 0,
+     "air": [
+      0.6,
+      0.92,
+      0.95
+     ],
+     "fps": 59.46444565279966
+    },
+    {
+     "y": -0.42,
+     "pitch": -9.5,
+     "sub": 0,
+     "air": [
+      0.44,
+      0.88,
+      0.92
+     ],
+     "fps": 58.140488941306316
+    },
+    {
+     "y": -0.62,
+     "pitch": -12.3,
+     "sub": 0,
+     "air": [
+      0.3,
+      0.83,
+      0.88
+     ],
+     "fps": 55.08574879011386
+    },
+    {
+     "y": -0.78,
+     "pitch": -16.8,
+     "sub": 0,
+     "air": [
+      0.21,
+      0.75,
+      0.84
+     ],
+     "fps": 58.219678311605186
+    },
+    {
+     "y": -0.95,
+     "pitch": -22.4,
+     "sub": 0,
+     "air": [
+      0.16,
+      0.69,
+      0.8
+     ],
+     "fps": 59.89503474933973
+    },
+    {
+     "y": -1.15,
+     "pitch": -29.5,
+     "sub": 0.67,
+     "air": [
+      0.11,
+      0.6,
+      0.75
+     ],
+     "fps": 59.58706075623332
+    },
+    {
+     "y": -1.42,
+     "pitch": -37.7,
+     "sub": 1,
+     "air": [
+      0.08,
+      0.53,
+      0.7
+     ],
+     "fps": 55.515651867114364
+    },
+    {
+     "y": -1.77,
+     "pitch": -47.6,
+     "sub": 1,
+     "air": [
+      0.06,
+      0.46,
+      0.65
+     ],
+     "fps": 59.02908403886836
+    },
+    {
+     "y": -2.15,
+     "pitch": -54.9,
+     "sub": 1,
+     "air": [
+      0.04,
+      0.39,
+      0.6
+     ],
+     "fps": 59.91754844884469
+    },
+    {
+     "y": -2.62,
+     "pitch": -59.1,
+     "sub": 1,
+     "air": [
+      0.03,
+      0.33,
+      0.54
+     ],
+     "fps": 56.09156446617115
+    },
+    {
+     "y": -3.06,
+     "pitch": -62.6,
+     "sub": 1,
+     "air": [
+      0.02,
+      0.27,
+      0.49
+     ],
+     "fps": 59.92346632724936
+    },
+    {
+     "y": -3.32,
+     "pitch": -62,
+     "sub": 1,
+     "air": [
+      0.02,
+      0.22,
+      0.45
+     ],
+     "fps": 59.546157831776625
+    },
+    {
+     "y": -3.37,
+     "pitch": -55.8,
+     "sub": 1,
+     "air": [
+      0.01,
+      0.18,
+      0.4
+     ],
+     "fps": 51.96214580057876
+    },
+    {
+     "y": -3.48,
+     "pitch": -49.5,
+     "sub": 1,
+     "air": [
+      0.01,
+      0.15,
+      0.36
+     ],
+     "fps": 52.75732690927156
+    },
+    {
+     "y": -3.6,
+     "pitch": -44.4,
+     "sub": 1,
+     "air": [
+      0.01,
+      0.12,
+      0.32
+     ],
+     "fps": 57.78812877376481
+    },
+    {
+     "y": -3.72,
+     "pitch": -38.7,
+     "sub": 1,
+     "air": [
+      0,
+      0.1,
+      0.29
+     ],
+     "fps": 60.150395714933964
+    },
+    {
+     "y": -3.9,
+     "pitch": -31.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.08,
+      0.26
+     ],
+     "fps": 59.60531197787155
+    },
+    {
+     "y": -4.13,
+     "pitch": -23.3,
+     "sub": 1,
+     "air": [
+      0,
+      0.06,
+      0.24
+     ],
+     "fps": 60.2181456034789
+    },
+    {
+     "y": -4.39,
+     "pitch": -14.7,
+     "sub": 1,
+     "air": [
+      0,
+      0.05,
+      0.21
+     ],
+     "fps": 60.10355533202278
+    },
+    {
+     "y": -4.74,
+     "pitch": -4.1,
+     "sub": 1,
+     "air": [
+      0,
+      0.04,
+      0.19
+     ],
+     "fps": 59.855010244909124
+    },
+    {
+     "y": -4.82,
+     "pitch": -0.8,
+     "sub": 1,
+     "air": [
+      0,
+      0.03,
+      0.17
+     ],
+     "fps": 59.72393317573609
+    },
+    {
+     "y": -4.83,
+     "pitch": -0.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.03,
+      0.16
+     ],
+     "fps": 59.45864246918304
+    },
+    {
+     "y": -4.83,
+     "pitch": -0.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.02,
+      0.14
+     ],
+     "fps": 59.56837169665526
+    },
+    {
+     "y": -4.83,
+     "pitch": -0.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.02,
+      0.13
+     ],
+     "fps": 58.29133054307772
+    },
+    {
+     "y": -4.83,
+     "pitch": -0.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.01,
+      0.11
+     ],
+     "fps": 56.8599081213549
+    },
+    {
+     "y": -4.83,
+     "pitch": -0.5,
+     "sub": 1,
+     "air": [
+      0,
+      0.01,
+      0.1
+     ],
+     "fps": 60.05323354124055
+    }
+   ],
+   "fps": null,
+   "maxKmh": 0,
+   "spot": {
+    "x": -4363.426555326801,
+    "z": 1641.854594837959
+   },
+   "shots": [
+    "docs/v2/shots/water/car_after_0.jpg",
+    "docs/v2/shots/water/car_after_1.jpg",
+    "docs/v2/shots/water/car_after_2.jpg"
+   ]
+  }
+ },
+ "fpsAvg": 49.7,
+ "errors": []
+}
