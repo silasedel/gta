@@ -38,11 +38,11 @@ const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under th
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
 export function createTileBuilder(ctx) {
+  const GMASK = surfaceMask(), GM_ON = !GMASK.off; // ground pass: top-down hard-surface mask (src/world/ground/surfaceMask.js)
+  if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell, lawn: ctx.terrain.LI?.lawn, mulch: ctx.terrain.LI?.forest }); // ground pass: shoulders / crumbs / no ground through roads
   const { M, provider, root, world, RAPIER, zoneAt, nodeAt, models = {}, onProps = null, onSidewalk = null, groundAt = null, roadDirAt = null, isWater = null, roadDist = null } = ctx;
   // ---- V2 world-render: terrain, flora and relief (src/world/terrain/) ----
   const terrain = ctx.terrain || null, flora = ctx.flora || null, D = ctx.data || null;
-  const GMASK = surfaceMask(), GM_ON = !GMASK.off; // ground pass: top-down hard-surface mask (src/world/ground/surfaceMask.js)
-  if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell, lawn: ctx.terrain.LI?.lawn, mulch: ctx.terrain.LI?.forest }); // ground pass: shoulders / crumbs / no ground through roads
   const TH = (x, z) => (D && D.terrainHeightAt ? D.terrainHeightAt(x, z) : 0);
   const HARD_CLS = new Set(['paved', 'parking', 'plaza', 'marina', 'pool', 'runway', 'taxiway', 'apron']);
   const LAWN_CLS = new Set(['park', 'grass', 'garden', 'cemetery', 'golf', 'pitch', 'playground']);
@@ -1324,12 +1324,12 @@ export function createTileBuilder(ctx) {
   function decal(B, x, z, ax, az, len, wid, cell, k = 1) {
     if (!B.decals || !M.roadDecals) return; const u0 = (cell % 4) * 0.25 + 0.002, v0 = Math.floor(cell / 4) * 0.25 + 0.002, u1 = u0 + 0.246, v1 = v0 + 0.246;
     const bx = -az, bz = ax, hl = len / 2, hw2 = wid / 2; _dc.setRGB(k, k, k); if (cell !== DEC.manhole && cell !== DEC.meterCover && cell !== DEC.grate && cell < DEC.arS || cell >= DEC.patch) _dc.multiply(decTint); // ground pass: asphalt-based decals carry the road's own tint (lanes: sun-faded)
+    if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
     quadUV(B.decals, [[x + ax * hl - bx * hw2, DEC_Y, z + az * hl - bz * hw2, u0, v0], [x + ax * hl + bx * hw2, DEC_Y, z + az * hl + bz * hw2, u1, v0],
       [x - ax * hl + bx * hw2, DEC_Y, z - az * hl + bz * hw2, u1, v1], [x - ax * hl - bx * hw2, DEC_Y, z - az * hl - bz * hw2, u0, v1]], _dc);
   }
   // wear by road class: main roads are kept up (few cracks, tar-sealed joints), residential streets more, Keys / rural lanes most
   function roadDecals(B, fr, ys, r, hw, pe, lane, s0, s1) {
-    if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
     if (ys || !B.decals || !M.roadDecals || s1 - s0 < 4) return;
     const kind = r.kind || '', main = /motorway|trunk|primary/.test(kind), sec = /secondary/.test(kind), eid = (r.edgeId ?? 0) + 1, base = pe ? pe.s0 : 0;
     const H = (s, salt) => hash(Math.floor((s + base) * 3.7) * 92821 + eid * 7919 + salt);
@@ -2960,6 +2960,7 @@ export function createTileBuilder(ctx) {
     cleanProps(tile, props); if (SK && !LF.on) { floorFix(tile, props); shelterClear(props); } props._slab = null; if (SK) { workZones(tile, props); propJitter(props); } yield;
     if (LF.on) liftProps(props);
     syncKids(props);
+    if (GM_ON) { const mp = []; for (const it of [...(props.palm || []), ...(props.tree || [])]) { if (!it || it.cs || (it.y || 0) > 0.1) continue; const z0 = String(zoneAt(it.x, it.z) || ''); if (!URBAN_Z.test(z0) && !/park/.test(z0)) continue; mp.push([it.x, it.z, 0.75 + hash(((it.x * 7) | 0) + ((it.z * 3) | 0)) * 0.5]); } if (mp.length) GMASK.registerPoints(group, mp); } // ground pass: mulch rings at street / park trees (terrain draws them)
     if (synth && flora) yield* floraInto(t, tile, props);
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['shoulder', M.shoulder || M.sidewalk, false], ['marks', M.markings, false], ['lines', M.lines || M.markings, false], ['decals', M.roadDecals || M.markings, false], ['sidewalk', M.sidewalk, false],
@@ -3068,7 +3069,6 @@ export function createTileBuilder(ctx) {
         g.setAttribute(name, new THREE.BufferAttribute(out, k));
       }
       if (b.fx) { // facade batch: the four per-vertex facade vec4s (layer, bays, window type, glass ...) as one interleaved buffer
-    if (GM_ON) { const mp = []; for (const it of [...(props.palm || []), ...(props.tree || [])]) { if (!it || it.cs || (it.y || 0) > 0.1) continue; const z0 = String(zoneAt(it.x, it.z) || ''); if (!URBAN_Z.test(z0) && !/park/.test(z0)) continue; mp.push([it.x, it.z, 0.75 + hash(((it.x * 7) | 0) + ((it.z * 3) | 0)) * 0.5]); } if (mp.length) GMASK.registerPoints(group, mp); } // ground pass: mulch rings at street / park trees (terrain draws them)
         const fx = new Float32Array(b.p.length / 3 * 16);
         for (let i0 = 0; i0 < b.fx.length; i0 += 120000) { const i1 = Math.min(b.fx.length, i0 + 120000); for (let i = i0; i < i1; i++) fx[i] = b.fx[i]; yield; }
         const ib = new THREE.InterleavedBuffer(fx, 16);
@@ -3180,7 +3180,9 @@ export function createTileBuilder(ctx) {
     const group = new THREE.Group(); group.name = 'miami-land-base';
     let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
     const m = meshOf(b, lbMat, { cast: false });
-    if (m) { m.geometry.setAttribute('aTile', new THREE.BufferAttribute(new Float32Array(m.geometry.attributes.position.count * 2).fill(-1e6), 2)); group.add(m); }
+    if (m) { const pa = m.geometry.attributes.position.array, nv = m.geometry.attributes.position.count, at = new Float32Array(nv * 2), TS = provider.tileSize || 200;
+      if (GM_ON) for (let i = 0; i < nv; i++) { at[i * 2] = pa[i * 3] / TS - 0.5; at[i * 2 + 1] = pa[i * 3 + 2] / TS - 0.5; } else at.fill(-1e6); // ground pass: tile coords are linear in position, so the near-tile cut is exact per pixel: the base is dropped wherever full-detail ground exists (it rose above the shore slope as a pale band)
+      m.geometry.setAttribute('aTile', new THREE.BufferAttribute(at, 2)); group.add(m); }
     root.add(group); return group;
   }
   function* buildFar(ca, cb, CS) {

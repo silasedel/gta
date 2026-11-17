@@ -141,9 +141,16 @@ export function createSurfaceMask() {
     c.cx = cx; c.cz = cz; c.t = 0;
   }
   // set-piece yard plants (Nico's house details: weeds, grass, strap plants, palmettos) follow the same rule: nothing on the road
-  let autoT = 2; const autoDone = new WeakSet();
+  let autoT = 2; const autoDone = new WeakSet(), _bb = new THREE.Box3();
   function autoVeg(game) {
     const roots = [game.nicoHouse && game.nicoHouse.group].filter(Boolean);
+    // flat set-piece hard surfaces (slabs, walks, pads, low decks, dock footprints): into the mask as pavement, so no grass grows
+    // through them; the yard ground sheet itself ('ground:*' material) and see-through parts are left out
+    for (const r of roots) r.traverse((o) => { if (!o.isMesh || o.isInstancedMesh || autoDone.has(o) || !o.geometry) return; autoDone.add(o);
+      const m = Array.isArray(o.material) ? o.material[0] : o.material; if (!m || m.transparent || /^ground:|water|glass/i.test(m.name || '')) return;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); _bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+      const h = _bb.max.y - _bb.min.y, ax = _bb.max.x - _bb.min.x, az = _bb.max.z - _bb.min.z, gy = game.city && game.city.groundHeightAt ? game.city.groundHeightAt((_bb.min.x + _bb.max.x) / 2, (_bb.min.z + _bb.max.z) / 2) || 0 : 0;
+      if (h < 0.6 && _bb.max.y < gy + 1.4 && ax * az > 1.5 && ax < 80 && az < 80) { register(o, 'paved'); stats.autoPaved = (stats.autoPaved || 0) + 1; } });
     for (const r of roots) r.traverse((o) => { if (!o.isInstancedMesh || autoDone.has(o)) return; autoDone.add(o);
       const m = Array.isArray(o.material) ? o.material[0] : o.material, nm = (o.name || '') + ' ' + (m && m.name || '') + ' ' + (o.parent && o.parent.name || '');
       if (!/plant|weed|grass|palmetto|fern|shrub|bush|flower/i.test(nm)) return;
