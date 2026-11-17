@@ -20,17 +20,17 @@ const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
 const URL_OF = (n) => BASE + 'assets/metro/' + n + '.glb';
 // line order; x, z = the district spot the entrance is placed near (beside the nearest road)
 export const METRO_STATIONS = [
-  { id: 'airport', name: 'Airport', sub: 'Terminal Dr', x: -650, z: 1230 },
+  { id: 'airport', name: 'Airport', sub: 'Terminal Dr', x: -650, z: 1230, flip: true },
   { id: 'havana', name: 'Little Havana', sub: 'NW 10th Ave', x: -655, z: -55 },
-  { id: 'downtown', name: 'Downtown', sub: 'NE 1st St', x: 410, z: -100 },
-  { id: 'sobe', name: 'South Beach', sub: '8th St', x: 2400, z: 605 },
+  { id: 'downtown', name: 'Downtown', sub: 'NE 1st St', x: 410, z: -100, flip: true },
+  { id: 'sobe', name: 'South Beach', sub: '8th St', x: 2400, z: 605, flip: true },
 ];
 const ALT = 1400;               // the station / tunnel space floats this high above the entrance
 const FARE = 2.75;
 const VMAX = 80 / 3.6, ACC = 1.2;
 const PLAT_Y = 0.837, TRACK_Z = -0.25, CAR_L = 24.2, CAR_Y = 0.95, SEG = 12;
 const EXIT_LOCAL = new THREE.Vector3(-24, PLAT_Y, 14.6);   // EXIT sign spot on the back wall (station frame)
-const SPAWN_LOCAL = new THREE.Vector3(-24, PLAT_Y, 12.5);
+const SPAWN_LOCAL = new THREE.Vector3(-21.5, PLAT_Y, 11.8);
 const COL = { cream: '#fff4e3', coral: '#ff6b5a', pink: '#ff5fa8', gold: '#ffd27a', ink: '#18122a' };
 
 function flagOn() {
@@ -164,8 +164,9 @@ export async function initV2(game) {
     let px = st.x, pz = st.z, dx = 1, dz = 0, hw = 6;
     try { const r = rg?.nearestEdge?.(st.x, st.z, null, 300); if (r) { px = r.point.x; pz = r.point.z; dx = r.dir.x; dz = r.dir.z; hw = r.edge.width / 2; } } catch (e) { /* */ }
     // sidewalk side = the side of the district spot (stores), 3.2 m beyond the curb
-    let nx = -dz, nz = dx; if ((st.x - px) * nx + (st.z - pz) * nz < 0) { nx = -nx; nz = -nz; }
-    const off = hw + 3.3, x = px + nx * off, z = pz + nz * off;
+    // flip: the open side of the street (park / grass / beach) instead of the store side
+    let nx = -dz, nz = dx; if (((st.x - px) * nx + (st.z - pz) * nz < 0) !== !!st.flip) { nx = -nx; nz = -nz; }
+    const off = hw + (st.off ?? 2.9), x = px + nx * off, z = pz + nz * off;
     const yaw = Math.atan2(dx, dz);   // kiosk local +z (stair head) along the road
     S.stations.push({ ...st, kx: x, kz: z, yaw, nx, nz, root: null, gy: 0 });
   }
@@ -242,6 +243,10 @@ export async function initV2(game) {
       let concrete = null;
       st.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, stationLight); const m = o.material; if (/Lambert4|Lambert6/.test(m?.name || '') && m.map && !concrete) concrete = m.map; o.material = unlit(m); o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false; });
       const station = new THREE.Group(); station.name = 'metro-station'; station.add(st); root.add(station);
+      // the strip's tunnel mouths (|x| 72..106) are open on the platform side: close them with concrete walls
+      { const fm = new THREE.MeshBasicMaterial({ map: concrete || null, color: concrete ? 0x4e4e4e : 0x2e2e30 });
+        for (const sx of [-1, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(36, 6.4, 0.3), fm); w.position.set(sx * 89.5, 2.6, 2.05); station.add(w);
+          const r = new THREE.Mesh(new THREE.BoxGeometry(36, 0.3, 2.4), new THREE.MeshBasicMaterial({ color: 0x1c1c1e })); r.position.set(sx * 89.5, 5.75, 1.0); station.add(r); } }
       // signs: station name on the track wall every 24 m, line map + EXIT on the back wall
       const names = [];
       for (let x = -60; x <= 60; x += 24) { const n = canvasPlane(5.2, 1.3, 1024, (g, w, h) => drawNameSign(g, w, h, 'Station', '')); n.position.set(x, 3.0, -3.6); station.add(n); names.push(n); }
@@ -262,7 +267,7 @@ export async function initV2(game) {
       const carProto = new THREE.Group(); const doors = [];
       tr.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, carLight); const nm = o.material?.name || '';
         if (/^Lights/.test(nm)) { o.material = new THREE.MeshBasicMaterial({ color: 0xfff6e8, toneMapped: false }); }
-        else o.material = unlit(o.material, { glass: /Glass/.test(nm) });
+        else o.material = unlit(o.material, { glass: /Glass/.test(nm), tint: /^Bars/.test(nm) ? 0x9a9a9a : /^Walls|^Roof/.test(nm) ? 0xd8d8d8 : null });
         if (!o.material.name && o.name === 'm__none') o.material.color.set(0x8d9298);
         o.frustumCulled = false; });
       carProto.add(tr);
@@ -341,7 +346,7 @@ export async function initV2(game) {
         const w = toWorld(sp.x + stationX + (state === 'bench' ? (Math.random() - 0.5) * 1.6 : 0), sp.y, sp.z).clone();
         const p = peds.spawnAt(w, { outfit: 'casual' }); if (!p) continue;
         const heading = root.rotation.y + Math.PI + (state === 'bench' ? 0 : (Math.random() - 0.5) * 0.8);   // face the track
-        p.pinned = 1e9; p.v21 = { venue: 'metro' }; p.nav = null; p.group = null; p.target = null; p.state = state === 'bench' ? 'bench' : 'idle'; p.act = p.state; p.stateT = 1e9;
+        p.pinned = 1e9; p.v21 = { venue: 'metro' }; p.nav = null; p.group = null; p.target = null; p.state = state === 'bench' ? 'bench' : 'talk'; p.act = p.state; p.stateT = 1e9;
         p.heading = heading; p.idleStyle = state === 'bench' ? 'sitBench' : (Math.random() < 0.5 ? 'talk' : null); p.pos.copy(w); p.groundY = w.y;
         if (p.root) { p.root.position.copy(p.pos); p.root.rotation.y = heading; }
         waiting.push(p);
@@ -400,6 +405,7 @@ export async function initV2(game) {
       const sp = toWorld(SPAWN_LOCAL.x, SPAWN_LOCAL.y, SPAWN_LOCAL.z);
       game.teleport(sp.x, sp.y + 0.05, sp.z, root.rotation.y + Math.PI);   // face the track
       try { game.env?.setIndoor?.(true); if (game.player?.state) game.player.state.indoor = true; } catch (e) { /* */ }
+      if (!S.hazeSaved) { S.hazeSaved = game.lookHaze || null; game.lookHaze = { day: 0, golden: 0, night: 0 }; }   // no outdoor aerial haze down here
       S.mode = 'platform';
       T.stopX = 0; T.phase = 'away'; T.t = 0; T.wait = 5; T.s = -9999; T.doorK = 0;
       spawnPeople(0);
@@ -416,6 +422,7 @@ export async function initV2(game) {
       releasePeople(); platformColliders(false); rumbleStop();
       root.visible = false; S.mode = 'street';
       try { game.env?.setIndoor?.(false); if (game.player?.state) game.player.state.indoor = false; } catch (e) { /* */ }
+      if (S.hazeSaved !== undefined) { if (S.hazeSaved) game.lookHaze = S.hazeSaved; else delete game.lookHaze; delete S.hazeSaved; }
       const L = landing(s), heading = s.yaw;   // walk out facing away from the stairs
       const place = () => { const gy = city.groundHeightAt?.(L.x, L.z); game.teleport(L.x, Number.isFinite(gy) ? gy : undefined, L.z, heading); };
       place();
@@ -474,7 +481,7 @@ export async function initV2(game) {
   function rideCamera(dt, cam) {
     const x = R.s, t = performance.now() / 1000, sway = Math.sin(t * 1.7) * 0.012 * Math.min(1, R.v / 8) + Math.sin(t * 7.3) * 0.004 * Math.min(1, R.v / 15);
     if (S.view === 'in') { camL.set(x - 3, CAR_Y + 1.62 + sway, TRACK_Z + 1.15); camT.set(x + 7, CAR_Y + 1.25, TRACK_Z - 2.2); }
-    else { camL.set(x - 42, CAR_Y + 2.4, TRACK_Z + 2.85); camT.set(x + 30, CAR_Y + 1.3, TRACK_Z + 0.4); }
+    else { camL.set(x - 40, CAR_Y + 2.3, TRACK_Z - 3.0); camT.set(x + 30, CAR_Y + 1.2, TRACK_Z - 0.6); }   // between the train and the track wall (inside the corridor everywhere)
     cam.position.copy(toWorld(camL.x, camL.y, camL.z)); cam.lookAt(toWorld(camT.x, camT.y, camT.z));
     if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); }
     return true;
@@ -561,5 +568,6 @@ export async function initV2(game) {
       if (S.mode === 'ride') { rideTick(dt); help(null); }
     } catch (e) { console.error('[metro]', e); }
   });
+  Object.assign(S, { enter, exitTo, openMenu, choose, T, R, root, landing });   // test hooks (tools/v2/metro/shots.mjs)
   console.info('[metro] Southline ready:', S.stations.map((s) => `${s.name} (${s.kx.toFixed(0)}, ${s.kz.toFixed(0)})`).join(', '));
 }
