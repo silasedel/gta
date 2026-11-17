@@ -1,0 +1,406 @@
+{
+ "set": "ab4",
+ "when": "2026-11-17T23:11:07.063Z",
+ "preset": "high",
+ "places": {
+  "spawn": {
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 789,
+    "texturesLive": 1220,
+    "geometriesLive": 1478,
+    "sceneTextures": 997,
+    "texMB": 3516,
+    "texBySize": {
+     "512": [
+      328,
+      273
+     ],
+     "1k": [
+      402,
+      1818
+     ],
+     "small": [
+      218,
+      4
+     ],
+     "2k": [
+      43,
+      757
+     ],
+     "4k+": [
+      6,
+      458
+     ]
+    },
+    "texBiggest": [
+     [
+      "humans/atlasS.jpg",
+      "5120x4096",
+      107
+     ],
+     [
+      "humans/atlasC.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "nico_tripo/albedo.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "nico_tripo/normal.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "signs/keys_welcome_color.jpg",
+      "4096x2304",
+      48
+     ],
+     [
+      "signs/keys_welcome_normal.jpg",
+      "4096x2304",
+      48
+     ],
+     [
+      "",
+      "2048x3072",
+      32
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ]
+    ],
+    "sceneGeometries": 14065,
+    "geoMB": 683,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 4153,
+    "visibleMeshes": 2224,
+    "instanced": 1734,
+    "instances": 69293,
+    "skinned": 164,
+    "skinnedVisible": 32,
+    "castShadow": 1197,
+    "transparent": 191,
+    "points": 11,
+    "lines": 9,
+    "lights": 38,
+    "objects": 8975,
+    "materials": 2222,
+    "bodies": {
+     "total": 356,
+     "colliders": 1795,
+     "dynamic": 43,
+     "active": 19,
+     "sleeping": 24,
+     "kinematic": 52,
+     "fixed": 261
+    },
+    "peds": 28,
+    "crowd": 48,
+    "vehicles": 47,
+    "tiles": 368,
+    "pending": 0,
+    "jsHeapMB": 3029
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 5.8,
+     "0:RenderPass": 43,
+     "2:ContactAO": 1.6,
+     "4:unspecified": 0.6,
+     "6:TAA": 5.2,
+     "7:Object": 0.2,
+     "8:Bloom": 4.5,
+     "10:OutputShader": 0.6,
+     "12:Grade": 0.6,
+     "TOTAL": 64.4,
+     "frames": 21
+    },
+    "cpu": {
+     "shadow": 0.2,
+     "0:RenderPass": 45.6,
+     "2:ContactAO": 1.7,
+     "4:unspecified": 0.3,
+     "6:TAA": 5.5,
+     "7:Object": 0,
+     "8:Bloom": 6.6,
+     "10:OutputShader": 0.3,
+     "12:Grade": 0.4,
+     "TOTALcpu": 66.2,
+     "TOTAL": 62.9,
+     "frames": 21
+    },
+    "gpu": {
+     "shadow": 5.6,
+     "0:RenderPass": 0,
+     "2:ContactAO": 1.6,
+     "4:unspecified": 0.6,
+     "6:TAA": 5.2,
+     "7:Object": 0.2,
+     "8:Bloom": 4.5,
+     "10:OutputShader": 0.6,
+     "12:Grade": 0.6,
+     "TOTAL": 18.9
+    }
+   },
+   "physCap": {
+    "off": {
+     "med": 99.9,
+     "work": 93.25,
+     "render": 38.53,
+     "calls": 1075,
+     "tris": 11082354,
+     "gpuScene": 0,
+     "shadow": 0,
+     "step": 14.64,
+     "player": 14.78,
+     "peds": 3.05,
+     "veh": 3.09
+    },
+    "on": {
+     "med": 89.5,
+     "work": 81.86,
+     "render": 44.53,
+     "calls": 1063,
+     "tris": 11067575,
+     "gpuScene": 0,
+     "shadow": 0,
+     "step": 8.95,
+     "player": 9.48,
+     "peds": 3.23,
+     "veh": 2.34
+    }
+   }
+  },
+  "downtown": {
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1219,
+    "texturesLive": 1860,
+    "geometriesLive": 2524,
+    "sceneTextures": 1415,
+    "texMB": 4755,
+    "texBySize": {
+     "512": [
+      430,
+      363
+     ],
+     "1k": [
+      560,
+      2561
+     ],
+     "small": [
+      366,
+      4
+     ],
+     "2k": [
+      52,
+      946
+     ],
+     "4k+": [
+      7,
+      543
+     ]
+    },
+    "texBiggest": [
+     [
+      "humans/atlasS.jpg",
+      "5120x4096",
+      107
+     ],
+     [
+      "humans/atlasC.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "nico_tripo/albedo.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "nico_tripo/normal.webp",
+      "4096x4096",
+      85
+     ],
+     [
+      "",
+      "4096x4096",
+      85
+     ],
+     [
+      "signs/keys_welcome_color.jpg",
+      "4096x2304",
+      48
+     ],
+     [
+      "signs/keys_welcome_normal.jpg",
+      "4096x2304",
+      48
+     ],
+     [
+      "",
+      "2048x3072",
+      32
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "",
+      "2048x2048",
+      21
+     ],
+     [
+      "ground/grass_cards.png",
+      "2048x2048",
+      21
+     ]
+    ],
+    "sceneGeometries": 18091,
+    "geoMB": 1707,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 5113,
+    "visibleMeshes": 2239,
+    "instanced": 2167,
+    "instances": 70220,
+    "skinned": 176,
+    "skinnedVisible": 34,
+    "castShadow": 818,
+    "transparent": 259,
+    "points": 11,
+    "lines": 2,
+    "lights": 38,
+    "objects": 10400,
+    "materials": 2785,
+    "bodies": {
+     "total": 521,
+     "colliders": 1810,
+     "dynamic": 45,
+     "active": 39,
+     "sleeping": 6,
+     "kinematic": 59,
+     "fixed": 417
+    },
+    "peds": 28,
+    "crowd": 47,
+    "vehicles": 56,
+    "tiles": 368,
+    "pending": 63,
+    "jsHeapMB": 4104
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 4.8,
+     "0:RenderPass": 33.9,
+     "2:ContactAO": 1.3,
+     "4:unspecified": 0.4,
+     "6:TAA": 3.1,
+     "7:Object": 0.1,
+     "8:Bloom": 3.3,
+     "10:OutputShader": 0.4,
+     "12:Grade": 0.4,
+     "TOTAL": 48.2,
+     "frames": 19
+    },
+    "cpu": {
+     "shadow": 1.4,
+     "0:RenderPass": 35.7,
+     "2:ContactAO": 1.3,
+     "4:unspecified": 0.3,
+     "6:TAA": 3,
+     "7:Object": 0,
+     "8:Bloom": 4.6,
+     "10:OutputShader": 0.3,
+     "12:Grade": 0.3,
+     "TOTALcpu": 53.7,
+     "TOTAL": 47.1,
+     "frames": 19
+    },
+    "gpu": {
+     "shadow": 3.4,
+     "0:RenderPass": 0,
+     "2:ContactAO": 1.3,
+     "4:unspecified": 0.4,
+     "6:TAA": 3.1,
+     "7:Object": 0.1,
+     "8:Bloom": 3.3,
+     "10:OutputShader": 0.4,
+     "12:Grade": 0.4,
+     "TOTAL": 12.4
+    }
+   },
+   "physCap": {
+    "off": {
+     "med": 72.6,
+     "work": 101.59,
+     "render": 30.26,
+     "calls": 794,
+     "tris": 9418985,
+     "gpuScene": 0,
+     "shadow": 0,
+     "step": 12.12,
+     "player": 0.98,
+     "peds": 2.4,
+     "veh": 4.94
+    },
+    "on": {
+     "med": 67.6,
+     "work": 102.6,
+     "render": 31.33,
+     "calls": 794,
+     "tris": 9425155,
+     "gpuScene": 0,
+     "shadow": 0,
+     "step": 8.81,
+     "player": 0.74,
+     "peds": 2.5,
+     "veh": 3.57
+    }
+   }
+  }
+ },
+ "boot": "{\"ready\":null,\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\"}"
+}

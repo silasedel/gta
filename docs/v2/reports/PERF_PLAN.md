@@ -273,3 +273,54 @@ renderer string only breaks ties and can never lift a slow benchmark. A manual p
    - HLOD per far tile with baked albedo + normal
    - octahedral tree impostors with r2-render's dither-free fade
    - shadow casters from proxies
+
+
+## Round 3 (Nov 17 afternoon, resumed): "2 fps at times, make it ~30 on an M3 Max"
+
+The machine was loaded throughout (load average 8-80, 3+ test Chromes). Every number below is an in-session A/B or a
+same-route comparison.
+
+### The 2-fps hitches (2-min drive, Nico's spawn -> downtown at 50 m/s, `tools/v2/perf/r2-drive.mjs`)
+The baseline drive averaged 6.4 fps with 432 frames over 100 ms and a worst frame of 1.5-8.7 s. Per-frame CPU while moving:
+
+| cost | avg ms | worst | cause |
+|---|---|---|---|
+| city.update (tile build) | 68 | single generator steps 619 ms (near), 549 ms (colliders) | streaming at speed |
+| interiors | 53 | 1 s | shops within 70 m built while driving past (procedural canvas textures, ~250 meshes each) |
+| render | 37 | 8.3 s | includes 4.5 s of shader-link stalls over 88 programs, plus texture uploads |
+| vegetation cell generation | 14 | 0.8 s | |
+| physics | 13 | | up to 6 sub-steps on slow frames |
+| GC | 8 % of CPU | | |
+
+### Committed wins (each A/B'd; on by default, with an off switch)
+
+| change | switch | measured |
+|---|---|---|
+| Streaming readiness + job priorities (QA-045) | ?streamfix=0 | 7 teleports: "ready" with 19 near tiles missing / 13 far chunks drawn within 70 m -> 0 / 0 |
+| Physics: at most 3 sub-steps of 1/60 s, query BVH refresh only before the first | ?physcap=0 | spawn step 14.6 -> 9.0 ms, character controllers 14.8 -> 9.5 ms; downtown step 12.1 -> 8.8 ms |
+| Interiors: no build or prewarm while the player passes faster than 12 m/s | ?intfast=1 | drive 6.6 -> 8.9 fps avg, p90 283 -> 169 ms, frames over 250 ms 75 -> 43 (together with the two above) |
+| Nico's yard ground collider: trimesh instead of a heightfield (same surface) | ?hftri=0 | player character controller 2.49 -> 0.136 ms per call; spawn frame 109 -> 39 ms (same spot, separate sessions) |
+| Tile culling of whole city.root children for the main view | ?tilecull=0 | render CPU -1.2 ms downtown; image diff below the noise floor |
+| r2-people: far walkers at half rate beyond 60 m, setTransform only on change, bake queue; seat-probe cache per model; no archetype library | (r2-people) | far crowd on vs off is now within the noise (was 4.6 ms) |
+
+### Where it stands (standing still, 1080p High, load about 8; `r2-perf-after1.json`)
+
+| place | before (morning, load 15) | now |
+|---|---|---|
+| Nico's spawn | 59-69 ms (89 ms mid-afternoon) | 46.9 ms (21 fps); physics 2.7 + 0.4 ms |
+| Keys street | 23-24 ms | 16.6 ms (60 fps) |
+| Downtown street | 41-52 ms | 26.6 ms (38 fps) |
+| Keys street drive, camera at 14 m/s | median 37.6, p99 91 ms | median 26.0 (38 fps), p99 49, worst 143 ms |
+
+### Checked and dropped
+- Static-matrix freeze: tilebuild already freezes its meshes; matrixWorld was unchanged at 3.6 ms.
+- Empty instanced meshes: three.js already culls them through their empty bounding sphere, so draw calls were unchanged.
+- Per-frame texture re-uploads standing still: 0.05 ms.
+- Trunk colliders: about 1 ms. solidCars: no measurable cost.
+
+### Next, in order
+1. **Spawn render submit: 30 ms CPU for about 1,000 draws.** The countryside alone is 325 draws and 4.4 M triangles at the spawn. Fixes with r2-veg: bark + leaf in one draw, fewer protos near the camera, game.vegLodScale. The census shows 2,824 materials and 340 programs in use, so each program switch re-uploads the light uniforms.
+2. **Long tile-build steps while driving** (near up to 340-620 ms, mid 300-700 ms, colliders 280-550 ms). Find the long sections (the profile points at buildColliders, buildBuilding, buildMid, ensureProps) and add yields, or move the mesh-array work to a worker.
+3. **Collider gaps (QA-045 follow-up, for tilebuild)**: some downtown and beach facades have no collider (drawn 18-21 m, physics 0.1 m), and library tower roofs sit 11 m above their collider box.
+4. **TAA GPU 2.9-4.4 ms at 1080p** (r2-render's new resolve) and bloom 2.4-3.5 ms. These matter for mid GPUs.
+5. **Minimap CPU tile rendering at speed** (4 %; sent to r2-mapui) and shader-link stalls while driving (1.2-4.5 s per drive). Warm the street-kit / cover / signal materials at boot.
