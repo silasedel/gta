@@ -315,7 +315,9 @@ function syncWheels(im, vis, maxY, mud = 0) {
     const w = vis[i];
     w.node.updateWorldMatrix(true, false);
     _m.multiplyMatrices(_inv, w.node.matrixWorld);
-    if (maxY != null && _m.elements[13] > maxY) _m.elements[13] = maxY;
+    // fender cap, but the drawn tire never sinks more than 3 cm under the physics contact (r2-physics: on the heavy offroad
+    // class the suspension compresses past the arch gap under load and the capped tire read 10-15 cm into the road)
+    if (maxY != null && _m.elements[13] > maxY) _m.elements[13] = Math.max(maxY, _m.elements[13] - 0.03);
     if (w.side < 0) _m.multiply(_flip);
     im.setMatrixAt(i, _m);
     im.instanceColor.setX(i, (w.side < 0 ? -1 : 1) * w.spin.rotation.x); im.instanceColor.setY(i, mud);
