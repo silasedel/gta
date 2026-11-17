@@ -293,7 +293,7 @@ if os.path.exists(_kp):
         kind = rd_.get('kind', 'residential'); lanes = int(rd_.get('lanes', 1))
         r = W.road(rd_['pts'], kind, rd_.get('name', ''), lf=lanes, lb=0 if rd_.get('oneway') else lanes, oneway=bool(rd_.get('oneway')),
                    speed=rd_.get('speedKmh') or (80 if kind == 'trunk' else 30 if rd_.get('surface') == 'dirt' else 40),
-                   surface=rd_.get('surface'), region='Key Largo', tags={'keysDetail': 1, 'dkind': 'keys'})
+                   surface=rd_.get('surface'), region='Key Largo', ref=('US-1' if kind == 'trunk' else ''), tags={'keysDetail': 1, 'dkind': 'keys', 'style': rd_.get('style')})
         if r is not None: r.width = rd_.get('width') or (11.0 if kind == 'trunk' else 5.2 if rd_.get('surface') == 'dirt' else 7.0)
     for pr in KEYS.get('piers', []): W.path(pr['pts'], 'pier', pr.get('width', 2.2), 'wood', None, y=None)
     log(f"keys detail: region {KREG.area / 1e6:.2f} km2, roads {len(KEYS.get('roads', []))}, buildings {len(KEYS.get('buildings', []))}, piers {len(KEYS.get('piers', []))}")
@@ -308,9 +308,10 @@ W.extra['airport'] = dict(name='Miami International Airport', runways=[[list(map
 W.extra['airfield'] = dict(name='Key West International Airport', runways=[[list(map(round, p2w(*a))), list(map(round, p2w(*b)))] for a, b, _ in RUNWAYS_PX[2:]])
 
 # ---------------------------------------------------------------- 5. land cover areas
-for p in geoms(SAND.intersection(land)): W.add_area(p, 'beach', None)
-for p in geoms(SWAMP.intersection(land).difference(INLAND)): W.add_area(p, 'wetland', 'Everglades' if p.area > 2e6 else None)
-for p in geoms(FOREST.intersection(land).difference(SWAMP).difference(INLAND)): W.add_area(p, 'forest' if p.area > 2e5 else 'scrub', None)
+_LC = W.land.difference(KREG) if KEYS else W.land   # land cover: final land, and nothing of the main map inside the Keys detail
+for p in geoms(SAND.intersection(_LC)): W.add_area(p, 'beach', None)
+for p in geoms(SWAMP.intersection(_LC).difference(INLAND)): W.add_area(p, 'wetland', 'Everglades' if p.area > 2e6 else None)
+for p in geoms(FOREST.intersection(_LC).difference(SWAMP).difference(INLAND)): W.add_area(p, 'forest' if p.area > 2e5 else 'scrub', None)
 
 # ---------------------------------------------------------------- 6. finalize the network
 log('finalize network')
@@ -427,7 +428,7 @@ def chains(rs):
         out.append(ch)
     return out
 # highways: the chain reaching farthest south is the Overseas Highway, the rest by length
-trunks = [r for r in W.roads if r.kind == 'trunk']
+trunks = [r for r in W.roads if r.kind == 'trunk' and not r.tags.get('keysDetail')]
 tch = sorted(chains(trunks), key=lambda c: -sum(plen(trunks[i].pts) for i in c))
 south = max(tch, key=lambda c: max(max(p[1] for p in trunks[i].pts) for i in c)) if tch else None
 order_ = ([south] if south else []) + [c for c in tch if c is not south]
@@ -436,7 +437,7 @@ for k, ch in enumerate(order_):
     for i in ch: trunks[i].name = nm; trunks[i].ref = ref
 # everything else: by district
 town_i = {}; rural_i = [0]
-others = [r for r in W.roads if r.kind != 'trunk']
+others = [r for r in W.roads if r.kind != 'trunk' and not r.tags.get('keysDetail')]
 for ch in sorted(chains(others), key=lambda c: -sum(plen(others[i].pts) for i in c)):
     rs = [others[i] for i in ch]
     mid = rs[len(rs) // 2].pts[len(rs[len(rs) // 2].pts) // 2]
@@ -622,7 +623,7 @@ if KEYS:
 # ---------------------------------------------------------------- 10. street furniture, lamps, trees
 try:
     sig, stops = G.street_furniture(W)
-    lamps = G.lamps_along(W, [r for r in W.roads if r.kind in ('trunk', 'primary', 'secondary', 'tertiary', 'residential') and r.region != 'rural'])
+    lamps = G.lamps_along(W, [r for r in W.roads if r.kind in ('trunk', 'primary', 'secondary', 'tertiary', 'residential') and r.region != 'rural' and r.tags.get('style') != 'keys_lane'])
     # traffic lights and stop signs come from the road graph's controls at run time (tools/osm roads.controls): no duplicates
     W.props = [p for p in W.props if p.get('type') not in ('signal', 'stop', 'crossing')]
     log(f'stops {stops}, lamps {lamps} (signal props dropped: the graph has the controls)')
@@ -663,6 +664,7 @@ for r in W.roads:
     d = dict(id=r.id, pts=[list(p) for p in r.pts], kind=r.kind, lanesFwd=r.lf, lanesBack=r.lb, oneway=r.oneway, speedKmh=r.speed, name=r.name, bridge=bool(r.bridge), width=round(r.width, 1), surface=r.surface, layer=r.layer)
     if r.ref: d['ref'] = r.ref
     if r.y: d['y'] = r.y
+    if r.tags.get('style'): d['style'] = r.tags['style']
     feat['roads'].append(d)
 with open(os.path.join(OUT, 'features.json'), 'w') as f: json.dump(feat, f, separators=(',', ':'))
 regions = {d['name']: d['outer'] for d in DISTRICTS}
