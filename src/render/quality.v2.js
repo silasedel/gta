@@ -242,6 +242,12 @@ export async function initV2(game) {
     const now = performance.now();
     const ms = now - lastNow;
     lastNow = now;
+    // r2-perf tiers (src/render/tiers.v2.js, off by default): a tier pick owns the preset; the dynamic resolution holds its target
+    if (q.tierLocked) {
+      autoRun = false;
+      stats.auto = false;
+      return;
+    }
     if (!autoRun || !game.ready || game.ui?.paused || document.hidden) {
       return;
     }
@@ -282,7 +288,7 @@ export async function initV2(game) {
     // wait until the game is running before measuring
     const wait = () => {
       if (game.ready) {
-        startAuto('high');
+        if (!q.tierLocked) startAuto('high'); // r2-perf tiers: the tier pick already chose the preset
         apply(q.name);
       } else {
         setTimeout(wait, 500);

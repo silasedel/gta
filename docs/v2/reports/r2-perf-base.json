@@ -1,0 +1,3023 @@
+{
+ "set": "base",
+ "when": "2026-11-17T20:27:02.561Z",
+ "preset": "high",
+ "places": {
+  "spawn": {
+   "frames": {
+    "med": 69.2,
+    "p95": 95.9,
+    "p99": 138.3,
+    "max": 138.3,
+    "n": 36,
+    "work": 59.26,
+    "calls": 938,
+    "tris": 9283226,
+    "sys": {
+     "render": 24.47,
+     "fixed:playerFixed": 8.89,
+     "world.step": 7.51,
+     "env": 3.54,
+     "fixed:vehiclesFixed": 3,
+     "peds": 2.32,
+     "upd:anon#20": 1.5,
+     "audio": 0.86,
+     "upd:unstuckTick": 0.73,
+     "upd:update": 0.73,
+     "upd:anon#2": 0.36,
+     "hud": 0.36,
+     "upd:groundMaskTick": 0.34,
+     "fixed:boatsFixed": 0.33,
+     "gameplay": 0.25,
+     "upd:anon#43": 0.24,
+     "camera": 0.2
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 58.9,
+    "p95": 95.1,
+    "p99": 111.8,
+    "max": 111.8,
+    "n": 39,
+    "work": 58.41,
+    "calls": 930,
+    "tris": 9270786,
+    "sys": {
+     "render": 23.87,
+     "fixed:playerFixed": 8.89,
+     "world.step": 7.53,
+     "env": 4.17,
+     "peds": 2.77,
+     "fixed:vehiclesFixed": 2.37,
+     "upd:anon#20": 1.37,
+     "audio": 0.82,
+     "upd:unstuckTick": 0.63,
+     "upd:update": 0.62,
+     "hud": 0.41,
+     "fixed:boatsFixed": 0.3,
+     "upd:groundMaskTick": 0.3,
+     "upd:anon#2": 0.29,
+     "upd:anon#43": 0.21,
+     "camera": 0.18,
+     "gameplay": 0.18
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 839,
+    "texturesLive": 1230,
+    "geometriesLive": 1645,
+    "sceneTextures": 965,
+    "texMB": 3501,
+    "sceneGeometries": 2320,
+    "geoMB": 1067,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 4158,
+    "visibleMeshes": 2201,
+    "instanced": 1511,
+    "instances": 119500,
+    "skinned": 153,
+    "skinnedVisible": 30,
+    "castShadow": 1106,
+    "transparent": 192,
+    "points": 11,
+    "lines": 10,
+    "lights": 38,
+    "objects": 8831,
+    "materials": 1973,
+    "bodies": {
+     "total": 263,
+     "colliders": 1554,
+     "dynamic": 43,
+     "active": 20,
+     "sleeping": 23,
+     "kinematic": 51,
+     "fixed": 169
+    },
+    "peds": 28,
+    "crowd": 51,
+    "vehicles": 47,
+    "tiles": 368,
+    "pending": 0,
+    "jsHeapMB": 3048
+   },
+   "cpuSplit": {
+    "shadow": 1.5,
+    "matrixWorld": 2.3,
+    "0:RenderPass": 25.3,
+    "2:ContactAO": 0,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 25.8,
+    "TOTAL": 27.2,
+    "frames": 34
+   },
+   "gpuQuery": {
+    "12:Grade": 15.78,
+    "shadow": 3.63,
+    "10:OutputShader": 15.65,
+    "8:Bloom": 253.3,
+    "7:Object": 0,
+    "6:TAA": 37.4,
+    "4:unspecified": 18.33,
+    "2:ContactAO": 44.82,
+    "0:RenderPass": 59.65,
+    "scene": 0.38,
+    "TOTAL": 447.03,
+    "frames": 34
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 1.4,
+     "0:RenderPass": 22,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 23.9,
+     "frames": 39
+    },
+    "cpu": {
+     "shadow": 1.3,
+     "0:RenderPass": 23.7,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 24.2,
+     "TOTAL": 25.6,
+     "frames": 39
+    },
+    "gpu": {
+     "shadow": 0.1,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.4
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 247,
+     "ms": 3.82,
+     "sdraws": 24.24,
+     "sms": 0.19,
+     "ktri": 441
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 274,
+     "ms": 3.69,
+     "sdraws": 23.41,
+     "sms": 0.16,
+     "ktri": 3902
+    },
+    {
+     "k": "Group:",
+     "draws": 140.12,
+     "ms": 1.94,
+     "sdraws": 22.18,
+     "sms": 0.22,
+     "ktri": 297
+    },
+    {
+     "k": "nicoHouse",
+     "draws": 34,
+     "ms": 0.74,
+     "sdraws": 9.41,
+     "sms": 0.04,
+     "ktri": 364
+    },
+    {
+     "k": "houses",
+     "draws": 37,
+     "ms": 0.7,
+     "sdraws": 1.41,
+     "sms": 0,
+     "ktri": 207
+    },
+    {
+     "k": "vegField_hibiscus [inst]",
+     "draws": 42,
+     "ms": 0.59,
+     "sdraws": 3.76,
+     "sms": 0.03,
+     "ktri": 272
+    },
+    {
+     "k": "Group:cc#",
+     "draws": 35,
+     "ms": 0.56,
+     "sdraws": 2,
+     "sms": 0.01,
+     "ktri": 60
+    },
+    {
+     "k": "city/?",
+     "draws": 28,
+     "ms": 0.53,
+     "sdraws": 0.47,
+     "sms": 0,
+     "ktri": 35
+    },
+    {
+     "k": "houses [inst]",
+     "draws": 36,
+     "ms": 0.5,
+     "sdraws": 2,
+     "sms": 0.02,
+     "ktri": 59
+    },
+    {
+     "k": "nicoHouse [inst]",
+     "draws": 19,
+     "ms": 0.43,
+     "sdraws": 2.47,
+     "sms": 0.01,
+     "ktri": 350
+    },
+    {
+     "k": "detached",
+     "draws": 41.03,
+     "ms": 0.42,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 10
+    },
+    {
+     "k": "vegField_liveoak [inst]",
+     "draws": 16,
+     "ms": 0.24,
+     "sdraws": 1.65,
+     "sms": 0.01,
+     "ktri": 47
+    },
+    {
+     "k": "npc-p# [skin]",
+     "draws": 8.71,
+     "ms": 0.24,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 73
+    },
+    {
+     "k": "Group: [inst]",
+     "draws": 9,
+     "ms": 0.07,
+     "sdraws": 9.88,
+     "sms": 0.16,
+     "ktri": 47
+    },
+    {
+     "k": "keysLots [inst]",
+     "draws": 10,
+     "ms": 0.23,
+     "sdraws": 0.47,
+     "sms": 0,
+     "ktri": 26
+    },
+    {
+     "k": "vegField_coconut [inst]",
+     "draws": 12,
+     "ms": 0.17,
+     "sdraws": 1.41,
+     "sms": 0.01,
+     "ktri": 46
+    },
+    {
+     "k": "marker",
+     "draws": 8,
+     "ms": 0.13,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.12,
+     "sdraws": 0.47,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.04,
+     "sdraws": 0.82,
+     "sms": 0.06,
+     "ktri": 95
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.1,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 376
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.1,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "v#-signs",
+     "draws": 4,
+     "ms": 0.09,
+     "sdraws": 0.18,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "detached [inst]",
+     "draws": 2.12,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/terrain",
+     "draws": 6,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 20
+    },
+    {
+     "k": "npc-p#",
+     "draws": 4.15,
+     "ms": 0.04,
+     "sdraws": 3.21,
+     "sms": 0.03,
+     "ktri": 0
+    },
+    {
+     "k": "Points:",
+     "draws": 6,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "city/elevated#",
+     "draws": 2,
+     "ms": 0.06,
+     "sdraws": 0.06,
+     "sms": 0,
+     "ktri": 1
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 6,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 8
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.06,
+     "sdraws": 0.35,
+     "sms": 0,
+     "ktri": 105
+    },
+    {
+     "k": "ocean",
+     "draws": 2,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    }
+   ],
+   "cpuprof": {
+    "total": 8304,
+    "self": [
+     " 10.0%  wasm-function[146] 0057e15e:1",
+     "  5.9%  wasm-function[27] 0057e15e:1",
+     "  3.9%  sliverLand data.js:129",
+     "  3.5%  projectObject chunk-UG26MVNH.js:17733",
+     "  3.4%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     "  3.0%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     "  2.7%  toArray chunk-UG26MVNH.js:4223",
+     "  2.4%  getBufferSubData :0",
+     "  2.1%  multiplyMatrices chunk-UG26MVNH.js:3768",
+     "  2.0%  upload chunk-UG26MVNH.js:11627",
+     "  1.9%  wasm-function[487] 0057e15e:1",
+     "  1.9%  isPocket data.js:167",
+     "  1.8%  setValue chunk-UG26MVNH.js:11574",
+     "  1.8%  wasm-function[67] 0057e15e:1",
+     "  1.6%  setProgram chunk-UG26MVNH.js:17990",
+     "  1.5%  wasm-function[52] 0057e15e:1",
+     "  1.4%  (program) :0",
+     "  1.2%  update character.js:147",
+     "  1.2%  setValueV3f chunk-UG26MVNH.js:11109",
+     "  1.1%  update field.js:86",
+     "  1.1%  wasm-function[102] 0057e15e:1",
+     "  1.0%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+     "  0.9%  work countryside.js:487",
+     "  0.9%  update chunk-UG26MVNH.js:10968",
+     "  0.8%  renderObject chunk-UG26MVNH.js:13628",
+     "  0.8%  bindVertexArray :0",
+     "  0.8%  update chunk-UG26MVNH.js:19370",
+     "  0.8%  frame main.js:957",
+     "  0.8%  r.renderBufferDirect :187",
+     "  0.8%  arraysEqual chunk-UG26MVNH.js:11066",
+     "  0.7%  setup chunk-UG26MVNH.js:9251",
+     "  0.7%  uniform3f :0",
+     "  0.7%  translation @dimforge_rapier3d-compat.js:2808",
+     "  0.7%  refreshUniformsCommon chunk-UG26MVNH.js:16624",
+     "  0.7%  flatten chunk-UG26MVNH.js:11048",
+     "  0.7%  getProgram chunk-UG26MVNH.js:17901",
+     "  0.7%  wasm-function[337] 0057e15e:1",
+     "  0.7%  getParameters chunk-UG26MVNH.js:12372",
+     "  0.6%  getNormalMatrix chunk-UG26MVNH.js:839",
+     "  0.6%  wasm-function[218] 0057e15e:1"
+    ],
+    "incl": [
+     "100.0%  (root) :0",
+     " 94.1%  pump perfGuards.v2.js:307",
+     " 93.8%  frame main.js:957",
+     " 43.1%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+     " 42.9%  post.render cinema.js:189",
+     " 42.9%  post.render :64",
+     " 42.9%  post.render :201",
+     " 42.9%  renderImpl post.js:1163",
+     " 42.9%  render post.js:1158",
+     " 42.8%  render three_addons_postprocessing_EffectComposer__js.js:128",
+     " 42.8%  p.render :44",
+     " 42.4%  scenePass post.js:73",
+     " 42.4%  renderPass.render post.js:69",
+     " 42.4%  rp.render cinema.js:149",
+     " 42.3%  render three_addons_postprocessing_RenderPass__js.js:22",
+     " 28.6%  renderScene chunk-UG26MVNH.js:17791",
+     " 28.4%  renderObject chunk-UG26MVNH.js:17883",
+     " 28.4%  renderObjects chunk-UG26MVNH.js:17870",
+     " 27.9%  r.renderBufferDirect :187",
+     " 27.1%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     " 19.3%  setProgram chunk-UG26MVNH.js:17990",
+     " 12.1%  computeColliderMovement @dimforge_rapier3d-compat.js:4175",
+     " 12.1%  js-to-wasm:ifiiidiiifiiii: 0057e15e:1",
+     " 12.1%  computeColliderMovement @dimforge_rapier3d-compat.js:1519",
+     " 12.0%  wasm-function[678] 0057e15e:1",
+     " 12.0%  wasm-function[103] 0057e15e:1",
+     " 12.0%  upload chunk-UG26MVNH.js:11627",
+     " 11.7%  wasm-function[41] 0057e15e:1",
+     " 11.6%  playerFixed main.js:200",
+     " 11.5%  wasm-function[67] 0057e15e:1",
+     " 11.3%  wasm-function[222] 0057e15e:1",
+     " 11.3%  wasm-function[91] 0057e15e:1",
+     " 10.6%  step @dimforge_rapier3d-compat.js:4374",
+     " 10.0%  wasm-function[146] 0057e15e:1",
+     "  7.9%  wasm-function[554] 0057e15e:1",
+     "  7.9%  js-to-wasm:iiiiiiiiiii: 0057e15e:1",
+     "  7.9%  step @dimforge_rapier3d-compat.js:1672",
+     "  7.9%  step @dimforge_rapier3d-compat.js:3996",
+     "  7.8%  wasm-function[26] 0057e15e:1",
+     "  7.1%  projectObject chunk-UG26MVNH.js:17733",
+     "  7.0%  wasm-function[728] 0057e15e:1",
+     "  6.4%  update environment.js:269",
+     "  6.4%  env.update weather.v2.js:257",
+     "  6.4%  updateImpl environment.js:281",
+     "  6.1%  update ocean.js:337",
+     "  6.1%  js-to-wasm:ii: 0057e15e:1",
+     "  6.1%  update @dimforge_rapier3d-compat.js:1761",
+     "  6.0%  wasm-function[27] 0057e15e:1",
+     "  6.0%  buildShore ocean.js:217",
+     "  6.0%  wasm-function[1204] 0057e15e:1",
+     "  5.8%  (anon) city.js:223",
+     "  5.7%  surfCode data.js:176",
+     "  5.6%  isWater data.js:425",
+     "  4.5%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     "  4.3%  scene.updateMatrixWorld :62",
+     "  3.9%  sliverLand data.js:129",
+     "  3.8%  update peds.js:778",
+     "  3.7%  wasm-function[102] 0057e15e:1",
+     "  3.6%  setup chunk-UG26MVNH.js:9251",
+     "  3.4%  flatten chunk-UG26MVNH.js:11048"
+    ]
+   }
+  },
+  "keys": {
+   "frames": {
+    "med": 24.1,
+    "p95": 33.1,
+    "p99": 34.8,
+    "max": 34.8,
+    "n": 100,
+    "work": 22.99,
+    "calls": 389,
+    "tris": 3123645,
+    "sys": {
+     "render": 14.35,
+     "world.step": 2.72,
+     "upd:anon#20": 0.94,
+     "peds": 0.73,
+     "audio": 0.72,
+     "upd:anon#43": 0.37,
+     "upd:update": 0.31,
+     "upd:anon#2": 0.27,
+     "hud": 0.22,
+     "fixed:vehiclesFixed": 0.16,
+     "fixed:boatsFixed": 0.14
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 23,
+    "p95": 29.4,
+    "p99": 35.9,
+    "max": 39.4,
+    "n": 106,
+    "work": 20.42,
+    "calls": 390,
+    "tris": 3123645,
+    "sys": {
+     "render": 13.01,
+     "world.step": 2.17,
+     "upd:anon#20": 0.87,
+     "audio": 0.68,
+     "peds": 0.58,
+     "upd:anon#43": 0.36,
+     "upd:update": 0.29,
+     "upd:anon#2": 0.25,
+     "hud": 0.18,
+     "fixed:boatsFixed": 0.13,
+     "fixed:vehiclesFixed": 0.12
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1064,
+    "texturesLive": 1342,
+    "geometriesLive": 1641,
+    "sceneTextures": 964,
+    "texMB": 3494,
+    "sceneGeometries": 2262,
+    "geoMB": 932,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 4080,
+    "visibleMeshes": 1617,
+    "instanced": 1578,
+    "instances": 112734,
+    "skinned": 165,
+    "skinnedVisible": 1,
+    "castShadow": 727,
+    "transparent": 153,
+    "points": 11,
+    "lines": 8,
+    "lights": 38,
+    "objects": 8805,
+    "materials": 2029,
+    "bodies": {
+     "total": 270,
+     "colliders": 1435,
+     "dynamic": 38,
+     "active": 30,
+     "sleeping": 8,
+     "kinematic": 54,
+     "fixed": 178
+    },
+    "peds": 34,
+    "crowd": 0,
+    "vehicles": 39,
+    "tiles": 392,
+    "pending": 0,
+    "jsHeapMB": 2703
+   },
+   "cpuSplit": {
+    "matrixWorld": 2.1,
+    "shadow": 0.2,
+    "0:RenderPass": 11.5,
+    "2:ContactAO": 0,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 11.7,
+    "TOTAL": 11.7,
+    "frames": 130
+   },
+   "gpuQuery": {
+    "shadow": 2.57,
+    "0:RenderPass": 26.27,
+    "12:Grade": 6.44,
+    "10:OutputShader": 6.44,
+    "8:Bloom": 95.94,
+    "7:Object": 0,
+    "6:TAA": 15.6,
+    "4:unspecified": 7.44,
+    "2:ContactAO": 18.39,
+    "scene": 10.05,
+    "TOTAL": 179.1,
+    "frames": 130
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 0.2,
+     "0:RenderPass": 10.7,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 11.2,
+     "frames": 134
+    },
+    "cpu": {
+     "shadow": 0.1,
+     "0:RenderPass": 10.9,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 11.3,
+     "TOTAL": 11.3,
+     "frames": 134
+    },
+    "gpu": {
+     "shadow": 0.1,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.3
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 247,
+     "ms": 2.62,
+     "sdraws": 3.03,
+     "sms": 0.02,
+     "ktri": 41
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 143,
+     "ms": 1.49,
+     "sdraws": 1.15,
+     "sms": 0.01,
+     "ktri": 249
+    },
+    {
+     "k": "keysBar",
+     "draws": 83,
+     "ms": 0.75,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 143
+    },
+    {
+     "k": "houses",
+     "draws": 18,
+     "ms": 0.29,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 57
+    },
+    {
+     "k": "city/?",
+     "draws": 17.38,
+     "ms": 0.28,
+     "sdraws": 0.04,
+     "sms": 0,
+     "ktri": 41
+    },
+    {
+     "k": "towns",
+     "draws": 14,
+     "ms": 0.24,
+     "sdraws": 0.14,
+     "sms": 0,
+     "ktri": 125
+    },
+    {
+     "k": "keysLots [inst]",
+     "draws": 8,
+     "ms": 0.12,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 17
+    },
+    {
+     "k": "detached",
+     "draws": 25.27,
+     "ms": 0.12,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 1
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.1,
+     "sdraws": 0.06,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "city/terrain",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 8
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.04,
+     "sdraws": 0.5,
+     "sms": 0.03,
+     "ktri": 95
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "marker",
+     "draws": 6,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 8,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 5
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.05,
+     "sdraws": 0.04,
+     "sms": 0,
+     "ktri": 137
+    },
+    {
+     "k": "sky",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "seabed",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 29
+    },
+    {
+     "k": "reg-limit-# [inst]",
+     "draws": 3,
+     "ms": 0.03,
+     "sdraws": 0.04,
+     "sms": 0,
+     "ktri": 8
+    },
+    {
+     "k": "ocean",
+     "draws": 2,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "vegCollars [inst]",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Points:",
+     "draws": 6,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "city/lib#plinths [inst]",
+     "draws": 1,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Line:",
+     "draws": 6,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "npc-crowd [inst]",
+     "draws": 1,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 235
+    },
+    {
+     "k": "Mesh:",
+     "draws": 3,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 12
+    },
+    {
+     "k": "city/rough#fence#posts [inst]",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0.01,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/library#buildings#ticker",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "reg-stop [inst]",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0.01,
+     "sms": 0,
+     "ktri": 29
+    },
+    {
+     "k": "reg-sign-posts [inst]",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0.01,
+     "sms": 0,
+     "ktri": 18
+    }
+   ],
+   "cpuprof": {
+    "total": 11697,
+    "self": [
+     "  7.4%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     "  6.2%  wasm-function[27] 0057e15e:1",
+     "  5.2%  projectObject chunk-UG26MVNH.js:17733",
+     "  5.1%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     "  3.8%  multiplyMatrices chunk-UG26MVNH.js:3768",
+     "  3.4%  toArray chunk-UG26MVNH.js:4223",
+     "  3.1%  getBufferSubData :0",
+     "  2.9%  upload chunk-UG26MVNH.js:11627",
+     "  2.7%  setValue chunk-UG26MVNH.js:11574",
+     "  2.6%  work countryside.js:487",
+     "  2.5%  wasm-function[146] 0057e15e:1",
+     "  2.1%  (program) :0",
+     "  1.7%  wasm-function[487] 0057e15e:1",
+     "  1.6%  setValueV3f chunk-UG26MVNH.js:11109",
+     "  1.6%  setProgram chunk-UG26MVNH.js:17990",
+     "  1.5%  update chunk-UG26MVNH.js:10968",
+     "  1.3%  s.isInside engine.js:43",
+     "  1.3%  frame main.js:957",
+     "  1.3%  wasm-function[102] 0057e15e:1",
+     "  1.2%  bindVertexArray :0",
+     "  1.2%  flatten chunk-UG26MVNH.js:11048",
+     "  1.2%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+     "  1.0%  arraysEqual chunk-UG26MVNH.js:11066",
+     "  0.9%  uniform3f :0",
+     "  0.9%  refreshUniformsCommon chunk-UG26MVNH.js:16624",
+     "  0.7%  bindBuffer :0",
+     "  0.7%  wasm-function[1765] 0057e15e:1",
+     "  0.6%  getNormalMatrix chunk-UG26MVNH.js:839",
+     "  0.6%  vertexAttribPointer :0",
+     "  0.6%  renderObject chunk-UG26MVNH.js:13628",
+     "  0.6%  sort chunk-UG26MVNH.js:12919",
+     "  0.6%  markUniformsLightsNeedsUpdate chunk-UG26MVNH.js:18186",
+     "  0.6%  needsUpdate chunk-UG26MVNH.js:9321",
+     "  0.6%  isIndoor audio.js:363",
+     "  0.6%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+     "  0.6%  bindTexture :0",
+     "  0.6%  r.renderBufferDirect :187",
+     "  0.5%  update stream.js:44",
+     "  0.5%  setValueV4f chunk-UG26MVNH.js:11131",
+     "  0.5%  updateMusic audio.js:1641"
+    ],
+    "incl": [
+     "100.0%  (root) :0",
+     " 93.7%  pump perfGuards.v2.js:307",
+     " 93.3%  frame main.js:957",
+     " 60.3%  post.render :64",
+     " 60.3%  post.render :201",
+     " 60.3%  renderImpl post.js:1163",
+     " 60.3%  render post.js:1158",
+     " 60.3%  post.render cinema.js:189",
+     " 60.2%  p.render :44",
+     " 60.2%  render three_addons_postprocessing_EffectComposer__js.js:128",
+     " 60.2%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+     " 59.3%  renderPass.render post.js:69",
+     " 59.3%  scenePass post.js:73",
+     " 59.3%  rp.render cinema.js:149",
+     " 59.1%  render three_addons_postprocessing_RenderPass__js.js:22",
+     " 37.4%  renderScene chunk-UG26MVNH.js:17791",
+     " 37.3%  renderObjects chunk-UG26MVNH.js:17870",
+     " 37.3%  renderObject chunk-UG26MVNH.js:17883",
+     " 36.3%  r.renderBufferDirect :187",
+     " 35.7%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     " 24.8%  setProgram chunk-UG26MVNH.js:17990",
+     " 16.9%  upload chunk-UG26MVNH.js:11627",
+     " 10.7%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     " 10.6%  scene.updateMatrixWorld :62",
+     "  9.6%  step @dimforge_rapier3d-compat.js:4374",
+     "  8.8%  projectObject chunk-UG26MVNH.js:17733",
+     "  7.8%  js-to-wasm:ii: 0057e15e:1",
+     "  7.7%  wasm-function[1204] 0057e15e:1",
+     "  6.8%  step @dimforge_rapier3d-compat.js:3996",
+     "  6.8%  wasm-function[26] 0057e15e:1",
+     "  6.8%  wasm-function[554] 0057e15e:1",
+     "  6.8%  js-to-wasm:iiiiiiiiiii: 0057e15e:1",
+     "  6.8%  step @dimforge_rapier3d-compat.js:1672",
+     "  6.5%  wasm-function[728] 0057e15e:1",
+     "  6.3%  wasm-function[27] 0057e15e:1",
+     "  6.1%  update @dimforge_rapier3d-compat.js:1761",
+     "  4.9%  setValue chunk-UG26MVNH.js:11574",
+     "  4.7%  setup chunk-UG26MVNH.js:9251",
+     "  4.7%  flatten chunk-UG26MVNH.js:11048",
+     "  4.7%  setValueM4Array chunk-UG26MVNH.js:11415",
+     "  3.9%  wasm-function[102] 0057e15e:1",
+     "  3.8%  (anon) vegetation.v2.js:172",
+     "  3.8%  multiplyMatrices chunk-UG26MVNH.js:3768",
+     "  3.4%  toArray chunk-UG26MVNH.js:4223",
+     "  3.3%  updateSceneQueries @dimforge_rapier3d-compat.js:4380",
+     "  3.1%  WebGLRenderer.readRenderTargetPixelsAsync chunk-UG26MVNH.js:18332",
+     "  3.1%  getBufferSubData :0",
+     "  3.0%  update audio.js:1769",
+     "  2.9%  update countryside.js:539",
+     "  2.8%  wasm-function[1753] 0057e15e:1",
+     "  2.7%  wasm-function[541] 0057e15e:1",
+     "  2.6%  update chunk-UG26MVNH.js:10968",
+     "  2.6%  work countryside.js:487",
+     "  2.6%  setValueV3f chunk-UG26MVNH.js:11109",
+     "  2.5%  wasm-function[146] 0057e15e:1",
+     "  2.4%  update peds.js:778",
+     "  2.3%  isIndoor audio.js:363",
+     "  2.3%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+     "  2.1%  (program) :0",
+     "  2.0%  setValue chunk-UG26MVNH.js:11619"
+    ]
+   }
+  },
+  "downtown": {
+   "frames": {
+    "med": 52,
+    "p95": 118.4,
+    "p99": 192.9,
+    "max": 192.9,
+    "n": 44,
+    "work": 46.44,
+    "calls": 706,
+    "tris": 9454127,
+    "sys": {
+     "render": 23.1,
+     "world.step": 7.77,
+     "fixed:vehiclesFixed": 3.61,
+     "peds": 1.75,
+     "upd:anon#20": 1.08,
+     "audio": 0.93,
+     "upd:update": 0.77,
+     "hud": 0.72,
+     "upd:unstuckTick": 0.61,
+     "fixed:playerFixed": 0.57,
+     "upd:groundMaskTick": 0.55,
+     "interiors": 0.45,
+     "upd:anon#2": 0.35,
+     "gameplay": 0.24,
+     "upd:anon#43": 0.2,
+     "env": 0.16,
+     "upd:anon#34": 0.16,
+     "camera": 0.12
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 40.9,
+    "p95": 147,
+    "p99": 215.4,
+    "max": 215.4,
+    "n": 50,
+    "work": 35.93,
+    "calls": 697,
+    "tris": 9438467,
+    "sys": {
+     "render": 18.85,
+     "world.step": 5.05,
+     "fixed:vehiclesFixed": 2.27,
+     "peds": 1.3,
+     "upd:anon#20": 1.11,
+     "upd:update": 0.79,
+     "audio": 0.78,
+     "hud": 0.52,
+     "upd:groundMaskTick": 0.45,
+     "upd:unstuckTick": 0.45,
+     "fixed:playerFixed": 0.4,
+     "interiors": 0.4,
+     "upd:anon#2": 0.23,
+     "upd:anon#34": 0.23,
+     "gameplay": 0.2,
+     "upd:anon#43": 0.16,
+     "env": 0.14
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1215,
+    "texturesLive": 1806,
+    "geometriesLive": 2558,
+    "sceneTextures": 1367,
+    "texMB": 4722,
+    "sceneGeometries": 2981,
+    "geoMB": 5764,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 5330,
+    "visibleMeshes": 2169,
+    "instanced": 1953,
+    "instances": 121015,
+    "skinned": 174,
+    "skinnedVisible": 29,
+    "castShadow": 664,
+    "transparent": 248,
+    "points": 11,
+    "lines": 2,
+    "lights": 38,
+    "objects": 10710,
+    "materials": 2572,
+    "bodies": {
+     "total": 491,
+     "colliders": 1718,
+     "dynamic": 40,
+     "active": 37,
+     "sleeping": 3,
+     "kinematic": 70,
+     "fixed": 381
+    },
+    "peds": 36,
+    "crowd": 47,
+    "vehicles": 55,
+    "tiles": 368,
+    "pending": 0,
+    "jsHeapMB": 4566
+   },
+   "cpuSplit": {
+    "matrixWorld": 2.7,
+    "shadow": 0.5,
+    "0:RenderPass": 16.3,
+    "2:ContactAO": 0,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 17.6,
+    "TOTAL": 17.3,
+    "frames": 33
+   },
+   "gpuQuery": {
+    "shadow": 14.93,
+    "scene": 18.58,
+    "0:RenderPass": 89.06,
+    "12:Grade": 11.8,
+    "10:OutputShader": 11.66,
+    "8:Bloom": 213.13,
+    "7:Object": 0,
+    "6:TAA": 32.24,
+    "4:unspecified": 16.28,
+    "2:ContactAO": 42.76,
+    "TOTAL": 435.83,
+    "frames": 59
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 0.9,
+     "0:RenderPass": 17.9,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 19,
+     "frames": 62
+    },
+    "cpu": {
+     "shadow": 0.8,
+     "0:RenderPass": 18.5,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 19.1,
+     "TOTAL": 19.8,
+     "frames": 62
+    },
+    "gpu": {
+     "shadow": 0.1,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.1,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.3
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 281,
+     "ms": 3.98,
+     "sdraws": 7.73,
+     "sms": 0.04,
+     "ktri": 925
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 83,
+     "ms": 1.05,
+     "sdraws": 0.75,
+     "sms": 0,
+     "ktri": 47
+    },
+    {
+     "k": "city/?",
+     "draws": 100,
+     "ms": 0.98,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2452
+    },
+    {
+     "k": "Group:",
+     "draws": 57.02,
+     "ms": 0.88,
+     "sdraws": 2.22,
+     "sms": 0.01,
+     "ktri": 28
+    },
+    {
+     "k": "towns",
+     "draws": 34,
+     "ms": 0.68,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 34
+    },
+    {
+     "k": "keysBar",
+     "draws": 28,
+     "ms": 0.43,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 120
+    },
+    {
+     "k": "city/lib#grid#tower [inst]",
+     "draws": 25,
+     "ms": 0.38,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 168
+    },
+    {
+     "k": "detached",
+     "draws": 38.08,
+     "ms": 0.31,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 13
+    },
+    {
+     "k": "city/lib#old#brick#towers [inst]",
+     "draws": 28,
+     "ms": 0.28,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 98
+    },
+    {
+     "k": "city/lib#graffiti#shop [inst]",
+     "draws": 14,
+     "ms": 0.17,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 5
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 1,
+     "sms": 0.12,
+     "ktri": 95
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 52,
+     "ms": 0.15,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 54
+    },
+    {
+     "k": "npc-p# [skin]",
+     "draws": 4,
+     "ms": 0.13,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 12
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.12,
+     "sdraws": 0.14,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "city/elevated#",
+     "draws": 16,
+     "ms": 0.12,
+     "sdraws": 0.1,
+     "sms": 0,
+     "ktri": 22
+    },
+    {
+     "k": "marker",
+     "draws": 6,
+     "ms": 0.1,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/lib#concrete#tower [inst]",
+     "draws": 6,
+     "ms": 0.09,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 3
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 1
+    },
+    {
+     "k": "city/terrain",
+     "draws": 7,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 37
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 94
+    },
+    {
+     "k": "city/lib#deco#tower [inst]",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 26
+    },
+    {
+     "k": "city/facades",
+     "draws": 7,
+     "ms": 0.05,
+     "sdraws": 0.27,
+     "sms": 0.01,
+     "ktri": 507
+    },
+    {
+     "k": "npc-p#",
+     "draws": 2,
+     "ms": 0.02,
+     "sdraws": 4,
+     "sms": 0.04,
+     "ktri": 0
+    },
+    {
+     "k": "city/signal#blades",
+     "draws": 5,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 137
+    },
+    {
+     "k": "city/lib#grid#block [inst]",
+     "draws": 4,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 40
+    },
+    {
+     "k": "city/runway#lights [inst]",
+     "draws": 1,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 12
+    },
+    {
+     "k": "city/shop#rooms#lots",
+     "draws": 7,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/lib#fire#escape [inst]",
+     "draws": 6,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 122
+    },
+    {
+     "k": "detached [inst]",
+     "draws": 3.32,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 1
+    }
+   ],
+   "cpuprof": {
+    "total": 6135,
+    "self": [
+     " 12.9%  wasm-function[146] 0057e15e:1",
+     "  6.6%  wasm-function[27] 0057e15e:1",
+     "  4.4%  wasm-function[263] 0057e15e:1",
+     "  3.2%  (garbage collector) :0",
+     "  3.2%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     "  2.8%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     "  2.8%  projectObject chunk-UG26MVNH.js:17733",
+     "  2.4%  multiplyMatrices chunk-UG26MVNH.js:3768",
+     "  2.1%  (program) :0",
+     "  1.9%  wasm-function[198] 0057e15e:1",
+     "  1.8%  setValue chunk-UG26MVNH.js:11574",
+     "  1.6%  getBufferSubData :0",
+     "  1.4%  wasm-function[487] 0057e15e:1",
+     "  1.2%  wasm-function[97] 0057e15e:1",
+     "  1.2%  upload chunk-UG26MVNH.js:11627",
+     "  1.2%  update character.js:147",
+     "  1.1%  setValueV3f chunk-UG26MVNH.js:11109",
+     "  1.1%  toArray chunk-UG26MVNH.js:4223",
+     "  1.1%  renderObject chunk-UG26MVNH.js:13628",
+     "  1.0%  wasm-function[218] 0057e15e:1",
+     "  1.0%  wasm-function[448] 0057e15e:1",
+     "  1.0%  wasm-function[102] 0057e15e:1",
+     "  0.8%  work countryside.js:487",
+     "  0.8%  update chunk-UG26MVNH.js:10968",
+     "  0.8%  wasm-function[337] 0057e15e:1",
+     "  0.8%  wasm-function[43] 0057e15e:1",
+     "  0.7%  setProgram chunk-UG26MVNH.js:17990",
+     "  0.7%  uniform3f :0",
+     "  0.7%  getParameters chunk-UG26MVNH.js:12372",
+     "  0.7%  bindVertexArray :0",
+     "  0.6%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+     "  0.6%  wasm-function[243] 0057e15e:1",
+     "  0.6%  frame main.js:957",
+     "  0.6%  update chunk-UG26MVNH.js:19370",
+     "  0.6%  __wrap @dimforge_rapier3d-compat.js:2514",
+     "  0.6%  update peds.js:778",
+     "  0.6%  wasm-function[160] 0057e15e:1",
+     "  0.6%  wasm-function[1765] 0057e15e:1",
+     "  0.6%  isIndoor audio.js:363",
+     "  0.5%  getProgram chunk-UG26MVNH.js:17901"
+    ],
+    "incl": [
+     "100.0%  (root) :0",
+     " 89.8%  pump perfGuards.v2.js:307",
+     " 89.4%  frame main.js:957",
+     " 33.5%  step @dimforge_rapier3d-compat.js:4374",
+     " 33.3%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+     " 32.9%  post.render cinema.js:189",
+     " 32.9%  post.render :64",
+     " 32.9%  post.render :201",
+     " 32.8%  renderImpl post.js:1163",
+     " 32.8%  render post.js:1158",
+     " 32.7%  p.render :44",
+     " 32.7%  render three_addons_postprocessing_EffectComposer__js.js:128",
+     " 32.4%  scenePass post.js:73",
+     " 32.4%  renderPass.render post.js:69",
+     " 32.4%  rp.render cinema.js:149",
+     " 32.3%  render three_addons_postprocessing_RenderPass__js.js:22",
+     " 31.2%  step @dimforge_rapier3d-compat.js:3996",
+     " 31.2%  step @dimforge_rapier3d-compat.js:1672",
+     " 31.2%  wasm-function[554] 0057e15e:1",
+     " 31.2%  js-to-wasm:iiiiiiiiiii: 0057e15e:1",
+     " 31.2%  wasm-function[26] 0057e15e:1",
+     " 22.2%  wasm-function[125] 0057e15e:1",
+     " 22.1%  wasm-function[207] 0057e15e:1",
+     " 22.1%  wasm-function[43] 0057e15e:1",
+     " 19.7%  renderScene chunk-UG26MVNH.js:17791",
+     " 19.7%  renderObject chunk-UG26MVNH.js:17883",
+     " 19.7%  renderObjects chunk-UG26MVNH.js:17870",
+     " 19.3%  r.renderBufferDirect :187",
+     " 19.1%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+     " 14.7%  wasm-function[197] 0057e15e:1",
+     " 14.2%  wasm-function[53] 0057e15e:1",
+     " 13.2%  setProgram chunk-UG26MVNH.js:17990",
+     " 12.9%  wasm-function[146] 0057e15e:1",
+     "  8.6%  wasm-function[263] 0057e15e:1",
+     "  8.3%  upload chunk-UG26MVNH.js:11627",
+     "  7.5%  wasm-function[728] 0057e15e:1",
+     "  7.2%  wasm-function[198] 0057e15e:1",
+     "  6.9%  wasm-function[27] 0057e15e:1",
+     "  6.9%  wasm-function[97] 0057e15e:1",
+     "  6.2%  wasm-function[62] 0057e15e:1",
+     "  5.6%  projectObject chunk-UG26MVNH.js:17733",
+     "  5.2%  K @dimforge_rapier3d-compat.js:39",
+     "  5.2%  update @dimforge_rapier3d-compat.js:1761",
+     "  5.1%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+     "  5.1%  wasm-function[1204] 0057e15e:1",
+     "  5.0%  scene.updateMatrixWorld :62",
+     "  3.9%  wasm-function[160] 0057e15e:1",
+     "  3.9%  vehiclesFixed vehicles.js:1666",
+     "  3.6%  setValue chunk-UG26MVNH.js:11574",
+     "  3.2%  update peds.js:778",
+     "  3.2%  wasm-function[102] 0057e15e:1",
+     "  3.2%  (garbage collector) :0",
+     "  3.1%  physicsTick vehicles.js:672",
+     "  3.1%  wasm-function[243] 0057e15e:1",
+     "  2.9%  updateSceneQueries @dimforge_rapier3d-compat.js:4380",
+     "  2.6%  setup chunk-UG26MVNH.js:9251",
+     "  2.4%  multiplyMatrices chunk-UG26MVNH.js:3768",
+     "  2.2%  wasm-function[378] 0057e15e:1",
+     "  2.1%  (program) :0",
+     "  1.8%  setValueV3f chunk-UG26MVNH.js:11109"
+    ]
+   }
+  },
+  "beach": {
+   "frames": {
+    "med": 53.6,
+    "p95": 208.6,
+    "p99": 342.1,
+    "max": 342.1,
+    "n": 36,
+    "work": 74.78,
+    "calls": 653,
+    "tris": 8900769,
+    "sys": {
+     "upd:anon#2": 30.95,
+     "render": 20.83,
+     "world.step": 8.26,
+     "peds": 2.31,
+     "fixed:vehiclesFixed": 1.53,
+     "upd:anon#20": 0.96,
+     "upd:unstuckTick": 0.88,
+     "interiors": 0.8,
+     "upd:update": 0.77,
+     "hud": 0.66,
+     "fixed:playerFixed": 0.65,
+     "audio": 0.56,
+     "upd:groundMaskTick": 0.44,
+     "upd:anon#43": 0.31,
+     "fixed:boatsFixed": 0.23,
+     "env": 0.2,
+     "gameplay": 0.17,
+     "camera": 0.15,
+     "upd:anon#10": 0.14
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 52.9,
+    "p95": 228.5,
+    "p99": 414.9,
+    "max": 414.9,
+    "n": 29,
+    "work": 74.34,
+    "calls": 653,
+    "tris": 9475979,
+    "sys": {
+     "upd:anon#2": 25.04,
+     "render": 21.1,
+     "world.step": 8.29,
+     "peds": 2.31,
+     "fixed:vehiclesFixed": 1.58,
+     "upd:unstuckTick": 1.02,
+     "upd:anon#20": 0.9,
+     "upd:update": 0.82,
+     "interiors": 0.79,
+     "fixed:playerFixed": 0.67,
+     "hud": 0.61,
+     "audio": 0.54,
+     "fixed:boatsFixed": 0.41,
+     "upd:groundMaskTick": 0.41,
+     "upd:anon#43": 0.35,
+     "env": 0.2,
+     "gameplay": 0.16,
+     "camera": 0.15
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1224,
+    "texturesLive": 1926,
+    "geometriesLive": 2917,
+    "sceneTextures": 1471,
+    "texMB": 4592,
+    "sceneGeometries": 3454,
+    "geoMB": 4558,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 5641,
+    "visibleMeshes": 2066,
+    "instanced": 2022,
+    "instances": 121249,
+    "skinned": 206,
+    "skinnedVisible": 37,
+    "castShadow": 590,
+    "transparent": 267,
+    "points": 11,
+    "lines": 2,
+    "lights": 38,
+    "objects": 11444,
+    "materials": 2864,
+    "bodies": {
+     "total": 836,
+     "colliders": 2325,
+     "dynamic": 50,
+     "active": 33,
+     "sleeping": 17,
+     "kinematic": 70,
+     "fixed": 716
+    },
+    "peds": 36,
+    "crowd": 111,
+    "vehicles": 50,
+    "tiles": 404,
+    "pending": 1,
+    "jsHeapMB": 4213
+   },
+   "cpuSplit": {
+    "matrixWorld": 3.4,
+    "shadow": 0.9,
+    "0:RenderPass": 19.6,
+    "2:ContactAO": 0.1,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 20,
+    "TOTAL": 21,
+    "frames": 44
+   },
+   "gpuQuery": {
+    "shadow": 0.3,
+    "0:RenderPass": 45.12,
+    "12:Grade": 6.49,
+    "10:OutputShader": 7.19,
+    "8:Bloom": 144.85,
+    "7:Object": 0,
+    "6:TAA": 22.47,
+    "4:unspecified": 10.94,
+    "2:ContactAO": 25.57,
+    "scene": 5.26,
+    "TOTAL": 258.17,
+    "frames": 50
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 1.7,
+     "0:RenderPass": 21.4,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 23.7,
+     "frames": 48
+    },
+    "cpu": {
+     "shadow": 1.7,
+     "0:RenderPass": 23.3,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 23.7,
+     "TOTAL": 25.4,
+     "frames": 48
+    },
+    "gpu": {
+     "shadow": 0,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.3
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 283,
+     "ms": 5.18,
+     "sdraws": 8.81,
+     "sms": 0.08,
+     "ktri": 1594
+    },
+    {
+     "k": "Group:",
+     "draws": 139,
+     "ms": 2.14,
+     "sdraws": 4.12,
+     "sms": 0.08,
+     "ktri": 39
+    },
+    {
+     "k": "city/?",
+     "draws": 85,
+     "ms": 1.01,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2233
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 56,
+     "ms": 0.89,
+     "sdraws": 0.19,
+     "sms": 0,
+     "ktri": 26
+    },
+    {
+     "k": "keysBar",
+     "draws": 23,
+     "ms": 0.51,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 98
+    },
+    {
+     "k": "npc-p# [skin]",
+     "draws": 6,
+     "ms": 0.17,
+     "sdraws": 10,
+     "sms": 0.17,
+     "ktri": 22
+    },
+    {
+     "k": "city/lib#casino#tower [inst]",
+     "draws": 19,
+     "ms": 0.31,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 70
+    },
+    {
+     "k": "city/lib#grid#tower [inst]",
+     "draws": 8,
+     "ms": 0.3,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 28
+    },
+    {
+     "k": "detached",
+     "draws": 33.1,
+     "ms": 0.28,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 8
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 47,
+     "ms": 0.18,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 42
+    },
+    {
+     "k": "city/lib#old#brick#towers [inst]",
+     "draws": 12,
+     "ms": 0.15,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 52
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.14,
+     "sdraws": 0.15,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "marker",
+     "draws": 12,
+     "ms": 0.14,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Group: [inst]",
+     "draws": 18,
+     "ms": 0.12,
+     "sdraws": 1.12,
+     "sms": 0.02,
+     "ktri": 247
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 1,
+     "sms": 0.1,
+     "ktri": 95
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.11,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 90
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.1,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/terrain",
+     "draws": 4,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 22
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 137
+    },
+    {
+     "k": "city/facades",
+     "draws": 5,
+     "ms": 0.07,
+     "sdraws": 0.21,
+     "sms": 0,
+     "ktri": 696
+    },
+    {
+     "k": "city/lib#fire#escape [inst]",
+     "draws": 3,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 721
+    },
+    {
+     "k": "city/shop#rooms#lots",
+     "draws": 5,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 1
+    },
+    {
+     "k": "city/lib#strip#office [inst]",
+     "draws": 3,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 5
+    },
+    {
+     "k": "city/signal#blades",
+     "draws": 4,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "npc-p#",
+     "draws": 2,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/lib#grid#block [inst]",
+     "draws": 2,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 28
+    },
+    {
+     "k": "ocean",
+     "draws": 2,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "sky",
+     "draws": 1,
+     "ms": 0.04,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "city/lib#plinths [inst]",
+     "draws": 1,
+     "ms": 0.04,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "reg-limit-# [inst]",
+     "draws": 6,
+     "ms": 0.04,
+     "sdraws": 0.23,
+     "sms": 0,
+     "ktri": 11
+    }
+   ]
+  },
+  "glades": {
+   "frames": {
+    "med": 36.4,
+    "p95": 116,
+    "p99": 194.3,
+    "max": 194.3,
+    "n": 58,
+    "work": 40.45,
+    "calls": 507,
+    "tris": 6446552,
+    "sys": {
+     "render": 27.21,
+     "world.step": 4.07,
+     "fixed:vehiclesFixed": 0.93,
+     "upd:anon#20": 0.91,
+     "upd:update": 0.9,
+     "audio": 0.85,
+     "upd:anon#43": 0.58,
+     "peds": 0.51,
+     "upd:unstuckTick": 0.39,
+     "fixed:playerFixed": 0.35,
+     "upd:anon#2": 0.28,
+     "hud": 0.25,
+     "fixed:boatsFixed": 0.2,
+     "env": 0.14,
+     "gameplay": 0.13,
+     "upd:groundMaskTick": 0.12
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 36.8,
+    "p95": 54.8,
+    "p99": 82.7,
+    "max": 82.7,
+    "n": 66,
+    "work": 34.1,
+    "calls": 516,
+    "tris": 6403268,
+    "sys": {
+     "render": 20.64,
+     "world.step": 4.19,
+     "upd:anon#20": 0.99,
+     "audio": 0.97,
+     "peds": 0.61,
+     "fixed:vehiclesFixed": 0.61,
+     "upd:anon#43": 0.59,
+     "upd:update": 0.52,
+     "upd:unstuckTick": 0.45,
+     "fixed:playerFixed": 0.36,
+     "hud": 0.3,
+     "upd:anon#2": 0.24,
+     "fixed:boatsFixed": 0.2,
+     "env": 0.15,
+     "upd:anon#34": 0.14,
+     "gameplay": 0.13,
+     "upd:groundMaskTick": 0.12
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1225,
+    "texturesLive": 1893,
+    "geometriesLive": 2509,
+    "sceneTextures": 1269,
+    "texMB": 4186,
+    "sceneGeometries": 2934,
+    "geoMB": 1150,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 5006,
+    "visibleMeshes": 1568,
+    "instanced": 2014,
+    "instances": 138010,
+    "skinned": 134,
+    "skinnedVisible": 1,
+    "castShadow": 594,
+    "transparent": 157,
+    "points": 11,
+    "lines": 2,
+    "lights": 38,
+    "objects": 9303,
+    "materials": 2494,
+    "bodies": {
+     "total": 289,
+     "colliders": 1397,
+     "dynamic": 41,
+     "active": 36,
+     "sleeping": 5,
+     "kinematic": 69,
+     "fixed": 179
+    },
+    "peds": 36,
+    "crowd": 0,
+    "vehicles": 49,
+    "tiles": 302,
+    "pending": 0,
+    "jsHeapMB": 2903
+   },
+   "cpuSplit": {
+    "matrixWorld": 3,
+    "shadow": 0.1,
+    "0:RenderPass": 20.2,
+    "2:ContactAO": 0.1,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 20.5,
+    "TOTAL": 20.6,
+    "frames": 69
+   },
+   "gpuQuery": {
+    "shadow": 0.2,
+    "0:RenderPass": 52.29,
+    "12:Grade": 10.33,
+    "10:OutputShader": 10.07,
+    "8:Bloom": 157.76,
+    "7:Object": 0,
+    "6:TAA": 28.27,
+    "4:unspecified": 14.1,
+    "2:ContactAO": 31.04,
+    "scene": 16.93,
+    "TOTAL": 322.91,
+    "frames": 64
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 0.3,
+     "0:RenderPass": 15,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 15.6,
+     "frames": 75
+    },
+    "cpu": {
+     "shadow": 0.2,
+     "0:RenderPass": 15.3,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 15.7,
+     "TOTAL": 15.8,
+     "frames": 75
+    },
+    "gpu": {
+     "shadow": 0.1,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.4
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 281,
+     "ms": 4.03,
+     "sdraws": 6.19,
+     "sms": 0.04,
+     "ktri": 18
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 159,
+     "ms": 1.86,
+     "sdraws": 2.38,
+     "sms": 0.01,
+     "ktri": 2814
+    },
+    {
+     "k": "Group:",
+     "draws": 112,
+     "ms": 1.71,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 83
+    },
+    {
+     "k": "Group:cc#",
+     "draws": 47,
+     "ms": 0.61,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 107
+    },
+    {
+     "k": "towns",
+     "draws": 18,
+     "ms": 0.54,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 29
+    },
+    {
+     "k": "keysBar",
+     "draws": 34,
+     "ms": 0.48,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 127
+    },
+    {
+     "k": "city/?",
+     "draws": 22,
+     "ms": 0.21,
+     "sdraws": 0.07,
+     "sms": 0,
+     "ktri": 115
+    },
+    {
+     "k": "detached",
+     "draws": 25.19,
+     "ms": 0.16,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 29,
+     "ms": 0.12,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 30
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.11,
+     "sdraws": 0.11,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.05,
+     "sdraws": 0.5,
+     "sms": 0.04,
+     "ktri": 95
+    },
+    {
+     "k": "city/elevated#",
+     "draws": 6,
+     "ms": 0.08,
+     "sdraws": 0.03,
+     "sms": 0,
+     "ktri": 7
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 563
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 137
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.07,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Mesh:",
+     "draws": 4,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 12
+    },
+    {
+     "k": "city/terrain",
+     "draws": 4,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 11
+    },
+    {
+     "k": "ocean",
+     "draws": 2,
+     "ms": 0.04,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "sky",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "city/lib#plinths [inst]",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "reg-limit-# [inst]",
+     "draws": 5,
+     "ms": 0.03,
+     "sdraws": 0.14,
+     "sms": 0,
+     "ktri": 10
+    },
+    {
+     "k": "dressing-spawn-street",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 14
+    },
+    {
+     "k": "npc-crowd [inst]",
+     "draws": 1,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 237
+    },
+    {
+     "k": "Points:",
+     "draws": 6,
+     "ms": 0.03,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "reg-sign-posts [inst]",
+     "draws": 1,
+     "ms": 0.02,
+     "sdraws": 0.03,
+     "sms": 0,
+     "ktri": 18
+    },
+    {
+     "k": "seabed",
+     "draws": 1,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 29
+    },
+    {
+     "k": "vegCollars [inst]",
+     "draws": 1,
+     "ms": 0.02,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/rough#fence#posts [inst]",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0.03,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/library#buildings#ticker",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "reg-stop [inst]",
+     "draws": 1,
+     "ms": 0.01,
+     "sdraws": 0.03,
+     "sms": 0,
+     "ktri": 29
+    }
+   ]
+  },
+  "night": {
+   "frames": {
+    "med": 43.4,
+    "p95": 80.6,
+    "p99": 117.6,
+    "max": 117.6,
+    "n": 52,
+    "work": 40.37,
+    "calls": 735,
+    "tris": 8048399,
+    "sys": {
+     "render": 19.52,
+     "fixed:playerFixed": 6.37,
+     "world.step": 4.68,
+     "upd:anon#20": 1.64,
+     "peds": 1.13,
+     "fixed:vehiclesFixed": 1.13,
+     "audio": 0.83,
+     "upd:update": 0.43,
+     "upd:unstuckTick": 0.36,
+     "hud": 0.31,
+     "upd:anon#2": 0.29,
+     "fixed:boatsFixed": 0.24,
+     "env": 0.22,
+     "camera": 0.19,
+     "upd:groundMaskTick": 0.18,
+     "gameplay": 0.15,
+     "upd:anon#43": 0.12
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "frames2": {
+    "med": 35.1,
+    "p95": 73.4,
+    "p99": 97.5,
+    "max": 97.5,
+    "n": 61,
+    "work": 34.97,
+    "calls": 748,
+    "tris": 8094530,
+    "sys": {
+     "render": 17.71,
+     "fixed:playerFixed": 5.1,
+     "world.step": 3.68,
+     "upd:anon#20": 1.71,
+     "peds": 1,
+     "fixed:vehiclesFixed": 0.85,
+     "audio": 0.71,
+     "upd:update": 0.42,
+     "upd:unstuckTick": 0.3,
+     "hud": 0.24,
+     "upd:groundMaskTick": 0.21,
+     "upd:anon#2": 0.19,
+     "fixed:boatsFixed": 0.18,
+     "camera": 0.16,
+     "gameplay": 0.14
+    },
+    "resScale": 1,
+    "internal": [
+     1920,
+     1080
+    ],
+    "pr": 1,
+    "q": "high"
+   },
+   "counts": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)",
+    "timerExt": true,
+    "programs": 1226,
+    "texturesLive": 1892,
+    "geometriesLive": 2455,
+    "sceneTextures": 1343,
+    "texMB": 4449,
+    "sceneGeometries": 2986,
+    "geoMB": 1085,
+    "postRTsMB": 127,
+    "shadowMaps": {
+     "n": 3,
+     "MB": 144
+    },
+    "meshes": 4937,
+    "visibleMeshes": 2120,
+    "instanced": 1862,
+    "instances": 138319,
+    "skinned": 161,
+    "skinnedVisible": 18,
+    "castShadow": 979,
+    "transparent": 210,
+    "points": 11,
+    "lines": 7,
+    "lights": 38,
+    "objects": 9746,
+    "materials": 2392,
+    "bodies": {
+     "total": 265,
+     "colliders": 1451,
+     "dynamic": 43,
+     "active": 29,
+     "sleeping": 14,
+     "kinematic": 61,
+     "fixed": 161
+    },
+    "peds": 36,
+    "crowd": 18,
+    "vehicles": 43,
+    "tiles": 344,
+    "pending": 0,
+    "jsHeapMB": 2876
+   },
+   "cpuSplit": {
+    "shadow": 0.7,
+    "matrixWorld": 2.5,
+    "0:RenderPass": 17.1,
+    "2:ContactAO": 0,
+    "4:unspecified": 0,
+    "6:TAA": 0,
+    "7:Object": 0,
+    "8:Bloom": 0.1,
+    "10:OutputShader": 0,
+    "12:Grade": 0,
+    "TOTALcpu": 17.3,
+    "TOTAL": 17.8,
+    "frames": 64
+   },
+   "gpuQuery": {
+    "shadow": 0.19,
+    "0:RenderPass": 36.76,
+    "12:Grade": 8.8,
+    "10:OutputShader": 8.72,
+    "8:Bloom": 150.79,
+    "7:Object": 0,
+    "6:TAA": 25.63,
+    "4:unspecified": 13.1,
+    "2:ContactAO": 26.21,
+    "scene": 0.35,
+    "TOTAL": 268.31,
+    "frames": 56
+   },
+   "gpuSync": {
+    "wall": {
+     "shadow": 0.8,
+     "0:RenderPass": 20.8,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 21.6,
+     "frames": 50
+    },
+    "cpu": {
+     "shadow": 0.8,
+     "0:RenderPass": 21.2,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTALcpu": 21.6,
+     "TOTAL": 21.8,
+     "frames": 50
+    },
+    "gpu": {
+     "shadow": 0,
+     "0:RenderPass": 0,
+     "2:ContactAO": 0.1,
+     "4:unspecified": 0,
+     "6:TAA": 0,
+     "7:Object": 0,
+     "8:Bloom": 0.2,
+     "10:OutputShader": 0,
+     "12:Grade": 0,
+     "TOTAL": 0.3
+    }
+   },
+   "groups": [
+    {
+     "k": "city/? [inst]",
+     "draws": 281,
+     "ms": 4.56,
+     "sdraws": 11.17,
+     "sms": 0.09,
+     "ktri": 420
+    },
+    {
+     "k": "countryside [inst]",
+     "draws": 159,
+     "ms": 2.04,
+     "sdraws": 4.29,
+     "sms": 0.03,
+     "ktri": 2814
+    },
+    {
+     "k": "Group:",
+     "draws": 104,
+     "ms": 1.58,
+     "sdraws": 21.88,
+     "sms": 0.29,
+     "ktri": 351
+    },
+    {
+     "k": "nicoHouse",
+     "draws": 34,
+     "ms": 0.72,
+     "sdraws": 4.1,
+     "sms": 0.01,
+     "ktri": 364
+    },
+    {
+     "k": "vegField_hibiscus [inst]",
+     "draws": 42,
+     "ms": 0.57,
+     "sdraws": 1.56,
+     "sms": 0.03,
+     "ktri": 264
+    },
+    {
+     "k": "houses",
+     "draws": 37,
+     "ms": 0.53,
+     "sdraws": 0.24,
+     "sms": 0,
+     "ktri": 188
+    },
+    {
+     "k": "houses [inst]",
+     "draws": 36,
+     "ms": 0.48,
+     "sdraws": 0.83,
+     "sms": 0,
+     "ktri": 59
+    },
+    {
+     "k": "city/?",
+     "draws": 28,
+     "ms": 0.44,
+     "sdraws": 0.2,
+     "sms": 0,
+     "ktri": 35
+    },
+    {
+     "k": "nicoHouse [inst]",
+     "draws": 19,
+     "ms": 0.39,
+     "sdraws": 1.12,
+     "sms": 0.01,
+     "ktri": 350
+    },
+    {
+     "k": "detached",
+     "draws": 31.9,
+     "ms": 0.34,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 4
+    },
+    {
+     "k": "Group: [inst]",
+     "draws": 9,
+     "ms": 0.08,
+     "sdraws": 10.46,
+     "sms": 0.23,
+     "ktri": 66
+    },
+    {
+     "k": "keysLots [inst]",
+     "draws": 10,
+     "ms": 0.22,
+     "sdraws": 0.17,
+     "sms": 0,
+     "ktri": 26
+    },
+    {
+     "k": "vegField_liveoak [inst]",
+     "draws": 16,
+     "ms": 0.2,
+     "sdraws": 0.68,
+     "sms": 0,
+     "ktri": 47
+    },
+    {
+     "k": "vegField_coconut [inst]",
+     "draws": 12,
+     "ms": 0.15,
+     "sdraws": 0.59,
+     "sms": 0,
+     "ktri": 46
+    },
+    {
+     "k": "marker",
+     "draws": 8,
+     "ms": 0.15,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Mesh: [inst]",
+     "draws": 7,
+     "ms": 0.14,
+     "sdraws": 0.2,
+     "sms": 0,
+     "ktri": 23
+    },
+    {
+     "k": "npc-p# [skin]",
+     "draws": 3,
+     "ms": 0.11,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 7
+    },
+    {
+     "k": "v#-signs",
+     "draws": 4,
+     "ms": 0.09,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "character-player [skin]",
+     "draws": 1,
+     "ms": 0.05,
+     "sdraws": 0.71,
+     "sms": 0.04,
+     "ktri": 95
+    },
+    {
+     "k": "city/rough#fence#mesh [inst]",
+     "draws": 2,
+     "ms": 0.09,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "city/terrain",
+     "draws": 5,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 15
+    },
+    {
+     "k": "groundGrass [inst]",
+     "draws": 4,
+     "ms": 0.08,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 376
+    },
+    {
+     "k": "city/elevated#",
+     "draws": 2,
+     "ms": 0.07,
+     "sdraws": 0.05,
+     "sms": 0,
+     "ktri": 1
+    },
+    {
+     "k": "city/terrain#lod",
+     "draws": 6,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 8
+    },
+    {
+     "k": "Points:",
+     "draws": 6,
+     "ms": 0.06,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 2
+    },
+    {
+     "k": "lot-props [inst]",
+     "draws": 4,
+     "ms": 0.05,
+     "sdraws": 0.15,
+     "sms": 0,
+     "ktri": 95
+    },
+    {
+     "k": "Line:",
+     "draws": 4,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "Mesh:",
+     "draws": 4,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 12
+    },
+    {
+     "k": "ocean",
+     "draws": 2,
+     "ms": 0.05,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    },
+    {
+     "k": "detached [inst]",
+     "draws": 1.56,
+     "ms": 0.04,
+     "sdraws": 0,
+     "sms": 0,
+     "ktri": 0
+    }
+   ]
+  }
+ },
+ "boot": "{\"ready\":null,\"gpu\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)\"}",
+ "drive": {
+  "frames": 764,
+  "med": 37.6,
+  "p95": 61.9,
+  "p99": 91,
+  "max": 114.2,
+  "over33": 474,
+  "over50": 109,
+  "over100": 5,
+  "spikeCauses": [
+   [
+    "render",
+    23,
+    605
+   ],
+   [
+    "world.step",
+    23,
+    115
+   ],
+   [
+    "upd:anon#20",
+    7,
+    27
+   ],
+   [
+    "upd:update",
+    1,
+    2
+   ]
+  ],
+  "worstSpikes": [
+   {
+    "t": 288.1,
+    "gap": 50,
+    "work": 36,
+    "top": [
+     "render 24.5",
+     "world.step 3.8"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 701
+   },
+   {
+    "t": 288.2,
+    "gap": 50,
+    "work": 35,
+    "top": [
+     "render 24.1",
+     "world.step 3.8"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 692
+   },
+   {
+    "t": 288.4,
+    "gap": 50,
+    "work": 37,
+    "top": [
+     "render 23.9",
+     "world.step 4.5"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 697
+   },
+   {
+    "t": 288.9,
+    "gap": 50,
+    "work": 37,
+    "top": [
+     "render 22.1",
+     "world.step 4.6",
+     "upd:anon#20 3.6"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 704
+   },
+   {
+    "t": 289,
+    "gap": 50,
+    "work": 37,
+    "top": [
+     "render 24.1",
+     "world.step 5.2"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 710
+   },
+   {
+    "t": 289.1,
+    "gap": 50,
+    "work": 43,
+    "top": [
+     "render 25.7",
+     "world.step 5.5"
+    ],
+    "newPrograms": 0,
+    "newTextures": 0,
+    "newGeometries": 0,
+    "calls": 709
+   }
+  ],
+  "longTasks": [],
+  "newPrograms": 0,
+  "sys": {
+   "render": 25.72,
+   "world.step": 4.41,
+   "upd:anon#20": 2.12,
+   "peds": 1.01,
+   "audio": 0.92,
+   "fixed:vehiclesFixed": 0.52,
+   "upd:update": 0.42,
+   "upd:anon#2": 0.4
+  }
+ }
+}

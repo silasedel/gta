@@ -1,0 +1,10 @@
+{
+  "name": "southline-perf-tools",
+  "private": true,
+  "type": "module",
+  "description": "r2-perf offline tools (LOD chains). Separate from the game package so the root package.json is untouched.",
+  "dependencies": {
+    "meshoptimizer": "^0.22.0",
+    "draco3d": "^1.5.7"
+  }
+}

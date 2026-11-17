@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>LOD pop test</title>
+<style>body{margin:0;background:#222;color:#ddd;font:12px monospace}canvas{display:block}</style></head>
+<body>
+<script type="module">
+// r2-perf LOD pop test: renders a library model at LOD0 and at each generated level, at the level's own switch distance
+// (and 0.5x / 2x of it), 1920x1080 view, game-like light (sun + sky), MSAA 4x. Diff = |L0 - Ln| per pixel.
+// Pass: at the switch distance the 99.9th-percentile channel difference stays under the threshold (no visible pop).
+// window.runPop(url, { errPx, fov, sizes }) -> { levels: [{ i, err, dist, tris, cases: [{ k, maxDiff, p999, changedPct }] }], strips }
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { loadLodChain, switchDistance } from '/src/render/lod/lodChain.js';
+
+const W = 1920, H = 1080;
+const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const rt = new THREE.WebGLRenderTarget(W, H, { samples: 4 });
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9fb4c8);
+scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x6b5a48, 1.1));
+const sun = new THREE.DirectionalLight(0xfff1dd, 3.0); sun.position.set(30, 50, 20); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x8a8578, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const loader = new GLTFLoader(); const draco = new DRACOLoader(); draco.setDecoderPath('/assets/humans/draco/'); loader.setDRACOLoader(draco);
+
+function grab() {
+  renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null);
+  const px = new Uint8Array(W * H * 4); renderer.readRenderTargetPixels(rt, 0, 0, W, H, px); return px;
+}
+let cam = new THREE.PerspectiveCamera(62, W / H, 0.25, 8000);
+function diff(a, b) {
+  const hist = new Uint32Array(256); let changed = 0;
+  for (let i = 0; i < a.length; i += 4) { const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); hist[d]++; if (d > 8) changed++; }
+  const n = a.length / 4; let acc = 0, p999 = 0, max = 0; for (let d = 0; d < 256; d++) { if (hist[d]) max = d; acc += hist[d]; if (!p999 && acc >= n * 0.999) p999 = d; }
+  return { maxDiff: max, p999, changedPct: +(100 * changed / n).toFixed(4) };
+}
+function crop(px, cx, cy, r) { // a square crop around the model's screen position, for the strip
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const id = g.createImageData(256, 256);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+    const sx = Math.round(cx - r + (x / 256) * 2 * r), sy = Math.round(cy - r + (y / 256) * 2 * r);
+    const o = (y * 256 + x) * 4;
+    if (sx < 0 || sy < 0 || sx >= W || sy >= H) { id.data[o + 3] = 255; continue; }
+    const i = ((H - 1 - sy) * W + sx) * 4; id.data[o] = px[i]; id.data[o + 1] = px[i + 1]; id.data[o + 2] = px[i + 2]; id.data[o + 3] = 255;
+  }
+  g.putImageData(id, 0, 0); return c.toDataURL('image/jpeg', 0.9);
+}
+window.runPop = async (url, { errPx = 1, fov = 62, ks = [0.5, 1, 2] } = {}) => {
+  cam = new THREE.PerspectiveCamera(fov, W / H, 0.25, 8000);
+  const gltf = await loader.loadAsync(url);
+  const chain = await loadLodChain(url, gltf);
+  if (!chain) return { error: 'no sidecar or no match' };
+  const root = gltf.scene; scene.add(root);
+  const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  root.position.y -= box.min.y; ctr.y -= box.min.y;
+  const meshes = []; root.traverse((o) => { if (o.isMesh && chain.levelsFor(o)) meshes.push(o); });
+  const nLev = Math.max(...meshes.map((m) => chain.levelsFor(m).length));
+  const pxPerRad = H / THREE.MathUtils.degToRad(fov);
+  const out = { url, matched: chain.matched, rejected: chain.rejected, size: size.toArray().map((v) => +v.toFixed(2)), levels: [], strips: [] };
+  for (let li = 1; li < nLev; li++) {
+    // the level switches where its worst primitive error reaches errPx
+    let err = 0, tris = 0, tris0 = 0;
+    for (const m of meshes) { const L = chain.levelsFor(m); const l = L[Math.min(li, L.length - 1)]; err = Math.max(err, l.err); tris += l.tris ?? (l.geometry.index.count / 3); tris0 += (L[0].geometry.index ? L[0].geometry.index.count : L[0].geometry.attributes.position.count) / 3; }
+    const dist = Math.max(switchDistance(err, 1, { errPx, pxPerRad }), size.length() * 0.8);
+    const rec = { i: li, err, dist: +dist.toFixed(1), tris: Math.round(tris), tris0: Math.round(tris0), cases: [] };
+    for (const k of ks) {
+      const d = dist * k;
+      cam.position.set(ctr.x + d * 0.8, ctr.y + Math.max(1.7, size.y * 0.3), ctr.z + d * 0.6); cam.lookAt(ctr); cam.updateMatrixWorld();
+      for (const m of meshes) m.geometry = chain.levelsFor(m)[0].geometry;
+      const a = grab();
+      for (const m of meshes) { const L = chain.levelsFor(m); m.geometry = L[Math.min(li, L.length - 1)].geometry; }
+      const b = grab();
+      for (const m of meshes) m.geometry = chain.levelsFor(m)[0].geometry;
+      const sc = ctr.clone().project(cam), cx = (sc.x * 0.5 + 0.5) * W, cy = (sc.y * 0.5 + 0.5) * H;
+      const r = Math.max(24, (size.length() / d) * pxPerRad * 0.7);
+      rec.cases.push({ k, dist: +d.toFixed(1), ...diff(a, b), objPx: Math.round((size.length() / d) * pxPerRad) });
+      if (k === 1) out.strips.push({ level: li, a: crop(a, cx, cy, r), b: crop(b, cx, cy, r) });
+    }
+    out.levels.push(rec);
+  }
+  scene.remove(root);
+  return out;
+};
+window.popReady = true;
+</script>
+</body></html>
