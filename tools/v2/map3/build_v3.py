@@ -656,18 +656,22 @@ if os.environ.get('MAP3_SURVEY', '1') != '0':
     _keep_out = KREG.buffer(5) if KEYS else None      # the Keys detail region (its own hand-fitted roads are never eligible)
     _GRID = ('core', 'city', 'beach', 'ghetto', 'port', 'islands', 'airport')
     def _sv_ok(r):
-        if r.bridge or r.layer or r.tags.get('keysDetail') or r.tags.get('diamond') or 'link' in r.kind: return False
+        if r.bridge or r.layer or r.tags.get('diamond') or 'link' in r.kind: return False
+        if r.tags.get('keysDetail'): return r.kind == 'trunk' and plen(r.pts) > 8   # the Overseas Highway pieces only (r2-keys ok'd it; lanes stay)
         if r.tags.get('dkind') in _GRID: return False
         if _keep_out is not None and _keep_out.contains(LineString(r.pts)): return False
         return plen(r.pts) > 8
+    _ktrunk = unary_union([LineString(r.pts).buffer(1.0) for r in W.roads if r.tags.get('keysDetail') and r.kind == 'trunk']) if KEYS else None
     _bpolys = [Polygon(b['ring']) for b in W.buildings]; _btree = STRtree(_bpolys)
     # the Keys detail stays put; so does the line within 45 m of any building: storefronts / shop slots / lean spots are derived
     # from building facades and their nearest street, and their ids must not shift (interiors attach to storefront ids)
     def _pin(x, z):
         p = Point(x, z)
-        if _keep_out is not None and _keep_out.contains(p): return True
-        return any(_bpolys[k].distance(p) < 45.0 for k in _btree.query(p.buffer(45.0)))
-    _sv_tube = lambda r: 9.0 if r.kind in ('trunk', 'primary', 'secondary') or r.tags.get('dkind') == 'rural' else 5.5 if r.kind == 'residential' else 7.5   # ~0.8 px of the 11 m drawing
+        kt = _ktrunk is not None and _ktrunk.contains(p)
+        if _keep_out is not None and _keep_out.contains(p) and not kt: return True
+        R = 15.0 if kt else 45.0   # the Keys trunk moves <= 3 m: 15 m keeps facades' nearest street (spots.json verified identical)
+        return any(_bpolys[k].distance(p) < R for k in _btree.query(p.buffer(R)))
+    _sv_tube = lambda r: 3.0 if r.tags.get('keysDetail') else 9.0 if r.kind in ('trunk', 'primary', 'secondary') or r.tags.get('dkind') == 'rural' else 5.5 if r.kind == 'residential' else 7.5   # ~0.8 px of the 11 m drawing
     def _sv_clear(r, x, z, nx, nz):      # room on each side before the carriageway (+1 m) would touch a generated building
         p = Point(x, z); room = [99.0, 99.0]
         for k in _btree.query(p.buffer(r.width / 2 + 12)):

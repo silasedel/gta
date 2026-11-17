@@ -1,6 +1,6 @@
 {
- "build": "b20261117-080220",
- "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-l78tx8vc",
+ "build": "b20261117-130138",
+ "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-gvfuan1t",
  "checks": {
   "roads.geometry": {
    "pass": false,
@@ -267,17 +267,17 @@
   "transit"
  ],
  "boot": {
-  "ms": 359,
+  "ms": 283,
   "timings": {
-   "fetchMs": 63,
-   "decodeMs": 293,
-   "bootRegionsMs": 2,
-   "totalMs": 359
+   "fetchMs": 38,
+   "decodeMs": 241,
+   "bootRegionsMs": 3,
+   "totalMs": 282
   },
   "files": 13,
   "MB": 4.67,
-  "heapMB": 45,
-  "arrayBuffersMB": 14.5
+  "heapMB": 43.9,
+  "arrayBuffersMB": 12.3
  },
  "roadComponents": [
   {
@@ -341,10 +341,10 @@
  },
  "regions": {
   "count": 176,
-  "loadAllMs": 37,
+  "loadAllMs": 39,
   "parseMsMedian": 0.04,
-  "parseMsP95": 0.42,
-  "parseMsMax": 1.77,
+  "parseMsP95": 0.69,
+  "parseMsMax": 1.64,
   "bytesMB": 3.55,
   "largestKB": 196
  },
@@ -371,20 +371,20 @@
   "railPieces": 0,
   "sitePolygons": 0,
   "barrierLines": 0,
-  "props": 5065,
+  "props": 5064,
   "otherPropTypes": {
-   "lamp": 5065
+   "lamp": 5064
   }
  },
  "queryNs": {
-  "isWaterRandom": 93,
-  "isWaterCoherent": 209,
-  "groundHeightRandom": 3552,
-  "zoneAt": 394,
-  "districtAt": 41,
-  "surfaceAt": 155,
-  "terrainHeightAt": 8,
-  "nearestEdge": 2227
+  "isWaterRandom": 288,
+  "isWaterCoherent": 427,
+  "groundHeightRandom": 4070,
+  "zoneAt": 577,
+  "districtAt": 64,
+  "surfaceAt": 218,
+  "terrainHeightAt": 10,
+  "nearestEdge": 2990
  },
  "gridMemory": {
   "wkind": {
@@ -403,12 +403,12 @@
    "runs": 103013,
    "MB": 0.33
   },
-  "surface": {
-   "runs": 726183,
-   "MB": 2.21
-  },
   "depth": {
    "MB": 3.06
+  },
+  "surface": {
+   "runs": 726238,
+   "MB": 2.21
   }
  },
  "stats": {
@@ -432,15 +432,15 @@
   "roadKm": 422.3,
   "mainComponentKm": 412,
   "bytes": {
-   "roadgraph.json": 854320,
+   "roadgraph.json": 855382,
    "peds.json": 203801,
    "spots.json": 1046607,
    "map.json": 1241100,
-   "grid.bin": 1117497,
+   "grid.bin": 1117498,
    "names.json": 26766,
    "places.json": 114873,
    "transit.json": 56,
-   "regions/*": 3552079
+   "regions/*": 3552061
   }
  },
  "districts": [
