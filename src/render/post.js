@@ -1261,7 +1261,7 @@ export function createPost(game) {
         const skyDesat = game.look3 && game.lookR2 !== false ? (game.lookSkyDesat ?? 0.5) : L.skyDesat;
         // r2-look (lead / outside critique at the mock-up camera: "brighter and harsher, less natural shading"): softer sun,
         // more sky fill. Round 2 keeps the shade deep through the cast-shadow terms (shadows.js), not through a weak sky.
-        const LR = game.look3 && game.lookR2 !== false ? (game.lookR2L || (game.lookR2L = { hemiDay: 1.5, envDay: 0.66, sunDay: 1.12 })) : L;
+        const LR = game.look3 && game.lookR2 !== false ? (game.lookR2L || (game.lookR2L = { hemiDay: 1.2, envDay: 0.5, sunDay: 1.22 })) : L;
         // full effect only with the sun well up: at golden hour backlit foliage needs its sky fill (black trees otherwise)
         const sunUp = THREE.MathUtils.smoothstep(env.sunDir?.y ?? 1, 0.12, 0.4);
         const dl = day * sunUp * (1 - (env.indoor || 0));
