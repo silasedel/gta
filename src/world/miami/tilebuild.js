@@ -88,6 +88,7 @@ export function createTileBuilder(ctx) {
   // r2-art: hip roof with a ridge (local: eaves on y = 0 over [-L/2, L/2] x [-W/2, W/2], L >= W, ridge along x at height rh),
   // planar UVs in meters (x, z) like the roof slabs; cached per rounded size
   let _dishG = null;
+  const ART_GEO_N = (globalThis.__artGeo = globalThis.__artGeo || { balc: 0, eyebrow: 0, fins: 0, hip: 0 }); // r2-art debug counters (buildings that got each detail)
   const _hipCache = new Map(), ARTGEO_OFF = typeof location !== 'undefined' && /[?&]artgeo=0\b/.test(location.search); // r2-art before/after: the old roofs, window depth only up to 40 m / 6 floors
   function hipRoofGeo(L, W, rh) {
     const k = `${L.toFixed(1)}|${W.toFixed(1)}|${rh.toFixed(1)}`; if (_hipCache.has(k)) return _hipCache.get(k);
@@ -822,7 +823,8 @@ export function createTileBuilder(ctx) {
     if (y0 > 0.5 && !b.part) { fillPolyDown(B.trim, b.rings, y0, new THREE.Color(0xcfcac2)); if (opts.coll) fillPolyDown(opts.coll, b.rings, y0, 0xffffff); } // passage / overhang soffit
     if (b._passage) for (const [x, z] of outer) { if (roadDist && roadDist(x, z) < 0.8) continue; // columns at the corners that stand clear of the lanes
       B.trim.addGeometry(CYLG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), new THREE.Color(0xd9d4ca)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), 0xffffff); }
-    if (!ARTGEO_OFF && FB && FS && !opts.lod && B.shopGlass && y0 < 0.5 && !b.part && h >= 10 && h < 46 && outer.length <= 12 && (zone === 'residential' || zone === 'beach') && (style === 'deco' || style === 'office' || style === 'band') && hash(seed + 1301) < 0.55) {
+    if (!ARTGEO_OFF && FB && FS && !opts.lod && B.shopGlass && y0 < 0.5 && !b.part && h >= 10 && h < 46 && outer.length <= 12 && /residential|beach|business|commercial|mixed/.test(b.zone || zone) && (style === 'office' || style === 'band') && hash(seed + 1301) < (/residential|beach/.test(b.zone || zone) ? 0.6 : 0.3)) { // deco gets eyebrows instead
+      ART_GEO_N.balc++;
       // r2-art: residential mid-rises read as flat boxes: stacked balconies (slab + glass rail + handrail) on the two longest faces,
       // one per ~6.5 m bay, every floor above the ground floor
       const gy = shops ? GF : 4.2, fh = FS.floorH || 3.2, slabC = new THREE.Color(FS.tint).lerp(new THREE.Color(0xeeeae2), 0.75), railC = new THREE.Color(0x3a3d40), white = new THREE.Color(0xffffff);
@@ -928,8 +930,9 @@ export function createTileBuilder(ctx) {
       const rg = new THREE.ConeGeometry(1, 1, 4, 1); rg.rotateY(Math.PI / 4);
       (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
     } else if (style === 'house' && outer.length <= 8 && b.area < 900) { // hip roof (r2-art: a real ridge on the footprint's own axis, 0.55 m eaves with fascia, soffit, gutters and downspouts; was a pyramid over the world-axis bbox)
+      ART_GEO_N.hip++;
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), ov = 0.55, Lr = Math.max(fr.L, fr.W) + 2 * ov, Wr = Math.min(fr.L, fr.W) + 2 * ov, ryR = fr.L >= fr.W ? ry : ry + Math.PI / 2;
-      const rh = Math.min(3.2, Math.max(1.2, Wr * 0.21)), eY = h - 0.04, rC = new THREE.Color(FB ? (FS && FS.roofTint) || 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]); // per-house roof shade (faded / weathered tile)
+      const rh = Math.min(4.5, Math.max(1.4, Wr * 0.27)), /* ~28 deg, a real Florida shingle / tile pitch (0.21 read as a flat lid) */ eY = h - 0.04, rC = new THREE.Color(hash(seed + 1211) < 0.4 ? [0xb0603c, 0xa25a3a, 0xbc6c48][(rr * 3) | 0] /* barrel tile */ : [0x8a8780, 0x7c7a76, 0x948c80][(rr * 3) | 0] /* weathered asphalt shingle (the pale roof-slab tint read as a concrete lid) */); // per-house roof shade (faded / weathered tile)
       (FB ? B.roof : B.trim).addGeometry(hipRoofGeo(Lr, Wr, rh), mat4(fr.cx, eY, fr.cz, ryR), rC);
       if (opts.lod !== 2) {
         const fC = new THREE.Color(0xe7e3da), gC = new THREE.Color(0xd9d5cc), cr = Math.cos(ryR), sr = Math.sin(ryR), at = (lx, lz) => [fr.cx + lx * cr + lz * sr, fr.cz - lx * sr + lz * cr];
@@ -957,6 +960,7 @@ export function createTileBuilder(ctx) {
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
     if (!ARTGEO_OFF && FB && FS && style === 'glass' && !opts.lod && y0 < 0.5 && !b.part && h > 8 && h < 62 && outer.length <= 12) {
+      ART_GEO_N.fins++;
       // r2-art: glass mid-rises were sheer painted boxes: aluminum mullion fins (0.07 x 0.22 m) every bay and a slab-edge band every
       // floor on the street faces, so the curtain wall has depth and casts thin shadows
       const gy = shops ? GF : 4.2, fh = FS.floorH || 3.6, bay = Math.max(1.2, FS.bayW || 1.5), finC = new THREE.Color(0x5d646b), bandC = new THREE.Color(0x6e757c);
@@ -966,6 +970,7 @@ export function createTileBuilder(ctx) {
         if (hh > 2) for (let k = 1; k < nb; k++) { const u = k * L / nb; B.trim.addGeometry(BOXG, m4(p[0] + tx * u + nx * 0.11, gy + hh / 2, p[1] + tz * u + nz * 0.11, ry, 0.07, hh, 0.22), finC); }
         for (let y = gy; y < h - 1; y += fh) edgeSlab(B.trim, p[0], p[1], q[0], q[1], nx, nz, y - 0.1, 0.12, 0.2, bandC); } }
     if (!ARTGEO_OFF && FB && FS && style === 'deco' && !opts.lod && y0 < 0.5 && !b.part && h > 6 && h < 40 && outer.length <= 12 && hash(seed + 1401) < 0.75) {
+      ART_GEO_N.eyebrow++;
       // r2-art: Miami Beach deco "eyebrows": thin concrete sun shades over each window row, wrapping the street faces (the flat
       // painted box was the giveaway); depth 0.4-0.6 m, a soft shadow line every floor
       const gy = shops ? GF : 0, fh = FS.floorH || 3.2, nf = Math.max(1, Math.round((h - gy) / fh)), dep = 0.4 + hash(seed + 1402) * 0.2, ebC = new THREE.Color(FS.tint).lerp(new THREE.Color(0xf4f1ea), 0.6);
