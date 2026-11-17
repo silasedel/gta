@@ -13,12 +13,6 @@
 - 00:20 Baseline shots: `docs/v2/shots/keys/k0_{deck,front,aerial,back,dock,top}.png` (deck view 22 ms, 675 draw calls).
 
 ## perf
-- 02:20 Hold-back never applies within 25 m of the camera or the player (lead decision): those objects draw at once and
-  wait for their shader as before. Drive check (downtown + 45 s at 30 m/s): 41 shaders compiled inside a frame (was 127
-  without the precompiler, 32 with the hold-back everywhere). The near ones left are street-kit parts (parking meters,
-  signal lenses, hydrant), plants:* and house:shingle. Error check on that run: page error
-  `ReferenceError: baseOf is not defined` at `src/world/signs/regulatory.v2.js:126` (tick), from the uncommitted
-  regulatory-sign edit: **street props** helper. No shader compile errors in that run (roadDecals was sent to ground).
 - 01:30 (guard role) Lead decisions applied: MSAA stays on; nothing visual lowered.
   - **Shop interiors** (commit 1f35aff): each interior is ~210 meshes with ~186 distinct materials, so a merge cannot reduce
     draws without changing materials. Instead an interior seen from behind its back wall (below the roof line) leaves

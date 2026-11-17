@@ -41,8 +41,7 @@ if (!GLTFLoader.prototype.__psPrecompile) {
 // Show-when-ready: anything added to the scene while the game runs whose material was never compiled (a new kind of
 // model, outfit, building or prop) gets its shaders compiled right before the frame, outside the render, and stays out of
 // the main view (layer 0) until the GPU has linked them (at most MAX_WAIT ms, usually 1-10 frames) instead of freezing the
-// whole frame while they compile. Never within 25 m of the camera or the player (those draw at once, as before).
-// Shadows and physics are unaffected. Objects whose materials are known (the usual case)
+// whole frame while they compile. Shadows and physics are unaffected. Objects whose materials are known (the usual case)
 // are untouched. game.precompile.showWhenReady = false turns it off.
 const MAX_WAIT = 1500;
 const added = [], waiting = [];
@@ -53,17 +52,6 @@ if (!THREE.Object3D.prototype.__psAddHook) {
     if (gameRef && gameRef.ready && !OFF) for (const o of objs) if (o && o.isObject3D && added.length < 4000) added.push(o);
     return add0.apply(this, objs);
   };
-}
-const NEAR_R = 25, _sph = new THREE.Sphere();
-function nearViewer(c, g) {
-  let bs = null;
-  try { if (c.isInstancedMesh) { if (!c.boundingSphere) c.computeBoundingSphere(); bs = c.boundingSphere; } else if (c.geometry) { if (!c.geometry.boundingSphere) c.geometry.computeBoundingSphere(); bs = c.geometry.boundingSphere; } } catch (e) { return true; }
-  if (!bs) return true;
-  _sph.copy(bs); if (!c.isInstancedMesh) _sph.applyMatrix4(c.matrixWorld); else _sph.applyMatrix4(c.matrixWorld);
-  const cp = g.camera.position, pp = g.player?.position;
-  if (_sph.center.distanceTo(cp) - _sph.radius < NEAR_R) return true;
-  if (pp && _sph.center.distanceTo(pp) - _sph.radius < NEAR_R) return true;
-  return false;
 }
 function inScene(o, scene) { for (let p = o; p; p = p.parent) if (p === scene) return true; return false; }
 function beforeFrame() {
@@ -83,11 +71,7 @@ function beforeFrame() {
       try { compileForGame(r, THREE, o, g.camera, scene); } catch (e) { continue; }
       const progs = r.info.programs.slice(n0).filter((p) => p.isReady && !p.isReady());
       if (!progs.length) continue;
-      // never held back near the camera or the player (lead: a prop or car popping in next to you looks worse than a
-      // one-time hitch): those draw this frame and wait for their shader as before
-      o.updateMatrixWorld(true);
-      const hidden = []; o.traverse((c) => { if ((c.isMesh || c.isPoints || c.isLine || c.isSprite) && c.layers.isEnabled(0) && !nearViewer(c, g)) { c.layers.disable(0); hidden.push(c); } });
-      if (!hidden.length) continue;
+      const hidden = []; o.traverse((c) => { if ((c.isMesh || c.isPoints || c.isLine || c.isSprite) && c.layers.isEnabled(0)) { c.layers.disable(0); hidden.push(c); } });
       waiting.push({ progs, hidden, t: performance.now() });
       stats.held = (stats.held || 0) + 1;
     }

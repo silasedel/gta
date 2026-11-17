@@ -469,7 +469,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
           if (w !== L.n) { L.n = w; dirty = true; } } } } }
     const jump = cam.position.distanceTo(lastPos) > 300;
     // after a teleport / at start: fill the surroundings synchronously so the first frame is complete
-    const pending = jump || force ? work(cam, 1500, 360) : work(cam, (st.pending || 0) > 150 ? 6 : 2.5); // (vegetation) a jump fills the near 360 m at once (max 1.5 s), the rest streams in over the next frames
+    const pending = jump || force ? work(cam, 1500, 360) : work(cam, 2.5); // (vegetation) a jump fills the near 360 m at once (max 1.5 s), the rest streams in over the next frames
     cam.getWorldDirection(dir);
     if (dirty || jump || force || cam.position.distanceToSquared(lastPos) > 25 || dir.dot(lastDir) < 0.994) { rebucket(cam); lastPos.copy(cam.position); lastDir.copy(dir); dirty = false; }
     st.pending = pending;

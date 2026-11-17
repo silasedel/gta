@@ -1,0 +1,16 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":4000,"shot":false},
+ {"id":"lot0","eval":"__lookLot(-866,4836,0)","tod":11,"wait":2500},
+ {"id":"lot1","eval":"__lookLot(-866,4836,1)","tod":11,"wait":2000},
+ {"id":"lot2","eval":"__lookLot(-866,4836,2)","tod":11,"wait":2000},
+ {"id":"lot3","eval":"__lookLot(-866,4836,3)","tod":11,"wait":2000},
+ {"id":"lot4","eval":"__lookLot(-866,4836,4,9,4,2.6)","tod":11,"wait":2000},
+ {"id":"push0","eval":"window.__pushAt=[-866,4836]; window.__speed=9; JSON.stringify(eval(document.__cp||''))","shot":false},
+ {"id":"push_setup","evalFile":"carpush.js","tod":11,"wait":2500},
+ {"id":"push_go","evalFile":"drive.js","wait":600},
+ {"id":"push_a","shot":true,"wait":400,"log":"JSON.stringify(game.dynProps.stats)"},
+ {"id":"push_b","shot":true,"wait":500},
+ {"id":"push_c","shot":true,"wait":900},
+ {"id":"push_d","shot":true,"wait":2500,"log":"JSON.stringify({s:game.dynProps.stats, rec:[+window.__rec.px.toFixed(2),+window.__rec.pz.toFixed(2), window.__rec.body? window.__rec.body.isSleeping():null]})"}
+]

@@ -81,7 +81,7 @@ function settleWeapon(p) {
   const bb = new THREE.Box3().setFromObject(w), c = bb.getCenter(new THREE.Vector3()).sub(w.getWorldPosition(new THREE.Vector3()));
   w.position.set(-c.x, -c.y, -c.z);
   addRim(w, p.color);
-  p.settled = true; p.rimOn = undefined;
+  p.settled = true;
 }
 // soft ground halo
 let haloTex = null;
@@ -281,8 +281,6 @@ export function createPickups(game, G) {
       p.root.visible = d < 90 && blink;
       if (!p.root.visible) continue;
       if (!p.settled) settleWeapon(p);
-      const rimOn = d < 40;   // rim glow shells only near the player (they double the pickup's draw calls)
-      if (p.rimOn !== rimOn) { p.rimOn = rimOn; p.model.traverse((o) => { if (o.userData.rim) o.visible = rimOn; }); }
       // slow turn + gentle bob; the glow breathes (a little stronger at night)
       p.model.rotation.y = t * 0.9 + p.phase;
       p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.025;

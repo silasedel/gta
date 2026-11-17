@@ -1,0 +1,2 @@
+[["lotprops_draw", "game.lotProps && (game.lotProps.root.visible = true)", "game.lotProps && (game.lotProps.root.visible = false)"],
+ ["dynprops_update", "game.dynProps && (game.dynProps.paused = false)", "game.dynProps && (game.dynProps.paused = true)"]]

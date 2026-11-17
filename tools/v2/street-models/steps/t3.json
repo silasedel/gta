@@ -1,0 +1,14 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":3000,"shot":false},
+ {"id":"cfg","eval":"window.__pushAt=[-866,4836]; window.__speed=10; window.__pushK=2; 1","shot":false},
+ {"id":"push_setup","evalFile":"carpush.js","tod":11,"wait":2500},
+ {"id":"push_go","evalFile":"drive.js","wait":700},
+ {"id":"push_a","shot":true,"wait":350},
+ {"id":"push_b","shot":true,"wait":350},
+ {"id":"push_c","shot":true,"wait":600},
+ {"id":"push_d","shot":true,"wait":2500,"log":"JSON.stringify({s:game.dynProps.stats, rec:[+window.__rec.px.toFixed(2),+window.__rec.pz.toFixed(2)]})"},
+ {"id":"walk_setup","evalFile":"walkpush.js","wait":1500},
+ {"id":"walk_go","hold":["KeyW",1600],"wait":200,"log":"JSON.stringify({s:game.dynProps.stats, w:[+window.__wrec.px.toFixed(2),+window.__wrec.pz.toFixed(2)], awake: window.__wrec.awake})"},
+ {"id":"walk_end","shot":true,"wait":2500,"log":"JSON.stringify({s:game.dynProps.stats, w:[+window.__wrec.px.toFixed(2),+window.__wrec.pz.toFixed(2)]})"}
+]

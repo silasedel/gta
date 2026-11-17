@@ -89,9 +89,15 @@ export async function initV2(game) {
   };
   const allLim = [...limits.values()].flat();
   const K = game.city.streetKit;
+  const hh = (x, z, k) => { const v = Math.sin(x * 12.9898 + z * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); };
+  const baseOf = (s) => { if (!s._B) { const E = new THREE.Euler((hh(s.x, s.z, 1) - 0.5) * 0.05, s.h + (hh(s.x, s.z, 2) - 0.5) * 0.06, (hh(s.x, s.z, 3) - 0.5) * 0.05, 'YXZ'); s._B = new THREE.Matrix4().compose(new THREE.Vector3(s.x, s.y - 0.12, s.z), new THREE.Quaternion().setFromEuler(E), one); } return s._B; };
   if (K?.signs?.stop && K.signs.post) { // stage 1 job 5: the user's library sign set (worn US plates on a perforated U-channel post)
+    // props pass: each sign has a base pose (post foot, a slight lean / yaw like real posts) and every part (post, plate) is
+    // that pose times its own local offset, so a sign a car knocks down (src/world/props/dynamicProps.v2.js) moves as one
+    const meshes = [];
     const instS = (part, arr, name, y, fwd, scl) => { if (!arr.length || !part) return; const m = new THREE.InstancedMesh(part.geometry, part.material, arr.length); m.name = name; m.castShadow = true; m.receiveShadow = true;
-      arr.forEach((s, i) => { q.setFromAxisAngle(Y, s.h); m4.compose(pv.set(s.x + Math.sin(s.h) * fwd, s.y - 0.12 + y, s.z + Math.cos(s.h) * fwd), q, scl || one); m.setMatrixAt(i, m4); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); return m; };
+      const loc = new THREE.Matrix4().compose(new THREE.Vector3(0, y, fwd), new THREE.Quaternion(), scl || one); m.userData.loc = loc;
+      arr.forEach((s, i) => { m4.multiplyMatrices(baseOf(s), loc); m.setMatrixAt(i, m4); (s._parts ||= []).push([m, i]); }); m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); scene.add(m); meshes.push(m); return m; };
     instS(K.signs.post, [...stops, ...allLim], 'reg-sign-posts', 0, 0, new THREE.Vector3(2.4, 2.9, 2.4));
     instS(K.signs.stop, stops, 'reg-stop', 2.45, 0.045);
     for (const [mph, arr] of limits) { const pl = K.speedPlate(mph); if (pl) instS(pl, arr, `reg-limit-${mph}`, 2.3, 0.04); }
@@ -101,6 +107,30 @@ export async function initV2(game) {
   inst(stopBackGeo, backMat, stops, 'reg-stop-backs');
   inst(limBackGeo, backMat, allLim, 'reg-limit-backs');
   for (const [mph, arr] of limits) inst(limGeo, speedMat(mph), arr, `reg-limit-${mph}`);
+  }
+  // props pass: sign posts are solid near the player (thin post + plate, measured like the library sign) and snap / fall when a
+  // car hits them (dynamicProps 'knock'); registered in a 160 m ring around the player, released beyond 220 m
+  if (K?.signs?.stop && K.signs.post) {
+    const all = [...stops, ...allLim], CELL = 64, grid = new Map(), active = new Set();
+    for (const s of all) { const k = Math.floor(s.x / CELL) + ',' + Math.floor(s.z / CELL); (grid.get(k) || grid.set(k, []).get(k)).push(s); }
+    const SHAPES = [{ t: 'box', hx: 0.035, hy: 1.45, hz: 0.035, y: 1.45 }, { t: 'box', hx: 0.33, hy: 0.36, hz: 0.02, y: 2.45, z: 0.05 }];
+    const setM = (s, M) => { for (const [m, i] of s._parts || []) { if (!M) m4.makeScale(0, 0, 0); else m4.multiplyMatrices(M, m.userData.loc); m.setMatrixAt(i, m4); m.instanceMatrix.needsUpdate = true; } };
+    let t = 0, mod = null;
+    const tick = async (dt) => {
+      t -= dt; if (t > 0) return; t = 1.0; const p = game.player?.position; if (!p) return;
+      if (!mod) { mod = await import('../props/dynamicProps.v2.js'); }
+      const D = mod.dynProps; if (!D.enabled) return;
+      const ci = Math.floor(p.x / CELL), cj = Math.floor(p.z / CELL);
+      for (let i = ci - 3; i <= ci + 3; i++) for (let j = cj - 3; j <= cj + 3; j++) for (const s of grid.get(i + ',' + j) || []) {
+        if (active.has(s) || s.gone || Math.hypot(s.x - p.x, s.z - p.z) > 160) continue;
+        const B = s.m ? new THREE.Matrix4().fromArray(s.m) : baseOf(s), E = new THREE.Euler().setFromRotationMatrix(B, 'XYZ'), P = new THREE.Vector3().setFromMatrixPosition(B);
+        s.rec = D.add({ kind: 'signPost', cls: s.m ? 'push' : 'knock', x: P.x, y: P.y, z: P.z, rx: E.x, ry: E.y, rz: E.z, s: 1, shapes: SHAPES, mass: 16, owner: 'reg:' + (s.x | 0) + ',' + (s.z | 0), m: s.m,
+          setMatrix: (M) => setM(s, M), save: (m) => { s.m = m; } });
+        if (s.rec) active.add(s);
+      }
+      for (const s of active) if (Math.hypot(s.x - p.x, s.z - p.z) > 220) { D.removeOwner('reg:' + (s.x | 0) + ',' + (s.z | 0)); active.delete(s); }
+    };
+    if (game.updaters) game.updaters.push((dt) => { tick(dt); });
   }
   game.regSigns = { stops: stops.length, limits: allLim.length, values: [...limits.keys()].sort((a, b) => a - b),
     list: (x, z, r = 60) => [...stops.map((s) => ({ ...s, kind: 'stop' })), ...allLim.map((s) => ({ ...s, kind: 'limit' }))].filter((s) => Math.hypot(s.x - x, s.z - z) < r) };

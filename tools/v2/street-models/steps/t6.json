@@ -1,0 +1,12 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"dt_go","eval":"game.teleport(407,undefined,-110,0); 1","tod":11,"stream":true,"wait":3000,"shot":false,"log":"(()=>{const w=__workNear(407,-110,2500); const by={}; for(const p of w) by[p.v]=(by[p.v]||0)+1; return JSON.stringify({by, jersey: w.filter(p=>p.v==='jersey').slice(0,3), cabin: w.filter(p=>p.v==='site_cabin'), roll: w.filter(p=>p.v==='rolloff').slice(0,4), hyd: __findKind('hydrant',407,-110,400).slice(0,3)});})()"},
+ {"id":"site","eval":"(()=>{const j=__workNear(407,-110,2500).filter(p=>p.v==='jersey'); if(!j.length) return 'no site'; const p=j[0]; game.teleport(p.x+20,undefined,p.z+20,0); return JSON.stringify(__lookAt(p.x,p.y,p.z,22,9,0.6));})()","tod":11,"stream":true,"wait":3000},
+ {"id":"site2","eval":"(()=>{const c=__workNear(407,-110,2500).filter(p=>p.v==='site_cabin')[0]; if(!c) return 'no cabin'; return JSON.stringify(__lookAt(c.x,c.y,c.z,14,4,0.4));})()","tod":11,"wait":2500},
+ {"id":"curbwork","eval":"(()=>{const w=__workNear(407,-110,2500).filter(p=>p.v==='cone'); if(!w.length) return 'none'; const p=w[Math.min(5,w.length-1)]; game.teleport(p.x+15,undefined,p.z+15,0); return JSON.stringify([p,__lookAt(p.x,p.y,p.z,9,2.4,0.7)]);})()","tod":11,"stream":true,"wait":3000},
+ {"id":"hy_setup","eval":"game.teleport(407,undefined,-110,0); window.__hyAt=[407,-110]; window.__speed=15; 1","shot":false,"stream":true},
+ {"id":"hydrant","evalFile":"hydrant.js","tod":11,"wait":2000},
+ {"id":"hy_go","evalFile":"drive.js","wait":1300},
+ {"id":"hy_a","shot":true,"wait":1500},
+ {"id":"hy_b","shot":true,"wait":2500,"log":"JSON.stringify({brk: game.breakables && game.breakables.stats, spray: game._hydrantSpray && game._hydrantSpray.live.length})"}
+]

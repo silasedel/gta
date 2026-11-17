@@ -151,13 +151,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
     for (const u of rep.drive.upd) console.log('  upd', u.replace(/\s+/g, ' '));
     console.log('  tiles in streamer map', rep.drive.tiles, ' new programs', rep.drive.newPrograms.length, ' compiled inside a frame (sync)', rep.drive.syncCompiles.length, JSON.stringify(rep.drive.syncCompiles.slice(0, 30)), ' precompile', JSON.stringify(rep.drive.precompile)); for (const p of rep.drive.newPrograms.slice(0, 40)) console.log('   prog', p);
   }
-  if (b.errors.length) {
-    rep.errors = [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 20);
-    // shader errors: material name + the first GLSL error line (for the status section / owner)
-    rep.shaderErrors = [...new Set(b.errors.filter((e) => /Shader Error/.test(e)).map((e) => ((e.match(/Material Name: ([^\n]*)/) || [])[1] || '?') + ' | ' + ((e.match(/ERROR: [^\n]*/) || [])[0] || '').slice(0, 120)))];
-    if (rep.errors.length) console.log('ERRORS', rep.errors.slice(0, 8).map((e) => e.slice(0, 300)).join('\n'));
-    if (rep.shaderErrors.length) console.log('SHADER ERRORS', JSON.stringify(rep.shaderErrors));
-  }
+  if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 20); console.log('ERRORS', rep.errors.slice(0, 8).join('\n')); }
 });
 fs.mkdirSync('docs/v2/reports', { recursive: true });
 fs.writeFileSync(`docs/v2/reports/stage1-perf-${SET}.json`, JSON.stringify(rep, null, 1));

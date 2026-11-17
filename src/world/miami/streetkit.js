@@ -11,13 +11,18 @@
 //   kit.signs         -> { stop, dne, noparking, nostanding, oneway_l, oneway_r, ..., post } sign plates (face +Z, centered)
 //   kit.speedPlate(mph) -> { geometry, material } SPEED LIMIT plate (library plate, face repainted with original art)
 //   kit.lampLens(part) -> true for the luminaire material of a lamp model (warm glow at night)
+//   kit.variants[name] -> { n, set, layers, material } texture-array variants of that part's main material (draw its
+//                        instances with colors: true; instance color = variantColor(layer, brightness, fade))
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { loadVariants } from '../props/variants.v2.js';
 
 const BASE = '/assets/models/street/';
 const FILES = ['hydrant_a', 'hydrant_b', 'bench_wood', 'bench_iron', 'bin_metal', 'bin_wood', 'bin_wheel', 'bin_set', 'dumpster', 'shelter_glass', 'shelter_long', 'shelter_black', 'shelter_old',
-  'meter', 'mailbox_post', 'mailbox_twin', 'mailbox_drop', 'transformer', 'cabinet', 'lantern_post', 'flexpost', 'lamp_single', 'lamp_twin', 'upole_gear'];
+  'meter', 'mailbox_post', 'mailbox_twin', 'mailbox_drop', 'transformer', 'cabinet', 'lantern_post', 'flexpost', 'lamp_single', 'lamp_twin', 'upole_gear',
+  // overnight props pass (tools/v2/street-models/build_props.sh): curbside cart, work-zone kit, construction site, yard chairs
+  'cart', 'cone', 'channelizer', 'tc_bollard', 'barricade2', 'jersey', 'rolloff', 'chair', 'patio_table', 'bin_commercial', 'tarp_crates', 'site_cabin'];
 // signal_kit.json (tools/v2/street-models/signals.py): arm tip x, head hanger (top) height, pole height, lens centers
 export const SIG = { armTip: 4.316, headX: 4.537, headTop: 7.768, headH: 1.398, poleH: 6.708, pedTop: 3.25, pedBottom: 2.41 };
 export const SIG_CYCLE = 34, SIG_GREEN = 13, SIG_YELLOW = 3; // = src/vehicles/roadnet.js fixed-time plan
@@ -164,8 +169,10 @@ export async function loadStreetKit({ M } = {}) {
     raf = requestAnimationFrame(tick);
   };
   if (typeof requestAnimationFrame !== 'undefined') tick();
+  // per-instance texture variants (src/world/props/variants.v2.js): patched materials sample a texture array layer per instance
+  let variants = {}; try { variants = await loadVariants(parts); } catch (e) { console.warn('[streetkit] variants', e?.message); }
   const materials = [...new Set([...Object.values(parts).flat(), ...Object.values(sig), ...Object.values(signs)].map((p) => p.material))];
-  return { parts, signal: sig, signs, speedPlate, SIG, sigU, materials, lensMats, stop: () => cancelAnimationFrame(raf) };
+  return { parts, signal: sig, signs, speedPlate, SIG, sigU, materials, lensMats, variants, stop: () => cancelAnimationFrame(raf) };
 }
 
 // ---- signal phase per approach, exactly as the traffic AI computes it (src/vehicles/roadnet.js fromGraph + fixedSignal) ----
