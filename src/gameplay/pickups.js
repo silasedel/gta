@@ -2,7 +2,7 @@
 // above the ground with a soft rim glow and a faint ground halo; no light beams. Also ammo, armor, health, cash.
 // Caches + starter stash.  game.pickups.list -> [{ pos, type, key, mapIcon, active }]  (HUD draws mapIcon when non-null)
 import * as THREE from 'three';
-import { rand, pick, pointNear, sfx, tryCall, distXZ, groundAt, sharedBox } from './util.js';
+import { rand, pick, pointNear, sfx, tryCall, distXZ, groundAt, sharedBox, removeColliderSafe } from './util.js';
 import { buildWeaponModel, libVariants } from './gunModels.js';
 import { createCellStreamer } from './stream.js';
 import { WEAP } from './weapons.js';
@@ -19,7 +19,7 @@ const HOVER = 0.3;   // model center above the ground (m)
 function box(w, h, d, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(sharedBox(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; return m; }
 const _protos = new Map();
 function pickupModel(type, color) { // non-weapon prototypes are shared; weapons are library models (shared geometry + materials)
-  if (isWeapon(type)) return buildPickupModel(type, color);
+  if (isWeapon(type) || type === 'health' || type === 'ammo') return buildPickupModel(type, color);
   let p = _protos.get(type);
   if (!p) { p = buildPickupModel(type, color); _protos.set(type, p); }
   return p.clone();
@@ -58,17 +58,13 @@ function buildPickupModel(type, color) {
     g.add(box(0.42, 0.5, 0.14, new THREE.MeshStandardMaterial({ color: 0x2a3550, roughness: 0.8 })));
     g.add(box(0.3, 0.12, 0.15, glowMat, 0, 0.1, 0.005));
   } else if (type === 'health') {
-    g.add(box(0.42, 0.3, 0.22, new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.5 })));
-    const red = new THREE.MeshStandardMaterial({ color: 0xff2a3a, emissive: 0xff2a3a, emissiveIntensity: 1.2 });
-    g.add(box(0.24, 0.07, 0.23, red)); g.add(box(0.07, 0.24, 0.23, red));
+    const m = propModel('first_aid', (pg) => addRim(pg, color)); m.scale.setScalar(1.15); g.add(m);
   } else if (type === 'cash') {
     const bill = new THREE.MeshStandardMaterial({ color: 0x6fbf5a, emissive: 0x2f7f2a, emissiveIntensity: 0.8, roughness: 0.7 });
     for (let i = 0; i < 3; i++) g.add(box(0.3, 0.06, 0.14, bill, (i - 1) * 0.05, i * 0.065 - 0.06, (i % 2) * 0.03));
     g.add(box(0.04, 0.2, 0.15, new THREE.MeshStandardMaterial({ color: 0xe8d070, roughness: 0.5 })));
   } else {
-    g.add(box(0.36, 0.22, 0.2, new THREE.MeshStandardMaterial({ color: 0x3d4a2a, roughness: 0.7 })));
-    g.add(box(0.37, 0.05, 0.21, glowMat));
-    for (let i = 0; i < 4; i++) g.add(box(0.03, 0.08, 0.03, new THREE.MeshStandardMaterial({ color: 0xc8a050, metalness: 0.9, roughness: 0.3 }), -0.1 + i * 0.065, 0.15, 0));
+    const m = propModel('ammo_box', (pg) => addRim(pg, color)); m.scale.setScalar(1.25); g.add(m);
   }
   if (!isWeapon(type)) addRim(g, color);
   return g;
@@ -101,7 +97,27 @@ function haloMat(color) {
   if (!m) { texes(); m = new THREE.MeshBasicMaterial({ map: haloTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: false }); _haloMats.set(color, m); }
   return m;
 }
-const crateMat = new THREE.MeshStandardMaterial({ color: 0x5a4a30, roughness: 0.85 });
+// the user's prop models (Models/Crates, Models/First Aid, Models/Ammo): loaded once, cloned per use; a placeholder group
+// is returned at once and filled when the GLB arrives
+const PROP_URL = { crate: '/assets/models/keys/crate.glb', first_aid: '/assets/models/pickups/first_aid.glb', ammo_box: '/assets/models/pickups/ammo_box.glb' };
+const _props = new Map();
+let _pgl = null;
+function propTemplate(name) {
+  if (!_props.has(name)) {
+    _props.set(name, (async () => {
+      if (!_pgl) { const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js'); _pgl = new GLTFLoader(); }
+      const sc = (await _pgl.loadAsync(PROP_URL[name])).scene;
+      sc.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      return sc;
+    })().catch((e) => { console.warn('[pickups] prop', name, e?.message || e); return null; }));
+  }
+  return _props.get(name);
+}
+function propModel(name, onReady) {
+  const g = new THREE.Group(); g.name = 'prop-' + name;
+  propTemplate(name).then((t) => { if (!t) return; g.add(t.clone(true)); g.userData.ready = true; onReady && onReady(g); });
+  return g;
+}
 // glint: a small four-point star that catches the eye every few seconds (readable from 10-15 m in daylight)
 let glintTex = null;
 const _glintMats = new Map();
@@ -152,6 +168,14 @@ export function createPickups(game, G) {
     list.push(p);
     return p;
   }
+  // one 0.6 m crate standing on the surface below (x, z), turned by rot; returns { mesh, col }
+  function placeCrate(x, y, z, rot) {
+    let gy = tryCall('crateGround', () => groundAt(game, x, z, (y || 0) + 0.6), 0); if (!gy || Math.abs(gy - (y || 0)) > 1) gy = y || 0;
+    const mesh = propModel('crate'); mesh.position.set(x, gy - 0.01, z); mesh.rotation.y = rot; scene.add(mesh);
+    let col = null;
+    try { const { RAPIER, world } = game; col = world.createCollider(RAPIER.ColliderDesc.cuboid(0.3, 0.3, 0.3).setTranslation(x, gy + 0.29, z).setRotation({ x: 0, y: Math.sin(rot / 2), z: 0, w: Math.cos(rot / 2) })); } catch (e) { col = null; }
+    return { mesh, col };
+  }
   function remove(p) { scene.remove(p.root); p.glint?.material.dispose(); const i = list.indexOf(p); if (i >= 0) list.splice(i, 1); }
 
   // ---------------- placement (city API, streamed per ~200 m cell)
@@ -164,7 +188,7 @@ export function createPickups(game, G) {
     const sp2 = spawn('ammo', stashPos.clone().add(new THREE.Vector3(1.4, 0, 0.6)));
     if (sp1) sp1.starter = true;
     if (sp2) sp2.starter = true;
-    const crate = box(0.9, 0.5, 0.6, crateMat, stashPos.x - 1.0, stashPos.y + 0.25, stashPos.z - 0.6); crate.receiveShadow = true; scene.add(crate);
+    placeCrate(stashPos.x - 1.0, stashPos.y, stashPos.z - 0.6, 0.35);
   }
   const stash = stashPos ? { position: stashPos } : null;
   const POOLS = {
@@ -229,10 +253,11 @@ export function createPickups(game, G) {
       if (it.respawnAt > now) { p.active = false; p.root.visible = false; p.respawnT = it.respawnAt - now; p.mapIcon = null; }
       d.objs.push(p);
     }
-    for (const c of d.crates || []) {
-      const crate = new THREE.Group();
-      crate.add(box(1.0, 0.6, 0.7, crateMat, 0, 0.3, 0)); crate.add(box(1.02, 0.08, 0.72, crateLid, 0, 0.62, 0));
-      crate.position.set(c.x, c.y, c.z); crate.rotation.y = c.rot; scene.add(crate); d.meshes.push(crate);
+    d.cols = [];
+    for (const c of d.crates || []) {   // a weapons cache: two crates side by side, the second turned a little
+      const a = placeCrate(c.x, c.y, c.z, c.rot);
+      const b = placeCrate(c.x + Math.cos(c.rot) * 0.66, c.y, c.z - Math.sin(c.rot) * 0.66, c.rot + 0.22);
+      for (const k of [a, b]) { d.meshes.push(k.mesh); if (k.col) d.cols.push(k.col); }
     }
   }
   function unload(cell) {
@@ -240,10 +265,10 @@ export function createPickups(game, G) {
     const now = game.clock.elapsed;
     for (const p of d.objs || []) { if (p.item && !p.active) p.item.respawnAt = now + Math.max(0, p.respawnT); remove(p); }
     for (const m of d.meshes || []) scene.remove(m);
-    d.objs = []; d.meshes = [];
+    for (const c of d.cols || []) removeColliderSafe(game, c);
+    d.objs = []; d.meshes = []; d.cols = [];
   }
   const streamer = createCellStreamer(game, { cell: 200, loadR: 250, unloadR: 400, perTick: 2, generate, load, unload });
-  const crateLid = new THREE.MeshStandardMaterial({ color: 0x2f3a2a, roughness: 0.8 });
   try { streamer.tick(0, true); } catch (e) { console.warn('[pickups] initial stream', e); }
   const caches = 0;
 

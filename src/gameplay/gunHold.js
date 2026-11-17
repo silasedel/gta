@@ -36,6 +36,13 @@ export function rigOf(root) {
   if (!r.fingersR || !r.fingersL) bindAxes(root, r);
   r.ok = !!(r.hand && r.fore && r.arm && (r.fingersR || r.axR));
   r.lok = !!(r.lhand && r.lfore && r.larm && (r.fingersL || r.axL));
+  r.head = find(root, 'Head'); r.neck = find(root, 'Neck');
+  if (r.head) {   // the head's forward axis in its own frame (taken from the body's forward when the rig is first read)
+    const q = new THREE.Quaternion(), fw = new THREE.Vector3();
+    if (r.larm && r.arm) { fw.crossVectors(r.larm.getWorldPosition(new THREE.Vector3()).sub(r.arm.getWorldPosition(new THREE.Vector3())), UP).setY(0).normalize(); }
+    else { root.getWorldQuaternion(q); fw.set(0, 0, 1).applyQuaternion(q).setY(0).normalize(); }
+    r.head.getWorldQuaternion(q); r.headFwd = fw.applyQuaternion(q.invert());
+  }
   Object.defineProperty(root.userData, '__gunRig', { value: r, enumerable: false, configurable: true, writable: true });
   return r;
 }
@@ -187,6 +194,20 @@ function gunFromHand(model, kind, fr, out) {
   if (hp && hp.lengthSq() > 0) out.position.sub(_d.copy(hp).applyQuaternion(out.quaternion));
 }
 const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
+// look down the sights: turn neck + head toward the target, a few degrees nose-down (cheek on the gun)
+const _hf = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hi = new THREE.Quaternion();
+function lookAlong(r, target, down) {
+  if (!r.head || !r.headFwd) return;
+  for (const [bone, w] of [[r.neck, 0.4], [r.head, 1]]) {
+    if (!bone) continue;
+    r.head.getWorldQuaternion(_hq); _hf.copy(r.headFwd).applyQuaternion(_hq).normalize();
+    wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y -= down; _ht.normalize();
+    const ang = _hf.angleTo(_ht); if (ang < 1e-3) continue;
+    const k = w * Math.min(1, 1.1 / ang);   // never more than ~63 degrees in one frame
+    _hq.setFromUnitVectors(_hf, _ht); _hq.slerp(_hi.identity(), 1 - k);
+    rotW(bone, _hq.clone());
+  }
+}
 const _Z = new THREE.Vector3(), _Y = new THREE.Vector3(), _X = new THREE.Vector3(), _O = new THREE.Vector3(), _fw = new THREE.Vector3(), _lf = new THREE.Vector3(), _sh = new THREE.Vector3();
 // wanted gun basis from a direction (roll keeps the slide up)
 function basisFrom(dir, roll = 0) {
@@ -207,7 +228,10 @@ export function holdWeapon(model, root, o = {}) {
   const ud = model.userData, kind = ud.hold || 'pistol';
   root.updateMatrixWorld(true);
   // body axes from the character root
-  root.getWorldQuaternion(_q); _fw.set(0, 0, 1).applyQuaternion(_q).setY(0).normalize(); _lf.crossVectors(UP, _fw).normalize();
+  // body forward from the shoulders (character roots may carry a yaw offset to their model's facing)
+  wp(r.larm, _a); wp(r.arm, _b); _fw.crossVectors(_a.sub(_b), UP).setY(0);
+  if (_fw.lengthSq() < 1e-6) { root.getWorldQuaternion(_q); _fw.set(0, 0, 1).applyQuaternion(_q).setY(0); }
+  _fw.normalize(); _lf.crossVectors(UP, _fw).normalize();
   const aiming = !!o.aim && kind !== 'melee', lowReady = !aiming && kind === 'long' && !o.free;
   const reload = !!o.reload && kind !== 'melee';
   if (aiming || lowReady || reload) {
@@ -227,7 +251,7 @@ export function holdWeapon(model, root, o = {}) {
           _O.copy(_sh).addScaledVector(_lf, 0.075).addScaledVector(_fw, 0.03).addScaledVector(UP, -0.035)
             .addScaledVector(_X, -bt.x).addScaledVector(_Y, -bt.y).addScaledVector(_Z, -bt.z);
           _O.addScaledVector(_Y, -(ud.sightLine ? ud.sightLine.y * 0.25 : 0));
-        } else _O.copy(_sh).addScaledVector(_lf, 0.17).addScaledVector(UP, -0.06).addScaledVector(dir, 0.5);
+        } else _O.copy(_sh).addScaledVector(_lf, 0.16).addScaledVector(UP, -0.07).addScaledVector(dir, 0.44);
         dir = _e.subVectors(o.aim, _a.copy(_O).addScaledVector(_Y, ud.sightLine ? ud.sightLine.y : 0.05)).normalize();
       }
       basisFrom(dir);
@@ -283,6 +307,7 @@ export function holdWeapon(model, root, o = {}) {
     }
     curl(r, 'L', CURL.supportL);
   } else if (r.lok) relax(r, 'L');
+  if (aiming && o.look !== false) lookAlong(r, o.aim, kind === 'long' ? 0.12 : 0.07);
   r.curled = true;
   return true;
 }
@@ -295,4 +320,10 @@ export function holdDebug(root, model) {
   const d = new THREE.Vector3().setFromMatrixPosition(model.matrixWorld).sub(FR.o);
   const f = (v) => +v.toFixed(3);
   return { fingers: r.fingersR, F_Z: f(FR.F.dot(Z)), S_Y: f(FR.S.dot(Y)), N_X: f(FR.N.dot(X)), off: [f(d.dot(X)), f(d.dot(Y)), f(d.dot(Z))], len: f(FR.len) };
+}
+// debugging aid (tests): the hand frame as world vectors { o, F, S, N } and how the rig was read
+export function handFrame(root, side = 'R') {
+  const r = rigOf(root); if (!r || !r.ok) return null;
+  const f = frame(r, side, mkFrame());
+  return { o: f.o.toArray(), F: f.F.toArray(), S: f.S.toArray(), N: f.N.toArray(), fingers: side === 'R' ? r.fingersR : r.fingersL, ax: (side === 'R' ? r.axR : r.axL)?.dbg || null };
 }

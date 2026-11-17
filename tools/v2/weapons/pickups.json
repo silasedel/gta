@@ -1,0 +1,11 @@
+{
+ "library": "/Users/silasedel/Downloads/Apps_Games/GTA 6/Southline/Models",
+ "models": {
+  "ammo_box": { "dir": "Ammo/Ammo Box 1 - Red Ammo Box", "file": "Ammo Box 1.blend", "length": 0.24, "fwd": "+x", "up": "+z", "tris": 2000,
+    "mats": { "AmmoBox": { "ao": "Ammo Box AO.jpeg" } } },
+  "first_aid": { "dir": "First Aid/First Aid Box 1 - Three Metal First-Aid Boxes", "file": "First Aid Box 1.blend", "length": 0.34, "fwd": "+x", "up": "+z", "tris": 6000,
+    "keep": "^(02_2|01_3|01_2_[678])$",
+    "mats": { "Part 01": { "auto": false, "color": "Color.png", "normal": "Normal.png", "rough": "Roughness.png", "metal": "Metallic.png" },
+              "Part 02": { "auto": false, "color": "Color 2.png", "normal": "Normal 2.png", "rough": "Roughness 2.png", "metal": "Metallic 2.png" } } }
+ }
+}
