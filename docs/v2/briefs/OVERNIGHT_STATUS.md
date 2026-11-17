@@ -776,3 +776,35 @@ for clothing, pharmacy, liquor and the 1588 office / bank lots (draped garments,
   face (the fascia baked black), brand sign (box / channel / painted with gooseneck lamps), blade sign, pilasters, sill ledges, cornice,
   window posters / OPEN neon / payment stickers / gold name lettering, roll-down security shutter (down after hours) on worn shops.
   Preview: `docs/v2/shots/shops/B0_preview_boutique_street.png` (before) vs `A1_preview_boutique_street.png`. In-game tour running.
+
+## r2-look
+**In progress (round 2, items 1 / 3 / 10, render side).** Everything below is live on 5200 and uncommitted until the A/B pass is verified.
+In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. Tools: `tools/v2/look/r2-ab.mjs` (A/B stills, cruise frame grabs, perf), `r2-run.mjs`, `albedo-view.page.js` (albedo debug view and histogram), `probes.page.js` (calibration spheres), `r2-sheet.py`.
+- **Shadow length flickering every other frame (item 3), root cause found and fixed.** The dynamic shadow map (cars, people) redrew only every second frame. On the other frames a moving car's shadow was drawn where the car had been one frame earlier (0.4 m behind at 90 km/h), and TAA blended the two positions into the dotted smear in shot_09. Now (`src/world/env/shadows.js`) the map redraws every frame whenever a car near the player moves or the player moves fast; walkers only keep the half rate. Cost of the full rate at the spawn: +0.7 ms CPU, GPU inside the noise.
+- **Dotted grain (items 3 and 10).** The contact AO multiplied a per-pixel, per-frame rotated 10-tap result straight into the image, and TAA left a fixed grain on every surface near the ground (calibration spheres, car bodies, walls). It now runs as AO plus a bilateral 4x4 resolve with an interleaved kernel (smooth in one frame). The PCSS rotation steps by the golden ratio per frame, with 12 taps. TAA now uses a 3x3 neighborhood with a gamma-1.25 variance box blended 25% toward min/max, so thin leaf edges, wires and blinds keep their history, and while driving the new-frame weight is capped at 0.25.
+- **Light response (item 1).** AO now only darkens the ambient share of each pixel (lit materials write it to alpha in the scene pass), so sunlit ground next to cars and walls has no dark halo. The env map has a surroundings ring (tree crowns and houses up to 4-10 degrees, sunlit on the sun side), so paint and glass reflect a dark horizon band instead of empty haze. The noon sun is closer to white, with a neutral day white balance (sand and white paint had turned cream-yellow) and slightly cool shade instead of teal. A near static shadow cascade (2 cm texels within 40 m, blended into the 7 cm city map) gives crisp deck-rail, house and tree shadows.
+- Albedo audit, screen coverage at Nico's lot (albedo view): mean 0.22-0.24, only 0.4-0.7% of pixels above 0.8. The global albedo is calibrated, so the pale look came from individual materials: the convertible paint was luminance 0.57 with metalness 0.35 and a mirror clear coat. Reported to r2-cars, who fixed it (solid finish, metalness 0). Targets agreed with r2-art (ART_STYLE.md).
+
+## r2-keys
+**Round 2, item 16 (Nico's house and yard vs the front-deck mock-up) and the house side of item 10 (blinds, shutters).** Live on 5200.
+- **House turned in its lot (item 16).** I fitted the mock-up camera to the deck's corner rail and the STOP corner. It stands on the west deck at the rail: house-local eye (-8.33, 4.65, 1.25), look (-16.75, -2.32, 18.0), fov 51 (`tools/v2/keys/spots_refs.json` r0b_deck). The view only matches with the STOP junction 27 deg right of the deck edge, so the house is turned +0.72 rad (`nicoHouse.v2.js` HOUSE_YAW; `?nhyaw=0` = the old house).
+  - Layout: the lot is now a corner lot, with the east leg of Pelican Point Ln along its front and the west leg down its west side. layout.json is untouched; its heading stays the street frame (`spot.streetHeading`).
+  - The neighbors (keysStreet.data.js / keysLots.js) and the dock line keep that frame, so they did not move in the world. The dock part builds in the street frame inside a group turned -yaw, with colliders, lights and anchors converted.
+  - The west stair moved 8 m back along the deck (plan.js stairW.dz), so the front-deck corner rail is unbroken like the mock-up. The flight, landing, rails, foot-IK export (`game.nicoHouse.stairs`), colliders and the dressing at its foot all follow.
+- **Yard re-laid from the mock-up (yard.data.js).** Positions were unprojected from the mock-up through the fitted camera, then nudged off the asphalt.
+  - Cars and drive: truck2 (-13.7, 8.2) h 2.05 and conv1 (-18.8, 5.5) h 1.03. r2-cars moved them in vehicles.js NICO_CARS. The drive runs from the STOP corner past the pickup.
+  - Props: the lattice planter with its bougainvillea mound, and two bin groups (blue carts + galvanized can, blue pair past the classic's hood). The all-way STOP faces the deck. The corner pole carries a transformer, a cobra-head lamp, wires along both legs and the house's service drop (the old house pole stood in the road).
+  - Mailbox at the drive mouth; red roll-off on the far verge of the west leg, right of the STOP.
+  - Neighbors: the white cottage with its board fence swapped lots with the yellow stilt house, so it sits across the east leg where the mock-up has it.
+  - Planting: in-lot only (poinciana over the classic, green mass by the bins, palms left); r2-veg plants the verges and neighbors.
+- **Ground.** The yard sheet now has gentle swells (about ±0.15 m, flat around the house and along the drive) and a low spot at the drive end, where the after-rain puddle (with a damp rim) fills from the weather.
+  - The sheet sinks under the asphalt along both legs (the old sheet ran across the road).
+  - A heightfield collider follows the swells. Plants (part 50 and the vegetation placements) and every prop stand on the sheet surface.
+  - Shell, matted-grass and leaf patches were re-laid for the new frame and are denser in the deck-view foreground.
+  - Found and fixed: the ground mask (surfaceMask autoVeg) had registered the yard sheet as paved, which deleted every leaf instance of the house's plants (bare bougainvilleas). Material renamed 'ground:'; told r2-ground.
+- **Item 10, house side.**
+  - Nico's mini-blinds were 1.2 mm slats every 21 mm, which crawl into dotted lines. They are now one panel with a mipmapped slat texture.
+  - Shutter blades: 7 mm became 12 mm, with one paint coat per leaf instead of per-blade peel.
+  - Generated houses: the louvered and Bahama shutters were a solid panel with 8 mm slats floating on and through its face. They are now real frames (stiles, rails, blades inside the frame depth) up close and one solid leaf at mid range.
+  - Also fixed: the Bahama leaf tilt was mirrored on some walls (hidden by the symmetric panel).
+- Shots: `docs/v2/shots/keys/cmp_r2k11_r0b_deck.png` (mock-up camera, before the cars moved), `r2k11_*` (rain, planter, cottage), `r2k1*_top.png`.
