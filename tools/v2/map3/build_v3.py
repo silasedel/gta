@@ -521,6 +521,10 @@ for blk in blocks:
     front, depth, setback, (h0, h1), style, zone, bkind, fill = PROFILE[dkind]
     inner = blk.difference(road_buf).difference(water_u).difference(runway_u).intersection(land)
     if inner.is_empty or inner.area < 150: continue
+    # city blocks are paved right up to the buildings (no lawn at downtown corners); small towns keep their yards
+    if dkind in ('core', 'city', 'beach', 'port'):
+        for g_ in geoms(inner):
+            if g_.geom_type == 'Polygon' and g_.area > 40: W.add_area(g_.buffer(0.6, join_style=2).intersection(blk), 'plaza' if dkind != 'port' else 'paved', None)
     lots = []
     for g in geoms(inner):
         if g.geom_type == 'Polygon': split_lots(g, front, depth, lots)
