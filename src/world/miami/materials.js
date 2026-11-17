@@ -12,6 +12,7 @@ import { makeSandMaterial } from '../ground/sandMaterial.js';
 import { makeDecalMaterial } from '../ground/decalMaterial.js';
 import { patchRoadEdges, patchFillEdges } from '../ground/groundEdge.js';
 import { patchRecipeGround } from '../ground/groundMaterial.js';
+import { patchCitySurfaces } from '../surfaces/surfaceShaders.js';
 
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
@@ -417,6 +418,7 @@ export async function createMaterials(renderer) {
   if (M.sidewalk.userData.job4) groundWear(M.sidewalk, 0.07, 0.1, 'p4', 0.1, 1, 0, null, 0.04); // scan already carries the panel joints
   else groundWear(M.sidewalk, 0.08, 0.12, 'p2', 0, 1, 0, [0.6, 0.6, 1, 0.012, 0.45], 0.06);
   for (const m of [M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
+  patchCitySurfaces(M); // surfaces pass: asphalt / paint / sidewalk detail, lane wear, gutters, wet response (src/world/surfaces/surfaceShaders.js)
   for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
   for (const m of [M.land, M.roof]) groundWear(m, 0.14, 0.12, 'l');
   groundWear(M.grass, 0.2, 0.16, 'g', 0, 0.97); // ground-continuity: mown park lawns get macro light / dark mowing and dry patches (no flat single-colour lawn)
