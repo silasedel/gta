@@ -24,7 +24,7 @@ export function createPlayerSeat(game) {
             shell.updateMatrixWorld(true);
             const top = shell.worldToLocal(hb.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.2, 0))).y;
             const over = top - (spec.roofY - 0.08);
-            if (over > 0) ch.root.position.y -= Math.min(0.45, over);
+            if (over > 0) ch.root.position.y -= Math.min(0.25, over);     // capped: some car specs report a low roofY
           }
         } catch (e) { /* keep the seat point */ }
         cur = { v, ch };
