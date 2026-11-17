@@ -42,7 +42,8 @@ export async function initV2(game) {
     let hit = null; try { hit = W.castRay(_ray, 6.0, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC | R.QueryFilterFlags.EXCLUDE_SENSORS); } catch (e) { return false; }
     if (!hit) return false; const col = hit.collider, sh = col?.shape?.type; if (sh === R.ShapeType.Cylinder || sh === R.ShapeType.Capsule || sh === R.ShapeType.Ball) return false;
     const base = C?.isWater?.(x, z) ? Math.max(g, C.seaLevel ?? -0.12) : g; // a water plane collider (if any) is not a dock
-    return g + 6 - (hit.timeOfImpact ?? hit.toi ?? 6) > base + 0.3;
+    const hy = g + 6 - (hit.timeOfImpact ?? hit.toi ?? 6);
+    return hy > base + 0.3 && hy < base + 2.6; // docks, decks, piers, boardwalks; not the tall prisms the tiles build around tree / palm trunks (a tree must not block itself)
   }
   const nearCam = (x, z, d) => { const c = game.camera?.position; return !c || (c.x - x) ** 2 + (c.z - z) ** 2 < d * d; };
   function blockedAt(x, z, r = 0) { for (const b of blocks) { if (!b) continue; if (b.r !== undefined ? (b.x - x) ** 2 + (b.z - z) ** 2 < (b.r + r) ** 2 : x > b.x0 - r && x < b.x1 + r && z > b.z0 - r && z < b.z1 + r) return true; } return false; }
