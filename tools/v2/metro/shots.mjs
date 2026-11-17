@@ -41,7 +41,8 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
   await b.eval(`(() => { const M = game.metro, r = M.root; const V = r.position.constructor; const p = r.localToWorld(new V(-40, 2.6, 13)), t = r.localToWorld(new V(10, 1.4, 2)); game.cameraOverride = (dt, cam) => { cam.position.copy(p); cam.lookAt(t); return true; }; })()`);
   await b.sleep(800); await shot('02b_station_wide');
   // 3. train arriving
-  for (let k = 0; k < 80; k++) { const ph = await b.eval('game.metro.T.phase + ":" + Math.round(game.metro.T.s)'); if (ph.startsWith('arriving') && +ph.split(':')[1] > -75) break; await b.sleep(250); }
+  await b.eval(`new Promise((r) => { const t0 = performance.now(); const f = () => ((game.metro.T.phase === 'arriving' && game.metro.T.s > -70) || performance.now() - t0 > 40000 ? r(1) : requestAnimationFrame(f)); f(); })`);
+  log('train', await b.eval('game.metro.T.phase + " " + game.metro.T.s.toFixed(1) + " vis " + game.metro.root.visible'));
   await b.eval(`(() => { const M = game.metro, r = M.root; const V = r.position.constructor; const p = r.localToWorld(new V(30, 2.2, 6)), t = r.localToWorld(new V(-30, 1.6, -0.5)); game.cameraOverride = (dt, cam) => { cam.position.copy(p); cam.lookAt(t); return true; }; })()`);
   await b.sleep(300); await shot('03_train_arriving');
   for (let k = 0; k < 80 && (await b.eval('game.metro.T.phase')) !== 'stopped'; k++) await b.sleep(250);

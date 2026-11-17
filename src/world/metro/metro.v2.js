@@ -22,7 +22,7 @@ const URL_OF = (n) => BASE + 'assets/metro/' + n + '.glb';
 export const METRO_STATIONS = [
   { id: 'airport', name: 'Airport', sub: 'Terminal Dr', x: -650, z: 1230, flip: true },
   { id: 'havana', name: 'Little Havana', sub: 'NW 10th Ave', x: -655, z: -55 },
-  { id: 'downtown', name: 'Downtown', sub: 'NE 1st St', x: 410, z: -100, flip: true },
+  { id: 'downtown', name: 'Downtown', sub: 'NE 1st St', x: 620, z: -100, flip: true },
   { id: 'sobe', name: 'South Beach', sub: '8th St', x: 2400, z: 605, flip: true },
 ];
 const ALT = 1400;               // the station / tunnel space floats this high above the entrance
@@ -35,7 +35,7 @@ const COL = { cream: '#fff4e3', coral: '#ff6b5a', pink: '#ff5fa8', gold: '#ffd27
 
 function flagOn() {
   try { const q = new URLSearchParams(location.search); if (q.has('metro')) return q.get('metro') !== '0'; } catch (e) { /* */ }
-  return false;   // r2-metro: off until it has booted clean (then true)
+  return false;   // r2-metro: off by default until the context-loss A/B is clean
 }
 
 // ---------------------------------------------------------------- 2D art (canvas): roundel, signs, line map, livery
@@ -160,7 +160,7 @@ export async function initV2(game) {
 
   // ---- entrance placement: beside the nearest road, stair head facing along the street
   const rg = city.roadGraph || city.data?.roadGraph;
-  for (const st of METRO_STATIONS) {
+  function site(st) {
     let px = st.x, pz = st.z, dx = 1, dz = 0, hw = 6;
     try { const r = rg?.nearestEdge?.(st.x, st.z, null, 300); if (r) { px = r.point.x; pz = r.point.z; dx = r.dir.x; dz = r.dir.z; hw = r.edge.width / 2; } } catch (e) { /* */ }
     // sidewalk side = the side of the district spot (stores), 3.2 m beyond the curb
@@ -168,8 +168,9 @@ export async function initV2(game) {
     let nx = -dz, nz = dx; if (((st.x - px) * nx + (st.z - pz) * nz < 0) !== !!st.flip) { nx = -nx; nz = -nz; }
     const off = hw + (st.off ?? 2.9), x = px + nx * off, z = pz + nz * off;
     const yaw = Math.atan2(dx, dz);   // kiosk local +z (stair head) along the road
-    S.stations.push({ ...st, kx: x, kz: z, yaw, nx, nz, root: null, gy: 0 });
+    return { ...st, kx: x, kz: z, yaw, nx, nz, root: null, gy: 0 };
   }
+  for (const st of METRO_STATIONS) S.stations.push(site(st));
   const local2world = (s, lx, lz) => { const c = Math.cos(s.yaw), sn = Math.sin(s.yaw); return { x: s.kx + lx * c + lz * sn, z: s.kz - lx * sn + lz * c }; };
   const landing = (s) => local2world(s, 0, 4.9);
 
@@ -481,7 +482,7 @@ export async function initV2(game) {
   function rideCamera(dt, cam) {
     const x = R.s, t = performance.now() / 1000, sway = Math.sin(t * 1.7) * 0.012 * Math.min(1, R.v / 8) + Math.sin(t * 7.3) * 0.004 * Math.min(1, R.v / 15);
     if (S.view === 'in') { camL.set(x - 3, CAR_Y + 1.62 + sway, TRACK_Z + 1.15); camT.set(x + 7, CAR_Y + 1.25, TRACK_Z - 2.2); }
-    else { camL.set(x - 40, CAR_Y + 2.3, TRACK_Z - 3.0); camT.set(x + 30, CAR_Y + 1.2, TRACK_Z - 0.6); }   // between the train and the track wall (inside the corridor everywhere)
+    else { const f = 1.5 * CAR_L; camL.set(x + f + 16, CAR_Y + 2.1, TRACK_Z - 0.9); camT.set(x + f - 6, CAR_Y + 1.0, TRACK_Z); }   // ahead of the train in the track corridor, looking back at its lights
     cam.position.copy(toWorld(camL.x, camL.y, camL.z)); cam.lookAt(toWorld(camT.x, camT.y, camT.z));
     if (cam.fov !== 60) { cam.fov = 60; cam.updateProjectionMatrix(); }
     return true;
@@ -568,6 +569,9 @@ export async function initV2(game) {
       if (S.mode === 'ride') { rideTick(dt); help(null); }
     } catch (e) { console.error('[metro]', e); }
   });
-  Object.assign(S, { enter, exitTo, openMenu, choose, T, R, root, landing });   // test hooks (tools/v2/metro/shots.mjs)
+  // test hook: move a station's street entrance (site probing)
+  const resite = (i, o) => { const old = S.stations[i]; if (old.root) { scene.remove(old.root); old.root = null; } if (old.body) { try { world.removeRigidBody(old.body); } catch (e) { /* */ } old.body = null; }
+    const n = site({ ...METRO_STATIONS[i], ...o }); S.stations[i] = n; blips[i].x = n.kx; blips[i].z = n.kz; return n; };
+  Object.assign(S, { enter, exitTo, openMenu, choose, T, R, root, landing, resite });   // test hooks (tools/v2/metro/shots.mjs)
   console.info('[metro] Southline ready:', S.stations.map((s) => `${s.name} (${s.kx.toFixed(0)}, ${s.kz.toFixed(0)})`).join(', '));
 }
