@@ -252,9 +252,9 @@ export function build(ctx) {
   // ---------- hardware instances: bolts + washers, deck screws, hurricane ties ----------
   const boltG = new THREE.CylinderGeometry(0.011, 0.011, 0.03, 6), washG = new THREE.CylinderGeometry(0.024, 0.024, 0.004, 10), screwG = new THREE.CircleGeometry(0.0042, 6); screwG.rotateX(-Math.PI / 2);
   const hw = new THREE.MeshStandardMaterial({ color: 0x6b4a36, roughness: 0.85, metalness: 0.5, map: kit.tex('rusty_metal_04_diff.jpg', { srgb: true }) });
-  ctx.groups.ext.add(kit.instances(boltG, hw, bolts, null, { cast: false }), kit.instances(washG, hw, washers, null, { cast: false }));
+  { const bi = kit.instances(boltG, hw, bolts, null, { cast: false }), wi = kit.instances(washG, hw, washers, null, { cast: false }); bi.name = 'nh:bolts'; wi.name = 'nh:washers'; ctx.groups.ext.add(bi, wi); }
   const sm = new THREE.MeshStandardMaterial({ color: 0x3a3028, roughness: 0.7, metalness: 0.6 });
   const si = kit.instances(screwG, sm, screws, null, { cast: false }); si.name = 'deckScrews'; ctx.groups.detail.add(si);
-  const strapG = new THREE.BoxGeometry(0.003, 0.11, 0.034); const st = kit.instances(strapG, STEEL, straps, straps.map(() => kit.vary(0xb9bdbd, r, 0.1)), { cast: false }); ctx.groups.ext.add(st);
+  const strapG = new THREE.BoxGeometry(0.003, 0.11, 0.034); const st = kit.instances(strapG, STEEL, straps, straps.map(() => kit.vary(0xb9bdbd, r, 0.1)), { cast: false }); st.name = 'nh:straps'; ctx.groups.ext.add(st);
   ctx.stats.structure = { piles: piles.length, bolts: bolts.length, screws: screws.length, straps: straps.length };
 }

@@ -77,7 +77,9 @@ export function buildKeysLots(game, api) {
   }
   lib.ready.then(() => {
     for (const j of libJobs) try { j(); } catch (e) { console.warn('[keysLots]', e); }
-    for (const m of I.build(group)) m.raycast = () => {};
+    for (const m of I.build(group)) { m.raycast = () => {};
+      // r2-art: weathered library wood (rustic fence, piers) reads semi-gloss at its stock 0.5; bare outdoor boards sit at 0.75-0.85
+      const mt = m.material; if (mt && /wood|plank|pier|fence|pole/i.test(mt.name || '') && !mt.userData.r2Rough) { mt.userData.r2Rough = true; mt.roughness = Math.max(mt.roughness ?? 1, 0.82); mt.metalness = 0; mt.needsUpdate = true; } }
     if (piles.length) { const im = new THREE.InstancedMesh(pileGeo, pileMat, piles.length); im.name = 'keysLots:piles'; const q = new THREE.Quaternion();
       piles.forEach(([x, y, z, len, r2], i) => im.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(r2, len, r2)))); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; group.add(im); }
     // moored boats: one instanced mesh per boat model material (bobbing through the instance matrices), all mooring lines merged
