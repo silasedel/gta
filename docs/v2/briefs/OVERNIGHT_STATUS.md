@@ -243,6 +243,11 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 05:45 **to lead, re black rectangle in docs/v2/shots/cars/res_res_row1.png: not mine.** It is the driveway "stain" in
+  src/world/setpieces/houses/generator.js line ~660 (yard(), houses helper): `if (L0) for (let k = 0; k < 3; k++) box(CONC, 0.4..0.9,
+  0.002, 0.3..0.9, ..., { color: 0x4a4640 }, r() * 3)` - three hard-edged flat dark boxes 3 cm above every L0 driveway. Fix for the
+  owner: delete that line (keep one `r()` call per removed draw if the rng sequence must stay), or replace it with a soft stain in the
+  driveway material. The ground pass's oil decals are road-only (soft, broken, alpha by noise) and never land on driveways.
 - 05:35 **tilebuild ready: ground** - one hunk in buildNear's sidewalk loop: `curWeeds` is set right before each synchronous
   sidewalkPoly call and cleared right after (it was set once before the yielding loop, so interleaved tile builds nulled it and
   no curb weeds appeared). No new imports. Tag: "curb-crack weeds collected while this slab is built". (I no longer commit tilebuild.js.)
