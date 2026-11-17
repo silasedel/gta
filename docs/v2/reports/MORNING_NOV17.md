@@ -2,7 +2,8 @@
 
 This covers about 12 helpers and 303 commits on `stage-1`. Nothing was pushed or published.
 
-**Play it:** http://127.0.0.1:5201/ is the production build.
+**Play it:** http://127.0.0.1:5201/ is the production build, rebuilt at 06:30 from the final commits.
+- You now start in the yard between your gray pickup and the rusty classic, looking down the street (`docs/v2/shots/stage1/spawnfix_spawn.png`).
 - `?look3=0` brings back the old lighting.
 - `?nico=old` brings back the old Nico.
 
@@ -59,12 +60,25 @@ Each section names the before/after sheets to look at, and every path is inside 
 
 ## Speed
 - **Loading:** ready in 18–27 s, down from 42 s, and no "page unresponsive". The area around the spawn is now fully built before the loading screen closes; before, 6 of the 7 nearby map squares were still missing.
-- **Frames:** each change was measured on/off in one session while about 10 helpers loaded the machine, so absolute fps from tonight is not meaningful. Draw order, interior culling and parked-car sleep cut shader switches by 60 % and downtown worst-case frames by half.
+- **Frames:** these come from a final tour at 06:25–06:32, after the helpers had stopped. macOS storage-scan processes were still busy, so the numbers swing between runs.
+  - Spawn in Nico's yard: 27–39 fps.
+  - Nico's deck and street: 17–29 fps.
+  - Downtown: 43–48 fps.
+  - Beach park: 18–43 fps.
+  - Night at Nico's: 40–46 fps.
+  - Everglades: 60 fps.
+  - The Keys neighborhood is the heaviest place and dips below 30 fps.
+  - Tonight's draw-order, interior-cull and parked-car changes cut shader switches by 60 % and halved downtown worst-case frames.
 - **What costs most now:** your building models downtown (+7 ms at street level), physics and tile-build spikes while driving, and the new textures (about 250 MB more GPU memory).
 
 ## Still not good enough (honest list)
 - **Generated buildings at street level** are still crude in places: flat walls, simple windows, cartoon brick. See `docs/v2/shots/keys/h2_h_homestead_ab.png`. Your models look good; the procedural ones don't yet.
-- **Car logos:** removed and checked on 7 cars. The rest were cleaned by the same automatic pass and are being re-checked until 06:45; check the status file for any car still listed.
+- **Car logos:** removed from most cars. These still show a maker mark (listed in the cars section of the status file):
+  - grille marks: sedan1, suv3, suv13, suv14 and suv7's hood, plus a small grille badge on sedan3
+  - rear marks: suv13's lettering, plus raised shapes on truck2's tailgate and suv5's rear
+  - white leftover shards: hatch2 and coupe2
+  - super5 is held at the earlier build
+  This is the first thing to finish today.
 - **Interiors:** salons, hardware and electronics shops still use the old toy-like interiors.
 - **Driving:** still has hitches (physics and tile building). Fps on a quiet machine still needs measuring.
 - **Police:** cop aiming was posed for the screenshot; it wasn't seen in a live chase.
