@@ -1250,7 +1250,7 @@ export async function createVehicles(game) {
     const NH = game.nicoHouse; if (!NH?.toWorld) return;
     const h0 = NH.spot?.heading || 0;
     // the neighbors: a sedan under a cover in the next yard, the old graffiti van rusting on the lot across the lane
-    for (const [k, lx, lz, h] of [['covered1', -19.5, 12.5, 0.35], ['van2', 24, 20, 1.9]]) {
+    for (const [k, lx, lz, h] of [['covered1', -19.5, 12.5, 0.35], ['van2', 30.5, 6.5, 2.3]]) {
       const p = NH.toWorld(new THREE.Vector3(lx, 0, lz));
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
