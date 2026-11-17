@@ -399,28 +399,28 @@
   "key": "mangrove",
   "src": "Models/Trees/Mangrove Tree 2 - Red Mangrove With Stilt Roots/Mangrove Tree 2.blend",
   "tris_src": 406008,
-  "tris0": 31107,
-  "tris1": 8003,
+  "tris0": 49984,
+  "tris1": 11004,
   "leaf0": [
    249184,
    13984
   ],
   "bark0": [
    156824,
-   17123
+   36000
   ],
   "leaf1": [
    13984,
    4011
   ],
   "bark1": [
-   17123,
-   3992
+   36000,
+   6993
   ],
   "height": 6.993,
-  "radius": 2.786,
+  "radius": 3.185,
   "crownFrom": 0.545,
-  "bottom": 0.531,
+  "bottom": 0.098,
   "mats": [
    "bark_0",
    "leaf_1"
@@ -461,8 +461,8 @@
     ]
    }
   },
-  "kb0": 1819,
-  "kb1": 376
+  "kb0": 2360,
+  "kb1": 485
  },
  "bougainvillea": {
   "key": "bougainvillea",
@@ -3922,5 +3922,232 @@
   },
   "kb0": 612,
   "kb1": 117
+ },
+ "fan_palm": {
+  "key": "fan_palm",
+  "src": "Models/Trees/Palm Tree 10 - Tall Dark Fan Palm/Palm Tree 10.blend",
+  "tris_src": 201622,
+  "tris0": 18998,
+  "tris1": 4796,
+  "leaf0": [
+   182152,
+   13999
+  ],
+  "bark0": [
+   19470,
+   4999
+  ],
+  "leaf1": [
+   13999,
+   3897
+  ],
+  "bark1": [
+   4999,
+   899
+  ],
+  "height": 12.994,
+  "radius": 3.034,
+  "crownFrom": 0.349,
+  "bottom": -0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1",
+   "leaf_2",
+   "bark_3",
+   "bark_4",
+   "bark_5",
+   "leaf_6"
+  ],
+  "grades": {
+   "Washingtonia Trunk Diffuse.jpeg:bark": {
+    "before": [
+     24.1,
+     0.157,
+     0.406
+    ],
+    "after": [
+     28.3,
+     0.187,
+     0.416
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Washingtonia Leaf Diffuse.jpg:leaf": {
+    "before": [
+     60.1,
+     0.618,
+     0.331
+    ],
+    "after": [
+     77.6,
+     0.528,
+     0.393
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   },
+   "Washingtonia Petiole Diffuse 1.jpg:bark": {
+    "before": [
+     29.7,
+     0.375,
+     0.312
+    ],
+    "after": [
+     29.9,
+     0.286,
+     0.368
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Washingtonia Petiole Diffuse 2.jpg:bark": {
+    "before": [
+     21.3,
+     0.506,
+     0.325
+    ],
+    "after": [
+     26.8,
+     0.366,
+     0.385
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Washingtonia Petiole Diffuse 3.jpg:bark": {
+    "before": [
+     31.4,
+     0.367,
+     0.437
+    ],
+    "after": [
+     30.8,
+     0.294,
+     0.43
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   }
+  },
+  "kb0": 1692,
+  "kb1": 173
+ },
+ "oak_flat": {
+  "key": "oak_flat",
+  "src": "Models/Trees/Oak Tree 2 - Low-Poly Flat-Card Oak/Oak Tree 2.blend",
+  "tris_src": 7112,
+  "tris0": 6369,
+  "tris1": 2269,
+  "leaf0": [
+   1369,
+   1369
+  ],
+  "bark0": [
+   5743,
+   5000
+  ],
+  "leaf1": [
+   1369,
+   1369
+  ],
+  "bark1": [
+   5000,
+   900
+  ],
+  "height": 11.0,
+  "radius": 7.204,
+  "crownFrom": 0.247,
+  "bottom": 0.0,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Bark Color:bark": {
+    "before": [
+     26.4,
+     0.415,
+     0.347
+    ],
+    "after": [
+     28.7,
+     0.298,
+     0.394
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Branches Projection Color:leaf": {
+    "before": [
+     88.2,
+     0.279,
+     0.183
+    ],
+    "after": [
+     84.9,
+     0.451,
+     0.311
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 554,
+  "kb1": 85
+ },
+ "geranium": {
+  "key": "geranium",
+  "src": "Models/Plants/Flower 1 - Purple Wild Geranium Stem/Flower 1.blend",
+  "tris_src": 94954,
+  "tris0": 2499,
+  "tris1": 700,
+  "leaf0": [
+   94954,
+   2499
+  ],
+  "bark0": [
+   0,
+   0
+  ],
+  "leaf1": [
+   2499,
+   700
+  ],
+  "bark1": [
+   0,
+   0
+  ],
+  "height": 0.55,
+  "radius": 0.174,
+  "crownFrom": 0.277,
+  "bottom": -0.0,
+  "mats": [
+   "leaf_0"
+  ],
+  "grades": {},
+  "kb0": 198,
+  "kb1": 35
  }
 }

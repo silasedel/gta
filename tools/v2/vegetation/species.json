@@ -445,9 +445,9 @@
    "height": 7,
    "bark": "Bark",
    "leaf0": 14000,
-   "bark0": 16000,
+   "bark0": 36000,
    "leaf1": 4000,
-   "bark1": 4000,
+   "bark1": 7000,
    "gradeLeaf": [
     96,
     0.48,
@@ -1011,6 +1011,81 @@
    "bark1": 300,
    "grow0": 1.6,
    "drop": "Flower"
+  },
+  "fan_palm": {
+   "src": "Models/Trees/Palm Tree 10 - Tall Dark Fan Palm/Palm Tree 10.blend",
+   "height": 13,
+   "seed": 41,
+   "bark": "Part 8[1456]$",
+   "texfix": {
+    "Part 81$": {
+     "fam": "bark",
+     "color": "textures/Washingtonia Trunk Diffuse.jpeg",
+     "normal": "textures/Washingtonia Trunk Normal.png"
+    },
+    "Part 84$": {
+     "fam": "bark",
+     "color": "textures/Washingtonia Petiole Diffuse 1.jpg",
+     "normal": "textures/Washingtonia Petiole Normal.png"
+    },
+    "Part 85$": {
+     "fam": "bark",
+     "color": "textures/Washingtonia Petiole Diffuse 2.jpg",
+     "normal": "textures/Washingtonia Petiole Normal.png"
+    },
+    "Part 86$": {
+     "fam": "bark",
+     "color": "textures/Washingtonia Petiole Diffuse 3.jpg",
+     "normal": "textures/Washingtonia Petiole 3 Normal.png"
+    },
+    "Part 8[27]$": {
+     "fam": "leaf",
+     "color": "textures/Washingtonia Leaf Diffuse.jpg",
+     "alpha": "textures/Washingtonia Leaf Opacity.jpg",
+     "normal": "textures/Washingtonia Leaf Normal.png"
+    },
+    "Part 83$": {
+     "fam": "leaf",
+     "color": "textures/Washingtonia Diffuse.jpg",
+     "alpha": "textures/Washingtonia Opacity.jpg",
+     "normal": "textures/Washingtonia Normal.png",
+     "nograde": 1
+    },
+    "Part 88$": {
+     "fam": "leaf",
+     "color": "textures/Washingtonia Petiole Dry Diffuse.jpg",
+     "alpha": "textures/Washingtonia Petiole Dry Opacity.jpg",
+     "normal": "textures/Washingtonia Petiole Dry Normal.png",
+     "nograde": 1
+    }
+   }
+  },
+  "oak_flat": {
+   "src": "Models/Trees/Oak Tree 2 - Low-Poly Flat-Card Oak/Oak Tree 2.blend",
+   "height": 11,
+   "seed": 43,
+   "bark": "^Bark$",
+   "leafMode": "none",
+   "texfix": {
+    "Branches Projection": {
+     "fam": "leaf",
+     "alpha": "textures/Branches Projection Alpha.jpeg"
+    }
+   }
+  },
+  "geranium": {
+   "src": "Models/Plants/Flower 1 - Purple Wild Geranium Stem/Flower 1.blend",
+   "height": 0.55,
+   "seed": 47,
+   "bark": "^$",
+   "leafMode": "decimate",
+   "leaf0": 2500,
+   "leaf1": 700,
+   "texfix": {
+    "Geranium": {
+     "nograde": 1
+    }
+   }
   }
  }
 }

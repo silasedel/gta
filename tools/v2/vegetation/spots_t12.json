@@ -1,0 +1,4 @@
+{
+ "airport_air": { "at": [-1420, 760], "eyeRel": [-320, 170, -280], "lookRel": [60, 0, 60], "tod": 12, "hidePlayer": true },
+ "airport_front": { "at": [-1420, 760], "eyeRel": [-60, 25, -120], "lookRel": [0, 2, 0], "tod": 12, "hidePlayer": true }
+}
