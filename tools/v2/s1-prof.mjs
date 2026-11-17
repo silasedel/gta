@@ -2,12 +2,13 @@
 // Stage 1 profiler: stand at a place, report CPU per system (EMA), frame gap, draw calls, and GPU time per pass (if the
 // EXT_disjoint_timer_query_webgl2 extension is available). Muted.
 //   node tools/v2/s1-prof.mjs [--at x,z] [--tod 11] [--secs 8] [--eval "js"]
-import { withBrowser, GAME_READY } from './browser.mjs';
+import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: 600 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+  if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${o.tod || 11}; ${o.at ? `game.teleport(${o.at});` : ''} return 1; })()`);
   if (o.eval) console.log('EVAL', await b.eval(o.eval));
   await b.sleep((+(o.secs || 8)) * 1000);

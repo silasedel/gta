@@ -153,3 +153,15 @@ export async function withBrowser(opts, fn) {
 
 // Helpers for full-game tests (http://127.0.0.1:5200/?mute or a production preview).
 export const GAME_READY = `window.game && game.ready === true && game.v2`;
+
+// Stage 1: leave the title screen the way a player does (Enter, Enter) and wait until gameplay is live, so the title
+// cinematic no longer moves the player or sets the hour. Returns true when game.ui.title is false.
+export async function startGame(b, seconds = 120) {
+  await b.waitFor(GAME_READY, 480);
+  for (let i = 0; i < seconds; i++) {
+    if (await b.eval('!(game.ui && game.ui.title)')) { await b.sleep(1500); return true; }
+    if (i % 3 === 0) { await b.key('Enter', true, 'Enter'); await b.key('Enter', false, 'Enter'); }
+    await b.sleep(1000);
+  }
+  return false;
+}

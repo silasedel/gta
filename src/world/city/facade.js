@@ -191,10 +191,13 @@ void facadeEval() {
       // sub-pixel windows (mid / far LOD): light whole clusters of windows (power-of-two groups at least ~1.5 px wide) so a
       // distant tower keeps a random lit pattern instead of averaging to a flat glow
       float farF = smoothstep(0.6, 2.5, px / min(cs.x, cs.y));
-      vec2 kg = exp2(ceil(log2(max(vec2(1.0), px * 1.6 / cs))));
+      vec2 kg = min(exp2(ceil(log2(max(vec2(1.0), px * 1.6 / cs)))), vec2(4.0)); // stage 1: clusters at most 4x4 windows (bigger groups lit whole towers white)
       vec2 cg = floor(cell / kg);
       float thrG = prof == 0 ? mix(fH2(cg * 1.31 + seed * 7.0), fH2(vec2(cg.y * 1.7, seed)), 0.6) : fH2(cg * 1.31 + seed * 7.0);
       lit = mix(step(thr, lf), step(thrG, lf), farF) * uFNight;
+      // stage 1: very far (windows well under a pixel even in clusters): average lit coverage (lit share x glazed share)
+      float avgF = smoothstep(4.0, 10.0, px / min(cs.x, cs.y));
+      lit = mix(lit, lf * 0.45 * uFNight, avgF);
       gFFar = smoothstep(0.3, 1.6, px / min(cs.x, cs.y));
       gFLit = lit;
       float warm = fH2(cell * 3.1 + seed + 5.0);

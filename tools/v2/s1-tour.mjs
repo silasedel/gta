@@ -4,7 +4,7 @@
 // Writes docs/v2/shots/stage1/<set>_<id>.png and docs/v2/reports/stage1-<set>.json
 import fs from 'node:fs';
 import path from 'node:path';
-import { withBrowser, GAME_READY } from './browser.mjs';
+import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
@@ -26,6 +26,7 @@ const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 900) }, async (b) => {
   await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+  if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; window.__spawn = game.player ? [game.player.position.x, game.player.position.z] : null; return 1; })()`);
   for (const id of only) {
     const s = SPOTS[id]; if (!s) continue;
@@ -34,6 +35,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       else if (s.house && game.nicoHouse) { const g = game.nicoHouse.group || game.nicoHouse.root; const p = g ? g.position : null; const a = game.nicoHouse.anchors?.front || game.nicoHouse.anchors?.door; const q = a?.pos || (p && { x: p.x, z: p.z + 14 }); if (q) game.teleport(q.x, undefined, q.z, s.heading ?? Math.PI); }
       else if (s.player) game.teleport(s.player[0], undefined, s.player[1], s.player[2]);
       else if (window.__spawn) game.teleport(window.__spawn[0], undefined, window.__spawn[1]);
+      ${s.eval || ''}
       return 1; })()`;
     await b.eval(setup);
     await b.sleep(+(o.settle || 5000));

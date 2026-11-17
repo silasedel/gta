@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import './render/specularAA.js'; // stage 1: must patch ShaderChunk before any material compiles
 import './ui/menu/splash.js'; // [main-menu hook] key-art boot screen
 import RAPIER from '@dimforge/rapier3d-compat';
 import { createInput } from './core/input.js';
