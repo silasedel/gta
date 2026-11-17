@@ -201,9 +201,14 @@ export function createOcean(game, skyUniforms, normalsTex) {
         for (let i = 0; i < W * h; i++) land[y0 * W + i] = px[i * 4] > 127 ? 1 : 0;
         yield;
       }
-    } else if (typeof city.isWater === 'function') {
-      for (let j = 0; j < H; j++) { for (let i = 0; i < W; i++) land[j * W + i] = city.isWater(minX + (i + 0.5) * cell, minZ + (j + 0.5) * cell) ? 0 : 1; if (j % 16 === 0) yield; }
-    } else return false;
+    }
+    // ground pass: the synthetic coasts (Keys, Gulf towns) are not all in mapLayers: every cell the water mask calls land counts too
+    if (typeof city.isWater === 'function') {
+      for (let j = 0; j < H; j++) { for (let i = 0; i < W; i++) { const k = j * W + i; if (!land[k] && !city.isWater(minX + (i + 0.5) * cell, minZ + (j + 0.5) * cell)) land[k] = 1; } if (j % 2 === 1) yield; }
+    }
+    if (!(ml && Array.isArray(ml.land) && ml.land.length) && typeof city.isWater !== 'function') return false;
+    if (false) {
+    }
     const INF = 1e9, d = new Float32Array(W * H);
     for (let i = 0; i < W * H; i++) d[i] = land[i] ? 0 : INF;
     const A = 1, B = Math.SQRT2;
