@@ -253,10 +253,10 @@ function startTitle(game, ctx, cin, fe, params) {
   menu.addEventListener('nav:focus', (e) => { const b = e.target.closest('.pm-item'); if (b) { menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('cur', x === b)); } });
   menu.addEventListener('click', (e) => { const b = e.target.closest('.pm-item'); if (b) choose(b.dataset.id); });
 
-  function choose(id) {
+  function choose(id, o = {}) {
     switch (id) {
-      case 'continue': ctx.sfx('start'); play('continue'); break;
-      case 'new': ctx.sfx('start'); play('new'); break;
+      case 'continue': ctx.sfx('start'); play('continue', o); break;
+      case 'new': ctx.sfx('start'); play('new', o); break;
       case 'online': ctx.sfx('open'); openOnline(); break;
       case 'wardrobe': ctx.sfx('open'); openWardrobe(); break;
       case 'settings': ctx.sfx('open'); openSettings(); break;
@@ -321,12 +321,12 @@ function startTitle(game, ctx, cin, fe, params) {
 
   // ---------------------------------------------------------------- into the game
   let playing = false;
-  async function play(kind) {
+  async function play(kind, o = {}) {
     if (playing) return; playing = true;
     fe.screen = 'loading';
     scope?.pop();
     root.classList.add('leaving');
-    const load = createLoading(game, ctx, kind);
+    const load = createLoading(game, ctx, kind, o.from);
     await cin.crossfade(900);
     live = false;
     await new Promise((r) => setTimeout(r, 380));
@@ -375,16 +375,22 @@ function startTitle(game, ctx, cin, fe, params) {
     game.emit?.('frontend:play', {});
   }
   fe.open = () => { /* the title only opens at boot */ };
+  // r2-web quick title (quickTitle.js): it was on screen while the engine loaded and hands over in the same state
+  fe.quick = {
+    openMenu,
+    choose,
+    focus(id) { const b = id && menu.querySelector(`.pm-item[data-id="${id}"]`); if (b && scope?.focus) scope.focus(b); else if (b) { menu.querySelectorAll('.pm-item').forEach((x) => x.classList.toggle('is-focus', x === b)); } },
+  };
   // dev: ?menushot=<id>&menustate=menu|settings|wardrobe|loading for shots
   const st = params.get('menustate');
   if (st) setTimeout(async () => { await openMenu(); if (st === 'settings') openSettings(); else if (st === 'wardrobe') openWardrobe(); else if (st === 'online') openOnline(); else if (st === 'credits') openCredits(); }, 600);
 }
 
 // ---------------------------------------------------------------- loading screen
-function createLoading(game, ctx, kind) {
+function createLoading(game, ctx, kind, from = 2) {
   const fill = (t) => esc(t).replace(/ , and \. /, ` ${ctx.bindings.glyph('radioPrev')} and ${ctx.bindings.glyph('radioNext')} `);
   const ls = createLoadScreen({ mount: ctx.layer('top'), fillTip: fill });
-  ls.set(2, kind === 'continue' ? 'Loading your save' : 'Starting a new game');
+  ls.set(from, kind === 'continue' ? 'Loading your save' : 'Starting a new game');
   return {
     // real readiness: streamed tiles (colliders + full-detail meshes) within 220 m of the player
     async waitWorld(x, z) {

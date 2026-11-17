@@ -1,0 +1,616 @@
+{
+ "set": "devquick",
+ "url": "http://127.0.0.1:5200/web-entry.html?mute&menu=1&quick=1",
+ "when": "2026-11-17T19:22:31.053Z",
+ "throttle": null,
+ "visits": [
+  {
+   "label": "first",
+   "wallMs": 145033,
+   "marks": {
+    "art": 823,
+    "title": 876,
+    "fcp": 1116,
+    "ready": 134307,
+    "control": 141485
+   },
+   "pressedAt": 8542,
+   "sum": {
+    "fcp": {
+     "ms": 1116,
+     "requests": 14,
+     "bytes": 914108
+    },
+    "art": {
+     "ms": 823,
+     "requests": 14,
+     "bytes": 914108
+    },
+    "title": {
+     "ms": 876,
+     "requests": 14,
+     "bytes": 914108
+    },
+    "ready": {
+     "ms": 134307,
+     "requests": 2729,
+     "bytes": 428994213
+    },
+    "control": {
+     "ms": 141485,
+     "requests": 2978,
+     "bytes": 465525864
+    }
+   },
+   "all": {
+    "requests": 3065,
+    "bytes": 479627598
+   },
+   "sw": false,
+   "streamerPending": 0,
+   "errors404": [
+    "404 /favicon.ico",
+    "500 /src/world/setpieces/nicoHouse/parts/05_site.js?t=1794940635913",
+    "206 /assets/audio/music/theme/port_solana_theme.aac",
+    "404 /favicon.ico"
+   ],
+   "consoleErrors": [
+    "ERR [vehicles] failed ReferenceError: Cannot access 'noPark' before initialization\n    at parkChecked (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794941914324:1357:22)\n    at createVehicles (http://127.0.0.1:5200/src/vehicles/vehicles.js?t=1794941914324:1336:49)\n    at async safe (http://127.0.0.1:5200/src/main.js?t=1794943011726:54:16)\n    at async boot (http://127.0.0.1:5200/src/main.js?t=1794943011726:135:19)",
+    "LOG Failed to load resource: the server responded with a status of 500 (Internal Server Error) http://127.0.0.1:5200/src/world/setpieces/nicoHouse/parts/05_site.js?t=1794940635913",
+    "ERR [v2:./world/setpieces/nicoHouse/nicoHouse.v2.js] failed TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:5200/src/world/setpieces/nicoHouse/nicoHouse.v2.js?t=1794940635913"
+   ],
+   "critTitle": [
+    "   0.51 MiB    163-   686 ms /assets/ui/keyart_loading.webp",
+    "   0.13 MiB    163-   195 ms /@vite/client",
+    "   0.06 MiB    438-   599 ms /src/ui/menu/quickTitle.js?t=1794941620618",
+    "   0.04 MiB    438-   579 ms /src/ui/menu/loadScreen.js",
+    "   0.04 MiB    580-   684 ms /src/ui/core/logo.js",
+    "   0.04 MiB    600-   623 ms /src/ui/menu/menu.css",
+    "   0.02 MiB    580-   679 ms /src/ui/styles/tokens.css",
+    "   0.01 MiB    212-   437 ms /src/ui/menu/splash.js?t=1794941620618",
+    "   0.01 MiB    601-   775 ms /src/ui/brand.js",
+    "   0.00 MiB    197-   204 ms /node_modules/vite/dist/client/env.mjs",
+    "   0.00 MiB    163-   211 ms /src/web/entry.js",
+    "   0.00 MiB      0-    68 ms /web-entry.html?mute&menu=1&quick=1",
+    "   0.00 MiB    580-   614 ms /src/ui/styles/fonts.css",
+    "   0.00 MiB    601-   669 ms /src/version.js"
+   ],
+   "critControl": [
+    "   5.20 MiB  90727- 91581 ms /assets/models/docks/pier_kit.glb",
+    "   5.02 MiB  11670- 11912 ms /assets/characters/wardrobe/garments.glb",
+    "   4.81 MiB 109722-122986 ms /assets/setpieces/nicoHouse/tex/shell_floor_01_nor_gl.jpg",
+    "   4.62 MiB  23880- 24066 ms /assets/textures/roads/decals_col.png",
+    "   4.27 MiB  61088- 61904 ms /assets/characters/nico_tripo/nico_tripo.glb",
+    "   3.44 MiB  24661- 25276 ms /assets/models/street/shelter_old.glb",
+    "   3.13 MiB  55976- 56622 ms /assets/characters/Michelle.glb",
+    "   2.93 MiB  30233- 34955 ms /assets/textures/roads/concrete_nrm.jpg",
+    "   2.92 MiB  23432- 23822 ms /assets/textures/roads/concrete_nrm.jpg",
+    "   2.82 MiB  23881- 24043 ms /assets/textures/roads/decals_nrm.png",
+    "   2.82 MiB 109722-122286 ms /assets/setpieces/nicoHouse/tex/shell_floor_01_diff.jpg",
+    "   2.79 MiB  55976- 56607 ms /assets/characters/Xbot.glb",
+    "   2.72 MiB  22159- 23342 ms /assets/textures/roads/pavers_nrm.jpg",
+    "   2.70 MiB  91657-106842 ms /assets/signs/keys_welcome_normal.jpg",
+    "   2.68 MiB  24661- 25206 ms /assets/models/street/shelter_black.glb",
+    "   2.63 MiB  24447- 24530 ms /assets/textures/ground/lawn_h.jpg",
+    "   2.54 MiB  12063- 12462 ms /src/world/miami/tilebuild.js?t=1794942953296",
+    "   2.44 MiB  58377- 58802 ms /assets/humans/atlasS.jpg",
+    "   2.40 MiB 109722-122275 ms /assets/setpieces/nicoHouse/tex/rough_wood_nor_gl.jpg",
+    "   2.33 MiB  22158- 23182 ms /assets/textures/roads/asphalt_nrm.jpg",
+    "   2.31 MiB  32645- 41136 ms /assets/models/vegetation/mangrove.glb",
+    "   2.28 MiB  61088- 61443 ms /assets/characters/nico_tripo/albedo.webp",
+    "   2.25 MiB  25730- 26150 ms /assets/textures/ground/sandgrass_h.jpg",
+    "   2.12 MiB 109722-122272 ms /assets/setpieces/nicoHouse/tex/rough_wood_diff.jpg",
+    "   2.06 MiB  55976- 56581 ms /assets/characters/Soldier.glb"
+   ],
+   "dirsControl": [
+    "  43.26 MiB /assets/models/vegetation",
+    "  38.17 MiB /assets/city/pbr",
+    "  36.52 MiB /assets/textures/ground",
+    "  35.18 MiB /assets/vehicles/cars",
+    "  32.83 MiB /assets/textures/roads",
+    "  31.75 MiB /assets/models/street",
+    "  22.74 MiB /assets/setpieces/nicoHouse",
+    "   9.17 MiB /assets/npc/people",
+    "   7.78 MiB /assets/characters/nico_tripo",
+    "   7.42 MiB /src/world/setpieces",
+    "   6.14 MiB /assets/models/docks",
+    "   5.69 MiB /assets/city/models",
+    "   5.42 MiB /src/world/interiors",
+    "   5.29 MiB /src/world/miami",
+    "   5.03 MiB /assets/characters/wardrobe",
+    "   4.94 MiB /assets/miami/b20261117-080220",
+    "   4.40 MiB /assets/models/buildings",
+    "   3.48 MiB /node_modules/.vite/deps",
+    "   3.36 MiB /assets/audio/ambience",
+    "   3.13 MiB /assets/characters/Michelle.glb"
+   ],
+   "stages": [
+    [
+     "rapier",
+     11733,
+     18
+    ],
+    [
+     "env",
+     11894,
+     142
+    ],
+    [
+     "miami",
+     12036,
+     43939
+    ],
+    [
+     "chars",
+     55976,
+     6195
+    ],
+    [
+     "playerModel",
+     62171,
+     20
+    ],
+    [
+     "vehicles",
+     62191,
+     15475
+    ],
+    [
+     "npcAtlas",
+     77666,
+     1987
+    ],
+    [
+     "peds",
+     79653,
+     1
+    ],
+    [
+     "interiors",
+     79654,
+     1666
+    ],
+    [
+     "gameplay",
+     81321,
+     221
+    ],
+    [
+     "hud",
+     81542,
+     23
+    ],
+    [
+     "post",
+     81564,
+     10
+    ],
+    [
+     "v2:./audio/passed.v2.js",
+     81580,
+     386
+    ],
+    [
+     "v2:./design/design.v2.js",
+     81966,
+     321
+    ],
+    [
+     "v2:./fx/fire.v2.js",
+     82287,
+     256
+    ],
+    [
+     "v2:./fx/footprints.v2.js",
+     82543,
+     71
+    ],
+    [
+     "v2:./gameplay/business/business.v2.js",
+     82614,
+     107
+    ],
+    [
+     "v2:./gameplay/gangs/gangs.v2.js",
+     82721,
+     221
+    ],
+    [
+     "v2:./jobs/jobs.v2.js",
+     82942,
+     109
+    ],
+    [
+     "v2:./net/mp.v2.js",
+     83050,
+     188
+    ],
+    [
+     "v2:./npc/arch/arch.v2.js",
+     83238,
+     193
+    ],
+    [
+     "v2:./npc/people.v2.js",
+     83431,
+     255
+    ],
+    [
+     "v2:./player/nico.v2.js",
+     83685,
+     123
+    ],
+    [
+     "v2:./player/ragdoll.v2.js",
+     83809,
+     63
+    ],
+    [
+     "v2:./player/vault.v2.js",
+     83872,
+     141
+    ],
+    [
+     "v2:./render/contextGuard.v2.js",
+     84013,
+     32
+    ],
+    [
+     "v2:./render/detailCull.v2.js",
+     84044,
+     16
+    ],
+    [
+     "v2:./render/drawOrder.v2.js",
+     84060,
+     663
+    ],
+    [
+     "v2:./render/perfGuards.v2.js",
+     84723,
+     154
+    ],
+    [
+     "v2:./render/precompile.v2.js",
+     84877,
+     280
+    ],
+    [
+     "v2:./render/quality.v2.js",
+     85157,
+     544
+    ],
+    [
+     "v2:./render/warmup.v2.js",
+     85702,
+     110
+    ],
+    [
+     "v2:./systems/systems.v2.js",
+     85812,
+     1096
+    ],
+    [
+     "v2:./ui/menu/frontend.v2.js",
+     86908,
+     540
+    ],
+    [
+     "v2:./ui/menu/intros.v2.js",
+     87448,
+     210
+    ],
+    [
+     "v2:./vehicles/envlink.v2.js",
+     87657,
+     6
+    ],
+    [
+     "v2:./vehicles/hero/hero.v2.js",
+     87664,
+     8
+    ],
+    [
+     "v2:./vehicles/physics/physics.v2.js",
+     87671,
+     92
+    ],
+    [
+     "v2:./web/offline.v2.js",
+     87763,
+     135
+    ],
+    [
+     "v2:./world/dressing/dressing.v2.js",
+     87898,
+     543
+    ],
+    [
+     "v2:./world/env/weather.v2.js",
+     88440,
+     30
+    ],
+    [
+     "v2:./world/ground/beach.v2.js",
+     88471,
+     4
+    ],
+    [
+     "v2:./world/ground/grass.v2.js",
+     88475,
+     7
+    ],
+    [
+     "v2:./world/ground/sand.v2.js",
+     88482,
+     11
+    ],
+    [
+     "v2:./world/props/dynamicProps.v2.js",
+     88492,
+     0
+    ],
+    [
+     "v2:./world/props/hydrantSpray.v2.js",
+     88492,
+     0
+    ],
+    [
+     "v2:./world/props/lotProps.v2.js",
+     88493,
+     0
+    ],
+    [
+     "v2:./world/props/propShapes.v2.js",
+     88493,
+     0
+    ],
+    [
+     "v2:./world/props/variants.v2.js",
+     88493,
+     0
+    ],
+    [
+     "v2:./world/setpieces/houses/houses.v2.js",
+     88493,
+     286
+    ],
+    [
+     "v2:./world/setpieces/keysBar/keysBar.v2.js",
+     88779,
+     461
+    ],
+    [
+     "v2:./world/setpieces/keysSign/keysSign.v2.js",
+     89240,
+     36
+    ],
+    [
+     "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js",
+     89276,
+     635
+    ],
+    [
+     "v2:./world/setpieces/towns/towns.v2.js",
+     89911,
+     163
+    ],
+    [
+     "v2:./world/signs/regulatory.v2.js",
+     90074,
+     100
+    ],
+    [
+     "v2:./world/signs/signs.v2.js",
+     90174,
+     18
+    ],
+    [
+     "v2:./world/vegetation/vegetation.v2.js",
+     90192,
+     15
+    ],
+    [
+     "init:render/detailCull.v2.js",
+     90207,
+     0
+    ],
+    [
+     "init:render/perfGuards.v2.js",
+     90207,
+     2
+    ],
+    [
+     "init:render/contextGuard.v2.js",
+     90209,
+     0
+    ],
+    [
+     "init:render/drawOrder.v2.js",
+     90209,
+     0
+    ],
+    [
+     "init:systems/systems.v2.js",
+     90210,
+     7
+    ],
+    [
+     "init:vehicles/physics/physics.v2.js",
+     90217,
+     13
+    ],
+    [
+     "init:render/quality.v2.js",
+     90229,
+     4
+    ],
+    [
+     "init:world/env/weather.v2.js",
+     90233,
+     2
+    ],
+    [
+     "init:design/design.v2.js",
+     90235,
+     0
+    ],
+    [
+     "init:player/nico.v2.js",
+     90236,
+     1
+    ],
+    [
+     "init:player/ragdoll.v2.js",
+     90236,
+     0
+    ],
+    [
+     "init:player/vault.v2.js",
+     90236,
+     0
+    ],
+    [
+     "init:world/ground/sand.v2.js",
+     90236,
+     0
+    ],
+    [
+     "init:world/signs/signs.v2.js",
+     90236,
+     9
+    ],
+    [
+     "init:world/vegetation/vegetation.v2.js",
+     90246,
+     0
+    ],
+    [
+     "init:world/signs/regulatory.v2.js",
+     90246,
+     37
+    ],
+    [
+     "init:world/ground/beach.v2.js",
+     90282,
+     0
+    ],
+    [
+     "init:world/ground/grass.v2.js",
+     90283,
+     37
+    ],
+    [
+     "init:world/dressing/dressing.v2.js",
+     90320,
+     663
+    ],
+    [
+     "init:world/setpieces/keysSign/keysSign.v2.js",
+     90983,
+     16590
+    ],
+    [
+     "init:world/setpieces/keysBar/keysBar.v2.js",
+     107573,
+     1839
+    ],
+    [
+     "init:world/setpieces/houses/houses.v2.js",
+     109412,
+     310
+    ],
+    [
+     "init:world/setpieces/towns/towns.v2.js",
+     109723,
+     2375
+    ],
+    [
+     "init:fx/footprints.v2.js",
+     112097,
+     1
+    ],
+    [
+     "init:npc/arch/arch.v2.js",
+     112099,
+     996
+    ],
+    [
+     "init:audio/passed.v2.js",
+     113095,
+     0
+    ],
+    [
+     "init:gameplay/gangs/gangs.v2.js",
+     113095,
+     7
+    ],
+    [
+     "init:npc/people.v2.js",
+     113102,
+     7
+    ],
+    [
+     "init:vehicles/hero/hero.v2.js",
+     113110,
+     7896
+    ],
+    [
+     "init:gameplay/business/business.v2.js",
+     121005,
+     21
+    ],
+    [
+     "init:jobs/jobs.v2.js",
+     121027,
+     1
+    ],
+    [
+     "init:fx/fire.v2.js",
+     121028,
+     1
+    ],
+    [
+     "init:net/mp.v2.js",
+     121029,
+     0
+    ],
+    [
+     "init:vehicles/envlink.v2.js",
+     121029,
+     0
+    ],
+    [
+     "init:render/precompile.v2.js",
+     121029,
+     0
+    ],
+    [
+     "init:render/warmup.v2.js",
+     121029,
+     35
+    ],
+    [
+     "init:ui/menu/frontend.v2.js",
+     121064,
+     1187
+    ],
+    [
+     "init:ui/menu/intros.v2.js",
+     122251,
+     0
+    ],
+    [
+     "init:web/offline.v2.js",
+     122251,
+     0
+    ],
+    [
+     "shaders+warmup",
+     122251,
+     12053
+    ]
+   ]
+  }
+ ]
+}

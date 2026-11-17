@@ -2,6 +2,7 @@
 // screen (loadScreen.js: stylized key art, logo, LOADING bar, tips) sits inside #loading. main.js keeps writing
 // #loadmsg / #loadpct; this mirrors them into the bar. main.js fades and removes #loading; the live title is under it.
 import { createLoadScreen } from './loadScreen.js';
+import { installQuickTitle, quickTitleEnabled } from './quickTitle.js';
 
 function install() {
   const L = document.getElementById('loading'); if (!L || L.dataset.sl) return;
@@ -16,5 +17,7 @@ function install() {
     const p = parseFloat(pc?.textContent || '0') || 0;
     ls.set(p, (mg?.textContent || '').replace(/^LOADING$/, 'Starting up'));
   }, 120);
+  // r2-web: the title and menu go up at once, over the loading screen, while the engine loads behind them
+  if (quickTitleEnabled()) { try { installQuickTitle(); } catch (e) { console.warn('[quickTitle] skipped', e); } }
 }
 if (typeof document !== 'undefined') { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install); else install(); }

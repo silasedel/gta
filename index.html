@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOUTHLINE</title>
+  <!-- r2-web: the key art behind the loading screen and the title is the first thing painted -->
+  <link rel="preload" as="image" href="assets/ui/keyart_loading.webp" fetchpriority="high" />
+  <link rel="icon" href="data:," />
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
     canvas#game { display: block; width: 100vw; height: 100vh; }
@@ -23,6 +26,8 @@
     <script>
     // When hosted under a sub-path (e.g. GitHub Pages /port-solana/), rewrite root-absolute '/assets/...'
     // URLs used by the game code to the site's base path. No-op when served from the domain root.
+    // r2-web: keep every resource entry (default buffer is 250) so the offline cache can copy what the first visit loaded
+    try { performance.setResourceTimingBufferSize(20000); } catch (e) {}
     (function () {
       var base = new URL('.', location.href).pathname;
       if (base === '/') return;
