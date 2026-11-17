@@ -999,6 +999,18 @@
     }
    },
    "seed": 59
+  },
+  "green_shrub": {
+   "src": "Models/Plants/Flower 2 - Flowering White Shrub/Flower 2.blend",
+   "height": 1.8,
+   "seed": 37,
+   "bark": "Bark",
+   "leaf0": 14000,
+   "bark0": 1500,
+   "leaf1": 3500,
+   "bark1": 300,
+   "grow0": 1.6,
+   "drop": "Flower"
   }
  }
 }

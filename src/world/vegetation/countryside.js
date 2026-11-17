@@ -66,7 +66,7 @@ const TREE_KINDS = {
   mangrove: { models: ['mangrove_b'], fb: 'mangrove', sp: 'mangrove', s: [0.7, 1.25] }, // stilt-root red mangrove (shader variation per trunk)
   sabal: { models: ['sabal_palm', 'weathered_b', 'weathered_a'], w: [2, 2, 1], fb: 'sabal', palm: 1, s: [0.8, 1.12] }, // w: model weights (the dark weathered palm stays rare)
   coconut: { models: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], fb: 'coconut', palm: 1, s: [0.85, 1.15] },
-  seagrapeT: { models: ['bush_leafy', 'bush_round'], fb: 'seagrape', sp: 'seagrape', s: [1.4, 2.0], shrubLike: 1 },
+  seagrapeT: { models: ['rubber_fig'], fb: 'seagrape', sp: 'seagrape', s: [0.55, 0.9], shrubLike: 1 }, // the mid layer: a 2.3-3.8 m broadleaf (sea grape stand-in; the low-poly bushes scaled up read blocky)
   poinciana: { models: ['poinciana', 'poinciana_b', 'poinciana_c'], fb: 'poinciana', sp: 'oak', s: [0.85, 1.15] },
   coconutM: { models: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], fb: 'coconut', palm: 1, s: [0.85, 1.2] },
   banyan: { models: ['banyan', 'banyan_b'], fb: 'liveoak', sp: 'oak', s: [0.85, 1.1], wide: 1 },
@@ -75,8 +75,8 @@ const TREE_KINDS = {
   queen: { models: ['tropical_palm', 'palm_yellow', 'date_palm'], fb: 'queen', palm: 1, s: [0.85, 1.15] },
 };
 for (const K of Object.values(TREE_KINDS)) if (K.models) K.seeds = K.models.map(() => [1, 1]);
-const SHRUB_KINDS = { seagrape: { models: ['bush_leafy', 'bush_round'], kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { models: ['fern_a', 'fern_b', 'fern_c'], custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { models: ['fern_clump', 'tropical_bed'], seeds: [[1, 1]] },
-  hibiscus: { models: ['hibiscus', 'flower_bush_a', 'flower_bush_b'], kind: 'hibiscus', seeds: [[2, 0.8], [7, 1]] }, bougainvillea: { models: ['bougainvillea', 'bougainvillea_b'], kind: 'bougainvillea', seeds: [[1, 0.8], [9, 1]] }, hedge: { models: ['bush_round', 'bush_leafy'], kind: 'hedge', seeds: [[3, 0.8]] },
+const SHRUB_KINDS = { seagrape: { models: ['bush_round', 'green_shrub'], kind: 'seagrape', seeds: [[1, 0.6], [6, 0.75]] }, sawpalmetto: { kind: 'sawpalmetto', seeds: [[1, 0.8], [4, 1], [9, 1.15]] }, fern: { models: ['fern_a', 'fern_b', 'fern_c'], custom: 'fern', seeds: [[1, 1], [2, 1]] }, fernM: { models: ['fern_clump', 'tropical_bed'], seeds: [[1, 1]] },
+  hibiscus: { models: ['hibiscus', 'flower_bush_a', 'flower_bush_b'], kind: 'hibiscus', seeds: [[2, 0.8], [7, 1]] }, bougainvillea: { models: ['bougainvillea', 'bougainvillea_b'], kind: 'bougainvillea', seeds: [[1, 0.8], [9, 1]] }, hedge: { models: ['bush_round', 'green_shrub'], kind: 'hedge', seeds: [[3, 0.8]] },
   oleander: { models: ['oleander'], kind: 'hibiscus', seeds: [[3, 1]] }, agave: { models: ['agave'], kind: 'croton', seeds: [[1, 1]] }, redgrass: { models: ['red_grass'], kind: 'croton', seeds: [[1, 1]] }, tuft: { models: ['grass_tuft_a', 'grass_tuft_b'], custom: 'fern', seeds: [[1, 1]] }, moss: { models: ['moss_clump'], custom: 'fern', seeds: [[1, 1]] } };
 for (const K of Object.values(SHRUB_KINDS)) if (K.models) K.seeds = K.models.map(() => [1, 1]);
 
@@ -352,8 +352,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
           if (vn(t / 6.5 + (id % 89), li * 3.7 + (id % 13)) < (keys ? 0.36 : 0.44)) continue; // runs and gaps
           const ins = 0.7 + hh(id, li * 97 + k, 303) * 0.4, lu = su ? su * (hw - ins) : t, lv = su ? t : -(hd - ins), x = l.x + co * lu + sn * lv, z = l.z - sn * lu + co * lv;
           if ((roadDist ? roadDist(x, z) : 99) < 2.5 || data.isWater(x, z) || (deckAt && deckAt(x, z)) || trunks.some((q) => (q[0] - x) ** 2 + (q[1] - z) ** 2 < 2)) continue;
-          const r = hh(id, li * 97 + k, 304), tall = keys && r < 0.22, name = tall ? 'seagrape' : pick(LH, hh(id, li * 97 + k, 305)), lst = protoOf[name]; if (!lst) continue;
-          const s = tall ? 1.7 + r * 1.8 : 0.95 + hh(id, li * 97 + k, 306) * 0.45;
+          const r = hh(id, li * 97 + k, 304), tall = keys && r < 0.22, name = tall ? 'seagrapeT' : pick(LH, hh(id, li * 97 + k, 305)), lst = protoOf[name]; if (!lst) continue;
+          const s = tall ? 0.55 + r * 1.4 : 0.95 + hh(id, li * 97 + k, 306) * 0.45;
           put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, terrain.heightAt(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
         }
       }

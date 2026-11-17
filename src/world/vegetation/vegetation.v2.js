@@ -103,6 +103,7 @@ export async function initV2(game) {
       const lib = game.city?.flora?.models || {}, direct = VEG_LIB[kind] ? kind : null, grp = direct ? null : groupOf(ALIAS_G[kind] || kind);
       const keys = direct ? [direct] : grp ? GROUPS[grp] : []; if (!keys.length) throw new Error('unknown vegetation kind ' + kind);
       const h = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1, key = o.model || keys[Math.floor(h * keys.length) % keys.length];
+      if (!o.keepY && !o.onRoad) { const e = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 20); if (e && e.dist < e.edge.width / 2 + 0.2) { (game.vegetation.placeSkipped ||= []).push([kind, +x.toFixed(1), +z.toFixed(1)]); return { key, item: null, skipped: 'road', remove() {} }; } } // never in a road lane (onRoad: true to force)
       const it = { x, z, y: o.y, ry: o.ry ?? h * 6.2832, s: o.s ?? 0.88 + ((h * 7.31) % 1) * 0.24, keepY: o.keepY };
       (placed.get(key) || placed.set(key, { items: [], field: null, grp: grp || direct }).get(key)).items.push(it); placedDirty.add(key);
       if (!lib[key]) loadVegModels(game.renderer, [key]).then((m) => { if (game.city?.flora?.models && m[key]) game.city.flora.models[key] = m[key]; placedDirty.add(key); });

@@ -3853,5 +3853,74 @@
   },
   "kb0": 302,
   "kb1": 37
+ },
+ "green_shrub": {
+  "key": "green_shrub",
+  "src": "Models/Plants/Flower 2 - Flowering White Shrub/Flower 2.blend",
+  "tris_src": 41329,
+  "tris0": 15529,
+  "tris1": 3934,
+  "leaf0": [
+   30176,
+   14030
+  ],
+  "bark0": [
+   11153,
+   1499
+  ],
+  "leaf1": [
+   14030,
+   3634
+  ],
+  "bark1": [
+   1499,
+   300
+  ],
+  "height": 1.77,
+  "radius": 0.83,
+  "crownFrom": 0.082,
+  "bottom": -0.007,
+  "mats": [
+   "bark_0",
+   "leaf_1"
+  ],
+  "grades": {
+   "Bark 01 LargeF Mat A:bark": {
+    "before": [
+     28.1,
+     0.331,
+     0.278
+    ],
+    "after": [
+     29.1,
+     0.261,
+     0.357
+    ],
+    "target": [
+     30,
+     0.2,
+     0.42
+    ]
+   },
+   "Leaf Green LargeF Mat A:leaf": {
+    "before": [
+     98.6,
+     0.589,
+     0.422
+    ],
+    "after": [
+     86.9,
+     0.518,
+     0.42
+    ],
+    "target": [
+     84,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "kb0": 612,
+  "kb1": 117
  }
 }

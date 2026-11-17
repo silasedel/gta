@@ -1,0 +1,30 @@
+{
+ "keys_yard": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   34,
+   4.5,
+   -30
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_street": {
+  "street": [
+   -873.6,
+   4825.2
+  ],
+  "side": 1.5,
+  "h": 1.7,
+  "tod": 11,
+  "hidePlayer": true
+ }
+}

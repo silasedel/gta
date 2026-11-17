@@ -46,6 +46,7 @@ fern_c.glb, fern_c_lod1.glb  <- Fern 1 - Four Lush Fern Plants With Alpha Cards 
 bougainvillea.glb, bougainvillea_lod1.glb  <- Shrub 1 - Round Green Cliff Shrub  [Shrub 1, Round Green Cliff Shrub, Plants, BLEND + FBX, 2, unknown, unknown, ]
 hibiscus.glb, hibiscus_lod1.glb  <- Shrub 6 - Low-Poly Leafy Bush  [Shrub 6, Low-Poly Leafy Bush, Plants, BLEND + FBX, 2, unknown, unknown, ]
 oleander.glb, oleander_lod1.glb  <- Flower 2 - Flowering White Shrub  [Flower 2, Flowering White Shrub, Plants, BLEND + GLB, 16, unknown, unknown, ]
+green_shrub.glb, green_shrub_lod1.glb  <- Flower 2 - Flowering White Shrub (flowers dropped)  [Flower 2, Flowering White Shrub, Plants, BLEND + GLB, 16, unknown, unknown, ]
 flower_bush_a.glb, flower_bush_a_lod1.glb  <- Flower Bush 1 - Low-Poly Pink-Flower Bushes  [Flower Bush 1, Low-Poly Pink-Flower Bushes, Plants, BLEND + FBX, 6, unknown, unknown, ]
 flower_bush_b.glb, flower_bush_b_lod1.glb  <- Flower Bush 1 - Low-Poly Pink-Flower Bushes  [Flower Bush 1, Low-Poly Pink-Flower Bushes, Plants, BLEND + FBX, 6, unknown, unknown, ]
 tropical_bed.glb, tropical_bed_lod1.glb  <- Foliage Set 1 - Tropical Fern And Palm Foliage  [Foliage Set 1, Tropical Fern And Palm Foliage, Plants, BLEND + GLB, 30, unknown, unknown, ]
