@@ -82,7 +82,7 @@ export function autoFit(char) {
     }
     const W = (n) => bones[n]?.getWorldPosition(new THREE.Vector3());
     const segDist = (p, a, b) => { const ab = _u.subVectors(b, a), t = Math.max(0, Math.min(1, _w.subVectors(p, a).dot(ab) / Math.max(1e-9, ab.lengthSq()))); return p.distanceTo(_n.copy(a).addScaledVector(ab, t)); };
-    const radii = {}, lat = {};
+    const radii = {}, lat = {}, fwdOff = {};
     for (const [key, A, B, , , , o] of LIMBS) {
       const id = o?.fit || key; if (radii[id] !== undefined || !B || o?.side) continue;
       const P = pts[id], a = W(A), b = W(B); if (!P || P.length < 12 || !a || !b) continue;
@@ -94,10 +94,12 @@ export function autoFit(char) {
     for (const [id, A, B] of [['torso_upper', 'Spine2', 'Neck'], ['torso_lower', 'Hips', 'Spine2']]) {
       const P = pts[id], a = W(A), b = W(B); if (!P || P.length < 30 || !a || !b) continue;
       const ax = b.clone().sub(a).normalize(), lt = left.clone().addScaledVector(ax, -left.dot(ax)).normalize(), fw = new THREE.Vector3().crossVectors(lt, ax).normalize();
+      // the spine runs along the back, not the middle of the body: center the oval on the flesh (front/back extents)
       const dep = [], wid = [];
-      for (const p of P) { const d = p.clone().sub(a); dep.push(Math.abs(d.dot(fw))); wid.push(Math.abs(d.dot(lt))); }
-      const hd = pct(dep, 0.85), hw = pct(wid, 0.9);
-      radii[id] = hd; lat[id] = Math.max(0, hw - hd);
+      for (const p of P) { const d = p.clone().sub(a); dep.push(d.dot(fw)); wid.push(d.dot(lt)); }
+      const f0 = pct(dep, 0.06), f1 = pct(dep, 0.94), w0 = pct(wid, 0.05), w1 = pct(wid, 0.95);
+      const hd = (f1 - f0) / 2, hw = (w1 - w0) / 2;
+      radii[id] = hd; lat[id] = Math.max(0, hw - hd); fwdOff[id] = (f0 + f1) / 2;
     }
     // head: sphere on the head vertices
     let head = null;
@@ -107,7 +109,7 @@ export function autoFit(char) {
       const off = c.clone().sub(hj);
       head = { up: off.dot(up), back: -off.dot(fw), r: pct(pts.head.map((p) => p.distanceTo(c)), 0.85) };
     }
-    fit = { auto: true, radii, lat, head, n: Object.values(pts).reduce((n, a) => n + a.length, 0) };
+    fit = { auto: true, radii, lat, fwd: fwdOff, head, n: Object.values(pts).reduce((n, a) => n + a.length, 0) };
   } catch (e) { fit = null; }
   autoCache.set(char, fit);
   return fit;
@@ -163,6 +165,10 @@ export function limbSegments(char, out = []) {
       const ax = A === 'Spine2' && shLat ? _w.copy(shLat).normalize() : _l;
       const d = af?.lat?.[key] !== undefined ? af.lat[key] * Math.sign(o.lat) : o.lat * w;
       a.addScaledVector(ax, d); b.addScaledVector(ax, d);
+      if (af?.fwd?.[key]) {   // flesh center in front of the spine line
+        _f.crossVectors(_w.copy(ax).normalize(), _u.subVectors(b, a).normalize()).normalize();
+        a.addScaledVector(_f, af.fwd[key]); b.addScaledVector(_f, af.fwd[key]);
+      }
     }
     out.push({ key, a, b, r, zone, mult });
   }

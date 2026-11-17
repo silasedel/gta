@@ -41,8 +41,17 @@ const STEPS = {
       const rd = window.__rag.start(ch, { vel: { x: Math.sin(P.heading) * -3, y: 1.2, z: Math.cos(P.heading) * -3 }, kind: 'melee', strength: 0.4, lethal: true });
       window.__ragUpd = (dt) => { try { window.__rag.update(dt); } catch (e) {} }; game.updaters.push(window.__ragUpd);`,
     after: `const ch = game.playerCharacter; ch.update = ch.__upd; const i = game.updaters.indexOf(window.__ragUpd); if (i >= 0) game.updaters.splice(i, 1); ch.snapshotPose?.(0.3);` },
+  // the real game camera (no override): a parked car between the camera and Nico, and under the stilt house beams
+  cam_car: { orbit: 'front', noOrbit: true, wait: 2500, eval: `game.cameraOverride = null; const P = game.player, T = game.THREE;
+      const v = (game.vehicles?.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - P.position.x)[0] && (game.vehicles.list.filter((x) => x.body).map((x) => [x, Math.hypot(x.body.translation().x - P.position.x, x.body.translation().z - P.position.z)]).sort((a, b) => a[1] - b[1])[0] || [])[0];
+      if (v) { const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), side = new T.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize();
+        const p = new T.Vector3(t.x, 0, t.z).addScaledVector(side, 2.3); game.teleport(p.x, undefined, p.z, Math.atan2(side.x, side.z));
+        game.cameraYaw = Math.atan2(-side.x, -side.z); game.cameraPitch = 0.12; window.__camcar = { car: v.name || v.typeKey, at: [t.x, t.z] }; }`, after: '' },
+  cam_house: { orbit: 'front', noOrbit: true, wait: 2500, reset: false, eval: `game.cameraOverride = null; const H = game.nicoHouse, T = game.THREE; const p = H.toWorld(new T.Vector3(-2.2, 0, 1.3));
+      game.teleport(p.x, undefined, p.z, (H.spot?.heading || 0) + Math.PI / 2); game.cameraYaw = (H.spot?.heading || 0) - Math.PI / 2; game.cameraPitch = 0.35;`, after: '' },
+  cam_house2: { orbit: 'front', noOrbit: true, wait: 2500, reset: false, eval: `game.cameraOverride = null; const H = game.nicoHouse; game.cameraYaw += 1.6; game.cameraPitch = 0.6;`, after: '' },
 };
-const DEFAULT_ONLY = ['front', 'side', 'back', 'q34', 'face', 'feet', 'walk', 'run', 'sprint', 'hitzones', 'hitzones_side', 'aim', 'aim_q', 'disguise', 'car', 'ragdoll'];
+const DEFAULT_ONLY = ['front', 'side', 'back', 'q34', 'face', 'feet', 'walk', 'run', 'sprint', 'hitzones', 'hitzones_side', 'aim', 'aim_q', 'disguise', 'car', 'ragdoll', 'cam_car', 'cam_house', 'cam_house2'];
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 
 

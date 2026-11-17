@@ -510,6 +510,8 @@ async function boot() {
   let camDist = 4.2, camInit = false, colDist = 4.2, camDriving = null;
   const raydir = new THREE.Vector3();
   const camSphere = new RAPIER.Ball(0.24);
+  const camVeh = new Set();
+  const camVehPred = (c) => { const b = c.parent(); return !!b && camVeh.has(b.handle); };
   const pivS = new THREE.Vector3();
   const camRay = new THREE.Raycaster();
   const _occList = [];
@@ -586,7 +588,7 @@ async function boot() {
     const rightX = Math.cos(game.cameraYaw), rightZ = -Math.sin(game.cameraYaw);
     const piv = new THREE.Vector3(pivot.x + rightX * sideOff, pivot.y, pivot.z + rightZ * sideOff);
     camDist += (wantDist - camDist) * Math.min(1, dt * 3);
-    // camera collision: static world only (peds/vehicles/player never snap the camera)
+    // camera collision: static world + vehicles (peds and the player never snap the camera)
     // Sweep a small sphere (≈ the near plane's half-width) instead of a thin ray, so the camera can't slip
     // past the edges of poles, posts, signs and wall corners and show their insides.
     let hit = world.castRay(new RAPIER.Ray(piv, raydir), camDist + 0.3, true, STATIC_ONLY);
@@ -594,6 +596,20 @@ async function boot() {
       const sh = world.castShape(piv, IDQ, raydir, camSphere, 0, camDist + 0.3, false, STATIC_ONLY);
       if (sh && Number.isFinite(sh.time_of_impact) && (!hit || sh.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sh.time_of_impact };
     } catch (e) { /* keep ray result */ }
+    // cars too (parked and moving, not the one being driven): a car between the camera and Nico pulls the camera in
+    // like GTA instead of filling half the screen with its hood; it eases back out below (colDist)
+    try {
+      camVeh.clear();
+      const reach = (camDist + 6) * (camDist + 6);
+      for (const v of game.vehicles?.list || []) {
+        if (!v?.body || v === st.vehicle || v.disposed) continue;
+        const t = v.body.translation(); if ((t.x - piv.x) ** 2 + (t.z - piv.z) ** 2 < reach) camVeh.add(v.body.handle);
+      }
+      if (camVeh.size) {
+        const sv = world.castShape(piv, IDQ, raydir, camSphere, 0, camDist + 0.3, false, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS, undefined, pCol, undefined, camVehPred);
+        if (sv && Number.isFinite(sv.time_of_impact) && (!hit || sv.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sv.time_of_impact };
+      }
+    } catch (e) { /* static result stands */ }
     // render geometry without colliders (roof overhangs, eaves, porch roofs of set pieces): the camera must not
     // sit inside them (playtest P2). Groups in game.cameraOccluders plus the known set pieces, tested only when near.
     try {
