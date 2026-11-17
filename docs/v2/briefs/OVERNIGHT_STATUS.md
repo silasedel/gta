@@ -1568,3 +1568,15 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   - Dev keys: `[` `]` time, `\` weather, `'` spawns the last car.
   - Fixes QA-032 and QA-009/010/011. Shots and sheet: `docs/v2/shots/r2-mapui/dev/sheet_dev_mode.jpg`.
 - **Map blips hook for r2-metro:** `game.mapBlips` is drawn on the minimap and the pause map (`hud.js mapIcons`). It was committed with r2-phone's 3a72c80a.
+
+## r2-metro
+**Summary (r2-metro):** The SOUTHLINE subway is in and ON by default (`?metro=0` disables). It's one line with 4 stations: **Airport** (Terminal Dr) - **Little Havana** (NW 10th Ave) - **Downtown** (NE 1st St) - **South Beach** (8th St, park side). Sheet: `docs/v2/shots/metro/sheet_metro.jpg`; single shots are in `docs/v2/shots/metro/`. The full flow (street -> station -> train -> ride -> arrival -> street) was verified with 0 console errors.
+- 23:05 Models: the user's "Subway 3" platform strip is the shared station kit, and the user's "Train 2" car is mirrored into 24 m cars, 3 coupled, with SOUTHLINE livery stripes and a name decal. The street stair head is from "Street Props Pack 2": the real-world line bullets and the "Subway" words are painted out of its textures and replaced with SOUTHLINE and the invented sunset roundel. Tools: `tools/v2/metro/{convert.py,textures.py,shots.mjs,site.mjs}`.
+- Street: the stair head sits beside the nearest road. The stairwell shows through a depth portal, so there's no terrain carving. A totem carries the roundel and station name, and the minimap and pause map show roundel blips through r2-mapui's `game.mapBlips`.
+- Station: a separate space 1.4 km above the entrance with a vertex-light bake, so sun and time of day don't reach it. It has station-name signs, a line map, an EXIT sign, benches and 6 waiting people from `game.peds`. Outdoor haze is off while you're below.
+- Train: it arrives from the tunnel with a rumble, a chime and its headlight glow, stops, and the doors open.
+- Ride: board with E. You get a destination list (keys 1-4 or click) with ride time and a $2.75 fare (cash or card through `game.wallet`). You ride inside the car; C switches to an outside front view.
+- Ride speed: real distance at 80 km/h with 1.2 m/s² acceleration and braking. The long middle is cut by two short fades, but the visible motion is always at real speed. Holding E skips to the arrival. The space is turned to the real bearing between the stations, so the minimap follows the ride.
+- Exit: press E at the EXIT sign. The game fades and waits for the streamer (`collidersReadyAt` + `readyAround`), then puts you out at the destination's stair head.
+- Wanted 2+ stars: no entry and no boarding.
+- Not finished: no walk-down stair animation (E + fade instead); door leaves slide rather than split; the train interior keeps the model's graffiti; no ambient trains in other stations.
