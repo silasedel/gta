@@ -6,6 +6,7 @@
 // Coordinates are Nico's house-local frame (game.nicoHouse.toWorld): +z toward the east leg, the STOP junction J at (-20.9, 23.8).
 // Every spot is checked with game.vegetation.clearAt (roads, buildings, decks, solids) and skipped when taken.
 import * as THREE from 'three';
+import { plantable } from './lotPlanting.js';
 
 const J = [-20.9, 23.8], N = [-0.541, 0.841], P = [0.841, 0.541]; // north leg direction from J, its perpendicular (+ = left of the mock-up view)
 const nl = (t, o) => [J[0] + N[0] * t + P[0] * o, J[1] + N[1] * t + P[1] * o];
@@ -63,7 +64,7 @@ export function plantNicoStreet(game, st = null) {
     const [key, x, z, s] = row, big = !/palm|shrub|bush|fern|bed|bougain|hibiscus/.test(key), r = (big ? 2.2 : /palm/.test(key) ? 1.0 : 0.9) * s;
     let ok = null; // the spot, or the nearest free one within 4.5 m (keeps the mock-up composition, never inside a house / on a road)
     for (const d of [0, 1.5, 3, 4.5]) { for (let a = 0; a < (d ? 8 : 1); a++) { const lx = x + Math.cos(a * 0.785) * d, lz = z + Math.sin(a * 0.785) * d; NH.toWorld(v.set(lx, 0, lz));
-      if ((!/shrub|bush|fern|bed|bougain|hibiscus/.test(key) && inWedge(lx, lz)) || (V.clearAt && !V.clearAt(v.x, v.z, Math.min(1.2, r))) || occupied(game, v.x, v.z, r)) continue; ok = [v.x, v.z]; if (d) st.moved++; break; } if (ok) break; }
+      const isTree = !/shrub|bush|fern|bed|bougain|hibiscus/.test(key); if ((isTree && inWedge(lx, lz)) || !plantable(game, v.x, v.z, isTree)) continue; ok = [v.x, v.z]; if (d) st.moved++; break; } if (ok) break; }
     if (!ok) { left.push(row); continue; }
     const h = V.place(key, ok[0], ok[1], { model: key, s }); if (h.item) st.placed.push(h); else st.skipped.push([key, x, z, h.skipped]);
   }
