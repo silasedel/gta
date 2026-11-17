@@ -15,7 +15,7 @@ const DIR = path.resolve('docs/v2/shots/surfaces'); fs.mkdirSync(DIR, { recursiv
 // mode: close (1.7 m eye in the lane looking along it toward the curb), stand (1.7 m eye looking down at the pavement 3 m ahead),
 // graze (0.6 m eye down the street), walk (on the sidewalk looking down at slabs / curb), aerial (40 m up)
 const cam = (x, z, mode, tod, extra = '', off = 0) => ({ tod, eval: `
-  const G = game.city.roadGraph, q = G.nearestEdge(${x}, ${z}, {}, 250); if (q) { const e = q.edge, P = e.pts; let bi = 0, bd = 1e9; for (let i = 0; i < P.length - 1; i++) { const d = Math.hypot((P[i][0] + P[i + 1][0]) / 2 - ${x}, (P[i][1] + P[i + 1][1]) / 2 - ${z}); if (d < bd) { bd = d; bi = i; } }
+  const G = game.city.roadGraph, q = G.nearestEdge(${x}, ${z}, {}, 1500); if (q) { const e = q.edge, P = e.pts; let bi = 0, bd = 1e9; for (let i = 0; i < P.length - 1; i++) { const d = Math.hypot((P[i][0] + P[i + 1][0]) / 2 - ${x}, (P[i][1] + P[i + 1][1]) / 2 - ${z}); if (d < bd) { bd = d; bi = i; } }
   const a = P[bi], b = P[bi + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, dx = (b[0] - a[0]) / L, dz = (b[1] - a[1]) / L, nx = -dz, nz = dx, hw = e.width / 2, mx = (a[0] + b[0]) / 2 + dx * ${off}, mz = (a[1] + b[1]) / 2 + dz * ${off};
   const gy = (X, Z) => game.city.groundHeightAt(X, Z) || 0; const m = '${mode}'; let eye, look;
   if (m === 'close') { eye = [mx + nx * (hw * 0.3) - dx * 6, 0, mz + nz * (hw * 0.3) - dz * 6]; eye[1] = gy(eye[0], eye[2]) + 1.75; look = [mx + nx * (hw * 0.6) + dx * 8, 0, mz + nz * (hw * 0.6) + dz * 8]; look[1] = gy(look[0], look[2]); }
@@ -25,11 +25,19 @@ const cam = (x, z, mode, tod, extra = '', off = 0) => ({ tod, eval: `
   else { eye = [mx - dx * 45 + nx * 4, 0, mz - dz * 45 + nz * 4]; eye[1] = gy(mx, mz) + 70; look = [mx + dx * 10, gy(mx, mz), mz + dz * 10]; }
   game.teleport(eye[0] - nx * (hw + 6), undefined, eye[2] - nz * (hw + 6), 0); game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; }; window.__sspot = { e: e.id, kind: e.kind, w: e.width, eye, look }; window.__scam = [eye, look]; }
   ${extra}` });
+// junction view: 6 m up, 16 m back from the nearest 3+ way node, looking at its crosswalks
+const xwalk = (x, z, tod) => ({ tod, eval: `
+  const G = game.city.roadGraph; let best = null, bd = 1e9; for (const n of G.nodes) { if ((n.edges || []).length < 3) continue; const d = Math.hypot(n.x - ${x}, n.z - ${z}); if (d < bd) { bd = d; best = n; } }
+  if (best) { const e = G.edges[best.edges[0]], P = e.a === best.id ? e.pts : e.pts.slice().reverse(), dx = P[1][0] - P[0][0], dz = P[1][1] - P[0][1], L = Math.hypot(dx, dz) || 1;
+    const gy = (X, Z) => game.city.groundHeightAt(X, Z) || 0, eye = [best.x + dx / L * 16 + dz / L * 3, 0, best.z + dz / L * 16 - dx / L * 3]; eye[1] = gy(eye[0], eye[2]) + 6; const look = [best.x, gy(best.x, best.z), best.z];
+    game.teleport(eye[0] + dz / L * 8, undefined, eye[2] - dx / L * 8, 0); game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; }; window.__sspot = { node: best.id, eye, look }; window.__scam = [eye, look]; }
+  game.weather?.set?.('clear', { instant: true });` });
 const RAIN = "game.weather.set('rain', { instant: true });", CLEAR = "game.weather?.set?.('clear', { instant: true });";
-const PLACES = { downtown: [407, -110], resid: [-660, 600], keys: [-873.6, 4825.2], rural: [-1540, -2805], highway: [-1900, 4300], beach: [2398, 660], homestead: [-1320, 3190] };
+const PLACES = { downtown: [407, -110], resid: [-660, 600], keys: [-873.6, 4825.2], rural: [-1540, -2805], highway: [-1180, 4560], beach: [2398, 660], homestead: [-1320, 3190] };
 const SPOTS = {};
 for (const [k, [x, z]] of Object.entries(PLACES)) { for (const m of ['close', 'stand', 'graze', 'walk', 'aerial']) SPOTS[`${k}_${m}`] = cam(x, z, m, 11, CLEAR); }
 for (const k of ['downtown', 'resid', 'keys']) { const [x, z] = PLACES[k]; SPOTS[`${k}_graze_dusk`] = cam(x, z, 'graze', 18.5, CLEAR); SPOTS[`${k}_graze_rain`] = cam(x, z, 'graze', 11, RAIN); SPOTS[`${k}_close_rain`] = cam(x, z, 'close', 11, RAIN); }
+for (const k of ['downtown', 'resid', 'homestead', 'beach']) { const [x, z] = PLACES[k]; SPOTS[`${k}_xwalk`] = xwalk(x, z, 11); }
 const only = o.only ? String(o.only).split(',') : Object.keys(SPOTS);
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 
@@ -45,11 +53,11 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     for (let i = 0; i < +(o.stream || 40); i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     const perf = async () => JSON.parse(await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 2000) requestAnimationFrame(f); else { ts.sort((x, y) => x - y); const avg = ts.reduce((p, c) => p + c, 0) / ts.length; const ri = game.renderer.info.render; res(JSON.stringify({ avgMs: +avg.toFixed(1), fps: +(1000 / avg).toFixed(1), calls: ri.calls, spot: window.__sspot })); } }; requestAnimationFrame(f); })`));
     const r = {};
-    const recam = () => b.eval(`(() => { const c = window.__scam; if (c) game.cameraOverride = (dt, cam) => { cam.position.fromArray(c[0]); cam.lookAt(c[1][0], c[1][1], c[1][2]); return true; }; return 1; })()`);
+    const recam = () => b.eval(`(() => { game.timeOfDay = ${s.tod}; const c = window.__scam; if (c) game.cameraOverride = (dt, cam) => { cam.position.fromArray(c[0]); cam.lookAt(c[1][0], c[1][1], c[1][2]); return true; }; return 1; })()`);
     await recam();
     if (o.ab) {
-      await b.eval('window.__surfaces && window.__surfaces.set(false), 1'); await b.sleep(1500); r.off = await perf(); await b.screenshot(path.join(DIR, `${SET}_${id}_off.png`));
-      await b.eval('window.__surfaces && window.__surfaces.set(true), 1'); await b.sleep(1500);
+      await b.eval('window.__surfaces && window.__surfaces.set(false), 1'); await recam(); await b.sleep(1500); r.off = await perf(); await b.screenshot(path.join(DIR, `${SET}_${id}_off.png`));
+      await b.eval('window.__surfaces && window.__surfaces.set(true), 1'); await recam(); await b.sleep(1500);
     }
     r.on = await perf(); await b.screenshot(path.join(DIR, `${SET}_${id}${o.ab ? '_on' : ''}.png`));
     if (o.still) { await b.sleep(700); await b.screenshot(path.join(DIR, `${SET}_${id}_still.png`)); }

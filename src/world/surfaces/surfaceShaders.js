@@ -86,7 +86,8 @@ vec4 srfLane() {
   float x = o + hw, li = floor(x / lw), lc = x - (li + 0.5) * lw;
   float wob = (srfN(vec2(s * 0.031, li * 7.0)) - 0.5) * 0.32 + (srfN(vec2(s * 0.11, li * 3.0 + 1.0)) - 0.5) * 0.1;
   float d = abs(lc + wob);
-  float wheel = exp(-pow((d - 0.88) / 0.33, 2.0)) * mix(0.55, 1.0, jf);
+  float traffic = mod(vSrfB.w, 4.0) < 0.5 ? 0.45 : 1.0;                    // Keys / rural lanes: light traffic
+  float wheel = exp(-pow((d - 0.88) / 0.33, 2.0)) * mix(0.55, 1.0, jf) * traffic * (0.45 + 0.55 * smoothstep(0.2, 0.6, srfN(vec2(s * 0.022, li * 1.7 + 4.0))));
   float drip = exp(-pow((lc + wob * 0.6) / 0.3, 2.0)) * smoothstep(0.38, 0.72, srfN(vec2(s * 0.42, li * 3.1))) * jf;
   return vec4(wheel, drip, lc, jf);
 }
@@ -120,7 +121,7 @@ if (uSrf.x > 0.5) {
     tar = max(tar, (1.0 - smoothstep(0.03, 0.03 + fwM, dS)) * seamHere * jf * clamp(0.06 / fwM, 0.0, 1.0) * 0.8);
     // longitudinal paving joints just beside each lane line, sealed with tar (broken where the sealant wore off)
     float x = o + hw, lj = x / lw, dl = (lj - floor(lj + 0.5)) * lw;
-    float interior = step(0.7, x) * step(x, 2.0 * hw - 0.7);
+    float interior = step(0.7, x) * step(x, 2.0 * hw - 0.7) * step(0.5, cls) * step(3.6, hw);
     float dj = abs(dl - 0.17 + (srfN(vec2(s * 0.27, floor(lj + 0.5))) - 0.5) * 0.06);
     float jw = 0.012 + 0.012 * srfN(vec2(s * 0.8, lj));
     tar = max(tar, (1.0 - smoothstep(jw, jw + fwM, dj)) * interior * smoothstep(0.45, 0.65, srfN(vec2(s * 0.09, lj * 5.0)) + age * 0.15) * clamp(jw * 2.5 / fwM, 0.0, 1.0) * jf * 0.85);
@@ -203,7 +204,7 @@ if (uSrf.x > 0.5) {
   }
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.026, 0.025, 0.024), tar * 0.8);
   diffuseColor.rgb *= 1.0 - 0.6 * crk;
-  roughnessFactor = mix(roughnessFactor, 0.5, tar * 0.8);
+  roughnessFactor = mix(roughnessFactor, 0.64, tar * 0.8); // sealant: satin, not a mirror line at grazing angles
   roughnessFactor *= 1.0 - 0.24 * wheel - 0.12 * drip;
   roughnessFactor = mix(roughnessFactor, roughnessFactor * 0.9, 1.0 - age);
   srfLow = clamp(0.2 + srfF(w * 0.16) * 0.5 + wheel * age * 0.3 + edgeLow * 0.45 + crk * 0.2, 0.0, 1.0);
@@ -309,7 +310,7 @@ function wetChunk() { // the global wet chunk with puddles steered to the surfac
   const r0 = 'material.roughness = mix( material.roughness, mix( 0.24, 0.42, 1.0 - up ), sheen * 0.85 );';
   if (!s.includes(p0) || !s.includes(r0)) return null;
   s = s.replace(p0, 'float puddle = uWeather.y * up * smoothstep( 0.52, 0.66, ( uSrf.x > 0.5 ? mix( pn, srfLow, 0.7 ) : pn ) + 0.18 * uWeather.y );');
-  s = s.replace(r0, r0 + '\n  if ( uSrf.x > 0.5 ) material.roughness *= mix( 1.0, 0.5, srfPolish * sheen );');
+  s = s.replace(r0, r0 + '\n  if ( uSrf.x > 0.5 ) material.roughness = mix( material.roughness, mix( 0.35, 0.11, srfPolish ), sheen * 0.9 ); // wet asphalt: ~0.35, polished wheel paths / tar ~0.1 (puddles go to 0.04 below)');
   return s;
 }
 
