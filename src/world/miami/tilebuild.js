@@ -2538,6 +2538,19 @@ export function createTileBuilder(ctx) {
       const set = ((hash(((c.x / 12) | 0) * 31 + ((c.z / 12) | 0)) * 6) | 0) % 6; c.vl = set; c.vlFixed = true; // one cafe, one furniture color (table + its chairs)
       for (let k = 0; k < n; k++) { const a = (c.ry || 0) + (k * Math.PI * 2) / n + (hash(((c.x * 11) | 0) + k * 13) - 0.5) * 0.5, d = 0.78 + hash(((c.z * 5) | 0) + k) * 0.18, x = c.x + Math.sin(a) * d, z = c.z + Math.cos(a) * d;
         if (!(isWater && isWater(x, z)) && !insideBuilding(tile, x, z) && ri(x, z).gap > 0.3) W.push({ v: 'chair', x, y: c.y || 0, z, ry: Math.atan2(c.x - x, c.z - z) + (hash(k * 7 + ((c.x * 13) | 0)) - 0.5) * 0.5, vl: set, vlFixed: true }); } }
+    // props pass: bike racks (2.5 x 1 m) never run into a shop planter, bush, bin, bench, cafe set or trunk: slide along the
+    // rack's axis to a free spot, else leave the rack out
+    if (props.bike && props.bike.length) {
+      const obs = []; const addObs = (L, r) => { for (const q of L || []) obs.push([q.x, q.z, typeof r === 'function' ? r(q) : r]); };
+      addObs(props.blob, (q) => 0.55 * (q.s || 1) + 0.15); addObs(props.flower, (q) => 0.55 * (q.s || 1) + 0.15); addObs(W, 0.55); addObs(props.cafe, 1.1); addObs(props.bin, 0.4);
+      addObs(props.bench, 1.0); addObs(props.kiosk, 1.3); addObs(props.palm, 0.45); addObs(props.tree, 0.45); addObs(props.lamp, 0.25); addObs(props.hydrant, 0.35); addObs(props.signPost, 0.15); addObs(props.meter, 0.15); addObs(props.shelter, 2.4);
+      const hits = (x, z, ry) => { const c = Math.cos(ry), sn = Math.sin(ry); for (const [ox, oz, r] of obs) { const dx = ox - x, dz = oz - z; if (dx * dx + dz * dz > 9) continue; const lx = dx * c - dz * sn, lz = dx * sn + dz * c; if (Math.abs(lx) < 1.25 + r && Math.abs(lz) < 0.5 + r) return true; } return false; };
+      const keep = [];
+      for (const b of props.bike) { const ry = b.ry || 0, ax = Math.cos(ry), az = -Math.sin(ry); let placed = false;
+        for (const d of [0, 0.8, -0.8, 1.6, -1.6]) { const x = b.x + ax * d, z = b.z + az * d; if ((!onSidewalk || onSidewalk(x, z)) && !hits(x, z, ry)) { b.x = x; b.z = z; placed = true; break; } }
+        if (placed) { keep.push(b); obs.push([b.x, b.z, 1.3]); } }
+      props.bike.length = 0; props.bike.push(...keep);
+    }
     // curb work strips
     for (const r of tile.roads || []) {
       if (!r.sidewalks || r.pts.length < 2 || !/secondary|tertiary|residential/.test(r.kind || '') || (r.y && Math.max(...r.y) > 0.5)) continue;
