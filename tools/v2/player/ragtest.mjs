@@ -28,7 +28,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
     const gy = game.city.groundHeightAt(px, pz) || 0;
     const sx = px - d.x * 16, sz = pz - d.z * 16;
     const v = game.vehicles.spawn('sedan', new T.Vector3(sx, gy + 0.5, sz), Math.atan2(d.x, d.z), { snap: false }); if (v) { v.ai = null; v.parked = false; } window.__car = v;
-    window.__hitP = { x: px, z: pz, gy }; window.__cam({ x: px + n.x * 7.5 + d.x * 1.5, y: gy + 2.1, z: pz + n.z * 7.5 + d.z * 1.5 }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.8, z: game.player.position.z }));
+    window.__hitP = { x: px, z: pz, gy }; window.__cam({ x: px + n.x * 4.6 + d.x * 2.5, y: gy + 1.7, z: pz + n.z * 4.6 + d.z * 2.5 }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.8, z: game.player.position.z }));
     return JSON.stringify({ car: !!v, road: e.edge?.name }); })()`);
   console.log('car setup', carInfo);
   await b.sleep(2500);
@@ -50,7 +50,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
   await ev(`(() => { window.__log = []; game.player.health = 100; game.playerRagdoll?.release?.(); const T = game.THREE, H = game.nicoHouse, P = game.player;
     const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); game.teleport(g.x, undefined, g.z, 0); return 1; })()`);
   await b.sleep(2500);
-  await ev(`(() => { const T = game.THREE, H = game.nicoHouse, P = game.player; const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); const cm = H.toWorld(new T.Vector3(-4.5, 2.6, 23.0));
+  await ev(`(() => { const T = game.THREE, H = game.nicoHouse, P = game.player; const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); const cm = H.toWorld(new T.Vector3(-1.0, 1.9, 19.5));
     window.__cam({ x: cm.x, y: cm.y, z: cm.z }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.9, z: game.player.position.z }));
     P.body.setTranslation({ x: g.x, y: g.y + 7.0 + P.capsule.center, z: g.z }, true); P.state.grounded = false; return 1; })()`);
   await b.sleep(400); await shoot('fall_0_air');
