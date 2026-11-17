@@ -7,6 +7,7 @@
 
 
 ## keys
+- 01:20 Cars: the cars helper already parks Nico's pickup + classic (vehicles.js NICO_CARS), so my yard spots are documentation only and all yard props were moved clear of its 4 car spots; neighbors' cars go through `spawnParked(key, opts)`. Dock starts clear of the bay stair, has a light. Curb carts breakable. Keys lots get shell drives. Machine load 100-190: each shot run waits 10-20 min for a browser slot; reference set `k5` queued (tools/v2/keys/spots_refs.json -> `cmp_k5_*.png` sheets via tools/v2/keys/sheets.py).
 - 01:05 Pass 1 in: (1) flicker: the "dotted wobbling" was the peeling-paint shader's 0.05-wide flake edge aliasing into crawling dots at distance (TAA jitter); now fwidth-aware (kit.js, applies to every generated house too). (2) Nico's yard by hand, `src/world/setpieces/nicoHouse/yard.data.js` + part 55: lattice planter with bougainvillea, curb bins (user's bin set), all-way STOP at the T, poles + sagging wires, red roll-off (user's Dumpster 3, textures wired), limestone rocks (user's Rock 2), pallets/drywall/lumber/chairs/cooler, ruts, leaf litter, puddles that grow after rain; car spots for `spawnParked` (the lifted pickup already shows up). (3) Dock = the user's modular pier kit (Dock 6) from the stair foot past the real waterline, posts extended to the sea bed, T-head with hoist frame, rowboat + skiff on lines; seawalls only where water really is. (4) 8 hand-placed neighbor cottages (`src/world/dressing/keysStreet.data.js`) + 5 bay-shore docks (mossy pier, clean pier, boathouse). Mangroves moved onto the shore fringe (no roots in the air). Shots: `docs/v2/shots/keys/k2_deck.png`, `k2_deck2.png`, `k3_dock.png`. Next: verify neighbors/docks, stray flat polygons near the east shore, flicker A/B, perf A/B (`?keys=0`).
 - 00:20 House spot checked: the house, its anchors and the player spawn are all at the layout.json spot (-873.6, 4825.2, heading 1.057); probe `docs/v2/reports/keys-k0-probe.json`. The stale (-836, 5272) was only in test tools: fixed in furniture-audit, road-audit, veg-audit, veg-perf, roads/mkspots.mjs, roads/spots/ground.json (keys2 moved by the same offset to (-937.6, 4883.2)). The last two are untracked (roads helper's files), edited in place, not committed by me. Added `anchors.front` (yard, facing the house) so s1-tour `house` lands in the yard. STAGE1_AGENT_NOTES.md and CONVENTIONS.md still say (-836, 5272): lead please update. New tool: `node tools/v2/keys/shots.mjs --set X` (cameras in house-local coordinates, `tools/v2/keys/spots.json`).
 - 00:20 Baseline shots: `docs/v2/shots/keys/k0_{deck,front,aerial,back,dock,top}.png` (deck view 22 ms, 675 draw calls).
@@ -199,6 +200,17 @@
   helpers' changes in it).
 
 ## vegetation
+- 01:20 CPU profile after the perf fix (8 s at the spawn, `tools/v2/vegetation/cpuprof.mjs`): vegetation streamer `rebucket`
+  100 ms + `work` 81 ms of 9254 ms sampled (~2 %); physics wasm, three.js culling / matrices and `sliverLand` (data.js)
+  dominate. Spawn frame 49.5 ms / 753 draws on the loaded machine (load avg ~30-56).
+- 01:17 Lead / all: if your test runs stalled after READY between ~00:45 and 01:14 (teleports / title cuts taking very long), the
+  vegetation streamer's new collider ray checks + 4 s synchronous fill were a likely cause; fixed in 3d77633. Palette proof:
+  `docs/v2/shots/vegetation/overnight/lib_leaf_palette.png` (every converted leaf texture after grading).
+- 01:15 Commit 3d77633 (perf): after READY the page could stall for minutes in tests. Cause candidates on my side: the new
+  collider ray checks ran for every tree / shrub of every generated cell, and a camera jump (teleport, title cinematic cuts)
+  filled all cells to 1.3 km synchronously for up to 4 s. Now: ray checks only within 260 m of the camera, base tufts skip
+  them, lots planted once per cell, a jump fills only the near 360 m at once (<= 1.5 s), the rest streams in. Verifying
+  with a CPU profile (`tools/v2/vegetation/cpuprof.mjs`, queued for a browser slot).
 - 01:10 Commit 2f23cb6: paced model load verified in a boot probe (53 models + impostor bakes in 821 ms after the prefetched
   GLBs, READY 34 s on a machine with load average 56). Per-instance variation proof `lib_variation_rows.png` (5 of the same
   model in a row: different lean, twist, crown spread, frond droop, color). Frame-time tests are queued behind other helpers'
