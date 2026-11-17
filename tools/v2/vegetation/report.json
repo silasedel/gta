@@ -3527,10 +3527,10 @@
    1800,
    400
   ],
-  "height": 0.165,
-  "radius": 0.524,
-  "crownFrom": 0.072,
-  "bottom": -0.011,
+  "height": 0.133,
+  "radius": 0.34,
+  "crownFrom": 0.073,
+  "bottom": -0.008,
   "mats": [
    "bark_0"
   ],

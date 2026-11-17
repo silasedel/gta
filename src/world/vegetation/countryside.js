@@ -128,7 +128,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
         if (ctx.blocked && ctx.blocked(x2, z2, 2)) continue; if (!ctx.data.isWater(x2, z2) && (ctx.roadDist ? ctx.roadDist(x2, z2) : 99) < 6) continue;
         emit({ name, v: 0, x: x2, z: z2, y: Math.min(H(x2, z2), H(x2 + 0.6, z2), H(x2 - 0.6, z2)), ry: hh(i, j, 21 + k) * 6.28, s: s * (0.7 + hh(i, j, 23 + k) * 0.35), sp: K.sp, palm: false, b, wet, key: i + ',' + j + ',' + k }); } }
   }
-  lotTrees(ctx, x0, z0, S, emit); // yard trees in house lots
+  lotTrees(ctx, x0, z0, S, emit, ctx.lotSeen || null); // yard trees in house lots
 }
 function junctionGap(D, x, z) { // distance outside the nearest junction disc (node width / 2 + 2 m of curb return); the same test in both the tile collider pass and the streamer
   if (!D || !D.getTile) return 99; const t = D.getTile(Math.floor(x / 200), Math.floor(z / 200)); let g = 99;
@@ -140,10 +140,11 @@ const lotInset = (l, x, z) => { const c = Math.cos(l.heading), s = Math.sin(l.he
   return Math.min(l.w / 2 - Math.abs(u), v < 0 ? l.d / 2 + v : l.d / 2 + (l.roadGap || 0) - v); };
 const inLotCore = (x, z) => { try { if (!houseLots.enabled) return false; if (houseLots.reservedAt(x, z, 2)) return true; const l = houseLots.at(x, z); return !!l && lotInset(l, x, z) > 2.2; } catch (e) { return false; } };
 const LOT_TREES = { keys: [['poinciana', 3], ['gumbo', 2], ['coconut', 2.5], ['coconutM', 1.5], ['rubber', 1.2], ['sabal', 1], ['buttonwood', 1]], main: [['liveoak', 3], ['gumbo', 2], ['sabal', 1.5], ['coconut', 1], ['poinciana', 1], ['banyan', 0.3]] };
-function lotTrees(ctx, x0, z0, S, emit) {
+function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids already planted in this cell (skipped)
   if (!houseLots.enabled || !houseLots.near) return; let list = []; try { list = houseLots.near(x0 + S / 2, z0 + S / 2, S * 0.75, []).slice(); } catch (e) { return; }
   for (const l of list) {
     if (l.x < x0 || l.x >= x0 + S || l.z < z0 || l.z >= z0 + S || !(l.w > 7 && l.d > 7)) continue; // each lot planted once, by the cell holding its center
+    if (seen) { if (seen.has(l.id)) continue; seen.add(l.id); }
     const id = Math.abs(Math.round(l.x * 7.31 + l.z * 3.17)), keys = ctx.terrain.isKeys(l.x, l.z), L = keys ? LOT_TREES.keys : LOT_TREES.main, c = Math.cos(l.heading), sn = Math.sin(l.heading);
     let n = 0;
     for (const [k, [u, v]] of [[-1, -1], [1, -1], [-1, 0.05], [1, 0.05], [0, -1]].entries()) {
@@ -312,8 +313,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   const cellKey = (ci, cj) => ci + ',' + cj;
   function getCell(ci, cj) { const k = cellKey(ci, cj); let c = cells.get(k); if (!c) { c = { k, ci, cj, x0: ci * CELLS, z0: cj * CELLS, cx: (ci + 0.5) * CELLS, cz: (cj + 0.5) * CELLS, cy: 0, lists: new Map(), lv: { t: 0, s: 0, g: 0 }, grid: null }; cells.set(k, c); } return c; }
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new V3(), _s = new V3(), _n = new V3();
-  function pushItem(c, pi, x, y, z, ry, s, n, col, sy = s) {
-    { const cl = protos[pi].cls; if (cl === 'tree' || cl === 'shrub' ? BLOCKED && BLOCKED(x, z, cl === 'tree' ? 1.5 : 0.3) : AREAS && AREAS(x, z, 0.2)) return; } // docks / piers / set-piece pads (ground cover: the cheap area list only)
+  function pushItem(c, pi, x, y, z, ry, s, n, col, sy = s, noBlock = false) {
+    if (!noBlock) { const cl = protos[pi].cls; if (cl === 'tree' || cl === 'shrub' ? BLOCKED && BLOCKED(x, z, cl === 'tree' ? 1.5 : 0.3) : AREAS && AREAS(x, z, 0.2)) return; } // docks / piers / set-piece pads (ground cover: the cheap area list only)
     let L = c.lists.get(pi); if (!L) { L = { m: [], c: [], cls: protos[pi].cls }; c.lists.set(pi, L); }
     _q.setFromAxisAngle(UP, ry); if (n) { _q2.setFromUnitVectors(UP, n); _q.premultiply(_q2); }
     _m.compose(_p.set(x, y, z), _q, _s.set(s, sy, s)); for (let k = 0; k < 16; k++) L.m.push(_m.elements[k]); L.c.push(col[0], col[1], col[2]);
@@ -325,14 +326,14 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     const add = new Map();
     lotTrees(ctx, c.x0, c.z0, CELLS, (t) => { if (c.lotKeys?.has(t.key) || rejected.has(t.key)) return; (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name]?.[t.v]; if (pi === undefined) return;
       _q.setFromAxisAngle(UP, t.ry); _m.compose(_p.set(t.x, t.y - (t.palm ? 0.1 : 0.16) * t.s, t.z), _q, _s.set(t.s, t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32), t.s));
-      const col = leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)); let A = add.get(pi); if (!A) add.set(pi, (A = { m: [], c: [] })); A.m.push(..._m.elements); A.c.push(...col); });
+      const col = leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)); let A = add.get(pi); if (!A) add.set(pi, (A = { m: [], c: [] })); A.m.push(..._m.elements); A.c.push(...col); }, (c.lotIds ||= new Set()));
     for (const [pi, A] of add) { let L = c.lists.get(pi); const k = A.m.length / 16;
       if (!L) { L = { m: new Float32Array(A.m), c: new Float32Array(A.c), cls: protos[pi].cls, n: k }; c.lists.set(pi, L); continue; }
       const m = new Float32Array((L.n + k) * 16), cc = new Float32Array((L.n + k) * 3); m.set(L.m.subarray(0, L.n * 16)); cc.set(L.c.subarray(0, L.n * 3)); m.set(A.m, L.n * 16); cc.set(A.c, L.n * 3); L.m = m; L.c = cc; L.n += k; }
     if (add.size) dirty = true;
   }
   function genTrees(c) {
-    placeTrees(ctx, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - (t.name === 'mangrove' ? 0.28 : t.palm ? 0.1 : 0.16) * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
+    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - (t.name === 'mangrove' ? 0.28 : t.palm ? 0.1 : 0.16) * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
     c.lv.t = 1;
   }
   // 4 m sample grid of height / road distance / biome / water for the shrub and ground-cover passes
@@ -370,7 +371,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
         const nt = 2 + (hh(i, j, 61) * 4 | 0);
         for (let q = 0; q < nt; q++) { const a = hh(i, j, 62 + q) * 6.283, d = base * ts + 0.2 + hh(i, j, 70 + q) * 1.1, x = tx + Math.cos(a) * d, z = tz + Math.sin(a) * d;
           if (bil(G, G.RD, x, z, c) < 1.8 || biomeAtG(G, x, z, c) !== b) continue; const nm = B.base ? pick(B.base, hh(i, j, 78 + q)) : 'tuft', lst = protoOf[nm]; if (!lst) continue;
-          normalAt(G, x, z, c, _n).lerp(UP, 0.4).normalize(); pushItem(c, lst[(hh(i, j, 86 + q) * lst.length) | 0], x, bil(G, G.H, x, z, c) - 0.04, z, hh(i, j, 94 + q) * 6.28, 0.75 + hh(i, j, 102 + q) * 0.6, _n, leafCol(b, x, z, hh(i, j, 110 + q))); }
+          normalAt(G, x, z, c, _n).lerp(UP, 0.4).normalize(); pushItem(c, lst[(hh(i, j, 86 + q) * lst.length) | 0], x, bil(G, G.H, x, z, c) - 0.04, z, hh(i, j, 94 + q) * 6.28, 0.75 + hh(i, j, 102 + q) * 0.6, _n, leafCol(b, x, z, hh(i, j, 110 + q)), undefined, true); }
         if (!B.under) continue;
         const nu = (hh(i, j, 118) * (B.underN || 2.5)) | 0;
         for (let q = 0; q < nu; q++) { const a = hh(i, j, 120 + q) * 6.283, d = base * ts + 1.4 + hh(i, j, 126 + q) * 2.8, x = tx + Math.cos(a) * d, z = tz + Math.sin(a) * d;
@@ -408,17 +409,18 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   function reject(x, z) { const c = cells.get(cellKey(Math.floor(x / CELLS), Math.floor(z / CELLS))); if (c && c.lv.t) { for (const [pi] of c.lists) if (protos[pi].cls === 'tree' || TREE_KINDS[protos[pi].key.split('#')[0]]) c.lists.delete(pi); c.lv.t = 0; dirty = true; } }
   // ---- streaming work: nearest missing level first, within a frame budget ----
   const st = { gen: 0, genMs: 0, maxMs: 0, rebucket: 0, rebucketMs: 0, lastRebucketMs: 0 };
-  function work(cam, budgetMs) {
+  function work(cam, budgetMs, syncR = Infinity) { // syncR: after a jump only the cells within syncR m are filled at once, the rest streams in
     const t1 = performance.now(), ccx = Math.floor(cam.position.x / CELLS), ccz = Math.floor(cam.position.z / CELLS), N = Math.ceil(R_TREE / CELLS) + 1, tasks = [];
     for (let dj = -N; dj <= N; dj++) for (let di = -N; di <= N; di++) {
       const cx = (ccx + di + 0.5) * CELLS, cz = (ccz + dj + 0.5) * CELLS, d = Math.hypot(cx - cam.position.x, cz - cam.position.z) - HALF; if (d > R_TREE) continue;
       const c = cells.get(cellKey(ccx + di, ccz + dj));
-      if (d < R_GC + MARGIN && !(c && c.lv.g)) tasks.push([d - 399, 'g', ccx + di, ccz + dj]);
-      if (d < R_SHRUB + MARGIN && !(c && c.lv.s)) tasks.push([d - 149, 's', ccx + di, ccz + dj]);
-      if (!(c && c.lv.t)) tasks.push([d - (d < R_SHRUB + MARGIN ? 400 : 0), 't', ccx + di, ccz + dj]); // trees before the shrubs / ground cover of a cell (spacing)
+      if (d < R_GC + MARGIN && !(c && c.lv.g)) tasks.push([d - 399, 'g', ccx + di, ccz + dj, d]);
+      if (d < R_SHRUB + MARGIN && !(c && c.lv.s)) tasks.push([d - 149, 's', ccx + di, ccz + dj, d]);
+      if (!(c && c.lv.t)) tasks.push([d - (d < R_SHRUB + MARGIN ? 400 : 0), 't', ccx + di, ccz + dj, d]); // trees before the shrubs / ground cover of a cell (spacing)
     }
     tasks.sort((a, b) => a[0] - b[0]);
-    for (const [, lv, ci, cj] of tasks) {
+    for (const [, lv, ci, cj, dd] of tasks) {
+      if (dd > syncR) continue;
       if (performance.now() - t1 > budgetMs) break;
       const c = getCell(ci, cj), ts = performance.now();
       if (lv === 't') genTrees(c); else if (lv === 's') genShrubs(c); else genGround(c);
@@ -456,7 +458,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     // houses planned after a cell was generated: regenerate nearby plant levels so nothing grows under / inside a new house
     // (filter in place, at most once a second: the other plants stay exactly where they are)
     const nl = houseLots.list ? houseLots.list.size + houseLots.reserved.length : 0, now = performance.now();
-    if (nl !== lotsSeen && now - lotsT > 1000) { lotsSeen = nl; lotsT = now; for (const c of cells.values()) { if (Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) > 800) continue; c.grid = null; if (c.lv.t) addLotTrees(c);
+    if (nl !== lotsSeen && now - lotsT > 1000) { lotsSeen = nl; lotsT = now; for (const c of cells.values()) { if (Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) > 800) continue; c.grid = null; if (c.lv.t && Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) < 450) addLotTrees(c);
       for (const L of c.lists.values()) { const tr = L.cls === 'tree'; let w = 0; for (let i = 0; i < L.n; i++) { if (tr ? inLotCore(L.m[i * 16 + 12], L.m[i * 16 + 14]) : inLot(L.m[i * 16 + 12], L.m[i * 16 + 14])) continue; if (w !== i) { L.m.copyWithin(w * 16, i * 16, i * 16 + 16); L.c.copyWithin(w * 3, i * 3, i * 3 + 3); } w++; } if (w !== L.n) { L.n = w; dirty = true; } } } }
     // docks / decks / piers built after a cell was generated (static colliders appear as tiles and set pieces stream in): drop the
     // trees and plants now standing in one (mangroves beside a dock were growing through it)
@@ -467,7 +469,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
           if (w !== L.n) { L.n = w; dirty = true; } } } } }
     const jump = cam.position.distanceTo(lastPos) > 300;
     // after a teleport / at start: fill the surroundings synchronously so the first frame is complete
-    const pending = work(cam, jump || force ? 4000 : 2.5);
+    const pending = jump || force ? work(cam, 1500, 360) : work(cam, 2.5); // (vegetation) a jump fills the near 360 m at once (max 1.5 s), the rest streams in over the next frames
     cam.getWorldDirection(dir);
     if (dirty || jump || force || cam.position.distanceToSquared(lastPos) > 25 || dir.dot(lastDir) < 0.994) { rebucket(cam); lastPos.copy(cam.position); lastDir.copy(dir); dirty = false; }
     st.pending = pending;

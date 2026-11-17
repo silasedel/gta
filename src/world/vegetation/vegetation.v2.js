@@ -44,6 +44,7 @@ export async function initV2(game) {
     const base = C?.isWater?.(x, z) ? Math.max(g, C.seaLevel ?? -0.12) : g; // a water plane collider (if any) is not a dock
     return g + 6 - (hit.timeOfImpact ?? hit.toi ?? 6) > base + 0.3;
   }
+  const nearCam = (x, z, d) => { const c = game.camera?.position; return !c || (c.x - x) ** 2 + (c.z - z) ** 2 < d * d; };
   function blockedAt(x, z, r = 0) { for (const b of blocks) { if (!b) continue; if (b.r !== undefined ? (b.x - x) ** 2 + (b.z - z) ** 2 < (b.r + r) ** 2 : x > b.x0 - r && x < b.x1 + r && z > b.z0 - r && z < b.z1 + r) return true; } return false; }
   // ground under a plant: lowest of 5 samples over the footprint (no base hanging over a slope or bank); the base sinks a little
   // (root flare / mud); mangroves on a water cell stand on the shallow seabed with their roots in the water
@@ -142,7 +143,7 @@ export async function initV2(game) {
       if (CS_ON && !cs && !csFailed && C && C.terrain && C.flora && C.flora.countryside && game.camera) {
         try { const D = C.roadGraph, nd = {}; const MD = game.miamiData, TS = C.streamer?.tileSize || 200; // junction mouths (curb returns reach past the leg edges) count as road too
           const roadDist = D && D.nearestEdge ? (x, z) => { const r = D.nearestEdge(x, z, nd, 40); let g = r ? r.dist - r.edge.width / 2 : 99; if (g < 14 && MD?.getTile) { const t = MD.getTile(Math.floor(x / TS), Math.floor(z / TS)); for (const n of t?.nodes || []) if (n.degree >= 3 && n.width) g = Math.min(g, Math.hypot(n.x - x, n.z - z) - n.width / 2 - 2); } return g; } : null;
-          cs = createCountryside({ renderer: game.renderer, scene: game.scene, models: C.flora.models || {}, blocked: (x, z, r) => blockedAt(x, z, r) || solidAt(x, z), areas: (x, z, r) => blocks.length > 0 && blockedAt(x, z, r), solidRev: () => game.world?.colliders?.len?.() ?? 0, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), zoneAt: C.zoneAt, getTile: game.miamiData?.getTile ? (i, j) => game.miamiData.getTile(i, j) : null }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
+          cs = createCountryside({ renderer: game.renderer, scene: game.scene, models: C.flora.models || {}, blocked: (x, z, r) => blockedAt(x, z, r) || (nearCam(x, z, 260) && solidAt(x, z)), areas: (x, z, r) => blocks.length > 0 && blockedAt(x, z, r), solidRev: () => game.world?.colliders?.len?.() ?? 0, terrain: C.terrain, data: { isWater: (x, z) => C.isWater(x, z), zoneAt: C.zoneAt, getTile: game.miamiData?.getTile ? (i, j) => game.miamiData.getTile(i, j) : null }, roadDist, deckAt: C.elevated && C.elevated.footprintAt ? (x, z) => { try { return !!C.elevated.footprintAt(x, z); } catch (e) { return false; } } : null });
           game.vegetation.countryside = cs; C.flora.cs = cs; } catch (e) { csFailed = true; console.warn('[vegetation] countryside unavailable', e); }
       }
       if (cs && game.camera) cs.update(game.camera);
