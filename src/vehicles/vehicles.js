@@ -58,6 +58,17 @@ export async function createVehicles(game) {
         }
       }
     }
+    // curbside trash / recycling carts (lot props): keep the car body 2 m clear of each cart pair (pair = point +-0.6 m)
+    const owners = game.lotProps?.owners;
+    if (owners) {
+      const c = Math.cos(heading), s = Math.sin(heading);
+      for (const its of owners.values()) for (const it of its) {
+        if (it.name !== 'cart' && it.name !== 'bin_wheel') continue;
+        const dx = it.x - pos.x, dz = it.z - pos.z; if (dx * dx + dz * dz > 100) continue;
+        const ex = Math.max(0, Math.abs(dx * c - dz * s) - spec.W / 2), ez = Math.max(0, Math.abs(dx * s + dz * c) - spec.L / 2);
+        if (ex * ex + ez * ez < 2.0 * 2.0) return false;
+      }
+    }
     try {
       const hh = Math.max(0.3, (spec.roofY - 0.35) / 2);
       _fq.setFromAxisAngle(UP, heading);
@@ -1378,6 +1389,13 @@ export async function createVehicles(game) {
     if (!v.ghost) return;
     const t = v.body.translation();
     if (!force && !groundReady(t.x, t.y - v.groundOff, t.z)) return;
+    // the ghost pose follows the lane polyline height; the real road collider can sit a few cm higher (crown, curb ramps,
+    // bridge joints). Re-seat the body on the collider under it first, so the hull never starts inside the road and
+    // gets kicked out (the one roll-over cause left in the stability probe: flips 0.6 s after leaving ghost mode)
+    try {
+      const gh = world.castRay(new RAPIER.Ray({ x: t.x, y: t.y + 1.5, z: t.z }, { x: 0, y: -1, z: 0 }), 5, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
+      if (gh) { const gyR = t.y + 1.5 - (gh.timeOfImpact ?? gh.toi); v.body.setTranslation({ x: t.x, y: gyR + v.groundOff + 0.02, z: t.z }, true); }
+    } catch (e) { /* query pipeline busy: keep the ghost pose */ }
     v.body.setBodyType(RBT.Dynamic, true);
     const r = v.body.rotation(); _q.set(r.x, r.y, r.z, r.w); _v.set(0, 0, 1).applyQuaternion(_q);
     const sp = v.ghostSpeed || 0;

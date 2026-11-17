@@ -571,6 +571,7 @@ kill = []
 plate_faces = []
 TOPZ = float(verts_np(bm)[:, 2].max())
 TEXTURED = bool(CFG.get('textured')); tex_slot = {}
+EMB = []
 if CFG.get('recalcNormals'):  # sources with flipped panels (rendered from behind -> invisible / black)
     bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if slot_of[f.material_index] in ('paint',) or slot_of[f.material_index].startswith('trim')])
     log('normals recalculated')
@@ -633,6 +634,10 @@ for f in bm.faces:
             wc_ = wheels[wfi]['c']; rad_ = math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2])
             if rad_ > CFG.get('tireRatio', 0.8) * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
             elif CFG.get('rimChrome'): sl = 'trim:chrome'
+        if wfi >= 0 and not CFG.get('keepBadges'):
+            wc_ = wheels[wfi]['c']
+            if math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2]) < 0.2 * wheels[wfi]['r']:
+                rgb = (0.6, 0.61, 0.63); sl = 'trim:chrome'          # wheel center cap: plain, no maker mark
         if sl == 'paint': a = 0.0; rgb = (1, 1, 1)
         elif sl.startswith('trim'):
             rough, metal = info['rough'], info['metal']
@@ -674,7 +679,7 @@ for f in bm.faces:
         if (gz_ > FRONTZ - CFG.get('emblemDepth', 0.32) and 0.33 < cz[2] < 1.3) or (gz_ < REARZ + CFG.get('emblemDepth', 0.32) and 0.45 < cz[2] < 1.45):
             cs_ = [lp[col_layer] for lp in f.loops]; L_ = sum(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] for c in cs_) / len(cs_)
             if L_ > 0.3 or sum(c[3] for c in cs_) / len(cs_) >= 0.5:
-                for lp in f.loops: c_ = lp[col_layer]; lp[col_layer] = (0.03, 0.03, 0.034, c_[3] if sl.startswith('lamp') else pack_rm(0.42, 0.0))
+                EMB.append(f)   # filled from the nearest surface afterwards (paint, grille, chrome): no black blocks
     if COLOR_LAMPS and sl.startswith('trim') and sl != 'trim:interior' and lamp_zone(cz):
         cs_ = [lp[col_layer] for lp in f.loops]; r_ = sum(c[0] for c in cs_) / len(cs_); g_ = sum(c[1] for c in cs_) / len(cs_); b_ = sum(c[2] for c in cs_) / len(cs_)
         L_ = 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; front_ = -cz[1] > 0
@@ -719,6 +724,59 @@ def _geo_lamps(kind, front):
     log('geometric', kind, 'lamps', n)
 if not _cnt.get(LAMP['head']) and not CFG.get('noHeadFix'): _geo_lamps('head', True)
 if not _cnt.get(LAMP['tail']) and not _cnt.get(LAMP['reverse']) and not CFG.get('noTailFix'): _geo_lamps('tail', False)
+# emblem inpaint: every blanked emblem face takes the slot and color of the nearest non-emblem surface (within 15 cm)
+if EMB:
+    embset = set(EMB); killset_ = set(kill); cell = 0.06; H = {}
+    for g in bm.faces:
+        if g in embset or not g.is_valid or g in killset_: continue
+        c_ = g.calc_center_median(); gz_ = -c_[1]
+        if abs(c_[0]) > 0.9 or not (gz_ > FRONTZ - 1.4 or gz_ < REARZ + 1.4): continue
+        H.setdefault((int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)), []).append(g)
+    filled = 0
+    for f in EMB:
+        if not f.is_valid: continue
+        c_ = f.calc_center_median(); k0 = (int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)); best, bd = None, 0.15
+        for dx in (-2, -1, 0, 1, 2):
+            for dy in (-2, -1, 0, 1, 2):
+                for dz in (-2, -1, 0, 1, 2):
+                    for g in H.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
+                        d_ = (g.calc_center_median() - c_).length
+                        if d_ < bd: bd, best = d_, g
+        if best is None:
+            mi_ = 0; col_ = (1.0, 1.0, 1.0, 0.0)
+        else:
+            mi_ = best.material_index; cs_ = [lp[col_layer] for lp in best.loops]
+            col_ = tuple(sum(c[i] for c in cs_) / len(cs_) for i in range(4))
+            if mi_ == 3: mi_ = 2; col_ = (col_[0], col_[1], col_[2], pack_rm(0.4, 0.0))
+        f.material_index = mi_
+        for lp in f.loops: lp[col_layer] = col_
+        if mi_ == 3: 
+            for lp in f.loops: lp[uvl].uv = (-1.0, -1.0)
+        filled += 1
+    log('emblems inpainted', filled)
+# hand-placed boxes around 3D maker emblems (cars.json 'killBoxes'): a connected island lying wholly inside the box is deleted
+# (grille ornaments, hood mascots); a surface that leaves the box (the grille itself, the hood) is kept
+for B in CFG.get('killBoxes') or []:
+    front = B.get('front', True); nk = 0
+    def _inb(f):
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        return B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]
+    seen_ = set()
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f in seen_ or not _inb(f): continue
+        isl = [f]; seen_.add(f); i_ = 0; ok = True
+        while i_ < len(isl) and ok:
+            g = isl[i_]; i_ += 1
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h in seen_ or h in _kill: continue
+                    if not _inb(h): ok = False; break
+                    seen_.add(h); isl.append(h)
+                if not ok: break
+        if ok:
+            for g in isl: _kill.add(g); kill.append(g)
+            nk += len(isl)
+    log('kill box', nk)
 # hand-placed boxes where painted lettering sits on black trim (cars.json 'darkBoxes'): paint faces inside become dark trim
 for B in CFG.get('darkBoxes') or []:
     n = 0; front = B.get('front', False)

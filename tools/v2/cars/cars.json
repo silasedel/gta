@@ -37,7 +37,23 @@
   ],
   "fwd": "-y",
   "tireRatio": 0.62,
-  "rimChrome": true
+  "rimChrome": true,
+  "killBoxes": [
+   {
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.5,
+     0.9
+    ]
+   }
+  ]
  },
  "conv2": {
   "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
@@ -61,7 +77,23 @@
  "hatch1": {
   "src": "Hatchbacks/Hatchback 1 - Japanese Sporty Hatch/Hatchback 1.blend",
   "L": 4.46,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "dz": [
+     0,
+     0.3
+    ],
+    "ax": [
+     0,
+     0.12
+    ],
+    "y": [
+     0.4,
+     0.85
+    ]
+   }
+  ]
  },
  "hatch2": {
   "src": "Other/Random Car 1 - Japanese Hybrid Hatchback/Random Car 1.obj",
@@ -152,7 +184,40 @@
    "BumperFront XSG7": "trim"
   },
   "fwd": "-y",
-  "emblemHalfW": 0.45
+  "emblemHalfW": 0.45,
+  "killBoxes": [
+   {
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.5
+    ],
+    "y": [
+     1.12,
+     1.42
+    ]
+   }
+  ],
+  "darkBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.45
+    ],
+    "y": [
+     0.88,
+     1.07
+    ]
+   }
+  ]
  },
  "suv13": {
   "src": "SUVs/SUV 13 - Japanese Lifted Crossover/SUV 13.blend",
