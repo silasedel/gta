@@ -1487,6 +1487,13 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
   - the wall array at native 1024
   - wall roughness breakup
   Left: geometry window reveals on the near LOD, and 2K neutral wall scans (needs new sources). The materials.js neon line goes in with r2-render's commit.
+- **Final round (QA + stands), commit `r2-water: QA-011 ...`:** check script `tools/v2/water/qa_check.mjs` (default flags, 0 console errors).
+  - **Stands:** loosened (tertiary roads too, 6 of 8 prairie samples, about 1 per 900 m of glades road). Before the 2.1 km spacing, the check found 10 sites. With the spacing about 5 remain. The 5 is estimated from those 10 and not re-booted.
+  - **QA-011:** `probeWater` in `main.js` now treats "below a pier / dock deck and near sea level" as water, with the depth from the data seabed.
+    - At QA's spot (-895, 4806) the map already says water, but the physics floor sits at -0.31 while the data says 5 m deep. The player stands at 0.19 m depth on that floor.
+    - That's r2-ground's seabed heightfield vs the data depth (QA sent the same "physics floor 0 vs drawn seabed -0.35" finding to r2-ground), not the swim code.
+  - **QA-051:** a false positive. QA's selector (and mine) took the BREATH bar itself as "the label" and read the opacity of its parent `<body>`. The bar now also sets `visibility: hidden` once faded, so it's fully gone at 100 % above water.
+  - **`ocean.js`:** r2-ground's two-pass commit has landed. My `// r2-water` block isn't added (the lead stopped me on budget). `?waves=2` patches both passes at runtime and is ready to become the block.
 
 ## r2-render
 **Image-stability overhaul (the user's "dotty, fringy, layered").** On by default (`game.renderR2`, page `?render2=0` = old pipeline).
