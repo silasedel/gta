@@ -50,7 +50,9 @@ export function build(ctx) {
       const x = pa.getX(i), z = pa.getZ(i), dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2));
       const under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 2) - 19) / 12));
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
-      let c = [0.71, 0.73, 0.77];   // gray-white shell (the scan is beige: pull it toward gray); r2-keys: a notch darker with more breakup (lead: too bright and flat)
+      // r2-art / r2-look calibration: the shell scan is warm (linear mean 0.29, 0.24, 0.18) and the material gain is 1.5, so these per-channel
+      // multipliers land the floor at luminance ~0.46, saturation < 0.1 (crushed shell 0.42-0.52, near neutral), before the breakup below
+      let c = [1.2, 1.44, 1.84];
       c = c.map((v) => v * (0.76 + 0.34 * n) * (0.86 + 0.24 * nC) * (1 - 0.28 * under) * (1 + 0.08 * drive));
       const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9); c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
@@ -59,7 +61,8 @@ export function build(ctx) {
       { // toward the open edges and the asphalt the shell yard takes on the terrain's sand tone, so where the sheet dips under it
         // there is no pale-on-tan cut line
         const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, (roadD(x, z) + 0.5) * 2.2) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
-        const SAND = [0.97, 0.84, 0.64]; for (let k = 0; k < 3; k++) c[k] = c[k] + (SAND[k] - c[k]) * f * 0.85; }
+        const SAND = [1.22, 1.36, 1.56];   // the terrain ring around the lot is shell too (r2-ground): a slightly warmer, sandier shell
+        for (let k = 0; k < 3; k++) c[k] = c[k] + (SAND[k] - c[k]) * f * 0.85; }
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
       pa.setY(i, yardY(x, z));
     }

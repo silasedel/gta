@@ -20,7 +20,7 @@ import os from 'node:os';
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const LOCK_DIR = path.join(os.tmpdir(), 'port-solana-v2-browser');
 const SLOTS = 3;
-const STALE_MS = 12 * 60 * 1000;
+const STALE_MS = 50 * 60 * 1000;   // a live owner keeps its slot (12 min let long runs lose it, so 4+ Chromes ran at once)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function pidAlive(pid) { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } }
@@ -89,7 +89,7 @@ export async function withBrowser(opts, fn) {
 
   let ws, id = 0, port = 0;
   const pending = new Map();
-  const errors = [], logs = [];
+  const errors = [], logs = [], listeners = [];
   const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
   try {
     for (let i = 0; i < 120 && !port; i++) { try { port = Number(fs.readFileSync(path.join(prof, 'DevToolsActivePort'), 'utf8').split('\n')[0]); } catch (e) { await sleep(250); } }
@@ -105,6 +105,7 @@ export async function withBrowser(opts, fn) {
     ws.onmessage = (m) => {
       const d = JSON.parse(m.data);
       if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); return; }
+      if (d.method) for (const f of listeners) { try { f(d.method, d.params); } catch (e) { /* listener bug */ } }
       if (d.method === 'Runtime.exceptionThrown') errors.push('EXC ' + (d.params.exceptionDetails?.exception?.description || d.params.exceptionDetails?.text || '').slice(0, 500));
       else if (d.method === 'Runtime.consoleAPICalled') {
         const txt = (d.params.args || []).map((a) => a.value ?? a.description ?? '').join(' ').slice(0, 500);
@@ -123,6 +124,8 @@ export async function withBrowser(opts, fn) {
 
     const api = {
       errors, logs, sleep, send,
+      // raw CDP events: b.on((method, params) => ...) (r2-web: Network.* for the load profiler)
+      on(fn) { listeners.push(fn); },
       async goto(url) { await send('Page.navigate', { url }); await sleep(300); },
       async eval(expr, timeoutMs = 120000) {
         const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true, timeout: timeoutMs });
