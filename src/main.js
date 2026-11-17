@@ -16,7 +16,7 @@ const DAY_MINUTES = 48; // stage 1: a full in-game day lasts 48 real minutes, as
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
-import { yieldTask, compileSliced, programsReady } from './core/pace.js';
+import { yieldTask, breathe, compileSliced, compileForGame, programsReady } from './core/pace.js';
 
 // Loading bar with a live percentage. Each boot step sets a milestone; between milestones the shown value keeps
 // creeping toward (but never reaching) the next one, so long steps (loading Miami) never look frozen.
@@ -131,6 +131,8 @@ async function boot() {
   loadMsg('SPAWNING TRAFFIC', 70);
   game.vehicles = await safe('vehicles', () => createVehicles(game), { list: [], nearest: () => null, update() {} });
   loadMsg('POPULATING STREETS', 80);
+  // stage 1 boot pacing: the NPC cloth/skin micro-normal atlas (~0.5 s of pixel work) in short tasks before the first ped
+  await safe('npcAtlas', async () => { const m = await import('./npc/arch/materials.js'); if (m.prewarmMicroAtlas) await m.prewarmMicroAtlas(breathe); });
   game.peds = await safe('peds', () => createPeds(game), { list: [], update() {} });
   loadMsg('OPENING STORES', 86);
   game.interiors = await safe('interiors', () => createInteriors(game), { list: [], update() {} });
@@ -704,10 +706,12 @@ async function boot() {
       try { game.vehicles.update?.(wdt); game.peds.update?.(wdt); game.interiors.update?.(wdt); } catch (e) {}
       try { updateCamera(wdt); game.env.update?.(wdt); } catch (e) {}
       if (i % 10 === 0) renderer.shadowMap.needsUpdate = true;
+      // objects that streamed / spawned since the last check: compile their programs in the background first, so this
+      // frame's render does not stop to compile them (src/core/pace.js)
+      if (i % 5 === 0) { try { compileForGame(renderer, THREE, scene, camera, scene); } catch (e) { /* render compiles them */ } await yieldTask(); await programsReady(renderer, 3000); }
       game.post.render(wdt);
       if (i % 6 === 0) loadMsg('WARMING UP', 96 + Math.min(3, i / 20));
       await yieldTask(); // every warm-up frame is its own task (the loading bar keeps moving)
-      if (i % 10 === 9) await programsReady(renderer, 3000); // programs created by these frames: let the GPU finish them first
     }
     await compileSliced(renderer, THREE, scene.children.slice(), camera, scene);
   } catch (e) { console.warn('[boot] shader warm-up skipped', e); }

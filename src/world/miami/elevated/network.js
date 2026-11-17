@@ -23,7 +23,16 @@ class Grid {
   at(x, z) { return this.m.get(this.k(Math.floor(x / this.cell), Math.floor(z / this.cell))) || null; }
 }
 
+// stage 1 boot pacing: the network build is a generator that yields between its phases (and between the solver passes),
+// so the city can build it in short main-thread tasks (buildNetworkSteps); buildNetwork() runs it to completion (same result).
 export function buildNetwork(data, opts = {}) {
+  const g = buildNetworkSteps(data, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+export function* buildNetworkSteps(data, opts = {}) {
+  let yieldN = 0;
   const now = () => (typeof performance !== 'undefined' ? performance : Date).now(), T0 = now(), phase = {}; let tP = T0; const mark = (k) => { const t = now(); phase[k] = Math.round(t - tP); tP = t; };
   const G = data.roadGraph, E = G.edges, N = G.nodes;
   const isWater = data.isWater ? (x, z) => data.isWater(x, z) : () => false;
@@ -31,6 +40,7 @@ export function buildNetwork(data, opts = {}) {
   const terrainY = data.hasRelief && data.terrainHeightAt ? (x, z) => Math.max(0, data.terrainHeightAt(x, z) || 0) : () => 0;
   const groundY = (x, z) => (isWater(x, z) ? seabed(x, z) : terrainY(x, z)); // walls / piers stand on the real ground (hills outside real Miami)
 
+  yield;
   // ---------------------------------------------------------------- 1. owned edges
   const own = new Uint8Array(E.length);
   const ymaxOf = (e) => { let m = 0; for (let i = 0; i < e.y.length; i++) if (e.y[i] > m) m = e.y[i]; return m; };
@@ -52,6 +62,7 @@ export function buildNetwork(data, opts = {}) {
   const endDir = (e, atA) => { const p = e.pts, q0 = atA ? p[0] : p[p.length - 1], q1 = atA ? p[1] : p[p.length - 2], l = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1; return [(q1[0] - q0[0]) / l, (q1[1] - q0[1]) / l]; };
 
   mark('before 2. chains');
+  yield;
   // ---------------------------------------------------------------- 2. chains (through-pairing at nodes)
   const pairOf = new Map(); // `${edge}:${atA}` -> {e, atA}
   const keyEnd = (e, atA) => e.id * 2 + (atA ? 0 : 1);
@@ -89,14 +100,17 @@ export function buildNetwork(data, opts = {}) {
   for (const e of E) if (own[e.id] && chainOfEdge[e.id] < 0) rawChains.push(walk(e, true)); // loops
   // chain direction: follow traffic when oneway pieces disagree with the walk
   for (const list of rawChains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     let fw = 0, bw = 0; for (const { e, rev } of list) if (e.oneway) { if (rev) bw += e.length; else fw += e.length; }
     if (bw > fw) { list.reverse(); for (const it of list) it.rev = !it.rev; }
   }
 
   mark('before 3. plan geometry');
+  yield;
   // ---------------------------------------------------------------- 3. plan geometry per chain
   const chains = [];
   for (const list of rawChains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const X = [], Z = [], YT = [], EI = [], PIN = [], HW = [], LF = [], LB = [], OW = [], SW = [];
     for (let q = 0; q < list.length; q++) {
       const { e, rev } = list[q], pts = e.pts, m = pts.length, cum = e.cum, L = e.length;
@@ -138,6 +152,7 @@ export function buildNetwork(data, opts = {}) {
   const ovApplied = opts.overrides === false ? [] : resolveOverrides(chains); if (ovApplied.length) { applyPlans(chains); applyTargets(chains); }
   // per-sample frames
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n, x = c.x, z = c.z;
     c.s = new Float64Array(n); c.tx = new Float64Array(n); c.tz = new Float64Array(n); c.kap = new Float64Array(n);
     for (let i = 1; i < n; i++) c.s[i] = c.s[i - 1] + Math.hypot(x[i] - x[i - 1], z[i] - z[i - 1]);
@@ -151,6 +166,7 @@ export function buildNetwork(data, opts = {}) {
   }
 
   mark('before 4. spatial indexes');
+  yield;
   // ---------------------------------------------------------------- 4. spatial indexes (chain segments + ground road segments)
   // segment ids: chain segs = c.segBase + i (i in [0, n-2]); ground segs = groundBase + k
   let nSeg = 0; for (const c of chains) { c.segBase = nSeg; nSeg += c.n - 1; }
@@ -166,6 +182,7 @@ export function buildNetwork(data, opts = {}) {
     nbGrid.add(Math.min(a[0], b[0]) - pad, Math.min(a[1], b[1]) - pad, Math.max(a[0], b[0]) + pad, Math.max(a[1], b[1]) + pad, nSeg + g); }
 
   mark('before 5. lateral relations');
+  yield;
   // ---------------------------------------------------------------- 5. lateral relations (per sample, per neighbour)
   // rel: {k (chain id or -1 ground), e (ground edge), j, u, t1, t2, a, b, same, joined, cross, d}
   const ordered = chains.slice().sort((p, q) => q.rank - p.rank || q.length - p.length || p.id - q.id);
@@ -173,6 +190,7 @@ export function buildNetwork(data, opts = {}) {
   const GROUND_PRIO = 1e9;
   const tmpBest = new Map();
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     c.rel = new Array(c.n);
     for (let i = 0; i < c.n; i++) {
       const px = c.x[i], pz = c.z[i], tx = c.tx[i], tz = c.tz[i], nx = -tz, nz = tx;
@@ -214,6 +232,7 @@ export function buildNetwork(data, opts = {}) {
   }
 
   mark('before 6. node heights');
+  yield;
   // ---------------------------------------------------------------- 6. node heights, banking, vertical profiles (priority order)
   const nodeY = new Map(); // fixed node heights
   for (const n of nodeOwnEnds.keys()) if (nodeIsGround(n)) nodeY.set(n, 0);
@@ -221,6 +240,7 @@ export function buildNetwork(data, opts = {}) {
   const solved = new Uint8Array(chains.length);
   const stats = { infeasible: 0, liftedOverRoad: 0, droppedUnder: 0 };
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     c.trimA = 0; c.trimB = 0; c.endA = 'free'; c.endB = 'free';
     for (const [end, node] of [[0, c.nodeA], [1, c.nodeB]]) {
       const ground = nodeIsGround(node), deg = N[node].edges.length;
@@ -235,6 +255,7 @@ export function buildNetwork(data, opts = {}) {
   // gore / merge runs: a contiguous stretch where a deck overlaps a same-direction neighbour in plan stays coplanar with
   // it for the whole overlap if it is level with it anywhere in the run (OSM ramps "climb" while still on the main deck)
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const runs = new Map(); // key -> [[i, r], ...] last run
     const flush = (list) => { if (!list.length) return; let lv = false; for (const [, r] of list) if (Math.abs(r.dyT) < P.JOIN_DY) lv = true; if (lv) for (const [, r] of list) if (Math.abs(r.dyT) < 9) r.fj = true; };
     const open = new Map();
@@ -250,6 +271,7 @@ export function buildNetwork(data, opts = {}) {
   for (let pass = 0; pass < 4; pass++) {
     solved.fill(0); nodeY.clear(); for (const n of nodeOwnEnds.keys()) if (nodeIsGround(n)) nodeY.set(n, 0);
     for (const c of ordered) solveChain(c, pass);
+    yield;
   }
   function solveChain(c, pass) {
     const n = c.n;
@@ -349,10 +371,12 @@ export function buildNetwork(data, opts = {}) {
   }
 
   mark('before 7. visible deck');
+  yield;
   // ---------------------------------------------------------------- 7. visible deck interval + barrier sides
   // squeeze: opposing carriageways drawn too close in OSM share the space between their centre-lines (median at the
   // width-weighted midpoint); shoulders shrink first, then lanes (>= 3.1 m). Then the lateral intervals are recomputed.
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n, want = new Float64Array(n).fill(Infinity);
     for (let i = 0; i < n; i++) for (const r of c.rel[i]) {
       if (r.same || !r.near || Math.abs(r.dyT) >= P.JOIN_DY || Math.abs(r.b) < 0.5) continue;
@@ -376,6 +400,7 @@ export function buildNetwork(data, opts = {}) {
   }
   // the deck width may change at most 1 : 25 along the chain (no jogs in the barrier line where a squeeze ends)
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n, H = Float64Array.from(c.HL), T = 0.04;
     for (let i = 1; i < n; i++) H[i] = Math.min(H[i], H[i - 1] + T * (c.s[i] - c.s[i - 1]));
     for (let i = n - 2; i >= 0; i--) H[i] = Math.min(H[i], H[i + 1] + T * (c.s[i + 1] - c.s[i]));
@@ -397,6 +422,7 @@ export function buildNetwork(data, opts = {}) {
     if (r.clip && r.prio > c.prio) stats.conflicts++;
   }
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n; c.vL = new Float64Array(n); c.vR = new Float64Array(n); c.vis = new Uint8Array(n);
     c.barL = new Uint8Array(n); c.barR = new Uint8Array(n); c.joinL = new Uint8Array(n); c.joinR = new Uint8Array(n);
     for (let i = 0; i < n; i++) {
@@ -427,6 +453,7 @@ export function buildNetwork(data, opts = {}) {
   }
   // structure type per sample: 0 at grade, 1 embankment (retaining walls), 2 open viaduct (fascia, soffit, piers)
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n; c.type = new Uint8Array(n); c.gY = new Float64Array(n); c.water = new Uint8Array(n);
     for (let i = 0; i < n; i++) { c.water[i] = isWater(c.x[i], c.z[i]) ? 1 : 0; c.gY[i] = c.water[i] ? seabed(c.x[i], c.z[i]) : terrainY(c.x[i], c.z[i]); }
     const wNear = new Uint8Array(n); for (let i = 0; i < n; i++) if (c.water[i]) for (let k = Math.max(0, i - 4); k <= Math.min(n - 1, i + 4); k++) wNear[k] = 1;
@@ -466,6 +493,7 @@ export function buildNetwork(data, opts = {}) {
   }
 
   mark('before 8. barrier runs');
+  yield;
   // ---------------------------------------------------------------- 8. barrier runs, piers, lamps, joints
   const occGrid = new Grid(16); // things a pier must never stand in: ground road bands + every deck footprint
   for (let g = 0; g < gSegE.length; g++) { const e = E[gSegE[g]], k = gSegK[g], a = e.pts[k], b = e.pts[k + 1], pad = e.width / 2 + 2; occGrid.add(Math.min(a[0], b[0]) - pad, Math.min(a[1], b[1]) - pad, Math.max(a[0], b[0]) + pad, Math.max(a[1], b[1]) + pad, nSeg + g); }
@@ -495,6 +523,7 @@ export function buildNetwork(data, opts = {}) {
   };
   const piers = [], lamps = [], joints = [];
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n;
     // runs of viaduct
     let i = 0;
@@ -549,10 +578,12 @@ export function buildNetwork(data, opts = {}) {
   }
 
   mark('before 9. height / footprint');
+  yield;
   // ---------------------------------------------------------------- 9. height / footprint index over visible deck quads
   const QR = { y: 0, chain: -1, i: 0, type: 0 }, footRes = { y: 0, type: 0 };
   const hGrid = new Grid(8);
   for (const c of chains) {
+    if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n;
     c.lx = new Float64Array(n); c.lz = new Float64Array(n); c.rx = new Float64Array(n); c.rz = new Float64Array(n); c.ly = new Float64Array(n); c.ry = new Float64Array(n);
     for (let i = 0; i < n; i++) {

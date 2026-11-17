@@ -93,27 +93,38 @@ function barkSample(col, u, v) {
 
 export function barkAtlas() {
   if (_bark) return _bark;
+  const g = barkAtlasSteps(); let r = g.next(); while (!r.done) r = g.next();
+  return _bark;
+}
+// stage 1 boot pacing: the same atlas built one column per step (the city build makes it in short tasks before use)
+export async function prewarmBarkAtlas(breathe) {
+  if (_bark) return _bark;
+  const g = barkAtlasSteps(); let r = g.next(); while (!r.done) { await breathe(); r = g.next(); }
+  return _bark;
+}
+function* barkAtlasSteps() {
   const W = 2048, H = 1024, CW = W / BARK.COLS;
   const hgt = new Float32Array(W * H), cc = document.createElement('canvas'); cc.width = W; cc.height = H;
   const cx = cc.getContext('2d'), cid = cx.createImageData(W, H), rc = document.createElement('canvas'); rc.width = W; rc.height = H;
   const rx = rc.getContext('2d'), rid = rx.createImageData(W, H);
-  for (let col = 0; col < BARK.COLS; col++) for (let y = 0; y < H; y++) for (let xx = 0; xx < CW; xx++) {
+  for (let col = 0; col < BARK.COLS; col++) { if (col) yield; for (let y = 0; y < H; y++) for (let xx = 0; xx < CW; xx++) {
     const S = barkSample(col, xx / CW, y / H), i = y * W + col * CW + xx;
     hgt[i] = S.h; const o = i * 4;
     cid.data[o] = Math.min(255, S.c[0] * 255); cid.data[o + 1] = Math.min(255, S.c[1] * 255); cid.data[o + 2] = Math.min(255, S.c[2] * 255); cid.data[o + 3] = 255;
     rid.data[o] = 0; rid.data[o + 1] = S.r * 255; rid.data[o + 2] = 0; rid.data[o + 3] = 255;
-  }
+  } }
+  yield;
   cx.putImageData(cid, 0, 0); rx.putImageData(rid, 0, 0);
   // normal map from the height field (wraps inside each column horizontally, along the whole height vertically)
   const nc = document.createElement('canvas'); nc.width = W; nc.height = H; const nx = nc.getContext('2d'), nid = nx.createImageData(W, H);
-  for (let col = 0; col < BARK.COLS; col++) for (let y = 0; y < H; y++) for (let xx = 0; xx < CW; xx++) {
+  for (let col = 0; col < BARK.COLS; col++) { yield; for (let y = 0; y < H; y++) for (let xx = 0; xx < CW; xx++) {
     const at = (dx, dy) => hgt[((y + dy + H) % H) * W + col * CW + ((xx + dx + CW) % CW)];
     const gx = (at(1, 0) - at(-1, 0)) * 6, gy = (at(0, 1) - at(0, -1)) * 6, l = Math.hypot(gx, gy, 1), o = (y * W + col * CW + xx) * 4;
     nid.data[o] = (-gx / l * 0.5 + 0.5) * 255; nid.data[o + 1] = (gy / l * 0.5 + 0.5) * 255; nid.data[o + 2] = (1 / l * 0.5 + 0.5) * 255; nid.data[o + 3] = 255;
-  }
+  } }
   nx.putImageData(nid, 0, 0);
   const tex = (c, srgb) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.ClampToEdgeWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
-  _bark = { map: tex(cc, true), normalMap: tex(nc, false), roughnessMap: tex(rc, false), canvas: cc };
+  if (!_bark) _bark = { map: tex(cc, true), normalMap: tex(nc, false), roughnessMap: tex(rc, false), canvas: cc };
   return _bark;
 }
 

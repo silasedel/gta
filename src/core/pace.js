@@ -15,8 +15,16 @@ export async function yieldTask() {
   last = performance.now();
 }
 
+// slices that ran much longer than the budget are recorded (where they ended) for tools/v2/s1-boot.mjs
+function noteLong() {
+  const ms = performance.now() - last;
+  if (ms < 150 || typeof window === 'undefined') return;
+  const B = (window.__boot ||= { stages: [] }); const L = (B.slices ||= []);
+  if (L.length < 60) L.push([Math.round(ms), (new Error().stack || '').split('\n').slice(3, 6).map((l) => l.trim().replace(/^at /, '').replace(/https?:\/\/[^/]+\//, '').replace(/\?[^:)]*/, '')).join(' < ')]);
+}
 export async function breathe(budgetMs = 12) {
   if (performance.now() - last < budgetMs) return;
+  noteLong();
   await yieldTask();
 }
 

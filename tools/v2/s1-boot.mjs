@@ -37,12 +37,29 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
     for (const [id, c] of cnt) { const n = nodes.get(id); self[nm(n)] = (self[nm(n)] || 0) + c; const seen = new Set(); for (let x = id; x !== undefined; x = parent.get(x)) { const k = nm(nodes.get(x)); if (!seen.has(k)) { seen.add(k); incl[k] = (incl[k] || 0) + c; } } }
     const top = (m, k) => Object.entries(m).filter(([f]) => !/^\((idle|root|program)\)/.test(f)).sort((x, y) => y[1] - x[1]).slice(0, k).map(([f, c]) => `${String(Math.round(c * dt)).padStart(6)} ms  ${f}`);
     rep.profSelf = top(self, 40); rep.profIncl = top(incl, 120);
+    // hottest source lines of chosen functions (--lines name1,name2): self samples per line
+    if (o.lines) { const want = String(o.lines).split(','); const L = {};
+      for (const n of pr.nodes) { if (!want.includes(n.callFrame.functionName)) continue; for (const pt of n.positionTicks || []) { const k = n.callFrame.functionName + ':' + pt.line; L[k] = (L[k] || 0) + pt.ticks; } }
+      rep.lines = Object.entries(L).sort((x, y) => y[1] - x[1]).slice(0, 25).map(([k, c]) => Math.round(c * dt) + ' ms ' + k); }
+    // busy stretches (consecutive non-idle samples >= 150 ms): the heaviest project functions inside each one
+    const isIdle = (id) => { const f = nodes.get(id).callFrame.functionName; return f === '(idle)' || f === '(program)' || f === '(root)'; };
+    const stretches = []; let cur = null, tAcc = 0;
+    for (let i = 0; i < pr.samples.length; i++) {
+      tAcc += pr.timeDeltas[i] / 1000;
+      if (isIdle(pr.samples[i])) { if (cur && cur.ms >= 150) stretches.push(cur); cur = null; continue; }
+      if (!cur) cur = { t: Math.round(tAcc), ms: 0, f: {} };
+      cur.ms += pr.timeDeltas[i + 1] ? pr.timeDeltas[i + 1] / 1000 : dt;
+      const seen = new Set();
+      for (let x = pr.samples[i]; x !== undefined; x = parent.get(x)) { const n = nodes.get(x), u = n.callFrame.url; if (!/\/src\//.test(u)) continue; const k = nm(n); if (!seen.has(k)) { seen.add(k); cur.f[k] = (cur.f[k] || 0) + 1; } }
+    }
+    if (cur && cur.ms >= 150) stretches.push(cur);
+    rep.busy = stretches.sort((x, y) => y.ms - x.ms).slice(0, 14).map((st) => ({ t: st.t, ms: Math.round(st.ms), top: Object.entries(st.f).sort((x, y) => y[1] - x[1]).slice(0, 7).map(([f, c]) => Math.round(c * dt) + ' ' + f) }));
   }
   rep.wallMs = Date.now() - t0;
   await b.sleep(3000); // long tasks right after READY (first frames)
   rep.programs = await b.eval(`(() => { const ps = game.renderer.info.programs; const by = {}; for (const p of ps) { const k = String(p.cacheKey); const cs = /srgb-linear/.test(k) ? 'linear' : /,srgb,/.test(k) ? 'srgb' : 'other'; by[cs] = (by[cs] || 0) + 1; } return JSON.stringify({ n: ps.length, by }); })()`);
   const B = JSON.parse(await b.eval(`JSON.stringify(Object.assign({}, window.__boot, { readyAt: window.__boot.ready, nav: performance.getEntriesByType('navigation')[0]?.domContentLoadedEventEnd }))`));
-  rep.readyMs = B.readyAt; rep.stages = B.stages; rep.long = B.long; rep.loaf = B.loaf;
+  rep.readyMs = B.readyAt; rep.stages = B.stages; rep.slices = (B.slices || []).sort((x, y) => y[0] - x[0]); rep.long = B.long; rep.loaf = B.loaf;
   const fr = B.frames || [];
   rep.loadingBar = { frames: fr.length, gapsOver200: fr.filter((x) => x > 200).length, worstGap: Math.max(0, ...fr), sumOver200: fr.filter((x) => x > 200).reduce((p, c) => p + c, 0) };
   if (b.errors.length) rep.errors = [...new Set(b.errors)].filter((e) => !/favicon/.test(e)).slice(0, 12);
@@ -56,7 +73,10 @@ for (const s of rep.stages.slice().sort((x, y) => y[2] - x[2]).slice(0, TOP)) co
 console.log('\nWorst long tasks [start, ms]:', JSON.stringify(longs.slice(0, 15)));
 console.log('\nLong animation frames (script attribution):');
 for (const f of rep.loaf.slice().sort((x, y) => y.ms - x.ms).slice(0, 15)) console.log(`  @${f.t} ${f.ms} ms`, JSON.stringify(f.scripts));
-if (rep.profIncl) { console.log('\nCPU inclusive (boot):'); for (const l of rep.profIncl) console.log('  ' + l); console.log('\nCPU self (boot):'); for (const l of rep.profSelf) console.log('  ' + l); }
+if (rep.slices?.length) { console.log('\nLong paced slices (ms, where the slice ended):'); for (const l of rep.slices.slice(0, 15)) console.log('  ' + l[0] + ' ms  ' + l[1]); }
+if (rep.lines) { console.log('\nHot lines:'); for (const l of rep.lines) console.log('  ' + l); }
+if (rep.busy) { console.log('\nLongest busy stretches (profile), heaviest project functions inside:'); for (const b of rep.busy) console.log(`  @${b.t} ${b.ms} ms  ` + b.top.join(' | ')); }
+if (rep.profIncl && o.full) { console.log('\nCPU inclusive (boot):'); for (const l of rep.profIncl) console.log('  ' + l); console.log('\nCPU self (boot):'); for (const l of rep.profSelf) console.log('  ' + l); }
 if (rep.errors) console.log('\nERRORS', rep.errors.join('\n'));
 fs.mkdirSync('docs/v2/reports', { recursive: true });
 fs.writeFileSync(`docs/v2/reports/stage1-boot-${SET}.json`, JSON.stringify(rep, null, 1));

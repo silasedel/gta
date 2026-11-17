@@ -4,6 +4,7 @@
 // Format notes: tools/osm/README.md
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import * as THREE from 'three';
+import { breathe } from '../../core/pace.js';
 
 const DEFAULT_BASE = '/assets/miami/';
 const SURF_PUBLIC = { sidewalk: 'concrete', pier: 'wood', building: 'concrete' };
@@ -209,6 +210,7 @@ export async function loadMiamiData(game, opts = {}) {
   }
 
   // ---------------------------------------------------------------- road graph
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const CTRL = [null, 'signal', 'stop', 'yield'];
   const nodes = [];
   for (let k = 0, n = rg.nodes.length / 2; k < n; k++) nodes.push({ id: k, x: rg.nodes[2 * k] * Q, z: rg.nodes[2 * k + 1] * Q, y: 0, edges: [], signal: false, control: null, exit: null });
@@ -264,6 +266,7 @@ export async function loadMiamiData(game, opts = {}) {
   };
   const edgeHash = buildHash(B.minX, B.minZ, B.maxX, B.maxZ, 40, segCount, (k, bb) => segBBox(k, bb, edges[segE[k]].width / 2));
   // elevated segments only (for groundHeightAt / surfaceAt on bridges)
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const elevSegs = [];
   for (let k = 0; k < segCount; k++) {
     const e = edges[segE[k]];
@@ -438,6 +441,7 @@ export async function loadMiamiData(game, opts = {}) {
   }
 
   // ---------------------------------------------------------------- sidewalks / paths
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const ZI = {}; ZONES.forEach((n, i) => { ZI[n] = i; });
   const swLines = peds.sidewalks.map((s) => {
     const pf = Float32Array.from(s.p, (v) => v * Q);
@@ -454,8 +458,10 @@ export async function loadMiamiData(game, opts = {}) {
   };
   const namedPaths = paths.filter((p) => p.name && (p.kind === 'pedestrian' || p.kind === 'footway' || p.kind === 'path' || p.kind === 'cycleway'));
   const namedPathHash = namedPaths.length ? buildHash(B.minX, B.minZ, B.maxX, B.maxZ, 60, namedPaths.length, (k, bb) => { lineBBox(namedPaths[k].pf, bb); bb[0] -= 60; bb[1] -= 60; bb[2] += 60; bb[3] += 60; }) : null;
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const swHash = buildHash(B.minX, B.minZ, B.maxX, B.maxZ, 50, swLines.length, (k, bb) => lineBBox(swLines[k].pf, bb));
   const pedPaths = paths.filter((p) => !p.bridge && (p.kind === 'sidewalk' || p.kind === 'footway' || p.kind === 'pedestrian' || p.kind === 'path'));
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const pathHash = buildHash(B.minX, B.minZ, B.maxX, B.maxZ, 50, pedPaths.length, (k, bb) => lineBBox(pedPaths[k].pf, bb));
   const CAND = new Int32Array(8192);
   const seenStamp = new Int32Array(Math.max(swLines.length, pedPaths.length, 1));
@@ -571,6 +577,7 @@ export async function loadMiamiData(game, opts = {}) {
   const TMP2 = { x: 0, y: 0, z: 0, dx: 0, dz: 0 };
 
   // ---------------------------------------------------------------- spots (storefronts, benches, lean spots)
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const storefronts = spots.storefronts.map((s) => {
     const c = Math.abs(Math.cos(s.facing)), sn = Math.abs(Math.sin(s.facing));
     return { ...s, sx: s.w * c + s.d * sn, sz: s.w * sn + s.d * c, district: districtAt(s.x, s.z) };
@@ -811,6 +818,7 @@ export async function loadMiamiData(game, opts = {}) {
     dirt: 'land', construction: 'land', rock: 'land', gravel: 'land' };
   const PALMS = new Set(['palm', 'royal_palm', 'coconut']);
   const TREES = new Set(['tree', 'palm', 'royal_palm', 'coconut', 'oak', 'pine', 'cypress', 'mangrove', 'citrus', 'gumbo', 'banyan', 'seagrape']);
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const sfByBuilding = new Map();
   for (const s of storefronts) if (!sfByBuilding.has(s.buildingId)) sfByBuilding.set(s.buildingId, s);
   const cityTiles = new Map();
@@ -936,6 +944,7 @@ export async function loadMiamiData(game, opts = {}) {
     grids: G, loadTimeMs: 0, timings: null,
   };
   // regions needed synchronously at boot: the port (cruise terminals) and the area around the default spawn
+  await breathe(); // stage 1 boot pacing (src/core/pace.js)
   const tBoot = performance.now();
   if (opts.bundle !== false) {
     const first = new Set(bootRegions);

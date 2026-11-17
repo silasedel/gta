@@ -43,6 +43,7 @@ export async function createMiamiCity(game, opts = {}) {
   const bounds = data?.bounds || provider.bounds;
   await breathe();
 
+  try { const vt = await import('../vegetation/textures.js'); if (vt.prewarmBarkAtlas) await vt.prewarmBarkAtlas(breathe); } catch (e) { /* built on first use instead */ }
   const { M, F, update: updateMats } = await createMaterials(renderer);
   await breathe();
   const root = new THREE.Group(); root.name = 'miami-city'; scene.add(root);
@@ -94,7 +95,7 @@ export async function createMiamiCity(game, opts = {}) {
   // optional ELEVATED module (decks / ramps / barriers / piers); any failure falls back to the built-in deck code
   await breathe();
   let elevated = null;
-  try { const mods = import.meta.glob('./elevated.js'); /* vite rewrites this statically; under plain node it throws and we fall back */ if (mods['./elevated.js']) { const m = await mods['./elevated.js'](); elevated = m.createElevated ? m.createElevated({ THREE, RAPIER, world, data, materials: M }) : null; } } catch (e) { console.warn('[miami] elevated.js unavailable, using built-in decks', e); elevated = null; }
+  try { const mods = import.meta.glob('./elevated.js'); /* vite rewrites this statically; under plain node it throws and we fall back */ if (mods['./elevated.js']) { const m = await mods['./elevated.js'](); let net = null; if (m.buildNetworkSteps) { const g = m.buildNetworkSteps(data); let r = g.next(); while (!r.done) { await breathe(); r = g.next(); } net = r.value; } await breathe(); elevated = m.createElevated ? m.createElevated({ THREE, RAPIER, world, data, materials: M, net }) : null; } } catch (e) { console.warn('[miami] elevated.js unavailable, using built-in decks', e); elevated = null; }
   const elevH = (x, z, y) => { if (!elevated) return null; try { const h = elevated.heightAt(x, z, y); return Number.isFinite(h) ? h : null; } catch (e) { return null; } };
   await breathe();
   // V2 world-render: land-cover terrain (height-displaced, PBR texture array) + flora for the synthetic land outside real Miami
@@ -162,13 +163,16 @@ export async function createMiamiCity(game, opts = {}) {
     console.info(`[miami] precompiled ${mats.length} materials in ${(performance.now() - tc) | 0} ms`);
   }
   // ---- Port of Miami landmarks (always resident; permanent static colliders) ----
+  await breathe();
   let port = null;
   if (data?.getTile) { try { port = buildPort({ data, M, F, root, world, RAPIER }); } catch (e) { console.warn('[miami] port landmarks failed', e); } }
   // ---- road graph (contract) ----
+  await breathe();
   const edges = data?.roadGraph?.edges || provider.edges || [];
   const nodes = data?.roadGraph?.nodes || (provider.nodes || []).map((n) => ({ id: n.id, x: n.x, z: n.z }));
   const adj = new Map(); for (const e of edges) for (const n of [e.a, e.b]) { if (!adj.has(n)) adj.set(n, []); adj.get(n).push(e); }
   // coarse grid index over edge segments for nearestEdge / spawns
+  await breathe();
   const GI = 100, grid = new Map();
   edges.forEach((e) => { for (let i = 1; i < e.pts.length; i++) { const [ax, az] = e.pts[i - 1], [bx, bz] = e.pts[i]; const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / GI)); for (let k = 0; k <= n; k++) { const x = ax + (bx - ax) * (k / n), z = az + (bz - az) * (k / n); const key = Math.floor(x / GI) + ',' + Math.floor(z / GI); let l = grid.get(key); if (!l) grid.set(key, (l = [])); if (l[l.length - 1] !== e) l.push(e); } } });
   function nearestEdge(x, z, maxR = 300) {
@@ -295,10 +299,12 @@ export async function createMiamiCity(game, opts = {}) {
   game.updaters.push((dt) => city.update(dt));
   city.terrain = terrain; city.flora = flora; city.elevated = elevated; // vegetation: deck footprints keep plants out of bridges / ramps
   city.materials = M; city.groundClaims = builder.groundClaims; city.capStats = builder.capStats; city.sliverStats = builder.sliverStats; // ground-continuity (seam audit)
+  await breathe();
   try { city.seabed = createSeabed(game, city); } catch (e) { console.warn('[miami] seabed unavailable', e); }
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }
   // synchronous warm-up: colliders + near tiles around the spawn so the player never falls
+  await breathe();
   { const g = builder.buildLandBase(); for (let r = g.next(); !r.done; r = g.next()) await breathe(); }
   // warm-up: stream until the near tiles + colliders around the spawn are ready (tiles load asynchronously)
   if (opts.warmup !== false) {

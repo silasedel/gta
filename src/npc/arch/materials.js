@@ -40,11 +40,11 @@ export const FABRICS = [
 
 // ------------------------------------------------------------------ micro-normal atlas (4 x 2 tiles of 256 px)
 let _micro = null;
-function tileHeight(k, N) {
+function* tileHeight(k, N) { // generator: yields every 32 rows (boot pacing); returns the height field
   const h = new Float32Array(N * N);
   const rnd = mulberry(1000 + k);
   const noise = valueNoise(N, 16, rnd), noise2 = valueNoise(N, 64, rnd);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+  for (let y = 0; y < N; y++) { if (y && (y & 31) === 0) yield; for (let x = 0; x < N; x++) {
     const u = x / N, v = y / N; let val = 0;
     if (k === 0) {        // jersey: columns of V loops
       const cx = 16, cy = 22; const fx = (u * cx) % 1, fy = (v * cy) % 1;
@@ -74,7 +74,7 @@ function tileHeight(k, N) {
       val = Math.max(Math.exp(-((fx - 0.5) ** 2) / 0.004), Math.exp(-((fy - 0.5) ** 2) / 0.004)) * 0.6 + noise2[y * N + x] * 0.3 + Math.sin(u * 96 * Math.PI) * 0.06;
     }
     h[y * N + x] = val;
-  }
+  } }
   // pores: sparse pits
   if (k === 5) for (let i = 0; i < 900; i++) { const px = rnd() * N, py = rnd() * N, r = 1 + rnd() * 1.6; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const xx = ((Math.floor(px) + dx) % N + N) % N, yy = ((Math.floor(py) + dy) % N + N) % N; h[yy * N + xx] -= 0.5 * Math.exp(-(dx * dx + dy * dy) / (r * r)); } }
   return h;
@@ -102,9 +102,20 @@ function cellular(u, v, n, seed) {
 }
 export function microAtlas() {
   if (_micro) return _micro;
+  const g = microAtlasSteps(); let r = g.next(); while (!r.done) r = g.next();
+  return _micro;
+}
+// stage 1 boot pacing: the same atlas built one tile per step (main.js builds it in short tasks during loading)
+export async function prewarmMicroAtlas(breathe) {
+  if (_micro) return _micro;
+  const g = microAtlasSteps(); let r = g.next(); while (!r.done) { await breathe(); r = g.next(); }
+  return _micro;
+}
+function* microAtlasSteps() {
   const N = 256, W = N * 4, H = N * 2; const data = new Uint8Array(W * H * 4);
   for (let k = 0; k < 8; k++) {
-    const h = tileHeight(k, N); let mn = 1e9, mx = -1e9; for (const v of h) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
+    if (k) yield;
+    const h = yield* tileHeight(k, N); let mn = 1e9, mx = -1e9; for (const v of h) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
     const ox = (k % 4) * N, oy = Math.floor(k / 4) * N; const sc = 4.0 / (mx - mn || 1);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
       const g = (xx, yy) => h[((yy + N) % N) * N + ((xx + N) % N)];
@@ -116,7 +127,8 @@ export function microAtlas() {
   }
   const t = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4; t.needsUpdate = true;
-  _micro = t; return t;
+  if (!_micro) _micro = t;
+  return _micro;
 }
 let _fabTex = null;
 function fabricTexture() {   // 32 x 2 float lookup: row 0 = rough, spec, sheen, sheenRough ; row 1 = metal, tile, repeat/256, strength

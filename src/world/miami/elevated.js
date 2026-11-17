@@ -7,12 +7,13 @@
 //   footprintAt(x, z)            false, or { y (lowest deck top), type (0 grade, 1 embankment, 2 viaduct) } under any deck
 //   isGroundJunctionBlocked(id)  true where a ground junction would sit under / inside a deck (no fill, no crosswalks)
 //   ownsEdge(edgeId)             true for the OSM edges this module renders (the city must skip them)
-import { buildNetwork } from './elevated/network.js';
+import { buildNetwork, buildNetworkSteps } from './elevated/network.js';
+export { buildNetworkSteps };
 import { createBuilder } from './elevated/build.js';
 import { P } from './elevated/params.js';
 
-export function createElevated({ THREE, RAPIER, world = null, data, materials = null }) {
-  const net = buildNetwork(data);
+export function createElevated({ THREE, RAPIER, world = null, data, materials = null, net: prebuiltNet = null }) {
+  const net = prebuiltNet || buildNetwork(data); // stage 1 boot pacing: the city may build it in slices (buildNetworkSteps)
   const builder = createBuilder(net);
   const M = materials || {};
   const mats = {
