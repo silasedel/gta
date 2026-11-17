@@ -392,8 +392,11 @@ export async function loadMiamiData(game, opts = {}) {
     const t = gH ? terrainHeightAt(x, z) : 0;
     if (s === S_SIDEWALK) return t + CURB;
     if (s === S_PIER) return PIER_Y;
+    // stage 1: downtown plazas are raised flush with the sidewalk (tilebuild draws them at curb height)
+    if (COVER_PLAZA >= 0 && coverCode(x, z) === COVER_PLAZA) return t + CURB;
     return t;
   }
+  const COVER_PLAZA = COVER.indexOf('plaza');
   const isWater = (x, z) => surfCode(x, z) === S_WATER;
   function surfaceAt(x, z, y) {
     const s = surfCode(x, z);
