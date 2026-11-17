@@ -67,10 +67,10 @@ export async function initV2(game) {
   function grounded(it, md, grp) {
     const C = game.city, T = C?.terrain, MG = T?.heightAt ? meshGround(T) : null; // (r2-veg) the ground as drawn: terrain triangles on synthetic land, the city ground on real Miami
     const gh = (x, z) => { const h = game.vegetation.groundAt(x, z); return Number.isFinite(h) ? h : 0; };
-    const s = it.s ?? 1, r = grp === 'mangrove' ? 1.6 : Math.min(0.6, (md.def.r || (md.cls === 'shrub' ? 0.25 : 0.4)) * s + 0.1); // the trunk's own footprint (wider sampling buried the flare on slopes)
+    const s = it.s ?? 1, r = grp === 'mangrove' ? 1.6 : Math.min(0.4, (md.def.r || (md.cls === 'shrub' ? 0.25 : 0.35)) * s); // the trunk's own footprint (wider sampling buried the flare on slopes)
     let g = gh(it.x, it.z); for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r], [r * 0.7, r * 0.7], [-r * 0.7, r * 0.7], [r * 0.7, -r * 0.7], [-r * 0.7, -r * 0.7]]) { if (grp !== 'mangrove' && C?.isWater?.(it.x + dx, it.z + dz)) continue; g = Math.min(g, gh(it.x + dx, it.z + dz)); } // land plants: a water sample beside the trunk is not its ground
     if (it.y !== undefined && it.y !== null && Math.abs(it.y - g) > 0.6 && grp !== 'mangrove') return it; // deliberate height (planter, deck, roof garden)
-    const sink = grp === 'mangrove' ? 0.25 : md.cls === 'shrub' ? 0.05 * s : Math.min(0.12, Math.max(0.05, (md.cls === 'palm' ? 0.08 : 0.09) * s)); // trunk base 5-12 cm into the ground
+    const sink = grp === 'mangrove' ? 0.25 : md.cls === 'shrub' ? 0.05 * s : Math.min(0.1, Math.max(0.04, (md.cls === 'palm' ? 0.07 : 0.06) * s)); /* trunk base 4-10 cm into the ground (the root flare stays visible) */
     let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.4); // prop roots into the shallow water / mud
     return { ...it, y };
   }
@@ -150,7 +150,7 @@ export async function initV2(game) {
     groundAt: (x, z) => { const C = game.city, T = C?.terrain; const cg = C?.groundHeightAt ? C.groundHeightAt(x, z) : NaN; if (T?.real?.(x, z) && Number.isFinite(cg)) return cg; const mg = T?.heightAt ? meshGround(T)(x, z) : cg;
       return Number.isFinite(cg) && cg - mg > 0.06 ? cg : mg; }, // a raised city surface (curb, sidewalk, pad, median) over the terrain is the ground there
     audit2(x, z, r = 120) {
-      const out = { n: 0, floating: 0, deep: 0, wetOk: 0, byKind: {}, worst: [], list: [] }, seen = new Set(), m = new THREE.Matrix4(), p = new THREE.Vector3(), C = game.city;
+      const out = { n: 0, floating: 0, deep: 0, sunk: 0, wetOk: 0, byKind: {}, worst: [], list: [] }, seen = new Set(), m = new THREE.Matrix4(), p = new THREE.Vector3(), C = game.city;
       game.scene.traverse((o) => { if (!o.isInstancedMesh || !o.visible || !o.count) return; const vg = o.material?.userData?.veg; if (!vg || vg.family === 'imp' || vg.family === 'plain') return;
         const key = (o.parent?.name || o.name || '?').replace(/^vegField_/, ''); o.updateWorldMatrix(true, false);
         for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); m.premultiply(o.matrixWorld); p.setFromMatrixPosition(m); if ((p.x - x) ** 2 + (p.z - z) ** 2 > r * r) continue;
@@ -159,7 +159,7 @@ export async function initV2(game) {
           const wet = C?.isWater?.(p.x, p.z), d = p.y - g; out.n++; const bk = out.byKind[key] ||= { n: 0, floating: 0 }; bk.n++;
           const e = { kind: key, model: o.material.userData.vegKey || '?', cls: o.material.userData.vegCls || '?', x: +p.x.toFixed(1), z: +p.z.toFixed(1), y: +p.y.toFixed(2), g: +g.toFixed(2), d: +d.toFixed(2), wet: !!wet, cg: +(C?.groundHeightAt?.(p.x, p.z) ?? NaN).toFixed(2) }; out.list.push(e);
           if (wet && p.y < (C.seaLevel ?? -0.12)) { out.wetOk++; continue; } // roots under the water line (mangroves)
-          if (d > 0.02) { out.floating++; bk.floating++; out.worst.push(e); } else if (d < -0.6) out.deep++; } });
+          if (d > 0.02) { out.floating++; bk.floating++; out.worst.push(e); } else if (d < -0.6) out.deep++; if (d < -0.15 && !/mangrove/.test(e.model)) { out.sunk = (out.sunk || 0) + 1; (out.sunkEx ||= []).length < 8 && out.sunkEx.push(e); } } });
       out.worst.sort((a, b) => b.d - a.d); out.worst = out.worst.slice(0, 12); out.list.sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z));
       return out;
     },

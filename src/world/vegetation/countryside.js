@@ -43,7 +43,7 @@ const BIOMES = {
   keysSand: { tree: 0.5, clump: 1, trees: [['coconut', 2.5], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 3.5], ['gumbo', 1], ['buttonwood', 1.5], ['poinciana', 0.2]], shrub: 0.22, shrubs: [['seagrape', 3], ['agave', 0.6], ['redgrass', 0.5]], under: [['seagrape', 2]], base: [['tuft', 2]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
   pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.34, shrubs: [['sawpalmetto', 5], ['fern', 0.6], ['fernM', 0.8]], under: [['sawpalmetto', 3], ['fern', 1]], base: [['tuft', 2], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
   hammock: { road: 0.35, tree: 0.72, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2], ['banyan', 0.25]], shrub: 0.45, shrubs: [['fern', 1.6], ['fernM', 2], ['seagrape', 1], ['sawpalmetto', 1]], under: [['fern', 3], ['fernM', 2], ['seagrape', 1]], underN: 3.5, base: [['fern', 2], ['tuft', 1], ['moss', 1.5]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
-  rural: { road: 0.55, tree: 0.32, trees: [['liveoak', 4], ['gumbo', 2], ['liveoak', 1.2], ['sabal', 1.6], ['slashpine', 0.8], ['banyan', 0.15]], /* ref_57: continuous broadleaf lines along the roads */ shrub: 0.16, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4], ['hedge', 0.4]], under: [['seagrape', 1], ['fern', 1], ['sawpalmetto', 1]], base: [['tuft', 3], ['geranium', 0.5]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [1.04, 1.08, 0.8] },
+  rural: { road: 0.6, tree: 0.5, clump: 1, trees: [['liveoak', 4], ['gumbo', 2], ['liveoak', 1.2], ['sabal', 1.6], ['slashpine', 0.8], ['banyan', 0.15]], /* ref_57: continuous broadleaf lines along the roads */ shrub: 0.16, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4], ['hedge', 0.4]], under: [['seagrape', 1], ['fern', 1], ['sawpalmetto', 1]], base: [['tuft', 3], ['geranium', 0.5]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [1.04, 1.08, 0.8] },
   glade: { tree: 0.14, dome: 1, trees: [['cypress', 5], ['liveoak', 1], ['sabal', 1.2]], shrub: 0.04, shrubs: [['sawpalmetto', 1]], grass: 0.95, tall: 0.75, dry: 0.5, flower: 0.025, rock: 0, hue: [1.06, 1.0, 0.76] },
   marsh: { tree: 0.07, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.85, tall: 1, dry: 0.25, flower: 0, rock: 0, hue: [0.95, 1.0, 0.8] },
   // inland freshwater swamp (wetland away from the coast): cypress domes and strands, cabbage palms, ferns, tall sawgrass; no mangroves
@@ -51,7 +51,7 @@ const BIOMES = {
   mangrove: { tree: 0.75, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.15, tall: 0.5, dry: 0.1, flower: 0, rock: 0, hue: [0.95, 1.0, 0.85] },
   // (vegetation, overnight) city lawns / parks on the synthetic map (the lawn layer outside house lots): shade-tree and palm groves
   // with clearings, roadside rows along the streets; the lawn grass itself is the ground pass's (no grass tufts here)
-  park: { road: 0.3, tree: 0.3, trees: [['liveoak', 3], ['gumbo', 2], ['royal', 1.2], ['sabal', 1.2], ['poinciana', 1], ['banyan', 0.4], ['queen', 0.6], ['fan', 0.8]], shrub: 0.06, shrubs: [['hedge', 2], ['hibiscus', 1], ['bougainvillea', 1], ['fernM', 0.5]], under: [['fern', 1], ['hedge', 1]], base: [['tuft', 1], ['geranium', 0.4]], grass: 0, dry: 0, flower: 0, rock: 0, hue: [1.0, 1.0, 0.86] },
+  park: { road: 0.45, tree: 0.5, clump: 1, underN: 2.5, trees: [['liveoak', 3], ['gumbo', 2], ['royal', 1.2], ['sabal', 1.2], ['poinciana', 1], ['banyan', 0.4], ['queen', 0.6], ['fan', 0.8]], shrub: 0.06, shrubs: [['hedge', 2], ['hibiscus', 1], ['bougainvillea', 1], ['fernM', 0.5]], under: [['fernM', 1.4], ['hedge', 1], ['fern', 1], ['sawpalmetto', 0.6]], base: [['tuft', 1], ['geranium', 0.4], ['fern', 0.6]], grass: 0, dry: 0, flower: 0, rock: 0, hue: [1.0, 1.0, 0.86] },
   parkBeach: { road: 0.3, tree: 0.28, trees: [['coconut', 3], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 1.5], ['royal', 0.5]], shrub: 0.05, shrubs: [['seagrape', 2], ['agave', 0.5], ['redgrass', 0.5]], base: [['tuft', 1]], grass: 0, dry: 0, flower: 0, rock: 0, hue: [1.02, 1.0, 0.82] },
 };
 const BKEYS = Object.keys(BIOMES), BIDX = Object.fromEntries(BKEYS.map((k, i) => [k, i + 1]));
@@ -137,8 +137,9 @@ export function placeTrees(ctx, x0, z0, S, emit) {
   for (let j = Math.ceil(z0 / TSTEP); j * TSTEP < z0 + S; j++) for (let i = Math.ceil(x0 / TSTEP); i * TSTEP < x0 + S; i++) {
     const p = hh(i, j, 3), x = (i + 0.22 + hh(i, j, 1) * 0.56) * TSTEP, z = (j + 0.22 + hh(i, j, 2) * 0.56) * TSTEP; // trunks >= 3.5 m apart
     const g = groveN(x, z), gd = vn(x / 60 - 11, z / 60 + 4); // gd: cypress domes / tree islands
-    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.62, ctx.terrain.isKeys(x, z) ? 0.86 : 0)) continue; // 0.4: roadside-row candidates; Keys clumps up to 0.86
+    if (p > 0.86) continue; // (r2-veg) clump biomes take up to 86 % of the 8 m candidates inside a clump
     let b = biomeOf(ctx, x, z), wet = false;
+    if (!(b && BIOMES[BKEYS[b - 1]].clump) && p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.62)) continue; // 0.4: roadside-row candidates, up to 0.62 elsewhere
     if (!b) { // shallows along wild / Keys shores: red mangroves stand IN the water, roots in the mud (clumps along the shoreline, never offshore)
       const D = ctx.data; if (!D.isWater(x, z) || (ctx.terrain.real && ctx.terrain.real(x, z))) continue;
       const keys = ctx.terrain.isKeys(x, z); if (!keys && !(z > 0 && D.zoneAt && /wilderness|rural/.test(D.zoneAt(x, z) || ''))) continue; /* mangroves: salt water only (Keys, the Everglades coast and Florida Bay), not the freshwater lakes north of the city */
@@ -156,7 +157,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = K.w ? pickIdx(K.w, hh(i, j, 7)) : (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
     // grounding: lowest ground under the trunk footprint (slopes, shore banks): the base never hangs in the air
-    const fr = name === 'mangrove' ? 1.6 : K.palm ? 0.4 : K.wide ? 0.9 : 0.5, H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr], [fr * 0.7, fr * 0.7], [-fr * 0.7, fr * 0.7], [fr * 0.7, -fr * 0.7], [-fr * 0.7, -fr * 0.7]]) y = Math.min(y, H(x + dx, z + dz)); // (r2-veg) the rendered triangles, lowest point of the footprint decides
+    const fr = name === 'mangrove' ? 1.6 : K.palm ? 0.3 : K.wide ? 0.6 : 0.35, H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr], [fr * 0.7, fr * 0.7], [-fr * 0.7, fr * 0.7], [fr * 0.7, -fr * 0.7], [-fr * 0.7, -fr * 0.7]]) y = Math.min(y, H(x + dx, z + dz)); // (r2-veg) the rendered triangles, lowest point of the footprint decides
     emit({ name, v, x, z, y, ry: hh(i, j, 9) * 6.2832, s, sp: K.sp, palm: !!K.palm, b, wet, key: i + ',' + j });
     if (name === 'mangrove' && hh(i, j, 15) < 0.85) { // mangroves grow in clumps: 2-4 more trunks next to the first
       for (let k = 0; k < 2 + (hh(i, j, 16) * 3 | 0); k++) { const a2 = hh(i, j, 17 + k) * 6.28, d2 = 2.2 + hh(i, j, 19 + k) * 1.6, x2 = x + Math.cos(a2) * d2, z2 = z + Math.sin(a2) * d2;
@@ -404,7 +405,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     if (add.size) dirty = true;
   }
   function genTrees(c) {
-    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.name === 'mangrove' ? (t.wet ? Math.min(t.y - 0.25, -0.12 - 0.4) : t.y - 0.25) : t.y - Math.min(0.12, Math.max(0.05, (t.palm ? 0.08 : 0.09) * t.s)), t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
+    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.name === 'mangrove' ? (t.wet ? Math.min(t.y - 0.25, -0.12 - 0.4) : t.y - 0.25) : t.y - Math.min(0.1, Math.max(0.04, (t.palm ? 0.07 : 0.06) * t.s)), t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
     c.lv.t = 1; c.hs = hSig(c);
   }
   // 4 m sample grid of height / road distance / biome / water for the shrub and ground-cover passes
