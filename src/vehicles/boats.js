@@ -1030,13 +1030,13 @@ export function createBoats(game, opts = {}) {
     gladeSites = [];
     const G = city?.roadGraph, T = city?.terrain; if (!G?.edges || !T?.layerAt || !city.districtAt || !LKEYS) return;
     const wet = (x, z) => { const k = LKEYS[T.layerAt(x, z)]; return (k === 'sawgrass' || k === 'marsh') && !isWater(x, z); };
-    const MAJOR = /trunk|primary|secondary/;
+    const MAJOR = /trunk|primary|secondary|tertiary/;
     for (const e of G.edges) {
       if (!MAJOR.test(e.kind || '') || e.elevated || !e.pts?.length) continue;
       const mid = e.pts[e.pts.length >> 1]; if (!GL_D.test(city.districtAt(mid[0], mid[1]) || '')) continue;
       // short edges (the road graph splits at every node): one stand at mid-edge with a chance of length / 1400 m (deterministic)
       const stations = []; if (e.length >= 1500) for (let sAt = 300; sAt < e.length - 100; sAt += 1400) stations.push(sAt);
-      else { const h = Math.abs(Math.sin(e.id * 12.9898 + 4.1) * 43758.5453) % 1; if (h < e.length / 1400) stations.push(e.length / 2); }
+      else { const h = Math.abs(Math.sin(e.id * 12.9898 + 4.1) * 43758.5453) % 1; if (h < e.length / 900) stations.push(e.length / 2); }
       for (const sAt of stations) {
         let i = 1; while (i < e.pts.length - 1 && e.cum[i] < sAt) i++;
         const p0 = e.pts[i - 1], p1 = e.pts[i], u = (sAt - e.cum[i - 1]) / Math.max(1e-3, e.cum[i] - e.cum[i - 1]);
@@ -1044,9 +1044,12 @@ export function createBoats(game, opts = {}) {
         if (!GL_D.test(city.districtAt(x, z) || '')) continue;
         for (const sd of [1, -1]) {
           const nx = dz * sd, nz = -dx * sd, off = (e.width || 8) / 2 + 30, sx = x + nx * off, sz = z + nz * off;
-          let ok = true; for (const [a, b2] of [[0, 0], [12, 0], [40, 0], [80, 0], [0, 8], [0, -8], [40, 25], [40, -25]]) if (!wet(sx + nx * a + dx * b2, sz + nz * a + dz * b2)) { ok = false; break; }
-          if (!ok) continue;
+          // the spot and the run-out straight ahead must be prairie; around it, 6 of 8 samples (tree islands / channels allowed)
+          if (!wet(sx, sz) || !wet(sx + nx * 12, sz + nz * 12)) continue;
+          let nw = 0; for (const [a, b2] of [[25, 0], [40, 0], [60, 0], [80, 0], [0, 8], [0, -8], [40, 25], [40, -25]]) if (wet(sx + nx * a + dx * b2, sz + nz * a + dz * b2)) nw++;
+          if (nw < 6) continue;
           const ne = G.nearestEdge?.(sx, sz, {}, 60); if (ne && ne.dist < (ne.edge.width || 8) / 2 + 18) continue; // another road too close
+          if (gladeSites.some((q) => Math.hypot(q.x - sx, q.z - sz) < 2100)) continue; // stands at least 2.1 km apart (4-6 across the glades)
           gladeSites.push({ x: sx, z: sz, heading: Math.atan2(nx, nz), along: [dx, dz], road: e.name || e.kind, boats: [] });
           break;
         }

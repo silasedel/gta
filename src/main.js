@@ -189,10 +189,13 @@ async function boot() {
   // water depth under the capsule (sea only)
   function probeWater(t) {
     const c = game.city;
-    const water = c?.isWater ? c.isWater(t.x, t.z) : t.x > SEA_X - 2 && Math.abs(t.z) <= 520;
+    let water = c?.isWater ? c.isWater(t.x, t.z) : t.x > SEA_X - 2 && Math.abs(t.z) <= 520;
+    // r2-water (QA-011): under a pier / dock deck the cell is not "water" in the map, but the player is in the water below it
+    let underDeck = false;
+    if (!water && c?.groundHeightAt) { const deck = c.groundHeightAt(t.x, t.z, t.y), feet = t.y - CENTER; underDeck = deck > feet + 0.6 && feet < seaLevel(game) + 0.2 && Number.isFinite(c.seabedDepthAt?.(t.x, t.z)); water = underDeck; }
     if (!water) { L.depth = 0; return; }
     const hit = world.castRay(new RAPIER.Ray({ x: t.x, y: t.y, z: t.z }, { x: 0, y: -1, z: 0 }), 12, true, STATIC_ONLY, undefined, pCol);
-    let seabed = c?.groundHeightAt ? c.groundHeightAt(t.x, t.z, t.y) : t.y - 8;
+    let seabed = underDeck ? seaLevel(game) - Math.max(0.2, c.seabedDepthAt(t.x, t.z)) : c?.groundHeightAt ? c.groundHeightAt(t.x, t.z, t.y) : t.y - 8;
     { const sb = c?.seabed?.heightAt?.(t.x, t.z); if (Number.isFinite(sb)) seabed = Math.max(seabed, sb); } // r2-water: the drawn seabed (r2-ground) is the floor in the shallows
     L.groundY = hit ? Math.max(t.y - hit.timeOfImpact, Number.isFinite(seabed) ? seabed : -20) : (Number.isFinite(seabed) ? seabed : t.y - 8);
     L.depth = Math.max(0, seaLevel(game) - L.groundY);
@@ -893,7 +896,7 @@ async function boot() {
     }
     if (st.inVehicle && (v?.submerged || 0) > 0.5 && P.breath < 70 && !game.ui.dead) game.hud?.help?.('Car is flooding! Press <b>F</b> to get out and swim up');
     const show = under || P.breath < 99.5;
-    breathEl.style.opacity = show ? 1 : 0;
+    breathEl.style.opacity = show ? '1' : '0'; breathEl.style.visibility = show || breathEl._fade > 0 ? 'visible' : 'hidden'; breathEl._fade = show ? 0.45 : Math.max(0, (breathEl._fade || 0) - dt); // r2-water (QA-051): fully hidden at 100 % above water
     breathFill.style.width = P.breath.toFixed(1) + '%';
     breathFill.style.background = P.breath < 25 ? 'linear-gradient(90deg,#ff5a5a,#ff8a5a)' : 'linear-gradient(90deg,#7fe9ff,#2fe0d0)';
     if (game.ui.dead) P.breath = 100;
