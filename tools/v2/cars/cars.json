@@ -1611,5 +1611,29 @@
   "emblemHalfW": 0.25,
   "tireDark": true,
   "tireRatio": 0.66
+ },
+ "coupe5": {
+  "src": "Coupes/Coupe 5 - 1965 American Pony Coupe/FINAL_MODEL_65.fbx",
+  "L": 4.61,
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.22
+    ],
+    "y": [
+     0.4,
+     0.8
+    ],
+    "maxSize": 0.32
+   }
+  ],
+  "emblemHalfW": 0.22
  }
 }
