@@ -1468,7 +1468,7 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
   4. Glades sheet water uses its own noise, not the ground shader's puddle pattern.
   5. There is no scrape or slam audio (`boatScrape` / `boatSlam` events are emitted, but the audio system doesn't use them).
   6. NPC airboat tours (AI driving) are not done.
-- **Commits:** `eb73dee1` (all of it, flags off), `8016af5b` (only my hunks in `vehicles.js` + `main.js`, via a temporary index; other helpers' work left as is), and then the defaults-on commit. The airboat stands + mossy pier landing have not been booted yet; the default-flag boot test (`--scene stand,airboat --q ""`) is queued.
+- **Commits:** `eb73dee1` (all of it, flags off), `8016af5b` (only my hunks in `vehicles.js` + `main.js`, via a temporary index; other helpers' work left as is), and then the defaults-on commit. Default-flag boot (`--scene stand,airboat --q ""`, `docs/v2/reports/water-drive-default.json`): 0 console errors. A stand on State Road 951 spawned 2 airboats + the pier (`docs/v2/shots/water/stand_default_0.jpg`); entered one, drove 56 km/h through the sawgrass, exited. Only one stand qualifies across the glades (strict all-sawgrass test), so more stands are a TODO. Wading on the new seabed is not verified yet: the test spot finder picked a mis-flagged water cell on a road; fixed, not re-run.
 - 15:00 **Facade kit step 1 committed**, with sheets `docs/v2/shots/art/sheet_geo5_{mbres,brickell}_*.jpg`.
   - Pending with the lead: the materials.js neon line (shared working copy) and the tilebuild hunk (rooftop units, fin grooves, balcony eligibility, hip pitch / colors, counters).
   - Honest status: visible but incremental. The remaining "cartoon" read comes from the 768 px wall-layer array with loud tiling patterns and from the bright source palettes. That needs a dedicated facade pass: a 2K neutral scan array, re-tuned palettes, and geometry reveals on near street faces.
@@ -1500,18 +1500,21 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   even still shots kept semi-transparent ghost copies: the "layered" rails, slats, truck edges and tires); a velocity pass for
   moving vehicles / people (per-object previous matrix, only roots that moved: +~40 draws while traffic moves, 0 when still);
   unjittered reprojection (a still pixel reads its history at its own texel); YCoCg variance clip toward the box center, the
-  box opening toward min / max at rest; a clamped CAS sharpen on the output only (grade sharpen 0.08). Depth disocclusion
+  box opening slightly toward min / max at rest (0.2: wider kept wind-moved leaves as a smudge); an output sharpen exists but is
+  OFF by default (`game.renderSharp`, it doubled the shimmer; grade sharpen 0.08). Depth disocclusion
   rejection exists (`game.renderDisocc = true`) but is off: it tripled the noise on textured ground at rest.
 - **Resolution / AA:** MSAA 4x on High and Ultra (was 2x on High); render DPR High = 1.5x, Ultra = native (were 1080p-class,
   upscaled by the browser); anisotropic 8x on every mipmapped texture; the auto-pick only steps down on GPU-bound windows
   (CPU-bound M3 Max frames were stepping the user to Medium / Low) and old stored auto results are dropped.
 - **Camera-proximity foliage fade:** leaves within 1.3 m of the camera or between the camera and the player fade out (per-frame
   stepped threshold, TAA-averaged) instead of filling the screen.
-- **Measured** (Nico's deck camera, wind frozen, 8 consecutive frames, same session): frame-to-frame noise 2.42 -> 1.12 luma/255,
-  noise / detail ratio 0.122 -> 0.063, no ghost doubles. Perf (1600x900, load 40-60 on this machine, 3 alternating reps):
+- **Measured** (still camera, wind frozen, 8 consecutive frames, old vs the final default in one session at 1280x720,
+  `docs/v2/reports/render-jag.json`): frame-to-frame noise deck 2.39 -> 0.82, SR 916 corner (shot_12) 1.42 -> 0.42,
+  street (shot_11 side) 1.52 -> 0.48 luma/255, at the same image detail; no ghost doubles. Perf (1600x900, load 40-60 on this machine, 3 alternating reps):
   frame 30.6 vs 29.6 ms, render CPU 19.7 vs 19.7 ms: inside the noise.
 - **Sheets:** `docs/v2/shots/render/sheet_ab3_zoom2x.jpg` (2x crops, old | new), `sheet_ab3_stills.jpg`, `sheet_ab3_noise.jpg`
-  (temporal diff x8), `sheet_ab3_drive.jpg` (moving convertible); the 15:30 follow-up: `sheet_jag_*.jpg`.
+  (temporal diff x8), `sheet_ab3_drive.jpg` (moving convertible); final default (old | new | new without sharpen):
+  `sheet_jag_zoom2x.jpg`, `sheet_jag_noise.jpg`, `sheet_jag_stills.jpg`. Retina perf A/B: `docs/v2/reports/render-perf-p1.json`.
 - **Still not right:** far palm frond tips can show a fine moire where the leaflet comb is about a pixel wide (the frond mip
   chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
   (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
