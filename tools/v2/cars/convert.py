@@ -961,10 +961,64 @@ for B in CFG.get('flattenBoxes') or []:
         for v in f.verts:
             gz_ = -v.co[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
             if B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(v.co[0]) <= B['ax'][1] and B['y'][0] <= v.co[2] <= B['y'][1]: vs_.add(v)
-    if vs_:
+    if vs_ and B.get('fit'):   # curved / raked panel: press onto a fitted depth = a + b*height + c*x^2 instead of one plane
+        vl_ = list(vs_); A_ = np.array([[1.0, v.co[2], v.co[0] ** 2] for v in vl_]); Y_ = np.array([v.co[1] for v in vl_])
+        k_ = np.linalg.lstsq(A_, Y_, rcond=None)[0]
+        for _ in range(2):   # refit without the relief (outliers past 2 mm)
+            r_ = np.abs(A_ @ k_ - Y_); m_ = r_ < max(0.002, np.percentile(r_, 60))
+            k_ = np.linalg.lstsq(A_[m_], Y_[m_], rcond=None)[0]
+        for v, a_ in zip(vl_, A_): v.co[1] = float(a_ @ k_)
+    elif vs_:
         ys_ = sorted(v.co[1] for v in vs_); mid_ = ys_[len(ys_) // 2]
         for v in vs_: v.co[1] = mid_
     log('flatten box', len(vs_))
+# hand-placed patches over lettering that is cut into a flat panel (cars.json 'patchBoxes': {front, dz, ax: [0, w], y}):
+# every paint / trim face centered in the box is deleted and one flat paint quad (2 mm behind the panel's median plane,
+# a pad wider than the box so the edges tuck under the surviving panel) closes the hole
+for B in CFG.get('patchBoxes') or []:
+    front = B.get('front', False); dead_ = []; ys_ = []; uvs_ = []
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index in (1, 3): continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if not (B['dz'][0] <= d_ <= B['dz'][1] and abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
+        dead_.append(f)
+        if f.material_index == 0 and (-f.normal[1] if front else f.normal[1]) > 0.8:
+            ys_.append(c_[1]); uvs_.append(f.loops[0][uvl].uv.copy())
+    dead_ = set(dead_)
+    TR_ = B.get('mat') == 'trim'   # a blank dark badge plate over a hole in a grille: depth = the grille face around the box
+    if TR_:
+        ys_ = []; uvs_ = [(0.0, 0.0)]
+        for f in bm.faces:
+            if not f.is_valid or f in _kill or f in dead_ or f.material_index != 2 or (-f.normal[1] if front else f.normal[1]) < 0.7: continue
+            c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+            if d_ <= B['dz'][1] and abs(c_[0]) <= B['ax'][1] + 0.08 and B['y'][0] - 0.05 <= c_[2] <= B['y'][1] + 0.05: ys_.append(c_[1])
+        ys_ = sorted(ys_, reverse=not front)[:max(1, len(ys_) // 3)]   # the outermost third: the grille face, not the core behind it
+    if not ys_: log('patch box: no panel'); continue
+    ys_.sort(); py_ = ys_[len(ys_) // 2] + (0.002 if front else -0.002)
+    pad_ = B.get('pad', 0.015); w_ = B['ax'][1] + pad_; z0_ = B['y'][0] - pad_; z1_ = B['y'][1] + pad_
+    dep_ = lambda z_: py_
+    if B.get('fit'):   # raked panel: depth = a + b*height, fitted on the panel faces of a ring just outside the box
+        P_ = []
+        for f in bm.faces:
+            if not f.is_valid or f in _kill or f.material_index != 0 or (-f.normal[1] if front else f.normal[1]) < 0.8: continue
+            c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+            if d_ <= B['dz'][1] and abs(c_[0]) <= w_ + 0.06 and z0_ - 0.04 <= c_[2] <= z1_ + 0.04 and f not in dead_: P_.append((c_[2], c_[1]))
+        if len(P_) >= 6:
+            P_ = np.array(P_); k_ = np.polyfit(P_[:, 0], P_[:, 1], 1)
+            dep_ = lambda z_, k_=k_: float(np.polyval(k_, z_)) + (0.002 if front else -0.002)
+    for f in dead_: _kill.add(f); kill.append(f)
+    cor_ = ((-w_, z0_), (w_, z0_), (w_, z1_), (-w_, z1_))
+    if B.get('oval'):   # a blank oval badge
+        zc_ = 0.5 * (z0_ + z1_); hz_ = 0.5 * (z1_ - z0_)
+        cor_ = [(w_ * math.cos(a_), zc_ + hz_ * math.sin(a_)) for a_ in (i_ * math.tau / 20 for i_ in range(20))]
+    vv_ = [bm.verts.new((x_, dep_(z_), z_)) for x_, z_ in cor_]
+    pf_ = bm.faces.new(vv_); pf_.normal_update()
+    if (pf_.normal[1] < 0) != front: pf_.normal_flip()
+    pf_.material_index = 2 if TR_ else 0; pf_.smooth = False
+    mu_ = uvs_[len(uvs_) // 2]
+    for lp in pf_.loops:
+        lp[col_layer] = (0.05, 0.05, 0.055, pack_rm(0.4, 0.0)) if TR_ else (1.0, 1.0, 1.0, 0.0); lp[uvl].uv = mu_
+    log('patch box', len(dead_), 'plane', round(py_, 4))
 # metal trim inside the cabin box reads as white sheets once calibrated (visors, consoles of game-rip models):
 # cars.json 'cabinDark': {x, y: [lo, hi], z: [lo, hi]} -> dark satin plastic
 CD_ = CFG.get('cabinDark')
