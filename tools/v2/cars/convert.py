@@ -1347,7 +1347,7 @@ def drop_faces(o, pred):
     dead = [f for f in b.faces if pred(f, cl)]
     bmesh.ops.delete(b, geom=dead, context='FACES'); b.to_mesh(o.data); b.free()
 
-T = CFG.get('tris') or [80000, 10000, 2200]
+T = CFG.get('tris') or [80000, 20000, 5000]   # LOD1 / LOD2 were 10k / 2.2k: too few for the per-slot split to hold the panels
 WT = CFG.get('wheelTris') or [3600, 500]
 raw = tris(body)
 # interior faces for LOD1/2: trim faces whose material was interior -> we no longer know the material; use geometry:
@@ -1387,7 +1387,36 @@ def inner(f, cl):
     c = f.calc_center_median()
     return (abs(c[0]) < bhi[0] - inset - 0.1 and c[2] > rW * 1.5 and c[2] < bhi[2] - 0.12 and blo[1] + 0.6 < c[1] < bhi[1] - 0.6 and f.material_index == 2)
 drop_faces(b1, inner)
-decimate(b1, T[1]); transfer_normals(b1, body)
+# mid / far LODs are decimated PER SLOT (user: "from a distance the paint jobs get screwed up, splotches of other colors"):
+# one collapse over the whole body let lamp / trim / glass triangles stretch across the paint and tore the double-skinned
+# panels into shards (suv12 / truck9 LOD2 had spikes meters long).  Glass gets a planar dissolve; every other slot is welded
+# (panel seams) and collapsed on its own share of the budget.
+def decimate_slots(o, target, name):
+    me_ = o.data; cnt = [0, 0, 0, 0]
+    for pg in me_.polygons: cnt[min(3, pg.material_index)] += 1
+    parts = []
+    for si in range(4):
+        if not cnt[si]: continue
+        q = split_slots(o, {si} if si < 3 else set(range(3, 64)))
+        if si == 1 and target >= 8000: pass   # LOD1 keeps LOD0's glass (already dissolved): no torn windows
+        elif si == 1:
+            bpy.ops.object.select_all(action='DESELECT'); q.select_set(True); bpy.context.view_layer.objects.active = q
+            md = q.modifiers.new('g', 'DECIMATE'); md.decimate_type = 'DISSOLVE'; md.angle_limit = math.radians(3 if target < 8000 else 1.5); bpy.ops.object.modifier_apply(modifier='g')
+            md = q.modifiers.new('t', 'TRIANGULATE'); bpy.ops.object.modifier_apply(modifier='t')
+        else:
+            b_ = bmesh.new(); b_.from_mesh(q.data); bmesh.ops.remove_doubles(b_, verts=b_.verts, dist=0.0006); b_.to_mesh(q.data); b_.free()
+            share = {0: 0.55, 2: 0.37, 3: 0.08}[si]
+            decimate(q, max(60, int(target * share)))
+        # collapse spikes: faces reaching outside LOD0's box (+3 cm) or with an edge longer than 1.4 m are dropped
+        b_ = bmesh.new(); b_.from_mesh(q.data)
+        dead_ = [f for f in b_.faces if any(not (BB0[0][i] - 0.03 <= v.co[i] <= BB0[1][i] + 0.03) for v in f.verts for i in range(3)) or max(e.calc_length() for e in f.edges) > SPIKE_L]
+        if dead_: bmesh.ops.delete(b_, geom=dead_, context='FACES')
+        b_.to_mesh(q.data); b_.free()
+        parts.append(q)
+    bpy.data.objects.remove(o, do_unlink=True)
+    return join(parts, name)
+_V0 = np.array([v.co[:] for v in b0.data.vertices]); BB0 = (_V0.min(0), _V0.max(0)); SPIKE_L = 0.75 * float((BB0[1] - BB0[0]).max())   # long side panels (vans) are legit
+b1 = decimate_slots(b1, T[1], 'body1'); smooth(b1, 40)   # (normals transferred from the source picked inner door skins: dark doors)
 b2 = dup(b1, 'body2')
 # bake the four wheels into LOD2 (at rest), low poly
 w2 = dup(whl, 'w2tmp'); decimate(w2, 160)
@@ -1398,7 +1427,7 @@ for i in (iFL, iFR, iRL, iRR):
     bpy.ops.object.select_all(action='DESELECT'); t.select_set(True); b2.select_set(True); bpy.context.view_layer.objects.active = b2
     bpy.ops.object.join()
 bpy.data.objects.remove(w2)
-decimate(b2, T[2]); smooth(b2, 45)
+b2 = decimate_slots(b2, T[2], 'body2'); smooth(b2, 45)
 w0 = dup(whl, 'wheel0'); decimate(w0, WT[0])
 if tris(whl) > WT[0] * 1.08: transfer_normals(w0, whl)
 w1 = dup(w0, 'wheel1'); decimate(w1, WT[1]); transfer_normals(w1, whl)

@@ -110,6 +110,9 @@ c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, {
 c('truck9', 'Ridgeback', 'Sandhawk TR', 'pickup', 'offroad', 5.9, 3, 'v6t', 2020, { parkedOnly: true });
 c('van1', 'Corvo', 'Cargo LWB', 'van', 'van', 6.95, 2, 'dsl', 2012, { pal: 'work' });
 c('van5', 'Corvo', 'Wayfarer', 'van', 'van', 5.2, 1.2, 'v6', 1992, { pal: 'work' });
+// family minivans (user models, Nov 17): the most common US family car
+c('van6', 'Halcyon', 'Harbor 8', 'minivan', 'suv', 5.16, 2.5, 'v6', 2018);
+c('van7', 'Marlin', 'Tidewater LX', 'minivan', 'suv', 5.18, 2.6, 'v6', 2025);
 c('truck3', 'Atlas', 'Cab 14', 'truck', 'box', 6.6, 2, 'dsl', 2006, { palette: [0xf2f2f2] });
 c('truck4', 'Atlas', 'Box 26', 'truck', 'box', 7.6, 1.5, 'dslH', 1994, { palette: [0xf2f2f2] });
 c('truck7', 'Atlas', 'Box 20', 'truck', 'box', 7.0, 2, 'dsl', 2015, { palette: [0xf2f2f2] });
@@ -166,10 +169,10 @@ export function modelFor(e) {
 export function zoneMix(zone, income = 0.5, parked = false, env = {}) {
   const rich = Math.max(0, income - 0.5) * 2, poor = Math.max(0, 0.5 - income) * 2;
   const m = { sedan: 30, compact: 16 + poor * 10, suv: 22 + rich * 10, pickup: 6 + poor * 4, van: 5 + poor * 2, taxi: parked ? 0 : 5, sports: 3 + rich * 6, muscle: 2 + poor * 2,
-    police: parked ? 0 : 2.5, truck: parked ? 1 : 2.5, firetruck: 0, ambulance: parked ? 0 : 0.4, bus: parked ? 0 : 1.2 };
+    police: parked ? 0 : 2.5, truck: parked ? 1 : 2.5, firetruck: 0, ambulance: parked ? 0 : 0.4, bus: parked ? 0 : 1.2, minivan: 8 + (1 - rich) * 3 };
   if (zone === 'industrial' || zone === 'port') { m.truck = parked ? 10 : 16; m.van = 14; m.pickup = 14; m.sports = 0.5; m.taxi = parked ? 0 : 1; }
-  if (zone === 'keys' || env.salt || zone === 'rural' || zone === 'farm' || env.rural) { m.pickup = 26; m.suv += 6; m.taxi = 0; m.bus = 0; m.truck = parked ? 1 : 3; m.sports = 1; m.compact = 10; }
-  if (zone === 'downtown' || zone === 'business') { m.taxi = parked ? 0 : 11; m.van += 3; m.truck = parked ? 0.5 : 3; }
+  if (zone === 'keys' || env.salt || zone === 'rural' || zone === 'farm' || env.rural) { m.pickup = 26; m.suv += 6; m.taxi = 0; m.bus = 0; m.truck = parked ? 1 : 3; m.sports = 1; m.compact = 10; m.minivan += 2; }
+  if (zone === 'downtown' || zone === 'business') { m.taxi = parked ? 0 : 11; m.van += 3; m.truck = parked ? 0.5 : 3; m.minivan = 4; }
   if (zone === 'beach' || zone === 'nightlife') { m.sports += 5; m.muscle += 2; m.taxi = parked ? 0 : 8; }
   return m;
 }

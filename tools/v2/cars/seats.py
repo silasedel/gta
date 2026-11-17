@@ -181,6 +181,8 @@ def measure(key):
     hz_occ = hip[2] + fix.get('slide', 0.06)
     seats.append(seat('driver', hip[0], hip[1], hz_occ))
     seats.append(seat('front', -hip[0], hip[1], hz_occ))
+    if 'hip' in fix:   # hand-checked H-point: the runtime cushion probe must not move it (sedan3: probe hit the dash, +24 cm)
+        for s_ in seats[-2:]: s_['fixed'] = True
     # rear row: a cushion behind the front seatback (front hip - 0.55 .. )
     nrear = fix.get('rear', None)
     if nrear != 0:

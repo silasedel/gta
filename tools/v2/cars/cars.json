@@ -1151,7 +1151,7 @@
   "seatFix": {
    "hip": [
     0.4,
-    0.41,
+    0.37,
     0.03
    ]
   }
@@ -1572,7 +1572,7 @@
   "seatFix": {
    "hip": [
     0.4,
-    1.35,
+    1.3,
     1.25
    ],
    "rear": 0
@@ -1645,7 +1645,7 @@
    "teker": "trim#18191b",
    "crome|^chrome": "trim:chrome",
    "glass": "glass",
-   "carpet|leather|stitch|console|pedals|plastics_topdash|magnetic": "trim:interior",
+   "carpet|leather|stitch|console|pedals|plastics_topdash|magnetic": "trim#161719",
    "11BLACK|^Black|Matte Black|blackish|undercarriage|discbrake|carbon|detail2|smallspecmap$|smallspecmap\\.": "trim#18191b",
    "symbols|genesis|Coban|665|deng|bw00a": "trim#18191b"
   },
@@ -1868,6 +1868,10 @@
     ],
     "dy": 0.1
    }
+  ],
+  "wheelTris": [
+   14000,
+   1500
   ]
  },
  "coupe4": {
@@ -1920,5 +1924,25 @@
    }
   ],
   "emblemHalfW": 0.22
+ },
+ "van6": {
+  "src": "Vans/Van 6 - 2018 Family Minivan With Sliding Doors/source/Honda_Odyssey_2018_FM7_Sketchfab.glb",
+  "L": 5.16,
+  "slots": {
+   "^carpaint": "paint",
+   "metalicpaint_midgrey": "trim#5a5d62",
+   "paint_matteblack": "trim#141518",
+   "backfacinggeo": "trim#141518"
+  },
+  "dropMat": "emblem|lettering|logo|badge|script"
+ },
+ "van7": {
+  "src": "Vans/Van 7 - 2025 Family Minivan/source/Chrysler_Voyager_LX_2025_Sketchfab.glb",
+  "L": 5.18,
+  "slots": {
+   "bodypaint": "paint",
+   "outer_glass|outer_gls|^transparent|semi_transparent|white_glass": "glass"
+  },
+  "dropMat": "sticker|badge|breklight_text|^key$|camera"
  }
 }
