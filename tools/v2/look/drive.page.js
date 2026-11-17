@@ -20,7 +20,10 @@ window.__cruise = (car, x0, z0, kmh, minLen = 160) => {
   car.__origSet = car.__origSet || car.setControls.bind(car);
   car.setControls = (c) => car.__origSet({ ...c, throttle: 0.6, steer: 0, brake: 0, handbrake: false });
   window.__cruiseOn = true;
-  const hold = () => { if (!window.__cruiseOn) return; const lv = b.linvel(); b.setLinvel({ x: dx * v, y: lv.y, z: dz * v }, true); requestAnimationFrame(hold); };
+  const hold = () => { if (!window.__cruiseOn) return; const lv = b.linvel(), r = b.rotation(), av = b.angvel(); // heading locked: no drift off the lane
+    const e = new game.THREE.Euler().setFromQuaternion(new game.THREE.Quaternion(r.x, r.y, r.z, r.w), 'YXZ'); e.y = hd; const q2 = new game.THREE.Quaternion().setFromEuler(e);
+    b.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true); b.setAngvel({ x: av.x, y: 0, z: av.z }, true);
+    b.setLinvel({ x: dx * v, y: lv.y, z: dz * v }, true); requestAnimationFrame(hold); };
   requestAnimationFrame(hold);
   return { x: sx, z: sz, hd, len: best.L, kind: best.kind };
 };

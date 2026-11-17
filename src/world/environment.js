@@ -388,6 +388,7 @@ export async function createEnvironment(game) {
       ramp(HEMI_GROUND, s, hemi.groundColor);
       hemi.intensity = 0.52 - 0.04 * dayF;
       const L3 = game.look3 === true;
+      if (!scene.fog) scene.fog = new THREE.FogExp2(0xffffff, 0.0012); // a tool or cutscene that cleared it must not stop the env update
       ramp(L3 ? L3_SKY_HORIZON : SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.9);
       scene.fog.density = ramp(FOG_DENSITY, s) * (1 - 0.8 * env.indoor);
       const wantIndoor = env._indoorFlag || !!game.player?.state?.indoor;

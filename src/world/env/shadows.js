@@ -68,6 +68,36 @@ float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC )
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )
 		directLight.color *= ( directLight.visible && receiveShadow ) ? mix( getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ 1 ] ) ) : 1.0;
 		#endif`);
+  // r2-look: shaded ambient. The sun's visibility at this fragment (cast shadow of the static, near and dynamic maps) is
+  // kept in psSunVis; lights_fragment_end scales the sky / bounce / env light by mix(1 - uLookW.x, 1, psSunVis). A point in
+  // a cast shadow (under a deck, a tree, a car, a roof overhang) is also hidden from much of the sky and of the sunlit
+  // ground, so its ambient drops: deep, believable shade instead of the flat, evenly lit look. Open-sky faces turned away
+  // from the sun are not in a cast shadow and keep their full sky light.
+  {
+    const s0 = C.lights_fragment_begin;
+    const at = s0.indexOf('#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )');
+    const dynEnd = s0.indexOf('#endif', s0.indexOf('#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )'));
+    if (at > 0 && dynEnd > at) {
+      // psSunVis is a global (lights_pars_begin, which every lit material includes before main): a material that swaps
+      // in its own lights_fragment_begin still compiles (it just keeps psSunVis = 1)
+      if (!C.lights_pars_begin.includes('PS_SUNVIS')) C.lights_pars_begin = '#define PS_SUNVIS\nfloat psSunVis = 1.0;\n' + C.lights_pars_begin;
+      C.lights_fragment_begin = s0.slice(0, at) + '#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 )\n\t\tvec3 psC0 = directLight.color;\n\t\t#endif\n\t\t'
+        + s0.slice(at, dynEnd + 6) + '\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 0 ) && defined( PS_SUNVIS )\n\t\tpsSunVis = mix( 1.0, dot( directLight.color, vec3( 1.0 ) ) / max( dot( psC0, vec3( 1.0 ) ), 1e-6 ), smoothstep( 0.02, 0.2, dot( geometryNormal, directLight.direction ) ) ); // faces turned away from the sun: no cast-shadow term\n\t\t#endif' + s0.slice(dynEnd + 6);
+      C.lights_fragment_end = `#if defined( PS_LOOKU ) && defined( PS_SUNVIS )
+{
+	float psAmb = mix( 1.0 - uLookW.x, 1.0, psSunVis );
+	#if defined( RE_IndirectDiffuse )
+	irradiance *= psAmb;
+	#endif
+	#if defined( RE_IndirectSpecular )
+	iblIrradiance *= psAmb;
+	radiance *= mix( 1.0, psAmb, 0.6 );
+	#endif
+}
+#endif
+` + C.lights_fragment_end;
+    } else console.warn('[shadows] shaded-ambient patch: anchors not found');
+  }
   void anchor;
   guardLightLoops();
   return true;

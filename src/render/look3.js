@@ -20,7 +20,10 @@ export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // toward the warm sun side, z = 1 while post.js renders the main scene (ambient share -> alpha), w = debug view. Shared with every fogged built-in material (and ShaderMaterials that merge
 // UniformsLib.fog after this module loaded).
 export const LOOK_V = new Float32Array([0, 0, 0, 0]);
-export const LOOKU_DECL = '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\n#endif\n';
+// LOOK_W (r2-look): x = how much of the sky / bounce light a point in the sun's cast shadow loses (0..1, by day; shadows.js
+// lights_fragment_end patch), y/z/w spare.
+export const LOOK_W = new Float32Array([0, 0, 0, 0]);
+export const LOOKU_DECL = '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\nuniform vec4 uLookW;\n#endif\n';
 // depth range of the sun shadow cameras (environment.js: near 1, far 900): converts a shadow-depth difference to meters
 const SUN_DEPTH_M = 899.0;
 
@@ -29,11 +32,11 @@ const SUN_DEPTH_M = 899.0;
   if (!LOOK3_ENABLED || C.shadowmap_pars_fragment.includes('psPCSS')) return;
   for (const k of Object.keys(THREE.ShaderLib)) {
     const L = THREE.ShaderLib[k];
-    if (L && L.uniforms && !L.uniforms.uLookU) { L.uniforms.uLookU = { value: LOOK_U }; L.uniforms.uLookV = { value: LOOK_V }; }
+    if (L && L.uniforms && !L.uniforms.uLookU) { L.uniforms.uLookU = { value: LOOK_U }; L.uniforms.uLookV = { value: LOOK_V }; L.uniforms.uLookW = { value: LOOK_W }; }
   }
   for (const k of ['fog', 'lights']) {
     const U = THREE.UniformsLib[k];
-    if (U && !U.uLookU) { U.uLookU = { value: LOOK_U }; U.uLookV = { value: LOOK_V }; }
+    if (U && !U.uLookU) { U.uLookU = { value: LOOK_U }; U.uLookV = { value: LOOK_V }; U.uLookW = { value: LOOK_W }; }
   }
   C.fog_pars_fragment = LOOKU_DECL + C.fog_pars_fragment;
   // r2-look material debug view (LOOK_V.w = 1: lit materials output their base color / albedo), used by

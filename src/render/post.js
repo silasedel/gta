@@ -10,7 +10,7 @@ import { GradeShader } from './gradeShader.js';
 import { advanceFrameNoise, FRAME_NOISE } from './frameNoise.js';
 import { WEATHER_U } from './wetSurfaces.js';
 import { LOOK_OFF } from '../world/env/fogChunks.js';
-import { LOOK_U, LOOK_V, LOOK3_DEFAULT } from './look3.js';
+import { LOOK_U, LOOK_V, LOOK_W, LOOK3_DEFAULT } from './look3.js';
 
 // Pipeline (HDR linear until OutputPass, display-referred after):
 // Render -> [GTAO half-res, ultra only] -> contact AO (depth only, one pass) -> UnrealBloom -> Output (ACES + sRGB) -> SMAA -> Grade (to screen)
@@ -973,6 +973,8 @@ export function createPost(game) {
       LOOK_U[0] = FRAME_NOISE.value;
       const L3P = game.look3Parts || (game.look3Parts = { pcss: true, ao: true, ae: true }); // per-part switches (perf A/B)
       LOOK_U[1] = game.look3 && L3P.pcss ? (game.lookR2 !== false ? 2 : 1) : 0; // r2-look in-session A/B: game.lookR2 = false
+      // r2-look shaded ambient (shadows.js): share of sky / bounce light lost in a cast shadow, by day, outdoors (game.lookShadeAmb)
+      LOOK_W[0] = game.look3 && game.lookR2 !== false ? (game.lookShadeAmb ?? 0.35) * (game.env?.dayFactor ?? 1) * (1 - (game.env?.indoor || 0)) : 0;
       {
         // aerial perspective (clear weather): humid Florida air, a touch more by day than the old cap, thick at golden hour
         const sy = game.env?.sunDir?.y ?? 0.5;
