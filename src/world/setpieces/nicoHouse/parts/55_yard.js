@@ -115,8 +115,8 @@ export function build(ctx) {
 
   // ======================================================================= the roll-off's load: tear-out heaped above the rim
   { const d = DUMPSTER, sc = d.scale, base = M(d.x, 0, d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc, z * sc, a, b, c)), q = kit.rng(5577);
-    D.box(MATTE, 2.7 * sc, 0.1, 7.6 * sc, L(0, 2.3, 0), { color: 0x4a4038 });   // the heap's floor (hides the empty bin from above)
-    for (let i = 0; i < 26; i++) { const x = (q() - 0.5) * 2.2, z = (q() - 0.5) * 7.0, y = 2.35 + q() * 0.7, k = q();
+    D.box(MATTE, 2.7 * sc, 0.1, 7.6 * sc, L(0, 3.0, 0), { color: 0x4a4038 });   // the heap's floor (hides the empty bin from above)
+    for (let i = 0; i < 26; i++) { const x = (q() - 0.5) * 2.2, z = (q() - 0.5) * 7.0, y = 3.1 + q() * 0.6, k = q();
       if (k < 0.45) D.box(W, 0.09, 0.04 + q() * 0.06, 1.6 + q() * 2.2, L(x, y, z, (q() - 0.5) * 0.8, q() * 3, (q() - 0.5) * 0.6), { grain: 2, color: V(k < 0.2 ? 0xb39a74 : 0x8f8676, 0.12), wear: 0.6 });   // studs, joists
       else if (k < 0.75) D.box(MATTE, 1.2, 0.014, 0.8, L(x, y, z, (q() - 0.5) * 1.4, q() * 3, (q() - 0.5) * 1.2), { color: V(0xd4d0c6, 0.05) });   // drywall
       else if (k < 0.88) D.box(PL, 0.5 + q() * 0.5, 0.3 + q() * 0.3, 0.4 + q() * 0.4, L(x, y, z, q(), q() * 3, q()), { color: V([0x7a8a96, 0xc9c1ae, 0x8b5a3c][(q() * 3) | 0], 0.08) });   // bags, boxes
