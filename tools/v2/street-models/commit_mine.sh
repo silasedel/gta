@@ -16,7 +16,11 @@ for try in 1 2 3 4 5; do
   C=$(git commit-tree $TREE -p $BASE -m "$1
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
-  if git update-ref HEAD $C $BASE; then git log --oneline -1; exit 0; fi
+  if git update-ref HEAD $C $BASE; then git log --oneline -1
+    # keep the shared index in step with HEAD for these paths: a stale staged copy there is how other helpers' plain
+    # `git commit` reverted these files three times tonight (their working-tree edits are never touched by this)
+    for t in 1 2 3 4 5; do git reset -q -- src/world/props tools/v2/street-models public/assets/models/street src/world/miami/streetkit.js src/world/miami/breakables.js src/world/signs src/world/miami/tilebuild.js docs/v2/shots/props/review 2>/dev/null && break; sleep 1; done
+    exit 0; fi
   echo "HEAD moved during the commit, retrying"
 done
 exit 1

@@ -299,6 +299,11 @@ def set_umbrella(S):
     return [('blue stripes', a), ('red stripes', recolor(a, blue, (0.68, 0.1, 0.09))), ('green stripes', recolor(a, blue, (0.12, 0.45, 0.25))),
             ('yellow stripes', recolor(a, blue, (0.9, 0.7, 0.12))), ('teal stripes', recolor(a, blue, (0.1, 0.55, 0.55))), ('beige, faded', fade(recolor(a, blue, (0.78, 0.68, 0.5)), 0.2))]
 
+def set_can(S):
+    F = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixed')
+    names = ['reef_cola', 'night_cola', 'bayline', 'key_blue', 'lime_splash', 'gator_cherry']
+    return [(n, arr(Image.open(os.path.join(F, 'can_' + n + '.png')), S)) for n in names] + [('reef cola, crushed + dirty', grime(fade(arr(Image.open(os.path.join(F, 'can_reef_cola.png')), S), 0.3), 0.6, 181))]
+
 SETS = {'cart': ('cart.glb', 'TrashCan(Grey)', 512, set_cart), 'wheelbin': ('bin_wheel.glb', 'Bin Body', 512, set_wheelbin),
         'mailpost': ('mailbox_post.glb', 'Mailbox Body', 512, set_mailpost), 'hydrant_a': ('hydrant_a.glb', 'Fire Hydrant', 512, set_hydrant_a),
         'hydrant_b': ('hydrant_b.glb', 'Fire Hydrant 2', 512, set_hydrant_b), 'binmetal': ('bin_metal.glb', 'Body', 512, set_binmetal),
@@ -306,7 +311,8 @@ SETS = {'cart': ('cart.glb', 'TrashCan(Grey)', 512, set_cart), 'wheelbin': ('bin
         'chair': ('chair.glb', 'Plastic Table', 512, set_chair), 'cone': ('cone.glb', 'Cones Mat', 512, set_cone), 'jersey': ('jersey.glb', 'Lambert13', 1024, set_jersey),
         'bincom': ('bin_commercial.glb', 'TrashCommercial Shader', 512, set_bincom), 'mailtwin': ('mailbox_twin.glb', 'Body', 512, set_mailtwin),
         'shelter_old': ('shelter_old.glb', 'Material', 1024, set_shelter_old), 'bench_iron': ('bench_iron.glb', 'Body', 1024, set_bench_iron),
-        'ptable': ('patio_table.glb', 'Plastic Table', 512, set_ptable), 'umbrella': ('umbrella_cafe.glb', 'Canopy', 1024, set_umbrella)}
+        'ptable': ('patio_table.glb', 'Plastic Table', 512, set_ptable), 'umbrella': ('umbrella_cafe.glb', 'Canopy', 1024, set_umbrella),
+        'can': ('can.glb', 'Can Red Cola Baked', 512, set_can)}
 
 if __name__ == '__main__':
     only = re.compile(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith('--') else '.')

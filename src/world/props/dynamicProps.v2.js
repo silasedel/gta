@@ -1,6 +1,7 @@
 // Light street props that react like real objects (overnight props pass, Nov 17; track: props).
-//   'push'  trash / recycling carts, cones, barricades, plastic chairs, crates: a Rapier DYNAMIC body that starts asleep.
-//           Asleep it costs nothing (no contacts solved) and the prop keeps drawing from its instanced pool. The player's
+//   'push'  trash / recycling carts, cones, barricades, plastic chairs, crates: a FIXED body at its resting pose until the
+//           player or a vehicle reaches it, then a Rapier DYNAMIC body (and fixed again once it rests with nobody around), so
+//           nothing ever settles or pops after loading and idle props cost nothing. The player's
 //           character controller pushes it (kcc applyImpulsesToDynamicBodies), a car shoves it or sends it flying, it tips
 //           over and can be pushed back up; once it sleeps again it stays where it ended up (pose kept on the item, so a
 //           tile rebuild draws it there too).
@@ -58,10 +59,13 @@ function create(game) {
         if (hit) { const gy = pos.y + 0.8 - hit.timeOfImpact; if (Math.abs(gy - pos.y) < 0.6) { rec._dy = gy - pos.y; pos.y = gy; rec.y = gy; } } } catch (e) { /* no query pipeline yet */ }
     }
     try {
-      if (rec.cls === 'push') { makeBody(rec, pos, q, true); if (Math.abs(rec._dy || 0) > 0.015) rec.setMatrix?.(visualMatrix(rec)); }
-      else fixedColliders(rec, pos, q);
+      // every prop starts as a FIXED body at its resting pose ('dormant'): nothing simulates, nothing can settle or pop after
+      // loading. A push prop becomes a dynamic body only when the player or a vehicle actually reaches it (wake()), and goes
+      // back to a fixed body at its new resting pose once it sleeps with nobody around (sleepBack()).
+      fixedColliders(rec, pos, q); if (rec.cls === 'push') rec.dormant = true;
+      if (Math.abs(rec._dy || 0) > 0.015) { rec.m = new THREE.Matrix4().compose(pos, q, _s.setScalar(rec.sc)).toArray(); rec.setMatrix?.(new THREE.Matrix4().fromArray(rec.m)); }
     } catch (e) { console.warn('[dynProps] add', e?.message); return null; }
-    rec.k = key(Math.floor(pos.x / CELL), Math.floor(pos.z / CELL)); rec.px = pos.x; rec.pz = pos.z; rec.py = pos.y;
+    rec.k = key(Math.floor(pos.x / CELL), Math.floor(pos.z / CELL)); rec.px = pos.x; rec.pz = pos.z; rec.py = pos.y; rec.t0 = performance.now(); rec.p0 = [pos.x, pos.y, pos.z];
     let a = grid.get(rec.k); if (!a) grid.set(rec.k, (a = [])); a.push(rec);
     if (rec.owner !== undefined) { let o = byOwner.get(rec.owner); if (!o) byOwner.set(rec.owner, (o = [])); o.push(rec); }
     stats.items++;
@@ -87,6 +91,14 @@ function create(game) {
     _q.set(r.x, r.y, r.z, r.w); _v.set(t.x, t.y, t.z);
     return _o.compose(_v, _q, _s.setScalar(rec.sc));
   }
+  function wake(rec, why) { // dormant push prop -> dynamic body (awake, no impulse: the contact does the pushing)
+    const { pos, q } = poseOf(rec); dropFixed(rec); rec.dormant = false; makeBody(rec, pos, q, false); stats.wakes = (stats.wakes || 0) + 1; rec.why = why;
+  }
+  function sleepBack(rec) { // resting dynamic body -> fixed body at its pose (keeps the physics islands tiny)
+    const M = visualMatrix(rec); rec.m = M.toArray(); rec.save?.(rec.m); rec.setMatrix?.(M);
+    try { if (world.getRigidBody(rec.body.handle) === rec.body) world.removeRigidBody(rec.body); } catch (e) { /* */ } rec.body = null; live.delete(rec); stats.bodies--;
+    const { pos, q } = poseOf(rec); fixedColliders(rec, pos, q); rec.dormant = true;
+  }
   function knock(rec, vx, vz, speed) { // fixed post -> dynamic body moving with the car
     const { pos, q } = poseOf(rec);
     dropFixed(rec);
@@ -94,7 +106,7 @@ function create(game) {
     const b = makeBody(rec, pos, q, false), k = 0.75 + Math.random() * 0.25;
     b.setLinvel({ x: vx * k, y: 1.2 + speed * 0.12, z: vz * k }, true);
     b.setAngvel({ x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 3, z: (Math.random() - 0.5) * 6 }, true);
-    rec.moved = true; stats.knocked++;
+    rec.moved = true; stats.knocked++; rec.why = 'knock';
     sound(rec, pos, 0.4);
     game.emit?.('propKnock', { kind: rec.kind, x: pos.x, z: pos.z, speed });
   }
@@ -113,7 +125,7 @@ function create(game) {
   }
 
   const _cq = new THREE.Quaternion(), _ce = new THREE.Euler();
-  const api = { paused: false };
+  const api = { paused: false }, wakeLog = []; api.wakeLog = wakeLog; // debug: why props wake (spawn settle vs touched)
   function update(dt) {
     if (api.paused) return; // perf A/B
     soundT -= dt;
@@ -123,25 +135,43 @@ function create(game) {
     if (list && grid.size) for (const v of list) {
       const b = v.body; if (!b || (b.isValid && !b.isValid())) continue;
       if (v.spec?.boat || v.isBoat || v.kind === 'boat' || v.type === 'heli' || v.type === 'plane') continue;
-      const lv = b.linvel(), speed = Math.hypot(lv.x, lv.z); if (speed < BEND_SPEED) continue;
+      const lv = b.linvel(), speed = Math.hypot(lv.x, lv.z); if (speed < 0.25) continue;
       const p = b.translation(), r = b.rotation(); _cq.set(r.x, r.y, r.z, r.w); _ce.setFromQuaternion(_cq, 'YXZ');
       const yaw = _ce.y, c = Math.cos(yaw), s = Math.sin(yaw), hl = (v.spec?.L || 4.6) / 2, hw = (v.spec?.W || 1.9) / 2, ahead = speed * Math.max(dt, 1 / 60) * 2 + 0.15;
       const R = hl + ahead + 1.5, i0 = Math.floor((p.x - R) / CELL), i1 = Math.floor((p.x + R) / CELL), j0 = Math.floor((p.z - R) / CELL), j1 = Math.floor((p.z + R) / CELL);
       for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
         const a = grid.get(key(i, j)); if (!a) continue;
         for (let k = a.length - 1; k >= 0; k--) {
-          const rec = a[k]; if (rec.cls !== 'knock' || Math.abs(rec.py + rec.top / 2 - p.y) > 2.5) continue;
+          const rec = a[k]; if ((rec.cls !== 'knock' && !rec.dormant) || Math.abs(rec.py + rec.top / 2 - p.y) > 2.5) continue;
           const dx = rec.px - p.x, dz = rec.pz - p.z, lx = dx * c - dz * s, lz = dx * s + dz * c, rr = rec.rad;
+          if (rec.dormant) { if (Math.abs(lx) < hw + rr + 0.35 && Math.abs(lz) < hl + rr + ahead + 0.35) wake(rec, 'car'); continue; }
+          if (speed < BEND_SPEED || (v.ai && !v.playerDriven && !v.chaseTarget)) continue; // lane-following traffic never snaps posts (it cuts corners by a few cm)
           if (Math.abs(lx) < hw + rr && Math.abs(lz) < hl + rr + ahead) { if (speed >= KNOCK_SPEED) knock(rec, lv.x, lv.z, speed); else if ((rec.bent || 0) < 0.3 && !rec._bentBy?.has(v)) { (rec._bentBy ||= new WeakSet()).add(v); bend(rec, lv.x, lv.z); } }
         }
       }
     }
+    // the player reaching a dormant push prop wakes it (the character controller then shoves it)
+    const pp = game.player?.position;
+    if (pp && grid.size) { const ci = Math.floor(pp.x / CELL), cj = Math.floor(pp.z / CELL);
+      for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++) { const a = grid.get(key(i, j)); if (!a) continue;
+        for (let k = a.length - 1; k >= 0; k--) { const rec = a[k]; if (!rec.dormant) continue; const d = Math.hypot(rec.px - pp.x, rec.pz - pp.z);
+          if (d < rec.rad + 0.75 && pp.y > rec.py - 1.5 && pp.y < rec.py + rec.top + 1.0) wake(rec, 'player'); } } }
     // awake bodies: the instanced visual follows the body
     let awake = 0;
     for (const rec of live) {
       const b = rec.body; if (!b) continue;
-      if (b.isSleeping()) { if (rec.awake) { rec.awake = false; rec.setMatrix?.(visualMatrix(rec)); saveBack(rec); const t = b.translation(); moveCell(rec, t.x, t.z); } continue; }
-      if (!rec.awake) { rec.awake = true; rec.moved = true; stats.pushes++; const lv = b.linvel(), sp = Math.hypot(lv.x, lv.y, lv.z); if (sp > 2.5) sound(rec, b.translation(), Math.min(0.5, 0.1 + sp * 0.03)); }
+      if (b.isSleeping()) { if (rec.awake) { rec.awake = false; rec.setMatrix?.(visualMatrix(rec)); saveBack(rec); const t = b.translation(); moveCell(rec, t.x, t.z);
+        if (rec._wl) { rec._wl.d = [+(t.x - rec.p0[0]).toFixed(3), +(t.y - rec.p0[1]).toFixed(3), +(t.z - rec.p0[2]).toFixed(3)]; rec._wl = null; } }
+        const t = b.translation(); let busy = pp && Math.hypot(pp.x - t.x, pp.z - t.z) < rec.rad + 2.5;
+        if (!busy) for (const v of list || []) { try { const vt = v.body.translation(); if (Math.hypot(vt.x - t.x, vt.z - t.z) < 7) { busy = true; break; } } catch (e) { /* */ } }
+        if (!busy) sleepBack(rec);
+        continue; }
+      if (!rec.awake) { rec.awake = true; rec.moved = true; stats.pushes++;
+        { const pp = game.player?.position, near = [];
+          if (pp && Math.hypot(pp.x - rec.px, pp.z - rec.pz) < 3) near.push('player');
+          for (const v of game.vehicles?.list || []) { try { const t = v.body.translation(); if (Math.hypot(t.x - rec.px, t.z - rec.pz) < 6) { near.push('car'); break; } } catch (e) { /* */ } }
+          rec._wl = { kind: rec.kind, x: +rec.px.toFixed(1), z: +rec.pz.toFixed(1), after: Math.round(performance.now() - rec.t0), near: near.join(','), why: rec.why || '?', d: null };
+          wakeLog.push(rec._wl); if (wakeLog.length > 200) wakeLog.shift(); } const lv = b.linvel(), sp = Math.hypot(lv.x, lv.y, lv.z); if (sp > 2.5) sound(rec, b.translation(), Math.min(0.5, 0.1 + sp * 0.03)); }
       awake++;
       const t = b.translation();
       if (t.y < rec.py - 30) { rec.setMatrix?.(null); drop(rec); continue; } // fell out of the world

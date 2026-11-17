@@ -1,0 +1,4 @@
+[
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":15000,"shot":false,"log":"JSON.stringify({s: game.dynProps.stats, log: game.dynProps.wakeLog.slice(0, 80)})"},
+ {"id":"dt","eval":"game.teleport(407,undefined,-110,0); 1","stream":true,"wait":15000,"shot":false,"log":"JSON.stringify({s: game.dynProps.stats, log: game.dynProps.wakeLog.slice(-60)})"}
+]

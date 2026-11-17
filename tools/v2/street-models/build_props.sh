@@ -37,3 +37,10 @@ run p2planter '{"src":"'$P2'","out":"'$O'/planter_box.glb","keep":"^planter$","h
 # not used: pack 2 trash / trash_bin0 / trash_bin1 (real waste-company logos BFI / WM in the textures)
 # food cart for plaza / beach kiosk spots
 run foodcart '{"src":"'$M'/Food Carts/Food Cart 1 - Red-Yellow Hot Dog Cart/Food Cart 1.blend","out":"'$O'/food_cart.glb","rotz":90,"height":2.03,"tris":6042,"maxtex":1024,"texmat":{"Hot-dog":{"color":"'$PWD'/tools/v2/street-models/fixed/foodcart_color.png"}}}'
+# litter: one soda can (6 repainted labels as texture-array layers, variants.py 'can') and a paper coffee cup (sleeve repainted)
+SC="$M/Bottles/Soda Can Set 1 - Six Plain Colored Soda Cans/Soda Can Set 1.blend"
+run can '{"src":"'$SC'","out":"'$O'/can.glb","keep":"^Can Red Cola\\.001$","height":0.122,"tris":360,"maxtex":512,"texmat":{".":{"color":"'$PWD'/tools/v2/street-models/fixed/can_reef_cola.png"}}}'
+CU="$M/Cups/Coffee Cup 1 - Red-Band Paper Cup With Lid/Coffee Cup 1.blend"
+run cup '{"src":"'$CU'","out":"'$O'/cup.glb","height":0.15,"tris":700,"maxtex":256,"texmat":{"Sleeve":{"color":"'$PWD'/tools/v2/street-models/fixed/cup_sleeve.png"}}}'
+# bike rack: kitbashed by tools/v2/street-models/bikerack.py from Street Props Pack 2 rail_short (see that script)
+[[ "bikerack" =~ $only ]] && blender -b --factory-startup -Y -P tools/v2/street-models/bikerack.py -- "$P2" "$O/bike_rack.glb" 2>&1 | grep CONVERTED

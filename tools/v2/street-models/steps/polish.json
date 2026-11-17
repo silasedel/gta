@@ -1,0 +1,12 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"dt_go","eval":"game.teleport(560,undefined,40,0); 1","tod":11,"stream":true,"wait":3000,"shot":false},
+ {"id":"site_air","eval":"(()=>{const j=__workNear(560,40,2500).filter(p=>p.v==='jersey'); if(!j.length) return 'none'; let x=0,z=0; for(const p of j){x+=p.x;z+=p.z;} x/=j.length; z/=j.length; window.__cam(x+38,30,z+38,x,0,z); return JSON.stringify([+x.toFixed(1),+z.toFixed(1),j.length]);})()","tod":11,"wait":3500},
+ {"id":"site_gate","eval":"(()=>{const b=__workNear(560,40,2500).filter(p=>p.v==='barricade2')[0]; return b? JSON.stringify(__lookAt(b.x,b.y,b.z,9,2.2,0.3)) : 'none';})()","tod":11,"wait":3000},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":3000,"shot":false},
+ {"id":"stop","evalFile":"stopsign.js","tod":11,"wait":2500},
+ {"id":"stop_cfg","eval":"window.__speed=12; 1","shot":false},
+ {"id":"stop_drive","evalFile":"drive.js","wait":1000},
+ {"id":"stop_a","shot":true,"wait":500},
+ {"id":"stop_b","shot":true,"wait":2500,"log":"JSON.stringify(game.dynProps.stats)"}
+]

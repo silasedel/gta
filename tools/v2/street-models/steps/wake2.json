@@ -1,0 +1,15 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":15000,"shot":false,"log":"JSON.stringify({s: game.dynProps.stats, log: game.dynProps.wakeLog.slice(0, 60)})"},
+ {"id":"dt","eval":"game.teleport(407,undefined,-110,0); 1","stream":true,"wait":15000,"shot":false,"log":"JSON.stringify({s: game.dynProps.stats, log: game.dynProps.wakeLog.slice(-40)})"},
+ {"id":"labinit","player":null,"stream":true,"wait":3000,"shot":false},
+ {"id":"lab","evalFile":"pushlab.js","tod":11,"wait":3000},
+ {"id":"go","evalFile":"drive.js","wait":900},
+ {"id":"a","shot":true,"wait":250},
+ {"id":"b","shot":true,"wait":250},
+ {"id":"c","shot":true,"wait":500},
+ {"id":"d","shot":true,"wait":2500,"log":"JSON.stringify(game.dynProps.stats)"},
+ {"id":"walk","evalFile":"walklab.js","wait":2000},
+ {"id":"walk_go","hold":["KeyW",1400],"wait":100,"shot":true},
+ {"id":"walk_end","shot":true,"wait":6000,"log":"JSON.stringify({s: game.dynProps.stats, log: game.dynProps.wakeLog.slice(-8)})"}
+]

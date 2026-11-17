@@ -224,5 +224,20 @@
    "teal stripes",
    "beige, faded"
   ]
+ },
+ "can": {
+  "glb": "can.glb",
+  "mat": "Can Red Cola Baked",
+  "n": 7,
+  "size": 512,
+  "layers": [
+   "reef_cola",
+   "night_cola",
+   "bayline",
+   "key_blue",
+   "lime_splash",
+   "gator_cherry",
+   "reef cola, crushed + dirty"
+  ]
  }
 }

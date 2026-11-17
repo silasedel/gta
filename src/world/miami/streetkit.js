@@ -22,7 +22,7 @@ const BASE = '/assets/models/street/';
 const FILES = ['hydrant_a', 'hydrant_b', 'bench_wood', 'bench_iron', 'bin_metal', 'bin_wood', 'bin_wheel', 'bin_set', 'dumpster', 'shelter_glass', 'shelter_long', 'shelter_black', 'shelter_old',
   'meter', 'mailbox_post', 'mailbox_twin', 'mailbox_drop', 'transformer', 'cabinet', 'lantern_post', 'flexpost', 'lamp_single', 'lamp_twin', 'upole_gear',
   // overnight props pass (tools/v2/street-models/build_props.sh): curbside cart, work-zone kit, construction site, yard chairs
-  'cart', 'cone', 'channelizer', 'tc_bollard', 'barricade2', 'jersey', 'rolloff', 'chair', 'patio_table', 'bin_commercial', 'tarp_crates', 'site_cabin', 'umbrella_cafe', 'planter_pot', 'planter_box', 'food_cart'];
+  'cart', 'cone', 'channelizer', 'tc_bollard', 'barricade2', 'jersey', 'rolloff', 'chair', 'patio_table', 'bin_commercial', 'tarp_crates', 'site_cabin', 'umbrella_cafe', 'planter_pot', 'planter_box', 'food_cart', 'bike_rack', 'can', 'cup'];
 // signal_kit.json (tools/v2/street-models/signals.py): arm tip x, head hanger (top) height, pole height, lens centers
 export const SIG = { armTip: 4.316, headX: 4.537, headTop: 7.768, headH: 1.398, poleH: 6.708, pedTop: 3.25, pedBottom: 2.41 };
 export const SIG_CYCLE = 34, SIG_GREEN = 13, SIG_YELLOW = 3; // = src/vehicles/roadnet.js fixed-time plan
