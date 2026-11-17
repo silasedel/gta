@@ -41,7 +41,9 @@ export function build(ctx) {
       const swell = (n2(x * 0.09 + 1.3, z * 0.08 - 0.7) * 0.13 + n2(x * 0.21 - 2.1, z * 0.17 + 0.4) * 0.06) * near * (1 - drive * 0.7);   // gentle relief, flat at the house and along the drive
       const bowl = -0.09 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 5.5);   // the drive-end low spot (puddle)
       const fine = (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5);
-      const y = (fine + swell + bowl) * (1 - under * 0.8);
+      // never under the terrain inside the yard: where a swell dips below the terrain surface the terrain's own triangles poked
+      // through as straight-edged patches (user review shot_27); the low spots bottom out 2 cm over it instead
+      const y = Math.max((fine + swell + bowl) * (1 - under * 0.8), gA(x, z) + 0.02);
       return y + ((Math.min(0, gA(x, z)) - 0.12) - y) * sink; };   // at the asphalt and the open edges: under the terrain surface
     ctx.yardY = yardY;
     for (let i = 0; i < pa.count; i++) {
@@ -50,10 +52,10 @@ export function build(ctx) {
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
       let c = [0.79, 0.82, 0.87];   // gray-white shell (the scan is beige: pull it toward gray)
       c = c.map((v) => v * (0.84 + 0.22 * n) * (0.9 + 0.16 * nC) * (1 - 0.24 * under) * (1 + 0.05 * drive));
-      const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9); c = c.map((v, k) => v * (1 - 0.46 * Math.min(1, damp) * [1, 1.02, 1.08][k]));      // dark damp hollows
+      const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9); c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
       c = [c[0] * (1 - 0.42 * grass), c[1] * (1 - 0.28 * grass), c[2] * (1 - 0.5 * grass)];   // matted gray-green grass
-      { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - 0.2 * rut)); }   // tire ruts
+      { const dm = segD(x, z, DRIVE.main), rut = Math.exp(-((dm - 0.85) ** 2) / 0.05); c = c.map((v) => v * (1 - 0.1 * rut)); }   // faint tire ruts
       { // toward the open edges and the asphalt the shell yard takes on the terrain's sand tone, so where the sheet dips under it
         // there is no pale-on-tan cut line
         const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, (roadD(x, z) + 0.5) * 2.2) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
@@ -75,7 +77,7 @@ export function build(ctx) {
   }
   // (r2-keys: the rut puddles of the old straight drive are gone; part 55 PUDDLES lie along the new drive)
   // carport slab: old broom-finished concrete with a crack line and oil stains
-  const SLAB = mat.pbr('scuffed_cement', { rep: 2.2, gain: 2.0, grunge: true });
+  const SLAB = mat.pbr('scuffed_cement', { rep: 2.2, gain: 3.4, tint: 0xbcd2ff, grunge: true });   // r2-art: neutral concrete (the scan is brown)
   for (const [cx, cz, sx, sz] of [[0.6, 0.6, 2.75, 7.4], [3.4, 0.6, 2.75, 7.4], [6.15, 0.6, 2.7, 7.4], [3.4, 6.15, 8.3, 3.6]]) B.box(SLAB, sx - 0.004, 0.1, sz - 0.004, M(cx, 0.0, cz), { color: kit.vary(0xbdb8aa, r, 0.05), wear: 0.9, bevel: 0.012, rand: r });
   // ---------- seawalls ----------
   const SW = mat.concrete({ marine: true });

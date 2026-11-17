@@ -84,6 +84,14 @@ export function build(ctx) {
     }
   }
 
+  // ======================================================================= satellite dish on the west deck (mock-up: left edge of the deck view)
+  { const F = ctx.plan.F, x = -7.75, z = 4.35, ry = -2.2, MD = mat.metalPaint();
+    for (const [dx, dz] of [[-0.2, -0.16], [0.2, -0.16], [0, 0.24]]) B.strut(ST, [x + dx, F, z + dz], [x, F + 0.5, z], 0.016, 0.016, { color: 0xa9aba6 });   // light tripod stand
+    const dg = new THREE.CylinderGeometry(0.46, 0.07, 0.13, 28, 1, false); B.geo(MD, dg, M(x, F + 0.72, z, -1.2, ry, 0), { color: 0xd8d6cf, wear: 0.4 }); dg.dispose();   // shallow closed dish (seen from both sides)
+    const ax = Math.sin(ry), az = Math.cos(ry); B.rod(ST, [x + ax * 0.05, F + 0.62, z + az * 0.05], [x + ax * 0.55, F + 0.95, z + az * 0.55], 0.012, { color: 0x8a8c88 });
+    B.box(PLG, 0.09, 0.08, 0.14, M(x + ax * 0.58, F + 0.97, z + az * 0.58, 0, ry, 0), { color: 0xdedcd4, bevel: 0.01 });
+    col.box(x, F + 0.6, z, 0.9, 1.2, 0.9, { tag: 'prop' }); }
+
   // ======================================================================= debris and clutter (own models)
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });
   for (const d of DEBRIS) {
@@ -131,7 +139,7 @@ export function build(ctx) {
       else D.box(W, 0.08 + q() * 0.1, 0.01, 0.05 + q() * 0.06, M(x, y + 0.008, z, (q() - 0.5) * 0.3, q() * 6.28, 0), { grain: 1, color: V(0x5a4632, 0.15), wear: 1 }); } }   // bark scraps
 
   // ======================================================================= the roll-off's load: tear-out heaped above the rim
-  { const d = DUMPSTER, sc = d.scale, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc, z * sc, a, b, c)), q = kit.rng(5577);
+  { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc * sy, z * sc, a, b, c)), q = kit.rng(5577);
     D.box(MATTE, 2.7 * sc, 0.1, 7.6 * sc, L(0, 3.0, 0), { color: 0x4a4038 });   // the heap's floor (hides the empty bin from above)
     for (let i = 0; i < 26; i++) { const x = (q() - 0.5) * 2.2, z = (q() - 0.5) * 7.0, y = 3.1 + q() * 0.6, k = q();
       if (k < 0.45) D.box(W, 0.09, 0.04 + q() * 0.06, 1.6 + q() * 2.2, L(x, y, z, (q() - 0.5) * 0.8, q() * 3, (q() - 0.5) * 0.6), { grain: 2, color: V(k < 0.2 ? 0xb39a74 : 0x8f8676, 0.12), wear: 0.6 });   // studs, joists
@@ -150,6 +158,7 @@ export function build(ctx) {
     for (let i = 0; i < 520; i++) { const x = q() * w, y = q() * h, l = 7 + q() * 16, a = q() * 6.28, k = q(); g.save(); g.translate(x, y); g.rotate(a);
       g.fillStyle = k < 0.45 ? `rgba(${120 + q() * 50},${86 + q() * 30},${40 + q() * 20},0.95)` : k < 0.75 ? `rgba(${170 + q() * 40},${140 + q() * 30},${70 + q() * 20},0.9)` : k < 0.9 ? `rgba(${92 + q() * 30},${102 + q() * 30},${46},0.9)` : `rgba(${180 + q() * 40},${50 + q() * 30},${30},0.9)`;
       g.beginPath(); g.ellipse(0, 0, l, l * (0.3 + q() * 0.25), 0, 0, 6.28); g.fill(); g.strokeStyle = 'rgba(60,40,20,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-l, 0); g.lineTo(l * 1.2, 0); g.stroke(); g.restore(); } });
+  LEAVES.color.setScalar(0.45); LEAVES.roughness = 0.7;   // r2-art: leaf litter L 0.08-0.12 (was 0.27)
   const MATTED = decal('matted', 512, 512, (g, w, h) => { const q = kit.rng(92); g.clearRect(0, 0, w, h);
     for (let i = 0; i < 2600; i++) { const x = q() * w, y = q() * h, l = 6 + q() * 22, a = 0.4 + (q() - 0.5) * 0.9 + (x / w) * 0.6, k = q(); g.strokeStyle = k < 0.55 ? `rgba(${150 + q() * 40},${150 + q() * 30},${80 + q() * 20},0.75)` : `rgba(${86 + q() * 30},${110 + q() * 30},${50 + q() * 20},0.8)`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5, y + Math.sin(a) * l * 0.5 - 2, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } });
   // crushed shell / marl dust: the pale, almost white yard surface of the mock-up, laid over the sand where cars and feet go
@@ -159,7 +168,7 @@ export function build(ctx) {
     for (let i = 0; i < 260; i++) { const x = q() * w, y = q() * h, s = 2 + q() * 4; g.fillStyle = `rgba(${206 + q() * 30},${200 + q() * 28},${188 + q() * 26},0.8)`; g.beginPath(); g.moveTo(x, y); g.lineTo(x + s, y + s * 0.3); g.lineTo(x + s * 0.4, y + s); g.closePath(); g.fill(); }   // shell chips
     for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(90,82,70,${0.15 + q() * 0.25})`; g.fillRect(q() * w, q() * h, 1, 1); } });
   SHELLD.roughness = 0.97;
-  const RUTS = decal('ruts', 64, 512, (g, w, h) => { const q = kit.rng(93); g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(70,58,42,0)'); gr.addColorStop(0.25, 'rgba(70,58,42,0.42)'); gr.addColorStop(0.75, 'rgba(70,58,42,0.42)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  const RUTS = decal('ruts', 64, 512, (g, w, h) => { const q = kit.rng(93); g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(70,58,42,0)'); gr.addColorStop(0.25, 'rgba(70,58,42,0.24)'); gr.addColorStop(0.75, 'rgba(70,58,42,0.24)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += 9) { g.fillStyle = 'rgba(50,40,28,0.35)'; g.fillRect(10, y, w - 20, 3); } for (let i = 0; i < 200; i++) { g.fillStyle = `rgba(230,220,200,${q() * 0.3})`; g.fillRect(q() * w, q() * h, 2, 2); } });
   RUTS.roughness = 1;
   const yY = ctx.yardY || (() => 0);   // the yard sheet's surface (part 05): every ground layer rides on it, never sinks into its bumps
@@ -210,7 +219,7 @@ export function build(ctx) {
   // colliders now (the house's collider list is read right after the build), visuals when the models arrive
   // curb carts: breakable (a car above ~15 km/h knocks one over; src/world/miami/breakables.js), static box otherwise
   const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
-  { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2 + yS(d.x, d.z), d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
+  { const d = DUMPSTER, sy = d.sy ?? 1; col.box(d.x, 3.37 * d.scale * sy / 2 + yS(d.x, d.z), d.z, 3.26 * d.scale, 3.37 * d.scale * sy, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
@@ -218,7 +227,7 @@ export function build(ctx) {
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
-    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale, d.scale), { tint: d.tint }); }
+    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
     for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};

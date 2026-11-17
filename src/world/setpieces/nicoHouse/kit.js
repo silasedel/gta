@@ -146,7 +146,7 @@ export function createKit(THREE, opts = {}) {
     diffuseColor.rgb = nhC;
     ${o.marine ? MARINE : ''} }
 `,
-      rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv ).g;\n  roughnessFactor = mix( roughnessFactor, 0.22, nhWetness * 0.8 );\n',
+      rough: 'float roughnessFactor = roughness;\n  roughnessFactor = clamp( 0.5 + 0.55 * texture2D( roughnessMap, vRoughnessMapUv ).g, 0.0, 1.0 );   // r2-art: weathered boards 0.75-0.85\n  roughnessFactor = mix( roughnessFactor, 0.22, nhWetness * 0.8 );\n',
     });
   });
 
@@ -204,18 +204,18 @@ export function createKit(THREE, opts = {}) {
     float nhAge = vWear;
     nhRust = clamp( nhWr.r * ( 0.55 + 1.5 * nhAge ) + nhWr.b * ( 0.6 + nhAge ) + ( nhG.r - 0.62 ) * nhAge * 1.3, 0.0, 1.0 );
     nhRust = smoothstep( 0.22, 0.62, nhRust );
-    vec3 nhZn = nhGalv * vColor.rgb * ( 0.82 + 0.3 * nhWr.g );
+    vec3 nhZn = mix( vec3( dot( nhGalv, vec3( 0.2126, 0.7152, 0.0722 ) ) ), nhGalv, 0.2 ) * 3.2 * vColor.rgb * ( 0.82 + 0.3 * nhWr.g );   // r2-art: galvanized zinc L 0.45-0.6, near neutral
     nhZn = mix( nhZn, nhZn * vec3( 1.0, 0.93, 0.82 ), nhG.g * 0.5 );                 // tan run-off staining
     diffuseColor.rgb = mix( nhZn, nhRc * vec3( 0.95, 0.72, 0.6 ), nhRust );
   }
 `,
-      rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv * vec2( 1.1, 3.1 ) ).g;\n  roughnessFactor = mix( clamp( roughnessFactor * 0.9 + 0.22, 0.0, 1.0 ), 0.96, nhRust );\n',
+      rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv * vec2( 1.1, 3.1 ) ).g;\n  roughnessFactor = mix( clamp( roughnessFactor * 0.6 + 0.2, 0.0, 1.0 ), 0.9, nhRust );\n',
       metal: 'float metalnessFactor = metalness * ( 1.0 - nhRust ) * 0.92;\n',
     });
   });
 
   // Generic CC0 PBR set (vertex color tints it). o: { rep: meters per tile, rough, metal, marine, tint, side, nscale }
-  mat.pbr = (id, o = {}) => memo(`pbr:${id}:${o.rep ?? 1}:${o.marine ? 1 : 0}:${o.metal ?? 0}:${o.side ?? 0}:${o.tint ?? ''}:${o.env ?? ''}:${o.gain ?? ''}:${o.grunge ? 1 : 0}`, () => {
+  mat.pbr = (id, o = {}) => memo(`pbr:${id}:${o.rep ?? 1}:${o.marine ? 1 : 0}:${o.metal ?? 0}:${o.side ?? 0}:${o.tint ?? ''}:${o.env ?? ''}:${o.gain ?? ''}:${o.grunge ? 1 : 0}:${o.rlift ?? ''}:${o.nscale ?? ''}`, () => {
     const m = new THREE.MeshStandardMaterial({ ...pbrSet(id), vertexColors: true, roughness: o.rough ?? 1, metalness: o.metal ?? 0, side: o.side ?? THREE.FrontSide });
     if (o.tint != null) m.color.set(o.tint);
     if (o.gain) m.color.multiplyScalar(o.gain);
@@ -233,7 +233,7 @@ export function createKit(THREE, opts = {}) {
     diffuseColor.rgb *= 1.0 - 0.3 * nhG.g * vWear;
     ${o.marine ? MARINE : ''} }
 `,
-      rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv ).g;\n  roughnessFactor = mix( roughnessFactor, 0.2, nhWetness * 0.8 );\n',
+      rough: 'float roughnessFactor = roughness;\n  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv ).g;\n' + (o.rlift ? `  roughnessFactor = mix( roughnessFactor, 1.0, ${o.rlift.toFixed(3)} );\n` : '') + '  roughnessFactor = mix( roughnessFactor, 0.2, nhWetness * 0.8 );\n',
     });
   });
 
@@ -250,9 +250,10 @@ export function createKit(THREE, opts = {}) {
   mat.chrome = () => finish('chrome', { roughness: 0.14, metalness: 1, roughnessMap: kit.scratchTex(), envMapIntensity: 1.3 });
   mat.ceramic = () => finish('ceramic', { roughness: 0.2, metalness: 0, roughnessMap: kit.scratchTex(), bumpMap: kit.microTex(), bumpScale: 0.12 });
   mat.matte = () => finish('matte', { roughness: 0.9, metalness: 0, bumpMap: kit.microTex(), bumpScale: 0.8 });                                   // paper, cardboard, unglazed
-  mat.rust = (o = {}) => mat.pbr('rusty_metal_04', { rep: o.rep ?? 0.6, metal: 0.35 });
-  mat.rustLight = (o = {}) => mat.pbr('rusty_metal_02', { rep: o.rep ?? 0.8, metal: 0.7 });
-  mat.concrete = (o = {}) => mat.pbr('concrete_wall_008', { rep: o.rep ?? 1.6, marine: o.marine, grunge: true, gain: 2.3 });
+  // r2-art calibration: rust is dielectric (metal 0, rough ~0.8, L <= 0.18); concrete near neutral (sat <= 0.2), rough ~0.85, softer normals
+  mat.rust = (o = {}) => mat.pbr('rusty_metal_04', { rep: o.rep ?? 0.6, metal: 0, grunge: true, rlift: 0.55, gain: 0.85 });
+  mat.rustLight = (o = {}) => mat.pbr('rusty_metal_02', { rep: o.rep ?? 0.8, metal: 0, grunge: true, rlift: 0.6, gain: 0.7 });
+  mat.concrete = (o = {}) => mat.pbr('concrete_wall_008', { rep: o.rep ?? 1.6, marine: o.marine, grunge: true, gain: 2.3, tint: 0xe2e9f6, nscale: 0.7, rlift: 0.4 });
   mat.fabric = (id = 'cotton_jersey', o = {}) => mat.pbr(id, { rep: o.rep ?? 0.35, side: o.side });
   mat.glass = (o = {}) => memo('glass:' + (o.tint ?? 0) + ':' + (o.dirt ?? 1), () => {
     const dirt = kit.canvasTex(512, 512, (g, w, h) => {                       // salt haze, wiped arcs, drip marks, dusty corners
