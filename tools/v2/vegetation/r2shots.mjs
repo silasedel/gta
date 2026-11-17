@@ -48,6 +48,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
           window.__vegShotCam = [eye.toArray(), look.toArray()]; return { kind: t.kind, x: +t.x.toFixed(1), z: +t.z.toFixed(1) }; })()`);
         console.log(id, 'tree', JSON.stringify(r));
       }
+      if (s.post && !CAMS[id]) { const r = await b.eval(`(async () => { const s = ${JSON.stringify(s)}; ${s.post} })()`).catch((e) => String(e).slice(0, 300)); console.log(id, 'post', typeof r === 'string' ? r : JSON.stringify(r)); } // after streaming settled (e.g. aim at a trunk base)
       CAMS[id] ||= await b.eval('window.__vegShotCam');
       await b.sleep(+(o.settle || 2500));
       const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; (function f() { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 2500) requestAnimationFrame(f); else { ts.shift(); ts.sort((x, y) => x - y); const r = game.renderer.info.render; res({ avgMs: +(ts.reduce((x, y) => x + y, 0) / ts.length).toFixed(2), p95Ms: +ts[Math.floor(ts.length * 0.95)].toFixed(1), calls: r.calls, tris: r.triangles }); } })(); })`);

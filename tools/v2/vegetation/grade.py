@@ -8,12 +8,12 @@ S = json.load(open('tools/v2/vegetation/texstats.json'))
 # ranges (sRGB HSV of the alpha-weighted mean): hue deg, saturation, value
 LEAF = dict(h=(76, 90), s=(0.40, 0.50), v=(0.34, 0.39))
 FROND = dict(h=(70, 84), s=(0.40, 0.48), v=(0.34, 0.39))      # palm fronds: a touch yellower than broadleaf, same value / saturation
-DRYFROND = dict(h=(62, 70), s=(0.36, 0.44), v=(0.32, 0.36))   # weathered palms: drier olive, inside the same family
-TRUNK = dict(h=(26, 38), s=(0.12, 0.22), v=(0.33, 0.40))
+DRYFROND = dict(h=(68, 74), s=(0.38, 0.44), v=(0.33, 0.37))   # weathered palms: drier olive, inside the same family
+TRUNK = dict(h=(26, 38), s=(0.10, 0.18), v=(0.30, 0.36))  # r2-art: gray-brown, sat <= 0.35 on screen
 PALMTRUNK = dict(h=(28, 36), s=(0.10, 0.18), v=(0.36, 0.41))  # gray-tan, none clean light gray, none dark brown
 BLOOM = dict(h=None, s=(0.72, 0.80), v=(0.52, 0.60))
 PALMS = {'royal_palm', 'coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d', 'date_palm', 'tropical_palm', 'palm_yellow', 'weathered_a', 'weathered_b', 'sabal_palm', 'fan_palm', 'bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'}
-SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'grass_tuft_b', 'flower_bush_a', 'flower_bush_b', 'grass_tuft_a'}
+SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'flower_bush_a', 'flower_bush_b'}
 # materials that are not what their family says (measured): stalks / crownshaft / petioles / hanging roots / flower atlases
 OVR = {
   ('royal_palm', 'bark_1'): 'skip',            # crownshaft (green by nature)
@@ -26,6 +26,8 @@ OVR = {
   ('pine_a', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_b', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_c', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)),
   ('cypress_a', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)), ('cypress_b', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)),
   ('mangrove', 'bark_0'): TRUNK,
+  ('grass_tuft_a', 'leaf_0'): dict(h=(74, 78), s=(0.50, 0.55), v=(0.37, 0.40)),  # r2-ground lush grass target sRGB (84, 98, 46)
+  ('grass_tuft_b', 'leaf_0'): dict(h=(45, 49), s=(0.33, 0.37), v=(0.49, 0.53)),  # r2-ground dry straw target (130, 120, 84)
 }
 cl = lambda x, r: x if r is None else min(max(x, r[0]), r[1])
 lin = lambda c: c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4

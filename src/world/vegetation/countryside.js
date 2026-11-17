@@ -18,6 +18,7 @@ import { bakeImpostor } from './field.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { grassCardMap, clumpCard, stripCard, bladeCards } from './grasscards.js';
 import { gmVeg } from '../ground/surfaceMask.js';
+import { meshGround, triAt, MESH_GND } from './ground.js';
 
 // ground pass: close-up grass from the user's photographed grass cards (?gcards=0: the procedural blade tufts)
 const GCARDS = typeof location === 'undefined' || !/[?&]gcards=0\b/.test(location.search);
@@ -38,11 +39,11 @@ const patchN = (x, z, k) => vn(x / 14 + k * 17.1, z / 14 - k * 3.7) * 0.7 + vn(x
 const BIOMES = {
   // Keys neighborhoods (user mock-up): red-flowering poincianas, bougainvillea / hibiscus along the yard frontages, palms; yards are sandy,
   // matted-down grass with leaf litter, not lush lawn (matted: flattened short tufts, sparse; yard: flowering shrub band 2.5-10 m off the street)
-  keys: { road: 0.4, tree: 0.66, even: 1, trees: [['gumbo', 2.6], ['buttonwood', 2.2], ['sabal', 1.3], ['coconut', 2.4], ['coconutM', 1.8], ['seagrapeT', 2.6], ['poinciana', 0.45], ['queen', 0.5], ['fan', 0.5], ['rubber', 0.6]], shrub: 0.22, shrubs: [['seagrape', 3], ['sawpalmetto', 1.4], ['fern', 0.6], ['hibiscus', 0.25], ['bougainvillea', 0.25], ['agave', 0.4], ['redgrass', 0.3], ['tuft', 1.5]], yard: [['bougainvillea', 3], ['geranium', 1], ['hibiscus', 3], ['seagrape', 1], ['hedge', 1.5], ['oleander', 1], ['agave', 0.6]], under: [['seagrape', 2], ['fern', 1], ['hibiscus', 0.6], ['fernM', 0.5]], base: [['tuft', 3], ['fern', 1]], matted: 1, litter: 0.05, grass: 0.62, dry: 0.45, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
-  keysSand: { tree: 0.4, even: 1, trees: [['coconut', 2.5], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 3.5], ['gumbo', 1], ['buttonwood', 1.5], ['poinciana', 0.2]], shrub: 0.22, shrubs: [['seagrape', 3], ['agave', 0.6], ['redgrass', 0.5]], under: [['seagrape', 2]], base: [['tuft', 2]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
-  pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.34, shrubs: [['sawpalmetto', 5], ['fern', 0.6], ['fernM', 0.8], ['tuft', 1]], under: [['sawpalmetto', 3], ['fern', 1]], base: [['tuft', 2], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
+  keys: { road: 0.55, tree: 0.8, clump: 1, underN: 4, trees: [['gumbo', 2.6], ['buttonwood', 2.2], ['sabal', 1.3], ['coconut', 2.4], ['coconutM', 1.8], ['seagrapeT', 2.6], ['poinciana', 0.45], ['queen', 0.5], ['fan', 0.5], ['rubber', 0.6]], shrub: 0.22, shrubs: [['seagrape', 3], ['sawpalmetto', 1.4], ['fern', 0.6], ['hibiscus', 0.25], ['bougainvillea', 0.25], ['agave', 0.4], ['redgrass', 0.3]], yard: [['bougainvillea', 3], ['geranium', 1], ['hibiscus', 3], ['seagrape', 1], ['hedge', 1.5], ['oleander', 1], ['agave', 0.6]], under: [['fernM', 2], ['sawpalmetto', 1.6], ['seagrape', 1.5], ['fern', 1], ['hibiscus', 0.6]], base: [['tuft', 2], ['fern', 1.5]], matted: 1, litter: 0.05, grass: 0.62, dry: 0.45, flower: 0.07, rock: 0.012, hue: [0.98, 1.02, 0.8] },
+  keysSand: { tree: 0.5, clump: 1, trees: [['coconut', 2.5], ['coconutM', 2], ['sabal', 1], ['seagrapeT', 3.5], ['gumbo', 1], ['buttonwood', 1.5], ['poinciana', 0.2]], shrub: 0.22, shrubs: [['seagrape', 3], ['agave', 0.6], ['redgrass', 0.5]], under: [['seagrape', 2]], base: [['tuft', 2]], yard: [['bougainvillea', 2], ['hibiscus', 2], ['seagrape', 2]], matted: 1, litter: 0.03, grass: 0.5, dry: 0.65, flower: 0.02, rock: 0, hue: [1.08, 1.0, 0.7] },
+  pine: { road: 0.3, tree: 0.4, trees: [['slashpine', 8], ['sabal', 1], ['liveoak', 0.5]], shrub: 0.34, shrubs: [['sawpalmetto', 5], ['fern', 0.6], ['fernM', 0.8]], under: [['sawpalmetto', 3], ['fern', 1]], base: [['tuft', 2], ['fern', 1]], grass: 0.62, dry: 0.3, flower: 0.05, rock: 0.04, hue: [1.0, 1.0, 0.82] },
   hammock: { road: 0.35, tree: 0.72, trees: [['liveoak', 4], ['gumbo', 3], ['sabal', 2], ['banyan', 0.25]], shrub: 0.45, shrubs: [['fern', 1.6], ['fernM', 2], ['seagrape', 1], ['sawpalmetto', 1]], under: [['fern', 3], ['fernM', 2], ['seagrape', 1]], underN: 3.5, base: [['fern', 2], ['tuft', 1], ['moss', 1.5]], grass: 0.38, dry: 0.08, flower: 0.01, rock: 0.012, hue: [0.92, 1.0, 0.86] },
-  rural: { road: 0.55, tree: 0.32, trees: [['liveoak', 4], ['gumbo', 2], ['liveoak', 1.2], ['sabal', 1.6], ['slashpine', 0.8], ['banyan', 0.15]], /* ref_57: continuous broadleaf lines along the roads */ shrub: 0.16, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4], ['tuft', 1.2], ['hedge', 0.4]], under: [['seagrape', 1], ['fern', 1], ['sawpalmetto', 1]], base: [['tuft', 3], ['geranium', 0.5]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [1.04, 1.08, 0.8] },
+  rural: { road: 0.55, tree: 0.32, trees: [['liveoak', 4], ['gumbo', 2], ['liveoak', 1.2], ['sabal', 1.6], ['slashpine', 0.8], ['banyan', 0.15]], /* ref_57: continuous broadleaf lines along the roads */ shrub: 0.16, shrubs: [['sawpalmetto', 2], ['seagrape', 1], ['fern', 0.4], ['hedge', 0.4]], under: [['seagrape', 1], ['fern', 1], ['sawpalmetto', 1]], base: [['tuft', 3], ['geranium', 0.5]], grass: 0.95, dry: 0.16, flower: 0.1, rock: 0.016, hue: [1.04, 1.08, 0.8] },
   glade: { tree: 0.14, dome: 1, trees: [['cypress', 5], ['liveoak', 1], ['sabal', 1.2]], shrub: 0.04, shrubs: [['sawpalmetto', 1]], grass: 0.95, tall: 0.75, dry: 0.5, flower: 0.025, rock: 0, hue: [1.06, 1.0, 0.76] },
   marsh: { tree: 0.07, trees: [['mangrove', 1]], shrub: 0, shrubs: [], grass: 0.85, tall: 1, dry: 0.25, flower: 0, rock: 0, hue: [0.95, 1.0, 0.8] },
   // inland freshwater swamp (wetland away from the coast): cypress domes and strands, cabbage palms, ferns, tall sawgrass; no mangroves
@@ -65,7 +66,7 @@ const TREE_KINDS = {
   slashpine: { models: ['pine_a', 'pine_b', 'pine_c'], fb: 'slashpine', sp: 'pine', s: [0.85, 1.15] },
   cypress: { models: ['cypress_a', 'cypress_b'], fb: 'cypress', sp: 'cypress', s: [0.7, 1.1] }, // library pines regraded to bald-cypress green
   mangrove: { models: ['mangrove_b', 'mangrove'], w: [2, 1], fb: 'mangrove', sp: 'mangrove', s: [0.7, 1.25] }, // + Mangrove Tree 2 with its stilt roots kept (bark budget 36k) // stilt-root red mangrove (shader variation per trunk)
-  sabal: { models: ['sabal_palm', 'weathered_b', 'weathered_a'], w: [2, 2, 1], fb: 'sabal', palm: 1, s: [0.8, 1.12] }, // w: model weights (the dark weathered palm stays rare)
+  sabal: { models: ['sabal_palm', 'weathered_b', 'weathered_a'], w: [5, 0.6, 0.4], /* r2: dry-frond palms 10-20 % (r2-art) */ fb: 'sabal', palm: 1, s: [0.8, 1.12] }, // w: model weights (the dark weathered palm stays rare)
   coconut: { models: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], fb: 'coconut', palm: 1, s: [0.85, 1.15] },
   seagrapeT: { models: ['rubber_fig'], fb: 'seagrape', sp: 'seagrape', s: [0.55, 0.9], shrubLike: 1 }, // the mid layer: a 2.3-3.8 m broadleaf (sea grape stand-in; the low-poly bushes scaled up read blocky)
   poinciana: { models: ['poinciana', 'poinciana_b', 'poinciana_c'], fb: 'poinciana', sp: 'oak', s: [0.85, 1.15] },
@@ -73,7 +74,7 @@ const TREE_KINDS = {
   banyan: { models: ['banyan', 'banyan_b'], fb: 'liveoak', sp: 'oak', s: [0.85, 1.1], wide: 1 },
   royal: { models: ['royal_palm'], fb: 'royal', palm: 1, s: [0.88, 1.12] },
   rubber: { models: ['rubber_fig'], fb: 'gumbo', sp: 'oak', s: [0.9, 1.35] },
-  queen: { models: ['tropical_palm', 'date_palm'], fb: 'queen', palm: 1, s: [0.85, 1.15] },
+  queen: { models: ['tropical_palm', 'fan_palm'], w: [3, 1], fb: 'queen', palm: 1, s: [0.85, 1.15] },
   fan: { models: ['fan_palm'], fb: 'queen', palm: 1, s: [0.8, 1.2] }, // Palm Tree 10: Washingtonia (Mexican fan palm)
 };
 for (const K of Object.values(TREE_KINDS)) if (K.models) K.seeds = K.models.map(() => [1, 1]);
@@ -114,9 +115,16 @@ function coastal(ctx, x, z) {
   if (coastC.size > 20000) coastC.clear(); coastC.set(k, v); return v;
 }
 function palmFit(ctx, name, x, z, rd, r) {
-  if (name === 'royal' && rd > 16) name = coastal(ctx, x, z) ? 'coconut' : 'sabal';
+  if (name === 'royal' && (rd > 16 || /residential/.test((ctx.data.zoneAt && ctx.data.zoneAt(x, z)) || ''))) name = coastal(ctx, x, z) ? 'coconut' : 'sabal'; // residential streets are not avenues
   if ((name === 'coconut' || name === 'coconutM') && !ctx.terrain.isKeys(x, z) && !coastal(ctx, x, z)) { const zn = (ctx.data.zoneAt && ctx.data.zoneAt(x, z)) || ''; name = /residential|nightlife|midtown/.test(zn) ? (r < 0.4 ? 'queen' : r < 0.7 ? 'fan' : 'sabal') : 'sabal'; }
   return name;
+}
+// (r2-veg) Keys / suburb distribution: dense masses along the street edge and the lot lines (fences), overgrown corners, open
+// ground only in clearings; a sharp ~20 m clump noise on top of the groves (no even spacing)
+function clumpK(ctx, x, z, g) {
+  const n = sstep(0.42, 0.66, vn(x / 19 + 4.4, z / 19 - 2.2) * 0.7 + vn(x / 6.5, z / 6.5 + 1.7) * 0.3), rd = ctx.roadDist ? ctx.roadDist(x, z) : 99;
+  let edge = rd > 3.5 && rd < 10 ? 0.55 : 0; if (!edge) for (const [dx, dz] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) if (inLot(x + dx, z + dz)) { edge = 0.45; break; } // street edge / just outside a lot line
+  return Math.min(1.15, 0.08 + 0.75 * n + 0.35 * g + edge);
 }
 const pickIdx = (w, r) => { let t = 0; for (const x of w) t += x; let a = r * t; for (let i = 0; i < w.length; i++) { a -= w[i]; if (a <= 0) return i; } return w.length - 1; };
 const pick = (list, r) => { let t = 0; for (const [, w] of list) t += w; let a = r * t; for (const e of list) { a -= e[1]; if (a <= 0) return e[0]; } return list[list.length - 1][0]; };
@@ -129,7 +137,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
   for (let j = Math.ceil(z0 / TSTEP); j * TSTEP < z0 + S; j++) for (let i = Math.ceil(x0 / TSTEP); i * TSTEP < x0 + S; i++) {
     const p = hh(i, j, 3), x = (i + 0.22 + hh(i, j, 1) * 0.56) * TSTEP, z = (j + 0.22 + hh(i, j, 2) * 0.56) * TSTEP; // trunks >= 3.5 m apart
     const g = groveN(x, z), gd = vn(x / 60 - 11, z / 60 + 4); // gd: cypress domes / tree islands
-    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.62)) continue; // 0.4: roadside-row candidates, up to 0.62: evenly wooded biomes (Keys)
+    if (p > Math.max(0.75 * Math.max(g, gd > 0.7 ? 1 : 0), 0.62, ctx.terrain.isKeys(x, z) ? 0.86 : 0)) continue; // 0.4: roadside-row candidates; Keys clumps up to 0.86
     let b = biomeOf(ctx, x, z), wet = false;
     if (!b) { // shallows along wild / Keys shores: red mangroves stand IN the water, roots in the mud (clumps along the shoreline, never offshore)
       const D = ctx.data; if (!D.isWater(x, z) || (ctx.terrain.real && ctx.terrain.real(x, z))) continue;
@@ -138,7 +146,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
       if (!land || vn(x / 41 + 2.7, z / 41 - 1.3) < 0.36 || p > 0.8) continue;
       b = BIDX.mangrove; wet = true;
     }
-    const B = BIOMES[BKEYS[b - 1]], dens = B.dome ? (gd > 0.68 ? 0.7 : B.tree * g * 0.35) : B.tree * (B.even ? 0.4 + 0.6 * g : 0.15 + 0.85 * g);
+    const B = BIOMES[BKEYS[b - 1]], dens = B.dome ? (gd > 0.68 ? 0.7 : B.tree * g * 0.35) : B.clump ? B.tree * clumpK(ctx, x, z, g) : B.tree * (B.even ? 0.4 + 0.6 * g : 0.15 + 0.85 * g);
     let rdQ = null; // roadside row: rural stretches keep trees just outside the clear zone so their shade dapples the asphalt
     if (p >= dens) { if (!B.road || p >= B.road) continue; rdQ = ctx.roadDist ? ctx.roadDist(x, z) : 99; if (rdQ < 4.5 || rdQ > 15) continue; }
     const rd0 = rdQ ?? (ctx.roadDist ? ctx.roadDist(x, z) : 99), name = palmFit(ctx, pick(B.trees, hh(i, j, 5)), x, z, rd0, hh(i, j, 26)), K = TREE_KINDS[name];
@@ -148,12 +156,12 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     if (ctx.deckAt && (ctx.deckAt(x, z) || ctx.deckAt(x + 4, z) || ctx.deckAt(x - 4, z) || ctx.deckAt(x, z + 4) || ctx.deckAt(x, z - 4))) continue; // bridges, ramps, embankments
     const v = K.w ? pickIdx(K.w, hh(i, j, 7)) : (hh(i, j, 7) * K.seeds.length) | 0, s = K.s[0] + (K.s[1] - K.s[0]) * hh(i, j, 8);
     // grounding: lowest ground under the trunk footprint (slopes, shore banks): the base never hangs in the air
-    const fr = K.palm ? 0.45 : K.wide ? 1.4 : 0.7, H = ctx.terrain.heightAt; let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr]]) y = Math.min(y, H(x + dx, z + dz));
+    const fr = name === 'mangrove' ? 1.6 : K.palm ? 0.4 : K.wide ? 0.9 : 0.5, H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[fr, 0], [-fr, 0], [0, fr], [0, -fr], [fr * 0.7, fr * 0.7], [-fr * 0.7, fr * 0.7], [fr * 0.7, -fr * 0.7], [-fr * 0.7, -fr * 0.7]]) y = Math.min(y, H(x + dx, z + dz)); // (r2-veg) the rendered triangles, lowest point of the footprint decides
     emit({ name, v, x, z, y, ry: hh(i, j, 9) * 6.2832, s, sp: K.sp, palm: !!K.palm, b, wet, key: i + ',' + j });
     if (name === 'mangrove' && hh(i, j, 15) < 0.85) { // mangroves grow in clumps: 2-4 more trunks next to the first
       for (let k = 0; k < 2 + (hh(i, j, 16) * 3 | 0); k++) { const a2 = hh(i, j, 17 + k) * 6.28, d2 = 2.2 + hh(i, j, 19 + k) * 1.6, x2 = x + Math.cos(a2) * d2, z2 = z + Math.sin(a2) * d2;
         if (ctx.blocked && ctx.blocked(x2, z2, 2)) continue; if (!ctx.data.isWater(x2, z2) && (ctx.roadDist ? ctx.roadDist(x2, z2) : 99) < 6) continue;
-        emit({ name, v: pickIdx(K.w || [1], hh(i, j, 25 + k)), x: x2, z: z2, y: Math.min(H(x2, z2), H(x2 + 0.7, z2), H(x2 - 0.7, z2), H(x2, z2 + 0.7), H(x2, z2 - 0.7)), ry: hh(i, j, 21 + k) * 6.28, s: s * (0.7 + hh(i, j, 23 + k) * 0.35), sp: K.sp, palm: false, b, wet, key: i + ',' + j + ',' + k }); } }
+        emit({ name, v: pickIdx(K.w || [1], hh(i, j, 25 + k)), x: x2, z: z2, y: Math.min(H(x2, z2), H(x2 + 1.6, z2), H(x2 - 1.6, z2), H(x2, z2 + 1.6), H(x2, z2 - 1.6)), ry: hh(i, j, 21 + k) * 6.28, s: s * (0.7 + hh(i, j, 23 + k) * 0.35), sp: K.sp, palm: false, b, wet, key: i + ',' + j + ',' + k }); } }
   }
   lotTrees(ctx, x0, z0, S, emit, ctx.lotSeen || null); // yard trees in house lots
 }
@@ -167,7 +175,7 @@ const lotInset = (l, x, z) => { const c = Math.cos(l.heading), s = Math.sin(l.he
   return Math.min(l.w / 2 - Math.abs(u), v < 0 ? l.d / 2 + v : l.d / 2 + (l.roadGap || 0) - v); };
 const inLotCore = (x, z) => { try { if (!houseLots.enabled) return false; if (houseLots.reservedAt(x, z, 2)) return true; const l = houseLots.at(x, z); return !!l && lotInset(l, x, z) > 2.2; } catch (e) { return false; } };
 const inLotInner = (x, z) => { try { if (!houseLots.enabled) return false; if (houseLots.reservedAt(x, z, 2)) return true; const l = houseLots.at(x, z); if (!l) return false; const c = Math.cos(l.heading), s = Math.sin(l.heading), dx = x - l.x, dz = z - l.z, v = dx * s + dz * c; return lotInset(l, x, z) > 1.25 || v > l.d * 0.2; } catch (e) { return false; } }; // the side / back lot-line band keeps its hedges
-const LOT_TREES = { keys: [['seagrapeT', 2.6], ['gumbo', 2.4], ['buttonwood', 2], ['coconut', 2.5], ['coconutM', 1.2], ['rubber', 0.8], ['sabal', 1], ['poinciana', 0.5]], main: [['liveoak', 3], ['gumbo', 2], ['sabal', 1.5], ['coconut', 1], ['poinciana', 1], ['banyan', 0.3]] };
+const LOT_TREES = { keys: [['seagrapeT', 3], ['gumbo', 2.4], ['buttonwood', 2], ['coconut', 2.5], ['coconutM', 1.2], ['rubber', 1.2], ['sabal', 1], ['poinciana', 0.8]], main: [['liveoak', 3], ['gumbo', 2], ['sabal', 1.5], ['coconut', 1], ['poinciana', 1], ['banyan', 0.3]] };
 const LOT_HEDGE = { keys: [['hedge', 3], ['seagrape', 3], ['hibiscus', 0.5], ['bougainvillea', 0.5], ['oleander', 0.3]], main: [['hedge', 5], ['hibiscus', 0.4], ['bougainvillea', 0.3]] };
 function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids already planted in this cell (skipped)
   if (!houseLots.enabled || !houseLots.near) return; let list = []; try { list = houseLots.near(x0 + S / 2, z0 + S / 2, S * 0.75, []).slice(); } catch (e) { return; }
@@ -177,11 +185,11 @@ function lotTrees(ctx, x0, z0, S, emit, seen = null) { // seen: Set of lot ids a
     const id = Math.abs(Math.round(l.x * 7.31 + l.z * 3.17)), keys = ctx.terrain.isKeys(l.x, l.z), L = keys ? LOT_TREES.keys : LOT_TREES.main, c = Math.cos(l.heading), sn = Math.sin(l.heading);
     let n = 0;
     for (const [k, [u, v]] of [[-1, -1], [1, -1], [-1, 0.05], [1, 0.05], [0, -1], [-1, -0.25], [1, -0.25], [-0.5, -1], [0.5, -1]].entries()) { // corners, side yards, back line
-      if (hh(id, k, 201) > (keys ? 0.7 : 0.5) || n >= (keys ? 5 : 3)) continue;
+      if (hh(id, k, 201) > (keys ? 0.85 : 0.62) || n >= (keys ? 7 : 4)) continue; // (r2-veg) Keys yards: overgrown corners and side yards
       const lu = u * (l.w / 2 - 1.3), lv = v <= -1 ? -(l.d / 2 - 1.3) : v * l.d, x = l.x + c * lu + sn * lv, z = l.z - sn * lu + c * lv;
       if ((ctx.roadDist ? ctx.roadDist(x, z) : 99) < 4.5 || (ctx.blocked && ctx.blocked(x, z, 1.6)) || ctx.data.isWater(x, z) || (houseLots.reservedAt && houseLots.reservedAt(x, z, 1.2))) continue;
       const name = palmFit(ctx, pick(L, hh(id, k, 202)), x, z, 99, hh(id, k, 206)), K = TREE_KINDS[name]; if (!K) continue;
-      const H = ctx.terrain.heightAt; let y = H(x, z); for (const [dx, dz] of [[0.6, 0], [-0.6, 0], [0, 0.6], [0, -0.6]]) y = Math.min(y, H(x + dx, z + dz));
+      const H = meshGround(ctx.terrain); let y = H(x, z); for (const [dx, dz] of [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]]) y = Math.min(y, H(x + dx, z + dz));
       emit({ name, v: K.w ? pickIdx(K.w, hh(id, k, 203)) : (hh(id, k, 203) * K.seeds.length) | 0, x, z, y, ry: hh(id, k, 204) * 6.2832, s: K.s[0] + (K.s[1] - K.s[0]) * hh(id, k, 205) * 0.8, sp: K.sp, palm: !!K.palm, b: BIDX[keys ? 'keys' : 'rural'], key: 'lot' + id + ',' + k });
       n++;
     }
@@ -368,15 +376,15 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     c.hedgeIds ||= new Set();
     for (const l of lots) { if (l.x < c.x0 || l.x >= c.x0 + CELLS || l.z < c.z0 || l.z >= c.z0 + CELLS || !(l.w > 7 && l.d > 7) || c.hedgeIds.has(l.id)) continue; c.hedgeIds.add(l.id);
       const keys = terrain.isKeys(l.x, l.z), id = Math.abs(Math.round(l.x * 7.31 + l.z * 3.17)), co = Math.cos(l.heading), sn = Math.sin(l.heading), LH = keys ? LOT_HEDGE.keys : LOT_HEDGE.main, b = BIDX[keys ? 'keys' : 'rural'], hd = l.d / 2, hw = l.w / 2;
-      for (const [li, [su, sv]] of [[-1, 0], [1, 0], [0, -1]].entries()) { if (hh(id, li, 301) < (keys ? 0.12 : 0.4)) continue; // some lines stay bare
+      for (const [li, [su, sv]] of [[-1, 0], [1, 0], [0, -1]].entries()) { if (hh(id, li, 301) < (keys ? 0.05 : 0.3)) continue; // some lines stay bare
         const a0 = su ? -hd + 0.9 : -hw + 0.9, a1 = su ? hd * 0.3 : hw - 0.9;
         for (let t = a0, k = 0; t < a1; t += 1.4 + hh(id, li * 97 + k, 302) * 0.9, k++) {
-          if (vn(t / 6.5 + (id % 89), li * 3.7 + (id % 13)) < (keys ? 0.36 : 0.44)) continue; // runs and gaps
+          if (vn(t / 6.5 + (id % 89), li * 3.7 + (id % 13)) < (keys ? 0.26 : 0.4)) continue; // runs and gaps (Keys: long overgrown runs)
           const ins = 0.7 + hh(id, li * 97 + k, 303) * 0.4, lu = su ? su * (hw - ins) : t, lv = su ? t : -(hd - ins), x = l.x + co * lu + sn * lv, z = l.z - sn * lu + co * lv;
           if ((roadDist ? roadDist(x, z) : 99) < 2.5 || data.isWater(x, z) || (deckAt && deckAt(x, z)) || trunks.some((q) => (q[0] - x) ** 2 + (q[1] - z) ** 2 < 2)) continue;
           const r = hh(id, li * 97 + k, 304), tall = keys && r < 0.22, name = tall ? 'seagrapeT' : pick(LH, hh(id, li * 97 + k, 305)), lst = protoOf[name]; if (!lst) continue;
           const s = tall ? 0.55 + r * 1.4 : 0.95 + hh(id, li * 97 + k, 306) * 0.45;
-          put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, terrain.heightAt(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
+          put(lst[(hh(id, li * 97 + k, 307) * lst.length) | 0], x, meshGround(terrain)(x, z) - 0.06, z, hh(id, li * 97 + k, 308) * 6.28, s, leafCol(b, x, z, hh(id, li * 97 + k, 309)), s * (0.9 + hh(id, li * 97 + k, 310) * 0.3));
         }
       }
     }
@@ -396,8 +404,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     if (add.size) dirty = true;
   }
   function genTrees(c) {
-    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.y - (t.name === 'mangrove' ? 0.28 : t.palm ? 0.1 : 0.16) * t.s, t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
-    c.lv.t = 1;
+    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.name === 'mangrove' ? (t.wet ? Math.min(t.y - 0.25, -0.12 - 0.4) : t.y - 0.25) : t.y - Math.min(0.12, Math.max(0.05, (t.palm ? 0.08 : 0.09) * t.s)), t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
+    c.lv.t = 1; c.hs = hSig(c);
   }
   // 4 m sample grid of height / road distance / biome / water for the shrub and ground-cover passes
   function gridOf(c) {
@@ -405,6 +413,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = c.x0 + i * GRID, z = c.z0 + j * GRID, k = j * n + i; B[k] = (deckAt && deckAt(x, z)) || inLot(x, z) ? 0 : biomeOf(ctx, x, z); H[k] = terrain.heightAt(x, z); RD[k] = roadDist ? Math.min(60, roadDist(x, z)) : 60; }
     return (c.grid = { n, H, RD, B });
   }
+  const triH = (G, x, z, c) => { if (!MESH_GND) return bil(G, G.H, x, z, c); const i0 = Math.round(c.x0 / GRID), j0 = Math.round(c.z0 / GRID), n = G.n;
+    return triAt((i, j) => { const li = i - i0, lj = j - j0; return li >= 0 && lj >= 0 && li < n && lj < n ? G.H[lj * n + li] : terrain.heightAt(i * GRID, j * GRID); }, x, z, GRID); };
   const bil = (G, A, x, z, c) => { const fx = (x - c.x0) / GRID, fz = (z - c.z0) / GRID, i = Math.min(G.n - 2, Math.max(0, Math.floor(fx))), j = Math.min(G.n - 2, Math.max(0, Math.floor(fz))), u = fx - i, v = fz - j, k = j * G.n + i;
     return A[k] * (1 - u) * (1 - v) + A[k + 1] * u * (1 - v) + A[k + G.n] * (1 - u) * v + A[k + G.n + 1] * u * v; };
   const biomeAtG = (G, x, z, c) => { const i = Math.round((x - c.x0) / GRID), j = Math.round((z - c.z0) / GRID); return G.B[Math.min(G.n - 1, j) * G.n + Math.min(G.n - 1, i)]; };
@@ -415,15 +425,15 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     const nearLot = (x, z) => lotsHere.some((l) => (l._bb ? x > l._bb[0] - 18 && x < l._bb[1] + 18 && z > l._bb[2] - 18 && z < l._bb[3] + 18 : Math.hypot(l.x - x, l.z - z) < 30));
     const trunks = []; for (const [pi, L] of c.lists) if (TREE_KINDS[protos[pi].key.split('#')[0]]) for (let k = 0; k < L.n; k++) trunks.push([L.m[k * 16 + 12], L.m[k * 16 + 14]]);
     for (let j = Math.ceil(c.z0 / ST); j * ST < c.z0 + CELLS; j++) for (let i = Math.ceil(c.x0 / ST); i * ST < c.x0 + CELLS; i++) {
-      const p = hh(i, j, 21); if (p > 0.3) continue;
+      const p = hh(i, j, 21); if (p > 0.45) continue; // (r2-veg) up to 45 %: dense yard / Keys masses
       const x = (i + 0.1 + hh(i, j, 22) * 0.8) * ST, z = (j + 0.1 + hh(i, j, 23) * 0.8) * ST, b = biomeAtG(G, x, z, c); if (!b) continue;
       const B = BIOMES[BKEYS[b - 1]], rd = bil(G, G.RD, x, z, c), yk = B.yard && rd > 2.6 && rd < 10 && nearLot(x, z) ? 2.4 : 1; // yard frontage: flowering shrubs / hedges along the street, only by a house (not along empty highway verges)
-      if (!B.shrub || p > B.shrub * yk * (0.25 + 0.75 * sstep(0.35, 0.7, patchN(x / 3, z / 3, 2)) * (0.6 + 0.6 * groveN(x, z)))) continue;
+      if (!B.shrub || p > B.shrub * yk * (B.clump ? 0.45 + 1.3 * sstep(0.42, 0.66, vn(x / 19 + 4.4, z / 19 - 2.2)) : 1) * (0.25 + 0.75 * sstep(0.35, 0.7, patchN(x / 3, z / 3, 2)) * (0.6 + 0.6 * groveN(x, z)))) continue;
       if (rd < 2.2 + hh(i, j, 24) * 2.5) continue;
       if (trunks.some((t) => (t[0] - x) ** 2 + (t[1] - z) ** 2 < 6.5)) continue; // never on a trunk
       const name = pick(yk > 1 && hh(i, j, 30) < 0.7 ? B.yard : B.shrubs, hh(i, j, 25)), list = protoOf[name], pi = list[(hh(i, j, 26) * list.length) | 0], s = 0.7 + hh(i, j, 27) * 0.6;
       normalAt(G, x, z, c, _n).lerp(UP, 0.5).normalize();
-      pushItem(c, pi, x, bil(G, G.H, x, z, c) - 0.06, z, hh(i, j, 28) * 6.28, s, _n, leafCol(b, x, z, hh(i, j, 29)));
+      pushItem(c, pi, x, triH(G, x, z, c) - 0.06, z, hh(i, j, 28) * 6.28, s, _n, leafCol(b, x, z, hh(i, j, 29)));
     }
     lotHedges(c, lotsHere, trunks, (pi, x, y, z, ry, sc, col, sy) => pushItem(c, pi, x, y, z, ry, sc, null, col, sy));
     // understory (vegetation track): every tree gets a skirt: grass tufts / ferns hugging the trunk (soft ground contact, no bare
@@ -435,12 +445,12 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
         const nt = 2 + (hh(i, j, 61) * 4 | 0);
         for (let q = 0; q < nt; q++) { const a = hh(i, j, 62 + q) * 6.283, d = base * ts + 0.2 + hh(i, j, 70 + q) * 1.1, x = tx + Math.cos(a) * d, z = tz + Math.sin(a) * d;
           if (bil(G, G.RD, x, z, c) < 1.8 || biomeAtG(G, x, z, c) !== b) continue; const nm = B.base ? pick(B.base, hh(i, j, 78 + q)) : 'tuft', lst = protoOf[nm]; if (!lst) continue;
-          normalAt(G, x, z, c, _n).lerp(UP, 0.4).normalize(); pushItem(c, lst[(hh(i, j, 86 + q) * lst.length) | 0], x, bil(G, G.H, x, z, c) - 0.04, z, hh(i, j, 94 + q) * 6.28, 0.75 + hh(i, j, 102 + q) * 0.6, _n, leafCol(b, x, z, hh(i, j, 110 + q)), undefined, true); }
+          normalAt(G, x, z, c, _n).lerp(UP, 0.4).normalize(); pushItem(c, lst[(hh(i, j, 86 + q) * lst.length) | 0], x, triH(G, x, z, c) - 0.04, z, hh(i, j, 94 + q) * 6.28, 0.75 + hh(i, j, 102 + q) * 0.6, _n, leafCol(b, x, z, hh(i, j, 110 + q)), undefined, true); }
         if (!B.under) continue;
         const nu = (hh(i, j, 118) * (B.underN || 2.5)) | 0;
         for (let q = 0; q < nu; q++) { const a = hh(i, j, 120 + q) * 6.283, d = base * ts + 1.4 + hh(i, j, 126 + q) * 2.8, x = tx + Math.cos(a) * d, z = tz + Math.sin(a) * d;
           if (bil(G, G.RD, x, z, c) < 2.6 || biomeAtG(G, x, z, c) !== b) continue; const nm = pick(B.under, hh(i, j, 132 + q)), lst = protoOf[nm]; if (!lst) continue;
-          normalAt(G, x, z, c, _n).lerp(UP, 0.5).normalize(); pushItem(c, lst[(hh(i, j, 138 + q) * lst.length) | 0], x, bil(G, G.H, x, z, c) - 0.06, z, hh(i, j, 144 + q) * 6.28, 0.7 + hh(i, j, 150 + q) * 0.55, _n, leafCol(b, x, z, hh(i, j, 156 + q))); }
+          normalAt(G, x, z, c, _n).lerp(UP, 0.5).normalize(); pushItem(c, lst[(hh(i, j, 138 + q) * lst.length) | 0], x, triH(G, x, z, c) - 0.06, z, hh(i, j, 144 + q) * 6.28, 0.7 + hh(i, j, 150 + q) * 0.55, _n, leafCol(b, x, z, hh(i, j, 156 + q))); }
       } }
     c.lv.s = 1;
   }
@@ -449,7 +459,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     for (let j = Math.ceil(c.z0 / ST); j * ST < c.z0 + CELLS; j++) for (let i = Math.ceil(c.x0 / ST); i * ST < c.x0 + CELLS; i++) {
       const x = (i + hh(i, j, 31)) * ST, z = (j + hh(i, j, 32)) * ST, b = biomeAtG(G, x, z, c); if (!b) continue;
       const B = BIOMES[BKEYS[b - 1]], rd = bil(G, G.RD, x, z, c); if (rd < 0.15) continue;
-      const p = hh(i, j, 33), y = bil(G, G.H, x, z, c), ry = hh(i, j, 34) * 6.28; normalAt(G, x, z, c, _n);
+      const p = hh(i, j, 33), y = triH(G, x, z, c), ry = hh(i, j, 34) * 6.28; normalAt(G, x, z, c, _n);
       if (rd < 1.7) { // gravel / dirt shoulder: pebbles and the odd low tuft
         if (p < 0.22) { const pi = protoOf.peb[(p * 50 | 0) % 2], s = 0.04 + hh(i, j, 35) * 0.09, g = 0.8 + hh(i, j, 36) * 0.35; pushItem(c, pi, x, y - s * 0.3, z, ry, s, _n, [g, g * 0.97, g * 0.92], s * 0.8); }
         if (p > 0.8 && rd > 1.0) pushItem(c, protoOf.short[0], x, y - 0.02, z, ry, 0.7 + hh(i, j, 37) * 0.4, _n, [0.95, 0.95, 0.75]);
@@ -516,6 +526,14 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     for (const P of protos) for (const L of P.lods) for (const s of L.slots) s.end();
     const ms = performance.now() - ts; st.rebucket++; st.rebucketMs += ms; st.lastRebucketMs = ms;
   }
+  // (r2-veg) terrain changed under a generated cell (relief switched on / off, a tile's terrain rebuilt): re-sample it. Three lattice
+  // heights per cell are the signature; cells near the camera are checked every 2 s and regenerated when one moved > 2 cm
+  const hSig = (c) => [[0.25, 0.25], [0.75, 0.5], [0.4, 0.8]].map(([u, v]) => terrain.heightAt(Math.round((c.x0 + u * CELLS) / GRID) * GRID, Math.round((c.z0 + v * CELLS) / GRID) * GRID));
+  let hsT = 0;
+  function terrainCheck(cam, now) { if (now - hsT < 2000) return; hsT = now; let moved = 0;
+    for (const c of cells.values()) { if (!c.lv.t || !c.hs || Math.hypot(c.cx - cam.position.x, c.cz - cam.position.z) > 260) continue; const h = hSig(c);
+      if (h.some((v, i) => Math.abs(v - c.hs[i]) > 0.02)) { moved++; c.lists.clear(); c.lv.t = c.lv.s = c.lv.g = 0; c.grid = null; c.hs = null; dirty = true; } }
+    if (moved) { meshGround(terrain).flush?.(); st.resampled = (st.resampled || 0) + moved; } }
   let frame = 0, lotsSeen = -1, lotsT = 0, solidSeen = -1, solidT = 0;
   function update(cam, force = false) {
     if (!cam) return; frame++;
@@ -531,6 +549,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
         for (const [pi, L] of c.lists) { const P = protos[pi]; if (P.cls !== 'tree') continue; let w = 0;
           for (let i = 0; i < L.n; i++) { if (BLOCKED && BLOCKED(L.m[i * 16 + 12], L.m[i * 16 + 14], P.cls === 'tree' ? 1.2 : 0.3)) continue; if (w !== i) { L.m.copyWithin(w * 16, i * 16, i * 16 + 16); L.c.copyWithin(w * 3, i * 3, i * 3 + 3); } w++; }
           if (w !== L.n) { L.n = w; dirty = true; } } } } }
+    try { terrainCheck(cam, now); } catch (e) { /* never break the streamer */ }
     const jump = cam.position.distanceTo(lastPos) > 300;
     // after a teleport / at start: fill the surroundings synchronously so the first frame is complete
     const pending = jump || force ? work(cam, 1500, 360) : work(cam, (st.pending || 0) > 150 ? 6 : 2.5); // (vegetation) a jump fills the near 360 m at once (max 1.5 s), the rest streams in over the next frames
@@ -551,7 +570,12 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     const x0 = b.r !== undefined ? b.x - b.r : b.x0, x1 = b.r !== undefined ? b.x + b.r : b.x1, z0 = b.r !== undefined ? b.z - b.r : b.z0, z1 = b.r !== undefined ? b.z + b.r : b.z1;
     for (const c of cells.values()) if (c.x0 < x1 + 4 && c.x0 + CELLS > x0 - 4 && c.z0 < z1 + 4 && c.z0 + CELLS > z0 - 4) { c.lists.clear(); c.lv.t = c.lv.s = c.lv.g = 0; c.grid = null; dirty = true; }
   }
-  const api = { group, update, stats, dispose, reject, rejectArea, protos, nearestTree, treesNear, biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
+  // (r2-veg, for r2-physics) ground-cover rocks near (x, z) with their exact instance matrices and the proto's local vertex positions
+  function rocksNear(x, z, r, minS = 0.2) { const out = []; for (const c of cells.values()) { if (Math.abs(c.cx - x) > r + CELLS || Math.abs(c.cz - z) > r + CELLS) continue;
+    for (const [pi, L] of c.lists) { const P = protos[pi]; if (!P.key.startsWith('rock')) continue; const geo = P.lods[0]?.slots[0]?.geo; if (!geo) continue;
+      for (let i = 0; i < L.n; i++) { const o = i * 16, rx = L.m[o + 12], rz = L.m[o + 14]; if ((rx - x) ** 2 + (rz - z) ** 2 > r * r) continue; const s = Math.hypot(L.m[o], L.m[o + 1], L.m[o + 2]); if (s < minS) continue;
+        out.push({ key: c.k + ':' + pi + ':' + i, x: rx, y: L.m[o + 13], z: rz, s, m: L.m.slice(o, o + 16), pos: geo.attributes.position.array }); } } } return out; }
+  const api = { group, update, stats, dispose, reject, rejectArea, protos, nearestTree, treesNear, rocksNear, biomeAt: (x, z) => BKEYS[biomeOf(ctx, x, z) - 1] || null };
   active = api;
   return api;
 }

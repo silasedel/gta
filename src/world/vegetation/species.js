@@ -77,10 +77,10 @@ export const GROUPS = {
   royal: ['royal_palm'],
   coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'],
   coconut_bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e', 'coconut_b', 'coconut_d'],
-  date: ['date_palm'],
-  queen: ['tropical_palm', 'date_palm'], // palm_yellow (lumakey flat cards) reads as paper: not placed
+  date: ['tropical_palm'], // the date palm model's fronds are flat paper cards: the feathery tropical palm stands in
+  queen: ['tropical_palm'], // palm_yellow and date_palm (broad flat frond cards) read as paper: not placed
   sabal: ['sabal_palm', 'weathered_a', 'weathered_b'],
-  palm_mix: ['coconut_palm', 'coconut_c', 'tropical_palm', 'sabal_palm', 'date_palm', 'weathered_a'],
+  palm_mix: ['coconut_palm', 'coconut_c', 'tropical_palm', 'sabal_palm', 'fan_palm', 'weathered_a'],
   banyan: ['banyan', 'banyan_b'],
   liveoak: ['liveoak_b', 'liveoak_c', 'oak_gnarled'],
   oak: ['liveoak_b', 'liveoak_c', 'oak_gnarled', 'oak_pale_b'],

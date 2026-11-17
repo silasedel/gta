@@ -10,6 +10,9 @@ import { PALM_SPECIES } from './palms.js';
 import { inMapBuilding } from '../ground/occupancy.js';
 import { VEG_LIB, GROUPS, groupOf } from './species.js';
 import { loadVegModels } from './models.js';
+import { plantNicoStreet } from './nicoStreet.js';
+import { meshGround } from './ground.js';
+import { createCollars } from './collar.js';
 const PROXY = { palm: 'coconut', tree: 'liveoak', shrub: 'hibiscus' }; // LOD distance class of a library model in createVegField
 // older kind names used by set pieces / dressing -> species group
 const ALIAS_G = { coconut: 'coconut', royal: 'royal', sabal: 'sabal', date: 'date', queen: 'queen', seagrape: 'seagrape', liveoak: 'liveoak', slashpine: 'pine', gumbo: 'gumbo', cypress: null, hedge: 'hedge', croton: 'hibiscus', ixora: 'flowers', grass: 'grass_tuft', sawpalmetto: null, sawgrass: null };
@@ -33,6 +36,18 @@ export async function initV2(game) {
     return true;
   }
   const fields = [], blocks = [], placed = new Map(), placedDirty = new Set();
+  // (r2-veg, item 12) palm fit for set pieces (house lots, towns): royal palms only along avenues (trunk / primary / secondary roads),
+  // coconut palms only near open water, otherwise sabal (or the feathery tropical palm in yards)
+  const coastC = new Map();
+  function coastal(x, z) { const C = game.city, k = Math.floor(x / 50) + ',' + Math.floor(z / 50); let v = coastC.get(k); if (v !== undefined) return v; v = false;
+    const cx = (Math.floor(x / 50) + 0.5) * 50, cz = (Math.floor(z / 50) + 0.5) * 50;
+    for (const d of [60, 140, 240]) { let n = 0; for (let a = 0; a < 8; a++) if (C.isWater(cx + Math.cos(a * 0.785) * d, cz + Math.sin(a * 0.785) * d)) n++; if (n >= (d < 100 ? 1 : 2)) { v = true; break; } }
+    coastC.set(k, v); return v; }
+  function palmFitG(grp, x, z) {
+    if (game.city?.terrain?.isKeys?.(x, z)) return grp === 'royal' ? 'coconut' : grp;
+    if (grp === 'royal') { const e = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 30); if (e && e.dist - e.edge.width / 2 < 9 && /trunk|primary|secondary/.test(e.edge.kind || '')) return 'royal'; return coastal(x, z) ? 'coconut' : 'sabal'; }
+    return coastal(x, z) ? grp : (Math.abs(Math.sin(x * 3.1 + z * 1.7) * 9.7) % 1 < 0.5 ? 'queen' : 'sabal');
+  }
   // a static collider standing above the ground here (dock, deck, pier, boardwalk, building)? Trunk colliders (cylinders) do not count.
   let _ray = null;
   function solidAt(x, z, gy = null) {
@@ -50,15 +65,16 @@ export async function initV2(game) {
   // ground under a plant: lowest of 5 samples over the footprint (no base hanging over a slope or bank); the base sinks a little
   // (root flare / mud); mangroves on a water cell stand on the shallow seabed with their roots in the water
   function grounded(it, md, grp) {
-    const C = game.city, T = C?.terrain, gh = (x, z) => { let h = T?.heightAt ? T.heightAt(x, z) : C?.groundHeightAt ? C.groundHeightAt(x, z) : 0; return Number.isFinite(h) ? h : 0; };
-    const s = it.s ?? 1, r = Math.min(1.2, (md.def.r || (md.cls === 'shrub' ? 0.25 : 0.4)) * s + 0.15);
-    let g = gh(it.x, it.z); for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r]]) g = Math.min(g, gh(it.x + dx, it.z + dz));
+    const C = game.city, T = C?.terrain, MG = T?.heightAt ? meshGround(T) : null; // (r2-veg) the ground as drawn: terrain triangles on synthetic land, the city ground on real Miami
+    const gh = (x, z) => { const h = game.vegetation.groundAt(x, z); return Number.isFinite(h) ? h : 0; };
+    const s = it.s ?? 1, r = grp === 'mangrove' ? 1.6 : Math.min(0.6, (md.def.r || (md.cls === 'shrub' ? 0.25 : 0.4)) * s + 0.1); // the trunk's own footprint (wider sampling buried the flare on slopes)
+    let g = gh(it.x, it.z); for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r], [r * 0.7, r * 0.7], [-r * 0.7, r * 0.7], [r * 0.7, -r * 0.7], [-r * 0.7, -r * 0.7]]) { if (grp !== 'mangrove' && C?.isWater?.(it.x + dx, it.z + dz)) continue; g = Math.min(g, gh(it.x + dx, it.z + dz)); } // land plants: a water sample beside the trunk is not its ground
     if (it.y !== undefined && it.y !== null && Math.abs(it.y - g) > 0.6 && grp !== 'mangrove') return it; // deliberate height (planter, deck, roof garden)
-    const sink = (grp === 'mangrove' ? 0.3 : md.cls === 'palm' ? 0.1 : md.cls === 'tree' ? 0.16 : 0.05) * s;
-    let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.3);
+    const sink = grp === 'mangrove' ? 0.25 : md.cls === 'shrub' ? 0.05 * s : Math.min(0.12, Math.max(0.05, (md.cls === 'palm' ? 0.08 : 0.09) * s)); // trunk base 5-12 cm into the ground
+    let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.4); // prop roots into the shallow water / mud
     return { ...it, y };
   }
-  let t = 0, lastSeen = -1, cs = null, csFailed = false;
+  let t = 0, lastSeen = -1, cs = null, csFailed = false, nicoStreet = null, nsWait = 0, collars = null;
   game.vegetation = {
     kinds: KINDS, types: KIND_TYPE, palms: PALM_SPECIES,
     // build one plant: opts { seed, height, lod, size, length (hedges), lean, wear } -> Group at the origin (base at y=0)
@@ -79,6 +95,10 @@ export async function initV2(game) {
       // vegetation track: every kind with a library-model group (species.js GROUPS) draws the user's models, split per item over
       // the group's models; items are grounded (lowest ground under the footprint, base sunk a little, mangroves into the mud)
       const grp = !opts.model && !opts.noModel && groupOf(ALIAS_G[kind] || kind), lib = game.city?.flora?.models || {};
+      if ((grp === 'royal' || grp === 'coconut' || grp === 'coconut_bent') && !opts.noFit && game.city?.isWater) { // (r2-veg, item 12) each palm where it fits
+        const by = {}; for (const it of items) (by[palmFitG(grp, it.x, it.z)] ||= []).push(it);
+        const ks = Object.keys(by); if (ks.length > 1 || ks[0] !== grp) { const subs = ks.map((g) => game.vegetation.field(g, by[g], { ...opts, noFit: true })); return { group: subs[0]?.group || new THREE.Group(), subs, update(c, f) { for (const x of subs) x.update(c, f); }, stats() { return subs.map((x) => x.stats()); }, remove() { for (const x of subs) x.remove(); }, dispose() { for (const x of subs) x.remove(); } }; }
+      }
       const keys = grp ? GROUPS[grp].filter((k) => lib[k]) : [];
       if (keys.length) {
         if (!opts.noClear) { const n0 = items.length, r = lib[keys[0]].cls === 'shrub' ? 0.6 : 1.2; items = items.filter((it) => clearAt(it.x, it.z, r, grp === 'mangrove')); clearStats.fieldDropped += n0 - items.length; }
@@ -125,6 +145,25 @@ export async function initV2(game) {
       for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) if ((list[i].x - list[j].x) ** 2 + (list[i].z - list[j].z) ** 2 < 1.44) out.crowded++;
       return out;
     },
+    // (r2-veg) floating / sinking audit over EVERY drawn library plant (countryside, street / tile palms, set pieces, place()): the
+    // trunk base (instance origin) against the ground as drawn, lowest point within 0.35 m of the trunk. -> counts + worst cases + list
+    groundAt: (x, z) => { const C = game.city, T = C?.terrain; const cg = C?.groundHeightAt ? C.groundHeightAt(x, z) : NaN; if (T?.real?.(x, z) && Number.isFinite(cg)) return cg; const mg = T?.heightAt ? meshGround(T)(x, z) : cg;
+      return Number.isFinite(cg) && cg - mg > 0.06 ? cg : mg; }, // a raised city surface (curb, sidewalk, pad, median) over the terrain is the ground there
+    audit2(x, z, r = 120) {
+      const out = { n: 0, floating: 0, deep: 0, wetOk: 0, byKind: {}, worst: [], list: [] }, seen = new Set(), m = new THREE.Matrix4(), p = new THREE.Vector3(), C = game.city;
+      game.scene.traverse((o) => { if (!o.isInstancedMesh || !o.visible || !o.count) return; const vg = o.material?.userData?.veg; if (!vg || vg.family === 'imp' || vg.family === 'plain') return;
+        const key = (o.parent?.name || o.name || '?').replace(/^vegField_/, ''); o.updateWorldMatrix(true, false);
+        for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); m.premultiply(o.matrixWorld); p.setFromMatrixPosition(m); if ((p.x - x) ** 2 + (p.z - z) ** 2 > r * r) continue;
+          const k = Math.round(p.x * 4) + ',' + Math.round(p.z * 4); if (seen.has(k)) continue; seen.add(k);
+          let g = this.groundAt(p.x, p.z); const T = C?.terrain; if (!(T?.heightAt && g - meshGround(T)(p.x, p.z) > 0.06)) for (const [dx, dz] of [[0.35, 0], [-0.35, 0], [0, 0.35], [0, -0.35]]) g = Math.min(g, this.groundAt(p.x + dx, p.z + dz));
+          const wet = C?.isWater?.(p.x, p.z), d = p.y - g; out.n++; const bk = out.byKind[key] ||= { n: 0, floating: 0 }; bk.n++;
+          const e = { kind: key, model: o.material.userData.vegKey || '?', cls: o.material.userData.vegCls || '?', x: +p.x.toFixed(1), z: +p.z.toFixed(1), y: +p.y.toFixed(2), g: +g.toFixed(2), d: +d.toFixed(2), wet: !!wet, cg: +(C?.groundHeightAt?.(p.x, p.z) ?? NaN).toFixed(2) }; out.list.push(e);
+          if (wet && p.y < (C.seaLevel ?? -0.12)) { out.wetOk++; continue; } // roots under the water line (mangroves)
+          if (d > 0.02) { out.floating++; bk.floating++; out.worst.push(e); } else if (d < -0.6) out.deep++; } });
+      out.worst.sort((a, b) => b.d - a.d); out.worst = out.worst.slice(0, 12); out.list.sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z));
+      return out;
+    },
+    rocksNear: (x, z, r, minS) => cs?.rocksNear ? cs.rocksNear(x, z, r, minS) : [], // ground-cover rocks for r2-physics colliders
     groups: GROUPS, library: VEG_LIB,
     stats() { return fields.map((f) => f.stats()); },
     clearAt, clearStats,
@@ -139,7 +178,10 @@ export async function initV2(game) {
       if (placedDirty.size && game.city?.flora?.models) for (const key of [...placedDirty]) { // hand-placed plants: rebuild that model's field
         const P = placed.get(key), md = game.city.flora.models[key]; if (!P || !md) continue; placedDirty.delete(key);
         if (P.field) P.field.remove(); P.field = P.items.length ? game.vegetation.field(PROXY[md.cls] || 'liveoak', P.items.map((it) => it.keepY && it.y !== undefined ? it : grounded(it, md, P.grp)), { model: md, noClear: true }) : null; }
+      if (!nicoStreet && game.nicoHouse?.toWorld && game.city?.flora?.models && game.camera && !/[?&]nicostreet=0\b/.test(location.search) && game.nicoHouse.toWorld(new THREE.Vector3()).distanceTo(game.camera.position) < 300 && (nsWait += dt || 0) > 3) { nicoStreet = 1; /* planted once the camera has been near for 3 s (house and neighbor colliders streamed in) */ try { nicoStreet = plantNicoStreet(game) || 1; game.vegetation.nicoStreet = nicoStreet; nsWait = 0; } catch (e) { console.warn('[vegetation] nico street', e); } }
+      else if (nicoStreet && nicoStreet.pending?.length && (nsWait += dt || 0) > 2) { nsWait = 0; try { plantNicoStreet(game, nicoStreet); } catch (e) { nicoStreet.pending = []; } } // retry the spots still streaming in // (r2-veg) the mock-up street around Nico's lot
       if (game.camera) { setVegCamera(game.camera); for (const f of fields) f.update(game.camera); }
+      if (collars === null && game.city?.terrain) collars = createCollars(game, (x, z) => game.vegetation.groundAt(x, z)) || 0; if (collars) collars.update(dt, game.camera); // (r2-veg) soil / litter collar at every near trunk
       // countryside streamer (synthetic land): created once the city terrain exists; ?veg2=0 keeps the old per-tile flora
       const C = game.city;
       if (CS_ON && !cs && !csFailed && C && C.terrain && C.flora && C.flora.countryside && game.camera) {

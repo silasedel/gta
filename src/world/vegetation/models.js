@@ -205,7 +205,7 @@ async function buildOne(renderer, key, def, g0, g1) {
   const C = CLS[def.cls] || CLS.tree, shape = (def.shape || C.shape).slice(); shape[0] = L0.height;
   // glTF normal maps: green flipped without tangents
   const GR = VEG_R2 ? GRADE[key] || {} : {}; // round 2: per-material gain into the shared palette (tools/v2/vegetation/grade.py)
-  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: [1, -1], roughness: fam === 'bark' ? 0.9 : 0.72, grade: GR[p.name], ao: VEG_R2 && !!p.geometry.attributes.aVegAO, ...o });
+  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: VEG_R2 && fam === 'leaf' ? [0.7, -0.7] : [1, -1], /* r2-art: leaf cards 0.6-0.8 (full strength flickers at distance) */ roughness: fam === 'bark' ? 0.9 : 0.72, grade: GR[p.name], ao: VEG_R2 && !!p.geometry.attributes.aVegAO, ...o });
   await initTexturesSliced(renderer, L0.parts.flatMap((p) => [p.map, p.normalMap]).filter(Boolean), 8); await yieldTask();
   let imp = null;
   try {
@@ -219,7 +219,7 @@ async function buildOne(renderer, key, def, g0, g1) {
     // materials for one set of LOD bands (fade vec4 per band); shared shader programs with every other library plant
     materials(f0, f1, fi, o = {}) {
       const base = { lean: C.lean, sway: C.sway, mirror: true, shape, crownY: L0.crownY, crownC: L0.crownC, spread: def.cls === 'palm' ? 0.12 : 0.18, baseAO: def.cls === 'shrub' ? 0.3 : 0.5, ...o, baseClamp: o.paved ? [1.1, L0.trunkR * 1.05, 1] : null }; // paved: root flare pulled into the trunk (a clean base out of the grate)
-      const mk = (parts, f) => parts.map((p) => { const m = vm(p.fam, p, { fade: f, wear: p.fam === 'leaf' ? 0.35 : 0.25, jitter: p.fam === 'leaf' ? C.jitLeaf : C.jitBark, ...base, bloom: /bloom/i.test(p.name || '') }); return { geo: p.geometry, mat: m.mat, depth: m.depth, fam: p.fam }; });
+      const mk = (parts, f) => parts.map((p) => { const m = vm(p.fam, p, { fade: f, wear: p.fam === 'leaf' ? 0.35 : 0.25, jitter: p.fam === 'leaf' ? C.jitLeaf : C.jitBark, barkDet: VEG_R2 && p.fam === 'bark' ? (def.cls === 'palm' ? 1 : 0.6) : 0, ...base, bloom: /bloom/i.test(p.name || '') }); m.mat.userData.vegKey = key; m.mat.userData.vegCls = def.cls; return { geo: p.geometry, mat: m.mat, depth: m.depth, fam: p.fam }; });
       const out = { near: mk(L0.parts, f0), mid: f1 ? mk(L1.parts, f1) : [], imp: null };
       if (imp && fi) { const m = makeVegMaterial('imp', { map: imp.texture, fade: fi, alphaTest: 0.5, transl: 0.5, jitter: C.jitLeaf, ...base, bloom: L0.parts.some((q) => /bloom/i.test(q.name || '')) }); out.imp = { geo: imp.geometry, mat: m.mat, depth: m.depth }; }
       return out;

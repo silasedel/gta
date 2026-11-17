@@ -104,8 +104,14 @@ const VERT_BODY = `
   transformed.xz += uVegWindDir * bend * sway * uSway;
   transformed.xz += vec2(-uVegWindDir.y, uVegWindDir.x) * bend * sin(uVegTime * 0.9 + vh * 4.0) * uSway * 0.3 * wspd;
   float fl = aWind.y * (0.25 + gst) * wspd;
+#ifdef VEG_R2MIP
+  // r2: leaf flutter slower and smaller (TAA has no motion vectors for vertex motion: fast sub-pixel flutter was clamped into shimmer)
+  transformed += normal * sin(uVegTime * 2.6 + ph + transformed.y * 0.7) * 0.022 * fl;
+  transformed.y += sin(uVegTime * 1.5 + ph) * 0.06 * fl * aWind.y;
+#else
   transformed += normal * sin(uVegTime * 5.3 + ph + transformed.y * 0.7) * 0.05 * fl;
   transformed.y += sin(uVegTime * 2.1 + ph) * 0.09 * fl * aWind.y;
+#endif
   vec4 vegW = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
   vegW = instanceMatrix * vegW;
@@ -114,7 +120,8 @@ const VERT_BODY = `
 `;
 const FRAG_HEAD = `
 uniform vec3 uSunDir; uniform vec3 uSunCol; uniform float uTransl; uniform float uWear; uniform vec4 uFade; uniform float uTintAmt; uniform float uFrameN;
-uniform float uBaseAO; varying float vVegH;
+uniform float uBaseAO; varying float vVegH; uniform float uBarkDet;
+float vegVN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5453), b = fract(sin(dot(i + vec2(1.0, 0.0), vec2(127.1, 311.7))) * 43758.5453), c = fract(sin(dot(i + vec2(0.0, 1.0), vec2(127.1, 311.7))) * 43758.5453), d = fract(sin(dot(i + vec2(1.0, 1.0), vec2(127.1, 311.7))) * 43758.5453); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }
 uniform float uBloom; uniform vec3 uJit; uniform vec4 uGrade; // per-instance hue (warm/cool) / saturation / brightness jitter; per-material color gain + saturation
 varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec3 vVegW; varying float vVegDist;
 #ifdef VEG_AO
@@ -157,6 +164,10 @@ const FRAG_COLOR = `
       c *= vec3(1.0 + 0.5 * hj, 1.0 + 0.08 * hj, 1.0 - 0.8 * hj); // warm (sun-bleached, yellower) <-> cool (shaded, bluer green)
       float l1 = dot(c, vec3(0.2126, 0.7152, 0.0722)); c *= l0 / max(l1, 1e-4);
       diffuseColor.rgb = max(mix(vec3(l0), c, sj) * bj, 0.0);
+      if (uBarkDet > 0.0) { // r2-art: trunk texel density. A world-space bark detail (~2 m tile, fibers along the trunk + growth rings) over the low-res trunk maps
+        vec2 bw = vec2((vVegW.x + vVegW.z) * 9.0, vVegW.y * 1.6); float fib = vegVN(bw) * 0.6 + vegVN(bw * vec2(2.3, 3.1) + 7.0) * 0.4, ring = smoothstep(0.82, 1.0, abs(sin(vVegH * 26.0 + vegVN(bw * 0.5) * 2.0)));
+        diffuseColor.rgb *= mix(1.0, (0.86 + 0.26 * fib) * (1.0 - 0.18 * ring * uBarkDet), uBarkDet);
+      }
       diffuseColor.rgb *= mix(1.0 - uBaseAO, 1.0, smoothstep(0.0, 0.9, vVegH)); // contact darkening at the trunk base / root flare (soil, shade): no pale roots on the ground
     }
     float wear = uWear * smoothstep(0.35, 1.0, vVegHash.y);
@@ -164,6 +175,13 @@ const FRAG_COLOR = `
     vec3 dry = vec3(lum * 1.25, lum * 1.05, lum * 0.45);
     diffuseColor.rgb = mix(diffuseColor.rgb, dry, clamp(wear * (0.25 + 0.75 * smoothstep(0.55, 1.0, vVegFl)), 0.0, 0.85));
   }
+`;
+// round 2 (r2-art): roughness varies with the leaf texel (lighter, waxy texels smoother) and per plant, so leaves without a normal map
+// do not read as flat plastic
+const FRAG_ROUGH = `
+#ifdef VEG_R2MIP
+  roughnessFactor = clamp(roughnessFactor + (0.12 - dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * 0.9 + 0.1 * (vVegHash.y - 0.5), 0.45, 0.86);
+#endif
 `;
 const FRAG_TRANSL = `
 #ifdef VEG_R2MIP
@@ -250,6 +268,7 @@ function patch(kind, local) {
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
       sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO);
+      if (kind === 'leaf') sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + FRAG_ROUGH);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
       else if (local.uMirrorOn && local.uMirrorOn.value) sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // mirrored bark: winding flips, keep the transformed normal
@@ -265,7 +284,7 @@ function localUniforms(o) {
   return { uImp: { value: new THREE.Vector4(im ? im.views : 8, im ? im.R : 1, im ? im.y0 : 0, im ? im.hgt : 1) }, uImpA: { value: new THREE.Vector4(im && im.cols ? im.cols : im ? im.views : 8, im && im.rows ? im.rows : 1, im && im.fy ? im.fy : 1, 0) }, uLean: { value: o.lean ?? 0.012 }, uSway: { value: o.sway ?? 0.006 }, uTransl: { value: o.transl ?? 0.55 }, uWear: { value: o.wear ?? 0.5 },
     uTintAmt: { value: o.tint ?? 1 }, uFade: { value: new THREE.Vector4(...(o.fade || [0, 0, 0, 0])) },
     uShape: { value: new THREE.Vector4(...(o.shape || [0, 0, 0, 0])) }, uCrownY: { value: o.crownY ?? 1e4 }, uCrownC: { value: new THREE.Vector2(...(o.crownC || [0, 0])) }, uSpread: { value: o.spread ?? 0.18 }, uMirrorOn: { value: o.mirror ? 1 : 0 },
-    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBloom: { value: o.bloom ? 1 : 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
+    uJit: { value: new THREE.Vector3(...(o.jitter || [0, 0, 0])) }, uBaseAO: { value: o.baseAO ?? 0 }, uBarkDet: { value: o.barkDet ?? 0 }, uBloom: { value: o.bloom ? 1 : 0 }, uBaseClamp: { value: new THREE.Vector3(...(o.baseClamp || [0, 0, 0])) }, uGrade: { value: new THREE.Vector4(...(o.grade || [1, 1, 1, 1])) } };
 }
 
 // family: 'bark' | 'leaf' | 'imp' (impostor, map given). Returns { mat, depth, u } where u holds the per-material uniforms.
