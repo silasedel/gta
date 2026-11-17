@@ -72,6 +72,8 @@ async function safe(name, fn, fallback) {
   try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; } finally { lpEnd(name); BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
 }
 
+const PHYS_CAP = !(typeof location !== 'undefined' && /[?&]physcap=0\b/.test(location.search)); // r2-perf: physics sub-step cap, on (A/B: ?physcap=0 or game.physCap = false; spawn step 14.6 -> 9.0 ms, frame 99.9 -> 89.5 ms in-session)
+
 async function boot() {
   loadMsg('INITIALIZING PHYSICS', 5);
   await stage('rapier', () => RAPIER.init());
@@ -1011,13 +1013,18 @@ async function boot() {
         game.hud.help?.(v ? 'Press <b>F</b> to enter vehicle' : null);
       } else game.hud.help?.(null);
       // physics (sub-step to keep ≤1/60)
-      const steps = Math.max(1, Math.ceil(simDt / (1 / 60)));
-      const h = simDt / steps;
+      // r2-perf (game.physCap, ?physcap=1): at most 3 sub-steps of <= 1/60 s per frame. A slow frame used to run up to 6
+      // sub-steps (dt clamps at 0.1 s), which made the next frame slower still (physics + character controllers cost
+      // 25 ms a frame at a 90 ms frame); below 20 fps the simulation now runs slightly slower than real time instead.
+      // The query BVH refresh runs before the first sub-step only: world.step() refreshes it at its own end.
+      const PCAP = game.physCap ?? PHYS_CAP;
+      const steps = PCAP ? Math.min(3, Math.max(1, Math.ceil(simDt / (1 / 60)))) : Math.max(1, Math.ceil(simDt / (1 / 60)));
+      const h = PCAP ? Math.min(1 / 60, simDt / steps) : simDt / steps;
       world.timestep = h;
       if (!game.physicsDead) for (let i = 0; i < steps; i++) {
         // Streaming/despawn code adds & removes colliders between steps; refresh the query BVH so
         // vehicle wheel rays, character controllers and camera rays never touch stale handles.
-        try { world.updateSceneQueries(); } catch (e) { /* older builds */ }
+        if (!PCAP || i === 0) try { world.updateSceneQueries(); } catch (e) { /* older builds */ }
         for (const f of game.fixedHooks) { const t1 = performance.now(); try { f(h); } catch (e) { console.error(e); if (/unreachable|recursive use/i.test(String(e))) { game.physicsDead = 'hook ' + (f.name || '?') + ': ' + String(e) + ' | ' + (e.stack || '').split('\n').filter(l => !/wasm-function/.test(l)).slice(0, 6).join(' | '); break; } } tm('fixed:' + (f.name || 'anon'), t1); }
         if (game.physicsDead) break;
         const tS = performance.now(); try { world.step(); } catch (e) { game.physicsDead = 'step: ' + String(e) + ' | ' + (e.stack || '').split('\n').filter(l => !/wasm-function/.test(l)).slice(0, 6).join(' | '); console.error('[physics] Rapier panic — physics halted', e); break; } finally { tm('world.step', tS); }
