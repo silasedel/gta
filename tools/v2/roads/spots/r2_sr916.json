@@ -1,0 +1,7 @@
+[
+  { "id": "sr916_chase_a", "tod": 10.2, "road": { "x": -1000, "z": 4380, "dir": -1, "back": 9, "up": 3.4, "ahead": 70, "side": 2 } },
+  { "id": "sr916_chase_b", "tod": 10.2, "road": { "x": -1060, "z": 4180, "dir": -1, "back": 9, "up": 3.4, "ahead": 70, "side": 2 } },
+  { "id": "sr916_chase_c", "tod": 10.2, "road": { "x": -1105, "z": 3950, "dir": -1, "back": 9, "up": 3.4, "ahead": 70, "side": 2 } },
+  { "id": "sr916_high", "tod": 10.2, "road": { "x": -1030, "z": 4300, "dir": -1, "back": 40, "up": 28, "ahead": 260, "side": 0 } },
+  { "id": "sr916_south", "tod": 10.2, "road": { "x": -1100, "z": 3850, "dir": 1, "back": 9, "up": 3.4, "ahead": 80, "side": 2 } }
+]

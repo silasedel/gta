@@ -269,6 +269,9 @@ if (uSrf.x > 0.5) {
       h = 0.5;  // pavers / terrazzo: no slab logic, only stains and gum
     #endif
     diffuseColor.rgb *= (0.92 + 0.16 * h) * mix(vec3(1.0), vec3(1.02, 1.0, 0.96), h2);
+    #ifdef SRF_SLAB
+      diffuseColor.rgb *= 1.38; // r2-roads / r2-art audit: poured concrete in sun reads L 0.20-0.32, clearly lighter than the asphalt (was 0.146)
+    #endif
     float stain = smoothstep(0.66, 0.86, srfN(w * 1.1 + h * 17.0) * 0.7 + srfN(w * 4.0) * 0.3);
     diffuseColor.rgb *= 1.0 - 0.22 * stain;
     float drip = smoothstep(0.75, 0.95, srfF(w * 0.35 + 9.0)); diffuseColor.rgb *= 1.0 - 0.12 * drip;

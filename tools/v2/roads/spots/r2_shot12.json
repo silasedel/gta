@@ -1,0 +1,6 @@
+[
+  { "id": "shot12_corner_a", "node": { "x": -1103.6, "z": 3438.5, "dist": 16, "up": 6.5, "yaw": 135 } },
+  { "id": "shot12_corner_b", "node": { "x": -1103.6, "z": 3438.5, "dist": 16, "up": 6.5, "yaw": 225 } },
+  { "id": "shot12_corner_c", "node": { "x": -1109.6, "z": 3498.4, "dist": 15, "up": 6.5, "yaw": 315 } },
+  { "id": "shot14_arrows", "road": { "x": -1110, "z": 3540, "dir": -1, "back": 6, "up": 7, "ahead": 40, "side": 0 } }
+]

@@ -1,0 +1,9 @@
+[
+  { "id": "cv_sewer_home", "cover": { "part": "mh_sewer", "x": -1300, "z": 3200, "dist": 3.2, "up": 1.7, "yaw": 40 } },
+  { "id": "cv_inlet_home", "cover": { "part": "inlet", "x": -1300, "z": 3200, "dist": 2.6, "up": 1.6, "yaw": 200 } },
+  { "id": "cv_valve_home", "cover": { "part": "valve", "x": -1300, "z": 3200, "dist": 2.2, "up": 1.5, "yaw": 120 } },
+  { "id": "cv_storm_home", "cover": { "part": "mh_storm", "x": -1300, "z": 3200, "dist": 3, "up": 1.7, "yaw": 300 } },
+  { "id": "cv_sewer_dt", "cover": { "part": "mh_sewer", "x": 300, "z": -200, "dist": 3.5, "up": 1.7, "yaw": 80 } },
+  { "id": "cv_street_home", "road": { "x": -1291, "z": 3206, "dir": 1, "back": 4, "up": 1.7, "ahead": 30, "side": 0.5 } },
+  { "id": "cv_aerial_home", "road": { "x": -1291, "z": 3206, "dir": 1, "back": 20, "up": 34, "ahead": 70, "side": 0 } }
+]

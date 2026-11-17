@@ -1,0 +1,8 @@
+[
+  { "id": "cov_resid_stand", "road": { "x": -660, "z": 600, "dir": 1, "back": 2, "up": 1.8, "ahead": 14, "side": 0.5 } },
+  { "id": "cov_resid_high", "road": { "x": -660, "z": 600, "dir": 1, "back": 30, "up": 30, "ahead": 60, "side": 0 } },
+  { "id": "cov_dt_stand", "road": { "x": 407, "z": -110, "dir": 1, "back": 2, "up": 1.8, "ahead": 14, "side": 0.5 } },
+  { "id": "cov_dt_junction", "node": { "x": 407, "z": -110, "dist": 14, "up": 9, "yaw": 30 } },
+  { "id": "cov_home_junction", "node": { "x": -1320, "z": 3190, "dist": 16, "up": 10, "yaw": 200 } },
+  { "id": "cov_home_gutter", "road": { "x": -1320, "z": 3190, "dir": 1, "back": 4, "up": 1.6, "ahead": 12, "side": 3.2, "lookSide": 4.2 } }
+]
