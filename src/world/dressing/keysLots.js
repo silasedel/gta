@@ -11,7 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export function buildKeysLots(game, api) {
   const { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots, K } = api;
-  const H = spot.heading || 0, cH = Math.cos(H), sH = Math.sin(H);
+  const H = spot.streetHeading ?? spot.heading ?? 0, cH = Math.cos(H), sH = Math.sin(H);
   const toW = (lx, lz) => [spot.x + lx * cH + lz * sH, spot.z - lx * sH + lz * cH];
   const out = { lots: [], docks: 0, extras: 0 };
   const lib = loadKeysModels(THREE, ['fence_rustic', 'pier_kit', 'mossy_pier', 'clean_pier', 'rowboat', 'skiff']);

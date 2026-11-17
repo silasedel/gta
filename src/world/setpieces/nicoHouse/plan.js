@@ -27,7 +27,9 @@ export const PLAN = {
   porchRoof: { yWall: 5.66, pitch: 0.125, zOut: 5.62, x0: -6.75, x1: 2.0 },
   // stairs
   rise: 0.1875, run: 0.28,
-  stairW: { landing: { x0: -11.8, x1: -10.6, z0: 3.0, z1: 4.2, y: 1.5 }, w: 1.2 },   // flight 1 runs west from the deck edge, flight 2 south to the yard
+  // flight 1 runs west from the deck edge, flight 2 south to the yard. r2-keys: moved 8 m back along the west deck (was z 3.0..4.2)
+  // so the front-deck corner is one unbroken rail as in the mock-up; dz is that move (dressing at the stair follows it)
+  stairW: { landing: { x0: -11.8, x1: -10.6, z0: -5.0, z1: -3.8, y: 1.5 }, w: 1.2, dz: -8.0 },
   stairN: { top: { x0: 4.7, x1: 5.9, z0: -7.6, z1: -6.4 }, w: 1.1 },                  // bay-side stair to the dock, runs west along the deck edge
   // site
   lot: { x0: -24, x1: 11.4, z0: -14.2, z1: 27 },   // seawall faces at x1 (east) and z0 (north); street at z1

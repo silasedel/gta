@@ -6,7 +6,7 @@
 // resin chairs, coconut husks, a tarp), and the yard surface: tire ruts, leaf litter and matted grass patches, and puddles that
 // grow after rain. Library models: the user's (public/assets/models/keys, street kit STOP plates); the rest is built here.
 // Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
-import { PLANTER, BINS, STOPS, POLES, WIRES, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS, CORNER_PUDDLE, STICKS } from '../yard.data.js';
+import { PLANTER, BINS, STOPS, POLES, WIRES, WIRE_ENDS, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS, CORNER_PUDDLE, STICKS } from '../yard.data.js';
 import { loadKeysModels } from '../models.js';
 import { breakables } from '../../../miami/breakables.js';
 export const order = 55;
@@ -17,9 +17,11 @@ export function build(ctx) {
   const V = (c, a = 0.06) => kit.vary(c, r, a), rs = (a = 1) => (r() - 0.5) * 2 * a;
   const PEEL = mat.paint({ peel: 'b', fade: 0.32 }), W = mat.wood(), CONC = mat.concrete(), PLG = mat.plasticGloss(), PL = PLG, ST = mat.steel(), MATTE = mat.matte(), RUB = MATTE;
   ctx.anchors.carSpots = CAR_SPOTS.map((c) => ({ ...c, pos: new THREE.Vector3(c.x, 0, c.z) }));
+  // r2-keys: every prop stands on what is under it: the yard sheet's swells (part 05 ctx.yardY) or, off the sheet, the terrain
+  const yG = ctx.yardY || (() => 0), gT = ctx.opts.groundAt || (() => 0), yS = (x, z) => Math.max(yG(x, z), gT(x, z));
 
   // ======================================================================= lattice planter box
-  { const H = PLANTER.h, Dp = PLANTER.depth, white = () => ({ color: V(0xe6e1d2, 0.04), wear: 0.35 + r() * 0.35, bevel: 0.003, rand: r });
+  { let oy = 0; const MY = (x, y, z, ...a) => M(x, y + oy, z, ...a); const H = PLANTER.h, Dp = PLANTER.depth, white = () => ({ color: V(0xe6e1d2, 0.04), wear: 0.35 + r() * 0.35, bevel: 0.003, rand: r });
     const lattice = (base, len, h) => { // diagonal strips, two layers, on a panel of length len (local +X) and height h, facing local +Z
       const sp = 0.105 * Math.SQRT2, L = (x, y, z, rz = 0) => kit.mulM(base, M(x, y, z, 0, 0, rz));
       for (const s of [-1, 1]) for (let c = -h; c < len; c += sp) {
@@ -30,43 +32,50 @@ export function build(ctx) {
       }
     };
     for (const [ax, az, bx, bz] of PLANTER.runs) {
-      const len = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax), nx = Math.sin(ry), nz = Math.cos(ry), cx = (ax + bx) / 2, cz = (az + bz) / 2;
+      const len = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax), nx = Math.sin(ry), nz = Math.cos(ry), cx = (ax + bx) / 2, cz = (az + bz) / 2; oy = Math.min(yG(ax, az), yG(bx, bz), yG(cx, cz)) - 0.02;
       // outer face (toward the street, +normal side) and inner face, a cap rail, corner posts, soil
       for (const side of [1, -1]) { const ox = nx * side * Dp / 2, oz = nz * side * Dp / 2;
-        lattice(M(ax + ox, 0.06, az + oz, 0, ry + (side < 0 ? 0 : 0), 0), len, H - 0.12);
-        B.box(PEEL, len, 0.09, 0.035, M(cx + ox, H - 0.02, cz + oz, 0, ry, 0), { grain: 0, ...white() });
-        B.box(PEEL, len, 0.07, 0.035, M(cx + ox, 0.05, cz + oz, 0, ry, 0), { grain: 0, ...white(), wear: 0.8 }); }
-      B.box(PEEL, len + 0.06, 0.035, Dp + 0.08, M(cx, H + 0.03, cz, 0, ry, 0), { grain: 0, ...white() });   // cap
-      for (const t of [0, 1]) for (const side of [1, -1]) B.box(PEEL, 0.07, H + 0.04, 0.07, M(ax + (bx - ax) * t + nx * side * Dp / 2, (H + 0.04) / 2, az + (bz - az) * t + nz * side * Dp / 2, 0, ry, 0), { grain: 1, ...white() });
-      B.box(CONC, len - 0.05, 0.04, Dp - 0.06, M(cx, H - 0.1, cz, 0, ry, 0), { color: [0.32, 0.25, 0.18] });   // potting soil (dark, damp)
-      B.box(CONC, len - 0.08, H - 0.18, Dp - 0.12, M(cx, (H - 0.18) / 2, cz, 0, ry, 0), { color: 0x3a3028, wear: 1 });   // liner, dark behind the lattice
-      col.box(cx, H / 2, cz, len + 0.06, H + 0.06, Dp + 0.08, { ry, tag: 'planter' });
+        lattice(MY(ax + ox, 0.06, az + oz, 0, ry + (side < 0 ? 0 : 0), 0), len, H - 0.12);
+        B.box(PEEL, len, 0.09, 0.035, MY(cx + ox, H - 0.02, cz + oz, 0, ry, 0), { grain: 0, ...white() });
+        B.box(PEEL, len, 0.07, 0.035, MY(cx + ox, 0.05, cz + oz, 0, ry, 0), { grain: 0, ...white(), wear: 0.8 }); }
+      B.box(PEEL, len + 0.06, 0.035, Dp + 0.08, MY(cx, H + 0.03, cz, 0, ry, 0), { grain: 0, ...white() });   // cap
+      for (const t of [0, 1]) for (const side of [1, -1]) B.box(PEEL, 0.07, H + 0.04, 0.07, MY(ax + (bx - ax) * t + nx * side * Dp / 2, (H + 0.04) / 2, az + (bz - az) * t + nz * side * Dp / 2, 0, ry, 0), { grain: 1, ...white() });
+      B.box(CONC, len - 0.05, 0.04, Dp - 0.06, MY(cx, H - 0.1, cz, 0, ry, 0), { color: [0.32, 0.25, 0.18] });   // potting soil (dark, damp)
+      B.box(CONC, len - 0.08, H - 0.18, Dp - 0.12, MY(cx, (H - 0.18) / 2, cz, 0, ry, 0), { color: 0x3a3028, wear: 1 });   // liner, dark behind the lattice
+      col.box(cx, H / 2 + oy, cz, len + 0.06, H + 0.06, Dp + 0.08, { ry, tag: 'planter' });
     }
   }
 
   // ======================================================================= galvanized can (own model) for BINS with can: 'galv'
   for (const b of BINS) if (b.can === 'galv') {
-    const x = b.x, z = b.z; D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });
+    const x = b.x, z = b.z, gy = yG(x, z), M = (x2, y2, z2, ...a) => kit.M(x2, y2 + gy, z2, ...a); D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });
     for (const y of [0.16, 0.38, 0.6]) D.geo(ST, new THREE.TorusGeometry(0.255 + y * 0.03, 0.009, 4, 24), M(x, y, z, PI / 2, 0, 0), { color: 0x9a9d97 });
     D.cyl(ST, 0.24, 0.24, 0.01, M(x, 0.02, z), { color: 0x6b6d68 });
     D.geo(ST, new THREE.CylinderGeometry(0.29, 0.29, 0.05, 18), M(x + 0.06, 0.765, z - 0.03, 0.12, 0.3, 0.06), { color: 0xb0b2ac });   // lid ajar
     D.box(ST, 0.12, 0.03, 0.02, M(x + 0.06, 0.81, z - 0.03, 0.12, 0.3, 0.06), { color: 0x8f918c });
-    col.cyl(x, 0.38, z, 0.28, 0.76, { tag: 'bin' });
+    col.cyl(x, 0.38 + gy, z, 0.28, 0.76, { tag: 'bin' });
   }
 
   // ======================================================================= utility poles and wires
   const poleTop = [];
-  POLES.forEach(([x, z, h, lean], i) => {
-    const ry = 0.31 + i * 0.05;   // cross arms square to the street
-    B.cyl(W, 0.11, 0.15, h + 1.6, M(x, (h - 1.6) / 2, z, lean, r() * 6, lean * 0.6), { seg: 12, hseg: 4, color: V(0x6a5946, 0.06), wear: 0.9 });
+  POLES.forEach(([x, z, h0, lean, arm], i) => {
+    const gy = yS(x, z), h = h0 + gy;   // h: crossarm height above the yard grade
+    const ry = arm ?? 0.31 + i * 0.05;   // cross arms square to the wires
+    B.cyl(W, 0.11, 0.15, h0 + 1.6, M(x, gy + (h0 - 1.6) / 2, z, lean, r() * 6, lean * 0.6), { seg: 12, hseg: 4, color: V(0x6a5946, 0.06), wear: 0.9 });
     B.box(W, 2.3, 0.1, 0.12, M(x, h - 0.45, z, 0, ry, 0), { grain: 0, color: 0x5f5040, wear: 0.8, bevel: 0.006 });
     for (const s of [-1, 1]) B.strut(W, [x + Math.cos(ry) * s * 0.7, h - 0.5, z - Math.sin(ry) * s * 0.7], [x, h - 1.3, z], 0.05, 0.03, { color: 0x5f5040 });
     const ins = []; for (const s of [-1.0, 0, 1.0]) { const ix = x + Math.cos(ry) * s, iz = z - Math.sin(ry) * s; B.cyl(mat.metalPaint(), 0.03, 0.045, 0.12, M(ix, h - 0.33, iz), { color: 0x6b7f8a, seg: 10 }); ins.push([ix, h - 0.25, iz]); }
     if (i === 0) { B.cyl(mat.metalPaint(), 0.22, 0.22, 0.75, M(x + 0.3, h - 1.6, z + 0.12), { color: 0x7d8486, seg: 16 }); B.cyl(mat.metalPaint(), 0.23, 0.23, 0.04, M(x + 0.3, h - 1.2, z + 0.12), { color: 0x6d7476, seg: 16 }); }
-    B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, 1.9, z + 0.14, 0, 0, 0), { color: 0xc9b23a });   // pole tag
-    poleTop.push(ins); col.cyl(x, h / 2, z, 0.15, h + 0.4, { tag: 'pole' });
+    B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, gy + 1.9, z + 0.14, 0, 0, 0), { color: 0xc9b23a });   // pole tag
+    if (i === 0) { // street lamp over the corner (mock-up): a pipe arm toward the junction and a gray cobra head
+      const la = Math.atan2(-20.9 - x, 23.8 - z), ax = Math.sin(la), az = Math.cos(la), y0 = h - 2.6;
+      B.tube(ST, [[x + ax * 0.12, y0, z + az * 0.12], [x + ax * 0.9, y0 + 0.45, z + az * 0.9], [x + ax * 1.9, y0 + 0.6, z + az * 1.9]], 0.03, { seg: 6, color: 0x8a8c88 });
+      B.geo(mat.metalPaint(), new THREE.SphereGeometry(0.2, 12, 6, 0, PI * 2, 0, PI / 2), M(x + ax * 2.1, y0 + 0.62, z + az * 2.1, 0, la, 0, 1.0, 0.55, 1.9), { color: 0x9a9c98 });
+      B.geo(mat.emissive(0xfff0d0, 1.2, 'streetlamp'), new THREE.CircleGeometry(0.15, 12), M(x + ax * 2.1, y0 + 0.6, z + az * 2.1, PI / 2, 0, la, 0.9, 1.6, 1), {});
+    }
+    poleTop.push(ins); col.cyl(x, gy + h0 / 2, z, 0.15, h0 + 0.4, { tag: 'pole' });
   });
-  const ends = { pole40: (() => { const px = -21.5, pz = 15.5; return [-0.95, -0.35, 0.95].map((s) => [px + Math.cos(0.5) * s, 8.48, pz - Math.sin(0.5) * s]); })(), east: [[26, 9.6, 21.5], [26.3, 9.6, 22.4], [26.6, 9.6, 23.3]] };
+  const ends = WIRE_ENDS;
   for (const w of WIRES) {
     const A = poleTop[w.a], Bn = typeof w.b === 'number' ? poleTop[w.b] : ends[w.b]; if (!A || !Bn) continue;
     for (let k = 0; k < Math.min(w.n, A.length, Bn.length); k++) {
@@ -78,7 +87,7 @@ export function build(ctx) {
   // ======================================================================= debris and clutter (own models)
   const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });
   for (const d of DEBRIS) {
-    const x = d.x, z = d.z, h = d.h || 0, y0 = d.y || 0, base = M(x, y0, z, d.tilt || 0, h, 0), L = (lx, ly, lz, a = 0, b = 0, c = 0, s = 1) => kit.mulM(base, M(lx, ly, lz, a, b, c, s, s, s));
+    const x = d.x, z = d.z, h = d.h || 0, y0 = (d.y || 0) + yS(x, z), base = M(x, y0, z, d.tilt || 0, h, 0), L = (lx, ly, lz, a = 0, b = 0, c = 0, s = 1) => kit.mulM(base, M(lx, ly, lz, a, b, c, s, s, s));
     if (d.k === 'pallet') {
       for (const lz of [-0.45, 0, 0.45]) D.box(W, 1.2, 0.022, 0.1, L(0, 0.011, lz), { grain: 0, ...wood() });
       for (const lx of [-0.55, 0, 0.55]) D.box(W, 0.09, 0.09, 1.0, L(lx, 0.067, 0), { grain: 2, ...wood() });
@@ -122,7 +131,7 @@ export function build(ctx) {
       else D.box(W, 0.08 + q() * 0.1, 0.01, 0.05 + q() * 0.06, M(x, y + 0.008, z, (q() - 0.5) * 0.3, q() * 6.28, 0), { grain: 1, color: V(0x5a4632, 0.15), wear: 1 }); } }   // bark scraps
 
   // ======================================================================= the roll-off's load: tear-out heaped above the rim
-  { const d = DUMPSTER, sc = d.scale, base = M(d.x, 0, d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc, z * sc, a, b, c)), q = kit.rng(5577);
+  { const d = DUMPSTER, sc = d.scale, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x * sc, y * sc, z * sc, a, b, c)), q = kit.rng(5577);
     D.box(MATTE, 2.7 * sc, 0.1, 7.6 * sc, L(0, 3.0, 0), { color: 0x4a4038 });   // the heap's floor (hides the empty bin from above)
     for (let i = 0; i < 26; i++) { const x = (q() - 0.5) * 2.2, z = (q() - 0.5) * 7.0, y = 3.1 + q() * 0.6, k = q();
       if (k < 0.45) D.box(W, 0.09, 0.04 + q() * 0.06, 1.6 + q() * 2.2, L(x, y, z, (q() - 0.5) * 0.8, q() * 3, (q() - 0.5) * 0.6), { grain: 2, color: V(k < 0.2 ? 0xb39a74 : 0x8f8676, 0.12), wear: 0.6 });   // studs, joists
@@ -184,36 +193,40 @@ export function build(ctx) {
     PUD.customProgramCacheKey = () => 'keys:puddle';
     for (const [x, z, a, b, rot] of PUDDLES) { const g = new THREE.PlaneGeometry(a * 2, b * 2, 8, 4); g.rotateX(-PI / 2); g.applyMatrix4(M(x, 0, z, 0, rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, yY(pp.getX(i), pp.getZ(i)) + 0.024); D.geo(PUD, g, null, {}); g.dispose(); }
     // the corner puddle: always standing water (its own threshold), over a mud rim; rides on the asphalt or the yard, whichever is higher
-    { const CP = CORNER_PUDDLE, gA = ctx.opts.groundAt || (() => -1), surf = (x, z) => Math.max(yY(x, z) + 0.024, gA(x, z) + 0.085);
+    // r2-keys: the drive-end puddle (PUDDLES row with big = 1) gets the same damp mud rim (a stained low spot when dry); its water is
+    // the weather-driven PUD above, so it fills after rain and shrinks back as the yard dries
+    const RIMS = [CORNER_PUDDLE, ...PUDDLES.filter((p) => p[5]).map(([x, z, a, b, rot]) => ({ x, z, a, b, rot, rimOnly: true }))].filter(Boolean);
+    if (RIMS.length) { const gA = ctx.opts.groundAt || (() => -1), surf = (x, z) => Math.max(yY(x, z) + 0.024, gA(x, z) + 0.085);
       const P2 = PUD.clone(); P2.name = 'keys:puddleCorner'; const uC = { value: 0.82 }; P2.onBeforeCompile = (sh) => { PUD.onBeforeCompile(sh); sh.uniforms.uKWet = uC; }; P2.customProgramCacheKey = () => 'keys:puddleCorner';
       const MUD = decal('mud', 256, 256, (g, w, h) => { const q = kit.rng(97); g.clearRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const x = q() * w, y = q() * h, d = Math.hypot(x / w - 0.5, y / h - 0.5); if (d > 0.48) continue; g.fillStyle = `rgba(${70 + q() * 30},${60 + q() * 24},${46 + q() * 18},${(0.5 - d) * 1.4})`; g.beginPath(); g.ellipse(x, y, 4 + q() * 10, 3 + q() * 6, q() * 3, 0, 6.28); g.fill(); } });
       MUD.map.wrapS = MUD.map.wrapT = THREE.ClampToEdgeWrapping;
+      for (const CP of RIMS) {
       const mk = (m, sx, sy, dy) => { const g = new THREE.PlaneGeometry(CP.a * 2 * sx, CP.b * 2 * sy, 10, 5); g.rotateX(-PI / 2); g.applyMatrix4(M(CP.x, 0, CP.z, 0, CP.rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, surf(pp.getX(i), pp.getZ(i)) + dy); D.geo(m, g, null, { wear: 1 }); g.dispose(); };
-      mk(MUD, 1.35, 1.6, 0.0); mk(P2, 1.0, 1.0, 0.006); }
+      mk(MUD, 1.35, 1.6, 0.0); if (!CP.rimOnly) mk(P2, 1.0, 1.0, 0.006); } }
     ctx.updaters.push((dt, env) => { const w = env?.game?.weather; uWet.value = w ? Math.max(0.25, Math.min(1, 0.25 + (w.puddles || 0) * 0.9 + (w.wetness || 0) * 0.25)) : 0.25; });
   }
 
   // ======================================================================= library models: bins, dumpster, rocks, STOP signs
   // colliders now (the house's collider list is read right after the build), visuals when the models arrive
   // curb carts: breakable (a car above ~15 km/h knocks one over; src/world/miami/breakables.js), static box otherwise
-  const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56, b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
-  { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2, d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
+  const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
+  { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2 + yS(d.x, d.z), d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
-  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink, z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
-  for (const st of STOPS) col.cyl(st.x, 1.3, st.z, 0.05, 2.6, { tag: 'sign' });
+  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
+  for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
-    for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, 0, b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
-    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, 0, d.z, 0, d.heading, 0, d.scale, d.scale, d.scale), { tint: d.tint }); }
+    for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
+    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale, d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
-    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink, z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
+    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
     if (BRK) { // register the carts in world space once the house group is placed; hiding a cart collapses its instance
       const binMeshes = (piece) => meshes.filter((m) => lib.piece('bins', piece)?.parts.some((q) => q.geometry === m.geometry)), idx = {}, zero = new THREE.Matrix4().makeScale(0, 0, 0);
       const recs = BINS.filter((b) => b.piece).map((b) => ({ b, i: (idx[b.piece] = (idx[b.piece] ?? -1) + 1) }));
       let done = false; ctx.updaters.push(() => { if (done) return; done = true; ctx.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromRotationMatrix(ctx.group.matrixWorld).y;
-        for (const { b, i } of recs) { const p = new THREE.Vector3(b.x, 0, b.z).applyMatrix4(ctx.group.matrixWorld);
+        for (const { b, i } of recs) { const p = new THREE.Vector3(b.x, yG(b.x, b.z), b.z).applyMatrix4(ctx.group.matrixWorld);
           breakables.add({ x: p.x, y: p.y, z: p.z, hx: 0.3, hy: 0.56, hz: 0.31, ry: (b.h || 0) + yaw, kind: 'bin', owner: 'nicoYard', color: 0x2c4f7c, hide: () => { for (const m of binMeshes(b.piece)) { m.setMatrixAt(i, zero); m.instanceMatrix.needsUpdate = true; } } }); } });
     }
     ctx.stats.keysYard = { instances: I.count(), meshes: meshes.length, rocks: rockNames };
@@ -226,7 +239,7 @@ export function build(ctx) {
     const g = new THREE.Group(); g.name = 'keysStops';
     // one instanced mesh per part for the three signs (post, plate)
     const inst = (part, mats) => { const im = new THREE.InstancedMesh(part.geometry, part.material, mats.length); mats.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; im.computeBoundingSphere(); g.add(im); };
-    const bases = STOPS.map((st) => M(st.x, 0, st.z, st.lean || 0, st.face, 0));
+    const bases = STOPS.map((st) => M(st.x, yS(st.x, st.z) - 0.04, st.z, st.lean || 0, st.face, 0));
     if (SK.signs.post) inst(SK.signs.post, bases.map((b) => kit.mulM(b, M(0, -0.12, 0, 0, 0, 0, 2.4, 2.9, 2.4))));
     inst(SK.signs.stop, bases.map((b) => kit.mulM(b, M(0, 2.33, 0.045))));
     ctx.groups.site.add(g);

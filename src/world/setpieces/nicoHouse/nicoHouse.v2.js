@@ -2,10 +2,11 @@
 // (`setpieces.nico_house`: x, z, heading), builds the self-contained set piece there, creates its Rapier colliders,
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
 import { buildNicoHouse, PLAN } from './index.js';
-import { CAR_SPOTS, PLANTING } from './yard.data.js';
+import { CAR_SPOTS, PLANTING, LITTER, DRIVE } from './yard.data.js';
 import { lots as houseLots } from '../houses/lots.js';
 export const order = 65;   // after vegetation (60)
 const KEYS_OFF = typeof location !== 'undefined' && /[?&]keys=0\b/.test(location.search);
+export const HOUSE_YAW = 0.72;   // rad, house frame vs the layout's street frame (see initV2)
 
 export async function initV2(game) {
   const { THREE, RAPIER, world, scene } = game;
@@ -18,6 +19,13 @@ export async function initV2(game) {
     if (spot?.position) spot = { ...spot, x: spot.position.x ?? spot.position[0], z: spot.position.z ?? spot.position[2] ?? spot.position[1] };
   } catch (e) { /* no layout yet */ }
   if (!spot || !Number.isFinite(spot.x) || !Number.isFinite(spot.z)) { const s0 = game.city?.playerSpawn; spot = { x: (s0?.x ?? 0) + 60, z: (s0?.z ?? 0) + 60, heading: 0 }; temporary = true; console.warn('[nicoHouse] layout.json has no setpieces.nico_house: using a temporary spot'); }
+  // r2-keys (Nov 17, user review item 16): the house is turned HOUSE_YAW within its lot so that, from the west deck corner, the
+  // view runs diagonally across the yard to the STOP corner of Pelican Point Ln exactly as in the front-deck mock-up (the
+  // corner lot now fronts the east leg; the west leg runs down its west side). layout.json keeps the street frame:
+  // spot.streetHeading (the neighbors in keysStreet.data.js and the dock line are in that frame); spot.heading is the house frame.
+  // ?nhyaw=<rad> overrides the turn (0 = the house as it stood before).
+  { const q = typeof location !== 'undefined' && /[?&]nhyaw=(-?[\d.]+)/.exec(location.search), yaw = temporary ? 0 : q ? +q[1] : HOUSE_YAW;
+    spot = { ...spot, streetHeading: spot.heading || 0, heading: (spot.heading || 0) + yaw, yaw }; }
   // keys pass: Nico's lot is hand dressed (yard.data.js); reserve it so the countryside scatter and the house generator keep out
   if (!temporary) try { const L = PLAN.lot, cx = (L.x0 + L.x1) / 2, cz = (L.z0 + L.z1) / 2, c = Math.cos(spot.heading || 0), s = Math.sin(spot.heading || 0);
     houseLots.reserve({ x: spot.x + cx * c + cz * s, z: spot.z - cx * s + cz * c, hw: (L.x1 - L.x0) / 2, hd: (L.z1 - L.z0) / 2, ry: spot.heading || 0, id: 'nico_house' }); } catch (e) { /* lots module off */ }
@@ -44,13 +52,18 @@ export async function initV2(game) {
   const waterAt = game.city?.isWater ? (lx, lz) => { const [x, z] = toW(lx, lz); return !!game.city.isWater(x, z); } : null;
   // road ribbons (lead review): yard plants and weeds are rejected at the source inside any lane (+ pad), not only by the shader mask
   const roadClear = (lx, lz, pad = 0.3) => { const [x, z] = toW(lx, lz); let r = null; try { r = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 25); } catch (e) { /* */ } if (!r || !r.edge) return true; return Math.hypot(r.point.x - x, r.point.z - z) > r.edge.width / 2 + pad; };
+  // r2-keys: distance from the nearest asphalt edge (m, negative on the road); the yard sheet sinks under the road edges with it
+  const roadDist = (lx, lz) => { const [x, z] = toW(lx, lz); let r = null; try { r = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 25); } catch (e) { /* */ } if (!r || !r.edge) return 25; return Math.hypot(r.point.x - x, r.point.z - z) - r.edge.width / 2; };
   const groundAt = (lx, lz) => { const [x, z] = toW(lx, lz); const h = game.city?.groundHeightAt?.(x, z); return Number.isFinite(h) ? h - yGround : 0; };
   // keys pass (Nov 17): the dock (part 06, the user's pier kit) runs from the sand at the foot of the bay stair out past the
   // real waterline: find the water along the dock line, then 13 m beyond it
+  // r2-keys: the dock line keeps its world direction (straight out into the bay pocket, in the STREET frame) when the house is
+  // turned; part 06 builds it in that frame (dock.yaw) at X, the street-frame x of the bay stair's foot
   let dock = null;
   if (!gcOff && waterAt && !KEYS_OFF) {
-    const X = 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (waterAt(X, lz) && waterAt(X, lz - 1.5) && waterAt(X, lz - 3)) { zw = lz; break; }
-    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: zw + 0.2, zw, z0: zw - 12.5, y: 0.4 };   // starts at the waterline (lead review: nothing of the dock on the sand)
+    const Y = spot.yaw || 0, cy = Math.cos(Y), sy = Math.sin(Y), wS = (sx, sz) => waterAt(sx * cy - sz * sy, sx * sy + sz * cy);   // street -> house frame
+    const X = Y ? -3.6 : 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (wS(X, lz) && wS(X, lz - 1.5) && wS(X, lz - 3)) { zw = lz; break; }
+    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: zw + 0.2, zw, z0: zw - 12.5, y: 0.4, yaw: Y };   // starts at the waterline (lead review: nothing of the dock on the sand)
   }
   const house = await buildNicoHouse(THREE, {
     dock,
@@ -58,7 +71,7 @@ export async function initV2(game) {
     timeOfDay: game.timeOfDay,
     residentName: game.player?.fullName,
     vegetation: game.vegetation,
-    game, waterAt, groundAt, roadClear,
+    game, waterAt, groundAt, roadClear, roadDist,
     skip: KEYS_OFF ? ['55_yard', '06_dock'] : undefined,   // ?keys=0: the house as it was before the keys pass (A/B)
   });
   const g = house.group; g.position.set(spot.x, yGround, spot.z); g.rotation.y = spot.heading || 0; g.updateMatrixWorld(true); scene.add(g);
@@ -70,7 +83,7 @@ export async function initV2(game) {
   const live = new Map();
   for (const c of house.colliders) {
     try {
-      const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);
+      const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] }) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);   // hf: yard ground (part 05)
       d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
       const rc = world.createCollider(d, body); rc.setEnabled(c.enabled !== false); live.set(c, { rc, en: c.enabled !== false });
     } catch (e) { /* skip a bad descriptor */ }
@@ -107,7 +120,13 @@ export async function initV2(game) {
 
   // ---- keys pass: yard planting through the vegetation helper, parked cars through the cars helper (yard.data.js) ----
   g.userData.shore = house.anchors.shore || [];
+  g.userData.yardY = house.yardY;
   if (!KEYS_OFF) try { plantYard(game, g); } catch (e) { console.warn('[nicoHouse] planting', e); }
+  // r2-keys: the yard's matted-grass patches also get the ground helper's grass clumps (the user's Grass Clump / Moss models, r2-ground
+  // grass.v2.js; queued if that module is not up yet). Not on the drive (the ruts stay bare)
+  if (!KEYS_OFF) try { const T = THREE, dD = (x, z) => { let b = 1e9; const P = DRIVE.main; for (let i = 0; i < P.length - 1; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); b = Math.min(b, Math.hypot(x - ax - dx * t, z - az - dz * t)); } return b; };
+    const L = LITTER.filter(([x, z, , , k]) => k === 'matted' && dD(x, z) > DRIVE.halfWidth + 0.5).map(([x, z, r, d], i) => { const p = new T.Vector3(x, 0, z).applyMatrix4(g.matrixWorld); return { x: p.x, z: p.z, r: r * 0.85, density: Math.min(1, d * 0.8), kind: i % 3 ? 'dry' : 'clump' }; });
+    if (L.length) { if (game.groundGrass?.patches) game.groundGrass.patches(L); else (game.groundGrassQueue ||= []).push(...L); } } catch (e) { console.warn('[nicoHouse] grass patches', e); }
   // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
   // CAR_SPOTS documents the mock-up spots and is kept clear of props
   const parked = [];
@@ -138,8 +157,9 @@ function plantYard(game, g) {
   const V = game.vegetation; if (!V) return;
   const T = game.THREE, byKind = new Map();
   for (const [kind, lx, lz, o = {}] of PLANTING) {
-    const p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
-    if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }
+    // r2-keys: inside the lot the plants stand on the yard sheet (its swells), not on the terrain under it
+    const yy = g.userData.yardY, p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = yy ? g.position.y + yy(lx, lz) - 0.04 : game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
+    if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, keepY: !!yy, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }
     if (!V.kinds?.includes?.(kind)) continue;
     let l = byKind.get(kind); if (!l) byKind.set(kind, (l = [])); l.push({ x: p.x, y, z: p.z, ry: (lx * 7.1 + lz * 3.3) % 6.28, s: o.s || 1 });
   }

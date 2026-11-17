@@ -5,10 +5,19 @@
 export const order = 22;
 
 export function build(ctx) {
+  // mini-blind panel material (r2-keys): 16 slats per texture repeat, each a soft cylinder-shaded strip with a thin dark gap; mipmaps
+  // average it to the blind's mean tone at distance (no sub-pixel slat lines)
+  let blindM = null; const blindMat = () => blindM || (blindM = (() => { const T3 = ctx.THREE, t = ctx.kit.canvasTex(32, 256, (g, w, h) => { const p = h / 16;
+      for (let k = 0; k < 16; k++) { const y = k * p, lg = g.createLinearGradient(0, y, 0, y + p); lg.addColorStop(0, '#f4f1e8'); lg.addColorStop(0.45, '#e6e1d4'); lg.addColorStop(0.82, '#bdb7a8'); lg.addColorStop(0.9, '#5c574e'); lg.addColorStop(1, '#3a3631');
+        g.fillStyle = lg; g.fillRect(0, y, w, p); } }, { srgb: true });
+    t.wrapS = t.wrapT = T3.RepeatWrapping; t.anisotropy = 4; t.needsUpdate = true;
+    const m = new T3.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.42, metalness: 0, side: T3.DoubleSide }); m.name = 'nh:miniblind'; m.userData.uvScale = 0; return ctx.kit.setIndirect(m); })());
   const { THREE, kit, plan: P, mat, col } = ctx, B = ctx.ext, I = ctx.int, M = kit.M, C = P.colors, F = P.F, T = P.wallT, imat = ctx.imat;
   const r = kit.rng(303), PAINT = mat.paint({ peel: 'a', fade: 0.28 }), PEEL = mat.paint({ peel: 'b', fade: 0.5, scale: 0.8 }), IPAINT = imat.paint({ peel: 'a', fade: 0.1 });
   const GLASS = mat.glass(), STEEL = mat.steel(), ISTEEL = imat.steel(), W = mat.wood();
-  const SCREEN = (() => { const m = new THREE.MeshStandardMaterial({ map: kit.canvasTex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = 'rgba(38,42,44,0.95)'; g.lineWidth = 1.4; for (let i = 0; i <= 64; i += 4) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 64); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(64, i); g.stroke(); } }), transparent: true, opacity: 0.85, roughness: 0.6, metalness: 0.5, side: THREE.DoubleSide, depthWrite: false, alphaTest: 0.05 }); m.userData.uvScale = 0.045; m.name = 'screen'; return m; })();
+  // insect screen (r2-keys, item 10, r2-look finding): the 4 px wire grid went sub-pixel past a few meters and alphaTest cut its mips
+  // into a crawling dot field; a real screen reads as an even dark veil from more than 2 m, so it is one flat dark tint
+  const SCREEN = (() => { const m = new THREE.MeshStandardMaterial({ color: 0x15191b, transparent: true, opacity: 0.4, roughness: 0.7, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false }); m.userData.uvScale = 0; m.name = 'screen'; return m; })();
   const FROST = (() => { const m = new THREE.MeshPhysicalMaterial({ color: 0xdfe9e6, transparent: true, opacity: 0.88, roughness: 0.55, metalness: 0, bumpMap: kit.microTex(), bumpScale: 1.5, side: THREE.DoubleSide }); m.userData.uvScale = 0.12; m.name = 'frost'; return m; })();
   const trimC = (k = 0.03) => kit.vary(C.trim, r, k), accC = (k = 0.05) => kit.vary(C.accent, r, k);
   const tr = (wear, o = {}) => ({ color: trimC(), wear, bevel: 0.003, rand: r, ...o });
@@ -60,7 +69,11 @@ export function build(ctx) {
     if (st.blind != null) {
       const drop = h * (1 - st.blind * 0.75), n = Math.floor(drop / 0.021), IP = imat.plasticGloss();
       I.box(ISTEEL, wd - 0.03, 0.035, 0.04, wm(uc, y1 - 0.02, -T + 0.03), { color: 0xe6e2d6 });
-      for (let i = 0; i < n; i++) I.box(IP, wd - 0.05, 0.0012, 0.024, wm(uc + (r() - 0.5) * 0.004, y1 - 0.045 - i * 0.021, -T + 0.03, 0.5 + (r() - 0.5) * 0.12 + (i === 7 ? 0.5 : 0), 0, (r() - 0.5) * 0.004), { color: kit.vary(0xe9e4d6, r, 0.03) });
+      // r2-keys (user review item 10): the slats were 1.2 mm boxes every 21 mm, far thinner than a pixel past a few meters, so the
+      // blinds read as dotted, crawling lines; now one panel with a mipmapped slat texture (shaded curved slats, dark gaps),
+      // solid at every distance. Same r() sequence as the old per-slat loop.
+      for (let i = 0; i < n; i++) { r(); r(); r(); r(); r(); }
+      { const bh = n * 0.021, g = new THREE.PlaneGeometry(wd - 0.05, bh); I.geo(blindMat(), g, wm(uc, y1 - 0.045 - bh / 2 + 0.0105, -T + 0.03), { color: 0xe9e4d6, uvMul: [1, n / 16] }); g.dispose(); }
       I.box(ISTEEL, wd - 0.04, 0.018, 0.026, wm(uc, y1 - 0.05 - n * 0.021, -T + 0.03), { color: 0xe6e2d6 });
       I.cyl(IP, 0.004, 0.004, drop * 0.7, wm(u0 + 0.06, y1 - 0.05 - drop * 0.35, -T - 0.005), { color: 0xf0ede4, seg: 5 });
       // stack of raised slats under the head rail
@@ -83,7 +96,7 @@ export function build(ctx) {
       const sw = Math.min(0.95, w.wear + 0.3), c0 = accC(0.06), pc = (wr) => ({ color: kit.vary(c0, r, 0.04), wear: wr ?? sw + (r() - 0.5) * 0.2, bevel: 0.003, rand: r });
       for (const s of [-1, 1]) B.box(PEEL, 0.058, ph, 0.03, L(s * (pw / 2 - 0.029), -ph / 2, 0), { grain: 1, ...pc() });
       for (const y of [-0.03, -ph / 2, -ph + 0.03]) B.box(PEEL, pw - 0.116, 0.06, 0.03, L(0, y, 0), { grain: 0, ...pc() });
-      for (let y = -0.085; y > -ph + 0.07; y -= 0.043) { if (Math.abs(y + ph / 2) < 0.05) continue; if (r() < 0.02) continue; B.box(PEEL, pw - 0.118, 0.007, 0.052, L(0, y, 0, -0.62 + (r() - 0.5) * 0.06), { grain: 0, ...pc(), bevel: 0 }); }
+      for (let y = -0.085; y > -ph + 0.07; y -= 0.043) { if (Math.abs(y + ph / 2) < 0.05) continue; if (r() < 0.02) continue; B.box(PEEL, pw - 0.118, 0.012, 0.05, L(0, y, 0, -0.62 + (r() - 0.5) * 0.06), { grain: 0, ...pc(), wear: sw, bevel: 0.002 }); }   // r2-keys: 12 mm blades, one paint coat per leaf (7 mm blades with per-blade peel read dotted)
       B.box(STEEL, pw + 0.04, 0.02, 0.012, wm(uc, hingeY + 0.012, 0.062), { color: 0x8c8f8d });                                     // continuous hinge
       for (const s of [-1, 1]) { const a = w.pt(uc + s * (wd / 2 + 0.07), y0 + 0.25, 0.045), pb = new THREE.Vector3(s * (pw / 2 - 0.03), -ph + 0.08, -0.015).applyMatrix4(hm); B.rod(STEEL, [a.x, a.y, a.z], [pb.x, pb.y, pb.z], 0.006, { color: 0x77706a, seg: 5 }); }
     }
@@ -105,7 +118,7 @@ export function build(ctx) {
         const wr = 0.55, c0 = accC(0.07), pc = () => ({ color: kit.vary(c0, r, 0.06), wear: wr + (r() - 0.5) * 0.3, bevel: 0.003, rand: r });
         for (const x of [-sw / 2 + 0.028, sw / 2 - 0.028]) B.box(PEEL, 0.056, h, 0.03, L(x, 0, 0), { grain: 1, ...pc() });
         for (const y of [h / 2 - 0.035, 0, -h / 2 + 0.035]) B.box(PEEL, sw - 0.11, 0.07, 0.03, L(0, y, 0), { grain: 0, ...pc() });
-        for (let y = -h / 2 + 0.09; y < h / 2 - 0.08; y += 0.04) { if (Math.abs(y) < 0.05 || r() < 0.03) continue; B.box(PEEL, sw - 0.112, 0.007, 0.046, L(0, y, 0, -0.6 + (r() - 0.5) * 0.08), { grain: 0, ...pc(), bevel: 0 }); }
+        for (let y = -h / 2 + 0.09; y < h / 2 - 0.08; y += 0.04) { if (Math.abs(y) < 0.05 || r() < 0.03) continue; B.box(PEEL, sw - 0.112, 0.012, 0.044, L(0, y, 0, -0.6 + (r() - 0.5) * 0.08), { grain: 0, ...pc(), wear: wr, bevel: 0.002 }); }
         for (const y of [h / 2 - 0.2, -h / 2 + 0.2]) B.box(mat.rust(), 0.05, 0.08, 0.008, L(-s * (sw / 2 - 0.02), y, 0.018), { color: 0x9a8a80 });
       }
     }

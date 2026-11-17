@@ -1,47 +1,47 @@
 {
  "r0_deck": {
   "eye": [
-   -7.4,
-   4.8,
-   2.6
+   -8.33,
+   4.65,
+   1.25
   ],
   "look": [
-   -18.0,
-   0.0,
-   19.0
+   -16.75,
+   -2.32,
+   18.0
   ],
   "tod": 11,
-  "fov": 60,
+  "fov": 51,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
  "r0_deck_dusk": {
   "eye": [
-   -7.4,
-   4.8,
-   2.6
+   -8.33,
+   4.65,
+   1.25
   ],
   "look": [
-   -18.0,
-   0.0,
-   19.0
+   -16.75,
+   -2.32,
+   18.0
   ],
   "tod": 18.5,
-  "fov": 60,
+  "fov": 51,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
  "r0_deck_rain": {
   "eye": [
-   -7.4,
-   4.8,
-   2.6
+   -8.33,
+   4.65,
+   1.25
   ],
   "look": [
-   -18.0,
-   0.0,
-   19.0
+   -16.75,
+   -2.32,
+   18.0
   ],
   "tod": 11,
-  "fov": 60,
+  "fov": 51,
   "weather": "afterrain",
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
@@ -122,32 +122,32 @@
  },
  "r0b_deck": {
   "eye": [
-   1.4,
-   4.9,
-   6.9
+   -8.33,
+   4.65,
+   1.25
   ],
   "look": [
-   -6.5,
-   0.0,
-   23.0
+   -16.75,
+   -2.32,
+   18.0
   ],
   "tod": 11,
-  "fov": 62,
+  "fov": 51,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
  "r6_yard_rain": {
   "eye": [
-   -6.0,
+   -11.0,
    2.4,
-   30.0
+   23.5
   ],
   "look": [
-   -3.0,
+   -16.4,
    0.0,
-   18.0
+   17.6
   ],
   "tod": 11,
-  "fov": 60,
+  "fov": 55,
   "weather": "afterrain",
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
@@ -165,5 +165,19 @@
   "tod": 11,
   "fov": 60,
   "ref": "docs/v2/plan/nico_house/2_back_dock.webp"
+ },
+ "top": {
+  "eye": [
+   -12,
+   70,
+   14
+  ],
+  "look": [
+   -12,
+   0,
+   13.5
+  ],
+  "tod": 12,
+  "fov": 60
  }
 }

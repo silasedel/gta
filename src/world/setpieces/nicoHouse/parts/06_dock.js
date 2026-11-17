@@ -11,7 +11,13 @@ export const order = 6;
 export function build(ctx) {
   const { THREE, kit, mat, col, plan: P } = ctx, Dk = P.dock, M = kit.M, PI = Math.PI, r = kit.rng(606);
   if (!Dk?.kit) return;   // only when nicoHouse.v2.js measured the waterline (else part 05 keeps the old plank dock)
-  const B = ctx.site, D = ctx.detail, sea = P.seaY, y = Dk.y, X = Dk.x, W = 2.45, ground = ctx.opts.groundAt || (() => 0);
+  // r2-keys: when the house is turned within its lot (Dk.yaw), the dock keeps its world line: everything below is written in the
+  // STREET frame and lands in a child group turned by -yaw (own batches); colliders, lights, anchors and ground / water queries
+  // are converted to the house frame
+  const yaw = Dk.yaw || 0, cyw = Math.cos(yaw), syw = Math.sin(yaw), toH = (x, z) => [x * cyw - z * syw, x * syw + z * cyw];
+  const dockG = yaw ? new THREE.Group() : ctx.groups.site; if (yaw) { dockG.name = 'nh_dockFrame'; dockG.rotation.y = -yaw; ctx.groups.site.add(dockG); }
+  const c0 = ctx.colliders.length, l0 = ctx.lights.length, g0 = ctx.opts.groundAt || (() => 0), w0 = ctx.opts.waterAt;
+  const B = yaw ? kit.batch('dockSite') : ctx.site, D = yaw ? kit.batch('dockDetail') : ctx.detail, sea = P.seaY, y = Dk.y, X = Dk.x, W = 2.45, ground = (x, z) => g0(...toH(x, z));
   const lib = loadKeysModels(THREE, ['pier_kit', 'rowboat', 'skiff', 'lifebuoy', 'rocks']);
   // ---- layout: sections from the land end (z1) out to z0, chosen in a fixed order (no two neighbors alike) ----
   const ORDER = ['modular_wooden_pier_section_02'];   // one kit piece, flipped / tinted for variety (03 / 04 dropped out of the draw in tests)
@@ -32,9 +38,9 @@ export function build(ctx) {
     for (const s2 of [-1, 1]) B.box(WD, 0.06, top + 0.05, 0.3, M(X + s2 * (W / 2 - 0.2), (top - 0.05) / 2, zz), { grain: 1, color: 0x6f675c, wear: 0.8 }); }
   { const L = stepRun * 2 + 0.6, a = Math.atan2(y - 0.02, L); col.box(X, (y + 0.02) / 2 - 0.08, wallZ + 0.31 + L / 2, W - 0.3, 0.16, Math.hypot(L, y), { rx: a, tag: 'dock', surface: 'wood' }); }   // smooth walk-up
   // riprap: pale limestone blocks along the waterline of Nico's frontage (both sides of the landing), half in the water
-  const shore = []; const wAt = ctx.opts.waterAt;
+  const shore = []; const wAt = w0 ? (x, z) => w0(...toH(x, z)) : null;
   if (wAt) for (let x = -20; x <= 12; x += 1.1) { if (Math.abs(x - X) < 3.4) continue; let zz = null; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) { zz = z2; break; } if (zz !== null) shore.push([x, zz]); }
-  ctx.anchors.shore = shore;   // nicoHouse.v2.js plants mangroves at the riprap ends
+  ctx.anchors.shore = shore.map(([x, z]) => toH(x, z));   // nicoHouse.v2.js plants mangroves at the riprap ends
   const RIP = shore.flatMap(([x, zz], i) => [[x + (r() - 0.5) * 0.5, zz + 0.4 + (r() - 0.5) * 0.4, 0.34 + r() * 0.2], [x + 0.55 + (r() - 0.5) * 0.4, zz - 0.5 + (r() - 0.5) * 0.4, 0.3 + r() * 0.18], ...(i % 2 ? [[x + (r() - 0.5) * 0.6, zz + 1.3 + r() * 0.4, 0.22 + r() * 0.12]] : [])]);
   for (const [x, zz, sc] of RIP) col.box(x, sc * 0.5 - 0.25, zz, sc * 1.6, sc * 1.2, sc * 1.6, { tag: 'rock' });
   // chain-link fences down the side lot lines to the water (ref 2_back_dock)
@@ -47,10 +53,10 @@ export function build(ctx) {
       const g = new THREE.PlaneGeometry(len, 1.2); g.rotateY(Math.PI / 2); B.geo(MESH, g, M(fx, 0.62, zc), { uvMul: [len / 0.75, 1.2 / 0.75] }); g.dispose();
       col.box(fx, 0.65, zc, 0.06, 1.3, len, { tag: 'fence' }); };
     const edgeAt = (x) => { if (!wAt) return -20; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) return z2 + 1.0; return -20; };
-    fence(-23.6, -4.0, Math.max(edgeAt(-23.6), Dk.zw - 1.5)); fence(11.2, -4.0, Math.max(edgeAt(11.2), Dk.zw - 1.5)); }   // the lot lines end at the bay edge by the dock
+    if (!yaw) { fence(-23.6, -4.0, Math.max(edgeAt(-23.6), Dk.zw - 1.5)); fence(11.2, -4.0, Math.max(edgeAt(11.2), Dk.zw - 1.5)); } }   // old lot lines (turned house: part 55 fences its own)   // the lot lines end at the bay edge by the dock
   ctx.async.push(lib.ready.then(() => { const I = lib.instancer('keysRiprap'), names = lib.names('rocks').sort();
     RIP.forEach(([x, zz, sc], i) => I.add('rocks', names[i % 3], M(x, -0.28, zz, (r() - 0.5) * 0.3, r() * 6.28, (r() - 0.5) * 0.3, sc, sc * 0.75, sc), { tint: [0.98 + r() * 0.06, 0.96 + r() * 0.06, 0.9 + r() * 0.06] }));
-    for (const m of I.build(ctx.groups.site)) m.raycast = () => {}; }));
+    for (const m of I.build(dockG)) m.raycast = () => {}; }));
   // ---- piles under water: the kit posts end about 3.3 m below the deck; marine timber carries them to the sea bed ----
   const MW = mat.wood({ marine: true });
   const pileAt = (px, pz, top) => { const gb = Math.min(ground(px, pz), sea - 0.4); if (top - gb < 0.2) return; const h = top - gb + 0.4; B.cyl(MW, 0.12, 0.135, h, M(px, top - h / 2, pz, (r() - 0.5) * 0.02, r() * 6, 0), { seg: 10, hseg: 3, color: kit.vary(0x6f665a, r, 0.1), wear: 1 }); col.cyl(px, (top + gb) / 2, pz, 0.14, top - gb, { tag: 'pile' }); };
@@ -78,21 +84,28 @@ export function build(ctx) {
   ctx.anchors.dock = { pos: new THREE.Vector3(X, y, (Dk.z1 + zEnd) / 2), heading: PI };
   ctx.anchors.skiff = { pos: new THREE.Vector3(boats[1].x, sea, boats[1].z), heading: boats[1].h };
   ctx.anchors.dockHead = { pos: new THREE.Vector3(X, y, headZ), heading: PI };
+  if (yaw) {   // street frame -> house frame: anchors, colliders, lights; the sync batches go into the turned group
+    for (const k of ['dock', 'skiff', 'dockHead']) { const a = ctx.anchors[k], [hx, hz] = toH(a.pos.x, a.pos.z); a.pos.set(hx, a.pos.y, hz); a.heading -= yaw; }
+    const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw), qq = new THREE.Quaternion();
+    for (let i = c0; i < ctx.colliders.length; i++) { const c = ctx.colliders[i], [hx, hz] = toH(c.p[0], c.p[2]); c.p = [hx, c.p[1], hz]; qq.set(...c.q).premultiply(qy); c.q = [qq.x, qq.y, qq.z, qq.w]; }
+    for (let i = l0; i < ctx.lights.length; i++) { const l = ctx.lights[i], [hx, hz] = toH(l.pos[0], l.pos[2]); l.pos = [hx, l.pos[1], hz]; }
+    B.build(dockG); D.build(dockG);
+  }
   // ---- library pieces (async) ----
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysDock');
     for (const s of secs) I.add('pier_kit', s.n, M(X, y, s.zc, 0, s.flip ? PI : 0, 0), { tint: [0.96 + r() * 0.08, 0.96 + r() * 0.06, 0.95 + r() * 0.06] });
     I.add('pier_kit', 'modular_wooden_pier_section_05', M(X - 3.3, y, headZ, 0, PI / 2, 0));   // the hoist frame across the head's west wing
-    const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
+    const meshes = I.build(dockG); for (const m of meshes) m.raycast = () => {};
     // every kit post foot that ends above the sea bed carries on down in marine-growth timber (same radius, sunk into the bed)
     const PB = kit.batch('dockPiles'); let nExt = 0;
     for (const s of secs) for (const L of lib.legs('pier_kit', s.n, { band: 0.7 })) {
       const lx = s.flip ? -L.x : L.x, lz = s.flip ? -L.z : L.z, px = X + lx, pz = s.zc + lz, top = y + L.y + 0.12, gb = ground(px, pz) - 0.4;
       if (top - gb < 0.25 || gb > sea) continue; const h = top - gb; PB.cyl(MW, Math.max(0.09, L.r * 0.95), Math.max(0.1, L.r * 1.05), h, M(px, top - h / 2, pz), { seg: 10, hseg: 3, color: kit.vary(0x6f665a, r, 0.1), wear: 1 }); nExt++;
     }
-    PB.build(ctx.groups.site);
+    PB.build(dockG);
     // boats: their own meshes (they move)
-    const dyn = new THREE.Group(); dyn.name = 'keysDockBoats'; ctx.groups.site.add(dyn);
+    const dyn = new THREE.Group(); dyn.name = 'keysDockBoats'; dockG.add(dyn);
     for (const b of boats) {
       const p = lib.piece(b.k, 'dock'); if (!p) continue; const g = new THREE.Group(); g.position.set(b.x, sea - b.draft, b.z); g.rotation.y = b.h;
       for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = false; m.receiveShadow = true; m.raycast = () => {}; g.add(m); }   // on the water: no sun-shadow draw calls
@@ -102,7 +115,7 @@ export function build(ctx) {
       const a = [c[0], y + 0.07, c[1]], pts = []; for (let i = 0; i <= 12; i++) { const t = i / 12; pts.push([a[0] + (bow.x - a[0]) * t, a[1] + (bow.y - a[1]) * t - 0.35 * 4 * t * (1 - t), a[2] + (bow.z - a[2]) * t]); }
       const tb = kit.batch('line'); tb.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, { seg: 5, color: 0xcfc4a2 }); tb.build(dyn, { cast: false });
     }
-    { const p = lib.piece('lifebuoy', 'dock'); if (p) for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.position.set(X + 3.55, y + 0.35, headZ + 1.25); m.rotation.y = 0; m.castShadow = true; m.raycast = () => {}; ctx.groups.site.add(m); } }
+    { const p = lib.piece('lifebuoy', 'dock'); if (p) for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.position.set(X + 3.55, y + 0.35, headZ + 1.25); m.rotation.y = 0; m.castShadow = true; m.raycast = () => {}; dockG.add(m); } }
     ctx.updaters.push((dt, env) => { const t = performance.now() / 1000; for (const b of boats) if (b.g) { b.g.position.y = sea - b.draft + Math.sin(t * 0.9 + b.ph) * 0.035; b.g.rotation.z = Math.sin(t * 0.7 + b.ph) * 0.025; b.g.rotation.x = Math.sin(t * 0.55 + b.ph * 2) * 0.015; } });
     ctx.stats.keysDock = { sections: secs.length, instances: I.count(), zEnd: +zEnd.toFixed(1), pileExt: nExt };
   }));

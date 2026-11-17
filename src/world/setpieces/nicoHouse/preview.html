@@ -113,7 +113,7 @@ const fixed = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
 world.createCollider(RAPIER.ColliderDesc.cuboid(900, 0.5, 900).setTranslation(P.lot.x1 - 900, -0.56, P.lot.z0 + 900), fixed);   // preview land
 const colMap = new Map();
 for (const c of house.colliders) {
-  const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);
+  const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] }) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);
   d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
   const rc = world.createCollider(d, fixed); rc.setEnabled(c.enabled !== false); colMap.set(c, { rc, en: c.enabled !== false });
 }

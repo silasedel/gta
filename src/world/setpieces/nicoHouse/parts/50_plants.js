@@ -9,7 +9,7 @@ import { PLANTER } from '../yard.data.js';
 export const order = 50;
 
 export function build(ctx) {
-  const { THREE, kit, mat, col } = ctx, M = kit.M, V3 = THREE.Vector3, D = ctx.detail;
+  const { THREE, kit, mat, col } = ctx, M = kit.M, V3 = THREE.Vector3, D = ctx.detail, SZ = ctx.plan.stairW.dz || 0;   // SZ: the west stair's move (plan.js)
   const R = kit.rng(5051), rr = (a, b) => a + (b - a) * R(), UP = new V3(0, 1, 0), ZERO = [0, 0, 0, 0], WHITE = [1, 1, 1];
   const rv = (r, s = 1) => new V3((r() - 0.5) * 2 * s, (r() - 0.5) * 2 * s, (r() - 0.5) * 2 * s);
   const cv = (c, r, a = 0.1) => kit.vary(c, r, a);
@@ -55,6 +55,8 @@ gl_Position = projectionMatrix * mvPosition;
   const depthFor = (m, o) => sway(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: m.alphaTest > 0 ? m.map : null, alphaTest: m.alphaTest }), { tile: o.tile });
 
   // ---------- geometry accumulators ----------
+  // r2-keys: the yard sheet has gentle swells (part 05 ctx.yardY); every plant vertex / leaf instance rides on the ground under it
+  const GY = ctx.yardY || null, onGround = (arr, stride, off) => { if (GY) for (let i = off; i < arr.length; i += stride) arr[i + 1] += GY(arr[i], arr[i + 2]); };
   class Acc {   // merged, vertex-colored, with the sway attribute
     constructor() { this.p = []; this.n = []; this.u = []; this.c = []; this.s = []; this.i = []; this.k = 0; }
     // pts: [Vector3]; rad: (t, len) => radius; o: { seg, col(t, ang, len, mod), sw(p, t), uRep, vLen, mod(t, ang, len), n0 }
@@ -93,6 +95,7 @@ gl_Position = projectionMatrix * mvPosition;
     }
     mesh(material, name, parent) {
       if (!this.k) return null;
+      onGround(this.p, 3, 0);
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
       g.setAttribute('uv', new THREE.Float32BufferAttribute(this.u, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
@@ -110,6 +113,7 @@ gl_Position = projectionMatrix * mvPosition;
     }
     mesh(geo, material, name, parent, o = {}) {
       const n = this.c.length / 3; if (!n) return null;
+      onGround(this.m, 16, 12);
       const im = new THREE.InstancedMesh(geo, material, n); im.instanceMatrix.array.set(this.m); im.instanceMatrix.needsUpdate = true;
       im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(this.c), 3);
       geo.setAttribute('aSw', new THREE.InstancedBufferAttribute(new Float32Array(this.s), 4));
@@ -492,14 +496,14 @@ gl_Position = projectionMatrix * mvPosition;
   const magenta = (r) => { const k = 0.75 + r() * 0.45, h = r(); return [0.74 * k + h * 0.12, 0.02 + h * 0.03, (0.26 - h * 0.12) * k]; };
   const orange = (r) => { const k = 0.8 + r() * 0.4, h = r(); return h < 0.8 ? [0.92 * k, (0.2 + h * 0.14) * k, 0.02] : [0.9 * k, 0.16 * k, 0.2 * k]; };
   // the big one on the west stair landing: up the two west posts and the north-west corner, spilling over the rail and out to the yard
-  bougainvillea({ seed: 31, base: [-12.15, 3.55], supports: [[-11.9, 3.05], [-11.9, 4.15], [-11.88, 3.6], [-11.6, 2.9], [-11.95, 4.35]], top: 3.0, canes: 30, reach: 1.45, leaves: 12, shoots: 2, clusters: 12, color: magenta,
+  bougainvillea({ seed: 31, base: [-12.15, 3.55 + SZ], supports: [[-11.9, 3.05 + SZ], [-11.9, 4.15 + SZ], [-11.88, 3.6 + SZ], [-11.6, 2.9 + SZ], [-11.95, 4.35 + SZ]], top: 3.0, canes: 30, reach: 1.45, leaves: 12, shoots: 2, clusters: 12, color: magenta,
     az: (r) => { const t = r(); return t < 0.6 ? Math.PI + (r() - 0.5) * 2.6 : t < 0.8 ? -Math.PI / 2 + (r() - 0.5) * 0.9 : (r() - 0.5) * 1.2; },
-    bound: (p) => { const lim = p.z > 4.25 ? -11.95 : p.z > 2.95 ? (p.y > 2.45 ? -11.25 : -11.9) : -10.9; if (p.x > lim) p.x = lim - (p.x - lim) * 0.15; if (p.x < -13.9) p.x = -13.9; if (p.y > 3.3) p.y = 3.3; } });
+    bound: (p) => { const lim = p.z > 4.25 + SZ ? -11.95 : p.z > 2.95 + SZ ? (p.y > 2.45 ? -11.25 : -11.9) : -10.9; if (p.x > lim) p.x = lim - (p.x - lim) * 0.15; if (p.x < -13.9) p.x = -13.9; if (p.y > 3.3) p.y = 3.3; } });
   { const r = kit.rng(33);
-    petals(260, r, (r2) => { const a = r2() * 6.28, d = Math.sqrt(r2()) * 1.9, x = -12.6 + Math.cos(a) * d * 0.9, z = 3.7 + Math.sin(a) * d * 1.3; return (x > -11.95 && z > 2.9) ? null : new V3(x, 0.012 + r2() * 0.008, z); }, magenta);
-    petals(46, r, (r2) => new V3(-11.75 + r2() * r2() * 1.0, 1.508, 3.05 + r2() * 1.1), magenta);                                                  // on the landing
-    for (let i = 0; i < 7; i++) petals(9 - i, r, (r2) => new V3(-11.76 + r2() * r2() * 1.05, 1.5 - (i + 1) * 0.1875 + 0.008, 4.23 + i * 0.28 + r2() * 0.22), magenta);   // on the treads
-    petals(30, r, (r2) => new V3(-11.9 + r2() * 1.4, 0.07, 6.3 + r2() * 0.8), magenta); }
+    petals(260, r, (r2) => { const a = r2() * 6.28, d = Math.sqrt(r2()) * 1.9, x = -12.6 + Math.cos(a) * d * 0.9, z = 3.7 + SZ + Math.sin(a) * d * 1.3; return (x > -11.95 && z > 2.9 + SZ) ? null : new V3(x, 0.012 + r2() * 0.008, z); }, magenta);
+    petals(46, r, (r2) => new V3(-11.75 + r2() * r2() * 1.0, 1.508, 3.05 + SZ + r2() * 1.1), magenta);                                                  // on the landing
+    for (let i = 0; i < 7; i++) petals(9 - i, r, (r2) => new V3(-11.76 + r2() * r2() * 1.05, 1.5 - (i + 1) * 0.1875 + 0.008, 4.23 + SZ + i * 0.28 + r2() * 0.22), magenta);   // on the treads
+    petals(30, r, (r2) => new V3(-11.9 + r2() * 1.4, 0.07, 6.3 + SZ + r2() * 0.8), magenta); }
   // the orange one on the lattice at the south-east corner of the wing
   bougainvillea({ seed: 32, base: [6.86, 4.66], supports: [[6.72, 4.5], [6.2, 4.5], [6.72, 3.9], [5.6, 4.5], [6.74, 3.2]], top: 2.85, canes: 18, reach: 0.95, leaves: 11, shoots: 2, clusters: 9, color: orange,
     az: (r) => { const t = r(); return t < 0.4 ? Math.PI + (r() - 0.5) * 0.5 : t < 0.7 ? -Math.PI / 2 + (r() - 0.5) * 0.5 : 0.8 + (r() - 0.5) * 1.6; },
@@ -513,9 +517,9 @@ gl_Position = projectionMatrix * mvPosition;
     const inBox = (q) => { for (const [ax, az, bx, bz] of PL.runs) { const along = Math.abs(az - bz) < 0.01; if (along) { if (q.x > Math.min(ax, bx) - 0.05 && q.x < Math.max(ax, bx) + 0.05 && Math.abs(q.z - az) < hd) return { n: [0, Math.sign(q.z - az) || 1], c: az, axis: 'z' }; } else if (q.z > Math.min(az, bz) - 0.05 && q.z < Math.max(az, bz) + 0.05 && Math.abs(q.x - ax) < hd) return { n: [Math.sign(q.x - ax) || 1, 0], c: ax, axis: 'x' }; } return null; };
     PL.plants.forEach((p, i) => { const run = PL.runs.find(([ax, az, bx, bz]) => Math.abs(az - bz) < 0.01 ? Math.abs(p.z - az) < 0.6 && p.x > ax - 0.6 && p.x < bx + 0.6 : Math.abs(p.x - ax) < 0.6), along = run && Math.abs(run[1] - run[3]) < 0.01;
       const out = along ? 0 : Math.PI / 2, col = p.hue === 'coral' ? orange : magenta, s = p.s;   // out: toward the street (+Z) or out of the return run (+X)
-      bougainvillea({ seed: 61 + i * 7, base: [p.x, p.z], supports: [[p.x - 0.3, p.z], [p.x + 0.3, p.z], [p.x, p.z + 0.12], [p.x - 0.1, p.z - 0.12]], top: top + 0.35 * s, canes: Math.round(22 * s), reach: 1.7 * s, leaves: 10, shoots: 2, clusters: 12, color: col,
+      bougainvillea({ seed: 61 + i * 7, base: [p.x, p.z], supports: [[p.x - 0.3, p.z], [p.x + 0.3, p.z], [p.x, p.z + 0.12], [p.x - 0.1, p.z - 0.12]], top: top + 0.6 * s, canes: Math.round(20 * s), reach: 0.95 * s, leaves: 12, shoots: 2, clusters: 14, color: col,   // r2-keys: a dense mound over the box (mock-up), the lattice stays visible
         az: (r) => { const t = r(); const a = t < 0.62 ? out + (r() - 0.5) * 1.1 : t < 0.8 ? out + Math.PI + (r() - 0.5) * 0.9 : (along ? 0 : Math.PI / 2) + (r() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (r() - 0.5) * 0.5; return -a + Math.PI / 2; },
-        bound: (q) => { const b = inBox(q); if (b && q.y < top + 0.04) { if (b.axis === 'z') q.z = b.c + b.n[1] * (hd + 0.02 + r01(q) * 0.06); else q.x = b.c + b.n[0] * (hd + 0.02 + r01(q) * 0.06); }   // hang on the lattice face, never through it
+        bound: (q) => { const b = inBox(q); if (b && q.y < top + 0.04) q.y = top + 0.03 + r01(q) * 0.08;   // r2-keys: the mound sits on the box, the lattice stays visible (mock-up)
           if (q.y > top + 1.2 * s) q.y = top + 1.2 * s; if (q.y < 0.12) q.y = 0.12; } });
       petals(Math.round(60 * s), kit.rng(80 + i), (r2) => { const a = r2() * 6.28, d = 0.3 + Math.sqrt(r2()) * 1.5 * s, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d * 1.2; return inBox({ x, y: 0, z }) ? new V3(x, PL.h + 0.055, z) : new V3(x, 0.03 + r2() * 0.01, z); }, col); }); }
 
@@ -582,8 +586,8 @@ gl_Position = projectionMatrix * mvPosition;
     }
     stems.geo(sphere, M(x, 0.05, z, 0, r() * 3, 0, 0.2, 0.12, 0.16), cv([0.25, 0.18, 0.11], r, 0.1), ZERO);   // creeping trunk
   };
-  { const r = kit.rng(41); for (const [x, z, s] of [[-22.4, -9.2, 1.1], [-20.9, -5.4, 0.9], [-22.8, -0.8, 1.15], [-20.6, 3.6, 1.0], [-22.6, 8.2, 1.2], [-21.3, 12.4, 0.95], [-22.7, 18.0, 1.1], [-20.3, 22.6, 1.0], [-19.2, -11.4, 0.85], [-15.0, 11.9, 0.8]]) palmetto(x, z, s, r);
-    for (let i = 0; i < 9; i++) tuft(-14.8 + (r() - 0.5) * 1.8, 0, 11.7 + (r() - 0.5) * 1.6, 0.2 + r() * 0.3, 0.4, grassC(r), 0.03, r); periwinkle(-14.0, 11.2, 1.2, 0, r); }
+  { const r = kit.rng(41); for (const [x, z, s] of [[-22.4, -9.2, 1.1], [-20.9, -5.4, 0.9], [-22.8, -0.8, 1.15], [-20.6, 3.6, 1.0], [-18.9, 12.9, 1.2], [-19.3, 11.0, 0.95], [-13.6, 18.2, 1.1], [-11.0, 23.5, 1.0], [-19.2, -11.4, 0.85], [-11.6, 16.0, 0.8]]) palmetto(x, z, s, r);   // r2-keys: the turned corner lot (west side, the green mass by the bins, left of the drive)
+    for (let i = 0; i < 9; i++) tuft(-11.4 + (r() - 0.5) * 1.8, 0, 16.6 + (r() - 0.5) * 1.6, 0.2 + r() * 0.3, 0.4, grassC(r), 0.03, r); periwinkle(-10.8, 16.9, 1.2, 0, r); }
   // silver buttonwood shrubs
   const buttonwood = (x, z, H, seed) => {
     const r = kit.rng(seed), sites = [], phase = r() * 6.28, sw = (p) => [0.05 * Math.pow(Math.max(0, p.y) / H, 1.5), phase, 0, 0];
@@ -592,10 +596,10 @@ gl_Position = projectionMatrix * mvPosition;
     for (const s of sites) for (let i = 0; i < per; i++) { const q = s.p.clone().add(rv(r, 0.24)), l = 0.08 + r() * 0.05, g = 0.85 + r() * 0.4; leaf(kites, q, rv(r, 1).setY(r() * 0.9 - 0.2), UP.clone().add(rv(r, 0.8)), l * 0.66, l, l * 0.3, [g * 3.3, g * 1.85, g * 5.2], [sw(q)[0], phase, 0.012, q.x * 5 + q.z], 4); }
     col.cyl(x, 0.6, z, 0.16, 1.2, { tag: 'tree' });
   };
-  buttonwood(-19.4, -7.6, 3.1, 51); buttonwood(-22.0, 15.2, 2.5, 52); buttonwood(-20.4, 6.0, 2.1, 53); buttonwood(-14.7, -1.6, 2.3, 54);
+  buttonwood(-19.4, -7.6, 3.1, 51); buttonwood(-12.5, 20.5, 2.5, 52); buttonwood(-23.0, 0.5, 2.1, 53); buttonwood(-14.7, -1.6, 2.3, 54);
   // crotons and ti plants toward the street
   { const r = kit.rng(55);
-    for (const [x, z, k] of [[8.0, 25.3, 'c'], [9.1, 25.1, 't'], [10.2, 25.4, 'c'], [-10.6, 25.3, 'c'], [-11.8, 25.0, 't'], [-13.0, 25.4, 'c'], [-14.2, 25.1, 'c'], [-15.4, 25.4, 't'], [-16.6, 25.0, 'c'], [-17.9, 25.3, 't']]) { if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
+    for (const [x, z, k] of [[-8.4, 25.6, 'c'], [-7.3, 25.4, 't'], [-4.6, 26.0, 'c'], [-1.8, 26.2, 'c'], [-0.6, 26.0, 't'], [2.4, 26.3, 'c'], [4.2, 26.1, 't'], [6.8, 26.0, 'c'], [7.9, 25.7, 'c']]) { if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
   // railroad vine runners along the seawall edges
   const vine = (pts, r) => {
     stems.tube(pts, () => 0.006, { seg: 4, col: () => cv([0.32, 0.3, 0.14], r, 0.15), sw: NOSW, vLen: 0.3 });
@@ -606,7 +610,7 @@ gl_Position = projectionMatrix * mvPosition;
   };
   { const r = kit.rng(61), run = (x0, z0, x1, z1, wob) => { const pts = [], n = Math.max(3, Math.round(Math.hypot(x1 - x0, z1 - z0) / 0.6)); for (let i = 0; i <= n; i++) { const t = i / n; pts.push(new V3(x0 + (x1 - x0) * t + (r() - 0.5) * wob, 0.012, z0 + (z1 - z0) * t + (r() - 0.5) * wob)); } vine(pts, r); };
     for (const [a, b] of [[-23, -15.5], [-12, -7], [-6.5, -4.6], [-1.6, 0.4], [3.4, 6.2], [6.6, 10.6]]) { run(a, -13.75 + r() * 0.2, b, -13.6 + r() * 0.3, 0.3); run(a + 0.5, -13.5, a + 1.5 + r() * 2, -12.4 - r() * 0.8, 0.25); run(b - 0.4, -13.5, b - 2 - r(), -12.7 - r() * 0.6, 0.25); }
-    for (const [a, b] of [[-12.5, -8.5], [-6.5, -3], [5, 7.5], [12, 17.5], [19, 24]]) { run(10.95 - r() * 0.2, a, 10.9 - r() * 0.3, b, 0.3); run(10.8, a + 0.6, 9.8 - r() * 0.8, a + 1.6 + r() * 1.5, 0.25); } }
+    for (const [a, b] of [[-12.5, -8.5], [-6.5, -3], [5, 7.5]]) { run(10.95 - r() * 0.2, a, 10.9 - r() * 0.3, b, 0.3); run(10.8, a + 0.6, 9.8 - r() * 0.8, a + 1.6 + r() * 1.5, 0.25); } }
   // sea oats clumps on the seawall edges
   const seaOats = (x, z, r) => {
     for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.3, 0, z + (r() - 0.5) * 0.3, 0.7 + r() * 0.4, 0.6, cv([0.82, 0.92, 0.6], r, 0.12), 0.05, r);
@@ -617,11 +621,11 @@ gl_Position = projectionMatrix * mvPosition;
       const l = 0.34 + r() * 0.14; leaf(strips, t, new V3(Math.cos(az) * 0.6, 0.8, Math.sin(az) * 0.6), UP, l * 0.42, l, l * 0.75, cv([1.05, 1.0, 0.9], r, 0.12), [0, 0, 0.1, ph], 14);
     }
   };
-  { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.8, 12.6], [10.7, 16.2], [10.9, 20.6], [10.6, -12.6]]) seaOats(x, z, r); }
+  { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.6, -12.6]]) seaOats(x, z, r); }
   // periwinkle, weeds and grass at pile footings and stair feet (not on the carport / front-bay slabs)
   const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);
   { const r = kit.rng(65);
-    for (const [x, z, pw] of [[-8.42, 5.02, 1], [-8.42, 2.8, 0], [-8.42, -0.2, 1], [-8.42, -3.2, 0], [-8.42, -6.22, 1], [-6.4, 5.02, 1], [-3.6, 5.02, 0], [-0.8, 5.02, 1], [2.0, 5.02, 1], [-6.4, -6.22, 0], [-3.6, -6.22, 1], [-0.8, -6.22, 0], [6.42, -6.22, 1], [2.0, -6.22, 0], [-11.95, 6.75, 1], [-10.4, 6.85, 1], [-11.75, 3.0, 0], [0.1, -7.05, 1], [-10.65, 3.05, 0], [6.9, -3.0, 0], [6.95, 0.6, 1]]) {
+    for (const [x, z, pw] of [[-8.42, 5.02, 1], [-8.42, 2.8, 0], [-8.42, -0.2, 1], [-8.42, -3.2, 0], [-8.42, -6.22, 1], [-6.4, 5.02, 1], [-3.6, 5.02, 0], [-0.8, 5.02, 1], [2.0, 5.02, 1], [-6.4, -6.22, 0], [-3.6, -6.22, 1], [-0.8, -6.22, 0], [6.42, -6.22, 1], [2.0, -6.22, 0], [-11.95, 6.75 + SZ, 1], [-10.4, 6.85 + SZ, 1], [-11.75, 3.0 + SZ, 0], [0.1, -7.05, 1], [-10.65, 3.05 + SZ, 0], [6.9, -3.0, 0], [6.95, 0.6, 1]]) {
       const a0 = r() * 6.28;
       for (let i = 0; i < 4 + (r() * 3 | 0); i++) { const a = a0 + i * 1.3 + r(), d = 0.36 + r() * 0.18, tx = x + Math.cos(a) * d, tz = z + Math.sin(a) * d, h = 0.18 + r() * 0.32, w = 0.3 + r() * 0.2, gc = grassC(r); if (onSlab(tx, tz)) continue; tuft(tx, 0, tz, h, w, gc, 0.02, r); }   // never through the slabs
       if (pw && !onSlab(x + Math.cos(a0 + 2.5) * 0.42, z + Math.sin(a0 + 2.5) * 0.42)) { const a = a0 + 2.5, d = 0.42; periwinkle(x + Math.cos(a) * d, z + Math.sin(a) * d, 1 + r() * 0.3, 0, r); if (r() < 0.5) periwinkle(x + Math.cos(a + 1.2) * (d + 0.1), z + Math.sin(a + 1.2) * (d + 0.1), 0.85, 0, r); }
@@ -677,10 +681,10 @@ gl_Position = projectionMatrix * mvPosition;
   t = pot('bucket', 1.6, F, -6.0, 0.16, 0.28, 0x7fa6b8); aloe(1.6, t, -6.0, 0.8); periwinkle(1.66, -5.94, 0.6, t);
   t = pot('glazed', 6.2, F, -5.9, 0.18, 0.34, COBALT); snake(6.2, t, -5.9, 0.9);
   // at grade: by the stair foot and along the wing lattice
-  t = pot('terra', -12.3, 0, 6.85, 0.2, 0.34, TERRA); aloe(-12.3, t, 6.85, 1.25);
-  t = pot('glazed', -12.45, 0, 7.5, 0.22, 0.4, TEAL); croton(-12.45, t, 7.5, 0.95);
-  t = pot('nursery', -12.0, 0, 7.95, 0.14, 0.25, BLACK); periwinkle(-12.0, 7.95, 1.1, t);
-  t = pot('bucket', -10.1, 0, 7.05, 0.16, 0.29, 0xd7c9a0); herb(-10.1, t, 7.05, 1.2, [0.62, 0.9, 0.5]);
+  t = pot('terra', -12.3, 0, 6.85 + SZ, 0.2, 0.34, TERRA); aloe(-12.3, t, 6.85 + SZ, 1.25);
+  t = pot('glazed', -12.45, 0, 7.5 + SZ, 0.22, 0.4, TEAL); croton(-12.45, t, 7.5 + SZ, 0.95);
+  t = pot('nursery', -12.0, 0, 7.95 + SZ, 0.14, 0.25, BLACK); periwinkle(-12.0, 7.95 + SZ, 1.1, t);
+  t = pot('bucket', -10.1, 0, 7.05 + SZ, 0.16, 0.29, 0xd7c9a0); herb(-10.1, t, 7.05 + SZ, 1.2, [0.62, 0.9, 0.5]);
   t = pot('terra', 2.75, 0, 4.82, 0.19, 0.33, 0xad5c3a); aloe(2.75, t, 4.82, 1.15);
   t = pot('nursery', 3.5, 0, 4.76, 0.15, 0.27, BLACK); snake(3.5, t, 4.76, 0.95);
   t = pot('glazed', 4.4, 0, 4.82, 0.2, 0.37, MUSTARD); tiPlant(4.4, t, 4.82, 0.75);

@@ -165,7 +165,7 @@ export function build(ctx) {
   };
   const e = 0.07; // rail centerline inset from the deck edge
   railRun(-8.6 + e, -6.4 + e, 4.7, -6.4 + e); railRun(5.9, -6.4 + e, 6.6 - e, -6.4 + e);
-  railRun(-8.6 + e, -6.4 + e, -8.6 + e, 3.0, { noStart: true }); railRun(-8.6 + e, 4.2, -8.6 + e, 5.05);
+  railRun(-8.6 + e, -6.4 + e, -8.6 + e, P.stairW.landing.z0, { noStart: true }); railRun(-8.6 + e, P.stairW.landing.z1, -8.6 + e, 5.05);   // open at the west stair
   // porch front: rails between the porch posts (posts are built below), then the short return to the wing wall
   const porchPosts = [-8.6 + e, -6.4, -3.6, -0.8, 2.0 - e];
   railRun(-8.6 + e, 5.05, -6.47, 5.05, { noStart: true }); railRun(-6.47, 5.05, -6.47, 2.92, { noStart: true }); railRun(-0.73, 2.92, -0.73, 5.05); railRun(-0.73, 5.05, 0.53, 5.05, { noStart: true });
@@ -222,7 +222,7 @@ export function build(ctx) {
   };
   // west stair: flight 1 west from the deck edge, landing, flight 2 south to the yard
   const SW = P.stairW, Lw = SW.landing;
-  flight({ x: -8.6, z: 3.6, y: F, dir: [-1, 0], n: 7, w: SW.w, footPost: false });
+  flight({ x: -8.6, z: (Lw.z0 + Lw.z1) / 2, y: F, dir: [-1, 0], n: 7, w: SW.w, footPost: false });
   landing(Lw, Lw.y, { posts: [[Lw.x0 + 0.07, Lw.z0 + 0.07, true], [Lw.x1 - 0.07, Lw.z0 + 0.07, true], [Lw.x0 + 0.07, Lw.z1 - 0.07, true], [Lw.x1 - 0.07, Lw.z1 - 0.07, true]] });
   flight({ x: (Lw.x0 + Lw.x1) / 2, z: Lw.z1, y: Lw.y, dir: [0, 1], n: 7, w: SW.w });
   // landing rails (west and north sides) + X brace under the landing

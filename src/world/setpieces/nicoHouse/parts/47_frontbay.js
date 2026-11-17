@@ -332,10 +332,10 @@ export async function build(ctx) {
   });
   ctx.anchors.hoop = { pos: new THREE.Vector3(bbx, 0, 6.2), heading: PI };
   // player spawn outside: in the yard beside the pickup, facing the street (the camera then sits under the deck edge and frames
-  // the yard, both of Nico's cars and the street like the front-deck mock-up; facing the house put the pickup's hood across the view)
-  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-4.8, 0, 10.2), heading: 0 };
+  // the yard, both of Nico's cars and the STOP corner like the front-deck mock-up)
+  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-12.6, 0, 5.4), heading: -0.4 };   // r2-keys: Nico's spot in the mock-up, at the pickup's driver door, facing the STOP corner
   // test tools (s1-tour `house` spot) look for anchors.front: the same yard spot, so shots land in the yard, never in the bay
-  ctx.anchors.front = { pos: new THREE.Vector3(-2.2, 0, 11.5), heading: PI };
+  ctx.anchors.front = { pos: new THREE.Vector3(-10.5, 0, 9.5), heading: 2.3 };
   ctx.anchors.hoopRim = { pos: new THREE.Vector3(bbx, rimY, rimZ), heading: 0 };
 
   // ---------- the storage room: turquoise board walls, white panel door, window with a sash hanging open ----------

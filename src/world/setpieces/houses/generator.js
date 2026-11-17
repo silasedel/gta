@@ -316,15 +316,28 @@ export function* buildHouseGen(hk, sp, lod = 0) {
       const sh = o.type === 'sash' || o.type === 'arched' || o.type === 'jalousie' ? sp.shutter : 'none';
       if (sh === 'bahama' && o.floor === 0) { // top-hinged, propped open on two struts
         const sw = ow + 0.16, sh2 = o.h + 0.08, ang = 0.55 + r() * 0.25, cy = y1 + 0.08 - Math.cos(ang) * sh2 / 2, oo = Math.sin(ang) * sh2 / 2 + 0.05;
-        B2(PEEL, sw, sh2, 0.035, uc, cy, oo, { color: vary(C.accent), wear: wr(0.2) }, ang);
-        if (L0) for (let k = 0; k < 9; k++) B2(PEEL, sw - 0.1, 0.11, 0.012, uc, y1 + 0.08 - (k + 0.6) * sh2 / 9.5 * Math.cos(ang), 0.05 + (k + 0.6) * sh2 / 9.5 * Math.sin(ang) + 0.03, { color: vary(C.accent, 0.04), wear: wr(0.25) }, ang - 0.5);
+        // r2-keys (user review item 10): up close the shutter is a real louvered frame (stiles, rails, blades set INSIDE the frame
+        // depth) instead of a solid panel with thin slats hovering on / through its face (that read as a thin layered model and
+        // crawled into dots); farther out one solid panel. Same r() sequence as before.
+        // the tilt sign follows the wall frame: the leaf hangs from the hinge and swings its bottom OUT (the old solid panel had the
+        // opposite tilt on some walls, hidden because a symmetric box looks the same both ways)
+        const outZ = (() => { const [xa, za] = Wl.p(uc, 0), [xb, zb] = Wl.p(uc, 1); return (xb - xa) * Math.sin(Wl.ry) + (zb - za) * Math.cos(Wl.ry); })(), ra = outZ > 0 ? -ang : ang;
+        const fc = { color: vary(C.accent), wear: wr(0.2) }, at = (t) => [y1 + 0.08 - t * Math.cos(ang), 0.05 + t * Math.sin(ang)];
+        if (!L0) B2(PEEL, sw, sh2, 0.035, uc, cy, oo, fc, ra);
+        else { for (const s3 of [-1, 1]) B2(PEEL, 0.065, sh2, 0.04, uc + s3 * (sw / 2 - 0.0325), cy, oo, fc, ra);
+          for (const t of [0.045, sh2 - 0.045]) { const [yy, zz] = at(t); B2(PEEL, sw - 0.13, 0.09, 0.04, uc, yy, zz, fc, ra); }
+          for (let k = 0; k < 9; k++) { const t = 0.1 + (k + 0.5) * (sh2 - 0.2) / 9, [yy, zz] = at(t); B2(PEEL, sw - 0.13, (sh2 - 0.2) / 9 * 1.12, 0.014, uc, yy, zz, { color: vary(C.accent, 0.04), wear: wr(0.25) }, ra + Math.sign(ra) * 0.55); } }
         if (L0) for (const s2 of [-1, 1]) B.rod(STEEL, wp(Wl, uc + s2 * (sw / 2 - 0.1), y0 + 0.15, 0.04), wp(Wl, uc + s2 * (sw / 2 - 0.1), cy - Math.cos(ang) * sh2 / 2 + 0.02, oo + Math.sin(ang) * sh2 / 2), 0.008, { color: 0x8a8a86 });
       } else if (sh === 'louver' || sh === 'panel' || (sh === 'bahama' && o.floor > 0)) { // side-hinged pair, open against the wall
         for (const s2 of [-1, 1]) {
           const cu = uc + s2 * (ow / 2 + 0.06 + ow / 4);
-          B2(PEEL, ow / 2, o.h + 0.06, 0.03, cu, (y0 + y1) / 2, 0.05, { color: vary(C.accent), wear: wr(0.2) });
-          if (sh !== 'panel' && L0) for (let k = 0; k < Math.floor(o.h / 0.075); k++) B2(PEEL, ow / 2 - 0.08, 0.06, 0.008, cu, y0 + 0.08 + k * 0.075, 0.068, { color: vary(C.accent, 0.03), wear: wr(0.25) }, -0.6);
-          else if (L0) for (const fy of [0.3, 0.72]) B2(PEEL, ow / 2 - 0.1, o.h * 0.36, 0.01, cu, y0 + o.h * fy, 0.07, { color: kit.mul(C.accent, 0.92), wear: wr(0.2) });
+          // r2-keys: louvered leaf = stiles + rails + blades within the frame depth up close (no backing panel with slats through
+          // its face); a raised-panel leaf keeps its panel; farther out one solid leaf. Same r() sequence as before.
+          const fc = { color: vary(C.accent), wear: wr(0.2) }, lh = o.h + 0.06, yc2 = (y0 + y1) / 2, nk = Math.floor(o.h / 0.075);
+          if (sh !== 'panel' && L0) { for (const s3 of [-1, 1]) B2(PEEL, 0.055, lh, 0.034, cu + s3 * (ow / 4 - 0.0275), yc2, 0.05, fc);
+            for (const yy of [y0 - 0.03 + 0.045, y1 + 0.03 - 0.045]) B2(PEEL, ow / 2 - 0.11, 0.09, 0.034, cu, yy, 0.05, fc);
+            const pitch = (lh - 0.18) / nk; for (let k = 0; k < nk; k++) B2(PEEL, ow / 2 - 0.11, pitch * 1.15, 0.012, cu, y0 - 0.03 + 0.09 + (k + 0.5) * pitch, 0.05, { color: vary(C.accent, 0.03), wear: wr(0.25) }, -0.6); }
+          else { B2(PEEL, ow / 2, lh, 0.03, cu, yc2, 0.05, fc); if (L0) for (const fy of [0.3, 0.72]) B2(PEEL, ow / 2 - 0.1, o.h * 0.36, 0.012, cu, y0 + o.h * fy, 0.069, { color: kit.mul(C.accent, 0.92), wear: wr(0.2) }); }
           if (sh !== 'panel' && L0) B2(STEEL, 0.03, 0.05, 0.03, cu + s2 * (ow / 4 - 0.02), (y0 + y1) / 2, 0.08, { color: 0x2a2a2a });
         }
       }

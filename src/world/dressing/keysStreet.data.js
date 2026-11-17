@@ -2,7 +2,8 @@
 // roofs) and a couple of stilt houses, each with its own yard so the street never repeats. Built by the house generator
 // (src/world/setpieces/houses) from these explicit choices; the extras (boats on trailers, chairs, kayaks, docks, fences
 // from the user's models) are placed by keysLots.js. Auto-placed street lots stay out of HAND_R around the house.
-// Coordinates: Nico's HOUSE-LOCAL frame (src/world/setpieces/nicoHouse/plan.js: +X east of the plan, +Z toward his street).
+// Coordinates: Nico's STREET frame = the layout.json nico_house heading (r2-keys: the house itself is turned HOUSE_YAW within its
+// lot, see nicoHouse.v2.js; these lots and docks keep the frame they were placed in, +X along, +Z toward the old front street).
 //   x, z: house center; face: local heading of the lot's street side (0 = +Z, PI = toward the bay); w, d: house size;
 //   gap: house front -> road edge; side / back: yard beyond the house; style, stilt, base: generator inputs;
 //   over: generator overrides (colors, fence: 'wood'|'picket'|'chain'|'iron'|'none', frontHedge, hedge, carport, car, bins,
@@ -16,14 +17,16 @@
 export const HAND_R = 115;   // auto lots (dressing.v2.js spawn street) stay this far from Nico's house
 
 export const KEYS_LOTS = [
-  { // A: the white cottage across the street (mock-up: white siding, board fence and a clipped hedge along the front)
-    id: 'pp_white', x: -13.5, z: 41.6, face: 2.82, w: 9.2, d: 7.6, style: 'keys', stilt: false, base: 0.6, gap: 6.2, side: 3.2, back: 6,
+  { // A: the white cottage across the street (mock-up: white siding, board fence and a clipped hedge along the front). r2-keys: with
+    // Nico's house turned in its lot (nicoHouse.v2.js HOUSE_YAW) this is the lot the deck looks at across the east leg, left of the STOP
+    // corner; it swapped spots with the yellow stilt house. Coordinates here stay in the STREET frame (spot.streetHeading)
+    id: 'pp_white', x: 18.0, z: 43.0, face: -2.61, w: 9.2, d: 7.6, style: 'keys', stilt: false, base: 0.6, gap: 6.2, side: 3.2, back: 6,
     over: { colors: { body: 0xf1ede2, trim: 0xfbfaf6, accent: 0x2f7d82, roof: 0xc3c6c8 }, fence: 'wood', frontHedge: true, hedge: false, car: false, bins: true, palms: 1, shrubs: 4, flamingos: 0, porchStuff: 2, shutter: 'bahama', windowAC: true, dish: false },
     extras: [{ k: 'chairs', u: -2.6, v: 4.6, h: 0.3 }, { k: 'grill', u: 5.6, v: -2.0, h: 1.2 }],
     car: { kind: 'sedan', look: 'faded', u: 6.4, v: 6.0, h: Math.PI },
   },
   { // B: yellow stilt house across the corner, chain-link, a center console on its trailer in the side yard
-    id: 'pp_yellow', x: 18.0, z: 43.0, face: -2.61, w: 8.6, d: 7.8, style: 'keys', stilt: true, base: 2.9, gap: 7.0, side: 4.5, back: 5,
+    id: 'pp_yellow', x: -13.5, z: 41.6, face: 2.82, w: 8.6, d: 7.8, style: 'keys', stilt: true, base: 2.9, gap: 7.0, side: 4.5, back: 5,
     over: { colors: { body: 0xf0d890, trim: 0xf2f0ea, accent: 0x4a6a7a, roof: 0x9aa0a8 }, fence: 'chain', frontHedge: false, hedge: true, car: false, bins: true, palms: 2, shrubs: 3, lattice: true, storage: true, dish: true },
     extras: [{ k: 'boatTrailer', u: -7.2, v: 0.5, h: 0.05, seed: 3 }, { k: 'crabTraps', u: 5.8, v: -3.5, h: 0.4 }, { k: 'buoys', u: 6.4, v: -2.4 }],
     car: { kind: 'pickup', look: 'work', u: 4.2, v: 6.5, h: Math.PI + 0.1 },

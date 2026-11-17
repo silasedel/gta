@@ -4,10 +4,11 @@
 // clothesline) and the yard (rope hammock, spool table and fire pit, mailbox, conch shell rows, buoy cluster).
 // Own procedural models plus CC0 Poly Haven props (see credits_45_carport.txt). House-local meters.
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { MAILBOX } from '../yard.data.js';
 export const order = 45;
 
 export async function build(ctx) {
-  const { THREE, kit, mat, col } = ctx, D = ctx.detail, M = kit.M, PI = Math.PI;
+  const { THREE, kit, mat, col } = ctx, D = ctx.detail, M = kit.M, PI = Math.PI, SZ = ctx.plan.stairW.dz || 0;   // SZ: the west stair's move (plan.js)
   const r = kit.rng(4501), V = (c, a = 0.06) => kit.vary(c, r, a), rs = (a = 1) => (r() - 0.5) * 2 * a;
   const W = mat.wood(), PLY = mat.pbr('plywood', { rep: 1.2 }), CONC = mat.concrete(), RUST = mat.rust(), RUSTL = mat.rustLight(), STEEL = mat.steel(), CHROME = mat.chrome(),
     PL = mat.plastic(), PLG = mat.plasticGloss(), RUB = mat.rubber(), MP = mat.metalPaint(), MATTE = mat.matte(), ROCK = mat.pbr('coral_stone_wall', { rep: 0.9 });
@@ -512,7 +513,7 @@ export async function build(ctx) {
     col.cyl(-4.25, 0.1, -12.45, 0.7, 0.24, { tag: 'clutter' });
   }
   { // mailbox at the street end of the driveway on a leaning 4x4
-    const o = obj(-7.6, 0, 26, 0.06, 0.035, 0.07), pc = () => V(0x8d857a, 0.1);
+    const MB = MAILBOX, mby = Math.max(ctx.yardY ? ctx.yardY(MB.x, MB.z) : 0, ctx.opts.groundAt ? ctx.opts.groundAt(MB.x, MB.z) : 0) - 0.03, o = obj(MB.x, mby, MB.z, MB.h + 0.06, 0.035, 0.07), pc = () => V(0x8d857a, 0.1);   // r2-keys: at the drive mouth (yard.data.js)
     o.box(W, 0.089, 1.3, 0.089, 0, 0.5, 0, { grain: 1, color: pc(), wear: 0.9 }).box(W, 0.14, 0.038, 0.6, 0, 1.15, 0.12, { grain: 2, color: pc(), wear: 0.8 }).strut(W, [0, 0.7, 0.05], [0, 1.12, 0.36], 0.038, 0.089, { color: pc(), wear: 0.8 });
     const arch = () => { const sh = new THREE.Shape(); sh.moveTo(-0.085, 0); sh.lineTo(0.085, 0); sh.lineTo(0.085, 0.12); sh.absarc(0, 0.12, 0.085, 0, PI, false); sh.lineTo(-0.085, 0); return sh; };
     const b = o.sub(0, 1.171, 0.13, 0, 0, 0.025), bg = new THREE.ExtrudeGeometry(arch(), { depth: 0.48, bevelEnabled: false, curveSegments: 12 }); bg.translate(0, 0, -0.24); b.geo(STEEL, bg, null, { color: 0x9da2a2, uvMul: [5, 5] });
@@ -522,9 +523,9 @@ export async function build(ctx) {
     label(b, REG.mail, 0.43, 0.108, -0.0858, 0.062, 0, 0, -PI / 2, 0); label(b, REG.mail, 0.43, 0.108, 0.0858, 0.062, -0.02, 0, PI / 2, 0); label(b, REG.dive, 0.06, 0.045, -0.0858, 0.14, -0.17, 0, -PI / 2, 0.1);
     for (let i = 0; i < 8; i++) { const s = r() > 0.5 ? 1 : -1; b.box(MATTE, 0.0012, 0.004 + r() * 0.012, 0.01 + r() * 0.03, s * 0.0855, 0.002 + r() * 0.012, rs(0.22), { color: V(0x5a4636, 0.15), bevel: 0 }); }
     b.sph(MATTE, 0.03, 0.03, 0.2, -0.1, { color: 0x7a7d7e }, 1.4, 0.3, 1.8).sph(MATTE, 0.03, -0.04, 0.198, 0.08, { color: 0x5a4636 }, 1, 0.3, 1.5);
-    for (let i = 0; i < 9; i++) D.box(CONC, 0.06 + r() * 0.05, 0.04, 0.06 + r() * 0.05, M(-7.6 + rs(0.16), 0.01, 26 + rs(0.16), rs(0.4), r() * 3, rs(0.4)), { color: V(0xcfc8b8, 0.1), bevel: 0.012, wear: 0.8 });
-    col.cyl(-7.6, 0.6, 26, 0.1, 1.2, { tag: 'post' }); col.box(-7.66, 1.28, 26.13, 0.2, 0.26, 0.52, { tag: 'clutter' });
-    ctx.anchors.mailbox = { pos: new THREE.Vector3(-7.6, 0, 26.85), heading: PI };
+    for (let i = 0; i < 9; i++) D.box(CONC, 0.06 + r() * 0.05, 0.04, 0.06 + r() * 0.05, M(MB.x + rs(0.16), mby + 0.04, MB.z + rs(0.16), rs(0.4), r() * 3, rs(0.4)), { color: V(0xcfc8b8, 0.1), bevel: 0.012, wear: 0.8 });
+    col.cyl(MB.x, mby + 0.6, MB.z, 0.1, 1.2, { tag: 'post' }); col.box(MB.x + Math.sin(MB.h) * 0.13, mby + 1.28, MB.z + Math.cos(MB.h) * 0.13, 0.2, 0.26, 0.52, { ry: MB.h, tag: 'clutter' });
+    ctx.anchors.mailbox = { pos: new THREE.Vector3(MB.x + Math.sin(MB.h) * 0.85, 0, MB.z + Math.cos(MB.h) * 0.85), heading: MB.h + PI };
   }
   { // conch shells lining the foot of the west stair and the driveway edge
     const conch = (seed, broken) => { const nT = 44, nP = 9, turns = 4.1, pos = [], cl = [], idx = [], q = kit.rng(seed), cO = kit.rgb(0xcbbfa8), cT = kit.rgb(0xa98f76), cI = kit.rgb(0xd3a596), t0 = broken === 1 ? 0.42 : 0.04, t1 = broken === 2 ? 0.88 : 1;
@@ -536,11 +537,11 @@ export async function build(ctx) {
       for (let j = 0; j < nP; j++) idx.push(e + j, n0, e + j + 1);
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 2), 2)); g.setIndex(idx); g.computeVertexNormals(); return g; };
     const geos = [conch(1, 0), conch(2, 0), conch(3, 1), conch(4, 2), conch(5, 0)], spots = [];
-    for (let i = 0; i < 5; i++) { spots.push([-12.12 + rs(0.05), 6.35 + i * 0.42 + rs(0.06)]); spots.push([-10.28 + rs(0.05), 6.4 + i * 0.42 + rs(0.06)]); }
+    for (let i = 0; i < 5; i++) { spots.push([-12.12 + rs(0.05), 6.35 + SZ + i * 0.42 + rs(0.06)]); spots.push([-10.28 + rs(0.05), 6.4 + SZ + i * 0.42 + rs(0.06)]); }
     spots.forEach(([x, z], i) => { const s = 0.78 + r() * 0.3; D.geo(MATTE, geos[i % 5], M(x, 0.055 * s, z, PI / 2 + rs(0.35), r() * 6.28, rs(0.3), s), { keepColor: true }); });
   }
   { // painted buoys hanging off the stair landing post
-    const o = obj(-10.5, 2.42, 4.31); o.rod(RUSTL, [-0.08, 0.0, -0.08], [0.0, 0.01, 0.0], 0.006, { color: 0x6b5a48 });
+    const o = obj(-10.5, 2.42, 4.31 + SZ); o.rod(RUSTL, [-0.08, 0.0, -0.08], [0.0, 0.01, 0.0], 0.006, { color: 0x6b5a48 });
     const hang = [[0.0, -0.55, 0.02, CODE, 0], [0.13, -0.8, -0.03, [0xc2521d, 0xd9d5c8, 0x1b1b1d], 0], [-0.04, -1.02, 0.14, [0xd9d5c8, 0x2c4f8a, 0xb5332a], 1], [0.1, -0.42, 0.14, [0xd9b526, 0xd9b526, 0x1b1b1d], 1], [0.02, -1.28, 0.0, [0x2c4f8a, 0xd9d5c8, 0xd9d5c8], 0], [0.17, -1.15, 0.12, CODE, 0]];
     hang.forEach(([x, y, z, bands, kind], i) => { buoy(o, x, y, z, rs(0.15), r() * 6, rs(0.15), bands, 0.95, kind); o.tube(MATTE, [[0, 0, 0], [x * 0.5, y * 0.4, z * 0.5], [x, y + (kind ? 0.13 : 0.18), z]], 0.004, { color: i % 2 ? 0xd9d5c8 : ROPE, seg: 4 }); });
   }
@@ -549,9 +550,9 @@ export async function build(ctx) {
     o.rod(RUST, [0, 0.06, 0], [0, 0.9, 0], 0.017, { color: RC, seg: 8 }).tube(RUST, [[-0.27, 0.32, 0], [-0.2, 0.13, 0], [0, 0.04, 0], [0.2, 0.13, 0], [0.27, 0.32, 0]], 0.017, { color: RC, seg: 7 }).rod(RUST, [0, 0.8, -0.27], [0, 0.8, 0.27], 0.012, { color: RC, seg: 7 });
     for (const s of [-1, 1]) { o.box(RUST, 0.11, 0.14, 0.012, s * 0.25, 0.3, 0, { color: RC, bevel: 0.004 }, 0, 0, s * 0.5).sph(RUST, 0.022, 0, 0.8, s * 0.27, { color: RC }); }
     o.tor(RUST, 0.04, 0.008, 0, 0.94, 0, 0, PI / 2, 0, { color: RC, rs: 5, ts: 12 }); for (let i = 0; i < 7; i++) o.tor(RUST, 0.022, 0.006, 0.03 + i * 0.012, 0.9 - i * 0.035 - (i > 3 ? 0.02 : 0), 0.04 + i * 0.03, i % 2 ? 0.4 : 1.2, i % 2 ? 0 : PI / 2, 0, { color: RC, rs: 4, ts: 8, flat: 1 });
-    D.box(RUB, 0.76, 0.014, 0.46, M(-11.2, 0.067, 6.72, 0, 0.05, 0), { color: 0x3a2c20, bevel: 0.004 }); D.geo(ATLAS, new THREE.PlaneGeometry(0.74, 0.44), M(-11.2, 0.0746, 6.72, -PI / 2, 0.05, 0), REG.doormat);
+    D.box(RUB, 0.76, 0.014, 0.46, M(-11.2, 0.067, 6.72 + SZ, 0, 0.05, 0), { color: 0x3a2c20, bevel: 0.004 }); D.geo(ATLAS, new THREE.PlaneGeometry(0.74, 0.44), M(-11.2, 0.0746, 6.72 + SZ, -PI / 2, 0.05, 0), REG.doormat);
     const sole = new THREE.Shape(); sole.absellipse(0, 0, 0.048, 0.13, 0, PI * 2); const sg = new THREE.ExtrudeGeometry(sole, { depth: 0.013, bevelEnabled: false, curveSegments: 10 }); sg.rotateX(-PI / 2);
-    for (const [x, z, a] of [[-11.02, 6.02, 0.25], [-10.87, 5.99, -0.12]]) { const f = obj(x, 0.189, z, a); f.geo(RUB, sg, null, { color: V(0x3f7fa6, 0.06) }); f.tube(RUB, [[-0.04, 0.013, 0.01], [-0.03, 0.035, -0.04], [0, 0.016, -0.08], [0.03, 0.035, -0.04], [0.04, 0.013, 0.01]], 0.005, { color: 0xe3e0d6, seg: 5 }); }
+    for (const [x, z, a] of [[-11.02, 6.02 + SZ, 0.25], [-10.87, 5.99 + SZ, -0.12]]) { const f = obj(x, 0.189, z, a); f.geo(RUB, sg, null, { color: V(0x3f7fa6, 0.06) }); f.tube(RUB, [[-0.04, 0.013, 0.01], [-0.03, 0.035, -0.04], [0, 0.016, -0.08], [0.03, 0.035, -0.04], [0.04, 0.013, 0.01]], 0.005, { color: 0xe3e0d6, seg: 5 }); }
   }
 
   // ---------- CC0 props: load, bake the placements, one mesh per model material ----------

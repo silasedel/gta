@@ -1,6 +1,7 @@
 // Nico's house, part 40: exterior fixtures and the lower level. White lattice panels, the storage-room wall with its dark
 // door, surfboard, breaker panel, hose on a hook; meter, service mast, weatherhead, service drop to the power pole;
 // satellite dish, turbine roof vent, AC condenser on a raised stand, propane tank, outdoor shower, wind chime.
+import { POLES, SERVICE_POLE } from '../yard.data.js';
 export const order = 40;
 
 export function build(ctx) {
@@ -25,11 +26,11 @@ export function build(ctx) {
   // ---------- power: service mast through the eave, weatherhead, service drop to the pole on the street side ----------
   { const mx = -6.05, mz = P.A.z1 + 0.06; B.cyl(ST, 0.03, 0.03, 4.4, M(mx, 4.6, mz), { color: 0x9a9c98, seg: 10 }); B.cyl(ST, 0.045, 0.03, 0.12, M(mx, 6.85, mz), { color: 0x8a8c88, seg: 10 }); B.geo(ST, new THREE.SphereGeometry(0.055, 10, 6, 0, 6.3, 0, 1.6), M(mx, 6.9, mz + 0.02, 0.5, 0, 0), { color: 0x8a8c88 });
     for (const y of [3.4, 4.6, 5.5]) B.box(ST, 0.1, 0.025, 0.02, M(mx, y, mz - 0.03), { color: 0x8a8c88 });
-    const px = -21.5, pz = 15.5, PT = mat.wood(); B.cyl(PT, 0.11, 0.15, 9.6, M(px, 4.3, pz, 0.012, 0, -0.02), { seg: 12, hseg: 4, color: 0x6d5c48, wear: 0.9 }); B.box(PT, 2.2, 0.1, 0.12, M(px, 8.3, pz, 0, 0.5, 0), { grain: 0, color: 0x6d5c48, wear: 0.8, bevel: 0.006 });
-    for (const s of [-0.95, -0.35, 0.35, 0.95]) B.cyl(mat.ceramic(), 0.03, 0.045, 0.1, M(px + Math.cos(0.5) * s, 8.4, pz - Math.sin(0.5) * s), { color: 0x6b7f8a, seg: 10 });
-    B.cyl(MP, 0.2, 0.2, 0.62, M(px + 0.34, 7.3, pz + 0.1), { color: 0x7f8587, seg: 16 }); B.cyl(mat.ceramic(), 0.03, 0.04, 0.16, M(px + 0.34, 7.7, pz + 0.1), { color: 0x8a6a4a, seg: 8 }); col.cyl(px, 2, pz, 0.17, 4, { tag: 'pole' });
+    // r2-keys: the service drop runs to the yard's corner pole (yard.data.js POLES[SERVICE_POLE], built with its wires in part 55);
+    // the house's own pole at (-21.5, 15.5) stood in the west leg once the house was turned in its lot
+    const [px, pz, ph] = POLES[SERVICE_POLE];
     const cat = (a, b, sag, rr = 0.009) => { const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16; pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - Math.sin(t * Math.PI) * sag, a[2] + (b[2] - a[2]) * t]); } B.tube(RUB, pts, rr, { seg: 5, color: 0x1a1a19, steps: 28 }); };
-    cat([mx, 6.82, mz + 0.05], [px + 0.2, 7.9, pz], 0.75, 0.012); for (const [s, far] of [[-0.95, [-70, 8.4, 30]], [0.95, [-70, 8.4, 32]], [0.35, [20, 8.4, 60]], [-0.35, [20, 8.4, 58.5]]]) cat([px + Math.cos(0.5) * s, 8.45, pz - Math.sin(0.5) * s], far, 1.6, 0.007); }
+    cat([mx, 6.82, mz + 0.05], [px + 0.1, ph - 1.85, pz - 0.1], 1.05, 0.012); }
   // ---------- roof: satellite dish, turbine vent, plumbing vent stack ----------
   { const p = ctx.roofPoint?.('A_south', -5.2, 1.2, 0.02) || [-5.2, 6.7, 1.0]; B.cyl(ST, 0.02, 0.02, 0.5, M(p[0], p[1] + 0.25, p[2]), { color: 0x9a9c98, seg: 8 }); B.box(ST, 0.16, 0.012, 0.16, M(p[0], p[1] + 0.01, p[2], 0.46, 0, 0), { color: 0x8a8c88 });
     const dg = new THREE.SphereGeometry(0.62, 22, 8, 0, 6.283, 0, 0.52); B.geo(mat.metalPaint(), dg, M(p[0], p[1] + 0.52, p[2] + 0.5, -1.15, 0.5, 0), { color: 0xcfcfc8 }); dg.dispose();
