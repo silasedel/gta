@@ -60,8 +60,8 @@ const PICK_JS = `(() => {
   out.downtown = near(407, -110, 900, (n) => n.signal);
   out.town = near(-1540, -2805, 900, (n) => n.signal) || near(-1540, -2805, 900, () => true);
   out.townStop = near(-1540, -2805, 900, (n) => !n.signal);
-  out.keys = near(-836, 5272, 600, (n) => !n.signal && (n.edges || []).every((k) => !/primary|trunk|motorway/.test(G.edges[k]?.kind || '')));
-  out.keysSig = near(-836, 5272, 900, (n) => n.signal);
+  out.keys = near(-873.6, 4825.2, 600, (n) => !n.signal && (n.edges || []).every((k) => !/primary|trunk|motorway/.test(G.edges[k]?.kind || '')));
+  out.keysSig = near(-873.6, 4825.2, 900, (n) => n.signal);
   out.beach = near(2332, -660, 900, (n) => n.signal);
   return JSON.stringify(out);
 })()`;

@@ -10,7 +10,7 @@ import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const SET = o.set || 'after';
-const SPOTS = { clewiston: [-1540, -2805, 0], keylargo: [-836, 5272, 0], everglades: [-2386, 2660, 0] };
+const SPOTS = { clewiston: [-1540, -2805, 0], keylargo: [-873.6, 4825.2, 0], everglades: [-2386, 2660, 0] };
 const VEG = `(() => { // vegetation draw calls / triangles this frame (instanced meshes with a vegetation material or a countryside slot)
   let calls = 0, tris = 0, inst = 0; const cam = game.camera;
   game.scene.traverseVisible((m) => { if (!m.isMesh || !m.material) return; const mats = Array.isArray(m.material) ? m.material : [m.material];

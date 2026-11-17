@@ -333,6 +333,8 @@ export async function build(ctx) {
   ctx.anchors.hoop = { pos: new THREE.Vector3(bbx, 0, 6.2), heading: PI };
   // player spawn outside: on the drive in front of the carport bay, facing the house
   ctx.anchors.spawnYard = { pos: new THREE.Vector3(-2.2, 0, 9.5), heading: PI };
+  // test tools (s1-tour `house` spot) look for anchors.front: the same yard spot, so shots land in the yard, never in the bay
+  ctx.anchors.front = { pos: new THREE.Vector3(-2.2, 0, 11.5), heading: PI };
   ctx.anchors.hoopRim = { pos: new THREE.Vector3(bbx, rimY, rimZ), heading: 0 };
 
   // ---------- the storage room: turquoise board walls, white panel door, window with a sash hanging open ----------

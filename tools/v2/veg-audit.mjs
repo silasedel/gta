@@ -10,7 +10,7 @@ import { withBrowser, GAME_READY, startGame } from './browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const SET = o.set || 'after', R = +(o.r || 260);
-const SPOTS = { clewiston: [-1540, -2805], keylargo: [-836, 5272], downtown: [407, -110], beach: [2332, -660], everglades: [-2386, 2660], homestead: [-1320, 3190], brickell: [0, 1760] };
+const SPOTS = { clewiston: [-1540, -2805], keylargo: [-873.6, 4825.2], downtown: [407, -110], beach: [2332, -660], everglades: [-2386, 2660], homestead: [-1320, 3190], brickell: [0, 1760] };
 const AUDIT = (cx, cz) => `(() => {
   const C = game.city, G = C.roadGraph, out = { n: 0, bySrc: {}, road: [], crown: [], sidewalk: [], building: [], counts: { road: 0, crown: 0, sidewalk: 0, building: 0 } };
   const D = game.miamiData, TS = C.streamer?.tileSize || 200, CURB = 0.15;
