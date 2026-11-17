@@ -9,6 +9,7 @@
 // Live values: material.userData.sand = { shells, litter, damp, ripples, marks, bump } (uniform objects, set .value).
 // Fresh footprints are separate decals (src/fx/footprints.v2.js) and work on top of this or any other sand.
 const cache = new WeakMap();
+const SAND_V1 = typeof location !== 'undefined' && /[?&]ground2=0\b/.test(location.search);
 const rng = (seed) => { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
 
 // 4 x 4 atlas, 256 px cells. Canvas rows from the top: shells | shell bits and pebbles | litter | large marks.
@@ -75,7 +76,9 @@ export function makeSandMaterial(THREE, opts = {}) {
   let shared = cache.get(loader); if (!shared) {
     const T = (n, srgb) => { const t = loader.load(`${o.base}assets/city/pbr/${n}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = o.anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
     const atl = new THREE.CanvasTexture(sandAtlas()); atl.colorSpace = THREE.SRGBColorSpace; atl.anisotropy = o.anisotropy; atl.wrapS = atl.wrapT = THREE.ClampToEdgeWrapping;
-    shared = { col: T('coast_sand_01_col', true), nrm: T('coast_sand_01_nrm', false), atl }; cache.set(loader, shared);
+    // ground pass: the user's fine beach sand (Sand 2, public/assets/textures/ground), same set as the terrain's sand layer
+    const G = (n, srgb) => { const t = loader.load(`${o.base}assets/textures/ground/${n}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = o.anisotropy; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
+    shared = SAND_V1 ? { col: T('coast_sand_01_col', true), nrm: T('coast_sand_01_nrm', false), atl } : { col: G('sand_col', true), nrm: G('sand_nrm', false), atl }; cache.set(loader, shared);
   }
   const U = { sandCol: { value: shared.col }, sandNrm: { value: shared.nrm }, sandAtl: { value: shared.atl }, sandTile: { value: o.tile }, sandBump: { value: o.bump }, sandP: { value: new THREE.Vector4(o.shells, o.damp, o.ripples, o.litter) }, sandMarks: { value: o.marks } , sandShore: { value: null }, sandShoreRect: { value: new THREE.Vector4(0, 0, 1, 1) }, sandShoreOn: { value: 0 }, sandTime: { value: 0 } };
   const mat = new THREE.MeshStandardMaterial({ color: o.tint, roughness: 0.96, metalness: 0, vertexColors: o.vertexColors });

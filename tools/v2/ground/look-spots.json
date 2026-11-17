@@ -241,5 +241,74 @@
   ],
   "tod": 12,
   "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "farm_air": {
+  "eye": [
+   -1730,
+   55,
+   -3520
+  ],
+  "look": [
+   -1660,
+   0,
+   -3420
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "farm_ped": {
+  "eye": [
+   -1680,
+   1.6,
+   -3450
+  ],
+  "look": [
+   -1640,
+   0.1,
+   -3400
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "farm2_air": {
+  "eye": [
+   -830,
+   55,
+   -2900
+  ],
+  "look": [
+   -760,
+   0,
+   -2820
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "suburb_play": {
+  "player": [
+   -1560,
+   -2800,
+   0.6
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "park_play": {
+  "player": [
+   610,
+   220,
+   0.8
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
+ },
+ "glade_play": {
+  "player": [
+   -2400,
+   2640,
+   0.6
+  ],
+  "tod": 12,
+  "eval": "game.weather && game.weather.set && (game.weather.set('clear',{instant:true}), game.weather.hold(true));"
  }
 }

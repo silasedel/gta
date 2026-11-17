@@ -82,7 +82,8 @@ export async function createMaterials(renderer) {
   // ground-continuity: beaches and sand areas use the fine sand material (three-scale stochastic sampling, grain, ripples,
   // shells and debris, moisture bands toward the waterline once beach.v2.js has built the shore field); was one tiled photo
   if (!(typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search))) { const base = (import.meta.env && import.meta.env.BASE_URL) || '/';
-    M.sandPhoto = M.sand; M.sand = makeSandMaterial(THREE, { base, vertexColors: true, tint: 0xc9b591, tile: 1.3, shells: 0.5, litter: 0.15, damp: 0.25, ripples: 0.7, marks: 0.25, anisotropy: 8 }); }
+    M.sandPhoto = M.sand; M.sand = makeSandMaterial(THREE, { base, vertexColors: true, tint: /[?&]ground2=0\b/.test(location.search) ? 0xc9b591 : 0xb59775, tile: /[?&]ground2=0\b/.test(location.search) ? 1.3 : 2.6, // ground pass: same sand and tone as the terrain's beaches
+      shells: 0.5, litter: 0.15, damp: 0.25, ripples: 0.7, marks: 0.25, anisotropy: 8 }); }
   for (const [m, b] of [[M.office, 2.0], [M.deco, 1.6], [M.band, 1.6], [M.shop, 1.2]]) { m.bumpMap = m.map; m.bumpScale = b; }
 
   // lit windows: warm tint + per-window on/off switching over time (a few flicker)

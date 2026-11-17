@@ -16,6 +16,10 @@ import { buildGeometry } from './index.js';
 import { makeVegMaterial } from './materials.js';
 import { bakeImpostor } from './field.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
+import { grassCardMap, clumpCard, stripCard, bladeCards } from './grasscards.js';
+
+// ground pass: close-up grass from the user's photographed grass cards (?gcards=0: the procedural blade tufts)
+const GCARDS = typeof location === 'undefined' || !/[?&]gcards=0\b/.test(location.search);
 
 const V3 = THREE.Vector3;
 export const CS_ON = typeof location === 'undefined' || !/[?&]veg2=0\b/.test(location.search);
@@ -199,6 +203,8 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
   const MAT = {};
   for (const cls of ['tree', 'shrub']) MAT[cls] = [{ bark: vegMat('bark', BAND[cls][0]), leaf: vegMat('leaf', BAND[cls][0]) }];
   MAT.gc = { leaf: vegMat('leaf', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0.35, transl: 0.7 }), plain: vegMat('plain', BAND.gc[0], { lean: 0.02, sway: 0.03, wear: 0 }), rock: vegMat('plain', BAND.gc[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), peb: vegMat('plain', BAND.peb[0], { lean: 0, sway: 0, wear: 0, tint: 0.6 }), fill: vegMat('plain', BAND.gcn[0], { lean: 0.02, sway: 0.03, wear: 0 }), half: vegMat('plain', BAND.gch[0], { lean: 0.02, sway: 0.03, wear: 0 }) };
+  if (GCARDS) { const map = grassCardMap(renderer), co = { map, lean: 0.03, sway: 0.035, wear: 0.12, transl: 0.65, alphaTest: 0.38, tint: 0.8 };
+    MAT.gc.card = vegMat('leaf', BAND.gc[0], co); MAT.gc.cardFill = vegMat('leaf', BAND.gcn[0], co); MAT.gc.cardHalf = vegMat('leaf', BAND.gch[0], co); }
   const bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
   // ---- prototypes ----
   const protos = [], protoOf = {};
@@ -216,7 +222,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
       try { const im = bakeImpostor(renderer, 'cs_' + key, 1, g0, bakeM.bark.mat, bakeM.leaf.mat, 256), m = makeVegMaterial('imp', { map: im.texture, fade: bands[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 });
         P.lods.push({ band: bands[2], slots: [new Slot(group, im.geometry, m.mat, m.depth, false, colored)] }); } catch (e) { console.warn('[countryside] impostor bake failed', key, e); }
     } else {
-      const band = cls === 'peb' ? BAND.peb[0] : cls === 'gcn' ? BAND.gcn[0] : cls === 'gch' ? BAND.gch[0] : BAND.gc[0], M = cls === 'peb' ? MAT.gc.peb : cls === 'gcn' ? MAT.gc.fill : cls === 'gch' ? MAT.gc.half : g0.plain ? (key.startsWith('rock') ? MAT.gc.rock : MAT.gc.plain) : MAT.gc.leaf;
+      const band = cls === 'peb' ? BAND.peb[0] : cls === 'gcn' ? BAND.gcn[0] : cls === 'gch' ? BAND.gch[0] : BAND.gc[0], M = g0.card ? (cls === 'gcn' ? MAT.gc.cardFill : cls === 'gch' ? MAT.gc.cardHalf : MAT.gc.card) : cls === 'peb' ? MAT.gc.peb : cls === 'gcn' ? MAT.gc.fill : cls === 'gch' ? MAT.gc.half : g0.plain ? (key.startsWith('rock') ? MAT.gc.rock : MAT.gc.plain) : MAT.gc.leaf;
       P.lods.push({ band, slots: [new Slot(group, g0.plain || g0.leaf, M.mat, M.depth, key.startsWith('rock'), true)] });
     }
     protos.push(P); (protoOf[key.replace(/#\d+$/, '')] ||= []).push(idx); return idx;
@@ -237,6 +243,11 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     rock: [1, 2, 3].map((s) => rock(s * 41, [0.13, 0.125, 0.11])), // linear albedo: weathered grey limestone, not chalk white
     peb: [1, 2].map((s) => rock(s * 47, [0.12, 0.11, 0.095])),
   };
+  if (GCARDS) { // photographed grass: wild clumps + dense dry strips for the main layer, strips for the near fill, single blades for tall grass
+    GC.grass = [clumpCard(11, { h: 0.55 }), clumpCard(23, { h: 0.5 }), stripCard(33, { h: 0.36, w: 0.8 }), stripCard(44, { h: 0.32, w: 0.75 })];
+    GC.fillG = [1, 2, 3, 4].map((s) => stripCard(s * 13 + 1, { h: 0.3, w: 0.7, n: 3 }));
+    GC.tall = [1, 2].map((s) => bladeCards(s * 23, { n: 22, h: 0.85, w: 0.022, lean: 0.75, r: 0.26 }));
+  }
   for (const [k, list] of Object.entries(GC)) if (k !== 'fillG') list.forEach((g, v) => addProto(k === 'peb' ? 'peb' : 'gc', k + '#' + v, g, null));
   GC.fillG.forEach((g, v) => addProto('gcn', 'fill#' + v, g, null)); GC.grass.forEach((g, v) => addProto('gch', 'half#' + v, g, null)); // near fill: a second, denser grass layer that only lives within ~30 m
 

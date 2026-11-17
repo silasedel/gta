@@ -38,7 +38,7 @@ LAYERS = [
     dict(key='sand', col=S2 + 'Sand Color.png', nrm=S2 + 'Sand Normal DX.png', conv='dx', h=S2 + 'Sand Height.png', rough=S2 + 'Sand Roughness.png', luma=0.66, std=0.06, delight=0.8),
     dict(key='sandgrass', col='Sand 1 - Dry Grassy Sand Scan Patch/Sand Scan Color.jpg', luma=0.50, std=0.12, delight=0.75, tile=True, crop=0.80, nstr=2.0, rough=0.9),
     dict(key='gravel', col=D1 + 'Dirt Color.png', nrm=D1 + 'Dirt Normal DX.png', conv='dx', h=D1 + 'Dirt Height.png', rough=D1 + 'Dirt Roughness.png', luma=0.56, std=0.08, delight=0.8),
-    dict(key='soil', col=G4 + 'Ground Close 04 Color.jpeg', nrm=G4 + 'Ground Close 04 Normal GL.jpeg', conv='gl', h=G4 + 'Ground Close 04 High.jpg', ao=G4 + 'Ground Close 04 Occlusion.jpeg', luma=0.36, std=0.09, delight=0.8, rough=0.9),
+    dict(key='soil', col=G4 + 'Ground Close 04 Color.jpeg', nrm=G4 + 'Ground Close 04 Normal GL.jpeg', conv='gl', h=G4 + 'Ground Close 04 High.jpg', ao=G4 + 'Ground Close 04 Occlusion.jpeg', luma=0.36, std=0.09, delight=0.8, rough=0.9, desat=0.55),  # pink fallen leaves read purple in lawns
     dict(key='mud', col=G2 + 'Mud Tile Color.jpeg', nrm=G2 + 'Mud Tile Normal GL.jpeg', conv='gl', rough=G2 + 'Mud Tile Roughness (green channel).png', rough_ch=1, luma=0.30, std=0.07, delight=0.7),
     dict(key='leaves', ph='forest_leaves_02', luma=0.38, std=0.11, delight=0.6),
     dict(key='stony', ph='forest_ground_04', luma=0.42, std=0.09, delight=0.6),
@@ -111,8 +111,11 @@ def convention(nrm, h):
 def main():
     os.makedirs(OUT, exist_ok=True)
     report = []
+    only = sys.argv[1:]
     for L in LAYERS:
         k = L['key']
+        if only and k not in only:
+            continue
         if 'ph' in L:
             col = load(os.path.join(PH, L['ph'] + '_col.jpg'))
             nrm = load(os.path.join(PH, L['ph'] + '_nrm.jpg'))
@@ -172,6 +175,8 @@ def main():
         if sd > L['std']:  # compress contrast around the mean (no "grain" at grazing light)
             m = l.mean(); k2 = L['std'] / sd
             c = (c - l[..., None]) + (m + (l - m) * k2)[..., None]
+        if L.get('desat'):
+            l2 = lum(c)[..., None]; c = c + (l2 - c) * L['desat']
         c = np.clip(c * (L['luma'] / max(1e-6, lum(c).mean())), 0, 1)
         if rough is None:
             rough = np.clip(L.get('rough', 0.9) - (h - 0.5) * 0.08, 0, 1)

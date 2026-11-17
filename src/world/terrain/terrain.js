@@ -135,6 +135,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   const _farmQ = {};
   function farmAt(x, z) {
     const u = x + 37, v = z - 53, fi = Math.floor(u / 230), fj = Math.floor(v / 170), fu = u - fi * 230, fv = v - fj * 170;
+    if (z > -1200 || x > 1000) return false; // the sugarcane / vegetable belt north of the city (Clewiston, Lake O), not the Everglades or the coast
     if (hash2(fi, fj) > 0.45 || fu < 6 || fu > 224 || fv < 6 || fv > 164) return false;
     if (isKeys(x, z)) return false;
     if (data.roadGraph && data.roadGraph.nearestEdge) { const r = data.roadGraph.nearestEdge(x, z, _farmQ, 30); if (r && r.dist - r.edge.width / 2 < 26) return false; }

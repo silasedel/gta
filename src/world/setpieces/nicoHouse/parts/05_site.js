@@ -1,7 +1,12 @@
 // Nico's house, part 05: the lot. Crushed-shell and sand yard with damp patches and puddles, the carport slab, concrete
 // seawalls on the two water sides, the sandy bottom beyond them, and the weathered dock with its piles, cleats, rope,
 // fish-cleaning station, ladder and light.
+import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
 export const order = 5;
+// ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
+// lots around it; ?ground2=0 keeps the old shell-floor texture
+const GROUND2 = typeof location === 'undefined' || !/[?&]ground2=0\b/.test(location.search);
+let yardMat = null;
 
 export function build(ctx) {
   const { THREE, kit, plan: P, mat, col } = ctx, B = ctx.site ?? ctx.ext, D = ctx.detail, M = kit.M, r = kit.rng(55), L = P.lot, sea = P.seaY;
@@ -23,7 +28,7 @@ export function build(ctx) {
       pa.setY(i, (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5) * keep - 0.14 * sink);
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
-    B.geo(SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
+    B.geo(GROUND2 ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
     col.box((x0 + x1) / 2, -1.5, (z0 + z1) / 2, x1 - x0, 3, z1 - z0, { tag: 'ground', surface: 'gravel' });
   }
   // puddles in the wheel ruts of the drive (the sky and the house mirror in them)
