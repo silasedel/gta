@@ -611,8 +611,9 @@ gl_Position = projectionMatrix * mvPosition;
         if (r() < 0.035) { const fs = 0.06 + r() * 0.02; leaf(quads, new V3(q.x, 0.09, q.z), new V3(Math.cos(az), 0.5, Math.sin(az)), UP, fs, fs, fs * 0.6, [0.95, 0.72, 1.25], [0, 0, 0.01, az], 7); } } }
   };
   { const r = kit.rng(61), run = (x0, z0, x1, z1, wob) => { const pts = [], n = Math.max(3, Math.round(Math.hypot(x1 - x0, z1 - z0) / 0.6)); for (let i = 0; i <= n; i++) { const t = i / n; pts.push(new V3(x0 + (x1 - x0) * t + (r() - 0.5) * wob, 0.012, z0 + (z1 - z0) * t + (r() - 0.5) * wob)); } vine(pts, r); };
-    for (const [a, b] of [[-23, -15.5], [-12, -7], [-6.5, -4.6], [-1.6, 0.4], [3.4, 6.2], [6.6, 10.6]]) { run(a, -13.75 + r() * 0.2, b, -13.6 + r() * 0.3, 0.3); run(a + 0.5, -13.5, a + 1.5 + r() * 2, -12.4 - r() * 0.8, 0.25); run(b - 0.4, -13.5, b - 2 - r(), -12.7 - r() * 0.6, 0.25); }
-    for (const [a, b] of [[-12.5, -8.5], [-6.5, -3], [5, 7.5]]) { run(10.95 - r() * 0.2, a, 10.9 - r() * 0.3, b, 0.3); run(10.8, a + 0.6, 9.8 - r() * 0.8, a + 1.6 + r() * 1.5, 0.25); } }
+    const SW = ctx.siteWalls || { N: true, E: true };   // (r2-qa QA: the open north edge sinks under the beach, these floated 1.45 m)
+    if (SW.N) for (const [a, b] of [[-23, -15.5], [-12, -7], [-6.5, -4.6], [-1.6, 0.4], [3.4, 6.2], [6.6, 10.6]]) { run(a, -13.75 + r() * 0.2, b, -13.6 + r() * 0.3, 0.3); run(a + 0.5, -13.5, a + 1.5 + r() * 2, -12.4 - r() * 0.8, 0.25); run(b - 0.4, -13.5, b - 2 - r(), -12.7 - r() * 0.6, 0.25); }
+    if (SW.E) for (const [a, b] of [[-12.5, -8.5], [-6.5, -3], [5, 7.5]]) { run(10.95 - r() * 0.2, a, 10.9 - r() * 0.3, b, 0.3); run(10.8, a + 0.6, 9.8 - r() * 0.8, a + 1.6 + r() * 1.5, 0.25); } }
   // sea oats clumps on the seawall edges
   const seaOats = (x, z, r) => {
     for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.3, 0, z + (r() - 0.5) * 0.3, 0.7 + r() * 0.4, 0.6, cv([0.82, 0.92, 0.6], r, 0.12), 0.05, r);
@@ -623,7 +624,7 @@ gl_Position = projectionMatrix * mvPosition;
       const l = 0.34 + r() * 0.14; leaf(strips, t, new V3(Math.cos(az) * 0.6, 0.8, Math.sin(az) * 0.6), UP, l * 0.42, l, l * 0.75, cv([1.05, 1.0, 0.9], r, 0.12), [0, 0, 0.1, ph], 14);
     }
   };
-  { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.6, -12.6]]) seaOats(x, z, r); }
+  { const r = kit.rng(63); for (const [x, z] of [[-21.2, -13.4], [-17.6, -13.3], [-14.9, -13.5], [-6.6, -13.3], [-1.3, -13.4], [4.3, -13.3], [7.6, -13.4], [10.8, -6.4], [10.9, -2.5], [10.7, 5.6], [10.6, -12.6]]) { const SW = ctx.siteWalls || { N: true, E: true }; if ((z < -12 && !SW.N) || (x > 10 && !SW.E)) continue; seaOats(x, z, r); } }
   // periwinkle, weeds and grass at pile footings and stair feet (not on the carport / front-bay slabs)
   const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);
   { const r = kit.rng(65);

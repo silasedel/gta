@@ -16,6 +16,7 @@ export function build(ctx) {
   // really meets the lot (opts.waterAt), elsewhere the yard runs on and sinks under the beach sand along a wobbly line
   const waterAt = ctx.opts.waterAt, wallN = !waterAt || [-20, -10, 0, 8].some((x) => waterAt(x, L.z0 - 2)), wallE = !waterAt || [-10, 0, 10, 20].some((z) => waterAt(L.x1 + 2, z));
   const OPEN_N = !wallN, OPEN_E = !wallE;
+  ctx.siteWalls = { N: wallN, E: wallE };   // 50_plants keeps its seawall-edge vines / sea oats only where a seawall stands
   // r2-keys (Nov 17): the house is turned in a corner lot (yard.data.js): the sheet runs out to the asphalt of the east leg (front)
   // and the west leg (west side) and sinks under it, follows the drive from the STOP corner past the pickup (DRIVE), and has gentle
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle

@@ -132,6 +132,9 @@ export async function initV2(game) {
       work += performance.now() - t1; stats.maxNearMs = Math.max(stats.maxNearMs, work); stats.nearBuilt++;
       nearBusy = null; if (!L.wantNear || L.cl.dead) return;
       L.nearData = r.value.batch.b; L.nearLamps = r.value.lamps; nearDirty = true;
+      // QA-035 (r2-physics): the generator seeds its RNG with the LOD, so the LOD 1 colliders sat up to ~1 m off the full-detail
+      // roof / porch; up close the colliders come from this LOD 0 build (what the player sees and touches)
+      if (r.value.colliders?.length) { L.colliders = r.value.colliders; if (L.col) { dropCols(L); makeCols(L); } }
       // parked car on the driveway: a real (parked, locked) traffic vehicle while the lot is at full detail
       if (r.value.cars.length && game.vehicles?.spawn && !L.car) { const cr = r.value.cars[0], c = Math.cos(L.ry), s = Math.sin(L.ry);
         const T = ['sedan', 'compact', 'suv', 'pickup', 'van', 'sedan', 'suv'][(L.sp.seed >>> 3) % 7];
