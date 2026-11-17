@@ -38,7 +38,12 @@ They wake up at 7:00 and expect every point below fixed, by hand, verified with 
 - Hand placement where it matters (Nico's neighborhood, Ocean Drive, Downtown core, docks): explicit coordinates and
   per-object choices in a data file, not just random scatter.
 - Close-up AND grazing AND aerial checks, at 11:00 and 18:30, clear weather and after rain.
-- Performance: do not make the game slower. Use instancing (per-instance color/variant attributes), LODs, texture
+- UPDATE 00:30 from the user: "don't worry about too much efficiency right now - mainly make sure the graphics look insane,
+  polished and accurate; physics and hitboxes along with that." LOOKS COME FIRST: spend GPU/memory on quality where it shows
+  (denser grass and shrubs, higher-res textures, more geometry, better LODs farther out). Only hard limits: no load freezes /
+  multi-second hitches, and the frame must not drop below ~30 fps at the spawn on this machine. The ground and the shrubs /
+  grass must look great ALL OVER THE MAP, not only in Key Largo.
+- Performance (secondary now): do not make the game slower without a visible gain. Use instancing (per-instance color/variant attributes), LODs, texture
   atlases, KTX2/WebP at sensible sizes (1-2K, 4K only for heroes). Report draw calls and ms before/after.
 - American spelling, invented brands only, never the 4 "personal use only" rows of `Models/catalog.csv`.
 - Never delete anything in `Models/` or `references/`; write converted files into `public/assets/...`.
