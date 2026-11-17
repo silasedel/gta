@@ -94,7 +94,11 @@ export function patchFogChunks() {
 			// Miami air at 3 to 5 km is mild: cap the extinction so far buildings keep their contrast and shadow sides
 			// (the environment ramp reaches 0.0007 at sunset and night: 94 % fog at 4 km, a white veil). Dense fog
 			// (underwater, weather fog above 0.002) passes through unchanged.
-			${LOOK_OFF ? '' : 'if ( fogDensity < 0.002 ) fogDen = min( fogDen, uLookV.x > 0.0 ? uLookV.x : 0.00019 ); // look3 (src/render/look3.js) sets its own cap per hour'}
+			${LOOK_OFF ? '' : `#ifdef PS_LOOKU
+			if ( fogDensity < 0.002 ) fogDen = min( fogDen, uLookV.x > 0.0 ? uLookV.x : 0.00019 ); // look3 (src/render/look3.js, ?look3): cap per hour
+			#else
+			if ( fogDensity < 0.002 ) fogDen = min( fogDen, 0.00019 );
+			#endif`}
 			fogCol = psHazeColor( fogColor, fogRayW / max( fogDist, 1e-4 ), fogSun, directionalLights[ 0 ].color );
 			fogExt = mix( vec3( 1.0 ), vec3( ${LOOK_OFF ? '1.0, 1.0, 1.0' : '0.86, 1.0, 1.16'} ), fogDay ); // Rayleigh: blue goes first
 		#endif

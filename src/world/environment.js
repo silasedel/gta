@@ -389,7 +389,7 @@ export async function createEnvironment(game) {
         // step 1: render the sky into a small cube
         envTimer = 0; lastEnvSun.copy(sunDir);
         // ground irradiance for the env map floor: sun on flat ground + sky fill, times a warm sandy/paved albedo (~0.22)
-        envGround.visible = game.look3 !== false;
+        envGround.visible = game.look3 === true;
         if (envGround.visible) {
           const sunE = sun.intensity * Math.max(0, lightDir.y) / Math.PI;
           envGroundCol.copy(sun.color).multiplyScalar(sunE).add(tmpC.copy(hemi.color).multiplyScalar(hemi.intensity * 0.9));

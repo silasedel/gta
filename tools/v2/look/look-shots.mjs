@@ -25,7 +25,7 @@ const variants = o.variants ? String(o.variants).split(';').map((s) => { const i
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 
 await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 900) }, async (b) => {
-  await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
+  await b.goto('http://127.0.0.1:5200/?mute' + (o.q ?? '&look3'));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   if (!(await startGame(b))) console.log('WARN: title did not close');
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.weather?.hold?.(true); game.lookAEInstant = true; const st = document.createElement('style'); st.textContent = '#ps-hud,#hud,#minimap,#radar,.ps-toast,[class*=toast],[class*=notif]{display:none!important}'; document.head.appendChild(st); return 1; })()`);

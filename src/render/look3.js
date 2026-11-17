@@ -3,14 +3,17 @@
 //     with that distance (contact shadows stay crisp, a palm's shadow 8 m away gets a wide soft penumbra). The disk is
 //     rotated per pixel with interleaved gradient noise advanced every frame (uFrameN), so TAA resolves it: no fixed
 //     dot pattern, no grain. A receiver-plane depth gradient keeps sloped ground free of acne inside the wider kernel.
-// Runtime A/B: game.look3 = false restores the old look (no reload); ?look3off starts with it off.
+// Runtime A/B (only in a page loaded with ?look3): game.look3 = false restores the old look without a reload.
 // LOOK_U is shared by reference with every lit built-in material (same mechanism as WEATHER_U in wetSurfaces.js):
 //   x = frame index (0..15, from frameNoise.js), y = soft shadows on (0/1), z = penumbra meters per meter of
 //   occluder distance, w = minimum filter radius in shadow-map texels.
 // ShaderMaterials that include the shadow chunk get the declaration but no value (all zero): they keep the stock filter.
 import * as THREE from 'three';
 
-export const LOOK3_DEFAULT = !(typeof location !== 'undefined' && /[?&]look3off\b/.test(location.search));
+// OFF by default until verified (lead): the shader patches are only installed with ?look3 in the URL; then game.look3
+// (default true in such a session) switches the look at run time for in-session A/B
+export const LOOK3_ENABLED = typeof location !== 'undefined' && /[?&]look3\b/.test(location.search) && !/[?&]look3=0\b/.test(location.search);
+export const LOOK3_DEFAULT = LOOK3_ENABLED;
 export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze color pull
 // toward the warm sun side, z/w spare. Shared with every fogged built-in material (and ShaderMaterials that merge
@@ -22,7 +25,7 @@ const SUN_DEPTH_M = 899.0;
 
 (function patch() {
   const C = THREE.ShaderChunk;
-  if (C.shadowmap_pars_fragment.includes('psPCSS')) return;
+  if (!LOOK3_ENABLED || C.shadowmap_pars_fragment.includes('psPCSS')) return;
   for (const k of Object.keys(THREE.ShaderLib)) {
     const L = THREE.ShaderLib[k];
     if (L && L.uniforms && !L.uniforms.uLookU) { L.uniforms.uLookU = { value: LOOK_U }; L.uniforms.uLookV = { value: LOOK_V }; }
