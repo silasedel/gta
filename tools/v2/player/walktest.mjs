@@ -38,7 +38,7 @@ const LIB = `(() => {
     const p = P.position, tg = wt.pts[wt.i];
     if (!tg) { wt.stop(); wt.done = true; return; }
     const dx = tg.x - p.x, dz = tg.z - p.z, d = Math.hypot(dx, dz);
-    if (d < 0.45) { wt.i++; return; }
+    if (d < (wt.jog ? 1.0 : 0.45)) { wt.i++; return; }
     game.cameraYaw = Math.atan2(-dx, -dz);
     const S = wt.stats; S.frames++;
     S.dist += Math.hypot(p.x - wt.prev.x, p.z - wt.prev.z); wt.prev.copy(p);
