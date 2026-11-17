@@ -810,7 +810,7 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - Sheets: `sheet_g2_truck.jpg` (9:05 / 12:30 / 16 / 18:36), `sheet_g1_spawn.jpg`, `sheet_g3_street.jpg` (11 / 16 / 18:36 / 22), `sheet_f5_mock.jpg` (mock-up camera at its best sun hour, 12:30), `sheet_f3_mock15.jpg`.
 - **Sun hour at r0b_deck:** computed over every quarter hour. With the real road layout the sun is never in front of the deck camera; the best match is 12:30, now the reference tod set by r2-keys. The mock-up's lower-left rail stripes are geometrically impossible there.
 - **Asked of others:** r2-veg for backlit leaf transmission and brighter, less saturated shade foliage; r2-cars fixed the car-paint shader error (black truck).
-- **Pending:** cast-shadow crispness at 12:30 (shade sky cut 0.25 / bounce 0.17, in post.js, to be committed with r2-render's hunks); a re-shoot of the truck at 12:30 with and without cloud shadows is queued.
+- **12:30 cast shadows, fixed and committed.** The 1.5 / 0.66 sky fill washed out sun shadows; it was not the cloud shadows (`sheet_g4_truck.jpg` toggles them). Sun / hemisphere / env are now 1.22 / 1.2 / 0.5, the shade sky cut 0.25, bounce 0.17. Brightness comes from exposure x1.12 and the bounce. Result: `sheet_g5_truck.jpg`, black point p1 0.014, median 0.29 (before 0.23).
 - **Left:** night is very dark on side streets (lamps / windows are other helpers'); reflections of the actual scene in car paint (only the sky + env ring today).
 
 ## r2-keys
