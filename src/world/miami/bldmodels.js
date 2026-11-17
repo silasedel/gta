@@ -68,11 +68,15 @@ export const LIB = {
   roof_vents: { w: 2.72, d: 0.79, h: 0.12, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
   roof_tank: { w: 4.83, d: 2.35, h: 1.83, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
   util_cabinet: { w: 1.0, d: 0.44, h: 1.99, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
+  fire_escape: { w: 3.14, d: 9.12, h: 18.57, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
+  tarp_shack: { w: 6.62, d: 5.43, h: 2.66, k: 1, cls: 'clutter', glow: 0, tint: 'none', col: 1 },
+  booth_ruin: { w: 2.72, d: 2.89, h: 2.12, k: 1, cls: 'clutter', glow: 0, tint: 'none', col: 1 },
   // ---- fixed sites ----
   casino_tower: { w: 117.4, d: 132.4, h: 64.4, k: 1, cls: 'fixed', glow: 0.5, lod1: 1, tint: 'none' },
   control_tower: { w: 23, d: 23, h: 90.17, k: 1, cls: 'fixed', glow: 0.4, lod1: 1, tint: 'none' },
   control_tower_sm: { w: 9.91, d: 9.91, h: 30, k: 1, cls: 'fixed', glow: 0.3, tint: 'none' },
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
+  airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none' }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
 const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 900, LOD_D = 650;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
@@ -95,6 +99,8 @@ export const AIRPORT = {
     { id: -9211, name: 'jet_bridge', x: -1452, z: 1083.3, ry: 0 }, { id: -9212, name: 'jet_bridge', x: -1398, z: 1083.3, ry: 0 },
     { id: -9213, name: 'jet_bridge', x: -1344, z: 1083.3, ry: 0 }, { id: -9214, name: 'jet_bridge', x: -1290, z: 1083.3, ry: 0 },
     { id: -9215, name: 'jet_bridge', x: -1240, z: 1083.3, ry: 0 },
+    { id: -9221, name: 'airliner', x: -1447.7, z: 1110.8, ry: Math.PI }, { id: -9222, name: 'airliner', x: -1393.7, z: 1110.8, ry: Math.PI },
+    { id: -9224, name: 'airliner', x: -1285.7, z: 1110.8, ry: Math.PI }, { id: -9225, name: 'airliner', x: -1235.7, z: 1110.8, ry: Math.PI },
   ],
 };
 
@@ -230,7 +236,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   }
   function addFixed(id, name, x, y, z, ry, s) { entries.set(id, { name, cls: LIB[name].cls, x, y, z, ry, s, sy: s, mir: 0, cond: '', tint: [1, 1, 1] }); dirty = true; }
   function has(id) { return entries.has(id); }
-  function addClutter(key, name, x, y, z, ry, s = 1) { if (OFF || entries.has(key)) return; entries.set(key, { name, cls: 'clutter', x, y, z, ry, s, sy: s, mir: 0, cond: '', tint: [1, 1, 1] }); dirty = true; }
+  function addClutter(key, name, x, y, z, ry, s = 1, sy = s) { if (OFF || entries.has(key)) return; entries.set(key, { name, cls: 'clutter', x, y, z, ry, s, sy, mir: 0, cond: '', tint: [1, 1, 1] }); dirty = true; }
 
   // ---- collision meshes (loaded up front: small, positions only) ----
   const loader = new GLTFLoader();
@@ -241,7 +247,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       cols.set(name, new Float32Array(out));
     } catch (e) { cols.set(name, null); }
   }
-  if (!OFF) for (const n of Object.keys(LIB)) if (LIB[n].cls !== 'clutter') loadCol(n);
+  if (!OFF) for (const n of Object.keys(LIB)) if (LIB[n].cls !== 'clutter' || LIB[n].col) loadCol(n);
   // the model's collision mesh into a collider batch (vert(x,y,z,...) triangle soup); a box when it has not loaded (yet)
   const WHITE = new THREE.Color(0xffffff);
   function collide(coll, L, dy = 0) {
@@ -479,6 +485,10 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
           if ((i === open && k === (n >> 1)) || hk < 0.07) continue; // missing panel
           out.push({ x0: A[0] + (B[0] - A[0]) * t0, z0: A[1] + (B[1] - A[1]) * t0, x1: A[0] + (B[0] - A[0]) * t1, z1: A[1] + (B[1] - A[1]) * t1, lean: hk > 0.9 ? (hk - 0.9) * 2.2 : 0, h: 1.75 + hash(seed + i) * 0.15 }); }
       }
+      const f = frame(r), h5 = hash(seed + 5), ry = hash(seed + 6) * 6.283; // squatter shack or an old concrete booth on some lots
+      const nm = h5 < 0.3 && f.L > 9 && f.W > 8 ? 'tarp_shack' : h5 < 0.45 && f.L > 5 && f.W > 5 ? 'booth_ruin' : null;
+      if (nm) { const o = { name: nm, x: f.cx + f.ux * (hash(seed + 7) - 0.5) * (f.L - 8), z: f.cz + f.uz * (hash(seed + 7) - 0.5) * (f.L - 8), ry }; (out.objs || (out.objs = [])).push(o);
+        addClutter('lot' + seed, nm, o.x, ground ? ground(o.x, o.z) - 0.05 : 0, o.z, ry, 1); }
     }
     if (out.length) fenceDirty = true; return out;
   }
@@ -494,12 +504,18 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     }
     fencePanels.count = np; fencePosts.count = nq; fencePanels.instanceMatrix.needsUpdate = true; fencePosts.instanceMatrix.needsUpdate = true;
   }
+  function colInstance(coll, name, x, y, z, ry, s = 1) { const P = cols.get(name); if (!P) return; const cr = Math.cos(ry), sr = Math.sin(ry);
+    for (let i = 0; i < P.length; i += 3) { const lx = P[i] * s, ly = P[i + 1] * s, lz = P[i + 2] * s; coll.vert(x + lx * cr + lz * sr, y + ly, z - lx * sr + lz * cr, 0, 1, 0, 0, 0, WHITE); } }
+  function fixedCollide(coll, x0, z0, size) { // fixed sites (casino, airport tower, jet bridges, parked airliners): their collision meshes, absolute y
+    for (const e of entries.values()) if (e.cls === 'fixed' && e.x >= x0 && e.x < x0 + size && e.z >= z0 && e.z < z0 + size) colInstance(coll, e.name, e.x, e.y, e.z, e.ry, e.s / LIB[e.name].k);
+  }
   function fenceCollide(coll, tile, relief = false) { // thin wall per standing panel (missing panels stay open); relief tiles: y relative (the collider builder lifts it)
     const L = lotFences(tile); if (!L) return;
+    for (const o of L.objs || []) colInstance(coll, o.name, o.x, relief || !ground ? -0.05 : ground(o.x, o.z) - 0.05, o.z, o.ry);
     for (const f of L) { if (f.lean) continue; const y0 = relief || !ground ? 0 : ground(f.x0, f.z0) || 0, y1 = y0 + f.h, v = (x, y, z) => coll.vert(x, y, z, 0, 1, 0, 0, 0, WHITE);
       v(f.x0, y0, f.z0); v(f.x1, y0, f.z1); v(f.x1, y1, f.z1); v(f.x0, y0, f.z0); v(f.x1, y1, f.z1); v(f.x0, y1, f.z0); }
   }
-  const api = { pick, register, addFixed, addClutter, has, collide, lotFences, fenceCollide, stats, entries, group, LIB };
+  const api = { pick, register, addFixed, addClutter, has, collide, lotFences, fenceCollide, fixedCollide, stats, entries, group, LIB };
   globalThis.__libBuildings = api; // debugging / audits: __libBuildings.stats(), .entries
   return api;
 }

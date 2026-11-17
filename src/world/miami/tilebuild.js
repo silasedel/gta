@@ -809,6 +809,11 @@ export function createTileBuilder(ctx) {
       if ((b.area || 0) > 420 && hash(seed + 831) < 0.3 && fr.L > 14 && fr.W > 9) { const u = (hash(seed + 832) < 0.5 ? -1 : 1) * (fr.L / 2 - 4.2), v = (hash(seed + 833) - 0.5) * (fr.W - 5);
         LIBM.addClutter('rt' + b.id, 'roof_tank', fr.cx + fr.ux * u - fr.uz * v, yb, fr.cz + fr.uz * u + fr.ux * v, ry, 1); }
     }
+    if (opts.props && !opts.lod && FS && FS.fam === 'brickRow' && y0 < 0.5 && !b.part && h > 9 && h < 30 && hash(seed + 851) < 0.6) { // brick walk-ups: the user's steel fire escape on a side wall
+      let bi = -1, bl = 0; for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]); if (l > 11 && l > bl && (!roadDist || roadDist((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) > 2.5)) { bl = l; bi = i; } }
+      if (bi >= 0) { const p = outer[bi], q = outer[(bi + 1) % outer.length], dx = (q[0] - p[0]) / bl, dz = (q[1] - p[1]) / bl, nx = -dz, nz = dx, u = bl * (0.3 + hash(seed + 852) * 0.4), x = p[0] + dx * u + nx * 1.62, z = p[1] + dz * u + nz * 1.62;
+        LIBM.addClutter('fe' + b.id, 'fire_escape', x, (D ? TH(x, z) : 0) + 0.02, z, Math.atan2(-nz, nx), 1, Math.min(1.15, Math.max(0.5, (h - 0.6) / 18.57))); }
+    }
     if (opts.props && !opts.lod && FS && FS.cond && y0 < 0.5 && !b.part && hash(seed + 841) < 0.5) { // rough side: a rusty utility cabinet against a wall
       let bi = 0, bl = 0; for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]); if (l > bl && (!roadDist || roadDist((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) > 3)) { bl = l; bi = i; } }
       if (bl > 4) { const p = outer[bi], q = outer[(bi + 1) % outer.length], dx = (q[0] - p[0]) / bl, dz = (q[1] - p[1]) / bl, nx = -dz, nz = dx, u = bl * (0.2 + hash(seed + 842) * 0.6);
@@ -3127,6 +3132,7 @@ export function createTileBuilder(ctx) {
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
     LIBM.fenceCollide(bb, tile, LFc);     add(bb, audit ? soupOf('building') : solid); yield;
+    if (tile.x0 !== undefined) { const fx = new Batch(); LIBM.fixedCollide(fx, tile.x0, tile.z0, tile.size || provider.tileSize || 200); add(fx, audit ? soupOf('building') : solid, 0); } // fixed library sites (absolute heights)
     yield* commit(ground);
     // primitive colliders for street furniture and trees
     const P = yield* ensureProps(t, tile);

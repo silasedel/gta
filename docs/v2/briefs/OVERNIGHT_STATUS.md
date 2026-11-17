@@ -51,6 +51,7 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 02:10 verified in game + committed (37822e5c): per-house library mailboxes/carts with texture variants at Nico's street (docs/v2/shots/props/dbg_close1.png, dbg_close2.png, t2_lot2.png); car sends a cart pair flying (t5_a..t5_d.png), player pushes carts (t5_walk_go.png, t5_walk_end.png). 6 more variant sets (plastic chairs 6 colors, cones, jersey stripes/tags, commercial bins, twin mailboxes). Hydrant hit hard -> water column + droplets (hydrantSpray.v2.js). Now: downtown / bus stop / work-zone / hydrant shots, perf A/B.
 - 01:00 built (not yet verified in game): 12 new library props converted (tools/v2/street-models/build_props.sh: curbside cart, cone, channelizer, flex bollard, ROAD CLOSED barricade, jersey barrier, roll-off dumpster [company name + phone repainted], site cabin, tarp crates, plastic chair/table, commercial bin); texture-array variants for 8 repeated props (variants.py -> public/assets/models/street/var/, 4-10 layers each: recolors, graffiti removed/moved/new tags, stickers, house numbers, rust, fade); src/world/props/{variants,dynamicProps,propShapes,lotProps}.v2.js; per-house mailbox + carts (lotProps) replace the code-built ones; keysLane no longer sprinkles mailboxes; hydrants only on curbed streets, one side, 90-150 m; benches only at stops / parks / beach; work zones + tower construction sites. NOTE for lead: 3 small guarded hooks outside my files (houses/generator.js yard curb spots, houses/houses.v2.js lotProps add/remove, dressing/dressing.v2.js spawn-street mailbox/bins -> lotProps; rng sequence kept, ?lotprops=0 restores the old boxes).
 - 00:20 started: read briefs + user shots; inventory of street GLBs/textures; plan = texture-array variants per prop (per-instance variant/brightness/fade in instanceColor), per-house mailbox/bin placement, Rapier push/knock props (src/world/props/), construction sites with library cones/barriers.
 
@@ -108,7 +109,8 @@
   (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
 
 ## buildings
-- 01:05 Committed 3623851: 41 more of the user's models converted (`tools/v2/buildings/models.json` + `convert_v2.sh`: meters, ground at 0, front +Z, WebP 1-2K, `_lod1` far LOD, `_col` collision mesh) and placed by `src/world/miami/bldmodels.js`: towers (Hotel 1, Office Buildings 1/11, Buildings 17/18/22/24), mid-rise (Office Buildings 4/5/6/7/9/10, Buildings 23/25/28), shops/roadside (Storefronts 1/2/5/6, Diner 3, Motel 2, Gas Station 1), houses (Buildings 26/27), industry (Factories 1/2, Building 2), hangars (1/2/4), airport (Control Tower 1, Jet Bridge 1). Dropped after checking: Building 21 (interior-only after cleanup), Motel 1 (walls lost), Hangar 3 (broken texture), Gas Station 2 (617k tris, decimation destroys it), Building 19 (scene export, walls tagged as shop stalls), Building 12/20/29 (0.6-1.9M tris), Airport 1 terminal cut (5.7k-tri racing-game blob with a real city name).
+- 01:05 Committed 9afa612 (fences, roof vents/tanks, utility cabinets, wall detail, load-order-independent picks); next: squatter shacks / booth ruins on vacant lots, fire escapes on brick walk-ups. Lead: my verification tour waited 25 min for a browser slot and timed out (`no free browser slot`), retrying; the 12-minute stale-slot rule also lets long runs lose their slot.
+- 00:50 Committed 3623851: 41 more of the user's models converted (`tools/v2/buildings/models.json` + `convert_v2.sh`: meters, ground at 0, front +Z, WebP 1-2K, `_lod1` far LOD, `_col` collision mesh) and placed by `src/world/miami/bldmodels.js`: towers (Hotel 1, Office Buildings 1/11, Buildings 17/18/22/24), mid-rise (Office Buildings 4/5/6/7/9/10, Buildings 23/25/28), shops/roadside (Storefronts 1/2/5/6, Diner 3, Motel 2, Gas Station 1), houses (Buildings 26/27), industry (Factories 1/2, Building 2), hangars (1/2/4), airport (Control Tower 1, Jet Bridge 1). Dropped after checking: Building 21 (interior-only after cleanup), Motel 1 (walls lost), Hangar 3 (broken texture), Gas Station 2 (617k tris, decimation destroys it), Building 19 (scene export, walls tagged as shop stalls), Building 12/20/29 (0.6-1.9M tris), Airport 1 terminal cut (5.7k-tri racing-game blob with a real city name).
 - Colliders (lead 00:30): library lots now use each model's own collision mesh (walls, steps, porches, overhangs), not a box; plinth colliders where the lot falls away.
 - Per-instance variation: facade shade per instance (instanceColor), mirrored copies of text-free models, shader weathering keyed on the instance (rain streaks, splash-zone dirt, blotches; rust on the rough side), per-building lit-window share/color at night; close-up wall detail from the user's Concrete 3 / Plaster 1 scans on library walls (strongest in the lowest 5 m).
 - Rough district (Overtown / Liberty City): rundown/abandoned rule (same hash in bldmodels + families): worn plaster/peeling paint/block walls, grime, window AC units, security bars, roll-down shutters, plywood boarded windows on abandoned buildings (dark at night), rusty metal roofs, graffiti on 75 % of walls, rusty utility cabinets, chain-link fences around vacant lots (instanced, colliders, cut-open panels), library picks favor the gun shop, graffiti shop, fire station, old brick towers, garage rows, factories.
@@ -118,6 +120,11 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 01:05 Committed 7bf6df8 (surface mask, terrain shoulders, crumbling open edges, decals from the road's own asphalt, 2K scans,
+  shoreline). First Keys look `docs/v2/shots/stage1/gp3_keys_{side,aerial,keys2_side}.png`: shoulder too pale / greenish and
+  crumbs too big -> retuned (Keys shoulders now the yard's own sand, 5-15 cm asphalt chunks + dust). City open land now uses the
+  terrain recipes over the user's scans (`ground/groundMaterial.js patchRecipeGround`), lots / aprons use the user's Concrete 3.
+  Test slots are scarce (3 Chromes for ~10 helpers): runs are batched; the probe now has per-step timeouts.
 - 00:50 Layer audit (new `src/world/ground/layerAudit.js`, ray grid over the whole scene, `docs/v2/reports/stage1-la1.json`) at Nico's
   street: **for keys / houses owner:** every spawn-street house is drawn twice at the same spot, `houses:spawn:1:*` and
   `houses:spawn:2:*` (identical walls / wood / paint, same height, 30-60 hits each) = z-fight / "dotted, wobbling house" (brief item 8)
@@ -192,6 +199,16 @@
   helpers' changes in it).
 
 ## vegetation
+- 01:10 Commit 2f23cb6: paced model load verified in a boot probe (53 models + impostor bakes in 821 ms after the prefetched
+  GLBs, READY 34 s on a machine with load average 56). Per-instance variation proof `lib_variation_rows.png` (5 of the same
+  model in a row: different lean, twist, crown spread, frond droop, color). Frame-time tests are queued behind other helpers'
+  browser runs (3 shared slots, machine load avg ~56): numbers so far are noisy.
+- 01:06 Boot cost found (loaded machine, separate runs): READY 40.5 s / worst task 3.0 s with the library vs 22.2 s / 0.66 s
+  with `?veglib=0` (miami stage 10.5 vs 5.0 s, shaders+warm-up 13.1 vs 6.6 s). Fixing now: model processing paced one model
+  per task (merge, texture upload via initTexturesSliced, impostor bake), impostor MSAA buffers freed after the bake (~32 MB
+  each, ~1.5 GB for 50 models), source GLTF geometry released, GLBs prefetched at module load. Also: yard trees in house lots
+  (back corners / side yards, 1.3 m in from the lot line: poinciana, gumbo, palms, rubber fig in the Keys; live oak / shade
+  mainland), added to existing cells when lots are planned later (no regeneration blink).
 - 01:00 Commit 6748108 (pass 2): all placed trees now library models incl. bald cypress (library pines regraded) and three
   poinciana variants; Mangrove Tree 2 dropped (roots broke in decimation, white trunk), mangroves = Mangrove Tree 1 in clumps of
   3-5 on the shallow shore fringe only (roots into water + mud, never in deep water or on docks: ray check against static

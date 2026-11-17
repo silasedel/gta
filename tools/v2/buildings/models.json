@@ -277,5 +277,26 @@
   "weld": 0,
   "lod1": 30000,
   "tex1": 512
+ },
+ "booth_ruin": {
+  "src": "Booths/Booth 1 - Overgrown Concrete Booth Ruin/Booth 1.glb",
+  "tris": 6000,
+  "tex": 1024,
+  "col": 800,
+  "scale": 0.1
+ },
+ "tarp_shack": {
+  "src": "Buildings/Building 6 - Ramshackle Tarp Shack/Building 6.fbx",
+  "tris": 6000,
+  "tex": 1024,
+  "col": 600,
+  "scale": 1.5
+ },
+ "airliner": {
+  "src": "Planes/Plane 7 - Narrow-Body Twin-Jet Airliner/Plane 7.glb",
+  "tris": 0,
+  "tex": 1024,
+  "col": 1500,
+  "lod1": 2500
  }
 }
