@@ -334,11 +334,11 @@ export function buildGlbCar(key, look, t, info) {
   const front = vis.filter((w) => w.front), rear = vis.filter((w) => !w.front);
   for (const level of [0, 1, 2]) {
     const G = M.lv[level], g = new THREE.Group();
-    if (G.paint) { const m = new THREE.Mesh(G.paint, paint); m.castShadow = level < 2; m.receiveShadow = level === 0; g.add(m); slots.paint.push(m); if (level === 0) paint0 = m; }
-    if (G.trim) { const m = new THREE.Mesh(G.trim, trim); m.castShadow = level < 2; m.receiveShadow = level === 0; g.add(m); }
+    if (G.paint) { const m = new THREE.Mesh(G.paint, paint); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); slots.paint.push(m); if (level === 0) paint0 = m; }
+    if (G.trim) { const m = new THREE.Mesh(G.trim, trim); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); }
     if (G.glass) { const m = new THREE.Mesh(G.glass, glass); m.renderOrder = 2; g.add(m); slots.glass.push(m); }
     if (G.lamp) { const m = new THREE.Mesh(G.lamp, lamps.material); g.add(m); }
-    for (const T of G.tex || []) { const m = new THREE.Mesh(T.geo, T.mat); m.castShadow = level < 2; m.receiveShadow = level === 0; g.add(m); }
+    for (const T of G.tex || []) { const m = new THREE.Mesh(T.geo, T.mat); m.castShadow = level < 2; m.receiveShadow = level < 2; g.add(m); }
     if (level < 2) {
       if (M.wheelR) {
         const a = wheelInstances(M.wheel[level], front.length, t.L), b = wheelInstances(M.wheelR[level], rear.length + visR.length, t.L);
