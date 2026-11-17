@@ -177,8 +177,10 @@ def measure(key):
         if not (y - 0.7 <= hy <= y - 0.24): hy = y - (0.42 if y - yb > 0.5 else 0.3)
         return {'id': id_, 'hip': [round(x, 3), round(y, 3), round(z, 3)], 'yaw': 0, 'heel': [round(x, 3), round(hy, 3), round(z + 0.78, 3)],
                 'roofY': round(ry, 3), 'doorX': round(float(np.clip(door(x, z, y), abs(x) + 0.14, half)), 3)}
-    seats.append(seat('driver', hip[0], hip[1], hip[2]))
-    seats.append(seat('front', -hip[0], hip[1], hip[2]))
+    # people sit with the seat slid forward to the wheel (arms bent): the occupied hip is ~6 cm ahead of the empty-seat H-point
+    hz_occ = hip[2] + fix.get('slide', 0.06)
+    seats.append(seat('driver', hip[0], hip[1], hz_occ))
+    seats.append(seat('front', -hip[0], hip[1], hz_occ))
     # rear row: a cushion behind the front seatback (front hip - 0.55 .. )
     nrear = fix.get('rear', None)
     if nrear != 0:

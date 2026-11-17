@@ -26,20 +26,29 @@ const PHYS = {
 const ENG = { i4: 'i4', i4t: 'i4t', v6: 'v6', v6t: 'v6t', v8: 'v8', v8s: 'v8s', v8l: 'v8l', v10: 'v10', v12: 'v12', w16: 'w16', dsl: 'dsl', dslH: 'dslH', ev: 'ev', i3: 'i3' };
 
 // colors: realistic US mix for everyday cars (white 24, black 22, gray 18, silver 12, blue 9, red 9, other 6)
+// US / Miami paint mix (share %, colors, finish): white 25, black 22, gray 19, silver 11, blue 9, red 8, earth tones 4
+// (dark green, brown, beige, gold), loud 2 (orange, yellow, purple, pink, lime).  Whites solid / pearl, silver / gray / blue
+// mostly metallic.  Every everyday model rolls this table; rare cars keep their single factory color.
 export const US_MIX = [
-  [24, [0xf2f2ef, 0xeeeeea, 0xf5f3ec, 0xe9ebe8]],
-  [22, [0x0e0f11, 0x15171a, 0x101214, 0x1b1c20]],
-  [18, [0x5a5f66, 0x4a4e54, 0x6b7077, 0x3d4146]],
-  [12, [0xa9aeb4, 0xb8bcc1, 0x9ca1a7, 0xc4c7cb]],
-  [9, [0x173b8f, 0x1c2f5e, 0x2a5aa8, 0x24476e, 0x5b7fa6]],
-  [9, [0xb3121b, 0x8e1018, 0xc41f22, 0x7a1f2b]],
-  [6, [0x2f6d3a, 0x3e5a3a, 0xd8c8a4, 0xb7a68a, 0x5b3a26, 0x6b4f3a, 0xe0701f, 0xe8b923, 0xb08d57, 0x0e5e7a]],
+  [25, [0xf2f2ef, 0xeeeeea, 0xf5f3ec, 0xe9ebe8], ['gloss', 'gloss', 'pearl']],
+  [22, [0x0e0f11, 0x15171a, 0x101214, 0x1b1c20], ['gloss', 'metallic']],
+  [19, [0x5a5f66, 0x4a4e54, 0x6b7077, 0x3d4146], ['metallic', 'metallic', 'gloss']],
+  [11, [0xa9aeb4, 0xb8bcc1, 0x9ca1a7, 0xc4c7cb], ['metallic']],
+  [9, [0x173b8f, 0x1c2f5e, 0x2a5aa8, 0x24476e, 0x5b7fa6], ['metallic', 'metallic', 'gloss']],
+  [8, [0xb3121b, 0x8e1018, 0xc41f22, 0x7a1f2b], ['metallic', 'gloss']],
+  [4, [0x2f4a35, 0x3e5a3a, 0xd8c8a4, 0xb7a68a, 0x5b3a26, 0x6b4f3a, 0xb08d57], ['metallic', 'gloss']],
+  [2, [0xe0701f, 0xe8b923, 0x5a2d82, 0xc04a7a, 0x8fbf2a, 0x0e5e7a], ['gloss']],
 ];
-export function pickUsColor(r) {
-  let x = r() * 100;
-  for (const [w, list] of US_MIX) { x -= w; if (x <= 0) return list[(r() * list.length) | 0]; }
-  return US_MIX[0][1][0];
+// pickUsColor(r, bias?) -> color; pickUsPaint(r, bias?) -> { color, finish }.  bias: per-bucket weight multipliers
+// (sporty models: a little more red / blue / loud; work vehicles: more white)
+export function pickUsPaint(r, bias = null) {
+  const W = US_MIX.map(([w], i) => w * (bias?.[i] ?? 1)), tot = W.reduce((a, b) => a + b, 0);
+  let x = r() * tot;
+  for (let i = 0; i < US_MIX.length; i++) { x -= W[i]; if (x <= 0) { const [, list, fin] = US_MIX[i]; return { color: list[(r() * list.length) | 0], finish: fin[(r() * fin.length) | 0] }; } }
+  return { color: US_MIX[0][1][0], finish: 'gloss' };
 }
+export const pickUsColor = (r, bias) => pickUsPaint(r, bias).color;
+export const PAINT_BIAS = { sport: [0.8, 1, 0.9, 1, 1.5, 2, 1, 2], lux: [1, 1.4, 1.1, 1.1, 1, 0.8, 1, 0], work: [2.4, 0.7, 0.9, 1, 0.6, 0.5, 0.6, 0.2] };
 // sporty / luxury models lean to bolder or darker colors
 const PAL = {
   sport: [0xb3121b, 0xff5a1f, 0xffc21a, 0x101214, 0xeeeeea, 0x1d3f8f, 0x5a6470, 0x2a8cff, 0xa9aeb4],

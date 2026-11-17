@@ -207,16 +207,16 @@ export function glassMaterial(tint = 1, o = {}) {
       // strength, so a dark window still mirrors the sky and street like real glass
       .replace('#include <opaque_fragment>', `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
   float ga = clamp(diffuseColor.a + fr * 0.6 * vWin, 0.0, 1.0);
-  vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.55 + 0.9 * fr);
+  vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.5 + 0.6 * fr);
   // sky / street mirror: a world-space sky gradient seen in the reflected direction (works without a scene env map)
   vec3 rw = inverseTransformDirection(reflect(normalize(-vViewPosition), normal), viewMatrix);
   vec3 skyC = mix(vec3(0.16, 0.15, 0.14), mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0)), smoothstep(-0.12, 0.05, rw.y));
-  spec += skyC * vWin * (0.12 + 0.55 * fr);
+  spec += skyC * vWin * (0.08 + 0.32 * fr); // (was 0.12 + 0.55: side glass read as an opaque silver mirror, people inside invisible)
   gl_FragColor = vec4(totalDiffuse * ga + spec, ga);`)
       .replace('#include <premultiplied_alpha_fragment>', '');
   };
   m.premultipliedAlpha = true;
-  m.customProgramCacheKey = () => 'ps-carglass-v2';
+  m.customProgramCacheKey = () => 'ps-carglass-v3';
   _glass[t] = m;
   return m;
 }
@@ -245,25 +245,52 @@ export function lampMaterial(sheet, opts = {}) {
   const E = Array.from({ length: NCH }, () => new THREE.Vector3());
   const keys = Object.keys(LAMP);
   const uniforms = { uLampE: { value: E }, uSeat: { value: new THREE.Color(opts.seat ?? 0x5a5c61) } };
-  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, map: sheet?.texture || null, alphaTest: 0.35, roughness: 0.35, metalness: 0, envMapIntensity: 1.2,
-    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2, side: THREE.DoubleSide });
+  // a real lamp build-up on every car: a clear polycarbonate lens on top (clear coat: sharp sun / sky reflection), behind it a
+  // chrome reflector bowl with fine facets (head / fog / reverse / DRL), or a deep colored lens with optics ridges (tail, brake,
+  // blinkers: the color reads darker at grazing angles, i.e. from the depth of the lens, not a flat red paint); lit lamps glow
+  // from a hot core outward through the facets instead of a flat emissive slab
+  const m = new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, map: sheet?.texture || null, alphaTest: 0.35, roughness: 0.35, metalness: 0, envMapIntensity: 1.2,
+    clearcoat: 1, clearcoatRoughness: 0.035, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2, side: THREE.DoubleSide });
+  m.name = 'car-lamp';
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uLampE = uniforms.uLampE; sh.uniforms.uSeat = uniforms.uSeat;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aLamp;\nattribute vec2 aRM;\nvarying float vLamp;\nvarying vec2 vRM;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLamp = aLamp; vRM = aRM;');
+      .replace('#include <common>', '#include <common>\nattribute float aLamp;\nattribute vec2 aRM;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLamp = aLamp; vRM = aRM; vLampP = position;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform vec3 uLampE[${NCH}];\nuniform vec3 uSeat;\nvarying float vLamp;\nvarying vec2 vRM;`)
+      .replace('#include <common>', `#include <common>\nuniform vec3 uLampE[${NCH}];\nuniform vec3 uSeat;\nvarying float vLamp;\nvarying vec2 vRM;\nvarying vec3 vLampP;`)
       .replace('#include <color_fragment>', '#include <color_fragment>\n  if (vLamp > 14.5) diffuseColor.rgb *= uSeat;')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = vRM.x;')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = vRM.y;')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   {
     int ch = int(vLamp + 0.5);
-    totalEmissiveRadiance = uLampE[ch];
+    float ndv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
+    // optics: fine reflector facets / lens ridges in the lamp's own space (no UVs needed), fading out with distance
+    float near = 1.0 - smoothstep(4.0, 14.0, length(vViewPosition));
+    float facet = 0.5 + 0.5 * sin(vLampP.x * 260.0) * sin(vLampP.y * 260.0 + vLampP.z * 180.0);
+    float ridge = 0.5 + 0.5 * sin((vLampP.y + vLampP.x * 0.3) * 420.0);
+    bool white = ch == 1 || ch == 2 || ch == 3 || ch == 4 || ch == 7;
+    bool colored = ch == 5 || ch == 6 || ch == 8 || ch == 9 || ch == 10 || ch == 13;
+    #ifdef LAMP_LEGACY
+    white = false; colored = false; ndv = 1.0; near = 0.0;
+    #endif
+    if (white) { // chrome reflector bowl behind clear polycarbonate
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.8, 0.81, 0.83), 0.65) * (1.0 - 0.18 * facet * near);
+      metalnessFactor = 0.92; roughnessFactor = mix(0.07, 0.2, facet * near);
+    } else if (colored) { // deep tinted lens: darker and more saturated at grazing angles, ridged optics
+      diffuseColor.rgb *= (0.38 + 0.62 * ndv) * (1.0 - 0.22 * ridge * near);
+      metalnessFactor = 0.0; roughnessFactor = 0.12;
+    }
+    vec3 E = uLampE[ch];
+    // lit: a hot core seen head-on, the light breaking through facets / ridges; never a flat slab
+    float core = 0.45 + 0.75 * pow(ndv, 1.6);
+    float tex = white ? 0.75 + 0.5 * facet * near : colored ? 0.7 + 0.45 * ridge * near : 1.0;
+    totalEmissiveRadiance = E * core * tex;
   }`);
   };
-  m.customProgramCacheKey = () => 'ps-carlamp-v1';
+  if (globalThis.__lampLegacy) { m.defines = { LAMP_LEGACY: '' }; m.clearcoat = 0; } // A/B: the old flat lamp (studio ?lampv1)
+  m.customProgramCacheKey = () => 'ps-carlamp-v2' + (globalThis.__lampLegacy ? 'L' : '');
   const broken = new Set();
   const sync = () => {
     for (let i = 1; i < 15; i++) {

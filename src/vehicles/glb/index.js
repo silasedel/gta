@@ -6,7 +6,7 @@
 //   fleet.look(key, look, r)  -> adjust a rolled look (US color mix, no lower two-tone, model palettes)
 //   fleet.build(key, look)    -> car object (glbCar.buildGlbCar) or null when not loaded
 import { loadCarModel, isCarLoaded, buildGlbCar, glbStats } from './glbCar.js';
-import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, fileKey, pickUsColor } from './fleet.js';
+import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, fileKey, pickUsColor, pickUsPaint, PAINT_BIAS } from './fleet.js';
 import { rng, hashSeed } from '../model/rng.js';
 
 const BASE = (import.meta.env?.BASE_URL || '/') + 'assets/vehicles/cars/';
@@ -110,8 +110,10 @@ export async function initFleet(cat, opts = {}) {
     const t = CAR_TYPES[key], e = FLEET_BY_KEY[key];
     if (!t?.glb || !L) return L;
     const r = rng(hashSeed(key, (L.seed >>> 0) ^ 0x51a7));
-    if (!t.palette || t.paletteMix) L.color = pickUsColor(r);
-    else if (e.palette) L.color = t.palette[(r() * t.palette.length) | 0];
+    // every everyday model rolls the US paint table (models with a 'pal' only shift its weights); fixed-livery / rare models
+    // keep their own palette.  Loud colors stay ~2 %, never a model's factory default.
+    if (e.palette) L.color = t.palette[(r() * t.palette.length) | 0];
+    else { const p = pickUsPaint(r, PAINT_BIAS[e.pal] || null); L.color = p.color; if (!L.finish || !e.rare) L.finish = p.finish; }
     // no lower-body two-tone on library models; black roofs on a few modern cars only
     if (L.twoTone && (L.twoTone.y != null || t.classic || t.convertible || e.service || e.police || r() < 0.6)) L.twoTone = null;
     if (e.livery === 'police') L.twoTone = null;

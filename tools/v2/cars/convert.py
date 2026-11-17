@@ -964,6 +964,20 @@ for B in CFG.get('flattenBoxes') or []:
         ys_ = sorted(v.co[1] for v in vs_); mid_ = ys_[len(ys_) // 2]
         for v in vs_: v.co[1] = mid_
     log('flatten box', len(vs_))
+# metal trim inside the cabin box reads as white sheets once calibrated (visors, consoles of game-rip models):
+# cars.json 'cabinDark': {x, y: [lo, hi], z: [lo, hi]} -> dark satin plastic
+CD_ = CFG.get('cabinDark')
+if CD_:
+    ncd = 0
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index != 2: continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]
+        if abs(c_[0]) < CD_['x'] and CD_['y'][0] < c_[2] < CD_['y'][1] and CD_['z'][0] < gz_ < CD_['z'][1]:
+            cs_ = [lp[col_layer] for lp in f.loops]
+            if sum(c[3] for c in cs_) / len(cs_) >= 0.5 or sum(0.7 * c[1] + 0.3 * c[0] for c in cs_) / len(cs_) > 0.45:
+                for lp in f.loops: lp[col_layer] = (0.045, 0.045, 0.048, pack_rm(0.6, 0.0))
+                ncd += 1
+    log('cabin trim darkened', ncd)
 # black plastic fender flares painted as body (cars.json 'flares': {rIn, rOut, xMin}): paint faces in a band around each
 # wheel arch (radius rIn..rOut x the wheel radius, in the side view) and out past xMin become satin black trim
 FL_ = CFG.get('flares')
