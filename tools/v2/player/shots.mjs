@@ -59,11 +59,12 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
   // move to open ground nearby (no car / wall / prop within ~1.5 m of a 9 m walk ahead and the camera ring)
   if (!o.noclear) console.log('spot', await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, ball = new R.Ball(1.6), P = game.player;
     const c0 = P.position.clone(); const city = game.city;
-    const free = (x, z, h) => { for (let k = -1; k <= 4; k++) { const px = x + Math.sin(h) * k * 2.2, pz = z + Math.cos(h) * k * 2.2; const y = city.groundHeightAt(px, pz);
-      if (!Number.isFinite(y) || city.isWater?.(px, pz)) return false;
+    const cars = (game.vehicles?.list || []).map((v) => { try { const t = v.body.translation(); return [t.x, t.z]; } catch (e) { return null; } }).filter(Boolean);
+    const free = (x, z, h) => { for (let k = -2; k <= 11; k++) { const px = x + Math.sin(h) * k * 2.2, pz = z + Math.cos(h) * k * 2.2; const y = city.groundHeightAt(px, pz);
+      if (!Number.isFinite(y) || city.isWater?.(px, pz) || y < 0.15 || cars.some((c) => Math.hypot(c[0] - px, c[1] - pz) < 6)) return false;
       if (W.intersectionWithShape({ x: px, y: y + 1.95, z: pz }, { x: 0, y: 0, z: 0, w: 1 }, ball, QF.EXCLUDE_SENSORS, undefined, P.collider)) return false; } return true; };
-    for (let r = 0; r <= 40; r += 2) for (let i = 0; i < Math.max(1, r * 1.5); i++) { const a = i / Math.max(1, r * 1.5) * Math.PI * 2; const x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r;
-      for (const h of [P.heading, P.heading + Math.PI / 2, P.heading + Math.PI, P.heading - Math.PI / 2]) if (free(x, z, h)) { game.teleport(x, undefined, z, h); return JSON.stringify([+x.toFixed(1), +z.toFixed(1), +h.toFixed(2)]); } }
+    for (let r = 0; r <= 90; r += 3) for (let i = 0; i < Math.max(1, r * 1.5); i++) { const a = i / Math.max(1, r * 1.5) * Math.PI * 2; const x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r;
+      for (const h of [P.heading, P.heading + Math.PI / 2, P.heading + Math.PI, P.heading - Math.PI / 2]) if (free(x, z, h)) { game.teleport(x, undefined, z, h); window.__spot = [x, z, h]; return JSON.stringify([+x.toFixed(1), +z.toFixed(1), +h.toFixed(2)]); } }
     return 'none'; })()`));
   await b.sleep(6000);
   for (const id of only) {
@@ -83,7 +84,7 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
     } else await b.sleep(s.wait || 1500);
     const info = await b.eval(`JSON.stringify({ pos: game.player.position.toArray().map((v) => +v.toFixed(2)), speed: +(game.player.state.speed || 0).toFixed(2), lod: game.playerCharacter?.meshLOD, foot: game.playerCharacter?.footIK?.stats, model: game.playerCharacter?.tripo ? 'tripo' : 'old', desc: game.wardrobe?.describe?.(), disguise: game.wardrobe?.disguise?.() })`);
     await b.screenshot(path.join(DIR, `${SET}_${id}.png`));
-    if (s.move) { await b.key(s.move.key, false); if (s.move.shift) await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800); }
+    if (s.move) { await b.key(s.move.key, false); if (s.move.shift) await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800); await b.eval(`(() => { const s = window.__spot; if (s) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(1200); }
     if (s.after) await b.eval(`(async () => { ${s.after}; return 1; })()`);
     rep.shots[id] = JSON.parse(info); console.log(id, info);
   }

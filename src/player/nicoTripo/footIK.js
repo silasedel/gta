@@ -70,9 +70,16 @@ export function createFootIK({ game, model, bone, root }) {
       const P = game?.player;
       const on = !(anim.driving || anim.swimming || anim.dead || anim.grounded === false || anim.jumping || anim.idleStyle || anim.getUp || anim.ragdoll)
         && !(P?.state?.inVehicle) && !(P?.ragdoll) && root.visible !== false;
+      // landing: after a real fall / jump the knees take the impact (pelvis dips, feet stay on the ground), scaled by air time
+      const airborne = anim.grounded === false || anim.jumping;
+      if (airborne && !anim.swimming) st.air = (st.air || 0) + dt;
+      else if (on && (st.air || 0) > 0.28) { st.land = THREE.MathUtils.clamp(st.air / 0.8, 0.35, 1); st.landT = 0; st.air = 0; st.w = Math.max(st.w, 0.85); }
+      else st.air = 0;
       st.w += ((on ? 1 : 0) - st.w) * Math.min(1, dt * (on ? 8 : 14));
       st.stats.active = st.w > 0.05;
       if (st.w < 0.01) { model.position.y = 0; st.pelvis = 0; return; }
+      let dip = 0;
+      if (st.land) { st.landT += dt; const k = st.landT / 0.42; dip = k >= 1 ? 0 : -0.11 * st.land * Math.sin(Math.PI * Math.min(1, k * 1.15)) * (1 - k * 0.3); if (k >= 1) st.land = 0; }
       const ankH = restAnkle();
       model.position.y = 0; model.updateMatrixWorld(true);
       const rootY = root.getWorldPosition(_t).y;
@@ -91,13 +98,13 @@ export function createFootIK({ game, model, bone, root }) {
       // 2) pelvis down so the lower foot reaches (never up: the capsule already stands on the higher ground)
       const pv = Math.min(0, legs[0].off, legs[1].off) * st.w;
       st.pelvis += (pv - st.pelvis) * Math.min(1, dt * 14);
-      model.position.y = st.pelvis; model.updateMatrixWorld(true);
+      model.position.y = st.pelvis + dip; model.updateMatrixWorld(true);
       // 3) each leg reaches its own ground; planted feet follow the slope
       for (let i = 0; i < 2; i++) {
         const l = legs[i];
         const fq = l.ft.getWorldQuaternion(new THREE.Quaternion());
         l.ft.getWorldPosition(_a);
-        const raise = (l.off - st.pelvis) * st.w;
+        const raise = (l.off - st.pelvis) * st.w - dip;
         if (Math.abs(raise) > 0.002) { _t.copy(_a); _t.y += raise; solve(l, _t, _f); }
         setWorldQuat(l.ft, fq);                            // the foot keeps its animated orientation...
         const tilt = Math.min(0.45, Math.acos(THREE.MathUtils.clamp(l.n.y, -1, 1)));

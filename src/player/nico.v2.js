@@ -37,10 +37,11 @@ export async function initV2(game) {
   };
   // body change: core-systems drives game.player.body.fat (0..1, 0.5 = Nico's normal build) and .muscle (0..1)
   const body = { _fat: save.fat ?? 0.5, _muscle: save.muscle ?? 0.8 };
-  game.player.body = {
-    get fat() { return body._fat; }, set fat(v) { body._fat = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.fat = body._fat; },
-    get muscle() { return body._muscle; }, set muscle(v) { body._muscle = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.muscle = body._muscle; },
-  };
+  // game.player.body is the player's Rapier rigid body (main.js; ragdoll.js, gameplay teleports and tests call
+  // .translation() / .setTranslation() on it): add fat / muscle to it instead of replacing it
+  const pb = game.player.body && typeof game.player.body.translation === 'function' ? game.player.body : (game.player.body = {});
+  Object.defineProperty(pb, 'fat', { configurable: true, get() { return body._fat; }, set(v) { body._fat = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.fat = body._fat; } });
+  Object.defineProperty(pb, 'muscle', { configurable: true, get() { return body._muscle; }, set(v) { body._muscle = Math.min(1, Math.max(0, v)); const c = ch(); if (c) c.body.muscle = body._muscle; } });
   const apply = () => { const c = ch(); if (!c) return false; const ids = save.current.filter((id) => getPiece(id)); if (ids.length) c.outfit.set(ids); c.body.set({ fat: body._fat, muscle: body._muscle }); return true; };
   if (!apply()) { let n = 0; const t = setInterval(() => { if (apply() || ++n > 40) clearInterval(t); }, 500); }
 }
