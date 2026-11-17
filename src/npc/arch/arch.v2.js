@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { loadIndex, loadArchetype, getBase, loadedBases, archetypesForSync, PLACE_TAGS } from './lib.js';
 import { createNpc } from './character.js';
+import { createCast } from '../people/cast.js';
 
 export const order = 110;
 const LEGACY_TAG = { beach: 'beach', tourist: 'casual', street: 'casual', sport: 'sport', nightlife: 'nightlife', bar: 'bar', security: 'security', kitchen: 'kitchen', work: 'port', port: 'port', business: 'business', police: 'cop' };
@@ -18,6 +19,11 @@ export async function initV2(game) {
   if (typeof location !== 'undefined' && /[?&]npc=legacy/.test(location.search)) return;   // A/B: old library people
   const idx = await loadIndex();
   if (!idx.archetypes?.length) { console.warn('[npc] no archetypes installed'); return; }
+  // the user's people (src/npc/people) come first; archetypes are the fallback while a person loads ('?people=0' = off)
+  let cast = null;
+  if (!(typeof location !== 'undefined' && /[?&]people=0/.test(location.search))) {
+    try { cast = await createCast(game); } catch (e) { console.warn('[npc] people cast unavailable', e); cast = null; }
+  }
   const active = new Map();            // archetype id -> people using it now
   const staged = new Set();
   let seedN = 1;
@@ -65,6 +71,7 @@ export async function initV2(game) {
   function recount() { active.clear(); for (const c of live) if (c.root.visible && c.root.parent) active.set(c.npcArch, (active.get(c.npcArch) || 0) + 1); }
   /** for peds.js: an archetype person for a zone, or null (peds then falls back to the legacy library body) */
   function createPed(opts = {}) {
+    if (cast) { try { const pc = cast.createPed(opts); if (pc) return pc; } catch (e) { console.warn('[npc] person', e); } }
     const zone = opts.zone === 'cop' || opts.outfit === 'cop' ? 'cop' : (opts.outfit || opts.zone || 'residential');
     recount();
     const id = pick(zone, opts.gender, opts.seed ?? seedN);
@@ -74,10 +81,16 @@ export async function initV2(game) {
     c.zoneTag = LEGACY_TAG[(c.archetype.place || [])[0]] || 'casual'; c.human.zone = c.zoneTag;
     return track(c);
   }
+  // staged people: a person whose role fits the place when one is loaded (cashier, cook, bartender, maid, lifeguard ...)
+  const STAGE_PLACES = { cashier: ['shop_staff'], shop: ['shop_staff'], clerk: ['shop_staff'], shop_staff: ['shop_staff'], kitchen: ['kitchen'], cook: ['kitchen'], bar: ['bar'], bartender: ['bar'], server: ['bar', 'shop_staff'],
+    hotel: ['hotel_staff'], hotel_staff: ['hotel_staff'], maid: ['hotel_staff'], bellhop: ['hotel_staff'], security: ['security'], bouncer: ['security'], lifeguard: ['lifeguard'], dock: ['dock', 'fishing'], fisherman: ['fishing', 'dock'],
+    police: ['police'], cop: ['police'], medic: ['medic'], paramedic: ['medic'], farm: ['farm', 'rural'], nightlife: ['nightlife'], guest: ['nightlife', 'tourist'], shopper: ['shop_guest', 'street'] };
   function spawnPosed(o = {}) {
-    const id = o.archetype && getBase(o.archetype) ? o.archetype : pick(o.place || 'nightlife', o.gender, o.seed ?? seedN);
+    let c = null;
+    if (cast && !o.archetype && o.people !== false) { try { const pl = o.person ? null : (STAGE_PLACES[o.place] || (o.place ? [o.place] : null)); if (o.person || pl) c = cast.createFor(pl || [], { id: o.person, pos: o.pos, seed: o.seed, pose: o.pose || null, gender: o.gender }); } catch (e) { c = null; } }
+    const id = c ? c.npcArch : (o.archetype && getBase(o.archetype) ? o.archetype : pick(o.place || 'nightlife', o.gender, o.seed ?? seedN));
     if (!id) return null;
-    const c = createNpc(game, { archetype: id, seed: o.seed ?? (seedN++ * 7919), vary: o.vary ?? 0.6, pose: o.pose || null });
+    if (!c) c = createNpc(game, { archetype: id, seed: o.seed ?? (seedN++ * 7919), vary: o.vary ?? 0.6, pose: o.pose || null });
     if (!c) return null;
     track(c);
     const p = o.pos || { x: 0, y: 0, z: 0 };
@@ -115,9 +128,10 @@ export async function initV2(game) {
       if (want && !promPath) promPath = buildPromenade();
       if (promPath && strollers.length < want) {
         const ids = archetypesForSync('beach', idx).concat(archetypesForSync('tourist', idx), archetypesForSync('street', idx)).filter((a) => getBase(a.id));
-        if (ids.length) {
+        let pc = null; try { pc = cast ? cast.createFor(['beach_walk', 'tourist', 'beach', 'sport'], { pos: pp }) : null; } catch (e) { pc = null; }
+        if (pc || ids.length) {
           const a = ids[(Math.random() * ids.length) | 0];
-          const c = createNpc(game, { archetype: a.id, seed: (seedN++) * 7919, vary: 0.9 });
+          const c = pc || createNpc(game, { archetype: a.id, seed: (seedN++) * 7919, vary: 0.9 });
           if (c) {
             // start at a path point not too close to the player, out of the way of the camera
             const P = promPath[(Math.random() * promPath.length) | 0];
@@ -149,7 +163,11 @@ export async function initV2(game) {
   game.updaters?.push?.((dt) => { try { promUpdate(Math.min(dt, 0.1)); } catch (e) { console.warn('[npc] promenade', e); } });
 
   game.npc = {
-    createPed, spawnPosed,
+    createPed, spawnPosed, cast,
+    /** police model hook (src/gameplay/police.js): a uniformed officer from the user's people, or null */
+    createCop: (o = {}) => { try { return cast ? cast.createCop(o) : null; } catch (e) { return null; } },
+    /** can this pooled character be reused for `zone` at pos (role / uniqueness rules of the cast)? */
+    fitsPlace: (c, zone, pos) => (cast && c?.personMeta ? cast.fits(c, zone, pos) : true),
     /** like spawnPosed, but loads the archetype first (resolves to the handle, or null) */
     spawnPosedAsync: async (o = {}) => { if (o.archetype) await loadArchetype(o.archetype).catch(() => null); else if (o.place) await Promise.all(archetypesForSync(o.place, idx).slice(0, 4).map((a) => loadArchetype(a.id).catch(() => null))); return spawnPosed(o); },
     load: (id) => loadArchetype(id),
@@ -157,6 +175,7 @@ export async function initV2(game) {
     archetypes: (place) => (place ? archetypesForSync(place, idx) : idx.archetypes).map((a) => ({ id: a.id, gender: a.gender, years: a.years, place: a.place, poses: a.poses, loaded: !!getBase(a.id) })),
     poses: () => { const b = loadedBases()[0]; return b ? Object.keys(b.clips) : []; },
     places: () => Object.keys(PLACE_TAGS),
+    peopleStats: () => cast?.stats?.() || null,
     stats: () => ({ total: idx.archetypes.length, loaded: loadedBases().length, queued: queue.length, staged: staged.size, strollers: strollers.length, active: Object.fromEntries(active) }),
   };
 }

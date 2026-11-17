@@ -59,25 +59,27 @@ export function createNpc(game, opts = {}) {
   const model = SkeletonUtils.clone(base.scene);
   model.name = 'npc:' + base.id;
   // ---- materials (body per person: tints + garment slot variants; the rest shared)
-  const body = makeBodyMaterial(base);
-  const U = body.userData.u;
+  // the user's people (src/npc/people): one baked-texture material per person (+ a small tint variant); archetypes: slots
+  const isPerson = !!base.person;
   const vary = opts.vary ?? 0.7;
-  U.uSkinTint.value.setRGB(1 + (r() - 0.5) * 0.06 * vary, 1 + (r() - 0.5) * 0.05 * vary, 1 + (r() - 0.5) * 0.05 * vary);
+  const body = isPerson ? (opts.personMaterial ? opts.personMaterial(base, opts.tint || 0) : null) : makeBodyMaterial(base);
+  const U = body?.userData?.u || null;
+  if (U) U.uSkinTint.value.setRGB(1 + (r() - 0.5) * 0.06 * vary, 1 + (r() - 0.5) * 0.05 * vary, 1 + (r() - 0.5) * 0.05 * vary);
   const hairHex = opts.hairColor || (r() < 0.6 * vary ? HAIR_SHADES[hairFamily(meta.hairColor || '#1a1410')][Math.floor(r() * 4) % HAIR_SHADES[hairFamily(meta.hairColor || '#1a1410')].length] : (meta.hairColor || '#1a1410'));
   const hairCol = new THREE.Color(hairHex);
-  { const b = new THREE.Color(meta.hairColor || '#1a1410'); U.uHairTint.value.setRGB(hairCol.r / Math.max(0.02, b.r), hairCol.g / Math.max(0.02, b.g), hairCol.b / Math.max(0.02, b.b)); }
-  const setSlots = (rr, k) => { for (let s = 1; s <= 5; s++) { const big = rr() < 0.55 * k; U.uSlot.value[s].set(big ? (rr() - 0.5) * Math.PI * 2 * k : (rr() - 0.5) * 0.35 * k, 1 + (rr() - 0.5) * 0.3 * k, 0, 0); } };
+  if (U) { const b = new THREE.Color(meta.hairColor || '#1a1410'); U.uHairTint.value.setRGB(hairCol.r / Math.max(0.02, b.r), hairCol.g / Math.max(0.02, b.g), hairCol.b / Math.max(0.02, b.b)); }
+  const setSlots = (rr, k) => { if (!U) return; for (let s = 1; s <= 5; s++) { const big = rr() < 0.55 * k; U.uSlot.value[s].set(big ? (rr() - 0.5) * Math.PI * 2 * k : (rr() - 0.5) * 0.35 * k, 1 + (rr() - 0.5) * 0.3 * k, 0, 0); } };
   setSlots(r, vary);
   const hairMat = base.shared.hair ? sharedMat(base.id + ':hair:' + hairHex, () => makeHairMaterial(base.shared.hair, hairHex)) : null;
-  const eyeMat = sharedMat('eye:' + meta.eyes, () => makeEyeMaterial(base.shared.eye));
-  const browMat = sharedMat('brow:' + meta.brows + ':' + hairHex, () => makeBrowMaterial(base.shared.brow, hairCol.clone().multiplyScalar(1.2), false));
-  const lashMat = sharedMat('lash:' + meta.lashes, () => makeBrowMaterial(base.shared.lash, 0x0c0a09, true));
+  const eyeMat = base.shared.eye ? sharedMat('eye:' + meta.eyes, () => makeEyeMaterial(base.shared.eye)) : null;
+  const browMat = base.shared.brow ? sharedMat('brow:' + meta.brows + ':' + hairHex, () => makeBrowMaterial(base.shared.brow, hairCol.clone().multiplyScalar(1.2), false)) : null;
+  const lashMat = base.shared.lash ? sharedMat('lash:' + meta.lashes, () => makeBrowMaterial(base.shared.lash, 0x0c0a09, true)) : null;
   const shoeMat = base.shared.shoe ? sharedMat('shoe:' + meta.shoes, () => makeShoeMaterial(base.shared.shoe)) : null;
   const lods = [[], [], []]; const meshes = []; const detail = [];
   model.traverse((m) => {
     if (!m.isMesh) return;
     const nm = m.name; const lv = +((/LOD(\d)/.exec(nm) || [0, 0])[1]);
-    if (/_body/.test(nm)) m.material = body;
+    if (/_body/.test(nm)) { if (body) m.material = body; }
     else if (/_hair/.test(nm)) { if (hairMat) m.material = hairMat; else m.visible = false; }
     else if (/_eyes/.test(nm)) { m.material = eyeMat; detail.push(m); }
     else if (/_brows/.test(nm)) { m.material = browMat; detail.push(m); }
@@ -92,7 +94,7 @@ export function createNpc(game, opts = {}) {
   const hairL0 = lods[0].filter((m) => /_hair/.test(m.name)); const hasL2Hair = lods[2].some((m) => /_hair/.test(m.name));
   const root = new THREE.Group(); root.name = 'npc-' + base.id;
   const holder = new THREE.Group(); holder.add(model); root.add(holder);
-  const hs = 1 + (r() - 0.5) * 0.045 * vary; holder.scale.setScalar(hs);
+  const hs = opts.scale || (1 + (r() - 0.5) * 0.045 * vary); holder.scale.setScalar(hs);
   const bones = {}; model.traverse((o) => { if (o.isBone) bones[o.name.replace(/^mixamorig[:_]?/, '')] = o; });
   const headBone = bones.Head, handR = bones.RightHand, handL = bones.LeftHand;
 
@@ -279,7 +281,7 @@ export function createNpc(game, opts = {}) {
     character.lodLevel = lv;
   }
 
-  const human = { id: base.id, gender: meta.gender, race: meta.race, zone: (meta.place || [])[0] || 'street', years: meta.years, shells: [], clothes: [], arch: true };
+  const human = { id: base.id, gender: meta.gender, race: meta.race, zone: (meta.place || [])[0] || 'street', years: meta.years, shells: [], clothes: [], arch: !isPerson, person: isPerson, role: meta.role || null, age: meta.age || null };
   const character = {
     root, model, mixer, base: 'npc', npcArch: base.id, archetype: meta, lodLevel: 0,
     update,
@@ -297,14 +299,14 @@ export function createNpc(game, opts = {}) {
       if (!L) return null;
       const rr = rng((L.sig ? L.sig.length * 131 : 7) + seed);
       setSlots(rr, Math.min(1, vary + 0.2));
-      if (L.height && meta.height) holder.scale.setScalar(THREE.MathUtils.clamp(L.height / meta.height, 0.94, 1.06));
+      if (L.height && meta.height && !isPerson) holder.scale.setScalar(THREE.MathUtils.clamp(L.height / meta.height, 0.94, 1.06));
       return { props: [], accKinds: [], height: meta.height * holder.scale.y, scale: holder.scale.y, body: base.id, pal: null };
     },
     _applyLOD: applyLOD,
     dispose() {
       try { mixer.stopAllAction(); mixer.uncacheRoot(model); } catch (e) { /* */ }
       model.traverse((o) => { if (o.isSkinnedMesh && o.skeleton) { try { o.skeleton.dispose(); } catch (e) { /* */ } } });
-      body.dispose();
+      if (body && !body.userData.shared) body.dispose();
     },
     snapshotPose(dur = 0.35) { const arr = []; model.traverse((o) => { if (o.isBone) arr.push({ b: o, q: o.quaternion.clone(), p: o.position.clone() }); }); st.snap = arr; st.snapT = 0; st.snapDur = dur; },
     human, zoneTag: human.zone,

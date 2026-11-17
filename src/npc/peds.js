@@ -267,16 +267,19 @@ export async function createPeds(game) {
     for (let i = 0; i < pool.length; i++) {
       const c = pool[i];
       if (c.human && activeIds.has(c.human.id)) continue;
+      // the user's people carry a role: only reuse one where that role belongs (and never next to its twin)
+      if (c.personMeta && !(game.npc?.fitsPlace?.(c, want, opts.pos) ?? true)) continue;
+      if (c.personMeta && opts.act && /sunbathe|swim|wade|volley|frisbee/.test(opts.act) && !c.personMeta.places.some((x) => x === 'beach' || x === 'swim')) continue;
       if (c.zoneTag && zoneFits(c.zoneTag, want) && (!opts.gender || (c.human?.gender === (opts.gender[0] === 'f' ? 'f' : 'm')))) { pool.splice(i, 1); c.root.visible = true; return c; }
     }
     if (createdThisFrame >= 1 && !opts.force) { // creation budget (<=1 per frame) spent: reuse any pooled person
-      if (pool.length) { const c = pool.pop(); c.root.visible = true; return c; }
+      if (pool.length) { let k = pool.length - 1; if (opts.pos && game.npc?.fitsPlace) for (let j = pool.length - 1; j >= 0; j--) if (game.npc.fitsPlace(pool[j], want, opts.pos)) { k = j; break; } const c = pool.splice(k, 1)[0]; c.root.visible = true; return c; }
       return null;
     }
     createdThisFrame++;
     const sd = 1000 + (seedN++) * 37;
     // archetype people (src/npc/arch, PEOPLE-LOOK) when loaded for this place; the legacy library body otherwise
-    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender }) || createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds });
+    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender, pos: opts.pos, act: opts.act }) || createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds });
     scene.add(c.root);
     return c;
   }
@@ -367,7 +370,7 @@ export async function createPeds(game) {
   function activate(ped, pos, zone, act, opts = {}) {
     ped.pos.copy(pos);
     ped.zone = zone; ped.act = act;
-    ped.char = getChar(opts.outfit || zone, opts);
+    ped.char = getChar(opts.outfit || zone, { ...opts, pos, act });
     if (!ped.char) { ped.active = false; return null; }
     ped.root = ped.char.root;
     ped.char.restyle?.(opts.outfit || zone);

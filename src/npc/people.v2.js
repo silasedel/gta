@@ -277,6 +277,20 @@ export async function initV2(game) {
     return k;
   }
   const rainy = () => /rain|storm|shower/.test(weather());
+  // far tier wears the user's people (src/npc/people/cast.js palettes: skin, top, bottom, hair, shoes, sleeve and leg cut)
+  function farLook(L, pos) {
+    const base = crowdLook(L);
+    const cast = game.npc?.cast; if (!cast?.farPerson) return base;
+    try {
+      const p = cast.farPerson(NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential', pos); const c = p?.cols; if (!c) return base;
+      L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
+      const f = p.g === 'f';
+      return { ...base, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
+        sleeve: c.sleeve ?? base.sleeve, leg: c.leg ?? base.leg, hatKind: c.hat ? 1 : 0, hat: c.hat ? (c.hair ?? base.hat) : base.hat,
+        hairStyle: f ? (base.hairStyle >= 2 ? base.hairStyle : 3) : Math.min(1, base.hairStyle ?? 1), bust: f ? Math.max(0.6, base.bust || 0.8) : 0,
+        girth: p.build === 'heavy' ? 1.25 : f ? Math.min(base.girth ?? 1, 1.05) : base.girth };
+    } catch (e) { return base; }
+  }
   function placeStill(w, spot, pose, cadence) {
     w.still = true;
     w.pose = pose;
@@ -351,7 +365,7 @@ export async function initV2(game) {
     const i = crowd.alloc(); if (i < 0) return false;
     const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16 };
     crowd.setFade(i, 0);
-    crowd.setLook(i, crowdLook(L));
+    crowd.setLook(i, farLook(L, w.pos));
     if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
       // sit on the surface that is really there (physics ground), so neither the person nor the towel hovers (playtest P4)
       w.gy = surfaceY(w.pos.x, w.pos.z, w.gy);
@@ -471,7 +485,7 @@ export async function initV2(game) {
       const z = g.z + Math.cos(a) * rad;
       const w = { i, pos: new THREE.Vector3(x, g.y, z), nav: null, heading: a + Math.PI, id: pick.id, look: L, speed: L.gait.speed, gy: g.y, phase: Math.random() * 6.28, still: true, fade: 0, leaving: false, ampJit: 1, groupKey: m === 0 ? g.key : null };
       crowd.setFade(i, 0);
-      crowd.setLook(i, crowdLook(L));
+      crowd.setLook(i, farLook(L, w.pos));
       const roll = Math.random();
       const pose = night && roll < 0.3 ? POSE.dance : roll < 0.62 ? POSE.talk : roll < 0.74 ? POSE.argue : roll < 0.86 ? POSE.sip : roll < 0.94 ? POSE.phone : POSE.film;
       w.pose = pose;

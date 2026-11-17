@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+// In-game people shots: teleport to a place, let the crowd spawn, then frame real pedestrians with a fixed camera.
+//   node tools/v2/npcs/game-shots.mjs --set X [--places downtown,beach,keys] [--close 6] [--wait 25] [--tod 11]
+// Per place: a street view (camera 7 m behind the densest group of people) + up to --close close-ups of different
+// people (face / body), stats (people vs archetype fallbacks, loaded people). Shots: docs/v2/shots/people/<set>_<place>_*.png
+import fs from 'node:fs';
+import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
+const a = process.argv.slice(2), o = {};
+for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
+const PLACES = {
+  downtown: { p: [407, -110], tod: 11 }, brickell: { p: [0, 1760], tod: 16 }, beach: { p: [2332, -660], tod: 13 }, ocean: { p: [3430, -300], tod: 15 },
+  keys: { p: [-873.6, 4845.2], tod: 11 }, keywest: { p: [-4895, 5940], tod: 11 }, clewiston: { p: [-1540, -2805], tod: 11 }, havana: { p: [-660, -55], tod: 17 },
+};
+const SET = o.set || 'g';
+const only = String(o.places || 'downtown,beach,keys').split(',');
+const DIR = 'docs/v2/shots/people'; fs.mkdirSync(DIR, { recursive: true });
+const rep = {};
+await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +(o.max || 1400) }, async (b) => {
+  await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
+  await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
+  if (!(await startGame(b))) console.log('WARN: title did not close');
+  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; return 1; })()`);
+  for (const id of only) {
+    const P = PLACES[id] || { p: id.split(':').map(Number), tod: 12 };
+    await b.eval(`(() => { game.cameraOverride = null; game.timeOfDay = ${o.tod || P.tod}; game.teleport(${P.p[0]}, undefined, ${P.p[1]}, 0); return 1; })()`);
+    await b.sleep(6000);
+    for (let i = 0; i < 40; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
+    await b.sleep(+(o.wait || 25) * 1000);
+    const st = JSON.parse(await b.eval(`JSON.stringify((() => { const L = game.peds.list.filter((p) => p.active && p.char); return { active: L.length, people: L.filter((p) => p.char.human?.person).length, ids: L.filter((p) => p.char.human?.person).map((p) => p.char.npcArch), roles: L.map((p) => p.char.human?.role || (p.char.npcArch ? 'arch:' + p.char.npcArch : 'legacy')), cast: game.npc?.peopleStats?.(), zone: game.city.zoneAt(game.player.position.x, game.player.position.z), district: game.city.districtAt(game.player.position.x, game.player.position.z) }; })())`));
+    console.log(id, JSON.stringify(st));
+    rep[id] = st;
+    // street view: the person with the most neighbors within 12 m, camera 8 m away at eye height looking at them
+    await b.eval(`(() => { const L = game.peds.list.filter((p) => p.active && p.char && !p.dead);
+      let best = null, bn = -1; for (const p of L) { let n = 0; for (const q of L) if (q !== p && q.pos.distanceTo(p.pos) < 12) n++; if (n > bn) { bn = n; best = p; } }
+      if (!best) return 0; window.__focus = best;
+      game.cameraOverride = (dt, cam) => { const t = window.__focus.pos; const pp = game.player.position; let dx = t.x - pp.x, dz = t.z - pp.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d;
+        cam.position.set(t.x - dx * 9 + dz * 2, t.y + 2.0, t.z - dz * 9 - dx * 2); cam.lookAt(t.x, t.y + 1.1, t.z); return true; };
+      return bn; })()`);
+    await b.sleep(1500);
+    await b.screenshot(`${DIR}/${SET}_${id}_street.png`);
+    // close-ups: different people, camera 1.9 m in front of them, chest/face height
+    const n = +(o.close ?? 4);
+    const ids = JSON.parse(await b.eval(`JSON.stringify(game.peds.list.filter((p) => p.active && p.char?.human?.person && !p.dead).map((p) => p.id))`));
+    for (let k = 0; k < Math.min(n, ids.length); k++) {
+      await b.eval(`(() => { const p = game.peds.list.find((q) => q.id === ${ids[k]}); window.__focus = p;
+        game.cameraOverride = (dt, cam) => { const t = window.__focus.pos; const h = window.__focus.root.rotation.y; const fx = Math.sin(h), fz = Math.cos(h);
+          cam.position.set(t.x + fx * 2.3 + fz * 0.5, t.y + 1.45, t.z + fz * 2.3 - fx * 0.5); cam.lookAt(t.x, t.y + 1.05, t.z); return true; }; return 1; })()`);
+      await b.sleep(900);
+      const who = await b.eval(`(() => { const c = window.__focus.char; return c.npcArch + ' ' + (c.personMeta?.name || '') + ' ' + window.__focus.state + ' lod' + c.lodLevel; })()`);
+      await b.screenshot(`${DIR}/${SET}_${id}_close${k}.png`);
+      console.log('  close', k, who);
+    }
+    await b.eval('(game.cameraOverride = null, 1)');
+  }
+  if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].slice(0, 30).join('\n'));
+});
+fs.writeFileSync(`docs/v2/reports/people-shots-${SET}.json`, JSON.stringify(rep, null, 1));

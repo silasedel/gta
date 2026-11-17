@@ -18,6 +18,8 @@ function loader() {
   return _loader;
 }
 const texCache = new Map();
+/** drop a cached texture promise (the people library unloads people it no longer needs) */
+export function forgetTex(url) { texCache.delete(url + '|s'); texCache.delete(url + '|l'); }
 /** cached texture: decoded off the main thread (ImageBitmap), no flip (glTF UV convention), sRGB for color maps */
 export function loadTex(url, srgb = true, mips = true) {
   const key = url + (srgb ? '|s' : '|l');

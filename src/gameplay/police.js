@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { createCharacter } from '../player/characterModel.js';
 import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView, groundAt, warnOnce, aimArm, removeColliderSafe, removeBodySafe, bodyAlive, vAlive } from './util.js';
 import { buildWeaponModel } from './gunModels.js';
+import { holdWeapon } from './gunHold.js';
 import { createLaw } from './police/law.js';
 import { createStations } from './police/stations.js';
 import { createResponse } from './police/response.js';
@@ -56,7 +57,7 @@ export function createPolice(game, G) {
   function makeUnit(i) {
     let char = null;
     for (let k = 0; k < 4; k++) {
-      char = tryCall('createCharacter', () => createCharacter(game, { variant: 'ped', outfit: 'cop', seed: 7700 + i * 131 + k * 17 }), null);
+      char = tryCall('createCharacter', () => game.npc?.createCop?.({ seed: 7700 + i * 131 + k * 17 }) || createCharacter(game, { variant: 'ped', outfit: 'cop', seed: 7700 + i * 131 + k * 17 }), null);
       if (!char || char.base !== 'female' || k === 3) break;
     }
     if (!char) return null;
@@ -85,9 +86,21 @@ export function createPolice(game, G) {
   }
   for (let i = 0; i < POOL; i++) { const u = makeUnit(i); if (u) units.push(u); }
 
+  // the user's police people (src/npc/people, game.npc.createCop) replace the pool's older bodies as they load
+  function upgradeCopModel(u, pos) {
+    if (u.char?.human?.person || !game.npc?.createCop) return;
+    const c = tryCall('createCop', () => game.npc.createCop({ seed: 7700 + units.indexOf(u) * 131 + ((Math.random() * 1e6) | 0), pos }), null);
+    if (!c?.root) return;
+    const old = u.char; scene.remove(old.root); tryCall('dispose', () => old.dispose?.());
+    tryCall('copGear', () => c.setCopGear?.(true));
+    c.root.visible = false; scene.add(c.root);
+    u.char = c; u.head = findBone(c.root, /Head$/i); u.hand = findBone(c.root, /RightHand$/i); u.arm = findBone(c.root, /RightArm$/i);
+    u.cap.userData.native = true; u.cap.visible = false;
+  }
   function spawnCop(pos, heading = 0, car = null) {
     const u = units.find((x) => !x.active);
     if (!u) return null;
+    upgradeCopModel(u, pos);
     u.active = true; u.dead = false; u.deadT = 0; u.health = 100; u.car = car; u.mode = 'chase'; u.lifeT = 0; u.fireCd = rand(1, 2); u.vy = 0;
     u.pos.copy(pos); u.heading = heading; u.speed = 0; u.stuckT = 0; u.wander = null; u._susp = 0; u._callT = 0; u._called = false; u.role = 'patrol'; u.vaultT = 0;
     // armament scales with heat
@@ -292,7 +305,8 @@ export function createPolice(game, G) {
     if (u.head) { u.head.getWorldPosition(_a); u.cap.position.set(_a.x, _a.y + 0.07, _a.z); } else u.cap.position.set(u.pos.x, u.pos.y + 1.72, u.pos.z);
     u.cap.rotation.set(0, u.heading, 0);
     u.cap.visible = !u.dead && !u.cap.userData.native;
-    if (u.hand && !u.dead) {
+    const aimAt = u.mode === 'chase' && G.wanted.level >= 2 && u.sees && distXZ(u.pos, P.position) > 2 ? _b.set(P.position.x, P.position.y + 1.2, P.position.z) : null;   // weapons helper: hand-aligned grip (gunHold.js)
+    if (u.hand && !u.dead && !tryCall('cop.hold', () => holdWeapon(u.gun, c.root, { aim: aimAt, dt, time: game.clock.elapsed }), false)) {
       u.hand.getWorldPosition(_a); u.gun.position.copy(_a);
       if (u.mode === 'chase' && G.wanted.level >= 2 && u.sees) {
         if (u.arm && distXZ(u.pos, P.position) > 2) { aimArm(u.arm, u.hand, _b.set(P.position.x, P.position.y + 1.2, P.position.z), 1); u.hand.getWorldPosition(_a); u.gun.position.copy(_a); }
@@ -330,7 +344,7 @@ export function createPolice(game, G) {
     if (!v || v._gpCopDriver) return;
     const old = v.driverChar, root = old?.root || v.driver;
     if (!root || !root.parent) return;
-    const ch = tryCall('cop driver', () => createCharacter(game, { variant: 'ped', outfit: 'cop', seed: driverSeed++ }), null);
+    const ch = tryCall('cop driver', () => game.npc?.createCop?.({ seed: driverSeed++, pos: root.getWorldPosition?.(new THREE.Vector3()) }) || createCharacter(game, { variant: 'ped', outfit: 'cop', seed: driverSeed++ }), null);
     if (!ch?.root) return;
     tryCall('copGear', () => ch.setCopGear?.(true));
     ch.root.position.copy(root.position); ch.root.quaternion.copy(root.quaternion); ch.root.scale.copy(root.scale);

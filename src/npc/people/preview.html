@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><title>People preview</title>
+<style>html,body{margin:0;overflow:hidden;background:#000}#lab{position:fixed;inset:0;pointer-events:none;font:11px ui-monospace,Menlo,monospace;color:#fff}.t{position:absolute;transform:translate(-50%,0);background:rgba(0,0,0,.55);padding:1px 4px;white-space:nowrap}</style></head><body><div id="lab"></div>
+<script type="module">
+// The user's people on the game rig, with the game's own clips.
+// preview.html?ids=p07,p12|all&pose=idle,walk,run,sitBench,...&speed=0&cam=front|side|back|34|face&light=day|shade&spacing=0.9&cols=8&t=2&lod=0&hi=1&phase=0.25
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { loadPeopleIndex, loadPerson, personMaterial, hiRes } from './lib.js';
+import { createNpc } from '../arch/character.js';
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = +(q.get('exp') || 1.0); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const light = q.get('light') || 'day';
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+const camera = new THREE.PerspectiveCamera(+(q.get('fov') || 30), innerWidth / innerHeight, 0.05, 200);
+const game = { THREE, scene, camera, renderer, clock: { elapsed: 0 } };
+scene.background = new THREE.Color(light === 'shade' ? 0x8a97a4 : 0xa9c3d6); scene.environmentIntensity = light === 'shade' ? 0.7 : 0.45;
+scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x8a7a66, light === 'shade' ? 1.2 : 0.7));
+const sun = new THREE.DirectionalLight(0xfff1dc, light === 'shade' ? 0.6 : 2.6); sun.position.set(4, 7, 5); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -2, near: 0.5, far: 40 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.02; scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8d877d, roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const idx = await loadPeopleIndex();
+let ids = (q.get('ids') || 'all').split(',').filter(Boolean); if (ids[0] === 'all') ids = idx.people.map((a) => a.id);
+const poses = (q.get('pose') || '').split(',');
+const t0 = performance.now();
+const bases = await Promise.all(ids.map((id) => loadPerson(id).catch((e) => { console.error(id, e); return null; })));
+const loadMs = performance.now() - t0;
+if (q.get('hi')) await Promise.all(bases.filter(Boolean).map((b) => hiRes(b, +q.get('hi'))));
+const chars = []; const lab = document.getElementById('lab'); const tags = [];
+const sp = +(q.get('spacing') || 0.9); const cols = +(q.get('cols') || Math.min(12, ids.length * Math.max(1, poses.length)));
+let k = 0;
+for (let i = 0; i < bases.length; i++) for (const pose of (q.get('pair') ? [poses[i % poses.length]] : poses)) {
+  const b = bases[i]; if (!b) continue;
+  const c = createNpc(game, { base: b, seed: +(q.get('seed') || 11) + i * 31, vary: +(q.get('vary') || 0), personMaterial, tint: +(q.get('tint') || 0), scale: 1, pose: pose && pose !== 'walk' && pose !== 'run' && pose !== 'jog' && pose !== 'sprint' ? pose : null });
+  if (q.get('lod')) c._applyLOD(+q.get('lod'), true);
+  const col = k % cols, row = Math.floor(k / cols);
+  c.root.position.set((col - (cols - 1) / 2) * sp, 0, -row * 1.6); c.root.rotation.y = +(q.get('rot') || 0); scene.add(c.root); chars.push({ c, pose });
+  if (q.get('seat')) { const h = +q.get('seat'); const box = new THREE.Mesh(new THREE.BoxGeometry(0.44, h, 0.42), new THREE.MeshStandardMaterial({ color: 0x5a4636, roughness: 0.7 })); box.position.set(c.root.position.x, h / 2, c.root.position.z - 0.17); box.castShadow = box.receiveShadow = true; scene.add(box); }
+  const el = document.createElement('div'); el.className = 't'; el.textContent = b.id + ' ' + (b.meta.name || '').slice(0, 22) + (pose ? ' ' + pose : ''); lab.appendChild(el); tags.push([el, c.root.position.clone().add(new THREE.Vector3(0, -0.04, 0))]);
+  k++;
+}
+const rows = Math.ceil(k / cols); const W = cols * sp;
+const view = q.get('cam') || 'front';
+const fy = +(q.get('fy') || 0.95), dist = +(q.get('dist') || Math.max(3.2, W * 1.15 + 1.5));
+const ang = { front: 0, side: Math.PI / 2, back: Math.PI, '34': 0.6, face: 0.25 }[view] ?? 0;
+camera.position.set(Math.sin(ang) * dist, view === 'face' ? 1.62 : 1.25 + (q.get('high') ? 1.2 : 0), Math.cos(ang) * dist + (rows - 1) * -0.8);
+camera.lookAt(0, view === 'face' ? 1.6 : fy, -(rows - 1) * 0.8);
+if (q.get('cx')) { camera.position.set(+q.get('cx'), +q.get('cy'), +q.get('cz')); camera.lookAt(+q.get('tx'), +q.get('ty'), +q.get('tz')); }
+let f = 0; const T = +(q.get('t') || 2); const spd = +(q.get('speed') || 0);
+const SPD = { walk: 1.35, jog: 2.6, run: 3.6, sprint: 5.5 };
+const run = (dt) => { game.clock.elapsed += dt; for (const { c, pose } of chars) c.update(dt, { speed: SPD[pose] ? (spd || SPD[pose]) : spd, grounded: true }); };
+for (let i = 0; i < T * 30; i++) run(1 / 30);
+const freeze = q.get('freeze');
+function loop() {
+  if (!freeze) run(1 / 60);
+  renderer.render(scene, camera);
+  for (const [el, p] of tags) { const v = p.clone().project(camera); el.style.left = ((v.x * 0.5 + 0.5) * innerWidth) + 'px'; el.style.top = ((-v.y * 0.5 + 0.5) * innerHeight) + 'px'; el.style.display = q.get('labels') === '0' ? 'none' : ''; }
+  if (++f === 8) { window.stats = { loadMs: Math.round(loadMs), n: chars.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, bind: bases.map((b) => b && b.bindMs), speeds: bases[0] && Object.fromEntries(Object.entries(bases[0].clips).filter(([n, c]) => c.userData.loco).map(([n, c]) => [n, +c.userData.speed.toFixed(2)])), clips: bases[0] && Object.keys(bases[0].clips).length }; window.ready = true; }
+  requestAnimationFrame(loop);
+}
+loop();
+</script></body></html>
