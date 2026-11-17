@@ -83,7 +83,7 @@ export async function initV2(game) {
         if (!opts.noClear) { const n0 = items.length, r = lib[keys[0]].cls === 'shrub' ? 0.6 : 1.2; items = items.filter((it) => clearAt(it.x, it.z, r, grp === 'mangrove')); clearStats.fieldDropped += n0 - items.length; }
         const per = keys.map(() => []);
         for (const it of items) { const h = Math.abs(Math.sin(it.x * 12.9898 + it.z * 78.233) * 43758.5453) % 1, k = it.model && keys.includes(it.model) ? keys.indexOf(it.model) : Math.floor(h * keys.length) % keys.length;
-          per[k].push(opts.keepY ? it : grounded(it, lib[keys[k]], grp)); }
+          const it2 = opts.keepScale ? it : { ...it, s: (it.s ?? 1) * (0.88 + ((h * 7.31) % 1) * 0.24) }; per[k].push(opts.keepY ? it2 : grounded(it2, lib[keys[k]], grp)); }
         const subs = []; per.forEach((sub, k) => { if (sub.length) subs.push(game.vegetation.field(PROXY[lib[keys[k]].cls] || kind, sub, { ...opts, model: lib[keys[k]], noClear: true })); });
         return { group: subs[0]?.group || new THREE.Group(), subs, update(c, f) { for (const x of subs) x.update(c, f); }, stats() { return subs.map((x) => x.stats()); }, remove() { for (const x of subs) x.remove(); }, dispose() { for (const x of subs) x.remove(); } };
       }

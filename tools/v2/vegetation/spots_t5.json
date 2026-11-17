@@ -1,0 +1,128 @@
+{
+ "keys_yard": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eyeRel": [
+   16,
+   3.2,
+   -14
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_close": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 0.7] : null; })()",
+  "back": 11,
+  "h": 1.6,
+  "lh": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_air": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 2.2] : null; })()",
+  "back": 45,
+  "h": 28,
+  "lh": 0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "keys_street": {
+  "street": [
+   -873.6,
+   4825.2
+  ],
+  "side": 1.5,
+  "h": 1.7,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "place_test": {
+  "at": [
+   -873.6,
+   4825.2
+  ],
+  "eval": "(() => { const V = game.vegetation, x = -873.6 + 18, z = 4825.2 - 10, out = []; for (const [k, dx, dz] of [['poinciana', 0, 0], ['bougainvillea', 4, 3], ['bougainvillea', 5.5, 3.6], ['hibiscus', -3, 4], ['coconut_bent', -6, -4], ['agave', 2, -3], ['potted', 1, 5]]) { try { out.push(V.place(k, x + dx, z + dz).key); } catch (e) { out.push('ERR ' + e.message); } } return out; })()",
+  "eyeRel": [
+   30,
+   3.0,
+   -22
+  ],
+  "lookRel": [
+   18,
+   1.5,
+   -10
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "downtown": {
+  "street": [
+   407,
+   -110
+  ],
+  "side": 2.2,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "grate_close": {
+  "atExpr": "(() => { let best = null; const T = new game.THREE.Matrix4(), P = new game.THREE.Vector3(), c = game.camera.position; game.scene.traverse((o) => { if (!o.isInstancedMesh || o.material?.name !== 'tree-grate') return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, T); P.setFromMatrixPosition(T); const d = (P.x - c.x) ** 2 + (P.z - c.z) ** 2; if (!best || d < best[3]) best = [P.x, P.z, 0.6, d]; } }); return best ? best.slice(0, 3) : null; })()",
+  "back": 4.5,
+  "h": 1.7,
+  "lh": 0.0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "park": {
+  "atExpr": "(() => { const C = game.city; for (let r = 0; r < 3000; r += 40) for (let k = 0; k < Math.max(1, r / 20); k++) { const a = k / Math.max(1, r / 20) * 6.283, x = 407 + Math.cos(a) * r, z = -110 + Math.sin(a) * r; if (C.zoneAt(x, z) === 'park' && C.zoneAt(x + 30, z) === 'park' && C.zoneAt(x - 30, z) === 'park') return [x, z, a]; } return null; })()",
+  "back": 14,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "southbeach": {
+  "street": [
+   2398,
+   660
+  ],
+  "side": 3,
+  "h": 2.0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "everglades": {
+  "at": [
+   -3200,
+   1200
+  ],
+  "eyeRel": [
+   20,
+   3,
+   20
+  ],
+  "lookRel": [
+   0,
+   2,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "havana": {
+  "street": [
+   -660,
+   -55
+  ],
+  "side": 2.5,
+  "h": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ }
+}

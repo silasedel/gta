@@ -128,7 +128,7 @@ How the world and the systems connect. If something here is wrong, fix the code 
   'kitchen' | 'bar' | 'hotel' | 'security' | 'lifeguard' | 'dock' | 'medic' | 'farm' | ..., pos, rot, pose })` (staff),
   `game.npc.cast` (people list, `stats()`, role posts: lifeguards on the sand by day, fishermen at moorings).
   A character with `c.human.person === true` is one of the user's people; `c.personMeta` is its index row.
-- Rules: the same person never twice within 140 m; per spawn height +-3 % and a slight tint; no added glasses/bags.
+- Rules: the same person never twice within 320 m (the crowd radius); per spawn height +-3 % and a slight tint; no added glasses/bags.
 
 ## 5. Notes for later stages
 - Stage 1 status, open items and measured fps: `docs/v2/briefs/STATUS_stage1.md`.
