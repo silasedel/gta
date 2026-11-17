@@ -30,3 +30,59 @@
   spawn in A/B, picture identical - frozen-frame diff = TAA noise), draw order by program (~30 % fewer program switches),
   parked cars sleep, streamer tile loop. Proof sheet `docs/v2/shots/stage1/PERF_proof_sheet.png`. Bench:
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
+
+## props
+- 00:20 started: read briefs + user shots; inventory of street GLBs/textures; plan = texture-array variants per prop (per-instance variant/brightness/fade in instanceColor), per-house mailbox/bin placement, Rapier push/knock props (src/world/props/), construction sites with library cones/barriers.
+
+## intake
+- Models batch 3 (93 zips, details in `Models/INTAKE_2026-11-16.md`, rows in `Models/catalog.csv`, all license-free per the user). Nothing existing was moved or renamed; only new folders were added. Added per folder:
+  - Banks: Bank Teller 1, Bank Vault 1
+  - Barriers: Barrier 2
+  - Beach Stuff: Beach Kit 1
+  - Billboards: Billboard Set 1
+  - Buildings: Building 23, Building 24, Building 25, Building 26, Building 27, Building 28, Building 29
+  - Buoys: Buoy 1
+  - Cars/Other: Covered Car 1
+  - Cars/Trucks: Truck 8
+  - Cars/Vans: Van 5
+  - Desks: Desk 2
+  - Diners: Diner 1, Diner 2, Diner 3, Diner Booth 1, Diner Booth 2
+  - Docks: Dock 6
+  - Factories: Factory 1, Factory 2
+  - Furniture: Picnic Table 1
+  - Hangars: Hangar 1, Hangar 2, Hangar 3, Hangar 4, Hangar 5
+  - Hotels: Hotel 1, Hotel Lobby 1
+  - Interiors: Interior 16, Interior 17
+  - Ladders: Ladder 2
+  - Lifebuoys: Lifebuoy 3
+  - Modular Kits: Modular Kit 3, Modular Kit 4, Modular Kit 5
+  - Motels: Motel 1, Motel 2
+  - Office Buildings: Office Building 1, Office Building 2, Office Building 3, Office Building 4, Office Building 5, Office Building 6, Office Building 7, Office Building 8, Office Building 9, Office Building 10, Office Building 11, Office Building 12
+  - Plants: Fern 1, Grass Clump 1, Moss 1
+  - Prop Packs: Industrial Props Pack 1, Street Props Pack 2
+  - Reception Desks: Reception Desk 1, Reception Desk 2, Reception Desk 3
+  - Rocks: Rock 1, Rock 2
+  - Safety: Fire Alarm Pull Station 1
+  - Schools: School 1, Classroom 1, Classroom 2
+  - Sewer Grates: Manhole 4
+  - Storefronts: Storefront 1, Storefront 2, Storefront 3, Storefront 4, Storefront 5, Storefront 6, Shutter 1
+  - Textures: Roof 1, Roof 2, Roof 3, Concrete 1, Concrete 2, Brick 1, Gravel 1, Brick 2, Plaster 1, Plaster 2, Concrete 3
+  - Tools: Bolt Cutters 1, Handsaw 1, Flashlight 1, Knife 1
+  - Wall Clocks: Wall Clock 1
+  - Weapons: Machete 1
+- School / classroom: Schools/School 1 (campus exterior, 2.6M tris), Schools/Classroom 1 (normal), Schools/Classroom 2 (abandoned, mission). Heist: Safety/Fire Alarm Pull Station 1, Banks/*, Cars/Trucks/Truck 8 (armored), Tools/Bolt Cutters 1.
+- Heavy: School 1 2.6M, Gravel 1 799k, Storefront 5 754k, Building 29 641k, Office Building 8 645k, Brick 1 500k, Classroom 2 454k (decimate before runtime). Many ground floors are low-res (see intake md).
+- 02:10 In-session ABAB (one run, 3 rounds each, loaded machine; `docs/v2/reports/stage1-perf-ab_final.json`), draw order +
+  parked-car sleep OFF -> ON: program switches/frame spawn 337->222, downtown 521->306, Clewiston 267->179, Beach 441->263,
+  Key West 169->135; render CPU -0.3..-2.5 ms; vehicles fixed step spawn 3.05->2.12 ms; frame medians within noise
+  (spawn 44.6->41.0 ms, p95 79.6->54.7). Light guard (needs a recompile, so cross-session/recompile A/B): spawn GPU
+  54-132 -> 18-39 ms per frame, frame median 54-62 -> 38-40 ms. Frames are now mostly CPU bound under this load.
+- Draw-call findings for owners (no edits from me): downtown shop interiors are ~570 unmerged draw calls (3 interiors of
+  ~250 meshes each, visible from the street) -> `staticBatch(group)` (src/render/staticBatch.js, door/interactive meshes
+  marked `userData.noBatch`) after the build, and hide an interior when the camera is outside and behind its facade;
+  street furniture added ~+450 draw calls downtown (instance it); furniture/house materials ('Bus Stop Material',
+  'MARBLE', 'Surface 8/16', 'house:shopGlass', npcEye/npcLash/npcShoe) are not in the city precompile list and compile
+  while driving (hitches); `src/world/dressing/dressing.v2.js` re-traverses the whole city every 1.5 s forever when
+  'miami-land-base' is missing (stop after a few tries).
+- Decision for the lead/user: High preset runs MSAA 2x on top of TAA. MSAA off measured GPU 39 -> 18 ms (spawn), 45 -> 39
+  (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
