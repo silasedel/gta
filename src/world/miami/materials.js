@@ -505,5 +505,6 @@ void main() {
     };
     M.roomGlass.customProgramCacheKey = () => 'house:shopGlass|near70';
   } catch (e) { console.warn('[city-look] shop room glass unavailable', e); }
+  for (const k in M) { const m = M[k]; if (m && m.isMaterial && !m.name) m.name = 'M.' + k; } // ground pass: named materials (layer / clipping audits)
   return { M, F, update };
 }

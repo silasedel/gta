@@ -14,22 +14,22 @@ import { vegUniforms } from '../vegetation/materials.js';
 // rows: farm furrows; shore: how strongly the shore wet band applies; nrm: normal strength
 const T = (r, g, b) => [r, g, b];
 export const RECIPES = {
-  lawn: { A: ['grass', 1.6, T(1, 1, 1)], B: ['soil', 2.4, T(1.22, 1.04, 0.82)], cov: 0.06, mf: 6, M: ['lawn', 23, 0.8, 1.4], grade: 0.9, lush: 0.78, shore: 0.3 },
-  scrub: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.6, T(1.25, 1.05, 0.8)], cov: 0.3, mf: 4.5, M: ['lawn', 17, 0.8, 1.8], grade: 0.8, lush: 0.48, shore: 0.3 },
-  forest: { A: ['leaves', 3.6, T(0.95, 0.95, 0.9)], B: ['soil', 2.8, T(1.18, 1.04, 0.86)], cov: 0.32, mf: 5, M: ['lawn', 21, 0.25, 0.6], shore: 0.4 },
+  lawn: { A: ['grass', 1.6, T(1, 1, 1)], B: ['soil', 2.4, T(1.12, 1.01, 0.87)], cov: 0.06, mf: 6, M: ['lawn', 23, 0.8, 1.4], grade: 0.9, lush: 0.78, shore: 0.3 },
+  scrub: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.6, T(1.13, 1.01, 0.86)], cov: 0.3, mf: 4.5, M: ['lawn', 17, 0.8, 1.8], grade: 0.8, lush: 0.58, shore: 0.3 },
+  forest: { A: ['leaves', 3.6, T(0.95, 0.95, 0.9)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.32, mf: 5, M: ['lawn', 21, 0.25, 0.6], shore: 0.4 },
   pine: { A: ['grass', 1.9, T(1, 1, 1)], B: ['stony', 3.6, T(1.05, 1.02, 0.95)], cov: 0.45, mf: 5, grade: 0.75, lush: 0.32, shore: 0.4 },
   sawgrass: { A: ['grass', 2.0, T(1.05, 1, 0.85)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.32, mf: 4, grade: 0.65, lush: 0.18, wet: 0.45, shore: 0.6 },
   marsh: { A: ['mud', 3.4, T(1, 1, 1)], B: ['grass', 2.0, T(1, 1, 0.9)], cov: 0.35, mf: 3.5, grade: 0.6, lush: 0.35, wet: 1, shore: 0.8 },
   sand: { A: ['sand', 3.0, T(0.9, 0.84, 0.7)], B: ['gravel', 2.2, T(1.18, 1.14, 1.06)], cov: 0.04, mf: 2.5, shore: 1, nrm: 0.8 },
   shell: { A: ['gravel', 2.0, T(1.22, 1.18, 1.1)], B: ['sand', 3.0, T(1, 1, 1)], cov: 0.3, mf: 4, shore: 0.8 },
-  dirt: { A: ['soil', 2.8, T(1.25, 1.06, 0.84)], B: ['gravel', 2.6, T(0.78, 0.74, 0.68)], cov: 0.35, mf: 5, M: ['sandgrass', 26, 0.3, 0], shore: 0.6 },
-  farm: { A: ['soil', 2.4, T(1.05, 0.88, 0.68)], B: ['grass', 1.8, T(1, 1, 1)], cov: 0.08, mf: 3, grade: 0.7, lush: 0.6, rows: 1, shore: 0.6 },
-  grove: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.4, T(1.22, 1.04, 0.82)], cov: 0.22, mf: 4, M: ['lawn', 22, 0.4, 1], grade: 0.85, lush: 0.62, shore: 0.4 },
+  dirt: { A: ['soil', 2.8, T(1.14, 1.02, 0.88)], B: ['gravel', 2.6, T(0.78, 0.74, 0.68)], cov: 0.35, mf: 5, M: ['sandgrass', 26, 0.3, 0], shore: 0.6 },
+  farm: { A: ['soil', 2.4, T(1.0, 0.9, 0.77)], B: ['grass', 1.8, T(1, 1, 1)], cov: 0.08, mf: 3, grade: 0.7, lush: 0.6, rows: 1, shore: 0.6 },
+  grove: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.4, T(1.12, 1.01, 0.87)], cov: 0.22, mf: 4, M: ['lawn', 22, 0.4, 1], grade: 0.85, lush: 0.62, shore: 0.4 },
   rock: { A: ['stony', 3.6, T(1.05, 1.03, 1)], B: ['gravel', 2.6, T(1, 1, 1)], cov: 0.4, mf: 5, shore: 0.5 },
-  gravel: { A: ['gravel', 2.4, T(1, 1, 1)], B: ['soil', 2.8, T(1.18, 1.04, 0.86)], cov: 0.2, mf: 4, shore: 0.5 },
+  gravel: { A: ['gravel', 2.4, T(1, 1, 1)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.2, mf: 4, shore: 0.5 },
   damp: { A: ['sand', 3.0, T(0.78, 0.74, 0.68)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.3, mf: 5, wet: 0.35, shore: 1 },
-  base: { A: ['gravel', 2.4, T(0.98, 0.96, 0.92)], B: ['soil', 2.8, T(1.18, 1.04, 0.86)], cov: 0.3, mf: 5, shore: 0.5 },
-  meadow: { A: ['grass', 2.0, T(1, 1, 1)], B: ['soil', 2.6, T(1.22, 1.04, 0.82)], cov: 0.15, mf: 6, M: ['lawn', 29, 0.8, 1.4], grade: 0.85, lush: 0.6, shore: 0.4 },
+  base: { A: ['gravel', 2.4, T(0.98, 0.96, 0.92)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.3, mf: 5, shore: 0.5 },
+  meadow: { A: ['grass', 2.0, T(1, 1, 1)], B: ['soil', 2.6, T(1.12, 1.01, 0.87)], cov: 0.15, mf: 6, M: ['lawn', 29, 0.8, 1.4], grade: 0.85, lush: 0.68, shore: 0.4 },
   // Keys yards and inland sand lots (user mock-up): matted dry grass and sand, the user's grassy-sand scan as macro
   yard: { A: ['sandgrass', 4.6, T(1, 1, 1)], B: ['sand', 3.0, T(0.84, 0.8, 0.72)], cov: 0.42, mf: 7, M: ['sandgrass', 31, 0.4, -1.2], grade: 0.0, lush: 0.3, shore: 0.5 },
 };
@@ -101,7 +101,7 @@ vec3 gGrade(vec3 c, float k, float lush, vec2 wp) {
   float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
   float n = gN(wp * 0.017 + 4.1) * 0.6 + gN(wp * 0.083 - 2.7) * 0.4;
   float lu = clamp(lush + (n - 0.5) * 1.1, 0.0, 1.0);
-  vec3 dry = vec3(0.82, 0.72, 0.46), olive = vec3(0.58, 0.60, 0.30), green = vec3(0.38, 0.56, 0.17);
+  vec3 dry = vec3(0.74, 0.69, 0.47), olive = vec3(0.52, 0.57, 0.29), green = vec3(0.36, 0.55, 0.18); // ground pass: straw less orange, olive greener (Florida verges read green with dry patches, not rust)
   vec3 ramp = lu < 0.5 ? mix(dry, olive, lu * 2.0) : mix(olive, green, lu * 2.0 - 2.0 * 0.5);
   ramp /= dot(ramp, vec3(0.2126, 0.7152, 0.0722));
   vec3 g = lum * ramp * mix(0.98, 0.72, lu) * mix(0.88, 1.08, gN(wp * 0.31 + 1.7)) * mix(0.9, 1.06, gF(wp * 0.15 + 2.2)); // straw is brighter than lush green

@@ -1324,12 +1324,12 @@ export function createTileBuilder(ctx) {
   }
   // wear by road class: main roads are kept up (few cracks, tar-sealed joints), residential streets more, Keys / rural lanes most
   function roadDecals(B, fr, ys, r, hw, pe, lane, s0, s1) {
+    if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
     if (ys || !B.decals || !M.roadDecals || s1 - s0 < 4) return;
     const kind = r.kind || '', main = /motorway|trunk|primary/.test(kind), sec = /secondary/.test(kind), eid = (r.edgeId ?? 0) + 1, base = pe ? pe.s0 : 0;
     const H = (s, salt) => hash(Math.floor((s + base) * 3.7) * 92821 + eid * 7919 + salt);
     const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total);
     const put = (s, o, cell, len, wid, rot = 0, k = 1) => { if (s < s0 || s > s1) return; const q = sampleAt(fr, s), nl = Math.hypot(q.nx, q.nz) || 1, x = q.x + q.nx * o, z = q.z + q.nz * o; if (paintBlocked(x, z)) return;
-    if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
       const ca = Math.cos(rot), sa = Math.sin(rot), ax = q.dx * ca - (q.nx / nl) * sa, az = q.dz * ca - (q.nz / nl) * sa; decal(B, x, z, ax, az, len, wid, cell, k); };
     const step = (gap, fn) => { for (let s = Math.ceil((s0 + base) / gap) * gap - base; s < s1; s += gap) fn(s); }; // stations fixed to the edge: same decals whatever the tile split
     // cracks / crack networks / tar snakes
@@ -2820,7 +2820,7 @@ export function createTileBuilder(ctx) {
       if (m) { m.geometry.setAttribute('aWear', new THREE.BufferAttribute(new Float32Array(B.roomGlass.w), 1)); m.name = 'shop-rooms'; m.renderOrder = -1; group.add(m); }
     }
     if (B.fac && !B.fac.empty) { const m = B.fac.build(M.facade, { cast: true }); m.name = 'facades'; group.add(m); yield; }
-    if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }
+    if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], GM_ON ? (key === 'apron' ? M.parking : M.asphalt) || terrain.surfaces[key] : terrain.surfaces[key], { cast: false }); if (m) { group.add(m); GMASK.register(m, 'paved'); } } // ground pass: airfield pavement in the ground mask, on the road asphalt scan (runways / taxiways) and the poured concrete (aprons) instead of flat dark sets
     yield;
     if (SK) furnish(group, props); else modelOrProc(group, 'bench', benchG, props.bench);
     const tagVis = (items, fn) => { const H = (group.userData.handles ||= []), h0 = H.length; fn(items); const hs = H.slice(h0); items.forEach((p, k) => { p._vis = hs.map((h) => [h, k]); }); }; // X1: which pool instances draw each breakable prop
@@ -3026,7 +3026,8 @@ export function createTileBuilder(ctx) {
       for (let i = 0, n = b.p.length / 3; i < n; i++) { const kk = 0.85 + vn(b.p[i * 3] * 0.004, b.p[i * 3 + 2] * 0.004) * 0.3; b.c[i * 3] = 0.36 * kk; b.c[i * 3 + 1] = 0.4 * kk; b.c[i * 3 + 2] = 0.27 * kk; }
     }
     const group = new THREE.Group(); group.name = 'miami-land-base';
-    const m = meshOf(b, M.far, { cast: false });
+    let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
+    const m = meshOf(b, lbMat, { cast: false });
     if (m) { m.geometry.setAttribute('aTile', new THREE.BufferAttribute(new Float32Array(m.geometry.attributes.position.count * 2).fill(-1e6), 2)); group.add(m); }
     root.add(group); return group;
   }

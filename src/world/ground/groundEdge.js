@@ -4,7 +4,6 @@
 //     sandy gravel / dirt) through a noise- and height-weighted boundary, so sand and gravel break up into the grass in
 //     irregular patches instead of a ruled line; the band is wider and more ragged beside open roads than beside pavement
 //   - crumbs: just outside an asphalt edge, small asphalt crumbs and broken chunks lie in the sand
-//   - lowered under hard surfaces: terrain vertices under a road / slab drop 25 cm (no ground poking through a road on relief)
 //   - sand washed onto the road edge is drawn by the asphalt side (materials.js, roadEdge)
 // patchTerrainEdges(mat, { sand: recipeIndex, gravel: recipeIndex })
 import { GM_GLSL, gmUniforms } from './surfaceMask.js';
@@ -19,12 +18,7 @@ export function patchTerrainEdges(mat, o = {}) {
     if (prev) prev.call(mat, sh, r);
     if (!sh.fragmentShader.includes('// macro variation over everything')) { console.warn('[ground] terrain shader anchor missing: edges off'); return; }
     gmUniforms(sh.uniforms);
-    sh.vertexShader = GM_GLSL + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-      {
-        vec2 gmw = (modelMatrix * vec4(transformed, 1.0)).xz;
-        vec4 gmh = gmHard(gmw);
-        transformed.y -= 0.25 * smoothstep(0.55, 0.95, max(gmh.r, gmh.g)) * gmFine(gmw);
-      }`);
+    // (no vertex lowering under roads: dropping the 4 m terrain grid let the low-detail land base show through in saw-tooth triangles)
     sh.fragmentShader = sh.fragmentShader.replace('void main() {', GM_GLSL + /* glsl */`
 GS gsMix(GS a, GS b, float w) { GS s; s.alb = mix(a.alb, b.alb, w); s.tilt = mix(a.tilt, b.tilt, w); s.ao = mix(a.ao, b.ao, w); s.rough = mix(a.rough, b.rough, w); s.h = mix(a.h, b.h, w); s.wet = mix(a.wet, b.wet, w); s.shore = mix(a.shore, b.shore, w); return s; }
 void main() {`).replace('// macro variation over everything', /* glsl */`

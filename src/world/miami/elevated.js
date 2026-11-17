@@ -63,6 +63,7 @@ export function createElevated({ THREE, RAPIER, world = null, data, materials = 
         let o = 0;
         for (const b of L) { m.p.set(b.p.subarray(0, b.n * 3), o * 3); m.no.set(b.no.subarray(0, b.n * 3), o * 3); m.uv.set(b.uv.subarray(0, b.n * 2), o * 2); m.c.set(b.c.subarray(0, b.n * 3), o * 3); o += b.n; }
         const mesh = toMesh(m, mats[key], key, key === 'conc'); if (mesh) group.add(mesh);
+        if (mesh && key === 'asph' && globalThis.game?.groundMask?.register) globalThis.game.groundMask.register(mesh, 'asphalt'); // ground pass: ramps / decks join the ground mask (no crumbled road end where a ribbon meets a deck)
       }
       group.userData.elevated = true;
     }
