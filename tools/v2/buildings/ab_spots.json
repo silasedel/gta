@@ -1,4 +1,13 @@
 {
+ "warmup": {
+  "player": [
+   237,
+   80,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(237.000000,150.000000,80.000000); cam.lookAt(407.000000,10.000000,-110.000000); return true; };"
+ },
  "dt_street": {
   "player": [
    395,
@@ -52,5 +61,14 @@
   ],
   "tod": 12,
   "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1540.000000,1.800000,-2760.000000); cam.lookAt(-1540.000000,6.000000,-2900.000000); return true; };"
+ },
+ "beach_air": {
+  "player": [
+   2398,
+   660,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(237.000000,150.000000,80.000000); cam.lookAt(407.000000,10.000000,-110.000000); return true; };"
  }
 }
