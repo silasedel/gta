@@ -3,6 +3,7 @@
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
 import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING } from './yard.data.js';
+import { lots as houseLots } from '../houses/lots.js';
 export const order = 65;   // after vegetation (60)
 const KEYS_OFF = typeof location !== 'undefined' && /[?&]keys=0\b/.test(location.search);
 
@@ -17,6 +18,9 @@ export async function initV2(game) {
     if (spot?.position) spot = { ...spot, x: spot.position.x ?? spot.position[0], z: spot.position.z ?? spot.position[2] ?? spot.position[1] };
   } catch (e) { /* no layout yet */ }
   if (!spot || !Number.isFinite(spot.x) || !Number.isFinite(spot.z)) { const s0 = game.city?.playerSpawn; spot = { x: (s0?.x ?? 0) + 60, z: (s0?.z ?? 0) + 60, heading: 0 }; temporary = true; console.warn('[nicoHouse] layout.json has no setpieces.nico_house: using a temporary spot'); }
+  // keys pass: Nico's lot is hand dressed (yard.data.js); reserve it so the countryside scatter and the house generator keep out
+  if (!temporary) try { const L = PLAN.lot, cx = (L.x0 + L.x1) / 2, cz = (L.z0 + L.z1) / 2, c = Math.cos(spot.heading || 0), s = Math.sin(spot.heading || 0);
+    houseLots.reserve({ x: spot.x + cx * c + cz * s, z: spot.z - cx * s + cz * c, hw: (L.x1 - L.x0) / 2, hd: (L.z1 - L.z0) / 2, ry: spot.heading || 0, id: 'nico_house' }); } catch (e) { /* lots module off */ }
   const sea = game.city?.seaLevel ?? -0.12;
   // ground-continuity: the yard sits flush on the ground around it (it used to float 1 m above the water on a 0.88 m ledge
   // with no sides); +4 cm keeps the yard sheet above the terrain's own surface without a step you notice
@@ -44,7 +48,7 @@ export async function initV2(game) {
   let dock = null;
   if (!gcOff && waterAt && !KEYS_OFF) {
     const X = 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (waterAt(X, lz) && waterAt(X, lz - 1.5) && waterAt(X, lz - 3)) { zw = lz; break; }
-    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: -9.0, zw, z0: Math.min(-20, zw - 13), y: 0.55 };
+    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: -10.4, zw, z0: Math.min(-20, zw - 13), y: 0.55 };
   }
   const house = await buildNicoHouse(THREE, {
     dock,
