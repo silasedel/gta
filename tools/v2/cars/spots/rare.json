@@ -1,0 +1,6 @@
+{
+  "ocean_drive": { "player": [2398, 560, 0], "tod": 17, "settle": 16000, "eval": "return JSON.stringify(game.vehicles.list.filter(v => v.rare).map(v => [v.typeKey, Math.round(v.mesh.position.x), Math.round(v.mesh.position.z)]))" },
+  "ocean_super6": { "tod": 17, "settle": 2000, "car": "super6", "off": [3.6, 1.4, 5.2], "fov": 45 },
+  "casino": { "player": [2112, -300, 0], "tod": 11, "settle": 16000, "eval": "return JSON.stringify(game.vehicles.list.filter(v => v.rare).map(v => [v.typeKey, Math.round(v.mesh.position.x), Math.round(v.mesh.position.z)]))" },
+  "casino_super5": { "tod": 11, "settle": 2000, "car": "super5", "off": [3.6, 1.4, 5.2], "fov": 45 }
+}

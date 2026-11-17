@@ -37,7 +37,8 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     }
   } else {
     const seen = new Set();
-    for (let t = 0; t < 40 && seen.size < keys.length; t++) {
+    const want = keys[0] === '*' ? 12 : keys.length;
+    for (let t = 0; t < 60 && seen.size < want; t++) {
       const k = await b.eval(`(() => { const pp = game.player.position, want = ${JSON.stringify(keys)}, seen = ${JSON.stringify([...seen])};
         const c = game.vehicles.list.filter((v) => v.ai && v.car?.glb && !seen.includes(v.typeKey) && (want.includes(v.typeKey) || want[0] === '*') && v.mesh.position.distanceTo(pp) < 150 && Math.abs(v.speed) > 2)
           .sort((a, b) => a.mesh.position.distanceTo(pp) - b.mesh.position.distanceTo(pp))[0];
