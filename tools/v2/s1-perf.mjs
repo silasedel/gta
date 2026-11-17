@@ -141,7 +141,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
       const ts = []; let last = performance.now(); const t0 = last;
       const big = []; let lastSp = null;
       const f = () => { const n = performance.now(); ts.push(n - last); last = n; { const sp = game.perf.spikes || []; const e = sp[sp.length - 1]; if (e && e !== lastSp) { lastSp = e; if (e.gap > 120 || e.work > 120) big.push(e); } } if (n - t0 < ${SECS2 * 1000}) requestAnimationFrame(f); else { game.cameraOverride = null; ts.shift(); const s = ts.slice().sort((x, y) => x - y);
-        res(JSON.stringify({ frames: ts.length, med: +s[s.length >> 1].toFixed(2), p95: +s[Math.floor(s.length * 0.95)].toFixed(2), p99: +s[Math.floor(s.length * 0.99)].toFixed(2), max: +s[s.length - 1].toFixed(1), over25: ts.filter((x) => x > 25).length, over50: ts.filter((x) => x > 50).length, avg: +(ts.reduce((a, c) => a + c, 0) / ts.length).toFixed(2), spikes: big.sort((x, y) => y.gap - x.gap).slice(0, 12), longTasks: (game.perf.longTasks || []).slice().sort((x, y) => y.ms - x.ms).slice(0, 8), upd: [1, 13, 27].map((i) => String(game.updaters[i]).slice(0, 160)), newPrograms: game.renderer.info.programs.filter((p) => !progs0.has(p)).map((p) => p.name + ' | ' + String(p.cacheKey).slice(0, 90)), tiles: game.city.streamer.tiles.size })); } };
+        res(JSON.stringify({ frames: ts.length, med: +s[s.length >> 1].toFixed(2), p95: +s[Math.floor(s.length * 0.95)].toFixed(2), p99: +s[Math.floor(s.length * 0.99)].toFixed(2), max: +s[s.length - 1].toFixed(1), over25: ts.filter((x) => x > 25).length, over50: ts.filter((x) => x > 50).length, avg: +(ts.reduce((a, c) => a + c, 0) / ts.length).toFixed(2), spikes: big.sort((x, y) => y.gap - x.gap).slice(0, 12), longTasks: (game.perf.longTasks || []).slice().sort((x, y) => y.ms - x.ms).slice(0, 8), upd: [1, 13, 27].map((i) => String(game.updaters[i]).slice(0, 160)), newPrograms: game.renderer.info.programs.filter((p) => !progs0.has(p)).map((p) => p.name + ' | ' + String(p.cacheKey).slice(0, 90)), syncCompiles: window.__pf.st.renderProgs.slice(), precompile: game.precompile?.stats || null, tiles: game.city.streamer.tiles.size })); } };
       requestAnimationFrame(f); })`, (SECS2 + 60) * 1000);
     rep.drive = JSON.parse(res);
     if (o.physprobe) { const ps = await b.eval('JSON.stringify(window.__phys || null)'); console.log('  phys', ps); rep.drive.phys = JSON.parse(ps); }
@@ -149,7 +149,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
     for (const sp of rep.drive.spikes) console.log('  spike', JSON.stringify(sp));
     for (const sp of rep.drive.longTasks) console.log('  longTask', JSON.stringify(sp));
     for (const u of rep.drive.upd) console.log('  upd', u.replace(/\s+/g, ' '));
-    console.log('  tiles in streamer map', rep.drive.tiles, ' new programs', rep.drive.newPrograms.length); for (const p of rep.drive.newPrograms.slice(0, 40)) console.log('   prog', p);
+    console.log('  tiles in streamer map', rep.drive.tiles, ' new programs', rep.drive.newPrograms.length, ' compiled inside a frame (sync)', rep.drive.syncCompiles.length, JSON.stringify(rep.drive.syncCompiles.slice(0, 30)), ' precompile', JSON.stringify(rep.drive.precompile)); for (const p of rep.drive.newPrograms.slice(0, 40)) console.log('   prog', p);
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 20); console.log('ERRORS', rep.errors.slice(0, 8).join('\n')); }
 });

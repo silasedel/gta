@@ -111,6 +111,10 @@
     const smr2 = sm.render;
     sm.render = function () { if (!segOn) return smr2.apply(this, arguments); const cur = segActive?.label; seg('shadow'); try { return smr2.apply(this, arguments); } finally { seg(cur || 'scene'); } };
   }
+  // programs created inside a frame's render (= synchronous compiles the player waits for), vs. outside (precompiled)
+  // (counted inside renderer.render only: a precompile right before the frame uses renderer.compile and is not counted)
+  st.renderProgs = []; const rr0 = r.render;
+  r.render = function () { const n0 = r.info.programs.length; try { return rr0.apply(this, arguments); } finally { const d = r.info.programs.length - n0; if (d > 0 && st.renderProgs.length < 200) for (const p of r.info.programs.slice(n0)) st.renderProgs.push(p.name || '?'); } };
   const pr2 = post.render;
   post.render = function () { if (segOn) { st.fno++; segPoll(); } try { return pr2.apply(this, arguments); } finally { if (segOn) seg(null); } };
   async function gpuPasses(ms = 3000) {
