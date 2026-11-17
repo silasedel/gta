@@ -99,7 +99,7 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
 
   const outfit = createBakedOutfit({ character, game, material: mat });
   const ik = { right: createArmIK(model, bone, 'Right'), left: createArmIK(model, bone, 'Left') };
-  const relaxed = createRelaxedPose({ model, bone, character, proportions: false });
+  const relaxed = createRelaxedPose({ model, bone, character, proportions: false, keepLegs: true });
   const feet = createFootIK({ game, model, bone, root: character.root, mesh: lod[0][0] || null });
 
   // body change (game.player.body): subtle and capped, through bone scale (no morph targets on a scanned body)

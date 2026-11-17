@@ -63,8 +63,8 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
   if (!o.noclear) console.log('spot', await b.eval(`(() => { const R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags, ball = new R.Ball(1.6), P = game.player;
     const c0 = P.position.clone(); const city = game.city;
     const cars = (game.vehicles?.list || []).map((v) => { try { const t = v.body.translation(); return [t.x, t.z]; } catch (e) { return null; } }).filter(Boolean);
-    const free = (x, z, h) => { for (let k = -2; k <= 11; k++) { const px = x + Math.sin(h) * k * 2.2, pz = z + Math.cos(h) * k * 2.2; const y = city.groundHeightAt(px, pz);
-      if (!Number.isFinite(y) || city.isWater?.(px, pz) || y < 0.15 || cars.some((c) => Math.hypot(c[0] - px, c[1] - pz) < 6)) return false;
+    const free = (x, z, h) => { for (let k = -1; k <= 8; k++) { const px = x + Math.sin(h) * k * 2.2, pz = z + Math.cos(h) * k * 2.2; const y = city.groundHeightAt(px, pz);
+      if (!Number.isFinite(y) || city.isWater?.(px, pz) || y < 0.15 || cars.some((c) => Math.hypot(c[0] - px, c[1] - pz) < 5)) return false;
       if (W.intersectionWithShape({ x: px, y: y + 1.95, z: pz }, { x: 0, y: 0, z: 0, w: 1 }, ball, QF.EXCLUDE_SENSORS, undefined, P.collider)) return false; } return true; };
     for (let r = 0; r <= 90; r += 3) for (let i = 0; i < Math.max(1, r * 1.5); i++) { const a = i / Math.max(1, r * 1.5) * Math.PI * 2; const x = c0.x + Math.sin(a) * r, z = c0.z + Math.cos(a) * r;
       for (const h of [P.heading, P.heading + Math.PI / 2, P.heading + Math.PI, P.heading - Math.PI / 2]) if (free(x, z, h)) { game.teleport(x, undefined, z, h); window.__spot = [x, z, h]; return JSON.stringify([+x.toFixed(1), +z.toFixed(1), +h.toFixed(2)]); } }

@@ -68,7 +68,7 @@ const COURSES = {
   // deck -> north deck -> bay stair platform -> down the bay stair -> yard -> dock -> dock head
   house: { local: true, start: [-11.2, 0, 8.6], pts: [[-11.2, 6.2], [-11.2, 3.6], [-10.2, 3.6], [-8.1, 3.6], [-7.5, 3.0], [-7.5, -4.8], [5.3, -4.8], [5.3, -7.0], [4.2, -7.0], [0.3, -7.0], [1.8, -8.6], [1.8, -12.6], [1.8, -15.5], [1.8, -24.0]], shots: [1, 3, 5, 8, 9, 12, 13] },
   // downtown: road center -> across the curb onto the sidewalk and back (found at run time)
-  curb: { find: 'curb' },
+  curb: { find: 'curb', pre: [407, -110] },
   // steepest walkable land slope near the house (found at run time)
   slope: { find: 'slope' },
 };
@@ -86,6 +86,10 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
   await b.eval(LIB);
   for (const gait of gaits) for (const cid0 of only) {
     const C = COURSES[cid0]; if (!C) continue; const cid = gaits.length > 1 ? cid0 + '_' + gait : cid0;
+    if (C.pre) {   // stream the area in first so the finder sees its cars and colliders
+      await b.eval(`(() => { game.teleport(${C.pre[0]}, undefined, ${C.pre[1]}, 0); return 1; })()`); await b.sleep(3000);
+      for (let i = 0; i < 25; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
+    }
     // resolve the course in world space
     const plan = JSON.parse(await b.eval(`(() => { const C = ${JSON.stringify(C)}; const city = game.city, THREE = game.THREE;
       if (C.local) { const H = game.nicoHouse; const w = (x, y, z) => H.toWorld(new THREE.Vector3(x, y, z));
@@ -94,11 +98,17 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
         // a downtown street edge whose sidewalk is raised: sample perpendicular from the edge center
         const G = city.roadGraph; let best = null;
         for (const e of G.edges) { if (e.bridge || e.elevated || !e.pts || e.length < 30) continue; const m = e.pts[Math.floor(e.pts.length / 2)]; const mx = m.x ?? m[0], mz = m.z ?? m[1];
-          if (Math.hypot(mx - 407, mz + 110) > 500) continue; const q = e.pts[Math.floor(e.pts.length / 2) + 1] || e.pts[Math.floor(e.pts.length / 2) - 1]; const qx = q.x ?? q[0], qz = q.z ?? q[1];
+          if (Math.hypot(mx - 407, mz + 110) > 260) continue; const q = e.pts[Math.floor(e.pts.length / 2) + 1] || e.pts[Math.floor(e.pts.length / 2) - 1]; const qx = q.x ?? q[0], qz = q.z ?? q[1];
           let dx = qx - mx, dz = qz - mz; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L; const nx = -dz, nz = dx; const half = (e.width || 10) / 2;
           const h0 = city.groundHeightAt(mx, mz), h1 = city.groundHeightAt(mx + nx * (half + 2.5), mz + nz * (half + 2.5));
           if (!Number.isFinite(h0) || !Number.isFinite(h1)) continue; const step = h1 - h0;
-          if (step > 0.08 && step < 0.3 && (!best || Math.abs(step - 0.15) < Math.abs(best.step - 0.15))) best = { step, mx, mz, nx, nz, half }; }
+          if (!(step > 0.08 && step < 0.3)) continue;
+          // nothing parked / standing on the crossing line (cars at the curb, poles, hydrants)
+          const W = game.world, R = game.RAPIER; let clear = true;
+          for (let k = -4; k <= 5 && clear; k++) { const px = mx + nx * (half + k), pz = mz + nz * (half + k), y = city.groundHeightAt(px, pz);
+            if ((game.vehicles?.list || []).some((v) => { try { const t = v.body.translation(); return Math.hypot(t.x - px, t.z - pz) < 4; } catch (e) { return false; } })) clear = false;
+            else if (W.intersectionWithShape({ x: px, y: y + 1.1, z: pz }, { x: 0, y: 0, z: 0, w: 1 }, new R.Ball(0.6), R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, game.player.collider)) clear = false; }
+          if (clear && (!best || Math.abs(step - 0.15) < Math.abs(best.step - 0.15))) best = { step, mx, mz, nx, nz, half }; }
         if (!best) return JSON.stringify({ err: 'no curb' });
         const P0 = { x: best.mx + best.nx * (best.half - 3), z: best.mz + best.nz * (best.half - 3) }, P1 = { x: best.mx + best.nx * (best.half + 3.5), z: best.mz + best.nz * (best.half + 3.5) };
         return JSON.stringify({ start: [P0.x - best.nx * 1, P0.z - best.nz * 1], pts: [P0, P1, P0, P1], step: best.step });

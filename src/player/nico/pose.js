@@ -39,7 +39,7 @@ function aimToward(bone, child, want, k, maxAngle = 1.2) {
   rotateWorld(bone, _ax, ang);
 }
 
-export function createRelaxedPose({ model, bone, character = null, proportions = true }) {
+export function createRelaxedPose({ model, bone, character = null, proportions = true, keepLegs = false }) {
   const B = (n) => bone(n);
   let w = 0;
   let wArms = 0;
@@ -59,8 +59,10 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
     const run = THREE.MathUtils.smoothstep(2.2, 4.0, speed);
     const c = Math.cos(ph * Math.PI * 2), sn = Math.sin(ph * Math.PI * 2);
     // pelvis: roll toward the swing side, yaw forward with the swinging hip
-    rotateWorld(hips, _f, 0.06 * c * k * (1 - 0.4 * run));
-    rotateWorld(hips, UP, -0.09 * c * k * (1 - 0.3 * run));
+    // keepLegs: the roll / yaw goes on the lower spine, so the legs (and the planted feet) do not swing with the pelvis
+    const pel = keepLegs ? (B('Spine') || hips) : hips;
+    rotateWorld(pel, _f, 0.06 * c * k * (1 - 0.4 * run));
+    rotateWorld(pel, UP, -0.09 * c * k * (1 - 0.3 * run));
     const sp2 = B('Spine2');
     const sp1 = B('Spine1');
     if (sp1) rotateWorld(sp1, UP, 0.07 * c * k);
@@ -161,7 +163,7 @@ export function createRelaxedPose({ model, bone, character = null, proportions =
       // weight on the right leg: pelvis tilts a little, chest counters, head levels
       const sp = B('Spine');
       const sp2 = B('Spine2');
-      rotateWorld(root, fwd, 0.035 * w);
+      rotateWorld(keepLegs ? (B('Spine') || root) : root, fwd, 0.035 * w);
       if (sp) rotateWorld(sp, fwd, -0.03 * w);
       if (sp2) rotateWorld(sp2, fwd, -0.012 * w);
     },
