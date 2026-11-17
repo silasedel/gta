@@ -76,9 +76,9 @@ export const LIB = {
   control_tower: { w: 23, d: 23, h: 90.17, k: 1, cls: 'fixed', glow: 0.4, lod1: 1, tint: 'none' },
   control_tower_sm: { w: 9.91, d: 9.91, h: 30, k: 1, cls: 'fixed', glow: 0.3, tint: 'none' },
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
-  airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none' }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
+  airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none', desat: 1 }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
-const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 900, LOD_D = 650;
+const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 900, LOD_D = 400;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
 const ROUGH_D = /Overtown|Liberty City/;
@@ -305,12 +305,13 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     diffuseColor.rgb *= 1.0 - dirt * vec3(0.78, 0.84, 0.93);
     ${rough ? 'diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.92, 0.82, 0.68), side * smoothstep(0.55, 0.85, libN(wp * vec2(0.6, 0.35) + 3.0)) * 0.6); // rust / tobacco stains' : ''}
     ${rough === 2 ? 'diffuseColor.rgb *= 0.86;' : ''}
+    ${m.desat ? 'diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * vec3(0.92, 0.95, 1.0), 0.88); // real airline livery colors -> neutral gray stripes' : ''}
     float camD = distance(vLibW, cameraPosition), dK = (1.0 - smoothstep(30.0, 65.0, camD)) * side;
     if (dK > 0.001) {
       vec3 Tw = normalize(vec3(vLibN.z, 0.0, -vLibN.x) + vec3(1e-4, 0.0, 0.0));
       vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / 2.4);
       float street = 1.0 - smoothstep(4.5, 9.0, vLibW.y - vLibO.y), a = mix(dt.b, dt.a, step(0.5, iS));
-      diffuseColor.rgb *= 1.0 + (a - 0.5) * (0.3 + 0.35 * street) * dK;
+      diffuseColor.rgb *= 1.0 + (a - 0.5) * (0.14 + 0.2 * street) * dK;
       libDN = (dt.rg - 0.5) * 2.0 * dK * (0.35 + 0.45 * street); libDT = Tw;
     }
   }`)
@@ -332,7 +333,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * ${glow.toFixed(2)};
   }`);
     };
-    mat.customProgramCacheKey = () => 'libbld3-' + (g ? 'g' : 'w') + glow + '-' + rough;
+    mat.customProgramCacheKey = () => 'libbld3-' + (g ? 'g' : 'w') + glow + '-' + rough + (m.desat ? 'd' : '');
     mat.needsUpdate = true;
     vm.set(cond, mat); return mat;
   }
@@ -397,8 +398,8 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     for (const e of entries.values()) {
       const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue;
       const cx = Math.floor(e.x / CELL), cz = Math.floor(e.z / CELL);
-      const dx = Math.max(0, Math.abs(lastX - (cx + 0.5) * CELL) - CELL / 2), dz = Math.max(0, Math.abs(lastZ - (cz + 0.5) * CELL) - CELL / 2);
-      const lod = LIB[e.name].lod1 && Math.hypot(dx, dz) > LOD_D ? 1 : 0;
+      const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~400 m, houses / shops to ~180 m
+      const lod = LIB[e.name].lod1 && Math.hypot(e.x - lastX, e.z - lastZ) > ld ? 1 : 0;
       const key = e.name + '|' + lod + '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
       ensure(key);
       const k = key + '|' + cx + ',' + cz; if (!lists.has(k)) lists.set(k, []); lists.get(k).push(e);

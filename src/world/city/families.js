@@ -113,12 +113,13 @@ export function buildingStyle(b, ctx, salt = 0) {
   // Same condition rule as bldmodels.js (hash of the id + 6101 < 0.18 = abandoned)
   if (/Overtown|Liberty City/.test(district) && !tower && S.type !== WIN.curtain) {
     const cond = hash(((b.id | 0) % 2147483647) + 6101) < 0.18 ? 'abandoned' : 'rundown'; S.cond = cond;
-    S.layer = one([WL.plasterWorn, WL.paintPeel, WL.stuccoRough, WL.cmu, WL.brickPaint, WL.plasterWorn, WL.paintPeel], 31);
+    S.layer = one([WL.plasterWorn, WL.stuccoRough, WL.cmu, WL.brickPaint, WL.plasterWorn, WL.paintPeel, WL.concrete], 31);
     S.bits = (S.bits & ~(BIT.stripes | BIT.awningWin)) | BIT.grime | BIT.sill | (R(32) < 0.6 ? BIT.ac : 0) | (cond === 'abandoned' ? BIT.boarded : R(33) < 0.5 ? BIT.bars : 0);
     if (S.type === WIN.ribbon || S.type === WIN.porthole) { S.type = WIN.punched; S.winW = 0.42; S.winH = 0.5; S.sill = 0.28; }
     if (R(34) < (cond === 'abandoned' ? 0.9 : 0.5)) S.gfType = WIN.roller;
     const hsl = {}; S.tint.getHSL(hsl); S.tint.setHSL(hsl.h, hsl.s * 0.75, hsl.l * (cond === 'abandoned' ? 0.72 : 0.84));
-    S.roof = S.hip ? WL.roofMetal : WL.roofGravel; S.roofTint = S.hip ? 0xc4a088 : 0xb8b2a8; S.neon = false; S.profile = PROFILE.residential; S.glass = GLASS.gray; S.reflect = 0.1;
+    S.accent = new THREE.Color([0x8a8f92, 0x6f6a62, 0x9a7a5a, 0x5a6066, 0x7d6f60][pickI([0, 1, 2, 3, 4], R(35))]); // galvanized / rusty shutters and trim
+    S.roof = S.hip ? WL.roofMetal : WL.roofGravel; S.roofTint = S.hip ? [0xc4a088, 0x9c9c9a, 0xb4a690, 0x8e877c, 0xa89078][pickI([0, 1, 2, 3, 4], R(36))] : 0xb8b2a8; // rusty, galvanized, faded metal S.neon = false; S.profile = PROFILE.residential; S.glass = GLASS.gray; S.reflect = 0.1;
   }
   S.sig = `${fam}|L${S.layer}|t${ti}|w${S.type}|b${S.bits}|g${S.glass}|a${ai}|p${S.parapet}${S.cond || ''}`;
   return S;
