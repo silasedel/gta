@@ -66,7 +66,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       console.log('  ragdoll', who);
       if (who !== 'none') { await b.sleep(450); await b.screenshot(`${DIR}/${SET}_${id}_rag0.png`); await b.sleep(2200); await b.screenshot(`${DIR}/${SET}_${id}_rag1.png`); }
     }
-    if (o.cops) {
+    if (o.cops && id === only[only.length - 1]) {   // police last (an arrest would move the player off the next place)
       // police model hook: officers from the user's people (game.npc.createCop via police.js spawnCop)
       const cs = await b.eval(`(() => { const pp = game.player.position; const out = []; for (let k = 0; k < ${+o.cops}; k++) { const a = k * 1.3; const u = game.police.spawnCop(new THREE.Vector3(pp.x + Math.sin(a) * 7, pp.y, pp.z + Math.cos(a) * 7), a + Math.PI); if (u) { u.mode = 'idle'; out.push((u.char.npcArch || 'legacy') + (u.char.human?.person ? '*' : '')); } } window.__cop = game.police.units.find((u) => u.active); return JSON.stringify(out); })()`.replace('new THREE.Vector3', 'new (game.player.position.constructor)'));
       console.log('  cops', cs);
