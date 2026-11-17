@@ -10,8 +10,7 @@
  },
  "grid_tower": {
   "src": "Office Buildings/Office Building 1 - Tall Black Grid Glass Tower With Lobby Trimsheet/Office Building 1.glb",
-  "tris": 0,
-  "lod1": 5000
+  "tris": 0
  },
  "deco_tower": {
   "src": "Office Buildings/Office Building 11 - Stepped Art Deco Stripe Tower/Office Building 11.glb",
@@ -21,7 +20,8 @@
  "old_brick_towers": {
   "src": "Office Buildings/Office Building 10 - Old Brick And Orange Panel Apartment-Office Towers/Office Building 10.glb",
   "tris": 0,
-  "lod1": 2000
+  "lod1": 2000,
+  "bake1": false
  },
  "black_glass_14": {
   "src": "Office Buildings/Office Building 7 - Black Glass Fourteen-Story With Light Podium And Plaza Slab/Office Building 7.glb",
@@ -35,7 +35,8 @@
  "curved_res_tower": {
   "src": "Buildings/Building 17 - Tall Curved Glass Residential Tower With Podium/Building 17.glb",
   "tris": 30000,
-  "lod1": 5000
+  "lod1": 5000,
+  "bake1": false
  },
  "concrete_tower": {
   "src": "Buildings/Building 18 - Weathered Concrete High-Rise On Round Base/Building 18.glb",
@@ -54,8 +55,7 @@
  },
  "blue_glass_tower": {
   "src": "Buildings/Building 25 - Curved Blue-Glass High-Rise On Plaza Plinth/Building 25.glb",
-  "tris": 24000,
-  "lod1": 4000
+  "tris": 24000
  },
  "grid_block": {
   "src": "Office Buildings/Office Building 4 - Seven-Story Dark Grid Block With Roof Plant Boxes/Office Building 4.glb",
@@ -175,7 +175,8 @@
   "src": "Hangars/Hangar 1 - Arched-Roof Airfield Hangar With Brick End Towers/Hangar 1.glb",
   "tris": 0,
   "tex": 2048,
-  "lod1": 2000
+  "lod1": 2000,
+  "bake1": false
  },
  "hangar_quonset": {
   "src": "Hangars/Hangar 2 - Rusty Barrel-Vault Hangar With Faded Number/Hangar 2.glb",
@@ -184,8 +185,7 @@
  },
  "hangar_long": {
   "src": "Hangars/Hangar 4 - Long Gray Multi-Bay Hangar Block/Hangar 4.glb",
-  "tris": 20000,
-  "lod1": 3000
+  "tris": 20000
  },
  "roof_vents": {
   "src": "Ventilators/Ventilator 2 - Three Square Roof Vent Covers/Ventilator 2.fbx",
@@ -244,8 +244,7 @@
  "brick_cottage": {
   "path": "public/assets/models/buildings/brick_cottage.glb",
   "colonly": true,
-  "col": 2500,
-  "lod1": 1500
+  "col": 2500
  },
  "blue_house": {
   "path": "public/assets/models/buildings/blue_house.glb",
@@ -267,15 +266,13 @@
  "stilt_shack": {
   "path": "public/assets/models/buildings/stilt_shack.glb",
   "colonly": true,
-  "col": 2500,
-  "lod1": 3000
+  "col": 2500
  },
  "casino_tower": {
   "path": "public/assets/models/buildings/casino_tower.glb",
   "colonly": true,
   "col": 5000,
   "weld": 0,
-  "lod1": 30000,
   "tex1": 512
  },
  "booth_ruin": {
