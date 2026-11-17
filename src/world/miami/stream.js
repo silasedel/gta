@@ -43,11 +43,14 @@ export function createStreamer(opts) {
   let frame = 0;
   function update(focus /* [{x,z}] first = camera */) {
     frame++;
-    const cam = focus[0];
+    const cam = focus[0], pl = focus[1] && Number.isFinite(focus[1].x) ? focus[1] : null; // focus[1] = player
     // ---- chunk level: far vs active ----
     for (const c of chunks.values()) {
       const dmin = distRect(cam.x, cam.z, c.x0, c.z0, CS);
-      const wantActive = c.active ? dmin < midR + 150 : dmin < midR;
+      // the player's surroundings stay active even while a title / cut-scene camera is far away (the first gameplay frame
+      // used to start on bare ground while everything around the spawn rebuilt)
+      const dP = pl ? distRect(pl.x, pl.z, c.x0, c.z0, CS) : Infinity;
+      const wantActive = c.active ? (dmin < midR + 150 || dP < nearR + 230) : (dmin < midR || dP < nearR + 80);
       c.prio = dmin;
       if (wantActive !== c.active) c.active = wantActive;
       if (dmin < farR) {
@@ -69,11 +72,27 @@ export function createStreamer(opts) {
       t.d = Math.hypot(t.cx - cam.x, t.cz - cam.z);
       // look-ahead (fast player car): tiles near where the car will be in a few seconds count as near too, so full detail
       // (palms, poles, props) is built before the car gets there instead of popping in right in front of it
-      const la = focus.lookAhead, dn = la ? Math.min(t.d, Math.hypot(t.cx - la.x, t.cz - la.z) + 40) : t.d;
+      const la = focus.lookAhead; let dn = la ? Math.min(t.d, Math.hypot(t.cx - la.x, t.cz - la.z) + 40) : t.d;
+      if (pl) dn = Math.min(dn, Math.hypot(t.cx - pl.x, t.cz - pl.z));
       const wantNear = t.near ? dn < nearR + 80 : dn < nearR;
       if (wantNear && !t.near && !t.job) t.job = enqueue('near', t, buildNear(t), dn, (res) => { t.near = res; t.job = null; });
       else if (t.job && t.job.kind === 'near' && !t.job.cancelled) t.job.prio = dn;
       if (!wantNear && t.near && ch.mid) { dispose(t.near); t.near = null; }
+    }
+    if (pl) { // near builds around the player when the player is outside the camera's tile window
+      const pr = Math.ceil((nearR + 80) / tileSize), ptx = Math.floor((pl.x - OX) / tileSize), ptz = Math.floor((pl.z - OZ) / tileSize);
+      for (let tx = Math.max(tx0, ptx - pr); tx <= Math.min(tx1, ptx + pr); tx++) for (let tz = Math.max(tz0, ptz - pr); tz <= Math.min(tz1, ptz + pr); tz++) {
+        if (Math.abs(tx - ctx) <= tr && Math.abs(tz - ctz) <= tr) continue; // handled above
+        const ch = chunks.get(key(Math.floor(tx / CH), Math.floor(tz / CH)));
+        if (!ch || !ch.active) continue;
+        const t = tileOf(tx, tz);
+        t.d = Math.hypot(t.cx - cam.x, t.cz - cam.z);
+        const dn = Math.hypot(t.cx - pl.x, t.cz - pl.z);
+        const wantNear = t.near ? dn < nearR + 80 : dn < nearR;
+        if (wantNear && !t.near && !t.job) t.job = enqueue('near', t, buildNear(t), dn, (res) => { t.near = res; t.job = null; });
+        else if (t.job && t.job.kind === 'near' && !t.job.cancelled) t.job.prio = dn;
+        if (!wantNear && t.near && ch.mid) { dispose(t.near); t.near = null; }
+      }
     }
     for (let fi = 1; fi < focus.length; fi++) {
       const f = focus[fi], rr = Math.ceil(((f.r ?? colR) + 60) / tileSize), fx = Math.floor((f.x - OX) / tileSize), fz = Math.floor((f.z - OZ) / tileSize);
@@ -115,6 +134,15 @@ export function createStreamer(opts) {
     if (jobs.length) {
       jobs.sort((a, b) => a.prio - b.prio);
       const B = focus.budgetMs || budgetMs;
+      runJobs(t0, B);
+    }
+    stats.msLast = performance.now() - t0; stats.queued = jobs.length;
+    stats.near = 0; stats.mid = 0; stats.col = 0; stats.far = 0;
+    for (const t of tiles.values()) { if (t.near) stats.near++; if (t.col) stats.col++; }
+    for (const c of chunks.values()) { if (c.far && c.far.visible) stats.far++; if (c.mid) stats.mid++; }
+  }
+  function runJobs(t0, B) {
+    {
       while (jobs.length && performance.now() - t0 < B) {
         const j = jobs[0];
         if (j.cancelled) { jobs.shift(); if (j.gen.return) { const r = j.gen.return(); if (r && r.value) dispose(r.value); } continue; }
@@ -125,10 +153,17 @@ export function createStreamer(opts) {
         if (r.done) { jobs.shift(); if (j.cancelled) { if (r.value) { if (j.kind === 'col') removeTileCols(j.owner, r.value); else dispose(r.value); } } else j.done(r.value); }
       }
     }
-    stats.msLast = performance.now() - t0; stats.queued = jobs.length;
-    stats.near = 0; stats.mid = 0; stats.col = 0; stats.far = 0;
-    for (const t of tiles.values()) { if (t.near) stats.near++; if (t.col) stats.col++; }
-    for (const c of chunks.values()) { if (c.far && c.far.visible) stats.far++; if (c.mid) stats.mid++; }
+  }
+  // stage 1 perf: the per-frame budget (3-5 ms) left hundreds of jobs queued for half a minute after loading (mid / far
+  // LOD of the surroundings: the first view showed bare ground). The same queue (same order: nearest first) now also runs in
+  // the browser's idle time between frames, never past the idle deadline, so frames are not made longer. ?noidlestream
+  // turns it off.
+  if (typeof requestIdleCallback === 'function' && !(typeof location !== 'undefined' && /[?&]noidlestream\b/.test(location.search))) {
+    const idle = (dl) => {
+      try { if (jobs.length && dl.timeRemaining() > 3) { const t0 = performance.now(); runJobs(t0, Math.min(12, dl.timeRemaining() - 2)); stats.idleMs = (stats.idleMs || 0) + performance.now() - t0; } } catch (e) { /* never break */ }
+      requestIdleCallback(idle, { timeout: 500 });
+    };
+    requestIdleCallback(idle, { timeout: 500 });
   }
   function nearMask(arr, size, camX, camZ) {
     // fills arr (size*size) with 1 where a tile has a finished near build; returns the window origin in tile coords

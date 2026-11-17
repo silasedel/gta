@@ -260,7 +260,7 @@ export async function createMiamiCity(game, opts = {}) {
       // registered anchors (cars, peds, pickups...): colliders stay loaded around each one
       focus.length = 5;
       // fast driving: build full-detail tiles ahead of the car (look-ahead about 4-6 s out) and give streaming a bit more time per frame
-      focus.lookAhead = sp > 8 ? focus[4] : null; focus.budgetMs = sp > 25 ? 5 : sp > 12 ? 4 : 0;
+      focus.lookAhead = sp > 8 ? focus[4] : null; focus.budgetMs = sp > 25 ? 5 : sp > 12 ? 4 : (streamer.pending() > 40 && (game.player?.velocity ? game.player.velocity.lengthSq() < 1 : true) ? 6 : 0); // stage 1: a standing player with a big backlog (just loaded) gets 6 ms
       for (const a of anchors) { const q = anchorPos(a); if (q) { const f = anchorFocus.get(a); f.x = q.x; f.z = q.z; focus.push(f); } }
       streamer.update(focus);
       // a fast car must never outrun its colliders: spend extra budget while the path ahead is not ready yet
@@ -307,13 +307,17 @@ export async function createMiamiCity(game, opts = {}) {
   await breathe();
   { const g = builder.buildLandBase(); for (let r = g.next(); !r.done; r = g.next()) await breathe(); }
   // warm-up: stream until the near tiles + colliders around the spawn are ready (tiles load asynchronously)
+  // stage 1 perf: behind the loading screen each streamer step may use 10 ms (in game: 3-5 ms per frame), and the spawn
+  // area is ready to 300 m (was 220 m; at READY 6 of the 7 tiles within 300 m of the spawn were still unbuilt)
   if (opts.warmup !== false) {
-    const tEnd = performance.now() + 15000;
+    const tEnd = performance.now() + 20000;
+    focus.budgetMs = 10;
     while (performance.now() < tEnd) {
       for (let k = 0; k < 20; k++) { streamer.update(focus); await breathe(); }
-      if (streamer.readyAround(playerSpawn.x, playerSpawn.z, 220)) break;
+      if (streamer.readyAround(playerSpawn.x, playerSpawn.z, 300)) break;
       await new Promise((r) => setTimeout(r, 0));
     }
+    focus.budgetMs = 0;
   }
   console.info(`[miami] city ready in ${(performance.now() - t0) | 0} ms (provider: ${city.provider})`);
   return city;
