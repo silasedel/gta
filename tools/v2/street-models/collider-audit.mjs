@@ -32,7 +32,7 @@ await withBrowser({ width: 960, height: 720, maxSeconds: +(o.max || 2400) }, asy
   for (const [type, place, js, dist, h] of TYPES) {
     if (only && !only.includes(type)) continue;
     if (!at || at[0] !== place[0]) { await b.eval(`(() => { game.cameraOverride = null; game.teleport(${place[0]}, undefined, ${place[1]}, 0); return 1; })()`); await b.sleep(4000); for (let i = 0; i < 60; i++) { if ((await b.eval('(game.city?.streamer?.pending?.() ?? 0)')) < 2) break; await b.sleep(1000); } await b.sleep(2500); at = place; }
-    const list = JSON.parse(await b.eval(`JSON.stringify((${js}).slice(0, ${N}))`) || '[]'); const files = [];
+    const list = JSON.parse(await b.eval(`JSON.stringify((${js}).slice(0, ${N}).map((p) => ({ x: p.x, y: p.y, z: p.z })))`) || '[]'); const files = [];
     for (let k = 0; k < list.length; k++) {
       const p = list[k];
       const n = await b.eval(`(() => { const p = ${JSON.stringify(p)}; const y = p.y ?? (game.city.groundHeightAt(p.x, p.z) || 0); __lookAt(p.x, y, p.z, ${dist}, ${h}, ${(k % 3 - 1) * 0.6}); return __colOverlay(p.x, y + 0.5, p.z, ${Math.max(1.6, dist * 0.6)}); })()`);

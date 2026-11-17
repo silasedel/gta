@@ -1,0 +1,8 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"go1","eval":"game.teleport(650,undefined,9,0); window.__siteAt=[650,9]; 1","tod":10.5,"stream":true,"wait":4000,"shot":false},
+ {"id":"site_a","evalFile":"sitecam.js","tod":10.5,"wait":3500},
+ {"id":"site_a_low","eval":"(()=>{const c=__workNear(650,9,300).filter(p=>p.v==='site_cabin')[0]; return c? JSON.stringify(__lookAt(c.x,c.y,c.z,16,4,0.9)) : 'none';})()","tod":10.5,"wait":3000},
+ {"id":"go2","eval":"game.teleport(364,undefined,129,0); window.__siteAt=[364,129]; 1","tod":10.5,"stream":true,"wait":4000,"shot":false},
+ {"id":"site_b","evalFile":"sitecam.js","tod":10.5,"wait":3500}
+]

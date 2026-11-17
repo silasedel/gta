@@ -60,6 +60,9 @@ export function physOf(name, parts) {
     for (let f = 0.15; f <= 0.85; f += 0.05) { const lo = band(parts, b.min.y, b.min.y + H * f), hi = band(parts, b.min.y + H * f, b.max.y + 1); if (!lo || !hi) continue;
       const wl = (lo.max.x - lo.min.x) * (lo.max.z - lo.min.z), wh = (hi.max.x - hi.min.x) * (hi.max.z - hi.min.z), d = Math.abs(wh - wl) / Math.max(wh, wl); if (d > best) { best = d; split = b.min.y + H * f; } }
     const lo = band(parts, b.min.y, split), hi = band(parts, split, b.max.y + 1);
+    // the bands come from VERTICES: a post modelled as one long box only has its foot below the split, so each band's
+    // footprint is taken from its vertices but its height always spans the band (foot -> split, split -> top)
+    if (lo) { lo.min.y = b.min.y; lo.max.y = split; } if (hi) { hi.min.y = Math.min(hi.min.y, split); hi.max.y = b.max.y; }
     shapes = [lo && boxOf(lo), hi && boxOf(hi)].filter(Boolean);
   } else shapes = [boxOf(b, sp.shrink || 1)];
   r = { cls: sp.cls, mass: sp.mass || 20, friction: sp.friction, shapes, height: H, bounds: b };

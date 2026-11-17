@@ -2682,8 +2682,8 @@ export function createTileBuilder(ctx) {
     const rows = props.palm.filter((p) => p.y > 0.1);
     // (greenery, overnight) tree grates only where a palm / street tree really stands in a paved sidewalk of a city street: never in a
     // yard, on sand, on the Keys or in the countryside (those were the colored squares under the Keys palms)
-    const pitOk = (p) => !p.cs && !p.real && (p.street || p.pit) && (onSidewalk ? onSidewalk(p.x, p.z) : !/beach|rural|wilderness|residential|park/.test(zoneAt(p.x, p.z) || '')); // a grate wherever the palm really stands in a paved sidewalk
-    for (const p of rows) if (pitOk(p)) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z, ry: p.ry || 0 });
+    const pitOk = (p) => !p.cs && !p.real && (onSidewalk ? onSidewalk(p.x, p.z) : (p.street || p.pit) && !/beach|rural|wilderness|residential|park/.test(zoneAt(p.x, p.z) || '')); // a grate wherever a palm stands in paving (sidewalk or plaza; drawn with the clamped base)
+    for (const p of props.palm) if (pitOk(p)) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z, ry: p.ry || 0 });
     for (const p of props.tree) if (p.y > 0.1 && pitOk(p)) props.grate.push({ x: p.x, y: p.y + 0.004, z: p.z, ry: p.ry || 0 });
     const linked = new Set();
     for (let i = 0; i < rows.length; i++) {
@@ -3007,7 +3007,11 @@ export function createTileBuilder(ctx) {
     tagVis(props.bin.filter((b) => b.k !== 1), (it) => modelOrProc(group, 'trash', binG[0], it, { cast: false }));
     tagVis(props.bin.filter((b) => b.k === 1), (it) => inst(group, binG[1], vcMat, it, { cast: false }));
     inst(group, shelterG, vcMat, props.shelter); }
-    inst(group, litterG, litterMat, props.litter, { cast: false, colors: true });
+    if (SK && SK.parts.can && SK.parts.cup) { // props pass: litter = the user's soda can / paper cup (repainted, no real brands), lying where it was dropped
+      const cans = [], cups = []; for (const l of props.litter) { const h = h2(l, 31); const m = new THREE.Matrix4().compose(new THREE.Vector3(l.x, (l.y || 0) - 0.02 + (h < 0.6 ? 0.032 : 0.045), l.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + (h2(l, 32) - 0.5) * 0.15, l.ry || 0, (h2(l, 33) - 0.5) * 6, 'YXZ')), new THREE.Vector3(1, 1, 1));
+        (h < 0.6 ? cans : cups).push({ x: l.x, y: l.y, z: l.z, m: m.elements }); } // lying on its side, any heading
+      kitParts(group, 'can', cans, { cast: false }); kitParts(group, 'cup', cups, { cast: false });
+    } else inst(group, litterG, litterMat, props.litter, { cast: false, colors: true });
     // street-name blades: per-tile name atlas (2 columns x up to 16 rows)
     if (props.signs.length) {
       const names = [...new Set(props.signs.map((s2) => s2.name))].slice(0, 32), rows = Math.ceil(names.length / 2);
@@ -3032,7 +3036,7 @@ export function createTileBuilder(ctx) {
     else if (M.leaf) { if (libInst(group, BUSH_LIB.blob, props.blob, 'shrub', 0.9) | libInst(group, BUSH_LIB.flower, props.flower, 'shrub', 0.85)) { /* (greenery, overnight) library shrubs */ } else if (vegBush.blob.length && M.vegLeaf) { vegBushes(group, props.blob, vegBush.blob); vegBushes(group, props.flower, vegBush.flower); } else { inst(group, leafG, M.leaf, props.blob, { colors: true, cast: true, depth: M.leafDepth }); inst(group, flowerG, M.leaf, props.flower, { colors: true, cast: true, depth: M.leafDepth }); } (libInst(group, ['grass_tuft_b', 'red_grass'], props.oats, 'shrub', 1.7) || inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false })); }
     else inst(group, blobG, blobMat, props.blob.concat(props.flower), { colors: true });
     inst(group, duneG, M.dune || M.sand, props.dune, { cast: false });
-    inst(group, bikeG, vcMat, props.bike);
+    if (SK && SK.parts.bike_rack) kitParts(group, 'bike_rack', props.bike, { cast: true }); else inst(group, bikeG, vcMat, props.bike); // props pass: hoop rack kitbashed from the user's pipe railing
     if (SK && SK.parts.food_cart) kitParts(group, 'food_cart', props.kiosk, { cast: true }); else inst(group, kioskG, hutMat, props.kiosk, { colors: true, cast: true }); // props pass: the library hot dog cart at kiosk spots
     inst(group, hutG, hutMat, props.hut, { colors: true, cast: true });
     if (SK && SK.parts.patio_table) kitParts(group, 'patio_table', withMoved('cafe', props.cafe), { cast: true }); else inst(group, cafeG, vcMat, props.cafe); // props pass: library patio table (+ chairs in props.work)
@@ -3387,7 +3391,7 @@ export function createTileBuilder(ctx) {
     sol('kiosk');
     for (const p of P.kiosk) { const sh = SK && SK.parts.food_cart ? shapesOf('food_cart') : null; if (sh) collShapes(p, sh.slice(0, 1)); else box(p.x, p.y, p.z, 1.3, 1.3, 0.8, p.ry); } // props pass: the cart body (walk under its umbrellas)
     sol('bike');
-    for (const p of P.bike) box(p.x, p.y, p.z, 1.6, 0.45, 0.35, p.ry);
+    for (const p of P.bike) { const sh = SK && SK.parts.bike_rack ? shapesOf('bike_rack') : null; if (sh) collShapes(p, sh); else box(p.x, p.y, p.z, 1.6, 0.45, 0.35, p.ry); } // props pass: the rack's own size
     sol('bench');
     for (const p of P.bench) { const sh = SK && shapesOf(VARIANT.bench(p)); if (sh) collShapes(p, sh); else box(p.x, p.y, p.z, 0.9, 0.45, 0.32, p.ry); } // props pass: the bench model's own size
     sol('shelter');
