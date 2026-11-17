@@ -35,11 +35,11 @@ export const LIB = {
   old_brick_towers: { w: 24.73, d: 39.96, h: 40.05, k: 1, cls: 'mid', use: 'any', glow: 0.35, lod1: 1, mir: 1, tint: 'brick', rough: 2 },
   black_glass_14: { w: 43.2, d: 43.2, h: 50.21, k: 1, cls: 'mid', use: 'office', glow: 0.5, lod1: 1, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
   stepped_midrise: { w: 32, d: 33.29, h: 49.45, k: 1, cls: 'mid', use: 'any', glow: 0.45, mir: 1, tint: 'stone' },
-  blue_glass_tower: { w: 59.91, d: 50.76, h: 56.11, k: 1, cls: 'mid', use: 'any', glow: 0.5, lod1: 1, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
+  blue_glass_tower: { w: 59.91, d: 50.76, h: 56.11, k: 1, beach: 1, cls: 'mid', use: 'any', glow: 0.5, lod1: 1, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
   grid_block: { w: 32, d: 31.37, h: 23.76, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone', rough: 1 },
   angular_block: { w: 65.51, d: 56.62, h: 29.23, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone' },
   strip_office: { w: 15.12, d: 36.12, h: 14, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'glass' },
-  green_apartment: { w: 19.19, d: 21.93, h: 14.47, k: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
+  green_apartment: { w: 19.19, d: 21.93, h: 14.47, k: 1, beach: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
   fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 1.75, lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
   // ---- shops and roadside (low) ----
   graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2 },
@@ -78,9 +78,10 @@ export const LIB = {
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
   airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none', desat: 1 }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
-const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 900, LOD_D = 400;
+const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 400;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
+const MIRROR = false;
 const ROUGH_D = /Overtown|Liberty City/;
 // the Golden Palm Casino (stage 4 heist): one fixed site on a Miami Beach ocean block; lots under it are cleared
 export const CASINO = { name: 'casino_tower', x: 2183, y: -2.3, z: -370, ry: -Math.PI / 2, s: 1 }; // y: the model's plaza sits 2.3 m below its lowest part // Miami Beach superblock, entrance faces Collins Ave (west)
@@ -168,6 +169,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       if (rough && !m.rough) continue;
       if (m.not && new RegExp(m.not).test(d)) continue;
       if (m.only && !new RegExp(m.only).test(d)) continue;
+      if (cls === 'mid' && (/beach|nightlife/.test(zone) || /South Beach|Miami Beach/.test(d)) && !m.beach) continue; // Ocean Drive / Collins keep their pastel deco: only beach-style mid-rises
       if ((cls === 'tower' || cls === 'mid') && ((m.use === 'res' && !res && hash(seed + 7791) < 0.75) || (m.use === 'office' && res && hash(seed + 7790) < 0.7))) continue;
       for (const rot of [0, 1]) {
         const mw = (rot ? m.d : m.w), md = (rot ? m.w : m.d); // model extents along the lot's u (long) and v axes
@@ -209,7 +211,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const fx = ax[0] * dir, fz = ax[1] * dir, ry = Math.atan2(fx, fz);
     const hw = m.w * c.s / 2, hd = m.d * c.s / 2, cr = Math.cos(ry), sr = Math.sin(ry);
     const corner = (lx, lz) => [f.cx + lx * cr + lz * sr, f.cz - lx * sr + lz * cr];
-    const mir = m.mir && hash(seed + 7795) < 0.5 ? 1 : 0;
+    const mir = MIRROR && m.mir && hash(seed + 7795) < 0.5 ? 1 : 0; // mirrored copies cost a second draw per material: off (tint + orientation vary instead)
     const t = TINTS[m.tint || 'none'], tc = t[(hash(seed + 7797) * t.length) | 0].map((v) => v * (m.gain || 1));
     b._lib = { name: c.name, cls, x: f.cx, z: f.cz, ry, s: c.s, sy: c.sy, h: m.h * c.sy, mir, cond: condOf(b, d), tint: tc, front: [fx, fz],
       rect: [corner(-hw, -hd), corner(hw, -hd), corner(hw, hd), corner(-hw, hd)] };
@@ -416,7 +418,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       const name = key.slice(0, key.indexOf('|')), m = LIB[name];
       let cm = cells.get(k); if (!cm) { cm = parts.map((p) => ({ p, im: null, cap: 0 })); cells.set(k, cm); }
       for (const c of cm) {
-        if (L.length > c.cap) { if (c.im) { group.remove(c.im); c.im.dispose(); } c.cap = Math.max(4, 1 << Math.ceil(Math.log2(L.length))); c.im = new THREE.InstancedMesh(c.p.geo, c.p.mat, c.cap); c.im.castShadow = true; c.im.receiveShadow = true; c.im.name = 'lib-' + name; c.im.userData.noDetailCull = true; c.im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(c.cap * 3).fill(1), 3); group.add(c.im); }
+        if (L.length > c.cap) { if (c.im) { group.remove(c.im); c.im.dispose(); } c.cap = Math.max(4, 1 << Math.ceil(Math.log2(L.length))); c.im = new THREE.InstancedMesh(c.p.geo, c.p.mat, c.cap); c.im.castShadow = key.split('|')[1] === '0' || LIB[name].cls === 'tower'; /* far LOD of low buildings: no shadow draw */ c.im.receiveShadow = true; c.im.name = 'lib-' + name; c.im.userData.noDetailCull = true; c.im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(c.cap * 3).fill(1), 3); group.add(c.im); }
         L.forEach((e, i) => { Q.setFromAxisAngle(Y, e.ry); V.set(e.x, e.y, e.z); S.set(e.s / m.k, e.sy / m.k, e.s / m.k); M4.compose(V, Q, S); c.im.setMatrixAt(i, M4); const t = e.tint || [1, 1, 1]; C.setRGB(t[0], t[1], t[2]); c.im.setColorAt(i, C); });
         c.im.count = L.length; c.im.instanceMatrix.needsUpdate = true; c.im.instanceColor.needsUpdate = true; c.im.visible = true; c.im.computeBoundingSphere();
       }

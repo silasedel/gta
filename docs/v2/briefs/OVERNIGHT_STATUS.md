@@ -64,6 +64,11 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 02:00 First in-game close-ups (Brickell curb, 11:30, 14 models parked with spawnParked): `docs/v2/shots/cars/cu1_<key>_f.png`
+  / `_r.png` (e.g. cu1_police1_f, cu1_taxi1_f, cu1_truck2_f, cu1_suv12_f). Paint, glass, wheels on the ground, Southline police
+  and taxi liveries all read right. Fixed after looking: real maker emblems still on some grilles (stronger emblem removal,
+  reconverting now), a dark contact-shadow slab poking out at the curb (smaller), one car spawned before the ground streamed in
+  and landed hard (parked cars now wait for ground colliders).
 - 01:40 Boot with the library fleet verified headless: READY 37 s, 48 models registered, all 49 GLBs streamed in, no console
   errors (`node tools/v2/cars/boot.mjs`). Boot set now covers every class (no procedural stand-ins while streaming). Lamps:
   every car audited (`tools/v2/cars/lamps_audit.py`): reflectors behind lens glass and lamps painted in atlas textures now light
@@ -85,6 +90,8 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 03:25 LEAD: Keys commit bc887bf reverted my committed tilebuild.js hunks (187 lines: variants, jitter, moved poses, work zones, construction sites, prop colliders) and hydrantSpray.v2.js in HEAD (the working tree was never affected); I re-committed them. Same stale-index pattern as my 606790d mistake: tools/v2/street-models/commit_mine.sh shows a compare-and-swap way to commit (read HEAD, private index from it, commit-tree -p HEAD, update-ref HEAD new old).
+- 03:10 Nico's street from the front deck (docs/v2/shots/props/t8_deck11.png) reads like the mock-up: cart pairs at the curb per house, post mailboxes at the driveways, poles + wires. NOTE for the Keys helper / lead: public/assets/models/keys/rolloff.glb still carries the source's "Waste recycling company +0098240725" print (visible in t8_deck11.png); public/assets/models/street/rolloff.glb is the same Dumpster 3 with that text + phone painted out and replaced ("SUNCOAST ROLL-OFF 305-555-0142", readable on both sides) - please switch to it or reuse tools/v2/street-models/fixed/rolloff_color4.png.
 - 02:55 pass 2 committed (606790d). INCIDENT: my private-index commit was built from a HEAD that moved during the (slow) commit, so it reverted 11 files of other helpers; vegetation restored theirs (f57d201), I restored the other 8 (8c0b3ac: weapons r5_blue/manifest, pickups, precompile, s1-perf, this file). commit_mine.sh is now compare-and-swap (commit-tree with the base HEAD as parent + update-ref HEAD new old; retries if HEAD moved). regulatory.v2.js baseOf error was fixed before that commit. Perf A/B in one session (s1-perf --ab, lotProps draw on/off, dynProps update on/off): +4 draw calls, render 25.1 -> 25.3 ms at spawn, downtown no change (57.5 vs 57.3 ms median, machine under load 40+).
 - 02:10 verified in game + committed (37822e5c): per-house library mailboxes/carts with texture variants at Nico's street (docs/v2/shots/props/dbg_close1.png, dbg_close2.png, t2_lot2.png); car sends a cart pair flying (t5_a..t5_d.png), player pushes carts (t5_walk_go.png, t5_walk_end.png). 6 more variant sets (plastic chairs 6 colors, cones, jersey stripes/tags, commercial bins, twin mailboxes). Hydrant hit hard -> water column + droplets (hydrantSpray.v2.js). Now: downtown / bus stop / work-zone / hydrant shots, perf A/B.
 - 01:00 built (not yet verified in game): 12 new library props converted (tools/v2/street-models/build_props.sh: curbside cart, cone, channelizer, flex bollard, ROAD CLOSED barricade, jersey barrier, roll-off dumpster [company name + phone repainted], site cabin, tarp crates, plastic chair/table, commercial bin); texture-array variants for 8 repeated props (variants.py -> public/assets/models/street/var/, 4-10 layers each: recolors, graffiti removed/moved/new tags, stickers, house numbers, rust, fade); src/world/props/{variants,dynamicProps,propShapes,lotProps}.v2.js; per-house mailbox + carts (lotProps) replace the code-built ones; keysLane no longer sprinkles mailboxes; hydrants only on curbed streets, one side, 90-150 m; benches only at stops / parks / beach; work zones + tower construction sites. NOTE for lead: 3 small guarded hooks outside my files (houses/generator.js yard curb spots, houses/houses.v2.js lotProps add/remove, dressing/dressing.v2.js spawn-street mailbox/bins -> lotProps; rng sequence kept, ?lotprops=0 restores the old boxes).
@@ -156,6 +163,10 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 02:05 Shots after the fixes: Keys A/B sheet `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png` (left: mask off = old shoulder strips,
+  right: on); pothole `gp7_pothole.png` (parallax dip, broken rim, base-course gravel), sealed patch `gp5_patch.png` (color-matched,
+  barely-there seam), Keys street `gp7_keys2_side.png` / aerial `gp7_keys_aerial.png`, downtown `gp7_downtown_{close,graze}.png`,
+  open rural edge `gp7_resid_close.png` (edge drift was a smooth pale film -> now granular dust, narrower mainland shoulders).
 - 01:50 Lead's notes: (1) `roadDecals` 'mapTransform' compile error: that was the first decal shader at ~00:15, fixed at 00:20
   (uv offset via a uniform; mapTransform only in the vertex shader under USE_MAP); every test page since then has no shader
   errors, and decals render: `docs/v2/shots/stage1/gp5_{pothole,pothole_low,patch}.png` (a page loaded before 00:20 would still
@@ -259,6 +270,14 @@
   helpers' changes in it).
 
 ## vegetation
+- 02:02 t6 tour (fixed code): Keys yard `docs/v2/shots/vegetation/overnight/t6_keys_yard.png`, Keys street `t6_keys_street.png`,
+  shore aerial with mangroves `t6_mangrove_air.png`, `place()` test (poinciana, bougainvillea x2, hibiscus, bent coconut, agave,
+  potted ficus placed by the API) `t6_place_test.png`. Audit at the Keys spots: 159-221 countryside trees within 220 m,
+  0 on roads, 0 in docks/decks, 1 mangrove 0.11 m high (fixed in 5647345). Countryside: ~200 draw calls, cell generation
+  0.47 ms avg / 8 ms max, rebucket 1.0 ms.
+- 01:59 Lead: the long test-page stalls are not JS: a native sample of a stalled renderer's main thread (my t5 page) shows it
+  waiting in `mach_msg` on the GPU process (synchronous GL call while MTLCompilerService is pegged by ~10 headless Chromes
+  compiling shaders). Same pattern in keys k5. Not something one helper can fix; fewer parallel browsers would help.
 - 01:52 Bug found by the new placement audit and fixed (00ff760): the dock / deck ray check took the tiles' trunk collider
   prisms (4-5 m) for docks, so countryside trees near the player vanished once their colliders streamed in (since ~00:50).
   Now only 0.3-2.6 m high surfaces block. Audit at the Keys house before the fix: 66 trees, 0 floating, 0 on roads.

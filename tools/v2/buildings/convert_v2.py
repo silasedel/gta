@@ -171,7 +171,39 @@ if spec.get('lod1'):
             d = (mathutils.Vector([max(v[i] for v in vs) for i in range(3)]) - mathutils.Vector([min(v[i] for v in vs) for i in range(3)])).length
             if d < mp: kill.extend(comp)
         bmesh.ops.delete(b3, geom=kill, context='FACES'); b3.to_mesh(me); b3.free()
-    lo0, hi0 = bounds(); decimate(int(spec['lod1'])); textures(int(spec.get('tex1', 256)))
+    lo0, hi0 = bounds(); decimate(int(spec['lod1']))
+    if spec.get('bake1', True) and len(me.materials) > 1:
+        # one draw per far instance: bake every material's base color into one atlas on a fresh UV unwrap, one material
+        N = int(spec.get('atlas', 1024)); sc.render.engine = 'CYCLES'; sc.cycles.samples = 1; sc.cycles.device = 'CPU'
+        uv0 = me.uv_layers[0]; uvb = me.uv_layers.new(name='bake'); me.uv_layers.active = uvb; uv0.active_render = True
+        bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.004); bpy.ops.object.mode_set(mode='OBJECT')
+        GL = re.compile(r'glass|window|pane|glazing|vidrio|cristal', re.I)
+        for m in me.materials: # glass reads dark (sky reflection) in game: bake it dark, not as its pale base color
+            if not m or not m.use_nodes: continue
+            bs0 = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+            if not bs0: continue
+            tr = bs0.inputs['Transmission Weight'].default_value if 'Transmission Weight' in bs0.inputs else 0
+            if GL.search(m.name) or tr > 0.4 or (bs0.inputs['Alpha'].default_value < 0.6 and not bs0.inputs['Base Color'].is_linked):
+                for l_ in list(bs0.inputs['Base Color'].links): m.node_tree.links.remove(l_)
+                bs0.inputs['Base Color'].default_value = (0.09, 0.115, 0.14, 1)
+        atlas = bpy.data.images.new(name + '_atlas', N, N, alpha=False)
+        for m in me.materials:
+            if not m: continue
+            m.use_nodes = True; nt = m.node_tree; tn = nt.nodes.new('ShaderNodeTexImage'); tn.image = atlas
+            for n_ in nt.nodes: n_.select = False
+            tn.select = True; nt.nodes.active = tn
+        sc.render.bake.use_pass_direct = False; sc.render.bake.use_pass_indirect = False; sc.render.bake.use_pass_color = True; sc.render.bake.margin = 4
+        bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob
+        bpy.ops.object.bake(type='DIFFUSE', pass_filter={'COLOR'}, use_clear=True, margin=4)
+        mt = bpy.data.materials.new(name + '_far'); mt.use_nodes = True; bs = mt.node_tree.nodes.get('Principled BSDF')
+        it = mt.node_tree.nodes.new('ShaderNodeTexImage'); it.image = atlas; mt.node_tree.links.new(it.outputs['Color'], bs.inputs['Base Color'])
+        bs.inputs['Roughness'].default_value = 0.6; bs.inputs['Metallic'].default_value = 0.15
+        me.materials.clear(); me.materials.append(mt)
+        for p_ in me.polygons: p_.material_index = 0
+        me.uv_layers.remove(me.uv_layers[0]); me.uv_layers[0].name = 'UVMap'
+        atlas.pack(); info['baked'] = N
+    else: textures(int(spec.get('tex1', 256)))
     export(os.path.join(outd, name + '_lod1.glb')); info['lod1'] = tris_of(me)
 # collision mesh: same shape (walls, steps, porches, overhangs), small parts and materials gone, positions only
 if spec.get('col', 2500):
