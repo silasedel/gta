@@ -620,7 +620,7 @@ gl_Position = projectionMatrix * mvPosition;
     for (const [x, z, pw] of [[-8.42, 5.02, 1], [-8.42, 2.8, 0], [-8.42, -0.2, 1], [-8.42, -3.2, 0], [-8.42, -6.22, 1], [-6.4, 5.02, 1], [-3.6, 5.02, 0], [-0.8, 5.02, 1], [2.0, 5.02, 1], [-6.4, -6.22, 0], [-3.6, -6.22, 1], [-0.8, -6.22, 0], [6.42, -6.22, 1], [2.0, -6.22, 0], [-11.95, 6.75, 1], [-10.4, 6.85, 1], [-11.75, 3.0, 0], [0.1, -7.05, 1], [-10.65, 3.05, 0], [6.9, -3.0, 0], [6.95, 0.6, 1]]) {
       const a0 = r() * 6.28;
       for (let i = 0; i < 4 + (r() * 3 | 0); i++) { const a = a0 + i * 1.3 + r(), d = 0.36 + r() * 0.18, tx = x + Math.cos(a) * d, tz = z + Math.sin(a) * d, h = 0.18 + r() * 0.32, w = 0.3 + r() * 0.2, gc = grassC(r); if (onSlab(tx, tz)) continue; tuft(tx, 0, tz, h, w, gc, 0.02, r); }   // never through the slabs
-      if (pw) { const a = a0 + 2.5, d = 0.42; periwinkle(x + Math.cos(a) * d, z + Math.sin(a) * d, 1 + r() * 0.3, 0, r); if (r() < 0.5) periwinkle(x + Math.cos(a + 1.2) * (d + 0.1), z + Math.sin(a + 1.2) * (d + 0.1), 0.85, 0, r); }
+      if (pw && !onSlab(x + Math.cos(a0 + 2.5) * 0.42, z + Math.sin(a0 + 2.5) * 0.42)) { const a = a0 + 2.5, d = 0.42; periwinkle(x + Math.cos(a) * d, z + Math.sin(a) * d, 1 + r() * 0.3, 0, r); if (r() < 0.5) periwinkle(x + Math.cos(a + 1.2) * (d + 0.1), z + Math.sin(a + 1.2) * (d + 0.1), 0.85, 0, r); }
       else rosette(x + Math.cos(a0) * 0.42, 0, z + Math.sin(a0) * 0.42, { n: 8, el: [1.2, 0.3], l: 0.28, w: 0.4, bend: 0.5, tile: 11, color: (r2) => cv([0.8, 1.05, 0.7], r2, 0.15), amp: 0.01 }, r);   // a volunteer fern
     }
   }
