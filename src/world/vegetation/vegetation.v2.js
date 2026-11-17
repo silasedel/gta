@@ -3,7 +3,7 @@
 // and the wind clock when no other system does (the Miami materials update drives it in the city).
 import * as THREE from 'three';
 import { build, buildGeometry, KINDS, KIND_TYPE } from './index.js';
-import { sharedVegMaterials, vegUniforms, updateVegetation, setVegCamera } from './materials.js';
+import { sharedVegMaterials, vegUniforms, updateVegetation, setVegCamera, vegHash, vegTrunkPoint } from './materials.js';
 import { createCountryside, CS_ON } from './countryside.js';
 import { createVegField } from './field.js';
 import { PALM_SPECIES } from './palms.js';
@@ -162,6 +162,22 @@ export async function initV2(game) {
           if (wet && p.y < (C.seaLevel ?? -0.12)) { out.wetOk++; continue; } // roots under the water line (mangroves)
           if (d > 0.02) { out.floating++; bk.floating++; out.worst.push(e); } else if (d < -0.6) out.deep++; if (d < -0.15 && !/mangrove/.test(e.model)) { out.sunk = (out.sunk || 0) + 1; (out.sunkEx ||= []).length < 8 && out.sunkEx.push(e); } } });
       out.worst.sort((a, b) => b.d - a.d); out.worst = out.worst.slice(0, 12); out.list.sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z));
+      return out;
+    },
+    // (r2-veg, for r2-physics trunk colliders) every drawn library tree / palm within r: its trunk axis in world space as 2-4 straight
+    // pieces from the ground to the crown start, following the instance's mirror / twist / S-bend / lean exactly like the shader (no
+    // wind), radius = the bark radius there. Mangroves also report their prop-root zone (roots: [x, z, r]).
+    trunksNear(x, z, r = 60) {
+      const out = [], seen = new Set(), m = new THREE.Matrix4(), mw = new THREE.Matrix4(), v = new THREE.Vector3(), lib = game.city?.flora?.models || {};
+      game.scene.traverse((o) => { if (!o.isInstancedMesh || !o.count) return; const ud = o.material?.userData, vg = ud?.veg; if (!vg || vg.family === 'imp' || !ud.vegKey || (ud.vegCls !== 'tree' && ud.vegCls !== 'palm')) return;
+        const md = lib[ud.vegKey]; if (!md?.trunk) return; o.updateWorldMatrix(true, false);
+        for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); mw.multiplyMatrices(o.matrixWorld, m); v.setFromMatrixPosition(mw); if ((v.x - x) ** 2 + (v.z - z) ** 2 > r * r) continue;
+          const key = ud.vegKey + ':' + Math.round(v.x * 10) + ',' + Math.round(v.z * 10); if (seen.has(key)) continue; seen.add(key);
+          const bx = (o.matrixWorld.elements[0] * m.elements[12] + o.matrixWorld.elements[4] * m.elements[13] + o.matrixWorld.elements[8] * m.elements[14] + o.matrixWorld.elements[12]), bz = (o.matrixWorld.elements[2] * m.elements[12] + o.matrixWorld.elements[6] * m.elements[13] + o.matrixWorld.elements[10] * m.elements[14] + o.matrixWorld.elements[14]);
+          const vh = vegHash(bx, bz), sc = Math.hypot(mw.elements[0], mw.elements[1], mw.elements[2]);
+          const pts = md.trunk.map(([px, py, pz, pr]) => { const q = vegTrunkPoint(px, py, pz, vh, md.trunkShape, md.trunkLean); const w = new THREE.Vector3(q[0], q[1], q[2]).applyMatrix4(mw); return [w.x, w.y, w.z, pr * sc]; });
+          const segs = []; for (let k = 0; k + 1 < pts.length; k++) segs.push([pts[k][0], pts[k][1], pts[k][2], pts[k + 1][0], pts[k + 1][1], pts[k + 1][2], (pts[k][3] + pts[k + 1][3]) / 2]);
+          const e = { key, kind: ud.vegKey, palm: ud.vegCls === 'palm', segs }; if (/mangrove/.test(ud.vegKey)) e.roots = [v.x, v.z, 1.6 * sc]; out.push(e); } });
       return out;
     },
     rocksNear: (x, z, r, minS) => cs?.rocksNear ? cs.rocksNear(x, z, r, minS) : [], // ground-cover rocks for r2-physics colliders

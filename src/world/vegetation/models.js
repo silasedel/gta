@@ -31,8 +31,8 @@ if (LIB_ON && typeof window !== 'undefined') for (const [k, d] of Object.entries
 // round 2: thicker crowns for library trees whose source crown is only a few hundred leaf cards (the poinciana / gnarled oak has 512):
 // every card is cloned n - 1 times, turned up to ~35 deg about a random axis, scaled 0.85-1.1 and pushed mostly inward along the crown
 // radius, so the crown fills in (no see-through gaps, no cut-paper layers). Deterministic per model.
-function densify(g, n, E, seed) {
-  if (!(n > 1) || !E || !g.index) return g;
+function densify(g, n, E, seed, cs = 1) { // cs: every card (the originals too) scaled about its own center: smaller, denser petals / leaves
+  if (!((n > 1) || cs !== 1) || !E || !g.index) return g; n = Math.max(1, n);
   const P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv, I = g.index.array, nv = P.count, par = new Int32Array(nv).map((_, i) => i);
   const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
   for (let t = 0; t < I.length; t += 3) { const a = find(I[t]); for (const v of [I[t + 1], I[t + 2]]) { const b = find(v); if (b !== a) par[b] = a; } }
@@ -42,10 +42,11 @@ function densify(g, n, E, seed) {
   const pos = new Float32Array(nv * 3 * n), nor = new Float32Array(nv * 3 * n), uv = new Float32Array(nv * 2 * n), idx = new Uint32Array(I.length * n);
   for (let i = 0; i < nv; i++) { pos[i * 3] = P.getX(i); pos[i * 3 + 1] = P.getY(i); pos[i * 3 + 2] = P.getZ(i); nor[i * 3] = N.getX(i); nor[i * 3 + 1] = N.getY(i); nor[i * 3 + 2] = N.getZ(i); uv[i * 2] = U.getX(i); uv[i * 2 + 1] = U.getY(i); } idx.set(I);
   const q = new THREE.Quaternion(), ax = new THREE.Vector3(), v = new THREE.Vector3(), Rm = (E.r[0] + E.r[1] + E.r[2]) / 3;
+  if (cs !== 1) for (let i = 0; i < nv; i++) { const cp = comps[vComp[i]]; pos[i * 3] = cp.cx + (pos[i * 3] - cp.cx) * cs; pos[i * 3 + 1] = cp.cy + (pos[i * 3 + 1] - cp.cy) * cs; pos[i * 3 + 2] = cp.cz + (pos[i * 3 + 2] - cp.cz) * cs; }
   for (let c = 1; c < n; c++) {
     const T = comps.map((cp) => { ax.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(); const qq = new THREE.Quaternion().setFromAxisAngle(ax, (rnd() - 0.5) * 1.2);
       const dx = cp.cx - E.c[0], dy = cp.cy - E.c[1], dz = cp.cz - E.c[2], dl = Math.hypot(dx, dy, dz) || 1, push = (-0.3 + rnd() * 0.38) * Math.min(dl, Rm) / dl, j = 0.12 * Rm;
-      return { q: qq, s: 0.85 + rnd() * 0.25, ox: cp.cx + dx * push + (rnd() - 0.5) * j, oy: cp.cy + dy * push + (rnd() - 0.5) * j * 0.6, oz: cp.cz + dz * push + (rnd() - 0.5) * j }; });
+      return { q: qq, s: (0.85 + rnd() * 0.25) * cs, ox: cp.cx + dx * push + (rnd() - 0.5) * j, oy: cp.cy + dy * push + (rnd() - 0.5) * j * 0.6, oz: cp.cz + dz * push + (rnd() - 0.5) * j }; });
     for (let i = 0; i < nv; i++) { const cp = comps[vComp[i]], t = T[vComp[i]], o = (c * nv + i);
       v.set(P.getX(i) - cp.cx, P.getY(i) - cp.cy, P.getZ(i) - cp.cz).applyQuaternion(t.q).multiplyScalar(t.s); pos[o * 3] = t.ox + v.x; pos[o * 3 + 1] = t.oy + v.y; pos[o * 3 + 2] = t.oz + v.z;
       v.set(N.getX(i), N.getY(i), N.getZ(i)).applyQuaternion(t.q); nor[o * 3] = v.x; nor[o * 3 + 1] = v.y; nor[o * 3 + 2] = v.z; uv[o * 2] = U.getX(i); uv[o * 2 + 1] = U.getY(i); }
@@ -53,6 +54,21 @@ function densify(g, n, E, seed) {
   }
   const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); out.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); out.setIndex(new THREE.BufferAttribute(idx, 1));
   return out;
+}
+
+// round 2 (lead / user: palm fronds read as single flat planes): fold every frond along its rib into a shallow V (edges up), with the
+// normals tilted to match, so a frond catches light on one half and shade on the other. Per connected frond card / mesh: its axis
+// runs from the crown center through the card's centroid; vertices rise with their distance from that axis.
+function foldFronds(g, crownC) {
+  if (!g.index) return; const P = g.attributes.position, N = g.attributes.normal, I = g.index.array, nv = P.count, par = new Int32Array(nv).map((_, i) => i);
+  const find = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  for (let t = 0; t < I.length; t += 3) { const a = find(I[t]); for (const v of [I[t + 1], I[t + 2]]) { const b = find(v); if (b !== a) par[b] = a; } }
+  const cs = new Map(); for (let i = 0; i < nv; i++) { const r = find(i); let c = cs.get(r); if (!c) cs.set(r, (c = { x: 0, z: 0, n: 0 })); c.x += P.getX(i); c.z += P.getZ(i); c.n++; }
+  for (let i = 0; i < nv; i++) { const c = cs.get(find(i)); let dx = c.x / c.n - crownC[0], dz = c.z / c.n - crownC[1]; const dl = Math.hypot(dx, dz); if (dl < 0.4) continue; dx /= dl; dz /= dl;
+    const rx = P.getX(i) - crownC[0], rz = P.getZ(i) - crownC[1], lat = -rx * dz + rz * dx, along = rx * dx + rz * dz, k = Math.min(1, Math.max(0, (along - 0.3) / 1.2)), sg = Math.sign(lat);
+    P.setY(i, P.getY(i) + Math.min(0.6, Math.abs(lat) * 0.3) * k);
+    if (N) { let nx = N.getX(i) - sg * -dz * 0.3 * k, ny = N.getY(i), nz = N.getZ(i) - sg * dx * 0.3 * k; const l = Math.hypot(nx, ny, nz) || 1; N.setXYZ(i, nx / l, ny / l, nz / l); } }
+  P.needsUpdate = true; if (N) N.needsUpdate = true;
 }
 
 function partsOf(scene, def, E0 = null, lod = 0) {
@@ -99,7 +115,8 @@ function partsOf(scene, def, E0 = null, lod = 0) {
     if (!g.index) { const I = []; for (let i = 0; i < g.attributes.position.count; i++) I.push(i); g.setIndex(I); }
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
     if (!g.attributes.normal) g.computeVertexNormals();
-    if (VEG_R2 && def.dens && !def.bark.test(m.name || '')) g = densify(g, def.dens[lod] || 1, E, 9173 + lod * 31 + (m.name || '').length * 7);
+    if (VEG_R2 && (def.dens || def.cardS) && !def.bark.test(m.name || '')) g = densify(g, def.dens ? def.dens[lod] || 1 : 1, E, 9173 + lod * 31 + (m.name || '').length * 7, def.cardS || 1);
+    if (VEG_R2 && def.cls === 'palm' && !def.bark.test(m.name || '') && !/^(fan_palm|sabal_palm)$/.test(def.file || '')) foldFronds(g, crownC); /* fan palms keep their pleated fans */
     const bark = def.bark.test(m.name || ''), P = g.attributes.position, n = P.count, W = new Float32Array(n * 3), C = new Float32Array(n * 3), AO = new Float32Array(n).fill(1);
     for (let i = 0; i < n; i++) {
       const x = P.getX(i), y = P.getY(i), z = P.getZ(i), r = Math.hypot(x, z), ph = Math.atan2(z, x);
@@ -129,7 +146,18 @@ function partsOf(scene, def, E0 = null, lod = 0) {
     out.push({ name: m.name, fam: bark ? 'bark' : 'leaf', geometry: g, map, normalMap: m.normalMap || null, tris: g.index.count / 3 });
   }
   out.sort((a, b) => (a.fam === b.fam ? 0 : a.fam === 'bark' ? -1 : 1));
-  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC, trunkR, E };
+  // trunk axis for colliders (r2-physics): 5 points from the ground to the crown start, slice centroids of the bark (bark-less low-poly
+  // palms: all geometry below the crown), each slice following the previous one (branches ignored), radius = 75th pct distance
+  let trunk = null;
+  if (def.cls !== 'shrub') { const top = Math.max(1.5, def.cls === 'palm' ? yCrown : Math.min(yCrown, yTop * 0.45)), V = [];
+    const anyBark = [...byMat.keys()].some((m) => def.bark.test(m.name || ''));
+    for (const [m, gs] of byMat) if (!anyBark || def.bark.test(m.name || '')) for (const g of gs) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y <= top + 0.3) V.push([P.getX(i), y, P.getZ(i)]); } }
+    if (V.length > 12) { trunk = []; let cx = 0, cz = 0; for (let k = 0; k <= 4; k++) { const y0 = top * k / 4, sl = V.filter((v) => Math.abs(v[1] - y0) < Math.max(0.25, top / 10) && Math.hypot(v[0] - cx, v[2] - cz) < 1.4);
+      if (sl.length < 3) { if (trunk.length) trunk.push([trunk[trunk.length - 1][0], y0, trunk[trunk.length - 1][2], trunk[trunk.length - 1][3]]); continue; }
+      cx = sl.reduce((a, v) => a + v[0], 0) / sl.length; cz = sl.reduce((a, v) => a + v[2], 0) / sl.length; const ds = sl.map((v) => Math.hypot(v[0] - cx, v[2] - cz)).sort((a, b) => a - b);
+      trunk.push([cx, y0, cz, Math.min(1.2, Math.max(0.08, ds[Math.floor(ds.length * 0.75)]))]); }
+      if (trunk.length < 2) trunk = null; } }
+  return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC, trunkR, E, trunk };
 }
 
 // impostor texture: the bake renders the 8 views as one 4x MSAA strip (2048 x up to 1024 px). It is resolved, read back once and
@@ -214,7 +242,7 @@ async function buildOne(renderer, key, def, g0, g1) {
   } catch (e) { console.warn('[vegetation] model impostor bake failed', key, e); }
   await yieldTask();
   const model = {
-    key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, trunkR: L0.trunkR, lods: [L0.parts, L1.parts], imp,
+    key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, trunkR: L0.trunkR, trunk: L0.trunk, trunkShape: shape, trunkLean: C.lean, lods: [L0.parts, L1.parts], imp,
     tris: [L0.parts.reduce((a, p) => a + p.tris, 0), L1.parts.reduce((a, p) => a + p.tris, 0)],
     // materials for one set of LOD bands (fade vec4 per band); shared shader programs with every other library plant
     materials(f0, f1, fi, o = {}) {

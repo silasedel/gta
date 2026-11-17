@@ -747,5 +747,127 @@
   ],
   "tod": 11,
   "fov": 60
+ },
+ "u_planter_12h5": {
+  "house": true,
+  "eye": [
+   -14.5,
+   1.6,
+   16.5
+  ],
+  "look": [
+   -10.8,
+   1.0,
+   12.3
+  ],
+  "tod": 12.5,
+  "fov": 60
+ },
+ "u_frond_12h5": {
+  "house": true,
+  "eye": [
+   -7.0,
+   5.6,
+   9.5
+  ],
+  "look": [
+   -4.8,
+   8.0,
+   13.5
+  ],
+  "tod": 12.5,
+  "fov": 60
+ },
+ "u_hedge_12h5": {
+  "house": true,
+  "eye": [
+   6,
+   1.6,
+   31.5
+  ],
+  "look": [
+   16,
+   1.0,
+   36
+  ],
+  "tod": 12.5,
+  "fov": 60
+ },
+ "u_planter_16": {
+  "house": true,
+  "eye": [
+   -14.5,
+   1.6,
+   16.5
+  ],
+  "look": [
+   -10.8,
+   1.0,
+   12.3
+  ],
+  "tod": 16,
+  "fov": 60
+ },
+ "u_frond_16": {
+  "house": true,
+  "eye": [
+   -7.0,
+   5.6,
+   9.5
+  ],
+  "look": [
+   -4.8,
+   8.0,
+   13.5
+  ],
+  "tod": 16,
+  "fov": 60
+ },
+ "u_hedge_16": {
+  "house": true,
+  "eye": [
+   6,
+   1.6,
+   31.5
+  ],
+  "look": [
+   16,
+   1.0,
+   36
+  ],
+  "tod": 16,
+  "fov": 60
+ },
+ "t_trunks": {
+  "house": true,
+  "eye": [
+   -2,
+   6,
+   0
+  ],
+  "look": [
+   -14,
+   2,
+   22
+  ],
+  "tod": 11,
+  "fov": 70,
+  "post": "await new Promise((r) => setTimeout(r, 6000)); const T = game.THREE, NH = game.nicoHouse, c = NH.toWorld(new T.Vector3(-8, 0, 15)); const L = game.vegetation.trunksNear(c.x, c.z, 60); const g = new T.Group(); const mat = new T.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.45, depthTest: false }); for (const t of L) for (const [x0, y0, z0, x1, y1, z1, r] of t.segs) { const a = new T.Vector3(x0, y0, z0), b = new T.Vector3(x1, y1, z1), l = a.distanceTo(b); const m = new T.Mesh(new T.CylinderGeometry(r, r, l, 10), mat); m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), b.clone().sub(a).normalize()); m.renderOrder = 9; g.add(m); } game.scene.add(g); return { trunks: L.length, kinds: [...new Set(L.map((t) => t.kind))].slice(0, 12) };"
+ },
+ "t_trunks2": {
+  "house": true,
+  "eye": [
+   -16,
+   2.2,
+   30
+  ],
+  "look": [
+   -6,
+   3,
+   14
+  ],
+  "tod": 11,
+  "fov": 70,
+  "post": "await new Promise((r) => setTimeout(r, 6000)); const T = game.THREE, NH = game.nicoHouse, c = NH.toWorld(new T.Vector3(-8, 0, 15)); const L = game.vegetation.trunksNear(c.x, c.z, 60); const g = new T.Group(); const mat = new T.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.45, depthTest: false }); for (const t of L) for (const [x0, y0, z0, x1, y1, z1, r] of t.segs) { const a = new T.Vector3(x0, y0, z0), b = new T.Vector3(x1, y1, z1), l = a.distanceTo(b); const m = new T.Mesh(new T.CylinderGeometry(r, r, l, 10), mat); m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), b.clone().sub(a).normalize()); m.renderOrder = 9; g.add(m); } game.scene.add(g); return { trunks: L.length, kinds: [...new Set(L.map((t) => t.kind))].slice(0, 12) };"
  }
 }

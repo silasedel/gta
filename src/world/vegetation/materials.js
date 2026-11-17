@@ -8,7 +8,7 @@
 //  - LOD cross-fade: uFade = (inNear, inFar, outNear, outFar) in m; a screen-space dither makes LOD swaps invisible.
 import * as THREE from 'three';
 import { barkAtlas, leafAtlas } from './textures.js';
-import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL, A2C_R2_GLSL } from '../../render/frameNoise.js';
+import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL, A2C_R2T_GLSL, CAM_FOCUS } from '../../render/frameNoise.js';
 
 const Q = typeof location === 'undefined' ? '' : location.search;
 const qn = (k, d) => { const m = new RegExp('[?&]' + k + '=([\\w.-]+)').exec(Q); return m ? (isNaN(+m[1]) ? m[1] : +m[1]) : d; };
@@ -17,6 +17,7 @@ export const VEG_R2 = qn('vegr2', 1) !== 0;
 const VEG_AA = qn('vegaa', 0); // A2C stays the default: under camera motion it holds leaf edges better than a hard cut (TAA alone shows stair steps on fronds; a4 m_bench)
 export const vegUniforms = {
   uRenderR2: RENDER_R2, // r2-render: golden-ratio stepped LOD dither (frameNoise.js)
+  uVegFocus: CAM_FOCUS, // r2-render: camera-proximity fade (player chest)
   uFrameN: FRAME_NOISE, // stage 1: temporal dither offset (TAA resolves the LOD cross-fade instead of a fixed dot pattern)
   uVegTime: { value: 0 }, uVegGust: { value: 0.45 },
   uSunDir: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
@@ -39,13 +40,18 @@ varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec
 attribute float aVegAO; varying float vVegAO;
 #endif
 uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; uniform vec3 uBaseClamp; // uBaseClamp: (height, trunk radius, on) for plants in paving // model height, bend, twist (rad), frond droop; crown attachment height (m)
+float vegH12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vegInstH() {
 #ifdef USE_INSTANCING
   vec3 p = (modelMatrix * vec4(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2], 1.0)).xyz;
 #else
   vec3 p = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 #endif
+#ifdef VEG_R2MIP
+  return vegH12(p.xz);
+#else
   return fract(sin(dot(p.xz, vec2(12.9898, 78.233))) * 43758.5453);
+#endif
 }
 bool vegMirrored() { return fract(vegInstH() * 173.31 + 0.27) > 0.5; }
 `;
@@ -65,7 +71,11 @@ const VERT_BODY = `
   vec3 vIp = vec3(0.0);
 #endif
   vec3 vIw = (modelMatrix * vec4(vIp, 1.0)).xyz;
+#ifdef VEG_R2MIP
+  float vh = vegH12(vIw.xz); // r2: sin-free hash, reproduced on the CPU (vegHash) so trunk colliders follow the same mirror / bend
+#else
   float vh = fract(sin(dot(vIw.xz, vec2(12.9898, 78.233))) * 43758.5453);
+#endif
   float vh2 = fract(vh * 91.7 + 0.13), vh3 = fract(vh * 37.13 + 0.61), vh4 = fract(vh * 251.9 + 0.37), vh5 = fract(vh * 13.71 + 0.83), vh6 = fract(vh * 547.3 + 0.19);
   vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y; vVegH = position.y;
 #ifdef VEG_AO
@@ -128,8 +138,18 @@ varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec
 #ifdef VEG_AO
 varying float vVegAO;
 #endif
-uniform float uRenderR2;
+uniform float uRenderR2; uniform vec3 uVegFocus; uniform vec3 uVegCam; uniform float uVegCamOn;
 ${IGN_R2_GLSL}
+// r2-render: foliage near the camera (< ~1.3 m) or between the camera and the player fades out by coverage, so a camera
+// pushed into a bush shows the player instead of screen-filling leaf cards. 1 = fully drawn.
+float vegNearFade() {
+  vec3 C = uVegCamOn > 0.5 ? uVegCam : cameraPosition, F = uVegFocus - C, P = vVegW - C;
+  float f1 = smoothstep( 0.45, 1.35, length( P ) );
+  float L2 = max( dot( F, F ), 1e-4 ), t = clamp( dot( P, F ) / L2, 0.0, 1.0 );
+  float along = smoothstep( 0.0, 0.06, t ) * ( 1.0 - smoothstep( 0.78, 0.92, t ) ) * step( uVegFocus.y, 1e4 ) * step( -1e4, uVegFocus.y ) * step( L2, 144.0 );
+  float f2 = smoothstep( 0.3, 0.95, length( P - F * t ) );
+  return min( f1, 1.0 - along * ( 1.0 - f2 ) );
+}
 float vegDither() { return psIgnT(gl_FragCoord.xy); }
 float vegDitherS() { return fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))); }
 `;
@@ -186,6 +206,14 @@ const FRAG_COLOR = `
 // do not read as flat plastic
 const FRAG_ROUGH = `
 #ifdef VEG_R2MIP
+  { // r2 (lead / user: "layered, splotchy"): per leaf-cluster color variation in a narrow range (world-fixed ~25 cm cells, TAA-stable),
+    // a few darker dead leaves, and the undersides of leaves / fronds seen from below darker (no flat paper planes)
+    vec3 cw = floor(vVegW * 4.0); float lh = fract(sin(dot(cw, vec3(12.9898, 78.233, 37.719))) * 43758.5453), lh2 = fract(lh * 91.37 + 0.21);
+    diffuseColor.rgb *= vec3(0.94 + 0.12 * lh, 0.95 + 0.1 * lh2, 0.93 + 0.12 * lh) * (0.9 + 0.2 * lh2);
+    if (lh2 > 0.965) { float dl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dl * 1.1, dl * 0.92, dl * 0.55), 0.7); }
+    vec3 gn = normalize(cross(dFdx(vVegW), dFdy(vVegW))); if (dot(gn, cameraPosition - vVegW) < 0.0) gn = -gn; // the face toward the camera
+    diffuseColor.rgb *= mix(1.0, 0.72, smoothstep(-0.15, -0.6, gn.y));
+  }
   roughnessFactor = clamp(roughnessFactor + (0.12 - dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * 0.9 + 0.1 * (vVegHash.y - 0.5), 0.45, 0.86);
 #endif
 `;
@@ -270,6 +298,20 @@ const IMP_MAP = `
 #endif
 `;
 
+// r2-render: the proximity fade scales the coverage after the alpha test (a smooth coverage fade, the per-frame offset
+// lets TAA average it; no fixed screen-door pattern). Alpha-to-coverage materials only (leaves, impostors), round 2 only.
+const NEAR_FADE = `
+#if defined( USE_ALPHATEST ) && defined( ALPHA_TO_COVERAGE )
+  if ( uRenderR2 > 0.5 ) {
+    float nf = vegNearFade();
+    if ( nf < 0.999 ) {
+      diffuseColor.a *= nf;
+      diffuseColor.a = clamp( diffuseColor.a + ( psIgnT( gl_FragCoord.xy + 17.0 ) - 0.5 ) * 2.0 * diffuseColor.a * ( 1.0 - diffuseColor.a ), 0.0, 1.0 );
+      if ( diffuseColor.a < 0.02 ) discard;
+    }
+  }
+#endif
+`;
 function patch(kind, local) {
   return (sh) => {
     Object.assign(sh.uniforms, vegUniforms, local);
@@ -280,7 +322,7 @@ function patch(kind, local) {
     sh.vertexShader = VERT_HEAD + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + VERT_MIRROR_N).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY).replace(IMP_POS, IMP_POS + VERT_BODY);
     if (sh.fragmentShader.includes('#include <map_fragment>') || sh.fragmentShader.includes('#include <map_fragment_imp>')) {
       sh.fragmentShader = FRAG_HEAD + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + FRAG_COLOR).replace('#include <map_fragment_imp>', IMP_MAP + FRAG_COLOR);
-      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO).replace('#include <alphatest_fragment>', A2C_R2_GLSL); // r2-render: no fixed A2C checkerboard
+      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + FRAG_AO).replace('#include <alphatest_fragment>', A2C_R2T_GLSL + NEAR_FADE); // r2-render: no fixed A2C checkerboard; camera-proximity fade
       if (kind === 'leaf') sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + FRAG_ROUGH);
       if (kind === 'leaf' || kind === 'imp') sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + FRAG_TRANSL)
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n#ifdef DOUBLE_SIDED\n normal *= faceDirection;\n#endif'); // foliage: keep the authored (outward / upward) normal on both faces
@@ -353,4 +395,46 @@ export function updateVegetation(t, scene, sun, wind) {
     const d = vegUniforms.uSunDir.value.copy(sun.position); if (sun.target) d.sub(sun.target.position); d.normalize();
     vegUniforms.uSunCol.value.copy(sun.color).multiplyScalar(Math.min(1.5, sun.intensity * 0.35));
   }
+}
+
+// round 2: the same volume look for foliage built outside the vegetation system (set-piece card plants, e.g. r2-keys' planter
+// bougainvillea and palmettos). foliageVolume(material, { center: Vector3 (world), radius: Vector3 | number, k = 0.7 }) patches a
+// MeshStandardMaterial in place: card normals bent toward the plant's ellipsoid (k), ambient / sun occlusion toward its core and
+// bottom, darker undersides, per leaf-cluster color variation and a back-lit glow. One material per plant volume (the uniforms
+// are per material); chains an existing onBeforeCompile.
+export function foliageVolume(mat, { center, radius = 1, k = 0.7 } = {}) {
+  const R = typeof radius === 'number' ? new THREE.Vector3(radius, radius, radius) : radius.clone();
+  const U = { uFvC: { value: center.clone() }, uFvR: { value: R }, uFvK: { value: k } }, prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey?.bind(mat);
+  mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); Object.assign(sh.uniforms, U, { uSunDir: vegUniforms.uSunDir, uSunCol: vegUniforms.uSunCol });
+    sh.vertexShader = 'varying vec3 vFvW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vFvW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = 'uniform vec3 uFvC; uniform vec3 uFvR; uniform float uFvK; uniform vec3 uSunDir; uniform vec3 uSunCol; varying vec3 vFvW;\n' + sh.fragmentShader
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+  vec3 fvD = (vFvW - uFvC) / uFvR; float fvE = length(fvD), fvAO = (0.42 + 0.58 * smoothstep(0.15, 1.0, fvE)) * (0.72 + 0.28 * smoothstep(-1.0, 1.0, fvD.y));
+  { vec3 cw = floor(vFvW * 4.0); float lh = fract(sin(dot(cw, vec3(12.9898, 78.233, 37.719))) * 43758.5453), lh2 = fract(lh * 91.37 + 0.21);
+    diffuseColor.rgb *= vec3(0.94 + 0.12 * lh, 0.95 + 0.1 * lh2, 0.93 + 0.12 * lh) * (0.9 + 0.2 * lh2);
+    float sl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(vec3(sl), diffuseColor.rgb, mix(0.88, 1.0, fvAO)); }`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  { vec3 vn = normalize((viewMatrix * vec4((vFvW - uFvC) / (uFvR * uFvR), 0.0)).xyz); normal = normalize(mix(normal * (dot(normal, vn) < 0.0 ? -1.0 : 1.0), vn, uFvK)); }`)
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+  reflectedLight.indirectDiffuse *= fvAO; reflectedLight.directDiffuse *= mix(0.55, 1.0, fvAO);
+  { vec3 Vd = normalize(vFvW - cameraPosition); float bk = pow(max(dot(Vd, normalize(uSunDir)), 0.0), 2.0); totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (bk * 0.65 + 0.05) * clamp(uSunDir.y * 2.0, 0.0, 1.0) * vec3(0.9, 1.05, 0.55) * mix(0.3, 1.0, fvAO); }`); };
+  mat.customProgramCacheKey = () => (prevKey ? prevKey() : '') + '|fvol';
+  mat.userData.foliageVolume = U; mat.needsUpdate = true; return mat;
+}
+
+// CPU twin of the shader's vegH12 (float32 steps), and the per-instance trunk deformation of VERT_BODY (mirror, twist, S-bend, lean;
+// no wind): trunk colliders follow the drawn trunk. Returns the deformed local point [x, y, z].
+const f32 = Math.fround, fr = (x) => f32(x - Math.floor(x));
+export function vegHash(x, z) {
+  let a = fr(f32(f32(x) * f32(0.1031))), b = fr(f32(f32(z) * f32(0.1031))), c = a;
+  const d = f32(f32(f32(a * f32(b + f32(33.33))) + f32(b * f32(c + f32(33.33)))) + f32(c * f32(a + f32(33.33))));
+  a = f32(a + d); b = f32(b + d); c = f32(c + d); return fr(f32(f32(a + b) * c));
+}
+export function vegTrunkPoint(px, py, pz, vh, shape, lean, mirror = true) {
+  const frc = (x) => x - Math.floor(x), vh2 = frc(vh * 91.7 + 0.13), vh3 = frc(vh * 37.13 + 0.61), vh4 = frc(vh * 251.9 + 0.37), vh5 = frc(vh * 13.71 + 0.83);
+  let x = mirror && frc(vh * 173.31 + 0.27) > 0.5 ? -px : px, z = pz; const y = py;
+  if (shape && shape[0] > 0) { const st = Math.min(1, Math.max(0, y / shape[0])), tw = shape[2] * (vh5 - 0.5) * 2 * st, ct = Math.cos(tw), sn = Math.sin(tw); const x2 = ct * x - sn * z, z2 = sn * x + ct * z; x = x2; z = z2;
+    const k = shape[1] * shape[0] * (vh4 - 0.35) * (st * st - 0.35 * st * st * st); x += Math.cos(vh3 * 6.2831) * k; z += Math.sin(vh3 * 6.2831) * k; }
+  const bend = Math.pow(Math.max(y, 0), 1.6) * lean * (vh2 - 0.25); x += Math.cos(vh * 6.2831) * bend; z += Math.sin(vh * 6.2831) * bend;
+  return [x, y, z];
 }
