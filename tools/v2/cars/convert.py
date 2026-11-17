@@ -1055,6 +1055,15 @@ for mi, si in sorted(tex_slot.items(), key=lambda x: x[1]):
     me_all.materials.append(m)
 bm.to_mesh(me_all); bm.free()
 ob_all = bpy.data.objects.new('all', me_all); sc.collection.objects.link(ob_all)
+if CFG.get('clearNormals'):   # flattened lettering keeps the source's custom normals (the relief still shades): drop them
+    try:
+        bpy.ops.object.select_all(action='DESELECT'); ob_all.select_set(True); bpy.context.view_layer.objects.active = ob_all
+        bpy.ops.mesh.customdata_custom_splitnormals_clear()
+        for p_ in me_all.polygons: p_.use_smooth = True
+        try: me_all.set_sharp_from_angle(angle=math.radians(35))
+        except Exception: pass
+        log('custom normals cleared')
+    except Exception as e: log('clear normals failed', e)
 # vertex -> wheel id (positions moved by the frame transform; recompute membership by island again on the final mesh)
 bm2 = bmesh.new(); bm2.from_mesh(me_all)
 lab2 = islands(bm2); V2 = verts_np(bm2)

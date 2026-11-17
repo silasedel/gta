@@ -1604,7 +1604,8 @@
    "rIn": 1.02,
    "rOut": 1.55,
    "xMin": 0.95
-  }
+  },
+  "clearNormals": true
  },
  "coupe4": {
   "src": "Coupes/Coupe 4 - 1970 American Muscle Coupe/FINAL_MODEL_SS.fbx",
