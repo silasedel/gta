@@ -56,6 +56,7 @@ const VIEWS = (j) => {
   const v = {};
   v.top = { eye: [j.x + 0.5, 25, j.z + 8], look: [j.x, 0, j.z] };
   v.drive = { eye: [j.x + L0.dx * 30, 1.35, j.z + L0.dz * 30], look: [j.x - L0.dx * 10, 0.6, j.z - L0.dz * 10] };
+  { const nx = -L0.dz, nz = L0.dx, o = L0.w / 2 - 1.2; v.close = { eye: [j.x + L0.dx * 34 + nx * o, 1.9, j.z + L0.dz * 34 + nz * o], look: [j.x + L0.dx * 16, 0, j.z + L0.dz * 16] }; } // close-up: standing at the curb, looking down the approach (decals, arrows, grates)
   // corner: bisector of the first two adjacent legs (by angle)
   const ang = legs.map((l) => Math.atan2(l.dz, l.dx)).sort((p, q) => p - q); let best = 0, gap = -1;
   for (let i = 0; i < ang.length; i++) { const g = ((ang[(i + 1) % ang.length] - ang[i]) + Math.PI * 4) % (Math.PI * 2); if (g > 0.6 && g < 2.4 && (gap < 0 || Math.abs(g - Math.PI / 2) < Math.abs(gap - Math.PI / 2))) { gap = g; best = i; } }
@@ -86,6 +87,12 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
       if (!best) return 'null'; const legs = best.edges.map((k) => { const e = G.edges[k], atA = e.a === best.id, p = e.pts, q = atA ? p[Math.min(2, p.length - 1)] : p[Math.max(0, p.length - 3)], r0 = atA ? p[0] : p[p.length - 1], dx = q[0] - r0[0], dz = q[1] - r0[1], L = Math.hypot(dx, dz) || 1; return { dx: dx / L, dz: dz / L, w: e.width, kind: e.kind, len: e.length, sw: e.sidewalk }; });
       return JSON.stringify({ id: best.id, x: best.x, z: best.z, deg: legs.length, zone: String(C.zoneAt(best.x, best.z)), dist: String(C.districtAt(best.x, best.z)), kinds: legs.map((l) => l.kind).join(','), legs }); })()`));
     if (k) { picks.keysLane = k; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); }
+  }
+  if (!picks.gore) { // a highway / arterial split at a sharp angle (gore striping)
+    const k = JSON.parse(await b.eval(`(() => { const G = game.city.roadGraph; for (const n of G.nodes) { if ((n.edges || []).length < 3) continue; const J = game.city.junctionOf(n.id); if (!J) continue;
+      for (const c of J.corners) { if (c.kind !== 'fillet' || !c.C) continue; const a = J.legs[c.i], b = J.legs[c.j]; if (a.dx * b.dx + a.dz * b.dz < Math.cos(0.8)) continue; if (!(J.hwy || (/primary|secondary|trunk/.test(a.kind) && /primary|secondary|trunk/.test(b.kind)))) continue;
+        const legs = J.legs.map((l) => ({ dx: l.dx, dz: l.dz, w: l.hw * 2, kind: l.kind })); const m = c.arc[c.arc.length >> 1]; return JSON.stringify({ id: n.id, x: (c.C[0] + m[0]) / 2, z: (c.C[1] + m[1]) / 2, deg: legs.length, zone: '', dist: '', kinds: legs.map((l) => l.kind).join(','), legs }); } } return 'null'; })()`));
+    if (k) { picks.gore = k; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); }
   }
   console.log('picks', Object.entries(picks).map(([k, v]) => `${k}:${v.id}@${v.x.toFixed(0)},${v.z.toFixed(0)} ${v.zone}/${v.dist} deg${v.deg} ${v.kinds}`).join('\n'));
   const only = o.only ? String(o.only).split(',') : Object.keys(picks);

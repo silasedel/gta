@@ -313,6 +313,13 @@ export async function createMaterials(renderer) {
       M.shoulder = new THREE.MeshStandardMaterial({ map: sEdge.map, normalMap: sEdge.normalMap, roughnessMap: sEdge.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.shoulder, -7);
       M.shoulder.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { vec4 eT = texture2D( map, vMapUv ); if ( dot( eT.rgb, vec3( 0.3333 ) ) < 0.045 || vMapUv.y > 0.452 ) discard; }'); };
       M.shoulder.customProgramCacheKey = () => 'job4-shoulder';
+      // road decals (cracks, potholes, patches, manholes, storm drains, oil, turn arrows): one atlas baked from the user's road-detail
+      // scans (Models/Road Details, Models/Sewer Grates; tools/v2/roads/bake_decals.mjs + build_decal_atlas.py), alpha-blended over the
+      // asphalt with a polygon offset (no z-fight), one merged mesh per tile
+      const png = async (n, srgb) => { const r = await fetch(`${import.meta.env?.BASE_URL ?? '/'}assets/textures/roads/decals_${n}.png`); if (!r.ok) throw new Error('decals ' + n); const t = new THREE.Texture(await createImageBitmap(await r.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' })); t.flipY = false; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy()); t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; return t; };
+      const [dC, dN, dA] = await Promise.all([png('col', true), png('nrm', false), png('arm', false)]);
+      M.roadDecals = new THREE.MeshStandardMaterial({ map: dC, normalMap: dN, roughnessMap: dA, metalnessMap: dA, roughness: 1, metalness: 1, vertexColors: true, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -10 });
+      M.roadDecals.color.setScalar(0.87); M.roadDecals.name = 'roadDecals';
     } catch (e) { console.warn('[miami] road textures', e); }
     M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
     M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);

@@ -1,0 +1,37 @@
+<!doctype html><html><body style="margin:0;background:#000">
+<script type="module">
+// Top-down orthographic bake of a road-detail scan (GLB): unlit albedo + world-normal (decal tangent space: R = +x, G = +z, B = up)
+// window.bake(url, size) -> { color: dataURL, normal: dataURL, height: dataURL, bbox }
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); document.body.appendChild(R.domElement);
+R.outputColorSpace = THREE.SRGBColorSpace;
+window.bake = async (url, size = 2048, mapUrl = null, zoom = null) => {
+  const root = /\.fbx$/i.test(url) ? await new FBXLoader().loadAsync(url) : (await new GLTFLoader().loadAsync(url)).scene; root.updateMatrixWorld(true);
+  if (mapUrl) { const t = await new THREE.TextureLoader().loadAsync(mapUrl); t.colorSpace = THREE.SRGBColorSpace; root.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ map: t }); }); }
+  const box = new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  // the scan's up axis: the thinnest bbox axis
+  const thin = s.x < s.y && s.x < s.z ? 'x' : s.z < s.y ? 'z' : 'y';
+  if (thin !== 'y') { const q = thin === 'x' ? new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2) : new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); root.quaternion.premultiply(q); root.updateMatrixWorld(true); }
+  box.setFromObject(root); box.getCenter(c); box.getSize(s);
+  const half = Math.max(s.x, s.z) / 2; let hx = half, hz = half, cx = c.x, cz = c.z;
+  if (zoom) { cx = c.x - half + half * (zoom[0] + zoom[2]); cz = c.z - half + half * (zoom[1] + zoom[3]); hx = half * (zoom[2] - zoom[0]); hz = half * (zoom[3] - zoom[1]); }
+  R.setSize(size, Math.round(size * hz / hx)); R.setPixelRatio(1);
+  const cam = new THREE.OrthographicCamera(-hx, hx, hz, -hz, 0.01, 1000); cam.position.set(cx, box.max.y + 10, cz); cam.up.set(0, 0, -1); cam.lookAt(cx, c.y, cz);
+  const scene = new THREE.Scene(); scene.add(root);
+  const meshes = []; root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  const orig = meshes.map((m) => m.material);
+  const shot = () => { R.render(scene, cam); return R.domElement.toDataURL('image/png'); };
+  meshes.forEach((m, i) => { const om = Array.isArray(orig[i]) ? orig[i][0] : orig[i]; m.material = new THREE.MeshBasicMaterial({ map: om.map || null, color: om.map ? 0xffffff : om.color }); });
+  scene.background = new THREE.Color(0, 0, 0); const color = shot();
+  const nm = new THREE.ShaderMaterial({ vertexShader: 'varying vec3 vN; void main(){ vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position,1.0); }',
+    fragmentShader: 'varying vec3 vN; void main(){ vec3 n = normalize(vN); gl_FragColor = vec4(n.x*0.5+0.5, n.z*0.5+0.5, n.y*0.5+0.5, 1.0); }' });
+  meshes.forEach((m) => { m.material = nm; }); R.outputColorSpace = THREE.LinearSRGBColorSpace; scene.background = new THREE.Color(0.5, 0.5, 1); const normal = shot();
+  const hm = new THREE.ShaderMaterial({ uniforms: { y0: { value: box.min.y }, y1: { value: box.max.y } }, vertexShader: 'varying float vY; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vY = w.y; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: 'uniform float y0, y1; varying float vY; void main(){ float h = (vY - y0) / max(1e-4, y1 - y0); gl_FragColor = vec4(h, h, h, 1.0); }' });
+  meshes.forEach((m) => { m.material = hm; }); scene.background = new THREE.Color(0, 0, 0); const height = shot(); R.outputColorSpace = THREE.SRGBColorSpace;
+  return { color, normal, height, size: [s.x, s.y, s.z], thin, half };
+};
+window.ready = true;
+</script></body></html>

@@ -179,3 +179,10 @@ export function subtractConvex(piece, C, bb) {
 export function bboxOf(P) { let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const p of P) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < z0) z0 = p[1]; if (p[1] > z1) z1 = p[1]; } return [x0, z0, x1, z1]; }
 // convex decomposition of a corner spandrel (area between the sharp curb corner C and the curb-return arc): fan from C
 export function spandrelFan(c) { const out = []; for (let k = 0; k < c.arc.length - 1; k++) { const t = convexCCW([c.C, c.arc[k], c.arc[k + 1]]); if (Math.abs(area2(t)) > 1e-4) out.push(t); } return out; }
+// convex polygon P clipped to convex polygon C (CCW): the part of P inside C (points) or null
+export function clipToConvex(P, C) {
+  let pc = { p: P, b: P.map(() => false) };
+  for (let i = 0; i < C.length && pc; i++) { const a = C[i], b = C[(i + 1) % C.length]; pc = clipHalf(pc, a[0], a[1], b[0] - a[0], b[1] - a[1], 1, false); }
+  return pc && Math.abs(area2(pc.p)) > 1e-4 ? pc.p : null;
+}
+
