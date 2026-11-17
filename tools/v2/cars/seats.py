@@ -215,8 +215,22 @@ def stripe_boxes(key, man):
     for z0 in zs:
         m = up & (cen[:, 2] >= z0) & (cen[:, 2] < z0 + 0.1)
         prof.append(float(np.percentile(cen[m, 1], 90)) if m.sum() >= 3 else np.nan)
-    prof = np.array(prof); zA = sh['zA']
-    hood = [(z, y) for z, y in zip(zs, prof) if not np.isnan(y) and z > zA - 0.25 and y > sh['belt'] - 0.15]
+    prof = np.array(prof)
+    # hood: walk back from the nose along the centerline profile; it ends where the surface climbs (the windshield / cowl)
+    hood = []; hy = None
+    fr = [y for z, y in zip(zs, prof) if z > 0 and not np.isnan(y)]
+    if not fr: return None
+    # the hood is the high part of the nose: start where the profile reaches 75 % of the front half's top (not the bumper)
+    top = max([y for y in fr if y < sh['roofY'] - 0.35] or fr)
+    for z, y in sorted(zip(zs, prof), key=lambda t: -t[0]):
+        if np.isnan(y):
+            if hood: continue
+            else: continue
+        if hy is None:
+            if y < top * 0.82: continue
+            hy = y
+        if y > hy + 0.15: break
+        hood.append((z, y)); hy = max(hy, y) if len(hood) < 3 else hy
     roof = [(z, y) for z, y in zip(zs, prof) if not np.isnan(y) and y > sh['roofY'] - 0.3]
     out = {}
     if hood:
