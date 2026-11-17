@@ -435,9 +435,9 @@
    "height": 4.2,
    "bark": "Bark|^SHD",
    "gradeLeaf": [
-    100,
-    0.5,
-    0.3
+    98,
+    0.48,
+    0.38
    ]
   },
   "mangrove": {

@@ -32,7 +32,7 @@ export const VEG_LIB = {
   oak_pale_a: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (1)', r: 0.35 },
   oak_pale_b: { cls: 'tree', src: 'Oak Tree 4 - Pair Of Pale-Green Oaks (2)', r: 0.35 },
   shade_tree: { cls: 'tree', src: 'Tree 1 - Fluffy Grey-Green Tree', r: 0.4 },
-  rubber_fig: { cls: 'tree', src: 'Rubber Fig Tree 1 - Dark Glossy Rubber Fig', r: 0.2, hidden: 1, radialN: 0.75 }, // leaves rendered near-black: retest with radial normals before placing
+  rubber_fig: { cls: 'tree', src: 'Rubber Fig Tree 1 - Dark Glossy Rubber Fig (leaves brightened)', r: 0.2, radialN: 0.75 },
   mangrove: { cls: 'tree', src: 'Mangrove Tree 2 - Red Mangrove With Stilt Roots (crown and trunk only: used as buttonwood)', r: 0.3, shape: [0, 0.05, 0.7, 0.004], hidden: 1 }, // white twisted trunk without its roots: not placed
   mangrove_b: { cls: 'tree', src: 'Mangrove Tree 1 - Low-Poly Mangrove With Mud Base (stilt roots, mud plate dropped)', r: 0.3, shape: [0, 0.06, 0.9, 0.004] },
   pine_a: { cls: 'tree', src: 'Tree Pack 1 - Low-Poly Forest Tree And Rock Pack (pine 1)', r: 0.3 },
@@ -84,6 +84,7 @@ export const GROUPS = {
   shade: ['shade_tree', 'banyan_b', 'oak_pale_a', 'oak_pale_b'],
   gumbo: ['shade_tree', 'oak_pale_b'],
   poinciana: ['poinciana', 'poinciana_b', 'poinciana_c'],
+  rubber_fig: ['rubber_fig'],
   mangrove: ['mangrove_b'],
   pine: ['pine_a', 'pine_b', 'pine_c'],
   cypress: ['cypress_a', 'cypress_b'],

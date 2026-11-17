@@ -13,6 +13,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { makeVegMaterial } from './materials.js';
 import { bakeImpostor } from './field.js';
 import { VEG_LIB, CLS } from './species.js';
+import { yieldTask, breathe, initTexturesSliced } from '../../core/pace.js';
 
 const BASE = '/assets/models/vegetation/';
 const LEGACY = { royal: 'royal_palm', coconut: 'coconut_palm', banyan: 'banyan', fern: 'fern_clump' };
@@ -75,19 +76,45 @@ function partsOf(scene, def) {
   return { parts: out, height: yTop, radius: rMax, crownY: yCrown, crownC };
 }
 
+// impostor memory: the bake renders into a 4x MSAA target (2048 x up to 1024 px, ~32 MB of multisample buffers each, kept alive
+// by the target). Copy the resolved image into a plain mipmapped target and free the MSAA one (50 models: ~1.5 GB of GPU memory).
+let _blit = null;
+function compactImpostor(renderer, imp) {
+  if (!imp || !imp.rt || !(imp.rt.samples > 0)) return imp;
+  const w = imp.rt.width, h = imp.rt.height;
+  const rt2 = new THREE.WebGLRenderTarget(w, h, { samples: 0, colorSpace: THREE.NoColorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
+  _blit ||= (() => { const m = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null } }, vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: 'uniform sampler2D tSrc; varying vec2 vUv; void main() { gl_FragColor = texture2D(tSrc, vUv); }', depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false });
+    const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m); q.frustumCulled = false; const sc = new THREE.Scene(); sc.add(q); return { m, sc, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) }; })();
+  const prev = renderer.getRenderTarget(), ac = renderer.autoClear;
+  _blit.m.uniforms.tSrc.value = imp.texture; renderer.autoClear = true; renderer.setRenderTarget(rt2); renderer.render(_blit.sc, _blit.cam); renderer.setRenderTarget(prev); renderer.autoClear = ac;
+  rt2.texture.userData.impostor = imp.texture.userData.impostor; _blit.m.uniforms.tSrc.value = null;
+  imp.rt.dispose();
+  return { geometry: imp.geometry, texture: rt2.texture, rt: rt2 };
+}
+// boot pacing: every model's CPU work (merge, attributes), texture upload and impostor bake runs one model at a time, in its own
+// tasks (the 50 library models used to finish together and block the page for seconds)
+let _serial = Promise.resolve();
+const serial = (fn) => { const p = _serial.then(async () => { await yieldTask(); return fn(); }); _serial = p.catch(() => null); return p; };
 async function loadOne(renderer, key) {
   const def = VEG_MODELS[key]; if (!def) throw new Error('unknown vegetation model ' + key);
   const [g0, g1] = await Promise.all([fetchGLB(def.file + '.glb'), fetchGLB(def.file + '_lod1.glb').catch(() => null)]);
-  const L0 = partsOf(g0.scene, def), L1 = g1 ? partsOf(g1.scene, def) : L0;
+  return serial(() => buildOne(renderer, key, def, g0, g1));
+}
+async function buildOne(renderer, key, def, g0, g1) {
+  const L0 = partsOf(g0.scene, def); await breathe(8); const L1 = g1 ? partsOf(g1.scene, def) : L0; await breathe(8);
+  for (const g of [g0, g1]) if (g) g.scene.traverse((o) => { if (o.isMesh) o.geometry.dispose(); }); _glb.delete(def.file + '.glb'); _glb.delete(def.file + '_lod1.glb'); // parts hold their own copies
   for (const p of L1.parts) { const q = L0.parts.find((x) => x.name === p.name); if (q) { p.map = q.map; p.normalMap = q.normalMap; } }
   const C = CLS[def.cls] || CLS.tree, shape = (def.shape || C.shape).slice(); shape[0] = L0.height;
   // glTF normal maps: green flipped without tangents
   const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: [1, -1], roughness: fam === 'bark' ? 0.9 : 0.72, ...o });
+  await initTexturesSliced(renderer, L0.parts.flatMap((p) => [p.map, p.normalMap]).filter(Boolean), 8); await yieldTask();
   let imp = null;
   try {
     const bakeParts = L0.parts.map((p) => ({ geometry: p.geometry, material: vm(p.fam, p, { lean: 0, sway: 0, tint: 0, wear: 0, transl: 0 }).mat }));
-    const tb = performance.now(); imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 128 : 256, 8); (globalThis.__vegBake ||= {})[key] = Math.round(performance.now() - tb);
+    const tb = performance.now(); imp = bakeImpostor(renderer, 'lib_' + key, 1, { parts: bakeParts }, null, null, def.cls === 'shrub' ? 128 : 256, 8); imp = compactImpostor(renderer, imp); (globalThis.__vegBake ||= {})[key] = Math.round(performance.now() - tb);
   } catch (e) { console.warn('[vegetation] model impostor bake failed', key, e); }
+  await yieldTask();
   const model = {
     key, def, cls: def.cls, height: L0.height, radius: L0.radius, crownY: L0.crownY, lods: [L0.parts, L1.parts], imp,
     tris: [L0.parts.reduce((a, p) => a + p.tris, 0), L1.parts.reduce((a, p) => a + p.tris, 0)],
