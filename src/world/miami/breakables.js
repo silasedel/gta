@@ -90,6 +90,7 @@ export function createBreakables(game) {
     for (const v of list) {
       const b = v.body; if (!b || (b.isValid && !b.isValid())) continue;
       if (v.spec?.boat || v.isBoat || v.kind === 'boat' || v.type === 'heli' || v.type === 'plane') continue;
+      if (v.ai && !v.playerDriven && !v.chaseTarget) continue; // props pass: lane-following traffic never shears hydrants / snaps posts (it clips corners)
       const lv = b.linvel(), speed = Math.hypot(lv.x, lv.z); if (speed < BREAK_SPEED) continue;
       const p = b.translation(), r = b.rotation(); _q.set(r.x, r.y, r.z, r.w); _e.setFromQuaternion(_q, 'YXZ');
       const yaw = _e.y, c = Math.cos(yaw), s = Math.sin(yaw), hl = (v.spec?.L || 4.6) / 2, hw = (v.spec?.W || 1.9) / 2, ahead = speed * Math.max(dt, 1 / 60) * 2.5 + 0.25;
