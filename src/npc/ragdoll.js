@@ -165,7 +165,9 @@ export function createRagdollSystem(game, maxActive = 6) {
     for (const n of ['LeftToeBase', 'RightToeBase', 'LeftFoot', 'RightFoot']) { const b = character.getBone(n); if (b) feetY.push(b.getWorldPosition(_v).y); }
     const groundY = feetY.length ? Math.min(...feetY) - 0.05 : character.root.position.y;
     try {
-      for (const [key, bn, en, rad, parentKey, mass0, jt, cls] of PARTS) {
+      for (const [key, bn, en, rad0, parentKey, mass0, jt, cls] of PARTS) {
+        // optional per-character fit (e.g. the player's mesh-fitted radii): character.ragdollRadii = { chest: 0.14, ... }
+        const rad = character.ragdollRadii?.[key] ?? rad0;
         const bone = character.getBone(bn);
         if (!bone) continue;
         const a = bone.getWorldPosition(new THREE.Vector3());
