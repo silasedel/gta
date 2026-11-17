@@ -69,6 +69,16 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 03:45 Lead review items done: Nico's classic is pale blue with soft rust and faded paint, standing beside the pickup
+  (`docs/v2/shots/keys/cars_nico2_deck.png`, `cars_nico2_street.png`, night `cars_nico2_deck_night.png`); the pickup is a
+  darker gray with the black hood stripe (`stripe` = paint patch) and a 7 cm lift (studio check of the stripe:
+  tools/v2/cars/shots.mjs 'cars=truck2&stripe'). No finned classic exists in Models/Cars (Convertible 1 = '65 drop-top is the
+  closest); a finned sedan is in MODEL_REQUESTS_stage1.md (P1).
+  Maker emblems built into grilles / trunk lids are now blanked; Southline ambulance + fire rescue lettering; all models
+  have head + tail lamps except the fire engine / semi rear (low-poly, lamp boxes approximate).
+  Cost A/B inside one session (cars shown vs hidden, ABAB, downtown, `docs/v2/reports/cars-cost-{lib,proc}.json`):
+  library fleet 132 draw calls for 55 cars, procedural fleet 128 for 53 cars (same); frame-time deltas are within the
+  machine's noise (load average ~300 tonight): +5.3 ms median (library) vs +9.9 ms (procedural).
 - 03:00 In game (g1): every traffic and parked car downtown / Brickell / Little Havana is a library model (glbShare 1.0);
   at Nico's the neighbors' `spawnParked('sedan'...)` calls now resolve to library models too. Night: head lamps and red tail
   lamps light (`docs/v2/shots/cars/g1_night_traffic.png`, `g1_night_rear.png`), traffic `g1_dt_traffic.png`, parked
@@ -187,6 +197,10 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 03:40 Final tour with all fixes: `docs/v2/shots/stage1/GROUNDPASS_terrain_aerials.png` and `GROUNDPASS_terrain_grazing.png`
+  (aerial + grazing for city lots, park, beach, dunes, Everglades, Big Cypress, farmland, Okeechobee, Naples, Fort Myers, highway,
+  causeway, airport, Homestead, Key West, Marathon, Key Largo; Keys at 18:30 and in rain), single shots `gpF_<place>_*.png`.
+  No shader errors on any test page. Since then: open-edge break slightly shallower, grainier Keys sand film.
 **Summary (03:40, keeps being updated below):** done - (1) road edges crumble into the shoulder (noise-cut asphalt, granular dust,
 asphalt crumbs, edge puddles in rain; curbed tree-lawn streets get a granite curb), (2) shoulders / verges / beaches blend
 (terrain shoulders tone-matched, dirt band, patchy grass regrowth, city verge lawn + soil lip + mulch rings, wandering land-cover
@@ -475,6 +489,7 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   Cypress has no library model: still procedural. Grass Clump 1 is used as tufts around tree bases; Moss 1 not yet.
 
 ## player
+- 04:00 Polish pass. **Gait speed** is now measured on Nico's own rig: walk 1.50 m/s, run 3.09, sprint 3.75 (the retarget estimate was 1.36 / 3.09 / 3.90). Planted-sole slide at walk, measured on sole vertices that touch the ground and including the corners of the course, dropped from 0.16 to 0.14 m/s. **Wall test**: walking into a wide wall stops dead, with no pass-through and 0.5 mm of jitter while pushing (`docs/v2/reports/player-walk-w11.json`). Final review sheets: `docs/v2/shots/player/SHEET_final_a.png`, `SHEET_final_b.png`, `compare_preview.png`. Commits from now on use `git commit -- <files>` (my c16cbd80 had swept other helpers' staged files; the props helper had already restored them, and the lead knows).
 - 03:35 **Status: Job 1 and Job 2 done, polish pass running.** Review sheets: `docs/v2/shots/player/SHEET_final_a.png` (front, side, back, face, walk, run, sprint, jump, landing) and `SHEET_final_b.png` (aim, car seat, ragdoll, hit-zone overlay front and side, disguise recolor, camera with a car close by, camera under the stilt house). The user's Preview next to the game: `compare_preview.png`. Old Nico (before): `before_side.png`, `before_face.png`.
   - Walk test (`docs/v2/reports/player-walk-w8.json`), feet measured on the skinned shoe soles. House course (yard, both stair flights, deck, bay stair, dock head, 14 of 14 waypoints): median 2.6 mm, 95th percentile 4.2 cm, stuck 0.07 s. Curb 0.15 m: median 1.8 mm, max 3.3 cm. Beach slope: median 9.6 mm, max 1.8 cm. Jog: house median 2.7 mm, curb median 1.2 mm.
   - Camera (lead's request): cars between the camera and Nico pull it in, then it eases out. Under the house's low beams it drops and levels. The shoulder offset shrinks next to walls and piles.
