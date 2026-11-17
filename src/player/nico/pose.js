@@ -39,7 +39,7 @@ function aimToward(bone, child, want, k, maxAngle = 1.2) {
   rotateWorld(bone, _ax, ang);
 }
 
-export function createRelaxedPose({ model, bone, character = null }) {
+export function createRelaxedPose({ model, bone, character = null, proportions = true }) {
   const B = (n) => bone(n);
   let w = 0;
   let wArms = 0;
@@ -83,8 +83,8 @@ export function createRelaxedPose({ model, bone, character = null }) {
       // proportions: a thicker neck and a head a touch larger than the base mesh (about 7.5 heads tall)
       const nk = B('Neck');
       const hd = B('Head');
-      if (nk) nk.scale.set(1.12, 1.0, 1.12);
-      if (hd) hd.scale.set(1.10 / 1.12, 1.10, 1.10 / 1.12);         // ref_48: about 7.5 heads tall
+      if (proportions && nk) nk.scale.set(1.12, 1.0, 1.12);         // pipeline Nico only (the user's model has its own head size)
+      if (proportions && hd) hd.scale.set(1.10 / 1.12, 1.10, 1.10 / 1.12);         // ref_48: about 7.5 heads tall
       const special = anim.driving || anim.swimming || anim.wading || anim.dead || anim.idleStyle || anim.punch
         || anim.handsUp || anim.guard || anim.throw || anim.call || anim.wave || anim.hit || anim.getUp || anim.jumping
         || anim.grounded === false;

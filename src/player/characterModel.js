@@ -10,6 +10,7 @@ import { addHairShell, makeHairMaterial } from './hairShell.js';
 import { loadHumanManifest, loadHumanGLB, makeSkinMat, makeHairMat, makeGarmentMat, makeTexturedMat, makeAtlasSkinMat, makeAtlasMat } from './humans.js';
 import { PERSONAS } from '../npc/personality.js';
 import { preloadNico, decorateNico } from './nico/index.js';
+import { NICO_MODEL, preloadNicoTripo, decorateNicoTripo } from './nicoTripo/index.js';
 import { rng, pick, SKIN_TONES, HAIR, genOutfit, makeHeadAccessories, makePhone, attachToBone, makeCopCap, makeDutyBelt, makeCase, makeSunglasses } from './pedStyle.js';
 import { makeTopMaterial, makeRecolorMaterial, makeSkinMaterial, makeMichelleVariantMap, limbIndices } from './characterMaterials.js';
 
@@ -463,8 +464,19 @@ export async function preloadCharacters(game) {
   LIB = { bases, sources, procClips, srcG: g, matCache: new Map(), humans: new Map(), humanEntries: [], game };
   if (typeof window !== 'undefined') window.__chars = LIB;
   try { await initHumans(); } catch (e) { console.warn('[humans] init failed', e); }
-  // V2: Nico (the upgraded protagonist). Any failure keeps the v1 player model.
-  try {
+  // Nico = the user's own main-character model (src/player/nicoTripo, tools/v2/player/build.sh). ?nico=old (or a load
+  // failure) falls back to the pipeline Nico below; any failure there keeps the v1 player model.
+  if (NICO_MODEL === 'tripo') try {
+    const A = await preloadNicoTripo();
+    const scene = A.gltf.scene; const rig = makeRig(scene, null);
+    if (rig.bones.Hips && sources.xbot) {
+      alignRestTo(rig, sources.xbot); setRest(rig); scene.updateMatrixWorld(true);
+      const B = { kind: 'nico', tripo: true, assets: A, scene, rig, yaw: facingYaw(rig), height: A.meta.height, targetH: A.meta.height, minY: 0, clips: {}, headTop: null };
+      buildClipsFor(B, g, sources, procClips);
+      if (B.clips.idle && B.clips.walk) LIB.nico = B;
+    }
+  } catch (e) { console.warn('[nico] user model unavailable, using the pipeline Nico', e); }
+  if (!LIB.nico) try {
     const A = await preloadNico();
     const scene = A.gltf.scene; const rig = makeRig(scene, null);
     if (rig.bones.Hips && sources.xbot) {
@@ -641,7 +653,7 @@ export function createCharacter(game, opts = {}) {
   const holder = new THREE.Group();
   holder.add(model);
   const hmac = isHuman ? (base.entry.hmacro ?? 0.5) : 0.5;
-  const targetH = variant === 'player' ? 1.8 : isHuman ? (base.entry.gender === 'f' ? 1.53 + hmac * 0.42 : 1.63 + hmac * 0.42) + (r() - 0.5) * 0.03
+  const targetH = variant === 'player' ? (base.targetH || 1.8) : isHuman ? (base.entry.gender === 'f' ? 1.53 + hmac * 0.42 : 1.63 + hmac * 0.42) + (r() - 0.5) * 0.03
     : base.kind === 'female' ? 1.55 + r() * 0.23 : 1.64 + r() * 0.31;
   const sc = targetH / base.height;
   const build = variant === 'player' || isHuman ? 1 : 0.9 + r() * 0.24; // slim .. heavy (MPFB humans carry their own build)
@@ -981,7 +993,7 @@ export function createCharacter(game, opts = {}) {
     },
   };
   update(0, { speed: 0, grounded: true });
-  if (isNico) { try { decorateNico(character, { game, model, assets: base.assets, opts }); } catch (e) { console.warn('[nico] decorate failed', e); } }
+  if (isNico) { try { (base.tripo ? decorateNicoTripo : decorateNico)(character, { game, model, assets: base.assets, opts }); } catch (e) { console.warn('[nico] decorate failed', e); } }
   if (zone0 === 'cop' || zone0 === 'business') character.restyle(zone0);
   if (isHuman && variant !== 'player') {
     const t = base.entry.tris || [34000, 10000, 3400];
