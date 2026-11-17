@@ -21,12 +21,12 @@ export const LIB = {
   brick_duplex: { w: 10.2, d: 16.93, h: 8.03, k: 1, cls: 'house', glow: 0.25 },
   graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3 },
   stilt_shack: { w: 0.77, d: 1.0, h: 0.67, k: 11, cls: 'stilt', glow: 0.2 },
-  casino_tower: { w: 116.8, d: 129.8, h: 64.1, k: 1, cls: 'fixed', glow: 0.5 },
+  casino_tower: { w: 117.4, d: 132.4, h: 64.4, k: 1, cls: 'fixed', glow: 0.5 },
 };
-const RANGE = { tower: 7000, fixed: 7000, house: 420, shop: 420, stilt: 420 }, CELL = 900;
+const RANGE = { tower: 7000, fixed: 3000, house: 420, shop: 420, stilt: 420 }, CELL = 900;
 const CHANCE = { tower: 0.3, house: 0.3, shop: 0.22, stilt: 0.3 };
 // the Golden Palm Casino (stage 4 heist): one fixed site on a Miami Beach ocean block; lots under it are cleared
-export const CASINO = { name: 'casino_tower', x: 2183, z: -370, ry: -Math.PI / 2, s: 1 }; // Miami Beach superblock, entrance faces Collins Ave (west)
+export const CASINO = { name: 'casino_tower', x: 2183, y: -2.3, z: -370, ry: -Math.PI / 2, s: 1 }; // y: the model's plaza sits 2.3 m below its lowest part // Miami Beach superblock, entrance faces Collins Ave (west)
 
 const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); x ^= x >>> 15; return (x >>> 0) / 4294967296; };
 const OFF = typeof location !== 'undefined' && /[?&]libmodels=0/.test(location.search);
