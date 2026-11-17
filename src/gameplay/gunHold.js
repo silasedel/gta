@@ -26,8 +26,12 @@ export function rigOf(root) {
   for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) r[side + 'Hand' + f + i] = find(root, side + 'Hand' + f + i);
   r.rest = new Map();   // finger rest rotations: curls are applied from rest every frame (clips may not key fingers)
   for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[side + 'Hand' + f + i]; if (b) r.rest.set(b, b.quaternion.clone()); }
-  r.fingersR = !!(r.RightHandMiddle1 && r.RightHandIndex1 && r.RightHandPinky1);
-  r.fingersL = !!(r.LeftHandMiddle1 && r.LeftHandIndex1 && r.LeftHandPinky1);
+  // finger joints must exist AND sit away from the wrist (some runtime rigs keep collapsed or unweighted finger joints)
+  root.updateMatrixWorld(true);
+  const spread = (h, side) => { const m = r[side + 'HandMiddle1'], i = r[side + 'HandIndex1'], p = r[side + 'HandPinky1']; if (!h || !m || !i || !p) return false;
+    const hw = h.getWorldPosition(new THREE.Vector3()); return m.getWorldPosition(new THREE.Vector3()).distanceTo(hw) > 0.04 && i.getWorldPosition(new THREE.Vector3()).distanceTo(p.getWorldPosition(new THREE.Vector3())) > 0.02; };
+  r.fingersR = spread(r.hand, 'Right');
+  r.fingersL = spread(r.lhand, 'Left');
   // rigs without finger bones (the game's runtime skeletons): hand axes in the hand bone's own frame, from the bind pose
   if (!r.fingersR || !r.fingersL) bindAxes(root, r);
   r.ok = !!(r.hand && r.fore && r.arm && (r.fingersR || r.axR));
@@ -275,4 +279,14 @@ export function holdWeapon(model, root, o = {}) {
   } else if (r.lok) relax(r, 'L');
   r.curled = true;
   return true;
+}
+
+// debugging aid (tests): right-hand frame vs. the held model's axes, and the grip offset in the model frame
+export function holdDebug(root, model) {
+  const r = rigOf(root); if (!r || !r.ok || !model) return null;
+  frame(r, 'R', FR); model.updateMatrixWorld(true);
+  const e = model.matrixWorld.elements, X = new THREE.Vector3(e[0], e[1], e[2]).normalize(), Y = new THREE.Vector3(e[4], e[5], e[6]).normalize(), Z = new THREE.Vector3(e[8], e[9], e[10]).normalize();
+  const d = new THREE.Vector3().setFromMatrixPosition(model.matrixWorld).sub(FR.o);
+  const f = (v) => +v.toFixed(3);
+  return { fingers: r.fingersR, F_Z: f(FR.F.dot(Z)), S_Y: f(FR.S.dot(Y)), N_X: f(FR.N.dot(X)), off: [f(d.dot(X)), f(d.dot(Y)), f(d.dot(Z))], len: f(FR.len) };
 }

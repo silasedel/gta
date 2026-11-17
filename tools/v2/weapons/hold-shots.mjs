@@ -11,7 +11,7 @@ const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const SET = o.set || 'hold';
 const DIR = path.resolve('docs/v2/shots/weapons'); fs.mkdirSync(DIR, { recursive: true });
-const KEYS = (o.keys || 'pistol,compactpistol,slimpistol,chromepistol,snspistol,tacpistol,heavypistol,microsmg,smg,rifle,carbine,assaultrifle,specialrifle,tacrifle,battlerifle,sniper,lmg,bat,nailbat,crowbar,machete').split(',');
+const KEYS = (o.keys === 'none' ? '' : o.keys || 'pistol,compactpistol,slimpistol,chromepistol,snspistol,tacpistol,heavypistol,microsmg,smg,rifle,carbine,assaultrifle,specialrifle,tacrifle,battlerifle,sniper,lmg,bat,nailbat,crowbar,machete').split(',');
 const VIEWS = (o.views || 'close,tp').split(',');
 const AT = o.at ? o.at.split(',').map(Number) : null;
 const log = [];
@@ -24,11 +24,12 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
     window.__P0 = [game.player.position.x, game.player.position.z, game.player.heading || 0]; return 1; })()`);
   await b.sleep(4000);
   await b.eval(`game.weapons && game.weapons.preload !== undefined; 1`);
-  for (const k of KEYS) {
+  for (const k of KEYS.filter(Boolean)) {
     for (const v of VIEWS) {
       const r = await b.eval(`(async () => {
         const P = game.player, W = game.weapons, C = game.combat;
         const [x, z, h] = window.__P0; game.teleport(x, undefined, z, h);
+        try { game.wanted?.clear?.('test'); } catch (e) { /* */ } try { game.police?.clearAll?.(); } catch (e) { /* */ } P.health = 100;
         W.give('${k}', 200, { select: true }); W.select('${k}');
         const fx = Math.sin(h), fz = Math.cos(h), rx = -Math.cos(h), rz = Math.sin(h);
         const aim = ${v === 'idle' || v === 'idleclose' ? 'false' : 'true'};
@@ -49,8 +50,8 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
         const m = W.heldModel();
         let dbg = null;
         try { const H = await import('/src/gameplay/gunHold.js'); const root = game.playerCharacter?.root; const r = H.rigOf(root);
-          dbg = { root: root?.name, ok: r?.ok, lok: r?.lok, axR: r?.axR?.dbg, axL: r?.axL?.dbg, fing: r?.fingersR, miss: Object.entries(r || {}).filter(([kk, vv]) => vv == null).map(([kk]) => kk).slice(0, 8), bones: (() => { const n = []; root?.traverse((o) => { if (o.isBone && /Hand$|Arm$/.test(o.name)) n.push(o.name); }); return n; })() };
-          try { H.holdWeapon(m, root, { aim: aim ? tgt : null, dt: 0.016, time: 0 }); } catch (e) { dbg.err = String(e && e.stack || e).slice(0, 300); } } catch (e) { dbg = 'import ' + e; }
+          dbg = { ok: r?.ok, fing: r?.fingersR };
+          try { dbg.hold = H.holdDebug(root, m); } catch (e) { dbg.err = String(e && e.stack || e).slice(0, 300); } } catch (e) { dbg = 'import ' + e; }
         return JSON.stringify({ k: '${k}', v: '${v}', lib: m?.userData.lib, ready: !!m?.userData.libReady, tris: m?.userData.tris, vis: !!m?.visible, dbg });
       })()`);
       const out = path.join(DIR, `${SET}_${k}_${v}.png`);
@@ -61,13 +62,16 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
   if (o.cop) {
     const r = await b.eval(`(async () => {
       const P = game.player; const pol = game.police; if (!pol) return 'no police';
-      const [x, z, h] = window.__P0; game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+      const [x, z, h] = window.__P0; game.teleport(x, undefined, z, h); game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+      try { game.wanted?.clear?.('test'); } catch (e) { /* */ }
       const fx = Math.sin(h), fz = Math.cos(h);
       const u = pol.spawnCop(new (game.player.position.constructor)(x + fx * 3, P.position.y, z + fz * 3), h + Math.PI); if (!u) return 'no cop';
       window.__cop = u; u.mode = 'idle';
       game.cameraOverride = (dt, cam) => { const hp = u.gun.getWorldPosition(new (game.player.position.constructor)()); cam.position.set(hp.x - Math.cos(h) * 1.4 + fx * 0.6, hp.y + 0.25, hp.z + Math.sin(h) * 1.4 + fz * 0.6); cam.lookAt(hp.x, hp.y - 0.05, hp.z); cam.fov = 45; cam.updateProjectionMatrix(); return true; };
       await new Promise((res) => setTimeout(res, 2500));
-      return 'cop ' + u.gunKey + ' lib=' + u.gun.userData.lib + ' ready=' + !!u.gun.userData.libReady;
+      let hd = null; try { const H = await import('/src/gameplay/gunHold.js'); hd = H.holdDebug(u.char.root, u.gun); } catch (e) { hd = String(e); }
+      const gp = u.gun.getWorldPosition(new (game.player.position.constructor)());
+      return 'cop ' + u.gunKey + ' lib=' + u.gun.userData.lib + ' ready=' + !!u.gun.userData.libReady + ' vis=' + u.gun.visible + ' pos=' + gp.toArray().map((v) => v.toFixed(2)) + ' cop=' + u.pos.toArray().map((v) => v.toFixed(2)) + ' hd=' + JSON.stringify(hd);
     })()`);
     console.log(r); await b.screenshot(path.join(DIR, `${SET}_cop_idle.png`));
     const r2 = await b.eval(`(async () => { const u = window.__cop; (game.wanted || {}).level = 2; u.mode = 'chase'; u.sees = true;
@@ -76,12 +80,16 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
   }
   if (o.pickups) {
     // GTA-style pickups on the ground: a row of weapons a few meters ahead, day and night
-    const types = String(o.pickups === true ? 'pistol,rifle,bat,heavypistol,smg,crowbar' : o.pickups).split(',');
-    await b.eval(`(() => { const [x, z, h] = window.__P0; game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+    const types = String(o.pickups === true || o.pickups === '1' ? 'pistol,rifle,bat,heavypistol,smg,crowbar' : o.pickups).split(',');
+    await b.eval(`(() => { const [x, z, h] = window.__P0; game.teleport(x, undefined, z, h); game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+      try { game.wanted?.clear?.('test'); game.police?.clearAll?.(); } catch (e) { /* */ }
       const V = game.player.position.constructor, fx = Math.sin(h), fz = Math.cos(h), rx = -Math.cos(h), rz = Math.sin(h);
       const T = ${JSON.stringify(types)}; window.__pk = T.map((t, i) => game.pickups.spawn(t, new V(x + fx * 4.2 + rx * (i - (T.length - 1) / 2) * 1.25, game.player.position.y, z + fz * 4.2 + rz * (i - (T.length - 1) / 2) * 1.25), {}));
       game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 1.2, y + 1.25, z + fz * 1.2); cam.lookAt(x + fx * 4.2, y + 0.25, z + fz * 4.2); cam.fov = 50; cam.updateProjectionMatrix(); return true; };
       return 1; })()`);
+    await b.sleep(2500);
+    console.log('PK', await b.eval(`JSON.stringify((window.__pk || []).map((p) => p && { t: p.type, pos: p.pos.toArray().map((v) => +v.toFixed(2)), vis: p.root.visible, inScene: !!p.root.parent, settled: p.settled, kids: p.model.children.length, wvis: p.model.userData.weapon?.visible, ready: p.model.userData.weapon?.userData.libReady, wpos: p.model.userData.weapon?.position.toArray().map((v) => +v.toFixed(2)) }))`));
+    console.log('PL', await b.eval(`JSON.stringify(game.player.position.toArray().map((v) => +v.toFixed(2)))`));
     for (const [tod, tag] of [[11.5, 'day'], [21.5, 'night']]) {
       await b.eval(`game.timeOfDay = ${tod}; 1`); await b.sleep(3500);
       await b.screenshot(path.join(DIR, `${SET}_pickups_${tag}.png`)); console.log('pickups', tag);
