@@ -116,15 +116,18 @@ export function createOcean(game, skyUniforms, normalsTex) {
         if ( uHRect.w > 0.5 ) {
           vec2 hu = vec2( ( p.x - uHRect.x ) * uHRect.z, 1.0 - ( p.y - uHRect.y ) * uHRect.z );
           vec2 he = min( hu, 1.0 - hu );
-          float hb = smoothstep( 0.02, 0.1, min( he.x, he.y ) );
+          float hb = smoothstep( 0.02, 0.22, min( he.x, he.y ) ); // ~50 m crossfade at the cascade border
           if ( hb > 0.0 ) {
             float tx = 1.5 * uHRect.z;
             vec4 h0 = texture2D( tHgt, hu ), hx = texture2D( tHgt, hu + vec2( tx, 0.0 ) ), hz = texture2D( tHgt, hu - vec2( 0.0, tx ) );
             hK = hb;
             if ( h0.g > 0.01 ) {
-              float y0 = h0.r / h0.g, gw = smoothstep( 0.08, 0.9, h0.g ); gwO = gw * hb;
+              float y0 = h0.r / h0.g, gw = smoothstep( 0.08, 0.9, h0.g );
+              float sbF = 1.0; if ( uSbRect.w > 0.5 ) { vec2 sbd = abs( p - uSbRect.xy ); sbF = 1.0 - smoothstep( uSbRect.z - 70.0, uSbRect.z - 10.0, max( sbd.x, sbd.y ) ); } // long crossfade to the estimate before the seabed grid's rim: no straight edge
+              gw *= sbF;
               wD = mix( wD, uSea - y0, gw );
               if ( hx.g > 0.01 && hz.g > 0.01 ) wS = mix( wS, length( vec2( hx.r / hx.g - y0, hz.r / hz.g - y0 ) ) / 1.5, gw );
+              gwO = gw * hb;
             }
           }
         }
@@ -152,7 +155,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
         vec3 inS = mix( vec3( 0.012, 0.075, 0.075 ), vec3( 0.004, 0.03, 0.065 ), smoothstep( 2.0, 12.0, dP ) ) * Ein * ( 1.0 - Tr ) * facet; // forward scatter by fine particles: faint green-aqua in the shallows, deep blue where the path is long // single scatter of clear water: deep blue where the path is long
         // where no ground is rendered under the water (beyond the near cascade / seabed) a stand-in sea floor: sand with seagrass beds
         float dataK = gwO;
-        if ( uSbRect.w > 0.5 ) { vec2 sbd = abs( p - uSbRect.xy ); dataK *= 1.0 - smoothstep( uSbRect.z - 30.0, uSbRect.z - 8.0, max( sbd.x, sbd.y ) ); } // past the seabed grid: the stand-in floor takes over smoothly
+        // (gwO already fades out over the last 70 m before the seabed grid's rim, together with the depth)
         float bn = oN( p / 60.0 ) * 0.6 + oN( p / 19.0 + 3.7 ) * 0.3 + oN( p / 6.0 ) * 0.1;
         float grassB = smoothstep( 0.52, 0.64, bn ) * smoothstep( 0.8, 2.5, dP );
         vec3 bedFake = mix( vec3( 0.46, 0.43, 0.37 ), vec3( 0.05, 0.08, 0.045 ), grassB ) * Ein * Tr * ( 1.0 - dataK );
