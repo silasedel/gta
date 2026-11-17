@@ -1,0 +1,91 @@
+{
+ "set": "fixed",
+ "when": "2026-11-17T04:32:53.243Z",
+ "spots": [
+  {
+   "junctions": 95,
+   "tris": 3940,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    200,
+    -140
+   ]
+  },
+  {
+   "junctions": 93,
+   "tris": 3858,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    90,
+    -420
+   ]
+  },
+  {
+   "junctions": 89,
+   "tris": 3394,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    300,
+    -340
+   ]
+  },
+  {
+   "junctions": 58,
+   "tris": 4178,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    2400,
+    0
+   ]
+  },
+  {
+   "junctions": 45,
+   "tris": 1642,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    -437,
+    557
+   ]
+  },
+  {
+   "junctions": 35,
+   "tris": 2086,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    -1400,
+    -3300
+   ]
+  },
+  {
+   "junctions": 5,
+   "tris": 376,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    -900,
+    5250
+   ]
+  },
+  {
+   "junctions": 51,
+   "tris": 2932,
+   "bad": 0,
+   "worst": [],
+   "spot": [
+    0,
+    1760
+   ]
+  }
+ ],
+ "total": {
+  "junctions": 471,
+  "bad": 0,
+  "tris": 22406
+ }
+}

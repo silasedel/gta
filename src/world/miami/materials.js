@@ -307,7 +307,7 @@ export async function createMaterials(renderer) {
       if (M.panels) { full(M.panels, sPave, 1.3, 6 / 2.4); M.panels.normalScale.set(0.8, 0.8); } // downtown pavers, 2.4 m per scan tile
       M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); // unpaved tracks (surface 'dirt')
       // paint: strip uv (u across the line inside an atlas column, v along the line), the scan's own wear / chips / grain
-      M.lines = new THREE.MeshStandardMaterial({ map: sLine.map, normalMap: sLine.normalMap, roughnessMap: sLine.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.lines, -9);
+      M.lines = new THREE.MeshStandardMaterial({ map: sLine.map, normalMap: sLine.normalMap, roughnessMap: sLine.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.lines, -9); M.lines.name = "roadLines";
       // shoulders: the scan's crumbling asphalt-to-dust edge; its dark pixels are cut out, so asphalt shows through the crumbs and the
       // jagged outer edge breaks up into the verge (no hard strip edge)
       M.shoulder = new THREE.MeshStandardMaterial({ map: sEdge.map, normalMap: sEdge.normalMap, roughnessMap: sEdge.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.shoulder, -7);

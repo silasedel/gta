@@ -1173,7 +1173,8 @@ export function createTileBuilder(ctx) {
     let out = null; const G = D && D.roadGraph, e = G && G.edges ? G.edges[r.edgeId] : null;
     if (e && e.cum && !JOB4_OFF) { let i = e.pts.indexOf(r.pts[0]); if (i < 0) for (let k = 0; k < e.pts.length; k++) if (Math.abs(e.pts[k][0] - r.pts[0][0]) < 0.01 && Math.abs(e.pts[k][1] - r.pts[0][1]) < 0.01) { i = k; break; }
       if (i >= 0) { const Ja = junctionOf(e.a), Jb = junctionOf(e.b);
-        out = { s0: e.cum[i], LE: e.length, e, A: Ja ? Ja.legs.find((l) => l.edgeId === r.edgeId && l.atA) || null : null, B: Jb ? Jb.legs.find((l) => l.edgeId === r.edgeId && !l.atA) || null : null, Ja, Jb }; } }
+        const disc = (id, J) => { if (J) return 0; const n = G.nodes[id]; if (!n || (n.edges || []).length < 3) return 0; let w = 0; for (const k of n.edges) w = Math.max(w, G.edges[k]?.width || 0); return w / 2 + 2.5; };
+        out = { discA: disc(e.a, Ja), discB: disc(e.b, Jb), s0: e.cum[i], LE: e.length, e, A: Ja ? Ja.legs.find((l) => l.edgeId === r.edgeId && l.atA) || null : null, B: Jb ? Jb.legs.find((l) => l.edgeId === r.edgeId && !l.atA) || null : null, Ja, Jb }; } }
     pieceCache.set(r, out); return out;
   }
   // ---- job 4: scanned road surfaces with strip uvs (paint from Road 1's RoadLines scan, shoulders from Road 11's dusty road edge) ----
@@ -1184,12 +1185,30 @@ export function createTileBuilder(ctx) {
   }
   // atlas columns of lines_col.jpg: white line, yellow line, second white line, plain asphalt (sealed patches); v repeats every 9 m
   const LINE_U = { w: [0.02, 0.23], y: [0.27, 0.48], w2: [0.52, 0.73], a: [0.78, 0.97] }, LINE_V = 9, _mc = new THREE.Color(), _mv = new THREE.Color();
+  let skipClip = false, NGRID = null; const CLIP_PAINT = !(typeof location !== 'undefined' && /[?&]paintclip=0/.test(location.search)); // before/after switch (audit only)
+  function paintBlocked(x, z) { // inside a junction outline (0.15 m in) or an old deck / ramp disc
+    if (!NGRID) { NGRID = new Map(); const G = D && D.roadGraph; for (const n of (G && G.nodes) || []) { if ((n.edges || []).length < 3) continue; const k = Math.floor(n.x / 64) * 100003 + Math.floor(n.z / 64); let c = NGRID.get(k); if (!c) NGRID.set(k, (c = [])); c.push(n); } }
+    const gx = Math.floor(x / 64), gz = Math.floor(z / 64);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const c = NGRID.get((gx + i) * 100003 + gz + j); if (!c) continue;
+      for (const n of c) { const dn = Math.hypot(n.x - x, n.z - z); if (dn > 70) continue; const J = junctionOf(n.id);
+        if (!J) { if (n.y > 0.3 && !n.terrain) continue; let w = 0; for (const k of n.edges) { const e = D.roadGraph.edges[k]; if (e && e.width > w) w = e.width; } if (dn < w / 2 + JUNC_PAD) return true; continue; }
+        const P = J.poly; let ins = false, bd = 1e9; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins; }
+        if (!ins) continue; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], dx = P[b][0] - xa, dz = P[b][1] - za, L2 = dx * dx + dz * dz || 1; let t = ((x - xa) * dx + (z - za) * dz) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t; bd = Math.min(bd, Math.hypot(xa + dx * t - x, za + dz * t - z)); }
+        if (bd > 0.15) return true; } }
+    return false;
+  }
   // same signature as ribbon(); paint color picks the atlas column (yellow / white / asphalt patch) and dims it (faded paint)
   function markRibbon(B, fr, ys, o0, o1, yOff, color, _uv, sA = 0, sB = Infinity) {
     if (!(M.lines && B.lines)) return ribbon(B.marks, fr, ys, o0, o1, yOff, color, 1, sA, sB);
     _mc.set(color); const lum = (_mc.r + _mc.g + _mc.b) / 3, yel = _mc.r > _mc.b * 2.5, dark = !yel && lum < 0.2;
     const cu = yel ? LINE_U.y : dark ? LINE_U.a : (Math.floor(Math.abs(o0) * 3) & 1) ? LINE_U.w2 : LINE_U.w, k = dark ? Math.min(2.3, Math.max(1.5, 2.1 * lum / 0.12)) : Math.min(yel ? 1 : 1.12, lum / (yel ? 0.49 : 0.78)); // patches: the scan's asphalt is darker than the street, lift it to a fresh-seal shade
     _mv.setRGB(k, k, k); const yAt = (i) => (typeof ys === 'number' ? ys : ys ? ys[i] : 0) + yOff;
+    if (!ys && !skipClip && CLIP_PAINT) { // nothing painted inside a junction outline: split the run where its center line enters one (any junction,
+      // incl. close node pairs and old discs), so lines can never run into / across a junction whatever the edge's stations say
+      const Lf = fr[fr.length - 1].s, a0 = Math.max(0, sA), b0 = Math.min(Lf, sB), om = (o0 + o1) / 2; let run = null;
+      for (let s = a0; ; s += 0.5) { const sc = Math.min(s, b0), q = sampleAt(fr, sc), inJ = paintBlocked(q.x + q.nx * om, q.z + q.nz * om);
+        if (!inJ && run === null) run = sc; if ((inJ || sc >= b0) && run !== null) { const e = inJ ? Math.max(run, sc - 0.25) : sc; if (e > run + 0.05) { skipClip = true; markRibbon(B, fr, ys, o0, o1, yOff, color, _uv, run, e); skipClip = false; } run = null; } if (sc >= b0) break; }
+      return; }
     for (let i = 0; i < fr.length - 1; i++) {
       const A = fr[i], Bf = fr[i + 1], L = Bf.s - A.s; if (L <= 1e-6 || Bf.s <= sA || A.s >= sB) continue;
       const t0 = A.s < sA ? (sA - A.s) / L : 0, t1 = Bf.s > sB ? (sB - A.s) / L : 1;
@@ -1337,7 +1356,7 @@ export function createTileBuilder(ctx) {
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), dirt = r.surface === 'dirt' || /track/.test(r.kind || '');
       const mY = yRoad + 0.015;
       let s0 = trimA + 1 + (capA ? capA.mk : 0), s1 = L - trimB - 1 - (capB ? capB.mk : 0);
-      if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); }
+      if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.discA && CLIP_PAINT ? pe.discA + 1 - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : pe.discB && CLIP_PAINT ? pe.discB + 1 - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); } // old-disc ends keep their trim
       if (pe && B && B.marks) { approachMarks(B, fr, ys, r, hw, pe, false, mY); approachMarks(B, fr, ys, r, hw, pe, true, mY); }
       if (lane && B.marks && s1 > s0 + 2) { // Keys lane: a faded, broken center line on the wider ones, plus dark sealed patches
         if (r.width >= 6 && !r.oneway && hash((r.edgeId ?? 0) * 17 + 3) < 0.6) { const base = pe ? -pe.s0 : s0; for (let s = base + Math.floor((s0 - base) / 12) * 12; s < s1; s += 12) { const a = Math.max(s0, s), b = Math.min(s1, s + 4.5); if (b > a + 0.3) markRibbon(B, fr, ys, -0.06, 0.06, mY, 0xa89660, 1, a, b); } }
@@ -1356,8 +1375,8 @@ export function createTileBuilder(ctx) {
         if ((JOB4_OFF ? r.width > 8 : (!curbed && r.width >= 6.5 && /motorway|trunk|primary|secondary|tertiary/.test(r.kind || '')) || /motorway|trunk/.test(r.kind || '')) && !(dw && dw.shrunk)) {
           markRibbon(B, fr, ys, -hw + 0.35, -hw + 0.5, mY, r.oneway && !JOB4_OFF ? 0xf2c230 : 0xf4f4f0, 1, s0, s1); markRibbon(B, fr, ys, hw - 0.5, hw - 0.35, mY, 0xf4f4f0, 1, s0, s1); }
         // stop bars at the old disc junctions (job-4 junctions draw theirs with the crosswalks)
-        if (trimB && !jB && !pe?.Jb && r.lanesFwd) markRibbon(B, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
-        if (trimA && !jA && !pe?.Ja && r.lanesBack) markRibbon(B, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
+        if ((trimB || pe?.discB) && !jB && !pe?.Jb && r.lanesFwd) markRibbon(B, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
+        if ((trimA || pe?.discA) && !jA && !pe?.Ja && r.lanesBack) markRibbon(B, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
       }
       // sidewalks + curbs (raised, with colliders)
       if ((r.sidewalks || r.furniture) && !ys) {
