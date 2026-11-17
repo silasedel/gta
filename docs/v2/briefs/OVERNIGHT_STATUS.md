@@ -13,6 +13,29 @@
 - 00:20 Baseline shots: `docs/v2/shots/keys/k0_{deck,front,aerial,back,dock,top}.png` (deck view 22 ms, 675 draw calls).
 
 ## perf
+- 01:30 (guard role) Lead decisions applied: MSAA stays on; nothing visual lowered.
+  - **Shop interiors** (commit 1f35aff): each interior is ~210 meshes with ~186 distinct materials, so a merge cannot reduce
+    draws without changing materials. Instead an interior seen from behind its back wall (below the roof line) leaves
+    the main view; shadows unchanged. Downtown spot in one run: 1137 -> 592 draw calls, render CPU 27.8 -> 19.6 ms,
+    frame 54.4 -> 43.6 ms. Frozen-frame on/off diff is below the TAA noise floor (`docs/v2/shots/stage1/perf_interiorcull_downtown_on/off.png`).
+  - **Precompile** (commit 1fe378d6, `src/render/precompile.v2.js`): every GLB loaded during play plus the street-kit and
+    house-kit material registries are compiled in the background (plain / instanced / instanced+color, small batches),
+    with textures uploaded one per tick. Anything added during play whose shader was never built for that object type is
+    compiled before the frame and kept out of view until the GPU has linked it (<= 1.5 s, usually a few frames) instead of
+    freezing the frame. Downtown + 45 s drive: shaders compiled inside a frame 127 -> 32. Rerun later tonight as helpers
+    add models: `node tools/v2/s1-perf.mjs --places downtown --drive 45` (prints "compiled inside a frame").
+  - **dressing.v2.js** endless city search: backs off and stops after 8 tries (commit 3787fb6).
+  - **Street furniture**: already instanced. Every kit part is one city-wide pool (tilebuild `kitParts`/`kitVar`), so one
+    draw call per material. The extra downtown draws were the shop interiors (fixed above), not furniture. tilebuild not touched.
+  - **Drive benchmark** (5 spots + 45 s at 30 m/s, one run, `docs/v2/reports/stage1-perf-full_0300.json`, before precompile):
+    spawn 30.0 ms median (p95 36.4, 801 draws), downtown 35.8 (660), Clewiston 33.7 (788), Beach 40.4 (602), Key West 31.5
+    (332); drive median 31.0 ms, p95 39.6, p99 50.7, worst 394 ms (house:shopGlass first compile + 6 texture uploads +
+    82 tile geometries in one frame). Physics: no world.step spikes in that run; one later run had 130-216 ms steps for
+    ~0.5 s (collider streaming), not reproduced yet. Machine load average is 55-90 now, so absolute ms swing 2x between runs.
+  - Bug for the roads/tilebuild owner: shader compile error `roadDecals: 'mapTransform' undeclared` (MeshStandardMaterial
+    with an onBeforeCompile that uses mapTransform without a map / USE_MAP mismatch).
+  - Spawn guard: spawn is at 30-41 ms (24-33 fps) in recent runs. The machine is overloaded, so no single helper's change stands out yet.
+
 - 01:30 **Loading no longer freezes the page** (user's "Page unresponsive"). Boot profiler: `node tools/v2/s1-boot.mjs --set X [--prof]`
   (stage timeline `window.__boot.stages`, every long task from the first script, long-animation-frame attribution, loading-bar
   gaps, CPU profile, long paced slices). Before -> after on the loaded machine (other helpers running):
@@ -121,6 +144,16 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 01:35 Terrain tour (aerial + grazing per terrain type, before these fixes): `docs/v2/shots/stage1/gp6_<place>_{aerial,graze}.png`
+  for cityLots, park, beach, dunes, everglades, cypress, farm, okeechobee, naples, fortMyers, highway, causeway, airport, homestead,
+  keyWest, marathon. Fixed from it: pale saw-tooth triangles along roads (my terrain lowering exposed the land base: removed),
+  rust-orange dry grass / soil (straw and soil tints neutralized, scrub / meadow greener), airport edges crumbling next to the
+  runways (airfield pavement joins the mask and uses the road asphalt / concrete scans instead of the flat black sets), ramp / deck
+  seams (elevated deck asphalt joins the mask), land base 3 cm under the terrain z-fighting far away (depth-biased).
+  **keys / houses owner:** layer audit at Nico's street finds each spawn-street house three times at the same spot
+  (`houses:near:*`, `houses:spawn:1:*`, `houses:spawn:2:*`, 40-120 coincident hits each) - z-fight / dithered shimmer on walls.
+  Nico's yard details (`nh_detail` weeds 79, strap plants 276, grass 125, palmetto 13 instances) stood on the road carriageway:
+  the ground mask now hides them on asphalt (auto-patched at runtime), but the placement itself should skip the road.
 - 01:05 Committed 7bf6df8 (surface mask, terrain shoulders, crumbling open edges, decals from the road's own asphalt, 2K scans,
   shoreline). First Keys look `docs/v2/shots/stage1/gp3_keys_{side,aerial,keys2_side}.png`: shoulder too pale / greenish and
   crumbs too big -> retuned (Keys shoulders now the yard's own sand, 5-15 cm asphalt chunks + dust). City open land now uses the
