@@ -214,10 +214,10 @@ export function createPost(game) {
     if (!target.depthTexture) throw new Error('depth texture unavailable');
     ssr = new ShaderPass({
       name: 'SouthlineWetSSR',
-      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProj: { value: new THREE.Matrix4() }, uProjInv: { value: new THREE.Matrix4() }, uViewInv: { value: new THREE.Matrix4() }, uRes: { value: new THREE.Vector2(1, 1) }, uWeather: { value: WEATHER_U }, uFrameN: FRAME_NOISE },
+      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProj: { value: new THREE.Matrix4() }, uProjInv: { value: new THREE.Matrix4() }, uViewInv: { value: new THREE.Matrix4() }, uRes: { value: new THREE.Vector2(1, 1) }, uWeather: { value: WEATHER_U }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uSkyCol: { value: new THREE.Color() } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: /* glsl */`
-        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProj, uProjInv, uViewInv; uniform vec2 uRes; uniform vec4 uWeather; uniform float uFrameN;
+        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProj, uProjInv, uViewInv; uniform vec2 uRes; uniform vec4 uWeather; uniform float uFrameN, uLook3; uniform vec3 uSkyCol;
         varying vec2 vUv;
         vec3 viewPos( vec2 uv ) { float d = texture2D( tDepth, uv ).x; vec4 v = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); return v.xyz / v.w; }
         float wHash( vec2 p ) { p = fract( p * vec2( 123.34, 345.45 ) ); p += dot( p, p + 34.345 ); return fract( p.x * p.y ); }
@@ -241,7 +241,7 @@ export function createPost(game) {
           // grass and planting do not mirror (green-dominant pixel, same idea as the wet material patch)
           float leafy = smoothstep( 0.005, 0.04, c.g - max( c.r, c.b ) * 0.95 );
           puddle *= 1.0 - leafy;
-          float amt = up * ( 0.22 * uWeather.x * ( 1.0 - 0.85 * leafy ) + 0.7 * puddle );
+          float amt = up * ( mix( 0.22, 0.42, uLook3 ) * uWeather.x * ( 1.0 - 0.85 * leafy ) + mix( 0.7, 0.95, uLook3 ) * puddle );
           if ( amt < 0.01 ) { gl_FragColor = c; return; }
           // reflect about world up (wet ground is flat at this scale)
           vec3 upV = normalize( ( vec4( 0.0, 1.0, 0.0, 0.0 ) * uViewInv ).xyz );
@@ -263,6 +263,11 @@ export function createPost(game) {
             }
             t *= 1.32;
           }
+          // look3: a ray that leaves the screen or finds nothing reflects the sky (puddles and wheel paths keep their sheen)
+          if ( uLook3 > 0.5 && hitA < 0.999 ) {
+            float skyW = ( 1.0 - hitA ) * smoothstep( -0.05, 0.25, dot( R, upV ) );
+            hitC = mix( uSkyCol, hitC, hitA ); hitA = max( hitA, skyW * 0.85 );
+          }
           float fres = 0.04 + 0.96 * pow( 1.0 - max( dot( -V, upV ), 0.0 ), 5.0 );
           float k = amt * hitA * mix( 0.35, 1.0, fres ) * ( 1.0 - smoothstep( 90.0, 140.0, -P.z ) );
           c.rgb = mix( c.rgb, c.rgb * ( 1.0 - 0.5 * k ) + hitC * k, 1.0 );
@@ -278,6 +283,8 @@ export function createPost(game) {
       U.uProjInv.value.copy(camera.projectionMatrixInverse);
       U.uViewInv.value.copy(camera.matrixWorld);
       U.uRes.value.set(rb.width, rb.height);
+      U.uLook3.value = game.look3 ? 1 : 0;
+      if (scene.fog) U.uSkyCol.value.copy(scene.fog.color).multiplyScalar(1.1);
       ssrRender(r, wb, rb, dt, mask);
     };
     ssr.enabled = false;
@@ -844,7 +851,9 @@ export function createPost(game) {
           // look3 grade: the contrast now comes from the light (sun vs shade), so the display S-curve and saturation
           // relax (sat 1.1 -> 0.97 by day: neon reds and orange sand), a soft warm-humid highlight roll and a firmer toe
           const G = game.look3G || (game.look3G = { sat: 0.93, satGold: 1.02, contrast: 0.3, toe: 0.012 });
-          gu.uSat.value = (G.sat + (G.satGold - G.sat) * golden - 0.12 * gc) * (1 - 0.92 * (game.deathFade || 0));
+          gu.uSat.value = (G.sat + (G.satGold - G.sat) * golden - 0.05 * gc) * (1 - 0.92 * (game.deathFade || 0));
+          // the old green white-balance shift countered a pink sky; the look3 sky is gold, so only a trace of it stays
+          gu.uGain.value.set(1.03 - 0.012 * gc, 1.0 + 0.03 * gc, 0.96 - 0.008 * gc);
           gu.uContrast.value = G.contrast + 0.06 * dayOnly;
           gu.uToe.value = G.toe * (0.6 + 0.4 * day);
           gu.uHighTint.value.set(0.024 + 0.03 * golden - 0.02 * night, 0.013 - 0.006 * golden - 0.006 * night, -0.012 + 0.012 * golden + 0.025 * night);

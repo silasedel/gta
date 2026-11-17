@@ -59,6 +59,14 @@ const SKY_ZENITH = [[-0.3, [0.002, 0.004, 0.012]], [-0.08, [0.012, 0.012, 0.05]]
 const SKY_HORIZON = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.07, 0.04, 0.10]], [0.0, [0.46, 0.22, 0.36]], [0.1, [0.56, 0.36, 0.56]], [0.2, [0.58, 0.50, 0.68]], [0.35, [0.34, 0.54, 0.88]], [1.0, [0.30, 0.52, 0.90]]];
 const SKY_HORIZON_SUN = [[-0.3, [0.006, 0.010, 0.025]], [-0.08, [0.22, 0.06, 0.06]], [0.0, [1.2, 0.40, 0.18]], [0.1, [1.25, 0.62, 0.45]], [0.2, [1.15, 0.85, 0.72]], [0.35, [0.90, 0.90, 0.95]], [1.0, [0.70, 0.82, 0.96]]];
 const SKY_GLOW = [[-0.12, [0.0, 0.0, 0.0]], [-0.04, [0.5, 0.12, 0.04]], [0.0, [1.5, 0.55, 0.22]], [0.1, [1.5, 0.80, 0.55]], [0.3, [1.3, 1.05, 0.85]], [1.0, [1.0, 0.95, 0.9]]];
+// look3 sky (lead review 05:30): Florida sky by sun elevation. Noon: deep blue, white clouds with soft gray bases.
+// Low sun: gold-orange toward the sun, pale yellow, then blue overhead; clouds gold on the sun side, gray-blue in shade;
+// only a hint of pink right at sunset (the old ramps went lavender-purple). Night a touch bluer (moonlit).
+const L3_SKY_ZENITH = [[-0.3, [0.004, 0.008, 0.024]], [-0.08, [0.010, 0.016, 0.050]], [0.0, [0.035, 0.065, 0.18]], [0.1, [0.05, 0.11, 0.36]], [0.2, [0.04, 0.13, 0.45]], [0.35, [0.026, 0.13, 0.50]], [1.0, [0.02, 0.125, 0.52]]];
+const L3_SKY_HORIZON = [[-0.3, [0.010, 0.016, 0.040]], [-0.08, [0.05, 0.055, 0.11]], [0.0, [0.40, 0.31, 0.30]], [0.1, [0.50, 0.48, 0.50]], [0.2, [0.46, 0.55, 0.70]], [0.35, [0.34, 0.54, 0.88]], [1.0, [0.30, 0.52, 0.90]]];
+const L3_SKY_HORIZON_SUN = [[-0.3, [0.010, 0.016, 0.040]], [-0.08, [0.25, 0.08, 0.04]], [0.0, [1.3, 0.50, 0.16]], [0.1, [1.3, 0.78, 0.38]], [0.2, [1.15, 0.92, 0.62]], [0.35, [0.90, 0.90, 0.92]], [1.0, [0.70, 0.82, 0.96]]];
+const L3_CLOUD_AMB = [[-0.3, [0.012, 0.016, 0.03]], [-0.05, [0.06, 0.065, 0.10]], [0.03, [0.26, 0.25, 0.32]], [0.12, [0.42, 0.45, 0.56]], [0.22, [0.58, 0.62, 0.72]], [0.4, [0.74, 0.80, 0.92]], [1.0, [0.82, 0.88, 1.0]]];
+const L3_CIRRUS = [[-0.2, [0.01, 0.012, 0.025]], [-0.06, [0.30, 0.10, 0.08]], [0.0, [1.0, 0.45, 0.25]], [0.1, [1.0, 0.72, 0.48]], [0.25, [0.98, 0.92, 0.86]], [1.0, [1.0, 1.0, 1.0]]];
 const tmpC = new THREE.Color();
 let envFrame = 0;
 const NIGHT_WATER = new THREE.Color().setRGB(0.002, 0.008, 0.016);
@@ -311,7 +319,8 @@ export async function createEnvironment(game) {
       ramp(HEMI_SKY, s, hemi.color);
       ramp(HEMI_GROUND, s, hemi.groundColor);
       hemi.intensity = 0.52 - 0.04 * dayF;
-      ramp(SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.9);
+      const L3 = game.look3 === true;
+      ramp(L3 ? L3_SKY_HORIZON : SKY_HORIZON, s, scene.fog.color).multiplyScalar(0.9);
       scene.fog.density = ramp(FOG_DENSITY, s) * (1 - 0.8 * env.indoor);
       const wantIndoor = env._indoorFlag || !!game.player?.state?.indoor;
       env.indoor += ((wantIndoor ? 1 : 0) - env.indoor) * Math.min(1, dt * 2.5);
@@ -332,15 +341,17 @@ export async function createEnvironment(game) {
       u.rayleigh.value = 1.5 + 2.5 * (1 - THREE.MathUtils.smoothstep(s, 0.0, 0.4));
       u.mieCoefficient.value = 0.005 + 0.004 * (1 - THREE.MathUtils.smoothstep(s, 0.0, 0.3));
       u.turbidity.value = 5.5 + 4.5 * (1 - THREE.MathUtils.smoothstep(s, 0.0, 0.3));
-      ramp(CLOUD_AMB, s, u.uCloudAmbient.value);
+      ramp(L3 ? L3_CLOUD_AMB : CLOUD_AMB, s, u.uCloudAmbient.value);
       u.uCloudSun.value.copy(sun.color).multiplyScalar(useMoon ? 0.25 * nightF : 0.75 * THREE.MathUtils.smoothstep(s, -0.1, 0.02));
-      ramp(CIRRUS, s, u.uCirrusColor.value);
+      ramp(L3 ? L3_CIRRUS : CIRRUS, s, u.uCirrusColor.value);
       // sunset: clouds catch pink-rose light rather than plain orange (backlit rims stay warm through the forward-scatter term)
       env.golden = dayF * (1 - THREE.MathUtils.smoothstep(s, 0.06, 0.3));
-      if (!useMoon) u.uCloudSun.value.lerp(tmpC.setRGB(0.95, 0.56, 0.60), 0.55 * env.golden);
-      ramp(SKY_ZENITH, s, u.uZenith.value);
-      ramp(SKY_HORIZON, s, u.uHorizon.value);
-      ramp(SKY_HORIZON_SUN, s, u.uHorizonSun.value);
+      if (!useMoon && !L3) u.uCloudSun.value.lerp(tmpC.setRGB(0.95, 0.56, 0.60), 0.55 * env.golden);
+      // look3: clouds catch gold, a pink hint only in the last minutes before the sun touches the horizon
+      if (!useMoon && L3) u.uCloudSun.value.lerp(tmpC.setRGB(1.0, 0.62, 0.30), 0.35 * env.golden).lerp(tmpC.setRGB(0.98, 0.55, 0.52), 0.3 * dayF * (1 - THREE.MathUtils.smoothstep(s, 0.0, 0.05)));
+      ramp(L3 ? L3_SKY_ZENITH : SKY_ZENITH, s, u.uZenith.value);
+      ramp(L3 ? L3_SKY_HORIZON : SKY_HORIZON, s, u.uHorizon.value);
+      ramp(L3 ? L3_SKY_HORIZON_SUN : SKY_HORIZON_SUN, s, u.uHorizonSun.value);
       ramp(SKY_GLOW, s, u.uSunGlow.value);
       u.uCloudCover.value = 0.40 + 0.07 * env.golden;
       if (wind) { u.uCloudOff.value.x -= wind.dir.x * wind.speed * dt * 0.0012; u.uCloudOff.value.y -= wind.dir.y * wind.speed * dt * 0.0012; }
