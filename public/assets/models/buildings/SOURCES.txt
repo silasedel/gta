@@ -1,0 +1,13 @@
+Library building models used by src/world/miami/bldmodels.js (converted from Models/Buildings by tools/v2/buildings/convert_all.sh:
+meshes joined per material, decimated where heavy, textures <= 1024 px JPEG, origin at footprint center / ground).
+Licenses as listed in Models/catalog.csv (none of these rows is marked "personal use only").
+podium_tower.glb        <- Building 9  - Tall Podium Skyscraper
+slim_residential.glb    <- Building 10 - Slim Residential High-Rise
+red_band_tower.glb      <- Building 14 - Tall Dark Office Tower With Red Top Band
+curved_glass_tower.glb  <- Building 13 - Slim Curved Glass Skyscraper (interior, furniture, blinds removed; 116k -> 40k tris)
+brick_cottage.glb       <- Building 1  - Brick Suburban Cottage
+blue_house.glb          <- Building 16 - Blue Two-Story Suburban House With Garage
+brick_duplex.glb        <- Building 3  - Two-Story Brick Duplex
+graffiti_shop.glb       <- Building 4  - Flat-Roof Graffiti Shop (asphalt lot removed)
+stilt_shack.glb         <- Building 5  - Rundown Stilt House With Rusty Roof (132k -> 16k tris)
+casino_tower.glb        <- Building 15 - Curved Spiral Casino Tower On Plaza (Golden Palm Casino, fixed site in Miami Beach)

@@ -17,6 +17,7 @@ const SIDEWALK_W = 3.0, CURB = 0.15;
 import { VARIANTS, pickFacade } from './facades.js';
 import { boatVariants, BOAT_LEN } from './boats.js';
 import { FBatch, facadeWalls, WL, WIN, BIT } from '../city/facade.js';
+import { createBuildingModels, CASINO, LIB as LIBMODELS } from './bldmodels.js';
 import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
@@ -401,6 +402,10 @@ export function createTileBuilder(ctx) {
     return r < 0.5 ? 'deco' : 'office';
   }
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
+  // ---- library building models (bldmodels.js): picked lots draw the user's models (instanced city-wide), not a procedural shell ----
+  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt });
+  const casinoH = LIBMODELS[CASINO.name], inCasino = (x, z) => { const dx = x - CASINO.x, dz = z - CASINO.z, c = Math.cos(CASINO.ry), s = Math.sin(CASINO.ry), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < casinoH.w / 2 + 4 && Math.abs(lz) < casinoH.d / 2 + 4; };
+  if (!/[?&]libmodels=0/.test(typeof location !== 'undefined' ? location.search : '')) LIBM.addFixed(-77, CASINO.name, CASINO.x, CASINO.y || 0, CASINO.z, CASINO.ry, CASINO.s);
   // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
   const isFB = (B) => (B && B.fac && B.fac.fx ? B.fac : null);
   // batch view that writes a full facade style (window grid) instead of a blank wall layer
@@ -679,6 +684,10 @@ export function createTileBuilder(ctx) {
     const zone = zoneAt(b.cx, b.cz), seed = (b.id % 2147483647) | 0, rr = hash(seed);
     let style = styleFor(b, b.zone || zone, seed);
     const y0 = b.minH || 0, h = Math.max(b.h, y0 + 2.5);
+    { // library model lot: register the instance, keep only a box collider
+      const LP = opts.lod === 2 || b._podOf || b._noTower ? null : LIBM.pick(b, style, b.zone || zone);
+      if (LP) { LIBM.register(b, LP, D ? Math.max(0, baseOf(b) + 0.05) : 0); if (opts.coll) { const rr2 = orient(LP.rect); wallStrip(opts.coll, rr2, 0, LP.h, 10, 10, new THREE.Color(0xffffff)); fillPoly(opts.coll, [rr2], LP.h, 0xffffff, 1); } return; }
+    }
     if (style === 'canopy') { // roof on posts (fuel stations, carports)
       fillPoly(B.roof, b.rings, h, new THREE.Color(0xe8e8e4), 1 / 6); fillPolyDown(B.trim, b.rings, h - 0.05, new THREE.Color(0xd0d0cc));
       wallStrip(B.trim, outer, h - 0.6, h, 10, 10, new THREE.Color(0xf2f2f2));
@@ -729,6 +738,20 @@ export function createTileBuilder(ctx) {
     fillPoly(B.roof, b.rings, h, roofC, 1 / 6);
     if (FB && FS && style !== 'house' && style !== 'warehouse' && style !== 'glass') corniceBands(B, b, outer, y0, h, FS, opts.lod);
     if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
+    if (style !== 'house' && style !== 'warehouse' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && (b.area || 0) > 160) { // roof dressing: stair / elevator bulkhead, timber-and-steel water tank on legs
+      const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), hb = hash(seed + 401);
+      if (fr.L > 10 && fr.W > 8) {
+        const o = (hb - 0.5) * fr.L * 0.4, bh = 2.8 + hash(seed + 402) * 0.8;
+        B.trim.addGeometry(BOXG, m4(fr.cx + fr.ux * o, h + bh / 2, fr.cz + fr.uz * o, ry, 4.2 + hb * 1.6, bh, 3.2), new THREE.Color(roofC).multiplyScalar(0.94));
+        B.trim.addGeometry(BOXG, m4(fr.cx + fr.ux * o, h + bh + 0.08, fr.cz + fr.uz * o, ry, 4.6 + hb * 1.6, 0.16, 3.6), new THREE.Color(0x6c6a66));
+        if (!opts.lod && h > 14 && style !== 'glass' && hash(seed + 403) < 0.35 && fr.L > 16) {
+          const tx = fr.cx - fr.ux * (o > 0 ? 1 : -1) * fr.L * 0.22 - fr.uz * fr.W * 0.15, tz = fr.cz - fr.uz * (o > 0 ? 1 : -1) * fr.L * 0.22 + fr.ux * fr.W * 0.15, legC = new THREE.Color(0x4a4744);
+          for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) B.trim.addGeometry(BOXG, m4(tx + lx * 1.05, h + 0.85, tz + lz * 1.05, 0, 0.22, 1.7, 0.22), legC);
+          B.trim.addGeometry(CYLG, m4(tx, h + 3.2, tz, 0, 3.4, 3.0, 3.4), new THREE.Color(0x8a7460));
+          B.trim.addGeometry(new THREE.ConeGeometry(1.8, 0.9, 12), m4(tx, h + 5.15, tz), new THREE.Color(0x5a5550));
+        }
+      }
+    }
     if (opts.props && style === 'house' && !sf && y0 < 0.5 && !b.part && h < 14 && outer.length <= 24) { // villa garden: clipped hedge ring + a pair of palms
       const ring = scalePoly(outer, b.cx, b.cz, 1.6), seedH = hash(seed + 301);
       for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); for (let s2 = 1; s2 < L - 0.5; s2 += 2.6) { const x = p[0] + (q[0] - p[0]) * s2 / L, z = p[1] + (q[1] - p[1]) * s2 / L, hb = hash(((x * 7) | 0) * 31 + ((z * 5) | 0)); if (hb < 0.45) continue; (hb > 0.93 ? opts.props.flower : opts.props.blob).push({ x, y: 0, z, ry: hb * 20, s: 0.7 + hb * 0.4, color: new THREE.Color().setHSL(0.22 + hb * 0.08, 0.4, 0.62) }); } }
@@ -740,6 +763,16 @@ export function createTileBuilder(ctx) {
       (FB ? B.roof : B.trim).addGeometry(rg, mat4((x0 + x1) / 2, h + 1.2, (z0 + z1) / 2, 0, (x1 - x0 + 1) * 0.7072, 2.4, (z1 - z0 + 1) * 0.7072), new THREE.Color(FB ? 0xffffff : [0xc8643c, 0xb85a38, 0xd2774a][(rr * 3) | 0]));
     }
     if (style === 'deco' && h > 9 && rr < 0.5) { const c = new THREE.Color(NEONS[(hash(seed + 5) * 6) | 0]); wallStrip(B.neon, outer.map(([x, z]) => [x + (x - b.cx) * 0.004, z + (z - b.cz) * 0.004]), h - 0.35, h - 0.12, 10, 10, c); }
+    if (style === 'deco' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && roadDist && outer.length <= 8 && hash(seed + 601) < 0.4 && /Beach/.test(ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '')) { // Ocean Drive deco: a vertical sign fin with neon edges on the street corner
+      let bi = 0, bd = Infinity; for (let i = 0; i < outer.length; i++) { const d = roadDist(outer[i][0], outer[i][1]); if (d < bd) { bd = d; bi = i; } }
+      const c = outer[bi], p = outer[(bi - 1 + outer.length) % outer.length], q = outer[(bi + 1) % outer.length];
+      let ax = c[0] - p[0], az = c[1] - p[1], bx = c[0] - q[0], bz = c[1] - q[1]; const la = Math.hypot(ax, az) || 1, lb = Math.hypot(bx, bz) || 1; ax /= la; az /= la; bx /= lb; bz /= lb;
+      let dx = ax + bx, dz = az + bz; const ld = Math.hypot(dx, dz); if (ld > 0.3) { dx /= ld; dz /= ld; const ry = Math.atan2(-dz, dx), fh = Math.min(h - 1.5, 4 + (h - 4) * (0.7 + hash(seed + 602) * 0.25)), y1 = h - 0.2;
+        B.trim.addGeometry(BOXG, m4(c[0] + dx * 0.75, y1 - fh / 2 + 0.6, c[1] + dz * 0.75, ry, 1.5, fh, 0.32), new THREE.Color(PASTELS[(hash(seed + 603) * 12) | 0]).lerp(new THREE.Color(0xffffff), 0.35));
+        const nc = new THREE.Color(NEONS[(hash(seed + 604) * 6) | 0]);
+        B.neon.addGeometry(BOXG, m4(c[0] + dx * 1.52, y1 - fh / 2 + 0.6, c[1] + dz * 1.52, ry, 0.08, fh - 0.4, 0.36), nc);
+        B.neon.addGeometry(BOXG, m4(c[0] + dx * 0.75, y1 + 0.62, c[1] + dz * 0.75, ry, 1.56, 0.08, 0.36), nc); }
+    }
     if (opts.props && style !== 'house' && b.area > 120 && h < 120) { const n = Math.min(5, 1 + ((b.area / 300) | 0)); for (let k = 0; k < n; k++) { const p = outer[(hash(seed + 10 + k) * outer.length) | 0]; opts.props.ac.push({ x: b.cx + (p[0] - b.cx) * 0.45, y: h, z: b.cz + (p[1] - b.cz) * 0.45, ry: hash(seed + 20 + k) < 0.5 ? 0 : 1.57, s: 0.9 + hash(seed + 30 + k) * 0.4 }); } }
     if (opts.props && h > 90) opts.props.beacon.push({ x: b.cx, y: h + 2, z: b.cz, s: 2.5 });
     if (opts.props && (style === 'warehouse' || zone === 'industrial' || zone === 'port' || zone === 'commercial' || zone === 'residential') && hash(seed + 77) < 0.14 && h > 3.5) {
@@ -762,7 +795,7 @@ export function createTileBuilder(ctx) {
     if (b.part || (b.minH || 0) > 0.5 || b._overlap || (b.storefronts && b.storefronts.length) || b.h < 3.5 || (b.area || 0) < 90 || !roadDist || !b.rings || b.rings[0].length < 3) return;
     const zone = b.zone || zoneAt(b.cx, b.cz), dist = ctx.districtAt ? ctx.districtAt(b.cx, b.cz) || '' : '', mainOnly = !SHOP_ZONES.test(zone);
     if ((mainOnly && !/Downtown|Brickell|Edgewater|Overtown|Arts|Collins Park|Wynwood|Midtown|Design District/.test(dist)) || NO_SHOP_STYLE.test(b.style || b.kind || '')) return;
-    const rstyle = styleFor(b, zone, (b.id % 2147483647) | 0); if (rstyle === 'canopy' || rstyle === 'warehouse') return; // what buildBuilding will actually draw (a 'house' render still gets a full shop shell)
+    const rstyle = styleFor(b, zone, (b.id % 2147483647) | 0); if (rstyle === 'canopy' || rstyle === 'warehouse') return; if (LIBM.pick(b, rstyle, zone)) return; // library model lot: no shop shell inside the model // what buildBuilding will actually draw (a 'house' render still gets a full shop shell)
     const ring = orient(b.rings[0]), r0 = b.rings[0], inR = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const xi = r[i][0], zi = r[i][1], xj = r[j][0], zj = r[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
     const inP = (x, z) => { if (!inR(r0, x, z)) return false; for (let k = 1; k < b.rings.length; k++) if (inR(b.rings[k], x, z)) return false; return true; };
     const pool = (others || []).slice(); // + footprints of the neighbouring tiles (a building across the seam can block / overlap the frontage)
@@ -813,7 +846,7 @@ export function createTileBuilder(ctx) {
       if (inP(bj.rings[0], cx, cz) && (bi.part || (!bj.part && ai <= aj))) { drop.add(i); placeStats.bldDropped = (placeStats.bldDropped || 0) + 1; continue; } // part / duplicate inside another footprint
       if (bi.rings[0].some(([x, z]) => inP(bj.rings[0], x, z))) { overlap.add(i); overlap.add(j); }
     }
-    out = all.filter((b, i) => !drop.has(i)); for (const i of drop) all[i]._dropped = true; for (let i = 0; i < all.length; i++) if (overlap.has(i)) all[i]._overlap = true;
+    out = all.filter((b, i) => !drop.has(i) && !(inCasino(b.cx ?? b.rings[0][0][0], b.cz ?? b.rings[0][0][1]) || b.rings[0].some(([x, z]) => inCasino(x, z)))); for (const i of drop) all[i]._dropped = true; for (let i = 0; i < all.length; i++) if (overlap.has(i)) all[i]._overlap = true;
     for (let i = 0; i < all.length; i++) all[i]._bb = bbs[i];
     { // a drivable street running through a footprint (porte-cochere, terminal drive-through or OSM misalignment): lift the
       // building over a 5 m passage when it is tall enough, otherwise drop it; never a wall across a traffic lane

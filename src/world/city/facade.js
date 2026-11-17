@@ -364,7 +364,7 @@ void facadeEval() {
   }
   nT = mix(nT, nOver, useOver);
   gFNw = normalize(T * nT.x + Bt * nT.y + Nw * max(nT.z, 0.05));
-  gFAlb = alb; gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi * (1.0 + gFFar * 1.6 * uFNight) + gFFar * gFLit * gFLitC * 0.95 * uFGlow; // distant windows cover less of the pixel: compensate the glow
+  gFAlb = alb; gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi * mix(1.0, 0.45, gFFar) + gFFar * gFLit * gFLitC * 0.12 * uFGlow; // distant facades: average glow = lit share x glazed share (the old 1.6x / 0.95 boost lit mid/far blocks solid white at night)
 }
 `;
 
