@@ -42,7 +42,8 @@ function cornerRadius(a, b) {
 //   poly  [[x,z]]  outline (CCW in angle order), mouths overlap the approach ribbons by `lap` m
 //   legs  [{ edge, atA, D, dx, dz, hw, sw, kind, fr }]  D = arc length from the node where the approach ribbon starts
 //   corners [{ i, j, kind: 'fillet'|'line'|'reflex'|'gore', C, arc: [[x,z]], R }]
-export function buildJunction(G, n, { lap = 0.03 } = {}) {
+export function buildJunction(G, n, opts = {}) {
+  const lap = opts.lap ?? 0.03;
   const legs = [];
   for (const k of n.edges || []) {
     const e = G.edges[k]; if (!e || e.a === e.b) return null;
@@ -51,7 +52,7 @@ export function buildJunction(G, n, { lap = 0.03 } = {}) {
     // at grade near the node (a bridge far along the edge is fine; a ramp that starts within 60 m is not)
     if (e.y && e.y.length && !e.terrain) { const cum = e.cum, L0 = e.length || 0; for (let i = 0; i < e.y.length; i++) { const d = cum ? (atA ? cum[i] : L0 - cum[i]) : 0; if (d < 60 && Math.abs(e.y[i]) > 0.3) return null; } }
     const dx0 = P[1][0] - P[0][0], dz0 = P[1][1] - P[0][1], l0 = Math.hypot(dx0, dz0) || 1;
-    legs.push({ edge: e, edgeId: k, atA, P, fr: frameOf(P), dx: dx0 / l0, dz: dz0 / l0, hw: e.width / 2, len: e.length || l0, sw: e.sidewalk || 0, kind: e.kind || '', th: Math.atan2(dz0 / l0, dx0 / l0), tA: 0, tB: 0 });
+    legs.push({ edge: e, edgeId: k, atA, P, fr: frameOf(P), dx: dx0 / l0, dz: dz0 / l0, hw: e.width / 2, len: e.length || l0, sw: opts.swOf ? opts.swOf(e) : e.sidewalk || 0, kind: e.kind || '', th: Math.atan2(dz0 / l0, dx0 / l0), tA: 0, tB: 0 });
   }
   if (legs.length < 3) return null;
   legs.sort((p, q) => p.th - q.th);

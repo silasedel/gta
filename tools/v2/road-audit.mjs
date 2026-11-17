@@ -81,6 +81,12 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     const ids = JSON.parse(await b.eval(`JSON.stringify(${JSON.stringify(Object.fromEntries(Object.entries(picks).map(([k, v]) => [k, [v.x, v.z]])))}, null)`).then(async (q) => b.eval(`(() => { const q = ${q}, G = game.city.roadGraph, out = {}; for (const k in q) { let best = null, bd = 1e9; for (const n of G.nodes) { if ((n.edges || []).length < 3) continue; const d = Math.hypot(n.x - q[k][0], n.z - q[k][1]); if (d < bd) { bd = d; best = n; } } out[k] = best ? [best.id, best.x, best.z, bd] : null; } return JSON.stringify(out); })()`)));
     for (const k in ids) if (ids[k]) { picks[k].id = ids[k][0]; picks[k].x = ids[k][1]; picks[k].z = ids[k][2]; if (ids[k][3] > 5) console.log('pick moved', k, ids[k][3].toFixed(1), 'm'); }
   }
+  if (!picks.keysLane) { // Keys neighborhood street (user's Key Largo street design): nearest lane-only junction to Nico's house
+    const k = JSON.parse(await b.eval(`(() => { const G = game.city.roadGraph, C = game.city; let best = null, bd = 1e9; for (const n of G.nodes) { const es = (n.edges || []).map((k) => G.edges[k]); if (es.length < 3 || es.some((e) => !e || e.elevated || !/residential|tertiary|unclassified|service/.test(e.kind))) continue; if (!/Key/.test(String(C.districtAt(n.x, n.z)))) continue; const d = Math.hypot(n.x + 836, n.z - 5272); if (d < bd) { bd = d; best = n; } }
+      if (!best) return 'null'; const legs = best.edges.map((k) => { const e = G.edges[k], atA = e.a === best.id, p = e.pts, q = atA ? p[Math.min(2, p.length - 1)] : p[Math.max(0, p.length - 3)], r0 = atA ? p[0] : p[p.length - 1], dx = q[0] - r0[0], dz = q[1] - r0[1], L = Math.hypot(dx, dz) || 1; return { dx: dx / L, dz: dz / L, w: e.width, kind: e.kind, len: e.length, sw: e.sidewalk }; });
+      return JSON.stringify({ id: best.id, x: best.x, z: best.z, deg: legs.length, zone: String(C.zoneAt(best.x, best.z)), dist: String(C.districtAt(best.x, best.z)), kinds: legs.map((l) => l.kind).join(','), legs }); })()`));
+    if (k) { picks.keysLane = k; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); }
+  }
   console.log('picks', Object.entries(picks).map(([k, v]) => `${k}:${v.id}@${v.x.toFixed(0)},${v.z.toFixed(0)} ${v.zone}/${v.dist} deg${v.deg} ${v.kinds}`).join('\n'));
   const only = o.only ? String(o.only).split(',') : Object.keys(picks);
   const sheet = [];
