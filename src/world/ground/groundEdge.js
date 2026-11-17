@@ -50,6 +50,10 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
           gmSh = smoothstep(0.32, 0.5, t) * (1.0 - urban);
           // between shoulder and grass: a band of bare dirt / thin grass (height based: the grass texture's tall blades survive longest)
           float tb = smoothstep(0.12, 0.32, t) * (1.0 - gmSh) * (1.0 - urban);
+          { // mainland road verges are mown: a lush, short green band just past the gravel strip (ref_57 target), patchy at its outer edge
+            float vw = smoothstep(0.015, 0.12, gmA + (n1 - 0.5) * 0.06) * (1.0 - keys) * (1.0 - urban) * (1.0 - smoothstep(0.3, 0.45, t));
+            if (vw > 0.01) { GS mv = gRecipe(${LAWN}, wp, gdx, gdy, gWantN); mv.alb *= vec3(0.92, 1.03, 0.86); gs = gsMix(gs, mv, vw * 0.75); }
+          }
           if (urban > 0.01) { // trimmed St. Augustine: lush, even lawn; worn soil patches near the curb; a thin soil lip at the paving edge
             GS lw = gRecipe(${LAWN}, wp, gdx, gdy, gWantN); lw.alb *= vec3(0.9, 1.0, 0.86);
             gs = gsMix(gs, lw, urban * 0.9);
