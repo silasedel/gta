@@ -1252,7 +1252,7 @@ export async function createVehicles(game) {
   // Nico's yard (Key Largo, user mock-up docs/v2/plan/nico_house/0_front_deck_mockup.webp): the gray lifted pickup with a black
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
-    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x8d9196, wear: 0.12, stripe: true, ride: 0.07 }, // gray: low wear (fade whitens paint)
+    { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x80858b, wear: { dirt: 0.07, rust: 0, fade: 0, dirtColor: 'sand' }, stripe: true, ride: 0.07 }, // metallic mid gray (dust and fade whiten paint)
     { key: 'conv1', local: [-8.5, 14.5], heading: Math.PI + 0.3, color: 0xa9cdd2, wear: { dirt: 0.2, rust: 0.24, fade: 0.32, age: 0.85, dirtColor: 'salt' } }, // pale blue, soft rust (mock-up)
   ];
   const nicoCars = [];
