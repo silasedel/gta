@@ -16,6 +16,7 @@ const DAY_MINUTES = 48; // stage 1: a full in-game day lasts 48 real minutes, as
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
+import { yieldTask, compileSliced, programsReady } from './core/pace.js';
 
 // Loading bar with a live percentage. Each boot step sets a milestone; between milestones the shown value keeps
 // creeping toward (but never reaching) the next one, so long steps (loading Miami) never look frozen.
@@ -39,13 +40,21 @@ const loadMsg = (t, p) => {
   if (p >= 100 && /^ERROR/.test(t)) { const pc = document.getElementById('loadpct'); if (pc) pc.textContent = ''; }
 };
 
+// Boot timeline (stage 1 perf): every boot stage and V2 module init is timed into window.__boot.stages
+// ([name, startMs, durationMs]); tools/v2/s1-boot.mjs reads it together with the long-task list.
+const BOOT = (window.__boot ||= { t0: performance.now(), stages: [] });
+async function stage(name, fn) {
+  const t = performance.now();
+  try { return await fn(); } finally { BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
+}
 async function safe(name, fn, fallback) {
-  try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; }
+  const t = performance.now();
+  try { return await fn(); } catch (e) { console.error(`[${name}] failed`, e); return fallback; } finally { BOOT.stages.push([name, Math.round(t), Math.round(performance.now() - t)]); }
 }
 
 async function boot() {
   loadMsg('INITIALIZING PHYSICS', 5);
-  await RAPIER.init();
+  await stage('rapier', () => RAPIER.init());
 
   const canvas = document.getElementById('game');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
@@ -665,7 +674,9 @@ async function boot() {
     game.v2 = { loaded: [], failed: [] };
     for (const [, k, m] of mods) {
       let ok = true;
+      const t = performance.now();
       try { await m.initV2(game); } catch (e) { ok = false; console.error('[v2:' + k + '] init failed', e); }
+      BOOT.stages.push(['init:' + k.replace('./', ''), Math.round(t), Math.round(performance.now() - t)]);
       (ok ? game.v2.loaded : game.v2.failed).push(k);
     }
   }
@@ -674,11 +685,14 @@ async function boot() {
   // Precompile every shader and render one warm-up frame behind the loading screen, so the first
   // visible frame doesn't stall for seconds compiling materials.
   loadMsg('COMPILING SHADERS', 96);
+  const tShaders = performance.now();
   try {
     updateCamera(1 / 60);
-    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
-    else renderer.compile(scene, camera);
+    // stage 1 boot pacing: compile per top-level object in short slices, for the HDR target the game draws into (the
+    // canvas variant was never used), then wait for the GPU without blocking (src/core/pace.js)
+    await compileSliced(renderer, THREE, scene.children.slice(), camera, scene);
     game.post.render(1 / 60);
+    await yieldTask();
     // Run ~1 s of real frames behind the loading screen: streams the spawn area, renders the
     // shadow maps (their depth-only shader variants are not covered by compileAsync) and lets
     // every system create its first-use materials before the player sees anything.
@@ -691,11 +705,15 @@ async function boot() {
       try { updateCamera(wdt); game.env.update?.(wdt); } catch (e) {}
       if (i % 10 === 0) renderer.shadowMap.needsUpdate = true;
       game.post.render(wdt);
-      if (i % 6 === 0) { loadMsg('WARMING UP', 96 + Math.min(3, i / 20)); await new Promise((r) => requestAnimationFrame(() => r())); }
+      if (i % 6 === 0) loadMsg('WARMING UP', 96 + Math.min(3, i / 20));
+      await yieldTask(); // every warm-up frame is its own task (the loading bar keeps moving)
+      if (i % 10 === 9) await programsReady(renderer, 3000); // programs created by these frames: let the GPU finish them first
     }
-    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    await compileSliced(renderer, THREE, scene.children.slice(), camera, scene);
   } catch (e) { console.warn('[boot] shader warm-up skipped', e); }
+  BOOT.stages.push(['shaders+warmup', Math.round(tShaders), Math.round(performance.now() - tShaders)]);
   loadMsg('READY', 100);
+  BOOT.ready = Math.round(performance.now());
   game.ready = true;
   loading.style.pointerEvents = 'none'; // never swallow the first click while fading out
   setTimeout(() => { loading.style.opacity = 0; setTimeout(() => loading.remove(), 700); }, 200);

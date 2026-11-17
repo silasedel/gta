@@ -1,5 +1,6 @@
 // Southline vehicles: procedural cars + Rapier raycast-vehicle physics + lane-following traffic AI.
 import * as THREE from 'three';
+import { breathe, compileSliced, initTexturesSliced } from '../core/pace.js';
 import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel2.js';
 import { rollLook, visualSignature, lookSignature, incomeFor, fleetMix, tierWeight } from './catalog.js';
 import { rollDriver, createDriverStats } from './traffic/drivers.js';
@@ -1189,11 +1190,14 @@ export async function createVehicles(game) {
     }
   }
   trySpecials();
+  await breathe(); // stage 1 boot pacing (src/core/pace.js): the spawn loops run in short tasks
   for (let k = 0; k < 40 && list.length < 14; k++) {
     const s = parkedSpot(spawn, 10, 170 + k * 8);
     if (s) { const type = parkedTypeFor(s.pos); createVehicle(type, colorFor(type), s.pos, s.heading, { locked: Math.random() < 0.4 }); }
+    await breathe();
   }
   for (let k = 0; k < 60 && list.filter((v) => v.ai).length < 12; k++) {
+    await breathe();
     const info = randomLanePos(spawn, 25, 260 + k * 10, false);
     if (!info) continue;
     const type = trafficTypeFor(info.pos);
@@ -1809,7 +1813,7 @@ export async function createVehicles(game) {
 
   // ---- warm-up: compile every vehicle material variant and upload every texture now (loading screen), so
   // entering a car / seeing LOD0 / first skid or smoke never compiles shaders mid-game.
-  function warmup() {
+  async function warmup() {
     const r = game.renderer, cam = game.camera;
     if (!r || !cam) return;
     const restore = [];
@@ -1827,17 +1831,22 @@ export async function createVehicles(game) {
     const probe = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), brokenGlassMat());
     probe.position.copy(cam.position); scene.add(probe);
     try {
-      r.compile(scene, cam);
+      // stage 1 boot pacing: compiled per car / effect in short slices for the HDR target the game draws into (the old
+      // whole-scene compile ran in one long task and for the canvas, a variant never drawn), textures uploaded one per slice
+      const objs = list.map((v) => v.mesh).concat([skids.mesh, smoke.points, fire.points, exhaust.points, shards.points, probe]);
+      await compileSliced(r, THREE, objs, cam, scene);
+      const tex = new Set();
       scene.traverse((o) => {
         const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
-        for (const m of mats) for (const k of ['map', 'emissiveMap', 'normalMap', 'roughnessMap']) if (m[k]?.isTexture) r.initTexture(m[k]);
+        for (const m of mats) for (const k of ['map', 'emissiveMap', 'normalMap', 'roughnessMap']) if (m[k]?.isTexture) tex.add(m[k]);
       });
+      await initTexturesSliced(r, tex);
     } catch (e) { console.warn('[vehicles] warmup', e); }
     scene.remove(probe);
     for (const o of restore) o.visible = false;
     for (const [g, c] of ranges) g.setDrawRange(0, c);
   }
-  try { warmup(); } catch (e) { /* non-fatal */ }
+  try { await warmup(); } catch (e) { /* non-fatal */ }
 
   const carNearest = nearest;
   function nearestAny(pos, maxDist = 6) {

@@ -2,6 +2,7 @@
 // Data comes from ./data.js (DATA agent) when present; until then a dev provider reads the raw OSM caches.
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
+import { breathe, initTexturesSliced, compileSliced, compileTarget } from '../../core/pace.js';
 import { createStreamer } from './stream.js';
 import { createTileBuilder } from './tilebuild.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -40,8 +41,10 @@ export async function createMiamiCity(game, opts = {}) {
   if (data && (data.getTile || data.loadTile)) provider = createDataProvider(data);
   else { const { loadDevProvider } = await import('./devProvider.js'); provider = await loadDevProvider(200); }
   const bounds = data?.bounds || provider.bounds;
+  await breathe();
 
   const { M, F, update: updateMats } = await createMaterials(renderer);
+  await breathe();
   const root = new THREE.Group(); root.name = 'miami-city'; scene.add(root);
   let grassField = null; try { if (data?.surfaceAt) grassField = createGrassField({ M, root, data, lawnTester: (a, b, c2, d) => { try { return builder.lawnTester(a, b, c2, d); } catch { return null; } } }); } catch (e) { console.warn('[miami] grass field', e); }
 
@@ -65,6 +68,7 @@ export async function createMiamiCity(game, opts = {}) {
   };
   const [bench, hydrant, trash] = await Promise.all([loadParts('bench_wooden/painted_wooden_bench_1k.gltf', { scale: 1.3, autoFace: true }), loadParts('hydrant_lo/hydrant_lo.gltf'), loadParts('trash_can_lo/trash_can_lo.gltf', { scale: 1.05 })]);
   const models = { bench, hydrant, trash };
+  await breathe();
   // stage 1 jobs 4-5: the user's library street furniture (signals, lamps, signs, shelters, hydrants, bins, benches ...)
   let street = null; try { const { loadStreetKit } = await import('./streetkit.js'); street = await loadStreetKit({ M }); } catch (e) { console.warn('[miami] street kit unavailable, code props', e); }
   // TRIAL (?plants=q): Quaternius CC0 low-poly shrubs instead of the leaf-card bushes, for an A/B look
@@ -88,15 +92,18 @@ export async function createMiamiCity(game, opts = {}) {
   const _nd = {};
   const roadDist = data?.roadGraph?.nearestEdge ? (x, z) => { const r = data.roadGraph.nearestEdge(x, z, _nd, 40); return r ? r.dist - r.edge.width / 2 : 99; } : null;
   // optional ELEVATED module (decks / ramps / barriers / piers); any failure falls back to the built-in deck code
+  await breathe();
   let elevated = null;
   try { const mods = import.meta.glob('./elevated.js'); /* vite rewrites this statically; under plain node it throws and we fall back */ if (mods['./elevated.js']) { const m = await mods['./elevated.js'](); elevated = m.createElevated ? m.createElevated({ THREE, RAPIER, world, data, materials: M }) : null; } } catch (e) { console.warn('[miami] elevated.js unavailable, using built-in decks', e); elevated = null; }
   const elevH = (x, z, y) => { if (!elevated) return null; try { const h = elevated.heightAt(x, z, y); return Number.isFinite(h) ? h : null; } catch (e) { return null; } };
+  await breathe();
   // V2 world-render: land-cover terrain (height-displaced, PBR texture array) + flora for the synthetic land outside real Miami
   let terrain = null, flora = null; const terrainOpts = {};
   if (data && data.coverAt && data.inRealMiami) {
     try { const [{ createTerrain }, { createFlora }] = await Promise.all([import('../terrain/terrain.js'), import('../terrain/flora.js')]); terrain = await createTerrain(renderer, data, terrainOpts); flora = await createFlora(renderer, M); }
     catch (e) { console.warn('[miami] terrain unavailable, flat ground', e); terrain = null; flora = null; }
   }
+  await breathe();
   const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist, terrain, flora, data, street });
   // mid/far chunk meshes: discard fragments of tiles that currently have a near (full-detail) build
   const NM = 9, nearU = { uNearOrigin: { value: new THREE.Vector2(-1e6, -1e6) }, uNearMask: { value: new Float32Array(NM * NM) } };
@@ -115,6 +122,7 @@ export async function createMiamiCity(game, opts = {}) {
   if (M.makeFacadeFar && !M.facadeFar) {
     try { M.facadeFar = M.makeFacadeFar(nearCut); M.facadeFar.name = 'facade-far'; } catch (e) { console.warn('[city-look] far facade material unavailable', e); }
   }
+  await breathe();
   const streamer = createStreamer({
     tileSize: provider.tileSize || 200, origin: provider.origin || { x: 0, z: 0 }, chunkTiles: 4, nearR: opts.nearR ?? 350, midR: opts.midR ?? 1500, colR: 200, budgetMs: opts.budgetMs ?? 3,
     bounds, buildNear: builder.buildNear, buildMid: builder.buildMid, buildFar: builder.buildFar,
@@ -141,8 +149,15 @@ export async function createMiamiCity(game, opts = {}) {
     scene.add(warm);
     const tc = performance.now();
     // pre-upload every city texture now (avoids 50-300 ms upload stalls the first time a tile shows a material)
-    { const seen = new Set(); for (const m of mats.concat(Object.values(M).filter((x) => x && x.isMaterial))) for (const k of ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'bumpMap', 'alphaMap', 'aoMap']) { const tx = m[k]; if (tx && tx.isTexture && !seen.has(tx)) { seen.add(tx); try { renderer.initTexture(tx); } catch (e) { /* older three */ } } } }
-    try { renderer.compile(scene, cam); renderer.render(scene, cam); } catch (e) { console.warn('[miami] precompile', e); }
+    // stage 1 boot pacing: images decoded off-thread, one upload per slice (src/core/pace.js)
+    { const seen = new Set(); for (const m of mats.concat(Object.values(M).filter((x) => x && x.isMaterial))) for (const k of ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'bumpMap', 'alphaMap', 'aoMap']) { const tx = m[k]; if (tx && tx.isTexture) seen.add(tx); } await initTexturesSliced(renderer, seen); }
+    // compiled for the HDR target the game draws into (the old canvas compile + render built an unused variant of every
+    // program), one warm-up object per slice, then a non-blocking wait for the GPU
+    try {
+      await compileSliced(renderer, THREE, warm.children.slice(), cam, scene);
+      // one tiny render into that target: compiles the shadow-depth variants (plain / instanced / custom depth)
+      const prevT = renderer.getRenderTarget(); renderer.setRenderTarget(compileTarget(THREE)); try { renderer.render(scene, cam); } finally { renderer.setRenderTarget(prevT); }
+    } catch (e) { console.warn('[miami] precompile', e); }
     scene.remove(warm); g.dispose();
     console.info(`[miami] precompiled ${mats.length} materials in ${(performance.now() - tc) | 0} ms`);
   }
@@ -284,12 +299,12 @@ export async function createMiamiCity(game, opts = {}) {
   // per-frame view culling of the global prop pools, run right before the main render (and its shadow pass) with the final camera
   if (builder.cullPools && scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) builder.cullPools(cam); if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; city.cullStats = builder.cullStats; }
   // synchronous warm-up: colliders + near tiles around the spawn so the player never falls
-  { const g = builder.buildLandBase(); for (let r = g.next(); !r.done; r = g.next()); }
+  { const g = builder.buildLandBase(); for (let r = g.next(); !r.done; r = g.next()) await breathe(); }
   // warm-up: stream until the near tiles + colliders around the spawn are ready (tiles load asynchronously)
   if (opts.warmup !== false) {
     const tEnd = performance.now() + 15000;
     while (performance.now() < tEnd) {
-      for (let k = 0; k < 20; k++) streamer.update(focus);
+      for (let k = 0; k < 20; k++) { streamer.update(focus); await breathe(); }
       if (streamer.readyAround(playerSpawn.x, playerSpawn.z, 220)) break;
       await new Promise((r) => setTimeout(r, 0));
     }
