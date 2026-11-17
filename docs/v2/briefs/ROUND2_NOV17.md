@@ -90,3 +90,12 @@ bunch of models downloaded from the internet. Same for placement and for everyth
 ## Helper ids (message each other with SendMessage, `to` = id)
 r2-look a619186c4f6cd0a33 | r2-cars ab9f4864289178482 | r2-people ae01728fb19ebc914 | r2-ground a9915981d0baee497 |
 r2-veg a8e0bf9ad31560854 | r2-keys ab80b88b7a3e7c376 | r2-roads ac999d622142a4c0c | r2-mapui ac7df24216768453d | r2-art a56f55f70e7c75f0b | lead = "main"
+
+## GTA 6 quality targets (user, 09:20: "look at how good GTA 6's shaders and atmosphere are, make sure ours is good")
+Match the QUALITY of these techniques, seen in public analyses of the trailers; copy no GTA content:
+- reflections on paint, glass, mirrors and wet asphalt (SSR + probes + Fresnel)
+- soft bounce light with deep but never black shade
+- humid haze with sun in-scatter, and light shafts through canopies
+- full volumetric-looking clouds with cloud shadows
+- dark wet roads with rippling reflections
+- subtle filmic bloom and flare, never grain
