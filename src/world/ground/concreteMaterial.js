@@ -38,16 +38,16 @@ vec3 ccNrmT = vec3(0.0);
       .replace('#include <color_fragment>', /* glsl */`#include <color_fragment>
       {
         vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
-        vec3 c1 = ccTri(tCcC, vCcP, bw, 1.0 / 2.6).rgb, c2 = ccTri(tCcC, vCcP + 17.3, bw, 1.0 / 11.0).rgb;
+        vec3 c1 = ccTri(tCcC, vCcP, bw, 1.0 / 1.7).rgb, c2 = ccTri(tCcC, vCcP + 17.3, bw, 1.0 / 9.0).rgb;
         vec3 avg = max(textureLod(tCcC, vec2(0.5), 11.0).rgb, vec3(0.05));
         float l1 = dot(c1 / avg, vec3(0.333)), l2 = dot(c2 / avg, vec3(0.333));
-        float det = clamp(mix(1.0, l1, 0.75) * mix(1.0, l2, 0.45), 0.55, 1.5);
+        float det = clamp(mix(1.0, l1, 0.42) * mix(1.0, l2, 0.35), 0.7, 1.3); // cast concrete is smooth-ish: fine pitting, soft tone drift
         // run coordinate along the wall (dominant horizontal axis), height
         float run = abs(wn.x) > abs(wn.z) ? vCcP.z : vCcP.x, hy = vCcP.y;
         float vert = 1.0 - abs(wn.y);
         // formwork: recessed joint every 6 m + panel tone
         float pj = fract(run / 6.0), jw = 0.012 / 6.0 + fwidth(run / 6.0);
-        float joint = (1.0 - smoothstep(0.0, jw, pj) * smoothstep(1.0, 1.0 - jw, pj)) * vert;
+        float joint = (1.0 - smoothstep(0.0, jw * 2.0, pj) * smoothstep(1.0, 1.0 - jw * 2.0, pj)) * vert;
         float panel = mix(0.92, 1.08, ccH(vec2(floor(run / 6.0), floor(hy / 3.0) + 3.1)));
         // grime: rain streaks from the top (vertical noise), heavier lower down
         float streak = ccN(vec2(run * 2.3, hy * 0.18)) * 0.6 + ccN(vec2(run * 7.1, hy * 0.5 + 3.0)) * 0.4;
@@ -73,8 +73,8 @@ vec3 ccNrmT = vec3(0.0);
         roughnessFactor = clamp(mix(0.88, ccTri(tCcA, vCcP, bw, 1.0 / 2.6).g, 0.7) - ccNrmT.y * 0.25, 0.3, 1.0); }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       { vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
-        vec3 tX = texture2D(tCcN, vCcP.zy / 2.6).xyz * 2.0 - 1.0, tY = texture2D(tCcN, vCcP.xz / 2.6).xyz * 2.0 - 1.0, tZ = texture2D(tCcN, vCcP.xy / 2.6).xyz * 2.0 - 1.0;
-        tX = vec3(tX.xy * 0.8 + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy * 0.8 + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy * 0.8 + wn.xy, abs(tZ.z) * wn.z);
+        vec3 tX = texture2D(tCcN, vCcP.zy / 1.7).xyz * 2.0 - 1.0, tY = texture2D(tCcN, vCcP.xz / 1.7).xyz * 2.0 - 1.0, tZ = texture2D(tCcN, vCcP.xy / 1.7).xyz * 2.0 - 1.0;
+        tX = vec3(tX.xy * 0.35 + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy * 0.35 + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy * 0.35 + wn.xy, abs(tZ.z) * wn.z);
         vec3 nW = normalize(tX.zyx * bw.x + tY.xzy * bw.y + tZ.xyz * bw.z);
         normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`);
   };
