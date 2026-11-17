@@ -407,9 +407,20 @@ export function seatCharacter(ch, anchor, opts = {}) {
   return true;
 }
 export function unseatCharacter(ch) { if (ch) ch._seat = null; }
+/** tallest person (standing height incl. hair / hat, meters) whose seated crown clears this seat's real roof by >= 5 cm:
+ *  seated crown above the cushion ~0.52 x stature (+ 2 cm sink allowance); open cars / boats: no limit */
+export function seatMaxHeight(shell, anchor, opts = {}) {
+  const vs = opts.vehicle?.spec;
+  if (!shell || !anchor || anchor.open || (vs && (vs.convertible || vs.roadster || vs.cls === 'roadster'))) return Infinity;
+  const pr = probeSeat(shell, anchor, opts.key || null);
+  const cushion = Number.isFinite(pr.cushionY) && !anchor.fixed ? pr.cushionY : anchor.hip.y - 0.1;
+  const roof = Number.isFinite(pr.roofY) ? (Number.isFinite(anchor.roofY) ? Math.min(anchor.roofY, pr.roofY) : pr.roofY) : anchor.roofY;
+  if (!Number.isFinite(roof)) return Infinity;
+  return (roof - cushion - 0.05 + 0.02) / 0.52;
+}
 /** create one of the user's people, add it to the shell and seat it (null while none fits / is loaded yet) */
 export function createSeatedPerson(game, shell, anchor, opts = {}) {
-  const ch = game.npc?.createDriver?.({ pos: opts.pos, role: opts.role || (anchor.i ? 'passenger' : 'driver'), seed: opts.seed, gender: opts.gender });
+  const ch = game.npc?.createDriver?.({ pos: opts.pos, role: opts.role || (anchor.i ? 'passenger' : 'driver'), seed: opts.seed, gender: opts.gender, anchor, shell, vehicle: opts.vehicle });
   if (!ch) return null;
   ch.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
   shell.add(ch.root);

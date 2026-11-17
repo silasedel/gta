@@ -198,7 +198,8 @@ export async function createCast(game) {
     const pl = placesFor(zone === 'beach' || zone === 'water' ? 'casual' : zone, null, ctx).filter((x) => x !== 'swim' && x !== 'beach');
     const places = opts.role === 'passenger' ? pl.concat(['tourist', 'street']) : pl.concat(['business', 'work', 'street']);
     const ex = new Set(opts.exclude || []);
-    for (const p of people) if (NO_CAR(p) || (opts.role !== 'passenger' && (p.age === 'kid' || p.age === 'teen' || (p.years || 30) < 17))) ex.add(p.id);   // kids ride, never drive
+    const maxH = Number.isFinite(opts.maxHeight) ? opts.maxHeight : Infinity;
+    for (const p of people) if ((p.height || 1.75) > maxH || NO_CAR(p) || (opts.role !== 'passenger' && (p.age === 'kid' || p.age === 'teen' || (p.years || 30) < 17))) ex.add(p.id);   // kids ride, never drive
     let b = pick(places, pos, { ...opts, exclude: ex });
     if (!b) {   // relaxed: any loaded civilian, a twin only when 60 m away or more
       let best = null, bs = -1;

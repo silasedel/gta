@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { loadIndex, loadArchetype, getBase, loadedBases, archetypesForSync, PLACE_TAGS } from './lib.js';
 import { createNpc } from './character.js';
 import { createCast } from '../people/cast.js';
+import { seatMaxHeight } from '../seat.js';
 
 export const order = 110;
 const LEGACY_TAG = { beach: 'beach', tourist: 'casual', street: 'casual', sport: 'sport', nightlife: 'nightlife', bar: 'bar', security: 'security', kitchen: 'kitchen', work: 'port', port: 'port', business: 'business', police: 'cop' };
@@ -170,7 +171,14 @@ export async function initV2(game) {
     createCop: (o = {}) => { try { return cast ? cast.createCop(o) : null; } catch (e) { return null; } },
     /** a driver / passenger of the user's people for a car at o.pos ({ pos, role: 'driver'|'passenger', seed }), or null
      *  while none is loaded (the caller retries on a later frame); seat it with src/npc/seat.js seatCharacter() */
-    createDriver: (o = {}) => { try { return cast ? cast.createDriver(o) : null; } catch (e) { console.warn('[npc] driver', e); return null; } },
+    createDriver: (o = {}) => {
+      try {
+        if (!cast) return null;
+        // only people whose seated head fits under this seat's real roof (+ 5 cm); nobody fits -> the seat stays empty
+        if (o.anchor && o.shell && !Number.isFinite(o.maxHeight)) o = { ...o, maxHeight: seatMaxHeight(o.shell, o.anchor, { key: o.vehicle?.typeKey || null, vehicle: o.vehicle }) };
+        return cast.createDriver(o);
+      } catch (e) { console.warn('[npc] driver', e); return null; }
+    },
     /** can this pooled character be reused for `zone` at pos (role / uniqueness rules of the cast)? */
     fitsPlace: (c, zone, pos) => (cast && c?.personMeta ? cast.fits(c, zone, pos) : true),
     /** like spawnPosed, but loads the archetype first (resolves to the handle, or null) */
