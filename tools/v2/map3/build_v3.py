@@ -281,7 +281,11 @@ for p in geoms(FOREST.intersection(land).difference(SWAMP).difference(INLAND)): 
 
 # ---------------------------------------------------------------- 6. finalize the network
 log('finalize network')
-wet = sbox(BOUNDS['minX'], BOUNDS['minZ'], BOUNDS['maxX'], BOUNDS['maxZ']).difference(land.buffer(0.5)).union(INLAND)
+wet = sbox(BOUNDS['minX'], BOUNDS['minZ'], BOUNDS['maxX'], BOUNDS['maxZ']).difference(W.land.buffer(0.5)).union(INLAND)
+# water narrower than ~18 m (slivers, ditches, narrow inlets along the shore) does not make a bridge: the road crosses it at
+# grade on a culvert (each bridge is its own deck mesh and draw calls; the map had ~240 tiny ones)
+wet = wet.buffer(-9.0, join_style=2).buffer(9.0, join_style=2)
+wet = unary_union([g for g in geoms(wet) if g.area > 1500])
 nb = RN.finalize(W, wet)
 comps = RN.connectivity(W.roads)
 main_c = set(comps[0])
@@ -292,6 +296,57 @@ for comp in comps[1:]:
     if sum(plen(W.roads[i].pts) for i in comp) >= 120: keep |= set(comp)
 W.roads = [r for i, r in enumerate(W.roads) if i in keep]
 for r in W.roads: r.id = W.nid('r')
+
+# ---------------------------------------------------------------- 6b. divided highways: parallel carriageway pairs -> one-way
+# The map draws a divided highway as two thick lines 3-7 px apart. Each line becomes a one-way carriageway; right-hand
+# traffic: a carriageway runs in the direction for which its twin lies on its LEFT.
+def _dir_at(ln, s):
+    a = ln.interpolate(max(0.0, s - 8)); b = ln.interpolate(min(ln.length, s + 8))
+    dx, dz = b.x - a.x, b.y - a.y; L = math.hypot(dx, dz) or 1.0
+    return dx / L, dz / L
+big = [r for r in W.roads if r.kind == 'trunk' and not r.bridge]
+bl = [LineString(r.pts) for r in big]; btree = STRtree(bl)
+ndiv = 0
+for i, r in enumerate(big):
+    ln = bl[i]
+    if ln.length < 100: continue
+    votes = []
+    for k in range(1, 8):
+        s = ln.length * k / 8; p = ln.interpolate(s); dx, dz = _dir_at(ln, s)
+        best = None
+        for j in btree.query(p.buffer(80)):
+            if j == i: continue
+            o = bl[j]; d_ = o.distance(p)
+            if not (30 <= d_ <= 80): continue
+            q = o.interpolate(o.project(p)); ox, oz = _dir_at(o, o.project(p))
+            if abs(dx * ox + dz * oz) < 0.93: continue
+            side = dx * (q.y - p.y) - dz * (q.x - p.x)     # >0: twin on the right of travel (x east, z south: right = (-dz, dx))
+            if best is None or d_ < best[0]: best = (d_, side)
+        if best: votes.append(best[1])
+    if len(votes) >= 6:
+        left = sum(1 for v in votes if v < 0); right = len(votes) - left
+        if left < right:     # twin on the right -> travel the other way
+            r.pts = r.pts[::-1]
+            if r.y: r.y = r.y[::-1]
+        r.oneway = True; r.lb = 0; r.lf = 3 if r.kind == 'trunk' else 2
+        r.width = 11.5 if r.kind == 'trunk' else 8.5; r.tags['divided'] = 1; ndiv += 1
+# short pieces between junctions inherit the one-way direction of the carriageway they continue
+for _pass in range(3):
+    ends_in, ends_out = {}, {}
+    for r in W.roads:
+        if r.tags.get('divided'):
+            ends_out.setdefault(r2(r.pts[0]), []).append(r); ends_in.setdefault(r2(r.pts[-1]), []).append(r)
+    for r in big:
+        if r.tags.get('divided') or plen(r.pts) >= 60: continue
+        a, b = r2(r.pts[0]), r2(r.pts[-1])
+        fwd = bool(ends_in.get(a)) and bool(ends_out.get(b)); rev = bool(ends_in.get(b)) and bool(ends_out.get(a))
+        if fwd == rev: continue
+        if rev:
+            r.pts = r.pts[::-1]
+            if r.y: r.y = r.y[::-1]
+        r.oneway = True; r.lb = 0; r.lf = 3 if r.kind == 'trunk' else 2
+        r.width = 11.5 if r.kind == 'trunk' else 8.5; r.tags['divided'] = 1; ndiv += 1
+log(f'divided-highway carriageways: {ndiv}')
 
 # ---------------------------------------------------------------- 7. names (real South Florida style; numbered grid in the metro)
 log('names')

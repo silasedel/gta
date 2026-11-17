@@ -38,12 +38,12 @@ export const PLACES = [
   },
   {
     id: 'hotel', name: 'The Coralline', tagline: 'Deco lobby, ocean views, no questions.', station: 'lowtide',
-    frame: (game) => nearestStorefront(game, /hotel|resort|lodging/i, { x: 3400, z: -300 }),
+    frame: (game) => nearestStorefront(game, /hotel|resort|lodging/i, { x: 2400, z: -500 }),
     radius: 22, shots: FRONT_SHOTS,
   },
   {
     id: 'marina', name: 'Bayside Marina', tagline: 'Where money ties up for the night.', station: 'latin',
-    frame: (game) => nearestStorefront(game, /marina|boat|yacht|ferry/i, { x: 600, z: -400 }),
+    frame: (game) => nearestStorefront(game, /marina|boat|yacht|ferry/i, { x: 1100, z: -300 }),
     radius: 30,
     shots: [
       { pos: [-40, 26, 50], to: [-22, 14, 38], look: [0, 1, -10], fov: 44, aperture: 0.4 },
@@ -62,7 +62,7 @@ export const PLACES = [
   {
     id: 'downtown', name: 'Downtown', tagline: 'Glass, cranes and borrowed money.', station: 'neon',
     trigger: (game, p) => /downtown/i.test(game.city?.districtAt?.(p.x, p.z) || ''),
-    frame: (game) => ({ x: -2420, z: 520, fx: 1, fz: 0 }),
+    frame: (game) => ({ x: 407, z: -110, fx: 1, fz: 0 }), // stage 1 map v3: Downtown
     shots: [
       { pos: [-160, 180, 420], to: [-60, 150, 330], look: [0, 60, 0], fov: 40, aperture: 0.2 },
       { pos: [40, 2, 120], to: [30, 2, 100], look: [0, 90, -20], fov: 30, aperture: 0.3 },

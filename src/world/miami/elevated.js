@@ -46,12 +46,22 @@ export function createElevated({ THREE, RAPIER, world = null, data, materials = 
     if (visual) {
       // split the segment list into chunks so a single step stays short
       const CH = 10;
-      const acc = { asph: null, conc: null, mark: null };
+      // stage 1 perf: chunks are built separately (short steps) but merged into ONE mesh per material per tile
+      // (each chunk used to be its own 3 meshes: ~80 extra draw calls in the Keys with its many small bridges)
+      const acc = { asph: [], conc: [], mark: [] };
       for (let k = 0; k < g.segs.length || k === 0; k += CH) {
         const part = builder.buildVisual(B, g.segs.slice(k, k + CH), k === 0 ? g.piersT : [], k === 0 ? g.jointsT : []);
-        for (const key of ['asph', 'conc', 'mark']) { const m = toMesh(part[key], mats[key], key, key === 'conc'); if (m) group.add(m); }
+        for (const key of ['asph', 'conc', 'mark']) if (part[key] && part[key].n) acc[key].push(part[key]);
         yield;
         if (k + CH >= g.segs.length) break;
+      }
+      for (const key of ['asph', 'conc', 'mark']) {
+        const L = acc[key]; if (!L.length) continue;
+        let n = 0; for (const b of L) n += b.n;
+        const m = { n, p: new Float32Array(n * 3), no: new Float32Array(n * 3), uv: new Float32Array(n * 2), c: new Float32Array(n * 3) };
+        let o = 0;
+        for (const b of L) { m.p.set(b.p.subarray(0, b.n * 3), o * 3); m.no.set(b.no.subarray(0, b.n * 3), o * 3); m.uv.set(b.uv.subarray(0, b.n * 2), o * 2); m.c.set(b.c.subarray(0, b.n * 3), o * 3); o += b.n; }
+        const mesh = toMesh(m, mats[key], key, key === 'conc'); if (mesh) group.add(mesh);
       }
       group.userData.elevated = true;
     }
