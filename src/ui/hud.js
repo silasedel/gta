@@ -251,12 +251,12 @@ export function createHUD(game) {
     <div class="ps-pages">
       <div class="ps-page ps-page-map on"><canvas class="ps-bigmap"></canvas><div class="ps-map-frame"></div><div class="ps-map-zoom"><button data-z="in" title="Zoom in (+)">+</button><button data-z="out" title="Zoom out (−)">−</button><button data-z="fit" title="Whole map (F)">⤢</button><button data-z="me" title="Centre on me (C)">◎</button></div>
         <div class="ps-map-legend"><b>Drag / WASD</b> pan · <b>Wheel / pinch</b> zoom · <b>Click</b> waypoint · <b>Right-click</b> clear · <b>F</b> whole map</div>
-        <div class="ps-map-loc"></div><div class="ps-map-attrib">Map data © OpenStreetMap contributors</div></div>
+        <div class="ps-map-loc"></div></div>
       <div class="ps-page ps-page-stats"><div class="ps-stats-grid"></div></div>
       <div class="ps-page ps-page-settings"><div class="ps-settings"></div></div>
       <div class="ps-page ps-page-controls"><div class="ps-controls"></div></div>
     </div>
-    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · ${BRAND.name.toUpperCase()} <i>· Map data © OpenStreetMap contributors (ODbL)</i></span></div>`;
+    <div class="ps-pause-foot"><button class="ps-resume">RESUME <kbd>ESC</kbd></button><span class="ps-foot-tag">v${VERSION} · ${BRAND.name.toUpperCase()}</span></div>`;
   root.appendChild(pause);
   const tabs = [...pause.querySelectorAll('.ps-tab')], pages = [...pause.querySelectorAll('.ps-page')];
   const bigmap = pause.querySelector('.ps-bigmap'), bctx = bigmap.getContext('2d');

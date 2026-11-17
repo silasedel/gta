@@ -15,11 +15,13 @@ const VIEWS = [
   ['close', '&view=pause&ppm=2.2&cx=1700&cz=2350'],
   ['keys', '&view=pause&ppm=0.3&cx=-2600&cz=5900'],
   ['gulf', '&view=pause&ppm=0.3&cx=-5000&cz=-2600'],
+  ['naples1', '&view=pause&ppm=1.0&cx=-4700&cz=-220'],
+  ['naples03', '&view=pause&ppm=0.3&cx=-4700&cz=-220'],
   ['mini_beach', '&x=2668&z=660'],
   ['mini_keys', '&x=-1105&z=5500'],
   ['mini_naples', '&x=-4700&z=-220'],
 ];
-await withBrowser({ width: 1600, height: 1000, maxSeconds: 600 }, async (b) => {
+await withBrowser({ width: 1600, height: 1000, maxSeconds: 1800 }, async (b) => {
   for (const [name, q] of VIEWS) {
     if (ONLY && !ONLY.includes(name)) continue;
     await b.goto(BASE + q);

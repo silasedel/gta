@@ -17,6 +17,7 @@ export const MAP_COLORS = {
   sea: '#074176',
   shallow: '#238895',
   shelf: '#126f9d',      // mid-depth teal-blue of the shelf fade
+  lagoon: '#1f93b4',     // teal of channels, bays and the band just off the shallows
   surf: '#8fe2d6',       // palest wash right at the sand
   waterDeep: '#06365f',
   land: '#909d64',
@@ -86,7 +87,8 @@ const kindKey = (k) => (k && ROAD_STYLE[String(k).replace(/_link$/, '')] ? Strin
 // glow and a broad shelf fade), so the coast reads like the user's map references (turquoise right at the sand, fading
 // through teal into deep navy, no outline). The field and a world-anchored reef / sandbank noise live in world space, so
 // neighboring tiles and every zoom level agree.
-const SHORE_NEAR_M = 75;          // tight bright shallows right at the coast (blur sigma, meters)
+const SHORE_NEAR_M = 45;          // tight bright shallows right at the coast (blur sigma, meters)
+const SHORE_MID_M = 140;          // teal band: channels and narrow bays read as deeper than the sand edge
 const SHORE_FAR_M = 320;          // broad shelf fade into deep water
 const SHORE_MARGIN_M = 1000;      // > 3 x SHORE_FAR_M of open sea around the land in the shore raster
 const SHORE_FINE_M = 16;          // shore raster resolution (meters per px)
@@ -308,9 +310,10 @@ export function createMapRenderer(game) {
     const CW = W / 4, CH = H / 4, coarse = new Float32Array(CW * CH);
     for (let j = 0; j < H; j++) { const row = (j >> 2) * CW, src = j * W; for (let i = 0; i < W; i++) coarse[row + (i >> 2)] += mask[src + i] * 0.0625; }
     yield;
+    const mid = yield* boxBlur(mask.slice(), W, H, SHORE_MID_M / m - 0.5);
     const near = yield* boxBlur(mask, W, H, SHORE_NEAR_M / m - 0.5);
     const far = yield* boxBlur(coarse, CW, CH, SHORE_FAR_M / (4 * m) - 0.5);
-    return { near, far, x0, z0, W, H, CW, CH, m };
+    return { near, mid, far, x0, z0, W, H, CW, CH, m };
   }
   // advance the build by up to budgetMs; true once the fields are settled (built, or impossible -> plain sea)
   function shoreStep(budgetMs) {
@@ -339,21 +342,26 @@ export function createMapRenderer(game) {
     const m = Math.max(S / 160, F.m), pad = 2 * m;
     const ox = Math.floor((x0 - pad) / m) * m, oz = Math.floor((z0 - pad) / m) * m;
     const W = Math.ceil((x0 + S + pad - ox) / m), H = Math.ceil((z0 + S + pad - oz) / m);
-    const sea = hexRgb(MAP_COLORS.sea), shelf = hexRgb(MAP_COLORS.shelf), shallow = hexRgb(MAP_COLORS.shallow), surf = hexRgb(MAP_COLORS.surf), inlandC = hexRgb(MAP_COLORS.water);
+    const sea = hexRgb(MAP_COLORS.sea), shelf = hexRgb(MAP_COLORS.shelf), lagoon = hexRgb(MAP_COLORS.lagoon), shallow = hexRgb(MAP_COLORS.shallow), surf = hexRgb(MAP_COLORS.surf), inlandC = hexRgb(MAP_COLORS.water);
     const imO = new ImageData(W, H), imI = wantInland ? new ImageData(W, H) : null, o = imO.data, q = imI ? imI.data : null;
     let any = false;
     for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
       const k = j * W + i, wx = ox + (i + 0.5) * m, wz = oz + (j + 0.5) * m;
       const fv = sampleF(F.far, F.CW, F.CH, (wx - F.x0) / (4 * F.m) - 0.5, (wz - F.z0) / (4 * F.m) - 0.5);
-      const nv = sampleF(F.near, F.W, F.H, (wx - F.x0) / F.m - 0.5, (wz - F.z0) / F.m - 0.5);
+      const gx = (wx - F.x0) / F.m - 0.5, gz = (wz - F.z0) / F.m - 0.5;
+      const nv = sampleF(F.near, F.W, F.H, gx, gz), mv = sampleF(F.mid, F.W, F.H, gx, gz);
       if (fv > 0.002 || nv > 0.002) any = true;
       // reef / sandbank breakup of the shelf, anchored to the world
       const nz = vnoise(wx / 1400, wz / 1400) * 0.65 + vnoise(wx / 430 + 17.3, wz / 430 - 5.1) * 0.35;
       const sf = Math.min(1, Math.min(1, fv * 3.4) * (0.55 + 0.7 * nz)), s1 = sf * sf * (3 - 2 * sf);
-      const tn = Math.min(1, nv * 2.2), tn2 = tn * tn * (3 - 2 * tn);
+      // depth ramp, deep to shallow: sea -> shelf (broad) -> lagoon teal (mid) -> turquoise -> pale surf (at the sand).
+      // The shallow terms are thresholded, so the middle of a channel stays teal / blue instead of flat turquoise.
+      const tm0 = Math.min(1, Math.max(0, (mv - 0.04) / 0.5)) * (0.8 + 0.4 * nz), tm = Math.min(1, tm0), sm = tm * tm * (3 - 2 * tm);
+      const tn = Math.min(1, Math.max(0, (nv - 0.07) / 0.43)), tn2 = tn * tn * (3 - 2 * tn);
       let c = mixC(sea, shelf, s1 * 0.95);
-      c = mixC(c, shallow, Math.min(1, tn2 * 0.9 + s1 * 0.12));
-      c = mixC(c, surf, Math.max(0, tn - 0.72) / 0.28 * 0.45);
+      c = mixC(c, lagoon, sm * 0.8);
+      c = mixC(c, shallow, tn2 * 0.92);
+      c = mixC(c, surf, Math.max(0, tn - 0.75) / 0.25 * 0.4);
       o[k * 4] = c[0]; o[k * 4 + 1] = c[1]; o[k * 4 + 2] = c[2]; o[k * 4 + 3] = 255;
       if (q) { const ci = mixC(inlandC, shallow, tn2 * 0.38); q[k * 4] = ci[0]; q[k * 4 + 1] = ci[1]; q[k * 4 + 2] = ci[2]; q[k * 4 + 3] = 255; }
     }

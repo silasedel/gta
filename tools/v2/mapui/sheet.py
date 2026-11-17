@@ -21,7 +21,7 @@ rows.append([lab(fit(user, W, H), "User's shot_10 (old build)"), lab(fit(Image.o
 rows.append([lab(fit(Image.open(D + 'map_before_bay.jpg').crop(crop), W, H), 'Before: Biscayne Bay'), lab(fit(Image.open(D + f'map_{tag}_bay.jpg').crop(crop), W, H), 'After: Biscayne Bay'),
              lab(fit(Image.open(D + 'map_before_fit.jpg').crop((480, 102, 1120, 912)), W, H), 'Before: whole map'), lab(fit(Image.open(D + f'map_{tag}_fit.jpg').crop((480, 102, 1120, 912)), W, H), 'After: whole map')])
 mc = (20, 760, 300, 960)
-rows.append([lab(fit(Image.open(D + 'map_before_mini_beach.jpg').crop(mc), W, H), 'Before: minimap, beach'), lab(fit(Image.open(D + f'map_{tag}_mini_beach.jpg').crop(mc), W, H), 'After: minimap, beach'),
+rows.append([lab(fit(Image.open(D + f'map_{tag}_naples03.jpg').crop(crop), W, H), 'After: Gulf coast, mid zoom'), lab(fit(Image.open(D + f'map_{tag}_naples1.jpg').crop(crop), W, H), 'After: turquoise edges, teal channel (close)'),
              lab(fit(Image.open(D + 'map_before_mini_naples.jpg').crop(mc), W, H), 'Before: minimap, Gulf coast'), lab(fit(Image.open(D + f'map_{tag}_mini_naples.jpg').crop(mc), W, H), 'After: minimap, Gulf coast')])
 S = Image.new('RGB', (W * 4 + 30, H * len(rows) + 10 * (len(rows) + 1)), (30, 32, 38))
 for j, row in enumerate(rows):
