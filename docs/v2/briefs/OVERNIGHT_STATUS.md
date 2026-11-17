@@ -1023,3 +1023,68 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     together with sea grape, gumbo limbo, sabal with boots, bougainvillea, hibiscus / croton / ixora, saw palmetto / sea oats /
     sawgrass, buttonwood and red mangrove.
   - **r2-art leaf_1_c rows:** gray leaves at South Beach under miami-city, and a vegField_coconut at L 0.455. Not yet traced to a model.
+
+## r2-web
+- **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
+- **Measured before** (`tools/v2/web/netboot.mjs`, 06:30 dist on 5201, 50 Mbps / 20 ms, cache off; `docs/v2/reports/web-boot-base5201.json`):
+  - The loading-screen art paints at 2.9 s. The title only appears after READY: **1,979 requests / 398.7 MiB before the title**, which takes at least 67 s at 50 Mbps for the transfer alone.
+  - Before control: 3,129 requests / 508.8 MiB, at least 85 s of transfer. The machine was at load average 150-390, so the measured times (READY at 532 s) are CPU-bound and not comparable.
+  - Biggest items before READY: nicoHouse textures 61 MiB, vegetation 42, city/pbr 38, ground textures 36.5, road textures 33, the whole car fleet 31, street kit 25, humans 17, all guns 16, legacy characters (Michelle / Xbot / Soldier) 10. Radio music also streams during the warm-up's car sit.
+- **Done, committed, flag OFF by default:** the quick title (`src/ui/menu/quickTitle.js`, turn on with `?quick=1`). It has the same look as the real title and is up in **0.9 s** on dev, with 14 requests / 0.9 MiB.
+  - The menu works while the world loads and shows "Loading the world N%". New Game / Continue go straight to the loading screen, which shows real boot progress. At READY it hands over to the real front end in the same state through `fe.quick` (frontend.v2.js).
+  - Booted end to end on dev (title, menu, loading, Key Largo, control) with no errors from these files. Shots: `docs/v2/shots/r2web/devquick_first_{title,afterpress,ready,control}.jpg`.
+  - To switch it on: set `QUICK_DEFAULT = true` after one more boot on a Pages build.
+- **Done, committed, inert outside the Pages build:**
+  - the offline cache (`src/web/offline.v2.js` + `tools/v2/web/sw.template.js`). It's versioned per build: each cached file keeps its content hash, and a new build drops only the files that changed. The page is network-first, music is never cached, and the files the first visit loaded are copied in from the HTTP cache.
+  - the key-art preload, the resource-timing buffer and the `data:` favicon in index.html.
+- **Tools (committed):**
+  - `tools/v2/web/build-pages.mjs`: Pages build with PAGES_BASE=/gta6/; public is hard-linked, not copied. It drops every `originals/` folder (67 MiB of duplicate club songs) and stale Miami builds, minifies JSON, Draco-compresses the uncompressed GLBs (16-bit positions, skinned and morph models skipped), and writes sw.js + sw-manifest.json + .nojekyll. `--app <checkout>` builds from a clean worktree.
+  - `pages-serve.mjs`: case-sensitive server under /gta6/ with Pages MIME types and gzip.
+  - `check-pages.mjs`: MIME spot check, then boots like a player. It fails on any 404, case mismatch or console error.
+  - Static case scan of the URL literals in src and the references in public JSON / glTF: **0 case mismatches**. The first check run (before the crash) logged only /favicon.ico, now fixed.
+- **Last build** `../pages-gta6`: 3,564 files, **893.0 MiB** (Draco saved 97.4 MiB; without it 990.3 MiB). **Not yet booted in a browser.**
+- **Left for the upload step** (in this order):
+  1. Wire `src/web/entry.js` into index.html (`<script src="./src/web/entry.js">`). It's a small first chunk, so the title paints before the 5 MB engine chunk. It was tested on dev via a copy of index.html.
+  2. Boot-check `src/web/gltfDecoders.js`. It gives every GLTFLoader a Draco / meshopt decoder and is required for the Draco build. Not booted yet.
+  3. Run `node tools/v2/web/check-pages.mjs --dir ../pages-gta6 --repeat --q "&quick=1"`, then compare spawn shots of the Draco and `--no-draco` builds.
+  4. Turn on `QUICK_DEFAULT`.
+  5. Re-apply the bandwidth gate `src/web/netGate.js` (committed, unused): the fleet's background queue in glb/index.js and the non-start guns in warmup.v2.js should wait until control. These edits were reverted, not booted.
+  6. Progressive textures: low-res first, full detail streams in after control. This is the big remaining lever, about 150 MiB of loose textures before READY.
+  7. Then deploy, and re-measure against https://silasedel.github.io/gta6/ (first visit, control, repeat visit through the service worker).
+
+## r2-ground
+- **Summary (13:05).** Two commits (`git log --grep r2-ground`): item 6 (car outline) + puddles, then items 5 / 16 / 17.
+  Sheets (JPG q90, before | after): `docs/v2/shots/ground/R2GROUND_waterline_ab.jpg` (row 1 = the user's shot_05),
+  `docs/v2/shots/ground/R2GROUND_car_outline_ab.jpg` (row 1 = the user's shot_06). Single shots `docs/v2/shots/ground/{c2,g2,g4}_*.png`.
+- **Item 6, outline around cars on grass / sand: fixed.** Cause: cars were rasterized as boxes into the ground mask's B
+  channel, which also carries the mulch rings at street trees (half value); the bilinear edge of a car box crossed the mulch
+  band, so every car got a jittered dark mulch outline, and grass was cut in a lagging box. Now cars are analytic per-frame
+  rounded footprints (`gmCarPress` in surfaceMask.js): grass, ground cover, my grass clumps and lawn blades are pressed flat
+  and splay away from the body with a soft 0.7 m car-shaped falloff, no lag while driving. Verified parked and driving on grass and sand.
+- **Item 5, waterline: done.** The white band in shot_05 was the ocean's shore-foam term on a ~20 m distance field (blocky)
+  plus a dark damp band. Now: the ocean reads a true per-pixel depth from a top-down height cascade of terrain / seabed /
+  beach sand near the camera -> see-through shallows (absorption by depth, aqua over sand, teal deeper), reflection that thins
+  out at the edge, soft breathing edge, thin broken foam lap line, tiny wavelets running in. Terrain side, per pixel from the
+  height above the still water: a swash sheet rushing up and draining back (foam at its front, bubble line at the top of the run),
+  dark glossy wet sand in the swash zone, damp sand fading up the beach, wet sand with cellular caustics under the water (terrain
+  and seabed). Smooth waterline contour (no raster sawtooth), seabed shelf runs out ~40 m (no step), sand neutral per ART_STYLE.
+  Water looks right from the beach, the Keys shores, a car on the road and the air (`g4_beach_air.png`).
+- **Item 17, grass and terrain.** Near grass from the user's Grass Clump 1 (green / dry) in `src/world/ground/grass.v2.js`
+  (scrub, meadow, verges, Keys sand patches; r2-veg's grade + ART_STYLE luminance; r2-veg removed its open-ground tufts so
+  there is no double layer). Micro-relief system in `src/world/terrain/relief.js` (swells, mounds, drainage lows, roadside swales,
+  flat at roads / buildings / claims / shores), folded into `data.terrainHeightAt` so mesh, colliders and placers agree; it is
+  **OFF by default** (`?relief=1`) after the user's floating-tree report, until every placement is verified on it. Drainage-low
+  and verge puddles fill after rain. Keys yards / lots: soft-bordered dirt / shell / sand mosaic and leaf litter.
+- **Item 16, Nico's yard ground** (with r2-keys, who owns the sheet): puddle API `src/world/ground/puddles.js` (fills with rain,
+  shrinks as it dries, ripples) used at the drive end; `game.groundGrass.patches` dense green-gray mats on r2-keys' 22 matted
+  patches; shell terrain ring around the lot (no seam at the sheet's sunk edge); yard swells are in r2-keys' sheet.
+- **Grounding audit** (`tools/v2/ground/grounding.mjs`, `docs/v2/reports/ground-grounding-r1.json`, relief off): no tree / palm /
+  countryside base floats > 3 cm at Nico's, the mangrove shore, the beach or a rural road; the '?' floaters were car wheels
+  (origin at the axle, not a bug). Routed: live oaks sunk >= 15 cm (r2-veg, fixing), lot-props bins at y = 0 on raised ground (r2-physics).
+- **Also:** LOD terrain polygon offset (no z-fight with the near terrain, r2-cars' sand report), elevated concrete neutral with
+  formed soffit panels (r2-art), city sand neutral and brighter (r2-art).
+- **tilebuild note for the lead (not committed by me):** land-base material: after `lbMat = M.far.clone()` (~line 3364) add
+  `lbMat.metalness = 0; lbMat.roughness = 0.92;` (r2-art row: metalness 0.1 -> 0).
+- **Left / honest gaps:** relief stays off until verified with every placer; ocean far-field (beyond 256 m) still uses the
+  coarse shore field; the shore field takes ~30-60 s after load to build; light triangle patches near docks in the shallows
+  (underwater terrain strip vs seabed) are faint but visible from the air.

@@ -822,6 +822,21 @@ export function createTileBuilder(ctx) {
     if (y0 > 0.5 && !b.part) { fillPolyDown(B.trim, b.rings, y0, new THREE.Color(0xcfcac2)); if (opts.coll) fillPolyDown(opts.coll, b.rings, y0, 0xffffff); } // passage / overhang soffit
     if (b._passage) for (const [x, z] of outer) { if (roadDist && roadDist(x, z) < 0.8) continue; // columns at the corners that stand clear of the lanes
       B.trim.addGeometry(CYLG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), new THREE.Color(0xd9d4ca)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), 0xffffff); }
+    if (!ARTGEO_OFF && FB && FS && !opts.lod && B.shopGlass && y0 < 0.5 && !b.part && h >= 10 && h < 46 && outer.length <= 12 && (zone === 'residential' || zone === 'beach') && (style === 'deco' || style === 'office' || style === 'band') && hash(seed + 1301) < 0.55) {
+      // r2-art: residential mid-rises read as flat boxes: stacked balconies (slab + glass rail + handrail) on the two longest faces,
+      // one per ~6.5 m bay, every floor above the ground floor
+      const gy = shops ? GF : 4.2, fh = FS.floorH || 3.2, slabC = new THREE.Color(FS.tint).lerp(new THREE.Color(0xeeeae2), 0.75), railC = new THREE.Color(0x3a3d40), white = new THREE.Color(0xffffff);
+      const edges = outer.map((p, i) => [p, outer[(i + 1) % outer.length]]).map(([p, q]) => ({ p, q, L: Math.hypot(q[0] - p[0], q[1] - p[1]) })).sort((a, c) => c.L - a.L).slice(0, 2);
+      for (const { p, q, L: el } of edges) {
+        if (el < 9) continue;
+        const tx = (q[0] - p[0]) / el, tz = (q[1] - p[1]) / el, nx = -tz, nz = tx, nb = Math.max(1, Math.floor((el - 2) / 6.5)), bw = Math.min(3.4, el / nb - 1.2), dep = 1.35;
+        for (let k = 0; k < nb; k++) { const u = (k + 0.5) * el / nb, cx = p[0] + tx * u, cz = p[1] + tz * u, ax = cx - tx * bw / 2, az = cz - tz * bw / 2, bx = cx + tx * bw / 2, bz = cz + tz * bw / 2;
+          for (let y = gy + fh; y < h - 2.4; y += fh) {
+            edgeSlab(B.trim, ax, az, bx, bz, nx, nz, y - 0.18, dep, 0.18, slabC);
+            const fx = nx * (dep - 0.03), fz = nz * (dep - 0.03), y1 = y, y2 = y + 1.0;
+            for (const v of [[ax + fx, y1, az + fz], [bx + fx, y1, bz + fz], [bx + fx, y2, bz + fz], [ax + fx, y1, az + fz], [bx + fx, y2, bz + fz], [ax + fx, y2, az + fz]]) B.shopGlass.vert(v[0], v[1], v[2], nx, 0, nz, 0, 0, white);
+            edgeSlab(B.trim, ax + fx - nx * 0.03, az + fz - nz * 0.03, bx + fx - nx * 0.03, bz + fz - nz * 0.03, nx, nz, y2, 0.06, 0.05, railC); // handrail
+          } } } }
     if (style === 'office' && h > 10 && h < 70 && hash(seed + 41) < 0.6 && outer.length < 40) { // concrete floor ledges (older offices)
       const led = scalePoly(outer, b.cx, b.cz, 0.28), lc = color.clone().multiplyScalar(0.92);
       for (let y = 4.2 + 3.5; y < h - 0.8; y += 3.5) { wallStrip(B.trim, led, y - 0.32, y, 10, 10, lc); capPoly(B.trim, led, y, lc); }
@@ -870,7 +885,7 @@ export function createTileBuilder(ctx) {
         for (let k = 0; k < n; k++) { const x = p[0] + (q[0] - p[0]) * (k + 0.5) / n, z = p[1] + (q[1] - p[1]) * (k + 0.5) / n, mx = x + (b.cx - x) * 0.03, mz = z + (b.cz - z) * 0.03;
           B.trim.addGeometry(CYLG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), new THREE.Color(0xcfd2d4)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(mx, (h + 0.5) / 2, mz, 0, 0.7, h + 0.5, 0.7), 0xffffff); } }
     }
-    if (style !== 'house' && style !== 'warehouse' && h > 6 && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
+    if (style !== 'house' && style !== 'warehouse' && h > (ARTGEO_OFF ? 6 : 3.2) && outer.length < 60) parapet(style === 'glass' ? B.trim : B.roof, outer, h, style === 'glass' ? 1.6 : 0.9, 0.3, style === 'glass' ? new THREE.Color(0x3c434a) : roofC);
     else if (style === 'warehouse' && !ARTGEO_OFF && h > 4 && outer.length < 60) parapet(B.trim, outer, h, 0.55, 0.22, new THREE.Color(0xb9b6ae)); // r2-art: warehouses get a low parapet with coping (the roof edge was a knife edge)
     if (style !== 'house' && style !== 'warehouse' && h > 9 && y0 < 0.5 && !b.part && opts.lod !== 2 && (b.area || 0) > 160) { // roof dressing: stair / elevator bulkhead, timber-and-steel water tank on legs
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), hb = hash(seed + 401);
@@ -886,7 +901,7 @@ export function createTileBuilder(ctx) {
         }
       }
     }
-    if (opts.props && !opts.lod && style !== 'house' && (style !== 'warehouse' || !ARTGEO_OFF) && style !== 'glass' && h > (style === 'warehouse' ? 4 : 6) && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks (r2-art: warehouses too)
+    if (opts.props && !opts.lod && style !== 'house' && (style !== 'warehouse' || !ARTGEO_OFF) && style !== 'glass' && h > (style === 'warehouse' || !ARTGEO_OFF ? 3.5 : 6) && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks (r2-art: warehouses too)
       const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), yb = h + (D ? baseOf(b) + 0.05 : 0), n = Math.min(4, 1 + ((b.area / 350) | 0));
       for (let k = 0; k < n; k++) { const u = (hash(seed + 801 + k) - 0.5) * Math.max(0, fr.L - 5), v = (hash(seed + 811 + k) - 0.5) * Math.max(0, fr.W - 3);
         LIBM.addClutter('rv' + b.id + '_' + k, 'roof_vents', fr.cx + fr.ux * u - fr.uz * v, yb, fr.cz + fr.uz * u + fr.ux * v, ry + (hash(seed + 821 + k) < 0.5 ? 0 : Math.PI / 2), 1); }
@@ -3409,7 +3424,7 @@ export function createTileBuilder(ctx) {
       for (let i = 0, n = b.p.length / 3; i < n; i++) { const kk = 0.85 + vn(b.p[i * 3] * 0.004, b.p[i * 3 + 2] * 0.004) * 0.3; b.c[i * 3] = 0.36 * kk; b.c[i * 3 + 1] = 0.4 * kk; b.c[i * 3 + 2] = 0.27 * kk; }
     }
     const group = new THREE.Group(); group.name = 'miami-land-base';
-    let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
+    let lbMat = M.far; if (GM_ON) { lbMat = M.far.clone(); lbMat.onBeforeCompile = M.far.onBeforeCompile; if (M.far.customProgramCacheKey) lbMat.customProgramCacheKey = M.far.customProgramCacheKey; lbMat.polygonOffset = true; lbMat.polygonOffsetFactor = 1; lbMat.polygonOffsetUnits = 2; lbMat.name = 'land-base'; lbMat.metalness = 0; lbMat.roughness = 0.92; } // ground pass: the base sits 3 cm under the terrain; pushed back in depth so it never z-fights with the terrain far away
     const m = meshOf(b, lbMat, { cast: false });
     if (m) { const pa = m.geometry.attributes.position.array, nv = m.geometry.attributes.position.count, at = new Float32Array(nv * 2), TS = provider.tileSize || 200;
       at.fill(-1e6);
