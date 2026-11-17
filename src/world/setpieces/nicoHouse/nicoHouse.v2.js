@@ -42,6 +42,8 @@ export async function initV2(game) {
   const cH = Math.cos(spot.heading || 0), sH = Math.sin(spot.heading || 0);
   const toW = (lx, lz) => [spot.x + lx * cH + lz * sH, spot.z - lx * sH + lz * cH];
   const waterAt = game.city?.isWater ? (lx, lz) => { const [x, z] = toW(lx, lz); return !!game.city.isWater(x, z); } : null;
+  // road ribbons (lead review): yard plants and weeds are rejected at the source inside any lane (+ pad), not only by the shader mask
+  const roadClear = (lx, lz, pad = 0.3) => { const [x, z] = toW(lx, lz); let r = null; try { r = game.city?.roadGraph?.nearestEdge?.(x, z, {}, 25); } catch (e) { /* */ } if (!r || !r.edge) return true; return Math.hypot(r.point.x - x, r.point.z - z) > r.edge.width / 2 + pad; };
   const groundAt = (lx, lz) => { const [x, z] = toW(lx, lz); const h = game.city?.groundHeightAt?.(x, z); return Number.isFinite(h) ? h - yGround : 0; };
   // keys pass (Nov 17): the dock (part 06, the user's pier kit) runs from the sand at the foot of the bay stair out past the
   // real waterline: find the water along the dock line, then 13 m beyond it
@@ -56,7 +58,7 @@ export async function initV2(game) {
     timeOfDay: game.timeOfDay,
     residentName: game.player?.fullName,
     vegetation: game.vegetation,
-    game, waterAt, groundAt,
+    game, waterAt, groundAt, roadClear,
     skip: KEYS_OFF ? ['55_yard', '06_dock'] : undefined,   // ?keys=0: the house as it was before the keys pass (A/B)
   });
   const g = house.group; g.position.set(spot.x, yGround, spot.z); g.rotation.y = spot.heading || 0; g.updateMatrixWorld(true); scene.add(g);

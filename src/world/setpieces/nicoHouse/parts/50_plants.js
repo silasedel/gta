@@ -521,9 +521,11 @@ gl_Position = projectionMatrix * mvPosition;
 
   // ---------- small plant builders ----------
   const NOSW = () => ZERO;
-  const tuft = (x, y, z, h, w, c, amp = 0.02, r = R) => { const a = r() * 6.28, cs = Math.cos(a), sn = Math.sin(a); tufts.add(new V3(x, y, z), new V3(cs * w, 0, sn * w), new V3((r() - 0.5) * 0.12 * h, h, (r() - 0.5) * 0.12 * h), new V3(-sn * w, 0, cs * w), c, [0, 0, amp * h * 2, x * 1.7 + z * 2.3], 9); };
+  const RC = ctx.opts.roadClear || (() => true), offRoad = (x, z, pad = 0.4) => RC(x, z, pad);   // nothing grows in a lane (lead review)
+  const tuft = (x, y, z, h, w, c, amp = 0.02, r = R) => { if (y < 0.3 && !offRoad(x, z)) return; const a = r() * 6.28, cs = Math.cos(a), sn = Math.sin(a); tufts.add(new V3(x, y, z), new V3(cs * w, 0, sn * w), new V3((r() - 0.5) * 0.12 * h, h, (r() - 0.5) * 0.12 * h), new V3(-sn * w, 0, cs * w), c, [0, 0, amp * h * 2, x * 1.7 + z * 2.3], 9); };
   const grassC = (r) => { const t = r(); return t < 0.4 ? cv([0.5, 0.66, 0.36], r, 0.2) : t < 0.8 ? cv([0.8, 0.8, 0.46], r, 0.18) : cv([1.05, 0.88, 0.55], r, 0.14); };
   const periwinkle = (x, z, s = 1, y = 0, r = R) => {
+    if (y < 0.3 && !offRoad(x, z)) return;
     const n = 6 + (r() * 4 | 0);
     for (let i = 0; i < n; i++) {
       const az = r() * 6.28, lean = 0.2 + r() * 0.7, h = (0.16 + r() * 0.2) * s, b = new V3(x + (r() - 0.5) * 0.06, y, z + (r() - 0.5) * 0.06), tip = new V3(b.x + Math.cos(az) * Math.sin(lean) * h, y + Math.cos(lean) * h, b.z + Math.sin(az) * Math.sin(lean) * h), sw = [0, 0, 0.012, az];
@@ -534,6 +536,7 @@ gl_Position = projectionMatrix * mvPosition;
   };
   // rosette of arching strap leaves on an optional stalk (ti plant, croton, snake plant, fern, orchid)
   const rosette = (x, y, z, o, r = R) => {
+    if (y < 0.3 && !offRoad(x, z, 0.6)) return;
     const top = new V3(x + (r() - 0.5) * 0.1 * (o.stalk ?? 0), y + (o.stalk ?? 0), z + (r() - 0.5) * 0.1 * (o.stalk ?? 0));
     if (o.stalk) stems.tube([new V3(x, y - 0.02, z), new V3((x + top.x) / 2 + 0.02, y + o.stalk * 0.5, (z + top.z) / 2), top], (t) => (o.stalkR ?? 0.012) * (1 - 0.3 * t), { seg: 5, col: () => cv(o.stalkC ?? [0.3, 0.26, 0.18], r, 0.1), sw: (q, t) => [0, 0, (o.amp ?? 0.01) * t, x] });
     for (let i = 0; i < o.n; i++) {
@@ -568,6 +571,7 @@ gl_Position = projectionMatrix * mvPosition;
   // ---------- understory ----------
   // saw palmetto clumps along the west lot line
   const palmetto = (x, z, s, r) => {
+    if (!offRoad(x, z, 1.2)) return;
     const n = 12 + (r() * 6 | 0);
     for (let i = 0; i < n; i++) {
       const dead = i >= n - 2, az = i * 2.4 + r(), el = dead ? 0.1 + r() * 0.2 : 0.35 + r() * 1.0, pl = (0.45 + r() * 0.6) * s, b = new V3(x + Math.cos(az) * 0.12, 0, z + Math.sin(az) * 0.12);
