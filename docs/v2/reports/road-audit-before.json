@@ -1,0 +1,609 @@
+{
+ "set": "before",
+ "when": "2026-11-17T02:45:56.063Z",
+ "junctions": {
+  "ruralT": {
+   "node": 1933,
+   "x": -99,
+   "z": 2409,
+   "zone": "rural",
+   "dist": "Coconut Grove",
+   "kinds": "primary,residential,primary",
+   "views": {
+    "top": {
+     "avgMs": 20.55,
+     "med": 21.1,
+     "calls": 240,
+     "tris": 3486391,
+     "nearTiles": 10,
+     "meshesPerTile": 7.7
+    },
+    "drive": {
+     "avgMs": 28.29,
+     "med": 28.2,
+     "calls": 464,
+     "tris": 3771091,
+     "nearTiles": 11,
+     "meshesPerTile": 7.8
+    },
+    "corner": {
+     "avgMs": 28.92,
+     "med": 28.7,
+     "calls": 542,
+     "tris": 4424069,
+     "nearTiles": 11,
+     "meshesPerTile": 7.8
+    },
+    "far": {
+     "avgMs": 31.18,
+     "med": 31.3,
+     "calls": 685,
+     "tris": 4080237,
+     "nearTiles": 12,
+     "meshesPerTile": 10.2
+    },
+    "far2": {
+     "avgMs": 35.87,
+     "med": 35.7,
+     "calls": 648,
+     "tris": 4031378,
+     "nearTiles": 13,
+     "meshesPerTile": 9.9
+    }
+   }
+  },
+  "resT": {
+   "node": 5,
+   "x": -2057,
+   "z": -6347.700000000001,
+   "zone": "residential",
+   "dist": "Okeechobee",
+   "kinds": "tertiary,tertiary,tertiary",
+   "views": {
+    "top": {
+     "avgMs": 41.49,
+     "med": 40,
+     "calls": 394,
+     "tris": 3598449,
+     "nearTiles": 9,
+     "meshesPerTile": 6.4
+    },
+    "drive": {
+     "avgMs": 36.28,
+     "med": 34.6,
+     "calls": 662,
+     "tris": 4486272,
+     "nearTiles": 10,
+     "meshesPerTile": 5.9
+    },
+    "corner": {
+     "avgMs": 251.98,
+     "med": 252.6,
+     "calls": 567,
+     "tris": 4176389,
+     "nearTiles": 10,
+     "meshesPerTile": 5.9
+    },
+    "far": {
+     "avgMs": 38.29,
+     "med": 38.8,
+     "calls": 633,
+     "tris": 4184883,
+     "nearTiles": 11,
+     "meshesPerTile": 4.3
+    },
+    "far2": {
+     "avgMs": 34.13,
+     "med": 32.2,
+     "calls": 670,
+     "tris": 4322246,
+     "nearTiles": 10,
+     "meshesPerTile": 4.4
+    }
+   }
+  },
+  "highway": {
+   "node": 587,
+   "x": -1429.3000000000002,
+   "z": -1551,
+   "zone": "rural",
+   "dist": "Big Cypress",
+   "kinds": "trunk,tertiary,trunk",
+   "views": {
+    "top": {
+     "avgMs": 20.22,
+     "med": 20.3,
+     "calls": 210,
+     "tris": 3607840,
+     "nearTiles": 9,
+     "meshesPerTile": 3.6
+    },
+    "drive": {
+     "avgMs": 25.62,
+     "med": 23.8,
+     "calls": 354,
+     "tris": 4407103,
+     "nearTiles": 11,
+     "meshesPerTile": 3.1
+    },
+    "corner": {
+     "avgMs": 28.87,
+     "med": 24.8,
+     "calls": 305,
+     "tris": 4008134,
+     "nearTiles": 12,
+     "meshesPerTile": 2.9
+    },
+    "far": {
+     "avgMs": 21.56,
+     "med": 20.6,
+     "calls": 377,
+     "tris": 4089451,
+     "nearTiles": 13,
+     "meshesPerTile": 3.9
+    },
+    "far2": {
+     "avgMs": 27.17,
+     "med": 25.9,
+     "calls": 391,
+     "tris": 4688217,
+     "nearTiles": 13,
+     "meshesPerTile": 3.9
+    }
+   }
+  },
+  "skewed": {
+   "node": 667,
+   "x": 15.5,
+   "z": -1343.1000000000001,
+   "zone": "business",
+   "dist": "Edgewater",
+   "kinds": "primary,secondary,secondary",
+   "views": {
+    "top": {
+     "avgMs": 30.39,
+     "med": 29,
+     "calls": 187,
+     "tris": 3573544,
+     "nearTiles": 9,
+     "meshesPerTile": 8
+    },
+    "drive": {
+     "avgMs": 37.42,
+     "med": 37,
+     "calls": 688,
+     "tris": 4807935,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    },
+    "corner": {
+     "avgMs": 39.33,
+     "med": 38.7,
+     "calls": 684,
+     "tris": 4567842,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    },
+    "far": {
+     "avgMs": 36.88,
+     "med": 36,
+     "calls": 601,
+     "tris": 4876677,
+     "nearTiles": 11,
+     "meshesPerTile": 6.5
+    },
+    "far2": {
+     "avgMs": 36.86,
+     "med": 36.1,
+     "calls": 602,
+     "tris": 4738141,
+     "nearTiles": 10,
+     "meshesPerTile": 6
+    }
+   }
+  },
+  "urbanT": {
+   "node": 146,
+   "x": -5514.6,
+   "z": -3967.4,
+   "zone": "commercial",
+   "dist": "Fort Myers",
+   "kinds": "primary,tertiary,tertiary",
+   "views": {
+    "top": {
+     "avgMs": 27.8,
+     "med": 27.4,
+     "calls": 285,
+     "tris": 4011388,
+     "nearTiles": 10,
+     "meshesPerTile": 7.2
+    },
+    "drive": {
+     "avgMs": 30.05,
+     "med": 30.4,
+     "calls": 483,
+     "tris": 4128794,
+     "nearTiles": 10,
+     "meshesPerTile": 7.2
+    },
+    "corner": {
+     "avgMs": 35.12,
+     "med": 33,
+     "calls": 367,
+     "tris": 3984886,
+     "nearTiles": 10,
+     "meshesPerTile": 7.2
+    },
+    "far": {
+     "avgMs": 40.67,
+     "med": 40.3,
+     "calls": 614,
+     "tris": 4450249,
+     "nearTiles": 12,
+     "meshesPerTile": 8.5
+    },
+    "far2": {
+     "avgMs": 33.4,
+     "med": 33.4,
+     "calls": 575,
+     "tris": 4274990,
+     "nearTiles": 14,
+     "meshesPerTile": 7.9
+    }
+   }
+  },
+  "res4": {
+   "node": 215,
+   "x": -1394.1000000000001,
+   "z": -3378.4,
+   "zone": "residential",
+   "dist": "Clewiston",
+   "kinds": "tertiary,tertiary,tertiary,tertiary",
+   "views": {
+    "top": {
+     "avgMs": 33.01,
+     "med": 30.5,
+     "calls": 337,
+     "tris": 3856179,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    },
+    "drive": {
+     "avgMs": 32.47,
+     "med": 32.2,
+     "calls": 723,
+     "tris": 4750982,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    },
+    "corner": {
+     "avgMs": 32.23,
+     "med": 31.9,
+     "calls": 663,
+     "tris": 4705630,
+     "nearTiles": 12,
+     "meshesPerTile": 7
+    },
+    "far": {
+     "avgMs": 30.02,
+     "med": 29.7,
+     "calls": 668,
+     "tris": 4549948,
+     "nearTiles": 11,
+     "meshesPerTile": 6.9
+    },
+    "far2": {
+     "avgMs": 32.13,
+     "med": 31.5,
+     "calls": 723,
+     "tris": 4984298,
+     "nearTiles": 10,
+     "meshesPerTile": 7
+    }
+   }
+  },
+  "urban4": {
+   "node": 1063,
+   "x": 297,
+   "z": -338.70000000000005,
+   "zone": "downtown",
+   "dist": "Downtown",
+   "kinds": "secondary,secondary,secondary,secondary",
+   "views": {
+    "top": {
+     "avgMs": 65.1,
+     "med": 65,
+     "calls": 670,
+     "tris": 4975432,
+     "nearTiles": 12,
+     "meshesPerTile": 11.1
+    },
+    "drive": {
+     "avgMs": 50.87,
+     "med": 49.7,
+     "calls": 920,
+     "tris": 5195723,
+     "nearTiles": 11,
+     "meshesPerTile": 10.7
+    },
+    "corner": {
+     "avgMs": 46.4,
+     "med": 46.4,
+     "calls": 423,
+     "tris": 4862662,
+     "nearTiles": 11,
+     "meshesPerTile": 10.7
+    },
+    "far": {
+     "avgMs": 44.34,
+     "med": 44.5,
+     "calls": 867,
+     "tris": 4891589,
+     "nearTiles": 10,
+     "meshesPerTile": 9.7
+    },
+    "far2": {
+     "avgMs": 43.8,
+     "med": 44.2,
+     "calls": 877,
+     "tris": 4971962,
+     "nearTiles": 10,
+     "meshesPerTile": 9.7
+    }
+   }
+  },
+  "town": {
+   "node": 450,
+   "x": -1334.6000000000001,
+   "z": -2493.4,
+   "zone": "commercial",
+   "dist": "Clewiston",
+   "kinds": "trunk,tertiary,trunk",
+   "views": {
+    "top": {
+     "avgMs": 31.94,
+     "med": 30.8,
+     "calls": 323,
+     "tris": 4193251,
+     "nearTiles": 9,
+     "meshesPerTile": 8.1
+    },
+    "drive": {
+     "avgMs": 38.07,
+     "med": 38.6,
+     "calls": 999,
+     "tris": 5217593,
+     "nearTiles": 9,
+     "meshesPerTile": 8.1
+    },
+    "corner": {
+     "avgMs": 43.05,
+     "med": 41.6,
+     "calls": 560,
+     "tris": 4500463,
+     "nearTiles": 9,
+     "meshesPerTile": 8.1
+    },
+    "far": {
+     "avgMs": 39.66,
+     "med": 39.1,
+     "calls": 1049,
+     "tris": 5118743,
+     "nearTiles": 9,
+     "meshesPerTile": 8.7
+    },
+    "far2": {
+     "avgMs": 57.56,
+     "med": 57.2,
+     "calls": 1032,
+     "tris": 5040282,
+     "nearTiles": 10,
+     "meshesPerTile": 8.9
+    }
+   }
+  },
+  "five": {
+   "node": 1510,
+   "x": -436.70000000000005,
+   "z": 557.1,
+   "zone": "commercial",
+   "dist": "Little Havana",
+   "kinds": "primary,secondary,secondary,secondary,tertiary,secondary,tertiary",
+   "views": {
+    "top": {
+     "avgMs": 33.35,
+     "med": 25.4,
+     "calls": 256,
+     "tris": 3913882,
+     "nearTiles": 10,
+     "meshesPerTile": 9.8
+    },
+    "drive": {
+     "avgMs": 38.13,
+     "med": 32.5,
+     "calls": 497,
+     "tris": 4424112,
+     "nearTiles": 10,
+     "meshesPerTile": 9.8
+    },
+    "corner": {
+     "avgMs": 51.72,
+     "med": 51.6,
+     "calls": 452,
+     "tris": 4429322,
+     "nearTiles": 10,
+     "meshesPerTile": 9.8
+    },
+    "far": {
+     "avgMs": 44.37,
+     "med": 43.6,
+     "calls": 474,
+     "tris": 3950403,
+     "nearTiles": 13,
+     "meshesPerTile": 10.8
+    },
+    "far2": {
+     "avgMs": 29.81,
+     "med": 29.5,
+     "calls": 485,
+     "tris": 4235123,
+     "nearTiles": 12,
+     "meshesPerTile": 10.7
+    }
+   }
+  },
+  "beach": {
+   "node": 1509,
+   "x": 2498.3,
+   "z": 481,
+   "zone": "nightlife",
+   "dist": "South Beach",
+   "kinds": "secondary,secondary,secondary,secondary",
+   "views": {
+    "top": {
+     "avgMs": 40.96,
+     "med": 36.2,
+     "calls": 263,
+     "tris": 3676445,
+     "nearTiles": 9,
+     "meshesPerTile": 9.2
+    },
+    "drive": {
+     "avgMs": 54.38,
+     "med": 55.5,
+     "calls": 920,
+     "tris": 3950565,
+     "nearTiles": 9,
+     "meshesPerTile": 9.2
+    },
+    "corner": {
+     "avgMs": 43.05,
+     "med": 37.5,
+     "calls": 458,
+     "tris": 4493580,
+     "nearTiles": 9,
+     "meshesPerTile": 9.2
+    },
+    "far": {
+     "avgMs": 48.45,
+     "med": 44.3,
+     "calls": 881,
+     "tris": 3829664,
+     "nearTiles": 10,
+     "meshesPerTile": 9.2
+    },
+    "far2": {
+     "avgMs": 46.8,
+     "med": 46,
+     "calls": 920,
+     "tris": 3896918,
+     "nearTiles": 9,
+     "meshesPerTile": 9.1
+    }
+   }
+  },
+  "industrial": {
+   "node": 1641,
+   "x": 1448.4,
+   "z": 883.6,
+   "zone": "port",
+   "dist": "Dodge Island Port",
+   "kinds": "tertiary,tertiary,tertiary",
+   "views": {
+    "top": {
+     "avgMs": 21.68,
+     "med": 21.1,
+     "calls": 140,
+     "tris": 3275833,
+     "nearTiles": 10,
+     "meshesPerTile": 9
+    },
+    "drive": {
+     "avgMs": 32.62,
+     "med": 32.2,
+     "calls": 340,
+     "tris": 3721513,
+     "nearTiles": 10,
+     "meshesPerTile": 9
+    },
+    "corner": {
+     "avgMs": 32.17,
+     "med": 28.1,
+     "calls": 332,
+     "tris": 3773016,
+     "nearTiles": 10,
+     "meshesPerTile": 9
+    },
+    "far": {
+     "avgMs": 25.99,
+     "med": 25.2,
+     "calls": 461,
+     "tris": 3895416,
+     "nearTiles": 10,
+     "meshesPerTile": 7
+    },
+    "far2": {
+     "avgMs": 25.72,
+     "med": 25.9,
+     "calls": 400,
+     "tris": 3865211,
+     "nearTiles": 10,
+     "meshesPerTile": 7.1
+    }
+   }
+  },
+  "keys": {
+   "node": 2144,
+   "x": -926,
+   "z": 5253.700000000001,
+   "zone": "residential",
+   "dist": "Key Largo",
+   "kinds": "primary,primary,primary,trunk",
+   "views": {
+    "top": {
+     "avgMs": 37.43,
+     "med": 37.5,
+     "calls": 295,
+     "tris": 4897578,
+     "nearTiles": 9,
+     "meshesPerTile": 9.1
+    },
+    "drive": {
+     "avgMs": 78.44,
+     "med": 80.2,
+     "calls": 626,
+     "tris": 5787151,
+     "nearTiles": 9,
+     "meshesPerTile": 9.1
+    },
+    "corner": {
+     "avgMs": 50.14,
+     "med": 46.4,
+     "calls": 599,
+     "tris": 5343000,
+     "nearTiles": 9,
+     "meshesPerTile": 9.1
+    },
+    "far": {
+     "avgMs": 223.69,
+     "med": 226.5,
+     "calls": 804,
+     "tris": 5378034,
+     "nearTiles": 12,
+     "meshesPerTile": 8.4
+    },
+    "far2": {
+     "avgMs": 51.1,
+     "med": 50.3,
+     "calls": 688,
+     "tris": 5513300,
+     "nearTiles": 12,
+     "meshesPerTile": 8.1
+    }
+   }
+  }
+ },
+ "errors": [
+  "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+ ]
+}
