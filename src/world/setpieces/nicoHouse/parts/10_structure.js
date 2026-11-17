@@ -175,6 +175,7 @@ export function build(ctx) {
   const rise = P.rise, run = P.run, TR = { grain: 0, bevel: 0.006 };
   // one straight flight. o: { x, z, y: top nosing position (center of the flight width), dir: [dx, dz] downhill, n: treads, w: width, rails: 'both'|'left'|'right' }
   const flight = (o) => {
+    (ctx.stairs ||= []).push({ x: o.x, z: o.z, y: o.y, dir: o.dir, n: o.n, w: o.w, rise, run });   // player foot IK (game.nicoHouse.stairs, world space via nicoHouse.v2.js)
     const [dx, dz] = o.dir, px = -dz, pz = dx, n = o.n, ry = Math.atan2(-dz, dx), total = n * run, drop = (n + 1) * rise;
     const at = (t, y, s = 0) => [o.x + dx * t + px * s, y, o.z + dz * t + pz * s];
     for (let i = 1; i <= n; i++) {

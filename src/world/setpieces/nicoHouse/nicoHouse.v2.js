@@ -109,7 +109,10 @@ export async function initV2(game) {
   // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
   // CAR_SPOTS documents the mock-up spots and is kept clear of props
   const parked = [];
-  game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS };
+  // stair flights in world space for the player's foot IK: { o (top nosing, flight center), dir (downhill), side, w, n, rise, run, yTop }
+  const stairs = (house.stairs || []).map((f) => { const o = toWorld(new THREE.Vector3(f.x, f.y, f.z)), dir = new THREE.Vector3(f.dir[0], 0, f.dir[1]).applyQuaternion(qH).normalize(), side = new THREE.Vector3(-dir.z, 0, dir.x);
+    return { o, dir, side, w: f.w, n: f.n, rise: f.rise, run: f.run, yTop: o.y }; });
+  game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS, stairs };
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
   const sp = anchors.spawnYard || anchors.spawn;

@@ -79,7 +79,7 @@ export async function buildNicoHouse(THREE, opts = {}) {
   let lodT = 0, lodScanT = 0;
   const env0 = { timeOfDay: ctx.time, camera: null, game: null };
   const house = {
-    group: ctx.group, colliders: ctx.colliders, interact: ctx.interact, lights: ctx.lights, anchors: ctx.anchors, plan, stats: ctx.stats, kit, lodStats,
+    group: ctx.group, stairs: ctx.stairs || [], colliders: ctx.colliders, interact: ctx.interact, lights: ctx.lights, anchors: ctx.anchors, plan, stats: ctx.stats, kit, lodStats,
     // resolves when every texture and model has arrived (the house is already usable before that)
     loaded: Promise.all([...kit.pending, ...ctx.async]).then(() => true),
     update(dt, env = env0) {
