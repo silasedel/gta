@@ -782,6 +782,13 @@ if not CFG.get('keepBadges'):
         # emblems and model lettering of any finish: small, thin, on the centerline of the nose / tail
         ((diag < 0.3) & (np.abs(c2[:, 0]) < 0.26) & ((mx2 - mn2).min(axis=1) < 0.06)) |
         ((diag < 0.16) & (np.abs(c2[:, 0]) < 0.7) & ((mx2 - mn2).min(axis=1) < 0.03) & (gzc < fz_rear + 0.75)))
+    # grille meshes / slats repeat the same island many times: a pattern, never an emblem
+    from collections import Counter
+    sig = [(int(cnt2[j]), round(float(diag[j]), 2)) for j in range(n2)]
+    rep = Counter(sig[j] for j in range(n2) if bad[j])
+    for j in range(n2):
+        if bad[j] and rep[sig[j]] >= 3: bad[j] = False
+    if bad.sum() > 60: log('emblem candidates', int(bad.sum()), '-> too many, keeping the strict metal rule only'); bad &= metalish & (diag < 0.2)
     if bad.any():
         dead = [f for f in b3.faces if bad[inv2[f.verts[0].index]]]
         bmesh.ops.delete(b3, geom=dead, context='FACES'); b3.to_mesh(me_all)
@@ -997,6 +1004,7 @@ man = {
 # ------------------------------------------------------------------ export
 out = os.path.join(OUTDIR, KEY + '.glb')
 bpy.ops.object.select_all(action='SELECT')
+out_final = out; out = out + '.tmp.glb'
 bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', use_selection=True, export_yup=True, export_apply=False,
                           export_texcoords=True, export_normals=True, export_materials='EXPORT',
                           export_vertex_color='NAME', export_vertex_color_name='SLcol', export_all_vertex_colors=False,
@@ -1004,5 +1012,6 @@ bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', use_selection=True,
                           export_draco_position_quantization=14, export_draco_normal_quantization=10, export_draco_texcoord_quantization=12,
                           export_draco_color_quantization=10, export_animations=False, export_image_format='WEBP' if (TEXTURED or tex_slot) else 'NONE', export_image_quality=82)
 man['bytes'] = os.path.getsize(out)
-json.dump(man, open(os.path.join(OUTDIR, KEY + '.json'), 'w'), indent=1)
+os.replace(out, out_final)
+json.dump(man, open(os.path.join(OUTDIR, KEY + '.json.tmp'), 'w'), indent=1); os.replace(os.path.join(OUTDIR, KEY + '.json.tmp'), os.path.join(OUTDIR, KEY + '.json'))
 log('DONE', json.dumps({k: man[k] for k in ('dims', 'wb', 'r', 'tris', 'bytes')}), 'secs', round(time.time() - T0, 1))

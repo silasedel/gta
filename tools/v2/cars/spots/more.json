@@ -1,0 +1,7 @@
+{
+  "dt_traffic": { "player": [407, -110, 0], "tod": 15, "settle": 14000, "car": "*", "ai": true, "off": [-1.6, 2.2, -11], "fov": 50 },
+  "dt_traffic2": { "tod": 15, "settle": 4000, "car": "*", "ai": true, "off": [6, 4.5, 14], "fov": 55, "lookY": 0.5 },
+  "night_traffic": { "tod": 21.5, "settle": 5000, "car": "*", "ai": true, "off": [2.8, 1.3, 6.5], "fov": 48 },
+  "night_rear": { "tod": 21.5, "settle": 3000, "car": "*", "ai": true, "off": [-1.2, 1.4, -6.5], "fov": 48 },
+  "res_parked": { "player": [-660, -55, 0], "tod": 10.5, "settle": 14000, "car": "*", "off": [7, 3, 9], "fov": 60 }
+}
