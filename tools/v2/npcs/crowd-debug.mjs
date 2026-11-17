@@ -18,7 +18,9 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 600 }, async (b) => {
     const ids = {}; for (const p of L) { const k = p.char.npcArch || 'legacy'; (ids[k] ||= []).push([p.pos.x | 0, p.pos.z | 0, p.char.root.visible ? 'v' : 'h', p.char.root.parent ? 's' : '-']); }
     const twins = Object.fromEntries(Object.entries(ids).filter(([k, v]) => v.length > 1));
     const live = [...game.npc.cast.live].map((c) => [c.npcArch, c.root.position.x | 0, c.root.position.z | 0, c.root.visible ? 'v' : 'h', c.root.parent ? 's' : '-']);
-    return { active: L.length, sharedCharObjects: shared, twins, live, log: window.__log.slice(-60), stats: game.npc.peopleStats() };
+    const probe = []; for (const c of game.npc.cast.live) probe.push([c.npcArch, typeof c.npcArch, c.root.visible, !!c.root.parent, c._born | 0, c.root.position.x | 0]);
+    const pk = game.npc.cast.pick(['business', 'street'], { x: 417, z: -154 });
+    return { pick: pk && pk.id, probe, active: L.length, sharedCharObjects: shared, twins, live, log: window.__log.slice(-60), stats: game.npc.peopleStats() };
   })())`);
   console.log(JSON.stringify(JSON.parse(r), null, 0).replace(/\],\[/g, '],\n['));
 });

@@ -8,7 +8,7 @@ import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const PLACES = {
-  downtown: { p: [407, -110], tod: 11 }, brickell: { p: [0, 1760], tod: 16 }, beach: { p: [2332, -660], tod: 13 }, ocean: { p: [3430, -300], tod: 15 },
+  downtown: { p: [407, -110], tod: 11 }, brickell: { p: [0, 1760], tod: 16 }, beach: { p: [2332, -660], tod: 13 }, southbeach: { p: [2398, 660], tod: 11 },
   keys: { p: [-873.6, 4845.2], tod: 11 }, keywest: { p: [-4895, 5940], tod: 11 }, clewiston: { p: [-1540, -2805], tod: 11 }, havana: { p: [-660, -55], tod: 17 },
 };
 const SET = o.set || 'g';
@@ -22,11 +22,15 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; return 1; })()`);
   for (const id of only) {
     const P = PLACES[id] || { p: id.split(':').map(Number), tod: 12 };
-    await b.eval(`(() => { game.cameraOverride = null; game.timeOfDay = ${o.tod || P.tod}; game.teleport(${P.p[0]}, undefined, ${P.p[1]}, 0); return 1; })()`);
+    // land on a real sidewalk near the place (map v3: never in the water)
+    const at = await b.eval(`(() => { game.cameraOverride = null; game.timeOfDay = ${o.tod || P.tod}; const c = game.city; let q = null;
+      for (let r = 40; r <= 400 && !q; r *= 2) for (let k = 0; k < 12 && !q; k++) { const s = c.randomSidewalkPoint?.({ x: ${P.p[0]}, y: 0, z: ${P.p[1]} }, r); if (s && Number.isFinite(s.x) && !c.isWater(s.x, s.z)) q = s; }
+      q = q || { x: ${P.p[0]}, z: ${P.p[1]} }; game.teleport(q.x, undefined, q.z, 0); return JSON.stringify([q.x | 0, q.z | 0, c.zoneAt(q.x, q.z), c.isWater(q.x, q.z)]); })()`);
+    console.log(id, 'at', at);
     await b.sleep(6000);
     for (let i = 0; i < 40; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
     await b.sleep(+(o.wait || 25) * 1000);
-    const st = JSON.parse(await b.eval(`JSON.stringify((() => { const L = game.peds.list.filter((p) => p.active && p.char); return { active: L.length, people: L.filter((p) => p.char.human?.person).length, ids: L.filter((p) => p.char.human?.person).map((p) => p.char.npcArch), roles: L.map((p) => p.char.human?.role || (p.char.npcArch ? 'arch:' + p.char.npcArch : 'legacy')), cast: game.npc?.peopleStats?.(), zone: game.city.zoneAt(game.player.position.x, game.player.position.z), district: game.city.districtAt(game.player.position.x, game.player.position.z) }; })())`));
+    const st = JSON.parse(await b.eval(`JSON.stringify((() => { const L = game.peds.list.filter((p) => p.active && p.char); return { active: L.length, people: L.filter((p) => p.char.human?.person).length, ids: L.filter((p) => p.char.human?.person).map((p) => p.char.npcArch), unique: new Set(L.filter((p) => p.char.human?.person).map((p) => p.char.npcArch)).size, roles: L.map((p) => p.char.human?.role || (p.char.npcArch ? 'arch:' + p.char.npcArch : 'legacy')), cast: game.npc?.peopleStats?.(), zone: game.city.zoneAt(game.player.position.x, game.player.position.z), district: game.city.districtAt(game.player.position.x, game.player.position.z) }; })())`));
     console.log(id, JSON.stringify(st));
     rep[id] = st;
     // street view: the person with the most neighbors within 12 m, camera 8 m away at eye height looking at them
@@ -41,14 +45,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       return bn; })()`);
     await b.sleep(1500);
     await b.screenshot(`${DIR}/${SET}_${id}_street.png`);
-    if (o.cops) {
-      // police model hook: officers from the user's people (game.npc.createCop via police.js spawnCop)
-      const cs = await b.eval(`(() => { const pp = game.player.position; const out = []; for (let k = 0; k < ${+o.cops}; k++) { const a = k * 1.3; const u = game.police.spawnCop(new THREE.Vector3(pp.x + Math.sin(a) * 7, pp.y, pp.z + Math.cos(a) * 7), a + Math.PI); if (u) { u.mode = 'idle'; out.push((u.char.npcArch || 'legacy') + (u.char.human?.person ? '*' : '')); } } window.__cop = game.police.units.find((u) => u.active); return JSON.stringify(out); })()`.replace('new THREE.Vector3', 'new (game.player.position.constructor)'));
-      console.log('  cops', cs);
-      await b.eval(`(() => { game.cameraOverride = (dt, cam) => { const t = game.player.position; cam.position.set(t.x + 4, t.y + 2.2, t.z - 9); cam.lookAt(t.x, t.y + 1.1, t.z + 2); return true; }; return 1; })()`);
-      await b.sleep(1500);
-      await b.screenshot(`${DIR}/${SET}_${id}_police.png`);
-    }
+    await b.eval(`(() => { try { game.wanted?.setStars?.(0); game.wanted?.clear?.(); } catch (e) {} try { if (game.wanted) game.wanted.level = 0; } catch (e) {} return 1; })()`);
     // close-ups: different people, camera 1.9 m in front of them, chest/face height
     const n = +(o.close ?? 4);
     const ids = JSON.parse(await b.eval(`JSON.stringify(game.peds.list.filter((p) => p.active && p.char?.human?.person && !p.dead).map((p) => p.id))`));
@@ -68,6 +65,16 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
         game.peds.damage(p, 30, { x: 1, z: 0.3 }, 'car', { impulse: 6000 }); return p.char.npcArch + ' ' + p.state; })()`);
       console.log('  ragdoll', who);
       if (who !== 'none') { await b.sleep(450); await b.screenshot(`${DIR}/${SET}_${id}_rag0.png`); await b.sleep(2200); await b.screenshot(`${DIR}/${SET}_${id}_rag1.png`); }
+    }
+    if (o.cops) {
+      // police model hook: officers from the user's people (game.npc.createCop via police.js spawnCop)
+      const cs = await b.eval(`(() => { const pp = game.player.position; const out = []; for (let k = 0; k < ${+o.cops}; k++) { const a = k * 1.3; const u = game.police.spawnCop(new THREE.Vector3(pp.x + Math.sin(a) * 7, pp.y, pp.z + Math.cos(a) * 7), a + Math.PI); if (u) { u.mode = 'idle'; out.push((u.char.npcArch || 'legacy') + (u.char.human?.person ? '*' : '')); } } window.__cop = game.police.units.find((u) => u.active); return JSON.stringify(out); })()`.replace('new THREE.Vector3', 'new (game.player.position.constructor)'));
+      console.log('  cops', cs);
+      await b.eval(`(() => { game.cameraOverride = (dt, cam) => { const t = game.player.position; cam.position.set(t.x + 4, t.y + 2.2, t.z - 9); cam.lookAt(t.x, t.y + 1.1, t.z + 2); return true; }; return 1; })()`);
+      await b.sleep(1500);
+      await b.screenshot(`${DIR}/${SET}_${id}_police.png`);
+      // back to a clean state: officers gone, nobody wanted (no arrest overlay over the next place's shots)
+      await b.eval(`(() => { for (const u of game.police.units) if (u.active) game.police.despawnCop(u); try { game.wanted?.setStars?.(0); game.wanted?.clear?.(); } catch (e) {} try { if (game.wanted) game.wanted.level = 0; } catch (e) {} return 1; })()`);
     }
     await b.eval('(game.cameraOverride = null, 1)');
   }

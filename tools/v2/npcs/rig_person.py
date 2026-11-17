@@ -191,6 +191,58 @@ def slice_center(z, half=0.11):
 
 J = {}
 def put(n, v): J[n] = Vector(v)
+
+# ---------------------------------------------------------------- fingers: knuckles and lanes from the hand mesh
+# T-pose, palm down: the four fingers lie side by side along y (index at the front, -y), the thumb sticks out toward the
+# front near the wrist. Joints sit at the knuckles; weights are assigned per lane later (FW).
+FW = {}
+def fingers_side(side, a, S, zl, yl):
+    """hand frame from the mesh (the scan's hand may point a little forward / back of the arm line): u = along the hand,
+    w = across it (toward the thumb side = front), lanes across w, phalanges along u"""
+    wr, tip = a['wrist'], a['tip']; L = tip - wr
+    zc = zl(wr)
+    hand = P[(side * X > wr) & (np.abs(Z - zc) < 0.06 * H)]
+    W0 = np.array([side * wr, yl(wr), zc])
+    d = hand - W0
+    # principal direction in the x-y plane, oriented outward
+    m = d[:, :2] - d[:, :2].mean(0); cv = m.T @ m; ev, evec = np.linalg.eigh(cv); u2 = evec[:, -1]
+    if u2[0] * side < 0: u2 = -u2
+    u = np.array([u2[0], u2[1], 0.0]); u /= np.linalg.norm(u)
+    w = np.array([-u[1], u[0], 0.0]) * side       # across, sign so that -y (front) is negative w for both hands? fix below
+    if w[1] > 0: w = -w                            # w points to the front (-y): the index / thumb side
+    al, ac = d @ u, d @ w
+    Lh = al.max()
+    dk = 0.56 * Lh                                  # knuckle line (MCP), along the hand
+    fm = al > dk + 0.01 * H
+    a0, a1 = np.percentile(ac[fm], 3), np.percentile(ac[fm], 97)   # across range of the four fingers (front = high)
+    lw = (a1 - a0) / 4
+    lanes = {}
+    for k, f in enumerate(('Index', 'Middle', 'Ring', 'Pinky')):
+        hi, lo = a1 - lw * k, a1 - lw * (k + 1)
+        q = (ac >= lo) & (ac < hi) & fm
+        ft = al[q].max() if q.sum() > 3 else Lh * (1 - 0.04 * k)
+        fz = float(np.median(hand[q][:, 2])) if q.sum() > 3 else zc
+        base = dk - (0.012 * H if f == 'Pinky' else 0.004 * H if f == 'Index' else 0)
+        lanes[f] = dict(lo=lo, hi=hi, base=base, len=ft - base, z=fz)
+        for j, t in enumerate((0.0, 0.45, 0.75)):
+            pt = W0 + u * (base + (ft - base) * t) + w * ((lo + hi) / 2); pt[2] = fz
+            put(S + 'Hand' + f + str(j + 1), pt)
+    # Middle1 on the hand axis: the Hand bone points along the real hand (the re-pose straightens it to +-X)
+    pm = W0 + u * dk; pm[2] = zl(wr)
+    J[S + 'HandMiddle1'] = Vector(pm)
+    # thumb: hand verts beyond the index lane (front) between the wrist and the knuckles
+    tm = (al < dk + 0.2 * Lh) & (ac > a1 + 0.1 * lw)
+    if tm.sum() > 10:
+        tq = hand[tm]; tip_t = tq[np.argmax(ac[tm] + 0.5 * al[tm])]
+        r0 = W0 + u * (0.1 * Lh) + w * (a1 - 0.3 * lw); r0[2] = zc - 0.008 * H
+        thumb = dict(root=Vector(r0), tip=Vector(tip_t))
+    else:
+        r0 = W0 + u * (0.1 * Lh) + w * (a1 + 0.3 * lw); r0[2] = zc - 0.01 * H
+        thumb = dict(root=Vector(r0), tip=Vector(r0 + u * 0.35 * Lh + w * 0.3 * lw))
+    for j, t in enumerate((0.0, 0.4, 0.7)):
+        put(S + 'HandThumb' + str(j + 1), thumb['root'] + (thumb['tip'] - thumb['root']) * t)
+    FW[S] = dict(side=side, W0=Vector(W0), u=Vector(u), w=Vector(w), dk=dk, a1=a1, lw=lw, lanes=lanes, thumb=thumb)
+
 _, hy, hd = slice_center(hipZ + 0.02 * H, 0.2)
 put('Hips', (0, hy + 0.1 * hd, hipZ + 0.02 * H))
 neckZ = zArm + 0.03 * H
@@ -212,14 +264,7 @@ for side, a in ((1, armL), (-1, armR)):
     put(S + 'Arm', (side * a['sh'], yl(a['sh']), zl(a['sh'])))
     put(S + 'ForeArm', (side * el, yl(el), zl(el)))
     put(S + 'Hand', (side * a['wrist'], yl(a['wrist']), zl(a['wrist'])))
-    hl = a['tip'] - a['wrist']
-    for k, (f, fy, fz) in enumerate((('Index', -0.016, 0), ('Middle', -0.004, 0), ('Ring', 0.008, 0), ('Pinky', 0.019, -0.003))):
-        for j, t in enumerate((0.45, 0.66, 0.84)):
-            d = a['wrist'] + hl * t * (1 - 0.06 * k if f != 'Middle' else 1)
-            put(S + 'Hand' + f + str(j + 1), (side * d, yl(a['wrist']) + fy * H * (1 if j == 0 else 0.9), zl(d) + fz * H))
-    for j, t in enumerate((0.12, 0.3, 0.45)):
-        d = a['wrist'] + hl * t
-        put(S + 'HandThumb' + str(j + 1), (side * d, yl(a['wrist']) - (0.018 + 0.006 * j) * H, zl(d) - 0.01 * H))
+    fingers_side(side, a, S, zl, yl)
 for side, l in ((1, legL), (-1, legR)):
     S = 'Left' if side > 0 else 'Right'
     hip = Vector((l['hx'], J['Hips'].y, hipZ))
@@ -265,7 +310,7 @@ for n in J:
 bpy.ops.object.mode_set(mode='OBJECT')
 FINGER = lambda n: 'Hand' in n and any(f in n for f in ('Index', 'Middle', 'Ring', 'Pinky', 'Thumb'))
 for b in arm_data.bones:
-    b.use_deform = not FINGER(b.name)
+    b.use_deform = not FINGER(b.name)      # off for bone heat; switched on after the finger weights are written
 
 # ---------------------------------------------------------------- LOD meshes (decimated copies of the cleaned mesh)
 bpy.ops.object.select_all(action='DESELECT')
@@ -281,6 +326,52 @@ for li, target in enumerate(LODS):
         md = o.modifiers.new('dec', 'DECIMATE'); md.decimate_type = 'COLLAPSE'; md.ratio = ratio; md.use_collapse_triangulate = True
         activate(o); bpy.ops.object.modifier_apply(modifier=md.name)
     lods.append(o)
+
+
+def finger_weights(o):
+    """finger lanes past the knuckles take over from the Hand bone (smooth ramps across knuckles and lanes)"""
+    def g(n): return o.vertex_groups.get(n) or o.vertex_groups.new(name=n)
+    for S, F in FW.items():
+        W0, u, w = F['W0'], F['u'], F['w']
+        for v in o.data.vertices:
+            d = v.co - W0
+            al = d.dot(u)
+            if al < 0 or abs(d.z) > 0.07 * H: continue
+            ac = d.dot(w)
+            wset = {}
+            ramp = min(1.0, max(0.0, (al - (F['dk'] - 0.012 * H)) / (0.022 * H)))
+            if ramp > 0:
+                for k, (f, ln) in enumerate(F['lanes'].items()):
+                    c = (ln['lo'] + ln['hi']) / 2; hw = (ln['hi'] - ln['lo']) / 2
+                    dd = abs(ac - c)
+                    lane = 1.0 if dd < hw * 0.7 else max(0.0, 1 - (dd - hw * 0.7) / (hw * 0.6))
+                    if f == 'Index' and ac > c: lane = 1.0
+                    if f == 'Pinky' and ac < c: lane = 1.0
+                    if lane <= 0: continue
+                    t = (al - ln['base']) / max(1e-4, ln['len'])
+                    for j, a0, a1 in ((1, -9, 0.45), (2, 0.45, 0.75), (3, 0.75, 9)):
+                        bl = 0.05
+                        if a0 + bl <= t < a1 - bl: wj = 1.0
+                        elif abs(t - a0) < bl: wj = 0.5 + 0.5 * (t - a0) / bl
+                        elif abs(t - a1) < bl: wj = 0.5 - 0.5 * (t - a1) / bl
+                        else: wj = 0.0
+                        if wj > 0: wset[S + 'Hand' + f + str(j)] = wset.get(S + 'Hand' + f + str(j), 0) + wj * lane * ramp
+            T = F['thumb']; r0, r3 = T['root'], T['tip']
+            ax = r3 - r0; L2 = ax.length_squared
+            if L2 > 1e-8 and ac > F['a1'] - 0.2 * F['lw'] and al < F['dk'] + 0.25 * F['lw'] * 4:
+                t = (v.co - r0).dot(ax) / L2
+                if -0.2 < t < 1.4:
+                    dist = (v.co - (r0 + ax * max(0, min(1, t)))).length
+                    if dist < 0.03 * H:
+                        k = min(1.0, max(0.0, (ac - (F['a1'] - 0.2 * F['lw'])) / (0.4 * F['lw'])))
+                        j = 1 if t < 0.4 else 2 if t < 0.7 else 3
+                        wset[S + 'HandThumb' + str(j)] = wset.get(S + 'HandThumb' + str(j), 0) + k * min(1.0, (t + 0.2) / 0.35)
+            tot = sum(wset.values())
+            if tot <= 0: continue
+            keep = max(0.0, 1 - min(1.0, tot))
+            for ge in list(v.groups): ge.weight *= keep
+            sc = min(1.0, tot) / tot
+            for n, wv in wset.items(): g('mixamorig:' + n).add([v.index], wv * sc, 'ADD')
 
 # ---------------------------------------------------------------- weights: bone heat on a watertight proxy
 deform = [b.name for b in arm_data.bones if b.use_deform]
@@ -363,12 +454,14 @@ for o in lods:
             for g in list(vs[vi].groups): o.vertex_groups[names[g.group]].remove([vi])
             for g in src.groups: o.vertex_groups[names[g.group]].add([vi], g.weight, 'REPLACE')
         log(o.name, 'fixed unweighted verts', len(bad))
+    finger_weights(o)
     bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
     bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL', lock_active=False)
     md = o.modifiers.new('Armature', 'ARMATURE'); md.object = rig
     o.parent = rig
 bpy.data.objects.remove(proxy, do_unlink=True)
 bpy.data.objects.remove(body, do_unlink=True)
+for b in arm_data.bones: b.use_deform = True
 
 # ---------------------------------------------------------------- color probe for the far crowd tier (positions + UVs of LOD1, T-pose)
 try:

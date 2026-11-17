@@ -68,14 +68,21 @@ export async function createCast(game) {
 
   // ---------------------------------------------------------------- loading (one at a time, idle time)
   const queue = []; const queued = new Set(); let inflight = 0; let warmQ = [];
-  const want = (ids) => { for (const id of ids) if (!queued.has(id) && !getPerson(id)) { queued.add(id); queue.push(id); } };
-  function wantPlaces(places, n = 8) {
+  // urgent wants (the place the player is in now) go to the front of the queue
+  const want = (ids, urgent = false) => {
+    for (const id of ids) {
+      if (getPerson(id)) continue;
+      if (queued.has(id)) { if (urgent) { const i = queue.indexOf(id); if (i > 0) { queue.splice(i, 1); queue.unshift(id); } } continue; }
+      queued.add(id); if (urgent) queue.unshift(id); else queue.push(id);
+    }
+  };
+  function wantPlaces(places, n = 8, urgent = false) {
     const c = people.filter((p) => has(p, places)).sort((a, b) => rank(a, places) - rank(b, places) || Math.random() - 0.5);
-    want(c.slice(0, n).map((p) => p.id));
+    want(c.slice(0, n).map((p) => p.id).reverse(), urgent);
   }
   const idle = (f) => (globalThis.requestIdleCallback ? requestIdleCallback(f, { timeout: 500 }) : setTimeout(f, 60));
   function pump() {
-    while (inflight < 1 && queue.length) {
+    while (inflight < 2 && queue.length) {
       const id = queue.shift(); inflight++;
       loadPerson(id).then((b) => { warmQ.push(b); }).catch(() => null).finally(() => { inflight--; queued.delete(id); idle(() => { trim(); pump(); }); });
     }
@@ -108,8 +115,9 @@ export async function createCast(game) {
       let s = (1 / (1 + rank(p, places) * 0.6)) * (0.55 + Math.random() * 0.45);
       let near = 1e9, n = 0;
       for (const c of live) {
-        if (c.npcArch !== b.id || !c.root.visible || (!c.root.parent && now() - c._born > 0.5)) continue;
-        n++; if (pos) near = Math.min(near, Math.hypot(c.root.position.x - pos.x, c.root.position.z - pos.z));
+        if (c.npcArch !== b.id) continue;
+        // a pooled (hidden) copy counts as right here: the pool reuses it instead of a second copy being made
+        n++; near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(c.root.position.x - pos.x, c.root.position.z - pos.z));
       }
       if (n && (!pos || near < NEAR_DUP)) continue;        // never the same person close by
       if (n) s *= 0.25 / n;                                  // far away twin: only when nothing else fits
@@ -118,7 +126,7 @@ export async function createCast(game) {
     }
     // ask for more people of these places (so the next spawn has fresh faces)
     const loadedN = people.filter((p) => has(p, places) && getPerson(p.id)).length;
-    if (loadedN < 14) { wantPlaces(places, loadedN + 6); pump(); }
+    if (loadedN < 14) { wantPlaces(places, loadedN + 6, true); pump(); }
     return best;
   }
   function make(b, opts = {}) {
@@ -242,7 +250,7 @@ export async function createCast(game) {
     zT -= dt; if (zT > 0) return; zT = 4;
     const pp = game.player?.position; if (!pp) return;
     const ctx = ctxAt(pp); const z = zoneAt(pp.x, pp.z);
-    wantPlaces(placesFor(z, null, ctx), 10);
+    wantPlaces(placesFor(z, null, ctx), 14, true);
     if (z === 'beach') wantPlaces(['beach', 'swim'], 6);
     if (game.wanted?.level) wantPlaces(ctx.swat ? ['police_swat', 'police'] : ['police'], 4);
     pump();
