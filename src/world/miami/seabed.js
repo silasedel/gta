@@ -27,6 +27,14 @@ export function createSeabed(game, city) {
   const SAND = new THREE.Color(0xc8b48a), WET = new THREE.Color(0x8f7f5f), GRASS = new THREE.Color(0x3f5a2e), ROCK = new THREE.Color(0x6b6558), _c = new THREE.Color();
 
   let center = null, job = null, cur = 0;
+  // ground pass: a shallow shelf along every shore (0.3 m at the waterline, ~2 m at 14 m out) instead of a cliff straight down to the
+  // data depth: docks / riprap at the waterline stand in shallow water, and the see-through waterline shows sand, not a void
+  const SH_R = [1.5, 3, 5, 8, 11, 14], SH_D = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
+  function shelfAt(x, z) {
+    const W = city.isWater; if (!W) return 99;
+    for (const r of SH_R) for (const [dx, dz] of SH_D) if (!W(x + dx * r, z + dz * r)) return 0.3 + r * 0.12 + r * r * 0.004;
+    return 99;
+  }
   function startBuild(cx, cz) {
     const g = geoms[1 - cur];
     job = { g, cx, cz, row: 0, water: 0 };
@@ -39,7 +47,7 @@ export function createSeabed(game, city) {
       for (let i = 0; i < N; i++) {
         const x = x0 + i * STEP, k = j.row * N + i;
         const water = city.isWater ? city.isWater(x, z) : false;
-        let y = water ? SEA - Math.max(0.2, city.seabedDepthAt(x, z)) : -0.35; // under land: hidden by the land surface, forms the shore slope
+        let y = water ? SEA - Math.max(0.2, Math.min(city.seabedDepthAt(x, z), shelfAt(x, z))) : -0.35; // under land: hidden by the land surface, forms the shore slope
         if (!Number.isFinite(y)) y = SEA - 3;
         if (water) { j.water++; y += (noise(x * 0.35, z * 0.35) - 0.5) * 0.35; }
         pos[k * 3] = x; pos[k * 3 + 1] = y; pos[k * 3 + 2] = z;

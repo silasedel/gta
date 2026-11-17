@@ -101,6 +101,21 @@ float reH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 float reN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(reH1(i), reH1(i + vec2(1.0, 0.0)), f.x), mix(reH1(i + vec2(0.0, 1.0)), reH1(i + vec2(1.0, 1.0)), f.x), f.y); }
 ` + sh.fragmentShader.replace('#include <normal_fragment_begin>', /* glsl */`{
         vec2 w = vGmW.xz; float fine = gmFine(w);
+        { // Keys asphalt (mock-up): pale, sun-bleached, a thin film of coral sand in patches; shallow puddles linger in the low spots
+          float kk = smoothstep(4150.0, 4500.0, w.y);
+          if (kk > 0.0 && vGmW.y < 1.2) {
+            float b1 = reN(w * 0.21 + 1.3), b2 = reN(w * 1.7 - 4.1), b3 = reN(w * 6.3 + 2.2);
+            float l = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+            vec3 bleached = mix(diffuseColor.rgb, vec3(l) * vec3(1.06, 1.03, 0.96), 0.5) * 1.22;
+            float film = smoothstep(0.45, 0.8, b1 * 0.6 + b2 * 0.4) * (0.55 + 0.45 * b3);
+            diffuseColor.rgb = mix(diffuseColor.rgb, bleached, kk * 0.85);
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.47, 0.41) * (0.85 + 0.3 * b3), film * 0.4 * kk);
+            roughnessFactor = mix(roughnessFactor, 0.97, film * 0.5 * kk);
+            float lowSpot = smoothstep(0.62, 0.7, reN(w * 0.13 + 8.1) * 0.7 + b2 * 0.3);
+            float kp = max(uWeather.y, 0.35 * kk) * lowSpot;
+            if (kp > 0.0) { reP = max(reP, kp); diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.32 + vec3(0.012), kp); roughnessFactor = mix(roughnessFactor, 0.03, kp); }
+          }
+        }
         if (fine > 0.01 && vGmW.y < 1.2) {
           vec4 gn = gmNear(w);
           float open = (1.0 - smoothstep(0.06, 0.18, gn.g)) * fine;
