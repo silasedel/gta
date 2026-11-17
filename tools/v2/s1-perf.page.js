@@ -11,7 +11,12 @@
     let c = o, prev = o;
     while (c.parent && c.parent !== scene) { prev = c; c = c.parent; }
     if (c.parent !== scene) return 'detached';
-    if (c === cityRoot()) return 'city';
+    if (c === cityRoot()) {
+      // city: name the part (tile child) and the mesh, e.g. city/near:furniture/lamp
+      const chain = []; for (let x = o; x && x !== c; x = x.parent) chain.push(x);
+      const part = chain[chain.length - 2], nm = (x) => (x && (x.name || x.userData?.kind)) || '';
+      return 'city/' + (nm(part) || '?') + '/' + (nm(o) || nm(o.parent) || o.type).replace(/[0-9]+/g, '#').slice(0, 40);
+    }
     return c.name || c.userData?.name || (c.type + ':' + (c.children[0]?.name || ''));
   }
   function groupOf(o) {

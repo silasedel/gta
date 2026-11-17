@@ -136,15 +136,20 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1500) }, a
       return Math.round(len); })()`);
     await b.sleep(8000);
     for (let i = 0; i < 60; i++) { const q = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (q < 3) break; await b.sleep(1000); }
-    const res = await b.eval(`new Promise((res) => { const D = window.__drv; D.t0 = performance.now();
+    const res = await b.eval(`new Promise((res) => { const D = window.__drv; D.t0 = performance.now(); D.tStart = game.clock.elapsed; const progs0 = new Set(game.renderer.info.programs);
       game.cameraOverride = (dt, cam) => { const s = (performance.now() - D.t0) / 1000 * ${SPEED}; const p = D.at(s), q = D.at(s + 25); cam.position.set(p[0], p[1] + 2.2, p[2]); cam.lookAt(q[0], q[1] + 1.5, q[2]); return true; };
       const ts = []; let last = performance.now(); const t0 = last;
-      const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < ${SECS2 * 1000}) requestAnimationFrame(f); else { game.cameraOverride = null; ts.shift(); const s = ts.slice().sort((x, y) => x - y);
-        res(JSON.stringify({ frames: ts.length, med: +s[s.length >> 1].toFixed(2), p95: +s[Math.floor(s.length * 0.95)].toFixed(2), p99: +s[Math.floor(s.length * 0.99)].toFixed(2), max: +s[s.length - 1].toFixed(1), over25: ts.filter((x) => x > 25).length, over50: ts.filter((x) => x > 50).length, avg: +(ts.reduce((a, c) => a + c, 0) / ts.length).toFixed(2), spikes: (game.perf.spikes || []).slice(-8) })); } };
+      const big = []; let lastSp = null;
+      const f = () => { const n = performance.now(); ts.push(n - last); last = n; { const sp = game.perf.spikes || []; const e = sp[sp.length - 1]; if (e && e !== lastSp) { lastSp = e; if (e.gap > 120 || e.work > 120) big.push(e); } } if (n - t0 < ${SECS2 * 1000}) requestAnimationFrame(f); else { game.cameraOverride = null; ts.shift(); const s = ts.slice().sort((x, y) => x - y);
+        res(JSON.stringify({ frames: ts.length, med: +s[s.length >> 1].toFixed(2), p95: +s[Math.floor(s.length * 0.95)].toFixed(2), p99: +s[Math.floor(s.length * 0.99)].toFixed(2), max: +s[s.length - 1].toFixed(1), over25: ts.filter((x) => x > 25).length, over50: ts.filter((x) => x > 50).length, avg: +(ts.reduce((a, c) => a + c, 0) / ts.length).toFixed(2), spikes: big.sort((x, y) => y.gap - x.gap).slice(0, 12), longTasks: (game.perf.longTasks || []).slice().sort((x, y) => y.ms - x.ms).slice(0, 8), upd: [1, 13, 27].map((i) => String(game.updaters[i]).slice(0, 160)), newPrograms: game.renderer.info.programs.filter((p) => !progs0.has(p)).map((p) => p.name + ' | ' + String(p.cacheKey).slice(0, 90)), tiles: game.city.streamer.tiles.size })); } };
       requestAnimationFrame(f); })`, (SECS2 + 60) * 1000);
     rep.drive = JSON.parse(res);
+    if (o.physprobe) { const ps = await b.eval('JSON.stringify(window.__phys || null)'); console.log('  phys', ps); rep.drive.phys = JSON.parse(ps); }
     console.log('drive', JSON.stringify({ ...rep.drive, spikes: undefined }));
     for (const sp of rep.drive.spikes) console.log('  spike', JSON.stringify(sp));
+    for (const sp of rep.drive.longTasks) console.log('  longTask', JSON.stringify(sp));
+    for (const u of rep.drive.upd) console.log('  upd', u.replace(/\s+/g, ' '));
+    console.log('  tiles in streamer map', rep.drive.tiles, ' new programs', rep.drive.newPrograms.length); for (const p of rep.drive.newPrograms.slice(0, 40)) console.log('   prog', p);
   }
   if (b.errors.length) { rep.errors = [...new Set(b.errors)].slice(0, 20); console.log('ERRORS', rep.errors.slice(0, 8).join('\n')); }
 });

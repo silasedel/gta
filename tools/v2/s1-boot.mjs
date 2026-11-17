@@ -26,6 +26,8 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
   const t0 = Date.now();
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
   await b.waitFor(GAME_READY, 600);
+  rep.wallMs = Date.now() - t0;
+  await b.sleep(3000); // the first frames after READY count too
   if (o.prof) {
     const pr = (await b.send('Profiler.stop')).result.profile;
     const nodes = new Map(pr.nodes.map((n) => [n.id, n])); const parent = new Map();
@@ -55,8 +57,6 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: 900 }, async (b) => {
     if (cur && cur.ms >= 150) stretches.push(cur);
     rep.busy = stretches.sort((x, y) => y.ms - x.ms).slice(0, 14).map((st) => ({ t: st.t, ms: Math.round(st.ms), top: Object.entries(st.f).sort((x, y) => y[1] - x[1]).slice(0, 7).map(([f, c]) => Math.round(c * dt) + ' ' + f) }));
   }
-  rep.wallMs = Date.now() - t0;
-  await b.sleep(3000); // long tasks right after READY (first frames)
   rep.programs = await b.eval(`(() => { const ps = game.renderer.info.programs; const by = {}; for (const p of ps) { const k = String(p.cacheKey); const cs = /srgb-linear/.test(k) ? 'linear' : /,srgb,/.test(k) ? 'srgb' : 'other'; by[cs] = (by[cs] || 0) + 1; } return JSON.stringify({ n: ps.length, by }); })()`);
   const B = JSON.parse(await b.eval(`JSON.stringify(Object.assign({}, window.__boot, { readyAt: window.__boot.ready, nav: performance.getEntriesByType('navigation')[0]?.domContentLoadedEventEnd }))`));
   rep.readyMs = B.readyAt; rep.stages = B.stages; rep.slices = (B.slices || []).sort((x, y) => y[0] - x[0]); rep.long = B.long; rep.loaf = B.loaf;
