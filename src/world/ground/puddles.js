@@ -5,6 +5,7 @@
 // Look: muddy, darkened mirror water with a ragged noise edge, rain ripple rings while it rains, a soaked dark rim that
 // lingers a little after the water has gone. Placed where the ground actually dips (the caller sculpts the low spot).
 import * as THREE from 'three';
+import { WEATHER_U } from '../../render/wetSurfaces.js';
 
 const MAX = 8;
 export function patchPuddles(mat, list = []) {
@@ -17,7 +18,8 @@ export function patchPuddles(mat, list = []) {
   mat.onBeforeCompile = (sh, r) => {
     if (prev) prev.call(mat, sh, r);
     Object.assign(sh.uniforms, U);
-    if (!sh.uniforms.uWeather) return; // material without the shared weather uniform: stays dry
+    if (!/lights_physical_pars_fragment/.test(sh.fragmentShader)) return; // not a lit standard / physical shader: stays dry
+    sh.uniforms.uWeather = { value: WEATHER_U }; // bind the shared weather (materials built outside ShaderLib's copy would read zeros)
     sh.vertexShader = 'varying vec3 vPdW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vPdW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = `uniform vec4 uPud[${MAX}]; varying vec3 vPdW;
 float pdH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }

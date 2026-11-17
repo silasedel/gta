@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { loadArray, loadSet, setParams } from '../city/pbr.js';
 import { loadGroundArrays } from './groundtex.js';
 import { patchGround, recipeUniforms } from './groundShader.js';
+import { groundClaims } from '../ground/claims.js';
 // ground v2 (user's ground scans, hex-tiled recipes, shore bands): ?ground2=0 restores the previous Poly Haven array shader (A/B audits)
 export const GROUND2 = typeof location === 'undefined' || !/[?&]ground2=0\b/.test(location.search);
 
@@ -54,6 +55,8 @@ export async function createTerrain(renderer, data, opts = {}) {
   const uTint = LAYERS.map((l) => new THREE.Color(l.tint ?? 0xffffff));
   const N = LAYERS.length;
   const real = (x, z) => (data.inRealMiami ? data.inRealMiami(x, z) : false);
+  const lowAt = data.terrainHeightAt && data.terrainHeightAt.lowAt ? data.terrainHeightAt.lowAt : null; // micro-relief drainage lows (relief.js)
+  let _claims = null; const claimAt = (x, z) => { if (!_claims) _claims = groundClaims(data.setpieces || []); return !!_claims.at(x, z, 6); };
   // the Keys: data-driven (layout places whose kind or name says key), cached on a 64 m grid; no hard-coded coordinates
   const keyPlaces = (data.places || []).filter((p) => /key/i.test(p.kind || '') || /\bkeys?\b/i.test(p.name || '')).map((p) => [p.x, p.z, Math.max(400, p.r || 800)]);
   const keyCache = new Map();
@@ -121,7 +124,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   }
   const P = GROUND2 ? (m, lod) => patchGround(m, lod, opts, gtex, gU) : patch;
   const nearMat = P(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), false); nearMat.name = 'terrain'; nearMat.userData.pbr = true;
-  const lodMat = P(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }), true); lodMat.name = 'terrain-lod'; lodMat.userData.pbr = true;
+  const lodMat = P(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 8 }), true); lodMat.name = 'terrain-lod'; lodMat.userData.pbr = true; // r2-ground: the coarse LOD always loses the depth test to the near terrain where both exist (no z-fight)
 
   // hard airport / service surfaces (polygons drawn above the terrain)
   const mk = async (name, o) => { const s = await loadSet(renderer, name); for (const t of [s.map, s.normalMap, s.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; }
@@ -183,13 +186,21 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   // from land to WATER_Y between two 4 m grid vertices: the waterline is a smooth contour, not a jagged triangle saw that
   // z-fights with the ocean plane
   const SH = [[0, 0], [4.5, 0], [-4.5, 0], [0, 4.5], [0, -4.5], [3.2, 3.2], [-3.2, 3.2], [3.2, -3.2], [-3.2, -3.2]];
-  const heightAt = (x, z) => {
-    const land = (data.terrainHeightAt ? data.terrainHeightAt(x, z) : 0) + Y_OFF;
+  // coarse = far LOD grids: the base height only (the ±0.3 m micro-relief is invisible there and its 4 m samples are not worth computing)
+  const TH0 = data.terrainHeightAt && data.terrainHeightAt.base ? data.terrainHeightAt.base : null;
+  const heightAt = (x, z, coarse) => {
+    const land = (coarse && TH0 ? TH0(x, z) : data.terrainHeightAt ? data.terrainHeightAt(x, z) : 0) + Y_OFF;
     if (!data.isWater) return land;
     let w = 0; for (const [dx, dz] of SH) if (data.isWater(x + dx, z + dz)) w++;
     if (w === 0) return land; if (w === 9) return WATER_Y;
-    const f = w / 9, k = f * f * (3 - 2 * f), h = land + (WATER_Y - land) * k;
-    return data.isWater(x, z) ? h : Math.max(h, Math.min(land, -0.1)); // land stays just above the sea (-0.12): matches its collider
+    const f = w / 9, k = f * f * (3 - 2 * f);
+    // r2-ground: a smooth beach profile across the waterline. Land vertices ease down to ~9 cm above the still water (-0.12),
+    // water vertices start ~18 cm under it and deepen with the share of water around them, so the sea plane meets the ground
+    // inside a sloping triangle (a clean contour), not on a flat shelf 2 cm above the water ending in a stepped edge
+    // height follows the smooth 9-probe water share alone (not the binary water flag, whose raster staircase made a sawtooth
+    // waterline); the flag only clamps: land never more than 3 cm under the still water, water at least 4 cm under it
+    const t = Math.min(1, Math.max(0, (f - 0.15) / 0.75)), s = t * t * (3 - 2 * t), h = land + (WATER_Y - land) * s;
+    return data.isWater(x, z) ? Math.min(h, -0.16) : Math.max(h, Math.min(land, -0.15));
   };
 
   // ground v2: meters to the nearest water (0..48), for the beach dry / damp / wet bands and the yard / beach split of 'sand'
@@ -208,18 +219,19 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     const H = new Float32Array(W * (nz + 3)), Lr = new Uint8Array(W * (nz + 3)), Wt = new Uint8Array(W * (nz + 3)), Rl = new Uint8Array(W * (nz + 3)), Sd = GROUND2 ? new Float32Array(W * (nz + 3)) : null;
     for (let j = -1; j <= nz + 1; j++) {
       for (let i = -1; i <= nx + 1; i++) { const x = x0 + i * cell, z = z0 + j * cell, k = (j + 1) * W + i + 1;
-        const w = data.isWater ? data.isWater(x, z) : false; Wt[k] = w ? 1 : 0; H[k] = heightAt(x, z);
+        const w = data.isWater ? data.isWater(x, z) : false; Wt[k] = w ? 1 : 0; H[k] = heightAt(x, z, !!o.lod);
         if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x + (vnoise(x * 0.031 + 7.7, z * 0.031) - 0.5) * 11, z + (vnoise(x * 0.031, z * 0.031 - 3.3) - 0.5) * 11); // ground pass: land-cover borders wander (no ruled straight class edges from the cover polygons)
-          if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 12 : 30)) Lr[k] = YARD; } } }
+          if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 12 : 30)) Lr[k] = YARD; }
+          if (!w && claimAt(x, z)) Lr[k] = LI.shell; } } // r2-ground: around set-piece yards (Nico's lot) the terrain is the same pale crushed shell as the yard sheet, so its sunk edge has no seam
       if ((j & 7) === 7) yield;
     }
     const at = (i, j) => (j + 1) * W + i + 1;
-    const P = [], Nn = [], A = [], SA = Sd ? [] : null, TL = o.lod ? [] : null;
+    const P = [], Nn = [], A = [], SA = Sd ? [] : null, TL = o.lod ? [] : null, LW = Sd && lowAt ? [] : null; // r2-ground: drainage-low strength per vertex (rain puddles)
     const nrm = (i, j) => { const hx = H[at(i + 1, j)] - H[at(i - 1, j)], hz = H[at(i, j + 1)] - H[at(i, j - 1)]; const nxv = -hx / (2 * cell), nzv = -hz / (2 * cell), l = Math.hypot(nxv, 1, nzv); return [nxv / l, 1 / l, nzv / l]; };
-    const vtx = (i, j, L) => { const k = at(i, j), n = nrm(i, j); P.push(x0 + i * cell, H[k], z0 + j * cell); Nn.push(n[0], n[1], n[2]); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[k]); };
+    const vtx = (i, j, L) => { const k = at(i, j), n = nrm(i, j); P.push(x0 + i * cell, H[k], z0 + j * cell); Nn.push(n[0], n[1], n[2]); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[k]); if (LW) LW.push(lowAt(x0 + i * cell, z0 + j * cell)); };
     const tri = (a, b, c) => { // a,b,c = [i, j]; counter-clockwise seen from above (+Y normal)
       const ka = at(a[0], a[1]), kb = at(b[0], b[1]), kc = at(c[0], c[1]);
-      if (Wt[ka] && Wt[kb] && Wt[kc] && H[ka] < -0.22 && H[kb] < -0.22 && H[kc] < -0.22) return; if (Rl[ka] && Rl[kb] && Rl[kc]) return; // ground pass: keep water-flagged triangles that still rise above the sea, so the shoreline is where the ground meets the water plane (no stair-step triangle edge)
+      if (Wt[ka] && Wt[kb] && Wt[kc] && H[ka] < -0.45 && H[kb] < -0.45 && H[kc] < -0.45) return; if (Rl[ka] && Rl[kb] && Rl[kc]) return; // r2-ground: a 1-2 row strip of shallow mud / sand floor stays under the water next to land (mangroves and riprap stand on it; the seabed takes over beyond) // ground pass: keep water-flagged triangles that still rise above the sea, so the shoreline is where the ground meets the water plane (no stair-step triangle edge)
       const L = [Lr[ka], Lr[kb], Lr[kc]]; vtx(a[0], a[1], L); vtx(b[0], b[1], L); vtx(c[0], c[1], L);
       if (TL) { const cx = x0 + (a[0] + b[0] + c[0]) / 3 * cell, cz = z0 + (a[1] + b[1] + c[1]) / 3 * cell, tx = Math.floor(cx / T), tz = Math.floor(cz / T); for (let q = 0; q < 3; q++) TL.push(tx, tz); }
     };
@@ -234,13 +246,13 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     if (o.skirt) { // vertical skirt along the tile border hides cracks against the coarser mid-LOD terrain next door
       const S = o.skirt, edge = (i0, j0, i1, j1) => { const ka = at(i0, j0), kb = at(i1, j1); if (Wt[ka] && Wt[kb]) return; if (Rl[ka] && Rl[kb]) return;
         const xa = x0 + i0 * cell, za = z0 + j0 * cell, xb = x0 + i1 * cell, zb = z0 + j1 * cell, ya = H[ka], yb = H[kb], L = [Lr[ka], Lr[kb], Lr[ka]];
-        for (const [x, y, z] of [[xa, ya, za], [xa, ya - S, za], [xb, yb, zb], [xb, yb, zb], [xa, ya - S, za], [xb, yb - S, zb]]) { P.push(x, y, z); Nn.push(0, 1, 0); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[x === xa ? ka : kb]); } };
+        for (const [x, y, z] of [[xa, ya, za], [xa, ya - S, za], [xb, yb, zb], [xb, yb, zb], [xa, ya - S, za], [xb, yb - S, zb]]) { P.push(x, y, z); Nn.push(0, 1, 0); A.push(L[0], L[1], L[2]); if (SA) SA.push(Sd[x === xa ? ka : kb]); if (LW) LW.push(0); } };
       for (let i = 0; i < nx; i++) { edge(i, 0, i + 1, 0); edge(i + 1, nz, i, nz); }
       for (let j = 0; j < nz; j++) { edge(nx, j, nx, j + 1); edge(0, j + 1, 0, j); }
     }
     if (!P.length) return null;
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); g.setAttribute('aL', new THREE.Float32BufferAttribute(A, 3)); if (SA) g.setAttribute('aS', new THREE.Float32BufferAttribute(SA, 1));
+    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); g.setAttribute('aL', new THREE.Float32BufferAttribute(A, 3)); if (SA) g.setAttribute('aS', new THREE.Float32BufferAttribute(SA, 1)); if (SA) g.setAttribute('aLow', new THREE.Float32BufferAttribute(LW || new Array(SA.length).fill(0), 1));
     if (TL) g.setAttribute('aTile', new THREE.Float32BufferAttribute(TL, 2));
     g.computeBoundingSphere(); g.computeBoundingBox();
     return { geometry: g, coll: o.coll ? new Float32Array(P.slice(0, nColl)) : null };

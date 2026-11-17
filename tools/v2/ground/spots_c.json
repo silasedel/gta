@@ -1,0 +1,5 @@
+{
+ "grass_top": { "car": { "x": -835, "z": 4690, "yaw": 2.6, "find": "grass|scrub|lawn|meadow", "road": 9 }, "chase": [3.0, 8.0], "tod": 11, "fov": 60 },
+ "grass_chase": { "car": { "x": -835, "z": 4690, "yaw": 2.6, "find": "grass|scrub|lawn|meadow", "road": 9 }, "chase": [6.5, 2.4], "tod": 11, "fov": 60 },
+ "grass_drive": { "car": { "x": -835, "z": 4690, "yaw": 2.6, "find": "grass|scrub|lawn|meadow", "road": 9, "drive": [0, 2.2], "stop": false }, "chase": [6.5, 3.2], "tod": 11, "fov": 60, "frames": 3 }
+}

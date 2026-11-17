@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { GT } from './groundtex.js';
 import { vegUniforms } from '../vegetation/materials.js';
+import { CAUSTIC_GLSL } from '../ground/caustics.js';
 
 // A / B: [texture, meters per repeat, tint (linear multiplier)]; cov: share of B (0..1); mf: B patch size (m);
 // M: [macro texture, meters, color strength, B-mask push from the macro's darkness (signed)];
@@ -20,18 +21,19 @@ export const RECIPES = {
   pine: { A: ['grass', 1.9, T(1, 1, 1)], B: ['stony', 3.6, T(1.05, 1.02, 0.95)], cov: 0.45, mf: 5, grade: 0.75, lush: 0.32, shore: 0.4 },
   sawgrass: { A: ['grass', 2.0, T(1.05, 1, 0.85)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.32, mf: 4, grade: 0.65, lush: 0.3, wet: 0.7, shore: 0.6 }, // ground pass: more standing water in the glades
   marsh: { A: ['mud', 3.4, T(1, 1, 1)], B: ['grass', 2.0, T(1, 1, 0.9)], cov: 0.35, mf: 3.5, grade: 0.6, lush: 0.35, wet: 1, shore: 0.8 },
-  sand: { A: ['sand', 3.0, T(0.9, 0.84, 0.7)], B: ['gravel', 2.2, T(1.18, 1.14, 1.06)], cov: 0.04, mf: 2.5, shore: 1, nrm: 0.8 },
+  sand: { A: ['sand', 3.0, T(0.95, 0.92, 0.85)], // r2-ground: near-neutral shell / quartz sand (ART_STYLE: hue 35-45, sat <= 0.18)
+    B: ['gravel', 2.2, T(1.18, 1.14, 1.06)], cov: 0.04, mf: 2.5, shore: 1, nrm: 0.8 },
   shell: { A: ['gravel', 2.0, T(1.22, 1.18, 1.1)], B: ['sand', 3.0, T(1, 1, 1)], cov: 0.3, mf: 4, shore: 0.8 },
   dirt: { A: ['soil', 2.8, T(1.14, 1.02, 0.88)], B: ['gravel', 2.6, T(0.78, 0.74, 0.68)], cov: 0.35, mf: 5, M: ['sandgrass', 26, 0.3, 0], shore: 0.6 },
   farm: { A: ['soil', 2.4, T(1.0, 0.9, 0.77)], B: ['grass', 1.8, T(1, 1, 1)], cov: 0.08, mf: 3, grade: 0.7, lush: 0.6, rows: 1, shore: 0.6 },
   grove: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.4, T(1.12, 1.01, 0.87)], cov: 0.22, mf: 4, M: ['lawn', 22, 0.4, 1], grade: 0.85, lush: 0.62, shore: 0.4 },
   rock: { A: ['stony', 3.6, T(1.05, 1.03, 1)], B: ['gravel', 2.6, T(1, 1, 1)], cov: 0.4, mf: 5, shore: 0.5 },
   gravel: { A: ['gravel', 2.4, T(1, 1, 1)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.2, mf: 4, shore: 0.5 },
-  damp: { A: ['sand', 3.0, T(0.78, 0.74, 0.68)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.3, mf: 5, wet: 0.35, shore: 1 },
+  damp: { A: ['sand', 3.0, T(0.8, 0.78, 0.74)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.3, mf: 5, wet: 0.35, shore: 1 },
   base: { A: ['gravel', 2.4, T(0.98, 0.96, 0.92)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.3, mf: 5, shore: 0.5 },
   meadow: { A: ['grass', 2.0, T(1, 1, 1)], B: ['soil', 2.6, T(1.12, 1.01, 0.87)], cov: 0.15, mf: 6, M: ['lawn', 29, 0.8, 1.4], grade: 0.85, lush: 0.68, shore: 0.4 },
   // Keys yards and inland sand lots (user mock-up): matted dry grass and sand, the user's grassy-sand scan as macro
-  yard: { A: ['sandgrass', 4.6, T(1, 1, 1)], B: ['sand', 3.0, T(0.84, 0.8, 0.72)], cov: 0.42, mf: 7, M: ['sandgrass', 31, 0.4, -1.2], grade: 0.0, lush: 0.3, shore: 0.5 },
+  yard: { A: ['sandgrass', 4.6, T(1, 1, 1)], B: ['sand', 3.0, T(0.88, 0.86, 0.8)], cov: 0.42, mf: 7, M: ['sandgrass', 31, 0.4, -1.2], grade: 0.0, lush: 0.3, shore: 0.5 },
 };
 
 export function recipeUniforms(keys) {
@@ -48,12 +50,12 @@ export function recipeUniforms(keys) {
   return { NC, uRA: { value: RA }, uRB: { value: RB }, uRC: { value: RC }, uRD: { value: RD }, uTA: { value: TA }, uTB: { value: TB }, uRN: { value: keys.map((k) => (RECIPES[k]?.nrm ?? 1)) } };
 }
 
-export const GROUND_GLSL_HEAD = /* glsl */`
+export const GROUND_GLSL_HEAD = CAUSTIC_GLSL + /* glsl */`
 precision highp sampler2DArray;
 uniform sampler2DArray tGC; uniform sampler2DArray tGN;
 uniform vec4 uRA[NC]; uniform vec4 uRB[NC]; uniform vec4 uRC[NC]; uniform vec4 uRD[NC]; uniform vec3 uTA[NC]; uniform vec3 uTB[NC]; uniform float uRN[NC];
-uniform float uVegTime;
-varying vec3 vL; varying vec3 vBary; varying vec3 vWP; varying vec3 vWN; varying float vShore;
+uniform float uVegTime; uniform float uGSea;
+varying vec3 vL; varying vec3 vBary; varying vec3 vWP; varying vec3 vWN; varying float vShore; varying float vLow;
 float gH1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 vec2 gH2(vec2 p) { return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453); }
 float gN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(gH1(i), gH1(i + vec2(1.0, 0.0)), f.x), mix(gH1(i + vec2(0.0, 1.0)), gH1(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -111,8 +113,8 @@ vec3 gGrade(vec3 c, float k, float lush, vec2 wp) {
 vec3 gKeysGrade(vec3 c, vec2 wp) {
   float k = smoothstep(4150.0, 4500.0, wp.y); if (k <= 0.0) return c;
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  vec3 g = vec3(l) * vec3(1.05, 1.0, 0.9);
-  vec3 d = mix(c, g, 0.5);
+  vec3 g = vec3(l) * vec3(1.04, 1.0, 0.93);
+  vec3 d = mix(c, g, 0.62); // r2-ground: Keys sand / marl near neutral gray-white (mock-up yard sand ~ (176, 171, 162))
   d *= mix(1.3, 1.0, smoothstep(0.12, 0.32, l)) * mix(1.0, 1.05, smoothstep(0.18, 0.45, l)) * mix(1.0, 0.9, smoothstep(0.45, 0.75, l)); // marl / limestone soil: dark dirt lifted toward pale gray-beige, no blown-out white
   return mix(c, d, k);
 }
@@ -150,9 +152,9 @@ export function patchGround(mat, lod, opts, tex, U) {
   mat.customProgramCacheKey = () => 'ps-ground2-' + (lod ? 'lod' : 'near');
   mat.onBeforeCompile = (sh) => {
     if (lod && opts.nearCut) opts.nearCut(sh);
-    Object.assign(sh.uniforms, { tGC: { value: tex.col }, tGN: { value: tex.aux }, uRA: U.uRA, uRB: U.uRB, uRC: U.uRC, uRD: U.uRD, uTA: U.uTA, uTB: U.uTB, uRN: U.uRN, uVegTime: vegUniforms.uVegTime });
-    sh.vertexShader = 'attribute vec3 aL;\nattribute float aS;\nvarying vec3 vL;\nvarying vec3 vBary;\nvarying vec3 vWP;\nvarying vec3 vWN;\nvarying float vShore;\n' + sh.vertexShader.replace('#include <fog_vertex>', `#include <fog_vertex>
-      vL = aL; vShore = aS; int tid = gl_VertexID % 3; vBary = vec3(tid == 0 ? 1.0 : 0.0, tid == 1 ? 1.0 : 0.0, tid == 2 ? 1.0 : 0.0);
+    Object.assign(sh.uniforms, { tGC: { value: tex.col }, tGN: { value: tex.aux }, uRA: U.uRA, uRB: U.uRB, uRC: U.uRC, uRD: U.uRD, uTA: U.uTA, uTB: U.uTB, uRN: U.uRN, uVegTime: vegUniforms.uVegTime, uGSea: { value: opts.seaLevel ?? -0.12 } });
+    sh.vertexShader = 'attribute vec3 aL;\nattribute float aS;\nattribute float aLow;\nvarying vec3 vL;\nvarying vec3 vBary;\nvarying vec3 vWP;\nvarying vec3 vWN;\nvarying float vShore;\nvarying float vLow;\n' + sh.vertexShader.replace('#include <fog_vertex>', `#include <fog_vertex>
+      vL = aL; vShore = aS; vLow = aLow; int tid = gl_VertexID % 3; vBary = vec3(tid == 0 ? 1.0 : 0.0, tid == 1 ? 1.0 : 0.0, tid == 2 ? 1.0 : 0.0);
       vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * normal);`);
     sh.fragmentShader = GROUND_GLSL_HEAD.replace(/\bNC\b/g, String(U.NC)) + sh.fragmentShader
       .replace('#include <map_fragment>', /* glsl */`
@@ -184,17 +186,53 @@ export function patchGround(mat, lod, opts, tex, U) {
         alb *= mix(1.0, dR, 0.3 * (1.0 - smoothstep(14.0, 32.0, gdC)));
       }
       float tRough = gs.rough;
-      // shore: damp band, then the wet swash line breathing with time (sand: full strength)
-      float sj = (gF(wp * 0.13 + 3.0) - 0.5) * 3.0, sd = vShore + sj;
-      float dampB = (1.0 - smoothstep(2.5, 11.0, sd)) * gs.shore, wetB = (1.0 - smoothstep(0.4, 2.6 + 1.3 * sin(uVegTime * 0.45 + wp.x * 0.031 + wp.y * 0.017), vShore + sj * 0.3)) * gs.shore;
-      alb *= mix(vec3(1.0), vec3(0.62, 0.57, 0.5), dampB * 0.85); alb *= 1.0 - wetB * 0.3;
-      tRough = mix(tRough, tRough * 0.8, dampB); tRough = mix(tRough, 0.16, wetB * 0.9);
-      { // ground pass: thin foam lace at the swash line (moves with the wash, broken by noise), only where the shore band applies
-        float sw = 1.1 + 1.0 * sin(uVegTime * 0.45 + wp.x * 0.031 + wp.y * 0.017), fd = abs(vShore + sj * 0.3 - sw);
-        float lace = (1.0 - smoothstep(0.0, 0.35, fd)) * smoothstep(0.45, 0.75, gN(wp * 2.3 + vec2(uVegTime * 0.05, 0.0)) * 0.6 + gN(wp * 7.1) * 0.4) * gs.shore * step(vShore, 6.0);
-        alb = mix(alb, vec3(0.78, 0.8, 0.8), lace * 0.7); tRough = mix(tRough, 0.4, lace);
+      // r2-ground shore (per pixel, from the height above the still water, not the coarse 4 m shore distance): the waterline is where
+      // the ground meets the sea plane; a thin sheet of swash rushes up and drains back a meter or so (glossy, foam lace at its front,
+      // a bubble line left at the top of the run), soaked dark sand in the swash zone, damp sand fading up the beach, and under the
+      // water: darker wet sand with soft caustics (the ocean shader adds the depth color on top)
+      float hsea = vWP.y - uGSea;
+      float shG = gs.shore * (1.0 - smoothstep(9.0, 22.0, vShore));
+      float sn = gN(wp * 0.7 + 3.0), sn2 = gN(wp * 2.9 - 1.0);
+      float film = 0.0, wetZ = 0.0, foamS = 0.0;
+      if (shG > 0.002 && hsea < 0.6) {
+        float slope = length(vWN.xz) / max(vWN.y, 0.2);
+        float swPh = uVegTime * 0.5 + gN(wp * 0.013 + 2.0) * 6.2832 + gN(wp * 0.061) * 1.2; // sections of beach out of step with each other
+        float su = fract(swPh / 6.2832);
+        float run = su < 0.3 ? smoothstep(0.0, 0.3, su) : 1.0 - smoothstep(0.3, 0.97, su); // rush up fast, drain back slowly
+        float A = 0.07 + 0.05 * gN(wp * 0.031 + 7.0); // highest run-up (m above the still water)
+        float lvl = A * run, rel = hsea + (sn - 0.5) * 0.01 + (sn2 - 0.5) * 0.004;
+        film = (1.0 - smoothstep(lvl - 0.005, lvl + 0.002, rel)) * smoothstep(-0.05, -0.01, hsea) * shG;
+        wetZ = (1.0 - smoothstep(A * 0.5, A + 0.05 + sn * 0.03, rel)) * shG;
+        float upD = max(hsea - A, 0.0) / max(slope, 0.015); // meters up the beach above the swash zone
+        float dampZ = (1.0 - smoothstep(0.3, 3.2 + sn * 1.6, upD)) * (1.0 - smoothstep(0.1, 0.3, hsea)) * shG;
+        float lace = smoothstep(0.42, 0.68, gN(wp * 5.3 + vec2(uVegTime * 0.11, 0.0)) * 0.55 + gN(wp * 17.0 - vec2(0.0, uVegTime * 0.07)) * 0.45);
+        float front = (1.0 - smoothstep(0.0, 0.004 + 0.004 * sn2, abs(rel - lvl))) * smoothstep(0.05, 0.25, run) * mix(1.0, 0.25, smoothstep(0.3, 0.55, su));
+        float mark = (1.0 - smoothstep(0.0, 0.003, abs(rel - A))) * smoothstep(0.25, 0.35, su) * (1.0 - smoothstep(0.4, 0.75, su)); // bubbles left at the top of the run
+        foamS = clamp(front * 0.9 + mark * 0.45, 0.0, 1.0) * lace * shG * step(-0.02, hsea);
+        alb *= mix(vec3(1.0), vec3(0.84, 0.81, 0.77), dampZ * 0.75);
+        alb *= mix(vec3(1.0), vec3(0.66, 0.64, 0.61), wetZ);
+        tRough = mix(tRough, tRough * 0.8, dampZ); tRough = mix(tRough, 0.26, wetZ * 0.85);
+        alb *= mix(vec3(1.0), vec3(0.9, 0.95, 0.95), film); tRough = mix(tRough, 0.05, film);
       }
+      { // under the water: wet, darker, soft moving caustics in the first 2 m
+        float under = 1.0 - smoothstep(-0.04, 0.0, hsea);
+        if (under > 0.0) {
+          float cdp = clamp(-hsea, 0.0, 3.0);
+          float ca = r2Caustic(wp, uVegTime);
+          alb = mix(alb * 0.8, vec3(0.34, 0.315, 0.25), under * 0.7) * (1.0 + ca * 0.55 * under * smoothstep(0.02, 0.18, cdp) * (1.0 - smoothstep(1.0, 3.0, cdp)));
+          tRough = mix(tRough, 0.55, under);
+        }
+      }
+      alb = mix(alb, vec3(0.8, 0.82, 0.82), foamS * 0.85); tRough = mix(tRough, 0.45, foamS);
+      float wetB = max(wetZ * 0.6, film);
       float pud = gs.wet * smoothstep(0.5, 0.58, gF(wp * 0.067 + 3.1) * 0.6 + gN(wp * 0.29 + 7.7) * 0.4); // standing water in marsh / mud
+      { // r2-ground: rain collects in the micro-relief's drainage lows and roadside swales (fills with the weather's puddle level, dries with it)
+        float lowK = vLow + (gF(wp * 0.19 + 5.0) - 0.5) * 0.35 + (gN(wp * 1.3) - 0.5) * 0.08;
+        float lp = uWeather.y * smoothstep(0.62 - 0.22 * uWeather.y, 0.7 - 0.2 * uWeather.y, lowK);
+        float ld = max(uWeather.x * 0.7, uWeather.y) * smoothstep(0.35, 0.6, lowK); // soaked soil around them
+        alb *= 1.0 - ld * 0.3; tRough = mix(tRough, tRough * 0.6, ld);
+        pud = max(pud, lp);
+      }
       alb = mix(alb, alb * 0.2 + vec3(0.008, 0.012, 0.01), pud); tRough = mix(tRough, 0.05, pud); tRough = mix(tRough, tRough * 0.78, gs.wet * 0.5);
       vec2 gTilt = gs.tilt * (1.0 - pud) * (1.0 - wetB * 0.6);
       diffuseColor.rgb *= alb * mix(1.0, gs.ao, 0.65);`)

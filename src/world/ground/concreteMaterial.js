@@ -41,7 +41,8 @@ vec3 ccNrmT = vec3(0.0);
         vec3 c1 = ccTri(tCcC, vCcP, bw, 1.0 / 1.7).rgb, c2 = ccTri(tCcC, vCcP + 17.3, bw, 1.0 / 9.0).rgb;
         vec3 avg = max(textureLod(tCcC, vec2(0.5), 11.0).rgb, vec3(0.05));
         float l1 = dot(c1 / avg, vec3(0.333)), l2 = dot(c2 / avg, vec3(0.333));
-        float det = clamp(mix(1.0, l1, 0.3) * mix(1.0, l2, 0.3), 0.78, 1.22); // cast concrete is smooth-ish: fine pitting, soft tone drift
+        float dk = mix(0.3, 0.1, abs(wn.y)); // decks / soffits: the scan's streaks read as wood grain from below, keep them faint
+        float det = clamp(mix(1.0, l1, dk) * mix(1.0, l2, dk), 0.82, 1.18); // cast concrete is smooth-ish: fine pitting, soft tone drift
         // run coordinate along the wall (dominant horizontal axis), height
         float run = abs(wn.x) > abs(wn.z) ? vCcP.z : vCcP.x, hy = vCcP.y;
         float vert = 1.0 - abs(wn.y);
@@ -65,6 +66,18 @@ vec3 ccNrmT = vec3(0.0);
           cc = mix(cc, vec3(0.01), scup * 0.9);
           ccNrmT.y = scuff;
         }
+        if (wn.y < -0.6) { // soffits: smooth precast / plywood-formed panels (2.44 x 1.22 m) with faint seams and per-panel tone, efflorescence blooms
+          vec2 fp = vCcP.xz / vec2(2.44, 1.22), ff = fract(fp), fw = fwidth(fp) * 1.5 + 0.004;
+          float seam = 1.0 - smoothstep(0.0, fw.x, min(ff.x, 1.0 - ff.x)) * smoothstep(0.0, fw.y, min(ff.y, 1.0 - ff.y));
+          cc *= mix(0.95, 1.05, ccH(floor(fp) + 7.7)) * (1.0 - seam * 0.18);
+          float eff = smoothstep(0.62, 0.8, ccN(vCcP.xz * 0.35 + 2.0) * 0.7 + ccN(vCcP.xz * 1.9) * 0.3);
+          cc = mix(cc, vec3(dot(cc, vec3(0.3333))) * 1.18, eff * 0.35);
+        }
+        { // r2-art: neutral concrete (sat <= 0.14, L 0.20-0.35): no beige / yellow cast from the vertex tint or the scan
+          float cl = dot(cc, vec3(0.2126, 0.7152, 0.0722));
+          cc = mix(vec3(cl) * vec3(1.0, 1.0, 0.98), cc, 0.35);
+          cc *= mix(1.0, clamp(0.27 / max(cl, 1e-3), 0.7, 1.5), 0.55);
+        }
         diffuseColor.rgb = cc;
         ccNrmT.x = joint;
       }`)
@@ -78,7 +91,7 @@ vec3 ccNrmT = vec3(0.0);
         vec3 nW = normalize(tX.zyx * bw.x + tY.xzy * bw.y + tZ.xyz * bw.z);
         normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`);
   };
-  m.customProgramCacheKey = () => 'ground-elevated-concrete-v1';
+  m.customProgramCacheKey = () => 'ground-elevated-concrete-v2';
   m.needsUpdate = true;
   return m;
 }

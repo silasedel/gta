@@ -5,6 +5,7 @@
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import * as THREE from 'three';
 import { breathe } from '../../core/pace.js';
+import { withRelief } from '../terrain/relief.js';
 
 const DEFAULT_BASE = '/assets/miami/';
 const SURF_PUBLIC = { sidewalk: 'concrete', pier: 'wood', building: 'concrete' };
@@ -179,7 +180,7 @@ export async function loadMiamiData(game, opts = {}) {
   const isIsletAt = (x, z) => !GC_OFF && surfRaw(x, z) !== S_WATER && isIslet(x, z);
   const gD = G.depth, gH = G.height || null;
   // terrain height above y = 0 (bilinear, node-registered 16 m grid). Zero everywhere in real Miami; hills and dunes outside.
-  const terrainHeightAt = gH ? (x, z) => {
+  const baseTerrainHeightAt = gH ? (x, z) => {
     const fx = (x - gH.x0) / gH.res, fz = (z - gH.z0) / gH.res;
     let i = Math.floor(fx), j = Math.floor(fz);
     if (i < 0 || j < 0 || i >= gH.w - 1 || j >= gH.h - 1) return 0;
@@ -188,6 +189,15 @@ export async function loadMiamiData(game, opts = {}) {
     if (!(a | b | c | e)) return 0;
     return ((a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + e * u) * v) * gH.unit;
   } : () => 0;
+  // r2-ground: micro-relief (mounds, swales, drainage lows) folded into the terrain height, so mesh, colliders, groundHeightAt and
+  // every placer agree (src/world/terrain/relief.js; flat at roads / buildings / claims / shores / real Miami; ?relief=0 = off)
+  const roadEdgeAt = (x, z, m) => { const s0 = NE.e, s1 = NE.seg, s2 = NE.u, s3 = NE.d2, s4 = NE.px, s5 = NE.pz; // keep the shared scratch intact for callers
+    const r = nearestSeg(x, z, m + 12) ? Math.sqrt(NE.d2) - (edges[NE.e].width || 6) / 2 : m; NE.e = s0; NE.seg = s1; NE.u = s2; NE.d2 = s3; NE.px = s4; NE.pz = s5; return r; };
+  let reliefLive = false; // set once the whole data object is built (the ctx closures read consts defined further down)
+  const reliefH = withRelief(baseTerrainHeightAt, { surfAt: (x, z) => SURF[surfCode(x, z)], coverAt: (x, z) => coverAt(x, z), zoneAt: (x, z) => zoneAt(x, z),
+    isWater: (x, z) => isWater(x, z), inReal: (x, z) => inReal(x, z), roadEdge: roadEdgeAt, setpieces: () => placesJ.setpieces || [] }); // also on a flat (no height grid) build
+  const terrainHeightAt = reliefH === baseTerrainHeightAt ? baseTerrainHeightAt : Object.assign((x, z) => (reliefLive ? reliefH(x, z) : baseTerrainHeightAt(x, z)),
+    { relief: (x, z) => (reliefLive ? reliefH.relief(x, z) : 0), lowAt: (x, z) => (reliefLive ? reliefH.lowAt(x, z) : 0), reliefStats: reliefH.reliefStats, base: baseTerrainHeightAt });
   // swimmable water: at least MIN_DEPTH (5 m) everywhere except where the water meets a beach, which keeps its
   // gentle slope (the clamp ramps in from 8 m to 56 m off the sand). Cached per surface cell.
   const MIN_DEPTH = 5.0; // deep enough to dive under and swim along the bottom
@@ -404,7 +414,7 @@ export async function loadMiamiData(game, opts = {}) {
     if (deckAt(x, z, y === undefined ? Infinity : y + 4)) return DK.y;
     const s = surfCode(x, z);
     if (s === S_WATER) return SEA - Math.max(0.2, swimDepthAt(x, z));
-    const t = gH ? terrainHeightAt(x, z) : 0;
+    const t = terrainHeightAt(x, z); // (0 + relief on a flat build)
     if (s === S_SIDEWALK) return t + CURB;
     if (s === S_PIER) return PIER_Y;
     // stage 1: downtown plazas are raised flush with the sidewalk (tilebuild draws them at curb height)
@@ -426,6 +436,7 @@ export async function loadMiamiData(game, opts = {}) {
   const districtAt = (x, z) => DISTRICTS[distCode(x, z)] || null;
   // land cover class under (x, z): 'none' | 'park' | 'forest' | 'sawgrass' | 'wetland' | 'mangrove' | 'farmland' | 'grove' | 'runway' | ... (manifest.cover)
   const coverAt = (x, z) => COVER[coverCode(x, z)] || 'none';
+  reliefLive = true; // r2-ground micro-relief: everything its closures read exists from here on (before any init-time height: benches, lean spots)
   const named = (e) => !!e.name;
   // nearest named street (drivable edges), or a named pedestrian street / promenade if that is closer
   // display form of a street name: multi-ref OSM values ('US-1;SR 970', 'I 95;US 1') read 'US-1 / SR 970' (highways track)

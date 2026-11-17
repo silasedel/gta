@@ -83,7 +83,7 @@ export function makeSandMaterial(THREE, opts = {}) {
   const U = { sandCol: { value: shared.col }, sandNrm: { value: shared.nrm }, sandAtl: { value: shared.atl }, sandTile: { value: o.tile }, sandBump: { value: o.bump }, sandP: { value: new THREE.Vector4(o.shells, o.damp, o.ripples, o.litter) }, sandMarks: { value: o.marks } , sandShore: { value: null }, sandShoreRect: { value: new THREE.Vector4(0, 0, 1, 1) }, sandShoreOn: { value: 0 }, sandTime: { value: 0 } };
   const mat = new THREE.MeshStandardMaterial({ color: o.tint, roughness: 0.96, metalness: 0, vertexColors: o.vertexColors });
   mat.name = 'sand:fine'; mat.userData.sand = U; mat.userData.isSand = true;
-  mat.customProgramCacheKey = () => 'sand-fine-v2';
+  mat.customProgramCacheKey = () => 'sand-fine-v3';
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandW;').replace('#include <project_vertex>', '#include <project_vertex>\n  vSandW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -115,6 +115,10 @@ export function makeSandMaterial(THREE, opts = {}) {
   vec4 sbig = sandStamp(sw + 13.7, 2.9, sandMarks, .9, 1.7, 0., 1., sdx, sdy);
   sc *= 1. - sbig.a * .42; sandG += vec2(dFdx(sbig.a), dFdy(sbig.a)) * 2.5 * (1. - smoothstep(.004, .02, spx));
   diffuseColor.rgb *= sc;
+  { // r2-ground (ART_STYLE sand row): Florida shell / quartz sand is near-neutral gray-white, dry L 0.28-0.45, sat <= 0.18
+    float sl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 sn = mix(vec3(sl) * vec3(1.05, 1.0, 0.91), diffuseColor.rgb, 0.42);
+    diffuseColor.rgb = sn * clamp(0.36 / max(sl * 1.0, 1e-3), 0.8, 2.2) * mix(0.88, 1.08, sm1) * mix(1.0, 0.62, max(sdamp * 0.7, sWet * 0.7)); }
   vec4 ss1 = sandStamp(sw, .37, sandP.x * .55, .03, .085, 2., 2., sdx, sdy); diffuseColor.rgb = mix(diffuseColor.rgb, ss1.rgb, ss1.a);
   vec4 ss2 = sandStamp(sw + 5.3, .61, sandP.x * .35, .04, .12, 2., 2., sdx, sdy); diffuseColor.rgb = mix(diffuseColor.rgb, ss2.rgb, ss2.a);
   vec4 ss3 = sandStamp(sw + 21.1, .93, sandP.w, .03, .14, 1., 1., sdx, sdy); diffuseColor.rgb = mix(diffuseColor.rgb, ss3.rgb, ss3.a);

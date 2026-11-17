@@ -23,9 +23,25 @@ export function patchTerrainEdges(mat, o = {}) {
 GS gsMix(GS a, GS b, float w) { GS s; s.alb = mix(a.alb, b.alb, w); s.tilt = mix(a.tilt, b.tilt, w); s.ao = mix(a.ao, b.ao, w); s.rough = mix(a.rough, b.rough, w); s.h = mix(a.h, b.h, w); s.wet = mix(a.wet, b.wet, w); s.shore = mix(a.shore, b.shore, w); return s; }
 void main() {`).replace('// macro variation over everything', /* glsl */`
       float gmCrumb = 0.0, gmSh = 0.0;
+      { // r2-ground: Keys yards and lots read as a worked mosaic, not one material: soft-bordered patches of bare dirt, pale crushed
+        // shell and loose sand over the matted base, height-weighted borders (grains win over the grass texture's low spots)
+        float kk = smoothstep(4150.0, 4500.0, wp.y) * (1.0 - smoothstep(70.0, 110.0, gdC));
+        if (kk > 0.01 && gs.shore < 0.95) {
+          float pn = gF(wp * 0.085 + 3.3) * 0.75 + gN(wp * 0.37 - 1.9) * 0.25, pn2 = gF(wp * 0.13 - 7.1);
+          float hb = (gs.h - 0.5) * 0.25;
+          float wDirt = smoothstep(0.3, 0.2, pn + hb) * kk, wShell = smoothstep(0.66, 0.76, pn - hb) * kk, wSand = smoothstep(0.62, 0.72, pn2 - hb) * kk * (1.0 - wShell);
+          if (wDirt > 0.01) { GS d = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); d.alb *= vec3(0.98, 0.95, 0.9); gs = gsMix(gs, d, wDirt * 0.8); }
+          if (wShell > 0.01) { GS sh2 = gRecipe(${SHELL}, wp, gdx, gdy, gWantN); gs = gsMix(gs, sh2, wShell * 0.85); }
+          if (wSand > 0.01) { GS sd = gRecipe(${SAND}, wp, gdx, gdy, gWantN); gs = gsMix(gs, sd, wSand * 0.7); }
+          // leaf litter and twigs in drifts under the low spots of the mosaic (dark, small, broken)
+          float lf = step(0.83, gN(wp * 6.3 + 1.1) * 0.6 + gN(wp * 19.0) * 0.4) * smoothstep(0.45, 0.65, gF(wp * 0.21 + 8.0)) * kk;
+          gs.alb = mix(gs.alb, vec3(0.16, 0.12, 0.07) * (0.7 + 0.6 * gN(wp * 41.0)), lf * 0.8); gs.h = mix(gs.h, 0.8, lf * 0.6);
+        }
+      }
       {
         vec4 gmn = gmNear(wp);
         float gmA = gmn.r, gmP = gmn.g, gmNr = max(gmA, gmP * 0.75);
+        { float kq = smoothstep(4150.0, 4500.0, wp.y); gs.wet = max(gs.wet, uWeather.y * smoothstep(0.08, 0.3, gmNr) * (1.0 - smoothstep(0.55, 0.7, gmNr)) * mix(0.55, 1.0, kq)); } // r2-ground: after rain, puddles linger in the low verge just off the street edge
         if (gmn.a > 0.03) { // unpaved drive / yard track: crushed shell and sand, ragged edges, matted (no slab)
           float dn = gN(wp * 1.1 + 2.0) * 0.6 + gN(wp * 3.7 - 1.0) * 0.4;
           float wd = smoothstep(0.3, 0.62, gmn.a + (dn - 0.5) * 0.4 + (0.5 - gs.h) * 0.25);
