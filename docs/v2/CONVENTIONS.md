@@ -93,6 +93,21 @@ How the world and the systems connect. If something here is wrong, fix the code 
   light at each model's luminaire. Keys / rural lanes: wooden utility poles with wires + a davit lamp on every second
   pole, carts and rural mailboxes (`keysLane`). Regulatory signs (`src/world/signs/regulatory.v2.js`) use the library
   STOP plate and a repainted library plate for SPEED LIMIT. Audit: `node tools/v2/furniture-audit.mjs`.
+- **Street props (overnight props pass, Nov 17):** more library props in `public/assets/models/street/`
+  (`tools/v2/street-models/build_props.sh`: curbside cart, cone, channelizer, flex bollard, ROAD CLOSED barricade, jersey
+  barrier, roll-off, site cabin, tarp crates, patio table / chair, cafe umbrella, planters, hot dog cart; brand text painted out
+  by `fix_textures.py`). **Variants:** `variants.py` writes N edited copies of a prop's color texture (`var/<set>.jpg`), loaded
+  as a texture array by `src/world/props/variants.v2.js` (`kit.variants[part]`); instances of such a part are drawn with
+  `colors: true` and the instance color = `variantColor(layer, brightness, fade)` (tilebuild `kitParts` does this; items may
+  carry `vl` / `vlFixed`). Items can carry `rx` / `rz` (lean) and `m` (a saved 4x4 pose) for the instance pools.
+  **Per-house curb props:** `src/world/props/lotProps.v2.js` (`lotProps.add(owner, [{ kind: 'mailbox' | 'carts' | ... }])`),
+  fed by the house generator (`curb` list from `yard()`, placed by `houses.v2.js`) and the spawn street (`dressing.v2.js`);
+  `?lotprops=0` restores the old code-built boxes. **Physics:** `src/world/props/dynamicProps.v2.js` (`game.dynProps`):
+  'push' props are sleeping Rapier bodies (carts, cones, barricades, chairs), 'knock' props are fixed until a vehicle hits them
+  (post mailboxes, parking-sign posts, STOP / SPEED LIMIT posts near the player); collider shapes measured from the meshes by
+  `propShapes.v2.js`; a hard hydrant hit gushes (`hydrantSpray.v2.js`). Work zones / construction sites: tilebuild
+  `workZones()` (`props.work`, item `v` = part name; `window.__workNear(x, z, r)` for review). Review driver:
+  `node tools/v2/street-models/props-shots.mjs --steps tools/v2/street-models/steps/final.json --set name`.
 
 - **Cars (overnight Nov 17):** every road car is one of the user's models (`Models/Cars`, converted by `tools/v2/cars/`,
   runtime `src/vehicles/glb/`, see `src/vehicles/README.md` section 0). Park a specific car with

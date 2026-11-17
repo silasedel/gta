@@ -9,6 +9,7 @@
 
 
 ## look
+- 05:15 **look3 is ON by default** (lead OK; rollback `?look3=0` installs none of it). Before/after sheets (left old, right look3): `docs/v2/shots/look/sheet_r3_nico_deck.png` (11:00, 18:30, 22:00, after rain 11:00 and 18:30), `sheet_r3_beach.png` (11, 18:30, 22, after rain), `sheet_r3_downtown.png` (11 old was still streaming, 18:30, 22). Frame A/B per part at spawn, same session, after the tap trim: all of look3 39.8 -> 41.5 ms GPU (+1.7 ms); soft shadows, AO ring and auto exposure each inside the noise (machine load 200+, medians 60-85 ms either way). Console: 0 shader errors with and without `?look3`; a re-check of the new default is running.
 - 04:55 Console clean on both paths (default and `?look3`: 0 shader errors). Before/after sheet, Nico's deck, rows 11:00 / 18:30 / 22:00 / after rain 11:00 / after rain 18:30, left = old, right = look3: `docs/v2/shots/look/sheet_r3_nico_deck.png`. First frame A/B (s1-perf, same session, spawn): 59.2 -> 67.9 ms median (GPU 34.7 -> 42.7 ms; the machine is very loaded, p95 noisy). I cut the soft-shadow taps (search 8 -> 6, filter 12 -> 10, umbra early-out) and am re-measuring per part (soft shadows / AO ring / auto exposure) before switching it on by default. Beach + downtown sheets running.
 - 04:35 **look3 is opt-in (`?look3`) after the lead's report**: the fog chunk read `uLookV` in materials that never got its declaration (shader error on other helpers' pages). Fixed (`#ifdef PS_LOOKU`), and no look3 shader patch is installed without `?look3`, so the default path is the old, stable one. A console check (both paths: shader errors, max frame) is queued. Default-on only after a clean console + frame-time A/B.
 - 04:25 Round 2 A/B at Nico's (in-session, `game.look3` false/true): `docs/v2/shots/look/r2_nico_deck_11_old.png` vs `r2_nico_deck_11_neu.png`; dusk `r2_nico_deck_18h5_*`, night `r2_nico_deck_22_*`. look3 = soft PCSS shadows, shade/sun ratio about 2x deeper (sand in the pickup's shade 73 -> 40 at the same sunlit level), PBR Neutral tone map (deep skies, no neon reds from ACES), sat 0.93, auto exposure (night opens up about +1 stop, not pitch black). Parked cars had no sun shadow: the cars helper fixed the shadow tagging.
@@ -78,6 +79,15 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 05:20 SUMMARY (cars): every road car is a user model. 46 of the Models/Cars entries converted (not the 4 personal-use
+  rows), plus Covered Car 1 and the broken Van 2 as static props = 49 GLBs, 33 MB, `public/assets/vehicles/cars/`.
+  Pipeline `tools/v2/cars/` (convert.py + cars.json per-car fixes), runtime `src/vehicles/glb/`. Wheels split by
+  geometry with hub pivots (static calipers), spin / steer / per-wheel suspension, capped at the measured arch gap;
+  hull, track, wheelbase, radius from the model; class physics. Paint = US mix (`glb/fleet.js US_MIX`) with per-car
+  finish / dirt / wear; Southline police, taxi, ambulance, fire liveries; emblems blanked. Rare: one each, placed mid-block
+  near the casino valet, Ocean Drive, Brickell, downtown, Collins Ave (`glb/placements.js`). Zone fleets (`zoneMix`).
+  Nico: gray lifted pickup with a satin black hood stripe + faded pale-blue classic (`game.vehicles.nicoCars`).
+  Cost: same draw calls as the procedural fleet (132 vs 128 for ~54 cars), frame-time difference in the noise.
 - 04:50 Second orientation sweep (offline Blender renders of every GLB from the front-left): sedan4, suv13, the hypercar and
   the fire engine were driving backward too; fixed (all 47 models now checked front-left and pinned). Hypercar maker
   lettering on the tail blanked. Car meshes are tagged as dynamic sun-shadow casters at creation (look helper: parked cars
@@ -226,6 +236,9 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 05:35 **tilebuild ready: ground** - one hunk in buildNear's sidewalk loop: `curWeeds` is set right before each synchronous
+  sidewalkPoly call and cleared right after (it was set once before the yielding loop, so interleaved tile builds nulled it and
+  no curb weeds appeared). No new imports. Tag: "curb-crack weeds collected while this slab is built". (I no longer commit tilebuild.js.)
 - 05:00 Elevated / bridges (now mine): the barriers already had a jersey profile; the "flat wall" was the material - a faint
   generic atlas detail on 0.21 vertex albedo. New `src/world/ground/concreteMaterial.js` for every elevated concrete part:
   the user's Concrete 3 scan triplanar (fine pitting + soft tone drift + its normal / roughness), formwork joints every 6 m,
@@ -433,6 +446,11 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   helpers' changes in it).
 
 ## vegetation
+- 05:35 Mangroves only on salt shores (the Keys, the Everglades coast, Florida Bay). Before this, 4 stood floating on a
+  freshwater lake at Clewiston. t13 shots: `t13_mangrove_close.png` (Mangrove Tree 2 stilt roots in the shallows),
+  `t13_mangrove_air.png`, `t13_rural_air.png`. The "rural_road" spot landed in Clewiston town (`t13_rural_road.png`).
+  Audits: 0 floating, 0 on a road, 0 in a solid after the fix. Note: the countryside's longest single generation step rose to
+  73 ms in this run (was 12-25). A spawn probe is running to check whether it is the post-teleport fill or a real hitch.
 - 05:10 **Airport cleared**: no plants on apron, runway, taxiway, parking, paved or plaza cover anywhere (cover class from
   `data.coverAt`). Inside the airport zone, nothing grows within 320 m of a runway centerline (layout.json runways), and the rest
   is limited to landscaping strips 3-18 m off the terminal roads. Shots: `t12_airport_air.png`, `t12_airport_front.png`
@@ -598,6 +616,11 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
 - 00:50 **Nico is now the user's own model** (Models/Main Character 1, Tripo; folder 2 is byte-identical geometry and textures, so folder 1 is used). Rigged onto the game skeleton (52 Mixamo-named joints, bone-heat weights, LOD 95k / 24k / 7k tris), 4K albedo + normal + matte roughness, 1.83 m. Every existing clip retargets onto it at load. `?nico=old` = pipeline Nico. Build: `tools/v2/player/build.sh`. Shots: `docs/v2/shots/player/t1_face.png`, `t1_side.png`, `t1_walk.png`. Next: clear test spot, hit zones, capsule, foot IK test.
 
 ## surfaces
+- 05:40 Committed the modules (`Surfaces: asphalt / paint / sidewalk shader pass`); tilebuild hunks handed to the lead ("tilebuild ready:
+  surfaces"). Sheets: `docs/v2/shots/surfaces/SURF_grazing_11_1830_rain.png` (downtown 11:00 / 18:30 / rain + Keys rain, before | after),
+  `SURF_closeups.png` (standing-height close-ups downtown / residential / Keys / rain). Tuning since: tar sealant satin (was a bright sky line
+  at grazing), Keys lanes lighter tire tracks that fade in and out along the street, no lane-joint seam on narrow lanes, fewer / subtler gum
+  spots. Aerials (new framing, 70 m) + crosswalk junction views running.
 - 04:50 First A/B in one session (`window.__surfaces.set(false/true)`): `docs/v2/shots/surfaces/t2_<spot>_{off,on}.png` (downtown stand / close /
   walk / graze / aerial, residential, Keys, rural). Asphalt now: two-layer stochastic scan sampling (no 3.2 m repeat), limestone aggregate at
   close range (faded by pixel size), tar crack-sealer snakes + sealed lane-joint seams + transverse / longitudinal cracks, alligator
