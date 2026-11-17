@@ -291,7 +291,7 @@ export async function createMaterials(renderer) {
     // albedo: crosswalks read cream before) with the same grain in its normal; calm poured concrete with 1.5 m control joints on sidewalks
     if (!/[?&]job4=0/.test(typeof location !== 'undefined' ? location.search : '')) try {
       const [sRoad, sWalk] = await Promise.all([loadSet(renderer, 'road_asphalt'), loadSet(renderer, 'gravel_concrete')]);
-      for (const m of [M.asphalt, M.junction]) { full(m, sRoad, undefined, 7 / 3.2); m.normalScale.set(0.7, 0.7); m.color.setScalar(0.62); m.userData.mipBias = 0.35; } // calm texture: no extra blur needed
+      for (const m of [M.asphalt, M.junction]) { full(m, sRoad, undefined, 7 / 3.2); m.normalScale.set(0.7, 0.7); m.color.setScalar(0.56); m.userData.mipBias = 0.35; } // calm texture: no extra blur needed
       const mk = (t) => { const c = t.clone(); c.repeat.set(1 / 3.2, 1 / 3.2); c.needsUpdate = true; return c; };
       M.markings.map = null; M.markings.normalMap = mk(sRoad.normalMap); M.markings.roughnessMap = mk(sRoad.arm); M.markings.normalScale.set(0.5, 0.5); M.markings.roughness = 0.85; M.markings.color.setScalar(0.92); M.markings.needsUpdate = true;
       full(M.sidewalk, sWalk, 1.25); M.sidewalk.normalScale.set(0.6, 0.6); M.sidewalk.userData.job4 = true;
@@ -379,7 +379,7 @@ export async function createMaterials(renderer) {
       }
     }
   }
-  for (const m of [M.asphalt, M.junction]) groundWear(m, 0.12, 0.42, 'a', 0.7, 1.55, 0, null, 0.04); // tone 1.55: sun-bleached gray asphalt; calm grain, softer cracks
+  for (const m of [M.asphalt, M.junction]) groundWear(m, m.userData.mipBias !== undefined ? 0.17 : 0.12, 0.42, 'a', 0.7, 1.55, 0, null, m.userData.mipBias !== undefined ? 0.07 : 0.04); // tone 1.55: sun-bleached gray asphalt; calm grain, softer cracks
   // parking lots and station aprons: poured concrete slabs with expansion joints every 4.5 m and oil stains
   if (M.parking) groundWear(M.parking, 0.1, 0.75, 'k', 0.35, 1.0, 0, [4.5, 4.5, 0, 0.035, 0.5], 0.06);
   for (const m of [M.markings]) groundWear(m, 0.10, 0.0, 'm', 0.6); // worn, chipped paint over the same cracks

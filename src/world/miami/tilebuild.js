@@ -1103,7 +1103,14 @@ export function createTileBuilder(ctx) {
       for (const L of J.legs) for (const rp of L.ramps) J.cuts.push(rp.cut);
       J.cutBB = J.cuts.map(bboxOf);
     }
+    if (J) { const bb = bboxOf(J.poly); for (let gx = Math.floor(bb[0] / 32); gx <= Math.floor(bb[2] / 32); gx++) for (let gz = Math.floor(bb[1] / 32); gz <= Math.floor(bb[3] / 32); gz++) { const k = gx * 100003 + gz; let c = JGRID.get(k); if (!c) JGRID.set(k, (c = [])); c.push(J); } }
     JN.set(id, J); return J;
+  }
+  const JGRID = new Map();
+  function inJunction(x, z) { // inside an already built junction outline (lawn / ground-cover tests: no grass on the curb returns)
+    const c = JGRID.get(Math.floor(x / 32) * 100003 + Math.floor(z / 32)); if (!c) return false;
+    for (const J of c) { const P = J.poly; let ins = false; for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const xa = P[a][0], za = P[a][1], xb = P[b][0], zb = P[b][1]; if ((za > z) !== (zb > z) && x < ((xb - xa) * (z - za)) / (zb - za) + xa) ins = !ins; } if (ins) return true; }
+    return false;
   }
   // a road piece's position on its graph edge: { s0 (edge arc length at the piece start), LE (edge length), A / B (junction leg at
   // the edge's start / end node, or null) }. Stations along the piece: node A station s -> s - s0; node B station s -> LE - s - s0.
@@ -2135,7 +2142,7 @@ export function createTileBuilder(ctx) {
     for (const e of lawnIndex.values()) {
       if (x < e.minX || x >= e.maxX || z < e.minZ || z >= e.maxZ) continue;
       if (!e.lawns.some((l) => inRings(l, x, z))) return false;
-      return !e.walks.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7);
+      return !e.walks.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7) && !inJunction(x, z);
     }
     return null;
   }
@@ -2147,7 +2154,7 @@ export function createTileBuilder(ctx) {
       const hit = (l) => !(l.bb[2] < x0 || l.bb[0] > x1 || l.bb[3] < z0 || l.bb[1] > z1);
       const L = e.lawns.filter(hit), W = e.walks.filter(hit);
       if (!L.length) return () => false;
-      return (x, z) => L.some((l) => inRings(l, x, z)) && !W.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7);
+      return (x, z) => L.some((l) => inRings(l, x, z)) && !W.some((w) => inRings(w, x, z)) && !(roadDist && roadDist(x, z) < 7) && !inJunction(x, z);
     }
     return null;
   }

@@ -32,8 +32,8 @@ export function sampleFrame(fr, s) {
 function cornerRadius(a, b) {
   const rank = (k) => (/motorway|trunk/.test(k) ? 4 : /primary/.test(k) ? 3 : /secondary/.test(k) ? 2 : /tertiary/.test(k) ? 1 : 0);
   const hi = Math.max(rank(a.kind), rank(b.kind)), curb = a.sw > 0 && b.sw > 0;
-  if (hi >= 4) return curb ? 9 : 13;
-  if (!curb) return hi >= 2 ? 10 : 8;
+  if (hi >= 4) return curb ? 9 : 11;
+  if (!curb) return hi >= 2 ? 8.5 : 7;
   return hi >= 3 ? 7.5 : hi >= 2 ? 6.5 : hi >= 1 ? 5.5 : 4.5;
 }
 

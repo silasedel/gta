@@ -61,6 +61,8 @@ const VIEWS = (j) => {
   for (let i = 0; i < ang.length; i++) { const g = ((ang[(i + 1) % ang.length] - ang[i]) + Math.PI * 4) % (Math.PI * 2); if (g > 0.6 && g < 2.4 && (gap < 0 || Math.abs(g - Math.PI / 2) < Math.abs(gap - Math.PI / 2))) { gap = g; best = i; } }
   const bis = ang[best] + gap / 2, cd = (wmax / 2 + 6) / Math.sin(Math.max(0.5, gap / 2)) - 3.5, cx = j.x + Math.cos(bis) * cd, cz = j.z + Math.sin(bis) * cd; // on the corner sidewalk, behind the curb return
   v.corner = { eye: [cx, 1.75, cz], look: [j.x - Math.cos(bis) * 12, 0.4, j.z - Math.sin(bis) * 12] };
+  // corner: when the game exposes the junction outline, stand on the corner sidewalk 2.5 m behind a curb return
+  if (j.cornerEye) v.corner = { eye: j.cornerEye, look: [j.x, 0.3, j.z] };
   if (o.far) { v.far = { eye: [j.x + L0.dx * 260, 45, j.z + L0.dz * 260], look: [j.x, 0, j.z] }; v.far2 = { eye: [j.x + L0.dx * 140, 9, j.z + L0.dz * 140], look: [j.x, 0, j.z] }; }
   return v;
 };
@@ -75,6 +77,10 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
   let picks = null;
   if (!o.repick && fs.existsSync(PICKS)) picks = JSON.parse(fs.readFileSync(PICKS, 'utf8'));
   if (!picks) { picks = JSON.parse(await b.eval(PICK_JS)); fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); }
+  else { // map rebuilds renumber the graph: re-bind every pick to the junction node nearest its saved position
+    const ids = JSON.parse(await b.eval(`JSON.stringify(${JSON.stringify(Object.fromEntries(Object.entries(picks).map(([k, v]) => [k, [v.x, v.z]])))}, null)`).then(async (q) => b.eval(`(() => { const q = ${q}, G = game.city.roadGraph, out = {}; for (const k in q) { let best = null, bd = 1e9; for (const n of G.nodes) { if ((n.edges || []).length < 3) continue; const d = Math.hypot(n.x - q[k][0], n.z - q[k][1]); if (d < bd) { bd = d; best = n; } } out[k] = best ? [best.id, best.x, best.z, bd] : null; } return JSON.stringify(out); })()`)));
+    for (const k in ids) if (ids[k]) { picks[k].id = ids[k][0]; picks[k].x = ids[k][1]; picks[k].z = ids[k][2]; if (ids[k][3] > 5) console.log('pick moved', k, ids[k][3].toFixed(1), 'm'); }
+  }
   console.log('picks', Object.entries(picks).map(([k, v]) => `${k}:${v.id}@${v.x.toFixed(0)},${v.z.toFixed(0)} ${v.zone}/${v.dist} deg${v.deg} ${v.kinds}`).join('\n'));
   const only = o.only ? String(o.only).split(',') : Object.keys(picks);
   const sheet = [];
@@ -84,6 +90,9 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 12.5; try { game.weather?.set?.('clear', { instant: true }); game.weather?.hold?.(); } catch (e) {} const h = document.getElementById('ps-hud'); if (h) h.style.display = 'none'; return 1; })()`); };
   for (const id of only) {
     const j = picks[id]; if (!j) continue;
+    await ensure();
+    const ce = await b.eval(`(() => { const J = game.city.junctionOf ? game.city.junctionOf(${j.id}) : null; if (!J) return null; const c = J.corners.filter((c) => c.kind === 'fillet').sort((p, q) => (J.legs[q.i].sw > 0 && J.legs[q.j].sw > 0 ? 1 : 0) - (J.legs[p.i].sw > 0 && J.legs[p.j].sw > 0 ? 1 : 0))[0]; if (!c) return null; const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], l = Math.hypot(dx, dz) || 1; return [m[0] + dx / l * 2.5, 1.75, m[1] + dz / l * 2.5]; })()`).catch(() => null);
+    if (ce) { j.cornerEye = ce; fs.writeFileSync(PICKS, JSON.stringify(picks, null, 1)); } // saved: a later job4=0 run stands on the same corner
     const vs = VIEWS(j); rep.junctions[id] = { node: j.id, x: j.x, z: j.z, zone: j.zone, dist: j.dist, kinds: j.kinds, views: {} };
     // park the player out of frame (40 m off the junction on the corner side, streams the tiles), then wait for streaming
     const tk = `tile-near-${Math.floor(j.x / 200)},${Math.floor(j.z / 200)}`;
