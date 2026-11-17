@@ -39,6 +39,7 @@ export const WALL_LAYERS = [
   { key: 'roofCoat', name: 'painted_concrete', neutral: 1, level: 0.84, tile: 4.0 },
   { key: 'facadeTile', name: 'rectangular_facade_tiles', neutral: 1, level: 0.8, tile: 2.0, rough: 0.7 },
 ];
+const ART_GEO_OFF = typeof location !== 'undefined' && /[?&]artgeo=0\b/.test(location.search); // r2-art before/after: palette fade, patchiness, base course off
 export const WL = Object.fromEntries(WALL_LAYERS.map((l, i) => [l.key, i]));
 export const WIN = { punched: 0, ribbon: 1, curtain: 2, arched: 3, porthole: 4, blank: 5, storefront: 6, door: 7, garage: 8, roller: 9 };
 export const PROFILE = { office: 0, residential: 1, hotel: 2, retail: 3, industrial: 4, garage: 5, lobby: 6, restaurant: 7 };
@@ -154,8 +155,23 @@ void facadeEval() {
   float streak = fVN(vec2(tuv.x * 2.1 + seed, tuv.y * 0.16));
   float grimeK = (bits & 8192) != 0 ? 0.42 : 0.2;
   float baseDirt = horiz ? 0.0 : smoothstep(1.8, 0.0, vFWP.y - vFc.x) * (0.18 + 0.26 * fVN(tuv * vec2(1.3, 3.0))); // splash-zone grime at the base
-  vec3 alb = cR.rgb * vColor.rgb * (0.9 + 0.2 * mac);
+  // r2-art palette: Florida paint is sun-faded. Wall tints keep linear saturation <= 0.5 and painted walls luminance >= 0.16
+  // (navy / teal / brick-red paint read as cartoon); a very low-frequency repaint / mildew patchiness breaks up big flat walls
+  vec3 tint = vColor.rgb;
+#ifndef ART_GEO_OFF
+  { float tl = dot(tint, vec3(0.2126, 0.7152, 0.0722)), tmx = max(max(tint.r, tint.g), tint.b), tmn = min(min(tint.r, tint.g), tint.b), tsat = (tmx - tmn) / max(tmx, 1e-4);
+    if (tsat > 0.5) tint = mix(vec3(tl), tint, 0.5 / tsat);
+    if (!horiz && Li != 8 && Li != 9 && Li != 16 && tl < 0.16) tint *= 0.16 / max(tl, 0.02); }
+  float patchy = fVN(tuv * 0.035 + seed * 1.7);
+#else
+  float patchy = 0.625;
+#endif
+  vec3 alb = cR.rgb * tint * (0.9 + 0.2 * mac) * (0.9 + 0.16 * patchy);
   alb *= 1.0 - (streak * streak * grimeK + baseDirt) * vec3(0.8, 0.86, 0.95);
+#ifndef ART_GEO_OFF
+  { float hb = vFWP.y - vFc.x; // painted base course: a 0.45 m darker plinth band at grade (soft top edge), on walls only
+    if (!horiz && hb > -0.3 && hb < 0.6) alb = mix(alb, alb * vec3(0.66, 0.66, 0.68) + vec3(0.012), 1.0 - smoothstep(0.43, 0.47, hb)); }
+#endif
   float rough = cR.a, metal = nA.a, ao = nA.b;
   vec3 nT = vec3(nA.xy * 2.0 - 1.0, 0.0); nT.z = sqrt(max(0.05, 1.0 - dot(nT.xy, nT.xy)));
   vec3 emi = vec3(0.0); vec3 nOver = vec3(0.0); float useOver = 0.0;
@@ -189,6 +205,9 @@ void facadeEval() {
     float detail = 1.0 - smoothstep(0.05, 0.28, px);
     float h1 = fH2(cell + seed), h2 = fH2(cell * 1.31 + seed + 17.0), h3 = fH2(cell * 0.73 + seed + 41.0), h4 = fH2(cell * 2.17 + seed + 71.0);
     vec3 acc = vFd.rgb; int prof = int(vFc.y + 0.5);
+#ifndef ART_GEO_OFF
+    { float al = dot(acc, vec3(0.2126, 0.7152, 0.0722)), amx = max(max(acc.r, acc.g), acc.b), amn = min(min(acc.r, acc.g), acc.b), asat = (amx - amn) / max(amx, 1e-4); if (asat > 0.6) acc = mix(vec3(al), acc, 0.6 / asat); } // r2-art: faded trim / shutter paint
+#endif
     vec3 gTint = uFGlass[int(vFc.z + 0.5)]; float refl = vFc.w;
     vec3 frameC = (bits & 512) != 0 ? vec3(0.035, 0.037, 0.04) : vec3(0.74, 0.74, 0.72);
     vec3 Vt = vec3(dot(Vw, T), dot(Vw, Bt), min(dot(Vw, Nw), -0.04));
@@ -418,7 +437,7 @@ export function createFacadeMaterial(wall, rooms, shared, extra = null) {
         vFa = aFa; vFb = aFb; vFc = aFc; vFd = aFd; vFuv = uv;
         vFWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vFWN = normalize(mat3(modelMatrix) * objectNormal);`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>\n' + FRAG_HEAD.replace('NUM_FLAYERS', String(wall.count)))
+      .replace('#include <clipping_planes_pars_fragment>', '#include <clipping_planes_pars_fragment>\n' + (ART_GEO_OFF ? '#define ART_GEO_OFF\n' : '') + FRAG_HEAD.replace('NUM_FLAYERS', String(wall.count)))
       .replace('#include <map_fragment>', '#include <map_fragment>\n  facadeEval();')
       .replace('#include <color_fragment>', 'diffuseColor.rgb = gFAlb;')
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = gFRough;')

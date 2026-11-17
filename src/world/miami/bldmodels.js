@@ -50,7 +50,7 @@ export const LIB = {
   brick_shopfront: { off: 1, w: 6.32, d: 3.4, h: 3.69, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'brick', rough: 1 },
   bookshop: { w: 5.2, d: 3.13, h: 7.48, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'paint', not: 'Overtown|Liberty' },
   strip_diner: { w: 31.5, d: 11.2, h: 5.8, k: 1, lod1: 1, cls: 'shop', glow: 0.4, tint: 'paint', rough: 1, not: 'Downtown|Brickell' },
-  motel: { w: 50.33, d: 42.64, h: 12.83, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'none', rough: 1, not: 'Downtown|Brickell|Edgewater' },
+  motel: { off: 1 /* r2-art: 256 px textures over 4400 m2 (~7 px/m), below the bar; model requested */, w: 50.33, d: 42.64, h: 12.83, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'none', rough: 1, not: 'Downtown|Brickell|Edgewater' },
   gas_station: { w: 48.41, d: 26.02, h: 10.56, k: 1, cls: 'shop', glow: 0.5, lod1: 1, tint: 'none', not: 'Downtown|Brickell|Edgewater|South Beach|Miami Beach' },
   // ---- houses ----
   brick_cottage: { w: 20.12, d: 16.12, h: 7.2, k: 1, cls: 'house', glow: 0.25, mir: 1, tint: 'brick' },
@@ -81,7 +81,7 @@ export const LIB = {
   airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none', desat: 1 }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
 const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 250;
-const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
+const CHANCE = { tower: 0.55, mid: 0.5, house: 0.32, shop: 0.5, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 }; // r2-art: mid / shop 0.42 / 0.4 -> 0.5 (calibrated library models carry more modeled detail than a procedural block)
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
 const MIRROR = false;
 const ROUGH_D = /Overtown|Liberty City/;
