@@ -7,6 +7,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { planSigns, verifyGuides } from './plan.js';
 import { drawGuidePanel, drawBlade } from './draw.js';
 import { makeCanvas, rng, hashStr, vnoise } from './util.js';
+import { breakables } from '../miami/breakables.js'; // r2-physics: street-name posts are solid and snap when a car hits them
 export const order = 60;
 
 export async function initV2(game) {
@@ -69,7 +70,7 @@ export async function initV2(game) {
     try { for (const s of [-1, 1]) { const w = new THREE.Vector3(s * hw, H / 2, 0).applyMatrix4(grp.matrixWorld), qy = new THREE.Quaternion().setFromEuler(grp.rotation); cols.push(world.createCollider(RAPIER.ColliderDesc.cuboid(0.3, H / 2, 0.75).setTranslation(w.x, w.y, w.z).setRotation({ x: qy.x, y: qy.y, z: qy.z, w: qy.w }))); } } catch (e) { /* visual only */ }
     return { grp, cols };
   }
-  function drop(o) { root.remove(o.grp); o.grp.traverse((m) => { if (m.isMesh) { m.geometry.dispose(); if (m.material !== steel && m.material !== concrete && m.material !== backMat) { faceMats.delete(m.material); m.material.map?.dispose(); m.material.dispose(); } } }); for (const c of o.cols || []) { try { world.removeCollider(c, false); } catch (e) { /* */ } } }
+  function drop(o) { root.remove(o.grp); o.grp.traverse((m) => { if (m.isMesh) { m.geometry.dispose(); if (m.material !== steel && m.material !== concrete && m.material !== backMat) { faceMats.delete(m.material); m.material.map?.dispose(); m.material.dispose(); } } }); for (const c of o.cols || []) { try { world.removeCollider(c, false); } catch (e) { /* */ } } if (o.owner) try { breakables.removeOwner(o.owner); } catch (e) { /* */ } }
 
   // ------------------------------------------------ street-name blades, in 160 m cells
   const CELL = 160, cells = new Map();
@@ -79,12 +80,13 @@ export async function initV2(game) {
     const cols = 4, rows = Math.ceil(labels.size / cols), CW = 256, CH = 64, cv = makeCanvas(cols * CW, Math.max(1, rows) * CH), x = cv.getContext('2d');
     for (const { s, i } of labels.values()) drawBlade(x, s, (i % cols) * CW, (i / cols | 0) * CH, CW, CH);
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-    const posts = [], P = [], U = [], N = [];
+    const posts = [], P = [], U = [], N = [], ranges = []; let pv = 0;
     for (const p of c.posts) {
       let gy = 0; try { gy = city.groundHeightAt(p.x, p.z) ?? 0; } catch (e) { /* */ }
       if (city.isWater?.(p.x, p.z)) continue;
       const pg = new THREE.CylinderGeometry(0.035, 0.04, 3.35, 8).toNonIndexed(); pg.translate(p.x, gy + 1.675, p.z); posts.push(pg);
       const cap = new THREE.SphereGeometry(0.05, 8, 6).toNonIndexed(); cap.translate(p.x, gy + 3.37, p.z); posts.push(cap);
+      const nP = pg.attributes.position.count + cap.attributes.position.count; ranges.push({ p, gy, v0: pv, vn: nP, b0: P.length / 3, bn: p.signs.length * 12 }); pv += nP;
       p.signs.forEach((s, j) => {
         const { i } = labels.get(s.name + '|' + (s.block ?? '')), u0 = (i % cols) / cols, u1 = u0 + 1 / cols, v1 = 1 - (i / cols | 0) / rows, v0 = v1 - 1 / rows, y0 = gy + 2.74 + j * 0.27, y1 = y0 + 0.23, hl = 0.46;
         for (const f of [1, -1]) { const ax = p.x - s.dx * hl * f, az = p.z - s.dz * hl * f, bx = p.x + s.dx * hl * f, bz = p.z + s.dz * hl * f, nx = -s.dz * f, nz = s.dx * f, o = 0.012;
@@ -95,7 +97,15 @@ export async function initV2(game) {
     const grp = new THREE.Group();
     if (posts.length) { const pm = new THREE.Mesh(mergeGeometries(posts), steel); pm.castShadow = true; grp.add(pm); for (const g of posts) g.dispose(); }
     if (P.length) { const bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); bg.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); bg.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, side: THREE.DoubleSide, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0 }); faceMats.add(mat); grp.add(new THREE.Mesh(bg, mat)); }
-    root.add(grp); return { grp };
+    root.add(grp);
+    // r2-physics: a thin solid post per blade sign (it was walk-through); a car snaps it (breakables: debris, impact), the post and
+    // its blades vanish from the merged meshes
+    const owner = 'signcell:' + c.key, pm = grp.children[0], bm = grp.children[1];
+    for (const R of ranges) {
+      const hide = () => { for (const [m, a, n] of [[pm, R.v0, R.vn], [bm, R.b0, R.bn]]) { const pa = m?.geometry?.attributes?.position; if (!pa) continue; for (let i = a; i < a + n && i < pa.count; i++) pa.setXYZ(i, R.p.x, R.gy - 5, R.p.z); pa.needsUpdate = true; } };
+      try { breakables.add({ x: R.p.x, y: R.gy, z: R.p.z, hx: 0.05, hy: 1.68, hz: 0.05, ry: 0, kind: 'signPost', owner, hide, color: 0x9aa0a6 }); } catch (e) { /* no physics */ }
+    }
+    return { grp, owner };
   }
 
   // ------------------------------------------------ streaming

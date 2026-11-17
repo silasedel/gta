@@ -43,6 +43,16 @@ export function installTrunks(game) {
     if ((t -= dt) <= 0) {
       t = 1.0;
       let list = []; try { list = src(pp.x, pp.z, 60) || []; } catch (e) { list = []; }
+      // countryside trees (the synthetic-land streamer) are not in trunksNear: a vertical trunk per tree from treesNear (base, scale),
+      // radius by kind (the tile cylinders that used to cover them are off while trunk colliders are on)
+      try { const cs = game.vegetation?.countryside, T = cs?.treesNear?.(pp.x, pp.z, 60) || [];
+        if (T.length) { const grid = new Set(list.map((e) => Math.round(e.segs[0][0] * 2) + ':' + Math.round(e.segs[0][2] * 2)));
+          for (const tr of T) { const gk = Math.round(tr.x * 2) + ':' + Math.round(tr.z * 2); if (grid.has(gk)) continue;
+            const k = String(tr.kind || ''), sc = tr.s || 1;
+            const rad = (tr.palm ? 0.17 : /mangrove/.test(k) ? 0.11 : /seagrape/.test(k) ? 0.08 : /pine|cypress/.test(k) ? 0.2 : /banyan/.test(k) ? 0.6 : 0.27) * sc;
+            const h = (tr.palm ? 4.5 : /seagrape/.test(k) ? 1.4 : 2.6) * sc;
+            const e = { key: 'cs:' + gk, kind: k, palm: !!tr.palm, segs: [[tr.x, tr.y - 0.1, tr.z, tr.x, tr.y + h * 0.5, tr.z, rad], [tr.x, tr.y + h * 0.5, tr.z, tr.x, tr.y + h, tr.z, rad * 0.85]] };
+            if (/mangrove/.test(k)) e.roots = [tr.x, tr.z, 1.5 * sc]; list.push(e); } } } catch (e) { /* no countryside */ }
       const want = new Set();
       for (const r of list) { const k = r.key ?? `${Math.round((r.segs?.[0]?.[0] ?? 0) * 20)}:${Math.round((r.segs?.[0]?.[2] ?? 0) * 20)}`; want.add(k); if (!live.has(k)) queue.push([k, r]); }
       for (const [k, rec] of live) if (!want.has(k) && (() => { const d = Math.hypot(rec.x - pp.x, rec.z - pp.z); return d > 80 || d < 56; })()) { try { world.removeRigidBody(rec.body); } catch (e) { /* */ } live.delete(k); }
