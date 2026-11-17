@@ -61,7 +61,7 @@
     0.8
    ],
    "rough": [
-    0.78,
+    0.62,
     0.96
    ],
    "metal": [
@@ -806,6 +806,10 @@
   [
    "emissive",
    "emissive|neon|lamp_?glow|bulb|light_?cone|led\\b|screen|flame|fire\\b|sky|cloud|glow"
+  ],
+  [
+   "plastic",
+   "car-trim|car-plastic"
   ],
   [
    "glass",

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const RANGES = JSON.parse(fs.readFileSync(new URL('../../../src/world/art/ranges.json', import.meta.url), 'utf8'));
+// a class may appear more than once in the list (an early, narrow pattern before the general one)
 const CLS = RANGES.classify.map(([c, re]) => [c, new RegExp(re, 'i')]);
 const CHAIN = [['foliage', /veg_\w+.*frond|M\.frond|plants:leaves|plants:card/i], ['bark', /M\.trunk|plants:limbs/i], ['carPaint', /\bvehicle|glbCar/i], ['skin', /npcSkin/i]];
 const l2s = (x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
@@ -78,7 +79,7 @@ export function evaluate(stats, views, meta = {}) {
     if ((cls === 'galvanized' || cls === 'chrome') && s.metal != null && s.metal < 0.5) cls = 'metalPainted'; // named metal, authored dielectric: painted
     if (cls === 'generic' && /lib-|^buildings\//.test(`${s.obj} ${s.src || ''}`)) cls = 'building'; // same fallback as calibrate() for library buildings
     if ((cls === 'generic' || cls === 'building') && s.metal != null && s.metal >= 0.5 && !s.shaderPBR) cls = 'galvanized';
-    if (s.scrRM) { s.roughStatic = s.rough; s.metalStatic = s.metal; s.rough = s.scrRM[0]; s.metal = s.scrRM[1]; s.shaderPBR = false; } // measured on screen (r2-look debug mode)
+    if (s.scrRM && !/^(foliage|flowers|grass|bark)$/.test(s.calCls || classify(s))) { s.roughStatic = s.rough; /* wind moves foliage between the ID and RM renders: keep the static value there */ s.metalStatic = s.metal; s.rough = s.scrRM[0]; s.metal = s.scrRM[1]; s.shaderPBR = false; } // measured on screen (r2-look debug mode)
     const sc = score(s, cls);
     const cov = Object.values(s.cover); const vis = Math.max(...cov, 0), tot = cov.reduce((p, c) => p + c, 0);
     const where = Object.entries(s.cover).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k} ${(v * 100).toFixed(1)}%`);

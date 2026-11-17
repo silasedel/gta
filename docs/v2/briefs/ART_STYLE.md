@@ -96,7 +96,7 @@ map mean). Texel density is target / minimum in px per meter.
 |---|---|---|---|---|---|---|---|
 | asphalt | 0.04-0.14 (56-105). Fresh 0.04-0.06, aged Florida 0.08-0.14 (default) | 0.80-0.97 (wet 0.1-0.35) | 0 | 0.4-1.0 | 0.14 | 512 / 256 | oil drips in lane centers, tire polish in wheel paths, patch seams, sand at curbs |
 | concrete (sidewalk, curb, slab) | 0.20-0.42 (124-173) | 0.75-0.96 | 0 | 0.3-1.0 | 0.14 | 512 / 200 | expansion joints, gum and stain spots, edge chips, darker shaded base |
-| stucco / plaster facade | white 0.62-0.80 (205-231), pastel 0.35-0.60 (160-203), dirty 0.28-0.40 | 0.78-0.96 | 0 | 0.2-0.8 | 0.42 | 256 / 128 | rain streaks, mildew in shade, splash dirt, crack lines, patched repaint squares |
+| stucco / plaster facade | white 0.62-0.80 (205-231), pastel 0.35-0.60 (160-203), dirty 0.28-0.40 | 0.62-0.96 (painted stucco is semi-matte) | 0 | 0.2-0.8 | 0.42 | 256 / 128 | rain streaks, mildew in shade, splash dirt, crack lines, patched repaint squares |
 | painted wood (trim, siding, lattice) | 0.22-0.80 | 0.50-0.82 | 0 | 0.3-0.9 | 0.45 | 512 / 200 | peeling at edges, grain showing through, darker end grain |
 | raw / aged wood (deck, dock, fence) | 0.08-0.32 (80-153). Weathered silver-gray 0.18-0.30, new pine 0.30 | 0.68-0.94 | 0 | 0.4-1.1 | 0.45 | 512 / 200 | gray UV bleach on top faces, dark wet ends, nail rust |
 | brick | 0.07-0.26 (75-137) | 0.80-0.96 | 0 | 0.5-1.2 | 0.55 | 256 / 128 | efflorescence, soot, mortar lighter than brick |
