@@ -51,9 +51,18 @@ export async function initV2(game) {
     return null;
   }
 
+  // cars on the path or at the landing (parked cars may be asleep with their colliders off, so ask the vehicle list)
+  function carNear(v) {
+    const p = P.position, mx = (p.x + v.land.x) / 2, mz = (p.z + v.land.z) / 2;
+    for (const c of game.vehicles?.list || []) {
+      let t; try { t = c.body.translation(); } catch (e) { continue; }
+      if (Math.hypot(t.x - mx, t.z - mz) < 2.8 || Math.hypot(t.x - v.land.x, t.z - v.land.z) < 2.8) return true;
+    }
+    return false;
+  }
   function tryVault() {
     if (S.move || P.script || P.state.inVehicle || P.swimming || P.ragdoll || !P.state.grounded) return false;
-    const v = probe(); if (!v) { S.stats.refused++; return false; }
+    const v = probe(); if (!v || carNear(v)) { S.stats.refused++; return false; }
     const from = P.position.clone();
     // duration grows with height and the distance covered; the arc clears the top by 12 cm
     const dur = (v.kind === 'climb' ? 0.62 : 0.55) + v.hgt * 0.18 + v.thick * 0.12;

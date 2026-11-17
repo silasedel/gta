@@ -427,15 +427,24 @@ async function boot() {
   game.updaters.push((dt) => { solverSweepT -= dt; if (solverSweepT <= 0) { solverSweepT = 0.5; try { sweepKinematicSolver(); } catch (e) {} } });
   // Cars now pass through the player's capsule in the solver, so resolve car->player hits here.
   let carHitCd = 0;
+  const carPrev = new WeakMap();
   game.updaters.push((dt) => {
     carHitCd -= dt;
     if (P.state.inVehicle || carHitCd > 0 || game.ui.dead) return;
     for (const v of game.vehicles?.list || []) {
       let t; try { t = v.body.translation(); } catch (e) { continue; }
+      // the car's REAL travel this frame: a parked car waking up / depenetrating can report a big velocity while it
+      // barely moves; that must never count as an impact (it launched the player off hoods and roofs)
+      const pt = carPrev.get(v); carPrev.set(v, { x: t.x, z: t.z, t: game.clock.elapsed });
       const dx = P.position.x - t.x, dz = P.position.z - t.z;
       if (dx * dx + dz * dz > 9 || Math.abs(P.position.y + 0.9 - t.y) > 2) continue;
-      const lv = v.body.linvel(); const sp = Math.hypot(lv.x, lv.z);
+      if (P.position.y > t.y + 0.3) continue;                    // standing / landing on top of it (hood, roof, bed)
+      const lv = v.body.linvel(); let sp = Math.hypot(lv.x, lv.z);
       if (!Number.isFinite(sp) || sp < 4) continue; // frozen/disabled cars can report NaN velocity
+      if (pt && game.clock.elapsed - pt.t > 1e-3) sp = Math.min(sp, Math.hypot(t.x - pt.x, t.z - pt.z) / (game.clock.elapsed - pt.t) + 0.5);
+      // relative to the player, and toward him (a car he walks into, or one sliding away, is not a hit)
+      const rvx = lv.x - P.velocity.x, rvz = lv.z - P.velocity.z, rsp = Math.hypot(rvx, rvz);
+      if (sp < 4 || rsp < 4 || (rvx * dx + rvz * dz) <= 0) continue;
       // is the player inside the car's swept footprint? use local-space box test
       const r = v.body.rotation(); const q = new THREE.Quaternion(r.x, r.y, r.z, r.w).invert();
       const loc = new THREE.Vector3(dx, 0, dz).applyQuaternion(q);

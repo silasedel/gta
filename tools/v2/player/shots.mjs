@@ -49,6 +49,11 @@ const STEPS = {
         const left = new T.Vector3(1, 0, 0).applyQuaternion(q), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
         const seat = p.clone().addScaledVector(left, 0.38).addScaledVector(up, (v.spec?.belt ?? 1) - 0.05).addScaledVector(fwd, (v.spec?.zA ?? 1.4) - 1.1);
         cam.position.copy(seat).addScaledVector(left, 1.55).addScaledVector(fwd, 0.35).addScaledVector(up, 0.12); cam.lookAt(seat.x, seat.y + 0.05, seat.z); return true; };`, after: '' },
+  car_truck: { orbit: 'front', noOrbit: true, wait: 3000, eval: `const P = game.player, T = game.THREE; const tp = game.nicoHouse?.anchors?.truck?.pos || P.position; const v = (game.vehicles.list || []).filter((x) => x.body && !x.disposed).sort((a, b) => a.body.translation().x - b.body.translation().x).reduce((best, x) => { const t = x.body.translation(), d = Math.hypot(t.x - tp.x, t.z - tp.z); return !best || d < best[1] ? [x, d] : best; }, null)?.[0]; window.__car = v; if (v) game.enterVehicle(v);
+      game.cameraOverride = (dt, cam) => { const m = v.car?.shell || v.mesh; const q = m.getWorldQuaternion(new T.Quaternion()), p = m.getWorldPosition(new T.Vector3());
+        const left = new T.Vector3(1, 0, 0).applyQuaternion(q), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
+        const seat = p.clone().addScaledVector(left, 0.38).addScaledVector(up, (v.spec?.belt ?? 1) - 0.05).addScaledVector(fwd, (v.spec?.zA ?? 1.4) - 1.1);
+        cam.position.copy(seat).addScaledVector(left, 1.55).addScaledVector(fwd, 0.35).addScaledVector(up, 0.12); cam.lookAt(seat.x, seat.y + 0.05, seat.z); return true; };`, after: '' },
   car_chase: { orbit: 'front', noOrbit: true, wait: 3000, reset: false, eval: `game.cameraOverride = null; const v = window.__car; if (v) { const r = v.body.rotation(), q = new game.THREE.Quaternion(r.x, r.y, r.z, r.w), f = new game.THREE.Vector3(0, 0, 1).applyQuaternion(q); game.cameraYaw = Math.atan2(f.x, f.z) + Math.PI; game.cameraPitch = 0.16; }`,
     after: 'if (window.__car) game.exitVehicle();' },
   // vault: find a low wall / fence / rail he can hop (0.5 - 1.2 m) near the spot, run at it, press jump
