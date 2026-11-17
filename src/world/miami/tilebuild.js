@@ -1135,6 +1135,14 @@ export function createTileBuilder(ctx) {
     fillPoly(B.junction || B.asphalt, [ring], 0.055, 0xffffff, 1 / 7);
     if (coll) { coll.tag = 'junction'; fillPoly(coll, [ring], 0.05, 0xffffff, 1); }
   }
+  // is (x, z) on a sidewalk slab this tile (or a neighbor) really draws? (the surface grid also marks slabs that were dropped)
+  const slabIdx = new WeakMap();
+  function slabAt(tile, x, z) {
+    let L = slabIdx.get(tile); if (!L) { L = []; const nb = [tile]; if (provider.getTile && tile.tx !== undefined) for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { if (!i && !j) continue; const o = provider.getTile(tile.tx + i, tile.tz + j); if (o && !o.then && o.roads) nb.push(o); }
+      for (const tt of nb) for (const rings of sidewalksOf(tt)) L.push({ rings, bb: bboxOf(rings[0]) }); slabIdx.set(tile, L); }
+    for (const e of L) if (x >= e.bb[0] && x <= e.bb[2] && z >= e.bb[1] && z <= e.bb[3] && pipR(e.rings[0], x, z) && !e.rings.slice(1).some((h) => pipR(h, x, z))) return true;
+    return false;
+  }
   function* buildRoads(B, tile, props, coll, flush) {
     resolveDecks(tile); let rc = 0;
     for (const r of tile.roads) {
@@ -1184,7 +1192,8 @@ export function createTileBuilder(ctx) {
         L.ramps = [];
         if (L.cw) for (const side of [-1, 1]) { // curb ramp where the crosswalk lands on a sidewalk
           const sm = sampleFrame(L.fr, (L.cw[0] + L.cw[1]) / 2), ox = sm.nx * side, oz = sm.nz * side, x = sm.x + ox * (L.hw + 1.1), z = sm.z + oz * (L.hw + 1.1);
-          if (!okFoot(x, z) || (isWater && isWater(x, z))) continue;
+          const T0 = provider.tileSize || 200, ht = provider.getTile ? provider.getTile(Math.floor(x / T0), Math.floor(z / T0)) : null;
+          if (!okFoot(x, z) || (isWater && isWater(x, z)) || (ht && !ht.then && ht.roads && !slabAt(ht, x, z))) continue; // only where a slab is really drawn
           const at = (s, o) => { const q = sampleFrame(L.fr, s); return [q.x + q.nx * side * o, q.z + q.nz * side * o]; };
           const c0 = L.cw[0] - 0.1, c1 = L.cw[1] + 0.1, o0 = L.hw - 0.05, o1 = L.hw + RAMP_RUN;
           L.ramps.push({ side, fl: at(c0 - RAMP_FLARE, L.hw), f0: at(c0, L.hw), f1: at(c1, L.hw), fr: at(c1 + RAMP_FLARE, L.hw), b0: at(c0, o1), b1: at(c1, o1), w0: at(c0, L.hw + 0.6), w1: at(c1, L.hw + 0.6),
@@ -1218,16 +1227,58 @@ export function createTileBuilder(ctx) {
         out = { s0: e.cum[i], LE: e.length, e, A: Ja ? Ja.legs.find((l) => l.edgeId === r.edgeId && l.atA) || null : null, B: Jb ? Jb.legs.find((l) => l.edgeId === r.edgeId && !l.atA) || null : null, Ja, Jb }; } }
     pieceCache.set(r, out); return out;
   }
+  // ---- job 4: scanned road surfaces with strip uvs (paint from Road 1's RoadLines scan, shoulders from Road 11's dusty road edge) ----
+  // up-facing quad with explicit uvs: q = [[x, y, z, u, v] x4]
+  function quadUV(batch, q, col) {
+    const ny = (q[1][2] - q[0][2]) * (q[2][0] - q[0][0]) - (q[1][0] - q[0][0]) * (q[2][2] - q[0][2]), o = ny >= 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2];
+    for (const i of o) batch.vert(q[i][0], q[i][1], q[i][2], 0, 1, 0, q[i][3], q[i][4], col);
+  }
+  // atlas columns of lines_col.jpg: white line, yellow line, second white line, plain asphalt (sealed patches); v repeats every 9 m
+  const LINE_U = { w: [0.02, 0.23], y: [0.27, 0.48], w2: [0.52, 0.73], a: [0.78, 0.97] }, LINE_V = 9, _mc = new THREE.Color(), _mv = new THREE.Color();
+  // same signature as ribbon(); paint color picks the atlas column (yellow / white / asphalt patch) and dims it (faded paint)
+  function markRibbon(B, fr, ys, o0, o1, yOff, color, _uv, sA = 0, sB = Infinity) {
+    if (!(M.lines && B.lines)) return ribbon(B.marks, fr, ys, o0, o1, yOff, color, 1, sA, sB);
+    _mc.set(color); const lum = (_mc.r + _mc.g + _mc.b) / 3, yel = _mc.r > _mc.b * 2.5, dark = !yel && lum < 0.2;
+    const cu = yel ? LINE_U.y : dark ? LINE_U.a : (Math.floor(Math.abs(o0) * 3) & 1) ? LINE_U.w2 : LINE_U.w, k = dark ? Math.min(2.3, Math.max(1.5, 2.1 * lum / 0.12)) : Math.min(yel ? 1 : 1.12, lum / (yel ? 0.49 : 0.78)); // patches: the scan's asphalt is darker than the street, lift it to a fresh-seal shade
+    _mv.setRGB(k, k, k); const yAt = (i) => (typeof ys === 'number' ? ys : ys ? ys[i] : 0) + yOff;
+    for (let i = 0; i < fr.length - 1; i++) {
+      const A = fr[i], Bf = fr[i + 1], L = Bf.s - A.s; if (L <= 1e-6 || Bf.s <= sA || A.s >= sB) continue;
+      const t0 = A.s < sA ? (sA - A.s) / L : 0, t1 = Bf.s > sB ? (sB - A.s) / L : 1;
+      const P = (t, o, u) => { const x = A.x + (Bf.x - A.x) * t, z = A.z + (Bf.z - A.z) * t, nx = A.nx + (Bf.nx - A.nx) * t, nz = A.nz + (Bf.nz - A.nz) * t, y = yAt(i) + (yAt(i + 1) - yAt(i)) * t; return [x + nx * o, y, z + nz * o, u, (A.s + L * t) / LINE_V]; };
+      quadUV(B.lines, [P(t0, o0, cu[0]), P(t0, o1, cu[1]), P(t1, o1, cu[1]), P(t1, o0, cu[0])], _mv);
+    }
+  }
+  // shoulder: the scan's crumbling edge, 0.3 m over the asphalt edge (v = 0, crumbs show the road through) out to an irregular
+  // 1.0-1.7 m (v = 0.452, jagged cut into the verge). Keys lanes: warmer, sandier tint and wider.
+  const EDGE_U = 5.9, _sc = new THREE.Color();
+  function shoulderRibbon(B, fr, hw, sA, sB, side, eid, sandy) {
+    const Lf = fr[fr.length - 1].s, a = Math.max(0, sA), b = Math.min(Lf, sB); if (b - a < 0.5) return;
+    if (sandy) _sc.setRGB(1.22, 1.04, 0.78); else _sc.setRGB(0.98, 0.96, 0.93);
+    let prev = null;
+    for (let s = a; ; s = Math.min(b, s + 2)) {
+      const q = sampleAt(fr, s), w = (sandy ? 1.3 : 0.95) + hash(Math.floor(s / 2) * 7 + eid * 13 + (side > 0 ? 5 : 0)) * (sandy ? 0.7 : 0.5) + 0.2 * Math.sin(s * 0.37 + eid);
+      const inn = [q.x + q.nx * side * (hw - 0.3), 0.05, q.z + q.nz * side * (hw - 0.3), s / EDGE_U, 0], out = [q.x + q.nx * side * (hw + w), 0.05, q.z + q.nz * side * (hw + w), s / EDGE_U, 0.452];
+      if (prev) quadUV(B.shoulder, [prev[0], prev[1], out, inn], _sc); prev = [inn, out]; if (s >= b) break;
+    }
+  }
+  function shoulderArc(B, c, sandy) { // along a curb return (open corner): inner edge over the asphalt, outer edge toward the arc center
+    if (sandy) _sc.setRGB(1.22, 1.04, 0.78); else _sc.setRGB(0.98, 0.96, 0.93);
+    let acc = 0, prev = null;
+    for (let k = 0; k < c.arc.length; k++) { const p = c.arc[k], dx = c.O[0] - p[0], dz = c.O[1] - p[1], d = Math.hypot(dx, dz) || 1, w = Math.min(d * 0.8, (sandy ? 1.5 : 1.1) + hash(Math.floor(p[0] * 3) * 31 + Math.floor(p[1] * 3)) * 0.4);
+      if (k) acc += Math.hypot(p[0] - c.arc[k - 1][0], p[1] - c.arc[k - 1][1]);
+      const inn = [p[0] - dx / d * 0.3, 0.05, p[1] - dz / d * 0.3, acc / EDGE_U, 0], out = [p[0] + dx / d * w, 0.05, p[1] + dz / d * w, acc / EDGE_U, 0.452];
+      if (prev) quadUV(B.shoulder, [prev[0], prev[1], out, inn], _sc); prev = [inn, out]; }
+  }
   // continental crosswalk (bars along the travel direction), stop bar, curb ramps for one approach leg drawn on this piece
   function approachMarks(B, fr, ys, r, hw, pe, atB, mY) {
     const L = atB ? pe.B : pe.A; if (!L) return;
     const loc = (s) => (atB ? pe.LE - s - pe.s0 : s - pe.s0), span = (a, b) => { const p = loc(a), q = loc(b); return p < q ? [p, q] : [q, p]; };
     const PAINT = 0xf2f1ec;
     if (L.cw) { const [c0, c1] = span(L.cw[0], L.cw[1]), W = 2 * hw - 0.5, n = Math.max(2, Math.floor((W + 0.6) / 1.2)), o0 = -(n * 1.2 - 0.6) / 2;
-      for (let k = 0; k < n; k++) ribbon(B.marks, fr, ys, o0 + k * 1.2, o0 + k * 1.2 + 0.6, mY, PAINT, 1, c0, c1); }
+      for (let k = 0; k < n; k++) markRibbon(B, fr, ys, o0 + k * 1.2, o0 + k * 1.2 + 0.6, mY, PAINT, 1, c0, c1); }
     if (L.bar) { const [b0, b1] = span(L.bar[0], L.bar[1]), total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), c = -hw + r.lanesBack * lw;
-      if (atB && r.lanesFwd) ribbon(B.marks, fr, ys, r.oneway ? -hw + 0.3 : c + 0.3, hw - 0.3, mY, PAINT, 1, b0, b1);
-      if (!atB && r.lanesBack) ribbon(B.marks, fr, ys, -hw + 0.3, r.oneway ? hw - 0.3 : c - 0.3, mY, PAINT, 1, b0, b1); }
+      if (atB && r.lanesFwd) markRibbon(B, fr, ys, r.oneway ? -hw + 0.3 : c + 0.3, hw - 0.3, mY, PAINT, 1, b0, b1);
+      if (!atB && r.lanesBack) markRibbon(B, fr, ys, -hw + 0.3, r.oneway ? hw - 0.3 : c - 0.3, mY, PAINT, 1, b0, b1); }
   }
   // sandy shoulders along a Keys lane: the asphalt edge crumbles into sand (irregular width, 0.6-1.8 m), sand drawn under the
   // asphalt layer (polygon offset), so where it overlaps the road edge the asphalt wins
@@ -1272,8 +1323,14 @@ export function createTileBuilder(ctx) {
       else { if (rB > rA + 0.2) { if (!ys && B.dirtRoad && (r.surface === 'dirt' || /track/.test(r.kind || ''))) ribbon(B.dirtRoad, fr, ys, -hw, hw, yRoad, 0xffffff, 1 / 4, rA, rB); else if (!ys && laneOfRoad(r)) ribbon(B.asphalt, fr, ys, -hw, hw, yRoad, LANE_TINT, 1 / 7, rA, rB); else roadStrips(B.asphalt, fr, ys, hw, yRoad, rA, rB, r); } if (coll) { coll.tag = ys ? 'deck' : 'road'; ribbon(coll, fr, ys, -hw, hw, yRoad, 0xffffff, 1, cA, L - cB); } }
       // ground-continuity R2: a thin concrete edge strip where an open road meets the verge (no raw asphalt-to-grass cut)
       const lane = !ys && laneOfRoad(r);
-      if (lane && B.sand && rB > rA + 1) laneShoulders(B, fr, hw, rA, rB, r);
-      if (!ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
+      const curbedEdge = !lane && (pe ? (pe.e.sidewalk || 0) > 0 : !!r.sidewalks);
+      const sideOpen = (side) => { if (!curbedEdge) return true; for (const f of [0.2, 0.5, 0.8]) { const q = sampleAt(fr, rA + (Math.min(rB, L) - rA) * f), o = side * (hw + 1.2); if (slabAt(tile, q.x + q.nx * o, q.z + q.nz * o)) return false; } return true; }; // a curbed street can still have one open side
+      const scanShoulder = !ys && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && M.shoulder && B.shoulder && rB > rA + 1;
+      if (scanShoulder) for (const side of [-1, 1]) { if (!sideOpen(side)) continue; // shoulders run from each side's curb-return tangent (straight-through sides: from the node)
+        let a = rA, b = rB; if (pe && !capA && jA) a = (side > 0 ? jA.tB : jA.tA) - pe.s0; if (pe && !capB && jB) b = pe.LE - (side > 0 ? jB.tA : jB.tB) - pe.s0;
+        shoulderRibbon(B, fr, hw, a, b, side, r.edgeId ?? 0, lane); }
+      else if (lane && B.sand && rB > rA + 1) laneShoulders(B, fr, hw, rA, rB, r);
+      if (!scanShoulder && !ys && !lane && !r.sidewalks && !GC_OFF && !/service|track|path|footway/.test(r.kind || '') && r.surface !== 'dirt' && rB > rA + 1) for (const side of [-1, 1]) ribbon(B.sidewalk, fr, ys, side < 0 ? -hw - 0.32 : hw, side < 0 ? -hw : hw + 0.32, yRoad + 0.003, 0xd9d5cb, 1 / 2.5, rA, rB);
       // markings (job 4: per road class; stations on the graph edge so dashes and lines run on across tile seams)
       const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total), dirt = r.surface === 'dirt' || /track/.test(r.kind || '');
       const mY = yRoad + 0.015;
@@ -1281,24 +1338,24 @@ export function createTileBuilder(ctx) {
       if (pe) { s0 = (jA ? jA.mk - pe.s0 : pe.s0 > 0.01 ? 0 : 0.5) + (capA ? capA.mk : 0); s1 = L - (jB ? jB.mk - tailB : tailB > 0.01 ? 0 : 0.5) - (capB ? capB.mk : 0); }
       if (pe && B && B.marks) { approachMarks(B, fr, ys, r, hw, pe, false, mY); approachMarks(B, fr, ys, r, hw, pe, true, mY); }
       if (lane && B.marks && s1 > s0 + 2) { // Keys lane: a faded, broken center line on the wider ones, plus dark sealed patches
-        if (r.width >= 6 && !r.oneway && hash((r.edgeId ?? 0) * 17 + 3) < 0.6) { const base = pe ? -pe.s0 : s0; for (let s = base + Math.floor((s0 - base) / 12) * 12; s < s1; s += 12) { const a = Math.max(s0, s), b = Math.min(s1, s + 4.5); if (b > a + 0.3) ribbon(B.marks, fr, ys, -0.06, 0.06, mY, 0xa89660, 1, a, b); } }
-        for (let s = s0 + 2 + hash((r.edgeId ?? 0) * 7) * 6; s < s1 - 2; s += 5 + hash(s * 3.1 + (r.edgeId ?? 0)) * 10) { const h = hash(s * 17 + (r.edgeId ?? 0) * 5), o = (h - 0.5) * (hw - 0.8), w = 0.5 + hash(s * 5 + 1) * 1.6, len = 0.8 + hash(s + 9) * 3.2; ribbon(B.marks, fr, ys, o - w / 2, o + w / 2, mY - 0.004, h < 0.4 ? 0x4a4844 : h < 0.75 ? 0x5a5751 : 0x63605a, 1, s, s + len); } // sealed patches, a shade darker than the faded lane
+        if (r.width >= 6 && !r.oneway && hash((r.edgeId ?? 0) * 17 + 3) < 0.6) { const base = pe ? -pe.s0 : s0; for (let s = base + Math.floor((s0 - base) / 12) * 12; s < s1; s += 12) { const a = Math.max(s0, s), b = Math.min(s1, s + 4.5); if (b > a + 0.3) markRibbon(B, fr, ys, -0.06, 0.06, mY, 0xa89660, 1, a, b); } }
+        for (let s = s0 + 2 + hash((r.edgeId ?? 0) * 7) * 6; s < s1 - 2; s += 5 + hash(s * 3.1 + (r.edgeId ?? 0)) * 10) { const h = hash(s * 17 + (r.edgeId ?? 0) * 5), o = (h - 0.5) * (hw - 0.8), w = 0.5 + hash(s * 5 + 1) * 1.6, len = 0.8 + hash(s + 9) * 3.2; markRibbon(B, fr, ys, o - w / 2, o + w / 2, mY - 0.004, h < 0.4 ? 0x4a4844 : h < 0.75 ? 0x5a5751 : 0x63605a, 1, s, s + len); } // sealed patches, a shade darker than the faded lane
       }
       if (s1 > s0 + 2 && total >= 2 && r.kind !== 'service' && !dirt && !lane) {
         const base = pe ? -pe.s0 : s0; // dash phase fixed to the edge
-        const dash = (off, w, len, gap, col) => { const P = len + gap; for (let s = base + Math.floor((s0 - base) / P) * P; s < s1; s += P) { const a = Math.max(s0, s), b = Math.min(s1, s + len); if (b > a + 0.05) ribbon(B.marks, fr, ys, off - w, off + w, mY, col, 1, a, b); } };
+        const dash = (off, w, len, gap, col) => { const P = len + gap; for (let s = base + Math.floor((s0 - base) / P) * P; s < s1; s += P) { const a = Math.max(s0, s), b = Math.min(s1, s + len); if (b > a + 0.05) markRibbon(B, fr, ys, off - w, off + w, mY, col, 1, a, b); } };
         if (!r.oneway) { // yellow double center line at the forward/back split
           const c = -hw + r.lanesBack * lw;
-          ribbon(B.marks, fr, ys, c - 0.26, c - 0.14, mY, 0xf2c230, 1, s0, s1); ribbon(B.marks, fr, ys, c + 0.14, c + 0.26, mY, 0xf2c230, 1, s0, s1);
+          markRibbon(B, fr, ys, c - 0.26, c - 0.14, mY, 0xf2c230, 1, s0, s1); markRibbon(B, fr, ys, c + 0.14, c + 0.26, mY, 0xf2c230, 1, s0, s1);
         }
         for (let k = 1; k < total; k++) { if (!r.oneway && k === r.lanesBack) continue; dash(-hw + k * lw, 0.07, 3, JOB4_OFF ? 6 : 9, 0xf4f4f0); } // 10 ft dashes, 30 ft gaps
         // edge lines on open roads (no curb): white on the right, yellow on the left edge of a one-way (divided) carriageway
         const curbed = pe ? (pe.e.sidewalk || 0) > 0 : !!r.sidewalks;
         if ((JOB4_OFF ? r.width > 8 : (!curbed && r.width >= 6.5 && /motorway|trunk|primary|secondary|tertiary/.test(r.kind || '')) || /motorway|trunk/.test(r.kind || '')) && !(dw && dw.shrunk)) {
-          ribbon(B.marks, fr, ys, -hw + 0.35, -hw + 0.5, mY, r.oneway && !JOB4_OFF ? 0xf2c230 : 0xf4f4f0, 1, s0, s1); ribbon(B.marks, fr, ys, hw - 0.5, hw - 0.35, mY, 0xf4f4f0, 1, s0, s1); }
+          markRibbon(B, fr, ys, -hw + 0.35, -hw + 0.5, mY, r.oneway && !JOB4_OFF ? 0xf2c230 : 0xf4f4f0, 1, s0, s1); markRibbon(B, fr, ys, hw - 0.5, hw - 0.35, mY, 0xf4f4f0, 1, s0, s1); }
         // stop bars at the old disc junctions (job-4 junctions draw theirs with the crosswalks)
-        if (trimB && !jB && !pe?.Jb && r.lanesFwd) ribbon(B.marks, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
-        if (trimA && !jA && !pe?.Ja && r.lanesBack) ribbon(B.marks, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
+        if (trimB && !jB && !pe?.Jb && r.lanesFwd) markRibbon(B, fr, ys, r.oneway ? -hw + 0.3 : -hw + r.lanesBack * lw + 0.3, hw - 0.3, mY, 0xf4f4f0, 1, s1 - 0.5, s1);
+        if (trimA && !jA && !pe?.Ja && r.lanesBack) markRibbon(B, fr, ys, -hw + 0.3, -hw + r.lanesBack * lw - 0.3, mY, 0xf4f4f0, 1, s0, s0 + 0.5);
       }
       // sidewalks + curbs (raised, with colliders)
       if ((r.sidewalks || r.furniture) && !ys) {
@@ -1468,7 +1525,9 @@ export function createTileBuilder(ctx) {
         const zn = J.zone, swB = M.promenade && B.promenade && /beach|nightlife/.test(zn) ? B.promenade : M.panels && B.panels && /downtown|business|brickell|commercial/.test(zn) ? B.panels : B.sidewalk;
         rampsInto(swB && !swB.empty ? swB : null, coll, J);
         if (!GC_OFF && B.sidewalk && !B.sidewalk.empty) for (const c of J.corners) { // open corners: the thin concrete edge strip follows the curb return
-          if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
+          const paved = () => { const m = c.arc[c.arc.length >> 1], dx = c.O[0] - m[0], dz = c.O[1] - m[1], d = Math.hypot(dx, dz) || 1; return slabAt(tile, m[0] + dx / d * 1.6, m[1] + dz / d * 1.6); };
+          if (c.kind !== 'fillet' || (J.legs[c.i].sw > 0 && J.legs[c.j].sw > 0 && paved()) || /service|track/.test(J.legs[c.i].kind + J.legs[c.j].kind)) continue;
+          if (M.shoulder && B.shoulder) { shoulderArc(B, c, J.legs[c.i].lane || J.legs[c.j].lane); continue; }
           if (J.legs[c.i].lane || J.legs[c.j].lane) { if (B.sand) { const col = new THREE.Color(0xa49a84); for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], wa = (0.9 + hash(a[0] * 3 + a[1]) * 0.8) / c.R, wb = (0.9 + hash(b[0] * 3 + b[1]) * 0.8) / c.R; quadUp(B.sand, [a[0], 0.03, a[1]], [b[0], 0.03, b[1]], [b[0] + (c.O[0] - b[0]) * wb, 0.03, b[1] + (c.O[1] - b[1]) * wb], [a[0] + (c.O[0] - a[0]) * wa, 0.03, a[1] + (c.O[1] - a[1]) * wa], col, 1 / 6); } } continue; }
           const col = new THREE.Color(0xd9d5cb), w = 0.32 / c.R;
           for (let k = 0; k < c.arc.length - 1; k++) { const a = c.arc[k], b = c.arc[k + 1], ai = [a[0] + (c.O[0] - a[0]) * w, a[1] + (c.O[1] - a[1]) * w], bi = [b[0] + (c.O[0] - b[0]) * w, b[1] + (c.O[1] - b[1]) * w];
@@ -2342,7 +2401,7 @@ export function createTileBuilder(ctx) {
     const tile = yield* getTileG(t.tx, t.tz);
     const group = new THREE.Group(); group.name = `tile-near-${t.tx},${t.tz}`;
     if (!tile) { root.add(group); return group; }
-    const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch(), dirtRoad: new Batch() };
+    const B = { junction: new Batch(), parking: new Batch(), promenade: new Batch(), panels: new Batch(), shopGlass: new Batch(), wood: new Batch(), pool: new Batch(), guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch(), roof: new Batch(), neon: new Batch(), shop: new Batch(), office: new Batch(), deco: new Batch(), glass: new Batch(), band: new Batch(), warehouse: new Batch(), punched: new Batch(), ribbon: new Batch(), curtain: new Batch(), condo: new Batch(), grid: new Batch(), land: new Batch(), sand: new Batch(), grass: new Batch(), dirtRoad: new Batch(), lines: new Batch(), shoulder: new Batch() };
     if (M.facade) { B.fac = new FBatch(); B.trim = fview(B.fac, WL.stucco); B.roof = fview(B.fac, WL.roofConcrete); }
     if (M.roomGlass) { B.roomGlass = new Batch(); B.roomGlass.w = []; }
     const T0 = provider.tileSize || 200, X0 = t.tx * T0, Z0 = t.tz * T0, synth = !!(terrain && terrain.synthetic(t.tx, t.tz)), LF = { on: !!(tile.relief && D), k: null };
@@ -2383,7 +2442,7 @@ export function createTileBuilder(ctx) {
     if (LF.on) liftProps(props);
     if (synth && flora) yield* floraInto(t, tile, props);
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
-    for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['marks', M.markings, false], ['sidewalk', M.sidewalk, false],
+    for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['shoulder', M.shoulder || M.sidewalk, false], ['marks', M.markings, false], ['lines', M.lines || M.markings, false], ['sidewalk', M.sidewalk, false],
       ['trim', M.trim, true], ['roof', M.roof, false], ['neon', M.neon, false], ['shop', M.shop, true], ['office', M.office, true], ['deco', M.deco, true], ['glass', M.glass, true], ['band', M.band, true], ['warehouse', M.warehouse, true], ...['punched', 'ribbon', 'curtain', 'condo', 'grid'].map((k) => [k, M[k] || M.office, true])]) {
       const m = meshOf(B[name], mat, { cast }); if (m) { if (name === 'shopGlass') m.renderOrder = 10; group.add(m); yield; }
     }

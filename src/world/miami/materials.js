@@ -26,6 +26,17 @@ function warehouseFacade(renderer) {
   return { map: mk(c, true), emissive: mk(e, true), rm: null, tileW: 24, tileH: 12 };
 }
 
+// job 4: road surface sets repacked from the user's road models (public/assets/textures/roads/<name>_{col,nrm,arm}.jpg)
+const roadSetCache = new Map();
+function loadRoadSet(renderer, name) {
+  let p = roadSetCache.get(name); if (p) return p;
+  const tex = async (k, srgb) => { const r = await fetch(`${import.meta.env?.BASE_URL ?? '/'}assets/textures/roads/${name}_${k}.jpg`); if (!r.ok) throw new Error('road texture ' + name + ' ' + r.status);
+    const t = new THREE.Texture(await createImageBitmap(await r.blob(), { colorSpaceConversion: 'none' })); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy()); t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; return t; };
+  p = Promise.all([tex('col', true), tex('nrm', false), tex('arm', false)]).then(([map, normalMap, arm]) => ({ name, map, normalMap, arm }));
+  roadSetCache.set(name, p); return p;
+}
+
 export async function createMaterials(renderer) {
   const [asph, conc, tiles, sand, grass, wood, plaster] = await Promise.all([
     loadPBR(renderer, 'asphalt_02'), loadPBR(renderer, 'concrete_floor_worn_001'), loadPBR(renderer, 'concrete_tiles_02'),
@@ -286,16 +297,22 @@ export async function createMaterials(renderer) {
     full(M.wood, sPlank, 1.9); full(M.roof, sConc, 1.9, 2);
     if (M.asphalt.normalScale) M.asphalt.normalScale.multiplyScalar(0.6); // calmer grain at car height
     M.markings.normalMap = M.asphalt.normalMap; M.markings.roughnessMap = M.asphalt.roughnessMap; M.markings.roughness = 1; M.markings.map = sConc.map; M.markings.color.setScalar(2.3); // paint over the road texture, worn by the grain
-    // stage 1 job 4 (road surfaces): photoreal fine-grained asphalt from the user's road library (Models/Roads/Road 6, 2048 px
-    // albedo + normal + roughness, about 3.2 m per tile) on roads, junctions and caps; plain white / yellow paint (no concrete
-    // albedo: crosswalks read cream before) with the same grain in its normal; calm poured concrete with 1.5 m control joints on sidewalks
+    // stage 1 job 4 (road surfaces): every road surface is a photoscanned set from the user's road models (Models/Roads, repacked
+    // by tools/v2/roads/build_road_textures.py into public/assets/textures/roads, see SOURCES.txt): Road 6 asphalt, Road 4 sidewalk
+    // panels, Road 2 Block05 pavers (downtown), Road 11 dirt road + crumbling dusty road edge (shoulders), Road 1 RoadLines (paint)
     if (!/[?&]job4=0/.test(typeof location !== 'undefined' ? location.search : '')) try {
-      const [sRoad, sWalk] = await Promise.all([loadSet(renderer, 'road_asphalt'), loadSet(renderer, 'gravel_concrete')]);
+      const [sRoad, sWalk, sPave, sDirt, sEdge, sLine] = await Promise.all(['asphalt', 'sidewalk', 'pavers', 'dirt', 'edge', 'lines'].map((n) => loadRoadSet(renderer, n)));
       for (const m of [M.asphalt, M.junction]) { full(m, sRoad, undefined, 7 / 3.2); m.normalScale.set(0.7, 0.7); m.color.setScalar(0.56); m.userData.mipBias = 0.35; } // calm texture: no extra blur needed
-      const mk = (t) => { const c = t.clone(); c.repeat.set(1 / 3.2, 1 / 3.2); c.needsUpdate = true; return c; };
-      M.markings.map = null; M.markings.normalMap = mk(sRoad.normalMap); M.markings.roughnessMap = mk(sRoad.arm); M.markings.normalScale.set(0.5, 0.5); M.markings.roughness = 0.85; M.markings.color.setScalar(0.92); M.markings.needsUpdate = true;
-      full(M.sidewalk, sWalk, 1.25); M.sidewalk.normalScale.set(0.6, 0.6); M.sidewalk.userData.job4 = true;
-      const sDirt = await loadSet(renderer, 'dirt'); M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); // unpaved tracks (surface 'dirt')
+      full(M.sidewalk, sWalk, 1.2, 2.5 / 3); M.sidewalk.normalScale.set(0.8, 0.8); M.sidewalk.userData.job4 = true; // world uv 2.5 m -> 3 m per scan tile (1.5 m panels)
+      if (M.panels) { full(M.panels, sPave, 1.3, 6 / 2.4); M.panels.normalScale.set(0.8, 0.8); } // downtown pavers, 2.4 m per scan tile
+      M.dirtRoad = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }); full(M.dirtRoad, sDirt, 1.1); zOff(M.dirtRoad, -6); // unpaved tracks (surface 'dirt')
+      // paint: strip uv (u across the line inside an atlas column, v along the line), the scan's own wear / chips / grain
+      M.lines = new THREE.MeshStandardMaterial({ map: sLine.map, normalMap: sLine.normalMap, roughnessMap: sLine.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.lines, -9);
+      // shoulders: the scan's crumbling asphalt-to-dust edge; its dark pixels are cut out, so asphalt shows through the crumbs and the
+      // jagged outer edge breaks up into the verge (no hard strip edge)
+      M.shoulder = new THREE.MeshStandardMaterial({ map: sEdge.map, normalMap: sEdge.normalMap, roughnessMap: sEdge.arm, roughness: 1, metalness: 0, vertexColors: true }); zOff(M.shoulder, -7);
+      M.shoulder.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { vec4 eT = texture2D( map, vMapUv ); if ( dot( eT.rgb, vec3( 0.3333 ) ) < 0.045 || vMapUv.y > 0.452 ) discard; }'); };
+      M.shoulder.customProgramCacheKey = () => 'job4-shoulder';
     } catch (e) { console.warn('[miami] road textures', e); }
     M.trunk.map = sBark.map; M.trunk.normalMap = sBark.normalMap; M.trunk.roughnessMap = sBark.arm; M.trunk.roughness = 1; M.trunk.color.setScalar(1.6);
     M.royalTrunk.map = sConc.map; M.royalTrunk.normalMap = sConc.normalMap; M.royalTrunk.roughnessMap = sConc.arm; M.royalTrunk.color.setScalar(1.7);
@@ -384,7 +401,7 @@ export async function createMaterials(renderer) {
   if (M.parking) groundWear(M.parking, 0.1, 0.75, 'k', 0.35, 1.0, 0, [4.5, 4.5, 0, 0.035, 0.5], 0.06);
   for (const m of [M.markings]) groundWear(m, 0.10, 0.0, 'm', 0.6); // worn, chipped paint over the same cracks
   // sidewalks: 0.6 x 0.6 m concrete pavers in a running bond, dark sand joints (panels / promenade keep their own sets)
-  if (M.sidewalk.userData.job4) groundWear(M.sidewalk, 0.07, 0.1, 'p3', 0.15, 1, 0, [1.5, 1.5, 0, 0.008, 0.38], 0.05); // US sidewalk: 1.5 m poured panels, tooled joints
+  if (M.sidewalk.userData.job4) groundWear(M.sidewalk, 0.07, 0.1, 'p4', 0.1, 1, 0, null, 0.04); // scan already carries the panel joints
   else groundWear(M.sidewalk, 0.08, 0.12, 'p2', 0, 1, 0, [0.6, 0.6, 1, 0.012, 0.45], 0.06);
   for (const m of [M.panels, M.promenade]) groundWear(m, 0.12, 0.18, 'p');
   for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
