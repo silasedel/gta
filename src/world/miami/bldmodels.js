@@ -521,7 +521,11 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     for (const f of L) { if (f.lean) continue; const y0 = relief || !ground ? 0 : ground(f.x0, f.z0) || 0, y1 = y0 + f.h, v = (x, y, z) => coll.vert(x, y, z, 0, 1, 0, 0, 0, WHITE);
       v(f.x0, y0, f.z0); v(f.x1, y0, f.z1); v(f.x1, y1, f.z1); v(f.x0, y0, f.z0); v(f.x1, y1, f.z1); v(f.x0, y1, f.z0); }
   }
-  const api = { pick, register, addFixed, addClutter, has, collide, lotFences, fenceCollide, fixedCollide, stats, entries, group, LIB };
+  // audit: library lots by class / model, plinths, fence panels, clutter (node tools/v2/buildings/probe.mjs --js ...)
+  function audit() { const cls = {}, mdl = {}; let fp = 0, lots = 0; for (const e of entries.values()) { cls[e.cls] = (cls[e.cls] || 0) + 1; mdl[e.name] = (mdl[e.name] || 0) + 1; }
+    const sample = []; for (const L of fences.values()) { fp += L.length; if (L.length && sample.length < 5) sample.push([+L[0].x0.toFixed(1), +L[0].z0.toFixed(1)]); lots++; }
+    return { entries: entries.size, byClass: cls, byModel: mdl, fencePanels: fp, fenceTiles: lots, fenceSamples: sample, plinths: [...entries.values()].filter((e) => e.plinth).length }; }
+  const api = { pick, register, addFixed, addClutter, has, audit, collide, lotFences, fenceCollide, fixedCollide, stats, entries, group, LIB };
   globalThis.__libBuildings = api; // debugging / audits: __libBuildings.stats(), .entries
   return api;
 }

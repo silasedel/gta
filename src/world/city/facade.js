@@ -146,7 +146,7 @@ void facadeEval() {
   float mac = fVN(tuv * 0.13 + seed);
   float streak = fVN(vec2(tuv.x * 2.1 + seed, tuv.y * 0.16));
   float grimeK = (bits & 8192) != 0 ? 0.42 : 0.2;
-  float baseDirt = horiz ? 0.0 : smoothstep(1.5, 0.0, vFWP.y - vFc.x) * (0.14 + 0.2 * fVN(tuv * vec2(1.3, 3.0)));
+  float baseDirt = horiz ? 0.0 : smoothstep(1.8, 0.0, vFWP.y - vFc.x) * (0.18 + 0.26 * fVN(tuv * vec2(1.3, 3.0))); // splash-zone grime at the base
   vec3 alb = cR.rgb * vColor.rgb * (0.9 + 0.2 * mac);
   alb *= 1.0 - (streak * streak * grimeK + baseDirt) * vec3(0.8, 0.86, 0.95);
   float rough = cR.a, metal = nA.a, ao = nA.b;
