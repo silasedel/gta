@@ -70,6 +70,14 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
             gs.alb *= 1.0 - cz * edgeK * 0.18 * (0.6 + 0.4 * c3);
             gs.alb = mix(gs.alb, vec3(0.16, 0.155, 0.148) * (0.8 + 0.4 * c2), gmCrumb); gs.rough = mix(gs.rough, 0.85, gmCrumb); gs.h = mix(gs.h, 0.75, gmCrumb);
           }
+        } else { // beyond the mask cascades: a cheap shoulder from the road-graph field (dusty, desaturated band with a ragged edge)
+          float rf = gmFarRoad(wp);
+          if (rf > 0.02) {
+            float keysF = smoothstep(4150.0, 4500.0, wp.y), nf = gF(wp * 0.23 + 1.1);
+            float wf = smoothstep(0.32, 0.5, rf * 2.1 - mix(0.5, 0.36, keysF) + (nf - 0.5) * 0.9);
+            float lf = dot(gs.alb, vec3(0.2126, 0.7152, 0.0722));
+            gs.alb = mix(gs.alb, vec3(lf) * mix(vec3(1.1, 1.0, 0.84), vec3(1.14, 1.08, 0.96), keysF), wf * 0.8);
+          }
         }
       }
       { // mulch rings at street trees (mask B channel, half value; cars are full value): dark shredded bark, ragged edge

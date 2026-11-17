@@ -18,7 +18,7 @@ export const RECIPES = {
   scrub: { A: ['grass', 1.8, T(1, 1, 1)], B: ['soil', 2.6, T(1.13, 1.01, 0.86)], cov: 0.3, mf: 4.5, M: ['lawn', 17, 0.8, 1.8], grade: 0.8, lush: 0.58, shore: 0.3 },
   forest: { A: ['leaves', 3.6, T(0.9, 0.88, 0.82)], B: ['soil', 2.8, T(1.1, 1.01, 0.89)], cov: 0.32, mf: 5, M: ['lawn', 21, 0.25, 0.6], shore: 0.4 },
   pine: { A: ['grass', 1.9, T(1, 1, 1)], B: ['stony', 3.6, T(1.05, 1.02, 0.95)], cov: 0.45, mf: 5, grade: 0.75, lush: 0.32, shore: 0.4 },
-  sawgrass: { A: ['grass', 2.0, T(1.05, 1, 0.85)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.32, mf: 4, grade: 0.65, lush: 0.18, wet: 0.45, shore: 0.6 },
+  sawgrass: { A: ['grass', 2.0, T(1.05, 1, 0.85)], B: ['mud', 3.2, T(1, 1, 1)], cov: 0.32, mf: 4, grade: 0.65, lush: 0.3, wet: 0.7, shore: 0.6 }, // ground pass: more standing water in the glades
   marsh: { A: ['mud', 3.4, T(1, 1, 1)], B: ['grass', 2.0, T(1, 1, 0.9)], cov: 0.35, mf: 3.5, grade: 0.6, lush: 0.35, wet: 1, shore: 0.8 },
   sand: { A: ['sand', 3.0, T(0.9, 0.84, 0.7)], B: ['gravel', 2.2, T(1.18, 1.14, 1.06)], cov: 0.04, mf: 2.5, shore: 1, nrm: 0.8 },
   shell: { A: ['gravel', 2.0, T(1.22, 1.18, 1.1)], B: ['sand', 3.0, T(1, 1, 1)], cov: 0.3, mf: 4, shore: 0.8 },

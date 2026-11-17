@@ -44,3 +44,11 @@ export function onRoad(game, o = {}) {
       const k2 = out[key] || (out[key] = { n: 0, at: [] }); k2.n++; if (k2.at.length < 3) k2.at.push([+p.x.toFixed(1), +p.z.toFixed(1)]); } });
   return { n, list: out };
 }
+
+// what is drawn at screen point (nx, ny) in NDC (-1..1): mesh / material / parent chain / face normal vs view
+export function pick(game, nx = 0, ny = 0) {
+  const rc = new THREE.Raycaster(); rc.camera = game.camera; rc.setFromCamera(new THREE.Vector2(nx, ny), game.camera);
+  let hs = []; try { hs = rc.intersectObjects([game.scene], true); } catch (e) { return { error: e.message }; }
+  return hs.filter((h) => visUp(h.object) && h.object.isMesh && !h.object.isSprite).slice(0, 4).map((h) => { const m = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material; const chain = []; for (let a = h.object; a && chain.length < 5; a = a.parent) chain.push(a.name || a.type);
+    const n = h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : null; return { d: +h.distance.toFixed(2), chain, mat: m && (m.name || m.type), side: m && m.side, color: m && m.color && m.color.getHexString(), y: +h.point.y.toFixed(2), nDotView: n ? +n.dot(rc.ray.direction).toFixed(2) : null }; });
+}

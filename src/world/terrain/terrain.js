@@ -160,6 +160,11 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
         if (GROUND2 && farmAt(x, z)) k = 'farm'; }
       else k = nz < 0.75 ? 'lawn' : 'scrub';
     }
+    // ground pass: the Everglades / Big Cypress are sawgrass prairie with open water sloughs and tree islands, not lawn
+    if ((k === 'scrub' || k === 'meadow' || k === 'lawn') && data.districtAt && /^(Everglades|Big Cypress)$/.test(String(data.districtAt(x, z) || ''))) {
+      const ne = vnoise(x * 0.011 + 3.3, z * 0.011 - 1.7) * 0.7 + vnoise(x * 0.047, z * 0.047 + 9.1) * 0.3;
+      k = ne < 0.2 ? 'marsh' : ne < 0.78 ? 'sawgrass' : 'scrub';
+    }
     // greenery: Keys yards and lots are sandy, matted ground broken by grass patches (user mock-up), not lush lawn
     if (isKeys(x, z) && (k === 'lawn' || k === 'meadow' || k === 'scrub') && !(cls === 'park' || cls === 'golf' || cls === 'pitch') && vnoise(x * 0.045 + 5.1, z * 0.045 - 3.3) * 0.7 + vnoise(x * 0.13, z * 0.13) * 0.3 < 0.55) k = 'sand';
     // vegetation track: road verges through hammock / pine / glade cover are mown grass, not leaf litter (the 'forest' layer read

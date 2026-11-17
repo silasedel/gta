@@ -17,6 +17,7 @@ const CASC = [{ span: 160, size: 1024, blur: 512, bs: 1.5, every: 0.35, move: 10
 const U = {
   uGMH0: { value: null }, uGMN0: { value: null }, uGMR0: { value: new THREE.Vector4(0, 0, 1, 0) },
   uGMH1: { value: null }, uGMN1: { value: null }, uGMR1: { value: new THREE.Vector4(0, 0, 1, 0) },
+  uGMN2: { value: null }, uGMR2: { value: new THREE.Vector4(0, 0, 1, 0) }, // far road field (whole road graph, 2 km around the camera): cheap shoulders at distance
 };
 export const GM_UNIFORMS = U;
 export function gmUniforms(uniforms) { Object.assign(uniforms, U); return uniforms; }
@@ -38,6 +39,10 @@ vec4 gmS(sampler2D t0, sampler2D t1, vec2 wp) {
 }
 vec4 gmHard(vec2 wp) { return gmS(uGMH0, uGMH1, wp); }
 vec4 gmNear(vec2 wp) { return gmS(uGMN0, uGMN1, wp); }
+uniform sampler2D uGMN2; uniform vec4 uGMR2;
+// blurred road field from the road graph (asphalt only, r), valid where the fine / mid cascades do not reach; 0 elsewhere
+float gmFarRoad(vec2 wp) { if (uGMR2.w < 0.5) return 0.0; vec2 u = gmUV(uGMR2, wp); float w = gmW(u); if (w <= 0.0) return 0.0;
+  float inner = uGMR1.w > 0.5 ? gmW(gmUV(uGMR1, wp)) : 0.0; return textureLod(uGMN2, u, 0.0).r * w * (1.0 - inner); }
 // 1 inside the near cascade (fine detail available), 0 outside
 float gmFine(vec2 wp) { return uGMR0.w > 0.5 ? gmW(gmUV(uGMR0, wp)) : 0.0; }
 #endif
@@ -82,6 +87,21 @@ export function createSurfaceMask() {
   });
   const rt = (n) => { const t = new THREE.WebGLRenderTarget(n, n, { type: THREE.UnsignedByteType, format: THREE.RGBAFormat, depthBuffer: false, stencilBuffer: false, magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter, generateMipmaps: false }); t.texture.colorSpace = THREE.NoColorSpace; return t; };
   const C = CASC.map((c, i) => ({ ...c, i, hard: rt(c.size), b0: rt(c.blur), b1: rt(c.blur), t: 1e9, cx: 1e9, cz: 1e9 }));
+  // far road field: one static mesh of every at-grade road-graph edge as a ribbon (built once), rendered into its own target
+  const F = { span: 2048, size: 1024, blur: 512, bs: 1.0, every: 4, move: 220, i: 2, hard: rt(1024), b0: rt(512), b1: rt(512), t: 1e9, cx: 1e9, cz: 1e9 };
+  U.uGMN2.value = F.b1.texture;
+  const farScene = new THREE.Scene(); farScene.matrixWorldAutoUpdate = false; let farBuilt = false;
+  function buildFar(game) {
+    farBuilt = true; const G = game.city && game.city.roadGraph; if (!G || !G.edges) return;
+    const P = [];
+    for (const e of G.edges) { if (!e || e.elevated || e.bridge || !e.pts || e.pts.length < 2) continue; const hw = (e.width || 6) / 2;
+      for (let i = 0; i < e.pts.length - 1; i++) { const a = e.pts[i], b = e.pts[i + 1], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (L < 0.01) continue; const nx = -dz / L * hw, nz = dx / L * hw;
+        P.push(a[0] + nx, 0, a[1] + nz, b[0] + nx, 0, b[1] + nz, b[0] - nx, 0, b[1] - nz, a[0] + nx, 0, a[1] + nz, b[0] - nx, 0, b[1] - nz, a[0] - nx, 0, a[1] - nz); } }
+    if (!P.length) return;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    const m = new THREE.Mesh(g, mats.asphalt); m.frustumCulled = false; m.matrixAutoUpdate = false; m.matrixWorldAutoUpdate = false; farScene.add(m);
+    stats.farTris = P.length / 9;
+  }
   C.forEach((c) => { U['uGMH' + c.i].value = c.hard.texture; U['uGMN' + c.i].value = c.b1.texture; });
   const stats = { meshes: 0, renders: 0, ms: 0, cars: 0 };
 
@@ -129,11 +149,11 @@ export function createSurfaceMask() {
     }
     cars.count = n; cars.instanceMatrix.needsUpdate = true; stats.cars = n;
   }
-  function renderCascade(renderer, c, x, z) {
+  function renderCascade(renderer, c, x, z, sc = scene) {
     const tx = c.span / c.size * 8; const cx = Math.round(x / tx) * tx, cz = Math.round(z / tx) * tx, h = c.span / 2; // snapped: no texel swim
     cam.left = -h; cam.right = h; cam.top = h; cam.bottom = -h; cam.position.set(cx, 2000, cz); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
     cars.visible = c.i === 0;
-    renderer.setRenderTarget(c.hard); renderer.setClearColor(0x000000, 0); renderer.clear(true, false, false); renderer.render(scene, cam);
+    renderer.setRenderTarget(c.hard); renderer.setClearColor(0x000000, 0); renderer.clear(true, false, false); renderer.render(sc, cam);
     quad.material = blurMat;
     blurMat.uniforms.tSrc.value = c.hard.texture; blurMat.uniforms.uDir.value.set(c.bs / c.blur, 0); renderer.setRenderTarget(c.b0); renderer.render(qScene, quadCam);
     blurMat.uniforms.tSrc.value = c.b0.texture; blurMat.uniforms.uDir.value.set(0, c.bs / c.blur); renderer.setRenderTarget(c.b1); renderer.render(qScene, quadCam);
@@ -158,17 +178,19 @@ export function createSurfaceMask() {
   }
   function update(dt, game) {
     if (OFF || !game || !game.renderer || !game.camera || !game.scene) return;
-    if (!api.enabled) { U.uGMR0.value.w = 0; U.uGMR1.value.w = 0; for (const c of C) c.t = 1e9; return; } // A/B: everything falls back to no mask
+    if (!api.enabled) { U.uGMR0.value.w = 0; U.uGMR1.value.w = 0; U.uGMR2.value.w = 0; for (const c of C) c.t = 1e9; F.t = 1e9; return; } // A/B: everything falls back to no mask
     const renderer = game.renderer, p = game.camera.position;
-    for (const c of C) c.t += dt;
+    for (const c of C) c.t += dt; F.t += dt;
     autoT -= dt; if (autoT <= 0) { autoT = 3; autoVeg(game); }
     const due = C.filter((c) => c.t > c.every || Math.hypot(p.x - c.cx, p.z - c.cz) > c.move);
-    if (!due.length) return;
+    if (!due.length && !(F.t > F.every || Math.hypot(p.x - F.cx, p.z - F.cz) > F.move)) return;
     const t0 = performance.now();
     sync(game.scene); syncCars(game);
     const prevRT = renderer.getRenderTarget(), prevAC = renderer.autoClear, prevCol = renderer.getClearColor(new THREE.Color()), prevA = renderer.getClearAlpha(), prevSh = renderer.shadowMap.autoUpdate, prevNU = renderer.shadowMap.needsUpdate;
     renderer.autoClear = false; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = false;
-    try { for (const c of due) renderCascade(renderer, c, p.x, p.z); }
+    const farDue = F.t > F.every || Math.hypot(p.x - F.cx, p.z - F.cz) > F.move;
+    try { for (const c of due) renderCascade(renderer, c, p.x, p.z);
+      if (farDue) { if (!farBuilt) buildFar(game); if (farScene.children.length) renderCascade(renderer, F, p.x, p.z, farScene); } }
     finally { renderer.setRenderTarget(prevRT); renderer.autoClear = prevAC; renderer.setClearColor(prevCol, prevA); renderer.shadowMap.autoUpdate = prevSh; renderer.shadowMap.needsUpdate = prevNU; }
     stats.renders++; stats.ms = performance.now() - t0; built = true;
   }

@@ -4,6 +4,7 @@ import { Batch, orient, wallStrip, parapet, palmGeometry, capPoly } from '../cit
 import { rng } from '../city/tex.js';
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { makeVegMaterial } from '../vegetation/materials.js';
+import { grassCardMap, weedCard, clumpCard } from '../vegetation/grasscards.js';
 import { bakeImpostor } from '../vegetation/field.js';
 import { polyFrame, ribbon, sideWall, fillPoly, polyArea, quadUp, wallGaps, fillPolyDown } from './geom.js';
 import { buildJunction, sampleFrame, convexCCW, subtractConvex, bboxOf, spandrelFan, clipToConvex } from './roadgeo.js';
@@ -38,8 +39,14 @@ const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under th
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
 
 export function createTileBuilder(ctx) {
+  let _cwKit; function curbWeedKit() { // ground pass: photographed weed / grass-clump cards for the gutter cracks (one shared material, 3 variants)
+    if (_cwKit !== undefined) return _cwKit; _cwKit = null;
+    try { const rr = globalThis.game?.renderer; const vm = makeVegMaterial('leaf', { map: grassCardMap(rr), alphaTest: 0.38, lean: 0.02, sway: 0.02, wear: 0.15, transl: 0.6, tint: 0.85 });
+      _cwKit = { geos: [weedCard(5).leaf, weedCard(9).leaf, clumpCard(13, { h: 0.26 }).leaf], mat: vm.mat, depth: vm.depth }; } catch (e) { console.warn('[ground] curb weeds unavailable', e); }
+    return _cwKit; }
   const GMASK = surfaceMask(), GM_ON = !GMASK.off; // ground pass: top-down hard-surface mask (src/world/ground/surfaceMask.js)
   if (ctx.terrain && ctx.terrain.nearMat) patchTerrainEdges(ctx.terrain.nearMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell, lawn: ctx.terrain.LI?.lawn, mulch: ctx.terrain.LI?.forest }); // ground pass: shoulders / crumbs / no ground through roads
+  if (ctx.terrain && ctx.terrain.lodMat) patchTerrainEdges(ctx.terrain.lodMat, { sand: ctx.terrain.LI?.sand, gravel: ctx.terrain.LI?.base, dirt: ctx.terrain.LI?.dirt, shell: ctx.terrain.LI?.shell, lawn: ctx.terrain.LI?.lawn, mulch: ctx.terrain.LI?.forest }); // ground pass: mid / far terrain gets the road-graph shoulder too
   const { M, provider, root, world, RAPIER, zoneAt, nodeAt, models = {}, onProps = null, onSidewalk = null, groundAt = null, roadDirAt = null, isWater = null, roadDist = null } = ctx;
   // ---- V2 world-render: terrain, flora and relief (src/world/terrain/) ----
   const terrain = ctx.terrain || null, flora = ctx.flora || null, D = ctx.data || null;
@@ -1556,6 +1563,7 @@ export function createTileBuilder(ctx) {
           if (r.sidewalks && !lane) {
             ribbon(B.sidewalk, fr, 0, Math.min(oIn, oOut), Math.max(oIn, oOut), CURB, 0xffffff, 1 / 2.5, a, b2);
             sideWall(B.sidewalk, fr, 0, oIn, CURB, 0, 0xa8a6a2, -side, a, b2); // granite curb face
+            if (props && GM_ON) { const CW = (props.curbWeed ||= []), eidw = (r.edgeId ?? 0) * 31 + (side > 0 ? 7 : 3); for (let sw = a + 2; sw < b2 - 2; sw += 3.5) { const hw0 = hash(eidw * 131 + Math.floor(sw * 2.9)); if (hw0 > 0.1) continue; const q = sampleAt(fr, sw + hw0 * 9), o = side * (hw + 0.05); CW.push({ x: q.x + q.nx * o, y: 0.05, z: q.z + q.nz * o, ry: hw0 * 63, s: 0.6 + hw0 * 6 }); } } // ground pass: sparse weed tufts in the gutter crack along the curb
             { // granite curb top: a 0.3 m darker band with a pale arris at the road edge
               const o1 = oIn + side * 0.3, oA = oIn + side * 0.035;
               ribbon(B.sidewalk, fr, 0, Math.min(oIn, oA), Math.max(oIn, oA), CURB + 0.004, 0xf0eee8, 1 / 2.5, a, b2);
@@ -3012,6 +3020,7 @@ export function createTileBuilder(ctx) {
         (h < 0.6 ? cans : cups).push({ x: l.x, y: l.y, z: l.z, m: m.elements }); } // lying on its side, any heading
       kitParts(group, 'can', cans, { cast: false }); kitParts(group, 'cup', cups, { cast: false });
     } else inst(group, litterG, litterMat, props.litter, { cast: false, colors: true });
+    if (props.curbWeed && props.curbWeed.length) { const kit = curbWeedKit(); if (kit) { const per = kit.geos.map(() => []); props.curbWeed.forEach((w, i) => per[i % per.length].push(w)); per.forEach((it, i) => inst(group, kit.geos[i], kit.mat, it, { cast: false, depth: kit.depth })); } } // ground pass: curb-crack weeds
     // street-name blades: per-tile name atlas (2 columns x up to 16 rows)
     if (props.signs.length) {
       const names = [...new Set(props.signs.map((s2) => s2.name))].slice(0, 32), rows = Math.ceil(names.length / 2);
