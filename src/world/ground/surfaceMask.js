@@ -130,11 +130,21 @@ export function createSurfaceMask() {
     U['uGMR' + c.i].value.set(cx - h, cz - h, 1 / c.span, 1);
     c.cx = cx; c.cz = cz; c.t = 0;
   }
+  // set-piece yard plants (Nico's house details: weeds, grass, strap plants, palmettos) follow the same rule: nothing on the road
+  let autoT = 2; const autoDone = new WeakSet();
+  function autoVeg(game) {
+    const roots = [game.nicoHouse && game.nicoHouse.group].filter(Boolean);
+    for (const r of roots) r.traverse((o) => { if (!o.isInstancedMesh || autoDone.has(o)) return; autoDone.add(o);
+      const m = Array.isArray(o.material) ? o.material[0] : o.material, nm = (o.name || '') + ' ' + (m && m.name || '') + ' ' + (o.parent && o.parent.name || '');
+      if (!/plant|weed|grass|palmetto|fern|shrub|bush|flower/i.test(nm)) return;
+      const edge = /weed|grass/i.test(nm); if (m) gmVeg(m, { edge }); if (o.customDepthMaterial) gmVeg(o.customDepthMaterial, { edge }); stats.autoVeg = (stats.autoVeg || 0) + 1; });
+  }
   function update(dt, game) {
     if (OFF || !game || !game.renderer || !game.camera || !game.scene) return;
     if (!api.enabled) { U.uGMR0.value.w = 0; U.uGMR1.value.w = 0; for (const c of C) c.t = 1e9; return; } // A/B: everything falls back to no mask
     const renderer = game.renderer, p = game.camera.position;
     for (const c of C) c.t += dt;
+    autoT -= dt; if (autoT <= 0) { autoT = 3; autoVeg(game); }
     const due = C.filter((c) => c.t > c.every || Math.hypot(p.x - c.cx, p.z - c.cz) > c.move);
     if (!due.length) return;
     const t0 = performance.now();

@@ -1324,6 +1324,7 @@ export function createTileBuilder(ctx) {
     const H = (s, salt) => hash(Math.floor((s + base) * 3.7) * 92821 + eid * 7919 + salt);
     const total = r.lanesFwd + r.lanesBack, lw = r.width / Math.max(1, total);
     const put = (s, o, cell, len, wid, rot = 0, k = 1) => { if (s < s0 || s > s1) return; const q = sampleAt(fr, s), nl = Math.hypot(q.nx, q.nz) || 1, x = q.x + q.nx * o, z = q.z + q.nz * o; if (paintBlocked(x, z)) return;
+    if (cell === DEC.pothole || cell === DEC.patch || cell === DEC.potholePatched) { const L0 = (globalThis.__gpDecals ||= []); if (L0.length < 600) L0.push([cell, +x.toFixed(1), +z.toFixed(1), +ax.toFixed(3), +az.toFixed(3), len]); } // ground pass: audit list (review shots)
       const ca = Math.cos(rot), sa = Math.sin(rot), ax = q.dx * ca - (q.nx / nl) * sa, az = q.dz * ca - (q.nz / nl) * sa; decal(B, x, z, ax, az, len, wid, cell, k); };
     const step = (gap, fn) => { for (let s = Math.ceil((s0 + base) / gap) * gap - base; s < s1; s += gap) fn(s); }; // stations fixed to the edge: same decals whatever the tile split
     // cracks / crack networks / tar snakes

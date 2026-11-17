@@ -11,6 +11,7 @@ import { LOOK_OFF } from '../env/fogChunks.js';
 import { makeSandMaterial } from '../ground/sandMaterial.js';
 import { makeDecalMaterial } from '../ground/decalMaterial.js';
 import { patchRoadEdges, patchFillEdges } from '../ground/groundEdge.js';
+import { patchRecipeGround } from '../ground/groundMaterial.js';
 
 function warehouseFacade(renderer) {
   // corrugated metal with a high window band and roller doors; tile = 24m x 12m
@@ -419,8 +420,12 @@ export async function createMaterials(renderer) {
   for (const m of [M.sand, M.dune]) if (!m?.userData?.isSand) groundWear(m, 0.10, 0.0, 's', 0, 1, 0.93); // dry sand is rough: no mirror-like sun hot spot
   for (const m of [M.land, M.roof]) groundWear(m, 0.14, 0.12, 'l');
   groundWear(M.grass, 0.2, 0.16, 'g', 0, 0.97); // ground-continuity: mown park lawns get macro light / dark mowing and dry patches (no flat single-colour lawn)
-  // ground-continuity: plain land is a world-space lawn / sparse grass / bare dirt blend (was gray concrete; shader by world-dressing)
-  try {
+  // ground pass: plain city land (lots, verges, open blocks) uses the terrain's recipes over the user's ground scans (scrub / lawn /
+  // dirt patches, hex-tiled), so the city ground matches the countryside; its polygon offset is nudged so world-dressing's older
+  // land re-skin (which looks the material up by offset) leaves it alone. ?ground2=0 keeps the previous Poly Haven blend.
+  let recipeLand = false;
+  if (!/[?&]ground2=0\b/.test(typeof location !== 'undefined' ? location.search : '')) try { patchRecipeGround(M.land, renderer, ['scrub', 'lawn', 'dirt'], { mix: [0.42, 0.7] }); M.land.polygonOffsetUnits = -1.02; recipeLand = true; } catch (e) { console.warn('[miami] recipe land', e); }
+  if (!recipeLand) try {
     const [gS, sS, dS] = await Promise.all([loadSet(renderer, 'leafy_grass'), loadSet(renderer, 'sparse_grass'), loadSet(renderer, 'dirt')]);
     for (const t of [gS.map, gS.normalMap, gS.arm, sS.map, dS.map]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; }
     const L = M.land, prev = L.onBeforeCompile, prevKey = L.customProgramCacheKey ? L.customProgramCacheKey.bind(L) : () => '';

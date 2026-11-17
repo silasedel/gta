@@ -29,3 +29,17 @@ export function layerScan(game, o = {}) {
   }
   return { pts, mats, pairs, samples };
 }
+
+// instanced objects (plants, props) standing on a road carriageway near (x, z): counts by mesh / material / parent chain
+export function onRoad(game, o = {}) {
+  const { x = game.camera.position.x, z = game.camera.position.z, r = 40, margin = 0.25 } = o; const G = game.city.roadGraph, q = {}, out = {}; let n = 0;
+  const m4 = new THREE.Matrix4(), p = new THREE.Vector3();
+  game.scene.traverse((ob) => { if (!ob.isInstancedMesh || !ob.visible || !ob.count) return; ob.updateMatrixWorld();
+    const chain = []; let a = ob; for (let k = 0; k < 4 && a; k++) { if (a.name) chain.push(a.name); a = a.parent; }
+    const mat = Array.isArray(ob.material) ? ob.material[0] : ob.material, key = chain.join('<') + ' / ' + (mat && (mat.name || mat.type));
+    for (let i = 0; i < ob.count; i++) { ob.getMatrixAt(i, m4); p.setFromMatrixPosition(m4).applyMatrix4(ob.matrixWorld); if (Math.abs(p.x - x) > r || Math.abs(p.z - z) > r) continue;
+      const e = G.nearestEdge(p.x, p.z, q, 20); if (!e || e.edge.elevated || e.dist > e.edge.width / 2 - margin) continue;
+      const s = new THREE.Vector3().setFromMatrixScale(m4); if (s.x < 0.01) continue; n++;
+      const k2 = out[key] || (out[key] = { n: 0, at: [] }); k2.n++; if (k2.at.length < 3) k2.at.push([+p.x.toFixed(1), +p.z.toFixed(1)]); } });
+  return { n, list: out };
+}
