@@ -204,7 +204,7 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     for (let j = -1; j <= nz + 1; j++) {
       for (let i = -1; i <= nx + 1; i++) { const x = x0 + i * cell, z = z0 + j * cell, k = (j + 1) * W + i + 1;
         const w = data.isWater ? data.isWater(x, z) : false; Wt[k] = w ? 1 : 0; H[k] = heightAt(x, z);
-        if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x, z);
+        if (i >= 0 && j >= 0 && i <= nx && j <= nz) { Rl[k] = real(x, z) ? 1 : 0; Lr[k] = w ? LI.marsh : layerAt(x + (vnoise(x * 0.031 + 7.7, z * 0.031) - 0.5) * 11, z + (vnoise(x * 0.031, z * 0.031 - 3.3) - 0.5) * 11); // ground pass: land-cover borders wander (no ruled straight class edges from the cover polygons)
           if (Sd) { const sd = w ? 0 : shoreDist(x, z); Sd[k] = sd; if (Lr[k] === LI.sand && sd > (isKeys(x, z) ? 12 : 30)) Lr[k] = YARD; } } }
       if ((j & 7) === 7) yield;
     }

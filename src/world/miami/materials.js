@@ -424,7 +424,7 @@ export async function createMaterials(renderer) {
   // dirt patches, hex-tiled), so the city ground matches the countryside; its polygon offset is nudged so world-dressing's older
   // land re-skin (which looks the material up by offset) leaves it alone. ?ground2=0 keeps the previous Poly Haven blend.
   let recipeLand = false;
-  if (!/[?&]ground2=0\b/.test(typeof location !== 'undefined' ? location.search : '')) try { patchRecipeGround(M.land, renderer, ['scrub', 'lawn', 'dirt'], { mix: [0.42, 0.7] }); M.land.polygonOffsetUnits = -1.02; recipeLand = true; } catch (e) { console.warn('[miami] recipe land', e); }
+  if (!/[?&]ground2=0\b/.test(typeof location !== 'undefined' ? location.search : '')) try { patchRecipeGround(M.land, renderer, ['scrub', 'lawn', 'dirt'], { mix: [0.42, 0.7] }); M.land.polygonOffsetUnits = -1.02; recipeLand = true; if (M.grass) patchRecipeGround(M.grass, renderer, ['lawn', 'meadow'], { mix: [0.58, 0.82] }); } catch (e) { console.warn('[miami] recipe land', e); }
   if (!recipeLand) try {
     const [gS, sS, dS] = await Promise.all([loadSet(renderer, 'leafy_grass'), loadSet(renderer, 'sparse_grass'), loadSet(renderer, 'dirt')]);
     for (const t of [gS.map, gS.normalMap, gS.arm, sS.map, dS.map]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; }

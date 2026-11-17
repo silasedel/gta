@@ -41,7 +41,7 @@ LAYERS = [
     dict(key='soil', col=G4 + 'Ground Close 04 Color.jpeg', nrm=G4 + 'Ground Close 04 Normal GL.jpeg', conv='gl', h=G4 + 'Ground Close 04 High.jpg', ao=G4 + 'Ground Close 04 Occlusion.jpeg', luma=0.36, std=0.09, delight=0.8, rough=0.9, desat=0.55),  # pink fallen leaves read purple in lawns
     dict(key='mud', col=G2 + 'Mud Tile Color.jpeg', nrm=G2 + 'Mud Tile Normal GL.jpeg', conv='gl', rough=G2 + 'Mud Tile Roughness (green channel).png', rough_ch=1, luma=0.30, std=0.07, delight=0.7),
     # Gravel 1 (pebble beach) was tried: its color map is the scan's UV atlas (islands + blurred padding), not a usable ground texture
-    dict(key='leaves', ph='forest_leaves_02', luma=0.38, std=0.11, delight=0.6),
+    dict(key='leaves', ph='forest_leaves_02', luma=0.34, std=0.11, delight=0.6, desat=0.6),  # ground pass: Florida hammock litter is brown, not autumn orange
     dict(key='stony', ph='forest_ground_04', luma=0.42, std=0.09, delight=0.6),
 ]
 
