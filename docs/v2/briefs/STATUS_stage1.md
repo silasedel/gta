@@ -122,3 +122,7 @@ neighbor houses ~140, NPC characters are expensive: ~80 us per draw).
   final tour + fps at the job-1 places, overlay re-run, restore HMR, hand-back zip.
 - User bar (Nov 16): better than GTA 5 everywhere; use the whole budget; P0 asset requests in MODEL_REQUESTS_stage1.md
   (4K ground scans, grass card atlas, 40-60 buildings, mast-arm signals, cobra lamps).
+- **Drive test (job 3) PASS:** 5 min / 7.3 km from Downtown at 22 m/s: 0 gaps (collider under the road everywhere),
+  1 pop-in risk sample (at the start), avg 19.3 ms (loaded machine). 39 "floating" samples cluster on bridge ramps and
+  come from the test interpolating sparse vertex heights (to re-check). Found: markings continuing through some junctions
+  (drive_12, drive_14) -> sent to the roads pass. Report `docs/v2/reports/stage1-drive.json`, shots `drive_*.png`.
