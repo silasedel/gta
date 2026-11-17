@@ -30,6 +30,7 @@ export const GradeShader = {
     // r2-look: matched color grade (tools/v2/look/lut-match.py): 32^3 LUT as a 1024 x 32 strip, display values in / out
     tLut: { value: null },
     uLutMix: { value: 0 },
+    uChromaKnee: { value: 0 }, // r2-look: soft chroma roll-off above ~0.4 (bougainvillea, lawn greens read neon)
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -38,6 +39,7 @@ export const GradeShader = {
     uniform sampler2D tDiffuse;
     uniform sampler2D tLut;
     uniform float uLutMix;
+    uniform float uChromaKnee;
     vec3 lutS( vec3 c ) {
       c = clamp( c, 0.0, 1.0 );
       float b = c.b * 31.0, b0 = floor( b ), b1 = min( b0 + 1.0, 31.0 );
@@ -178,6 +180,12 @@ export const GradeShader = {
       l = luma( col );
       col = mix( vec3( l ), col, uSat );
 
+      // r2-look: high-chroma roll-off (film-like): chroma above ~0.4 is compressed toward the pixel's luma, at most 22%
+      if ( uChromaKnee > 0.001 ) {
+        float mxC = max( col.r, max( col.g, col.b ) ), mnC = min( col.r, min( col.g, col.b ) ), lC = dot( col, vec3( 0.2126, 0.7152, 0.0722 ) );
+        float kC = smoothstep( 0.38, 0.85, mxC - mnC ) * 0.22 * uChromaKnee;
+        col = mix( col, vec3( lC ), kC );
+      }
       // r2-look matched grade (the mock-up's tonal / color statistics, regularized)
       if ( uLutMix > 0.001 ) col = mix( col, lutS( col ), uLutMix );
 
