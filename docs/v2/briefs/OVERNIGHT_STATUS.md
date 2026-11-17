@@ -1309,3 +1309,46 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     never got a browser slot. The command is in PERF_PLAN.md "Next steps".
   - Committed: my tools and flag-off modules (see the commit).
   - The post.js hunks travel with r2-render's commit.
+
+## r2-phone
+The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
+- **Opening it:** P opens and closes the phone. Arrow Up and pad Up still work, and Esc alone pauses.
+  - Settings > Controls shows "Phone: P / ↑" (bindings.js: `bind: ['KeyP','ArrowUp']`; the canonical key is still ArrowUp).
+  - While the phone is up, the bindings layer runs in 'phone' mode: arrows, Enter, Backspace, Esc and digits drive the phone, and WASD still walks.
+  - The mouse cursor is freed, so you can click apps and scroll.
+- **Look:**
+  - Rounded device frame in the bottom-right, scaled to about 68% of the window height.
+  - Status bar with game time, signal and battery, plus an activity island that shows the active job, wanted stars or a transfer in progress.
+  - Home screen: weather and bank widgets, a map widget, two pages with dots, and a glass dock.
+  - App open zooms from the icon. Pages push and pop; swipe up on the home bar or drag from the left edge to go back.
+  - Light and dark follow the sun (Settings can force either).
+- **Bank** (the brand the core money system picks, e.g. Banco Almendares):
+  - face-unlock animation
+  - balance hero with a 7/14/30-day chart
+  - checking, savings and cash on hand
+  - activity grouped by day; deposits and withdrawals show as one row
+  - transaction detail
+  - Send money: contact or account number (ABA-checked), keypad, memo, review, slide or hold to send, success, receipt
+  - transfer between accounts; ATM deposit and withdraw (real ATMs; mobile cash deposit with a 2% fee elsewhere)
+  - tickets (pays game.fines)
+  - card: freeze, daily limits
+- **Money rules:** money only moves through game.wallet / game.bank.
+  - Instant send: $5k per transfer, $10k per day.
+  - Wires: $15 fee, $50k per transfer, $100k per day.
+  - Hooks: the Hush Line lowers one wanted star, paying Tiny clears his garage tab, staff bonuses raise morale, and family replies by text.
+  - The HUD bank row now flies +/- like cash. Street ATMs (E) open the bank's ATM page.
+- **Other apps** (built and screenshotted in the preview only, not checked in the game): Messages (money bubbles, ticket links, quick replies), Phone (contacts, recents, keypad, calls), Maps (HUD map renderer, place search, waypoint), Camera (see-through viewfinder, frame grab), Weather, Work (side jobs, businesses), Wavvy, Settings.
+- **Saves:** a new 'phone' save slice (threads, wire limits, payees, credits) registers as soon as game.save exists.
+- **Test:** `node tools/v2/phone/wire-test.mjs` runs on the real core systems in Node and passes.
+  - A wire changes the balance and lands in the ledger.
+  - It survives save → load.
+  - An over-balance send fails cleanly, with no money moved.
+  - The fee and limit checks hold.
+- **Shots:** docs/v2/shots/phone/phone_sheet.jpg (1600x900 at DPR 2, preview page src/ui/phone/preview.html with the real core systems).
+- **Lead:** src/main.js lines 205 and 532 (walk and drive with the phone up; honors the 'phoneWalk' setting) are in the working tree, uncommitted, because main.js also holds r2-web's work.
+- **Not done:** an in-game run of the full flow; the boot check ran on the HUD test page only. I stopped on the budget call.
+- **14:20 Loading bar weighted by measured time** (commit `Loading bar weighted by measured time`, booted on 5200, 0 console errors). Plot: `docs/v2/shots/r2web/loadbar_before_after.jpg`; frame strips: `loadbar_before_*.jpg` / `loadbar_after3_*.jpg`.
+  - **Before:** 50 % at 10 % of the boot time, then parked at 99 % ("COMPILING SHADERS") for 26 s.
+  - **After:** 8 / 17 / 50 / 78 / 91 % at 10 / 25 / 50 / 75 / 90 % of the time. It never goes backward; the longest stall is 2.0 s. The one 3.4 s stall is during a 3.2 s main-thread block in the first warm-up frame, when nothing can repaint.
+  - **How:** `src/core/loadProgress.js` + `loadWeights.json` (each browser keeps a running average in localStorage); phase labels under the bar; `?lp=0` = old milestones; `node tools/v2/web/loadbar.mjs --boots 2` traces it.
+  - Stopped here on the budget order.
