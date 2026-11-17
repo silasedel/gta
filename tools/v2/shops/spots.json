@@ -125,6 +125,33 @@
   "tod": 11,
   "eval": "\n  const L = (game.city.storefrontsNear ? game.city.storefrontsNear(-4891, -3954, 80, []) : game.city.storefronts) || []; let f = null, bd = 1e9; for (const s of L) { const d = Math.hypot((s.fx ?? s.x) - -4891, (s.fz ?? s.z) - -3954); if (d < bd) { bd = d; f = s; } }\n  if (f) { const fx = f.fx ?? f.x, fz = f.fz ?? f.z, ox = Math.sin(f.facing || 0), oz = Math.cos(f.facing || 0), rx = -oz, rz = ox, gy = (x, z) => game.city.groundHeightAt(x, z) || 0, m = 'close';\n    let eye, look; if (m === 'close') { eye = [fx + ox * 1.6 + rx * 1.4, 0, fz + oz * 1.6 + rz * 1.4]; eye[1] = gy(fx, fz) + 1.6; look = [fx - ox * 4 - rx * 0.5, gy(fx, fz) + 1.2, fz - oz * 4 - rz * 0.5]; }\n    else if (m === 'wide') { eye = [fx + ox * 22 + rx * 14, 0, fz + oz * 22 + rz * 14]; eye[1] = gy(fx, fz) + 9; look = [fx, gy(fx, fz) + 2, fz]; }\n    else { eye = [fx + ox * 10 + rx * 4.5, 0, fz + oz * 10 + rz * 4.5]; eye[1] = gy(fx, fz) + 1.7; look = [fx - rx * 0.6, gy(fx, fz) + 2.0, fz - rz * 0.6]; }\n    game.teleport(fx + ox * 3.2 + rx * ((f.w || 6) / 2 + 2.5), undefined, fz + oz * 3.2 + rz * ((f.w || 6) / 2 + 2.5), 0);\n    game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; };\n    window.__shop = { id: f.id, kind: f.kind, synth: !!f.synthetic, w: f.w, d: f.d, fx, fz, shellAwning: f.shellAwning }; }"
  },
+ "dt_office_day": {
+  "player": [
+   411,
+   -122,
+   0
+  ],
+  "tod": 11,
+  "eval": "\n  const L = (game.city.storefrontsNear ? game.city.storefrontsNear(411, -122, 80, []) : game.city.storefronts) || []; let f = null, bd = 1e9; for (const s of L) { const d = Math.hypot((s.fx ?? s.x) - 411, (s.fz ?? s.z) - -122); if (d < bd) { bd = d; f = s; } }\n  if (f) { const fx = f.fx ?? f.x, fz = f.fz ?? f.z, ox = Math.sin(f.facing || 0), oz = Math.cos(f.facing || 0), rx = -oz, rz = ox, gy = (x, z) => game.city.groundHeightAt(x, z) || 0, m = 'street';\n    let eye, look; if (m === 'close') { eye = [fx + ox * 1.6 + rx * 1.4, 0, fz + oz * 1.6 + rz * 1.4]; eye[1] = gy(fx, fz) + 1.6; look = [fx - ox * 4 - rx * 0.5, gy(fx, fz) + 1.2, fz - oz * 4 - rz * 0.5]; }\n    else if (m === 'wide') { eye = [fx + ox * 22 + rx * 14, 0, fz + oz * 22 + rz * 14]; eye[1] = gy(fx, fz) + 9; look = [fx, gy(fx, fz) + 2, fz]; }\n    else { eye = [fx + ox * 10 + rx * 4.5, 0, fz + oz * 10 + rz * 4.5]; eye[1] = gy(fx, fz) + 1.7; look = [fx - rx * 0.6, gy(fx, fz) + 2.0, fz - rz * 0.6]; }\n    game.teleport(fx + ox * 3.2 + rx * ((f.w || 6) / 2 + 2.5), undefined, fz + oz * 3.2 + rz * ((f.w || 6) / 2 + 2.5), 0);\n    game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; };\n    window.__shop = { id: f.id, kind: f.kind, synth: !!f.synthetic, w: f.w, d: f.d, fx, fz, shellAwning: f.shellAwning }; }"
+ },
+ "ftm_pharm2_day": {
+  "player": [
+   -5376,
+   -3955,
+   0
+  ],
+  "tod": 11,
+  "eval": "\n  const L = (game.city.storefrontsNear ? game.city.storefrontsNear(-5376, -3955, 80, []) : game.city.storefronts) || []; let f = null, bd = 1e9; for (const s of L) { const d = Math.hypot((s.fx ?? s.x) - -5376, (s.fz ?? s.z) - -3955); if (d < bd) { bd = d; f = s; } }\n  if (f) { const fx = f.fx ?? f.x, fz = f.fz ?? f.z, ox = Math.sin(f.facing || 0), oz = Math.cos(f.facing || 0), rx = -oz, rz = ox, gy = (x, z) => game.city.groundHeightAt(x, z) || 0, m = 'street';\n    let eye, look; if (m === 'close') { eye = [fx + ox * 1.6 + rx * 1.4, 0, fz + oz * 1.6 + rz * 1.4]; eye[1] = gy(fx, fz) + 1.6; look = [fx - ox * 4 - rx * 0.5, gy(fx, fz) + 1.2, fz - oz * 4 - rz * 0.5]; }\n    else if (m === 'wide') { eye = [fx + ox * 22 + rx * 14, 0, fz + oz * 22 + rz * 14]; eye[1] = gy(fx, fz) + 9; look = [fx, gy(fx, fz) + 2, fz]; }\n    else { eye = [fx + ox * 10 + rx * 4.5, 0, fz + oz * 10 + rz * 4.5]; eye[1] = gy(fx, fz) + 1.7; look = [fx - rx * 0.6, gy(fx, fz) + 2.0, fz - rz * 0.6]; }\n    game.teleport(fx + ox * 3.2 + rx * ((f.w || 6) / 2 + 2.5), undefined, fz + oz * 3.2 + rz * ((f.w || 6) / 2 + 2.5), 0);\n    game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; };\n    window.__shop = { id: f.id, kind: f.kind, synth: !!f.synthetic, w: f.w, d: f.d, fx, fz, shellAwning: f.shellAwning }; }"
+ },
+ "cyp_wide": {
+  "player": [
+   -1748,
+   -6162,
+   0
+  ],
+  "tod": 11,
+  "eval": "\n  const L = (game.city.storefrontsNear ? game.city.storefrontsNear(-1748, -6162, 80, []) : game.city.storefronts) || []; let f = null, bd = 1e9; for (const s of L) { const d = Math.hypot((s.fx ?? s.x) - -1748, (s.fz ?? s.z) - -6162); if (d < bd) { bd = d; f = s; } }\n  if (f) { const fx = f.fx ?? f.x, fz = f.fz ?? f.z, ox = Math.sin(f.facing || 0), oz = Math.cos(f.facing || 0), rx = -oz, rz = ox, gy = (x, z) => game.city.groundHeightAt(x, z) || 0, m = 'wide';\n    let eye, look; if (m === 'close') { eye = [fx + ox * 1.6 + rx * 1.4, 0, fz + oz * 1.6 + rz * 1.4]; eye[1] = gy(fx, fz) + 1.6; look = [fx - ox * 4 - rx * 0.5, gy(fx, fz) + 1.2, fz - oz * 4 - rz * 0.5]; }\n    else if (m === 'wide') { eye = [fx + ox * 22 + rx * 14, 0, fz + oz * 22 + rz * 14]; eye[1] = gy(fx, fz) + 9; look = [fx, gy(fx, fz) + 2, fz]; }\n    else { eye = [fx + ox * 10 + rx * 4.5, 0, fz + oz * 10 + rz * 4.5]; eye[1] = gy(fx, fz) + 1.7; look = [fx - rx * 0.6, gy(fx, fz) + 2.0, fz - rz * 0.6]; }\n    game.teleport(fx + ox * 3.2 + rx * ((f.w || 6) / 2 + 2.5), undefined, fz + oz * 3.2 + rz * ((f.w || 6) / 2 + 2.5), 0);\n    game.cameraOverride = (dt, c) => { c.position.fromArray(eye); c.lookAt(look[0], look[1], look[2]); return true; };\n    window.__shop = { id: f.id, kind: f.kind, synth: !!f.synthetic, w: f.w, d: f.d, fx, fz, shellAwning: f.shellAwning }; }"
+ },
  "dt_block_day": {
   "player": [
    407,

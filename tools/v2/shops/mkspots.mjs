@@ -18,6 +18,9 @@ const out = {};
 for (const [k, [x, z]] of Object.entries(SHOPS)) { out[k + '_day'] = { player: [x, z, 0], tod: 11, eval: cam(x, z, 'street') }; out[k + '_night'] = { player: [x, z, 0], tod: 21, eval: cam(x, z, 'street') }; }
 out.ftm_wide = { player: [-4891, -3954, 0], tod: 11, eval: cam(-4891, -3954, 'wide') };
 out.ftm_close = { player: [-4891, -3954, 0], tod: 11, eval: cam(-4891, -3954, 'close') };
+out.dt_office_day = { player: [411, -122, 0], tod: 11, eval: cam(411, -122, 'street') };
+out.ftm_pharm2_day = { player: [-5376, -3955, 0], tod: 11, eval: cam(-5376, -3955, 'street') };
+out.cyp_wide = { player: [-1748, -6162, 0], tod: 11, eval: cam(-1748, -6162, 'wide') };
 out.dt_block_day = { player: [407, -150, 0], tod: 11, eval: cam(407, -150, 'wide') };
 out.dt_shop_day = { player: [407, -150, 0], tod: 11, eval: cam(407, -150, 'street') };
 out.dt_shop_night = { player: [407, -150, 0], tod: 21, eval: cam(407, -150, 'street') };
