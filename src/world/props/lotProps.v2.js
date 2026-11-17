@@ -68,8 +68,19 @@ function create(game) {
     for (let t = 0; t < cand.length; t++) { const l = cand[(k + t) % cand.length]; if (!recent.some((r) => r.name === name && r.l === l && (r.x - x) ** 2 + (r.z - z) ** 2 < 45 * 45)) { k = (k + t) % cand.length; break; } }
     const l = cand[k % cand.length]; recent.push({ name, l, x, z }); if (recent.length > 80) recent.shift(); return l;
   }
+  // never in a lane: a spot closer to a road centerline than half its width + margin (+ the item's radius) is pushed out
+  // across the road edge (lot spots are computed against the house, and lanes bend; the Keys audit caught carts in a lane)
+  const ROAD_KEEP = /footway|path|cycleway|steps|pedestrian|track/;
+  function offRoad(x, z, rad) {
+    const G = game.city?.roadGraph; if (!G?.nearestEdge) return [x, z];
+    for (let k = 0; k < 3; k++) { const r = G.nearestEdge(x, z, {}, 25); if (!r || ROAD_KEEP.test(r.edge.kind || '')) break;
+      const dx = x - r.point.x, dz = z - r.point.z, d = Math.hypot(dx, dz), need = (r.edge.width || 6) / 2 + 0.55 + rad; if (d >= need) break;
+      const ux = d > 1e-3 ? dx / d : -r.dir.z, uz = d > 1e-3 ? dz / d : r.dir.x; x = r.point.x + ux * need; z = r.point.z + uz * need; }
+    return [x, z];
+  }
   function place(owner, name, x, y, z, ry, seed, opts = {}) {
     const parts = kit.parts[name]; if (!parts) return null;
+    [x, z] = offRoad(x, z, name.startsWith('mailbox') ? 0.15 : 0.32);
     const s = opts.s ?? 1 + (hash(seed * 3.1) - 0.5) * 0.12, rx = opts.lean ? (hash(seed * 5.3) - 0.5) * opts.lean : 0, rz = opts.lean ? (hash(seed * 7.7) - 0.5) * opts.lean : 0;
     _e.set(rx, ry, rz, 'XYZ'); _q.setFromEuler(_e); _m.compose(_p.set(x, y, z), _q, _s.setScalar(s));
     const vn = kit.variants?.[name], it = { name, x, y, z, ry, rx, rz, s, seed, mat: _m.toArray(), _slot: new Map(), owner, vc: null };
