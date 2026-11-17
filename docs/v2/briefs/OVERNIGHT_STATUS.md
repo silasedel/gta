@@ -720,7 +720,8 @@ Best sheets: `docs/v2/shots/surfaces/SURF_closeups.png` (before | after), `SURF_
   Open / not done: driveway aprons (house generator owns them), per-paver variation on downtown plazas beyond stains / gum, one
   downtown signalized junction (node 1163) shows no crosswalk (L.cw null there: not urban-zoned or clipped by cwFree; not from this pass),
   first-spot load hitches seen in runs (9-38 s single frames right after teleport while tiles stream: not attributed to this pass, but
-  the bigger asphalt shader adds compile time: worth a precompile check), Keys aerial and highway aerial still rendering at 06:15.
+  the bigger asphalt shader adds compile time: worth a precompile check). The 06:20 run was stopped before the Keys / highway aerials
+  (slot queue); the earlier Keys aerial A/B is in `t3_keys_aerial_{off,on}.png`.
 - 05:40 Committed the modules (`Surfaces: asphalt / paint / sidewalk shader pass`); tilebuild hunks handed to the lead ("tilebuild ready:
   surfaces"). Sheets: `docs/v2/shots/surfaces/SURF_grazing_11_1830_rain.png` (downtown 11:00 / 18:30 / rain + Keys rain, before | after),
   `SURF_closeups.png` (standing-height close-ups downtown / residential / Keys / rain). Tuning since: tar sealant satin (was a bright sky line
