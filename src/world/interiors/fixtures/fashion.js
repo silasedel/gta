@@ -7,14 +7,38 @@ import { venuePalette, venueMats } from './venue.js';
 import '../kit/venueSurfaces.js';
 
 const fab = (ctx, c) => ctx.M.surf('fabric', { c, uvw: 0.35 });
-// one hanging garment (shirt / dress / jacket silhouette from boxes) centered on the rail at (x, y = rail, z), facing +z
+// one hanging garment centered on the rail at (x, y = rail, z), facing +z. Shops pass: a draped cloth grid per kind (shirt with
+// sleeves, jacket, dress, pants with the leg split), vertical folds deepening toward the hem, a slight belly, closed side edges;
+// each kind is built once and reused (world-projected fabric uvs come from the material).
+const GARM = new Map();
+function garmentGeo(kind) {
+  let g = GARM.get(kind); if (g) return g;
+  const L = kind === 'dress' ? 0.95 : kind === 'jacket' ? 0.72 : kind === 'pants' ? 0.9 : 0.66, NY = 6, NU = 6, T = 0.012;
+  const hw = (t) => kind === 'dress' ? (t < 0.06 ? 0.09 + t / 0.06 * 0.06 : t < 0.38 ? 0.15 - (t - 0.06) * 0.03 : 0.14 + (t - 0.38) / 0.62 * 0.13)
+    : kind === 'pants' ? 0.17 + t * 0.03
+    : kind === 'jacket' ? (t < 0.07 ? 0.08 + t / 0.07 * 0.15 : t < 0.82 ? 0.245 : 0.205)
+    : (t < 0.07 ? 0.07 + t / 0.07 * 0.15 : t < 0.5 ? 0.235 : 0.19);
+  const gap = (t, u) => kind === 'pants' && t > 0.38 && Math.abs(u) < 0.035 * (0.6 + t);
+  const pos = [], idx = [], ph = kind.length * 1.7;
+  const P = (t, f, side) => { const w = hw(t), u = (f * 2 - 1) * w, fold = 0.007 * Math.sin(u * 34 + ph + t * 2) * (0.3 + 0.7 * t), belly = 0.01 * Math.cos((f * 2 - 1) * 1.45) * (0.4 + 0.6 * Math.sin(Math.PI * Math.min(1, t * 1.3)));
+    return [side * (T / 2 + belly) + fold, -0.05 - t * L - (kind === 'shirt' || kind === 'jacket' ? 0.025 * Math.cos((f * 2 - 1) * Math.PI) * t * t : 0), u]; };
+  for (const side of [1, -1]) { const b = pos.length / 3; for (let j = 0; j <= NY; j++) for (let i = 0; i <= NU; i++) pos.push(...P(j / NY, i / NU, side));
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NU; i++) { const t = (j + 0.5) / NY, u = ((i + 0.5) / NU * 2 - 1) * hw(t); if (gap(t, u)) continue; const a = b + j * (NU + 1) + i, c = a + NU + 1;
+      if (side > 0) idx.push(a, c, a + 1, a + 1, c, c + 1); else idx.push(a, a + 1, c, a + 1, c + 1, c); } }
+  const half = (NY + 1) * (NU + 1); // side edges + hem join front and back
+  for (let j = 0; j < NY; j++) for (const i of [0, NU]) { const a = j * (NU + 1) + i, c = a + NU + 1, a2 = a + half, c2 = c + half; if (i === 0) idx.push(a, a2, c, c, a2, c2); else idx.push(a, c, a2, c, c2, a2); }
+  for (let i = 0; i < NU; i++) { const a = NY * (NU + 1) + i, a2 = a + half; idx.push(a, a + 1, a2, a + 1, a2 + 1, a2); }
+  g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(new Array(pos.length / 3 * 2).fill(0), 2)); g.setIndex(idx); g.computeVertexNormals(); GARM.set(kind, g); return g;
+}
+// folded garment for stacks: soft rounded slab (bevelled), a touch narrower or wider per piece
+// folded garment for stacks: a slab with a rolled front edge (the fold) instead of a sharp box
+function foldPiece(G, m, x, y, z, ry, sx, sz) { G.at(x, z, ry, () => { G.box(m, 0, 0.016, -0.01, 0.27 * sx, 0.026, 0.22 * sz); G.cyl(m, 0, 0.016, 0.1 * sz, 0.014, 0.27 * sx, { rz: Math.PI / 2, seg: 6 }); }, y); }
+export function foldedStack(ctx, x, y, z, ry, c, n, o = {}) { const R = ctx.R, m = fab(ctx, c), m2 = fab(ctx, c.map ? c.map((v) => Math.max(0, Math.round(v * 0.88))) : c);
+  for (let k = 0; k < n; k++) { const sx = (o.w || 0.28) / 0.27 * (0.96 + R() * 0.08), sz = (o.d || 0.25) / 0.24 * (0.96 + R() * 0.06); foldPiece(ctx.G, k % 3 === 2 ? m2 : m, x + R.jit(0.008), y + k * 0.032, z + R.jit(0.008), ry + R.jit(0.05), sx, sz); } }
 function garment(ctx, x, y, z, ry, c, kind = 'shirt') {
-  const { G, M } = ctx, m = fab(ctx, c), hg = M.flat('#c9ccd1', { metal: 0.9, rough: 0.3 });
-  G.at(x, z, ry, () => { G.add(hg, new THREE.TorusGeometry(0.025, 0.003, 4, 10, Math.PI * 1.2), new THREE.Matrix4().makeTranslation(0, 0.02, 0)); G.box(hg, 0, -0.04, 0, 0.004, 0.004, 0.4);
-    const L = kind === 'dress' ? 0.95 : kind === 'jacket' ? 0.72 : kind === 'pants' ? 0.9 : 0.66, sh = kind === 'pants' ? 0.36 : 0.42;
-    G.box(m, 0, -0.05 - L / 2, 0, 0.028, L, sh * (kind === 'dress' ? 0.9 : 1)); G.box(m, 0, -0.08, 0, 0.032, 0.06, sh + 0.04);
-    if (kind === 'dress') G.box(m, 0, -0.05 - L * 0.8, 0, 0.03, L * 0.4, sh * 1.25);
-    if (kind === 'jacket') for (const s of [-1, 1]) G.box(m, 0.004, -0.36, s * (sh / 2 + 0.035), 0.034, 0.56, 0.07); }, y);
+  const { G, M } = ctx, m = fab(ctx, c), hg = M.flat('#c9ccd1', { metal: 0.9, rough: 0.3 }), sh = kind === 'pants' ? 0.36 : 0.42;
+  G.at(x, z, ry, () => { G.add(hg, new THREE.TorusGeometry(0.025, 0.003, 4, 10, Math.PI * 1.2), new THREE.Matrix4().makeTranslation(0, 0.02, 0)); G.box(hg, 0, -0.04, 0, 0.004, 0.004, sh - 0.02);
+    G.add(m, garmentGeo(kind), null); if (kind === 'shirt' || kind === 'jacket') G.box(m, 0, -0.065, 0, 0.03, 0.03, 0.12); }, y);
 }
 // straight or round floor rack (o.round). Garments in the palette colors, slightly fanned.
 export function garmentRack(ctx, x, z, ry, o = {}) {
@@ -37,7 +61,7 @@ export function wallBay(ctx, x, z, ry, o = {}) {
     G.plane(panel, 0, 1.35, 0.012, L, 2.5, { step: 0.4 }); G.box(M.flat(pal.dark, { rough: 0.5 }), 0, 2.66, 0.08, L + 0.04, 0.14, 0.16);
     if (o.led) FIXTURES.led(ctx, [-L / 2 + 0.05, 2.58, 0.14], [L / 2 - 0.05, 2.58, 0.14], { color: o.led, k: 1.1, glow: 2.2, w: 0.01, d: [0, -1, 0.25], every: 0.6 });
     for (const [bx, by] of [[-L / 4, 1.85], [L / 4, 1.85], [-L / 4, 1.05], [L / 4, 1.05]]) { if (by < 1.5 && o.shelfLow) continue; G.cyl(metal, bx, by, 0.2, 0.01, 0.4, { rx: Math.PI / 2, seg: 6 }); for (let i = 0; i < 6; i++) garment(ctx, bx, by, 0.12 + i * 0.05, 0, R.pick(o.colors), R.pick(o.kinds || ['shirt', 'jacket'])); }
-    const sy = o.shelfLow ? 1.0 : 0.42; G.box(panel, 0, sy, 0.2, L - 0.04, 0.03, 0.36); for (let u = -L / 2 + 0.2; u < L / 2 - 0.15; u += 0.34) { const n = R.int(3, 7), c = R.pick(o.colors); for (let k = 0; k < n; k++) G.box(fab(ctx, c), u + R.jit(0.01), sy + 0.035 + k * 0.035, 0.2, 0.28, 0.033, 0.26); }
+    const sy = o.shelfLow ? 1.0 : 0.42; G.box(panel, 0, sy, 0.2, L - 0.04, 0.03, 0.36); for (let u = -L / 2 + 0.2; u < L / 2 - 0.15; u += 0.34) foldedStack(ctx, u, sy + 0.015, 0.2, 0, R.pick(o.colors), R.int(3, 7));
     ctx.solid(-L / 2, 0, 0, L / 2, 2.6, 0.42, { occ: false });
   });
 }
@@ -45,7 +69,7 @@ export function wallBay(ctx, x, z, ry, o = {}) {
 export function foldTable(ctx, x, z, ry, o = {}) {
   const { G, M } = ctx, R = ctx.R, pal = o.pal || venuePalette(), top = o.top || M.surf('walnut', { c: pal.wood, probe: 0.3 }), w = o.w || 1.4, d = o.d || 0.8, h = o.h || 0.78;
   G.at(x, z, ry, () => { G.boxB(top, 0, 0, 0, w, h, d); G.boxB(top, w * 0.32, 0, d * 0.62, w * 0.55, h * 0.62, d * 0.6);
-    for (const [px, py, pz, pw] of [[-w * 0.3, h, 0, w * 0.35], [w * 0.15, h, 0, w * 0.4], [w * 0.32, h * 0.62, d * 0.62, w * 0.45]]) for (let u = px - pw / 2 + 0.16; u < px + pw / 2; u += 0.32) { const n = R.int(4, 8), c = R.pick(o.colors); for (let k = 0; k < n; k++) G.box(fab(ctx, c), u + R.jit(0.008), py + 0.02 + k * 0.034, pz + R.jit(0.01), 0.28, 0.032, 0.25); }
+    for (const [px, py, pz, pw] of [[-w * 0.3, h, 0, w * 0.35], [w * 0.15, h, 0, w * 0.4], [w * 0.32, h * 0.62, d * 0.62, w * 0.45]]) for (let u = px - pw / 2 + 0.16; u < px + pw / 2; u += 0.32) foldedStack(ctx, u, py, pz, 0, R.pick(o.colors), R.int(4, 8));
     ctx.solid(-w / 2, 0, -d / 2, w / 2, h, d / 2 + d * 0.62, { occ: false }); ctx.shadow(0, d * 0.3, w + 0.2, d * 1.7); ctx.poi('browse', 0, -d / 2 - 0.5, 0, {}); });
 }
 // abstract display mannequin on a stand, dressed in a top and a bottom color
