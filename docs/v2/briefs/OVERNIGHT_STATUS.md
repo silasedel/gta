@@ -972,6 +972,14 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   triangles). Seam probe totals over the 22 types, old code -> new: raised 11 -> 1, z-fight 150 -> 2 (incl. r2-keys' fixes), gutter-pan
   coverage on curbed returns 0 -> 0.98; the remaining "notch" flags are tree-lawn corners (curb strip, then lawn: checked in the shots).
   Sheets: `docs/v2/shots/roads/R2_item8_sr916_before_after.jpg`, `R2_item11_curb_returns_before_after.jpg`, `R2_item13_covers_markings.jpg`.
+- 14:45 Round walk corners (user's shot_12 follow-up, committed in 63e5b196): where the walk runs along the curb on both legs and the
+  block behind isn't paved, the slab inside each curb return's sector is redrawn as a constant-width band concentric with the curb
+  (vertex every <= 0.4 m, radiating joints, curb face, back-edge chamfer so the lawn follows the arc); paved-through blocks keep a square
+  corner plaza. Sheet with zooms: `docs/v2/shots/roads/R2_item11_round_walk_corners.jpg` (SR 916 corners incl. the shot_12 area).
+  Pier-end flights -> galvanized dock ladders at Keys / residential / natural piers (concrete steps only at urban quays). publish.sh:
+  temp-folder + atomic renames, old builds kept 2 h. Known leftover: where my corner gutter strip meets the straight road gutter at a
+  junction mouth there can be a small slanted end (seen at one all-way stop corner); the curb face along the new corner band reads as
+  a dark line in shade, same as the straight curbs.
 
 ## r2-physics
 - 12:10 In progress. Everything new sits behind `?carphys=2` (off by default) until it has passed an in-game boot.
@@ -1426,4 +1434,7 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
   4. Glades sheet water uses its own noise, not the ground shader's puddle pattern.
   5. There is no scrape or slam audio (`boatScrape` / `boatSlam` events are emitted, but the audio system doesn't use them).
   6. NPC airboat tours (AI driving) are not done.
-- **For the lead:** `src/main.js` (swimmer on the swell + seabed in the wade / swim probe, 5 lines) and `src/vehicles/vehicles.js` (the 1-line car-water hook) hold other helpers' uncommitted work too, so I did not commit them. Please commit them with yours.
+- **Commits:** `eb73dee1` (all of it, flags off), `8016af5b` (only my hunks in `vehicles.js` + `main.js`, via a temporary index; other helpers' work left as is), and then the defaults-on commit. The airboat stands + mossy pier landing have not been booted yet; the default-flag boot test (`--scene stand,airboat --q ""`) is queued.
+- 15:00 **Facade kit step 1 committed**, with sheets `docs/v2/shots/art/sheet_geo5_{mbres,brickell}_*.jpg`.
+  - Pending with the lead: the materials.js neon line (shared working copy) and the tilebuild hunk (rooftop units, fin grooves, balcony eligibility, hip pitch / colors, counters).
+  - Honest status: visible but incremental. The remaining "cartoon" read comes from the 768 px wall-layer array with loud tiling patterns and from the bright source palettes. That needs a dedicated facade pass: a 2K neutral scan array, re-tuned palettes, and geometry reveals on near street faces.
