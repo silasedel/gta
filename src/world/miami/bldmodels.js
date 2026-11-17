@@ -72,13 +72,13 @@ export const LIB = {
   tarp_shack: { w: 6.62, d: 5.43, h: 2.66, k: 1, cls: 'clutter', glow: 0, tint: 'none', col: 1 },
   booth_ruin: { w: 2.72, d: 2.89, h: 2.12, k: 1, cls: 'clutter', glow: 0, tint: 'none', col: 1 },
   // ---- fixed sites ----
-  casino_tower: { w: 117.4, d: 132.4, h: 64.4, k: 1, cls: 'fixed', glow: 0.5, tint: 'none' },
+  casino_tower: { w: 117.4, d: 132.4, h: 64.4, k: 1, lod1: 1, cls: 'fixed', glow: 0.5, tint: 'none' },
   control_tower: { w: 23, d: 23, h: 90.17, k: 1, cls: 'fixed', glow: 0.4, lod1: 1, tint: 'none' },
   control_tower_sm: { w: 9.91, d: 9.91, h: 30, k: 1, cls: 'fixed', glow: 0.3, tint: 'none' },
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
   airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none', desat: 1 }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
-const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 300;
+const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 250;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
 const MIRROR = false;
@@ -403,7 +403,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     for (const e of entries.values()) {
       const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue;
       const cx = Math.floor(e.x / CELL), cz = Math.floor(e.z / CELL);
-      const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~300 m, houses / shops to ~135 m
+      const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~250 m, houses / shops to ~110 m
       const lod = LIB[e.name].lod1 && Math.hypot(e.x - lastX, e.z - lastZ) > ld ? 1 : 0;
       const key = e.name + '|' + lod + '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
       ensure(key);

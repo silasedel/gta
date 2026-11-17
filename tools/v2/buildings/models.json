@@ -279,7 +279,9 @@
   "colonly": true,
   "col": 5000,
   "weld": 0,
-  "tex1": 512
+  "tex1": 512,
+  "lod1": 70000,
+  "bake1": false
  },
  "booth_ruin": {
   "src": "Booths/Booth 1 - Overgrown Concrete Booth Ruin/Booth 1.glb",
