@@ -9,6 +9,9 @@
 
 
 ## look
+- 04:55 Console clean on both paths (default and `?look3`: 0 shader errors). Before/after sheet, Nico's deck, rows 11:00 / 18:30 / 22:00 / after rain 11:00 / after rain 18:30, left = old, right = look3: `docs/v2/shots/look/sheet_r3_nico_deck.png`. First frame A/B (s1-perf, same session, spawn): 59.2 -> 67.9 ms median (GPU 34.7 -> 42.7 ms; the machine is very loaded, p95 noisy). I cut the soft-shadow taps (search 8 -> 6, filter 12 -> 10, umbra early-out) and am re-measuring per part (soft shadows / AO ring / auto exposure) before switching it on by default. Beach + downtown sheets running.
+- 04:35 **look3 is opt-in (`?look3`) after the lead's report**: the fog chunk read `uLookV` in materials that never got its declaration (shader error on other helpers' pages). Fixed (`#ifdef PS_LOOKU`), and no look3 shader patch is installed without `?look3`, so the default path is the old, stable one. A console check (both paths: shader errors, max frame) is queued. Default-on only after a clean console + frame-time A/B.
+- 04:25 Round 2 A/B at Nico's (in-session, `game.look3` false/true): `docs/v2/shots/look/r2_nico_deck_11_old.png` vs `r2_nico_deck_11_neu.png`; dusk `r2_nico_deck_18h5_*`, night `r2_nico_deck_22_*`. look3 = soft PCSS shadows, shade/sun ratio about 2x deeper (sand in the pickup's shade 73 -> 40 at the same sunlit level), PBR Neutral tone map (deep skies, no neon reds from ACES), sat 0.93, auto exposure (night opens up about +1 stop, not pitch black). Parked cars had no sun shadow: the cars helper fixed the shadow tagging.
 - 04:10 Started (lighting, sky, post). Pass 1 in code behind a runtime switch `game.look3` (true by default, `?look3off`, A/B in one session without reload): soft sun shadows (PCSS-style blocker search + rotated disk, TAA-resolved, `src/render/look3.js`), contact AO kernel now rotates per frame (was a fixed dot pattern) + a wider 3 m ground-contact ring, tone map switch (`game.lookTM` aces/agx/neutral). Shot tool `tools/v2/look/look-shots.mjs` (fixed cameras, A/B variants). First A/B run queued for a browser slot.
 
 ## keys
@@ -74,6 +77,10 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 04:50 Second orientation sweep (offline Blender renders of every GLB from the front-left): sedan4, suv13, the hypercar and
+  the fire engine were driving backward too; fixed (all 47 models now checked front-left and pinned). Hypercar maker
+  lettering on the tail blanked. Car meshes are tagged as dynamic sun-shadow casters at creation (look helper: parked cars
+  in Nico's yard had no shadow). Final stability (60 s downtown): 3 roll-overs library vs 4 procedural.
 - 04:10 Night close-ups of 12 different traffic models with head / tail lamps lit: `docs/v2/shots/cars/cun_<key>_night.png`
   (van1, truck2, sedan8, suv10, conv1, coupe3, sedan7, hatch1, suv2, sedan5, hatch2, police1 with strobes). Rare cars park
   themselves once each when the player comes near: hypercar at the casino valet (`rare_casino_super5.png`), classic wedge on
@@ -124,6 +131,8 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 05:20 onroad.mjs re-run after 6c20452: Pelican Point Ln (r 70) and downtown 407,-110 / 470,-100 (r 90) show NO props-helper item in a lane except M.pool = the lamp light-pool decal (additive glow on the asphalt, meant to be there; please whitelist). Remaining hits are not mine: "lamp-pools / ShaderMaterial" (env lamps), npc-crowd, and an unnamed MeshStandardMaterial instanced mesh with no parent / mesh name (x68 Keys, x44 downtown, e.g. -907.7,4874.8 and 391.7,-137.7): all my instanced meshes are named (lot-props:<mat>, reg-*, kit materials).
+- 04:35 LEAD answers: (a) the navy #2a3550 MeshStandardMaterial is not mine: the only use of 0x2a3550 in src is src/gameplay/pickups.js:58 (a 0.42 x 0.5 x 0.14 pickup case box); none of my props has an untextured navy material. (b) "M.pool" = the street-lamp LIGHT POOL decal (tilebuild lamp loops, additive radial glow on the asphalt under each lamp, opacity 0 by day): it is meant to lie on the lane, not an object; please whitelist it in onroad.mjs. (c) the 2 carts in Pelican Point Ln: fixed in 6c20452 (every lot spot is pushed out of the road ribbon: half width + 0.55 m + item radius). Work-zone cones / channelizers / renovation roll-offs stand on the road on purpose (closed curb strip / parking lane), they will show in onroad.mjs downtown.
 - 04:20 LEAD: tilebuild ready: props - one line in buildColliders' hydrant loop (`if (p.broken) continue;`: a sheared hydrant leaves no invisible collider after a tile collider rebuild); the vegetation helper's 2 lines (TREE_LIB seagrape -> rubber_fig, BUSH_LIB bush_leafy -> green_shrub) are also waiting there. (SendMessage to 'lead' isn't reachable from here.) Second pass done: dormant push props (0 spawn wakes), traffic never snaps posts / shears hydrants (ce7bec5), staple bike racks + can/cup litter from the library, off-day carts only on open ground (2f9fa1c), post colliders span the whole post (59cea41), collider audit sheets docs/v2/shots/props/colliders/*.jpg (16 types, up to 20 each), site gate shot docs/v2/shots/props/site3_gate_b.png.
 - 05:10 second pass (36f433d, committed with `git commit -m ... -- <my files>` as asked): (1) push props now START AS FIXED bodies at their resting pose and only turn dynamic when the player (within reach) or a vehicle reaches them, then go back to fixed once at rest: wake log over 30 s at spawn + downtown shows 0 spawn wakes (was 26-58), every wake has a cause (car / player); fewer live bodies (5-10 instead of ~80). Lane-following traffic no longer snaps sign posts (it did 3x per minute at Keys corners). (2) bike rack = hoops kitbashed from the Street Props Pack 2 pipe railing (tools/v2/street-models/bikerack.py); litter = the soda can (6 repainted labels: the source cans carried real cola brands) + paper cup (coffee-chain logo removed). The tilebuild.js hunks that switch litter / bike racks to these models are NOT committed yet: tilebuild.js holds another helper's uncommitted facade work, so a `-- tilebuild.js` pathspec commit would sweep it in; I'll commit once it is in. (3)/(4) running: clear-view site shots, collider wireframe audit (docs/v2/shots/props/colliders/<type>.jpg, up to 20 instances per type).
 - 04:35 FINAL PASS committed (2084a0c, 8c62bdc). Review sheet: docs/v2/shots/props/review/FINAL_sheet.jpg (Nico's deck view, 3 Nico street lots, downtown blocks, bus stop, tower site, Keys residential lots). Push sequence: review/t5_lab.jpg -> t5_c.jpg -> t5_d.jpg (car hits a cart pair), review/t5_walk_go.jpg / t5_walk_end.jpg (player shoves carts). Cafes review/t9_cafe1.jpg, t9_cafe2.jpg; hydrant review/t9_spray.jpg. commit_mine.sh now also resets my paths in the shared index after each commit (ab3fb52 airport was the 4th commit that reverted my files from a stale shared index).
@@ -215,6 +224,21 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 05:00 Elevated / bridges (now mine): the barriers already had a jersey profile; the "flat wall" was the material - a faint
+  generic atlas detail on 0.21 vertex albedo. New `src/world/ground/concreteMaterial.js` for every elevated concrete part:
+  the user's Concrete 3 scan triplanar (fine pitting + soft tone drift + its normal / roughness), formwork joints every 6 m,
+  panel tones, rain-streak grime, tyre spray on the lower barrier, a rubber scuff line 6-25 cm above the deck and drain scuppers
+  (barrier faces now carry a height channel from elevated/build.js); undersides / piers / girders at concrete albedo. First
+  result `gp16_naples_graze.png` (texture was too coarse -> refined). Reference sheets (target | game):
+  `docs/v2/shots/stage1/cmp_ground_{rural,cityblock,downtown,nico_front}.png` - fixed from them: mainland shoulders now a narrow
+  crisp gravel strip, then a mown green verge band (ref_57). Remaining gaps vs the refs are lighting / asphalt material (look,
+  surfaces helpers) and taller yellow grass cards at rural verges (vegetation). Curb weeds now along every slab curb.
+- 04:45 Sea water inside city blocks (lead / buildings): not from the ocean changes (the BLD_dt_air shot at 02:47 predates them) -
+  the traced map has small enclosed water specks inside land; they read as open sea (and got a moored boat). `data.js surfCode`:
+  water pockets < ~90 m across with land within 72 m in all 8 directions are now land (grass); canals / rivers / lakes stay
+  water (they continue in some direction). Verified from 150 m: `docs/v2/shots/stage1/GROUNDPASS_water_pockets.png` (downtown,
+  Little Havana with the river, Clewiston). Also in progress: elevated concrete rebuilt (Concrete 3 scan, formwork joints,
+  grime, barrier scuff line, scuppers; `src/world/ground/concreteMaterial.js`), curb weeds close-up, reference sheets.
 - 04:20 Naples bridge barrier after the albedo change: `gp15_naples_graze.png` - lighter, but still a flat, untextured shaded face
   (the elevated-concrete triplanar detail does not show on it): **for the highways / elevated owner** - check that M.detail is
   applied to `elevated-concrete` and consider a jersey-barrier profile; it is not a seawall. Everything else in my list is done
@@ -407,6 +431,17 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   helpers' changes in it).
 
 ## vegetation
+- 05:10 **Airport cleared**: no plants on apron, runway, taxiway, parking, paved or plaza cover anywhere (cover class from
+  `data.coverAt`). Inside the airport zone, nothing grows within 320 m of a runway centerline (layout.json runways), and the rest
+  is limited to landscaping strips 3-18 m off the terminal roads. Shots: `t12_airport_air.png`, `t12_airport_front.png`
+  (19 trees, all by the terminal roads). Tilebuild street trees, shrubs and palms are now rejected in road lanes too
+  (`roadDist`; the lead commits tilebuild.js). Lane scan afterwards: none at Pelican Point Ln, downtown or the airport.
+- 05:10 **Unused library models in.** Palm Tree 10 (Washingtonia): its 8 unlinked "Palm Part" materials were matched to the
+  texture sets from the part geometry (`tools/v2/vegetation/matparts.py`): trunk, petioles 1-3, fan leaves, fiber skirt, dry
+  petiole bases. It joins the residential / nightlife / midtown palm mixes, the Keys and parks. Mangrove Tree 2 keeps its stilt
+  roots at a 36k bark budget (the earlier break came from decimation) and is 1 in 3 shore mangroves. Oak Tree 2: rural roadside
+  rows. Flower 1 (wild geranium): yard beds and wildflowers at tree bases. Rural roads (ref_57): denser, sunnier broadleaf
+  lines (roadside rows 0.4 -> 0.55, density 0.24 -> 0.32, warmer brighter crown tint).
 - 04:30 Heads-up (not vegetation): the t11 / t11b runs hit 24-40 s single frames at the Keys yard / street, plus a shader
   validate error `'uLookV' : undeclared identifier` from the uncommitted `src/render/look3.js` / `src/world/env/fogChunks.js`
   work. Vegetation's own work in the same runs stays small: countryside gen avg 0.6 ms, max 25 ms. Two tilebuild lines of mine
@@ -539,6 +574,14 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   Cypress has no library model: still procedural. Grass Clump 1 is used as tufts around tree bases; Moss 1 not yet.
 
 ## player
+- 05:00 Third pass.
+  - **Jog** house course: 14 of 14 waypoints, foot error median 2.3 mm (95th percentile 1.9 cm), stuck 0.07 s.
+  - **Explosion** (a real blast through the weapons module, 2.6 m away): ragdoll, get-up 2.6 s later, back in control at 5.3 s.
+  - **Death**: lethal ragdoll, stays down under the game's death screen; the respawn hands control back (health 100, `ui.dead` false). Shots `r5_death_1_down.jpg`, `r5_blast_*`.
+  - **Pivot at speed** (W then S at run speed): heading turns 150 degrees in about 0.45 s while speed drops from 4.2 to 1.2 m/s, then he accelerates out (the controller's existing plant-and-pivot plus turn-in-place). The planted feet hold through it.
+  - **Sprint stamina**: about 14 s of sprint; when empty he drops to a run until 25 % is back (about 6 s standing, 9 s moving).
+  - **Vault** (`src/player/vault.v2.js`): jump while moving at a wall, fence, rail or ledge 0.5 - 1.2 m high -> a scripted hop over it with a landing check, or a climb onto it when there is no room behind.
+  - **Car seat**: a tall driver is lowered until his head clears the roof. Shots `docs/v2/shots/player/SHEET_feel.png` (car window and chase cam, vault, pivot, blast, death).
 - 04:30 **Second pass done.** (1) **Player ragdoll** (`src/player/ragdoll.v2.js`). It uses the active ragdoll fitted to Nico, in these cases: a car hit above 15 km/h, death, a fall over 4 m (with fall damage), and an explosion inside 80 % of its radius. While ragdolled, the capsule follows the pelvis and the camera follows. Alive, once the body lies still he blends into the get-up clip (face up or face down) and control returns about 2.5 s later; dead, he stays down until the respawn. Test `node tools/v2/player/ragtest.mjs` (`docs/v2/reports/player-rag-r4.json`, `player-rag-r3.json`). Car at 32 km/h: thrown over the hood, get-up 2.8 s later, back in control at 5.4 s. 7 m fall beside the deck: 30 damage, get-up 2.2 s later, back in control at 4.8 s. Sheet `docs/v2/shots/player/SHEET_ragdoll.png`. (2) `gameplay.js` teleport now uses `game.player.capsule`. (3) Keys exported `game.nicoHouse.stairs`, and the IK uses it. (4) **Foot slide**: stance foot locking in the IK (sole vertices touching the ground keep their world spot; this also covers turning in place), and the gait cycle advances by the real ground speed with stride measured per clip on Nico's rig. Median planted-sole slide: walk 0.14 -> 0.03 m/s, jog / sprint 1.0 -> 0.09 m/s (`docs/v2/reports/player-walk-w12.json`). Foot error is unchanged (median 2.0 mm on the house course).
 - 04:00 Polish pass. **Gait speed** is now measured on Nico's own rig: walk 1.50 m/s, run 3.09, sprint 3.75 (the retarget estimate was 1.36 / 3.09 / 3.90). Planted-sole slide at walk, measured on sole vertices that touch the ground and including the corners of the course, dropped from 0.16 to 0.14 m/s. **Wall test**: walking into a wide wall stops dead, with no pass-through and 0.5 mm of jitter while pushing (`docs/v2/reports/player-walk-w11.json`). Final review sheets: `docs/v2/shots/player/SHEET_final_a.png`, `SHEET_final_b.png`, `compare_preview.png`. Commits from now on use `git commit -- <files>` (my c16cbd80 had swept other helpers' staged files; the props helper had already restored them, and the lead knows).
 - 03:35 **Status: Job 1 and Job 2 done, polish pass running.** Review sheets: `docs/v2/shots/player/SHEET_final_a.png` (front, side, back, face, walk, run, sprint, jump, landing) and `SHEET_final_b.png` (aim, car seat, ragdoll, hit-zone overlay front and side, disguise recolor, camera with a car close by, camera under the stilt house). The user's Preview next to the game: `compare_preview.png`. Old Nico (before): `before_side.png`, `before_face.png`.
@@ -553,6 +596,16 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
 - 00:50 **Nico is now the user's own model** (Models/Main Character 1, Tripo; folder 2 is byte-identical geometry and textures, so folder 1 is used). Rigged onto the game skeleton (52 Mixamo-named joints, bone-heat weights, LOD 95k / 24k / 7k tris), 4K albedo + normal + matte roughness, 1.83 m. Every existing clip retargets onto it at load. `?nico=old` = pipeline Nico. Build: `tools/v2/player/build.sh`. Shots: `docs/v2/shots/player/t1_face.png`, `t1_side.png`, `t1_walk.png`. Next: clear test spot, hit zones, capsule, foot IK test.
 
 ## surfaces
+- 04:50 First A/B in one session (`window.__surfaces.set(false/true)`): `docs/v2/shots/surfaces/t2_<spot>_{off,on}.png` (downtown stand / close /
+  walk / graze / aerial, residential, Keys, rural). Asphalt now: two-layer stochastic scan sampling (no 3.2 m repeat), limestone aggregate at
+  close range (faded by pixel size), tar crack-sealer snakes + sealed lane-joint seams + transverse / longitudinal cracks, alligator
+  cracking in old wheel paths, tire-track darkening + polish, oil drip line, per-street / per-section age (bleached old vs dark overlays,
+  construction seams), concrete gutter pan (user's Concrete 3) on curbed streets, rain puddles steered into ruts / gutters / low edges.
+  Paint: chipped (asphalt shows), worn in wheel paths, dirt-darkened, thermoplastic rim. Sidewalks: per-slab tone on the scan's own joints,
+  stains, gum, cracked / lifted slabs; curb faces: grime, scuffs, red / yellow runs; tactile domes on ramp pads. Crosswalks by area:
+  ladder downtown, continental on business / beach streets, two lines elsewhere. Perf A/B same session: no measurable cost (e.g. downtown
+  stand 61.9 -> 54.8 ms, walk 40.2 -> 38.5 ms; machine loaded). Console: no shader errors. Still-camera diff (`tools/v2/surfaces/still_diff.py`):
+  pavement-only spots 0.07-0.6 % pixels > 12 levels (moving cars / cloud shadows explain the rest). Tuning round 2 + dusk / rain / aerial set running.
 - 04:10 Started (paved surfaces map-wide: asphalt, paint, sidewalks / curbs). New module `src/world/surfaces/` (roadChannel.js = per-vertex
   lane frame for road ribbons / paint / decals; surfaceShaders.js = asphalt / paint / sidewalk shader patches chained after the ground
   pass's groundWear + groundEdge), 3 small hooks in tilebuild (channel attach, setRoad per road, M.roadLane on the ribbon mesh) and one
@@ -560,6 +613,14 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   `docs/v2/shots/surfaces/`. First A/B run in progress.
 
 ## shops
+- 04:55 Pass 1 verified in game (2 tours, console clean except the since-fixed PortSolanaOcean water shader). Sheets (before | after,
+  11:00 / 21:00): `docs/v2/shots/shops/sheet_ftm_clothes.png` (the gpF clothing shop: lawn -> forecourt, toy legacy -> V2 streetwear),
+  `sheet_hia_clothes.png`, `sheet_cyp_clothes.png` (parking strip with stalls + wheel stops), `sheet_ftm_rest.png`, `sheet_clew_salon.png`,
+  `sheet_ftm_wide_close.png` (aerial of Main St + close-up through the glass), `sheet_downtown.png`. Interior close-up:
+  `A3_preview_boutique_eye.png` (draped garments, folded stacks; verts 43k -> 55k, bake 2.7 -> 2.9 s). Committed da3f358 + follow-up
+  (modules); my tilebuild hunks are with the lead. Since then: neighboring shop forecourts join into one paved front, synthetic lots only
+  get kinds the V2 interiors build (no legacy toy rooms on synthetic lots), sign lamps light painted / channel signs at night.
+  Perf: frame time in these runs is dominated by machine load (load avg 200+); draw calls at the shops 780-980 both before and after.
 - 04:10 Started 03:40. Found: 608 of 4527 mapped storefronts face a lawn (no sidewalk), mostly the mainland towns (Fort Myers Main St,
   Hialeah Gardens, Big Cypress, Port Charlotte, Clewiston). The toy-like clothing interior in gpF_causeway_graze was the legacy (v1)
   engine: kind `clothing` / small lots never reached the V2 boutique. Changes in progress (A/B `?aprons=0&shops=0`):
