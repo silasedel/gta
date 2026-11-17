@@ -173,8 +173,8 @@ export function probeSeat(shell, anchor, key = null) {
         for (const i of _rc.intersectObjects(meshes, false)) {
           if (glass(i.object)) continue;
           const y = shell.worldToLocal(i.point.clone()).y;
-          if (y > h.y + 0.2) continue;                 // a roof / visor above a too-high anchor: keep looking down
-          if (y > h.y - 0.5 && (best === null || y > best)) best = y;
+          if (y > h.y + 0.05) continue;                // dash, wheel, visor or roof above the anchor: keep looking down
+          if (y > h.y - 0.25 && (best === null || y > best)) best = y;   // a cushion is never far from the H-point
           break;
         }
       }
@@ -379,7 +379,7 @@ export function seatCharacter(ch, anchor, opts = {}) {
   if (opts.probe !== false && ch.root.parent) {
     const v = opts.vehicle; const pr = probeSeat(ch.root.parent, anchor, v ? (v.typeKey || v.spec?.key || v.spec?.name || null) : null);
     S.probe = pr;
-    if (Number.isFinite(pr.cushionY)) {
+    if (Number.isFinite(pr.cushionY) && !anchor.fixed) {   // hand-checked anchors (seats.py seatFix: fixed) keep their hip
       const want = pr.cushionY + 0.1;      // H-point ~10 cm above the compressed cushion
       if (Math.abs(anchor.hip.y - want) > 0.04) S.hip = anchor.hip.clone().setY(want);
     }
