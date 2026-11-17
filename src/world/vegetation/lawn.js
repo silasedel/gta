@@ -127,7 +127,7 @@ float gGust(vec2 p) { vec2 d = uVegWindDir; float along = dot(p, d), across = -p
   vec4 fld = texture2D(uField, (bp - uFieldO) / uFieldS);
   float H = fld.r * 0.6, dry = fld.g, wb = fld.b, weed = wb < 0.5 ? wb * 2.0 : 0.0, stripe = fld.a * 2.0 - 1.0;
   if (h3 > keep || H < 0.008 || dC > uRout) H = 0.0;
-  { vec4 gmh = gmHard(bp); if (max(max(gmh.r, gmh.g), gmh.b) > 0.35) H = 0.0; } // ground pass: no blades on pavement / roads / under cars
+  { vec4 gmh = gmHard(bp); if (max(max(gmh.r, gmh.g), gmh.b) > 0.35) H = 0.0; } // ground pass: no blades on pavement / roads / mulch rings (cars: gmCarPress below)
   bool isWeed = h4 < weed * 0.35, seed = H > 0.2 && h4 > 0.94;
   float bh = H * (0.55 + 0.9 * h5) * shrink * (isWeed ? 0.55 : 1.0) * (seed ? 1.45 : 1.0);
   float bw = (0.007 + 0.006 * h2) * uWk * (isWeed ? 2.6 : 1.0) * (H > 0.2 ? 1.25 : 1.0);
@@ -139,12 +139,15 @@ float gGust(vec2 p) { vec2 d = uVegWindDir; float along = dot(p, d), across = -p
   vec2 wv = uVegWindDir * (0.15 + g * 0.9) * ws + vec2(sin(uVegTime * 3.1 + h1 * 30.0), cos(uVegTime * 2.7 + h2 * 30.0)) * 0.08 * (0.3 + g);
   float flt = 0.0; vec2 pushD = vec2(0.0);
   for (int q = 0; q < 16; q++) { vec4 pr = uPress[q]; vec2 dd = bp - pr.xy; float L = length(dd); if (L < pr.z) { float f = (1.0 - L / pr.z) * pr.w; if (f > flt) { flt = f; pushD = dd / max(L, 0.01); } } }
-  vec2 bendV = ld * lean + wv * (H > 0.2 ? 0.9 : 0.45) + pushD * flt * 1.6;
+  vec2 gcd; float carF = gmCarPress(bp, gcd); // r2-ground: blades under / around a car are pressed flat and splay out from the body (soft, car-shaped)
+  if (carF > flt) { pushD = gcd; }
+  flt = max(flt, carF);
+  vec2 bendV = ld * lean + wv * (H > 0.2 ? 0.9 : 0.45) * (1.0 - carF) + pushD * flt * 1.6;
   float t = position.y;
   vec2 side = normalize(vec2(-ld.y, ld.x) + vec2(0.001));
   float wdt = bw * (1.0 - t * 0.85);
   vec3 vpos = vec3(bp.x + side.x * position.x * wdt + bendV.x * bh * t * t, 0.0, bp.y + side.y * position.x * wdt + bendV.y * bh * t * t);
-  vpos.y = bh * t * (1.0 - 0.35 * min(1.0, length(bendV)) * t) * (1.0 - 0.75 * flt) + 0.006;
+  vpos.y = bh * t * (1.0 - 0.35 * min(1.0, length(bendV)) * t) * (1.0 - 0.75 * flt) * (1.0 - 0.6 * carF) + 0.006;
   vec3 objectNormal = normalize(vec3(-side.y * 0.0 + bendV.x * 0.3, 1.0, bendV.y * 0.3) + vec3(side.y, 0.0, -side.x) * 0.25);
   // colour: per-blade hue / value, dark base, light tip, dry tan, weeds darker blue-green, seed heads straw, a few white flowers
   vec3 cBase = vec3(0.055, 0.11, 0.035), cTip = mix(vec3(0.15, 0.34, 0.06), vec3(0.25, 0.43, 0.09), h2) * (0.8 + 0.4 * h5);
