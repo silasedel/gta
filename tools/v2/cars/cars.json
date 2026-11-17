@@ -384,7 +384,7 @@
   "L": 8.2,
   "textured": true,
   "wheelDonor": "truck7",
-  "fwd": "-y",
+  "fwd": "+y",
   "lampBoxes": [
    {
     "kind": "head",
