@@ -70,7 +70,13 @@ Open (carried into job 3 where the world is rebuilt):
 - Next: traffic lights / lamps / signs from the user's models (after the road pass).
 
 ## Job 5: buildings and dressing — in progress (helper passes: buildings, greenery)
-## Job 6: HUD — in progress (helper pass)
+## Job 6: HUD — DONE
+- Corner HUD rebuilt to match `docs/v2/plan/hud_corner_target.webp` (`src/ui/hud/corner.js/.css`): six stars in one row
+  (earned charcoal), five evidence badges, "20 73" ammo, pistol art, cash/bank/clock. Reads `game.wanted.level` and
+  flashes while `game.wanted.evading`; `game.hud.setWantedFlash()`, `game.hud.setKnown()`.
+- Old "SOUTHLINE / CALORA / CLICK TO PLAY" card removed (`game.hud.startPlay()`); volleyball players removed.
+- All leftover "Port Solana" / "Calora" names renamed to Southline.
+- Test: `node tools/v2/hud-shots.mjs`; sheet `docs/v2/shots/stage1/hud_compare.png`.
 ## Job 7: CONVENTIONS.md — first version written (`docs/v2/CONVENTIONS.md`)
 
 ## Performance work so far
