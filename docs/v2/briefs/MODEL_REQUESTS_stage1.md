@@ -7,6 +7,19 @@ palms, road kits, benches, bins, bus shelters, hydrants, mailboxes, fences, dock
 
 Priority: **P1 = needed to make the new map look like GTA (please do these first)**, P2 = big improvement, P3 = nice.
 
+
+## P0 (Nov 16): what stands between us and "better than GTA 5"
+Code can blend, retexture, stitch and place, but these need real source material. Best free sources: Poly Haven
+(polyhaven.com, CC0), ambientCG (CC0), Sketchfab "downloadable + CC-BY/CC0", Fab free assets (check the license).
+| Priority | What | Why | Search words |
+|---|---|---|---|
+| P0 | **Grass and ground scans, 4K PBR**: short lawn, patchy lawn with dirt, dry sandy grass, beach sand, wet sand, forest floor with leaves, mud | the ground covers most of the screen; GTA 5 ground looks real because it is photoscanned | Poly Haven "aerial grass", "coast sand", "forest leaves", "rocky trail"; ambientCG "Grass", "Ground", "Sand" |
+| P0 | **Grass blade / foliage card atlas** (photoscanned grass clumps, weeds, small flowers with alpha) | dense close-up grass that beats GTA 5 needs real card textures, not drawn blades | "grass atlas pbr", "foliage pack cc0", Poly Haven "grass" models |
+| P0 | **More buildings: 40-60 unique** (Miami style): glass towers, condo towers with balconies, art deco hotels, strip malls, gas station, cottages / Keys houses, warehouses | hand-modeled buildings are where GTA 5 is strongest; generated facades alone will not beat it | see the P1 building table above |
+| P0 | **US traffic signal on a mast arm + modern street lamps** (cobra head single/double) | every city junction shows these up close; the one traffic light in the library is a vintage style | "traffic light mast arm", "street light pole" |
+| P1 | Utility poles with wires, US road signs pack, guardrail, highway gantry, chain-link fence, billboards | street dressing seen everywhere | see P2 table above |
+| P1 | Asphalt decals: cracks, patches, oil stains, manhole covers, storm drains | breaks up roads like GTA 5 | "road decals pack", "manhole cover" |
+
 ## P1: textures (biggest single quality win; the current ground textures are noisy and read as "grain")
 Free CC0 PBR texture sets, 2K, with color + normal + roughness (ambientCG or Poly Haven). Put them in `Models/Textures/` (new folder).
 | Name | Use | Search words |
