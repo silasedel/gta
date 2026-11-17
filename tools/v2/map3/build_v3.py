@@ -622,6 +622,24 @@ log(f'buildings {nb_}: ' + ', '.join(f'{k} {v}' for k, v in sorted(perdist.items
 _resv = lot.buffer(6)
 W.buildings = [b for b in W.buildings if not Polygon(b['ring']).intersects(_resv)]
 
+# ---------------------------------------------------------------- 9b. school site (user's school mission: a school right by a police station)
+# The block nearest the Edgewater police substation (308, -1452) that is big enough (>= 7000 m2) becomes the school lot:
+# buildings removed, recorded as setpiece 'school' (lot ring, entrance heading toward its longest street side).
+try:
+    _st = Point(308, -1452)
+    _cands = sorted([b_ for b_ in blocks if b_.area >= 7000 and b_.area < 60000 and _st.distance(b_.centroid) > 60], key=lambda b_: _st.distance(b_.centroid))
+    if _cands:
+        _sb = _cands[0]; _lot = _sb.buffer(-9.0, join_style=2)
+        W.buildings = [b for b in W.buildings if not _lot.intersects(Polygon(b['ring']))]
+        _ln = min((r for r in W.roads), key=lambda r: LineString(r.pts).distance(_sb.centroid))
+        _q = LineString(_ln.pts).interpolate(LineString(_ln.pts).project(_sb.centroid))
+        _hd = math.atan2(_q.x - _sb.centroid.x, _q.y - _sb.centroid.y)   # entrance faces its nearest street
+        W.setpiece('school', _sb.centroid.x, _sb.centroid.y, _hd, note='School (mission: the abandoned classroom); next to the Edgewater police substation',
+                   lot=[[round(x, 1), round(z, 1)] for x, z in list(_lot.exterior.coords)[:-1]], street=_ln.name, policeStation=[308, -1452])
+        log(f'school site at {_sb.centroid.x:.0f},{_sb.centroid.y:.0f} ({_sb.area:.0f} m2, {_st.distance(_sb.centroid):.0f} m from the police station, street {_ln.name})')
+except Exception:
+    log('school site failed ' + traceback.format_exc()[-300:])
+
 if KEYS:
     W.buildings = [b for b in W.buildings if not KREG.intersects(Polygon(b['ring']))]
     for b in KEYS.get('buildings', []):

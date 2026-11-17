@@ -39,6 +39,9 @@ How the world and the systems connect. If something here is wrong, fix the code 
   storefront id). Synthetic ground-floor shops (`synthShopsNear`) fill commercial streets.
 - **Set pieces:** `layout.json` `setpieces`: `nico_house` (Key Largo, Pelican Point Ln, x -836, z 5272, heading 0.91,
   lot ring, spawnX/Z in the yard), `keys_sign` (start of the Overseas Highway), `keys_bar` (Key Largo strip).
+- **School:** `layout.json` setpiece `school` (~(457, -1354), Edgewater, 179 m from the Edgewater police substation) for
+  the user's mission `docs/v2/plan/MISSION_SCHOOL_ABANDONED_CLASSROOM.md` (stage 2 builds the school, stage 4 the mission).
+- **Rough district:** Overtown and Liberty City (district kind `ghetto`), buildings tagged `condition: rundown|abandoned`.
 - **Police stations:** `src/gameplay/police/stations.js` `STATION_SITES` (district centers, snapped to the nearest road at
   run time). HQ: Southline PD Headquarters, Downtown (407, -110).
 - **Jail:** use Southline PD Headquarters (407, -110) until a jail interior exists (stage 4 adds the scene).
