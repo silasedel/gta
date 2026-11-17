@@ -70,6 +70,7 @@ export async function shotsIn(b, o2 = o, rep2 = rep) {
   for (const id of only) {
     const s = STEPS[id]; if (!s) continue;
     const [yaw, dist, eh, lh] = ORBIT[s.orbit];
+    if (s.reset !== false) { await b.eval(`(() => { const s = window.__spot; if (s && (game.player.position.distanceTo(new game.THREE.Vector3(s[0], game.player.position.y, s[1])) > 0.5 || game.player.swimming)) game.teleport(s[0], undefined, s[1], s[2]); return 1; })()`); await b.sleep(700); }
     await b.eval(`(async () => {
       { const P = game.player; window.__orb = { yaw: ${yaw}, dist: ${dist}, eh: ${eh}, lh: ${lh}, follow: ${!!s.follow}, h0: P.heading, p0: P.position.clone() };
       if (!${!!s.noOrbit}) game.cameraOverride = (dt, cam) => { const O = window.__orb, p = O.follow ? P.position : O.p0, h = O.follow ? O.h0 : P.heading, a = h + O.yaw;

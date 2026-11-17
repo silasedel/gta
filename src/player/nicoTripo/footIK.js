@@ -66,12 +66,12 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
   function solve(l, T, fwd) {
     l.up.getWorldPosition(_h); l.lo.getWorldPosition(_k); l.ft.getWorldPosition(_a);
     const a = _k.distanceTo(_h), b = _a.distanceTo(_k);
-    const c = THREE.MathUtils.clamp(_t.copy(T).sub(_h).length(), Math.abs(a - b) + 1e-3, a + b - 1e-3);
+    const c = THREE.MathUtils.clamp(T.distanceTo(_h), Math.abs(a - b) + 1e-3, a + b - 1e-3);     // (T may be _t: never write into it)
     _u.subVectors(_h, _k).normalize(); _w.subVectors(_a, _k).normalize();
     const theta = Math.acos(THREE.MathUtils.clamp(_u.dot(_w), -1, 1));
     const want = Math.acos(THREE.MathUtils.clamp((a * a + b * b - c * c) / (2 * a * b), -1, 1));
     _n.crossVectors(_u, _w);
-    if (_n.lengthSq() < 1e-8) _n.crossVectors(fwd, UP); _n.normalize();
+    if (_n.lengthSq() < 1e-3) _n.crossVectors(fwd, UP); _n.normalize();     // near-straight leg: its bend plane is noise; knee goes forward
     rotateWorld(l.lo, _q.setFromAxisAngle(_n, want - theta));
     l.up.getWorldPosition(_h); l.ft.getWorldPosition(_a);
     rotateWorld(l.up, _q.setFromUnitVectors(_u.subVectors(_a, _h).normalize(), _w.subVectors(T, _h).normalize()));

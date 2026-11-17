@@ -118,13 +118,22 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
             if (ok) best = { g, x, z, x2, z2 }; } }
         if (!best) { // fallback: a bridge approach ramp of the road network (the Keys are flat), walked at the road edge
           const G = city.roadGraph; let bb = null;
-          for (const e of G.edges) { if (!(e.bridge || e.elevated) || !e.pts || e.pts.length < 2) continue; const q0 = e.pts[0], qx = q0.x ?? q0[0], qz = q0.z ?? q0[1];
-            const dd = Math.hypot(qx - H.x, qz - H.z); if (!bb || dd < bb.dd) bb = { e, dd, qx, qz }; }
+          for (const e of G.edges) {
+            if (!(e.bridge || e.elevated) || !e.pts || e.pts.length < 2 || e.length < 60) continue;
+            const pts = e.pts.map((q) => ({ x: q.x ?? q[0], z: q.z ?? q[1], y: q.y ?? q[2] }));
+            if (Math.hypot(pts[0].x - H.x, pts[0].z - H.z) > 3500) continue;
+            let i = 1; while (i < pts.length - 1 && Math.hypot(pts[i].x - pts[0].x, pts[i].z - pts[0].z) < 45) i++;
+            let dx = pts[i].x - pts[0].x, dz = pts[i].z - pts[0].z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
+            const off = (e.width || 8) / 2 - 0.8;
+            const a0 = { x: pts[0].x - dx * 25 - dz * off, z: pts[0].z - dz * 25 + dx * off }, a1 = { x: pts[i].x - dz * off, z: pts[i].z + dx * off };
+            if (city.isWater?.(a0.x, a0.z)) continue;
+            const h0 = city.groundHeightAt(a0.x, a0.z), h1 = city.groundHeightAt(a1.x, a1.z, 60);
+            const g = (h1 - h0) / (L + 25);
+            if (Number.isFinite(g) && g > 0.02 && g < 0.15 && (!bb || g > bb.g)) bb = { g, a0, a1, dx, dz, name: e.name || e.id };
+          }
           if (!bb) return JSON.stringify({ err: 'no slope' });
-          const pts = bb.e.pts.map((q) => ({ x: q.x ?? q[0], z: q.z ?? q[1] })); let i = 1; while (i < pts.length - 1 && Math.hypot(pts[i].x - pts[0].x, pts[i].z - pts[0].z) < 40) i++;
-          let dx = pts[i].x - pts[0].x, dz = pts[i].z - pts[0].z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L; const off = (bb.e.width || 8) / 2 - 0.8;
-          const a0 = { x: pts[0].x - dx * 25 - dz * off, z: pts[0].z - dz * 25 + dx * off }, a1 = { x: pts[i].x - dz * off, z: pts[i].z + dx * off };
-          return JSON.stringify({ start: [a0.x - dx * 2, a0.z - dz * 2], pts: [a1, a0], grade: 'bridge ramp ' + (bb.e.name || bb.e.id) });
+          const { a0, a1, dx, dz } = bb;
+          return JSON.stringify({ start: [a0.x - dx * 2, a0.z - dz * 2], pts: [a1, a0], grade: 'bridge ramp ' + bb.name + ' ' + bb.g.toFixed(3) });
         }
         return JSON.stringify({ start: [best.x, best.z], pts: [{ x: best.x2, z: best.z2 }, { x: best.x, z: best.z }], grade: best.g });
       }
