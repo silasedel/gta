@@ -61,6 +61,7 @@ for o in objs:
     for fi in range(n0, len(bm.faces)): f = bm.faces[fi]; f.material_index = loc[min(f.material_index, len(loc) - 1)]; f[play] = pid
     bpy.data.meshes.remove(me0)
 me = bpy.data.meshes.new(KEY); bm.to_mesh(me); bm.free()
+for mn_, m_ in mats: me.materials.append(m_ or bpy.data.materials.new('ph_' + mn_))   # keep face material indices valid through decimation
 for o in list(sc.objects): bpy.data.objects.remove(o, do_unlink=True)
 ob = bpy.data.objects.new(KEY, me); sc.collection.objects.link(ob)
 bpy.context.view_layer.objects.active = ob; ob.select_set(True)
@@ -350,13 +351,13 @@ final = []; fidx = {}
 for mn in remap:
     if mn not in fidx: fidx[mn] = len(final); final.append(mn)
 src_of = {mn: m for mn, m in mats}
+mi_arr = np.empty(len(me.polygons), dtype=np.int32); me.polygons.foreach_get('material_index', mi_arr)
 me.materials.clear()
 for mn in final:
     spec = specs.get(mn, specs.get('*', {}))
     nm = re.sub(r'[^A-Za-z0-9]+', '', mn)[:16] or 'm'
     m, st = build_material(nm, src_of.get(mn), spec); me.materials.append(m); info[mn] = st
 lut = [fidx[mn] for mn in remap]
-mi_arr = np.empty(len(me.polygons), dtype=np.int32); me.polygons.foreach_get('material_index', mi_arr)
 mi_arr = np.array(lut, dtype=np.int32)[np.clip(mi_arr, 0, len(lut) - 1)]; me.polygons.foreach_set('material_index', mi_arr)
 # drop faces of materials flagged 'remove'
 rm = [i for i, mn in enumerate(final) if specs.get(mn, {}).get('remove')]

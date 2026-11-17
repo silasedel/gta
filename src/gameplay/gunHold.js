@@ -164,7 +164,7 @@ function curl(r, side, set) {
   }
 }
 // grip offsets in the hand frame (meters): palm center along F, out of the palm along N, along S
-const GRIP = { pistol: { a: 0.062, b: 0.022, c: 0.004 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.07, b: 0.022, c: 0.0 } };
+const GRIP = { pistol: { a: 0.062, b: 0.022, c: -0.018 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.07, b: 0.022, c: 0.0 } };
 // gun pose from the right hand frame
 function gunFromHand(model, kind, fr, out) {
   const g = GRIP[kind] || GRIP.pistol, hp = model.userData.holdPoint;
@@ -263,13 +263,13 @@ export function holdWeapon(model, root, o = {}) {
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', Fl, _SL.copy(_Z));
     } else {
-      // two-handed handgun grip: left hand wraps the right hand on the gun's left side
-      _lg.set(0.034, -0.035, -0.012); model.localToWorld(_lg);
-      const Fl = _FL.copy(_Y).multiplyScalar(-0.8).addScaledVector(_Z, 0.35).addScaledVector(_X, -0.3).normalize();
-      _W.copy(_lg).addScaledVector(Fl, -0.05);
+      // two-handed handgun grip: the support palm cups the front / left of the shooting fist, thumb forward along the frame
+      const Fl = _FL.copy(_X).multiplyScalar(-0.85).addScaledVector(_Z, 0.4).normalize();
+      const Nl = _lg.crossVectors(Fl, _Y).normalize();
+      _W.set(0.022, -0.045, 0.03); model.localToWorld(_W); _W.addScaledVector(Fl, -0.06).addScaledVector(Nl, -0.02);
       wp(r.larm, _c); _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.25);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
-      orientHand(r, 'L', Fl, _SL.copy(_Z).addScaledVector(_Y, 0.4));
+      orientHand(r, 'L', Fl, _SL.copy(_Y));
     }
     curl(r, 'L', CURL.supportL);
   } else if (r.lok) relax(r, 'L');

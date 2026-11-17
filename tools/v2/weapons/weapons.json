@@ -288,6 +288,42 @@
        0.76,
        0.08,
        0.84
+      ],
+      [
+       0.16,
+       0.583,
+       0.24,
+       0.607
+      ],
+      [
+       0.075,
+       0.393,
+       0.152,
+       0.418
+      ],
+      [
+       0.84,
+       0.35,
+       0.87,
+       0.435
+      ],
+      [
+       0.84,
+       0.082,
+       0.905,
+       0.103
+      ],
+      [
+       0.265,
+       0.553,
+       0.296,
+       0.575
+      ],
+      [
+       0.84,
+       0.318,
+       0.875,
+       0.348
       ]
      ]
     }
@@ -322,12 +358,12 @@
    "dir": "Submachine Gun 2 - Compact Black Machine Pistol",
    "length": 0.33,
    "tris": 12000,
-   "fwd": "+y",
+   "fwd": "-y",
    "up": "+z",
    "grip": [
-    0.0,
+    0,
     -0.03,
-    0.012
+    -0.012
    ],
    "lgrip": [
     0.0,
@@ -554,14 +590,45 @@
     -0.06
    ],
    "mats": {
+    "Rifle Material": {
+     "auto": false,
+     "finish": "anodized",
+     "wear": 0.4
+    },
+    "Rifle Backup": {
+     "auto": false,
+     "finish": "anodized",
+     "wear": 0.4
+    },
+    "Backup Backup Backup Material": {
+     "auto": false,
+     "finish": "anodized",
+     "wear": 0.4
+    },
+    "Backup Backup Backup Backup Backup Backup Material": {
+     "auto": false,
+     "finish": "anodized",
+     "wear": 0.4
+    },
     "Rifle Mat": {
-     "tint": [
-      0.42,
-      0.62,
-      1.0
-     ]
+     "auto": false,
+     "finish": "polymer",
+     "base": [
+      0.13,
+      0.27,
+      0.52
+     ],
+     "roughv": 0.6,
+     "metalv": 0.0,
+     "wear": 0.2
+    },
+    "TT Checker 512x512 UV GRID": {
+     "auto": false,
+     "finish": "polymer",
+     "wear": 0.1
     }
-   }
+   },
+   "bake": true
   },
   "r6_battle": {
    "dir": "Rifle 6 - Plain Grey Scoped Battle Rifle",

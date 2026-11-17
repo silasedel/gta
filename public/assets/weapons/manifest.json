@@ -107,7 +107,7 @@
     ]
    },
    "parts": {},
-   "bytes": 404324
+   "bytes": 516280
   },
   "h4_compact": {
    "src": "Handgun 4 - Compact Black-Slide Pistol",
@@ -143,7 +143,7 @@
     ]
    },
    "parts": {},
-   "bytes": 427988
+   "bytes": 573008
   },
   "h5_grey": {
    "src": "Handgun 5 - Untextured Grey Pistol With Magazine",
@@ -242,7 +242,7 @@
      ]
     }
    },
-   "bytes": 543348
+   "bytes": 690776
   },
   "h7_service": {
    "src": "Handgun 7 - Black Polymer Service Pistol",
@@ -292,7 +292,7 @@
      ]
     }
    },
-   "bytes": 375584
+   "bytes": 374276
   },
   "smg1": {
    "src": "Submachine Gun 1 - Black Machine Pistol With Perforated Barrel",
@@ -341,40 +341,40 @@
    "length": 0.33,
    "bbox": {
     "min": [
-     -0.0354,
+     -0.0353,
      -0.1354,
-     -0.177
+     -0.153
     ],
     "max": [
-     0.0353,
+     0.0354,
      0.1955,
-     0.153
+     0.177
     ]
    },
    "points": {
     "muzzle": [
-     0.0082,
-     0.1362,
-     0.153
+     -0.0082,
+     0.1203,
+     0.177
     ],
     "eject": [
      -0.02,
      0.14,
-     0.008
+     0.032
     ],
     "sight": [
      0.0,
      0.17,
-     -0.132
+     -0.108
     ],
     "lgrip": [
      0.0,
      0.06,
-     0.088
+     0.112
     ]
    },
    "parts": {},
-   "bytes": 766648
+   "bytes": 768472
   },
   "mg1": {
    "src": "Machine Gun 1 - Black Belt-Fed Machine Gun",
@@ -415,7 +415,7 @@
     ]
    },
    "parts": {},
-   "bytes": 1146096
+   "bytes": 1483336
   },
   "r1_tactical": {
    "src": "Rifle 1 - Scoped Tactical Rifle",
@@ -456,7 +456,7 @@
     ]
    },
    "parts": {},
-   "bytes": 1188700
+   "bytes": 2013808
   },
   "r2_wood": {
    "src": "Rifle 2 - Wood-Stock Assault Rifle",
@@ -620,7 +620,7 @@
     ]
    },
    "parts": {},
-   "bytes": 947552
+   "bytes": 1098536
   },
   "r6_battle": {
    "src": "Rifle 6 - Plain Grey Scoped Battle Rifle",
@@ -858,7 +858,7 @@
     ]
    },
    "parts": {},
-   "bytes": 77224
+   "bytes": 126012
   },
   "crow3_black": {
    "src": "Crowbar 3 - Glossy Black Crowbar",
