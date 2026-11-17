@@ -97,7 +97,10 @@ export async function buildNicoHouse(THREE, opts = {}) {
         const cx = env.camera.x, cz = env.camera.z, cy = env.camera.y ?? 1.7, P = plan;
         const near = (r, pad) => cx > r.x0 - pad && cx < r.x1 + pad && cz > r.z0 - pad && cz < r.z1 + pad;
         const lookIn = near(P.A, 1.2) || near(P.B, 1.2) || ((near(P.porch, 1.5) || near(P.deckW, 1.5) || near(P.deckN, 1.5)) && cy > P.F - 1.2) || (opts.intNear != null && d < opts.intNear);
-        ctx.groups.int.visible = lookIn && d < (opts.intDist ?? 70); if (roomProxy) roomProxy.visible = !ctx.groups.int.visible; ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
+        // keys pass (draw calls): from the decks the interior only draws while the camera faces the house (the deck views of the
+        // street looked away from it and still paid ~270 draw calls for the rooms behind the camera)
+        const facing = !env.camDir || (env.camDir.x * (-1.2 - cx) + env.camDir.z * (0.6 - cz)) > -0.35 * Math.hypot(-1.2 - cx, 0.6 - cz) || near(P.A, 0.2) || near(P.B, 0.2);
+        ctx.groups.int.visible = lookIn && facing && d < (opts.intDist ?? 70); if (roomProxy) roomProxy.visible = !ctx.groups.int.visible; ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
         if (opts.lod !== false && (lodScanT -= dt) <= 0) { lodScanT = 2; scanLod(); }
         if (opts.lod !== false && (lodT -= dt) <= 0 && d < (opts.detailDist ?? 110) + 10) {
           lodT = 0.2; let cul = 0; const cy = env.camera.y ?? 1.7;

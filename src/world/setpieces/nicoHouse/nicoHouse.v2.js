@@ -84,10 +84,10 @@ export async function initV2(game) {
     for (const l of house.lights) { const id = lampIds.get(l); if (l.on && id == null) { lp.set(...l.pos).applyMatrix4(g.matrixWorld); lampIds.set(l, lamps.add(lp.x, lp.y, lp.z, { color: l.color ?? 0xffd9a8, intensity: (l.intensity ?? 40) * 2.2, range: l.range ?? 8, gy: lp.y - 2.4 })); } else if (!l.on && id != null) { lamps.removeGroup?.(id); lampIds.delete(l); } } };
 
   // ---- interactions (E) ----
-  const env = { game, emit: (n, d) => game.emit(n, d), notify: (t) => game.hud?.notify?.(t, 2500), timeOfDay: game.timeOfDay, camera: new THREE.Vector3(), player: new THREE.Vector3() };
+  const env = { game, emit: (n, d) => game.emit(n, d), notify: (t) => game.hud?.notify?.(t, 2500), timeOfDay: game.timeOfDay, camera: new THREE.Vector3(), camDir: new THREE.Vector3(), player: new THREE.Vector3() };
   const P = game.player, fwd = new THREE.Vector3(); let near = null, lightT = 0, shownHelp = false;
   game.updaters.push(function nicoHouseTick(dt) {
-    env.timeOfDay = game.timeOfDay; env.camera.copy(game.camera.position).applyMatrix4(inv); env.player.copy(P.position).applyMatrix4(inv);
+    env.timeOfDay = game.timeOfDay; env.camera.copy(game.camera.position).applyMatrix4(inv); game.camera.getWorldDirection(env.camDir).transformDirection(inv); env.player.copy(P.position).applyMatrix4(inv);
     const dist = Math.hypot(env.player.x, env.player.z);
     g.visible = Math.hypot(env.camera.x, env.camera.z) < 900;
     if (!g.visible) return;
