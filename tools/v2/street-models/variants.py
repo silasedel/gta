@@ -289,13 +289,24 @@ def set_bench_iron(S):
     a = arr(glb_color('bench_iron.glb', 'Body'), S)
     return [('dark iron', a), ('black, worn', grime(a * 0.7, 0.3, 161)), ('green iron', recolor(a, (lum(a) < 0.25).astype(np.float32), (0.05, 0.1, 0.07))), ('faded', fade(a, 0.35))]
 
+def set_ptable(S):
+    a = arr(glb_color('patio_table.glb', 'Plastic Table'), S); red = hue_mask(a, 330, 25, 0.25, 0.08)
+    return [('red', a), ('white', recolor(a, red, (0.86, 0.86, 0.83), gain=1.0)), ('mint green', recolor(a, red, (0.45, 0.68, 0.55))),
+            ('sky blue', recolor(a, red, (0.36, 0.55, 0.72))), ('beige, grime', grime(recolor(a, red, (0.78, 0.7, 0.55)), 0.4, 171)), ('faded red', fade(a, 0.45))]
+
+def set_umbrella(S):
+    a = arr(glb_color('umbrella_cafe.glb', 'Canopy'), S); blue = hue_mask(a, 190, 250, 0.2, 0.1)
+    return [('blue stripes', a), ('red stripes', recolor(a, blue, (0.68, 0.1, 0.09))), ('green stripes', recolor(a, blue, (0.12, 0.45, 0.25))),
+            ('yellow stripes', recolor(a, blue, (0.9, 0.7, 0.12))), ('teal stripes', recolor(a, blue, (0.1, 0.55, 0.55))), ('beige, faded', fade(recolor(a, blue, (0.78, 0.68, 0.5)), 0.2))]
+
 SETS = {'cart': ('cart.glb', 'TrashCan(Grey)', 512, set_cart), 'wheelbin': ('bin_wheel.glb', 'Bin Body', 512, set_wheelbin),
         'mailpost': ('mailbox_post.glb', 'Mailbox Body', 512, set_mailpost), 'hydrant_a': ('hydrant_a.glb', 'Fire Hydrant', 512, set_hydrant_a),
         'hydrant_b': ('hydrant_b.glb', 'Fire Hydrant 2', 512, set_hydrant_b), 'binmetal': ('bin_metal.glb', 'Body', 512, set_binmetal),
         'benchwood': ('bench_wood.glb', 'Woods', 512, set_benchwood), 'upole': ('upole_gear.glb', 'Material11', 512, set_upole),
         'chair': ('chair.glb', 'Plastic Table', 512, set_chair), 'cone': ('cone.glb', 'Cones Mat', 512, set_cone), 'jersey': ('jersey.glb', 'Lambert13', 1024, set_jersey),
         'bincom': ('bin_commercial.glb', 'TrashCommercial Shader', 512, set_bincom), 'mailtwin': ('mailbox_twin.glb', 'Body', 512, set_mailtwin),
-        'shelter_old': ('shelter_old.glb', 'Material', 1024, set_shelter_old), 'bench_iron': ('bench_iron.glb', 'Body', 1024, set_bench_iron)}
+        'shelter_old': ('shelter_old.glb', 'Material', 1024, set_shelter_old), 'bench_iron': ('bench_iron.glb', 'Body', 1024, set_bench_iron),
+        'ptable': ('patio_table.glb', 'Plastic Table', 512, set_ptable), 'umbrella': ('umbrella_cafe.glb', 'Canopy', 1024, set_umbrella)}
 
 if __name__ == '__main__':
     only = re.compile(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith('--') else '.')
