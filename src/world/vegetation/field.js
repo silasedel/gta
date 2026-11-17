@@ -17,8 +17,9 @@ const DEF_DIST = { palm: [45, 160, 900], tree: [55, 190, 1100], shrub: [28, 90, 
 const _bakeCache = new Map(); let _bakeMats = null;
 export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 256, V = 8) {
   const key = kind + ':' + seed + ':' + S + ':' + V; if (_bakeCache.has(key)) return _bakeCache.get(key);
-  const bb = new THREE.Box3(); geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox();
-  bb.copy(geo.leaf.boundingBox); if (geo.bark.index && geo.bark.index.count) bb.union(geo.bark.boundingBox);
+  const bb = new THREE.Box3();
+  if (geo.parts) { bb.makeEmpty(); for (const pt of geo.parts) { pt.geometry.computeBoundingBox(); bb.union(pt.geometry.boundingBox); } } // library models (models.js): own geometry + bake material per part
+  else { geo.leaf.computeBoundingBox(); geo.bark.computeBoundingBox(); bb.copy(geo.leaf.boundingBox); if (geo.bark.index && geo.bark.index.count) bb.union(geo.bark.boundingBox); }
   const R = Math.max(0.5, Math.hypot(Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x)), Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z)))) * 1.02;
   const y0 = Math.min(0, bb.min.y), hgt = (bb.max.y - y0) * 1.02;
   const rh = Math.min(1024, Math.max(32, Math.round(S * hgt / (2 * R))));
@@ -27,7 +28,10 @@ export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 256, V =
   // bake with neutral materials: no lean, no wind sway, no per-instance tint / wear (the impostor material applies those per instance,
   // exactly like the near mesh), so the far card is the same plant in the same pose and colour
   _bakeMats ||= { bark: makeVegMaterial('bark', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat, leaf: makeVegMaterial('leaf', { lean: 0, sway: 0, tint: 0, wear: 0 }).mat };
-  const g = new THREE.Group(); if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark)); g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf)); scene.add(g);
+  const g = new THREE.Group();
+  if (geo.parts) for (const pt of geo.parts) g.add(new THREE.Mesh(pt.geometry, pt.material));
+  else { if (geo.bark.index && geo.bark.index.count) g.add(new THREE.Mesh(geo.bark, _bakeMats.bark)); g.add(new THREE.Mesh(geo.leaf, _bakeMats.leaf)); }
+  scene.add(g);
   const cam = new THREE.OrthographicCamera(-R, R, y0 + hgt, y0, 0.1, 400);
   const prev = { rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), sun: vegUniforms.uSunCol.value.clone(), as: renderer.autoClear };
   vegUniforms.uSunCol.value.setRGB(0, 0, 0); renderer.setClearColor(0x3e5a2c, 0); renderer.autoClear = false; renderer.setRenderTarget(rt); renderer.clear();
@@ -53,11 +57,19 @@ export function bakeImpostor(renderer, kind, seed, geo, bark, leaf, S = 256, V =
 
 export function createVegField(renderer, kind, items, opts = {}) {
   const type = KIND_TYPE[kind] || 'shrub', [d0, d1, d2] = opts.dist || DEF_DIST[type], b0 = Math.max(4, d0 * 0.18), b1 = Math.max(8, d1 * 0.15), b2 = d2 * 0.1;
-  const nV = opts.variants ?? 4, seed = opts.seed ?? 1, group = new THREE.Group(); group.name = 'vegField_' + kind;
+  const nV = opts.model ? 1 : (opts.variants ?? 4), seed = opts.seed ?? 1, group = new THREE.Group(); group.name = 'vegField_' + kind;
   const fades = [[0, 0, d0 - b0, d0], [d0 - b0, d0, d1 - b1, d1], [d1 - b1, d1, d2 - b2, d2]];
   const mats = fades.map((f, l) => l < 2 ? { bark: makeVegMaterial('bark', { fade: f, lean: 0.006, sway: 0.0035 }), leaf: makeVegMaterial('leaf', { fade: f, lean: 0.006, sway: 0.0035 }) } : null);
   const variants = [], bakeM = { bark: makeVegMaterial('bark'), leaf: makeVegMaterial('leaf') };
-  for (let v = 0; v < nV; v++) {
+  if (opts.model) { // library model (models.js): its own near / mid meshes and baked impostor, same bands and update loop
+    const L = opts.model.materials(fades[0], fades[1], fades[2]), parts = [];
+    const mk = (q, lod, cast) => { const im = new THREE.InstancedMesh(q.geo, q.mat, Math.max(16, items.length)); im.count = 0; im.frustumCulled = false; im.castShadow = cast && opts.shadows !== false; im.receiveShadow = true; im.customDepthMaterial = q.depth; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(im); parts.push({ im, lod, tris: (q.geo.index ? q.geo.index.count : q.geo.attributes.position.count) / 3 }); };
+    for (const q of L.near) mk(q, 0, true);
+    for (const q of L.mid.length ? L.mid : opts.model.materials(fades[1], null, null).near) mk(q, 1, true); // no lod1 file: the near mesh in the mid band
+    if (L.imp) mk(L.imp, 2, false);
+    variants.push({ parts, tris: [opts.model.tris[0], opts.model.tris[1], 4] });
+  }
+  for (let v = 0; v < (opts.model ? 0 : nV); v++) {
     const vs = seed * 31 + v * 7 + 1, g0 = buildGeometry(kind, { seed: vs, lod: 0, ...opts.build }), g1 = type === 'palm' ? buildGeometry(kind, { seed: vs, lod: 1, ...opts.build }) : g0; // trees / shrubs: lod 1 is a different branch layout, so the mid band keeps the full mesh (no shape pop); palms share the crown across LODs
     const imp = bakeImpostor(renderer, kind, vs, g0, bakeM.bark.mat, bakeM.leaf.mat), impMat = makeVegMaterial('imp', { map: imp.texture, fade: fades[2], lean: 0.006, sway: 0.0035, alphaTest: 0.5, transl: 0.5 });
     const parts = [];

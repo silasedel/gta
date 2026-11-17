@@ -159,11 +159,11 @@ export function makeVegMaterial(family, o = {}) {
   if (family === 'plain') { // untextured vertex-colour parts (flowers, rocks, pebbles)
     mat = new THREE.MeshStandardMaterial({ roughness: o.roughness ?? 0.88, metalness: 0, vertexColors: true, side: o.side ?? THREE.DoubleSide });
   } else if (family === 'bark') {
-    const B = barkAtlas();
-    mat = new THREE.MeshStandardMaterial({ map: B.map, normalMap: B.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughnessMap: B.roughnessMap, roughness: 1, metalness: 0, vertexColors: true });
+    const B = o.map ? null : barkAtlas(); // o.map: a library model's own bark texture (models.js)
+    mat = new THREE.MeshStandardMaterial({ map: o.map || B.map, normalMap: o.map ? (o.normalMap || null) : B.normalMap, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1.1, 1.1), roughnessMap: o.map ? null : B.roughnessMap, roughness: o.map ? (o.roughness ?? 0.9) : 1, metalness: 0, vertexColors: true, side: o.side ?? THREE.FrontSide });
   } else {
-    const map = family === 'imp' ? o.map : leafAtlas().map;
-    mat = new THREE.MeshStandardMaterial({ map, alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: true });
+    const map = family === 'imp' || o.map ? o.map : leafAtlas().map;
+    mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? 0.42, side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: true });
   }
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => 'veg-' + family;

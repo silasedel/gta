@@ -74,7 +74,9 @@ function fruit(clusters, n, seed) { const r = rnd(seed), P = [], N = [], s = new
 
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { placeTrees, csReject, CS_ON } from '../vegetation/countryside.js';
+import { loadVegModels } from '../vegetation/models.js';
 export async function createFlora(renderer, M) {
+  const modelsP = loadVegModels(renderer).catch((e) => { console.warn('[flora] library plant models unavailable', e); return {}; }); // royal / coconut palms, banyan (models.js)
   const bark = await loadSet(renderer, 'bark_brown_02'); for (const t of [bark.map, bark.normalMap, bark.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
   const barkMat = new THREE.MeshStandardMaterial(setParams(bark, { color: 0xb8aa98 })); barkMat.name = 'flora-bark'; barkMat.userData.pbr = true;
   const grassMat = new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, roughness: 0.82, metalness: 0 }); grassMat.name = 'flora-blades';
@@ -165,5 +167,6 @@ export async function createFlora(renderer, M) {
       if ((Math.round(x) & 15) === 0) yield;
     }
   }
-  return { countryside: CS_ON, G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
+  const models = await modelsP;
+  return { countryside: CS_ON, models, G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
 }

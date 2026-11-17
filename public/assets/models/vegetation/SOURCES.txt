@@ -1,0 +1,7 @@
+Library plants used in the game (converted with tools/v2/veg-models/build.sh; Blender, decimated, textures resized).
+Rows from Models/catalog.csv (name, style, category, format, textures, source_site, license, notes):
+royal_palm.glb, royal_palm_lod1.glb    <- Palm Tree 7,Tall Royal Palm,Trees,BLEND + FBX,107,unknown,unknown,
+coconut_palm.glb, coconut_palm_lod1.glb <- Palm Tree 2,Tall Slim Coconut Palm,Trees,BLEND + FBX,3,unknown,unknown,
+banyan.glb                              <- Banyan Tree 2,Large Banyan With Hanging Roots,Trees,BLEND + FBX,24,unknown,unknown,
+fern_clump.glb                          <- Shrub 5,Low-Poly Fern Clump,Plants,BLEND + FBX,1,unknown,unknown,
+None of these are among the catalog rows marked "personal use only".
