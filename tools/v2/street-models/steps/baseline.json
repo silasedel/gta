@@ -1,0 +1,10 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"nico_player","player":null,"tod":11,"stream":true,"wait":3000,"log":"JSON.stringify({p:[game.player.position.x,game.player.position.z], lots:(game.lots? [...game.lots.list.values()].filter(l=>Math.hypot(l.x+836,l.z-5272)<120).map(l=>({id:l.id,x:+l.x.toFixed(1),z:+l.z.toFixed(1),h:+l.heading.toFixed(2),w:l.w,d:l.d,front:l.front,gap:l.roadGap,src:l.source})):null), kit: __kitNear(-836,5272,90)})"},
+ {"id":"nico_aerial","eye":[-836,45,5310],"look":[-836,0,5272],"tod":11,"wait":2500},
+ {"id":"nico_street","eval":"JSON.stringify(__curbCam(-836,5262,1,1.7,30))","tod":11,"stream":true,"wait":2500},
+ {"id":"nico_street2","eval":"JSON.stringify(__curbCam(-836,5262,-1,1.7,30))","tod":11,"wait":2500},
+ {"id":"downtown","eval":"game.teleport(407,undefined,-110,0); JSON.stringify(__curbCam(407,-110,1,1.7,30))","tod":11,"stream":true,"wait":2500,"log":"JSON.stringify(__kitNear(407,-110,120))"},
+ {"id":"havana","eval":"game.teleport(-660,undefined,-55,0); JSON.stringify(__curbCam(-660,-55,1,1.7,30))","tod":11,"stream":true,"wait":2500,"log":"JSON.stringify(__kitNear(-660,-55,120))"},
+ {"id":"homestead","eval":"game.teleport(-1320,undefined,3190,0); JSON.stringify(__curbCam(-1320,3190,1,1.7,30))","tod":11,"stream":true,"wait":2500,"log":"JSON.stringify(__kitNear(-1320,3190,120))"}
+]

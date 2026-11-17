@@ -68,6 +68,21 @@ for m in me.materials:
         if tf.get('metal') and img(tf['metal']):
             t = nt.nodes.new('ShaderNodeTexImage'); t.image = img(tf['metal']); t.image.colorspace_settings.name = 'Non-Color'; nt.links.new(t.outputs['Color'], b.inputs['Metallic'])
         print('TEX', m.name, tf)
+    TM = S.get('texmat') # per-material textures: {"<material name regex>": {color, normal, rough, metal}} (always linked)
+    if TM:
+        for rx, tf in TM.items():
+            if not re.search(rx, m.name): continue
+            for k, sock in (('color', 'Base Color'), ('rough', 'Roughness'), ('metal', 'Metallic')):
+                if tf.get(k) and img(tf[k]):
+                    for l in list(b.inputs[sock].links): nt.links.remove(l)
+                    t = nt.nodes.new('ShaderNodeTexImage'); t.image = img(tf[k])
+                    if k != 'color': t.image.colorspace_settings.name = 'Non-Color'
+                    nt.links.new(t.outputs['Color'], b.inputs[sock])
+                    if k == 'color': b.inputs['Base Color'].default_value = (1, 1, 1, 1)
+            if tf.get('normal') and img(tf['normal']):
+                t = nt.nodes.new('ShaderNodeTexImage'); t.image = img(tf['normal']); t.image.colorspace_settings.name = 'Non-Color'
+                nm = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(t.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
+            print('TEXMAT', m.name, tf); break
     if 'rough' in S and not b.inputs['Roughness'].links: b.inputs['Roughness'].default_value = S['rough']
     if 'metal' in S and not b.inputs['Metallic'].links: b.inputs['Metallic'].default_value = S['metal']
     if 'tint' in S:

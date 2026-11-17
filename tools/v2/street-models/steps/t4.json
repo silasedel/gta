@@ -1,0 +1,13 @@
+[
+ {"id":"helpers","evalFile":"helpers.js","shot":false},
+ {"id":"spawn","player":null,"tod":11,"stream":true,"wait":2000,"shot":false},
+ {"id":"dt_go","eval":"game.teleport(407,undefined,-110,0); 1","tod":11,"stream":true,"wait":3000,"shot":false,"log":"JSON.stringify({work: __findKind('work',407,-110,800).slice(0,12), shelter: __findKind('shelter',407,-110,600).slice(0,4), hyd: __findKind('hydrant',407,-110,300).length, bin: __findKind('bin',407,-110,300).length, bench: __findKind('bench',407,-110,300).length, meter: __findKind('meter',407,-110,300).length})"},
+ {"id":"downtown","eval":"JSON.stringify(__curbCam(407,-110,1,4.5,28,0))","tod":11,"wait":2500},
+ {"id":"busstop","eval":"(()=>{const s=__findKind('shelter',407,-110,600)[0]; return s? JSON.stringify(__lookAt(s.x,s.y,s.z,9,2.2,0.5)) : 'none';})()","tod":11,"wait":2500},
+ {"id":"work1","eval":"(()=>{const s=__findKind('work',407,-110,800)[0]; return s? JSON.stringify([s,__lookAt(s.x,s.y,s.z,10,3,0.6)]) : 'none';})()","tod":11,"wait":2500},
+ {"id":"havana_go","eval":"game.teleport(-660,undefined,-55,0); 1","tod":11,"stream":true,"wait":2500,"shot":false},
+ {"id":"havana","eval":"JSON.stringify(__curbCam(-660,-55,-1,4.5,28,0))","tod":11,"wait":2500},
+ {"id":"homestead_go","eval":"game.teleport(-1320,undefined,3190,0); 1","tod":11,"stream":true,"wait":2500,"shot":false},
+ {"id":"homestead_lot","eval":"__lookLot(-1320,3190,0,7,3,2.2)","tod":11,"wait":2500},
+ {"id":"homestead_lot2","eval":"__lookLot(-1320,3190,3,9,4,2.6)","tod":11,"wait":2500}
+]

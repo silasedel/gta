@@ -27,6 +27,9 @@ import { surfaceMask } from '../ground/surfaceMask.js';
 import { patchTerrainEdges } from '../ground/groundEdge.js';
 const GM_KIND = { asphalt: 'asphalt', junction: 'asphalt', dirtRoad: 'asphalt', parking: 'paved', promenade: 'paved', panels: 'paved', sidewalk: 'paved', wood: 'paved', runway: 'paved', taxiway: 'paved', apron: 'paved' }; // ground pass: hard surfaces in the ground mask
 import { breakables } from './breakables.js';
+import { dynProps } from '../props/dynamicProps.v2.js';
+import { physOf, boundsOf } from '../props/propShapes.v2.js';
+import { variantColor } from '../props/variants.v2.js';
 import { signalLayout } from './signals.js';
 import { drawBlade } from '../signs/draw.js';
 import { bladeLabel } from '../signs/plan.js';
@@ -368,9 +371,10 @@ export function createTileBuilder(ctx) {
     if (p.count + items.length > p.cap) growPool(p, Math.max(p.cap * 2, p.count + items.length + 64));
     for (const it of items) {
       const i = p.count++;
-      dummy.position.set(it.x, it.y || 0, it.z); dummy.rotation.set(0, it.ry || 0, 0);
-      if (it.sx || it.sy) dummy.scale.set(it.sx ?? 1, it.sy ?? 1, it.sz ?? 1); else dummy.scale.setScalar(it.s || 1);
-      dummy.updateMatrix(); p.src.set(dummy.matrix.elements, i * 16);
+      if (it.m && it.m.length === 16) p.src.set(it.m, i * 16); else { // it.m: a saved pose (a street prop that was pushed / knocked over: src/world/props/dynamicProps.v2.js)
+        dummy.position.set(it.x, it.y || 0, it.z); dummy.rotation.set(it.rx || 0, it.ry || 0, it.rz || 0); // rx / rz: a slight lean (props)
+        if (it.sx || it.sy) dummy.scale.set(it.sx ?? 1, it.sy ?? 1, it.sz ?? 1); else dummy.scale.setScalar(it.s || 1);
+        dummy.updateMatrix(); p.src.set(dummy.matrix.elements, i * 16); }
       if (p.colors) { _col.set(it.color ?? 0xffffff); p.srcC[i * 3] = _col.r; p.srcC[i * 3 + 1] = _col.g; p.srcC[i * 3 + 2] = _col.b; }
       p.owner[i] = [h, h.idx.length]; h.idx.push(i);
     }
@@ -666,6 +670,7 @@ export function createTileBuilder(ctx) {
     let crownTop = h;
     const building = TS.LM ? !!TS.LM.crane : h > 120 && hash(seed + 69) < 0.035; // topping out: bare slab edges, column frame and a tower crane
     if (building) {
+      b._site = true; // props pass: workZones() fences this site with library jersey barriers, a cabin, a roll-off
       const frameC = new THREE.Color(0x9c9890);
       for (let y = h + 3.4; y <= h + 10.5; y += 3.5) capPoly(B.trim, top, y, frameC);
       for (const [x, z] of top) B.trim.addGeometry(BOXG, mat4(x, h + 5.2, z, 0, 0.7, 10.4, 0.7), frameC);
@@ -1560,19 +1565,19 @@ export function createTileBuilder(ctx) {
             const zone = zoneAt(r.pts[0][0], r.pts[0][1]);
             const busy = /primary|secondary|tertiary/.test(r.kind) || /nightlife|beach|downtown|business|brickell|commercial|residential/.test(zone);
             const fpush = (list, it) => { if (okFoot(it.x, it.z) && !(SK && nearCrossing(it.x, it.z, 0.35))) list.push(it); }; // never on a curb ramp / crosswalk landing
-            if (b2 - a > 25 && eh < 0.7) { const q = sampleAt(fr, a + (SK ? 6.5 : 3) + eh * 3); fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q) + eh, k: (eh * 3) | 0 }); }
-            for (let s = a + 20 + eh * 60; s < b2 - 10; s += 110) { const q = sampleAt(fr, s); fpush(props.hydrant, { x: q.x + q.nx * side * (hw + 0.45), y: CURB, z: q.z + q.nz * side * (hw + 0.45), ry: eh * 6 }); }
+            if (b2 - a > 25 && eh < 0.7 && (!SK || (zoneKind(sampleAt(fr, a + 8).x, sampleAt(fr, a + 8).z) !== 'res' && busy))) { /* props pass: litter bins by shops / parks only */ const q = sampleAt(fr, a + (SK ? 6.5 : 3) + eh * 3); fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q) + eh, k: (eh * 3) | 0 }); }
+            if (!SK || (r.sidewalks && !lane && (side > 0) === (eh < 0.5) && !/service|track|path|foot/.test(r.kind))) for (let s = a + 12 + eh * 50, hk = 0; s < b2 - 8; s += 90 + hash((r.edgeId ?? 0) * 17 + hk++) * 60) { const q = sampleAt(fr, s); fpush(props.hydrant, { x: q.x + q.nx * side * (hw + 0.55), y: CURB, z: q.z + q.nz * side * (hw + 0.55), ry: toRoad(q) + (eh - 0.5) * 0.6 }); } // props pass: curbed streets only, one side, 90-150 m apart, outlet toward the street
             if (busy && b2 - a > 40) for (let s = a + 15 + eh * 30; s < b2 - 15; s += dense ? 32 : 85) {
               const q = sampleAt(fr, s), sh = hash(((r.edgeId ?? r.id) * 131 + s) | 0);
               if (/primary|secondary/.test(r.kind) && sh < 0.12 && side > 0 && !props.realBus) { fpush(props.shelter, { x: q.x + q.nx * side * (hw + 1.9), y: CURB, z: q.z + q.nz * side * (hw + 1.9), ry: toRoad(q) }); continue; }
-              if (sh < 0.55 && (!props.realBenches || (!/beach|nightlife/.test(zone) && !(tile.benches || []).some((bb) => Math.abs(bb.pos.x - q.x) < 30 && Math.abs(bb.pos.z - q.z) < 30)))) fpush(props.bench, { x: q.x + q.nx * side * (hw + SIDEWALK_W - 0.55), y: CURB, z: q.z + q.nz * side * (hw + SIDEWALK_W - 0.55), ry: toRoad(q) });
+              if ((SK ? (zoneKind(q.x, q.z) === 'beach' ? sh < 0.4 : (zoneKind(q.x, q.z) === 'urban' || zoneKind(q.x, q.z) === 'commercial') ? sh < 0.12 : (sh < 0.08 && /primary|secondary/.test(r.kind))) : sh < 0.55) && (!props.realBenches || (!/beach|nightlife/.test(zone) && !(tile.benches || []).some((bb) => Math.abs(bb.pos.x - q.x) < 30 && Math.abs(bb.pos.z - q.z) < 30)))) fpush(props.bench, { x: q.x + q.nx * side * (hw + SIDEWALK_W - 0.55), y: CURB, z: q.z + q.nz * side * (hw + SIDEWALK_W - 0.55), ry: toRoad(q) });
               if (sh >= 0.55 && sh < 0.85 && dense && !/beach|nightlife/.test(zone) && (!roadDist || roadDist(q.x + q.nx * side * (hw + 1.0), q.z + q.nz * side * (hw + 1.0)) > 0.9)) { // mainland / island streets: bike racks and litter bins between the benches
                 if (sh < 0.7) fpush(props.bike, { x: q.x + q.nx * side * (hw + 1.0), y: CURB, z: q.z + q.nz * side * (hw + 1.0), ry: toRoad(q) + Math.PI / 2 });
                 else fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q), k: ((sh * 13) | 0) % 3 }); }
               if (dense && !/beach|nightlife/.test(zone) && /primary|secondary|tertiary|residential/.test(r.kind) && hash(((s * 7) | 0) + (r.edgeId ?? 0) * 3 + side) < 0.7) { const q2 = sampleAt(fr, s + 11), x2 = q2.x + q2.nx * side * (hw + 0.55), z2 = q2.z + q2.nz * side * (hw + 0.55); if (s + 11 < b2 - 6 && (!roadDist || roadDist(x2, z2) > 0.4)) fpush(props.signPost, { x: x2, y: CURB, z: z2, ry: toRoad(q2) + Math.PI / 2 * side }); } // parking regulation signs at the kerb
               if (SK && /primary|secondary|tertiary/.test(r.kind) && zoneKind(q.x, q.z) === 'urban' && sh > 0.3 && sh < 0.55) for (let m = 0; m < 4; m++) { const q4 = sampleAt(fr, s + 3 + m * 6.5); if (s + 3 + m * 6.5 > b2 - 6) break; fpush(props.meter, { x: q4.x + q4.nx * side * (hw + 0.45), y: CURB, z: q4.z + q4.nz * side * (hw + 0.45), ry: toRoad(q4) }); }
               if (SK && sh > 0.93 && zoneKind(q.x, q.z) === 'urban') fpush(props.mailbox, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q), v: 'mailbox_drop' });
-              if (SK && sh > 0.6 && sh < 0.72 && zoneKind(q.x, q.z) === 'res' && /residential|tertiary|unclassified/.test(r.kind)) fpush(props.mailbox, { x: q.x + q.nx * side * (hw + SIDEWALK_W + 0.35), y: CURB, z: q.z + q.nz * side * (hw + SIDEWALK_W + 0.35), ry: toRoad(q) });
+              // props pass: residential mailboxes are placed per house at its driveway by src/world/props/lotProps.v2.js
               if (sh > 0.85) fpush(props.litter, { x: q.x + q.nx * side * (hw + 1.2), y: CURB + 0.02, z: q.z + q.nz * side * (hw + 1.2), ry: sh * 40, color: [0xffffff, 0xd8261c, 0x2a6fdb, 0xe8d8b0][(sh * 40) & 3] });
             }
           }
@@ -1976,7 +1981,7 @@ export function createTileBuilder(ctx) {
     if (coll) { fillPoly(coll, p.rings, y, 0xffffff, 1); wallStrip(coll, outer, y - 0.35, y, 10, 10, new THREE.Color(0xffffff)); }
     if (props && B) for (let i = 0; i < outer.length; i += 1) { const q = outer[i], n2 = outer[(i + 1) % outer.length], L = Math.hypot(n2[0] - q[0], n2[1] - q[1]); for (let s2 = 0; s2 < L; s2 += 6) props.pier.push({ x: q[0] + (n2[0] - q[0]) * (s2 / L), y: (y - 0.35 - 4) / 2, z: q[1] + (n2[1] - q[1]) * (s2 / L), ry: 0, sx: 0.3, sy: y - 0.35 + 4 }); }
   }
-  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], wire: [], grate: [], sigPole: [], sigArm: [], sigHead: [], pedHead: [], pedPost: [], cabinet: [], blade: [], meter: [], mailbox: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
+  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], wire: [], grate: [], sigPole: [], sigArm: [], sigHead: [], pedHead: [], pedPost: [], cabinet: [], blade: [], meter: [], mailbox: [], work: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
   function sampleAt(fr, s, ys = null) {
     let i = 0; while (i < fr.length - 2 && fr[i + 1].s < s) i++;
     const A = fr[i], Bf = fr[i + 1] || A, L = Bf.s - A.s || 1, t = Math.max(0, Math.min(1, (s - A.s) / L));
@@ -2158,7 +2163,7 @@ export function createTileBuilder(ctx) {
     const props = newProps(); seedRealProps(props, tile); const dummy = { guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch() };
     const it = buildRoads(dummy, tile, props, null);
     for (let r = it.next(); !r.done; r = it.next()) { dummy.guard = new Batch(); dummy.asphalt = new Batch(); dummy.marks = new Batch(); dummy.sidewalk = new Batch(); dummy.trim = new Batch(); yield; }
-    cleanProps(tile, props); if (SK) shelterClear(props); if (tile.relief && D) liftProps(props); syncKids(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
+    cleanProps(tile, props); if (SK) { shelterClear(props); workZones(tile, props); propJitter(props); } if (tile.relief && D) liftProps(props); syncKids(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
   }
   // procedural fallbacks + bus shelter / bin variants
   const shelterG = mergeParts([[BOXG, m4(0, 2.55, 0, 0, 4.2, 0.12, 1.9), 0xf4f4f4], [BOXG, m4(0, 1.3, -0.75, 0, 4.0, 2.2, 0.05), 0x9fc6d4], [BOXG, m4(-2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(0, 0.48, -0.45, 0, 3.0, 0.08, 0.4), 0xb07a4a], [BOXG, m4(0, 2.66, 0.9, 0, 4.2, 0.18, 0.08), 0x2ec4b6]]);
@@ -2232,7 +2237,12 @@ export function createTileBuilder(ctx) {
   }
   function syncKids(props) { for (const k of ['sigArm', 'sigHead', 'pedHead', 'blade']) for (const it of props[k] || []) if (it.pole && it._ky !== undefined) it.y = it.pole.y + it._ky; }
   const sigColor = (it) => { if (!it.color) it.color = new THREE.Color().setRGB(it.sig[0], it.sig[1], it.sig[2], THREE.LinearSRGBColorSpace); return it; };
-  const kitParts = (group, name, items, opts = {}) => { const P = SK.parts[name]; if (!P || !items.length) return; for (const q of P) inst(group, q.geometry, q.material, items, opts); };
+  // props pass: parts with texture variants (streetkit kit.variants, src/world/props/variants.v2.js) draw with per-instance
+  // variant data (layer, brightness, sun fade) in the instance color; every other part of the model draws as before
+  const _vc = new THREE.Color();
+  const varOf = (it, n) => { if (it.vl === undefined) it.vl = Math.floor(h2(it, 9) * n) % n; if (it.vb === undefined) it.vb = 0.88 + h2(it, 10) * 0.2; if (it.vf === undefined) it.vf = h2(it, 11) < 0.3 ? h2(it, 12) * 0.3 : 0; return new THREE.Color().copy(variantColor(it.vl % n, it.vb, it.vf, _vc)); };
+  const kitParts = (group, name, items, opts = {}) => { const P = SK.parts[name]; if (!P || !items.length) return; const vn = SK.variants?.[name];
+    for (const q of P) { if (vn && q.material === vn.material) inst(group, q.geometry, q.material, items.map((it) => ({ ...it, color: varOf(it, vn.n) })), { ...opts, colors: true }); else inst(group, q.geometry, q.material, items, opts); } };
   const zoneKind = (x, z) => { const zn = String(zoneAt(x, z) || ''); return /downtown|business|brickell|midtown/.test(zn) ? 'urban' : /beach|nightlife|park/.test(zn) ? 'beach' : /commercial|arts|edgewater|overtown/.test(zn) ? 'commercial' : /industrial|port/.test(zn) ? 'industrial' : 'res'; };
   const h2 = (it, k = 0) => hash(((it.x * 7.3) | 0) * 131 + ((it.z * 5.1) | 0) + k * 977);
   // per-kind variant pickers (by zone, deterministic per spot)
@@ -2246,14 +2256,48 @@ export function createTileBuilder(ctx) {
   function kitVar(group, kind, items, tagVis) {
     if (!items.length) return; const by = {};
     for (const it of items) { const v = VARIANT[kind](it); (by[v] ||= []).push(it); }
-    for (const v in by) { const fn = (list) => kitParts(group, v, list, { cast: kind === 'shelter' || kind === 'bench' }); if (tagVis) tagVis(by[v], fn); else fn(by[v]); }
+    for (const v in by) { assignVariants(v, by[v]); const fn = (list) => kitParts(group, v, list, { cast: kind === 'shelter' || kind === 'bench' || kind === 'work' || kind === 'mailbox' || kind === 'bin' }); if (tagVis) tagVis(by[v], fn); else fn(by[v]); }
   }
+  // props pass: write a moved prop's pose (or null = hidden) into the pool instances that draw it (like hideProp)
+  function setPropMatrix(t, kind, p, m) {
+    const list = (t.props && t.props[kind]) || []; let q = p._vis ? p : null;
+    if (!q) for (const c of list) if (c._vis && Math.abs(c.x - p.x) < 0.05 && Math.abs(c.z - p.z) < 0.05) { q = c; break; }
+    if (!q) return false;
+    if (!q._loc) { // each part's instance matrix relative to the item's base pose (sign plates sit above their post, etc.)
+      const base = q.m && q.m.length === 16 ? new THREE.Matrix4().fromArray(q.m) : new THREE.Matrix4().compose(new THREE.Vector3(q.x, q.y || 0, q.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(q.rx || 0, q.ry || 0, q.rz || 0)), new THREE.Vector3().setScalar(q.s || 1));
+      const inv = base.invert(); q._loc = q._vis.map(([h, k]) => { const i = h.idx[k]; return i !== undefined && h.p && i < h.p.count ? inv.clone().multiply(new THREE.Matrix4().fromArray(h.p.src, i * 16)) : new THREE.Matrix4(); }); }
+    q._vis.forEach(([h, k], j) => { const i = h.idx[k]; if (i === undefined || !h.p || i >= h.p.count) return; if (!m) { poolSetMatrix(h.p, i, _zeroM); return; } _pm2.copy(m).multiply(q._loc[j]); poolSetMatrix(h.p, i, _pm2); });
+    return true;
+  }
+    work: (it) => it.v, // work zones / construction sites: cone, channelizer, tc_bollard, barricade2, jersey, rolloff, site_cabin, tarp_crates
   // curb regulation signs: library U-channel post + NO PARKING / NO STANDING plate (one plate type per tile, alternating)
+  VARIANT.bin = ((pick) => (it) => { const v = pick(it); return v === 'bin_set' ? 'cart' : v === 'bin_metal' && zoneKind(it.x, it.z) === 'commercial' && h2(it, 4) < 0.3 ? 'bin_commercial' : v; })(VARIANT.bin);
+  // props pass: no two neighbors alike. Layers are picked per item from a position hash, then bumped until no item of the
+  // same model within 14 m (earlier in the list) shows the same layer; size +-7 %, a small yaw jitter and a slight lean.
+  const JIT = { bin: [0.06, 0.25, 0.02], hydrant: [0.04, 0.5, 0.008], mailbox: [0.05, 0.08, 0.035], bench: [0.03, 0.02, 0], meter: [0.03, 0.06, 0.012], signPost: [0, 0.05, 0.02], upole: [0, 0, 0.006], work: [0.05, 0.12, 0.01] };
+  function propJitter(props) {
+    if (props._jit) return; props._jit = true;
+    for (const kind in JIT) { const [ds, dy, dl] = JIT[kind]; for (const it of props[kind] || []) { if (it._j || it.m) continue; it._j = 1;
+      if (ds && !it.sx && (kind !== 'work' || /cone|chair|channelizer|tc_bollard/.test(it.v))) it.s = (it.s || 1) * (1 + (h2(it, 21) - 0.5) * 2 * ds);
+      it.ry = (it.ry || 0) + (h2(it, 22) - 0.5) * 2 * dy;
+      if (dl) { it.rx = (h2(it, 23) - 0.5) * 2 * dl; it.rz = (h2(it, 24) - 0.5) * 2 * dl; } } }
+  }
+  function assignVariants(name, list) {
+    const vn = SK.variants?.[name]; if (!vn) return; const n = vn.n, R2 = 14 * 14;
+    for (let i = 0; i < list.length; i++) { const it = list[i]; if (it.vlFixed) continue; let l = Math.floor(h2(it, 9) * n) % n;
+      for (let tries = 0; tries < n; tries++) { let clash = false; for (let j = Math.max(0, i - 40); j < i; j++) { const o = list[j]; if (o.vl === l && (o.x - it.x) ** 2 + (o.z - it.z) ** 2 < R2) { clash = true; break; } } if (!clash) break; l = (l + 1) % n; }
+      it.vl = l; }
+  }
+  // props pass: a prop the player / a car moved keeps its resting pose across tile rebuilds (dynamicProps saves it here)
+  const movedProps = new Map(), movedKey = (kind, p) => kind + ':' + Math.round(p.x * 10) + ',' + Math.round(p.z * 10);
+  function withMoved(kind, items) { if (movedProps.size) for (const it of items) { const m = movedProps.get(movedKey(kind, it)); if (m) it.m = m; } return items; }
   function kitSigns(group, items, tagVis) {
-    const S = SK.signs; if (!items.length || !S.post) return;
+    const S = SK.signs; if (movedProps.size) items = items.filter((p) => !movedProps.has(movedKey('signPost', p))); if (!items.length || !S.post) return; // props pass: a knocked-down post is gone after a rebuild
+    withMoved(kind, items);
     const plate = (hash(((items[0].x / 200) | 0) * 31 + ((items[0].z / 200) | 0)) < 0.6 ? S.noparking : S.nostanding) || S.noparking;
     tagVis(items, (list) => {
       inst(group, S.post.geometry, S.post.material, list.map((p) => ({ x: p.x, y: p.y || 0, z: p.z, ry: p.ry || 0, sx: 2.4, sy: 2.75, sz: 2.4 })), { cast: true });
+  const _pm2 = new THREE.Matrix4();
       if (plate) inst(group, plate.geometry, plate.material, list.map((p) => ({ x: p.x + Math.sin(p.ry || 0) * 0.04, y: (p.y || 0) + 2.25, z: p.z + Math.cos(p.ry || 0) * 0.04, ry: p.ry || 0 })), { cast: true });
     });
   }
@@ -2316,7 +2360,7 @@ export function createTileBuilder(ctx) {
     const mesh = new THREE.Mesh(g, m); mesh.name = 'signal-blades'; mesh.castShadow = false; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); mesh.userData.ownedMaterial = m; m.userData.ownedTexture = tex; group.add(mesh);
   }
   // Keys / rural lanes (no curbs, no sidewalks): wooden utility poles with overhead lines and a davit lamp on every second pole,
-  // trash + recycling carts at the road edge, rural mailboxes (STOP signs come from the road graph: src/world/signs/regulatory.v2.js)
+  // (carts + mailboxes per house: src/world/props/lotProps.v2.js; STOP signs come from the road graph: src/world/signs/regulatory.v2.js)
   function keysLane(B, props, r, fr, L, hw, a, b, tile) {
     const eid = r.edgeId ?? r.id ?? 0, side = hash(eid * 13 + 1) < 0.5 ? 1 : -1, off = hw + 1.7;
     const ok = (x, z, rad = 0.3) => !(isWater && isWater(x, z)) && !insideBuilding(tile, x, z) && (!roadDist || roadDist(x, z) > rad + 0.5) && !inJunction(x, z) && !(houseLots.reserved.length && houseLots.reservedAt(x, z, 0.5));
@@ -2327,14 +2371,71 @@ export function createTileBuilder(ctx) {
       const pole = { x, y: gY0(x, z), z, ry: Math.atan2(nx * side, nz * side), top: 9.5, lamp: (k++ & 1) === 0, lampRy: Math.atan2(-nx * side, -nz * side) };
       props.upole.push(pole); if (prev && B && B.guard) wireSpan(B, prev, pole); prev = pole;
     }
-    // carts and mailboxes in front of the cottages (the side away from the poles), one stop every ~35-70 m
-    for (let s = a + 10 + hash(eid * 5) * 20; s < b - 8; s += 35 + hash(eid * 7 + s) * 35) {
-      const q = sampleAt(fr, s), nl = Math.hypot(q.nx, q.nz) || 1, nx = q.nx / nl, nz = q.nz / nl, sd = -side, o = hw + 1.1, x = q.x + nx * sd * o, z = q.z + nz * sd * o, hh = hash(eid * 17 + s * 3);
-      if (!ok(x, z, 0.5)) continue;
-      const ry = Math.atan2(-nx * sd, -nz * sd); // fronts toward the lane
-      if (hh < 0.55) { props.bin.push({ x, y: gY0(x, z), z, ry: ry + (hh - 0.3) * 0.4, k: 3 }); const x2 = x + q.dx * 0.75, z2 = z + q.dz * 0.75; if (hh < 0.35 && ok(x2, z2, 0.5)) props.bin.push({ x: x2, y: gY0(x2, z2), z: z2, ry: ry - 0.15, k: 3 }); }
-      const xm = x - q.dx * 2.2 + nx * sd * 0.55, zm = z - q.dz * 2.2 + nz * sd * 0.55;
-      if (hh > 0.25 && ok(xm, zm, 0.3)) props.mailbox.push({ x: xm, y: gY0(xm, zm), z: zm, ry, v: hh > 0.7 ? 'mailbox_twin' : 'mailbox_post' });
+    // carts and mailboxes: one mailbox + a trash / recycling pair per HOUSE at its driveway (src/world/props/lotProps.v2.js,
+    // fed by the house generator's lots), no longer sprinkled along the lane (that made clusters of 3-5 mailboxes)
+  }
+  // props pass: work zones and construction sites from the user's library (cones, channelizers, ROAD CLOSED barricades,
+  // striped jersey barriers, roll-off dumpster, site cabin, tarp-covered crates). Deterministic per road / building.
+  //   - tower sites: every topping-out tower (buildTower marks b._site) gets a jersey-barrier fence with a gate toward the
+  //     street, a site cabin, a roll-off and covered material on the free side
+  //   - renovations: ~2 % of low downtown / commercial buildings get a roll-off at the curb in front, cones and a barricade
+  //   - curb work: ~4 % of curbed streets get a coned-off strip along the curb (gutter / sidewalk repair) with barricades
+  function workZones(tile, props) {
+    if (props._work || !SK || !SK.parts.cone) return; props._work = true;
+    const W = props.work, ri = roadIndex(tile, true), T0 = provider.tileSize || 200, X0 = tile.x0 ?? tile.tx * T0, Z0 = tile.z0 ?? tile.tz * T0;
+    const inTile = (x, z) => x >= X0 && x < X0 + T0 && z >= Z0 && z < Z0 + T0;
+    const yAt = (x, z, onRoad) => (onRoad ? 0 : onSidewalk && onSidewalk(x, z) ? CURB : gY0(x, z));
+    const free = (x, z, r, road = false) => inTile(x, z) && !(isWater && isWater(x, z)) && !insideBuilding(tile, x, z) && (road ? true : ri(x, z).gap > r) && !inJunction(x, z) && !W.some((w) => (w.x - x) ** 2 + (w.z - z) ** 2 < (r + 0.25) ** 2);
+    const put = (v, x, z, ry, onRoad = false, r = 0.3) => { if (!free(x, z, r, onRoad)) return null; const it = { v, x, y: yAt(x, z, onRoad), z, ry }; W.push(it); return it; };
+    // tower sites
+    for (const b of tile.buildings || []) {
+      if (!b._site || !b.rings || !b.rings[0]) continue;
+      const ring = b.rings[0], n = ring.length; let cx = 0, cz = 0; for (const [x, z] of ring) { cx += x; cz += z; } cx /= n; cz /= n;
+      const rd = D?.roadGraph?.nearestEdge?.(cx, cz, {}, 120), gx = rd ? rd.point.x - cx : 0, gz = rd ? rd.point.z - cz : 1;
+      let gate = -1, gbest = -2; for (let i = 0; i < n; i++) { const a = ring[i], c = ring[(i + 1) % n], mx = (a[0] + c[0]) / 2 - cx, mz = (a[1] + c[1]) / 2 - cz, d = (mx * gx + mz * gz) / ((Math.hypot(mx, mz) * Math.hypot(gx, gz)) || 1); if (d > gbest) { gbest = d; gate = i; } }
+      for (let i = 0; i < n; i++) {
+        const a = ring[i], c = ring[(i + 1) % n], ex = c[0] - a[0], ez = c[1] - a[1], L = Math.hypot(ex, ez); if (L < 3) continue;
+        const ux = ex / L, uz = ez / L; let ox = uz, oz = -ux; if ((a[0] + ex / 2 - cx) * ox + (a[1] + ez / 2 - cz) * oz < 0) { ox = -ox; oz = -oz; }
+        const off = 2.6, ry = Math.atan2(ux, uz) + Math.PI / 2;
+        for (let t = 1.1; t < L - 1.0; t += 2.08) {
+          if (i === gate && Math.abs(t - L / 2) < 3.5) { if (Math.abs(t - L / 2) > 2.4) put('barricade2', a[0] + ux * t + ox * (off + 0.8), a[1] + uz * t + oz * (off + 0.8), ry, false, 0.5); continue; }
+          put('jersey', a[0] + ux * t + ox * off, a[1] + uz * t + oz * off, ry, false, 0.4);
+        }
+      }
+      // cabin / roll-off / material on the side facing away from the gate street (else whichever side has room)
+      const cands = [];
+      for (let i = 0; i < n; i++) { const a = ring[i], c = ring[(i + 1) % n], mx = (a[0] + c[0]) / 2, mz = (a[1] + c[1]) / 2, dx = mx - cx, dz = mz - cz, L = Math.hypot(dx, dz) || 1; cands.push({ x: mx + dx / L * 8.5, z: mz + dz / L * 8.5, ry: Math.atan2(dx, dz), score: -(dx * gx + dz * gz) / (L * (Math.hypot(gx, gz) || 1)) }); }
+      cands.sort((p, q) => q.score - p.score);
+      const pieces = [['site_cabin', 4.4], ['rolloff', 3.2], ['tarp_crates', 1.8]];
+      for (const c of cands) { if (!pieces.length) break; const [v, r] = pieces[0]; const sx = Math.cos(c.ry), sz = -Math.sin(c.ry);
+        for (const k of [0, -1, 1]) { const x = c.x + sx * k * (r + 3), z = c.z + sz * k * (r + 3); if (put(v, x, z, c.ry, false, r)) { pieces.shift(); break; } } }
+    }
+    // renovations at low downtown / commercial buildings: roll-off at the curb, cones around it, a barricade
+    for (const b of tile.buildings || []) {
+      if (b.part || !b.rings || !(b.h < 40) || hash(((b.id || 0) * 13 + 7) | 0) > 0.022) continue;
+      const ring = b.rings[0]; let cx = 0, cz = 0; for (const [x, z] of ring) { cx += x; cz += z; } cx /= ring.length; cz /= ring.length;
+      const zk = zoneKind(cx, cz); if (zk !== 'urban' && zk !== 'commercial') continue;
+      const rd = D?.roadGraph?.nearestEdge?.(cx, cz, {}, 60); if (!rd || !/secondary|tertiary|residential|unclassified/.test(rd.edge.kind || '')) continue;
+      const hw = rd.edge.width / 2, dx = rd.dir.x, dz = rd.dir.z, nx = cx - rd.point.x, nz = cz - rd.point.z, nl = Math.hypot(nx, nz) || 1, ox = nx / nl, oz = nz / nl;
+      const px = rd.point.x + ox * (hw - 1.3), pz = rd.point.z + oz * (hw - 1.3), ry = Math.atan2(dx, dz) + Math.PI / 2;
+      if (!put('rolloff', px, pz, ry, true, 1.2)) continue;
+      for (const t of [-4.2, 4.2]) put('cone', px + dx * t - ox * 1.25, pz + dz * t - oz * 1.25, hash(t * 7 + cx) * 6, true, 0.25);
+      for (const t of [-3.0, 0, 3.0]) put('cone', px + dx * t - ox * 1.6, pz + dz * t - oz * 1.6, hash(t * 3 + cz) * 6, true, 0.25);
+      put('barricade2', px - dx * 6, pz - dz * 6, Math.atan2(dx, dz), true, 0.6);
+    }
+    // curb work strips
+    for (const r of tile.roads || []) {
+      if (!r.sidewalks || r.pts.length < 2 || !/secondary|tertiary|residential/.test(r.kind || '') || (r.y && Math.max(...r.y) > 0.5)) continue;
+      const eid = r.edgeId ?? r.id ?? 0; if (hash(eid * 7919 + 3) > 0.045) continue;
+      const P = r.pts, cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])); const L = cum[cum.length - 1]; if (L < 70) continue;
+      const at = (s) => { let i = 1; while (i < P.length - 1 && cum[i] < s) i++; const a = P[i - 1], b = P[i], l = cum[i] - cum[i - 1] || 1, t = (s - cum[i - 1]) / l, dx = (b[0] - a[0]) / l, dz = (b[1] - a[1]) / l; return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, dx, dz, nx: dz, nz: -dx }; };
+      const side = hash(eid * 31) < 0.5 ? 1 : -1, hw = r.width / 2, s0 = L * (0.3 + hash(eid * 17) * 0.3), len = 18 + hash(eid * 5) * 14;
+      if (s0 + len > L - 12) continue;
+      for (let s = s0, k = 0; s <= s0 + len; s += 3, k++) { // taper in over the first 9 m, then along the closed strip
+        const q = at(s), o = hw - 0.35 - Math.min(1, k / 3) * 1.15, x = q.x + q.nx * side * o, z = q.z + q.nz * side * o;
+        put(k % 4 === 3 ? 'channelizer' : 'cone', x, z, Math.atan2(q.dx, q.dz) + hash(s * 3 + eid) * 0.6, true, 0.25);
+      }
+      for (const s of [s0 - 1.5, s0 + len + 1.5]) { const q = at(s), o = hw - 0.9, x = q.x + q.nx * side * o, z = q.z + q.nz * side * o; put('barricade2', x, z, Math.atan2(q.dx, q.dz) + (s > s0 ? 0 : Math.PI), true, 0.6); }
     }
   }
   // overhead lines between two utility poles: three conductors from the cross-arm insulators (library pole: arm along local X)
@@ -2673,6 +2774,26 @@ export function createTileBuilder(ctx) {
       const fr = polyFrame(r.pts), L = fr[fr.length - 1].s, hw = r.width / 2; if (L < 30) continue;
       const mid = sampleAt(fr, L / 2); let zone = ''; try { zone = zoneAt(mid.x, mid.z) || ''; } catch (e) { /* */ } if (!METRO_Z.test(zone)) { if (zone === 'residential') resTrees(tile, props, r, fr, L, hw, mid); continue; }
       const na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]), s0 = (na && na.degree >= 3 ? na.width / 2 + 9 : 6), s1 = L - (nb && nb.degree >= 3 ? nb.width / 2 + 9 : 6);
+  // (greenery, overnight) residential streets of the mainland city: shade trees in the swale behind the curb / sidewalk, ~22-34 m
+  // apart, never on a driveway, house lot, building or in a junction mouth; old neighborhoods get live oaks and banyans, the
+  // others gumbo limbo / shade trees and red poincianas (synthetic land: the countryside streamer plants those streets)
+  const OLD_D = /havana|grove|gables|shenandoah|allapattah|wynwood|overtown|lemon|little/i;
+  function resTrees(tile, props, r, fr, L, hw, mid) {
+    if (terrain && terrain.synthetic && terrain.synthetic(Math.floor(mid.x / (provider.tileSize || 200)), Math.floor(mid.z / (provider.tileSize || 200)))) return;
+    let dist = ''; try { dist = String(ctx.districtAt?.(mid.x, mid.z)?.name || ctx.districtAt?.(mid.x, mid.z) || ''); } catch (e) { /* */ }
+    const old = OLD_D.test(dist), na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]), s0 = na && na.degree >= 3 ? na.width / 2 + 10 : 8, s1 = L - (nb && nb.degree >= 3 ? nb.width / 2 + 10 : 8);
+    const blds = buildingsOf(tile, false), off = hw + (r.sidewalks ? 3.4 : 2.6);
+    for (const side of [-1, 1]) {
+      const hk = hash(((mid.x * 5) | 0) * 7919 + ((mid.z * 5) | 0) * 31 + side * 577); if (hk < 0.25) continue; // some block faces have none
+      for (let s2 = s0 + hk * 9; s2 < s1; s2 += 22 + hash(s2 * 3.7 + hk) * 12) {
+        const q = sampleAt(fr, s2), x = q.x + q.nx * side * off, z = q.z + q.nz * side * off, h = hash(((x * 7) | 0) * 131 + ((z * 13) | 0));
+        if (insideBuilding(tile, x, z) || (isWater && isWater(x, z)) || (roadDist && roadDist(x, z) < 2.2) || houseLots.claimedNear(blds, x, z, 3.5) || (houseLots.near && houseLots.near(x, z, 2.5, []).length)) continue;
+        if (props.tree.some((p) => Math.abs(p.x - x) < 9 && Math.abs(p.z - z) < 9) || props.palm.some((p) => Math.abs(p.x - x) < 6 && Math.abs(p.z - z) < 6)) continue;
+        const sp = old ? (h < 0.72 ? 'oak' : 'banyan') : h < 0.55 ? 'gumbo' : h < 0.8 ? 'poinciana' : 'oak';
+        props.tree.push({ sp, x, y: gY(x, z), z, ry: h * 6.28, s: (sp === 'banyan' ? 0.55 : 0.62) + h * 0.2, res: 1, color: new THREE.Color(0x6b8442) });
+      }
+    }
+  }
       for (const side of [-1, 1]) {
         const hk = hash(((mid.x * 3) | 0) * 7919 + ((mid.z * 3) | 0) * 31 + side * 977), sp = hk < 0.45 ? 'royal' : hk < 0.75 ? 'oak' : 'gumbo';
         for (let s2 = s0 + hk * 6; s2 < s1; s2 += 13.5 + hk * 2) {
@@ -2768,26 +2889,6 @@ export function createTileBuilder(ctx) {
       if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile);
       else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile);
       else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile);
-  // (greenery, overnight) residential streets of the mainland city: shade trees in the swale behind the curb / sidewalk, ~22-34 m
-  // apart, never on a driveway, house lot, building or in a junction mouth; old neighborhoods get live oaks and banyans, the
-  // others gumbo limbo / shade trees and red poincianas (synthetic land: the countryside streamer plants those streets)
-  const OLD_D = /havana|grove|gables|shenandoah|allapattah|wynwood|overtown|lemon|little/i;
-  function resTrees(tile, props, r, fr, L, hw, mid) {
-    if (terrain && terrain.synthetic && terrain.synthetic(Math.floor(mid.x / (provider.tileSize || 200)), Math.floor(mid.z / (provider.tileSize || 200)))) return;
-    let dist = ''; try { dist = String(ctx.districtAt?.(mid.x, mid.z)?.name || ctx.districtAt?.(mid.x, mid.z) || ''); } catch (e) { /* */ }
-    const old = OLD_D.test(dist), na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]), s0 = na && na.degree >= 3 ? na.width / 2 + 10 : 8, s1 = L - (nb && nb.degree >= 3 ? nb.width / 2 + 10 : 8);
-    const blds = buildingsOf(tile, false), off = hw + (r.sidewalks ? 3.4 : 2.6);
-    for (const side of [-1, 1]) {
-      const hk = hash(((mid.x * 5) | 0) * 7919 + ((mid.z * 5) | 0) * 31 + side * 577); if (hk < 0.25) continue; // some block faces have none
-      for (let s2 = s0 + hk * 9; s2 < s1; s2 += 22 + hash(s2 * 3.7 + hk) * 12) {
-        const q = sampleAt(fr, s2), x = q.x + q.nx * side * off, z = q.z + q.nz * side * off, h = hash(((x * 7) | 0) * 131 + ((z * 13) | 0));
-        if (insideBuilding(tile, x, z) || (isWater && isWater(x, z)) || (roadDist && roadDist(x, z) < 2.2) || houseLots.claimedNear(blds, x, z, 3.5) || (houseLots.near && houseLots.near(x, z, 2.5, []).length)) continue;
-        if (props.tree.some((p) => Math.abs(p.x - x) < 9 && Math.abs(p.z - z) < 9) || props.palm.some((p) => Math.abs(p.x - x) < 6 && Math.abs(p.z - z) < 6)) continue;
-        const sp = old ? (h < 0.72 ? 'oak' : 'banyan') : h < 0.55 ? 'gumbo' : h < 0.8 ? 'poinciana' : 'oak';
-        props.tree.push({ sp, x, y: gY(x, z), z, ry: h * 6.28, s: (sp === 'banyan' ? 0.55 : 0.62) + h * 0.2, res: 1, color: new THREE.Color(0x6b8442) });
-      }
-    }
-  }
       yield;
     }
     for (const p of tile.piers || []) pierDeck(B, p, null, props);
@@ -2800,7 +2901,7 @@ export function createTileBuilder(ctx) {
     LF.k = null;
     yield;
     if (!CLIP_OFF && !LF.on) props._slab = slabFromBatches([B.sidewalk, B.promenade, B.panels]);
-    cleanProps(tile, props); if (SK && !LF.on) { floorFix(tile, props); shelterClear(props); } props._slab = null; yield;
+    cleanProps(tile, props); if (SK && !LF.on) { floorFix(tile, props); shelterClear(props); } props._slab = null; if (SK) { workZones(tile, props); propJitter(props); } yield;
     if (LF.on) liftProps(props);
     syncKids(props);
     if (synth && flora) yield* floraInto(t, tile, props);
@@ -2818,7 +2919,7 @@ export function createTileBuilder(ctx) {
     yield;
     if (SK) furnish(group, props); else modelOrProc(group, 'bench', benchG, props.bench);
     const tagVis = (items, fn) => { const H = (group.userData.handles ||= []), h0 = H.length; fn(items); const hs = H.slice(h0); items.forEach((p, k) => { p._vis = hs.map((h) => [h, k]); }); }; // X1: which pool instances draw each breakable prop
-    if (SK) { kitVar(group, 'hydrant', props.hydrant, tagVis); kitVar(group, 'bin', props.bin, tagVis); kitVar(group, 'shelter', props.shelter, null); kitSigns(group, props.signPost, tagVis); }
+    if (SK) { kitVar(group, 'hydrant', props.hydrant, tagVis); kitVar(group, 'bin', props.bin, tagVis); kitVar(group, 'work', props.work, tagVis); kitVar(group, 'shelter', props.shelter, null); kitSigns(group, props.signPost, tagVis); }
     else { tagVis(props.hydrant, (it) => modelOrProc(group, 'hydrant', hydrantG, it, { cast: false }));
     tagVis(props.bin.filter((b) => b.k !== 1), (it) => modelOrProc(group, 'trash', binG[0], it, { cast: false }));
     tagVis(props.bin.filter((b) => b.k === 1), (it) => inst(group, binG[1], vcMat, it, { cast: false }));
@@ -2873,7 +2974,7 @@ export function createTileBuilder(ctx) {
     inst(group, acG, acMat, props.ac);
     inst(group, beaconG, M.beacon, props.beacon, { cast: false });
     inst(group, mastG, M.metal, props.mast);
-    if (SK && SK.parts.upole_gear) { for (const q of SK.parts.upole_gear) inst(group, q.geometry, q.material, props.upole, { cast: true }); kitUpoleLamps(group, props.upole); } else inst(group, upoleG, upoleMat, props.upole, { cast: true });
+    if (SK && SK.parts.upole_gear) { kitParts(group, 'upole_gear', props.upole, { cast: true }); kitUpoleLamps(group, props.upole); } else inst(group, upoleG, upoleMat, props.upole, { cast: true });
     inst(group, sigHeadG, sigMat, props.sig);
     if (SK) kitSignals(group, props);
     inst(group, BOXG, pierMat, props.pier.map((p) => ({ ...p, sz: 2.2 })));
@@ -3149,15 +3250,35 @@ export function createTileBuilder(ctx) {
     if (BRK) breakables.removeOwner(bOwner);
     const brk = (kind, p, hx, hy, hz) => { const rec = breakables.add({ x: p.x, y: p.y || 0, z: p.z, hx, hy, hz, ry: p.ry || 0, kind, owner: bOwner, hide: () => hideProp(t, kind, p) }); if (rec) handles.push(rec.collider); return !!rec; };
     sol('hydrant');
-    for (const p of P.hydrant) if (!(BRK && brk('hydrant', p, 0.17, 0.4, 0.17))) cyl(p.x, p.y, p.z, 0.4, 0.17);
+    for (const p of P.hydrant) if (!(BRK && brk('hydrant', p, 0.15, 0.4, 0.15))) cyl(p.x, p.y, p.z, 0.4, 0.15);
     sol('bin');
-    for (const p of P.bin) if (!(BRK && brk('bin', p, 0.32, 0.5, 0.3))) cyl(p.x, p.y, p.z, 0.5, 0.34);
+    for (const p of P.bin) furn('bin', p, () => cyl(p.x, p.y, p.z, 0.5, 0.3));
+    sol('work');
+    for (const p of P.work || []) furn('work', p, () => box(p.x, p.y, p.z, 0.3, 0.4, 0.3, p.ry || 0));
     sol('upole'); for (const p of P.upole) cyl(p.x, p.y, p.z, 5, 0.15);
-    sol('sigPole'); for (const p of P.sigPole || []) cyl(p.x, p.y, p.z, 3.3 * (p.sy || 1), 0.17); for (const p of P.pedPost || []) cyl(p.x, p.y, p.z, 1.6, 0.08); for (const p of P.cabinet || []) box(p.x, p.y, p.z, 0.4, 0.78, 0.18, p.ry || 0); for (const p of P.meter || []) cyl(p.x, p.y, p.z, 0.72, 0.07); for (const p of P.mailbox || []) cyl(p.x, p.y, p.z, 0.6, 0.12);
+    sol('sigPole'); for (const p of P.sigPole || []) cyl(p.x, p.y, p.z, 3.3 * (p.sy || 1), 0.17); for (const p of P.pedPost || []) cyl(p.x, p.y, p.z, 1.6, 0.08); for (const p of P.cabinet || []) box(p.x, p.y, p.z, 0.4, 0.78, 0.18, p.ry || 0); for (const p of P.meter || []) cyl(p.x, p.y, p.z, 0.72, 0.07); for (const p of P.mailbox || []) furn('mailbox', p, () => cyl(p.x, p.y, p.z, 0.6, 0.12));
+    // props pass: light props are Rapier bodies (src/world/props/dynamicProps.v2.js) and every library prop's collider is
+    // measured from its mesh (src/world/props/propShapes.v2.js): cylinder bins, box carts, posts with their heads
+    const DYN = !audit && dynProps.enabled && !!SK, dOwner = 'tile:' + t.tx + ',' + t.tz;
+    if (DYN) { dynProps.removeOwner(dOwner); handles.dynOwner = dOwner; }
+    const partOf = (kind, p) => (VARIANT[kind] ? VARIANT[kind](p) : p.v);
+    const shapesOf = (name) => { const parts = SK && SK.parts[name]; if (!parts) return null; const ph = physOf(name, parts); if (ph) return ph.shapes; const b = boundsOf(parts); return [{ t: 'box', hx: (b.max.x - b.min.x) / 2, hy: (b.max.y - b.min.y) / 2, hz: (b.max.z - b.min.z) / 2, x: (b.max.x + b.min.x) / 2, y: (b.max.y + b.min.y) / 2, z: (b.max.z + b.min.z) / 2 }]; };
+    const collShapes = (p, shapes) => { const sc = p.s || 1, ry = p.ry || 0, co = Math.cos(ry), si = Math.sin(ry);
+      for (const sh of shapes) { const lx = (sh.x || 0) * sc, lz = (sh.z || 0) * sc, wx = p.x + lx * co + lz * si, wz = p.z - lx * si + lz * co, y = (p.y || 0);
+        if (sh.t === 'box') box(wx, y + ((sh.y || 0) - sh.hy) * sc, wz, sh.hx * sc, sh.hy * sc, sh.hz * sc, ry); else cyl(wx, y + ((sh.y || 0) - sh.hh) * sc, wz, sh.hh * sc, (sh.t === 'cone' ? sh.r * 0.55 : sh.r) * sc); } };
+    const SIGNPOST_SHAPES = [{ t: 'box', hx: 0.035, hy: 1.32, hz: 0.035, y: 1.32 }, { t: 'box', hx: 0.31, hy: 0.38, hz: 0.025, y: 2.25, z: 0.04 }];
+    const dyn = (kind, p, name, shapes, ph) => { if (!DYN || p.broken) return false;
+      const key = movedKey(kind, p), rec = dynProps.add({ kind, cls: ph.cls, x: p.x, y: p.y || 0, z: p.z, ry: p.ry || 0, rx: p.rx, rz: p.rz, s: p.s || 1, shapes, mass: ph.mass, friction: ph.friction, owner: dOwner, m: movedProps.get(key) || p.m,
+        setMatrix: (m) => setPropMatrix(t, kind, p, m), save: (m) => { movedProps.set(key, m); p.m = m; } });
+      return !!rec; };
+    const furn = (kind, p, fallback) => { // dynamic when the model is light, else a static collider shaped like the mesh
+      const name = SK ? partOf(kind, p) : null, ph = name && SK.parts[name] ? physOf(name, SK.parts[name]) : null;
+      if (ph && ph.cls !== 'static' && dyn(kind, p, name, ph.shapes, ph)) return;
+      const sh = name && shapesOf(name); if (sh) collShapes(p, sh); else fallback(); };
     sol('mast');
     for (const p of P.mast) cyl(p.x, p.y, p.z, 3.2, 0.16);
     sol('signPost');
-    for (const p of P.signPost) if (!(BRK && brk('signPost', p, 0.08, 1.6, 0.08))) cyl(p.x, p.y, p.z, 1.6, 0.08);
+    for (const p of P.signPost) if (!(SK && dyn('signPost', p, 'signPost', SIGNPOST_SHAPES, { cls: 'knock', mass: 16 })) && !(BRK && brk('signPost', p, 0.08, 1.6, 0.08))) cyl(p.x, p.y, p.z, 1.6, 0.06); // props pass: a sign post snaps and falls when a car hits it
     { // container stacks: one cuboid per block column (stacks 0.36 m apart = solid wall), never across an aisle
       const cols = new Map();
       for (const p of P.stack) { let c = cols.get(p.col); if (!c) cols.set(p.col, (c = { x: p.x, z0: p.z, z1: p.z, n: 0 })); c.z0 = Math.min(c.z0, p.z); c.z1 = Math.max(c.z1, p.z); c.n = Math.max(c.n, p.n); }
@@ -3177,7 +3298,7 @@ export function createTileBuilder(ctx) {
     sol('bike');
     for (const p of P.bike) box(p.x, p.y, p.z, 1.6, 0.45, 0.35, p.ry);
     sol('bench');
-    for (const p of P.bench) box(p.x, p.y, p.z, 0.9, 0.45, 0.32, p.ry);
+    for (const p of P.bench) { const sh = SK && shapesOf(VARIANT.bench(p)); if (sh) collShapes(p, sh); else box(p.x, p.y, p.z, 0.9, 0.45, 0.32, p.ry); } // props pass: the bench model's own size
     sol('shelter');
     for (const p of P.shelter) { const s = Math.sin(p.ry), co = Math.cos(p.ry), L = (lx, lz) => [p.x + lx * co + lz * s, p.z - lx * s + lz * co];
       const [bx, bz] = L(0, -0.75); box(bx, p.y, bz, 2.0, 1.2, 0.05, p.ry); for (const sx of [-2, 2]) { const [qx, qz] = L(sx, 0); box(qx, p.y, qz, 0.05, 1.25, 0.85, p.ry); } }
@@ -3186,6 +3307,9 @@ export function createTileBuilder(ctx) {
     if (audit) for (const [tg, arr] of soups) { arr._tag = tg; yield* commit(arr); }
     t._colPartial = null;
     return handles;
+      const bb = SK && SK.parts[VARIANT.shelter(p)] ? boundsOf(SK.parts[VARIANT.shelter(p)]) : null; // props pass: walls where the model has them (back panel, end panels)
+      if (bb) { const hx = (bb.max.x - bb.min.x) / 2 - 0.06, cxm = (bb.max.x + bb.min.x) / 2, z0 = bb.min.z + 0.08, dz = (bb.max.z - bb.min.z), h = Math.min(1.3, (bb.max.y - bb.min.y) / 2 - 0.1);
+        const [bx, bz] = L(cxm, z0); box(bx, p.y, bz, hx, h, 0.05, p.ry); for (const sx of [-hx, hx]) { const [qx, qz] = L(cxm + sx, z0 + dz * 0.3); box(qx, p.y, qz, 0.05, h, dz * 0.3, p.ry); } continue; }
   }
   // ---- water exits: stair flights down seawalls / pier ends every ~200 m, sloped sand skirts on beaches ----
   const exitCache = new WeakMap();
@@ -3263,7 +3387,8 @@ export function createTileBuilder(ctx) {
       for (let q = 0; q < a.length; q += 3) { const d = Math.hypot(x - a[q], z - a[q + 1]), r = a[q + 2] + pad; if (d < r) best = Math.max(best, 1 - d / r); } }
     return best;
   }
-  function removeColliders(handles) { for (const h of handles) if (h && world.getCollider(h.handle) === h && (typeof h.isValid !== 'function' || h.isValid())) world.removeCollider(h, false); handles.length = 0; }
+  function removeColliders(handles) { if (handles.dynOwner) { dynProps.removeOwner(handles.dynOwner); handles.dynOwner = null; } // props pass: the tile's prop bodies go with its colliders
+    for (const h of handles) if (h && world.getCollider(h.handle) === h && (typeof h.isValid !== 'function' || h.isValid())) world.removeCollider(h, false); handles.length = 0; }
   function dispose(group) {
     if (!group) return;
     lawnIndex.delete(group);
