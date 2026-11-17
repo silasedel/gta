@@ -77,14 +77,14 @@
  },
  "r3_side": {
   "eye": [
-   -25.0,
+   -30.0,
    1.7,
-   7.0
+   3.0
   ],
   "look": [
-   -3.0,
+   -5.0,
    3.0,
-   -1.0
+   0.0
   ],
   "tod": 16,
   "fov": 55,
@@ -92,17 +92,17 @@
  },
  "r4_stairs": {
   "eye": [
-   -22.0,
+   -14.5,
    1.6,
-   14.0
+   17.5
   ],
   "look": [
-   -6.0,
-   3.0,
-   1.0
+   -6.5,
+   3.2,
+   2.0
   ],
   "tod": 14,
-  "fov": 55,
+  "fov": 58,
   "ref": "docs/v2/plan/nico_house/4_side_stairs.webp"
  },
  "r5_aerial": {
@@ -134,5 +134,36 @@
   "tod": 11,
   "fov": 62,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
+ },
+ "r6_yard_rain": {
+  "eye": [
+   -6.0,
+   2.4,
+   30.0
+  ],
+  "look": [
+   -3.0,
+   0.0,
+   18.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "weather": "afterrain",
+  "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
+ },
+ "r7_dock_close": {
+  "eye": [
+   5.0,
+   1.6,
+   -14.0
+  ],
+  "look": [
+   1.8,
+   0.3,
+   -24.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "ref": "docs/v2/plan/nico_house/2_back_dock.webp"
  }
 }
