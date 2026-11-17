@@ -8,6 +8,7 @@
 // Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
 import { PLANTER, BINS, STOPS, POLES, WIRES, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS } from '../yard.data.js';
 import { loadKeysModels } from '../models.js';
+import { breakables } from '../../../miami/breakables.js';
 export const order = 55;
 
 export function build(ctx) {
@@ -114,7 +115,11 @@ export function build(ctx) {
 
   // ======================================================================= yard surface decals: litter, matted grass, tire ruts, puddles
   const decal = (name, w, h, draw) => { const t = kit.canvasTex(w, h, draw, { srgb: true }); t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    const m = new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }); m.name = 'keys:' + name; m.userData.uvScale = 1; return m; };
+    const m = new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }); m.name = 'keys:' + name; m.userData.uvScale = 1;
+    // soft edges: the batch's per-vertex aWear carries the patch fade (1 in the middle, 0 at the ragged rim)
+    m.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aWear;\nvarying float vKFade;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvKFade = aWear;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vKFade;').replace('#include <alphamap_fragment>', '#include <alphamap_fragment>\n  diffuseColor.a *= vKFade;'); };
+    m.customProgramCacheKey = () => 'keys:decal'; return m; };
   const LEAVES = decal('leaves', 512, 512, (g, w, h) => { const q = kit.rng(91); g.clearRect(0, 0, w, h);
     for (let i = 0; i < 520; i++) { const x = q() * w, y = q() * h, l = 7 + q() * 16, a = q() * 6.28, k = q(); g.save(); g.translate(x, y); g.rotate(a);
       g.fillStyle = k < 0.45 ? `rgba(${120 + q() * 50},${86 + q() * 30},${40 + q() * 20},0.95)` : k < 0.75 ? `rgba(${170 + q() * 40},${140 + q() * 30},${70 + q() * 20},0.9)` : k < 0.9 ? `rgba(${92 + q() * 30},${102 + q() * 30},${46},0.9)` : `rgba(${180 + q() * 40},${50 + q() * 30},${30},0.9)`;
@@ -128,9 +133,7 @@ export function build(ctx) {
     for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), d = Math.hypot(px, py) / rad, ang = Math.atan2(py, px), k = 1 + 0.28 * Math.sin(ang * 3 + seed) + 0.16 * Math.sin(ang * 7 + seed * 2);
       p.setX(i, px * k); p.setY(i, py * k); const ux = px * k, uy = py * k; uv.setXY(i, (ux * Math.cos(a0) - uy * Math.sin(a0)) * s, (ux * Math.sin(a0) + uy * Math.cos(a0)) * s); const f = Math.max(0, 1 - d) * dens; c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = 1; }
     g.rotateX(-PI / 2); g.translate(x, 0.015 + seed * 0.0001, z);
-    // soft edge: fade by vertex alpha through the color attribute is not blended, so the outer ring is pushed below the sand instead
-    for (let i = 0; i < p.count; i++) if (Math.hypot(p.getX(i) - x, p.getZ(i) - z) > rad * 0.98) p.setY(i, 0.0);
-    D.geo(m, g, null, { keepColor: false }); g.dispose(); };
+    D.geo(m, g, null, { keepColor: false, wear: (vx, vy, vz) => Math.max(0, Math.min(1, (1 - Math.hypot(vx - x, vz - z) / (rad * 1.3)) * 2.4)) * dens }); g.dispose(); };
   LITTER.forEach(([x, z, rad, dens, kind], i) => patch(kind === 'matted' ? MATTED : LEAVES, x, z, rad, dens, 300 + i));
   for (const t of TRACKS) for (const s of [-1, 1]) { // two ruts per track, a strip along the polyline
     const P = t.pts, pos = [], uvs = [], idx = []; let v = 0;
@@ -139,7 +142,7 @@ export function build(ctx) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx); g.computeVertexNormals();
     // flip to face up if needed
     if (g.attributes.normal.getY(0) < 0) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const tt = ix[i]; ix[i] = ix[i + 1]; ix[i + 1] = tt; } g.computeVertexNormals(); }
-    D.geo(RUTS, g, null, {}); g.dispose(); }
+    const tot = v; D.geo(RUTS, g, null, { wear: (vx, vy, vz) => { let best = 1e9, bi = 0; for (let i = 0; i < P.length; i++) { const d = Math.hypot(P[i][0] - vx, P[i][1] - vz); if (d < best) { best = d; bi = i; } } return bi === 0 || bi === P.length - 1 ? 0.15 : 1; } }); g.dispose(); }
   // puddles: a mask that fills from the deepest point with the weather's puddle level (always a little water in the ruts)
   { const uWet = { value: 0.25 }, mask = kit.canvasTex(256, 256, (g, w, h) => { const im = g.createImageData(w, h), q = kit.rng(95), oct = [[4, 0.5], [9, 0.3], [21, 0.2]].map(([f, a]) => ({ f, a, ph: [q() * 6, q() * 6, q() * 6, q() * 6] }));
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const u = x / w * 2 - 1, v = y / h * 2 - 1, d = Math.hypot(u, v); let n = 0; for (const o of oct) n += o.a * Math.sin(u * o.f + o.ph[0] + Math.sin(v * o.f * 0.7 + o.ph[1])) * Math.cos(v * o.f + o.ph[2]); const val = Math.max(0, Math.min(1, (1 - d) * 1.25 + n * 0.35)); const j = (y * w + x) * 4; im.data[j] = im.data[j + 1] = im.data[j + 2] = val * 255; im.data[j + 3] = 255; }
@@ -156,7 +159,8 @@ export function build(ctx) {
 
   // ======================================================================= library models: bins, dumpster, rocks, STOP signs
   // colliders now (the house's collider list is read right after the build), visuals when the models arrive
-  for (const b of BINS) if (b.piece) col.box(b.x, 0.56, b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
+  // curb carts: breakable (a car above ~15 km/h knocks one over; src/world/miami/breakables.js), static box otherwise
+  const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56, b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
   { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2, d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[(k - 1) % 6]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink, z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
@@ -169,6 +173,13 @@ export function build(ctx) {
     const rockNames = lib.names('rocks').sort();
     for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[(k - 1) % rockNames.length]; I.add('rocks', n, M(x, -sink, z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
+    if (BRK) { // register the carts in world space once the house group is placed; hiding a cart collapses its instance
+      const binMeshes = (piece) => meshes.filter((m) => lib.piece('bins', piece)?.parts.some((q) => q.geometry === m.geometry)), idx = {}, zero = new THREE.Matrix4().makeScale(0, 0, 0);
+      const recs = BINS.filter((b) => b.piece).map((b) => ({ b, i: (idx[b.piece] = (idx[b.piece] ?? -1) + 1) }));
+      let done = false; ctx.updaters.push(() => { if (done) return; done = true; ctx.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromRotationMatrix(ctx.group.matrixWorld).y;
+        for (const { b, i } of recs) { const p = new THREE.Vector3(b.x, 0, b.z).applyMatrix4(ctx.group.matrixWorld);
+          breakables.add({ x: p.x, y: p.y, z: p.z, hx: 0.3, hy: 0.56, hz: 0.31, ry: (b.h || 0) + yaw, kind: 'bin', owner: 'nicoYard', color: 0x2c4f7c, hide: () => { for (const m of binMeshes(b.piece)) { m.setMatrixAt(i, zero); m.instanceMatrix.needsUpdate = true; } } }); } });
+    }
     ctx.stats.keysYard = { instances: I.count(), meshes: meshes.length, rocks: rockNames };
   }));
   // STOP plates and posts from the street kit (the library plate on its U-channel post, as regulatory.v2.js uses them)

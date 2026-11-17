@@ -655,7 +655,9 @@ export function* buildHouseGen(hk, sp, lod = 0) {
     // driveway: poured panels with saw-cut joints and stains (lod 0), one slab at mid range
     if (lod < 2) {
       const len = zRoad - zd0, n = L0 ? Math.max(1, Math.round(len / 3)) : 1;
-      for (let k = 0; k < n; k++) { const za = zd0 + (len * k) / n, zb = zd0 + (len * (k + 1)) / n; box(CONC, dw - 0.02, 0.06, zb - za - (L0 ? 0.02 : 0), xd, 0.0, (za + zb) / 2, { color: vary(0xc9c3b6, 0.04), wear: 0.3 + r() * 0.4 }); }
+      if (sp.style === 'keys' && !sp.pavedDrive) { // keys lots: a crushed-shell drive worn into the sand, not poured concrete (Nov 17 mock-up)
+        const SH = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.4, grunge: true }); box(SH, dw + 0.4, 0.03, len + 0.2, xd, -0.005, zd0 + len / 2, { color: vary(0xd6cdb8, 0.05), wear: 0.5 }); }
+      else for (let k = 0; k < n; k++) { const za = zd0 + (len * k) / n, zb = zd0 + (len * (k + 1)) / n; box(CONC, dw - 0.02, 0.06, zb - za - (L0 ? 0.02 : 0), xd, 0.0, (za + zb) / 2, { color: vary(0xc9c3b6, 0.04), wear: 0.3 + r() * 0.4 }); }
       if (L0) for (let k = 0; k < 3; k++) box(CONC, 0.4 + r() * 0.5, 0.002, 0.3 + r() * 0.6, xd + (r() - 0.5) * 1.6, 0.031, zd0 + 1 + r() * (len - 2), { color: 0x4a4640 }, r() * 3);
       // walkway from the entry steps to the driveway / street (pavers)
       const door = walls.front.open.find((o) => o.kind === 'door'), xw = door ? x0 + door.u : 0, zw0 = z1 + (sp.porch?.d ?? 1) + 0.2;
