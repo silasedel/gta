@@ -128,6 +128,7 @@ export function build(ctx) {
     for (let i = 0; i < 2600; i++) { const x = q() * w, y = q() * h, l = 6 + q() * 22, a = 0.4 + (q() - 0.5) * 0.9 + (x / w) * 0.6, k = q(); g.strokeStyle = k < 0.55 ? `rgba(${150 + q() * 40},${150 + q() * 30},${80 + q() * 20},0.75)` : `rgba(${86 + q() * 30},${110 + q() * 30},${50 + q() * 20},0.8)`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5, y + Math.sin(a) * l * 0.5 - 2, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } });
   // crushed shell / marl dust: the pale, almost white yard surface of the mock-up, laid over the sand where cars and feet go
   const SHELLD = decal('shell', 512, 512, (g, w, h) => { const q = kit.rng(94); g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 70; i++) { const x = q() * w, y = q() * h, r2 = 40 + q() * 90, gr = g.createRadialGradient(x, y, 0, x, y, r2); gr.addColorStop(0, `rgba(${214 + q() * 20},${208 + q() * 18},${194 + q() * 16},${0.22 + q() * 0.18})`); gr.addColorStop(1, 'rgba(214,208,194,0)'); g.fillStyle = gr; g.fillRect(x - r2, y - r2, r2 * 2, r2 * 2); }   // pale marl dust wash
     for (let i = 0; i < 9000; i++) { const x = q() * w, y = q() * h, s = 0.6 + q() * q() * 3.2, v = 196 + q() * 52; g.fillStyle = `rgba(${v},${v - 4 - q() * 8},${v - 14 - q() * 16},${0.35 + q() * 0.5})`; g.beginPath(); g.ellipse(x, y, s, s * (0.5 + q() * 0.5), q() * 3, 0, 6.28); g.fill(); }
     for (let i = 0; i < 260; i++) { const x = q() * w, y = q() * h, s = 2 + q() * 4; g.fillStyle = `rgba(${236 + q() * 18},${228 + q() * 20},${214 + q() * 20},0.9)`; g.beginPath(); g.moveTo(x, y); g.lineTo(x + s, y + s * 0.3); g.lineTo(x + s * 0.4, y + s); g.closePath(); g.fill(); }   // shell chips
     for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(90,82,70,${0.15 + q() * 0.25})`; g.fillRect(q() * w, q() * h, 1, 1); } });
@@ -135,19 +136,21 @@ export function build(ctx) {
   const RUTS = decal('ruts', 64, 512, (g, w, h) => { const q = kit.rng(93); g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(70,58,42,0)'); gr.addColorStop(0.25, 'rgba(70,58,42,0.42)'); gr.addColorStop(0.75, 'rgba(70,58,42,0.42)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += 9) { g.fillStyle = 'rgba(50,40,28,0.35)'; g.fillRect(10, y, w - 20, 3); } for (let i = 0; i < 200; i++) { g.fillStyle = `rgba(230,220,200,${q() * 0.3})`; g.fillRect(q() * w, q() * h, 2, 2); } });
   RUTS.roughness = 1;
+  const yY = ctx.yardY || (() => 0);   // the yard sheet's surface (part 05): every ground layer rides on it, never sinks into its bumps
   const patch = (m, x, z, rad, dens, seed) => { const q = kit.rng(seed), n = 40, g = new THREE.CircleGeometry(rad, n, 0, PI * 2); const p = g.attributes.position, uv = g.attributes.uv, c = new Float32Array(p.count * 3), a0 = q() * 6.28, s = 1 / 1.6;
     for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), d = Math.hypot(px, py) / rad, ang = Math.atan2(py, px), k = 1 + 0.28 * Math.sin(ang * 3 + seed) + 0.16 * Math.sin(ang * 7 + seed * 2);
       p.setX(i, px * k); p.setY(i, py * k); const ux = px * k, uy = py * k; uv.setXY(i, (ux * Math.cos(a0) - uy * Math.sin(a0)) * s, (ux * Math.sin(a0) + uy * Math.cos(a0)) * s); const f = Math.max(0, 1 - d) * dens; c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = 1; }
-    g.rotateX(-PI / 2); g.translate(x, 0.015 + seed * 0.0001, z);
+    g.rotateX(-PI / 2); g.translate(x, 0, z); { const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, yY(pp.getX(i), pp.getZ(i)) + 0.016 + seed * 0.0002); }
     D.geo(m, g, null, { keepColor: false, wear: (vx, vy, vz) => Math.max(0, Math.min(1, (1 - Math.hypot(vx - x, vz - z) / (rad * 1.3)) * 2.4)) * dens }); g.dispose(); };
   LITTER.forEach(([x, z, rad, dens, kind], i) => patch(kind === 'matted' ? MATTED : kind === 'shell' ? SHELLD : LEAVES, x, z, rad, dens, 300 + i));
   // draw order of the overlapping ground layers (they do not write depth): shell dust, matted grass, ruts, leaves, puddles
   { let done = false; const ord = { 'keys:shell': 3, 'keys:matted': 4, 'keys:ruts': 5, 'keys:leaves': 6, 'keys:puddle': 7 };
     ctx.updaters.push(() => { if (done) return; done = true; ctx.groups.detail.traverse((o) => { const n = o.material?.name; if (n && ord[n]) o.renderOrder = ord[n]; }); }); }
-  for (const t of TRACKS) for (const s of [-1, 1]) { // two ruts per track, a strip along the polyline
-    const P = t.pts, pos = [], uvs = [], idx = []; let v = 0;
+  for (const t of TRACKS) for (const s of [-1, 1]) { // two ruts per track, a strip along the polyline (resampled every 0.5 m)
+    const P = []; for (let i = 0; i < t.pts.length - 1; i++) { const a = t.pts[i], b = t.pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.5)); for (let k = 0; k < n; k++) P.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } P.push(t.pts[t.pts.length - 1]);
+    const pos = [], uvs = [], idx = []; let v = 0;
     for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L, cx = P[i][0] + nx * s * t.gauge / 2, cz = P[i][1] + nz * s * t.gauge / 2;
-      if (i) v += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); pos.push(cx - nx * 0.17, 0.013, cz - nz * 0.17, cx + nx * 0.17, 0.013, cz + nz * 0.17); uvs.push(0, v / 2.2, 1, v / 2.2); if (i) { const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); } }
+      if (i) v += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); pos.push(cx - nx * 0.17, yY(cx - nx * 0.17, cz - nz * 0.17) + 0.02, cz - nz * 0.17, cx + nx * 0.17, yY(cx + nx * 0.17, cz + nz * 0.17) + 0.02, cz + nz * 0.17); uvs.push(0, v / 2.2, 1, v / 2.2); if (i) { const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx); g.computeVertexNormals();
     // flip to face up if needed
     if (g.attributes.normal.getY(0) < 0) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const tt = ix[i]; ix[i] = ix[i + 1]; ix[i + 1] = tt; } g.computeVertexNormals(); }
@@ -162,7 +165,7 @@ export function build(ctx) {
       { float k = texture2D( alphaMap, vAlphaMapUv ).g; float th = mix( 0.82, 0.3, uKWet ); float fw = max( fwidth( k ) * 1.5, 0.02 );
         diffuseColor.a = smoothstep( th - fw, th + fw, k ) * 0.92; diffuseColor.rgb *= mix( 1.25, 0.7, smoothstep( th, th + 0.35, k ) ); }`); };
     PUD.customProgramCacheKey = () => 'keys:puddle';
-    for (const [x, z, a, b, rot] of PUDDLES) { const g = new THREE.PlaneGeometry(a * 2, b * 2, 1, 1); g.rotateX(-PI / 2); D.geo(PUD, g, M(x, 0.02, z, 0, rot, 0), {}); g.dispose(); }
+    for (const [x, z, a, b, rot] of PUDDLES) { const g = new THREE.PlaneGeometry(a * 2, b * 2, 8, 4); g.rotateX(-PI / 2); g.applyMatrix4(M(x, 0, z, 0, rot, 0)); const pp = g.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, yY(pp.getX(i), pp.getZ(i)) + 0.024); D.geo(PUD, g, null, {}); g.dispose(); }
     ctx.updaters.push((dt, env) => { const w = env?.game?.weather; uWet.value = w ? Math.max(0.25, Math.min(1, 0.25 + (w.puddles || 0) * 0.9 + (w.wetness || 0) * 0.25)) : 0.25; });
   }
 

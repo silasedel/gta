@@ -18,6 +18,12 @@ export function build(ctx) {
   const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true }), x0 = L.x0 - 22, x1 = L.x1 + (OPEN_E ? 10 : -0.2), z0 = L.z0 + (OPEN_N ? -8 : 0.2), z1 = L.z1 + 22;
   { const nx = 90, nz = 110, g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
     const pa = g.attributes.position, cols = new Float32Array(pa.count * 3), n2 = (x, z) => Math.sin(x * 0.37 + Math.sin(z * 0.23) * 2) * Math.cos(z * 0.31 + Math.sin(x * 0.19) * 2);
+    // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
+    const yardY = (x, z) => { const drive = Math.max(0, 1 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2) / (5.5 + Math.max(0, z - 14) * 0.5)) * (z > 3 ? 1 : 0.3), under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0;
+      const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
+      const core = Math.max(0, Math.min(1, (7 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2)) / 2.5)), sink = (1 - keep) * (1 - core);
+      return (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5) * keep - 0.14 * sink; };
+    ctx.yardY = yardY;
     for (let i = 0; i < pa.count; i++) {
       const x = pa.getX(i), z = pa.getZ(i), drive = Math.max(0, 1 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2) / (5.5 + Math.max(0, z - 14) * 0.5)) * (z > 3 ? 1 : 0.3);
       const under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 4) - 20) / 14));
@@ -29,7 +35,7 @@ export function build(ctx) {
       // so the yard fades into the terrain instead of ending in a straight raised edge (the drive keeps its level up to the road apron)
       const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
       const core = Math.max(0, Math.min(1, (7 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2)) / 2.5)), sink = (1 - keep) * (1 - core);
-      pa.setY(i, (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5) * keep - 0.14 * sink);
+      pa.setY(i, yardY(x, z));
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
     B.geo(GROUND2 ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
