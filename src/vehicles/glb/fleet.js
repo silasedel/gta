@@ -124,6 +124,9 @@ export function specFor(e, man) {
     // physics keeps real bump travel (a bottomed-out ray suspension drops the hull onto the road and trips the car over);
     // the visual wheel is held under the fender by the arch cap in glbCar.syncWheels
     spec.travel = Math.max(0.2, sag + gap); }
+  // seat anchors measured from the model's interior by tools/v2/cars/seats.py (hip = H-point, heel, steering wheel; shell space)
+  if (man.seats?.length) { spec.seatAnchors = man.seats; spec.seats = man.seats.length; }
+  if (man.wheel) spec.steerWheel = man.wheel;
   if (e.convertible) spec.convertible = true;
   if (e.police) spec.police = e.police;
   if (e.taxi) spec.taxi = true;

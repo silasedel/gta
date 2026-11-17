@@ -373,7 +373,10 @@ export function buildGlbCar(key, look, t, info) {
     steerMax: t.steerMax ?? 0.6, root, shell, wheels, lightMats, spec: t, paint, paintMats: [paint], parts: { paint: paint0, roof: null }, slots,
     deformable: paint0 ? [paint0] : [], steeringWheel, wipers: [], info, lod, kit: 'base', look, glb: true,
     hull: M.hull, plate: { text: look.plate?.text || '' }, _res: null, anchors: null, wheelSets: sets.map((s) => s[0]),
-    seats: [{ x: 0.38, y: t.belt - 0.25, z: seatZ }, { x: -0.38, y: t.belt - 0.25, z: seatZ }, ...(t.coupe ? [] : [{ x: 0.38, y: t.belt - 0.25, z: seatZ - 0.95 }, { x: -0.38, y: t.belt - 0.25, z: seatZ - 0.95 }])],
+    // hip points (H-point) per seat, driver first; measured per model (man.seats), the old spec estimate only as a fallback
+    seats: man.seats?.length ? man.seats.map((q) => ({ x: q.hip[0], y: q.hip[1], z: q.hip[2], yaw: q.yaw || 0, id: q.id }))
+      : [{ x: 0.38, y: t.belt - 0.25, z: seatZ }, { x: -0.38, y: t.belt - 0.25, z: seatZ }, ...(t.coupe ? [] : [{ x: 0.38, y: t.belt - 0.25, z: seatZ - 0.95 }, { x: -0.38, y: t.belt - 0.25, z: seatZ - 0.95 }])],
+    seatAnchors: man.seats || null, steerWheel: man.wheel || null,
     dispose() {
       paint.dispose(); lamps.material.dispose(); sheet.texture.dispose();
       for (const [im] of sets) im.dispose();

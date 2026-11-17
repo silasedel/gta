@@ -21,7 +21,6 @@ const PALETTE = [
   0x2f6d3a, 0xf0b62a, 0x5a6470, 0xd9447a, 0x0e5e7a, 0xe7dcc4,
 ];
 const UP = new THREE.Vector3(0, 1, 0);
-const DRIVER_Y = 0;
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quaternion();
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // finite-or-fallback, then clamp to +-lim (lim only for magnitude)
@@ -355,13 +354,10 @@ export async function createVehicles(game) {
         p.y = 0;
         return new THREE.Vector3(t.x + p.x, Math.max(0, t.y - groundOff), t.z + p.z);
       },
-      seatPosition() {
-        const r = body.rotation();
-        _q.set(r.x, r.y, r.z, r.w);
-        const p = new THREE.Vector3(0.38, spec.belt - 0.25 - groundOff, spec.zA - 1.25).applyQuaternion(_q);
-        const t = body.translation();
-        return p.add(_v.set(t.x, t.y, t.z));
-      },
+      // world position of seat i's hip point (H-point), driver = 0
+      seatPosition(i = 0) { return seatWorld(this, i); },
+      seatAnchor(i = 0) { return seatAnchor(this, i); },
+      get seatCount() { return seatList(this).length; },
       horn() {
         if (this.police) { this.sirenOn = !this.sirenOn; return; }
         horn(this);
@@ -421,19 +417,67 @@ export async function createVehicles(game) {
     return { drv: null, lcT: 2 + Math.random() * 4, signal: 0, phoneT: 0, wanderT: 0, wanderK: 1, seenBlock: null, edge: null, dir: 1, d: 0, lane: 0, next: null, cruiseK: 0.85 + Math.random() * 0.25, stuckT: 0, blockedT: 0, fleeT: 0, honkT: 0, chase: null };
   }
 
+  // ------------------------------------------------------------ seat anchors (src/vehicles/README.md "Seats")
+  // Shell space (children of v.car.shell): ground y = 0, +Z forward, +X = the car's left (US driver side), z = 0 mid-wheelbase.
+  // Library models carry seats measured from their interior (tools/v2/cars/seats.py -> manifest `seats` / `wheel`); procedural
+  // and hero cars get the old estimate from the spec.  hip = H-point (hip joint), heel = floor where the heels rest,
+  // wheel = steering wheel rim center / radius / tilt (driver only), roofY = headliner over the hip, doorX = inner door |x|.
+  function seatList(v) {
+    if (v._seats) return v._seats;
+    const sp = v.spec, A = v.car?.seatAnchors || sp.seatAnchors;
+    let L;
+    if (A?.length) L = A.map((q) => ({ id: q.id, hip: q.hip, heel: q.heel, yaw: q.yaw || 0, roofY: q.roofY, doorX: q.doorX }));
+    else {
+      const seatZ = sp.zA - (sp.coupe ? 1.15 : 1.25) + 0.2, y = Math.min(sp.belt - 0.09, sp.roofY - 0.88) + 0.12, x = Math.min(0.4, (sp.W || 1.8) / 2 - 0.42);
+      const mk = (id, sx, z) => ({ id, hip: [sx, y, z], heel: [sx, y - 0.32, z + 0.78], yaw: 0, roofY: sp.roofY - 0.06, doorX: (sp.W || 1.8) / 2 - 0.08 });
+      L = [mk('driver', x, seatZ), mk('front', -x, seatZ)];
+      if (!sp.coupe && !sp.bike) L.push(mk('rearL', x, seatZ - 0.95), mk('rearR', -x, seatZ - 0.95));
+    }
+    const W = v.car?.steerWheel || sp.steerWheel;
+    v._seats = L.map((q, i) => ({
+      id: q.id || (i === 0 ? 'driver' : i === 1 ? 'front' : 'rear' + i), i, side: q.hip[0] >= 0 ? 1 : -1, yaw: q.yaw || 0,
+      hip: new THREE.Vector3().fromArray(q.hip), heel: new THREE.Vector3().fromArray(q.heel || [q.hip[0], q.hip[1] - 0.32, q.hip[2] + 0.78]),
+      roofY: q.roofY ?? sp.roofY - 0.06, doorX: q.doorX ?? (sp.W || 1.8) / 2 - 0.08,
+      wheel: i === 0 ? (W ? { c: new THREE.Vector3().fromArray(W.c), r: W.r ?? 0.19, tilt: W.tilt ?? 0.38 } : { c: new THREE.Vector3(q.hip[0], q.hip[1] + 0.34, q.hip[2] + 0.5), r: 0.19, tilt: 0.38 }) : null,
+    }));
+    return v._seats;
+  }
+  /** seatAnchor(v, i = 0) -> { id, i, hip, heel, yaw, wheel: { c, r, tilt } | null, side, roofY, doorX } in shell space (null if no seat i) */
+  function seatAnchor(v, i = 0) { const L = v?.car ? seatList(v) : null; return L?.[i] || null; }
+  /** seatWorld(v, i = 0, out?) -> world-space hip point of seat i */
+  function seatWorld(v, i = 0, out = new THREE.Vector3()) {
+    const a = seatAnchor(v, i);
+    if (!a) return out.copy(v.position);
+    v.car.shell.updateWorldMatrix(true, false);
+    return out.copy(a.hip).applyMatrix4(v.car.shell.matrixWorld);
+  }
+  // until src/npc/seat.js exists (r2-people): the drive clip's pelvis sits this far above / ahead of the character root
+  const HIP_IN_ROOT = new THREE.Vector3(0, 0.095, -0.059); // hip joints (UpLeg bones) in the drive clip, measured
+  let seatMod = null; // { seatCharacter, createSeatedPerson } once r2-people's module lands
+  try { const g = import.meta.glob('../npc/seat.js'); const f = g['../npc/seat.js']; if (f) f().then((m) => { seatMod = m; }).catch(() => {}); } catch (e) { /* no glob outside vite */ }
+  function placeInSeat(ch, v, i, role) {
+    const a = seatAnchor(v, i);
+    if (!a) return false;
+    if (seatMod?.seatCharacter) { try { seatMod.seatCharacter(ch, a, { role }); return true; } catch (e) { console.warn('[cars] seatCharacter', e); } }
+    ch.root.rotation.set(0, a.yaw, 0);
+    ch.root.position.copy(a.hip).sub(HIP_IN_ROOT);
+    return true;
+  }
+
   // ------------------------------------------------------------ drivers (ped models seated in AI cars)
   let driverSeed = 500;
   function addDriver(v) {
     if (v.driver) return;
     let ch = null;
-    try { ch = createCharacter(game, { variant: 'ped', seed: driverSeed++ }); } catch (e) { ch = null; }
+    const t = v.body.translation();
+    if (game.npc?.createDriver) { // the user's own people (r2-people); null while none is loaded yet -> try again on a later frame
+      try { ch = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'driver', seed: driverSeed++ }); } catch (e) { ch = null; }
+    } else { try { ch = createCharacter(game, { variant: 'ped', seed: driverSeed++ }); } catch (e) { ch = null; } }
     if (!ch || !ch.root) return;
-    const spec = v.spec;
-    const seatZ = spec.zA - (spec.coupe ? 1.15 : 1.25);
-    ch.root.position.set(0.38, Math.min(spec.belt - 0.09, spec.roofY - 0.88) + DRIVER_Y, seatZ + 0.2);
     ch.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
     v.car.shell.add(ch.root);
     ch.update?.(0.5, { driving: true, speed: 0, grounded: true });
+    placeInSeat(ch, v, 0, 'driver');
     v.driver = ch.root; v.driverChar = ch;
   }
   function removeDriver(v) {
@@ -2040,6 +2084,6 @@ export async function createVehicles(game) {
   } catch (e) { /* no glob support (plain esbuild check) */ }
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }

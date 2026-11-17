@@ -12,4 +12,8 @@ for k in $keys; do
     grep -h "DONE\|FAIL" $LOG/$k.log || (echo "ERR $k"; grep -h -A3 "Traceback\|Error" $LOG/$k.log | tail -4) ) &
 done
 wait
+# seat anchors (hip / heel / steering wheel) measured from the new interiors -> back into each manifest
+NPZ=$(mktemp -d); keys2=$(for k in $keys; do [[ "$k" =~ ^($RE)$ ]] && [ -f $OUT/$k.glb ] && echo $OUT/$k.glb; done)
+/opt/homebrew/bin/blender -b --factory-startup -P tools/v2/cars/dump_geo.py -- $NPZ $keys2 > $LOG/_dump.log 2>&1
+python3 -P tools/v2/cars/seats.py $NPZ $(for k in $keys; do [[ "$k" =~ ^($RE)$ ]] && echo $k; done) | tail -3; rm -rf $NPZ
 python3 tools/v2/cars/index.py

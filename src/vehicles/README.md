@@ -22,6 +22,15 @@ never picked at random) and streams the GLBs in (common classes first). Procedur
   (the visual wheel is capped at the measured arch gap); AI traffic gets a righting torque past ~30 deg of lean.
 - Checks: `node src/vehicles/glb/tests/fleet.test.mjs` (registration, specs, pools), `tools/v2/cars/{boot,game,stability,carcost,closeups}.mjs`.
 
+### Seats (anchors for people in cars)
+Every car has seat anchors in SHELL space (children of `v.car.shell`; ground y = 0, +Z forward, +X = car left = US driver side):
+`v.seatAnchor(i)` / `game.vehicles.seatAnchor(v, i)` -> `{ id: 'driver'|'front'|'rearL'|'rearR'|'rearC', i, side, yaw, hip, heel, roofY, doorX,
+wheel: { c, r, tilt } (driver only) }` (`hip` = H-point / hip joint, `heel` = floor under the heels, `roofY` = headliner, `doorX` = inner door |x|).
+`game.vehicles.seatWorld(v, i)` / `v.seatPosition(i)` = world hip; `v.seatCount`. Library models: measured from each interior by
+`tools/v2/cars/seats.py` (manifest `seats` + `wheel`, per-car overrides `seatFix` in cars.json, report docs/v2/reports/cars-seats.json);
+procedural / hero cars: estimated from the spec. AI drivers: `game.npc.createDriver` + `src/npc/seat.js seatCharacter(ch, anchor)` when present.
+`game.vehicles.addDriver(v)` / `removeDriver(v)` seat or remove an AI driver by hand.
+
 ## 1. `game.vehicles.registerModel(entry, builder)` (cars built by another track)
 
 Used by `hero-cars` (and anyone adding a four-wheeled road vehicle). Physics, damage, traffic, lights, audio fields and enter/exit all come from vehicles-core; you deliver the model.
