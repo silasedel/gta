@@ -812,7 +812,7 @@ export function createPost(game) {
       {
         const A = game.lookAE || (game.lookAE = { ref: -2.0, strength: 0.55, min: -0.3, max: 1.1, up: 0.9, down: 1.8 });
         let want = 0;
-        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max * (1 - 0.45 * night) * (1 - 0.4 * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); // nights stay night; at high sun shaded streets open at most ~0.65 stop
+        if (game.look3 && ae.avgLog !== null && !env?.underwater) want = THREE.MathUtils.clamp((A.ref - ae.avgLog) * A.strength, A.min, A.max * (1 - 0.45 * night) * (1 - 0.65 * THREE.MathUtils.smoothstep(env?.sunDir?.y ?? 0, 0.15, 0.45))); // nights stay night; at high sun shaded streets open at most ~0.4 stop (downtown noon washed out at +0.9)
         const rate = want > ae.comp ? A.up : A.down;
         ae.comp += (want - ae.comp) * (1 - Math.exp(-Math.min(dt, 0.1) * rate));
         if (game.lookAEInstant) ae.comp = want;
