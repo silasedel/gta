@@ -12,7 +12,7 @@ im = Image.open(src).convert('RGB'); W, H = im.size
 a = np.asarray(im, dtype=np.float32) / 255.0
 # 1) the scan's lettering panels: replace with the panel's own median tone + noise (no real company name or phone number)
 for (x0, y0, x1, y1) in [(40, 0, 720, 120), (40, 190, 720, 312)]:
-    p = a[y0:y1, x0:x1]; med = np.median(p.reshape(-1, 3), axis=0)
+    med = np.median(a.reshape(-1, 3), axis=0)   # the whole sheet's median tone (the panel's own was near black and painted as a dark slab)
     n = np.asarray(Image.fromarray((rng.random(((y1 - y0) // 16, (x1 - x0) // 16)) * 255).astype(np.uint8)).resize((x1 - x0, y1 - y0), Image.BICUBIC).filter(ImageFilter.GaussianBlur(3)), dtype=np.float32) / 255
     a[y0:y1, x0:x1] = med * (0.8 + 0.35 * n[..., None])
 # 2) where paint survives: smooth, not-orange areas; chipped by two octaves of noise

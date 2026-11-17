@@ -6,6 +6,7 @@
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
 import { PLANTER } from '../yard.data.js';
+import { RENDER_R2_PAGE } from '../../../../render/frameNoise.js';
 export const order = 50;
 
 export function build(ctx) {
@@ -263,7 +264,7 @@ gl_Position = projectionMatrix * mvPosition;
   const palmBarkM = barkMat('palm_tree_bark'), limbM = barkMat('bark_brown_02');
   const stemM = sway(new THREE.MeshStandardMaterial({ map: fiberTex, bumpMap: kit.microTex(), bumpScale: 0.9, vertexColors: true, roughness: 0.62, metalness: 0, name: 'plants:stem' }));
   const leafletM = sway(new THREE.MeshStandardMaterial({ map: leafletTex, side: THREE.DoubleSide, roughness: 0.5, metalness: 0, name: 'plants:leaflet' }), { back: 0.3 });
-  const atlasM = (rough, back, name) => sway(new THREE.MeshStandardMaterial({ map: atlas, alphaTest: 0.5, side: THREE.DoubleSide, roughness: rough, metalness: 0, name: 'plants:' + name }), { tile: true, back });
+  const atlasM = (rough, back, name) => sway(new THREE.MeshStandardMaterial({ map: atlas, alphaTest: 0.5, alphaToCoverage: RENDER_R2_PAGE, side: THREE.DoubleSide, /* r2-render: A2C, no aliased card edges */ roughness: rough, metalness: 0, name: 'plants:' + name }), { tile: true, back });
   const grapeM = atlasM(0.4, 0.4, 'grape'), cardM = atlasM(0.68, 0.55, 'card'), grassM = atlasM(0.75, 0.35, 'grass');
 
   const palmBark = new Acc(), limbs = new Acc(), stems = new Acc();
@@ -513,7 +514,9 @@ gl_Position = projectionMatrix * mvPosition;
 
   // the lattice planter on the street side (yard.data.js PLANTER, track: keys): canes rise out of the soil, arch over the cap rail
   // and cascade down the lattice faces (mostly the street side), a few trail along the box; petals on the soil, the cap and the sand
-  { const PL = PLANTER, top = PL.h + 0.05, hd = PL.depth / 2 + 0.07;
+  // r2-keys (user: the card-built bougainvillea read layered and splotchy): with PLANTER.library the box is planted with r2-veg's library
+  // bougainvillea (volume-shaded) through yard.data.js PLANTING instead of these cards
+  if (!PLANTER.library) { const PL = PLANTER, top = PL.h + 0.05, hd = PL.depth / 2 + 0.07;
     const inBox = (q) => { for (const [ax, az, bx, bz] of PL.runs) { const along = Math.abs(az - bz) < 0.01; if (along) { if (q.x > Math.min(ax, bx) - 0.05 && q.x < Math.max(ax, bx) + 0.05 && Math.abs(q.z - az) < hd) return { n: [0, Math.sign(q.z - az) || 1], c: az, axis: 'z' }; } else if (q.z > Math.min(az, bz) - 0.05 && q.z < Math.max(az, bz) + 0.05 && Math.abs(q.x - ax) < hd) return { n: [Math.sign(q.x - ax) || 1, 0], c: ax, axis: 'x' }; } return null; };
     PL.plants.forEach((p, i) => { const run = PL.runs.find(([ax, az, bx, bz]) => Math.abs(az - bz) < 0.01 ? Math.abs(p.z - az) < 0.6 && p.x > ax - 0.6 && p.x < bx + 0.6 : Math.abs(p.x - ax) < 0.6), along = run && Math.abs(run[1] - run[3]) < 0.01;
       const out = along ? 0 : Math.PI / 2, col = p.hue === 'coral' ? orange : magenta, s = p.s;   // out: toward the street (+Z) or out of the return run (+X)

@@ -25,7 +25,7 @@ export const DRIVE = { main: [[-19.0, 21.6], [-17.4, 18.4], [-16.2, 14.0], [-15.
 
 // ---- white lattice planter box between the deck and the drive (bougainvillea grows out of it, part 50) ----
 // [ax, az, bx, bz] runs; height of the lattice, depth of the box
-export const PLANTER = { runs: [[-12.1, 12.35, -9.55, 12.35]], h: 0.78, depth: 0.85,
+export const PLANTER = { library: true, runs: [[-12.1, 12.35, -9.55, 12.35]], h: 0.78, depth: 0.85,
   plants: [ // bougainvillea in the box (x, z, size, hue: 'magenta' | 'coral')
     { x: -11.6, z: 12.35, s: 0.75, hue: 'magenta' }, { x: -10.75, z: 12.35, s: 1.1, hue: 'magenta' }, { x: -9.95, z: 12.3, s: 1.25, hue: 'magenta' }] };   // fuller toward the deck end, the bins stay in view
 
@@ -114,6 +114,8 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 // [kind, x, z, opts]: poincianas (red flowering), hibiscus / bougainvillea bushes, sea grape, palms, gumbo limbo. Seven kinds
 // only: every kind is its own instanced vegetation field (LOD meshes + shadows), so new kinds cost draw calls
 export const PLANTING = [   // inside the lot only (r2-veg plants the verges and the neighbors' yards from its own module)
+  // the planter's bougainvillea (library, volume shaded), rooted in the box soil: yOff = the box's soil height
+  ['bougainvillea', -10.2, 12.35, { s: 1.0, yOff: 0.68 }], ['bougainvillea_b', -11.4, 12.4, { s: 0.85, yOff: 0.68 }],
   ['poinciana', -19.0, 2.3, { s: 1.15, seed: 7, model: 'poinciana_c' }],                       // red crown over the classic, right edge of the deck view (mock-up)
   // the big dense dark-green mass right of center, behind the right-hand bins, hiding the roll-off's far end (mock-up)
   ['bush_round', -20.2, 7.9, { s: 2.0 }], ['bush_leafy', -23.6, 6.4, { s: 2.0 }], ['rubber_fig', -25.2, 4.0, { s: 0.9 }], ['hibiscus', -23.4, 2.0, { s: 0.9 }],

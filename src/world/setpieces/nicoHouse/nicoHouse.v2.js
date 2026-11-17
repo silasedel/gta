@@ -163,7 +163,7 @@ function plantYard(game, g) {
   const T = game.THREE, byKind = new Map();
   for (const [kind, lx, lz, o = {}] of PLANTING) {
     // r2-keys: inside the lot the plants stand on the yard sheet (its swells), not on the terrain under it
-    const yy = g.userData.yardY, p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = yy ? g.position.y + yy(lx, lz) - 0.04 : game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
+    const yy = g.userData.yardY, p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = yy ? g.position.y + yy(lx, lz) - 0.04 + (o.yOff || 0) : game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
     if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, keepY: !!yy, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }
     if (!V.kinds?.includes?.(kind)) continue;
     let l = byKind.get(kind); if (!l) byKind.set(kind, (l = [])); l.push({ x: p.x, y, z: p.z, ry: (lx * 7.1 + lz * 3.3) % 6.28, s: o.s || 1 });

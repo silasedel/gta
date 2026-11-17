@@ -10,7 +10,7 @@
    -2.64,
    18.21
   ],
-  "tod": 11,
+  "tod": 12.5,
   "fov": 56,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },
@@ -40,7 +40,7 @@
    -2.64,
    18.21
   ],
-  "tod": 11,
+  "tod": 12.5,
   "fov": 56,
   "weather": "afterrain",
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
@@ -131,7 +131,7 @@
    -2.64,
    18.21
   ],
-  "tod": 11,
+  "tod": 12.5,
   "fov": 56,
   "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
  },

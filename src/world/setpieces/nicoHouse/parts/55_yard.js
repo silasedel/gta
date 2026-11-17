@@ -188,7 +188,7 @@ export function build(ctx) {
     for (let i = 0; i < 520; i++) { const x = q() * w, y = q() * h, l = 7 + q() * 16, a = q() * 6.28, k = q(); g.save(); g.translate(x, y); g.rotate(a);
       g.fillStyle = k < 0.45 ? `rgba(${120 + q() * 50},${86 + q() * 30},${40 + q() * 20},0.95)` : k < 0.75 ? `rgba(${170 + q() * 40},${140 + q() * 30},${70 + q() * 20},0.9)` : k < 0.9 ? `rgba(${92 + q() * 30},${102 + q() * 30},${46},0.9)` : `rgba(${180 + q() * 40},${50 + q() * 30},${30},0.9)`;
       g.beginPath(); g.ellipse(0, 0, l, l * (0.3 + q() * 0.25), 0, 0, 6.28); g.fill(); g.strokeStyle = 'rgba(60,40,20,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-l, 0); g.lineTo(l * 1.2, 0); g.stroke(); g.restore(); } });
-  LEAVES.color.setScalar(0.45); LEAVES.roughness = 0.7;   // r2-art: leaf litter L 0.08-0.12 (was 0.27)
+  LEAVES.color.setScalar(0.3); LEAVES.roughness = 0.7;   // r2-art: leaf litter L <= 0.19 (measured 0.29 at 0.45)
   const MATTED = decal('matted', 512, 512, (g, w, h) => { const q = kit.rng(92); g.clearRect(0, 0, w, h);
     for (let i = 0; i < 2600; i++) { const x = q() * w, y = q() * h, l = 6 + q() * 22, a = 0.4 + (q() - 0.5) * 0.9 + (x / w) * 0.6, k = q(); g.strokeStyle = k < 0.55 ? `rgba(${150 + q() * 40},${150 + q() * 30},${80 + q() * 20},0.75)` : `rgba(${86 + q() * 30},${110 + q() * 30},${50 + q() * 20},0.8)`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5, y + Math.sin(a) * l * 0.5 - 2, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } });
   // crushed shell / marl dust: the pale, almost white yard surface of the mock-up, laid over the sand where cars and feet go

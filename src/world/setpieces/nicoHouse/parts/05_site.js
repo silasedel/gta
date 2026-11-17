@@ -19,8 +19,8 @@ export function build(ctx) {
   // r2-keys (Nov 17): the house is turned in a corner lot (yard.data.js): the sheet runs out to the asphalt of the east leg (front)
   // and the west leg (west side) and sinks under it, follows the drive from the STOP corner past the pickup (DRIVE), and has gentle
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle
-  // coarser: the shell fragments read in the normal map (lead review), nscale 1.7
-  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true, nscale: 1.7 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
+  // shell fragments read in the normal map (lead review) without crunchy grazing-angle noise (r2-art: sand class 0.8-1.0), nscale 1.1
+  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true, nscale: 1.1 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
