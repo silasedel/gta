@@ -7,6 +7,7 @@
 //   planHouse({ seed, w, d, style?, stilt?, base?, district?, drvU?, front?, back?, side? }) -> spec
 //   buildHouse(hk, spec, lod) -> { batch, colliders, lamps, tris }
 import { PALETTES, CURTAINS, styleWeights, pickWeighted } from './styles.js';
+const CURB_LIB = !(typeof location !== 'undefined' && /[?&]lotprops=0/.test(location.search)); // props pass: curb props drawn by lotProps
 
 const PI = Math.PI;
 
@@ -205,11 +206,11 @@ export function* buildHouseGen(hk, sp, lod = 0) {
   if (sp.carport) carport();
   extras();
   yield;
-  const plants = [], cars = [];
+  const plants = [], cars = [], curb = []; // curb: library mailbox / carts spots (house-local) for src/world/props/lotProps.v2.js
   if (sp.yard) yard();
   if (lod < 2) livedIn();
 
-  return { batch: B, colliders: cols, lamps, plants, cars, spec: sp };
+  return { batch: B, colliders: cols, lamps, plants, cars, curb, spec: sp };
 
   // =================================================================== helpers
   function wp(Wl, u, y, o) { const [x, z] = Wl.p(u, o); return [x, y, z]; }
@@ -664,10 +665,16 @@ export function* buildHouseGen(hk, sp, lod = 0) {
       fence(sp.fence, -sideX, sideX, zLine, gaps);
       // mailbox and bins at the curb
       const mx = xd + (xd > 0 ? -1 : 1) * (dw / 2 + 0.5);
+      if (CURB_LIB) { // props pass: the user's library mailbox + carts per house (src/world/props/lotProps.v2.js via houses.v2.js); rng kept
+        r(); if (sp.bins && L1) { r(); r(); r(); r(); }
+        curb.push({ kind: 'mailbox', x: mx, z: zRoad - 0.5 });
+        if (sp.bins) curb.push({ kind: 'carts', x: xd + (xd > 0 ? 1 : -1) * (dw / 2 + 0.8), z: zRoad - 0.75, side: { x: (xd > 0 ? -1 : 1) * (w / 2 + 0.8), z: z1 - 1.3 } });
+      } else {
       B.box(WOOD, 0.1, 1.05, 0.1, M(mx, 0.52, zRoad - 0.4), { color: 0xe8e4da, wear: 0.3 });
       B.box(METAL, 0.22, 0.24, 0.48, M(mx, 1.12, zRoad - 0.4), { color: [0x2a2a2a, 0xe8e4da, 0x2a4a6a, 0x6a2a2a][(r() * 4) | 0], wear: 0.3 });
       if (L0) { B.cyl(METAL, 0.11, 0.11, 0.48, M(mx, 1.24, zRoad - 0.4, PI / 2), { seg: 10, color: 0x2a2a2a }); B.box(METAL, 0.02, 0.12, 0.03, M(mx + 0.12, 1.25, zRoad - 0.3), { color: 0xc8302a }); }
-      if (sp.bins && L1) for (let k = 0; k < 2; k++) { const bx = xd + (xd > 0 ? 1 : -1) * (dw / 2 + 0.4 + k * 0.72), bz = zRoad - 0.6; B.box(PLAST, 0.6, 1.0, 0.7, M(bx, 0.5, bz, 0, (r() - 0.5) * 0.3), { color: [0x2f5a3a, 0x3a3e44, 0x2c4f7c][k + ((r() * 2) | 0)] }); if (L0) B.box(PLAST, 0.64, 0.05, 0.74, M(bx, 1.02, bz), { color: 0x2a2a2a }); cols.push({ shape: 'box', p: [bx, 0.5, bz], h: [0.3, 0.5, 0.35], ry: 0 }); }
+      }
+      if (sp.bins && L1 && !CURB_LIB) for (let k = 0; k < 2; k++) { const bx = xd + (xd > 0 ? 1 : -1) * (dw / 2 + 0.4 + k * 0.72), bz = zRoad - 0.6; B.box(PLAST, 0.6, 1.0, 0.7, M(bx, 0.5, bz, 0, (r() - 0.5) * 0.3), { color: [0x2f5a3a, 0x3a3e44, 0x2c4f7c][k + ((r() * 2) | 0)] }); if (L0) B.box(PLAST, 0.64, 0.05, 0.74, M(bx, 1.02, bz), { color: 0x2a2a2a }); cols.push({ shape: 'box', p: [bx, 0.5, bz], h: [0.3, 0.5, 0.35], ry: 0 }); }
       if (sp.car) cars.push({ x: xd, z: Math.min(zRoad - 3.2, zd0 + 2.8 + (g ? 1 : 0)), ry: PI });
     }
     // pool behind the house (flush with the yard): coping, tile band, water; screen cage on some
@@ -686,6 +693,7 @@ export function* buildHouseGen(hk, sp, lod = 0) {
     // planting (instanced by the world module): palms at the corners, shrubs along the front, a hedge on one side
     for (let k = 0; k < sp.palms; k++) { const sx = (k % 2 ? 1 : -1) * (w / 2 + 0.6 + r() * Math.max(0.2, Y.side - 1)), sz = z1 + 0.8 + r() * Math.max(0.3, Y.gap - 2.5); if (Math.abs(sx - xd) < 2.2) continue; plants.push({ kind: sp.style === 'med' ? 'royal' : r() < 0.6 ? 'coconut' : r() < 0.5 ? 'queen' : 'sabal', x: sx, z: sz, s: 0.75 + r() * 0.4 }); }
     for (let k = 0; k < sp.shrubs; k++) { const sx = x0 + 0.5 + r() * (w - 1), sz = z1 + (sp.porch ? 0.3 : 0.6) + r() * 0.4; if (Math.abs(sx - xd) < 2 || sp.porch?.kind === 'deck') continue; plants.push({ kind: ['hibiscus', 'croton', 'ixora', 'bougainvillea'][(r() * 4) | 0], x: sx, z: sz, s: 0.6 + r() * 0.35 }); }
+    if (sp.frontHedge) for (let x = -sideX + 0.6; x < sideX - 0.4; x += 1.3) { if (Math.abs(x - xd) < 2.2) continue; plants.push({ kind: 'hedge', x, z: zLine - 0.75, s: 0.95 }); }   // keys lots: a clipped hedge behind the front fence
     if (sp.hedge) { const hx = (xd > 0 ? -1 : 1) * (sideX - 0.4); for (let z = z0 - 1; z < zLine - 0.5; z += 1.6) plants.push({ kind: 'hedge', x: hx, z, s: 0.9 }); }
   }
   function fence(type, xa, xb, z, gaps) {
@@ -694,6 +702,10 @@ export function* buildHouseGen(hk, sp, lod = 0) {
     for (const [p, q] of segs) {
       const len = q - p, cx = (p + q) / 2;
       if (type === 'chain') { const h = 1.2; for (let x = p; x <= q + 0.01; x += Math.min(2.4, len)) B.cyl(STEEL, 0.03, 0.03, h + 0.05, M(Math.min(x, q), (h + 0.05) / 2, z), { seg: 6, color: 0xb8bab6 }); B.rod(STEEL, [p, h, z], [q, h, z], 0.02, { color: 0xb8bab6 }); if (L0) box(mat.chainlink(), len, h - 0.05, 0.005, cx, h / 2, z, { color: 0xc8cac6, uvS: 0.06 }); else box(STEEL, len, h - 0.05, 0.01, cx, h / 2, z, { color: 0x8a8c88 }); }
+      else if (type === 'wood') { const h = 1.55; for (let x = p; x <= q + 0.01; x += Math.min(2.4, len)) box(WOOD, 0.1, h + 0.12, 0.1, Math.min(x, q), (h + 0.12) / 2, z + 0.06, { color: vary(0x8a7a62, 0.06), wear: 0.8, grain: 1 });   // keys: weathered board privacy fence
+        for (const y of [0.3, h - 0.25]) box(WOOD, len, 0.09, 0.04, cx, y, z + 0.04, { color: 0x7a6a52, wear: 0.7 });
+        if (L0) for (let x = p + 0.07; x < q - 0.03; x += 0.15 + (r() < 0.06 ? 0.05 : 0)) { if (r() < 0.03) continue; const bh = h - 0.04 - r() * 0.08; box(WOOD, 0.135, bh, 0.018, x, bh / 2 + 0.03, z, { color: vary(r() < 0.15 ? 0xa59478 : 0x8f8470, 0.08), wear: 0.5 + r() * 0.4, grain: 1 }, 0, (r() - 0.5) * 0.03); }
+        else box(WOOD, len, h, 0.03, cx, h / 2, z, { color: 0x857a66, wear: 0.6 }); }
       else if (type === 'picket') { const h = 1.0; for (const y of [0.25, 0.8]) box(PAINT, len, 0.08, 0.04, cx, y, z - 0.03, { color: C.trim, wear: wr(0.2) }); if (L0) for (let x = p + 0.05; x < q; x += 0.14) box(PAINT, 0.08, h, 0.02, x, h / 2, z, { color: vary(C.trim, 0.03), wear: wr(0.25), grain: 1 }); else box(PAINT, len, h, 0.03, cx, h / 2, z, { color: kit.mul(C.trim, 0.9), wear: 0.3 }); }
       else if (type === 'iron') { const h = 1.25; box(CONC, len, 0.3, 0.25, cx, 0.15, z, { color: kit.mul(C.trim, 0.95) }); for (const y of [0.42, h]) box(METAL, len, 0.03, 0.03, cx, y, z, { color: 0x1a1a1a }); if (L0) for (let x = p + 0.06; x < q; x += 0.12) { box(METAL, 0.02, h - 0.3, 0.02, x, 0.3 + (h - 0.3) / 2, z, { color: 0x1a1a1a }); B.cyl(METAL, 0.0, 0.025, 0.07, M(x, h + 0.035, z), { seg: 4, color: 0x1a1a1a }); } else box(METAL, len, h - 0.3, 0.01, cx, 0.3 + (h - 0.3) / 2, z, { color: 0x2a2a2a }); }
       else if (type === 'wall' || type === 'pipe' || type === 'breeze') { const h = type === 'pipe' ? 0.6 : 1.1; box(type === 'breeze' ? mat.breeze() : STUCCO, len, h, 0.2, cx, h / 2, z, { color: type === 'breeze' ? 0xf0ede6 : C.body, wear: 0.4 }); box(STUCCO, len + 0.05, 0.06, 0.28, cx, h + 0.03, z, { color: C.trim, wear: 0.3 }); for (const x of [p, q]) box(STUCCO, 0.38, h + 0.25, 0.38, x, (h + 0.25) / 2, z, { color: C.trim, wear: 0.3 }); if (type === 'pipe') { box(STEEL, len, 0.04, 0.04, cx, h + 0.45, z, { color: 0xe8e8e8 }); if (L0) for (let x = p + 1; x < q; x += 1.2) box(STEEL, 0.04, 0.45, 0.04, x, h + 0.22, z, { color: 0xe8e8e8 }); } }

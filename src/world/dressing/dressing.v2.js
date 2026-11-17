@@ -15,6 +15,9 @@ import * as K from './kit.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { occupancy } from '../ground/occupancy.js';
 import { breakables } from '../miami/breakables.js';
+import { lotProps } from '../props/lotProps.v2.js';
+import { buildKeysLots } from './keysLots.js';
+import { HAND_R } from './keysStreet.data.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 // clipping sweep: trunk radius, height, crown radius of the tall plants placed here (shared occupancy index, src/world/ground/occupancy.js)
 const TALL = { coconut: [0.3, 9, 2.6], sabal: [0.3, 8, 2.4], liveoak: [0.35, 9, 3.2], royal: [0.35, 12, 2.6], gumbo: [0.35, 8, 3] };
@@ -202,7 +205,9 @@ float lNoise(vec2 p) {
   if (spot && Number.isFinite(spot.x)) {
     const hx = spot.x;
     const hz = spot.z;
-    const avoid = [{ x: hx, z: hz, r: 46 }];
+    // keys pass (Nov 17): within HAND_R of Nico's house the neighbors are hand placed (keysStreet.data.js, keysLots.js)
+    const KEYS_HAND = !/[?&]keys=0\b/.test(location.search);
+    const avoid = [{ x: hx, z: hz, r: KEYS_HAND ? HAND_R : 46 }];
     for (const s of data.setpieces || []) if (s.id !== 'nico_house' && Math.hypot(s.x - hx, s.z - hz) < 900) avoid.push({ x: s.x, z: s.z, r: 30 });
     const clear = (x, z, r) => avoid.every((a) => Math.hypot(a.x - x, a.z - z) > a.r + r);
     const landBox = (x, z, ux, uz, w, d) => {
@@ -351,6 +356,7 @@ float lNoise(vec2 p) {
       }
       next = q.s + 26 + R() * 14;
     }
+    if (KEYS_HAND) { try { buildKeysLots(game, { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots: houseLots.enabled && !game.v2DressingBoxHouses ? houseLots : null, K }); } catch (e) { console.error('[dressing] keys lots', e); } }
     // yards
     const carSpots = [];
     for (const L of lots) {
@@ -367,13 +373,17 @@ float lNoise(vec2 p) {
       // crushed-shell driveway from the road to the house
       const dlen = roadV - H.d / 2 + 1;
       const [dx0, dz0] = at(drvU, H.d / 2 + dlen / 2 - 1);
-      const drive = new K.Parts().box(0, 0.025, 0, 3.4, 0.05, dlen, K.SURF.plaster, 0xe6e0d0);
-      place(drive.build(), dx0, groundY(dx0, dz0), dz0, L.ry);
+      if (!(game.groundMask && game.groundMask.addDrive && game.groundMask.addDrive(dx0, dz0, L.ry, 3.4 + ((L.seed * 0.618) % 1) * 0.8, dlen + 1.5))) { // ground pass: drawn into the ground (crushed shell, ragged edges) by the terrain shader, not a slab
+        const drive = new K.Parts().box(0, 0.025, 0, 3.4, 0.05, dlen, K.SURF.plaster, 0xe6e0d0);
+        place(drive.build(), dx0, groundY(dx0, dz0), dz0, L.ry); }
       const [mx, mz] = at(drvU + 2.3, roadV - 1.2);
-      placeBreak(K.mailbox(r), mx, groundY(mx, mz), mz, L.ry, [0.14, 0.7, 0.3], 'mailbox');
+      const LIBP = lotProps.enabled; // props pass: library mailbox + carts per house (src/world/props/lotProps.v2.js); the rng sequence is kept
+      const mbG = K.mailbox(r); if (!LIBP) placeBreak(mbG, mx, groundY(mx, mz), mz, L.ry, [0.14, 0.7, 0.3], 'mailbox');
       const [bx, bz] = at(drvU - 2.3, roadV - 1.6);
-      placeBreak(K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44), bx, groundY(bx, bz), bz, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin');
-      if (r() < 0.5) placeBreak(K.wheelieBin(0x2c4f7c), bx - rx * 0.8, groundY(bx, bz), bz - rz * 0.8, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin');
+      if (!LIBP) placeBreak(K.wheelieBin(r() < 0.5 ? 0x2f5a3a : 0x3a3e44), bx, groundY(bx, bz), bz, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin'); else { r(); r(); }
+      if (r() < 0.5) { if (!LIBP) placeBreak(K.wheelieBin(0x2c4f7c), bx - rx * 0.8, groundY(bx, bz), bz - rz * 0.8, L.ry + (r() - 0.5) * 0.4, [0.3, 0.52, 0.38], 'bin'); else r(); }
+      if (LIBP) { const [sx, sz] = at(-Math.sign(drvU) * (H.w / 2 + 0.8), H.d / 2 - 1.4);
+        lotProps.add('dressing:' + L.seed, [{ kind: 'mailbox', x: mx, y: groundY(mx, mz), z: mz, ry: L.ry, seed: L.seed }, { kind: 'carts', x: bx - rx * 0.4, y: groundY(bx, bz), z: bz - rz * 0.4, ry: L.ry, seed: L.seed + 1, side: { x: sx, y: groundY(sx, sz), z: sz, ry: L.ry } }]); }
       if (L.bait) {
         carSpots.push({ x: at(-3, H.d / 2 + 6)[0], z: at(-3, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
         carSpots.push({ x: at(3.5, H.d / 2 + 6)[0], z: at(3.5, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
@@ -490,13 +500,15 @@ float lNoise(vec2 p) {
         if (h > 0.5) continue;
         const jx = x + (hash2(x, z, 4) - 0.5) * 3;
         const jz = z + (hash2(x, z, 5) - 0.5) * 3;
-        if (!isWater(jx, jz)) continue;
-        // water cell next to land: mangroves stand in the shallows along the shore
-        let land = false;
-        for (const [ox, oz] of [[4, 0], [-4, 0], [0, 4], [0, -4]]) if (!isWater(jx + ox, jz + oz)) land = true;
-        if (!land || !clear(jx, jz, 8) || Math.hypot(jx - spot.dock?.[0], jz - spot.dock?.[1]) < 14) continue;
+        // keys pass: mangroves stand on the shore fringe (a land cell with water within 3 m) with their prop roots sunk into the
+        // wet sand at the waterline; the sea bed here drops to -5 m, so a mangrove out in the water hovered with its roots in the air
+        const wet = isWater(jx, jz); let near = false;
+        for (const [ox, oz] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) if (isWater(jx + ox, jz + oz) !== wet) near = true;
+        if (!near) continue;
+        const gy = wet ? null : groundY(jx, jz); if (wet || gy > 0.9) continue;
+        if (!clear(jx, jz, 8) || Math.hypot(jx - spot.dock?.[0], jz - spot.dock?.[1]) < 14) continue;
         if (vnoise(jx * 0.02, jz * 0.02) < 0.38) continue;
-        addVeg('mangrove', { x: jx, y: -0.3, z: jz, ry: h * 60, s: 0.7 + h * 0.8 });
+        addVeg('mangrove', { x: jx, y: Math.min(gy, 0.25) - 0.35, z: jz, ry: h * 60, s: 0.7 + h * 0.8 });
         mg++;
       }
     }

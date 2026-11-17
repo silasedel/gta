@@ -67,6 +67,16 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
     ready,
     names: (k) => [...S.pieces.keys()].filter((n) => n.startsWith(k + '/')).map((n) => n.slice(k.length + 1)),
     piece: (k, name) => S.pieces.get(k + '/' + name) || null,
+    // pile / leg feet of a dock piece: vertices within 0.35 m of its lowest point, clustered (x, z, radius, bottom y)
+    legs(k, name, opts) {
+      const p = S.pieces.get(k + '/' + name); if (!p) return []; if (p.legs && !opts) return p.legs;
+      const lo = p.box.min.y, pts = [];
+      for (const q of p.parts) { const a = q.geometry.attributes.position; for (let i = 0; i < a.count; i++) if (a.getY(i) < lo + (opts?.band ?? 0.35)) pts.push([a.getX(i), a.getZ(i), a.getY(i)]); }
+      const cl = [];
+      for (const [x, z, y] of pts) { let c = cl.find((c) => Math.hypot(c.sx / c.n - x, c.sz / c.n - z) < 0.35); if (!c) cl.push((c = { sx: 0, sz: 0, n: 0, r: 0, y: 1e9, pts: [] })); c.sx += x; c.sz += z; c.n++; c.y = Math.min(c.y, y); c.pts.push([x, z]); }
+      p.legs = cl.map((c) => { const x = c.sx / c.n, z = c.sz / c.n; let r = 0.06; for (const [a, b] of c.pts) r = Math.max(r, Math.hypot(a - x, b - z)); return { x, z, r: Math.min(0.25, r), y: c.y }; });
+      return p.legs;
+    },
     // per-piece instancing: one InstancedMesh per piece material, per-instance tint (instanceColor)
     instancer(tag = 'keys') {
       const lists = new Map();

@@ -31,7 +31,7 @@ export function build(ctx) {
   // ---- piles under water: the kit posts end about 3.3 m below the deck; marine timber carries them to the sea bed ----
   const MW = mat.wood({ marine: true });
   const pileAt = (px, pz, top) => { const gb = Math.min(ground(px, pz), sea - 0.4); if (top - gb < 0.2) return; const h = top - gb + 0.4; B.cyl(MW, 0.12, 0.135, h, M(px, top - h / 2, pz, (r() - 0.5) * 0.02, r() * 6, 0), { seg: 10, hseg: 3, color: kit.vary(0x6f665a, r, 0.1), wear: 1 }); col.cyl(px, (top + gb) / 2, pz, 0.14, top - gb, { tag: 'pile' }); };
-  for (const s of secs) for (const dx of [-1.08, 1.08]) for (const dz of [-s.L / 2 + 0.15, s.L / 2 - 0.15]) { const px = X + dx, pz = s.zc + dz; if (ground(px, pz) < sea - 0.3) pileAt(px, pz, y - 3.25); }
+  for (const s of secs) for (const dx of [-1.08, 1.08]) for (const dz of [-s.L / 2 + 0.15, s.L / 2 - 0.15]) { const px = X + dx, pz = s.zc + dz, gb = ground(px, pz); if (gb < sea - 0.3) col.cyl(px, (y - 3.2 + gb) / 2, pz, 0.14, Math.max(0.2, y - 3.2 - gb), { tag: 'pile' }); }   // visuals: from the kit's own post feet (below)
   // ---- T-head deck (own boards on the kit's look: the planks piece is too short for it) ----
   for (let zz = headZ - 1.1; zz < headZ + 1.12; zz += 0.152) B.box(WD, 7.1 + (r() - 0.5) * 0.04, 0.045, 0.145, M(X + (r() - 0.5) * 0.03, y - 0.022 + (r() - 0.5) * 0.004, zz, 0, (r() - 0.5) * 0.004, (r() - 0.5) * 0.006), { grain: 0, color: kit.vary(r() < 0.07 ? 0xb49a70 : 0x8f887c, r, 0.12), wear: 0.4 + r() * 0.5, bevel: 0.005, rand: r });
   for (const zz of [headZ - 1.15, headZ + 1.15]) B.box(WD, 7.2, 0.26, 0.08, M(X, y - 0.18, zz), { grain: 0, color: 0x6f675c, wear: 0.8, bevel: 0.006 });
@@ -57,6 +57,13 @@ export function build(ctx) {
     for (const s of secs) I.add('pier_kit', s.n, M(X, y, s.zc, 0, s.flip ? PI : 0, 0), { tint: [0.96 + r() * 0.08, 0.96 + r() * 0.06, 0.95 + r() * 0.06] });
     I.add('pier_kit', 'modular_wooden_pier_section_05', M(X - 3.3, y, headZ, 0, PI / 2, 0));   // the hoist frame across the head's west wing
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
+    // every kit post foot that ends above the sea bed carries on down in marine-growth timber (same radius, sunk into the bed)
+    const PB = kit.batch('dockPiles'); let nExt = 0;
+    for (const s of secs) for (const L of lib.legs('pier_kit', s.n, { band: 0.7 })) {
+      const lx = s.flip ? -L.x : L.x, lz = s.flip ? -L.z : L.z, px = X + lx, pz = s.zc + lz, top = y + L.y + 0.12, gb = ground(px, pz) - 0.4;
+      if (top - gb < 0.25 || gb > sea) continue; const h = top - gb; PB.cyl(MW, Math.max(0.09, L.r * 0.95), Math.max(0.1, L.r * 1.05), h, M(px, top - h / 2, pz), { seg: 10, hseg: 3, color: kit.vary(0x6f665a, r, 0.1), wear: 1 }); nExt++;
+    }
+    PB.build(ctx.groups.site);
     // boats: their own meshes (they move)
     const dyn = new THREE.Group(); dyn.name = 'keysDockBoats'; ctx.groups.site.add(dyn);
     for (const b of boats) {
@@ -70,6 +77,6 @@ export function build(ctx) {
     }
     { const p = lib.piece('lifebuoy', 'dock'); if (p) for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.position.set(X + 3.55, y + 0.35, headZ + 1.25); m.rotation.y = 0; m.castShadow = true; m.raycast = () => {}; ctx.groups.site.add(m); } }
     ctx.updaters.push((dt, env) => { const t = performance.now() / 1000; for (const b of boats) if (b.g) { b.g.position.y = sea - b.draft + Math.sin(t * 0.9 + b.ph) * 0.035; b.g.rotation.z = Math.sin(t * 0.7 + b.ph) * 0.025; b.g.rotation.x = Math.sin(t * 0.55 + b.ph * 2) * 0.015; } });
-    ctx.stats.keysDock = { sections: secs.length, instances: I.count(), zEnd: +zEnd.toFixed(1) };
+    ctx.stats.keysDock = { sections: secs.length, instances: I.count(), zEnd: +zEnd.toFixed(1), pileExt: nExt };
   }));
 }
