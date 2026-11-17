@@ -7,6 +7,7 @@ import './hud.css';
 import { createCorner } from './hud/corner.js';
 import { createMapRenderer, MAP_COLORS, setMapPalette } from './mapRender.js';
 import { createGPS } from './gps.js';
+import { createPhone } from './phone/phone.js';
 
 const TAU = Math.PI * 2;
 const MAP_X0 = -580, MAP_X1 = 760, MAP_Z0 = -580, MAP_Z1 = 580; // baked world rect (m)
@@ -86,15 +87,6 @@ const SHOP_GLYPH = (t = '') => {
   if (/garage|mechanic|auto/.test(t)) return ['wrench', '#ffb35a'];
   return ['bag', '#ffd27a'];
 };
-const APPS = [
-  { id: 'contacts', name: 'Contacts', bg: 'linear-gradient(140deg,#ffb35a,#ff6b5a)' },
-  { id: 'messages', name: 'Messages', bg: 'linear-gradient(140deg,#4be38a,#18b07a)' },
-  { id: 'camera', name: 'Camera', bg: 'linear-gradient(140deg,#5d6578,#2c3140)' },
-  { id: 'map', name: 'Map', bg: 'linear-gradient(140deg,#ff5fa8,#1a8fb0)' },
-  { id: 'wavvy', name: 'Wavvy', bg: 'linear-gradient(140deg,#ff5fb8,#7a5cff)' },
-  { id: 'bank', name: 'Bank', bg: 'linear-gradient(140deg,#2b3550,#121828)' },
-  { id: 'settings', name: 'Settings', bg: 'linear-gradient(140deg,#8a93a6,#4b5263)' },
-];
 
 export function createHUD(game) {
   // fonts: bundled (src/ui/styles/fonts.css)
@@ -216,29 +208,38 @@ export function createHUD(game) {
   const photoHint = el('div', 'ps-photo-hint', 'PHOTO MODE · HUD hidden · <kbd>Backspace</kbd> to exit');
   root.appendChild(photoHint);
 
-  // ---------- Phone ----------
-  const phone = el('div', 'ps-phone');
-  phone.innerHTML = `<div class="ps-phone-body"><div class="ps-phone-screen">
-      <div class="ps-phone-status"><span class="ps-ph-time">18:00</span><span class="ps-ph-notch"></span><span class="ps-ph-icons">${ICON.signal}${ICON.battery}</span></div>
-      <div class="ps-phone-home">
-        <div class="ps-ph-big"><div class="ps-ph-bigtime">18:00</div><div class="ps-ph-date">Friday · ${BRAND.name}</div></div>
-        <div class="ps-ph-grid"></div>
-        <div class="ps-ph-hint">◀ ▶ ▲ select · Enter open · ▼ close</div>
-      </div>
-      <div class="ps-phone-app"><div class="ps-app-head"><span class="ps-app-back">‹</span><span class="ps-app-title"></span></div><div class="ps-app-body"></div></div>
-      <div class="ps-phone-bar"></div>
-    </div></div>`;
-  root.appendChild(phone);
-  const phGrid = phone.querySelector('.ps-ph-grid');
-  const phTime = phone.querySelector('.ps-ph-time'), phBig = phone.querySelector('.ps-ph-bigtime');
-  const phApp = phone.querySelector('.ps-phone-app'), phAppTitle = phone.querySelector('.ps-app-title'), phAppBody = phone.querySelector('.ps-app-body');
-  const appEls = APPS.map((a, i) => {
-    const b = el('div', 'ps-app', `<div class="ps-app-ico" style="background:${a.bg}">${ICON[a.id]}</div><div class="ps-app-name">${a.name}</div>`);
-    b.addEventListener('click', () => { phoneSel = i; openApp(i); });
-    phGrid.appendChild(b); return b;
+  // ---------- Phone (src/ui/phone: Kestrel OS) ----------
+  // P / Arrow Up / pad Up toggle it. While it is up the bindings layer runs in 'phone' mode (arrows, Enter, Backspace,
+  // Esc and digits drive the phone; WASD still walks) and the mouse cursor is freed (phone setting) so apps can be
+  // clicked and scrolled. Releasing the pointer lock for the phone does not pause the game.
+  let phoneLeaveMode = null, phoneFreedLock = false, phoneHadLock = false;
+  const phone = createPhone(game, {
+    root,
+    drawMap: (c, o) => drawPhoneMap(c, o),
+    openPauseMap: () => { setPaused(true, false); setTab(0); },
+    setPhoto: (on) => setPhoto(!!on),
+    onOpenChange: (o) => {
+      ui.phoneOpen = o;
+      root.classList.toggle('phone', o);
+      const B = game.bindings;
+      if (o) {
+        closeWheel(false);
+        if (B?.pushMode && !phoneLeaveMode) {
+          phoneLeaveMode = B.pushMode('phone');
+          const offNav = B.on?.('nav', (d) => { if (ui.phoneOpen && B.mode === 'phone') phone.nav(d.dir, d); });
+          const offDigit = B.on?.('digit', (n) => { if (ui.phoneOpen && B.mode === 'phone') phone.digit(n); });
+          const leave = phoneLeaveMode;
+          phoneLeaveMode = () => { leave(); try { offNav?.(); offDigit?.(); } catch (e) { /* */ } };
+        }
+        phoneHadLock = !!document.pointerLockElement;
+        if (phone.prefs.freeCursor && document.pointerLockElement) { phoneFreedLock = true; document.exitPointerLock?.(); }
+      } else {
+        if (phoneLeaveMode) { phoneLeaveMode(); phoneLeaveMode = null; }
+        if (phoneHadLock && !ui.paused && !ui.photo && !document.pointerLockElement) requestLock();
+        phoneHadLock = false;
+      }
+    },
   });
-  phone.querySelector('.ps-app-back').addEventListener('click', () => closeApp());
-  let phoneSel = 0, phoneAppOpen = -1;
 
   // ---------- Pause menu ----------
   const pause = el('div', 'ps-pause');
@@ -334,33 +335,30 @@ export function createHUD(game) {
     }
     if (e.repeat) return;
     if (ui.title) return;
-    if (k === 'Escape' || k === 'KeyP') {
+    if (k === 'Escape') {
       const now = performance.now();
       if (k === 'Escape' && now - lockLostAt < 350 && ui.paused) return; // lock-loss already opened it
       if (now - pauseToggledAt < 150) return;
-      if (ui.phoneOpen && k === 'Escape') { setPhone(false); return; }
+      if (ui.phoneOpen && k === 'Escape') { phone.back(); return; }
       setPaused(!ui.paused, true); e.preventDefault(); return;
     }
     if (ui.paused || deadShown || ui.weaponWheel) return;
     if (ui.photo) { if (['Backspace', 'ArrowUp', 'ArrowDown', 'Enter'].includes(k)) { setPhoto(false); e.preventDefault(); } return; }
-    if (!ui.phoneOpen) { if (k === 'ArrowUp') { setPhone(true); e.preventDefault(); } return; }
-    // phone open
-    e.preventDefault();
-    if (phoneAppOpen >= 0) {
-      if (k === 'Backspace' || k === 'ArrowLeft') closeApp();
-      else if (k === 'ArrowDown') setPhone(false);
-      return;
-    }
-    if (k === 'ArrowLeft') phoneSel = (phoneSel + APPS.length - 1) % APPS.length;
-    else if (k === 'ArrowRight') phoneSel = (phoneSel + 1) % APPS.length;
-    else if (k === 'ArrowUp') phoneSel = (phoneSel + APPS.length - 3) % APPS.length;
-    else if (k === 'Enter' || k === 'Space') openApp(phoneSel);
-    else if (k === 'Backspace' || k === 'ArrowDown') setPhone(false);
-    refreshPhoneSel();
+    // phone: P is its key, Arrow Up and pad Up too (bindings: canonical 'ArrowUp'). With the bindings layer in 'phone'
+    // mode the physical arrows arrive as nav events instead, so an ArrowUp here while the phone is up came from P.
+    if (k === 'KeyP' && !game.bindings) { phone.toggle(); e.preventDefault(); return; }
+    if (!ui.phoneOpen) { if (k === 'ArrowUp') { phone.setOpen(true); e.preventDefault(); } return; }
+    if (game.bindings?.mode === 'phone') { if (k === 'ArrowUp') { phone.setOpen(false); e.preventDefault(); } return; }
+    // no bindings layer (test pages): drive the phone from raw keys
+    const NAVK = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', Enter: 'accept', NumpadEnter: 'accept', Backspace: 'back' };
+    if (e.target?.tagName === 'INPUT' && !['Enter', 'NumpadEnter'].includes(k)) return;
+    if (NAVK[k]) { e.preventDefault(); phone.nav(NAVK[k], { code: k }); }
+    else if (/^Digit\d$/.test(k)) phone.digit(k.slice(5));
   }, true);
 
   document.addEventListener('pointerlockchange', () => {
-    if (document.pointerLockElement) { hideTitle(); if (ui.paused) setPaused(false, false); }
+    if (document.pointerLockElement) { hideTitle(); if (ui.paused) setPaused(false, false); if (ui.phoneOpen && phone.prefs.freeCursor) phone.setOpen(false); }
+    else if (phoneFreedLock) { phoneFreedLock = false; }
     else if (!ui.title && !ui.paused) { if (ui.phoneOpen) setPhone(false); lockLostAt = performance.now(); setPaused(true, false); }
   });
 
@@ -508,47 +506,7 @@ export function createHUD(game) {
     if (on) { setPhone(false); photoHint.classList.remove('on'); void photoHint.offsetWidth; photoHint.classList.add('on'); }
     root.classList.toggle('photo', on);
   }
-  function setPhone(o) {
-    if (ui.phoneOpen === o) return;
-    ui.phoneOpen = o;
-    phone.classList.toggle('on', o);
-    root.classList.toggle('phone', o);
-    if (!o) closeApp(); else refreshPhoneSel();
-  }
-  function refreshPhoneSel() { appEls.forEach((a, i) => a.classList.toggle('sel', i === phoneSel)); }
-  function closeApp() { phoneAppOpen = -1; phApp.classList.remove('on'); }
-  function openApp(i) {
-    phoneAppOpen = i; const a = APPS[i];
-    phAppTitle.textContent = a.name;
-    phApp.style.setProperty('--app-bg', a.bg);
-    phAppBody.innerHTML = appContent(a.id);
-    phApp.classList.add('on');
-    if (a.id === 'map') { const c = phAppBody.querySelector('canvas'); if (c) drawPhoneMap(c); }
-    if (a.id === 'camera') setTimeout(() => { if (phoneAppOpen === i && ui.phoneOpen) setPhoto(true); }, 450);
-  }
-  function appContent(id) {
-    const money = num(game.player?.money);
-    switch (id) {
-      case 'contacts': return list([['Marisol Vega', 'Fixer · Neon Row'], ['"Tiny" Okafor', 'Garage · Harbor District'], ['Dr. Anand', 'Southline General'], ['Coral Cabs', 'Dispatch'], ['Mom', 'Palmetto Heights'], ['Unknown', 'Blocked']]);
-      case 'messages': return `<div class="ps-msgs">
-          <div class="ps-msg in"><b>Marisol</b>Got a job on the boardwalk. Bring a fast car, keep it clean.</div>
-          <div class="ps-msg out">On my way. Which pier?</div>
-          <div class="ps-msg in"><b>Marisol</b>Pier 7. After sunset. Don't be late, sunshine.</div>
-          <div class="ps-msg in"><b>Tiny</b>That coupe you scratched? It's on your tab. 😤</div></div>`;
-      case 'camera': return `<div class="ps-cam"><div class="ps-cam-vf"><i></i><i></i><i></i><i></i></div><div class="ps-cam-shutter"></div></div>`;
-      case 'map': return `<canvas class="ps-ph-map" width="440" height="560"></canvas><div class="ps-ph-maploc">${distName(num(game.player?.position?.x), num(game.player?.position?.z))}</div>`;
-      case 'wavvy': return `<div class="ps-feed">
-          ${post('@sunsetsally', 'Golden hour on Coral Beach never misses 🌅', 'linear-gradient(160deg,#ff9a5a,#ff5f8a 55%,#5a3c8a)', 2481)}
-          ${post('@neonrow_eats', 'Late-night empanadas, open till 4. Line around the block.', 'linear-gradient(160deg,#ff5fb8,#3b2a7a)', 932)}
-          ${post('@southline_pd', 'Reminder: the speed limit on Ocean Blvd is NOT a suggestion.', 'linear-gradient(160deg,#2a4b8a,#121a33)', 17)}</div>`;
-      case 'bank': return `<div class="ps-bank"><div class="ps-bank-card"><span>FIRST ${BRAND.name.toUpperCase()}</span><b>${fmtMoney(money)}</b><small>•••• 0721</small></div>
-          ${list([['Coral Cabs', '-$18'], ['Pier 7 Bait & Tackle', '-$42'], ['Transfer · M. Vega', '+$1,500'], ['Southline Gas', '-$64']])}</div>`;
-      case 'settings': return list([['Airplane mode', 'Off'], ['Ringtone', 'Lagoon Pulse'], ['Wallpaper', 'Sunset Gradient'], ['Graphics', String(settings.quality).toUpperCase()], ['Mouse sensitivity', settings.mouseSens.toFixed(2)], ['Version', 'SolanaOS 7.2']]);
-    }
-    return '';
-  }
-  function list(rows) { return `<div class="ps-list">${rows.map(([a, b]) => `<div class="ps-row"><span>${a}</span><small>${b}</small></div>`).join('')}</div>`; }
-  function post(user, text, bg, likes) { return `<div class="ps-post"><div class="ps-post-u">${user}</div><div class="ps-post-img" style="background:${bg}"></div><div class="ps-post-t">${text}</div><div class="ps-post-l">♥ ${likes.toLocaleString()}</div></div>`; }
+  function setPhone(o) { phone.setOpen(!!o); }
 
   // ---------- city bake ----------
   function tryBake() {
@@ -797,6 +755,11 @@ export function createHUD(game) {
   function mapIcons(p, ppm, mode, view) {
     const icons = [];
     for (const lm of landmarks(p)) icons.push({ x: lm.x, z: lm.z, prio: 88, lm: lm.kind, draw: (g, x, y, s) => drawLandmark(g, x, y, lm.kind, s) });
+    // generic blips other systems publish (game.mapBlips: [{ x, z, kind, label, prio, draw(g, x, y, s) }]), e.g. metro stations
+    for (const b of Array.isArray(game.mapBlips) ? game.mapBlips : []) {
+      if (!b || !isFinite(b.x) || !isFinite(b.z) || typeof b.draw !== 'function') continue;
+      icons.push({ x: b.x, z: b.z, prio: b.prio ?? 80, lm: b.kind, label: b.label, draw: (g, x, y, s) => { try { b.draw(g, x, y, s); } catch (e) { /* a bad blip must not break the map */ } } });
+    }
     for (const c of policeEntities(p)) icons.push({ ...c, prio: 95, draw: (g, x, y) => copBlipScreen(g, x, y, c.kind === 'cop') });
     const PL = game.pickups?.list;
     if (Array.isArray(PL) && p) {
@@ -1104,18 +1067,17 @@ export function createHUD(game) {
     if (!mapXform) return;
     bctx.save(); bctx.translate(mapXform.ox, mapXform.oz); bctx.scale(mapXform.k, mapXform.k); fn(bctx); bctx.restore();
   }
-  function drawPhoneMap(c) {
-    const g = c.getContext('2d'), p = game.player?.position || { x: 0, z: 0 };
+  function drawPhoneMap(c, o = {}) {
+    const g = c.getContext('2d'), p = Number.isFinite(o.cx) ? { x: o.cx, z: o.cz } : game.player?.position || { x: 0, z: 0 };
     if (!bake && !mapR.ok()) bake = tryBake();
     g.fillStyle = MAP_COLORS.sea; g.fillRect(0, 0, c.width, c.height);
-    const k = 1.2;
+    const k = Number.isFinite(o.radius) ? Math.min(c.width, c.height) / 2 / o.radius : 1.2;
     g.save(); g.translate(c.width / 2, c.height / 2); g.scale(k, k); g.translate(-p.x, -p.z);
     const R = Math.hypot(c.width, c.height) / 2 / k;
     if (!mapR.draw(g, p.x - R, p.z - R, p.x + R, p.z + R, k, { id: 'phone' }) && bake) g.drawImage(bake, MAP_X0, MAP_Z0, MAP_X1 - MAP_X0, MAP_Z1 - MAP_Z0);
     if (routeShown && routeShown.length > 1) strokeRoute(g, routeShown, 1 / k, 6);
     g.restore();
-    g.fillStyle = '#ff5fa8'; g.beginPath(); g.arc(c.width / 2, c.height / 2, 7, 0, TAU); g.fill();
-    g.strokeStyle = '#fff'; g.lineWidth = 3; g.stroke();
+    return true;
   }
 
   // ---------- settings / controls / stats ----------
@@ -1155,7 +1117,7 @@ export function createHUD(game) {
     const rows = [
       ['ON FOOT', [['W A S D', 'Move'], ['Shift', 'Sprint'], ['Space', 'Jump'], ['Mouse', 'Look'], ['LMB', 'Punch'], ['F', 'Enter / exit vehicle']]],
       ['DRIVING', [['W / S', 'Throttle / brake · reverse'], ['A / D', 'Steer'], ['Space', 'Handbrake'], ['H', 'Horn'], ['F', 'Exit vehicle']]],
-      ['GENERAL', [['▲ Arrow Up', 'Phone'], ['◀ ▶ / Enter', 'Phone navigate / open'], ['▼ / Backspace', 'Close phone · back'], ['Esc / P', 'Pause menu']]],
+      ['GENERAL', [['P / ▲', 'Phone'], ['Arrows / Enter', 'Phone navigate / open'], ['Backspace / Esc', 'Phone back · close'], ['Esc', 'Pause menu']]],
     ];
     host.innerHTML = rows.map(([h, items]) => `<div class="ps-ctl-col"><h3>${h}</h3>${items.map(([k, v]) => `<div class="ps-ctl"><span>${k.split(' / ').map((x) => `<kbd>${x}</kbd>`).join('<em>/</em>')}</span><b>${v}</b></div>`).join('')}</div>`).join('');
   }
@@ -1398,7 +1360,7 @@ export function createHUD(game) {
 
     // clock / money
     const clk = fmtClock(game.timeOfDay);
-    if (lastClock !== clk) { lastClock = clk; phTime.textContent = clk; phBig.textContent = clk; }
+    if (lastClock !== clk) lastClock = clk;
     const money = num(pl.money);
     if (money !== moneyTarget) {
       const diff = money - moneyTarget; moneyTarget = money;
@@ -1488,14 +1450,10 @@ export function createHUD(game) {
     if (arrestTimer > 0) { arrestTimer -= dt; if (arrestTimer <= 0 && !ui.arrested) arrestEl.classList.remove('on'); }
     root.classList.toggle('flash-low', hp > 0 && hp < 25);
 
-    // live phone map
-    if (ui.phoneOpen && phoneAppOpen >= 0 && APPS[phoneAppOpen].id === 'map') {
-      const c = phAppBody.querySelector('canvas'); if (c) drawPhoneMap(c);
-    }
+    phone.update(dt);
   }
 
   // initial
-  refreshPhoneSel();
   corner.setCash(fmtMoney(moneyShown));
   if (document.pointerLockElement) hideTitle();
   const api = { setKnown: corner.setKnown, setWantedFlash: corner.setWantedFlash, startPlay: () => hideTitle(), update, notify, help, setMission, districtAt, setPaused, setPhone, showArrest, crimeToast, openWeaponWheel: openWheel, closeWeaponWheel: closeWheel,

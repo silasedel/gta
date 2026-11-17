@@ -151,7 +151,9 @@ export function createWorldStuff(game, G) {
     if (p.type === 'atm') {
       if (now - p.robbedT < 120) { game.hud?.notify?.('ATM: OUT OF SERVICE', 2000); return; }
       sfx(game, 'beep', p.pos, 0.6);
-      game.hud?.notify?.(`Southline Bank: card declined. Your balance is safe in your pocket ($${Math.round(P.money || 0)}).`, 3200);
+      // cardless ATM: the phone's bank app opens on its ATM page (deposit / withdraw through the core bank)
+      if (game.phone?.openApp) game.phone.openApp('bank', { atm: true });
+      else game.hud?.notify?.(`Southline Bank: card declined. Your balance is safe in your pocket ($${Math.round(P.money || 0)}).`, 3200);
     } else if (p.type === 'vending') {
       if ((P.money || 0) < 2) { game.hud?.notify?.('Not enough cash.', 1800); return; }
       P.money -= 2; P.health = Math.min(100, P.health + 10);

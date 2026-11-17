@@ -48,7 +48,7 @@ function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now 
 requestAnimationFrame(loop);
 setTimeout(() => {
   if (P.get('view') === 'pause') {
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' }));
     setTimeout(() => {
       if (P.get('fit')) game.hud._mapFit();
       else if (P.get('ppm')) game.hud._mapZoom?.(+P.get('ppm'), P.get('cx') != null ? +P.get('cx') : null, P.get('cz') != null ? +P.get('cz') : null);

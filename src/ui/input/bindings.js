@@ -51,9 +51,10 @@ export const DEFAULT_ACTIONS = [
   A('radioNext', 'Radio: next station', 'Vehicle', 'vehicle', 'Period', 'RIGHT'),
   A('radioPrev', 'Radio: previous station', 'Vehicle', 'vehicle', 'Comma', 'LEFT'),
   A('headlights', 'Headlights', 'Vehicle', 'vehicle', 'KeyL', null),
-  A('phone', 'Phone', 'General', CTX_ANY, 'ArrowUp', 'UP'),
+  // canonical ArrowUp (what the HUD listens for); P is the default primary key, Arrow Up the alternate
+  A('phone', 'Phone', 'General', CTX_ANY, 'ArrowUp', 'UP', { bind: ['KeyP', 'ArrowUp'] }),
   A('map', 'Map', 'General', CTX_ANY, 'KeyM', 'BACK'),
-  A('pause', 'Pause menu', 'General', CTX_ANY, 'Escape', 'START', { alt: 'KeyP', fixed: true }),
+  A('pause', 'Pause menu', 'General', CTX_ANY, 'Escape', 'START', { fixed: true }),
   A('photo', 'Hide HUD (photo)', 'General', CTX_ANY, 'F8', null),
   A('quickSave', 'Quick save', 'General', CTX_ANY, 'F5', null),
   A('pushToTalk', 'Push to talk (multiplayer)', 'General', CTX_ANY, 'KeyN', 'DOWN'),
@@ -139,7 +140,8 @@ export function createBindings(game, opts = {}) {
   let captureResolve = null, captureKind = null;
   let table = null;                 // context -> Map(physical -> [{canon, action}])
 
-  const keysOf = (a) => { const u = user[a.id]; return u ? [u[0] ?? null, u[1] ?? null] : [a.key, a.alt]; };
+  const defKeys = (a) => (a.bind ? [a.bind[0] ?? null, a.bind[1] ?? null] : [a.key, a.alt]);
+  const keysOf = (a) => { const u = user[a.id]; return u ? [u[0] ?? null, u[1] ?? null] : defKeys(a); };
   const padOf = (a) => (a.id in userPad ? userPad[a.id] : (PAD_LAYOUTS[layout].map[a.id] ?? a.pad));
   const isDefault = () => !Object.keys(user).length;
   function context() {
@@ -405,8 +407,8 @@ export function createBindings(game, opts = {}) {
         if (ch) { user[b.id] = ks; lost.push(b); }
       }
       const ks = keysOf(a); ks[slot ? 1 : 0] = code || null; if (code && ks[slot ? 0 : 1] === code) ks[slot ? 0 : 1] = null;
-      if (ks[0] === a.key && ks[1] === a.alt) delete user[id]; else user[id] = ks;
-      for (const b of lost) { const k2 = user[b.id]; if (k2 && k2[0] === b.key && k2[1] === b.alt) delete user[b.id]; }
+      const dk = defKeys(a); if (ks[0] === dk[0] && ks[1] === dk[1]) delete user[id]; else user[id] = ks;
+      for (const b of lost) { const k2 = user[b.id], db = defKeys(b); if (k2 && k2[0] === db[0] && k2[1] === db[1]) delete user[b.id]; }
       releaseAll(); build(); persist(); return lost;
     },
     setPad(id, btn) { const a = actions.get(id); if (!a) return; if ((PAD_LAYOUTS[layout].map[id] ?? a.pad) === btn) delete userPad[id]; else userPad[id] = btn || null; persist(); },

@@ -1,0 +1,67 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>Phone (dev)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1117; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .bg { position: fixed; inset: 0; background-size: cover; background-position: center; filter: saturate(1.05); }
+  .ps-hud { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+</style></head>
+<body><div class="bg"></div><canvas id="game"></canvas><div class="ps-hud" id="ps-hud"></div>
+<script type="module">
+// DEV ONLY: the phone on a still game frame, with the REAL core systems (money, bank, time, save) in memory storage.
+// URL: ?bg=<image path>  ?hour=19.5  ?open=bank|messages|...  ?theme=light|dark  ?fines=2  ?wanted=2
+import { createMockGame } from '../dev/mockGame.js';
+import { createSystems } from '../../systems/index.js';
+import { design } from '../../design/index.js';
+import { createPhone } from './phone.js';
+const Q = new URLSearchParams(location.search);
+document.querySelector('.bg').style.backgroundImage = `url(${Q.get('bg') || '/docs/v2/shots/art/geo2_sobe_0_a.jpg'})`;
+const game = await createMockGame({ world: 'grid', hour: Number(Q.get('hour') || 18.4) });
+try { await design.ready(); } catch (e) { /* fonts */ }
+game.design = design;
+const sys = createSystems(game, { memory: true, seed: 11 });
+sys.attach();
+await sys.save.newGame({ slot: 'slot1' });
+// a lived-in ledger across 12 game days
+const T = sys.time, W = game.wallet, B = game.bank;
+const at = (d, h) => T.set({ day: d, hour: h });
+const jobs = [['Gulfstream Couriers', 'Parcel run', 240], ['Ray Okonjo Lending', 'Debt collection', 410], ['Paloma Charters', 'Boat tour payout', 520]];
+const buys = [['Octano', 'Fuel', 48.2, 'fuel'], ['Northlight Coffee', 'Cafecito and pastelito', 6.75, 'food'], ['Dash Burger', 'Lunch', 13.4, 'food'], ['Alder & Fig', 'Groceries', 62.18, 'groceries'], ['Casa Hibisco', 'Linen shirt', 89, 'clothing'], ['Halewell', 'Sunscreen', 14.99, 'pharmacy'], ['The Leaky Bilge', 'Drinks', 27.5, 'bar']];
+let k = 0;
+for (let d = 1; d <= 12; d++) {
+  at(d, 8.5); W.pay(buys[(d * 3) % buys.length][2], { method: 'card', to: buys[(d * 3) % buys.length][0], memo: buys[(d * 3) % buys.length][1], category: buys[(d * 3) % buys.length][3] });
+  if (d % 2 === 0) { at(d, 13); const j = jobs[k++ % jobs.length]; W.earn(j[2] + d * 9, { method: 'deposit', category: 'jobs', memo: j[1], from: j[0] }); }
+  at(d, 17.2); const b = buys[(d * 5 + 2) % buys.length]; W.pay(b[2] * (1 + (d % 3) * 0.3), { method: d % 3 ? 'card' : 'cash', to: b[0], memo: b[1], category: b[3] });
+  if (d === 5) { at(d, 10); W.earn(1800, { method: 'deposit', category: 'business', memo: 'Weekly takings', from: 'Tiki Tabú' }); }
+  if (d === 7) { at(d, 11); B.transfer(600, 'checking', 'savings'); }
+  if (d === 9) { at(d, 12); W.earn(380, { category: 'jobs', memo: 'Parcel run', from: 'Gulfstream Couriers' }); }
+  if (d === 11) { at(d, 15); B.deposit(200, { teller: true }); }
+}
+at(12, Number(Q.get('hour') || 18.4));
+W.earn(2400, { method: 'deposit', category: 'income', memo: 'Charter season bonus', from: 'Paloma Charters' });
+for (let i = 0; i < Number(Q.get('fines') ?? 1); i++) game.fines.issue({ kind: i ? 'parking' : 'speeding', speedOver: 18, place: i ? 'Ocean Dr' : 'MacArthur Causeway', camera: true });
+if (Q.get('wanted')) game.wanted = { level: Number(Q.get('wanted')), evading: true, heat: 3, clearT: 0, clear() { this.level = 0; } };
+game.jobs = { list: [{ id: 'parcel', name: 'Parcel run', client: 'Gulfstream Couriers', pay: '$180-320', blurb: 'Two drops before the truck is due back.' }, { id: 'debts', name: 'Debt collection', client: 'Ray Okonjo Lending', pay: '$300-600' }, { id: 'protect', name: 'Protect a shop', client: 'A worried shopkeeper', pay: '$400' }], active: null, stats: { done: { parcel: 3, debts: 1 }, earned: 1460 }, start(id) { console.log('job start', id); }, cancel() {} };
+game.weather = { kind: Q.get('weather') || 'partly', forecast: [{ hour: 21, kind: 'rain' }] };
+game.player.heading = 0.6;
+// the HUD hands the map renderer to the phone; the mock has none, so draw a simple stand-in
+const drawMap = (c, o) => { const g = c.getContext('2d'); g.fillStyle = '#1e2a36'; g.fillRect(0, 0, c.width, c.height); g.strokeStyle = '#3c4c60'; g.lineWidth = 10; for (let i = -6; i < 12; i++) { g.beginPath(); g.moveTo(i * 90 - (o.cx % 90), 0); g.lineTo(i * 90 - (o.cx % 90) + 40, c.height); g.stroke(); g.beginPath(); g.moveTo(0, i * 90 - (o.cz % 90)); g.lineTo(c.width, i * 90 - (o.cz % 90) + 30); g.stroke(); } g.fillStyle = '#1a6a8a'; g.fillRect(c.width * 0.72, 0, c.width, c.height); return true; };
+const phone = createPhone(game, { root: document.getElementById('ps-hud'), drawMap, openPauseMap: () => console.log('pause map'), setPhoto: (v) => console.log('photo', v) });
+if (Q.get('theme')) { phone.prefs.appearance = Q.get('theme'); phone.os.savePrefs(); }
+window.phone = phone; window.sys = sys;
+let last = performance.now();
+const loop = (t) => { requestAnimationFrame(loop); const dt = Math.min(0.1, (t - last) / 1000); last = t; game.tick(dt); phone.update(dt); game.input.endFrame(); };
+requestAnimationFrame(loop);
+addEventListener('keydown', (e) => {
+  const c = e.code;
+  if (c === 'KeyP') { phone.toggle(); return; }
+  if (!phone.open) { if (c === 'ArrowUp') phone.setOpen(true); return; }
+  const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', Enter: 'accept', Backspace: 'back', Escape: 'back' };
+  if (e.target.tagName === 'INPUT' && !['Enter', 'Escape'].includes(c)) return;
+  if (map[c]) { e.preventDefault(); phone.nav(map[c], { code: c }); }
+  else if (/^Digit\d$/.test(c)) phone.digit(c.slice(5));
+});
+if (Q.get('open') !== 'none') { phone.setOpen(true); if (Q.get('open')) setTimeout(() => phone.openApp(Q.get('open'), JSON.parse(Q.get('opts') || '{}')), 300); }
+window.ready = true;
+</script></body></html>

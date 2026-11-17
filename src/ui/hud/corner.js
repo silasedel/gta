@@ -353,19 +353,27 @@ export function createCorner(game) {
     bankLine.classList.toggle('none', t == null);
     if (t != null) moneyLine(bankSvg, t, '#ffffff', 'bank');
   }
-  function cashFly(diff) {
+  function moneyFly(line, rowText, diff) {
     if (!diff) return;
     showMoney(5);
     const up = diff > 0;
     const t = (up ? '+' : '-') + '$' + Math.round(Math.abs(diff)).toLocaleString('en-US');
     const fly = div('hc-fly ' + (up ? 'up' : 'down'));
-    fly.style.right = `calc(var(--u) * ${(VX0 + VW - (moneyRight() - textWidth(cashText, MB.h)) + 30).toFixed(0)}px)`;
+    fly.style.right = `calc(var(--u) * ${(VX0 + VW - (moneyRight() - textWidth(rowText || '', MB.h)) + 30).toFixed(0)}px)`;
     const w = textWidth(t, 104) + 40;
     fly.innerHTML = `<svg viewBox="0 0 ${w} ${MB.rowH}" style="--w:${w};--h:${MB.rowH}" aria-hidden="true">${textSVGThin([{ t, color: up ? '#8fe07a' : '#ff6f61' }], w - 20, (MB.rowH - 104) / 2, 104)}</svg>`;
-    cashLine.appendChild(fly);
+    line.appendChild(fly);
     setTimeout(() => fly.remove(), 1700);
-    restart(cashLine, 'pop');
+    restart(line, 'pop');
   }
+  function cashFly(diff) { moneyFly(cashLine, cashText, diff); }
+  // bank row: wires, deposits and card payments from the phone's bank app fly out the same way as cash
+  let bankNum = null;
+  function bankChanged(v) {
+    if (bankNum != null && Math.abs(v - bankNum) >= 0.5) moneyFly(bankLine, bankText, v - bankNum);
+    bankNum = v;
+  }
+  try { for (const n of ['loaded', 'newGame']) game.on?.(n, () => { bankNum = null; }); } catch (e) { /* no event bus */ }
   function setClock(text) {
     if (text === clockText) return;
     clockText = text;
@@ -438,6 +446,7 @@ export function createCorner(game) {
       // bank line exists only when the banking system does
       const b = game.bank ? tryGet(() => game.bank.balance, null) : null;
       setBank(typeof b === 'number' && isFinite(b) ? '$' + Math.round(b).toLocaleString('en-US') : null);
+      if (typeof b === 'number' && isFinite(b)) bankChanged(b);
     }
 
     // weapon + ammo

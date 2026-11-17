@@ -36,7 +36,7 @@ setTimeout(() => {
   if (demo.includes('drive')) { game.player.state.inVehicle = true; game.player.state.vehicle = { name: 'Vesper GT', speedKmh: 132 }; }
   if (demo.includes('hud')) { game.player.money += 1500; game.player.wanted = 3; game.hud.help('Press <b>F</b> to enter vehicle'); game.hud.notify('Marisol: Pier 7, after sunset.', 60000); game.hud.setMission('Drive to Pier 7 on Coral Beach'); game.waypoint = { x: 200, z: -150 }; }
   if (demo.includes('phone')) { kd('ArrowUp'); if (demo.includes('app')) { for (let i = 0; i < +params.get('app'); i++) kd('ArrowRight'); kd('Enter'); } }
-  if (demo.includes('pause')) { kd('KeyP'); if (params.get('tab')) document.querySelectorAll('.ps-tab')[+params.get('tab')].click(); }
+  if (demo.includes('pause')) { kd('Escape'); if (params.get('tab')) document.querySelectorAll('.ps-tab')[+params.get('tab')].click(); }
   if (demo.includes('dead')) game.player.health = 0;
   if (demo.includes('w2')) {
     game.player.inventory = ['fist', 'bat', 'pistol', 'shotgun']; game.player.ammo = { pistol: 48, smg: 0, shotgun: 12 }; game.player.weapon = 'pistol'; game.player.aiming = true;

@@ -48,10 +48,10 @@ if (mode === 'map') {
       // in-game pause map: player at North Shore, waypoint on the Calabash causeway (ref_63's pin), map fitted to the world
       const ns = P('North Shore');
       await b.eval('game.cameraOverride = null; true'); await b.eval(`game.teleport(${ns.x}, null, ${ns.z}, 0) || true`); await b.sleep(4000); await b.eval("(() => { if (window.__vc) window.__vc.remove(); return true; })()");
-      await b.eval(`(() => { game.timeExternal = true; game.timeOfDay = 11; game.waypoint = { x: -15790, z: -12890 }; game.ui.title = false; for (const c of document.querySelectorAll('canvas')) if (c !== game.renderer.domElement) c.style.display = 'none'; const t = document.getElementById('title'); if (t) t.style.display = 'none'; window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP', key: 'p' })); return true; })()`);
+      await b.eval(`(() => { game.timeExternal = true; game.timeOfDay = 11; game.waypoint = { x: -15790, z: -12890 }; game.ui.title = false; for (const c of document.querySelectorAll('canvas')) if (c !== game.renderer.domElement) c.style.display = 'none'; const t = document.getElementById('title'); if (t) t.style.display = 'none'; window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape' })); return true; })()`);
       await b.sleep(2500); await b.eval('(game.hud._mapFit && game.hud._mapFit()) || true'); await b.sleep(5000);
       console.log('SHOT', await b.screenshot(path.join(OUT, 'fullmap_gps.png')));
-      await b.eval(`window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP', key: 'p' })) || true`); await b.sleep(1500);
+      await b.eval(`window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape' })) || true`); await b.sleep(1500);
     }
     if (b.errors.length) console.log('console errors', [...new Set(b.errors)].slice(0, 6));
   });
