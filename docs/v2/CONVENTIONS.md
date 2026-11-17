@@ -138,7 +138,11 @@ How the world and the systems connect. If something here is wrong, fix the code 
   use a per-pixel offset plus a golden-ratio step per frame (`uFrameN`), or an interleaved 4x4 pattern plus a resolve.
 - Lit opaque built-in materials write their ambient light share to alpha in the main scene pass (look3.js); the contact
   AO darkens only that share. Code that renders the scene into its own target is unaffected (`LOOK_V.z` is 0 there).
-- Round-2 look A/B in one session: `game.lookR2 = false` restores the overnight look3.
+- Round-2 look A/B in one session: `game.lookR2 = false` restores the overnight look3. Knobs: `game.lookCloudShadows`
+  (ground cloud shadows), `game.lookShafts` (volumetric sun shafts; auto at low sun), `game.lookShadeAmb` /
+  `game.lookShadeBounce` (sky cut / bounce in cast shadows), `game.lookExpR2`, `game.lookAOR2`, `game.lookHazeR2`.
+- The sky's cumulus field is world-anchored (`env.cloudBase` m); post.js repeats `cloudShape()` for the cloud-shadow
+  map: change both together.
 
 ## 4. Events (`game.emit` / `game.on`)
 - `crime` `{ type, position|pos, severity?, by?: 'officer'|'witness'|'alarm'|'camera'|'self', witnesses? }` — types in
