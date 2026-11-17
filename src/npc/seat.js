@@ -297,21 +297,32 @@ function solve(ch, S, dt) {
 }
 
 /** put a character into a seat (anchor in the space of the character root's parent, normally the car shell) */
+const _wp0 = new THREE.Vector3();
+/** the camera the far-skip measures against (set by seatCharacter from opts.game / the vehicle's game) */
+export const S_CAM = { cam: null };
 export function seatCharacter(ch, anchor, opts = {}) {
+  if (opts.game?.camera) S_CAM.cam = opts.game.camera; else if (!S_CAM.cam && typeof window !== 'undefined' && window.game?.camera) S_CAM.cam = window.game.camera;
   if (!ch?.root || !anchor) return false;
   const role = opts.role || (anchor.id === 'driver' || anchor.i === 0 ? 'driver' : 'passenger');
   ch.root.rotation.set(0, anchor.yaw || 0, 0);
   ch.root.scale.setScalar(1);
   const vs = opts.vehicle?.spec || null;
   const S = { open: !!(opts.open ?? (vs && (vs.convertible || vs.roadster || vs.cls === 'roadster' || vs.bike))), anchor, role, vehicle: opts.vehicle || null, fit: 0, reachFit: 0, reachLean: 0, slide: 0, elbowFix: 0, sink: 0, extraRecline: 0, chin: 0, steer: 0,
-    scale: (ch.archetype?.height || ch.personMeta?.height || 1.78) / 1.78 };
+    scale: (ch.archetype?.height || ch.personMeta?.height || 1.78) / 1.78, isPlayer: !!(ch.isNico || opts.player) };
   ch._seat = S;
   if (!ch._seatWrapped) {
     const orig = ch.update;
     ch.update = function (dt, anim = {}) {
+      const s0 = ch._seat;
+      // far from the camera a seated person holds the last solved pose (no mixer, no solve): a person seen through car
+      // glass beyond ~45 m does not need breathing or steering hands, and it keeps traffic cheap
+      if (s0 && s0.solved && anim.driving && !s0.isPlayer && S_CAM.cam) {
+        ch.root.getWorldPosition(_wp0);
+        if (_wp0.distanceToSquared(S_CAM.cam.position) > 45 * 45) return null;
+      }
       const r = orig.call(this, dt, anim);
       const s = ch._seat;
-      if (s && anim.driving && !anim.dead) { try { solve(ch, s, dt); } catch (e) { if (!s.warned) { s.warned = true; console.warn('[seat] solve', e); } } }
+      if (s && anim.driving && !anim.dead) { try { solve(ch, s, dt); s.solved = true; } catch (e) { if (!s.warned) { s.warned = true; console.warn('[seat] solve', e); } } }
       return r;
     };
     ch._seatWrapped = true;
