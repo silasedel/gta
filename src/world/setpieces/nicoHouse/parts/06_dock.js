@@ -47,7 +47,7 @@ export function build(ctx) {
       const g = new THREE.PlaneGeometry(len, 1.2); g.rotateY(Math.PI / 2); B.geo(MESH, g, M(fx, 0.62, zc), { uvMul: [len / 0.75, 1.2 / 0.75] }); g.dispose();
       col.box(fx, 0.65, zc, 0.06, 1.3, len, { tag: 'fence' }); };
     const edgeAt = (x) => { if (!wAt) return -20; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) return z2 + 1.0; return -20; };
-    fence(-23.6, -4.0, edgeAt(-23.6)); fence(11.2, -4.0, edgeAt(11.2)); }
+    fence(-23.6, -4.0, Math.max(edgeAt(-23.6), Dk.zw - 1.5)); fence(11.2, -4.0, Math.max(edgeAt(11.2), Dk.zw - 1.5)); }   // the lot lines end at the bay edge by the dock
   ctx.async.push(lib.ready.then(() => { const I = lib.instancer('keysRiprap'), names = lib.names('rocks').sort();
     RIP.forEach(([x, zz, sc], i) => I.add('rocks', names[i % 3], M(x, -0.28, zz, (r() - 0.5) * 0.3, r() * 6.28, (r() - 0.5) * 0.3, sc, sc * 0.75, sc), { tint: [0.98 + r() * 0.06, 0.96 + r() * 0.06, 0.9 + r() * 0.06] }));
     for (const m of I.build(ctx.groups.site)) m.raycast = () => {}; }));
