@@ -3607,9 +3607,12 @@ export function createTileBuilder(ctx) {
     else for (const a of tile.areas || []) if (a.kind !== 'pool') fillPoly(g, a.rings, plazaRaised(a) ? CURB : 0, 0xffffff, 1); // job 4: raised block plazas walk at slab height
     // ground cover: every 2 m cell of this tile that is land (not water) gets a floor at y = 0, so no land is ever without a collider
     // (OSM land polygons miss slivers along the coast, tile borders and whole map-edge tiles; the visual land base covers them)
+    // r2-physics (QA-030/037, QA-007/036): the fallback land floor stands where the land is DRAWN: no floor where the terrain is drawn
+    // under water (it made an invisible floor 0.35 m over the seabed past the shore), and at the land base's own height (-0.05: feet hovered 5 cm)
+    const SEA_Y = D?.seaLevel ?? -0.12, LB_Y = -0.05, shoreWet = (x, z) => { try { const h = terrain?.heightAt?.(x, z); return Number.isFinite(h) && h < SEA_Y - 0.06; } catch (e) { return false; } };
     if (isWater && !(LFc && terrain)) { const T = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? t.x0, z0 = tile.z0 ?? t.z0, C = 2, N = Math.round(T / C);
-      for (let j = 0; j < N; j++) { let run = -1; for (let i = 0; i <= N; i++) { const land = i < N && !isWater(x0 + (i + 0.5) * C, z0 + (j + 0.5) * C);
-          if (land && run < 0) run = i; if (!land && run >= 0) { const xa = x0 + run * C, xb = x0 + i * C, za = z0 + j * C, zb = za + C; quadUp(g, [xa, 0, za], [xb, 0, za], [xb, 0, zb], [xa, 0, zb], WHITE, 1); run = -1; } }
+      for (let j = 0; j < N; j++) { let run = -1; for (let i = 0; i <= N; i++) { const land = i < N && !isWater(x0 + (i + 0.5) * C, z0 + (j + 0.5) * C) && !shoreWet(x0 + (i + 0.5) * C, z0 + (j + 0.5) * C);
+          if (land && run < 0) run = i; if (!land && run >= 0) { const xa = x0 + run * C, xb = x0 + i * C, za = z0 + j * C, zb = za + C; quadUp(g, [xa, LB_Y, za], [xb, LB_Y, za], [xb, LB_Y, zb], [xa, LB_Y, zb], WHITE, 1); run = -1; } }
         if ((j & 3) === 3) yield; } }
     if (audit) add(g, soupOf('area')), g = new Batch();
     flush(); yield;
@@ -3621,7 +3624,7 @@ export function createTileBuilder(ctx) {
     flush(); yield;
     let bb = new Batch(), k = 0;
     for (const b of buildingsOf(tile)) {
-      if (b.part || houseLots.claims(b)) continue; // claimed houses bring their own colliders (setpieces/houses)
+      if (houseLots.claims(b)) continue; // r2-physics (QA-045): building parts are solid too (tall parts above a low outline were walk-through, roofs 11 m above their collider) // claimed houses bring their own colliders (setpieces/houses)
       buildBuilding(NULLB, b, { coll: bb, shops: false, relief: LFc }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
