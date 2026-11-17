@@ -37,16 +37,37 @@ export function rigOf(root) {
   r.ok = !!(r.hand && r.fore && r.arm && (r.fingersR || r.axR));
   r.lok = !!(r.lhand && r.lfore && r.larm && (r.fingersL || r.axL));
   r.head = find(root, 'Head'); r.neck = find(root, 'Neck');
-  if (r.head) {   // the head's forward axis in its own frame (taken from the body's forward when the rig is first read)
-    const q = new THREE.Quaternion(), fw = new THREE.Vector3();
-    if (r.larm && r.arm) { fw.crossVectors(r.larm.getWorldPosition(new THREE.Vector3()).sub(r.arm.getWorldPosition(new THREE.Vector3())), UP).setY(0).normalize(); }
-    else { root.getWorldQuaternion(q); fw.set(0, 0, 1).applyQuaternion(q).setY(0).normalize(); }
-    r.head.getWorldQuaternion(q); r.headFwd = fw.applyQuaternion(q.invert());
-  }
+  r.lfoot = find(root, 'LeftFoot'); r.rfoot = find(root, 'RightFoot'); r.ltoe = find(root, 'LeftToeBase'); r.rtoe = find(root, 'RightToeBase');
+  r.hips = find(root, 'Hips');
+  bindForward(root, r);
   Object.defineProperty(root.userData, '__gunRig', { value: r, enumerable: false, configurable: true, writable: true });
   return r;
 }
 const wp = (o, v) => o.getWorldPosition(v);
+// bind-pose body forward from the geometry: feet stick out in front of the ankle joints. Stored in the hips' and the
+// head's own frames (so the animated head direction is known), plus whether the rig names its sides mirrored.
+function bindForward(root, r) {
+  let mesh = null; root.traverse((o) => { if (o.isSkinnedMesh && o.skeleton && r.hand && o.skeleton.bones.includes(r.hand) && (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)) mesh = o; });
+  if (!mesh || !r.hips) return;
+  const sk = mesh.skeleton, g = mesh.geometry, P = g.attributes.position, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight;
+  const bindM = (b) => { const i = sk.bones.indexOf(b); return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert(); };
+  const bpos = (b) => { const m = b && bindM(b); return m ? new THREE.Vector3().setFromMatrixPosition(m) : null; };
+  const feet = [r.lfoot, r.rfoot, r.ltoe, r.rtoe].filter(Boolean).map((b) => sk.bones.indexOf(b)).filter((i) => i >= 0);
+  if (!feet.length) return;
+  const anchor = [bpos(r.lfoot), bpos(r.rfoot)].filter(Boolean); if (!anchor.length) return;
+  const ankle = anchor.reduce((a, v) => a.add(v), new THREE.Vector3()).multiplyScalar(1 / anchor.length);
+  const acc = new THREE.Vector3(), v = new THREE.Vector3(); let n = 0;
+  for (let k = 0; k < P.count; k++) {
+    let best = -1, bw = 0; for (let c = 0; c < 4; c++) { const w = SW.getComponent(k, c); if (w > bw) { bw = w; best = SI.getComponent(k, c); } }
+    if (!feet.includes(best)) continue;
+    v.fromBufferAttribute(P, k).applyMatrix4(mesh.bindMatrix); acc.add(v); n++;
+  }
+  if (n < 20) return;
+  acc.multiplyScalar(1 / n).sub(ankle); acc.y = 0; if (acc.lengthSq() < 1e-8) return; acc.normalize();   // bind-space forward
+  const toLocal = (b) => { const m = bindM(b); if (!m) return null; const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(m)).invert(); return acc.clone().applyQuaternion(q); };
+  r.hipsFwd = toLocal(r.hips); if (r.head) r.headFwd = toLocal(r.head);
+  const la = bpos(r.larm), ra = bpos(r.arm); if (la && ra) r.mirror = new THREE.Vector3().crossVectors(la.sub(ra), UP).dot(acc) < 0;
+}
 // bind-pose hand axes: F along the forearm -> hand line, S toward the character's front (thumb / index side in a
 // T- or A-pose), N = palm normal; stored in the hand bone's local frame
 function bindAxes(root, r) {
@@ -110,14 +131,14 @@ function frame(r, side, out) {
     wp(side === 'R' ? r.fore : r.lfore, _a); out.F.subVectors(out.o, _a).normalize();
     const Fb = _b.copy(ax.F).applyQuaternion(_q); if (Fb.dot(out.F) < 0.5) out.F.copy(Fb);   // a sharply bent wrist: trust the bone
     out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
-    if (side === 'R') out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);
+    if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);   // anatomical handedness (rigs may name sides mirrored)
     out.N.normalize();
     return out;
   }
   wp(h, out.o); wp(r[P + 'Middle1'], out.F).sub(out.o); out.len = out.F.length(); out.F.normalize();
   wp(r[P + 'Index1'], out.S); wp(r[P + 'Pinky1'], _a); out.S.sub(_a); out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
   // palm normal from handedness: right hand N = S x F, left hand N = F x S (the thumb is unreliable on mitten-like scans)
-  if (side === 'R') out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);
+  if ((side === 'R') !== !!r.mirror) out.N.crossVectors(out.S, out.F); else out.N.crossVectors(out.F, out.S);   // anatomical handedness (rigs may name sides mirrored)
   out.N.normalize();
   return out;
 }
@@ -199,7 +220,7 @@ const _hf = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vect
 function lookAlong(r, target, down, fw) {
   if (!r.head) return;
   wp(r.head, _hp); _ht.subVectors(target, _hp).normalize(); _ht.y = THREE.MathUtils.clamp(_ht.y - down, -0.35, 0.3); _ht.normalize();   // keep the chin up: eyes down the sights, not a bow
-  _hf.copy(fw);   // the animated head faces roughly where the shoulders face
+  if (r.headFwd) { r.head.getWorldQuaternion(_hq); _hf.copy(r.headFwd).applyQuaternion(_hq).normalize(); } else _hf.copy(fw);
   const ang = _hf.angleTo(_ht); if (ang < 1e-3) return;
   const k = Math.min(1, 1.2 / ang);
   for (const [bone, w] of [[r.neck, 0.3], [r.head, 0.5]]) {
@@ -214,11 +235,11 @@ function basisFrom(dir, roll = 0) {
   if (roll) { _q.setFromAxisAngle(_Z, roll); _X.applyQuaternion(_q); _Y.applyQuaternion(_q); }
 }
 // wrist target for a wanted gun origin + basis (inverse of gunFromHand for guns: F = Z, S = Y, N = X)
-function wristFor(model, kind, origin, out) {
+function wristFor(model, kind, origin, out, hs = 1) {
   const g = GRIP[kind] || GRIP.pistol, hp = model.userData.holdPoint;
   out.copy(origin);
   if (hp && hp.lengthSq() > 0) out.add(_d.set(0, 0, 0).addScaledVector(_X, hp.x).addScaledVector(_Y, hp.y).addScaledVector(_Z, hp.z));
-  return out.addScaledVector(_Z, -g.a).addScaledVector(_X, -g.b).addScaledVector(_Y, -g.c);
+  return out.addScaledVector(_Z, -g.a).addScaledVector(_X, -g.b * hs).addScaledVector(_Y, -g.c);
 }
 const _FL = new THREE.Vector3(), _SL = new THREE.Vector3(), _W = new THREE.Vector3(), _pole = new THREE.Vector3(), _lg = new THREE.Vector3(), _sm = new WeakMap();
 // main entry. Returns true when the model was placed.
@@ -226,11 +247,14 @@ export function holdWeapon(model, root, o = {}) {
   const r = rigOf(root); if (!r || !r.ok || !model) return false;
   const ud = model.userData, kind = ud.hold || 'pistol';
   root.updateMatrixWorld(true);
-  // body axes from the character root
-  // body forward from the shoulders (character roots may carry a yaw offset to their model's facing)
-  wp(r.larm, _a); wp(r.arm, _b); _fw.crossVectors(_a.sub(_b), UP).setY(0);
+  // body forward: the feet point forward (toes); shoulders give a fallback and tell whether the rig names its sides
+  // mirrored (then the 'Right' arm is the anatomical left one and every side-dependent offset flips)
+  if (r.hipsFwd) { r.hips.getWorldQuaternion(_q); _fw.copy(r.hipsFwd).applyQuaternion(_q).setY(0); }
+  else { wp(r.larm, _a); wp(r.arm, _b); _fw.crossVectors(_a.sub(_b), UP).setY(0); if (r.mirror) _fw.negate(); }
   if (_fw.lengthSq() < 1e-6) { root.getWorldQuaternion(_q); _fw.set(0, 0, 1).applyQuaternion(_q).setY(0); }
-  _fw.normalize(); _lf.crossVectors(UP, _fw).normalize();
+  _fw.normalize();
+  const hs = r.mirror ? -1 : 1;
+  _lf.crossVectors(UP, _fw).normalize().multiplyScalar(hs);   // from the gun arm toward the body's center
   const aiming = !!o.aim && kind !== 'melee', lowReady = !aiming && kind === 'long' && !o.free;
   const reload = !!o.reload && kind !== 'melee';
   if (aiming || lowReady || reload) {
@@ -268,7 +292,7 @@ export function holdWeapon(model, root, o = {}) {
     s.o.lerp(_O, k); s.z.lerp(_Z, k).normalize(); s.y.lerp(_Y, k); s.y.addScaledVector(s.z, -s.y.dot(s.z)).normalize();
     _O.copy(s.o); _Z.copy(s.z); _Y.copy(s.y); _X.crossVectors(_Y, _Z).normalize();
     // right arm to the grip, hand aligned with the gun
-    wristFor(model, kind, _O, _W);
+    wristFor(model, kind, _O, _W, hs);
     wp(r.fore, _pole); _pole.copy(_sh).addScaledVector(UP, -0.6).addScaledVector(_lf, -0.35).addScaledVector(_fw, -0.1);
     ik2(r.arm, r.fore, r.hand, _W, _pole);
     orientHand(r, 'R', _Z, _Y);
@@ -284,22 +308,22 @@ export function holdWeapon(model, root, o = {}) {
     const two = ud.twoHand || kind === 'long';
     if (reload) {
       const bb = ud.bbox; _lg.set(0.0, bb ? bb.min[1] + 0.02 : -0.1, kind === 'long' ? 0.13 : -0.01); model.localToWorld(_lg);
-      _W.copy(_lg).addScaledVector(_Y, -0.05).addScaledVector(_Z, -0.04).addScaledVector(_X, 0.03);
+      _W.copy(_lg).addScaledVector(_Y, -0.05).addScaledVector(_Z, -0.04).addScaledVector(_X, 0.03 * hs);
       wp(r.larm, _a); _pole.copy(_a).addScaledVector(UP, -0.6).addScaledVector(_lf, 0.4);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', _FL.copy(UP), _SL.copy(_Z));
     } else if (two && ud.leftGrip) {
       _lg.copy(ud.leftGrip); model.localToWorld(_lg);
-      const Fl = _FL.copy(_Z).multiplyScalar(0.45).addScaledVector(_X, -0.9).normalize();
+      const Fl = _FL.copy(_Z).multiplyScalar(0.45).addScaledVector(_X, -0.9 * hs).normalize();
       _W.copy(_lg).addScaledVector(_Y, -0.03).addScaledVector(Fl, -0.055).addScaledVector(_Z, -0.01);
       wp(r.larm, _c); _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.3);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', Fl, _SL.copy(_Z));
     } else {
       // two-handed handgun grip: the support palm cups the front / left of the shooting fist, thumb forward along the frame
-      const Fl = _FL.copy(_X).multiplyScalar(-0.85).addScaledVector(_Z, 0.4).normalize();
-      const Nl = _lg.crossVectors(Fl, _Y).normalize();
-      _W.set(0.022, -0.045, 0.03); model.localToWorld(_W); _W.addScaledVector(Fl, -0.06).addScaledVector(Nl, -0.02);
+      const Fl = _FL.copy(_X).multiplyScalar(-0.85 * hs).addScaledVector(_Z, 0.4).normalize();
+      const Nl = hs > 0 ? _lg.crossVectors(Fl, _Y).normalize() : _lg.crossVectors(_Y, Fl).normalize();
+      _W.set(0.022 * hs, -0.045, 0.03); model.localToWorld(_W); _W.addScaledVector(Fl, -0.06).addScaledVector(Nl, -0.02);
       wp(r.larm, _c); _pole.copy(_c).addScaledVector(UP, -0.7).addScaledVector(_lf, 0.25);
       ik2(r.larm, r.lfore, r.lhand, _W, _pole);
       orientHand(r, 'L', Fl, _SL.copy(_Y));

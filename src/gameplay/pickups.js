@@ -19,7 +19,7 @@ const HOVER = 0.3;   // model center above the ground (m)
 function box(w, h, d, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(sharedBox(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; return m; }
 const _protos = new Map();
 function pickupModel(type, color) { // non-weapon prototypes are shared; weapons are library models (shared geometry + materials)
-  if (isWeapon(type) || type === 'health' || type === 'ammo') return buildPickupModel(type, color);
+  if (isWeapon(type) || type === 'health' || type === 'ammo' || type === 'armor') return buildPickupModel(type, color);
   let p = _protos.get(type);
   if (!p) { p = buildPickupModel(type, color); _protos.set(type, p); }
   return p.clone();
@@ -54,9 +54,8 @@ function buildPickupModel(type, color) {
     w.scale.setScalar(small ? 1.25 : 1.06);
     g.userData.weapon = w; g.userData.variant = w.userData.lib || null;
     g.add(w);
-  } else if (type === 'armor') {
-    g.add(box(0.42, 0.5, 0.14, new THREE.MeshStandardMaterial({ color: 0x2a3550, roughness: 0.8 })));
-    g.add(box(0.3, 0.12, 0.15, glowMat, 0, 0.1, 0.005));
+  } else if (type === 'armor') {   // no vest model in the library: a small supply crate (the user's crate, uniform scale)
+    const m = propModel('crate', (pg) => addRim(pg, color)); m.scale.setScalar(0.5); m.position.y = -0.15; g.add(m);
   } else if (type === 'health') {
     const m = propModel('first_aid', (pg) => addRim(pg, color)); m.scale.setScalar(1.15); g.add(m);
   } else if (type === 'cash') {

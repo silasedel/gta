@@ -100,6 +100,34 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       const crate = game.scene.getObjectByName('prop-crate'); return 'crate ' + (crate ? crate.position.toArray().map((v) => v.toFixed(2)) + ' kids=' + crate.children.length : 'missing') + ' stash ' + st.pos.toArray().map((v) => v.toFixed(2)); })()`);
     console.log(r); await b.sleep(2500); await b.screenshot(path.join(DIR, `${SET}_stash_crate.png`));
   }
+  if (o.cop2) {
+    // a standalone officer (same people model + same holdWeapon path the police use), posed every frame after the mixer
+    const r = await b.eval(`(async () => {
+      const [x, z, h] = window.__P0; game.teleport(x, undefined, z, h); game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+      try { game.wanted?.clear?.('test'); game.police?.clearAll?.(); } catch (e) { /* */ }
+      const V = game.player.position.constructor, fx = Math.sin(h), fz = Math.cos(h);
+      const c = game.npc?.createCop?.({ seed: 7703, pos: new V(x + fx * 5, game.player.position.y, z + fz * 5) }); if (!c?.root) return 'no createCop';
+      try { c.setCopGear?.(true); } catch (e) { /* */ }
+      const GM = await import('/src/gameplay/gunModels.js'), H = await import('/src/gameplay/gunHold.js');
+      const gun = GM.buildWeaponModel('pistol'); game.scene.add(gun); game.scene.add(c.root); c.root.visible = true;
+      const cp = new V(x + fx * 5, game.player.position.y, z + fz * 5); c.root.position.copy(cp); c.root.rotation.y = h + Math.PI;
+      window.__cop2 = { c, gun, cp, mode: 'idle' };
+      const pose = (dt) => { const S = window.__cop2; S.c.root.position.copy(S.cp); try { S.c.update(dt || 0.016, { speed: 0, grounded: true, jumping: false, sprint: false, driving: false, punch: false, dead: false, guard: false }); } catch (e) { /* */ }
+        S.c.root.position.copy(S.cp); S.c.root.updateMatrixWorld(true);
+        const t = game.player.position.clone(); t.y += 1.35; H.holdWeapon(S.gun, S.c.root, { aim: S.mode === 'aim' ? t : null, dt: dt || 0.016, time: game.clock.elapsed }); };
+      game.combat.late = game.combat.late || []; game.combat.late.push(pose); window.__cop2pose = pose;
+      return 'cop2 ok ' + gun.userData.lib;
+    })()`);
+    console.log(r);
+    const cam = (side) => `(() => { const S = window.__cop2; let hb = null; S.c.root.traverse((o) => { if (!hb && o.isBone && /Head$/.test(o.name)) hb = o; });
+      game.cameraOverride = (dt, cam) => { try { window.__cop2pose(dt); } catch (e) { /* */ } const V = game.player.position.constructor, hp = hb.getWorldPosition(new V()), pp = game.player.position, dx = pp.x - hp.x, dz = pp.z - hp.z, L = Math.hypot(dx, dz) || 1, fx = dx / L, fz = dz / L, rx = -fz, rz = fx;
+        if (${side === 'side'}) cam.position.set(hp.x - rx * 1.6 + fx * 0.55, hp.y - 0.15, hp.z - rz * 1.6 + fz * 0.55); else cam.position.set(hp.x + fx * 1.5 - rx * 0.9, hp.y - 0.1, hp.z + fz * 1.5 - rz * 0.9);
+        cam.lookAt(hp.x + fx * 0.3, hp.y - 0.3, hp.z + fz * 0.3); cam.fov = 45; cam.updateProjectionMatrix(); return true; }; return 1; })()`;
+    for (const [mode, side] of [['idle', 'side'], ['aim', 'side'], ['aim', 'front']]) {
+      await b.eval(`window.__cop2.mode = '${mode}'; 1`); await b.eval(cam(side)); await b.sleep(1200);
+      await b.screenshot(path.join(DIR, `${SET}_cop2_${mode}_${side}.png`)); console.log('cop2', mode, side);
+    }
+  }
   if (o.cop) {
     const r = await b.eval(`(async () => {
       const P = game.player; const pol = game.police; if (!pol) return 'no police';
@@ -115,12 +143,12 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       return 'cop ' + u.gunKey + ' lib=' + u.gun.userData.lib + ' ready=' + !!u.gun.userData.libReady + ' vis=' + u.gun.visible + ' pos=' + gp.toArray().map((v) => v.toFixed(2)) + ' cop=' + u.pos.toArray().map((v) => v.toFixed(2)) + ' hd=' + JSON.stringify(hd);
     })()`);
     console.log(r); await b.screenshot(path.join(DIR, `${SET}_cop_idle.png`));
-    const r2 = await b.eval(`(async () => { const u = window.__cop; try { game.wanted.setStars ? game.wanted.setStars(3, 'test') : (game.wanted.level = 3); } catch (e) { /* */ } u.mode = 'chase'; u.sees = true;
+    const r2 = await b.eval(`(async () => { const u = window.__cop; try { game.wanted?.clear?.('test'); } catch (e) { /* */ }   // the aim pose is driven directly (no stars, so nobody arrests the player mid-shot)
       const H = await import('/src/gameplay/gunHold.js');
       const pin = u.pos.clone(), pinH = u.heading;
       const aimCop = () => { try { u.pos.copy(pin); u.heading = pinH; u.speed = 0; u.char.root.position.copy(pin); u.char.root.rotation.y = pinH; u.char.root.updateMatrixWorld(true); const t = game.player.position.clone(); t.y += 1.3; H.holdWeapon(u.gun, u.char.root, { aim: t, dt: 0.016, time: game.clock.elapsed }); } catch (e) { window.__copErr = String(e); } };
       game.combat.late = game.combat.late || []; game.combat.late.push(aimCop);
-      const keep = window.__copKeep = () => { aimCop(); u.mode = 'chase'; u.sees = true; u.fireCd = Math.max(u.fireCd || 0, 0.5); if (game.wanted.level < 3) { try { game.wanted.setStars(3, 'test'); } catch (e) { /* */ } } game.player.health = 100; };
+      const keep = window.__copKeep = () => { aimCop(); u.fireCd = Math.max(u.fireCd || 0, 0.5); game.player.health = 100; };
       const hh = u.heading; game.cameraOverride = (dt, cam) => { const hb = u.__hb || (u.__hb = (() => { let f = null; u.char.root.traverse((o) => { if (!f && o.isBone && /Head$/.test(o.name)) f = o; }); return f; })()); const c = hb ? hb.getWorldPosition(new (game.player.position.constructor)()).add({ x: 0, y: -1.45, z: 0 }) : u.pos, pp = game.player.position, dx = pp.x - c.x, dz = pp.z - c.z, L = Math.hypot(dx, dz) || 1, fx2 = dx / L, fz2 = dz / L, rx2 = -fz2, rz2 = fx2; cam.position.set(c.x + rx2 * -1.9 + fx2 * 0.5, c.y + 1.5, c.z + rz2 * -1.9 + fz2 * 0.5); cam.lookAt(c.x + fx2 * 0.4, c.y + 1.35, c.z + fz2 * 0.4); cam.fov = 45; cam.updateProjectionMatrix(); try { window.__copKeep && window.__copKeep(); } catch (e) { /* */ } return true; };
       await new Promise((res) => setTimeout(res, 600));
       window.__copFrame = JSON.stringify({ R: H.handFrame(u.char.root, 'R'), L: H.handFrame(u.char.root, 'L'), dbg: H.holdDebug(u.char.root, u.gun), bones: (() => { const n = []; u.char.root.traverse((b) => { if (b.isBone && /Hand|Arm|Head|Neck/.test(b.name)) n.push(b.name.replace('mixamorig', '')); }); return n.join(','); })() });
