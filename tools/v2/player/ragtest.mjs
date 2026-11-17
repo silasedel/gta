@@ -70,8 +70,10 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 900 }, async (b) => {
   // ---- 3) explosion (a real grenade-type blast through the weapons module) 3 m in front of him, in the open yard
   if (CASES.includes('explosion')) {
     await ev(`(() => { window.__log = []; game.player.health = 100; game.player.armor = 100; const T = game.THREE, H = game.nicoHouse, P = game.player;
-      const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); game.teleport(g.x, undefined, g.z, Math.PI); const cm = H.toWorld(new T.Vector3(3.5, 2.2, 18.5));
-      window.__cam({ x: cm.x, y: cm.y, z: cm.z }, () => ({ x: game.player.position.x, y: game.player.position.y + 0.9, z: game.player.position.z })); return 1; })()`);
+      const g = H.toWorld(new T.Vector3(-4.5, 0, 15.0)); game.teleport(g.x, undefined, g.z, Math.PI);
+      const h = Math.PI + (H.spot?.heading || 0), side = { x: Math.cos(h), z: -Math.sin(h) };
+      const eye = { x: g.x + side.x * 6.5 + Math.sin(h) * 1.5, y: g.y + 2.0, z: g.z + side.z * 6.5 + Math.cos(h) * 1.5 };
+      window.__cam(eye, () => ({ x: game.player.position.x, y: game.player.position.y + 0.7, z: game.player.position.z })); return 1; })()`);
     await b.sleep(2500);
     await ev(`(() => { const P = game.player, T = game.THREE; const p = new T.Vector3(P.position.x + Math.sin(P.heading) * 2.6, P.position.y + 0.3, P.position.z + Math.cos(P.heading) * 2.6);
       (game.weapons?.explode || ((q) => game.emit('explosion', { position: q, radius: 6, damage: 30 })))(p, false, { radius: 6, damage: 30 }); return 1; })()`);
