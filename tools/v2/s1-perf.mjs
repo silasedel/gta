@@ -16,9 +16,11 @@ const PLACES = {
   clewiston: { player: [-1540, -2805, 0], tod: 11 },
   beach: { player: [2332, -660, 0], tod: 13 },
   keywest: { player: [-4895, 5940, 0], tod: 11 },
+  keylargo: { player: [-836, 5272, 0], tod: 11 },
+  airport: { player: [-1210, 1045, 0], tod: 11 },
 };
 const SET = o.set || 'run';
-const only = o.places ? String(o.places).split(',').filter(Boolean) : Object.keys(PLACES);
+const only = o.places ? String(o.places).split(',').filter(Boolean) : ['spawn', 'downtown', 'clewiston', 'beach', 'keywest'];
 const ROUNDS = +(o.rounds || 4), SECS = +(o.secs || 2.5);
 const CASES = o.ab ? JSON.parse(fs.readFileSync(o.ab, 'utf8')) : [];
 const PAGE = fs.readFileSync(new URL('./s1-perf.page.js', import.meta.url), 'utf8');
