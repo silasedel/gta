@@ -48,7 +48,7 @@ export const GLASS = { clear: 0, blue: 1, green: 2, bronze: 3, gray: 4, silver: 
 
 let wallP = null;
 export function loadWallArray(renderer) {
-  if (!wallP) wallP = loadArray(renderer, WALL_LAYERS, { size: 768 }).then((a) => { a.tiles = WALL_LAYERS.map((l) => 1 / l.tile); return a; });
+  if (!wallP) wallP = loadArray(renderer, WALL_LAYERS, { size: 1024 }) /* r2-art: the scans' native 1024 (768 resampled them soft: ~25% less detail at street level) */.then((a) => { a.tiles = WALL_LAYERS.map((l) => 1 / l.tile); return a; });
   return wallP;
 }
 
@@ -173,6 +173,9 @@ void facadeEval() {
     if (!horiz && hb > -0.3 && hb < 0.6) alb = mix(alb, alb * vec3(0.66, 0.66, 0.68) + vec3(0.012), 1.0 - smoothstep(0.43, 0.47, hb)); }
 #endif
   float rough = cR.a, metal = nA.a, ao = nA.b;
+#ifndef ART_GEO_OFF
+  rough = clamp(rough + (patchy - 0.5) * 0.14 + streak * streak * grimeK * 0.25, 0.04, 1.0); // r2-art: roughness follows the repaint / grime breakup (no uniform sheen across a wall)
+#endif
   vec3 nT = vec3(nA.xy * 2.0 - 1.0, 0.0); nT.z = sqrt(max(0.05, 1.0 - dot(nT.xy, nT.xy)));
   vec3 emi = vec3(0.0); vec3 nOver = vec3(0.0); float useOver = 0.0;
   int type = int(vFb.w + 0.5);
@@ -355,14 +358,14 @@ void facadeEval() {
             else if (st < (home ? 0.76 : 0.5)) { cov = 0.97; cC = mix(vec3(0.62, 0.58, 0.5), pal * 0.7, 0.5) * (0.84 + 0.16 * sin(wq.x * hs.x * 2.0 * 30.0) * detail); }
           }
           float tr = type == 8 ? 1.0 : 1.0 - refl * 0.82;
-          float dayI = uFDay * (type == 8 ? 0.55 : type == 6 || type == 7 ? 0.5 : 0.2) * (1.0 - 0.5 * clamp(it, 0.0, 1.0));
+          float dayI = uFDay * (type == 8 ? 0.55 : type == 6 || type == 7 ? 0.5 : 0.34) * (1.0 - 0.5 * clamp(it, 0.0, 1.0)); // r2-art: 0.2 -> 0.34, the room reads behind daylight glass (depth, not a flat decal)
           if (type != 6 && type != 7 && type != 8) I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.45); // rooms seen through daylight glass are muted
           if (type == 6 || type == 7) { dayI += uFDay * 0.12; I = mix(vec3(dot(I, vec3(0.3, 0.5, 0.2))), I, 0.3) * vec3(1.15, 0.97, 0.76); } // shop fronts: warm lit interiors by day too, no candy-colored rooms
           float l2 = type == 8 ? max(lit, uFNight * 0.9) : lit;
           oEmi = I * tr * (1.0 - cov) * (dayI + l2 * litC * uFGlow) + cC * cov * l2 * litC * 0.3 * uFGlow * tr;
           oAlb = mix(gTint * (type == 8 ? 0.0 : 0.4), cC * 0.85, cov * 0.9);
           oRough = type == 8 ? 1.0 : 0.05 + 0.12 * fVN(pm * 2.3 + cell * 7.0);
-          oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.35 : 0.68, 0.0, cov * 0.75);
+          oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.35 : 0.5, 0.0, cov * 0.75); // r2-art: 0.68 -> 0.5, less mirror, more room
           if ((type == 0 || type == 3) && (prof == 1 || prof == 2) && fH2(cell * 7.7 + seed + 3.0) < 0.07 && wq.y < 0.47) { // a window left open: lower sash pushed up, no glass in front of the room
             oAlb *= 0.25; oMetal = 0.0; oRough = 0.9; oEmi = I * (1.0 - cov) * (dayI * 1.6 + l2 * litC * uFGlow);
           }

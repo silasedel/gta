@@ -16,7 +16,7 @@ const SET = o.set || 'ab', DIR = path.resolve('docs/v2/shots/art'); fs.mkdirSync
 const spots = String(o.spots || 'grove:-440,2420').split(';').map((s) => { const [n, xy, bh] = s.split(':'); const [x, z] = xy.split(',').map(Number); return { n, x, z, bld: bh ? bh + ':' + (o.zones || '.') : o.bld }; });
 const per = +(o.per || 2);
 let cams = null;
-for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']]) {
+for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']].filter(([t]) => !(o['only-b'] !== undefined && t === 'a'))) { // --only-b: reuse earlier 'a' frames (--prev-a <set>)
   await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(o.max || 1200) }, async (b) => {
     await b.goto('http://127.0.0.1:5200/?mute' + q);
     await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 600);
@@ -57,7 +57,7 @@ for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']]) {
   });
 }
 for (const S of spots) for (let k = 0; k < per; k++) {
-  const fa = path.join(DIR, `${SET}_${S.n}_${k}_a.jpg`), fb = path.join(DIR, `${SET}_${S.n}_${k}_b.jpg`); if (!fs.existsSync(fa) || !fs.existsSync(fb)) continue;
+  const fa = path.join(DIR, `${o['prev-a'] || SET}_${S.n}_${k}_a.jpg`), fb = path.join(DIR, `${SET}_${S.n}_${k}_b.jpg`); if (!fs.existsSync(fa) || !fs.existsSync(fb)) continue;
   const out = path.join(DIR, `sheet_${SET}_${S.n}_${k}.jpg`);
   execFileSync('python3', ['-I', path.resolve('tools/v2/art/pair.py'), fa, fb, out, S.n, 'BEFORE ' + (o.a || '(default)'), 'AFTER ' + (o.b || '(default)')]);
   if (o.crop !== undefined) { const oc = path.join(DIR, `sheet_${SET}_${S.n}_${k}_crop2x.jpg`); execFileSync('python3', ['-I', path.resolve('tools/v2/art/pair.py'), fa, fb, oc, S.n + ' 2x center crop', 'BEFORE ' + (o.a || '(default)'), 'AFTER ' + (o.b || '(default)'), 'crop']); console.log('sheet', path.relative(process.cwd(), oc)); }

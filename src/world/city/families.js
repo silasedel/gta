@@ -27,14 +27,16 @@ export const FAMILIES = {
   parkade: { maker: 'ParkRite Structures', era: 'precast parking deck', where: 'everywhere' },
 };
 
-const PASTEL = [0xff9eb8, 0x7fe3d0, 0xffe08a, 0xbfa6ff, 0xffbf80, 0xa8eba0, 0x80d4ff, 0xff8fa8, 0xf6efe4, 0xfff3d6, 0xffb3e6, 0x9ff0e8, 0xf7c6a0, 0xc6e0f5];
-const WARM = [0xf4e4c8, 0xf2d6b0, 0xfbefe0, 0xe8c9a0, 0xfff3d6, 0xf0b890, 0xe9a47c, 0xf6d98a, 0xead2c0, 0xd9b99a];
+// r2-art: sun-faded Miami palettes (real stucco paint after years of sun: pale coral / aqua / butter only on deco, saturation
+// capped, value varies more than hue); the old candy pastels and vivid primaries read as a cartoon
+const PASTEL = [0xf1cfc2, 0xc4e2da, 0xf3e4bc, 0xdcd3e2, 0xf1d6bc, 0xd3e3c8, 0xcadde6, 0xecccc6, 0xf6efe4, 0xfbf1da, 0xe9d5dc, 0xcde4df, 0xf2dcc4, 0xd9e3ea];
+const WARM = [0xf4e4c8, 0xf2d6b0, 0xfbefe0, 0xe8cca8, 0xfbf0d8, 0xe9c4a4, 0xdcb094, 0xf0dca0, 0xead2c0, 0xd9b99a];
 const CONDO = [0xf2efe8, 0xe9e4da, 0xe4d8c4, 0xd9cbb4, 0xcfc6b8, 0xdedad2, 0xc9c2b4, 0xeae2d0];
 const WHITES = [0xf6f4ee, 0xeeeae0, 0xe6e8ea, 0xf2efe6, 0xdfe3e6, 0xf8f6f0];
 const OFFICE = [0xf2ece2, 0xe8d2b4, 0xd8cfc0, 0xcfdce6, 0xefe0c8, 0xd9c4b4, 0xc9c4ba, 0xe6b8a0, 0xc8d8c8, 0xbfc6cc, 0xd8c8e0, 0xb9b2a6];
-const VIVID = [0xf2a03c, 0x2f9c95, 0xe86a5a, 0xf2d04c, 0x4f86c6, 0x8ccf6f, 0xd96aa0, 0xf08f6e, 0x46b8d6, 0xb880d8, 0xe2c08a, 0x6fc2a8];
+const VIVID = [0xd8a670, 0x6a9f99, 0xcf8f80, 0xdcc680, 0x86a2bf, 0xa3bf92, 0xc493a8, 0xd6a08a, 0x84b5c2, 0xab9bbe, 0xd6bc92, 0x92b8a8]; // weathered Caribbean colors, not primaries
 const METAL = [0xb8c4c8, 0xd8d4c8, 0x9fb0b8, 0xc8b89a, 0xa8b8a0, 0xd0d0d0, 0x8fa8c0, 0xc4a890];
-const ACCENT = [0xffffff, 0x2f9c95, 0xff6f91, 0x39c6c0, 0xf2c14e, 0x35507a, 0xd9543f, 0x6a4c93, 0x1f7a5a, 0x2b2d33, 0xe8e2d4, 0xb5651d];
+const ACCENT = [0xffffff, 0x4f8a86, 0xc98e98, 0x6aa6a2, 0xd6b870, 0x46566e, 0xb06c5c, 0x6e6482, 0x416e5e, 0x2b2d33, 0xe8e2d4, 0x9a6c42];
 const DOORS = [0x7a2e2a, 0x1f4e5a, 0x2d5a34, 0x3a3f5c, 0x6b4a2a, 0xe8e2d4, 0x1e1e20, 0xb5892a];
 
 const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); x ^= x >>> 15; return (x >>> 0) / 4294967296; };
@@ -82,7 +84,7 @@ export function buildingStyle(b, ctx, salt = 0) {
       S.bits = BIT.vsplit | (R(9) < 0.6 ? BIT.darkFrame : 0) | (R(10) < 0.3 ? BIT.spandrel : 0); S.glass = one([GLASS.blue, GLASS.green, GLASS.gray, GLASS.teal, GLASS.clear], 11); S.reflect = 0.3 + R(12) * 0.2; S.roof = WL.roofGravel; break;
     case 'precast': S.layer = one([WL.precast, WL.concrete, WL.precast], 2); S.bayW = 2.6 + R(5) * 1.0; S.floorH = 3.5 + R(6) * 0.3; S.winW = 0.52 + R(7) * 0.2; S.winH = 0.5 + R(8) * 0.14; S.sill = 0.26;
       S.bits = BIT.pilaster | BIT.darkFrame | (R(9) < 0.4 ? BIT.belt : 0) | BIT.grime; S.glass = one([GLASS.bronze, GLASS.gray, GLASS.dark], 10); S.reflect = 0.4; S.profile = PROFILE.office; break;
-    case 'ribbonOffice': S.layer = one([WL.concrete, WL.facadeTile, WL.tile, WL.stucco], 2); S.type = WIN.ribbon; S.bayW = 3.0 + R(5) * 1.4; S.floorH = 3.4 + R(6) * 0.4; S.winW = 1; S.winH = 0.4 + R(7) * 0.18; S.sill = 0.28;
+    case 'ribbonOffice': S.layer = one([WL.concrete, WL.precast, WL.tile, WL.stucco], 2); /* r2-art: the loud rectangular facade-tile scan retired from offices */ S.type = WIN.ribbon; S.bayW = 3.0 + R(5) * 1.4; S.floorH = 3.4 + R(6) * 0.4; S.winW = 1; S.winH = 0.4 + R(7) * 0.18; S.sill = 0.28;
       S.bits = (R(8) < 0.6 ? BIT.darkFrame : 0) | (R(9) < 0.3 ? BIT.grime : 0); S.glass = one([GLASS.gray, GLASS.green, GLASS.bronze, GLASS.blue], 10); S.reflect = 0.45; S.profile = PROFILE.office; break;
     case 'brickRow': pal = WHITES; S.layer = one([WL.brick, WL.brickPaint, WL.brick], 2); if (S.layer === WL.brickPaint) pal = VIVID; S.bayW = 2.8 + R(5) * 0.8; S.floorH = 3.5 + R(6) * 0.5; S.winW = 0.4 + R(7) * 0.14; S.winH = 0.54 + R(8) * 0.1; S.sill = 0.24;
       S.bits |= BIT.cross | BIT.belt | (R(9) < 0.5 ? BIT.surround : 0) | (R(10) < 0.4 ? BIT.ac : 0) | BIT.grime; S.profile = R(11) < 0.5 ? PROFILE.office : PROFILE.residential; S.parapet = 'cornice'; break;
@@ -131,7 +133,7 @@ function safeColor(c, fb) { try { return new THREE.Color(c); } catch (e) { retur
 export function podiumStyle(S, b, zone) {
   const seed = ((b.id | 0) % 2147483647), R = (k) => hash(seed * 53 + k * 331 + 9), P = { ...S, door: null, hip: false };
   if (R(1) < 0.45) { P.type = WIN.garage; P.layer = [WL.precast, WL.concrete][R(2) < 0.5 ? 0 : 1]; P.bayW = 5.5 + R(3); P.floorH = 3.1; P.winW = 0.92; P.winH = 0.56; P.sill = 0.36; P.bits = 0; P.profile = PROFILE.garage; P.tint = new THREE.Color(OFFICE[pickI(OFFICE, R(4))]); }
-  else { P.type = R(2) < 0.5 ? WIN.ribbon : WIN.punched; P.layer = [WL.precast, WL.marble, WL.granite, WL.facadeTile, WL.concrete][pickI([0, 1, 2, 3, 4], R(3))]; P.bayW = 3.6 + R(4) * 1.5; P.floorH = 3.8; P.winW = P.type === WIN.ribbon ? 1 : 0.62; P.winH = 0.52; P.sill = 0.26; P.bits = BIT.darkFrame | (R(5) < 0.5 ? BIT.pilaster : 0); P.profile = zone === 'residential' ? PROFILE.residential : PROFILE.office; P.tint = new THREE.Color(P.layer === WL.marble || P.layer === WL.granite ? 0xffffff : OFFICE[pickI(OFFICE, R(6))]); }
+  else { P.type = R(2) < 0.5 ? WIN.ribbon : WIN.punched; P.layer = [WL.precast, WL.marble, WL.granite, WL.concrete, WL.concrete][pickI([0, 1, 2, 3, 4], R(3))]; P.bayW = 3.6 + R(4) * 1.5; P.floorH = 3.8; P.winW = P.type === WIN.ribbon ? 1 : 0.62; P.winH = 0.52; P.sill = 0.26; P.bits = BIT.darkFrame | (R(5) < 0.5 ? BIT.pilaster : 0); P.profile = zone === 'residential' ? PROFILE.residential : PROFILE.office; P.tint = new THREE.Color(P.layer === WL.marble || P.layer === WL.granite ? 0xffffff : OFFICE[pickI(OFFICE, R(6))]); }
   P.sig = S.sig + '|pod' + P.type + P.layer; P.seed = hash(seed + 91);
   return P;
 }
