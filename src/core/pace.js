@@ -8,6 +8,11 @@
 //   compileSliced(renderer, THREE, objs, camera, scene)  compile the shaders of each object in its own slice, then wait (polling,
 //                                     never blocking) until the GPU finished them (KHR_parallel_shader_compile)
 let last = performance.now();
+// heartbeat: a cheap timer that only runs between tasks, so `beat` is about when the current task started (other code's
+// own awaits count as yields too). Runs until the game is ready.
+let beat = performance.now();
+(function hb() { beat = performance.now(); if (typeof window === 'undefined' || !(window.game && window.game.ready)) setTimeout(hb, 4); })();
+const since = () => performance.now() - Math.max(last, beat);
 
 export async function yieldTask() {
   if (globalThis.scheduler?.yield) await globalThis.scheduler.yield();
@@ -17,13 +22,13 @@ export async function yieldTask() {
 
 // slices that ran much longer than the budget are recorded (where they ended) for tools/v2/s1-boot.mjs
 function noteLong() {
-  const ms = performance.now() - last;
+  const ms = since();
   if (ms < 150 || typeof window === 'undefined') return;
   const B = (window.__boot ||= { stages: [] }); const L = (B.slices ||= []);
   if (L.length < 60) L.push([Math.round(ms), (new Error().stack || '').split('\n').slice(3, 6).map((l) => l.trim().replace(/^at /, '').replace(/https?:\/\/[^/]+\//, '').replace(/\?[^:)]*/, '')).join(' < ')]);
 }
 export async function breathe(budgetMs = 12) {
-  if (performance.now() - last < budgetMs) return;
+  if (since() < budgetMs) return;
   noteLong();
   await yieldTask();
 }
@@ -88,10 +93,24 @@ export function compileForGame(renderer, THREE, obj, camera, scene) {
     renderer.setRenderTarget(prev);
   }
 }
+// split big subtrees (the city root holds hundreds of meshes) into compile units of at most ~UNIT material users
+const UNIT = 40;
+function countMats(o) { let n = 0; o.traverse((c) => { if (c.material) n++; }); return n; }
+function units(o, out) {
+  if (!o.children.length || countMats(o) <= UNIT) { out.push(o); return; }
+  if (o.material) out.push({ __self: o });
+  for (const c of o.children) units(c, out);
+}
 export async function compileSliced(renderer, THREE, objects, camera, scene, budgetMs = 12) {
-  for (const o of objects) {
-    if (!o) continue;
-    try { compileForGame(renderer, THREE, o, camera, scene); } catch (e) { console.warn('[pace] compile', e); }
+  const list = [];
+  for (const o of objects) if (o) units(o, list);
+  for (const u of list) {
+    try {
+      if (u.__self) { // a node with its own material and many children: compile just that node
+        const o = u.__self, kids = o.children; o.children = [];
+        try { compileForGame(renderer, THREE, o, camera, scene); } finally { o.children = kids; }
+      } else compileForGame(renderer, THREE, u, camera, scene);
+    } catch (e) { console.warn('[pace] compile', e); }
     await breathe(budgetMs);
   }
   await programsReady(renderer);

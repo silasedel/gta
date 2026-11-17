@@ -2,7 +2,7 @@
 // Data comes from ./data.js (DATA agent) when present; until then a dev provider reads the raw OSM caches.
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
-import { breathe, initTexturesSliced, compileSliced, compileTarget } from '../../core/pace.js';
+import { breathe, initTexturesSliced, compileSliced } from '../../core/pace.js';
 import { createStreamer } from './stream.js';
 import { createTileBuilder } from './tilebuild.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -156,8 +156,8 @@ export async function createMiamiCity(game, opts = {}) {
     // program), one warm-up object per slice, then a non-blocking wait for the GPU
     try {
       await compileSliced(renderer, THREE, warm.children.slice(), cam, scene);
-      // one tiny render into that target: compiles the shadow-depth variants (plain / instanced / custom depth)
-      const prevT = renderer.getRenderTarget(); renderer.setRenderTarget(compileTarget(THREE)); try { renderer.render(scene, cam); } finally { renderer.setRenderTarget(prevT); }
+      // (the few shadow-depth programs compile in the paced warm-up frames: a synchronous render here could block for
+      // seconds while the GPU process is busy)
     } catch (e) { console.warn('[miami] precompile', e); }
     scene.remove(warm); g.dispose();
     console.info(`[miami] precompiled ${mats.length} materials in ${(performance.now() - tc) | 0} ms`);
