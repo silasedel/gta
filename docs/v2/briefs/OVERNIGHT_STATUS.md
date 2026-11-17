@@ -1453,3 +1453,10 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
 - 15:00 **Facade kit step 1 committed**, with sheets `docs/v2/shots/art/sheet_geo5_{mbres,brickell}_*.jpg`.
   - Pending with the lead: the materials.js neon line (shared working copy) and the tilebuild hunk (rooftop units, fin grooves, balcony eligibility, hip pitch / colors, counters).
   - Honest status: visible but incremental. The remaining "cartoon" read comes from the 768 px wall-layer array with loud tiling patterns and from the bright source palettes. That needs a dedicated facade pass: a 2K neutral scan array, re-tuned palettes, and geometry reveals on near street faces.
+- 15:40 **Facade pass committed** (e66ae338), sheets `docs/v2/shots/art/sheet_geo6_{mbres,brickell}_*.jpg`:
+  - sun-faded Miami palettes (families.js + tilebuild PASTELS)
+  - the loud facade-tile scan retired from offices
+  - rooms visible behind daylight glass, so windows read with depth
+  - the wall array at native 1024
+  - wall roughness breakup
+  Left: geometry window reveals on the near LOD, and 2K neutral wall scans (needs new sources). The materials.js neon line goes in with r2-render's commit.
