@@ -49,7 +49,7 @@ export function seamProbe(game, id) {
   const flag = (k, x, z, y, extra) => { rep[k]++; if (rep.at[k].length < 12) rep.at[k].push([+x.toFixed(2), +z.toFixed(2), y == null ? null : +y.toFixed(3), extra || '']); };
   const lines = [];
   const frAt = (L, s) => { const fr = L.fr; let i = 0; while (i < fr.length - 2 && fr[i + 1].s < s) i++; const A = fr[i], B = fr[i + 1] || A, l = B.s - A.s || 1, t = Math.max(0, Math.min(1, (s - A.s) / l)); return { x: A.x + (B.x - A.x) * t, z: A.z + (B.z - A.z) * t, nx: A.nx + (B.nx - A.nx) * t, nz: A.nz + (B.nz - A.nz) * t }; };
-  if (J) { for (const c of J.corners) if (c.arc && c.arc.length > 1) lines.push({ pts: c.arc, kind: 'return:' + c.kind });
+  if (J) { for (const c of J.corners) if (c.arc && c.arc.length > 1) lines.push({ pts: c.arc, kind: 'return:' + c.kind, curbed: (J.legs[c.i].sw || 0) > 0 && (J.legs[c.j].sw || 0) > 0 });
     for (const L of J.legs) for (const side of [-1, 1]) { const pts = []; for (let s = L.D; s < Math.min(L.D + 25, L.len * 0.5); s += 1) { const q = frAt(L, s); pts.push([q.x + q.nx * side * L.hw, q.z + q.nz * side * L.hw]); } if (pts.length > 1) lines.push({ pts, kind: 'leg', curbed: (L.sw || 0) > 0 }); } }
   else for (const k of n.edges) { const e = G.edges[k], P = e.a === n.id ? e.pts : e.pts.slice().reverse(); for (const side of [-1, 1]) { const pts = []; let acc = 0; for (let i = 0; i < P.length - 1 && acc < 30; i++) { const ax = P[i][0], az = P[i][1], dx = P[i + 1][0] - ax, dz = P[i + 1][1] - az, L = Math.hypot(dx, dz) || 1; acc += L; pts.push([ax - dz / L * side * e.width / 2, az + dx / L * side * e.width / 2]); } lines.push({ pts, kind: 'end', curbed: (e.sidewalk || 0) > 0 }); } }
   const inRoad = (x, z) => { for (const k of n.edges) { const e = G.edges[k], P = e.pts; for (let i = 0; i < P.length - 1; i++) { const ax = P[i][0], az = P[i][1], dx = P[i + 1][0] - ax, dz = P[i + 1][1] - az, L2 = dx * dx + dz * dz || 1; const t = ((x - ax) * dx + (z - az) * dz) / L2; if (t < 0 || t > 1) continue; if (Math.hypot(ax + dx * t - x, az + dz * t - z) < e.width / 2 - 0.25) return true; } }
@@ -61,11 +61,13 @@ export function seamProbe(game, id) {
       let ox = -uz, oz = ux; const mx = ax + dx / 2, mz = az + dz / 2; if (inRoad(mx + ox * 0.6, mz + oz * 0.6) && !inRoad(mx - ox * 0.6, mz - oz * 0.6)) { ox = -ox; oz = -oz; } // +o: away from the carriageway
       for (let t = 0; t < L; t += 0.25) { const x0 = ax + ux * t, z0 = az + uz * t; let yIn = null;
         for (const off of [-0.6, -0.3, -0.1, 0.1, 0.3, 0.7]) { const x = x0 + ox * off, z = z0 + oz * off, h = S.hits(x, z); rep.samples++; const y = h.length ? h[0].y : null; if (off === 0.3) yIn = y;
+          if ((off === -0.3 || off === -0.1) && ln.curbed && /^return/.test(ln.kind)) { rep.gutterN = (rep.gutterN || 0) + 1; if (y != null && y > 0.051 && y < 0.057) rep.gutterHit = (rep.gutterHit || 0) + 1; } // gutter pan strip along curbed returns
           if (y != null && y > 0.11 && y < 0.6 && off <= -0.3 && inRoad(x, z)) flag('raised', x, z, y, ln.kind + ':' + h[0].mat);
-          for (let a2 = 0; a2 + 1 < h.length; a2++) { const A = h[a2], B = h[a2 + 1]; if (A.y - B.y < 0.003 && A.obj !== B.obj && A.mat !== B.mat) { const pk = [A.mat, B.mat].sort().join(' | '); rep.pairs[pk] = (rep.pairs[pk] || 0) + 1; flag('zfight', x, z, A.y, pk); break; } } }
+          for (let a2 = 0; a2 + 1 < h.length; a2++) { const A = h[a2], B = h[a2 + 1]; if (A.y - B.y < 0.003 && A.obj !== B.obj && A.mat !== B.mat) { const pk = [A.mat, B.mat].sort().join(' | '); rep.pairs[pk] = (rep.pairs[pk] || 0) + 1; if (rep.pairs[pk] <= 3) rep.at.zfight.push([+x.toFixed(2), +z.toFixed(2), +A.y.toFixed(3), pk]); rep.zfight++; break; } } }
         if (prevTop != null && prevTop > 0.12 && yIn != null && yIn < 0.09 && !inRoad(x0 + ox * 0.3, z0 + oz * 0.3) && ln.curbed !== false) flag('notch', x0 + ox * 0.3, z0 + oz * 0.3, yIn, ln.kind);
         if (prevTop != null && yIn != null && prevTop > 0.12 && yIn > 0.12 && Math.abs(prevTop - yIn) > 0.04) flag('step', x0, z0, yIn, ln.kind);
         prevTop = yIn; } } }
+  rep.gutter = rep.gutterN ? +(rep.gutterHit / rep.gutterN).toFixed(2) : null; // share of curbed-return gutter samples on the pan strip
   rep.ms = Math.round(performance.now() - t0);
   return rep;
 }
