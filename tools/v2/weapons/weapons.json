@@ -150,13 +150,24 @@
    "drop": "^Text|^Cube\\.00[12]$|^Cylinder\\.00[1-4]$",
    "mats": {
     "*": {
-     "finish": "polymer"
+     "finish": "steel",
+     "wear": 0.5
     },
     "Clean Stainless": {
-     "finish": "gunmetal"
+     "finish": "gunmetal",
+     "wear": 0.6
     },
     "Matal Solid Paint Black": {
-     "finish": "blued"
+     "finish": "blued",
+     "wear": 0.55
+    },
+    "Black Plastic": {
+     "finish": "polymer",
+     "wear": 0.15
+    },
+    "Material": {
+     "finish": "polymer",
+     "wear": 0.15
     }
    },
    "grip": [
@@ -173,7 +184,8 @@
     -0.011,
     0.06,
     -0.03
-   ]
+   ],
+   "bake": true
   },
   "h6_heavy": {
    "dir": "Handgun 6 - Heavy Black Pistol With Loose Rounds",
@@ -484,13 +496,15 @@
    "mats": {
     "Material 25": {
      "auto": false,
+     "finish": "anodized",
      "base": [
-      0.2,
-      0.205,
-      0.215
+      0.22,
+      0.225,
+      0.235
      ],
-     "roughv": 0.48,
-     "metalv": 0.55
+     "roughv": 0.5,
+     "metalv": 0.6,
+     "wear": 0.45
     }
    },
    "grip": [
@@ -512,7 +526,8 @@
     -0.03,
     0.075,
     -0.05
-   ]
+   ],
+   "bake": true
   },
   "r5_blue": {
    "dir": "Rifle 5 - Blue-Stock Modern Assault Rifle",
@@ -597,7 +612,8 @@
     -0.03,
     0.05,
     -0.05
-   ]
+   ],
+   "bake": true
   },
   "r7_sniper": {
    "dir": "Rifle 7 - Black Bolt-Action Sniper Rifle",
@@ -678,18 +694,22 @@
    "mats": {
     "Nails": {
      "auto": false,
-     "finish": "rust"
+     "finish": "rust",
+     "wear": 0.3,
+     "bevel": 0.0008
     },
     "Fabric": {
      "auto": false,
-     "finish": "tape"
+     "finish": "tape",
+     "wear": 0.1
     }
    },
    "grip": [
     0.0,
     0.0,
     -0.33
-   ]
+   ],
+   "bake": true
   },
   "crow1_red": {
    "dir": "Crowbar 1 - Red Painted Crowbar",

@@ -5,9 +5,10 @@
 // (a small built-in swing remains as a fallback when that module is not loaded).
 import * as THREE from 'three';
 import { rand, sfx, tryCall, findBone, aimArm, removeBodySafe } from './util.js';
-import { buildWeaponModel, WEAPON_ATTACH, DEFAULT_ATTACH, SKINS, normalizeAttach } from './gunModels.js';
+import { buildWeaponModel, WEAPON_ATTACH, DEFAULT_ATTACH, SKINS, normalizeAttach, preloadWeaponLibrary, libVariants } from './gunModels.js';
 import { rayLimbs, segLimbs, hitTargets } from './hitZones.js';
 import { createGunFX } from './gunfx.js';
+import { holdWeapon, rigOf, releaseHands } from './gunHold.js';
 import { ensureCombat, MATERIALS, materialOf, KEYS, livingNear, damageTarget } from './combat/shared.js';
 
 // snd = name for game.audio; pen = penetration power (x material depth); loud = how far (m) people hear it
@@ -26,11 +27,26 @@ export const WEAP = {
   shotgun: { name: 'Breaker Pump Shotgun', cls: 'shotgun', dmg: 14, pellets: 8, rate: 0.85, spread: 0.055, hip: 0.075, kick: 0.07, range: 45, clip: 6, reload: 2.4, ammoPick: 18, price: 1200, ammoPrice: 3, ammoPack: 12, snd: 'shotgun', hud: 'shotgun', pen: 0.3, loud: 65, vel: 260 },
   sawnoff: { name: 'Hacksaw Double-Barrel', cls: 'shotgun', dmg: 13, pellets: 11, rate: 0.3, spread: 0.09, hip: 0.1, kick: 0.1, range: 24, clip: 2, reload: 1.7, ammoPick: 16, price: 800, ammoPrice: 3, ammoPack: 12, snd: 'sawnoff', hud: 'shotgun', pen: 0.25, loud: 65, vel: 240 },
   sniper: { name: 'Longshot .308 Sniper', cls: 'sniper', dmg: 165, rate: 1.25, spread: 0.0004, hip: 0.07, kick: 0.12, range: 500, clip: 5, reload: 2.6, ammoPick: 15, price: 5000, ammoPrice: 10, ammoPack: 10, snd: 'sniper', tone: 'sniper', hud: 'shotgun', pen: 2.6, loud: 90, vel: 780 },
+  // the user's library models (src/gameplay/gunModels.js LIB): more handguns, rifles, a belt-fed LMG, nail bat, machete
+  compactpistol: { name: 'Kestrel Compact 9', cls: 'handgun', dmg: 26, rate: 0.17, spread: 0.008, hip: 0.03, kick: 0.018, range: 120, clip: 15, reload: 1.2, ammoPick: 45, price: 380, ammoPrice: 2, ammoPack: 30, snd: 'pistol', tone: 'light', hud: 'pistol', pen: 0.55, loud: 44, vel: 300 },
+  slimpistol: { name: 'Wasp Slim .380', cls: 'handgun', dmg: 21, rate: 0.15, spread: 0.01, hip: 0.032, kick: 0.015, range: 95, clip: 7, reload: 1.05, ammoPick: 28, price: 260, ammoPrice: 2, ammoPack: 28, snd: 'pistol', tone: 'light', hud: 'pistol', pen: 0.45, loud: 40, vel: 280 },
+  chromepistol: { name: 'Calle Oro Chrome 9', cls: 'handgun', dmg: 31, rate: 0.21, spread: 0.0065, hip: 0.027, kick: 0.021, range: 150, clip: 17, reload: 1.35, ammoPick: 51, price: 720, ammoPrice: 2, ammoPack: 34, snd: 'pistol', hud: 'pistol', pen: 0.62, loud: 46, vel: 310 },
+  snspistol: { name: 'Coastline P-10 Compact', cls: 'handgun', dmg: 27, rate: 0.18, spread: 0.0075, hip: 0.03, kick: 0.019, range: 125, clip: 12, reload: 1.2, ammoPick: 36, price: 420, ammoPrice: 2, ammoPack: 24, snd: 'pistol', hud: 'pistol', pen: 0.58, loud: 45, vel: 300 },
+  tacpistol: { name: 'Saltworks Tactical .45', cls: 'handgun', dmg: 36, rate: 0.25, spread: 0.006, hip: 0.028, kick: 0.028, range: 150, clip: 15, reload: 1.4, ammoPick: 45, price: 820, ammoPrice: 3, ammoPack: 30, snd: 'pistol', tone: 'heavy', hud: 'pistol', pen: 0.7, loud: 50, vel: 290 },
+  heavypistol: { name: 'Breaker .50 Heavy Pistol', cls: 'handgun', dmg: 60, rate: 0.42, spread: 0.005, hip: 0.03, kick: 0.062, range: 170, clip: 7, reload: 1.8, ammoPick: 21, price: 1400, ammoPrice: 5, ammoPack: 14, snd: 'revolver', tone: 'heavy', hud: 'pistol', pen: 0.95, loud: 62, vel: 350 },
+  assaultrifle: { name: 'Caballo AR-47 Assault Rifle', cls: 'rifle', auto: true, dmg: 31, rate: 0.11, spread: 0.013, hip: 0.045, kick: 0.02, range: 220, clip: 30, reload: 2.2, ammoPick: 120, price: 2800, ammoPrice: 2, ammoPack: 90, snd: 'rifle', tone: 'rifle', hud: 'smg', pen: 1.35, loud: 72, vel: 510 },
+  specialrifle: { name: 'Tidewater Special Carbine', cls: 'rifle', auto: true, dmg: 30, rate: 0.095, spread: 0.01, hip: 0.038, kick: 0.016, range: 240, clip: 30, reload: 1.9, ammoPick: 120, price: 3800, ammoPrice: 2, ammoPack: 90, snd: 'rifle', tone: 'rifle', hud: 'smg', pen: 1.3, loud: 70, vel: 540 },
+  tacrifle: { name: 'Longshot DMR-16 Tactical Rifle', cls: 'rifle', dmg: 50, rate: 0.22, spread: 0.003, hip: 0.045, kick: 0.03, range: 320, clip: 20, reload: 2.1, ammoPick: 80, price: 4200, ammoPrice: 3, ammoPack: 60, snd: 'carbine', tone: 'rifle', hud: 'smg', zoom: 0.4, pen: 1.8, loud: 75, vel: 650 },
+  battlerifle: { name: 'Breaker BR-308 Battle Rifle', cls: 'rifle', auto: true, dmg: 54, rate: 0.16, spread: 0.006, hip: 0.05, kick: 0.04, range: 300, clip: 20, reload: 2.3, ammoPick: 80, price: 4600, ammoPrice: 4, ammoPack: 60, snd: 'carbine', tone: 'rifle', hud: 'smg', zoom: 0.4, pen: 2.0, loud: 80, vel: 700 },
+  lmg: { name: 'Hacksaw LMG-7 Belt-Fed', cls: 'rifle', auto: true, dmg: 32, rate: 0.08, spread: 0.02, hip: 0.06, kick: 0.024, range: 230, clip: 100, reload: 4.2, ammoPick: 200, price: 6500, ammoPrice: 2, ammoPack: 100, snd: 'rifle', tone: 'rifle', hud: 'smg', pen: 1.6, loud: 85, vel: 600 },
+  nailbat: { name: 'Spiked Slugger', cls: 'melee', melee: true, dmg: 72, range: 1.95, price: 90, hud: 'bat' },
+  machete: { name: 'Glades Machete', cls: 'melee', melee: true, dmg: 82, range: 1.75, price: 110, hud: 'bat' },
   grenade: { name: 'Frag Grenade', cls: 'throwable', throw: true, dmg: 160, radius: 7.5, rate: 0.9, clip: 1, ammoPick: 3, price: 300, ammoPrice: 250, ammoPack: 1, hud: 'fist' },
   molotov: { name: 'Molotov Cocktail', cls: 'throwable', throw: true, dmg: 30, radius: 3.2, rate: 1.0, clip: 1, ammoPick: 2, price: 90, ammoPrice: 80, ammoPack: 1, hud: 'fist' },
 };
-export const ORDER = ['fist', 'knife', 'bat', 'crowbar', 'bottle', 'pistol', 'revolver', 'microsmg', 'smg', 'rifle', 'carbine', 'shotgun', 'sawnoff', 'sniper', 'grenade', 'molotov'];
-const SLOTS = { fist: 1, knife: 1, bat: 1, crowbar: 1, bottle: 1, pistol: 2, revolver: 2, microsmg: 3, smg: 3, rifle: 4, carbine: 4, shotgun: 5, sawnoff: 5, sniper: 6, grenade: 7, molotov: 7 };
+export const ORDER = ['fist', 'knife', 'bat', 'nailbat', 'crowbar', 'machete', 'bottle', 'pistol', 'compactpistol', 'slimpistol', 'snspistol', 'chromepistol', 'tacpistol', 'heavypistol', 'revolver', 'microsmg', 'smg', 'rifle', 'carbine', 'assaultrifle', 'specialrifle', 'tacrifle', 'battlerifle', 'lmg', 'shotgun', 'sawnoff', 'sniper', 'grenade', 'molotov'];
+const SLOTS = { fist: 1, knife: 1, bat: 1, nailbat: 1, crowbar: 1, machete: 1, bottle: 1, pistol: 2, compactpistol: 2, slimpistol: 2, snspistol: 2, chromepistol: 2, tacpistol: 2, heavypistol: 2, revolver: 2, microsmg: 3, smg: 3,
+  rifle: 4, carbine: 4, assaultrifle: 4, specialrifle: 4, tacrifle: 4, battlerifle: 4, lmg: 4, shotgun: 5, sawnoff: 5, sniper: 6, grenade: 7, molotov: 7 };
 for (const k of ORDER) { WEAP[k].key = k; WEAP[k].slot = SLOTS[k]; WEAP[k].pellets = WEAP[k].pellets || 1; }
 const isGun = (k) => !!WEAP[k] && !WEAP[k].melee && !WEAP[k].throw;
 
@@ -114,6 +130,7 @@ export function createWeapons(game, G) {
     if (!had) P.inventory.push(key);
     if (!d.melee) { P.ammo[key] = (P.ammo[key] || 0) + (ammo ?? d.ammoPick ?? 30); if (!had || !(P.clip[key] > 0)) fillClip(key); }
     if (key === 'bottle') P.bottleBroken = false;
+    if (opts.variant && libVariants(key)?.includes(opts.variant) && mods(key).variant !== opts.variant) { mods(key).variant = opts.variant; dropModel(key); }
     if (!had && opts.select !== false) { P.weapon = key; reloadT = 0; game.emit?.('weaponChange', { weapon: key }); }
     game.emit?.('inventoryChange', { key, had });
     return true;
@@ -160,11 +177,13 @@ export function createWeapons(game, G) {
     defs: WEAP, order: ORDER, give, take, buyAmmo, select, has: (k) => P.inventory.includes(k), isGun,
     clip: (k = P.weapon) => P.clip[k] ?? 0, get reloading() { return reloadT > 0; },
     eff, mods, catalog, setAttachment, buyAttachment, skins: SKINS, attachInfo: ATTACH_INFO, attachSlots: WEAPON_ATTACH,
-    buildModel: (k, o) => buildWeaponModel(k, Object.assign({ attachments: mods(k), skin: mods(k).skin }, o)),
+    buildModel: (k, o) => buildWeaponModel(k, Object.assign({ attachments: mods(k), skin: mods(k).skin, variant: mods(k).variant }, o)),
     heldModel: () => held[P.weapon] || null,
     spread: () => curSpread, aimState: () => ({ aiming: P.aiming, scoped, zoom: aimZoom, sway: eff(P.weapon).sway || 1, scopeFov }),
   };
   game.weapons = api;
+  // the user's weapon models: warm the ones the player and the police will hold first (the rest load on demand)
+  setTimeout(() => tryCall('gunPreload', () => preloadWeaponLibrary(['pistol', 'bat', ...P.inventory.filter((x) => x !== 'fist')])), 1500);
 
   // ---- held weapon models (built on demand with the weapon's current attachments and skin)
   const held = {};
@@ -173,7 +192,7 @@ export function createWeapons(game, G) {
     if (k === 'fist' || !WEAP[k]) return null;
     let m = held[k]; const broken = k === 'bottle' && !!P.bottleBroken;
     if (m && m.userData._broken !== broken) { dropModel(k); m = null; }
-    if (!m) { const mm = mods(k); m = buildWeaponModel(k, { attachments: mm, skin: mm.skin, broken }); m.userData._broken = broken; m.visible = false; scene.add(m); held[k] = m; }
+    if (!m) { const mm = mods(k); m = buildWeaponModel(k, { attachments: mm, skin: mm.skin, broken, variant: mm.variant }); m.userData._broken = broken; m.visible = false; scene.add(m); held[k] = m; }
     return m;
   }
   let gfxRigOwner = null;
@@ -528,7 +547,7 @@ export function createWeapons(game, G) {
       magOut = u < 0.18 ? 0 : u < 0.34 ? (u - 0.18) / 0.16 : u < 0.58 ? 1 : u < 0.76 ? 1 - (u - 0.58) / 0.18 : 0;
       breech = u < 0.15 ? u / 0.15 : u < 0.8 ? 1 : (1 - u) / 0.2;
     }
-    if (k === 'pistol' || k === 'microsmg' || k === 'smg' || k === 'rifle' || k === 'carbine') { const back = Math.max(empty ? 1 : 0, act.slide, reloadT > 0 && (P.clip[k] || 0) <= 0 ? 1 : 0); s.slide = back; s.bolt = back; s.magOut = magOut; if (k === 'rifle' || k === 'carbine') s.cover = 1; }
+    if ((w.cls === 'handgun' && k !== 'revolver') || w.cls === 'smg' || (w.cls === 'rifle' && k !== 'tacrifle') ) { const back = Math.max(empty ? 1 : 0, act.slide, reloadT > 0 && (P.clip[k] || 0) <= 0 ? 1 : 0); s.slide = back; s.bolt = back; s.magOut = magOut; if (k === 'rifle' || k === 'carbine') s.cover = 1; }
     else if (k === 'revolver') { s.cylinder = act.cyl; s.hammer = 1 - act.hammer; }
     else if (k === 'shotgun') { s.pump = tri(act.pump, 0.22, 0.6); s.bolt = s.pump; }
     else if (k === 'sawnoff') { s.breech = breech; s.hammer = 1 - act.hammer; }
@@ -655,6 +674,7 @@ export function createWeapons(game, G) {
 
   // ---- built-in melee fallback (combat/melee.v2.js replaces it when loaded)
   const MELEE = { fist: { reach: 0.9, r: 0.09, light: 14, heavy: 32, delay: 0.12 }, knife: { reach: 1.1, r: 0.04, light: 52, heavy: 85, delay: 0.1 }, bat: { reach: 1.5, r: 0.06, light: 42, heavy: 72, delay: 0.16 }, crowbar: { reach: 1.4, r: 0.05, light: 46, heavy: 78, delay: 0.17 }, bottle: { reach: 1.1, r: 0.05, light: 26, heavy: 40, delay: 0.12 } };
+  MELEE.nailbat = Object.assign({}, MELEE.bat, { light: 52, heavy: 88 }); MELEE.machete = Object.assign({}, MELEE.knife || MELEE.bat, { reach: 1.3, r: 0.04, light: 58, heavy: 95, delay: 0.12 });
   let combo = 0, lastSwingT = -9, swing = null;
   function meleeFallback() {
     const k = WEAP[P.weapon]?.melee ? P.weapon : 'fist', m = MELEE[k] || MELEE.fist, now = game.clock.elapsed;
@@ -840,7 +860,8 @@ export function createWeapons(game, G) {
     const twoHand = w.cls === 'smg' || w.cls === 'rifle' || w.cls === 'shotgun' || w.cls === 'sniper';
     const pose = C.weaponPose;   // another module (cover, melee, traversal) may place the weapon itself: { hide } | { position, quaternion }
     const armsFree = !P.script || C.allowAim;
-    if (gun && !inCar && armsFree && (aiming || lookT > 0 || reloading) && handBone && bones.rArm && !G.dead && !G.jack && !scoped) {
+    const rigOk = !!(playerRoot && rigOf(playerRoot)?.ok) && !game.legacyGunHold;   // gunHold.js: IK arms + hand-aligned grips
+    if (!rigOk && gun && !inCar && armsFree && (aiming || lookT > 0 || reloading) && handBone && bones.rArm && !G.dead && !G.jack && !scoped) {
       tryCall('aimArm', () => {
         camDir(_fwd);
         if (reloading) _o.set(P.position.x + Math.sin(P.heading) * 0.5, P.position.y + 0.95, P.position.z + Math.cos(P.heading) * 0.5);   // lower the gun in front of the chest
@@ -859,8 +880,14 @@ export function createWeapons(game, G) {
     const m = k !== 'fist' && !inCar && playerRoot && !hiddenByScope && playerRoot.visible !== false && !G.dead && !(pose && pose.hide) ? model(k) : null;
     if (m) {
       m.visible = true;
-      if (pose && pose.position) { m.position.copy(pose.position); m.quaternion.copy(pose.quaternion); }
-      else {
+      let placed = false;
+      if (pose && pose.position) { m.position.copy(pose.position); m.quaternion.copy(pose.quaternion); placed = true; }
+      else if (rigOk) {
+        const holdAim = gun && armsFree && (aiming || lookT > 0) && !reloading && !G.jack && !scoped;
+        if (holdAim) { aimPoint(_o, 80); if (C.aimTarget) _o.copy(C.aimTarget); }
+        placed = tryCall('hold', () => holdWeapon(m, playerRoot, { aim: holdAim ? _o : null, recoil: recoilAnim, kick: w.kick, reload: reloading && gun, dt, time: game.clock.elapsed, free: !armsFree || !!P.state.swimming || !!P.state.climbing }), false);
+      }
+      if (!placed) {
         if (handBone) handBone.getWorldPosition(_hand);
         else _hand.set(P.position.x + Math.cos(P.heading) * -0.3, P.position.y + 1.0, P.position.z - Math.sin(P.heading) * -0.3);
         m.position.copy(_hand);
@@ -878,6 +905,7 @@ export function createWeapons(game, G) {
       m.updateMatrixWorld(true);
       if (k === 'molotov' && m.userData.wick) { m.userData.wick.getWorldPosition(_v); gfx.flame(_v, 0.12, dt); }
     }
+    if (!m && rigOk && playerRoot.userData.__gunRig?.curled) releaseHands(playerRoot);
     tryCall('action', () => actionTick(dt, k, w, m));
     tryCall('accessories', () => accessoriesTick(m, w, !!m && gun && !reloading));
     recoilAnim = Math.max(0, recoilAnim - dt * (6 + recoilAnim * 8));

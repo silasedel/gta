@@ -1,46 +1,58 @@
-// Glowing pickups with tall light beams: weapons (all defs), ammo, armor, health, cash. Caches + starter stash.
-// game.pickups.list -> [{ pos, type, key, mapIcon, active }]  (HUD draws mapIcon when non-null)
+// GTA-style pickups: the real weapon model (the user's library models, src/gameplay/gunModels.js) turning slowly just
+// above the ground with a soft rim glow and a faint ground halo; no light beams. Also ammo, armor, health, cash.
+// Caches + starter stash.  game.pickups.list -> [{ pos, type, key, mapIcon, active }]  (HUD draws mapIcon when non-null)
 import * as THREE from 'three';
 import { rand, pick, pointNear, sfx, tryCall, distXZ, groundAt, sharedBox } from './util.js';
-import { buildWeaponModel } from './gunModels.js';
+import { buildWeaponModel, libVariants } from './gunModels.js';
 import { createCellStreamer } from './stream.js';
 import { WEAP } from './weapons.js';
 
 export { buildWeaponModel };
 
 const isWeapon = (t) => !!WEAP[t] && t !== 'fist';
-const COLOR = (t) => (isWeapon(t) ? (t === 'grenade' ? 0xff7a3a : WEAP[t].melee ? 0xffc870 : 0xffa030) : { armor: 0x4da6ff, health: 0x4dff88, cash: 0x8dff5a, ammo: 0xffd25a }[t] ?? 0xffffff);
+// warm amber for guns, softer gold for melee, cool tones for the rest (rim glow + halo)
+const COLOR = (t) => (isWeapon(t) ? (t === 'grenade' || t === 'molotov' ? 0xff8a4a : WEAP[t].melee ? 0xffd9a0 : 0xffc070) : { armor: 0x6ab4ff, health: 0x6dff9a, cash: 0x9dff6a, ammo: 0xffd27a }[t] ?? 0xffffff);
 const LABEL = (t) => (isWeapon(t) ? WEAP[t].name : { armor: 'Body armor', health: 'First-aid kit', cash: 'Cash', ammo: 'Ammo' }[t] || t);
 const ICON = (t) => (isWeapon(t) ? 'weapon' : t);
+const HOVER = 0.3;   // model center above the ground (m)
 
 function box(w, h, d, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(sharedBox(w, h, d), mat); m.position.set(x, y, z); m.castShadow = true; return m; }
 const _protos = new Map();
-function pickupModel(type, color) { // one prototype per type; instances share geometry + materials
+function pickupModel(type, color) { // non-weapon prototypes are shared; weapons are library models (shared geometry + materials)
+  if (isWeapon(type)) return buildPickupModel(type, color);
   let p = _protos.get(type);
   if (!p) { p = buildPickupModel(type, color); _protos.set(type, p); }
   return p.clone();
 }
-const _haloGeo = new THREE.PlaneGeometry(1.7, 1.7).rotateX(-Math.PI / 2);
-const _fxMats = new Map();
-function fxMat(kind, color, opacity) {
-  const k = kind + color + '|' + opacity;
-  let m = _fxMats.get(k);
+// rim glow: additive fresnel shell drawn over the model's own geometry
+const _rimMats = new Map();
+function rimMat(color) {
+  let m = _rimMats.get(color);
   if (!m) {
-    m = kind === 'halo' ? new THREE.MeshBasicMaterial({ map: haloTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity })
-      : new THREE.MeshBasicMaterial({ map: beamTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity, side: THREE.DoubleSide });
-    _fxMats.set(k, m);
+    m = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(color) }, uI: { value: 1 } },
+      vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'uniform vec3 uColor; uniform float uI; varying vec3 vN; varying vec3 vV; void main(){ float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); f = pow(f, 2.2) * 0.85 + 0.06; gl_FragColor = vec4(uColor * f * uI, 1.0); }',
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, depthFunc: THREE.LessEqualDepth, toneMapped: false,
+    });
+    m.userData.noWet = true; _rimMats.set(color, m);
   }
   return m;
+}
+function addRim(root, color) {
+  const mat = rimMat(color), add = [];
+  root.traverse((o) => { if (o.isMesh && !o.userData.rim && o.material !== mat) add.push(o); });
+  for (const o of add) { const r = new THREE.Mesh(o.geometry, mat); r.userData.rim = true; r.renderOrder = 4; r.castShadow = false; o.add(r); o.userData.rimmed = true; }
 }
 function buildPickupModel(type, color) {
   const g = new THREE.Group();
   const glowMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.6, roughness: 0.4 });
   if (isWeapon(type)) {
-    const w = buildWeaponModel(type);
-    const len = { pistol: 2.2, revolver: 2, microsmg: 1.7, knife: 2.2, grenade: 3, smg: 1.4, bat: 1.1 }[type] || 1.0;
-    w.scale.setScalar(len); w.rotation.y = Math.PI / 2;
-    const bb = new THREE.Box3().setFromObject(w); const c = bb.getCenter(new THREE.Vector3());
-    w.position.sub(c);
+    const vars = libVariants(type);
+    const w = buildWeaponModel(type, { variant: vars ? vars[(Math.random() * vars.length) | 0] : undefined });
+    const d = WEAP[type], small = d.cls === 'handgun' || type === 'microsmg' || type === 'knife' || type === 'grenade';
+    w.scale.setScalar(small ? 1.25 : 1.06);
+    g.userData.weapon = w; g.userData.variant = w.userData.lib || null;
     g.add(w);
   } else if (type === 'armor') {
     g.add(box(0.42, 0.5, 0.14, new THREE.MeshStandardMaterial({ color: 0x2a3550, roughness: 0.8 })));
@@ -58,49 +70,64 @@ function buildPickupModel(type, color) {
     g.add(box(0.37, 0.05, 0.21, glowMat));
     for (let i = 0; i < 4; i++) g.add(box(0.03, 0.08, 0.03, new THREE.MeshStandardMaterial({ color: 0xc8a050, metalness: 0.9, roughness: 0.3 }), -0.1 + i * 0.065, 0.15, 0));
   }
+  if (!isWeapon(type)) addRim(g, color);
   return g;
 }
-let haloTex = null, beamTex = null;
-function texes() {
-  if (!haloTex) {
-    const c = document.createElement('canvas'); c.width = c.height = 64;
-    const x = c.getContext('2d'); const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
-    haloTex = new THREE.CanvasTexture(c);
-    const c2 = document.createElement('canvas'); c2.width = 4; c2.height = 128;
-    const y = c2.getContext('2d'); const g2 = y.createLinearGradient(0, 0, 0, 128);
-    g2.addColorStop(0, 'rgba(255,255,255,0)'); g2.addColorStop(0.6, 'rgba(255,255,255,0.35)'); g2.addColorStop(1, 'rgba(255,255,255,0.9)');
-    y.fillStyle = g2; y.fillRect(0, 0, 4, 128);
-    beamTex = new THREE.CanvasTexture(c2);
-  }
+// weapon pickups: center the model on its pivot (after the library model loads) and add the rim glow
+function settleWeapon(p) {
+  const w = p.model.userData.weapon; if (!w || p.settled) return;
+  if (!w.userData.libReady && w.userData.lib) return;          // still the stand-in: wait for the real model
+  w.position.set(0, 0, 0); w.rotation.set(0, 0, 0); w.updateMatrixWorld(true);
+  const bb = new THREE.Box3().setFromObject(w), c = bb.getCenter(new THREE.Vector3()).sub(w.getWorldPosition(new THREE.Vector3()));
+  w.position.set(-c.x, -c.y, -c.z);
+  addRim(w, p.color);
+  p.settled = true;
 }
-const beamGeo = new THREE.CylinderGeometry(0.16, 0.3, 9, 10, 1, true).translate(0, 4.5, 0);
+// soft ground halo
+let haloTex = null;
+function texes() {
+  if (haloTex) return;
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,0.55)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.22)'); gr.addColorStop(0.65, 'rgba(255,255,255,0.06)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
+  haloTex = new THREE.CanvasTexture(c); haloTex.colorSpace = THREE.SRGBColorSpace;
+}
+const _haloGeo = new THREE.PlaneGeometry(1.3, 1.3).rotateX(-Math.PI / 2);
+const _haloMats = new Map();
+function haloMat(color) {
+  let m = _haloMats.get(color);
+  if (!m) { texes(); m = new THREE.MeshBasicMaterial({ map: haloTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, toneMapped: false }); _haloMats.set(color, m); }
+  return m;
+}
 const crateMat = new THREE.MeshStandardMaterial({ color: 0x5a4a30, roughness: 0.85 });
 
 export function createPickups(game, G) {
   const { scene } = game;
   const P = game.player;
   const list = [];
-  texes();
 
   function spawn(type, pos, opts = {}) {
     if (!type || (type !== 'armor' && type !== 'health' && type !== 'cash' && type !== 'ammo' && !isWeapon(type))) return null;
     const color = COLOR(type);
     const root = new THREE.Group();
     const model = pickupModel(type, color);
-    model.position.y = 0.8;
-    const halo = new THREE.Mesh(_haloGeo, fxMat('halo', color, 0.85));
-    halo.position.y = 0.04; halo.renderOrder = 2;
-    const beam = new THREE.Mesh(beamGeo, fxMat('beam', color, type === 'cash' && opts.temp ? 0.35 : 0.75));
-    beam.renderOrder = 3;
-    root.add(model, halo, beam);
-    root.position.set(pos.x, pos.y || 0, pos.z);
+    model.position.y = HOVER;
+    const halo = new THREE.Mesh(_haloGeo, haloMat(color));
+    halo.position.y = 0.025; halo.renderOrder = 2;
+    root.add(model, halo);
+    // sit on the real surface (sidewalk, curb, dock planks): ray down onto the fixed colliders around the given point
+    let y = pos.y || 0;
+    const gy = tryCall('pickupGround', () => groundAt(game, pos.x, pos.z, y + 1.6), 0);
+    if (gy && Math.abs(gy - y) < 2.5) y = gy;
+    root.position.set(pos.x, y, pos.z);
     scene.add(root);
     const p = {
-      type, key: type, pos: root.position, root, model, beam, halo, active: true, respawnT: 0, temp: !!opts.temp, life: opts.life ?? 45,
+      type, key: type, pos: root.position, root, model, halo, color, active: true, respawnT: 0, temp: !!opts.temp, life: opts.life ?? 45,
       amount: opts.amount ?? 0, ammo: opts.ammo, phase: Math.random() * 6, mapIcon: ICON(type), label: LABEL(type), cache: !!opts.cache,
+      variant: model.userData.variant || null, settled: !isWeapon(type),
     };
+    if (isWeapon(type)) settleWeapon(p);
     list.push(p);
     return p;
   }
@@ -120,14 +147,14 @@ export function createPickups(game, G) {
   }
   const stash = stashPos ? { position: stashPos } : null;
   const POOLS = {
-    beach: ['health', 'health', 'armor', 'cash', 'cash', 'ammo', 'knife', 'bat', 'pistol', 'revolver', 'sniper'],
-    industrial: ['rifle', 'carbine', 'shotgun', 'smg', 'grenade', 'grenade', 'ammo', 'ammo', 'armor', 'sawnoff'],
-    park: ['health', 'health', 'cash', 'bat', 'knife', 'revolver', 'armor', 'pistol'],
-    nightlife: ['pistol', 'microsmg', 'knife', 'cash', 'cash', 'health', 'armor', 'revolver', 'sawnoff'],
-    default: ['pistol', 'pistol', 'microsmg', 'smg', 'shotgun', 'sawnoff', 'revolver', 'health', 'health', 'armor', 'armor', 'cash', 'cash', 'ammo', 'ammo', 'grenade', 'rifle', 'carbine', 'bat', 'knife'],
+    beach: ['health', 'health', 'armor', 'cash', 'cash', 'ammo', 'knife', 'bat', 'machete', 'pistol', 'slimpistol', 'revolver', 'sniper'],
+    industrial: ['rifle', 'carbine', 'assaultrifle', 'shotgun', 'smg', 'grenade', 'grenade', 'ammo', 'ammo', 'armor', 'sawnoff', 'crowbar', 'crowbar', 'lmg', 'battlerifle'],
+    park: ['health', 'health', 'cash', 'bat', 'bat', 'nailbat', 'knife', 'revolver', 'armor', 'pistol', 'compactpistol'],
+    nightlife: ['pistol', 'microsmg', 'knife', 'cash', 'cash', 'health', 'armor', 'revolver', 'sawnoff', 'heavypistol', 'chromepistol', 'slimpistol'],
+    default: ['pistol', 'pistol', 'compactpistol', 'snspistol', 'tacpistol', 'microsmg', 'smg', 'shotgun', 'sawnoff', 'revolver', 'health', 'health', 'armor', 'armor', 'cash', 'cash', 'ammo', 'ammo', 'grenade', 'rifle', 'carbine', 'assaultrifle', 'bat', 'crowbar', 'nailbat', 'machete', 'knife'],
   };
   POOLS.port = POOLS.industrial; POOLS.causeway = POOLS.beach;
-  const CACHE_POOL = ['rifle', 'carbine', 'smg', 'shotgun', 'sawnoff', 'sniper', 'grenade', 'revolver', 'microsmg', 'armor', 'ammo'];
+  const CACHE_POOL = ['rifle', 'carbine', 'assaultrifle', 'specialrifle', 'tacrifle', 'battlerifle', 'lmg', 'smg', 'shotgun', 'sawnoff', 'sniper', 'grenade', 'revolver', 'heavypistol', 'tacpistol', 'microsmg', 'armor', 'ammo'];
   function cacheSpot(cell) {
     for (let k = 0; k < 30; k++) {
       const x = cell.cx + rand(-95, 95), z = cell.cz + rand(-95, 95);
@@ -165,7 +192,7 @@ export function createPickups(game, G) {
         const nn = 2 + (Math.random() < 0.45 ? 1 : 0);
         for (let k = 0; k < nn; k++) {
           const a = (k / nn) * Math.PI * 2 + 0.5;
-          items.push({ type: k === 0 ? pick(['rifle', 'carbine', 'sniper', 'shotgun']) : pick(CACHE_POOL), x: cp.x + Math.cos(a) * 1.6, y: cp.y, z: cp.z + Math.sin(a) * 1.6, cache: true, respawnAt: 0 });
+          items.push({ type: k === 0 ? pick(['rifle', 'carbine', 'assaultrifle', 'specialrifle', 'tacrifle', 'battlerifle', 'lmg', 'sniper', 'shotgun']) : pick(CACHE_POOL), x: cp.x + Math.cos(a) * 1.6, y: cp.y, z: cp.z + Math.sin(a) * 1.6, cache: true, respawnAt: 0 });
         }
       }
     }
@@ -208,7 +235,7 @@ export function createPickups(game, G) {
       const d = WEAP[t], had = inv.includes(t);
       if (d.melee && had) return false;
       const add = p.ammo ?? d.ammoPick ?? 30;
-      if (W?.give) W.give(t, d.melee ? 0 : add);
+      if (W?.give) W.give(t, d.melee ? 0 : add, { variant: p.variant || undefined });
       else { if (!had) inv.push(t); if (!d.melee) P.ammo[t] = (P.ammo[t] || 0) + add; }
       msg = had ? `${d.name}: +${add} ammo` : `Picked up: ${d.name}`;
       sfx(game, d.melee ? 'pickup' : 'reload', p.pos, 0.8);
@@ -239,7 +266,7 @@ export function createPickups(game, G) {
     const dead = G.dead || G.busted;
     if (!hinted && stash && game.ui && !game.ui.title && t > 3) {
       hinted = true;
-      tryCall('notify', () => game.hud?.notify?.('Psst: there\'s a pistol stashed nearby. Follow the orange light beam.', 6000));
+      tryCall('notify', () => game.hud?.notify?.('Psst: there\'s a pistol stashed nearby. It\'s marked on your map.', 6000));
     }
     for (let i = list.length - 1; i >= 0; i--) {
       const p = list[i];
@@ -251,23 +278,15 @@ export function createPickups(game, G) {
       if (p.temp) { p.life -= dt; if (p.life <= 0) { remove(p); continue; } }
       const d = distXZ(p.pos, pp);
       const blink = !p.temp || p.life > 5 || (t * 6 | 0) % 2 === 0;
-      // Beams only show close by (playtest: tall glowing columns all over Ocean Drive read as glitches).
-      // The starter stash keeps a longer beam while its hint is fresh, so the player can find it.
-      const stashHint = p.starter && t < 240;
-      const beamRange = stashHint ? 160 : 45;
-      p.root.visible = d < Math.max(90, beamRange) && blink;
+      p.root.visible = d < 90 && blink;
       if (!p.root.visible) continue;
-      const near = d < 90;
-      p.model.visible = near;
-      p.halo.visible = near;
-      p.beam.visible = d < beamRange;
-      // shorter, fainter beam by day; full height at night or for the stash hint
-      const day = game.env?.dayFactor ?? 1;
-      const tall = stashHint ? 1 : 0.55 - 0.25 * day;
-      p.beam.scale.y = d < 12 ? Math.min(0.3, tall) : tall;
-      if (!near) continue;
-      p.model.rotation.y = t * 2 + p.phase;
-      p.model.position.y = 0.8 + Math.sin(t * 2.5 + p.phase) * 0.08;
+      if (!p.settled) settleWeapon(p);
+      // slow turn + gentle bob; the glow breathes (a little stronger at night)
+      p.model.rotation.y = t * 0.9 + p.phase;
+      p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.025;
+      const night = 1 - (game.env?.dayFactor ?? 1);
+      p.halo.material.opacity = 0.32 + night * 0.35;
+      for (const m of _rimMats.values()) m.uniforms.uI.value = (0.75 + 0.25 * Math.sin(t * 2.2)) * (0.8 + night * 0.7);
       const r = inCar ? 2.6 : 1.3;
       if (!dead && d < r && Math.abs(p.pos.y - pp.y) < 2.2 && (!inCar || p.type === 'cash' || p.type === 'health' || p.type === 'armor' || p.type === 'ammo')) {
         if (collect(p)) {

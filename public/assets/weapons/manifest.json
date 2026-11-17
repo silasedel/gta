@@ -179,7 +179,7 @@
     ]
    },
    "parts": {},
-   "bytes": 641468
+   "bytes": 1250328
   },
   "h6_heavy": {
    "src": "Handgun 6 - Heavy Black Pistol With Loose Rounds",
@@ -579,7 +579,7 @@
     ]
    },
    "parts": {},
-   "bytes": 530252
+   "bytes": 1048752
   },
   "r5_blue": {
    "src": "Rifle 5 - Blue-Stock Modern Assault Rifle",
@@ -661,7 +661,7 @@
     ]
    },
    "parts": {},
-   "bytes": 1056144
+   "bytes": 1180856
   },
   "r7_sniper": {
    "src": "Rifle 7 - Black Bolt-Action Sniper Rifle",
@@ -806,7 +806,7 @@
     ]
    },
    "parts": {},
-   "bytes": 236740
+   "bytes": 434656
   },
   "crow1_red": {
    "src": "Crowbar 1 - Red Painted Crowbar",

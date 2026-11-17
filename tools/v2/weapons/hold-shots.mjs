@@ -47,7 +47,11 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
         } else if (aim) { game.cameraYaw = h + Math.PI; }
         await new Promise((res) => setTimeout(res, ${+(o.wait || 1400)}));
         const m = W.heldModel();
-        return JSON.stringify({ k: '${k}', v: '${v}', lib: m?.userData.lib, ready: !!m?.userData.libReady, tris: m?.userData.tris, vis: !!m?.visible });
+        let dbg = null;
+        try { const H = await import('/src/gameplay/gunHold.js'); const root = game.playerCharacter?.root; const r = H.rigOf(root);
+          dbg = { root: root?.name, ok: r?.ok, lok: r?.lok, axR: r?.axR?.dbg, axL: r?.axL?.dbg, fing: r?.fingersR, miss: Object.entries(r || {}).filter(([kk, vv]) => vv == null).map(([kk]) => kk).slice(0, 8), bones: (() => { const n = []; root?.traverse((o) => { if (o.isBone && /Hand$|Arm$/.test(o.name)) n.push(o.name); }); return n; })() };
+          try { H.holdWeapon(m, root, { aim: aim ? tgt : null, dt: 0.016, time: 0 }); } catch (e) { dbg.err = String(e && e.stack || e).slice(0, 300); } } catch (e) { dbg = 'import ' + e; }
+        return JSON.stringify({ k: '${k}', v: '${v}', lib: m?.userData.lib, ready: !!m?.userData.libReady, tris: m?.userData.tris, vis: !!m?.visible, dbg });
       })()`);
       const out = path.join(DIR, `${SET}_${k}_${v}.png`);
       await b.screenshot(out);
@@ -69,6 +73,22 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
     const r2 = await b.eval(`(async () => { const u = window.__cop; (game.wanted || {}).level = 2; u.mode = 'chase'; u.sees = true;
       await new Promise((res) => setTimeout(res, 1800)); return 'cop aim ' + u.mode; })()`);
     console.log(r2); await b.screenshot(path.join(DIR, `${SET}_cop_aim.png`));
+  }
+  if (o.pickups) {
+    // GTA-style pickups on the ground: a row of weapons a few meters ahead, day and night
+    const types = String(o.pickups === true ? 'pistol,rifle,bat,heavypistol,smg,crowbar' : o.pickups).split(',');
+    await b.eval(`(() => { const [x, z, h] = window.__P0; game.weapons.select('fist'); game.combatInput.aim = null; game.combat.aimTarget = null;
+      const V = game.player.position.constructor, fx = Math.sin(h), fz = Math.cos(h), rx = -Math.cos(h), rz = Math.sin(h);
+      const T = ${JSON.stringify(types)}; window.__pk = T.map((t, i) => game.pickups.spawn(t, new V(x + fx * 4.2 + rx * (i - (T.length - 1) / 2) * 1.25, game.player.position.y, z + fz * 4.2 + rz * (i - (T.length - 1) / 2) * 1.25), {}));
+      game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 1.2, y + 1.25, z + fz * 1.2); cam.lookAt(x + fx * 4.2, y + 0.25, z + fz * 4.2); cam.fov = 50; cam.updateProjectionMatrix(); return true; };
+      return 1; })()`);
+    for (const [tod, tag] of [[11.5, 'day'], [21.5, 'night']]) {
+      await b.eval(`game.timeOfDay = ${tod}; 1`); await b.sleep(3500);
+      await b.screenshot(path.join(DIR, `${SET}_pickups_${tag}.png`)); console.log('pickups', tag);
+    }
+    await b.eval(`(() => { const [x, z, h] = window.__P0; const fx = Math.sin(h), fz = Math.cos(h), rx = -Math.cos(h), rz = Math.sin(h);
+      game.cameraOverride = (dt, cam) => { const y = game.player.position.y; cam.position.set(x + fx * 3.0 + rx * 0.9, y + 0.7, z + fz * 3.0 + rz * 0.9); cam.lookAt(x + fx * 4.2, y + 0.3, z + fz * 4.2); cam.fov = 40; cam.updateProjectionMatrix(); return true; }; game.timeOfDay = 11.5; return 1; })()`);
+    await b.sleep(2500); await b.screenshot(path.join(DIR, `${SET}_pickups_close.png`));
   }
   if (b.errors.length) console.log('ERRORS', [...new Set(b.errors)].slice(0, 20).join('\n'));
 });

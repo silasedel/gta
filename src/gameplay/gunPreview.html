@@ -3,10 +3,11 @@
 <style>html,body{margin:0;background:#101215;overflow:hidden;font-family:system-ui,sans-serif}#lbl{position:fixed;left:24px;top:14px;color:#ddd;font-size:15px;letter-spacing:.08em}.tag{position:fixed;color:#cfd3d8;font:600 12px/1.2 system-ui;letter-spacing:.06em;text-shadow:0 1px 2px #000;transform:translate(-50%,0);white-space:nowrap}</style></head>
 <body><div id="lbl"></div>
 <script type="module">
-// Modes (query): sheet=factory | kitted | skins | parts | melee, or model=<key>[&ang=][&kit=1][&skin=][&anim=slide:1,magOut:1]
+// Modes (query): sheet=factory | kitted | skins | parts | melee | lib | libkit | libmelee, or model=<key>[&ang=][&kit=1][&skin=][&anim=slide:1,magOut:1]
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildWeaponModel, MODEL_KEYS, WEAPON_ATTACH, SKINS, DEFAULT_ATTACH } from './gunModels.js';
+import { buildWeaponModel, MODEL_KEYS, WEAPON_ATTACH, SKINS, DEFAULT_ATTACH, LIB, preloadWeaponLibrary } from './gunModels.js';
+await preloadWeaponLibrary();   // the user's library models (sheet=lib | libkit, model=<key>)
 const q = new URLSearchParams(location.search);
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true });
@@ -61,6 +62,13 @@ if (model) {
       ['rifle', { bolt: 1, charging: 1, cover: 1 }, 'bolt back, cover open'], ['rifle', { magOut: 1 }, 'magazine out'], ['sniper', { boltHandle: 1 }, 'bolt open'], ['smg', { charging: 1, bolt: 1, magOut: 0.6 }, 'charging handle back'], ['microsmg', { bolt: 1, magOut: 1 }, 'bolt back, mag out']];
     demo.forEach(([k, a, t], i) => rows.push({ k, opts: {}, anim: a, col: i < 5 ? 0 : 1, row: i < 5 ? i : i - 5, text: `${k}: ${t}` }));
     label = 'MOVING PARTS';
+  } else if (sheet === 'lib' || sheet === 'libkit') {
+    const keys = Object.keys(LIB).filter((k) => LIB[k].kind !== 'melee');
+    keys.forEach((k, i) => rows.push({ k, opts: { attachments: sheet === 'libkit' ? fullKit(k) : undefined }, col: i < 9 ? 0 : 1, row: (i % 9) * 0.56, text: k + (sheet === 'libkit' ? ' (kit)' : '') }));
+    label = sheet === 'libkit' ? 'LIBRARY GUNS: every attachment that fits' : 'LIBRARY GUNS (the user\'s models)';
+  } else if (sheet === 'libmelee') {
+    let i = 0; for (const k of Object.keys(LIB).filter((x) => LIB[x].kind === 'melee')) for (const v of LIB[k].models) { rows.push({ k, opts: { variant: v }, col: i % 2, row: Math.floor(i / 2) * 1.0, text: k + ' / ' + v }); i++; }
+    label = 'LIBRARY MELEE';
   } else if (sheet === 'melee') {
     OTHER.forEach((k, i) => rows.push({ k, opts: {}, col: i < 3 ? 0 : 1, row: i < 3 ? i * 1.2 : (i - 3) * 1.2, text: k }));
     rows.push({ k: 'bottle', opts: { broken: true }, col: 0, row: 3.6, text: 'bottle (broken)' }); rows.push({ k: 'pistol', opts: { lod: 1 }, col: 1, row: 3.6, text: 'pistol LOD1' });

@@ -226,7 +226,10 @@ def build_material(name, src, spec):
     m = bpy.data.materials.new(KEY + '_' + name); m.use_nodes = True; T = m.node_tree; N = T.nodes
     b = N['Principled BSDF']
     tc = N.new('ShaderNodeTexImage'); tc.image = imc; T.links.new(tc.outputs[0], b.inputs['Base Color'])
+    uvsel = None
+    if spec.get('uv'): uvsel = N.new('ShaderNodeUVMap'); uvsel.uv_map = spec['uv']; T.links.new(uvsel.outputs[0], tc.inputs['Vector'])
     to = N.new('ShaderNodeTexImage'); to.image = imo; sp = N.new('ShaderNodeSeparateColor')
+    if uvsel: T.links.new(uvsel.outputs[0], to.inputs['Vector'])
     T.links.new(to.outputs[0], sp.inputs[0]); T.links.new(sp.outputs['Green'], b.inputs['Roughness']); T.links.new(sp.outputs['Blue'], b.inputs['Metallic'])
     if spec.get('ao') or spec.get('aoPack'):
         try:
@@ -234,10 +237,105 @@ def build_material(name, src, spec):
         except Exception: pass
     if imn:
         tn = N.new('ShaderNodeTexImage'); tn.image = imn; nm = N.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = 1.0
+        if uvsel: T.links.new(uvsel.outputs[0], tn.inputs['Vector']); nm.uv_map = spec['uv']
         T.links.new(tn.outputs[0], nm.inputs['Color']); T.links.new(nm.outputs[0], b.inputs['Normal'])
     if spec.get('emissive'):
         b.inputs['Emission Color'].default_value = spec['emissive'] + [1]; b.inputs['Emission Strength'].default_value = spec.get('emissiveStrength', 2)
     return m, {'rough': float(np.mean(rough)), 'metal': float(np.mean(metal)), 'col': [float(x) for x in col.reshape(-1, 3).mean(0)]}
+
+# ---- untextured parts: bake a worn PBR finish (Cycles): base + noise, worn bright edges (bevel vs. geometry normal),
+#      cavity darkening (AO), rounded-edge normals; all procedural parts share one atlas on a new UV map 'BakeUV'
+def bake_procedural():
+    specs0 = C.get('mats', {})
+    proc = [i for i, (mn, m) in enumerate(mats) if specs0.get(mn, specs0.get('*', {})).get('finish')]
+    if not proc: return
+    import tempfile
+    td = tempfile.mkdtemp(prefix='wbake_')
+    sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = int(C.get('bakeSamples', 24)); sc.cycles.use_denoising = False
+    sc.render.bake.margin = 6; sc.render.bake.use_clear = True
+    me.materials.clear()
+    for mn, m in mats: me.materials.append(m or bpy.data.materials.new('ph_' + mn))
+    uv = me.uv_layers.new(name='BakeUV'); me.uv_layers['UVMap'].active_render = True
+    me.uv_layers.active = uv
+    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='DESELECT'); bpy.ops.object.mode_set(mode='OBJECT')
+    for p in me.polygons: p.select = p.material_index in proc
+    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.uv.smart_project(angle_limit=math.radians(55), island_margin=0.004, area_weight=0.0, scale_to_bounds=True); bpy.ops.object.mode_set(mode='OBJECT')
+    RESB = C.get('bakeRes', 1024)
+    imgs = {k: bpy.data.images.new('bake_' + k, RESB, RESB, alpha=False, float_buffer=k == 'normal') for k in ('color', 'rough', 'metal', 'normal')}
+    for k in ('rough', 'metal', 'normal'): imgs[k].colorspace_settings.name = 'Non-Color'
+    # temporary bake materials (one per procedural source material)
+    saved = [s.material for s in ob.material_slots]
+    wear = C.get('wear', 0.55)
+    bmats = {}
+    for i in proc:
+        mn = mats[i][0]; sp = specs0.get(mn, specs0.get('*', {})); fin = FIN[sp['finish']]
+        base = sp.get('base') or fin[0]; rough = sp.get('roughv', fin[1]); metal = sp.get('metalv', fin[2]); ew = sp.get('wear', wear)
+        bare = sp.get('bare', [0.52, 0.52, 0.54] if metal > 0.3 else [min(1, base[0] * 1.9 + 0.05), min(1, base[1] * 1.9 + 0.05), min(1, base[2] * 1.9 + 0.05)])
+        m = bpy.data.materials.new('bk_' + mn); m.use_nodes = True; T = m.node_tree; N = T.nodes; L = T.links
+        for n in list(N): N.remove(n)
+        out = N.new('ShaderNodeOutputMaterial'); em = N.new('ShaderNodeEmission'); pb = N.new('ShaderNodeBsdfPrincipled')
+        uvn = N.new('ShaderNodeUVMap'); uvn.uv_map = 'BakeUV'
+        geo = N.new('ShaderNodeNewGeometry'); bev = N.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = sp.get('bevel', C.get('bevel', 0.0012)); bev.samples = 8
+        dot = N.new('ShaderNodeVectorMath'); dot.operation = 'DOT_PRODUCT'; L.new(bev.outputs[0], dot.inputs[0]); L.new(geo.outputs['Normal'], dot.inputs[1])
+        e1 = N.new('ShaderNodeMath'); e1.operation = 'SUBTRACT'; e1.inputs[0].default_value = 1.0; L.new(dot.outputs['Value'], e1.inputs[1])
+        e2 = N.new('ShaderNodeMath'); e2.operation = 'MULTIPLY'; e2.inputs[1].default_value = 28.0; e2.use_clamp = True; L.new(e1.outputs[0], e2.inputs[0])
+        tc = N.new('ShaderNodeTexCoord'); nz = N.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 140.0; nz.inputs['Detail'].default_value = 6.0
+        L.new(tc.outputs['Object'], nz.inputs['Vector'])
+        nz2 = N.new('ShaderNodeTexNoise'); nz2.inputs['Scale'].default_value = 22.0; nz2.inputs['Detail'].default_value = 3.0; L.new(tc.outputs['Object'], nz2.inputs['Vector'])
+        # wear mask = edge * (noise breakup)
+        br = N.new('ShaderNodeMapRange'); br.inputs['From Min'].default_value = 0.42; br.inputs['From Max'].default_value = 0.62; L.new(nz.outputs['Fac'], br.inputs['Value'])
+        wm = N.new('ShaderNodeMath'); wm.operation = 'MULTIPLY'; wm.use_clamp = True; L.new(e2.outputs[0], wm.inputs[0]); L.new(br.outputs['Result'], wm.inputs[1])
+        wk = N.new('ShaderNodeMath'); wk.operation = 'MULTIPLY'; wk.use_clamp = True; wk.inputs[1].default_value = ew; L.new(wm.outputs[0], wk.inputs[0])
+        ao = N.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = sp.get('aoDist', 0.012); ao.samples = 8
+        aor = N.new('ShaderNodeMapRange'); aor.inputs['To Min'].default_value = 0.55; L.new(ao.outputs['AO'], aor.inputs['Value'])
+        # color = mix(base * (0.92 .. 1.08 by macro noise), bare, wear) * cavity
+        bc = N.new('ShaderNodeRGB'); bc.outputs[0].default_value = tuple(srgb2lin(base).tolist()) + (1,)
+        bm_ = N.new('ShaderNodeRGB'); bm_.outputs[0].default_value = tuple(srgb2lin(bare).tolist()) + (1,)
+        mv = N.new('ShaderNodeMapRange'); mv.inputs['To Min'].default_value = 0.88; mv.inputs['To Max'].default_value = 1.12; L.new(nz2.outputs['Fac'], mv.inputs['Value'])
+        mul = N.new('ShaderNodeMix'); mul.data_type = 'RGBA'; mul.blend_type = 'MULTIPLY'; mul.inputs['Factor'].default_value = 1.0
+        L.new(bc.outputs[0], mul.inputs[6]); cm = N.new('ShaderNodeCombineColor'); [L.new(mv.outputs['Result'], cm.inputs[j]) for j in range(3)]; L.new(cm.outputs[0], mul.inputs[7])
+        mx = N.new('ShaderNodeMix'); mx.data_type = 'RGBA'; L.new(wk.outputs[0], mx.inputs['Factor']); L.new(mul.outputs[2], mx.inputs[6]); L.new(bm_.outputs[0], mx.inputs[7])
+        cav = N.new('ShaderNodeMix'); cav.data_type = 'RGBA'; cav.blend_type = 'MULTIPLY'; cav.inputs['Factor'].default_value = 1.0
+        L.new(mx.outputs[2], cav.inputs[6]); cm2 = N.new('ShaderNodeCombineColor'); [L.new(aor.outputs['Result'], cm2.inputs[j]) for j in range(3)]; L.new(cm2.outputs[0], cav.inputs[7])
+        # rough / metal
+        rr = N.new('ShaderNodeMapRange'); rr.inputs['To Min'].default_value = max(0.05, rough - 0.08); rr.inputs['To Max'].default_value = min(1, rough + 0.1); L.new(nz2.outputs['Fac'], rr.inputs['Value'])
+        rw = N.new('ShaderNodeMix'); rw.data_type = 'FLOAT'; L.new(wk.outputs[0], rw.inputs['Factor']); L.new(rr.outputs['Result'], rw.inputs[2]); rw.inputs[3].default_value = 0.3
+        mw = N.new('ShaderNodeMix'); mw.data_type = 'FLOAT'; L.new(wk.outputs[0], mw.inputs['Factor']); mw.inputs[2].default_value = metal; mw.inputs[3].default_value = 1.0 if metal > 0.3 else metal
+        tex_ = N.new('ShaderNodeTexImage'); tex_.select = True; N.active = tex_
+        L.new(bev.outputs[0], pb.inputs['Normal'])
+        bmats[i] = (m, em, out, pb, {'color': cav.outputs[2], 'rough': rw.outputs[0], 'metal': mw.outputs[0]}, tex_, uvn)
+        L.new(uvn.outputs[0], tex_.inputs['Vector'])
+    for slot_i, s in enumerate(ob.material_slots):
+        if slot_i in bmats: s.material = bmats[slot_i][0]
+    # faces of textured materials must not write into the atlas: give them a dummy material with an unrelated image
+    dummy_img = bpy.data.images.new('bake_dummy', 8, 8)
+    for slot_i, s in enumerate(ob.material_slots):
+        if slot_i not in bmats:
+            dm = bpy.data.materials.new('bk_dummy%d' % slot_i); dm.use_nodes = True; tn = dm.node_tree.nodes.new('ShaderNodeTexImage'); tn.image = dummy_img; dm.node_tree.nodes.active = tn; s.material = dm
+    for k in ('color', 'rough', 'metal', 'normal'):
+        for i, (m, em, out, pb, socks, tex_, uvn) in bmats.items():
+            T = m.node_tree; tex_.image = imgs[k]; T.nodes.active = tex_
+            for l in list(out.inputs['Surface'].links): T.links.remove(l)
+            if k == 'normal': T.links.new(pb.outputs[0], out.inputs['Surface'])
+            else:
+                for l in list(em.inputs['Color'].links): T.links.remove(l)
+                T.links.new(socks[k], em.inputs['Color']); T.links.new(em.outputs[0], out.inputs['Surface'])
+        bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob
+        if k == 'normal': bpy.ops.object.bake(type='NORMAL', normal_space='TANGENT', uv_layer='BakeUV')
+        else: bpy.ops.object.bake(type='EMIT', uv_layer='BakeUV')
+        path = os.path.join(td, k + '.png'); imgs[k].filepath_raw = path; imgs[k].file_format = 'PNG'; imgs[k].save()
+    for slot_i, s in enumerate(ob.material_slots): s.material = saved[slot_i]
+    # every procedural source material now maps onto one baked atlas material
+    atlas = '__bake'
+    C.setdefault('mats', {})[atlas] = {'auto': False, 'color': os.path.join(td, 'color.png'), 'rough': os.path.join(td, 'rough.png'), 'metal': os.path.join(td, 'metal.png'),
+                                       'normal': os.path.join(td, 'normal.png'), 'uv': 'BakeUV'}
+    for i in proc:
+        mn = mats[i][0]; C['mats'].setdefault(mn, {})
+        C['mats'][mn] = dict(C['mats'][mn]); C['mats'][mn]['same'] = atlas
+    if atlas not in [x[0] for x in mats]: mats.append((atlas, None))
+    print('BAKED', len(proc), 'procedural materials ->', td)
+if C.get('bake'):
+    bake_procedural()
 
 specs = C.get('mats', {})
 newm = []; info = {}; sig = {}

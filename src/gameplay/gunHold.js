@@ -26,15 +26,77 @@ export function rigOf(root) {
   for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) r[side + 'Hand' + f + i] = find(root, side + 'Hand' + f + i);
   r.rest = new Map();   // finger rest rotations: curls are applied from rest every frame (clips may not key fingers)
   for (const side of ['Right', 'Left']) for (const f of FING) for (let i = 1; i <= 3; i++) { const b = r[side + 'Hand' + f + i]; if (b) r.rest.set(b, b.quaternion.clone()); }
-  r.ok = !!(r.hand && r.fore && r.arm && r.RightHandMiddle1 && r.RightHandIndex1 && r.RightHandPinky1);
-  r.lok = !!(r.lhand && r.lfore && r.larm && r.LeftHandMiddle1 && r.LeftHandIndex1 && r.LeftHandPinky1);
+  r.fingersR = !!(r.RightHandMiddle1 && r.RightHandIndex1 && r.RightHandPinky1);
+  r.fingersL = !!(r.LeftHandMiddle1 && r.LeftHandIndex1 && r.LeftHandPinky1);
+  // rigs without finger bones (the game's runtime skeletons): hand axes in the hand bone's own frame, from the bind pose
+  if (!r.fingersR || !r.fingersL) bindAxes(root, r);
+  r.ok = !!(r.hand && r.fore && r.arm && (r.fingersR || r.axR));
+  r.lok = !!(r.lhand && r.lfore && r.larm && (r.fingersL || r.axL));
   Object.defineProperty(root.userData, '__gunRig', { value: r, enumerable: false, configurable: true, writable: true });
   return r;
 }
 const wp = (o, v) => o.getWorldPosition(v);
+// bind-pose hand axes: F along the forearm -> hand line, S toward the character's front (thumb / index side in a
+// T- or A-pose), N = palm normal; stored in the hand bone's local frame
+function bindAxes(root, r) {
+  // the skinned mesh with the most vertices on this skeleton (LOD0)
+  let mesh = null; root.traverse((o) => { if (o.isSkinnedMesh && o.skeleton && o.skeleton.bones.includes(r.hand) && (!mesh || o.geometry.attributes.position.count > mesh.geometry.attributes.position.count)) mesh = o; });
+  if (!mesh) return;
+  const sk = mesh.skeleton, g = mesh.geometry, P = g.attributes.position, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight;
+  const bw = (b) => { const i = sk.bones.indexOf(b); return i < 0 ? null : new THREE.Matrix4().copy(sk.boneInverses[i]).invert(); };
+  const pos = (b) => { const m = b && bw(b); return m ? new THREE.Vector3().setFromMatrixPosition(m) : null; };
+  const v = new THREE.Vector3();
+  for (const side of ['R', 'L']) {
+    const h = side === 'R' ? r.hand : r.lhand, fo = side === 'R' ? r.fore : r.lfore; if (!h || !fo) continue;
+    const mh = bw(h), ph = pos(h), pf = pos(fo); if (!mh || !ph || !pf) continue;
+    const F = ph.clone().sub(pf).normalize();
+    // hand vertices (bind space): wrist-relative, projected across F
+    const hi = sk.bones.indexOf(h), pts = [];
+    for (let k = 0; k < P.count; k++) {
+      let wsum = 0; for (let c = 0; c < 4; c++) { const bi = SI.getComponent(k, c); if (bi === hi || (sk.bones[bi] && sk.bones[bi].name.includes(side === 'R' ? 'RightHand' : 'LeftHand'))) wsum += SW.getComponent(k, c); }
+      if (wsum < 0.5) continue;
+      v.fromBufferAttribute(P, k).applyMatrix4(mesh.bindMatrix).sub(ph);
+      const a = v.dot(F); if (a < -0.01) continue;
+      pts.push(a, v.x - F.x * a, v.y - F.y * a, v.z - F.z * a);
+    }
+    if (pts.length < 40) continue;
+    // 2x2 covariance in the plane across F: widest axis = across the knuckles (S), thinnest = palm normal (N)
+    const e1 = new THREE.Vector3(1, 0, 0); if (Math.abs(e1.dot(F)) > 0.9) e1.set(0, 1, 0); e1.addScaledVector(F, -e1.dot(F)).normalize(); const e2 = new THREE.Vector3().crossVectors(F, e1);
+    let c11 = 0, c12 = 0, c22 = 0, m1 = 0, m2 = 0, n = pts.length / 4, len = 0;
+    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const x = v.dot(e1), y = v.dot(e2); m1 += x; m2 += y; len = Math.max(len, pts[k]); }
+    m1 /= n; m2 /= n;
+    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const x = v.dot(e1) - m1, y = v.dot(e2) - m2; c11 += x * x; c12 += x * y; c22 += y * y; }
+    const th = 0.5 * Math.atan2(2 * c12, c11 - c22);
+    const S = e1.clone().multiplyScalar(Math.cos(th)).addScaledVector(e2, Math.sin(th)).normalize();
+    const N = new THREE.Vector3().crossVectors(F, S).normalize();
+    // signs: the thumb sticks out on one side near the wrist (that side is S); fingertips and thumb sit toward the palm (N)
+    let sp = 0, sn = 0, tipN = 0, tipC = 0, thN = 0, thC = 0;
+    for (let k = 0; k < pts.length; k += 4) { v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const sv = v.dot(S); if (pts[k] < len * 0.55) { sp = Math.max(sp, sv); sn = Math.max(sn, -sv); } }
+    if (sn > sp) S.negate();
+    const smax = Math.max(sp, sn);
+    for (let k = 0; k < pts.length; k += 4) {
+      v.set(pts[k + 1], pts[k + 2], pts[k + 3]); const sv = v.dot(S), nv = v.dot(N);
+      if (pts[k] > len * 0.8) { tipN += nv; tipC++; }
+      if (pts[k] < len * 0.55 && sv > smax * 0.7) { thN += nv; thC++; }
+    }
+    const sideN = side === 'R' ? new THREE.Vector3().crossVectors(S, F) : new THREE.Vector3().crossVectors(F, S);
+    // N (palm) must agree with the measured palm side; if the measurement says the other way, the thumb side was wrong
+    const meas = (tipC ? tipN / tipC : 0) + (thC ? thN / thC : 0);
+    const Nm = N.clone().multiplyScalar(Math.sign(meas || 1));
+    if (Math.abs(meas) > 0.002 && Nm.dot(sideN) < 0) { S.negate(); }
+    const Nf = side === 'R' ? new THREE.Vector3().crossVectors(S, F) : new THREE.Vector3().crossVectors(F, S);
+    const qi = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(mh)).invert();
+    r['ax' + side] = { F: F.applyQuaternion(qi), S: S.applyQuaternion(qi), N: Nf.normalize().applyQuaternion(qi), len: Math.max(0.07, len), dbg: { sp, sn, meas, n } };
+  }
+}
 // hand frame in world space: { o: wrist, F, S, N }
 function frame(r, side, out) {
   const P = side === 'R' ? 'RightHand' : 'LeftHand', h = side === 'R' ? r.hand : r.lhand;
+  if (!(side === 'R' ? r.fingersR : r.fingersL)) {
+    const ax = side === 'R' ? r.axR : r.axL; h.getWorldQuaternion(_q);
+    wp(h, out.o); out.F.copy(ax.F).applyQuaternion(_q); out.S.copy(ax.S).applyQuaternion(_q); out.N.copy(ax.N).applyQuaternion(_q); out.len = ax.len;
+    return out;
+  }
   wp(h, out.o); wp(r[P + 'Middle1'], out.F).sub(out.o); out.len = out.F.length(); out.F.normalize();
   wp(r[P + 'Index1'], out.S); wp(r[P + 'Pinky1'], _a); out.S.sub(_a); out.S.addScaledVector(out.F, -out.S.dot(out.F)).normalize();
   out.N.crossVectors(out.F, out.S).normalize();
@@ -86,6 +148,7 @@ function relax(r, side) {
 // fingers back to rest (call when the character puts the weapon away)
 export function releaseHands(root) { const r = root?.userData?.__gunRig; if (!r || !r.ok) return; relax(r, 'R'); if (r.lok) relax(r, 'L'); r.curled = false; }
 function curl(r, side, set) {
+  if (!(side === 'R' ? r.fingersR : r.fingersL)) return;
   relax(r, side);
   const fr = frame(r, side, side === 'R' ? FR : FL), P = side === 'R' ? 'RightHand' : 'LeftHand';
   for (const f of FING) {
@@ -101,11 +164,11 @@ function curl(r, side, set) {
   }
 }
 // grip offsets in the hand frame (meters): palm center along F, out of the palm along N, along S
-const GRIP = { pistol: { a: 0.062, b: 0.022, c: 0.004 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.058, b: 0.02, c: 0.0 } };
+const GRIP = { pistol: { a: 0.062, b: 0.022, c: 0.004 }, long: { a: 0.062, b: 0.022, c: 0.004 }, melee: { a: 0.07, b: 0.022, c: 0.0 } };
 // gun pose from the right hand frame
 function gunFromHand(model, kind, fr, out) {
   const g = GRIP[kind] || GRIP.pistol, hp = model.userData.holdPoint;
-  if (kind === 'melee') { _c.copy(fr.S); _b.copy(fr.N); }            // business end out of the index side of the fist
+  if (kind === 'melee') { _c.copy(fr.S).multiplyScalar(0.85).addScaledVector(fr.F, 0.53).normalize(); _b.copy(fr.N); }   // business end out of the index side of the fist, tipped down along the fingers
   else { _c.copy(fr.F); _b.copy(fr.S); }
   // basis X = Y x Z
   _a.crossVectors(_b, _c).normalize(); _b.crossVectors(_c, _a).normalize();

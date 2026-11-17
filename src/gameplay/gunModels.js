@@ -561,6 +561,23 @@ export const WEAPON_ATTACH = {
 };
 export const DEFAULT_ATTACH = {};
 for (const k of Object.keys(BUILD)) DEFAULT_ATTACH[k] = { sight: k === 'sniper' ? 'scope' : 'irons', mag: 'std', muzzle: 'none', grip: 'none', laser: false, light: false };
+// library guns: what fits the real models (built-in optics stay as modeled)
+{
+  const P = WEAPON_ATTACH.pistol, base = { sight: 'irons', mag: 'std', muzzle: 'none', grip: 'none', laser: false, light: false };
+  for (const k of ['compactpistol', 'slimpistol', 'chromepistol', 'snspistol', 'tacpistol']) WEAPON_ATTACH[k] = P;
+  WEAPON_ATTACH.heavypistol = { sight: ['irons', 'reddot'], mag: ['std', 'ext'], muzzle: ['none', 'comp'], grip: ['none'], laser: true, light: true };
+  WEAPON_ATTACH.rifle = { sight: ['reddot'], mag: ['std', 'ext', 'drum'], muzzle: ['none', 'suppressor', 'comp'], grip: ['none'], laser: true, light: true };
+  WEAPON_ATTACH.assaultrifle = { sight: ['irons', 'reddot', 'holo'], mag: ['std', 'ext', 'drum'], muzzle: ['none', 'suppressor', 'comp'], grip: ['none'], laser: false, light: false };
+  WEAPON_ATTACH.specialrifle = { sight: ['holo'], mag: ['std', 'ext'], muzzle: ['suppressor'], grip: ['none'], laser: true, light: true };
+  WEAPON_ATTACH.tacrifle = { sight: ['acog'], mag: ['std', 'ext'], muzzle: ['none', 'suppressor', 'comp'], grip: ['none'], laser: true, light: true };
+  WEAPON_ATTACH.battlerifle = { sight: ['acog'], mag: ['std', 'ext'], muzzle: ['none', 'suppressor', 'comp'], grip: ['none'], laser: false, light: false };
+  WEAPON_ATTACH.sniper = { sight: ['scope'], mag: ['std', 'ext'], muzzle: ['none', 'suppressor', 'comp'], grip: ['none'], laser: false, light: false };
+  WEAPON_ATTACH.lmg = { sight: ['irons'], mag: ['std'], muzzle: ['none', 'comp'], grip: ['none'], laser: false, light: true };
+  for (const k of Object.keys(WEAPON_ATTACH)) if (!DEFAULT_ATTACH[k]) DEFAULT_ATTACH[k] = Object.assign({}, base);
+  for (const [k, sight] of [['rifle', 'reddot'], ['specialrifle', 'holo'], ['tacrifle', 'acog'], ['battlerifle', 'acog'], ['sniper', 'scope']]) DEFAULT_ATTACH[k].sight = sight;
+  DEFAULT_ATTACH.specialrifle.muzzle = 'suppressor';
+  for (const k of ['nailbat', 'machete']) DEFAULT_ATTACH[k] = Object.assign({}, base);
+}
 // keep only options this weapon accepts
 export function normalizeAttach(type, att = {}) {
   const A = Object.assign({}, DEFAULT_ATTACH[type] || DEFAULT_ATTACH.pistol), ok = WEAPON_ATTACH[type];
@@ -568,6 +585,141 @@ export function normalizeAttach(type, att = {}) {
   for (const s of ['sight', 'mag', 'muzzle', 'grip']) if (att[s] && ok[s].includes(att[s])) A[s] = att[s];
   A.laser = !!att.laser && ok.laser; A.light = !!att.light && ok.light;
   return A;
+}
+
+// ---------------------------------------------------------------- library models: the user's Models/Weapons
+// Converted by tools/v2/weapons (Blender): public/assets/weapons/<id>.glb, origin at the grip (palm center on the handle),
+// +Z barrel, +Y up, +X the gun's left side; manifest.json carries muzzle / eject / sight / lgrip points and moving parts.
+// buildWeaponModel() stays synchronous: it returns a wrapper group at once (the procedural model stands in for a few
+// frames on a cold start) and swaps the GLB in when it has loaded. preloadWeaponLibrary() warms the cache.
+// kind: pistol | long | melee (how the hands hold it, see holdWeapon); proc: procedural stand-in for keys without a BUILD
+export const LIB = {
+  pistol: { models: ['h7_service'], kind: 'pistol', flash: 'pistol' },
+  compactpistol: { models: ['h1_compact'], kind: 'pistol', flash: 'pistol', proc: 'pistol' },
+  slimpistol: { models: ['h2_slim'], kind: 'pistol', flash: 'pistol', proc: 'pistol' },
+  chromepistol: { models: ['h3_chrome'], kind: 'pistol', flash: 'pistol', proc: 'pistol' },
+  snspistol: { models: ['h4_compact'], kind: 'pistol', flash: 'pistol', proc: 'pistol' },
+  tacpistol: { models: ['h5_grey'], kind: 'pistol', flash: 'pistol', proc: 'pistol' },
+  heavypistol: { models: ['h6_heavy'], kind: 'pistol', flash: 'revolver', proc: 'pistol' },
+  microsmg: { models: ['smg2'], kind: 'pistol', flash: 'pistol', twoHand: true },
+  smg: { models: ['smg1'], kind: 'pistol', flash: 'rifle', twoHand: true },
+  rifle: { models: ['r4_modern'], kind: 'long', flash: 'rifle', optic: 'builtin' },
+  carbine: { models: ['r3_slim'], kind: 'long', flash: 'rifle' },
+  assaultrifle: { models: ['r2_wood'], kind: 'long', flash: 'rifle', proc: 'rifle' },
+  specialrifle: { models: ['r5_blue'], kind: 'long', flash: 'suppressed', proc: 'rifle', optic: 'builtin', muzzle: 'builtin' },
+  tacrifle: { models: ['r1_tactical'], kind: 'long', flash: 'rifle', proc: 'carbine', optic: 'builtin' },
+  battlerifle: { models: ['r6_battle'], kind: 'long', flash: 'rifle', proc: 'sniper', optic: 'builtin' },
+  sniper: { models: ['r7_sniper'], kind: 'long', flash: 'rifle', optic: 'builtin' },
+  lmg: { models: ['mg1'], kind: 'long', flash: 'rifle', proc: 'rifle' },
+  bat: { models: ['bat2_tape', 'bat1_white', 'bat3_dark'], kind: 'melee' },
+  nailbat: { models: ['bat4_nails'], kind: 'melee', proc: 'bat' },
+  crowbar: { models: ['crow1_red', 'crow2_small', 'crow3_black'], kind: 'melee' },
+  machete: { models: ['machete'], kind: 'melee', proc: 'knife' },
+};
+const LIB_BASE = '/assets/weapons/';
+const LIBC = { man: null, manP: null, tpl: new Map(), wait: new Map(), off: false };
+try { LIBC.off = typeof location !== 'undefined' && /[?&]libguns=0/.test(location.search); } catch (e) { /* */ }
+function libManifest() {
+  if (!LIBC.manP) LIBC.manP = fetch(LIB_BASE + 'manifest.json').then((r) => r.json()).then((j) => { LIBC.man = j.models || {}; return LIBC.man; }).catch((e) => { console.warn('[gunModels] no weapon manifest', e); LIBC.man = {}; return LIBC.man; });
+  return LIBC.manP;
+}
+let _gl = null;
+function loadLib(id) {
+  if (LIBC.tpl.has(id)) return Promise.resolve(LIBC.tpl.get(id));
+  if (LIBC.wait.has(id)) return LIBC.wait.get(id);
+  const p = libManifest().then(async (man) => {
+    if (!man[id]) return null;
+    if (!_gl) { const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js'); _gl = new GLTFLoader(); }
+    const s = (await _gl.loadAsync(LIB_BASE + id + '.glb')).scene;
+    s.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = true; o.receiveShadow = true;
+      const m = o.material; if (m) { m.envMapIntensity = 1.0; if (m.map) m.map.anisotropy = 8; }
+    });
+    const tpl = { scene: s, info: man[id] }; LIBC.tpl.set(id, tpl); return tpl;
+  }).catch((e) => { console.warn('[gunModels] weapon model', id, e?.message || e); return null; }).finally(() => LIBC.wait.delete(id));
+  LIBC.wait.set(id, p); return p;
+}
+// warm the cache (all library models, or the given weapon keys)
+export function preloadWeaponLibrary(keys) {
+  const ids = new Set(); for (const k of keys || Object.keys(LIB)) for (const id of LIB[k]?.models || []) ids.add(id);
+  return Promise.all([...ids].map(loadLib));
+}
+export const libVariants = (type) => LIB[type]?.models || null;
+const V3 = (a, d) => (a ? new THREE.Vector3(a[0], a[1], a[2]) : d.clone());
+// skins on library models: finishes swap the metal / polymer parts, wood stays wood
+const _skinMats = new Map();
+function skinMaterial(m, skin) {
+  if (!skin || skin === 'factory' || !m) return m;
+  const k = m.uuid + skin; let s = _skinMats.get(k); if (s) return s;
+  const T = textures(), c = m.color, wood = m.map && m.name && /wood/i.test(m.name);
+  s = m.clone(); s.name = m.name + '+' + skin;
+  if (!wood) {
+    if (skin === 'gold') { s.color = new THREE.Color(0xe6b54a); s.metalness = 1; s.roughness = 0.22; s.metalnessMap = null; s.roughnessMap = null; s.map = null; }
+    else if (skin === 'nickel') { s.color = new THREE.Color(0xc4c8cc); s.metalness = 1; s.roughness = 0.28; s.metalnessMap = null; s.map = null; }
+    else if (skin === 'fde') { s.color = new THREE.Color(0xc8a87a); s.metalness = 0.15; s.metalnessMap = null; }
+    else if (skin === 'odg') { s.color = new THREE.Color(0x8a9468); s.metalness = 0.15; s.metalnessMap = null; }
+    else if (skin === 'rust') { s.map = T.rust; s.color = new THREE.Color(0xffffff); s.metalness = 0.5; s.roughness = 0.85; s.roughnessMap = null; }
+    else if (skin === 'camo' || skin === 'tide' || skin === 'deco' || skin === 'carbon') { const t = T[skin].clone(); t.repeat.set(4, 4); t.needsUpdate = true; s.map = t; s.color = new THREE.Color(0xffffff); s.metalness = skin === 'carbon' ? 0.3 : 0.2; s.metalnessMap = null; }
+  }
+  _skinMats.set(k, s); return s;
+}
+function libWeapon(type, opts, A) {
+  const L = LIB[type], id = opts.variant && L.models.includes(opts.variant) ? opts.variant : L.models[0];
+  const g = new THREE.Group(); g.name = 'weapon-' + type;
+  const ud = g.userData; ud.weapon = type; ud.lib = id; ud.attach = A; ud.skin = opts.skin || 'factory'; ud.hold = L.kind; ud.twoHand = L.kind === 'long' || !!L.twoHand;
+  const hide = (k, v) => Object.defineProperty(ud, k, { value: v, enumerable: false, configurable: true, writable: true });
+  ud.muzzle = new THREE.Vector3(0, 0.03, 0.15); ud.eject = new THREE.Vector3(-0.012, 0.05, -0.02); ud.leftGrip = new THREE.Vector3(0.03, -0.035, 0.0);
+  ud.sightLine = new THREE.Vector3(0, 0.06, -0.08); ud.butt = null; ud.tris = 0;
+  ud.suppressed = A.muzzle === 'suppressor' || L.muzzle === 'builtin'; ud.flash = A.muzzle === 'suppressor' ? 'suppressed' : (L.flash || 'pistol'); ud.optic = L.optic === 'builtin' ? 'builtin' : A.sight;
+  const parts = {}; hide('parts', parts);
+  hide('animate', (s) => {
+    const sl = parts.slide; if (sl && s.slide != null) sl.position.z = -0.022 * (type === 'heavypistol' ? 1.3 : 1) * s.slide;
+    const mg = parts.mag; if (mg && s.magOut != null) mg.position.set(0, -0.14 * s.magOut, -0.03 * s.magOut);
+  });
+  hide('magClone', () => { const m = parts.mag; if (!m) return null; const c = m.clone(); c.position.set(0, 0, 0); return c; });
+  hide('laser', null); hide('light', null); hide('wick', null);
+  let stand = null;
+  const apply = (tpl) => {
+    if (!tpl) return;
+    if (stand) { g.remove(stand); stand = null; }
+    const s = tpl.scene.clone(true); s.name = 'lib-' + id; g.add(s);
+    if (ud.skin !== 'factory') s.traverse((o) => { if (o.isMesh) o.material = skinMaterial(o.material, ud.skin); });
+    const P = tpl.info.points || {}, bb = tpl.info.bbox;
+    if (P.muzzle) ud.muzzle.set(P.muzzle[0], P.muzzle[1], P.muzzle[2]);
+    if (P.eject) ud.eject.set(...P.eject);
+    if (P.sight) ud.sightLine.set(...P.sight);
+    if (P.lgrip) ud.leftGrip.set(...P.lgrip);
+    if (L.kind === 'long' && bb) ud.butt = new THREE.Vector3(0, (P.sight ? P.sight[1] : 0.06) * 0.42, bb.min[2] + 0.012);
+    ud.bbox = bb; ud.libInfo = tpl.info;
+    s.traverse((o) => { if (o.name === 'slide' || o.name === 'mag') parts[o.name] = o; });
+    // attachments built on the real model's points (suppressor / comp, red dot / holo / prism, laser, light)
+    if (L.kind !== 'melee') {
+      const b = new Builder(false), M = materials(ud.skin, 0.5), y = ud.muzzle.y, z = ud.muzzle.z;
+      const r = L.kind === 'pistol' ? 0.014 : 0.019, len = L.kind === 'pistol' ? 0.13 : 0.17;
+      let ml = 0;
+      if (L.muzzle !== 'builtin' && (A.muzzle === 'suppressor' || A.muzzle === 'comp')) ml = muzzleDev(b, M, A.muzzle, y, z, r, len);
+      if (L.optic !== 'builtin' && A.sight && A.sight !== 'irons' && A.sight !== 'scope' && P.sight) optic(b, M, A.sight, P.sight[2] + (L.kind === 'pistol' ? 0.03 : 0.07), P.sight[1] - 0.006, { mini: L.kind === 'pistol' });
+      if (A.laser || A.light) {
+        const uz = L.kind === 'pistol' ? z - 0.06 : (P.lgrip ? P.lgrip[2] + 0.12 : z - 0.2), uy = L.kind === 'pistol' ? y - 0.03 : Math.max(P.lgrip ? P.lgrip[1] + 0.04 : y - 0.04, y - 0.05);
+        under(b, M, A, uz, uy, { laserX: 0.022, laserY: uy, laserZ: uz, lightX: -0.022, lightY: uy, lightZ: uz });
+      }
+      const att = b.build('attachments'); if (att.children.length) g.add(att);
+      ud.muzzle.z += ml;
+      hide('laser', g.getObjectByName('fx_laser') || null); hide('light', g.getObjectByName('fx_light') || null);
+    }
+    let tris = 0; g.traverse((m) => { if (m.isMesh) { const ge = m.geometry; tris += (ge.index ? ge.index.count : ge.attributes.position.count) / 3; } }); ud.tris = Math.round(tris);
+    ud.libReady = true;
+    g.dispatchEvent?.({ type: 'libready' });
+  };
+  const tpl = LIBC.tpl.get(id);
+  if (tpl) apply(tpl);
+  else {
+    const pk = L.proc || type;
+    if (BUILD[pk]) { try { stand = buildProcedural(pk, Object.assign({}, opts, { attachments: undefined, lod: 1 })); stand.userData = {}; g.add(stand); } catch (e) { stand = null; } }
+    loadLib(id).then(apply);
+  }
+  return g;
 }
 
 const cache = new Map();
@@ -596,8 +748,12 @@ function runtime(g, info, A) {
   let tris = 0; g.traverse((m) => { if (m.isMesh) { const ge = m.geometry; tris += (ge.index ? ge.index.count : ge.attributes.position.count) / 3; } }); ud.tris = Math.round(tris);
   return g;
 }
-// opts: { attachments, skin, wear (0..1), broken (bottle), lod (0 | 1) }
+// opts: { attachments, skin, wear (0..1), broken (bottle), lod (0 | 1), variant (library model id), procedural (force the code-built model) }
 export function buildWeaponModel(type, opts = {}) {
+  if (LIB[type] && !opts.procedural && !LIBC.off) return libWeapon(type, opts, normalizeAttach(type, opts.attachments));
+  return buildProcedural(BUILD[type] ? type : (LIB[type]?.proc || 'pistol'), opts, type);
+}
+function buildProcedural(type, opts = {}, as = type) {
   const key = BUILD[type] ? type : 'pistol';
   const A = normalizeAttach(key, opts.attachments), skin = opts.skin || 'factory', wear = opts.wear ?? 0.6, lod = opts.lod ? 1 : 0;
   const ck = [key, A.sight, A.mag, A.muzzle, A.grip, A.laser ? 1 : 0, A.light ? 1 : 0, skin, Math.round(wear * 4), opts.broken ? 1 : 0, lod].join('|');
@@ -610,8 +766,13 @@ export function buildWeaponModel(type, opts = {}) {
     cache.set(ck, proto);
   }
   const g = proto.group.clone();   // shares geometry + materials; moving parts are independent nodes
-  g.userData.weapon = key; g.userData.attach = A; g.userData.skin = skin;
+  g.userData.weapon = as; g.userData.attach = A; g.userData.skin = skin;
+  g.userData.hold = PROC_HOLD[key] || 'pistol'; g.userData.twoHand = g.userData.hold === 'long';
+  g.userData.holdPoint = new THREE.Vector3(...(PROC_GRIP[key] || [0, 0, 0]));
   return runtime(g, proto.info, A);
 }
-export const MODEL_KEYS = Object.keys(BUILD);
+// how the code-built models are held, and where their palm point is (their origin sits at the top of the grip)
+const PROC_HOLD = { revolver: 'pistol', pistol: 'pistol', microsmg: 'pistol', smg: 'long', rifle: 'long', carbine: 'long', shotgun: 'long', sawnoff: 'long', sniper: 'long', bat: 'melee', crowbar: 'melee', knife: 'melee', bottle: 'melee', molotov: 'melee', grenade: 'melee' };
+const PROC_GRIP = { pistol: [0, -0.04, -0.03], revolver: [0, -0.045, -0.035], microsmg: [0, -0.04, -0.02], smg: [0, -0.04, -0.03], rifle: [0, -0.04, -0.03], carbine: [0, -0.04, -0.03], shotgun: [0, -0.04, -0.03], sawnoff: [0, -0.04, -0.03], sniper: [0, -0.04, -0.03] };
+export const MODEL_KEYS = [...new Set([...Object.keys(BUILD), ...Object.keys(LIB)])];
 export function disposeWeaponCaches() { for (const p of cache.values()) p.group.traverse((m) => { if (m.isMesh) m.geometry.dispose(); }); cache.clear(); }
