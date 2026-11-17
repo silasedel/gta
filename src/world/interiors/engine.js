@@ -86,6 +86,22 @@ export function createEngine(game, opts = {}) {
   // ---------------------------------------------------------------- frame update
   function levelsFor(s, hour) { const open = s.open, lightsOn = s.state.lights !== false; return [lightsOn ? (open ? 1 : 0.06) : 0, 1]; }
   function update(dt) { const t = performance.now(); try { inner(dt); } catch (e) { console.error('[interiors]', e); } const d = performance.now() - t; if (d > upMax) upMax = d; }
+  // stage 1 perf: an interior is ~200-250 separate meshes (almost one material each). Seen from behind its back wall and
+  // below the roof line it is completely hidden by the building, yet every mesh was drawn. Right before the main render
+  // (final camera) such interiors leave the main view (layer 0 off); they keep casting shadows (layers 6/7), so the static
+  // shadow map never changes. game.interiorCull = false turns it off.
+  const _lc = {}, viewCull = { culled: 0 };
+  function cullForView(cam) {
+    const on = game.interiorCull !== false; let n = 0;
+    for (const s of list) { const b = s.built; if (!b || !b.visible) continue;
+      const l = s.toLocal(cam.x, cam.z, _lc);
+      const cull = on && l.z < -s.D / 2 - 0.5 && cam.y < s.baseY + s.H + 2 && !s.isInside(cam);
+      if (cull) n++;
+      if (!!b._viewCulled !== cull) { b._viewCulled = cull; b.group.traverse((o) => { if (cull) o.layers.disable(0); else o.layers.enable(0); }); }
+    }
+    viewCull.culled = n;
+  }
+  if (scene) { const prevBR = scene.onBeforeRender; scene.onBeforeRender = function (r, sc, cam, ...rest) { if (cam === game.camera) { try { cullForView(cam.position); } catch (e) { /* never break the frame */ } } if (prevBR) prevBR.call(this, r, sc, cam, ...rest); }; }
   function inner(dt) {
     const P = game.player; if (!P) return; const pp = P.position, hour = game.timeOfDay ?? 12; clock += dt;
     pumpBakes(3); if (dead.length) flushBodies();
@@ -136,7 +152,7 @@ export function createEngine(game, opts = {}) {
   try { game.on?.('save', (d) => { if (d) d.interiors = saveState(); }); game.on?.('load', (d) => { if (d?.interiors) loadState(d.interiors); }); } catch (e) { /* */ }
 
   ingest();
-  const api = { list, byKey, update, current: null, claims, addStore, hooks, pool, saveState, loadState, registerStoreType, getStoreType, storeTypes, rebuild(s) { if (s.built) dispose(s); s.failed = false; }, dispose, show, hide,
+  const api = { list, byKey, update, viewCull, current: null, claims, addStore, hooks, pool, saveState, loadState, registerStoreType, getStoreType, storeTypes, rebuild(s) { if (s.built) dispose(s); s.failed = false; }, dispose, show, hide,
     setFitter(f) { fitter = f; }, pending: () => !!pending || bakesPending() > 0,
     stats(reset) { const r = { stores: list.length, built: list.filter((s) => s.built).length, visible: list.filter((s) => s.built?.visible).length, updMaxMs: Math.round(upMax * 10) / 10, buildSliceMaxMs: Math.round(buildMax * 10) / 10, atlasMB: Math.round(GLOBAL.bytes() / 1e5) / 10, bakes: bakesPending() }; if (reset) { upMax = 0; buildMax = 0; } return r; } };
   return api;
