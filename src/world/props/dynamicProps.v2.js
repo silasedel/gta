@@ -53,12 +53,8 @@ function create(game) {
     rec.top = Math.max(...rec.shapes.map((sh) => (sh.y || 0) + (sh.t === 'box' ? sh.hy : sh.hh))) * s; rec.rad = Math.max(...rec.shapes.map((sh) => Math.hypot(sh.x || 0, sh.z || 0) + (sh.t === 'box' ? Math.max(sh.hx, sh.hz) : sh.r))) * s;
     rec.cls = rec.cls || 'push';
     const { pos, q } = poseOf(rec);
-    if (rec.cls === 'push' && !rec.m) { // sit exactly on the static collider below (terrain grid / slab), so it never starts inside it and pops
-      try { const F = RAPIER.QueryFilterFlags, hit = world.castRay(new RAPIER.Ray({ x: pos.x, y: pos.y + 0.8, z: pos.z }, { x: 0, y: -1, z: 0 }), 1.6, true, F.EXCLUDE_DYNAMIC | F.EXCLUDE_SENSORS);
-        if (hit) { const gy = pos.y + 0.8 - hit.timeOfImpact; if (Math.abs(gy - pos.y) < 0.6) { rec._dy = gy - pos.y; pos.y = gy; rec.y = gy; } } } catch (e) { /* no query pipeline yet */ }
-    }
     try {
-      if (rec.cls === 'push') { makeBody(rec, pos, q, true); if (Math.abs(rec._dy || 0) > 0.015) rec.setMatrix?.(visualMatrix(rec)); }
+      if (rec.cls === 'push') makeBody(rec, pos, q, true);
       else fixedColliders(rec, pos, q);
     } catch (e) { console.warn('[dynProps] add', e?.message); return null; }
     rec.k = key(Math.floor(pos.x / CELL), Math.floor(pos.z / CELL)); rec.px = pos.x; rec.pz = pos.z; rec.py = pos.y;

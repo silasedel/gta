@@ -448,12 +448,12 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
         for (let k = 1; k <= 6; k++) for (let q = -12; q <= 12.1; q += 3) add(...P(e * (L / 2 + k * 30), q), 2);
       }
     }
-    const n = pts.length / 2, g = new THREE.CylinderGeometry(0.16, 0.2, 0.4, 8).translate(0, 0.2, 0);
+    const n = pts.length / 2, g = new THREE.CylinderGeometry(0.32, 0.4, 0.45, 8).translate(0, 0.22, 0); // fixture + lens glow: stays a few pixels wide from the terminal
     const COLS = [new THREE.Color(1, 0.92, 0.75), new THREE.Color(0.25, 1, 0.35), new THREE.Color(1, 0.95, 0.85)];
     const lm = new THREE.MeshStandardMaterial({ color: 0x9a9a96, roughness: 0.5, metalness: 0.3 });
-    lm.onBeforeCompile = (sh) => { sh.uniforms.uLibNight = nightU; sh.fragmentShader = 'uniform float uLibNight;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += vColor * uLibNight * 6.0;').replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = mix(vec3(0.6), diffuseColor.rgb, 0.0);'); };
+    lm.onBeforeCompile = (sh) => { sh.uniforms.uLibNight = nightU; sh.fragmentShader = 'uniform float uLibNight;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += vColor * (uLibNight * 14.0 + 0.6);').replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = mix(vec3(0.6), diffuseColor.rgb, 0.0);'); };
     lm.customProgramCacheKey = () => 'libbld-rwylight';
-    const im = new THREE.InstancedMesh(g, lm, n); im.name = 'runway-lights'; im.castShadow = false; im.receiveShadow = false;
+    const im = new THREE.InstancedMesh(g, lm, n); im.name = 'runway-lights'; im.userData.noDetailCull = true; im.castShadow = false; im.receiveShadow = false;
     for (let i = 0; i < n; i++) { const x = pts[i * 2], z = pts[i * 2 + 1]; M4.makeTranslation(x, ground ? ground(x, z) || 0 : 0, z); im.setMatrixAt(i, M4); im.setColorAt(i, COLS[col[i]]); }
     im.computeBoundingSphere(); if (!OFF) group.add(im);
   }

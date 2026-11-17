@@ -1,7 +1,0 @@
-[
- {"id":"helpers","evalFile":"helpers.js","shot":false},
- {"id":"dt_go","eval":"game.teleport(407,undefined,-110,0); 1","tod":12,"stream":true,"wait":2500,"shot":false,"log":"JSON.stringify({pl: __workNear(407,-110,600).filter(p=>/planter/.test(p.v)).slice(0,4), kiosk: __findKind('kiosk',407,-110,800).slice(0,3)})"},
- {"id":"planter","eval":"(()=>{const p=__workNear(407,-110,600).filter(p=>/planter/.test(p.v))[0]; return p? JSON.stringify(__lookAt(p.x,p.y,p.z,5,1.8,0.7)) : 'none';})()","tod":12,"wait":2500},
- {"id":"sb_go","eval":"game.teleport(2398,undefined,660,0); 1","tod":12,"stream":true,"wait":2500,"shot":false,"log":"JSON.stringify(__findKind('kiosk',2398,660,900).slice(0,3))"},
- {"id":"kiosk","eval":"(()=>{const k=__findKind('kiosk',2398,660,900)[0]; if(!k) return 'none'; game.teleport(k.x+10,undefined,k.z+10,0); return JSON.stringify(__lookAt(k.x,k.y,k.z,6,2,0.8));})()","tod":12,"stream":true,"wait":3000}
-]
