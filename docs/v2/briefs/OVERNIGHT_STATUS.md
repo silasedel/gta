@@ -1093,6 +1093,21 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     tree wall behind the roll-off are not there yet, because 48 of 81 street spots were skipped as occupied / not clear in that run.
     Next: diagnose the skips per spot (audit of clearAt / collider hits) and move the masses onto free ground.
   - Perf: deck 915 draws / 8.5 M tris vs 805 / 8.3 M before. Frame 42.9 vs 43.2 ms, same session.
+- **16:xx: bolder Keys pass + foliage look + trunk colliders.** Commits: "r2-veg: bolder Keys yards and street edges..." and afce3e49.
+  - Street spots: a looser plantable() test (only water, roads, paving, a structure overhead or a low deck block a plant). Every Keys
+    lot gets hedge runs on all four property lines, bougainvillea on some fences, up to 20 foundation shrubs, and a canopy tree that
+    overhangs the street. 26 lots / 1411 plants around Nico's.
+    3-way: `docs/v2/shots/vegetation/r2/three_r2veg_deck2.jpg`. The street level now clearly differs; the deck view is still close
+    to the old one (mostly Nico's own lot).
+  - Foliage look (lead / user "layered, splotchy"):
+    - per leaf-cluster color variation, a few dead leaves, darker undersides
+    - palm fronds folded along the rib
+    - flowering shrubs and bushes 3x denser with 30 % smaller cards
+    - foliageVolume() so set-piece card plants share the look. r2-keys switched the planter bougainvillea to the library model.
+    - Close-up: `docs/v2/shots/vegetation/r2/h1_u_planter_12h5.png` (A/B and 16:00 in `h1*`).
+  - game.vegetation.trunksNear() for r2-physics' trunk colliders. Sin-free instance hash with a CPU twin, so collider and drawn trunk
+    match. Includes r2-render's dither / A2C / near-fade hunks.
+  - Open: the deck-view mass (far red canopy, tree wall behind the roll-off), 40 street spots still rejected, r2-perf's vegLodScale.
 
 ## r2-web
 - **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
