@@ -18,9 +18,10 @@ export const PRESETS = {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
     look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 4 },
+    // r2-render (user: "turn anti-aliasing on heavy and up the resolution"; the M3 Max class is CPU-bound with GPU headroom)
     label: 'Ultra',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
-    dpr: 'min', // stage 1: locked 1080p-class internal picture (Retina native was ~3x the pixels)
+    dpr: 'native', // r2-render: the display's own ratio (Retina 2x); was 'min' (1080p-class, upscaled by the browser: soft and jagged)
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
@@ -32,11 +33,11 @@ export const PRESETS = {
   high: {
     // look track: sharpen (grade pass), TAA (one pass + copy), internal render scale range for the frame-time governor
     // (post.js; canvas size never changes). Haze, grade and ground wear cost about 0 and are on in every preset.
-    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 2 }, // 4x measured +2.35 ms at 1600x900; 2x on high
+    look: { sharpen: 0.3, taa: 'always', taaSharpen: 0.3, scaleMin: 1.0, scaleMax: 1.0, msaa: 4 }, // r2-render: 4x on high too (GPU headroom; was 2x, +2.35 ms at 1600x900)
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
-    dpr: 'min', // stage 1: locked 1080p-class internal picture (Retina native was ~3x the pixels)
+    dpr: 1.5, // r2-render: 1.5x on Retina (never below the 1080p-class floor); was 'min'
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
@@ -90,7 +91,11 @@ function gpuName(renderer) {
 
 function load() {
   try {
-    return JSON.parse(localStorage.getItem(KEY) || 'null');
+    const v = JSON.parse(localStorage.getItem(KEY) || 'null');
+    // r2-render: auto results from before Nov 17 15:30 are dropped (they stepped down on CPU-bound frames, which a lower
+    // preset cannot speed up: the M3 Max landed on Medium / Low, soft and jagged); manual choices are kept
+    if (v && !v.manual && v.rev !== 2) return null;
+    return v;
   } catch (e) {
     return null;
   }
@@ -130,6 +135,9 @@ export async function initV2(game) {
     const min = Math.min(native, Math.max(1, Math.sqrt((1920 * 1080) / css)));
     if (p.dpr === 'native') {
       return native;
+    }
+    if (typeof p.dpr === 'number') {
+      return Math.round(Math.min(native, Math.max(min, p.dpr)) * 100) / 100;
     }
     if (p.dpr === 'mid') {
       return Math.round((min + (native - min) * 0.5) * 100) / 100;
@@ -225,7 +233,11 @@ export async function initV2(game) {
     };
     stats.windows.push(w);
     // 60 fps budget: the slowest 2% must stay under 18 ms (a 16.7 ms frame plus a little scheduling slack)
-    const tooSlow = p98 > 18.5 || avg > 16.9;
+    // r2-render: only GPU-bound windows step down. A CPU-bound frame (render submit, game logic) is not faster on a lower
+    // preset, it only looks worse (game.perf.cpuMs: rAF start to the end of the render, post.js)
+    const cpu = game.perf?.cpuMs ?? 0;
+    const gpuBound = !(cpu > 0) || cpu < avg - 3;
+    const tooSlow = (p98 > 18.5 || avg > 16.9) && gpuBound;
     const i = ORDER.indexOf(q.name);
     if (tooSlow && i < ORDER.length - 1) {
       apply(ORDER[i + 1]);
@@ -236,7 +248,7 @@ export async function initV2(game) {
     autoRun = false;
     stats.auto = false;
     stats.reason = stats.reason || `kept ${q.name}: p98 ${w.p98Ms} ms, avg ${w.avgMs} ms`;
-    save({ name: q.name, gpu, manual: false, measured: w });
+    save({ name: q.name, gpu, manual: false, measured: w, rev: 2 });
   }
   function tick() {
     const now = performance.now();

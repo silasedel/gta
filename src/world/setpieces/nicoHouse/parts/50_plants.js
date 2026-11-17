@@ -6,7 +6,6 @@
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
 import { PLANTER } from '../yard.data.js';
-import { RENDER_R2_PAGE } from '../../../../render/frameNoise.js';
 export const order = 50;
 
 export function build(ctx) {
@@ -264,7 +263,7 @@ gl_Position = projectionMatrix * mvPosition;
   const palmBarkM = barkMat('palm_tree_bark'), limbM = barkMat('bark_brown_02');
   const stemM = sway(new THREE.MeshStandardMaterial({ map: fiberTex, bumpMap: kit.microTex(), bumpScale: 0.9, vertexColors: true, roughness: 0.62, metalness: 0, name: 'plants:stem' }));
   const leafletM = sway(new THREE.MeshStandardMaterial({ map: leafletTex, side: THREE.DoubleSide, roughness: 0.5, metalness: 0, name: 'plants:leaflet' }), { back: 0.3 });
-  const atlasM = (rough, back, name) => sway(new THREE.MeshStandardMaterial({ map: atlas, alphaTest: 0.5, alphaToCoverage: RENDER_R2_PAGE, side: THREE.DoubleSide, /* r2-render: A2C, no aliased card edges */ roughness: rough, metalness: 0, name: 'plants:' + name }), { tile: true, back });
+  const atlasM = (rough, back, name) => sway(new THREE.MeshStandardMaterial({ map: atlas, alphaTest: 0.5, side: THREE.DoubleSide, roughness: rough, metalness: 0, name: 'plants:' + name }), { tile: true, back });
   const grapeM = atlasM(0.4, 0.4, 'grape'), cardM = atlasM(0.68, 0.55, 'card'), grassM = atlasM(0.75, 0.35, 'grass');
 
   const palmBark = new Acc(), limbs = new Acc(), stems = new Acc();

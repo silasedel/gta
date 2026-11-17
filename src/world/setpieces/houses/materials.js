@@ -3,7 +3,6 @@
 // Every house material carries the lot-hide hook: geometry merged across lots (mid / far LOD) has a per-vertex lot id
 // (aLot); a lot whose full-detail build is showing is hidden in the merged mesh by one texel in a shared 64 x 64 mask.
 import { createKit } from '../nicoHouse/kit.js';
-import { RENDER_R2_PAGE } from '../../../render/frameNoise.js';
 
 export function createHouseKit(THREE, opts = {}) {
   const kit = createKit(THREE, { anisotropy: 4, seaY: -50, ...opts });
@@ -84,7 +83,7 @@ export function createHouseKit(THREE, opts = {}) {
 
   // chain-link mesh (alpha-tested diamonds)
   const chainTex = kit.canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(200,205,205,1)'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w / 2, 0); g.lineTo(w, h / 2); g.lineTo(w / 2, h); g.closePath(); g.stroke(); });
-  mat.chainlink = () => kit.materials.get('house:chain') || (() => { const m = new THREE.MeshStandardMaterial({ map: chainTex, alphaTest: 0.4, alphaToCoverage: RENDER_R2_PAGE, transparent: false, metalness: 1, roughness: 0.5, side: THREE.DoubleSide, vertexColors: true }); m.name = 'house:chain'; m.userData.uvScale = 0.06; kit.materials.set(m.name, m); return m; })();
+  mat.chainlink = () => kit.materials.get('house:chain') || (() => { const m = new THREE.MeshStandardMaterial({ map: chainTex, alphaTest: 0.4, transparent: false, metalness: 1, roughness: 0.5, side: THREE.DoubleSide, vertexColors: true }); m.name = 'house:chain'; m.userData.uvScale = 0.06; kit.materials.set(m.name, m); return m; })();
 
   // insect screen (pool cages, porches)
   const screenTex = kit.canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(30,34,36,0.9)'; g.lineWidth = 1.2; for (let i = 0; i <= w; i += 4) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, h); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(w, i); g.stroke(); } });
@@ -103,7 +102,7 @@ export function createHouseKit(THREE, opts = {}) {
         gr.addColorStop(0, `rgba(38,34,30,${0.10 + q() * 0.12})`); gr.addColorStop(1, 'rgba(38,34,30,0)'); g.fillStyle = gr; g.fillRect(x - r2, y - r2, r2 * 2, r2 * 2); } }, { srgb: true });
     const m = new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.55, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
     m.name = 'house:oil'; m.userData.uvScale = 1; kit.materials.set(m.name, m); return m; })();
-  mat.breeze = () => kit.materials.get('house:breeze') || (() => { const m = new THREE.MeshStandardMaterial({ map: breezeTex, alphaTest: 0.5, alphaToCoverage: RENDER_R2_PAGE, vertexColors: true, roughness: 0.9, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 1 }); m.name = 'house:breeze'; m.userData.uvScale = 0.4; kit.materials.set(m.name, m); return m; })();
+  mat.breeze = () => kit.materials.get('house:breeze') || (() => { const m = new THREE.MeshStandardMaterial({ map: breezeTex, alphaTest: 0.5, vertexColors: true, roughness: 0.9, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 1 }); m.name = 'house:breeze'; m.userData.uvScale = 0.4; kit.materials.set(m.name, m); return m; })();
 
   // house-number digits (atlas 0-9, uv x = digit / 10)
   const digitTex = kit.canvasTex(640, 96, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = kit.font(84, 700, 'Georgia, serif'); for (let i = 0; i < 10; i++) g.fillText(String(i), i * 64 + 32, 50); }, { repeat: false });

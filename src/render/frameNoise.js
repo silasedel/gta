@@ -19,7 +19,7 @@ export const IGN_R2_GLSL = 'float psIgnT(vec2 p) { return uRenderR2 > 0.5 ? frac
 export const A2C_R2_GLSL = `#ifdef USE_ALPHATEST
 	#ifdef ALPHA_TO_COVERAGE
 	{ float psW = fwidth( diffuseColor.a );
-	if ( uRenderR2 > 0.5 ) { psW = min( psW, 0.06 ); diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); }
+	if ( uRenderR2 > 0.5 ) { diffuseColor.a = step( alphaTest, diffuseColor.a ); } // r2-render (15:10): binary coverage; the sub-pixel TAA jitter supersamples it. Fractional A2C coverage became an ordered dot hatch on far fronds at 2x MSAA
 	else diffuseColor.a = smoothstep( alphaTest, alphaTest + psW, diffuseColor.a ); }
 	if ( diffuseColor.a == 0.0 ) discard;
 	#else
@@ -37,9 +37,7 @@ export const RENDER_R2_PAGE = (() => {
 // whose mip-averaged alpha sits near the threshold over whole areas still get fractional coverage, which the GPU turns into
 // a fixed checkerboard at 2x MSAA; the offset changes which samples are covered each frame, so the TAA history averages
 // it to the true coverage. Solid (coverage 1) and empty texels are untouched.
-export const A2C_R2T_GLSL = A2C_R2_GLSL.replace(
-  'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); }',
-  'diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( psW, 1e-4 ) + 0.5, 0.0, 1.0 ); diffuseColor.a = clamp( diffuseColor.a + ( psIgnT( gl_FragCoord.xy ) - 0.5 ) * 2.0 * diffuseColor.a * ( 1.0 - diffuseColor.a ), 0.0, 1.0 ); }');
+export const A2C_R2T_GLSL = A2C_R2_GLSL; // (kept for the vegetation import; the binary edge needs no per-frame offset)
 // r2-render: the third-person camera's focus (player chest, world m), set by post.js each frame. Foliage between the
 // camera and the focus, or within ~1.3 m of the camera, fades out by coverage (vegetation/materials.js).
 export const CAM_FOCUS = { value: new Float32Array([0, -1e5, 0]) };

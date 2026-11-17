@@ -304,11 +304,7 @@ const NEAR_FADE = `
 #if defined( USE_ALPHATEST ) && defined( ALPHA_TO_COVERAGE )
   if ( uRenderR2 > 0.5 ) {
     float nf = vegNearFade();
-    if ( nf < 0.999 ) {
-      diffuseColor.a *= nf;
-      diffuseColor.a = clamp( diffuseColor.a + ( psIgnT( gl_FragCoord.xy + 17.0 ) - 0.5 ) * 2.0 * diffuseColor.a * ( 1.0 - diffuseColor.a ), 0.0, 1.0 );
-      if ( diffuseColor.a < 0.02 ) discard;
-    }
+    if ( nf < 0.999 && nf <= psIgnT( gl_FragCoord.xy + 17.0 ) ) discard; // threshold stepped per frame: TAA averages it into a smooth fade at rest
   }
 #endif
 `;
