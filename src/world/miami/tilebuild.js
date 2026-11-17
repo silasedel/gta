@@ -2700,10 +2700,11 @@ export function createTileBuilder(ctx) {
     let island = false; for (const [u, v] of [[0.15, 0.15], [0.85, 0.15], [0.15, 0.85], [0.85, 0.85], [0.5, 0.5]]) if (ISLAND_D.test(distAt(x0 + S * u, z0 + S * v))) island = true;
     const runs = seawallRuns(tile), walk = pathIndex(tile), elevLow = (x, z) => { if (!elevated) return false; const f = safeCall(() => elevated.footprintAt(x, z), null); return !!(f && (f.type === 1 || f.y < 4.5)); };
     const cap = new THREE.Color(0xd6d1c4), capTop = new THREE.Color(0xe4e0d6), rail = new THREE.Color(0xe8ecee), postC = new THREE.Color(0x9aa2a8);
+    const natShore = GM_ON && !island && !!(terrain && tile.tx !== undefined && terrain.synthetic(tile.tx, tile.tz)) && !/port|downtown|business|commercial|nightlife/.test(String(zoneAt(x0 + S / 2, z0 + S / 2))); // ground pass: natural terrain coasts get no concrete seawall coping along the cover polygon's straight edge (it floated on the sand as white beams)
     for (const r of runs) {
       const { p, tx, tz, ox, oz } = r, at = (s2, o) => [p[0] + tx * s2 + ox * o, p[1] + tz * s2 + oz * o];
       // seawall cap: 0.6 m concrete coping, 0.12 m proud, face continues down the wall (all waterfronts)
-      if (B && B.trim) { const fr = polyFrame([at(r.sA, 0), at(r.sB, 0)]), sgn = (fr[0].nx * ox + fr[0].nz * oz) > 0 ? 1 : -1;
+      if (B && B.trim && !natShore) { const fr = polyFrame([at(r.sA, 0), at(r.sB, 0)]), sgn = (fr[0].nx * ox + fr[0].nz * oz) > 0 ? 1 : -1;
         ribbon(B.trim, fr, 0, Math.min(-0.55 * sgn, 0.06 * sgn), Math.max(-0.55 * sgn, 0.06 * sgn), 0.12, capTop, 1 / 3, r.sA - r.sA, r.sB - r.sA);
         sideWall(B.trim, fr, 0, 0.06 * sgn, 0.42, -0.3, cap, sgn, 0, r.sB - r.sA); sideWall(B.trim, fr, 0, -0.55 * sgn, 0.12, 0, cap, -sgn, 0, r.sB - r.sA); }
       // promenade: islands / causeways, or any park waterfront with a walking path along it
