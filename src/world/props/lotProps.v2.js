@@ -78,9 +78,19 @@ function create(game) {
       const ux = d > 1e-3 ? dx / d : -r.dir.z, uz = d > 1e-3 ? dz / d : r.dir.x; x = r.point.x + ux * need; z = r.point.z + uz * need; }
     return [x, z];
   }
+  // ground under a prop: the static collider right there (ray from 0.9 m above the given height), else the terrain mesh height
+  // (synthetic land, matches the drawn terrain), else the given height. Only nearby answers count (never a deck far above / below).
+  function groundAt(x, y, z) {
+    y = Number.isFinite(y) ? y : 0;
+    try { const R = game.RAPIER, QF = R.QueryFilterFlags, h = game.world.castRay(new R.Ray({ x, y: y + 0.9, z }, { x: 0, y: -1, z: 0 }), 2.4, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS);
+      if (h) return y + 0.9 - (h.timeOfImpact ?? h.toi); } catch (e) { /* */ }
+    try { const t = game.city?.terrain?.heightAt?.(x, z); if (Number.isFinite(t) && Math.abs(t - y) < 1.5) return t; } catch (e) { /* */ }
+    return y;
+  }
   function place(owner, name, x, y, z, ry, seed, opts = {}) {
     const parts = kit.parts[name]; if (!parts) return null;
     [x, z] = offRoad(x, z, name.startsWith('mailbox') ? 0.15 : 0.32);
+    y = groundAt(x, y, z); // r2-physics: stand on the real ground at its own spot (Keys beach / rural lots were buried 0.15-0.6 m at a flat y)
     const s = opts.s ?? 1 + (hash(seed * 3.1) - 0.5) * 0.12, rx = opts.lean ? (hash(seed * 5.3) - 0.5) * opts.lean : 0, rz = opts.lean ? (hash(seed * 7.7) - 0.5) * opts.lean : 0;
     _e.set(rx, ry, rz, 'XYZ'); _q.setFromEuler(_e); _m.compose(_p.set(x, y, z), _q, _s.setScalar(s));
     const vn = kit.variants?.[name], it = { name, x, y, z, ry, rx, rz, s, seed, mat: _m.toArray(), _slot: new Map(), owner, vc: null };

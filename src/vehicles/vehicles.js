@@ -15,6 +15,7 @@ import { addExternalModel, hasExternalModel, buildExternalCar, createKindRegistr
 import { initFleet } from './glb/index.js';
 import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
+import { createShapeVehicle } from './physics/suspension.js'; // r2-physics (carphys 2)
 
 const PALETTE = [
   0xff6a2b, 0x1fb5b0, 0x173b8f, 0xeeeeea, 0x101214, 0xa9aeb4, 0xb3121b, 0x7c2fbf,
@@ -31,6 +32,9 @@ export async function createVehicles(game) {
   const { RAPIER, world, scene } = game;
   const city = game.city;
   const list = [];
+  // r2-physics: which car physics runs (1 = Rapier ray-cast controller, 2 = shape-cast suspension); default 1 until verified
+  const CARPHYS_Q = /[?&]carphys=(\d)/.exec(globalThis.location?.search || '');
+  const carPhys = () => game.physics?.carphys ?? (CARPHYS_Q ? +CARPHYS_Q[1] : 1);
 
   // ------------------------------------------------------------ road network (city.roadGraph or legacy grid)
   const net = buildRoadNet(city); net.game = game; // signalState reads game.traffic?.signalAt when a world module drives the lights
@@ -248,6 +252,7 @@ export async function createVehicles(game) {
       if (opts.stripe) look.stripe = opts.stripe;
       if (opts.ride != null) look.ride = opts.ride;
       if (opts.finish) look.finish = opts.finish;
+      if (opts.old) look.old = true; // flat chrome, dusty glass (glbCar)
       if (opts.wear && typeof opts.wear === 'object' && !opts.look) { const W = opts.wear; for (const k of ['dirt', 'rust', 'fade', 'age']) if (W[k] != null) look.wear[k] = W[k]; if (W.dirtColor) look.wear.dirtColor = W.dirtColor; look.signature = lookSignature(look); }
       else if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.4 ? Math.min(0.8, (w - 0.4) * 1.3) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
       if (color != null && !opts.look) { look.color = color; look.twoTone = opts.twoTone ?? null; if (opts.wear == null) { look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; } look.signature = lookSignature(look); }
@@ -396,7 +401,13 @@ export async function createVehicles(game) {
     return v;
   }
   // (re)build a ray-cast vehicle controller; a fresh one never holds stale ground-collider handles
+  // r2-physics: carphys 2 = shape-cast suspension + tire model (src/vehicles/physics/suspension.js), same controller API.
+  // ?carphys=2 (or game.physics.setCarPhysics(2) at runtime); falls back to Rapier's ray-cast controller on any error.
   function makeController(body, wheels, spec, restLen, stiff) {
+    if (carPhys() === 2) {
+      try { let vr = null; return createShapeVehicle(game, body, wheels, spec, restLen, stiff, { isPlayer: () => !!(vr ||= list.find((x) => x.body === body))?.playerDriven }); }
+      catch (e) { console.error('[r2-physics] shape-cast controller failed, using the ray-cast one', e); }
+    }
     const vc = world.createVehicleController(body);
     vc.indexUpAxis = 1;
     vc.setIndexForwardAxis = 2;
@@ -492,8 +503,23 @@ export async function createVehicles(game) {
     ch.update?.(0.5, { driving: true, speed: 0, grounded: true });
     placeInSeat(ch, v, 0, 'driver');
     v.driver = ch.root; v.driverChar = ch;
+    // passengers: most cars carry only the driver; ~30 % one passenger, ~8 % two (front first, then a rear seat)
+    if (game.npc?.createDriver && !v.police && !v.spec.heavy) {
+      const n = seatList(v).length, roll = Math.random(), k = roll < 0.08 ? 2 : roll < 0.38 ? 1 : 0;
+      const seats = [1, 3, 2].filter((i) => i < n).slice(0, k);
+      for (const i of seats) {
+        let p = null; try { p = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'passenger', seed: driverSeed++ }); } catch (e) { p = null; }
+        if (!p?.root) continue;
+        p.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+        v.car.shell.add(p.root); p.update?.(0.5, { driving: true, speed: 0, grounded: true });
+        placeInSeat(p, v, i, 'passenger');
+        (v.passengerChars ||= []).push(p);
+      }
+    }
   }
   function removeDriver(v) {
+    for (const p of v.passengerChars || []) { p.root?.parent?.remove(p.root); try { p.dispose?.(); } catch (e) { /* ignore */ } }
+    v.passengerChars = null;
     if (!v.driver) return;
     v.driver.parent?.remove(v.driver);
     try { v.driverChar?.dispose?.(); } catch (e) { /* ignore */ }
@@ -782,7 +808,7 @@ export async function createVehicles(game) {
     }
     // anti-roll bars: per axle, the side that compresses more is pushed up and the other pulled down (the ray-cast
     // controller has none: without them tall cars lean far, unload the inner wheels and trip over in corners)
-    if (spec.antiRoll) {
+    if (spec.antiRoll && !vc.ownsAntiRoll) { // (carphys 2 has its own anti-roll bars inside the suspension)
       const R = body.rotation(); _q.set(R.x, R.y, R.z, R.w); _up.set(0, 1, 0).applyQuaternion(_q);
       const T0 = body.translation();
       for (const [a, b] of [[0, 1], [2, 3]]) {
@@ -1318,6 +1344,8 @@ export async function createVehicles(game) {
       if (sp) { specials.add(createVehicle(type, color, sp.pos, sp.heading, name ? { name } : {})); pendingSpecials.splice(pendingSpecials.indexOf(entry), 1); }
     }
   }
+  const noPark = []; // (declared before the boot spawn loops below: parkChecked reads it)
+  const addNoParkZone = (x, z, r = 12) => { if (Number.isFinite(x) && Number.isFinite(z)) noPark.push({ x, z, r }); return noPark.length; };
   trySpecials();
   await breathe(); // stage 1 boot pacing (src/core/pace.js): the spawn loops run in short tasks
   for (let k = 0; k < 40 && list.length < 14; k++) {
@@ -1339,7 +1367,9 @@ export async function createVehicles(game) {
   // traffic manager never recycles (driveways, set pieces).  Waits for the library model to load; wheels settle on the ground.
   // a parked car only where its footprint is clear of fences, walls, props and other cars (r2-physics clearance.js);
   // slid to the nearest free spot, skipped when there is none; re-checked after spawn (colliders that stream in later)
+  // no-parking zones { x, z, r } (STOP corners, drive mouths: US rule, no parking within 20 ft of a STOP sign / crosswalk)
   function parkChecked(type, pos, heading) {
+    for (const zn of noPark) if (Math.hypot(pos.x - zn.x, pos.z - zn.z) < zn.r) return null;
     const t = CAR_TYPES[type] || CAR_TYPES.sedan;
     let p = pos, h = heading;
     if (game.physics?.findCarSpot) {
@@ -1364,7 +1394,7 @@ export async function createVehicles(game) {
     }
     const y = o.y ?? groundY(o.x, o.z);
     const v = createVehicle(CAR_TYPES[key] ? key : 'sedan', o.color ?? null, new THREE.Vector3(o.x, y, o.z), o.heading || 0,
-      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride, finish: o.finish });
+      { locked: o.locked ?? false, wear: o.wear, seed: o.seed, exact: true, twoTone: o.twoTone, stripe: o.stripe, ride: o.ride, finish: o.finish, old: o.old });
     specials.add(v); v.pinned = true;
     if (!o.keepSpot) { try { game.physics?.watchParked?.(v); } catch (e) { /* optional */ } }
     return v;
@@ -1375,8 +1405,8 @@ export async function createVehicles(game) {
     // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
     { key: 'truck9', local: [-12.4, 8.4], heading: 2.35, color: 0x8f949b, finish: 'metallic', wear: { dirt: 0.2, rust: 0, fade: 0, dirtColor: 'sand' },
       stripe: { w: 0.74, roofW: 1.02, color: 0x16181c, satin: true } /* hood / roof boxes measured per model (manifest .stripe, seats.py) */, ride: 0.07 },
-    // the old faded powder-blue drop-top: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches
-    { key: 'conv1', local: [-18.8, 5.5], heading: 1.03, color: 0x5e7f8a, finish: 'solid', wear: { dirt: 0.22, rust: 0.26, fade: 0.4, age: 0.85, dirtColor: 'salt' } },
+    // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
+    { key: 'coupe4', local: [-18.8, 5.5], heading: 1.03, color: 0x7a9198, finish: 'solid', old: true, wear: { dirt: 0.3, rust: 0.32, fade: 0.6, age: 0.9, dirtColor: 'salt' } }, // the 1970 two-door muscle coupe, sun-faded powder blue (user model)
   ];
   const nicoCars = [];
   (async () => {
@@ -1385,6 +1415,8 @@ export async function createVehicles(game) {
     for (let i = 0; i < 240 && !game.nicoHouse?.toWorld; i++) await new Promise((r) => setTimeout(r, 1000));
     const NH = game.nicoHouse; if (!NH?.toWorld) return;
     const h0 = NH.spot?.heading || 0;
+    // the STOP corner and Nico's drive mouth stay clear of curb parking (mock-up: one SUV crossing, nothing parked)
+    for (const [lx, lz, r] of [[-20.9, 23.8, 15], [-18.5, 20.5, 9]]) { const p = NH.toWorld(new THREE.Vector3(lx, 0, lz)); addNoParkZone(p.x, p.z, r); }
     // the neighbors: a sedan under a cover in the next yard, the old graffiti van rusting on the lot across the lane
     for (const [k, lx, lz, h] of [['covered1', -22.9, -3.5, -0.37], ['van2', 18.6, 25.0, 1.58]]) { // spots from r2-keys (rotated house, mock-up frame)
       const p = NH.toWorld(new THREE.Vector3(lx, 0, lz));
@@ -1392,7 +1424,7 @@ export async function createVehicles(game) {
     }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, keepSpot: true }); nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, keepSpot: true }); nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();
@@ -1728,9 +1760,11 @@ export async function createVehicles(game) {
         const k = Math.min(1, dt * 8);
         bs.ax += (clamp(_v.x, -30, 30) - bs.ax) * k;
         bs.az += (clamp(_v.z, -30, 30) - bs.az) * k;
-        const rollK = v.spec.rollK || 1;
+        // carphys 2: the chassis itself pitches and rolls on its springs, so the fake shell sway is off
+        const swayK = v.vc?.isShapeVehicle ? 0 : 1;
+        const rollK = (v.spec.rollK || 1) * swayK;
         const tRoll = clamp(bs.ax * 0.0065 * rollK, -0.075 * rollK, 0.075 * rollK);
-        const tPitch = clamp(-bs.az * 0.0042, -0.05, 0.05);
+        const tPitch = swayK * clamp(-bs.az * 0.0042, -0.05, 0.05);
         bs.rollV += ((tRoll - bs.roll) * 70 - bs.rollV * 11) * dt;
         bs.pitchV += ((tPitch - bs.pitch) * 60 - bs.pitchV * 10) * dt;
         bs.roll += bs.rollV * dt; bs.pitch += bs.pitchV * dt;
@@ -1738,6 +1772,7 @@ export async function createVehicles(game) {
       }
       // wheels
       const vc = v.vc;
+      v.car.wheelCapExtra = vc?.isShapeVehicle ? 0.045 : undefined; // r2-physics: carphys 2 bump travel = arch gap + 4.5 cm tuck (glbCar visual cap)
       if (vc) for (let i = 0; i < 4; i++) {
         const w = v.car.wheels[i];
         const sl = vc.wheelSuspensionLength(i) ?? v.restLen;
@@ -1841,6 +1876,7 @@ export async function createVehicles(game) {
           const near = pp ? distXZ(t, pp) < 70 : true;
           v.driver.visible = near;
           if (near) v.driverChar.update?.(dt, { driving: true, speed: 0, grounded: true });
+          for (const pc of v.passengerChars || []) { pc.root.visible = near; if (near) pc.update?.(dt, { driving: true, speed: 0, grounded: true }); }
         }
       }
       // burning wreck
@@ -2130,8 +2166,18 @@ export async function createVehicles(game) {
       }).catch((e) => console.error('[vehicles] hero module failed to load', e));
     }
   } catch (e) { /* no glob support (plain esbuild check) */ }
+  // r2-physics: switch car physics at runtime (A/B in one session): rebuilds every live controller
+  (game.physics ||= {}).setCarPhysics = (n) => {
+    game.physics.carphys = n === 2 ? 2 : 1;
+    for (const v of list) {
+      if (!v.vc || v.ghost || v.frozen) continue;
+      try { world.removeVehicleController(v.vc); } catch (e) { /* */ }
+      v.vc = makeController(v.body, v.car.wheels, v.spec, v.restLen, v.stiff); v.bodySway = null;
+    }
+    return game.physics.carphys;
+  };
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, addNoParkZone, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }
