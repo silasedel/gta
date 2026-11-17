@@ -1164,6 +1164,45 @@ def controls(nodes, edges):
             k = ntree.nearest(P)
             if npts[k].distance(P) < 8 and t.get('ref'):
                 exits[int(k)] = t['ref']
+    # stage 1 map v3 (no OSM): rule-based controls, US practice. Rank roads; at every junction of 3+ approaches:
+    #   two main roads (trunk / primary / secondary) meet -> traffic signal
+    #   a main road meets minor roads -> stop signs on the minor approaches (the main road runs free)
+    #   minor x minor: 4+ legs -> all-way stop; T junction -> stop on the leg that ends (the side street)
+    import config as _cfg
+    if _cfg.NO_OSM:
+        RANKK = {'motorway': 5, 'trunk': 4, 'primary': 3, 'secondary': 2, 'tertiary': 1, 'residential': 0, 'unclassified': 0, 'service': -1, 'track': -1}
+        inc = defaultdict(list)
+        for i, e in enumerate(edges):
+            if e.get('br') or (e.get('layer') or 0) > 0: continue
+            inc[e['a']].append((i, 'ca')); inc[e['b']].append((i, 'cb'))
+        def heading(e, end):
+            p = e['pts']; a, b = (p[0], p[min(2, len(p) - 1)]) if end == 'ca' else (p[-1], p[max(0, len(p) - 3)])
+            return math.atan2(b[0] - a[0], b[1] - a[1])
+        for nd, lst in inc.items():
+            if len(lst) < 3: continue
+            rk = [RANKK.get(base(edges[i].get('kind') or 'residential'), 0) for i, _ in lst]
+            mains = [k for k in rk if k >= 2]
+            if len(mains) >= 2 and len(lst) >= 3 and not (len(mains) == 2 and len(lst) == 3 and min(rk) >= 2 and len(set(rk)) == 1 and False):
+                sig.add(nd); continue
+            if mains:
+                for (i, end), k in zip(lst, rk):
+                    if k < 2 and not (end == 'ca' and edges[i]['oneway']):
+                        edges[i][end] = 2; n_stop += 1
+                continue
+            if len(lst) >= 4:
+                for i, end in lst:
+                    if not (end == 'ca' and edges[i]['oneway']): edges[i][end] = 2; n_stop += 1
+            else:
+                # T: the leg whose direction is farthest from straight-through with another leg gets the stop
+                hs = [heading(edges[i], end) for i, end in lst]
+                best = None
+                for x in range(3):
+                    for y in range(x + 1, 3):
+                        d = abs(((hs[x] - hs[y] + math.pi) % (2 * math.pi)) - math.pi)
+                        if best is None or d > best[0]: best = (d, x, y)
+                stem = 3 - best[1] - best[2]
+                i, end = lst[stem]
+                if not (end == 'ca' and edges[i]['oneway']): edges[i][end] = 2; n_stop += 1
     for e in edges:
         if e['b'] in sig:
             e['cb'] = 1

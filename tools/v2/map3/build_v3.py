@@ -249,11 +249,13 @@ def classify_road(e):
     if w >= 2.6:
         return dict(kind='primary', lf=2, lb=2, speed=(55 if urban else 80), district=dist, dkind=dkind) if urban else dict(kind='secondary', lf=1, lb=1, speed=80, district=dist, dkind=dkind)
     if urban:
-        return dict(kind='residential' if dkind in ('suburb', 'islands', 'keys') else 'tertiary', lf=1, lb=1, speed=(40 if dkind != 'core' else 45), district=dist, dkind=dkind)
+        if dkind in ('core', 'city', 'beach'):   # metro grid: signalized city streets (GTA downtown has lights at every corner)
+            return dict(kind='secondary', lf=1, lb=1, speed=45, district=dist, dkind=dkind)
+        return dict(kind='residential' if dkind in ('suburb', 'islands', 'keys') else 'tertiary', lf=1, lb=1, speed=40, district=dist, dkind=dkind)
     return dict(kind='tertiary', lf=1, lb=1, speed=70, district=dist, dkind=dkind)
 
 # wider streets (user): two lanes plus parking in town, four lanes on arterials, divided highways
-WIDTH = {'trunk': 19.0, 'primary': 15.0, 'secondary': 9.5, 'tertiary': 9.0, 'residential': 8.4}
+WIDTH = {'trunk': 19.0, 'primary': 15.0, 'secondary': 10.0, 'tertiary': 9.0, 'residential': 8.4}
 nroad = 0
 for e in edges:
     cl = classify_road(e)
@@ -554,7 +556,9 @@ W.buildings = [b for b in W.buildings if not Polygon(b['ring']).intersects(_resv
 try:
     sig, stops = G.street_furniture(W)
     lamps = G.lamps_along(W, [r for r in W.roads if r.kind in ('trunk', 'primary', 'secondary', 'tertiary', 'residential') and r.region != 'rural'])
-    log(f'signals {sig}, stops {stops}, lamps {lamps}')
+    # traffic lights and stop signs come from the road graph's controls at run time (tools/osm roads.controls): no duplicates
+    W.props = [p for p in W.props if p.get('type') not in ('signal', 'stop', 'crossing')]
+    log(f'stops {stops}, lamps {lamps} (signal props dropped: the graph has the controls)')
 except Exception:
     W.log.append('furniture ' + traceback.format_exc()[-400:]); log('furniture failed', W.log[-1][-200:])
 

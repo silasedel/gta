@@ -35,7 +35,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
       else if (s.house && game.nicoHouse) { const g = game.nicoHouse.group || game.nicoHouse.root; const p = g ? g.position : null; const a = game.nicoHouse.anchors?.front || game.nicoHouse.anchors?.door; const q = a?.pos || (p && { x: p.x, z: p.z + 14 }); if (q) game.teleport(q.x, undefined, q.z, s.heading ?? Math.PI); }
       else if (s.player) game.teleport(s.player[0], undefined, s.player[1], s.player[2]);
       else if (window.__spawn) game.teleport(window.__spawn[0], undefined, window.__spawn[1]);
-      ${s.eval || ''}
+      { ${s.eval || ''} }
       return 1; })()`;
     await b.eval(setup);
     await b.sleep(+(o.settle || 5000));
