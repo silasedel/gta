@@ -107,7 +107,7 @@ float dBlob(vec2 lc, vec2 w, float rough) { vec2 q = (lc - 0.5) * 2.0; float r =
           // raised (patch) or sunken (patched pothole) rim: tilt along the blob gradient in the edge band
           vec2 g = dLc - 0.5; rim = normalize(dL2W * g + 1e-5) * seam * (pp ? -0.22 : 0.3);
         } else if (dId > 6.5 && dId < 8.5) { // oil
-          A = smoothstep(0.08, 0.6, dc.a) * edgeFade; alb *= 0.5; rgh = mix(rgh, 0.32, 0.8);
+          A = smoothstep(0.1, 0.7, dc.a) * edgeFade * smoothstep(0.25, 0.65, dN(vDecW.xz * 3.1) * 0.6 + dN(vDecW.xz * 11.0) * 0.4); alb *= 0.76; rgh = mix(rgh, 0.38, 0.7); // oil: a faint, broken, slightly glossy stain - never a dark disc
         } else if (dId > 3.5 && dId < 6.5) { // covers: the scanned iron only
           float r = length(dLc - 0.5) * 2.0;
           A = dId > 5.5 ? dc.a : 1.0 - smoothstep(dId < 4.5 ? 0.76 : 0.74, dId < 4.5 ? 0.8 : 0.78, r);
