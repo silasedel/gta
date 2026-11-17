@@ -2,7 +2,7 @@
 // seawalls on the two water sides, the sandy bottom beyond them, and the weathered dock with its piles, cleats, rope,
 // fish-cleaning station, ladder and light.
 import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
-import { WEEDS, DRIVE, PUDDLES } from '../yard.data.js';
+import { WEEDS, DRIVE, DRIVE_PUDDLE } from '../yard.data.js';
 export const order = 5;
 // ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
 // lots around it; ?ground2=0 keeps the old shell-floor texture
@@ -33,7 +33,7 @@ export function build(ctx) {
   ctx.driveD = driveD;
   { const nx = 92, nz = 110, g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
     const pa = g.attributes.position, cols = new Float32Array(pa.count * 3), n2 = (x, z) => Math.sin(x * 0.37 + Math.sin(z * 0.23) * 2) * Math.cos(z * 0.31 + Math.sin(x * 0.19) * 2);
-    const [PX, PZ] = (PUDDLES.find((p) => p[5]) || [-16.4, 17.6]);
+    const PX = DRIVE_PUDDLE.x, PZ = DRIVE_PUDDLE.z;
     // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
     const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
       const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));

@@ -2,7 +2,8 @@
 // (`setpieces.nico_house`: x, z, heading), builds the self-contained set piece there, creates its Rapier colliders,
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
 import { buildNicoHouse, PLAN } from './index.js';
-import { CAR_SPOTS, PLANTING, LITTER, DRIVE } from './yard.data.js';
+import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
+import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
 export const order = 65;   // after vegetation (60)
 const KEYS_OFF = typeof location !== 'undefined' && /[?&]keys=0\b/.test(location.search);
@@ -76,6 +77,10 @@ export async function initV2(game) {
   });
   const g = house.group; g.position.set(spot.x, yGround, spot.z); g.rotation.y = spot.heading || 0; g.updateMatrixWorld(true); scene.add(g);
   const toWorld = (v) => v.clone().applyMatrix4(g.matrixWorld), inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
+  // r2-keys: the after-rain puddle at the end of the drive is standing water on the yard sheet itself (r2-ground patchPuddles: fills
+  // while it rains, shrinks toward the low spot part 05 sculpts there as the weather dries, soaked rim)
+  if (!KEYS_OFF) try { let ym = null; g.traverse((o) => { if (!ym && o.isMesh && o.parent?.name === 'nh_site' && /^ground:pbr:shell_floor_01/.test(o.material?.name || '')) ym = o.material; });
+    if (ym) { const p = new THREE.Vector3(DRIVE_PUDDLE.x, 0, DRIVE_PUDDLE.z).applyMatrix4(g.matrixWorld); patchPuddles(ym, [{ x: p.x, z: p.z, r: DRIVE_PUDDLE.r }]); ym.needsUpdate = true; } } catch (e) { console.warn('[nicoHouse] puddle', e); }
   const qH = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), spot.heading || 0);
 
   // ---- colliders: one fixed body at the house origin, descriptors are house-local ----

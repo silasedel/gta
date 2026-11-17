@@ -80,8 +80,10 @@ export const DEBRIS = [
 export const CORNER_PUDDLE = null;
 // small sticks, twigs, palm-frond bits and bark scraps: [x, z, radius, count]
 export const STICKS = [[-14.5, 12.5, 3.0, 24], [-19.5, 13.5, 2.5, 20], [-11.0, 7.5, 2.5, 16], [-20.5, 4.5, 3.0, 20], [-6.0, 18.0, 2.5, 14], [2.0, 16.0, 2.5, 14], [-21.0, -4.0, 3.0, 18]];
-// [x, z, half length, half width, yaw, big]: big = the drive-end puddle (low spot in part 05, wide sky mirror after rain)
-export const PUDDLES = [[-16.4, 17.6, 2.5, 1.05, 0.45, 1], [-14.4, 10.6, 1.0, 0.35, 0.35], [-12.9, 6.1, 0.8, 0.3, -0.2], [-16.7, 15.2, 1.1, 0.4, 0.3], [-9.0, 9.5, 1.2, 0.4, 0.6]];
+// [x, z, half length, half width, yaw]: small rut puddles (decals). The drive-end puddle is r2-ground's patchPuddles on the yard sheet
+// itself over the sheet's low spot (DRIVE_PUDDLE; nicoHouse.v2.js): fills while it rains, shrinks back as the weather dries
+export const DRIVE_PUDDLE = { x: -16.4, z: 17.6, r: 2.1 };
+export const PUDDLES = [[-14.4, 10.6, 1.0, 0.35, 0.35], [-12.9, 6.1, 0.8, 0.3, -0.2], [-16.7, 15.2, 1.1, 0.4, 0.3], [-9.0, 9.5, 1.2, 0.4, 0.6]];
 export const TRACKS = [   // polylines of the left / right tire, width 0.3 (soft, darker, slightly sunk)
   { pts: [[-18.8, 21.2], [-17.4, 18.4], [-16.2, 14.0], [-15.0, 9.8], [-12.6, 6.6]], gauge: 1.7 },
   { pts: [[-14.0, 8.0], [-16.5, 7.4], [-18.0, 6.2]], gauge: 1.55 },
