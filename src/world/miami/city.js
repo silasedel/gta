@@ -65,6 +65,8 @@ export async function createMiamiCity(game, opts = {}) {
   };
   const [bench, hydrant, trash] = await Promise.all([loadParts('bench_wooden/painted_wooden_bench_1k.gltf', { scale: 1.3, autoFace: true }), loadParts('hydrant_lo/hydrant_lo.gltf'), loadParts('trash_can_lo/trash_can_lo.gltf', { scale: 1.05 })]);
   const models = { bench, hydrant, trash };
+  // stage 1 jobs 4-5: the user's library street furniture (signals, lamps, signs, shelters, hydrants, bins, benches ...)
+  let street = null; try { const { loadStreetKit } = await import('./streetkit.js'); street = await loadStreetKit({ M }); } catch (e) { console.warn('[miami] street kit unavailable, code props', e); }
   // TRIAL (?plants=q): Quaternius CC0 low-poly shrubs instead of the leaf-card bushes, for an A/B look
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('plants') === 'q') {
     const fit = (parts, H) => { if (!parts) return null; const bb = new THREE.Box3(); for (const p of parts) { p.geometry.computeBoundingBox(); bb.union(p.geometry.boundingBox); } const k = H / Math.max(1e-6, bb.max.y - bb.min.y); for (const p of parts) { p.geometry.translate(0, -bb.min.y, 0); p.geometry.scale(k, k, k); } return parts; };
@@ -95,7 +97,7 @@ export async function createMiamiCity(game, opts = {}) {
     try { const [{ createTerrain }, { createFlora }] = await Promise.all([import('../terrain/terrain.js'), import('../terrain/flora.js')]); terrain = await createTerrain(renderer, data, terrainOpts); flora = await createFlora(renderer, M); }
     catch (e) { console.warn('[miami] terrain unavailable, flat ground', e); terrain = null; flora = null; }
   }
-  const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist, terrain, flora, data });
+  const builder = createTileBuilder({ districtAt: data?.districtAt, roadKindAt: data?.roadGraph?.nearestEdge ? (x, z) => data.roadGraph.nearestEdge(x, z, {}, 14)?.edge?.kind : null, storefrontList: data?.storefronts || null, elevated, M, provider, root, world, RAPIER, zoneAt, nodeAt, models, onProps, onSidewalk, groundAt, roadDirAt, isWater: isWaterQ, roadDist, terrain, flora, data, street });
   // mid/far chunk meshes: discard fragments of tiles that currently have a near (full-detail) build
   const NM = 9, nearU = { uNearOrigin: { value: new THREE.Vector2(-1e6, -1e6) }, uNearMask: { value: new Float32Array(NM * NM) } };
   const nearCut = (sh) => {
@@ -127,7 +129,7 @@ export async function createMiamiCity(game, opts = {}) {
     g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1], 2));
     g.setAttribute('color', new THREE.Float32BufferAttribute([1, 1, 1, 1, 1, 1, 1, 1, 1], 3));
     const warm = new THREE.Group();
-    const mats = Object.values(M).filter((m) => m && m.isMaterial && !m.isMeshDepthMaterial).concat(builder.extraMaterials, ...Object.values(models).filter(Boolean).flatMap((ps) => ps.map((p) => p.material)));
+    const mats = Object.values(M).filter((m) => m && m.isMaterial && !m.isMeshDepthMaterial).concat(builder.extraMaterials, ...Object.values(models).filter(Boolean).flatMap((ps) => ps.map((p) => p.material)), street ? street.materials : []);
     for (const m of mats) {
       const a = new THREE.Mesh(g, m); a.castShadow = a.receiveShadow = true; a.frustumCulled = false; warm.add(a);
       const im = new THREE.InstancedMesh(g, m, 1); im.setMatrixAt(0, new THREE.Matrix4()); im.castShadow = im.receiveShadow = true; im.frustumCulled = false;
@@ -255,6 +257,8 @@ export async function createMiamiCity(game, opts = {}) {
   city.registerAnchor = (obj, radius = 100) => { if (!obj || anchors.has(obj)) return; anchors.add(obj); anchorFocus.set(obj, { x: 0, z: 0, r: radius }); };
   city.unregisterAnchor = (obj) => { anchors.delete(obj); anchorFocus.delete(obj); };
   city.collidersReadyAt = (x, z) => streamer.collidersReadyAt(x, z);
+  city.streetKit = street; // library street furniture parts (streetkit.js): regulatory signs reuse the sign plates
+  city.signalStats = () => builder.sigStats;
   city.junctionOf = (id) => (builder.junctionOf ? builder.junctionOf(id) : null); // stage 1 job 4: at-grade junction outline, legs (mouth D, crosswalk / stop-bar stations, ramps), curb-return corners
   city.bushAt = (x, z, pad) => (builder.bushAt ? builder.bushAt(x, z, pad) : 0); // 0..1 depth inside a (non-solid) bush
   city.colliderSourceAt = (x, z, r) => builder.colliderSourceAt ? builder.colliderSourceAt(x, z, r) : []; // which city generator placed static geometry near (x, z)

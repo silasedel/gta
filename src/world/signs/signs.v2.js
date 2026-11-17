@@ -12,7 +12,7 @@ export const order = 60;
 export async function initV2(game) {
   const G = game.city?.roadGraph; if (!G?.edges?.length) return;
   const { scene, camera, world, RAPIER } = game, city = game.city;
-  const plan = planSigns(G, { placeAt: (x, z) => { try { return city.districtAt?.(x, z) || null; } catch { return null; } } });
+  const plan = planSigns(G, { armBlades: !!city.streetKit, placeAt: (x, z) => { try { return city.districtAt?.(x, z) || null; } catch { return null; } } });
   const root = new THREE.Group(); root.name = 'v2-signs'; scene.add(root);
   // shared materials
   const steelTex = (() => { const c = makeCanvas(128), x = c.getContext('2d'), id = x.createImageData(128, 128); for (let i = 0; i < 128 * 128; i++) { const v = 150 + vnoise((i % 128) * 0.35, (i / 128 | 0) * 0.35, 3) * 60 + vnoise((i % 128) * 0.04, (i / 128 | 0) * 0.5, 9) * 30; id.data[i * 4] = v * 0.96; id.data[i * 4 + 1] = v; id.data[i * 4 + 2] = v * 1.02; id.data[i * 4 + 3] = 255; } x.putImageData(id, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t; })();

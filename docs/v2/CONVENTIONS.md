@@ -57,6 +57,20 @@ How the world and the systems connect. If something here is wrong, fix the code 
   `?libmodels=0` turns them off (procedural buildings everywhere). New models: convert with
   `tools/v2/buildings/convert_all.sh`, add a row to `LIB`.
 
+- **Street furniture (stage 1 jobs 4-5):** the user's library models, converted to `public/assets/models/street/*.glb`
+  (`tools/v2/street-models/build.sh`, `signals.py`, `signs.py`; sources in `SOURCES.txt`), loaded by
+  `src/world/miami/streetkit.js` (`city.streetKit`) and instanced per tile by `tilebuild.js` (global pools: one draw
+  call per part material). Traffic signals: `src/world/miami/signals.js` lays out each signalized job-4 junction (US
+  far-side mast arm on the far-right corner behind the crosswalk, one head per approach lane, post-mounted heads at
+  narrow junctions and T stems, pedestrian heads at every crosswalk end, a controller cabinet, street-name blades on the
+  arms). The lenses light in the shader from per-instance data with the SAME fixed-time plan as the traffic AI
+  (`roadnet.js fixedSignal`: 34 s cycle, phase by approach axis, offset per node; `streetkit.signalPhase/walkPhase`):
+  if the AI signal plan changes, change `streetkit.js` with it. Lamps: `lamp.t` picks the model (`lamp_single` davit
+  arm default, `lamp_twin`, `lantern_post`; small `s` = lantern); `group.userData.psLamps` puts the clustered lamp
+  light at each model's luminaire. Keys / rural lanes: wooden utility poles with wires + a davit lamp on every second
+  pole, carts and rural mailboxes (`keysLane`). Regulatory signs (`src/world/signs/regulatory.v2.js`) use the library
+  STOP plate and a repainted library plate for SPEED LIMIT. Audit: `node tools/v2/furniture-audit.mjs`.
+
 ## 3. Rendering rules (stage 1)
 - Locked 1080p-class internal resolution; TAA in every preset; no film grain. Any screen-space dither must use the
   per-frame offset `uFrameN` from `src/render/frameNoise.js` (TAA resolves it).

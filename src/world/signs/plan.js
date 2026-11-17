@@ -45,7 +45,8 @@ function follow(G, first, node, maxLen = 2600) {
 const cardinal = (dx, dz, ew) => (ew ? (dx > 0 ? 'EAST' : 'WEST') : (dz < 0 ? 'NORTH' : 'SOUTH'));
 const EW = /^(I[ -]395|I[ -]195|SR[ -]836|Dolphin|MacArthur|SR[ -]887|Port Miami|Julia|US[ -]41)/;
 
-export function planSigns(G, { placeAt = () => null } = {}) {
+export function planSigns(G, opts = {}) {
+  const { placeAt = () => null } = opts;
   const guides = [], seq = {};
   const cand = [];
   for (const node of G.nodes) {
@@ -82,6 +83,7 @@ export function planSigns(G, { placeAt = () => null } = {}) {
   const blades = [];
   for (const node of G.nodes) {
     if (node.edges.length < 3) continue;
+    if (opts.armBlades && (node.signal || node.control === 'signal')) continue; // signalized: the blades hang on the mast arms (src/world/miami/signals.js)
     const named = [];
     for (const k of node.edges) { const e = G.edges[k]; if (!e.name || MAJOR.has(e.kind) || e.kind === 'service' || e.elevated || (e.y && (e.y[0] > 0.3 || e.y[e.y.length - 1] > 0.3)) || named.some((m) => m.e.name === e.name)) continue; named.push({ e, d: dirFrom(e, node.id, 20) }); }
     if (named.length < 2) continue;
