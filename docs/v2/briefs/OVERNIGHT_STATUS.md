@@ -1061,6 +1061,20 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     shade trees at 15-18 cm (r2-ground's report too): 28 sunk at Nico's, 32 in the park, 84 rural. Re-audit: docs/v2/reports/veg-r2-d2-probe.json.
   - Density at the same 120 m audits: Nico's 204 trees / 436 shrubs, park 164 / 581, rural road 292 / 508.
     Shots: `docs/v2/shots/vegetation/r2/d1_park_eye.png`, `d1_rural_eye.png`, `d1_nico_deck.png`.
+- **14:40, lead's vegetation-mass review at the deck camera** (commit "r2-veg: lush Keys yards...").
+  - New src/world/vegetation/lotPlanting.js plants every Keys house lot within 150 m of the camera:
+    - foundation shrub clusters hugging the house
+    - 1-2 canopy trees on thin lots
+    - understory / ground cover under every lot tree and palm
+    First run: 27 lots and 484 plants around Nico's (?vegyards=0 for A/B).
+  - Pole sight line kept clear for r2-keys, plus tall planting on the deck view's left.
+  - Lot trees on real-Miami ground no longer sit 15-18 cm deep.
+  - r2-look's leaf light: wider yellow-green back-light, always-on transmission, desaturated crown core.
+  - 3-way (mock-up | before | after) at r0b_deck plus street level: `docs/v2/shots/vegetation/r2/three_r2veg_deck.jpg`.
+  - Honest read: at the deck camera the change is still small. The mock-up's far red canopy, the dense street-edge hedges and the
+    tree wall behind the roll-off are not there yet, because 48 of 81 street spots were skipped as occupied / not clear in that run.
+    Next: diagnose the skips per spot (audit of clearAt / collider hits) and move the masses onto free ground.
+  - Perf: deck 915 draws / 8.5 M tris vs 805 / 8.3 M before. Frame 42.9 vs 43.2 ms, same session.
 
 ## r2-web
 - **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
