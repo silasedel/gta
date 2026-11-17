@@ -406,8 +406,9 @@ export function buildGlbCar(key, look, t, info) {
     levels.push(g);
   }
   lod.addLevel(levels[0], 0);
-  lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (20k, per-slot) to 160 m
-  lod.addLevel(levels[2], 160 * big, 0.12);   // 100 m showed LOD2's torn panels on a few models (d1 distance sheet); LOD1 is 20k now
+  lod.addLevel(levels[1], 28 * big, 0.12);   // LOD0 (~80k) only close up; LOD1 (20k, per-slot) beyond
+  // no LOD2 in the chain: the 5k collapse still tore some models (van6 at 100-150 m in the d1 sheet = the user's distance
+  // splotches); the clean 20k per-slot LOD1 holds out to the culling distance (levels[2] stays built for code that walks levels)
   shell.add(lod);
   // rear license plate on the measured plate mount (Florida needs no front plate; the front recess stays a dark bracket)
   let plateMat = null;
