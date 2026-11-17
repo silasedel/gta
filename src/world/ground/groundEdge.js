@@ -54,9 +54,9 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
             GS lw = gRecipe(${LAWN}, wp, gdx, gdy, gWantN); lw.alb *= vec3(0.9, 1.0, 0.86);
             gs = gsMix(gs, lw, urban * 0.9);
             float worn = smoothstep(0.26, 0.42, gmA + (n1 - 0.5) * 0.3) * smoothstep(0.5, 0.72, n2 * 0.55 + n3 * 0.45);
-            float lip = smoothstep(0.38, 0.47, gmP + (n2 - 0.5) * 0.06 + (gN(wp * 9.0) - 0.5) * 0.04);
+            float lip = smoothstep(0.32, 0.45, gmP + (n2 - 0.5) * 0.07 + (gN(wp * 9.0) - 0.5) * 0.05);
             float wl = max(worn * 0.75, lip * 0.8) * urban;
-            if (wl > 0.01) { GS so = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); so.alb *= mix(1.0, 0.82, lip); gs = gsMix(gs, so, wl); }
+            if (wl > 0.01) { GS so = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); so.alb *= mix(1.0, 0.7, lip); so.tilt *= 1.4; gs = gsMix(gs, so, wl); }
           }
           if (tb > 0.01) { GS dt = gRecipe(${DIRT}, wp, gdx, gdy, gWantN); dt.alb = mix(dt.alb, sh.alb, 0.45); gs = gsMix(gs, dt, tb * smoothstep(0.35, 0.65, 1.0 - gs.h + (n2 - 0.5) * 0.6) * 0.85); }
           gs = gsMix(gs, sh, gmSh);
@@ -76,7 +76,7 @@ void main() {`).replace('// macro variation over everything', /* glsl */`
         float mj = (gN(wp * 2.3 + 1.0) - 0.5) * 0.35;
         float mu = gmHard(wp + vec2(mj, -mj)).b;
         float mw = smoothstep(0.22, 0.34, mu) * (1.0 - smoothstep(0.72, 0.86, mu)) * gmFine(wp);
-        if (mw > 0.01) { GS ml = gRecipe(${MULCH}, wp, gdx, gdy, gWantN); ml.alb *= vec3(0.62, 0.48, 0.36); ml.rough = 0.95; gs = gsMix(gs, ml, mw); }
+        if (mw > 0.01) { GS ml = gRecipe(${MULCH}, wp, gdx, gdy, gWantN); ml.alb *= vec3(0.47, 0.37, 0.3); ml.rough = 0.95; gs = gsMix(gs, ml, mw); }
       }
       // macro variation over everything`);
   };
