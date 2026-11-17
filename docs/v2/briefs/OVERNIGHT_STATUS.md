@@ -37,6 +37,35 @@ Left: about +100-250 draw calls vs `?keys=0` (frame time unchanged within noise)
 - 00:20 Baseline shots: `docs/v2/shots/keys/k0_{deck,front,aerial,back,dock,top}.png` (deck view 22 ms, 675 draw calls).
 
 ## perf
+- **06:25 FINAL (perf guard)**
+  - **Shader / page errors:** none. Console sweep at spawn, downtown, Key Largo and the airport, default page and `?look3`:
+    0 shader compile errors, 0 page errors. 'uLookV undeclared' is fixed (a272f78e), the report was a stale run.
+    roadDecals 'mapTransform' was sent to ground earlier; regulatory `baseOf` (street props) is gone.
+  - **Tonight's runtime changes ON vs OFF, one session** (draw order, parked-car sleep, interior cull, show-when-ready; the
+    light guard and precompile stay on in both; `docs/v2/reports/stage1-perf-c0500_on.json`; machine load avg 50-90):
+    | spot | frame median ON / OFF | p95 ON / OFF | draw calls ON / OFF | shader switches ON / OFF |
+    |---|---|---|---|---|
+    | spawn | 62.2 / 76.1 ms | 126 / 147 | 918 / 916 | 260 / 676 |
+    | downtown | 70.6 / 78.7 ms | 236 / 465 | 676 / 950 | 248 / 616 |
+    | Key Largo | 33.2 / 35.5 ms | 42 / 53 | 379 / 379 | 168 / 423 |
+    Earlier A/B for the light guard (needs a recompile): spawn GPU 54-132 -> 18-39 ms per frame.
+  - **Boot:** READY 42 s -> 18-27 s, longest task 3.6-11 s -> 0.6-1.3 s (s1-boot, earlier tonight; not re-run at 06:00, no slot).
+  - **Streaming after load (lead's exception, commit 8974960a):** tiles within 300 m of the spawn still unbuilt at READY:
+    6 of 7 -> 0. Queued streamer jobs at READY / 10 / 20 / 35 s: **453 / 434 / 367 / 312 -> 275 / 223 / 144 / 0**.
+    Cause: the in-game budget is 3 ms per frame, and the boot warm-up only waited for 220 m. Fixed with 10 ms steps and
+    300 m behind the loading screen, the player's area kept while a title camera is away, idle-time streaming (useful
+    while loading; in game the main thread has almost no idle time), and 6 ms per frame for a standing player while > 40
+    jobs are queued.
+  - **Drive (45 s at 30 m/s):** too load-bound for absolute numbers (median 56-142 ms depending on the run). Stall
+    attribution from the spike log: (1) `world.step` 170-340 ms for ~1 s, with many new dynamic bodies awake. Probable owner:
+    **street props** (pushable props as dynamic bodies); earlier runs without them had 0 physics spikes. (2) City
+    streaming steps 115-305 ms in one frame (`upd:anon#2` = city.update): single tile-build steps got long with the new
+    content (**buildings / ground / street props** sections of tilebuild). (3) `groundMaskTick` up to 85 ms
+    (**ground**, src/world/ground/surfaceMask.js). (4) Render 350-970 ms with 9-35 new geometries / textures in one frame
+    (tile uploads of the new models). Shaders compiled inside a frame during the drive: 27-28.
+  - **Costs the most tonight:** street props (physics spikes) and the tile-build step length (shared tilebuild content).
+    The library buildings' +7 ms downtown: they are already instanced per model / material / cell with far-LOD shadow
+    limits and use the shared precompile. No further lossless win found tonight without merging their materials.
 - 05:40 **Console sweep** (spawn, downtown, Key Largo (-836, 5272), airport (-1210, 1045)), default page and `?look3`:
   **0 shader compile errors, 0 page errors** in both (`docs/v2/reports/stage1-perf-sweep*.json`). The
   "PortSolanaOcean: 'uLookV' undeclared" report was a stale run: since a272f78e the fog chunk reads uLookV only under
@@ -94,6 +123,9 @@ Left: about +100-250 draw calls vs `?keys=0` (frame time unchanged within noise)
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- MORNING SUMMARY (06:20): (1) All road cars are the user's models (47 driving + 2 static props, 33 MB), with wheels, lights, class physics and the US paint mix; cost is the same as the procedural fleet (132 vs 128 draw calls).
+  (2) Brand marks: emblems are now filled in with the color of the paint or grille around them (no black blocks), 3D grille badges are deleted, and wheel center caps are plain chrome. Re-checked in close-ups: sedan3, sedan6, hatch1, conv1, coupe3, police1, suv12. About 20 of the 49 GLBs are reconverted; the rest still use the 03:00 conversion (`tools/v2/cars/convert_all.sh`, about 2 hours at today's machine load).
+  (3) Roll-overs: 0 in the 06:13 60 s downtown run (worst tilt 3.3 deg; `docs/v2/reports/cars-stability.json`). Fixes: COM height and anti-roll per class, suspension travel of at least 0.2 m, and a car that leaves ghost mode is set back down on the road surface. Parked cars stay 2 m clear of curbside carts.
 - 05:20 SUMMARY (cars): every road car is a user model. 46 of the Models/Cars entries converted (not the 4 personal-use
   rows), plus Covered Car 1 and the broken Van 2 as static props = 49 GLBs, 33 MB, `public/assets/vehicles/cars/`.
   Pipeline `tools/v2/cars/` (convert.py + cars.json per-car fixes), runtime `src/vehicles/glb/`. Wheels split by
@@ -678,6 +710,17 @@ with the lead's commit.
 **Morning summary (surfaces):** every paved road now has visible aggregate up close, tar crack-sealer, sealed paving joints, tire tracks and oil drip lines in the lanes, and per-street / per-section age (bleached old pavement vs dark overlays). Curbed streets get a concrete gutter pan. Rain puddles collect in ruts and gutters.
 Paint is chipped and worn in the wheel paths. Sidewalks get per-slab tone, stains, gum and cracked or lifted slabs. Curbs have grime, scuffs and red / yellow runs. Crosswalks are ladder downtown, continental bars on business / beach streets, two lines elsewhere. A/B in one session: `window.__surfaces.set(false)`; `?surfaces=0`.
 Best sheets: `docs/v2/shots/surfaces/SURF_closeups.png` (before | after), `SURF_grazing_11_1830_rain.png`, `SURF_t4_misc.png`; no shader errors, no measurable fps cost in same-session A/B.
+- 06:15 Final report. Commits: 20647bb9 (modules + materials.js hook + tools), wet-response / tuning commit after it; tilebuild hunks
+  (channel attach, setRoad, M.roadLane, crosswalk style by zone, all behind `?surfaces=0`) went in with the lead's tilebuild commits.
+  New sheets: `docs/v2/shots/surfaces/SURF_crosswalks_keys.png` (residential continental bars with chipped / wheel-worn paint, Homestead
+  two-line crosswalks, Keys lane), `SURF_t4_misc.png` (rural town street with gutter pan, Homestead sidewalk slabs + curb, rain, downtown).
+  Wet (look helper's request): asphalt ~0.35 roughness when wet, wheel paths / tar ~0.11, puddles 0.04 in ruts / gutters / low edges.
+  Checks: no shader errors in any run (only favicon 404); still-camera diffs on pavement-only views 0.07-0.7 % pixels > 12 levels
+  (larger values = moving cars / NPCs / cloud shadows, checked in diff images); same-session A/B frame time within noise.
+  Open / not done: driveway aprons (house generator owns them), per-paver variation on downtown plazas beyond stains / gum, one
+  downtown signalized junction (node 1163) shows no crosswalk (L.cw null there: not urban-zoned or clipped by cwFree; not from this pass),
+  first-spot load hitches seen in runs (9-38 s single frames right after teleport while tiles stream: not attributed to this pass, but
+  the bigger asphalt shader adds compile time: worth a precompile check), Keys aerial and highway aerial still rendering at 06:15.
 - 05:40 Committed the modules (`Surfaces: asphalt / paint / sidewalk shader pass`); tilebuild hunks handed to the lead ("tilebuild ready:
   surfaces"). Sheets: `docs/v2/shots/surfaces/SURF_grazing_11_1830_rain.png` (downtown 11:00 / 18:30 / rain + Keys rain, before | after),
   `SURF_closeups.png` (standing-height close-ups downtown / residential / Keys / rain). Tuning since: tar sealant satin (was a bright sky line
