@@ -58,7 +58,7 @@ const LIB = `(() => {
       if (e > 0.03) S.float++; if (e < -0.03) S.sink++; if (f.stair?.[k]) S.stairSamples++;
     }
     // foot sliding: horizontal speed of a firmly planted sole (footIK measures it on the skinned mesh)
-    if (f && f.active && P.state.grounded && sp > 0.8) for (let k = 0; k < 2; k++) if ((f.plant?.[k] ?? 0) > 0.95 && (f.lift?.[k] ?? 1) < 0.012 && (f.flat?.[k] ?? 1) < 0.035 && !f.stair?.[k]) S.slide.push(+(f.slide?.[k] ?? 0).toFixed(3));
+    if (f && f.active && P.state.grounded && sp > 0.8) for (let k = 0; k < 2; k++) if (f.slide?.[k] !== null && f.slide?.[k] !== undefined && !f.stair?.[k]) S.slide.push(+f.slide[k].toFixed(3));
     if (wt.stuck > 3) { wt.stop(); wt.done = 'stuck'; wt.stuckAt = [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]; try { const H = game.nicoHouse; const l = H.group.worldToLocal(p.clone()); wt.stuckLocal = [+l.x.toFixed(2), +l.y.toFixed(2), +l.z.toFixed(2)]; } catch (e) {} }
   });
   return 1; })()`;
@@ -117,14 +117,16 @@ await withBrowser({ width: +(o.w || 1280), height: +(o.h || 720), maxSeconds: +(
       }
       if (C.find === 'wall') {
         const R = game.RAPIER, W = game.world, P = game.player, QF = R.QueryFilterFlags, H = game.nicoHouse;
-        const o = H?.anchors?.front?.pos || P.position; let best = null;
-        for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2, d = { x: Math.sin(a), y: 0, z: Math.cos(a) }, y = city.groundHeightAt(o.x, o.z) + 1.0;
+        let best = null;
+        const origins = [H?.anchors?.front?.pos, H?.toWorld?.(new game.THREE.Vector3(-2.2, 0, 1.3)), H?.anchors?.spawnYard?.pos, H?.toWorld?.(new game.THREE.Vector3(-14, 0, 12)), P.position].filter(Boolean);
+        for (const o of origins) { if (best) break; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2, d = { x: Math.sin(a), y: 0, z: Math.cos(a) }, y = city.groundHeightAt(o.x, o.z) + 1.0;
           const h = W.castRayAndGetNormal(new R.Ray({ x: o.x, y, z: o.z }, d), 9, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS, undefined, P.collider);
-          if (h && h.timeOfImpact > 3 && Math.abs(h.normal.y) < 0.3 && Math.abs(h.normal.x * d.x + h.normal.z * d.z) > 0.8) {
+          if (h && h.timeOfImpact > 2.5 && Math.abs(h.normal.y) < 0.3 && Math.abs(h.normal.x * d.x + h.normal.z * d.z) > 0.8) {
             // tall enough to be a wall (not a curb / step): a second ray at knee height and one at head height hit too
             const h2 = W.castRay(new R.Ray({ x: o.x, y: y + 0.7, z: o.z }, d), 9, true, QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS, undefined, P.collider);
-            if (h2 && Math.abs(h2.timeOfImpact - h.timeOfImpact) < 0.4 && (!best || h.timeOfImpact < best.t)) best = { t: h.timeOfImpact, d }; } }
+            if (h2 && Math.abs(h2.timeOfImpact - h.timeOfImpact) < 0.4 && (!best || h.timeOfImpact < best.t)) best = { t: h.timeOfImpact, d, o }; } } }
         if (!best) return JSON.stringify({ err: 'no wall' });
+        const o = best.o;
         const T = { x: o.x + best.d.x * (best.t + 2), z: o.z + best.d.z * (best.t + 2) };
         return JSON.stringify({ start: [o.x - best.d.x * 1, o.z - best.d.z * 1], pts: [T], wallAt: +best.t.toFixed(2), expectBlocked: true });
       }

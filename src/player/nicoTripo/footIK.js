@@ -25,7 +25,7 @@ function setWorldQuat(bone, qw) {
 export function createFootIK({ game, model, bone, root, mesh = null }) {
   const legs = ['Left', 'Right'].map((s) => ({ s, up: bone(s + 'UpLeg'), lo: bone(s + 'Leg'), ft: bone(s + 'Foot'), toe: bone(s + 'ToeBase'), off: 0, n: new THREE.Vector3(0, 1, 0), plant: 0, gy: null, marks: [], c: new THREE.Vector3(), prevC: null }));
   const ok = legs.every((l) => l.up && l.lo && l.ft);
-  const st = { w: 0, pelvis: 0, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], lift: [0, 0], stair: [false, false], slide: [0, 0], pelvis: 0, active: false } };
+  const st = { w: 0, pelvis: 0, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], lift: [0, 0], flat: [0, 0], stair: [false, false], slide: [0, 0], pelvis: 0, active: false } };
   const stairs = createStairs(game);
   // sole markers: the lowest vertices of each shoe in the bind pose (heel to toe). Their skinned positions give the real
   // sole height every frame, so a planted foot is put exactly on the ground and the error is measured on the mesh itself.
@@ -44,9 +44,10 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
   // world sole height (min of the markers) and marker center -> l.sole, l.c
   function sole(l) {
     if (!l.marks.length) { l.ft.getWorldPosition(l.c); l.sole = l.c.y - 0.09; return l.sole; }
-    let lo = Infinity; l.c.set(0, 0, 0);
-    for (const i of l.marks) { mesh.getVertexPosition(i, _m); _m.applyMatrix4(mesh.matrixWorld); lo = Math.min(lo, _m.y); l.c.add(_m); }
-    l.c.multiplyScalar(1 / l.marks.length); l.sole = lo; return lo;
+    let lo = Infinity, hi = -Infinity; l.c.set(0, 0, 0);
+    l.mp ||= l.marks.map(() => new THREE.Vector3());
+    for (let k = 0; k < l.marks.length; k++) { mesh.getVertexPosition(l.marks[k], _m); _m.applyMatrix4(mesh.matrixWorld); l.mp[k].copy(_m); lo = Math.min(lo, _m.y); hi = Math.max(hi, _m.y); l.c.add(_m); }
+    l.c.multiplyScalar(1 / l.marks.length); l.sole = lo; l.spread = hi - lo; return lo;
   }
   function ground(x, y, z) {
     const R = game?.RAPIER, W = game?.world; if (!R || !W) return null;
@@ -128,9 +129,17 @@ export function createFootIK({ game, model, bone, root, mesh = null }) {
         }
         // measured on the skinned mesh after IK: sole-to-ground error and planted-foot slide speed
         const so = sole(l);
-        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : so - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair; st.stats.lift[i] = l.lift;
-        st.stats.slide[i] = l.prevC && dt > 0 ? Math.hypot(l.c.x - l.prevC.x, l.c.z - l.prevC.z) / dt : 0;
-        (l.prevC ||= new THREE.Vector3()).copy(l.c);
+        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : so - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair; st.stats.lift[i] = l.lift; st.stats.flat[i] = l.spread;
+        // slide: speed of the same sole vertices while they touch the ground (within 1 cm) in this and the last frame;
+        // the heel-to-toe roll moves the contact point but not a touching vertex, so this is pure sliding
+        const sl = l.sl || (l.sl = []); sl.length = 0;
+        if (l.prevOk && l.gy !== null && dt > 0) for (let k = 0; k < l.mp.length; k++) {
+          const q = l.mp[k], pq = l.prevM[k];
+          if (q.y - l.gy < 0.01 && pq.y - (l.prevGy ?? l.gy) < 0.01) sl.push(Math.hypot(q.x - pq.x, q.z - pq.z) / dt);
+        }
+        sl.sort((x, y) => x - y);
+        st.stats.slide[i] = sl.length >= 3 ? sl[Math.floor(sl.length / 2)] : null;
+        l.prevM ||= l.mp.map(() => new THREE.Vector3()); for (let k = 0; k < l.mp.length; k++) l.prevM[k].copy(l.mp[k]); l.prevGy = l.gy; l.prevOk = true;
       }
       st.stats.pelvis = st.pelvis;
     },
