@@ -16,10 +16,11 @@ for (x0, y0, x1, y1) in [(40, 0, 720, 120), (40, 190, 720, 312)]:
         for x in range(w):
             k = 0.78 + 0.32 * nn[x, y] / 255 + 0.1 * (ff[x, y] / 255 - 0.5); px[x, y] = tuple(max(0, min(255, int(c * k))) for c in mean)
     im.paste(panel, (x0, y0))
-F = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial Bold.ttf', 50)
-def text(y, flip):
-    t = Image.new('RGBA', (520, 110), (0, 0, 0, 0)); d = ImageDraw.Draw(t); d.text((20, 20), 'KEYS ROLL-OFF', font=F, fill=(206, 198, 182, 220))
-    if flip: t = t.transpose(Image.FLIP_TOP_BOTTOM)
-    im.paste(t, (60, y), t)
-text(0, False); text(196, True)
+F = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial Bold.ttf', 40)
+# in game each long side shows only part of its panel (a ribbed inner plate covers the middle): side A shows the panel's left
+# third, side B its right third. Both read upright and left-to-right with no flip (checked in Blender, both sides rendered).
+def text(x, y, s='KEYS ROLL-OFF'):
+    t = Image.new('RGBA', (330, 70), (0, 0, 0, 0)); d = ImageDraw.Draw(t); d.text((6, 10), s, font=F, fill=(206, 198, 182, 225))
+    im.paste(t, (x, y), t)
+text(62, 18); text(388, 214, 'KEYS')   # side B's window is narrow
 im.save(dst)
