@@ -139,9 +139,10 @@ def arm_side(side):
     ds, zs, ys = np.array(ds), np.array(zs), np.array(ys)
     bz = np.polyfit(ds, zs, 1) if len(ds) > 3 else np.array([0, 0.81 * H])
     by = np.polyfit(ds, ys, 1) if len(ds) > 3 else np.array([0, 0.0])
-    # wrist: narrowest y extent between 0.17 H and 0.07 H from the finger tips
-    best, wr = 1e9, tip - 0.105 * H
-    for d in np.arange(tip - 0.17 * H, tip - 0.07 * H, 0.003 * H):
+    # wrist: narrowest y extent near the anthropometric wrist (hand length ~0.108 H from the finger tips). r2: the old
+    # 0.07-0.17 H window found slim forearms 5-7 cm up the arm, so the hand bent mid-forearm
+    best, wr = 1e9, tip - 0.108 * H
+    for d in np.arange(tip - 0.124 * H, tip - 0.092 * H, 0.002 * H):
         q = slab_x(d, side, 0.003 * H, 0.55 * H)
         if len(q) < 4: continue
         zc = np.polyval(bz, d); q = q[np.abs(q[:, 2] - zc) < 0.06 * H]
@@ -214,7 +215,9 @@ def fingers_side(side, a, S, zl, yl):
     Lh = al.max()
     dk = 0.56 * Lh                                  # knuckle line (MCP), along the hand
     fm = al > dk + 0.01 * H
-    a0, a1 = np.percentile(ac[fm], 3), np.percentile(ac[fm], 97)   # across range of the four fingers (front = high)
+    far = al > dk + 0.45 * (Lh - dk)                # r2: thumb tips reach past the knuckles; finger lanes from the far half only
+    if far.sum() < 12: far = fm
+    a0, a1 = np.percentile(ac[far], 3), np.percentile(ac[far], 97)   # across range of the four fingers (front = high)
     lw = (a1 - a0) / 4
     lanes = {}
     for k, f in enumerate(('Index', 'Middle', 'Ring', 'Pinky')):
@@ -230,16 +233,20 @@ def fingers_side(side, a, S, zl, yl):
     # Middle1 on the hand axis: the Hand bone points along the real hand (the re-pose straightens it to +-X)
     pm = W0 + u * dk; pm[2] = zl(wr)
     J[S + 'HandMiddle1'] = Vector(pm)
-    # thumb: hand verts beyond the index lane (front) between the wrist and the knuckles
-    tm = (al < dk + 0.2 * Lh) & (ac > a1 + 0.1 * lw)
+    # thumb: hand verts beyond the index lane (front) between the wrist and the knuckles. r2: the chain follows the thumb's
+    # own principal axis through its middle (joints inside the thumb, not on a line to its farthest surface point)
+    tm = (al < dk + 0.45 * (Lh - dk)) & (ac > a1 + 0.1 * lw)
     if tm.sum() > 10:
-        tq = hand[tm]; tip_t = tq[np.argmax(ac[tm] + 0.5 * al[tm])]
-        r0 = W0 + u * (0.1 * Lh) + w * (a1 - 0.3 * lw); r0[2] = zc - 0.008 * H
-        thumb = dict(root=Vector(r0), tip=Vector(tip_t))
+        tq = hand[tm]; cen = tq.mean(0); m = tq - cen; ev, evec = np.linalg.eigh(m.T @ m); ax = evec[:, -1]
+        if (ax @ w) + 0.5 * (ax @ u) < 0: ax = -ax                     # pointing out: forward and along the hand
+        pr = m @ ax; s0, s1 = np.percentile(pr, 4), np.percentile(pr, 97)
+        r0 = cen + ax * s0; tip_t = cen + ax * s1
+        rad = float(np.median(np.linalg.norm(m - np.outer(pr, ax), axis=1)))
+        thumb = dict(root=Vector(r0), tip=Vector(tip_t), rad=max(0.006 * H, min(0.014 * H, rad * 1.25)))
     else:
         r0 = W0 + u * (0.1 * Lh) + w * (a1 + 0.3 * lw); r0[2] = zc - 0.01 * H
-        thumb = dict(root=Vector(r0), tip=Vector(r0 + u * 0.35 * Lh + w * 0.3 * lw))
-    for j, t in enumerate((0.0, 0.4, 0.7)):
+        thumb = dict(root=Vector(r0), tip=Vector(r0 + u * 0.35 * Lh + w * 0.3 * lw), rad=0.01 * H)
+    for j, t in enumerate((0.0, 0.42, 0.72)):
         put(S + 'HandThumb' + str(j + 1), thumb['root'] + (thumb['tip'] - thumb['root']) * t)
     FW[S] = dict(side=side, W0=Vector(W0), u=Vector(u), w=Vector(w), dk=dk, a1=a1, lw=lw, lanes=lanes, thumb=thumb)
 
@@ -339,18 +346,18 @@ def finger_weights(o):
             if al < 0 or abs(d.z) > 0.07 * H: continue
             ac = d.dot(w)
             wset = {}
-            ramp = min(1.0, max(0.0, (al - (F['dk'] - 0.012 * H)) / (0.022 * H)))
+            ramp = min(1.0, max(0.0, (al - (F['dk'] - 0.008 * H)) / (0.014 * H)))
             if ramp > 0:
                 for k, (f, ln) in enumerate(F['lanes'].items()):
                     c = (ln['lo'] + ln['hi']) / 2; hw = (ln['hi'] - ln['lo']) / 2
                     dd = abs(ac - c)
-                    lane = 1.0 if dd < hw * 0.7 else max(0.0, 1 - (dd - hw * 0.7) / (hw * 0.6))
-                    if f == 'Index' and ac > c: lane = 1.0
+                    lane = 1.0 if dd < hw * 0.55 else max(0.0, 1 - (dd - hw * 0.55) / (hw * 0.9))
+                    if f == 'Index' and ac > c: lane = 1.0 if ac < F['a1'] + 0.25 * F['lw'] else max(0.0, 1 - (ac - F['a1'] - 0.25 * F['lw']) / (0.4 * F['lw']))   # r2: the thumb is not the index
                     if f == 'Pinky' and ac < c: lane = 1.0
                     if lane <= 0: continue
                     t = (al - ln['base']) / max(1e-4, ln['len'])
                     for j, a0, a1 in ((1, -9, 0.45), (2, 0.45, 0.75), (3, 0.75, 9)):
-                        bl = 0.05
+                        bl = 0.07 if j == 1 else 0.09
                         if a0 + bl <= t < a1 - bl: wj = 1.0
                         elif abs(t - a0) < bl: wj = 0.5 + 0.5 * (t - a0) / bl
                         elif abs(t - a1) < bl: wj = 0.5 - 0.5 * (t - a1) / bl
@@ -358,14 +365,23 @@ def finger_weights(o):
                         if wj > 0: wset[S + 'Hand' + f + str(j)] = wset.get(S + 'Hand' + f + str(j), 0) + wj * lane * ramp
             T = F['thumb']; r0, r3 = T['root'], T['tip']
             ax = r3 - r0; L2 = ax.length_squared
-            if L2 > 1e-8 and ac > F['a1'] - 0.2 * F['lw'] and al < F['dk'] + 0.25 * F['lw'] * 4:
+            if L2 > 1e-8:
                 t = (v.co - r0).dot(ax) / L2
-                if -0.2 < t < 1.4:
-                    dist = (v.co - (r0 + ax * max(0, min(1, t)))).length
-                    if dist < 0.03 * H:
-                        k = min(1.0, max(0.0, (ac - (F['a1'] - 0.2 * F['lw'])) / (0.4 * F['lw'])))
-                        j = 1 if t < 0.4 else 2 if t < 0.7 else 3
-                        wset[S + 'HandThumb' + str(j)] = wset.get(S + 'HandThumb' + str(j), 0) + k * min(1.0, (t + 0.2) / 0.35)
+                if -0.3 < t < 1.3:
+                    dist = (v.co - (r0 + ax * max(0, min(1, t)))).length; rad = T.get('rad', 0.01 * H)
+                    if dist < rad * 1.6:
+                        # r2: smooth thumb weights (palm side and wrist side fade in, soft joint blends like the fingers)
+                        k = min(1.0, max(0.0, (ac - (F['a1'] - 0.25 * F['lw'])) / (0.35 * F['lw'])))
+                        k *= min(1.0, max(0.0, (t + 0.25) / 0.3))
+                        k *= 1.0 if dist < rad else max(0.0, 1 - (dist - rad) / (0.6 * rad))
+                        if k > 0:
+                            for j, a0, a1_ in ((1, -9, 0.42), (2, 0.42, 0.72), (3, 0.72, 9)):
+                                bl = 0.09
+                                if a0 + bl <= t < a1_ - bl: wj = 1.0
+                                elif abs(t - a0) < bl: wj = 0.5 + 0.5 * (t - a0) / bl
+                                elif abs(t - a1_) < bl: wj = 0.5 - 0.5 * (t - a1_) / bl
+                                else: wj = 0.0
+                                if wj > 0: wset[S + 'HandThumb' + str(j)] = wset.get(S + 'HandThumb' + str(j), 0) + wj * k
             tot = sum(wset.values())
             if tot <= 0: continue
             keep = max(0.0, 1 - min(1.0, tot))

@@ -285,7 +285,10 @@ export async function createPeds(game) {
     createdThisFrame++;
     const sd = 1000 + (seedN++) * 37;
     // archetype people (src/npc/arch, PEOPLE-LOOK) when loaded for this place; the legacy library body otherwise
-    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender, pos: opts.pos, act: opts.act }) || createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds });
+    // the user's people only (src/npc/people): when none fits / is loaded yet, nobody spawns this frame (the cast loads
+    // them); the old library body is used only when the people system is off ('?people=0' / '?npc=legacy')
+    const c = game.npc?.createPed?.({ seed: sd, zone: want, gender: opts.gender, pos: opts.pos, act: opts.act, force: opts.force }) || (game.npc?.cast ? null : createCharacter(game, { variant: 'ped', seed: sd, zone: want, gender: opts.gender, exclude: activeIds }));
+    if (!c) { createdThisFrame--; return null; }
     scene.add(c.root);
     return c;
   }

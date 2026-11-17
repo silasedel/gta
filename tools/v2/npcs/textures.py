@@ -6,7 +6,7 @@ import sys, os, glob, subprocess
 from PIL import Image
 src, pid, out = sys.argv[1], sys.argv[2], sys.argv[3]
 os.makedirs(out, exist_ok=True)
-fs = glob.glob(os.path.join(src, '*'))
+fs = [f for f in glob.glob(os.path.join(src, '*')) if 'emission' not in os.path.basename(f).lower()]
 def find(*keys):
     for k in keys:
         for f in fs:

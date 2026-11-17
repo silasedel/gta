@@ -239,7 +239,8 @@ export function createNpc(game, opts = {}) {
     holder.rotation.x = st.pitch;
     // distance LOD + animation rate
     const cam = game?.camera?.position;
-    const d = cam ? Math.hypot(root.position.x - cam.x, root.position.y - cam.y, root.position.z - cam.z) : 5;
+    const rp = character.inCar && root.parent ? root.getWorldPosition(_v) : root.position;   // seated in a car: shell space
+    const d = cam ? Math.hypot(rp.x - cam.x, rp.y - cam.y, rp.z - cam.z) : 5;
     pickLOD(d);
     const every = opts.lod && opts.lod > 2 ? opts.lod : d < 30 ? 1 : d < 60 ? 2 : 3;
     st.accum += dt; st.lodTick = (st.lodTick + 1) % every;

@@ -3163,6 +3163,68 @@
     "hat": false
    },
    "build": "heavy"
+  },
+  {
+   "id": "c01",
+   "file": "c01.glb",
+   "name": "Female Lifeguard",
+   "g": "f",
+   "age": "adult",
+   "years": 26,
+   "role": "lifeguard",
+   "places": [
+    "lifeguard"
+   ],
+   "height": 1.69,
+   "hipH": 0.8401,
+   "tris": {
+    "LOD0_body": 153848,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14126714,
+    "top": 13435936,
+    "bottom": 12549988,
+    "hair": 8613974,
+    "shoes": 14721154,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "c02",
+   "file": "c02.glb",
+   "name": "Male Lifeguard",
+   "g": "m",
+   "age": "adult",
+   "years": 28,
+   "role": "lifeguard",
+   "places": [
+    "lifeguard"
+   ],
+   "height": 1.832,
+   "hipH": 0.9663,
+   "tris": {
+    "LOD0_body": 202836,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 7616562,
+    "top": 6638640,
+    "bottom": 11995422,
+    "hair": 1577493,
+    "shoes": 10839902,
+    "sleeve": 0.4,
+    "leg": 0.33,
+    "hat": false
+   }
   }
  ]
 }

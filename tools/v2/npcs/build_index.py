@@ -11,7 +11,7 @@ for c in cast:
     mp = os.path.join(mdir, pid + '.json')
     if not os.path.exists(mp) or not os.path.exists(os.path.join(out, pid + '.glb')): continue
     m = json.load(open(mp))
-    src = m['src']; name = re.sub(r'^(NPC|Character) \d+ - ', '', src.split('/')[-2])
+    src = m['src']; name = c.get('name') or re.sub(r'^(NPC|Character) \d+ - ', '', src.split('/')[-2])
     row = {'id': pid, 'file': pid + '.glb', 'name': name, 'g': c['g'], 'age': c['age'], 'years': c['years'], 'role': c['role'],
            'places': c['places'], 'height': round(m['height'], 3), 'hipH': round(m['hipH'], 4), 'tris': m['tris'],
            'a2': os.path.exists(os.path.join(out, pid + '_a2.webp')), 'skirt': m.get('skirt', False)}

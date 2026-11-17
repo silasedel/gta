@@ -55,6 +55,13 @@ const SPD = { walk: 1.35, jog: 2.6, run: 3.6, sprint: 5.5 };
 const run = (dt) => { game.clock.elapsed += dt; for (const { c, pose } of chars) c.update(dt, { speed: SPD[pose] ? (spd || SPD[pose]) : spd, grounded: true }); };
 for (let i = 0; i < T * 30; i++) run(1 / 30);
 const freeze = q.get('freeze');
+// focus=<bone>[&fi=<char index>&fd=<m>&fa=<deg yaw around the person>&fe=<m up>]: close-up camera on one bone (hands, face)
+if (q.get('focus') && chars.length) {
+  const c = chars[+(q.get('fi') || 0)].c; c.root.updateMatrixWorld(true);
+  const b = c.getBone(q.get('focus')); const p = b.getWorldPosition(new THREE.Vector3());
+  const a = (+(q.get('fa') || 30)) * Math.PI / 180, d = +(q.get('fd') || 0.45);
+  p.y -= +(q.get('fl') || 0); camera.position.set(p.x + Math.sin(a) * d, p.y + +(q.get('fe') || 0.08), p.z + Math.cos(a) * d); camera.lookAt(p);
+}
 function loop() {
   if (!freeze) run(1 / 60);
   renderer.render(scene, camera);

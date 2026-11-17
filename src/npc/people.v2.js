@@ -11,6 +11,7 @@ import { PERSONAS } from './personality.js';
 import { personParams, chooseReaction, witnessReport, personForPlace, streetDensity, sampleSchedule, activityAt } from './mind.js';
 import { pickLine, lineCount } from './lines.js';
 import { createCrowd, POSE } from './crowd.js';
+import { createPeopleCrowd } from './people/farCrowd.js';
 import { clamp } from './rand.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
@@ -251,7 +252,11 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- far tier: instanced crowd on the sidewalks
   const NAV = peds._nav || null;
   let crowd = null;
-  try { if (NAV) crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
+  // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the
+  // game's clips); '?farcrowd=old' = the procedural mannequin body (crowd.js) for A/B
+  const FAR_PEOPLE = typeof location !== 'undefined' && /[?&]farcrowd=people/.test(location.search);   // OFF by default until verified in game
+  try { if (NAV) crowd = FAR_PEOPLE ? createPeopleCrowd(game, { max: 380 }) : createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
+  if (!crowd && NAV) { try { crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { crowd = null; } }
   const walkers = [];
   let towelN = 0;
   // playtest: "too few people" -> 240 at full street density (was 170); people fade (dithered) instead of popping
@@ -285,7 +290,7 @@ export async function initV2(game) {
       const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null); const c = p?.cols; if (!c) return base;
       L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
       const f = p.g === 'f';
-      return { ...base, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
+      return { ...base, personId: p.id, gender: p.g, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
         sleeve: c.sleeve ?? base.sleeve, leg: c.leg ?? base.leg, hatKind: c.hat ? 1 : 0, hat: c.hat ? (c.hair ?? base.hat) : base.hat,
         hairStyle: f ? (base.hairStyle >= 2 ? base.hairStyle : 3) : Math.min(1, base.hairStyle ?? 1), bust: f ? Math.max(0.6, base.bust || 0.8) : 0,
         girth: p.build === 'heavy' ? 1.25 : f ? Math.min(base.girth ?? 1, 1.05) : base.girth };
@@ -827,7 +832,7 @@ export async function initV2(game) {
     lines: () => lineLog.slice(), lineCount,
     roster: () => [...roster.values()].map((id) => ({ name: id.name, age: id.age, job: id.job, home: id.districtKey, voice: id.voice, traits: Object.fromEntries(Object.entries(id.traits).map(([k, v]) => [k, Math.round(v * 100) / 100])) })),
     life: { stats: () => ({ ...lifeStats }), governor: () => ({ k: governor.k, avgMs: governor.avgMs }), panic: crowdPanic, walkState: signals.walkState },
-    crowd: { cfg: crowdCfg, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]) },
+    crowd: { cfg: crowdCfg, get impl() { return crowd; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]) },
     sigList: () => [...audit.sigs.keys()],
     inView() { // people inside the camera frustum (near tier + crowd tier)
       const cam = game.camera; if (!cam) return null; cam.updateMatrixWorld();

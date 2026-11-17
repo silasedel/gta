@@ -477,7 +477,10 @@ export async function createInteriors(game) {
     if (charThrottle > 0) return null;
     if (charCount >= MAX_CHARS) { for (const k of Object.keys(freeChars)) if (freeChars[k].length) return freeChars[k].pop(); return null; }
     const [gender, outfit] = cls.split(':'); const seed = seedFor(seedBase, gender === 'f');
-    const char = createCharacter(game, { variant: 'ped', seed, outfit, zone: outfit, gender, beach: outfit === 'beach', personality });
+    // the user's own people (src/npc/people, role-matched staff / guests) first; the old library body only if none is available
+    let char = null; try { char = game.npc?.createPed?.({ seed, zone: outfit, outfit, gender, force: true, personality }) || null; } catch (e) { char = null; }
+    if (char) { try { char.setPersonality?.(personality); } catch (e) { /* */ } }
+    if (!char) char = createCharacter(game, { variant: 'ped', seed, outfit, zone: outfit, gender, beach: outfit === 'beach', personality });
     scene.add(char.root); charCount++; charThrottle = 4;
     const p = { char, cls, x: 0, z: 0, heading: 0, speed: 0, route: [], wait: 0, body: null, head: char.getBone?.('Head') || null, armL: char.getBone?.('LeftArm') || null, armR: char.getBone?.('RightArm') || null };
     try { p.body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -80, 0)); world.createCollider(RAPIER.ColliderDesc.capsule(0.6, 0.28).setFriction(0.5), p.body); } catch (e) { /* */ }

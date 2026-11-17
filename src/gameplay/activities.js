@@ -81,6 +81,8 @@ export function createActivities(game, G) {
   function makeNpc(pos, seed, opts = {}) {
     // characters are pooled (creating a new one per fare/bounty would leak GPU resources)
     let char = charPool.pop() || null;
+    // the user's own people (src/npc/people) first; the old library body only if none is available
+    if (!char) char = tryCall('createPed', () => game.npc?.createPed?.({ seed, pos, force: true }) || null, null);
     if (!char) char = tryCall('createCharacter', () => createCharacter(game, { variant: 'ped', seed }), null);
     if (!char) return null;
     char.root.visible = true;

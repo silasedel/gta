@@ -26,22 +26,36 @@ export function mirrorPose(b) { const o = {}; for (const n in b) o[swapLR(n)] = 
 function mirrorKey(k) { return { ...k, b: mirrorPose(k.b || {}), hips: k.hips ? [-k.hips[0], k.hips[1], k.hips[2]] : undefined, hipsRot: k.hipsRot ? mirOps(k.hipsRot) : undefined }; }
 
 // ------------------------------------------------------------------ hands
+// The scanned people's fingers are partly fused (Tripo scans): fingers that bend by different amounts tear the webbing into
+// claws. So all four bend together (the pinky only a touch more), the middle joint bends most and the tip joint least
+// (a real relaxed hand: MCP 1.0, PIP 0.9, DIP 0.55 of the curl), they converge slightly instead of fanning out, and
+// the thumb rests in against the index (adducted, softly flexed) instead of sticking forward.
 const FING = ['Index', 'Middle', 'Ring', 'Pinky'];
 function handPose(side, curl, thumb = 0.3, spread = 0) {
   const sg = side === 'Left' ? -1 : 1; const o = {};
   FING.forEach((f, i) => {
-    const c = curl * (1 + i * 0.12);
-    o[side + 'Hand' + f + '1'] = [['z', sg * c * 0.8], ['y', sg * spread * (i - 1.5) * 4]];
-    o[side + 'Hand' + f + '2'] = [['z', sg * c * 1.0]];
-    o[side + 'Hand' + f + '3'] = [['z', sg * c * 0.7]];
+    const c = curl * (1 + i * 0.05);
+    o[side + 'Hand' + f + '1'] = [['z', sg * c * 1.0], ['y', sg * (spread - 1.2) * (i - 1.5) * 2.5]];
+    o[side + 'Hand' + f + '2'] = [['z', sg * c * 0.9]];
+    o[side + 'Hand' + f + '3'] = [['z', sg * c * 0.55]];
   });
-  o[side + 'HandThumb1'] = [['y', sg * -12 * thumb]]; o[side + 'HandThumb2'] = [['z', sg * 25 * thumb]]; o[side + 'HandThumb3'] = [['z', sg * 30 * thumb]];
+  const th = Math.max(0.25, thumb);
+  o[side + 'HandThumb1'] = [['y', sg * -22 * th], ['z', sg * 10 * th]]; o[side + 'HandThumb2'] = [['z', sg * 18 * th]]; o[side + 'HandThumb3'] = [['z', sg * 22 * th]];
   return o;
 }
-const HANDS_RELAX = merge(handPose('Left', 16, 0.3), handPose('Right', 16, 0.3));
-const HANDS_LOOSE = merge(handPose('Left', 26, 0.45), handPose('Right', 26, 0.45));
+const HANDS_RELAX = merge(handPose('Left', 20, 0.55), handPose('Right', 20, 0.55));
+const HANDS_LOOSE = merge(handPose('Left', 26, 0.6), handPose('Right', 26, 0.6));
 const FIST_L = handPose('Left', 82, 1.0), FIST_R = handPose('Right', 82, 1.0);
 const GRIP_R = handPose('Right', 55, 0.8), GRIP_L = handPose('Left', 55, 0.8);
+const OPEN = merge(handPose('Left', 7, 0.3, 1.5), handPose('Right', 7, 0.3, 1.5));
+const FISTS = merge(FIST_L, FIST_R);
+// hands for the project's procedural action clips (src/player/proceduralClips.js has no finger keys)
+const CLIP_HANDS = {
+  punchR: FISTS, punchL: FISTS, guard: FISTS, jump: HANDS_LOOSE, fall: OPEN, deadBack: HANDS_LOOSE, deadFwd: HANDS_LOOSE, getUpBack: OPEN, getUpFwd: OPEN,
+  drive: merge(GRIP_L, GRIP_R), cower: merge(handPose('Left', 38, 0.7), handPose('Right', 38, 0.7)), swim: OPEN, volley: OPEN, handsUp: OPEN, wave: merge(HANDS_RELAX, handPose('Right', 6, 0.3, 1.5)),
+  phone: merge(HANDS_RELAX, GRIP_R), film: merge(GRIP_L, GRIP_R), phoneCall: merge(HANDS_RELAX, handPose('Right', 48, 0.7)), leash: merge(HANDS_RELAX, handPose('Right', 70, 0.9)),
+  throwDisc: merge(HANDS_RELAX, handPose('Right', 50, 0.8)), hitReact: OPEN, argue: merge(handPose('Left', 14, 0.4, 1), handPose('Right', 14, 0.4, 1)),
+};
 
 // ------------------------------------------------------------------ base stances
 export const STAND = merge({
@@ -112,7 +126,8 @@ function gaitKeys(o, N = 24) {
     const elL = o.elbow + Math.max(0, armL) / o.arm * o.elbowSwing, elR = o.elbow + Math.max(0, armR) / o.arm * o.elbowSwing;
     const yaw = -c * o.yaw;                              // left hip forward at left heel strike
     const roll = Math.sin(ph * TAU * 2 - 0.5) * 0.3 * o.roll + s * o.roll * 0.85;
-    const b = merge(STAND, leg(ph, 'Left'), leg(ph + 0.5, 'Right'), o.run ? merge(handPose('Left', 50, 0.7), handPose('Right', 50, 0.7)) : HANDS_LOOSE, {
+    const hk = (a) => (o.run ? 46 : 22) + (o.run ? 8 : 7) * a / o.arm;   // fingers follow the swing with the forearm
+    const b = merge(STAND, leg(ph, 'Left'), leg(ph + 0.5, 'Right'), handPose('Left', hk(-Math.cos(ph * TAU - 0.5) * o.arm), o.run ? 0.7 : 0.6), handPose('Right', hk(Math.cos(ph * TAU - 0.5) * o.arm), o.run ? 0.7 : 0.6), {
       Spine: [['x', -2 + o.lean * 0.4], ['y', -yaw * 0.35 * o.twist], ['z', -roll * 0.35]],
       Spine1: [['x', 2 + o.lean * 0.3], ['y', -yaw * 0.35 * o.twist]],
       Spine2: [['x', 2 + o.lean * 0.3], ['y', -yaw * 0.3 * o.twist], ['z', roll * 0.15]],
@@ -158,6 +173,7 @@ function weightShift(dur, n = 16, amt = 1, extra = {}) {
     const b = blendPoses(A.b, B.b, k);
     const br = Math.sin(ph * TAU * Math.round(dur / 4.2)) * amt;
     b.Spine1 = [...(b.Spine1 || []), ['x', br * 0.8]]; b.Head = [...(b.Head || []), ['y', Math.sin(ph * TAU * 1.5) * 7], ['x', Math.sin(ph * TAU * 3) * 1.5]];
+    if (!extra || !Object.keys(extra).some((n) => /Hand(Index|Thumb)/.test(n))) Object.assign(b, merge(handPose('Left', 19 + 4 * Math.sin(ph * TAU * 2 + 0.7), 0.55), handPose('Right', 19 + 4 * Math.sin(ph * TAU * 2 + 2.1), 0.55)));
     keys.push({ t, b, hips: A.hips.map((v, j) => lerp(v, B.hips[j], k)), hipsRot: blendOps(A.hipsRot, B.hipsRot, k) });
   }
   return keys;
@@ -443,7 +459,7 @@ export function buildClipsFor(rig, hipH) {
         const b = {}; let hipsRot = null;
         for (const tr of tq) { const bn = tr.name.split('.')[0]; const qv = Array.from(tr.values.slice(i * 4, i * 4 + 4)); if (bn === 'Hips') hipsRot = [['q', qv]]; else b[bn] = [['q', qv]]; }
         const hips = tp ? [(tp.values[i * 3]) * 0.01, (tp.values[i * 3 + 1] - 100) * 0.01, (tp.values[i * 3 + 2]) * 0.01] : undefined;
-        keys.push({ t, b, hips, hipsRot });
+        keys.push({ t, b: { ...(CLIP_HANDS[n] || HANDS_RELAX), ...b }, hips, hipsRot });
       });
       const c = bindClip(rig, F, { name: n, dur: src.duration, keys, upperOnly: !!src.userData?.upperOnly }, hipH);
       out[n] = c;

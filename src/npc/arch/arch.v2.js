@@ -71,7 +71,8 @@ export async function initV2(game) {
   function recount() { active.clear(); for (const c of live) if (c.root.visible && c.root.parent) active.set(c.npcArch, (active.get(c.npcArch) || 0) + 1); }
   /** for peds.js: an archetype person for a zone, or null (peds then falls back to the legacy library body) */
   function createPed(opts = {}) {
-    if (cast) { try { const pc = cast.createPed(opts); if (pc) return pc; } catch (e) { console.warn('[npc] person', e); } }
+    // the user's people only (item 15): no archetype stand-ins while a person loads
+    if (cast) { try { return cast.createPed(opts) || null; } catch (e) { console.warn('[npc] person', e); return null; } }
     const zone = opts.zone === 'cop' || opts.outfit === 'cop' ? 'cop' : (opts.outfit || opts.zone || 'residential');
     recount();
     const id = pick(zone, opts.gender, opts.seed ?? seedN);
@@ -88,6 +89,7 @@ export async function initV2(game) {
   function spawnPosed(o = {}) {
     let c = null;
     if (cast && !o.archetype && o.people !== false) { try { const pl = o.person ? null : (STAGE_PLACES[o.place] || (o.place ? [o.place] : null)); if (o.person || pl) c = cast.createFor(pl || [], { id: o.person, pos: o.pos, seed: o.seed, pose: o.pose || null, gender: o.gender }); } catch (e) { c = null; } }
+    if (!c && cast && !o.archetype) { try { c = cast.createFor(['street', 'tourist', 'residential'], { pos: o.pos, seed: o.seed, pose: o.pose || null, gender: o.gender, force: true }); } catch (e) { c = null; } if (!c) return null; }
     const id = c ? c.npcArch : (o.archetype && getBase(o.archetype) ? o.archetype : pick(o.place || 'nightlife', o.gender, o.seed ?? seedN));
     if (!id) return null;
     if (!c) c = createNpc(game, { archetype: id, seed: o.seed ?? (seedN++ * 7919), vary: o.vary ?? 0.6, pose: o.pose || null });
@@ -129,7 +131,7 @@ export async function initV2(game) {
       if (promPath && strollers.length < want) {
         const ids = archetypesForSync('beach', idx).concat(archetypesForSync('tourist', idx), archetypesForSync('street', idx)).filter((a) => getBase(a.id));
         let pc = null; try { pc = cast ? cast.createFor(['beach_walk', 'tourist', 'beach', 'sport'], { pos: pp }) : null; } catch (e) { pc = null; }
-        if (pc || ids.length) {
+        if (pc || (!cast && ids.length)) {
           const a = ids[(Math.random() * ids.length) | 0];
           const c = pc || createNpc(game, { archetype: a.id, seed: (seedN++) * 7919, vary: 0.9 });
           if (c) {
@@ -166,6 +168,9 @@ export async function initV2(game) {
     createPed, spawnPosed, cast,
     /** police model hook (src/gameplay/police.js): a uniformed officer from the user's people, or null */
     createCop: (o = {}) => { try { return cast ? cast.createCop(o) : null; } catch (e) { return null; } },
+    /** a driver / passenger of the user's people for a car at o.pos ({ pos, role: 'driver'|'passenger', seed }), or null
+     *  while none is loaded (the caller retries on a later frame); seat it with src/npc/seat.js seatCharacter() */
+    createDriver: (o = {}) => { try { return cast ? cast.createDriver(o) : null; } catch (e) { console.warn('[npc] driver', e); return null; } },
     /** can this pooled character be reused for `zone` at pos (role / uniqueness rules of the cast)? */
     fitsPlace: (c, zone, pos) => (cast && c?.personMeta ? cast.fits(c, zone, pos) : true),
     /** like spawnPosed, but loads the archetype first (resolves to the handle, or null) */

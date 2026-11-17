@@ -1,6 +1,7 @@
 // Police response: foot cops (own units, navy uniforms, KCC chase AI, pistols), police cars, roadblocks.
 import * as THREE from 'three';
 import { createCharacter } from '../player/characterModel.js';
+let seatMod = null; import('../npc/seat.js').then((m) => { seatMod = m; }).catch(() => { /* seat solver unavailable: copied transform */ });
 import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView, groundAt, warnOnce, aimArm, removeColliderSafe, removeBodySafe, bodyAlive, vAlive } from './util.js';
 import { buildWeaponModel } from './gunModels.js';
 import { holdWeapon } from './gunHold.js';
@@ -350,6 +351,8 @@ export function createPolice(game, G) {
     ch.root.position.copy(root.position); ch.root.quaternion.copy(root.quaternion); ch.root.scale.copy(root.scale);
     ch.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
     root.parent.add(ch.root); root.parent.remove(root);
+    // seated on the car's measured seat anchor by the shared seat solver (src/npc/seat.js); people differ in height
+    tryCall('seat cop', () => { const a = v.seatAnchor?.(0); if (a && seatMod?.seatCharacter) seatMod.seatCharacter(ch, a, { role: 'driver', vehicle: v }); });
     tryCall('drv pose', () => ch.update?.(0.5, { driving: true, speed: 0, grounded: true }));
     v.driver = ch.root; v.driverChar = ch; v._gpCopDriver = true;
   }

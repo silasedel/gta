@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { loadPeopleIndex, loadPerson, getPerson, loadedPeople, isLoadingPerson, personMaterial, hiRes, unloadPerson } from './lib.js';
 import { createNpc, LOD_CFG, SHADOW_PROXY } from '../arch/character.js';
+import { FAR_IN_USE } from './farCrowd.js';
 
 export const NEAR_DUP = 320;     // m: the same person never twice inside this radius (= the crowd despawn radius: no twins on screen)
 const CAP = 48;                  // people loaded at once (crowd textures ~8 MB each; close-up sets stream separately)
@@ -97,13 +98,15 @@ export async function createCast(game) {
   // unload people nobody uses (keep CAP)
   function trim() {
     const L = loadedPeople(); if (L.length <= CAP) return;
-    const inUse = new Set(); for (const c of live) inUse.add(c.npcArch);
+    const inUse = new Set(FAR_IN_USE); for (const c of live) inUse.add(c.npcArch);
     const cands = L.filter((b) => !inUse.has(b.id) && !queued.has(b.id)).sort((a, b) => (lastUse.get(a.id) || 0) - (lastUse.get(b.id) || 0));
     for (let i = 0; i < cands.length && loadedPeople().length > CAP; i++) unloadPerson(cands[i].id);
   }
 
   // ---------------------------------------------------------------- picking
-  const _p = new THREE.Vector3();
+  const _p = new THREE.Vector3(), _wp = new THREE.Vector3();
+  // world position of a person (people seated in cars live in the car shell's space)
+  const at = (c) => (c.inCar && c.root.parent ? c.root.getWorldPosition(_wp) : c.root.position);
   function pick(places, pos, opts = {}) {
     const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
     let best = null, bs = -1;
@@ -117,7 +120,7 @@ export async function createCast(game) {
       for (const c of live) {
         if (c.npcArch !== b.id) continue;
         // a pooled (hidden) copy counts as right here: the pool reuses it instead of a second copy being made
-        n++; near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(c.root.position.x - pos.x, c.root.position.z - pos.z));
+        n++; near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
       }
       if (n && (!pos || near < NEAR_DUP)) continue;        // never the same person close by
       if (n) s *= 0.25 / n;                                  // far away twin: only when nothing else fits
@@ -150,7 +153,10 @@ export async function createCast(game) {
     const ctx = ctxAt(pos);
     const zone = opts.zone === 'cop' || opts.outfit === 'cop' ? 'cop' : (opts.outfit || opts.zone || zoneAt(pos?.x || 0, pos?.z || 0));
     const places = placesFor(zone, opts.act, ctx);
-    const b = pick(places, pos, opts);
+    let b = pick(places, pos, opts);
+    // a person the game needs right now (a mission victim, a shop owner): the best loaded civilian when none of this
+    // place is in yet (never police / lifeguards; never a twin within 60 m)
+    if (!b && opts.force) b = anyCivilian(pos, opts);
     return b ? make(b, opts) : null;
   }
   /** police model hook: a uniformed officer (SWAT armor at 4+ stars), or null */
@@ -165,9 +171,46 @@ export async function createCast(game) {
     const c = make(b, opts); if (c) { c.zoneTag = 'cop'; c.human.zone = 'cop'; }
     return c;
   }
+  function anyCivilian(pos, opts = {}) {
+    let best = null, bs = -1; const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
+    for (const x of loadedPeople()) {
+      const p = byId.get(x.id); if (!p || NO_CAR(p) || opts.exclude?.has?.(x.id)) continue;
+      let near = 1e9; for (const c of live) if (c.npcArch === x.id) near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
+      if (near < 60) continue;
+      const s = Math.min(near, 400) + Math.random() * 50 + (g && p.g === g ? 500 : 0); if (s > bs) { bs = s; best = x; }
+    }
+    return best;
+  }
+  /** a driver / passenger for a car at pos: a person of the area (never police, lifeguards or people in swimwear), or null
+   *  while none is loaded. Seated people are only seen through glass, so a far twin is allowed before an empty car. */
+  const NO_CAR = (p) => p.places.some((x) => x === 'police' || x === 'police_swat' || x === 'lifeguard' || x === 'swim');
+  function createDriver(opts = {}) {
+    const pos = opts.pos || game.player?.position;
+    const ctx = ctxAt(pos);
+    const zone = zoneAt(pos?.x || 0, pos?.z || 0);
+    const pl = placesFor(zone === 'beach' || zone === 'water' ? 'casual' : zone, null, ctx).filter((x) => x !== 'swim' && x !== 'beach');
+    const places = opts.role === 'passenger' ? pl.concat(['tourist', 'street']) : pl.concat(['business', 'work', 'street']);
+    const ex = new Set(opts.exclude || []);
+    for (const p of people) if (NO_CAR(p) || (opts.role !== 'passenger' && (p.age === 'kid' || p.age === 'teen' || (p.years || 30) < 17))) ex.add(p.id);   // kids ride, never drive
+    let b = pick(places, pos, { ...opts, exclude: ex });
+    if (!b) {   // relaxed: any loaded civilian, a twin only when 60 m away or more
+      let best = null, bs = -1;
+      for (const x of loadedPeople()) {
+        if (ex.has(x.id)) continue;
+        let near = 1e9; for (const c of live) if (c.npcArch === x.id) near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
+        if (near < 60) continue;
+        const s = Math.min(near, 400) + Math.random() * 50; if (s > bs) { bs = s; best = x; }
+      }
+      b = best;
+    }
+    if (!b) return null;
+    const c = make(b, { ...opts, pos: null });
+    if (c) c.inCar = true;
+    return c;
+  }
   /** staged person for a place (shop staff, kitchen, bar, hotel, lifeguard, dock ...), or null */
   function createFor(place, opts = {}) {
-    const b = (opts.id && getPerson(opts.id)) || pick(Array.isArray(place) ? place : [place], opts.pos, opts);
+    const b = (opts.id && getPerson(opts.id)) || pick(Array.isArray(place) ? place : [place], opts.pos, opts) || (opts.force ? anyCivilian(opts.pos, opts) : null);
     return b ? make(b, opts) : null;
   }
   /** can a pooled person character be reused for this zone here? */
@@ -177,7 +220,7 @@ export async function createCast(game) {
     if (p.places.includes('police') || p.places.includes('police_swat')) return false;
     const places = placesFor(zone, null, ctxAt(pos));
     if (!has(p, places)) return false;
-    if (pos) for (const o of live) if (o !== c && o.npcArch === c.npcArch && o.root.visible && o.root.parent && Math.hypot(o.root.position.x - pos.x, o.root.position.z - pos.z) < NEAR_DUP) return false;
+    if (pos) for (const o of live) if (o !== c && o.npcArch === c.npcArch && o.root.visible && o.root.parent && Math.hypot(at(o).x - pos.x, at(o).z - pos.z) < NEAR_DUP) return false;
     return true;
   }
 
@@ -191,7 +234,7 @@ export async function createCast(game) {
     for (const c of live) {
       if (!c.root.visible || !c.root.parent || c.lodLevel !== 0) continue;
       lv.set(c.npcArch, Math.max(lv.get(c.npcArch) || 0, 1));
-      if (cam) { const d = c.root.position.distanceTo(cam); if (d < 9) near.push([d, c.npcArch]); }
+      if (cam) { const d = at(c).distanceTo(cam); if (d < 9) near.push([d, c.npcArch]); }
     }
     near.sort((x, y) => x[0] - y[0]); for (const [, id] of near.slice(0, 3)) lv.set(id, 2);
     for (const [id, l] of lv) { const cur = hiOn.get(id); if (!cur || cur.lv < l || (cur.lv > l && t - cur.t > 4)) { const b = getPerson(id); if (b) hiRes(b, l); hiOn.set(id, { lv: l, t }); } else if (cur.lv === l) cur.t = t; }
@@ -255,7 +298,7 @@ export async function createCast(game) {
     if (game.wanted?.level) wantPlaces(ctx.swat ? ['police_swat', 'police'] : ['police'], 4);
     pump();
   });
-  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police'], 2); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12); wantPlaces(['street', 'residential'], 6); pump(); }
+  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police'], 4); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12); wantPlaces(['street', 'residential'], 6); pump(); }
 
   /** far crowd tier (src/npc/crowd.js): any of the user's people for this zone (needs no loading: index palette only) */
   const farPool = new Map();
@@ -265,12 +308,14 @@ export async function createCast(game) {
     let L = farPool.get(key);
     if (!L) { L = people.filter((p) => p.cols && has(p, places) && !p.places.includes('police') && !p.places.includes('police_swat')); farPool.set(key, L); }
     if (!L.length) return null;
+    // the far tier draws the real person (src/npc/people/farCrowd.js): only people already loaded
+    const LL = L.filter((p) => getPerson(p.id)); if (LL.length) L = LL;
     // first places weigh more
     for (let t = 0; t < 4; t++) { const p = L[(Math.random() * L.length) | 0]; if (Math.random() < 1 / (1 + rank(p, places) * 0.5)) return p; }
     return L[(Math.random() * L.length) | 0];
   }
   return {
-    people, createPed, createCop, createFor, fits, placesFor, farPerson, pick: (places, pos) => pick(places, pos),
+    people, createPed, createCop, createDriver, createFor, fits, placesFor, farPerson, pick: (places, pos) => pick(places, pos),
     make, get: getPerson, want: (ids) => { want(ids); pump(); }, wantPlaces: (pl, n) => { wantPlaces(pl, n); pump(); },
     posts,
     stats: () => ({ posts: posts.map((p) => p.kind + ':' + p.c.npcArch), total: people.length, loaded: loadedPeople().length, queued: queue.length, live: live.size, visible: [...live].filter((c) => c.root.visible && c.root.parent).length, hi: hiOn.size, lodMax: LOD_CFG.maxFull }),

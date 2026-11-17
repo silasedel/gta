@@ -9,7 +9,7 @@ from PIL import Image
 pdir, tdir, pid = sys.argv[1], sys.argv[2], sys.argv[3]
 P = np.load(os.path.join(pdir, pid + '_probe.npy'))
 M = json.load(open(os.path.join(pdir, pid + '_probe.json')))
-fs = glob.glob(os.path.join(tdir, '*'))
+fs = [f for f in glob.glob(os.path.join(tdir, '*')) if 'emission' not in os.path.basename(f).lower()]
 bc = next((f for k in ('basecolor', 'albedo', ' color.', 'color') for f in fs if k in os.path.basename(f).lower()), None)
 im = np.asarray(Image.open(bc).convert('RGB').resize((1024, 1024)), dtype=np.float32) / 255.0
 H, zArm, headZ = M['H'], M['zArm'], M['headZ']
