@@ -13,6 +13,23 @@ export async function initV2(game) {
   const FLAGS = QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_DYNAMIC;   // walls, fences, rails, ledges (not cars / props / peds)
   const S = { move: null, stats: { vaults: 0, climbs: 0, refused: 0 } };
   const ray = (o, d, len) => { try { return W.castRayAndGetNormal(new R.Ray(o, d), len, true, FLAGS, undefined, P.collider); } catch (e) { return null; } };
+  // cars: only awake (collider enabled) vehicles, hit by their own body
+  const carBodies = () => { const m = new Map(); for (const c of game.vehicles?.list || []) { try { if (c.body && !c.frozen && !c.disposed && c.body.isEnabled?.() !== false) m.set(c.body.handle, c); } catch (e) { /* ignore */ } } return m; };
+  const carRay = (o, d, len, cars) => { try { return W.castRayAndGetNormal(new R.Ray(o, d), len, true, QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC, undefined, P.collider, undefined, (c) => { const b = c.parent(); return !!b && cars.has(b.handle); }); } catch (e) { return null; } };
+  // climb ONTO a parked car (hood / trunk / roof of a low car), never through it: he ends standing on top
+  function probeCar(at = null, heading = null) {
+    const cars = carBodies(); if (!cars.size) return null;
+    const p = at || P.position, h = heading ?? P.heading, d = { x: Math.sin(h), y: 0, z: Math.cos(h) };
+    const knee = carRay({ x: p.x, y: p.y + 0.45, z: p.z }, d, REACH + 0.3, cars);
+    if (!knee || Math.abs(knee.normal.y) > 0.6) return null;
+    const fx = p.x + d.x * (knee.timeOfImpact + 0.35), fz = p.z + d.z * (knee.timeOfImpact + 0.35);
+    const down = carRay({ x: fx, y: p.y + MAX_H + 0.5, z: fz }, { x: 0, y: -1, z: 0 }, MAX_H + 0.5, cars);
+    if (!down) return null;
+    const top = p.y + MAX_H + 0.5 - down.timeOfImpact, hgt = top - p.y;
+    if (hgt < MIN_H || hgt > MAX_H || down.normal.y < 0.7) return null;     // a fairly flat panel to stand on
+    if (!capFree(fx, top, fz)) return null;
+    return { kind: 'climb', car: true, top, hgt, land: { x: fx, y: top, z: fz }, dir: d, dist: knee.timeOfImpact, thick: 0.35 };
+  }
   const capFree = (x, y, z) => {
     try { const c = P.capsule || { half: 0.62, r: 0.28, center: 0.9 }; return !W.intersectionWithShape({ x, y: y + c.center + 0.05, z }, { x: 0, y: 0, z: 0, w: 1 }, new R.Capsule(c.half, c.r - 0.02), QF.EXCLUDE_SENSORS, undefined, P.collider); } catch (e) { return false; }
   };
@@ -62,7 +79,9 @@ export async function initV2(game) {
   }
   function tryVault() {
     if (S.move || P.script || P.state.inVehicle || P.swimming || P.ragdoll || !P.state.grounded) return false;
-    const v = probe(); if (!v || carNear(v)) { S.stats.refused++; return false; }
+    let v = probe(); if (v && carNear(v)) v = null;
+    if (!v) v = probeCar();
+    if (!v) { S.stats.refused++; return false; }
     const from = P.position.clone();
     // duration grows with height and the distance covered; the arc clears the top by 12 cm
     const dur = (v.kind === 'climb' ? 0.62 : 0.55) + v.hgt * 0.18 + v.thick * 0.12;
@@ -99,5 +118,5 @@ export async function initV2(game) {
     if (game.ui?.paused || game.ui?.phoneOpen || S.move) return;
     if (game.input?.pressed?.('Space') && (game.input?.down?.('KeyW') || (P.state.speed || 0) > 0.4 || game.playerVault.always)) tryVault();
   });
-  game.playerVault = { tryVault, probe, get active() { return !!S.move; }, stats: S.stats };
+  game.playerVault = { tryVault, probe, probeCar, get active() { return !!S.move; }, stats: S.stats };
 }

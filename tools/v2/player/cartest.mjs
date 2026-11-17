@@ -20,7 +20,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
   await startGame(b);
   // a parked car near the house that nobody drives, with open ground around it
   const setup = await ev(`(() => { game.timeExternal = true; game.timeOfDay = 11; const P = game.player, T = game.THREE, H = game.nicoHouse;
-    const cars = (game.vehicles?.list || []).filter((v) => v.body && !v.ai && !v.playerDriven && !v.disposed && !v.boat && v.spec && (v.spec.roofY ?? 2) < 1.6);
+    const cars = (game.vehicles?.list || []).filter((v) => v.body && !v.ai && !v.playerDriven && !v.disposed && !v.boat && v.spec && (v.spec.roofY ?? 2) < 1.7 && (v.spec.roofY ?? 0) > 1.3 && !/conv|cabrio|roadster|bayline/i.test((v.name || '') + (v.typeKey || '')));
     cars.sort((x, y) => { const a = x.body.translation(), b = y.body.translation(); return Math.hypot(a.x - H.spot.x, a.z - H.spot.z) - Math.hypot(b.x - H.spot.x, b.z - H.spot.z); });
     const v = cars[0]; if (!v) return JSON.stringify({ err: 'no parked car' }); window.__car = v;
     const L = window.__log = { frames: [], hits: [], events: [], warn: [] };
@@ -46,7 +46,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
   await b.key('KeyW', true); await b.sleep(900); await shoot('roof_walk'); await b.sleep(1600); await b.key('KeyW', false); await b.sleep(1500); await shoot('roof_off');
   // ---- 2) run at the side of the car and jump onto the hood / roof, stand, jump off the other side
   await ev(`(() => { const P = game.player, v = window.__car, T = game.THREE; const t = v.body.translation(), r = v.body.rotation(), q = new T.Quaternion(r.x, r.y, r.z, r.w), left = new T.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize(), fwd = new T.Vector3(0, 0, 1).applyQuaternion(q).setY(0).normalize();
-    const s = new T.Vector3(t.x, 0, t.z).addScaledVector(left, 3.2).addScaledVector(fwd, 0.9); game.teleport(s.x, undefined, s.z, Math.atan2(-left.x, -left.z)); game.cameraYaw = Math.atan2(-left.x, -left.z) + Math.PI; window.__rec = null; return 1; })()`);
+    const s = new T.Vector3(t.x, 0, t.z).addScaledVector(fwd, (v.spec.zA ?? 1.4) + 2.6); game.teleport(s.x, undefined, s.z, Math.atan2(-fwd.x, -fwd.z)); game.cameraYaw = Math.atan2(-fwd.x, -fwd.z) + Math.PI; window.__rec = null; return 1; })()`);
   await b.sleep(1800); await ev('(() => { window.__rec = "jump"; return 1; })()');
   await b.key('KeyW', true); await b.sleep(330); await b.key('Space', true, ' '); await b.sleep(80); await b.key('Space', false, ' ');
   await b.sleep(350); await shoot('jump_air'); await b.sleep(500); await b.key('KeyW', false); await shoot('jump_on');
@@ -59,7 +59,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 700 }, async (b) => {
   await b.key('ShiftLeft', true, 'Shift'); await b.key('KeyW', true); await b.sleep(2600); await shoot('bump'); await b.sleep(1200); await b.key('KeyW', false); await b.key('ShiftLeft', false, 'Shift'); await b.sleep(800);
   const res = JSON.parse(await ev(`(() => { const L = window.__log; window.__rec = null; const by = {};
     for (const f of L.frames) { const k = f[1]; const s = by[k] ||= { frames: 0, maxSpeed: 0, maxCarVel: 0, minY: 1e9, maxY: -1e9, carYRange: [1e9, -1e9] }; s.frames++; s.maxSpeed = Math.max(s.maxSpeed, f[2]); s.maxCarVel = Math.max(s.maxCarVel, f[4]); s.minY = Math.min(s.minY, f[3]); s.maxY = Math.max(s.maxY, f[3]); s.carYRange = [Math.min(s.carYRange[0], f[5]), Math.max(s.carYRange[1], f[5])]; }
-    return JSON.stringify({ by, hits: L.hits, events: L.events, warn: L.warn, top: window.__top, launches: L.frames.filter((f) => f[2] > 9).length, spikes: L.frames.filter((f) => f[2] > 7).slice(0, 12) }); })()`));
+    return JSON.stringify({ vault: game.playerVault?.stats, by, hits: L.hits, events: L.events, warn: L.warn, top: window.__top, launches: L.frames.filter((f) => f[2] > 9).length, spikes: L.frames.filter((f) => f[2] > 7).slice(0, 12) }); })()`));
   rep.result = res; console.log(JSON.stringify(res));
   if (b.errors.length) rep.errors = [...new Set(b.errors)].slice(0, 12);
 });
