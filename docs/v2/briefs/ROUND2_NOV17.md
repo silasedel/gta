@@ -54,6 +54,19 @@ looks real. Patch and stitch every seam. Take all the time you need."
 17. **Grass and terrain:** still generic. Use the user's grass models, and build a system for subtle natural elevation
     variation (micro-relief) like a human level artist would in Unreal.
 
+## The user's added bar (09:40): ONE hand-made art style
+"I want the bar insanely high, same or better than GTA 5... very handmade, polished, purposely perfect and the same
+style. Different models have different qualities and textures... go in and manually adjust things so they all fit the
+same lighting, resolution, look, smooth vs roughness, so it looks like a real human-made same-style game rather than a
+bunch of models downloaded from the internet. Same for placement and for everything you model yourself."
+- Every asset you touch gets the same treatment: calibrated albedo and roughness ranges for its material class, a
+  consistent texel density (no blurry low-res next to crisp 4K), consistent normal strength, wear and grime level, and
+  color grade. Procedural and code-built things must match the library models in quality, not fall below them.
+- The r2-art helper (`docs/v2/briefs/ART_STYLE.md`, written as it goes) owns the shared style guide and audit tool;
+  follow its ranges.
+- **Need a model?** If a model would clearly beat what you can build, add it to `docs/v2/briefs/MODEL_REQUESTS_r2.md`
+  (what, where it's used, quantity, style notes). The user will download it.
+
 ## Rules (unchanged from OVERNIGHT_NOV17.md, all still apply)
 - **Looks first.** No load freezes, and the frame rate should not get worse. Compare A/B in one session.
 - **Commits:** commit ONLY with `git commit -m "..." -- <your files>`, then check `git show --stat HEAD`.
