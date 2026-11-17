@@ -56,9 +56,12 @@ export function physOf(name, parts) {
     const tr = Math.min(top.max.x - top.min.x, top.max.z - top.min.z) / 2;
     shapes = [fb, { t: 'cone', r: tr, hh: (top.max.y - top.min.y) / 2, x: (top.max.x + top.min.x) / 2, y: (top.max.y + top.min.y) / 2, z: (top.max.z + top.min.z) / 2 }];
   } else if (sp.kind === 'post') { // thin post(s) / feet below, the box / panel above (split at the widest change)
-    let split = b.min.y + H * 0.5, best = -1;
-    for (let f = 0.15; f <= 0.85; f += 0.05) { const lo = band(parts, b.min.y, b.min.y + H * f), hi = band(parts, b.min.y + H * f, b.max.y + 1); if (!lo || !hi) continue;
-      const wl = (lo.max.x - lo.min.x) * (lo.max.z - lo.min.z), wh = (hi.max.x - hi.min.x) * (hi.max.z - hi.min.z), d = Math.abs(wh - wl) / Math.max(wh, wl); if (d > best) { best = d; split = b.min.y + H * f; } }
+    // split height: the HIGHEST cut that still separates a thin lower part from a wide upper part (a long post box only has
+    // its foot vertices low down, so every low cut looks equally good; taking the highest keeps the wide box to the head)
+    let split = b.min.y + H * 0.5; const ds = [];
+    for (let f = 0.15; f <= 0.851; f += 0.05) { const lo = band(parts, b.min.y, b.min.y + H * f), hi = band(parts, b.min.y + H * f, b.max.y + 1); if (!lo || !hi) continue;
+      const wl = (lo.max.x - lo.min.x) * (lo.max.z - lo.min.z), wh = (hi.max.x - hi.min.x) * (hi.max.z - hi.min.z); ds.push([f, Math.abs(wh - wl) / Math.max(wh, wl, 1e-6)]); }
+    const dmax = Math.max(0, ...ds.map((q) => q[1])); for (const [f, d] of ds) if (d >= dmax * 0.9) split = b.min.y + H * f;
     const lo = band(parts, b.min.y, split), hi = band(parts, split, b.max.y + 1);
     // the bands come from VERTICES: a post modelled as one long box only has its foot below the split, so each band's
     // footprint is taken from its vertices but its height always spans the band (foot -> split, split -> top)
