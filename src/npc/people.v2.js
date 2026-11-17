@@ -254,7 +254,8 @@ export async function initV2(game) {
   let crowd = null;
   // the far tier wears the user's own people (src/npc/people/farCrowd.js: each person's LOD2 mesh, GPU-skinned by the
   // game's clips); '?farcrowd=old' = the procedural mannequin body (crowd.js) for A/B
-  const FAR_PEOPLE = typeof location !== 'undefined' && /[?&]farcrowd=people/.test(location.search);   // OFF by default until verified in game
+  // user (Nov 17): every NPC is one of the user's models, repeats are fine -> on by default; '?farcrowd=old' = A/B
+  const FAR_PEOPLE = !(typeof location !== 'undefined' && /[?&](farcrowd=old|people=0|npc=legacy)/.test(location.search));
   try { if (NAV) crowd = FAR_PEOPLE ? createPeopleCrowd(game, { max: 380 }) : createCrowd(game, { max: 380, castShadow: false }); } catch (e) { console.warn('[people] crowd', e); crowd = null; }
   if (!crowd && NAV) { try { crowd = createCrowd(game, { max: 380, castShadow: false }); } catch (e) { crowd = null; } }
   const walkers = [];
@@ -268,7 +269,7 @@ export async function initV2(game) {
   const signals = createSignals(game);
   const spots = createSpots(game);
   const governor = createGovernor(game);
-  crowdCfg.target = 300;
+  crowdCfg.target = FAR_PEOPLE ? 200 : 300;   // real meshes cost more per person than the mannequin: a few less, still full streets
   const lifeStats = { sit: 0, cafe: 0, group: 0, doorOut: 0, enteredShop: 0, signalWaits: 0, panics: 0, avoid: 0 };
   function districtWeight(x, z) {
     const zone = NAV ? NAV.zoneAt(x, z) : 'residential';

@@ -107,7 +107,14 @@ export async function createCast(game) {
   const _p = new THREE.Vector3(), _wp = new THREE.Vector3();
   // world position of a person (people seated in cars live in the car shell's space)
   const at = (c) => (c.inCar && c.root.parent ? c.root.getWorldPosition(_wp) : c.root.position);
+  // user (Nov 17): every NPC must be one of the user's people, repeats are fine: when every fitting person already has a
+  // copy close by, a repeat is allowed beyond REPEAT_MIN meters (never two copies of one person side by side)
+  const REPEAT_MIN = 45;
   function pick(places, pos, opts = {}) {
+    const b0 = pickStrict(places, pos, opts, NEAR_DUP);
+    return b0 || pickStrict(places, pos, opts, REPEAT_MIN);
+  }
+  function pickStrict(places, pos, opts = {}, minDist = NEAR_DUP) {
     const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
     let best = null, bs = -1;
     const t = now();
@@ -122,7 +129,7 @@ export async function createCast(game) {
         // a pooled (hidden) copy counts as right here: the pool reuses it instead of a second copy being made
         n++; near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
       }
-      if (n && (!pos || near < NEAR_DUP)) continue;        // never the same person close by
+      if (n && (!pos || near < minDist)) continue;        // never the same person close by
       if (n) s *= 0.25 / n;                                  // far away twin: only when nothing else fits
       const lu = lastUse.get(b.id); if (lu && t - lu < 90) s *= 0.5 + 0.5 * (t - lu) / 90;  // strangers are rarely seen again
       if (s > bs) { bs = s; best = b; }
