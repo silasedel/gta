@@ -946,6 +946,7 @@ for B in CFG.get('darkBoxes') or []:
         if not f.is_valid or f in _kill or f.material_index not in (0, 2): continue
         c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
         if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
+        if B.get('nf') is not None and (-f.normal[1] if front else f.normal[1]) < B['nf']: continue   # only faces looking out of the nose / tail
         for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.4, 0.0))
         f.material_index = 2; n += 1
     log('dark box', n)
@@ -963,6 +964,22 @@ for B in CFG.get('flattenBoxes') or []:
         ys_ = sorted(v.co[1] for v in vs_); mid_ = ys_[len(ys_) // 2]
         for v in vs_: v.co[1] = mid_
     log('flatten box', len(vs_))
+# black plastic fender flares painted as body (cars.json 'flares': {rIn, rOut, xMin}): paint faces in a band around each
+# wheel arch (radius rIn..rOut x the wheel radius, in the side view) and out past xMin become satin black trim
+FL_ = CFG.get('flares')
+if FL_:
+    nfl = 0
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or f.material_index != 0: continue
+        c_ = f.calc_center_median()
+        if abs(c_[0]) < FL_.get('xMin', 0.8): continue
+        for w in wheels:
+            if w.get('virtual'): continue
+            rr_ = math.hypot(c_[1] - w['c'][1], c_[2] - w['c'][2]) / w['r']
+            if FL_.get('rIn', 1.05) <= rr_ <= FL_.get('rOut', 1.6) and c_[2] > w['c'][2] - 0.1 * w['r']:
+                for lp in f.loops: lp[col_layer] = (0.035, 0.035, 0.038, pack_rm(0.55, 0.0))
+                f.material_index = 2; nfl += 1; break
+    log('fender flares', nfl)
 # hand-placed lamp boxes for models whose lamps cannot be found (cars.json 'lampBoxes'): any non-glass face inside
 for B in CFG.get('lampBoxes') or []:
     n = 0; kind = B['kind']; front = B.get('front', kind == 'head')

@@ -1509,7 +1509,7 @@
    "b55": "trim#141518",
    "dinghy": "trim#151618",
    "goma|tyrewall": "trim:rubber",
-   "teker": "trim#3b3e43",
+   "teker": "trim#18191b",
    "crome|^chrome": "trim:chrome",
    "glass": "glass",
    "carpet|leather|stitch|console|pedals|plastics_topdash|magnetic": "trim:interior",
@@ -1549,6 +1549,22 @@
      0.98,
      1.27
     ]
+   },
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.74
+    ],
+    "y": [
+     0.9,
+     1.32
+    ],
+    "nf": 0.55
    }
   ],
   "emblemHalfW": 0.7,
@@ -1583,7 +1599,12 @@
      1.28
     ]
    }
-  ]
+  ],
+  "flares": {
+   "rIn": 1.02,
+   "rOut": 1.55,
+   "xMin": 0.95
+  }
  },
  "coupe4": {
   "src": "Coupes/Coupe 4 - 1970 American Muscle Coupe/FINAL_MODEL_SS.fbx",

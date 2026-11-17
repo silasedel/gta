@@ -400,10 +400,13 @@ export function buildGlbCar(key, look, t, info) {
   contact.scale.set(t.W + 0.25, t.L + 0.35, 1); contact.rotation.x = -Math.PI / 2; contact.position.y = 0.025; contact.renderOrder = 1; contact.userData.contactShadow = true;
   shell.add(contact);
   const mud = Math.min(0.9, (look.wear?.dirt ?? 0) * 1.6 + (look.wear?.rust ?? 0) * 0.3); // per-car tire dust / mud
-  const maxY = t.r + (t.archGap ?? Math.max(0.04, man.archGap ?? 0.06)) + 0.015;
+  // visual wheel cap under the fender: r + arch gap + 1.5 cm (Rapier ray-cast); car.wheelCapExtra lets another suspension
+  // (r2-physics carphys 2: + 4.5 cm, the tire tucks into the well liner at full bump) raise it
+  const capBase = t.r + (t.archGap ?? Math.max(0.04, man.archGap ?? 0.06));
   const lodUpdate = lod.update.bind(lod);
   lod.update = (camera) => {
     lodUpdate(camera);
+    const maxY = capBase + (car.wheelCapExtra ?? 0.015);
     for (const [im, list] of sets) if (im.parent.visible) syncWheels(im, list, maxY, mud);
     lamps.sync();
   };

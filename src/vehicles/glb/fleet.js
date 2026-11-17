@@ -72,6 +72,7 @@ c('coupe3', 'Halcyon', 'Vesta Coupe', 'sports', 'sports', 4.80, 3.5, 'v6t', 2021
 c('conv1', 'Brava', 'Bayline 65', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { convertible: true, classic: true, pal: 'sport' });
 // Nico's second car (user-provided model): a 1970 two-door muscle coupe, sun-faded; parked at his place only
 c('coupe4', 'Brava', 'Sovereign 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
+c('coupe5', 'Brava', 'Bayline Coupe', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { classic: true, pal: 'sport' });
 // rare: one of each on the map (placements.js), never random traffic
 c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, pal: 'sport' });
 c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v8s', 2017, { rare: true, palette: [0xb3121b] });

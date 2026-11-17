@@ -126,9 +126,9 @@ function wornTrim() {
     base.onBeforeCompile(sh);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = max(roughnessFactor, vRM.y > 0.5 ? 0.38 : 0.62);')
-      .replace('applyPattern(diffuseColor.rgb);', 'applyPattern(diffuseColor.rgb);\n  if (vRM.y > 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.41, 0.39), 0.35);\n  else if (dot(diffuseColor.rgb, vec3(0.33)) < 0.06) diffuseColor.rgb += vec3(0.022, 0.02, 0.018);');
+      .replace('applyPattern(diffuseColor.rgb);', 'applyPattern(diffuseColor.rgb);\n  if (vRM.y > 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.42, 0.41, 0.39), 0.35);\n  else if (dot(diffuseColor.rgb, vec3(0.33)) < 0.06) diffuseColor.rgb += vec3(0.022, 0.02, 0.018);\n  else diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15))) * 0.95 + 0.03, 0.45);');
   };
-  m.customProgramCacheKey = () => 'ps-cartrim-worn-v1';
+  m.customProgramCacheKey = () => 'ps-cartrim-worn-v2';
   return m;
 }
 
