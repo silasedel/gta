@@ -1,0 +1,132 @@
+{
+  "set": "c3",
+  "phases": {},
+  "setup": {
+    "car": "Halcyon Vesta Coupe #1",
+    "at": [
+      -854.5,
+      0.65,
+      4846.7
+    ],
+    "type": "dynamic",
+    "sleeping": false,
+    "frozen": false,
+    "enabled": true,
+    "roofY": 1.413
+  },
+  "result": {
+    "vault": {
+      "vaults": 0,
+      "climbs": 1,
+      "refused": 1
+    },
+    "by": {
+      "roof": {
+        "frames": 96,
+        "maxSpeed": 1.85,
+        "maxCarVel": 0.12,
+        "minY": 0.05,
+        "maxY": 1.36,
+        "carYRange": [
+          0.63,
+          0.65
+        ]
+      },
+      "jump": {
+        "frames": 146,
+        "maxSpeed": 1.71,
+        "maxCarVel": 0.18,
+        "minY": 0.05,
+        "maxY": 0.99,
+        "carYRange": [
+          0.62,
+          0.65
+        ]
+      },
+      "bump": {
+        "frames": 93,
+        "maxSpeed": 7.21,
+        "maxCarVel": 2.88,
+        "minY": 0.04,
+        "maxY": 0.05,
+        "carYRange": [
+          0.65,
+          0.65
+        ]
+      }
+    },
+    "hits": [],
+    "events": [],
+    "warn": [],
+    "top": 1.3669979572296143,
+    "launches": 0,
+    "spikes": [
+      [
+        25.52,
+        "bump",
+        7.21,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        25.6,
+        "bump",
+        7.14,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        25.67,
+        "bump",
+        7.02,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        25.83,
+        "bump",
+        7.18,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        25.9,
+        "bump",
+        7.16,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        25.97,
+        "bump",
+        7.17,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ],
+      [
+        26.03,
+        "bump",
+        7.19,
+        0.04,
+        0.06,
+        0.65,
+        1
+      ]
+    ]
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}

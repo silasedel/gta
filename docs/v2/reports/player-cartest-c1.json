@@ -1,0 +1,59 @@
+{
+  "set": "c1",
+  "phases": {},
+  "setup": {
+    "car": "Ridgeback 2500 HD #39",
+    "at": [
+      -863.4,
+      0.86,
+      4832.8
+    ],
+    "type": "dynamic",
+    "sleeping": true
+  },
+  "result": {
+    "by": {
+      "roof": {
+        "frames": 212,
+        "maxSpeed": 1.84,
+        "maxCarVel": 0.13,
+        "minY": 0.04,
+        "maxY": 2.01,
+        "carYRange": [
+          0.83,
+          0.85
+        ]
+      },
+      "jump": {
+        "frames": 185,
+        "maxSpeed": 120.69,
+        "maxCarVel": 0.26,
+        "minY": 0.04,
+        "maxY": 0.86,
+        "carYRange": [
+          0.85,
+          0.86
+        ]
+      }
+    },
+    "hits": [],
+    "events": [],
+    "warn": [],
+    "top": 2.010879695415497,
+    "launches": 1,
+    "spikes": [
+      [
+        15.2,
+        "jump",
+        120.69,
+        0.04,
+        0,
+        0.85,
+        1
+      ]
+    ]
+  },
+  "errors": [
+    "LOG Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:5200/favicon.ico"
+  ]
+}
