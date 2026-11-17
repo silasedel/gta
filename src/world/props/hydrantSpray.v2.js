@@ -5,12 +5,12 @@
 //   import { initHydrantSpray } from '../props/hydrantSpray.v2.js'; initHydrantSpray(game)
 import * as THREE from 'three';
 
-const MAX = 3, DROPS = 260, LIFE = 32;
+const MAX = 3, DROPS = 420, LIFE = 32;
 
 export function initHydrantSpray(game) {
   if (!game || !game.on || !game.scene || game._hydrantSpray) return null;
   const live = [];
-  const colGeo = new THREE.CylinderGeometry(0.16, 0.07, 1, 14, 6, true); colGeo.translate(0, 0.5, 0);
+  const colGeo = new THREE.CylinderGeometry(0.32, 0.08, 1, 16, 6, true); colGeo.translate(0, 0.5, 0);
   const colMat = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, side: THREE.DoubleSide,
     uniforms: { uT: { value: 0 }, uA: { value: 1 } },
@@ -23,12 +23,12 @@ export function initHydrantSpray(game) {
         float streak = n(vec2(vUv.x * 18.0, vUv.y * 3.0 - uT * 9.0)) * 0.6 + n(vec2(vUv.x * 40.0, vUv.y * 8.0 - uT * 14.0)) * 0.4;
         float rim = pow(1.0 - abs(dot(normalize(vN), vec3(0.0, 0.0, 1.0))), 1.5);
         float top = 1.0 - smoothstep(0.7, 1.0, vUv.y);
-        float a = (0.35 + 0.55 * streak) * (0.55 + 0.45 * rim) * top * uA;
-        vec3 c = mix(vec3(0.72, 0.82, 0.88), vec3(1.0), streak * 0.8);
+        float a = (0.55 + 0.45 * streak) * (0.7 + 0.3 * rim) * top * uA;
+        vec3 c = mix(vec3(0.62, 0.74, 0.82), vec3(0.97, 0.99, 1.0), streak * 0.8);
         gl_FragColor = vec4(c, a);
       }`,
   });
-  const dropMat = new THREE.PointsMaterial({ color: 0xdfeef5, size: 0.07, transparent: true, opacity: 0.85, depthWrite: false, sizeAttenuation: true });
+  const dropMat = new THREE.PointsMaterial({ color: 0xdfeef5, size: 0.1, transparent: true, opacity: 0.9, depthWrite: false, sizeAttenuation: true });
 
   function start({ point }) {
     if (!point) return;

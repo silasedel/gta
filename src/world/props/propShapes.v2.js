@@ -41,6 +41,7 @@ const SPEC = {
   patio_table: { cls: 'push', mass: 5, kind: 'box', shrink: 0.95 },
   tarp_crates: { cls: 'static', kind: 'box' },
   jersey: { cls: 'static', kind: 'box' },
+  food_cart: { cls: 'static', kind: 'post' },
 };
 
 export function physOf(name, parts) {
