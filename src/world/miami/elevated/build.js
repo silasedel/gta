@@ -8,7 +8,7 @@ import { GeoBuf, PosBuf, triClip } from './geobuf.js';
 // Vertex colours are LINEAR (three.js): 0.27 linear is about sRGB 0.56, a weathered mid-grey concrete. The old values (0.5 - 0.86
 // linear = sRGB 0.73 - 0.94) read near-white in the sun, which is why the barriers looked like flat white / beige slabs.
 const COL = { // a touch warm (not beige): the blue sky fill on shaded faces then reads neutral grey, not navy
-  deck: [1, 1, 1], barrier: [0.212, 0.206, 0.189], barrierTop: [0.243, 0.237, 0.219], fascia: [0.19, 0.185, 0.171], wall: [0.175, 0.17, 0.155], coping: [0.223, 0.216, 0.199], joint: [0.03, 0.03, 0.032], footing: [0.128, 0.124, 0.113], drip: [0.058, 0.057, 0.053],
+  deck: [1, 1, 1], barrier: [0.34, 0.33, 0.305], barrierTop: [0.38, 0.37, 0.345], fascia: [0.3, 0.292, 0.27], wall: [0.28, 0.272, 0.25], coping: [0.36, 0.35, 0.325], /* ground pass: weathered cast concrete is light grey (~0.35 linear); at 0.21 the shaded barrier faces read as a flat navy wall */ joint: [0.03, 0.03, 0.032], footing: [0.128, 0.124, 0.113], drip: [0.058, 0.057, 0.053],
   soffit: [0.09, 0.088, 0.083], walk: [0.254, 0.247, 0.228], curb: [0.201, 0.196, 0.181], girder: [0.128, 0.124, 0.114], pier: [0.201, 0.196, 0.181], cap: [0.181, 0.175, 0.161], white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
