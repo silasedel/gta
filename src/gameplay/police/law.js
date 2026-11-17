@@ -130,7 +130,7 @@ export function createLaw(game, G) {
         const src = ev.addSource({ id: heli ? 'air:units' : 'officer:units', type: heli ? nearestObs.kind : 'officer', label: nearestObs.name || (heli ? 'Skywatch' : 'Pursuing officer'), reliability: 1 });
         sense.observe(src, { dist: nearest, kind: heli ? 'heli' : 'officer', k: 1 });
         // followed home: they now know where the safehouse is
-        const home = tryCall('home', () => game.property?.home?.() || game.safehouse || null, null);
+        const home = tryCall('home', () => (typeof game.property?.home === 'function' ? game.property.home() : game.property?.home) || game.safehouse || null, null);
         if (home && Number.isFinite(home.x) && distXZ(home, P.position) < 25) ev.observe(src, 'home', { label: home.name || 'your safehouse', x: home.x, z: home.z }, 1);
       }
     }
