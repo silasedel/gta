@@ -759,11 +759,14 @@ export async function initV2(game) {
         continue;
       }
       if (w.still) continue;
-      if (lifeStep(w, n, dt)) continue;
+      // r2-perf: walkers beyond 60 m step at half rate (the GPU animation is time-based; 30 Hz positions are invisible there)
+      let sdt = dt;
+      if (d > 60) { if (((crowdFrame + w.i) & 1) === 1) { w._acc = (w._acc || 0) + dt; continue; } sdt = dt + (w._acc || 0); w._acc = 0; } else if (w._acc) { sdt = dt + w._acc; w._acc = 0; }
+      if (lifeStep(w, n, sdt)) continue;
       if (w.shore) {
-        w.pos.x += Math.sin(w.heading) * w.speed * dt;
-        w.pos.z += Math.cos(w.heading) * w.speed * dt;
-        w.turnT = (w.turnT || 0) - dt;
+        w.pos.x += Math.sin(w.heading) * w.speed * sdt;
+        w.pos.z += Math.cos(w.heading) * w.speed * sdt;
+        w.turnT = (w.turnT || 0) - sdt;
         if (w.turnT <= 0) {
           w.turnT = 1;
           const ax = w.pos.x + Math.sin(w.heading) * 3, az = w.pos.z + Math.cos(w.heading) * 3;
@@ -773,7 +776,7 @@ export async function initV2(game) {
         crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
         continue;
       }
-      try { const hd = NAV.navStep(w, dt, w.curSpeed ?? w.speed); w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, dt * 5); } catch (e) { crowd.release(w.i); walkers.splice(n, 1); continue; }
+      try { const hd = NAV.navStep(w, sdt, w.curSpeed ?? w.speed); w.heading += Math.atan2(Math.sin(hd - w.heading), Math.cos(hd - w.heading)) * Math.min(1, sdt * 5); } catch (e) { crowd.release(w.i); walkers.splice(n, 1); continue; }
       if (((crowdFrame + n) & 7) === 0) w.gy = NAV.groundAt(w.pos.x, w.pos.z, w.gy);
       crowd.setTransform(w.i, w.pos.x, w.gy, w.pos.z, w.heading, w.look.height);
     }

@@ -147,6 +147,7 @@ export function createPeopleCrowd(game, opts = {}) {
   const buckets = new Map();     // person id -> { mesh, n, cap, idx: [global i ...], aAnim, aFade }
   const inst = [];               // global i -> { pid, li, pose, cad, off, amp, fade, mat, h, visible }
   const free = []; let high = 0;
+  const waiting = new Set();     // instances whose person is still being baked (r2-perf: no full scan per frame)
   const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _mx = new THREE.Matrix4();
   // soft contact shadows (shared, global index)
   const sg = new THREE.PlaneGeometry(1, 1); sg.rotateX(-Math.PI / 2);
@@ -251,14 +252,14 @@ export function createPeopleCrowd(game, opts = {}) {
   const api = {
     mesh: group, blobs, max: MAX, POSE, people: true,
     alloc() { const i = free.length ? free.pop() : (high < MAX ? high++ : -1); if (i < 0) return -1; inst[i] = { pid: null, B: null, li: -1, pose: 0, cad: 1, off: 0, amp: 1, fade: 0, x: 0, y: -1e4, z: 0, hd: 0, h: 1.75, seed: Math.random() }; blobs.count = high; return i; },
-    release(i) { if (i < 0 || !inst[i]) return; detach(i); blobs.setMatrixAt(i, ZERO); blobs.instanceMatrix.needsUpdate = true; inst[i] = null; free.push(i); },
+    release(i) { if (i < 0 || !inst[i]) return; waiting.delete(i); detach(i); blobs.setMatrixAt(i, ZERO); blobs.instanceMatrix.needsUpdate = true; inst[i] = null; free.push(i); },
     setFade(i, f) { const I = inst[i]; if (!I) return; I.fade = f; if (I.B) { I.B.aFade.array[I.li] = f; I.B.aFade.needsUpdate = true; } },
     setBands(n0, n1, f0, f1) { uBands.value.set(n0, n1, f0, f1); },
     setLook(i, L) {
       const I = inst[i]; if (!I) return;
       let pid = L?.personId && getPerson(L.personId) ? L.personId : (I.pid && getPerson(I.pid) ? I.pid : pickLoaded(L));
       if (I.B && I.B.pid === pid) return;
-      detach(i); I.pid = pid; if (pid) { if (!attach(i, pid)) I.want = pid; }
+      detach(i); I.pid = pid; if (pid) { if (!attach(i, pid)) waiting.add(i); else waiting.delete(i); }
     },
     setPose(i, id, cadence = 1, phase = null, amp = 1) {
       const I = inst[i]; if (!I) return;
@@ -269,6 +270,9 @@ export function createPeopleCrowd(game, opts = {}) {
     },
     setTransform(i, x, y, z, heading, height, blobScale = 1) {
       const I = inst[i]; if (!I) return;
+      // r2-perf: no matrix compose / buffer re-upload for a person who did not move (> 1 cm) or turn
+      if (I.B && Math.abs(I.x - x) < 0.01 && Math.abs(I.z - z) < 0.01 && Math.abs(I.y - y) < 0.01 && Math.abs(I.hd - heading) < 0.003 && (!height || Math.abs(I.h - height) < 1e-4) && I.bs === blobScale) return;
+      I.bs = blobScale;
       I.x = x; I.y = y; I.z = z; I.hd = heading; I.h = height || I.h;
       writeMat(i);
       _q.setFromEuler(_e.set(0, heading, 0)); _mx.compose(_p.set(x, y + 0.03, z), _q, _s.set(0.95 * blobScale, 1, 0.95 * blobScale * (blobScale > 1.2 ? 1.6 : 1))); blobs.setMatrixAt(i, _mx); blobs.instanceMatrix.needsUpdate = true;
@@ -276,7 +280,7 @@ export function createPeopleCrowd(game, opts = {}) {
     update(dt) {
       uTime.value += dt; bakeBudget = 0;
       // instances waiting for their person's bake (one bake per frame)
-      for (let i = 0; i < high; i++) { const I = inst[i]; if (I && !I.B && I.pid) { if (attach(i, I.pid)) break; else if (bakeBudget) break; } }
+      for (const i of waiting) { const I = inst[i]; if (!I || I.B || !I.pid) { waiting.delete(i); continue; } if (attach(i, I.pid)) { waiting.delete(i); break; } else if (bakeBudget) break; }
     },
     get time() { return uTime.value; },
     get active() { return high - free.length; },
