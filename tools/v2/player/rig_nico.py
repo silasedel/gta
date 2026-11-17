@@ -198,14 +198,16 @@ def put(n, v): J[n] = Vector(v)
 _, hy, hd = slice_center(hipZ + 0.02 * H, 0.2)
 put('Hips', (0, hy + 0.1 * hd, hipZ + 0.02 * H))
 neckZ = zArm + 0.03 * H
-headZ = zArm + 0.56 * (H - zArm)
+# hero: the head pivots at the base of the skull (about chin height), not mid-face as in the crowd rig (0.56), so head
+# turns / nods and look-at rotate about the right point and the jaw / chin follow the head
+headZ = zArm + float(A.get('headf', 0.42)) * (H - zArm)
 for n, f in (('Spine', 0.2), ('Spine1', 0.45), ('Spine2', 0.7)):
     z = J['Hips'].z + (neckZ - J['Hips'].z) * f
     _, y, dd = slice_center(z, 0.16)
     put(n, (0, y + 0.15 * dd, z))
 _, ny, nd = slice_center(neckZ + 0.02 * H, 0.06)
 put('Neck', (0, ny, neckZ))
-_, hy2, _ = slice_center(headZ + 0.04 * H, 0.08)
+_, hy2, _ = slice_center(headZ + 0.01 * H, 0.06)
 put('Head', (0, hy2, headZ))
 for side, a in ((1, armL), (-1, armR)):
     S = 'Left' if side > 0 else 'Right'
@@ -224,6 +226,95 @@ for side, a in ((1, armL), (-1, armR)):
     for j, t in enumerate((0.12, 0.3, 0.45)):
         d = a['wrist'] + hl * t
         put(S + 'HandThumb' + str(j + 1), (side * d, yl(a['wrist']) - (0.018 + 0.006 * j) * H, zl(d) - 0.01 * H))
+# ---------------------------------------------------------------- hero hands: real finger joints from the mesh
+# The scan has separated fingers. Slabs across the hand (perpendicular to the arm) split into one cluster per finger
+# past the finger webs; each finger is tracked out to its tip, joints go at anatomical fractions (MCP inside the palm
+# before the web, PIP 0.48, DIP 0.77 of MCP->tip). The thumb is the forward-most part of the hand before the webs.
+HANDS = {}
+TRIS = []
+for poly in me.polygons:
+    vs = list(poly.vertices)
+    for j in range(1, len(vs) - 1): TRIS.append((vs[0], vs[j], vs[j + 1]))
+def detect_hand(side, a):
+    S = 'Left' if side > 0 else 'Right'
+    zl = lambda d: float(np.polyval(a['bz'], d)); yl = lambda d: float(np.polyval(a['by'], d))
+    wr, tip = a['wrist'], a['tip']; hl = tip - wr
+    global HTRI, PX
+    PX = P[:, 0]
+    HTRI = [t for t in TRIS if side * PX[t[0]] > wr - 0.02 and abs(P[t[0], 2] - zl(wr)) < 0.12]
+    Q = P[(side * X > wr - 0.01 * H) & (np.abs(Z - zl(wr)) < 0.06 * H)]
+    # cross-sections of the hand mesh: plane x = side*d cuts the triangles; cut points on shared edges link into loops,
+    # one loop per finger (or palm / thumb). Returns loop centers.
+    def clusters(d):
+        xs = side * d
+        out, par = {}, {}
+        def find(k):
+            while par[k] != k: par[k] = par[par[k]]; k = par[k]
+            return k
+        for t in HTRI:
+            pts = []
+            for i0, i1 in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0])):
+                a0, b0 = PX[i0], PX[i1]
+                if (a0 - xs) * (b0 - xs) < 0:
+                    k = (min(i0, i1), max(i0, i1)); u = (xs - a0) / (b0 - a0)
+                    out[k] = P[i0] + (P[i1] - P[i0]) * u; par.setdefault(k, k); pts.append(k)
+            if len(pts) == 2:
+                ra, rb = find(pts[0]), find(pts[1])
+                if ra != rb: par[ra] = rb
+        groups = {}
+        for k, v in out.items(): groups.setdefault(find(k), []).append(v)
+        res = []
+        for g in groups.values():
+            g = np.array(g)
+            if len(g) < 3: continue
+            res.append(dict(y=float(g[:, 1].mean()), z=float((g[:, 2].max() + g[:, 2].min()) / 2), n=len(g), w=float(g[:, 1].max() - g[:, 1].min())))
+        return res
+    # walk from the finger tips toward the wrist: narrow loops (one finger each) form tracks; a track ends where its
+    # finger merges into the palm (the web). Fingers separate at different depths, so they are tracked one by one.
+    ds = np.arange(tip - 0.002, wr + 0.06, -0.004)
+    tracks = []
+    for d in ds:
+        for c in clusters(d):
+            if c['w'] > 0.032 or c['n'] < 4: continue
+            m = [t for t in tracks if t['open'] and abs(t['pts'][-1][1] - c['y']) < 0.012]
+            if m: m[0]['pts'].append((float(d), c['y'], c['z'])); m[0]['seen'] = True
+            else: tracks.append(dict(pts=[(float(d), c['y'], c['z'])], open=True, seen=True))
+        for t in tracks:
+            if t['open'] and not t.get('seen'): t['open'] = False
+            t['seen'] = False
+    tracks = [t for t in tracks if t['pts'][0][0] - t['pts'][-1][0] >= 0.012]
+    if len(tracks) < 5: log('hand', S, 'found', len(tracks), 'finger tracks: heuristic joints'); return None
+    # thumb = the track with the most proximal web; the four others sorted front (index) to back (pinky)
+    tracks.sort(key=lambda t: t['pts'][-1][0])
+    th = tracks[0]
+    fing = sorted(sorted(tracks[1:], key=lambda t: -(t['pts'][0][0] - t['pts'][-1][0]))[:4], key=lambda t: t['pts'][0][1])
+    fingers = {}
+    for name, t in zip(('Index', 'Middle', 'Ring', 'Pinky'), fing):
+        tipd = t['pts'][0][0] + 0.003; web = t['pts'][-1]
+        mcp = web[0] - 0.02
+        L = tipd - mcp
+        def at(dd, t=t):
+            k = min(range(len(t['pts'])), key=lambda i: abs(t['pts'][i][0] - dd)); return t['pts'][k][1], t['pts'][k][2]
+        pts = []
+        for f in (0.0, 0.45, 0.73, 1.0):
+            dd = mcp + f * L
+            yy, zz = at(dd) if dd >= web[0] else (web[1], web[2])
+            pts.append(Vector((side * dd, yy, zz)))
+        fingers[name] = pts
+    tt = th['pts']; ttip, tweb = tt[0], tt[-1]
+    cmc = Vector((side * (wr + 0.035), tweb[1] + 0.018, tweb[2] - 0.006))
+    w2 = Vector((side * (tweb[0] - 0.004), tweb[1], tweb[2]))
+    tp = Vector((side * (ttip[0] + 0.003), ttip[1], ttip[2]))
+    fingers['Thumb'] = [cmc, w2, w2 + (tp - w2) * 0.5, tp]
+    log('hand', S, 'fingers', {k: round((v[3] - v[0]).length, 3) for k, v in fingers.items()})
+    return fingers
+for side, a in ((1, armL), (-1, armR)):
+    S = 'Left' if side > 0 else 'Right'
+    F = detect_hand(side, a)
+    if not F: continue
+    HANDS[S] = F
+    for f, pts in F.items():
+        for j in range(3): put(S + 'Hand' + f + str(j + 1), tuple(pts[j]))
 for side, l in ((1, legL), (-1, legR)):
     S = 'Left' if side > 0 else 'Right'
     hip = Vector((l['hx'], J['Hips'].y, hipZ))
@@ -248,7 +339,7 @@ for S in ('Left', 'Right'):
     side = 1 if S == 'Left' else -1
     TAIL[S + 'ToeBase'] = (lambda S=S: Vector((J[S + 'ToeBase'].x, (legL if S == 'Left' else legR)['toe'], J[S + 'ToeBase'].z)))
     for f in ('Index', 'Middle', 'Ring', 'Pinky', 'Thumb'):
-        TAIL[S + 'Hand' + f + '3'] = (lambda S=S, f=f: J[S + 'Hand' + f + '3'] + (J[S + 'Hand' + f + '3'] - J[S + 'Hand' + f + '2']) * 0.8)
+        TAIL[S + 'Hand' + f + '3'] = (lambda S=S, f=f: HANDS[S][f][3].copy() if S in HANDS else J[S + 'Hand' + f + '3'] + (J[S + 'Hand' + f + '3'] - J[S + 'Hand' + f + '2']) * 0.8)
 
 # ---------------------------------------------------------------- armature
 arm_data = bpy.data.armatures.new('rig')
@@ -269,7 +360,7 @@ for n in J:
 bpy.ops.object.mode_set(mode='OBJECT')
 FINGER = lambda n: 'Hand' in n and any(f in n for f in ('Index', 'Middle', 'Ring', 'Pinky', 'Thumb'))
 for b in arm_data.bones:
-    b.use_deform = not FINGER(b.name)
+    b.use_deform = not FINGER(b.name) or any(('mixamorig:' + S + 'Hand') in b.name for S in HANDS)
 
 # ---------------------------------------------------------------- LOD meshes (decimated copies of the cleaned mesh)
 bpy.ops.object.select_all(action='DESELECT')
@@ -307,14 +398,55 @@ def heat(voxel, upscale):
         for ge in v.groups:
             if ge.group in gi and ge.weight > 0.01: W[gi[ge.group]] += 1
     return pr, [deform[k] for k in range(len(deform)) if W[k] == 0]
+# finger weights straight on the render mesh (the voxel proxy fuses the fingers): each hand vertex past the palm goes to
+# the nearest finger chain, blended across the joints; the palm keeps its heat weights (Hand) and blends into Finger1.
+def finger_weights(o):
+    if not HANDS: return
+    me2 = o.data; mw = o.matrix_world
+    G = {g.name: g for g in o.vertex_groups}
+    for S, F in HANDS.items():
+        side = 1 if S == 'Left' else -1
+        hname = 'mixamorig:' + S + 'Hand'
+        if hname not in G: continue
+        wr = (J[S + 'Hand']).x * side
+        chains = {f: pts for f, pts in F.items()}
+        for v in me2.vertices:
+            p = mw @ v.co
+            if side * p.x < wr + 0.01: continue
+            best = None
+            for f, pts in chains.items():
+                for k in range(3):
+                    a0, b0 = pts[k], pts[k + 1]; ab = b0 - a0; L2 = max(1e-9, ab.length_squared)
+                    t = max(-0.6 if k == 0 else 0.0, min(1.0, (p - a0).dot(ab) / L2))
+                    d = (p - (a0 + ab * max(0.0, t))).length
+                    if best is None or d < best[0]: best = (d, f, k, t, ab.length)
+            d, f, k, t, seg = best
+            if d > 0.022: continue
+            # along-chain weights: before the MCP (t<0 on segment 0) blend from Hand into Finger1 over 1.2 cm
+            names = ['mixamorig:' + S + 'Hand' + f + str(i + 1) for i in range(3)]
+            if any(n not in G for n in names): continue
+            W = {}
+            if k == 0 and t < 0.15:
+                u = max(0.0, min(1.0, (t * seg + 0.012) / (0.012 + 0.15 * seg)))
+                W[hname] = 1 - u; W[names[0]] = u
+            else:
+                bl = 0.006
+                pos = t * seg
+                if k < 2 and pos > seg - bl: u = (pos - (seg - bl)) / (2 * bl); W[names[k]] = 1 - u * 0.5; W[names[k + 1]] = u * 0.5
+                elif k > 0 and pos < bl: u = (bl - pos) / (2 * bl); W[names[k]] = 1 - u * 0.5; W[names[k - 1]] = u * 0.5
+                else: W[names[k]] = 1.0
+            if f == 'Thumb' and k == 0 and t < 0.15: W = {hname: 0.5, names[0]: 0.5} if t > -0.3 else {hname: 1.0}
+            gids = [g.group for g in v.groups]
+            for gi in gids: o.vertex_groups[gi].remove([v.index])
+            for n, w in W.items(): G[n].add([v.index], w, 'REPLACE')
 proxy, empty = None, deform
 for voxel, up in ((0.0075, 10), (0.0075, 1), (0.009, 10), (0.006, 10), (0.011, 30)):
     if proxy is not None: bpy.data.objects.remove(proxy, do_unlink=True)
     proxy, empty = heat(voxel, up)
-    major = [n for n in empty if not n.endswith('ToeBase')]
+    major = [n for n in empty if not n.endswith('ToeBase') and not FINGER(n)]
     if not major: break
     log('heat try', voxel, up, 'empty', len(empty))
-heat_ok = not [n for n in empty if not n.endswith('ToeBase')]
+heat_ok = not [n for n in empty if not n.endswith('ToeBase') and not FINGER(n)]
 if not heat_ok:
     # bone heat failed for some bones: envelope-like fallback (nearest bone segments) for the whole proxy
     log('heat failed for', empty, '-> distance weights')
@@ -341,6 +473,7 @@ for o in lods:
     dt.use_vert_data = True; dt.data_types_verts = {'VGROUP_WEIGHTS'}; dt.vert_mapping = 'POLYINTERP_NEAREST'
     dt.layers_vgroup_select_src = 'ALL'; dt.layers_vgroup_select_dst = 'NAME'
     activate(o); bpy.ops.object.modifier_apply(modifier=dt.name)
+    finger_weights(o)
     bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
     bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL', lock_active=False)
     md = o.modifiers.new('Armature', 'ARMATURE'); md.object = rig

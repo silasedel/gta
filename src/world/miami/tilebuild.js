@@ -194,7 +194,7 @@ export function createTileBuilder(ctx) {
       if (L.imp) { L.imp.geo.userData.lodMin = PL.b1; L.imp.geo.userData.lodMax = 480; }
       for (const q of [...L.near, ...L.mid, ...(L.imp ? [L.imp] : [])]) greenMats.push(q.mat); return (modelPalm[k] = L); } catch (e) { console.warn('[vegetation] model palm unavailable', k, e); return null; } }
   modelPalmOf('royal_palm'); modelPalmOf('coconut_palm'); // shared programs compile with the city materials
-  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['date_palm'], queen: ['tropical_palm', 'palm_yellow'], sabal: ['sabal_palm', 'weathered_a', 'weathered_b'] };
+  const PALM_MODELS = { royal: ['royal_palm'], coconut: ['coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d'], bent: ['bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'], date: ['date_palm'], queen: ['tropical_palm', 'palm_yellow'], sabal: ['sabal_palm', 'weathered_b', 'sabal_palm', 'weathered_a', 'weathered_b'] };
   // palm species by place (Miami planting): royal palms on boulevards, downtown and the causeways, coconut palms at the beach,
   // a residential mix of coconut / sabal / queen. One species per ~70 m stretch so a street is planted in one species.
   const PALM_MIX = { beach: [['coconut', 5], ['bent', 4], ['sabal', 1], ['royal', 1]], nightlife: [['coconut', 5], ['bent', 1], ['royal', 3]], downtown: [['royal', 7], ['date', 2], ['coconut', 1]], business: [['royal', 7], ['date', 2], ['coconut', 1]],
@@ -230,20 +230,12 @@ export function createTileBuilder(ctx) {
     const VT = flora?.VT?.[sp]; if (!VT || !VT.length || !M.vegLeaf) return false;
     const per = VT.map(() => []); items.forEach((it, i) => per[(i + Math.abs((it.x * 3) | 0)) % per.length].push(it));
     per.forEach((it, v) => { if (!it.length) return; const L = treeLodOf(sp, v);
+    if (TREE_LIB[sp] && libInst(group, TREE_LIB[sp][0], items, 'tree', TREE_LIB[sp][1])) return true; // (greenery, overnight) library models first
       for (const p of it) { const h = hash(((p.x * 17) | 0) * 13 + ((p.z * 5) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.9 + h * 0.2); p.sy = s * (0.88 + ((h * 7.13) % 1) * 0.24); } // no two the same size / shape
       if (L) { inst(group, VT[v].bark, L.b.mat, it, { cast: true, depth: L.b.depth }); inst(group, VT[v].leaf, L.l.mat, it, { cast: true, depth: L.l.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat.mat, it, { cast: false }); }
       else { inst(group, VT[v].bark, M.vegBark, it, { cast: true, depth: M.vegBarkDepth }); inst(group, VT[v].leaf, M.vegLeaf, it, { cast: true, depth: M.vegLeafDepth }); } });
     return true;
   }
-    if (TREE_LIB[sp] && libInst(group, TREE_LIB[sp][0], items, 'tree', TREE_LIB[sp][1])) return true; // (greenery, overnight) library models first
-  // street shrubs (vegetation track): real shrub variants (woody skeleton, leaf clusters, flowers, litter) split over bush / flower-bed props
-  const vegBush = { blob: [], flower: [] };
-  try {
-    for (const [k, s] of [['seagrape', 1], ['hibiscus', 2], ['croton', 3], ['ixora', 4], ['seagrape', 5], ['croton', 6], ['hibiscus', 11]]) vegBush.blob.push(vegGeometry(k, { seed: s, size: 0.72 }));
-    for (const [k, s] of [['bougainvillea', 1], ['hibiscus', 7], ['ixora', 8], ['bougainvillea', 9]]) vegBush.flower.push(vegGeometry(k, { seed: s, size: 0.68 }));
-  } catch (e) { console.warn('[vegetation] shrubs unavailable', e); vegBush.blob.length = vegBush.flower.length = 0; }
-  // (greenery) shrubs dissolve out between 105 and 135 m (dithered, TAA-resolved) instead of a hard cut at the pool draw distance
-  let bushM = null;
   // (greenery, overnight) the user's library trees and shrubs (species.js) through the global pools: full mesh near, the converted
   // LOD1 mesh in the middle, baked impostor far (trees); per-instance mirror / twist / bend / crown spread / color jitter in the shader
   const LIB_B = { tree: [[0, 0, 50, 62], [50, 62, 150, 170], [150, 170, 0, 0], 480], shrub: [[0, 0, 40, 52], [40, 52, 105, 135], null, 138] }, libL = {};
@@ -257,17 +249,25 @@ export function createTileBuilder(ctx) {
   function libInst(group, keys, items, cls, k = 1) { // items split over the models of a species group (position hash), scaled by k
     const ok = keys.filter((key) => libLodOf(key, cls)); if (!ok.length) return false;
     const per = ok.map(() => []);
-    for (const p of items) { const h = hash(((p.x * 17) | 0) * 13 + ((p.z * 5) | 0)), s = (p.s || 1) * k; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.87 + ((h * 7.13) % 1) * 0.26); per[(h * 997 | 0) % ok.length].push(p); }
+    for (const p of items) { const h = hash(((p.x * 17) | 0) * 13 + ((p.z * 5) | 0)), s = (p.s || 1) * k; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.87 + ((h * 7.13) % 1) * 0.26); per[(h * 997 | 0) % ok.length].push(cls === 'tree' ? { ...p, y: (p.y || 0) - 0.12 * s } : p); }
     per.forEach((it, v) => { if (!it.length) return; const L = libL[ok[v]];
       for (const q of L.near) inst(group, q.geo, q.mat, it, { cast: true, depth: q.depth }); for (const q of L.mid) inst(group, q.geo, q.mat, it, { cast: true, depth: q.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat, it, { cast: false }); });
     return true;
   }
   const TREE_LIB = { oak: [['liveoak_b', 'liveoak_c', 'oak_gnarled', 'oak_pale_b'], 1], tree: [['liveoak_b', 'liveoak_c', 'shade_tree'], 1], gumbo: [['shade_tree', 'oak_pale_b', 'oak_pale_a'], 1.05], banyan: [['banyan', 'banyan_b'], 1],
-    pine: [['pine_a', 'pine_b', 'pine_c'], 1], mangrove: [['mangrove_b'], 1.3], seagrape: [['bush_leafy', 'bush_round'], 2.4], citrus: [['oak_pale_a'], 0.45], poinciana: [['poinciana'], 1.4] };
+    pine: [['pine_a', 'pine_b', 'pine_c'], 1], cypress: [['cypress_a', 'cypress_b'], 0.9], mangrove: [['mangrove_b'], 1.3], seagrape: [['bush_leafy', 'bush_round'], 2.4], citrus: [['oak_pale_a'], 0.45], poinciana: [['poinciana', 'poinciana_b', 'poinciana_c'], 1.2] };
   const BUSH_LIB = { blob: ['bush_round', 'bush_leafy', 'fern_clump', 'tropical_bed', 'bush_round', 'hibiscus'], flower: ['bougainvillea', 'bougainvillea_b', 'hibiscus', 'flower_bush_a', 'flower_bush_b', 'oleander'] };
   function vegBushes(group, items, list) {
     bushM ||= { b: makeVegMaterial('bark', { fade: [0, 0, 105, 135], lean: 0.006, sway: 0.0035 }), l: makeVegMaterial('leaf', { fade: [0, 0, 105, 135], lean: 0.006, sway: 0.0035 }) };
     const per = list.map(() => []); items.forEach((p, i) => per[(i + Math.abs((p.x * 7) | 0)) % per.length].push(p));
+  // street shrubs (vegetation track): real shrub variants (woody skeleton, leaf clusters, flowers, litter) split over bush / flower-bed props
+  const vegBush = { blob: [], flower: [] };
+  try {
+    for (const [k, s] of [['seagrape', 1], ['hibiscus', 2], ['croton', 3], ['ixora', 4], ['seagrape', 5], ['croton', 6], ['hibiscus', 11]]) vegBush.blob.push(vegGeometry(k, { seed: s, size: 0.72 }));
+    for (const [k, s] of [['bougainvillea', 1], ['hibiscus', 7], ['ixora', 8], ['bougainvillea', 9]]) vegBush.flower.push(vegGeometry(k, { seed: s, size: 0.68 }));
+  } catch (e) { console.warn('[vegetation] shrubs unavailable', e); vegBush.blob.length = vegBush.flower.length = 0; }
+  // (greenery) shrubs dissolve out between 105 and 135 m (dithered, TAA-resolved) instead of a hard cut at the pool draw distance
+  let bushM = null;
     per.forEach((it, v) => { if (!it.length) return; const g = list[v]; g.bark.userData.lodMax = g.leaf.userData.lodMax = 138; if (g.bark.index.count) inst(group, g.bark, bushM.b.mat, it, { cast: true, depth: bushM.b.depth }); inst(group, g.leaf, bushM.l.mat, it, { cast: true, depth: bushM.l.depth }); });
   }
   const oatsG = (() => { const b = new Batch(), c = new THREE.PlaneGeometry(0.9, 1.1), w = new THREE.Color(1, 1, 1); for (let k = 0; k < 3; k++) b.addGeometry(c, m4(0, 0.55, 0, (k / 3) * Math.PI), w, [0.5, 1], [0, 0]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(b.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(b.n, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2)); return g; })();
@@ -2659,7 +2659,7 @@ export function createTileBuilder(ctx) {
     for (const r of tile.roads || []) {
       if (!r.pts || r.pts.length < 2 || (r.y && Math.max(...r.y) > 0.5) || !/primary|secondary|tertiary|residential|trunk/.test(r.kind || '')) continue;
       const fr = polyFrame(r.pts), L = fr[fr.length - 1].s, hw = r.width / 2; if (L < 30) continue;
-      const mid = sampleAt(fr, L / 2); let zone = ''; try { zone = zoneAt(mid.x, mid.z) || ''; } catch (e) { /* */ } if (!METRO_Z.test(zone)) continue;
+      const mid = sampleAt(fr, L / 2); let zone = ''; try { zone = zoneAt(mid.x, mid.z) || ''; } catch (e) { /* */ } if (!METRO_Z.test(zone)) { if (zone === 'residential') resTrees(tile, props, r, fr, L, hw, mid); continue; }
       const na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]), s0 = (na && na.degree >= 3 ? na.width / 2 + 9 : 6), s1 = L - (nb && nb.degree >= 3 ? nb.width / 2 + 9 : 6);
       for (const side of [-1, 1]) {
         const hk = hash(((mid.x * 3) | 0) * 7919 + ((mid.z * 3) | 0) * 31 + side * 977), sp = hk < 0.45 ? 'royal' : hk < 0.75 ? 'oak' : 'gumbo';
@@ -2756,6 +2756,26 @@ export function createTileBuilder(ctx) {
       if (M.promenade && /beach|nightlife/.test(zn)) sidewalkPoly(B.promenade, rings, null, B.sidewalk, 1 / 8, tile);
       else if (M.panels && /downtown|business|brickell|commercial/.test(zn)) sidewalkPoly(B.panels, rings, null, B.sidewalk, 1 / 6, tile);
       else sidewalkPoly(B.sidewalk, rings, null, B.sidewalk, 1 / 2.5, tile);
+  // (greenery, overnight) residential streets of the mainland city: shade trees in the swale behind the curb / sidewalk, ~22-34 m
+  // apart, never on a driveway, house lot, building or in a junction mouth; old neighborhoods get live oaks and banyans, the
+  // others gumbo limbo / shade trees and red poincianas (synthetic land: the countryside streamer plants those streets)
+  const OLD_D = /havana|grove|gables|shenandoah|allapattah|wynwood|overtown|lemon|little/i;
+  function resTrees(tile, props, r, fr, L, hw, mid) {
+    if (terrain && terrain.synthetic && terrain.synthetic(Math.floor(mid.x / (provider.tileSize || 200)), Math.floor(mid.z / (provider.tileSize || 200)))) return;
+    let dist = ''; try { dist = String(ctx.districtAt?.(mid.x, mid.z)?.name || ctx.districtAt?.(mid.x, mid.z) || ''); } catch (e) { /* */ }
+    const old = OLD_D.test(dist), na = nodeAt(r.pts[0]), nb = nodeAt(r.pts[r.pts.length - 1]), s0 = na && na.degree >= 3 ? na.width / 2 + 10 : 8, s1 = L - (nb && nb.degree >= 3 ? nb.width / 2 + 10 : 8);
+    const blds = buildingsOf(tile, false), off = hw + (r.sidewalks ? 3.4 : 2.6);
+    for (const side of [-1, 1]) {
+      const hk = hash(((mid.x * 5) | 0) * 7919 + ((mid.z * 5) | 0) * 31 + side * 577); if (hk < 0.25) continue; // some block faces have none
+      for (let s2 = s0 + hk * 9; s2 < s1; s2 += 22 + hash(s2 * 3.7 + hk) * 12) {
+        const q = sampleAt(fr, s2), x = q.x + q.nx * side * off, z = q.z + q.nz * side * off, h = hash(((x * 7) | 0) * 131 + ((z * 13) | 0));
+        if (insideBuilding(tile, x, z) || (isWater && isWater(x, z)) || (roadDist && roadDist(x, z) < 2.2) || houseLots.claimedNear(blds, x, z, 3.5) || (houseLots.near && houseLots.near(x, z, 2.5, []).length)) continue;
+        if (props.tree.some((p) => Math.abs(p.x - x) < 9 && Math.abs(p.z - z) < 9) || props.palm.some((p) => Math.abs(p.x - x) < 6 && Math.abs(p.z - z) < 6)) continue;
+        const sp = old ? (h < 0.72 ? 'oak' : 'banyan') : h < 0.55 ? 'gumbo' : h < 0.8 ? 'poinciana' : 'oak';
+        props.tree.push({ sp, x, y: gY(x, z), z, ry: h * 6.28, s: (sp === 'banyan' ? 0.55 : 0.62) + h * 0.2, res: 1, color: new THREE.Color(0x6b8442) });
+      }
+    }
+  }
       yield;
     }
     for (const p of tile.piers || []) pierDeck(B, p, null, props);
@@ -2811,8 +2831,8 @@ export function createTileBuilder(ctx) {
     inst(group, BOXG, containerMat, props.container, { cast: true, colors: true });
     for (let v = 0; v < 4; v++) { const it = props.boat.filter((b) => b.v === v); if (!it.length) continue; inst(group, boatGs[v], boatMat, it, { colors: true, cast: true }); const h = group.userData.handles[group.userData.handles.length - 1]; it.forEach((b, k) => moorVisual(b, h, k)); }
     palmDress(props);
-    if (models.bush) { for (const pp of models.bush) inst(group, pp.geometry, pp.material, props.blob, { colors: true, cast: true }); for (const pp of models.flowerBush || models.bush) inst(group, pp.geometry, pp.material, props.flower, { colors: true, cast: true }); if (M.leaf) inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false }); }
-    else if (M.leaf) { if (libInst(group, BUSH_LIB.blob, props.blob, 'shrub', 0.9) | libInst(group, BUSH_LIB.flower, props.flower, 'shrub', 0.85)) { /* (greenery, overnight) library shrubs */ } else if (vegBush.blob.length && M.vegLeaf) { vegBushes(group, props.blob, vegBush.blob); vegBushes(group, props.flower, vegBush.flower); } else { inst(group, leafG, M.leaf, props.blob, { colors: true, cast: true, depth: M.leafDepth }); inst(group, flowerG, M.leaf, props.flower, { colors: true, cast: true, depth: M.leafDepth }); } inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false }); }
+    if (models.bush) { for (const pp of models.bush) inst(group, pp.geometry, pp.material, props.blob, { colors: true, cast: true }); for (const pp of models.flowerBush || models.bush) inst(group, pp.geometry, pp.material, props.flower, { colors: true, cast: true }); if (M.leaf) (libInst(group, ['grass_tuft_b', 'red_grass'], props.oats, 'shrub', 1.7) || inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false })); }
+    else if (M.leaf) { if (libInst(group, BUSH_LIB.blob, props.blob, 'shrub', 0.9) | libInst(group, BUSH_LIB.flower, props.flower, 'shrub', 0.85)) { /* (greenery, overnight) library shrubs */ } else if (vegBush.blob.length && M.vegLeaf) { vegBushes(group, props.blob, vegBush.blob); vegBushes(group, props.flower, vegBush.flower); } else { inst(group, leafG, M.leaf, props.blob, { colors: true, cast: true, depth: M.leafDepth }); inst(group, flowerG, M.leaf, props.flower, { colors: true, cast: true, depth: M.leafDepth }); } (libInst(group, ['grass_tuft_b', 'red_grass'], props.oats, 'shrub', 1.7) || inst(group, oatsG, M.oats || M.leaf, props.oats, { colors: false })); }
     else inst(group, blobG, blobMat, props.blob.concat(props.flower), { colors: true });
     inst(group, duneG, M.dune || M.sand, props.dune, { cast: false });
     inst(group, bikeG, vcMat, props.bike);
@@ -2847,7 +2867,7 @@ export function createTileBuilder(ctx) {
     // palms: split over the shared variants
     // (greenery) species by place; trees / palms the countryside streamer draws (cs: 1) are only colliders here (no double crowns)
     const per = palmVariants.map(() => []), perM = {};
-    for (const p of props.palm) { if (p.cs) continue; const k = palmKindOf(p); if (typeof k === 'string') { const h = hash(((p.x * 7) | 0) * 131 + ((p.z * 11) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.86 + ((h * 5.71) % 1) * 0.28); (perM[k] ||= []).push(p); } else per[k].push(p); }
+    for (const p of props.palm) { if (p.cs) continue; const k = palmKindOf(p); if (typeof k === 'string') { const h = hash(((p.x * 7) | 0) * 131 + ((p.z * 11) | 0)), s = p.s || 1; p.sx = p.sz = s * (0.88 + h * 0.24); p.sy = s * (0.86 + ((h * 5.71) % 1) * 0.28); (perM[k] ||= []).push({ ...p, y: (p.y || 0) - 0.08 * s }); } else per[k].push(p); }
     for (const k in perM) { const items = perM[k], L = modelPalmOf(k.slice(2)); if (!items.length || !L) continue;
       for (const q of L.near) inst(group, q.geo, q.mat, items, { cast: true, depth: q.depth }); for (const q of L.mid) inst(group, q.geo, q.mat, items, { cast: true, depth: q.depth }); if (L.imp) inst(group, L.imp.geo, L.imp.mat, items, { cast: false }); }
     per.forEach((items, v) => { if (!items.length) return; const pg = palmVariants[v], L = palmLod[v];

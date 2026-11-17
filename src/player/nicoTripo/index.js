@@ -146,7 +146,13 @@ export function decorateNicoTripo(character, { game, model, assets, opts = {} })
 
   Object.assign(character, {
     isNico: true, base: 'nico', tripo: true, meta: assets.meta, outfit, material: mat, footIK: feet,
+    // hit zones (src/gameplay/hitZones.js): this rig pivots the head at the skull base, the head center sits 0.105 m above
+    // it and 1 cm back (tools/v2/player/measure.py); limb radii are the table's reference values (fitted on this body)
+    hitFit: { headUp: assets.meta?.fit?.head?.center_off?.[2] ?? 0.105, headBack: assets.meta?.fit?.head?.center_off?.[1] ?? 0.0095 },
     face: null,
+    // ragdoll capsules fitted to this body (src/npc/ragdoll.js reads character.ragdollRadii when present): a little inside
+    // the measured skin + cloth radii (measure.py) so neighbor parts do not start interpenetrated
+    ragdollRadii: { pelvis: 0.13, abdomen: 0.13, chest: 0.14, head: 0.11, uArmL: 0.07, uArmR: 0.07, lArmL: 0.05, lArmR: 0.05, thighL: 0.10, thighR: 0.10, shinL: 0.075, shinR: 0.075, footL: 0.05, footR: 0.05 },
     skin,
     body: { get fat() { return body.fat; }, set fat(v) { body.fat = v; applyBody(); }, get muscle() { return body.muscle; }, set muscle(v) { body.muscle = v; applyBody(); }, set(o) { Object.assign(body, o); applyBody(); } },
     setMeshLOD(L) { opts.meshLOD = Math.min(2, L); setMeshLOD(Math.min(2, L)); }, autoLOD() { opts.meshLOD = undefined; }, get meshLOD() { return cur; },

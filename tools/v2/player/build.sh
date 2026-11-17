@@ -18,10 +18,12 @@ python3 "$ROOT/tools/v2/player/textures.py" "$FBM" "$SCR/tex"
 python3 -c "from PIL import Image; Image.open('$SCR/tex/albedo_1k.webp').save('$SCR/alb1k.png')"
 /opt/homebrew/bin/blender -b "$SCR/rig/nico_tripo.blend" --python-exit-code 1 --python "$ROOT/tools/v2/player/regions.py" -- "$SCR/alb1k.png" "$SCR/regions.npz" 2>&1 | grep -E '\[regions\]|Error|Traceback' || true
 python3 "$ROOT/tools/v2/player/regions_raster.py" "$SCR/regions.npz" "$SCR/tex/regions.webp"
+/opt/homebrew/bin/blender -b "$SCR/rig/nico_tripo.blend" --python-exit-code 1 --python "$ROOT/tools/v2/player/measure.py" -- "$SCR/fit.json" 2>&1 | grep -E '\[measure\]|Error|Traceback' || true
 cp "$SCR/rig/nico_tripo.glb" "$OUT/nico_tripo.glb"
-python3 - "$SCR/rig/nico_tripo.json" "$OUT/nico_tripo.json" <<'PY'
+python3 - "$SCR/rig/nico_tripo.json" "$OUT/nico_tripo.json" "$SCR/fit.json" <<'PY'
 import json, sys
-m = json.load(open(sys.argv[1])); m['src'] = 'Models/Main Character/Main Character 1 - Man In Teal Palm Shirt And Cargo Pants (Tripo FBX, T-pose)'
+m = json.load(open(sys.argv[1])); m['fit'] = json.load(open(sys.argv[3]))   # hit zones / ragdoll / capsule fit (measure.py)
+m['src'] = 'Models/Main Character/Main Character 1 - Man In Teal Palm Shirt And Cargo Pants (Tripo FBX, T-pose)'
 json.dump(m, open(sys.argv[2], 'w'), indent=1)
 PY
 cp "$SCR/tex/"*.webp "$OUT/"

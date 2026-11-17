@@ -3,6 +3,7 @@
 // analytic IK in world space, knee stays in its bend plane), and a planted foot tilts to the ground slope.
 // Off while airborne, driving, swimming, sitting / scripted poses, ragdoll and dead. Stats in footIK.stats for tests.
 import * as THREE from 'three';
+import { createStairs } from './stairs.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const _h = new THREE.Vector3(), _k = new THREE.Vector3(), _a = new THREE.Vector3(), _t = new THREE.Vector3();
@@ -24,7 +25,8 @@ function setWorldQuat(bone, qw) {
 export function createFootIK({ game, model, bone, root }) {
   const legs = ['Left', 'Right'].map((s) => ({ s, up: bone(s + 'UpLeg'), lo: bone(s + 'Leg'), ft: bone(s + 'Foot'), toe: bone(s + 'ToeBase'), off: 0, n: new THREE.Vector3(0, 1, 0), plant: 0, gy: null }));
   const ok = legs.every((l) => l.up && l.lo && l.ft);
-  const st = { w: 0, pelvis: 0, ankleH: null, stats: { err: [0, 0], off: [0, 0], pelvis: 0, active: false } };
+  const st = { w: 0, pelvis: 0, ankleH: null, stats: { err: [0, 0], off: [0, 0], plant: [0, 0], stair: [false, false], pelvis: 0, active: false } };
+  const stairs = createStairs(game);
   // ankle height above the sole in the bind pose (feet flat on the ground at y = 0)
   const restAnkle = () => {
     if (st.ankleH !== null) return st.ankleH;
@@ -40,7 +42,11 @@ export function createFootIK({ game, model, bone, root }) {
       const hit = W.castRayAndGetNormal(new R.Ray({ x, y: y + 0.55, z }, { x: 0, y: -1, z: 0 }), 1.25, true,
         QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS, undefined, game.player?.collider);
       if (!hit) return null;
-      return { y: y + 0.55 - hit.timeOfImpact, n: hit.normal };
+      const gy = y + 0.55 - hit.timeOfImpact;
+      // stair ramps run through the tread nosings: stand on the tread itself
+      const tr = stairs.treadAt(x, z, gy);
+      if (tr !== null && tr <= gy + 0.02 && tr > gy - 0.3) return { y: tr, n: UP, stair: true };
+      return { y: gy, n: hit.normal };
     } catch (e) { return null; }
   }
   // two-bone IK: put the ankle of leg l at world point T (knee bends in its current plane)
@@ -58,7 +64,7 @@ export function createFootIK({ game, model, bone, root }) {
     rotateWorld(l.up, _q.setFromUnitVectors(_u.subVectors(_a, _h).normalize(), _w.subVectors(T, _h).normalize()));
   }
   return {
-    stats: st.stats,
+    stats: st.stats, stairs,
     update(dt, anim = {}) {
       if (!ok) return;
       const P = game?.player;
@@ -80,7 +86,7 @@ export function createFootIK({ game, model, bone, root }) {
         if (g) l.n.set(g.n.x, g.n.y, g.n.z); else l.n.copy(UP);
         const lift = _a.y - rootY - ankH;                  // the animation's own foot lift (swing)
         l.plant += ((lift < 0.045 ? 1 : 0) - l.plant) * Math.min(1, dt * 12);
-        l.gy = g ? g.y : null; l.lift = lift;
+        l.gy = g ? g.y : null; l.lift = lift; l.stair = !!g?.stair;
       }
       // 2) pelvis down so the lower foot reaches (never up: the capsule already stands on the higher ground)
       const pv = Math.min(0, legs[0].off, legs[1].off) * st.w;
@@ -100,7 +106,7 @@ export function createFootIK({ game, model, bone, root }) {
           rotateWorld(l.ft, _q.setFromAxisAngle(_n, tilt * l.plant * st.w));
         }
         l.ft.getWorldPosition(_a);
-        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : (_a.y - ankH) - l.gy;
+        st.stats.off[i] = l.off; st.stats.err[i] = l.gy === null ? null : (_a.y - ankH) - l.gy; st.stats.plant[i] = l.plant; st.stats.stair[i] = l.stair;
       }
       st.stats.pelvis = st.pelvis;
     },

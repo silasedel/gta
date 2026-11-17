@@ -16,6 +16,8 @@ const DAY_MINUTES = 48; // stage 1: a full in-game day lasts 48 real minutes, as
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
 import { createSurfaceAt, seaLevel, SEA_X } from './player/controller/surface.js';
+import { PLAYER_CAPSULE, PLAYER_CENTER } from './player/controller/capsule.js';
+import { createPlayerSeat } from './player/seat.js';
 import { yieldTask, breathe, compileSliced, compileForGame, programsReady } from './core/pace.js';
 
 // Loading bar with a live percentage. Each boot step sets a milestone; between milestones the shown value keeps
@@ -112,7 +114,8 @@ async function boot() {
   const P = game.player;
   P.position.copy(game.city.playerSpawn || new THREE.Vector3(0, 0, 0));
   if (typeof game.city.playerSpawnHeading === 'number') { P.heading = game.city.playerSpawnHeading; game.cameraYaw = P.heading + Math.PI; }
-  const CAP_HALF = 0.55, CAP_R = 0.32, CENTER = CAP_HALF + CAP_R;
+  const CAP_HALF = PLAYER_CAPSULE.half, CAP_R = PLAYER_CAPSULE.r, CENTER = PLAYER_CENTER;   // src/player/controller/capsule.js (fitted to Nico)
+  P.capsule = { half: CAP_HALF, r: CAP_R, center: CENTER };
   const pBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased()
     .setTranslation(P.position.x, P.position.y + CENTER + 0.05, P.position.z));
   const pCol = world.createCollider(RAPIER.ColliderDesc.capsule(CAP_HALF, CAP_R).setFriction(0), pBody);
@@ -452,12 +455,13 @@ async function boot() {
     knock.multiplyScalar(Math.exp(-dt * 4));
   });
 
+  const playerSeat = createPlayerSeat(game);
   function enterVehicle(v) {
     const st = P.state;
     st.inVehicle = true; st.vehicle = v; v.playerDriven = true;
     pCol.setEnabled(false);
     armGuard(v);
-    if (character) character.setVisible(false);
+    if (character && !playerSeat.enter(character, v)) character.setVisible(false);     // seen in the driver's seat (src/player/seat.js)
     game.hud.notify?.(`${v.name || 'Vehicle'}`, 2000);
   }
   game.enterVehicle = (v) => enterVehicle(v);
@@ -473,6 +477,7 @@ async function boot() {
     st.inVehicle = false; st.vehicle = null; vy = 0; moveSpeed = 0;
     L.blockT = 0; L.speedF = 0; L.animSpeed = 0; L.turnInPlace = false; L.visY = null; L.airVy = 0;
     P.heading = Math.atan2(-Math.sin(game.cameraYaw), -Math.cos(game.cameraYaw));
+    playerSeat.exit();
     if (character) character.setVisible(true);
   }
 
@@ -560,14 +565,19 @@ async function boot() {
       const amp = swim ? 0 : st.grounded ? Math.min(0.045, spd * 0.0065) : 0;
       const bobY = swim ? Math.sin(game.clock.elapsed * 1.7) * 0.07 : Math.abs(Math.sin(L.bobPhase)) * amp * 2 - amp;
       const sway = swim ? 0 : Math.sin(L.bobPhase) * amp * 0.5;
-      const baseY = swim ? seaLevel(game) + 0.35 - (L.dive || 0) : P.position.y + 1.55;
+      // pivot height from the smoothed visual ground (curbs / stair treads / autostep never jolt the camera)
+      const baseY = swim ? seaLevel(game) + 0.35 - (L.dive || 0) : (L.visY !== null && Number.isFinite(L.visY) && st.grounded ? L.visY : P.position.y) + 1.55;
       pivot = tmp.set(P.position.x + Math.cos(game.cameraYaw) * sway, baseY + bobY, P.position.z - Math.sin(game.cameraYaw) * sway);
       const zoom = Math.max(0.3, Math.min(1.5, game.cameraZoom || 1));
       wantDist = (swim ? 3.8 : st.sprint ? 3.4 : 2.85) * zoom; // stage 1: GTA 6 over-the-shoulder distance
       sideOff = 0.55 + (zoom < 1 ? (1 - zoom) * 0.9 : 0);
       // slight lag on sprint (body pulls ahead of the camera), tight otherwise
       if (camDriving !== false || pivS.distanceToSquared(pivot) > 9) pivS.copy(pivot);
-      else pivS.lerp(pivot, 1 - Math.exp(-dt * ((game.cameraZoom || 1) < 0.95 ? 25 : st.sprint ? 8 : swim ? 6 : 18)));
+      else {
+        const kh = 1 - Math.exp(-dt * ((game.cameraZoom || 1) < 0.95 ? 25 : st.sprint ? 8 : swim ? 6 : 18));
+        const kv = 1 - Math.exp(-dt * (st.grounded ? 7 : 14));       // vertical follows softer than horizontal (steps, stairs, landings)
+        pivS.x += (pivot.x - pivS.x) * kh; pivS.z += (pivot.z - pivS.z) * kh; pivS.y += (pivot.y - pivS.y) * kv;
+      }
       pivot = tmp.copy(pivS);
     }
     camDriving = driving;
@@ -896,7 +906,7 @@ async function boot() {
         if (game.physicsDead) break;
         const tS = performance.now(); try { world.step(); } catch (e) { game.physicsDead = 'step: ' + String(e) + ' | ' + (e.stack || '').split('\n').filter(l => !/wasm-function/.test(l)).slice(0, 6).join(' | '); console.error('[physics] Rapier panic — physics halted', e); break; } finally { tm('world.step', tS); }
       }
-      if (P.state.inVehicle) { const t = P.state.vehicle.body.translation(); P.position.set(t.x, t.y, t.z); }
+      if (P.state.inVehicle) { const t = P.state.vehicle.body.translation(); P.position.set(t.x, t.y, t.z); if (playerSeat.seated) playerSeat.update(simDt); }
       // character visual
       if (character && !P.state.inVehicle) try {
         const t = pBody.translation();
