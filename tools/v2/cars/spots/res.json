@@ -1,0 +1,5 @@
+{
+  "res_row1": { "player": [-1320, 3190, 0], "tod": 10.5, "settle": 16000, "car": "*", "parked": true, "off": [-1.2, 1.7, -8.5], "fov": 55, "lookY": 0.2 },
+  "res_row2": { "player": [-660, -55, 0], "tod": 16.5, "settle": 16000, "car": "*", "parked": true, "off": [2.4, 1.6, 9.5], "fov": 55 },
+  "res_row3": { "player": [0, 1760, 0], "tod": 9.5, "settle": 16000, "car": "*", "parked": true, "off": [-1.4, 1.5, -9], "fov": 55 }
+}

@@ -50,7 +50,7 @@ await withBrowser({ width: +(o.w || 1600), height: +(o.h || 900), maxSeconds: +(
     if (s.eval) console.log(id, 'eval', await b.eval(`(() => { ${s.eval} })()`));
     if (s.eye) await b.eval(`(() => { const s = ${JSON.stringify(s)}; game.cameraOverride = (dt, cam) => { cam.position.fromArray(s.eye); cam.lookAt(s.look[0], s.look[1], s.look[2]); return true; }; return 1; })()`);
     if (s.car) await b.eval(`(() => { const s = ${JSON.stringify(s)}; const T = window.THREE || game.THREE, pp = game.player.position;
-      const list = game.vehicles.list.filter((v) => (v.typeKey === s.car || s.car === '*') && (!s.ai || (v.ai && Math.abs(v.speed) > 1.5)) && v.car?.glb).sort((a, b) => a.mesh.position.distanceTo(pp) - b.mesh.position.distanceTo(pp));
+      const list = game.vehicles.list.filter((v) => (v.typeKey === s.car || s.car === '*') && (!s.ai || (v.ai && Math.abs(v.speed) > 1.5)) && (!s.parked || (!v.ai && !v.pinned)) && v.car?.glb).sort((a, b) => a.mesh.position.distanceTo(pp) - b.mesh.position.distanceTo(pp));
       const v = list[0]; if (!v) return 0; window.__cv = v; const off = new T.Vector3(...(s.off || [3.6, 1.5, 5.2]));
       game.cameraOverride = (dt, cam) => { const m = window.__cv.mesh; const e = off.clone().applyQuaternion(m.quaternion).add(m.position); cam.position.copy(e); cam.lookAt(m.position.x, m.position.y + (s.lookY ?? -0.1), m.position.z); if (cam.fov !== (s.fov || 45)) { cam.fov = s.fov || 45; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
     await b.sleep(1500);
