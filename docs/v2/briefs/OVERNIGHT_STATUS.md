@@ -1269,6 +1269,16 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Names:** real model names removed from the fleet and the procedural catalog (Raptor -> Ridgeback Sandhawk TR; Vesta,
   Meridian, Sovereign, Scirocco, Uno, Volt, Grandeur, Corsa, Breeze, Terra, Scout, Interceptor, Traveller, Elan, Brisa, Testa
   renamed).
+- **Distance LODs (user: "from a distance the paint jobs get screwed up"):** the converter's LOD1 / LOD2 were one collapse over
+  the whole body (lamp / trim / glass triangles across the paint, torn panels, spikes meters long). Now per-slot decimation, glass
+  kept or planar-dissolved, spike faces dropped, angle normals, budgets 20k / 5k, LOD2 from 160 m; whole fleet re-converted
+  (super5 excepted). Grime speckle fades with distance. Sheet: `docs/v2/shots/cars/r2/lod_distance_sheet.jpg` (10-150 m).
+  Left: police1 LOD1 door gap, van6 LOD2 (now only past 160 m).
+- **Truck9 final:** stripe graphite 0x515458 under an ~8 % satin coat, flares plastic black, interior charcoal, body 0x9a9ea3,
+  tires 14k tris. Sheet `docs/v2/shots/cars/r2/truck9_3way.jpg`.
+- **Minivans (user models):** van6 Halcyon Harbor 8, van7 Marlin Tidewater LX; class `minivan` in every zone mix.
+- **Headroom:** `tools/v2/cars/headroom.mjs` (tall NPC + Nico in every seat); hand-checked anchors are `fixed` (r2-people's
+  probe keeps them), van3 / super4 lowered, truck9 seats dropped 14 / 10 cm.
 
 ## r2-people
 - 16:10 **Final state.** All committed (pathspec). (1) **Seat solver never trusts a stale anchor** (lead: Nico's head
