@@ -39,6 +39,13 @@ How the world and the systems connect. If something here is wrong, fix the code 
   storefront id). Synthetic ground-floor shops (`synthShopsNear`) fill commercial streets.
 - **Set pieces:** `layout.json` `setpieces`: `nico_house` (Key Largo, Pelican Point Ln, x -836, z 5272, heading 0.91,
   lot ring, spawnX/Z in the yard), `keys_sign` (start of the Overseas Highway), `keys_bar` (Key Largo strip).
+- **Key Largo by hand (keys pass, Nov 17):** Nico's yard and street corner are explicit data in
+  `src/world/setpieces/nicoHouse/yard.data.js` (house-local frame of plan.js; built by parts/55_yard.js, dock by parts/06_dock.js
+  from the user's pier kit), the neighbors and bay-shore docks in `src/world/dressing/keysStreet.data.js` (built by
+  dressing/keysLots.js through the house generator's lots: `house.style/yard/over` overrides). Auto street lots stay out of
+  `HAND_R` around the house; Nico's lot is `lots.reserve`d (no scatter). Converted dock / prop models:
+  `public/assets/models/docks|keys/` (tools/v2/keys/build_models.sh), loaded by `nicoHouse/models.js`. Shots in house-local
+  cameras: `node tools/v2/keys/shots.mjs --set X [--spots tools/v2/keys/spots_refs.json] [--ab "&keys=0"]`; `?keys=0` = before.
 - **School:** `layout.json` setpiece `school` (~(457, -1354), Edgewater, 179 m from the Edgewater police substation) for
   the user's mission `docs/v2/plan/MISSION_SCHOOL_ABANDONED_CLASSROOM.md` (stage 2 builds the school, stage 4 the mission).
 - **Fire alarm distraction:** `docs/v2/plan/DISTRACTION_FIRE_ALARM.md` (pull stations in casino, hotels, school, offices).
