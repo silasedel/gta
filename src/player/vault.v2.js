@@ -10,7 +10,7 @@ const MIN_H = 0.5, MAX_H = 1.2, REACH = 1.0;
 
 export async function initV2(game) {
   const P = game.player, R = game.RAPIER, W = game.world, QF = R.QueryFilterFlags;
-  const FLAGS = QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC;   // static world + dynamic bodies (parked cars, props); not peds
+  const FLAGS = QF.EXCLUDE_SENSORS | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_DYNAMIC;   // walls, fences, rails, ledges (not cars / props / peds)
   const S = { move: null, stats: { vaults: 0, climbs: 0, refused: 0 } };
   const ray = (o, d, len) => { try { return W.castRayAndGetNormal(new R.Ray(o, d), len, true, FLAGS, undefined, P.collider); } catch (e) { return null; } };
   const capFree = (x, y, z) => {
