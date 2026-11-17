@@ -72,3 +72,7 @@ looks real. Patch and stitch every seam. Take all the time you need."
   paths. Make before/after sheets as JPG q90, next to the user's shot where one exists.
 - **Done means:** work until every item you own is done, then do a second critical pass. Look at each shot like the user
   would.
+
+## Helper ids (message each other with SendMessage, `to` = id)
+r2-look a619186c4f6cd0a33 | r2-cars ab9f4864289178482 | r2-people ae01728fb19ebc914 | r2-ground a9915981d0baee497 |
+r2-veg a8e0bf9ad31560854 | r2-keys ab80b88b7a3e7c376 | r2-roads ac999d622142a4c0c | r2-mapui ac7df24216768453d | lead = "main"
