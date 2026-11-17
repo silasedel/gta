@@ -8,7 +8,11 @@
 - 23:55 team launched
 
 
+## look
+- 04:10 Started (lighting, sky, post). Pass 1 in code behind a runtime switch `game.look3` (true by default, `?look3off`, A/B in one session without reload): soft sun shadows (PCSS-style blocker search + rotated disk, TAA-resolved, `src/render/look3.js`), contact AO kernel now rotates per frame (was a fixed dot pattern) + a wider 3 m ground-contact ring, tone map switch (`game.lookTM` aces/agx/neutral). Shot tool `tools/v2/look/look-shots.mjs` (fixed cameras, A/B variants). First A/B run queued for a browser slot.
+
 ## keys
+- 04:10 Lane weeds (lead, gpF_keys_close_dusk): Nico's weeds / tufts / straps / palmettos / periwinkle are now rejected at the source inside every road ribbon (road graph, half width + 0.4 m; palmettos 1.2 m) via opts.roadClear; `tools/v2/vegetation/onroad.mjs 70` no longer lists nh_detail/weeds, plants:straps, plants:grass or palmetto. Still in the lane, not mine: miami-city M.pool x6 (around world -840, 4821), an unnamed InstancedMesh x66 at world (-846.2, 4802.3) on Pelican Point Ln east (identifying it), lot-props TrashCan(Grey) x2 at (-804.9, 4846.8). Also done: game.nicoHouse.stairs for the player's foot IK, roll-off heap of tear-out, side fences end at the bay, neighbor houses checked for flicker (walls stable; only wind/peds move). Final sheets: `docs/v2/shots/keys/cmp_k17_*.png` (11 cameras incl. dusk and after rain).
 - 03:50 Perf A/B, same Chrome, keys pass on vs `?keys=0` (k14; machine load 70-100 so ms are noisy): mock-up deck camera 39.9 vs 38.7 ms / 994 vs 748 calls; front deck 47.6 vs (130, noise) ms / 906 vs 736; street 861 vs 774 calls; aerial 1005 vs 905; dock 460 vs 440. Frame time unchanged where the run was quiet; the extra calls are the 12 neighbor houses, yard materials and planting fields. The brown untextured box in fx4 is the pickups starter-stash crate (src/gameplay/pickups.js:167); I converted the user's crate (public/assets/models/keys/crate.glb) and told the lead. Gray striped pickup + rusty classic now match the mock-up (cars helper). `k14_ab_r0b.png` is the best mock-up match so far.
 - 03:35 (times above were off by an hour; these are real) Roll-off: repainted lettering panels again, the GLB's texture shows only "KEYS ROLL-OFF" (checked by extracting it). Commits now `git commit -- <my files>` only; told the lead which earlier keys commits had swept in others' staged files (bc887bf, 8a245bc, e17ffd2). Draw calls: measured per group at the deck (base 1262): keysLots 369 (boathouse model has 29 materials; boats as meshes with shadows), houses 452, Nico exterior 396, interior 273 even though the deck views look away from the house. Fixed: no boathouse (clean pier), boats instanced + no sun shadows, lines merged, piles no shadows, neighbor layer hidden past 450 m, interior only while the camera faces the house. Slab joints closed, nothing grows through the slabs, landing sand bank in the yard's scan. Ground helper removed the white seawall copings + land-base band on Nico's beach. Sheets: `cmp_k12_*.png` (all reference cameras); final A/B `k14` running.
 - 03:40 Lead review fixes: yard is now pale crushed shell/limestone dust (shell scan + gray-green matted grass, damp patches, 31 hand-placed weed clumps, more matted decals); Nico's dock starts AT the waterline on a short seawall landing with timber steps (nothing on the sand), limestone riprap along his shore, chain-link fences down both lot lines to the water, mangroves at the riprap ends, shell path from the bay stair; all walkway sections from the kit piece that renders (two kit pieces dropped out of the draw); planter bougainvillea now cascades over the lattice; blob shrubs by the planter removed; corner rail pot removed. Cars helper fixed Nico's gray striped pickup + moved the classic beside it; the van moved off pp_blue's front yard. Ground helper added a shelf + bleached Keys asphalt; the remaining white line on the beach (-18,-24.8)->(0.5,-19.4) is not a mesh of mine or the tiles: sent to ground. Sheets: `cmp_k9_r7_dock_close.png`, `cmp_k9_r0b_deck.png`, `cmp_k9_r2_back.png`; re-shoot `k10` running.
@@ -70,6 +74,13 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 04:10 Night close-ups of 12 different traffic models with head / tail lamps lit: `docs/v2/shots/cars/cun_<key>_night.png`
+  (van1, truck2, sedan8, suv10, conv1, coupe3, sedan7, hatch1, suv2, sedan5, hatch2, police1 with strobes). Rare cars park
+  themselves once each when the player comes near: hypercar at the casino valet (`rare_casino_super5.png`), classic wedge on
+  Ocean Drive (`rare_ocean_super6.png`); now placed mid-block (one had landed on a corner). Parked cars:
+  `res_res_row1..3.png`. Wheel-to-ground check against the physics colliders: worst 0.001-0.004 m at rest (`cars-rare.json`,
+  `cars-res.json`). sedan8 was driving backward (orientation guessed from one-sided cues): fixed, every model's orientation now
+  pinned in cars.json after the visual review. Note for lead: docs/v2/CONVENTIONS.md has a 4-line cars note (uncommitted, your file).
 - 03:45 Lead review items done: Nico's classic is pale blue with soft rust and faded paint, standing beside the pickup
   (`docs/v2/shots/keys/cars_nico2_deck.png`, `cars_nico2_street.png`, night `cars_nico2_deck_night.png`); the pickup is a
   darker gray with the black hood stripe (`stripe` = paint patch) and a 7 cm lift (studio check of the stripe:
@@ -200,6 +211,16 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 03:55 Lead's items: dark oval "splats" on dirt verges = countryside shoulder pebbles / loose rocks with a near-black albedo
+  (0.13 x tint 0.6): now pale limestone, smaller, fewer and half buried (`gp13_keys2_side.png`, `gp13_keys2_close.png`); Keys
+  shoulders are crushed shell + sand in patches and the dark Keys soil is lifted to limestone gray-beige. (2) beyond 320 m: a
+  third, road-graph field (2 km) gives a cheap dusty shoulder on near and LOD terrain. (3) Everglades / Big Cypress districts:
+  lawn / scrub cover becomes sawgrass prairie with marsh sloughs, more standing water. (4) sparse weed tufts in curb gutters
+  (photographed weed / clump cards). Told "surfaces" how decals and edges sample the asphalt (contract in my message).
+  (1) Naples "wall" = the Hibiscus St bridge deck barrier (elevated module, screen pick: `elevated-concrete`), not a seawall:
+  its vertex albedo was 0.21 linear, so the shaded face read as flat navy; barriers / walls / fascia now at cast-concrete albedo
+  (elevated/build.js COL). Far views with the new glades / far shoulders: `gp14_glades_far.png`, `gp14_glades_low.png`
+  (sloughs), `gp14_keys_far.png` (Keys from 120 m: turquoise flats, pale islands).
 - 03:40 Final tour with all fixes: `docs/v2/shots/stage1/GROUNDPASS_terrain_aerials.png` and `GROUNDPASS_terrain_grazing.png`
   (aerial + grazing for city lots, park, beach, dunes, Everglades, Big Cypress, farmland, Okeechobee, Naples, Fort Myers, highway,
   causeway, airport, Homestead, Key West, Marathon, Key Largo; Keys at 18:30 and in rain), single shots `gpF_<place>_*.png`.
@@ -378,6 +399,17 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   helpers' changes in it).
 
 ## vegetation
+- 04:10 **Plants in lanes, by owner** (`tools/v2/vegetation/onroad.mjs r x,z ...`: every instanced mesh with instances inside
+  a road ribbon). Pelican Point Ln (Nico's): **keys / nicoHouse** `nh_detail/weeds` x108, `plants:straps` x276,
+  `plants:grass` x125, `plants:palmetto` (already ground-mask patched; the lane is likely missing from the mask there).
+  **Vegetation**: 1 coconut and 1 hibiscus from `game.vegetation.place()`, fixed: place() now refuses a point inside a lane
+  (`onRoad: true` forces it; skips are listed in `game.vegetation.placeSkipped`). Downtown (407,-110), Little Havana,
+  Homestead, the Everglades road and the Key Largo highway: no vegetation layer in a lane. The only hits there are
+  non-plant meshes (lamp pools, npc crowd, unnamed parentless MeshStandardMaterial meshes).
+- 04:10 Blocky bush: the library's Shrub 6 "low-poly leafy bush" (334 tris) is out of the hedges, the mid layer and the
+  city sea grape. Mid layer / tall sea grape: rubber fig (12k tris) at 2.3-3.8 m. Hedges: the round shrub plus
+  `green_shrub`, a new conversion of Flower 2 with the flowers dropped (15k tris). Shots: `t11_keys_yard.png`,
+  `t11_keys_street.png`, `t11_keys_air.png`.
 - 03:35 **Far squares fixed (lead's k7_r5_aerial).** They were my impostors: hiding them at that camera removed every
   square, and forcing no-mip filtering turned them back into trees. Two causes. (1) The bake is one short, wide strip
   (2048 x ~150-600), so the box-filtered mips averaged a whole view column into one half-alpha texel. (2) The per-pixel
@@ -493,6 +525,7 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
   Cypress has no library model: still procedural. Grass Clump 1 is used as tufts around tree bases; Moss 1 not yet.
 
 ## player
+- 04:30 **Second pass done.** (1) **Player ragdoll** (`src/player/ragdoll.v2.js`). It uses the active ragdoll fitted to Nico, in these cases: a car hit above 15 km/h, death, a fall over 4 m (with fall damage), and an explosion inside 80 % of its radius. While ragdolled, the capsule follows the pelvis and the camera follows. Alive, once the body lies still he blends into the get-up clip (face up or face down) and control returns about 2.5 s later; dead, he stays down until the respawn. Test `node tools/v2/player/ragtest.mjs` (`docs/v2/reports/player-rag-r2.json`). Car at 32 km/h: ragdoll, get-up 2.0 s later, back in control at 4.5 s. 7 m fall: 30 damage, get-up 2.3 s, back in control at 4.9 s. Sheet `docs/v2/shots/player/SHEET_ragdoll.png`. (2) `gameplay.js` teleport now uses `game.player.capsule`. (3) Keys exported `game.nicoHouse.stairs`, and the IK uses it. (4) **Foot slide**: stance foot locking in the IK (sole vertices touching the ground keep their world spot; this also covers turning in place), and the gait cycle advances by the real ground speed with stride measured per clip on Nico's rig. Median planted-sole slide: walk 0.14 -> 0.03 m/s, jog / sprint 1.0 -> 0.09 m/s (`docs/v2/reports/player-walk-w12.json`). Foot error is unchanged (median 2.0 mm on the house course).
 - 04:00 Polish pass. **Gait speed** is now measured on Nico's own rig: walk 1.50 m/s, run 3.09, sprint 3.75 (the retarget estimate was 1.36 / 3.09 / 3.90). Planted-sole slide at walk, measured on sole vertices that touch the ground and including the corners of the course, dropped from 0.16 to 0.14 m/s. **Wall test**: walking into a wide wall stops dead, with no pass-through and 0.5 mm of jitter while pushing (`docs/v2/reports/player-walk-w11.json`). Final review sheets: `docs/v2/shots/player/SHEET_final_a.png`, `SHEET_final_b.png`, `compare_preview.png`. Commits from now on use `git commit -- <files>` (my c16cbd80 had swept other helpers' staged files; the props helper had already restored them, and the lead knows).
 - 03:35 **Status: Job 1 and Job 2 done, polish pass running.** Review sheets: `docs/v2/shots/player/SHEET_final_a.png` (front, side, back, face, walk, run, sprint, jump, landing) and `SHEET_final_b.png` (aim, car seat, ragdoll, hit-zone overlay front and side, disguise recolor, camera with a car close by, camera under the stilt house). The user's Preview next to the game: `compare_preview.png`. Old Nico (before): `before_side.png`, `before_face.png`.
   - Walk test (`docs/v2/reports/player-walk-w8.json`), feet measured on the skinned shoe soles. House course (yard, both stair flights, deck, bay stair, dock head, 14 of 14 waypoints): median 2.6 mm, 95th percentile 4.2 cm, stuck 0.07 s. Curb 0.15 m: median 1.8 mm, max 3.3 cm. Beach slope: median 9.6 mm, max 1.8 cm. Jog: house median 2.7 mm, curb median 1.2 mm.
@@ -504,3 +537,23 @@ Key sheets: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png`, `GROUNDPASS_treelawn_
 - 02:15 **Walk test** (`node tools/v2/player/walktest.mjs`, report `docs/v2/reports/player-walk-w5.json`). Course: yard, up both flights of the west stair, along the deck, down the bay stair, out the dock to its head; all 14 waypoints reached. Foot-to-ground error is measured on the skinned shoe soles (planted feet): mean 6.5 mm, median 2.6 mm, 95th percentile 3.0 cm, max 12.8 cm (on a stair edge). Stuck time 0.07 s, no fall-through. Jog: median 2.5 mm, 95th percentile 4.4 cm. Curb (0.15 m) jog: median 2.5 mm, max 1.4 cm. Shots: `docs/v2/shots/player/w5_house_walk_0.png` (stairs), `w5_house_walk_2.png` (deck), `w5_house_walk_4.png` (dock), `w5_front.png`. Two bugs fixed on the way: the IK target vector was overwritten inside the solver (one leg swung out), and on a still pose the mixer skips bones, so post layers stacked frame after frame (legs folding). Now every bone goes back to its animated value before the layers run.
 - 01:05 Real finger joints found on the scan (separate fingers, the curl and fist check renders clean), so gun grips and relaxed hands deform now. Player capsule fitted to the body: radius 0.28 m, top at 1.80 m (was 0.32 x 1.74 m). Hit zones rewritten (src/gameplay/hitZones.js): radii fitted on this mesh, scaled per character from its own bones, an oval torso (two capsules), hands and feet covered, a head sphere that follows each rig's head joint, and a debug overlay `hitZoneDebug(game, chars)`. Foot IK: pelvis drops, the legs bend to the real ground, feet land on stair treads (not the ramp collider), planted feet tilt to slopes. Nico now sits visibly in the driver's seat of cars (he was hidden before). The camera follows the smoothed ground height (no jolt on curbs or steps). Before shots of the old Nico: `docs/v2/shots/player/before_side.png`, `before_face.png`. The walk test and the full shot set are queued (3 browser slots are shared by all helpers).
 - 00:50 **Nico is now the user's own model** (Models/Main Character 1, Tripo; folder 2 is byte-identical geometry and textures, so folder 1 is used). Rigged onto the game skeleton (52 Mixamo-named joints, bone-heat weights, LOD 95k / 24k / 7k tris), 4K albedo + normal + matte roughness, 1.83 m. Every existing clip retargets onto it at load. `?nico=old` = pipeline Nico. Build: `tools/v2/player/build.sh`. Shots: `docs/v2/shots/player/t1_face.png`, `t1_side.png`, `t1_walk.png`. Next: clear test spot, hit zones, capsule, foot IK test.
+
+## surfaces
+- 04:10 Started (paved surfaces map-wide: asphalt, paint, sidewalks / curbs). New module `src/world/surfaces/` (roadChannel.js = per-vertex
+  lane frame for road ribbons / paint / decals; surfaceShaders.js = asphalt / paint / sidewalk shader patches chained after the ground
+  pass's groundWear + groundEdge), 3 small hooks in tilebuild (channel attach, setRoad per road, M.roadLane on the ribbon mesh) and one
+  in materials.js. A/B in one session: `window.__surfaces.set(false)`; `?surfaces=0` = off. Shots: `tools/v2/surfaces/shots.mjs` ->
+  `docs/v2/shots/surfaces/`. First A/B run in progress.
+
+## shops
+- 04:35 Started 03:40. Found: 608 of 4527 mapped storefronts face a lawn (no sidewalk), mostly the mainland towns (Fort Myers Main St,
+  Hialeah Gardens, Big Cypress, Port Charlotte, Clewiston). The toy-like clothing interior in gpF_causeway_graze was the legacy (v1)
+  engine: kind `clothing` / small lots never reached the V2 boutique. Changes in progress (A/B `?aprons=0&shops=0`):
+  (1) `src/world/shops/frontage.js` + one hook in tilebuild buildNear: flush concrete forecourt from the facade to the road edge, or
+  a 2.4 m walk + asphalt parking strip with painted stalls and wheel stops when the road is far; joins the ground mask as paved and
+  the lawn index (no grass through it). (2) `clothing` -> V2 boutique (minSize 4.6 x 5.5), liquor / variety / deli -> V2 convenience;
+  synthetic lots 6.5 m wide, >= 6.5 m deep (V2 fits). (3) 3D scalloped awnings with sag + ribs (tile shells and V2 fronts; the V2
+  front skips its own awning where the shell already hangs one: no double awnings). (4) `src/world/interiors/frontDress.js`: sign band
+  face (the fascia baked black), brand sign (box / channel / painted with gooseneck lamps), blade sign, pilasters, sill ledges, cornice,
+  window posters / OPEN neon / payment stickers / gold name lettering, roll-down security shutter (down after hours) on worn shops.
+  Preview: `docs/v2/shots/shops/B0_preview_boutique_street.png` (before) vs `A1_preview_boutique_street.png`. In-game tour running.

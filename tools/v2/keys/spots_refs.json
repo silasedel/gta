@@ -77,9 +77,9 @@
  },
  "r3_side": {
   "eye": [
-   -31.0,
-   1.8,
-   9.0
+   -36.0,
+   2.6,
+   4.0
   ],
   "look": [
    -5.0,
@@ -87,7 +87,7 @@
    0.0
   ],
   "tod": 16,
-  "fov": 55,
+  "fov": 50,
   "ref": "docs/v2/plan/nico_house/3_side_yard.webp"
  },
  "r4_stairs": {
