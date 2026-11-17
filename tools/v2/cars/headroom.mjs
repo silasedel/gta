@@ -57,7 +57,8 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: +(o.max || 2400) }, as
   for (let ci = 0; ci < CARS.length; ci++) {
     const key = CARS[ci];
     // a fresh spot per car (a removed car's spot can stay reserved for a moment: spawnParked then returns null)
-    await b.eval(`(() => { game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`); await b.sleep(400);
+    // (teleporting inside a physics step throws in Rapier: retry on the next frames)
+    await b.eval(`(async () => { for (let t = 0; t < 10; t++) { try { if (game.player?.vehicle || game.playerVehicle) game.exitVehicle(); game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; } catch (e) { await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 30))); } } return 0; })()`); await b.sleep(400);
     const r = await b.eval(`(async () => { const pp = { x: ${AT[0]} + (${ci} % 6) * 7 - 17, z: ${AT[1]} + 10 + ((${ci} / 6) | 0) % 4 * 8 };
       for (const v of window.__cars || []) { try { game.vehicles.remove(v); } catch (e) {} } window.__cars = [];
       for (const c of window.__seated) { try { c.root.parent?.remove(c.root); c.dispose?.(); } catch (e) {} } window.__seated = [];
@@ -70,7 +71,7 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: +(o.max || 2400) }, as
       return n; })()`);
     if (r === 'no car') { rep.cars[key] = { err: r }; console.log(key, r); continue; }
     if (NICO) {
-      await b.eval(`(() => { const t = window.__cv.mesh.position; game.teleport(t.x + 2.2, undefined, t.z, 0); return 1; })()`); await b.sleep(700);
+      await b.eval(`(async () => { const t = window.__cv.mesh.position; for (let i = 0; i < 10; i++) { try { game.teleport(t.x + 2.2, undefined, t.z, 0); return 1; } catch (e) { await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 30))); } } return 0; })()`); await b.sleep(700);
       await b.eval(`(() => { game.enterVehicle(window.__cv); return 1; })()`); await b.sleep(1300);
     } else await b.sleep(900);
     const res = JSON.parse(await b.eval(`${MEASURE}([${NICO ? 'game.playerCharacter, ' : ''}...window.__seated].filter(Boolean))`));
@@ -91,7 +92,7 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: +(o.max || 2400) }, as
       await b.sleep(800); fs.mkdirSync('docs/v2/shots/cars/r2', { recursive: true }); await b.screenshot(`docs/v2/shots/cars/r2/hr_${key}.png`);
       await b.eval(`(() => { game.cameraOverride = null; return 1; })()`);
     }
-    if (NICO) { await b.eval(`(() => { game.exitVehicle(); return 1; })()`); await b.sleep(500); }
+    if (NICO) { await b.eval(`(() => { try { game.exitVehicle(); } catch (e) {} return 1; })()`); await b.sleep(900); }
   }
 });
 fs.writeFileSync('docs/v2/reports/cars-r2-headroom.json', JSON.stringify(rep, null, 1));
