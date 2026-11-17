@@ -1,0 +1,54 @@
+{
+ "rural_road": {
+  "street": [
+   -1540,
+   -2400
+  ],
+  "h": 1.6,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "rural_air": {
+  "at": [
+   -1540,
+   -2400
+  ],
+  "eyeRel": [
+   -60,
+   35,
+   -80
+  ],
+  "lookRel": [
+   0,
+   0,
+   0
+  ],
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_close": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 0.7] : null; })()",
+  "back": 11,
+  "h": 1.6,
+  "lh": 1.8,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "mangrove_air": {
+  "atExpr": "(() => { const cs = game.vegetation.countryside; if (!cs) return null; const t = cs.nearestTree(-873.6, 4825.2, 'mangrove'); return t ? [t.x, t.z, 2.2] : null; })()",
+  "back": 45,
+  "h": 28,
+  "lh": 0,
+  "tod": 11,
+  "hidePlayer": true
+ },
+ "homestead_street": {
+  "street": [
+   -1320,
+   3190
+  ],
+  "h": 1.7,
+  "tod": 11,
+  "hidePlayer": true
+ }
+}

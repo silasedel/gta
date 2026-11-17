@@ -94,7 +94,7 @@ function biomeOf(ctx, x, z) {
   const L = T.LI, lay = T.layerAt(x, z), keys = T.isKeys(x, z);
   if (lay === L.base || lay === L.gravel || lay === L.farm || lay === L.grove || lay === L.dirt || lay === L.rock || lay === L.damp) return 0;
   const shore = D.isWater(x + 7, z) || D.isWater(x - 7, z) || D.isWater(x, z + 7) || D.isWater(x, z - 7);
-  if (shore && (lay === L.marsh || ((keys || (D.zoneAt && D.zoneAt(x, z) === 'wilderness')) && vn(x / 33, z / 33) > 0.45 && lay !== L.sand))) return BIDX.mangrove;
+  if (shore && (z > 0 || keys) && (lay === L.marsh || ((keys || (D.zoneAt && D.zoneAt(x, z) === 'wilderness')) && vn(x / 33, z / 33) > 0.45 && lay !== L.sand))) return BIDX.mangrove; // salt shores only
   if (lay === L.sawgrass) return BIDX.glade;
   if (lay === L.marsh) return (keys || D.isWater(x + 45, z) || D.isWater(x - 45, z) || D.isWater(x, z + 45) || D.isWater(x, z - 45)) ? BIDX.marsh : BIDX.swamp; // salt marsh by open water, freshwater swamp inland
   if (lay === L.forest) return BIDX.hammock;
@@ -119,7 +119,7 @@ export function placeTrees(ctx, x0, z0, S, emit) {
     let b = biomeOf(ctx, x, z), wet = false;
     if (!b) { // shallows along wild / Keys shores: red mangroves stand IN the water, roots in the mud (clumps along the shoreline, never offshore)
       const D = ctx.data; if (!D.isWater(x, z) || (ctx.terrain.real && ctx.terrain.real(x, z))) continue;
-      const keys = ctx.terrain.isKeys(x, z); if (!keys && !(D.zoneAt && /wilderness|rural/.test(D.zoneAt(x, z) || ''))) continue;
+      const keys = ctx.terrain.isKeys(x, z); if (!keys && !(z > 0 && D.zoneAt && /wilderness|rural/.test(D.zoneAt(x, z) || ''))) continue; /* mangroves: salt water only (Keys, the Everglades coast and Florida Bay), not the freshwater lakes north of the city */
       let land = 0; for (const [dx, dz] of [[4.5, 0], [-4.5, 0], [0, 4.5], [0, -4.5], [3.2, 3.2], [-3.2, -3.2], [3.2, -3.2], [-3.2, 3.2]]) if (!D.isWater(x + dx, z + dz)) land++; // only the shallow fringe right at the shore (deeper water: the roots would hang in the water)
       if (!land || vn(x / 41 + 2.7, z / 41 - 1.3) < 0.36 || p > 0.8) continue;
       b = BIDX.mangrove; wet = true;
