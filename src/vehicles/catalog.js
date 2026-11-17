@@ -75,28 +75,28 @@ const DEFS = [];
 const m = (key, brand, name, cls, arch, eng, pal, o = {}) => DEFS.push({ key, brand, name, cls, arch, eng, pal, o });
 
 // city cars + hatches
-m('compact', 'Pico', 'Uno', 'compact', 'hatch', 'i4', 'fun', { sz: 0.96 });
-m('pico_volt', 'Pico', 'Volt', 'compact', 'citycar', 'ev', 'fun', { engine: 5200, vmax: 150 });
+m('compact', 'Pico', 'Pebble', 'compact', 'hatch', 'i4', 'fun', { sz: 0.96 });
+m('pico_volt', 'Pico', 'Ampere', 'compact', 'citycar', 'ev', 'fun', { engine: 5200, vmax: 150 });
 m('mirabel_dot', 'Mirabel', 'Dot', 'compact', 'citycar', 'i3', 'fun', { sz: 0.94, sy: 1.02 });
-m('tarpon_go', 'Tarpon', 'Go', 'compact', 'citycar', 'i3', 'std', { sz: 1.04, sx: 1.02 });
+m('tarpon_go', 'Tarpon', 'Zip', 'compact', 'citycar', 'i3', 'std', { sz: 1.04, sx: 1.02 });
 m('marlin_hatch', 'Marlin', 'Coast 5', 'compact', 'hatch', 'i4', 'std', { sz: 1.03 });
 m('kestrel_line_h', 'Kestrel', 'Line H', 'compact', 'hatch', 'i4t', 'std', { sx: 1.02, engine: 6600 });
-m('pico_rs', 'Pico', 'Uno RS', 'sports', 'hatch', 'i4t', 'sport', { sy: 0.97, engine: 8200, vmax: 230, grip: 2.7, kit: 'sport', wing: true, rimColor: 0x1d1f22, caliper: 0xd8261b, spokes: 10, susp: [0.3, 44] });
-m('kestrel_rally', 'Kestrel', 'Terra R', 'sports', 'hatch', 'i4t', 'sport', { sx: 1.04, engine: 9000, vmax: 225, drive: 'awd', grip: 2.6, rally: true, wing: true, r: 0.34, yb: 0.26, susp: [0.38, 36], spokes: 6, rimColor: 0xeeeeee });
+m('pico_rs', 'Pico', 'Pebble RS', 'sports', 'hatch', 'i4t', 'sport', { sy: 0.97, engine: 8200, vmax: 230, grip: 2.7, kit: 'sport', wing: true, rimColor: 0x1d1f22, caliper: 0xd8261b, spokes: 10, susp: [0.3, 44] });
+m('kestrel_rally', 'Kestrel', 'Mesa R', 'sports', 'hatch', 'i4t', 'sport', { sx: 1.04, engine: 9000, vmax: 225, drive: 'awd', grip: 2.6, rally: true, wing: true, r: 0.34, yb: 0.26, susp: [0.38, 36], spokes: 6, rimColor: 0xeeeeee });
 // sedans
 m('kestrel_line', 'Kestrel', 'Line', 'sedan', 'sedan', 'i4', 'std', { sz: 0.93, sx: 0.97 });
 m('sedan', 'Marlin', 'Coastline', 'sedan', 'sedan', 'i4', 'std', {});
-m('osprey_mid', 'Osprey', 'Meridian', 'sedan', 'sedan', 'v6', 'std', { sz: 1.02, sy: 1.01, engine: 7600 });
-m('cayo_grand', 'Cayo', 'Grandeur', 'sedan', 'sedan', 'v6', 'lux', { sz: 1.06, sx: 1.03, mass: 1650, engine: 8400, bigGrille: true });
+m('osprey_mid', 'Osprey', 'Palmetto', 'sedan', 'sedan', 'v6', 'std', { sz: 1.02, sy: 1.01, engine: 7600 });
+m('cayo_grand', 'Cayo', 'Gran Vista', 'sedan', 'sedan', 'v6', 'lux', { sz: 1.06, sx: 1.03, mass: 1650, engine: 8400, bigGrille: true });
 m('tarpon_cabrio', 'Tarpon', 'Bayline Cabrio', 'sports', 'sedan', 'i4', 'fun', { year: 1988, sz: 0.93, sy: 0.97, convertible: true, coupe: true, zC: -0.45, zD: -0.85, engine: 6400, vmax: 200, rimColor: 0xb9bdc1 });
 m('marlin_cab', 'Marlin', 'Coastline Cabrio', 'sports', 'sedan', 'v6', 'fun', { sz: 0.95, convertible: true, coupe: true, zC: -0.5, zD: -0.9, engine: 7600 });
 // luxury / executive
 m('luxury', 'Aurelia', 'Regent', 'sedan', 'lux', 'v8l', 'lux', {});
-m('aurelia_sov', 'Aurelia', 'Sovereign L', 'sedan', 'lux', 'v8l', 'lux', { sz: 1.06, mass: 2150, engine: 12000 });
-m('halcyon_vesta', 'Halcyon', 'Vesta', 'sedan', 'lux', 'v6t', 'lux', { sz: 0.96, sy: 0.97, engine: 10500, drive: 'rwd' });
-m('halcyon_e', 'Halcyon', 'Vesta E', 'sedan', 'lux', 'ev', 'lux', { sz: 0.97, engine: 13000, vmax: 240, bigGrille: false });
+m('aurelia_sov', 'Aurelia', 'Regalia L', 'sedan', 'lux', 'v8l', 'lux', { sz: 1.06, mass: 2150, engine: 12000 });
+m('halcyon_vesta', 'Halcyon', 'Vesper', 'sedan', 'lux', 'v6t', 'lux', { sz: 0.96, sy: 0.97, engine: 10500, drive: 'rwd' });
+m('halcyon_e', 'Halcyon', 'Vesper E', 'sedan', 'lux', 'ev', 'lux', { sz: 0.97, engine: 13000, vmax: 240, bigGrille: false });
 // coupes / GT / roadsters
-m('solano_corsa', 'Solano', 'Corsa', 'sports', 'coupe', 'i4t', 'sport', {});
+m('solano_corsa', 'Solano', 'Corsara', 'sports', 'coupe', 'i4t', 'sport', {});
 m('sports', 'Solano', 'GT 400', 'sports', 'gt', 'v6t', 'sport', {});
 m('aurelia_gt', 'Aurelia', 'Gran Tourer', 'sports', 'coupe', 'v12', 'lux', { sz: 1.06, sx: 1.03, engine: 12500, vmax: 300, lux: true, mass: 1800, drive: 'rwd' });
 m('roadster', 'Aurelia', 'Spyder', 'sports', 'roadster', 'i4t', 'sport', {});
@@ -109,14 +109,14 @@ m('tarpon_classic', 'Tarpon', 'Bayline 69', 'muscle', 'muscle', 'v8', 'fun', { s
 // supercars / hyper
 m('super', 'Vireo', 'Saetta V12', 'super', 'super', 'v12', 'sport', {});
 m('vireo_fulmine', 'Vireo', 'Fulmine', 'super', 'super', 'v10', 'sport', { sz: 0.97, roofY: 1.1, engine: 12600, vmax: 320 });
-m('solano_scirocco', 'Solano', 'Scirocco', 'super', 'super', 'v8s', 'sport', { sz: 1.02, sx: 0.98, noseY: 0.48, wing: false, engine: 12000, vmax: 315 });
+m('solano_scirocco', 'Solano', 'Libeccio', 'super', 'super', 'v8s', 'sport', { sz: 1.02, sx: 0.98, noseY: 0.48, wing: false, engine: 12000, vmax: 315 });
 m('vireo_aeterna', 'Vireo', 'Aeterna', 'super', 'super', 'w16', 'lux', { sz: 1.04, sx: 1.03, engine: 17000, vmax: 400, mass: 1800, downforce: 2.0, hyper: true });
 // SUVs / off-road
-m('cayo_mini', 'Cayo', 'Breeze', 'suv', 'suv', 'i4t', 'fun', { sz: 0.9, sx: 0.94, sy: 0.92, mass: 1450, engine: 6600 });
+m('cayo_mini', 'Cayo', 'Sola', 'suv', 'suv', 'i4t', 'fun', { sz: 0.9, sx: 0.94, sy: 0.92, mass: 1450, engine: 6600 });
 m('suv', 'Cayo', 'Trail XL', 'suv', 'suv', 'v6', 'std', {});
 m('cayo_max', 'Cayo', 'Max', 'suv', 'suv', 'v8', 'std', { sz: 1.12, sx: 1.05, sy: 1.04, mass: 2500, engine: 10500 });
 m('aurelia_x', 'Aurelia', 'Xanthe', 'suv', 'suv', 'v8l', 'lux', { sz: 1.02, lux: true, engine: 11500, vmax: 250 });
-m('ridgeback_scout', 'Ridgeback', 'Scout', 'suv', 'offroad', 'v6', 'work', {});
+m('ridgeback_scout', 'Ridgeback', 'Outrider', 'suv', 'offroad', 'v6', 'work', {});
 m('ridgeback_dune', 'Ridgeback', 'Dune 2', 'suv', 'offroad', 'v8', 'fun', { sz: 0.9, convertible: true, zC: -1.2, zD: -1.4 });
 // pickups
 m('ridgeback_mid', 'Ridgeback', '1500 Trail', 'pickup', 'pickup', 'v6', 'work', { sz: 0.94, sx: 0.96, mass: 1900 });
@@ -132,9 +132,9 @@ m('citybus', 'Southline Transit', 'Metro S12', 'bus', 'bus', 'dslH', 'work', { b
 // service vehicles
 m('taxi', 'Marlin', 'Coastline Cab', 'taxi', 'sedan', 'i4', 'std', { taxi: true, vmax: 170 });
 m('taxi_xl', 'Cayo', 'Trail Cab XL', 'taxi', 'suv', 'v6', 'std', { taxi: true });
-m('police', 'Marlin', 'Interceptor', 'police', 'sedan', 'v8', 'std', { police: 'bar', engine: 8800, vmax: 230, grip: 2.5, rimColor: 0x1d1f22, pushBar: true });
-m('police_suv', 'Cayo', 'Interceptor Utility', 'police', 'suv', 'v8', 'std', { police: 'bar', engine: 9800, vmax: 220, pushBar: true });
-m('unmarked', 'Osprey', 'Meridian (unmarked)', 'police', 'sedan', 'v8', 'std', { police: 'hidden', sz: 1.02, engine: 8800, vmax: 230, rimColor: 0x2a2d30 });
+m('police', 'Marlin', 'Patrol PX', 'police', 'sedan', 'v8', 'std', { police: 'bar', engine: 8800, vmax: 230, grip: 2.5, rimColor: 0x1d1f22, pushBar: true });
+m('police_suv', 'Cayo', 'Patrol PX Utility', 'police', 'suv', 'v8', 'std', { police: 'bar', engine: 9800, vmax: 220, pushBar: true });
+m('unmarked', 'Osprey', 'Palmetto (unmarked)', 'police', 'sedan', 'v8', 'std', { police: 'hidden', sz: 1.02, engine: 8800, vmax: 230, rimColor: 0x2a2d30 });
 m('ambulance', 'Corvo', 'Medic One', 'van', 'box', 'dsl', 'work', { sz: 0.92, sx: 0.95, ambulance: true, police: 'ambulance', box: { front: 1.25, top: 2.95 }, mass: 4200, engine: 13000, vmax: 140 });
 m('firetruck', 'Atlas', 'Engine 9', 'truck', 'box', 'dslH', 'work', { sz: 1.25, sx: 1.04, fire: true, police: 'fire', box: { front: 1.4, top: 2.9 }, mass: 9000, engine: 24000, vmax: 120 });
 

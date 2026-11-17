@@ -61,55 +61,55 @@ const F = [];
 const c = (key, brand, name, cls, phys, L, tier, eng, year, o = {}) => F.push({ key, brand, name, cls, phys, L, tier, eng, year, ...o });
 // sedans
 c('sedan1', 'Marlin', 'Coastline', 'sedan', 'sedan', 4.88, 2, 'i4', 2021);
-c('sedan2', 'Halcyon', 'Vesta S', 'sports', 'sportsedan', 4.67, 3.5, 'v6t', 2016, { pal: 'sport' });
+c('sedan2', 'Halcyon', 'Vesper S', 'sports', 'sportsedan', 4.67, 3.5, 'v6t', 2016, { pal: 'sport' });
 c('sedan3', 'Aurelia', 'Regent C', 'sedan', 'sedan', 4.75, 3.5, 'i4t', 2020, { pal: 'lux' });
-c('sedan4', 'Halcyon', 'Vesta E', 'sedan', 'ev', 4.69, 3, 'ev', 2022);
+c('sedan4', 'Halcyon', 'Vesper E', 'sedan', 'ev', 4.69, 3, 'ev', 2022);
 c('sedan5', 'Kestrel', 'Line', 'sedan', 'sedan', 4.64, 1.8, 'i4', 2017);
-c('sedan6', 'Osprey', 'Meridian', 'sedan', 'sedan', 4.93, 2, 'i4t', 2019);
+c('sedan6', 'Osprey', 'Palmetto', 'sedan', 'sedan', 4.93, 2, 'i4t', 2019);
 c('sedan7', 'Mirabel', 'Arc', 'sedan', 'sedan', 4.70, 2, 'i4t', 2019);
-c('sedan8', 'Tarpon', 'Brisa', 'sedan', 'sedan', 4.97, 2.3, 'i4t', 2021);
-c('sedan9', 'Cayo', 'Elan N', 'sports', 'sportsedan', 4.68, 2.6, 'i4t', 2022, { pal: 'sport' });
+c('sedan8', 'Tarpon', 'Alisio', 'sedan', 'sedan', 4.97, 2.3, 'i4t', 2021);
+c('sedan9', 'Cayo', 'Elara N', 'sports', 'sportsedan', 4.68, 2.6, 'i4t', 2022, { pal: 'sport' });
 c('sedan10', 'Cayo', 'Forta', 'sedan', 'sedan', 4.64, 1.8, 'i4', 2019);
-c('police1', 'Brava', 'Interceptor', 'police', 'muscle', 5.10, 3, 'v8', 2020, { police: 'bar', livery: 'police', palette: [0x0e0f11] });
-c('taxi1', 'Osprey', 'Meridian Cab', 'taxi', 'sedan', 4.93, 2, 'i4t', 2019, { model: 'sedan6', taxi: true, livery: 'taxi', palette: [0xf5b800] });
+c('police1', 'Brava', 'Patrol PX', 'police', 'muscle', 5.10, 3, 'v8', 2020, { police: 'bar', livery: 'police', palette: [0x0e0f11] });
+c('taxi1', 'Osprey', 'Palmetto Cab', 'taxi', 'sedan', 4.93, 2, 'i4t', 2019, { model: 'sedan6', taxi: true, livery: 'taxi', palette: [0xf5b800] });
 // compacts / hatches
-c('hatch1', 'Mirabel', 'Uno 5', 'compact', 'compact', 4.46, 2, 'i4', 2020);
+c('hatch1', 'Mirabel', 'Pebble 5', 'compact', 'compact', 4.46, 2, 'i4', 2020);
 c('hatch2', 'Pico', 'Eco', 'compact', 'compact', 4.54, 1.6, 'i4', 2012);
 // coupes / muscle / classic
 c('coupe2', 'Brava', 'Thunder', 'muscle', 'muscle', 4.81, 3, 'v8', 2024, { pal: 'sport' });
-c('coupe3', 'Halcyon', 'Vesta Coupe', 'sports', 'sports', 4.80, 3.5, 'v6t', 2021, { pal: 'sport' });
+c('coupe3', 'Halcyon', 'Vesper Coupe', 'sports', 'sports', 4.80, 3.5, 'v6t', 2021, { pal: 'sport' });
 c('conv1', 'Brava', 'Bayline 65', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { convertible: true, classic: true, pal: 'sport' });
 // Nico's second car (user-provided model): a 1970 two-door muscle coupe, sun-faded; parked at his place only
-c('coupe4', 'Brava', 'Sovereign 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
+c('coupe4', 'Brava', 'Regalia 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
 c('coupe5', 'Brava', 'Bayline Coupe', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { classic: true, pal: 'sport' });
 // rare: one of each on the map (placements.js), never random traffic
 c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, pal: 'sport' });
 c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v8s', 2017, { rare: true, palette: [0xb3121b] });
-c('super4', 'Solano', 'Scirocco RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, palette: [0xa9aeb4] });
+c('super4', 'Solano', 'Libeccio RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, palette: [0xa9aeb4] });
 c('super5', 'Vireo', 'Aeterna', 'super', 'hyper', 4.54, 5, 'w16', 2021, { rare: true, palette: [0x1d3f8f] });
-c('super6', 'Vireo', 'Testa 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, classic: true, palette: [0xb3121b] });
-c('suv7', 'Aurelia', 'Sovereign X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, palette: [0x101214] });
+c('super6', 'Vireo', 'Sorpasso 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, classic: true, palette: [0xb3121b] });
+c('suv7', 'Aurelia', 'Regalia X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, palette: [0x101214] });
 // SUVs
 c('suv1', 'Aurelia', 'Bastion', 'suv', 'luxsuv', 4.87, 4.5, 'v8l', 2020, { pal: 'lux' });
 c('suv2', 'Ridgeback', 'Trailcat', 'suv', 'offroad', 4.88, 2.6, 'v6', 2021);
 c('suv3', 'Aurelia', 'Empire XL', 'suv', 'luxsuv', 5.38, 4, 'v8', 2019, { pal: 'lux' });
-c('suv4', 'Cayo', 'Breeze', 'suv', 'suv', 4.60, 2, 'i4', 2020);
-c('suv5', 'Kestrel', 'Terra', 'suv', 'suv', 4.70, 2.3, 'i4t', 2021);
+c('suv4', 'Cayo', 'Sola', 'suv', 'suv', 4.60, 2, 'i4', 2020);
+c('suv5', 'Kestrel', 'Mesa', 'suv', 'suv', 4.70, 2.3, 'i4t', 2021);
 c('suv6', 'Cayo', 'Tuxa', 'suv', 'suv', 4.63, 2, 'i4', 2022);
 c('suv8', 'Osprey', 'Trek', 'compact', 'compact', 4.27, 1.7, 'i3', 2018);
 c('suv9', 'Marlin', 'Ridge', 'suv', 'suv', 4.69, 2.2, 'i4t', 2023);
 c('suv10', 'Cayo', 'Sporta', 'suv', 'suv', 4.66, 2, 'i4', 2023);
 c('suv11', 'Mirabel', 'Crest', 'suv', 'suv', 4.55, 2.2, 'i4', 2019);
-c('suv12', 'Ridgeback', 'Scout 2', 'pickup', 'offroad', 4.41, 2.6, 'v6t', 2022);
-c('suv13', 'Kestrel', 'Terra X', 'compact', 'suv', 4.48, 2, 'i4', 2015);
+c('suv12', 'Ridgeback', 'Outrider 2', 'pickup', 'offroad', 4.41, 2.6, 'v6t', 2022);
+c('suv13', 'Kestrel', 'Mesa X', 'compact', 'suv', 4.48, 2, 'i4', 2015);
 c('suv14', 'Ridgeback', 'Trail 4', 'pickup', 'offroad', 4.82, 2, 'v6', 2008);
 c('suv15', 'Marlin', 'Grand Ridge', 'suv', 'suv', 4.95, 2.5, 'v6', 2021);
 // work
 c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, { pal: 'work', parkedOnly: true }); // its atlas mixes body, livery and windows: parked work truck only
 // Nico's own truck (user-provided model): a wide high-performance off-road pickup; never in random traffic
-c('truck9', 'Ridgeback', 'Raptor Trail X', 'pickup', 'offroad', 5.9, 3, 'v6t', 2020, { parkedOnly: true });
+c('truck9', 'Ridgeback', 'Sandhawk TR', 'pickup', 'offroad', 5.9, 3, 'v6t', 2020, { parkedOnly: true });
 c('van1', 'Corvo', 'Cargo LWB', 'van', 'van', 6.95, 2, 'dsl', 2012, { pal: 'work' });
-c('van5', 'Corvo', 'Traveller', 'van', 'van', 5.2, 1.2, 'v6', 1992, { pal: 'work' });
+c('van5', 'Corvo', 'Wayfarer', 'van', 'van', 5.2, 1.2, 'v6', 1992, { pal: 'work' });
 c('truck3', 'Atlas', 'Cab 14', 'truck', 'box', 6.6, 2, 'dsl', 2006, { palette: [0xf2f2f2] });
 c('truck4', 'Atlas', 'Box 26', 'truck', 'box', 7.6, 1.5, 'dslH', 1994, { palette: [0xf2f2f2] });
 c('truck7', 'Atlas', 'Box 20', 'truck', 'box', 7.0, 2, 'dsl', 2015, { palette: [0xf2f2f2] });
