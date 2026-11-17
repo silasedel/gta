@@ -21,7 +21,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.quality.set('high', { manual: true }); window.__spawn = [game.player.position.x, game.player.position.z, game.player.heading || 0]; return 1; })()`);
   console.log(await b.eval(PROF), await b.eval(PROBE));
   // tileCull.js is parked outside the auto-loader: load it into this page for the A/B (stays off until the A/B turns it on)
-  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.js'); await m.initV2(game); } return !!game.tileCull; })()`));
+  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.v2.js'); await m.initV2(game); } return !!game.tileCull; })()`));
   if (o.shoretest) {
     // shoreFill.js equivalence: fast fill vs the old per-cell loop on coastal windows (same land mask expected)
     rep.shoretest = JSON.parse(await b.eval(`(async () => {

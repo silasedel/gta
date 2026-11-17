@@ -7,14 +7,18 @@
 //   - shown again in scene.onAfterRender, so nothing else ever sees them hidden
 // Boxes are refreshed when a child's object count changes and every few seconds (round-robin). Pixel-identical by
 // construction: a hidden subtree is entirely outside the frustum, so three.js would have culled each of its meshes.
-// OFF by default: ?tilecull=1 or game.tileCull.on = true. Stats: game.tileCull.stats { tested, hidden, objectsSkipped }.
+// Children holding instanced pools that are refilled at run time (instanceMatrix DynamicDrawUsage) are never culled: their
+// bounds can go stale between refreshes.
+// Verified Nov 17 downtown (tools/v2/perf/r2-probe.mjs --tilecull): render CPU 28.9 -> 27.7 ms, image difference on vs off
+// (1.34 mean) below the frame-to-frame noise floor (2.58). On by default; ?tilecull=0 or game.tileCull.on = false = off.
+// Stats: game.tileCull.stats { tested, hidden, objectsSkipped }.
 import * as THREE from 'three';
 
 export const order = 9;
 
 export async function initV2(game) {
   const qs = new URLSearchParams(location.search);
-  const C = game.tileCull = { on: qs.get('tilecull') === '1', margin: 4, stats: { tested: 0, hidden: 0, objectsSkipped: 0, boxMs: 0 } };
+  const C = game.tileCull = { on: qs.get('tilecull') !== '0', margin: 4, stats: { tested: 0, hidden: 0, objectsSkipped: 0, boxMs: 0 } };
   const scene = game.scene, cam = game.camera;
   const info = new WeakMap(); // child -> { box, n, t, objects }
   const fr = new THREE.Frustum(), m = new THREE.Matrix4(), tmp = new THREE.Box3();
@@ -29,6 +33,7 @@ export async function initV2(game) {
     try { I.box.setFromObject(c, false); } catch (e) { I.box.makeEmpty(); }
     if (!I.box.isEmpty()) I.box.expandByScalar(C.margin);
     I.objects = countObjects(c); I.n = c.children.length; I.t = clock;
+    I.dynamic = false; c.traverse((o) => { if (o.isInstancedMesh && o.instanceMatrix?.usage === 35048) I.dynamic = true; }); // DynamicDrawUsage
     C.stats.boxMs += performance.now() - t0;
   }
   function hide(camera) {
@@ -45,7 +50,7 @@ export async function initV2(game) {
       let I = info.get(c);
       if (!I) { I = { box: new THREE.Box3(), n: -1, t: -1, objects: 0 }; info.set(c, I); }
       if (I.n !== c.children.length) refresh(c, I);
-      if (I.box.isEmpty()) continue;
+      if (I.box.isEmpty() || I.dynamic) continue;
       tmp.copy(I.box);
       if (!fr.intersectsBox(tmp)) { c.visible = false; hidden.push(c); C.stats.hidden++; C.stats.objectsSkipped += I.objects; }
     }

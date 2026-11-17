@@ -29,7 +29,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
   console.log('instrument', await b.eval(PAGE));
   rep.boot = await b.eval('JSON.stringify({ ready: window.BOOT?.ready ?? null, gpu: window.__r2p.gpu })');
   if (o.probe) console.log('probe', await b.eval(fs.readFileSync(new URL('./r2-probe.page.js', import.meta.url), 'utf8')));
-  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.js'); await m.initV2(game); } return !!game.tileCull; })()`));
+  if (o.tilecull) console.log('tileCull', await b.eval(`(async () => { if (!game.tileCull) { const m = await import('/src/render/tileCull.v2.js'); await m.initV2(game); } return !!game.tileCull; })()`));
   if (o.init) console.log('init', await b.eval(o.init));
   for (const id of only) {
     const s = PLACES[id]; if (!s) continue;
