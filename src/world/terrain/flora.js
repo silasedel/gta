@@ -113,7 +113,7 @@ export async function createFlora(renderer, M) {
   const VT = {}, VG = {};
   try {
     const mk = (kind, n, o = {}) => Array.from({ length: n }, (_, v) => vegGeometry(kind, { seed: v * 5 + 1 + (o.s0 || 0), ...o }));
-    VT.oak = VT.tree = mk('liveoak', 3); VT.gumbo = mk('gumbo', 3); VT.banyan = mk('liveoak', 2, { size: 1.3, s0: 40 }); VT.pine = mk('slashpine', 3); VT.cypress = mk('cypress', 3); VT.mangrove = mk('mangrove', 3); VT.seagrape = mk('seagrape', 3, { size: 1.5 });
+    VT.oak = VT.tree = mk('liveoak', 4); VT.gumbo = mk('gumbo', 4); // (greenery) 4 street-tree variants each VT.banyan = mk('liveoak', 2, { size: 1.3, s0: 40 }); VT.pine = mk('slashpine', 3); VT.cypress = mk('cypress', 3); VT.mangrove = mk('mangrove', 3); VT.seagrape = mk('seagrape', 3, { size: 1.5 });
     VG.palmetto = mk('sawpalmetto', 3, { lod: 1 }); VG.sawgrass = mk('sawgrass', 4);
   } catch (e) { console.warn('[flora] vegetation geometries unavailable', e); }
   T.tree = T.oak; T.citrusFruit = fruit([[0, 2.6, 0, 1.4], [0.8, 2.2, 0.5, 1.1], [-0.8, 2.3, -0.4, 1.1]], 26, 39);
