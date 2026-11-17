@@ -237,7 +237,8 @@ export async function createVehicles(game) {
       if (fleet?.isGlb(typeKey) && !opts.look) fleet.look(typeKey, look);
       if (opts.stripe) look.stripe = opts.stripe;
       if (opts.ride != null) look.ride = opts.ride;
-      if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.4 ? Math.min(0.8, (w - 0.4) * 1.3) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
+      if (opts.wear && typeof opts.wear === 'object' && !opts.look) { const W = opts.wear; for (const k of ['dirt', 'rust', 'fade', 'age']) if (W[k] != null) look.wear[k] = W[k]; if (W.dirtColor) look.wear.dirtColor = W.dirtColor; look.signature = lookSignature(look); }
+      else if (opts.wear != null && !opts.look) { const w = Math.max(0, Math.min(1, +opts.wear)); look.wear.dirt = Math.max(look.wear.dirt, 0.15 + w * 0.6); look.wear.rust = w > 0.35 ? Math.min(1, (w - 0.3) * 1.3) : 0; look.wear.fade = w > 0.4 ? Math.min(0.8, (w - 0.4) * 1.3) : 0; look.wear.age = Math.max(look.wear.age || 0, w); look.signature = lookSignature(look); }
       if (color != null && !opts.look) { look.color = color; look.twoTone = opts.twoTone ?? null; if (opts.wear == null) { look.wear.dirt = Math.min(look.wear.dirt, 0.15); look.wear.rust = 0; look.dents = []; } look.signature = lookSignature(look); }
       if (!isBuilt(typeKey, look.kit)) look.kit = 'base';
     }
@@ -1252,7 +1253,7 @@ export async function createVehicles(game) {
   // hood stripe in front of the deck, the old faded pale-blue classic broadside to its right.  House-local frame: +Z = street.
   const NICO_CARS = [
     { key: 'truck2', local: [-1.6, 12.6], heading: Math.PI + 0.12, color: 0x8d9196, wear: 0.12, stripe: true, ride: 0.07 }, // gray: low wear (fade whitens paint)
-    { key: 'conv1', local: [-8.5, 14.5], heading: Math.PI + 0.3, color: 0x9fc3c8, wear: 0.9 },
+    { key: 'conv1', local: [-8.5, 14.5], heading: Math.PI + 0.3, color: 0xa9cdd2, wear: { dirt: 0.2, rust: 0.24, fade: 0.32, age: 0.85, dirtColor: 'salt' } }, // pale blue, soft rust (mock-up)
   ];
   const nicoCars = [];
   (async () => {
