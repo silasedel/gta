@@ -495,7 +495,9 @@ export async function createVehicles(game) {
     let ch = null;
     const t = v.body.translation();
     if (game.npc?.createDriver) { // the user's own people (r2-people); null while none is loaded yet -> try again on a later frame
-      try { ch = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'driver', seed: driverSeed++ }); } catch (e) { ch = null; }
+      // anchor / shell / vehicle: r2-people picks only people whose seated crown clears this car's roof (null when nobody fits)
+      if ((v._driverTries = (v._driverTries || 0) + 1) > 40) return;   // nobody fits / loads: stop asking every frame
+      try { ch = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'driver', seed: driverSeed++, anchor: v.seatAnchor?.(0), shell: v.car.shell, vehicle: v }); } catch (e) { ch = null; }
     } else { try { ch = createCharacter(game, { variant: 'ped', seed: driverSeed++ }); } catch (e) { ch = null; } }
     if (!ch || !ch.root) return;
     ch.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
@@ -508,8 +510,8 @@ export async function createVehicles(game) {
       const n = seatList(v).length, roll = Math.random(), k = roll < 0.08 ? 2 : roll < 0.38 ? 1 : 0;
       const seats = [1, 3, 2].filter((i) => i < n).slice(0, k);
       for (const i of seats) {
-        let p = null; try { p = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'passenger', seed: driverSeed++ }); } catch (e) { p = null; }
-        if (!p?.root) continue;
+        let p = null; try { p = game.npc.createDriver({ pos: new THREE.Vector3(t.x, t.y, t.z), role: 'passenger', seed: driverSeed++, anchor: v.seatAnchor?.(i), shell: v.car.shell, vehicle: v }); } catch (e) { p = null; }
+        if (!p?.root) continue;   // nobody fits this seat: it stays empty (no retry)
         p.root.traverse((o) => { if (o.isMesh) o.castShadow = false; });
         v.car.shell.add(p.root); p.update?.(0.5, { driving: true, speed: 0, grounded: true });
         placeInSeat(p, v, i, 'passenger');
