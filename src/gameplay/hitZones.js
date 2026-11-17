@@ -14,16 +14,16 @@ import * as THREE from 'three';
 export const LIMBS = [
   ['head', 'Head', null, 0.118, 'head', 4.0],
   ['neck', 'Neck', 'Head', 0.066, 'head', 2.5],
-  ['torso_upper', 'Spine2', 'Neck', 0.135, 'torso', 1.25, { lat: 0.075, tw: 1 }],
-  ['torso_upper', 'Spine2', 'Neck', 0.135, 'torso', 1.25, { lat: -0.075, tw: 1 }],
-  ['torso_lower', 'Hips', 'Spine2', 0.13, 'torso', 1.0, { lat: 0.07, tw: 1 }],
-  ['torso_lower', 'Hips', 'Spine2', 0.13, 'torso', 1.0, { lat: -0.07, tw: 1 }],
+  ['torso_upper', 'Spine2', 'Neck', 0.135, 'torso', 1.25, { lat: 0.075, tw: 1, side: 1 }],
+  ['torso_upper', 'Spine2', 'Neck', 0.135, 'torso', 1.25, { lat: -0.075, tw: 1, side: -1 }],
+  ['torso_lower', 'Hips', 'Spine2', 0.13, 'torso', 1.0, { lat: 0.07, tw: 1, side: 1 }],
+  ['torso_lower', 'Hips', 'Spine2', 0.13, 'torso', 1.0, { lat: -0.07, tw: 1, side: -1 }],
   ['upperarm_l', 'LeftArm', 'LeftForeArm', 0.08, 'arm', 0.7], ['forearm_l', 'LeftForeArm', 'LeftHand', 0.054, 'arm', 0.6],
   ['upperarm_r', 'RightArm', 'RightForeArm', 0.08, 'arm', 0.7], ['forearm_r', 'RightForeArm', 'RightHand', 0.054, 'arm', 0.6],
-  ['forearm_l', 'LeftHand', 'LeftHandMiddle1', 0.05, 'arm', 0.5, { ext: 0.9 }], ['forearm_r', 'RightHand', 'RightHandMiddle1', 0.05, 'arm', 0.5, { ext: 0.9 }],
+  ['forearm_l', 'LeftHand', 'LeftHandMiddle1', 0.05, 'arm', 0.5, { ext: 0.9, fit: 'hand_l' }], ['forearm_r', 'RightHand', 'RightHandMiddle1', 0.05, 'arm', 0.5, { ext: 0.9, fit: 'hand_r' }],
   ['thigh_l', 'LeftUpLeg', 'LeftLeg', 0.118, 'leg', 0.75, { tw: 0.5 }], ['shin_l', 'LeftLeg', 'LeftFoot', 0.085, 'leg', 0.6],
   ['thigh_r', 'RightUpLeg', 'RightLeg', 0.118, 'leg', 0.75, { tw: 0.5 }], ['shin_r', 'RightLeg', 'RightFoot', 0.085, 'leg', 0.6],
-  ['shin_l', 'LeftFoot', 'LeftToeBase', 0.06, 'leg', 0.5, { ext: 0.6 }], ['shin_r', 'RightFoot', 'RightToeBase', 0.06, 'leg', 0.5, { ext: 0.6 }],
+  ['shin_l', 'LeftFoot', 'LeftToeBase', 0.06, 'leg', 0.5, { ext: 0.6, fit: 'foot_l' }], ['shin_r', 'RightFoot', 'RightToeBase', 0.06, 'leg', 0.5, { ext: 0.6, fit: 'foot_r' }],
 ];
 const REF = { hipsNeck: 0.6055, shoulders: 0.377, hips: 0.2284 };
 // head sphere center from the Head joint: up along Neck->Head (m, reference body) and back. The player's rig pivots the
@@ -48,12 +48,78 @@ function bonesOf(char) {
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _n = new THREE.Vector3(), _u = new THREE.Vector3(), _w = new THREE.Vector3();
 const _l = new THREE.Vector3(), _f = new THREE.Vector3(), _p = new THREE.Vector3(), _q = new THREE.Vector3();
 const clampN = (x, a, b) => (Number.isFinite(x) ? Math.min(b, Math.max(a, x)) : 1);
+// ---- per-character fit from its own skinned mesh (once, lazily, cached): every limb's radius = 85th percentile of the
+// distance of the vertices skinned mostly to that limb from its bone segment; the torso halves get the body's real depth
+// and width; the head sphere sits on the head vertices' center. Kids, heavy builds, women, hats: all fit what is drawn.
+const BONE_FIT = { Head: 'head', HeadTop_End: 'head', Neck: 'neck', Spine2: 'torso_upper', LeftShoulder: 'torso_upper', RightShoulder: 'torso_upper', Hips: 'torso_lower', Spine: 'torso_lower', Spine1: 'torso_lower',
+  LeftArm: 'upperarm_l', LeftForeArm: 'forearm_l', LeftForeArmRoll: 'forearm_l', RightArm: 'upperarm_r', RightForeArm: 'forearm_r', RightForeArmRoll: 'forearm_r',
+  LeftUpLeg: 'thigh_l', LeftLeg: 'shin_l', RightUpLeg: 'thigh_r', RightLeg: 'shin_r', LeftFoot: 'foot_l', LeftToeBase: 'foot_l', RightFoot: 'foot_r', RightToeBase: 'foot_r' };
+const fitOf = (n) => { const b = n.replace(/^mixamorig[:_]?/, ''); if (BONE_FIT[b]) return BONE_FIT[b]; if (/^LeftHand/.test(b)) return 'hand_l'; if (/^RightHand/.test(b)) return 'hand_r'; return null; };
+const autoCache = new WeakMap();
+const pct = (arr, p) => { if (!arr.length) return null; arr.sort((x, y) => x - y); return arr[Math.min(arr.length - 1, Math.floor(arr.length * p))]; };
+export function autoFit(char) {
+  if (!char?.root) return null;
+  const hit = autoCache.get(char); if (hit !== undefined) return hit;
+  let fit = null;
+  try {
+    const bones = bonesOf(char); if (!bones) throw new Error('no bones');
+    // the most detailed body mesh (LOD0, or unnamed), skip eyes / lashes / hair cards
+    const meshes = []; char.root.traverse((m) => { if (m.isSkinnedMesh && m.geometry?.attributes?.skinIndex && !/eye|lash|brow|teeth|tongue|hairshell|haircard/i.test(m.name + ' ' + (m.material?.name || ''))) meshes.push(m); });
+    const lodN = (m) => { const r = /LOD(\d)/.exec(m.name); return r ? +r[1] : 0; };
+    const minL = Math.min(...meshes.map(lodN)); const body = meshes.filter((m) => lodN(m) === minL);
+    if (!body.length) throw new Error('no mesh');
+    char.root.updateMatrixWorld(true);
+    const pts = {}; const v = new THREE.Vector3();
+    const total = body.reduce((n, m) => n + m.geometry.attributes.position.count, 0), stride = Math.max(1, Math.floor(total / 6000));
+    for (const m of body) {
+      const g = m.geometry, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, names = m.skeleton.bones.map((b) => fitOf(b.name));
+      for (let i = 0; i < g.attributes.position.count; i += stride) {
+        let best = 0, bw = -1; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; best = si.getComponent(i, k); } }
+        const key = names[best]; if (!key) continue;
+        m.getVertexPosition(i, v); v.applyMatrix4(m.matrixWorld);
+        (pts[key] ||= []).push(v.clone());
+      }
+    }
+    const W = (n) => bones[n]?.getWorldPosition(new THREE.Vector3());
+    const segDist = (p, a, b) => { const ab = _u.subVectors(b, a), t = Math.max(0, Math.min(1, _w.subVectors(p, a).dot(ab) / Math.max(1e-9, ab.lengthSq()))); return p.distanceTo(_n.copy(a).addScaledVector(ab, t)); };
+    const radii = {}, lat = {};
+    for (const [key, A, B, , , , o] of LIMBS) {
+      const id = o?.fit || key; if (radii[id] !== undefined || !B || o?.side) continue;
+      const P = pts[id], a = W(A), b = W(B); if (!P || P.length < 12 || !a || !b) continue;
+      if (o?.ext) b.addScaledVector(_q.subVectors(b, a), o.ext);
+      radii[id] = pct(P.map((p) => segDist(p, a, b)), 0.85);
+    }
+    // torso halves: real half-depth (front-back) and half-width around the spine segment
+    const left = (W('LeftUpLeg') && W('RightUpLeg')) ? W('LeftUpLeg').sub(W('RightUpLeg')).normalize() : new THREE.Vector3(1, 0, 0);
+    for (const [id, A, B] of [['torso_upper', 'Spine2', 'Neck'], ['torso_lower', 'Hips', 'Spine2']]) {
+      const P = pts[id], a = W(A), b = W(B); if (!P || P.length < 30 || !a || !b) continue;
+      const ax = b.clone().sub(a).normalize(), lt = left.clone().addScaledVector(ax, -left.dot(ax)).normalize(), fw = new THREE.Vector3().crossVectors(lt, ax).normalize();
+      const dep = [], wid = [];
+      for (const p of P) { const d = p.clone().sub(a); dep.push(Math.abs(d.dot(fw))); wid.push(Math.abs(d.dot(lt))); }
+      const hd = pct(dep, 0.85), hw = pct(wid, 0.9);
+      radii[id] = hd; lat[id] = Math.max(0, hw - hd);
+    }
+    // head: sphere on the head vertices
+    let head = null;
+    if (pts.head?.length > 20 && bones.Head) {
+      const c = new THREE.Vector3(); for (const p of pts.head) c.add(p); c.multiplyScalar(1 / pts.head.length);
+      const hj = W('Head'), nk = bones.Neck ? W('Neck') : hj.clone().setY(hj.y - 0.1), up = hj.clone().sub(nk).normalize(), fw = new THREE.Vector3().crossVectors(left, up).normalize();
+      const off = c.clone().sub(hj);
+      head = { up: off.dot(up), back: -off.dot(fw), r: pct(pts.head.map((p) => p.distanceTo(c)), 0.85) };
+    }
+    fit = { auto: true, radii, lat, head, n: Object.values(pts).reduce((n, a) => n + a.length, 0) };
+  } catch (e) { fit = null; }
+  autoCache.set(char, fit);
+  return fit;
+}
+
 // fill segments for a character (world space) -> [{key, a, b, r, zone, mult}]
 export function limbSegments(char, out = []) {
   out.length = 0;
   const bones = bonesOf(char);
   if (!bones) return out;
   const fit = char.hitFit || null;
+  const af = char.hitAuto === false ? null : autoFit(char);     // measured on this character's own mesh (preferred)
   // proportions from the live skeleton (includes the character's scale)
   const hp = bones.Hips.getWorldPosition(_p), nk = bones.Neck ? bones.Neck.getWorldPosition(_n) : null;
   const s = fit?.s ?? clampN(nk ? hp.distanceTo(nk) / REF.hipsNeck : 1, 0.55, 1.35);
@@ -74,7 +140,9 @@ export function limbSegments(char, out = []) {
     const ba = bones[A]; if (!ba) continue;
     const a = ba.getWorldPosition(new THREE.Vector3());
     let b;
-    let r = (fit?.radii?.[key] ?? r0) * (o?.tw ? 1 + (w / s - 1) * o.tw : 1) * s;
+    const fid = o?.fit || key;
+    let r = af?.radii?.[fid] ?? (fit?.radii?.[key] ?? r0) * (o?.tw ? 1 + (w / s - 1) * o.tw : 1) * s;
+    if (key === 'head' && af?.head) r = af.head.r;
     if (B) {
       const bb = bones[B]; if (!bb) continue; b = bb.getWorldPosition(new THREE.Vector3());
       if (o?.ext) b.addScaledVector(_u.subVectors(b, a), o.ext);
@@ -84,15 +152,16 @@ export function limbSegments(char, out = []) {
       // crowd rig: the head joint moved from mid-face (neck->head 0.16 m) to the skull base (0.11 m) on Nov 17; the
       // center height follows the joint: 0.06 above a mid-face joint, ~0.10 above a skull-base joint (people re-rig in progress)
       const dNH = bones.Neck ? a.distanceTo(nkp) / s : 0.16;
-      const up = fit?.headUp ?? (char.human?.person ? THREE.MathUtils.clamp(HEAD_UP.tripo - 0.865 * (dNH - 0.108), HEAD_UP.person, HEAD_UP.tripo) : HEAD_UP.other);
+      const up = af?.head ? af.head.up / s : fit?.headUp ?? (char.human?.person ? THREE.MathUtils.clamp(HEAD_UP.tripo - 0.865 * (dNH - 0.108), HEAD_UP.person, HEAD_UP.tripo) : HEAD_UP.other);
       a.addScaledVector(_u, up * s);
-      if (fit?.headBack) { _f.crossVectors(_l, _u).normalize(); a.addScaledVector(_f, -fit.headBack * s); }        // _f = forward
+      const back = af?.head ? af.head.back / s : fit?.headBack;
+      if (back) { _f.crossVectors(_l, _u).normalize(); a.addScaledVector(_f, -back * s); }        // _f = forward
       b = a.clone();
     }
     if (o?.lat) {
       // torso halves: offset along the body's lateral axis (shoulders for the chest, hips for the waist)
       const ax = A === 'Spine2' && shLat ? _w.copy(shLat).normalize() : _l;
-      const d = o.lat * w;
+      const d = af?.lat?.[key] !== undefined ? af.lat[key] * Math.sign(o.lat) : o.lat * w;
       a.addScaledVector(ax, d); b.addScaledVector(ax, d);
     }
     out.push({ key, a, b, r, zone, mult });
