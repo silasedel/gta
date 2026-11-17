@@ -1,0 +1,56 @@
+{
+ "dt_street": {
+  "player": [
+   395,
+   -60,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(395.000000,1.800000,-60.000000); cam.lookAt(395.000000,8.000000,-200.000000); return true; };"
+ },
+ "dt_air": {
+  "player": [
+   237,
+   80,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(237.000000,150.000000,80.000000); cam.lookAt(407.000000,10.000000,-110.000000); return true; };"
+ },
+ "brick_air": {
+  "player": [
+   -170,
+   1950,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-170.000000,150.000000,1950.000000); cam.lookAt(0.000000,10.000000,1760.000000); return true; };"
+ },
+ "overtown_air": {
+  "player": [
+   -170,
+   -492,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-170.000000,150.000000,-492.000000); cam.lookAt(0.000000,10.000000,-682.000000); return true; };"
+ },
+ "airport_air": {
+  "player": [
+   -1700,
+   1350,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1700.000000,160.000000,1350.000000); cam.lookAt(-1250.000000,0.000000,1000.000000); return true; };"
+ },
+ "clew_street": {
+  "player": [
+   -1540,
+   -2760,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1540.000000,1.800000,-2760.000000); cam.lookAt(-1540.000000,6.000000,-2900.000000); return true; };"
+ }
+}

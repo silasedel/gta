@@ -43,7 +43,7 @@ export const LIB = {
   fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 1.75, lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
   // ---- shops and roadside (low) ----
   graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2 },
-  gun_shop: { w: 9, d: 12.29, h: 5.68, k: 1, lod1: 1, cls: 'shop', glow: 0.3, tint: 'brick', rough: 2, wt: 0.5 },
+  gun_shop: { w: 9, d: 12.29, h: 5.68, k: 1, lod1: 1, cls: 'shop', glow: 0.3, tint: 'brick', rough: 2, wt: 0.3 },
   stone_shop: { w: 13.64, d: 11.69, h: 8.64, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'stone', not: 'Overtown|Liberty' },
   brick_shopfront: { w: 6.32, d: 3.4, h: 3.69, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'brick', rough: 1 },
   bookshop: { w: 5.2, d: 3.13, h: 7.48, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'paint', not: 'Overtown|Liberty' },
@@ -64,13 +64,17 @@ export const LIB = {
   hangar_quonset: { w: 19.22, d: 27.44, h: 8.27, k: 1, lod1: 1, cls: 'hangar', glow: 0.15, tint: 'none', wt: 0.8 },
   hangar_arch: { w: 35.1, d: 54.64, h: 10.06, k: 1, lod1: 1, cls: 'hangar', glow: 0.15, mir: 1, tint: 'none' },
   hangar_long: { w: 45.16, d: 136.85, h: 14.96, k: 1, cls: 'hangar', glow: 0.15, lod1: 1, mir: 1, tint: 'paint' },
+  // ---- roof / wall clutter (procedural roofs and rough-side walls) ----
+  roof_vents: { w: 2.72, d: 0.79, h: 0.12, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
+  roof_tank: { w: 4.83, d: 2.35, h: 1.83, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
+  util_cabinet: { w: 1.0, d: 0.44, h: 1.99, k: 1, cls: 'clutter', glow: 0, tint: 'none' },
   // ---- fixed sites ----
   casino_tower: { w: 117.4, d: 132.4, h: 64.4, k: 1, cls: 'fixed', glow: 0.5, lod1: 1, tint: 'none' },
   control_tower: { w: 23, d: 23, h: 90.17, k: 1, cls: 'fixed', glow: 0.4, lod1: 1, tint: 'none' },
   control_tower_sm: { w: 9.91, d: 9.91, h: 30, k: 1, cls: 'fixed', glow: 0.3, tint: 'none' },
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
 };
-const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600 }, CELL = 900, LOD_D = 650;
+const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 900, LOD_D = 650;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
 const ROUGH_D = /Overtown|Liberty City/;
@@ -115,7 +119,7 @@ const TINTS = {
   none: [[1, 1, 1], [0.97, 0.97, 0.97], [1.02, 1.02, 1.0]],
 };
 
-export function createBuildingModels({ root, roadDist = null, districtAt = null, near = null, ground = null }) {
+export function createBuildingModels({ root, roadDist = null, districtAt = null, near = null, ground = null, argsOf = null }) {
   const entries = new Map(); // building id -> { name, x, y, z, ry, s, sy, cls, mir, var, col, plinth }
   const meshes = new Map(); // 'name|lod|mir|var' -> [{ geo, mat }]
   const cells = new Map(); // key + '|cx,cz' -> [{ p, im, cap }]
@@ -143,7 +147,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     if (b._lib !== undefined) return b._lib;
     if (picked.has(b.id)) return (b._lib = picked.get(b.id));
     b._lib = null;
-    if (!b.rings || b.rings.length !== 1 || b.part || b._passage || b._overlap || ((b.minH || 0) > 0.5 && b.style !== 'stilt')) return null;
+    if (b.kind === 'terminal' || !b.rings || b.rings.length !== 1 || b.part || b._passage || b._overlap || ((b.minH || 0) > 0.5 && b.style !== 'stilt')) return null;
     const d = districtAt ? districtAt(b.cx, b.cz) || '' : '';
     const cls = classOf(b, style, zone, d); if (!cls) return null;
     const seed = ((b.id | 0) % 2147483647) | 0, rough = ROUGH_D.test(d);
@@ -181,11 +185,14 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     // neighbor that already carries one (when every fitting model is next door, the best fit still goes: picks never depend
     // on which tiles happen to be loaded)
     cands.sort((a, c) => a.score - c.score);
-    const nbNames = new Set(near ? near(b).map((o) => o._lib && o._lib.name).filter(Boolean) : []);
+    // neighbors with a smaller id choose first (memoized, so any load order gives the same city)
+    const nbs = near ? near(b) : [];
+    if (argsOf) for (const o of nbs) if (o._lib === undefined && (o.id | 0) < (b.id | 0)) { const ar = argsOf(o); if (ar) pick(o, ar[0], ar[1]); }
+    const nbNames = new Set(nbs.map((o) => o._lib && o._lib.name).filter(Boolean));
     const seenN = new Set(), pool = [];
     for (const c0 of cands) { if (c0.score > cands[0].score + 0.6 || seenN.has(c0.name)) continue; seenN.add(c0.name); if (!nbNames.has(c0.name)) pool.push(c0); }
     if (!pool.length) pool.push(cands[0]);
-    const wOf = (n) => (LIB[n].wt ?? 1) * (rough && LIB[n].rough === 2 ? 3 : 1);
+    const wOf = (n) => (LIB[n].wt ?? 1) * (rough && LIB[n].rough === 2 ? 2 : 1);
     let wsum = 0; for (const c0 of pool) wsum += wOf(c0.name);
     let r = hash(seed + 7781) * wsum, c = pool[0]; for (const c0 of pool) { r -= wOf(c0.name); if (r <= 0) { c = c0; break; } }
     const m = LIB[c.name];
@@ -223,6 +230,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   }
   function addFixed(id, name, x, y, z, ry, s) { entries.set(id, { name, cls: LIB[name].cls, x, y, z, ry, s, sy: s, mir: 0, cond: '', tint: [1, 1, 1] }); dirty = true; }
   function has(id) { return entries.has(id); }
+  function addClutter(key, name, x, y, z, ry, s = 1) { if (OFF || entries.has(key)) return; entries.set(key, { name, cls: 'clutter', x, y, z, ry, s, sy: s, mir: 0, cond: '', tint: [1, 1, 1] }); dirty = true; }
 
   // ---- collision meshes (loaded up front: small, positions only) ----
   const loader = new GLTFLoader();
@@ -233,7 +241,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       cols.set(name, new Float32Array(out));
     } catch (e) { cols.set(name, null); }
   }
-  if (!OFF) for (const n of Object.keys(LIB)) loadCol(n);
+  if (!OFF) for (const n of Object.keys(LIB)) if (LIB[n].cls !== 'clutter') loadCol(n);
   // the model's collision mesh into a collider batch (vert(x,y,z,...) triangle soup); a box when it has not loaded (yet)
   const WHITE = new THREE.Color(0xffffff);
   function collide(coll, L, dy = 0) {
@@ -252,6 +260,12 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
 
   // ---- render meshes ----
   const glassy = /glass|window|pane|glazing/i;
+  // close-up wall detail (the user's Concrete 3 / Plaster 1 scans, tools: baked by the buildings pass into one RGBA WebP:
+  // rg = detail normal, b = concrete grain, a = plaster grain): world-aligned on walls within ~60 m, strongest at street level,
+  // where many library models only carry 512 px - 1K textures
+  const detailTex = typeof document !== 'undefined' ? new THREE.TextureLoader().load('/assets/textures/buildings/wall_detail.webp') : null;
+  if (detailTex) { detailTex.wrapS = detailTex.wrapT = THREE.RepeatWrapping; detailTex.anisotropy = 8; detailTex.colorSpace = THREE.NoColorSpace; }
+  const detailU = { value: detailTex };
   const matCache = new Map(); // source material -> variant -> material
   function variantMat(mat0, m, cond) {
     let vm = matCache.get(mat0); if (!vm) matCache.set(mat0, (vm = new Map()));
@@ -264,12 +278,12 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     mat.side = THREE.FrontSide;
     const glow = m.glow, rough = cond === 'r' ? 1 : cond === 'a' ? 2 : 0;
     mat.onBeforeCompile = (sh) => {
-      sh.uniforms.uLibNight = nightU;
+      sh.uniforms.uLibNight = nightU; sh.uniforms.uLibDetail = detailU;
       sh.vertexShader = 'varying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
   vLibW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
   vLibO = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vLibN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);`);
-      sh.fragmentShader = 'uniform float uLibNight;\nvarying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\nfloat libH(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\n'
+      sh.fragmentShader = 'uniform float uLibNight; uniform sampler2D uLibDetail;\nvarying vec3 vLibW; varying vec3 vLibN; varying vec3 vLibO;\nfloat libH(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\n'
         + 'float libN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = libH(vec3(i, 0.0)), b = libH(vec3(i + vec2(1.0, 0.0), 0.0)), c = libH(vec3(i + vec2(0.0, 1.0), 0.0)), d = libH(vec3(i + vec2(1.0, 1.0), 0.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }\n'
         + sh.fragmentShader
           .replace('#include <color_fragment>', `#include <color_fragment>
@@ -285,7 +299,17 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     diffuseColor.rgb *= 1.0 - dirt * vec3(0.78, 0.84, 0.93);
     ${rough ? 'diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.92, 0.82, 0.68), side * smoothstep(0.55, 0.85, libN(wp * vec2(0.6, 0.35) + 3.0)) * 0.6); // rust / tobacco stains' : ''}
     ${rough === 2 ? 'diffuseColor.rgb *= 0.86;' : ''}
+    float camD = distance(vLibW, cameraPosition), dK = (1.0 - smoothstep(30.0, 65.0, camD)) * side;
+    if (dK > 0.001) {
+      vec3 Tw = normalize(vec3(vLibN.z, 0.0, -vLibN.x) + vec3(1e-4, 0.0, 0.0));
+      vec4 dt = texture2D(uLibDetail, vec2(dot(vLibW, Tw), vLibW.y) / 2.4);
+      float street = 1.0 - smoothstep(4.5, 9.0, vLibW.y - vLibO.y), a = mix(dt.b, dt.a, step(0.5, iS));
+      diffuseColor.rgb *= 1.0 + (a - 0.5) * (0.3 + 0.35 * street) * dK;
+      libDN = (dt.rg - 0.5) * 2.0 * dK * (0.35 + 0.45 * street); libDT = Tw;
+    }
   }`)
+          .replace('void main() {', 'void main() {\n  vec2 libDN = vec2(0.0); vec3 libDT = vec3(1.0, 0.0, 0.0);')
+          .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (libDN.x != 0.0 || libDN.y != 0.0) normal = normalize(normal + (viewMatrix * vec4(libDT * libDN.x + vec3(0.0, 1.0, 0.0) * libDN.y, 0.0)).xyz * 0.55);')
           .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   if (uLibNight > 0.01) {
     // window cells along the facade (x+z) per floor; each building has its own lit share, color temperature and floor bias,
@@ -302,7 +326,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     totalEmissiveRadiance += wc * (on * 0.85 + glassK * 0.04 * (1.0 - float(${rough === 2 ? 1 : 0}))) * uLibNight * ${glow.toFixed(2)};
   }`);
     };
-    mat.customProgramCacheKey = () => 'libbld2-' + (g ? 'g' : 'w') + glow + '-' + rough;
+    mat.customProgramCacheKey = () => 'libbld3-' + (g ? 'g' : 'w') + glow + '-' + rough;
     mat.needsUpdate = true;
     vm.set(cond, mat); return mat;
   }
@@ -359,7 +383,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const tod = globalThis.game && Number.isFinite(globalThis.game.timeOfDay) ? globalThis.game.timeOfDay : 12; nightU.value = nightOf(((tod % 24) + 24) % 24);
     const now = performance.now();
     const moved = Math.hypot(cam.position.x - lastX, cam.position.z - lastZ) > 25;
-    if (!dirty && !moved) return; if (!moved && now - lastT < 250) return;
+    if (!dirty && !moved && !fenceDirty) return; if (!moved && now - lastT < 250) return;
     lastX = cam.position.x; lastZ = cam.position.z; lastT = now; dirty = false;
     // instances grouped per model variant and 900 m cell: each cell's meshes get a tight bounding sphere, so off-screen cells
     // are culled in the main view and in the shadow passes; cells beyond LOD_D draw the far LOD
@@ -378,6 +402,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       }
     }
     plinth.count = np; plinth.instanceMatrix.needsUpdate = true;
+    if (fenceDirty || moved) { fenceDirty = false; fillFences(lastX, lastZ); }
     for (const [k, cm] of cells) if (!lists.has(k)) for (const p of cm) if (p.im) p.im.visible = false;
     for (const [k, L] of lists) {
       const key = k.slice(0, k.lastIndexOf('|')), parts = meshes.get(key); if (!parts || !parts.length) continue;
@@ -420,7 +445,61 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     for (let i = 0; i < n; i++) { const x = pts[i * 2], z = pts[i * 2 + 1]; M4.makeTranslation(x, ground ? ground(x, z) || 0 : 0, z); im.setMatrixAt(i, M4); im.setColorAt(i, COLS[col[i]]); }
     im.computeBoundingSphere(); if (!OFF) group.add(im);
   }
-  const api = { pick, register, addFixed, has, collide, stats, entries, group, LIB };
+  // ---- rough side: chain-link fences around the vacant overgrown lots (tile areas cls 'dirt' in Overtown / Liberty City) ----
+  // panels 1.8 m on galvanized posts, inset 0.4 m into the lot, some panels missing (cut open) or leaning; one instanced draw
+  // for the mesh (transparent, mip-mapped wire pattern: no alpha-test crawl) and one for the posts, city-wide
+  const fences = new Map(); // tile key -> [{ x0, z0, x1, z1, lean }] panels
+  const fenceTex = (() => { if (typeof document === 'undefined') return null; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+    x.clearRect(0, 0, 64, 64); x.strokeStyle = 'rgba(176,180,178,1)'; x.lineWidth = 3.2; x.beginPath(); x.moveTo(0, 32); x.lineTo(32, 0); x.lineTo(64, 32); x.lineTo(32, 64); x.closePath(); x.stroke();
+    x.beginPath(); x.moveTo(-32, 32); x.lineTo(0, 0); x.moveTo(64, 0); x.lineTo(96, 32); x.stroke();
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
+  const panelMat = new THREE.MeshStandardMaterial({ color: 0xcfd2d0, map: fenceTex, transparent: true, depthWrite: false, side: THREE.DoubleSide, metalness: 0.55, roughness: 0.45 });
+  panelMat.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n  #ifdef USE_INSTANCING\n  vMapUv *= vec2(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz)) / 0.065;\n  #endif'); };
+  panelMat.customProgramCacheKey = () => 'libbld-chainlink';
+  const panelGeo = new THREE.PlaneGeometry(1, 1).translate(0.5, 0.5, 0);
+  const postGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 6).translate(0, 0.5, 0);
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x9a9e9c, metalness: 0.6, roughness: 0.5 });
+  const fencePanels = new THREE.InstancedMesh(panelGeo, panelMat, 4096), fencePosts = new THREE.InstancedMesh(postGeo, postMat, 4096);
+  for (const m of [fencePanels, fencePosts]) { m.count = 0; m.frustumCulled = false; m.receiveShadow = true; group.add(m); } fencePosts.castShadow = true; fencePanels.name = 'rough-fence-mesh'; fencePosts.name = 'rough-fence-posts';
+  let fenceDirty = false;
+  function lotFences(tile) {
+    if (OFF || !districtAt || !tile || tile.x0 === undefined) return null; const key = tile.x0 + ',' + tile.z0;
+    if (fences.has(key)) return fences.get(key); const out = []; fences.set(key, out);
+    for (const a of tile.areas || []) {
+      if (a.cls !== 'dirt' || !a.rings || !a.rings[0] || a.rings[0].length < 3) continue; const r = a.rings[0];
+      let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
+      if (!ROUGH_D.test(districtAt(cx, cz) || '') || areaOf(r) > 4000 || areaOf(r) < 60) continue;
+      const seed = (Math.round(cx * 7) * 73856093 ^ Math.round(cz * 7) * 19349663) | 0; if (hash(seed) < 0.15) continue; // a few lots stay open
+      let open = (hash(seed + 1) * r.length) | 0; // one side has a cut-open gate
+      for (let i = 0; i < r.length; i++) {
+        const p = r[i], q = r[(i + 1) % r.length], ins = (pt) => { const dx = cx - pt[0], dz = cz - pt[1], l = Math.hypot(dx, dz) || 1; return [pt[0] + dx / l * 0.4, pt[1] + dz / l * 0.4]; };
+        const A = ins(p), B = ins(q), L = Math.hypot(B[0] - A[0], B[1] - A[1]); if (L < 1.5) continue;
+        const n = Math.max(1, Math.round(L / 3));
+        for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n, hk = hash(seed + i * 31 + k * 7 + 3);
+          if ((i === open && k === (n >> 1)) || hk < 0.07) continue; // missing panel
+          out.push({ x0: A[0] + (B[0] - A[0]) * t0, z0: A[1] + (B[1] - A[1]) * t0, x1: A[0] + (B[0] - A[0]) * t1, z1: A[1] + (B[1] - A[1]) * t1, lean: hk > 0.9 ? (hk - 0.9) * 2.2 : 0, h: 1.75 + hash(seed + i) * 0.15 }); }
+      }
+    }
+    if (out.length) fenceDirty = true; return out;
+  }
+  const _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
+  function fillFences(cx, cz) {
+    let np = 0, nq = 0;
+    for (const L of fences.values()) for (const f of L) {
+      if (Math.abs(f.x0 - cx) > 700 || Math.abs(f.z0 - cz) > 700) continue; if (np >= fencePanels.instanceMatrix.count - 1 || nq >= fencePosts.instanceMatrix.count - 2) break;
+      const dx = f.x1 - f.x0, dz = f.z1 - f.z0, len = Math.hypot(dx, dz), y0 = ground ? ground(f.x0, f.z0) || 0 : 0, ry = Math.atan2(-dz, dx);
+      _e.set(f.lean, ry, 0, 'YXZ'); _q2.setFromEuler(_e); V.set(f.x0, y0 + 0.04, f.z0); S.set(len, f.h, 1); M4.compose(V, _q2, S); fencePanels.setMatrixAt(np++, M4);
+      Q.identity(); S.set(1, f.h + 0.05, 1); V.set(f.x0, y0, f.z0); M4.compose(V, Q, S); fencePosts.setMatrixAt(nq++, M4);
+      V.set(f.x1, y0, f.z1); M4.compose(V, Q, S); fencePosts.setMatrixAt(nq++, M4);
+    }
+    fencePanels.count = np; fencePosts.count = nq; fencePanels.instanceMatrix.needsUpdate = true; fencePosts.instanceMatrix.needsUpdate = true;
+  }
+  function fenceCollide(coll, tile, relief = false) { // thin wall per standing panel (missing panels stay open); relief tiles: y relative (the collider builder lifts it)
+    const L = lotFences(tile); if (!L) return;
+    for (const f of L) { if (f.lean) continue; const y0 = relief || !ground ? 0 : ground(f.x0, f.z0) || 0, y1 = y0 + f.h, v = (x, y, z) => coll.vert(x, y, z, 0, 1, 0, 0, 0, WHITE);
+      v(f.x0, y0, f.z0); v(f.x1, y0, f.z1); v(f.x1, y1, f.z1); v(f.x0, y0, f.z0); v(f.x1, y1, f.z1); v(f.x0, y1, f.z0); }
+  }
+  const api = { pick, register, addFixed, addClutter, has, collide, lotFences, fenceCollide, stats, entries, group, LIB };
   globalThis.__libBuildings = api; // debugging / audits: __libBuildings.stats(), .entries
   return api;
 }

@@ -1,0 +1,290 @@
+{
+ "dt_st": {
+  "player": [
+   407,
+   -110,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(407, -110, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "dt_air": {
+  "player": [
+   407,
+   -110,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(237, 150, 80); cam.lookAt(407, 10, -110); return true; };"
+ },
+ "dt_stn": {
+  "player": [
+   407,
+   -110,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(407, -110, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "dt_airn": {
+  "player": [
+   407,
+   -110,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(237, 150, 80); cam.lookAt(407, 10, -110); return true; };"
+ },
+ "brick_st": {
+  "player": [
+   0,
+   1760,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(0, 1760, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "brick_air": {
+  "player": [
+   0,
+   1760,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-170, 150, 1950); cam.lookAt(0, 10, 1760); return true; };"
+ },
+ "brick_stn": {
+  "player": [
+   0,
+   1760,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(0, 1760, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "brick_airn": {
+  "player": [
+   0,
+   1760,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-170, 150, 1950); cam.lookAt(0, 10, 1760); return true; };"
+ },
+ "sobe_st": {
+  "player": [
+   2398,
+   660,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(2398, 660, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "sobe_air": {
+  "player": [
+   2398,
+   660,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(2228, 150, 850); cam.lookAt(2398, 10, 660); return true; };"
+ },
+ "sobe_stn": {
+  "player": [
+   2398,
+   660,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(2398, 660, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "sobe_airn": {
+  "player": [
+   2398,
+   660,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(2228, 150, 850); cam.lookAt(2398, 10, 660); return true; };"
+ },
+ "havana_st": {
+  "player": [
+   -660,
+   -55,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-660, -55, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "havana_air": {
+  "player": [
+   -660,
+   -55,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-830, 150, 135); cam.lookAt(-660, 10, -55); return true; };"
+ },
+ "havana_stn": {
+  "player": [
+   -660,
+   -55,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-660, -55, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "havana_airn": {
+  "player": [
+   -660,
+   -55,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-830, 150, 135); cam.lookAt(-660, 10, -55); return true; };"
+ },
+ "overtown_st": {
+  "player": [
+   0,
+   -682,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(0, -682, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "overtown_air": {
+  "player": [
+   0,
+   -682,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-170, 150, -492); cam.lookAt(0, 10, -682); return true; };"
+ },
+ "overtown_stn": {
+  "player": [
+   0,
+   -682,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(0, -682, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "overtown_airn": {
+  "player": [
+   0,
+   -682,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-170, 150, -492); cam.lookAt(0, 10, -682); return true; };"
+ },
+ "liberty_st": {
+  "player": [
+   -528,
+   -1232,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-528, -1232, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "liberty_air": {
+  "player": [
+   -528,
+   -1232,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-698, 150, -1042); cam.lookAt(-528, 10, -1232); return true; };"
+ },
+ "liberty_stn": {
+  "player": [
+   -528,
+   -1232,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-528, -1232, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "liberty_airn": {
+  "player": [
+   -528,
+   -1232,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-698, 150, -1042); cam.lookAt(-528, 10, -1232); return true; };"
+ },
+ "clew_st": {
+  "player": [
+   -1540,
+   -2805,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-1540, -2805, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "clew_air": {
+  "player": [
+   -1540,
+   -2805,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-1710, 150, -2615); cam.lookAt(-1540, 10, -2805); return true; };"
+ },
+ "clew_stn": {
+  "player": [
+   -1540,
+   -2805,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} const r = game.city.roadGraph.nearestEdge(-1540, -2805, null, 400); if (r) { const p = r.point, d = r.dir, hw = r.edge.width / 2, sd = 1;\n  const ex = p.x - d.z * (hw + 1.5) * sd, ez = p.z + d.x * (hw + 1.5) * sd, gy = game.city.groundHeightAt(ex, ez) || 0;\n  game.teleport(ex - d.x * 30, undefined, ez - d.z * 30, Math.atan2(d.x, d.z));\n  game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(ex, gy + 1.75, ez); cam.lookAt(ex + d.x * 40 - d.z * 9 * sd, gy + 7, ez + d.z * 40 + d.x * 9 * sd); return true; }; }"
+ },
+ "clew_airn": {
+  "player": [
+   -1540,
+   -2805,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); game.weather && game.weather.hold && game.weather.hold(); } catch (e) {} game.cameraOverride = (dt, cam) => { cam.position.set(-1710, 150, -2615); cam.lookAt(-1540, 10, -2805); return true; };"
+ },
+ "apt_gate": {
+  "player": [
+   -1360,
+   1160,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1360.000000,6.000000,1160.000000); cam.lookAt(-1360.000000,10.000000,1040.000000); return true; };"
+ },
+ "apt_air": {
+  "player": [
+   -1700,
+   1350,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1700.000000,160.000000,1350.000000); cam.lookAt(-1250.000000,0.000000,1000.000000); return true; };"
+ },
+ "apt_hangar": {
+  "player": [
+   -700,
+   1020,
+   0
+  ],
+  "tod": 12,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-700.000000,4.000000,1020.000000); cam.lookAt(-820.000000,8.000000,900.000000); return true; };"
+ },
+ "apt_airn": {
+  "player": [
+   -1700,
+   1350,
+   0
+  ],
+  "tod": 21.5,
+  "eval": "try { game.weather && game.weather.set('clear', { instant: true }); } catch (e) {} game.cameraOverride = (dt, cam) => { if (game.player && game.player.mesh) game.player.mesh.visible = false; cam.position.set(-1700.000000,160.000000,1350.000000); cam.lookAt(-1250.000000,0.000000,1000.000000); return true; };"
+ }
+}

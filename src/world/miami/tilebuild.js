@@ -445,7 +445,7 @@ export function createTileBuilder(ctx) {
   }
   const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); return (x >>> 0) / 4294967296; };
   // ---- library building models (bldmodels.js): picked lots draw the user's models (instanced city-wide), not a procedural shell ----
-  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt, near: (b) => nearBuildings(b), ground: D ? TH : null });
+  const LIBM = createBuildingModels({ root, roadDist, districtAt: ctx.districtAt, near: (b) => nearBuildings(b), ground: D ? TH : null, argsOf: (o) => { if (!o.rings || !o.rings[0]) return null; if (o.cx === undefined) { let x = 0, z = 0; for (const p of o.rings[0]) { x += p[0]; z += p[1]; } o.cx = x / o.rings[0].length; o.cz = z / o.rings[0].length; } const zn = o.zone || zoneAt(o.cx, o.cz); return [styleFor(o, zn, (o.id % 2147483647) | 0), zn]; } });
   const casinoH = LIBMODELS[CASINO.name], inCasino = (x, z) => { const dx = x - CASINO.x, dz = z - CASINO.z, c = Math.cos(CASINO.ry), s = Math.sin(CASINO.ry), lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < casinoH.w / 2 + 4 && Math.abs(lz) < casinoH.d / 2 + 4; };
   if (!/[?&]libmodels=0/.test(typeof location !== 'undefined' ? location.search : '')) LIBM.addFixed(-77, CASINO.name, CASINO.x, CASINO.y || 0, CASINO.z, CASINO.ry, CASINO.s);
   // ---- V2 facade families: a recipe per building (families.js), re-rolled until no adjacent building shares its signature ----
@@ -801,6 +801,18 @@ export function createTileBuilder(ctx) {
           B.trim.addGeometry(new THREE.ConeGeometry(1.8, 0.9, 12), m4(tx, h + 5.15, tz), new THREE.Color(0x5a5550));
         }
       }
+    }
+    if (opts.props && !opts.lod && style !== 'house' && style !== 'warehouse' && style !== 'glass' && h > 6 && h < 120 && y0 < 0.5 && !b.part && (b.area || 0) > 120 && outer.length < 40) { // roof clutter: the user's vent covers and tanks
+      const fr = frameOf(outer), ry = Math.atan2(-fr.uz, fr.ux), yb = h + (D ? baseOf(b) + 0.05 : 0), n = Math.min(4, 1 + ((b.area / 350) | 0));
+      for (let k = 0; k < n; k++) { const u = (hash(seed + 801 + k) - 0.5) * Math.max(0, fr.L - 5), v = (hash(seed + 811 + k) - 0.5) * Math.max(0, fr.W - 3);
+        LIBM.addClutter('rv' + b.id + '_' + k, 'roof_vents', fr.cx + fr.ux * u - fr.uz * v, yb, fr.cz + fr.uz * u + fr.ux * v, ry + (hash(seed + 821 + k) < 0.5 ? 0 : Math.PI / 2), 1); }
+      if ((b.area || 0) > 420 && hash(seed + 831) < 0.3 && fr.L > 14 && fr.W > 9) { const u = (hash(seed + 832) < 0.5 ? -1 : 1) * (fr.L / 2 - 4.2), v = (hash(seed + 833) - 0.5) * (fr.W - 5);
+        LIBM.addClutter('rt' + b.id, 'roof_tank', fr.cx + fr.ux * u - fr.uz * v, yb, fr.cz + fr.uz * u + fr.ux * v, ry, 1); }
+    }
+    if (opts.props && !opts.lod && FS && FS.cond && y0 < 0.5 && !b.part && hash(seed + 841) < 0.5) { // rough side: a rusty utility cabinet against a wall
+      let bi = 0, bl = 0; for (let i = 0; i < outer.length; i++) { const p = outer[i], q = outer[(i + 1) % outer.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]); if (l > bl && (!roadDist || roadDist((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) > 3)) { bl = l; bi = i; } }
+      if (bl > 4) { const p = outer[bi], q = outer[(bi + 1) % outer.length], dx = (q[0] - p[0]) / bl, dz = (q[1] - p[1]) / bl, nx = -dz, nz = dx, u = bl * (0.2 + hash(seed + 842) * 0.6);
+        const x = p[0] + dx * u + nx * 0.24, z = p[1] + dz * u + nz * 0.24; LIBM.addClutter('uc' + b.id, 'util_cabinet', x, D ? TH(x, z) : 0, z, Math.atan2(nx, nz), 1); }
     }
     if (opts.props && style === 'house' && !sf && y0 < 0.5 && !b.part && h < 14 && outer.length <= 24) { // villa garden: clipped hedge ring + a pair of palms
       const ring = scalePoly(outer, b.cx, b.cz, 1.6), seedH = hash(seed + 301);
@@ -2784,6 +2796,7 @@ export function createTileBuilder(ctx) {
     yield;
     let k = 0;
     for (const b of buildingsOf(tile)) { if (houseLots.claims(b)) continue; /* drawn by the house generator (setpieces/houses) */ if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
+    LIBM.lotFences(tile); // rough side: chain-link fences around the vacant lots (bldmodels.js, instanced city-wide)
     LF.k = null;
     yield;
     if (!CLIP_OFF && !LF.on) props._slab = slabFromBatches([B.sidewalk, B.promenade, B.panels]);
@@ -3112,7 +3125,7 @@ export function createTileBuilder(ctx) {
       buildBuilding(NULLB, b, { coll: bb, shops: false, relief: LFc }); if (LFc) { add(bb, audit ? soupOf('building') : solid, baseOf(b)); bb = new Batch(); }
       if (++k % 40 === 0) { add(bb, audit ? soupOf('building') : solid); bb = new Batch(); yield; }
     }
-    add(bb, audit ? soupOf('building') : solid); yield;
+    LIBM.fenceCollide(bb, tile, LFc);     add(bb, audit ? soupOf('building') : solid); yield;
     yield* commit(ground);
     // primitive colliders for street furniture and trees
     const P = yield* ensureProps(t, tile);

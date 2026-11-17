@@ -34,6 +34,14 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 01:20 46 road models + 2 static props converted (all Models/Cars except the 4 personal-use rows): 47 GLBs, 32 MB total
+  (Draco). Studio review of every car front + rear (blue paint test) done twice; fixed orientation (sedan1, truck2, 5 trucks),
+  paint detection (9 cars by hand in `tools/v2/cars/cars.json`), white tires, inner door skins poking through, roof racks,
+  open ambulance doors. Police car now wears a Southline PD livery (own textures, `tools/v2/cars/liveries/`).
+  Physics from the models: wheel radius / track / wheelbase measured, collision hull = body shape without mirrors,
+  suspension travel limited to the measured arch gap, class mass / springs (pickup soft and tall, supercar stiff and low).
+  Nico's yard: gray pickup with black hood stripe + faded pale-blue classic (`spawnParked`), a covered car next door.
+  Waiting on a browser slot for the first in-game run (traffic, Nico's yard, frame time A/B). Nothing verified in game yet.
 - 00:45 Pipeline running: `tools/v2/cars/convert.py` (Blender, scripts off) turns each library car into one Draco GLB
   (`public/assets/vehicles/cars/<key>.glb` + manifest): real length per class, wheels found by geometry and split (hub pivots,
   calipers do not spin), materials sorted into paint / trim / glass / lamp slots (albedo, roughness, metal sampled from the
@@ -100,8 +108,14 @@
   (downtown), frame -2.5..-3.6 ms; slightly more edge shimmer in motion. Not changed.
 
 ## buildings
-- 01:10 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.)
-- 01:10 Converting 45 of the user's models (batch 1-3: Office Buildings 1/4/5/6/7/9/10/11, Buildings 2/17-19/21-28, Hotel 1, Motels 1-2, Storefronts 1/2/5/6 + Shutter, Diner 3, Gas Stations 1-2, Factories 1-2, Hangars 1-4, Control Towers 1-2, Jet Bridge, roof/wall clutter) with a new spec-driven converter (`tools/v2/buildings/models.json`, `convert_v2.sh`: WebP textures, meters, ground at 0, far LOD file).
+- 01:05 Committed 3623851: 41 more of the user's models converted (`tools/v2/buildings/models.json` + `convert_v2.sh`: meters, ground at 0, front +Z, WebP 1-2K, `_lod1` far LOD, `_col` collision mesh) and placed by `src/world/miami/bldmodels.js`: towers (Hotel 1, Office Buildings 1/11, Buildings 17/18/22/24), mid-rise (Office Buildings 4/5/6/7/9/10, Buildings 23/25/28), shops/roadside (Storefronts 1/2/5/6, Diner 3, Motel 2, Gas Station 1), houses (Buildings 26/27), industry (Factories 1/2, Building 2), hangars (1/2/4), airport (Control Tower 1, Jet Bridge 1). Dropped after checking: Building 21 (interior-only after cleanup), Motel 1 (walls lost), Hangar 3 (broken texture), Gas Station 2 (617k tris, decimation destroys it), Building 19 (scene export, walls tagged as shop stalls), Building 12/20/29 (0.6-1.9M tris), Airport 1 terminal cut (5.7k-tri racing-game blob with a real city name).
+- Colliders (lead 00:30): library lots now use each model's own collision mesh (walls, steps, porches, overhangs), not a box; plinth colliders where the lot falls away.
+- Per-instance variation: facade shade per instance (instanceColor), mirrored copies of text-free models, shader weathering keyed on the instance (rain streaks, splash-zone dirt, blotches; rust on the rough side), per-building lit-window share/color at night; close-up wall detail from the user's Concrete 3 / Plaster 1 scans on library walls (strongest in the lowest 5 m).
+- Rough district (Overtown / Liberty City): rundown/abandoned rule (same hash in bldmodels + families): worn plaster/peeling paint/block walls, grime, window AC units, security bars, roll-down shutters, plywood boarded windows on abandoned buildings (dark at night), rusty metal roofs, graffiti on 75 % of walls, rusty utility cabinets, chain-link fences around vacant lots (instanced, colliders, cut-open panels), library picks favor the gun shop, graffiti shop, fire station, old brick towers, garage rows, factories.
+- Airport: synthetic terminal lots (glass curtain wall, deep canopy roof on columns) at x -1480..-1172, z 1010..1070, Control Tower 1 at (-1060, 1075), five jet bridges on the apron face, hangar lots get the user's hangars, runway edge/threshold/approach lights.
+- Aerial: house roofs get faded/weathered tile shades; procedural flat roofs get the user's roof vent covers and LPG tanks.
+- Waiting for a browser slot to verify (all 3 slots busy with other helpers).
+- 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
 - 00:50 Layer audit (new `src/world/ground/layerAudit.js`, ray grid over the whole scene, `docs/v2/reports/stage1-la1.json`) at Nico's
@@ -120,6 +134,18 @@
   broken rims and rain water, irregular color-matched patches; 2K ground scans + Gravel 1 pebble layer (prep running).
 
 ## people
+- 03:05 **All 95 NPC people rigged and in the crowd** (Models/NPCs 1-95; Character 3 left out because it wears Nico's
+  teal palm shirt + cargo pants; Characters 1-2 lifeguards are arms-down scans, need an A-pose pass, open). Re-rig pass
+  running (nearest-weight fix for fingertip spikes, skull-base head joint per the player helper, far-crowd palettes,
+  brand swooshes erased on p37/p90).
+  **Perf, 60 walkers on a downtown sidewalk, ABAB in one session** (`node tools/v2/npcs/crowd-perf.mjs`, report
+  `docs/v2/reports/people-perf-a2.json`; machine heavily loaded by other helpers, so absolute ms are high): user's
+  people 74.3 ms median frame vs old archetypes 78.2 ms (empty street 60.9); render CPU 24.5 vs 29.8 ms; shadow pass
+  1.25 vs 2.52 ms; draw calls 1220 vs 1272. People are as cheap or cheaper (shared clip set, LOD1 5k / LOD2 1.2k, anim
+  every 2nd/3rd frame far). Shot: `docs/v2/shots/people/perf_a2_people.png`.
+  Also: full-detail people now cast shadows with their 5k LOD1 mesh on a shadow-only layer (A/B `?pshadow=0`);
+  venue roles (bartender, server, cashier/clerk, cook, bouncer, maid) map to staff people; lifeguard posts on the sand
+  by day and fishermen at moorings; ragdoll takes per-character radii (`character.ragdollRadii`, for Nico).
 - 00:45 **Pipeline works end to end**; batch over all 98 people is running (95 Models/NPCs + 3 Models/Characters).
   First person (p07, young man in white tee) on the game's own clips, no hand fixes: idle, walk, run, jog, sit, lean,
   phone, cower all deform cleanly (`src/npc/people/preview.html?ids=p07&pose=walk,run,sitBench,idle&seat=0.45`).
@@ -142,6 +168,15 @@
     'kitchen'|'bar'|'hotel'|'lifeguard'|'dock'|... })` gives staff from the user's people.
 
 ## weapons
+- 01:10 **Wired in and running in the game** (commit 8440517): every gun / bat / crowbar key loads the user's model
+  (on demand, procedural stand-in for a few frames), 13 new weapons with stats + slots + pickup pools, attachments built
+  on the real muzzle / rail points, baked worn finishes for untextured parts (grey pistol, modern rifle body, nails).
+  Hands: `src/gameplay/gunHold.js` (2-bone arm IK, hand axes from the skinned hand mesh because the runtime skeleton has
+  no finger bones, shouldered long guns, low ready, two-handed pistol grip, support hand on the handguard). Tuning now.
+  Shots: `docs/v2/shots/weapons/t4_rifle_idleclose.png`, `t4_rifle_close.png`, `t4_pistol_front.png`.
+  **Note for the player helper:** the runtime player / cop skeletons have no finger joints (or fingers carry no weights),
+  so fingers cannot curl around a grip; the open hand is laid flat against the grip side. If finger weights can be added,
+  gunHold.js curls them automatically (Index/Middle/Ring/Pinky/Thumb 1-3).
 - 00:20 **All 24 weapon models (+ the new Machete 1) converted** from Models/Weapons with Blender (`tools/v2/weapons/build.sh`,
   config `weapons.json`, converter `convert.py`, scripts OFF): real scale (pistols 18-27 cm, rifles 88-118 cm, bats 84 cm),
   +Z barrel, origin at the grip, muzzle / eject / sight / left-hand points, slide + magazine nodes (service + heavy pistol),
@@ -157,6 +192,22 @@
   helpers' changes in it).
 
 ## vegetation
+- 01:00 Commit 6748108 (pass 2): all placed trees now library models incl. bald cypress (library pines regraded) and three
+  poinciana variants; Mangrove Tree 2 dropped (roots broke in decimation, white trunk), mangroves = Mangrove Tree 1 in clumps of
+  3-5 on the shallow shore fringe only (roots into water + mud, never in deep water or on docks: ray check against static
+  colliders). Palette after grading: every leaf texture within hue 75-93 deg / sat 0.42-0.55 / value 0.34-0.46 (report.json
+  'after'); dry palms / dry grass / agave deliberately outside. Frame time A/B in one run (library vs `?veglib=0`, machine
+  loaded by other helpers, noisy): Keys aerial 44.5 vs 41.3 ms (943 vs 828 draws), Keys street 39.0 vs 33.0 ms (784 vs 698),
+  shore 39.4 vs 41.4 ms (709 vs 619). Boot READY 40.5 s with the library (loaded machine); `?veglib=0` run queued. GLBs now
+  prefetched at module load to overlap terrain boot.
+- 00:50 **In game (commit 3b69955):** Keys street with red poincianas, bougainvillea, coconut / weathered palms
+  `docs/v2/shots/vegetation/overnight/t3_keys_street.png`, yard `t3_keys_yard.png`, aerial `t3_keys_air.png`, hammock
+  understory `t3_everglades.png`, prairie aerial `t3_everglades_air.png`, downtown royal palms `t3_downtown.png`.
+  Library sheets: `lib_palms.png`, `lib_trees.png`, `lib_plants.png`. Frame time at the Keys yard 17 ms / 415 draws, Keys street
+  16.6 ms (shared machine). Since then: mangrove clumps in the shallows (stilt-root model in front, dense crowns behind),
+  flowering shrubs only near houses (were scattered on empty highway verges), moss mounds + grass tufts at trunk bases in
+  hammocks / swamps, sea oats from the library dry grass, residential street shade trees (live oak / banyan in old
+  neighborhoods, gumbo / poinciana elsewhere), radial crown normals (no black inward-facing leaf cards).
 - **API for keys / set pieces:** `game.vegetation.place(kind, x, z, { ry, s, y, model, keepY })` -> `{ remove() }`. kind = species
   group (`royal, coconut, coconut_bent, date, queen, sabal, palm_mix, banyan, liveoak, oak, buttonwood, shade, gumbo, poinciana,
   mangrove, pine, hedge, shrub, seagrape, bougainvillea, hibiscus, oleander, flowers, fern, agave, red_grass, tropical_bed, potted,
@@ -180,4 +231,5 @@
   Cypress has no library model: still procedural. Grass Clump 1 is used as tufts around tree bases; Moss 1 not yet.
 
 ## player
+- 01:05 Real finger joints found on the scan (separate fingers, the curl and fist check renders clean), so gun grips and relaxed hands deform now. Player capsule fitted to the body: radius 0.28 m, top at 1.80 m (was 0.32 x 1.74 m). Hit zones rewritten (src/gameplay/hitZones.js): radii fitted on this mesh, scaled per character from its own bones, an oval torso (two capsules), hands and feet covered, a head sphere that follows each rig's head joint, and a debug overlay `hitZoneDebug(game, chars)`. Foot IK: pelvis drops, the legs bend to the real ground, feet land on stair treads (not the ramp collider), planted feet tilt to slopes. Nico now sits visibly in the driver's seat of cars (he was hidden before). The camera follows the smoothed ground height (no jolt on curbs or steps). Before shots of the old Nico: `docs/v2/shots/player/before_side.png`, `before_face.png`. The walk test and the full shot set are queued (3 browser slots are shared by all helpers).
 - 00:50 **Nico is now the user's own model** (Models/Main Character 1, Tripo; folder 2 is byte-identical geometry and textures, so folder 1 is used). Rigged onto the game skeleton (52 Mixamo-named joints, bone-heat weights, LOD 95k / 24k / 7k tris), 4K albedo + normal + matte roughness, 1.83 m. Every existing clip retargets onto it at load. `?nico=old` = pipeline Nico. Build: `tools/v2/player/build.sh`. Shots: `docs/v2/shots/player/t1_face.png`, `t1_side.png`, `t1_walk.png`. Next: clear test spot, hit zones, capsule, foot IK test.
