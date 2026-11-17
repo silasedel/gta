@@ -582,6 +582,17 @@ export async function createVehicles(game) {
       if (!city.collidersReadyAt(t0.x, t0.z) || !city.collidersReadyAt(ax, az)) { freeze(v); v.speed = 0; return; }
     }
     const body = v.body;
+    // AI traffic does not roll over on its own: past ~30 deg of lean the roll / pitch rate is damped and a righting torque
+    // brings the car back onto its wheels (crashes involving the player still knock cars about: disabled / chased cars excluded)
+    if (v.ai && !v.playerDriven && !v.chaseTarget && !v.disabled && !v.ghost) {
+      const r0 = body.rotation(); _q.set(r0.x, r0.y, r0.z, r0.w); _v2.set(0, 1, 0).applyQuaternion(_q);
+      if (_v2.y < 0.86 && (v.hitCd || 0) <= 0) {
+        const av = body.angvel(), m = v.spec.mass, k = (0.86 - _v2.y) * 6;
+        body.setAngvel({ x: av.x * 0.92, y: av.y, z: av.z * 0.92 }, true);
+        body.applyTorqueImpulse({ x: -_v2.z * m * k * dt, y: 0, z: _v2.x * m * k * dt }, true);
+        v.rightedT = (v.rightedT || 0) + dt;
+      }
+    }
     const tt = body.translation();
     if (!Number.isFinite(tt.x) || !Number.isFinite(tt.y) || tt.y < -30) {
       // fell out of the world / NaN: never teleport onto the player; freeze at the last good spot or drop it
