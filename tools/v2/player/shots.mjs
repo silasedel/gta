@@ -22,6 +22,8 @@ const STEPS = {
   walk: { move: { key: 'KeyW', secs: 2.5 }, orbit: 'side', follow: true },
   run: { move: { key: 'KeyW', shift: true, secs: 1.4 }, orbit: 'side', follow: true },
   sprint: { move: { key: 'KeyW', shift: true, secs: 3.2 }, orbit: 'side', follow: true },
+  jump: { move: { key: 'Space', secs: 0.5 }, orbit: 'side' },
+  land: { move: { key: 'Space', secs: 0.86 }, orbit: 'side' },
   hitzones: { orbit: 'front', eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);', after: 'window.__hz?.dispose?.()' },
   hitzones_side: { orbit: 'side', eval: 'window.__hz = (await import("/src/gameplay/hitZones.js")).hitZoneDebug(game, [game.playerCharacter, ...(game.peds?.list || []).filter((p) => p.char && p.pos && p.pos.distanceTo(game.player.position) < 25).map((p) => p.char)]);', after: 'window.__hz?.dispose?.()' },
   disguise: { orbit: 'q34', eval: 'game.wardrobe.wear("uniform_lifeguard_shirt"); game.wardrobe.wear("shorts_navy"); game.wardrobe.wear("sneakers_black"); window.__desc = game.wardrobe.describe();',
@@ -51,7 +53,7 @@ const STEPS = {
       game.teleport(p.x, undefined, p.z, (H.spot?.heading || 0) + Math.PI / 2); game.cameraYaw = (H.spot?.heading || 0) - Math.PI / 2; game.cameraPitch = 0.35;`, after: '' },
   cam_house2: { orbit: 'front', noOrbit: true, wait: 2500, reset: false, eval: `game.cameraOverride = null; const H = game.nicoHouse; game.cameraYaw += 1.6; game.cameraPitch = 0.6;`, after: '' },
 };
-const DEFAULT_ONLY = ['front', 'side', 'back', 'q34', 'face', 'feet', 'walk', 'run', 'sprint', 'hitzones', 'hitzones_side', 'aim', 'aim_q', 'disguise', 'car', 'ragdoll', 'cam_car', 'cam_house', 'cam_house2'];
+const DEFAULT_ONLY = ['front', 'side', 'back', 'q34', 'face', 'feet', 'walk', 'run', 'sprint', 'hitzones', 'hitzones_side', 'aim', 'aim_q', 'disguise', 'car', 'ragdoll', 'jump', 'land', 'cam_car', 'cam_house', 'cam_house2'];
 const rep = { set: SET, when: new Date().toISOString(), shots: {} };
 
 

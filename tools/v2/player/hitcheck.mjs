@@ -53,16 +53,20 @@ const CHECK = `(async () => {
           }
         }
       }
-      let both = 0, meshOnly = 0, zoneOnly = 0, n = 0; const zoneHits = {};
+      let both = 0, meshOnly = 0, zoneOnly = 0, n = 0, innerMiss = 0, airHit = 0; const zoneHits = {};
       for (let j = 0; j < NY; j++) for (let i = 0; i < NS; i++) {
         const org = c.clone().addScaledVector(across, S0 + i * ST).addScaledVector(dir, -3); org.y += Y0 + j * ST;
         const mh = grid[j * NS + i] === 1;
         const zh = HZ.rayLimbs(org, dir, 6, [{ char: ch, pos: c }]);
         n++;
         if (mh && zh) { both++; zoneHits[zh.zone] = (zoneHits[zh.zone] || 0) + 1; } else if (mh) meshOnly++; else if (zh) zoneOnly++;
+        // away from the silhouette edge (all 8 neighbor cells agree): misses inside the body / hits in clear air
+        let allM = true, noneM = true;
+        for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const jj = j + dj, ii = i + di; const g = jj >= 0 && jj < NY && ii >= 0 && ii < NS ? grid[jj * NS + ii] : 0; if (g) noneM = false; else allM = false; }
+        if (mh && !zh && allM) innerMiss++; if (zh && noneM) airHit++;
       }
       const bodyRays = both + meshOnly;
-      res[view] = { rays: n, bodyRays, hitWhenAimedAtBody: +(both / Math.max(1, bodyRays)).toFixed(3), hitWhenAimedPastBody: zoneOnly, falseHitShare: +(zoneOnly / Math.max(1, both + zoneOnly)).toFixed(3), zones: zoneHits };
+      res[view] = { rays: n, bodyRays, hitWhenAimedAtBody: +(both / Math.max(1, bodyRays)).toFixed(3), hitWhenAimedPastBody: zoneOnly, falseHitShare: +(zoneOnly / Math.max(1, both + zoneOnly)).toFixed(3), missInsideBody: innerMiss, hitsInClearAir: airHit, clearAirShare: +(airHit / Math.max(1, both + zoneOnly)).toFixed(3), zones: zoneHits };
     }
     out.push({ name, person, meshes: body.length, ...res });
   }
