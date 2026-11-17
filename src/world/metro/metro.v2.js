@@ -35,7 +35,7 @@ const COL = { cream: '#fff4e3', coral: '#ff6b5a', pink: '#ff5fa8', gold: '#ffd27
 
 function flagOn() {
   try { const q = new URLSearchParams(location.search); if (q.has('metro')) return q.get('metro') !== '0'; } catch (e) { /* */ }
-  return false;   // r2-metro: off by default until the context-loss A/B is clean
+  return true;
 }
 
 // ---------------------------------------------------------------- 2D art (canvas): roundel, signs, line map, livery
@@ -542,7 +542,7 @@ export async function initV2(game) {
         if (near >= 0) {
           if (Math.hypot(P.position.x - S.stations[near].kx, P.position.z - S.stations[near].kz) < 400) buildKit();   // prefetch while you walk up
           const stars = game.wanted?.level || 0;
-          help(stars >= 2 ? 'The Southline is watched by the police. <b>Lose the cops first.</b>' : `Press <b>E</b> to take the <b>Southline</b> (${S.stations[near].name})`);
+          help(stars >= 2 ? 'The Southline is watched by the police: lose the cops first.' : `Press <b>E</b> to take the <b>Southline</b> (${S.stations[near].name})`);
           if (!blocked && stars < 2 && game.input?.pressed?.('KeyE')) enter(near);
         } else for (const s of S.stations) if (Math.hypot(P.position.x - s.kx, P.position.z - s.kz) < 120) { buildKit(); break; }
         return;
