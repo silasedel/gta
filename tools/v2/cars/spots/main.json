@@ -1,0 +1,7 @@
+{
+  "downtown": { "player": [407, -110, 0], "tod": 12, "settle": 14000 },
+  "downtown_car": { "tod": 12, "settle": 2000, "car": "*", "off": [3.4, 1.4, 5.0] },
+  "nico": { "player": [-866.1, 4836.4, 2.6], "tod": 11, "settle": 14000, "eval": "return JSON.stringify((game.vehicles.nicoCars||[]).map(v => [v.typeKey, v.mesh.position.toArray().map(x => +x.toFixed(1))]))" },
+  "nico_yard": { "tod": 11, "settle": 1500, "car": "truck2", "off": [-6.5, 3.2, 7.5], "fov": 55 },
+  "nico_night": { "tod": 21, "settle": 3000, "car": "truck2", "off": [-6.5, 3.2, 7.5], "fov": 55 }
+}

@@ -96,15 +96,14 @@ c('suv15', 'Marlin', 'Grand Ridge', 'suv', 'suv', 4.95, 2.5, 'v6', 2021);
 c('truck2', 'Ridgeback', '2500 HD', 'pickup', 'pickup', 6.2, 2.4, 'dsl', 2019, { pal: 'work' });
 c('van1', 'Corvo', 'Cargo LWB', 'van', 'van', 6.95, 2, 'dsl', 2012, { pal: 'work' });
 c('van5', 'Corvo', 'Traveller', 'van', 'van', 5.2, 1.2, 'v6', 1992, { pal: 'work' });
-c('van2', 'Corvo', 'Classic', 'van', 'van', 5.0, 1, 'v8', 1988, { parkedOnly: true, palette: [0xa9aeb4] });
 c('truck3', 'Atlas', 'Cab 14', 'truck', 'box', 6.6, 2, 'dsl', 2006, { palette: [0xf2f2f2] });
 c('truck4', 'Atlas', 'Box 26', 'truck', 'box', 7.6, 1.5, 'dslH', 1994, { palette: [0xf2f2f2] });
 c('truck7', 'Atlas', 'Box 20', 'truck', 'box', 7.0, 2, 'dsl', 2015, { palette: [0xf2f2f2] });
 c('truck5', 'Atlas', 'Long Haul', 'truck', 'semi', 7.4, 2, 'dslH', 2010, { palette: [0x9a9a9a] });
 c('truck8', 'Atlas', 'Vault', 'truck', 'box', 6.3, 3, 'dslH', 2018, { armored: true, palette: [0x101214] });
-c('truck6', 'Atlas', 'Engine 9', 'firetruck', 'fire', 10.4, 3, 'dslH', 2012, { police: 'fire', livery: 'fire', service: true, palette: [0xc4161c] });
+c('truck6', 'Atlas', 'Engine 9', 'firetruck', 'fire', 8.2, 3, 'dslH', 2012, { police: 'fire', livery: 'fire', service: true, palette: [0xc4161c] });
 c('van3', 'Corvo', 'Medic One', 'ambulance', 'box', 6.6, 2.5, 'dsl', 2014, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
-c('van4', 'Corvo', 'Medic Two', 'ambulance', 'box', 6.9, 2.5, 'dsl', 2018, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
+c('van4', 'Corvo', 'Medic Two', 'ambulance', 'box', 6.0, 2.5, 'dsl', 2018, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
 export const FLEET = F;
 export const FLEET_BY_KEY = Object.fromEntries(F.map((e) => [e.key, e]));
 export const fileKey = (key) => FLEET_BY_KEY[key]?.model || key;
@@ -114,7 +113,7 @@ export function specFor(e, man) {
   const P = PHYS[e.phys] || PHYS.sedan, s = man.shape, d = man.dims;
   const spec = {
     ...P, L: d.L, W: Math.min(d.W, s.bodyW || d.W), Wm: d.W, wb: man.wb, r: man.r, tw: Math.max(0.18, Math.min(0.4, man.tw)),
-    yb: Math.max(0.1, s.yb), belt: s.belt, noseY: s.noseY, tailY: s.tailY, roofY: s.roofY,
+    yb: Math.max(0.1, s.yb), belt: s.belt < Math.max(s.yb + 0.3, s.roofY * 0.4) ? s.roofY * 0.55 : s.belt /* glass-derived belt fails on some low-poly trucks */, noseY: s.noseY, tailY: s.tailY, roofY: s.roofY,
     zA: s.zA, zB: s.zB, zC: s.zC, zD: s.zD, cabInset: 0.14,
     label: `${e.brand} ${e.name}`, cls: e.cls, arch: e.phys, vmax: (P.vmax) / 3.6, tier: e.tier, year: e.year, era: e.year < 1996 ? 0 : e.year < 2012 ? 1 : 2,
     rimColor: 0xc9ced3, caliper: 0x333333, spokes: 5, glb: true, fileKey: fileKey(e.key),

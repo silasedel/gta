@@ -84,9 +84,10 @@ function prepWheel(g, fix) {
   return g;
 }
 function mergeSafe(list) {
-  const gs = list.filter(Boolean).map((g) => (g.index ? g.toNonIndexed() : g));
+  let gs = list.filter(Boolean);
   if (!gs.length) return null;
   if (gs.length === 1) return gs[0];
+  if (!gs.every((g) => g.index)) gs = gs.map((g) => (g.index ? g.toNonIndexed() : g));
   const keys = Object.keys(gs[0].attributes).filter((k) => gs.every((g) => g.getAttribute(k)));
   for (const g of gs) for (const k of Object.keys(g.attributes)) if (!keys.includes(k)) g.deleteAttribute(k);
   return mergeGeometries(gs, false);

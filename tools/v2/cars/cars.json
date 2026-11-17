@@ -28,8 +28,11 @@
   "L": 4.54,
   "textured": true,
   "slots": {
-   "^Color": "trim"
-  }
+   "^Color": "trim",
+   "Wiper": "trim",
+   "Trunk": "trim"
+  },
+  "noPaint": true
  },
  "suv1": {
   "src": "SUVs/SUV 1 - Boxy Luxury Off-Roader/SUV 1.blend",
@@ -45,7 +48,11 @@
  },
  "suv4": {
   "src": "SUVs/SUV 4 - Compact Family Crossover/SUV 4.blend",
-  "L": 4.6
+  "L": 4.6,
+  "slots": {
+   "dummy Material 0 085": "paint"
+  },
+  "noPaint": false
  },
  "suv5": {
   "src": "SUVs/SUV 5 - German Three-Row Crossover/SUV 5.blend",
@@ -53,7 +60,10 @@
  },
  "suv6": {
   "src": "SUVs/SUV 6 - Korean Angular Crossover/SUV 6.blend",
-  "L": 4.63
+  "L": 4.63,
+  "slots": {
+   "^MI 008$": "paint"
+  }
  },
  "suv7": {
   "src": "SUVs/SUV 7 - British Ultra-Luxury/SUV 7.blend",
@@ -95,7 +105,8 @@
   "L": 4.48,
   "slots": {
    "^Mat 11 #1": "paint"
-  }
+  },
+  "recalcNormals": true
  },
  "suv14": {
   "src": "SUVs/SUV 14 - Japanese Body-on-Frame Off-Roader/SUV 14.blend",
@@ -206,7 +217,7 @@
  },
  "truck6": {
   "src": "Trucks/Truck 6 - Fire Engine/Truck 6.blend",
-  "L": 10.4,
+  "L": 8.2,
   "textured": true,
   "wheelDonor": "truck7",
   "fwd": "+y"
@@ -223,7 +234,9 @@
  "van2": {
   "src": "Vans/Van 2 - Classic Graffiti Van (broken)/Van 2.blend",
   "L": 5.0,
-  "textured": true
+  "textured": true,
+  "static": true,
+  "fwd": "-x"
  },
  "van3": {
   "src": "Vans/Van 3 - Boxy Ambulance/Van 3.blend",
@@ -232,7 +245,7 @@
  },
  "van4": {
   "src": "Vans/Van 4 - Ambulance Box Body/Van 4.blend",
-  "L": 6.9,
+  "L": 6.0,
   "textured": true,
   "fwd": "-x",
   "dropObj": "^Box\\.00[24567]$"

@@ -1245,6 +1245,11 @@ export async function createVehicles(game) {
     for (let i = 0; i < 240 && !game.nicoHouse?.toWorld; i++) await new Promise((r) => setTimeout(r, 1000));
     const NH = game.nicoHouse; if (!NH?.toWorld) return;
     const h0 = NH.spot?.heading || 0;
+    // the neighbors: a sedan under a cover in the next yard, the old graffiti van rusting on the lot across the lane
+    for (const [k, lx, lz, h] of [['covered1', -19.5, 12.5, 0.35], ['van2', 24, 20, 1.9]]) {
+      const p = NH.toWorld(new THREE.Vector3(lx, 0, lz));
+      try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
+    }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
       try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, locked: false, stripe: c.stripe ? { w: 0.62, color: 0x0c0d0f } : null }); nicoCars.push(v); }

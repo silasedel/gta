@@ -364,7 +364,7 @@ for i in range(nI):
     dx, dy, dz = isz[i]
     if not (0.42 < dz < 1.5): continue
     if not (0.8 < dy / dz < 1.2): continue
-    if not (0.08 < dx < (1.05 if dz > 0.9 else 0.75)): continue
+    if not (0.08 < dx < (1.05 if dz > 0.75 else 0.75)): continue
     if imin[i, 2] > gz + 0.12 * dz: continue
     cx = (imin[i, 0] + imax[i, 0]) / 2
     if abs(cx) < 0.25: continue
@@ -526,14 +526,14 @@ for f in bm.faces:
     a_ = f.calc_area(); area[f.material_index] += a_; hz[f.material_index] += a_ * f.calc_center_median()[2]
 # untextured near-white trim: a large exterior one is body paint split into several materials (roof, bumpers), a small one is
 # an unset 3ds Max / FBX default -> black plastic (real cars have almost no white trim)
-if not CFG.get('keepWhite'):
+if not CFG.get('keepWhite') and not CFG.get('textured'):
     for mi, info in enumerate(minfo):
         if slot_of[mi] != 'trim' or info['img'] is not None or any(r_.search(info['name']) for r_, _ in over): continue
         if lum(info['base']) < 0.55 or info['metal'] > 0.5: continue
         if area[mi] > CFG.get('whitePaintArea', 0.5) and hz[mi] / max(area[mi], 1e-6) > rW * 1.2: slot_of[mi] = 'paint'
         else: info['base'] = (0.025, 0.025, 0.027, 1.0); info['rough'] = max(info['rough'], 0.55)
     log('white trim fixed')
-if not any(s == 'paint' for s in slot_of) or CFG.get('paintByArea'):
+if (not any(s == 'paint' for s in slot_of) and not CFG.get('textured') and not CFG.get('noPaint')) or CFG.get('paintByArea'):
     best, ba = None, 0
     for mi, info in enumerate(minfo):
         if not slot_of[mi].startswith('trim') or slot_of[mi] in ('trim:rubber', 'trim:interior'): continue
@@ -566,9 +566,25 @@ kill = []
 plate_faces = []
 TOPZ = float(verts_np(bm)[:, 2].max())
 TEXTURED = bool(CFG.get('textured')); tex_slot = {}
+if CFG.get('recalcNormals'):  # sources with flipped panels (rendered from behind -> invisible / black)
+    bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if slot_of[f.material_index] in ('paint',) or slot_of[f.material_index].startswith('trim')])
+    log('normals recalculated')
+_pin, _ptot = 0.0, 1e-9
+for f in bm.faces:
+    if slot_of[f.material_index] != 'paint': continue
+    a_ = f.calc_area(); _ptot += a_; n_ = f.normal; c_ = f.calc_center_median()
+    if (abs(n_[0]) > 0.6 and n_[0] * c_[0] < 0 and abs(c_[0]) > 0.45) or (n_[2] < -0.6 and c_[2] > 0.62 * TOPZ): _pin += a_
+INNER_OK = not CFG.get('keepInner') and _pin / _ptot < 0.3
+log('inner paint share', round(_pin / _ptot, 3), 'removing' if INNER_OK else 'kept')
 for f in bm.faces:
     mi = f.material_index; info = minfo[mi]; sl = slot_of[mi]
     if sl == 'drop': kill.append(f); continue
+    _wf = int(vw[f.verts[0].index]) if f.verts[0].index < len(vw) else -1
+    if sl == 'paint' and _wf >= 0: sl = 'trim'                      # wheels are never body paint
+    if sl == 'paint' and INNER_OK:
+        n_ = f.normal; c_ = f.calc_center_median()
+        if (abs(n_[0]) > 0.6 and n_[0] * c_[0] < 0 and abs(c_[0]) > 0.45) or (n_[2] < -0.6 and c_[2] > 0.62 * TOPZ):
+            kill.append(f); continue                                 # inner skins of doors / roof: hidden, poke through after decimation
     arr = image_array(info['img']) if info['img'] is not None and sl not in ('paint',) else None
     base = info['base']
     cz = f.calc_center_median()
