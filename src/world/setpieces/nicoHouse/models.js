@@ -57,7 +57,9 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
     if (m.map) { m.map.anisotropy = 8; }
     if (/pier|dock|planks|poles|section/i.test(k + m.name)) { m.color.setRGB(1.55, 1.48, 1.38); m.roughness = 1; }   // the kit's albedo is very dark (wet look): dry, sun-bleached lumber
     if (k === 'mossy_pier' || k === 'clean_pier') m.color.setRGB(1.12, 1.1, 1.05);
-    if (k === 'rocks') { m.color.setRGB(1.9, 1.82, 1.66); m.roughness = 1; }   // mossy brown boulders -> pale Keys limestone / coral rock
+    if (k === 'rocks') { m.color.setRGB(1.75, 1.72, 1.64); m.roughness = 1;   // mossy brown boulders -> pale Keys limestone / coral rock:
+      m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  { float l = dot( diffuseColor.rgb, vec3( 0.3, 0.55, 0.15 ) ); diffuseColor.rgb = mix( vec3( l ) * vec3( 1.0, 0.98, 0.93 ), diffuseColor.rgb, 0.22 ); }'); };   // the scan's moss and brown are taken out (78% desaturated)
+      m.customProgramCacheKey = () => 'keys:limestone'; }
     if (k === 'rolloff') { m.roughness = Math.max(0.55, m.roughness); m.color.setRGB(2.9, 1.0, 0.8); }   // dark rust-brown scan -> the faded red roll-off of the mock-up
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;

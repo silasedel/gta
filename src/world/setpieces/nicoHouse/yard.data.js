@@ -78,6 +78,7 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
   // the worn shell path from the bay stair to the dock landing
   [1.4, -9.5, 2.2, 0.9, 'shell'], [1.9, -13.5, 2.0, 0.85, 'shell'], [1.7, -17.5, 2.1, 0.85, 'shell'], [1.8, -21.0, 2.2, 0.8, 'shell'],
   // matted, sun-dried grass in the low-traffic corners
+  [7.5, 16.5, 3.2, 0.75, 'matted'], [-14.5, 24.0, 3.0, 0.7, 'matted'], [-19.5, 17.0, 3.4, 0.75, 'matted'], [-7.5, 9.5, 2.6, 0.6, 'matted'], [3.5, 25.5, 2.4, 0.7, 'matted'], [-11.0, 20.5, 2.2, 0.6, 'matted'],
   [-17.5, 13.0, 3.8, 0.75, 'matted'], [8.5, 13.5, 3.2, 0.7, 'matted'], [-1.0, 24.0, 2.8, 0.6, 'matted'], [-20.5, 6.5, 4.0, 0.8, 'matted'], [9.5, 6.5, 3.0, 0.7, 'matted'],
   [-14.5, 8.5, 4.5, 0.8, 'leaves'], [8.8, 17.0, 3.8, 0.9, 'leaves'], [-19.0, 4.0, 5.5, 0.7, 'leaves'], [-6.5, 21.0, 3.5, 0.5, 'matted'],
   [1.5, 20.5, 4.0, 0.6, 'matted'], [-13.0, 20.0, 3.0, 0.6, 'matted'], [-21.0, 12.0, 4.0, 0.7, 'matted'], [3.0, 26.0, 2.5, 0.8, 'leaves'],
