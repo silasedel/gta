@@ -12,22 +12,42 @@ export function build(ctx) {
   const { THREE, kit, mat, col, plan: P } = ctx, Dk = P.dock, M = kit.M, PI = Math.PI, r = kit.rng(606);
   if (!Dk?.kit) return;   // only when nicoHouse.v2.js measured the waterline (else part 05 keeps the old plank dock)
   const B = ctx.site, D = ctx.detail, sea = P.seaY, y = Dk.y, X = Dk.x, W = 2.45, ground = ctx.opts.groundAt || (() => 0);
-  const lib = loadKeysModels(THREE, ['pier_kit', 'rowboat', 'skiff', 'lifebuoy']);
+  const lib = loadKeysModels(THREE, ['pier_kit', 'rowboat', 'skiff', 'lifebuoy', 'rocks']);
   // ---- layout: sections from the land end (z1) out to z0, chosen in a fixed order (no two neighbors alike) ----
-  const ORDER = ['modular_wooden_pier_section_02', 'modular_wooden_pier_section_03', 'modular_wooden_pier_section_04', 'modular_wooden_pier_section_03', 'modular_wooden_pier_section_02', 'modular_wooden_pier_section_04'];
+  const ORDER = ['modular_wooden_pier_section_02'];   // one kit piece, flipped / tinted for variety (03 / 04 dropped out of the draw in tests)
   const LEN = { modular_wooden_pier_section_02: 3.39, modular_wooden_pier_section_03: 3.39, modular_wooden_pier_section_04: 3.16 };
-  const secs = []; let z = Dk.z1; for (let i = 0; z > Dk.z0 + 1; i++) { const n = ORDER[i % ORDER.length], L = LEN[n] - 0.04; secs.push({ n, zc: z - L / 2, L, flip: i % 3 === 1 }); z -= L; }
+  const secs = []; let z = Dk.z1; for (let i = 0; z > Dk.z0 + 1; i++) { const n = ORDER[i % ORDER.length], L = LEN[n] - 0.04; secs.push({ n, zc: z - L / 2, L, flip: i % 2 === 1 }); z -= L; }
   const zEnd = z, headZ = zEnd - 1.15;
   // colliders (sync): deck tops, ramp, T-head
   col.box(X, y - 0.1, (Dk.z1 + zEnd) / 2, W, 0.2, Dk.z1 - zEnd, { tag: 'dock', surface: 'wood' });
-  const rampL = 2.3, rampA = Math.atan2(y - 0.02, rampL);   // + about X: the house end (+Z) dips to the sand
-  col.box(X, (y + 0.02) / 2 - 0.08, Dk.z1 + rampL / 2, W, 0.16, Math.hypot(rampL, y), { rx: rampA, tag: 'dock', surface: 'wood' });
-  col.box(X, y - 0.1, headZ, 7.2, 0.2, 2.3, { tag: 'dock', surface: 'wood' });
-  // ---- ramp: weathered boards from the sand up to the first section, sand banked over the low end ----
-  const WD = mat.wood({ marine: true });
-  for (let k = 0; k < 15; k++) { const t = (k + 0.5) / 15, zz = Dk.z1 + rampL * t, yy = y - (y - 0.02) * t; B.box(WD, W - 0.1 + (r() - 0.5) * 0.04, 0.038, 0.145, M(X + (r() - 0.5) * 0.02, yy - 0.02, zz, rampA, (r() - 0.5) * 0.01, 0), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r }); }
-  for (const s of [-1, 1]) B.box(WD, 0.07, 0.2, Math.hypot(rampL, y), M(X + s * (W / 2 - 0.15), (y + 0.02) / 2 - 0.12, Dk.z1 + rampL / 2, rampA, 0, 0), { grain: 2, color: 0x6f675c, wear: 0.8 });
-  { const g = new THREE.SphereGeometry(1, 20, 8, 0, PI * 2, 0, PI / 2); g.scale(W / 2 + 0.9, 0.16, 1.4); B.geo(mat.pbr('sand_01', { rep: 2.5, gain: 1.4, grunge: true }), g, M(X, -0.08, Dk.z1 + rampL + 0.35), { color: [0.86, 0.82, 0.72], uvMul: [3, 3] }); g.dispose(); }
+  // ---- landing (lead review, Nov 17): the dock starts AT the waterline on a short concrete seawall with a limestone riprap edge
+  // along the shore (ref 2_back_dock), reached from the sand by three timber steps; nothing of it lies on the beach ----
+  const WD = mat.wood({ marine: true }), ST = mat.steel(), CONC = mat.concrete({ marine: true }), Ls = Dk.z1, wallZ = Ls + 0.35;
+  for (const [x0, x1] of [[X - 3.2, X + 3.2]]) { B.box(CONC, x1 - x0, 1.9, 0.45, M((x0 + x1) / 2, y - 0.1 - 0.95, wallZ), { color: kit.vary(0xc4bfb0, r, 0.05), wear: 1, bevel: 0.015, rand: r }); B.box(CONC, x1 - x0 + 0.04, 0.14, 0.62, M((x0 + x1) / 2, y - 0.12, wallZ), { color: kit.vary(0xd2ccbd, r, 0.04), wear: 0.8, bevel: 0.02, rand: r }); col.box((x0 + x1) / 2, y - 0.6, wallZ, x1 - x0, 1.2, 0.62, { tag: 'seawall' }); }
+  const stepRise = (y - 0.02) / 3, stepRun = 0.34;
+  for (let k = 0; k < 3; k++) { const top = y - stepRise * (k + 1) + 0.02, zz = wallZ + 0.31 + stepRun * (k + 0.5); for (let b = 0; b < 2; b++) B.box(WD, W - 0.3, 0.045, 0.15, M(X, top - 0.022, zz - 0.08 + b * 0.16), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.6, bevel: 0.004, rand: r });
+    for (const s2 of [-1, 1]) B.box(WD, 0.06, top + 0.05, 0.3, M(X + s2 * (W / 2 - 0.2), (top - 0.05) / 2, zz), { grain: 1, color: 0x6f675c, wear: 0.8 }); }
+  { const L = stepRun * 3 + 0.3, a = Math.atan2(y - 0.02, L); col.box(X, (y + 0.02) / 2 - 0.08, wallZ + 0.31 + L / 2, W - 0.3, 0.16, Math.hypot(L, y), { rx: a, tag: 'dock', surface: 'wood' }); }   // smooth walk-up
+  // riprap: pale limestone blocks along the waterline of Nico's frontage (both sides of the landing), half in the water
+  const shore = []; const wAt = ctx.opts.waterAt;
+  if (wAt) for (let x = -20; x <= 12; x += 1.1) { if (Math.abs(x - X) < 3.4) continue; let zz = null; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) { zz = z2; break; } if (zz !== null) shore.push([x, zz]); }
+  ctx.anchors.shore = shore;   // nicoHouse.v2.js plants mangroves at the riprap ends
+  const RIP = shore.flatMap(([x, zz], i) => [[x + (r() - 0.5) * 0.5, zz + 0.4 + (r() - 0.5) * 0.4, 0.34 + r() * 0.2], [x + 0.55 + (r() - 0.5) * 0.4, zz - 0.5 + (r() - 0.5) * 0.4, 0.3 + r() * 0.18], ...(i % 2 ? [[x + (r() - 0.5) * 0.6, zz + 1.3 + r() * 0.4, 0.22 + r() * 0.12]] : [])]);
+  for (const [x, zz, sc] of RIP) col.box(x, sc * 0.5 - 0.25, zz, sc * 1.6, sc * 1.2, sc * 1.6, { tag: 'rock' });
+  // chain-link fences down the side lot lines to the water (ref 2_back_dock)
+  { const chain = kit.canvasTex(128, 128, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = 'rgba(170,174,170,1)'; g.lineWidth = 3; for (let k = -w; k < w * 2; k += 32) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + h, h); g.stroke(); g.beginPath(); g.moveTo(k + h, 0); g.lineTo(k, h); g.stroke(); } }, { srgb: true });
+    chain.wrapS = chain.wrapT = THREE.RepeatWrapping;
+    const MESH = new THREE.MeshStandardMaterial({ map: chain, transparent: true, depthWrite: false, side: THREE.DoubleSide, roughness: 0.6, metalness: 0.5, opacity: 0.85 }); MESH.name = 'keys:chainlink'; MESH.userData.uvScale = 1;   // blended, mip-mapped: no alpha-test shimmer
+    const fence = (fx, za, zb) => { const len = Math.abs(zb - za), zc = (za + zb) / 2, n = Math.max(1, Math.round(len / 2.4));
+      for (let k = 0; k <= n; k++) { const zz = za + (zb - za) * k / n; B.cyl(ST, 0.03, 0.03, 1.32, M(fx, 0.64, zz), { seg: 8, color: 0xaeb2ae }); }
+      B.cyl(ST, 0.02, 0.02, len, M(fx, 1.25, zc, Math.PI / 2, 0, 0), { seg: 6, color: 0xaeb2ae });
+      const g = new THREE.PlaneGeometry(len, 1.2); g.rotateY(Math.PI / 2); B.geo(MESH, g, M(fx, 0.62, zc), { uvMul: [len / 0.75, 1.2 / 0.75] }); g.dispose();
+      col.box(fx, 0.65, zc, 0.06, 1.3, len, { tag: 'fence' }); };
+    const edgeAt = (x) => { if (!wAt) return -20; for (let z2 = -6; z2 > -60; z2 -= 0.5) if (wAt(x, z2)) return z2 + 1.0; return -20; };
+    fence(-23.6, -4.0, edgeAt(-23.6)); fence(11.2, -4.0, edgeAt(11.2)); }
+  ctx.async.push(lib.ready.then(() => { const I = lib.instancer('keysRiprap'), names = lib.names('rocks').sort();
+    RIP.forEach(([x, zz, sc], i) => I.add('rocks', names[i % 3], M(x, -0.28, zz, (r() - 0.5) * 0.3, r() * 6.28, (r() - 0.5) * 0.3, sc, sc * 0.75, sc), { tint: [0.98 + r() * 0.06, 0.96 + r() * 0.06, 0.9 + r() * 0.06] }));
+    for (const m of I.build(ctx.groups.site)) m.raycast = () => {}; }));
   // ---- piles under water: the kit posts end about 3.3 m below the deck; marine timber carries them to the sea bed ----
   const MW = mat.wood({ marine: true });
   const pileAt = (px, pz, top) => { const gb = Math.min(ground(px, pz), sea - 0.4); if (top - gb < 0.2) return; const h = top - gb + 0.4; B.cyl(MW, 0.12, 0.135, h, M(px, top - h / 2, pz, (r() - 0.5) * 0.02, r() * 6, 0), { seg: 10, hseg: 3, color: kit.vary(0x6f665a, r, 0.1), wear: 1 }); col.cyl(px, (top + gb) / 2, pz, 0.14, top - gb, { tag: 'pile' }); };
@@ -37,8 +57,8 @@ export function build(ctx) {
   for (const zz of [headZ - 1.15, headZ + 1.15]) B.box(WD, 7.2, 0.26, 0.08, M(X, y - 0.18, zz), { grain: 0, color: 0x6f675c, wear: 0.8, bevel: 0.006 });
   for (const xx of [X - 3.55, X - 1.2, X + 1.2, X + 3.55]) for (const zz of [headZ - 1.12, headZ + 1.12]) { const top = y + (Math.abs(xx - X) > 3 ? 0.95 + r() * 0.15 : -0.05); pileAt(xx, zz, top); B.cyl(MW, 0.13, 0.13, Math.max(0.1, top - (y - 3.3)), M(xx, (top + y - 3.3) / 2, zz), { seg: 12, color: kit.vary(0x7d7467, r, 0.1), wear: 1 }); }
   // cleats, coiled line, ladder
-  const ST = mat.steel(), cleat = (cx, cz, ry) => { B.box(ST, 0.26, 0.024, 0.045, M(cx, y + 0.06, cz, 0, ry, 0), { color: 0xa9a59a, bevel: 0.01 }); for (const s of [-1, 1]) B.cyl(ST, 0.015, 0.02, 0.05, M(cx + Math.cos(ry) * s * 0.06, y + 0.025, cz - Math.sin(ry) * s * 0.06), { color: 0xa9a59a, seg: 8 }); };
-  const cleats = [[X + W / 2 - 0.12, (Dk.z1 + zEnd) / 2 - 3, PI / 2], [X + W / 2 - 0.12, zEnd + 3.0, PI / 2], [X - W / 2 + 0.12, zEnd + 2.0, PI / 2], [X + 3.3, headZ + 0.9, 0], [X - 3.3, headZ - 0.9, 0]];
+  const cleat = (cx, cz, ry) => { B.box(ST, 0.26, 0.024, 0.045, M(cx, y + 0.06, cz, 0, ry, 0), { color: 0xa9a59a, bevel: 0.01 }); for (const s of [-1, 1]) B.cyl(ST, 0.015, 0.02, 0.05, M(cx + Math.cos(ry) * s * 0.06, y + 0.025, cz - Math.sin(ry) * s * 0.06), { color: 0xa9a59a, seg: 8 }); };
+  const cleats = [[X + W / 2 - 0.12, (Dk.z1 + zEnd) / 2, PI / 2], [X + W / 2 - 0.12, zEnd + 3.0, PI / 2], [X - W / 2 + 0.12, zEnd + 2.0, PI / 2], [X + 3.3, headZ + 0.9, 0], [X - 3.3, headZ - 0.9, 0]];
   for (const [cx, cz, ry] of cleats) cleat(cx, cz, ry);
   for (const s of [-1, 1]) B.box(ST, 0.04, 2.6, 0.04, M(X + 3.62, y - 0.9, headZ + s * 0.22), { color: 0xa9a59a, bevel: 0.008 });
   for (let k = 0; k < 7; k++) B.cyl(ST, 0.016, 0.016, 0.44, M(X + 3.62, y - 0.15 - k * 0.3, headZ, PI / 2, 0, 0), { color: 0xa9a59a, seg: 8 });

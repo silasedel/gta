@@ -48,7 +48,7 @@ export async function initV2(game) {
   let dock = null;
   if (!gcOff && waterAt && !KEYS_OFF) {
     const X = 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (waterAt(X, lz) && waterAt(X, lz - 1.5) && waterAt(X, lz - 3)) { zw = lz; break; }
-    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: -10.4, zw, z0: Math.min(-20, zw - 13), y: 0.55 };
+    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: zw + 0.2, zw, z0: zw - 12.5, y: 0.55 };   // starts at the waterline (lead review: nothing of the dock on the sand)
   }
   const house = await buildNicoHouse(THREE, {
     dock,
@@ -104,6 +104,7 @@ export async function initV2(game) {
   });
 
   // ---- keys pass: yard planting through the vegetation helper, parked cars through the cars helper (yard.data.js) ----
+  g.userData.shore = house.anchors.shore || [];
   if (!KEYS_OFF) try { plantYard(game, g); } catch (e) { console.warn('[nicoHouse] planting', e); }
   // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
   // CAR_SPOTS documents the mock-up spots and is kept clear of props
@@ -137,5 +138,9 @@ function plantYard(game, g) {
     if (!V.kinds?.includes?.(kind)) continue;
     let l = byKind.get(kind); if (!l) byKind.set(kind, (l = [])); l.push({ x: p.x, y, z: p.z, ry: (lx * 7.1 + lz * 3.3) % 6.28, s: o.s || 1 });
   }
+  // mangroves on the shore fringe at both ends of Nico's riprap (part 06 measured the waterline: anchors.shore, house-local)
+  const shore = game.nicoHouse?.house?.anchors?.shore || g.userData.shore || [];
+  for (const [lx, lz] of shore) { if (!(lx < -13 || lx > 7.5) || ((lx * 7) | 0) % 2) continue; const p = new T.Vector3(lx + 0.3, 0, lz + 0.9).applyMatrix4(g.matrixWorld), y = (game.city?.groundHeightAt?.(p.x, p.z) ?? 0) - 0.3;
+    if (V.kinds?.includes?.('mangrove')) { let l = byKind.get('mangrove'); if (!l) byKind.set('mangrove', (l = [])); l.push({ x: p.x, y, z: p.z, ry: lx * 3.1, s: 0.7 + ((lx * 13) % 1 + 1) % 1 * 0.4 }); } }
   if (V.field) for (const [kind, items] of byKind) { try { V.field(kind, items, { variants: 2, seed: 17 }); } catch (e) { console.warn('[nicoHouse] field', kind, e); } }
 }

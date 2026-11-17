@@ -507,15 +507,17 @@ gl_Position = projectionMatrix * mvPosition;
   function r01(p) { return kit.hash(p.x * 13.1, p.y * 7.7, p.z * 3.3); }
   petals(120, kit.rng(34), (r2) => { const a = r2() * 6.28, d = Math.sqrt(r2()) * 1.5, x = 6.9 + Math.cos(a) * d, z = 4.9 + Math.sin(a) * d; return (x < 6.65 && z < 4.45) || x > 11.2 ? null : new V3(x, 0.012 + r2() * 0.008, z); }, orange);
 
-  // the lattice planter on the street side (yard.data.js PLANTER, track: keys): canes up out of the soil, spilling over the lattice
-  // toward the street and along the box, petals on the soil, the box rim and the sand in front
-  { const PL = PLANTER, top = PL.h + 0.05;
+  // the lattice planter on the street side (yard.data.js PLANTER, track: keys): canes rise out of the soil, arch over the cap rail
+  // and cascade down the lattice faces (mostly the street side), a few trail along the box; petals on the soil, the cap and the sand
+  { const PL = PLANTER, top = PL.h + 0.05, hd = PL.depth / 2 + 0.07;
+    const inBox = (q) => { for (const [ax, az, bx, bz] of PL.runs) { const along = Math.abs(az - bz) < 0.01; if (along) { if (q.x > Math.min(ax, bx) - 0.05 && q.x < Math.max(ax, bx) + 0.05 && Math.abs(q.z - az) < hd) return { n: [0, Math.sign(q.z - az) || 1], c: az, axis: 'z' }; } else if (q.z > Math.min(az, bz) - 0.05 && q.z < Math.max(az, bz) + 0.05 && Math.abs(q.x - ax) < hd) return { n: [Math.sign(q.x - ax) || 1, 0], c: ax, axis: 'x' }; } return null; };
     PL.plants.forEach((p, i) => { const run = PL.runs.find(([ax, az, bx, bz]) => Math.abs(az - bz) < 0.01 ? Math.abs(p.z - az) < 0.6 && p.x > ax - 0.6 && p.x < bx + 0.6 : Math.abs(p.x - ax) < 0.6), along = run && Math.abs(run[1] - run[3]) < 0.01;
-      const out = along ? Math.PI / 2 : 0, col = p.hue === 'coral' ? orange : magenta, s = p.s;
-      bougainvillea({ seed: 61 + i * 7, base: [p.x, p.z], supports: [[p.x - 0.25, p.z], [p.x + 0.25, p.z], [p.x, p.z + 0.15], [p.x - 0.1, p.z - 0.15]], top: top + 0.9 * s, canes: Math.round(14 * s), reach: 1.05 * s, leaves: 10, shoots: 2, clusters: 10, color: col,
-        az: (r) => { const t = r(); return t < 0.55 ? out + (r() - 0.5) * 1.3 : t < 0.8 ? out + Math.PI + (r() - 0.5) * 0.8 : (along ? 0 : Math.PI / 2) + (r() < 0.5 ? 0 : Math.PI) + (r() - 0.5) * 0.6; },
-        bound: (q) => { if (q.y < top && Math.abs(q.x - p.x) < 0.5 && Math.abs(q.z - p.z) < 0.4) q.y = Math.max(q.y, 0.2); if (q.y > top + 1.5 * s) q.y = top + 1.5 * s; if (q.y < 0.25) q.y = 0.25; } });
-      petals(Math.round(50 * s), kit.rng(80 + i), (r2) => { const a = r2() * 6.28, d = 0.3 + Math.sqrt(r2()) * 1.4 * s, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d * 1.2; return Math.abs(z - p.z) < PL.depth / 2 && Math.abs(x - p.x) < 0.5 ? new V3(x, PL.h - 0.06, z) : new V3(x, 0.012 + r2() * 0.008, z); }, col); }); }
+      const out = along ? 0 : Math.PI / 2, col = p.hue === 'coral' ? orange : magenta, s = p.s;   // out: toward the street (+Z) or out of the return run (+X)
+      bougainvillea({ seed: 61 + i * 7, base: [p.x, p.z], supports: [[p.x - 0.3, p.z], [p.x + 0.3, p.z], [p.x, p.z + 0.12], [p.x - 0.1, p.z - 0.12]], top: top + 0.35 * s, canes: Math.round(22 * s), reach: 1.7 * s, leaves: 10, shoots: 2, clusters: 12, color: col,
+        az: (r) => { const t = r(); const a = t < 0.62 ? out + (r() - 0.5) * 1.1 : t < 0.8 ? out + Math.PI + (r() - 0.5) * 0.9 : (along ? 0 : Math.PI / 2) + (r() < 0.5 ? Math.PI / 2 : -Math.PI / 2) + (r() - 0.5) * 0.5; return -a + Math.PI / 2; },
+        bound: (q) => { const b = inBox(q); if (b && q.y < top + 0.04) { if (b.axis === 'z') q.z = b.c + b.n[1] * (hd + 0.02 + r01(q) * 0.06); else q.x = b.c + b.n[0] * (hd + 0.02 + r01(q) * 0.06); }   // hang on the lattice face, never through it
+          if (q.y > top + 1.2 * s) q.y = top + 1.2 * s; if (q.y < 0.12) q.y = 0.12; } });
+      petals(Math.round(60 * s), kit.rng(80 + i), (r2) => { const a = r2() * 6.28, d = 0.3 + Math.sqrt(r2()) * 1.5 * s, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d * 1.2; return inBox({ x, y: 0, z }) ? new V3(x, PL.h + 0.055, z) : new V3(x, 0.03 + r2() * 0.01, z); }, col); }); }
 
   // ---------- small plant builders ----------
   const NOSW = () => ZERO;

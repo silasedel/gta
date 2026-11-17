@@ -1,0 +1,76 @@
+{
+ "docktop": {
+  "eye": [
+   1.8,
+   30.0,
+   -20.0
+  ],
+  "look": [
+   1.8,
+   0.0,
+   -20.5
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "dockside": {
+  "eye": [
+   16.0,
+   2.5,
+   -20.0
+  ],
+  "look": [
+   1.8,
+   0.4,
+   -20.0
+  ],
+  "tod": 11,
+  "fov": 60
+ },
+ "r7_dock_close": {
+  "eye": [
+   5.0,
+   1.6,
+   -14.0
+  ],
+  "look": [
+   1.8,
+   0.3,
+   -24.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "ref": "docs/v2/plan/nico_house/2_back_dock.webp"
+ },
+ "r0b_deck": {
+  "eye": [
+   1.4,
+   4.9,
+   6.9
+  ],
+  "look": [
+   -6.5,
+   0.0,
+   23.0
+  ],
+  "tod": 11,
+  "fov": 62,
+  "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
+ },
+ "r6_yard_rain": {
+  "eye": [
+   -6.0,
+   2.4,
+   30.0
+  ],
+  "look": [
+   -3.0,
+   0.0,
+   18.0
+  ],
+  "tod": 11,
+  "fov": 60,
+  "weather": "afterrain",
+  "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
+ }
+}

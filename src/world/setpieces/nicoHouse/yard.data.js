@@ -61,7 +61,7 @@ export const DEBRIS = [
   { k: 'drywall', x: -23.2, z: 16.9, h: 1.1 }, { k: 'drywall', x: -13.9, z: 20.2, h: 0.6 }, { k: 'lumber', x: -16.8, z: 21.4, h: 1.3 },
   { k: 'bucket', x: -14.6, z: 19.3, h: 0 }, { k: 'tire', x: -19.6, z: 22.0, h: 0, flat: true }, { k: 'cinder', x: 7.6, z: 21.0, h: 0.4 },
   { k: 'cinder', x: 7.9, z: 20.7, h: 1.1 }, { k: 'cooler', x: 2.9, z: 10.6, h: 2.3 }, { k: 'chair', x: 2.1, z: 11.5, h: 3.6 },
-  { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -8.8, z: 10.3, h: 0 }, { k: 'husks', x: 10.6, z: 17.4, h: 1 },
+  { k: 'chair', x: 3.7, z: 11.2, h: 2.4, tipped: true }, { k: 'husks', x: -11.6, z: 9.0, h: 0 }, { k: 'husks', x: 10.6, z: 17.4, h: 1 },
   { k: 'tarp', x: -22.6, z: 8.8, h: 0.4 }, { k: 'bucket', x: 2.4, z: 9.8, h: 0, color: 0xe25a1c },
 ];
 
@@ -75,6 +75,8 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
   // pale crushed-shell ground where the cars park and turn, from the house to the street (mock-up)
   [-2.5, 12.5, 6.5, 1.0, 'shell'], [-4.5, 20.0, 6.0, 0.95, 'shell'], [2.5, 17.5, 5.0, 0.85, 'shell'], [-10.5, 16.0, 5.5, 0.85, 'shell'], [4.0, 10.5, 4.5, 0.8, 'shell'],
   [-8.0, 24.5, 4.0, 0.75, 'shell'], [-15.5, 19.5, 4.5, 0.7, 'shell'], [6.5, 21.5, 3.5, 0.7, 'shell'],
+  // the worn shell path from the bay stair to the dock landing
+  [1.4, -9.5, 2.2, 0.9, 'shell'], [1.9, -13.5, 2.0, 0.85, 'shell'], [1.7, -17.5, 2.1, 0.85, 'shell'], [1.8, -21.0, 2.2, 0.8, 'shell'],
   // matted, sun-dried grass in the low-traffic corners
   [-17.5, 13.0, 3.8, 0.75, 'matted'], [8.5, 13.5, 3.2, 0.7, 'matted'], [-1.0, 24.0, 2.8, 0.6, 'matted'], [-20.5, 6.5, 4.0, 0.8, 'matted'], [9.5, 6.5, 3.0, 0.7, 'matted'],
   [-14.5, 8.5, 4.5, 0.8, 'leaves'], [8.8, 17.0, 3.8, 0.9, 'leaves'], [-19.0, 4.0, 5.5, 0.7, 'leaves'], [-6.5, 21.0, 3.5, 0.5, 'matted'],
@@ -87,7 +89,7 @@ export const LITTER = [   // [x, z, radius, density 0..1, kind: 'shell' (crushed
 export const PLANTING = [
   ['gumbo', -22.5, -9.5, { s: 1.05, seed: 3 }], ['poinciana', 10.4, 19.5, { s: 0.95, seed: 7 }],
   ['coconut', -23.0, 7.5, { s: 1.0, lean: [0.8, 0.3] }], ['coconut', 11.0, 11.5, { s: 0.92, lean: [-0.4, 0.6] }], ['sabal', -22.4, -3.0, { s: 0.9 }],
-  ['hibiscus', -8.6, 23.6, { s: 1.0 }], ['hibiscus', -1.6, 25.2, { s: 0.85 }], ['bougainvillea', 9.2, 23.8, { s: 1.1 }], ['bougainvillea', -14.8, 21.8, { s: 0.9 }],
+  ['seagrape', -8.6, 23.6, { s: 0.9 }], ['seagrape', -14.8, 21.8, { s: 0.85 }],
   ['seagrape', -22.5, 1.0, { s: 1.1 }], ['seagrape', 10.8, 4.0, { s: 1.0 }], ['hibiscus', -12.0, 6.8, { s: 0.8 }],
   ['poinciana', -23.5, 35.5, { s: 1.1, seed: 12 }], ['poinciana', -4.5, 47.0, { s: 1.0, seed: 7 }],   // across the street (mock-up: red crowns over the far yards)
   // the neighbors' yards and the verges (keysStreet.data.js lots): shade trees and palms so the street reads dense and green
@@ -97,4 +99,15 @@ export const PLANTING = [
   ['coconut', -68.0, -52.0, { s: 1.05 }], ['sabal', -58.0, -50.0, { s: 0.95 }], ['coconut', -93.0, -52.0, { s: 1.1 }], ['seagrape', -80.0, -54.0, { s: 1.2 }], ['seagrape', -50.0, -48.0, { s: 1.1 }],
   ['seagrape', -27.0, 35.0, { s: 1.0 }], ['hibiscus', -4.0, 37.5, { s: 1.0 }], ['seagrape', 7.0, 46.0, { s: 1.1 }], ['hibiscus', 14.0, 36.0, { s: 0.9 }], ['seagrape', -36.0, 12.0, { s: 1.1 }],
   ['hibiscus', -21.2, 15.6, { s: 1.15 }], ['seagrape', -23.2, 13.0, { s: 1.0 }], ['seagrape', -19.5, -6.5, { s: 0.9 }],
+];
+
+// ---- weed clumps (part 05 weeds): [x, z, radius, count, size] where weeds really grow: around rocks, posts, bins, the planter
+// foot, the drive's middle strip between the ruts, and the lot edges (the rest of the yard is trodden bare)
+export const WEEDS = [
+  [-4.3, 19.0, 0.35, 26, 1.1], [-4.4, 23.5, 0.3, 22, 1.0], [-4.1, 15.0, 0.3, 18, 0.9], [-9.4, 19.5, 0.35, 22, 1.0], [-10.3, 22.4, 0.3, 18, 1.0],   // between the ruts
+  [-9.0, 26.0, 0.6, 30, 1.2], [9.6, 27.0, 0.6, 28, 1.2], [-21.5, 15.5, 0.6, 26, 1.1], [-6.7, 34.4, 0.5, 18, 1.0], [5.6, 27.1, 0.5, 18, 1.0],   // pole and sign feet
+  [4.0, 24.4, 2.8, 70, 1.1], [6.4, 23.6, 1.2, 30, 1.0], [0.4, 26.4, 0.9, 24, 1.0], [-13.6, 22.7, 0.9, 22, 1.0],   // planter foot, bins
+  [-22.6, 20.0, 1.0, 26, 1.2], [-20.3, 20.9, 0.9, 22, 1.1], [-16.1, 22.2, 1.0, 26, 1.2], [-11.8, 23.6, 0.8, 20, 1.0], [-6.4, 25.3, 0.9, 22, 1.1], [7.8, 27.0, 0.8, 20, 1.0], [10.6, 25.9, 0.9, 22, 1.1],   // frontage rocks
+  [-15.2, 12.6, 1.0, 24, 1.1], [-12.6, 9.8, 0.8, 18, 1.0], [-18.2, 21.0, 1.6, 40, 1.2], [-23.0, 10.0, 2.5, 60, 1.3], [10.5, 12.0, 2.5, 55, 1.3], [-23.0, 2.0, 2.5, 50, 1.3],   // dumpster skirt, lot edges
+  [1.0, 17.6, 0.6, 16, 1.0], [-6.2, 19.4, 0.6, 16, 1.0], [2.6, 21.8, 1.5, 30, 1.0], [-1.0, 23.5, 1.4, 30, 1.0],
 ];
