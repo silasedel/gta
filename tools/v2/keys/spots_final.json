@@ -1,0 +1,47 @@
+{
+ "r0b_deck": {
+  "eye": [
+   1.4,
+   4.9,
+   6.9
+  ],
+  "look": [
+   -6.5,
+   0.0,
+   23.0
+  ],
+  "tod": 11,
+  "fov": 62,
+  "ref": "docs/v2/plan/nico_house/0_front_deck_mockup.webp"
+ },
+ "r1_front": {
+  "eye": [
+   -1.5,
+   1.6,
+   34.5
+  ],
+  "look": [
+   -1.5,
+   3.4,
+   2.0
+  ],
+  "tod": 10,
+  "fov": 52,
+  "ref": "docs/v2/plan/nico_house/1_front_street.webp"
+ },
+ "r3_side": {
+  "eye": [
+   -36.0,
+   2.6,
+   4.0
+  ],
+  "look": [
+   -5.0,
+   3.0,
+   0.0
+  ],
+  "tod": 16,
+  "fov": 50,
+  "ref": "docs/v2/plan/nico_house/3_side_yard.webp"
+ }
+}
