@@ -736,14 +736,17 @@ if EMB:
     for f in EMB:
         if not f.is_valid: continue
         c_ = f.calc_center_median(); k0 = (int(c_[0] // cell), int(c_[1] // cell), int(c_[2] // cell)); best, bd = None, 0.15
-        for dx in (-2, -1, 0, 1, 2):
-            for dy in (-2, -1, 0, 1, 2):
-                for dz in (-2, -1, 0, 1, 2):
-                    for g in H.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
-                        d_ = (g.calc_center_median() - c_).length
-                        if d_ < bd: bd, best = d_, g
+        for R_ in (2, 5):   # near first, then up to 0.3 m (a badge in the middle of a big grille opening)
+            if best is not None: break
+            bd = 0.15 if R_ == 2 else 0.33
+            for dx in range(-R_, R_ + 1):
+                for dy in range(-R_, R_ + 1):
+                    for dz in range(-R_, R_ + 1):
+                        for g in H.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
+                            d_ = (g.calc_center_median() - c_).length
+                            if d_ < bd: bd, best = d_, g
         if best is None:
-            mi_ = 0; col_ = (1.0, 1.0, 1.0, 0.0)
+            kill.append(f); continue   # nothing around it to match: drop the badge face (never a white or black block)
         else:
             mi_ = best.material_index; cs_ = [lp[col_layer] for lp in best.loops]
             col_ = tuple(sum(c[i] for c in cs_) / len(cs_) for i in range(4))
@@ -752,11 +755,21 @@ if EMB:
         for lp in f.loops: lp[col_layer] = col_
         if mi_ == 3: 
             for lp in f.loops: lp[uvl].uv = (-1.0, -1.0)
+        elif best is not None and mi_ >= 4:
+            # textured neighbor: sample one texel of its texture (its mean UV), so the fill takes the body color, not a stray atlas region
+            us_ = [lp[uvl].uv.copy() for lp in best.loops]; mu_ = (sum(u[0] for u in us_) / len(us_), sum(u[1] for u in us_) / len(us_))
+            for lp in f.loops: lp[uvl].uv = mu_
         filled += 1
     log('emblems inpainted', filled)
 # hand-placed boxes around 3D maker emblems (cars.json 'killBoxes'): a connected island lying wholly inside the box is deleted
 # (grille ornaments, hood mascots); a surface that leaves the box (the grille itself, the hood) is kept
-for B in CFG.get('killBoxes') or []:
+_AUTO_KILL = [] if CFG.get('keepBadges') or CFG.get('noAutoKill') else [
+    # every car: small loose islands on the nose / tail centerline (grille badges, hood ornaments, trunk emblems and words)
+    {'front': True, 'dz': [0, 0.5], 'ax': [0, 0.22], 'y': [0.25, 1.7], 'maxSize': 0.4, 'trimOnly': True},
+    {'front': False, 'dz': [0, 0.45], 'ax': [0, 0.22], 'y': [0.3, 1.6], 'maxSize': 0.4, 'trimOnly': True},
+    # off-center trunk lettering (model / trim names): only small islands
+    {'front': False, 'dz': [0, 0.3], 'ax': [0.18, 0.8], 'y': [0.45, 1.4], 'maxSize': 0.16, 'trimOnly': True}]
+for B in (CFG.get('killBoxes') or []) + _AUTO_KILL:
     front = B.get('front', True); nk = 0
     def _inb(f):
         c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
@@ -773,10 +786,31 @@ for B in CFG.get('killBoxes') or []:
                     if not _inb(h): ok = False; break
                     seen_.add(h); isl.append(h)
                 if not ok: break
+        if ok and B.get('maxSize'):
+            vs_ = [v.co for g in isl for v in g.verts]; ext_ = max(max(v[i] for v in vs_) - min(v[i] for v in vs_) for i in range(3))
+            ok = ext_ <= B['maxSize'] and not any(g.material_index in (1, 3) for g in isl)
+            # body skins of triangle-soup models are loose islands too: the automatic boxes only take badge-like trim islands
+            if ok and B.get('trimOnly'): ok = len(isl) >= 4 and all(g.material_index == 2 for g in isl)
+            if ok and B.get('minFaces'): ok = len(isl) >= B['minFaces']
         if ok:
             for g in isl: _kill.add(g); kill.append(g)
             nk += len(isl)
     log('kill box', nk)
+# hand-placed hard cuts (cars.json 'cutBoxes'): every non-paint, non-glass, non-lamp face centered inside is deleted
+# (a maker badge fused into the grille mesh; the grille opening behind reads as a plain dark grille)
+for B in CFG.get('cutBoxes') or []:
+    front = B.get('front', True); nk = 0
+    for f in bm.faces:
+        if not f.is_valid or f in _kill or (f.material_index in (0, 1, 3) and not B.get('all')): continue
+        c_ = f.calc_center_median(); gz_ = -c_[1]; d_ = (FRONTZ - gz_) if front else (gz_ - REARZ)
+        if B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]:
+            if B.get('mode') == 'paint' and f.material_index in (1, 3): continue
+            if B.get('mode') == 'paint':   # lettering on a body panel: becomes plain body paint (no hole)
+                f.material_index = 0
+                for lp in f.loops: lp[col_layer] = (1.0, 1.0, 1.0, 0.0)
+            else: _kill.add(f); kill.append(f)
+            nk += 1
+    log('cut box', nk)
 # hand-placed boxes where painted lettering sits on black trim (cars.json 'darkBoxes'): paint faces inside become dark trim
 for B in CFG.get('darkBoxes') or []:
     n = 0; front = B.get('front', False)

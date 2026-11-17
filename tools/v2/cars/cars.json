@@ -110,7 +110,26 @@
  "suv1": {
   "src": "SUVs/SUV 1 - Boxy Luxury Off-Roader/SUV 1.blend",
   "L": 4.87,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ]
  },
  "suv2": {
   "src": "SUVs/SUV 2 - Classic Off-Road 4x4/SUV 2.blend",
@@ -120,7 +139,44 @@
  "suv3": {
   "src": "SUVs/SUV 3 - Full-Size American Luxury/SUV 3.blend",
   "L": 5.38,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "all": true,
+    "dz": [
+     0,
+     0.8
+    ],
+    "ax": [
+     0,
+     0.12
+    ],
+    "y": [
+     1.08,
+     1.26
+    ]
+   }
+  ]
  },
  "suv4": {
   "src": "SUVs/SUV 4 - Compact Family Crossover/SUV 4.blend",
@@ -129,12 +185,85 @@
    "dummy Material 0 085": "paint"
   },
   "noPaint": false,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   },
+   {
+    "front": false,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.3,
+     1.6
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "all": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.76,
+     0.96
+    ]
+   }
+  ]
  },
  "suv5": {
   "src": "SUVs/SUV 5 - German Three-Row Crossover/SUV 5.blend",
   "L": 4.7,
-  "fwd": "-y"
+  "fwd": "-y",
+  "cutBoxes": [
+   {
+    "front": false,
+    "all": true,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0,
+     0.16
+    ],
+    "y": [
+     0.73,
+     1.09
+    ]
+   }
+  ]
  },
  "suv6": {
   "src": "SUVs/SUV 6 - Korean Angular Crossover/SUV 6.blend",
@@ -147,7 +276,60 @@
  "suv7": {
   "src": "SUVs/SUV 7 - British Ultra-Luxury/SUV 7.blend",
   "L": 5.34,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   },
+   {
+    "front": false,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.3,
+     1.6
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.12
+    ],
+    "y": [
+     1.09,
+     1.41
+    ]
+   }
+  ]
  },
  "suv8": {
   "src": "SUVs/SUV 8 - Small City Crossover/SUV 8.blend",
@@ -160,7 +342,61 @@
   "slots": {
    "SlateGrayPearl": "paint"
   },
-  "fwd": "+x"
+  "fwd": "+x",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   },
+   {
+    "front": false,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.3,
+     1.6
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "all": true,
+    "dz": [
+     0,
+     0.8
+    ],
+    "ax": [
+     0,
+     0.12
+    ],
+    "y": [
+     0.74,
+     0.9
+    ]
+   }
+  ]
  },
  "suv10": {
   "src": "SUVs/SUV 10 - Korean Compact Crossover/SUV 10.blend",
@@ -169,12 +405,69 @@
    "Wolf Gray": "paint",
    "Primary": "trim"
   },
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": false,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.3,
+     1.6
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": false,
+    "all": true,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0,
+     0.24
+    ],
+    "y": [
+     0.89,
+     1.21
+    ]
+   }
+  ]
  },
  "suv11": {
   "src": "SUVs/SUV 11 - Japanese Sleek Crossover/SUV 11.blend",
   "L": 4.55,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": false,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.3,
+     1.6
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ]
  },
  "suv12": {
   "src": "SUVs/SUV 12 - Retro Two-Door 4x4/SUV 12.blend",
@@ -236,7 +529,44 @@
  "suv15": {
   "src": "SUVs/SUV 15 - Japanese Three-Row Family/SUV 15.blend",
   "L": 4.95,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "all": true,
+    "dz": [
+     0,
+     0.8
+    ],
+    "ax": [
+     0,
+     0.15
+    ],
+    "y": [
+     0.82,
+     0.98
+    ]
+   }
+  ]
  },
  "sedan1": {
   "src": "Sedans/Sedan 1 - Japanese Family Sedan/Sedan 1.blend",
@@ -251,7 +581,43 @@
  "sedan3": {
   "src": "Sedans/Sedan 3 - German Luxury Sedan/Sedan 3.blend",
   "L": 4.75,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.45
+    ],
+    "ax": [
+     0,
+     0.14
+    ],
+    "y": [
+     0.5,
+     0.82
+    ]
+   }
+  ]
  },
  "sedan4": {
   "src": "Sedans/Sedan 4 - Electric Fastback/Sedan 4.blend",
@@ -261,7 +627,26 @@
  "sedan5": {
   "src": "Sedans/Sedan 5 - Japanese Compact Sedan/Sedan 5.blend",
   "L": 4.64,
-  "fwd": "-y"
+  "fwd": "-y",
+  "killBoxes": [
+   {
+    "front": true,
+    "dz": [
+     0,
+     0.5
+    ],
+    "ax": [
+     0,
+     0.26
+    ],
+    "y": [
+     0.25,
+     1.7
+    ],
+    "maxSize": 0.5,
+    "minFaces": 12
+   }
+  ]
  },
  "sedan6": {
   "src": "Sedans/Sedan 6 - American Midsize Sedan/Sedan 6.blend",
@@ -371,6 +756,41 @@
     "y": [
      0.75,
      1.5
+    ]
+   }
+  ],
+  "cutBoxes": [
+   {
+    "front": true,
+    "all": true,
+    "dz": [
+     0,
+     0.8
+    ],
+    "ax": [
+     0,
+     0.18
+    ],
+    "y": [
+     0.92,
+     1.16
+    ]
+   },
+   {
+    "front": false,
+    "all": true,
+    "mode": "paint",
+    "dz": [
+     0,
+     0.35
+    ],
+    "ax": [
+     0,
+     0.22
+    ],
+    "y": [
+     0.94,
+     1.3
     ]
    }
   ]
