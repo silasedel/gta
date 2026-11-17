@@ -20,13 +20,13 @@ export function build(ctx) {
   const zEnd = z, headZ = zEnd - 1.15;
   // colliders (sync): deck tops, ramp, T-head
   col.box(X, y - 0.1, (Dk.z1 + zEnd) / 2, W, 0.2, Dk.z1 - zEnd, { tag: 'dock', surface: 'wood' });
-  const rampL = 2.3, rampA = Math.atan2(y - 0.02, rampL);
-  col.box(X, (y + 0.02) / 2 - 0.08, Dk.z1 + rampL / 2, W, 0.16, Math.hypot(rampL, y), { rx: -rampA, tag: 'dock', surface: 'wood' });
+  const rampL = 2.3, rampA = Math.atan2(y - 0.02, rampL);   // + about X: the house end (+Z) dips to the sand
+  col.box(X, (y + 0.02) / 2 - 0.08, Dk.z1 + rampL / 2, W, 0.16, Math.hypot(rampL, y), { rx: rampA, tag: 'dock', surface: 'wood' });
   col.box(X, y - 0.1, headZ, 7.2, 0.2, 2.3, { tag: 'dock', surface: 'wood' });
   // ---- ramp: weathered boards from the sand up to the first section, sand banked over the low end ----
   const WD = mat.wood({ marine: true });
-  for (let k = 0; k < 15; k++) { const t = (k + 0.5) / 15, zz = Dk.z1 + rampL * t, yy = y - (y - 0.02) * t; B.box(WD, W - 0.1 + (r() - 0.5) * 0.04, 0.038, 0.145, M(X + (r() - 0.5) * 0.02, yy - 0.02, zz, -rampA, (r() - 0.5) * 0.01, 0), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r }); }
-  for (const s of [-1, 1]) B.box(WD, 0.07, 0.2, Math.hypot(rampL, y), M(X + s * (W / 2 - 0.15), (y + 0.02) / 2 - 0.12, Dk.z1 + rampL / 2, -rampA, 0, 0), { grain: 2, color: 0x6f675c, wear: 0.8 });
+  for (let k = 0; k < 15; k++) { const t = (k + 0.5) / 15, zz = Dk.z1 + rampL * t, yy = y - (y - 0.02) * t; B.box(WD, W - 0.1 + (r() - 0.5) * 0.04, 0.038, 0.145, M(X + (r() - 0.5) * 0.02, yy - 0.02, zz, rampA, (r() - 0.5) * 0.01, 0), { grain: 0, color: kit.vary(0x9a9388, r, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r }); }
+  for (const s of [-1, 1]) B.box(WD, 0.07, 0.2, Math.hypot(rampL, y), M(X + s * (W / 2 - 0.15), (y + 0.02) / 2 - 0.12, Dk.z1 + rampL / 2, rampA, 0, 0), { grain: 2, color: 0x6f675c, wear: 0.8 });
   { const g = new THREE.SphereGeometry(1, 20, 8, 0, PI * 2, 0, PI / 2); g.scale(W / 2 + 0.9, 0.16, 1.4); B.geo(mat.pbr('sand_01', { rep: 2.5, gain: 1.4, grunge: true }), g, M(X, -0.08, Dk.z1 + rampL + 0.35), { color: [0.86, 0.82, 0.72], uvMul: [3, 3] }); g.dispose(); }
   // ---- piles under water: the kit posts end about 3.3 m below the deck; marine timber carries them to the sea bed ----
   const MW = mat.wood({ marine: true });
@@ -43,6 +43,10 @@ export function build(ctx) {
   for (const s of [-1, 1]) B.box(ST, 0.04, 2.6, 0.04, M(X + 3.62, y - 0.9, headZ + s * 0.22), { color: 0xa9a59a, bevel: 0.008 });
   for (let k = 0; k < 7; k++) B.cyl(ST, 0.016, 0.016, 0.44, M(X + 3.62, y - 0.15 - k * 0.3, headZ, PI / 2, 0, 0), { color: 0xa9a59a, seg: 8 });
   { const pts = []; for (let i = 0; i < 90; i++) { const t = i / 90, a = t * 6.283 * 5, rr = 0.07 + t * 0.2; pts.push([X - 2.6 + Math.cos(a) * rr, y + 0.02 + (i % 18) * 0.0004, headZ + 0.4 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.011, { seg: 5, color: 0xd8cfae, steps: 150 }); }
+  // ---- dock light on a post at the head (on from dusk to dawn) ----
+  { const WDp = mat.wood(), lx = X + 3.5, lz = headZ - 1.05; B.cyl(WDp, 0.06, 0.07, 2.7, M(lx, y + 1.35, lz), { seg: 10, color: 0x7d7467, wear: 0.8 }); B.box(ST, 0.5, 0.03, 0.03, M(lx - 0.24, y + 2.62, lz), { color: 0x8c8a82 });
+    B.cyl(mat.metalPaint(), 0.16, 0.05, 0.14, M(lx - 0.46, y + 2.56, lz), { color: 0x3f6f5f, seg: 14 }); B.geo(mat.emissive(0xffe2ae, 2.5, 'dock'), new THREE.SphereGeometry(0.045, 10, 8), M(lx - 0.46, y + 2.5, lz), {});
+    const lt = ctx.addLight({ id: 'dock_light', pos: [lx - 0.46, y + 2.42, lz], color: 0xffd9a0, intensity: 55, range: 14, on: false }); ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12; lt.on = t < 6.3 || t > 18.4; }); col.cyl(lx, y + 1.35, lz, 0.08, 2.7, { tag: 'post' }); }
   // ---- boats on lines: positions in the water alongside (bobbing in part updaters) ----
   const boats = [
     { k: 'rowboat', x: X + W / 2 + 0.75, z: zEnd + 4.2, h: 0.04, cleat: 1, draft: 0.12 },
