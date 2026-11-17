@@ -25,7 +25,7 @@ export const LIB = {
   red_band_tower: { w: 59.28, d: 56.44, h: 105.81, k: 1, lod1: 1, cls: 'tower', use: 'office', glow: 0.5, mir: 1, tint: 'glass' },
   curved_glass_tower: { w: 34.53, d: 51.67, h: 169.81, k: 1, lod1: 1, cls: 'tower', use: 'office', glow: 0.45, wt: 0.45, mir: 1, tint: 'glass' },
   hotel_tower: { w: 67.65, d: 45.3, h: 150.24, k: 1, cls: 'tower', use: 'res', glow: 0.5, lod1: 1, mir: 1, tint: 'stone', wt: 1.3 },
-  grid_tower: { w: 60.83, d: 96.85, h: 212, k: 1, cls: 'tower', use: 'office', glow: 0.55, mir: 1, tint: 'glass' },
+  grid_tower: { w: 60.83, d: 96.85, h: 212, k: 1, lod1: 1, cls: 'tower', use: 'office', glow: 0.55, mir: 1, tint: 'glass' },
   deco_tower: { w: 56, d: 40, h: 122.47, k: 1, cls: 'tower', use: 'any', glow: 0.5, lod1: 1, mir: 1, tint: 'stone' },
   curved_res_tower: { w: 39.37, d: 100.04, h: 220, k: 1, cls: 'tower', use: 'res', glow: 0.5, lod1: 1, mir: 1, tint: 'stone', wt: 0.8 },
   concrete_tower: { w: 43.08, d: 29.28, h: 85.63, k: 1, cls: 'tower', use: 'any', glow: 0.35, mir: 1, tint: 'concrete', rough: 2, wt: 0.6 },
@@ -35,7 +35,7 @@ export const LIB = {
   old_brick_towers: { w: 24.73, d: 39.96, h: 40.05, k: 1, cls: 'mid', use: 'any', glow: 0.35, lod1: 1, mir: 1, tint: 'brick', rough: 2 },
   black_glass_14: { w: 43.2, d: 43.2, h: 50.21, k: 1, cls: 'mid', use: 'office', glow: 0.5, lod1: 1, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
   stepped_midrise: { w: 32, d: 33.29, h: 49.45, k: 1, cls: 'mid', use: 'any', glow: 0.45, mir: 1, tint: 'stone' },
-  blue_glass_tower: { w: 59.91, d: 50.76, h: 56.11, k: 1, beach: 1, cls: 'mid', use: 'any', glow: 0.5, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
+  blue_glass_tower: { w: 59.91, d: 50.76, h: 56.11, k: 1, lod1: 1, beach: 1, cls: 'mid', use: 'any', glow: 0.5, mir: 1, tint: 'glass', not: 'Overtown|Liberty' },
   grid_block: { w: 32, d: 31.37, h: 23.76, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone', rough: 1 },
   angular_block: { w: 65.51, d: 56.62, h: 29.23, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone' },
   strip_office: { w: 15.12, d: 36.12, h: 14, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'glass' },
@@ -78,7 +78,7 @@ export const LIB = {
   jet_bridge: { w: 4.55, d: 25.55, h: 9.21, k: 1, cls: 'fixed', glow: 0.2, tint: 'none' },
   airliner: { w: 34.38, d: 37.59, h: 11.79, k: 1, lod1: 1, cls: 'fixed', glow: 0.15, tint: 'none', desat: 1 }, // Plane 7 (livery blurred at intake), parked nose-in at the gates
 };
-const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 400;
+const RANGE = { tower: 7000, fixed: 4000, mid: 4000, house: 1600, shop: 1600, stilt: 1600, ind: 2500, hangar: 3000, rlow: 1600, clutter: 450 }, CELL = 1500, LOD_D = 300;
 const CHANCE = { tower: 0.55, mid: 0.42, house: 0.32, shop: 0.4, stilt: 0.3, ind: 0.55, hangar: 0.9, rlow: 0.42 };
 const CLS_OK = { rlow: /^(house|shop|ind)$/ };
 const MIRROR = false;
@@ -400,7 +400,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     for (const e of entries.values()) {
       const r = RANGE[e.cls] || 400; if (Math.abs(e.x - lastX) > r || Math.abs(e.z - lastZ) > r) continue;
       const cx = Math.floor(e.x / CELL), cz = Math.floor(e.z / CELL);
-      const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~400 m, houses / shops to ~180 m
+      const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~300 m, houses / shops to ~135 m
       const lod = LIB[e.name].lod1 && Math.hypot(e.x - lastX, e.z - lastZ) > ld ? 1 : 0;
       const key = e.name + '|' + lod + '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
       ensure(key);

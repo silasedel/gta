@@ -10,7 +10,10 @@
  },
  "grid_tower": {
   "src": "Office Buildings/Office Building 1 - Tall Black Grid Glass Tower With Lobby Trimsheet/Office Building 1.glb",
-  "tris": 0
+  "tris": 0,
+  "lod1": 14000,
+  "bake1": false,
+  "tex1": 512
  },
  "deco_tower": {
   "src": "Office Buildings/Office Building 11 - Stepped Art Deco Stripe Tower/Office Building 11.glb",
@@ -55,7 +58,10 @@
  },
  "blue_glass_tower": {
   "src": "Buildings/Building 25 - Curved Blue-Glass High-Rise On Plaza Plinth/Building 25.glb",
-  "tris": 24000
+  "tris": 24000,
+  "lod1": 10000,
+  "bake1": false,
+  "tex1": 512
  },
  "grid_block": {
   "src": "Office Buildings/Office Building 4 - Seven-Story Dark Grid Block With Roof Plant Boxes/Office Building 4.glb",
