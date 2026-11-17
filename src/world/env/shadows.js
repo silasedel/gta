@@ -125,6 +125,10 @@ export function createSplitShadows(game, sun, dyn) {
     tagNow: () => { discover(); drain(1e9); },
     markStaticDirty() { staticDirty = true; },
     update(dt) {
+      // stage 1 perf: the dynamic map (characters, cars) redraws every second frame (it cost ~7 ms a frame at the Keys
+      // spawn: skinned characters are expensive casters). One frame of shadow lag at 60 fps is not visible.
+      if (game.dynShadowHalfRate !== false) { dyn.shadow.autoUpdate = false; dyn.shadow.needsUpdate = ((this._f = (this._f || 0) + 1) & 1) === 0; }
+      else dyn.shadow.autoUpdate = true;
       tagT -= dt;
       try {
         if (tagT <= 0) { tagT = 1; discover(); }
