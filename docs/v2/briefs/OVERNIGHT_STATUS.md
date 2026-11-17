@@ -263,7 +263,7 @@ Review: docs/v2/shots/props/review/FINAL_sheet.jpg, t5_* (car / walk push), t9_*
   drives ragged road edges, matched shoulders, mown verges, tree lawns, soft potholes and patches, no plants on paving or under cars;
   Keys lanes are bleached and sandy; turquoise shallows and wet shores; Everglades sawgrass; no sea water inside city blocks; cast-concrete bridges).
   Best before/after sheet: `docs/v2/shots/stage1/GROUNDPASS_keys_ab.png` (also cmp_ground_*.png vs the references). Frame cost: none measured (mask on/off 83.5 / 80.7 ms, loaded machine).
-  Curb weeds now register downtown too (267 at 407,-110, was 0; `gp19_weedsA.png`).
+  Curb weeds now register downtown too (267 at 407,-110, was 0; close-up `docs/v2/shots/stage1/GROUNDPASS_curb_weed_downtown.png`).
   Left: the asphalt look belongs to the surfaces helper, tall verge grass cards to vegetation, and the black driveway boxes to the houses helper (see 05:45).
 - 05:45 **to lead, re black rectangle in docs/v2/shots/cars/res_res_row1.png: not mine.** It is the driveway "stain" in
   src/world/setpieces/houses/generator.js line ~660 (yard(), houses helper): `if (L0) for (let k = 0; k < 3; k++) box(CONC, 0.4..0.9,
