@@ -219,7 +219,7 @@ function solve(ch, S, dt) {
   const scale = S.scale || 1;
   const w = THREE.MathUtils.clamp(S.w ?? 1, 0, 1);   // blend-in weight (entering the car)
   // ---- 1. torso recline against the backrest (absolute: measured, then corrected)
-  const recline = (S.recline ?? 16) + (S.extraRecline || 0) - (S.reachLean || 0);
+  const recline = (A.recline ?? S.recline ?? 16) + (S.extraRecline || 0) - (S.reachLean || 0);
   if (Sp && Neck) {
     const hipMid = V().addVectors(wp(LU, _a), wp(RU, _b)).multiplyScalar(0.5);
     const tor = V().copy(wp(Neck, _a)).sub(hipMid);
@@ -232,6 +232,8 @@ function solve(ch, S, dt) {
   // ---- 2. hips on the H-point
   const mid = V().addVectors(wp(LU, _a), wp(RU, _b)).multiplyScalar(0.5);
   const hipW = toW(S.hip || A.hip);   // probed: the cushion under a stale / high anchor
+  if (A.standing) { const lu = bone(ch, 'LeftUpLeg'), ll = bone(ch, 'LeftLeg'), lf = bone(ch, 'LeftFoot');
+    if (lu && ll && lf) { const legLen = wp(lu, _a).distanceTo(wp(ll, _b)) + wp(ll, _a).distanceTo(wp(lf, _b)); const hy = A.heel.y + legLen * 0.985 + 0.075 * scale; hipW.copy(toW(_c.set((S.hip || A.hip).x, hy, (S.hip || A.hip).z))); } }
   // a short driver slides the seat forward on its track before leaning in
   if (S.slide) hipW.addScaledVector(fwd, S.slide);
   const sink = S.sink || 0;
@@ -276,7 +278,7 @@ function solve(ch, S, dt) {
     const pole = V().copy(hipJ).addScaledVector(up, 0.6).addScaledVector(fwd, 0.5).addScaledVector(left, sg * 0.18);
     // feet stay on the floor but within reach: knees always keep some bend (a car seat never has straight legs)
     const legLen = wp(U, _a).distanceTo(wp(L, _b)) + wp(L, _a).distanceTo(wp(F, _b));
-    { const dv = V().copy(tgt).sub(hipJ); const dy = dv.dot(up); const hz = V().copy(dv).addScaledVector(up, -dy); const reach = legLen * 0.9;
+    { const dv = V().copy(tgt).sub(hipJ); const dy = dv.dot(up); const hz = V().copy(dv).addScaledVector(up, -dy); const reach = legLen * (A.standing ? 0.985 : 0.9);
       if (dv.length() > reach && reach > Math.abs(dy)) { const hl = Math.sqrt(reach * reach - dy * dy); hz.setLength(hl); tgt.copy(hipJ).add(hz).addScaledVector(up, dy); } }
     twoBone(U, L, F, tgt, pole, w);
     // keep the knee out of the door / center console
@@ -287,7 +289,7 @@ function solve(ch, S, dt) {
     // foot: heel down, toes up (pedal foot more)
     if (T) {
       const fd = V().copy(wp(T, _a)).sub(wp(F, _b));
-      const pitch = (ped ? 26 : 12) * D2R;
+      const pitch = (A.standing ? 0 : ped ? 26 : 12) * D2R;
       const want = V().copy(fwd).multiplyScalar(Math.cos(pitch)).addScaledVector(up, Math.sin(pitch)).addScaledVector(left, sg * 0.12).normalize();
       swing(F, fd, want, w);
       // the toe base flat with the foot
@@ -301,7 +303,16 @@ function solve(ch, S, dt) {
     const Ar = bone(ch, s + 'Arm'), Fa = bone(ch, s + 'ForeArm'), Hn = bone(ch, s + 'Hand');
     if (!Ar || !Fa || !Hn) continue;
     const sh = wp(Ar, V());
-    if (driver && A.wheel) {
+    const grip = A.grips?.find((q) => q.side === s);
+    if (grip) {
+      // a stick / lever / helm grip given by the vehicle (boats): wrist just behind the grip, fist around it
+      const gw = toW(grip.p); const fDes = V().copy(fwd).multiplyScalar(0.7).addScaledVector(up, -0.35).addScaledVector(left, -sg * 0.35).normalize();
+      const wrist = V().copy(gw).addScaledVector(fDes, -0.07 * scale);
+      const pole = V().copy(sh).addScaledVector(up, -0.7).addScaledVector(left, sg * 0.35).addScaledVector(fwd, -0.15);
+      twoBone(Ar, Fa, Hn, wrist, pole, w);
+      orientHand(ch, s, fDes, V().copy(up).multiplyScalar(-1).addScaledVector(left, sg * 0.2).normalize(), w);
+      curlHand(ch, s, [55 * w, 75 * w, 42 * w], [14 * w, 14 * w, 8 * w], 0);
+    } else if (driver && A.wheel && !A.grips) {
       const W = A.wheel; const c = toW(W.c); const tilt = W.tilt ?? 0.38; const r = (W.r ?? 0.19) * 1.0;
       // wheel plane: U = in-plane up (top leans forward), X = car left, N = toward the driver (up and back)
       const U = V().copy(up).multiplyScalar(Math.cos(tilt)).addScaledVector(fwd, Math.sin(tilt));
@@ -361,7 +372,7 @@ export function seatCharacter(ch, anchor, opts = {}) {
   ch.root.rotation.set(0, anchor.yaw || 0, 0);
   ch.root.scale.setScalar(1);
   const vs = opts.vehicle?.spec || null;
-  const S = { open: !!(opts.open ?? (vs && (vs.convertible || vs.roadster || vs.cls === 'roadster' || vs.bike))), anchor, role, vehicle: opts.vehicle || null, fit: 0, reachFit: 0, reachLean: 0, slide: 0, elbowFix: 0, sink: 0, extraRecline: 0, chin: 0, steer: 0,
+  const S = { open: !!(opts.open ?? anchor.open ?? (vs && (vs.convertible || vs.roadster || vs.cls === 'roadster' || vs.bike))), anchor, role, vehicle: opts.vehicle || null, fit: 0, reachFit: 0, reachLean: 0, slide: 0, elbowFix: 0, sink: 0, extraRecline: 0, chin: 0, steer: 0,
     scale: (ch.archetype?.height || ch.personMeta?.height || 1.78) / 1.78, isPlayer: !!(ch.isNico || opts.player) };
   ch._seat = S;
   // probe the real cushion and headliner of this car (cached per model + seat)

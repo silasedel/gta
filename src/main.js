@@ -1000,7 +1000,7 @@ async function boot() {
           character.root.position.set(bb.position.x, bb.position.y, bb.position.z);
           character.root.rotation.y = bb.heading ?? P.heading;
           try { character.update(dt, { speed: 0.6, grounded: bb.type !== 'hop', jumping: bb.type === 'hop', sprint: false, driving: false, punch: false, dead: false, swimming: bb.type === 'climb' && (bb.t ?? 0) < 0.45, wading: false }); } catch (e) { /* */ }
-        } else if (L.boardShown) { L.boardShown = false; if (character && P.state.inVehicle) character.setVisible(false); }
+        } else if (L.boardShown) { L.boardShown = false; if (character && P.state.inVehicle && !playerSeat.seated) character.setVisible(false); }   // seated at the helm by src/player/seat.js
       }
       // help prompt
       if (!P.state.inVehicle) {
