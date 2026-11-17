@@ -67,6 +67,13 @@
   `node tools/v2/s1-perf.mjs` (pinned preset, ABAB in one session).
 
 ## cars
+- 03:00 In game (g1): every traffic and parked car downtown / Brickell / Little Havana is a library model (glbShare 1.0);
+  at Nico's the neighbors' `spawnParked('sedan'...)` calls now resolve to library models too. Night: head lamps and red tail
+  lamps light (`docs/v2/shots/cars/g1_night_traffic.png`, `g1_night_rear.png`), traffic `g1_dt_traffic.png`, parked
+  `g1_res_parked.png`, `g1_nico.png`. Stability probe (`node tools/v2/cars/stability.mjs`, 60 s downtown, every car sampled
+  2x/s): first library run had 9 roll-overs (procedural fleet on the same spot: 4); cause = shorter physics bump travel ->
+  hull on the road. Fixed (travel >= 0.2 m, hull floor 0.24 m) -> 3; plus a righting torque for AI traffic past 30 deg lean.
+  Nico's pickup is gray now (wear no longer fades it white) and the classic stands beside it as in the mock-up (keys helper).
 - 02:00 First in-game close-ups (Brickell curb, 11:30, 14 models parked with spawnParked): `docs/v2/shots/cars/cu1_<key>_f.png`
   / `_r.png` (e.g. cu1_police1_f, cu1_taxi1_f, cu1_truck2_f, cu1_suv12_f). Paint, glass, wheels on the ground, Southline police
   and taxi liveries all read right. Fixed after looking: real maker emblems still on some grilles (stronger emblem removal,
@@ -93,6 +100,7 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 04:35 FINAL PASS committed (2084a0c, 8c62bdc). Review sheet: docs/v2/shots/props/review/FINAL_sheet.jpg (Nico's deck view, 3 Nico street lots, downtown blocks, bus stop, tower site, Keys residential lots). Push sequence: review/t5_lab.jpg -> t5_c.jpg -> t5_d.jpg (car hits a cart pair), review/t5_walk_go.jpg / t5_walk_end.jpg (player shoves carts). Cafes review/t9_cafe1.jpg, t9_cafe2.jpg; hydrant review/t9_spray.jpg. commit_mine.sh now also resets my paths in the shared index after each commit (ab3fb52 airport was the 4th commit that reverted my files from a stale shared index).
 - 04:05 LEAD (repeat): tilebuild.js commits from other helpers keep dropping my furniture hunks in HEAD because their index holds an older staged tilebuild.js: 765e12c (buildings), d3a7601 (vegetation), 6a4afb8 (ground pass) all have no workZones/propJitter/setPropMatrix; I re-add them each commit (4a6a721 has them). Working tree is fine. Fix for everyone: before committing tilebuild.js, `git reset -q -- src/world/miami/tilebuild.js` then stage only your hunks (tools/v2/street-models/stage_hunks.py <file> <regex> does that in 0.5 s), or use commit_mine.sh's compare-and-swap pattern. 04:08: I reset the stale staged tilebuild.js in the shared index to HEAD (working tree untouched), which was the source.
 - 03:55 cafes now the user's models (0373e59): patio table + 2-4 plastic chairs per table (one color per cafe, 6 colors), striped cafe umbrellas (6 colors) - docs/v2/shots/props/t9_cafe1.png, t9_cafe2.png; hydrant water column - t9_spray.png; sidewalk planters with shrubs downtown; kiosk spots -> library hot dog cart ("Crunch" wordmark painted out). Not used for brand reasons: pack-2 bins (BFI / WM logos), pack-1 post box (postal logo), Crate 2 (maker name).
 - 03:25 LEAD: Keys commit bc887bf reverted my committed tilebuild.js hunks (187 lines: variants, jitter, moved poses, work zones, construction sites, prop colliders) and hydrantSpray.v2.js in HEAD (the working tree was never affected); I re-committed them. Same stale-index pattern as my 606790d mistake: tools/v2/street-models/commit_mine.sh shows a compare-and-swap way to commit (read HEAD, private index from it, commit-tree -p HEAD, update-ref HEAD new old).
@@ -171,6 +179,11 @@
 - 00:20 Baseline (before) shots, noon street + aerial + night aerial at 8 places: `docs/v2/shots/stage1/B0_{dt,brick,sobe,havana,overtown,liberty,airport,clew}_{st,air,airn}.png` (review spots: `node tools/v2/buildings/spots.mjs`). Seen: storefront glass reads as flat white panels; aerials are white boxes with orange roofs, Overtown cloned boxes; airport has no buildings at all. (Not mine, for the lead: Little Havana and Clewiston aerials show sea water over the land at 150 m altitude: `B0_havana_air.png`, `B0_clew_air.png`.) First pass shots: `T1_*.png`.
 
 ## ground
+- 03:00 Keys follow-ups (keys helper + lead): seabed shelf along shores (no 5 m cliff), Keys asphalt bleached pale with sand film
+  and lingering low-spot puddles (`docs/v2/shots/keys/gw2_aerial.png`, `gw2_front.png`), Keys grade softened (yards were blown
+  out), the pale band + line along Nico's shore = global land base rising above the shore slope: now cut per pixel under
+  full-detail tiles; flat set-piece slabs / pads / low decks auto-join the ground mask (lead's fin2: no grass through the slab
+  under the stilt house; the black line there is not a road decal - passed to keys). Verifying in `docs/v2/shots/keys/gw3_*.png`.
 - 02:40 Lead's Key Largo notes: (4) **confirmed: the roadDecals 'mapTransform' compile error is fixed** (since 00:20; no shader
   errors in any of my test pages since, decals render: `gp7_pothole.png`, `gp8_pothole_rain.png`). (1) shoreline: the straight
   sand slabs + sloped skirts along terrain coasts (tilebuild exitVisuals beach bands, M.sand, orange) are no longer drawn on

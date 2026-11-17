@@ -51,6 +51,7 @@ They wake up at 7:00 and expect every point below fixed, by hand, verified with 
   is at http://127.0.0.1:5200 - never start/stop it. The machine is shared by ~9 helpers: keep test runs short, compare
   performance as A/B inside one run, not across runs.
 - Never `pkill -f <pattern>` or `killall`: other helpers' jobs match too. Kill only your own processes by PID or full path.
+- COMMIT SAFELY (the index is shared by ~10 helpers; stale staged files have reverted other helpers' work tonight): commit ONLY with an explicit pathspec, `git commit -m "..." -- <your files>` (this ignores anything else staged), never a bare `git commit` after `git add`. Never `git add -A`/`git add .`, never `git checkout -- <file>`/`git restore`/`git stash` on files that are not yours. After committing, `git show --stat HEAD` must list only your files.
 - Commit often, only your own files (`git add <files>`), message ends with
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never push.
 - Write your progress at the top of your own section in `docs/v2/briefs/OVERNIGHT_STATUS.md` (create your section if
