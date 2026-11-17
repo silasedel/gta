@@ -102,6 +102,25 @@ function haloMat(color) {
   return m;
 }
 const crateMat = new THREE.MeshStandardMaterial({ color: 0x5a4a30, roughness: 0.85 });
+// glint: a small four-point star that catches the eye every few seconds (readable from 10-15 m in daylight)
+let glintTex = null;
+const _glintMats = new Map();
+function glintMat(color) {
+  let m = _glintMats.get(color);
+  if (!m) {
+    if (!glintTex) {
+      const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+      const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.12, 'rgba(255,255,255,0.7)'); r.addColorStop(0.35, 'rgba(255,255,255,0.08)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+      g.globalCompositeOperation = 'lighter';
+      for (const [w, h] of [[30, 1.6], [1.6, 30]]) { const l = g.createRadialGradient(32, 32, 0, 32, 32, 30); l.addColorStop(0, 'rgba(255,255,255,0.9)'); l.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = l; g.fillRect(32 - w, 32 - h, w * 2, h * 2); }
+      glintTex = new THREE.CanvasTexture(c); glintTex.colorSpace = THREE.SRGBColorSpace;
+    }
+    m = new THREE.SpriteMaterial({ map: glintTex, color: new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.55), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, toneMapped: false });
+    _glintMats.set(color, m);
+  }
+  return m.clone();   // per pickup: each twinkles on its own beat
+}
 
 export function createPickups(game, G) {
   const { scene } = game;
@@ -116,7 +135,8 @@ export function createPickups(game, G) {
     model.position.y = HOVER;
     const halo = new THREE.Mesh(_haloGeo, haloMat(color));
     halo.position.y = 0.025; halo.renderOrder = 2;
-    root.add(model, halo);
+    const glint = new THREE.Sprite(glintMat(color)); glint.renderOrder = 6; glint.scale.setScalar(0.3);
+    root.add(model, halo, glint);
     // sit on the real surface (sidewalk, curb, dock planks): ray down onto the fixed colliders around the given point
     let y = pos.y || 0;
     const gy = tryCall('pickupGround', () => groundAt(game, pos.x, pos.z, y + 0.5), 0);
@@ -124,7 +144,7 @@ export function createPickups(game, G) {
     root.position.set(pos.x, y, pos.z);
     scene.add(root);
     const p = {
-      type, key: type, pos: root.position, root, model, halo, color, active: true, respawnT: 0, temp: !!opts.temp, life: opts.life ?? 45,
+      type, key: type, pos: root.position, root, model, halo, glint, color, active: true, respawnT: 0, temp: !!opts.temp, life: opts.life ?? 45,
       amount: opts.amount ?? 0, ammo: opts.ammo, phase: Math.random() * 6, mapIcon: ICON(type), label: LABEL(type), cache: !!opts.cache,
       variant: model.userData.variant || null, settled: !isWeapon(type),
     };
@@ -132,7 +152,7 @@ export function createPickups(game, G) {
     list.push(p);
     return p;
   }
-  function remove(p) { scene.remove(p.root); const i = list.indexOf(p); if (i >= 0) list.splice(i, 1); }
+  function remove(p) { scene.remove(p.root); p.glint?.material.dispose(); const i = list.indexOf(p); if (i >= 0) list.splice(i, 1); }
 
   // ---------------- placement (city API, streamed per ~200 m cell)
   const C = G.city;
@@ -286,9 +306,14 @@ export function createPickups(game, G) {
       if (p.rimOn !== rimOn) { p.rimOn = rimOn; p.model.traverse((o) => { if (o.userData.rim) o.visible = rimOn; }); }
       // slow turn + gentle bob; the glow breathes (a little stronger at night)
       p.model.rotation.y = t * 0.9 + p.phase;
-      p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.025;
+      p.model.position.y = HOVER + Math.sin(t * 1.6 + p.phase) * 0.04;
+      // twinkle: a quick glint every ~2.6 s near the top of the model; it grows with distance so it stays a few pixels wide
+      const gp = ((t + p.phase * 0.43) % 2.6) / 2.6, flash = gp < 0.12 ? Math.sin(gp / 0.12 * Math.PI) : 0;
+      p.glint.material.opacity = (0.28 + 0.72 * flash) * (d > 3 ? 1 : d / 3);
+      p.glint.position.set(Math.sin(t * 0.9 + p.phase) * 0.06, p.model.position.y + 0.1, Math.cos(t * 0.9 + p.phase) * 0.06);
+      p.glint.scale.setScalar((0.18 + Math.min(0.32, d * 0.018)) * (0.7 + 0.6 * flash));
       const night = 1 - (game.env?.dayFactor ?? 1);
-      p.halo.material.opacity = 0.32 + night * 0.35;
+      p.halo.material.opacity = 0.42 + night * 0.25;
       for (const m of _rimMats.values()) m.uniforms.uI.value = (0.8 + 0.2 * Math.sin(t * 2.2)) * (0.55 + night * 0.5);
       const r = inCar ? 2.6 : 1.3;
       if (!dead && d < r && Math.abs(p.pos.y - pp.y) < 2.2 && (!inCar || p.type === 'cash' || p.type === 'health' || p.type === 'armor' || p.type === 'ammo')) {
