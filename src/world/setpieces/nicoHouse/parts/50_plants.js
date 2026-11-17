@@ -5,6 +5,7 @@
 // periwinkle and weeds at the pile footings, sandspur tufts, leaf litter, coconut husks, fallen fronds, and the potted
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
+import { PLANTER } from '../yard.data.js';
 export const order = 50;
 
 export function build(ctx) {
@@ -506,6 +507,16 @@ gl_Position = projectionMatrix * mvPosition;
   function r01(p) { return kit.hash(p.x * 13.1, p.y * 7.7, p.z * 3.3); }
   petals(120, kit.rng(34), (r2) => { const a = r2() * 6.28, d = Math.sqrt(r2()) * 1.5, x = 6.9 + Math.cos(a) * d, z = 4.9 + Math.sin(a) * d; return (x < 6.65 && z < 4.45) || x > 11.2 ? null : new V3(x, 0.012 + r2() * 0.008, z); }, orange);
 
+  // the lattice planter on the street side (yard.data.js PLANTER, track: keys): canes up out of the soil, spilling over the lattice
+  // toward the street and along the box, petals on the soil, the box rim and the sand in front
+  { const PL = PLANTER, top = PL.h + 0.05;
+    PL.plants.forEach((p, i) => { const run = PL.runs.find(([ax, az, bx, bz]) => Math.abs(az - bz) < 0.01 ? Math.abs(p.z - az) < 0.6 && p.x > ax - 0.6 && p.x < bx + 0.6 : Math.abs(p.x - ax) < 0.6), along = run && Math.abs(run[1] - run[3]) < 0.01;
+      const out = along ? Math.PI / 2 : 0, col = p.hue === 'coral' ? orange : magenta, s = p.s;
+      bougainvillea({ seed: 61 + i * 7, base: [p.x, p.z], supports: [[p.x - 0.25, p.z], [p.x + 0.25, p.z], [p.x, p.z + 0.15], [p.x - 0.1, p.z - 0.15]], top: top + 0.9 * s, canes: Math.round(14 * s), reach: 1.05 * s, leaves: 10, shoots: 2, clusters: 10, color: col,
+        az: (r) => { const t = r(); return t < 0.55 ? out + (r() - 0.5) * 1.3 : t < 0.8 ? out + Math.PI + (r() - 0.5) * 0.8 : (along ? 0 : Math.PI / 2) + (r() < 0.5 ? 0 : Math.PI) + (r() - 0.5) * 0.6; },
+        bound: (q) => { if (q.y < top && Math.abs(q.x - p.x) < 0.5 && Math.abs(q.z - p.z) < 0.4) q.y = Math.max(q.y, 0.2); if (q.y > top + 1.5 * s) q.y = top + 1.5 * s; if (q.y < 0.25) q.y = 0.25; } });
+      petals(Math.round(50 * s), kit.rng(80 + i), (r2) => { const a = r2() * 6.28, d = 0.3 + Math.sqrt(r2()) * 1.4 * s, x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d * 1.2; return Math.abs(z - p.z) < PL.depth / 2 && Math.abs(x - p.x) < 0.5 ? new V3(x, PL.h - 0.06, z) : new V3(x, 0.012 + r2() * 0.008, z); }, col); }); }
+
   // ---------- small plant builders ----------
   const NOSW = () => ZERO;
   const tuft = (x, y, z, h, w, c, amp = 0.02, r = R) => { const a = r() * 6.28, cs = Math.cos(a), sn = Math.sin(a); tufts.add(new V3(x, y, z), new V3(cs * w, 0, sn * w), new V3((r() - 0.5) * 0.12 * h, h, (r() - 0.5) * 0.12 * h), new V3(-sn * w, 0, cs * w), c, [0, 0, amp * h * 2, x * 1.7 + z * 2.3], 9); };
@@ -578,7 +589,7 @@ gl_Position = projectionMatrix * mvPosition;
   buttonwood(-19.4, -7.6, 3.1, 51); buttonwood(-22.0, 15.2, 2.5, 52); buttonwood(-20.4, 6.0, 2.1, 53); buttonwood(-14.7, -1.6, 2.3, 54);
   // crotons and ti plants toward the street
   { const r = kit.rng(55);
-    for (const [x, z, k] of [[4.6, 25.1, 'c'], [5.7, 25.4, 't'], [6.9, 25.0, 'c'], [8.0, 25.3, 'c'], [9.1, 25.1, 't'], [10.2, 25.4, 'c'], [-10.6, 25.3, 'c'], [-11.8, 25.0, 't'], [-13.0, 25.4, 'c'], [-14.2, 25.1, 'c'], [-15.4, 25.4, 't'], [-16.6, 25.0, 'c'], [-17.9, 25.3, 't']]) { if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
+    for (const [x, z, k] of [[8.0, 25.3, 'c'], [9.1, 25.1, 't'], [10.2, 25.4, 'c'], [-10.6, 25.3, 'c'], [-11.8, 25.0, 't'], [-13.0, 25.4, 'c'], [-14.2, 25.1, 'c'], [-15.4, 25.4, 't'], [-16.6, 25.0, 'c'], [-17.9, 25.3, 't']]) { if (k === 'c') croton(x, 0, z, 1.25 + r() * 0.4, r); else { tiPlant(x, 0, z, 1.4 + r() * 0.4, r); tiPlant(x + 0.2, 0, z + 0.15, 1.0, r); } for (let i = 0; i < 3; i++) tuft(x + (r() - 0.5) * 0.8, 0, z + (r() - 0.5) * 0.6, 0.15 + r() * 0.15, 0.2, grassC(r), 0.02, r); } }
   // railroad vine runners along the seawall edges
   const vine = (pts, r) => {
     stems.tube(pts, () => 0.006, { seg: 4, col: () => cv([0.32, 0.3, 0.14], r, 0.15), sw: NOSW, vLen: 0.3 });

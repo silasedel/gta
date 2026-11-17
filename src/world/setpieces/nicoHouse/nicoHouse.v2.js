@@ -2,7 +2,9 @@
 // (`setpieces.nico_house`: x, z, heading), builds the self-contained set piece there, creates its Rapier colliders,
 // feeds its lights to the clustered lamp system and runs its interactions (E). Nothing here hard-codes world coordinates.
 import { buildNicoHouse, PLAN } from './index.js';
+import { CAR_SPOTS, PLANTING } from './yard.data.js';
 export const order = 65;   // after vegetation (60)
+const KEYS_OFF = typeof location !== 'undefined' && /[?&]keys=0\b/.test(location.search);
 
 export async function initV2(game) {
   const { THREE, RAPIER, world, scene } = game;
@@ -32,14 +34,17 @@ export async function initV2(game) {
       });
     });
   }
-  // ground-continuity G3: run the dock out from the seawall to the real waterline (the layout's water lies well past the
-  // plan's dock head), so its head stands in water on piles; deck 0.28 m above the yard (one walkable step over the seawall cap)
+  // house-local helpers for the builder: water and ground height (relative to the yard grade) at a plan point
+  const cH = Math.cos(spot.heading || 0), sH = Math.sin(spot.heading || 0);
+  const toW = (lx, lz) => [spot.x + lx * cH + lz * sH, spot.z - lx * sH + lz * cH];
+  const waterAt = game.city?.isWater ? (lx, lz) => { const [x, z] = toW(lx, lz); return !!game.city.isWater(x, z); } : null;
+  const groundAt = (lx, lz) => { const [x, z] = toW(lx, lz); const h = game.city?.groundHeightAt?.(x, z); return Number.isFinite(h) ? h - yGround : 0; };
+  // keys pass (Nov 17): the dock (part 06, the user's pier kit) runs from the sand at the foot of the bay stair out past the
+  // real waterline: find the water along the dock line, then 13 m beyond it
   let dock = null;
-  if (!gcOff && game.city?.isWater) {
-    const D0 = PLAN.dock, c = Math.cos(spot.heading || 0), s = Math.sin(spot.heading || 0), cx = (D0.x0 + D0.x1) / 2;
-    const wAt = (lz) => game.city.isWater(spot.x + cx * c + lz * s, spot.z - cx * s + lz * c);
-    let zw = null; for (let lz = D0.z1 - 2; lz > D0.z1 - 140; lz -= 1) if (wAt(lz) && wAt(lz - 2) && wAt(lz - 4)) { zw = lz; break; }
-    if (zw !== null) { const z0 = Math.min(D0.z0, zw - 7); dock = { ...D0, z0, headZ0: z0, headZ1: z0 + (D0.headZ1 - D0.headZ0), y: 0.28 }; }
+  if (!gcOff && waterAt && !KEYS_OFF) {
+    const X = 1.8; let zw = null; for (let lz = -9; lz > -160; lz -= 0.5) if (waterAt(X, lz) && waterAt(X, lz - 1.5) && waterAt(X, lz - 3)) { zw = lz; break; }
+    if (zw !== null) dock = { ...PLAN.dock, kit: true, x: X, z1: -9.0, zw, z0: Math.min(-20, zw - 13), y: 0.55 };
   }
   const house = await buildNicoHouse(THREE, {
     dock,
@@ -47,6 +52,8 @@ export async function initV2(game) {
     timeOfDay: game.timeOfDay,
     residentName: game.player?.fullName,
     vegetation: game.vegetation,
+    game, waterAt, groundAt,
+    skip: KEYS_OFF ? ['55_yard', '06_dock'] : undefined,   // ?keys=0: the house as it was before the keys pass (A/B)
   });
   const g = house.group; g.position.set(spot.x, yGround, spot.z); g.rotation.y = spot.heading || 0; g.updateMatrixWorld(true); scene.add(g);
   const toWorld = (v) => v.clone().applyMatrix4(g.matrixWorld), inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
@@ -92,7 +99,13 @@ export async function initV2(game) {
     else if (shownHelp) shownHelp = false;
   });
 
-  game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null };
+  // ---- keys pass: yard planting through the vegetation helper, parked cars through the cars helper (yard.data.js) ----
+  if (!KEYS_OFF) try { plantYard(game, g); } catch (e) { console.warn('[nicoHouse] planting', e); }
+  const parked = []; const spawnCars = () => { const V = game.vehicles; if (!V?.spawnParked || parked.length) return !!parked.length;
+    for (const c of CAR_SPOTS) { const p = toWorld(new THREE.Vector3(c.x, 0, c.z)); try { const v = V.spawnParked({ ...c, x: p.x, y: p.y, z: p.z, heading: c.heading + (spot.heading || 0), pos: p }); if (v) parked.push(v); } catch (e) { console.warn('[nicoHouse] spawnParked', c.id, e); } }
+    return true; };
+  if (!spawnCars()) { let tries = 0; const iv = setInterval(() => { if (spawnCars() || ++tries > 120) clearInterval(iv); }, 1000); }
+  game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS };
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
   const sp = anchors.spawnYard || anchors.spawn;
@@ -108,4 +121,18 @@ export async function initV2(game) {
     }
   }
   game.emit('nicoHouse:ready', game.nicoHouse);
+}
+
+// Yard planting (yard.data.js PLANTING) in world space: game.vegetation.place(kind, x, z, opts) when the vegetation helper
+// offers it, else one instanced field per kind (the shared vegetation LODs). Seeds and sizes are part of the data.
+function plantYard(game, g) {
+  const V = game.vegetation; if (!V) return;
+  const T = game.THREE, byKind = new Map();
+  for (const [kind, lx, lz, o = {}] of PLANTING) {
+    const p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
+    if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }
+    if (!V.kinds?.includes?.(kind)) continue;
+    let l = byKind.get(kind); if (!l) byKind.set(kind, (l = [])); l.push({ x: p.x, y, z: p.z, ry: (lx * 7.1 + lz * 3.3) % 6.28, s: o.s || 1 });
+  }
+  if (V.field) for (const [kind, items] of byKind) { try { V.field(kind, items, { variants: 2, seed: 17 }); } catch (e) { console.warn('[nicoHouse] field', kind, e); } }
 }

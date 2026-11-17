@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { createHouseKit } from './materials.js';
 import { planHouse, buildHouse, buildHouseGen } from './generator.js';
 import { lots } from './lots.js';
+import { lotProps } from '../../props/lotProps.v2.js';
 import { occupancy } from '../../ground/occupancy.js';
 // clipping sweep: yard palms / trees never inside a map building footprint or through a pole / another trunk (shared index)
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search);
@@ -74,7 +75,9 @@ export async function initV2(game) {
     for (const L of cl.lots) {
       if (!okLot(L)) { L.bad = true; continue; }
       const res = buildHouse(hk, L.sp, lod);
-      if (lod === 1) { const c = Math.cos(L.ry), s = Math.sin(L.ry); L.colliders = res.colliders; for (const p of res.plants) (cl.plants[p.kind] ||= []).push({ x: L.x + c * p.x + s * p.z, y: L.y, z: L.z - s * p.x + c * p.z, ry: (p.x * 7 + p.z * 3) % 6.28, s: p.s }); }
+      if (lod === 1) { const c = Math.cos(L.ry), s = Math.sin(L.ry); L.colliders = res.colliders; for (const p of res.plants) (cl.plants[p.kind] ||= []).push({ x: L.x + c * p.x + s * p.z, y: L.y, z: L.z - s * p.x + c * p.z, ry: (p.x * 7 + p.z * 3) % 6.28, s: p.s });
+        if (res.curb && res.curb.length) { const W = (q) => ({ x: L.x + c * q.x + s * q.z, y: L.y, z: L.z - s * q.x + c * q.z, ry: L.ry }); // props pass: library mailbox + carts (src/world/props/lotProps.v2.js)
+          lotProps.add('house:' + L.lotKey, res.curb.map((q) => ({ kind: q.kind, ...W(q), seed: (L.sp.seed || 1) + q.x * 13, side: q.side ? W(q.side) : undefined }))); } }
       entries.push({ L, b: res.batch.b }); yield;
     }
     return mergeBuckets(entries, cl.ox, cl.oz, cl.key + ':' + lod, true, lod === 1);
@@ -113,7 +116,7 @@ export async function initV2(game) {
   }
   function removeCluster(cl) {
     cl.dead = true; occupancy.removeOwner('houses:' + cl.key);
-    for (const L of cl.lots) { dropNear(L); dropCols(L); lots.remove(L.lotKey); dropId(L.id); }
+    for (const L of cl.lots) { dropNear(L); dropCols(L); lots.remove(L.lotKey); dropId(L.id); lotProps.remove('house:' + L.lotKey); }
     for (const g of [cl.mid, cl.far]) { if (!g) continue; g.traverse((o) => o.geometry?.dispose()); g.removeFromParent(); }
     for (const f of cl.fields) { try { f.remove(); } catch (e) { /* */ } }
     clusters.delete(cl.key); stats.lots -= cl.lots.length; stats.clusters--; nearDirty = true;
@@ -186,7 +189,9 @@ export async function initV2(game) {
     for (const l of lots.list.values()) {
       if (l.source !== 'street' || !l.house) continue;
       const h = l.house;
-      const sp = planHouse({ seed: l.seed, w: h.w, d: h.d, stilt: h.stilt, base: h.base, district: districtAt(l.x, l.z), drvU: h.drvU ?? undefined, front: Math.min(3.2, (h.roadV ?? 8) - 3) });
+      const sp = planHouse({ seed: l.seed, w: h.w, d: h.d, stilt: h.stilt, base: h.base, district: districtAt(l.x, l.z), drvU: h.drvU ?? undefined, front: h.front ?? Math.min(3.2, (h.roadV ?? 8) - 3), style: h.style, yard: h.yard });
+      // hand-placed Keys lots (dressing/keysStreet.data.js): explicit colors and yard choices override the seeded plan
+      if (h.over) { const { colors, ...rest } = h.over; Object.assign(sp, rest); if (colors) Object.assign(sp.colors, colors); }
       list.push({ lotKey: l.id, x: l.x, y: l.y, z: l.z, ry: l.heading, sp });
       l.style = sp.style;
     }

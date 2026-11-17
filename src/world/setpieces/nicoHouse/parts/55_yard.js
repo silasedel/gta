@@ -1,0 +1,188 @@
+// Nico's house, part 55 (track: keys): the front yard and the street corner from the front-deck mock-up
+// (docs/v2/plan/nico_house/0_front_deck_mockup.webp). Everything is hand placed in ../yard.data.js (house-local meters):
+// the white lattice planter box on the street side (its bougainvillea grows in part 50), bins at the curb in pairs, the
+// all-way STOP at the T corner, wooden utility poles with sagging wires, the red roll-off dumpster with the tear-out around it,
+// pale limestone boulders along the frontage, clutter (pallets, drywall, lumber, buckets, a tire, cinder blocks, a cooler and
+// resin chairs, coconut husks, a tarp), and the yard surface: tire ruts, leaf litter and matted grass patches, and puddles that
+// grow after rain. Library models: the user's (public/assets/models/keys, street kit STOP plates); the rest is built here.
+// Colliders follow the visible shapes (planter, bins, poles, signs, dumpster, rocks, pallets, chairs).
+import { PLANTER, BINS, STOPS, POLES, WIRES, DUMPSTER, ROCKS, DEBRIS, PUDDLES, TRACKS, LITTER, CAR_SPOTS } from '../yard.data.js';
+import { loadKeysModels } from '../models.js';
+export const order = 55;
+
+export function build(ctx) {
+  const { THREE, kit, mat, col } = ctx, B = ctx.site, D = ctx.detail, M = kit.M, PI = Math.PI, r = kit.rng(5501);
+  const V = (c, a = 0.06) => kit.vary(c, r, a), rs = (a = 1) => (r() - 0.5) * 2 * a;
+  const PEEL = mat.paint({ peel: 'b', fade: 0.32 }), W = mat.wood(), CONC = mat.concrete(), PL = mat.plastic(), PLG = mat.plasticGloss(), ST = mat.steel(), RUB = mat.rubber(), MATTE = mat.matte();
+  ctx.anchors.carSpots = CAR_SPOTS.map((c) => ({ ...c, pos: new THREE.Vector3(c.x, 0, c.z) }));
+
+  // ======================================================================= lattice planter box
+  { const H = PLANTER.h, Dp = PLANTER.depth, white = () => ({ color: V(0xe6e1d2, 0.04), wear: 0.35 + r() * 0.35, bevel: 0.003, rand: r });
+    const lattice = (base, len, h) => { // diagonal strips, two layers, on a panel of length len (local +X) and height h, facing local +Z
+      const sp = 0.105 * Math.SQRT2, L = (x, y, z, rz = 0) => kit.mulM(base, M(x, y, z, 0, 0, rz));
+      for (const s of [-1, 1]) for (let c = -h; c < len; c += sp) {
+        let xa = s > 0 ? c : c + h, ya = 0, xb = s > 0 ? c + h : c, yb = h;
+        if (xa < 0) { ya += -xa; xa = 0; } if (xa > len) { ya += xa - len; xa = len; } if (xb > len) { yb -= xb - len; xb = len; } if (xb < 0) { yb -= -xb; xb = 0; }
+        const l = Math.hypot(xb - xa, yb - ya); if (l < 0.06 || r() < 0.03) continue;
+        B.box(PEEL, l, 0.034, 0.007, L((xa + xb) / 2, (ya + yb) / 2, s * 0.0045, Math.atan2(yb - ya, xb - xa)), { grain: 0, ...white(), bevel: 0 });
+      }
+    };
+    for (const [ax, az, bx, bz] of PLANTER.runs) {
+      const len = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax), nx = Math.sin(ry), nz = Math.cos(ry), cx = (ax + bx) / 2, cz = (az + bz) / 2;
+      // outer face (toward the street, +normal side) and inner face, a cap rail, corner posts, soil
+      for (const side of [1, -1]) { const ox = nx * side * Dp / 2, oz = nz * side * Dp / 2;
+        lattice(M(ax + ox, 0.06, az + oz, 0, ry + (side < 0 ? 0 : 0), 0), len, H - 0.12);
+        B.box(PEEL, len, 0.09, 0.035, M(cx + ox, H - 0.02, cz + oz, 0, ry, 0), { grain: 0, ...white() });
+        B.box(PEEL, len, 0.07, 0.035, M(cx + ox, 0.05, cz + oz, 0, ry, 0), { grain: 0, ...white(), wear: 0.8 }); }
+      B.box(PEEL, len + 0.06, 0.035, Dp + 0.08, M(cx, H + 0.03, cz, 0, ry, 0), { grain: 0, ...white() });   // cap
+      for (const t of [0, 1]) for (const side of [1, -1]) B.box(PEEL, 0.07, H + 0.04, 0.07, M(ax + (bx - ax) * t + nx * side * Dp / 2, (H + 0.04) / 2, az + (bz - az) * t + nz * side * Dp / 2, 0, ry, 0), { grain: 1, ...white() });
+      B.box(mat.pbr('sand_01', { rep: 1.5, gain: 0.6, grunge: true }), len - 0.05, 0.04, Dp - 0.06, M(cx, H - 0.1, cz, 0, ry, 0), { color: [0.32, 0.25, 0.18] });   // potting soil (dark, damp)
+      B.box(CONC, len - 0.08, H - 0.18, Dp - 0.12, M(cx, (H - 0.18) / 2, cz, 0, ry, 0), { color: 0x3a3028, wear: 1 });   // liner, dark behind the lattice
+      col.box(cx, H / 2, cz, len + 0.06, H + 0.06, Dp + 0.08, { ry, tag: 'planter' });
+    }
+  }
+
+  // ======================================================================= galvanized can (own model) for BINS with can: 'galv'
+  for (const b of BINS) if (b.can === 'galv') {
+    const x = b.x, z = b.z; D.geo(ST, new THREE.CylinderGeometry(0.27, 0.24, 0.72, 18, 3, true), M(x, 0.37, z), { color: 0xa4a7a1, wear: 0.6 });
+    for (const y of [0.16, 0.38, 0.6]) D.geo(ST, new THREE.TorusGeometry(0.255 + y * 0.03, 0.009, 4, 24), M(x, y, z, PI / 2, 0, 0), { color: 0x9a9d97 });
+    D.cyl(ST, 0.24, 0.24, 0.01, M(x, 0.02, z), { color: 0x6b6d68 });
+    D.geo(ST, new THREE.CylinderGeometry(0.29, 0.29, 0.05, 18), M(x + 0.06, 0.765, z - 0.03, 0.12, 0.3, 0.06), { color: 0xb0b2ac });   // lid ajar
+    D.box(ST, 0.12, 0.03, 0.02, M(x + 0.06, 0.81, z - 0.03, 0.12, 0.3, 0.06), { color: 0x8f918c });
+    col.cyl(x, 0.38, z, 0.28, 0.76, { tag: 'bin' });
+  }
+
+  // ======================================================================= utility poles and wires
+  const poleTop = [];
+  POLES.forEach(([x, z, h, lean], i) => {
+    const ry = 0.31 + i * 0.05;   // cross arms square to the street
+    B.cyl(W, 0.11, 0.15, h + 1.6, M(x, (h - 1.6) / 2, z, lean, r() * 6, lean * 0.6), { seg: 12, hseg: 4, color: V(0x6a5946, 0.06), wear: 0.9 });
+    B.box(W, 2.3, 0.1, 0.12, M(x, h - 0.45, z, 0, ry, 0), { grain: 0, color: 0x5f5040, wear: 0.8, bevel: 0.006 });
+    for (const s of [-1, 1]) B.strut(W, [x + Math.cos(ry) * s * 0.7, h - 0.5, z - Math.sin(ry) * s * 0.7], [x, h - 1.3, z], 0.05, 0.03, { color: 0x5f5040 });
+    const ins = []; for (const s of [-1.0, 0, 1.0]) { const ix = x + Math.cos(ry) * s, iz = z - Math.sin(ry) * s; B.cyl(mat.ceramic(), 0.03, 0.045, 0.12, M(ix, h - 0.33, iz), { color: 0x6b7f8a, seg: 10 }); ins.push([ix, h - 0.25, iz]); }
+    if (i === 0) { B.cyl(mat.metalPaint(), 0.22, 0.22, 0.75, M(x + 0.3, h - 1.6, z + 0.12), { color: 0x7d8486, seg: 16 }); B.cyl(mat.metalPaint(), 0.23, 0.23, 0.04, M(x + 0.3, h - 1.2, z + 0.12), { color: 0x6d7476, seg: 16 }); }
+    B.box(mat.metalPaint(), 0.1, 0.16, 0.02, M(x, 1.9, z + 0.14, 0, 0, 0), { color: 0xc9b23a });   // pole tag
+    poleTop.push(ins); col.cyl(x, h / 2, z, 0.15, h + 0.4, { tag: 'pole' });
+  });
+  const ends = { pole40: (() => { const px = -21.5, pz = 15.5; return [-0.95, -0.35, 0.95].map((s) => [px + Math.cos(0.5) * s, 8.48, pz - Math.sin(0.5) * s]); })(), east: [[26, 9.6, 21.5], [26.3, 9.6, 22.4], [26.6, 9.6, 23.3]] };
+  for (const w of WIRES) {
+    const A = poleTop[w.a], Bn = typeof w.b === 'number' ? poleTop[w.b] : ends[w.b]; if (!A || !Bn) continue;
+    for (let k = 0; k < Math.min(w.n, A.length, Bn.length); k++) {
+      const a = A[k], b = Bn[k], pts = []; for (let i = 0; i <= 14; i++) { const t = i / 14; pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - w.sag * (1 + k * 0.08) * 4 * t * (1 - t), a[2] + (b[2] - a[2]) * t]); }
+      B.tube(RUB, pts, 0.011, { seg: 4, color: 0x1b1b1b });
+    }
+  }
+
+  // ======================================================================= debris and clutter (own models)
+  const wood = () => ({ color: V(r() < 0.3 ? 0xb39a74 : 0x8f8676, 0.1), wear: 0.5 + r() * 0.4, bevel: 0.004, rand: r });
+  for (const d of DEBRIS) {
+    const x = d.x, z = d.z, h = d.h || 0, y0 = d.y || 0, base = M(x, y0, z, d.tilt || 0, h, 0), L = (lx, ly, lz, a = 0, b = 0, c = 0, s = 1) => kit.mulM(base, M(lx, ly, lz, a, b, c, s, s, s));
+    if (d.k === 'pallet') {
+      for (const lz of [-0.45, 0, 0.45]) D.box(W, 1.2, 0.022, 0.1, L(0, 0.011, lz), { grain: 0, ...wood() });
+      for (const lx of [-0.55, 0, 0.55]) D.box(W, 0.09, 0.09, 1.0, L(lx, 0.067, 0), { grain: 2, ...wood() });
+      for (let k = 0; k < 7; k++) if (r() > 0.1) D.box(W, 1.2, 0.02, 0.1, L(0, 0.122, -0.45 + k * 0.15, 0, 0, rs(0.01)), { grain: 0, ...wood() });
+      col.box(x, y0 + 0.07, z, 1.2, 0.14, 1.0, { ry: h, tag: 'prop' });
+    } else if (d.k === 'drywall') {
+      D.box(MATTE, 1.2, 0.013, 0.86, L(0, 0.02, 0, 0.05, 0, rs(0.08)), { color: V(0xd8d4cb, 0.03) }); D.box(MATTE, 0.5, 0.013, 0.4, L(0.5, 0.05, 0.4, rs(0.3), 0.4, 0.2), { color: 0xcfcac0 });
+    } else if (d.k === 'lumber') {
+      for (let k = 0; k < 7; k++) D.box(W, 2.4 + rs(0.8), 0.09, 0.04, L(rs(0.2), 0.045 + (k % 3) * 0.09, -0.15 + (k % 4) * 0.08, 0, rs(0.06), 0), { grain: 0, color: V(0xc9b28a, 0.08), wear: 0.3 });
+      col.box(x, 0.15, z, 2.6, 0.3, 0.4, { ry: h, tag: 'prop' });
+    } else if (d.k === 'bucket') {
+      const c = d.color ?? 0xece8de; D.geo(PL, new THREE.CylinderGeometry(0.15, 0.13, 0.36, 16, 1, true), L(0, 0.18, 0), { color: c }); D.cyl(PL, 0.13, 0.13, 0.01, L(0, 0.01, 0), { color: kit.mul(c, 0.7) });
+      D.geo(ST, new THREE.TorusGeometry(0.15, 0.004, 4, 16, PI), L(0, 0.36, 0, 0, 0, 0.4), { color: 0x9a9a96 });
+    } else if (d.k === 'tire') {
+      D.geo(RUB, new THREE.TorusGeometry(0.29, 0.1, 10, 22), L(0, 0.1, 0, PI / 2, 0, 0, 1), { color: 0x1d1d1c }); col.cyl(x, 0.1, z, 0.39, 0.2, { tag: 'prop' });
+    } else if (d.k === 'cinder') {
+      const cb = (lx, ly, lz, a) => { D.box(CONC, 0.39, 0.19, 0.19, L(lx, ly, lz, 0, a, 0), { color: V(0xa7a39a, 0.05), wear: 0.9, bevel: 0.01 }); };
+      cb(0, 0.095, 0, 0); cb(0.42, 0.095, 0.05, 0.1); cb(0.2, 0.285, 0.02, -0.15);
+    } else if (d.k === 'cooler') {
+      D.box(PLG, 0.62, 0.36, 0.38, L(0, 0.2, 0), { color: 0xe9e6dc, bevel: 0.03 }); D.box(PLG, 0.64, 0.05, 0.4, L(0, 0.4, 0), { color: 0x2f6f9a, bevel: 0.02 });
+      for (const s of [-1, 1]) D.box(PL, 0.05, 0.03, 0.16, L(s * 0.33, 0.33, 0), { color: 0x2f6f9a }); col.box(x, 0.21, z, 0.64, 0.42, 0.4, { ry: h, tag: 'prop' });
+    } else if (d.k === 'chair') {   // white resin patio chair (tipped: lying on its back)
+      const cb = d.tipped ? kit.mulM(base, M(0, 0.42, 0, -PI / 2 + 0.1, 0, 0)) : base, C2 = (lx, ly, lz, a = 0, b = 0, c = 0) => kit.mulM(cb, M(lx, ly, lz, a, b, c));
+      const c = V(0xeeeae0, 0.03); D.box(PLG, 0.46, 0.03, 0.44, C2(0, 0.42, 0), { color: c, bevel: 0.015 }); D.box(PLG, 0.46, 0.5, 0.03, C2(0, 0.7, -0.21, -0.18, 0, 0), { color: c, bevel: 0.015 });
+      for (const [lx, lz] of [[-0.21, -0.19], [0.21, -0.19], [-0.21, 0.2], [0.21, 0.2]]) D.box(PLG, 0.04, 0.42, 0.04, C2(lx, 0.21, lz), { color: c, bevel: 0.01 });
+      for (const s of [-1, 1]) D.box(PLG, 0.04, 0.03, 0.44, C2(s * 0.24, 0.62, 0), { color: c, bevel: 0.01 });
+      col.box(x, d.tipped ? 0.25 : 0.45, z, 0.5, d.tipped ? 0.5 : 0.9, 0.5, { ry: h, tag: 'prop' });
+    } else if (d.k === 'husks') {
+      for (let k = 0; k < 6; k++) { const a = r() * 6.28, rr = r() * 0.5; D.geo(MATTE, new THREE.SphereGeometry(0.13, 9, 6), L(Math.cos(a) * rr, 0.07, Math.sin(a) * rr, rs(0.4), r() * 6, 0, 1), { color: V(k < 2 ? 0x5b4a2c : 0x8a6a42, 0.1) }); }
+    } else if (d.k === 'tarp') {
+      const g = new THREE.PlaneGeometry(1.5, 1.1, 12, 9); g.rotateX(-PI / 2); const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, 0.03 + Math.abs(Math.sin(p.getX(i) * 7 + p.getZ(i) * 3)) * 0.05 + (Math.abs(p.getX(i)) > 0.6 ? 0.04 : 0)); g.computeVertexNormals();
+      D.geo(PL, g, L(0, 0, 0), { color: 0x2f5f9a });
+    }
+  }
+
+  // ======================================================================= yard surface decals: litter, matted grass, tire ruts, puddles
+  const decal = (name, w, h, draw) => { const t = kit.canvasTex(w, h, draw, { srgb: true }); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    const m = new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }); m.name = 'keys:' + name; m.userData.uvScale = 1; return m; };
+  const LEAVES = decal('leaves', 512, 512, (g, w, h) => { const q = kit.rng(91); g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 520; i++) { const x = q() * w, y = q() * h, l = 7 + q() * 16, a = q() * 6.28, k = q(); g.save(); g.translate(x, y); g.rotate(a);
+      g.fillStyle = k < 0.45 ? `rgba(${120 + q() * 50},${86 + q() * 30},${40 + q() * 20},0.95)` : k < 0.75 ? `rgba(${170 + q() * 40},${140 + q() * 30},${70 + q() * 20},0.9)` : k < 0.9 ? `rgba(${92 + q() * 30},${102 + q() * 30},${46},0.9)` : `rgba(${180 + q() * 40},${50 + q() * 30},${30},0.9)`;
+      g.beginPath(); g.ellipse(0, 0, l, l * (0.3 + q() * 0.25), 0, 0, 6.28); g.fill(); g.strokeStyle = 'rgba(60,40,20,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-l, 0); g.lineTo(l * 1.2, 0); g.stroke(); g.restore(); } });
+  const MATTED = decal('matted', 512, 512, (g, w, h) => { const q = kit.rng(92); g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 2600; i++) { const x = q() * w, y = q() * h, l = 6 + q() * 22, a = 0.4 + (q() - 0.5) * 0.9 + (x / w) * 0.6, k = q(); g.strokeStyle = k < 0.55 ? `rgba(${150 + q() * 40},${150 + q() * 30},${80 + q() * 20},0.75)` : `rgba(${86 + q() * 30},${110 + q() * 30},${50 + q() * 20},0.8)`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5, y + Math.sin(a) * l * 0.5 - 2, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } });
+  const RUTS = decal('ruts', 64, 512, (g, w, h) => { const q = kit.rng(93); g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(70,58,42,0)'); gr.addColorStop(0.25, 'rgba(70,58,42,0.42)'); gr.addColorStop(0.75, 'rgba(70,58,42,0.42)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 9) { g.fillStyle = 'rgba(50,40,28,0.35)'; g.fillRect(10, y, w - 20, 3); } for (let i = 0; i < 200; i++) { g.fillStyle = `rgba(230,220,200,${q() * 0.3})`; g.fillRect(q() * w, q() * h, 2, 2); } });
+  RUTS.roughness = 1;
+  const patch = (m, x, z, rad, dens, seed) => { const q = kit.rng(seed), n = 40, g = new THREE.CircleGeometry(rad, n, 0, PI * 2); const p = g.attributes.position, uv = g.attributes.uv, c = new Float32Array(p.count * 3), a0 = q() * 6.28, s = 1 / 1.6;
+    for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), d = Math.hypot(px, py) / rad, ang = Math.atan2(py, px), k = 1 + 0.28 * Math.sin(ang * 3 + seed) + 0.16 * Math.sin(ang * 7 + seed * 2);
+      p.setX(i, px * k); p.setY(i, py * k); const ux = px * k, uy = py * k; uv.setXY(i, (ux * Math.cos(a0) - uy * Math.sin(a0)) * s, (ux * Math.sin(a0) + uy * Math.cos(a0)) * s); const f = Math.max(0, 1 - d) * dens; c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = 1; }
+    g.rotateX(-PI / 2); g.translate(x, 0.015 + seed * 0.0001, z);
+    // soft edge: fade by vertex alpha through the color attribute is not blended, so the outer ring is pushed below the sand instead
+    for (let i = 0; i < p.count; i++) if (Math.hypot(p.getX(i) - x, p.getZ(i) - z) > rad * 0.98) p.setY(i, 0.0);
+    D.geo(m, g, null, { keepColor: false }); g.dispose(); };
+  LITTER.forEach(([x, z, rad, dens, kind], i) => patch(kind === 'matted' ? MATTED : LEAVES, x, z, rad, dens, 300 + i));
+  for (const t of TRACKS) for (const s of [-1, 1]) { // two ruts per track, a strip along the polyline
+    const P = t.pts, pos = [], uvs = [], idx = []; let v = 0;
+    for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L, cx = P[i][0] + nx * s * t.gauge / 2, cz = P[i][1] + nz * s * t.gauge / 2;
+      if (i) v += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); pos.push(cx - nx * 0.17, 0.013, cz - nz * 0.17, cx + nx * 0.17, 0.013, cz + nz * 0.17); uvs.push(0, v / 2.2, 1, v / 2.2); if (i) { const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); } }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx); g.computeVertexNormals();
+    // flip to face up if needed
+    if (g.attributes.normal.getY(0) < 0) { const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const tt = ix[i]; ix[i] = ix[i + 1]; ix[i + 1] = tt; } g.computeVertexNormals(); }
+    D.geo(RUTS, g, null, {}); g.dispose(); }
+  // puddles: a mask that fills from the deepest point with the weather's puddle level (always a little water in the ruts)
+  { const uWet = { value: 0.25 }, mask = kit.canvasTex(256, 256, (g, w, h) => { const im = g.createImageData(w, h), q = kit.rng(95), oct = [[4, 0.5], [9, 0.3], [21, 0.2]].map(([f, a]) => ({ f, a, ph: [q() * 6, q() * 6, q() * 6, q() * 6] }));
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const u = x / w * 2 - 1, v = y / h * 2 - 1, d = Math.hypot(u, v); let n = 0; for (const o of oct) n += o.a * Math.sin(u * o.f + o.ph[0] + Math.sin(v * o.f * 0.7 + o.ph[1])) * Math.cos(v * o.f + o.ph[2]); const val = Math.max(0, Math.min(1, (1 - d) * 1.25 + n * 0.35)); const j = (y * w + x) * 4; im.data[j] = im.data[j + 1] = im.data[j + 2] = val * 255; im.data[j + 3] = 255; }
+      g.putImageData(im, 0, 0); }, { srgb: false });
+    const PUD = new THREE.MeshStandardMaterial({ color: 0x2a2620, roughness: 0.05, metalness: 0, transparent: true, depthWrite: false, alphaMap: mask, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8, envMapIntensity: 1.2 });
+    PUD.name = 'keys:puddle'; PUD.userData.uvScale = 1; PUD.defines = { NO_WET: '' };
+    PUD.onBeforeCompile = (sh) => { sh.uniforms.uKWet = uWet; sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uKWet;').replace('#include <alphamap_fragment>', `
+      { float k = texture2D( alphaMap, vAlphaMapUv ).g; float th = mix( 0.82, 0.3, uKWet ); float fw = max( fwidth( k ) * 1.5, 0.02 );
+        diffuseColor.a = smoothstep( th - fw, th + fw, k ) * 0.92; diffuseColor.rgb *= mix( 1.25, 0.7, smoothstep( th, th + 0.35, k ) ); }`); };
+    PUD.customProgramCacheKey = () => 'keys:puddle';
+    for (const [x, z, a, b, rot] of PUDDLES) { const g = new THREE.PlaneGeometry(a * 2, b * 2, 1, 1); g.rotateX(-PI / 2); D.geo(PUD, g, M(x, 0.02, z, 0, rot, 0), {}); g.dispose(); }
+    ctx.updaters.push((dt, env) => { const w = env?.game?.weather; uWet.value = w ? Math.max(0.25, Math.min(1, 0.25 + (w.puddles || 0) * 0.9 + (w.wetness || 0) * 0.25)) : 0.25; });
+  }
+
+  // ======================================================================= library models: bins, dumpster, rocks, STOP signs
+  // colliders now (the house's collider list is read right after the build), visuals when the models arrive
+  for (const b of BINS) if (b.piece) col.box(b.x, 0.56, b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
+  { const d = DUMPSTER; col.box(d.x, 3.37 * d.scale / 2, d.z, 3.26 * d.scale, 3.37 * d.scale, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
+  const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
+  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[(k - 1) % 6]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink, z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
+  for (const st of STOPS) col.cyl(st.x, 1.3, st.z, 0.05, 2.6, { tag: 'sign' });
+  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks']);
+  ctx.async.push(lib.ready.then(() => {
+    const I = lib.instancer('keysYard');
+    for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, 0, b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
+    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, 0, d.z, 0, d.heading, 0, d.scale, d.scale, d.scale), { tint: d.tint }); }
+    const rockNames = lib.names('rocks').sort();
+    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[(k - 1) % rockNames.length]; I.add('rocks', n, M(x, -sink, z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
+    const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
+    ctx.stats.keysYard = { instances: I.count(), meshes: meshes.length, rocks: rockNames };
+  }));
+  // STOP plates and posts from the street kit (the library plate on its U-channel post, as regulatory.v2.js uses them)
+  const game = ctx.opts.game;
+  if (game) ctx.async.push((async () => {
+    for (let i = 0; i < 60 && !game.city?.streetKit?.signs?.stop; i++) await new Promise((res) => setTimeout(res, 500));
+    const SK = game.city?.streetKit; if (!SK?.signs?.stop) return;
+    const g = new THREE.Group(); g.name = 'keysStops';
+    const put = (part, m4) => { const mm = new THREE.Mesh(part.geometry, part.material); mm.matrixAutoUpdate = false; mm.matrix.copy(m4); mm.castShadow = true; mm.receiveShadow = true; mm.raycast = () => {}; g.add(mm); };
+    for (const st of STOPS) {
+      const base = M(st.x, 0, st.z, st.lean || 0, st.face, 0);
+      if (SK.signs.post) put(SK.signs.post, kit.mulM(base, M(0, -0.12, 0, 0, 0, 0, 2.4, 2.9, 2.4)));
+      put(SK.signs.stop, kit.mulM(base, M(0, 2.33, 0.045)));
+    }
+    ctx.groups.site.add(g);
+  })());
+}

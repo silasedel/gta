@@ -21,7 +21,7 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
   await b.goto((o.url || 'http://127.0.0.1:5200/') + '?mute' + (o.q || ''));
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function' && !!game.nicoHouse", 600);
   if (!(await startGame(b))) console.log('WARN: title did not close');
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; if (game.hud?.root) game.hud.root.style.display = 'none'; document.querySelectorAll('#hud,.hud,#minimap').forEach((e) => e.style.display = 'none'); return 1; })()`);
+  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; if (!${!!o.hud}) { const st = document.createElement('style'); st.textContent = 'body * { visibility: hidden !important; } canvas.keys-shot { visibility: visible !important; }'; document.head.appendChild(st); game.renderer.domElement.classList.add('keys-shot'); } return 1; })()`);
   if (o.probe) {
     const pr = await b.eval(fs.readFileSync(o.probe, 'utf8'));
     fs.writeFileSync(`docs/v2/reports/keys-${SET}-probe.json`, typeof pr === 'string' ? pr : JSON.stringify(pr, null, 1));
@@ -44,6 +44,12 @@ await withBrowser({ width: +(o.w || 1920), height: +(o.h || 1080), maxSeconds: +
     const perf = await b.eval(`new Promise((res) => { const ts = []; let last = performance.now(); const t0 = last; const f = () => { const n = performance.now(); ts.push(n - last); last = n; if (n - t0 < 2500) requestAnimationFrame(f); else { ts.sort((x, y) => x - y); const avg = ts.reduce((p, c) => p + c, 0) / ts.length; const ri = game.renderer.info.render; res(JSON.stringify({ avgMs: +avg.toFixed(2), p95Ms: +ts[Math.floor(ts.length * 0.95)].toFixed(2), calls: ri.calls, tris: ri.triangles })); } }; requestAnimationFrame(f); })`);
     const out = path.join(DIR, `${SET}_${id}.png`);
     await b.screenshot(out);
+    // flicker check: more frames of the same still camera (or a slow dolly with "dolly":[dx,dy,dz] m per frame-step)
+    for (let f = 1; f < +(o.frames || 1); f++) {
+      if (s.dolly) await b.eval(`(() => { const s = ${JSON.stringify(s)}; const NH = game.nicoHouse; const k = ${f}; const e = new game.THREE.Vector3(...s.eye.map((v, i) => v + s.dolly[i] * k)), l = new game.THREE.Vector3(...s.look.map((v, i) => v + s.dolly[i] * k)); const E = s.world ? e : NH.toWorld(e), L = s.world ? l : NH.toWorld(l); game.cameraOverride = (dt, cam) => { cam.position.copy(E); cam.lookAt(L); return true; }; return 1; })()`);
+      await b.sleep(+(o.fgap || 250));
+      await b.screenshot(path.join(DIR, `${SET}_${id}_f${f}.png`));
+    }
     rep.shots[id] = JSON.parse(perf);
     console.log(id, perf);
   }

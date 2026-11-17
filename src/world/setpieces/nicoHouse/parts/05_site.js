@@ -11,7 +11,11 @@ let yardMat = null;
 export function build(ctx) {
   const { THREE, kit, plan: P, mat, col } = ctx, B = ctx.site ?? ctx.ext, D = ctx.detail, M = kit.M, r = kit.rng(55), L = P.lot, sea = P.seaY;
   // ---------- yard: one subdivided sheet, vertex colors blend shell drive, pale sand, damp shade and grassy edges ----------
-  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true }), x0 = L.x0 - 22, x1 = L.x1 - 0.2, z0 = L.z0 + 0.2, z1 = L.z1 + 22;
+  // keys pass (Nov 17): the bay is ~15 m beyond the old seawall line in the retraced map; a seawall stands only where the water
+  // really meets the lot (opts.waterAt), elsewhere the yard runs on and sinks under the beach sand along a wobbly line
+  const waterAt = ctx.opts.waterAt, wallN = !waterAt || [-20, -10, 0, 8].some((x) => waterAt(x, L.z0 - 2)), wallE = !waterAt || [-10, 0, 10, 20].some((z) => waterAt(L.x1 + 2, z));
+  const OPEN_N = !wallN, OPEN_E = !wallE;
+  const SHELL = mat.pbr('shell_floor_01', { rep: 2.6, gain: 1.5, grunge: true }), x0 = L.x0 - 22, x1 = L.x1 + (OPEN_E ? 10 : -0.2), z0 = L.z0 + (OPEN_N ? -8 : 0.2), z1 = L.z1 + 22;
   { const nx = 90, nz = 110, g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, 0, (z0 + z1) / 2);
     const pa = g.attributes.position, cols = new Float32Array(pa.count * 3), n2 = (x, z) => Math.sin(x * 0.37 + Math.sin(z * 0.23) * 2) * Math.cos(z * 0.31 + Math.sin(x * 0.19) * 2);
     for (let i = 0; i < pa.count; i++) {
@@ -23,13 +27,13 @@ export function build(ctx) {
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
       // ground-continuity: on the open (west, street) sides the sheet sinks under the surrounding ground along a wobbly line,
       // so the yard fades into the terrain instead of ending in a straight raised edge (the drive keeps its level up to the road apron)
-      const dEdge = Math.min(x - x0, z1 - z) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
+      const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 7 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
       const core = Math.max(0, Math.min(1, (7 - Math.abs(x + 2 + Math.sin(z * 0.2) * 1.2)) / 2.5)), sink = (1 - keep) * (1 - core);
       pa.setY(i, (n2(x * 2.3, z * 2.1) * 0.012 + n2(x * 0.6, z * 0.7) * 0.025) * (1 - under) * (1 - drive * 0.5) * keep - 0.14 * sink);
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
     B.geo(GROUND2 ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 2.6, (z1 - z0) / 2.6], wear: 0.5 }); g.dispose();
-    col.box((x0 + x1) / 2, -1.5, (z0 + z1) / 2, x1 - x0, 3, z1 - z0, { tag: 'ground', surface: 'gravel' });
+    { const cx0 = x0, cx1 = Math.min(x1, L.x1), cz0 = Math.max(z0, L.z0), cz1 = z1; col.box((cx0 + cx1) / 2, -1.5, (cz0 + cz1) / 2, cx1 - cx0, 3, cz1 - cz0, { tag: 'ground', surface: 'gravel' }); }   // not over the open beach edges (the terrain carries those)
   }
   // puddles in the wheel ruts of the drive (the sky and the house mirror in them)
   { const PUD = new THREE.MeshPhysicalMaterial({ color: 0x2b2820, roughness: 0.12, metalness: 0, transparent: true, opacity: 0.5, envMapIntensity: 0.55, clearcoat: 0.4 }); // ground-continuity: muddy rut water, not bright sky-blue decals PUD.userData.uvScale = 1; PUD.name = 'puddle';
@@ -48,9 +52,10 @@ export function build(ctx) {
       B.box(SW, len / n - 0.015, 3.4, 0.3, M(x, 0.1 - 1.7, z, 0, ry, 0), { color: kit.vary(0xc4bfb0, r, 0.06), wear: 1, bevel: 0.01, rand: r });
       if (!(Math.abs(z - P.lot.z0) < 0.5 && x + len / n / 2 > P.dock.x0 - 0.3 && x - len / n / 2 < P.dock.x1 + 0.3)) B.box(SW, len / n - 0.01, 0.16, 0.5, M(x, 0.16, z, 0, ry, 0), { color: kit.vary(0xd0cabb, r, 0.05), wear: 0.8, bevel: 0.02, rand: r }); } // no cap poking up under the dock
     col.box((ax + bx) / 2, -1.2, (az + bz) / 2, len, 2.9, 0.5, { ry, tag: 'seawall' }); };
-  wall(L.x0 - 22, L.z0, L.x1 + 0.15, L.z0); wall(L.x1, L.z0 - 0.15, L.x1, L.z1 + 22);
-  { const g = new THREE.PlaneGeometry(400, 400, 1, 1); g.rotateX(-Math.PI / 2); B.geo(mat.pbr('sand_01', { rep: 5, gain: 1.6, grunge: true }), g, M(L.x1 - 60, sea - 1.5, L.z0 + 40), { color: [0.75, 0.82, 0.7], uvMul: [80, 80] }); g.dispose(); }
-  // ---------- dock ----------
+  if (wallN) wall(L.x0 - 22, L.z0, L.x1 + 0.15, L.z0); if (wallE) wall(L.x1, L.z0 - 0.15, L.x1, L.z1 + 22);
+  if (wallN || wallE) { const g = new THREE.PlaneGeometry(400, 400, 1, 1); g.rotateX(-Math.PI / 2); B.geo(mat.pbr('sand_01', { rep: 5, gain: 1.6, grunge: true }), g, M(L.x1 - 60, sea - 1.5, L.z0 + 40), { color: [0.75, 0.82, 0.7], uvMul: [80, 80] }); g.dispose(); }
+  // ---------- dock (old plank dock: only when part 06 has no measured waterline) ----------
+  if (!P.dock.kit) {
   const Dk = P.dock, W = mat.wood({ marine: true }), WD = mat.wood(), ST = mat.steel(), y = Dk.y;
   const board = (cx, cz, lx) => B.box(WD, lx, 0.04, 0.14, M(cx, y - 0.02 + (r() - 0.5) * 0.004, cz, 0, (r() - 0.5) * 0.004, (r() - 0.5) * 0.008), { grain: 0, color: kit.vary(r() < 0.06 ? 0xb49a70 : 0x8f887c, r, 0.12), wear: 0.4 + r() * 0.5, bevel: 0.005, rand: r });
   for (let z = Dk.z0 + 0.08; z < Dk.z1 - 0.02; z += 0.147) { if (z < Dk.headZ1) board((Dk.headX0 + Dk.headX1) / 2, z, Dk.headX1 - Dk.headX0); else board((Dk.x0 + Dk.x1) / 2, z, Dk.x1 - Dk.x0 + (r() - 0.5) * 0.03); }
@@ -78,6 +83,7 @@ export function build(ctx) {
   { const lx = Dk.x0 - 0.1, lz = Dk.headZ1 + 0.2; B.cyl(WD, 0.05, 0.06, 2.6, M(lx, y + 1.3, lz), { seg: 10, color: 0x7d7467, wear: 0.8 }); B.box(ST, 0.5, 0.03, 0.03, M(lx + 0.24, y + 2.5, lz), { color: 0x8c8a82 });
     B.cyl(mat.metalPaint(), 0.16, 0.05, 0.14, M(lx + 0.46, y + 2.44, lz), { color: 0x3f6f5f, seg: 14 }); B.geo(mat.emissive(0xffe2ae, 2.5, 'dock'), new THREE.SphereGeometry(0.045, 10, 8), M(lx + 0.46, y + 2.38, lz), {});
     const lt = ctx.addLight({ id: 'dock_light', pos: [lx + 0.46, y + 2.3, lz], color: 0xffd9a0, intensity: 55, range: 14, on: false }); ctx.updaters.push((dt, env) => { const t = env.timeOfDay ?? 12; lt.on = t < 6.3 || t > 18.4; }); }
+  }
   // ---------- weeds and grass tufts along every edge: footings, lattice base, slab, drive margins, seawall ----------
   { const blades = [], bc = [], q = kit.rng(77); for (let k = 0; k < 9; k++) { const a = q() * 6.283, l = 0.06 + q() * 0.13, w = 0.006 + q() * 0.006, bx = Math.cos(a), bz = Math.sin(a), lean = 0.3 + q() * 0.7, ox = (q() - 0.5) * 0.1, oz = (q() - 0.5) * 0.1;
       blades.push(ox - bz * w, 0, oz + bx * w, ox + bz * w, 0, oz - bx * w, ox + bx * l * lean * 0.5, l * 0.6, oz + bz * l * lean * 0.5, ox - bz * w * 0.6, 0.02, oz + bx * w * 0.6, ox + bx * l * lean * 0.5, l * 0.6, oz + bz * l * lean * 0.5, ox + bx * l * lean, l, oz + bz * l * lean);
@@ -91,7 +97,6 @@ export function build(ctx) {
     for (const sgn of [-1, 1]) for (let z = 6; z < L.z1 + 15; z += 0.22) { const hw = 5.6 + Math.max(0, z - 14) * 0.5 + Math.sin(z * 0.4) * 0.6; put(-2 + sgn * (hw + 1.2 + q() * q() * 6), z + q() * 0.3, 0.8 + q() * 0.9); }
     line(L.x0 - 20, L.z0 + 0.7, L.x1 - 0.5, L.z0 + 0.7, 260, 0.8, 1.2); line(L.x1 - 0.7, L.z0, L.x1 - 0.7, L.z1 + 15, 300, 0.8, 1.2); line(-13.5, 6.6, -9.5, 6.9, 40, 0.5); line(-12.2, 2.8, -12.2, 4.4, 20, 0.3);
     const im = kit.instances(g, gm, ms, cs, { cast: false }); im.name = 'weeds'; ctx.groups.detail.add(im); }
-  ctx.anchors.dock = { pos: new THREE.Vector3((Dk.x0 + Dk.x1) / 2, y, -22), heading: Math.PI };
-  ctx.anchors.skiff = { pos: new THREE.Vector3(3.75, sea, -19.5), heading: Math.PI };
+  if (!P.dock.kit) { ctx.anchors.dock = { pos: new THREE.Vector3((P.dock.x0 + P.dock.x1) / 2, P.dock.y, -22), heading: Math.PI }; ctx.anchors.skiff = { pos: new THREE.Vector3(3.75, sea, -19.5), heading: Math.PI }; }
   ctx.anchors.truck = { pos: new THREE.Vector3(-17, 0, 9.5), heading: 2.7 }; ctx.anchors.bike = { pos: new THREE.Vector3(-13.5, 0, -2.5), heading: 1.2 }; ctx.anchors.kayak = { pos: new THREE.Vector3(-10.5, 0, -11), heading: 0.3 };
 }

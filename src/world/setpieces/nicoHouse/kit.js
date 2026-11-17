@@ -165,7 +165,12 @@ export function createKit(THREE, opts = {}) {
     float nhPeel = texture2D( uPeel, vMapUv * ${(1.35 / (o.scale ?? 1)).toFixed(3)} ).r;
     float nhW = clamp( vWear + ( nhG.r - 0.5 ) * 0.34 + ( nhG2.r - 0.5 ) * 0.14, 0.0, 1.0 );
     float nhThr = 0.04 + 0.78 * pow( nhW, 1.6 );
-    nhPaint = smoothstep( nhThr - 0.025, nhThr + 0.025, nhPeel );
+    // flicker fix (Nov 17): the flake edge used a fixed 0.05-wide step, far sharper than a pixel once the boards are a few meters
+    // away, so the peel spots aliased into crawling dots under the TAA jitter. The step now widens with the screen-space rate of
+    // change of the pattern (fwidth), and fades toward the average coverage when even that is sub-pixel.
+    float nhPw = max( 0.025, fwidth( nhPeel ) * 1.2 + fwidth( nhThr ) );
+    nhPaint = smoothstep( nhThr - nhPw, nhThr + nhPw, nhPeel );
+    nhPaint = mix( nhPaint, clamp( 1.0 - nhThr * 1.15, 0.0, 1.0 ), smoothstep( 0.12, 0.35, nhPw ) );
     float nhLum = dot( nhT.rgb * vec3( 6.67, 7.94, 10.1 ), vec3( 0.3333 ) ) * 0.5;
     vec3 nhBare = nhT.rgb * vec3( 6.67, 7.94, 10.1 ) * vec3( 0.33, 0.285, 0.235 ) * ( 0.72 + 0.45 * nhG.r ) * ( 1.0 - 0.45 * nhG.g );   // silver-gray sun-bleached lumber
     nhBare *= 1.0 - 0.3 * smoothstep( nhThr - 0.14, nhThr, nhPeel ) * ( 1.0 - nhPaint );   // grime that sat under the lifted flake
