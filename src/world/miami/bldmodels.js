@@ -40,13 +40,13 @@ export const LIB = {
   grid_block: { w: 32, d: 31.37, h: 23.76, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone', rough: 1 },
   angular_block: { w: 65.51, d: 56.62, h: 29.23, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'stone' },
   strip_office: { w: 15.12, d: 36.12, h: 14, k: 1, cls: 'mid', use: 'office', glow: 0.45, mir: 1, tint: 'glass' },
-  green_apartment: { w: 19.19, d: 21.93, h: 14.47, k: 1, beach: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
+  green_apartment: { off: 1, w: 19.19, d: 21.93, h: 14.47, k: 1, beach: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
   fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 2.1, not: 'Downtown|Brickell|Edgewater|Miami Beach|South Beach', lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
   // ---- shops and roadside (low) ----
   graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2 },
   gun_shop: { w: 9, d: 12.29, h: 5.68, k: 1, lod1: 1, cls: 'shop', glow: 0.3, tint: 'brick', rough: 2, wt: 0.3 },
   stone_shop: { w: 13.64, d: 11.69, h: 8.64, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'stone', not: 'Overtown|Liberty' },
-  brick_shopfront: { w: 6.32, d: 3.4, h: 3.69, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'brick', rough: 1 },
+  brick_shopfront: { off: 1, w: 6.32, d: 3.4, h: 3.69, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'brick', rough: 1 },
   bookshop: { w: 5.2, d: 3.13, h: 7.48, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'paint', not: 'Overtown|Liberty' },
   strip_diner: { w: 31.5, d: 11.2, h: 5.8, k: 1, lod1: 1, cls: 'shop', glow: 0.4, tint: 'paint', rough: 1, not: 'Downtown|Brickell' },
   motel: { w: 50.33, d: 42.64, h: 12.83, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'none', rough: 1, not: 'Downtown|Brickell|Edgewater' },
@@ -167,6 +167,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
     const cands = [];
     for (const [name, m] of Object.entries(LIB)) {
       if (m.cls !== cls && !(CLS_OK[cls] && CLS_OK[cls].test(m.cls))) continue;
+      if (m.off) continue; // below the street-level bar (see the row comment): not placed
       if (rough && !m.rough) continue;
       if (m.not && new RegExp(m.not).test(d)) continue;
       if (m.only && !new RegExp(m.only).test(d)) continue;

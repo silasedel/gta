@@ -14,15 +14,15 @@ import { Batch } from './geo.js';
 import { loadArray } from './pbr.js';
 
 export const WALL_LAYERS = [
-  { key: 'stucco', name: 'white_stucco', neutral: 1, level: 0.86, tile: 3.0 },
-  { key: 'stuccoRough', name: 'white_rough_plaster', neutral: 0.9, level: 0.8, tile: 3.2 },
-  { key: 'plaster', name: 'painted_plaster_wall', neutral: 1, level: 0.84, tile: 3.0 },
-  { key: 'plasterWorn', name: 'worn_plaster_wall', neutral: 0.8, level: 0.74, tile: 4.0 },
+  { key: 'stucco', name: 'user_plaster1', neutral: 1, level: 0.86, tile: 1.8 }, // the user's hand-troweled plaster scan (Plaster 1), real-size swirl
+  { key: 'stuccoRough', name: 'user_plaster2', neutral: 0.92, level: 0.8, tile: 1.4 }, // the user's fine sand-finish stucco scan (Plaster 2), tint sets the color
+  { key: 'plaster', name: 'painted_plaster_wall', neutral: 1, level: 0.84, tile: 2.0 },
+  { key: 'plasterWorn', name: 'worn_plaster_wall', neutral: 0.8, level: 0.74, tile: 2.6 },
   { key: 'paintPeel', name: 'peeling_painted_wall', neutral: 0.75, level: 0.78, tile: 3.2 },
   { key: 'concrete', name: 'concrete_wall_008', neutral: 0.9, level: 0.74, tile: 3.2 },
   { key: 'precast', name: 'concrete_panels', neutral: 0.9, level: 0.76, tile: 4.2 },
   { key: 'brickPaint', name: 'painted_brick', neutral: 1, level: 0.82, tile: 2.2 },
-  { key: 'brick', name: 'red_brick_03', neutral: 0, level: 0.5, tile: 2.2 },
+  { key: 'brick', name: 'user_brick2', neutral: 0.15, level: 0.46, tile: 0.95 }, // the user's weathered brick scan (Brick 2): ~8 cm courses
   { key: 'coral', name: 'coral_stone_wall', neutral: 0.35, level: 0.7, tile: 2.6 },
   { key: 'tile', name: 'square_tiled_wall', neutral: 1, level: 0.8, tile: 1.6 },
   { key: 'corrugated', name: 'corrugated_iron', neutral: 1, level: 0.8, tile: 2.4, metal: 0.55 },
@@ -140,6 +140,13 @@ void facadeEval() {
   int Li = int(vFa.x + 0.5); float Lf = float(Li); float ts = uFTile[Li];
   vec4 cR = texture(uFCol, vec3(tuv * ts, Lf));
   vec4 nA = texture(uFNrm, vec3(tuv * ts, Lf));
+  // no visible tiling on plain stucco / plaster / concrete: a second, offset and rescaled sample blended in by low-frequency
+  // noise (patterned layers - brick, block, siding, tile, metal - keep one sample so courses stay continuous)
+  if (Li <= 5 || Li == 9 || Li == 15 || Li == 21 || Li == 22) {
+    vec2 uvB = tuv * ts * 0.71 + vec2(0.37, 0.61);
+    float bw = smoothstep(0.32, 0.68, fVN(tuv * 0.19 + vFa.w * 37.0));
+    cR = mix(cR, texture(uFCol, vec3(uvB, Lf)), bw); nA = mix(nA, texture(uFNrm, vec3(uvB, Lf)), bw);
+  }
   int bits = int(vFd.w + 0.5);
   float seed = vFa.w * 913.0;
   // weathering: large soft blotches, vertical rain streaks, splash-zone dirt at the base
@@ -337,6 +344,9 @@ void facadeEval() {
           oAlb = mix(gTint * (type == 8 ? 0.0 : 0.4), cC * 0.85, cov * 0.9);
           oRough = type == 8 ? 1.0 : 0.05 + 0.12 * fVN(pm * 2.3 + cell * 7.0);
           oMetal = type == 8 ? 0.0 : mix(type == 6 || type == 7 ? 0.35 : 0.68, 0.0, cov * 0.75);
+          if ((type == 0 || type == 3) && (prof == 1 || prof == 2) && fH2(cell * 7.7 + seed + 3.0) < 0.07 && wq.y < 0.47) { // a window left open: lower sash pushed up, no glass in front of the room
+            oAlb *= 0.25; oMetal = 0.0; oRough = 0.9; oEmi = I * (1.0 - cov) * (dayI * 1.6 + l2 * litC * uFGlow);
+          }
           if (type == 9) { // roller shutter: ribbed painted steel filling the opening
             vec4 sR = texture(uFCol, vec3(tuv * uFTile[17], 17.0));
             float rib = fract(pg.y * 11.0); oAlb = acc * sR.rgb * (0.82 + 0.18 * smoothstep(0.0, 0.5, rib)); oRough = sR.a; oMetal = 0.35; oEmi = vec3(0.0); oN = vec3(0.0, (rib - 0.5) * 0.9 * detail, 1.0);

@@ -121,6 +121,7 @@ export function buildingStyle(b, ctx, salt = 0) {
     S.accent = new THREE.Color([0x8a8f92, 0x6f6a62, 0x9a7a5a, 0x5a6066, 0x7d6f60][pickI([0, 1, 2, 3, 4], R(35))]); // galvanized / rusty shutters and trim
     S.roof = S.hip ? WL.roofMetal : WL.roofGravel; S.roofTint = S.hip ? [0xc4a088, 0x9c9c9a, 0xb4a690, 0x8e877c, 0xa89078][pickI([0, 1, 2, 3, 4], R(36))] : 0xb8b2a8; // rusty, galvanized, faded metal S.neon = false; S.profile = PROFILE.residential; S.glass = GLASS.gray; S.reflect = 0.1;
   }
+  if (S.bits & BIT.ac) { S.bits &= ~BIT.ac; S.acUnits = true; } // window AC units are real geometry now (tilebuild), not painted
   S.sig = `${fam}|L${S.layer}|t${ti}|w${S.type}|b${S.bits}|g${S.glass}|a${ai}|p${S.parapet}${S.cond || ''}`;
   return S;
 }
