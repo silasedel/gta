@@ -37,7 +37,7 @@
   L.groundY = groundY;
   const concrete = new T.MeshStandardMaterial({ color: 0x8f8a82, roughness: 0.92 });
   const rockMat = new T.MeshStandardMaterial({ color: 0x77706a, roughness: 0.95, flatShading: true });
-  L.clear = () => { for (const o of L.obst) { try { if (o.col) W.removeCollider(o.col, true); } catch (e) { /* */ } if (o.mesh) g.scene.remove(o.mesh); } L.obst = []; };
+  L.clear = () => { try { g.breakables?.removeOwner?.('r2lab'); } catch (e) { /* */ } for (const o of L.obst) { try { if (o.col) W.removeCollider(o.col, true); } catch (e) { /* */ } if (o.mesh) g.scene.remove(o.mesh); } L.obst = []; };
   L.build = (kind, o = {}) => {
     const S = L.spot, s = o.s ?? 45, hd = S.h;
     const q = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), hd);
@@ -56,6 +56,13 @@
       const pts = new Float32Array(P.count * 3); for (let i = 0; i < P.count; i++) { pts[i * 3] = P.getX(i); pts[i * 3 + 1] = P.getY(i); pts[i * 3 + 2] = P.getZ(i); }
       const col = W.createCollider(R.ColliderDesc.convexHull(pts).setTranslation(mesh.position.x, mesh.position.y, mesh.position.z).setRotation(q));
       L.obst.push({ kind, col, mesh, s, H });
+    } else if (kind === 'sign') { // a breakable street sign (U-channel post + plate) a little off the car's centerline (yaw on impact)
+      const c = at(s, o.lat ?? 0.45), y = groundY(c.x, c.z), grp = new T.Group();
+      const post = new T.Mesh(new T.BoxGeometry(0.07, 2.3, 0.07), new T.MeshStandardMaterial({ color: 0x8b9196, roughness: 0.45, metalness: 0.7 })); post.position.y = 1.15;
+      const plate = new T.Mesh(new T.BoxGeometry(0.62, 0.62, 0.02), new T.MeshStandardMaterial({ color: 0xb8231c, roughness: 0.5, metalness: 0.2 })); plate.position.set(0, 2.05, -0.04); plate.rotation.z = Math.PI / 8;
+      grp.add(post, plate); grp.position.set(c.x, y, c.z); grp.rotation.y = hd; grp.traverse((m) => { if (m.isMesh) m.castShadow = true; }); g.scene.add(grp);
+      const added = g.breakables ? g.breakables.add({ x: c.x, y, z: c.z, hx: 0.05, hy: 1.15, hz: 0.05, ry: hd, kind: 'signPost', owner: 'r2lab', hide: () => { grp.visible = false; } }) : null;
+      L.obst.push({ kind, mesh: grp, s, len: 0.2, rec: added });
     } else if (kind === 'pothole' || kind === 'bump') { // relief record + a visual: dark bowl decal (pothole) / asphalt hump (bump)
       const lat = o.lat ?? (kind === 'pothole' ? 0.78 : 0), c = at(s, lat), y = groundY(c.x, c.z), len = o.len ?? (kind === 'bump' ? 0.9 : 1.3), wid = o.wid ?? (kind === 'bump' ? 3.4 : 1.2);
       g.physics.addRelief({ kind, x: c.x, z: c.z, ax: S.fx, az: S.fz, len, wid, D: o.D ?? (kind === 'bump' ? 0.075 : 0.065) });
@@ -74,7 +81,9 @@
   function attitude(v) { const r = v.body.rotation(); _q.set(r.x, r.y, r.z, r.w); _e.setFromQuaternion(_q, 'YXZ'); return { pitch: -_e.x * 57.2958, roll: _e.z * 57.2958, yaw: _e.y }; }
   L.attitude = attitude;
   L.spawn = async (key = 'sedan3', s0 = 0) => {
-    if (L.v) { try { g.vehicles.remove(L.v); } catch (e) { /* */ } L.v = null; }
+    if (L.v) { try { L.endReplay(); L.v.playerDriven = false; g.vehicles.remove(L.v); } catch (e) { /* */ } L.v = null; }
+    // nothing else on the test lane (parked / traffic cars that wandered in)
+    for (const o of [...(g.vehicles.list || [])]) { try { const t = o.body.translation(), dx = t.x - L.spot.x0, dz = t.z - L.spot.z0, s = dx * L.spot.fx + dz * L.spot.fz, lat = dx * L.spot.rx + dz * L.spot.rz; if (s > -10 && s < 90 && Math.abs(lat) < 4) { o.playerDriven = false; g.vehicles.remove(o); } } catch (e) { /* */ } }
     const c = at(s0); const y = groundY(c.x, c.z);
     const v = g.vehicles.spawn(key, new T.Vector3(c.x, y, c.z), L.spot.h, { snap: false, locked: false });
     v.playerDriven = true; v.everDriven = true; v.engineOn = true; L.v = v;
@@ -105,6 +114,8 @@
       void lastS;
     };
     g.fixedHooks.push(hook);
+    // never hang the driver script: resolve after 75 s real time whatever happened (physics halted, car stuck)
+    setTimeout(() => { if (L.done) return; L.done = true; const i = g.fixedHooks.indexOf(hook); if (i >= 0) g.fixedHooks.splice(i, 1); resolve({ timeout: true, n: L.rec.length, t, physicsDead: g.physicsDead || null }); }, 75000);
   });
   // replay: pose the car exactly as recorded (body kinematic-frozen, wheels from the sample)
   L.replay = (i) => {
@@ -126,6 +137,9 @@
       else if (mode === 'leftside') { const d = o.d ?? 6.2; cam.position.set(p.x - rx * d, p.y + (o.up ?? 0.15), p.z - rz * d); cam.lookAt(p.x, p.y - 0.25, p.z); }
       else if (mode === 'rear3q') { cam.position.set(p.x - fx * 6.5 + rx * 3.2, p.y + 1.3, p.z - fz * 6.5 + rz * 3.2); cam.lookAt(p.x + fx * 1.5, p.y - 0.1, p.z + fz * 1.5); }
       else if (mode === 'front3q') { cam.position.set(p.x + fx * 6.8 + rx * 3.4, p.y + 0.9, p.z + fz * 6.8 + rz * 3.4); cam.lookAt(p.x, p.y - 0.15, p.z); }
+      else if (mode === 'damage') { // close-up of the front corner on the hit side
+        const sd = o.side ?? 1, q = v.mesh.quaternion, cp = new T.Vector3(sd * (v.spec.W / 2 - 0.2), 0.25, v.spec.L / 2 - 0.25).applyQuaternion(q).add(p), ep = new T.Vector3(sd * (v.spec.W / 2 + 1.5), 0.55, v.spec.L / 2 + 1.7).applyQuaternion(q).add(p);
+        cam.position.copy(ep); cam.lookAt(cp); }
       else if (mode === 'wheel') { const w = o.wheel ?? 1, wx = v.car.wheels[w]; const wp = new T.Vector3(wx.x, 0, wx.z).applyQuaternion(v.mesh.quaternion).add(p); const sd = wx.x > 0 ? -1 : 1; cam.position.set(wp.x + rx * sd * 2.4 + fx * 1.2, wp.y + 0.05, wp.z + rz * sd * 2.4 + fz * 1.2); cam.lookAt(wp.x, wp.y - 0.35, wp.z); }
       if (o.fov) { cam.fov = o.fov; cam.updateProjectionMatrix(); }
       return true;

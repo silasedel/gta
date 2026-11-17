@@ -12,11 +12,11 @@ const B = JSON.parse(fs.readFileSync(o.b || 'docs/v2/reports/physics-lab-2.json'
 const tests = String(o.tests || Object.keys(B.tests).join(',')).split(',');
 const SH = 'docs/v2/shots/r2-physics', LAB = SH + '/lab';
 const TITLE = { curb: 'Curb 15 cm: up and off the far edge', pothole: 'Pothole (right wheels)', rock: 'Rock 12 cm (left wheels)', bump: 'Speed hump 7.5 cm' };
-const strip = (name, phys) => fs.readdirSync(LAB).filter((f) => f.startsWith(`${name}_p${phys}_`) && f.endsWith('.jpg')).sort().map((f) => 'file://' + path.resolve(LAB, f));
+const strip = (name, phys, chase = false) => fs.readdirSync(LAB).filter((f) => f.startsWith(`${name}_p${phys}_`) && f.endsWith('.jpg') && f.includes('_chase_') === chase).sort().map((f) => 'file://' + path.resolve(LAB, f));
 const html = (name) => {
   const kind = name.replace(/\d+$/, ''), kmh = name.replace(/^\D+/, '');
   const b = B.tests[name], a0 = A?.tests?.[name];
-  const imgs = strip(name, B.phys);
+  const imgs = strip(name, B.phys), chase = strip(name, B.phys, true);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   body{margin:0;background:#101317;color:#e8ecef;font:14px/1.35 -apple-system,Helvetica,Arial,sans-serif;width:1600px}
   h1{font-size:24px;margin:18px 22px 4px;font-weight:650;letter-spacing:.2px} .sub{margin:0 22px 12px;color:#9aa6b2}
@@ -29,6 +29,7 @@ const html = (name) => {
   <h1>${TITLE[kind] || kind} at ${kmh} km/h - ${B.key}</h1>
   <div class="sub">Shape-cast suspension (carphys 2), every physics tick (1/60 s), replayed poses in the strip, left to right, then top to bottom. Plots against distance along the test lane (m); obstacle at 45 m. ${a0 ? 'Dashed = old Rapier ray-cast controller (carphys 1), same run.' : ''}</div>
   <div class="strip">${imgs.map((s) => `<img src="${s}">`).join('')}</div>
+  ${chase.length ? `<div class="sub" style="margin-top:10px">Chase camera, same replayed run:</div><div class="strip" style="grid-template-columns:repeat(5,1fr)">${chase.map((s) => `<img src="${s}">`).join('')}</div>` : ''}
   <div class="plots">
     <div><canvas id="tr" width="760" height="300"></canvas><div class="lg">Suspension travel (cm, + = compression from ride height): <b style="color:#4fc3f7">FL</b> <b style="color:#ff8a65">FR</b> <b style="color:#81c784">RL</b> <b style="color:#ffd54f">RR</b></div></div>
     <div><canvas id="pr" width="760" height="300"></canvas><div class="lg">Body attitude (deg): <b style="color:#ce93d8">pitch (+ nose up)</b> <b style="color:#80deea">roll (+ right side down)</b></div></div>

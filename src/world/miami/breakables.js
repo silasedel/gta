@@ -66,14 +66,25 @@ export function createBreakables(game) {
   function breakIt(rec, v, speed, car) {
     drop(rec);
     if (rec.byOwner !== false && rec.owner !== undefined) { const s = byOwner.get(rec.owner); if (s) { const i = s.indexOf(rec); if (i >= 0) s.splice(i, 1); } }
+    // r2-physics impacts (flag): the collider goes now (no solid hit), the visible break + momentum + damage when the car arrives
+    if (game.physics?.impacts && game.physics.deferImpact && !car?.now) { game.physics.deferImpact(v, { x: rec.x, z: rec.z, r: Math.min(0.4, rec.r || 0.15) }, () => breakNow(rec, v, car), () => add(rec)); return; }
+    breakNow(rec, v, car);
+  }
+  function breakNow(rec, v, car) {
+    const speed = (() => { try { const l = v.body.linvel(); return Math.hypot(l.x, l.z); } catch (e) { return 0; } })();
     try { rec.hide && rec.hide(); } catch (e) { console.warn('[breakables] hide', e); }
     const lv = v.body.linvel();
+    if (car && game.physics?.impacts) { try { const p = v.body.translation(), r = v.body.rotation(); const yaw = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x)); car = { ...car, x: p.x, z: p.z, c: Math.cos(yaw), s: Math.sin(yaw) }; } catch (e) { /* */ } }
     spawnDebris(rec, lv.x, lv.z, speed, car);
     const at = new THREE.Vector3(rec.x, (rec.y || 0) + rec.hy, rec.z);
     try { if (game.audio?.play) game.audio.play(rec.kind === 'fence' || rec.kind === 'chain' ? 'door' : 'car_crash', { position: at, volume: rec.kind === 'bush' ? 0.15 : 0.35 }); } catch (e) { /* audio optional */ }
-    const slow = rec.kind === 'bush' ? 0.96 : rec.kind === 'hydrant' ? 0.82 : 0.9;
-    v.body.setLinvel({ x: lv.x * slow, y: lv.y, z: lv.z * slow }, true);
-    try { v.damage?.(rec.kind === 'bush' ? 1 : rec.kind === 'hydrant' ? 12 : 5, null); } catch (e) { /* */ }
+    // r2-physics impacts (flag): momentum from the object's mass + snap strength at the real contact point, damage where it hit
+    const imp = game.physics?.impacts && game.physics.propImpact ? game.physics.propImpact(v, { kind: rec.kind, x: rec.x, y: rec.y || 0, z: rec.z, top: rec.hy * 2, broke: true }) : null;
+    if (!imp) {
+      const slow = rec.kind === 'bush' ? 0.96 : rec.kind === 'hydrant' ? 0.82 : 0.9;
+      v.body.setLinvel({ x: lv.x * slow, y: lv.y, z: lv.z * slow }, true);
+      try { v.damage?.(rec.kind === 'bush' ? 1 : rec.kind === 'hydrant' ? 12 : 5, null); } catch (e) { /* */ }
+    }
     stats.broken++;
     game.emit?.('propBreak', { kind: rec.kind, point: at, vehicle: v });
   }

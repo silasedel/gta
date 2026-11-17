@@ -23,7 +23,7 @@ export function installRocks(game) {
       let list = []; try { list = src(pp.x, pp.z, 70, 0.2) || []; } catch (e) { list = []; }
       const want = new Set();
       for (const r of list) { const k = keyOf(r); want.add(k); if (!live.has(k)) queue.push([k, r]); }
-      for (const [k, rec] of live) if (!want.has(k) && Math.hypot(rec.x - pp.x, rec.z - pp.z) > 95) { try { world.removeCollider(rec.col, false); } catch (e) { /* */ } live.delete(k); }
+      for (const [k, rec] of live) if (!want.has(k) && (() => { const d = Math.hypot(rec.x - pp.x, rec.z - pp.z); return d > 95 || d < 66; })()) { try { world.removeCollider(rec.col, false); } catch (e) { /* */ } live.delete(k); }
     }
     for (let i = 0; i < 24 && queue.length; i++) {
       const [k, r] = queue.shift(); if (live.has(k)) continue;

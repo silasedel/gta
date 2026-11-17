@@ -43,6 +43,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 2700 }, async (b) => {
       travelMax: [0, 1, 2, 3].map((i) => Math.max(...win.map((r) => r.tr[i]))), travelMin: [0, 1, 2, 3].map((i) => Math.min(...win.map((r) => r.tr[i]))), ayMax: Math.max(...win.map((r) => Math.abs(r.ay))), airborne: win.filter((r) => r.c.reduce((x, y) => x + y, 0) < 4).length, kmhOut: +avg(rec.filter((r) => r.s > 58), (r) => r.kmh).toFixed(1) };
     report.tests[name].summary = sum;
     console.log(name, JSON.stringify(sum));
+    fs.writeFileSync(`docs/v2/reports/physics-lab-${PHYS}${o.tag ? '-' + o.tag : ''}.json`, JSON.stringify(report)); // after every test (a hung run keeps what it has)
     if (o.strips) { // replay frames around the obstacle at fixed distances
       const dist = kind === 'curb' ? [43, 44.2, 45.2, 46.4, 47.6, 49.5, 51.4, 52.6, 53.8] : [42.5, 43.8, 44.6, 45.4, 46.2, 47.4, 48.6];
       let k = 0;
@@ -50,6 +51,15 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 2700 }, async (b) => {
         const i = rec.findIndex((r) => r.s >= dd); if (i < 0) continue;
         await b.eval(`(() => { __lab.replay(${i}); return 1; })()`); await b.sleep(700);
         await b.screenshot(`${OUT}/${name}_p${PHYS}_${String(k++).padStart(2, '0')}.jpg`, { quality: 90 });
+      }
+      if (kind === 'curb' || o.chase) { // chase-cam sequence (behind, three-quarter) over the same replayed poses
+        await b.eval(`(() => { __lab.cam('rear3q'); return 1; })()`); k = 0;
+        for (const dd of [42.6, 43.6, 44.4, 45.4, 46.6, 47.8, 49.2, 50.6, 51.8, 52.8]) {
+          const i = rec.findIndex((r) => r.s >= dd); if (i < 0) continue;
+          await b.eval(`(() => { __lab.replay(${i}); return 1; })()`); await b.sleep(700);
+          await b.screenshot(`${OUT}/${name}_p${PHYS}_chase_${String(k++).padStart(2, '0')}.jpg`, { quality: 90 });
+        }
+        await b.eval(`(() => { __lab.cam('leftside', { d: 5.4, up: 0.35 }); return 1; })()`);
       }
       await b.eval(`(() => { __lab.endReplay(); return 1; })()`);
     }

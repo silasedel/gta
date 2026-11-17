@@ -24,6 +24,9 @@
 // Body pitch and roll come from the real forces now: brake dive, throttle squat (forces at the contact patch below the
 // center of mass, with a little anti-dive / roll-center height), lean in corners against springs + anti-roll bars.
 import { WEATHER_U } from '../../render/wetSurfaces.js';
+// set at boot (this module is imported by vehicles.js before any tile collider is built): palms and trees get trunk-following
+// colliders (trunks.js) instead of tilebuild's vertical cylinders. ?trunks=0 keeps the old cylinders.
+globalThis.__r2TrunkColliders ??= !/[?&]trunks=0/.test(globalThis.location?.search || '');
 
 const G = 9.81;
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);

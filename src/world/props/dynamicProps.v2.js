@@ -99,7 +99,7 @@ function create(game) {
     try { if (world.getRigidBody(rec.body.handle) === rec.body) world.removeRigidBody(rec.body); } catch (e) { /* */ } rec.body = null; live.delete(rec); stats.bodies--;
     const { pos, q } = poseOf(rec); fixedColliders(rec, pos, q); rec.dormant = true;
   }
-  function knock(rec, vx, vz, speed) { // fixed post -> dynamic body moving with the car
+  function knock(rec, vx, vz, speed, car) { // fixed post -> dynamic body moving with the car
     const { pos, q } = poseOf(rec);
     dropFixed(rec);
     rec.cls = 'push';
@@ -109,6 +109,7 @@ function create(game) {
     rec.moved = true; stats.knocked++; rec.why = 'knock';
     sound(rec, pos, 0.4);
     game.emit?.('propKnock', { kind: rec.kind, x: pos.x, z: pos.z, speed });
+    if (car && game.physics?.impacts) try { const hit = () => game.physics.propImpact?.(car, { kind: rec.kind, x: pos.x, y: pos.y, z: pos.z, top: rec.top, broke: true }); if (game.physics.deferImpact) game.physics.deferImpact(car, { x: pos.x, z: pos.z, r: rec.rad || 0.15 }, hit); else hit(); } catch (e) { /* */ } // r2-physics: momentum + damage at the contact, when the car gets there
   }
   function bend(rec, vx, vz) { // slow bump: lean the post away from the car, a little, once or twice
     const { pos, q } = poseOf(rec), L = Math.hypot(vx, vz) || 1, ang = Math.min(0.32, (rec.bent || 0) + 0.12);
@@ -146,7 +147,7 @@ function create(game) {
           const dx = rec.px - p.x, dz = rec.pz - p.z, lx = dx * c - dz * s, lz = dx * s + dz * c, rr = rec.rad;
           if (rec.dormant) { if (Math.abs(lx) < hw + rr + 0.35 && Math.abs(lz) < hl + rr + ahead + 0.35) wake(rec, 'car'); continue; }
           if (speed < BEND_SPEED || (v.ai && !v.playerDriven && !v.chaseTarget)) continue; // lane-following traffic never snaps posts (it cuts corners by a few cm)
-          if (Math.abs(lx) < hw + rr && Math.abs(lz) < hl + rr + ahead) { if (speed >= KNOCK_SPEED) knock(rec, lv.x, lv.z, speed); else if ((rec.bent || 0) < 0.3 && !rec._bentBy?.has(v)) { (rec._bentBy ||= new WeakSet()).add(v); bend(rec, lv.x, lv.z); } }
+          if (Math.abs(lx) < hw + rr && Math.abs(lz) < hl + rr + ahead) { if (speed >= KNOCK_SPEED) knock(rec, lv.x, lv.z, speed, v); else if ((rec.bent || 0) < 0.3 && !rec._bentBy?.has(v)) { (rec._bentBy ||= new WeakSet()).add(v); bend(rec, lv.x, lv.z); if (game.physics?.impacts) try { game.physics.damageAt?.(v, new THREE.Vector3(rec.px, rec.py + Math.min(0.6, rec.top / 2), rec.pz), { speedKmh: speed * 3.6, hardness: 0.3 }); } catch (e) { /* */ } } }
         }
       }
     }
