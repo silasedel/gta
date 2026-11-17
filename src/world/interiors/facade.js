@@ -2,6 +2,8 @@
 // an optional walk-up service window (ventanita), sign band, awning and night light spill.
 // Built from plan.front (see Plan.storefront). Registers glazing as daylight emitters for the bake (ctx.windows).
 import * as THREE from 'three';
+import { scallopAwning } from './frontDress.js';
+const FLAT_AWNING = /[?&]shops=0\b/.test(globalThis.location?.search || ''); // shops pass A/B: ?shops=0 = the old flat awning, no front dressing
 
 export const FACADE_STYLES = {
   aluminum: { frame: '#b9bcc0', metal: 0.8, bulk: ['ceramic', { c: [196, 200, 204] }], pier: ['stucco', {}], bay: 1.5, transom: true },
@@ -68,8 +70,11 @@ export function buildFacade(ctx) {
   // fascia / sign band above the glazing (exterior face carries the sign)
   const fasM = extM(F.fasciaSurf || st.pier); G.box(fasM, 0, (gh + H) / 2, zl - 0.095, W, H - gh, 0.25); G.plane(inM, 0, (gh + H) / 2, zl - 0.222, W, H - gh, { ry: Math.PI, step: 0.45 }); col(-W / 2, W / 2, gh, H); occ(-W / 2, W / 2, gh, H);
   // awning
+  if (F.awning && ctx.store?.sf?.shellAwning && !FLAT_AWNING) F.awning = null; // shops pass: the city shell already hangs an awning on this lot
   if (F.awning) { const a = F.awning, aw = a.w || W - 0.4, ax = a.x || 0, drop = a.drop ?? 0.7, out = a.out ?? 1.1, ay = a.y ?? gh + 0.1;
     if (a.type === 'canopy') { const cm = M.flat(a.c || '#2c2f33', { rough: 0.5, metal: 0.6 }); G.box(cm, ax, ay, zl + out / 2 + 0.03, aw, 0.12, out); G.box(M.glow('#fff1d0', 1.6, 0), ax, ay - 0.065, zl + out / 2, aw - 0.4, 0.01, 0.08); for (const sx of [-1, 1]) G.cyl(cm, ax + sx * (aw / 2 - 0.2), ay + 0.3, zl + out * 0.5, 0.012, Math.hypot(out * 0.9, 0.6), { rx: -Math.atan2(out * 0.9, 0.6), seg: 6 }); }
+    else if (!FLAT_AWNING) { const fab = ctx.prints ? ctx.prints.stripes(a.c || profile.accent, a.c2 || '#f4efe2', a.stripes ?? Math.max(6, Math.round(aw / 0.32))) : null; // shops pass: 3D canvas (sag, scalloped valance, cheeks, frame)
+      scallopAwning(ctx, { x: ax, w: aw, y: a.y ?? gh + 0.1, out: a.out ?? 1.25, drop: a.drop ?? 0.75, z: zl, fab, mat: M.surf('fabric', { c: a.c || [160, 40, 40] }) }); }
     else { const fab = ctx.prints ? ctx.prints.stripes(a.c || profile.accent, a.c2 || '#f4efe2', a.stripes ?? 8) : null, fm2 = fab ? fab.mat : M.surf('fabric', { c: a.c || [160, 40, 40] }), len = Math.hypot(out, drop), ang = Math.atan2(drop, out);
       G.plane(fm2, ax, ay - drop / 2, zl + out / 2 + 0.03, aw, len, { rx: -Math.PI / 2 + ang, uvRect: fab?.rect }); G.plane(fm2, ax, ay - drop / 2, zl + out / 2 + 0.03, aw, len, { rx: Math.PI / 2 + ang, ry: 0, uvRect: fab?.rect });
       G.plane(fm2, ax, ay - drop - 0.1, zl + out + 0.03, aw, 0.2, { uvRect: fab?.rect }); G.plane(fm2, ax, ay - drop - 0.1, zl + out + 0.028, aw, 0.2, { ry: Math.PI, uvRect: fab?.rect });
@@ -79,7 +84,7 @@ export function buildFacade(ctx) {
   // night light spill onto the sidewalk (additive gradient, driven by lighting.js through ctx.spill)
   const spill = new THREE.Mesh(new THREE.PlaneGeometry(W + 3, 5.5), new THREE.MeshBasicMaterial({ map: spillTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: 0x000000, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
   spill.rotation.x = -Math.PI / 2; spill.position.set(0, 0.035, zl + 2.75); spill.renderOrder = 3; spill.matrixAutoUpdate = false; spill.updateMatrix(); ctx.group.add(spill); ctx.spill = spill; ctx.disposables.push(spill.geometry, spill.material);
-  return { gh, fascia, glazed, zl, bulk, dh };
+  return { gh, fascia, glazed, zl, bulk, dh, st, pierM, fasM, frM: fr };
 }
 let SPILL = null;
 function spillTex() { if (SPILL) return SPILL; const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d'); const img = g.createImageData(128, 128);

@@ -23,7 +23,7 @@ const VARIANTS = [
 
 // ?noart in the URL keeps the legacy (v1) interiors for this category (before/after captures, safety valve)
 if (!/[?&]noart\b/.test(globalThis.location?.search || '')) registerStoreType({
-  type: 'boutique', label: 'Clothing store', kinds: ['clothes', 'boutique', 'fashion', 'shoes', 'fashion_accessories', 'bag', 'department_store'], minSize: { w: 5.5, d: 6.5 }, variants: VARIANTS.length,
+  type: 'boutique', label: 'Clothing store', kinds: ['clothes', 'clothing', 'boutique', 'fashion', 'shoes', 'fashion_accessories', 'bag', 'department_store'], minSize: { w: 4.6, d: 5.5 }, variants: VARIANTS.length,
   profile(base, { R, sf }) { const v = /shoes/.test(sf?.kind || '') ? VARIANTS[1] : VARIANTS[base.variant], pal = venuePalette({ ...v.pal });
     return { venueWear: true, v, pal, name: R.pick(v.names), tier: v.key === 'luxe' ? 'luxury' : 'mid', wear: v.key === 'street' ? 0.25 : 0.06, hours: [10, 21], flip: R.chance(0.5), bounce: v.key === 'street' ? 0.35 : 0.55, lamp: v.lamp, floor: v.floor, wall: v.wall, ceil: v.ceil, daylight: 1,
       facade: { style: v.key === 'street' ? 'black' : v.key === 'luxe' ? 'bronze' : 'wood' }, spillC: [1, 0.95, 0.85], lore: { story: `Open since ${base.since}.` } }; },
