@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// Port Solana FX: pooled, GPU-friendly particles (2 Points draws: alpha + additive),
+// Southline FX: pooled, GPU-friendly particles (2 Points draws: alpha + additive),
 // instanced ground/water rings, impact decals, one pooled muzzle-flash light.
 // All public functions are safe to call any time; internal errors are swallowed.
 

@@ -1,4 +1,4 @@
-# Port Solana V2 — install generated NPC archetypes (PEOPLE-LOOK track):
+# Southline V2 — install generated NPC archetypes (PEOPLE-LOOK track):
 #   python3 build_index.py <gen outdir> <paint outdir> <public/assets/npc/arch>
 # copies <id>.glb, <id>_a.webp, <id>_n.webp and writes index.json from the per-archetype meta files
 import sys, os, json, shutil

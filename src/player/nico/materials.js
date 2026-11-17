@@ -1,4 +1,4 @@
-// Port Solana V2 — Nico materials (CHARACTER track): skin (subsurface approximation, pore + micro normal detail,
+// Southline V2 — Nico materials (CHARACTER track): skin (subsurface approximation, pore + micro normal detail,
 // sweat / wetness / sunburn / tan), eyes (refractive cornea, parallax iris, socket shadow), hair shells, lashes, teeth, cloth.
 import * as THREE from 'three';
 import { FRAME_NOISE } from '../../render/frameNoise.js';

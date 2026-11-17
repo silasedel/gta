@@ -1,4 +1,4 @@
-BOAT MODEL BRIEF (Port Solana V2, boats track). Read this fully, then read these files fully before writing anything:
+BOAT MODEL BRIEF (Southline V2, boats track). Read this fully, then read these files fully before writing anything:
   src/vehicles/boats/kit.js      (Kit: buckets, palette slots S, primitives, loft, parts, anchors)
   src/vehicles/boats/hull.js     (makeHull: parametric hull, skin/deck/liner/cap/rubRail)
   src/vehicles/boats/parts.js    (outboard, console, seats, T-top, bimini, rails, cleats, rods, coolers, fenders, lights, lettering ...)

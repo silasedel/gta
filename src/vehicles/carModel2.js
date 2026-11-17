@@ -1,4 +1,4 @@
-// Procedural, original car models for Port Solana (V2 engine), bodies v3.
+// Procedural, original car models for Southline (V2 engine), bodies v3.
 // Bodies come from model/body/body.js (design sheet per archetype: lofted wall with real creases, lids, greenhouse with black
 // window surrounds, layered lamp units, grilles, interior) merged into four geometries per model and LOD; wheels are one
 // InstancedMesh per car (model/body/wheel.js).  A car draws with five calls at LOD0: paint, trim, glass, lamps+decals, wheels.
@@ -75,8 +75,8 @@ const decalTex = {}, decalMat = {}, decalGeo = new Map();
 function liveryMesh(t, kind) {
   decalTex[kind] ||= canvasTex(512, 128, (c) => {
     c.clearRect(0, 0, 512, 128);
-    if (kind === 'taxi') { for (let i = 0; i < 32; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 90 + j * 16, 16, 16); } c.fillStyle = '#111'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.fillText('SOLANA CAB', 256, 70); }
-    else if (kind === 'bus') { c.fillStyle = '#0e8f9a'; c.fillRect(0, 70, 512, 24); c.fillStyle = '#ff7a2b'; c.fillRect(0, 96, 512, 10); c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOLANA TRANSIT', 14, 50); }
+    if (kind === 'taxi') { for (let i = 0; i < 32; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 90 + j * 16, 16, 16); } c.fillStyle = '#111'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE CAB', 256, 70); }
+    else if (kind === 'bus') { c.fillStyle = '#0e8f9a'; c.fillRect(0, 70, 512, 24); c.fillStyle = '#ff7a2b'; c.fillRect(0, 96, 512, 10); c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOUTHLINE TRANSIT', 14, 50); }
     else if (kind === 'ambulance') { c.fillStyle = '#c8141c'; c.font = 'bold 54px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('AMBULANCE', 256, 50); c.fillRect(236, 82, 40, 40); c.fillStyle = '#fff'; c.fillRect(250, 86, 12, 32); c.fillRect(240, 96, 32, 12); }
     else if (kind === 'fire') { c.fillStyle = '#f2d14b'; c.fillRect(0, 96, 512, 14); c.fillStyle = '#f7f2e0'; c.font = 'bold 34px serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('SOUTHLINE FIRE RESCUE', 256, 52, 490); }
     else { c.fillStyle = '#f2f4f7'; c.fillRect(0, 0, 512, 128); c.fillStyle = '#c9a227'; c.fillRect(0, 0, 512, 10); c.fillRect(0, 118, 512, 10); c.fillStyle = '#0b1a33'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PSPD', 256, 52); c.font = 'bold 20px sans-serif'; c.fillText('SOUTHLINE POLICE', 256, 100); }

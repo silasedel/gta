@@ -1,4 +1,4 @@
-// Parametric vehicle catalogue for Port Solana: original archetypes + made-up brands.
+// Parametric vehicle catalogue for Southline: original archetypes + made-up brands.
 // Every model = archetype body/physics params, scaled + overridden, plus engine/sound/gearbox data.
 // Variants (trim, body kit, wheels, colour) are rolled at spawn time from the model's palettes.
 
@@ -128,7 +128,7 @@ m('corvo_shuttle', 'Corvo', 'Shuttle', 'van', 'van', 'dsl', 'work', { windows: t
 m('corvo_minibus', 'Corvo', 'Metro 16', 'van', 'van', 'dsl', 'work', { windows: true, sz: 1.35, sy: 1.12, mass: 3400, engine: 9500, vmax: 130 });
 m('atlas_box', 'Atlas', 'Box 26', 'truck', 'box', 'dslH', 'work', {});
 m('atlas_step', 'Atlas', 'Step Van', 'truck', 'box', 'dsl', 'work', { sz: 0.9, sx: 0.96, step: true, box: { front: 2.0, top: 2.85 }, zA: 2.15, zB: 1.95, zC: 1.95, zD: 1.95, roofY: 2.6, noseY: 1.15, mass: 4000 });
-m('citybus', 'Solana Transit', 'Metro S12', 'bus', 'bus', 'dslH', 'work', { busLivery: true });
+m('citybus', 'Southline Transit', 'Metro S12', 'bus', 'bus', 'dslH', 'work', { busLivery: true });
 // service vehicles
 m('taxi', 'Marlin', 'Coastline Cab', 'taxi', 'sedan', 'i4', 'std', { taxi: true, vmax: 170 });
 m('taxi_xl', 'Cayo', 'Trail Cab XL', 'taxi', 'suv', 'v6', 'std', { taxi: true });

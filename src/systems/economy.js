@@ -20,7 +20,7 @@ export const DISTRICTS = {
   'little-havana': { name: 'Little Havana', income: 0.3, medianIncome: 36000, priceIndex: 0.88, rentIndex: 0.95, tourist: 0.4, nightlife: 0.35, crime: 0.55 },
   overtown: { name: 'Overtown', income: 0.18, medianIncome: 27000, priceIndex: 0.85, rentIndex: 0.8, tourist: 0.05, nightlife: 0.15, crime: 0.8 },
   port: { name: 'PortMiami', income: 0.45, medianIncome: 52000, priceIndex: 1.0, rentIndex: 1.0, tourist: 0.3, nightlife: 0.0, crime: 0.4 },
-  airport: { name: 'Solana International Airport', income: 0.45, medianIncome: 50000, priceIndex: 1.25, rentIndex: 1.0, tourist: 0.6, nightlife: 0.05, crime: 0.3 },
+  airport: { name: 'Miami International Airport', income: 0.45, medianIncome: 50000, priceIndex: 1.25, rentIndex: 1.0, tourist: 0.6, nightlife: 0.05, crime: 0.3 },
   'south-suburbs': { name: 'South Suburbs', income: 0.5, medianIncome: 64000, priceIndex: 0.98, rentIndex: 1.1, tourist: 0.05, nightlife: 0.1, crime: 0.3 },
   'north-suburbs': { name: 'North Suburbs', income: 0.48, medianIncome: 59000, priceIndex: 0.96, rentIndex: 1.05, tourist: 0.05, nightlife: 0.1, crime: 0.35 },
   everglades: { name: 'Everglades', income: 0.22, medianIncome: 31000, priceIndex: 0.92, rentIndex: 0.6, tourist: 0.3, nightlife: 0.0, crime: 0.3 },

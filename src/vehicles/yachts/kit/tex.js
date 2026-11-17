@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: procedural PBR texture lab (albedo detail + normal + roughness), generated once and shared by
+// Southline V2 yachts: procedural PBR texture lab (albedo detail + normal + roughness), generated once and shared by
 // every yacht. Albedo maps are neutral "detail" maps that the material color tints, so one teak texture serves
 // golden, honey and silvered decks, one weave serves every upholstery color, and so on. All tile seamlessly.
 import * as THREE from 'three';

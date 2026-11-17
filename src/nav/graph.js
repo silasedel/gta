@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: compact, turn-aware road graph (pure data, no DOM, no three.js).
+// SOUTHLINE V2 navigation: compact, turn-aware road graph (pure data, no DOM, no three.js).
 // Built once from city.roadGraph (CONTRACT4) and shared by the main thread, the nav Web Worker and the Node tests.
 //
 // Model

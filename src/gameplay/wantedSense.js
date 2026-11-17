@@ -72,7 +72,7 @@ export function createSense(game, G, law) {
 
   // ---- vehicle identity (VEHICLES-CORE: model, color, plate; fallback: derive color from paint and issue our own plate)
   const plates = new WeakMap();
-  function makePlate(seed) { // original Calora plate format: three letters, three digits
+  function makePlate(seed) { // original Southline plate format: three letters, three digits
     let h = hash(seed), s = '';
     for (let i = 0; i < 3; i++) { s += LETTERS[h % LETTERS.length]; h = hash(h + i); }
     s += ' '; for (let i = 0; i < 3; i++) { s += String(h % 10); h = hash(h + 7 + i); }

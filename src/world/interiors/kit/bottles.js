@@ -26,7 +26,7 @@ const BRANDS = [
   ['Seven Keys', 'decanter', 'RESERVE'], ['Calloway Bend', 'whisky', 'SOUR MASH'], ['Ironheron', 'decanter', 'BLENDED'], ['Isla Vela', 'rum', 'AÑEJO'], ['Ron Garza', 'rum', 'BLANCO'],
   ['Manatí', 'rum', 'DARK RUM'], ['Brisa', 'rum', 'SPICED'], ['Marea Negra', 'rum', 'OVERPROOF'], ['Mangrove', 'gin', 'DRY GIN'], ['Saltmarsh', 'gin', 'LONDON DRY'],
   ['Heron & Lime', 'gin', 'CITRUS GIN'], ['Bay Botanic', 'gin', 'NAVY STRENGTH'], ['Velo', 'vodka', 'VODKA'], ['Kirova', 'vodka', 'TRIPLE DISTILLED'], ['Polar Strait', 'vodka', 'WINTER WHEAT'],
-  ['Sol de Piedra', 'tequila', 'REPOSADO'], ['Cielo Rojo', 'tequila', 'BLANCO'], ['Dos Halcones', 'tequila', 'AÑEJO'], ['Amaro Vespa', 'flask', 'AMARO'], ['Crème Solana', 'flask', 'LIQUEUR'],
+  ['Sol de Piedra', 'tequila', 'REPOSADO'], ['Cielo Rojo', 'tequila', 'BLANCO'], ['Dos Halcones', 'tequila', 'AÑEJO'], ['Amaro Vespa', 'flask', 'AMARO'], ['Crème Southline', 'flask', 'LIQUEUR'],
   ['Naranja Dulce', 'flask', 'TRIPLE SEC'], ['Bitter Isla', 'flask', 'APERITIVO'], ['Maison Ravel', 'wine', 'BRUT'], ['Vallon', 'wine', 'ROSÉ'], ['Casa Lumbre', 'wine', 'TINTO'],
   ['Undertow Club', 'decanter', 'HOUSE RESERVE'], ['Blue Heron', 'gin', 'OLD TOM'], ['Copper Jack', 'whisky', 'TENNESSEE STYLE'], ['Cayo Verde', 'rum', 'GOLD'], ['Norte', 'vodka', 'CITRON'],
   ['Mezcal Brujo', 'tequila', 'MEZCAL'], ['Coral Point', 'rum', 'COCONUT'], ['Fennel & Fig', 'flask', 'HERBAL'], ['Silver Mullet', 'vodka', 'PREMIUM'], ['Biscayne Barrel', 'whisky', 'CASK STRENGTH'],

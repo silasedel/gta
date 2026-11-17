@@ -1,6 +1,6 @@
 # Brief for brand-data agents (design-system track)
 
-You are filling ONE brand data file in `src/design/brands/data/` for **Port Solana V2**, an original open-world
+You are filling ONE brand data file in `src/design/brands/data/` for **Southline V2**, an original open-world
 sandbox set in real-scale Miami inside a condensed Florida-style world (Vite + three.js). The design system is the
 single source of truth for invented brands: every shop, product, sign, truck and ad in the game takes its brand from
 here. The user's standard: no shortcuts, no placeholders, every store has its own distinct, recognizable style.
@@ -22,7 +22,7 @@ Take as long as you need; quality over speed.
   - Every name must be invented. Check each one against real companies, products and trademarks you know, in any industry, and against real Miami/Florida businesses. If it is a real brand, or one letter away from one, or an obvious parody of one, pick another. No real logos, no real trade dress (for example: no red disc with white script for a cola, no swoosh, no three stripes, no golden arches, no green siren roundel, no interlocked letters that mimic a real fashion monogram).
   - Nothing from the Grand Theft Auto series or its fan maps. Banned outright: Vice City, Leonida, Grassrivers, Kalaga, Port Gellhorn, Ambrosia, Watson Bay, Key Lento, Hamlet, Rusty Anchor, Wonder Whale, Dinka, Vapid, Schafter, and any other name you recognize from that series (its car makers, radio stations, shops, beers, sodas, burger chains, clothing brands...).
   - Do not reuse a name another file already has: before you finish, run `grep -rhoE "name: (\"[^\"]+\"|'[^']+')" src/design/brands/data/ | sort | uniq -d` and rename any duplicate that involves your file. Avoid leaning on the same few words: at most two brands in your file may contain any one of Sol, Sun, Palm, Coral, Flamingo, Pelican, Tropic, Bay, Ocean, Miami, Key(s), Gator.
-- **World names you may use** (ours): Port Solana (the city), Solana County, Key Paloma, Tern Key, Lake Amaro, Citrus Flats, Sawpalm Ridge, Port Cassia, plus real Miami geography (Calle Ocho / SW 8th Street, Little Havana, Brickell, Wynwood, Overtown, Biscayne Bay, Ocean Drive, Collins Avenue, Lincoln Road, Flagler Street, the Everglades, the Keys). District ids for `districts` / `home` are in `define.js` (`DISTRICTS`).
+- **World names you may use** (ours): Southline (the city), Southline County, Key Paloma, Tern Key, Lake Amaro, Citrus Flats, Sawpalm Ridge, Port Cassia, plus real Miami geography (Calle Ocho / SW 8th Street, Little Havana, Brickell, Wynwood, Overtown, Biscayne Bay, Ocean Drive, Collins Avenue, Lincoln Road, Flagler Street, the Everglades, the Keys). District ids for `districts` / `home` are in `define.js` (`DISTRICTS`).
 
 ## What every brand needs
 ```js

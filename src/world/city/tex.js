@@ -1,4 +1,4 @@
-// Port Solana city — texture helpers (procedural CanvasTextures + CC0 PBR loader)
+// Southline city — texture helpers (procedural CanvasTextures + CC0 PBR loader)
 import * as THREE from 'three';
 
 export function rng(seed) {
@@ -174,13 +174,13 @@ export function frondTexture(renderer) {
 // Billboard atlas: 4x2 ads, each 512x256
 export const ADS = [
   { bg: ['#ff5f6d', '#ffc371'], t: 'SOLARA COLA', s: 'Taste the Sunset', fg: '#fff' },
-  { bg: ['#1fa2ff', '#12d8fa'], t: 'CALORA AIR', s: 'Fly the Coast · from $49', fg: '#fff' },
+  { bg: ['#1fa2ff', '#12d8fa'], t: 'SOUTHLINE AIR', s: 'Fly the Coast · from $49', fg: '#fff' },
   { bg: ['#f7971e', '#ffd200'], t: 'MANGO BAY', s: 'Island Spiced Rum', fg: '#3b1d00' },
   { bg: ['#8e2de2', '#4a00e0'], t: 'WAVE 101.3', s: "Southline's Hit Music", fg: '#fff' },
   { bg: ['#0f0c29', '#302b63'], t: 'CLUB VESPER', s: 'Neon Nights · Thu–Sun', fg: '#ff4fd8' },
   { bg: ['#11998e', '#38ef7d'], t: 'TROPICOOL', s: 'Sunscreen SPF 50', fg: '#fff' },
   { bg: ['#232526', '#414345'], t: 'VIPERA MOTORS', s: 'Feel the Bite', fg: '#ffcc00' },
-  { bg: ['#ee9ca7', '#ffdde1'], t: 'PELICAN BURGER', s: 'Open 24/7 on Solana Dr', fg: '#7a1030' },
+  { bg: ['#ee9ca7', '#ffdde1'], t: 'PELICAN BURGER', s: 'Open 24/7 on Southline Dr', fg: '#7a1030' },
 ];
 export function adsTexture(renderer) {
   const [c, x] = canvas(2048, 512);
@@ -299,7 +299,7 @@ export function shopFacade(renderer, seed = 21) {
 }
 
 // Vertical neon blade-sign names (8 columns, transparent bg)
-export const FIN_NAMES = ['CORALINE', 'PELICAN', 'AZURE', 'BREEZE', 'SOLANA', 'MARLOW', 'TIDES', 'LUMEN'];
+export const FIN_NAMES = ['CORALINE', 'PELICAN', 'AZURE', 'BREEZE', 'SOUTHLINE', 'MARLOW', 'TIDES', 'LUMEN'];
 export function finSignTexture(renderer) {
   const [c, x] = canvas(1024, 1024);
   const cols = ['#ff4fd8', '#3df2ff', '#ffd23f', '#ff7a1a', '#b07cff', '#5dff9a', '#ff3366', '#7fd4ff'];

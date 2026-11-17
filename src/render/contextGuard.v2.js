@@ -1,4 +1,4 @@
-// Port Solana V2: WebGL context-loss guard (playtest-fixes track).
+// Southline V2: WebGL context-loss guard (playtest-fixes track).
 // When the browser drops the GPU context (memory pressure, GPU reset, too many tabs), the page used to
 // stay frozen on a dead canvas. This module:
 //   - pauses the simulation and shows a clear message;

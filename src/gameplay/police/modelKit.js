@@ -1,5 +1,5 @@
 // POLICE track: shared helpers for the procedural police models (textures drawn on canvas, lofted bodies, cached materials).
-// Everything is original artwork generated in code. PSPD = Port Solana Police Department (navy, white, gold badge, teal accent).
+// Everything is original artwork generated in code. PSPD = Southline Police Department (navy, white, gold badge, teal accent).
 import * as THREE from 'three';
 
 export const PSPD = { navy: '#0b1a33', navyHex: 0x0b1a33, white: '#f2f2f0', gold: '#d8b04a', teal: '#2fe0d0', red: '#e02020', amber: '#ffb020' };

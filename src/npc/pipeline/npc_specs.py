@@ -1,4 +1,4 @@
-# Port Solana V2 — NPC archetypes (PEOPLE-LOOK track). Every person here is our own design on the CC0 MakeHuman /
+# Southline V2 — NPC archetypes (PEOPLE-LOOK track). Every person here is our own design on the CC0 MakeHuman /
 # MPFB2 base mesh. Outfits are original cuts with no real brands. Used by gen_npc.py (Blender) and paint_npc.py (numpy).
 #   python3 npc_specs.py  -> writes npc_specs.json next to this file
 import json, os, random, zlib

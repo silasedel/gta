@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: per-yacht material set. A yacht passes its palette (hull paint, gelcoat, teak tone,
+// Southline V2 yachts: per-yacht material set. A yacht passes its palette (hull paint, gelcoat, teak tone,
 // upholstery, interior woods and stones); material keys used by the kit resolve against it. Textures come from the
 // shared procedural lab (tex.js). Emissive light-fixture materials are grouped so the runtime can switch them.
 import * as THREE from 'three';

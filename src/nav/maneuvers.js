@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: turn-by-turn maneuvers from an arc sequence, in US units, with lane guidance.
+// SOUTHLINE V2 navigation: turn-by-turn maneuvers from an arc sequence, in US units, with lane guidance.
 // Pure: needs only the compact graph. Text is original wording in the plain style of road navigation.
 
 import { TG, AF, K, KIND_INFO, wrapPi, str } from './graph.js';

@@ -1,4 +1,4 @@
-// Port Solana — pedestrians (CHARACTER agent), wave 4.
+// Southline — pedestrians (CHARACTER agent), wave 4.
 // Population streams around the player using the city API only (zoneAt, randomSidewalkPoint, roadGraph,
 // benches, leanSpots, storefronts, groundHeightAt, isWater, surfaceAt). People follow sidewalks along the road
 // graph and cross at intersections (crosswalks). Zone/time behaviours: beach sunbathers, volleyball, frisbee,

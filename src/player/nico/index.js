@@ -1,4 +1,4 @@
-// Port Solana V2 — Nico, the protagonist (CHARACTER track). Loads the model built by src/player/pipeline/nico_build.py and
+// Southline V2 — Nico, the protagonist (CHARACTER track). Loads the model built by src/player/pipeline/nico_build.py and
 // turns a characterModel.js character (skeleton + animation state machine) into Nico: skin / eye / hair materials, mesh LODs,
 // facial animation (blink, gaze, expressions, speech), body change morphs, skin states, hand IK (reachTo / holdItem), wardrobe.
 import * as THREE from 'three';

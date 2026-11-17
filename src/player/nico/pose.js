@@ -1,4 +1,4 @@
-// Port Solana V2 — Nico's relaxed-stance layer (CHARACTER track). Runs after the animation mixer each frame and corrects
+// Southline V2 — Nico's relaxed-stance layer (CHARACTER track). Runs after the animation mixer each frame and corrects
 // the v1 clips' stiff wide A-stance in world space (independent of each bone's local axes): arms hang close to the body
 // with soft elbows and curled fingers, shoulders drop, feet come in under the hips, a slight weight shift onto one leg.
 // Full strength standing still; arms keep part of the correction while walking; off for driving, swimming, special idles.

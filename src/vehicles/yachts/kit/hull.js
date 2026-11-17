@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: parametric hull loft.
+// Southline V2 yachts: parametric hull loft.
 // A hull is described by three longitudinal curves (plan, sheer, keel), a section-shape family (round bilge or hard
 // chine with flare) and stem / transom profiles. Every yacht gives its own numbers, so no two hulls share a form.
 // Local frame: +z bow, +x port, y up, y = 0 at the design waterline. u = 0 at the transom, u = 1 at the stem head.

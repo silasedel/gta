@@ -1,4 +1,4 @@
-# Port Solana V2 — Nico skin, eye and far-LOD textures (CHARACTER track).
+# Southline V2 — Nico skin, eye and far-LOD textures (CHARACTER track).
 #   python3 nico_textures.py <workdir with nico_mesh.npz> <source skin png (MakeHuman CC0)> <outdir> [head|body|eyes|far|all] [size]
 # The CC0 MakeHuman skin is only the painting base: it is regraded to Nico's complexion and everything that makes the
 # face his is painted here in code, in 3D-aware UV space: brows (with the scar), stubble, scalp and fade, pores, lip

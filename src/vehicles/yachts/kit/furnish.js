@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: furniture, deck gear, helm, galley, cabins, machinery, toys.
+// Southline V2 yachts: furniture, deck gear, helm, galley, cabins, machinery, toys.
 // Every function: name(ctx, pos, heading, opts). Draws at pos (floor point) facing heading, registers colliders, spots, interacts.
 import * as THREE from 'three';
 import { lerp } from './builder.js';

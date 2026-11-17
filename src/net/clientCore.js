@@ -1,4 +1,4 @@
-// Port Solana multiplayer client core (MULTIPLAYER track): connection, optional link simulation, clock sync,
+// Southline multiplayer client core (MULTIPLAYER track): connection, optional link simulation, clock sync,
 // state upload, delta snapshot decoding, jitter-buffered interpolation of remote players, and the history
 // used for reconciliation. No DOM and no three.js, so the headless test bots run this exact code in Node.
 import {

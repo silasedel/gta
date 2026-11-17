@@ -222,10 +222,10 @@ export function createActivities(game, G) {
     const pp = pickupFront ? new THREE.Vector3(pickupFront.x, pickupFront.y ?? C.groundHeight(pickupFront.x, pickupFront.z), pickupFront.z) : farPoint(60, 200);
     if (!pp) return false;
     const p = C.sidewalkPoint(pp, 0, 25) || pp;
-    const a = { id: 'delivery', title: 'Solana Express delivery', stage: 'pickup', mk: marker(p, 0xff9a3a, { r: 0.6 }), pickupPos: p, drops: [], t: 0,
+    const a = { id: 'delivery', title: 'Southline Express delivery', stage: 'pickup', mk: marker(p, 0xff9a3a, { r: 0.6 }), pickupPos: p, drops: [], t: 0,
       cleanup() { rm(a.mk); for (const d of a.drops) rm(d.mk); } };
     A.active = a;
-    setWaypoint(p, 'Depot'); mission('Solana Express: collect the parcels at the pickup point.');
+    setWaypoint(p, 'Depot'); mission('Southline Express: collect the parcels at the pickup point.');
     return true;
   }
   function tickDelivery(a, dt) {
@@ -244,7 +244,7 @@ export function createActivities(game, G) {
       a.timer -= dt;
       const d = a.drops.find((x) => !x.done && distXZ(P.position, x.pos) < 6 && (!inCar() || carSpeed() < 15));
       if (d) { d.done = true; rm(d.mk); pay(60 + Math.max(0, a.timer) * 0.8, 'Parcel delivered'); nextDrop(a); }
-      if (a.drops.every((x) => x.done)) { A.stats.deliveries++; end(true, 'All parcels delivered. Solana Express thanks you.'); return; }
+      if (a.drops.every((x) => x.done)) { A.stats.deliveries++; end(true, 'All parcels delivered. Southline Express thanks you.'); return; }
       if (a.timer <= 0) end(false, 'Too slow — the depot reassigned the route.');
       else mission(`Deliver parcels: ${a.drops.filter((x) => x.done).length}/${a.drops.length} · ${Math.ceil(a.timer)}s`);
     }
@@ -451,7 +451,7 @@ export function createActivities(game, G) {
     }
   }
 
-  // ---------------------------------------------------------------- COLLECTIBLES: "Solana Shells"
+  // ---------------------------------------------------------------- COLLECTIBLES: "Southline Shells"
   const shellKey = 'portsolana.shells.v1';
   let found = new Set(); try { found = new Set(JSON.parse(localStorage.getItem(shellKey) || '[]')); } catch (e) { /* ignore */ }
   A.stats.shells = found.size;
@@ -499,7 +499,7 @@ export function createActivities(game, G) {
         try { localStorage.setItem(shellKey, JSON.stringify([...found])); } catch (e) { /* ignore */ }
         sfx(game, 'pickup', P.position, 1);
         const bonus = found.size % 10 === 0 ? 1000 : 50;
-        pay(bonus, `Solana Shell #${found.size}`);
+        pay(bonus, `Southline Shell #${found.size}`);
       }
     }
   }
@@ -507,7 +507,7 @@ export function createActivities(game, G) {
   // ---------------------------------------------------------------- registry + phone/keyboard menu
   const REG = [
     { id: 'taxi', name: 'Taxi fares', desc: 'Drive a cab and ferry fares across town. Tips for speed.', start: startTaxi, tick: tickTaxi, needsCar: 'taxi' },
-    { id: 'delivery', name: 'Solana Express', desc: 'Pick up parcels and deliver them before the clock runs out.', start: startDelivery, tick: tickDelivery },
+    { id: 'delivery', name: 'Southline Express', desc: 'Pick up parcels and deliver them before the clock runs out.', start: startDelivery, tick: tickDelivery },
     { id: 'race', name: 'Street race', desc: 'Race rivals through checkpoints on real streets ($100 buy-in).', start: () => startRace(100), tick: tickRace, needsCar: true },
     { id: 'hit', name: 'Hit list', desc: 'Rob a marked store and shake the heat for a bonus.', start: startHit, tick: tickHit },
     { id: 'armored', name: 'Armored truck', desc: 'Intercept and disable a SolGuard truck, grab the cash.', start: startArmored, tick: tickArmored },
@@ -521,7 +521,7 @@ export function createActivities(game, G) {
     if (ok && A.active) { A.active.tick = r.tick; A.active.name = r.name; game.emit?.('activityStart', { id }); sfx(game, 'beep', P.position, 0.6); }
     return !!ok;
   };
-  A.collectibles = () => ({ found: found.size, kind: 'Solana Shells' });
+  A.collectibles = () => ({ found: found.size, kind: 'Southline Shells' });
 
   // minimal on-screen menu (J) in case the phone app isn't wired: lists activities, 1-6 to start, J again to cancel
   const menu = document.createElement('div');
@@ -531,7 +531,7 @@ export function createActivities(game, G) {
   function renderMenu() {
     menu.innerHTML = `<div style="font-weight:700;letter-spacing:.12em;font-size:12px;color:#2fe0d0;margin-bottom:8px">SIDE HUSTLES</div>` +
       REG.map((r, i) => `<div style="padding:7px 0;border-top:1px solid rgba(255,255,255,.08)"><b style="color:#ffd25a">${i + 1}</b>&nbsp; <b>${r.name}</b><br><span style="opacity:.7;font-size:12.5px">${r.desc}</span></div>`).join('') +
-      `<div style="margin-top:8px;opacity:.6;font-size:12px">Solana Shells found: ${found.size} · Fares ${A.stats.taxiFares} · Races won ${A.stats.racesWon} · Bounties ${A.stats.bounties}</div>`;
+      `<div style="margin-top:8px;opacity:.6;font-size:12px">Southline Shells found: ${found.size} · Fares ${A.stats.taxiFares} · Races won ${A.stats.racesWon} · Bounties ${A.stats.bounties}</div>`;
   }
   function toggleMenu(on) { menuOpen = on; if (on) renderMenu(); menu.style.display = on ? 'block' : 'none'; }
 

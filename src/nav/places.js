@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: destination search by place name and by category ("nearest gas station").
+// SOUTHLINE V2 navigation: destination search by place name and by category ("nearest gas station").
 // Sources: storefronts (typed from real map data; names are never real brands), streets and intersections, districts,
 // world places (layout.json), and anything other tracks register at run time (safehouses, jobs, branded shops).
 

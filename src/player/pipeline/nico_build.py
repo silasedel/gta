@@ -1,4 +1,4 @@
-# Port Solana V2 — Nico body build (CHARACTER track).
+# Southline V2 — Nico body build (CHARACTER track).
 #   BLENDER_USER_RESOURCES=<dir with MPFB2> blender -b -P nico_build.py -- <workdir> <outdir>
 # Builds the protagonist from the MakeHuman / MPFB2 CC0 base mesh with the design in nico_design.py and writes:
 #   <workdir>/nico_base.blend     rig + base-density body with every morph (input of the hair / garment stages)

@@ -1,4 +1,4 @@
-// Port Solana — MPFB2/MakeHuman (CC0) human library loader + materials (CHARACTER agent).
+// Southline — MPFB2/MakeHuman (CC0) human library loader + materials (CHARACTER agent).
 // The library (public/assets/humans/humans.json + *.glb) is generated headless in Blender by
 // tools in docs/showcase/characters (see stats.md). Each person: mixamo-compatible rig, 3 LODs,
 // shared textures in /assets/humans/tex.

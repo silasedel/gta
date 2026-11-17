@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: turns a raw arc sequence into the Route object the game uses:
+// SOUTHLINE V2 navigation: turns a raw arc sequence into the Route object the game uses:
 // a lane-level polyline (the lane the car should be in, smooth through junctions and along ramps), maneuvers, and
 // distance / time tables for progress, ETA and re-routing.
 

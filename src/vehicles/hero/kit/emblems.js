@@ -1,4 +1,4 @@
-// Marque emblems and lettering, drawn in code (all invented for Port Solana).
+// Marque emblems and lettering, drawn in code (all invented for Southline).
 import * as THREE from 'three';
 import { canvasTex } from './geo.js';
 
@@ -51,7 +51,7 @@ export function decalMat(tex, opts = {}) {
   if (!decalMats.has(k)) decalMats.set(k, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.08, metalness: opts.matte ? 0.1 : 0.95, roughness: opts.matte ? 0.6 : 0.22, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3, depthWrite: false }));
   return decalMats.get(k);
 }
-/** Port Solana "Calora" license plate texture with a seeded number. */
+/** Southline "Southline" license plate texture with a seeded number. */
 export function plateTex(seed = 1) {
   let s = (seed >>> 0) || 1; const r = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
   const A = 'ABCDEFGHJKLMNPRSTUVWXYZ', l = () => A[(r() * A.length) | 0], d = () => (r() * 10) | 0;
@@ -60,7 +60,7 @@ export function plateTex(seed = 1) {
     const g = c.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#fdf8ee'); g.addColorStop(1, '#f1dcb6'); c.fillStyle = g; c.fillRect(0, 0, 512, 256);
     c.strokeStyle = '#1b3f73'; c.lineWidth = 10; c.strokeRect(9, 9, 494, 238);
     c.fillStyle = '#e0602a'; c.beginPath(); c.arc(256, 62, 30, Math.PI, 0); c.fill();
-    c.fillStyle = '#1b3f73'; c.font = 'bold 40px Arial'; c.textAlign = 'center'; c.fillText('CALORA', 256, 58);
+    c.fillStyle = '#1b3f73'; c.font = 'bold 40px Arial'; c.textAlign = 'center'; c.fillText('SOUTHLINE', 256, 58);
     c.fillStyle = '#122a4c'; c.font = 'bold 104px "Courier New", monospace'; c.fillText(code, 256, 180);
     c.font = '24px Arial'; c.fillText('SUNSHINE COAST', 256, 228);
   });

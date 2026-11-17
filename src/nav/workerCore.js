@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: the message handler that runs inside the nav Web Worker (and, as a fallback, on the main
+// SOUTHLINE V2 navigation: the message handler that runs inside the nav Web Worker (and, as a fallback, on the main
 // thread through the same interface). Heavy work lives here: landmark tables, the walk graph, first-route searches and the
 // reverse tree used for instant re-routes.
 import { Router, computeLandmarks } from './engine.js';

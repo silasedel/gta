@@ -1,4 +1,4 @@
-// Procedural, original car models for Port Solana.
+// Procedural, original car models for Southline.
 // Shell coordinates: ground at y=0, car faces +Z, centered on x=0, z=0 (mid wheelbase).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -26,7 +26,7 @@ function materials() {
   M.plate = new THREE.MeshStandardMaterial({ map: textTexture(256, 128, (c) => {
     c.fillStyle = '#f4f1e8'; c.fillRect(0, 0, 256, 128);
     c.strokeStyle = '#1b3f73'; c.lineWidth = 8; c.strokeRect(6, 6, 244, 116);
-    c.fillStyle = '#d2552a'; c.font = 'bold 26px sans-serif'; c.textAlign = 'center'; c.fillText('CALORA', 128, 36);
+    c.fillStyle = '#d2552a'; c.font = 'bold 26px sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE', 128, 36);
     c.fillStyle = '#132a4d'; c.font = 'bold 58px monospace'; c.fillText('7SL 482', 128, 104);
   }), roughness: 0.5, metalness: 0.2 });
   return M;
@@ -774,7 +774,7 @@ function hullPoints(t, typeKey, kit) {
   return res;
 }
 
-// made-up Calora plates, unique per car
+// made-up Southline plates, unique per car
 // a small pool of made-up plates (canvas textures are not free to create per car)
 const platePool = [];
 function plateMat() {
@@ -804,7 +804,7 @@ function makePlateMat() {
     c.fillStyle = g; c.fillRect(0, 0, 256, 128);
     c.strokeStyle = '#1b3f73'; c.lineWidth = 6; c.strokeRect(5, 5, 246, 118);
     c.fillStyle = '#e0602a'; c.beginPath(); c.arc(128, 30, 14, Math.PI, 0); c.fill(); // little sunset
-    c.fillStyle = '#1b3f73'; c.font = 'bold 20px sans-serif'; c.textAlign = 'center'; c.fillText('CALORA', 128, 28);
+    c.fillStyle = '#1b3f73'; c.font = 'bold 20px sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE', 128, 28);
     c.fillStyle = '#122a4c'; c.font = 'bold 50px monospace'; c.fillText(code, 128, 92);
     c.font = '13px sans-serif'; c.fillText('SUNSHINE COAST', 128, 116);
   });
@@ -860,10 +860,10 @@ function addDecals(shell, t, typeKey) {
           c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 90 + j * 16, 16, 16);
         }
         c.fillStyle = '#111'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center';
-        c.fillText('SOLANA CAB', 256, 70);
+        c.fillText('SOUTHLINE CAB', 256, 70);
       } else if (typeKey === 'bus') {
         c.fillStyle = '#0e8f9a'; c.fillRect(0, 70, 512, 24); c.fillStyle = '#ff7a2b'; c.fillRect(0, 96, 512, 10);
-        c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOLANA TRANSIT', 14, 50);
+        c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOUTHLINE TRANSIT', 14, 50);
       } else if (typeKey === 'ambulance') {
         c.fillStyle = '#c8141c'; c.font = 'bold 54px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.fillText('AMBULANCE', 256, 50);

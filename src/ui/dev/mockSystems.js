@@ -56,7 +56,7 @@ export function installMockSystems(game, opts = {}) {
     { id: 'n2', headline: 'Sunward Fuel shares dip after tanker fire near the port', kind: 'market', about: 'snwd', priority: 1, at: T.now - 90, body: 'The stock fell 4% in early trading.' },
     { id: 'n3', headline: 'Afternoon thunderstorms expected across the bay', kind: 'weather', priority: 1, at: T.now - 140, body: 'Lightning and brief flooding on low streets are possible between 3 and 6 PM.' },
     { id: 'n4', headline: 'Boat parade this Saturday closes the Venetian Causeway drawbridge', kind: 'event', priority: 0, at: T.now - 300, body: 'Expect delays from noon. Fireworks follow at 9 PM.' },
-    { id: 'n5', headline: 'Ninth-inning comeback: the Solana Herons walk it off', kind: 'sports', priority: 0, at: T.now - 500, body: 'A walk-off double sends the home crowd into Friday night.' },
+    { id: 'n5', headline: 'Ninth-inning comeback: the Southline Herons walk it off', kind: 'sports', priority: 0, at: T.now - 500, body: 'A walk-off double sends the home crowd into Friday night.' },
     { id: 'n6', headline: 'I-95 northbound: two lanes blocked at NW 20th Street', kind: 'traffic', priority: 1, at: T.now - 12, body: 'A stalled delivery truck. Use Biscayne Boulevard.' },
   ];
   const subs = new Set();

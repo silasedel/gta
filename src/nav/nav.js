@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: game.nav. Glues the graph, the router, live traffic, the worker, the walking and boat routers,
+// SOUTHLINE V2 navigation: game.nav. Glues the graph, the router, live traffic, the worker, the walking and boat routers,
 // guidance (progress, re-route, prompts, ETA) and the consumer API for AI drivers, police, jobs and the map.
 
 import { buildNavGraph, setControls, snap, KINDS, AF, str, edgePointAt } from './graph.js';

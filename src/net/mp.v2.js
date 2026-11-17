@@ -1,4 +1,4 @@
-// Port Solana multiplayer entry (MULTIPLAYER track). Costs nothing offline: without `?mp=` in the URL this
+// Southline multiplayer entry (MULTIPLAYER track). Costs nothing offline: without `?mp=` in the URL this
 // module returns at once and loads no network code.
 //   ?mp=ws://host:port&room=CODE&name=Nico      join (or create) a room
 //   &mpLag=100&mpJitter=30&mpLoss=2             optional link simulation (ms, ms, percent) for testing

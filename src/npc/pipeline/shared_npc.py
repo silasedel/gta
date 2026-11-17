@@ -1,4 +1,4 @@
-# Port Solana V2 — shared NPC textures (PEOPLE-LOOK track), from the CC0 MakeHuman asset pack:
+# Southline V2 — shared NPC textures (PEOPLE-LOOK track), from the CC0 MakeHuman asset pack:
 #   python3 shared_npc.py <mpfb data dir> <outdir>
 # hair_<style>.webp : strand luminance normalized to the style's own mean (tinted per person at runtime, x2 in shader) + alpha
 # brow_/lash_<id>.webp : same, for brows and lashes ; eye_<color>.webp : iris textures ; shoe_<variant>.webp : recolored shoes

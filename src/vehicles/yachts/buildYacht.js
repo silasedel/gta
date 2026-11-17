@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: assemble one yacht from its definition.
+// Southline V2 yachts: assemble one yacht from its definition.
 // buildYacht(def, { seed, maxLod }) -> a pure data + scene-graph bundle (no game, no physics):
 //   group (THREE.Group, yacht-local frame), lods [g0, g1, g2], setLod(n), mats, colliders (fine, for the walk world),
 //   coarse (few shapes for the main physics world), nav { nodes, links }, spots, interacts, areas, lights, ladders, doors,

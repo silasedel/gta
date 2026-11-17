@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: the route search (pure, runs on the main thread, in the nav Web Worker and in Node).
+// SOUTHLINE V2 navigation: the route search (pure, runs on the main thread, in the nav Web Worker and in Node).
 //
 //  - route():      time-optimal A* on the turn-aware arc graph, guided by ALT landmark lower bounds (falls back to
 //                  straight-line time when landmarks are not ready yet).

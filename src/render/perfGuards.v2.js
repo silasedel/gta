@@ -1,4 +1,4 @@
-// Port Solana V2: run-time allocation guards (playtest-fixes track).
+// Southline V2: run-time allocation guards (playtest-fixes track).
 // The game produced about 1 GB of short-lived garbage every 20 s of play, so Chrome ran a major GC of a
 // 2-3 GB heap every minute or so (the 1-2 s freezes) and peaked near the tab's memory limit (the crash).
 // The two largest sources are fixed here without touching their owners' files:

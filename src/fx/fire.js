@@ -1,4 +1,4 @@
-// Port Solana V2: realistic fire, fireballs, embers and dark smoke (playtest-fixes track).
+// Southline V2: realistic fire, fireballs, embers and dark smoke (playtest-fixes track).
 // Replaces the flat orange point sprites ("bubbling balls") used for burning cars, molotovs and explosions.
 //   - Flames: camera-facing (around the vertical axis) sheets with a noise-driven flame shader: fbm turbulence
 //     scrolling upward, a teardrop envelope that tears into tongues at the top, and a black-body color ramp

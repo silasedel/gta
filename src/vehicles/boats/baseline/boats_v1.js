@@ -1,4 +1,4 @@
-// Port Solana boats: original procedural hulls + multi-point buoyancy physics, wake/foam, police boats.
+// Southline boats: original procedural hulls + multi-point buoyancy physics, wake/foam, police boats.
 // Exposed through game.vehicles (nearest / enter / exit / HUD speed / AUDIO model fields).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';

@@ -1,4 +1,4 @@
-# Port Solana V2 — first wardrobe cuts for Nico (CHARACTER track): camp shirt, shorts, sneakers, built as cloth shells
+# Southline V2 — first wardrobe cuts for Nico (CHARACTER track): camp shirt, shorts, sneakers, built as cloth shells
 # over the base body with collar, placket, buttons, hems and body-change morphs.
 #   blender -b <work>/nico_base.blend -P garments.py -- <workdir> <outdir>
 import sys, os, math

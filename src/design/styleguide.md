@@ -1,4 +1,4 @@
-# Port Solana style guide (design-system track)
+# Southline style guide (design-system track)
 
 Data lives in `styleguide.js` (`design.styleguide.district(id)`, `.tier(id)`, `.forBrand(brand, district)`); this page is the short prose version.
 

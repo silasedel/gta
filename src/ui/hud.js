@@ -195,7 +195,7 @@ export function createHUD(game) {
   let streetTimer = 0, curStreet = null, candStreet = null, candN = 0, streetCheck = 0;
 
   // ---------- Death screen ----------
-  const deathEl = el('div', 'ps-death', `<div class="ps-death-flash"></div><div class="ps-death-bar top"></div><div class="ps-death-bar bot"></div><div class="ps-death-card"><div class="ps-death-rule"></div><h1>LIGHTS OUT</h1><p><span>RESPAWNING</span> Solana General Hospital</p></div>`);
+  const deathEl = el('div', 'ps-death', `<div class="ps-death-flash"></div><div class="ps-death-bar top"></div><div class="ps-death-bar bot"></div><div class="ps-death-card"><div class="ps-death-rule"></div><h1>LIGHTS OUT</h1><p><span>RESPAWNING</span> Southline General Hospital</p></div>`);
   root.appendChild(deathEl);
   const arrestEl = el('div', 'ps-arrest', `<div class="ps-arrest-bars"></div><h1>DETAINED</h1><p class="ps-arrest-fee"></p><small>Released from ${BRAND.name} Central Holding</small>`);
   root.appendChild(arrestEl);
@@ -529,7 +529,7 @@ export function createHUD(game) {
   function appContent(id) {
     const money = num(game.player?.money);
     switch (id) {
-      case 'contacts': return list([['Marisol Vega', 'Fixer · Neon Row'], ['"Tiny" Okafor', 'Garage · Harbor District'], ['Dr. Anand', 'Solana General'], ['Coral Cabs', 'Dispatch'], ['Mom', 'Palmetto Heights'], ['Unknown', 'Blocked']]);
+      case 'contacts': return list([['Marisol Vega', 'Fixer · Neon Row'], ['"Tiny" Okafor', 'Garage · Harbor District'], ['Dr. Anand', 'Southline General'], ['Coral Cabs', 'Dispatch'], ['Mom', 'Palmetto Heights'], ['Unknown', 'Blocked']]);
       case 'messages': return `<div class="ps-msgs">
           <div class="ps-msg in"><b>Marisol</b>Got a job on the boardwalk. Bring a fast car, keep it clean.</div>
           <div class="ps-msg out">On my way. Which pier?</div>
@@ -542,7 +542,7 @@ export function createHUD(game) {
           ${post('@neonrow_eats', 'Late-night empanadas, open till 4. Line around the block.', 'linear-gradient(160deg,#ff5fb8,#3b2a7a)', 932)}
           ${post('@southline_pd', 'Reminder: the speed limit on Ocean Blvd is NOT a suggestion.', 'linear-gradient(160deg,#2a4b8a,#121a33)', 17)}</div>`;
       case 'bank': return `<div class="ps-bank"><div class="ps-bank-card"><span>FIRST ${BRAND.name.toUpperCase()}</span><b>${fmtMoney(money)}</b><small>•••• 0721</small></div>
-          ${list([['Coral Cabs', '-$18'], ['Pier 7 Bait & Tackle', '-$42'], ['Transfer · M. Vega', '+$1,500'], ['Solana Gas', '-$64']])}</div>`;
+          ${list([['Coral Cabs', '-$18'], ['Pier 7 Bait & Tackle', '-$42'], ['Transfer · M. Vega', '+$1,500'], ['Southline Gas', '-$64']])}</div>`;
       case 'settings': return list([['Airplane mode', 'Off'], ['Ringtone', 'Lagoon Pulse'], ['Wallpaper', 'Sunset Gradient'], ['Graphics', String(settings.quality).toUpperCase()], ['Mouse sensitivity', settings.mouseSens.toFixed(2)], ['Version', 'SolanaOS 7.2']]);
     }
     return '';
@@ -1513,12 +1513,12 @@ function roundRect(g, x, y, w, h, r) {
 }
 // original POI glyphs, drawn in a 0..1 box centred on 0
 const POIS = [
-  { x: -205, z: 205, c: '#ff5d6c', glyph: 'plus', name: 'Solana General' },
+  { x: -205, z: 205, c: '#ff5d6c', glyph: 'plus', name: 'Southline General' },
   { x: 10, z: -45, c: '#3fcf8e', glyph: 'dollar', name: 'First Southline Bank' },
   { x: 205, z: 255, c: '#ffb35a', glyph: 'wrench', name: "Tiny's Garage" },
   { x: -95, z: -250, c: '#c58cff', glyph: 'shirt', name: 'Threads' },
   { x: 300, z: -105, c: '#ff8fc8', glyph: 'cup', name: 'Neon Diner' },
-  { x: -350, z: 45, c: '#6fb6ff', glyph: 'drop', name: 'Solana Gas' },
+  { x: -350, z: 45, c: '#6fb6ff', glyph: 'drop', name: 'Southline Gas' },
   { x: 470, z: -200, c: '#ff5fa8', glyph: 'wave', name: 'Pier 7' },
 ];
 function drawGlyph(g, kind) {

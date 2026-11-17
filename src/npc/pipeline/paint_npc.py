@@ -1,4 +1,4 @@
-# Port Solana V2 — NPC atlas painter (PEOPLE-LOOK track). Plain python3 + numpy/scipy/numba/PIL, our own procedural art.
+# Southline V2 — NPC atlas painter (PEOPLE-LOOK track). Plain python3 + numpy/scipy/numba/PIL, our own procedural art.
 #   python3 paint_npc.py <npc_specs.json> <workdir with gen_npc .npz> <outdir> <mpfb data dir> [id,id,...]
 # Per archetype writes <outdir>/<id>_a.webp (RGB albedo: skin + every garment in the body UV layout, page 2 for outer
 # layers; A = material byte slot << 5 | fabric, lossless) and <outdir>/<id>_n.webp at half size (R,G normal, B occlusion).
@@ -343,7 +343,7 @@ def paint_top(P, t, g, L, F, tucked):
         for sx in (0.045, 0.075, -0.045, -0.075):
             P.seam(np.abs(F.x - sx), F.z, rows=(0.0025,), depth=0.0012, dark=0.1, mask=(F.front & tor & (F.z < bust + 0.12)).astype(np.float32))
     if t == "police_shirt":
-        # badge (wearer's left chest), name plate (right), shoulder patches: invented "Port Solana Police" insignia
+        # badge (wearer's left chest), name plate (right), shoulder patches: invented "Southline Police" insignia
         d = np.hypot(F.x - 0.1, F.z - (bust + 0.085)); ang = np.arctan2(F.z - (bust + 0.085), F.x - 0.1)
         shield = sm(0.024, 0.021, d * (1 + 0.18 * np.cos(ang * 5))) * F.front
         P.mix(hexlin("#c9a043"), shield); P.h += 0.0015 * shield; P.code = np.where(shield > 0.5, (P.code & 0xE0) | FAB["metal"], P.code).astype(np.uint8)

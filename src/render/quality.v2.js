@@ -1,4 +1,4 @@
-// Port Solana V2: graphics quality presets with a measured auto-pick (playtest-fixes track).
+// Southline V2: graphics quality presets with a measured auto-pick (playtest-fixes track).
 // Presets scale shadows, draw distance, crowd size and character LOD. The resolution is never touched:
 // it stays native (see src/render/post.js).
 // Auto-pick: on the first load (or when the GPU changes) the game starts on 'ultra'. After loading, it

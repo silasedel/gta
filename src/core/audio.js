@@ -1,4 +1,4 @@
-// Port Solana audio: sample-based RPM engines (real recordings, see CREDITS.md) for the player car and the
+// Southline audio: sample-based RPM engines (real recordings, see CREDITS.md) for the player car and the
 // nearest AI cars, tire squeal / wind / turbo / overrun crackle, recorded gunshots layered with synth body,
 // positional one-shot SFX library, footsteps by surface, indoor reverb / outdoor echo, sirens, ambience.
 // Samples live in /assets/audio/{engines,guns}/*.wav; everything falls back to synthesis until loaded.
@@ -1482,7 +1482,7 @@ export function createAudio(game) {
     house: [[60, 63, 67, 70], [53, 56, 60, 63], [56, 60, 63, 67], [55, 58, 62, 65]],
   };
   const STATIONS = [
-    { id: 'tropical', name: 'Solana FM 98.1 · Tropical House', bpm: 118, bars: 16, gen(k, d, spb, bars, R) {
+    { id: 'tropical', name: 'Southline FM 98.1 · Tropical House', bpm: 118, bars: 16, gen(k, d, spb, bars, R) {
       for (let b = 0; b < bars; b++) { const ch = PROG.tropical[Math.floor(b / 2) % 4], t0 = b * 4 * spb;
         for (let i = 0; i < 4; i++) { const t = t0 + i * spb; k.kick(d, t, 0.9); k.hat(d, t + spb / 2, 0.16); if (b >= 2 && i % 2) k.clap(d, t, 0.32); }
         [0, 0.75, 1.5, 2, 2.75, 3.5].forEach((x, j) => k.bass(d, t0 + x * spb, ch[0] - 24 + (j === 3 ? 12 : 0), spb * 0.45, 0.32, 'triangle', 300));

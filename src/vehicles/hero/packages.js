@@ -1,9 +1,9 @@
 // Hero cars: the "package" (hard points) of each car.  Body, wheels, cockpit and engine builders all read from here,
 // so the parts fit each other.  Coordinates: meters, y up, +Z forward, +X = car's left (driver side, US), ground y = 0,
 // z = 0 at mid-wheelbase.  cabin.beltY = [at the rear edge of the front door, at its front edge]; cabin.sillTopY = top of the sill inside.
-// All names and marques are invented for Port Solana.
+// All names and marques are invented for Southline.
 //
-// Marques: Vireo (existing Port Solana supercar house), Vauclair (grand-touring hypercars), Merrow (British mid-engine).
+// Marques: Vireo (existing Southline supercar house), Vauclair (grand-touring hypercars), Merrow (British mid-engine).
 // Tire brand: Garrano.  None of these are real brands; the design-system track should adopt them into src/design/brands.
 
 export const TIRE_BRAND = { name: 'GARRANO', lines: { track: 'APEX-R', road: 'VELA GT', suv: 'TERRA-S' } };

@@ -30,7 +30,7 @@ export function createStations(game, C) {
     try { const ne = C?.nearestEdge?.(s.x, s.z); if (ne && ne.dist < 260) road = { x: ne.point.x, z: ne.point.z }; } catch (e) { /* no graph */ }
     if (!road) return; // not reachable by road in the current map
     if (list.some((q) => Math.hypot(q.x - s.x, q.z - s.z) < 250)) return;
-    list.push({ name: s.name, callsign: s.callsign || 'Solana', x: s.x, z: s.z, road });
+    list.push({ name: s.name, callsign: s.callsign || 'Southline', x: s.x, z: s.z, road });
   }
   const pois = C?.city?.pois?.police || C?.city?.pois?.police_station;
   if (Array.isArray(pois)) for (const p of pois) add({ name: p.name ? `Southline PD ${p.name}` : 'Southline PD Station', x: p.x ?? p.pos?.x, z: p.z ?? p.pos?.z });

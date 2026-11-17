@@ -1,4 +1,4 @@
-// Port Solana V2: realistic fire in the game (playtest-fixes track).
+// Southline V2: realistic fire in the game (playtest-fixes track).
 // Wires src/fx/fire.js into the game without touching the owners' files:
 //   - Burning wrecks: vehicles.js draws car fires as flat orange point sprites. Those sprites are hidden and
 //     each burning car gets real flames, embers and a dark smoke column at its engine bay instead.

@@ -13,10 +13,10 @@ function screenTex(lines, bg, fg) {
 }
 const M = {
   atmBody: new THREE.MeshStandardMaterial({ color: 0x8a939c, metalness: 0.7, roughness: 0.35 }),
-  atmScreen: new THREE.MeshStandardMaterial({ map: screenTex(['SOLANA', 'BANK', '24/7'], '#0b3a6e', '#9fe0ff'), emissive: 0xffffff, emissiveIntensity: 0.9, emissiveMap: null }),
+  atmScreen: new THREE.MeshStandardMaterial({ map: screenTex(['SOUTHLINE', 'BANK', '24/7'], '#0b3a6e', '#9fe0ff'), emissive: 0xffffff, emissiveIntensity: 0.9, emissiveMap: null }),
   dark: new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.6 }),
   vendBody: new THREE.MeshStandardMaterial({ color: 0xd8222f, roughness: 0.4, metalness: 0.2 }),
-  vendFront: new THREE.MeshStandardMaterial({ map: screenTex(['SOLANA', 'FIZZ', '$2'], '#ffefe0', '#d8222f'), emissive: 0xffffff, emissiveIntensity: 0.7 }),
+  vendFront: new THREE.MeshStandardMaterial({ map: screenTex(['SOUTHLINE', 'FIZZ', '$2'], '#ffefe0', '#d8222f'), emissive: 0xffffff, emissiveIntensity: 0.7 }),
   booth: new THREE.MeshStandardMaterial({ color: 0x2b6f8f, metalness: 0.5, roughness: 0.4 }),
   glass: new THREE.MeshStandardMaterial({ color: 0x9fd4e8, transparent: true, opacity: 0.25, roughness: 0.05 }),
   sign: new THREE.MeshStandardMaterial({ map: screenTex(['PHONE'], '#1e88c8', '#ffffff'), emissive: 0xffffff, emissiveIntensity: 0.8 }),
@@ -151,12 +151,12 @@ export function createWorldStuff(game, G) {
     if (p.type === 'atm') {
       if (now - p.robbedT < 120) { game.hud?.notify?.('ATM: OUT OF SERVICE', 2000); return; }
       sfx(game, 'beep', p.pos, 0.6);
-      game.hud?.notify?.(`Solana Bank: card declined. Your balance is safe in your pocket ($${Math.round(P.money || 0)}).`, 3200);
+      game.hud?.notify?.(`Southline Bank: card declined. Your balance is safe in your pocket ($${Math.round(P.money || 0)}).`, 3200);
     } else if (p.type === 'vending') {
       if ((P.money || 0) < 2) { game.hud?.notify?.('Not enough cash.', 1800); return; }
       P.money -= 2; P.health = Math.min(100, P.health + 10);
       sfx(game, 'can', p.pos, 0.8);
-      game.hud?.notify?.('Purchased: Solana Fizz (+10 health)', 2200);
+      game.hud?.notify?.('Purchased: Southline Fizz (+10 health)', 2200);
     } else if (p.type === 'phone') {
       sfx(game, 'ring', p.pos, 0.6);
       const W = G.wanted;
@@ -418,7 +418,7 @@ export function createWorldStuff(game, G) {
       }
     } else if (nearProp) {
       const txt = nearProp.type === 'atm' ? 'Press <b>E</b> to use ATM · hit it to break it open'
-        : nearProp.type === 'vending' ? 'Press <b>E</b> to buy a Solana Fizz ($2)'
+        : nearProp.type === 'vending' ? 'Press <b>E</b> to buy a Southline Fizz ($2)'
           : G.wanted.level > 0 && G.wanted.evading ? 'Press <b>E</b> to call the Hush Line ($400)' : 'Press <b>E</b> to use payphone';
       G.setHelp?.(txt);
       const ui = game.ui || {};

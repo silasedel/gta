@@ -1,4 +1,4 @@
-// Per-car extras that make every car different: Calora license plates, bumper stickers, roof and bed accessories,
+// Per-car extras that make every car different: Southline license plates, bumper stickers, roof and bed accessories,
 // cabin interior and dash clutter.  All original art drawn on canvases; geometry is cached and shared where the same
 // combination repeats, so recycling traffic does not grow GPU memory.
 import * as THREE from 'three';
@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { rng } from './rng.js';
 
-// ---------------------------------------------------------------- plates (fictional state of Calora; rear plate only)
+// ---------------------------------------------------------------- plates (fictional state of Southline; rear plate only)
 const PL = 'BCDFGHJKLMNPRSTVWXYZ'; // consonants only: no accidental words
 export function plateText(seed) {
   const r = rng(seed ^ 0x51a7e), l = () => PL[r.int(PL.length)], d = () => r.int(10);
@@ -27,7 +27,7 @@ export function plateMaterial(plate) {
   else if (style === 'temp') { c.fillStyle = '#fdfdf8'; c.fillRect(0, 0, 256, 128); ink = '#111'; head = '#111'; sub = 'TEMPORARY TAG  EXP 12-26'; }
   else { c.fillStyle = '#1c2b4a'; c.fillRect(0, 0, 256, 128); ink = '#f2d77a'; head = '#f2d77a'; sub = 'HORSELESS CARRIAGE'; }
   c.strokeStyle = ink; c.lineWidth = 5; c.strokeRect(4, 4, 248, 120);
-  c.textAlign = 'center'; c.fillStyle = head; c.font = 'bold 22px sans-serif'; c.fillText('CALORA', 128, 30);
+  c.textAlign = 'center'; c.fillStyle = head; c.font = 'bold 22px sans-serif'; c.fillText('SOUTHLINE', 128, 30);
   c.fillStyle = ink; c.font = style === 'temp' ? 'bold 46px monospace' : 'bold 54px monospace'; c.fillText(text, 128, 92);
   c.font = 'bold 12px sans-serif'; c.fillText(sub, 128, 116);
   if (style !== 'temp') { c.fillStyle = '#e8c22a'; c.fillRect(214, 10, 30, 18); c.fillStyle = '#222'; c.font = 'bold 11px sans-serif'; c.fillText(String(1 + (text.charCodeAt(0) % 12)).padStart(2, '0') + '-27', 229, 23); }
@@ -40,7 +40,7 @@ const STICKER_DEFS = [
   ['KEY PALOMA', '#0f6f8a', '#fff'], ['I BRAKE FOR IGUANAS', '#f4e04a', '#1a1a1a'], ['PORT CASSIA BAIT & ICE', '#103a5c', '#ffd27a'], ['SALT LIFE-ISH', '#e9f4f4', '#0a6b78'],
   ['LAKE AMARO BASS CLUB', '#2c5a2a', '#f2f0d0'], ['97.3 THE TIDE', '#ff5a7a', '#fff'], ['MY OTHER CAR IS A SKIFF', '#fff', '#b3121b'], ['SAWPALM RIDGE', '#5a3a1e', '#f4dca0'],
   ['HONK IF YOU LOVE CAFECITO', '#3b1f12', '#f2c078'], ['TERN KEY DIVE CO.', '#0b2a4a', '#6fe0e0'], ['NO WAKE ZONE', '#fff', '#d9541e'], ['LOCAL 305 DOCKWORKERS', '#1a1a1a', '#f0b62a'],
-  ['CITRUS FLATS FRESH', '#f39a1e', '#fff'], ['BABY IN CAR', '#ffe14a', '#111'], ['STUDENT DRIVER', '#ffe14a', '#111'], ['SOLANA SURF SUPPLY', '#16c1b0', '#103040'],
+  ['CITRUS FLATS FRESH', '#f39a1e', '#fff'], ['BABY IN CAR', '#ffe14a', '#111'], ['STUDENT DRIVER', '#ffe14a', '#111'], ['SOUTHLINE SURF SUPPLY', '#16c1b0', '#103040'],
   ['KP', '#fff', '#111', 'oval'], ['PC', '#fff', '#111', 'oval'], ['26.2', '#fff', '#111', 'oval'], ['TK', '#fff', '#111', 'oval'],
   ['GATORS HAVE RIGHT OF WAY', '#2f6d3a', '#fff'], ['EVERGLADES AIRBOAT TOURS', '#d8cdb0', '#3a2a12'], ['RADIO CALLE 8  1040 AM', '#b3121b', '#ffe9a0'], ['PELICAN PARKING ONLY', '#1d3f8f', '#fff'],
   ['HURRICANE SURVIVOR', '#444', '#f2f2f2'], ["HOW'S MY DRIVING? 555-0142", '#fff', '#1a1a1a'], ['MANGROVE MILE 5K', '#7c2fbf', '#fff'], ['DOMINO KINGS LITTLE HAVANA', '#101214', '#e7dcc4'],

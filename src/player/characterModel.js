@@ -1,4 +1,4 @@
-// Port Solana — character models + animation system (CHARACTER agent)
+// Southline — character models + animation system (CHARACTER agent)
 // Realistic rigged humans (Ready Player Me sample avatar + Mixamo "Michelle") driven by
 // Mixamo clips (Soldier / X Bot) retargeted at load time with a world-space-delta retargeter,
 // plus procedurally authored clips (jump, fall, punch L/R, driving sit, two death falls).

@@ -1,4 +1,4 @@
-// Port Solana multiplayer wire protocol (MULTIPLAYER track). Shared by the Node server (server/*) and the
+// Southline multiplayer wire protocol (MULTIPLAYER track). Shared by the Node server (server/*) and the
 // browser client (src/net/*): plain JS, no DOM, no three.js.
 //
 // Transport: one WebSocket per client. Hot state travels as small binary frames; everything else

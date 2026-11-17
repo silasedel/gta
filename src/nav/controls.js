@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: collect traffic-signal and stop-sign positions from the city tile data.
+// SOUTHLINE V2 navigation: collect traffic-signal and stop-sign positions from the city tile data.
 // The road graph itself only says where roads are; signals and stop signs are mapped props in the tiles. world-osm may
 // later put them straight on the graph (node.signal / node.control), in which case this harvest finds nothing new and is harmless.
 

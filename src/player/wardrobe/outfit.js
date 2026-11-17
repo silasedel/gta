@@ -1,4 +1,4 @@
-// Port Solana V2 — wardrobe core (CHARACTER track): the piece catalog and the per-character outfit (garment meshes skinned to
+// Southline V2 — wardrobe core (CHARACTER track): the piece catalog and the per-character outfit (garment meshes skinned to
 // the character's skeleton, body cover masks so skin never pokes through, body-change morphs, wetness, plain-language description).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';

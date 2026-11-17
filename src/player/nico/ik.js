@@ -1,4 +1,4 @@
-// Port Solana V2 — arm IK for reach-and-grab and held items (CHARACTER track). Two-bone analytic IK applied after the
+// Southline V2 — arm IK for reach-and-grab and held items (CHARACTER track). Two-bone analytic IK applied after the
 // animation, blended by weight; the spine leans in for far targets; fingers open on the way and close on arrival.
 import * as THREE from 'three';
 

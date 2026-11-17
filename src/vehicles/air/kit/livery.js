@@ -1,5 +1,5 @@
 // Aircraft kit, liveries: canvas painters for lofted fuselages and lifting surfaces, invented operators, registrations, wear.
-// Every operator here is original to Port Solana. When the design system publishes brands (game.design.brands) with the
+// Every operator here is original to Southline. When the design system publishes brands (game.design.brands) with the
 // same ids, useDesignBrands() overrides names / colors so aircraft match billboards and products.
 import { THREE, rng, clamp, lerp, DEG } from './core.js';
 
@@ -14,13 +14,13 @@ export const OPERATORS = {
   // general aviation, helicopters, services
   paloma: { name: 'Paloma Seaplane Tours', short: 'PALOMA', kind: 'tours', colors: ['#1565c0', '#ffffff', '#ffb300'], scheme: 'swoop', font: 'italic 800 100px "Gill Sans", "Trebuchet MS", Arial', logo: 'dove', tagline: 'SEAPLANE TOURS' },
   bayfront: { name: 'Bayfront Heli Tours', short: 'BAYFRONT', kind: 'tours', colors: ['#00a3a3', '#ff6f61', '#ffffff'], scheme: 'swoop', font: '800 100px Futura, "Trebuchet MS", Arial', logo: 'sunwave', tagline: 'HELI TOURS' },
-  skycam: { name: 'Solana 4 News', short: 'SKYCAM 4', kind: 'news', colors: ['#c8102e', '#10131a', '#ffffff'], scheme: 'news', font: 'italic 900 100px "Arial Black", Impact, Arial', logo: 'four' },
+  skycam: { name: 'Southline 4 News', short: 'SKYCAM 4', kind: 'news', colors: ['#c8102e', '#10131a', '#ffffff'], scheme: 'news', font: 'italic 900 100px "Arial Black", Impact, Arial', logo: 'four' },
   pspd: { name: 'Southline Police', short: 'POLICE', kind: 'police', colors: ['#10213f', '#f5f5f2', '#d9a521'], scheme: 'police', font: '800 100px "Helvetica Neue", Arial', logo: 'shield', tagline: 'SOUTHLINE POLICE · AIR UNIT' },
-  marine: { name: 'Solana Marine Rescue', short: 'MARINE RESCUE', kind: 'rescue', colors: ['#f25c05', '#f7f7f4', '#12305c'], scheme: 'rescue', font: '800 100px "Helvetica Neue", Arial', logo: 'anchor', tagline: 'SOLANA COUNTY' },
-  medflight: { name: 'Solana MedFlight', short: 'MedFlight', kind: 'medevac', colors: ['#c8102e', '#ffffff', '#1b2a49'], scheme: 'blocks', font: 'italic 800 100px "Helvetica Neue", Arial', logo: 'cross', tagline: 'AIR AMBULANCE' },
+  marine: { name: 'Southline Marine Rescue', short: 'MARINE RESCUE', kind: 'rescue', colors: ['#f25c05', '#f7f7f4', '#12305c'], scheme: 'rescue', font: '800 100px "Helvetica Neue", Arial', logo: 'anchor', tagline: 'SOUTHLINE COUNTY' },
+  medflight: { name: 'Southline MedFlight', short: 'MedFlight', kind: 'medevac', colors: ['#c8102e', '#ffffff', '#1b2a49'], scheme: 'blocks', font: 'italic 800 100px "Helvetica Neue", Arial', logo: 'cross', tagline: 'AIR AMBULANCE' },
   ternkey: { name: 'Tern Key Flying Club', short: 'TERN KEY', kind: 'club', colors: ['#d94f30', '#f4efe2', '#2a3d52'], scheme: 'cheat', font: '700 100px Georgia, serif', logo: 'tern', tagline: 'FLYING CLUB' },
   citrus: { name: 'Citrus Flats Ag Air', short: 'CITRUS FLATS', kind: 'ag', colors: ['#f2b705', '#1d5c2e', '#f5f3ea'], scheme: 'ag', font: '900 100px "Arial Black", Impact, Arial', logo: 'orange', tagline: 'AG AIR' },
-  beachads: { name: 'Sky Signs of Solana', short: 'SKY SIGNS', kind: 'banner', colors: ['#e8423a', '#fff7df', '#1c4e80'], scheme: 'sunburst', font: '800 100px Futura, "Trebuchet MS", Arial', logo: 'sunwave', tagline: 'AERIAL ADS' },
+  beachads: { name: 'Sky Signs of Southline', short: 'SKY SIGNS', kind: 'banner', colors: ['#e8423a', '#fff7df', '#1c4e80'], scheme: 'sunburst', font: '800 100px Futura, "Trebuchet MS", Arial', logo: 'sunwave', tagline: 'AERIAL ADS' },
   aerocayo: { name: 'Aero Cayo Charter', short: 'AERO CAYO', kind: 'charter', colors: ['#0b3954', '#bfd7ea', '#ff5a5f'], scheme: 'tailwrap', font: '600 100px "Avenir Next", "Helvetica Neue", Arial', logo: 'meridian', tagline: 'CHARTER' },
   private1: { name: 'Private', short: '', kind: 'private', colors: ['#7a1f2b', '#d9c59a', '#f3f1ea'], scheme: 'cheat', font: '700 100px Georgia, serif', logo: null },
   private2: { name: 'Private', short: '', kind: 'private', colors: ['#1d2d44', '#c0c5ce', '#eef0f2'], scheme: 'swoop', font: '700 100px Georgia, serif', logo: null },

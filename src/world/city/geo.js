@@ -1,4 +1,4 @@
-// Port Solana city — geometry helpers (batched merges, world-UV walls, palms)
+// Southline city — geometry helpers (batched merges, world-UV walls, palms)
 import * as THREE from 'three';
 import { buildPalm } from '../vegetation/palms.js';
 

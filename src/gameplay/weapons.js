@@ -17,7 +17,7 @@ export const WEAP = {
   bat: { name: 'Ash Baseball Bat', cls: 'melee', melee: true, dmg: 55, range: 1.95, price: 60, hud: 'bat' },
   crowbar: { name: 'Breaker Wrecking Bar', cls: 'melee', melee: true, dmg: 60, range: 1.85, price: 45, hud: 'bat' },
   bottle: { name: 'Glass Bottle', cls: 'melee', melee: true, dmg: 30, range: 1.5, price: 3, hud: 'bat' },
-  pistol: { name: 'Solana Service 9 Pistol', cls: 'handgun', dmg: 30, rate: 0.2, spread: 0.007, hip: 0.028, kick: 0.02, range: 140, clip: 15, reload: 1.3, ammoPick: 45, price: 450, ammoPrice: 2, ammoPack: 30, snd: 'pistol', hud: 'pistol', pen: 0.6, loud: 45, vel: 300 },
+  pistol: { name: 'Southline Service 9 Pistol', cls: 'handgun', dmg: 30, rate: 0.2, spread: 0.007, hip: 0.028, kick: 0.02, range: 140, clip: 15, reload: 1.3, ammoPick: 45, price: 450, ammoPrice: 2, ammoPack: 30, snd: 'pistol', hud: 'pistol', pen: 0.6, loud: 45, vel: 300 },
   revolver: { name: 'Caballo .44 Revolver', cls: 'handgun', dmg: 72, rate: 0.55, spread: 0.004, hip: 0.024, kick: 0.07, range: 170, clip: 6, reload: 2.1, ammoPick: 24, price: 950, ammoPrice: 5, ammoPack: 18, snd: 'revolver', tone: 'heavy', hud: 'pistol', pen: 1.0, loud: 60, vel: 360 },
   microsmg: { name: 'Wasp Micro-SMG', cls: 'smg', auto: true, dmg: 13, rate: 0.052, spread: 0.03, hip: 0.055, kick: 0.009, range: 70, clip: 30, reload: 1.4, ammoPick: 120, price: 1100, ammoPrice: 1, ammoPack: 90, snd: 'microsmg', tone: 'light', hud: 'smg', pen: 0.5, loud: 45, vel: 300 },
   smg: { name: 'Kestrel SMG', cls: 'smg', auto: true, dmg: 18, rate: 0.075, spread: 0.02, hip: 0.045, kick: 0.011, range: 100, clip: 35, reload: 1.6, ammoPick: 140, price: 1600, ammoPrice: 1, ammoPack: 105, snd: 'smg', hud: 'smg', pen: 0.6, loud: 48, vel: 320 },

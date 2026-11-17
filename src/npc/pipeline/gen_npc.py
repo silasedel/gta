@@ -1,4 +1,4 @@
-# Port Solana V2 — NPC archetype generator (PEOPLE-LOOK track). Blender 5.2 headless + MPFB2 (CC0 MakeHuman assets).
+# Southline V2 — NPC archetype generator (PEOPLE-LOOK track). Blender 5.2 headless + MPFB2 (CC0 MakeHuman assets).
 #   BLENDER_USER_RESOURCES=<dir with MPFB2> blender -b -P gen_npc.py -- npc_specs.json <outdir> <workdir> [id,id,...]
 # Per archetype writes:
 #   <outdir>/<id>.glb   Mixamo-named rig + LOD0 (body+clothes one mesh, hair cards, eyes, brows, lashes, shoes) + LOD1/LOD2

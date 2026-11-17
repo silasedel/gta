@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: the water router for boats.
+// SOUTHLINE V2 navigation: the water router for boats.
 // A cost grid over all open water: boats keep off the shore (slow no-wake water near land, so a channel's middle is the fast
 // lane), prefer the deep dredged channels, and pass under bridges only where the deck clears the boat's height. Low fixed
 // bridges block tall boats; drawbridges open at a time cost.

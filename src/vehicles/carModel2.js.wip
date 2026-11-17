@@ -1,4 +1,4 @@
-// Procedural, original car models for Port Solana (V2 engine).
+// Procedural, original car models for Southline (V2 engine).
 // Bodies are analytic lofted surfaces (model/shell.js) with conformal lamps, grilles, gaps and trims; wheels come from
 // model/wheels.js; paint is a per-car PBR material with procedural wear (model/materials.js); every car is built from a seeded
 // "look" (catalog.js rollLook) so no two are alike.  Shell coordinates: ground y = 0, +Z forward, +X left, z = 0 mid-wheelbase.
@@ -238,11 +238,11 @@ const decalTex = {}, decalMat = {}, decalGeo = new Map();
 function addDecals(shell, t, kind) {
   decalTex[kind] ||= canvasTex(512, 128, (c) => {
     c.clearRect(0, 0, 512, 128);
-    if (kind === 'taxi') { for (let i = 0; i < 32; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 90 + j * 16, 16, 16); } c.fillStyle = '#111'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.fillText('SOLANA CAB', 256, 70); }
-    else if (kind === 'bus') { c.fillStyle = '#0e8f9a'; c.fillRect(0, 70, 512, 24); c.fillStyle = '#ff7a2b'; c.fillRect(0, 96, 512, 10); c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOLANA TRANSIT', 14, 50); }
+    if (kind === 'taxi') { for (let i = 0; i < 32; i++) for (let j = 0; j < 2; j++) { c.fillStyle = (i + j) % 2 ? '#111' : 'rgba(0,0,0,0)'; c.fillRect(i * 16, 90 + j * 16, 16, 16); } c.fillStyle = '#111'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE CAB', 256, 70); }
+    else if (kind === 'bus') { c.fillStyle = '#0e8f9a'; c.fillRect(0, 70, 512, 24); c.fillStyle = '#ff7a2b'; c.fillRect(0, 96, 512, 10); c.fillStyle = '#0b2a3a'; c.font = 'bold 34px sans-serif'; c.textAlign = 'left'; c.fillText('SOUTHLINE TRANSIT', 14, 50); }
     else if (kind === 'ambulance') { c.fillStyle = '#c8141c'; c.font = 'bold 54px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('AMBULANCE', 256, 50); c.fillRect(236, 82, 40, 40); c.fillStyle = '#fff'; c.fillRect(250, 86, 12, 32); c.fillRect(240, 96, 32, 12); }
-    else if (kind === 'fire') { c.fillStyle = '#f2d14b'; c.fillRect(0, 96, 512, 14); c.fillStyle = '#f7f2e0'; c.font = 'bold 34px serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PORT SOLANA FIRE RESCUE', 256, 52, 490); }
-    else { c.fillStyle = '#f2f4f7'; c.fillRect(0, 0, 512, 128); c.fillStyle = '#c9a227'; c.fillRect(0, 0, 512, 10); c.fillRect(0, 118, 512, 10); c.fillStyle = '#0b1a33'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PSPD', 256, 52); c.font = 'bold 20px sans-serif'; c.fillText('PORT SOLANA POLICE', 256, 100); }
+    else if (kind === 'fire') { c.fillStyle = '#f2d14b'; c.fillRect(0, 96, 512, 14); c.fillStyle = '#f7f2e0'; c.font = 'bold 34px serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('SOUTHLINE FIRE RESCUE', 256, 52, 490); }
+    else { c.fillStyle = '#f2f4f7'; c.fillRect(0, 0, 512, 128); c.fillStyle = '#c9a227'; c.fillRect(0, 0, 512, 10); c.fillRect(0, 118, 512, 10); c.fillStyle = '#0b1a33'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PSPD', 256, 52); c.font = 'bold 20px sans-serif'; c.fillText('SOUTHLINE POLICE', 256, 100); }
   });
   const mat = decalMat[kind] ||= new THREE.MeshStandardMaterial({ map: decalTex[kind], transparent: true, roughness: 0.35, metalness: 0.1, polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false });
   let len = t.wb - 2 * (t.r + 0.14), h = (t.belt - t.yb) * 0.5, y = t.yb + 0.14 + h / 2, zc = -0.05, xw = t.W / 2 + 0.012;
@@ -316,7 +316,7 @@ export function buildCar(typeKey, lookOrColor, opts = {}) {
   if (livery) { addDecals(detail, t, livery); addDecals(mid, t, livery); }
   // pre-existing dents (real vertex deformation; clones the geometry for this car only)
   for (const d of look.dents || []) for (const mesh of deformable) dentMesh(mesh, { x: d.x, y: d.y, z: d.z, cy: t.belt * 0.7 }, d.depth, d.radius);
-  // plate (rear only: Calora issues one plate)
+  // plate (rear only: Southline issues one plate)
   const plateMat = plateMaterial(look.plate || { text: 'CAL 000', style: 0 });
   const plate = new THREE.Mesh(SHARED.plate, plateMat); plate.position.set(0, A.plateR[1], A.plateRz); plate.rotation.y = Math.PI; detail.add(plate);
   // stickers, accessories, cabin, dash clutter

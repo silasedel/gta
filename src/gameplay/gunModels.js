@@ -8,7 +8,7 @@
 //   muzzle (none | suppressor | comp), grip (none | vertical | angled), laser, light; skins swap the finish.
 // userData: muzzle, eject, flash, optic, suppressed, leftGrip, sightLine, tris + non-enumerable parts / animate /
 // magClone / laser / light (non-enumerable so Object3D.clone() never tries to serialize them).
-// All designs and maker marks are original (Solana Arms, Caballo, Wasp, Kestrel, Biscayne, Coastline, Breaker, Hacksaw, Longshot).
+// All designs and maker marks are original (Southline Arms, Caballo, Wasp, Kestrel, Biscayne, Coastline, Breaker, Hacksaw, Longshot).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -309,7 +309,7 @@ const BUILD = {
     b.pin(0.0146, -0.012, 0.035, 0.0022, M.steelDark).pin(0.0146, -0.018, -0.02, 0.0018, M.steelDark).pin(-0.0146, -0.012, 0.035, 0.0022, M.steelDark);
     b.rail(0.072, 0.12, -0.026, M.polymer, 0.02);
     b.barrel(0.0068, 0.136, M.steelDark, 0.017, 0.0, M, 0.6); b.cyl(0.004, 0.004, 0.12, M.steel, 0, 0.004, 0.066, 8);          // barrel + guide rod (seen when the slide is back)
-    b.mark('SOLANA ARMS  SERVICE 9   9x19   PS-041877', 0.0142, -0.009, 0.062, 0.1, 0.007, 'rgba(160,160,160,0.6)');
+    b.mark('SOUTHLINE ARMS  SERVICE 9   9x19   PS-041877', 0.0142, -0.009, 0.062, 0.1, 0.007, 'rgba(160,160,160,0.6)');
     b.begin('trigger', [0, -0.026, 0.031], { kind: 'rot', axis: [1, 0, 0], angle: 0.32 });
     b.prof([[0.028, -0.026], [0.034, -0.026], [0.033, -0.04], [0.029, -0.046], [0.025, -0.044], [0.027, -0.036]], 0.006, M.steelDark, 0, 0.001).end();
     b.begin('mag', [0, 0, 0], { kind: 'slide', axis: MAG_AX, travel: 0.16 });
@@ -469,7 +469,7 @@ const BUILD = {
   bat(b, M) {
     const pts = []; for (const [z, r] of [[0, 0.019], [0.02, 0.021], [0.03, 0.014], [0.25, 0.015], [0.45, 0.024], [0.7, 0.034], [0.84, 0.034], [0.85, 0.026], [0.855, 0]]) pts.push(new THREE.Vector2(r, z));
     const g = new THREE.LatheGeometry(pts, b.lo ? 10 : 24); g.rotateX(Math.PI / 2); g.translate(0, 0, -0.08); b.add(g, M.wood);
-    b.cyl(0.0165, 0.0165, 0.17, M.tape, 0, 0, 0.02, 16); b.mark('ASH 34   SOLANA SLUGGER', 0.0338, 0, 0.6, 0.16, 0.014, 'rgba(30,20,12,0.85)'); b.cyl(0.0344, 0.0344, 0.004, M.red, 0, 0, 0.48, 20);
+    b.cyl(0.0165, 0.0165, 0.17, M.tape, 0, 0, 0.02, 16); b.mark('ASH 34   SOUTHLINE SLUGGER', 0.0338, 0, 0.6, 0.16, 0.014, 'rgba(30,20,12,0.85)'); b.cyl(0.0344, 0.0344, 0.004, M.red, 0, 0, 0.48, 20);
     return { muzzle: [0, 0, 0.7], eject: null, leftGrip: [0, 0, 0.1] };
   },
   knife(b, M) { // folding tactical knife, open

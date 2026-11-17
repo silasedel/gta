@@ -1,4 +1,4 @@
-// Invented marine brands for Port Solana. None of these is a real builder, engine maker or electronics brand.
+// Invented marine brands for Southline. None of these is a real builder, engine maker or electronics brand.
 // When the design system (src/design/) is ready these should move there; `game.design.brands.marine` overrides this table
 // when present (see resolveBrands()).
 export const BUILDERS = {

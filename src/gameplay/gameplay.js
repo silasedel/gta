@@ -296,7 +296,7 @@ export async function createGameplay(game) {
       P.health = 100; P.armor = 0;
       const bill = Math.min(500, P.money || 0); P.money = (P.money || 0) - bill;
       game.ui.dead = false;
-      tryCall('notify', () => game.hud?.notify?.(`Discharged from Solana General${G.city?.districtAt(hp.x, hp.z) ? ' (' + G.city.districtAt(hp.x, hp.z) + ')' : ''}. Medical bill: $${bill}`, 4500));
+      tryCall('notify', () => game.hud?.notify?.(`Discharged from Southline General${G.city?.districtAt(hp.x, hp.z) ? ' (' + G.city.districtAt(hp.x, hp.z) + ')' : ''}. Medical bill: $${bill}`, 4500));
     }
     if (G.busted && stateT > 3.5) {
       G.busted = false; freezePos = null;

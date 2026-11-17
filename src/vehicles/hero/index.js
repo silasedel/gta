@@ -1,4 +1,4 @@
-// Hero cars for Port Solana V2: original premium designs (no real brands, badges or replicas).
+// Hero cars for Southline V2: original premium designs (no real brands, badges or replicas).
 //   heroCatalog              : data for all five models (names, proportions, handling, engine, audio character, build status)
 //   buildHeroCar(THREE, key, opts) -> the builder result vehicles-core expects from registerModel() (see src/vehicles/README.md)
 //   models                   : [{ entry, builder }] for every model whose body is built; vehicles.js picks this export up automatically

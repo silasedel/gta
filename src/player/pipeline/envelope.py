@@ -1,4 +1,4 @@
-# Port Solana V2 — cloth envelopes for Nico's garments (CHARACTER track).
+# Southline V2 — cloth envelopes for Nico's garments (CHARACTER track).
 #   python3 envelope.py <workdir with nico_mesh.npz>
 # Woven cloth does not follow anatomy: it spans the spine groove, the cleft between the pecs, the armpit, the crease under
 # the seat and the gap at the crotch. This voxelizes the body (5 mm), fills it, and takes a morphological closing of the

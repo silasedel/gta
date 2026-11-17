@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: the build context ("ctx") every yacht definition and every kit part draws into.
+// Southline V2 yachts: the build context ("ctx") every yacht definition and every kit part draws into.
 // One Builder collects, in yacht-local coordinates (+z bow, +x port, y up, y = 0 at the design waterline, meters):
 //   - geometry, bucketed by (lod, zone, material key) and merged into a handful of meshes at the end
 //   - colliders (fine set for the local walk world, coarse set for the main physics world)

@@ -1,4 +1,4 @@
-// Store type catalogue for Port Solana / Miami interiors (INTERIORS agent). All brand names are made up.
+// Store type catalogue for Southline / Miami interiors (INTERIORS agent). All brand names are made up.
 // Each type: names (brand generator parts), hours [open, close], palette, layouts (template keys),
 // items [name, price, heal?, action?], demo (patron demographics), patrons (max), busy profile.
 
@@ -17,8 +17,8 @@ export const TYPES = {
     items: [['Plantain Chips', 3, 20], ['Cafecito Can', 2, 20], ['Guava Pastry', 3, 20], ['Malta', 2, 15], ['Lotto Ticket', 5]] },
   liquor: { label: 'Liquor', names: [['Pelican', 'Bay', 'Ocean', 'Calle Ocho'], ['Liquors', 'Wine & Spirits', 'Package Store', 'Cellars']], hours: [8, 24],
     wall: 0xffd6a5, trim: 0x6a040f, neon: '#ffb703', floor: ['wood', 'concrete'], layouts: ['liquor-a', 'liquor-b'], patrons: 3, busy: 'evening',
-    items: [['Reef Rum', 22], ['Malbec', 15], ['Calora Gold Tequila', 34], ['Pelican Gin', 26], ['Lobo Lager 12pk', 16, 10], ['Ice Bag', 3]] },
-  pharmacy: { label: 'Pharmacy', names: [['Calora', 'Bay', 'Coastal', 'Brickell'], ['Rx', 'Pharmacy', 'Drugs', 'Farmacia']], hours: [8, 22],
+    items: [['Reef Rum', 22], ['Malbec', 15], ['Southline Gold Tequila', 34], ['Pelican Gin', 26], ['Lobo Lager 12pk', 16, 10], ['Ice Bag', 3]] },
+  pharmacy: { label: 'Pharmacy', names: [['Southline', 'Bay', 'Coastal', 'Brickell'], ['Rx', 'Pharmacy', 'Drugs', 'Farmacia']], hours: [8, 22],
     wall: 0xeef3f6, trim: 0x2a7de1, neon: '#4fa8ff', floor: ['tile'], layouts: ['pharmacy-a', 'pharmacy-b'], patrons: 4, busy: 'retail',
     items: [['Pain Relief', 8, 30], ['Bandages', 6, 30], ['Vitamins', 12, 10], ['Cold Medicine', 9, 20], ['Aloe Gel', 9]] },
   electronics: { label: 'Electronics', names: [['Volt', 'Nexa', 'Pulse', 'Circuit'], ['line', ' Tech', ' Mobile', ' Electronics', ' Store']], hours: [10, 21],
@@ -54,7 +54,7 @@ export const TYPES = {
   laundromat: { label: 'Laundromat', names: [['Suds', 'Spin', 'Fresh', 'Clean'], ['City', 'Cycle', 'Wash', 'Laundry']], hours: [6, 23],
     wall: 0xbde0fe, trim: 0x1d3557, neon: '#4cc9f0', floor: ['tile'], layouts: ['laundry-a', 'laundry-b'], patrons: 3, busy: 'retail',
     items: [['Detergent', 3], ['Wash Cycle', 4], ['Dryer Cycle', 3]] },
-  bank: { label: 'Bank', names: [['Biscayne', 'Coastal', 'Calora', 'Harbor'], ['Bank', 'Savings', 'Trust', 'Credit Union']], hours: [9, 17],
+  bank: { label: 'Bank', names: [['Biscayne', 'Coastal', 'Southline', 'Harbor'], ['Bank', 'Savings', 'Trust', 'Credit Union']], hours: [9, 17],
     wall: 0xe5e5e5, trim: 0x14213d, neon: '#fca311', floor: ['marble'], layouts: ['bank'], patrons: 4, busy: 'business', demo: { business: 0.8 },
     items: [['ATM Withdrawal', 0]] },
   barber: { label: 'Barber', names: [['Fade', 'Sharp', 'Clean Cut', 'Royal'], ['Harbor Barbers', 'Barber Shop', 'Cuts', 'Studio']], hours: [9, 20],
@@ -118,7 +118,7 @@ const ZONE_TYPES = {
 };
 // old city lot index -> fixed type (keeps the known stores stable)
 export const OLD_LOT_TYPES = ['surf', 'convenience', 'restaurant', 'beauty', 'bodega', 'electronics', 'sport', 'guns', 'liquor', 'pharmacy', 'clothing', 'cafe', 'pawn', 'barber', 'auto', 'jewelry', 'bar', 'club', 'laundromat', 'bank', 'grocery', 'souvenir', 'icecream'];
-const OLD_NAMES = { surf: 'Saltline Surf', convenience: '24/7 Sol Mart', restaurant: 'Neon Palm Diner', beauty: 'Glow Theory', bodega: 'Bodega Brisa', electronics: 'Voltline', sport: 'Reef & Ridge Outfitters', guns: 'Coastline Arms', liquor: 'Pelican Liquors', pharmacy: 'Calora Rx', clothing: 'Tide & Thread', cafe: 'Ola Coffee Bar', pawn: 'Gold Coast Pawn', barber: 'Fade Harbor Barbers', auto: 'TorqueMax Auto Parts', jewelry: 'Marea Fine Jewelry' };
+const OLD_NAMES = { surf: 'Saltline Surf', convenience: '24/7 Sol Mart', restaurant: 'Neon Palm Diner', beauty: 'Glow Theory', bodega: 'Bodega Brisa', electronics: 'Voltline', sport: 'Reef & Ridge Outfitters', guns: 'Coastline Arms', liquor: 'Pelican Liquors', pharmacy: 'Southline Rx', clothing: 'Tide & Thread', cafe: 'Ola Coffee Bar', pawn: 'Gold Coast Pawn', barber: 'Fade Harbor Barbers', auto: 'TorqueMax Auto Parts', jewelry: 'Marea Fine Jewelry' };
 
 export function chooseType(sf, index, zone, seed) {
   const k = (sf.kind || '').toString().toLowerCase();

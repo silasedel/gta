@@ -1,4 +1,4 @@
-// Port Solana V2 — multi-point cloth for the camp shirt (CHARACTER track).
+// Southline V2 — multi-point cloth for the camp shirt (CHARACTER track).
 // About 36 verlet particles ride on the loose parts of the shirt: 16 around the hem, 6 around each sleeve opening,
 // 4 along each open lapel / placket edge and the collar tips. Each particle is anchored to the skinned rest position of its
 // garment vertex; it lags behind body motion, is pushed by the air moving past it (game.wind.sample with gusts), and is

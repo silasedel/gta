@@ -1,4 +1,4 @@
-// Port Solana club DJ: a continuous, beatmatched DJ mix of the owner's licensed club tracks.
+// Southline club DJ: a continuous, beatmatched DJ mix of the owner's licensed club tracks.
 // Tracks and their offline analysis (BPM, beat grid, downbeats, 8-bar phrases, energy, cue points, key)
 // live in the git-ignored /assets/audio/music/club_licensed/ (tools/v2/sync-club-songs.mjs). When that
 // folder is missing (fresh clone) `available` stays false and venues fall back to the CC BY radio stations.

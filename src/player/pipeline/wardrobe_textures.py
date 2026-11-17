@@ -1,4 +1,4 @@
-# Port Solana V2 — wardrobe textures (CHARACTER track): body cover masks per garment and the tropical shirt prints,
+# Southline V2 — wardrobe textures (CHARACTER track): body cover masks per garment and the tropical shirt prints,
 # painted in code (our own artwork: fan palms, monstera, banana leaves, hibiscus; half-drop repeat, 0.6 m tile).
 #   python3 wardrobe_textures.py <workdir> <outdir>
 import sys, os, math

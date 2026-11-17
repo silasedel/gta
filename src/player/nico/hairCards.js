@@ -1,4 +1,4 @@
-// Port Solana V2 — Nico's hair cards (CHARACTER track). Built at load time on the scalp of the head mesh (bind pose):
+// Southline V2 — Nico's hair cards (CHARACTER track). Built at load time on the scalp of the head mesh (bind pose):
 // tapered, curved strips rooted where the hair mask says the hair is long (top and crown), combed along the hair
 // direction with a little lift and gravity sag. A painted strand-alpha atlas gives each card 20-30 separate strands;
 // alpha-test + alpha-to-coverage, matte (low gloss), darker at the roots. The shells underneath stay as the short

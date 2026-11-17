@@ -1,11 +1,11 @@
 {
- "build": "b20261116-181340",
- "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-x4ed1p9y",
+ "build": "b20261116-193122",
+ "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-bz1t0skw",
  "checks": {
   "roads.geometry": {
    "pass": false,
-   "edges": 3382,
-   "nodes": 2245,
+   "edges": 3364,
+   "nodes": 2227,
    "degenerate": 0,
    "nan": 0,
    "duplicateVertices": 0,
@@ -83,16 +83,16 @@
    "turnOnly": 0,
    "turnVia": 0,
    "badTurn": 0,
-   "signalNodes": 0,
+   "signalNodes": 1044,
    "approaches": {
-    "signal": 0,
-    "stop": 0,
+    "signal": 3684,
+    "stop": 1109,
     "yield": 0
    },
-   "named": 3381,
-   "withRef": 416,
-   "postedSpeed": 3382,
-   "oneway": 0,
+   "named": 3363,
+   "withRef": 411,
+   "postedSpeed": 3364,
+   "oneway": 3,
    "refs": [
     "SR 912",
     "SR 950",
@@ -128,16 +128,24 @@
   },
   "storefronts.typedAndFacing": {
    "pass": true,
-   "count": 3350,
-   "typedFromOSM": 3350,
+   "count": 4616,
+   "typedFromOSM": 2461,
    "noKind": 0,
    "noStreet": 0,
    "noFacing": 0,
    "notFacingARoad": 0,
-   "kinds": 2,
+   "kinds": 10,
    "top": {
-    "office": 1874,
-    "hotel": 1476
+    "office": 1676,
+    "hotel": 785,
+    "liquor": 287,
+    "clothes": 285,
+    "hardware": 277,
+    "restaurant": 273,
+    "pharmacy": 266,
+    "fast_food": 261,
+    "salon": 257,
+    "convenience": 249
    }
   },
   "tiles.coverage": {
@@ -188,19 +196,19 @@
   "tiles.buildings": {
    "pass": true,
    "tilesMissing": 0,
-   "buildings": 11082,
+   "buildings": 13005,
    "duplicates": 0,
    "badRings": 0,
    "under4m2": 0,
    "noStyle": 0,
    "storefrontsWithoutBuilding": 0,
    "attrs": {
-    "use": 11082,
+    "use": 13005,
     "address": 0,
     "colour": 0,
     "roofShape": 0,
     "material": 0,
-    "levels": 11082,
+    "levels": 13005,
     "year": 0,
     "tier": 0,
     "tenants": 0,
@@ -210,11 +218,11 @@
   "landuse.realTypesPresent": {
    "pass": false,
    "fuel": 0,
-   "hotel": 3024,
+   "hotel": 1600,
    "school": 0,
    "worship": 0,
    "parking_garage": 0,
-   "office": 3775,
+   "office": 3372,
    "hospital": 0,
    "police": 0,
    "fire_station": 0,
@@ -258,17 +266,17 @@
   "transit"
  ],
  "boot": {
-  "ms": 117,
+  "ms": 515,
   "timings": {
-   "fetchMs": 14,
-   "decodeMs": 101,
-   "bootRegionsMs": 1,
-   "totalMs": 116
+   "fetchMs": 63,
+   "decodeMs": 446,
+   "bootRegionsMs": 4,
+   "totalMs": 513
   },
   "files": 15,
-  "MB": 3.9,
-  "heapMB": 35.5,
-  "arrayBuffersMB": 12.4
+  "MB": 4.67,
+  "heapMB": 39.8,
+  "arrayBuffersMB": 12.1
  },
  "roadComponents": [
   {
@@ -319,23 +327,32 @@
  ],
  "mainNetworkShare": 0.9758,
  "storefrontKinds": {
-  "office": 1874,
-  "hotel": 1476
+  "office": 1676,
+  "hotel": 785,
+  "liquor": 287,
+  "clothes": 285,
+  "hardware": 277,
+  "restaurant": 273,
+  "pharmacy": 266,
+  "fast_food": 261,
+  "salon": 257,
+  "convenience": 249
  },
  "regions": {
   "count": 176,
-  "loadAllMs": 17,
-  "parseMsMedian": 0.03,
-  "parseMsP95": 0.27,
-  "parseMsMax": 0.5,
-  "bytesMB": 2.89,
-  "largestKB": 127
+  "loadAllMs": 75,
+  "parseMsMedian": 0.09,
+  "parseMsP95": 1.04,
+  "parseMsMax": 4.85,
+  "bytesMB": 3.5,
+  "largestKB": 195
  },
  "buildingUses": {
-  "house": 5157,
-  "apartments": 2402,
-  "office": 1901,
-  "hotel": 1512,
+  "house": 4721,
+  "apartments": 4683,
+  "office": 1696,
+  "retail": 995,
+  "hotel": 800,
   "warehouse": 110
  },
  "landcoverClasses": {
@@ -343,28 +360,29 @@
   "scrub": 256,
   "forest": 779,
   "wetland": 664,
+  "plaza": 977,
   "runway": 50,
-  "apron": 45
+  "apron": 45,
+  "paved": 61
  },
  "tileExtras": {
   "railPieces": 0,
   "sitePolygons": 0,
   "barrierLines": 0,
-  "props": 5952,
+  "props": 5205,
   "otherPropTypes": {
-   "lamp": 5199,
-   "stop": 225
+   "lamp": 5205
   }
  },
  "queryNs": {
-  "isWaterRandom": 43,
-  "isWaterCoherent": 66,
-  "groundHeightRandom": 938,
-  "zoneAt": 61,
-  "districtAt": 24,
-  "surfaceAt": 54,
-  "terrainHeightAt": 6,
-  "nearestEdge": 1021
+  "isWaterRandom": 53,
+  "isWaterCoherent": 84,
+  "groundHeightRandom": 1702,
+  "zoneAt": 95,
+  "districtAt": 31,
+  "surfaceAt": 81,
+  "terrainHeightAt": 7,
+  "nearestEdge": 1332
  },
  "gridMemory": {
   "wkind": {
@@ -376,33 +394,33 @@
    "MB": 0.11
   },
   "zone": {
-   "runs": 56610,
+   "runs": 58004,
    "MB": 0.18
   },
   "cover": {
-   "runs": 77444,
-   "MB": 0.25
+   "runs": 102307,
+   "MB": 0.32
   },
   "surface": {
-   "runs": 649145,
-   "MB": 1.98
+   "runs": 725038,
+   "MB": 2.21
   },
   "depth": {
    "MB": 3.06
   }
  },
  "stats": {
-  "buildings": 11082,
-  "edges": 3382,
-  "nodes": 2245,
+  "buildings": 13005,
+  "edges": 3364,
+  "nodes": 2227,
   "tiles": 2126,
   "regions": 176,
-  "storefronts": 3350,
-  "storefrontsTyped": 3350,
-  "sidewalkLines": 1349,
+  "storefronts": 4616,
+  "storefrontsTyped": 2461,
+  "sidewalkLines": 2882,
   "paths": 0,
   "pois": 0,
-  "signals": 0,
+  "signals": 1044,
   "turnRestrictions": 0,
   "busStops": 0,
   "busRoutes": 0,
@@ -412,15 +430,15 @@
   "roadKm": 428.6,
   "mainComponentKm": 418.2,
   "bytes": {
-   "roadgraph.json": 747500,
-   "peds.json": 107562,
-   "spots.json": 618703,
-   "map.json": 1073361,
-   "grid.bin": 1046658,
-   "names.json": 27600,
-   "places.json": 149814,
+   "roadgraph.json": 783240,
+   "peds.json": 206329,
+   "spots.json": 1069039,
+   "map.json": 1233324,
+   "grid.bin": 1113020,
+   "names.json": 27488,
+   "places.json": 110729,
    "transit.json": 56,
-   "regions/*": 2891564
+   "regions/*": 3497023
   }
  },
  "districts": [

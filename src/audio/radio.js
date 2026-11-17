@@ -1,4 +1,4 @@
-// Port Solana radio: real songs (CC BY 4.0, see CREDITS.md) streamed per station from /assets/audio/music.
+// Southline radio: real songs (CC BY 4.0, see CREDITS.md) streamed per station from /assets/audio/music.
 // Each station is a "live broadcast": its playlist runs on a shared wall clock, so every listener
 // (car radio, club, passing car) hears the same song at the same moment, and switching away and back
 // lands where the station is now. Songs stream through <audio> elements into the Web Audio graph.

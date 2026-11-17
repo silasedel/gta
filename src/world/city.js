@@ -1,4 +1,4 @@
-// Port Solana — procedural tropical coastal city (CITY agent)
+// Southline — procedural tropical coastal city (CITY agent)
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { rng, bandFacade, finSignTexture, shopFacade, officeFacade, decoFacade, glassFacade, trunkTexture, frondTexture, adsTexture, ADS, radialTexture, helipadTexture, loadPBR } from './city/tex.js';
@@ -30,8 +30,8 @@ const SHOP_LOTS = [
 const lotBlocked = (x, z, m = 1) => SHOP_LOTS.some((l) => Math.abs(x - l.x) < l.sx / 2 + m && Math.abs(z - l.z) < l.sz / 2 + m);
 const lotRectBlocked = (x, z, w, d) => SHOP_LOTS.some((l) => Math.abs(x - l.x) < (l.sx + w) / 2 + 0.5 && Math.abs(z - l.z) < (l.sz + d) / 2 + 0.5);
 // Beach profile (shared by sand mesh + physics heightfield). Sea level y=-0.12 (environment water plane).
-const AVE_NAMES = ['Sabal Ave', 'Heron Ave', 'Tarpon Ave', 'Mangrove Ave', 'Hibiscus Ave', 'Flamingo Ave', 'Pelican Ave', 'Palmetto Ave', 'Seagrape Ave', 'Solana Dr'];
-const ST_NAMES = ['Calora Blvd', '2nd St', 'Marlin St', '4th St', 'Sunset St', 'Ocean St', '7th St', 'Lantana St', '9th St', 'Breeze Blvd'];
+const AVE_NAMES = ['Sabal Ave', 'Heron Ave', 'Tarpon Ave', 'Mangrove Ave', 'Hibiscus Ave', 'Flamingo Ave', 'Pelican Ave', 'Palmetto Ave', 'Seagrape Ave', 'Southline Dr'];
+const ST_NAMES = ['Southline Blvd', '2nd St', 'Marlin St', '4th St', 'Sunset St', 'Ocean St', '7th St', 'Lantana St', '9th St', 'Breeze Blvd'];
 const SEA_LEVEL = -0.12;
 const sandProfile = (x) => (x <= 500 ? 0 : x <= 512 ? -((x - 500) ** 2) / 576 : Math.max(-6, -0.25 - (x - 512) / 24 - Math.max(0, x - 575) * 0.03));
 const WATER_LINE = 500 + Math.sqrt(-SEA_LEVEL * 576); // ~508.3 : where sand meets sea level
@@ -1014,7 +1014,7 @@ export async function createCity(game) {
 
 
   const merge = (parts) => { const b = new Batch(); for (const [g, m, c] of parts) b.addGeometry(g, m, c ?? 0xffffff); const mesh = b.build(null); return mesh.geometry; };
-  // ---------- Solana Pier + Ferris wheel + boats ----------
+  // ---------- Southline Pier + Ferris wheel + boats ----------
   const pierWheel = new THREE.Group();
   const boats = [];
   {
@@ -1049,7 +1049,7 @@ export async function createCity(game) {
     const sc = document.createElement('canvas'); sc.width = 1024; sc.height = 128; const sx = sc.getContext('2d');
     sx.fillStyle = '#05121a'; sx.fillRect(0, 0, 1024, 128);
     sx.font = 'bold 92px "Arial Black", Impact, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
-    sx.shadowColor = '#ff3fd2'; sx.shadowBlur = 24; sx.fillStyle = '#ff7ae6'; sx.fillText('SOLANA  PIER', 512, 68);
+    sx.shadowColor = '#ff3fd2'; sx.shadowBlur = 24; sx.fillStyle = '#ff7ae6'; sx.fillText('SOUTHLINE  PIER', 512, 68);
     const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
     const signMat = new THREE.MeshBasicMaterial({ map: st, toneMapped: false });
     signMat.userData.neon = true; M.pierSign = signMat;
@@ -1724,7 +1724,7 @@ export async function createCity(game) {
       return b ? ZONE_OF[b.type] || 'commercial' : 'commercial';
     },
     districtAt(x, z) {
-      if (x > WATER_LINE) return onPier(x, z) ? 'Solana Pier' : 'Solana Bay';
+      if (x > WATER_LINE) return onPier(x, z) ? 'Southline Pier' : 'Southline Bay';
       if (x >= BEACH_X0 - 13) return 'Coral Beach';
       if (x >= 320) return 'Deco District';
       if (Math.hypot(x + 30, z) < 200) return 'Downtown';
@@ -1733,7 +1733,7 @@ export async function createCity(game) {
       return z < -250 ? 'South Gardens' : z > 250 ? 'North Shore' : 'Midtown';
     },
     streetNameAt(x, z) {
-      if (onPier(x, z)) return 'Solana Pier';
+      if (onPier(x, z)) return 'Southline Pier';
       if (onBoardwalk(x, z)) return 'Coral Boardwalk';
       const r = roadGraph.nearestEdge(x, z);
       return r && r.dist < 14 ? r.edge.name : null;

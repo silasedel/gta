@@ -1,4 +1,4 @@
-// Port Solana V2 — player character systems (CHARACTER track): game.wardrobe (clothes, saved outfits, police description),
+// Southline V2 — player character systems (CHARACTER track): game.wardrobe (clothes, saved outfits, police description),
 // game.player.body (fat / muscle body change), and the wardrobe panel used by the home, fitting rooms and the main menu.
 import { CATALOG, SLOTS, getPiece, DEFAULT_OUTFIT } from './wardrobe/outfit.js';
 export const order = 40;

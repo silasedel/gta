@@ -1,4 +1,4 @@
-// Port Solana vehicles: procedural cars + Rapier raycast-vehicle physics + lane-following traffic AI.
+// Southline vehicles: procedural cars + Rapier raycast-vehicle physics + lane-following traffic AI.
 import * as THREE from 'three';
 import { buildCar, CAR_TYPES, MODELS, CLASSES, ALL_KEYS, rollVariant, brokenGlassMat, isBuilt, wheelBuilt, prebuild, releaseCar, evictIdleModels, noteOwnGeoFreed, modelGpuStats } from './carModel2.js';
 import { rollLook, visualSignature, lookSignature, incomeFor, fleetMix, tierWeight } from './catalog.js';

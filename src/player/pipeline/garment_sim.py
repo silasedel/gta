@@ -1,4 +1,4 @@
-# Port Solana V2 — garment drape (CHARACTER track). Runs after garments.py:
+# Southline V2 — garment drape (CHARACTER track). Runs after garments.py:
 #   blender -b <work>/garments.blend -P garment_sim.py -- <workdir> <outdir> [render]
 # garments.py cuts the pattern shells (collar, placket, hems, pocket, waistband) a little off the body. Here each garment is
 # draped with Blender's cloth simulation on Nico's body in the bind pose: gravity pulls the shirt onto the shoulders,

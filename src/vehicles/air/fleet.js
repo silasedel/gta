@@ -1,6 +1,6 @@
 // AIRCRAFT FLEET: pure data, no imports (Node-importable). Owned by the aircraft track lead; models and flight code read it.
 // All coordinates are body space (see contract.js): origin = CG, +Z nose, +Y up, +X LEFT. Meters, kg, kW, m/s.
-// Every maker / model / operator name here is invented for Port Solana. None is a replica of a real aircraft type:
+// Every maker / model / operator name here is invented for Southline. None is a replica of a real aircraft type:
 // they are original designs in real categories.
 //
 // Hard points (models MUST match these exactly, physics and cameras rely on them):

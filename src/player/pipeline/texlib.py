@@ -1,4 +1,4 @@
-# Port Solana V2 — texture painting helpers for the character pipeline (CHARACTER track). Plain python3 + numpy/numba/scipy/PIL.
+# Southline V2 — texture painting helpers for the character pipeline (CHARACTER track). Plain python3 + numpy/numba/scipy/PIL.
 # Image space: pixel (x, y) with y down; glTF UVs (u, v_gltf = 1 - v_blender) map to (u * W, v_gltf * H). Textures load with flipY = false.
 import os, subprocess, math
 import numpy as np

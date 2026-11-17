@@ -1,4 +1,4 @@
-// "Job passed" moment: the custom Port Solana theme hits on its drop, with a big title card.
+// "Job passed" moment: the custom Southline theme hits on its drop, with a big title card.
 // The clip (public/assets/audio/stingers/job_passed.ogg) starts right on the song's drop, so the
 // hit and the card land together. Radio and venue music duck under it, then come back.
 //   game.passed.play({ title, sub })   trigger it by hand (also used by the events below)

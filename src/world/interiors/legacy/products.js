@@ -1,4 +1,4 @@
-// Product atlas + individually modelled, labelled products for Port Solana stores (INTERIORS agent).
+// Product atlas + individually modelled, labelled products for Southline stores (INTERIORS agent).
 // All brand names are made up. One shared canvas atlas; every product geometry has UVs remapped into its label cell,
 // so a whole shop's stock merges into a single mesh (one draw call).
 import * as THREE from 'three';
@@ -16,14 +16,14 @@ const BRANDS = {
   candy: ['CARAMEL KEY', 'CHOCO DUNE', 'TAFFY TIDE', 'NUTTY GULL', 'MINT BREEZE'],
   bread: ['SUNRISE', 'ABUELA\'S', 'CUBANO LOAF'],
   water: ['TIDEPOOL', 'SPRINGWELL', 'AGUA CLARA'],
-  mag: ['SOLANA LIFE', 'GEAR HEAD', 'SURF LINE', 'GLOSS', 'BEAT', 'TECH NOW'],
-  liquor: ['REEF RUM', 'CALORA GOLD', 'LOBO LAGER', 'SILVER HERON', 'OLD CYPRESS', 'PELICAN GIN', 'MARLIN VODKA'],
+  mag: ['SOUTHLINE LIFE', 'GEAR HEAD', 'SURF LINE', 'GLOSS', 'BEAT', 'TECH NOW'],
+  liquor: ['REEF RUM', 'SOUTHLINE GOLD', 'LOBO LAGER', 'SILVER HERON', 'OLD CYPRESS', 'PELICAN GIN', 'MARLIN VODKA'],
   pharm: ['CALMEX', 'DOLORIN', 'VITASOL', 'ALOE+', 'SNEEZEFREE', 'DERMACALM'],
   beauty: ['GLOW THEORY', 'LUMIÈRE', 'PETAL', 'VELVET', 'NOVA'],
   perfume: ['NOIR', 'SOLEIL', 'MAREA', 'ÉCLAT'],
   tech: ['VOLTLINE', 'PULSE', 'ZAPCORD', 'NEXA'],
   auto: ['TORQUEMAX', 'GRIPLINE', 'SURGE', 'ROADKING'],
-  ammo: ['SOLANA ARMS', 'TARGETLINE', 'COASTGUARD'],
+  ammo: ['SOUTHLINE ARMS', 'TARGETLINE', 'COASTGUARD'],
   shoe: ['STRIDE', 'KAIZEN', 'AERO', 'DUNEWALK'],
   pasta: ['NONNA SOL', 'BAYPASTA', 'FARFALLA', 'DURO'],
   soup: ['ABUELA', 'HARBOR', 'CALDO'],

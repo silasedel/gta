@@ -8,7 +8,7 @@ const pick = (a) => a[(Math.random() * a.length) | 0];
 export function createRadio(game, G, law) {
   const S = law.S, ev = law.ev, log = [], queue = [];
   let gap = 0, repeatT = 12, lastPhase = 'clean', lastLevel = 0, unitNo = 10 + ((Math.random() * 30) | 0), squelchOk = !/[?&]mute\b/.test(location.search);
-  const sign = () => `${law.dispatchStation?.callsign || 'Solana'} ${unitNo + ((Math.random() * 6) | 0)}`;
+  const sign = () => `${law.dispatchStation?.callsign || 'Southline'} ${unitNo + ((Math.random() * 6) | 0)}`;
   const where = (p) => { const C = G.city; const st = tryCall('st', () => C?.city?.streetNameAt?.(p.x, p.z), null), d = C?.districtAt?.(p.x, p.z); return st ? `${st}${d ? ', ' + d : ''}` : d || 'your sector'; };
   const desc = () => describe(ev.believed(), { sex: law.sense.reality().sex, empty: '' });
   const LINES = {

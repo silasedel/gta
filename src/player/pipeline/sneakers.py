@@ -1,4 +1,4 @@
-# Port Solana V2 — Nico's low-top sneakers, modeled (CHARACTER track). Called from garments.py.
+# Southline V2 — Nico's low-top sneakers, modeled (CHARACTER track). Called from garments.py.
 # Parametric per foot, fitted to the foot of the body mesh (outline and instep height measured from its vertices):
 #   sole: cupsole with a rounded bottom edge, toe spring and a heel bevel (vertex color r = 1)
 #   upper: lofted sections from heel to toe, boxy walls, a padded collar opening at the ankle, toe box

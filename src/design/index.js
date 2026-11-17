@@ -1,4 +1,4 @@
-// Port Solana design system: public API. See README.md in this folder.
+// Southline design system: public API. See README.md in this folder.
 import { brands, getBrand, brandsFor, pickBrand, CATEGORIES, categories, brandErrors } from './brands/index.js';
 import { DISTRICTS, TIERS, SIGN_TYPES, PACKAGING_STYLES } from './brands/define.js';
 import { families, getFamily, familiesFor, pickFamily, familyKinds } from './families.js';

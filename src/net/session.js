@@ -1,4 +1,4 @@
-// Port Solana multiplayer session in the game (MULTIPLAYER track). Loaded only when ?mp= is set (see mp.v2.js).
+// Southline multiplayer session in the game (MULTIPLAYER track). Loaded only when ?mp= is set (see mp.v2.js).
 // - uploads the local player (on foot or driving) at 30 Hz, reconciles server corrections
 // - draws remote players with the game's own character system (createCharacter, same as game.playerCharacter),
 //   their outfits, name tags, and the cars they drive (built with the vehicles track's buildCar)

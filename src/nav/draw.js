@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: route drawing helper for the minimap and the pause map (ui-frontend calls game.nav.draw).
+// SOUTHLINE V2 navigation: route drawing helper for the minimap and the pause map (ui-frontend calls game.nav.draw).
 // The canvas transform must already map world x -> canvas x and world z -> canvas y. Sizes are given in screen pixels and
 // converted with opts.px (world meters per screen pixel), so the line keeps its weight at every zoom.
 

@@ -1,4 +1,4 @@
-// Brand registry (DESIGN-SYSTEM track): every invented brand in Port Solana. Data lives in ./data/*.js.
+// Brand registry (DESIGN-SYSTEM track): every invented brand in Southline. Data lives in ./data/*.js.
 import { CATEGORIES, categories } from './categories.js';
 import { rng } from '../util.js';
 import core from './data/core.js';

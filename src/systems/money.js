@@ -406,7 +406,7 @@ export function createMoney(sys) {
     if (insured) bill = Math.round(bill * 0.2);
     let billed = 0, mailed = 0;
     if (bill > 0) {
-      const r = wallet.pay(bill, { to: 'Solana General Hospital', category: 'medical', memo: insured ? 'Emergency care (insured)' : 'Emergency care', accepts: ['bank', 'cash'], method: 'auto' });
+      const r = wallet.pay(bill, { to: 'Southline General Hospital', category: 'medical', memo: insured ? 'Emergency care (insured)' : 'Emergency care', accepts: ['bank', 'cash'], method: 'auto' });
       if (r.ok) billed = bill;
       else { fines.issue({ kind: 'medical', amount: bill, note: 'Emergency care' }); mailed = bill; }
     }

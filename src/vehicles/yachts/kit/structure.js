@@ -1,4 +1,4 @@
-// Port Solana V2 yachts: structural kit (decks, superstructure houses, interior rooms, doors, stairs, ladders, rails,
+// Southline V2 yachts: structural kit (decks, superstructure houses, interior rooms, doors, stairs, ladders, rails,
 // coamings, hardtops). Everything draws into a Builder ("ctx") and registers its own colliders and gameplay data,
 // so the model and the collision can never drift apart.
 import * as THREE from 'three';

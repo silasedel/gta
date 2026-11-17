@@ -1,4 +1,4 @@
-# Port Solana V2 — Nico's signature shirt print (CHARACTER track): pale sea-green coconut palms of varied sizes on faded
+# Southline V2 — Nico's signature shirt print (CHARACTER track): pale sea-green coconut palms of varied sizes on faded
 # teal, slightly distressed and washed. Our own artwork, painted in code; seamless tile (0.6 m repeat on the shirt).
 #   python3 palm_print.py <outdir> [workdir for the cover masks]
 import sys, os, math

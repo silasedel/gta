@@ -1,4 +1,4 @@
-# Port Solana V2 — Nico, the protagonist: design spec (CHARACTER track).
+# Southline V2 — Nico, the protagonist: design spec (CHARACTER track).
 # Original character: late 20s, Miami-born, mixed Cuban heritage. Lean swimmer's build, olive-tan skin,
 # dark wavy hair (longer on top, tapered sides), light stubble, hazel eyes, a small scar through the left brow.
 # Built from the MakeHuman / MPFB2 CC0 base mesh and modelling targets; every weight below is our own choice.

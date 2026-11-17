@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: the on-foot router.
+// SOUTHLINE V2 navigation: the on-foot router.
 // Its own graph: mapped sidewalks, crosswalks, footpaths, park paths, promenades, boardwalks, piers, steps, the derived
 // sidewalk lines of every street, the roadside of small streets that have no sidewalk, crossings at every intersection
 // (signalized ones cost a wait, big roads without a signal cost more, freeways cannot be crossed), and an open lattice over

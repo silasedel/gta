@@ -1,4 +1,4 @@
-// Port Solana V2 — Nico facial animation (CHARACTER track): blinking, eye tracking with saccades, expressions and lip movement.
+// Southline V2 — Nico facial animation (CHARACTER track): blinking, eye tracking with saccades, expressions and lip movement.
 // Morph targets are the 34 MakeHuman expression units (CC0) exported by the pipeline; expressions and visemes are our own mixes.
 import * as THREE from 'three';
 

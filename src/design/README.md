@@ -1,4 +1,4 @@
-# Port Solana design system (`src/design/`)
+# Southline design system (`src/design/`)
 
 The single source of truth for invented brands, logos, signage, print, products and shared PBR materials.
 **Never invent a one-off brand, product or flat material in your own module: take it from here** (or ask the

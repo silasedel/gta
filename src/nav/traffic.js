@@ -1,4 +1,4 @@
-// PORT SOLANA V2 navigation: live traffic model.
+// SOUTHLINE V2 navigation: live traffic model.
 // Gives every arc a congestion factor >= 1 (1 = free flow) from the time of day, the district it is in, its road class and
 // its direction relative to the business core (inbound in the morning, outbound in the evening), plus incidents
 // (crashes, police roadblocks, closures) and optional measured speeds reported by the traffic simulation.
