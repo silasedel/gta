@@ -24,6 +24,9 @@ import { groundClaims } from '../ground/claims.js';
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import { occupancy } from '../ground/occupancy.js';
 import { breakables } from './breakables.js';
+import { signalLayout } from './signals.js';
+import { drawBlade } from '../signs/draw.js';
+import { bladeLabel } from '../signs/plan.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
@@ -1468,7 +1471,7 @@ export function createTileBuilder(ctx) {
             for (let s = a + 6 + (side > 0 ? 0 : lampSp / 2); s < b2 - 4; s += lampSp) {
               const i = Math.max(0, fr.findIndex((f) => f.s >= s) - 1), A = fr[i], Bf = fr[Math.min(fr.length - 1, i + 1)], t = Bf.s > A.s ? (s - A.s) / (Bf.s - A.s) : 0;
               const x = A.x + (Bf.x - A.x) * t, z = A.z + (Bf.z - A.z) * t, nx = A.nx, nz = A.nz, o = side * (hw + 0.6);
-              if ((!props.realLamps || (!/beach|nightlife/.test(zR) && !(tile.lamps || []).some((l) => Math.abs(l.x - x) < 20 && Math.abs(l.z - z) < 20))) && okFoot(x + nx * o, z + nz * o)) { /* mapped lamps cover their own stretch; fill the unmapped gaps */ props.lamp.push({ x: x + nx * o, y: CURB, z: z + nz * o, ry: Math.atan2(-nx * side, -nz * side) });
+              if ((!props.realLamps || (!/beach|nightlife/.test(zR) && !(tile.lamps || []).some((l) => Math.abs(l.x - x) < 20 && Math.abs(l.z - z) < 20))) && okFoot(x + nx * o, z + nz * o) && !(SK && nearCrossing(x + nx * o, z + nz * o, 0.2))) { /* mapped lamps cover their own stretch; fill the unmapped gaps */ props.lamp.push({ x: x + nx * o, y: CURB, z: z + nz * o, ry: Math.atan2(-nx * side, -nz * side) });
                 props.pool.push({ x: x + nx * side * (hw - 1.2), y: 0.05, z: z + nz * side * (hw - 1.2), s: 1.35 }); }
               if (dense && props.palmZone(x, z) && okFoot(x + nx * side * (hw + 1.4), z + nz * side * (hw + 1.4))) props.palm.push({ x: x + nx * side * (hw + 1.4) - (Bf.x - A.x) / (Bf.s - A.s || 1) * 6, y: CURB, z: z + nz * side * (hw + 1.4) - (Bf.z - A.z) / (Bf.s - A.s || 1) * 6, ry: hash(i * 13 + s) * 6, s: 0.9 });
               if (dense && !/beach|nightlife/.test(zR) && props.palmZone(x, z) && /primary|secondary|tertiary|residential/.test(r.kind)) { // curbside tree pit halfway between lamps (shade tree / palm in a grate), unless a mapped tree stands there
@@ -1480,6 +1483,7 @@ export function createTileBuilder(ctx) {
             if (side > 0 && dense && /residential|tertiary|unclassified|living/.test(r.kind) && b2 - a > 50) { let prev = null;
               for (let s2 = a + 8; s2 < b2 - 6; s2 += 38) { const q = sampleAt(fr, s2), o = side * (hw + 0.45), x = q.x + q.nx * o, z = q.z + q.nz * o; if (!okFoot(x, z)) { prev = null; continue; }
                 const ry = Math.atan2(q.nx, q.nz), pole = { x, y: CURB, z, ry, top: CURB + 9.6 }; props.upole.push(pole);
+                if (SK) { pole.top = 9.5; if (prev && B && B.guard) wireSpan(B, prev, pole); prev = pole; continue; }
                 if (prev && B && B.guard) for (const off of [-0.95, 0, 0.95]) { const ax = prev.x + Math.sin(prev.ry + Math.PI / 2) * off, az = prev.z + Math.cos(prev.ry + Math.PI / 2) * off, bx = x + Math.sin(ry + Math.PI / 2) * off, bz = z + Math.cos(ry + Math.PI / 2) * off, L2 = Math.hypot(bx - ax, bz - az), sag = 0.35 + L2 * 0.012;
                   let pp = null; for (let k = 0; k <= 6; k++) { const tt = k / 6, P3 = new THREE.Vector3(ax + (bx - ax) * tt, pole.top - 0.05 - sag * 4 * tt * (1 - tt), az + (bz - az) * tt); if (pp) { const d = P3.clone().sub(pp), L3 = d.length(); B.guard.addGeometry(BOXG, new THREE.Matrix4().compose(pp.clone().addScaledVector(d, 0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize()), new THREE.Vector3(0.025, 0.025, L3)), 0x1c1c1c); } pp = P3; } }
                 prev = pole; } }
@@ -1488,8 +1492,8 @@ export function createTileBuilder(ctx) {
             const toRoad = (q) => Math.atan2(-q.nx * side, -q.nz * side);
             const zone = zoneAt(r.pts[0][0], r.pts[0][1]);
             const busy = /primary|secondary|tertiary/.test(r.kind) || /nightlife|beach|downtown|business|brickell|commercial|residential/.test(zone);
-            const fpush = (list, it) => { if (okFoot(it.x, it.z)) list.push(it); };
-            if (b2 - a > 25 && eh < 0.7) { const q = sampleAt(fr, a + 3 + eh * 3); fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q) + eh, k: (eh * 3) | 0 }); }
+            const fpush = (list, it) => { if (okFoot(it.x, it.z) && !(SK && nearCrossing(it.x, it.z, 0.35))) list.push(it); }; // never on a curb ramp / crosswalk landing
+            if (b2 - a > 25 && eh < 0.7) { const q = sampleAt(fr, a + (SK ? 6.5 : 3) + eh * 3); fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q) + eh, k: (eh * 3) | 0 }); }
             for (let s = a + 20 + eh * 60; s < b2 - 10; s += 110) { const q = sampleAt(fr, s); fpush(props.hydrant, { x: q.x + q.nx * side * (hw + 0.45), y: CURB, z: q.z + q.nz * side * (hw + 0.45), ry: eh * 6 }); }
             if (busy && b2 - a > 40) for (let s = a + 15 + eh * 30; s < b2 - 15; s += dense ? 32 : 85) {
               const q = sampleAt(fr, s), sh = hash(((r.edgeId ?? r.id) * 131 + s) | 0);
@@ -1499,11 +1503,15 @@ export function createTileBuilder(ctx) {
                 if (sh < 0.7) fpush(props.bike, { x: q.x + q.nx * side * (hw + 1.0), y: CURB, z: q.z + q.nz * side * (hw + 1.0), ry: toRoad(q) + Math.PI / 2 });
                 else fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q), k: ((sh * 13) | 0) % 3 }); }
               if (dense && !/beach|nightlife/.test(zone) && /primary|secondary|tertiary|residential/.test(r.kind) && hash(((s * 7) | 0) + (r.edgeId ?? 0) * 3 + side) < 0.7) { const q2 = sampleAt(fr, s + 11), x2 = q2.x + q2.nx * side * (hw + 0.55), z2 = q2.z + q2.nz * side * (hw + 0.55); if (s + 11 < b2 - 6 && (!roadDist || roadDist(x2, z2) > 0.4)) fpush(props.signPost, { x: x2, y: CURB, z: z2, ry: toRoad(q2) + Math.PI / 2 * side }); } // parking regulation signs at the kerb
+              if (SK && /primary|secondary|tertiary/.test(r.kind) && zoneKind(q.x, q.z) === 'urban' && sh > 0.3 && sh < 0.55) for (let m = 0; m < 4; m++) { const q4 = sampleAt(fr, s + 3 + m * 6.5); if (s + 3 + m * 6.5 > b2 - 6) break; fpush(props.meter, { x: q4.x + q4.nx * side * (hw + 0.45), y: CURB, z: q4.z + q4.nz * side * (hw + 0.45), ry: toRoad(q4) }); }
+              if (SK && sh > 0.93 && zoneKind(q.x, q.z) === 'urban') fpush(props.mailbox, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q), v: 'mailbox_drop' });
+              if (SK && sh > 0.6 && sh < 0.72 && zoneKind(q.x, q.z) === 'res' && /residential|tertiary|unclassified/.test(r.kind)) fpush(props.mailbox, { x: q.x + q.nx * side * (hw + SIDEWALK_W + 0.35), y: CURB, z: q.z + q.nz * side * (hw + SIDEWALK_W + 0.35), ry: toRoad(q) });
               if (sh > 0.85) fpush(props.litter, { x: q.x + q.nx * side * (hw + 1.2), y: CURB + 0.02, z: q.z + q.nz * side * (hw + 1.2), ry: sh * 40, color: [0xffffff, 0xd8261c, 0x2a6fdb, 0xe8d8b0][(sh * 40) & 3] });
             }
           }
         }
       }
+      if (lane && props && SK && !ys && L > 30) keysLane(B, props, r, fr, L, hw, rA, Math.min(rB, L), tile);
       // residential islands (Star / Palm / Hibiscus / Venetians / Belle Isle / Sunset): palm-lined verges, lanterns at the drive gates
       if (!ys && props && /residential|tertiary|unclassified|living/.test(r.kind) && L > 30 && /Star Island|Palm Island|Hibiscus|Island$|Isle|Sunset/.test(distAt(r.pts[r.pts.length >> 1][0], r.pts[r.pts.length >> 1][1])) && !/Fisher|Watson|Brickell Key/.test(distAt(r.pts[r.pts.length >> 1][0], r.pts[r.pts.length >> 1][1]))) {
         for (const side of [-1, 1]) for (let s2 = Math.max(6, trimA + 3) + (side > 0 ? 0 : 7); s2 < L - Math.max(6, trimB + 3); s2 += 14) { const q = sampleAt(fr, s2), o = side * (hw + 2.2), x = q.x + q.nx * o, z = q.z + q.nz * o;
@@ -1611,6 +1619,7 @@ export function createTileBuilder(ctx) {
             props.signs.push({ x: px, y: CURB + 3.05, z: pz, dx: d1[0], dz: d1[1], name: d1[4] }, { x: px, y: CURB + 3.35, z: pz, dx: d2[0], dz: d2[1], name: d2[4] });
           }
         }
+        if (n.signal && props && J && SK) continue; // job-4 junction: full signal layout below (signals.js)
         if (n.signal && props) { // mast at the near-right corner of each approach, arm over the lanes
           const px = n.x + dx * (d0 + 4) - rx * (w / 2 + 1.2) * -1, pz = n.z + dz * (d0 + 4) - rz * (w / 2 + 1.2) * -1;
           props.mast.push({ x: px, y: CURB, z: pz, ry: Math.atan2(-rz, rx) });
@@ -1618,6 +1627,7 @@ export function createTileBuilder(ctx) {
           for (const k of [2.8, 5.6]) props.sig.push({ x: px - rx * k, y: CURB + 5.6, z: pz - rz * k, ry: fr2 });
         }
       }
+      if (n.signal && props && J && SK) placeSignals(props, n, J, tile);
     }
   }
 
@@ -1899,7 +1909,7 @@ export function createTileBuilder(ctx) {
     if (coll) { fillPoly(coll, p.rings, y, 0xffffff, 1); wallStrip(coll, outer, y - 0.35, y, 10, 10, new THREE.Color(0xffffff)); }
     if (props && B) for (let i = 0; i < outer.length; i += 1) { const q = outer[i], n2 = outer[(i + 1) % outer.length], L = Math.hypot(n2[0] - q[0], n2[1] - q[1]); for (let s2 = 0; s2 < L; s2 += 6) props.pier.push({ x: q[0] + (n2[0] - q[0]) * (s2 / L), y: (y - 0.35 - 4) / 2, z: q[1] + (n2[1] - q[1]) * (s2 / L), ry: 0, sx: 0.3, sy: y - 0.35 + 4 }); }
   }
-  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], wire: [], grate: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
+  function newProps() { return { tree: [], lamp: [], pool: [], palm: [], ac: [], beacon: [], mast: [], sig: [], pier: [], bench: [], bin: [], hydrant: [], shelter: [], litter: [], signPost: [], signs: [], graffiti: [], container: [], stack: [], boat: [], blob: [], flower: [], bike: [], kiosk: [], dune: [], oats: [], upole: [], hut: [], cafe: [], umbrella: [], bulb: [], wire: [], grate: [], sigPole: [], sigArm: [], sigHead: [], pedHead: [], pedPost: [], cabinet: [], blade: [], meter: [], mailbox: [], palmZone: (x, z) => PALM_ZONES.has(zoneAt(x, z)) }; }
   function sampleAt(fr, s, ys = null) {
     let i = 0; while (i < fr.length - 2 && fr[i + 1].s < s) i++;
     const A = fr[i], Bf = fr[i + 1] || A, L = Bf.s - A.s || 1, t = Math.max(0, Math.min(1, (s - A.s) / L));
@@ -2011,8 +2021,8 @@ export function createTileBuilder(ctx) {
   // furniture. A prop that touches an earlier one (or stands a pole inside a palm crown) slides along the curb to the nearest free spot
   // that is still off the carriageway, outside buildings and on land; if there is none it is dropped. Neighbor tiles, world-dressing and
   // set pieces register in the same index, so props never clip across tile seams or into a set piece either.
-  const OCC = { mast: [0.18, 6.5], upole: [0.15, 10], lamp: [0.15, 7.6], shelter: [1.0, 2.8], kiosk: [0.8, 3], hut: [1.6, 4.8], signPost: [0.06, 3.6], hydrant: [0.17, 0.8], tree: [0.32, 8], palm: [0.3, 9], bench: [0.45, 1], bin: [0.32, 1.1], bike: [0.4, 1], cafe: [0.55, 1], flower: [0.6, 1.3], blob: [0.6, 1.4] }; // umbrellas stand in their cafe table on purpose
-  const OCC_POLE = new Set(['mast', 'upole', 'lamp']), OCC_FIXED = new Set(['mast', 'upole']), OCC_SOFT = new Set(['flower', 'blob']), OCC_CROWN = { palm: 2.6, tree: 3.2 };
+  const OCC = { sigPole: [0.2, 6.7], pedPost: [0.1, 3.4], cabinet: [0.45, 1.6], meter: [0.1, 1.45], mailbox: [0.25, 1.25], mast: [0.18, 6.5], upole: [0.15, 10], lamp: [0.15, 7.6], shelter: [1.0, 2.8], kiosk: [0.8, 3], hut: [1.6, 4.8], signPost: [0.06, 3.6], hydrant: [0.17, 0.8], tree: [0.32, 8], palm: [0.3, 9], bench: [0.45, 1], bin: [0.32, 1.1], bike: [0.4, 1], cafe: [0.55, 1], flower: [0.6, 1.3], blob: [0.6, 1.4] }; // umbrellas stand in their cafe table on purpose
+  const OCC_POLE = new Set(['mast', 'upole', 'lamp', 'sigPole', 'pedPost', 'meter']), OCC_FIXED = new Set(['mast', 'upole', 'sigPole', 'pedPost', 'cabinet']), OCC_SOFT = new Set(['flower', 'blob']), OCC_CROWN = { palm: 2.6, tree: 3.2 };
   const OCC_SHIFT = { palm: 3, tree: 3, lamp: 2, flower: 1.5, blob: 1.5 };
   const OCC_SPACE = { lamp: { kinds: new Set(['lamp', 'upole', 'mast']), d: 2.5 }, signPost: { kinds: new Set(['signPost']), d: 0.9 }, hydrant: { kinds: new Set(['hydrant']), d: 3 } };
   // ground snapping on the surface that is really drawn: the curb-height slab triangles of this tile's sidewalk batches
@@ -2081,7 +2091,7 @@ export function createTileBuilder(ctx) {
     const props = newProps(); seedRealProps(props, tile); const dummy = { guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch() };
     const it = buildRoads(dummy, tile, props, null);
     for (let r = it.next(); !r.done; r = it.next()) { dummy.guard = new Batch(); dummy.asphalt = new Batch(); dummy.marks = new Batch(); dummy.sidewalk = new Batch(); dummy.trim = new Batch(); yield; }
-    cleanProps(tile, props); if (tile.relief && D) liftProps(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
+    cleanProps(tile, props); if (SK) shelterClear(props); if (tile.relief && D) liftProps(props); syncKids(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
   }
   // procedural fallbacks + bus shelter / bin variants
   const shelterG = mergeParts([[BOXG, m4(0, 2.55, 0, 0, 4.2, 0.12, 1.9), 0xf4f4f4], [BOXG, m4(0, 1.3, -0.75, 0, 4.0, 2.2, 0.05), 0x9fc6d4], [BOXG, m4(-2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(2.0, 1.3, 0, 0, 0.08, 2.5, 1.7), 0x606a70], [BOXG, m4(0, 0.48, -0.45, 0, 3.0, 0.08, 0.4), 0xb07a4a], [BOXG, m4(0, 2.66, 0.9, 0, 4.2, 0.18, 0.08), 0x2ec4b6]]);
@@ -2097,6 +2107,178 @@ export function createTileBuilder(ctx) {
   const hydrantG = mergeParts([[new THREE.CylinderGeometry(0.14, 0.17, 0.6, 10), m4(0, 0.3, 0), 0xd8261c], [new THREE.SphereGeometry(0.15, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), m4(0, 0.6, 0), 0xd8261c]]);
   const litterG = new THREE.BoxGeometry(0.16, 0.01, 0.22), litterMat = new THREE.MeshStandardMaterial({ roughness: 0.8 });
   if (M.propify) { try { M.propify(sigMat, 'paint'); M.propify(containerMat, 'rustPaint'); M.propify(blobMat, 'plaster'); M.propify(hutMat, 'paint'); M.propify(umbMat, 'plastic'); M.propify(boatMat, 'plastic'); M.propify(acMat, 'galv'); M.propify(pierMat, 'concrete'); M.propify(vcMat, 'paint'); M.propify(upoleMat, 'creosote'); M.propify(litterMat, 'plastic'); } catch (e) { console.warn('[miami] prop PBR', e); } }
+  // ---- street furniture kit (stage 1 jobs 4-5, src/world/miami/streetkit.js): the user's library models instead of code boxes.
+  // Every part is one global instance pool (inst), so a furniture type costs one draw call per material for the whole city.
+  const SK = ctx.street || null;
+  const sigStats = { nodes: 0, poles: 0, heads: 0, peds: 0, skipped: 0 };
+  const pipXZ = (P, x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const xi = P[i][0], zi = P[i][1], xj = P[j][0], zj = P[j][1]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; };
+  function placeSignals(props, n, J, tile) { // full US signal layout for one job-4 junction (signals.js)
+    const G = D && D.roadGraph; if (!G) return;
+    const landing = (x, z) => { const dx = x - n.x, dz = z - n.z; for (const L of J.legs) { if (L.cw) { const s = dx * L.dx + dz * L.dz, lat = Math.abs(-dx * L.dz + dz * L.dx); if (s > L.cw[0] - 0.55 && s < L.cw[1] + 0.55 && lat > L.hw - 0.5 && lat < L.hw + 2.2) return true; } for (const rp of L.ramps || []) if (pipXZ(rp.cut, x, z)) return true; } return false; };
+    const trunk = (x, z) => (props.palm || []).some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < 1.2) || (props.tree || []).some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < 1.3);
+    const ok = (x, z) => !(isWater && isWater(x, z)) && !insideBuilding(tile, x, z) && (!roadDist || roadDist(x, z) > 0.4) && !pipXZ(J.poly, x, z) && !landing(x, z) && !trunk(x, z) && !(houseLots.reserved.length && houseLots.reservedAt(x, z, 0.4));
+    const L = safeCall(() => signalLayout(G, n, J, { ok, y: (x, z) => gY0(x, z) }), null); if (!L) return;
+    const kid = (it) => { it._ky = it.y - it.pole.y; return it; };
+    for (const p of L.poles) props.sigPole.push(p);
+    for (const p of L.pedPosts) props.pedPost.push(p);
+    for (const a of L.arms) props.sigArm.push(kid(a));
+    for (const h of L.heads) props.sigHead.push(kid(h));
+    for (const h of L.peds) props.pedHead.push(kid(h));
+    for (const b of L.blades) props.blade.push(kid(b));
+    for (const c of L.cabinets) props.cabinet.push(c);
+    sigStats.nodes++; sigStats.poles += L.poles.length; sigStats.heads += L.heads.length; sigStats.peds += L.peds.length; sigStats.skipped += L.skipped;
+  }
+  // furniture landing zones at job-4 junctions: the crosswalk band across the sidewalk and the curb ramps (+ margin r)
+  function nearCrossing(x, z, r = 0.3) {
+    const c = JGRID.get(Math.floor(x / 32) * 100003 + Math.floor(z / 32)); if (!c) return false;
+    for (const J of c) { const dx = x - J.node.x, dz = z - J.node.z; if (dx * dx + dz * dz > 3600) continue;
+      for (const L of J.legs) { if (L.cw) { const s = dx * L.dx + dz * L.dz, lat = Math.abs(-dx * L.dz + dz * L.dx); if (s > L.cw[0] - 0.9 - r && s < L.cw[1] + 0.9 + r && lat > L.hw - 0.5 && lat < L.hw + 3.4) return true; }
+        for (const rp of L.ramps || []) if (pipXZ(rp.cut, x, z)) return true; } }
+    return false;
+  }
+  // items at curb height that are not on a drawn sidewalk slab (Keys / rural roads without sidewalks, slab-less tiles):
+  // furniture slides toward the curb onto a slab when one is right there, else it stands on the ground; poles are set 8 cm
+  // into the ground (never a floating base). Items next to a slab edge or a tile seam are left to the clipping sweep (snapY).
+  function floorFix(tile, props) {
+    const slab = props._slab, near = roadIndex(tile), S0 = tile.size || provider.tileSize || 200, x0 = tile.x0 ?? tile.tx * S0, z0 = tile.z0 ?? tile.tz * S0;
+    const POLE = /lamp|upole|signPost|sigPole|pedPost|mast/;
+    for (const k of ['mast', 'lamp', 'bench', 'bin', 'hydrant', 'signPost', 'meter', 'mailbox', 'upole', 'shelter', 'sigPole', 'pedPost', 'cabinet']) for (const p of props[k] || []) {
+      const y = p.y || 0; if (p.elev || y > 0.3 || y < 0.1) continue;
+      if (slab) { if (slab(p.x, p.z) !== null) continue;
+        let moved = false; // furniture first slides toward the curb onto the slab (sidewalks drawn narrower than the nominal 3 m)
+        if (!POLE.test(k) && k !== 'cabinet') { const q = near(p.x, p.z), r = k === 'bench' ? 0.5 : 0.3; if (q.gap < 1e8) for (const d of [0.3, 0.6, 0.9, 1.2, 1.5]) { const x2 = p.x - q.nx * d, z2 = p.z - q.nz * d; if (near(x2, z2).gap > r + 0.3 && slab(x2, z2) !== null && slab(x2 + q.nx * r, z2 + q.nz * r) !== null) { p.x = x2; p.z = z2; p.y = slab(x2, z2); moved = true; break; } } }
+        if (moved) { placeStats.floorFixed = (placeStats.floorFixed || 0) + 1; continue; }
+        if (p.x - x0 < 3 || x0 + S0 - p.x < 3 || p.z - z0 < 3 || z0 + S0 - p.z < 3) continue;
+        let edge = false; for (const [dx, dz] of [[2.5, 0], [-2.5, 0], [0, 2.5], [0, -2.5]]) if (slab(p.x + dx, p.z + dz) !== null) { edge = true; break; }
+        if (edge) continue; }
+      const g = gY0(p.x, p.z); p.y = (g < 0.1 ? g : 0.04) - (POLE.test(k) ? 0.08 : 0);
+      placeStats.floorFixed = (placeStats.floorFixed || 0) + 1;
+    }
+  }
+  // no palm or street tree inside a bus shelter or in its boarding area (the shelter is a single occupancy circle)
+  const SHELTER_L = { shelter_glass: 5.3, shelter_long: 7.5, shelter_black: 4.3, shelter_old: 3.3 };
+  function shelterClear(props) {
+    if (!props.shelter.length) return;
+    const boxes = props.shelter.map((p) => ({ p, hl: (SHELTER_L[VARIANT.shelter(p)] || 4.5) / 2 + 0.6, s: Math.sin(p.ry || 0), c: Math.cos(p.ry || 0) }));
+    const inside = (t) => boxes.some(({ p, hl, s, c }) => { const dx = t.x - p.x, dz = t.z - p.z, a = dx * c - dz * s, f = dx * s + dz * c; return Math.abs(a) < hl && f > -1.5 && f < 2.6; });
+    for (const k of ['palm', 'tree', 'bench', 'bin', 'bike', 'signPost', 'hydrant', 'meter']) { const L = props[k]; if (!L || !L.length) continue; const keep = L.filter((t) => t.cs || !inside(t)); if (keep.length !== L.length) { placeStats.shelterCleared = (placeStats.shelterCleared || 0) + L.length - keep.length; L.length = 0; L.push(...keep); } }
+  }
+  function syncKids(props) { for (const k of ['sigArm', 'sigHead', 'pedHead', 'blade']) for (const it of props[k] || []) if (it.pole && it._ky !== undefined) it.y = it.pole.y + it._ky; }
+  const sigColor = (it) => { if (!it.color) it.color = new THREE.Color().setRGB(it.sig[0], it.sig[1], it.sig[2], THREE.LinearSRGBColorSpace); return it; };
+  const kitParts = (group, name, items, opts = {}) => { const P = SK.parts[name]; if (!P || !items.length) return; for (const q of P) inst(group, q.geometry, q.material, items, opts); };
+  const zoneKind = (x, z) => { const zn = String(zoneAt(x, z) || ''); return /downtown|business|brickell|midtown/.test(zn) ? 'urban' : /beach|nightlife|park/.test(zn) ? 'beach' : /commercial|arts|edgewater|overtown/.test(zn) ? 'commercial' : /industrial|port/.test(zn) ? 'industrial' : 'res'; };
+  const h2 = (it, k = 0) => hash(((it.x * 7.3) | 0) * 131 + ((it.z * 5.1) | 0) + k * 977);
+  // per-kind variant pickers (by zone, deterministic per spot)
+  const VARIANT = {
+    hydrant: (it) => (h2(it) < 0.55 ? 'hydrant_a' : 'hydrant_b'),
+    bin: (it) => { const zk = zoneKind(it.x, it.z); if (it.k === 3) return 'bin_wheel'; if (it.k === 4) return 'bin_set'; return zk === 'urban' || zk === 'commercial' ? 'bin_metal' : zk === 'beach' ? 'bin_wood' : zk === 'industrial' ? 'bin_wheel' : (h2(it, 1) < 0.5 ? 'bin_wood' : 'bin_metal'); },
+    shelter: (it) => { const zk = zoneKind(it.x, it.z); return zk === 'urban' ? (h2(it, 2) < 0.65 ? 'shelter_glass' : 'shelter_long') : zk === 'beach' || zk === 'commercial' ? 'shelter_black' : 'shelter_old'; },
+    bench: (it) => { const zk = zoneKind(it.x, it.z); return zk === 'urban' || zk === 'commercial' ? 'bench_iron' : 'bench_wood'; },
+    mailbox: (it) => it.v || (zoneKind(it.x, it.z) === 'urban' ? 'mailbox_drop' : h2(it, 3) < 0.5 ? 'mailbox_twin' : 'mailbox_post'),
+  };
+  function kitVar(group, kind, items, tagVis) {
+    if (!items.length) return; const by = {};
+    for (const it of items) { const v = VARIANT[kind](it); (by[v] ||= []).push(it); }
+    for (const v in by) { const fn = (list) => kitParts(group, v, list, { cast: kind === 'shelter' || kind === 'bench' }); if (tagVis) tagVis(by[v], fn); else fn(by[v]); }
+  }
+  // curb regulation signs: library U-channel post + NO PARKING / NO STANDING plate (one plate type per tile, alternating)
+  function kitSigns(group, items, tagVis) {
+    const S = SK.signs; if (!items.length || !S.post) return;
+    const plate = (hash(((items[0].x / 200) | 0) * 31 + ((items[0].z / 200) | 0)) < 0.6 ? S.noparking : S.nostanding) || S.noparking;
+    tagVis(items, (list) => {
+      inst(group, S.post.geometry, S.post.material, list.map((p) => ({ x: p.x, y: p.y || 0, z: p.z, ry: p.ry || 0, sx: 2.4, sy: 2.75, sz: 2.4 })), { cast: true });
+      if (plate) inst(group, plate.geometry, plate.material, list.map((p) => ({ x: p.x + Math.sin(p.ry || 0) * 0.04, y: (p.y || 0) + 2.25, z: p.z + Math.cos(p.ry || 0) * 0.04, ry: p.ry || 0 })), { cast: true });
+    });
+  }
+  function furnish(group, props) { // benches, parking meters, mailboxes
+    kitVar(group, 'bench', props.bench, null);
+    kitParts(group, 'meter', props.meter, { cast: true });
+    kitVar(group, 'mailbox', props.mailbox, null);
+  }
+  // luminaire position (pole-local reach r along +Z, height y) per lamp model, from the glowing lens part's bounds
+  const lampHeadCache = {};
+  function lampHeadOf(name) {
+    if (lampHeadCache[name]) return lampHeadCache[name];
+    let r = { r: 2.4, y: 8.3 };
+    for (const q of SK.parts[name] || []) if (q.material.userData.lampLens) { q.geometry.computeBoundingBox(); const b = q.geometry.boundingBox; r = { r: (b.min.z + b.max.z) / 2, y: b.min.y }; break; }
+    return (lampHeadCache[name] = r);
+  }
+  const lampModel = (l) => l.t || (l.s && l.s < 0.9 ? 'lantern_post' : 'lamp_single');
+  const lampHeadAt = (l) => { const m = lampModel(l), h = lampHeadOf(m); return m === 'lamp_single' || m === 'lamp_twin' ? { r: h.r / (l.s && l.s > 1.2 ? 1 : 1), y: h.y } : h; };
+  function kitLamps(group, lamps) {
+    const by = {};
+    for (const l of lamps) { const m = lampModel(l), it = m === 'lamp_single' && (l.s || 1) > 1.2 ? { ...l, s: 1.1 } : l; (by[m] ||= []).push(it); if (it !== l) l.s = 1.1; }
+    for (const m in by) kitParts(group, m, by[m], { cast: true });
+  }
+  // wooden utility poles: davit lamp bolted on every pole that carries one (Keys lanes, suburbs)
+  const UP_LAMP_Y = 1.7;
+  function kitUpoleLamps(group, poles) { const L = poles.filter((p) => p.lamp).map((p) => ({ x: p.x, y: (p.y || 0) + UP_LAMP_Y, z: p.z, ry: p.lampRy })); kitParts(group, 'lamp_arm', L, { cast: true }); }
+  function upoleLampsOf(poles) { const h = lampHeadOf('lamp_arm'); return poles.filter((p) => p.lamp).map((p) => ({ x: p.x + Math.sin(p.lampRy) * h.r, y: (p.y || 0) + UP_LAMP_Y + h.y, z: p.z + Math.cos(p.lampRy) * h.r, gy: p.y || 0 })); }
+  // signals: poles, truss arms, heads + lit lenses, pedestrian heads, controller cabinets, street-name blades on the arms
+  function kitSignals(group, props) {
+    const S = SK.signal; if (!S.pole) return;
+    inst(group, S.pole.geometry, S.pole.material, props.sigPole.concat(props.pedPost), { cast: true });
+    if (S.arm) inst(group, S.arm.geometry, S.arm.material, props.sigArm, { cast: true });
+    const heads = props.sigHead.map(sigColor), peds = props.pedHead.map(sigColor);
+    if (S.head) inst(group, S.head.geometry, S.head.material, heads, { cast: true });
+    for (const k of ['lensR', 'lensA', 'lensG']) if (S[k]) inst(group, S[k].geometry, S[k].material, heads, { colors: true });
+    if (S.ped) inst(group, S.ped.geometry, S.ped.material, peds, { cast: true });
+    for (const k of ['pedWalk', 'pedDont']) if (S[k]) inst(group, S[k].geometry, S[k].material, peds, { colors: true });
+    kitParts(group, 'cabinet', props.cabinet, { cast: true });
+    if (props.blade.length) bladeMesh(group, props.blade);
+  }
+  // street-name blades on the mast arms: per-tile atlas (Miami-Dade style labels, src/world/signs), one quad per side so the
+  // text reads correctly from both directions
+  function bladeMesh(group, blades) {
+    const labels = new Map(); for (const b of blades) if (!labels.has(b.name)) labels.set(b.name, labels.size);
+    const cols = 2, rows = Math.ceil(labels.size / cols), CW = 512, CH = 96, cv = document.createElement('canvas'); cv.width = cols * CW; cv.height = Math.max(1, rows) * CH;
+    const x = cv.getContext('2d'); for (const [nm, i] of labels) { try { drawBlade(x, { name: nm, label: bladeLabel(nm), block: null }, (i % cols) * CW, (i / cols | 0) * CH, CW, CH); } catch (e) { x.fillStyle = '#0f6b3a'; x.fillRect((i % cols) * CW, (i / cols | 0) * CH, CW, CH); } }
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    const P = [], N = [], U = [];
+    for (const b of blades) {
+      const i = labels.get(b.name), u0 = (i % cols) / cols, u1 = u0 + 1 / cols, v1 = 1 - (i / cols | 0) / rows, v0 = v1 - 1 / rows, hl = b.len / 2, h = b.len * CH / CW / 2;
+      const fx = b.dz, fz = -b.dx; // signal face direction (toward approaching drivers)
+      for (const f of [1, -1]) { // f = 1: the face seen by approaching drivers (text runs along -arm), f = -1: the back
+        const nx = fx * f, nz = fz * f, o = 0.03, ax = b.x - b.dx * hl * -f + nx * o, az = b.z - b.dz * hl * -f + nz * o, bx = b.x + b.dx * hl * -f + nx * o, bz = b.z + b.dz * hl * -f + nz * o;
+        const q = [[ax, b.y - h, az, u0, v0], [bx, b.y - h, bz, u1, v0], [bx, b.y + h, bz, u1, v1], [ax, b.y - h, az, u0, v0], [bx, b.y + h, bz, u1, v1], [ax, b.y + h, az, u0, v1]];
+        for (const t of q) { P.push(t[0], t[1], t[2]); N.push(nx, 0, nz); U.push(t[3], t[4]); }
+      }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.computeBoundingSphere();
+    const m = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.1, name: 'arm-blades' });
+    const mesh = new THREE.Mesh(g, m); mesh.name = 'signal-blades'; mesh.castShadow = false; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); mesh.userData.ownedMaterial = m; m.userData.ownedTexture = tex; group.add(mesh);
+  }
+  // Keys / rural lanes (no curbs, no sidewalks): wooden utility poles with overhead lines and a davit lamp on every second pole,
+  // trash + recycling carts at the road edge, rural mailboxes (STOP signs come from the road graph: src/world/signs/regulatory.v2.js)
+  function keysLane(B, props, r, fr, L, hw, a, b, tile) {
+    const eid = r.edgeId ?? r.id ?? 0, side = hash(eid * 13 + 1) < 0.5 ? 1 : -1, off = hw + 1.7;
+    const ok = (x, z, rad = 0.3) => !(isWater && isWater(x, z)) && !insideBuilding(tile, x, z) && (!roadDist || roadDist(x, z) > rad + 0.5) && !inJunction(x, z) && !(houseLots.reserved.length && houseLots.reservedAt(x, z, 0.5));
+    let prev = null, k = 0;
+    for (let s = a + 6 + hash(eid * 3) * 10; s < b - 5; s += 40 + hash(eid + s) * 6) {
+      const q = sampleAt(fr, s), nl = Math.hypot(q.nx, q.nz) || 1, nx = q.nx / nl, nz = q.nz / nl, x = q.x + nx * side * off, z = q.z + nz * side * off;
+      if (!ok(x, z)) { prev = null; continue; }
+      const pole = { x, y: gY0(x, z), z, ry: Math.atan2(nx * side, nz * side), top: 9.5, lamp: (k++ & 1) === 0, lampRy: Math.atan2(-nx * side, -nz * side) };
+      props.upole.push(pole); if (prev && B && B.guard) wireSpan(B, prev, pole); prev = pole;
+    }
+    // carts and mailboxes in front of the cottages (the side away from the poles), one stop every ~35-70 m
+    for (let s = a + 10 + hash(eid * 5) * 20; s < b - 8; s += 35 + hash(eid * 7 + s) * 35) {
+      const q = sampleAt(fr, s), nl = Math.hypot(q.nx, q.nz) || 1, nx = q.nx / nl, nz = q.nz / nl, sd = -side, o = hw + 1.1, x = q.x + nx * sd * o, z = q.z + nz * sd * o, hh = hash(eid * 17 + s * 3);
+      if (!ok(x, z, 0.5)) continue;
+      const ry = Math.atan2(-nx * sd, -nz * sd); // fronts toward the lane
+      if (hh < 0.55) { props.bin.push({ x, y: gY0(x, z), z, ry: ry + (hh - 0.3) * 0.4, k: 3 }); const x2 = x + q.dx * 0.75, z2 = z + q.dz * 0.75; if (hh < 0.35 && ok(x2, z2, 0.5)) props.bin.push({ x: x2, y: gY0(x2, z2), z: z2, ry: ry - 0.15, k: 3 }); }
+      const xm = x - q.dx * 2.2 + nx * sd * 0.55, zm = z - q.dz * 2.2 + nz * sd * 0.55;
+      if (hh > 0.25 && ok(xm, zm, 0.3)) props.mailbox.push({ x: xm, y: gY0(xm, zm), z: zm, ry, v: hh > 0.7 ? 'mailbox_twin' : 'mailbox_post' });
+    }
+  }
+  // overhead lines between two utility poles: three conductors from the cross-arm insulators (library pole: arm along local X)
+  const WIRE_X = [-0.25, 0.53, 1.3], WIRE_Z = -0.05;
+  function wireSpan(B, p, q) {
+    for (const ox of WIRE_X) {
+      const at = (P) => [P.x + Math.cos(P.ry) * ox + Math.sin(P.ry) * WIRE_Z, (P.y || 0) + (P.top || 9.5), P.z - Math.sin(P.ry) * ox + Math.cos(P.ry) * WIRE_Z];
+      const A = at(p), Bp = at(q), L2 = Math.hypot(Bp[0] - A[0], Bp[2] - A[2]), sag = 0.3 + L2 * 0.012;
+      let pp = null; for (let k = 0; k <= 8; k++) { const tt = k / 8, P3 = new THREE.Vector3(A[0] + (Bp[0] - A[0]) * tt, A[1] + (Bp[1] - A[1]) * tt - sag * 4 * tt * (1 - tt), A[2] + (Bp[2] - A[2]) * tt); if (pp) { const d = P3.clone().sub(pp), L3 = d.length(); B.guard.addGeometry(BOXG, new THREE.Matrix4().compose(pp.clone().addScaledVector(d, 0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize()), new THREE.Vector3(0.022, 0.022, L3)), 0x1c1c1c); } pp = P3; }
+    }
+  }
   const modelOrProc = (group, key, procG, items, opts = {}) => { if (!items.length) return; const parts = models[key]; if (parts && parts.length) for (const p of parts) inst(group, p.geometry, p.material, items, { cast: false }); else inst(group, procG, vcMat, items, opts); };
 
   // ---------------- NEAR ----------------
@@ -2527,8 +2709,9 @@ export function createTileBuilder(ctx) {
     LF.k = null;
     yield;
     if (!CLIP_OFF && !LF.on) props._slab = slabFromBatches([B.sidewalk, B.promenade, B.panels]);
-    cleanProps(tile, props); props._slab = null; yield;
+    cleanProps(tile, props); if (SK && !LF.on) { floorFix(tile, props); shelterClear(props); } props._slab = null; yield;
     if (LF.on) liftProps(props);
+    syncKids(props);
     if (synth && flora) yield* floraInto(t, tile, props);
     if (props.veg) for (const key of ['sawgrass', 'rush', 'palmetto', 'crop']) if (props.veg[key]) { if (flora.VG?.[key] && M.vegLeaf) vegBushes(group, props.veg[key], flora.VG[key]); else inst(group, flora.G[key], flora.grassMat, props.veg[key], { colors: true, cast: key === 'palmetto' }); }
     for (const [name, mat, cast] of [['junction', M.junction || M.asphalt, false], ['parking', M.parking || M.asphalt, false], ['promenade', M.promenade || M.sidewalk, false], ['panels', M.panels || M.sidewalk, false], ['shopGlass', M.shopGlass, false], ['wood', M.wood, false], ['pool', M.poolWater, false], ['guard', M.guardrail, true], ['land', M.land, false], ['sand', M.sand, false], ['grass', M.grass, false], ['asphalt', M.asphalt, false], ['dirtRoad', M.dirtRoad || M.land, false], ['shoulder', M.shoulder || M.sidewalk, false], ['marks', M.markings, false], ['lines', M.lines || M.markings, false], ['decals', M.roadDecals || M.markings, false], ['sidewalk', M.sidewalk, false],
@@ -2542,12 +2725,13 @@ export function createTileBuilder(ctx) {
     if (B.fac && !B.fac.empty) { const m = B.fac.build(M.facade, { cast: true }); m.name = 'facades'; group.add(m); yield; }
     if (terrain) for (const key of ['runway', 'taxiway', 'apron']) { const m = meshOf(B[key], terrain.surfaces[key], { cast: false }); if (m) group.add(m); }
     yield;
-    modelOrProc(group, 'bench', benchG, props.bench);
+    if (SK) furnish(group, props); else modelOrProc(group, 'bench', benchG, props.bench);
     const tagVis = (items, fn) => { const H = (group.userData.handles ||= []), h0 = H.length; fn(items); const hs = H.slice(h0); items.forEach((p, k) => { p._vis = hs.map((h) => [h, k]); }); }; // X1: which pool instances draw each breakable prop
-    tagVis(props.hydrant, (it) => modelOrProc(group, 'hydrant', hydrantG, it, { cast: false }));
+    if (SK) { kitVar(group, 'hydrant', props.hydrant, tagVis); kitVar(group, 'bin', props.bin, tagVis); kitVar(group, 'shelter', props.shelter, null); kitSigns(group, props.signPost, tagVis); }
+    else { tagVis(props.hydrant, (it) => modelOrProc(group, 'hydrant', hydrantG, it, { cast: false }));
     tagVis(props.bin.filter((b) => b.k !== 1), (it) => modelOrProc(group, 'trash', binG[0], it, { cast: false }));
     tagVis(props.bin.filter((b) => b.k === 1), (it) => inst(group, binG[1], vcMat, it, { cast: false }));
-    inst(group, shelterG, vcMat, props.shelter);
+    inst(group, shelterG, vcMat, props.shelter); }
     inst(group, litterG, litterMat, props.litter, { cast: false, colors: true });
     // street-name blades: per-tile name atlas (2 columns x up to 16 rows)
     if (props.signs.length) {
@@ -2559,7 +2743,7 @@ export function createTileBuilder(ctx) {
       const sb = new Batch(), pg = new THREE.PlaneGeometry(2.0, 0.25);
       for (const s2 of props.signs) { const i = names.indexOf(s2.name); if (i < 0) continue; sb.addGeometry(pg, mat4(s2.x + s2.dx * 1.0, s2.y, s2.z + s2.dz * 1.0, Math.atan2(-s2.dz, s2.dx)), 0xffffff, [0.5, 1 / rows], [(i % 2) * 0.5, 1 - (Math.floor(i / 2) + 1) / rows]); }
       const m = meshOf(sb, sm, { cast: false }); if (m) { m.userData.ownedMaterial = sm; group.add(m); }
-      tagVis(props.signPost, (it) => inst(group, signPostG, vcMat, it));
+      if (!SK) tagVis(props.signPost, (it) => inst(group, signPostG, vcMat, it));
     }
     if (props.graffiti.length) {
       const gb = new Batch();
@@ -2592,14 +2776,15 @@ export function createTileBuilder(ctx) {
       if (wm) { wm.name = 'string-light-cables'; group.add(wm); }
     }
     if (elevated) { const er = yield* elevTileG(t, { colliders: false }); if (er && er.group) { group.add(er.group); for (const l of er.lamps || []) props.lamp.push({ ...l, elev: true }); } } // deck lamps (ELEVATED) before the lamp instances are built
-    inst(group, lampPoleG, M.metal, props.lamp, { cast: true });
-    inst(group, lampHeadG, M.lampHead, props.lamp, { cast: false });
+    if (SK) kitLamps(group, props.lamp); else { inst(group, lampPoleG, M.metal, props.lamp, { cast: true });
+    inst(group, lampHeadG, M.lampHead, props.lamp, { cast: false }); }
     { const im = inst(group, poolG, M.pool, props.pool, { cast: false }); if (im) im.renderOrder = 2; }
     inst(group, acG, acMat, props.ac);
     inst(group, beaconG, M.beacon, props.beacon, { cast: false });
     inst(group, mastG, M.metal, props.mast);
-    inst(group, upoleG, upoleMat, props.upole, { cast: true });
+    if (SK && SK.parts.upole_gear) { for (const q of SK.parts.upole_gear) inst(group, q.geometry, q.material, props.upole, { cast: true }); kitUpoleLamps(group, props.upole); } else inst(group, upoleG, upoleMat, props.upole, { cast: true });
     inst(group, sigHeadG, sigMat, props.sig);
+    if (SK) kitSignals(group, props);
     inst(group, BOXG, pierMat, props.pier.map((p) => ({ ...p, sz: 2.2 })));
     // palms: split over the shared variants
     // (greenery) species by place; trees / palms the countryside streamer draws (cs: 1) are only colliders here (no double crowns)
@@ -2614,7 +2799,7 @@ export function createTileBuilder(ctx) {
       for (const sp in by) { if (vegTrees(group, sp, by[sp])) continue; const TG = flora.T[sp] || flora.T.oak; inst(group, TG.trunk, flora.barkMat, by[sp], { cast: true }); inst(group, TG.crown, flora.leaf, by[sp], { colors: true, cast: true, depth: flora.leafDepth }); if (sp === 'citrus') inst(group, flora.T.citrusFruit, flora.fruitMat, by[sp]); } }
     t.props = props; group.userData.tile = t; if (onProps) onProps(t, props, true);
     // real lamp light: the GRAPHICS clustered-lamp system discovers per-tile lamp lists (removed when the tile group leaves the scene)
-    group.userData.psLamps = props.lamp.map((l) => { const sc = l.s || 1, ry = l.ry || 0; return { x: l.x + Math.sin(ry) * 2.25 * sc, y: (l.y || 0) + 7.0 * sc, z: l.z + Math.cos(ry) * 2.25 * sc, gy: l.y || 0 }; });
+    group.userData.psLamps = props.lamp.map((l) => { const sc = l.s || 1, ry = l.ry || 0, H = SK ? lampHeadAt(l) : { r: 2.25, y: 7.0 }; return { x: l.x + Math.sin(ry) * H.r * sc, y: (l.y || 0) + H.y * sc, z: l.z + Math.cos(ry) * H.r * sc, gy: l.y || 0 }; }).concat(SK ? upoleLampsOf(props.upole) : []);
     root.add(group);
     return group;
   }
@@ -2877,6 +3062,7 @@ export function createTileBuilder(ctx) {
     sol('bin');
     for (const p of P.bin) if (!(BRK && brk('bin', p, 0.32, 0.5, 0.3))) cyl(p.x, p.y, p.z, 0.5, 0.34);
     sol('upole'); for (const p of P.upole) cyl(p.x, p.y, p.z, 5, 0.15);
+    sol('sigPole'); for (const p of P.sigPole || []) cyl(p.x, p.y, p.z, 3.3 * (p.sy || 1), 0.17); for (const p of P.pedPost || []) cyl(p.x, p.y, p.z, 1.6, 0.08); for (const p of P.cabinet || []) box(p.x, p.y, p.z, 0.4, 0.78, 0.18, p.ry || 0); for (const p of P.meter || []) cyl(p.x, p.y, p.z, 0.72, 0.07); for (const p of P.mailbox || []) cyl(p.x, p.y, p.z, 0.6, 0.12);
     sol('mast');
     for (const p of P.mast) cyl(p.x, p.y, p.z, 3.2, 0.16);
     sol('signPost');
@@ -2999,5 +3185,5 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { junctionOf, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
+  return { junctionOf, sigStats, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
 }
