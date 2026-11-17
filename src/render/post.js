@@ -67,6 +67,10 @@ export function createPost(game) {
   {
     const rpRender = renderPass.render.bind(renderPass);
     renderPass.render = (r, wb, rb, dt, mask) => {
+      LOOK_V[2] = 1; // look3.js: lit opaque materials write their ambient share to alpha (read by the AO resolve)
+      try { return scenePass(r, wb, rb, dt, mask); } finally { LOOK_V[2] = 0; }
+    };
+    const scenePass = (r, wb, rb, dt, mask) => {
       const n = LOOK_OFF ? 0 : (game.quality?.current?.look?.msaa ?? 0);
       if (n > 0 && msaaRT.depthTexture) {
         if (msaaRT.samples !== n) {
@@ -104,38 +108,49 @@ export function createPost(game) {
     composer.addPass(gtao);
   } catch (e) { console.warn('[post] GTAO unavailable', e); gtao = null; }
 
-  // ---------- contact AO: single full-res pass from the depth buffer (normals rebuilt from depth) ----------
-  // Darkens creases and the ground under objects within ~1 m. 10 taps, no blur, no second scene render.
+  // ---------- contact AO: full-res AO pass from the depth buffer (normals rebuilt from depth) + bilateral 4x4 resolve ----------
+  // Darkens creases and the ground under objects within ~1 m (+ a ~3 m contact ring with look3). No second scene render.
   // Off with game.settings.ao === false or quality 'low'; replaced by GTAO on 'ultra'.
+  // r2-look (Nov 17): the single pass rotated its 10-tap kernel per pixel and per frame and multiplied the noisy result
+  // straight into the image; TAA could not fully average it, so every surface near the ground carried a fixed grain
+  // (calibration spheres, car bodies, house walls). Now pass 1 writes (ao, view depth) with a 4x4 interleaved kernel
+  // rotation (every 4x4 block holds all 16 rotations, shifted by a golden-ratio step per frame) and pass 2 averages the
+  // 4x4 block with a depth-aware weight: smooth in a single frame, TAA only removes what is left.
   let ao = null;
   try {
     if (!target.depthTexture) throw new Error('depth texture unavailable');
-    ao = new ShaderPass({
+    const aoRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+    const aoMat = new THREE.ShaderMaterial({
       name: 'PortSolanaContactAO',
-      uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uFar: { value: 3.2 } },
-      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      uniforms: { tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uProjY: { value: 1 }, uAspect: { value: 1 }, uRes: { value: new THREE.Vector2(W * pr, H * pr) }, uRadius: { value: 1.0 }, uIntensity: { value: 1.5 }, uFrameN: FRAME_NOISE, uLook3: { value: 0 }, uFar: { value: 3.2 }, uR2: { value: 1 } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
       fragmentShader: /* glsl */`
-        uniform sampler2D tDiffuse; uniform sampler2D tDepth; uniform mat4 uProjInv; uniform float uProjY, uAspect, uRadius, uIntensity, uFrameN, uLook3, uFar; uniform vec2 uRes;
+        uniform sampler2D tDepth; uniform mat4 uProjInv; uniform float uProjY, uAspect, uRadius, uIntensity, uFrameN, uLook3, uFar, uR2; uniform vec2 uRes;
         varying vec2 vUv;
         vec3 viewPos( vec2 uv ) { float d = texture2D( tDepth, uv ).x; vec4 v = uProjInv * vec4( uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 ); return v.xyz / v.w; }
+        float bayer4( vec2 p ) { // 0..15, every 4x4 block holds each value once
+          vec2 q = mod( floor( p ), 4.0 );
+          float b2 = mod( q.x, 2.0 ) * 2.0 + mod( q.y + q.x, 2.0 );
+          vec2 r = floor( q / 2.0 );
+          float b1 = r.x * 2.0 + mod( r.y + r.x, 2.0 );
+          return b2 * 4.0 + b1;
+        }
         void main() {
-          vec4 c = texture2D( tDiffuse, vUv );
           float d = texture2D( tDepth, vUv ).x;
-          if ( d >= 0.99995 ) { gl_FragColor = c; return; }
+          if ( d >= 0.99995 ) { gl_FragColor = vec4( 1.0, 6e4, 0.0, 1.0 ); return; }
           vec3 P = viewPos( vUv );
           float fade = 1.0 - smoothstep( 55.0, 130.0, -P.z );
-          if ( fade <= 0.0 ) { gl_FragColor = c; return; }
+          if ( fade <= 0.0 ) { gl_FragColor = vec4( 1.0, -P.z, 0.0, 1.0 ); return; }
           vec2 px = 1.0 / uRes;
           vec3 dx1 = viewPos( vUv + vec2( px.x, 0.0 ) ) - P, dx2 = P - viewPos( vUv - vec2( px.x, 0.0 ) );
           vec3 dy1 = viewPos( vUv + vec2( 0.0, px.y ) ) - P, dy2 = P - viewPos( vUv - vec2( 0.0, px.y ) );
           vec3 Nc = cross( abs( dx1.z ) < abs( dx2.z ) ? dx1 : dx2, abs( dy1.z ) < abs( dy2.z ) ? dy1 : dy2 );
           float nl = dot( Nc, Nc );
-          if ( !( nl > 1e-16 ) ) { gl_FragColor = c; return; }
+          if ( !( nl > 1e-16 ) ) { gl_FragColor = vec4( 1.0, -P.z, 0.0, 1.0 ); return; }
           vec3 N = Nc * inversesqrt( nl );
           float rad = clamp( uRadius * uProjY * 0.5 / max( -P.z, 0.3 ), 3.0 * px.y, 0.09 );
           float worldR = rad * 2.0 * max( -P.z, 0.3 ) / uProjY; // radius actually covered after clamping
-          // look3: the kernel rotation moves every frame (uFrameN) so TAA averages it out (a fixed rotation is a fixed dot pattern)
-          float n = fract( 52.9829189 * fract( dot( gl_FragCoord.xy + 5.588238 * uFrameN * uLook3, vec2( 0.06711056, 0.00583715 ) ) ) ) * 6.2831853;
+          float n = ( uR2 > 0.5 ? fract( ( bayer4( gl_FragCoord.xy ) + 0.5 ) / 16.0 + 0.61803399 * uFrameN * uLook3 ) : fract( 52.9829189 * fract( dot( gl_FragCoord.xy + 5.588238 * uFrameN * uLook3, vec2( 0.06711056, 0.00583715 ) ) ) ) ) * 6.2831853;
           float occ = 0.0;
           for ( int i = 0; i < 10; i++ ) {
             float fi = float( i );
@@ -163,22 +178,62 @@ export function createPost(game) {
             aoV = pow( aoV, 1.15 );
           }
           if ( !( aoV == aoV ) ) aoV = 1.0;
+          gl_FragColor = vec4( mix( 1.0, aoV, fade ), -P.z, 0.0, 1.0 );
+        }`,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const aoQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), aoMat);
+    aoQuad.frustumCulled = false;
+    const aoScene = new THREE.Scene();
+    aoScene.add(aoQuad);
+    const aoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    ao = new ShaderPass({
+      name: 'PortSolanaContactAOResolve',
+      uniforms: { tDiffuse: { value: null }, tAO: { value: null }, uTexel: { value: new THREE.Vector2(1, 1) }, uShare: { value: 0 }, uBlur: { value: 1 } },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse; uniform sampler2D tAO; uniform vec2 uTexel; uniform float uShare, uBlur;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D( tDiffuse, vUv );
+          vec2 a0 = texture2D( tAO, vUv ).xy;
+          if ( a0.y > 5e4 ) { gl_FragColor = c; return; }
+          // 4x4 block (offsets -2..+1): covers all 16 kernel rotations; depth-aware so AO never bleeds across silhouettes
+          float sw = 0.0, sa = 0.0, tol = 1.0 / ( 0.04 * a0.y + 0.02 );
+          for ( int j = -2; j < 2; j++ ) for ( int i = -2; i < 2; i++ ) {
+            vec2 t = texture2D( tAO, vUv + vec2( float( i ) + 0.5, float( j ) + 0.5 ) * uTexel ).xy;
+            float w = max( 0.0, 1.0 - abs( t.y - a0.y ) * tol );
+            sa += t.x * w; sw += w;
+          }
+          float aoV = sw > 0.01 && uBlur > 0.5 ? sa / sw : a0.x;
           float l = dot( c.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
           aoV = mix( aoV, 1.0, 0.5 * smoothstep( 0.8, 3.0, l ) ); // emissives and hot highlights keep their energy
-          c.rgb *= mix( 1.0, aoV, fade );
-          gl_FragColor = c;
+          // look3: lit opaque materials store their ambient share in alpha (look3.js): AO only darkens that share
+          c.rgb *= mix( 1.0, aoV, uShare > 0.5 ? clamp( c.a, 0.0, 1.0 ) : 1.0 );
+          gl_FragColor = vec4( c.rgb, 1.0 );
         }`,
     });
     ao.material.depthTest = false; ao.material.depthWrite = false;
+    ao.uniforms = new Proxy(ao.uniforms, { get: (t, k) => t[k] ?? aoMat.uniforms[k] }); // old callers tune uRadius / uIntensity / uFar here
     const aoRender = ao.render.bind(ao);
     ao.render = (r, wb, rb, dt, mask) => {
-      const U = ao.uniforms;
+      const U = aoMat.uniforms;
+      if (aoRT.width !== rb.width || aoRT.height !== rb.height) aoRT.setSize(rb.width, rb.height);
       U.tDepth.value = sceneDepth || rb.depthTexture;
       U.uProjInv.value.copy(camera.projectionMatrixInverse);
       U.uProjY.value = camera.projectionMatrix.elements[5];
       U.uAspect.value = W / H;
       U.uRes.value.set(rb.width, rb.height);
       U.uLook3.value = game.look3 && game.look3Parts?.ao !== false ? 1 : 0;
+      r.setRenderTarget(aoRT);
+      r.render(aoScene, aoCam);
+      ao.material.uniforms.tAO.value = aoRT.texture;
+      ao.material.uniforms.uTexel.value.set(1 / rb.width, 1 / rb.height);
+      const r2 = game.lookR2 !== false;
+      U.uR2.value = r2 ? 1 : 0;
+      ao.material.uniforms.uBlur.value = r2 ? 1 : 0;
+      ao.material.uniforms.uShare.value = r2 && U.uLook3.value > 0.5 && game.lookAOShare !== false ? 1 : 0; // A/B: game.lookAOShare = false
       aoRender(r, wb, rb, dt, mask);
     };
     composer.addPass(ao);
@@ -313,6 +368,7 @@ export function createPost(game) {
         uTexel: { value: new THREE.Vector2(1, 1) },
         uReset: { value: 1 },
         uBlend: { value: 0.1 },
+        uR2: { value: 1 },
       },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
       fragmentShader: /* glsl */`
@@ -324,6 +380,7 @@ export function createPost(game) {
         uniform vec2 uTexel;
         uniform float uReset;
         uniform float uBlend;
+        uniform float uR2;
         varying vec2 vUv;
         vec3 toY( vec3 c ) { return vec3( 0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b ); }
         vec3 fromY( vec3 y ) { return vec3( y.x + y.y - y.z, y.x + y.z, y.x - y.y - y.z ); }
@@ -359,20 +416,24 @@ export function createPost(game) {
           vec3 mx = yc;
           vec3 m1 = yc;
           vec3 m2 = yc * yc;
-          // 4-tap cross neighborhood (cheap; the corners add little once the variance box is used)
-          for ( int i = 0; i < 4; i++ ) {
-            vec2 o = i == 0 ? vec2( 1.0, 0.0 ) : i == 1 ? vec2( -1.0, 0.0 ) : i == 2 ? vec2( 0.0, 1.0 ) : vec2( 0.0, -1.0 );
-            vec3 y = toY( tm( texture2D( tCur, vUv + o * uTexel ).rgb ) );
+          // r2-look: full 3x3 neighborhood. The variance box (gamma 1.25) is blended a quarter of the way toward the min/max
+          // box: thin high-contrast detail (leaf edges, fence wires, blinds) keeps its history instead of being clamped
+          // back to the noisy current frame every frame (that left dither dots and crawling edges)
+          for ( int j = -1; j <= 1; j++ ) for ( int i = -1; i <= 1; i++ ) {
+            if ( i == 0 && j == 0 ) continue;
+            if ( uR2 < 0.5 && i != 0 && j != 0 ) continue; // A/B: the overnight 4-tap cross
+            vec3 y = toY( tm( texture2D( tCur, vUv + vec2( float( i ), float( j ) ) * uTexel ).rgb ) );
             mn = min( mn, y );
             mx = max( mx, y );
             m1 += y;
             m2 += y * y;
           }
-          // variance box (tighter than min/max: less ghosting), kept inside min/max
-          vec3 mu = m1 / 5.0;
-          vec3 sd = sqrt( max( m2 / 5.0 - mu * mu, 0.0 ) );
-          mn = max( mn, mu - 1.0 * sd );
-          mx = min( mx, mu + 1.0 * sd );
+          float nN = uR2 > 0.5 ? 9.0 : 5.0, gS = uR2 > 0.5 ? 1.25 : 1.0;
+          vec3 mu = m1 / nN;
+          vec3 sd = sqrt( max( m2 / nN - mu * mu, 0.0 ) );
+          vec3 vmn = max( mn, mu - gS * sd ), vmx = min( mx, mu + gS * sd );
+          mn = mix( vmn, mn, 0.25 * uR2 );
+          mx = mix( vmx, mx, 0.25 * uR2 );
           float d = texture2D( tDepth, vUv ).x;
           vec4 w = uInvVP * vec4( vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0 );
           vec4 pc = uPrevVP * w;
@@ -387,7 +448,7 @@ export function createPost(game) {
           vec3 h = eA <= eB ? cA : cB;
           float a = uBlend;
           // fast motion: trust the new frame more
-          a = mix( a, 0.5, clamp( length( ( puv - vUv ) / uTexel ) / 40.0, 0.0, 1.0 ) * step( eB, eA ) );
+          a = mix( a, uR2 > 0.5 ? 0.25 : 0.5, clamp( length( ( puv - vUv ) / uTexel ) / ( uR2 > 0.5 ? 60.0 : 40.0 ), 0.0, 1.0 ) * step( eB, eA ) ); // r2-look: was 0.5 at 40 px (noise came back while driving)
           float wc = a / ( 1.0 + yc.x );
           float wh = ( 1.0 - a ) / ( 1.0 + h.x );
           vec3 o = ( yc * wc + h * wh ) / ( wc + wh );
@@ -468,6 +529,7 @@ export function createPost(game) {
         U.uInvVP.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert();
         U.uPrevVP.value.copy(prevVP);
         U.uReset.value = reset ? 1 : 0;
+        U.uR2.value = game.lookR2 !== false ? 1 : 0;
         reset = false;
         quad.material = taaMat;
         r.setRenderTarget(dst);
@@ -589,6 +651,7 @@ export function createPost(game) {
 
   // ---------- performance stats (the resolution is fixed and native; there is no adaptive scaler) ----------
   renderer.info.autoReset = false;
+  game.lookU = LOOK_U; game.lookV = LOOK_V; // shared look3 shader uniforms (tools/v2/look debug views)
   const perf = game.perf = { fps: 60, frameMs: 16.7, cpuMs: 8, drawCalls: 0, triangles: 0, pixelRatio: renderer.getPixelRatio(), resScale: 1, gtao: false, ao: false };
   let lastNow = performance.now();
   let clock = 0;
@@ -853,10 +916,13 @@ export function createPost(game) {
           const G = game.look3G || (game.look3G = { sat: 0.93, satGold: 1.02, contrast: 0.3, toe: 0.012 });
           gu.uSat.value = (G.sat + (G.satGold - G.sat) * golden - 0.05 * gc) * (1 - 0.92 * (game.deathFade || 0));
           // the old green white-balance shift countered a pink sky; the look3 sky is gold, so only a trace of it stays
-          gu.uGain.value.set(1.03 - 0.012 * gc, 1.0 + 0.03 * gc, 0.96 - 0.008 * gc);
+          // r2-look: by day the white balance stays near neutral (1.03 / 0.96 turned sand and white paint cream-yellow); golden hour keeps its warmth
+          const r2d = game.lookR2 !== false ? dayOnly : 0; // r2-look in-session A/B: game.lookR2 = false
+          gu.uGain.value.set(1.03 - 0.015 * r2d - 0.012 * gc, 1.0 + 0.03 * gc, 0.96 + 0.02 * r2d - 0.008 * gc);
           gu.uContrast.value = G.contrast + 0.06 * dayOnly;
+          gu.uShadowTint.value.y *= 1 - 0.8 * r2d; // r2-look / r2-art: shade neutral-to-slightly-cool by day, not teal
           gu.uToe.value = G.toe * (0.6 + 0.4 * day);
-          gu.uHighTint.value.set(0.024 + 0.03 * golden - 0.02 * night, 0.013 - 0.006 * golden - 0.006 * night, -0.012 + 0.012 * golden + 0.025 * night);
+          gu.uHighTint.value.set(0.024 - 0.012 * r2d + 0.03 * golden - 0.02 * night, 0.013 - 0.005 * r2d - 0.006 * golden - 0.006 * night, -0.012 + 0.008 * r2d + 0.012 * golden + 0.025 * night); // r2-look: softer warm highlight push by day
         }
       }
       if (gu._vigBase === undefined) gu._vigBase = LOOK_OFF ? gu.uVignette.value : 0.27;
@@ -906,7 +972,7 @@ export function createPost(game) {
       if (game.look3 === undefined) game.look3 = LOOK3_DEFAULT && !LOOK_OFF;
       LOOK_U[0] = FRAME_NOISE.value;
       const L3P = game.look3Parts || (game.look3Parts = { pcss: true, ao: true, ae: true }); // per-part switches (perf A/B)
-      LOOK_U[1] = game.look3 && L3P.pcss ? 1 : 0;
+      LOOK_U[1] = game.look3 && L3P.pcss ? (game.lookR2 !== false ? 2 : 1) : 0; // r2-look in-session A/B: game.lookR2 = false
       {
         // aerial perspective (clear weather): humid Florida air, a touch more by day than the old cap, thick at golden hour
         const sy = game.env?.sunDir?.y ?? 0.5;

@@ -35,7 +35,36 @@ float psShadowEdge( vec4 sc ) {
     'getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;',
     'mix( getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ i ] ) ) : 1.0;',
   );
-  C.lights_fragment_begin = src.replace(line, fadedLine + `
+  // r2-look near static cascade (light index 2, when present): replaces the far static map near the camera and blends
+  // into it across the near map's edge band
+  const nearLine = fadedLine.replace(
+    'mix( getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ i ] ) ) : 1.0;',
+    `psStaticShadow( directionalShadowMap[ i ], directionalLightShadow, vDirectionalShadowCoord[ i ] ) : 1.0;`);
+  const nearFn = `
+#ifdef USE_SHADOWMAP
+#if NUM_DIR_LIGHT_SHADOWS > 2
+float psStaticShadow( sampler2D farMap, DirectionalLightShadow farS, vec4 farC ) {
+	float eN = psShadowEdge( vDirectionalShadowCoord[ 2 ] );
+	vec4 nc = vDirectionalShadowCoord[ 2 ];
+	bool inN = nc.w > 0.0 && all( lessThan( abs( nc.xy / nc.w * 2.0 - 1.0 ), vec2( 1.0 ) ) );
+	float s = 1.0;
+	if ( inN && eN < 0.999 ) s = getShadow( directionalShadowMap[ 2 ], directionalLightShadows[ 2 ].shadowMapSize, directionalLightShadows[ 2 ].shadowIntensity, directionalLightShadows[ 2 ].shadowBias, directionalLightShadows[ 2 ].shadowRadius, nc );
+	if ( !inN || eN > 0.001 ) {
+		float f = mix( getShadow( farMap, farS.shadowMapSize, farS.shadowIntensity, farS.shadowBias, farS.shadowRadius, farC ), 1.0, psShadowEdge( farC ) );
+		s = inN ? mix( s, f, eN ) : f;
+	}
+	return s;
+}
+#endif
+#endif
+`;
+  if (!C.shadowmap_pars_fragment.includes('psStaticShadow')) C.shadowmap_pars_fragment += nearFn;
+  C.lights_fragment_begin = src.replace(line, `#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 2 )
+		` + nearLine.replace(/\n\t\t#endif$/, '') + `
+		#else
+		` + fadedLine.replace(/\n\t\t#endif$/, '') + `
+		#endif
+		#endif` + `
 		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX == 0 ) && ( NUM_DIR_LIGHT_SHADOWS > 1 )
 		directLight.color *= ( directLight.visible && receiveShadow ) ? mix( getShadow( directionalShadowMap[ 1 ], directionalLightShadows[ 1 ].shadowMapSize, directionalLightShadows[ 1 ].shadowIntensity, directionalLightShadows[ 1 ].shadowBias, directionalLightShadows[ 1 ].shadowRadius, vDirectionalShadowCoord[ 1 ] ), 1.0, psShadowEdge( vDirectionalShadowCoord[ 1 ] ) ) : 1.0;
 		#endif`);
@@ -77,7 +106,7 @@ export function guardLightLoops() {
   return ok;
 }
 
-export function createSplitShadows(game, sun, dyn) {
+export function createSplitShadows(game, sun, dyn, near = null) {
   const { renderer, scene } = game;
   const sm = renderer.shadowMap;
   const origRender = sm.render.bind(sm);
@@ -97,6 +126,7 @@ export function createSplitShadows(game, sun, dyn) {
   };
   sun.userData.casterMask = 1 << LAYER_STATIC;
   dyn.userData.casterMask = 1 << LAYER_DYNAMIC;
+  if (near) near.userData.casterMask = 1 << LAYER_STATIC; // r2-look near static cascade: same casters as the city map
 
   // tagging: top-level scene children are classified once (re-checked when new ones appear);
   // dynamic = vehicles, peds/player (anything containing a SkinnedMesh); everything else is static.
@@ -159,10 +189,36 @@ export function createSplitShadows(game, sun, dyn) {
     tagNow: () => { discover(); drain(1e9); },
     markStaticDirty() { staticDirty = true; },
     update(dt) {
-      // stage 1 perf: the dynamic map (characters, cars) redraws every second frame (it cost ~7 ms a frame at the Keys
-      // spawn: skinned characters are expensive casters). One frame of shadow lag at 60 fps is not visible.
-      if (game.dynShadowHalfRate !== false) { dyn.shadow.autoUpdate = false; dyn.shadow.needsUpdate = ((this._f = (this._f || 0) + 1) & 1) === 0; }
-      else dyn.shadow.autoUpdate = true;
+      // Dynamic map rate. r2-look (Nov 17): at half rate every second frame showed a map drawn one frame earlier, so a
+      // moving car's shadow jumped back by one frame of travel (0.4 m at 90 km/h) on alternate frames: the user saw the
+      // convertible's shadow change length every other frame, and TAA turned the two positions into a dotted smear.
+      // Now ('auto', the default) the map redraws every frame whenever a car within its area moves faster than walking
+      // pace or the player moves fast; only a scene of walkers keeps the half rate (2 cm of lag, invisible; measured cost of
+      // the full rate at the Keys spawn: +0.7 ms CPU, GPU inside the noise). game.dynShadowHalfRate: true = always half
+      // (old behavior), false = always full.
+      const hr = game.dynShadowHalfRate ?? (game.lookR2 === false ? true : 'auto'); // game.lookR2 = false: the overnight half rate (A/B)
+      let half = hr === true;
+      if (hr === 'auto') {
+        this._ft = (this._ft || 0) - dt;
+        if (this._ft <= 0) {
+          this._ft = 0.25;
+          const f = game.player?.position, R = (dyn.shadow.camera.right || 42) + 12;
+          let fast = false;
+          const pv = game.player?.state?.vehicle;
+          if (pv && Math.abs(pv.speed || 0) > 0.8) fast = true;
+          if (!fast && f) for (const v of game.vehicles?.list || []) {
+            if (!v?.mesh || Math.abs(v.speed || 0) < 1.2) continue;
+            const p = v.mesh.position; if (Math.abs(p.x - f.x) < R && Math.abs(p.z - f.z) < R) { fast = true; break; }
+          }
+          if (!fast && f && this._pp) fast = Math.hypot(f.x - this._pp.x, f.z - this._pp.z) > 4.5 * 0.25; // player sprinting / ragdoll flight
+          if (f) (this._pp || (this._pp = { x: 0, z: 0 })).x = f.x, this._pp.z = f.z;
+          this._fast = fast;
+        }
+        half = !this._fast;
+      }
+      if (half) { dyn.shadow.autoUpdate = false; dyn.shadow.needsUpdate = ((this._f = (this._f || 0) + 1) & 1) === 0; }
+      else { dyn.shadow.autoUpdate = true; this._f = 0; }
+      this.dynHalf = half;
       tagT -= dt;
       try {
         if (tagT <= 0) { tagT = 1; discover(); }

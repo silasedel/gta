@@ -130,7 +130,15 @@ How the world and the systems connect. If something here is wrong, fix the code 
 - `src/render/detailCull.v2.js`: objects under ~1.6 px are not drawn; small far objects skip shadows. Set
   `userData.noDetailCull = true` to opt out.
 - Merge static meshes per material (`src/render/staticBatch.js` helper); instanced props; one mesh per material per tile.
-- Dynamic shadow map updates every second frame (`game.dynShadowHalfRate = false` to disable).
+- Dynamic shadow map (cars, people): every frame whenever a car near the player moves, half rate only for scenes of
+  walkers (`game.dynShadowHalfRate`: unset = auto, `true` = always half, `false` = always full). A stale map shows as a
+  shadow that jumps every other frame.
+- Sun shadows: far static map (city, 300 m), near static cascade (+-40 m, 2 cm texels, `game.shadowNear = false` for
+  A/B), dynamic map (+-42 m). Soft-shadow / AO / any per-pixel noise must converge under TAA in one 16-frame cycle:
+  use a per-pixel offset plus a golden-ratio step per frame (`uFrameN`), or an interleaved 4x4 pattern plus a resolve.
+- Lit opaque built-in materials write their ambient light share to alpha in the main scene pass (look3.js); the contact
+  AO darkens only that share. Code that renders the scene into its own target is unaffected (`LOOK_V.z` is 0 there).
+- Round-2 look A/B in one session: `game.lookR2 = false` restores the overnight look3.
 
 ## 4. Events (`game.emit` / `game.on`)
 - `crime` `{ type, position|pos, severity?, by?: 'officer'|'witness'|'alarm'|'camera'|'self', witnesses? }` — types in

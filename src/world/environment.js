@@ -46,6 +46,9 @@ function set(out, v) { return typeof v === 'number' ? v : out.setRGB(v[0], v[1],
 
 // all colors linear
 const SUN_COLOR = [[-0.06, [1.0, 0.22, 0.05]], [0.0, [1.0, 0.33, 0.10]], [0.06, [1.0, 0.48, 0.20]], [0.16, [1.0, 0.66, 0.40]], [0.35, [1.0, 0.86, 0.70]], [0.6, [1.0, 0.93, 0.82]], [1.0, [1.0, 0.94, 0.85]]];
+// r2-look: look3 sun by day is closer to white (about 5600 K at noon instead of ~5000 K): with the warm grade on top, sand,
+// concrete and white paint all went cream-yellow (the mock-up's sand and concrete are near neutral)
+const L3_SUN_COLOR = [[-0.06, [1.0, 0.22, 0.05]], [0.0, [1.0, 0.33, 0.10]], [0.06, [1.0, 0.48, 0.20]], [0.16, [1.0, 0.68, 0.43]], [0.35, [1.0, 0.89, 0.76]], [0.6, [1.0, 0.945, 0.88]], [1.0, [1.0, 0.955, 0.90]]];
 const FOG_COLOR = [[-0.35, [0.0035, 0.0055, 0.013]], [-0.12, [0.012, 0.016, 0.035]], [-0.03, [0.07, 0.055, 0.09]], [0.02, [0.30, 0.17, 0.16]], [0.09, [0.48, 0.30, 0.22]], [0.2, [0.50, 0.42, 0.38]], [0.4, [0.42, 0.50, 0.60]], [1.0, [0.36, 0.48, 0.64]]];
 const HEMI_SKY = [[-0.3, [0.030, 0.045, 0.095]], [-0.05, [0.08, 0.07, 0.15]], [0.05, [0.40, 0.34, 0.50]], [0.12, [0.46, 0.42, 0.60]], [0.3, [0.45, 0.58, 0.80]], [1.0, [0.40, 0.60, 0.95]]];
 const HEMI_GROUND = [[-0.3, [0.008, 0.008, 0.012]], [0.0, [0.08, 0.05, 0.05]], [0.12, [0.24, 0.15, 0.14]], [0.3, [0.30, 0.25, 0.19]], [1.0, [0.32, 0.28, 0.22]]];
@@ -110,6 +113,38 @@ export async function createEnvironment(game) {
   envGround.frustumCulled = false;
   envScene.add(envGround);
   const envGroundCol = new THREE.Color();
+  // r2-look: surroundings ring in the env map (look3 only). With just sky + flat floor, every car body, window and wet road
+  // reflected an empty horizon: paint read as one flat pale color with no horizon line. Real streets reflect a dark band
+  // of trees and houses up to ~5-10 degrees. An irregular open cylinder (tree crowns, roof lines, poles) with per-vertex
+  // albedo (foliage ~0.10, pastel walls ~0.35); its color (irradiance) is refreshed with the env map, sun side brighter.
+  const envRing = (() => {
+    const N = 192, R = 300, pos = [], col = [], idx = [];
+    const hsh = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+      // crown line: a few octaves of hashed bumps (trees 4-9 deg, a house roof now and then, rare taller palm heads)
+      const k = i % N, n1 = hsh(Math.floor(k / 6)), n2 = hsh(k + 17), n3 = hsh(Math.floor(k / 2) + 91);
+      const house = n1 < 0.28;
+      let el = house ? 3.2 + 2.0 * n3 : 4.5 + 3.5 * n2 + 2.0 * n3;
+      if (!house && hsh(k + 401) > 0.93) el += 3.5; // palm heads
+      const top = R * Math.tan((el * Math.PI) / 180);
+      pos.push(R * ca, -1.2, R * sa, R * ca, top, R * sa);
+      const alb = house ? [0.36 + 0.1 * n2, 0.33 + 0.06 * n3, 0.30 + 0.05 * n2] : [0.075 + 0.03 * n3, 0.10 + 0.04 * n2, 0.05 + 0.02 * n3];
+      const topK = house ? 1.0 : 1.25; // crown tops catch more sky
+      col.push(alb[0] * 0.8, alb[1] * 0.8, alb[2] * 0.8, alb[0] * topK, alb[1] * topK, alb[2] * topK);
+      if (i < N) { const b = i * 2; idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.setAttribute('albedo', new THREE.Float32BufferAttribute(col.slice(), 3));
+    g.setIndex(idx);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide, toneMapped: false }));
+    m.frustumCulled = false; m.renderOrder = 1;
+    return m;
+  })();
+  envScene.add(envRing);
+  envRing.userData.on = true; // runtime A/B: game.env.envRing.userData.on = false (then game.env.regenerateEnvMap())
   // env map: sky -> 128 cube (CubeCamera) -> PMREM into a *reused* target; the two steps run on different frames
   const pmrem = new THREE.PMREMGenerator(renderer);
   const ENV_CUBE = 64;
@@ -144,7 +179,24 @@ export async function createEnvironment(game) {
   sunDyn.shadow.camera.updateProjectionMatrix();
   sunDyn.shadow.bias = -0.0003; sunDyn.shadow.normalBias = 0.03; sunDyn.shadow.radius = 2 * DYN_R;
   scene.add(sunDyn, sunDyn.target);
-  const split = splitOK ? createSplitShadows(game, sun, sunDyn) : null;
+  // r2-look: near static cascade. The city map (4096 over 300 m = 7 cm texels) drew house, deck-rail and tree shadows
+  // next to the player as soft blocky stair-steps. A second static map over +-NEAR_R m around the camera (2 cm texels)
+  // takes over near the player and blends into the far map at its edge. Zero-intensity twin of the sun like sunDyn; the
+  // patched shader (env/shadows.js) multiplies it into the sun. Re-rendered with the far map, and when the camera's
+  // aim point leaves a 10 m cell (at most every 0.3 s). game.shadowNear = false turns it off (before load: ?nonear).
+  const NEAR_ON = splitOK && !(typeof location !== 'undefined' && /[?&]nonear\b/.test(location.search));
+  let NEAR_SIZE = 4096, NEAR_R = 40;
+  const sunNear = new THREE.DirectionalLight(0xffffff, 0);
+  sunNear.name = 'sun-near-static-shadows';
+  sunNear.castShadow = NEAR_ON;
+  sunNear.shadow.mapSize.set(NEAR_SIZE, NEAR_SIZE);
+  Object.assign(sunNear.shadow.camera, { left: -NEAR_R, right: NEAR_R, top: NEAR_R, bottom: -NEAR_R, near: 1, far: 900 });
+  sunNear.shadow.camera.updateProjectionMatrix();
+  sunNear.shadow.bias = -0.0003; sunNear.shadow.normalBias = 0.03; sunNear.shadow.radius = 2 * NEAR_R;
+  sunNear.shadow.autoUpdate = false;
+  if (NEAR_ON) scene.add(sunNear, sunNear.target);
+  let nearT = 0; const nearCell = new THREE.Vector3(1e9, 0, 0);
+  const split = splitOK ? createSplitShadows(game, sun, sunDyn, NEAR_ON ? sunNear : null) : null;
   game.__psSplit = split;
   if (split) sun.shadow.autoUpdate = false;
   let staticT = 0, staticPending = false; const staticCell = new THREE.Vector3(1e9, 0, 0), staticSun = new THREE.Vector3();
@@ -176,7 +228,7 @@ export async function createEnvironment(game) {
   let time = 0;
 
   const env = {
-    sun, sunDyn, hemi, sky, water, ocean, distant, lamps, wind,
+    sun, sunDyn, sunNear, hemi, sky, water, ocean, distant, lamps, wind, envRing,
     sunDir, moonDir,
     dayFactor: 1, nightFactor: 0, exposure: 1,
     seaLevel: -0.12, underwater: 0,
@@ -206,6 +258,7 @@ export async function createEnvironment(game) {
       DYN_R = q.dynRadius ?? DYN_R;
       apply(sun, SHADOW_SIZE, SHADOW_R);
       apply(sunDyn, DYN_SIZE, DYN_R);
+      if (NEAR_ON) { NEAR_SIZE = Math.min(4096, SHADOW_SIZE); apply(sunNear, NEAR_SIZE, NEAR_R); nearCell.set(1e9, 0, 0); }
       // keep the shader variant (two directional shadow maps) the same; just stop redrawing the dynamic one
       sunDyn.shadow.autoUpdate = q.dynamic !== false;
       staticCell.set(1e9, 0, 0);
@@ -244,7 +297,7 @@ export async function createEnvironment(game) {
         sun.color.setRGB(0.6, 0.72, 1.0);
         sun.intensity = 0.55 * nightF * THREE.MathUtils.smoothstep(moonDir.y, 0.0, 0.15);
       } else {
-        ramp(SUN_COLOR, s, sun.color);
+        ramp(game.look3 === true && game.lookR2 !== false ? L3_SUN_COLOR : SUN_COLOR, s, sun.color);
         sun.intensity = dayF * (3.9 + 1.1 * (1 - THREE.MathUtils.smoothstep(s, 0.05, 0.4)));
       }
 
@@ -257,6 +310,8 @@ export async function createEnvironment(game) {
         sun.shadow.bias = -0.0003 - 0.0004 * (1 - Math.min(1, el / 0.4));
         sunDyn.shadow.normalBias = Math.min(0.25, 0.035 / el);
         sunDyn.shadow.bias = -0.0003 - 0.0003 * (1 - Math.min(1, el / 0.4));
+        sunNear.shadow.normalBias = Math.min(0.25, 0.03 / el);
+        sunNear.shadow.bias = -0.0003 - 0.0003 * (1 - Math.min(1, el / 0.4));
       }
       // Shadow frustums follow the player, snapped to their texel grids (no shimmering).
       // The static (city) map keeps the light direction it was last rendered with: re-centering after a
@@ -308,6 +363,19 @@ export async function createEnvironment(game) {
           staticT = 0;
           place(sun, staticCell, SHADOW_R, SHADOW_SIZE, staticSun);
           sun.shadow.needsUpdate = true;
+          nearT = 1e9; // the near map always follows a far re-render (same light direction, same streamed geometry)
+        }
+        if (NEAR_ON) {
+          nearT += dt;
+          const nOn = game.shadowNear !== false && game.lookR2 !== false;
+          if (sunNear.castShadow !== nOn) { sunNear.castShadow = nOn; } // (changes the shader variant: A/B only)
+          const ax = focus.x + camFwd.x * NEAR_R * 0.3, az = focus.z + camFwd.z * NEAR_R * 0.3;
+          const nx = Math.round(ax / 10) * 10, nz = Math.round(az / 10) * 10;
+          if (nOn && staticSun.lengthSq() > 0.5 && (nearT > 1e8 || ((nx !== nearCell.x || nz !== nearCell.z) && nearT > 0.3) || nearT > 12)) {
+            nearT = 0; nearCell.set(nx, focus.y, nz);
+            place(sunNear, nearCell, NEAR_R, NEAR_SIZE, staticSun);
+            sunNear.shadow.needsUpdate = true;
+          }
         }
         // the per-frame dynamic map uses the same direction as the static one, so the two always agree
         place(sunDyn, focus, DYN_R, DYN_SIZE, staticSun.lengthSq() > 0.5 ? staticSun : lightDir);
@@ -407,6 +475,25 @@ export async function createEnvironment(game) {
           envGroundCol.multiply(tmpC.setRGB(0.24, 0.21, 0.17));
           // blend toward the haze color so the floor meets the horizon without a dark band
           envGroundMat.color.copy(envGroundCol).lerp(scene.fog.color, 0.25);
+        }
+        envRing.visible = game.look3 === true && game.lookR2 !== false && envRing.userData.on !== false;
+        if (envRing.visible) {
+          // per-vertex radiance: albedo x (sun on the faces turned toward the sun + sky fill), a little haze at the top
+          const sunE = sun.intensity * Math.max(0, lightDir.y) / Math.PI, A = envRing.geometry.attributes.albedo, C = envRing.geometry.attributes.color, P = envRing.geometry.attributes.position;
+          const lx = lightDir.x, lz = lightDir.z, ll = Math.hypot(lx, lz) || 1, hz = scene.fog.color;
+          for (let i = 0; i < A.count; i++) {
+            const px = P.getX(i), pz = P.getZ(i), pl = Math.hypot(px, pz) || 1;
+            const facing = Math.max(0, -(px * lx + pz * lz) / (pl * ll)); // inner face lit when the sun is behind the viewer
+            const e = 0.25 + 0.75 * facing * (0.45 + 0.55 * Math.max(0, 1 - lightDir.y)); // vertical faces: less sun at noon
+            const hf = (i & 1) ? 0.18 : 0.0; // aerial haze toward the crown line
+            for (let c = 0; c < 3; c++) {
+              const sc = c === 0 ? sun.color.r : c === 1 ? sun.color.g : sun.color.b, hc = c === 0 ? hemi.color.r : c === 1 ? hemi.color.g : hemi.color.b;
+              const hzc = c === 0 ? hz.r : c === 1 ? hz.g : hz.b;
+              const v = A.getComponent(i, c) * (sc * sunE * e + hc * hemi.intensity * 0.9);
+              C.setComponent(i, c, v * (1 - hf) + hzc * hf * 0.5);
+            }
+          }
+          C.needsUpdate = true;
         }
         envCubeCam.update(renderer, envScene);
         envPhase = 1;

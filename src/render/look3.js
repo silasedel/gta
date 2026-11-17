@@ -5,7 +5,7 @@
 //     dot pattern, no grain. A receiver-plane depth gradient keeps sloped ground free of acne inside the wider kernel.
 // Runtime A/B (only in a page loaded with ?look3): game.look3 = false restores the old look without a reload.
 // LOOK_U is shared by reference with every lit built-in material (same mechanism as WEATHER_U in wetSurfaces.js):
-//   x = frame index (0..15, from frameNoise.js), y = soft shadows on (0/1), z = penumbra meters per meter of
+//   x = frame index (0..15, from frameNoise.js), y = soft shadows (0 off, 1 overnight look3, 2 r2-look sampling), z = penumbra meters per meter of
 //   occluder distance, w = minimum filter radius in shadow-map texels.
 // ShaderMaterials that include the shadow chunk get the declaration but no value (all zero): they keep the stock filter.
 import * as THREE from 'three';
@@ -17,7 +17,7 @@ export const LOOK3_ENABLED = !(typeof location !== 'undefined' && /[?&]look3=0\b
 export const LOOK3_DEFAULT = LOOK3_ENABLED;
 export const LOOK_U = new Float32Array([0, LOOK3_DEFAULT ? 1 : 0, 0.022, 1.6]);
 // LOOK_V (fog): x = aerial-perspective density cap for clear weather (0 = the old fixed cap), y = haze color pull
-// toward the warm sun side, z/w spare. Shared with every fogged built-in material (and ShaderMaterials that merge
+// toward the warm sun side, z = 1 while post.js renders the main scene (ambient share -> alpha), w = debug view. Shared with every fogged built-in material (and ShaderMaterials that merge
 // UniformsLib.fog after this module loaded).
 export const LOOK_V = new Float32Array([0, 0, 0, 0]);
 export const LOOKU_DECL = '#ifndef PS_LOOKU\n#define PS_LOOKU\nuniform vec4 uLookU;\nuniform vec4 uLookV;\n#endif\n';
@@ -36,13 +36,31 @@ const SUN_DEPTH_M = 899.0;
     if (U && !U.uLookU) { U.uLookU = { value: LOOK_U }; U.uLookV = { value: LOOK_V }; }
   }
   C.fog_pars_fragment = LOOKU_DECL + C.fog_pars_fragment;
+  // r2-look material debug view (LOOK_V.w = 1: lit materials output their base color / albedo), used by
+  // tools/v2/look/albedo-view.page.js to measure what is on screen. One uniform branch; 0 in the game.
+  C.opaque_fragment = `#if defined( PS_LOOKU ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
+if ( uLookV.w > 0.5 ) outgoingLight = diffuseColor.rgb;
+#endif
+` + C.opaque_fragment + `
+#if defined( PS_LOOKU ) && defined( OPAQUE ) && ( defined( STANDARD ) || defined( LAMBERT ) || defined( PHONG ) )
+// r2-look: the ambient share of this pixel's light goes to alpha (opaque lit materials only). The screen-space AO
+// (post.js) darkens only that share: AO occludes sky / bounce light, never the sun (sunlit ground next to a car or a
+// wall had a dark halo). Other materials keep alpha 1 = full AO, as before.
+if ( uLookV.z > 0.5 ) { // only inside the main scene pass (post.js sets it): impostor bakes and masks keep real alpha
+	vec3 psInd = reflectedLight.indirectDiffuse + reflectedLight.indirectSpecular;
+	gl_FragColor.a = clamp( dot( psInd, vec3( 0.2126, 0.7152, 0.0722 ) ) / max( dot( outgoingLight, vec3( 0.2126, 0.7152, 0.0722 ) ), 1e-5 ), 0.0, 1.0 );
+}
+#endif
+`;
   const head = '#elif defined( SHADOWMAP_TYPE_PCF_SOFT )';
   const tail = '#elif defined( SHADOWMAP_TYPE_VSM )';
   let s = C.shadowmap_pars_fragment;
   const a = s.indexOf(head), b = s.indexOf(tail);
   if (a < 0 || b < a) { console.warn('[look3] PCF soft branch not found: soft shadows off'); return; }
   const fn = LOOKU_DECL + /* glsl */`
-	float psIgn( vec2 p ) { return fract( 52.9829189 * fract( dot( p + 5.588238 * uLookU.x, vec2( 0.06711056, 0.00583715 ) ) ) ); }
+	// r2-look: per-pixel IGN (fixed) + a golden-ratio step per frame: every pixel walks evenly through the rotations over
+	// TAA's history, so all pixels converge to the same soft value (the frame-offset IGN left a stable per-pixel bias: grain)
+	float psIgn( vec2 p ) { return uLookU.y > 1.5 ? fract( fract( 52.9829189 * fract( dot( p, vec2( 0.06711056, 0.00583715 ) ) ) ) + 0.61803399 * uLookU.x ) : fract( 52.9829189 * fract( dot( p + 5.588238 * uLookU.x, vec2( 0.06711056, 0.00583715 ) ) ) ); }
 	// sc: projected + biased shadow coord; mPerUv: shadow frustum width in meters (passed through shadow.radius)
 	float psPCSS( sampler2D shadowMap, vec2 shadowMapSize, float mPerUv, vec3 sc ) {
 		float texel = 1.0 / shadowMapSize.x;
@@ -69,13 +87,15 @@ const SUN_DEPTH_M = 899.0;
 		float dzM = max( sc.z - bSum / bN, 0.0 ) * ${SUN_DEPTH_M.toFixed(1)};
 		float penR = clamp( dzM * uLookU.z * 0.5 / mPerUv, minR, searchR );
 		float sum = 0.0;
-		for ( int i = 0; i < 10; i ++ ) {
+		float nT = uLookU.y > 1.5 ? 12.0 : 10.0; // r2-look: 12 taps (overnight look3: 10)
+		for ( int i = 0; i < 12; i ++ ) {
 			float fi = float( i );
+			if ( fi >= nT ) break;
 			float a = a0 + 1.1 + fi * 2.39996323;
-			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / 10.0 ) * penR;
+			vec2 o = vec2( cos( a ), sin( a ) ) * sqrt( ( fi + 0.5 ) / nT ) * penR;
 			sum += step( sc.z + dot( dz, o ), unpackRGBAToDepth( texture2D( shadowMap, sc.xy + o ) ) );
 		}
-		return sum / 10.0;
+		return sum / nT;
 	}
 `;
   // the helper must sit before getShadow (same #ifdef USE_SHADOWMAP block)

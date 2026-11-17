@@ -1,0 +1,53 @@
+{
+ "tag": "ab1",
+ "hour": 10,
+ "perf": {
+  "old": [
+   {
+    "med": 27.7,
+    "gpu": 15.34,
+    "render": 18.8,
+    "shadow": 0.48,
+    "calls": 839
+   },
+   {
+    "med": 30.8,
+    "gpu": 14.92,
+    "render": 20.1,
+    "shadow": 0.59,
+    "calls": 845
+   },
+   {
+    "med": 28.4,
+    "gpu": 23.6,
+    "render": 18.9,
+    "shadow": 0.51,
+    "calls": 838
+   }
+  ],
+  "new": [
+   {
+    "med": 29,
+    "gpu": 17.98,
+    "render": 19.5,
+    "shadow": 0.55,
+    "calls": 839
+   },
+   {
+    "med": 33.7,
+    "gpu": 17.02,
+    "render": 22.4,
+    "shadow": 0.74,
+    "calls": 838
+   },
+   {
+    "med": 28.1,
+    "gpu": 35.31,
+    "render": 18.4,
+    "shadow": 0.55,
+    "calls": 838
+   }
+  ]
+ },
+ "errors": []
+}
