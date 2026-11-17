@@ -78,6 +78,7 @@ export function evaluate(stats, views, meta = {}) {
     if ((cls === 'galvanized' || cls === 'chrome') && s.metal != null && s.metal < 0.5) cls = 'metalPainted'; // named metal, authored dielectric: painted
     if (cls === 'generic' && /lib-|^buildings\//.test(`${s.obj} ${s.src || ''}`)) cls = 'building'; // same fallback as calibrate() for library buildings
     if ((cls === 'generic' || cls === 'building') && s.metal != null && s.metal >= 0.5 && !s.shaderPBR) cls = 'galvanized';
+    if (s.scrRM) { s.roughStatic = s.rough; s.metalStatic = s.metal; s.rough = s.scrRM[0]; s.metal = s.scrRM[1]; s.shaderPBR = false; } // measured on screen (r2-look debug mode)
     const sc = score(s, cls);
     const cov = Object.values(s.cover); const vis = Math.max(...cov, 0), tot = cov.reduce((p, c) => p + c, 0);
     const where = Object.entries(s.cover).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k} ${(v * 100).toFixed(1)}%`);
@@ -88,7 +89,12 @@ export function evaluate(stats, views, meta = {}) {
   const high = flagged.filter((r) => r.vis >= 1.0);
   const byOwner = {}; for (const r of flagged) { const k = r.owner; byOwner[k] = byOwner[k] || { n: 0, high: 0 }; byOwner[k].n++; if (r.vis >= 1) byOwner[k].high++; }
   const byClass = {}; for (const r of rows) { const k = r.cls; (byClass[k] = byClass[k] || { n: 0, cover: 0, flagged: 0 }); byClass[k].n++; byClass[k].cover += r.visTot; if (r.sev >= 0.35) byClass[k].flagged++; }
-  return { ...meta, when: new Date().toISOString(), views, counts: { materials: rows.length, flagged: flagged.length, highVisibility: high.length }, byOwner, byClass, rows };
+  // library vs code-built, per class (coverage-weighted): the "can you tell which is which" check
+  const mix = {}; for (const r of rows) { if (r.cls === 'emissive' || r.L === undefined) continue; const g = r.gltf ? 'lib' : 'code', k = r.cls, wgt = r.visTot || 0; if (!wgt) continue;
+    const m = (mix[k] = mix[k] || { lib: [0, 0, 0, 0], code: [0, 0, 0, 0] })[g]; m[0] += r.L * wgt; m[1] += (r.sat || 0) * wgt; m[2] += (r.rough ?? 0.8) * wgt; m[3] += wgt; }
+  const libVsCode = Object.entries(mix).filter(([, v]) => v.lib[3] > 0.5 && v.code[3] > 0.5).map(([k, v]) => { const f = (a) => [a[0] / a[3], a[1] / a[3], a[2] / a[3]].map((x) => +x.toFixed(3)); const a = f(v.lib), c = f(v.code);
+    return { cls: k, lib: { L: a[0], sat: a[1], rough: a[2], cover: +v.lib[3].toFixed(1) }, code: { L: c[0], sat: c[1], rough: c[2], cover: +v.code[3].toFixed(1) }, dStops: +Math.log2(a[0] / Math.max(c[0], 1e-3)).toFixed(2), dRough: +(a[2] - c[2]).toFixed(2) }; });
+  return { ...meta, when: new Date().toISOString(), views, libVsCode, counts: { materials: rows.length, flagged: flagged.length, highVisibility: high.length }, byOwner, byClass, rows };
 }
 const fmtC = (c) => (c ? c.map((v) => v.toFixed(2)).join(',') : '-');
 export function writeReport(rep, set) {
@@ -102,6 +108,10 @@ export function writeReport(rep, set) {
   L.push('Rank = sqrt(max screen % in any view) x severity. Severity sums the distance outside each class range (albedo in stops x1.4-1.8, roughness per 0.15, metalness per 0.3, saturation per 0.15, texel density in stops x0.8).', '');
   L.push('## Outliers by owner', '', '| owner | outliers | high visibility |', '|---|---|---|');
   for (const [k, v] of Object.entries(rep.byOwner).sort((a, b) => b[1].high - a[1].high)) L.push(`| ${k} | ${v.n} | ${v.high} |`);
+  if (rep.libVsCode && rep.libVsCode.length) { L.push('', '## Library vs code-built, same class (coverage-weighted)', '', 'A style is unified when the two columns agree: |albedo delta| < 0.5 stop, |roughness delta| < 0.12.', '', '| class | library L / sat / rough | code-built L / sat / rough | albedo delta (stops) | roughness delta |', '|---|---|---|---|---|');
+    for (const x of rep.libVsCode) L.push(`| ${x.cls} | ${x.lib.L} / ${x.lib.sat} / ${x.lib.rough} (${x.lib.cover}%) | ${x.code.L} / ${x.code.sat} / ${x.code.rough} (${x.code.cover}%) | ${x.dStops}${Math.abs(x.dStops) > 0.5 ? ' **!**' : ''} | ${x.dRough}${Math.abs(x.dRough) > 0.12 ? ' **!**' : ''} |`); }
+  L.push('', '## By material class', '', '| class | materials | outliers | summed screen % |', '|---|---|---|---|');
+  for (const [k, v] of Object.entries(rep.byClass).sort((a, b) => b[1].cover - a[1].cover)) L.push(`| ${k} | ${v.n} | ${v.flagged} | ${v.cover.toFixed(1)} |`);
   L.push('', '## Ranked outliers (top 80)', '', '| # | rank | owner | class | material | source (object chain) | albedo L / sat | rough / metal | texel px/m (map) | issues | where |', '|---|---|---|---|---|---|---|---|---|---|---|');
   let i = 0;
   for (const r of rep.rows.filter((x) => x.sev >= 0.35).slice(0, 80)) {

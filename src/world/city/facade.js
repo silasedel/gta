@@ -394,6 +394,8 @@ void facadeEval() {
   }
   nT = mix(nT, nOver, useOver);
   gFNw = normalize(T * nT.x + Bt * nT.y + Nw * max(nT.z, 0.05));
+  { float fMx = max(max(alb.r, alb.g), alb.b), fMn = min(min(alb.r, alb.g), alb.b), fS = (fMx - fMn) / max(fMx, 1e-4); // r2-art: sun-faded paint, linear saturation <= 0.72 (~HSV 0.45 sRGB)
+    if (fS > 0.72) alb = mix(vec3(dot(alb, vec3(0.2126, 0.7152, 0.0722))), alb, 0.72 / fS); }
   gFAlb = min(alb, vec3(0.78)); gFRough = clamp(rough, 0.03, 1.0); gFMetal = clamp(metal, 0.0, 1.0); gFAO = ao; gFEmi = emi * mix(1.0, 0.45, gFFar) + gFFar * gFLit * gFLitC * 0.12 * uFGlow; // distant facades: average glow = lit share x glazed share (the old 1.6x / 0.95 boost lit mid/far blocks solid white at night)
 }
 `;

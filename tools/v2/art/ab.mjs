@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // r2-art A/B street shots across page variants (geometry changes that need a reload, e.g. ?hiproof=0): same cameras, same hour.
+//   [--bld "10-46:residential|beach"]  frame map buildings in that height range / zone instead of the road
 //   node tools/v2/art/ab.mjs --set roofs --a "&hiproof=0" --b "" --spots "grove:-440,2420;havana:-660,-55" [--per 2] [--hour 11]
 // Per spot: the nearest road point, cameras at 1.8 m looking along the road both ways (+ 30 deg toward the curb side).
 // Writes docs/v2/shots/art/<set>_<spot>_<k>_{a,b}.jpg and the pair docs/v2/shots/art/sheet_<set>_<spot>_<k>.jpg (q90).
@@ -25,6 +26,16 @@ for (const [tag, q] of [['a', o.a ?? ''], ['b', o.b ?? '']]) {
       await b.eval(`(() => { game.cameraOverride = null; game.teleport(${S.x}, undefined, ${S.z}, 0); return 1; })()`);
       await b.sleep(6000);
       for (let i = 0; i < 60; i++) { const n = await b.eval('(game.city?.streamer?.pending?.() ?? 0)'); if (n < 3) break; await b.sleep(1000); }
+      if (!cams[S.n] && o.bld) cams[S.n] = await b.eval(`(() => { // building-framed cameras: map buildings near the spot that match --bld (h range, zones), seen square-on from 24 m off their longest face
+        const D = game.miamiData, TS = D.tileSize || 200, [h0, h1] = ${JSON.stringify(String(o.bld).split(':')[0].split('-').map(Number))}, zr = new RegExp(${JSON.stringify(String(o.bld).split(':')[1] || '.')});
+        const out = [], seen = new Set();
+        for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) { const t = D.getTile(Math.floor(${S.x} / TS) + dx, Math.floor(${S.z} / TS) + dz); for (const b of (t && t.buildings) || []) {
+          if (seen.has(b.id) || !b.rings || b.rings[0].length > 12 || b.part || !(b.h >= h0 && b.h <= h1) || !zr.test(b.zone || '')) continue; seen.add(b.id);
+          const r = b.rings[0]; let best = null; for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (!best || L > best.L) best = { p, q, L }; }
+          if (!best || best.L < 10) continue; let cx = 0, cz = 0; for (const [x, z] of r) { cx += x; cz += z; } cx /= r.length; cz /= r.length;
+          const mx = (best.p[0] + best.q[0]) / 2, mz = (best.p[1] + best.q[1]) / 2; let nx = -(best.q[1] - best.p[1]) / best.L, nz = (best.q[0] - best.p[0]) / best.L; if ((mx - cx) * nx + (mz - cz) * nz < 0) { nx = -nx; nz = -nz; }
+          out.push({ d: Math.hypot(cx - ${S.x}, cz - ${S.z}), id: b.id, eye: [mx + nx * 24 + (best.q[0] - best.p[0]) / best.L * 6, 1.8, mz + nz * 24 + (best.q[1] - best.p[1]) / best.L * 6], look: [mx, Math.min(b.h * 0.45, 12), mz] }); } }
+        return out.sort((a, c) => a.d - c.d).slice(0, ${per}); })()`);
       if (!cams[S.n]) cams[S.n] = await b.eval(`(() => { const G = game.city?.roadGraph; let r = G?.nearestEdge?.(${S.x}, ${S.z}, {}, 300); if (!r || !r.point) return []; const p = r.point, d = r.dir || { x: 1, z: 0 }, w = (r.edge?.width || 8) / 2 + 1.5, out = [];
         for (const sg of [1, -1]) { const dx = d.x * sg, dz = d.z * sg, nx = -dz, nz = dx; const ex = p.x - dx * 4 + nx * w, ez = p.z - dz * 4 + nz * w; const c = Math.cos(0.5), s = Math.sin(0.5), lx = dx * c + nx * s, lz = dz * c + nz * s; out.push({ eye: [ex, 1.8, ez], look: [ex + lx * 30, 2.5, ez + lz * 30] }); }
         return out; })()`);

@@ -10,6 +10,7 @@
 //   window.__artReset()     clear the accumulators.
 (() => {
   const T = game.THREE;
+  if (game.lookRM === undefined) game.lookRM = true; // r2-look debug mode 2 (lookV.w = 2: roughness, metalness) is in look3.js since 13:10 Nov 17
   const s2l = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
   const cv = document.createElement('canvas'); cv.width = cv.height = 64; const cx = cv.getContext('2d', { willReadFrequently: true });
   const texCache = new Map();
@@ -87,6 +88,14 @@
       if (any) break;
       await new Promise((res) => requestAnimationFrame(() => setTimeout(res, 60)));
     }
+    // optional on-screen roughness / metalness (r2-look debug mode lookV.w = 2, advertised by game.lookRM): the shaded values after
+    // every map and shader patch (the static estimate misses remaps such as the kit's wood or the prop arrays)
+    let prm = null;
+    if (game.lookRM) {
+      prm = new Uint8Array(w * h * 4); LV[3] = 2;
+      try { r.setRenderTarget(rtA); r.setClearColor(0x000000, 0); r.clear(); r.render(sc, cam); } finally { r.setRenderTarget(null); LV[3] = 0; r.setClearColor(cc0, ca0); }
+      r.readRenderTargetPixels(rtA, 0, 0, w, h, prm);
+    }
     rtA.dispose();
     // ---- (1) ID pass (materials swapped only for the duration of one synchronous render; the scene's background, fog and
     // clear color are restored before anything else runs, so game frames never see the ID view) ----
@@ -129,12 +138,14 @@
       cnt.set(id, (cnt.get(id) || 0) + 1);
       let a = acc.get(id); if (!a) acc.set(id, (a = [0, 0, 0, 0]));
       if (pa[i * 4 + 3] > 0) { a[0] += pa[i * 4] / 255; a[1] += pa[i * 4 + 1] / 255; a[2] += pa[i * 4 + 2] / 255; a[3]++; }
+      if (prm && prm[i * 4 + 3] > 0) { a[4] = (a[4] || 0) + prm[i * 4] / 255; a[5] = (a[5] || 0) + prm[i * 4 + 1] / 255; a[6] = (a[6] || 0) + 1; }
     }
     const N = w * h;
     for (const [id, c] of cnt) {
       const e = S.byId[id - 1]; if (!e) continue;
       e.cover[tag] = (e.cover[tag] || 0) + c / N;
       const a = acc.get(id); if (a && a[3] > 4) e.scr[tag] = [a[0] / a[3], a[1] / a[3], a[2] / a[3], a[3]];
+      if (a && a[6] > 4) { e.rm = e.rm || {}; e.rm[tag] = [a[4] / a[6], a[5] / a[6]]; }
     }
     S.views.push({ tag, sky: sky / N, w, h, cam: [cam.position.x, cam.position.y, cam.position.z].map((v) => +v.toFixed(1)) });
     return { tag, mats: cnt.size, sky: +(sky / N).toFixed(3), calls, tries };
@@ -186,6 +197,7 @@
         color: col.map((v) => +v.toFixed(3)), vc: vc && vc.map((v) => +v.toFixed(3)), ic: ic && ic.map((v) => +v.toFixed(3)),
         mapName: mi?.name || '', mapRes: mi ? [mi.w, mi.h] : null, compressed: !!mi?.compressed,
         est: est.map((v) => +v.toFixed(3)), scr: scr && scr.map((v) => +v.toFixed(3)), lit,
+        scrRM: e.rm ? (() => { let r0 = 0, m0 = 0, wsum = 0; for (const [tg, v] of Object.entries(e.rm)) { const c = e.cover[tg] || 0; r0 += v[0] * c; m0 += v[1] * c; wsum += c; } return wsum ? [+(r0 / wsum).toFixed(3), +(m0 / wsum).toFixed(3)] : null; })() : null,
         rough: rough === null ? null : +rough.toFixed(3), roughMap: !!m.roughnessMap, metal: metal === null ? null : +metal.toFixed(3), metalMap: !!m.metalnessMap,
         normal: m.normalMap ? { scale: +(m.normalScale?.x ?? 1).toFixed(2), tilt: ni && ni.tilt != null ? +ni.tilt.toFixed(3) : null, res: ni ? [ni.w, ni.h] : null } : null,
         bump: m.bumpMap ? +(m.bumpScale ?? 1).toFixed(3) : null,

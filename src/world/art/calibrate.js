@@ -63,7 +63,9 @@ export function calibrate(m, { hint = '', cls = null, fallback = 'generic', vc =
   m.userData.artCal = rep;
   const snap = () => ({ color: m.color ? m.color.clone() : null, roughness: m.roughness, metalness: m.metalness, env: m.envMapIntensity, ns: m.normalScale ? m.normalScale.clone() : null, roughnessMap: m.roughnessMap || null });
   const orig = snap();
-  if (R.skip || m.emissiveMap || (m.emissive && Math.max(m.emissive.r, m.emissive.g, m.emissive.b) * (m.emissiveIntensity ?? 1) > 0.3)) return m;
+  // pure light sources (no base map, strong emissive) stay as they are; a textured surface with a night-window emissive map is
+  // still a surface by day (towers' curtain walls were skipped here and kept their exporter roughness / metalness)
+  if (R.skip || (!m.map && m.emissive && Math.max(m.emissive.r, m.emissive.g, m.emissive.b) * (m.emissiveIntensity ?? 1) > 0.3)) return m;
   const std = m.isMeshStandardMaterial;
   const metalLike = METALLIC.test(name);
   // ---- metalness: 0 or 1 (dielectric unless the class / name says bare metal) ----

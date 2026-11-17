@@ -99,11 +99,12 @@ export function buildShop(hk, s, lod = 0) {
   // side walls: two windows and a back door
   // r2-art (architectural depth): side walls were one blank slab with two windows. Now: a window every ~3.4 m on every floor,
   // the floor band and the cornice wrap the corner, downspouts with kick-outs at the back corners, a meter box + conduit
-  const nSide = Math.max(1, Math.floor((d - 1.0) / 3.4));
+  const ARTGEO_OFF = typeof location !== 'undefined' && /[?&]artgeo=0\b/.test(location.search); // before/after: the old two-window side walls
+  const nSide = ARTGEO_OFF ? Math.max(1, Math.floor(d / 5)) : Math.max(1, Math.floor((d - 1.0) / 3.4));
   for (const sx of [-1, 1]) {
     const ry = sx > 0 ? PI / 2 : -PI / 2, xw = sx * (w / 2 + 0.01);
-    for (let fl = 0; fl < s.stories; fl++) for (let k = 0; k < nSide; k++) { const z = z0 + (d / (nSide + 1)) * (k + 1); win(xw, fl * FL + (fl ? 0.9 : 1.1), z, 1.0, fl ? 1.5 : 1.3, ry, k + sx + fl * 5); }
-    if (L1) {
+    for (let fl = 0; fl < (ARTGEO_OFF ? 1 : s.stories); fl++) for (let k = 0; k < nSide; k++) { const z = z0 + (d / (nSide + 1)) * (k + 1); win(xw, fl * FL + (fl ? 0.9 : 1.1), z, 1.0, fl ? 1.5 : 1.3, ry, k + sx + fl * 5); }
+    if (L1 && !ARTGEO_OFF) {
       for (let fl = 1; fl < s.stories; fl++) box(STU, 0.12, 0.12, d + 0.1, sx * (w / 2 + 0.05), fl * FL + 0.05, 0, { color: trim, wear: 0.25 }); // floor band around the corner
       box(STU, 0.2, 0.2, d + 0.22, sx * (w / 2 + 0.06), h - 0.06, 0, { color: trim, wear: 0.25 }); // cornice return
       const zs = z0 + 0.25; box(MET, 0.08, h - 0.2, 0.08, sx * (w / 2 + 0.07), (h - 0.2) / 2 + 0.05, zs, { color: kit.mul(body, 0.8), wear: 0.4 }); // downspout

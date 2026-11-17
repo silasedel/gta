@@ -174,7 +174,17 @@ real geometry, sized like the real thing:
 | roof breakers | 30-60% of roofs | chimney, vent stacks, plumbing vents, antenna, satellite dish, solar water heater (Florida), AC curb units on flat roofs |
 | services | per building | AC condenser on a pad (houses) or wall units (walk-ups), meter box + conduit, hose bib, downspouts |
 | silhouette | | nothing is a perfect box above the eave line: break the roofline every 10-20 m on long buildings |
+| balconies (residential mid-rise / condo) | slab 0.15-0.2 m, depth 1.2-1.8 m, rail 1.0-1.07 m | stacked per bay on the long faces; glass or picket rail with a handrail, never a painted stripe |
+| one-story commercial | parapet 0.6-1.0 m | coping, roof vents / AC curbs behind it; a flat box with no parapet reads unfinished |
 
 Weathering follows the geometry: streaks start under sills, coping and AC units; dirt collects where water splashes, at
 the base and on the leeward side. Detail density falls with distance (near / mid / far LOD); the far LOD keeps only the
 silhouette (roof shape, parapet, big masses).
+
+## 6. Proof that it is one style
+- The audit report has a **library vs code-built** table per material class, coverage-weighted. The style is one style when, for every
+  class seen on screen, library and code-built agree within 0.5 stop of albedo and 0.12 of roughness. Roughness and metalness are
+  measured as rendered (r2-look debug mode 2), so shader remaps count.
+- Before / after sheets put a library model next to procedural geometry in the same frame. The test: someone who didn't build it can't point out which is which.
+  - `node tools/v2/art/sheets.mjs`: calibration on/off, in session.
+  - `node tools/v2/art/ab.mjs --a "&artgeo=0"`: geometry, two page loads.

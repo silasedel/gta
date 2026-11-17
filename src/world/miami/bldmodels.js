@@ -289,7 +289,7 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       if (g && !mat0.map) mat0.color.lerp(new THREE.Color(0x6f7f8c), 0.6); // dielectric window glass, a little blue-gray (dark: the env reflection does the rest)
       mat0.envMapIntensity = g ? 1.3 : 0.8;
       for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap']) if (mat0[k] && mat0[k].anisotropy < 8) { mat0[k].anisotropy = 8; mat0[k].needsUpdate = true; } // glTF default 1: facades smeared at street-level grazing angles
-      calibrate(mat0, { hint: 'buildings/' + name, cls: g && !mat0.map ? 'glass' : null, fallback: 'building', lift: m.tint !== 'glass' });
+      calibrate(mat0, { hint: 'buildings/' + name, cls: g && !mat0.map ? 'glass' : m.tint === 'glass' && /facade|building|tower|body|curtain/i.test(mat0.name || '') ? 'building' : null, /* a glass tower's 'Building Facade' atlas IS its curtain wall: not stucco */ fallback: 'building', lift: m.tint !== 'glass' });
     }
     const mat = cond ? trackClone(mat0.clone(), mat0) : mat0;
     if (mat.transparent || mat.alphaMode === 'BLEND') { mat.transparent = false; mat.depthWrite = true; mat.opacity = 1; mat.alphaTest = mat.map ? 0.5 : 0; }
