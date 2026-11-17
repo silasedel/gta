@@ -971,7 +971,7 @@ export function createPost(game) {
       U.uNear.value = camera.near; U.uFar.value = camera.far;
       U.uBlendRest.value = game.renderTaaRest ?? 0.08;
       U.uDisocc.value = game.renderDisocc === true ? 1 : 0; // off: the depth test still misfired on textured ground at rest (ablation abl1: 3x the frame-to-frame noise); velocity + clipping handle ghosting
-      U.uBoxMix.value = game.renderBoxMix ?? 0.5;
+      U.uBoxMix.value = game.renderBoxMix ?? 0.2; // r2-render: 0.5 let wind-moved leaves (no motion vectors) keep a smudged history (r2-veg: shrubs as blurry balls)
       U.uReset.value = reset ? 1 : 0;
       reset = false;
       quad.material = taaMat3;
