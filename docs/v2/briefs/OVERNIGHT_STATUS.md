@@ -7,6 +7,7 @@
 
 
 ## keys
+- 01:05 Pass 1 in: (1) flicker: the "dotted wobbling" was the peeling-paint shader's 0.05-wide flake edge aliasing into crawling dots at distance (TAA jitter); now fwidth-aware (kit.js, applies to every generated house too). (2) Nico's yard by hand, `src/world/setpieces/nicoHouse/yard.data.js` + part 55: lattice planter with bougainvillea, curb bins (user's bin set), all-way STOP at the T, poles + sagging wires, red roll-off (user's Dumpster 3, textures wired), limestone rocks (user's Rock 2), pallets/drywall/lumber/chairs/cooler, ruts, leaf litter, puddles that grow after rain; car spots for `spawnParked` (the lifted pickup already shows up). (3) Dock = the user's modular pier kit (Dock 6) from the stair foot past the real waterline, posts extended to the sea bed, T-head with hoist frame, rowboat + skiff on lines; seawalls only where water really is. (4) 8 hand-placed neighbor cottages (`src/world/dressing/keysStreet.data.js`) + 5 bay-shore docks (mossy pier, clean pier, boathouse). Mangroves moved onto the shore fringe (no roots in the air). Shots: `docs/v2/shots/keys/k2_deck.png`, `k2_deck2.png`, `k3_dock.png`. Next: verify neighbors/docks, stray flat polygons near the east shore, flicker A/B, perf A/B (`?keys=0`).
 - 00:20 House spot checked: the house, its anchors and the player spawn are all at the layout.json spot (-873.6, 4825.2, heading 1.057); probe `docs/v2/reports/keys-k0-probe.json`. The stale (-836, 5272) was only in test tools: fixed in furniture-audit, road-audit, veg-audit, veg-perf, roads/mkspots.mjs, roads/spots/ground.json (keys2 moved by the same offset to (-937.6, 4883.2)). The last two are untracked (roads helper's files), edited in place, not committed by me. Added `anchors.front` (yard, facing the house) so s1-tour `house` lands in the yard. STAGE1_AGENT_NOTES.md and CONVENTIONS.md still say (-836, 5272): lead please update. New tool: `node tools/v2/keys/shots.mjs --set X` (cameras in house-local coordinates, `tools/v2/keys/spots.json`).
 - 00:20 Baseline shots: `docs/v2/shots/keys/k0_{deck,front,aerial,back,dock,top}.png` (deck view 22 ms, 675 draw calls).
 
@@ -42,6 +43,7 @@
   Review sheets in progress; not yet verified in game.
 
 ## props
+- 01:00 built (not yet verified in game): 12 new library props converted (tools/v2/street-models/build_props.sh: curbside cart, cone, channelizer, flex bollard, ROAD CLOSED barricade, jersey barrier, roll-off dumpster [company name + phone repainted], site cabin, tarp crates, plastic chair/table, commercial bin); texture-array variants for 8 repeated props (variants.py -> public/assets/models/street/var/, 4-10 layers each: recolors, graffiti removed/moved/new tags, stickers, house numbers, rust, fade); src/world/props/{variants,dynamicProps,propShapes,lotProps}.v2.js; per-house mailbox + carts (lotProps) replace the code-built ones; keysLane no longer sprinkles mailboxes; hydrants only on curbed streets, one side, 90-150 m; benches only at stops / parks / beach; work zones + tower construction sites. NOTE for lead: 3 small guarded hooks outside my files (houses/generator.js yard curb spots, houses/houses.v2.js lotProps add/remove, dressing/dressing.v2.js spawn-street mailbox/bins -> lotProps; rng sequence kept, ?lotprops=0 restores the old boxes).
 - 00:20 started: read briefs + user shots; inventory of street GLBs/textures; plan = texture-array variants per prop (per-instance variant/brightness/fade in instanceColor), per-house mailbox/bin placement, Rapier push/knock props (src/world/props/), construction sites with library cones/barriers.
 
 ## intake
@@ -138,3 +140,44 @@
     140 m, height +-3 %, slight tint), hooked into `game.npc.createPed` (archetypes stay as fallback, `?people=0` = off),
     `game.npc.createCop` used by `src/gameplay/police.js` (foot cops + cop drivers), `game.npc.spawnPosed({ place: 'cashier'|
     'kitchen'|'bar'|'hotel'|'lifeguard'|'dock'|... })` gives staff from the user's people.
+
+## weapons
+- 00:20 **All 24 weapon models (+ the new Machete 1) converted** from Models/Weapons with Blender (`tools/v2/weapons/build.sh`,
+  config `weapons.json`, converter `convert.py`, scripts OFF): real scale (pistols 18-27 cm, rifles 88-118 cm, bats 84 cm),
+  +Z barrel, origin at the grip, muzzle / eject / sight / left-hand points, slide + magazine nodes (service + heavy pistol),
+  1K WebP PBR (base, normal, packed AO/rough/metal), 2-16k tris; brand / serial engravings painted out (USP, Desert Eagle /
+  Magnum Research, MK2 / serial, BW-01). `public/assets/weapons/*.glb` + `manifest.json` (13 MB total, loaded on demand).
+  Review sheets: `docs/v2/shots/weapons/lib_lab_pistols.png`, `lib_lab_rifles.png`, `lib_lab_melee.png`
+  (viewer `src/gameplay/gunLibSheet.html`).
+- 00:30 In progress: wiring (gunModels.js LIB table: every gun / bat / crowbar key is a library model; new keys compactpistol,
+  slimpistol, chromepistol, snspistol, tacpistol, heavypistol, assaultrifle, specialrifle, tacrifle, battlerifle, lmg, nailbat,
+  machete), new hand holding `src/gameplay/gunHold.js` (2-bone arm IK, hand frame from finger bones, finger curl, rifles
+  shouldered, low ready, two-handed pistol grip), GTA-style pickups (real model turning above the ground, rim glow, no beams).
+  Tiny shared edit: `src/gameplay/police.js` visualUnit calls holdWeapon (3 lines, not committed by me: that file has other
+  helpers' changes in it).
+
+## vegetation
+- **API for keys / set pieces:** `game.vegetation.place(kind, x, z, { ry, s, y, model, keepY })` -> `{ remove() }`. kind = species
+  group (`royal, coconut, coconut_bent, date, queen, sabal, palm_mix, banyan, liveoak, oak, buttonwood, shade, gumbo, poinciana,
+  mangrove, pine, hedge, shrub, seagrape, bougainvillea, hibiscus, oleander, flowers, fern, agave, red_grass, tropical_bed, potted,
+  grass_tuft`) or a model key from `src/world/vegetation/species.js` (e.g. `poinciana`, `bent_c`, `potted_ficus`). Placed plants are
+  grounded (lowest ground under the footprint, base sunk a little; give `keepY: true` + `y` for planters / decks), batched into one
+  instanced field per model. `game.vegetation.block(x, z, r)` or `block({ x0, z0, x1, z1 })`: nothing grows there (docks, pads);
+  plants also never stand where a static collider sits above the ground (docks, decks, piers), checked by a ray per tree / shrub.
+- 00:40 **All trees / plants now come from the user's Models/Trees + Models/Plants.** New pipeline `tools/v2/vegetation/`
+  (`build.sh`, `convert.py`, `species.json`; Blender 5.2 headless, `--factory-startup --disable-autoexec`, scripts in the .blend
+  never run): 49 models -> `public/assets/models/vegetation/<key>.glb` (LOD0, WebP textures) + `<key>_lod1.glb`, meters, base
+  at the origin, multi-tree files split into variants (oak trio, coconut trio, 5 bent palms, 2 weathered palms, 3 pines,
+  2 pale oaks, 3 ferns, 2 flower bushes), leaf cards thinned (whole cards dropped, kept cards grown), bark decimated / twigs
+  pruned, alpha bled into transparent texels (no halos), every texture HSV-graded toward one palette (green texels only:
+  bark, flowers, fruit keep their colors). Recolors: poinciana (red bloom on 70 % of the gnarled oak's leaf cards),
+  bougainvillea (magenta) and hibiscus (red) blooms on the library bushes. Report: `tools/v2/vegetation/report.json`.
+  Sheets: `docs/v2/shots/vegetation/overnight/lib_*.png` (coming). Shader (`materials.js`): per-instance mirror, trunk twist,
+  S-bend, crown spread, frond droop, hue / saturation / brightness jitter, impostors mirrored to match.
+- Not usable / left out: Palm Tree 10 (textures not linked in the file), Oak Tree 2 (flat-card low quality), Rubber Fig
+  (leaves render black, kept in the registry hidden), Red Mangrove 2's stilt roots (break when decimated: its crown is used
+  as buttonwood; the mangroves are Mangrove Tree 1 with stilt roots), Flower 1 (single stem), the Tree Pack background cards.
+  Cypress has no library model: still procedural. Grass Clump 1 is used as tufts around tree bases; Moss 1 not yet.
+
+## player
+- 00:50 **Nico is now the user's own model** (Models/Main Character 1, Tripo; folder 2 is byte-identical geometry and textures, so folder 1 is used). Rigged onto the game skeleton (52 Mixamo-named joints, bone-heat weights, LOD 95k / 24k / 7k tris), 4K albedo + normal + matte roughness, 1.83 m. Every existing clip retargets onto it at load. `?nico=old` = pipeline Nico. Build: `tools/v2/player/build.sh`. Shots: `docs/v2/shots/player/t1_face.png`, `t1_side.png`, `t1_walk.png`. Next: clear test spot, hit zones, capsule, foot IK test.
