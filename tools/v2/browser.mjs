@@ -19,7 +19,7 @@ import os from 'node:os';
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const LOCK_DIR = path.join(os.tmpdir(), 'port-solana-v2-browser');
-const SLOTS = 3;
+const SLOTS = 2;   // 3+ headless Chromes with ~12 helpers overloaded the machine (load ~400) and crashed it (Nov 17 12:35)
 const STALE_MS = 50 * 60 * 1000;   // a live owner keeps its slot (12 min let long runs lose it, so 4+ Chromes ran at once)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
