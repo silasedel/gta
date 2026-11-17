@@ -61,7 +61,7 @@ export function build(ctx) {
     } }
   // carport slab: old broom-finished concrete with a crack line and oil stains
   const SLAB = mat.pbr('scuffed_cement', { rep: 2.2, gain: 2.0, grunge: true });
-  for (const [cx, cz, sx, sz] of [[0.6, 0.6, 2.75, 7.4], [3.4, 0.6, 2.75, 7.4], [6.15, 0.6, 2.7, 7.4], [3.4, 6.15, 8.3, 3.6]]) B.box(SLAB, sx - 0.02, 0.1, sz - 0.02, M(cx, 0.0, cz), { color: kit.vary(0xbdb8aa, r, 0.05), wear: 0.9, bevel: 0.012, rand: r });
+  for (const [cx, cz, sx, sz] of [[0.6, 0.6, 2.75, 7.4], [3.4, 0.6, 2.75, 7.4], [6.15, 0.6, 2.7, 7.4], [3.4, 6.15, 8.3, 3.6]]) B.box(SLAB, sx - 0.004, 0.1, sz - 0.004, M(cx, 0.0, cz), { color: kit.vary(0xbdb8aa, r, 0.05), wear: 0.9, bevel: 0.012, rand: r });
   // ---------- seawalls ----------
   const SW = mat.concrete({ marine: true });
   const wall = (ax, az, bx, bz) => { const len = Math.hypot(bx - ax, bz - az), n = Math.ceil(len / 4.9), ry = Math.atan2(-(bz - az), bx - ax);

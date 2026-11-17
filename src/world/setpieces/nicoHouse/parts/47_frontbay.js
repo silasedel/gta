@@ -40,7 +40,7 @@ export async function build(ctx) {
     [-1.55, 1.3, 1.9, 7.4],
   ];
   for (const [cx, cz, sx, sz] of panels) {
-    B.box(SLAB, sx - 0.02, 0.1, sz - 0.02, M(cx, 0.003 + rs(0.004), cz, rs(0.002), 0, rs(0.002)), {
+    B.box(SLAB, sx + 0.035, 0.1, sz - 0.004, M(cx, 0.003 + rs(0.004), cz, rs(0.002), 0, rs(0.002)), {   // panels butt together (the open joints showed the dark ground as a black line and let grass through)
       color: V(0xe2e0da, 0.04),
       wear: 0.95,
       bevel: 0.012,
@@ -95,7 +95,7 @@ export async function build(ctx) {
   crack([[-2.4, 3.2], [-1.9, 3.4], [-1.3, 3.0]]);
   crack([[-4.7, -1.5], [-4.2, -1.0], [-3.9, -1.3]]);
   // weeds in the saw cuts and along the slab edge
-  fb.weeds = [[-4.82, 4.9], [-2.6, 4.95], [-6.95, 3.4], [-6.9, -0.6], [-0.5, 4.95], [-4.82, 2.9]];
+  fb.weeds = [[-6.95, 3.4], [-6.9, -0.6], [-0.5, 4.95]];   // only along the outer slab edge: nothing grows through the slab
   col.box(-3.8, -0.02, 0.9, 6.4, 0.1, 8.2, { tag: 'ground', surface: 'concrete' });
 
   // ---------- heavy piers: concrete-sleeved piles, peeling white paint, grime at the foot ----------
