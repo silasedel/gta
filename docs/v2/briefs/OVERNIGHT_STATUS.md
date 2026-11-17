@@ -1218,3 +1218,8 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - Repro tool: `tools/v2/mapui/spawn-map-check.mjs <tag> <n>` fails the first n world.json fetches. Before (4 failures): blue minimap and pause map, "MIAMI". After (1 failure, retried): full minimap, Pelican Point Ln, Key Largo.
   - Sheet: `docs/v2/shots/r2-mapui/sheet_spawn_minimap.jpg`.
   - The play server on 5202 runs without a file watcher, so it serves the old city.js until it is restarted.
+- 13:55 **Verification sheets** (`?artgeo=0` vs default, eye level plus 2x center crops): `docs/v2/shots/art/sheet_geo2_edgewater_*.jpg`, `sheet_geo2_mbres_*.jpg`.
+  - Edgewater: the giant pyramid over a two-story box is now a hip roof with eaves and fascia. No z-fighting and no floating parts in the crops.
+  - Both loads boot with a clean console.
+  - Follow-up (tilebuild): the hip pitch is now ~28° (0.21 read as a flat lid), and the roofs are weathered asphalt shingle or barrel tile instead of the pale roof-slab tint.
+  - Debug counters `__artGeo` (balc / eyebrow / fins / hip) confirm in game which buildings got each detail.
