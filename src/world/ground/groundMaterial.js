@@ -36,7 +36,7 @@ export function makeGroundMaterial(renderer, o = {}) {
       GS a = gRecipe(0, wp, gdx, gdy, gWantN); GS b = a;
       float wb = 0.0;
       if (gr > 0.01) { b = gRecipe(1, wp, gdx, gdy, gWantN); float ta = 1.0 - gr + a.h * 0.5, tb = gr + b.h * 0.5, mx = max(ta, tb) - 0.2; ta = max(ta - mx, 0.0); tb = max(tb - mx, 0.0); wb = tb / (ta + tb); }
-      vec3 alb = mix(a.alb, b.alb, wb) * mix(0.9, 1.08, gF(wp * 0.05 + 2.0)) * rel;
+      vec3 alb = gKeysGrade(mix(a.alb, b.alb, wb) * mix(0.9, 1.08, gF(wp * 0.05 + 2.0)) * rel, wp); // ground pass: same Keys grade as the terrain
       float tRough = mix(a.rough, b.rough, wb) * mix(0.8, 1.0, smoothstep(0.6, 0.9, rel));
       vec2 gTilt = mix(a.tilt, b.tilt, wb);
       diffuseColor.rgb *= alb * mix(1.0, mix(a.ao, b.ao, wb), 0.65);`)
@@ -74,7 +74,7 @@ export function patchRecipeGround(mat, renderer, keys = ['scrub', 'lawn', 'dirt'
       float wb = smoothstep(${m0.toFixed(3)}, ${m1.toFixed(3)}, n + (b.h - a.h) * 0.25);
       vec3 alb = mix(a.alb, b.alb, wb); float tRough = mix(a.rough, b.rough, wb), tAo = mix(a.ao, b.ao, wb); vec2 gTilt = mix(a.tilt, b.tilt, wb); float th = mix(a.h, b.h, wb);
       ${NC > 2 ? `{ float nd = gF(wp * 0.043 + 9.0); float wd = smoothstep(0.66, 0.84, nd + (0.5 - th) * 0.3); if (wd > 0.0) { GS d = gRecipe(2, wp, gdx, gdy, gWantN); alb = mix(alb, d.alb, wd); tRough = mix(tRough, d.rough, wd); tAo = mix(tAo, d.ao, wd); gTilt = mix(gTilt, d.tilt, wd); } }` : ''}
-      alb *= mix(0.86, 1.1, gF(wp * 0.0095)) * mix(0.94, 1.05, gN(wp * 0.0023 + 5.0));
+      alb *= mix(0.86, 1.1, gF(wp * 0.0095)) * mix(0.94, 1.05, gN(wp * 0.0023 + 5.0)); alb = gKeysGrade(alb, wp);
       diffuseColor.rgb *= alb * mix(1.0, tAo, 0.65);`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = clamp(tRough, 0.04, 1.0);')
       .replace('#include <normal_fragment_maps>', /* glsl */`{

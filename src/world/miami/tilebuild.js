@@ -2801,7 +2801,7 @@ export function createTileBuilder(ctx) {
     if (!synth && D && D.isSliver && !GC_OFF) yield* sliverFill(B, X0, Z0, T0);
     if (terrain) airportMarks(B, X0, Z0, T0);
     if (synth) { const tr = yield* terrain.gridGen(X0, Z0, X0 + T0, Z0 + T0, 4, { skirt: tile.relief ? 4 : 0.8 }); if (tr) { const m = new THREE.Mesh(tr.geometry, terrain.nearMat); m.name = 'terrain'; m.receiveShadow = true; m.castShadow = !!tile.relief; m.matrixAutoUpdate = false; m.updateMatrix(); group.add(m); } yield; }
-    exitVisuals(B, tile);
+    exitVisuals(B, tile, GM_ON && synth); // ground pass: on terrain coasts the terrain draws the beach (damp / wet bands, foam lace, irregular waterline); no straight sand slabs / skirts
     if (t.x0 !== undefined) { // visual lawn index (3D grass follows what is drawn: lawn rings minus raised sidewalks)
       const bb = (r) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of r) { a = Math.min(a, x); b = Math.min(b, z); c = Math.max(c, x); d = Math.max(d, z); } return [a, b, c, d]; };
       const lawns = (tile.areas || []).filter((a) => (a.kind === 'grass' || a.kind === 'park') && (!a.cls || LAWN_CLS.has(a.cls))).map((a) => ({ rings: a.rings, bb: bb(a.rings[0]) }));
@@ -2953,13 +2953,13 @@ export function createTileBuilder(ctx) {
       if (b.empty) continue;
       const g = new THREE.BufferGeometry();
       // copy the big JS arrays into typed arrays in slices (one-shot Float32BufferAttribute(array) took ~10 ms per attribute in the browser)
-    if (GM_ON) { const mp = []; for (const it of [...(props.palm || []), ...(props.tree || [])]) { if (!it || it.cs || (it.y || 0) > 0.1) continue; const z0 = String(zoneAt(it.x, it.z) || ''); if (!URBAN_Z.test(z0) && !/park/.test(z0)) continue; mp.push([it.x, it.z, 0.75 + hash(((it.x * 7) | 0) + ((it.z * 3) | 0)) * 0.5]); } if (mp.length) GMASK.registerPoints(group, mp); } // ground pass: mulch rings at street / park trees (terrain draws them)
       for (const [name, src, k] of [['position', b.p, 3], ['normal', b.n, 3], ['uv', b.uv, 2], ['color', b.c, 3]]) {
         const out = new Float32Array(src.length);
         for (let i0 = 0; i0 < src.length; i0 += 60000) { const i1 = Math.min(src.length, i0 + 60000); for (let i = i0; i < i1; i++) out[i] = src[i]; yield; }
         g.setAttribute(name, new THREE.BufferAttribute(out, k));
       }
       if (b.fx) { // facade batch: the four per-vertex facade vec4s (layer, bays, window type, glass ...) as one interleaved buffer
+    if (GM_ON) { const mp = []; for (const it of [...(props.palm || []), ...(props.tree || [])]) { if (!it || it.cs || (it.y || 0) > 0.1) continue; const z0 = String(zoneAt(it.x, it.z) || ''); if (!URBAN_Z.test(z0) && !/park/.test(z0)) continue; mp.push([it.x, it.z, 0.75 + hash(((it.x * 7) | 0) + ((it.z * 3) | 0)) * 0.5]); } if (mp.length) GMASK.registerPoints(group, mp); } // ground pass: mulch rings at street / park trees (terrain draws them)
         const fx = new Float32Array(b.p.length / 3 * 16);
         for (let i0 = 0; i0 < b.fx.length; i0 += 120000) { const i1 = Math.min(b.fx.length, i0 + 120000); for (let i = i0; i < i1; i++) fx[i] = b.fx[i]; yield; }
         const ib = new THREE.InterleavedBuffer(fx, 16);

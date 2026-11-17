@@ -107,6 +107,15 @@ vec3 gGrade(vec3 c, float k, float lush, vec2 wp) {
   vec3 g = lum * ramp * mix(0.98, 0.72, lu) * mix(0.88, 1.08, gN(wp * 0.31 + 1.7)) * mix(0.9, 1.06, gF(wp * 0.15 + 2.2)); // straw is brighter than lush green
   return mix(c, g, k);
 }
+// ground pass: the Keys are pale coral / limestone country (off-white, gray-beige sand, gray-green weeds), not orange
+vec3 gKeysGrade(vec3 c, vec2 wp) {
+  float k = smoothstep(4150.0, 4500.0, wp.y); if (k <= 0.0) return c;
+  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  vec3 g = vec3(l) * vec3(1.03, 1.0, 0.93);
+  vec3 d = mix(c, g, 0.58);
+  d *= mix(1.0, 1.16, smoothstep(0.18, 0.45, l)); // pale sand / limestone reads light
+  return mix(c, d, k);
+}
 struct GS { vec3 alb; vec2 tilt; float ao; float rough; float h; float wet; float shore; };
 GS gRecipe(int i, vec2 wp, vec2 dx, vec2 dy, bool wantN) {
   vec4 A = uRA[i], B = uRB[i], C = uRC[i], D = uRD[i];
@@ -168,6 +177,7 @@ export function patchGround(mat, lod, opts, tex, U) {
       // macro variation over everything: brightness and hue drift at 40-400 m (aerial views never read as one flat color)
       vec3 alb = gs.alb * mix(0.86, 1.1, gF(wp * 0.0095)) * mix(0.94, 1.05, gN(wp * 0.0023 + 5.0));
       alb *= mix(vec3(1.0), vec3(1.05, 1.0, 0.9), smoothstep(0.55, 0.85, gN(wp * 0.0041 + 9.0)) * 0.7);
+      alb = gKeysGrade(alb, wp);
       if (gdC < 32.0) { // ground pass: close-range micro detail (dominant layer at 3.7x frequency, luminance only): crisp grit at the feet, no blur
         float dL = uRA[c0].x, dS = uRA[c0].y * 3.7; vec4 dcol = gHexC(dL, wp * dS + 0.71, gdx * dS, gdy * dS);
         float dAvg = dot(textureLod(tGC, vec3(0.5, 0.5, dL), 12.0).rgb, vec3(0.333)), dR = clamp(dot(dcol.rgb, vec3(0.333)) / max(dAvg, 0.02), 0.55, 1.5);

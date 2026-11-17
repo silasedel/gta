@@ -19,8 +19,8 @@ export function createOcean(game, skyUniforms, normalsTex) {
     uTime: { value: 0 },
     uWindOff: { value: new THREE.Vector2() },
     uWindChop: { value: 1 },
-    uDeep: { value: new THREE.Color(0.007, 0.070, 0.062) },
-    uShallow: { value: new THREE.Color(0.09, 0.47, 0.37) },
+    uDeep: { value: new THREE.Color(0.005, 0.05, 0.1) }, // ground pass: deep water reads blue (reference aerial), shallows turquoise / cyan
+    uShallow: { value: new THREE.Color(0.05, 0.52, 0.55) },
     uAmbient: { value: new THREE.Color(0.3, 0.3, 0.35) },
     uSunCol: { value: new THREE.Color(1, 1, 1) },
   }]);
@@ -75,6 +75,8 @@ export function createOcean(game, skyUniforms, normalsTex) {
         return art;
       }
       vec3 nrm( vec2 uv ) { return texture2D( tNormal, uv ).xyz * 2.0 - 1.0; }
+      float oH( vec2 q ) { return fract( sin( dot( q, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
+      float oN( vec2 q ) { vec2 i = floor( q ), f = fract( q ); f = f * f * ( 3.0 - 2.0 * f ); return mix( mix( oH( i ), oH( i + vec2( 1.0, 0.0 ) ), f.x ), mix( oH( i + vec2( 0.0, 1.0 ) ), oH( i + vec2( 1.0, 1.0 ) ), f.x ), f.y ); }
 
       void main() {
         vec3 toEye = cameraPosition - vWorld;
@@ -113,7 +115,17 @@ export function createOcean(game, skyUniforms, normalsTex) {
         float sunUp = smoothstep( -0.05, 0.05, L.y );
         float shallow = pow( 1.0 - smoothstep( 0.0, 125.0, shoreM ), 1.7 ); // turquoise shallows easing into deep teal-blue
         vec3 body = mix( uDeep, uShallow, shallow );
-        body = mix( body, vec3( 0.34, 0.60, 0.46 ), ( 1.0 - smoothstep( 0.0, 16.0, shoreM ) ) * 0.55 ); // sand showing through at the beach
+        // ground pass: the bottom shows through the shallows - bright sand flats and dark seagrass beds in patches, sand right at the beach
+        {
+          float bn = oN( p / 90.0 ) * 0.6 + oN( p / 31.0 + 3.7 ) * 0.3 + oN( p / 9.0 ) * 0.1;
+          float grass = smoothstep( 0.5, 0.62, bn ) * smoothstep( 6.0, 22.0, shoreM );
+          vec3 bottom = mix( vec3( 0.42, 0.74, 0.68 ), vec3( 0.04, 0.17, 0.13 ), grass );
+          float see = pow( 1.0 - smoothstep( 0.0, 70.0, shoreM ), 1.4 );
+          body = mix( body, bottom, see * 0.75 );
+          // caustic shimmer over the sand
+          float ca = texture2D( tNormal, p / 2.3 + t * vec2( 0.05, 0.03 ) ).r * texture2D( tNormal, p / 3.1 - t * vec2( 0.04, 0.06 ) ).g;
+          body += vec3( 0.06, 0.09, 0.08 ) * smoothstep( 0.25, 0.45, ca ) * see * ( 1.0 - grass ) * sunUp;
+        }
         vec3 amb = mix( uAmbient, vec3( dot( uAmbient, vec3( 0.3333 ) ) ), 0.65 ); // sky light without the blue cast: water keeps its green-teal body
         body *= 0.80 + 0.40 * smoothstep( -0.5, 0.5, n.x + n.y ); // wave facets read from the air
         float diff = max( dot( N, L ), 0.0 );
@@ -138,13 +150,17 @@ export function createOcean(game, skyUniforms, normalsTex) {
           col = mix( col, uAmbient * 1.1 + uSunCol * 0.45 * sunUp * max( L.y, 0.15 ), foam * 0.85 );
         }
 
-        gl_FragColor = vec4( col, 1.0 );
+        // ground pass: the last metres are see-through (the wet sand slope under the water shows), with a wavering, irregular waterline
+        float lap = ( texture2D( tNormal, p / 7.0 + t * 0.03 ).g - 0.5 ) * 2.0;
+        float alphaW = mix( 0.35, 1.0, smoothstep( 0.0, 5.0 + lap * 1.5, shoreM ) );
+        gl_FragColor = vec4( col, uHasShore > 0.5 ? alphaW : 1.0 );
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         #include <fog_fragment>
       }`,
     // push the ocean slightly back in depth so land just above sea level never z-fights with it far away
     polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 6,
+    transparent: true, depthWrite: true, // ground pass: see-through waterline (drawn first of the transparent pass: renderOrder -5)
   });
 
   const SIZE = 60000;
