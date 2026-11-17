@@ -52,7 +52,32 @@ Open (carried into job 3 where the world is rebuilt):
 - Wet-ground screen-space reflections (post pass, only while wet): lights and buildings mirror in wet streets.
 - Wind: existing `game.wind` already strengthens with game.weather rain/storm (palms and grass sway more).
 - fps at the test street: 58-60 in every weather.
-## Job 3..7 — not started
+## Job 3: map rebuild and trace — core DONE, polish in progress
+- New map traced from `map_roads_target.webp` at 11 m/px (island ~9.8 x 14.5 km, about 7x smaller): `tools/v2/map3/`.
+  442 km of roads (3381 edges), 337 bridges, 11k buildings, land/water/beach/forest/swamp from the colour map, real
+  South Florida district names, Miami-style numbered streets downtown, named highways (Overseas Highway US-1 ...).
+- Runtime data built by `tools/osm/merge.py` in a new no-OSM mode (`MIAMI_NO_OSM=1`): no real-Miami data any more.
+- **Overlay test PASS:** recall 97.2 %, precision 98.4 % within 16 m (`docs/v2/shots/stage1/JOB3_overlay.png`).
+- Nico's house on a waterfront lot in Key Largo (Pelican Point Ln); the player spawns in the yard.
+- Title shots, intros, police stations moved to the new map; downtown/business/nightlife/port zones from districts.
+- Open: the user is providing a detailed Key Largo image (highway + dirt roads, new house spot) -> retrace that area;
+  5-minute drive test (`tools/v2/drive-test.mjs`) after the road / building passes land.
+
+## Job 4: road system — in progress
+- Rule-based controls: 1044 signalized junctions, 1109 stop approaches; AI traffic stops at reds (41 red approaches,
+  0 runs in a 70 s downtown sample) and stop signs. STOP and SPEED LIMIT (mph) signs from the graph (instanced).
+- Helper pass running: merged junction polygons, curb returns, crosswalks per approach, markings, textures.
+- Next: traffic lights / lamps / signs from the user's models (after the road pass).
+
+## Job 5: buildings and dressing — in progress (helper passes: buildings, greenery)
+## Job 6: HUD — in progress (helper pass)
+## Job 7: CONVENTIONS.md — first version written (`docs/v2/CONVENTIONS.md`)
+
+## Performance work so far
+Merged bridge decks per tile (-170 draw calls in the Keys), unstuck check at 5 Hz (-2 ms), AI full-physics radius
+95 m, dynamic shadow map at half rate, detail culling. Steady state (loaded M3 Max): spawn ~30 fps, Downtown ~47,
+Clewiston ~41, Miami Beach ~52. Still CPU/draw-call bound at the Keys spawn (set pieces: Nico's house ~180 calls,
+neighbor houses ~140, NPC characters are expensive: ~80 us per draw).
 
 ## Notes for the user / next stages
 - This account is on the Ultra plan; weekly usage was 0% after the first hours.
