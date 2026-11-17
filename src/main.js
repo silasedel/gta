@@ -192,7 +192,8 @@ async function boot() {
     const water = c?.isWater ? c.isWater(t.x, t.z) : t.x > SEA_X - 2 && Math.abs(t.z) <= 520;
     if (!water) { L.depth = 0; return; }
     const hit = world.castRay(new RAPIER.Ray({ x: t.x, y: t.y, z: t.z }, { x: 0, y: -1, z: 0 }), 12, true, STATIC_ONLY, undefined, pCol);
-    const seabed = c?.groundHeightAt ? c.groundHeightAt(t.x, t.z, t.y) : t.y - 8;
+    let seabed = c?.groundHeightAt ? c.groundHeightAt(t.x, t.z, t.y) : t.y - 8;
+    { const sb = c?.seabed?.heightAt?.(t.x, t.z); if (Number.isFinite(sb)) seabed = Math.max(seabed, sb); } // r2-water: the drawn seabed (r2-ground) is the floor in the shallows
     L.groundY = hit ? Math.max(t.y - hit.timeOfImpact, Number.isFinite(seabed) ? seabed : -20) : (Number.isFinite(seabed) ? seabed : t.y - 8);
     L.depth = Math.max(0, seaLevel(game) - L.groundY);
   }
@@ -319,7 +320,9 @@ async function boot() {
       if (!diveIn && !upIn && !fwdIn) dv = (L.dive || 0) > 0.3 ? -0.35 : -0.9;    // gently float up when idle underwater
       L.dive = Math.min(maxDive, Math.max(0, (L.dive || 0) + dv * dt));
       if (!L.swimHintShown) { L.swimHintShown = true; try { game.hud?.notify?.('Swimming: look down + W or hold C to dive · Space to surface · swim into a dock or wall to climb out', 6000); } catch (e) {} }
-      const targetY = Math.max(L.groundY + 0.4, SEA - 1.25 - L.dive + (L.dive > 0.05 ? 0 : bob)) + CENTER;
+      // r2-water: float on the drawn swell (game.waves, once the ocean shader displaces it); still water = SEA
+      let surf = SEA; try { const Wv = game.waves; if (Wv?.shaderOn) surf += Wv.heightAt(t0.x, t0.z); } catch (e) { /* flat */ }
+      const targetY = Math.max(L.groundY + 0.4, surf - 1.25 - L.dive + (L.dive > 0.05 ? 0 : bob)) + CENTER;
       const wantVy = Math.max(-3, Math.min(2, (targetY - t0.y) * 3));
       vy += (wantVy - vy) * Math.min(1, dt * 4);
       st.jumping = false; st.grounded = true;

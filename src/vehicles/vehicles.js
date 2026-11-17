@@ -642,6 +642,7 @@ export async function createVehicles(game) {
   const SEA = city?.seaLevel ?? -0.12;
   const _wp = { x: 0, y: 0, z: 0 }, _wi = { x: 0, y: 0, z: 0 };
   function waterTick(v, dt) {
+    if (game.carWater) { try { if (game.carWater(v, dt)) return; } catch (e) { console.warn('[r2-water] car water', e); game.carWater = null; } } // r2-water ?carwater=2
     const body = v.body, t = body.translation();
     const below = t.y < SEA + 0.3 && (city?.isWater ? city.isWater(t.x, t.z) : t.y < SEA);
     const roofY = t.y - v.groundOff + v.spec.roofY;
