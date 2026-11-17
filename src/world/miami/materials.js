@@ -9,6 +9,7 @@ import { bakeRoomAtlas } from '../city/rooms.js';
 import { sharedVegMaterials, vegUniforms } from '../vegetation/materials.js';
 import { LOOK_OFF } from '../env/fogChunks.js';
 import { makeSandMaterial } from '../ground/sandMaterial.js';
+import { FRAME_NOISE, RENDER_R2, IGN_R2_GLSL } from '../../render/frameNoise.js';
 import { makeDecalMaterial } from '../ground/decalMaterial.js';
 import { patchRoadEdges, patchFillEdges } from '../ground/groundEdge.js';
 import { patchRecipeGround } from '../ground/groundMaterial.js';
@@ -472,7 +473,7 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     for (const m of [M.office, M.deco, M.band, M.warehouse, ...Object.keys(VARIANTS).map((k) => M[k])]) m.emissiveIntensity = 0.04 + 1.0 * n;
     M.glass.emissiveIntensity = 0.03 + 0.9 * n; M.farGlass.emissiveIntensity = 0.03 + 0.9 * n; M.shop.emissiveIntensity = 0.35 + 1.1 * n; M.far.emissiveIntensity = 0.9 * n;
     M.lampHead.emissiveIntensity = 6 * n; M.pool.opacity = 0.5 * n;
-    M.neon.color.setScalar(1 + 2.4 * dusk);
+    M.neon.color.setScalar(0.06 + 3.3 * dusk); // r2-art: unlit neon tubes by day are dull colored glass (a full-strength unlit magenta read as a missing-texture bar)
     if (dusk > 0.02) M.bulb.color.setRGB(1, 0.85, 0.63).multiplyScalar(0.3 + 3.2 * dusk); else M.bulb.color.setRGB(0.2, 0.19, 0.17); // unlit by day: dull glass bulb, not a glowing beige dot
     if (M.roomGlassKit) {
       M.roomGlassKit.uNight.value = Math.max(n, dusk * 0.8);
@@ -497,11 +498,13 @@ float lNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3
     M.roomGlass.onBeforeCompile = (sh, r) => {
       prevRG(sh, r);
       sh.uniforms.uRoomOn = M.roomGlassU.uRoomOn;
-      sh.fragmentShader = sh.fragmentShader.replace('void main() {', `uniform float uRoomOn;
+      sh.uniforms.uFrameN = FRAME_NOISE; sh.uniforms.uRenderR2 = RENDER_R2; // r2-render: the fixed hash left a dot pattern on shop windows at 55-70 m
+      sh.fragmentShader = sh.fragmentShader.replace('void main() {', `uniform float uRoomOn; uniform float uFrameN; uniform float uRenderR2;
+${IGN_R2_GLSL}
 void main() {
   {
     float rd = distance( vRoomW, cameraPosition );
-    float rth = fract( dot( gl_FragCoord.xy, vec2( 0.0671, 0.5831 ) ) * 52.98 );
+    float rth = uRenderR2 > 0.5 ? psIgnT( gl_FragCoord.xy ) : fract( dot( gl_FragCoord.xy, vec2( 0.0671, 0.5831 ) ) * 52.98 );
     if ( uRoomOn < 0.5 || rd > 55.0 + 15.0 * rth ) discard;
   }`);
     };
