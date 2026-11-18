@@ -19,11 +19,11 @@
   /* palette */
   --ps-ink-950: #05080e; --ps-ink-900: #080c14; --ps-ink-800: #0e1420; --ps-ink-700: #161e2e; --ps-ink-600: #1f2a3d; --ps-ink-500: #2c3a52;
   --ps-shell: #f3ede2; --ps-shell-2: #cfd6e2; --ps-mute: #9aa6ba; --ps-faint: #66738a;
-  --ps-coral: #ff6a4d; --ps-coral-2: #ff8f6b; --ps-lagoon: #b48bff; --ps-lagoon-2: #d6c2ff; /* sunset palette: coral, hot pink, purple, yellow, cream */ --ps-pink: #ff2e8a; --ps-purple: #8a4dff; --ps-sun: #ffd23f; --ps-cream: #fff4e3;
+  --ps-coral: #d462ff; --ps-coral-2: #e690ff; --ps-lagoon: #b48bff; --ps-lagoon-2: #d6c2ff; /* sunset palette: coral, hot pink, purple, yellow, cream */ --ps-pink: #ff2e8a; --ps-purple: #8a4dff; --ps-sun: #ffd23f; --ps-cream: #fff4e3;
   --ps-mango: #ffc247; --ps-flamingo: #ff5c9d; --ps-violet: #9d8cff;
   /* semantic (swapped by colorblind modes) */
   --ps-danger: #ff4757; --ps-police: #4d8dff; --ps-health: #3ddc84; --ps-armor: #58a6ff; --ps-stamina: #ffc247;
-  --ps-money: #ffd84a; --ps-bank: #9fd0ff; --ps-route: #ff6a4d; --ps-waypoint: #ff6a4d; --ps-friend: #d6c2ff; --ps-mission: #ffc247;
+  --ps-money: #ffd84a; --ps-bank: #9fd0ff; --ps-route: #d462ff; --ps-waypoint: #d462ff; --ps-friend: #d6c2ff; --ps-mission: #ffc247;
   --ps-accent: var(--ps-coral); --ps-accent-2: var(--ps-lagoon);
   /* surfaces */
   --ps-glass: rgba(8, 12, 20, .72); --ps-glass-strong: rgba(6, 9, 15, .9); --ps-glass-soft: rgba(8, 12, 20, .46);
