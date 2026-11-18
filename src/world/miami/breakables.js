@@ -105,7 +105,7 @@ export function createBreakables(game) {
       const b = v.body; if (!b || (b.isValid && !b.isValid())) continue;
       if (v.spec?.boat || v.isBoat || v.kind === 'boat' || v.type === 'heli' || v.type === 'plane') continue;
       if (v.ai && !v.playerDriven && !v.chaseTarget) continue; // props pass: lane-following traffic never shears hydrants / snaps posts (it clips corners)
-      const lv = b.linvel(), speed = Math.hypot(lv.x, lv.z); if (speed < BREAK_SPEED) continue;
+      const lv = b.linvel(), speed = Math.hypot(lv.x, lv.z); if (speed < (game.physics?.impacts ? 4 / 3.6 : BREAK_SPEED)) continue; // r2-physics energy model: it decides break vs rigid from ~4 km/h up
       const p = b.translation(), r = b.rotation(); _q.set(r.x, r.y, r.z, r.w); _e.setFromQuaternion(_q, 'YXZ');
       const yaw = _e.y, c = Math.cos(yaw), s = Math.sin(yaw), hl = (v.spec?.L || 4.6) / 2, hw = (v.spec?.W || 1.9) / 2, ahead = speed * Math.max(dt, 1 / 60) * 2.5 + 0.25;
       const R = hl + ahead + 2, i0 = Math.floor((p.x - R) / CELL), i1 = Math.floor((p.x + R) / CELL), j0 = Math.floor((p.z - R) / CELL), j1 = Math.floor((p.z + R) / CELL);
@@ -114,7 +114,7 @@ export function createBreakables(game) {
         for (let k = a.length - 1; k >= 0; k--) {
           const rec = a[k]; if (Math.abs((rec.y || 0) + rec.hy - p.y) > 2.5) continue;
           const dx = rec.x - p.x, dz = rec.z - p.z, lx = dx * c - dz * s, lz = dx * s + dz * c; // car local: z forward
-          if (rec.kind === 'hydrant' && speed < HYDRANT_SPEED) continue; // props pass: a cast-iron hydrant only shears off in a real hit
+          if (rec.kind === 'hydrant' && speed < HYDRANT_SPEED && !game.physics?.impacts) continue; // props pass: a cast-iron hydrant only shears off in a real hit
           if (Math.abs(lx) < hw + rec.r * 0.8 && Math.abs(lz) < hl + rec.r * 0.8 + ahead) breakIt(rec, v, speed, { x: p.x, z: p.z, c, s, hw, hl });
         }
       }
