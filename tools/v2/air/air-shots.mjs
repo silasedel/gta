@@ -83,6 +83,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 1500 }, async (b) => {
     await b.eval(`(() => { window.__A.ap = null; game.exitVehicle(); return 1; })()`);
   }
   if (want('water')) {
+    await b.eval(`(() => { const A = window.__A || game.air.list.find((x) => x.typeKey === 'prop'); if (A && !game.player.state.inVehicle) game.enterVehicle(A); return 1; })()`); await b.sleep(1500);   // teleport out of a plane: exit guard + far despawn path
     await b.eval(`game.cameraOverride = null; game.teleport(-836, undefined, 5272, 0); 1`);
     await b.waitFor(`game.air.sites.find((s) => s.id === 'keylargo').state === 'live'`, 120).catch((e) => console.log('WARN', e.message));
     await b.sleep(5000);
@@ -92,7 +93,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 1500 }, async (b) => {
       await camAt(m.x + Math.sin(m.h + 2.2) * 16, 3.5, m.z + Math.cos(m.h + 2.2) * 16, m.x, 1.2, m.z, 45); await shot('r4air_keys_moored', 3000);
       // clear water ahead? pick the heading with the longest open water run
       const hd = await b.eval(`(() => { const A = window.__F, p = A.S.pos; let best = 0, bl = -1; for (let a = 0; a < 6.283; a += 0.13) { let l = 0; while (l < 900 && game.city.isWater(p.x + Math.sin(a) * l, p.z + Math.cos(a) * l)) l += 10; if (l > bl) { bl = l; best = a; } } A.S.q.setFromAxisAngle(p.clone().set(0, 1, 0), best); A.body.setRotation(A.S.q, true); return best; })()`);
-      await b.eval(`(() => { game.player.position.set(window.__F.S.pos.x, 0, window.__F.S.pos.z); game.enterVehicle(window.__F); return 1; })()`);
+      await b.eval(`(() => { game.cameraOverride = null; game.player.position.set(window.__F.S.pos.x, 0, window.__F.S.pos.z); game.enterVehicle(window.__F); return 1; })()`);
       await b.sleep(2500);
       await b.eval(`(() => { window.__airAP(window.__F, { a: [0, 0], b: [Math.sin(${hd}), Math.cos(${hd})] }, { water: true }); return 1; })()`);
       const wf = [];

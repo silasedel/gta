@@ -115,6 +115,7 @@ export async function initV2(game) {
     return A;
   }
   function removeAircraft(A) {
+    A.disposed = true; A.alive = false;   // main.js' enter/exit guard hook skips disposed vehicles (no access to a removed body)
     const i = list.indexOf(A); if (i >= 0) list.splice(i, 1);
     scene.remove(A.mesh); try { world.removeRigidBody(A.body); } catch (e) { /* */ }
     if (A.trails) for (const t of A.trails) fx.dropTrail(t);
@@ -235,7 +236,7 @@ export async function initV2(game) {
       if (s.kind === 'airport') { if (d < 2600 && !s.fence) buildFence(s); else if (d > 4200 && s.fence && !s.fence.failed) { s.fence.dispose(); s.fence = null; } }
       if (s.state === 'idle' && d < 1500 && game.clock.elapsed >= s.next) populate(s);
       else if (s.state === 'live' && d > 2800) {
-        for (const A of s.planes.slice()) if (!A.playerDriven && !A.active && A.S.pos.distanceTo(pp) > 2000) { removeAircraft(A); s.planes.splice(s.planes.indexOf(A), 1); }
+        for (const A of s.planes.slice()) if (!A.playerDriven && !A.active && game.clock.elapsed - (A.leftAt || -99) > 5 && A.S.pos.distanceTo(pp) > 2000) { removeAircraft(A); s.planes.splice(s.planes.indexOf(A), 1); }
         if (!s.planes.length) s.state = 'idle';
       }
     }
@@ -328,7 +329,7 @@ export async function initV2(game) {
 
   // ---------------------------------------------------------------- enter / exit, theft, camera
   function onDriveChange(prev, cur) {
-    if (prev) { prev.S.ctl.throttle = 0; prev.S.ctl.brake = 1; prev.S.ctl.pitch = prev.S.ctl.roll = prev.S.ctl.yaw = 0; prev.rest = 0; }
+    if (prev) { prev.leftAt = game.clock.elapsed; prev.S.ctl.throttle = 0; prev.S.ctl.brake = 1; prev.S.ctl.pitch = prev.S.ctl.roll = prev.S.ctl.yaw = 0; prev.rest = 0; }
     if (cur) {
       cur.active = true; cur.S.engineOn = true; cur.S.ctl.brake = 0;
       if (!cur.owned && !cur.stolen) { cur.stolen = true; game.emit?.('crime', { type: 'vehicle_theft', position: cur.mesh.position.clone(), severity: 2, vehicle: cur }); game.hud?.notify?.('Stolen aircraft: ' + cur.name, 2200); }

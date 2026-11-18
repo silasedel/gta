@@ -7,7 +7,7 @@
 // clean instanced kit: one draw call per part per chunk.
 import * as THREE from 'three';
 
-const CELL = 8, POST = 3.0, H = 2.15, ARM = 0.5;
+const CELL = 8, POST = 3.0, H = 2.15, ARM = 0.5, TILE = 0.1;   // TILE: one chain-link diamond (m)
 
 function diamondTexture() {
   const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
@@ -143,9 +143,9 @@ export function buildAirportFence(opts) {
         const ry = Math.atan2(-dz, dx), rp = Math.atan2(dy, len);
         E.set(0, ry, rp, 'YZX'); Q.setFromEuler(E); M.compose(V.set(p.x, p.y + H, p.z), Q, Sc.set(Math.hypot(len, dy), 1, 1)); rails.push(M.clone());
         // fabric quad (u per 0.3 m tile, v per 0.3 m)
-        const b = fab.p.length / 3, u0 = (fab.u || 0), u1 = u0 + len / 0.3;
+        const b = fab.p.length / 3, u0 = (fab.u || 0), u1 = u0 + len / TILE;
         fab.p.push(p.x, p.y + 0.04, p.z, q.x, q.y + 0.04, q.z, q.x, q.y + H, q.z, p.x, p.y + H, p.z);
-        fab.uv.push(u0, 0, u1, 0, u1, (H - 0.04) / 0.3, u0, (H - 0.04) / 0.3); fab.idx.push(b, b + 1, b + 2, b, b + 2, b + 3); fab.u = u1 % 64;
+        fab.uv.push(u0, 0, u1, 0, u1, (H - 0.04) / TILE, u0, (H - 0.04) / TILE); fab.idx.push(b, b + 1, b + 2, b, b + 2, b + 3); fab.u = u1 % 64;
         // three barbed strands along the arm tips
         const [ox2, oz2] = outward(p, q);
         for (const f of [0.33, 0.66, 1.0]) { const o = ARM * f * Math.SQRT1_2, hh = H + 0.03 + ARM * f * Math.SQRT1_2; wires.push(p.x + ox * o, p.y + hh, p.z + oz * o, q.x + ox2 * o, q.y + hh, q.z + oz2 * o); }
@@ -178,7 +178,7 @@ export function buildAirportFence(opts) {
     const dx = f.b.x - f.a.x, dz = f.b.z - f.a.z; leaf.position.set(f.a.x, Math.min(f.a.y, f.b.y), f.a.z); leaf.rotation.y = Math.atan2(-dz, dx);
     const frame = (x0, y0, x1, y1) => { const l = Math.hypot(x1 - x0, y1 - y0), m = new THREE.Mesh(new THREE.BoxGeometry(l, 0.05, 0.05), steel); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, 0); m.rotation.z = Math.atan2(y1 - y0, x1 - x0); leaf.add(m); };
     frame(0, 0.12, f.len, 0.12); frame(0, H, f.len, H); frame(0, 0.12, 0, H); frame(f.len, 0.12, f.len, H); frame(0, 0.12, f.len, H);
-    const pg = new THREE.PlaneGeometry(f.len, H - 0.12); pg.translate(f.len / 2, (H + 0.12) / 2, 0); const uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * f.len / 0.3, uv.getY(i) * (H - 0.12) / 0.3);
+    const pg = new THREE.PlaneGeometry(f.len, H - 0.12); pg.translate(f.len / 2, (H + 0.12) / 2, 0); const uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * f.len / TILE, uv.getY(i) * (H - 0.12) / TILE);
     leaf.add(new THREE.Mesh(pg, fabricMat));
     // sign on the leaf
     const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g2 = c.getContext('2d');
