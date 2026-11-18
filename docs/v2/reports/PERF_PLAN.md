@@ -301,6 +301,9 @@ The baseline drive averaged 6.4 fps with 432 frames over 100 ms and a worst fram
 | Interiors: no build or prewarm while the player passes faster than 12 m/s | ?intfast=1 | drive 6.6 -> 8.9 fps avg, p90 283 -> 169 ms, frames over 250 ms 75 -> 43 (together with the two above) |
 | Nico's yard ground collider: trimesh instead of a heightfield (same surface) | ?hftri=0 | player character controller 2.49 -> 0.136 ms per call; spawn frame 109 -> 39 ms (same spot, separate sessions) |
 | Tile culling of whole city.root children for the main view | ?tilecull=0 | render CPU -1.2 ms downtown; image diff below the noise floor |
+| **Shader precompile with the render-time light set** (perfGuards: compile now fits the 16 / 4 spare lights like the render) | ?compilelights=0 | fast drive: link stalls 1486 -> 305 ms, frames over 100 ms 178 -> 12, 17.2 -> 46 fps average |
+| One VAO per InstancedMesh (geometry views sharing the GPU buffers) | ?instvao=0 | vertexAttribPointer per frame: spawn 3533 -> 132, downtown 2190 -> 686; downtown render CPU 18.0 -> 16.2 ms |
+| r2-render TAA cuts (their commit, my A/B) | game.renderVel etc. | TAA pass 2.9-4.4 -> 0.6-0.8 ms GPU |
 | r2-people: far walkers at half rate beyond 60 m, setTransform only on change, bake queue; seat-probe cache per model; no archetype library | (r2-people) | far crowd on vs off is now within the noise (was 4.6 ms) |
 
 ### Where it stands (standing still, 1080p High, load about 8; `r2-perf-after1.json`)
@@ -312,10 +315,14 @@ The baseline drive averaged 6.4 fps with 432 frames over 100 ms and a worst fram
 | Downtown street | 41-52 ms | 26.6 ms (38 fps) |
 | Keys street drive, camera at 14 m/s | median 37.6, p99 91 ms | median 26.0 (38 fps), p99 49, worst 143 ms |
 
+Fast 50 m/s drive from Nico's to downtown over the afternoon: 6.4 fps with 432 frames over 100 ms -> 46 fps average
+(median 16.8 ms, p99 72 ms) with 12 frames over 100 ms.
+
 ### Checked and dropped
 - Static-matrix freeze: tilebuild already freezes its meshes; matrixWorld was unchanged at 3.6 ms.
 - Empty instanced meshes: three.js already culls them through their empty bounding sphere, so draw calls were unchanged.
 - Per-frame texture re-uploads standing still: 0.05 ms.
+- Vegetation field update cache (field.js never early-outs because dirtyView stays true): no measurable gain, reverted.
 - Trunk colliders: about 1 ms. solidCars: no measurable cost.
 
 ### Next, in order
