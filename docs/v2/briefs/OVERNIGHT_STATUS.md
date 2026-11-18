@@ -1569,6 +1569,12 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     upload (texSubImage2D 95 % of one 166 ms collider step). Something called from tile building renders or uploads
     synchronously. Next step: find who.
 - **Stopped.**
+- **19:50 Correction.** The 17:00 "46 fps" fast drive had a Rapier panic (physics halted) and is invalid.
+  - Valid fast-drive results (load 7-20): 6.4 fps at 13:30 -> 15-20 fps now.
+  - Feature A/B (TAA filter, vegmerge, metro, far crowd, telehold off vs on): within noise, so nothing to switch off.
+  - The drive is GC-bound (19-23 %), mostly the tile builders' JS-array vertex pushes. Two small allocation fixes are in:
+    terrain heightAt (committed), awning quad2 (tilebuild ready).
+  - Details: PERF_PLAN.md "Correction". **Stopped.**
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.

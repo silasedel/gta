@@ -2032,10 +2032,11 @@ export function createTileBuilder(ctx) {
     const hA = hash(((fx * 11) | 0) * 31 + ((fz * 17) | 0) * 7 + 3); let drew = false;
     const P = (sv, o, y) => [p[0] + tx * sv + nx * o, y, p[1] + tz * sv + nz * o];
     const AW = isFB(B) ? awningView(B.fac) : B.trim; // canvas flagged for the facade shader's night bounce
+    // r2-perf: same 12 vertices in the same order, without the nested array literals per call (~0.9 GB of garbage per 40 s drive)
+    const q2v = (q, n, col) => AW.vert(q[0], q[1], q[2], nx * 0.5 * n, 0.85 * n, nz * 0.5 * n, 0, 0, col);
     const quad2 = (A, Bq, C, D, col) => {
-      for (const [v, n] of [[[A, Bq, C, A, C, D], 1], [[A, C, Bq, A, D, C], -1]]) {
-        for (const q of v) AW.vert(q[0], q[1], q[2], nx * 0.5 * n, 0.85 * n, nz * 0.5 * n, 0, 0, col);
-      }
+      q2v(A, 1, col); q2v(Bq, 1, col); q2v(C, 1, col); q2v(A, 1, col); q2v(C, 1, col); q2v(D, 1, col);
+      q2v(A, -1, col); q2v(C, -1, col); q2v(Bq, -1, col); q2v(A, -1, col); q2v(D, -1, col); q2v(C, -1, col);
     };
     if (hA < 0.85 && s1 - s0 > 1.5) {
       const cA = new THREE.Color(AWN[(hA * 1.17 * AWN.length | 0) % AWN.length]);
