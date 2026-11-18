@@ -1,0 +1,65 @@
+{
+ "steps": [
+  [
+   "code entered",
+   {
+    "p": [
+     -865.7,
+     4836.5
+    ],
+    "script": null,
+    "intro": [],
+    "dev": true
+   }
+  ],
+  [
+   "after dev teleport + intro",
+   {
+    "p": [
+     394,
+     -127.5
+    ],
+    "script": null,
+    "intro": [
+     "downtown"
+    ],
+    "dev": true
+   }
+  ],
+  [
+   "after game.teleport(-779,4879)",
+   {
+    "p": [
+     -779,
+     4879
+    ],
+    "script": null,
+    "intro": [
+     "downtown"
+    ],
+    "dev": true
+   }
+  ],
+  [
+   "after walking 2.5 s",
+   {
+    "p": [
+     -778.9,
+     4874.9
+    ],
+    "script": null,
+    "intro": [
+     "downtown"
+    ],
+    "dev": true
+   }
+  ]
+ ],
+ "devOn": true,
+ "introSeen": [
+  "downtown"
+ ],
+ "teleported": true,
+ "walked": 4.1,
+ "pass": true
+}

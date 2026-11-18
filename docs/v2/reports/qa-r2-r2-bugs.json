@@ -1,0 +1,1028 @@
+[
+ {
+  "id": "QA-001",
+  "area": "spawn",
+  "cat": "hitbox",
+  "sev": "high",
+  "what": "countryside veg (the 'countryside' instanced layer: trees and shrubs drawn near the player with no colliders): 12 tested objects let the player capsule into the visual mesh (12 fully through, worst 1.74 m past the surface; meshes: countryside)",
+  "at": "-846.93, -0.03, 4871.29",
+  "shot": "docs/v2/shots/qa/spawn_hit_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -846.93,4871.29 pen 1.74",
+   "countryside @ -833.14,4864.97 pen 1.6",
+   "countryside @ -846.96,4869.67 pen 1.51",
+   "countryside @ -841.66,4868.27 pen 1.43",
+   "countryside @ -822.7,4815.71 pen 1.43"
+  ],
+  "key": "spawn|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
+ },
+ {
+  "id": "QA-002",
+  "area": "spawn",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a countryside veg (countryside) the player's capsule ends 4.46 m inside the visual mesh (also flagged by the cast)",
+  "at": "-829.79, 4822.73",
+  "shot": "docs/v2/shots/qa/spawn_walk_other.jpg",
+  "owner": "r2-veg",
+  "key": "spawn|hitbox (walk)|sprinting into a countryside veg (countryside) the player's capsule en"
+ },
+ {
+  "id": "QA-003",
+  "area": "spawn",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a countryside veg (countryside) the player's capsule ends 4.72 m inside the visual mesh (also flagged by the cast)",
+  "at": "-849.23, 4864.75",
+  "shot": "docs/v2/shots/qa/spawn_walk_other.jpg",
+  "owner": "r2-veg",
+  "key": "spawn|hitbox (walk)|sprinting into a countryside veg (countryside) the player's capsule en"
+ },
+ {
+  "id": "QA-004",
+  "area": "spawn",
+  "cat": "ground",
+  "sev": "high",
+  "what": "1/280 points have no physics floor under the rendered surface (meshes: tile-near--5,23)",
+  "at": "-840.22, 8.83, 4749.86",
+  "shot": "docs/v2/shots/qa/spawn_noCollider.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-840.22,4749.86 render 8.83 phys 0 (tile-near--5,23)"
+  ],
+  "key": "spawn|ground|#/# points have no physics floor under the rendered surface (meshes: t"
+ },
+ {
+  "id": "QA-005",
+  "area": "keys",
+  "cat": "hitbox",
+  "sev": "high",
+  "what": "countryside veg (the 'countryside' instanced layer: trees and shrubs drawn near the player with no colliders): 26 tested objects let the player capsule into the visual mesh (26 fully through, worst 2.39 m past the surface; meshes: countryside)",
+  "at": "-742.63, 0.07, 4857.8",
+  "shot": "docs/v2/shots/qa/keys_hit_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -742.63,4857.8 pen 2.39",
+   "countryside @ -750.44,4890.69 pen 2.03",
+   "countryside @ -742.63,4857.8 pen 1.97",
+   "countryside @ -815.07,4873.11 pen 1.61",
+   "countryside @ -742.41,4893.98 pen 1.6"
+  ],
+  "key": "keys|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
+ },
+ {
+  "id": "QA-006",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a countryside veg (countryside) the player's capsule ends 4.3 m inside the visual mesh (also flagged by the cast)",
+  "at": "-795.31, 4855.69",
+  "shot": "docs/v2/shots/qa/keys_walk_other.jpg",
+  "owner": "r2-veg",
+  "key": "keys|hitbox (walk)|sprinting into a countryside veg (countryside) the player's capsule en"
+ },
+ {
+  "id": "QA-007",
+  "area": "keys",
+  "cat": "ground",
+  "sev": "high",
+  "what": "3/280 points have no physics floor under the rendered surface (meshes: miami-land-base)",
+  "at": "-921.41, -0.05, 5295.49",
+  "shot": "docs/v2/shots/qa/keys_noCollider.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-921.41,5295.49 render -0.05 phys -8 (miami-land-base)",
+   "-982.46,5375.96 render -0.05 phys -8 (miami-land-base)",
+   "-868.53,5201.4 render -0.05 phys -8 (miami-land-base)"
+  ],
+  "key": "keys|ground|#/# points have no physics floor under the rendered surface (meshes: m"
+ },
+ {
+  "id": "QA-008",
+  "area": "downtown",
+  "cat": "hitbox",
+  "sev": "high",
+  "what": "other: 5/30 tested objects let the player capsule into the visual mesh (4 fully through, worst 1.52 m past the surface; meshes: miami-city)",
+  "at": "414.13, 0.12, -131.93",
+  "shot": "docs/v2/shots/qa/downtown_hit_other.jpg",
+  "owner": "r2-physics",
+  "ex": [
+   "miami-city @ 414.13,-131.93 pen 1.52",
+   "miami-city @ 411.73,-131.35 pen 1.42",
+   "miami-city @ 451.89,-152.46 pen 1.36",
+   "miami-city @ 442.96,-139.96 pen 1.2",
+   "miami-city @ 438.47,-167.67 pen 0.19"
+  ],
+  "key": "downtown|hitbox|other: #/# tested objects let the player capsule into the visual mesh "
+ },
+ {
+  "id": "QA-009",
+  "area": "beach",
+  "cat": "hitbox",
+  "sev": "high",
+  "what": "other: 2/30 tested objects let the player capsule into the visual mesh (2 fully through, worst 0.84 m past the surface; meshes: metro-kiosk-sobe, shop-rooms-lots)",
+  "at": "2400.61, 0.17, 628.56",
+  "shot": "docs/v2/shots/qa/beach_hit_other.jpg",
+  "owner": "r2-physics",
+  "ex": [
+   "metro-kiosk-sobe @ 2400.61,628.56 pen 0.84",
+   "shop-rooms-lots @ 2388.38,608.69 pen 0.78"
+  ],
+  "key": "beach|hitbox|other: #/# tested objects let the player capsule into the visual mesh "
+ },
+ {
+  "id": "QA-010",
+  "area": "beach",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a other () the player's capsule ends 0.8 m inside the visual mesh",
+  "at": "2390.52, 607.07",
+  "shot": "docs/v2/shots/qa/beach_walk_other.jpg",
+  "owner": "r2-physics",
+  "key": "beach|hitbox (walk)|sprinting into a other () the player's capsule ends # m inside the vis"
+ },
+ {
+  "id": "QA-011",
+  "area": "beach",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a other (metro-kiosk-sobe) the player's capsule ends 4.47 m inside the visual mesh (also flagged by the cast)",
+  "at": "2400.61, 628.56",
+  "shot": "docs/v2/shots/qa/beach_walk_other.jpg",
+  "owner": "r2-physics",
+  "key": "beach|hitbox (walk)|sprinting into a other (metro-kiosk-sobe) the player's capsule ends # "
+ },
+ {
+  "id": "QA-012",
+  "area": "beach",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a other (shop-rooms-lots) the player's capsule ends 2.31 m inside the visual mesh (also flagged by the cast)",
+  "at": "2388.38, 608.69",
+  "shot": "docs/v2/shots/qa/beach_walk_other.jpg",
+  "owner": "r2-physics",
+  "key": "beach|hitbox (walk)|sprinting into a other (shop-rooms-lots) the player's capsule ends # m"
+ },
+ {
+  "id": "QA-013",
+  "area": "glades",
+  "cat": "hitbox",
+  "sev": "high",
+  "what": "countryside veg (the 'countryside' instanced layer: trees and shrubs drawn near the player with no colliders): 30 tested objects let the player capsule into the visual mesh (30 fully through, worst 1 m past the surface; meshes: countryside)",
+  "at": "-2312.33, -0.07, 2423.83",
+  "shot": "docs/v2/shots/qa/glades_hit_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -2312.33,2423.83 pen 1",
+   "countryside @ -2311.16,2427.89 pen 0.99",
+   "countryside @ -2308.3,2423.02 pen 0.98",
+   "countryside @ -2310.46,2425.98 pen 0.98",
+   "countryside @ -2310.09,2427.89 pen 0.96"
+  ],
+  "key": "glades|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
+ },
+ {
+  "id": "QA-014",
+  "area": "glades",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a countryside veg (countryside) the player's capsule ends 3.71 m inside the visual mesh (also flagged by the cast)",
+  "at": "-2307.63, 2424.59",
+  "shot": "docs/v2/shots/qa/glades_walk_other.jpg",
+  "owner": "r2-veg",
+  "key": "glades|hitbox (walk)|sprinting into a countryside veg (countryside) the player's capsule en"
+ },
+ {
+  "id": "QA-015",
+  "area": "glades",
+  "cat": "hitbox (walk)",
+  "sev": "high",
+  "what": "sprinting into a countryside veg (countryside) the player's capsule ends 4.43 m inside the visual mesh (also flagged by the cast)",
+  "at": "-2307.46, 2425.01",
+  "shot": "docs/v2/shots/qa/glades_walk_other.jpg",
+  "owner": "r2-veg",
+  "key": "glades|hitbox (walk)|sprinting into a countryside veg (countryside) the player's capsule en"
+ },
+ {
+  "id": "QA-016",
+  "area": "glades",
+  "cat": "ground",
+  "sev": "high",
+  "what": "16/275 points have no physics floor under the rendered surface (meshes: miami-land-base)",
+  "at": "-1918.26, -0.05, 2693.26",
+  "shot": "docs/v2/shots/qa/glades_noCollider.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-1918.26,2693.26 render -0.05 phys -8 (miami-land-base)",
+   "-1765,2789.55 render -0.05 phys -8 (miami-land-base)",
+   "-2003.53,2629.87 render -0.05 phys -8 (miami-land-base)",
+   "-1880.85,2720.82 render -0.05 phys -8 (miami-land-base)",
+   "-1754.84,2798.09 render -0.05 phys -8 (miami-land-base)"
+  ],
+  "key": "glades|ground|#/# points have no physics floor under the rendered surface (meshes: m"
+ },
+ {
+  "id": "QA-017",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "high",
+  "what": "hatch2: rolled over (curb) at 24.95 km/h, up 0.23, wheel sink 0",
+  "at": "366.07, 1.59, 97.52",
+  "shot": "docs/v2/shots/qa/car_hatch2_fail.jpg",
+  "owner": "r2-physics",
+  "key": "vehicles|vehicle|hatch#: rolled over (curb) at # km/h, up #, wheel sink #"
+ },
+ {
+  "id": "QA-018",
+  "area": "water",
+  "cat": "water",
+  "sev": "high",
+  "what": "teleported into 7.88 m deep water: not swimming (y -0.31)",
+  "at": "-895.0033355292218, 4806.0000002317865",
+  "owner": "r2-water",
+  "key": "water|water|teleported into # m deep water: not swimming (y #)"
+ },
+ {
+  "id": "QA-019",
+  "area": "ui",
+  "cat": "ui",
+  "sev": "high",
+  "what": "NEW in the first final attempt, FIXED during it: dev teleport into an intro place left the player pinned (intros.v2.js restored the devTeleport hold); re-check node tools/v2/qa/introPin.mjs: PASS (code 6969 on, Downtown intro played, then game.teleport and walking work)",
+  "at": "407, -110",
+  "owner": "main",
+  "key": "ui|ui|NEW in the first final attempt, FIXED during it: dev teleport into an "
+ },
+ {
+  "id": "QA-020",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "15 other object(s) float above the ground with nothing under them (worst 1.63 m: ext:art:acfins)",
+  "at": "-876.65, 1.63, 4816.58",
+  "shot": "docs/v2/shots/qa/spawn_float_other.jpg",
+  "owner": "r2-keys",
+  "ex": [
+   "ext:art:acfins @ -876.65,4816.58 gap 1.63",
+   "ext:pbr:terry_cloth:0.3:0:0:0::::0::: @ -880.72,4821.31 gap 1.37",
+   "miami-city @ -838.11,4834.97 gap 0.88",
+   "miami-city @ -836.33,4839.54 gap 0.8",
+   "keysLots:Boat Hull @ -839.02,4852.25 gap 0.78"
+  ],
+  "key": "spawn|floating|# other object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-021",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "11 countryside veg object(s) float above the ground with nothing under them (worst 1.47 m: countryside)",
+  "at": "-873.52, 1.47, 4884.3",
+  "shot": "docs/v2/shots/qa/spawn_float_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -873.52,4884.3 gap 1.47",
+   "countryside @ -819.78,4834.98 gap 1.14",
+   "countryside @ -831.03,4792.37 gap 1.09",
+   "countryside @ -847.84,4865.89 gap 0.72",
+   "countryside @ -827.22,4873.24 gap 0.64"
+  ],
+  "key": "spawn|floating|# countryside veg object(s) float above the ground with nothing under "
+ },
+ {
+  "id": "QA-022",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "2 tree object(s) float above the ground with nothing under them (worst 0.89 m: vegField_liveoak)",
+  "at": "-899.53, 0.84, 4821.27",
+  "shot": "docs/v2/shots/qa/spawn_float_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_liveoak @ -899.53,4821.27 gap 0.89",
+   "vegField_coconut @ -843.41,4850.04 gap 0.53"
+  ],
+  "key": "spawn|floating|# tree object(s) float above the ground with nothing under them (worst"
+ },
+ {
+  "id": "QA-023",
+  "area": "spawn",
+  "cat": "sinking",
+  "sev": "medium",
+  "what": "1 deck object(s) sunk > 30 cm into the ground (worst -1.87 m: dockSite:pbr:concrete_wall_008:1.6:1:0:0:14871030::2.3:1:0.4:0.7:, 1.95 m tall)",
+  "at": "-895.8, -1.56, 4816.85",
+  "shot": "docs/v2/shots/qa/spawn_sink_deck.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "dockSite:pbr:concrete_wall_008:1.6:1:0:0:14871030::2.3:1:0.4:0.7: @ -895.8,4816.85 sunk -1.87"
+  ],
+  "key": "spawn|sinking|# deck object(s) sunk > # cm into the ground (worst # m: dockSite:pbr:"
+ },
+ {
+  "id": "QA-024",
+  "area": "spawn",
+  "cat": "sinking",
+  "sev": "medium",
+  "what": "2 countryside veg object(s) sunk > 30 cm into the ground (worst -1.06 m: countryside, 2.66 m tall)",
+  "at": "-859.39, -1.11, 4793.19",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -859.39,4793.19 sunk -1.06",
+   "countryside @ -846.81,4787.66 sunk -0.89"
+  ],
+  "key": "spawn|sinking|# countryside veg object(s) sunk > # cm into the ground (worst # m: co"
+ },
+ {
+  "id": "QA-025",
+  "area": "spawn",
+  "cat": "sinking",
+  "sev": "medium",
+  "what": "11 shrub object(s) sunk > 30 cm into the ground (worst -2.06 m: vegField_hibiscus, 2.15 m tall)",
+  "at": "-887.36, -0.89, 4849.25",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -887.36,4849.25 sunk -2.06",
+   "vegField_hibiscus @ -892.31,4862.83 sunk -1.83",
+   "vegField_hibiscus @ -851.62,4827.79 sunk -1.72",
+   "vegField_hibiscus @ -882.71,4857.74 sunk -1.68",
+   "vegField_hibiscus @ -866.86,4847.74 sunk -1.55"
+  ],
+  "key": "spawn|sinking|# shrub object(s) sunk > # cm into the ground (worst # m: vegField_hib"
+ },
+ {
+  "id": "QA-026",
+  "area": "spawn",
+  "cat": "clipping",
+  "sev": "medium",
+  "what": "plants grow inside 2 parked car(s) (sedan10: vegField_hibiscus; hatch2: vegField_hibiscus)",
+  "at": "-833.2, 4837.21",
+  "shot": "docs/v2/shots/qa/spawn_plantInCar.jpg",
+  "owner": "r2-veg",
+  "key": "spawn|clipping|plants grow inside # parked car(s) (sedan#: vegField_hibiscus; hatch#:"
+ },
+ {
+  "id": "QA-027",
+  "area": "spawn",
+  "cat": "ground",
+  "sev": "medium",
+  "what": "13/280 points: physics floor differs from the rendered surface by > 5 cm (6 by > 15 cm; worst 2.3 m on miami-land-base; by mesh: site:keys:matted 5, seabed 4, miami-land-base 2, site:ground:pbr:shell_floor_01:3.2:0:0:0 1)",
+  "at": "-819.54, -0.05, 4873.12",
+  "shot": "docs/v2/shots/qa/spawn_groundMismatch.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-819.54,4873.12 render -0.05 phys 2.25 (miami-land-base, rand)",
+   "-895.08,4793.46 render -0.05 phys 0.5 (miami-land-base, rand)",
+   "-865.98,4808.21 render -0.35 phys -0.05 (seabed, rand)",
+   "-887.13,4809.45 render -0.35 phys -0.05 (seabed, rand)",
+   "-917.31,4852.88 render -0.35 phys -0.05 (seabed, rand)"
+  ],
+  "key": "spawn|ground|#/# points: physics floor differs from the rendered surface by > # cm "
+ },
+ {
+  "id": "QA-028",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "medium",
+  "what": "(breakable? the cast found a collider, so it was probably knocked over; check) sprinting into a sign (reg-sign-posts) the player's capsule ends 2.95 m inside the visual mesh",
+  "at": "-792.07, 4870.2",
+  "shot": "docs/v2/shots/qa/keys_walk_sign.jpg",
+  "owner": "r2-physics",
+  "key": "keys|hitbox (walk)|(breakable? the cast found a collider, so it was probably knocked over"
+ },
+ {
+  "id": "QA-029",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "medium",
+  "what": "(breakable? the cast found a collider, so it was probably knocked over; check) sprinting into a mailbox (lot-props:Mailbox Body) the player's capsule ends 0.97 m inside the visual mesh",
+  "at": "-812.12, 4894.44",
+  "shot": "docs/v2/shots/qa/keys_walk_mailbox.jpg",
+  "owner": "r2-physics",
+  "key": "keys|hitbox (walk)|(breakable? the cast found a collider, so it was probably knocked over"
+ },
+ {
+  "id": "QA-030",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "medium",
+  "what": "(breakable? the cast found a collider, so it was probably knocked over; check) sprinting into a bin (lot-props:TrashCan(Grey)) the player's capsule ends 3.31 m inside the visual mesh",
+  "at": "-751.67, 4881.3",
+  "shot": "docs/v2/shots/qa/keys_walk_bin.jpg",
+  "owner": "r2-physics",
+  "key": "keys|hitbox (walk)|(breakable? the cast found a collider, so it was probably knocked over"
+ },
+ {
+  "id": "QA-031",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "medium",
+  "what": "(breakable? the cast found a collider, so it was probably knocked over; check) sprinting into a bin (lot-props:TrashCan(Grey)) the player's capsule ends 3.41 m inside the visual mesh",
+  "at": "-751.52, 4880.46",
+  "shot": "docs/v2/shots/qa/keys_walk_bin.jpg",
+  "owner": "r2-physics",
+  "key": "keys|hitbox (walk)|(breakable? the cast found a collider, so it was probably knocked over"
+ },
+ {
+  "id": "QA-032",
+  "area": "keys",
+  "cat": "push",
+  "sev": "medium",
+  "what": "walking into a parked sedan8 moved it 1.2 mm / 0.05 deg (drift before contact 0.6 mm)",
+  "at": "-816.14, 4865.84",
+  "shot": "docs/v2/shots/qa/keys_pushedCar.jpg",
+  "owner": "r2-physics",
+  "key": "keys|push|walking into a parked sedan# moved it # mm / # deg (drift before conta"
+ },
+ {
+  "id": "QA-033",
+  "area": "keys",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "17 countryside veg object(s) float above the ground with nothing under them (worst 1.54 m: countryside)",
+  "at": "-737.28, 1.54, 4889.25",
+  "shot": "docs/v2/shots/qa/keys_float_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -737.28,4889.25 gap 1.54",
+   "countryside @ -727.87,4879.5 gap 1.49",
+   "countryside @ -783.61,4833.17 gap 1.47",
+   "countryside @ -830.15,4890.22 gap 1.4",
+   "countryside @ -784.77,4836.8 gap 1.35"
+  ],
+  "key": "keys|floating|# countryside veg object(s) float above the ground with nothing under "
+ },
+ {
+  "id": "QA-034",
+  "area": "keys",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "12 other object(s) float above the ground with nothing under them (worst 1.05 m: miami-city)",
+  "at": "-799.19, 1.05, 4835.54",
+  "shot": "docs/v2/shots/qa/keys_float_other.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "miami-city @ -799.19,4835.54 gap 1.05",
+   "keysLots:Boat Hull @ -830.37,4867.44 gap 0.78",
+   "miami-city @ -809,4888.88 gap 0.32",
+   "miami-city @ -764.4,4851.95 gap 0.31",
+   "miami-city @ -765.39,4883.05 gap 0.31"
+  ],
+  "key": "keys|floating|# other object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-035",
+  "area": "keys",
+  "cat": "sinking",
+  "sev": "medium",
+  "what": "4 countryside veg object(s) sunk > 30 cm into the ground (worst -1.23 m: countryside, 3.11 m tall)",
+  "at": "-794.35, -1.28, 4844.43",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -794.35,4844.43 sunk -1.23",
+   "countryside @ -794.52,4859.12 sunk -1.21",
+   "countryside @ -744.38,4850.43 sunk -1.15",
+   "countryside @ -732.7,4903.81 sunk -1.12"
+  ],
+  "key": "keys|sinking|# countryside veg object(s) sunk > # cm into the ground (worst # m: co"
+ },
+ {
+  "id": "QA-036",
+  "area": "keys",
+  "cat": "sinking",
+  "sev": "medium",
+  "what": "21 shrub object(s) sunk > 30 cm into the ground (worst -0.95 m: vegField_hibiscus, 2.42 m tall)",
+  "at": "-819.46, -1, 4848.32",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -819.46,4848.32 sunk -0.95",
+   "vegField_hibiscus @ -809.6,4847.42 sunk -0.93",
+   "vegField_hibiscus @ -815.96,4867.55 sunk -0.89",
+   "vegField_hibiscus @ -788.21,4834.93 sunk -0.8",
+   "vegField_hibiscus @ -821,4871.59 sunk -0.78"
+  ],
+  "key": "keys|sinking|# shrub object(s) sunk > # cm into the ground (worst # m: vegField_hib"
+ },
+ {
+  "id": "QA-037",
+  "area": "downtown",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "18 other object(s) float above the ground with nothing under them (worst 0.94 m: )",
+  "at": "443.35, 1.09, -134.85",
+  "shot": "docs/v2/shots/qa/downtown_float_other.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   " @ 443.35,-134.85 gap 0.94",
+   " @ 441.07,-127.37 gap 0.75",
+   "miami-city @ 422.89,-162.53 gap 0.46",
+   "miami-city @ 437.95,-137.02 gap 0.42",
+   "miami-city @ 405.68,-130.97 gap 0.31"
+  ],
+  "key": "downtown|floating|# other object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-038",
+  "area": "beach",
+  "cat": "hitbox (walk)",
+  "sev": "medium",
+  "what": "(breakable? the cast found a collider, so it was probably knocked over; check) sprinting into a bin (miami-city) the player's capsule ends 2.78 m inside the visual mesh",
+  "at": "2414.02, 629.49",
+  "shot": "docs/v2/shots/qa/beach_walk_bin.jpg",
+  "owner": "r2-physics",
+  "key": "beach|hitbox (walk)|(breakable? the cast found a collider, so it was probably knocked over"
+ },
+ {
+  "id": "QA-039",
+  "area": "beach",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "11 other object(s) float above the ground with nothing under them (worst 1.71 m: reg-limit-30)",
+  "at": "2354.2, 1.86, 594.23",
+  "shot": "docs/v2/shots/qa/beach_float_other.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "reg-limit-30 @ 2354.2,594.23 gap 1.71",
+   " @ 2410.06,610.62 gap 0.7",
+   "Mesh034_4 @ 2398.46,630.23 gap 0.54",
+   "miami-city @ 2390.55,628.45 gap 0.53",
+   "miami-city @ 2394.72,597.86 gap 0.42"
+  ],
+  "key": "beach|floating|# other object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-040",
+  "area": "beach",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "7 countryside veg object(s) float above the ground with nothing under them (worst 1.48 m: countryside)",
+  "at": "2410.5, 1.48, 641.98",
+  "shot": "docs/v2/shots/qa/beach_float_other.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ 2410.5,641.98 gap 1.48",
+   "countryside @ 2386.76,675.14 gap 0.8",
+   "countryside @ 2394.79,633.97 gap 0.76",
+   "countryside @ 2380.59,636.25 gap 0.75",
+   "countryside @ 2364.31,622.09 gap 0.72"
+  ],
+  "key": "beach|floating|# countryside veg object(s) float above the ground with nothing under "
+ },
+ {
+  "id": "QA-041",
+  "area": "glades",
+  "cat": "floating",
+  "sev": "medium",
+  "what": "5 other object(s) float above the ground with nothing under them (worst 1.87 m: reg-limit-55)",
+  "at": "-2353.19, 1.87, 2396.33",
+  "shot": "docs/v2/shots/qa/glades_float_other.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "reg-limit-55 @ -2353.19,2396.33 gap 1.87",
+   "miami-city @ -2291.81,2408.53 gap 0.31",
+   "miami-city @ -2261.28,2434.18 gap 0.31",
+   "miami-city @ -2319.84,2412.12 gap 0.31",
+   "miami-city @ -2289.43,2437.02 gap 0.31"
+  ],
+  "key": "glades|floating|# other object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-042",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "suv12: stuck (no speed with throttle) (drive) at 0.05 km/h, up 1, wheel sink 0",
+  "at": "359.29, 0.84, 119.63",
+  "shot": "docs/v2/shots/qa/car_suv12_fail.jpg",
+  "owner": "r2-physics",
+  "key": "vehicles|vehicle|suv#: stuck (no speed with throttle) (drive) at # km/h, up #, wheel si"
+ },
+ {
+  "id": "QA-043",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "truck9: stuck (no speed with throttle) (drive) at 0.08 km/h, up 1, wheel sink 0",
+  "at": "358.5, 0.84, 112.13",
+  "shot": "docs/v2/shots/qa/car_truck9_fail.jpg",
+  "owner": "r2-physics",
+  "key": "vehicles|vehicle|truck#: stuck (no speed with throttle) (drive) at # km/h, up #, wheel "
+ },
+ {
+  "id": "QA-044",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "super4: stuck (no speed with throttle) (drive) at 0.38 km/h, up 1, wheel sink 0",
+  "at": "358.41, 0.6, 139.75",
+  "shot": "docs/v2/shots/qa/car_super4_fail.jpg",
+  "owner": "r2-physics",
+  "key": "vehicles|vehicle|super#: stuck (no speed with throttle) (drive) at # km/h, up #, wheel "
+ },
+ {
+  "id": "QA-045",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "hatch2: wheel in ground (drive) at 45.08 km/h, up 1, wheel sink -0.15",
+  "at": "355.53, 0.66, 121.42",
+  "shot": "docs/v2/shots/qa/car_hatch2_fail.jpg",
+  "owner": "r2-physics",
+  "key": "vehicles|vehicle|hatch#: wheel in ground (drive) at # km/h, up #, wheel sink #"
+ },
+ {
+  "id": "QA-046",
+  "area": "vehicles",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "van3: Nico's skull top (head bone + 0.20 m = 2.05) is only 0.03 m under the OUTER roof (2.08); with a 4-6 cm roof shell the head pokes through the headliner",
+  "at": "",
+  "owner": "r2-cars",
+  "key": "vehicles|vehicle|van#: Nico's skull top (head bone + # m = #) is only # m under the OUT"
+ },
+ {
+  "id": "QA-047",
+  "area": "water",
+  "cat": "water",
+  "sev": "medium",
+  "what": "shallow water: physics floor 0.05 vs drawn seabed -0.35 where the sedan3 stopped: the car rides 0.40 m above the drawn sand (invisible floor)",
+  "at": "-897.5, 0.64, 4829.3",
+  "owner": "r2-ground",
+  "key": "water|water|shallow water: physics floor # vs drawn seabed # where the sedan# stop"
+ },
+ {
+  "id": "QA-048",
+  "area": "water",
+  "cat": "vehicle",
+  "sev": "medium",
+  "what": "game.exitVehicle() threw \"Cannot set properties of null (setting 'playerDriven')\" at src/main.js:523 after driving truck9 into 23 cm water (P.state.inVehicle true but P.state.vehicle null; something cleared the vehicle without leaving the seat)",
+  "at": "-906.6, 4826.9 (truck9 from -889.2, 4831.6 toward the water)",
+  "owner": "main",
+  "key": "water|vehicle|game.exitVehicle() threw \"Cannot set properties of null (setting 'play"
+ },
+ {
+  "id": "QA-049",
+  "area": "spawn",
+  "cat": "hitbox",
+  "sev": "low",
+  "what": "shrub (walk-through may be intended; flagged for the big ones): 23 tested objects let the player capsule into the visual mesh (23 fully through, worst 3.33 m past the surface; meshes: vegField_hibiscus, plants:straps)",
+  "at": "-852.76, 0.26, 4828.24",
+  "shot": "docs/v2/shots/qa/spawn_hit_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -852.76,4828.24 pen 3.33",
+   "vegField_hibiscus @ -857.41,4825.53 pen 3.33",
+   "vegField_hibiscus @ -860.05,4828.53 pen 1.96",
+   "vegField_hibiscus @ -850.42,4831.12 pen 1.93",
+   "vegField_hibiscus @ -861.74,4843.4 pen 1.84"
+  ],
+  "key": "spawn|hitbox|shrub (walk-through may be intended; flagged for the big ones): # test"
+ },
+ {
+  "id": "QA-050",
+  "area": "spawn",
+  "cat": "hitbox (walk)",
+  "sev": "low",
+  "what": "sprinting into a shrub (vegField_hibiscus) the player's capsule ends 4.1 m inside the visual mesh (also flagged by the cast)",
+  "at": "-853.01, 4834.83",
+  "shot": "docs/v2/shots/qa/spawn_walk_tree.jpg",
+  "owner": "r2-veg",
+  "key": "spawn|hitbox (walk)|sprinting into a shrub (vegField_hibiscus) the player's capsule ends #"
+ },
+ {
+  "id": "QA-051",
+  "area": "spawn",
+  "cat": "hitbox (walk)",
+  "sev": "low",
+  "what": "sprinting into a shrub (vegField_hibiscus) the player's capsule ends 5.04 m inside the visual mesh (also flagged by the cast)",
+  "at": "-850.42, 4831.12",
+  "shot": "docs/v2/shots/qa/spawn_walk_tree.jpg",
+  "owner": "r2-veg",
+  "key": "spawn|hitbox (walk)|sprinting into a shrub (vegField_hibiscus) the player's capsule ends #"
+ },
+ {
+  "id": "QA-052",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "low",
+  "what": "1 deck object(s) float above the ground with nothing under them (worst 0.24 m: keysDock:Modular Wooden Pier Planks)",
+  "at": "-897.56, -0.08, 4815.85",
+  "shot": "docs/v2/shots/qa/spawn_float_deck.jpg",
+  "owner": "r2-keys",
+  "ex": [
+   "keysDock:Modular Wooden Pier Planks @ -897.56,4815.85 gap 0.24"
+  ],
+  "key": "spawn|floating|# deck object(s) float above the ground with nothing under them (worst"
+ },
+ {
+  "id": "QA-053",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "low",
+  "what": "3 shrub object(s) float above the ground with nothing under them (worst 0.13 m: vegField_hibiscus)",
+  "at": "-862.52, 0.3, 4847.03",
+  "shot": "docs/v2/shots/qa/spawn_float_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -862.52,4847.03 gap 0.13",
+   "vegField_hibiscus @ -857.41,4825.53 gap 0.1",
+   "vegField_hibiscus @ -895.4,4855.02 gap 0.09"
+  ],
+  "key": "spawn|floating|# shrub object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-054",
+  "area": "spawn",
+  "cat": "floating",
+  "sev": "low",
+  "what": "2 pole object(s) float above the ground with nothing under them (worst 0.09 m: keysYard:UtilityPole_MTL)",
+  "at": "-824.87, 0.09, 4847.16",
+  "shot": "docs/v2/shots/qa/spawn_float_pole.jpg",
+  "owner": "r2-keys",
+  "ex": [
+   "keysYard:UtilityPole_MTL @ -824.87,4847.16 gap 0.09",
+   "keysYard:UtilityPole_MTL @ -856.4,4855.65 gap 0.09"
+  ],
+  "key": "spawn|floating|# pole object(s) float above the ground with nothing under them (worst"
+ },
+ {
+  "id": "QA-055",
+  "area": "spawn",
+  "cat": "sinking",
+  "sev": "low",
+  "what": "1 tree object(s) sunk > 30 cm into the ground (worst -0.42 m: plants:palmBark, 3.04 m tall)",
+  "at": "-854.36, -0.19, 4814.58",
+  "shot": "docs/v2/shots/qa/spawn_sink_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "plants:palmBark @ -854.36,4814.58 sunk -0.42"
+  ],
+  "key": "spawn|sinking|# tree object(s) sunk > # cm into the ground (worst # m: plants:palmBa"
+ },
+ {
+  "id": "QA-056",
+  "area": "spawn",
+  "cat": "ground",
+  "sev": "low",
+  "what": "44 points where a roof / building / vegetation top has a collider > 5 cm off the drawn surface or none (meshes: houses:spawn:1:wood, houses:spawn:1:tin, ext:tin, vegField_hibiscus, houses:near:tin)",
+  "at": "-816.88, 0.19, 4862.46",
+  "owner": "r2-keys",
+  "ex": [
+   "-816.88,4862.46 render 0.19 phys 1.2 (houses:spawn:1:wood)",
+   "-822.97,4840.42 render 5.8 phys 6.77 (houses:spawn:1:tin)",
+   "-886.03,4854.34 render 5.47 phys 4.52 (houses:spawn:1:tin)",
+   "-857.85,4809.55 render 7.91 phys 6.97 (houses:spawn:1:tin)",
+   "-872.32,4821.56 render 6.68 phys 5.84 (ext:tin)"
+  ],
+  "key": "spawn|ground|# points where a roof / building / vegetation top has a collider > # c"
+ },
+ {
+  "id": "QA-057",
+  "area": "spawn",
+  "cat": "ground",
+  "sev": "low",
+  "what": "142/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.13 m (feet hover / sink that much)",
+  "at": "-897.57, -0.05, 4829.82",
+  "owner": "r2-ground",
+  "key": "spawn|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
+ },
+ {
+  "id": "QA-058",
+  "area": "keys",
+  "cat": "hitbox",
+  "sev": "low",
+  "what": "shrub (walk-through may be intended; flagged for the big ones): 22 tested objects let the player capsule into the visual mesh (22 fully through, worst 2.24 m past the surface; meshes: vegField_hibiscus)",
+  "at": "-821, -0.25, 4871.59",
+  "shot": "docs/v2/shots/qa/keys_hit_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -821,4871.59 pen 2.24",
+   "vegField_hibiscus @ -821.04,4877.66 pen 2.15",
+   "vegField_hibiscus @ -812.78,4877.79 pen 2.04",
+   "vegField_hibiscus @ -790.55,4838.04 pen 1.76",
+   "vegField_hibiscus @ -817.06,4870.61 pen 1.73"
+  ],
+  "key": "keys|hitbox|shrub (walk-through may be intended; flagged for the big ones): # test"
+ },
+ {
+  "id": "QA-059",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "low",
+  "what": "sprinting into a shrub (vegField_hibiscus) the player's capsule ends 4.17 m inside the visual mesh",
+  "at": "-815.43, 4876.39",
+  "shot": "docs/v2/shots/qa/keys_walk_tree.jpg",
+  "owner": "r2-veg",
+  "key": "keys|hitbox (walk)|sprinting into a shrub (vegField_hibiscus) the player's capsule ends #"
+ },
+ {
+  "id": "QA-060",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "low",
+  "what": "sprinting into a shrub (vegField_hibiscus) the player's capsule ends 4.45 m inside the visual mesh (also flagged by the cast)",
+  "at": "-807.7, 4884.1",
+  "shot": "docs/v2/shots/qa/keys_walk_tree.jpg",
+  "owner": "r2-veg",
+  "key": "keys|hitbox (walk)|sprinting into a shrub (vegField_hibiscus) the player's capsule ends #"
+ },
+ {
+  "id": "QA-061",
+  "area": "keys",
+  "cat": "hitbox (walk)",
+  "sev": "low",
+  "what": "sprinting into a shrub (vegField_hibiscus) the player's capsule ends 4.73 m inside the visual mesh (also flagged by the cast)",
+  "at": "-808.55, 4883.05",
+  "shot": "docs/v2/shots/qa/keys_walk_tree.jpg",
+  "owner": "r2-veg",
+  "key": "keys|hitbox (walk)|sprinting into a shrub (vegField_hibiscus) the player's capsule ends #"
+ },
+ {
+  "id": "QA-062",
+  "area": "keys",
+  "cat": "floating",
+  "sev": "low",
+  "what": "7 shrub object(s) float above the ground with nothing under them (worst 0.22 m: vegField_hibiscus)",
+  "at": "-799.25, 0.22, 4834.23",
+  "shot": "docs/v2/shots/qa/keys_float_tree.jpg",
+  "owner": "r2-veg",
+  "ex": [
+   "vegField_hibiscus @ -799.25,4834.23 gap 0.22",
+   "vegField_hibiscus @ -798.56,4839.3 gap 0.19",
+   "vegField_hibiscus @ -816.28,4863.23 gap 0.18",
+   "vegField_hibiscus @ -826.21,4856.12 gap 0.13",
+   "vegField_hibiscus @ -826.88,4857.3 gap 0.13"
+  ],
+  "key": "keys|floating|# shrub object(s) float above the ground with nothing under them (wors"
+ },
+ {
+  "id": "QA-063",
+  "area": "keys",
+  "cat": "ground",
+  "sev": "low",
+  "what": "28 points where a roof / building / vegetation top has a collider > 5 cm off the drawn surface or none (meshes: houses:near:tin, houses:spawn:1:tin, vegField_hibiscus, houses:spawn:1:paint:a:0.22:0.72:1:0, chunk-mid--1,6)",
+  "at": "-816.64, 5.4, 4887.26",
+  "owner": "r2-keys",
+  "ex": [
+   "-816.64,4887.26 render 5.4 phys 4.47 (houses:near:tin)",
+   "-841.62,4895.12 render 5.49 phys 4.57 (houses:spawn:1:tin)",
+   "-809.97,4884.84 render 0.92 phys 0 (vegField_hibiscus)",
+   "-808.84,4888.67 render 0.91 phys 0 (vegField_hibiscus)",
+   "-738.69,4874.88 render 5.96 phys 6.67 (houses:spawn:1:tin)"
+  ],
+  "key": "keys|ground|# points where a roof / building / vegetation top has a collider > # c"
+ },
+ {
+  "id": "QA-064",
+  "area": "keys",
+  "cat": "ground",
+  "sev": "low",
+  "what": "174/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
+  "at": "-820.08, -0.05, 4825.59",
+  "owner": "r2-ground",
+  "key": "keys|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
+ },
+ {
+  "id": "QA-065",
+  "area": "keys",
+  "cat": "ground",
+  "sev": "low",
+  "what": "1/280 points: physics floor differs from the rendered surface by > 5 cm (1 by > 15 cm; worst 1.56 m on miami-land-base; by mesh: miami-land-base 1)",
+  "at": "-830.06, -0.05, 4889.55",
+  "shot": "docs/v2/shots/qa/keys_groundMismatch.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-830.06,4889.55 render -0.05 phys 1.51 (miami-land-base, rand)"
+  ],
+  "key": "keys|ground|#/# points: physics floor differs from the rendered surface by > # cm "
+ },
+ {
+  "id": "QA-066",
+  "area": "downtown",
+  "cat": "ground",
+  "sev": "low",
+  "what": "21 points where a roof / building / vegetation top has a collider > 5 cm off the drawn surface or none (meshes: lib-grid_tower, chunk-mid-0,-1, lib-roof_vents, miami-city, facades)",
+  "at": "495.28, 3.63, -161.84",
+  "owner": "r2-art",
+  "ex": [
+   "495.28,-161.84 render 3.63 phys 6.81 (lib-grid_tower)",
+   "464.3,-214.57 render 0.15 phys 0.05 (chunk-mid-0,-1)",
+   "417.15,-215.52 render 0.15 phys 0.05 (chunk-mid-0,-1)",
+   "486.12,-153 render 0.15 phys 0.05 (chunk-mid-0,-1)",
+   "421.74,-215.68 render 0.15 phys 0.05 (chunk-mid-0,-1)"
+  ],
+  "key": "downtown|ground|# points where a roof / building / vegetation top has a collider > # c"
+ },
+ {
+  "id": "QA-067",
+  "area": "downtown",
+  "cat": "ground",
+  "sev": "low",
+  "what": "5/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
+  "at": "398.24, -0.05, -128.3",
+  "owner": "r2-ground",
+  "key": "downtown|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
+ },
+ {
+  "id": "QA-068",
+  "area": "beach",
+  "cat": "ground",
+  "sev": "low",
+  "what": "7 points where a roof / building / vegetation top has a collider > 5 cm off the drawn surface or none (meshes: chunk-mid-2,0, chunk-mid-3,0, facades)",
+  "at": "2377.08, 0.15, 609.14",
+  "owner": "r2-art",
+  "ex": [
+   "2377.08,609.14 render 0.15 phys 7.35 (chunk-mid-2,0)",
+   "2406.02,613.16 render 3.03 phys 0.15 (chunk-mid-3,0)",
+   "2384.47,580.02 render 2.9 phys 0.15 (chunk-mid-2,0)",
+   "2434.27,613.61 render 7.11 phys 0.15 (facades)",
+   "2390.99,564.07 render 29.75 phys 28.3 (facades)"
+  ],
+  "key": "beach|ground|# points where a roof / building / vegetation top has a collider > # c"
+ },
+ {
+  "id": "QA-069",
+  "area": "beach",
+  "cat": "ground",
+  "sev": "low",
+  "what": "120/273 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
+  "at": "2339.34, -0.05, 608.44",
+  "owner": "r2-ground",
+  "key": "beach|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
+ },
+ {
+  "id": "QA-070",
+  "area": "glades",
+  "cat": "sinking",
+  "sev": "low",
+  "what": "21 countryside veg object(s) sunk > 30 cm into the ground (worst -0.41 m: countryside, 0.69 m tall)",
+  "at": "-2305.89, -0.33, 2456.72",
+  "owner": "r2-veg",
+  "ex": [
+   "countryside @ -2305.89,2456.72 sunk -0.41",
+   "countryside @ -2328.38,2455.97 sunk -0.4",
+   "countryside @ -2317.84,2473.06 sunk -0.4",
+   "countryside @ -2296.87,2463.85 sunk -0.39",
+   "countryside @ -2314.63,2473.93 sunk -0.37"
+  ],
+  "key": "glades|sinking|# countryside veg object(s) sunk > # cm into the ground (worst # m: co"
+ },
+ {
+  "id": "QA-071",
+  "area": "glades",
+  "cat": "ground",
+  "sev": "low",
+  "what": "2 points where a roof / building / vegetation top has a collider > 5 cm off the drawn surface or none (meshes: countryside)",
+  "at": "-2296.41, 0.44, 2390.9",
+  "owner": "r2-veg",
+  "ex": [
+   "-2296.41,2390.9 render 0.44 phys 0 (countryside)",
+   "-2342.44,2372.4 render 0.19 phys 0 (countryside)"
+  ],
+  "key": "glades|ground|# points where a roof / building / vegetation top has a collider > # c"
+ },
+ {
+  "id": "QA-072",
+  "area": "glades",
+  "cat": "ground",
+  "sev": "low",
+  "what": "208/275 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
+  "at": "-2244.18, -0.05, 2424.02",
+  "owner": "r2-ground",
+  "key": "glades|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
+ },
+ {
+  "id": "QA-073",
+  "area": "glades",
+  "cat": "ground",
+  "sev": "low",
+  "what": "2/275 points: physics floor differs from the rendered surface by > 5 cm (2 by > 15 cm; worst 2.77 m on miami-land-base; by mesh: miami-land-base 2)",
+  "at": "-2347.35, -0.05, 2410.83",
+  "shot": "docs/v2/shots/qa/glades_groundMismatch.jpg",
+  "owner": "r2-ground",
+  "ex": [
+   "-2347.35,2410.83 render -0.05 phys 2.72 (miami-land-base, rand)",
+   "-2342.82,2480.86 render -0.05 phys 0.16 (miami-land-base, rand)"
+  ],
+  "key": "glades|ground|#/# points: physics floor differs from the rendered surface by > # cm "
+ },
+ {
+  "id": "QA-074",
+  "area": "water",
+  "cat": "water",
+  "sev": "low",
+  "what": "breath bar visible at 100 % breath with the head above water",
+  "at": "",
+  "owner": "r2-water",
+  "key": "water|water|breath bar visible at # % breath with the head above water"
+ },
+ {
+  "id": "QA-075",
+  "area": "console",
+  "cat": "console warning",
+  "sev": "low",
+  "what": "[warning x1, boot] THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+  "at": "node_modules/.vite/deps/chunk-UG26MVNH.js:6920",
+  "owner": "main",
+  "key": "console|console warning|[warning x#, boot] THREE.BufferGeometry.toNonIndexed(): BufferGeometry"
+ }
+]

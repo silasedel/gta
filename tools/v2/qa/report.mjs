@@ -35,7 +35,7 @@ for (const [area, A] of Object.entries(R.areas || {})) {
   }
   if (A.carHitbox?.length) { const w = [...A.carHitbox].sort((p, q) => q.pen - p.pen)[0]; add({ area, cat: 'hitbox', sev: A.carHitbox.some((f) => f.through) ? 'high' : 'medium', what: `parked cars: ${A.carHitbox.length}/${A.carsTested} let the capsule into the body (worst ${w.car} ${w.pen} m)`, at: fmt(w.x, w.z), shot: sh.hit_car, owner: 'r2-physics', ex: A.carHitbox.slice(0, 5).map((f) => `${f.car} @ ${f.x},${f.z} pen ${f.pen}`) }); }
   // real walks
-  for (const w of (A.walks || []).filter((w) => w.pen > 0.15 && w.maxLat !== undefined)) add({ area, cat: 'hitbox (walk)', sev: w.pen > 0.4 ? 'high' : 'medium', what: `sprinting into a ${SHRUB.test(w.label) ? 'shrub' : /countryside/.test(w.label) ? 'countryside veg' : w.kind} (${w.label.split('|')[0]}) the player's capsule ends ${w.pen} m inside the visual mesh${w.flaggedByCast ? ' (also flagged by the cast)' : ''}`, at: fmt(w.x, w.z), shot: sh['walk_' + w.kind], owner: /tree/.test(w.kind) || SHRUB.test(w.label) || /countryside/.test(w.label) ? 'r2-veg' : 'r2-physics' });
+  for (const w of (A.walks || []).filter((w) => w.pen > 0.15 && w.maxLat !== undefined && !/npc|people/i.test(w.label))) add({ area, cat: 'hitbox (walk)', sev: SHRUB.test(w.label) ? 'low' : /lot-props|TrashCan|Mailbox|Bin|sign/i.test(w.label) ? 'medium' : w.pen > 0.4 ? 'high' : 'medium', what: `${/lot-props|TrashCan|Mailbox|Bin|sign/i.test(w.label) && !w.flaggedByCast ? '(breakable? the cast found a collider, so it was probably knocked over; check) ' : ''}sprinting into a ${SHRUB.test(w.label) ? 'shrub' : /countryside/.test(w.label) ? 'countryside veg' : w.kind} (${w.label.split('|')[0]}) the player's capsule ends ${w.pen} m inside the visual mesh${w.flaggedByCast ? ' (also flagged by the cast)' : ''}`, at: fmt(w.x, w.z), shot: sh['walk_' + w.kind], owner: /tree/.test(w.kind) || SHRUB.test(w.label) || /countryside/.test(w.label) ? 'r2-veg' : 'r2-physics' });
   const noMove = (A.walks || []).filter((w) => w.travelled < 0.3);
   if (A.walks?.length && noMove.length === A.walks.length) add({ area, cat: 'qa', sev: 'low', what: 'real walks did not move the player (input not taken): walk results inconclusive', at: '', owner: 'r2-qa' });
   for (const w of (A.carWalks || []).filter((w) => w.carMovedMm > 1)) add({ area, cat: 'push', sev: w.carMovedMm > 20 ? 'high' : 'medium', what: `walking into a parked ${w.key} moved it ${w.carMovedMm} mm / ${w.carTurnDeg} deg (drift before contact ${w.driftMm} mm)`, at: fmt(w.x, w.z), shot: sh.pushedCar, owner: 'r2-physics' });
@@ -101,6 +101,7 @@ for (const c of R.console || []) {
   if (!err && c.n < 2 && !/THREE|WebGL|shader/i.test(c.text)) continue;
   add({ area: 'console', cat: err ? 'console error' : 'console warning', sev: err ? (c.lvl === 'exception' ? 'high' : 'medium') : /TypeError|ReferenceError/.test(c.text) ? 'medium' : 'low', what: `[${c.lvl} x${c.n}, ${c.phase}] ${c.text.replace(/\s+/g, ' ').slice(0, 220)}`, at: c.url, owner: ownerOfFile(c.url + ' ' + c.text) });
 }
+for (const e of R.extraBugs || []) add(e);
 bugs.sort((p, q) => SEV[p.sev] - SEV[q.sev]);
 bugs.forEach((b, i) => { b.id = 'QA-' + String(i + 1).padStart(3, '0'); });
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
@@ -115,7 +116,9 @@ md += `\n## Vehicles\n\n| car | drive max km/h | min up | curb | sign | exit | f
 for (const V of R.vehicles || []) md += `| ${V.key} | ${V.drive?.maxKmh?.toFixed?.(0) ?? ''} | ${V.drive?.minUp ?? ''} | ${esc(JSON.stringify(V.curb))} | ${esc(JSON.stringify(V.sign && { kmh: V.sign.maxKmh, up: V.sign.minUp, vy: V.sign.maxVy }))} | ${esc(JSON.stringify(V.exit))} | ${(V.fails || []).length} |\n`;
 md += `\n## Coverage gaps in this run\n\n- South Beach: the preset coordinate (3478, -77) is open ocean, so no South Beach objects were tested (fixed in the script: it now searches districtAt for South Beach).\n- Everglades: the preset (-2386, 2660) resolves to Homestead / rural; only the 'countryside' layer stood there.\n- Real sprint walks in r1 slid around round objects, so their penetration numbers were not trusted (fixed: lateral slide > 25 cm is now ignored). Hitbox bugs above come from the capsule cast. Parked-car push test: 0-0.1 mm on 4 cars per area (pass).\n- Vehicles: six cars (sedan3, suv12, truck9, super4, hatch2, van3) drove 20 s, hit a curb at 30 km/h and a sign post at 20-60 km/h with no roll-over, NaN or launch; enter and exit were clean.\n`;
 md += `\n## Not covered automatically\n\nWhite triangles in car windows and wires ending in mid-air are visual-only and not measured by this script (screenshots in docs/v2/shots/qa/ show the areas).\n`;
-fs.writeFileSync('docs/v2/reports/qa-r2.md', md);
+fs.writeFileSync(o.out || 'docs/v2/reports/qa-r2.md', md);
+for (const b of bugs) b.key = `${b.area}|${b.cat}|${b.what.replace(/-?\d+(\.\d+)?/g, '#').replace(/\s+/g, ' ').slice(0, 70)}`;
+fs.writeFileSync(`docs/v2/reports/qa-r2${TAG}-bugs.json`, JSON.stringify(bugs, null, 1));
 const byOwner = {}; for (const b of bugs) (byOwner[b.owner] ||= []).push(b);
-fs.writeFileSync('docs/v2/reports/qa-r2-owners.json', JSON.stringify(byOwner, null, 1));
+if (!o.out) fs.writeFileSync('docs/v2/reports/qa-r2-owners.json', JSON.stringify(byOwner, null, 1));
 console.log(bugs.length, 'bugs;', Object.entries(byOwner).map(([k, v]) => `${k}:${v.length}`).join(' '));

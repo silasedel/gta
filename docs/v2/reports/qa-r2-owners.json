@@ -15,7 +15,8 @@
     "countryside @ -835.86,4853.47 pen 1.61",
     "countryside @ -834.5,4854.67 pen 1.5",
     "countryside @ -829.79,4822.73 pen 1.39"
-   ]
+   ],
+   "key": "spawn|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
   },
   {
    "id": "QA-004",
@@ -32,7 +33,8 @@
     "countryside @ -742.41,4893.98 pen 1.6",
     "countryside @ -780.88,4906.54 pen 1.51",
     "countryside @ -769.1,4866.84 pen 1.49"
-   ]
+   ],
+   "key": "keys|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
   },
   {
    "id": "QA-007",
@@ -49,7 +51,8 @@
     "countryside @ -2395.5,2666.74 pen 0.98",
     "countryside @ -2391.74,2666.57 pen 0.93",
     "countryside @ -2399.74,2660.16 pen 0.93"
-   ]
+   ],
+   "key": "glades|hitbox|countryside veg (the 'countryside' instanced layer: trees and shrubs d"
   },
   {
    "id": "QA-013",
@@ -66,7 +69,8 @@
     "plants:straps @ -887.89,4820.62 gap 1.38",
     "plants:straps @ -886.09,4829.47 gap 1.32",
     "plants:straps @ -885.78,4834.25 gap 1.21"
-   ]
+   ],
+   "key": "spawn|floating|# shrub object(s) float above the ground with nothing under them (wors"
   },
   {
    "id": "QA-014",
@@ -83,7 +87,8 @@
     "countryside @ -823.05,4883.6 gap 0.61",
     "countryside @ -820.34,4875.34 gap 0.12",
     "countryside @ -819.83,4792.3 gap 0.12"
-   ]
+   ],
+   "key": "spawn|floating|# countryside veg object(s) float above the ground with nothing under "
   },
   {
    "id": "QA-015",
@@ -96,7 +101,8 @@
    "owner": "r2-veg",
    "ex": [
     "vegField_coconut @ -843.41,4850.04 gap 0.53"
-   ]
+   ],
+   "key": "spawn|floating|# tree object(s) float above the ground with nothing under them (worst"
   },
   {
    "id": "QA-017",
@@ -110,7 +116,8 @@
    "ex": [
     "vegField_liveoak @ -899.53,4821.27 sunk -2.15",
     "plants:palmBark @ -854.36,4814.58 sunk -0.42"
-   ]
+   ],
+   "key": "spawn|sinking|# tree object(s) sunk > # cm into the ground (worst # m: vegField_live"
   },
   {
    "id": "QA-018",
@@ -124,7 +131,8 @@
     "vegField_hibiscus @ -894.08,4858.37 sunk -0.69",
     "vegField_hibiscus @ -896.6,4856.77 sunk -0.46",
     "vegField_hibiscus @ -884.92,4852.16 sunk -0.37"
-   ]
+   ],
+   "key": "spawn|sinking|# shrub object(s) sunk > # cm into the ground (worst # m: vegField_hib"
   },
   {
    "id": "QA-019",
@@ -134,7 +142,8 @@
    "what": "plants grow inside 3 parked car(s) (sedan10: vegField_hibiscus; suv12: vegField_hibiscus; sedan8: vegCollars)",
    "at": "-833.2, 4837.21",
    "shot": "docs/v2/shots/qa/spawn_plantInCar.jpg",
-   "owner": "r2-veg"
+   "owner": "r2-veg",
+   "key": "spawn|clipping|plants grow inside # parked car(s) (sedan#: vegField_hibiscus; suv#: v"
   },
   {
    "id": "QA-021",
@@ -151,7 +160,8 @@
     "countryside @ -733.29,4867.09 gap 0.78",
     "countryside @ -779.59,4898.94 gap 0.74",
     "countryside @ -813.12,4915.4 gap 0.66"
-   ]
+   ],
+   "key": "keys|floating|# countryside veg object(s) float above the ground with nothing under "
   },
   {
    "id": "QA-022",
@@ -161,7 +171,8 @@
    "what": "plants grow inside 1 parked car(s) (sedan8: vegField_hibiscus)",
    "at": "-815.8, 4866.68",
    "shot": "docs/v2/shots/qa/keys_plantInCar.jpg",
-   "owner": "r2-veg"
+   "owner": "r2-veg",
+   "key": "keys|clipping|plants grow inside # parked car(s) (sedan#: vegField_hibiscus)"
   },
   {
    "id": "QA-033",
@@ -178,7 +189,8 @@
     "vegField_hibiscus @ -851.62,4827.79 pen 2.49",
     "vegField_hibiscus @ -860.05,4828.53 pen 1.96",
     "vegField_hibiscus @ -850.42,4831.12 pen 1.91"
-   ]
+   ],
+   "key": "spawn|hitbox|shrub (walk-through may be intended; flagged for the big ones): # test"
   },
   {
    "id": "QA-038",
@@ -195,7 +207,8 @@
     "vegField_hibiscus @ -812.78,4877.79 pen 2.35",
     "vegField_hibiscus @ -808.55,4883.05 pen 1.77",
     "vegField_hibiscus @ -817.06,4870.61 pen 1.73"
-   ]
+   ],
+   "key": "keys|hitbox|shrub (walk-through may be intended; flagged for the big ones): # test"
   },
   {
    "id": "QA-039",
@@ -212,7 +225,8 @@
     "vegField_hibiscus @ -826.21,4856.12 gap 0.13",
     "vegField_hibiscus @ -826.88,4857.3 gap 0.13",
     "vegField_hibiscus @ -819.89,4889.92 gap 0.11"
-   ]
+   ],
+   "key": "keys|floating|# shrub object(s) float above the ground with nothing under them (wors"
   },
   {
    "id": "QA-040",
@@ -228,7 +242,8 @@
     "vegField_hibiscus @ -830.09,4870.59 sunk -0.43",
     "vegField_hibiscus @ -814.71,4849.78 sunk -0.43",
     "vegField_hibiscus @ -810.58,4841.14 sunk -0.42"
-   ]
+   ],
+   "key": "keys|sinking|# shrub object(s) sunk > # cm into the ground (worst # m: vegField_hib"
   },
   {
    "id": "QA-041",
@@ -244,7 +259,8 @@
     "-841.62,4895.12 render 5.49 phys 4.57 (houses:spawn:1:tin)",
     "-738.69,4874.88 render 5.96 phys 6.67 (houses:spawn:1:tin)",
     "-817.07,4840.37 render 7.18 phys 6.77 (houses:near:tin)"
-   ]
+   ],
+   "key": "keys|ground|# points where a roof / building / vegetation top has a collider > # c"
   },
   {
    "id": "QA-044",
@@ -256,7 +272,8 @@
    "owner": "r2-veg",
    "ex": [
     "countryside @ 419.29,-157.6 sunk -0.6"
-   ]
+   ],
+   "key": "downtown|sinking|# countryside veg object(s) sunk > # cm into the ground (worst # m: co"
   },
   {
    "id": "QA-047",
@@ -272,7 +289,8 @@
     "countryside @ -2362.95,2639.69 sunk -0.32",
     "countryside @ -2359.83,2648.91 sunk -0.32",
     "countryside @ -2340.54,2669.09 sunk -0.32"
-   ]
+   ],
+   "key": "glades|sinking|# countryside veg object(s) sunk > # cm into the ground (worst # m: co"
   },
   {
    "id": "QA-048",
@@ -288,7 +306,8 @@
     "-2414.08,2717.34 render 0.34 phys 0 (countryside)",
     "-2337.78,2658.4 render 0.22 phys 0 (countryside)",
     "-2413.4,2662.5 render 0.17 phys 0 (countryside)"
-   ]
+   ],
+   "key": "glades|ground|# points where a roof / building / vegetation top has a collider > # c"
   }
  ],
  "r2-physics": [
@@ -303,7 +322,8 @@
    "owner": "r2-physics",
    "ex": [
     "v2-signs @ -807.91,4870.51 pen 0.82"
-   ]
+   ],
+   "key": "spawn|hitbox|sign: #/# tested objects let the player capsule into the visual mesh ("
   },
   {
    "id": "QA-005",
@@ -316,7 +336,8 @@
    "owner": "r2-physics",
    "ex": [
     "v2-signs @ -807.91,4870.51 pen 0.82"
-   ]
+   ],
+   "key": "keys|hitbox|sign: #/# tested objects let the player capsule into the visual mesh ("
   },
   {
    "id": "QA-024",
@@ -326,7 +347,8 @@
    "what": "truck9: wheel in ground (drive) at 0.09 km/h, up 1, wheel sink -0.15",
    "at": "359.64, 0.89, 110.04",
    "shot": "docs/v2/shots/qa/car_truck9_fail.jpg",
-   "owner": "r2-physics"
+   "owner": "r2-physics",
+   "key": "vehicles|vehicle|truck#: wheel in ground (drive) at # km/h, up #, wheel sink #"
   },
   {
    "id": "QA-025",
@@ -336,7 +358,8 @@
    "what": "truck9: stuck (no speed with throttle) (drive) at 0.08 km/h, up 1, wheel sink -0.15",
    "at": "359.64, 0.89, 110.04",
    "shot": "docs/v2/shots/qa/car_truck9_fail.jpg",
-   "owner": "r2-physics"
+   "owner": "r2-physics",
+   "key": "vehicles|vehicle|truck#: stuck (no speed with throttle) (drive) at # km/h, up #, wheel "
   },
   {
    "id": "QA-031",
@@ -345,7 +368,8 @@
    "sev": "medium",
    "what": "truck9 water drive: wheel in ground",
    "at": "-904.07, 0.85, 4827.74",
-   "owner": "r2-physics"
+   "owner": "r2-physics",
+   "key": "water|water|truck# water drive: wheel in ground"
   },
   {
    "id": "QA-043",
@@ -360,7 +384,8 @@
     "miami-city @ 456.25,-152.46 pen 0.23",
     "miami-city @ 438.18,-181.98 pen 0.21",
     "miami-city @ 438.47,-167.67 pen 0.19"
-   ]
+   ],
+   "key": "downtown|hitbox|other: #/# tested objects let the player capsule into the visual mesh "
   }
  ],
  "r2-ground": [
@@ -375,7 +400,8 @@
    "owner": "r2-ground",
    "ex": [
     "-840.22,4749.86 render 8.83 phys 0 (tile-near--5,23)"
-   ]
+   ],
+   "key": "spawn|ground|#/# points have no physics floor under the rendered surface (meshes: t"
   },
   {
    "id": "QA-006",
@@ -390,7 +416,8 @@
     "-921.41,5295.49 render -0.05 phys -8 (miami-land-base)",
     "-982.46,5375.96 render -0.05 phys -8 (miami-land-base)",
     "-868.53,5201.4 render -0.05 phys -8 (miami-land-base)"
-   ]
+   ],
+   "key": "keys|ground|#/# points have no physics floor under the rendered surface (meshes: m"
   },
   {
    "id": "QA-008",
@@ -403,7 +430,8 @@
    "owner": "r2-ground",
    "ex": [
     "-2340.42,2791.09 render 1.11 phys 0 (conc)"
-   ]
+   ],
+   "key": "glades|ground|#/# points have no physics floor under the rendered surface (meshes: c"
   },
   {
    "id": "QA-009",
@@ -412,7 +440,8 @@
    "sev": "high",
    "what": "player fell below the ground right after a teleport (area:glades); the anti-fall guard restored him ([player] fell below ground, restored at -2394.6 2663.5)",
    "at": "-2394.6, 2663.5",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "area:glades|ground|player fell below the ground right after a teleport (area:glades); the"
   },
   {
    "id": "QA-010",
@@ -421,7 +450,8 @@
    "sev": "high",
    "what": "player fell below the ground right after a teleport (water); the anti-fall guard restored him ([player] fell below ground, restored at -895.0 4830.0)",
    "at": "-895.0, 4830.0",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "water|ground|player fell below the ground right after a teleport (water); the anti-"
   },
   {
    "id": "QA-016",
@@ -434,7 +464,8 @@
    "owner": "r2-ground",
    "ex": [
     "dockSite:pbr:concrete_wall_008:1.6:1:0:0:14871030::2.3:1:0.4:0.7: @ -895.8,4816.85 sunk -1.87"
-   ]
+   ],
+   "key": "spawn|sinking|# deck object(s) sunk > # cm into the ground (worst # m: dockSite:pbr:"
   },
   {
    "id": "QA-020",
@@ -451,7 +482,8 @@
     "miami-city @ -764.4,4851.95 gap 0.31",
     "miami-city @ -765.39,4883.05 gap 0.31",
     "miami-city @ -772.8,4904.49 gap 0.31"
-   ]
+   ],
+   "key": "keys|floating|# other object(s) float above the ground with nothing under them (wors"
   },
   {
    "id": "QA-023",
@@ -468,7 +500,8 @@
     "miami-city @ 437.95,-137.02 gap 0.46",
     "miami-city @ 422.89,-162.53 gap 0.46",
     "miami-city @ 405.68,-130.97 gap 0.31"
-   ]
+   ],
+   "key": "downtown|floating|# other object(s) float above the ground with nothing under them (wors"
   },
   {
    "id": "QA-030",
@@ -477,7 +510,8 @@
    "sev": "medium",
    "what": "shallow water: physics floor 0.00 vs drawn seabed -0.35 where the sedan3 stopped: the car rides 0.35 m above the drawn sand (invisible floor)",
    "at": "-903.2, 0.64, 4827.7",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "water|water|shallow water: physics floor # vs drawn seabed # where the sedan# stop"
   },
   {
    "id": "QA-036",
@@ -486,7 +520,8 @@
    "sev": "low",
    "what": "138/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.13 m (feet hover / sink that much)",
    "at": "-897.57, -0.05, 4829.82",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "spawn|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
   },
   {
    "id": "QA-037",
@@ -503,7 +538,8 @@
     "-917.31,4852.88 render -0.35 phys 0 (seabed, rand)",
     "-919.52,4858.99 render -0.35 phys 0 (seabed, curbside)",
     "-851.16,4833.51 render 0.23 phys 0.08 (site:keys:matted, rand)"
-   ]
+   ],
+   "key": "spawn|ground|#/# points: physics floor differs from the rendered surface by > # cm "
   },
   {
    "id": "QA-042",
@@ -512,7 +548,8 @@
    "sev": "low",
    "what": "177/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
    "at": "-820.08, -0.05, 4825.59",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "keys|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
   },
   {
    "id": "QA-046",
@@ -521,7 +558,8 @@
    "sev": "low",
    "what": "7/280 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.05 m (feet hover / sink that much)",
    "at": "413.21, -0.05, -130.93",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "downtown|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
   },
   {
    "id": "QA-049",
@@ -530,7 +568,8 @@
    "sev": "low",
    "what": "229/277 points: the drawn land base (miami-land-base) sits below the physics floor by 5-0.13 m (feet hover / sink that much)",
    "at": "-2329.81, -0.05, 2677.29",
-   "owner": "r2-ground"
+   "owner": "r2-ground",
+   "key": "glades|ground|#/# points: the drawn land base (miami-land-base) sits below the physi"
   },
   {
    "id": "QA-050",
@@ -545,7 +584,8 @@
     "-2348.71,2658.35 render -0.05 phys 3.24 (miami-land-base, rand)",
     "-2376.26,2602.43 render -0.05 phys 0.21 (miami-land-base, rand)",
     "-2332.35,2773.61 render 0.25 phys 0 (conc, curbside)"
-   ]
+   ],
+   "key": "glades|ground|#/# points: physics floor differs from the rendered surface by > # cm "
   }
  ],
  "r2-water": [
@@ -556,7 +596,8 @@
    "sev": "high",
    "what": "teleported into 7.88 m deep water: not swimming (y -0.31)",
    "at": "-895.0033355292218, 4806.0000002317865",
-   "owner": "r2-water"
+   "owner": "r2-water",
+   "key": "water|water|teleported into # m deep water: not swimming (y #)"
   },
   {
    "id": "QA-051",
@@ -565,7 +606,8 @@
    "sev": "low",
    "what": "breath bar visible at 100 % breath with the head above water",
    "at": "",
-   "owner": "r2-water"
+   "owner": "r2-water",
+   "key": "water|water|breath bar visible at # % breath with the head above water"
   }
  ],
  "r2-keys": [
@@ -584,7 +626,8 @@
     "miami-city @ -838.11,4834.97 gap 0.88",
     "miami-city @ -836.33,4839.54 gap 0.8",
     "keysLots:Boat Hull @ -839.02,4852.25 gap 0.78"
-   ]
+   ],
+   "key": "spawn|floating|# other object(s) float above the ground with nothing under them (wors"
   },
   {
    "id": "QA-034",
@@ -597,7 +640,8 @@
    "owner": "r2-keys",
    "ex": [
     "keysDock:Modular Wooden Pier Planks @ -897.56,4815.85 gap 0.24"
-   ]
+   ],
+   "key": "spawn|floating|# deck object(s) float above the ground with nothing under them (worst"
   },
   {
    "id": "QA-035",
@@ -613,7 +657,8 @@
     "-886.03,4854.34 render 5.47 phys 4.52 (houses:spawn:1:tin)",
     "-857.85,4809.55 render 7.91 phys 6.97 (houses:near:tin)",
     "-807.87,4846.66 render 0.88 phys 0 (vegField_hibiscus)"
-   ]
+   ],
+   "key": "spawn|ground|# points where a roof / building / vegetation top has a collider > # c"
   }
  ],
  "r2-cars": [
@@ -624,7 +669,8 @@
    "sev": "medium",
    "what": "sedan3: Nico's skull top (head bone + 0.20 m = 1.52) is only 0.01 m under the OUTER roof (1.53); with a 4-6 cm roof shell the head pokes through the headliner",
    "at": "",
-   "owner": "r2-cars"
+   "owner": "r2-cars",
+   "key": "vehicles|vehicle|sedan#: Nico's skull top (head bone + # m = #) is only # m under the O"
   },
   {
    "id": "QA-027",
@@ -633,7 +679,8 @@
    "sev": "medium",
    "what": "suv12: Nico's skull top (head bone + 0.20 m = 1.96) is only 0.05 m under the OUTER roof (2.01); with a 4-6 cm roof shell the head pokes through the headliner",
    "at": "",
-   "owner": "r2-cars"
+   "owner": "r2-cars",
+   "key": "vehicles|vehicle|suv#: Nico's skull top (head bone + # m = #) is only # m under the OUT"
   },
   {
    "id": "QA-028",
@@ -642,7 +689,8 @@
    "sev": "medium",
    "what": "super4: Nico's skull top (head bone + 0.20 m = 1.29) is only 0.05 m under the OUTER roof (1.34); with a 4-6 cm roof shell the head pokes through the headliner",
    "at": "",
-   "owner": "r2-cars"
+   "owner": "r2-cars",
+   "key": "vehicles|vehicle|super#: Nico's skull top (head bone + # m = #) is only # m under the O"
   },
   {
    "id": "QA-029",
@@ -651,7 +699,8 @@
    "sev": "medium",
    "what": "van3: Nico's skull top (head bone + 0.20 m = 2.1) is only 0.02 m under the OUTER roof (2.12); with a 4-6 cm roof shell the head pokes through the headliner",
    "at": "",
-   "owner": "r2-cars"
+   "owner": "r2-cars",
+   "key": "vehicles|vehicle|van#: Nico's skull top (head bone + # m = #) is only # m under the OUT"
   }
  ],
  "r2-mapui": [
@@ -662,7 +711,8 @@
    "sev": "medium",
    "what": "code 6969 did not turn dev mode on (pause, game.dev.openCodes(), keys Digit6 Digit9 Digit6 Digit9 Enter via CDP); please confirm by hand, it may be the scripted input",
    "at": "",
-   "owner": "r2-mapui"
+   "owner": "r2-mapui",
+   "key": "ui|ui|code # did not turn dev mode on (pause, game.dev.openCodes(), keys Dig"
   }
  ],
  "r2-art": [
@@ -680,7 +730,8 @@
     "499.05,-156 render 18.6 phys 0.15 (chunk-far-0,-1)",
     "467.95,-198.47 render 70.4 phys 25.8 (chunk-far-0,-1)",
     "411.11,-199.29 render 25.8 phys 18.6 (chunk-far-0,-1)"
-   ]
+   ],
+   "key": "downtown|ground|# points where a roof / building / vegetation top has a collider > # c"
   }
  ],
  "main": [
@@ -691,7 +742,8 @@
    "sev": "low",
    "what": "[warning x1, boot] THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
    "at": "node_modules/.vite/deps/chunk-UG26MVNH.js:6920",
-   "owner": "main"
+   "owner": "main",
+   "key": "console|console warning|[warning x#, boot] THREE.BufferGeometry.toNonIndexed(): BufferGeometry"
   }
  ]
 }
