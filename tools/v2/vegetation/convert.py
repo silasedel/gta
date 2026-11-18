@@ -101,7 +101,15 @@ def find_tex(mat, sockets):
                 if r: return r, inp.links[0].from_socket.name
     return None
 
+def hd_img(img):  # HD library LODs (zzz_LODs/LOD3, LOD4) ship 16-64 px textures: use the full LOD0 set two folders up (posterized hibiscus, dark poinciana shards)
+    fp = bpy.path.abspath(img.filepath or '')
+    m = re.search(r'_LOD([1-9])_', os.path.basename(fp))
+    if not m: return img
+    alt = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(fp))), os.path.basename(fp).replace(m.group(0), '_LOD0_'))
+    return bpy.data.images.load(alt, check_existing=True) if os.path.exists(alt) else img
+
 def load_px(img, maxpx):
+    img = hd_img(img)
     img.reload() if img.packed_file is None and img.filepath and not img.has_data else None
     w, h = img.size
     if not w: return None
@@ -253,9 +261,10 @@ if bloom:
     px = np.empty(bimg.size[0] * bimg.size[1] * 4, np.float32); bimg.pixels.foreach_get(px); px = px.reshape(bimg.size[1], bimg.size[0], 4)
     rgb = px[..., :3]; hh, ss, vv = rgb2hsv(rgb); w = green_w(hh, ss)[..., None]; lum = rgb.mean(-1, keepdims=True)
     t = np.array(bloom['tint'], np.float32); var = 0.75 + 0.5 * np.clip(lum / max(float(lum.mean()), 0.05), 0, 2) * 0.5
+    if bloom.get('detail'): var = np.clip(lum / max(float(lum.mean()), 0.05), 0.3, 1.7) ** float(bloom['detail'])  # keep the leaf texture's light / shade inside the bracts (flat tint read as posterized magenta blobs, QA 8)
     if bloom.get('clusters'):  # flower clusters with green leaflets between them (not a full red shell): a blobby mask in texture space
-        rs = np.random.RandomState(S.get('seed', 7) + 11); g = rs.rand(28, 28).astype(np.float32); H, Wd = rgb.shape[:2]
-        yi = np.linspace(0, 27, H); xi = np.linspace(0, 27, Wd); y0 = np.floor(yi).astype(int); x0 = np.floor(xi).astype(int); y1 = np.minimum(y0 + 1, 27); x1 = np.minimum(x0 + 1, 27); fy = (yi - y0)[:, None]; fx = (xi - x0)[None, :]
+        NR = int(bloom.get('clusterRes', 28)); rs = np.random.RandomState(S.get('seed', 7) + 11); g = rs.rand(NR, NR).astype(np.float32); H, Wd = rgb.shape[:2]
+        yi = np.linspace(0, NR - 1, H); xi = np.linspace(0, NR - 1, Wd); y0 = np.floor(yi).astype(int); x0 = np.floor(xi).astype(int); y1 = np.minimum(y0 + 1, NR - 1); x1 = np.minimum(x0 + 1, NR - 1); fy = (yi - y0)[:, None]; fx = (xi - x0)[None, :]
         up = g[y0][:, x0] * (1 - fy) * (1 - fx) + g[y0][:, x1] * (1 - fy) * fx + g[y1][:, x0] * fy * (1 - fx) + g[y1][:, x1] * fy * fx
         c = float(bloom['clusters']); m = np.clip((up - (1 - c) + 0.08) / 0.16, 0, 1)
         w = w * m[..., None]
@@ -383,6 +392,8 @@ def leaf_reduce(budget, grow, seed, bf=0):
     if budget and r[1] > budget * 1.15: r = (r[0], decimate_bark(ob, budget, leaf_idx)[1])  # crowns made of a few big connected meshes
     return r
 lt0 = leaf_reduce(S['leaf0'], S.get('grow0', 1.35), S.get('seed', 7), bloom['fraction'] if bloom else 0)
+bp = S.get('barkPrune', 0)  # twig-heavy trees (HD poinciana): drop the smallest twigs first, then collapse what is left gently (collapsing 110k twig tris to 9k made flat dark shards)
+if bp: prune_bark(ob, int(S['bark0'] * bp))
 bt0 = decimate_bark(ob, S['bark0']); prune_bark(ob, S['bark0']); bt0 = (bt0[0], tri_count(ob.data, bark_idx))
 triangulate(ob)
 tris0 = tri_count(ob.data)
@@ -406,6 +417,7 @@ os.makedirs(OUT, exist_ok=True)
 p0 = os.path.join(OUT, KEY + '.glb'); export(p0, True)
 info0 = measure(ob.data)
 lt1 = leaf_reduce(S['leaf1'], S.get('grow1', 1.6), S.get('seed', 7) + 101)
+if bp: prune_bark(ob, int(S['bark1'] * bp))
 bt1 = decimate_bark(ob, S['bark1']); prune_bark(ob, S['bark1']); bt1 = (bt1[0], tri_count(ob.data, bark_idx))
 triangulate(ob)
 tris1 = tri_count(ob.data)

@@ -12,7 +12,7 @@ DRYFROND = dict(h=(68, 74), s=(0.38, 0.44), v=(0.33, 0.37))   # weathered palms:
 TRUNK = dict(h=(26, 38), s=(0.10, 0.18), v=(0.30, 0.36))  # r2-art: gray-brown, sat <= 0.35 on screen
 PALMTRUNK = dict(h=(28, 36), s=(0.10, 0.18), v=(0.36, 0.41))  # gray-tan, none clean light gray, none dark brown
 BLOOM = dict(h=None, s=(0.72, 0.80), v=(0.52, 0.60))
-PALMS = {'royal_palm', 'coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d', 'date_palm', 'tropical_palm', 'palm_yellow', 'weathered_a', 'weathered_b', 'sabal_palm', 'fan_palm', 'bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'}
+PALMS = {'fanpalm_rob1', 'fanpalm_rob2', 'fanpalm_cal1', 'fanpalm_cal2', 'fanpalm_med1', 'fanpalm_med2', 'royal_palm', 'coconut_palm', 'coconut_b', 'coconut_c', 'coconut_d', 'date_palm', 'tropical_palm', 'palm_yellow', 'weathered_a', 'weathered_b', 'sabal_palm', 'fan_palm', 'bent_a', 'bent_b', 'bent_c', 'bent_d', 'bent_e'}
 SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'flower_bush_a', 'flower_bush_b', 'croton_a', 'croton_b'}
 # materials that are not what their family says (measured): stalks / crownshaft / petioles / hanging roots / flower atlases
 OVR = {
@@ -26,6 +26,7 @@ OVR = {
   ('pine_a', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_b', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)), ('pine_c', 'leaf_0'): dict(h=(90, 98), s=(0.30, 0.38), v=(0.30, 0.35)),
   ('cypress_a', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)), ('cypress_b', 'leaf_0'): dict(h=(78, 86), s=(0.34, 0.42), v=(0.36, 0.40)),
   ('mangrove', 'bark_0'): TRUNK,
+  ('reed_a', 'bark_0'): 'skip', ('reed_b', 'bark_0'): 'skip', ('reed_a', 'leaf_1'): dict(h=(62, 70), s=(0.36, 0.42), v=(0.36, 0.40)), ('reed_b', 'leaf_1'): dict(h=(62, 70), s=(0.36, 0.42), v=(0.36, 0.40)),
   ('hibiscus_hd', 'leaf_0'): 'skip', ('hibiscus_hd', 'leaf_4'): BLOOM, ('hibiscus_hd', 'leaf_5'): BLOOM, ('hibiscus_hd', 'bark_6'): 'skip',
   ('poinciana_hd1', 'leaf_2'): BLOOM, ('poinciana_hd1', 'leaf_4'): BLOOM, ('poinciana_hd1', 'leaf_5'): 'skip', ('poinciana_hd1', 'leaf_6'): 'skip', ('poinciana_hd1', 'leaf_7'): 'skip', ('poinciana_hd1', 'bark_3'): 'skip',
   ('poinciana_hd2', 'leaf_2'): BLOOM, ('poinciana_hd2', 'leaf_4'): BLOOM, ('poinciana_hd2', 'leaf_5'): 'skip', ('poinciana_hd2', 'leaf_6'): 'skip', ('poinciana_hd2', 'leaf_7'): 'skip', ('poinciana_hd2', 'bark_3'): 'skip',
@@ -42,6 +43,7 @@ for k, mm in S.items():
         o = OVR.get((k, m))
         if o == 'skip': continue
         h, s, v = st['hsv']
+        if k.startswith('fanpalm') and ((m.startswith('bark') and h > 50) or (m.startswith('leaf') and h < 45)): continue  # green petioles / the dead frond skirt keep their own color
         if o == 'bent': R = DRYFROND  # one atlas for trunk + fronds: a mild pull only (applied at half strength below)
         elif isinstance(o, dict): R = o
         elif 'bloom' in m: R = BLOOM

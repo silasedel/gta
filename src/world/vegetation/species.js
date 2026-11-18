@@ -21,6 +21,15 @@ export const VEG_LIB = {
   weathered_b: { cls: 'palm', src: 'Palm Tree 5 - Pair Of Dark Weathered Palms (2)' },
   sabal_palm: { cls: 'palm', src: 'Palm Tree 6 - Low Bushy Palm' },
   fan_palm: { cls: 'palm', src: 'Palm Tree 10 - Tall Dark Fan Palm (Washingtonia; texture sets relinked by hand from the part geometry)' },
+  fanpalm_rob1: { cls: 'palm', src: 'Fan Palm 7 - Mexican Fan Palm HD (Washingtonia robusta, FBX LOD3)' },
+  fanpalm_rob2: { cls: 'palm', src: 'Fan Palm 9 - Mexican Fan Palm HD (Washingtonia robusta, FBX LOD3)' },
+  fanpalm_cal1: { cls: 'palm', src: 'Fan Palm 1 - California Fan Palm HD (Washingtonia filifera, FBX LOD3)' },
+  fanpalm_cal2: { cls: 'palm', src: 'Fan Palm 4 - California Fan Palm HD (Washingtonia filifera, FBX LOD3)' },
+  fanpalm_med1: { cls: 'shrub', src: 'Fan Palm 3 - Mediterranean Fan Palm HD (Chamaerops humilis, FBX LOD2)' },
+  fanpalm_med2: { cls: 'shrub', src: 'Fan Palm 5 - Mediterranean Fan Palm HD (Chamaerops humilis, FBX LOD2)' },
+  cattail: { cls: 'shrub', src: 'Cattails 1 - Cattail Reeds' },
+  reed_a: { cls: 'shrub', src: 'Reeds Pack 1 - Reed Plants Pack (reeds 1-3)' },
+  reed_b: { cls: 'shrub', src: 'Reeds Pack 1 - Reed Plants Pack (reeds 4-5)' },
   banyan: { cls: 'tree', src: 'Banyan Tree 2 - Large Banyan With Hanging Roots', r: 1.2 },
   banyan_b: { cls: 'tree', src: 'Banyan Tree 1 - Compact Banyan Tree', r: 0.6 },
   liveoak_a: { cls: 'tree', src: 'Oak Tree 1 - Row Of Dense Oaks (1)', r: 0.5, hidden: 1 }, // crown off its trunk after the split: not placed
@@ -110,6 +119,9 @@ export const GROUPS = {
   potted: ['potted_ficus'],
   grass_tuft: ['grass_tuft_a', 'grass_tuft_b'],
   moss: ['moss_clump'],
+  fan: ['fanpalm_rob1', 'fanpalm_rob2', 'fanpalm_cal1', 'fanpalm_cal2'], // the user's HD Mexican / California fan palms
+  fan_small: ['fanpalm_med1', 'fanpalm_med2'], // Mediterranean fan palm clumps (yards, medians, understory)
+  reeds: ['cattail', 'reed_a', 'reed_b'], // canal and mangrove-edge reeds
 };
 // kind names used elsewhere in the game -> group
 export const GROUP_ALIAS = { coconut_palm: 'coconut', royal_palm: 'royal', sabal_palm: 'sabal', cabbage_palm: 'sabal', date_palm: 'date', queen_palm: 'queen', palm: 'palm_mix',

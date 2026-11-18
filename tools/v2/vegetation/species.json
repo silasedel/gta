@@ -77,8 +77,13 @@
    "texfix": {
     "Leafs": {
      "alpha": "none"
+    },
+    "Trunk": {
+     "color": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_b_L.png",
+     "normal": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_n_L.png"
     }
-   }
+   },
+   "texBark": 2048
   },
   "coconut_b": {
    "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
@@ -93,9 +98,11 @@
    "bark1": 400,
    "texfix": {
     "PalmtrunkLOW": {
-     "color": "textures/Trunk 1k.png"
+     "color": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_b_L.png",
+     "normal": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_n_L.png"
     }
-   }
+   },
+   "texBark": 2048
   },
   "coconut_c": {
    "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
@@ -110,9 +117,11 @@
    "bark1": 400,
    "texfix": {
     "PalmtrunkLOW": {
-     "color": "textures/Trunk 1k.png"
+     "color": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_b_L.png",
+     "normal": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_n_L.png"
     }
-   }
+   },
+   "texBark": 2048
   },
   "coconut_d": {
    "src": "Models/Trees/Palm Tree 3 - Slim Coconut Palm Trio/Palm Tree 3.blend",
@@ -127,9 +136,11 @@
    "bark1": 400,
    "texfix": {
     "PalmtrunkLOW": {
-     "color": "textures/Trunk 1k.png"
+     "color": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_b_L.png",
+     "normal": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_n_L.png"
     }
-   }
+   },
+   "texBark": 2048
   },
   "bent_a": {
    "src": "Models/Trees/Palm Tree 8 - Low-Poly Bent Palm Trio/Palm Tree 8.blend",
@@ -686,13 +697,16 @@
     0.38
    ],
    "bloom": {
-    "fraction": 0.55,
+    "fraction": 0.8,
     "tint": [
      0.8,
      0.1,
      0.48
     ],
-    "amount": 0.9
+    "amount": 0.88,
+    "detail": 0.9,
+    "clusters": 0.62,
+    "clusterRes": 72
    }
   },
   "hibiscus": {
@@ -844,13 +858,16 @@
     0.4
    ],
    "bloom": {
-    "fraction": 0.45,
+    "fraction": 0.75,
     "tint": [
      0.86,
      0.22,
      0.62
     ],
-    "amount": 0.9
+    "amount": 0.88,
+    "detail": 0.9,
+    "clusters": 0.58,
+    "clusterRes": 72
    }
   },
   "moss_clump": {
@@ -1093,12 +1110,12 @@
   "poinciana_hd1": {
    "src": "Models/Trees/Royal Poinciana Tree 1 - Realistic HD Flamboyant Tree (variant 1540)/source/inner_Delonix regia HD_Compact mat 100/zzz_LODs/LOD4/Delonix regia HD_Compact mat 100_LOD4.fbx",
    "height": 6.5,
-   "bark": "trunk|twig|stalk",
+   "bark": "trunk|twig",
    "seed": 61,
    "leaf0": 45000,
-   "bark0": 9000,
+   "bark0": 22000,
    "leaf1": 12000,
-   "bark1": 2200,
+   "bark1": 4000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1110,17 +1127,19 @@
     "flower|bud": {
      "nograde": 1
     }
-   }
+   },
+   "barkPrune": 1.5,
+   "drop": "stalk"
   },
   "poinciana_hd2": {
    "src": "Models/Trees/Royal Poinciana Tree 2 - Realistic HD Flamboyant Tree (variant 1640)/source/inner_Delonix regia HD_Wild mat 0/zzz_LODs/LOD4/Delonix regia HD_Wild mat 0_LOD4.fbx",
    "height": 7.0,
-   "bark": "trunk|twig|stalk",
+   "bark": "trunk|twig",
    "seed": 62,
    "leaf0": 45000,
-   "bark0": 9000,
+   "bark0": 22000,
    "leaf1": 12000,
-   "bark1": 2200,
+   "bark1": 4000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1132,17 +1151,19 @@
     "flower|bud": {
      "nograde": 1
     }
-   }
+   },
+   "barkPrune": 1.5,
+   "drop": "stalk"
   },
   "poinciana_hd3": {
    "src": "Models/Trees/Royal Poinciana Tree 3 - Realistic HD Flamboyant Tree (variant 1740)/source/inner_Delonix regia HD_Wild mat 25/zzz_LODs/LOD4/Delonix regia HD_Wild mat 25_LOD4.fbx",
    "height": 7.5,
-   "bark": "trunk|twig|stalk",
+   "bark": "trunk|twig",
    "seed": 63,
    "leaf0": 45000,
-   "bark0": 9000,
+   "bark0": 22000,
    "leaf1": 12000,
-   "bark1": 2200,
+   "bark1": 4000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1154,7 +1175,9 @@
     "flower|bud": {
      "nograde": 1
     }
-   }
+   },
+   "barkPrune": 1.5,
+   "drop": "stalk"
   },
   "hibiscus_hd": {
    "src": "Models/Plants/Hibiscus 1 - Realistic HD Chinese Hibiscus Shrub/source/inner_Hibiscus rosa-sinensis HD_Small tree mat 25/zzz_LODs/LOD4/Hibiscus rosa-sinensis HD_Small tree mat 25_LOD4.fbx",
@@ -1208,6 +1231,155 @@
      "nograde": 1
     }
    }
+  },
+  "fanpalm_rob1": {
+   "src": "Models/Trees/Fan Palm 7 - Mexican Fan Palm HD (1010)/source/inner_Washingtonia robusta HD V2_Malibu style mat 100/zzz_LODs/LOD3/Washingtonia robusta HD V2_Malibu style mat 100_LOD3.fbx",
+   "height": 16.0,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 87,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "fanpalm_rob2": {
+   "src": "Models/Trees/Fan Palm 9 - Mexican Fan Palm HD (810)/source/inner_Washingtonia robusta HD V2_Malibu style mat 50/zzz_LODs/LOD3/Washingtonia robusta HD V2_Malibu style mat 50_LOD3.fbx",
+   "height": 13.5,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 89,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "fanpalm_cal1": {
+   "src": "Models/Trees/Fan Palm 1 - California Fan Palm HD (1225)/source/inner_Washingtonia filifera HD_Urban 1 mat 25/zzz_LODs/LOD3/Washingtonia filifera HD_Urban 1 mat 25_LOD3.fbx",
+   "height": 11.0,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 81,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "fanpalm_cal2": {
+   "src": "Models/Trees/Fan Palm 4 - California Fan Palm HD (2025)/source/inner_Washingtonia filifera HD_Urban 2 mat 100/zzz_LODs/LOD3/Washingtonia filifera HD_Urban 2 mat 100_LOD3.fbx",
+   "height": 12.5,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 84,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "fanpalm_med1": {
+   "src": "Models/Trees/Fan Palm 3 - Mediterranean Fan Palm HD (130)/source/inner_Chamaerops humilis HD_1 trunk mat 0/zzz_LODs/LOD2/Chamaerops humilis HD_1 trunk mat 0_LOD2.fbx",
+   "height": 3.4,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 83,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "fanpalm_med2": {
+   "src": "Models/Trees/Fan Palm 5 - Mediterranean Fan Palm HD (1930)/source/inner_Chamaerops humilis HD_Urban 1 trunk mat 75/zzz_LODs/LOD2/Chamaerops humilis HD_Urban 1 trunk mat 75_LOD2.fbx",
+   "height": 3.0,
+   "bark": "trunk|crownshaft|stalk|spine|cap|fiber|skirt",
+   "seed": 85,
+   "leaf0": 40000,
+   "bark0": 9000,
+   "leaf1": 10000,
+   "bark1": 2000,
+   "texLeaf": 1024,
+   "texBark": 1024,
+   "gradeLeaf": [
+    80,
+    0.45,
+    0.38
+   ]
+  },
+  "cattail": {
+   "src": "Models/Plants/Cattails 1 - Cattail Reeds/source/inner_cattails/cattails.blend",
+   "height": 1.7,
+   "bark": "^$",
+   "seed": 91,
+   "texLeaf": 1024,
+   "gradeLeaf": [
+    70,
+    0.42,
+    0.4
+   ],
+   "texfix": {
+    "testbed": {
+     "alpha": "colorA"
+    }
+   }
+  },
+  "reed_a": {
+   "src": "Models/Plants/Reeds Pack 1 - Reed Plants Pack/source/inner_Reed-Plant/Reed-Plant.blend",
+   "pick": {
+    "names": "^Reed_[123]$"
+   },
+   "height": 1.3,
+   "bark": "Bark",
+   "seed": 92,
+   "texLeaf": 1024,
+   "gradeLeaf": [
+    72,
+    0.42,
+    0.42
+   ]
+  },
+  "reed_b": {
+   "src": "Models/Plants/Reeds Pack 1 - Reed Plants Pack/source/inner_Reed-Plant/Reed-Plant.blend",
+   "pick": {
+    "names": "^Reed_[45]$"
+   },
+   "height": 1.2,
+   "bark": "Bark",
+   "seed": 93,
+   "texLeaf": 1024,
+   "gradeLeaf": [
+    72,
+    0.42,
+    0.42
+   ]
   }
  }
 }

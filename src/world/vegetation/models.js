@@ -134,7 +134,7 @@ function partsOf(scene, def, E0 = null, lod = 0) {
         if (v.dot(o) < 0) v.negate(); v.lerp(o, k).normalize(); N.setXYZ(i, v.x, v.y, v.z); } N.needsUpdate = true; }
     if (!bark && VEG_R2 && E) { // volumetric crown normals: card normals bent toward the crown ellipsoid's surface normal (broadleaf / shrubs strongly,
       // palm fronds mildly, toward outward + up), so the crown shades as one lit / shaded volume instead of flat paper layers
-      const N = g.attributes.normal, v = new THREE.Vector3(), o = new THREE.Vector3(), palm = def.cls === 'palm', k = palm ? 0.3 : def.cls === 'shrub' ? 0.62 : (def.radialN ?? 0.65) /* lead: keep ~35-40 % of each card's own normal so leaves still catch light one by one */;
+      const N = g.attributes.normal, v = new THREE.Vector3(), o = new THREE.Vector3(), palm = def.cls === 'palm', k = palm ? 0.3 : def.cls === 'shrub' ? 0.52 : (def.radialN ?? 0.65) /* lead: keep ~35-40 % of each card's own normal so leaves still catch light one by one */;
       for (let i = 0; i < n; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i);
         if (palm) o.set((x - crownC[0]) * 0.7, Math.max(0.6, 1.2 * Math.hypot(x - crownC[0], z - crownC[1]) / Math.max(1, rMax)), (z - crownC[1]) * 0.7).normalize();
         else o.set((x - E.c[0]) / (E.r[0] * E.r[0]), (y - E.c[1]) / (E.r[1] * E.r[1]) + 0.15 / E.r[1], (z - E.c[2]) / (E.r[2] * E.r[2])).normalize();
