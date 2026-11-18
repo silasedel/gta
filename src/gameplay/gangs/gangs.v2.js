@@ -558,7 +558,7 @@ export async function initV2(game) {
   const layer = {
     id: 'turf',
     name: 'Gang turf',
-    enabled: true,
+    enabled: false,   // user: the big yellow turf circles over the 3D map looked wrong; off unless toggled on
     draw(g, toScreen, k) {
       for (const t of territories) {
         const [sx, sy] = toScreen(t.x, t.z);
