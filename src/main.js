@@ -91,6 +91,14 @@ async function boot() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.25, 8000);
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+  // ?rapierguard=1 (debug): log the FIRST exception thrown by any World / Collider / RigidBody call with its JS stack,
+  // so a panic swallowed by a try/catch somewhere (later calls then only say "recursive use of an object") can be traced
+  if (/[?&]rapierguard=1\b/.test(location.search)) { try { let first = true;
+    const wrap = (proto, tag) => { for (const k of Object.getOwnPropertyNames(proto)) { const d = Object.getOwnPropertyDescriptor(proto, k); if (!d || typeof d.value !== 'function' || k === 'constructor') continue; const f = d.value;
+      proto[k] = function (...a) { try { return f.apply(this, a); } catch (e) { if (first) { first = false; console.error('[rapierguard] FIRST', tag + '.' + k, String(e && e.message || e), new Error('guard').stack); } throw e; } }; } };
+    wrap(RAPIER.World.prototype, 'World'); wrap(RAPIER.Collider.prototype, 'Collider'); wrap(RAPIER.RigidBody.prototype, 'RigidBody');
+    if (RAPIER.KinematicCharacterController) wrap(RAPIER.KinematicCharacterController.prototype, 'KCC');
+  } catch (e) { console.warn('[rapierguard]', e); } }
 
   const game = {
     THREE, RAPIER, renderer, scene, camera, world,

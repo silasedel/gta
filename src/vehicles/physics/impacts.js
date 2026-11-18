@@ -274,9 +274,14 @@ export function installImpacts(game) {
     const l = _w.set(x - t.x, 0, z - t.z).applyQuaternion(_q), hl = (v.spec?.L || 4.6) / 2, hw = (v.spec?.W || 1.9) / 2;
     const ex = Math.max(0, Math.abs(l.x) - hw), ez = Math.max(0, Math.abs(l.z) - hl); return Math.hypot(ex, ez);
   }
+  // a car can be removed (despawned, swept wreck, parked-car recycle) while an impact waits: calling translation() on a freed
+  // body is a Rust panic that poisons the whole physics world ("recursive use of an object" on every later call).
+  // Found with ?rapierguard=1 at the new Keys map, where it hit on about half the boots.
+  const bodyLive = (v) => { try { const b = v && v.body, W = game.world; return !!(b && W && W.bodies && W.bodies.contains(b.handle) && !v.removed && !v.despawned); } catch (e) { return false; } };
   game.fixedHooks?.push?.(function impactPending(dt) {
     for (let i = pending.length - 1; i >= 0; i--) {
       const p = pending[i]; p.t += dt; let fire = false;
+      if (!bodyLive(p.v)) { pending.splice(i, 1); continue; }   // the car is gone: the impact is void
       let g = 0; try { g = gapTo(p.v, p.x, p.z); fire = g <= p.r + 0.05 || p.t > 0.9 || (g > p.best + 0.3 && p.t > 0.1); p.best = Math.min(p.best, g); } catch (e) { fire = true; }
       if (fire) { pending.splice(i, 1); const hit = p.best <= p.r + 0.35 || !p.miss; try { if (hit) p.fn(); else p.miss(); } catch (e) { console.warn('[r2-physics] impact', e); } } // swerved past: the object stays
     }
