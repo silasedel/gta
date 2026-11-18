@@ -12,7 +12,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { carPaint } from '../model/materials.js';
-import { trimMaterial, glassMaterial, lampMaterial, SHEET } from '../model/body/mats.js';
+import { trimMaterial, glassMaterial, lampMaterial, SHEET, R3CAR } from '../model/body/mats.js';
 import { wheelMat } from '../model/body/wheel.js';
 import { plateMaterial } from '../model/extras.js';
 
@@ -59,9 +59,63 @@ function calibrate(rgb, rm, i) {
   if (L > hi) { const k = hi / L; r *= k; g *= k; b *= k; } else if (L < lo) { const k = L > 1e-4 ? lo / L : 0; if (k) { r *= k; g *= k; b *= k; } else { r = g = b = lo; } }
   rgb[i * 3] = r; rgb[i * 3 + 1] = g; rgb[i * 3 + 2] = b; rm[i * 2] = ro;
 }
-function prepTrim(g) {
+// r3 cabin shade (user: windows look milky, the inside reads like a lit showroom): nothing occludes the ambient / sky light
+// inside a cabin, so light seats and dash glowed through the glass.  Trim / seat vertices enclosed by the body shell on all
+// three axes (paint + glass sampled on a 6 cm grid) get a darker albedo, as a roofed cabin would read.
+function cabinTest(P) {
+  const src = [P.paint, P.glass].filter((g) => g?.getAttribute('position'));
+  if (!src.length) return null;
+  const bb = new THREE.Box3(); for (const g of src) { g.computeBoundingBox(); bb.union(g.boundingBox); }
+  const C = 0.06, o = bb.min, nx = Math.ceil((bb.max.x - o.x) / C) + 1, ny = Math.ceil((bb.max.y - o.y) / C) + 1, nz = Math.ceil((bb.max.z - o.z) / C) + 1;
+  // per projection cell: min / max of the third axis (yz -> x, xy -> z, xz -> y)
+  const mk = (n) => { const lo = new Float32Array(n).fill(1e9), hi = new Float32Array(n).fill(-1e9); return [lo, hi]; };
+  const [xLo, xHi] = mk(ny * nz), [zLo, zHi] = mk(nx * ny), [yLo, yHi] = mk(nx * nz);
+  const cell = (v, o0, n) => Math.min(n - 1, Math.max(0, Math.round((v - o0) / C)));
+  const add = (x, y, z) => {
+    const i = cell(x, o.x, nx), j = cell(y, o.y, ny), k = cell(z, o.z, nz);
+    let q = j * nz + k; if (x < xLo[q]) xLo[q] = x; if (x > xHi[q]) xHi[q] = x;
+    q = i * ny + j; if (z < zLo[q]) zLo[q] = z; if (z > zHi[q]) zHi[q] = z;
+    q = i * nz + k; if (y < yLo[q]) yLo[q] = y; if (y > yHi[q]) yHi[q] = y;
+  };
+  for (const g of src) {
+    const p = g.getAttribute('position').array, ix = g.index?.array, nt = ix ? ix.length / 3 : p.length / 9;
+    for (let t = 0; t < nt; t++) {
+      const i0 = (ix ? ix[t * 3] : t * 3) * 3, i1 = (ix ? ix[t * 3 + 1] : t * 3 + 1) * 3, i2 = (ix ? ix[t * 3 + 2] : t * 3 + 2) * 3;
+      const ax = p[i0], ay = p[i0 + 1], az = p[i0 + 2], bx = p[i1], by = p[i1 + 1], bz = p[i1 + 2], dx = p[i2], dy = p[i2 + 1], dz = p[i2 + 2];
+      const e = Math.max(Math.abs(ax - bx) + Math.abs(ay - by) + Math.abs(az - bz), Math.abs(bx - dx) + Math.abs(by - dy) + Math.abs(bz - dz), Math.abs(dx - ax) + Math.abs(dy - ay) + Math.abs(dz - az));
+      if (e < C * 0.8) { add(ax, ay, az); add(bx, by, bz); add(dx, dy, dz); continue; }
+      const n = Math.min(32, Math.ceil(e / (C * 0.6)));
+      for (let u = 0; u <= n; u++) for (let v = 0; v <= n - u; v++) {
+        const a = u / n, b = v / n, c = 1 - a - b;
+        add(ax * a + bx * b + dx * c, ay * a + by * b + dy * c, az * a + bz * b + dz * c);
+      }
+    }
+  }
+  const M = 0.05;
+  return (x, y, z) => {
+    const i = cell(x, o.x, nx), j = cell(y, o.y, ny), k = cell(z, o.z, nz);
+    let q = j * nz + k; if (!(x > xLo[q] + M && x < xHi[q] - M)) return false;
+    q = i * ny + j; if (!(z > zLo[q] + M && z < zHi[q] - M)) return false;
+    q = i * nz + k; return y < yHi[q] - M;   // under the roof / glass (most cabin floors are trim, not paint: no floor test)
+  };
+}
+function shadeCabin(g, rgb, inCab, sel) {
+  if (!inCab) return;
+  const p = g.getAttribute('position'); let nc = 0;
+  for (let i = 0; i < p.count; i++) {
+    if (sel && !sel(i)) continue;
+    if (!inCab(p.getX(i), p.getY(i), p.getZ(i))) continue;
+    nc++;
+    let r = rgb[i * 3] * 0.5, gg = rgb[i * 3 + 1] * 0.5, b = rgb[i * 3 + 2] * 0.5; const L = lum3(r, gg, b);
+    if (L > 0.16) { const k = 0.16 / L; r *= k; gg *= k; b *= k; }
+    rgb[i * 3] = r; rgb[i * 3 + 1] = gg; rgb[i * 3 + 2] = b;
+  }
+  g.userData.cabinShaded = nc;
+}
+function prepTrim(g, inCab = null) {
   const { rgb, a } = col4(g), n = a.length, rm = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) { const [r, m] = unpackRM(a[i]); rm[i * 2] = r; rm[i * 2 + 1] = m; calibrate(rgb, rm, i); }
+  shadeCabin(g, rgb, inCab, (i) => rm[i * 2 + 1] < 0.5);   // interior plastics / fabric / leather (chrome bits keep their shine)
   g.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
   g.setAttribute('aRM', new THREE.BufferAttribute(rm, 2));
   g.setAttribute('aPat', new THREE.BufferAttribute(new Float32Array(n), 1));
@@ -71,11 +125,64 @@ function prepGlass(g) {
   const { a } = col4(g), n = a.length, w = new Float32Array(n);
   for (let i = 0; i < n; i++) w[i] = a[i] > 0.5 ? 1 : 0;
   g.deleteAttribute('color'); g.setAttribute('aWin', new THREE.BufferAttribute(w, 1));
+  if (R3CAR) singlePane(g, w);
   return g;
 }
+// r3 one pane (user: "the layers are still really weird looking"): 30-60 % of the window area of many source models is two
+// sheets 2-30 mm apart (outer + inner face of the glass, or glass + a shade film).  Both drew: double tint, two offset
+// reflections (ghosting).  A window triangle with a parallel window triangle 2-30 mm further out (away from the cabin center)
+// is the inner sheet and is dropped.  Lamp lenses (aWin 0) are left alone.
+function singlePane(g, w) {
+  const p = g.getAttribute('position'), ix = g.index, nt = ix ? ix.count / 3 : p.count / 3;
+  if (nt < 4) return;
+  const vi = (t, k) => (ix ? ix.getX(t * 3 + k) : t * 3 + k);
+  const cen = new Float32Array(nt * 3), nor = new Float32Array(nt * 3), win = new Uint8Array(nt);
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), D = new THREE.Vector3(), E = new THREE.Vector3();
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (let t = 0; t < nt; t++) {
+    const i0 = vi(t, 0), i1 = vi(t, 1), i2 = vi(t, 2);
+    A.fromBufferAttribute(p, i0); B.fromBufferAttribute(p, i1); D.fromBufferAttribute(p, i2);
+    cen[t * 3] = (A.x + B.x + D.x) / 3; cen[t * 3 + 1] = (A.y + B.y + D.y) / 3; cen[t * 3 + 2] = (A.z + B.z + D.z) / 3;
+    E.subVectors(B, A).cross(D.clone().sub(A)); const L = E.length();
+    if (L > 1e-10) { E.multiplyScalar(1 / L); nor[t * 3] = E.x; nor[t * 3 + 1] = E.y; nor[t * 3 + 2] = E.z; }
+    win[t] = L > 1e-10 && w[i0] + w[i1] + w[i2] >= 2 ? 1 : 0;
+    if (win[t]) { x0 = Math.min(x0, cen[t * 3]); x1 = Math.max(x1, cen[t * 3]); y0 = Math.min(y0, cen[t * 3 + 1]); y1 = Math.max(y1, cen[t * 3 + 1]); z0 = Math.min(z0, cen[t * 3 + 2]); z1 = Math.max(z1, cen[t * 3 + 2]); }
+  }
+  if (!(x1 > x0)) return;
+  const cx = (x0 + x1) / 2, cy = y0 + (y1 - y0) * 0.35, cz = (z0 + z1) / 2;   // cabin center (low: windshields lean over it)
+  const C = 0.04, K = (x, y, z) => ((Math.floor(x / C) + 512) * 1024 + Math.floor(y / C) + 512) * 1024 + Math.floor(z / C) + 512;
+  const grid = new Map();
+  for (let t = 0; t < nt; t++) if (win[t]) { const k = K(cen[t * 3], cen[t * 3 + 1], cen[t * 3 + 2]); let l = grid.get(k); if (!l) grid.set(k, (l = [])); l.push(t); }
+  const drop = new Uint8Array(nt); let nd = 0;
+  for (let t = 0; t < nt; t++) {
+    if (!win[t]) continue;
+    const px = cen[t * 3], py = cen[t * 3 + 1], pz = cen[t * 3 + 2], nx = nor[t * 3], ny = nor[t * 3 + 1], nz = nor[t * 3 + 2];
+    const gx = Math.floor(px / C), gy = Math.floor(py / C), gz = Math.floor(pz / C);
+    const r0 = Math.hypot(px - cx, py - cy, pz - cz);
+    let inner = false;
+    for (let dx = -1; dx <= 1 && !inner; dx++) for (let dy = -1; dy <= 1 && !inner; dy++) for (let dz = -1; dz <= 1 && !inner; dz++) {
+      const l = grid.get(((gx + dx + 512) * 1024 + gy + dy + 512) * 1024 + gz + dz + 512); if (!l) continue;
+      for (const u of l) {
+        if (u === t || drop[u]) continue;
+        if (Math.abs(nx * nor[u * 3] + ny * nor[u * 3 + 1] + nz * nor[u * 3 + 2]) < 0.94) continue;
+        const qx = cen[u * 3] - px, qy = cen[u * 3 + 1] - py, qz = cen[u * 3 + 2] - pz, d = qx * nx + qy * ny + qz * nz;
+        if (Math.abs(d) < 0.002 || Math.abs(d) > 0.03) continue;
+        const lat = Math.hypot(qx - d * nx, qy - d * ny, qz - d * nz); if (lat > 0.035) continue;
+        if (Math.hypot(cen[u * 3] - cx, cen[u * 3 + 1] - cy, cen[u * 3 + 2] - cz) > r0 + 0.0015) { inner = true; break; }
+      }
+    }
+    if (inner) { drop[t] = 1; nd++; }
+  }
+  if (!nd) return;
+  const keep = [];
+  for (let t = 0; t < nt; t++) if (!drop[t]) keep.push(vi(t, 0), vi(t, 1), vi(t, 2));
+  g.setIndex(keep);
+  g.userData.paneDropped = nd;
+}
 const WHITE_UV = [(SHEET.white[0] + SHEET.white[2] / 2) / SHEET.w, 1 - (SHEET.white[1] + SHEET.white[3] / 2) / SHEET.h];
-function prepLamp(g) {
+function prepLamp(g, inCab = null) {
   const { rgb, a } = col4(g), n = a.length, ch = new Float32Array(n), rm = new Float32Array(n * 2);
+  shadeCabin(g, rgb, inCab, (i) => { const c = Math.round(a[i] * 16); return c === 15 || c === 0; });   // seats + unlit interior
   const uv = g.getAttribute('uv'), uvs = new Float32Array(n * 2);
   const [px, py, pw, ph] = SHEET.plate;
   for (let i = 0; i < n; i++) {
@@ -197,6 +304,9 @@ function hullPoints(h0, belt = 1, floor = 0.24) {
   for (const i of keep) { out[k++] = h[i * 3]; out[k++] = h[i * 3 + 1]; out[k++] = h[i * 3 + 2]; }
   return out;
 }
+// r3 close-ups (user: "weird looking tires"): sedan1's source wheel is a torn rim (a jagged spoke triangle in a black disc),
+// hatch1's is a flat gray disc with a hub (no spokes).  Both borrow a clean alloy, scaled to their tire.  ?r3car=0: own wheels.
+const R3_WHEEL_DONOR = { sedan1: 'sedan5', hatch1: 'suv6' };
 /** load (once) and convert a model; resolves to the model record or null */
 export function loadCarModel(key) {
   if (models.has(key)) return Promise.resolve(models.get(key));
@@ -218,8 +328,9 @@ export function loadCarModel(key) {
     });
     const lv = [0, 1, 2].map((l) => {
       const P = parts['body' + l] || {};
+      let inCab = null; if (R3CAR && l < 2) { try { inCab = cabinTest(P); } catch (e) { inCab = null; } }
       const tex = Object.keys(P).filter((k) => /^T_/.test(k)).map((k) => ({ geo: prepTrim(P[k]), mat: texMats[k] }));
-      return { paint: P.paint ? prepPaint(P.paint) : null, trim: P.trim ? prepTrim(P.trim) : null, glass: P.glass ? prepGlass(P.glass) : null, lamp: P.lamp ? prepLamp(P.lamp) : null, tex };
+      return { paint: P.paint ? prepPaint(P.paint) : null, trim: P.trim ? prepTrim(P.trim, inCab) : null, glass: P.glass ? prepGlass(P.glass) : null, lamp: P.lamp ? prepLamp(P.lamp, inCab) : null, tex };
     });
     const wheelGeo = (name) => {
       const P = parts[name]; if (!P) return null;
@@ -234,8 +345,9 @@ export function loadCarModel(key) {
     }
     let wheel = [mergeSafe([addCarcass(w0, man.r), cal]), addCarcass(w1, man.r)];
     if ((man.tris?.wheel0 || 0) >= 8000) wheel[1] = wheel[0];   // knobby off-road tread: no decimated lugs at mid range
-    if (man.wheelDonor && man.wheelDonor !== key) { // crude source wheels (8-sided): borrow a better wheel, scaled to this tire
-      const d = await loadCarModel(man.wheelDonor);
+    const wDonor = man.wheelDonor || (R3CAR ? R3_WHEEL_DONOR[key] : null);
+    if (wDonor && wDonor !== key) { // crude source wheels (8-sided): borrow a better wheel, scaled to this tire
+      const d = await loadCarModel(wDonor);
       if (d?.wheel?.[0]) { const k = man.r / d.man.r; wheel = d.wheel.map((g) => g && g.clone().scale(k, k, k)); }
     }
     const wheelR = parts.wheelR0 ? [mergeSafe([addCarcass(wheelGeo('wheelR0'), man.rR || man.r), cal]), addCarcass(wheelGeo('wheelR1'), man.rR || man.r)] : null;

@@ -172,7 +172,17 @@ export function wheelMaterial(finish = 'alloy') {
 
 // ---------------------------------------------------------------- glass (windows tinted per car tint level; lamp lenses clear)
 const _glass = [];
-const TINTS = [
+// r3 (user: "weird glitched windows, the transparency isn't looking good, the layers are weird"): one physically plausible
+// pane.  Absorption by tint level (factory glass passes ~65 %, privacy ~15 %); the reflection is added on top at full
+// strength (premultiplied), so the cabin reads through the glass but darker, and the street mirrors at grazing angles.
+// ?r3car=0 restores the r2 look (opacity 0.62 / 0.74 / 0.8 / 0.92, fake-sky veil, no face-forward normals).
+export const R3CAR = (() => { try { return new URLSearchParams(location.search).get('r3car') !== '0'; } catch (e) { return true; } })();
+const TINTS = R3CAR ? [
+  { color: 0x2a3634, opacity: 0.36 },   // 0 factory (faint green)
+  { color: 0x1a2326, opacity: 0.46 },   // 1 light
+  { color: 0x0e1418, opacity: 0.64 },   // 2 dark
+  { color: 0x030507, opacity: 0.86 },   // 3 limo / privacy
+] : [
   { color: 0x34413f, opacity: 0.62 },   // 0 factory (green-ish; still dark enough to reflect)
   { color: 0x1c2528, opacity: 0.74 },   // 1 light (ref_57: dark enough that the reflection reads over the cabin)
   { color: 0x0e1418, opacity: 0.8 },    // 2 dark
@@ -195,17 +205,33 @@ export function glassMaterial(tint = 1, o = {}) {
     // art guide: glass env <= 1.5 (2.6 painted a white sky sheet on every windshield)
     clearcoat: 1, clearcoatRoughness: 0.07, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 0.8 });
   linkEnv(m);
+  const R3 = R3CAR;
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float aWin;\nvarying float vWin;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vWin = aWin;');
+    if (R3) {
+      // face-forward: a quarter of some models' window triangles are wound inward (truck9, hatch1), so on a DoubleSide pane
+      // their normal pointed into the cabin and they mirrored the ground = the dark polygon patches on the windshield
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n  if (dot(normal, vViewPosition) < 0.0) normal = -normal;\n  nonPerturbedNormal = normal;')
+        .replace('#include <clearcoat_normal_fragment_begin>', '#include <clearcoat_normal_fragment_begin>\n  if (dot(clearcoatNormal, vViewPosition) < 0.0) clearcoatNormal = -clearcoatNormal;');
+    }
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vWin;')
       // lens (vWin 0): near-clear, a hint of the lamp color below; window (1): the tint.  Fresnel keeps grazing glass reflective.
       .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor = mix(vec4(0.92, 0.94, 0.96, 0.1), diffuseColor, vWin);')
       // premultiplied output: the tint (diffuse) is scaled by alpha, the reflection (specular + clearcoat) is added at full
       // strength, so a dark window still mirrors the sky and street like real glass
-      .replace('#include <opaque_fragment>', `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
+      .replace('#include <opaque_fragment>', R3 ? `float cv = clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0);
+  float fr = pow(1.0 - cv, 5.0);   // Schlick: ~4 % face on, a mirror only at grazing angles
+  float ga = clamp(diffuseColor.a + fr * 0.7 * vWin, 0.0, 1.0);
+  vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.6 + 0.4 * fr);
+  vec3 rw = inverseTransformDirection(reflect(normalize(-vViewPosition), normal), viewMatrix);
+  vec3 skyC = mix(vec3(0.16, 0.15, 0.14), mix(vec3(0.75, 0.82, 0.9), vec3(0.32, 0.5, 0.78), clamp(rw.y * 1.6, 0.0, 1.0)), smoothstep(-0.12, 0.05, rw.y));
+  // no flat gray veil face on (the r2 sky term, 8 %+, read as milky fog over the cabin); sky mostly at grazing angles
+  spec += skyC * vWin * (0.02 + 0.45 * fr);
+  gl_FragColor = vec4(totalDiffuse * ga + spec, ga);` : `float fr = pow(1.0 - clamp(abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 3.0);
   float ga = clamp(diffuseColor.a + fr * 0.6 * vWin, 0.0, 1.0);
   vec3 spec = max(outgoingLight - totalDiffuse - totalEmissiveRadiance, vec3(0.0)) * (0.5 + 0.6 * fr);
   // sky / street mirror: a world-space sky gradient seen in the reflected direction (works without a scene env map)
@@ -216,7 +242,7 @@ export function glassMaterial(tint = 1, o = {}) {
       .replace('#include <premultiplied_alpha_fragment>', '');
   };
   m.premultipliedAlpha = true;
-  m.customProgramCacheKey = () => 'ps-carglass-v3';
+  m.customProgramCacheKey = () => 'ps-carglass-v3' + (R3 ? '-r3' : '');
   _glass[t] = m;
   return m;
 }

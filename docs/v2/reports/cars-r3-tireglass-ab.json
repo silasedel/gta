@@ -1,0 +1,1266 @@
+{
+ "runs": {
+  "b": {
+   "cars": {
+    "sedan1": {
+     "key": "sedan1",
+     "name": "Marlin Coastline #56",
+     "wheel": {
+      "x": 0.7908,
+      "z": 1.401,
+      "r": -0.2878676470588235
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 69711
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 24676
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.8,
+       "ro": 2,
+       "n": 2,
+       "tris": 24378
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 8112
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4800
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "sedan5": {
+     "key": "sedan5",
+     "name": "Kestrel Line #57",
+     "wheel": {
+      "x": 0.7594,
+      "z": 1.3585,
+      "r": -0.2878676470588235
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 41503
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 50103
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.74,
+       "ro": 2,
+       "n": 2,
+       "tris": 4636
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 6075
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4741
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "hatch1": {
+     "key": "hatch1",
+     "name": "Mirabel Pebble 5 #58",
+     "wheel": {
+      "x": 0.7763,
+      "z": 1.366,
+      "r": -0.2754605263157895
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 50736
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 38295
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.62,
+       "ro": 2,
+       "n": 2,
+       "tris": 11956
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4985
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4677
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "suv2": {
+     "key": "suv2",
+     "name": "Ridgeback Trailcat #59",
+     "wheel": {
+      "x": 0.8033,
+      "z": 1.5275,
+      "r": -0.3685227272727273
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 41291
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 48695
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.8,
+       "ro": 2,
+       "n": 2,
+       "tris": 6636
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 6689
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5179
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "suv6": {
+     "key": "suv6",
+     "name": "Cayo Tuxa #60",
+     "wheel": {
+      "x": 0.8111,
+      "z": 1.3725,
+      "r": -0.3091666666666667
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 53715
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 35315
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.74,
+       "ro": 2,
+       "n": 2,
+       "tris": 10454
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5739
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5180
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "van6": {
+     "key": "van6",
+     "name": "Halcyon Harbor 8 #62",
+     "wheel": {
+      "x": 0.8488,
+      "z": 1.4985,
+      "r": -0.3091666666666667
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 74996
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 29928
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.62,
+       "ro": 2,
+       "n": 2,
+       "tris": 12896
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 1390
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5175
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "truck9": {
+     "key": "truck9",
+     "name": "Ridgeback Sandhawk TR #63",
+     "wheel": {
+      "x": 0.8587,
+      "z": 1.809,
+      "r": -0.3685227272727273
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 58009
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 36802
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.74,
+       "ro": 2,
+       "n": 2,
+       "tris": 6472
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 694
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 96346
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "coupe4": {
+     "key": "coupe4",
+     "name": "Brava Regalia 454 #64",
+     "wheel": {
+      "x": 0.6948,
+      "z": 1.448,
+      "r": -0.30567307692307694
+     },
+     "paneDropped": 0,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 42901
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 49102
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.92,
+       "ro": 2,
+       "n": 2,
+       "tris": 6322
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4836
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5053
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    }
+   },
+   "errors": []
+  },
+  "a": {
+   "cars": {
+    "sedan1": {
+     "key": "sedan1",
+     "name": "Marlin Coastline #56",
+     "wheel": {
+      "x": 0.7908,
+      "z": 1.401,
+      "r": -0.2878676470588235
+     },
+     "paneDropped": 4551,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 69711
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 24676
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.46,
+       "ro": 2,
+       "n": 2,
+       "tris": 21218
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 8112
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4800
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "sedan5": {
+     "key": "sedan5",
+     "name": "Kestrel Line #57",
+     "wheel": {
+      "x": 0.7594,
+      "z": 1.3585,
+      "r": -0.2878676470588235
+     },
+     "paneDropped": 95,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 41503
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 50103
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.64,
+       "ro": 2,
+       "n": 2,
+       "tris": 4566
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 6075
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4741
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "hatch1": {
+     "key": "hatch1",
+     "name": "Mirabel Pebble 5 #59",
+     "wheel": {
+      "x": 0.7763,
+      "z": 1.366,
+      "r": -0.2754605263157895
+     },
+     "paneDropped": 563,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 50736
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 38295
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.36,
+       "ro": 2,
+       "n": 2,
+       "tris": 11569
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4985
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4677
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "suv2": {
+     "key": "suv2",
+     "name": "Ridgeback Trailcat #60",
+     "wheel": {
+      "x": 0.8033,
+      "z": 1.5275,
+      "r": -0.3685227272727273
+     },
+     "paneDropped": 25,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 41291
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 48695
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.46,
+       "ro": 2,
+       "n": 2,
+       "tris": 6614
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 6689
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5179
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "suv6": {
+     "key": "suv6",
+     "name": "Cayo Tuxa #61",
+     "wheel": {
+      "x": 0.8111,
+      "z": 1.3725,
+      "r": -0.3091666666666667
+     },
+     "paneDropped": 77,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 53715
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 35315
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.36,
+       "ro": 2,
+       "n": 2,
+       "tris": 10404
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5739
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5180
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "van6": {
+     "key": "van6",
+     "name": "Halcyon Harbor 8 #62",
+     "wheel": {
+      "x": 0.8488,
+      "z": 1.4985,
+      "r": -0.3091666666666667
+     },
+     "paneDropped": 882,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 74996
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 29928
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.46,
+       "ro": 2,
+       "n": 2,
+       "tris": 12274
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 1390
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5175
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "truck9": {
+     "key": "truck9",
+     "name": "Ridgeback Sandhawk TR #63",
+     "wheel": {
+      "x": 0.8587,
+      "z": 1.809,
+      "r": -0.3685227272727273
+     },
+     "paneDropped": 219,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 58009
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 36802
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.46,
+       "ro": 2,
+       "n": 2,
+       "tris": 6301
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 694
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 96346
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    },
+    "coupe4": {
+     "key": "coupe4",
+     "name": "Brava Regalia 454 #66",
+     "wheel": {
+      "x": 0.6948,
+      "z": 1.448,
+      "r": -0.30567307692307694
+     },
+     "paneDropped": 60,
+     "mats": {
+      "car-paint": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 42901
+      },
+      "car-trim": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 49102
+      },
+      "car-glass": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 2,
+       "opacity": 0.64,
+       "ro": 2,
+       "n": 2,
+       "tris": 6292
+      },
+      "car-lamp": {
+       "type": "MeshPhysicalMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4836
+      },
+      "car-wheel": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 2,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 5053
+      },
+      "car-plate": {
+       "type": "MeshStandardMaterial",
+       "transparent": false,
+       "depthWrite": true,
+       "side": 0,
+       "opacity": 1,
+       "ro": 0,
+       "n": 2,
+       "tris": 4
+      },
+      "MeshBasicMaterial": {
+       "type": "MeshBasicMaterial",
+       "transparent": true,
+       "depthWrite": false,
+       "side": 0,
+       "opacity": 1,
+       "ro": 1,
+       "n": 3,
+       "tris": 6
+      }
+     }
+    }
+   },
+   "errors": []
+  }
+ }
+}

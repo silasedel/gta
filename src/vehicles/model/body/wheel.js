@@ -4,7 +4,7 @@
 // and is applied in the vertex shader, so calipers (aFix = 1) stay put while everything else turns.
 import * as THREE from 'three';
 import { wheelGeos } from '../wheels.js';
-import { PAT } from './mats.js';
+import { PAT, R3CAR } from './mats.js';
 
 const cache = new Map();
 function attrs(g, color, rm, pat, tint, fix, uvMap) {
@@ -71,7 +71,8 @@ const _base = new Map();
 /** per-car wheel material (rim color + finish as uniforms; the GL program is shared) */
 export function wheelMat(rimColor = 0xc9ced3, finish = 'alloy') {
   const RM = { alloy: [0.28, 0.92], polished: [0.1, 1], chrome: [0.05, 1.0], gloss: [0.2, 0.55], satin: [0.42, 0.8], steel: [0.55, 0.55], plastic: [0.45, 0.2] }[finish] || [0.28, 0.92];
-  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.5, metalness: 0, envMapIntensity: 1.3 });
+  // r3 (user: "weird looking tires"): double-sided, so open game-rip sidewalls never show the sky through them
+  const m = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.5, metalness: 0, envMapIntensity: 1.3, side: R3CAR ? THREE.DoubleSide : THREE.FrontSide });
   const U = { uRim: { value: new THREE.Color(rimColor) }, uRimRM: { value: new THREE.Vector2(RM[0], RM[1]) } };
   m.userData.wheelUniforms = U;
   m.onBeforeCompile = (sh) => {
@@ -104,6 +105,13 @@ varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; 
 uniform vec3 uRim; uniform vec2 uRimRM;
 varying vec2 vRM; varying float vPat; varying vec3 vObjPos; varying vec3 vObjN; varying vec2 vUv2; varying float vTint; varying float vMud;
 float patMask = 0.0;
+float rubK = 0.0;
+float wh3(vec3 i) { return fract(sin(dot(i, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+float wnoise(vec3 p) {   // smooth value noise (the r2 dust was one hash per 2.5 cm cube: a blocky checkerboard on every tire)
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(wh3(i), wh3(i + vec3(1, 0, 0)), f.x), mix(wh3(i + vec3(0, 1, 0)), wh3(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(wh3(i + vec3(0, 0, 1)), wh3(i + vec3(1, 0, 1)), f.x), mix(wh3(i + vec3(0, 1, 1)), wh3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
 void wheelPattern(inout vec3 col) {
   int pt = int(vPat + 0.5);
   if (pt != 3) return;
@@ -123,11 +131,26 @@ void wheelPattern(inout vec3 col) {
   col *= 1.0 - hole * 0.6;
   patMask = hole;
 }`)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), uRim, vTint);\n  wheelPattern(diffuseColor.rgb);\n  float mudK = vMud * (0.55 + 0.45 * fract(sin(dot(floor(vObjPos * 40.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453));\n  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.36, 0.31, 0.24), clamp(mudK, 0.0, 0.85));')
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask), 0.95, clamp(vMud, 0.0, 0.9));')
+      .replace('#include <color_fragment>', R3CAR ? `#include <color_fragment>
+  diffuseColor.rgb *= mix(vec3(1.0), uRim, vTint);
+  wheelPattern(diffuseColor.rgb);
+  // rubber: every dark dielectric wheel part (tire, carcass, valve) is one calibrated rubber, ~0.045 linear albedo, neutral
+  float lumW = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+  rubK = (1.0 - step(0.5, vRM.y)) * (1.0 - smoothstep(0.07, 0.11, lumW)) * (1.0 - vTint);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.043, 0.043, 0.045) * (0.92 + 1.2 * lumW), rubK);
+  // road dust: soft patches, mostly on the rubber, a pale gray-brown film (not a tan checkerboard)
+  float dn = wnoise(vObjPos * 13.0) * 0.65 + wnoise(vObjPos * 41.0) * 0.35;
+  float mudK = vMud * smoothstep(0.3, 0.8, dn) * mix(0.35, 0.75, rubK);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.2, 0.18, 0.15), clamp(mudK, 0.0, 0.6));` : '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), uRim, vTint);\n  wheelPattern(diffuseColor.rgb);\n  float mudK = vMud * (0.55 + 0.45 * fract(sin(dot(floor(vObjPos * 40.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453));\n  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.36, 0.31, 0.24), clamp(mudK, 0.0, 0.85));')
+      .replace('#include <roughnessmap_fragment>', R3CAR ? `#include <roughnessmap_fragment>
+  roughnessFactor = mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask);
+  // rubber: 0.88 face on, a soft satin sheen (0.68) at grazing angles; dust is matte
+  float nvW = abs(dot(normalize(vNormal), normalize(vViewPosition)));
+  roughnessFactor = mix(roughnessFactor, mix(0.68, 0.88, smoothstep(0.0, 0.45, nvW)), rubK);
+  roughnessFactor = mix(roughnessFactor, 0.95, clamp(mudK * 1.4, 0.0, 1.0));` : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(vRM.x, uRimRM.x, vTint), 0.95, patMask), 0.95, clamp(vMud, 0.0, 0.9));')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor = mix(vRM.y, uRimRM.y, vTint) * (1.0 - patMask);');
   };
-  m.customProgramCacheKey = () => 'ps-carwheel-v3';
+  m.customProgramCacheKey = () => 'ps-carwheel-v3' + (R3CAR ? '-r3' : '');
   return m;
 }
 
