@@ -1905,3 +1905,9 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   3. The land-polygon bank edge is still a geometric line on the land side. It reads as a natural bank now. A real fix would drop the land base within ~3 m of water in real Miami (tilebuild, lead).
   4. Glades sheet water sits at local ground + 5 cm, not the sea plane (by design).
   5. From straight above, inland water reads as flat dark olive (no depth variation).
+
+## r4-wheels
+- Cause (truck9): source front wheels steered 25 deg; converter spun that wheel for all four (~19 cm swash) and left the steered carcass and top/bottom lugs in the static body; lugs 2 cm in the road. coupe3 same (20 deg, static white tire).
+- Fix (convert.py): per-wheel true axle fitted on the tire ring; steered wheels classified in their own frame; rOuter puts the lug tread on the ground. Re-converted truck9, coupe3, conv2, coupe2, sedan9, super4, super6, suv1, suv14.
+- Fleet (tools/v2/cars/wheel_axles.py, 60 wheel models): max tilt 24.9 -> 2.65 deg, max swash 195 -> 17 mm. Sheets docs/v2/shots/cars/r4wheels/.
+- Still off: super4 front hub ~5 mm, van1 / truck5 ambiguous fits (check by eye), super5 rear camber, suv5 conversion error at convert.py:1189.
