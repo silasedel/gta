@@ -62,7 +62,10 @@ export const MAILBOX = { x: -19.4, z: 18.2, h: -1.03 };
 
 // ---- red roll-off at the street edge of the yard, along the west leg, behind the right-hand bins (mock-up: mid-frame right): a long,
 // LOW 20-yard box (sy), rust-darkened ----
-export const DUMPSTER = { x: -22.0, z: 12.55, heading: 0.54, scale: 0.82, sy: 1, tint: [0.96, 0.93, 0.9] };   // full height (squashed ribs looked wrong up close)
+// r4-keys (user, Nov 18: "move it more to the side so there's room to drive out"; r4 ref 01_roof_view_yard_dumpster: off to the RIGHT of
+// the drive against the bushes by the street, drive clear): slid 13 m down the west leg's verge toward the bay, past the classic. The pickup
+// backs out along (-0.71, +0.70) into the drive mouth; the old spot (-22.0, 12.55) stood 1.3 m off the drive edge in that swing.
+export const DUMPSTER = { x: -26.0, z: 0.0, heading: 0.54, scale: 0.82, sy: 1, tint: [0.96, 0.93, 0.9] };   // full height (squashed ribs looked wrong up close)
 
 // ---- pale limestone / coral boulders: [x, z, piece (1..6 of keys/rocks.glb), scale, heading, sink] ----
 export const ROCKS = [
@@ -145,6 +148,6 @@ export const WEEDS = [
   [-15.6, 12.0, 0.35, 22, 1.0], [-16.8, 16.2, 0.3, 18, 1.0], [-13.6, 8.0, 0.3, 16, 0.9],   // between the ruts
   [-21.5, 15.8, 1.8, 60, 1.2], [-14.5, 3.5, 2.0, 55, 1.2], [-11.5, 4.8, 1.2, 30, 1.0], [-22.0, 3.0, 2.5, 60, 1.3], [-6.0, 25.5, 2.5, 60, 1.2],
   [2.0, 26.0, 2.5, 55, 1.2], [8.5, 20.0, 2.5, 55, 1.3], [-22.0, -4.0, 2.5, 50, 1.3], [9.5, -2.0, 2.5, 50, 1.3],   // verges, lot edges
-  [-22.0, 12.55, 2.4, 60, 1.2], [-20.4, 15.6, 1.2, 30, 1.2],   // roll-off skirt
+  [-26.0, 0.0, 2.4, 60, 1.2], [-23.6, 3.4, 1.2, 30, 1.2],   // roll-off skirt (r4-keys: follows the roll-off)
   [-17.9, 13.6, 0.8, 20, 1.0], [-18.6, 14.4, 0.8, 20, 1.1], [-17.5, 8.0, 0.8, 18, 1.0], [-9.8, 26.6, 0.9, 22, 1.1], [-6.0, 27.2, 0.9, 22, 1.1], [1.0, 27.6, 0.8, 20, 1.0], [8.5, 27.3, 0.9, 22, 1.1], [-25.0, 8.6, 0.9, 22, 1.1],   // rocks
 ];

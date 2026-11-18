@@ -295,7 +295,7 @@ if os.path.exists(_kp):
         kind = rd_.get('kind', 'residential'); lanes = int(rd_.get('lanes', 1))
         r = W.road(rd_['pts'], kind, rd_.get('name', ''), lf=lanes, lb=0 if rd_.get('oneway') else lanes, oneway=bool(rd_.get('oneway')),
                    speed=rd_.get('speedKmh') or (80 if kind == 'trunk' else 30 if rd_.get('surface') == 'dirt' else 40),
-                   surface=rd_.get('surface'), region='Key Largo', ref=('US-1' if kind == 'trunk' else ''), tags={'keysDetail': 1, 'dkind': 'keys', 'style': rd_.get('style')})
+                   surface=rd_.get('surface'), region='Key Largo', ref=('US-1' if kind == 'trunk' else ''), tags={'keysDetail': 1, 'dkind': 'keys', 'style': rd_.get('style'), **({'keysFill': rd_['fill']} if rd_.get('fill') else {}), **({'keysGrid': 1} if rd_.get('grid') else {})})   # r4-keys grid
         if r is not None: r.width = rd_.get('width') or (11.0 if kind == 'trunk' else 5.2 if rd_.get('surface') == 'dirt' else 7.0)
     for pr in KEYS.get('piers', []): W.path(pr['pts'], 'pier', pr.get('width', 2.2), 'wood', None, y=None)
     log(f"keys detail: region {KREG.area / 1e6:.2f} km2, roads {len(KEYS.get('roads', []))}, buildings {len(KEYS.get('buildings', []))}, piers {len(KEYS.get('piers', []))}")
@@ -340,7 +340,9 @@ def _dir_at(ln, s):
     a = ln.interpolate(max(0.0, s - 8)); b = ln.interpolate(min(ln.length, s + 8))
     dx, dz = b.x - a.x, b.y - a.y; L = math.hypot(dx, dz) or 1.0
     return dx / L, dz / L
-big = [r for r in W.roads if r.kind == 'trunk' and not r.bridge]
+_DVF = os.path.join(HERE, 'out', 'keys_divided.json'); _dv_rec = {}
+_dv_grid = (json.load(open(_DVF)) if os.path.exists(_DVF) else None) if (KEYS and KEYS.get('grid')) else None
+big = [r for r in W.roads if r.kind == 'trunk' and not r.bridge and not r.tags.get('keysGrid')]   # r4-keys: the grid's carriageways are already one-way pairs
 bl = [LineString(r.pts) for r in big]; btree = STRtree(bl)
 ndiv = 0
 for i, r in enumerate(big):
@@ -359,8 +361,13 @@ for i, r in enumerate(big):
             side = dx * (q.y - p.y) - dz * (q.x - p.x)     # >0: twin on the right of travel (x east, z south: right = (-dz, dx))
             if best is None or d_ < best[0]: best = (d_, side)
         if best: votes.append(best[1])
+    _dk = f'{r.pts[0][0]:.1f},{r.pts[0][1]:.1f},{r.pts[-1][0]:.1f},{r.pts[-1][1]:.1f}'
+    if _dv_grid is not None and not r.tags.get('keysDetail'):   # r4-keys: replay the legacy layout's decision for every main-map road
+        votes = [-1] * 6 if _dk in _dv_grid else []; 
+        if _dv_grid.get(_dk) == 'rev': votes = [1] * 6
     if len(votes) >= 6:
         left = sum(1 for v in votes if v < 0); right = len(votes) - left
+        if _dv_grid is None and not r.tags.get('keysDetail'): _dv_rec[_dk] = 'rev' if left < right else 'fwd'
         if left < right:     # twin on the right -> travel the other way
             r.pts = r.pts[::-1]
             if r.y: r.y = r.y[::-1]
@@ -382,6 +389,7 @@ for _pass in range(3):
             if r.y: r.y = r.y[::-1]
         r.oneway = True; r.lb = 0; r.lf = 3 if r.kind == 'trunk' else 2
         r.width = 11.5 if r.kind == 'trunk' else 8.5; r.tags['divided'] = 1; ndiv += 1
+if KEYS and not KEYS.get('grid'): json.dump(_dv_rec, open(_DVF, 'w'))   # r4-keys: legacy decisions for the grid build
 log(f'divided-highway carriageways: {ndiv}')
 
 # ---------------------------------------------------------------- 7. names (real South Florida style; numbered grid in the metro)
@@ -521,7 +529,24 @@ log('blocks')
 from shapely.ops import polygonize
 road_lines = unary_union([LineString(r.pts) for r in W.roads if not r.bridge])
 blocks = [b for b in polygonize(road_lines) if 400 < b.area < 600000]
-road_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 3.2, cap_style=2, join_style=2) for r in W.roads if not r.bridge])
+# r4-keys: the big road-buffer union moves by float noise far away whenever the island's streets change (lots everywhere then split
+# differently). The legacy layout (KEYS_GRID=0 detail) records its Keys road lines and where they sit in the road list
+# (out/keys_blocks_rng.json); the grid layout builds the union from exactly that input, so every block outside the Keys is unchanged.
+_KBR = os.path.join(MAP3, 'keys_blocks_rng.json'); _kgrid = bool(KEYS and KEYS.get('grid'))
+_kb_file = json.load(open(_KBR)) if (_kgrid and os.path.exists(_KBR)) else None
+def _union_in(rule, key):
+    nb = [r for r in W.roads if not r.bridge and rule(r)]
+    if not KEYS: return [(r.pts, r.width) for r in nb], None
+    if not _kgrid: return [(r.pts, r.width) for r in nb], [[i, r.pts, r.width] for i, r in enumerate(nb) if r.tags.get('keysDetail')]
+    leg = (_kb_file or {}).get(key)
+    if leg is None: return [(r.pts, r.width) for r in nb], None
+    rest = iter([r for r in nb if not r.tags.get('keysDetail')]); lg = {i: (p_, w_) for i, p_, w_ in leg}; out = []
+    for i in range(len(nb) - sum(1 for r in nb if r.tags.get('keysDetail')) + len(leg)):
+        if i in lg: out.append(lg[i])
+        else: r = next(rest, None); out.append((r.pts, r.width)) if r is not None else None
+    return out, None
+_rb_in, _rb_leg = _union_in(lambda r: True, 'road_buf')
+road_buf = unary_union([LineString(p_).buffer(w_ / 2 + 3.2, cap_style=2, join_style=2) for p_, w_ in _rb_in])
 water_u = unary_union([w['poly'] for w in W.water])
 runway_u = unary_union([a['poly'] for a in W.areas if a['kind'] in ('runway', 'apron')])
 PROFILE = {   # kind: (lot frontage m, lot depth max m, setback m, height range m, style, zone, building kind, fill)
@@ -538,7 +563,8 @@ PROFILE = {   # kind: (lot frontage m, lot depth max m, setback m, height range 
     'ghetto':  (18, 28, 3.0, (4.0, 10.0), 'lowrise', 'residential', 'apartments', 0.72),
 }
 # main streets (towns: 1-2 storey shop rows face these; side streets keep houses)
-main_buf = unary_union([LineString(r.pts).buffer(r.width / 2 + 24, cap_style=2) for r in W.roads if not r.bridge and r.kind in ('trunk', 'primary', 'secondary')])
+_mb_in, _mb_leg = _union_in(lambda r: r.kind in ('trunk', 'primary', 'secondary'), 'main_buf')
+main_buf = unary_union([LineString(p_).buffer(w_ / 2 + 24, cap_style=2) for p_, w_ in _mb_in])
 def split_lots(poly, front, depth, out, depthc=0):
     """Recursive oriented split until each piece is at most `front` wide and `depth` deep."""
     if poly.is_empty or poly.area < 60: return
@@ -559,7 +585,33 @@ def split_lots(poly, front, depth, out, depthc=0):
 TOWER_CORE = [p2w(737, 790), p2w(705, 950)]
 nb_ = 0; perdist = {}
 rb = rng('buildings')
+# r4-keys: the Keys grid changes the island's blocks, and every block draws from the one shared random sequence, so the whole map's
+# lots (and storefront ids) would reshuffle. The legacy layout (KEYS_GRID=0 detail) records the sequence state after each run of
+# Keys-region blocks (out/keys_blocks_rng.json); the grid layout skips its own Keys blocks (keys_fill.py fills the island) and jumps to
+# the recorded state, so every block outside the Keys gets exactly the draws it got before.
+_kb_rec = {} if not _kgrid else ({int(k): v for k, v in _kb_file['states'].items()} if _kb_file else None)
+if _kgrid and _kb_rec is None: log('WARNING keys grid: no out/keys_blocks_rng.json (run once with a KEYS_GRID=0 keys_detail.json): lots outside the Keys will reshuffle')
+_kb_n, _kb_prev = 0, False; _kbd = []
+def _kb_state(): st = rb.getstate(); return [st[0], list(st[1]), st[2]]
+def _kb_set(v): rb.setstate((v[0], tuple(v[1]), v[2]))
+_kb_key = lambda b_: f'{b_.centroid.x:.2f},{b_.centroid.y:.2f},{b_.area:.1f}'
+_kb_legacy = set((_kb_file or {}).get('blocks', [])) if _kgrid else None; _kb_blocks = []; _rb_main = rb; _rb_extra = rng('buildings-keys-extra')
+_kb_defer, _kb_n0 = [], None
 for blk in blocks:
+    rb = _rb_main
+    if _kb_n0 is not None: _kb_defer += W.buildings[_kb_n0:]; del W.buildings[_kb_n0:]; _kb_n0 = None   # extra block's buildings go last (ids)
+    _inK = bool(KEYS) and blk.intersects(KREG)
+    if _inK:
+        _kb_prev = True
+        if _kgrid: continue
+    elif _kgrid and _kb_legacy and _kb_key(blk) not in _kb_legacy:
+        rb = _rb_extra; _kb_n0 = len(W.buildings)          # a block the grid's new roads make outside the region: its own sequence, the shared one untouched
+    else:
+        if _kgrid and _kb_rec and _kb_n in _kb_rec: _kb_set(_kb_rec[_kb_n])
+        elif not _kgrid and _kb_prev: _kb_rec[_kb_n] = _kb_state()
+        if not _kgrid: _kb_blocks.append(_kb_key(blk))
+        _kb_prev = False; _kb_n += 1
+        if os.environ.get('KB_DEBUG'): _kbd.append((round(blk.centroid.x, 2), round(blk.centroid.y, 2), round(blk.area, 1), hash(tuple(rb.getstate()[1]))))
     c = blk.representative_point(); dist, dkind = district_of(*w2p(c.x, c.y))
     if dkind not in PROFILE: continue
     front, depth, setback, (h0, h1), style, zone, bkind, fill = PROFILE[dkind]
@@ -617,6 +669,14 @@ for blk in blocks:
         b = W.building(ring, h, bk_ if st != 'tower' or bk_ == 'apartments' else 'office', st, bz_, region=dist or '', check=False)
         if b and dkind == 'ghetto': b['condition'] = 'abandoned' if rb.random() < 0.18 else 'rundown'   # for the building/furniture passes (boarded windows, graffiti, fences)
         if b: nb_ += 1; perdist[dist] = perdist.get(dist, 0) + 1
+rb = _rb_main
+if _kb_n0 is not None: _kb_defer += W.buildings[_kb_n0:]; del W.buildings[_kb_n0:]
+W.buildings += _kb_defer
+if not _kgrid and KEYS:
+    if _kb_prev: _kb_rec[_kb_n] = _kb_state()
+    json.dump({'note': 'r4-keys: legacy Keys layout: random state after each run of Keys-region blocks (key = non-Keys blocks before it) + its Keys road lines in the road-buffer unions', 'states': _kb_rec, 'road_buf': _rb_leg, 'main_buf': _mb_leg, 'blocks': _kb_blocks}, open(_KBR, 'w'))
+elif _kgrid and _kb_rec and _kb_n in _kb_rec: _kb_set(_kb_rec[_kb_n])
+if os.environ.get('KB_DEBUG'): json.dump(_kbd, open(os.environ['KB_DEBUG'], 'w'))
 log(f'buildings {nb_}: ' + ', '.join(f'{k} {v}' for k, v in sorted(perdist.items(), key=lambda kv: -kv[1])[:16]))
 # keep lots off Nico's yard
 _resv = lot.buffer(6)
@@ -646,6 +706,10 @@ if KEYS:
         W.building(b['ring'], b.get('h', 6.5), b.get('kind', 'house'), b.get('style', 'stilt'), b.get('zone', 'residential'), name=b.get('name'), poi=b.get('poi'), region='Key Largo', check=False)
     if KEYS.get('keysBar'):
         W.setpieces = [p for p in W.setpieces if p['id'] != 'keys_bar']; _kb = KEYS['keysBar']; W.setpiece('keys_bar', _kb['x'], _kb['z'], _kb.get('heading', 0.0), note='Keys roadside bar')
+    if KEYS.get('grid'):   # r4-keys: the island's grid layout gets its roadside program, house lots, docks and parks (tools/v2/map3/keys_fill.py)
+        import keys_fill as KF
+        try: KF.fill(W, G, KEYS, KREG, log)
+        except Exception: log('keys grid fill failed ' + traceback.format_exc()[-400:])
 # ---------------------------------------------------------------- 9c. surveyed alignments (round 2, item 8)
 # The traced centerlines carry the skeleton's pixel steps as regular S-wiggles on long roads (shot_08, State Road 916).
 # survey.py moves each eligible road sideways inside a small tube to the shape of least bending (tangents, arcs, spiral-like
@@ -657,6 +721,7 @@ if os.environ.get('MAP3_SURVEY', '1') != '0':
     _GRID = ('core', 'city', 'beach', 'ghetto', 'port', 'islands', 'airport')
     def _sv_ok(r):
         if r.bridge or r.layer or r.tags.get('diamond') or 'link' in r.kind: return False
+        if r.tags.get('keysGrid'): return False   # r4-keys: the grid's divided highway is already a smooth resampled curve (twins stay parallel)
         if r.tags.get('keysDetail'): return r.kind == 'trunk' and plen(r.pts) > 8   # the Overseas Highway pieces only (r2-keys ok'd it; lanes stay)
         if r.tags.get('dkind') in _GRID: return False
         if _keep_out is not None and _keep_out.contains(LineString(r.pts)): return False

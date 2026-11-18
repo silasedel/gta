@@ -486,6 +486,207 @@ def rect(cx, cz, ang, L, W):
     ux, uz = math.cos(ang), math.sin(ang); vx, vz = -uz, ux
     return Polygon([(cx + sx * ux * L / 2 + sy * vx * W / 2, cz + sx * uz * L / 2 + sy * vz * W / 2) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))])
 
+# ---------------------------------------------------------------------------------------------------------------- r4 grid
+# r4-keys (user's top-down map of the main Keys island, Nov 18, relayed by the lead): a 4-lane DIVIDED Overseas Highway (two one-way
+# 2-lane carriageways, thin planted median) down the island's center line, single 4-lane stubs where it meets the main map's bridges, and on
+# BOTH sides an ordinary 2-lane collector halfway between the highway and the shore, cross streets every 60-90 m from the highway through
+# the collector to the shore (small blocks, 1-2 deep per side), median openings at every 3rd cross street, dirt spurs into the lots, parks
+# at the SW and N tips. The irregular NE end (Nico's Pelican Point Ln loop, Mahogany Dr, Ocean Bay Dr, Dove Ln, Card Sound Road) keeps its
+# hand-digitized curves; their highway ends move onto the carriageway on their side. KEYS_GRID=0 = the old one-highway layout.
+GRID = os.environ.get('KEYS_GRID', '1') != '0'
+G_MOFF, G_CW = 7.2, 9.4          # carriageway centerline offset from the highway axis (median gap 5 m edge to edge), carriageway width
+G_KEEP = ('w1', 'w1L', 's1', 'd1', 'e1', 'e1cul', 'neSpur')
+G_CROSS = ['Grouper St', 'Dove Ln', 'Lobster Ln', 'Marina Ave', 'Barracuda Ln', 'Bonefish Ln', 'Sea Grape Ln', 'Tarpon Ave', 'Snapper Ln',
+           'Heron St', 'Egret Ln', 'Sponge Ln', 'Conch Ave', 'Ibis Ln', 'Wahoo St', 'Permit Ln', 'Osprey St', 'Mullet Ln', 'Coral Way',
+           'Hogfish Ln', 'Sawfish St', 'Manatee Ln', 'Gumbo Limbo Ln', 'Buttonwood Dr', 'Palmetto St', 'Sapodilla Ln', 'Cobia St']
+
+
+def resample(pts, step):
+    ln = LineString(pts); n = max(2, int(round(ln.length / step)) + 1)
+    return [(ln.interpolate(ln.length * i / (n - 1)).x, ln.interpolate(ln.length * i / (n - 1)).y) for i in range(n)]
+
+
+def grid_roads(ctrl, hwS0, land, lot, avoid=None):
+    rr = random.Random(1118)
+    C = resample(catmull(ctrl['hwN'], 4.0) + catmull(hwS0, 4.0)[1:], 4.0)
+    jj = min(range(len(C)), key=lambda i: math.dist(C[i], hwS0[0]))
+    for _ in range(3):                    # kink where the image's highway meets the extension: smooth SW of the junction, ends fixed
+        C2 = list(C)
+        for i in range(jj + 25, len(C) - 25):
+            w = C[i - 20:i + 21]; C2[i] = (sum(q[0] for q in w) / len(w), sum(q[1] for q in w) / len(w))
+        C = C2
+    N = len(C); S = [0.0]
+    for i in range(1, N): S.append(S[-1] + math.dist(C[i], C[i - 1]))
+    L = S[-1]
+    T = []
+    for i in range(N):
+        a, b = C[max(0, i - 2)], C[min(N - 1, i + 2)]; tx, tz = b[0] - a[0], b[1] - a[1]; tl = math.hypot(tx, tz); T.append((tx / tl, tz / tl))
+    R = [(-tz, tx) for tx, tz in T]                                  # right of travel (x east, z south)
+    sst = lambda t: t * t * (3 - 2 * t)
+    STUB, TAPER = 50.0, 70.0
+    O = [G_MOFF * sst(min(1, max(0, (S[i] - STUB) / TAPER))) * sst(min(1, max(0, (L - STUB - S[i]) / TAPER))) for i in range(N)]
+    pt = lambda i, o: (C[i][0] + R[i][0] * o, C[i][1] + R[i][1] * o)
+    iA0 = next(i for i in range(N) if S[i] >= STUB); iA1 = max(i for i in range(N) if S[i] <= L - STUB)
+    j0 = min(range(N), key=lambda i: math.dist(C[i], hwS0[0]))
+    HW = 'Overseas Highway'
+    rec = lambda pts, **kw: dict(pts=[[round(x, 2), round(z, 2)] for x, z in pts], **kw)
+    out = [rec(C[:iA0 + 1], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1),
+           rec(C[iA1:], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1),
+           rec([pt(i, O[i]) for i in range(iA0, iA1 + 1)], kind='trunk', surface='concrete', lanes=2, width=G_CW, name=HW, speedKmh=72, oneway=True, grid=1, fill='hw'),
+           rec([pt(i, -O[i]) for i in range(iA1, iA0 - 1, -1)], kind='trunk', surface='concrete', lanes=2, width=G_CW, name=HW, speedKmh=72, oneway=True, grid=1, fill='hw')]
+    axis = LineString(C)
+    # NE end: Card Sound Road meets the carriageway on its side; a median crossover links both carriageways there
+    ne = list(ctrl['hwNE']); sd = 1 if ((ne[-2][0] - C[j0][0]) * R[j0][0] + (ne[-2][1] - C[j0][1]) * R[j0][1]) > 0 else -1
+    ne[-1] = pt(j0, sd * O[j0])
+    out.append(road_rec(catmull(ne, 4.0), 'Card Sound Road', 'hw')); out[-1]['pts'][-1] = [round(ne[-1][0], 2), round(ne[-1][1], 2)]
+    out.append(rec([pt(j0, O[j0]), pt(j0, -O[j0])], kind='trunk', surface='concrete', lanes=1, width=8.0, name='Card Sound Road', speedKmh=40, grid=1))
+    # the kept NE lanes: highway ends onto the carriageway on their side
+    keep = []
+    for k in (() if LAYOUT else G_KEEP):
+        pts = list(ctrl[k])
+        for e, nb in ((0, 1), (-1, -2)):
+            if axis.distance(Point(pts[e])) < 4.0:
+                i = min(range(N), key=lambda q: math.dist(C[q], pts[e]))
+                sd = 1 if ((pts[nb][0] - C[i][0]) * R[i][0] + (pts[nb][1] - C[i][1]) * R[i][1]) > 0 else -1
+                pts[e] = pt(i, sd * O[i])
+        nm = {'w1': 'Pelican Point Ln', 'w1L': 'Pelican Point Ln', 'd1': 'Mahogany Dr', 'e1': 'Ocean Bay Dr', 'e1cul': 'Conch Ave', 's1': 'Dove Ln', 'neSpur': 'Sponge Ln'}[k]
+        rd = road_rec(catmull(pts, 4.0), nm, 'lane'); rd['pts'][0] = [round(pts[0][0], 2), round(pts[0][1], 2)]; rd['pts'][-1] = [round(pts[-1][0], 2), round(pts[-1][1], 2)]
+        out.append(rd); keep.append(LineString(rd['pts']))
+    keepz = unary_union([g.buffer(45) for g in keep] + [lot.buffer(6 if LAYOUT else 30)])
+    landp = land.buffer(0)
+
+    def coast(i, sd):
+        p = C[i]; ray = LineString([p, (p[0] + R[i][0] * sd * 500, p[1] + R[i][1] * sd * 500)]); g = ray.intersection(landp); best = 0.0
+        for gg in getattr(g, 'geoms', [g]):
+            if not gg.is_empty and gg.distance(Point(p)) < 1.0: best = gg.length
+        return best
+    neL = LineString(out[4]['pts'])      # Card Sound Road (the NE branch): grid streets stop at it
+    if LAYOUT:   # the grid runs the whole island: the N branch's stretch north of the split too (not within 70 m of the split)
+        g0 = next((i for i in range(iA0 + 5, j0) if coast(i, 1) > 35 and coast(i, -1) > 35), j0 + 20); g1 = iA1 - 25
+    else: g0, g1 = j0 + 40, iA1 - 25
+    cross_names = {}
+    sides = {}
+    for sd in (1, -1):
+        d = [coast(i, sd) if g0 <= i <= g1 else 0.0 for i in range(N)]
+        dmin = [min(d[max(g0, i - 8):min(g1, i + 8) + 1] or [0]) for i in range(N)]
+        dm = [sum(dmin[max(g0, i - 12):min(g1, i + 12) + 1]) / max(1, len(dmin[max(g0, i - 12):min(g1, i + 12) + 1])) for i in range(N)]
+        oc = [((12 + dm[i]) / 2 if dm[i] >= 80 and g0 <= i <= g1 else None) for i in range(N)]
+        sm = [None] * N
+        for i in range(N):
+            if oc[i] is None: continue
+            w = [oc[q] for q in range(max(0, i - 15), min(N, i + 16)) if oc[q] is not None]; sm[i] = min(sum(w) / len(w), dm[i] - 32)
+            if sm[i] < 40 or keepz.contains(Point(pt(i, sd * (abs(O[i]) + sm[i])))) or neL.distance(Point(pt(i, sd * (abs(O[i]) + sm[i])))) < 12 or (LAYOUT and abs(S[i] - S[j0]) < 70): sm[i] = None
+        runs, i = [], g0
+        while i <= g1:
+            if sm[i] is None: i += 1; continue
+            j = i
+            while j + 1 <= g1 and sm[j + 1] is not None: j += 1
+            if S[j] - S[i] >= 100: runs.append((i, j))
+            i = j + 1
+        sides[sd] = dict(d=d, dm=dm, oc=sm, runs=runs)
+    # cross-street stations (shared by both sides) + the collector run ends
+    st, s_ = [], S[g0] + 20
+    while s_ < S[g1] - 20:
+        q_ = min(range(g0, g1 + 1), key=lambda q: abs(S[q] - s_)); s_ += rr.uniform(60, 90)
+        if not (LAYOUT and abs(S[q_] - S[j0]) < 70): st.append(q_)
+    ext = set()
+    for sd in (1, -1):
+        for a, b in sides[sd]['runs']: ext.update([a, b])
+    stations = sorted(set(st) | {e for e in ext if all(abs(S[e] - S[q]) > 30 for q in st)})
+    if os.environ.get('GRID_DEBUG'): print('grid dbg', 'L', round(L), 'j0', j0, 'S[j0]', round(S[j0]), 'g0', g0, round(S[g0]), 'g1', g1, round(S[g1]), [(round(S[i]), round(sides[1]['d'][i]), round(sides[-1]['d'][i])) for i in stations])
+    nm_i = 0; opened = 0; crossed = []
+    for k, i in enumerate(stations):
+        name = G_CROSS[nm_i % len(G_CROSS)]; nm_i += 1; both = 0
+        for sd in (1, -1):
+            sdd = sides[sd]; oc = sdd['oc'][i] if any(a <= i <= b for a, b in sdd['runs']) else None
+            dd = min(sdd['d'][i], sdd['dm'][i] + 12) - 9
+            if dd < 40 and oc is None: continue
+            o0 = sd * O[i]
+            pts = [pt(i, o0)]
+            if oc is not None: pts.append(pt(i, sd * (O[i] + oc)))
+            if dd > (oc or 0) + O[i] + 14: pts.append(pt(i, sd * dd))
+            if len(pts) < 2: continue
+            ln = LineString(pts)
+            if ln.crosses(neL):          # stop at Card Sound Road (a T onto it)
+                cut = ln.intersection(neL); cut = min(getattr(cut, 'geoms', [cut]), key=lambda g: Point(pts[0]).distance(g))
+                dcut = Point(pts[0]).distance(cut); pts = [q for q in pts if Point(pts[0]).distance(Point(q)) < dcut - 12] + [(cut.x, cut.y)]
+                if len(pts) < 2: continue
+                ln = LineString(pts)
+            if any(ln.crosses(q) for q in crossed): continue
+            if ln.intersects(keepz) or not landp.buffer(2).contains(ln) or (avoid is not None and ln.intersects(avoid)): continue
+            out.append(rec(pts, kind='residential', surface='asphalt', style='keys_lane', lanes=1, width=6.5, name=name, speedKmh=40, grid=1, fill='lots'))
+            both += 1; crossed.append(ln.buffer(8))
+        if both == 2 and k % 3 == 1:            # median opening: the cross street continues over the median
+            out.append(rec([pt(i, O[i]), pt(i, -O[i])], kind='residential', surface='asphalt', style='keys_lane', lanes=1, width=6.5, name=name, speedKmh=30, grid=1)); opened += 1
+    # collectors (+ dirt spurs into the lots between the cross streets)
+    ncol = 0
+    for sd, cname in ((1, 'Coconut Row'), (-1, 'Seashell Ln')):
+        sdd = sides[sd]
+        for a, b in sdd['runs']:
+            pts = [pt(i, sd * (O[i] + sdd['oc'][i])) for i in range(a, b + 1)]
+            out.append(rec(pts, kind='residential', surface='asphalt', style='keys_lane', lanes=1, width=6.5, name=cname, speedKmh=40, grid=1, fill='lots')); ncol += 1
+            cs = [q for q in stations if a <= q <= b]
+            for q0, q1 in zip(cs, cs[1:]):
+                m = (q0 + q1) // 2
+                if rr.random() > 0.4 or S[q1] - S[q0] < 50: continue
+                oc = sdd['oc'][m]; dd = sdd['dm'][m]
+                if dd - oc < 34: continue
+                sp = [pt(m, sd * (O[m] + oc)), pt(m, sd * (O[m] + oc + 22))]
+                if landp.contains(LineString(sp)) and not (avoid is not None and LineString(sp).intersects(avoid)): out.append(rec(sp, kind='service', surface='dirt', lanes=1, width=3.4, name='', speedKmh=20, grid=1))
+    # parks at the SW and N tips
+    areas = []
+    corridor = unary_union([LineString(r['pts']).buffer(r['width'] / 2 + 2.5) for r in out])
+    for s_c, rad, nm in ((L - 130, 120, 'Southpoint Park'), (110, 90, 'North Key Park')):
+        i = min(range(N), key=lambda q: abs(S[q] - s_c)); g = Point(C[i]).buffer(rad).intersection(landp).difference(corridor).difference(lot.buffer(25))
+        for gg in getattr(g, 'geoms', [g]):
+            if gg.geom_type == 'Polygon' and gg.area > 600: areas.append(dict(ring=[[round(x, 2), round(z, 2)] for x, z in list(gg.exterior.coords)[:-1]], kind='park', name=nm))
+    print(f'grid: highway {L:.0f} m divided ({G_MOFF} m offset), cross stations {len(stations)}, median openings {opened}, collectors {ncol}, '
+          f'roads {len(out)}, parks {len(areas)}')
+    return out, areas, keepz, dict(axis=[[round(x, 2), round(z, 2)] for x, z in C], R=[[round(a, 4), round(b, 4)] for a, b in R])
+
+
+# ---------------------------------------------------------------------------------------------------------------- r4 layout map
+# r4-keys (user, Nov 18): docs/v2/plan/keys_layout_house_dot.webp is the exact top-down map of the island (shape, divided highway,
+# grid, shores, islets, the two NE bridges; red dot = Nico's house on the NW bay shore). Placed by a similarity transform: the SW
+# bridge landing on the island tip = the main map's SW join, the north bridge's top edge = the main map's north join. The highway
+# centerline is digitized from it (image px); the island + islet land comes from its water mask. KEYS_LAYOUT=0 = the earlier image.
+LAYOUT = GRID and os.environ.get('KEYS_LAYOUT', '1') != '0'
+LIMG = os.path.join(ROOT, 'docs', 'v2', 'plan', 'keys_layout_house_dot.webp')
+L_SW, L_N = (95.0, 1215.0), (770.0, 0.0)         # anchors (image px) -> P_SW, P_N
+L_HWN = [(770, 0), (800, 75), (830, 140), (860, 200), (885, 250), (902, 300), (903, 380), (902, 450), (895, 500), (880, 530)]
+L_HWS = [(880, 530), (850, 545), (780, 580), (720, 600), (680, 630), (640, 700), (600, 790), (550, 860), (485, 955), (400, 1020), (300, 1095), (200, 1160), (95, 1215)]
+L_HWNE = [(1186, 60), (1110, 160), (1035, 260), (990, 350), (950, 430), (880, 530)]
+L_NICO = (750.0, 462.0)
+
+
+def layout_xf(P_SW, P_N):
+    a, b = complex(*L_SW), complex(*L_N); A, B = complex(*P_SW), complex(*P_N); k = (B - A) / (b - a)
+    def f(x, y): w = A + k * (complex(x, y) - a); return (w.real, w.imag)
+    return f, abs(k)
+
+
+def layout_land(f):
+    from skimage import measure
+    rgb = np.asarray(Image.open(LIMG).convert('RGB')).astype(np.float32); r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    water = (b > 150) & (b - g > 45) & (r < 150) & (g < 150)
+    water[:8, :] = True; water[:, -4:] |= False                 # the map's dark top border row is not land
+    land = ndimage.binary_opening(~water, iterations=1)
+    land = ndimage.binary_fill_holes(land)                       # roofs / pools / dock gaps inside the island are not water
+    lab, nl = ndimage.label(land); sz = np.bincount(lab.ravel()); sz[0] = 0
+    m = (sz >= 40)[lab]
+    fm = ndimage.gaussian_filter(np.pad(m.astype(np.float32), 3), 1.0)
+    polys = []
+    for c in measure.find_contours(fm, 0.5):
+        if len(c) < 6: continue
+        pp = Polygon([f(x - 3, y - 3) for y, x in c]).buffer(0)
+        if pp.area > 60: polys.append(pp)
+    polys.sort(key=lambda q: -q.area); acc = Polygon()
+    for pp in polys: acc = acc.symmetric_difference(pp)
+    H, W_ = rgb.shape[:2]
+    frame = Polygon([f(0, 0), f(W_, 0), f(W_, H), f(0, H)])
+    return acc.buffer(0).simplify(0.8), frame
+
+
 # ---------------------------------------------------------------------------------------------------------------- main
 
 
@@ -531,6 +732,7 @@ def main():
         sw_hw.append(p)
     sw_hw += [(P_SW[0] - d_sw[0] * 45, P_SW[1] - d_sw[1] * 45), P_SW]
     ctrl['hwS'] = ctrl['hwS'] + sw_hw
+    hwS0 = list(ctrl['hwS'])   # r4 grid: the highway before the old lane junction points go in
     # bay lane (continues Coconut Row) and ocean lane (continues Seashell Ln), cross lanes to the highway
     hw_line = LineString(ctrl['hwS'])
     def on_hw(t, f=0.47):
@@ -583,24 +785,68 @@ def main():
     spawn = hl(o, h, -6.0, 12.0)
 
     land = assemble_land(main_, region, img_land, ext)
+    if LAYOUT:   # r4: the user's exact layout map replaces the island, the highway and Nico's spot
+        LF, lmpp = layout_xf(P_SW, P_N)
+        lland, lframe = layout_land(LF)
+        land = unary_union([lland.intersection(region), main_['land'].intersection(region).difference(lframe)]).buffer(0)
+        land = unary_union([g for g in getattr(land, 'geoms', [land]) if g.geom_type == 'Polygon' and g.area > 60])
+        ctrl['hwN'] = [LF(*p) for p in L_HWN]; hwS0 = [LF(*p) for p in L_HWS]
+        ne_img = [LF(*p) for p in L_HWNE]
+        ctrl['hwNE'] = ([JOIN_NE] if math.dist(JOIN_NE, ne_img[0]) > 30 else []) + ne_img
+        # Nico's lot at the red dot: back (-Z) on the bay shore, front (+Z) toward the island axis
+        dot = LF(*L_NICO); ax = LineString(catmull(ctrl['hwN'], 4.0) + catmull(hwS0, 4.0)[1:]); q = ax.interpolate(ax.project(Point(dot)))
+        sx, sz = q.x - dot[0], q.y - dot[1]; sl = math.hypot(sx, sz); sx, sz = sx / sl, sz / sl
+        cp = dot
+        for k in range(0, 120):
+            t = (dot[0] - sx * k * 0.5, dot[1] - sz * k * 0.5)
+            if not land.contains(Point(t)): cp = t; break
+        h = math.atan2(sx, sz); o = (cp[0] + sx * 13.2, cp[1] + sz * 13.2)
+        lot = Polygon([hl(o, h, x, z) for x, z in ((-24, -14.2), (11.4, -14.2), (11.4, 33), (-24, 33))])
+        spawn = hl(o, h, -6.0, 12.0)
+        print(f'layout: {lmpp:.3f} m/px, dot {dot[0]:.1f},{dot[1]:.1f} shore {cp[0]:.1f},{cp[1]:.1f} -> nico origin {o[0]:.1f},{o[1]:.1f} heading {h:.4f}; NE end {ne_img[0]} join {JOIN_NE}')
+        land = land.union(lot.buffer(1.0, join_style=2).intersection(Polygon([hl(o, h, x, z) for x, z in ((-26, -14.2), (13, -14.2), (13, 40), (-26, 40))])))
     land = carve_nico(land, o, h)
+    areas, gridinfo = [], None
+    if GRID:
+        _tb = 400; _hp = on_hw(_tb); _bx, _bz = _hp[0] + n[0] * 33, _hp[1] + n[1] * 33; _bh = math.atan2(-n[0], -n[1])   # the Keys bar lot (as below)
+        _bar_lot = Polygon([hl((_bx, _bz), _bh, x, z) for x, z in ((-24, -19), (24, -19), (24, 19), (-24, 19))])
+        if LAYOUT:
+            _ax = LineString(catmull(hwS0, 4.0)); _p = _ax.interpolate(_ax.length * 0.45); _q = _ax.interpolate(_ax.length * 0.45 + 3)
+            _tx, _tz = _q.x - _p.x, _q.y - _p.y; _tl = math.hypot(_tx, _tz); _rx, _rz = -_tz / _tl, _tx / _tl   # R+ = bay (NW)
+            _bx, _bz = _p.x - _rx * 36, _p.y - _rz * 36; _bh = math.atan2(_rx, _rz)
+            _bar_lot = Polygon([hl((_bx, _bz), _bh, x, z) for x, z in ((-24, -19), (24, -19), (24, 19), (-24, 19))])
+        roads_w, areas, keepz, gridinfo = grid_roads(ctrl, hwS0, land, lot, avoid=_bar_lot.buffer(4))
+        if LAYOUT:   # Nico's driveway street: from the lot front straight out to the first grid street
+            _a = hl(o, h, -6.0, 33.5); _b = hl(o, h, -6.0, 160.0); _ray = LineString([_a, _b]); _hit = None
+            for r in roads_w:
+                if r.get('kind') == 'service': continue
+                ii = _ray.intersection(LineString(r['pts']))
+                for g in getattr(ii, 'geoms', [ii]):
+                    if g.geom_type == 'Point' and (_hit is None or Point(_a).distance(g) < Point(_a).distance(_hit)): _hit = g
+            if _hit is not None:
+                roads_w.append(dict(pts=[[round(_a[0], 2), round(_a[1], 2)], [round(_hit.x, 2), round(_hit.y, 2)]], kind='residential', surface='asphalt', style='keys_lane', lanes=1, width=6.5, name='Pelican Point Ln', speedKmh=30, grid=1))
+            print('nico driveway', _hit)
 
     # buildings: the image's roofs, then the sparse extension (houses along the lanes, docks on the bay side)
     buildings = roof_buildings(roads_w, lot.buffer(3), rng)
+    if GRID: buildings = [] if LAYOUT else [b for b in buildings if keepz.contains(Polygon(b['ring']).centroid)]   # the image's roofs only where its own lanes stay
     road_buf = unary_union([LineString(r['pts']).buffer(r['width'] / 2 + 3.0) for r in roads_w])
     taken = unary_union([Polygon(b['ring']) for b in buildings]).buffer(4)
     piers = [dict(pts=[[round(x, 2), round(z, 2)] for x, z in wpts(p)], width=2.2) for p in PIERS_PX]
+    if LAYOUT: piers = []
     ext_area = ext.buffer(-4)
     bar = None
     # the Keys bar: a roadside lot on the ocean side of the highway in the extension, kept clear of houses
     tb = 400; hp = on_hw(tb); C, a, b = prof[min(ts, key=lambda q: abs(q - tb))]
     bx, bz = hp[0] + n[0] * 33, hp[1] + n[1] * 33
     bar_h = math.atan2(-n[0], -n[1])                     # front (+Z) faces the highway
+    if LAYOUT: bx, bz, bar_h = _bx, _bz, _bh
     bar_lot = Polygon([hl((bx, bz), bar_h, x, z) for x, z in ((-24, -19), (24, -19), (24, 19), (-24, 19))])
+    if GRID: print('bar lot hits:', [r['name'] for r in roads_w if LineString(r['pts']).buffer(r['width'] / 2 + 3.0).intersects(bar_lot.buffer(-4))], 'land ok', land.contains(bar_lot.buffer(-6)))
     if land.contains(bar_lot.buffer(-6)) and not bar_lot.buffer(-4).intersects(road_buf):
         bar = dict(x=round(bx, 2), z=round(bz, 2), heading=round(bar_h, 4))
         taken = taken.union(bar_lot.buffer(4))
-    for lane, side, step, fill, docks in ((bay, -1, 33, 0.8, True), (ocean, +1, 38, 0.65, False), (bay, +1, 45, 0.35, False), (ocean, -1, 45, 0.35, False)):
+    for lane, side, step, fill, docks in (() if GRID else ((bay, -1, 33, 0.8, True), (ocean, +1, 38, 0.65, False), (bay, +1, 45, 0.35, False), (ocean, -1, 45, 0.35, False))):   # r4 grid: build_v3 fills the lots (keys_fill.py)
         ln = LineString(lane)
         for s in np.arange(10, ln.length - 10, step):
             if rng.random() > fill: continue
@@ -625,7 +871,7 @@ def main():
                     Ldk = rng.uniform(16, 28)
                     piers.append(dict(pts=[[round(cp.x - ox * 2, 2), round(cp.y - oz * 2, 2)], [round(cp.x + ox * Ldk, 2), round(cp.y + oz * Ldk, 2)]], width=2.2))
     # a couple of roadside shops on the highway in the extension
-    for tt in (200, 640):
+    for tt in (() if GRID else (200, 640)):
         hp = on_hw(tt); side = -1 if tt == 200 else 1
         cx, cz = hp[0] + n[0] * side * 22, hp[1] + n[1] * side * 22
         fp = rect(cx, cz, math.atan2(u[1], u[0]), 26, 14)
@@ -649,7 +895,7 @@ def main():
     out = dict(
         generator='tools/v2/map3/keys_detail.py (hand-digitized from docs/v2/plan/keys_detail.webp)',
         fit=dict(mpp=MPP, rot=ROT, tx=TX, tz=TZ),
-        region=ringl(region), land=land_rings, roads=roads_w, buildings=buildings, piers=piers,
+        region=ringl(region), land=land_rings, roads=roads_w, buildings=buildings, piers=piers, areas=areas, grid=gridinfo,
         nico=dict(x=round(o[0], 2), z=round(o[1], 2), heading=round(h, 4), spawnX=round(spawn[0], 2), spawnZ=round(spawn[1], 2),
                   lot=ringl(lot), street='Pelican Point Ln'),
         joins=[list(P_N), list(P_SW), list(JOIN_NE)])

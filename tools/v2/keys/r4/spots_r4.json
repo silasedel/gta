@@ -1,0 +1,8 @@
+{
+  "bridge": { "world": true, "eye": [-1951, 28, 6365], "look": [-2135, 2, 6364], "player": [-1900, 0, 6250], "tod": 16.5, "fov": 55 },
+  "bridge2": { "world": true, "eye": [-2080, 9, 6395], "look": [-2010, 4, 6280], "player": [-1900, 0, 6250], "tod": 16.5, "fov": 60 },
+  "seaplane": { "world": true, "eye": [-754, 140, 5010], "look": [-1300, 0, 5600], "player": [-940, 0, 5058], "tod": 13, "fov": 60 },
+  "drive": { "world": true, "eye": [-1215, 3, 5512], "look": [-1250, 3, 5580], "player": [-1190, 0, 5465], "tod": 11, "fov": 62, "eval": "const gy = game.city.groundHeightAt(eye.x, eye.z) || 0; eye.y = gy + 1.5; look.y = gy + 2.2;" },
+  "nicoDrive": { "eye": [-10.5, 2.2, 4.5], "look": [-20, 1.0, 21], "tod": 11, "fov": 62 },
+  "nicoTop": { "eye": [-16, 38, 12], "look": [-16, 0, 11.9], "tod": 12, "fov": 60 }
+}
