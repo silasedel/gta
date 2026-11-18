@@ -12,6 +12,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { makeVegMaterial, VEG_R2 } from './materials.js';
 import GRADE from './grade.json';
+import { LAZY } from '../../core/loadMode.js';
 import { bakeImpostor } from './field.js';
 import { VEG_LIB, CLS } from './species.js';
 import { yieldTask, breathe, initTexturesSliced } from '../../core/pace.js';
@@ -25,7 +26,10 @@ const _loader = new GLTFLoader();
 const _glb = new Map(); // file -> Promise<gltf>: fetched + parsed as soon as this module loads (overlaps terrain / city boot)
 const fetchGLB = (f) => { if (!_glb.has(f)) _glb.set(f, _loader.loadAsync(BASE + f)); return _glb.get(f); };
 const LIB_ON = typeof location === 'undefined' || !/[?&]veglib=0\b/.test(location.search);
-if (LIB_ON && typeof window !== 'undefined') for (const [k, d] of Object.entries(VEG_LIB)) if (!d.hidden) { fetchGLB(k + '.glb').catch(() => null); fetchGLB(k + '_lod1.glb').catch(() => null); }
+// r3-web: on the web the big broadleaf trees are fetched after READY (flora.js), not with the module
+export const LAZY_KEEP = new Set(['mangrove', 'poinciana', 'poinciana_b', 'rubber_fig', 'shade_tree']);
+export const lazyDeferred = (k) => LAZY && VEG_LIB[k] && VEG_LIB[k].cls === 'tree' && !VEG_LIB[k].hidden && !LAZY_KEEP.has(k);
+if (LIB_ON && typeof window !== 'undefined') for (const [k, d] of Object.entries(VEG_LIB)) if (!d.hidden && !lazyDeferred(k)) { fetchGLB(k + '.glb').catch(() => null); fetchGLB(k + '_lod1.glb').catch(() => null); }
 
 // one merged geometry per material, with the attributes the vegetation shader expects (aWind, color)
 // round 2: thicker crowns for library trees whose source crown is only a few hundred leaf cards (the poinciana / gnarled oak has 512):

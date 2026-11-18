@@ -74,15 +74,14 @@ function fruit(clusters, n, seed) { const r = rnd(seed), P = [], N = [], s = new
 
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { placeTrees, csReject, CS_ON } from '../vegetation/countryside.js';
-import { loadVegModels, VEG_MODELS } from '../vegetation/models.js';
+import { loadVegModels, VEG_MODELS, lazyDeferred } from '../vegetation/models.js';
 import { LAZY, afterReady, trickle } from '../../core/loadMode.js';
 export async function createFlora(renderer, M) {
   // r3-web: on the web the big broadleaf trees (poinciana HD x3, oaks, banyans, pines ... ~45 MB) stream in after READY, one at a time;
   // the Keys spawn area needs palms, shrubs, mangrove and the small poinciana. Until a tree arrives the countryside draws its procedural stand-in,
   // then the countryside is rebuilt once with the full set (vegetation.v2 refreshCountryside). The app / ?preload=all load everything first.
-  const KEEP = new Set(['mangrove', 'poinciana', 'poinciana_b', 'rubber_fig', 'shade_tree']);
   const allKeys = Object.keys(VEG_MODELS).filter((k) => !VEG_MODELS[k].hidden);
-  const deferred = LAZY ? allKeys.filter((k) => VEG_MODELS[k].cls === 'tree' && !KEEP.has(k)) : [];
+  const deferred = allKeys.filter(lazyDeferred);
   const modelsP = loadVegModels(renderer, deferred.length ? allKeys.filter((k) => !deferred.includes(k)) : undefined).catch((e) => { console.warn('[flora] library plant models unavailable', e); return {}; }); // royal / coconut palms, banyan (models.js)
   const bark = await loadSet(renderer, 'bark_brown_02'); for (const t of [bark.map, bark.normalMap, bark.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
   const barkMat = new THREE.MeshStandardMaterial(setParams(bark, { color: 0xb8aa98 })); barkMat.name = 'flora-bark'; barkMat.userData.pbr = true;
