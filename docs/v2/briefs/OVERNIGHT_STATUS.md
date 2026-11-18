@@ -1888,3 +1888,20 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - **What changed:** `src/vehicles/glb/glbCar.js` `paintNormals()`: at load, LOD0 / LOD1 paint corners are welded by position and grouped per vertex by face orientation (crease 40 / 50 deg). Smooth normals inside a group are angle-weighted, with hard edges at panel gaps and body lines. Cost ~5-20 ms per level, with a macrotask between levels. `src/vehicles/model/materials.js` (paint program `ps-wear-v12-r3`): dirt only on the rocker, bumper bottoms, behind the wheels and faces turned to the road, plus even roof dust only above dirt 0.3. All wear noise comes from coarse mips, so nothing is finer than ~10 cm. Sun fade is broad and cloudy, rust stays in the sill / arch band, tone drift is +-1 %, beads fade out by pixel footprint, and pearl has no sheen (iridescence 0.12). No new textures.
 - **Sheets** (left old `?r3paint=0`, right new; JPG q90): `docs/v2/shots/cars/r3paint/sheet_paint_close_10.jpg`, `sheet_paint_close_1730.jpg`, `sheet_paint_detail.jpg` (1:1 sill / arch crops), `sheet_paint_lod.jpg` (26 m = LOD0 vs 31 m = LOD1, same framing: no color jump), `sheet_paint_wet.jpg` (rain, sedan5 at ~3.5 m). Tool: `node tools/v2/cars/r3_paint.mjs --ab` + `python3 -P tools/v2/cars/r3_paint_sheet.py`.
 - **Still off:** sedan1's trunk has small black holes (lettering deleted in the converter: a geometry fix, convert.py). A few hard shading lines remain where the decimated shell itself is creased (sedan5 rear bumper, van6 rear quarter); the real fix is a gentler LOD0 paint collapse in the converter. In the close_10 sheet, the new column of sedan1 / sedan8 / hatch1 / suv4 was shot on a beach-side street (spot race in my script), so its lighting differs. truck9's 17:30 mid view is blocked by a plant.
+
+## r4-water
+**Summary (r4-water, Nov 18 08:10, commit 55085659):** inland water (Brickell Ave swamp, ponds, canals) is now one even, murky olive body with a soft ~2 m bank fade and a damp dark mud strip, with no sand or caustic shallows, surf rings, foam blotches or flicker. On by default; `?r4water=0` = old. Sea and beaches are unchanged. Console: 0 errors on both paths.
+- Sheets (left = `?r4water=0`, right = default; 11:00 and 17:30; JPG q90): `docs/v2/shots/water/r4/sheet_r4_brickell.jpg` (user, close, mid, top), `sheet_r4_inland1.jpg`, `sheet_r4_inland2.jpg`, `sheet_r4_inland3.jpg`, `sheet_r4_beach.jpg`. The weather was random in the beach "before" run (rain). The same-conditions beach check is `water-r4-probe` vs `water-r4-it1` (identical).
+- **Causes** (`docs/v2/reports/water-r4-probe.json`):
+  - The swamp is a 'pond' with a 'sea' raster fringe. The fresh mask mixed sea and fresh: the open-water test ran in 64 m steps, and land = 255 bled into every bank.
+  - So one body drew as clear sea over a 0.2 m seabed (sand, caustic rings, crest rings, foam lace) right next to dark tea water.
+  - The visible bank is the map's land polygon (`land-base`, y = -0.05). The height cascade never saw it, so the water kept full color up to a straight or stepped polygon edge.
+  - Terrain sits 3 cm under the water over flat lots, and the foam lace and the breathing edge crawled over those films (flicker, white blotches).
+  - The 'sea' fringe also put a beach-sand strip and surf swash around the pond.
+- **Tool:** `node tools/v2/water/r4_shore.mjs --tag X [--q r4water=0] [--probe]`, then `python3 tools/v2/water/r4_sheet.py`.
+- **Still off (not water code):**
+  1. White `elevated-concrete` slabs lying flat in and next to the Brickell swamp (y 0.1-0.3). These are the roads' retaining-wall pieces where the road is at ground level.
+  2. Several 'pond' cells in the data are covered by land polygons, so the pond never renders (inland2 / inland3 top views).
+  3. The land-polygon bank edge is still a geometric line on the land side. It reads as a natural bank now. A real fix would drop the land base within ~3 m of water in real Miami (tilebuild, lead).
+  4. Glades sheet water sits at local ground + 5 cm, not the sea plane (by design).
+  5. From straight above, inland water reads as flat dark olive (no depth variation).
