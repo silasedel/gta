@@ -314,8 +314,16 @@ export function createOcean(game, skyUniforms, normalsTex) {
     game.scene.traverse((o) => { const k = groundKind(o); if (!k) return; live.add(o); if (!hProx.has(o)) { const p = new THREE.Mesh(o.geometry, hMat); p.matrixAutoUpdate = false; p.matrixWorldAutoUpdate = false; hProx.set(o, p); (k === 1 ? hLod : hNear).add(p); } });
     for (const [o, p] of hProx) if (!live.has(o)) { p.removeFromParent(); hProx.delete(o); }
   }
+  // r3-perf (leak, ?leakfix=0 rolls back): a proxy kept its source mesh (and through .parent the whole streamed tile, every
+  // geometry in it) after the tile was disposed: the scan that drops them only runs near water, so inland the tiles piled up
+  // (about 0.2-0.5 GB a minute while driving downtown). Worse, a detached tile still has a parent group, so its proxy kept
+  // drawing: the disposed geometry was uploaded to the GPU again and never freed. Proxies whose source left the scene go now.
+  const LEAKFIX = !(typeof location !== 'undefined' && /[?&]leakfix=0/.test(location.search));
+  const inScene = (o) => { for (let q = o; q; q = q.parent) if (q === game.scene) return true; return false; };
+  function pruneProx() { for (const [o, p] of hProx) if (!inScene(o)) { p.removeFromParent(); hProx.delete(o); } }
   function renderHeights(renderer, x, z) {
     const t0 = performance.now(), tx = HC.span / HC.size * 8, cx = Math.round(x / tx) * tx, cz = Math.round(z / tx) * tx, h = HC.span / 2;
+    if (LEAKFIX) pruneProx();
     for (const [o, p] of hProx) { let v = true; for (let q = o; q; q = q.parent) if (q.visible === false) { v = false; break; } p.visible = v && !!o.parent; if (v) { p.matrixWorld.copy(o.matrixWorld); if (p.geometry !== o.geometry) p.geometry = o.geometry; } } // the seabed swaps its geometry on every rebuild
     hCam.left = -h; hCam.right = h; hCam.top = h; hCam.bottom = -h; hCam.position.set(cx, 350, cz); hCam.updateProjectionMatrix(); hCam.updateMatrixWorld(true);
     const prevRT = renderer.getRenderTarget(), prevAC = renderer.autoClear, prevCol = renderer.getClearColor(new THREE.Color()), prevA = renderer.getClearAlpha(), prevSh = renderer.shadowMap.autoUpdate, prevNU = renderer.shadowMap.needsUpdate;
@@ -332,6 +340,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
     const r = game.renderer, W = game.city && game.city.isWater; if (!r || !W) return;
     const p = camera.position; HC.t += dt; HC.scanT += dt; HC.wetT -= dt;
     if (HC.wetT <= 0) { HC.wetT = 0.5; HC.near = p.y < 400 && [[0, 0], [90, 0], [-90, 0], [0, 90], [0, -90], [64, 64], [-64, 64], [64, -64], [-64, -64]].some(([a, b]) => W(p.x + a, p.z + b)); }
+    if (LEAKFIX && (HC.pruneT = (HC.pruneT || 0) + dt) > 2) { HC.pruneT = 0; pruneProx(); }
     if (!HC.near) { uniforms.uHRect.value.w = 0; return; }
     if (HC.t < 1.5 && Math.hypot(p.x - HC.cx, p.z - HC.cz) < 24) return;
     if (HC.scanT > 3) { HC.scanT = 0; scanGround(); }

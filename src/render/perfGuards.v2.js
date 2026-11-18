@@ -384,6 +384,7 @@ function evenPacing(game) {
 // their shader programs have compiled in parallel (KHR_parallel_shader_compile through compileAsync), so a tile
 // that needs a new program no longer stalls a frame for 100-250 ms. Usually that takes a frame or two.
 let warmOn = false;
+const POPFIX = !(typeof location !== 'undefined' && /[?&]popfix=0/.test(location.search));
 function warmStreamedShaders(game) {
   const { renderer, scene, camera } = game;
   const root = game.city?.root;
@@ -445,6 +446,19 @@ function warmStreamedShaders(game) {
           m.layers.disable(0);
         }
         camera.layers.mask = mask;
+      }
+      // r3-perf (building pop, ?popfix=0 rolls back): every new tile was hidden until compileAsync resolved, at least a
+      // frame and up to 1.5 s, even when all its shaders were long compiled. The mid LOD under a new near tile is cut away
+      // the moment the tile exists, so its buildings vanished for that time. Meshes whose program is already linked show at once;
+      // only ones that wait for a new shader stay hidden.
+      if (POPFIX && promise && promise.then) {
+        try {
+          const props = renderer.properties;
+          for (let i = hidden.length - 1; i >= 0; i--) {
+            const m = hidden[i], mats = Array.isArray(m.material) ? m.material : [m.material];
+            if (mats.every((mt) => { const p = mt && props.get(mt).currentProgram; return p && p.isReady && p.isReady(); })) { m.layers.enable(0); hidden.splice(i, 1); }
+          }
+        } catch (e) { /* keep them hidden until the promise */ }
       }
       if (promise && promise.then) {
         // never hold a tile back for long: show it after 1.5 s whatever happens

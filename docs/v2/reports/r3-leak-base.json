@@ -1,0 +1,8755 @@
+{
+ "set": "base",
+ "q": "",
+ "when": "2026-11-18T05:19:19.769Z",
+ "secs": 660,
+ "samples": [
+  {
+   "t": 19,
+   "fps": 13.8,
+   "work": 86.71,
+   "gap": 99.52,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     30.98
+    ],
+    [
+     "upd:anon#2",
+     29.16
+    ],
+    [
+     "world.step",
+     6.6
+    ],
+    [
+     "upd:update",
+     3.15
+    ],
+    [
+     "env",
+     2.93
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.28
+    ],
+    [
+     "gameplay",
+     1.65
+    ],
+    [
+     "peds",
+     1.61
+    ],
+    [
+     "upd:anon#28",
+     1.22
+    ],
+    [
+     "upd:unstuckTick",
+     0.77
+    ],
+    [
+     "fixed:playerFixed",
+     0.75
+    ],
+    [
+     "interiors",
+     0.71
+    ],
+    [
+     "hud",
+     0.56
+    ],
+    [
+     "audio",
+     0.49
+    ]
+   ],
+   "ri": {
+    "geo": 2394,
+    "tex": 1474,
+    "prog": 875,
+    "calls": 554,
+    "tris": 5691514
+   },
+   "objs": 8880,
+   "visible": 7249,
+   "meshes": 4420,
+   "inst": 1860,
+   "instCount": 64780,
+   "lights": 38,
+   "sprites": 47,
+   "points": 11,
+   "lines": 2,
+   "skinned": 145,
+   "mats": 2269,
+   "geos": 3443,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1060,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 2439,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 9,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 118,
+    "npc-p62": 118,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 59,
+    "npc-p25": 63,
+    "npc-p57": 122,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 122,
+    "npc-p04": 59,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p38": 59,
+    "npc-p65": 59,
+    "npc-p77": 59,
+    "npc-p131": 118,
+    "weapon-shotgun": 40
+   },
+   "heap": 3602,
+   "rap": {
+    "bodies": 456,
+    "colliders": 1472,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 45,
+    "respawn": 34
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 2,
+    "cars": 2,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 75
+   },
+   "lk": {
+    "gl": {
+     "textures": 1478,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 12108,
+     "programs": 875,
+     "vaos": 3662
+    },
+    "audio": 375,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    -74,
+    1720
+   ],
+   "ap": {
+    "stuck": 0,
+    "s": 0
+   },
+   "wall": 0
+  },
+  {
+   "t": 37,
+   "fps": 12.5,
+   "work": 71.75,
+   "gap": 93.11,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     32.55
+    ],
+    [
+     "upd:anon#2",
+     12.02
+    ],
+    [
+     "world.step",
+     10.47
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.26
+    ],
+    [
+     "peds",
+     1.87
+    ],
+    [
+     "gameplay",
+     1.49
+    ],
+    [
+     "upd:anon#28",
+     1.24
+    ],
+    [
+     "upd:update",
+     0.96
+    ],
+    [
+     "interiors",
+     0.89
+    ],
+    [
+     "audio",
+     0.84
+    ],
+    [
+     "hud",
+     0.66
+    ],
+    [
+     "upd:groundMaskTick",
+     0.57
+    ],
+    [
+     "upd:anon#42",
+     0.52
+    ],
+    [
+     "upd:anon#51",
+     0.38
+    ]
+   ],
+   "ri": {
+    "geo": 2707,
+    "tex": 1514,
+    "prog": 882,
+    "calls": 791,
+    "tris": 9882401
+   },
+   "objs": 9517,
+   "visible": 7851,
+   "meshes": 4759,
+   "inst": 1928,
+   "instCount": 66524,
+   "lights": 38,
+   "sprites": 51,
+   "points": 11,
+   "lines": 2,
+   "skinned": 154,
+   "mats": 2346,
+   "geos": 3729,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1201,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 2727,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 15,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 122,
+    "npc-p62": 122,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 59,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p38": 63,
+    "npc-p65": 59,
+    "npc-p77": 59,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4083,
+   "rap": {
+    "bodies": 657,
+    "colliders": 1769,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 47,
+    "respawn": 39
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 2,
+    "cars": 3,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 61
+   },
+   "lk": {
+    "gl": {
+     "textures": 1518,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 13259,
+     "programs": 882,
+     "vaos": 4158
+    },
+    "audio": 547,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    -79,
+    1713
+   ],
+   "ap": {
+    "stuck": 0,
+    "s": 0
+   },
+   "wall": 21
+  },
+  {
+   "t": 52,
+   "fps": 11.8,
+   "work": 77.83,
+   "gap": 95.09,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     24.33
+    ],
+    [
+     "render",
+     23.84
+    ],
+    [
+     "upd:anon#2",
+     12.44
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.15
+    ],
+    [
+     "upd:update",
+     3.4
+    ],
+    [
+     "peds",
+     1.56
+    ],
+    [
+     "upd:anon#28",
+     1.28
+    ],
+    [
+     "gameplay",
+     1.27
+    ],
+    [
+     "vehicles",
+     0.73
+    ],
+    [
+     "upd:groundMaskTick",
+     0.54
+    ],
+    [
+     "hud",
+     0.5
+    ],
+    [
+     "upd:anon#51",
+     0.34
+    ],
+    [
+     "fixed:boatsFixed",
+     0.34
+    ],
+    [
+     "interiors",
+     0.31
+    ]
+   ],
+   "ri": {
+    "geo": 2937,
+    "tex": 1562,
+    "prog": 1025,
+    "calls": 836,
+    "tris": 7447013
+   },
+   "objs": 9644,
+   "visible": 7975,
+   "meshes": 4853,
+   "inst": 1936,
+   "instCount": 68051,
+   "lights": 38,
+   "sprites": 51,
+   "points": 13,
+   "lines": 2,
+   "skinned": 154,
+   "mats": 2371,
+   "geos": 3808,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1275,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 30,
+    "Points": 9,
+    "Group": 2760,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 17,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 122,
+    "npc-p62": 122,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p38": 63,
+    "npc-p65": 59,
+    "npc-p77": 59,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4058,
+   "rap": {
+    "bodies": 664,
+    "colliders": 2000,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 48,
+    "respawn": 43
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 2,
+    "cars": 3,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 45
+   },
+   "lk": {
+    "gl": {
+     "textures": 1566,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 14272,
+     "programs": 1025,
+     "vaos": 4545
+    },
+    "audio": 791,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    -22,
+    1745
+   ],
+   "ap": {
+    "stuck": 1,
+    "s": 56
+   },
+   "wall": 41
+  },
+  {
+   "t": 71,
+   "fps": 12.3,
+   "work": 64.6,
+   "gap": 92.8,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     32.95
+    ],
+    [
+     "world.step",
+     12.09
+    ],
+    [
+     "fixed:vehiclesFixed",
+     6.62
+    ],
+    [
+     "peds",
+     1.81
+    ],
+    [
+     "gameplay",
+     1.75
+    ],
+    [
+     "upd:anon#28",
+     1.06
+    ],
+    [
+     "upd:update",
+     1.06
+    ],
+    [
+     "upd:groundMaskTick",
+     0.67
+    ],
+    [
+     "fixed:boatsFixed",
+     0.64
+    ],
+    [
+     "hud",
+     0.6
+    ],
+    [
+     "upd:anon#2",
+     0.45
+    ],
+    [
+     "interiors",
+     0.43
+    ],
+    [
+     "upd:anon#42",
+     0.42
+    ],
+    [
+     "audio",
+     0.41
+    ]
+   ],
+   "ri": {
+    "geo": 2941,
+    "tex": 1675,
+    "prog": 1161,
+    "calls": 821,
+    "tris": 7188959
+   },
+   "objs": 9773,
+   "visible": 8103,
+   "meshes": 4920,
+   "inst": 1937,
+   "instCount": 68050,
+   "lights": 38,
+   "sprites": 51,
+   "points": 13,
+   "lines": 2,
+   "skinned": 154,
+   "mats": 2381,
+   "geos": 3880,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1348,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 25,
+    "Points": 9,
+    "Group": 2820,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 18,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 122,
+    "npc-p62": 122,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p38": 63,
+    "npc-p65": 59,
+    "npc-p77": 59,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4060,
+   "rap": {
+    "bodies": 591,
+    "colliders": 1905,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 49,
+    "respawn": 47
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 2,
+    "cars": 3,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1679,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 14301,
+     "programs": 1161,
+     "vaos": 4552
+    },
+    "audio": 981,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    -22,
+    1745
+   ],
+   "ap": {
+    "stuck": 1,
+    "s": 56
+   },
+   "wall": 62
+  },
+  {
+   "t": 89,
+   "fps": 12,
+   "work": 75.71,
+   "gap": 88.95,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     35.2
+    ],
+    [
+     "world.step",
+     21.11
+    ],
+    [
+     "fixed:vehiclesFixed",
+     5.16
+    ],
+    [
+     "vehicles",
+     2.14
+    ],
+    [
+     "peds",
+     1.77
+    ],
+    [
+     "gameplay",
+     1.56
+    ],
+    [
+     "upd:anon#28",
+     1.21
+    ],
+    [
+     "upd:update",
+     0.92
+    ],
+    [
+     "fixed:boatsFixed",
+     0.91
+    ],
+    [
+     "upd:groundMaskTick",
+     0.63
+    ],
+    [
+     "hud",
+     0.6
+    ],
+    [
+     "interiors",
+     0.47
+    ],
+    [
+     "upd:anon#2",
+     0.46
+    ],
+    [
+     "audio",
+     0.3
+    ]
+   ],
+   "ri": {
+    "geo": 2970,
+    "tex": 1728,
+    "prog": 1165,
+    "calls": 959,
+    "tris": 9850255
+   },
+   "objs": 9824,
+   "visible": 8146,
+   "meshes": 4953,
+   "inst": 1937,
+   "instCount": 67299,
+   "lights": 38,
+   "sprites": 51,
+   "points": 13,
+   "lines": 2,
+   "skinned": 154,
+   "mats": 2392,
+   "geos": 3917,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1348,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 20,
+    "Points": 9,
+    "Group": 2868,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 18,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 122,
+    "npc-p62": 122,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4060,
+   "rap": {
+    "bodies": 591,
+    "colliders": 1915,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 50,
+    "respawn": 52
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 2,
+    "cars": 3,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1732,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 14430,
+     "programs": 1165,
+     "vaos": 4614
+    },
+    "audio": 1142,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    -13,
+    1738
+   ],
+   "ap": {
+    "stuck": 1,
+    "s": 62
+   },
+   "wall": 82
+  },
+  {
+   "t": 106,
+   "fps": 13.2,
+   "work": 63.64,
+   "gap": 85.84,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     29.77
+    ],
+    [
+     "world.step",
+     11.85
+    ],
+    [
+     "upd:update",
+     5.01
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.1
+    ],
+    [
+     "peds",
+     1.8
+    ],
+    [
+     "gameplay",
+     1.55
+    ],
+    [
+     "upd:anon#2",
+     1.19
+    ],
+    [
+     "upd:anon#28",
+     1.19
+    ],
+    [
+     "fixed:boatsFixed",
+     1.07
+    ],
+    [
+     "upd:anon#51",
+     0.9
+    ],
+    [
+     "upd:groundMaskTick",
+     0.68
+    ],
+    [
+     "hud",
+     0.6
+    ],
+    [
+     "audio",
+     0.45
+    ],
+    [
+     "upd:anon#42",
+     0.3
+    ]
+   ],
+   "ri": {
+    "geo": 3135,
+    "tex": 1760,
+    "prog": 1166,
+    "calls": 1030,
+    "tris": 10132348
+   },
+   "objs": 9908,
+   "visible": 8249,
+   "meshes": 5019,
+   "inst": 1943,
+   "instCount": 66314,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 154,
+   "mats": 2421,
+   "geos": 4009,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 2936,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 23,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 122,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4089,
+   "rap": {
+    "bodies": 487,
+    "colliders": 1752,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 49,
+    "respawn": 56
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1764,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15248,
+     "programs": 1166,
+     "vaos": 4894
+    },
+    "audio": 1559,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    75,
+    1745
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 102
+  },
+  {
+   "t": 124,
+   "fps": 14.9,
+   "work": 67.83,
+   "gap": 81.98,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     27.98
+    ],
+    [
+     "render",
+     23.77
+    ],
+    [
+     "fixed:vehiclesFixed",
+     5.06
+    ],
+    [
+     "peds",
+     1.64
+    ],
+    [
+     "upd:update",
+     1.55
+    ],
+    [
+     "upd:anon#28",
+     1.01
+    ],
+    [
+     "fixed:boatsFixed",
+     1.01
+    ],
+    [
+     "gameplay",
+     0.77
+    ],
+    [
+     "upd:groundMaskTick",
+     0.58
+    ],
+    [
+     "hud",
+     0.48
+    ],
+    [
+     "upd:anon#2",
+     0.39
+    ],
+    [
+     "audio",
+     0.36
+    ],
+    [
+     "upd:anon#42",
+     0.35
+    ],
+    [
+     "upd:anon#51",
+     0.31
+    ]
+   ],
+   "ri": {
+    "geo": 3143,
+    "tex": 1760,
+    "prog": 1166,
+    "calls": 634,
+    "tris": 6678833
+   },
+   "objs": 10040,
+   "visible": 8372,
+   "meshes": 5057,
+   "inst": 1950,
+   "instCount": 66334,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 157,
+   "mats": 2432,
+   "geos": 4029,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3061,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 26,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4100,
+   "rap": {
+    "bodies": 573,
+    "colliders": 1871,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 51,
+    "respawn": 58
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1764,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15304,
+     "programs": 1166,
+     "vaos": 4916
+    },
+    "audio": 1709,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    75,
+    1745
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 122
+  },
+  {
+   "t": 143,
+   "fps": 12.7,
+   "work": 60.63,
+   "gap": 81.73,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     26.97
+    ],
+    [
+     "world.step",
+     17.1
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.15
+    ],
+    [
+     "upd:anon#2",
+     1.82
+    ],
+    [
+     "peds",
+     1.62
+    ],
+    [
+     "fixed:boatsFixed",
+     1.05
+    ],
+    [
+     "gameplay",
+     1.02
+    ],
+    [
+     "upd:anon#28",
+     0.97
+    ],
+    [
+     "upd:update",
+     0.89
+    ],
+    [
+     "upd:groundMaskTick",
+     0.67
+    ],
+    [
+     "hud",
+     0.5
+    ],
+    [
+     "audio",
+     0.45
+    ],
+    [
+     "upd:tick",
+     0.34
+    ]
+   ],
+   "ri": {
+    "geo": 3158,
+    "tex": 1770,
+    "prog": 1166,
+    "calls": 648,
+    "tris": 6887410
+   },
+   "objs": 10076,
+   "visible": 8401,
+   "meshes": 5075,
+   "inst": 1955,
+   "instCount": 66340,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 157,
+   "mats": 2455,
+   "geos": 4042,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3094,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 29,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4118,
+   "rap": {
+    "bodies": 514,
+    "colliders": 1796,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 48,
+    "all": 52,
+    "respawn": 59
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 2
+   },
+   "lk": {
+    "gl": {
+     "textures": 1774,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15402,
+     "programs": 1166,
+     "vaos": 4967
+    },
+    "audio": 1971,
+    "listeners": 406,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    75,
+    1745
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 142
+  },
+  {
+   "t": 161,
+   "fps": 15,
+   "work": 75.64,
+   "gap": 83.21,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.74
+    ],
+    [
+     "world.step",
+     19.26
+    ],
+    [
+     "upd:update",
+     10.49
+    ],
+    [
+     "fixed:vehiclesFixed",
+     5.9
+    ],
+    [
+     "peds",
+     1.82
+    ],
+    [
+     "fixed:boatsFixed",
+     1.33
+    ],
+    [
+     "upd:anon#28",
+     1.19
+    ],
+    [
+     "gameplay",
+     1.03
+    ],
+    [
+     "upd:groundMaskTick",
+     0.76
+    ],
+    [
+     "hud",
+     0.52
+    ],
+    [
+     "audio",
+     0.51
+    ],
+    [
+     "upd:anon#2",
+     0.43
+    ],
+    [
+     "upd:shrubScan",
+     0.25
+    ]
+   ],
+   "ri": {
+    "geo": 3173,
+    "tex": 1770,
+    "prog": 1166,
+    "calls": 654,
+    "tris": 7289468
+   },
+   "objs": 10080,
+   "visible": 8406,
+   "meshes": 5079,
+   "inst": 1956,
+   "instCount": 66342,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 157,
+   "mats": 2460,
+   "geos": 4092,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3097,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 30,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4109,
+   "rap": {
+    "bodies": 537,
+    "colliders": 1859,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 48,
+    "all": 52,
+    "respawn": 63
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1774,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15483,
+     "programs": 1166,
+     "vaos": 5008
+    },
+    "audio": 2150,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    75,
+    1745
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 163
+  },
+  {
+   "t": 177,
+   "fps": 15.6,
+   "work": 55.56,
+   "gap": 81.76,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.07
+    ],
+    [
+     "world.step",
+     10.12
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.57
+    ],
+    [
+     "upd:update",
+     3
+    ],
+    [
+     "peds",
+     1.61
+    ],
+    [
+     "gameplay",
+     1.12
+    ],
+    [
+     "fixed:boatsFixed",
+     1.01
+    ],
+    [
+     "upd:anon#28",
+     1
+    ],
+    [
+     "upd:groundMaskTick",
+     0.72
+    ],
+    [
+     "hud",
+     0.57
+    ],
+    [
+     "audio",
+     0.42
+    ],
+    [
+     "upd:anon#2",
+     0.42
+    ]
+   ],
+   "ri": {
+    "geo": 3187,
+    "tex": 1771,
+    "prog": 1166,
+    "calls": 657,
+    "tris": 7276421
+   },
+   "objs": 10178,
+   "visible": 8498,
+   "meshes": 5103,
+   "inst": 1958,
+   "instCount": 66396,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 160,
+   "mats": 2465,
+   "geos": 4113,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 30,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4105,
+   "rap": {
+    "bodies": 515,
+    "colliders": 1828,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 67
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1775,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15549,
+     "programs": 1166,
+     "vaos": 5031
+    },
+    "audio": 2302,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 183
+  },
+  {
+   "t": 196,
+   "fps": 14,
+   "work": 64.68,
+   "gap": 80.61,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     25.51
+    ],
+    [
+     "render",
+     24.72
+    ],
+    [
+     "fixed:vehiclesFixed",
+     3.72
+    ],
+    [
+     "peds",
+     1.38
+    ],
+    [
+     "fixed:boatsFixed",
+     1.12
+    ],
+    [
+     "upd:update",
+     1.08
+    ],
+    [
+     "gameplay",
+     1.02
+    ],
+    [
+     "upd:anon#28",
+     0.93
+    ],
+    [
+     "upd:anon#2",
+     0.69
+    ],
+    [
+     "upd:groundMaskTick",
+     0.6
+    ],
+    [
+     "hud",
+     0.46
+    ],
+    [
+     "audio",
+     0.39
+    ]
+   ],
+   "ri": {
+    "geo": 3189,
+    "tex": 1773,
+    "prog": 1166,
+    "calls": 632,
+    "tris": 6987383
+   },
+   "objs": 10178,
+   "visible": 8495,
+   "meshes": 5103,
+   "inst": 1958,
+   "instCount": 66390,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 160,
+   "mats": 2465,
+   "geos": 4113,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 30,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4109,
+   "rap": {
+    "bodies": 515,
+    "colliders": 1828,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 68
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1777,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15561,
+     "programs": 1166,
+     "vaos": 5044
+    },
+    "audio": 2561,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 203
+  },
+  {
+   "t": 215,
+   "fps": 11.9,
+   "work": 54.74,
+   "gap": 87.01,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.65
+    ],
+    [
+     "world.step",
+     10.94
+    ],
+    [
+     "fixed:vehiclesFixed",
+     3.07
+    ],
+    [
+     "peds",
+     1.65
+    ],
+    [
+     "fixed:boatsFixed",
+     1.35
+    ],
+    [
+     "gameplay",
+     1.24
+    ],
+    [
+     "upd:anon#28",
+     1.08
+    ],
+    [
+     "upd:update",
+     0.91
+    ],
+    [
+     "upd:anon#2",
+     0.88
+    ],
+    [
+     "upd:groundMaskTick",
+     0.68
+    ],
+    [
+     "hud",
+     0.6
+    ],
+    [
+     "audio",
+     0.38
+    ]
+   ],
+   "ri": {
+    "geo": 3191,
+    "tex": 1775,
+    "prog": 1166,
+    "calls": 631,
+    "tris": 6694862
+   },
+   "objs": 10178,
+   "visible": 8495,
+   "meshes": 5103,
+   "inst": 1958,
+   "instCount": 66389,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 160,
+   "mats": 2465,
+   "geos": 4113,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 30,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4120,
+   "rap": {
+    "bodies": 515,
+    "colliders": 1828,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 69
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1779,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15573,
+     "programs": 1166,
+     "vaos": 5058
+    },
+    "audio": 2597,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 223
+  },
+  {
+   "t": 233,
+   "fps": 14.3,
+   "work": 53.41,
+   "gap": 79.92,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.34
+    ],
+    [
+     "world.step",
+     11.04
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.66
+    ],
+    [
+     "peds",
+     1.6
+    ],
+    [
+     "gameplay",
+     1.12
+    ],
+    [
+     "fixed:boatsFixed",
+     1.1
+    ],
+    [
+     "upd:anon#28",
+     1.07
+    ],
+    [
+     "upd:update",
+     0.83
+    ],
+    [
+     "upd:groundMaskTick",
+     0.74
+    ],
+    [
+     "hud",
+     0.57
+    ],
+    [
+     "upd:anon#2",
+     0.49
+    ],
+    [
+     "audio",
+     0.39
+    ]
+   ],
+   "ri": {
+    "geo": 3197,
+    "tex": 1778,
+    "prog": 1166,
+    "calls": 628,
+    "tris": 6704622
+   },
+   "objs": 10179,
+   "visible": 8494,
+   "meshes": 5104,
+   "inst": 1959,
+   "instCount": 66391,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 160,
+   "mats": 2466,
+   "geos": 4114,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 31,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p77": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59
+   },
+   "heap": 4113,
+   "rap": {
+    "bodies": 515,
+    "colliders": 1828,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 69
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1782,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15614,
+     "programs": 1166,
+     "vaos": 5064
+    },
+    "audio": 2641,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 243
+  },
+  {
+   "t": 252,
+   "fps": 13.2,
+   "work": 59.82,
+   "gap": 83.21,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     31.95
+    ],
+    [
+     "world.step",
+     11.51
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.97
+    ],
+    [
+     "peds",
+     2.13
+    ],
+    [
+     "fixed:boatsFixed",
+     1.67
+    ],
+    [
+     "gameplay",
+     1.44
+    ],
+    [
+     "upd:anon#28",
+     1.16
+    ],
+    [
+     "upd:update",
+     0.71
+    ],
+    [
+     "upd:groundMaskTick",
+     0.59
+    ],
+    [
+     "hud",
+     0.59
+    ],
+    [
+     "upd:anon#51",
+     0.56
+    ],
+    [
+     "upd:anon#2",
+     0.48
+    ],
+    [
+     "audio",
+     0.41
+    ],
+    [
+     "upd:tick",
+     0.32
+    ]
+   ],
+   "ri": {
+    "geo": 3200,
+    "tex": 1787,
+    "prog": 1167,
+    "calls": 631,
+    "tris": 6742128
+   },
+   "objs": 10788,
+   "visible": 9081,
+   "meshes": 5145,
+   "inst": 1962,
+   "instCount": 66450,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 190,
+   "mats": 2482,
+   "geos": 4146,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 34,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 126,
+    "npc-p38": 63,
+    "npc-p65": 122,
+    "npc-p77": 126,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 59,
+    "npc-p21": 59,
+    "npc-p87": 59,
+    "npc-p125": 63,
+    "npc-p84": 59,
+    "npc-p06": 59
+   },
+   "heap": 4124,
+   "rap": {
+    "bodies": 525,
+    "colliders": 1838,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 70
+   },
+   "peds": {
+    "n": 28,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1791,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15640,
+     "programs": 1167,
+     "vaos": 5067
+    },
+    "audio": 2656,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 264
+  },
+  {
+   "t": 270,
+   "fps": 15.2,
+   "work": 45.44,
+   "gap": 75.17,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     25.62
+    ],
+    [
+     "world.step",
+     7.97
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.85
+    ],
+    [
+     "peds",
+     1.81
+    ],
+    [
+     "upd:anon#28",
+     0.98
+    ],
+    [
+     "gameplay",
+     0.91
+    ],
+    [
+     "fixed:boatsFixed",
+     0.85
+    ],
+    [
+     "upd:update",
+     0.69
+    ],
+    [
+     "upd:groundMaskTick",
+     0.51
+    ],
+    [
+     "hud",
+     0.47
+    ],
+    [
+     "upd:anon#2",
+     0.37
+    ],
+    [
+     "audio",
+     0.36
+    ],
+    [
+     "upd:anon#51",
+     0.27
+    ]
+   ],
+   "ri": {
+    "geo": 3210,
+    "tex": 1801,
+    "prog": 1167,
+    "calls": 654,
+    "tris": 7007532
+   },
+   "objs": 10796,
+   "visible": 9090,
+   "meshes": 5149,
+   "inst": 1962,
+   "instCount": 66451,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 190,
+   "mats": 2484,
+   "geos": 4150,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1355,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3195,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 34,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 126,
+    "npc-p38": 63,
+    "npc-p65": 122,
+    "npc-p77": 126,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 59,
+    "npc-p21": 63,
+    "npc-p87": 59,
+    "npc-p125": 63,
+    "npc-p84": 59,
+    "npc-p06": 63
+   },
+   "heap": 4128,
+   "rap": {
+    "bodies": 525,
+    "colliders": 1838,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 53,
+    "respawn": 70
+   },
+   "peds": {
+    "n": 28,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1805,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15697,
+     "programs": 1167,
+     "vaos": 5078
+    },
+    "audio": 2721,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    74,
+    1743
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 150
+   },
+   "wall": 284
+  },
+  {
+   "t": 288,
+   "fps": 13.5,
+   "work": 76.58,
+   "gap": 84.34,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.26
+    ],
+    [
+     "world.step",
+     17.87
+    ],
+    [
+     "upd:anon#2",
+     15.14
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.74
+    ],
+    [
+     "upd:anon#28",
+     2.63
+    ],
+    [
+     "peds",
+     1.71
+    ],
+    [
+     "upd:update",
+     1.09
+    ],
+    [
+     "fixed:boatsFixed",
+     0.98
+    ],
+    [
+     "gameplay",
+     0.96
+    ],
+    [
+     "upd:groundMaskTick",
+     0.64
+    ],
+    [
+     "hud",
+     0.5
+    ],
+    [
+     "upd:anon#51",
+     0.43
+    ],
+    [
+     "audio",
+     0.36
+    ],
+    [
+     "upd:housesTick",
+     0.28
+    ]
+   ],
+   "ri": {
+    "geo": 3196,
+    "tex": 1815,
+    "prog": 1167,
+    "calls": 956,
+    "tris": 7798085
+   },
+   "objs": 10743,
+   "visible": 9070,
+   "meshes": 5092,
+   "inst": 1962,
+   "instCount": 65517,
+   "lights": 38,
+   "sprites": 55,
+   "points": 11,
+   "lines": 2,
+   "skinned": 190,
+   "mats": 2480,
+   "geos": 4084,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1349,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3139,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 126,
+    "npc-p38": 63,
+    "npc-p65": 122,
+    "npc-p77": 126,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 63,
+    "npc-p21": 63,
+    "npc-p87": 59,
+    "npc-p125": 63,
+    "npc-p84": 63,
+    "npc-p06": 63
+   },
+   "heap": 4141,
+   "rap": {
+    "bodies": 502,
+    "colliders": 1735,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 50,
+    "all": 54,
+    "respawn": 76
+   },
+   "peds": {
+    "n": 28,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 404,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 1819,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15694,
+     "programs": 1167,
+     "vaos": 5087
+    },
+    "audio": 2801,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    134,
+    1769
+   ],
+   "ap": {
+    "stuck": 3,
+    "s": 212
+   },
+   "wall": 304
+  },
+  {
+   "t": 306,
+   "fps": 15.9,
+   "work": 56.14,
+   "gap": 67.24,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     32.46
+    ],
+    [
+     "world.step",
+     9.02
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.76
+    ],
+    [
+     "upd:update",
+     1.67
+    ],
+    [
+     "peds",
+     1.62
+    ],
+    [
+     "gameplay",
+     1.39
+    ],
+    [
+     "upd:anon#28",
+     1.26
+    ],
+    [
+     "fixed:boatsFixed",
+     0.99
+    ],
+    [
+     "audio",
+     0.87
+    ],
+    [
+     "hud",
+     0.55
+    ],
+    [
+     "upd:groundMaskTick",
+     0.48
+    ],
+    [
+     "upd:anon#2",
+     0.45
+    ],
+    [
+     "camera",
+     0.32
+    ],
+    [
+     "upd:anon#51",
+     0.29
+    ]
+   ],
+   "ri": {
+    "geo": 3219,
+    "tex": 1827,
+    "prog": 1167,
+    "calls": 746,
+    "tris": 6062968
+   },
+   "objs": 10862,
+   "visible": 9259,
+   "meshes": 5100,
+   "inst": 1967,
+   "instCount": 66882,
+   "lights": 38,
+   "sprites": 51,
+   "points": 11,
+   "lines": 2,
+   "skinned": 196,
+   "mats": 2488,
+   "geos": 4077,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1362,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 3116,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 126,
+    "npc-p38": 122,
+    "npc-p65": 126,
+    "npc-p77": 126,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 63,
+    "npc-p21": 63,
+    "npc-p87": 63,
+    "npc-p125": 63,
+    "npc-p84": 63,
+    "npc-p06": 63,
+    "npc-p166": 59
+   },
+   "heap": 4163,
+   "rap": {
+    "bodies": 499,
+    "colliders": 1959,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 52,
+    "all": 56,
+    "respawn": 91
+   },
+   "peds": {
+    "n": 28,
+    "active": 28
+   },
+   "police": {
+    "units": 2,
+    "cars": 4,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 395,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1831,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15874,
+     "programs": 1167,
+     "vaos": 5191
+    },
+    "audio": 2918,
+    "listeners": 408,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    206,
+    1800
+   ],
+   "ap": {
+    "stuck": 5,
+    "s": 290
+   },
+   "wall": 324
+  },
+  {
+   "t": 322,
+   "fps": 16.5,
+   "work": 69.03,
+   "gap": 87.03,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     23.87
+    ],
+    [
+     "world.step",
+     21.93
+    ],
+    [
+     "upd:update",
+     5.08
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.68
+    ],
+    [
+     "gameplay",
+     1.82
+    ],
+    [
+     "peds",
+     1.31
+    ],
+    [
+     "upd:anon#28",
+     1.2
+    ],
+    [
+     "upd:anon#51",
+     1
+    ],
+    [
+     "fixed:boatsFixed",
+     0.91
+    ],
+    [
+     "upd:anon#2",
+     0.84
+    ],
+    [
+     "upd:groundMaskTick",
+     0.45
+    ],
+    [
+     "hud",
+     0.38
+    ],
+    [
+     "audio",
+     0.31
+    ],
+    [
+     "camera",
+     0.25
+    ]
+   ],
+   "ri": {
+    "geo": 3250,
+    "tex": 1844,
+    "prog": 1167,
+    "calls": 682,
+    "tris": 5020458
+   },
+   "objs": 10896,
+   "visible": 9200,
+   "meshes": 5095,
+   "inst": 1975,
+   "instCount": 65029,
+   "lights": 38,
+   "sprites": 48,
+   "points": 11,
+   "lines": 2,
+   "skinned": 199,
+   "mats": 2488,
+   "geos": 4080,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1363,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 3086,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 122,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p24": 59,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p44": 126,
+    "npc-p38": 126,
+    "npc-p65": 126,
+    "npc-p77": 126,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 63,
+    "npc-p21": 63,
+    "npc-p87": 63,
+    "npc-p125": 122,
+    "npc-p84": 63,
+    "npc-p06": 63,
+    "npc-p166": 59
+   },
+   "heap": 4151,
+   "rap": {
+    "bodies": 406,
+    "colliders": 1800,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 52,
+    "all": 56,
+    "respawn": 109
+   },
+   "peds": {
+    "n": 28,
+    "active": 28
+   },
+   "police": {
+    "units": 2,
+    "cars": 4,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 411,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1848,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15981,
+     "programs": 1167,
+     "vaos": 5262
+    },
+    "audio": 3247,
+    "listeners": 408,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    285,
+    1799
+   ],
+   "ap": {
+    "stuck": 7,
+    "s": 368
+   },
+   "wall": 345
+  },
+  {
+   "t": 340,
+   "fps": 22.5,
+   "work": 35.91,
+   "gap": 49.61,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     19.58
+    ],
+    [
+     "world.step",
+     5.12
+    ],
+    [
+     "upd:update",
+     1.65
+    ],
+    [
+     "gameplay",
+     1.26
+    ],
+    [
+     "upd:anon#28",
+     1.2
+    ],
+    [
+     "peds",
+     0.98
+    ],
+    [
+     "upd:anon#2",
+     0.95
+    ],
+    [
+     "fixed:boatsFixed",
+     0.74
+    ],
+    [
+     "fixed:vehiclesFixed",
+     0.69
+    ],
+    [
+     "upd:anon#51",
+     0.49
+    ],
+    [
+     "hud",
+     0.33
+    ],
+    [
+     "upd:groundMaskTick",
+     0.31
+    ],
+    [
+     "audio",
+     0.29
+    ]
+   ],
+   "ri": {
+    "geo": 3242,
+    "tex": 1826,
+    "prog": 1167,
+    "calls": 416,
+    "tris": 3162719
+   },
+   "objs": 10489,
+   "visible": 8809,
+   "meshes": 4908,
+   "inst": 1956,
+   "instCount": 65303,
+   "lights": 38,
+   "sprites": 48,
+   "points": 11,
+   "lines": 2,
+   "skinned": 199,
+   "mats": 2471,
+   "geos": 3987,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1359,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 2705,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 63,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 63,
+    "npc-p125": 122,
+    "npc-p84": 122,
+    "npc-p44": 63,
+    "npc-p166": 59,
+    "npc-p167": 59,
+    "npc-p21": 59,
+    "npc-p06": 59,
+    "npc-p77": 59,
+    "npc-p87": 122,
+    "npc-p27": 59,
+    "npc-p147": 59,
+    "npc-p132": 59
+   },
+   "heap": 4144,
+   "rap": {
+    "bodies": 334,
+    "colliders": 1661,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 40,
+    "all": 44,
+    "respawn": 111
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 2,
+    "cars": 4,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 411,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1830,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15890,
+     "programs": 1167,
+     "vaos": 5270
+    },
+    "audio": 3439,
+    "listeners": 408,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    374,
+    1829
+   ],
+   "ap": {
+    "stuck": 9,
+    "s": 462
+   },
+   "wall": 365
+  },
+  {
+   "t": 359,
+   "fps": 18.7,
+   "work": 48.48,
+   "gap": 70.7,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     26.05
+    ],
+    [
+     "world.step",
+     8.76
+    ],
+    [
+     "fixed:boatsFixed",
+     1.99
+    ],
+    [
+     "upd:anon#28",
+     1.45
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.34
+    ],
+    [
+     "peds",
+     1.05
+    ],
+    [
+     "upd:groundMaskTick",
+     0.98
+    ],
+    [
+     "gameplay",
+     0.95
+    ],
+    [
+     "upd:update",
+     0.82
+    ],
+    [
+     "upd:anon#51",
+     0.78
+    ],
+    [
+     "upd:anon#2",
+     0.45
+    ],
+    [
+     "hud",
+     0.42
+    ],
+    [
+     "audio",
+     0.34
+    ],
+    [
+     "upd:anon#42",
+     0.27
+    ]
+   ],
+   "ri": {
+    "geo": 3235,
+    "tex": 1841,
+    "prog": 1167,
+    "calls": 560,
+    "tris": 4046776
+   },
+   "objs": 10241,
+   "visible": 8602,
+   "meshes": 4796,
+   "inst": 1952,
+   "instCount": 64405,
+   "lights": 38,
+   "sprites": 43,
+   "points": 11,
+   "lines": 2,
+   "skinned": 196,
+   "mats": 2462,
+   "geos": 3969,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1346,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2535,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p02": 63,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p15": 126,
+    "npc-p04": 63,
+    "npc-p59": 63,
+    "npc-p126": 59,
+    "npc-p49": 59,
+    "npc-p38": 63,
+    "npc-p65": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p09": 63,
+    "npc-p89": 63,
+    "npc-p84": 63,
+    "npc-p44": 63,
+    "npc-p166": 59,
+    "npc-p125": 59,
+    "npc-p167": 59,
+    "npc-p21": 59,
+    "npc-p06": 59,
+    "npc-p77": 59,
+    "npc-p87": 122,
+    "npc-p27": 59,
+    "npc-p147": 59,
+    "npc-p132": 59,
+    "npc-p08": 59
+   },
+   "heap": 4137,
+   "rap": {
+    "bodies": 308,
+    "colliders": 1594,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 38,
+    "all": 42,
+    "respawn": 119
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 402,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1845,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15836,
+     "programs": 1167,
+     "vaos": 5261
+    },
+    "audio": 3556,
+    "listeners": 408,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    428,
+    1851
+   ],
+   "ap": {
+    "stuck": 11,
+    "s": 520
+   },
+   "wall": 385
+  },
+  {
+   "t": 377,
+   "fps": 15.4,
+   "work": 68.21,
+   "gap": 82.62,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     31.73
+    ],
+    [
+     "world.step",
+     11.67
+    ],
+    [
+     "upd:update",
+     11.15
+    ],
+    [
+     "fixed:vehiclesFixed",
+     3.65
+    ],
+    [
+     "upd:anon#28",
+     1.88
+    ],
+    [
+     "upd:anon#51",
+     1.28
+    ],
+    [
+     "fixed:boatsFixed",
+     1.12
+    ],
+    [
+     "peds",
+     0.99
+    ],
+    [
+     "upd:anon#2",
+     0.64
+    ],
+    [
+     "audio",
+     0.44
+    ],
+    [
+     "upd:groundMaskTick",
+     0.4
+    ],
+    [
+     "hud",
+     0.39
+    ]
+   ],
+   "ri": {
+    "geo": 3216,
+    "tex": 1834,
+    "prog": 1167,
+    "calls": 690,
+    "tris": 4685632
+   },
+   "objs": 10082,
+   "visible": 8560,
+   "meshes": 4793,
+   "inst": 1978,
+   "instCount": 65981,
+   "lights": 38,
+   "sprites": 33,
+   "points": 11,
+   "lines": 2,
+   "skinned": 181,
+   "mats": 2476,
+   "geos": 3951,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1300,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2754,
+    "gladesWater": 1,
+    "prop-crate": 9,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 36,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 126,
+    "npc-p62": 126,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 126,
+    "npc-p92": 122,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p167": 59,
+    "npc-p87": 122,
+    "npc-p59": 59,
+    "npc-p06": 59,
+    "npc-p21": 59,
+    "npc-p77": 59,
+    "npc-p08": 59,
+    "npc-p05": 59,
+    "npc-p119": 59,
+    "npc-p125": 59,
+    "npc-p38": 59,
+    "npc-p65": 59,
+    "npc-p09": 59,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 59,
+    "npc-p135": 59
+   },
+   "heap": 4140,
+   "rap": {
+    "bodies": 328,
+    "colliders": 1683,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 50,
+    "all": 54,
+    "respawn": 136
+   },
+   "peds": {
+    "n": 29,
+    "active": 21
+   },
+   "police": {
+    "units": 0,
+    "cars": 4,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 402,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1838,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15698,
+     "programs": 1167,
+     "vaos": 5245
+    },
+    "audio": 3813,
+    "listeners": 414,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    508,
+    1885
+   ],
+   "ap": {
+    "stuck": 14,
+    "s": 610
+   },
+   "wall": 405
+  },
+  {
+   "t": 388,
+   "fps": 11.3,
+   "work": 380.46,
+   "gap": 403.08,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "upd:update",
+     112.63
+    ],
+    [
+     "render",
+     101.01
+    ],
+    [
+     "upd:anon#51",
+     57.89
+    ],
+    [
+     "world.step",
+     39
+    ],
+    [
+     "fixed:vehiclesFixed",
+     17.87
+    ],
+    [
+     "upd:anon#2",
+     10.91
+    ],
+    [
+     "upd:anon#28",
+     10.2
+    ],
+    [
+     "fixed:boatsFixed",
+     7.47
+    ],
+    [
+     "peds",
+     5.74
+    ],
+    [
+     "hud",
+     1.84
+    ],
+    [
+     "upd:groundMaskTick",
+     1.77
+    ],
+    [
+     "audio",
+     1.56
+    ],
+    [
+     "interiors",
+     1.52
+    ],
+    [
+     "upd:anon#0",
+     1.07
+    ]
+   ],
+   "ri": {
+    "geo": 3259,
+    "tex": 1854,
+    "prog": 1167,
+    "calls": 587,
+    "tris": 5068334
+   },
+   "objs": 10237,
+   "visible": 8738,
+   "meshes": 4893,
+   "inst": 1987,
+   "instCount": 72240,
+   "lights": 38,
+   "sprites": 39,
+   "points": 11,
+   "lines": 2,
+   "skinned": 178,
+   "mats": 2499,
+   "geos": 3991,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1294,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2988,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 36,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 59,
+    "npc-p59": 59,
+    "npc-p119": 59,
+    "npc-p125": 59,
+    "npc-p38": 59,
+    "npc-p65": 59,
+    "npc-p09": 63,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 59,
+    "npc-p135": 59,
+    "npc-p14": 59,
+    "npc-p82": 59,
+    "npc-p89": 59,
+    "npc-p167": 59,
+    "npc-p24": 59,
+    "npc-p113": 59,
+    "npc-p21": 59,
+    "npc-p06": 59,
+    "npc-p77": 59,
+    "npc-p08": 59
+   },
+   "heap": 4167,
+   "rap": {
+    "bodies": 357,
+    "colliders": 1803,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 54,
+    "all": 58,
+    "respawn": 148
+   },
+   "peds": {
+    "n": 29,
+    "active": 24
+   },
+   "police": {
+    "units": 0,
+    "cars": 5,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 418,
+    "chunks": 315,
+    "pending": 2
+   },
+   "lk": {
+    "gl": {
+     "textures": 1858,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15887,
+     "programs": 1167,
+     "vaos": 5330
+    },
+    "audio": 4106,
+    "listeners": 414,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    574,
+    1885
+   ],
+   "ap": {
+    "stuck": 15,
+    "s": 674
+   },
+   "wall": 426
+  },
+  {
+   "t": 390,
+   "fps": 10,
+   "work": 776.07,
+   "gap": 815.22,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     276.62
+    ],
+    [
+     "world.step",
+     137.45
+    ],
+    [
+     "fixed:vehiclesFixed",
+     89.35
+    ],
+    [
+     "upd:update",
+     69.14
+    ],
+    [
+     "upd:anon#2",
+     53.85
+    ],
+    [
+     "peds",
+     32.34
+    ],
+    [
+     "upd:anon#51",
+     28.67
+    ],
+    [
+     "upd:anon#28",
+     17.45
+    ],
+    [
+     "hud",
+     13.05
+    ],
+    [
+     "upd:groundMaskTick",
+     10.37
+    ],
+    [
+     "audio",
+     8.66
+    ],
+    [
+     "fixed:boatsFixed",
+     6.78
+    ],
+    [
+     "gameplay",
+     3.67
+    ],
+    [
+     "upd:tick",
+     2.78
+    ]
+   ],
+   "ri": {
+    "geo": 3270,
+    "tex": 1859,
+    "prog": 1167,
+    "calls": 1245,
+    "tris": 12552720
+   },
+   "objs": 10440,
+   "visible": 8923,
+   "meshes": 4918,
+   "inst": 1990,
+   "instCount": 71640,
+   "lights": 38,
+   "sprites": 39,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2509,
+   "geos": 4007,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1302,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2988,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 38,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 118,
+    "npc-p59": 59,
+    "npc-p119": 59,
+    "npc-p125": 63,
+    "npc-p38": 59,
+    "npc-p65": 118,
+    "npc-p09": 122,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 59,
+    "npc-p135": 59,
+    "npc-p14": 63,
+    "npc-p82": 59,
+    "npc-p89": 59,
+    "npc-p167": 59,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 59,
+    "npc-p06": 59,
+    "npc-p77": 59,
+    "npc-p08": 59
+   },
+   "heap": 4194,
+   "rap": {
+    "bodies": 371,
+    "colliders": 1816,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 54,
+    "all": 58,
+    "respawn": 149
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 0,
+    "cars": 5,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 418,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 1863,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15945,
+     "programs": 1167,
+     "vaos": 5350
+    },
+    "audio": 4222,
+    "listeners": 414,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    594,
+    1878
+   ],
+   "ap": {
+    "stuck": 16,
+    "s": 694
+   },
+   "wall": 447
+  },
+  {
+   "t": 393,
+   "fps": 10,
+   "work": 835.43,
+   "gap": 873.78,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     296.73
+    ],
+    [
+     "world.step",
+     144.15
+    ],
+    [
+     "fixed:vehiclesFixed",
+     83.46
+    ],
+    [
+     "upd:anon#2",
+     68.05
+    ],
+    [
+     "upd:anon#28",
+     60.82
+    ],
+    [
+     "peds",
+     34.68
+    ],
+    [
+     "upd:update",
+     32.56
+    ],
+    [
+     "upd:anon#51",
+     19.67
+    ],
+    [
+     "fixed:solidParked",
+     18.93
+    ],
+    [
+     "upd:groundMaskTick",
+     12.6
+    ],
+    [
+     "hud",
+     8.97
+    ],
+    [
+     "vehicles",
+     8.52
+    ],
+    [
+     "fixed:boatsFixed",
+     8.35
+    ],
+    [
+     "audio",
+     5.49
+    ]
+   ],
+   "ri": {
+    "geo": 3280,
+    "tex": 1865,
+    "prog": 1167,
+    "calls": 776,
+    "tris": 7108673
+   },
+   "objs": 10447,
+   "visible": 8958,
+   "meshes": 4945,
+   "inst": 1992,
+   "instCount": 73973,
+   "lights": 38,
+   "sprites": 36,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2529,
+   "geos": 4031,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1302,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 2988,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 118,
+    "npc-p59": 59,
+    "npc-p119": 59,
+    "npc-p125": 63,
+    "npc-p38": 59,
+    "npc-p65": 122,
+    "npc-p09": 122,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 59,
+    "npc-p135": 59,
+    "npc-p14": 63,
+    "npc-p82": 59,
+    "npc-p89": 59,
+    "npc-p167": 59,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 59,
+    "npc-p06": 59,
+    "npc-p77": 59,
+    "npc-p08": 59
+   },
+   "heap": 4184,
+   "rap": {
+    "bodies": 392,
+    "colliders": 1859,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 54,
+    "all": 60,
+    "respawn": 151
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 0,
+    "cars": 5,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 418,
+    "chunks": 315,
+    "pending": 2
+   },
+   "lk": {
+    "gl": {
+     "textures": 1869,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15990,
+     "programs": 1167,
+     "vaos": 5391
+    },
+    "audio": 4239,
+    "listeners": 414,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    604,
+    1879
+   ],
+   "ap": {
+    "stuck": 16,
+    "s": 704
+   },
+   "wall": 469
+  },
+  {
+   "t": 394,
+   "fps": 10,
+   "work": 1061.55,
+   "gap": 1154.8,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     369.86
+    ],
+    [
+     "world.step",
+     243.91
+    ],
+    [
+     "fixed:vehiclesFixed",
+     106.44
+    ],
+    [
+     "upd:anon#2",
+     101.08
+    ],
+    [
+     "upd:anon#28",
+     64.71
+    ],
+    [
+     "peds",
+     35.28
+    ],
+    [
+     "upd:update",
+     19.64
+    ],
+    [
+     "fixed:boatsFixed",
+     15.67
+    ],
+    [
+     "vehicles",
+     14
+    ],
+    [
+     "upd:anon#51",
+     13.85
+    ],
+    [
+     "fixed:solidParked",
+     8.42
+    ],
+    [
+     "upd:groundMaskTick",
+     8.04
+    ],
+    [
+     "hud",
+     6.9
+    ],
+    [
+     "upd:groundGrassTick",
+     5.49
+    ]
+   ],
+   "ri": {
+    "geo": 3283,
+    "tex": 1874,
+    "prog": 1167,
+    "calls": 720,
+    "tris": 7178231
+   },
+   "objs": 10494,
+   "visible": 9005,
+   "meshes": 4977,
+   "inst": 1992,
+   "instCount": 71612,
+   "lights": 38,
+   "sprites": 36,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2539,
+   "geos": 4058,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1308,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 3005,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 118,
+    "npc-p59": 59,
+    "npc-p119": 59,
+    "npc-p125": 63,
+    "npc-p38": 59,
+    "npc-p65": 126,
+    "npc-p09": 122,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 59,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 59,
+    "npc-p89": 63,
+    "npc-p167": 59,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63
+   },
+   "heap": 4178,
+   "rap": {
+    "bodies": 403,
+    "colliders": 1899,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 54,
+    "all": 61,
+    "respawn": 151
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 0,
+    "cars": 5,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 1878,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16001,
+     "programs": 1167,
+     "vaos": 5405
+    },
+    "audio": 4242,
+    "listeners": 414,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    606,
+    1887
+   ],
+   "ap": {
+    "stuck": 16,
+    "s": 704
+   },
+   "wall": 492
+  },
+  {
+   "t": 400,
+   "fps": 10.6,
+   "work": 240.07,
+   "gap": 266.21,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     79.68
+    ],
+    [
+     "world.step",
+     60.78
+    ],
+    [
+     "upd:anon#2",
+     27.71
+    ],
+    [
+     "fixed:vehiclesFixed",
+     17.92
+    ],
+    [
+     "vehicles",
+     12.36
+    ],
+    [
+     "upd:anon#28",
+     11.99
+    ],
+    [
+     "peds",
+     5.78
+    ],
+    [
+     "upd:update",
+     4.67
+    ],
+    [
+     "fixed:boatsFixed",
+     2.68
+    ],
+    [
+     "audio",
+     1.99
+    ],
+    [
+     "upd:groundMaskTick",
+     1.74
+    ],
+    [
+     "upd:anon#51",
+     1.5
+    ],
+    [
+     "hud",
+     1.15
+    ],
+    [
+     "upd:tick",
+     0.99
+    ]
+   ],
+   "ri": {
+    "geo": 3321,
+    "tex": 1882,
+    "prog": 1168,
+    "calls": 806,
+    "tris": 7851827
+   },
+   "objs": 10527,
+   "visible": 9062,
+   "meshes": 5003,
+   "inst": 1993,
+   "instCount": 69334,
+   "lights": 38,
+   "sprites": 32,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2548,
+   "geos": 4123,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1309,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3023,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 40,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 122,
+    "npc-p59": 59,
+    "npc-p119": 59,
+    "npc-p125": 63,
+    "npc-p38": 59,
+    "npc-p65": 126,
+    "npc-p09": 122,
+    "npc-p49": 59,
+    "npc-p44": 59,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 59,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63
+   },
+   "heap": 4285,
+   "rap": {
+    "bodies": 406,
+    "colliders": 2023,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 54,
+    "all": 61,
+    "respawn": 151
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 0,
+    "cars": 5,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 1886,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16123,
+     "programs": 1168,
+     "vaos": 5472
+    },
+    "audio": 4362,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    632,
+    1877
+   ],
+   "ap": {
+    "stuck": 17,
+    "s": 734
+   },
+   "wall": 517
+  },
+  {
+   "t": 412,
+   "fps": 11.6,
+   "work": 378.82,
+   "gap": 427.14,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     146.94
+    ],
+    [
+     "render",
+     141.33
+    ],
+    [
+     "fixed:vehiclesFixed",
+     23.15
+    ],
+    [
+     "upd:anon#28",
+     18.64
+    ],
+    [
+     "peds",
+     11.3
+    ],
+    [
+     "gameplay",
+     6.64
+    ],
+    [
+     "fixed:boatsFixed",
+     4.57
+    ],
+    [
+     "upd:update",
+     3.5
+    ],
+    [
+     "upd:anon#2",
+     2.17
+    ],
+    [
+     "upd:groundMaskTick",
+     2.04
+    ],
+    [
+     "upd:groundGrassTick",
+     1.89
+    ],
+    [
+     "fixed:solidParked",
+     1.81
+    ],
+    [
+     "env",
+     1.1
+    ],
+    [
+     "audio",
+     1
+    ]
+   ],
+   "ri": {
+    "geo": 3415,
+    "tex": 1898,
+    "prog": 1168,
+    "calls": 711,
+    "tris": 6513237
+   },
+   "objs": 10631,
+   "visible": 9126,
+   "meshes": 5050,
+   "inst": 2005,
+   "instCount": 76320,
+   "lights": 38,
+   "sprites": 31,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2567,
+   "geos": 4158,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1320,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3093,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 59,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9
+   },
+   "heap": 4315,
+   "rap": {
+    "bodies": 414,
+    "colliders": 2072,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 56,
+    "all": 63,
+    "respawn": 156
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 5,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1902,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16589,
+     "programs": 1168,
+     "vaos": 5631
+    },
+    "audio": 4666,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    678,
+    1841
+   ],
+   "ap": {
+    "stuck": 19,
+    "s": 788
+   },
+   "wall": 539
+  },
+  {
+   "t": 419,
+   "fps": 10,
+   "work": 471.5,
+   "gap": 518.38,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     186.98
+    ],
+    [
+     "world.step",
+     61.38
+    ],
+    [
+     "upd:update",
+     50.01
+    ],
+    [
+     "fixed:vehiclesFixed",
+     45.66
+    ],
+    [
+     "upd:anon#28",
+     32.74
+    ],
+    [
+     "peds",
+     19.63
+    ],
+    [
+     "upd:anon#2",
+     14.2
+    ],
+    [
+     "upd:shrubScan",
+     9.39
+    ],
+    [
+     "upd:groundMaskTick",
+     8.83
+    ],
+    [
+     "hud",
+     5.46
+    ],
+    [
+     "camera",
+     5.23
+    ],
+    [
+     "upd:tick",
+     4.57
+    ],
+    [
+     "gameplay",
+     4.41
+    ],
+    [
+     "fixed:boatsFixed",
+     4.21
+    ]
+   ],
+   "ri": {
+    "geo": 3435,
+    "tex": 1907,
+    "prog": 1168,
+    "calls": 833,
+    "tris": 7362836
+   },
+   "objs": 10637,
+   "visible": 9133,
+   "meshes": 5054,
+   "inst": 2005,
+   "instCount": 76549,
+   "lights": 38,
+   "sprites": 31,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2570,
+   "geos": 4162,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1320,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3095,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 63,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9
+   },
+   "heap": 4283,
+   "rap": {
+    "bodies": 393,
+    "colliders": 2049,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 56,
+    "all": 63,
+    "respawn": 175
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 5,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1911,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16678,
+     "programs": 1168,
+     "vaos": 5696
+    },
+    "audio": 4895,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    700,
+    1827
+   ],
+   "ap": {
+    "stuck": 20,
+    "s": 814
+   },
+   "wall": 559
+  },
+  {
+   "t": 421,
+   "fps": 11.9,
+   "work": 969.28,
+   "gap": 1074.39,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "fixed:vehiclesFixed",
+     615.36
+    ],
+    [
+     "render",
+     187.64
+    ],
+    [
+     "world.step",
+     50.24
+    ],
+    [
+     "upd:anon#28",
+     21.27
+    ],
+    [
+     "upd:update",
+     20.91
+    ],
+    [
+     "peds",
+     17.73
+    ],
+    [
+     "upd:anon#2",
+     8.23
+    ],
+    [
+     "hud",
+     5.89
+    ],
+    [
+     "upd:groundMaskTick",
+     5.44
+    ],
+    [
+     "audio",
+     4.91
+    ],
+    [
+     "gameplay",
+     4.68
+    ],
+    [
+     "fixed:boatsFixed",
+     3.86
+    ],
+    [
+     "upd:anon#51",
+     3.78
+    ],
+    [
+     "upd:shrubScan",
+     3.25
+    ]
+   ],
+   "ri": {
+    "geo": 3443,
+    "tex": 1913,
+    "prog": 1168,
+    "calls": 844,
+    "tris": 7310020
+   },
+   "objs": 10668,
+   "visible": 9155,
+   "meshes": 5067,
+   "inst": 2007,
+   "instCount": 75954,
+   "lights": 38,
+   "sprites": 31,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2572,
+   "geos": 4172,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1320,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3126,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 63,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9
+   },
+   "heap": 4297,
+   "rap": {
+    "bodies": 392,
+    "colliders": 2041,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 57,
+    "all": 64,
+    "respawn": 186
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 5,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1917,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16716,
+     "programs": 1168,
+     "vaos": 5718
+    },
+    "audio": 4962,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    713,
+    1828
+   ],
+   "ap": {
+    "stuck": 20,
+    "s": 826
+   },
+   "wall": 582
+  },
+  {
+   "t": 426,
+   "fps": 11.1,
+   "work": 293.18,
+   "gap": 384.57,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     108.72
+    ],
+    [
+     "render",
+     96.02
+    ],
+    [
+     "fixed:vehiclesFixed",
+     35.52
+    ],
+    [
+     "upd:anon#28",
+     11.79
+    ],
+    [
+     "audio",
+     7.65
+    ],
+    [
+     "upd:update",
+     7.59
+    ],
+    [
+     "peds",
+     5.05
+    ],
+    [
+     "fixed:boatsFixed",
+     4.78
+    ],
+    [
+     "fixed:ragdollFixed",
+     1.93
+    ],
+    [
+     "gameplay",
+     1.55
+    ],
+    [
+     "upd:anon#2",
+     1.37
+    ],
+    [
+     "upd:groundMaskTick",
+     1.29
+    ],
+    [
+     "upd:anon#51",
+     1.23
+    ],
+    [
+     "hud",
+     1.04
+    ]
+   ],
+   "ri": {
+    "geo": 3448,
+    "tex": 1929,
+    "prog": 1167,
+    "calls": 887,
+    "tris": 10349919
+   },
+   "objs": 10646,
+   "visible": 9100,
+   "meshes": 5047,
+   "inst": 2007,
+   "instCount": 70717,
+   "lights": 38,
+   "sprites": 31,
+   "points": 11,
+   "lines": 2,
+   "skinned": 187,
+   "mats": 2568,
+   "geos": 4152,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1298,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3126,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 790,
+    "weapon-pistol": 70,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 122,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 63,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9
+   },
+   "heap": 4301,
+   "rap": {
+    "bodies": 357,
+    "colliders": 1983,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 57,
+    "all": 64,
+    "respawn": 210
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 1,
+    "cars": 5,
+    "barriers": 1,
+    "blocks": 1
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1933,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16735,
+     "programs": 1167,
+     "vaos": 5766
+    },
+    "audio": 5031,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    727,
+    1811
+   ],
+   "ap": {
+    "stuck": 20,
+    "s": 846
+   },
+   "wall": 602
+  },
+  {
+   "t": 433,
+   "fps": 11.5,
+   "work": 450.31,
+   "gap": 376.73,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     253.1
+    ],
+    [
+     "world.step",
+     86.36
+    ],
+    [
+     "fixed:vehiclesFixed",
+     32.52
+    ],
+    [
+     "peds",
+     29.55
+    ],
+    [
+     "upd:groundMaskTick",
+     7.62
+    ],
+    [
+     "gameplay",
+     7.45
+    ],
+    [
+     "upd:anon#28",
+     6.8
+    ],
+    [
+     "upd:update",
+     6.58
+    ],
+    [
+     "fixed:boatsFixed",
+     3.94
+    ],
+    [
+     "hud",
+     3.62
+    ],
+    [
+     "upd:anon#51",
+     2.15
+    ],
+    [
+     "audio",
+     0.69
+    ],
+    [
+     "upd:anon#2",
+     0.64
+    ],
+    [
+     "upd:groundGrassTick",
+     0.58
+    ]
+   ],
+   "ri": {
+    "geo": 3468,
+    "tex": 1952,
+    "prog": 1167,
+    "calls": 866,
+    "tris": 7243662
+   },
+   "objs": 10659,
+   "visible": 9133,
+   "meshes": 5056,
+   "inst": 2019,
+   "instCount": 71455,
+   "lights": 38,
+   "sprites": 26,
+   "points": 11,
+   "lines": 2,
+   "skinned": 186,
+   "mats": 2571,
+   "geos": 4164,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1306,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3144,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 714,
+    "weapon-pistol": 63,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 126,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 63,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9,
+    "npc-p12": 59,
+    "weapon-carbine": 7
+   },
+   "heap": 4293,
+   "rap": {
+    "bodies": 341,
+    "colliders": 1994,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 59,
+    "all": 66,
+    "respawn": 215
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 3,
+    "cars": 5,
+    "barriers": 2,
+    "blocks": 2
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1956,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16826,
+     "programs": 1167,
+     "vaos": 5851
+    },
+    "audio": 5127,
+    "listeners": 417,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    744,
+    1844
+   ],
+   "ap": {
+    "stuck": 21,
+    "s": 866
+   },
+   "wall": 625
+  },
+  {
+   "t": 439,
+   "fps": 10.3,
+   "work": 394.51,
+   "gap": 595.6,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     166.02
+    ],
+    [
+     "fixed:vehiclesFixed",
+     92.61
+    ],
+    [
+     "world.step",
+     80.48
+    ],
+    [
+     "fixed:boatsFixed",
+     10.48
+    ],
+    [
+     "peds",
+     8.57
+    ],
+    [
+     "upd:anon#28",
+     5.74
+    ],
+    [
+     "gameplay",
+     5.68
+    ],
+    [
+     "upd:update",
+     3.94
+    ],
+    [
+     "upd:anon#2",
+     3.15
+    ],
+    [
+     "upd:groundMaskTick",
+     1.99
+    ],
+    [
+     "upd:anon#51",
+     1.75
+    ],
+    [
+     "hud",
+     1.26
+    ],
+    [
+     "audio",
+     0.58
+    ],
+    [
+     "upd:shrubScan",
+     0.4
+    ]
+   ],
+   "ri": {
+    "geo": 3478,
+    "tex": 1967,
+    "prog": 1168,
+    "calls": 1626,
+    "tris": 16040447
+   },
+   "objs": 10648,
+   "visible": 9118,
+   "meshes": 5046,
+   "inst": 2019,
+   "instCount": 70556,
+   "lights": 38,
+   "sprites": 26,
+   "points": 11,
+   "lines": 2,
+   "skinned": 186,
+   "mats": 2571,
+   "geos": 4154,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1295,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3144,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 714,
+    "weapon-pistol": 63,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 748,
+    "towns": 174,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p54": 59,
+    "npc-p39": 63,
+    "npc-p62": 63,
+    "npc-p23": 59,
+    "npc-p20": 126,
+    "npc-p03": 59,
+    "npc-p42": 59,
+    "npc-p75": 59,
+    "npc-p94": 59,
+    "npc-p50": 63,
+    "npc-p25": 63,
+    "npc-p57": 63,
+    "npc-p92": 59,
+    "npc-p151": 59,
+    "npc-p04": 63,
+    "npc-p15": 63,
+    "npc-p131": 118,
+    "weapon-shotgun": 20,
+    "npc-p110": 59,
+    "npc-p30": 59,
+    "npc-p85": 59,
+    "npc-p87": 126,
+    "npc-p59": 63,
+    "npc-p119": 63,
+    "npc-p125": 63,
+    "npc-p38": 63,
+    "npc-p65": 126,
+    "npc-p09": 126,
+    "npc-p49": 63,
+    "npc-p44": 63,
+    "npc-p84": 63,
+    "npc-p135": 63,
+    "npc-p14": 63,
+    "npc-p82": 63,
+    "npc-p89": 63,
+    "npc-p167": 63,
+    "npc-p24": 63,
+    "npc-p113": 63,
+    "npc-p21": 63,
+    "npc-p06": 59,
+    "npc-p77": 63,
+    "npc-p08": 63,
+    "weapon-rifle": 9,
+    "npc-p12": 59,
+    "weapon-carbine": 7
+   },
+   "heap": 4301,
+   "rap": {
+    "bodies": 349,
+    "colliders": 1959,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 59,
+    "all": 66,
+    "respawn": 222
+   },
+   "peds": {
+    "n": 29,
+    "active": 28
+   },
+   "police": {
+    "units": 3,
+    "cars": 5,
+    "barriers": 2,
+    "blocks": 2
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 4,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 409,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1971,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16860,
+     "programs": 1168,
+     "vaos": 5921
+    },
+    "audio": 5445,
+    "listeners": 419,
+    "intervals": 3,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "pos": [
+    771,
+    1872
+   ],
+   "ap": {
+    "stuck": 22,
+    "s": 904
+   },
+   "wall": 653
+  }
+ ],
+ "errors": [],
+ "routePoints": 768,
+ "routeLen": 7917,
+ "spikes": [
+  {
+   "t": 442.5,
+   "gap": 100,
+   "work": 333,
+   "top": [
+    "render 175.6",
+    "upd:update 111.9",
+    "world.step 12.9",
+    "peds 9.3",
+    "fixed:vehiclesFixed 8.4",
+    "upd:anon#2 4.6"
+   ],
+   "newPrograms": 0,
+   "newTextures": 1,
+   "newGeometries": 5,
+   "calls": 827
+  },
+  {
+   "t": 442.6,
+   "gap": 517,
+   "work": 489,
+   "top": [
+    "render 431.6",
+    "fixed:vehiclesFixed 14.1",
+    "world.step 12.7",
+    "peds 8.4",
+    "upd:anon#2 5.1",
+    "upd:anon#28 3.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 2,
+   "newGeometries": 0,
+   "calls": 1100
+  },
+  {
+   "t": 442.7,
+   "gap": 567,
+   "work": 94,
+   "top": [
+    "render 52.2",
+    "world.step 13.4",
+    "fixed:vehiclesFixed 6.9",
+    "upd:anon#2 4.7",
+    "peds 4.4",
+    "upd:update 2.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 1386
+  },
+  {
+   "t": 442.8,
+   "gap": 100,
+   "work": 98,
+   "top": [
+    "render 37.3",
+    "world.step 16.5",
+    "fixed:vehiclesFixed 7.1",
+    "upd:tick 6.2",
+    "upd:anon#28 5.0",
+    "upd:shrubScan 4.7"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 4,
+   "calls": 807
+  },
+  {
+   "t": 442.9,
+   "gap": 100,
+   "work": 83,
+   "top": [
+    "render 38.1",
+    "world.step 12.9",
+    "fixed:vehiclesFixed 7.0",
+    "upd:anon#2 6.6",
+    "peds 4.0",
+    "upd:anon#28 3.5"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 808
+  },
+  {
+   "t": 443,
+   "gap": 83,
+   "work": 179,
+   "top": [
+    "upd:update 96.2",
+    "render 49.2",
+    "world.step 12.1",
+    "fixed:vehiclesFixed 7.1",
+    "peds 4.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 1,
+   "calls": 823
+  },
+  {
+   "t": 443.1,
+   "gap": 183,
+   "work": 197,
+   "top": [
+    "render 156.8",
+    "world.step 11.6",
+    "fixed:vehiclesFixed 9.3",
+    "peds 6.3",
+    "upd:update 3.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 2,
+   "newGeometries": 3,
+   "calls": 824
+  },
+  {
+   "t": 443.2,
+   "gap": 550,
+   "work": 80,
+   "top": [
+    "render 38.1",
+    "world.step 11.7",
+    "fixed:vehiclesFixed 9.8",
+    "peds 4.8",
+    "upd:anon#28 3.2",
+    "gameplay 2.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 6,
+   "calls": 831
+  },
+  {
+   "t": 443.3,
+   "gap": 367,
+   "work": 343,
+   "top": [
+    "render 300.4",
+    "world.step 12.5",
+    "fixed:vehiclesFixed 8.1",
+    "peds 4.5",
+    "upd:anon#2 3.5",
+    "upd:anon#28 3.0"
+   ],
+   "newPrograms": 0,
+   "newTextures": 1,
+   "newGeometries": 1,
+   "calls": 819
+  },
+  {
+   "t": 443.4,
+   "gap": 717,
+   "work": 105,
+   "top": [
+    "render 51.0",
+    "world.step 14.8",
+    "upd:anon#28 8.9",
+    "fixed:vehiclesFixed 8.6",
+    "peds 5.3",
+    "upd:update 2.9"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 1372
+  },
+  {
+   "t": 443.5,
+   "gap": 117,
+   "work": 79,
+   "top": [
+    "render 38.6",
+    "world.step 14.4",
+    "fixed:vehiclesFixed 8.3",
+    "peds 5.4",
+    "upd:update 2.5"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 2,
+   "calls": 823
+  },
+  {
+   "t": 443.6,
+   "gap": 83,
+   "work": 75,
+   "top": [
+    "render 35.9",
+    "world.step 14.4",
+    "fixed:vehiclesFixed 7.8",
+    "peds 3.8",
+    "upd:update 3.0"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 814
+  },
+  {
+   "t": 443.7,
+   "gap": 83,
+   "work": 360,
+   "top": [
+    "render 126.3",
+    "fixed:vehiclesFixed 72.0",
+    "upd:update 26.3",
+    "peds 20.3",
+    "world.step 16.7",
+    "upd:anon#28 16.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 2,
+   "calls": 816
+  },
+  {
+   "t": 443.8,
+   "gap": 367,
+   "work": 154,
+   "top": [
+    "render 108.4",
+    "world.step 15.3",
+    "fixed:vehiclesFixed 9.5",
+    "peds 4.5",
+    "upd:anon#28 3.5",
+    "upd:update 2.5"
+   ],
+   "newPrograms": 0,
+   "newTextures": 1,
+   "newGeometries": 0,
+   "calls": 818
+  },
+  {
+   "t": 443.9,
+   "gap": 450,
+   "work": 273,
+   "top": [
+    "render 155.3",
+    "audio 64.3",
+    "world.step 15.2",
+    "fixed:vehiclesFixed 9.2",
+    "upd:anon#28 5.7",
+    "upd:shrubScan 4.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 1,
+   "newGeometries": 0,
+   "calls": 816
+  },
+  {
+   "t": 444,
+   "gap": 517,
+   "work": 88,
+   "top": [
+    "render 40.9",
+    "world.step 16.6",
+    "fixed:vehiclesFixed 10.3",
+    "peds 4.3",
+    "upd:update 2.6",
+    "gameplay 2.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 812
+  },
+  {
+   "t": 444.1,
+   "gap": 500,
+   "work": 77,
+   "top": [
+    "render 35.4",
+    "world.step 15.0",
+    "fixed:vehiclesFixed 10.0",
+    "peds 4.8",
+    "gameplay 2.6",
+    "upd:update 2.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 813
+  },
+  {
+   "t": 444.2,
+   "gap": 83,
+   "work": 94,
+   "top": [
+    "render 40.3",
+    "world.step 17.9",
+    "fixed:vehiclesFixed 16.2",
+    "peds 4.2",
+    "upd:update 2.8",
+    "env 2.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 811
+  },
+  {
+   "t": 444.3,
+   "gap": 83,
+   "work": 84,
+   "top": [
+    "render 36.1",
+    "world.step 16.4",
+    "fixed:vehiclesFixed 9.4",
+    "peds 7.2",
+    "upd:update 3.1"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 815
+  },
+  {
+   "t": 444.4,
+   "gap": 100,
+   "work": 380,
+   "top": [
+    "render 152.2",
+    "fixed:vehiclesFixed 88.6",
+    "fixed:boatsFixed 31.9",
+    "upd:anon#28 25.9",
+    "upd:update 17.2",
+    "upd:anon#2 15.5"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 817
+  }
+ ]
+}

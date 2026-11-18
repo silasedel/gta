@@ -1,0 +1,5086 @@
+{
+ "set": "off",
+ "q": "&leakfix=0&popfix=0",
+ "when": "2026-11-18T05:32:31.745Z",
+ "secs": 660,
+ "samples": [
+  {
+   "t": 14,
+   "fps": 10,
+   "work": 259.2,
+   "gap": 308.41,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     128.98
+    ],
+    [
+     "world.step",
+     26.96
+    ],
+    [
+     "upd:anon#2",
+     15.18
+    ],
+    [
+     "env",
+     10.57
+    ],
+    [
+     "gameplay",
+     10.47
+    ],
+    [
+     "upd:anon#28",
+     10.44
+    ],
+    [
+     "hud",
+     9.73
+    ],
+    [
+     "peds",
+     8.09
+    ],
+    [
+     "fixed:vehiclesFixed",
+     5.26
+    ],
+    [
+     "upd:update",
+     3.84
+    ],
+    [
+     "upd:unstuckTick",
+     3.35
+    ],
+    [
+     "fixed:playerFixed",
+     2.83
+    ],
+    [
+     "interiors",
+     2.76
+    ],
+    [
+     "upd:anon#51",
+     2.19
+    ]
+   ],
+   "ri": {
+    "geo": 2117,
+    "tex": 1359,
+    "prog": 807,
+    "calls": 350,
+    "tris": 1186648
+   },
+   "objs": 8412,
+   "visible": 6881,
+   "meshes": 3961,
+   "inst": 1651,
+   "instCount": 61106,
+   "lights": 38,
+   "sprites": 56,
+   "points": 11,
+   "lines": 2,
+   "skinned": 147,
+   "mats": 2057,
+   "geos": 3055,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 822,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 2344,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 6,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 122,
+    "npc-p05": 122,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 118,
+    "npc-p95": 118,
+    "npc-p01": 185,
+    "npc-p02": 122,
+    "npc-p04": 59,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 118,
+    "npc-p03": 59,
+    "npc-p09": 59,
+    "npc-p79": 59,
+    "npc-p82": 59,
+    "npc-p59": 59,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 59,
+    "npc-p84": 59
+   },
+   "heap": 2946,
+   "rap": {
+    "bodies": 399,
+    "colliders": 1285,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 43,
+    "all": 43,
+    "respawn": 33
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 1,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 100
+   },
+   "lk": {
+    "gl": {
+     "textures": 1363,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 11124,
+     "programs": 807,
+     "vaos": 3241
+    },
+    "audio": 170,
+    "listeners": 404,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 1292,
+   "pos": [
+    -63,
+    1722
+   ],
+   "ap": {
+    "stuck": 0,
+    "s": 10,
+    "cars": 1
+   },
+   "v8MB": 490,
+   "abMB": 2470,
+   "wall": 2,
+   "fp": {
+    "gpu": 10854,
+    "gfx": 6758,
+    "ren": 8192
+   },
+   "orphans": {
+    "alive": 1621,
+    "gpu": 375,
+    "orphan": 56,
+    "top": [
+     [
+      "tex ",
+      32
+     ],
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      9
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      7
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      6
+     ],
+     [
+      "tex Object.set world/setpieces/houses/materials.js:20:140 < rebuildNearGen world/setpieces/houses/houses.v2.js:158:60 < runJobs world/setpieces/houses/houses.v2.js:88:185",
+      1
+     ],
+     [
+      "tex stepJob world/vegetation/lawn.js:84:88 < Object.update world/vegetation/lawn.js:233:16 < Object.update world/miami/city.js:277:34",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 35,
+   "fps": 12.3,
+   "work": 100.03,
+   "gap": 134.22,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     38.65
+    ],
+    [
+     "upd:anon#2",
+     19.96
+    ],
+    [
+     "world.step",
+     13.48
+    ],
+    [
+     "peds",
+     5.95
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.33
+    ],
+    [
+     "upd:update",
+     4.17
+    ],
+    [
+     "upd:anon#28",
+     2.16
+    ],
+    [
+     "env",
+     1.94
+    ],
+    [
+     "vehicles",
+     1.07
+    ],
+    [
+     "hud",
+     0.92
+    ],
+    [
+     "fixed:boatsFixed",
+     0.88
+    ],
+    [
+     "upd:anon#51",
+     0.84
+    ],
+    [
+     "upd:anon#42",
+     0.63
+    ],
+    [
+     "audio",
+     0.46
+    ]
+   ],
+   "ri": {
+    "geo": 2399,
+    "tex": 1540,
+    "prog": 996,
+    "calls": 403,
+    "tris": 1833743
+   },
+   "objs": 9094,
+   "visible": 7579,
+   "meshes": 4418,
+   "inst": 1702,
+   "instCount": 62861,
+   "lights": 38,
+   "sprites": 60,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2145,
+   "geos": 3426,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 864,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 2890,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 13,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 122,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 122,
+    "npc-p95": 118,
+    "npc-p01": 185,
+    "npc-p02": 122,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p09": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p59": 63,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 59,
+    "npc-p84": 59,
+    "npc-p48": 59
+   },
+   "heap": 3200,
+   "rap": {
+    "bodies": 576,
+    "colliders": 1825,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 47,
+    "respawn": 45
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 97
+   },
+   "lk": {
+    "gl": {
+     "textures": 1544,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 12156,
+     "programs": 996,
+     "vaos": 3806
+    },
+    "audio": 552,
+    "listeners": 404,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 1764,
+   "pos": [
+    54,
+    1752
+   ],
+   "ap": {
+    "stuck": 2,
+    "s": 132,
+    "cars": 1
+   },
+   "v8MB": 614,
+   "abMB": 2592,
+   "wall": 80,
+   "fp": {
+    "gpu": 11776,
+    "gfx": 7475,
+    "ren": 8704
+   }
+  },
+  {
+   "t": 45,
+   "fps": 10.9,
+   "work": 2362.82,
+   "gap": 2526.88,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.3,
+     "scaleMin": 1,
+     "scaleMax": 1,
+     "msaa": 4
+    },
+    "label": "High",
+    "dpr": 2,
+    "shadow": {
+     "size": 4096,
+     "radius": 150,
+     "dynSize": 2048,
+     "dynRadius": 42
+    },
+    "far": 8000,
+    "crowd": 240,
+    "pedScale": 1,
+    "lod": {
+     "maxFull": 6,
+     "budget": 380000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     2222.73
+    ],
+    [
+     "world.step",
+     36.73
+    ],
+    [
+     "upd:anon#2",
+     31.2
+    ],
+    [
+     "upd:anon#28",
+     12.19
+    ],
+    [
+     "fixed:vehiclesFixed",
+     8.56
+    ],
+    [
+     "vehicles",
+     8.17
+    ],
+    [
+     "upd:update",
+     7.23
+    ],
+    [
+     "upd:tick",
+     7.04
+    ],
+    [
+     "peds",
+     5.83
+    ],
+    [
+     "hud",
+     4.17
+    ],
+    [
+     "upd:anon#51",
+     2.64
+    ],
+    [
+     "fixed:boatsFixed",
+     2.38
+    ],
+    [
+     "upd:shrubScan",
+     1.92
+    ],
+    [
+     "upd:housesTick",
+     1.41
+    ]
+   ],
+   "ri": {
+    "geo": 2608,
+    "tex": 1663,
+    "prog": 1096,
+    "calls": 509,
+    "tris": 2386590
+   },
+   "objs": 9220,
+   "visible": 7712,
+   "meshes": 4528,
+   "inst": 1770,
+   "instCount": 63551,
+   "lights": 38,
+   "sprites": 60,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2237,
+   "geos": 3505,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 947,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 2929,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 17,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 122,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 122,
+    "npc-p95": 118,
+    "npc-p01": 185,
+    "npc-p02": 122,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p09": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p59": 63,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 59,
+    "npc-p84": 59,
+    "npc-p48": 59
+   },
+   "heap": 3450,
+   "rap": {
+    "bodies": 514,
+    "colliders": 1758,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 49,
+    "respawn": 51
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 372,
+    "chunks": 315,
+    "pending": 97
+   },
+   "lk": {
+    "gl": {
+     "textures": 1667,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 13215,
+     "programs": 1096,
+     "vaos": 4160
+    },
+    "audio": 660,
+    "listeners": 404,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 1962,
+   "pos": [
+    87,
+    1735
+   ],
+   "ap": {
+    "stuck": 3,
+    "s": 168,
+    "cars": 1
+   },
+   "v8MB": 615,
+   "abMB": 2822,
+   "wall": 167,
+   "fp": {
+    "gpu": 11264,
+    "gfx": 8090,
+    "ren": 8909
+   }
+  },
+  {
+   "t": 68,
+   "fps": 16.7,
+   "work": 70,
+   "gap": 126.11,
+   "preset": {
+    "look": {
+     "sharpen": 0.5,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.9,
+     "msaa": 2
+    },
+    "label": "Medium",
+    "dpr": "min",
+    "shadow": {
+     "size": 3072,
+     "radius": 120,
+     "dynSize": 1536,
+     "dynRadius": 36
+    },
+    "far": 5000,
+    "crowd": 170,
+    "pedScale": 0.8,
+    "lod": {
+     "maxFull": 4,
+     "budget": 260000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     23.22
+    ],
+    [
+     "upd:anon#2",
+     19.59
+    ],
+    [
+     "world.step",
+     16.27
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.84
+    ],
+    [
+     "peds",
+     1.07
+    ],
+    [
+     "upd:update",
+     1.05
+    ],
+    [
+     "upd:anon#28",
+     0.96
+    ],
+    [
+     "fixed:boatsFixed",
+     0.71
+    ],
+    [
+     "interiors",
+     0.58
+    ],
+    [
+     "hud",
+     0.41
+    ],
+    [
+     "upd:anon#51",
+     0.4
+    ],
+    [
+     "audio",
+     0.33
+    ],
+    [
+     "upd:groundMaskTick",
+     0.27
+    ]
+   ],
+   "ri": {
+    "geo": 2806,
+    "tex": 1771,
+    "prog": 1152,
+    "calls": 647,
+    "tris": 4241874
+   },
+   "objs": 9658,
+   "visible": 8017,
+   "meshes": 4840,
+   "inst": 1845,
+   "instCount": 65338,
+   "lights": 38,
+   "sprites": 75,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2302,
+   "geos": 3660,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1094,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 3191,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 28,
+    "npc-people-crowd-blobs": 1,
+    "marker": 20,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 122,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 122,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p02": 122,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p09": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p59": 63,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 59,
+    "npc-p84": 63,
+    "npc-p48": 59
+   },
+   "heap": 3586,
+   "rap": {
+    "bodies": 490,
+    "colliders": 1806,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 49,
+    "respawn": 67
+   },
+   "peds": {
+    "n": 18,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 404,
+    "chunks": 315,
+    "pending": 95
+   },
+   "lk": {
+    "gl": {
+     "textures": 1775,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 14033,
+     "programs": 1152,
+     "vaos": 4556
+    },
+    "audio": 1102,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2202,
+   "pos": [
+    132,
+    1624
+   ],
+   "ap": {
+    "stuck": 6,
+    "s": 284,
+    "cars": 1
+   },
+   "v8MB": 435,
+   "abMB": 3162,
+   "wall": 205,
+   "fp": {
+    "gpu": 12800,
+    "gfx": 9011,
+    "ren": 9114
+   },
+   "orphans": {
+    "alive": 2968,
+    "gpu": 1000,
+    "orphan": 196,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      65
+     ],
+     [
+      "tex ",
+      50
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      48
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      28
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "tex scenePass render/post.js:94:9 < renderPass.render render/post.js:84:20",
+      1
+     ],
+     [
+      "tex Object.set world/setpieces/houses/materials.js:20:140 < rebuildNearGen world/setpieces/houses/houses.v2.js:158:60 < runJobs world/setpieces/houses/houses.v2.js:88:185",
+      1
+     ],
+     [
+      "tex stepJob world/vegetation/lawn.js:84:88 < Object.update world/vegetation/lawn.js:233:16 < Object.update world/miami/city.js:277:34",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 88,
+   "fps": 15.1,
+   "work": 62.32,
+   "gap": 79.48,
+   "preset": {
+    "look": {
+     "sharpen": 0.5,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.9,
+     "msaa": 2
+    },
+    "label": "Medium",
+    "dpr": "min",
+    "shadow": {
+     "size": 3072,
+     "radius": 120,
+     "dynSize": 1536,
+     "dynRadius": 36
+    },
+    "far": 5000,
+    "crowd": 170,
+    "pedScale": 0.8,
+    "lod": {
+     "maxFull": 4,
+     "budget": 260000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     20.78
+    ],
+    [
+     "upd:anon#2",
+     14.2
+    ],
+    [
+     "world.step",
+     13.87
+    ],
+    [
+     "upd:update",
+     4.4
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.28
+    ],
+    [
+     "upd:anon#28",
+     1.17
+    ],
+    [
+     "peds",
+     0.95
+    ],
+    [
+     "fixed:boatsFixed",
+     0.63
+    ],
+    [
+     "gameplay",
+     0.44
+    ],
+    [
+     "hud",
+     0.42
+    ],
+    [
+     "upd:groundMaskTick",
+     0.42
+    ],
+    [
+     "audio",
+     0.28
+    ]
+   ],
+   "ri": {
+    "geo": 2968,
+    "tex": 1801,
+    "prog": 1161,
+    "calls": 664,
+    "tris": 7478170
+   },
+   "objs": 9679,
+   "visible": 8043,
+   "meshes": 4928,
+   "inst": 1864,
+   "instCount": 67403,
+   "lights": 38,
+   "sprites": 67,
+   "points": 11,
+   "lines": 2,
+   "skinned": 147,
+   "mats": 2352,
+   "geos": 3780,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1203,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 18,
+    "Points": 7,
+    "Group": 3154,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 31,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 63,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 122,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p09": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p59": 63,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 63,
+    "npc-p84": 63,
+    "npc-p48": 59
+   },
+   "heap": 3884,
+   "rap": {
+    "bodies": 571,
+    "colliders": 1769,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 46,
+    "all": 52,
+    "respawn": 83
+   },
+   "peds": {
+    "n": 18,
+    "active": 13
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 384,
+    "chunks": 315,
+    "pending": 82
+   },
+   "lk": {
+    "gl": {
+     "textures": 1805,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 14729,
+     "programs": 1161,
+     "vaos": 4875
+    },
+    "audio": 1419,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2233,
+   "pos": [
+    164,
+    1501
+   ],
+   "ap": {
+    "stuck": 9,
+    "s": 412,
+    "cars": 2
+   },
+   "v8MB": 488,
+   "abMB": 3404,
+   "wall": 234,
+   "fp": {
+    "gpu": 13107,
+    "gfx": 9318,
+    "ren": 9830
+   },
+   "orphans": {
+    "alive": 3617,
+    "gpu": 1199,
+    "orphan": 216,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      82
+     ],
+     [
+      "tex ",
+      50
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      49
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      30
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "tex scenePass render/post.js:94:9 < renderPass.render render/post.js:84:20",
+      1
+     ],
+     [
+      "tex Object.set world/setpieces/houses/materials.js:20:140 < rebuildNearGen world/setpieces/houses/houses.v2.js:158:60 < runJobs world/setpieces/houses/houses.v2.js:88:185",
+      1
+     ],
+     [
+      "tex stepJob world/vegetation/lawn.js:84:88 < Object.update world/vegetation/lawn.js:233:16 < Object.update world/miami/city.js:277:34",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 108,
+   "fps": 14.4,
+   "work": 66.08,
+   "gap": 71.34,
+   "preset": {
+    "look": {
+     "sharpen": 0.5,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.9,
+     "msaa": 2
+    },
+    "label": "Medium",
+    "dpr": "min",
+    "shadow": {
+     "size": 3072,
+     "radius": 120,
+     "dynSize": 1536,
+     "dynRadius": 36
+    },
+    "far": 5000,
+    "crowd": 170,
+    "pedScale": 0.8,
+    "lod": {
+     "maxFull": 4,
+     "budget": 260000
+    },
+    "ao": true,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.39
+    ],
+    [
+     "world.step",
+     13.26
+    ],
+    [
+     "upd:anon#2",
+     10.86
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.98
+    ],
+    [
+     "upd:anon#28",
+     2.37
+    ],
+    [
+     "upd:update",
+     1.57
+    ],
+    [
+     "peds",
+     1.56
+    ],
+    [
+     "hud",
+     0.53
+    ],
+    [
+     "upd:groundMaskTick",
+     0.49
+    ],
+    [
+     "fixed:boatsFixed",
+     0.32
+    ],
+    [
+     "audio",
+     0.28
+    ],
+    [
+     "gameplay",
+     0.26
+    ]
+   ],
+   "ri": {
+    "geo": 3083,
+    "tex": 1824,
+    "prog": 1164,
+    "calls": 684,
+    "tris": 7771710
+   },
+   "objs": 9800,
+   "visible": 8197,
+   "meshes": 5009,
+   "inst": 1900,
+   "instCount": 67109,
+   "lights": 38,
+   "sprites": 65,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2391,
+   "geos": 3865,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1267,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 3147,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 33,
+    "npc-people-crowd-blobs": 1,
+    "marker": 20,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p39": 63,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p08": 126,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p49": 59,
+    "npc-p06": 63,
+    "npc-p125": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 59,
+    "npc-p77": 59,
+    "npc-p65": 63
+   },
+   "heap": 4073,
+   "rap": {
+    "bodies": 593,
+    "colliders": 2298,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 46,
+    "all": 53,
+    "respawn": 106
+   },
+   "peds": {
+    "n": 18,
+    "active": 14
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 396,
+    "chunks": 315,
+    "pending": 79
+   },
+   "lk": {
+    "gl": {
+     "textures": 1828,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15145,
+     "programs": 1164,
+     "vaos": 5019
+    },
+    "audio": 1509,
+    "listeners": 408,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2324,
+   "pos": [
+    193,
+    1379
+   ],
+   "ap": {
+    "stuck": 11,
+    "s": 538,
+    "cars": 2
+   },
+   "v8MB": 436,
+   "abMB": 3646,
+   "wall": 263,
+   "fp": {
+    "gpu": 13722,
+    "gfx": 9933,
+    "ren": 9933
+   },
+   "orphans": {
+    "alive": 3479,
+    "gpu": 1269,
+    "orphan": 235,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      94
+     ],
+     [
+      "tex ",
+      49
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      48
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      32
+     ],
+     [
+      "geo ",
+      7
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "tex scenePass render/post.js:94:9 < renderPass.render render/post.js:84:20",
+      1
+     ],
+     [
+      "tex Object.set world/setpieces/houses/materials.js:20:140 < rebuildNearGen world/setpieces/houses/houses.v2.js:158:60 < runJobs world/setpieces/houses/houses.v2.js:88:185",
+      1
+     ],
+     [
+      "tex stepJob world/vegetation/lawn.js:84:88 < Object.update world/vegetation/lawn.js:233:16 < Object.update world/miami/city.js:277:34",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 127,
+   "fps": 11.7,
+   "work": 86.52,
+   "gap": 91.07,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "world.step",
+     49.51
+    ],
+    [
+     "render",
+     14.15
+    ],
+    [
+     "upd:anon#2",
+     14.07
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.9
+    ],
+    [
+     "upd:update",
+     1.43
+    ],
+    [
+     "upd:anon#28",
+     1.27
+    ],
+    [
+     "peds",
+     0.79
+    ],
+    [
+     "upd:groundMaskTick",
+     0.51
+    ],
+    [
+     "hud",
+     0.27
+    ]
+   ],
+   "ri": {
+    "geo": 3139,
+    "tex": 1830,
+    "prog": 1175,
+    "calls": 653,
+    "tris": 5448552
+   },
+   "objs": 9800,
+   "visible": 8162,
+   "meshes": 5116,
+   "inst": 1971,
+   "instCount": 65791,
+   "lights": 39,
+   "sprites": 65,
+   "points": 11,
+   "lines": 2,
+   "skinned": 141,
+   "mats": 2442,
+   "geos": 3921,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1330,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 17,
+    "Points": 7,
+    "Group": 3259,
+    "gladesWater": 1,
+    "prop-crate": 27,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 33,
+    "npc-people-crowd-blobs": 1,
+    "marker": 20,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p85": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p06": 63,
+    "npc-p125": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p77": 59,
+    "npc-p65": 63
+   },
+   "heap": 4542,
+   "rap": {
+    "bodies": 496,
+    "colliders": 2112,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 49,
+    "all": 56,
+    "respawn": 120
+   },
+   "peds": {
+    "n": 18,
+    "active": 11
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 421,
+    "chunks": 315,
+    "pending": 78
+   },
+   "lk": {
+    "gl": {
+     "textures": 1834,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15274,
+     "programs": 1175,
+     "vaos": 5097
+    },
+    "audio": 1789,
+    "listeners": 412,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2395,
+   "pos": [
+    222,
+    1270
+   ],
+   "ap": {
+    "stuck": 13,
+    "s": 650,
+    "cars": 2
+   },
+   "v8MB": 451,
+   "abMB": 4059,
+   "wall": 301,
+   "fp": {
+    "gpu": 14234,
+    "gfx": 10240,
+    "ren": 10445
+   },
+   "orphans": {
+    "alive": 3898,
+    "gpu": 1361,
+    "orphan": 255,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      109
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      54
+     ],
+     [
+      "tex ",
+      43
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      33
+     ],
+     [
+      "geo ",
+      11
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "tex scenePass render/post.js:94:9 < renderPass.render render/post.js:84:20",
+      1
+     ],
+     [
+      "tex Object.set world/setpieces/houses/materials.js:20:140 < rebuildNearGen world/setpieces/houses/houses.v2.js:158:60 < runJobs world/setpieces/houses/houses.v2.js:88:185",
+      1
+     ],
+     [
+      "tex stepJob world/vegetation/lawn.js:84:88 < Object.update world/vegetation/lawn.js:233:16 < Object.update world/miami/city.js:277:34",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 149,
+   "fps": 19.5,
+   "work": 44.01,
+   "gap": 47.11,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     21.49
+    ],
+    [
+     "world.step",
+     13.17
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.3
+    ],
+    [
+     "peds",
+     1.01
+    ],
+    [
+     "upd:anon#28",
+     0.91
+    ],
+    [
+     "upd:update",
+     0.85
+    ],
+    [
+     "fixed:boatsFixed",
+     0.46
+    ],
+    [
+     "hud",
+     0.32
+    ],
+    [
+     "audio",
+     0.3
+    ],
+    [
+     "upd:groundMaskTick",
+     0.3
+    ],
+    [
+     "upd:anon#2",
+     0.28
+    ],
+    [
+     "env",
+     0.26
+    ]
+   ],
+   "ri": {
+    "geo": 3135,
+    "tex": 1825,
+    "prog": 1175,
+    "calls": 845,
+    "tris": 9182354
+   },
+   "objs": 9749,
+   "visible": 8158,
+   "meshes": 5158,
+   "inst": 1988,
+   "instCount": 66873,
+   "lights": 39,
+   "sprites": 66,
+   "points": 11,
+   "lines": 2,
+   "skinned": 132,
+   "mats": 2461,
+   "geos": 3957,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1498,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 3238,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 35,
+    "npc-people-crowd-blobs": 1,
+    "marker": 20,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p77": 59,
+    "npc-p44": 59
+   },
+   "heap": 4647,
+   "rap": {
+    "bodies": 436,
+    "colliders": 1974,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 50,
+    "all": 57,
+    "respawn": 141
+   },
+   "peds": {
+    "n": 18,
+    "active": 8
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 402,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1829,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15256,
+     "programs": 1175,
+     "vaos": 5125
+    },
+    "audio": 2086,
+    "listeners": 412,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2416,
+   "pos": [
+    251,
+    1154
+   ],
+   "ap": {
+    "stuck": 15,
+    "s": 770,
+    "cars": 3
+   },
+   "v8MB": 445,
+   "abMB": 4207,
+   "wall": 326,
+   "fp": {
+    "gpu": 14029,
+    "gfx": 10240,
+    "ren": 10445
+   }
+  },
+  {
+   "t": 172,
+   "fps": 20.5,
+   "work": 57.27,
+   "gap": 59.62,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     19.97
+    ],
+    [
+     "world.step",
+     13.32
+    ],
+    [
+     "upd:update",
+     7.21
+    ],
+    [
+     "upd:anon#2",
+     3.67
+    ],
+    [
+     "env",
+     3.56
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.24
+    ],
+    [
+     "upd:anon#28",
+     1.52
+    ],
+    [
+     "peds",
+     1.02
+    ],
+    [
+     "upd:anon#51",
+     0.69
+    ],
+    [
+     "upd:groundMaskTick",
+     0.54
+    ],
+    [
+     "fixed:boatsFixed",
+     0.52
+    ],
+    [
+     "hud",
+     0.34
+    ],
+    [
+     "audio",
+     0.34
+    ],
+    [
+     "camera",
+     0.29
+    ]
+   ],
+   "ri": {
+    "geo": 3209,
+    "tex": 1837,
+    "prog": 1190,
+    "calls": 684,
+    "tris": 9644694
+   },
+   "objs": 9989,
+   "visible": 8389,
+   "meshes": 5083,
+   "inst": 2010,
+   "instCount": 68334,
+   "lights": 39,
+   "sprites": 57,
+   "points": 11,
+   "lines": 2,
+   "skinned": 153,
+   "mats": 2466,
+   "geos": 3971,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1474,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 3068,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 36,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p77": 59,
+    "npc-p44": 59,
+    "npc-p110": 63,
+    "npc-p89": 63,
+    "npc-p135": 63,
+    "npc-p59": 59,
+    "npc-p84": 59,
+    "npc-p06": 63,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 11
+   },
+   "heap": 4617,
+   "rap": {
+    "bodies": 442,
+    "colliders": 2216,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 50,
+    "all": 55,
+    "respawn": 154
+   },
+   "peds": {
+    "n": 18,
+    "active": 17
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 402,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 1841,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15526,
+     "programs": 1190,
+     "vaos": 5297
+    },
+    "audio": 2697,
+    "listeners": 424,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2462,
+   "pos": [
+    302,
+    1056
+   ],
+   "ap": {
+    "stuck": 18,
+    "s": 882,
+    "cars": 3
+   },
+   "v8MB": 439,
+   "abMB": 4152,
+   "wall": 354,
+   "fp": {
+    "gpu": 14131,
+    "gfx": 10342,
+    "ren": 10445
+   }
+  },
+  {
+   "t": 206,
+   "fps": 22.2,
+   "work": 38.14,
+   "gap": 50.8,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     24.23
+    ],
+    [
+     "world.step",
+     6.45
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.26
+    ],
+    [
+     "upd:anon#28",
+     1.22
+    ],
+    [
+     "upd:update",
+     0.76
+    ],
+    [
+     "peds",
+     0.59
+    ],
+    [
+     "upd:anon#2",
+     0.41
+    ],
+    [
+     "fixed:boatsFixed",
+     0.37
+    ]
+   ],
+   "ri": {
+    "geo": 3251,
+    "tex": 1881,
+    "prog": 1194,
+    "calls": 519,
+    "tris": 4884676
+   },
+   "objs": 9521,
+   "visible": 7983,
+   "meshes": 4842,
+   "inst": 2011,
+   "instCount": 68056,
+   "lights": 38,
+   "sprites": 57,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2426,
+   "geos": 3922,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1516,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 14,
+    "Points": 7,
+    "Group": 2603,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 40,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 189,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p58": 59,
+    "npc-p87": 126,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p77": 63,
+    "npc-p44": 59,
+    "npc-p89": 63,
+    "npc-p135": 63,
+    "npc-p59": 59,
+    "npc-p84": 59,
+    "npc-p06": 63,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 17
+   },
+   "heap": 4623,
+   "rap": {
+    "bodies": 330,
+    "colliders": 2073,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 40,
+    "all": 44,
+    "respawn": 157
+   },
+   "peds": {
+    "n": 18,
+    "active": 14
+   },
+   "police": {
+    "units": 0,
+    "cars": 0,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 402,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1885,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 15654,
+     "programs": 1194,
+     "vaos": 5397
+    },
+    "audio": 3020,
+    "listeners": 429,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2513,
+   "pos": [
+    404,
+    1018
+   ],
+   "ap": {
+    "stuck": 21,
+    "s": 1000,
+    "cars": 3
+   },
+   "v8MB": 436,
+   "abMB": 4189,
+   "wall": 397,
+   "fp": {
+    "gpu": 14131,
+    "gfx": 10342,
+    "ren": 10547
+   }
+  },
+  {
+   "t": 229,
+   "fps": 23,
+   "work": 39.72,
+   "gap": 48.14,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     17.54
+    ],
+    [
+     "world.step",
+     7.59
+    ],
+    [
+     "upd:anon#2",
+     2.56
+    ],
+    [
+     "upd:housesTick",
+     2.49
+    ],
+    [
+     "fixed:vehiclesFixed",
+     1.87
+    ],
+    [
+     "upd:anon#28",
+     1.49
+    ],
+    [
+     "vehicles",
+     1.08
+    ],
+    [
+     "upd:update",
+     0.82
+    ],
+    [
+     "peds",
+     0.67
+    ],
+    [
+     "fixed:boatsFixed",
+     0.38
+    ],
+    [
+     "audio",
+     0.29
+    ],
+    [
+     "upd:groundMaskTick",
+     0.26
+    ],
+    [
+     "hud",
+     0.26
+    ]
+   ],
+   "ri": {
+    "geo": 3342,
+    "tex": 1888,
+    "prog": 1194,
+    "calls": 516,
+    "tris": 3823882
+   },
+   "objs": 9958,
+   "visible": 8266,
+   "meshes": 5133,
+   "inst": 2158,
+   "instCount": 65025,
+   "lights": 38,
+   "sprites": 54,
+   "points": 11,
+   "lines": 2,
+   "skinned": 153,
+   "mats": 2596,
+   "geos": 4186,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1511,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 14,
+    "Points": 7,
+    "Group": 2821,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 43,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 118,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 126,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p82": 63,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p44": 59,
+    "npc-p89": 63,
+    "npc-p135": 63,
+    "npc-p84": 59,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 22,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 59,
+    "npc-p59": 59,
+    "npc-p65": 59,
+    "npc-p110": 59
+   },
+   "heap": 4681,
+   "rap": {
+    "bodies": 354,
+    "colliders": 1935,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 44,
+    "all": 51,
+    "respawn": 159
+   },
+   "peds": {
+    "n": 19,
+    "active": 16
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 396,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1892,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16084,
+     "programs": 1194,
+     "vaos": 5571
+    },
+    "audio": 3422,
+    "listeners": 431,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2671,
+   "pos": [
+    493,
+    1030
+   ],
+   "ap": {
+    "stuck": 24,
+    "s": 1090,
+    "cars": 3
+   },
+   "v8MB": 437,
+   "abMB": 4239,
+   "wall": 423,
+   "fp": {
+    "gpu": 14131,
+    "gfx": 10342,
+    "ren": 10752
+   }
+  },
+  {
+   "t": 250,
+   "fps": 22.9,
+   "work": 34.73,
+   "gap": 45.53,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     17.57
+    ],
+    [
+     "world.step",
+     8.55
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.01
+    ],
+    [
+     "peds",
+     0.91
+    ],
+    [
+     "upd:anon#28",
+     0.86
+    ],
+    [
+     "upd:update",
+     0.61
+    ],
+    [
+     "fixed:boatsFixed",
+     0.51
+    ],
+    [
+     "audio",
+     0.3
+    ],
+    [
+     "hud",
+     0.27
+    ],
+    [
+     "upd:anon#2",
+     0.26
+    ]
+   ],
+   "ri": {
+    "geo": 3352,
+    "tex": 1938,
+    "prog": 1197,
+    "calls": 443,
+    "tris": 3368723
+   },
+   "objs": 10019,
+   "visible": 8262,
+   "meshes": 5196,
+   "inst": 2158,
+   "instCount": 65331,
+   "lights": 38,
+   "sprites": 60,
+   "points": 11,
+   "lines": 2,
+   "skinned": 150,
+   "mats": 2613,
+   "geos": 4187,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1490,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 14,
+    "Points": 7,
+    "Group": 2932,
+    "gladesWater": 1,
+    "prop-crate": 27,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 43,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 122,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p01": 126,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p89": 63,
+    "npc-p84": 59,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 24,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 59,
+    "npc-p59": 59,
+    "npc-p110": 59,
+    "npc-p102": 59,
+    "beach-towel": 8,
+    "beach-things": 14,
+    "npc-p97": 59,
+    "npc-p09": 59
+   },
+   "heap": 4904,
+   "rap": {
+    "bodies": 313,
+    "colliders": 1981,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 44,
+    "all": 51,
+    "respawn": 170
+   },
+   "peds": {
+    "n": 19,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 1942,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16125,
+     "programs": 1197,
+     "vaos": 5585
+    },
+    "audio": 3650,
+    "listeners": 433,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2671,
+   "pos": [
+    552,
+    1049
+   ],
+   "ap": {
+    "stuck": 26,
+    "s": 1152,
+    "cars": 3
+   },
+   "v8MB": 455,
+   "abMB": 4468,
+   "wall": 449,
+   "fp": {
+    "gpu": 14541,
+    "gfx": 10547,
+    "ren": 11059
+   },
+   "orphans": {
+    "alive": 4321,
+    "gpu": 1569,
+    "orphan": 295,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      129
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      49
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      42
+     ],
+     [
+      "tex ",
+      37
+     ],
+     [
+      "geo ",
+      10
+     ],
+     [
+      "geo gameplay/police/modelKit.js:67:62 < geo gameplay/police/modelKit.js:59:78 < box gameplay/police/modelKit.js:67:33",
+      7
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < roughTex gameplay/police/modelKit.js:35:10 < pbr gameplay/police/modelKit.js:44:19",
+      3
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < surfaceTex gameplay/police/modelKit.js:32:10 < pbr gameplay/police/modelKit.js:43:19",
+      3
+     ],
+     [
+      "geo gameplay/police/modelKit.js:68:105 < geo gameplay/police/modelKit.js:59:78 < cyl gameplay/police/modelKit.js:68:59",
+      3
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "geo addTaxi vehicles/glb/glbCar.js:331:30 < buildGlbCar vehicles/glb/glbCar.js:490:15 < Object.build vehicles/glb/index.js:129:12",
+      2
+     ],
+     [
+      "geo gameplay/police/models.js:78:41 < geo gameplay/police/modelKit.js:59:78 < buildTrafficCamera gameplay/police/models.js:78:21",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:55:19 < gameplay/wantedSense.js:358:19",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:54:18 < gameplay/wantedSense.js:358:19",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 280,
+   "fps": 11.5,
+   "work": 69.37,
+   "gap": 77.97,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     28.81
+    ],
+    [
+     "world.step",
+     16.89
+    ],
+    [
+     "upd:update",
+     9.11
+    ],
+    [
+     "fixed:vehiclesFixed",
+     4.2
+    ],
+    [
+     "peds",
+     2.07
+    ],
+    [
+     "upd:anon#28",
+     1.71
+    ],
+    [
+     "fixed:boatsFixed",
+     0.92
+    ],
+    [
+     "upd:anon#2",
+     0.63
+    ],
+    [
+     "audio",
+     0.5
+    ],
+    [
+     "upd:groundMaskTick",
+     0.45
+    ],
+    [
+     "hud",
+     0.34
+    ]
+   ],
+   "ri": {
+    "geo": 3413,
+    "tex": 2121,
+    "prog": 1197,
+    "calls": 1242,
+    "tris": 8647741
+   },
+   "objs": 10179,
+   "visible": 8494,
+   "meshes": 5223,
+   "inst": 2161,
+   "instCount": 64246,
+   "lights": 38,
+   "sprites": 60,
+   "points": 11,
+   "lines": 2,
+   "skinned": 156,
+   "mats": 2641,
+   "geos": 4203,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1468,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2974,
+    "gladesWater": 1,
+    "prop-crate": 27,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 44,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 122,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p01": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 23,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 59,
+    "npc-p102": 118,
+    "beach-towel": 18,
+    "beach-things": 21,
+    "npc-p97": 122,
+    "npc-p100": 122,
+    "npc-p107": 59,
+    "npc-p96": 59,
+    "npc-p104": 59,
+    "npc-p53": 63
+   },
+   "heap": 4956,
+   "rap": {
+    "bodies": 358,
+    "colliders": 2078,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 45,
+    "all": 52,
+    "respawn": 173
+   },
+   "peds": {
+    "n": 19,
+    "active": 16
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 2125,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16429,
+     "programs": 1197,
+     "vaos": 5689
+    },
+    "audio": 4323,
+    "listeners": 449,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2673,
+   "pos": [
+    509,
+    1150
+   ],
+   "ap": {
+    "stuck": 30,
+    "s": 1280,
+    "cars": 4
+   },
+   "v8MB": 470,
+   "abMB": 4494,
+   "wall": 486,
+   "fp": {
+    "gpu": 14746,
+    "gfx": 10752,
+    "ren": 11162
+   },
+   "orphans": {
+    "alive": 4375,
+    "gpu": 1655,
+    "orphan": 299,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      130
+     ],
+     [
+      "tex ",
+      46
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      43
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      41
+     ],
+     [
+      "geo ",
+      11
+     ],
+     [
+      "geo gameplay/police/modelKit.js:67:62 < geo gameplay/police/modelKit.js:59:78 < box gameplay/police/modelKit.js:67:33",
+      7
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < roughTex gameplay/police/modelKit.js:35:10 < pbr gameplay/police/modelKit.js:44:19",
+      3
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < surfaceTex gameplay/police/modelKit.js:32:10 < pbr gameplay/police/modelKit.js:43:19",
+      3
+     ],
+     [
+      "geo gameplay/police/modelKit.js:68:105 < geo gameplay/police/modelKit.js:59:78 < cyl gameplay/police/modelKit.js:68:59",
+      3
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "geo addTaxi vehicles/glb/glbCar.js:331:30 < buildGlbCar vehicles/glb/glbCar.js:490:15 < Object.build vehicles/glb/index.js:129:12",
+      2
+     ],
+     [
+      "geo gameplay/police/models.js:78:41 < geo gameplay/police/modelKit.js:59:78 < buildTrafficCamera gameplay/police/models.js:78:21",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:55:19 < gameplay/wantedSense.js:358:19",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:54:18 < gameplay/wantedSense.js:358:19",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 301,
+   "fps": 17.8,
+   "work": 47.71,
+   "gap": 1061.13,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     21.5
+    ],
+    [
+     "world.step",
+     15.87
+    ],
+    [
+     "fixed:vehiclesFixed",
+     2.58
+    ],
+    [
+     "upd:anon#28",
+     1.59
+    ],
+    [
+     "peds",
+     1.06
+    ],
+    [
+     "upd:update",
+     0.61
+    ],
+    [
+     "fixed:boatsFixed",
+     0.57
+    ],
+    [
+     "hud",
+     0.32
+    ],
+    [
+     "audio",
+     0.32
+    ],
+    [
+     "upd:groundMaskTick",
+     0.28
+    ],
+    [
+     "upd:anon#2",
+     0.25
+    ]
+   ],
+   "ri": {
+    "geo": 3505,
+    "tex": 2166,
+    "prog": 1197,
+    "calls": 968,
+    "tris": 6632623
+   },
+   "objs": 10423,
+   "visible": 8660,
+   "meshes": 5353,
+   "inst": 2173,
+   "instCount": 67147,
+   "lights": 38,
+   "sprites": 59,
+   "points": 11,
+   "lines": 2,
+   "skinned": 156,
+   "mats": 2667,
+   "geos": 4297,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1498,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 3180,
+    "gladesWater": 1,
+    "prop-crate": 27,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 4,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 44,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p05": 126,
+    "npc-p75": 122,
+    "npc-p23": 118,
+    "npc-p95": 118,
+    "npc-p08": 63,
+    "npc-p02": 126,
+    "npc-p04": 63,
+    "npc-p139": 63,
+    "npc-p01": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 59,
+    "npc-p21": 63,
+    "npc-p36": 63,
+    "prop-beachTowel:beachTowel": 22,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 59,
+    "npc-p102": 118,
+    "beach-towel": 20,
+    "beach-things": 28,
+    "npc-p97": 122,
+    "npc-p100": 122,
+    "npc-p96": 59,
+    "npc-p104": 118,
+    "npc-p53": 63
+   },
+   "heap": 4774,
+   "rap": {
+    "bodies": 343,
+    "colliders": 1968,
+    "ij": 13,
+    "mj": 0
+   },
+   "veh": {
+    "list": 51,
+    "all": 58,
+    "respawn": 175
+   },
+   "peds": {
+    "n": 19,
+    "active": 17
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 2170,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16854,
+     "programs": 1197,
+     "vaos": 5863
+    },
+    "audio": 4773,
+    "listeners": 451,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2686,
+   "pos": [
+    458,
+    1211
+   ],
+   "ap": {
+    "stuck": 32,
+    "s": 1364,
+    "cars": 4
+   },
+   "v8MB": 469,
+   "abMB": 4308,
+   "wall": 534,
+   "fp": {
+    "gpu": 13722,
+    "gfx": 10650,
+    "ren": 10854
+   },
+   "orphans": {
+    "alive": 4460,
+    "gpu": 1691,
+    "orphan": 306,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      135
+     ],
+     [
+      "tex ",
+      46
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      43
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      42
+     ],
+     [
+      "geo ",
+      12
+     ],
+     [
+      "geo gameplay/police/modelKit.js:67:62 < geo gameplay/police/modelKit.js:59:78 < box gameplay/police/modelKit.js:67:33",
+      7
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < roughTex gameplay/police/modelKit.js:35:10 < pbr gameplay/police/modelKit.js:44:19",
+      3
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < surfaceTex gameplay/police/modelKit.js:32:10 < pbr gameplay/police/modelKit.js:43:19",
+      3
+     ],
+     [
+      "geo gameplay/police/modelKit.js:68:105 < geo gameplay/police/modelKit.js:59:78 < cyl gameplay/police/modelKit.js:68:59",
+      3
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "geo addTaxi vehicles/glb/glbCar.js:331:30 < buildGlbCar vehicles/glb/glbCar.js:490:15 < Object.build vehicles/glb/index.js:129:12",
+      2
+     ],
+     [
+      "geo gameplay/police/models.js:78:41 < geo gameplay/police/modelKit.js:59:78 < buildTrafficCamera gameplay/police/models.js:78:21",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:55:19 < gameplay/wantedSense.js:358:19",
+      1
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < buildTrafficCamera gameplay/police/models.js:54:18 < gameplay/wantedSense.js:358:19",
+      1
+     ]
+    ]
+   }
+  },
+  {
+   "t": 325,
+   "fps": 12.1,
+   "work": 102.41,
+   "gap": 131.51,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     34.2
+    ],
+    [
+     "upd:anon#2",
+     24.5
+    ],
+    [
+     "world.step",
+     14.84
+    ],
+    [
+     "upd:update",
+     6.74
+    ],
+    [
+     "upd:anon#28",
+     6.19
+    ],
+    [
+     "upd:anon#51",
+     3.93
+    ],
+    [
+     "fixed:vehiclesFixed",
+     3.11
+    ],
+    [
+     "peds",
+     1.75
+    ],
+    [
+     "fixed:boatsFixed",
+     0.93
+    ],
+    [
+     "upd:groundMaskTick",
+     0.66
+    ],
+    [
+     "hud",
+     0.53
+    ],
+    [
+     "audio",
+     0.4
+    ],
+    [
+     "upd:tick",
+     0.36
+    ],
+    [
+     "upd:shrubScan",
+     0.32
+    ]
+   ],
+   "ri": {
+    "geo": 3492,
+    "tex": 2184,
+    "prog": 1196,
+    "calls": 1352,
+    "tris": 13614087
+   },
+   "objs": 10088,
+   "visible": 8420,
+   "meshes": 5201,
+   "inst": 2169,
+   "instCount": 65483,
+   "lights": 38,
+   "sprites": 47,
+   "points": 11,
+   "lines": 2,
+   "skinned": 156,
+   "mats": 2652,
+   "geos": 4229,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1501,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 15,
+    "Points": 7,
+    "Group": 2888,
+    "gladesWater": 1,
+    "prop-crate": 15,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 48,
+    "npc-people-crowd-blobs": 1,
+    "marker": 16,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p75": 122,
+    "npc-p95": 118,
+    "npc-p23": 59,
+    "npc-p05": 63,
+    "npc-p08": 63,
+    "npc-p04": 63,
+    "npc-p02": 63,
+    "npc-p139": 63,
+    "npc-p01": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 63,
+    "npc-p21": 63,
+    "npc-p36": 63,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 59,
+    "npc-p102": 118,
+    "npc-p97": 122,
+    "beach-towel": 8,
+    "beach-things": 14,
+    "npc-p100": 59,
+    "npc-p96": 59,
+    "npc-p104": 59,
+    "npc-p53": 63,
+    "prop-beachTowel:beachTowel": 17,
+    "npc-p166": 59,
+    "npc-p82": 59,
+    "npc-p06": 59,
+    "npc-p110": 59,
+    "npc-p65": 59
+   },
+   "heap": 4921,
+   "rap": {
+    "bodies": 394,
+    "colliders": 2060,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 47,
+    "all": 54,
+    "respawn": 192
+   },
+   "peds": {
+    "n": 19,
+    "active": 16
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 2188,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 16777,
+     "programs": 1196,
+     "vaos": 5837
+    },
+    "audio": 4952,
+    "listeners": 451,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2692,
+   "pos": [
+    398,
+    1346
+   ],
+   "ap": {
+    "stuck": 35,
+    "s": 1510,
+    "cars": 5
+   },
+   "v8MB": 512,
+   "abMB": 4416,
+   "wall": 574,
+   "fp": {
+    "gpu": 14438,
+    "gfx": 10547,
+    "ren": 10957
+   }
+  },
+  {
+   "t": 354,
+   "fps": 13.3,
+   "work": 83.94,
+   "gap": 94.93,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     32.62
+    ],
+    [
+     "upd:anon#2",
+     22.52
+    ],
+    [
+     "world.step",
+     13.22
+    ],
+    [
+     "upd:update",
+     3.14
+    ],
+    [
+     "fixed:vehiclesFixed",
+     3.06
+    ],
+    [
+     "peds",
+     1.95
+    ],
+    [
+     "upd:anon#28",
+     1.51
+    ],
+    [
+     "upd:tick",
+     0.51
+    ],
+    [
+     "hud",
+     0.48
+    ],
+    [
+     "upd:groundMaskTick",
+     0.45
+    ],
+    [
+     "interiors",
+     0.44
+    ],
+    [
+     "audio",
+     0.39
+    ],
+    [
+     "fixed:boatsFixed",
+     0.38
+    ]
+   ],
+   "ri": {
+    "geo": 3571,
+    "tex": 2223,
+    "prog": 1196,
+    "calls": 1342,
+    "tris": 9985854
+   },
+   "objs": 10381,
+   "visible": 8689,
+   "meshes": 5321,
+   "inst": 2181,
+   "instCount": 66321,
+   "lights": 38,
+   "sprites": 46,
+   "points": 11,
+   "lines": 2,
+   "skinned": 159,
+   "mats": 2688,
+   "geos": 4311,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1518,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 3133,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 810,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 48,
+    "npc-people-crowd-blobs": 1,
+    "marker": 12,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p75": 122,
+    "npc-p95": 118,
+    "npc-p23": 59,
+    "npc-p05": 63,
+    "npc-p04": 63,
+    "npc-p02": 63,
+    "npc-p139": 63,
+    "npc-p01": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 63,
+    "npc-p21": 63,
+    "npc-p36": 63,
+    "npc-p125": 59,
+    "npc-p85": 59,
+    "npc-p24": 63,
+    "npc-p102": 118,
+    "npc-p97": 122,
+    "npc-p96": 59,
+    "npc-p104": 59,
+    "npc-p53": 63,
+    "npc-p166": 59,
+    "npc-p82": 59,
+    "npc-p06": 59,
+    "npc-p110": 59,
+    "npc-p65": 63,
+    "npc-p09": 63,
+    "npc-p84": 59,
+    "npc-p59": 59
+   },
+   "heap": 4987,
+   "rap": {
+    "bodies": 481,
+    "colliders": 2286,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 53,
+    "all": 60,
+    "respawn": 222
+   },
+   "peds": {
+    "n": 19,
+    "active": 17
+   },
+   "police": {
+    "units": 0,
+    "cars": 3,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 1
+   },
+   "lk": {
+    "gl": {
+     "textures": 2227,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 17043,
+     "programs": 1196,
+     "vaos": 6041
+    },
+    "audio": 5337,
+    "listeners": 451,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2705,
+   "pos": [
+    350,
+    1487
+   ],
+   "ap": {
+    "stuck": 39,
+    "s": 1664,
+    "cars": 6
+   },
+   "v8MB": 517,
+   "abMB": 4477,
+   "wall": 618,
+   "fp": {
+    "gpu": 14643,
+    "gfx": 10650,
+    "ren": 11059
+   }
+  },
+  {
+   "t": 376,
+   "fps": 13.8,
+   "work": 70.89,
+   "gap": 76.54,
+   "preset": {
+    "look": {
+     "sharpen": 0.3,
+     "taa": "always",
+     "taaSharpen": 0.35,
+     "scaleMin": 0.75,
+     "scaleMax": 0.85
+    },
+    "label": "Low",
+    "dpr": "min",
+    "shadow": {
+     "size": 2048,
+     "radius": 100,
+     "dynSize": 1024,
+     "dynRadius": 30
+    },
+    "far": 3500,
+    "crowd": 110,
+    "pedScale": 0.6,
+    "lod": {
+     "maxFull": 3,
+     "budget": 160000
+    },
+    "ao": false,
+    "gtao": false
+   },
+   "scale": 1,
+   "sys": [
+    [
+     "render",
+     30.17
+    ],
+    [
+     "world.step",
+     21.91
+    ],
+    [
+     "fixed:vehiclesFixed",
+     5.09
+    ],
+    [
+     "upd:update",
+     4.43
+    ],
+    [
+     "upd:anon#28",
+     1.69
+    ],
+    [
+     "peds",
+     1.39
+    ],
+    [
+     "interiors",
+     0.67
+    ],
+    [
+     "upd:groundMaskTick",
+     0.59
+    ],
+    [
+     "upd:anon#2",
+     0.57
+    ],
+    [
+     "hud",
+     0.49
+    ],
+    [
+     "audio",
+     0.37
+    ],
+    [
+     "fixed:boatsFixed",
+     0.3
+    ]
+   ],
+   "ri": {
+    "geo": 3712,
+    "tex": 2248,
+    "prog": 1196,
+    "calls": 945,
+    "tris": 12192555
+   },
+   "objs": 10630,
+   "visible": 8835,
+   "meshes": 5288,
+   "inst": 2045,
+   "instCount": 67095,
+   "lights": 38,
+   "sprites": 50,
+   "points": 11,
+   "lines": 2,
+   "skinned": 174,
+   "mats": 2582,
+   "geos": 4300,
+   "groups": {
+    "lamp-pools": 1,
+    "sky": 1,
+    "sun": 1,
+    "Object3D": 9,
+    "sun-dynamic-shadows": 1,
+    "sun-near-static-shadows": 1,
+    "HemisphereLight": 1,
+    "ocean": 2,
+    "distant-scenery": 4,
+    "fx-alpha": 1,
+    "fx-additive": 1,
+    "fx-rings": 1,
+    "fx-decals": 1,
+    "PointLight": 26,
+    "miami-city": 1510,
+    "seabed": 1,
+    "SpotLight": 6,
+    "Mesh": 16,
+    "Points": 7,
+    "Group": 3256,
+    "gladesWater": 1,
+    "prop-crate": 21,
+    "character-ped": 954,
+    "weapon-pistol": 84,
+    "r2-physics:colliders": 2,
+    "weather-rain": 1,
+    "DirectionalLight": 1,
+    "v2-signs": 1,
+    "reg-sign-posts": 1,
+    "reg-stop": 1,
+    "reg-limit-25": 1,
+    "reg-limit-45": 1,
+    "reg-limit-55": 1,
+    "reg-limit-50": 1,
+    "reg-limit-35": 1,
+    "reg-limit-30": 1,
+    "nicoHouse": 431,
+    "vegField_liveoak": 46,
+    "groundGrass": 5,
+    "keysLots": 15,
+    "lot-props": 5,
+    "dressing-spawn-street": 1,
+    "dressing-breakables": 1,
+    "vegField_coconut": 62,
+    "vegField_hibiscus": 88,
+    "keys-welcome-sign": 92,
+    "keysBar": 152,
+    "houses": 633,
+    "towns": 119,
+    "footprints": 1,
+    "npc-people-crowd": 48,
+    "npc-people-crowd-blobs": 1,
+    "marker": 8,
+    "fx-fire-flames": 1,
+    "fx-fire-smoke": 1,
+    "fx-fire-embers": 1,
+    "fx-fire-light": 1,
+    "metro-space": 1,
+    "vegCollars": 1,
+    "countryside": 497,
+    "npc-p75": 122,
+    "npc-p95": 118,
+    "npc-p23": 59,
+    "npc-p05": 63,
+    "npc-p04": 63,
+    "npc-p02": 63,
+    "npc-p139": 63,
+    "npc-p01": 63,
+    "npc-p58": 59,
+    "npc-p03": 59,
+    "npc-p79": 59,
+    "npc-p87": 63,
+    "npc-p48": 59,
+    "npc-p60": 63,
+    "npc-p21": 63,
+    "npc-p36": 63,
+    "npc-p125": 63,
+    "npc-p85": 63,
+    "npc-p24": 63,
+    "npc-p102": 118,
+    "npc-p97": 122,
+    "npc-p96": 59,
+    "npc-p104": 59,
+    "npc-p53": 63,
+    "npc-p166": 59,
+    "npc-p82": 59,
+    "npc-p06": 59,
+    "npc-p65": 63,
+    "npc-p09": 122,
+    "npc-p84": 63,
+    "npc-p59": 59,
+    "npc-p135": 63,
+    "npc-p49": 63,
+    "npc-p110": 59,
+    "npc-p126": 59,
+    "npc-p77": 59
+   },
+   "heap": 4994,
+   "rap": {
+    "bodies": 447,
+    "colliders": 1731,
+    "ij": 0,
+    "mj": 0
+   },
+   "veh": {
+    "list": 51,
+    "all": 58,
+    "respawn": 238
+   },
+   "peds": {
+    "n": 19,
+    "active": 18
+   },
+   "police": {
+    "units": 0,
+    "cars": 1,
+    "barriers": 0,
+    "blocks": 0
+   },
+   "upd": 64,
+   "fixed": 15,
+   "wanted": 3,
+   "inVeh": true,
+   "tiles": {
+    "tiles": 412,
+    "chunks": 315,
+    "pending": 0
+   },
+   "lk": {
+    "gl": {
+     "textures": 2252,
+     "fbos": 72,
+     "rbos": 63,
+     "buffers": 17480,
+     "programs": 1196,
+     "vaos": 6342
+    },
+    "audio": 5658,
+    "listeners": 456,
+    "intervals": 2,
+    "timeouts": 0,
+    "raf": 0
+   },
+   "views": 2712,
+   "pos": [
+    310,
+    1577
+   ],
+   "ap": {
+    "stuck": 41,
+    "s": 1770,
+    "cars": 6
+   },
+   "v8MB": 480,
+   "abMB": 4518,
+   "wall": 649,
+   "fp": {
+    "gpu": 14848,
+    "gfx": 10752,
+    "ren": 11162
+   },
+   "orphans": {
+    "alive": 4835,
+    "gpu": 1904,
+    "orphan": 335,
+    "top": [
+     [
+      "geo view render/instVao.v2.js:21:37 < reg render/instVao.v2.js:47:21 < THREE.Object3D.add render/instVao.v2.js:53:97",
+      161
+     ],
+     [
+      "tex ",
+      67
+     ],
+     [
+      "tex bakePerson npc/people/farCrowd.js:101:101 < getBake npc/people/farCrowd.js:171:36 < bucketFor npc/people/farCrowd.js:189:16",
+      47
+     ],
+     [
+      "tex npc/arch/lib.js:33:119",
+      24
+     ],
+     [
+      "geo gameplay/police/modelKit.js:67:62 < geo gameplay/police/modelKit.js:59:78 < box gameplay/police/modelKit.js:67:33",
+      7
+     ],
+     [
+      "tex terryMap npc/beachTowel.js:27:13 < towelMat npc/beachTowel.js:47:51 < makeTowel npc/beachTowel.js:81:31",
+      4
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < roughTex gameplay/police/modelKit.js:35:10 < pbr gameplay/police/modelKit.js:44:19",
+      3
+     ],
+     [
+      "tex canvasTex gameplay/police/modelKit.js:16:7 < surfaceTex gameplay/police/modelKit.js:32:10 < pbr gameplay/police/modelKit.js:43:19",
+      3
+     ],
+     [
+      "geo gameplay/police/modelKit.js:68:105 < geo gameplay/police/modelKit.js:59:78 < cyl gameplay/police/modelKit.js:68:59",
+      3
+     ],
+     [
+      "geo propGeo world/interiors/legacy/props.js:73:34 < world/interiors/legacy/manager.js:350:42 < buildInteriorGen world/interiors/legacy/manager.js:350:11",
+      2
+     ],
+     [
+      "geo addTaxi vehicles/glb/glbCar.js:331:30 < buildGlbCar vehicles/glb/glbCar.js:490:15 < Object.build vehicles/glb/index.js:129:12",
+      2
+     ],
+     [
+      "geo ",
+      1
+     ],
+     [
+      "tex terryNormal npc/beachTowel.js:41:12 < towelMat npc/beachTowel.js:47:94 < makeTowel npc/beachTowel.js:81:31",
+      1
+     ],
+     [
+      "tex bumpTex npc/props.js:24:38 < propMaterial npc/props.js:27:117 < PB.build npc/props.js:65:35",
+      1
+     ]
+    ]
+   }
+  }
+ ],
+ "errors": [],
+ "routePoints": 531,
+ "routeLen": 6435,
+ "spikes": [
+  {
+   "t": 397.9,
+   "gap": 33,
+   "work": 38,
+   "top": [
+    "render 20.5",
+    "world.step 8.8",
+    "fixed:vehiclesFixed 2.6"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 490
+  },
+  {
+   "t": 397.9,
+   "gap": 50,
+   "work": 36,
+   "top": [
+    "render 18.6",
+    "world.step 8.4",
+    "fixed:vehiclesFixed 2.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 490
+  },
+  {
+   "t": 398,
+   "gap": 33,
+   "work": 33,
+   "top": [
+    "render 17.3",
+    "world.step 6.7"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 490
+  },
+  {
+   "t": 398,
+   "gap": 33,
+   "work": 30,
+   "top": [
+    "render 16.7",
+    "world.step 6.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 490
+  },
+  {
+   "t": 398,
+   "gap": 33,
+   "work": 32,
+   "top": [
+    "render 17.3",
+    "world.step 6.6",
+    "fixed:vehiclesFixed 2.0"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 490
+  },
+  {
+   "t": 398.1,
+   "gap": 33,
+   "work": 39,
+   "top": [
+    "render 17.9",
+    "world.step 6.3",
+    "upd:tick 3.0",
+    "upd:shrubScan 2.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 486
+  },
+  {
+   "t": 398.1,
+   "gap": 33,
+   "work": 35,
+   "top": [
+    "render 18.1",
+    "world.step 8.1",
+    "fixed:vehiclesFixed 2.5"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 486
+  },
+  {
+   "t": 398.2,
+   "gap": 50,
+   "work": 44,
+   "top": [
+    "render 22.0",
+    "world.step 9.7",
+    "env 3.1",
+    "fixed:vehiclesFixed 2.1"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 486
+  },
+  {
+   "t": 398.2,
+   "gap": 33,
+   "work": 35,
+   "top": [
+    "render 19.7",
+    "world.step 7.6"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 485
+  },
+  {
+   "t": 398.2,
+   "gap": 50,
+   "work": 51,
+   "top": [
+    "render 27.1",
+    "world.step 11.4",
+    "fixed:vehiclesFixed 3.3"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 486
+  },
+  {
+   "t": 398.3,
+   "gap": 50,
+   "work": 55,
+   "top": [
+    "render 26.3",
+    "world.step 14.8",
+    "fixed:vehiclesFixed 4.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 500
+  },
+  {
+   "t": 398.3,
+   "gap": 50,
+   "work": 78,
+   "top": [
+    "render 26.5",
+    "upd:groundMaskTick 24.3",
+    "world.step 13.3",
+    "fixed:vehiclesFixed 4.9"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 499
+  },
+  {
+   "t": 398.4,
+   "gap": 83,
+   "work": 51,
+   "top": [
+    "render 26.0",
+    "world.step 13.2",
+    "fixed:vehiclesFixed 4.0"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 502
+  },
+  {
+   "t": 398.5,
+   "gap": 50,
+   "work": 56,
+   "top": [
+    "render 27.2",
+    "world.step 12.3",
+    "upd:anon#28 4.7",
+    "fixed:vehiclesFixed 3.6"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 521
+  },
+  {
+   "t": 398.5,
+   "gap": 67,
+   "work": 52,
+   "top": [
+    "render 26.7",
+    "world.step 13.7",
+    "fixed:vehiclesFixed 3.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 534
+  },
+  {
+   "t": 398.6,
+   "gap": 50,
+   "work": 56,
+   "top": [
+    "render 26.0",
+    "world.step 15.0",
+    "fixed:vehiclesFixed 3.9",
+    "upd:update 2.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 537
+  },
+  {
+   "t": 398.7,
+   "gap": 67,
+   "work": 55,
+   "top": [
+    "render 26.9",
+    "world.step 13.9",
+    "fixed:vehiclesFixed 3.5",
+    "upd:groundMaskTick 2.2"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 535
+  },
+  {
+   "t": 398.7,
+   "gap": 50,
+   "work": 56,
+   "top": [
+    "render 26.4",
+    "world.step 15.1",
+    "fixed:vehiclesFixed 3.7"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 527
+  },
+  {
+   "t": 398.8,
+   "gap": 67,
+   "work": 51,
+   "top": [
+    "render 25.1",
+    "world.step 14.7",
+    "fixed:vehiclesFixed 3.4"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 513
+  },
+  {
+   "t": 398.8,
+   "gap": 50,
+   "work": 345,
+   "top": [
+    "upd:update 292.0",
+    "render 27.6",
+    "world.step 13.5",
+    "fixed:vehiclesFixed 3.6"
+   ],
+   "newPrograms": 0,
+   "newTextures": 0,
+   "newGeometries": 0,
+   "calls": 898
+  }
+ ]
+}

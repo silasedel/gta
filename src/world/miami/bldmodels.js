@@ -111,6 +111,7 @@ export const AIRPORT = {
 
 const hash = (n) => { let x = Math.imul(n | 0, 2654435761) ^ (n >>> 13); x = Math.imul(x ^ (x >>> 16), 2246822507); x ^= x >>> 15; return (x >>> 0) / 4294967296; };
 const OFF = typeof location !== 'undefined' && /[?&]libmodels=0/.test(location.search);
+const POPFIX = !(typeof location !== 'undefined' && /[?&]popfix=0/.test(location.search));
 
 function frame(ring) { // oriented box of a footprint (principal axes)
   let mx = 0, mz = 0; for (const [x, z] of ring) { mx += x; mz += z; } mx /= ring.length; mz /= ring.length;
@@ -454,8 +455,16 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
       const cx = Math.floor(e.x / CELL), cz = Math.floor(e.z / CELL);
       const ld = e.cls === 'tower' || e.cls === 'mid' || e.cls === 'fixed' ? LOD_D : LOD_D * 0.45; // per instance: towers keep full detail to ~250 m, houses / shops to ~110 m
       const dd = Math.hypot(e.x - lastX, e.z - lastZ), lod = LIB[e.name].lod1 && dd > ld ? (dd > 700 || e.cls !== 'tower' ? 2 : 1) : 0; // 1 = far LOD that still casts (towers to 700 m), 2 = far LOD without shadow
-      const key = e.name + '|' + lod + '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
+      const tail = '|' + (e.mir ? 1 : 0) + '|' + (e.cond || '');
+      let key = e.name + '|' + lod + tail;
       ensure(key);
+      // r3-perf (building pop, ?popfix=0 rolls back): a level that is not loaded and compiled yet drew nothing, and the old
+      // level's cell was hidden at once, so the building vanished until the new GLB loaded and its programs were ready
+      // (a frame to several seconds). Keep drawing the level shown now (or any other ready level) until the new one is ready.
+      if (POPFIX && !(meshes.get(key) || []).length) {
+        for (const l of [e.lodShown, 0, 1, 2]) { if (l === undefined || l === lod) continue; const k2 = e.name + '|' + l + tail; if ((meshes.get(k2) || []).length) { key = k2; break; } }
+      }
+      e.lodShown = +key.slice(e.name.length + 1, e.name.length + 2);
       const k = key + '|' + cx + ',' + cz; if (!lists.has(k)) lists.set(k, []); lists.get(k).push(e);
       if (e.plinth && np < plinth.instanceMatrix.count && Math.abs(e.x - lastX) < 1600 && Math.abs(e.z - lastZ) < 1600) {
         const L = e.L, m = LIB[e.name], w = m.w * L.s - 0.1, d = m.d * L.s - 0.1, h = e.plinth.y1 - e.plinth.y0;

@@ -1680,7 +1680,7 @@ export async function createVehicles(game) {
       if (info) { const type = trafficTypeFor(info.pos); const v = createVehicle(type, colorFor(type), info.pos, info.heading, { ai: true }); aiAssign(v, info); }
     }
     // parked cars: keep ~10 at the curbs near the player
-    const parked = list.filter((v) => !v.ai && !v.playerDriven && !v.everDriven && !specials.has(v));
+    const parked = list.filter((v) => !v.ai && !v.playerDriven && !v.everDriven && !specials.has(v) && !(LEAKFIX && v.disabled)); // r3-perf: a wreck is not a parked car (it was re-placed at a curb as one)
     const nearParked = parked.filter((v) => distXZ(v.body.translation(), pp) < PHYS_R).length;
     if (nearParked < 10) {
       const farP = parked.find((v) => distXZ(v.body.translation(), pp) > PHYS_R + 60);
@@ -1689,6 +1689,30 @@ export async function createVehicles(game) {
         if (farP) { placeVehicle(farP, sp.pos, sp.heading); farP.locked = Math.random() < 0.4; }
         else if (parked.length < 18) { const type = parkedTypeFor(sp.pos); parkChecked(type, sp.pos, sp.heading); }
       }
+    }
+    if (LEAKFIX) sweepLeftovers(pp);
+  }
+  // r3-perf (leak, ?leakfix=0 rolls back): wrecks and cars the player drove and left were never removed (the traffic manager
+  // only recycles live AI traffic; police only drops its own cars). A long chase left a trail of carjacked cars and burnt-out
+  // wrecks across the city, each a full car (meshes, materials, body, collider, wheel controller) in the scene for good.
+  // Every 2 s: a wreck or a left car (not the player's last car, not one the player owns, not a placed special) goes once it
+  // is out of view and more than 220 m away (any view past 400 m); more than 8 such cars: the farthest out-of-view ones past
+  // 90 m go first.
+  const LEAKFIX = !(typeof location !== 'undefined' && /[?&]leakfix=0/.test(location.search));
+  let sweepT = 0, lastPlayerCar = null; const sweepStats = { removed: 0 };
+  function sweepLeftovers(pp) {
+    for (const v of list) if (v.playerDriven) lastPlayerCar = v;
+    const et = game.clock?.elapsed ?? 0; if (et - sweepT < 2) return; sweepT = et;
+    const left = [];
+    for (const v of list) {
+      if (v.playerDriven || v === lastPlayerCar || v.playerOwned || v.owned || v.keep || specials.has(v) || (v.ai && !v.disabled) || (v.chaseTarget && !v.disabled)) continue;
+      if (!(v.disabled || v.everDriven || v.flooded)) continue;
+      const t = v.body.translation(); left.push({ v, d: distXZ(t, pp), seen: inView(t) });
+    }
+    left.sort((a, b) => b.d - a.d);
+    let n = left.length;
+    for (const e of left) {
+      if ((e.d > 220 && !e.seen) || e.d > 400 || (n > 8 && e.d > 90 && !e.seen)) { try { if (removeVehicle(e.v)) { n--; sweepStats.removed++; } } catch (er) { /* gone */ } }
     }
   }
   // ------------------------------------------------------------ hooks
@@ -2226,6 +2250,6 @@ export async function createVehicles(game) {
   };
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, addNoParkZone, remove: removeVehicle, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, addNoParkZone, remove: removeVehicle, sweepStats: () => sweepStats, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }
