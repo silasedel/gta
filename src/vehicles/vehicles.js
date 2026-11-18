@@ -2109,8 +2109,19 @@ export async function createVehicles(game) {
     for (let k = 0; k < 4; k++) skids.end(v.name + k);
     scene.remove(v.mesh);
     if (v.vc) { try { world.removeVehicleController(v.vc); } catch (e) { /* ignore */ } v.vc = null; }
+    let t0 = { x: 0, y: 0, z: 0 }, r0 = { x: 0, y: 0, z: 0, w: 1 };
+    try { const a = v.body.translation(), b = v.body.rotation(); t0 = { x: a.x, y: a.y, z: a.z }; r0 = { x: b.x, y: b.y, z: b.z, w: b.w }; } catch (e) { /* */ }
     try { world.removeRigidBody(v.body); } catch (e) { /* ignore */ }
+    // other systems may still hold this car (pending impacts, prop hits, traffic, police): calling a freed Rapier body is a Rust
+    // panic that poisons the whole physics world, so the car keeps a harmless stand-in (last pose, zero motion, no-op setters)
+    v.body = deadBody(t0, r0);
     return true;
+  }
+  function deadBody(t, r) {
+    const Z = { x: 0, y: 0, z: 0 };
+    const known = { translation: () => ({ ...t }), rotation: () => ({ ...r }), linvel: () => ({ ...Z }), angvel: () => ({ ...Z }), mass: () => 0,
+      isValid: () => false, isSleeping: () => true, isEnabled: () => false, numColliders: () => 0, bodyType: () => 1, isFixed: () => true, isDynamic: () => false, isKinematic: () => false };
+    return new Proxy({ dead: true, handle: -1 }, { get: (o, k) => (k in o ? o[k] : k in known ? known[k] : (typeof k === 'string' ? () => undefined : undefined)) });
   }
 
   function spawnVehicle(type = 'sedan', pos, heading = 0, opts = {}) {

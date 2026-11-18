@@ -212,7 +212,7 @@ export function installImpacts(game) {
   }
 
   function propImpact(v, o = {}) {
-    if (!P.impacts || !v?.body) return null;
+    if (!P.impacts || !v?.body || v.body.dead || v.disposed) return null;
     const C = propClass(o.kind), b = v.body, lv = b.linvel(), t = b.translation();
     const obj = new THREE.Vector3(o.x, (o.y || 0) + Math.min(0.55, (o.top || 1) * 0.5), o.z);
     // contact normal: from the object toward the car center (horizontal); closing speed along it
@@ -270,14 +270,16 @@ export function installImpacts(game) {
   const pending = [];
   function deferImpact(v, o, fn, miss) { pending.push({ v, x: o.x, z: o.z, r: o.r || 0.15, fn, miss, t: 0, best: Infinity }); }
   function gapTo(v, x, z) { // distance from the car's body outline (box L x W) to (x, z), in the car frame
-    const b = v.body, t = b.translation(), r = b.rotation(); _q.set(r.x, r.y, r.z, r.w).invert();
+    // the visual root mirrors the body every frame; reading it never touches Rapier (a removed / freed body panics in translation())
+    const m = v.mesh; if (!m || !m.parent) throw new Error('vehicle gone');
+    const t = m.position, r = m.quaternion; _q.set(r.x, r.y, r.z, r.w).invert();
     const l = _w.set(x - t.x, 0, z - t.z).applyQuaternion(_q), hl = (v.spec?.L || 4.6) / 2, hw = (v.spec?.W || 1.9) / 2;
     const ex = Math.max(0, Math.abs(l.x) - hw), ez = Math.max(0, Math.abs(l.z) - hl); return Math.hypot(ex, ez);
   }
   // a car can be removed (despawned, swept wreck, parked-car recycle) while an impact waits: calling translation() on a freed
   // body is a Rust panic that poisons the whole physics world ("recursive use of an object" on every later call).
   // Found with ?rapierguard=1 at the new Keys map, where it hit on about half the boots.
-  const bodyLive = (v) => { try { const b = v && v.body, W = game.world; return !!(b && W && W.bodies && W.bodies.contains(b.handle) && !v.removed && !v.despawned); } catch (e) { return false; } };
+  const bodyLive = (v) => { try { const b = v && v.body, W = game.world; return !!(b && !b.dead && !v.disposed && v.alive !== false && W && W.bodies && W.bodies.contains(b.handle)); } catch (e) { return false; } };
   game.fixedHooks?.push?.(function impactPending(dt) {
     for (let i = pending.length - 1; i >= 0; i--) {
       const p = pending[i]; p.t += dt; let fire = false;
