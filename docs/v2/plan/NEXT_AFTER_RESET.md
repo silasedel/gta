@@ -70,3 +70,4 @@
 - **Yard dressing:** re-lay ALL of Nico's yard data (POLES, WIRES, BINS, DEBRIS, PUDDLES, PLANTING, LITTER) on the new lot through game.placement (rocks and STOP signs are filtered for now).
 - **G-wagon (suv1 / Aurelia Bastion):** stray triangles on the body (converter leftovers): re-convert with a degenerate / stray-sliver cleanup.
 - **Foliage interaction:** bushes and trees bend and sway when the car or player pushes through them. Thin branches break off (by thickness), with leaves scattering. Remove the dotted dither on the leaves (alpha to coverage / TAA resolve on foliage cards).
+- **Bush physics (user):** branches never poke through a car. A bush under or against a car squashes: a vertex-shader bend field pushed by the car's volume, with spring-back after it passes. The car responds by size and stiffness: small shrubs flatten and slow it a little, dense hedges lift and slow it more (shrubs.js soft colliders, extended with a squash state per bush).
