@@ -149,7 +149,7 @@ export async function initV2(game) {
     if (skipped) cin.black(false, 380);
     game.menuMusic = prevMusic || null;
     offNav?.(); leaveUI?.();
-    P.script = wasScript && !wasScript.title ? wasScript : null;
+    P.script = wasScript && !wasScript.title && !wasScript.devTeleport ? wasScript : null; // never restore a dev-teleport hold (it was already released; restoring it pinned the player for good, QA)
     document.body.classList.remove('pm-intro');
     setTimeout(() => card.remove(), 1200);
     playing = null;
