@@ -1,0 +1,1609 @@
+{
+ "set": "drive3",
+ "q": "",
+ "when": "2026-11-17T23:57:22.469Z",
+ "route": {
+  "from": [
+   -866,
+   4836
+  ],
+  "len": 6004,
+  "edges": 55
+ },
+ "drive": {
+  "frames": 4137,
+  "med": 16.8,
+  "p90": 37.1,
+  "p99": 71.5,
+  "max": 288,
+  "over50": 159,
+  "over100": 12,
+  "over250": 1,
+  "fpsAvg": 46,
+  "newProgramsTotal": 361,
+  "hitches": [
+   {
+    "t": 0.7,
+    "ms": 102,
+    "at": [
+     -763,
+     4897
+    ],
+    "work": 98,
+    "top": [
+     "render 73.0",
+     "upd:anon#24 4.0",
+     "upd:housesTick 3.8",
+     "world.step 3.4",
+     "upd:anon#2 3.3"
+    ],
+    "newProgs": 0,
+    "newTex": 11,
+    "newGeo": 83,
+    "heapDropMB": 0,
+    "calls": 999
+   },
+   {
+    "t": 1.4,
+    "ms": 102,
+    "at": [
+     -758,
+     4850
+    ],
+    "work": 99,
+    "top": [
+     "upd:update 70.3",
+     "render 15.0",
+     "upd:anon#24 3.5",
+     "world.step 2.8"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 1088
+   },
+   {
+    "t": 13.5,
+    "ms": 104,
+    "at": [
+     -1090,
+     4122
+    ],
+    "work": 22,
+    "top": [
+     "render 14.8"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 503
+   },
+   {
+    "t": 15,
+    "ms": 132,
+    "at": [
+     -1104,
+     4023
+    ],
+    "work": 131,
+    "top": [
+     "render 118.3",
+     "upd:anon#24 4.5"
+    ],
+    "newProgs": 3,
+    "newTex": 13,
+    "newGeo": 8,
+    "heapDropMB": -18,
+    "calls": 538
+   },
+   {
+    "t": 21.2,
+    "ms": 228,
+    "at": [
+     -1119,
+     3614
+    ],
+    "work": 227,
+    "top": [
+     "render 209.1",
+     "upd:anon#24 5.0",
+     "upd:anon#2 3.5",
+     "world.step 3.1"
+    ],
+    "newProgs": 0,
+    "newTex": 12,
+    "newGeo": 10,
+    "heapDropMB": -13,
+    "calls": 997
+   },
+   {
+    "t": 22.7,
+    "ms": 225,
+    "at": [
+     -1111,
+     3514
+    ],
+    "work": 224,
+    "top": [
+     "interiors 186.3",
+     "render 16.8",
+     "upd:housesTick 6.4",
+     "upd:anon#24 4.0",
+     "upd:anon#2 3.6",
+     "world.step 2.4"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 20,
+    "heapDropMB": 0,
+    "calls": 977
+   },
+   {
+    "t": 23.4,
+    "ms": 126,
+    "at": [
+     -1106,
+     3464
+    ],
+    "work": 125,
+    "top": [
+     "upd:anon#2 76.3",
+     "render 16.2",
+     "upd:anon#24 16.2",
+     "upd:housesTick 3.8",
+     "world.step 3.7"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 980
+   },
+   {
+    "t": 23.6,
+    "ms": 119,
+    "at": [
+     -1105,
+     3453
+    ],
+    "work": 90,
+    "top": [
+     "render 66.3",
+     "upd:anon#24 4.8",
+     "upd:housesTick 4.5",
+     "world.step 3.8",
+     "upd:anon#2 3.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 2,
+    "heapDropMB": 0,
+    "calls": 980
+   },
+   {
+    "t": 25.1,
+    "ms": 101,
+    "at": [
+     -1092,
+     3351
+    ],
+    "work": 93,
+    "top": [
+     "render 36.8",
+     "upd:anon#24 17.0",
+     "world.step 11.5",
+     "upd:housesTick 6.9",
+     "vehicles 6.4",
+     "upd:anon#2 3.3"
+    ],
+    "newProgs": 6,
+    "newTex": -8,
+    "newGeo": 0,
+    "heapDropMB": -11,
+    "calls": 1704
+   },
+   {
+    "t": 26.1,
+    "ms": 107,
+    "at": [
+     -1083,
+     3285
+    ],
+    "work": 61,
+    "top": [
+     "upd:anon#24 15.9",
+     "render 15.8",
+     "vehicles 6.2",
+     "upd:anon#2 6.2",
+     "world.step 5.0",
+     "upd:housesTick 3.3"
+    ],
+    "newProgs": 6,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 1073
+   },
+   {
+    "t": 33,
+    "ms": 288,
+    "at": [
+     -999,
+     2858
+    ],
+    "work": 285,
+    "top": [
+     "interiors 254.5",
+     "render 14.9",
+     "upd:anon#2 4.3",
+     "world.step 2.6",
+     "upd:anon#24 2.3"
+    ],
+    "newProgs": 0,
+    "newTex": 1,
+    "newGeo": 3,
+    "heapDropMB": 0,
+    "calls": 890
+   },
+   {
+    "t": 34.4,
+    "ms": 144,
+    "at": [
+     -936,
+     2788
+    ],
+    "work": 142,
+    "top": [
+     "interiors 85.1",
+     "upd:anon#24 30.1",
+     "render 13.9",
+     "upd:anon#2 4.9",
+     "world.step 2.4"
+    ],
+    "newProgs": 0,
+    "newTex": 0,
+    "newGeo": 0,
+    "heapDropMB": 0,
+    "calls": 563
+   }
+  ],
+  "progStalls": {
+   "total": 305,
+   "n": 49,
+   "byName": [
+    [
+     "",
+     [
+      9,
+      62
+     ]
+    ],
+    [
+     "Fire Hydrant",
+     [
+      1,
+      40
+     ]
+    ],
+    [
+     "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     [
+      2,
+      25
+     ]
+    ],
+    [
+     "M.panels",
+     [
+      1,
+      23
+     ]
+    ],
+    [
+     "Bin Body",
+     [
+      1,
+      23
+     ]
+    ],
+    [
+     "Can Red Cola Baked",
+     [
+      1,
+      21
+     ]
+    ],
+    [
+     "cover-mh_storm",
+     [
+      1,
+      20
+     ]
+    ],
+    [
+     "Material",
+     [
+      3,
+      14
+     ]
+    ],
+    [
+     "Surface 8",
+     [
+      1,
+      11
+     ]
+    ],
+    [
+     "bark_0",
+     [
+      1,
+      10
+     ]
+    ],
+    [
+     "Concrete Blocks.001",
+     [
+      1,
+      7
+     ]
+    ],
+    [
+     "Metal22-basecolor",
+     [
+      1,
+      5
+     ]
+    ],
+    [
+     "strip_diner_far",
+     [
+      1,
+      4
+     ]
+    ],
+    [
+     "Main Body",
+     [
+      1,
+      4
+     ]
+    ],
+    [
+     "h5_grey_bake",
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "EletricBox",
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "curved_glass_tower_far",
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "Windows",
+     [
+      2,
+      3
+     ]
+    ],
+    [
+     "AirTower01MAT",
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "house:breeze",
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "Blinds",
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "Billboard",
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "Lobby Interior Trimsheet",
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "house:shopGlass",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "house:bulb",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "house:brick",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "house:pool",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "Jetway",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "Surface 16",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "Roof",
+     [
+      1,
+      1
+     ]
+    ]
+   ],
+   "top": [
+    {
+     "ms": 40,
+     "name": "Fire Hydrant",
+     "isNew": true,
+     "keyLen": 77,
+     "nearestSameName": 3,
+     "diff": [
+      "37:3->4",
+      "38:1->16",
+      "39:0->4"
+     ]
+    },
+    {
+     "ms": 38,
+     "name": "",
+     "isNew": true,
+     "keyLen": 59,
+     "nearestSameName": 2,
+     "diff": [
+      "55:3111->3107",
+      "58:veg-leaf|gm21->veg-leaf"
+     ]
+    },
+    {
+     "ms": 24,
+     "name": "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 1,
+     "diff": [
+      "54:nh:pbrcoral_stone_wallg->nh:pbrcoral_stone_wallg|lotHide"
+     ]
+    },
+    {
+     "ms": 23,
+     "name": "M.panels",
+     "isNew": true,
+     "keyLen": 93,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 23,
+     "name": "Bin Body",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 21,
+     "name": "Can Red Cola Baked",
+     "isNew": true,
+     "keyLen": 75,
+     "nearestSameName": 3,
+     "diff": [
+      "35:3->4",
+      "36:1->16",
+      "37:0->4"
+     ]
+    },
+    {
+     "ms": 20,
+     "name": "cover-mh_storm",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 11,
+     "name": "Surface 8",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 10,
+     "name": "bark_0",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 9,
+     "name": "",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": 1,
+     "diff": [
+      "9:false->uv"
+     ]
+    },
+    {
+     "ms": 7,
+     "name": "Material",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 2,
+     "diff": [
+      "7:false->uv",
+      "54:libbld5-w-0->libbld5-w-0lm"
+     ]
+    },
+    {
+     "ms": 7,
+     "name": "Concrete Blocks.001",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 6,
+     "name": "Material",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 5,
+     "name": "Metal22-basecolor",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 4,
+     "name": "strip_diner_far",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 4,
+     "name": "Main Body",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 4,
+     "name": "",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 2,
+     "diff": [
+      "11:false->uv",
+      "16:false->uv"
+     ]
+    },
+    {
+     "ms": 3,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 3,
+     "name": "h5_grey_bake",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 3,
+     "name": "EletricBox",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 3,
+     "name": "curved_glass_tower_far",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 3,
+     "name": "",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 2,
+     "name": "AirTower01MAT",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 2,
+     "name": "house:breeze",
+     "isNew": false,
+     "keyLen": 60,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 2,
+     "name": "Windows",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 2,
+     "name": "",
+     "isNew": true,
+     "keyLen": 53,
+     "nearestSameName": 2,
+     "diff": [
+      "5:false->uv1",
+      "49:1->8193"
+     ]
+    },
+    {
+     "ms": 2,
+     "name": "Blinds",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 2,
+     "name": "Billboard",
+     "isNew": true,
+     "keyLen": 55,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 2,
+     "name": "Lobby Interior Trimsheet",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 1,
+     "name": "pbr:coral_stone_wall:1.2:0:0:0:::1.6:1::0.85:",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "house:shopGlass",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "house:bulb",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "house:brick",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "house:pool",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "",
+     "isNew": false,
+     "keyLen": 53,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "Jetway",
+     "isNew": false,
+     "keyLen": 55,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "Surface 16",
+     "isNew": false,
+     "keyLen": 57,
+     "nearestSameName": 0,
+     "diff": []
+    },
+    {
+     "ms": 1,
+     "name": "Roof",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": null,
+     "diff": null
+    },
+    {
+     "ms": 1,
+     "name": "",
+     "isNew": true,
+     "keyLen": 57,
+     "nearestSameName": 1,
+     "diff": [
+      "53:289->545"
+     ]
+    }
+   ]
+  },
+  "longTasks": [
+   {
+    "t": 85.3,
+    "ms": 285,
+    "src": "unknown"
+   },
+   {
+    "t": 86.9,
+    "ms": 142,
+    "src": "unknown"
+   },
+   {
+    "t": 84.2,
+    "ms": 91,
+    "src": "unknown"
+   },
+   {
+    "t": 84.5,
+    "ms": 87,
+    "src": "unknown"
+   },
+   {
+    "t": 87.9,
+    "ms": 81,
+    "src": "unknown"
+   },
+   {
+    "t": 89.7,
+    "ms": 75,
+    "src": "unknown"
+   },
+   {
+    "t": 92.2,
+    "ms": 75,
+    "src": "unknown"
+   },
+   {
+    "t": 89.9,
+    "ms": 74,
+    "src": "unknown"
+   },
+   {
+    "t": 84.6,
+    "ms": 72,
+    "src": "unknown"
+   },
+   {
+    "t": 83.2,
+    "ms": 71,
+    "src": "unknown"
+   },
+   {
+    "t": 91.1,
+    "ms": 70,
+    "src": "unknown"
+   },
+   {
+    "t": 90,
+    "ms": 67,
+    "src": "unknown"
+   },
+   {
+    "t": 83.3,
+    "ms": 66,
+    "src": "unknown"
+   },
+   {
+    "t": 88.3,
+    "ms": 65,
+    "src": "unknown"
+   },
+   {
+    "t": 91.3,
+    "ms": 65,
+    "src": "unknown"
+   }
+  ],
+  "sys": {
+   "render": 18.31,
+   "upd:anon#24": 4.84,
+   "upd:anon#2": 4.11,
+   "world.step": 4.01,
+   "upd:housesTick": 3.29,
+   "upd:update": 1.61,
+   "peds": 1.12,
+   "vehicles": 0.97,
+   "audio": 0.67,
+   "fixed:vehiclesFixed": 0.65,
+   "upd:groundGrassTick": 0.55,
+   "hud": 0.45,
+   "upd:anon#47": 0.44,
+   "fixed:boatsFixed": 0.36,
+   "upd:unstuckTick": 0.35,
+   "interiors": 0.34
+  },
+  "stream": {
+   "jobsRun": 19538405,
+   "msLast": 8.399999998509884,
+   "near": 12,
+   "mid": 20,
+   "far": 242,
+   "col": 9,
+   "queued": 3,
+   "maxStep": {
+    "near": 25.299999998882413,
+    "mid": 73.40000000037253,
+    "far": 8.200000001117587,
+    "col": 7.799999998882413
+   },
+   "idleMs": 101.00000000186265
+  }
+ },
+ "cpuprof": {
+  "self": [
+   " 51.0%  (idle) :0",
+   "  1.8%  wasm-function[27] 0057e15e:1",
+   "  1.6%  (program) :0",
+   "  1.6%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+   "  1.2%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   "  1.1%  (garbage collector) :0",
+   "  1.0%  projectObject chunk-UG26MVNH.js:17733",
+   "  1.0%  multiplyMatrices chunk-UG26MVNH.js:3768",
+   "  1.0%  texSubImage2D :0",
+   "  0.8%  toArray chunk-UG26MVNH.js:4223",
+   "  0.8%  pump perfGuards.v2.js:341",
+   "  0.8%  sliverLand data.js:129",
+   "  0.8%  traverseVisible chunk-UG26MVNH.js:4747",
+   "  0.8%  fillRings mapRender.js:383",
+   "  0.7%  rebucket countryside.js:519",
+   "  0.7%  getBufferSubData :0",
+   "  0.7%  upload chunk-UG26MVNH.js:11627",
+   "  0.6%  work countryside.js:492",
+   "  0.5%  wasm-function[146] 0057e15e:1",
+   "  0.5%  setValue chunk-UG26MVNH.js:11574",
+   "  0.5%  setProgram chunk-UG26MVNH.js:17990",
+   "  0.5%  fromBufferAttribute chunk-UG26MVNH.js:2789",
+   "  0.5%  vert perfGuards.v2.js:78",
+   "  0.5%  wasm-function[487] 0057e15e:1",
+   "  0.5%  update chunk-UG26MVNH.js:10968",
+   "  0.5%  setValueV3f chunk-UG26MVNH.js:11109",
+   "  0.4%  one countryside.js:286",
+   "  0.4%  heightAt terrain.js:191",
+   "  0.4%  bufferSubData :0",
+   "  0.4%  bindVertexArray :0",
+   "  0.4%  renderObject chunk-UG26MVNH.js:13628",
+   "  0.4%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+   "  0.4%  inLotInner countryside.js:180",
+   "  0.3%  getProgramInfoLog :0",
+   "  0.3%  getImageData :0",
+   "  0.3%  minDepthAt data.js:206",
+   "  0.3%  isIslet data.js:152",
+   "  0.3%  getBoundingClientRect :0",
+   "  0.3%  uniform3f :0",
+   "  0.3%  s.isInside engine.js:45"
+  ],
+  "incl": [
+   "100.0%  (root) :0",
+   " 51.0%  (idle) :0",
+   " 43.2%  pump perfGuards.v2.js:341",
+   " 41.7%  frame main.js:963",
+   " 17.9%  post.render :218",
+   " 17.9%  post.render :77",
+   " 17.9%  post.render cinema.js:189",
+   " 17.9%  post.render perfHud.v2.js:41",
+   " 17.9%  post.render precompile.v2.js:154",
+   " 16.9%  render post.js:1229",
+   " 16.9%  renderImpl post.js:1234",
+   " 16.9%  r.render detailCull.v2.js:43",
+   " 16.9%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+   " 16.9%  render three_addons_postprocessing_EffectComposer__js.js:128",
+   " 16.9%  p.render :57",
+   " 16.5%  renderPass.render post.js:82",
+   " 16.5%  rp.render cinema.js:149",
+   " 16.5%  scenePass post.js:86",
+   " 16.5%  render three_addons_postprocessing_RenderPass__js.js:22",
+   " 10.0%  r.renderBufferDirect :204",
+   "  9.9%  renderScene chunk-UG26MVNH.js:17791",
+   "  9.9%  renderObjects chunk-UG26MVNH.js:17870",
+   "  9.9%  renderObject chunk-UG26MVNH.js:17883",
+   "  9.8%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   "  7.0%  setProgram chunk-UG26MVNH.js:17990",
+   "  4.5%  (anon) vegetation.v2.js:189",
+   "  4.3%  upload chunk-UG26MVNH.js:11627",
+   "  4.0%  update countryside.js:544",
+   "  3.5%  (anon) city.js:308",
+   "  3.5%  update city.js:260",
+   "  3.2%  update stream.js:58",
+   "  3.1%  runJobs stream.js:178",
+   "  3.0%  projectObject chunk-UG26MVNH.js:17733",
+   "  3.0%  step @dimforge_rapier3d-compat.js:4374",
+   "  2.4%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+   "  2.2%  step @dimforge_rapier3d-compat.js:3996",
+   "  2.2%  step @dimforge_rapier3d-compat.js:1672",
+   "  2.2%  wasm-function[554] 0057e15e:1",
+   "  2.2%  wasm-function[26] 0057e15e:1",
+   "  2.2%  scene.updateMatrixWorld :75",
+   "  2.1%  wasm-function[728] 0057e15e:1",
+   "  1.9%  wasm-function[27] 0057e15e:1",
+   "  1.9%  work countryside.js:492",
+   "  1.8%  js-to-wasm:iiiiiiiiiii: :0",
+   "  1.6%  (program) :0",
+   "  1.6%  buildMid tilebuild.js:3451",
+   "  1.6%  update chunk-UG26MVNH.js:10968",
+   "  1.6%  update @dimforge_rapier3d-compat.js:1761",
+   "  1.5%  update @dimforge_rapier3d-compat.js:4011",
+   "  1.5%  wasm-function[1204] 0057e15e:1",
+   "  1.5%  js-to-wasm:ii: :0",
+   "  1.5%  compileForGame pace.js:87",
+   "  1.5%  rebucket countryside.js:519",
+   "  1.4%  compile perfGuards.v2.js:271",
+   "  1.4%  WebGLRenderer.compile chunk-UG26MVNH.js:17555",
+   "  1.3%  setup chunk-UG26MVNH.js:9251",
+   "  1.3%  setTexture2D chunk-UG26MVNH.js:14845",
+   "  1.3%  surfaceTextures surfaces.js:87",
+   "  1.3%  housesTick houses.v2.js:260",
+   "  1.2%  setValue chunk-UG26MVNH.js:11574",
+   "  1.2%  runJobs houses.v2.js:88",
+   "  1.1%  (garbage collector) :0",
+   "  1.1%  sm.render :216",
+   "  1.1%  sm.render :67",
+   "  1.1%  sm.render tileCull.v2.js:75",
+   "  1.1%  sm.render shadows.js:146",
+   "  1.1%  sm.render detailCull.v2.js:47",
+   "  1.1%  WebGLShadowMap.render chunk-UG26MVNH.js:13485",
+   "  1.1%  update index.js:18",
+   "  1.1%  renderObject chunk-UG26MVNH.js:13628"
+  ],
+  "inclAll": [
+   "100.0%  (root) :0",
+   " 51.0%  (idle) :0",
+   " 43.2%  pump perfGuards.v2.js:341",
+   " 41.7%  frame main.js:963",
+   " 17.9%  post.render :218",
+   " 17.9%  post.render :77",
+   " 17.9%  post.render cinema.js:189",
+   " 17.9%  post.render perfHud.v2.js:41",
+   " 17.9%  post.render precompile.v2.js:154",
+   " 16.9%  render post.js:1229",
+   " 16.9%  renderImpl post.js:1234",
+   " 16.9%  r.render detailCull.v2.js:43",
+   " 16.9%  WebGLRenderer.render chunk-UG26MVNH.js:17646",
+   " 16.9%  render three_addons_postprocessing_EffectComposer__js.js:128",
+   " 16.9%  p.render :57",
+   " 16.5%  renderPass.render post.js:82",
+   " 16.5%  rp.render cinema.js:149",
+   " 16.5%  scenePass post.js:86",
+   " 16.5%  render three_addons_postprocessing_RenderPass__js.js:22",
+   " 10.0%  r.renderBufferDirect :204",
+   "  9.9%  renderScene chunk-UG26MVNH.js:17791",
+   "  9.9%  renderObjects chunk-UG26MVNH.js:17870",
+   "  9.9%  renderObject chunk-UG26MVNH.js:17883",
+   "  9.8%  WebGLRenderer.renderBufferDirect chunk-UG26MVNH.js:17454",
+   "  7.0%  setProgram chunk-UG26MVNH.js:17990",
+   "  4.5%  (anon) vegetation.v2.js:189",
+   "  4.3%  upload chunk-UG26MVNH.js:11627",
+   "  4.0%  update countryside.js:544",
+   "  3.5%  (anon) city.js:308",
+   "  3.5%  update city.js:260",
+   "  3.2%  update stream.js:58",
+   "  3.1%  runJobs stream.js:178",
+   "  3.0%  projectObject chunk-UG26MVNH.js:17733",
+   "  3.0%  step @dimforge_rapier3d-compat.js:4374",
+   "  2.4%  updateMatrixWorld chunk-UG26MVNH.js:4766",
+   "  2.2%  step @dimforge_rapier3d-compat.js:3996",
+   "  2.2%  step @dimforge_rapier3d-compat.js:1672",
+   "  2.2%  wasm-function[554] 0057e15e:1",
+   "  2.2%  wasm-function[26] 0057e15e:1",
+   "  2.2%  scene.updateMatrixWorld :75",
+   "  2.1%  wasm-function[728] 0057e15e:1",
+   "  1.9%  wasm-function[27] 0057e15e:1",
+   "  1.9%  work countryside.js:492",
+   "  1.8%  js-to-wasm:iiiiiiiiiii: :0",
+   "  1.6%  (program) :0",
+   "  1.6%  buildMid tilebuild.js:3451",
+   "  1.6%  update chunk-UG26MVNH.js:10968",
+   "  1.6%  update @dimforge_rapier3d-compat.js:1761",
+   "  1.5%  update @dimforge_rapier3d-compat.js:4011",
+   "  1.5%  wasm-function[1204] 0057e15e:1",
+   "  1.5%  js-to-wasm:ii: :0",
+   "  1.5%  compileForGame pace.js:87",
+   "  1.5%  rebucket countryside.js:519",
+   "  1.4%  compile perfGuards.v2.js:271",
+   "  1.4%  WebGLRenderer.compile chunk-UG26MVNH.js:17555",
+   "  1.3%  setup chunk-UG26MVNH.js:9251",
+   "  1.3%  setTexture2D chunk-UG26MVNH.js:14845",
+   "  1.3%  surfaceTextures surfaces.js:87",
+   "  1.3%  housesTick houses.v2.js:260",
+   "  1.2%  setValue chunk-UG26MVNH.js:11574",
+   "  1.2%  runJobs houses.v2.js:88",
+   "  1.1%  (garbage collector) :0",
+   "  1.1%  sm.render :216",
+   "  1.1%  sm.render :67",
+   "  1.1%  sm.render tileCull.v2.js:75",
+   "  1.1%  sm.render shadows.js:146",
+   "  1.1%  sm.render detailCull.v2.js:47",
+   "  1.1%  WebGLShadowMap.render chunk-UG26MVNH.js:13485",
+   "  1.1%  update index.js:18",
+   "  1.1%  renderObject chunk-UG26MVNH.js:13628",
+   "  1.1%  update hud.js:1333",
+   "  1.1%  tick precompile.v2.js:168",
+   "  1.0%  uploadTexture chunk-UG26MVNH.js:14969",
+   "  1.0%  js-to-wasm:iiiiiiiiii:i 0057e15e:1",
+   "  1.0%  drawMinimap hud.js:582",
+   "  1.0%  heightAt terrain.js:191",
+   "  1.0%  buildNear tilebuild.js:3241",
+   "  1.0%  multiplyMatrices chunk-UG26MVNH.js:3768",
+   "  1.0%  (anon) houses.v2.js:100",
+   "  1.0%  buildBuilding tilebuild.js:774",
+   "  1.0%  texSubImage2D chunk-UG26MVNH.js:14247",
+   "  1.0%  texSubImage2D :0",
+   "  0.9%  beforeFrame precompile.v2.js:69",
+   "  0.9%  update chunk-UG26MVNH.js:8279",
+   "  0.9%  lodBuildings tilebuild.js:3434",
+   "  0.9%  traverse chunk-UG26MVNH.js:4740",
+   "  0.9%  flatten chunk-UG26MVNH.js:11048",
+   "  0.9%  update engine.js:90",
+   "  0.9%  getProgram chunk-UG26MVNH.js:17901",
+   "  0.9%  inner engine.js:107",
+   "  0.9%  wasm-function[102] 0057e15e:1",
+   "  0.9%  update peds.js:778",
+   "  0.9%  setValueM4Array chunk-UG26MVNH.js:11415",
+   "  0.8%  toArray chunk-UG26MVNH.js:4223",
+   "  0.8%  updateSceneQueries @dimforge_rapier3d-compat.js:4380",
+   "  0.8%  mergeClusterGen houses.v2.js:73",
+   "  0.8%  draw mapRender.js:537",
+   "  0.8%  update audio.js:1772",
+   "  0.8%  traverseVisible chunk-UG26MVNH.js:4747",
+   "  0.8%  buildInterior build.js:46",
+   "  0.8%  sliverLand data.js:129",
+   "  0.8%  getTile mapRender.js:480",
+   "  0.8%  renderTile mapRender.js:375",
+   "  0.8%  setValueT1 chunk-UG26MVNH.js:11291",
+   "  0.8%  setValueV3f chunk-UG26MVNH.js:11109",
+   "  0.8%  fillRings mapRender.js:383",
+   "  0.8%  _keep materials.js:46",
+   "  0.8%  refreshMaterialUniforms chunk-UG26MVNH.js:16581",
+   "  0.7%  update seabed.js:116",
+   "  0.7%  gridGen terrain.js:217",
+   "  0.7%  surf materials.js:48",
+   "  0.7%  (anon) materials.js:50",
+   "  0.7%  stepBuild seabed.js:74",
+   "  0.7%  (anon) people.v2.js:816",
+   "  0.7%  glassFront tilebuild.js:2147",
+   "  0.7%  shopFrontDress tilebuild.js:2014",
+   "  0.7%  WebGLRenderer.readRenderTargetPixelsAsync chunk-UG26MVNH.js:18332",
+   "  0.7%  getBufferSubData :0",
+   "  0.7%  buildHouseGen generator.js:73",
+   "  0.7%  updateCrowd people.v2.js:705",
+   "  0.7%  updateBuffer chunk-UG26MVNH.js:8230",
+   "  0.7%  update vehicles.js:1694",
+   "  0.7%  updateAll vehicles.js:2158",
+   "  0.6%  update boats.js:1168",
+   "  0.6%  normalMap surfaces.js:78",
+   "  0.6%  gridOf countryside.js:414",
+   "  0.6%  buildHouse generator.js:72",
+   "  0.6%  isIndoor audio.js:363",
+   "  0.6%  ch.update seat.js:392",
+   "  0.6%  character.update index.js:131",
+   "  0.6%  genShrubs countryside.js:425",
+   "  0.6%  prepareMaterial chunk-UG26MVNH.js:17542",
+   "  0.6%  (anon) chunk-UG26MVNH.js:17580",
+   "  0.6%  groundGrassTick grass.v2.js:140",
+   "  0.5%  wasm-function[146] 0057e15e:1",
+   "  0.5%  upgradeStep boats.js:412",
+   "  0.5%  WebGLRenderer.initTexture chunk-UG26MVNH.js:18520",
+   "  0.5%  gather grass.v2.js:115",
+   "  0.5%  buildBoatSteps catalog.js:40",
+   "  0.5%  swimDepthAt data.js:219",
+   "  0.5%  step engine.js:74",
+   "  0.5%  seabedDepthAt data.js:953",
+   "  0.5%  city.seabedDepthAt city.js:224",
+   "  0.5%  quad2 tilebuild.js:2018",
+   "  0.5%  minDepthAt data.js:206",
+   "  0.5%  fixtures boutique.js:34",
+   "  0.5%  vehiclesFixed vehicles.js:1670",
+   "  0.5%  fromBufferAttribute chunk-UG26MVNH.js:2789",
+   "  0.5%  intersectionWithShape @dimforge_rapier3d-compat.js:4491",
+   "  0.5%  setValue chunk-UG26MVNH.js:11619",
+   "  0.5%  intersectionWithShape @dimforge_rapier3d-compat.js:4026",
+   "  0.5%  intersectionWithShape @dimforge_rapier3d-compat.js:1789",
+   "  0.5%  wasm-function[550] 0057e15e:1",
+   "  0.5%  vert perfGuards.v2.js:78",
+   "  0.5%  wasm-function[487] 0057e15e:1",
+   "  0.5%  bindVertexArrayObject chunk-UG26MVNH.js:9274",
+   "  0.5%  b.vert tilebuild.js:67",
+   "  0.4%  one countryside.js:286",
+   "  0.4%  v.vert tilebuild.js:519",
+   "  0.4%  terrainLod tilebuild.js:150",
+   "  0.4%  placeTrees countryside.js:137",
+   "  0.4%  scene.onBeforeRender talk.js:623",
+   "  0.4%  bufferSubData :0",
+   "  0.4%  setupVertexAttributes chunk-UG26MVNH.js:9411",
+   "  0.4%  scene.onBeforeRender tileCull.v2.js:64",
+   "  0.4%  bindVertexArray :0",
+   "  0.4%  (anon) audio.js:366",
+   "  0.4%  tick gangs.v2.js:636",
+   "  0.4%  physicsTick vehicles.js:674",
+   "  0.4%  attach farCrowd.js:221",
+   "  0.4%  onFirstUse chunk-UG26MVNH.js:12196",
+   "  0.4%  WebGLProgram.getUniforms chunk-UG26MVNH.js:12240",
+   "  0.4%  bucketFor farCrowd.js:187",
+   "  0.4%  gl.<computed> :4",
+   "  0.4%  genTrees countryside.js:409",
+   "  0.4%  update pose.js:84",
+   "  0.4%  getBake farCrowd.js:165",
+   "  0.4%  inLotInner countryside.js:180",
+   "  0.4%  compileBatch precompile.v2.js:132",
+   "  0.4%  bakePerson farCrowd.js:41",
+   "  0.3%  acquireProgram chunk-UG26MVNH.js:12764",
+   "  0.3%  setValueM4 chunk-UG26MVNH.js:11175",
+   "  0.3%  getProgramInfoLog :0",
+   "  0.3%  refreshUniformsCommon chunk-UG26MVNH.js:16624",
+   "  0.3%  WebGLProgram chunk-UG26MVNH.js:11903",
+   "  0.3%  flush kit.js:92",
+   "  0.3%  getImageData :0",
+   "  0.3%  genGround countryside.js:460",
+   "  0.3%  box generator.js:88",
+   "  0.3%  s.isInside engine.js:45",
+   "  0.3%  buildColliders tilebuild.js:3566",
+   "  0.3%  update farCrowd.js:280",
+   "  0.3%  lod.update glbCar.js:434",
+   "  0.3%  isIslet data.js:152",
+   "  0.3%  getBoundingClientRect :0",
+   "  0.3%  uniform3f :0",
+   "  0.3%  wasm-function[111] 0057e15e:1",
+   "  0.3%  surfCode data.js:176",
+   "  0.3%  spawnWalker people.v2.js:346",
+   "  0.3%  venueMats venue.js:18",
+   "  0.3%  unstuckTick main.js:911",
+   "  0.3%  bindTexture chunk-UG26MVNH.js:14202",
+   "  0.3%  layerAt terrain.js:148",
+   "  0.3%  computeBoundingSphere chunk-UG26MVNH.js:6698",
+   "  0.3%  setValueV4f chunk-UG26MVNH.js:11131",
+   "  0.3%  translation @dimforge_rapier3d-compat.js:2808",
+   "  0.3%  chunkMesh tilebuild.js:3395",
+   "  0.3%  update field.js:86",
+   "  0.3%  update character.js:147",
+   "  0.3%  playerFixed main.js:206",
+   "  0.3%  trafficManager vehicles.js:1620",
+   "  0.3%  update chunk-UG26MVNH.js:10707",
+   "  0.3%  nearestAny vehicles.js:2142",
+   "  0.3%  biomeOf countryside.js:89",
+   "  0.3%  nearestCarOrBoat vehicles.js:2149",
+   "  0.3%  cellInfo grass.v2.js:85",
+   "  0.3%  box kit.js:296",
+   "  0.3%  buildShell shell.js:7",
+   "  0.3%  wasm-function[1753] 0057e15e:1",
+   "  0.3%  update gameplay.js:353",
+   "  0.3%  arraysEqual chunk-UG26MVNH.js:11066",
+   "  0.3%  wasm-function[541] 0057e15e:1",
+   "  0.2%  syncWheels glbCar.js:312",
+   "  0.2%  tryCall util.js:15",
+   "  0.2%  boatsFixed boats.js:1148",
+   "  0.2%  wasm-function[337] 0057e15e:1",
+   "  0.2%  wasm-function[1616] 0057e15e:1",
+   "  0.2%  updateWorldMatrix chunk-UG26MVNH.js:4785",
+   "  0.2%  addGeometry geo.js:14",
+   "  0.2%  S shell.js:5",
+   "  0.2%  boatTick2 boats.js:665",
+   "  0.2%  wasm-to-js :1",
+   "  0.2%  bulk countryside.js:285",
+   "  0.2%  spotFree vehicles.js:48",
+   "  0.2%  update lawn.js:226",
+   "  0.2%  bindBuffer :0",
+   "  0.2%  markUniformsLightsNeedsUpdate chunk-UG26MVNH.js:18186",
+   "  0.2%  KCC.computeColliderMovement solidCars.js:14",
+   "  0.2%  onBeforeRender perfGuards.v2.js:208",
+   "  0.2%  render post.js:939",
+   "  0.2%  render3 post.js:967",
+   "  0.2%  (anon) venueSurfaces.js:14",
+   "  0.2%  stepJob lawn.js:80",
+   "  0.2%  groundMaskTick surfaceMask.js:248",
+   "  0.2%  list.sort drawOrder.v2.js:49",
+   "  0.2%  update surfaceMask.js:213",
+   "  0.2%  scene.onBeforeRender weapons.js:740",
+   "  0.2%  update manager.js:782",
+   "  0.2%  scene.onBeforeRender engine.js:106",
+   "  0.2%  scatter flora.js:125",
+   "  0.2%  floraInto tilebuild.js:74",
+   "  0.2%  setMatrixAt chunk-UG26MVNH.js:19577",
+   "  0.2%  updateInner manager.js:783",
+   "  0.2%  expand precompile.v2.js:115",
+   "  0.2%  shoreDist terrain.js:208",
+   "  0.2%  getParameters chunk-UG26MVNH.js:12372",
+   "  0.2%  vertexAttribPointer chunk-UG26MVNH.js:9404",
+   "  0.2%  getObjectByProperty chunk-UG26MVNH.js:4700",
+   "  0.2%  randomLanePos vehicles.js:93",
+   "  0.2%  respawnAI vehicles.js:1226",
+   "  0.2%  env.update weather.v2.js:257",
+   "  0.2%  sort chunk-UG26MVNH.js:12919",
+   "  0.2%  update environment.js:269",
+   "  0.2%  wasm-function[1749] 0057e15e:1",
+   "  0.2%  wasm-function[1747] 0057e15e:1",
+   "  0.2%  vertexAttribPointer :0",
+   "  0.2%  bone index.js:95",
+   "  0.2%  drawPlaster venueSurfaces.js:93",
+   "  0.2%  renderVelocity post.js:856",
+   "  0.2%  createBuffer chunk-UG26MVNH.js:8190",
+   "  0.2%  proto.intersectsObject detailCull.v2.js:27",
+   "  0.2%  set timestep @dimforge_rapier3d-compat.js:4386",
+   "  0.2%  updateImpl environment.js:281",
+   "  0.2%  set dt @dimforge_rapier3d-compat.js:3200",
+   "  0.2%  set dt @dimforge_rapier3d-compat.js:1345",
+   "  0.2%  computeColliderMovement @dimforge_rapier3d-compat.js:4175",
+   "  0.2%  update chunk-UG26MVNH.js:29619",
+   "  0.2%  I3.wbg.__wbindgen_throw @dimforge_rapier3d-compat.js:2631",
+   "  0.2%  js-to-wasm:if: :0",
+   "  0.2%  n venueSurfaces.js:11",
+   "  0.2%  hydroStep hydro.js:47",
+   "  0.2%  raycast chunk-UG26MVNH.js:7139",
+   "  0.2%  intersect chunk-UG26MVNH.js:29856",
+   "  0.2%  intersectObjects chunk-UG26MVNH.js:29845",
+   "  0.2%  wasm-function[1499] 0057e15e:1",
+   "  0.2%  mergeBucketsGen houses.v2.js:42",
+   "  0.2%  _computeIntersections chunk-UG26MVNH.js:7159",
+   "  0.2%  computeColliderMovement @dimforge_rapier3d-compat.js:1519",
+   "  0.2%  createDriver arch.v2.js:174",
+   "  0.2%  addDriver vehicles.js:493",
+   "  0.2%  bufferData :0",
+   "  0.2%  seatMaxHeight seat.js:414",
+   "  0.2%  probeSeat seat.js:155",
+   "  0.2%  wasm-function[103] 0057e15e:1",
+   "  0.2%  wasm-function[678] 0057e15e:1",
+   "  0.2%  nearestSeg data.js:301",
+   "  0.2%  nearest vehicles.js:2089",
+   "  0.2%  renderCascade surfaceMask.js:161",
+   "  0.2%  opening generator.js:258",
+   "  0.2%  createCollider @dimforge_rapier3d-compat.js:4439",
+   "  0.2%  isPocket data.js:167",
+   "  0.2%  createCollider @dimforge_rapier3d-compat.js:4954",
+   "  0.2%  wasm-function[218] 0057e15e:1",
+   "  0.2%  updateVehicle @dimforge_rapier3d-compat.js:4203",
+   "  0.2%  toObject3D kit.js:245",
+   "  0.2%  setValueV1f chunk-UG26MVNH.js:11089",
+   "  0.2%  hide tileCull.v2.js:39",
+   "  0.2%  castRay @dimforge_rapier3d-compat.js:4482",
+   "  0.2%  update_vehicle @dimforge_rapier3d-compat.js:837",
+   "  0.2%  getObjectByName chunk-UG26MVNH.js:4697",
+   "  0.2%  js-to-wasm:ifiiiiiii: 0057e15e:1",
+   "  0.2%  sample lawn.js:55",
+   "  0.2%  wasm-function[92] 0057e15e:1",
+   "  0.2%  wasm-function[769] 0057e15e:1",
+   "  0.2%  geometries kit.js:221",
+   "  0.2%  update chunk-UG26MVNH.js:19370",
+   "  0.2%  needsUpdate chunk-UG26MVNH.js:9321",
+   "  0.1%  at venueSurfaces.js:10",
+   "  0.1%  castRay @dimforge_rapier3d-compat.js:4014",
+   "  0.1%  checkGeometryIntersection chunk-UG26MVNH.js:7257",
+   "  0.1%  (anon) kit.js:130",
+   "  0.1%  scene.onBeforeRender city.js:314",
+   "  0.1%  RoundedBoxGeometry three_addons_geometries_RoundedBoxGeometry__js.js:25",
+   "  0.1%  wasm-function[1765] 0057e15e:1",
+   "  0.1%  cullPools tilebuild.js:389",
+   "  0.1%  buildTower tilebuild.js:664",
+   "  0.1%  f :8",
+   "  0.1%  surfaceAt data.js:426",
+   "  0.1%  castRay @dimforge_rapier3d-compat.js:1764",
+   "  0.1%  js-to-wasm:ifiiidiiifiiii: :0",
+   "  0.1%  (anon) farCrowd.js:74",
+   "  0.1%  tick rocks.js:18",
+   "  0.1%  toNonIndexed chunk-UG26MVNH.js:6900",
+   "  0.1%  bindTexture :0",
+   "  0.1%  updateMusic audio.js:1644",
+   "  0.1%  WebGLShader chunk-UG26MVNH.js:11644",
+   "  0.1%  wasm-function[546] 0057e15e:1",
+   "  0.1%  buildRoads tilebuild.js:1721",
+   "  0.1%  _update chunk-UG26MVNH.js:29139",
+   "  0.1%  shaderSource :0",
+   "  0.1%  update collar.js:48",
+   "  0.1%  rebuild collar.js:35",
+   "  0.1%  roof generator.js:406",
+   "  0.1%  tick stream.js:8",
+   "  0.1%  js-to-wasm:ii:i 0057e15e:1",
+   "  0.1%  intoRaw @dimforge_rapier3d-compat.js:3936",
+   "  0.1%  mergeBuckets houses.v2.js:41",
+   "  0.1%  clipAction chunk-UG26MVNH.js:29574",
+   "  0.1%  wasm-function[1043] 0057e15e:1",
+   "  0.1%  convexHull @dimforge_rapier3d-compat.js:2383",
+   "  0.1%  pushItem countryside.js:356",
+   "  0.1%  B2 generator.js:260",
+   "  0.1%  wasm-function[713] 0057e15e:1",
+   "  0.1%  shoreWet tilebuild.js:3612",
+   "  0.1%  add lotProps.v2.js:110",
+   "  0.1%  add lotProps.v2.js:167",
+   "  0.1%  (anon) houses.v2.js:129",
+   "  0.1%  replaceLightNums chunk-UG26MVNH.js:11777",
+   "  0.1%  computeVertexNormals chunk-UG26MVNH.js:6838",
+   "  0.1%  rbTranslation @dimforge_rapier3d-compat.js:1968",
+   "  0.1%  porch generator.js:523",
+   "  0.1%  at data.js:45",
+   "  0.1%  WebGLRenderer.compileAsync chunk-UG26MVNH.js:17602",
+   "  0.1%  roofPlane generator.js:490",
+   "  0.1%  field vegetation.v2.js:95",
+   "  0.1%  roadDist vegetation.v2.js:208",
+   "  0.1%  drawStone venueSurfaces.js:18",
+   "  0.1%  isWater vegetation.v2.js:209",
+   "  0.1%  computeBoundingBox chunk-UG26MVNH.js:6660",
+   "  0.1%  wasm-function[160] 0057e15e:1",
+   "  0.1%  wasm-function[46] 0057e15e:1",
+   "  0.1%  aiDrive vehicles.js:956",
+   "  0.1%  setFromBufferAttribute chunk-UG26MVNH.js:2836",
+   "  0.1%  add perfGuards.v2.js:401",
+   "  0.1%  reservedAt lots.js:69",
+   "  0.1%  wasm-function[41] 0057e15e:1",
+   "  0.1%  groundAt vegetation.v2.js:151",
+   "  0.1%  v.vert tilebuild.js:522",
+   "  0.1%  _bindAction chunk-UG26MVNH.js:29340",
+   "  0.1%  copyArray chunk-UG26MVNH.js:11073",
+   "  0.1%  intersectsObject chunk-UG26MVNH.js:8105",
+   "  0.1%  isWater data.js:425",
+   "  0.1%  surface boats.js:328",
+   "  0.1%  update footIK.js:82",
+   "  0.1%  geo kit.js:348",
+   "  0.1%  drawMarble venueSurfaces.js:44",
+   "  0.1%  uniformMatrix4fv :0",
+   "  0.1%  setMaterial chunk-UG26MVNH.js:14123",
+   "  0.1%  __wrap @dimforge_rapier3d-compat.js:2514",
+   "  0.1%  tick trunks.js:40",
+   "  0.1%  cyl kit.js:368",
+   "  0.1%  setValueM3 chunk-UG26MVNH.js:11161",
+   "  0.1%  randomSidewalkPoint city.js:245",
+   "  0.1%  wasm-function[24] 0057e15e:1",
+   "  0.1%  getWorldPosition chunk-UG26MVNH.js:4719",
+   "  0.1%  get memory :0",
+   "  0.1%  randomSidewalkPoint data.js:550",
+   "  0.1%  pickSidewalk data.js:527",
+   "  0.1%  wasm-function[917] 0057e15e:1",
+   "  0.1%  clumpK countryside.js:126"
+  ],
+  "underRunJobs": {
+   "totalPct": 3.1,
+   "top": [
+    "100.0%  runJobs stream.js:178",
+    "100.0%  (root) :0",
+    " 98.5%  update stream.js:58",
+    " 98.5%  update city.js:260",
+    " 98.5%  (anon) city.js:308",
+    " 98.5%  frame main.js:963",
+    " 98.5%  pump perfGuards.v2.js:341",
+    " 53.3%  buildMid tilebuild.js:3451",
+    " 32.6%  buildNear tilebuild.js:3241",
+    " 31.9%  buildBuilding tilebuild.js:774",
+    " 29.5%  lodBuildings tilebuild.js:3434",
+    " 24.1%  gridGen terrain.js:217",
+    " 23.3%  glassFront tilebuild.js:2147",
+    " 22.8%  shopFrontDress tilebuild.js:2014",
+    " 16.7%  quad2 tilebuild.js:2018",
+    " 15.6%  heightAt terrain.js:191",
+    " 15.5%  vert perfGuards.v2.js:78",
+    " 14.8%  b.vert tilebuild.js:67",
+    " 14.5%  v.vert tilebuild.js:519",
+    " 14.0%  terrainLod tilebuild.js:150",
+    " 10.0%  buildColliders tilebuild.js:3566",
+    "  9.7%  sliverLand data.js:129",
+    "  8.9%  chunkMesh tilebuild.js:3395",
+    "  7.7%  addGeometry geo.js:14",
+    "  6.3%  scatter flora.js:125",
+    "  6.3%  floraInto tilebuild.js:74",
+    "  6.2%  shoreDist terrain.js:208",
+    "  6.0%  fromBufferAttribute chunk-UG26MVNH.js:2789",
+    "  5.0%  layerAt terrain.js:148",
+    "  5.0%  computeBoundingSphere chunk-UG26MVNH.js:6698",
+    "  4.6%  buildTower tilebuild.js:664",
+    "  4.1%  isIslet data.js:152",
+    "  4.1%  buildRoads tilebuild.js:1721",
+    "  3.8%  shoreWet tilebuild.js:3612",
+    "  3.4%  add perfGuards.v2.js:401",
+    "  3.4%  WebGLRenderer.compileAsync chunk-UG26MVNH.js:17602",
+    "  3.3%  compile perfGuards.v2.js:271",
+    "  3.3%  v.vert tilebuild.js:522",
+    "  3.3%  WebGLRenderer.compile chunk-UG26MVNH.js:17555",
+    "  3.3%  toNonIndexed chunk-UG26MVNH.js:6900",
+    "  2.8%  placeTrees countryside.js:137",
+    "  2.8%  computeBoundingBox chunk-UG26MVNH.js:6660",
+    "  2.7%  buildFar tilebuild.js:3526",
+    "  2.7%  setFromBufferAttribute chunk-UG26MVNH.js:2836",
+    "  2.1%  isPocket data.js:167",
+    "  2.1%  inst tilebuild.js:444",
+    "  2.0%  elevTileG tilebuild.js:3788",
+    "  2.0%  buildTileSteps elevated.js:41",
+    "  2.0%  surfCode data.js:176",
+    "  1.9%  elevLodInto tilebuild.js:3445",
+    "  1.8%  traverseVisible chunk-UG26MVNH.js:4747",
+    "  1.8%  growPool tilebuild.js:372",
+    "  1.7%  tri terrain.js:232",
+    "  1.7%  buildLod build.js:464",
+    "  1.7%  convertBufferAttribute chunk-UG26MVNH.js:6901",
+    "  1.6%  getPool tilebuild.js:360",
+    "  1.6%  ensureProps tilebuild.js:2488",
+    "  1.5%  idle stream.js:196",
+    "  1.5%  at tilebuild.js:2030",
+    "  1.4%  getProgram chunk-UG26MVNH.js:17901"
+   ]
+  },
+  "underVeg": {
+   "totalPct": 4,
+   "top": [
+    "100.0%  update countryside.js:544",
+    "100.0%  (anon) vegetation.v2.js:189",
+    "100.0%  frame main.js:963",
+    "100.0%  pump perfGuards.v2.js:341",
+    "100.0%  (root) :0",
+    " 46.6%  work countryside.js:492",
+    " 36.3%  rebucket countryside.js:519",
+    " 14.8%  gridOf countryside.js:414",
+    " 13.9%  genShrubs countryside.js:425",
+    " 11.0%  one countryside.js:286",
+    "  9.3%  heightAt terrain.js:191",
+    "  9.2%  genTrees countryside.js:409",
+    "  9.0%  inLotInner countryside.js:180",
+    "  8.5%  placeTrees countryside.js:137",
+    "  8.0%  genGround countryside.js:460",
+    "  6.7%  sliverLand data.js:129",
+    "  6.0%  biomeOf countryside.js:89",
+    "  5.4%  bulk countryside.js:285",
+    "  3.0%  pushItem countryside.js:356",
+    "  2.7%  roadDist vegetation.v2.js:208",
+    "  2.7%  isWater vegetation.v2.js:209",
+    "  2.5%  reservedAt lots.js:69",
+    "  2.3%  nearestSeg data.js:301",
+    "  2.2%  layerAt terrain.js:148",
+    "  2.1%  groundAt vegetation.v2.js:209",
+    "  2.0%  groundAt vegetation.v2.js:151",
+    "  2.0%  inLot countryside.js:174",
+    "  1.8%  blocked vegetation.v2.js:209",
+    "  1.8%  isIslet data.js:152",
+    "  1.7%  end countryside.js:287",
+    "  1.6%  solidAt vegetation.v2.js:54",
+    "  1.5%  clumpK countryside.js:126",
+    "  1.1%  castRay @dimforge_rapier3d-compat.js:4014",
+    "  1.1%  castRay @dimforge_rapier3d-compat.js:4482",
+    "  1.1%  addUpdateRange chunk-UG26MVNH.js:6201",
+    "  1.1%  castRay @dimforge_rapier3d-compat.js:1764",
+    "  1.1%  wasm-function[546] 0057e15e:1",
+    "  0.9%  intersectsSphere chunk-UG26MVNH.js:8122",
+    "  0.9%  inLotCore countryside.js:179",
+    "  0.8%  createCountryside.deckAt vegetation.v2.js:209",
+    "  0.7%  bil countryside.js:421",
+    "  0.7%  vn countryside.js:31",
+    "  0.7%  seal countryside.js:362",
+    "  0.7%  addLotHedges countryside.js:396",
+    "  0.7%  zoneAt data.js:431",
+    "  0.6%  patchN countryside.js:37",
+    "  0.6%  normalAt countryside.js:424",
+    "  0.6%  hSig countryside.js:537",
+    "  0.6%  triH countryside.js:419",
+    "  0.6%  blockedAt vegetation.v2.js:65",
+    "  0.6%  lotTrees countryside.js:183",
+    "  0.6%  isPocket data.js:167",
+    "  0.6%  wasm-function[218] 0057e15e:1",
+    "  0.6%  (anon) city.js:221",
+    "  0.5%  room countryside.js:284",
+    "  0.5%  (anon) city.js:62",
+    "  0.5%  Hij ground.js:22",
+    "  0.5%  (anon) countryside.js:537",
+    "  0.5%  (anon) countryside.js:410",
+    "  0.5%  groundHeightAt data.js:413"
+   ]
+  }
+ },
+ "heapNow": {
+  "usedMB": 3474,
+  "totalMB": 3487,
+  "limitMB": 4192
+ },
+ "errors": [
+  "ERR [physics] Rapier panic — physics halted Error: recursive use of an object detected which would lead to unsafe aliasing in rust\n    at I3.wbg.__wbindgen_throw (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapier3d-compat.js?v=7265e919:2632:13)\n    at wasm://wasm/0057e15e:wasm-function[1747]:0x14d54e\n    at wasm://wasm/0057e15e:wasm-function[1749]:0x14d56a\n    at wasm://wasm/0057e15e:wasm-function[554]:0xf970b\n    at KA.step (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapie",
+  "ERR Error: recursive use of an object detected which would lead to unsafe aliasing in rust\n    at I3.wbg.__wbindgen_throw (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapier3d-compat.js?v=7265e919:2632:13)\n    at wasm://wasm/0057e15e:wasm-function[1747]:0x14d54e\n    at wasm://wasm/0057e15e:wasm-function[1749]:0x14d56a\n    at wasm://wasm/0057e15e:wasm-function[1499]:0x14a349\n    at set dt (http://127.0.0.1:5200/node_modules/.vite/deps/@dimforge_rapier3d-compat.js?v=7265e919:1346:7)\n    at"
+ ]
+}

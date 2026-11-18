@@ -261,6 +261,40 @@ function stabilizeLights(game) {
     }
   };
   game.lightBudget = stats;
+  // r2-perf: shader programs are keyed on the light counts. Every precompile path (boot warm-up, compileForGame,
+  // precompile.v2.js, streamed tiles, interiors) calls renderer.compile / compileAsync, which never runs
+  // scene.onBeforeRender, so they compiled with the spare lights still hidden (1 point / 0 spot instead of 16 / 4) and the
+  // real program compiled synchronously on first draw (a drive measured 1.2-4.5 s of link stalls, frames up to 8.7 s).
+  // compile now sees the same light set as the render. ?compilelights=0 = old behavior.
+  if (!(typeof location !== 'undefined' && /[?&]compilelights=0\b/.test(location.search))) {
+    const r = game.renderer, comp0 = r.compile.bind(r);
+    r.compile = function compile(sc, cam, target = null) {
+      const ts = target || sc;
+      if (ts !== scene || !cam || !cam.layers) return comp0(sc, cam, target);
+      let fitted = false;
+      try {
+        livePoint.length = 0;
+        liveSpot.length = 0;
+        for (const l of tracked) {
+          if (!effectiveIn(l, scene, cam.layers)) continue;
+          if (l.isSpotLight) liveSpot.push(l); else livePoint.push(l);
+        }
+        fit(livePoint, POINT_TARGET, spares.point, cam);
+        fit(liveSpot, SPOT_TARGET, spares.spot, cam);
+        fitted = true;
+      } catch (e) {
+        // never break a compile
+      }
+      try {
+        return comp0(sc, cam, target);
+      } finally {
+        if (fitted) {
+          for (const l of hiddenNow) l.visible = true;
+          hiddenNow.length = 0;
+        }
+      }
+    };
+  }
   return true;
 }
 

@@ -95,7 +95,10 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   const nm = (n) => `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.split('/').slice(-1)[0].split('?')[0]}:${n.callFrame.lineNumber + 1}`;
   for (const [sid, c] of cnt) { const n = nodes.get(sid); self[nm(n)] = (self[nm(n)] || 0) + c; const seen = new Set(); for (let x = sid; x !== undefined; x = parent.get(x)) { const k = nm(nodes.get(x)); if (!seen.has(k)) { seen.add(k); incl[k] = (incl[k] || 0) + c; } } }
   const topN = (m, k) => Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, k).map(([f, c]) => `${(100 * c / total).toFixed(1).padStart(5)}%  ${f}`);
-  rep.cpuprof = { self: topN(self, 40), incl: topN(incl, 70), inclAll: topN(incl, 400) };
+  // inclusive shares restricted to samples under a given frame (e.g. the tile streamer's job runner)
+  const under = (re) => { const m = {}; let tot = 0; for (const [sid, c] of cnt) { const stack = []; for (let x = sid; x !== undefined; x = parent.get(x)) stack.push(nm(nodes.get(x))); if (!stack.some((f) => re.test(f))) continue; tot += c; const seen = new Set(); for (const f of stack) if (!seen.has(f)) { seen.add(f); m[f] = (m[f] || 0) + c; } } return { totalPct: +(100 * tot / total).toFixed(1), top: Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, 60).map(([f, c2]) => `${(100 * c2 / Math.max(1, tot)).toFixed(1).padStart(5)}%  ${f}`) }; };
+  rep.cpuprof = { self: topN(self, 40), incl: topN(incl, 70), inclAll: topN(incl, 400), underRunJobs: under(/^runJobs stream\.js/), underVeg: under(/^update countryside\.js/) };
+  console.log('UNDER runJobs (' + rep.cpuprof.underRunJobs.totalPct + '% of CPU):'); for (const l of rep.cpuprof.underRunJobs.top.slice(0, 45)) console.log('   ', l);
   const D = rep.drive;
   console.log('drive', JSON.stringify({ ...D, hitches: undefined, longTasks: undefined }));
   console.log('hitches >', HITCH, 'ms:', D.hitches.length);
