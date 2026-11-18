@@ -40,6 +40,11 @@ export function placesFor(zone, act, ctx = {}) {
     case 'bouncer': case 'security': return ['security'];
     case 'club': case 'guest': case 'dj': return ['nightlife', 'tourist'];
     case 'hotel': case 'maid': case 'bellhop': return ['hotel_staff'];
+    case 'hospital': case 'nurse': case 'paramedic': return ['medic'];
+    case 'fire_station': case 'firefighter': return ['fire'];
+    case 'garage': case 'mechanic': return ['work', 'industrial'];
+    case 'bank': return ['security', 'business'];
+    case 'valet': return ['hotel_staff'];
     case 'casual': return keys ? ['keys', 'street', 'tourist'] : ['street', 'shop_guest', 'tourist', 'residential'];
     case 'residential': default:
       if (keys) return ['keys', 'residential', 'dock', 'tourist'];
@@ -181,7 +186,7 @@ export async function createCast(game) {
   function anyCivilian(pos, opts = {}) {
     let best = null, bs = -1; const g = opts.gender ? (String(opts.gender)[0] === 'f' ? 'f' : 'm') : null;
     for (const x of loadedPeople()) {
-      const p = byId.get(x.id); if (!p || NO_CAR(p) || opts.exclude?.has?.(x.id)) continue;
+      const p = byId.get(x.id); if (!p || NO_CAR(p) || p.age === 'kid' || opts.exclude?.has?.(x.id)) continue;   // mission / event stand-ins are never kids
       let near = 1e9; for (const c of live) if (c.npcArch === x.id) near = !c.root.visible || !pos ? 0 : Math.min(near, Math.hypot(at(c).x - pos.x, at(c).z - pos.z));
       if (near < 60) continue;
       const s = Math.min(near, 400) + Math.random() * 50 + (g && p.g === g ? 500 : 0); if (s > bs) { bs = s; best = x; }

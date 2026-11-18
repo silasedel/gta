@@ -86,7 +86,7 @@ export async function initV2(game) {
   // staged people: a person whose role fits the place when one is loaded (cashier, cook, bartender, maid, lifeguard ...)
   const STAGE_PLACES = { cashier: ['shop_staff'], shop: ['shop_staff'], clerk: ['shop_staff'], shop_staff: ['shop_staff'], kitchen: ['kitchen'], cook: ['kitchen'], bar: ['bar'], bartender: ['bar'], server: ['bar', 'shop_staff'],
     hotel: ['hotel_staff'], hotel_staff: ['hotel_staff'], maid: ['hotel_staff'], bellhop: ['hotel_staff'], security: ['security'], bouncer: ['security'], lifeguard: ['lifeguard'], dock: ['dock', 'fishing'], fisherman: ['fishing', 'dock'],
-    police: ['police'], cop: ['police'], medic: ['medic'], paramedic: ['medic'], farm: ['farm', 'rural'], nightlife: ['nightlife'], guest: ['nightlife', 'tourist'], shopper: ['shop_guest', 'street'] };
+    police: ['police'], cop: ['police'], medic: ['medic'], paramedic: ['medic'], nurse: ['medic'], hospital: ['medic'], firefighter: ['fire'], fire: ['fire'], mechanic: ['work', 'industrial'], garage: ['work', 'industrial'], mail: ['work'], valet: ['hotel_staff'], waitress: ['bar', 'shop_staff'], bank: ['security', 'business'], beach_patrol: ['police'], farm: ['farm', 'rural'], nightlife: ['nightlife'], guest: ['nightlife', 'tourist'], shopper: ['shop_guest', 'street'] };
   function spawnPosed(o = {}) {
     let c = null;
     if (cast && !o.archetype && o.people !== false) { try { const pl = o.person ? null : (STAGE_PLACES[o.place] || (o.place ? [o.place] : null)); if (o.person || pl) c = cast.createFor(pl || [], { id: o.person, pos: o.pos, seed: o.seed, pose: o.pose || null, gender: o.gender }); } catch (e) { c = null; } }

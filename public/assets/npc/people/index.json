@@ -3225,6 +3225,1632 @@
     "leg": 0.33,
     "hat": false
    }
+  },
+  {
+   "id": "p96",
+   "file": "p96.glb",
+   "name": "Woman In Floral String Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 26,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.687,
+   "hipH": 0.871,
+   "tris": {
+    "LOD0_body": 47582,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12023642,
+    "top": 11105105,
+    "bottom": 11562827,
+    "hair": 9268299,
+    "shoes": 13801086,
+    "sleeve": -1,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p97",
+   "file": "p97.glb",
+   "name": "Older Woman In Floral One-Piece Swimsuit",
+   "g": "f",
+   "age": "older",
+   "years": 62,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "beach_walk",
+    "swim"
+   ],
+   "height": 1.623,
+   "hipH": 0.8426,
+   "tris": {
+    "LOD0_body": 48217,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14587262,
+    "top": 9857652,
+    "bottom": 13013103,
+    "hair": 10851463,
+    "shoes": 12812905,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p98",
+   "file": "p98.glb",
+   "name": "Curvy Woman In Red String Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 32,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.647,
+   "hipH": 0.8628,
+   "tris": {
+    "LOD0_body": 48672,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 15243391,
+    "top": 12538933,
+    "bottom": 12745555,
+    "hair": 3352094,
+    "shoes": 13467743,
+    "sleeve": 0.0,
+    "leg": 0.58,
+    "hat": false
+   }
+  },
+  {
+   "id": "p99",
+   "file": "p99.glb",
+   "name": "Woman In Black String Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 27,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.672,
+   "hipH": 0.8868,
+   "tris": {
+    "LOD0_body": 49008,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14455671,
+    "top": 11893328,
+    "bottom": 12680276,
+    "hair": 3352094,
+    "shoes": 12415574,
+    "sleeve": 0.1,
+    "leg": 0.42,
+    "hat": false
+   }
+  },
+  {
+   "id": "p100",
+   "file": "p100.glb",
+   "name": "Blonde Woman In White Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 24,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.703,
+   "hipH": 0.8969,
+   "tris": {
+    "LOD0_body": 49427,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14979702,
+    "top": 14131319,
+    "bottom": 13601631,
+    "hair": 12560263,
+    "shoes": 13336158,
+    "sleeve": -1,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p101",
+   "file": "p101.glb",
+   "name": "Woman In Floral Bikini With Braid",
+   "g": "f",
+   "age": "adult",
+   "years": 25,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.714,
+   "hipH": 0.9098,
+   "tris": {
+    "LOD0_body": 49968,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14848889,
+    "top": 13074011,
+    "bottom": 13337948,
+    "hair": 5125666,
+    "shoes": 13271139,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p102",
+   "file": "p102.glb",
+   "name": "Muscular Man In Black Swim Trunks",
+   "g": "m",
+   "age": "adult",
+   "years": 26,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk",
+    "sport"
+   ],
+   "height": 1.825,
+   "hipH": 0.9001,
+   "tris": {
+    "LOD0_body": 47918,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14255723,
+    "top": 13007690,
+    "bottom": 11035195,
+    "hair": 4073754,
+    "shoes": 12809559,
+    "sleeve": 0.1,
+    "leg": 0.83,
+    "hat": false
+   }
+  },
+  {
+   "id": "p103",
+   "file": "p103.glb",
+   "name": "Young Man In Tank Top And Board Shorts",
+   "g": "m",
+   "age": "adult",
+   "years": 21,
+   "role": "beachgoer",
+   "places": [
+    "beach_walk",
+    "beach",
+    "tourist",
+    "street"
+   ],
+   "height": 1.784,
+   "hipH": 0.8802,
+   "tris": {
+    "LOD0_body": 49350,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13797489,
+    "top": 13486549,
+    "bottom": 5266030,
+    "hair": 6045222,
+    "shoes": 12417118,
+    "sleeve": 0.0,
+    "leg": 0.92,
+    "hat": false
+   }
+  },
+  {
+   "id": "p104",
+   "file": "p104.glb",
+   "name": "Surfer In Black Wetsuit",
+   "g": "m",
+   "age": "adult",
+   "years": 27,
+   "role": "surfer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.804,
+   "hipH": 0.9366,
+   "tris": {
+    "LOD0_body": 48450,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13992295,
+    "top": 2763305,
+    "bottom": 2171169,
+    "hair": 4534305,
+    "shoes": 12479308,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p105",
+   "file": "p105.glb",
+   "name": "Surfer In Floral Board Shorts",
+   "g": "m",
+   "age": "adult",
+   "years": 24,
+   "role": "surfer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.807,
+   "hipH": 0.8922,
+   "tris": {
+    "LOD0_body": 47848,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14190188,
+    "top": 12876103,
+    "bottom": 8089460,
+    "hair": 9463871,
+    "shoes": 12086349,
+    "sleeve": 0.9,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p106",
+   "file": "p106.glb",
+   "name": "Man In Floral Swim Trunks",
+   "g": "m",
+   "age": "adult",
+   "years": 44,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk",
+    "tourist"
+   ],
+   "height": 1.785,
+   "hipH": 0.9428,
+   "tris": {
+    "LOD0_body": 49279,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 13862251,
+    "top": 13602666,
+    "bottom": 3556438,
+    "hair": 6834999,
+    "shoes": 12481366,
+    "sleeve": -1,
+    "leg": 0.33,
+    "hat": false
+   }
+  },
+  {
+   "id": "p107",
+   "file": "p107.glb",
+   "name": "Lifeguard Woman In Red Swimsuit",
+   "g": "f",
+   "age": "adult",
+   "years": 26,
+   "role": "lifeguard",
+   "places": [
+    "lifeguard"
+   ],
+   "height": 1.705,
+   "hipH": 0.8857,
+   "tris": {
+    "LOD0_body": 48265,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13601901,
+    "top": 11277857,
+    "bottom": 11628104,
+    "hair": 4270103,
+    "shoes": 12415573,
+    "sleeve": 0.0,
+    "leg": 0.92,
+    "hat": false
+   }
+  },
+  {
+   "id": "p108",
+   "file": "p108.glb",
+   "name": "Older Man In Orange Swim Trunks",
+   "g": "m",
+   "age": "older",
+   "years": 64,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "beach_walk",
+    "swim"
+   ],
+   "height": 1.755,
+   "hipH": 0.8658,
+   "tris": {
+    "LOD0_body": 47714,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14386793,
+    "top": 14324081,
+    "bottom": 13654561,
+    "hair": 13351598,
+    "shoes": 12612444,
+    "sleeve": -1,
+    "leg": 0.33,
+    "hat": false
+   }
+  },
+  {
+   "id": "p109",
+   "file": "p109.glb",
+   "name": "Lifeguard Man In Red Trunks And Tank",
+   "g": "m",
+   "age": "adult",
+   "years": 25,
+   "role": "lifeguard",
+   "places": [
+    "lifeguard"
+   ],
+   "height": 1.838,
+   "hipH": 0.9087,
+   "tris": {
+    "LOD0_body": 48018,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13337702,
+    "top": 13947346,
+    "bottom": 11081508,
+    "hair": 5585447,
+    "shoes": 12350548,
+    "sleeve": 0.0,
+    "leg": 0.92,
+    "hat": false
+   }
+  },
+  {
+   "id": "p110",
+   "file": "p110.glb",
+   "name": "Delivery Driver In Brown Uniform",
+   "g": "m",
+   "age": "adult",
+   "years": 30,
+   "role": "delivery",
+   "places": [
+    "work",
+    "street",
+    "business"
+   ],
+   "height": 1.789,
+   "hipH": 0.8847,
+   "tris": {
+    "LOD0_body": 49736,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13664862,
+    "top": 6111540,
+    "bottom": 5651246,
+    "hair": 6506300,
+    "shoes": 3813672,
+    "sleeve": 0.4,
+    "leg": 0.5,
+    "hat": false
+   }
+  },
+  {
+   "id": "p111",
+   "file": "p111.glb",
+   "name": "Lifeguard Woman In Red Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 24,
+   "role": "lifeguard",
+   "places": [
+    "lifeguard"
+   ],
+   "height": 1.694,
+   "hipH": 0.8725,
+   "tris": {
+    "LOD0_body": 49802,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12876119,
+    "top": 12348481,
+    "bottom": 12285516,
+    "hair": 9463620,
+    "shoes": 12087888,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p112",
+   "file": "p112.glb",
+   "name": "Sanitation Worker In Orange Hi-Vis Vest",
+   "g": "m",
+   "age": "adult",
+   "years": 38,
+   "role": "sanitation",
+   "places": [
+    "work",
+    "street",
+    "industrial"
+   ],
+   "height": 1.796,
+   "hipH": 0.8865,
+   "tris": {
+    "LOD0_body": 47782,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12875857,
+    "top": 13859099,
+    "bottom": 3946552,
+    "hair": 4735031,
+    "shoes": 4076589,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p113",
+   "file": "p113.glb",
+   "name": "Courier In Navy Polo And Shorts",
+   "g": "m",
+   "age": "adult",
+   "years": 28,
+   "role": "delivery",
+   "places": [
+    "work",
+    "street",
+    "business"
+   ],
+   "height": 1.775,
+   "hipH": 0.8763,
+   "tris": {
+    "LOD0_body": 47706,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12481364,
+    "top": 2110819,
+    "bottom": 2698298,
+    "hair": 2438231,
+    "shoes": 4539723,
+    "sleeve": 0.4,
+    "leg": 0.25,
+    "hat": false
+   }
+  },
+  {
+   "id": "p114",
+   "file": "p114.glb",
+   "name": "Landscaper In Green Tee",
+   "g": "m",
+   "age": "adult",
+   "years": 35,
+   "role": "landscaper",
+   "places": [
+    "work",
+    "residential",
+    "rural"
+   ],
+   "height": 1.745,
+   "hipH": 0.8607,
+   "tris": {
+    "LOD0_body": 49060,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13466211,
+    "top": 5265472,
+    "bottom": 5130043,
+    "hair": 1907482,
+    "shoes": 4998194,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p115",
+   "file": "p115.glb",
+   "name": "Construction Worker In Yellow Hi-Vis Vest",
+   "g": "m",
+   "age": "adult",
+   "years": 40,
+   "role": "construction",
+   "places": [
+    "work",
+    "industrial",
+    "street"
+   ],
+   "height": 1.804,
+   "hipH": 0.8895,
+   "tris": {
+    "LOD0_body": 49322,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12090725,
+    "top": 12881700,
+    "bottom": 4672590,
+    "hair": 4272930,
+    "shoes": 5326641,
+    "sleeve": 0.3,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p116",
+   "file": "p116.glb",
+   "name": "Hotel Maid In Gray Dress And Apron",
+   "g": "f",
+   "age": "adult",
+   "years": 36,
+   "role": "maid",
+   "places": [
+    "hotel_staff"
+   ],
+   "height": 1.622,
+   "hipH": 0.8561,
+   "tris": {
+    "LOD0_body": 48722,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 13996411,
+    "top": 6908011,
+    "bottom": 5524803,
+    "hair": 4403748,
+    "shoes": 2368288,
+    "sleeve": 0.2,
+    "leg": 0.58,
+    "hat": false
+   }
+  },
+  {
+   "id": "p117",
+   "file": "p117.glb",
+   "name": "Waitress In Black Polo And Apron",
+   "g": "f",
+   "age": "adult",
+   "years": 22,
+   "role": "server",
+   "places": [
+    "bar",
+    "shop_staff"
+   ],
+   "height": 1.665,
+   "hipH": 0.8384,
+   "tris": {
+    "LOD0_body": 48664,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14850694,
+    "top": 2499358,
+    "bottom": 1973533,
+    "hair": 7881240,
+    "shoes": 2368546,
+    "sleeve": 0.2,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p118",
+   "file": "p118.glb",
+   "name": "Valet In Red Vest",
+   "g": "m",
+   "age": "adult",
+   "years": 19,
+   "role": "valet",
+   "places": [
+    "hotel_staff",
+    "nightlife"
+   ],
+   "height": 1.844,
+   "hipH": 0.9088,
+   "tris": {
+    "LOD0_body": 48962,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10707015,
+    "top": 9441054,
+    "bottom": 1842204,
+    "hair": 1118224,
+    "shoes": 1381652,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p119",
+   "file": "p119.glb",
+   "name": "Nurse In Blue Scrubs",
+   "g": "f",
+   "age": "adult",
+   "years": 38,
+   "role": "nurse",
+   "places": [
+    "medic",
+    "street",
+    "business"
+   ],
+   "height": 1.605,
+   "hipH": 0.8341,
+   "tris": {
+    "LOD0_body": 49730,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14389370,
+    "top": 2443910,
+    "bottom": 2179706,
+    "hair": 2038551,
+    "shoes": 13749965,
+    "sleeve": 0.2,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p120",
+   "file": "p120.glb",
+   "name": "Paramedic In Navy Uniform",
+   "g": "m",
+   "age": "adult",
+   "years": 33,
+   "role": "paramedic",
+   "places": [
+    "medic"
+   ],
+   "height": 1.767,
+   "hipH": 0.8733,
+   "tris": {
+    "LOD0_body": 49452,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13401956,
+    "top": 2632764,
+    "bottom": 1974055,
+    "hair": 1775380,
+    "shoes": 1974046,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p121",
+   "file": "p121.glb",
+   "name": "Firefighter In Turnout Gear",
+   "g": "m",
+   "age": "adult",
+   "years": 41,
+   "role": "firefighter",
+   "places": [
+    "fire",
+    "work"
+   ],
+   "height": 1.886,
+   "hipH": 0.931,
+   "tris": {
+    "LOD0_body": 49087,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13203813,
+    "top": 4799786,
+    "bottom": 8874301,
+    "hair": 5192745,
+    "shoes": 2697508,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p122",
+   "file": "p122.glb",
+   "name": "Mail Carrier In Light Blue Shirt",
+   "g": "m",
+   "age": "older",
+   "years": 58,
+   "role": "mail_carrier",
+   "places": [
+    "work",
+    "residential",
+    "street"
+   ],
+   "height": 1.787,
+   "hipH": 0.8832,
+   "tris": {
+    "LOD0_body": 48772,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11431252,
+    "top": 10006243,
+    "bottom": 2370370,
+    "hair": 8813173,
+    "shoes": 1513238,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p123",
+   "file": "p123.glb",
+   "name": "Security Guard In Black Uniform",
+   "g": "m",
+   "age": "adult",
+   "years": 36,
+   "role": "security",
+   "places": [
+    "security"
+   ],
+   "height": 1.907,
+   "hipH": 0.9423,
+   "tris": {
+    "LOD0_body": 49268,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11955797,
+    "top": 1908255,
+    "bottom": 1710875,
+    "hair": 2763306,
+    "shoes": 1907997,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p124",
+   "file": "p124.glb",
+   "name": "Mechanic In Gray Coveralls",
+   "g": "m",
+   "age": "adult",
+   "years": 30,
+   "role": "mechanic",
+   "places": [
+    "work",
+    "industrial",
+    "port"
+   ],
+   "height": 1.807,
+   "hipH": 0.8927,
+   "tris": {
+    "LOD0_body": 47598,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13335398,
+    "top": 5853256,
+    "bottom": 5589568,
+    "hair": 6836537,
+    "shoes": 3354409,
+    "sleeve": 0.6,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p125",
+   "file": "p125.glb",
+   "name": "Office Worker In Light Blue Shirt",
+   "g": "m",
+   "age": "adult",
+   "years": 29,
+   "role": "office",
+   "places": [
+    "business",
+    "street"
+   ],
+   "height": 1.76,
+   "hipH": 0.8706,
+   "tris": {
+    "LOD0_body": 47602,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13467494,
+    "top": 10662882,
+    "bottom": 2763565,
+    "hair": 2630947,
+    "shoes": 2302755,
+    "sleeve": 0.8,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p126",
+   "file": "p126.glb",
+   "name": "Businesswoman In Blouse And Pencil Skirt",
+   "g": "f",
+   "age": "adult",
+   "years": 47,
+   "role": "businesswoman",
+   "places": [
+    "business",
+    "street"
+   ],
+   "height": 1.653,
+   "hipH": 0.8726,
+   "tris": {
+    "LOD0_body": 48734,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 14191727,
+    "top": 13747640,
+    "bottom": 2170911,
+    "hair": 3878436,
+    "shoes": 2105116,
+    "sleeve": 0.6,
+    "leg": 0.5,
+    "hat": false
+   }
+  },
+  {
+   "id": "p127",
+   "file": "p127.glb",
+   "name": "Policewoman In Navy Uniform",
+   "g": "f",
+   "age": "adult",
+   "years": 29,
+   "role": "police",
+   "places": [
+    "police"
+   ],
+   "height": 1.706,
+   "hipH": 0.8665,
+   "tris": {
+    "LOD0_body": 47447,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12416599,
+    "top": 1842213,
+    "bottom": 1644831,
+    "hair": 3092012,
+    "shoes": 1250067,
+    "sleeve": 0.3,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p128",
+   "file": "p128.glb",
+   "name": "Police Officer In Navy Uniform",
+   "g": "m",
+   "age": "adult",
+   "years": 34,
+   "role": "police",
+   "places": [
+    "police"
+   ],
+   "height": 1.808,
+   "hipH": 0.8937,
+   "tris": {
+    "LOD0_body": 47842,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13865089,
+    "top": 2302506,
+    "bottom": 1973539,
+    "hair": 5784887,
+    "shoes": 1710360,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p129",
+   "file": "p129.glb",
+   "name": "Beach Patrol Officer In Light Blue Polo",
+   "g": "m",
+   "age": "adult",
+   "years": 27,
+   "role": "police",
+   "places": [
+    "police"
+   ],
+   "height": 1.789,
+   "hipH": 0.8852,
+   "tris": {
+    "LOD0_body": 49546,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13008488,
+    "top": 3292499,
+    "bottom": 2303282,
+    "hair": 2959654,
+    "shoes": 3749943,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p130",
+   "file": "p130.glb",
+   "name": "Police Sergeant With Gray Mustache",
+   "g": "m",
+   "age": "older",
+   "years": 55,
+   "role": "police",
+   "places": [
+    "police"
+   ],
+   "height": 1.811,
+   "hipH": 0.9592,
+   "tris": {
+    "LOD0_body": 47530,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 13994107,
+    "top": 2434350,
+    "bottom": 2105127,
+    "hair": 10916235,
+    "shoes": 2499876,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p131",
+   "file": "p131.glb",
+   "name": "Young Police Officer In Navy Uniform",
+   "g": "m",
+   "age": "adult",
+   "years": 30,
+   "role": "police",
+   "places": [
+    "police"
+   ],
+   "height": 1.828,
+   "hipH": 0.9033,
+   "tris": {
+    "LOD0_body": 49176,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13336943,
+    "top": 2105129,
+    "bottom": 2170664,
+    "hair": 4732454,
+    "shoes": 1579031,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p132",
+   "file": "p132.glb",
+   "name": "Woman In White Sundress",
+   "g": "f",
+   "age": "adult",
+   "years": 26,
+   "role": "local",
+   "places": [
+    "street",
+    "tourist",
+    "beach_walk",
+    "residential",
+    "nightlife"
+   ],
+   "height": 1.685,
+   "hipH": 0.8316,
+   "tris": {
+    "LOD0_body": 47770,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12022356,
+    "top": 12303037,
+    "bottom": 9065783,
+    "hair": 2235415,
+    "shoes": 9198912,
+    "sleeve": 0.1,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p133",
+   "file": "p133.glb",
+   "name": "Fitness Woman In Sports Bra And Leggings",
+   "g": "f",
+   "age": "adult",
+   "years": 31,
+   "role": "jogger",
+   "places": [
+    "sport",
+    "park",
+    "beach_walk"
+   ],
+   "height": 1.728,
+   "hipH": 0.9128,
+   "tris": {
+    "LOD0_body": 47318,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14192500,
+    "top": 3881788,
+    "bottom": 2829100,
+    "hair": 10453606,
+    "shoes": 3487030,
+    "sleeve": 0.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p134",
+   "file": "p134.glb",
+   "name": "Woman In Red Club Dress",
+   "g": "f",
+   "age": "adult",
+   "years": 24,
+   "role": "nightlife",
+   "places": [
+    "nightlife",
+    "street"
+   ],
+   "height": 1.704,
+   "hipH": 0.9049,
+   "tris": {
+    "LOD0_body": 48069,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13797740,
+    "top": 8651798,
+    "bottom": 10314562,
+    "hair": 3221796,
+    "shoes": 11563088,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p135",
+   "file": "p135.glb",
+   "name": "Businesswoman In Black Pantsuit",
+   "g": "f",
+   "age": "adult",
+   "years": 39,
+   "role": "businesswoman",
+   "places": [
+    "business",
+    "street"
+   ],
+   "height": 1.674,
+   "hipH": 0.8959,
+   "tris": {
+    "LOD0_body": 49490,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13993572,
+    "top": 2170915,
+    "bottom": 2236710,
+    "hair": 2301725,
+    "shoes": 3354414,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p136",
+   "file": "p136.glb",
+   "name": "Woman With Platinum Pixie And Tattoos",
+   "g": "f",
+   "age": "adult",
+   "years": 28,
+   "role": "local",
+   "places": [
+    "street",
+    "nightlife",
+    "rough",
+    "tourist"
+   ],
+   "height": 1.667,
+   "hipH": 0.8404,
+   "tris": {
+    "LOD0_body": 48625,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13929073,
+    "top": 3092018,
+    "bottom": 2763309,
+    "hair": 11245446,
+    "shoes": 11709603,
+    "sleeve": 0.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p137",
+   "file": "p137.glb",
+   "name": "Elderly Man In White Guayabera",
+   "g": "m",
+   "age": "elderly",
+   "years": 78,
+   "role": "retiree",
+   "places": [
+    "residential",
+    "street",
+    "keys"
+   ],
+   "height": 1.664,
+   "hipH": 0.8205,
+   "tris": {
+    "LOD0_body": 49394,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12481878,
+    "top": 14933724,
+    "bottom": 10521204,
+    "hair": 13288379,
+    "shoes": 4010535,
+    "sleeve": 0.6,
+    "leg": 1.0,
+    "hat": false
+   },
+   "gait": "old"
+  },
+  {
+   "id": "p138",
+   "file": "p138.glb",
+   "name": "Elderly Woman In Lavender Cardigan",
+   "g": "f",
+   "age": "elderly",
+   "years": 82,
+   "role": "retiree",
+   "places": [
+    "residential",
+    "street",
+    "shop_guest"
+   ],
+   "height": 1.553,
+   "hipH": 0.8197,
+   "tris": {
+    "LOD0_body": 49432,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 13994618,
+    "top": 9734820,
+    "bottom": 1908009,
+    "hair": 13748675,
+    "shoes": 2631462,
+    "sleeve": 0.9,
+    "leg": 0.5,
+    "hat": false
+   },
+   "gait": "old"
+  },
+  {
+   "id": "p139",
+   "file": "p139.glb",
+   "name": "Retired Man In Polo And Khaki Shorts",
+   "g": "m",
+   "age": "older",
+   "years": 70,
+   "role": "tourist",
+   "places": [
+    "tourist",
+    "residential",
+    "beach_walk",
+    "keys"
+   ],
+   "height": 1.757,
+   "hipH": 0.9293,
+   "tris": {
+    "LOD0_body": 49674,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 13667188,
+    "top": 5070982,
+    "bottom": 11244921,
+    "hair": 13547950,
+    "shoes": 3551790,
+    "sleeve": 0.4,
+    "leg": 0.17,
+    "hat": false
+   }
+  },
+  {
+   "id": "p140",
+   "file": "p140.glb",
+   "name": "Elderly Woman In Pink Tracksuit",
+   "g": "f",
+   "age": "elderly",
+   "years": 74,
+   "role": "retiree",
+   "places": [
+    "residential",
+    "park",
+    "street"
+   ],
+   "height": 1.603,
+   "hipH": 0.8188,
+   "tris": {
+    "LOD0_body": 47942,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13140069,
+    "top": 13047917,
+    "bottom": 11604061,
+    "hair": 13025209,
+    "shoes": 13815760,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   },
+   "gait": "old"
+  },
+  {
+   "id": "p141",
+   "file": "p141.glb",
+   "name": "Boy In Blue Tee And Shorts",
+   "g": "m",
+   "age": "kid",
+   "years": 8,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.287,
+   "hipH": 0.6365,
+   "tris": {
+    "LOD0_body": 49424,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14059892,
+    "top": 3888525,
+    "bottom": 1776411,
+    "hair": 3551019,
+    "shoes": 5329235,
+    "sleeve": 0.4,
+    "leg": 0.5,
+    "hat": false
+   }
+  },
+  {
+   "id": "p142",
+   "file": "p142.glb",
+   "name": "Girl With Puff Ponytails",
+   "g": "f",
+   "age": "kid",
+   "years": 8,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.276,
+   "hipH": 0.6305,
+   "tris": {
+    "LOD0_body": 47520,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12480083,
+    "top": 11570383,
+    "bottom": 8145722,
+    "hair": 1774096,
+    "shoes": 12563647,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p143",
+   "file": "p143.glb",
+   "name": "Blonde Girl In Pink Tee",
+   "g": "f",
+   "age": "kid",
+   "years": 10,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.407,
+   "hipH": 0.7042,
+   "tris": {
+    "LOD0_body": 47708,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 15112066,
+    "top": 15433086,
+    "bottom": 13141352,
+    "hair": 12228472,
+    "shoes": 11647418,
+    "sleeve": 0.3,
+    "leg": 0.42,
+    "hat": false
+   }
+  },
+  {
+   "id": "p144",
+   "file": "p144.glb",
+   "name": "Boy In Basketball Jersey",
+   "g": "m",
+   "age": "kid",
+   "years": 12,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.509,
+   "hipH": 0.7475,
+   "tris": {
+    "LOD0_body": 49164,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14061691,
+    "top": 9056819,
+    "bottom": 6101019,
+    "hair": 4402204,
+    "shoes": 12628913,
+    "sleeve": 0.1,
+    "leg": 0.5,
+    "hat": false
+   }
+  },
+  {
+   "id": "p145",
+   "file": "p145.glb",
+   "name": "Girl In Lavender Tee And Jean Shorts",
+   "g": "f",
+   "age": "kid",
+   "years": 12,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.507,
+   "hipH": 0.7661,
+   "tris": {
+    "LOD0_body": 47272,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 14323063,
+    "top": 12428759,
+    "bottom": 13402720,
+    "hair": 3287076,
+    "shoes": 13289417,
+    "sleeve": 0.2,
+    "leg": 0.1,
+    "hat": false
+   }
   }
  ]
 }
