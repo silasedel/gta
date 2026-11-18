@@ -7,6 +7,7 @@
 // panic (flee / cower / film), fight back, cops. Realistic ragdolls + get-up for non-lethal knockdowns.
 import * as THREE from 'three';
 import { createCharacter, humansLoaded, humansTotal } from '../player/characterModel.js';
+import { sitOnFurniture, standUp } from './furnitureSeat.js';
 import { createRagdollSystem } from './ragdoll.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { createSignals } from './streetlife.js';
@@ -377,6 +378,7 @@ export async function createPeds(game) {
   function endGroup(g) { if (g.props) g.props.forEach(removeProp); groups.delete(g); }
 
   function activate(ped, pos, zone, act, opts = {}) {
+    if (ped._furn) standUp(ped);
     ped.pos.copy(pos);
     ped.zone = zone; ped.act = act;
     ped.char = getChar(opts.outfit || zone, { ...opts, pos, act });
@@ -470,7 +472,7 @@ export async function createPeds(game) {
     ps.forEach((p, k) => {
       const a = (k / n) * Math.PI * 2 + rand(-0.25, 0.25), rr = n <= 2 ? 0.62 : rand(0.75, 1.1);
       const pos = new THREE.Vector3(c.x + Math.sin(a) * rr, 0, c.z + Math.cos(a) * rr);
-      activate(p, pos, zone, dance && Math.random() < 0.75 ? 'dance' : 'talk', { heading: Math.atan2(c.x - pos.x, c.z - pos.z) });
+      if (!activate(p, pos, zone, dance && Math.random() < 0.75 ? 'dance' : 'talk', { heading: Math.atan2(c.x - pos.x, c.z - pos.z) })) return;
       p.group = g; g.members.push(p); p.stateT = rand(25, 70);
       p.idleStyle = p.act === 'dance' ? 'dance' : (Math.random() < 0.6 ? 'talk' : null); p.styleT = rand(1, 4);
     });
@@ -481,19 +483,19 @@ export async function createPeds(game) {
     const p = freePeds(1)[0]; used.add(s);
     // root slightly in front of the bench's seat edge, facing away from the backrest
     const fx = Math.sin(s.heading), fz = Math.cos(s.heading);
-    activate(p, new THREE.Vector3(s.pos.x + fx * 0.12, s.pos.y, s.pos.z + fz * 0.12), zone, 'bench', { heading: s.heading, noCollider: false });
+    if (!activate(p, new THREE.Vector3(s.pos.x + fx * 0.12, s.pos.y, s.pos.z + fz * 0.12), zone, 'bench', { heading: s.heading, noCollider: false })) { used.delete(s); return []; }
     p.spot = s; p.idleStyle = 'sitBench'; p.stateT = rand(20, 80); p.call = Math.random() < 0.15;
     return [p];
   }
   function leaner(s, zone) {
     const p = freePeds(1)[0]; used.add(s);
-    activate(p, s.pos, zone, 'lean', { heading: s.heading });
+    if (!activate(p, s.pos, zone, 'lean', { heading: s.heading })) { used.delete(s); return []; }
     p.spot = s; p.idleStyle = 'lean'; p.stateT = rand(20, 70); p.call = Math.random() < 0.25;
     return [p];
   }
   function gardener(c, zone) {
     const p = freePeds(1)[0];
-    activate(p, c, zone, 'garden'); p.idleStyle = 'kneel'; p.stateT = rand(25, 60);
+    if (!activate(p, c, zone, 'garden')) return []; p.idleStyle = 'kneel'; p.stateT = rand(25, 60);
     return p;
   }
   function sunbathers(c, n) {
@@ -505,7 +507,7 @@ export async function createPeds(game) {
     ps.forEach((p, k) => {
       const ox = Math.cos(hd) * (k - (n - 1) / 2) * 1.25, oz = -Math.sin(hd) * (k - (n - 1) / 2) * 1.25;
       const pos = new THREE.Vector3(c.x + ox, 0, c.z + oz);
-      activate(p, pos, 'beach', 'sunbathe', { heading: hd + rand(-0.15, 0.15) + (Math.random() < 0.3 ? Math.PI : 0), outfit: 'beach' });
+      if (!activate(p, pos, 'beach', 'sunbathe', { heading: hd + rand(-0.15, 0.15) + (Math.random() < 0.3 ? Math.PI : 0), outfit: 'beach' })) return;
       p.idleStyle = Math.random() < 0.65 ? 'lie' : 'sitGround'; p.group = g; g.members.push(p); p.stateT = rand(60, 200);
       const towel = new THREE.Mesh(propGeo.towel, pmat(pick(TOWEL_COLS), 0.95));
       towel.receiveShadow = true;
@@ -523,7 +525,7 @@ export async function createPeds(game) {
     ps.forEach((p, k) => {
       const [a, b] = slots[k];
       const pos = new THREE.Vector3(c.x + fx * a + rx * b, 0, c.z + fz * a + rz * b);
-      activate(p, pos, 'beach', 'volley', { heading: Math.atan2(c.x - pos.x, c.z - pos.z) * 0 + (a < 0 ? hd : hd + Math.PI), outfit: 'beach' });
+      if (!activate(p, pos, 'beach', 'volley', { heading: Math.atan2(c.x - pos.x, c.z - pos.z) * 0 + (a < 0 ? hd : hd + Math.PI), outfit: 'beach' })) return;
       p.idleStyle = 'volley'; p.group = g; g.members.push(p); p.stateT = 400;
     });
     // net: two poles + a translucent mesh panel across the middle
@@ -545,7 +547,7 @@ export async function createPeds(game) {
     ps.forEach((p, k) => {
       const s = k ? 1 : -1;
       const pos = new THREE.Vector3(c.x + fx * 5 * s, 0, c.z + fz * 5 * s);
-      activate(p, pos, 'beach', 'frisbee', { heading: hd + (k ? Math.PI : 0), outfit: 'beach' });
+      if (!activate(p, pos, 'beach', 'frisbee', { heading: hd + (k ? Math.PI : 0), outfit: 'beach' })) return;
       p.group = g; g.members.push(p); p.stateT = 300;
     });
     const disc = addProp(new THREE.Mesh(propGeo.disc, pmat(pick([0xe07f68, 0xf2d84a, 0x2f8a86, 0xffffff]), 0.5))); g.props.push(disc);
@@ -556,7 +558,7 @@ export async function createPeds(game) {
     const p = freePeds(1)[0];
     const depth = seaLevel - w.y;
     const wade = depth < 0.9;
-    activate(p, w, 'beach', wade ? 'wade' : 'swim', { outfit: 'beach', y: wade ? w.y : seaLevel - 0.05, noCollider: true });
+    if (!activate(p, w, 'beach', wade ? 'wade' : 'swim', { outfit: 'beach', y: wade ? w.y : seaLevel - 0.05, noCollider: true })) return [];
     p.idleStyle = wade ? null : 'swim'; p.stateT = rand(40, 120); p.swimDir = Math.random() * Math.PI * 2;
     return p ? [p] : [];
   }
@@ -1210,6 +1212,9 @@ export async function createPeds(game) {
         handsUp: ped.handsUp || ped.shoveT > 0.2, guard: ped.state === 'fight', lookAt: dCam < 40 ? lookAt : null,
         call: ped.call && (ped.state === 'walk' || ped.state === 'bench' || ped.state === 'lean'), wave: ped.waveT > 0, argue: ped.state === 'argue', leash: !!ped.dog, hit, throw: thr, getUp: ped.getUp || null,
       });
+      // seated on the real bench / chair / sofa under them (src/npc/furnitureSeat.js): probed cushion, natural variants, life
+      if (ped.state === 'bench' && !(ped.speed > 0.4) && dCam < 60) { try { sitOnFurniture(game, ped, dt); } catch (e) { /* keep the clip pose */ } }
+      else if (ped._furn) standUp(ped);
     }
   }
 

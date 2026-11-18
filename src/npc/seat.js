@@ -199,16 +199,20 @@ export function probeSeat(shell, anchor, key = null) {
 }
 
 // ---------------------------------------------------------------- the solver
+const WATCH = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'LeftUpLeg', 'RightUpLeg', 'LeftLeg', 'RightLeg', 'LeftArm', 'RightArm', 'LeftForeArm', 'RightForeArm'];
 function changed(ch, S) {
-  // the mixer only runs on some frames for far people: when no bone moved since our last solve, skip (the solve is not
-  // idempotent for the corrective swings, and the bones still hold last frame's solved pose)
-  const b = bone(ch, 'RightForeArm'); if (!b) return true;
-  if (S.lastQ && S.lastQ.equals(b.quaternion)) return false;
-  return true;
+  // three's mixer only rewrites a bone whose animated value changed, and far people animate on some frames only: solve
+  // whenever ANY watched bone differs from what the last solve left (a static arm with a breathing spine must re-solve)
+  if (!S.lastQs) return true;
+  for (let i = 0; i < WATCH.length; i++) { const b = bone(ch, WATCH[i]); if (b && !S.lastQs[i].equals(b.quaternion)) return true; }
+  return false;
 }
+function remember(ch, S) { S.lastQs ||= WATCH.map(() => new THREE.Quaternion()); WATCH.forEach((n, i) => { const b = bone(ch, n); if (b) S.lastQs[i].copy(b.quaternion); }); }
 function solve(ch, S, dt) {
   const A = S.anchor, root = ch.root, shell = root.parent; if (!shell) return;
-  if (!changed(ch, S)) return;
+  if (!changed(ch, S)) { if (S.manual && S.lastRoot) { root.position.copy(S.lastRoot); root.rotation.set(0, S.yawNow ?? A.yaw ?? 0, 0); } return; }
+  S.t = (S.t || 0) + (dt || 0);
+  if (S.manual) { S.yawNow = (A.yaw || 0) + (S.life ? Math.sin(S.t * 0.11 + S.life.p1) * 0.04 : 0); root.rotation.set(0, S.yawNow, 0); }
   shell.updateWorldMatrix(true, false);
   root.updateMatrixWorld(true);
   const sm = shell.matrixWorld;
@@ -221,7 +225,9 @@ function solve(ch, S, dt) {
   const scale = S.scale || 1;
   const w = THREE.MathUtils.clamp(S.w ?? 1, 0, 1);   // blend-in weight (entering the car)
   // ---- 1. torso recline against the backrest (absolute: measured, then corrected)
-  const recline = (A.recline ?? S.recline ?? 16) + (S.extraRecline || 0) - (S.reachLean || 0);
+  // subtle life (furniture sitters): slow breathing-scale recline drift and weight shifts, desynchronized per person
+  const lifeR = S.life ? Math.sin(S.t * 0.35 + S.life.p0) * 1.4 + Math.sin(S.t * 0.07 + S.life.p1) * 2.2 : 0;
+  const recline = (A.recline ?? S.recline ?? 16) + lifeR + (S.extraRecline || 0) - (S.reachLean || 0);
   if (Sp && Neck) {
     const hipMid = V().addVectors(wp(LU, _a), wp(RU, _b)).multiplyScalar(0.5);
     const tor = V().copy(wp(Neck, _a)).sub(hipMid);
@@ -360,7 +366,10 @@ function solve(ch, S, dt) {
     // an elbow through the door panel swings its pole inward on the next frames
     if (Math.sign(el.x) === Math.sign(A.hip.x || sg) && Math.abs(el.x) > lim && S.elbowFix < 12) { S.elbowFix++; (S.elbowIn ||= {})[s] = Math.min(6, (S.elbowIn[s] || 0) + 1); }
   }
-  const rf = bone(ch, 'RightForeArm'); S.lastQ = (S.lastQ || new THREE.Quaternion()).copy(rf.quaternion);
+  // look around now and then (head yaw on the neck), low amplitude
+  if (S.life && Neck) { const look = Math.sin(S.t * 0.13 + S.life.p2) * 0.6 + Math.sin(S.t * 0.031 + S.life.p0) * 0.4; _q.setFromAxisAngle(up, look * 0.32 * w); rotWorld(Neck, _q); }
+  if (S.manual) S.lastRoot = (S.lastRoot || new THREE.Vector3()).copy(root.position);
+  remember(ch, S);
 }
 
 /** put a character into a seat (anchor in the space of the character root's parent, normally the car shell) */
@@ -387,6 +396,7 @@ export function seatCharacter(ch, anchor, opts = {}) {
     }
     if (Number.isFinite(pr.roofY) && !S.open) S.roofY = Number.isFinite(anchor.roofY) ? Math.min(anchor.roofY, pr.roofY) : pr.roofY;
   }
+  if (opts.manual) { S.manual = true; S.life = opts.life || { p0: Math.random() * 6.28, p1: Math.random() * 6.28, p2: Math.random() * 6.28 }; return true; }
   if (!ch._seatWrapped) {
     const orig = ch.update;
     ch.update = function (dt, anim = {}) {
@@ -405,10 +415,12 @@ export function seatCharacter(ch, anchor, opts = {}) {
     ch._seatWrapped = true;
   }
   // settle: a few solves so the head-room fit converges before the first frame is seen
-  for (let i = 0; i < 6; i++) { S.lastQ = null; ch.update(i ? 0.016 : 0.5, { driving: true, speed: 0, grounded: true }); }
+  for (let i = 0; i < 6; i++) { S.lastQs = null; ch.update(i ? 0.016 : 0.5, { driving: true, speed: 0, grounded: true }); }
   return true;
 }
 export function unseatCharacter(ch) { if (ch) ch._seat = null; }
+/** run the seat pose once (manual sitters: call right after the character's own update each frame) */
+export function solveSeat(ch, dt) { const s = ch?._seat; if (!s) return; try { solve(ch, s, dt); } catch (e) { if (!s.warned) { s.warned = true; console.warn('[seat] solve', e); } } }
 /** tallest person (standing height incl. hair / hat, meters) whose seated crown clears this seat's real roof by >= 5 cm:
  *  seated crown above the cushion ~0.52 x stature (+ 2 cm sink allowance); open cars / boats: no limit */
 export function seatMaxHeight(shell, anchor, opts = {}) {
