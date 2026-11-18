@@ -83,12 +83,12 @@ c('conv1', 'Brava', 'Bayline 65', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { co
 c('coupe4', 'Brava', 'Regalia 454', 'muscle', 'classic', 5.03, 2, 'v8', 1970, { classic: true, parkedOnly: true });
 c('coupe5', 'Brava', 'Bayline Coupe', 'muscle', 'classic', 4.61, 2, 'v8', 1965, { classic: true, pal: 'sport' });
 // rare: one of each on the map (placements.js), never random traffic
-c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, pal: 'sport' });
+c('conv2', 'Brava', 'Mako R Spyder', 'sports', 'sports', 4.63, 4, 'v8', 2022, { rare: true, convertible: true, palette: [0xeeeeea] });   // rare: one factory color
 c('super3', 'Vireo', 'Fulmine', 'super', 'super', 4.57, 5, 'v8s', 2017, { rare: true, palette: [0xb3121b] });
 c('super4', 'Solano', 'Libeccio RS', 'super', 'super', 4.57, 5, 'v6t', 2023, { rare: true, palette: [0xa9aeb4] });
 c('super5', 'Vireo', 'Aeterna', 'super', 'hyper', 4.54, 5, 'w16', 2021, { rare: true, palette: [0x1d3f8f] });
 c('super6', 'Vireo', 'Sorpasso 84', 'super', 'super', 4.49, 5, 'v12', 1986, { rare: true, classic: true, palette: [0xb3121b] });
-c('suv7', 'Aurelia', 'Regalia X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, palette: [0x101214] });
+c('suv7', 'Aurelia', 'Regalia X', 'suv', 'luxsuv', 5.34, 5, 'v12', 2021, { rare: true, palette: [0x301d08] });   // user: only its original color (the source model's dark chocolate brown)
 // SUVs
 c('suv1', 'Aurelia', 'Bastion', 'suv', 'luxsuv', 4.87, 4.5, 'v8l', 2020, { pal: 'lux' });
 c('suv2', 'Ridgeback', 'Trailcat', 'suv', 'offroad', 4.88, 2.6, 'v6', 2021);
