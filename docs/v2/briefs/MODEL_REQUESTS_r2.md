@@ -58,3 +58,7 @@ One row per request: | what | used for | how many | style notes | requested by |
 | subway car with a driver cab front (modern metro / light-rail car, clean interior, end cab with windshield + headlights), separate doors | the SOUTHLINE train: Train 2 has no cab, so the lead car shows a plain end wall | 1 car type (lead + middle) | clean stainless or painted body we can livery; no real transit brand | r2-metro
 | modern subway station kit, clean (tiled walls, terrazzo / stone platform, light fixtures, platform-edge tactile strip, stairs / escalator down from street) | the SOUTHLINE stations: today Subway 3 retextured with Subway 1 surfaces | 1 kit | bright, Miami-modern, no real line names | r2-metro
 | subway car interior panel texture (2K+ PBR: albedo / normal / roughness; light laminate or brushed stainless with panel seams + rivets) | the SOUTHLINE car walls: today a procedural 2K laminate (tools/v2/metro/car_panel.py) | 1 set | clean, no tags, roughness ~0.4 | r2-metro
+
+## Nov 17 PM requests
+- **Dog** (rigged with walk/idle if possible; search "dog rigged", "dog animated", "labrador", "pit bull", "street dog"). The code-built dogs look bad; replace with the user's model.
+- Optional: cat, pigeons / seagulls (search "bird animated", "seagull").
