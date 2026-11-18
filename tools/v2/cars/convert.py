@@ -439,11 +439,56 @@ frontAx = axles[0]          # most negative Y = front (forward is -Y)
 rearAxes = axles[1:]
 yF = float(np.mean([w['c'][1] for w in frontAx]))
 yR = float(np.mean([w['c'][1] for a in rearAxes for w in a]))
+# true axle per wheel (r4 wheels, user: truck9's tires "weird and wobbly"): fitted on the wheel's own tire islands instead of
+# assumed to be X.  Some sources ship steered front wheels (truck9 25 deg, coupe3 29 deg) or static camber (1-2 deg); spun about
+# X in game they swash and wobble, and the side-view bbox member test below left their tires / tread lugs in the static body.
+# Axle = smallest-variance direction of the tire ring, hub = its box center in the axle frame.  The extracted wheel is turned
+# onto X (wheelAlign below).  Steered wheels (> 5 deg, or cfg axleWheels) also get axle-frame members, radius and width.
+def _axle_fit(w):
+    if w.get('virtual') or not w.get('isl'): return None
+    P = V[np.isin(inv, w['isl'])]
+    if len(P) < 16: return None
+    C = P.mean(0); ev, E = np.linalg.eigh(np.cov((P - C).T))
+    if ev[0] > 0.5 * ev[1] or ev[1] < 0.8 * ev[2]: return None      # not a clean tire ring: keep X
+    a = E[:, 0] * (1.0 if E[0, 0] >= 0 else -1.0)
+    u = np.cross(a, [0, 0, 1.0]); u /= np.linalg.norm(u); vv = np.cross(a, u)
+    d = P - C; pa, pu, pv = d @ a, d @ u, d @ vv
+    c = C + a * (pa.min() + pa.max()) / 2 + u * (pu.min() + pu.max()) / 2 + vv * (pv.min() + pv.max()) / 2
+    d = P - c; ax_ = d @ a; rad = np.linalg.norm(d - np.outer(ax_, a), axis=1)
+    return a, c, float(rad.max()), float(ax_.max() - ax_.min())
+def _isl_frame(w):   # per island extents in the wheel's axle frame (a, u, v) and max radius from the axle
+    a = w['a']; u = np.cross(a, [0, 0, 1.0]); u /= np.linalg.norm(u); vv = np.cross(a, u)
+    d = V - w['c']; S = {}
+    for nm, arr in (('a', d @ a), ('u', d @ u), ('v', d @ vv)):
+        mn = np.full(nI, 1e9); mx = np.full(nI, -1e9); np.minimum.at(mn, inv, arr); np.maximum.at(mx, inv, arr); S[nm] = (mn, mx)
+    rm = np.zeros(nI); np.maximum.at(rm, inv, np.hypot(d @ u, d @ vv)); S['r'] = rm
+    S['rc'] = np.hypot((S['u'][0] + S['u'][1]) / 2, (S['v'][0] + S['v'][1]) / 2)
+    return S
+AXW = bool(CFG.get('axleWheels'))
+for w in wheels:
+    w['a'] = np.array([1.0, 0, 0]); w['tilt'] = 0.0; w['steered'] = False
+    q = _axle_fit(w)
+    if q is None: continue
+    a, c_, rr_, ww_ = q; w['tilt'] = math.degrees(math.acos(min(1.0, abs(float(a[0])))))
+    if w['tilt'] < 0.3 and not AXW: continue
+    if w['tilt'] >= 0.3: w['a'] = a
+    if w['tilt'] > 5 or AXW:
+        w['steered'] = True; w['c'] = c_; w['r'] = rr_; w['w'] = ww_
+        w['lo'] = np.minimum(w['lo'], c_ - rr_); w['hi'] = np.maximum(w['hi'], c_ + rr_); w['lo'][2] = c_[2] - rr_; w['hi'][2] = c_[2] + rr_
+log('wheel axles (tilt deg, steered)', [(round(w['tilt'], 2), w['steered']) for w in wheels])
 # members of each wheel: islands entirely inside its cylinder
 inside_isl = {}
 ic = (imin + imax) / 2
 for wi, w in enumerate(wheels):
     c = w['c']; r = w['r']; hw = max(w['w'] / 2, 0.05)
+    if w['steered']:
+        # axle frame: inside the tire's radius (tread lugs reach ~1.05 r on knobby tires) and its width + hub room
+        S = w['S'] = _isl_frame(w); tol = CFG.get('wheelTol', 1.065)
+        for i in range(nI):
+            if i in inside_isl: continue
+            if S['a'][0][i] < -hw - 0.18 or S['a'][1][i] > hw + 0.18 or S['r'][i] > r * tol: continue
+            inside_isl[i] = wi
+        continue
     # island bbox fully inside the cylinder (radial test on the bbox corners in YZ), x within tire span (+ inward room for hubs/calipers)
     xin = max(hw + 0.16, 0.2)
     for i in range(nI):
@@ -461,7 +506,12 @@ for wi, w in enumerate(wheels):
     c = w['c']; r = w['r']
     mem = [i for i, k in inside_isl.items() if k == wi]
     offax = []
+    S = w.get('S')
     for i in mem:
+        if S is not None:   # steered wheel: around / off-axis in its own axle frame
+            around = S['u'][0][i] < -0.02 * r and S['u'][1][i] > 0.02 * r and S['v'][0][i] < -0.02 * r and S['v'][1][i] > 0.02 * r
+            if around: continue
+            rad = float(S['rc'][i]); size = float(np.max(isz[i])); offax.append((i, rad, size, icnt[i])); continue
         around = imin[i, 1] < c[1] - 0.02 * r and imax[i, 1] > c[1] + 0.02 * r and imin[i, 2] < c[2] - 0.02 * r and imax[i, 2] > c[2] + 0.02 * r
         if around: continue
         rad = math.hypot(ic[i, 1] - c[1], ic[i, 2] - c[2])
@@ -478,7 +528,20 @@ isl_w = np.full(nI, -1); isl_c = np.zeros(nI, dtype=bool)
 for i, wi in inside_isl.items(): isl_w[i] = wi; isl_c[i] = i in caliper
 vw = isl_w[inv]; vcal = isl_c[inv]
 log('wheel members', {wi: sum(1 for k in inside_isl.values() if k == wi) for wi in range(len(wheels))}, 'calipers', len(caliper))
+# cfg rOuter (knobby tires whose tread lugs are separate islands outside the tire carcass, truck9: carcass 0.443, lugs 0.466):
+# the wheel radius (physics contact, ground plane) is the lug tread, so the lugs stand on the road instead of 2 cm in it
+if CFG.get('rOuter'):
+    for wi, w in enumerate(wheels):
+        if not w['steered']: continue
+        m_ = (vw == wi) & ~vcal
+        if m_.sum() < 50: continue
+        d_ = V[m_] - w['c']; ax_ = d_ @ w['a']; ro = float(np.percentile(np.linalg.norm(d_ - np.outer(ax_, w['a']), axis=1), 99.7))
+        if ro > w['r'] * 1.01: log('wheel', wi, 'r', round(w['r'], 4), '-> lug tread', round(ro, 4)); w['r'] = ro; w['lo'][2] = w['c'][2] - ro; w['hi'][2] = w['c'][2] + ro
 
+def wrad(wi, co):   # distance of a point from wheel wi's axle (its fitted axle when the source wheel is steered / cambered)
+    w = wheels[wi]; d = np.array([co[0], co[1], co[2]]) - w['c']
+    if w.get('tilt', 0) < 0.3: return math.hypot(d[1], d[2])
+    return float(np.linalg.norm(d - (d @ w['a']) * w['a']))
 # ------------------------------------------------------------------ frame: ground 0, mid-wheelbase 0, centered in X
 xc = float(np.mean([w['c'][0] for w in wheels]))
 ymid = (yF + yR) / 2
@@ -739,12 +802,11 @@ for f in bm.faces:
         else:
             rgb = (base[0], base[1], base[2]); ta = 1.0
         if wfi >= 0 and sl.startswith('trim') and (lum(rgb) > 0.4 or (CFG.get('tireDark') and lum(rgb) > 0.07)) and not sl.endswith('chrome'):
-            wc_ = wheels[wfi]['c']; rad_ = math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2])
+            rad_ = wrad(wfi, lp.vert.co)
             if rad_ > CFG.get('tireRatio', 0.8) * wheels[wfi]['r']: rgb = (0.03, 0.03, 0.032); sl = 'trim:rubber'   # an unset white tire
             elif CFG.get('rimChrome'): sl = 'trim:chrome'
         if wfi >= 0 and not CFG.get('keepBadges'):
-            wc_ = wheels[wfi]['c']
-            if math.hypot(lp.vert.co[1] - wc_[1], lp.vert.co[2] - wc_[2]) < 0.2 * wheels[wfi]['r']:
+            if wrad(wfi, lp.vert.co) < 0.2 * wheels[wfi]['r']:
                 rgb = (0.6, 0.61, 0.63); sl = 'trim:chrome'          # wheel center cap: plain, no maker mark
         if sl == 'paint': a = 0.0; rgb = (1, 1, 1)
         elif sl.startswith('trim'):
@@ -1339,9 +1401,13 @@ wFL = wheels[iFL]; rF = float(wFL['r']); rR = float(wheels[iRL]['r'])
 hubF = Vector(wFL['c'].tolist())
 whl.data.transform(Matrix.Translation(-hubF))
 if cal: cal.data.transform(Matrix.Translation(-hubF))
+def wheelAlign(o, w):   # r4: the wheel's fitted axle onto X (the game spins wheels about X): no swash, no steer / camber
+    if o is None or w.get('tilt', 0) < 0.3: return
+    o.data.transform(Vector([float(x) for x in w['a']]).rotation_difference(Vector((1, 0, 0))).to_matrix().to_4x4())
+wheelAlign(whl, wFL); wheelAlign(cal, wFL)
 whlR = None
 if abs(rR - rF) > 0.03 * rF:
-    whlR = extract('wheelR', (vw2 == iRL) & ~vc2); whlR.data.transform(Matrix.Translation(-Vector(wheels[iRL]['c'].tolist())))
+    whlR = extract('wheelR', (vw2 == iRL) & ~vc2); whlR.data.transform(Matrix.Translation(-Vector(wheels[iRL]['c'].tolist()))); wheelAlign(whlR, wheels[iRL])
 bpy.data.objects.remove(ob_all)
 
 def tris(o): return sum(len(p.vertices) - 2 for p in o.data.polygons)
@@ -1521,7 +1587,7 @@ archGap = max(0.0, min(ag)) if ag else 0.06
 def g(p): return [round(float(p[0]), 4), round(float(p[2]), 4), round(float(-p[1]), 4)]  # blender -> game (x, y, z)
 wl = []
 for nm_, i in (('FL', iFL), ('FR', iFR), ('RL', iRL), ('RR', iRR)):
-    w = wheels[i]; wl.append({'id': nm_, 'pos': g(w['c']), 'r': round(float(w['r']), 4), 'w': round(float(w['w']), 4), **({'virtual': True} if w.get('virtual') else {})})
+    w = wheels[i]; wl.append({'id': nm_, 'pos': g(w['c']), 'r': round(float(w['r']), 4), 'w': round(float(w['w']), 4), **({'virtual': True} if w.get('virtual') else {}), **({'axleTilt': round(float(w['tilt']), 2)} if w.get('tilt', 0) >= 0.3 else {})})
 extra = []
 for i, w in enumerate(wheels):
     if i in (iFL, iFR, iRL, iRR): continue

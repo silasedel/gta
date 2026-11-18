@@ -1,0 +1,542 @@
+{
+ "conv1:wheel0": {
+  "tilt": 0.79,
+  "steer": 0.04,
+  "camber": 0.78,
+  "hub_mm": 0.8,
+  "R": 0.2979,
+  "swash_mm": 4.1,
+  "clean": true
+ },
+ "conv2:wheel0": {
+  "tilt": 0.07,
+  "steer": -0.07,
+  "camber": 0.01,
+  "hub_mm": 0.0,
+  "R": 0.3265,
+  "swash_mm": 0.4,
+  "clean": true
+ },
+ "conv2:wheelR0": {
+  "tilt": 0.11,
+  "steer": -0.01,
+  "camber": 0.11,
+  "hub_mm": 0.0,
+  "R": 0.345,
+  "swash_mm": 0.7,
+  "clean": true
+ },
+ "coupe2:wheel0": {
+  "tilt": 0.08,
+  "steer": 0.02,
+  "camber": -0.08,
+  "hub_mm": 0.1,
+  "R": 0.3441,
+  "swash_mm": 0.5,
+  "clean": true
+ },
+ "coupe3:wheel0": {
+  "tilt": 0.22,
+  "steer": -0.12,
+  "camber": -0.18,
+  "hub_mm": 0.0,
+  "R": 0.3443,
+  "swash_mm": 1.3,
+  "clean": true
+ },
+ "coupe4:wheel0": {
+  "tilt": 0.08,
+  "steer": -0.06,
+  "camber": 0.06,
+  "hub_mm": 0.0,
+  "R": 0.3241,
+  "swash_mm": 0.5,
+  "clean": true
+ },
+ "coupe5:wheel0": {
+  "tilt": 0.38,
+  "steer": -0.07,
+  "camber": 0.38,
+  "hub_mm": 0.0,
+  "R": 0.327,
+  "swash_mm": 2.2,
+  "clean": true
+ },
+ "hatch1:wheel0": {
+  "tilt": 0.13,
+  "steer": 0.12,
+  "camber": -0.01,
+  "hub_mm": 0.0,
+  "R": 0.3231,
+  "swash_mm": 0.7,
+  "clean": true
+ },
+ "hatch2:wheel0": {
+  "tilt": 0.07,
+  "steer": 0.03,
+  "camber": 0.06,
+  "hub_mm": 0.0,
+  "R": 0.3311,
+  "swash_mm": 0.4,
+  "clean": true
+ },
+ "police1:wheel0": {
+  "tilt": 0.08,
+  "steer": 0.02,
+  "camber": 0.07,
+  "hub_mm": 0.7,
+  "R": 0.3628,
+  "swash_mm": 0.5,
+  "clean": true
+ },
+ "sedan1:wheel0": {
+  "tilt": 0.64,
+  "steer": -0.64,
+  "camber": -0.03,
+  "hub_mm": 0.8,
+  "R": 0.3409,
+  "swash_mm": 3.8,
+  "clean": true
+ },
+ "sedan10:wheel0": {
+  "tilt": 0.42,
+  "steer": 0.41,
+  "camber": -0.05,
+  "hub_mm": 0.0,
+  "R": 0.3213,
+  "swash_mm": 2.3,
+  "clean": true
+ },
+ "sedan2:wheel0": {
+  "tilt": 0.79,
+  "steer": -0.07,
+  "camber": 0.78,
+  "hub_mm": 0.8,
+  "R": 0.3327,
+  "swash_mm": 4.6,
+  "clean": true
+ },
+ "sedan3:wheel0": {
+  "tilt": 0.57,
+  "steer": 0.01,
+  "camber": 0.57,
+  "hub_mm": 0.1,
+  "R": 0.3411,
+  "swash_mm": 3.4,
+  "clean": true
+ },
+ "sedan4:wheel0": {
+  "tilt": 0.03,
+  "steer": 0.01,
+  "camber": 0.03,
+  "hub_mm": 0.0,
+  "R": 0.3327,
+  "swash_mm": 0.2,
+  "clean": true
+ },
+ "sedan5:wheel0": {
+  "tilt": 0.14,
+  "steer": -0.07,
+  "camber": -0.13,
+  "hub_mm": 0.0,
+  "R": 0.3223,
+  "swash_mm": 0.8,
+  "clean": true
+ },
+ "sedan6:wheel0": {
+  "tilt": 0.14,
+  "steer": -0.09,
+  "camber": 0.1,
+  "hub_mm": 0.3,
+  "R": 0.3478,
+  "swash_mm": 0.8,
+  "clean": true
+ },
+ "sedan7:wheel0": {
+  "tilt": 0.2,
+  "steer": -0.16,
+  "camber": 0.12,
+  "hub_mm": 0.0,
+  "R": 0.3155,
+  "swash_mm": 1.1,
+  "clean": true
+ },
+ "sedan8:wheel0": {
+  "tilt": 0.03,
+  "steer": -0.03,
+  "camber": 0.01,
+  "hub_mm": 0.1,
+  "R": 0.3374,
+  "swash_mm": 0.2,
+  "clean": true
+ },
+ "sedan9:wheel0": {
+  "tilt": 0.13,
+  "steer": 0.11,
+  "camber": 0.06,
+  "hub_mm": 0.2,
+  "R": 0.3245,
+  "swash_mm": 0.7,
+  "clean": true
+ },
+ "super3:wheel0": {
+  "tilt": 0.09,
+  "steer": -0.09,
+  "camber": -0.01,
+  "hub_mm": 0.1,
+  "R": 0.3492,
+  "swash_mm": 0.5,
+  "clean": true
+ },
+ "super3:wheelR0": {
+  "tilt": 0.02,
+  "steer": -0.02,
+  "camber": 0.01,
+  "hub_mm": 0.0,
+  "R": 0.3632,
+  "swash_mm": 0.1,
+  "clean": true
+ },
+ "super4:wheel0": {
+  "tilt": 0.26,
+  "steer": 0.26,
+  "camber": -0.03,
+  "hub_mm": 5.1,
+  "R": 0.3522,
+  "swash_mm": 1.6,
+  "clean": true
+ },
+ "super4:wheelR0": {
+  "tilt": 0.26,
+  "steer": 0.16,
+  "camber": 0.21,
+  "hub_mm": 0.1,
+  "R": 0.3669,
+  "swash_mm": 1.7,
+  "clean": true
+ },
+ "super5:wheel0": {
+  "tilt": 0.22,
+  "steer": 0.0,
+  "camber": -0.22,
+  "hub_mm": 0.1,
+  "R": 0.3343,
+  "swash_mm": 1.3,
+  "clean": true
+ },
+ "super5:wheelR0": {
+  "tilt": 1.32,
+  "steer": 0.1,
+  "camber": 1.32,
+  "hub_mm": 0.1,
+  "R": 0.349,
+  "swash_mm": 8.0,
+  "clean": true
+ },
+ "super6:wheel0": {
+  "tilt": 0.12,
+  "steer": 0.04,
+  "camber": 0.11,
+  "hub_mm": 0.0,
+  "R": 0.3162,
+  "swash_mm": 0.6,
+  "clean": true
+ },
+ "super6:wheelR0": {
+  "tilt": 0.26,
+  "steer": -0.01,
+  "camber": 0.26,
+  "hub_mm": 0.0,
+  "R": 0.3312,
+  "swash_mm": 1.5,
+  "clean": true
+ },
+ "suv1:wheel0": {
+  "tilt": 0.33,
+  "steer": 0.26,
+  "camber": 0.2,
+  "hub_mm": 0.0,
+  "R": 0.3902,
+  "swash_mm": 2.2,
+  "clean": true
+ },
+ "suv10:wheel0": {
+  "tilt": 0.87,
+  "steer": -0.07,
+  "camber": -0.87,
+  "hub_mm": 0.0,
+  "R": 0.3768,
+  "swash_mm": 5.7,
+  "clean": true
+ },
+ "suv11:wheel0": {
+  "tilt": 0.26,
+  "steer": -0.2,
+  "camber": 0.16,
+  "hub_mm": 0.0,
+  "R": 0.3654,
+  "swash_mm": 1.7,
+  "clean": true
+ },
+ "suv12:wheel0": {
+  "tilt": 0.58,
+  "steer": -0.2,
+  "camber": 0.54,
+  "hub_mm": 0.6,
+  "R": 0.4148,
+  "swash_mm": 4.2,
+  "clean": true
+ },
+ "suv13:wheel0": {
+  "tilt": 0.26,
+  "steer": -0.2,
+  "camber": -0.16,
+  "hub_mm": 0.6,
+  "R": 0.3315,
+  "swash_mm": 1.5,
+  "clean": true
+ },
+ "suv14:wheel0": {
+  "tilt": 0.77,
+  "steer": 0.44,
+  "camber": 0.63,
+  "hub_mm": 1.0,
+  "R": 0.4023,
+  "swash_mm": 5.4,
+  "clean": true
+ },
+ "suv15:wheel0": {
+  "tilt": 0.2,
+  "steer": -0.18,
+  "camber": -0.1,
+  "hub_mm": 0.0,
+  "R": 0.3779,
+  "swash_mm": 1.3,
+  "clean": true
+ },
+ "suv2:wheel0": {
+  "tilt": 0.15,
+  "steer": -0.11,
+  "camber": 0.11,
+  "hub_mm": 0.0,
+  "R": 0.4209,
+  "swash_mm": 1.1,
+  "clean": true
+ },
+ "suv3:wheel0": {
+  "tilt": 0.08,
+  "steer": 0.07,
+  "camber": 0.03,
+  "hub_mm": 0.2,
+  "R": 0.436,
+  "swash_mm": 0.6,
+  "clean": true
+ },
+ "suv4:wheel0": {
+  "tilt": 0.18,
+  "steer": -0.05,
+  "camber": 0.17,
+  "hub_mm": 0.1,
+  "R": 0.3708,
+  "swash_mm": 1.1,
+  "clean": true
+ },
+ "suv5:wheel0": {
+  "tilt": 0.24,
+  "steer": -0.2,
+  "camber": -0.13,
+  "hub_mm": 2.0,
+  "R": 0.3613,
+  "swash_mm": 1.5,
+  "clean": true
+ },
+ "suv6:wheel0": {
+  "tilt": 0.2,
+  "steer": -0.03,
+  "camber": -0.2,
+  "hub_mm": 0.1,
+  "R": 0.358,
+  "swash_mm": 1.3,
+  "clean": true
+ },
+ "suv7:wheel0": {
+  "tilt": 0.35,
+  "steer": 0.19,
+  "camber": 0.3,
+  "hub_mm": 0.2,
+  "R": 0.3923,
+  "swash_mm": 2.4,
+  "clean": false
+ },
+ "suv8:wheel0": {
+  "tilt": 0.18,
+  "steer": 0.12,
+  "camber": 0.14,
+  "hub_mm": 0.0,
+  "R": 0.3477,
+  "swash_mm": 1.1,
+  "clean": true
+ },
+ "suv9:wheel0": {
+  "tilt": 0.16,
+  "steer": 0.05,
+  "camber": -0.15,
+  "hub_mm": 0.0,
+  "R": 0.3694,
+  "swash_mm": 1.0,
+  "clean": true
+ },
+ "truck10:wheel0": {
+  "tilt": 0.07,
+  "steer": 0.02,
+  "camber": -0.06,
+  "hub_mm": 0.0,
+  "R": 0.4647,
+  "swash_mm": 0.5,
+  "clean": true
+ },
+ "truck11:wheel0": {
+  "tilt": 0.14,
+  "steer": -0.08,
+  "camber": 0.12,
+  "hub_mm": 0.2,
+  "R": 0.4926,
+  "swash_mm": 1.2,
+  "clean": true
+ },
+ "truck13:wheel0": {
+  "tilt": 0.03,
+  "steer": 0.03,
+  "camber": 0.01,
+  "hub_mm": 0.0,
+  "R": 0.5223,
+  "swash_mm": 0.3,
+  "clean": true
+ },
+ "truck2:wheel0": {
+  "tilt": 0.05,
+  "steer": 0.02,
+  "camber": 0.04,
+  "hub_mm": 0.0,
+  "R": 0.449,
+  "swash_mm": 0.4,
+  "clean": true
+ },
+ "truck3:wheel0": {
+  "tilt": 0.16,
+  "steer": 0.13,
+  "camber": -0.09,
+  "hub_mm": 0.0,
+  "R": 0.4291,
+  "swash_mm": 1.2,
+  "clean": true
+ },
+ "truck4:wheel0": {
+  "tilt": 0.11,
+  "steer": -0.03,
+  "camber": -0.11,
+  "hub_mm": 0.1,
+  "R": 0.4647,
+  "swash_mm": 0.9,
+  "clean": true
+ },
+ "truck5:wheel0": {
+  "tilt": 0.14,
+  "steer": -0.1,
+  "camber": 0.1,
+  "hub_mm": 8.0,
+  "R": 0.4319,
+  "swash_mm": 1.1,
+  "clean": false
+ },
+ "truck6:wheel0": {
+  "tilt": 0.16,
+  "steer": -0.14,
+  "camber": 0.09,
+  "hub_mm": 0.0,
+  "R": 0.4373,
+  "swash_mm": 1.2,
+  "clean": true
+ },
+ "truck7:wheel0": {
+  "tilt": 0.2,
+  "steer": -0.09,
+  "camber": -0.18,
+  "hub_mm": 0.0,
+  "R": 0.4131,
+  "swash_mm": 1.4,
+  "clean": true
+ },
+ "truck8:wheel0": {
+  "tilt": 0.08,
+  "steer": -0.08,
+  "camber": -0.01,
+  "hub_mm": 0.0,
+  "R": 0.4764,
+  "swash_mm": 0.7,
+  "clean": true
+ },
+ "truck9:wheel0": {
+  "tilt": 0.15,
+  "steer": -0.03,
+  "camber": 0.15,
+  "hub_mm": 1.0,
+  "R": 0.4598,
+  "swash_mm": 1.2,
+  "clean": true
+ },
+ "van1:wheel0": {
+  "tilt": 2.65,
+  "steer": -0.28,
+  "camber": 2.64,
+  "hub_mm": 1.0,
+  "R": 0.374,
+  "swash_mm": 17.3,
+  "clean": false
+ },
+ "van3:wheel0": {
+  "tilt": 0.03,
+  "steer": 0.01,
+  "camber": -0.03,
+  "hub_mm": 0.0,
+  "R": 0.3509,
+  "swash_mm": 0.2,
+  "clean": true
+ },
+ "van4:wheel0": {
+  "tilt": 0.06,
+  "steer": -0.06,
+  "camber": -0.01,
+  "hub_mm": 0.1,
+  "R": 0.387,
+  "swash_mm": 0.4,
+  "clean": true
+ },
+ "van5:wheel0": {
+  "tilt": 0.14,
+  "steer": -0.07,
+  "camber": -0.12,
+  "hub_mm": 0.0,
+  "R": 0.3503,
+  "swash_mm": 0.9,
+  "clean": true
+ },
+ "van6:wheel0": {
+  "tilt": 0.18,
+  "steer": -0.13,
+  "camber": -0.13,
+  "hub_mm": 0.0,
+  "R": 0.3579,
+  "swash_mm": 1.1,
+  "clean": true
+ },
+ "van7:wheel0": {
+  "tilt": 0.08,
+  "steer": 0.06,
+  "camber": -0.06,
+  "hub_mm": 0.1,
+  "R": 0.3682,
+  "swash_mm": 0.5,
+  "clean": true
+ }
+}

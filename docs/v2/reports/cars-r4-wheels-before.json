@@ -1,0 +1,531 @@
+{
+ "tag": "before",
+ "cars": {
+  "truck9": {
+   "info": {
+    "key": "truck9",
+    "name": "Ridgeback Sandhawk TR #56",
+    "wheel": {
+     "x": 0.8587,
+     "y": -0.3685227272727273,
+     "z": 1.809,
+     "r": 0.4433
+    },
+    "man": {
+     "r": 0.4433,
+     "archGap": 0.04
+    }
+   },
+   "frames": [
+    {
+     "f": 0,
+     "vn": "side",
+     "kmh": 2.8,
+     "steer": 0,
+     "spin": 1.01
+    },
+    {
+     "f": 1,
+     "vn": "head",
+     "kmh": 6.2,
+     "steer": 0,
+     "spin": 4.38
+    },
+    {
+     "f": 2,
+     "vn": "side",
+     "kmh": 5.2,
+     "steer": 0,
+     "spin": 6.25
+    },
+    {
+     "f": 3,
+     "vn": "head",
+     "kmh": 7.8,
+     "steer": 0,
+     "spin": 9.7
+    },
+    {
+     "f": 4,
+     "vn": "side",
+     "kmh": 7.1,
+     "steer": 0,
+     "spin": 11.55
+    },
+    {
+     "f": 5,
+     "vn": "head",
+     "kmh": 6,
+     "steer": 0,
+     "spin": 13.71
+    },
+    {
+     "f": 6,
+     "vn": "side",
+     "kmh": 5,
+     "steer": 0,
+     "spin": 15.48
+    },
+    {
+     "f": 7,
+     "vn": "head",
+     "kmh": 6.9,
+     "steer": 0,
+     "spin": 18.87
+    },
+    {
+     "f": 8,
+     "vn": "side",
+     "kmh": 5.3,
+     "steer": 0.584,
+     "spin": 20.8
+    },
+    {
+     "f": 9,
+     "vn": "head",
+     "kmh": 7.7,
+     "steer": 0.577,
+     "spin": 23.8
+    },
+    {
+     "f": 10,
+     "vn": "side",
+     "kmh": 6.5,
+     "steer": 0.58,
+     "spin": 25.4
+    },
+    {
+     "f": 11,
+     "vn": "head",
+     "kmh": 5,
+     "steer": 0.585,
+     "spin": 27.14
+    },
+    {
+     "f": 12,
+     "vn": "side",
+     "kmh": 6.9,
+     "steer": 0.579,
+     "spin": 29.69
+    },
+    {
+     "f": 13,
+     "vn": "head",
+     "kmh": 5.7,
+     "steer": 0.583,
+     "spin": 31.2
+    },
+    {
+     "f": 14,
+     "vn": "side",
+     "kmh": 7.5,
+     "steer": 0.577,
+     "spin": 34.22
+    },
+    {
+     "f": 15,
+     "vn": "head",
+     "kmh": 5.8,
+     "steer": 0.583,
+     "spin": 36.3
+    }
+   ]
+  },
+  "coupe3": {
+   "info": {
+    "key": "coupe3",
+    "name": "Halcyon Vesper Coupe #57",
+    "wheel": {
+     "x": 0.8053,
+     "y": -0.24426136363636364,
+     "z": 1.4295,
+     "r": 0.3447
+    },
+    "man": {
+     "r": 0.3447,
+     "archGap": 0.04
+    }
+   },
+   "frames": [
+    {
+     "f": 0,
+     "vn": "side",
+     "kmh": 10.9,
+     "steer": 0,
+     "spin": 7.13
+    },
+    {
+     "f": 1,
+     "vn": "head",
+     "kmh": 9.8,
+     "steer": 0,
+     "spin": 11.53
+    },
+    {
+     "f": 2,
+     "vn": "side",
+     "kmh": 8.8,
+     "steer": 0,
+     "spin": 15.36
+    },
+    {
+     "f": 3,
+     "vn": "head",
+     "kmh": 7.7,
+     "steer": 0,
+     "spin": 18.97
+    },
+    {
+     "f": 4,
+     "vn": "side",
+     "kmh": 6.6,
+     "steer": 0,
+     "spin": 21.92
+    },
+    {
+     "f": 5,
+     "vn": "head",
+     "kmh": 5.5,
+     "steer": 0,
+     "spin": 24.68
+    },
+    {
+     "f": 6,
+     "vn": "side",
+     "kmh": 13,
+     "steer": 0,
+     "spin": 32.63
+    },
+    {
+     "f": 7,
+     "vn": "head",
+     "kmh": 11.9,
+     "steer": 0,
+     "spin": 37.79
+    },
+    {
+     "f": 8,
+     "vn": "side",
+     "kmh": 9.8,
+     "steer": 0.523,
+     "spin": 41.98
+    },
+    {
+     "f": 9,
+     "vn": "head",
+     "kmh": 8.2,
+     "steer": 0.527,
+     "spin": 44.98
+    },
+    {
+     "f": 10,
+     "vn": "side",
+     "kmh": 6.7,
+     "steer": 0.531,
+     "spin": 47.44
+    },
+    {
+     "f": 11,
+     "vn": "head",
+     "kmh": 5.3,
+     "steer": 0.535,
+     "spin": 49.53
+    },
+    {
+     "f": 12,
+     "vn": "side",
+     "kmh": 10.3,
+     "steer": 0.522,
+     "spin": 54.52
+    },
+    {
+     "f": 13,
+     "vn": "head",
+     "kmh": 8.5,
+     "steer": 0.526,
+     "spin": 57.85
+    },
+    {
+     "f": 14,
+     "vn": "side",
+     "kmh": 7,
+     "steer": 0.531,
+     "spin": 60.5
+    },
+    {
+     "f": 15,
+     "vn": "head",
+     "kmh": 5.6,
+     "steer": 0.535,
+     "spin": 62.62
+    }
+   ]
+  },
+  "suv1": {
+   "info": {
+    "key": "suv1",
+    "name": "Aurelia Bastion #59",
+    "wheel": {
+     "x": 0.828,
+     "y": -0.3256730769230769,
+     "z": 1.4275,
+     "r": 0.3926
+    },
+    "man": {
+     "r": 0.3926,
+     "archGap": 0.04
+    }
+   },
+   "frames": [
+    {
+     "f": 0,
+     "vn": "side",
+     "kmh": 12.1,
+     "steer": 0,
+     "spin": 7.29
+    },
+    {
+     "f": 1,
+     "vn": "head",
+     "kmh": 10.9,
+     "steer": 0,
+     "spin": 12.29
+    },
+    {
+     "f": 2,
+     "vn": "side",
+     "kmh": 9.8,
+     "steer": 0,
+     "spin": 16.17
+    },
+    {
+     "f": 3,
+     "vn": "head",
+     "kmh": 8.7,
+     "steer": 0,
+     "spin": 19.75
+    },
+    {
+     "f": 4,
+     "vn": "side",
+     "kmh": 7.7,
+     "steer": 0,
+     "spin": 22.81
+    },
+    {
+     "f": 5,
+     "vn": "head",
+     "kmh": 6.6,
+     "steer": 0,
+     "spin": 25.48
+    },
+    {
+     "f": 6,
+     "vn": "side",
+     "kmh": 5.6,
+     "steer": 0,
+     "spin": 27.69
+    },
+    {
+     "f": 7,
+     "vn": "head",
+     "kmh": 10.7,
+     "steer": 0,
+     "spin": 34.23
+    },
+    {
+     "f": 8,
+     "vn": "side",
+     "kmh": 8.7,
+     "steer": 0.526,
+     "spin": 37.82
+    },
+    {
+     "f": 9,
+     "vn": "head",
+     "kmh": 7.1,
+     "steer": 0.53,
+     "spin": 40.18
+    },
+    {
+     "f": 10,
+     "vn": "side",
+     "kmh": 5.7,
+     "steer": 0.534,
+     "spin": 42.09
+    },
+    {
+     "f": 11,
+     "vn": "head",
+     "kmh": 8.8,
+     "steer": 0.526,
+     "spin": 46.05
+    },
+    {
+     "f": 12,
+     "vn": "side",
+     "kmh": 7.4,
+     "steer": 0.53,
+     "spin": 48.24
+    },
+    {
+     "f": 13,
+     "vn": "head",
+     "kmh": 5.9,
+     "steer": 0.534,
+     "spin": 50.16
+    },
+    {
+     "f": 14,
+     "vn": "side",
+     "kmh": 8.5,
+     "steer": 0.526,
+     "spin": 54.32
+    },
+    {
+     "f": 15,
+     "vn": "head",
+     "kmh": 7.2,
+     "steer": 0.53,
+     "spin": 56.37
+    }
+   ]
+  },
+  "super4": {
+   "info": {
+    "key": "super4",
+    "name": "Solano Libeccio RS #62",
+    "wheel": {
+     "x": 0.8044,
+     "y": -0.21620535714285716,
+     "z": 1.2265,
+     "r": 0.351
+    },
+    "man": {
+     "r": 0.351,
+     "archGap": 0.04
+    }
+   },
+   "frames": [
+    {
+     "f": 0,
+     "vn": "side",
+     "kmh": 13.9,
+     "steer": 0,
+     "spin": 7.89
+    },
+    {
+     "f": 1,
+     "vn": "head",
+     "kmh": 12.8,
+     "steer": 0,
+     "spin": 13.51
+    },
+    {
+     "f": 2,
+     "vn": "side",
+     "kmh": 11.8,
+     "steer": 0,
+     "spin": 18.35
+    },
+    {
+     "f": 3,
+     "vn": "head",
+     "kmh": 10.7,
+     "steer": 0,
+     "spin": 22.92
+    },
+    {
+     "f": 4,
+     "vn": "side",
+     "kmh": 9.6,
+     "steer": 0,
+     "spin": 27.2
+    },
+    {
+     "f": 5,
+     "vn": "head",
+     "kmh": 8.6,
+     "steer": 0,
+     "spin": 31.03
+    },
+    {
+     "f": 6,
+     "vn": "side",
+     "kmh": 7.5,
+     "steer": 0,
+     "spin": 34.6
+    },
+    {
+     "f": 7,
+     "vn": "head",
+     "kmh": 6.3,
+     "steer": 0,
+     "spin": 37.84
+    },
+    {
+     "f": 8,
+     "vn": "side",
+     "kmh": 4.7,
+     "steer": 0.488,
+     "spin": 40.04
+    },
+    {
+     "f": 9,
+     "vn": "head",
+     "kmh": 13.3,
+     "steer": 0.466,
+     "spin": 47.19
+    },
+    {
+     "f": 10,
+     "vn": "side",
+     "kmh": 11.2,
+     "steer": 0.472,
+     "spin": 52.05
+    },
+    {
+     "f": 11,
+     "vn": "head",
+     "kmh": 9.5,
+     "steer": 0.476,
+     "spin": 55.6
+    },
+    {
+     "f": 12,
+     "vn": "side",
+     "kmh": 8.5,
+     "steer": 0.479,
+     "spin": 57.7
+    },
+    {
+     "f": 13,
+     "vn": "head",
+     "kmh": 7.1,
+     "steer": 0.482,
+     "spin": 60.25
+    },
+    {
+     "f": 14,
+     "vn": "side",
+     "kmh": 5.7,
+     "steer": 0.486,
+     "spin": 62.33
+    },
+    {
+     "f": 15,
+     "vn": "head",
+     "kmh": 14.2,
+     "steer": 0.464,
+     "spin": 69.71
+    }
+   ]
+  }
+ },
+ "errors": [],
+ "spot": {
+  "x": 396.87617687039307,
+  "z": -144.35930121839968,
+  "h": -1.3750591147588405
+ }
+}

@@ -163,7 +163,8 @@
     -0.29
    ],
    "rear": 0
-  }
+  },
+  "tireDark": true
  },
  "hatch1": {
   "src": "Hatchbacks/Hatchback 1 - Japanese Sporty Hatch/Hatchback 1.blend",
@@ -1951,7 +1952,9 @@
   "wheelTris": [
    48000,
    14000
-  ]
+  ],
+  "axleWheels": true,
+  "rOuter": true
  },
  "coupe4": {
   "src": "Coupes/Coupe 4 - 1970 American Muscle Coupe/FINAL_MODEL_SS.fbx",
