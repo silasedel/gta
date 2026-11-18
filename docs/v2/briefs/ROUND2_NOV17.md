@@ -67,6 +67,11 @@ bunch of models downloaded from the internet. Same for placement and for everyth
 - **Need a model?** If a model would clearly beat what you can build, add it to `docs/v2/briefs/MODEL_REQUESTS_r2.md`
   (what, where it's used, quantity, style notes). The user will download it.
 
+
+## Use the user's library first (user, Nov 17 evening)
+"Really look through all the models and get a good sense of them all, so you can take advantage of them properly."
+Before building ANY prop, furniture, bench, sign, lamp, vehicle, plant or building piece in code, search `Models/catalog.csv` (about 700 rows: name, style, category) and the folder tree under `Models/`. Use the user's model whenever one fits, calibrated to ART_STYLE. Code-built stand-ins only when nothing fits, and then add a row to `MODEL_REQUESTS_r2.md`.
+
 ## Rules (unchanged from OVERNIGHT_NOV17.md, all still apply)
 - **Looks first.** No load freezes, and the frame rate should not get worse. Compare A/B in one session.
 - **SHARED TREE SAFETY:** everyone's test pages load your unsaved work. Any change to a shared or core path (data loading, terrain heights, render pipeline, tilebuild) goes behind a flag that is OFF by default, wrapped in try/catch with a fallback, until you have booted the game with it on yourself (city loads, tiles stream, 0 console errors). Only then switch it on.
