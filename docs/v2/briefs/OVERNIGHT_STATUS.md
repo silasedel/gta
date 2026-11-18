@@ -1359,6 +1359,16 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   found), truck11 (cab-chassis, converted but unused), city bus.
 
 ## r2-people
+- 21:00 **Sitting (user: "terrible and unrealistic when sitting").** `src/npc/furnitureSeat.js` + the shared seat solver:
+  every seated ped (interiors, benches, booths) is placed on the probed cushion of the real furniture (not the armrest),
+  9 cm above it and 13 cm in front of the backrest, feet on the floor in front of the seat edge, with a natural variant
+  (back, forward with clasped hands, lap, phone, armrest, turned) and slow desynchronized life. Bar check
+  `docs/v2/shots/people/r2_sitting_sheet.jpg` (9 of 9 seated people probed and posed). Fixed the South Beach crash
+  (peds.js "reading 'add'": sunbathers / volleyball / frisbee spawns now skip a person that could not be dressed).
+  NOT done: the lobby armchair model swap (only asset: assets/models/keys/wicker_chair.glb; the V2 lobby sofa / armchair
+  are code-built in interiors/fixtures/venue.js and already carry a 0.77 m solid collider: Nico standing inside one needs
+  the interiors owner to check that collider) and leg crossing; the lobby itself was not verified (its guests were not
+  probed during the test window).
 - 19:00 **Final.** All 76 new user people (NPC 96-171) in the game (173 people total), named from previews (folders +
   Models/catalog.csv, on disk), rigged with the user's quality notes (shirt-print relief flattened, white hair-edge fringe
   recolored, stray bits dropped, fixed thumb lanes) and cast by role: 7 gang members only in gang crews (kit.js 'gang'),
