@@ -40,3 +40,14 @@ Shots: shot_01_sw11th_median.webp (SW 11th St: grass median where an intersectio
 25. Dogs look terrible: ask the user for a dog model instead of making one.
 
 The user wants Claude to find issues itself, not wait for the user to spot them.
+
+## Second message (Miami Ave, ~13:30 game time; screenshots shown in chat, not saved)
+26. GPS: route by travel time (faster roads, traffic, fewer turns: straight then turn). Done in 9c70a816 (time-based A*, turn and signal costs); live traffic not yet included.
+27. Yellow "LYRIC" gang-turf circles over the 3D map: removed (layer off by default, 9c70a816).
+28. Miami Ave overpass/ramp: far too low, a ramp wall sits in the middle of the road, cars get stuck on it. Ramp and barrier walls look like cheap flat 2D layers: needs real concrete (form lines, stains, edge wear), real dirt/soil where they meet ground; road edges should roll into the ground naturally. Fix clearance and placement of ramps over streets.
+29. ATM model is bad: use the user's ATM models from the library (~/Downloads/Models catalog).
+30. Never let the player see NPCs spawn (spawn out of view, fade in only off-screen).
+31. Shop interior (convenience store): a Wi-Fi router / black box floating on a shelf; a man floating in the air near the counter; skin too dark inside shops (interior lighting); counter has no detail; something clipping through the counter. People clip through each other.
+32. Animations: kneeling people look like they are punching the ground; everything must look natural.
+33. Police walk into walls; a man stuck on a curb edge; a car stuck on the overpass.
+34. User's overall message: walk through the game yourself, think it through, and make everything look and behave like it would in real life (smooth roads, real materials, real behavior). Don't wait for the user to find issues.
