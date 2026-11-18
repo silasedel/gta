@@ -55,6 +55,62 @@ function canonicalize(scene) {
   scene.traverse((o) => { if (o.isSkinnedMesh) { o.skeleton.calculateInverses(); o.skeleton.pose(); } });
 }
 
+// r3-people (user, Nov 17 PM: "generated people walk with their arms out"): about 60 of the Tripo people were generated
+// with raised, palms-forward arms; the rigger straightened the arms onto +-X but kept the roll, so the clips (built for
+// palms DOWN in the T-pose) hang their arms palms-forward with the elbow folding sideways. index.json armRoll {L, R}
+// (degrees, measured offline by tools/v2/npcs/palm_survey.py -> palm_roll.py) rolls each arm's mesh about the arm axis
+// back to palms down, by re-binding: the arm chain is posed by the roll, the posed mesh becomes the new rest (inverse
+// bind matrices recomputed), bones back to identity world rotations. Shared clips and the far crowd bake pick it up.
+// '?armroll=0' = off (A/B).
+const ARM_ROLL = !(typeof location !== 'undefined' && /[?&]armroll=0/.test(location.search));
+const ROLL_K = (typeof location !== 'undefined' && +(/[?&]armrollk=([-0-9.]+)/.exec(location.search) || [])[1]) || 1;   // debug: scale / flip the roll
+const _m4 = new THREE.Matrix4(), _wp = new THREE.Vector3();
+const ROLL_SPLIT = ((typeof location !== 'undefined' && (/[?&]rollsplit=([0-9.,]+)/.exec(location.search) || [])[1]) || '0.2,0.5,0.3').split(',').map(Number);   // debug A/B
+function rollArms(scene, bones, roll) {
+  if (!roll) return;
+  for (const S of ['Left', 'Right']) {
+    const deg = (+roll[S[0]] || 0) * ROLL_K; const top = bones[S + 'Arm'];
+    if (!top || Math.abs(deg) < 1) continue;
+    // split the roll down the chain like a real forearm twist (the scan's upper arm is mostly fine: sleeve patches stay
+    // on the outside of the arm; the forearm / hand carry the supination): cumulative upper arm 20 %, forearm 70 %,
+    // hand 100 %, so no single joint blend has to absorb the whole twist
+    const fore = bones[S + 'ForeArm'], hand = bones[S + 'Hand'];
+    const parts = fore && hand ? [[top, ROLL_SPLIT[0]], [fore, ROLL_SPLIT[1]], [hand, ROLL_SPLIT[2]]] : [[top, 1]];
+    const chain = []; top.traverse((o) => { if (o.isBone) chain.push(o); });
+    scene.updateMatrixWorld(true);
+    const before = new Map(chain.map((b) => [b, b.matrixWorld.clone()]));
+    // pose: roll about +X (the arm axis in the canonical rest); bones have identity world rotations here, so a local
+    // rotation of the top bone is a world rotation, and the forearm's share is expressed in its parent's (rolled) frame
+    for (const [b, k] of parts) b.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), (deg * k * Math.PI) / 180);
+    scene.updateMatrixWorld(true);
+    const posed = new Map(chain.map((b) => [b, b.matrixWorld.clone()]));
+    const wpos = new Map(chain.map((b) => [b, b.getWorldPosition(new THREE.Vector3())]));
+    // back to identity world rotations at the posed joint positions
+    for (const b of chain) {
+      b.quaternion.identity();
+      b.updateMatrixWorld(true);
+      b.position.copy(b.parent.worldToLocal(_wp.copy(wpos.get(b))));
+      b.updateMatrixWorld(true);
+    }
+    scene.updateMatrixWorld(true);
+    // inverse bind: new = rest^-1 * posed * old (the posed mesh is the new rest). The LODs share one skin, so the same
+    // Matrix4 objects can sit in several skeletons: update each matrix once
+    const done = new Set();
+    scene.traverse((o) => {
+      if (!o.isSkinnedMesh) return;
+      const sk = o.skeleton;
+      sk.bones.forEach((b, i) => {
+        const inv = sk.boneInverses[i];
+        if (!before.has(b) || done.has(inv)) return;
+        done.add(inv);
+        _m4.copy(b.matrixWorld).invert().multiply(posed.get(b));
+        inv.premultiply(_m4);
+      });
+    });
+  }
+  // (no skeleton.pose(): the rolled bones' inverse binds are not plain inverses of their rest matrices any more)
+}
+
 // one clip set for everybody (built on the first person), hips translation rescaled by hip height
 let REF = null;
 function shareClips(ref, rig, hipH) {
@@ -144,6 +200,7 @@ export function loadPerson(id) {
     const scene = gltf.scene;
     canonicalize(scene);
     const bones = {}; scene.traverse((ob) => { if (ob.isBone) bones[normBone(ob.name)] = ob; });
+    if (ARM_ROLL && meta.armRoll) { try { rollArms(scene, bones, meta.armRoll); } catch (e) { console.warn('[people] arm roll', id, e); } }
     const rig = { root: scene, bones };
     const meshes = {}; scene.traverse((ob) => { if (ob.isMesh) meshes[ob.name] = ob; });
     const hipH = bones.Hips.getWorldPosition(new THREE.Vector3()).y;
