@@ -7,6 +7,7 @@ import { FIXTURES, addLight } from '../lighting.js';
 import { lin } from '../kit/util.js';
 import { venuePalette, venueMats, glassware, candleLantern, banquette } from './venue.js';
 import '../kit/venueSurfaces.js';
+import { libModel } from '../kit/models.js';
 
 // ---------------------------------------------------------------- tables and chairs
 // o: { shape: 'round'|'square'|'rect', w, d, h, top: 'wood'|'marble'|'cloth'|'zinc', set (place settings), lantern, seats (chairs: 2|4|6) }
@@ -127,6 +128,7 @@ export function wallShelf(ctx, x, y, z, ry, w, o = {}) {
 }
 // small potted plant (bushy: clustered leaf cards). y = base height
 export function plantPot(ctx, x, y, z, o = {}) {
+  if (!o.code && libModel(ctx, 'plant_ficus', x, z, ctx.R() * 6.28, y, Math.min(0.75, 0.2 + 0.25 * (o.s || 1)))) return; // the user's rubber plant (1.5 m at scale 1)
   const { G, M } = ctx, s = o.s || 1, R = ctx.R, pot = M.flat(o.potC || R.pick(['#e8e2d4', '#b8604a', '#2a2a2c']), { rough: 0.5 }), leaf = M.flat(o.leafC || '#3e6a2c', { rough: 0.6, side: THREE.DoubleSide });
   G.lathe(pot, [[0.06 * s, 0], [0.08 * s, 0.12 * s], [0.085 * s, 0.13 * s]], x, y, z, { seg: 14 });
   for (let i = 0; i < 12; i++) { const a = R() * 6.28, r = R() * 0.07 * s, hh = 0.13 * s + R() * 0.16 * s; G.sphere(leaf, x + Math.cos(a) * r, y + hh, z + Math.sin(a) * r, 0.04 * s, { seg: 6, sy: 0.35, sx: 1.6 }); }

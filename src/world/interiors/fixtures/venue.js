@@ -9,6 +9,7 @@ import { lin, clamp } from '../kit/util.js';
 import { BottleField } from '../kit/bottles.js';
 import { hazeCone, flame } from '../kit/fx.js';
 import '../kit/venueSurfaces.js';
+import { libModel } from '../kit/models.js';
 
 const DS = THREE.DoubleSide;
 export function venuePalette(o = {}) {
@@ -192,6 +193,8 @@ function frondGeo(len, w, arch, droop, twist) { // ribbon along an arching curve
 }
 export function pottedPalm(ctx, x, z, o = {}) {
   const { G, M } = ctx, pal = o.pal || venuePalette(), V = venueMats(ctx, pal), R = ctx.R, pr = o.potR || 0.26, ph = o.potH || 0.62, H = o.h || 2.1;
+  const lib = !o.code && libModel(ctx, 'plant_palm', x, z, R() * 6.28, 0, (o.h || 2.1) / 2.3); // the user's palm in its pot; the uplight below stays
+  if (!lib) {
   const pot = o.pot === 'brass' ? V.brass : o.pot === 'stone' ? M.surf('concrete', { c: [70, 66, 64] }) : M.flat('#0b0a0c', { rough: 0.18, probe: 0.6 });
   G.lathe(pot, [[pr * 0.78, 0], [pr, ph * 0.12], [pr * 1.02, ph * 0.9], [pr * 1.06, ph], [pr * 0.96, ph]], x, 0, z, { seg: 24 }); G.cylB(V.soil, x, ph - 0.05, z, pr * 0.95, 0.02, { seg: 18 });
   const leaf = M.page(frondTex(), { alpha: true, side: DS, rough: 0.6 }), stem = M.flat('#5b6b34', { rough: 0.7 }), nS = o.stems || R.int(11, 14);
@@ -199,6 +202,7 @@ export function pottedPalm(ctx, x, z, o = {}) {
     G.tube(stem, [[bx, ph - 0.02, bz], [(bx + tx) / 2, (ph + ty) / 2 + 0.05, (bz + tz) / 2], [tx, ty, tz]], 0.009, { segs: 8, seg: 5 });
     const fl = H * R.range(0.45, 0.65), geo = frondGeo(fl, R.range(0.55, 0.7), R.range(0.12, 0.3), R.range(0.35, 0.75), R.jit(0.06)), m = new THREE.Matrix4().makeTranslation(tx, ty, tz).multiply(new THREE.Matrix4().makeRotationY(-az)).multiply(new THREE.Matrix4().makeRotationZ(R.range(0.35, 0.8)));
     G.add(leaf, geo, m); geo.dispose(); }
+  }
   // uplight in the pot rim: colored spot up through the fronds (and onto the wall behind)
   const lc = o.light || pal.accent; if (lc) { G.cyl(M.glow(lc, 2.6, 1), x + pr * 0.55, ph - 0.03, z, 0.035, 0.01, { seg: 10 }); const c = lin(lc), k = o.k ?? 3.2;
     addLight(ctx, { p: [x + pr * 0.55, ph + 0.02, z], c: [c[0] * k, c[1] * k, c[2] * k], ch: 1, type: 'spot', d: [0.05, 1, 0], cone: 0.3, soft: 0.25, amb: 0.6, wrap: 0.5 });

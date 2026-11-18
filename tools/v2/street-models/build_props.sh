@@ -47,3 +47,9 @@ run cup '{"src":"'$CU'","out":"'$O'/cup.glb","height":0.15,"tris":700,"maxtex":2
 
 # r3-props (Nov 17): the user's ATM 1 (replaces the code-built kiosk in the stores). Base color texture was unlinked in the .blend, so it is named here; fixed/atm_color.png = Color.png with the real card-scheme logos painted out.
 run atm '{"src":"'$M'/ATMs/ATM 1 - Plain Grey Bank ATM/ATM 1.blend","out":"'$O'/atm.glb","height":1.75,"tris":6000,"maxtex":1024,"texmat":{".":{"color":"'$PWD'/tools/v2/street-models/fixed/atm_color.png","normal":"ATM Normal.png","rough":"ATM Roughness.png","metal":"ATM Metallic.png"}}}'
+
+# r3-interiors (Nov 17): the user's Wall Clock 1 (body + glass only; the three hands are drawn by the interior so they can run on game time). 1K textures.
+run clock '{"src":"'$M'/Wall Clocks/Wall Clock 1 - Round Quartz Wall Clock With Blue Metal Rim/Wall Clock 1.blend","out":"'$O'/wall_clock.glb","keep":"^wall_clock$","height":0.32,"tris":3700,"maxtex":1024}'
+# r3-interiors: indoor plants (rubber plant for cafe/boutique corners, the big palm of Plant Pot 1 for the lounges)
+run plant_ficus '{"src":"'$M'/Plants/Potted Plant 1 - Rubber Plant In Clay Pot/Potted Plant 1.blend","out":"'$O'/plant_ficus.glb","height":1.5,"tris":4000,"maxtex":1024}'
+run plant_palm '{"src":"'$M'/Plant Pots/Plant Pot 1 - Four Potted Palms/Plant Pot 1.blend","out":"'$O'/plant_palm.glb","keep":"^(02_2|flower_pot)$","height":2.3,"tris":5000,"maxtex":1024}'

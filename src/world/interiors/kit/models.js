@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const BASE = '/assets/models/street/', cache = new Map();
 let started = null, done = false;
-export function preloadModels(names = ['atm']) {
+export const hasModel = (n) => cache.has(n);
+export function preloadModels(names = ['atm', 'wall_clock', 'plant_ficus', 'plant_palm']) {
   if (started) return started;
   const gl = new GLTFLoader();
   started = Promise.all(names.map(async (n) => {
@@ -17,9 +18,9 @@ export function preloadModels(names = ['atm']) {
   return started;
 }
 // add a loaded model at (x, z) facing ry in the current G frame; false when it has not loaded (caller draws its fallback)
-export function libModel(ctx, name, x, z, ry, y = 0) {
+export function libModel(ctx, name, x, z, ry, y = 0, sc = 1) {
   const parts = cache.get(name); if (!parts) return false;
-  const m = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z);
+  const m = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z); if (sc !== 1) m.multiply(new THREE.Matrix4().makeScale(sc, sc, sc));
   for (const p of parts) ctx.G.add(ctx.M.adopt(p.material), p.geometry, m);
   return true;
 }
