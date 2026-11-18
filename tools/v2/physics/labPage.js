@@ -56,6 +56,16 @@
       const pts = new Float32Array(P.count * 3); for (let i = 0; i < P.count; i++) { pts[i * 3] = P.getX(i); pts[i * 3 + 1] = P.getY(i); pts[i * 3 + 2] = P.getZ(i); }
       const col = W.createCollider(R.ColliderDesc.convexHull(pts).setTranslation(mesh.position.x, mesh.position.y, mesh.position.z).setRotation(q));
       L.obst.push({ kind, col, mesh, s, H });
+    } else if (kind === 'prop') { // any breakable kind (bush, fence, hydrant, signPost...) as a simple box, a little off center
+      const c = at(s, o.lat ?? 0.45), y = groundY(c.x, c.z), hx = o.hx ?? 0.15, hy = o.hy ?? 0.5, hz = o.hz ?? 0.15;
+      const mesh = new T.Mesh(new T.BoxGeometry(hx * 2, hy * 2, hz * 2), new T.MeshStandardMaterial({ color: o.color ?? 0x888888, roughness: 0.7 })); mesh.position.set(c.x, y + hy, c.z); mesh.quaternion.copy(q); g.scene.add(mesh);
+      const rec = g.breakables ? g.breakables.add({ x: c.x, y, z: c.z, hx, hy, hz, ry: hd, kind: o.kind || 'signPost', owner: 'r2lab', hide: () => { mesh.visible = false; } }) : null;
+      L.obst.push({ kind, mesh, s, len: 0.2, rec });
+    } else if (kind === 'wall') { // a concrete wall across the lane (full stop)
+      const c = at(s + 0.3, o.lat ?? 0), y = groundY(c.x, c.z);
+      const col = W.createCollider(R.ColliderDesc.cuboid(2.5, 0.75, 0.3).setTranslation(c.x, y + 0.75, c.z).setRotation(q));
+      const mesh = new T.Mesh(new T.BoxGeometry(5, 1.5, 0.6), concrete); mesh.position.set(c.x, y + 0.75, c.z); mesh.quaternion.copy(q); g.scene.add(mesh);
+      L.obst.push({ kind, col, mesh, s, len: 0.6 });
     } else if (kind === 'sign') { // a breakable street sign (U-channel post + plate) a little off the car's centerline (yaw on impact)
       const c = at(s, o.lat ?? 0.45), y = groundY(c.x, c.z), grp = new T.Group();
       const post = new T.Mesh(new T.BoxGeometry(0.07, 2.3, 0.07), new T.MeshStandardMaterial({ color: 0x8b9196, roughness: 0.45, metalness: 0.7 })); post.position.y = 1.15;

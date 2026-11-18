@@ -466,6 +466,20 @@ export function createAudio(game) {
 
   // ---------- one-shot library ----------
   const SFX = {
+    // r2-physics impact materials (procedural; o.strength 0..1 scales them): car through a bush, wood fence, chain-link fence
+    impact_leaves(d, t, o) { const k = Math.min(1, Math.max(0.15, o.strength ?? 0.5));
+      burst(d, t, { type: 'bandpass', freq: 2600, freqEnd: 1400, q: 0.7, attack: 0.03, decay: 0.32 + 0.2 * k, gain: 0.45 * k });
+      burst(d, t + 0.02, { type: 'highpass', freq: 4200, attack: 0.02, decay: 0.22, gain: 0.25 * k });
+      for (let i = 0; i < 3; i++) burst(d, t + 0.04 + Math.random() * 0.25, { type: 'bandpass', freq: 1800 + Math.random() * 1800, q: 4, decay: 0.012, gain: 0.5 * k }); },
+    impact_wood(d, t, o) { const k = Math.min(1, Math.max(0.15, o.strength ?? 0.5));
+      tone(d, t, { f0: 180, f1: 90, decay: 0.12, gain: 0.7 * k });
+      burst(d, t, { type: 'lowpass', freq: 1400, decay: 0.08, gain: 0.9 * k, brown: true });
+      for (let i = 0; i < 4 + Math.round(4 * k); i++) burst(d, t + 0.01 + Math.random() * 0.18, { type: 'bandpass', freq: 900 + Math.random() * 2200, q: 6, decay: 0.018 + Math.random() * 0.02, gain: 0.55 * k }); },
+    impact_rattle(d, t, o) { const k = Math.min(1, Math.max(0.15, o.strength ?? 0.5));
+      for (let i = 0; i < 10 + Math.round(10 * k); i++) burst(d, t + Math.random() * 0.45, { type: 'bandpass', freq: 3200 + Math.random() * 2600, q: 9, decay: 0.03, gain: 0.32 * k });
+      tone(d, t, { f0: 420, f1: 300, decay: 0.25, gain: 0.18 * k }); },
+    impact_thud(d, t, o) { const k = Math.min(1, Math.max(0.2, o.strength ?? 0.6));
+      tone(d, t, { f0: 70, f1: 38, decay: 0.3, gain: 1.4 * k }); burst(d, t, { type: 'lowpass', freq: 700, decay: 0.16, gain: 1.1 * k, brown: true }); },
     punch_hit(d, t) { // meaty thud
       tone(d, t, { f0: 110, f1: 40, decay: 0.18, gain: 1.4 });
       burst(d, t, { type: 'lowpass', freq: 900, decay: 0.09, gain: 1.2, brown: true });

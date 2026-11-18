@@ -46,7 +46,7 @@ export function installShrubs(game) {
       if (zn.h <= 1.5 || cores.has(k) || made > 30) continue;
       try { const rr = Math.max(0.2, zn.r / 0.75 * 0.55), hh = Math.max(0.3, zn.h * 0.45);
         const b = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(zn.x, zn.y + hh + rr * 0.3, zn.z)); b.userData = { tag: 'shrub-core' };
-        world.createCollider(RAPIER.ColliderDesc.capsule(Math.max(0.05, hh - rr), rr).setFriction(0.6), b); cores.set(k, b); made++; } catch (e) { /* */ }
+        world.createCollider(RAPIER.ColliderDesc.capsule(Math.max(0.05, hh - rr), rr).setFriction(0.6).setSolverGroups(0), b); /* solver groups 0: blocks people (character-controller queries), a car pushes through (soft drag via bushAt) */ cores.set(k, b); made++; } catch (e) { /* */ }
     }
     rebuildGrid();
   }

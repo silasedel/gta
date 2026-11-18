@@ -26,7 +26,9 @@ export function installTrunks(game) {
       // capsule along local Y: rotate +Y onto the segment direction
       const ux = dx / L, uy = dy / L, uz = dz / L, ax = uz, az = -ux, sn = Math.hypot(ax, az), ang = Math.acos(Math.max(-1, Math.min(1, uy)));
       const q = sn > 1e-6 ? { x: (ax / sn) * Math.sin(ang / 2), y: 0, z: (az / sn) * Math.sin(ang / 2), w: Math.cos(ang / 2) } : { x: 0, y: 0, z: 0, w: 1 };
-      world.createCollider(RAPIER.ColliderDesc.capsule(Math.max(0.01, L / 2 - rad * 0.5), rad).setTranslation((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2).setRotation(q).setFriction(0.8), body);
+      const cd = RAPIER.ColliderDesc.capsule(Math.max(0.01, L / 2 - rad * 0.5), rad).setTranslation((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2).setRotation(q).setFriction(0.8);
+      if (rad0 < 0.11) cd.setSolverGroups(0); // collision tiers: saplings (< ~22 cm trunk) stop people but a car rides them down; big trunks stop cars
+      world.createCollider(cd, body);
     }
     // mangrove prop roots: arched roots fanning out from the trunk to the ground (block walking through the tangle)
     if (r.roots) { const [rx, rz, rr] = r.roots, y0 = segs[0][1];

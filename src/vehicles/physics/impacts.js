@@ -28,6 +28,11 @@ export const PROPS = {
 const KIND_ALIAS = [[/sign|post/i, 'signPost'], [/mail/i, 'mailbox'], [/hydrant/i, 'hydrant'], [/meter/i, 'meter'], [/bench/i, 'bench'],
   [/cone/i, 'cone'], [/channel|bollard_flex|delineator/i, 'channelizer'], [/barric|jersey/i, 'barricade'], [/cart|bin_wheel/i, 'cart'], [/bin|trash|can/i, 'bin'],
   [/chair|table/i, 'chair'], [/bush|shrub|flower/i, 'bush'], [/chain/i, 'chain'], [/fence|picket|rail/i, 'fence'], [/tree|palm|sapling/i, 'tree']];
+// impact sound material by object kind: leaves | wood | metal | concrete | glass | chain
+const MAT_OF = [[/bush|shrub|hedge|flower|tree|palm|sapling/i, 'leaves'], [/fence(?!.*chain)|picket|pallet|crate|wood/i, 'wood'], [/chain/i, 'chain'],
+  [/glass|window/i, 'glass'], [/wall|building|concrete|jersey|barrier|bollard|curb|planter/i, 'concrete'],
+  [/sign|post|pole|lamp|meter|hydrant|mailbox|bin|cart|cone|channel|barric|bench|rail|car|vehicle|kiosk|bike|chair|table/i, 'metal']];
+export function materialOf(kind) { for (const [re, m] of MAT_OF) if (re.test(String(kind || ''))) return m; return 'metal'; }
 export function propClass(kind) { if (PROPS[kind]) return PROPS[kind]; for (const [re, k] of KIND_ALIAS) if (re.test(String(kind || ''))) return PROPS[k]; return PROPS.default; }
 
 // ---- procedural textures (shared): scratches / scuffs and a windshield crack ----
@@ -75,6 +80,34 @@ export function installImpacts(game) {
   const ray = new THREE.Raycaster();
   const jolt = { t: 0, amp: 0, yaw: 0, pitch: 0 };
   P.impactLog = [];
+  // material sound for a hit: volume and weight scale with the impact speed (real recordings for metal / concrete / glass, synth for
+  // leaves / wood / chain-link from src/core/audio.js)
+  let sndT = 0;
+  function impactSound(kind, kmh, pos) {
+    const a = game.audio; if (!a?.play) return null;
+    const now = performance.now(); if (now - sndT < 60) return null; sndT = now;
+    const m = materialOf(kind), k = Math.max(0.12, Math.min(1, kmh / 70)), at = { x: pos.x, y: pos.y ?? 0.6, z: pos.z };
+    try {
+      if (m === 'leaves') a.play('impact_leaves', { position: at, volume: 0.5 + 0.5 * k, strength: k });
+      else if (m === 'wood') a.play('impact_wood', { position: at, volume: 0.6 + 0.4 * k, strength: k });
+      else if (m === 'chain') a.play('impact_rattle', { position: at, volume: 0.6 + 0.4 * k, strength: k });
+      else if (m === 'glass') a.play('glass', { position: at, volume: 0.5 + 0.5 * k });
+      else if (m === 'concrete') { a.play(k > 0.55 ? 'vehicles:crash_heavy' : 'vehicles:crash_medium', { position: at, volume: 0.6 + 0.4 * k }); a.play('impact_thud', { position: at, volume: 0.7, strength: k }); }
+      else a.play(k > 0.45 ? 'vehicles:crash_light' : 'vehicles:clunk', { position: at, volume: 0.45 + 0.55 * k });
+    } catch (e) { /* audio optional */ }
+    (P.soundLog ||= []).push({ kind, material: m, kmh: +kmh.toFixed(1) }); if (P.soundLog.length > 40) P.soundLog.shift();
+    return m;
+  }
+  P.impactSound = impactSound;
+  // driving through bushes: a leafy rustle (and twig snaps) while the player's car pushes through
+  let rustleT = 0;
+  game.updaters?.push?.(function bushRustle(dt) {
+    if ((rustleT -= dt) > 0) return; rustleT = 0.12;
+    const v = (game.vehicles?.list || []).find((c) => c.playerDriven); if (!v?.body) return;
+    const t = v.body.translation(), lv = v.body.linvel(), sp = Math.hypot(lv.x, lv.z); if (sp < 1.5) return;
+    let bd = 0; try { bd = game.city?.bushAt?.(t.x, t.z, 0.9) || 0; } catch (e) { bd = 0; }
+    if (bd > 0.05) { impactSound('bush', sp * 3.6 * Math.min(1, bd * 2), t); rustleT = 0.35 - Math.min(0.2, sp * 0.01); }
+  });
 
   // meshes of a car that take dents: every mesh of LOD0 and LOD1 (paint, trim, glass, lamps, textured parts); not wheels
   function bodyMeshes(v) {
@@ -196,6 +229,7 @@ export function installImpacts(game) {
       v.steerCur = (v.steerCur || 0) + Math.sign(loc.x || 0) * Math.min(0.12, dv * 0.05); } catch (e) { /* */ }
     if (v.playerDriven) { jolt.t = 0.25; jolt.amp = Math.min(0.06, 0.006 + dv * 0.012); }
     const tier = damageAt(v, obj, { speedKmh: speed * 3.6, hardness: C.h, dir: n.clone() });
+    impactSound(o.kind, vn * 3.6, obj);
     try { v.damage?.(Math.min(140, 2 + tier * tier * 6 * (0.4 + C.h)), null); } catch (e) { /* health only (no second dent: localPoint null) */ }
     return { J: Math.round(J), dv: +dv.toFixed(3), tier };
   }

@@ -77,7 +77,7 @@ export function createBreakables(game) {
     if (car && game.physics?.impacts) { try { const p = v.body.translation(), r = v.body.rotation(); const yaw = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x)); car = { ...car, x: p.x, z: p.z, c: Math.cos(yaw), s: Math.sin(yaw) }; } catch (e) { /* */ } }
     spawnDebris(rec, lv.x, lv.z, speed, car);
     const at = new THREE.Vector3(rec.x, (rec.y || 0) + rec.hy, rec.z);
-    try { if (game.audio?.play) game.audio.play(rec.kind === 'fence' || rec.kind === 'chain' ? 'door' : 'car_crash', { position: at, volume: rec.kind === 'bush' ? 0.15 : 0.35 }); } catch (e) { /* audio optional */ }
+    if (!game.physics?.impacts) try { if (game.audio?.play) game.audio.play(rec.kind === 'fence' || rec.kind === 'chain' ? 'door' : 'car_crash', { position: at, volume: rec.kind === 'bush' ? 0.15 : 0.35 }); } catch (e) { /* audio optional */ }
     // r2-physics impacts (flag): momentum from the object's mass + snap strength at the real contact point, damage where it hit
     const imp = game.physics?.impacts && game.physics.propImpact ? game.physics.propImpact(v, { kind: rec.kind, x: rec.x, y: rec.y || 0, z: rec.z, top: rec.hy * 2, broke: true }) : null;
     if (!imp) {
