@@ -1,0 +1,285 @@
+{
+ "tag": "after",
+ "q": "",
+ "exit": {
+  "coupe4": {
+   "frames": [
+    {
+     "t": 0.045,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.24,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.438,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.582,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.783,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.957,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 1.125,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    }
+   ],
+   "end": {
+    "local": [
+     1.92,
+     -0.01,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.22,
+     0.098
+    ],
+    "parentIsScene": true
+   }
+  },
+  "sedan5": {
+   "frames": [
+    {
+     "t": 0.057,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.207,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.363,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.519,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.684,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.843,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.993,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    }
+   ],
+   "end": {
+    "local": [
+     1.86,
+     -0.01,
+     0.34
+    ],
+    "script": true,
+    "feet": [
+     0.198,
+     0.103
+    ],
+    "parentIsScene": true
+   }
+  },
+  "truck9": {
+   "frames": [
+    {
+     "t": 0.045,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.186,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.33,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.477,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.624,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.768,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    },
+    {
+     "t": 0.915,
+     "ex": true,
+     "script": true,
+     "why": "started"
+    }
+   ],
+   "end": {
+    "local": [
+     2.14,
+     0.08,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.183,
+     0.099
+    ],
+    "parentIsScene": true
+   }
+  },
+  "sedan5-blocked": {
+   "frames": [
+    {
+     "t": 0.051,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.204,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.345,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.483,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.624,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.768,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    },
+    {
+     "t": 0.909,
+     "ex": true,
+     "script": true,
+     "why": "started across"
+    }
+   ],
+   "end": {
+    "local": [
+     -1.9,
+     -0.02,
+     0
+    ],
+    "script": false,
+    "feet": [
+     0.227,
+     0.097
+    ],
+    "parentIsScene": true
+   }
+  }
+ },
+ "kneel": {
+  "who": "Woman In White Blouse And Black Skirt",
+  "hands": [
+   0.609,
+   0.494
+  ],
+  "fingers": [
+   0.508,
+   0.361
+  ],
+  "knees": [
+   0.412,
+   0.037
+  ],
+  "ankles": [
+   0.076,
+   0.096
+  ],
+  "toes": [
+   0.053,
+   0.001
+  ],
+  "hips": 0.425
+ },
+ "walk": {
+  "npc": {
+   "who": "Office Worker In Light Blue Shirt",
+   "footLocalV": -0.822,
+   "skate": 1.289,
+   "plantedS": 2.73,
+   "speed": 1.35
+  },
+  "nico": {
+   "skate": 0.132,
+   "plantedS": 2.63
+  }
+ },
+ "open": {
+  "x": 398.78861395458586,
+  "y": 0,
+  "z": -132.551566398994
+ },
+ "errors": []
+}

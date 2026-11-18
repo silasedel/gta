@@ -509,6 +509,7 @@ async function boot() {
   });
 
   const playerSeat = createPlayerSeat(game);
+  game.playerSeat = playerSeat;   // r4-anim: exit sequence state for tools (tools/v2/anim/r4-shots.mjs)
   function enterVehicle(v) {
     const st = P.state;
     st.inVehicle = true; st.vehicle = v; v.playerDriven = true;
@@ -535,7 +536,10 @@ async function boot() {
     { // face away from the car (out of the door), not along the camera (user: step out normally, don't appear sitting on the ground)
       const vp = v.body?.translation?.(); const ox = vp ? spot.x - vp.x : 0, oz = vp ? spot.z - vp.z : 0;
       P.heading = Math.hypot(ox, oz) > 0.3 ? Math.atan2(ox, oz) : Math.atan2(-Math.sin(game.cameraYaw), -Math.cos(game.cameraYaw)); }
-    playerSeat.exit();
+    // r4-anim: step out of the door (src/player/seat.js exitTo; input locked by the script until he stands at the spot)
+    const exitScript = { lock: true, kind: 'exitVehicle' };
+    if (character && playerSeat.exitTo(spot, P.heading, { carCenter: v.mesh?.position, onDone: () => { if (P.script === exitScript) P.script = null; } })) P.script = exitScript;
+    else playerSeat.exit();
     if (character) character.setVisible(true);
   }
 
@@ -1078,7 +1082,9 @@ async function boot() {
       }
       if (P.state.inVehicle) { const t = P.state.vehicle.body.translation(); P.position.set(t.x, t.y, t.z); if (playerSeat.seated) playerSeat.update(simDt); }
       // character visual
-      if (character && !P.state.inVehicle) try {
+      if (character && !P.state.inVehicle && playerSeat.exiting) {   // r4-anim: the step-out sequence poses him; the camera follows its glide
+        try { playerSeat.update(simDt); const f = playerSeat.exitFollow; if (f && playerSeat.exiting) { P.position.x = f.x; P.position.z = f.z; P.position.y = f.y; L.visY = f.y; } } catch (e) { console.error('[exit]', e); }
+      } else if (character && !P.state.inVehicle) try {
         const t = pBody.translation();
         let fy = t.y - CENTER;
         if (P.state.grounded && !P.swimming) {

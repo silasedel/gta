@@ -10,6 +10,10 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { getBase } from './lib.js';
 import { makeBodyMaterial, makeHairMaterial, makeEyeMaterial, makeBrowMaterial, makeShoeMaterial } from './materials.js';
 import { PERSONAS } from '../personality.js';
+const _gL = new THREE.Vector3(), _gR = new THREE.Vector3();
+const R4GAIT = !(typeof location !== 'undefined' && /[?&]r4gait=0/.test(location.search));
+// planted-foot cadence feedback (below): experimental, off until verified on more people (?r4gaitfb=1 = on)
+const R4GAITFB = R4GAIT && typeof location !== 'undefined' && /[?&]r4gaitfb=1/.test(location.search);
 // shadow-only proxy layer for the user's people (enabled on the shadow cameras by src/npc/people/cast.js)
 export const SHADOW_PROXY = { on: false, layer: 7 }; // layer 7 = the split sun's dynamic caster layer (render/stage/env/shadows.js)
 
@@ -145,6 +149,7 @@ export function createNpc(game, opts = {}) {
   };
 
   function update(dt, anim = {}) {
+    const dtRaw = dt || 0;
     dt = Math.min(dt || 0, 0.1);
     const dead = !!anim.dead, driving = !!anim.driving && !dead, airborne = !dead && !driving && anim.grounded === false;
     const speed = dead || driving ? 0 : Math.max(0, anim.speed || 0);
@@ -176,7 +181,18 @@ export function createNpc(game, opts = {}) {
     else { let done = false; for (let i = 0; i < loco.length - 1; i++) if (s < loco[i + 1].v) { const k = (s - loco[i].v) / (loco[i + 1].v - loco[i].v); ws[i] = 1 - k; ws[i + 1] = k; done = true; break; } if (!done) ws[loco.length - 1] = 1; }
     let D = 0, wsum = 0;
     loco.forEach((l, i) => { D += ws[i] * l.v * l.c.duration; wsum += ws[i]; });
-    if (wsum > 0.001) { D /= wsum; const effS = Math.max(s, loco[0].v * 0.55); st.phase = (st.phase + dt * effS / Math.max(D, 0.3)) % 1; }
+    // r4-anim (user: people "float/slide when walking"): the cycle advances by the distance the body REALLY travels (root
+    // displacement per frame, low-passed; the commanded speed is only a guide, kept within 0.6-1.4x of it) over the stride
+    // of THIS body (the clip's stride is measured at the reference scale: times the holder / root scale), so planted feet
+    // stay planted. ?r4gait=0 = the old cadence from the commanded speed at the reference stride.
+    if (R4GAIT) { const pp = root.position, dtr = dtRaw;
+      if (st.gp && dtr > 1e-4 && dtr < 0.3) { const d = Math.hypot(pp.x - st.gp.x, pp.z - st.gp.z); if (d < 4) st.gs = approach(st.gs ?? s, d / dtr, 10, dtr); }
+      (st.gp ||= new THREE.Vector3()).copy(pp); }
+    if (wsum > 0.001) { D /= wsum;
+      let effS = Math.max(s, loco[0].v * 0.55);
+      if (R4GAIT) { const sc = hs * (root.scale.x || 1); D *= sc; if (Number.isFinite(st.gs) && s > 0.3) effS = Math.max(THREE.MathUtils.clamp(st.gs, s * 0.6, s * 1.4), loco[0].v * 0.55 * sc); }
+      if (R4GAITFB) effS *= st.gk || 1;
+      st.phase = (st.phase + dt * effS / Math.max(D, 0.3)) % 1; }
     for (let i = 0; i < loco.length; i++) { const l = loco[i], a = A[l.n]; setT(a, st.phase * l.c.duration); setW(a, ws[i] * locoW); }
     st.idleT += dt;
     // idle styles: forced pose (staged people) > requested style > persona idles
@@ -245,7 +261,19 @@ export function createNpc(game, opts = {}) {
     const every = opts.lod && opts.lod > 2 ? opts.lod : d < 30 ? 1 : d < 60 ? 2 : 3;
     st.accum += dt; st.lodTick = (st.lodTick + 1) % every;
     if (st.lodTick !== 0 && !st.snap) return;
-    mixer.update(st.accum); st.accum = 0;
+    const mdt = st.accum; mixer.update(st.accum); st.accum = 0;
+    // r4-anim: planted-foot feedback. The clip's measured stride speed can be off for a body (shared clips rescaled by hip
+    // height only; one test walker's stance foot moved back at 0.8-1.04 m/s at 1.35 m/s walking; the measure is not conclusive yet).
+    // While walking steadily, the stance foot's backward speed under the body is compared with the body's real speed and
+    // the cadence factor st.gk is nudged until they match (feet then stay put on the ground).
+    if (R4GAITFB && locoW * wsum > 0.8 && s > 0.6 && !st.snap && bones.LeftFoot && bones.RightFoot) {
+      bones.LeftFoot.getWorldPosition(_gL); bones.RightFoot.getWorldPosition(_gR);
+      const lo = _gL.y < _gR.y ? 0 : 1, p = lo ? _gR : _gL, sy = Math.sin(root.rotation.y), cy = Math.cos(root.rotation.y);
+      const z = (p.x - root.position.x) * sy + (p.z - root.position.z) * cy, y = p.y - root.position.y, g = (st.gf ||= { lo: -1, z: 0, y: 0 });
+      if (g.lo === lo && mdt > 1e-4 && Math.abs(y - g.y) < 0.012) { const vz = (z - g.z) / mdt, want = Number.isFinite(st.gs) ? st.gs : s;
+        if (vz < -0.3 && want > 0.4) st.gk = THREE.MathUtils.clamp(approach(st.gk || 1, (st.gk || 1) * want / -vz, 1.2, mdt), 0.6, 1.7); }
+      g.lo = lo; g.z = z; g.y = y;
+    } else if (st.gf) st.gf.lo = -1;
     if (st.cupUp) { const h = props.cup; h.parent.getWorldQuaternion(_q1); root.getWorldQuaternion(_q2); h.quaternion.copy(_q1.invert().multiply(_q2)); }   // drinks stay upright
     // head look-at
     let wantYaw = 0, wantLook = 0;

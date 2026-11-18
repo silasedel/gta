@@ -204,7 +204,19 @@ export function buildProceduralClips(rig) {
   // ---- KNEEL / GARDEN ----
   const kn = (k) => ({ Spine: [['x', 32 + k]], Spine1: [['x', 8]], Head: [['x', 18]], LeftUpLeg: [['x', -88]], LeftLeg: [['x', 92]], RightUpLeg: [['x', 4]], RightLeg: [['x', 96]], RightFoot: [['x', 40]],
     LeftArm: [['z', -58], ['y', -48 - k]], RightArm: [['z', 58], ['y', 48 + k]], LeftForeArm: [['y', -26 + k]], RightForeArm: [['y', 26 - k]] });
-  clips.kneel = makeClip(rig, 'kneel', [{ t: 0, hips: [0, -50, -10], b: kn(0) }, { t: 0.8, hips: [0, -50, -10], b: kn(8) }, { t: 1.6, hips: [0, -50, -10], b: kn(0) }]);
+  // r4-anim (user: "animation looks terrible, like punching the ground"): the old kneel hung both straight arms down beside the
+  // hips (fists at 0.3 m, into the ground on shorter people) and sank the planted foot's toes 8 cm under the floor. Solved on
+  // the X Bot rig (tools/v2/anim/kneel_solve.mjs): right knee on the ground with the toes tucked under, left foot flat with
+  // the knee up, left forearm across the raised knee with the hand hanging over it, right hand resting on the thigh; a slow
+  // breath in the back and shoulders. ?r4kneel=0 = the old pose.
+  const kn2 = (k) => ({ Spine: [['x', 24 + k]], Spine1: [['x', 8]], Head: [['x', 14 - k]],
+    LeftUpLeg: [['z', 4], ['y', -3], ['x', -93]], LeftLeg: [['z', -3], ['y', -9], ['x', 91]], LeftFoot: [['z', 4], ['y', 3], ['x', -13]],
+    RightUpLeg: [['z', -2], ['y', 1], ['x', -5]], RightLeg: [['z', 1], ['y', 11], ['x', 105]], RightFoot: [['z', -34], ['y', 16], ['x', -61]], RightToeBase: [['y', -27], ['x', -20]],
+    LeftArm: [['z', -43 + k * 0.5], ['y', -90], ['x', -18]], LeftForeArm: [['z', 16], ['y', -28], ['x', -42]], LeftHand: [['z', -13], ['y', 17], ['x', 1]],
+    RightArm: [['z', 90 - k * 0.5], ['y', 46], ['x', -29]], RightForeArm: [['z', -2], ['y', 11 + k], ['x', 6]], RightHand: [['z', -4]] });
+  const OLD_KNEEL = typeof location !== 'undefined' && /[?&]r4kneel=0/.test(location.search);
+  clips.kneel = OLD_KNEEL ? makeClip(rig, 'kneel', [{ t: 0, hips: [0, -50, -10], b: kn(0) }, { t: 0.8, hips: [0, -50, -10], b: kn(8) }, { t: 1.6, hips: [0, -50, -10], b: kn(0) }])
+    : makeClip(rig, 'kneel', [{ t: 0, hips: [0, -46.5, -10], b: kn2(0) }, { t: 1.4, hips: [0, -46.1, -10], b: kn2(2.5) }, { t: 2.8, hips: [0, -46.5, -10], b: kn2(0) }]);
   // ---- GET UP (from lying on the back / front; root under the pelvis) ----
   const lieB = { Spine: [['x', -4]], Head: [['x', -6]], LeftUpLeg: [['x', -6], ['z', -10]], RightUpLeg: [['x', -10], ['z', 10]], LeftLeg: [['x', 10]], RightLeg: [['x', 14]], LeftArm: [['z', -40]], RightArm: [['z', 40]] };
   clips.getUpBack = makeClip(rig, 'getUpBack', [

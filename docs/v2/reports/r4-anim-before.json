@@ -1,0 +1,284 @@
+{
+ "tag": "before",
+ "q": "&r4exit=0&r4gait=0&r4kneel=0",
+ "exit": {
+  "coupe4": {
+   "frames": [
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    }
+   ],
+   "end": {
+    "local": [
+     1.92,
+     -0.02,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.111,
+     0.109
+    ],
+    "parentIsScene": true
+   }
+  },
+  "sedan5": {
+   "frames": [
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    }
+   ],
+   "end": {
+    "local": [
+     1.93,
+     -0.01,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.11,
+     0.109
+    ],
+    "parentIsScene": true
+   }
+  },
+  "truck9": {
+   "frames": [
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    }
+   ],
+   "end": {
+    "local": [
+     2.1,
+     -0.01,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.111,
+     0.109
+    ],
+    "parentIsScene": true
+   }
+  },
+  "sedan5-blocked": {
+   "frames": [
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    },
+    {
+     "t": null,
+     "ex": false,
+     "script": false,
+     "why": "flag"
+    }
+   ],
+   "end": {
+    "local": [
+     1.93,
+     -0.02,
+     0.35
+    ],
+    "script": false,
+    "feet": [
+     0.11,
+     0.109
+    ],
+    "parentIsScene": true
+   }
+  }
+ },
+ "kneel": {
+  "who": "Man In Black Button Shirt",
+  "hands": [
+   0.565,
+   0.494
+  ],
+  "fingers": [
+   0.391,
+   0.36
+  ],
+  "knees": [
+   0.393,
+   0.007
+  ],
+  "ankles": [
+   0.017,
+   0.073
+  ],
+  "toes": [
+   -0.053,
+   0.024
+  ],
+  "hips": 0.443
+ },
+ "walk": {
+  "npc": {
+   "who": "Woman In Navy Polo And Khakis",
+   "skate": 1.186,
+   "plantedS": 3.3,
+   "speed": 1.35
+  },
+  "nico": {
+   "skate": 0.069,
+   "plantedS": 2.53
+  }
+ },
+ "open": {
+  "x": 398.78861395458586,
+  "y": 0,
+  "z": -132.551566398994
+ },
+ "errors": []
+}

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { buildProceduralClips } from './proceduralClips.js';
+const R4GAIT = !(typeof location !== 'undefined' && /[?&]r4gait=0/.test(location.search));
 import { addHairShell, makeHairMaterial } from './hairShell.js';
 import { loadHumanManifest, loadHumanGLB, makeSkinMat, makeHairMat, makeGarmentMat, makeTexturedMat, makeAtlasSkinMat, makeAtlasMat } from './humans.js';
 import { PERSONAS } from '../npc/personality.js';
@@ -812,6 +813,9 @@ export function createCharacter(game, opts = {}) {
       // walk cadence never too slow while blending out. The player passes its real ground speed: the cycle then advances
       // exactly as far as the body travels (stride per clip measured on the rig), so planted feet do not slide.
       const effS = Math.max(Number.isFinite(anim.groundSpeed) && s > 0.3 ? anim.groundSpeed : s, loco[0].v * 0.55);
+      // r4-anim: the stride was measured on the unscaled base rig; this body is drawn at holder.scale (peds 1.53-2.05 m on
+      // shared bases): scale the stride with it so their planted feet do not skate (?r4gait=0 = the old reference stride)
+      if (R4GAIT) D *= holder.scale.y || 1;
       const prevPh = st.phase;
       st.phase = (st.phase + dt * effS / Math.max(D, 0.3)) % 1;
       if (character) character.gaitPhase = st.phase;      // phase 0 = left foot plant, 0.5 = right (nico/pose.js layers on it)
