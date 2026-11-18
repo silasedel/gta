@@ -233,12 +233,10 @@ export async function initV2(game) {
     const pp = game.player?.position; if (!pp) return;
     for (const s of sites) {
       const d = Math.hypot(pp.x - s.cx, pp.z - s.cz);
-      if (s.kind === 'airport') { if (d < 2600 && !s.fence) buildFence(s); else if (d > 4200 && s.fence && !s.fence.failed) { s.fence.dispose(); s.fence = null; } }
+      // far away: hide only (never remove Rapier bodies at runtime: other systems may still hold the vehicle / handles)
+      if (s.kind === 'airport') { if (d < 2600 && !s.fence) buildFence(s); if (s.fence?.group) s.fence.group.visible = d < 4200; }
       if (s.state === 'idle' && d < 1500 && game.clock.elapsed >= s.next) populate(s);
-      else if (s.state === 'live' && d > 2800) {
-        for (const A of s.planes.slice()) if (!A.playerDriven && !A.active && game.clock.elapsed - (A.leftAt || -99) > 5 && A.S.pos.distanceTo(pp) > 2000) { removeAircraft(A); s.planes.splice(s.planes.indexOf(A), 1); }
-        if (!s.planes.length) s.state = 'idle';
-      }
+      if (s.state === 'live') for (const A of s.planes) { const show = d < 2800 || A.playerDriven || A.active; if (A.mesh.visible !== show) A.mesh.visible = show; }
     }
   }
 
