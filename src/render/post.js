@@ -847,7 +847,7 @@ export function createPost(game) {
         if (m.still >= 3) continue;
         // r2-perf: only movers within game.renderVelMaxDist (60 m) of the camera; farther ones are a few pixels and reproject
         // well enough from depth (clipped)
-        const dx = e[12] - camera.position.x, dy = e[13] - camera.position.y, dz = e[14] - camera.position.z, R = game.renderVelMaxDist ?? 60;
+        const dx = e[12] - camera.position.x, dy = e[13] - camera.position.y, dz = e[14] - camera.position.z, R = game.renderVelMaxDist ?? (game.quality?.name === 'low' ? 30 : 60);
         if (dx * dx + dy * dy + dz * dz < R * R) velDraw.push(c);
       }
       return velDraw;
