@@ -44,7 +44,7 @@ export const LIB = {
   green_apartment: { off: 1, w: 19.19, d: 21.93, h: 14.47, k: 1, beach: 1, cls: 'mid', use: 'res', glow: 0.3, lod1: 1, mir: 1, tint: 'paint', rough: 1, wt: 1.4 },
   fire_station: { w: 31.27, d: 23.61, h: 10.57, k: 1, gain: 2.1, not: 'Downtown|Brickell|Edgewater|Miami Beach|South Beach', lod1: 1, cls: 'mid', use: 'any', glow: 0.3, tint: 'brick', rough: 2, wt: 0.25 },
   // ---- shops and roadside (low) ----
-  graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2 },
+  graffiti_shop: { w: 12.22, d: 15.7, h: 5.24, k: 1, cls: 'shop', glow: 0.3, tint: 'none', rough: 2, not: 'Downtown|Brickell|Edgewater|Miami Beach|South Beach|Coral Gables' }, // r2-art (QA 17): blank white wall, rusted door slabs and a lean-to roof over the sidewalk: rough-side only
   gun_shop: { w: 9, d: 12.29, h: 5.68, k: 1, lod1: 1, cls: 'shop', glow: 0.3, tint: 'brick', rough: 2, wt: 0.3 },
   stone_shop: { w: 13.64, d: 11.69, h: 8.64, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'stone', not: 'Overtown|Liberty' },
   brick_shopfront: { off: 1, w: 6.32, d: 3.4, h: 3.69, k: 1, cls: 'shop', glow: 0.35, lod1: 1, tint: 'brick', rough: 1 },
@@ -102,8 +102,10 @@ export const AIRPORT = {
     { id: -9211, name: 'jet_bridge', x: -1452, z: 1083.3, ry: 0 }, { id: -9212, name: 'jet_bridge', x: -1398, z: 1083.3, ry: 0 },
     { id: -9213, name: 'jet_bridge', x: -1344, z: 1083.3, ry: 0 }, { id: -9214, name: 'jet_bridge', x: -1290, z: 1083.3, ry: 0 },
     { id: -9215, name: 'jet_bridge', x: -1240, z: 1083.3, ry: 0 },
-    { id: -9221, name: 'airliner', x: -1447.7, z: 1110.8, ry: Math.PI }, { id: -9222, name: 'airliner', x: -1393.7, z: 1110.8, ry: Math.PI },
-    { id: -9224, name: 'airliner', x: -1285.7, z: 1110.8, ry: Math.PI }, { id: -9225, name: 'airliner', x: -1235.7, z: 1110.8, ry: Math.PI },
+    // r2-art (QA 3): nose-in, one per gate, nose (local +Z) at the terminal with ry = PI; the fuselage's left side runs along the jet
+    // bridge cab (centerline 4.3 m east of the bridge axis) and the forward left door meets the cab end (z ~1096): nose tip at z ~1090.5
+    { id: -9221, name: 'airliner', x: -1452 + 4.3, z: 1109.3, ry: Math.PI }, { id: -9222, name: 'airliner', x: -1398 + 4.3, z: 1109.3, ry: Math.PI },
+    { id: -9224, name: 'airliner', x: -1290 + 4.3, z: 1109.3, ry: Math.PI }, { id: -9225, name: 'airliner', x: -1240 + 4.3, z: 1109.3, ry: Math.PI },
   ],
 };
 
