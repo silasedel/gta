@@ -12,7 +12,7 @@
   ],
   "tod": 16.5,
   "fov": 58,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-2.5,1.3,-33.5),l=W(-1.5,3.8,-6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=58;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-2.5,1.3,-33.5),l=W(-1.5,3.8,-6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=58;cam.updateProjectionMatrix();return true;};"
  },
  "s02_low": {
   "eye": [
@@ -27,7 +27,7 @@
   ],
   "tod": 11,
   "fov": 64,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(19,1.5,-6),l=W(5,4.9,-8.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=64;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(21,1.6,-12.5),l=W(6,4.9,-7.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=64;cam.updateProjectionMatrix();return true;};"
  },
  "s10_side": {
   "eye": [
@@ -42,7 +42,7 @@
   ],
   "tod": 11,
   "fov": 70,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.5,1.9,9),l=W(0.5,1.8,-20);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.5,1.9,9),l=W(0.5,1.8,-20);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=70;cam.updateProjectionMatrix();return true;};"
  },
  "s03_door": {
   "eye": [
@@ -57,7 +57,7 @@
   ],
   "tod": 10,
   "fov": 55,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.8,5.3,-0.6),l=W(0,4.6,-3.6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=55;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.8,5.3,-0.6),l=W(0,4.6,-3.6);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=55;cam.updateProjectionMatrix();return true;};"
  },
  "s01_roof": {
   "eye": [
@@ -72,7 +72,7 @@
   ],
   "tod": 12,
   "fov": 72,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(3.0,7.9,-4.6),l=W(-1.5,0.5,12);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(3.0,7.9,-4.6),l=W(-1.5,0.5,12);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
  },
  "s_top": {
   "eye": [
@@ -102,7 +102,7 @@
   ],
   "tod": 10,
   "fov": 72,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.0,5.25,-3.9),l=W(0.5,4.5,-9.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(0.0,5.25,-3.9),l=W(0.5,4.5,-9.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
  },
  "s06_living": {
   "eye": [
@@ -117,7 +117,7 @@
   ],
   "tod": 10,
   "fov": 72,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-0.6,5.3,-5.4),l=W(-5,4.2,-7.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-0.6,5.3,-5.4),l=W(-5,4.2,-7.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=72;cam.updateProjectionMatrix();return true;};"
  },
  "s07_kitchen": {
   "eye": [
@@ -132,7 +132,7 @@
   ],
   "tod": 10,
   "fov": 74,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-4.8,6.1,-4.6),l=W(2.5,3.9,-8.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=74;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-4.8,6.1,-4.6),l=W(2.5,3.9,-8.5);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=74;cam.updateProjectionMatrix();return true;};"
  },
  "s09_terra": {
   "eye": [
@@ -147,6 +147,6 @@
   ],
   "tod": 10,
   "fov": 60,
-  "eval": "window.__r4oz=game.nicoHouse.house.plan&&game.nicoHouse.r4oz||0;const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-0.6,5.0,-5.6),l=W(0.3,4.3,-6.9);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=60;cam.updateProjectionMatrix();return true;};"
+  "eval": "window.__r4oz=(()=>{const NH=game.nicoHouse,d=NH.house.interact.find(i=>i.id==='door_front'),y=NH.spot.yaw||0.72;return d?(-d.pos.x*Math.sin(y)+d.pos.z*Math.cos(y))+3.6:0;})();const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),oz=(window.__r4oz??0),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+(z+oz)*s,NH.group.position.y+y,sp.z-x*s+(z+oz)*c);const e=W(-0.6,5.0,-5.6),l=W(0.3,4.3,-6.9);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=60;cam.updateProjectionMatrix();return true;};"
  }
 }

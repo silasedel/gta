@@ -104,7 +104,11 @@ export async function initV2(game) {
   // ---- colliders: one fixed body at the house origin, descriptors are house-local ----
   const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(spot.x, yGround, spot.z).setRotation({ x: qH.x, y: qH.y, z: qH.z, w: qH.w }));
   const live = new Map();
+  const okC = (c) => { const n = [...(c.p || []), ...(c.q || []), ...(c.h || []), c.r ?? 1, c.hh ?? 1]; return n.every(Number.isFinite) && (!c.h || c.h.every((v) => v > 1e-4)) && (c.r == null || c.r > 1e-4) && (c.hh == null || c.hh > 1e-4); };
+  const badC = house.colliders.filter((c) => c.shape !== 'hf' && !okC(c)); if (badC.length) console.warn('[nicoHouse] skipped invalid colliders', badC.length, badC.slice(0, 5).map((c) => c.tag));   // r4: a NaN / zero-size shape panics Rapier inside world.step
+  house.stats.badColliders = badC.length;
   for (const c of house.colliders) {
+    if (c.shape !== 'hf' && !okC(c)) continue;
     try {
       const d = c.shape === 'box' ? RAPIER.ColliderDesc.cuboid(c.h[0], c.h[1], c.h[2]) : c.shape === 'hf' ? (HF_TRI ? hfTrimesh(RAPIER, c) : RAPIER.ColliderDesc.heightfield(c.nrows, c.ncols, c.heights, { x: c.scale[0], y: c.scale[1], z: c.scale[2] })) : RAPIER.ColliderDesc.cylinder(c.hh, c.r);   // hf: yard ground (part 05)
       d.setTranslation(c.p[0], c.p[1], c.p[2]).setRotation({ x: c.q[0], y: c.q[1], z: c.q[2], w: c.q[3] });
