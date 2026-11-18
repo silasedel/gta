@@ -1713,3 +1713,9 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   - Hard floors are sealed / polished and reflect: terrazzo ×0.42 roughness, ceramic ×0.55, VCT ×0.7, wood ×0.72.
   - Countertops keep the existing veined marble with the room probe; skirting already existed.
   - STOP.
+- 01:55 Quality pass (user feedback), before/after: `docs/v2/shots/metro/sheet_metro_quality.jpg`.
+  - Station: real surfaces from the user's Subway 1 kit (stone platform tiles with wear, a tactile edge strip, grout and grime on the walls with the wave mural kept, stained concrete overhead).
+  - Furniture: Bench 2 cast-metal slat benches (graphite), plus Subway 1's bins, fluorescent fixtures, security cameras and speakers.
+  - Car: clean Southline car (graffiti closed out of the Train 2 atlases), Subway 1 rubber floor, softer light panels.
+  - Tunnel: Subway 1 tunnel concrete and track bed. Subway 2 wasn't used: its 317k triangles and many materials cost too much for a corridor.
+  - Model requests filed: a subway car with a driver cab, and a clean modern station kit. 0 console errors.
