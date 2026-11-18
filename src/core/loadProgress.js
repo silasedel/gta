@@ -1,14 +1,17 @@
-// Southline boot progress (r2-web). The loading bar is weighted by how long each boot phase really takes, not by step
-// count (the old fixed milestones jumped to 30 % in a second, then sat at 95 % through a minute of shaders and warm-up).
-//   - Phase weights: src/core/loadWeights.json (medians of measured boots), then a running average of this browser's own
-//     boots in localStorage ('sl.loadWeights.v1'), so the bar learns the player's machine and connection.
-//   - Inside a phase the fraction comes from the phase's expected duration (an easing curve that never reaches the end
-//     of the phase early), moved further by counters with a known total: shader programs linked / created, warm-up
-//     frames, tiles built around the spawn. Files downloaded / requested in the phase are shown in the label.
-//   - The label under the bar names the phase and its counter ("Loading textures 41/96", "Compiling shaders 140/212",
-//     "Building Key Largo 5/7"). The value never goes backward.
+// Southline boot progress (r2-web). The loading bar is weighted by how long each boot phase really takes on this machine
+// and this line, not by step count (the old fixed milestones jumped to 30 % in a second, then sat at 95 %).
+//   - A phase's expected duration = its download (bytes / the measured download speed) + its CPU time.
+//     CPU times: src/core/loadWeights.json (dev boots), then this browser's running average (localStorage).
+//     Bytes per phase: boot-bytes.json next to index.html (web build: tools/v2/web/build-pages.mjs, from a throttled
+//     profile of the built site), then this browser's own boots. Speed: measured live (bytes / time since the first
+//     request), starting from this browser's last speed or ~25 Mbps on a first visit. On a slow line the download
+//     phases dominate the bar; on dev (instant downloads) the CPU times do.
+//   - Inside a phase: max(time share, bytes received in the phase / its bytes, counters with a known total: shader
+//     programs linked / created, warm-up frames, tiles built around the spawn). Never goes backward.
+//   - The label under the bar: "Downloading 214 / 509 MB" while a phase is downloading, else the phase and its counter
+//     ("Compiling shaders 140/212", "Building Key Largo 5/7 tiles").
 // main.js: LP.begin(name) / LP.end(name) around every boot stage (stage() / safe()), LP.sub(fraction, label) inside long
-// steps, LP.finish() at READY. Nothing here changes what loads or in which order.
+// steps, LP.finish() at READY. Nothing here changes what loads or in which order. ?lpnet=0: time weights only.
 import DEFAULTS from './loadWeights.json';
 
 const KEY = 'sl.loadWeights.v1';
@@ -24,7 +27,7 @@ const kindOf = (u) => {
   if (/\.json$/.test(p) || /\/miami\//.test(p)) return 'data';
   return null;
 };
-const NET = { started: { models: 0, textures: 0, sounds: 0, data: 0 }, done: { models: 0, textures: 0, sounds: 0, data: 0 }, bytes: 0 };
+const NET = { started: { models: 0, textures: 0, sounds: 0, data: 0 }, done: { models: 0, textures: 0, sounds: 0, data: 0 }, bytes: 0, wire: 0, t0: 0, tLast: 0 };
 function track(kind, promise) {
   if (!kind) return;
   NET.started[kind]++;
@@ -58,8 +61,40 @@ function installNet() {
       });
     }
   } catch (e) { /* no image counting */ }
-  try { new PerformanceObserver((l) => { for (const e of l.getEntries()) NET.bytes += e.transferSize || 0; }).observe({ type: 'resource', buffered: true }); } catch (e) { /* */ }
+  // bytes received: every finished resource (compressed size on the wire; cache hits count as instantly received)
+  try {
+    new PerformanceObserver((l) => {
+      for (const e of l.getEntries()) {
+        if (/^(blob|data):/.test(e.name)) continue;
+        const b = e.encodedBodySize || e.transferSize || 0;
+        if (!b) continue;
+        NET.bytes += b; NET.wire += e.transferSize || 0;
+        if (!NET.t0 || e.startTime < NET.t0) NET.t0 = Math.max(1, e.startTime);
+        NET.tLast = Math.max(NET.tLast, e.responseEnd || e.startTime + e.duration);
+      }
+    }).observe({ type: 'resource', buffered: true });
+  } catch (e) { /* */ }
 }
+
+// ---------------------------------------------------------------- bytes per phase (web build)
+// boot-bytes.json (written next to index.html by tools/v2/web/build-pages.mjs from a throttled profile of the built site):
+// { total, phases: { name: bytes received while that phase ran } }. Absent on dev: phases then count by time only.
+// This browser's own boots refine it (localStorage 'sl.loadBytes.v1'), and its measured download speed ('sl.loadBw.v1').
+const KEY_BYTES = 'sl.loadBytes.v1', KEY_BW = 'sl.loadBw.v1';
+const DEFAULT_BW = 3.2e6; // bytes/s before anything is measured (~25 Mbps: a modest home line; downloads dominate the first visit)
+const BYTES = { phases: {}, total: 0, from: 'none' };
+function loadBytes() {
+  try { const s = JSON.parse(localStorage.getItem(KEY_BYTES) || 'null'); if (s?.phases) { Object.assign(BYTES.phases, s.phases); BYTES.total = s.total || 0; BYTES.from = 'local'; } } catch (e) { /* */ }
+  try {
+    if (typeof fetch === 'undefined' || /[?&]lpnet=0\b/.test(location.search)) return;
+    fetch(new URL('boot-bytes.json', document.baseURI).href, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!j?.phases) return;
+      if (BYTES.from !== 'local') { Object.assign(BYTES.phases, j.phases); BYTES.total = j.total || 0; BYTES.from = 'manifest'; }
+      else for (const [k, v] of Object.entries(j.phases)) if (!(k in BYTES.phases)) BYTES.phases[k] = v;
+    }).catch(() => {});
+  } catch (e) { /* */ }
+}
+function storedBw() { try { const v = +localStorage.getItem(KEY_BW); return v > 0 ? v : 0; } catch (e) { return 0; } }
 
 // ---------------------------------------------------------------- weights
 function loadWeights() {
@@ -90,26 +125,46 @@ function labelOf(name) {
 // ---------------------------------------------------------------- progress
 export function createLoadProgress() {
   installNet();
+  loadBytes();
   const W = loadWeights();
+  const NETON = !/[?&]lpnet=0\b/.test(location.search); // ?lpnet=0: time weights only (the 14:20 bar), for A/B
   const t0 = now();
+  const bw0 = storedBw() || DEFAULT_BW;
   const st = {
-    order: [], cur: null, curT: 0, curW: 0, curNet: null, doneW: 0, durations: {}, sub: null, subLabel: '', shown: 0,
-    msg: '', samples: [], finished: false, error: '',
+    cur: null, curT: 0, curW: 0, curB0: 0, curNet: null, doneW: 0, durations: {}, phaseBytes: {}, sub: null, subLabel: '', shown: 0,
+    msg: '', samples: [], finished: false, error: '', probe: null, label: '',
   };
-  // the expected total: every phase this browser has seen (weights), at least the sum of what has run so far
-  const totalW = () => { let s = 0; for (const v of Object.values(W)) s += v; return Math.max(s, st.doneW + st.curW + 1); };
-  const wOf = (name) => (Number.isFinite(W[name]) ? W[name] : UNKNOWN_MS);
+  // download speed: bytes received / time since the first request, blended with the prior until ~3 MB have arrived
+  function bw() {
+    const span = Math.max(0.25, ((NET.tLast || now()) - (NET.t0 || t0)) / 1000);
+    const live = NET.bytes / span, k = Math.min(1, NET.bytes / 3e6);
+    return Math.max(2e5, (1 - k) * bw0 + k * live);
+  }
+  const bytesOf = (name) => (NETON ? BYTES.phases[name] || 0 : 0);
+  // a phase's expected duration on this machine and line: its download (bytes at the measured speed) plus its CPU work
+  // (a phase downloads, then builds: the map phase spent ~25 s building after its 230 MB had arrived)
+  const cpuOf = (name) => (Number.isFinite(W[name]) ? W[name] : UNKNOWN_MS);
+  const dlOf = (name) => { const b = bytesOf(name); return b > 65536 ? (1000 * b) / bw() : 0; };
+  const wOf = (name) => cpuOf(name) + dlOf(name);
+  // the expected total: every phase this browser knows (time weights + byte manifest), at least what has run so far
+  const totalW = () => {
+    let s2 = 0; const seen = new Set();
+    for (const k of Object.keys(W)) { s2 += wOf(k); seen.add(k); }
+    if (NETON) for (const k of Object.keys(BYTES.phases)) if (!seen.has(k)) s2 += wOf(k);
+    return Math.max(s2, st.doneW + (st.cur ? wOf(st.cur.name) : 0) + 1);
+  };
 
   function begin(name) {
     if (st.cur) end(st.cur.name);
-    st.cur = { name }; st.curT = now(); st.curW = wOf(name); st.sub = null; st.subLabel = ''; st.probe = null;
+    st.cur = { name }; st.curT = now(); st.sub = null; st.subLabel = ''; st.probe = null; st.curB0 = NET.bytes;
     st.curNet = { started: { ...NET.started }, done: { ...NET.done } };
   }
   function end(name) {
     if (!st.cur || (name && st.cur.name !== name)) return;
-    const d = now() - st.curT;
-    st.durations[st.cur.name] = (st.durations[st.cur.name] || 0) + d;
-    st.doneW += st.curW; st.cur = null; st.curW = 0; st.sub = null; st.subLabel = ''; st.probe = null;
+    const n = st.cur.name, d = now() - st.curT;
+    st.durations[n] = (st.durations[n] || 0) + d;
+    st.phaseBytes[n] = (st.phaseBytes[n] || 0) + (NET.bytes - st.curB0);
+    st.doneW += wOf(n); st.cur = null; st.sub = null; st.subLabel = ''; st.probe = null;
   }
   // a counter read on every bar update while the current phase runs: fn() -> { f: 0..1, label }
   function probe(fn) { st.probe = fn; }
@@ -119,33 +174,38 @@ export function createLoadProgress() {
   // network share of the current phase: files finished / requested since the phase began, and the busiest kind
   function netInPhase() {
     if (!st.curNet) return null;
-    let s = 0, d = 0, best = null, bestPend = 0;
+    let s2 = 0, d = 0, best = null, bestPend = 0;
     for (const k of Object.keys(NET.started)) {
       const ks = NET.started[k] - st.curNet.started[k], kd = Math.min(ks, NET.done[k] - st.curNet.done[k]);
-      s += ks; d += kd;
+      s2 += ks; d += kd;
       if (ks - kd > bestPend || (!best && ks > 0)) { bestPend = ks - kd; best = { kind: k, s: ks, d: kd }; }
     }
-    return s ? { f: d / s, s, d, best, pending: s - d } : null;
+    return s2 ? { f: d / s2, s: s2, d, best, pending: s2 - d } : null;
   }
+  const MB = (b) => Math.round(b / 1048576);
 
   function value() {
     if (st.finished) return 100;
-    let f = 0, label = st.cur ? labelOf(st.cur.name) : st.msg;
+    let f = 0, label = st.cur ? labelOf(st.cur.name) : st.msg, curW = 0;
     if (st.cur) {
-      const el = now() - st.curT, exp = Math.max(30, st.curW);
+      curW = wOf(st.cur.name);
+      const el = now() - st.curT, exp = Math.max(30, curW);
       // time share: 74 % of the phase at its expected duration, still moving (slower) when it runs long, never past 95 %
       const fTime = 0.95 * (1 - Math.exp(-1.5 * el / exp));
+      // byte share: bytes received in this phase / the bytes this phase downloads (boot manifest), up to 97 %
+      const pb = bytesOf(st.cur.name), got = NET.bytes - st.curB0;
+      // the download is the first part of the phase: bytes fill the phase up to its download share, time does the rest
+      const fBytes = pb > 65536 ? Math.min(0.97, got / pb) * (dlOf(st.cur.name) / Math.max(1, curW)) : 0;
       const net = netInPhase();
       if (st.probe) { try { const r = st.probe(); if (r) sub(r.f, r.label); } catch (e) { st.probe = null; } }
-      // counters with a known total (shaders linked / created, warm-up frames, spawn tiles) move it further when ahead of
-      // the time share. Files done / requested is shown in the label only: its total grows as the phase requests more,
-      // so as a fraction it read 15/16 = 94 % at the start of a 6 s phase and parked the bar.
-      if (st.sub != null) f = Math.max(st.sub * 0.98, fTime);
-      else f = fTime;
+      // counters with a known total (shaders linked / created, warm-up frames, spawn tiles) or bytes move it further when
+      // they are ahead of the time share. Files done / requested is label only (its total grows as the phase asks for more).
+      f = Math.max(fTime, fBytes, st.sub != null ? st.sub * 0.98 : 0);
       if (st.subLabel) label = st.subLabel;
+      else if (pb > 65536 && got < pb * 0.97 && BYTES.total) label = `Downloading ${MB(NET.bytes)} / ${Math.max(MB(BYTES.total), MB(NET.bytes))} MB`;
       else if (net && net.pending > 0 && net.best) label = `${label} · ${net.best.kind} ${net.best.d}/${net.best.s}`;
     }
-    const v = Math.min(99.5, 100 * (st.doneW + st.curW * f) / totalW());
+    const v = Math.min(99.5, 100 * (st.doneW + curW * f) / totalW());
     st.shown = Math.max(st.shown, v);
     st.label = label;
     return st.shown;
@@ -153,13 +213,18 @@ export function createLoadProgress() {
   function finish() {
     if (st.cur) end(st.cur.name);
     st.finished = true; st.shown = 100;
-    // running average of this browser's real phase times (the next boot's weights)
+    // running averages of this browser's real phase times, phase bytes and download speed (the next boot's weights)
     try {
       const prev = JSON.parse(localStorage.getItem(KEY) || 'null') || {};
       const next = {};
-      for (const [k, d] of Object.entries(st.durations)) { const p = Number.isFinite(prev[k]) ? prev[k] : wOf(k); next[k] = Math.round(p + 0.35 * (d - p)); }
+      for (const [k, d] of Object.entries(st.durations)) { const p = Number.isFinite(prev[k]) ? prev[k] : (Number.isFinite(W[k]) ? W[k] : UNKNOWN_MS); next[k] = Math.round(p + 0.35 * (d - p)); }
       localStorage.setItem(KEY, JSON.stringify(next));
     } catch (e) { /* private mode: defaults next time */ }
+    try {
+      if (NET.wire > 2e6) localStorage.setItem(KEY_BW, String(Math.round(bw()))); // only a real download says anything about the line
+      const tot = Object.values(st.phaseBytes).reduce((a, b) => a + b, 0);
+      if (tot > 1e6) localStorage.setItem(KEY_BYTES, JSON.stringify({ total: tot, phases: st.phaseBytes }));
+    } catch (e) { /* */ }
   }
   // keep a progress-vs-time trace for tools (window.__loadProgress.samples: [ms since navigation, value, label])
   const api = {
@@ -168,8 +233,10 @@ export function createLoadProgress() {
     msg(t) { st.msg = t; if (/^ERROR/.test(t)) st.error = t; },
     get error() { return st.error; },
     get durations() { return st.durations; },
+    get phaseBytes() { return st.phaseBytes; },
+    get bw() { return bw(); },
     get samples() { return st.samples; },
-    weights: W,
+    weights: W, bytes: BYTES,
     net: NET,
     sample() { const v = value(); const last = st.samples[st.samples.length - 1]; const lab = st.label || ''; if (!last || v - last[1] >= 0.2 || lab !== last[2] || now() - last[0] > 1000) st.samples.push([Math.round(now()), +v.toFixed(2), lab]); return v; },
   };

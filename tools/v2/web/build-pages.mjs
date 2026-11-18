@@ -57,6 +57,10 @@ if (!o['no-compress']) {
 // remove dev-only pages copied from public (preview / test pages are not part of the game)
 for (const f of walk(OUT)) if (/\/(preview|test)[^/]*\.html$/.test(f) && !f.endsWith('/index.html')) fs.rmSync(f);
 
+// boot byte manifest for the loading bar (src/core/loadProgress.js): bytes per boot phase from a throttled profile
+// (node tools/v2/web/loadbar.mjs --url <built site> --mbps 50 --bytes-out tools/v2/web/boot-bytes.json)
+try { fs.copyFileSync(path.join(ROOT, 'tools/v2/web/boot-bytes.json'), path.join(OUT, 'boot-bytes.json')); log('boot-bytes.json copied'); } catch (e) { log('no tools/v2/web/boot-bytes.json: the loading bar counts by time only'); }
+
 log('service worker + manifest');
 const files = {};
 let total = 0, count = 0;

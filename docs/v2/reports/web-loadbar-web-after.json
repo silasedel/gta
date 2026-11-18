@@ -1,0 +1,2017 @@
+{
+ "set": "web-after",
+ "url": "http://127.0.0.1:5207/gta6/",
+ "when": "2026-11-18T03:20:25.477Z",
+ "boots": [
+  {
+   "boot": 1,
+   "ready": 128327,
+   "samples": [
+    [
+     32,
+     0,
+     ""
+    ],
+    [
+     132,
+     0,
+     "LOADING"
+    ],
+    [
+     1064,
+     0,
+     "Building the sky · textures 0/1"
+    ],
+    [
+     1167,
+     0,
+     "Downloading 2 / 429 MB"
+    ],
+    [
+     1275,
+     0,
+     "Downloading 3 / 429 MB"
+    ],
+    [
+     1861,
+     0,
+     "Downloading 4 / 429 MB"
+    ],
+    [
+     2370,
+     0,
+     "Downloading 5 / 429 MB"
+    ],
+    [
+     2639,
+     1,
+     "Downloading 6 / 429 MB"
+    ],
+    [
+     3639,
+     2,
+     "Downloading 11 / 429 MB"
+    ],
+    [
+     3949,
+     2,
+     "Downloading 12 / 429 MB"
+    ],
+    [
+     4255,
+     2,
+     "Downloading 13 / 429 MB"
+    ],
+    [
+     4358,
+     2,
+     "Downloading 14 / 429 MB"
+    ],
+    [
+     4767,
+     3,
+     "Downloading 14 / 429 MB"
+    ],
+    [
+     4871,
+     3,
+     "Downloading 15 / 429 MB"
+    ],
+    [
+     4974,
+     3,
+     "Downloading 16 / 429 MB"
+    ],
+    [
+     5178,
+     3,
+     "Downloading 17 / 429 MB"
+    ],
+    [
+     5385,
+     3,
+     "Downloading 18 / 429 MB"
+    ],
+    [
+     5488,
+     3,
+     "Downloading 20 / 429 MB"
+    ],
+    [
+     5589,
+     4,
+     "Downloading 20 / 429 MB"
+    ],
+    [
+     5693,
+     4,
+     "Downloading 21 / 429 MB"
+    ],
+    [
+     6174,
+     4,
+     "Downloading 22 / 429 MB"
+    ],
+    [
+     6480,
+     4,
+     "Downloading 23 / 429 MB"
+    ],
+    [
+     6750,
+     5,
+     "Downloading 24 / 429 MB"
+    ],
+    [
+     6956,
+     5,
+     "Downloading 25 / 429 MB"
+    ],
+    [
+     7261,
+     5,
+     "Downloading 26 / 429 MB"
+    ],
+    [
+     7674,
+     5,
+     "Downloading 27 / 429 MB"
+    ],
+    [
+     7776,
+     5,
+     "Downloading 28 / 429 MB"
+    ],
+    [
+     7879,
+     6,
+     "Downloading 29 / 429 MB"
+    ],
+    [
+     8287,
+     6,
+     "Downloading 30 / 429 MB"
+    ],
+    [
+     8389,
+     6,
+     "Downloading 31 / 429 MB"
+    ],
+    [
+     8501,
+     6,
+     "Downloading 32 / 429 MB"
+    ],
+    [
+     8601,
+     6,
+     "Downloading 33 / 429 MB"
+    ],
+    [
+     8801,
+     7,
+     "Downloading 34 / 429 MB"
+    ],
+    [
+     9215,
+     7,
+     "Downloading 35 / 429 MB"
+    ],
+    [
+     9419,
+     7,
+     "Downloading 36 / 429 MB"
+    ],
+    [
+     9523,
+     7,
+     "Downloading 37 / 429 MB"
+    ],
+    [
+     9829,
+     8,
+     "Downloading 38 / 429 MB"
+    ],
+    [
+     10136,
+     8,
+     "Downloading 39 / 429 MB"
+    ],
+    [
+     10340,
+     8,
+     "Downloading 40 / 429 MB"
+    ],
+    [
+     10750,
+     8,
+     "Downloading 41 / 429 MB"
+    ],
+    [
+     10954,
+     8,
+     "Downloading 42 / 429 MB"
+    ],
+    [
+     11157,
+     9,
+     "Downloading 42 / 429 MB"
+    ],
+    [
+     11280,
+     9,
+     "Downloading 43 / 429 MB"
+    ],
+    [
+     11585,
+     9,
+     "Downloading 44 / 429 MB"
+    ],
+    [
+     11786,
+     9,
+     "Downloading 45 / 429 MB"
+    ],
+    [
+     12510,
+     9,
+     "Downloading 46 / 429 MB"
+    ],
+    [
+     12715,
+     10,
+     "Downloading 46 / 429 MB"
+    ],
+    [
+     12919,
+     10,
+     "Downloading 47 / 429 MB"
+    ],
+    [
+     13224,
+     10,
+     "Downloading 48 / 429 MB"
+    ],
+    [
+     13937,
+     10,
+     "Downloading 49 / 429 MB"
+    ],
+    [
+     14243,
+     10,
+     "Downloading 50 / 429 MB"
+    ],
+    [
+     14449,
+     11,
+     "Downloading 51 / 429 MB"
+    ],
+    [
+     14676,
+     11,
+     "Downloading 52 / 429 MB"
+    ],
+    [
+     15698,
+     11,
+     "Downloading 53 / 429 MB"
+    ],
+    [
+     16314,
+     11,
+     "Downloading 54 / 429 MB"
+    ],
+    [
+     16622,
+     12,
+     "Downloading 56 / 429 MB"
+    ],
+    [
+     16725,
+     12,
+     "Downloading 57 / 429 MB"
+    ],
+    [
+     16826,
+     12,
+     "Downloading 60 / 429 MB"
+    ],
+    [
+     17134,
+     12,
+     "Downloading 61 / 429 MB"
+    ],
+    [
+     17235,
+     13,
+     "Downloading 64 / 429 MB"
+    ],
+    [
+     17443,
+     13,
+     "Downloading 65 / 429 MB"
+    ],
+    [
+     17543,
+     13,
+     "Downloading 67 / 429 MB"
+    ],
+    [
+     17749,
+     14,
+     "Downloading 67 / 429 MB"
+    ],
+    [
+     18057,
+     14,
+     "Downloading 68 / 429 MB"
+    ],
+    [
+     18158,
+     14,
+     "Downloading 69 / 429 MB"
+    ],
+    [
+     18466,
+     14,
+     "Downloading 72 / 429 MB"
+    ],
+    [
+     18969,
+     15,
+     "Downloading 72 / 429 MB"
+    ],
+    [
+     19889,
+     15,
+     "Downloading 75 / 429 MB"
+    ],
+    [
+     20606,
+     16,
+     "Downloading 80 / 429 MB"
+    ],
+    [
+     21421,
+     16,
+     "Downloading 81 / 429 MB"
+    ],
+    [
+     21831,
+     16,
+     "Downloading 82 / 429 MB"
+    ],
+    [
+     21933,
+     16,
+     "Downloading 84 / 429 MB"
+    ],
+    [
+     22136,
+     17,
+     "Downloading 85 / 429 MB"
+    ],
+    [
+     22237,
+     17,
+     "Downloading 87 / 429 MB"
+    ],
+    [
+     22450,
+     17,
+     "Downloading 88 / 429 MB"
+    ],
+    [
+     22753,
+     17,
+     "Downloading 89 / 429 MB"
+    ],
+    [
+     22960,
+     17,
+     "Downloading 90 / 429 MB"
+    ],
+    [
+     23268,
+     17,
+     "Downloading 91 / 429 MB"
+    ],
+    [
+     23474,
+     18,
+     "Downloading 91 / 429 MB"
+    ],
+    [
+     23778,
+     18,
+     "Downloading 93 / 429 MB"
+    ],
+    [
+     24086,
+     18,
+     "Downloading 94 / 429 MB"
+    ],
+    [
+     24697,
+     18,
+     "Downloading 95 / 429 MB"
+    ],
+    [
+     25209,
+     18,
+     "Downloading 97 / 429 MB"
+    ],
+    [
+     25410,
+     19,
+     "Downloading 97 / 429 MB"
+    ],
+    [
+     25738,
+     19,
+     "Downloading 100 / 429 MB"
+    ],
+    [
+     25942,
+     19,
+     "Downloading 102 / 429 MB"
+    ],
+    [
+     26558,
+     19,
+     "Downloading 103 / 429 MB"
+    ],
+    [
+     26973,
+     20,
+     "Downloading 106 / 429 MB"
+    ],
+    [
+     27097,
+     20,
+     "Downloading 109 / 429 MB"
+    ],
+    [
+     27777,
+     20,
+     "Downloading 111 / 429 MB"
+    ],
+    [
+     27877,
+     21,
+     "Downloading 115 / 429 MB"
+    ],
+    [
+     28224,
+     21,
+     "Downloading 116 / 429 MB"
+    ],
+    [
+     28359,
+     21,
+     "Downloading 117 / 429 MB"
+    ],
+    [
+     28462,
+     21,
+     "Downloading 118 / 429 MB"
+    ],
+    [
+     28564,
+     21,
+     "Downloading 119 / 429 MB"
+    ],
+    [
+     28874,
+     22,
+     "Downloading 122 / 429 MB"
+    ],
+    [
+     29641,
+     22,
+     "Downloading 123 / 429 MB"
+    ],
+    [
+     29849,
+     22,
+     "Downloading 124 / 429 MB"
+    ],
+    [
+     29953,
+     22,
+     "Downloading 125 / 429 MB"
+    ],
+    [
+     30566,
+     22,
+     "Downloading 127 / 429 MB"
+    ],
+    [
+     30668,
+     22,
+     "Downloading 128 / 429 MB"
+    ],
+    [
+     30786,
+     23,
+     "Downloading 130 / 429 MB"
+    ],
+    [
+     30891,
+     23,
+     "Downloading 132 / 429 MB"
+    ],
+    [
+     31512,
+     23,
+     "Downloading 135 / 429 MB"
+    ],
+    [
+     33344,
+     24,
+     "Downloading 136 / 429 MB"
+    ],
+    [
+     33953,
+     24,
+     "Downloading 137 / 429 MB"
+    ],
+    [
+     34158,
+     24,
+     "Downloading 138 / 429 MB"
+    ],
+    [
+     34667,
+     24,
+     "Downloading 140 / 429 MB"
+    ],
+    [
+     34823,
+     25,
+     "Downloading 141 / 429 MB"
+    ],
+    [
+     35233,
+     25,
+     "Downloading 142 / 429 MB"
+    ],
+    [
+     35948,
+     25,
+     "Downloading 144 / 429 MB"
+    ],
+    [
+     36154,
+     26,
+     "Downloading 147 / 429 MB"
+    ],
+    [
+     36461,
+     26,
+     "Downloading 152 / 429 MB"
+    ],
+    [
+     36666,
+     27,
+     "Downloading 153 / 429 MB"
+    ],
+    [
+     37074,
+     27,
+     "Downloading 154 / 429 MB"
+    ],
+    [
+     37277,
+     27,
+     "Downloading 155 / 429 MB"
+    ],
+    [
+     37787,
+     27,
+     "Downloading 156 / 429 MB"
+    ],
+    [
+     37989,
+     27,
+     "Downloading 157 / 429 MB"
+    ],
+    [
+     38227,
+     28,
+     "Downloading 159 / 429 MB"
+    ],
+    [
+     38331,
+     28,
+     "Downloading 162 / 429 MB"
+    ],
+    [
+     38432,
+     28,
+     "Downloading 163 / 429 MB"
+    ],
+    [
+     38942,
+     28,
+     "Downloading 164 / 429 MB"
+    ],
+    [
+     39045,
+     29,
+     "Downloading 164 / 429 MB"
+    ],
+    [
+     39147,
+     29,
+     "Downloading 165 / 429 MB"
+    ],
+    [
+     39760,
+     29,
+     "Downloading 167 / 429 MB"
+    ],
+    [
+     40170,
+     29,
+     "Downloading 169 / 429 MB"
+    ],
+    [
+     40578,
+     30,
+     "Downloading 171 / 429 MB"
+    ],
+    [
+     40887,
+     30,
+     "Downloading 172 / 429 MB"
+    ],
+    [
+     41148,
+     30,
+     "Downloading 174 / 429 MB"
+    ],
+    [
+     41251,
+     31,
+     "Downloading 178 / 429 MB"
+    ],
+    [
+     41557,
+     31,
+     "Downloading 179 / 429 MB"
+    ],
+    [
+     42066,
+     31,
+     "Downloading 180 / 429 MB"
+    ],
+    [
+     42580,
+     31,
+     "Downloading 181 / 429 MB"
+    ],
+    [
+     42683,
+     32,
+     "Downloading 183 / 429 MB"
+    ],
+    [
+     43510,
+     32,
+     "Downloading 184 / 429 MB"
+    ],
+    [
+     43732,
+     32,
+     "Downloading 185 / 429 MB"
+    ],
+    [
+     44248,
+     33,
+     "Downloading 188 / 429 MB"
+    ],
+    [
+     44658,
+     33,
+     "Downloading 189 / 429 MB"
+    ],
+    [
+     44760,
+     33,
+     "Downloading 191 / 429 MB"
+    ],
+    [
+     45056,
+     34,
+     "Downloading 195 / 429 MB"
+    ],
+    [
+     45158,
+     34,
+     "Downloading 196 / 429 MB"
+    ],
+    [
+     45278,
+     34,
+     "Downloading 199 / 429 MB"
+    ],
+    [
+     45381,
+     35,
+     "Downloading 200 / 429 MB"
+    ],
+    [
+     45665,
+     35,
+     "Downloading 201 / 429 MB"
+    ],
+    [
+     45885,
+     35,
+     "Downloading 202 / 429 MB"
+    ],
+    [
+     46293,
+     35,
+     "Downloading 203 / 429 MB"
+    ],
+    [
+     46497,
+     36,
+     "Downloading 206 / 429 MB"
+    ],
+    [
+     46676,
+     36,
+     "Downloading 207 / 429 MB"
+    ],
+    [
+     47184,
+     36,
+     "Downloading 208 / 429 MB"
+    ],
+    [
+     47287,
+     36,
+     "Downloading 209 / 429 MB"
+    ],
+    [
+     47800,
+     36,
+     "Downloading 210 / 429 MB"
+    ],
+    [
+     47903,
+     36,
+     "Downloading 211 / 429 MB"
+    ],
+    [
+     48004,
+     37,
+     "Downloading 212 / 429 MB"
+    ],
+    [
+     48108,
+     37,
+     "Downloading 213 / 429 MB"
+    ],
+    [
+     48465,
+     37,
+     "Downloading 215 / 429 MB"
+    ],
+    [
+     48771,
+     37,
+     "Downloading 216 / 429 MB"
+    ],
+    [
+     48979,
+     37,
+     "Downloading 217 / 429 MB"
+    ],
+    [
+     49184,
+     38,
+     "Downloading 218 / 429 MB"
+    ],
+    [
+     49321,
+     38,
+     "Downloading 219 / 429 MB"
+    ],
+    [
+     49730,
+     38,
+     "Downloading 220 / 429 MB"
+    ],
+    [
+     49931,
+     38,
+     "Downloading 221 / 429 MB"
+    ],
+    [
+     50032,
+     39,
+     "Downloading 223 / 429 MB"
+    ],
+    [
+     55189,
+     39,
+     "Loading the map · textures 234/236"
+    ],
+    [
+     55674,
+     39,
+     "Loading the map · models 200/247"
+    ],
+    [
+     55777,
+     39,
+     "Loading the map · models 220/247"
+    ],
+    [
+     55881,
+     39,
+     "Loading the map · models 234/247"
+    ],
+    [
+     57509,
+     39,
+     "Loading the map · models 238/247"
+    ],
+    [
+     57612,
+     40,
+     "Loading the map"
+    ],
+    [
+     61151,
+     40,
+     "Loading the map · data 13/15"
+    ],
+    [
+     61356,
+     40,
+     "Loading the map"
+    ],
+    [
+     61775,
+     40,
+     "Loading the map · data 15/17"
+    ],
+    [
+     61980,
+     40,
+     "Loading the map"
+    ],
+    [
+     62400,
+     40,
+     "Loading the map · data 17/18"
+    ],
+    [
+     62607,
+     40,
+     "Loading the map"
+    ],
+    [
+     63039,
+     40,
+     "Loading the map · data 18/20"
+    ],
+    [
+     63449,
+     40,
+     "Loading the map"
+    ],
+    [
+     63867,
+     40,
+     "Loading the map · data 20/21"
+    ],
+    [
+     64074,
+     40,
+     "Loading the map"
+    ],
+    [
+     64507,
+     40,
+     "Loading the map · data 21/22"
+    ],
+    [
+     64712,
+     40,
+     "Loading the map"
+    ],
+    [
+     65147,
+     41,
+     "Loading the map · data 22/23"
+    ],
+    [
+     65354,
+     41,
+     "Loading the map"
+    ],
+    [
+     65999,
+     41,
+     "Loading the map · data 23/24"
+    ],
+    [
+     66204,
+     41,
+     "Loading the map"
+    ],
+    [
+     66616,
+     41,
+     "Loading the map · data 24/25"
+    ],
+    [
+     66820,
+     41,
+     "Loading the map"
+    ],
+    [
+     67233,
+     41,
+     "Loading the map · data 25/26"
+    ],
+    [
+     67438,
+     41,
+     "Loading the map"
+    ],
+    [
+     67853,
+     41,
+     "Loading the map · data 26/28"
+    ],
+    [
+     68057,
+     41,
+     "Loading the map"
+    ],
+    [
+     68486,
+     41,
+     "Loading the map · data 28/30"
+    ],
+    [
+     68691,
+     41,
+     "Loading the map"
+    ],
+    [
+     69128,
+     41,
+     "Loading the map · data 30/31"
+    ],
+    [
+     69335,
+     41,
+     "Loading the map"
+    ],
+    [
+     69750,
+     41,
+     "Loading the map · data 31/32"
+    ],
+    [
+     69955,
+     41,
+     "Loading the map"
+    ],
+    [
+     70375,
+     41,
+     "Loading the map · data 32/33"
+    ],
+    [
+     70578,
+     41,
+     "Loading the map"
+    ],
+    [
+     70996,
+     41,
+     "Loading the map · data 33/34"
+    ],
+    [
+     71199,
+     41,
+     "Loading the map"
+    ],
+    [
+     71618,
+     41,
+     "Loading the map · data 34/35"
+    ],
+    [
+     71826,
+     41,
+     "Loading the map"
+    ],
+    [
+     72242,
+     41,
+     "Loading the map · data 35/36"
+    ],
+    [
+     72449,
+     41,
+     "Loading the map"
+    ],
+    [
+     80792,
+     49,
+     "Downloading 230 / 429 MB"
+    ],
+    [
+     80896,
+     50,
+     "Downloading 230 / 429 MB"
+    ],
+    [
+     82020,
+     50,
+     "Downloading 232 / 429 MB"
+    ],
+    [
+     82124,
+     50,
+     "Downloading 234 / 429 MB"
+    ],
+    [
+     82330,
+     50,
+     "Downloading 237 / 429 MB"
+    ],
+    [
+     82671,
+     50,
+     "Downloading 240 / 429 MB"
+    ],
+    [
+     83418,
+     50,
+     "Downloading 241 / 429 MB"
+    ],
+    [
+     83724,
+     50,
+     "Downloading 243 / 429 MB"
+    ],
+    [
+     84133,
+     50,
+     "Downloading 244 / 429 MB"
+    ],
+    [
+     84339,
+     50,
+     "Downloading 245 / 429 MB"
+    ],
+    [
+     84643,
+     50,
+     "Downloading 246 / 429 MB"
+    ],
+    [
+     84744,
+     50,
+     "Downloading 248 / 429 MB"
+    ],
+    [
+     85051,
+     50,
+     "Downloading 250 / 429 MB"
+    ],
+    [
+     85357,
+     50,
+     "Downloading 251 / 429 MB"
+    ],
+    [
+     85458,
+     51,
+     "Downloading 254 / 429 MB"
+    ],
+    [
+     85666,
+     51,
+     "Downloading 255 / 429 MB"
+    ],
+    [
+     85768,
+     52,
+     "Downloading 256 / 429 MB"
+    ],
+    [
+     85868,
+     52,
+     "Downloading 257 / 429 MB"
+    ],
+    [
+     86484,
+     52,
+     "Downloading 258 / 429 MB"
+    ],
+    [
+     86894,
+     53,
+     "Downloading 260 / 429 MB"
+    ],
+    [
+     87400,
+     55,
+     "Downloading 265 / 429 MB"
+    ],
+    [
+     88324,
+     55,
+     "Downloading 267 / 429 MB"
+    ],
+    [
+     88424,
+     55,
+     "Downloading 269 / 429 MB"
+    ],
+    [
+     88528,
+     56,
+     "Downloading 269 / 429 MB"
+    ],
+    [
+     88938,
+     56,
+     "Downloading 270 / 429 MB"
+    ],
+    [
+     89289,
+     57,
+     "Downloading 273 / 429 MB"
+    ],
+    [
+     89456,
+     57,
+     "Downloading 274 / 429 MB"
+    ],
+    [
+     89726,
+     58,
+     "Downloading 276 / 429 MB"
+    ],
+    [
+     90014,
+     58,
+     "Downloading 277 / 429 MB"
+    ],
+    [
+     90459,
+     59,
+     "Downloading 280 / 429 MB"
+    ],
+    [
+     90708,
+     59,
+     "Downloading 281 / 429 MB"
+    ],
+    [
+     90841,
+     59,
+     "Downloading 282 / 429 MB"
+    ],
+    [
+     91092,
+     59,
+     "Downloading 283 / 429 MB"
+    ],
+    [
+     91246,
+     59,
+     "Downloading 284 / 429 MB"
+    ],
+    [
+     91855,
+     60,
+     "Downloading 287 / 429 MB"
+    ],
+    [
+     92435,
+     60,
+     "Downloading 288 / 429 MB"
+    ],
+    [
+     92576,
+     61,
+     "Downloading 290 / 429 MB"
+    ],
+    [
+     93068,
+     61,
+     "Downloading 292 / 429 MB"
+    ],
+    [
+     93298,
+     62,
+     "Downloading 294 / 429 MB"
+    ],
+    [
+     93561,
+     62,
+     "Downloading 295 / 429 MB"
+    ],
+    [
+     93718,
+     62,
+     "Downloading 296 / 429 MB"
+    ],
+    [
+     94077,
+     63,
+     "Downloading 297 / 429 MB"
+    ],
+    [
+     94379,
+     63,
+     "Downloading 298 / 429 MB"
+    ],
+    [
+     94604,
+     63,
+     "Downloading 299 / 429 MB"
+    ],
+    [
+     94713,
+     63,
+     "Downloading 300 / 429 MB"
+    ],
+    [
+     95339,
+     64,
+     "Downloading 302 / 429 MB"
+    ],
+    [
+     95600,
+     64,
+     "Downloading 303 / 429 MB"
+    ],
+    [
+     95860,
+     64,
+     "Downloading 304 / 429 MB"
+    ],
+    [
+     96211,
+     65,
+     "Downloading 306 / 429 MB"
+    ],
+    [
+     96313,
+     65,
+     "Loading cars"
+    ],
+    [
+     98681,
+     69,
+     "Downloading 307 / 429 MB"
+    ],
+    [
+     99474,
+     69,
+     "Loading game systems"
+    ],
+    [
+     100188,
+     69,
+     "Downloading 311 / 429 MB"
+    ],
+    [
+     100288,
+     69,
+     "Loading game systems"
+    ],
+    [
+     100702,
+     69,
+     "Downloading 311 / 429 MB"
+    ],
+    [
+     100803,
+     69,
+     "Loading game systems"
+    ],
+    [
+     100916,
+     70,
+     "Downloading 311 / 429 MB"
+    ],
+    [
+     101307,
+     70,
+     "Downloading 312 / 429 MB"
+    ],
+    [
+     101615,
+     70,
+     "Downloading 313 / 429 MB"
+    ],
+    [
+     102428,
+     71,
+     "Downloading 315 / 429 MB"
+    ],
+    [
+     103045,
+     71,
+     "Downloading 316 / 429 MB"
+    ],
+    [
+     103146,
+     71,
+     "Downloading 317 / 429 MB"
+    ],
+    [
+     103353,
+     71,
+     "Downloading 318 / 429 MB"
+    ],
+    [
+     103661,
+     72,
+     "Downloading 321 / 429 MB"
+    ],
+    [
+     103868,
+     72,
+     "Downloading 322 / 429 MB"
+    ],
+    [
+     104178,
+     72,
+     "Downloading 323 / 429 MB"
+    ],
+    [
+     104486,
+     72,
+     "Downloading 324 / 429 MB"
+    ],
+    [
+     104686,
+     73,
+     "Downloading 325 / 429 MB"
+    ],
+    [
+     104992,
+     73,
+     "Downloading 326 / 429 MB"
+    ],
+    [
+     105199,
+     73,
+     "Downloading 327 / 429 MB"
+    ],
+    [
+     105608,
+     75,
+     "Downloading 332 / 429 MB"
+    ],
+    [
+     105711,
+     75,
+     "Downloading 333 / 429 MB"
+    ],
+    [
+     106721,
+     77,
+     "Downloading 334 / 429 MB"
+    ],
+    [
+     106822,
+     79,
+     "Downloading 340 / 429 MB"
+    ],
+    [
+     106924,
+     79,
+     "Downloading 341 / 429 MB"
+    ],
+    [
+     107436,
+     80,
+     "Downloading 344 / 429 MB"
+    ],
+    [
+     107536,
+     80,
+     "Downloading 345 / 429 MB"
+    ],
+    [
+     107948,
+     81,
+     "Planting trees · data 0/1"
+    ],
+    [
+     108460,
+     81,
+     "Planting trees"
+    ],
+    [
+     108665,
+     81,
+     "Downloading 353 / 429 MB"
+    ],
+    [
+     108773,
+     82,
+     "Downloading 355 / 429 MB"
+    ],
+    [
+     109183,
+     82,
+     "Downloading 356 / 429 MB"
+    ],
+    [
+     109286,
+     82,
+     "Downloading 357 / 429 MB"
+    ],
+    [
+     109390,
+     83,
+     "Downloading 358 / 429 MB"
+    ],
+    [
+     109494,
+     83,
+     "Downloading 360 / 429 MB"
+    ],
+    [
+     109695,
+     83,
+     "Downloading 361 / 429 MB"
+    ],
+    [
+     109998,
+     84,
+     "Downloading 361 / 429 MB"
+    ],
+    [
+     110287,
+     84,
+     "Downloading 362 / 429 MB"
+    ],
+    [
+     110390,
+     85,
+     "Downloading 365 / 429 MB"
+    ],
+    [
+     110698,
+     85,
+     "Downloading 366 / 429 MB"
+    ],
+    [
+     110903,
+     85,
+     "Downloading 367 / 429 MB"
+    ],
+    [
+     111008,
+     86,
+     "Downloading 368 / 429 MB"
+    ],
+    [
+     111215,
+     86,
+     "Downloading 369 / 429 MB"
+    ],
+    [
+     111416,
+     86,
+     "Downloading 370 / 429 MB"
+    ],
+    [
+     111620,
+     86,
+     "Downloading 371 / 429 MB"
+    ],
+    [
+     111723,
+     87,
+     "Downloading 372 / 429 MB"
+    ],
+    [
+     111823,
+     87,
+     "Downloading 373 / 429 MB"
+    ],
+    [
+     112235,
+     87,
+     "Downloading 374 / 429 MB"
+    ],
+    [
+     112752,
+     88,
+     "Downloading 378 / 429 MB"
+    ],
+    [
+     112856,
+     89,
+     "Downloading 379 / 429 MB"
+    ],
+    [
+     113160,
+     89,
+     "Downloading 380 / 429 MB"
+    ],
+    [
+     113776,
+     89,
+     "Downloading 381 / 429 MB"
+    ],
+    [
+     113878,
+     89,
+     "Downloading 382 / 429 MB"
+    ],
+    [
+     114186,
+     90,
+     "Downloading 384 / 429 MB"
+    ],
+    [
+     114287,
+     90,
+     "Downloading 385 / 429 MB"
+    ],
+    [
+     114390,
+     90,
+     "Downloading 386 / 429 MB"
+    ],
+    [
+     114595,
+     91,
+     "Downloading 389 / 429 MB"
+    ],
+    [
+     114802,
+     92,
+     "Downloading 391 / 429 MB"
+    ],
+    [
+     115214,
+     92,
+     "Downloading 392 / 429 MB"
+    ],
+    [
+     115420,
+     93,
+     "Downloading 394 / 429 MB"
+    ],
+    [
+     115626,
+     93,
+     "Downloading 395 / 429 MB"
+    ],
+    [
+     115727,
+     93,
+     "Downloading 396 / 429 MB"
+    ],
+    [
+     115827,
+     93,
+     "Downloading 397 / 429 MB"
+    ],
+    [
+     116137,
+     94,
+     "Downloading 398 / 429 MB"
+    ],
+    [
+     116547,
+     94,
+     "Downloading 399 / 429 MB"
+    ],
+    [
+     116648,
+     94,
+     "Downloading 400 / 429 MB"
+    ],
+    [
+     117053,
+     94,
+     "Downloading 402 / 429 MB"
+    ],
+    [
+     117534,
+     96,
+     "Building the Keys bar · data 0/1"
+    ],
+    [
+     118094,
+     96,
+     "Downloading 405 / 429 MB"
+    ],
+    [
+     118197,
+     96,
+     "Downloading 406 / 429 MB"
+    ],
+    [
+     119285,
+     98,
+     "Compiling shaders 1394/1506"
+    ],
+    [
+     119386,
+     99,
+     "Linking shaders 498/667"
+    ],
+    [
+     119499,
+     99,
+     "Linking shaders 537/667"
+    ],
+    [
+     119602,
+     99,
+     "Linking shaders 544/667"
+    ],
+    [
+     119704,
+     99,
+     "Linking shaders 545/667"
+    ],
+    [
+     119810,
+     99,
+     "Linking shaders 551/667"
+    ],
+    [
+     121807,
+     99,
+     "Warming up 0/60 frames"
+    ],
+    [
+     123868,
+     99,
+     "Warming up 5/60 frames"
+    ],
+    [
+     125869,
+     99,
+     "Warming up 10/60 frames"
+    ],
+    [
+     126587,
+     99,
+     "Warming up 15/60 frames"
+    ],
+    [
+     127875,
+     99,
+     "Warming up 20/60 frames"
+    ],
+    [
+     128327,
+     100,
+     "READY"
+    ]
+   ],
+   "stalls": [
+    [
+     8343,
+     41,
+     "Loading the map"
+    ],
+    [
+     5157,
+     39,
+     "Downloading 223 / 429 MB"
+    ],
+    [
+     3539,
+     40,
+     "Loading the map"
+    ],
+    [
+     2368,
+     65,
+     "Loading cars"
+    ],
+    [
+     2061,
+     99,
+     "Warming up 0/60 frames"
+    ],
+    [
+     2001,
+     99,
+     "Warming up 5/60 frames"
+    ],
+    [
+     1997,
+     99,
+     "Linking shaders 551/667"
+    ],
+    [
+     1832,
+     23,
+     "Downloading 135 / 429 MB"
+    ]
+   ],
+   "blocks": [
+    [
+     50346,
+     4843
+    ],
+    [
+     123868,
+     2001
+    ],
+    [
+     119810,
+     1998
+    ],
+    [
+     121917,
+     1951
+    ],
+    [
+     31512,
+     1832
+    ],
+    [
+     55881,
+     1628
+    ],
+    [
+     97479,
+     1202
+    ],
+    [
+     126830,
+     1045
+    ]
+   ],
+   "phaseBytes": {
+    "rapier": 2584563,
+    "env": 265289,
+    "miami": 238325725,
+    "chars": 36294657,
+    "playerModel": 0,
+    "vehicles": 44094474,
+    "npcAtlas": 4670,
+    "peds": 0,
+    "interiors": 136243,
+    "gameplay": 0,
+    "hud": 0,
+    "post": 0,
+    "v2:./audio/passed.v2.js": 282666,
+    "v2:./design/design.v2.js": 133993,
+    "v2:./fx/fire.v2.js": 391122,
+    "v2:./fx/footprints.v2.js": 3487,
+    "v2:./gameplay/business/business.v2.js": 5038,
+    "v2:./gameplay/gangs/gangs.v2.js": 7354,
+    "v2:./jobs/jobs.v2.js": 4246,
+    "v2:./net/mp.v2.js": 400,
+    "v2:./npc/arch/arch.v2.js": 405068,
+    "v2:./npc/people.v2.js": 389397,
+    "v2:./player/nico.v2.js": 2097,
+    "v2:./player/ragdoll.v2.js": 590963,
+    "v2:./player/vault.v2.js": 1952,
+    "v2:./render/contextGuard.v2.js": 1217,
+    "v2:./render/detailCull.v2.js": 1584681,
+    "v2:./render/drawOrder.v2.js": 463,
+    "v2:./render/dynres.v2.js": 1052,
+    "v2:./render/instVao.v2.js": 735,
+    "v2:./render/lodBias.v2.js": 894,
+    "v2:./render/perfGuards.v2.js": 2583,
+    "v2:./render/perfHud.v2.js": 2168,
+    "v2:./render/precompile.v2.js": 2217,
+    "v2:./render/quality.v2.js": 1911,
+    "v2:./render/tiers.v2.js": 2424,
+    "v2:./render/tileCull.v2.js": 969,
+    "v2:./render/warmup.v2.js": 1372,
+    "v2:./systems/systems.v2.js": 62864,
+    "v2:./ui/dev/devMode.v2.js": 7755,
+    "v2:./ui/menu/frontend.v2.js": 85705,
+    "v2:./ui/menu/intros.v2.js": 3828,
+    "v2:./vehicles/envlink.v2.js": 205,
+    "v2:./vehicles/hero/hero.v2.js": 411,
+    "v2:./vehicles/physics/physics.v2.js": 13188,
+    "v2:./web/offline.v2.js": 700,
+    "v2:./world/dressing/dressing.v2.js": 23792,
+    "v2:./world/env/weather.v2.js": 4064,
+    "v2:./world/ground/beach.v2.js": 1070,
+    "v2:./world/ground/grass.v2.js": 3676,
+    "v2:./world/ground/sand.v2.js": 700,
+    "v2:./world/metro/metro.v2.js": 14194,
+    "v2:./world/props/dynamicProps.v2.js": 0,
+    "v2:./world/props/hydrantSpray.v2.js": 0,
+    "v2:./world/props/lotProps.v2.js": 0,
+    "v2:./world/props/propShapes.v2.js": 0,
+    "v2:./world/props/variants.v2.js": 0,
+    "v2:./world/setpieces/houses/houses.v2.js": 25601,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 29977,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 10957,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 232243,
+    "v2:./world/setpieces/towns/towns.v2.js": 17658,
+    "v2:./world/signs/regulatory.v2.js": 228172,
+    "v2:./world/signs/signs.v2.js": 304725,
+    "v2:./world/vegetation/vegetation.v2.js": 11136,
+    "init:render/dynres.v2.js": 0,
+    "init:render/detailCull.v2.js": 0,
+    "init:render/perfGuards.v2.js": 0,
+    "init:render/contextGuard.v2.js": 0,
+    "init:render/drawOrder.v2.js": 0,
+    "init:systems/systems.v2.js": 0,
+    "init:vehicles/physics/physics.v2.js": 3591,
+    "init:render/quality.v2.js": 0,
+    "init:render/tiers.v2.js": 0,
+    "init:render/lodBias.v2.js": 0,
+    "init:world/env/weather.v2.js": 0,
+    "init:render/tileCull.v2.js": 0,
+    "init:design/design.v2.js": 0,
+    "init:render/instVao.v2.js": 0,
+    "init:player/nico.v2.js": 0,
+    "init:player/ragdoll.v2.js": 0,
+    "init:player/vault.v2.js": 0,
+    "init:world/ground/sand.v2.js": 0,
+    "init:world/signs/signs.v2.js": 0,
+    "init:world/vegetation/vegetation.v2.js": 0,
+    "init:world/signs/regulatory.v2.js": 0,
+    "init:world/ground/beach.v2.js": 0,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 23262858,
+    "init:world/ground/grass.v2.js": 20500271,
+    "init:world/dressing/dressing.v2.js": 9077111,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 44935803,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 0,
+    "init:world/setpieces/houses/houses.v2.js": 0,
+    "init:world/setpieces/towns/towns.v2.js": 408043,
+    "init:fx/footprints.v2.js": 0,
+    "init:npc/arch/arch.v2.js": 892284,
+    "init:audio/passed.v2.js": 0,
+    "init:gameplay/gangs/gangs.v2.js": 0,
+    "init:npc/people.v2.js": 0,
+    "init:vehicles/hero/hero.v2.js": 12878,
+    "init:gameplay/business/business.v2.js": 0,
+    "init:jobs/jobs.v2.js": 0,
+    "init:fx/fire.v2.js": 0,
+    "init:world/metro/metro.v2.js": 0,
+    "init:net/mp.v2.js": 0,
+    "init:vehicles/envlink.v2.js": 0,
+    "init:ui/dev/devMode.v2.js": 0,
+    "init:render/precompile.v2.js": 0,
+    "init:render/perfHud.v2.js": 0,
+    "init:render/warmup.v2.js": 0,
+    "init:ui/menu/frontend.v2.js": 0,
+    "init:ui/menu/intros.v2.js": 0,
+    "init:web/offline.v2.js": 0,
+    "shaders": 6810087,
+    "warmup": 33775144
+   },
+   "bw": 3660544.8901642356,
+   "netBytes": 468167219,
+   "phases": {
+    "rapier": 18.5,
+    "env": 221.30000000074506,
+    "miami": 79429.70000000298,
+    "chars": 6669.800000000745,
+    "playerModel": 7.900000002235174,
+    "vehicles": 10142.699999999255,
+    "npcAtlas": 999.8999999985099,
+    "peds": 0.6000000014901161,
+    "interiors": 490.19999999925494,
+    "gameplay": 170.60000000149012,
+    "hud": 22,
+    "post": 7.199999999254942,
+    "v2:./audio/passed.v2.js": 56.30000000074506,
+    "v2:./design/design.v2.js": 31.699999999254942,
+    "v2:./fx/fire.v2.js": 131.39999999850988,
+    "v2:./fx/footprints.v2.js": 27.300000000745058,
+    "v2:./gameplay/business/business.v2.js": 28.199999999254942,
+    "v2:./gameplay/gangs/gangs.v2.js": 31,
+    "v2:./jobs/jobs.v2.js": 27.699999999254942,
+    "v2:./net/mp.v2.js": 23.800000000745058,
+    "v2:./npc/arch/arch.v2.js": 71.40000000223517,
+    "v2:./npc/people.v2.js": 52.79999999701977,
+    "v2:./player/nico.v2.js": 24.300000000745058,
+    "v2:./player/ragdoll.v2.js": 28,
+    "v2:./player/vault.v2.js": 22.900000002235174,
+    "v2:./render/contextGuard.v2.js": 22.899999998509884,
+    "v2:./render/detailCull.v2.js": 30.300000000745058,
+    "v2:./render/drawOrder.v2.js": 26.300000000745058,
+    "v2:./render/dynres.v2.js": 25.300000000745058,
+    "v2:./render/instVao.v2.js": 25.800000000745058,
+    "v2:./render/lodBias.v2.js": 26.599999997764826,
+    "v2:./render/perfGuards.v2.js": 26.300000000745058,
+    "v2:./render/perfHud.v2.js": 26.900000002235174,
+    "v2:./render/precompile.v2.js": 26.899999998509884,
+    "v2:./render/quality.v2.js": 27.300000000745058,
+    "v2:./render/tiers.v2.js": 27,
+    "v2:./render/tileCull.v2.js": 25.099999997764826,
+    "v2:./render/warmup.v2.js": 26.100000001490116,
+    "v2:./systems/systems.v2.js": 38.099999997764826,
+    "v2:./ui/dev/devMode.v2.js": 27.900000002235174,
+    "v2:./ui/menu/frontend.v2.js": 40.5,
+    "v2:./ui/menu/intros.v2.js": 26.599999997764826,
+    "v2:./vehicles/envlink.v2.js": 25.899999998509884,
+    "v2:./vehicles/hero/hero.v2.js": 25.900000002235174,
+    "v2:./vehicles/physics/physics.v2.js": 28.299999997019768,
+    "v2:./web/offline.v2.js": 31.100000001490116,
+    "v2:./world/dressing/dressing.v2.js": 29,
+    "v2:./world/env/weather.v2.js": 26.300000000745058,
+    "v2:./world/ground/beach.v2.js": 26.300000000745058,
+    "v2:./world/ground/grass.v2.js": 28.199999999254942,
+    "v2:./world/ground/sand.v2.js": 29.300000000745058,
+    "v2:./world/metro/metro.v2.js": 26.099999997764826,
+    "v2:./world/props/dynamicProps.v2.js": 0,
+    "v2:./world/props/hydrantSpray.v2.js": 0.09999999776482582,
+    "v2:./world/props/lotProps.v2.js": 0.20000000298023224,
+    "v2:./world/props/propShapes.v2.js": 0,
+    "v2:./world/props/variants.v2.js": 0.09999999776482582,
+    "v2:./world/setpieces/houses/houses.v2.js": 31.5,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 32.19999999925494,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 28.400000002235174,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 99.30000000074506,
+    "v2:./world/setpieces/towns/towns.v2.js": 31.199999999254942,
+    "v2:./world/signs/regulatory.v2.js": 24.200000002980232,
+    "v2:./world/signs/signs.v2.js": 30,
+    "v2:./world/vegetation/vegetation.v2.js": 26.300000000745058,
+    "init:render/dynres.v2.js": 2.099999997764826,
+    "init:render/detailCull.v2.js": 0.10000000149011612,
+    "init:render/perfGuards.v2.js": 2.5,
+    "init:render/contextGuard.v2.js": 0.30000000074505806,
+    "init:render/drawOrder.v2.js": 0,
+    "init:systems/systems.v2.js": 5.900000002235174,
+    "init:vehicles/physics/physics.v2.js": 28.099999997764826,
+    "init:render/quality.v2.js": 1.4000000022351742,
+    "init:render/tiers.v2.js": 0.3999999985098839,
+    "init:render/lodBias.v2.js": 0.10000000149011612,
+    "init:world/env/weather.v2.js": 1.5,
+    "init:render/tileCull.v2.js": 0.09999999776482582,
+    "init:design/design.v2.js": 0,
+    "init:render/instVao.v2.js": 1.8999999985098839,
+    "init:player/nico.v2.js": 0.5,
+    "init:player/ragdoll.v2.js": 0.10000000149011612,
+    "init:player/vault.v2.js": 0,
+    "init:world/ground/sand.v2.js": 0.09999999776482582,
+    "init:world/signs/signs.v2.js": 6.300000000745058,
+    "init:world/vegetation/vegetation.v2.js": 0.19999999925494194,
+    "init:world/signs/regulatory.v2.js": 28.600000001490116,
+    "init:world/ground/beach.v2.js": 0.09999999776482582,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 5629.60000000149,
+    "init:world/ground/grass.v2.js": 2034.5999999977648,
+    "init:world/dressing/dressing.v2.js": 1701.300000000745,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 7255.60000000149,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 289.30000000074506,
+    "init:world/setpieces/houses/houses.v2.js": 154.09999999776483,
+    "init:world/setpieces/towns/towns.v2.js": 123.30000000074506,
+    "init:fx/footprints.v2.js": 0.5999999977648258,
+    "init:npc/arch/arch.v2.js": 227.40000000223517,
+    "init:audio/passed.v2.js": 0.09999999776482582,
+    "init:gameplay/gangs/gangs.v2.js": 2.400000002235174,
+    "init:npc/people.v2.js": 1.8999999985098839,
+    "init:vehicles/hero/hero.v2.js": 0.5,
+    "init:gameplay/business/business.v2.js": 6.399999998509884,
+    "init:jobs/jobs.v2.js": 0.4000000022351742,
+    "init:fx/fire.v2.js": 0.30000000074505806,
+    "init:world/metro/metro.v2.js": 6.099999997764826,
+    "init:net/mp.v2.js": 0,
+    "init:vehicles/envlink.v2.js": 0,
+    "init:ui/dev/devMode.v2.js": 0.30000000074505806,
+    "init:render/precompile.v2.js": 0.29999999701976776,
+    "init:render/perfHud.v2.js": 0.20000000298023224,
+    "init:render/warmup.v2.js": 76.09999999776483,
+    "init:ui/menu/frontend.v2.js": 1.9000000022351742,
+    "init:ui/menu/intros.v2.js": 0.09999999776482582,
+    "init:web/offline.v2.js": 0.19999999925494194,
+    "shaders": 2958,
+    "warmup": 6504.900000002235
+   },
+   "storedWeights": 115,
+   "shots": [
+    "docs/v2/shots/r2web/loadbar_web-after_0.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_1.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_2.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_3.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_4.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_5.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_6.jpg",
+    "docs/v2/shots/r2web/loadbar_web-after_7.jpg"
+   ],
+   "errors": []
+  }
+ ]
+}
