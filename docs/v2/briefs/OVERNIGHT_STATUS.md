@@ -1088,6 +1088,34 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
      - Result: the probe still showed the heightfield at -0.31 (no deck detected there, or the grid did not rebuild after the dock streamed in).
      - Status: reverted, not committed. The patch is kept at the scratchpad file r2p_seabed_deck.patch.
      - Next step: find the dock's collider there (keysLots boxCol at deckY) and rebuild the seabed grid when it streams in.
+- Last round (user requests), committed:
+  1. **Chase camera no longer pumps.**
+     - Thin obstructions (poles, trunks, hedge cores, bins) only count when parallel rays 0.55 m to both sides are blocked too.
+     - The camera pulls in fast only when really blocked and eases back out slowly after 0.3 s clear.
+     - Downtown palm / lamp street at 40 km/h: 0 pumps, 0 obstructed frames. Shots: `docs/v2/shots/r2-physics/cam/chase_*.jpg`.
+  2. **Impact sounds by material:**
+     - leaves rustle and twig snaps; wood crack; chain-link rattle (synths in audio.js)
+     - metal: clunk / crash recordings; concrete: crash + low thud; glass: shatter
+     - volume and weight scale with impact speed; a rustle plays while the player's car pushes through bushes
+  3. **Collision tiers:**
+     - grass and ground cover: no collider
+     - bushes, hedges and saplings (< 22 cm trunk): soft, with drag; hedge cores block people only, so a car pushes through
+     - signs, fences, bins, cones: break and take some speed (by mass and snap strength)
+     - big trunks, walls, poles in the tile soup, hydrants: hard
+     - Measured with sedan3 at 40 km/h:
+
+       | Hit | Speed loss | Sound |
+       |---|---|---|
+       | sign post | -7.2 % | metal |
+       | bush | -1.7 % | leaves |
+       | wood fence | -6.1 % | wood |
+       | hydrant | -58 % | metal |
+
+  4. **Car classes:**
+     - SUV 2000 kg (was 1750), pickup 2350 kg (was 2700).
+     - Full braking ~8.4 m/s2 (was 10.4).
+     - Wet roads cut grip to ~0.7 (carphys 1).
+     - Not measured: 0-100 times per class; sand / grass grip stay r2-cars' soft-ground model.
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
@@ -1788,3 +1816,10 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   - Model requests filed: a subway car with a driver cab, and a clean modern station kit. 0 console errors.
 - 09:15 Car walls (user: higher-res, no splotches): Models/ has no suitable panel texture (Textures/ is brick, concrete, plaster, corrugated roof), so I authored a clean 2K procedural laminate (`tools/v2/metro/car_panel.py`: 2048 px = 2.4 m, orange peel, seams, rivets; normal + roughness maps alongside, relief baked into the albedo for the baked car lighting). Platform tiles are now ~0.3 m. Close-up: `docs/v2/shots/metro/10_car_wall_closeup.png`. Request row added.
 - 09:40 Lived-in car (user feedback): wall wear (floor band, kick marks, scratches, yellowed seams, smudges; varied per car), doors with kick plate + worn edges, floor wear, 2-6 litter decals per car + a rolling bottle, 3-8 riders per car seated/standing with sway; platform benches all occupied. Sheet: `docs/v2/shots/metro/sheet_metro_car_lived.jpg`. Floor brightened after the shot (not re-shot).
+- **20:25 Loading bar on the web: driven by bytes** (commit `Loading bar on the web`).
+  - **Cause:** the 14:20 bar's time weights were measured on dev, where downloads are instant, so on the site the map phase (230 MB) parked the bar for about a minute.
+  - **Now:** each phase's expected time = its download (bytes from `boot-bytes.json` / the live measured speed) + its CPU time. Inside a phase, bytes fill the download part and time fills the rest. The label reads "Downloading 214 / 429 MB".
+  - **Manifest:** `tools/v2/web/boot-bytes.json` comes from a 50 Mbps profile of the built site (`loadbar.mjs --mbps 50 --bytes-out`). build-pages.mjs copies it next to index.html; each browser refines it in localStorage.
+  - **Result** (built site, 50 Mbps emulated / about 28 Mbps effective, first visit): before 28 / 34 / 34 / 63 / 74 % at 10 / 25 / 50 / 75 / 90 % of the time, parked at 34 % for about 45 s; after 10 / 23 / 40 / 65 / 93 %, monotonic, 0 errors. Longest flat stretch: 8 s at 41 %, while the map is built after its download, during a 4.8 s main-thread block.
+  - Plot: `docs/v2/shots/r2web/loadbar_web_before_after.jpg`. Dev check: 0 errors, no manifest, so time weights as before.
+  - **The site needs a rebuild with build-pages.mjs** so `boot-bytes.json` ships.
