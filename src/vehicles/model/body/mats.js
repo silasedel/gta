@@ -191,9 +191,9 @@ export function glassMaterial(tint = 1, o = {}) {
   const t = Math.max(0, Math.min(3, tint | 0));
   if (_glass[t]) return _glass[t];
   const P = TINTS[t];
-  const m = new THREE.MeshPhysicalMaterial({ color: P.color, opacity: P.opacity, transparent: true, depthWrite: false, metalness: 0, roughness: 0.06,
+  const m = new THREE.MeshPhysicalMaterial({ color: P.color, opacity: P.opacity, transparent: true, depthWrite: false, metalness: 0, roughness: 0.1,   // 0.06 put a hot sun blob on side glass (QA #17)
     // art guide: glass env <= 1.5 (2.6 painted a white sky sheet on every windshield)
-    clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 1 });
+    clearcoat: 1, clearcoatRoughness: 0.07, envMapIntensity: 1.35, side: THREE.DoubleSide, specularIntensity: 0.8 });
   linkEnv(m);
   m.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
