@@ -1911,3 +1911,36 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - Fix (convert.py): per-wheel true axle fitted on the tire ring; steered wheels classified in their own frame; rOuter puts the lug tread on the ground. Re-converted truck9, coupe3, conv2, coupe2, sedan9, super4, super6, suv1, suv14.
 - Fleet (tools/v2/cars/wheel_axles.py, 60 wheel models): max tilt 24.9 -> 2.65 deg, max swash 195 -> 17 mm. Sheets docs/v2/shots/cars/r4wheels/.
 - Still off: super4 front hub ~5 mm, van1 / truck5 ambiguous fits (check by eye), super5 rear camber, suv5 conversion error at convert.py:1189.
+
+## r4-anim
+- **Car exit (default on, `?r4exit=0` = old):** Nico now steps out instead of appearing on the ground (src/player/seat.js `exitTo`, main.js `exitVehicle`). Sequence (~0.9 s, 1.0 s from a tall cab), driven by the seat solver on the car's anchor:
+  1. Hands come off the wheel onto the thighs. He turns ~80 deg to the door and swings his legs over the sill, feet down to the ground.
+  2. He leans out, head low through the door opening, and slides onto the sill.
+  3. He stands up over his feet. From a truck the hips drop, so he steps down.
+  4. One walking step to the exit spot, then normal control.
+  - Input is locked meanwhile (`game.player.script`). The camera pivot glides from the car to the spot. Boats and bikes are unchanged.
+  - Exit spot on the other side: he slides across to the passenger seat first. This is coded but NOT verified: the blocker van did not block the driver side in the test.
+- **Kneel (`?r4kneel=0` = old):** the old clip hung both straight arms beside the shins, hands near the ground, and the planted toes went 8 cm under the floor. New pose (src/player/proceduralClips.js, solved on the X Bot rig by `tools/v2/anim/kneel_solve.mjs`): right knee on the ground with the toes tucked, left foot flat with the knee up, left forearm across the raised knee, right hand on the thigh. Measured on a person: knee 0.04 m, toes 0.00 m, hands 0.49 / 0.61 m above the ground. It is shared by Nico, the user's people and the far crowd.
+- **Gait (`?r4gait=0` = old):** the walk cycle of the user's people now advances by the root's real displacement, kept within 0.6-1.4x of the commanded speed. The stride is scaled by the body's holder scale (src/npc/arch/character.js). Nico and the characterModel peds scale their measured stride by holder.scale (characterModel.js).
+- Sheets (JPG q90, top row = flags off, bottom row = default): `docs/v2/shots/anim/r4/sheet_coupe4.jpg`, `sheet_sedan5.jpg`, `sheet_truck9.jpg`, `sheet_kneel.jpg`, `sheet_walk.jpg`. Reports: `docs/v2/reports/r4-anim-{before,after}.json`. 0 console errors in either run. Tool: `node tools/v2/anim/r4-shots.mjs --tag after|before [--q '&r4exit=0&r4gait=0&r4kneel=0']`, then `python3 tools/v2/anim/r4-sheet.py`.
+- **Still off:**
+  1. Car doors do not open (the library GLBs have no door nodes), so the legs pass through the closed door panel during the swing. Fixing this needs doors split out in the car pipeline.
+  2. NPC foot skating is not fixed or measured cleanly yet. Planted-foot speed in the test is inconsistent: the stance foot moved back at 0.8-1.04 m/s under a 1.35 m/s walker. There is a cadence feedback for this, but it stays opt-in (`?r4gaitfb=1`) until someone verifies it. Nico's planted-foot drift is 0.06-0.13 m/s.
+  3. The blocked-door "climb across" path is not verified in the browser.
+  4. The truck step-down has his feet dangling for about 0.15 s before they reach the ground. He does not turn to face the cab.
+
+## r4-shoreland
+**Summary (Nov 18, ~10:00):** the white slabs at the Brickell Ave swamp are gone, and highway and bridge barriers now have the real New Jersey profile with joints and base grime. Flags `?r4barrier=0` and `?r4slab=0` give the old look. Booted with flags on and off: 0 console / shader errors.
+- **Item 1 (land-base bank): no change needed, it is never drawn there.** `realRect` in world.json is a 10 x 10 m dummy at (-7680, 7593), so every land-base triangle is "synthetic" and the shader near-cut (aTile) discards it under every near tile. Raycasts still hit it, because they ignore the shader, so the probes (r4-water's and mine) reported it as the bank. Proof: hiding `miami-land-base` changes no bank pixel in the Brickell top / user / mid views or in 2 far views (only animated people / clock differ). The visible bank is the terrain plus r4-water's fade and damp band.
+- **Item 2 (white slabs):** these were tilebuild's **seawall cap** (0.6 m coping, 0.12 m proud, color 0xe4e0d6), not elevated concrete. Brickell's zone is not on the `natShore` list, so the cap lay along the pond polygon's straight edges on the terrain's natural slope, half in the water.
+  - **tilebuild ready: r4-shoreland:** `islandDress` drops the cap on terrain tiles whose water at +3 / +8 m is a pond / lake / marsh (`R4SLAB`, `?r4slab=0`).
+  - `elevated/build.js`: a raised deck edge with no barrier that is < 0.6 m above dry ground (a ramp foot) gets a soil / turf fill slope (berm shader branch) instead of a vertical white strip. The LOD shell skips that fascia.
+- **Item 3 (barriers, `?r4barrier=0`):**
+  - `elevated/build.js`: jersey section (7.6 cm lip, 55 deg face to 33 cm, 84 deg upper face, rounded knee / top edges with smooth normals). The collider hull follows the same knee / top, and the end caps use the section.
+  - `ground/concreteMaterial.js` (barrier faces only): scan pitting and normal strength toned down, contraction joints every 6.1 m along the run (no world-axis formwork lines), water stain under the joints, slip-form drag marks, grime caked at the toe, dust on the lower slope. No new textures.
+- **Sheets** (left = before, right = after, JPG q90): `docs/v2/shots/water/r4shore/sheet_r4shore_brickell.jpg` (close, low, mid, top, slabs top, user), `sheet_r4shore_inland1.jpg`, `sheet_r4shore_inland2.jpg`, `sheet_r4shore_highway.jpg`, `sheet_r4shore_bridge.jpg`. Tool: `node tools/v2/water/r4_shoreland.mjs --tag X [--probe] [--flagcheck "r4barrier=0&r4slab=0"]`, then `python3 tools/v2/water/r4_shoreland_sheet.py`.
+- **Still off:**
+  1. Barriers in shade still look mottled: the scan's roughness map gives blotchy sky reflections. The next step would be a flatter roughness on barrier faces (not done, no browser run left).
+  2. The after shots of inland1 / inland2 / highway / bridge ran at 09:xx instead of 11:00 (time override missed after the flag-check boot), so the lighting differs from the before shots.
+  3. The bridge outer fascia seen from the water is unchanged.
+  4. Seawall caps on sea / canal / river banks inside terrain tiles are kept. Whether those are real seawalls has not been checked tile by tile.
