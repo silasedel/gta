@@ -11,12 +11,12 @@ import { R4, P4, inR } from '../r4/plan4.js';
 import { frame } from '../r4/frame.js';
 import { makeGeo } from '../r4/geo.js';
 import { POLES, SERVICE_POLE } from '../yard.data.js';
-import { toS } from '../r4/plan4.js';
+import { toS, StoH } from '../r4/plan4.js';
 export const order = 10;
 
 export function build(ctx) {
   if (!R4) return;
-  const { THREE, kit, mat } = ctx, Fr = frame(ctx), B = Fr.ext, D = Fr.detail, M = kit.M, P = P4, C = P.colors, r = kit.rng(404);
+  const { THREE, kit, mat } = ctx, Fr = frame(ctx, 'house'), Lot = frame(ctx), B = Fr.ext, D = Fr.detail, M = kit.M, P = P4, C = P.colors, r = kit.rng(404);
   const { hexa, subtract, lathe } = makeGeo(THREE, kit);
   const F = P.F, db = P.board, J = P.joist, BM = P.beam, joistTop = F - db.t, joistBot = joistTop - J.d, beamTop = joistBot, beamBot = beamTop - BM.d, yT = F + P.wallH;
   ctx.r4 = { F, yT, beamBot };
@@ -359,18 +359,21 @@ export function build(ctx) {
       box(RUB, 0.05, 0.03, 0.1, base[0] + s * w / 2, base[1] + 0.015, base[2], { color: 0x1c1c1c }); }
     for (let t = 0.3; t < len - 0.2; t += 0.3) { const p = new THREE.Vector3(...base).addScaledVector(up, t / len); D.cyl(mat.steel(), 0.016, 0.016, w, M(p.x, p.y, p.z, 0, 0, Math.PI / 2), { color: 0xc9c9c4, seg: 10 }); }
     Fr.col.box(base[0], (base[1] + top[1]) / 2, (base[2] + top[2]) / 2, w + 0.06, len, 0.1, { rx: -Math.atan2(top[2] - base[2], top[1] - base[1]), tag: 'prop' }); }
-  // ================= satellite dish on the east gable (02 / 08) =================
-  { const x = P.body.x1 + 0.05, z = -9.3, y = roofTop(z) - 0.25, DS = mat.metalPaint();
-    box(STEEL, 0.06, 0.6, 0.04, x + 0.04, y - 0.2, z, { color: 0x9a9890 }); B.strut(STEEL, [x + 0.07, y, z], [x + 0.45, y + 0.35, z + 0.05], 0.04, 0.04, { color: 0x9a9890, rand: r });
-    const dish = new THREE.Group(); dish.position.set(x + 0.5, y + 0.45, z + 0.05); dish.rotation.set(0.15, 0.9, -0.55);
-    const Db = kit.batch('r4dish'); lathe(Db, DS, [[0.0, 0.0], [0.15, 0.012], [0.3, 0.05], [0.4, 0.09], [0.405, 0.1], [0.39, 0.098], [0.29, 0.06], [0.14, 0.024], [0.0, 0.016]], null, { color: 0xdcdad3, seg: 32 });
-    Db.strut(STEEL, [0, 0.02, -0.3], [0, 0.42, -0.15], 0.02, 0.02, { color: 0xbdbbb3 }); Db.box(PLAST, 0.07, 0.09, 0.06, M(0, 0.45, -0.14), { color: 0x2b2b2b, bevel: 0.01 });
-    Db.build(dish); Fr.groups.ext.add(dish); }
+  // ================= satellite dish on a 4x4 post at the east deck's NE corner (02), bolted arm, nothing floating =================
+  { const px = 10.6 + 0.02, pz = -12.8 - 0.02, y0 = F, y1 = F + 2.25, DS = mat.metalPaint();
+    box(WOOD, 0.09, y1 - y0, 0.09, px, (y0 + y1) / 2, pz, { grain: 1, color: gray(0.95), wear: 0.6, bevel: 0.008 });
+    for (const yy of [F + 0.6, F + 1.0]) box(STEEL, 0.11, 0.03, 0.11, px, yy, pz, { color: 0x8c8a84, bevel: 0.004 });
+    box(STEEL, 0.06, 0.5, 0.06, px, y1 - 0.25, pz, { color: 0x9a9890, bevel: 0.006 }); B.strut(STEEL, [px, y1 - 0.08, pz], [px - 0.18, y1 + 0.12, pz + 0.12], 0.05, 0.05, { color: 0x9a9890, rand: r });
+    const dish = new THREE.Group(); dish.position.set(px - 0.2, y1 + 0.14, pz + 0.13); dish.rotation.set(0.35, -2.3, 0.0);
+    const Db = kit.batch('r4dish'); lathe(Db, DS, [[0.0, -0.02], [0.15, -0.008], [0.3, 0.03], [0.4, 0.07], [0.405, 0.08], [0.39, 0.078], [0.29, 0.04], [0.14, 0.004], [0.0, -0.004]], null, { color: 0xdcdad3, seg: 32 });
+    Db.box(STEEL, 0.08, 0.08, 0.06, M(0, -0.03, 0), { color: 0x8c8a84, bevel: 0.01 });
+    Db.strut(STEEL, [0, -0.01, -0.33], [0, 0.42, -0.14], 0.022, 0.022, { color: 0xbdbbb3 }); Db.strut(STEEL, [0, -0.01, 0.33], [0, 0.42, -0.14], 0.016, 0.016, { color: 0xbdbbb3 }); Db.box(PLAST, 0.07, 0.09, 0.06, M(0, 0.45, -0.14), { color: 0x2b2b2b, bevel: 0.01 });
+    Db.build(dish); Fr.groups.ext.add(dish); Fr.col.box(px, (y0 + y1) / 2, pz, 0.12, y1 - y0, 0.12, { tag: 'pole' }); }
   // ================= service mast on the west gable and the drop to the street pole =================
   { const mx = P.body.x0 - 0.12, mz = -4.4, my0 = F + 1.2, my1 = roofTop(mz) + 1.1;
     D.cyl(mat.steel(), 0.032, 0.032, my1 - my0, M(mx, (my0 + my1) / 2, mz), { color: 0x9c9a93, seg: 10 }); lathe(D, mat.metalPaint(), [[0.001, 0], [0.06, 0.02], [0.07, 0.08], [0.001, 0.1]], M(mx, my1, mz, Math.PI, 0, 0), { color: 0x333331, seg: 12 });
     box(MP, 0.28, 0.42, 0.14, mx - 0.02, my0 - 0.25, mz, { color: 0x8e918c, bevel: 0.01 });   // meter base
-    const pl = POLES[SERVICE_POLE]; if (pl) { const [px, pz] = toS(pl[0], pl[1]), top = [px, (pl[2] ?? 9.4) - 0.6, pz], st = [mx, my1 - 0.05, mz], pts = [];
+    const pl = POLES[SERVICE_POLE]; if (pl) { const [px, pz] = StoH(...toS(pl[0], pl[1])), top = [px, (pl[2] ?? 9.4) - 0.6, pz], st = [mx, my1 - 0.05, mz], pts = [];
       for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push([st[0] + (top[0] - st[0]) * t, st[1] + (top[1] - st[1]) * t - Math.sin(Math.PI * t) * 1.1, st[2] + (top[2] - st[2]) * t]); }
       D.tube(mat.rubber(), pts, 0.011, { seg: 5, color: 0x161616, steps: 80 }); } }
 
@@ -414,9 +417,10 @@ export function build(ctx) {
     Fr.anchor('hoop', bxh, 0, bz + 4.2, 0); Fr.anchor('hoopRim', bxh, rimY, rimZ, 0); }
 
   // ================= yard bits from 10 / 08: lumber on a blue tarp, the bulk bag, the travel trailer behind the bushes =================
-  { const TARP = mat.fabric('denim_fabric', { rep: 0.4 }); box(TARP, 2.6, 0.01, 1.3, -4.6, 0.05, 1.4, { color: 0x2f62b8, bevel: 0.003 }, 0, 0.08);
-    const LW = mat.wood(); for (let k = 0; k < 4; k++) for (let j = 0; j < 6 - k % 2; j++) box(LW, 2.4, 0.04, 0.14, -4.6 + (r() - 0.5) * 0.06, 0.08 + k * 0.042, 1.0 + j * 0.145 + (k % 2) * 0.07, { grain: 0, color: kit.vary(0xc8ab7c, r, 0.08), wear: 0.3, bevel: 0.004 }, 0, 0.08 + (r() - 0.5) * 0.03);
-    Fr.col.box(-4.6, 0.15, 1.4, 2.5, 0.25, 1.0, { ry: 0.08, tag: 'prop' });
+  { const B = Lot.ext, D = Lot.detail, box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => B.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o }), Fr = Lot;
+    const TARP = mat.fabric('denim_fabric', { rep: 0.4 }); box(TARP, 2.6, 0.01, 1.3, 6.6, 0.05, 3.6, { color: 0x2f62b8, bevel: 0.003 }, 0, 0.08);
+    const LW = mat.wood(); for (let k = 0; k < 4; k++) for (let j = 0; j < 6 - k % 2; j++) box(LW, 2.4, 0.04, 0.14, 6.6 + (r() - 0.5) * 0.06, 0.08 + k * 0.042, 3.2 + j * 0.145 + (k % 2) * 0.07, { grain: 0, color: kit.vary(0xc8ab7c, r, 0.08), wear: 0.3, bevel: 0.004 }, 0, 0.08 + (r() - 0.5) * 0.03);
+    Fr.col.box(6.6, 0.15, 3.6, 2.5, 0.25, 1.0, { ry: 0.08, tag: 'prop' });
     const BAG = mat.fabric('waffle_pique_cotton', { rep: 0.3 }); box(BAG, 0.95, 0.85, 0.95, 11.6, 0.47, -15.2, { color: 0xe4e1d8, bevel: 0.12 }, 0, 0.3); for (const s of [-1, 1]) box(mat.plastic(), 0.05, 0.3, 0.02, 11.6 + s * 0.3, 1.0, -15.2 + 0.44, { color: 0x6a3fb0 }, 0, 0.3);
     Fr.col.box(11.6, 0.45, -15.2, 0.95, 0.9, 0.95, { ry: 0.3, tag: 'prop' });
     // travel trailer: rounded aluminum-and-white body on two wheels, stripe, windows, A-frame tongue (procedural; see MISSING_MODELS.md)
@@ -427,17 +431,17 @@ export function build(ctx) {
     Fr.col.box(RVX, 1.5, RVZ, 2.4, 3.0, 6.8, { tag: 'vehicle' }); }
 
   // ================= anchors, interior visibility, camera occluder =================
-  Fr.anchor('truckR4', -2.4, 0, 5.6, 0);   // Nico's pickup in the drive under the front eave, facing the street (01)
+  Lot.anchor('truckR4', -4.6, 0, 8.2, 0);   // Nico's pickup in the drive under the front eave, facing the street (01)
   Fr.anchor('carport', -0.5, 0.06, -6.5, Math.PI); Fr.anchor('front', 0, 0, 6.0, Math.PI);
   ctx.anchors.spawnYard = { pos: new THREE.Vector3(-12.6, 0, 5.4), heading: -0.4 };   // r2-keys: Nico's spot in the yard by the pickup (yard frame)
   const camS = new THREE.Vector3();
-  ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = toS(cx, cz); camS.set(sx, cy, sz); return inR(P.body, sx, sz, 1.4) && cy > F - 1.4 || (inR({ x0: P.deckS.x0, x1: P.deckE.x1, z0: P.deckN.z0, z1: P.deckS.z1 }, sx, sz, 2.0) && cy > F - 1.0); };
-  ctx.facing = (dir, cx, cz) => { if (!dir) return true; const [sx, sz] = toS(cx, cz); if (inR(P.body, sx, sz, 0.2)) return true; const [dx, dz] = toS(dir.x, dir.z), hx = 0 - sx, hz = -7 - sz; return dx * hx + dz * hz > -0.35 * Math.hypot(hx, hz); };
+  ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = StoH(...toS(cx, cz)); camS.set(sx, cy, sz); return inR(P.body, sx, sz, 1.4) && cy > F - 1.4 || (inR({ x0: P.deckS.x0, x1: P.deckE.x1, z0: P.deckN.z0, z1: P.deckS.z1 }, sx, sz, 2.0) && cy > F - 1.0); };
+  ctx.facing = (dir, cx, cz) => { if (!dir) return true; const [sx, sz] = StoH(...toS(cx, cz)); if (inR(P.body, sx, sz, 0.2)) return true; const [d0, d1] = StoH(...toS(0, 0)), [d2, d3] = StoH(...toS(dir.x, dir.z)), dx = d2 - d0, dz = d3 - d1, hx = 0 - sx, hz = -7 - sz; return dx * hx + dz * hz > -0.35 * Math.hypot(hx, hz); };
   ctx.buildOccluder = () => { const ob = kit.batch('r4occ'), m = new THREE.MeshBasicMaterial({ visible: false }); m.name = 'nh:occluder'; m.userData.uvScale = 1;
     ob.box(m, P.body.x1 - P.body.x0, yT - F, P.body.z1 - P.body.z0, M(0, (F + yT) / 2, (P.body.z0 + P.body.z1) / 2), {});
     for (const R of [P.deckN, P.deckE, P.deckS]) ob.box(m, R.x1 - R.x0, 0.3, R.z1 - R.z0, M((R.x0 + R.x1) / 2, F - 0.15, (R.z0 + R.z1) / 2), {});
     for (const side of ['S', 'N']) { const [cx, cy, cz] = sp(side, 0, slopeLen / 2, -0.05); ob.box(m, Lr, 0.12, slopeLen, M(cx, cy, cz, slopeRX(side)), {}); }
-    const g = new THREE.Group(); g.rotation.y = -0.72; ctx.group.add(g); const out = ob.build(g, { cast: false, receive: false })[0]; if (out) { out.name = 'nh_occluder'; out.frustumCulled = false; } return out; };
+    const out = ob.build(Fr.groups.ext, { cast: false, receive: false })[0]; if (out) { out.name = 'nh_occluder'; out.frustumCulled = false; } return out; };
   void hc; void hexa;
   Fr.build();
 }

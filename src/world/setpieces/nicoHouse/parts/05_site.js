@@ -3,7 +3,7 @@
 // fish-cleaning station, ladder and light.
 import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
 import { WEEDS, DRIVE, DRIVE_PUDDLE } from '../yard.data.js';
-import { R4, P4, toS, toG, terraceY, houseBlock, measureSite } from '../r4/plan4.js';
+import { R4, P4, toS, toG, terraceY, houseBlock, measureSite, StoH, HtoS } from '../r4/plan4.js';
 export const order = 5;
 // ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
 // lots around it; ?ground2=0 keeps the old shell-floor texture
@@ -148,13 +148,13 @@ export function build(ctx) {
       const g0 = 0.16 + q() * 0.1; for (let v = 0; v < 6; v++) { const tip = v === 2 || v >= 4 ? 1.5 : 0.8; bc.push(0.13 * tip * (0.8 + q() * 0.5), g0 * 0.95 * tip, 0.05 * tip); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(blades, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(bc, 3)); g.computeVertexNormals();
     const gm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 0.4 }), ms = [], cs = [];
-    const onSlab = R4 ? (x, z) => { const [sx, sz] = toS(x, z); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || houseBlock(sx, sz, 0.05) && sz > -12.8 && sz < -1.6; } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
+    const onSlab = R4 ? (x, z) => { const [sx, sz] = StoH(...toS(x, z)); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || (sx > P4.deckS.x0 && sx < P4.deckE.x1 && sz > -12.8 && sz < -1.6); } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
     const rc = ctx.opts.roadClear || (() => true);
     const put = (x, z, s = 1) => { if (onSlab(x, z) || !rc(x, z, 0.4)) return; ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
     const line = (ax, az, bx, bz, n, spread = 0.25, s = 1) => { for (let i = 0; i < n; i++) { const t = q(); put(ax + (bx - ax) * t + (q() - 0.5) * spread, az + (bz - az) * t + (q() - 0.5) * spread, s); } };
     if (!R4) for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
-    if (R4) { const lineS = (ax, az, bx, bz, n, sp, sc) => { const [a1, a2] = toG(ax, az), [b1, b2] = toG(bx, bz); line(a1, a2, b1, b2, n, sp, sc); };   // r4: at the post feet, the paver edge, the stair feet
-      for (const x of P4.postXs) for (const z of P4.postZs) { if (x > 6.6 && z < -10.5) continue; const [gx, gz] = toG(x, z); for (let i = 0; i < 6; i++) { const a = q() * 6.283; put(gx + Math.cos(a) * (0.28 + q() * 0.2), gz + Math.sin(a) * (0.28 + q() * 0.2), 0.9); } }
+    if (R4) { const lineS = (ax, az, bx, bz, n, sp, sc) => { const [a1, a2] = toG(...HtoS(ax, az)), [b1, b2] = toG(...HtoS(bx, bz)); line(a1, a2, b1, b2, n, sp, sc); };   // r4: at the post feet, the paver edge, the stair feet
+      for (const x of P4.postXs) for (const z of P4.postZs) { if (x > 6.6 && z < -10.5) continue; const [gx, gz] = toG(...HtoS(x, z)); for (let i = 0; i < 6; i++) { const a = q() * 6.283; put(gx + Math.cos(a) * (0.28 + q() * 0.2), gz + Math.sin(a) * (0.28 + q() * 0.2), 0.9); } }
       lineS(-7.2, -1.1, 6.8, -1.1, 70, 0.3, 1.1); lineS(-7.9, -1.0, -7.9, 3.8, 30, 0.3, 1.0); lineS(-6.5, -1.0, -6.5, 3.8, 30, 0.3, 1.0); lineS(10.9, -12.8, 10.9, -1.6, 40, 0.4, 1.1); }
     if (!R4) line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); if (!R4) { line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5); }
     { const D2 = DRIVE.main; for (let i = 0; i < D2.length - 1; i++) { const [ax, az] = D2[i], [bx, bz] = D2[i + 1], len = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / len, nz = (bx - ax) / len;   // drive margins (r2-keys)

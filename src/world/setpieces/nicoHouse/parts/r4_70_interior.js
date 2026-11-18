@@ -16,7 +16,7 @@ export const order = 70;
 
 export function build(ctx) {
   if (!R4) return;
-  const { THREE, kit } = ctx, im = kit.imat, Fr = frame(ctx), I = Fr.int, M = kit.M, P = P4, r = kit.rng(707), F = P.F, T = P.wallT, yT = F + P.wallH, PI = Math.PI;
+  const { THREE, kit } = ctx, im = kit.imat, Fr = frame(ctx, 'house'), I = Fr.int, M = kit.M, P = P4, r = kit.rng(707), F = P.F, T = P.wallT, yT = F + P.wallH, PI = Math.PI;
   const { hexa, subtract, lathe } = makeGeo(THREE, kit);
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => I.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
   const OLIVE = im.paint({ peel: 'b', fade: 0.12, gloss: 0.7, scale: 0.7 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
@@ -33,7 +33,7 @@ export function build(ctx) {
     while (x < x1 - 0.01) { let xe = Math.min(x1, x + 1.2 + r() * 2.2);
       const inK = (xx) => zm > KT.z0 && zm < KT.z1 && xx > KT.x0 && xx < KT.x1, inB = (xx) => zm > BA.z0 && zm < BA.z1 && xx > BA.x0 && xx < BA.x1;
       for (const [a, b] of subtract(x, xe, [[KT.x0, KT.x1].map((v, i) => (zm > KT.z0 && zm < KT.z1 ? v : i ? -1e3 : -1e3 - 1)), [BA.x0, BA.x1].map((v, i) => (zm > BA.z0 && zm < BA.z1 ? v : i ? -1e3 : -1e3 - 1))]))
-        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xd9a35f, r, 0.1), wear: 0.3, bevel: 0.002, uv: [r() * 7, r() * 7] });
+        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xf6c784, r, 0.1), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
       void inK; void inB; x = xe; } }
   box(tileMat, KT.x1 - KT.x0, 0.02, KT.z1 - KT.z0 + 0.0, (KT.x0 + KT.x1) / 2, F + 0.011, (KT.z0 + KT.z1) / 2 - T / 2 + 0.0, { color: 0xffffff, bevel: 0.002, uvS: 2.4 });
   box(im.pbr('long_white_tiles', { rep: 0.9 }), BA.x1 - BA.x0 - 0.06, 0.02, BA.z1 - BA.z0 - T, (BA.x0 + BA.x1) / 2, F + 0.011, (BA.z0 + BA.z1) / 2 - T / 2, { color: 0xc8ccc8, bevel: 0.002 });
@@ -82,7 +82,7 @@ export function build(ctx) {
   part(0.7, BA.z0, 0.7, -7.35, 2.0, [], { m: WHITEP, color: 0xd9d6cc });                   // the white fridge-height partition at the kitchen / living boundary (05 / 09)
   // bathroom door (ajar), the toilet and a small vanity
   { const g = new THREE.Group(), DB = kit.batch('r4bathdoor'); DB.box(WHITEP, 0.76, 2.03, 0.04, M(0.38, 1.015, 0), { color: 0xcfc8b4, wear: 0.4, bevel: 0.006 }); lathe(DB, CHROME, [[0.001, 0], [0.025, 0.005], [0.028, 0.02], [0.001, 0.04]], M(0.68, 0.95, 0.03, PI / 2, 0, 0), { color: 0xb5b0a4, seg: 16 }); DB.build(g);
-    const hz = z1 - 1.05 + 0.39; g.position.set(0.7 + 0.03, F + 0.01, hz); g.rotation.y = PI / 2 + 0.9; Fr.groups.int.add(g); }
+    const hz = z1 - 1.05 + 0.39; g.position.set(0.7 + 0.03, F + 0.01, hz); g.rotation.y = 0.45; Fr.groups.int.add(g); }
   // ================= kitchen =================
   const GREEN = im.paint({ peel: 'a', fade: 0.15, gloss: 0.55, scale: 0.5 }), green = () => kit.vary(0x5f8a52, r, 0.04);
   const LAM = im.art('r4lam', 512, 512, (g, w, h) => { g.fillStyle = '#d9d4c6'; g.fillRect(0, 0, w, h); const q = kit.rng(8); for (let i = 0; i < 9000; i++) { const c = q(); g.fillStyle = c < 0.5 ? `rgba(90,85,75,${0.3 + q() * 0.4})` : c < 0.8 ? `rgba(160,150,130,0.5)` : 'rgba(250,250,245,0.7)'; g.fillRect(q() * w, q() * h, 1.5 + q() * 2, 1.5 + q() * 2); } }, { rough: 0.35 });
@@ -281,6 +281,6 @@ export function build(ctx) {
   }
   // interior sun shafts: soft dusty light cones from the back windows (cheap additive cards are avoided: a faint volumetric
   // box per window with view-angle fade would be a card; here only the warm fill lights near the windows)
-  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 6, range: 3.2, on: true }); }
+  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 16, range: 4.6, on: true }); }
   Fr.build();
 }

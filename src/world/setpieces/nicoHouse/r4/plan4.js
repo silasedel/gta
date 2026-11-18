@@ -17,6 +17,10 @@ export const ryG = (ry) => ry - YAW;                                   // a rota
 
 export const P4 = {
   oz: 0,
+  // the house itself (parts r4_10 / r4_70, frame 'house') is turned 45 deg in the lot about its center: from the main drive you see
+  // its front corner with the stair and the wraparound deck, the hoop side faces the +X cove side, the back stair stands at the
+  // opposite (bay) corner (user review Nov 18). The lawn, bulkhead and dock stay square to the bay.
+  rot: { theta: Math.PI / 4, cx: 0, cz: -7 },
   F: 3.6,                  // floor / deck surface (tall stilts: a car drives under, 02 / 10)
   wallH: 2.6,              // floor to top plate
   wallT: 0.16,             // board-and-batten + studs + interior boards
@@ -55,6 +59,9 @@ export const P4 = {
     deck: 0xb9b4a9, deckDark: 0x8a857b, post: 0xe2ddd0,
   },
 };
+// house frame H <-> lot frame S (rotation about the house center)
+export const HtoS = (x, z) => { const R = P4.rot, c2 = Math.cos(R.theta), s2 = Math.sin(R.theta), dx = x - R.cx, dz = z - R.cz; return [R.cx + dx * c2 + dz * s2, R.cz - dx * s2 + dz * c2]; };
+export const StoH = (x, z) => { const R = P4.rot, c2 = Math.cos(R.theta), s2 = Math.sin(R.theta), dx = x - R.cx, dz = z - R.cz; return [R.cx + dx * c2 - dz * s2, R.cz + dx * s2 + dz * c2]; };
 export const inR = (r, x, z, pad = 0) => x >= r.x0 - pad && x <= r.x1 + pad && z >= r.z0 - pad && z <= r.z1 + pad;
 // Find the bay along -Z (lot frame) with the set piece's waterAt (G frame) and fit the house, lawn, bulkhead and dock to it.
 // Called once by part 05 before anything is built. No water found: the defaults (bulkhead 27 m behind the lot origin).
@@ -74,9 +81,11 @@ export function terraceY(x, z) {
   const dx = x < T.x0 ? T.x0 - x : x > T.x1 ? x - T.x1 : 0, lat = Math.max(0, 1 - dx / T.fall), l = lat * lat * (3 - 2 * lat);
   return P4.lawnTop * e * l;
 }
+// plants also keep out of the hoop side's apron (10: the secondary drive runs there) and the main drive in front of the corner
+export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad)) return true; const [x, z] = StoH(sx, sz); return inR({ x0: -8.5, x1: 11.5, z0: -1.6, z1: 10 }, x, z, pad) || inR({ x0: -9, x1: 1, z0: -14, z1: -1 }, x, z, pad); }
 // true where the house, decks, stairs or the ground room stand (plants, weeds and yard props keep out). S frame.
-export function houseBlock(x, z, pad = 0) {
-  const P = P4;
+export function houseBlock(sx, sz, pad = 0) {
+  const P = P4, [x, z] = StoH(sx, sz);
   return inR({ x0: P.deckS.x0, x1: P.deckE.x1, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
     || inR({ x0: -7.9, x1: -6.5, z0: -1.6, z1: 3.9 }, x, z, pad)            // west stair run
     || inR({ x0: -0.4, x1: 6.7, z0: -14.2, z1: -12.8 }, x, z, pad);         // back stair + landing

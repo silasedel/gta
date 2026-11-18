@@ -6,8 +6,8 @@
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
 import { PLANTER } from '../yard.data.js';
-import { R4, toS, houseBlock } from '../r4/plan4.js';
-const r4Out = (x, z, pad = 1.0) => R4 && houseBlock(...toS(x, z), pad);   // r4: nothing grows inside the rebuilt house, decks or stairs
+import { R4, toS, plantClear } from '../r4/plan4.js';
+const r4Out = (x, z, pad = 1.0) => R4 && plantClear(...toS(x, z), pad);   // r4: nothing grows inside the rebuilt house, decks or stairs
 export const order = 50;
 
 export function build(ctx) {

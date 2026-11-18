@@ -5,7 +5,7 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
-import { R4, P4, toS, houseBlock } from './r4/plan4.js';
+import { R4, P4, toS, plantClear } from './r4/plan4.js';
 // r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
 // descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
 // yard (3 calls a frame at the spawn: ~7 ms); the trimesh is ~0.13 ms. Same surface. ?hftri=0 = the heightfield (A/B).
@@ -188,7 +188,7 @@ function plantYard(game, g) {
   const V = game.vegetation; if (!V) return;
   const T = game.THREE, byKind = new Map();
   for (const [kind, lx, lz, o = {}] of PLANTING) {
-    if (R4 && houseBlock(...toS(lx, lz), kind === 'palm' || /palm/.test(kind) ? 1.6 : 0.8)) continue;   // r4: the rebuilt house's footprint
+    if (R4 && plantClear(...toS(lx, lz), kind === 'palm' || /palm/.test(kind) ? 1.6 : 0.8)) continue;   // r4: the rebuilt house's footprint
     // r2-keys: inside the lot the plants stand on the yard sheet (its swells), not on the terrain under it
     const yy = g.userData.yardY, p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = yy ? g.position.y + yy(lx, lz) - 0.04 + (o.yOff || 0) : game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
     if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, keepY: !!yy, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }
