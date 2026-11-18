@@ -264,7 +264,7 @@ export async function initV2(game) {
       if (!st || !tr) throw new Error('metro models missing');
       // station: unlit + baked light
       let concrete = null;
-      const KT = { floor: kitTex('floor_stone'), tactile: kitTex('tactile'), grime: kitTex('grime_d', false), ceil: kitTex('ceiling_d', false), tile: kitTex('wall_tile_d', false), tunnel: kitTex('tunnel_wall'), bed: kitTex('track_bed'), carFloor: kitTex('car_floor'), panel: kitTex('car_panel') };
+      const KT = { floor: kitTex('floor_stone'), tactile: kitTex('tactile'), grime: kitTex('grime_d', false), ceil: kitTex('ceiling_d', false), tile: kitTex('wall_tile_d', false), tunnel: kitTex('tunnel_wall'), bed: kitTex('track_bed'), carFloor: kitTex('car_floor'), panel: kitTex('car_panel'), door: kitTex('car_door'), floorAo: (() => { const t = new THREE.TextureLoader().load(BASE + 'assets/metro/tex/car_floor_ao.png'); return t; })() };
       st.updateMatrixWorld(true);
       st.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, stationLight); const m = o.material, nm = m?.name || ''; if (/Lambert4|Lambert6/.test(nm) && m.map && !concrete) concrete = m.map;
         const u = unlit(m); o.material = u;
@@ -308,18 +308,43 @@ export async function initV2(game) {
           planarUV(o.geometry, 2.4, 'uv');
           o.material = new THREE.MeshBasicMaterial({ map: KT.panel, color: 0xf2f0ec, vertexColors: true });
         }
-        else if (/^Floor/.test(nm)) { planarUV(o.geometry, 1.6); o.material = new THREE.MeshBasicMaterial({ map: KT.carFloor, color: new THREE.Color(2.4, 2.4, 2.4), vertexColors: true }); }
+        else if (/^Floor/.test(nm)) { planarUV(o.geometry, 1.6); o.material = new THREE.MeshBasicMaterial({ map: KT.carFloor, color: new THREE.Color(3.3, 3.25, 3.2), vertexColors: true }); }
         else o.material = unlit(o.material, { glass: /Glass/.test(nm), tint: /^Bars/.test(nm) ? 0x9a9a9a : /^Walls/.test(nm) ? new THREE.Color(1.4, 1.4, 1.42) : /^Roof/.test(nm) ? 0xd8d8d8 : null });
-        if (!o.material.name && o.name === 'm__none') o.material.color.set(0x8d9298);
+        if (o.name === 'm__none') { planarUV(o.geometry, 2.4); o.material = new THREE.MeshBasicMaterial({ map: KT.door, color: 0xffffff, vertexColors: true }); }   // door leaves: paint, kick plate, worn edges
+        if (/^Floor/.test(nm)) { const P2 = o.geometry.attributes.position, uv1 = new Float32Array(P2.count * 2); for (let i = 0; i < P2.count; i++) { uv1[i * 2] = P2.getX(i) / 4.0 + 0.5; uv1[i * 2 + 1] = P2.getZ(i) / 24.2 + 0.5; }
+          o.geometry.setAttribute('uv1', new THREE.BufferAttribute(uv1, 2)); const t = KT.floorAo; t.channel = 1; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; o.material.aoMap = t; o.material.aoMapIntensity = 1; o.material.needsUpdate = true; }
         o.frustumCulled = false; });
       carProto.add(tr);
       const liv = (side) => { const p = canvasPlane(22.6, 0.34, 1024, drawLivery, { transparent: true }); p.position.set(2.06 * side, 0.78, 0); p.rotation.y = side * Math.PI / 2; return p; };
       carProto.add(liv(1), liv(-1));
       for (const side of [1, -1]) for (const z of [-8.5, 8.5]) { const n = canvasPlane(2.6, 0.3, 512, drawCarName, { transparent: true }); n.position.set(2.065 * side, 2.72, z); n.rotation.y = side * Math.PI / 2; carProto.add(n); }
+      // litter (model space of a car: across x, along z, floor y 0): 2-6 per car, varied, plus a rolling bottle in some cars
+      const bottles = [];
+      const decalTex = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); draw(g); return tex(c); };
+      const DECALS = [
+        [0.42, decalTex((g) => { g.fillStyle = 'rgba(70,40,20,0.55)'; g.beginPath(); for (let a = 0; a < 6.3; a += 0.3) { const r = 40 + Math.sin(a * 3) * 9 + Math.cos(a * 5) * 6; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r * 0.8); } g.fill(); g.strokeStyle = 'rgba(50,28,12,0.5)'; g.lineWidth = 3; g.stroke(); })],          // dried soda stain
+        [0.16, decalTex((g) => { g.fillStyle = '#e9e6de'; g.beginPath(); for (let a = 0; a < 6.3; a += 0.45) { const r = 34 + Math.random() * 22; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.fill(); g.strokeStyle = 'rgba(0,0,0,0.18)'; for (let i = 0; i < 7; i++) { g.beginPath(); g.moveTo(30 + Math.random() * 60, 30 + Math.random() * 60); g.lineTo(30 + Math.random() * 60, 30 + Math.random() * 60); g.stroke(); } })],   // crumpled napkin
+        [0.18, decalTex((g) => { g.fillStyle = '#f3f1ea'; g.fillRect(44, 6, 40, 116); g.fillStyle = 'rgba(40,40,40,0.55)'; for (let y = 16; y < 110; y += 7) g.fillRect(50, y, 16 + Math.random() * 12, 2); })],   // receipt
+        [0.13, decalTex((g) => { g.fillStyle = '#d8d2c8'; g.beginPath(); g.ellipse(64, 64, 56, 30, 0.3, 0, 6.3); g.fill(); g.fillStyle = '#c4473a'; g.fillRect(20, 58, 88, 12); })],   // flattened cup
+      ];
+      const litter = (car, k) => {
+        let seed = 17 + k * 31; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+        const n = 2 + Math.floor(rnd() * 5);
+        for (let i = 0; i < n; i++) {
+          const [sz, t] = DECALS[Math.floor(rnd() * DECALS.length)];
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(sz * (0.8 + rnd() * 0.5), sz * (0.8 + rnd() * 0.5)).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, color: 0x9a9690 }));
+          m.position.set((rnd() - 0.5) * 2.6, 0.012 + i * 0.001, (rnd() - 0.5) * 22); m.rotation.y = rnd() * 6.28; m.renderOrder = 2; car.add(m);
+        }
+        if (rnd() < 0.75) { const b = new THREE.Group(); const glass = new THREE.MeshBasicMaterial({ color: 0x3f6b4a, transparent: true, opacity: 0.75 });
+          const body = new THREE.Mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.17, 12), glass); const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 0.07, 10), glass); neck.position.y = 0.12; b.add(body, neck);
+          b.rotation.z = Math.PI / 2; const spin = new THREE.Group(); spin.add(b); const holder = new THREE.Group(); holder.position.set((rnd() - 0.5) * 1.6, 0.034, (rnd() - 0.5) * 18); holder.rotation.y = (rnd() - 0.5) * 0.5; holder.add(spin); car.add(holder); bottles.push({ holder, b: spin, z0: holder.position.z, off: 0, vel: 0 }); }   // lies across the car, rolls along it
+      };
       const train = new THREE.Group(); train.name = 'metro-train';
       for (let k = 0; k < 3; k++) {
         const car = carProto.clone(true); car.rotation.y = Math.PI / 2; car.position.set((k - 1) * (CAR_L + 0.25), 0, 0); train.add(car);
-        car.traverse((o) => { if (o.isMesh && o.name === 'm__none') doors.push(o); });
+        car.traverse((o) => { if (o.isMesh && o.name === 'm__none') doors.push(o);
+          if (o.isMesh && o.material?.map === KT.panel) { o.material = o.material.clone(); o.material.map = KT.panel.clone(); o.material.map.offset.set(k * 0.37, 0); o.material.map.needsUpdate = true; } });
+        litter(car, k);
       }
       // head / tail light glows
       const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return tex(c); })();
@@ -347,7 +372,7 @@ export async function initV2(game) {
       for (let i = 0; i < 48; i++) { const sgm = segG.clone(true); const g1 = glow(0xffe2b0, 2.2, 0.55); g1.position.set(0, 3.2, -3.45); sgm.add(g1); const g2 = glow(0xffe2b0, 2.2, 0.55); g2.position.set(6, 3.2, 3.05); sgm.add(g2); tunnel.add(sgm); segs.push(sgm); }
       const capM = new THREE.MeshBasicMaterial({ color: 0x050506, side: THREE.DoubleSide });
       const caps = [0, 1].map(() => { const c = new THREE.Mesh(new THREE.PlaneGeometry(9, 7), capM); c.rotation.y = Math.PI / 2; c.position.set(0, 2.6, -0.2); tunnel.add(c); return c; });
-      S.kit = { station, train, tunnel, segs, doors, caps };
+      S.kit = { station, train, tunnel, segs, doors, caps, bottles };
       return S.kit;
     })().catch((e) => { console.warn('[metro] kit failed', e); kitReady = null; return null; });
     return kitReady;
@@ -382,7 +407,7 @@ export async function initV2(game) {
   let waiting = [];
   function spawnPeople(stationX) {
     releasePeople(); const peds = game.peds; if (!peds?.spawnAt) return;
-    const spots = [[S.benchSpots[0], 'bench'], [S.benchSpots[2], 'bench'], [new THREE.Vector3(-30, PLAT_Y, 4.2), 'idle'], [new THREE.Vector3(6, PLAT_Y, 3.8), 'idle'], [new THREE.Vector3(34, PLAT_Y, 5.0), 'idle'], [new THREE.Vector3(-12, PLAT_Y, 6.0), 'idle']];
+    const spots = [[S.benchSpots[0], 'bench'], [S.benchSpots[1], 'bench'], [S.benchSpots[2], 'bench'], [S.benchSpots[3], 'bench'], [new THREE.Vector3(-30, PLAT_Y, 4.2), 'idle'], [new THREE.Vector3(6, PLAT_Y, 3.8), 'idle'], [new THREE.Vector3(34, PLAT_Y, 5.0), 'idle'], [new THREE.Vector3(-12, PLAT_Y, 6.0), 'idle']];
     for (const [sp, state] of spots) {
       try {
         const w = toWorld(sp.x + stationX + (state === 'bench' ? (Math.random() - 0.5) * 1.6 : 0), sp.y, sp.z).clone();
@@ -503,6 +528,39 @@ export async function initV2(game) {
 
   // ---- the ride
   const R = { on: false };
+  // riders: 3-8 of the user's people per car, seated on the benches or standing at the poles, moving with the train
+  let riders = [], riderQ = [];
+  const qv = new THREE.Vector3();
+  const headingLocal = (dx, dz) => { qv.set(dx, 0, dz).applyQuaternion(root.quaternion); return Math.atan2(qv.x, qv.z); };
+  function planRiders() {
+    riderQ = [];
+    const seats = [-10.2, -8.8, -3.4, -2.2, 2.2, 3.4, 8.8, 10.2], poles = [-7.6, -4.25, 4.25, 7.6];
+    for (const k of [1, 0, 2]) {   // the middle car (the camera's) first
+      const n = 3 + Math.floor(Math.random() * 6), used = new Set();
+      for (let i = 0; i < n; i++) {
+        const stand = Math.random() < 0.3;
+        const key = stand ? 'p' + Math.floor(Math.random() * poles.length) : 's' + Math.floor(Math.random() * seats.length) + (Math.random() < 0.5 ? 'L' : 'R'); if (used.has(key)) continue; used.add(key);
+        const cx = (k - 1) * (CAR_L + 0.25);
+        if (stand) riderQ.push({ lx: cx + poles[+key.slice(1)] + 0.35, lz: TRACK_Z + (Math.random() - 0.5) * 0.5, sit: false, face: Math.random() < 0.5 ? 1 : -1 });
+        else { const side = key.endsWith('L') ? 1 : -1; riderQ.push({ lx: cx + seats[+key.slice(1, -1)], lz: TRACK_Z - side * 1.5, sit: true, face: side }); }
+      }
+    }
+  }
+  function ridersTick(dt, accel) {
+    const peds = game.peds; if (!peds?.spawnAt) return;
+    if (riderQ.length && (S.riderT = (S.riderT || 0) - dt) <= 0) {   // one person every few frames: dressing a body is not free
+      S.riderT = 0.15; const q = riderQ.shift();
+      try { const w = toWorld(R.s + q.lx, CAR_Y, q.lz).clone(); const p = peds.spawnAt(w, { outfit: 'casual' });
+        if (p) { p.pinned = 1e9; p.v21 = { venue: 'metro' }; p.nav = null; p.group = null; p.target = null; p.state = q.sit ? 'bench' : 'talk'; p.act = p.state; p.stateT = 1e9; p.idleStyle = q.sit ? 'sitBench' : null; riders.push({ p, q, ph: Math.random() * 6 }); } } catch (e) { /* */ }
+    }
+    const t = performance.now() / 1000;
+    for (const r of riders) { const p = r.p; if (!p.active) continue; const q = r.q;
+      const sway = q.sit ? 0 : -accel * 0.05;
+      const w = toWorld(R.s + q.lx + sway, CAR_Y, q.lz); p.pos.copy(w); p.groundY = w.y;
+      p.heading = q.sit ? headingLocal(0, q.face) : headingLocal(q.face, 0) + Math.sin(t * 1.3 + r.ph) * 0.05 + accel * 0.03 * q.face;
+      if (p.root) { p.root.position.copy(p.pos); p.root.rotation.y = p.heading; } }
+  }
+  function releaseRiders() { for (const { p } of riders) { if (!p.active) continue; p.pinned = 0; p.v21 = null; p.despawnNow = true; } riders = []; riderQ = []; }
   function board(j) {
     const K = S.kit; S.dest = j; S.mode = 'ride';
     releasePeople(); platformColliders(false);
@@ -516,6 +574,7 @@ export async function initV2(game) {
     try { game.playerCharacter?.setVisible?.(false); } catch (e) { /* */ }
     P.script = { lock: true, fixed() { const c = camWorld(); game.movePlayerTo(c.x, c.y - 1.6, c.z); } };
     game.cameraOverride = rideCamera;
+    planRiders(); R.vPrev = 0;
     chime(); rumbleStart(); notify('C: inside / outside view · Hold E: skip to arrival', 3600);
   }
   const camL = new THREE.Vector3(), camT = new THREE.Vector3();
@@ -552,8 +611,12 @@ export async function initV2(game) {
     }
     setDoors(T.doorK);
     K.train.position.x = R.s; tunnelTick(); rumbleSet(R.v, 0.8);
+    const accel = dt > 0 ? Math.max(-2, Math.min(2, (R.v - (R.vPrev ?? R.v)) / dt)) : 0; R.vPrev = R.v;
+    ridersTick(dt, accel);
+    for (const b of K.bottles) { b.vel += (-accel * 0.6 - b.off * 0.4 - b.vel * 0.8) * dt; b.off = Math.max(-0.5, Math.min(0.5, b.off + b.vel * dt)); b.holder.position.z = b.z0 + b.off; b.b.rotation.x = b.off / 0.033; }
   }
   function arrive() {
+    releaseRiders();
     const K = S.kit; R.on = false;
     // re-base the space at the destination: station back to local 0, origin above the destination entrance
     const j = S.dest, i = S.here; S.here = j;
