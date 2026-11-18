@@ -300,6 +300,11 @@ export function createBoats(game, opts = {}) {
   // ---- r2-water: shared waves (one clock; the ocean shader reads the same function), physics mode, hydro environment
   let W = game.waves; if (!W && !opts.sim) { try { W = game.waves = createWaves(game); } catch (e) { console.warn('[boats] waves', e); W = null; } }
   const boatPhys = () => game.physics?.boatphys ?? BOATPHYS_Q ?? 2; // v2 on (booted clean: water-drive-after.json); ?boatphys=1 = v1
+  // r2-water: freshwater shading inland (canals, glades lakes, sloughs): tannin water over peat instead of tropical sea over
+  // white sand (the milky gray sheet the user saw); patches r2-ground's ocean passes; ?fresh=0 = off
+  if (!opts.sim && W && !/[?&]fresh=0\b/.test(globalThis.location?.search || '')) {
+    try { const ms = new Set(); game.env?.ocean?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) ms.add(o.material); });
+      let ok = ms.size > 0; for (const m of ms) ok = W.patchFreshMaterial(m) && ok; W.freshOn = ok; if (!ok) console.warn('[boats] fresh water: ocean anchors not found'); } catch (e) { console.warn('[boats] fresh water', e); } }
   // ?waves=2: draw the swell now by patching the ocean material(s) at runtime (until the ocean.js hook lands; r2-ground)
   if (!opts.sim && W && /[?&]waves=2\b/.test(globalThis.location?.search || '') && !W.shaderOn) {
     try { const oc = game.env?.ocean, meshes = []; oc?.mesh?.traverse((o) => { if (o.isMesh && o.material?.isShaderMaterial) meshes.push(o); }); // every ocean pass (r2-ground: surface + transmit)
@@ -1166,7 +1171,7 @@ export function createBoats(game, opts = {}) {
   game.fixedHooks.push(boatsFixed);
 
   function update(dt) {
-    try { W?.tick(dt); } catch (e) { /* ignore */ }
+    try { W?.tick(dt); if (W?.freshOn) W.updateFresh(game.camera?.position); } catch (e) { /* ignore */ }
     try { game.gladesWater?.update(dt); } catch (e) { console.warn('[boats] glades water', e); }
     try { manager(dt); } catch (e) { console.error('[boats] manager', e); }
     navStep(1.2);

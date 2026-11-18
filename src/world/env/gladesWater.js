@@ -46,15 +46,15 @@ export function createGladesWater(game, opts = {}) {
   // ---------- rendering
   const nt = game.env?.ocean?.uniforms?.tNormal?.value || null;
   let nmap = null; if (nt) { nmap = nt.clone(); nmap.wrapS = nmap.wrapT = THREE.RepeatWrapping; nmap.repeat.set(1 / 9, 1 / 9); nmap.needsUpdate = true; }
-  const mat = new THREE.MeshStandardMaterial({ name: 'gladesWater', color: 0x24261a, roughness: 0.07, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
-    normalMap: nmap, normalScale: new THREE.Vector2(0.22, 0.22), envMapIntensity: 1.1, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  const mat = new THREE.MeshStandardMaterial({ name: 'gladesWater', color: 0x1d180d, roughness: 0.08, metalness: 0, transparent: true, depthWrite: false, vertexColors: true,
+    normalMap: nmap, normalScale: new THREE.Vector2(0.22, 0.22), envMapIntensity: 0.9, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   const uFade = { value: R - 50 };
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uGwFade = uFade;
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uGwFade;')
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>
         { float ndv = clamp(dot(normalize(vNormal), normalize(vViewPosition)), 0.0, 1.0); float fr = pow(1.0 - ndv, 4.0);
-          gl_FragColor.a = clamp(gl_FragColor.a + fr * 0.7 * step(0.02, vColor.a), 0.0, 1.0) * (1.0 - smoothstep(uGwFade, uGwFade + 50.0, length(vViewPosition))); }`);
+          gl_FragColor.a = clamp(gl_FragColor.a + fr * 0.45 * step(0.02, vColor.a), 0.0, 1.0) * (1.0 - smoothstep(uGwFade, uGwFade + 50.0, length(vViewPosition))); }`);
   };
   mat.customProgramCacheKey = () => 'r2water-glades';
   const group = new THREE.Group(); group.name = 'gladesWater'; group.renderOrder = -4; game.scene.add(group);
