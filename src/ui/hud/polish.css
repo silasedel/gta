@@ -166,3 +166,10 @@
 .ps-vc-eng.warn { color: #f2c14e; } .ps-vc-eng.bad { color: #ff5a4f; }
 .ps-vc-fuel svg:first-child { position: absolute; inset: 0; } .ps-vc-ring { stroke: currentColor; }
 .ps-hud.driving .ps-street { bottom: 300px; }
+
+/* perf (user: unplayable fps): backdrop-filter blurs the live WebGL canvas behind every HUD panel every frame, which is very
+   expensive on a Retina display. In-game HUD panels are already translucent, so they keep their look without the blur.
+   Menus, the phone and the pause screen (game paused) keep theirs. */
+#ps-hud, #ps-hud *, .ps-hud, .ps-hud *, .ps-speedo, .ps-speedo *, .ps-minimap, .ps-minimap * {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
