@@ -685,7 +685,7 @@ export function* buildHouseGen(hk, sp, lod = 0) {
       if (CURB_LIB) { // props pass: the user's library mailbox + carts per house (src/world/props/lotProps.v2.js via houses.v2.js); rng kept
         r(); if (sp.bins && L1) { r(); r(); r(); r(); }
         curb.push({ kind: 'mailbox', x: mx, z: zRoad - 0.5 });
-        if (sp.bins) curb.push({ kind: 'carts', x: xd + (xd > 0 ? 1 : -1) * (dw / 2 + 0.8), z: zRoad - 0.75, side: { x: (xd > 0 ? -1 : 1) * (w / 2 + 0.8), z: z1 - 1.3 } });
+        if (sp.bins) curb.push({ kind: 'carts', x: xd + (xd > 0 ? 1 : -1) * (dw / 2 + 0.8), z: zRoad - 0.42,   /* QA first-minutes #20: in front of the fence line (zRoad - 0.9), not straddling it: a gate post came up through a lid */ side: { x: (xd > 0 ? -1 : 1) * (w / 2 + 0.8), z: z1 - 1.3 } });
       } else {
       B.box(WOOD, 0.1, 1.05, 0.1, M(mx, 0.52, zRoad - 0.4), { color: 0xe8e4da, wear: 0.3 });
       B.box(METAL, 0.22, 0.24, 0.48, M(mx, 1.12, zRoad - 0.4), { color: [0x2a2a2a, 0xe8e4da, 0x2a4a6a, 0x6a2a2a][(r() * 4) | 0], wear: 0.3 });

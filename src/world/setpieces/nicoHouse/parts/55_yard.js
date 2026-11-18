@@ -19,6 +19,13 @@ export function build(ctx) {
   ctx.anchors.carSpots = CAR_SPOTS.map((c) => ({ ...c, pos: new THREE.Vector3(c.x, 0, c.z) }));
   // r2-keys: every prop stands on what is under it: the yard sheet's swells (part 05 ctx.yardY) or, off the sheet, the terrain
   const yG = ctx.yardY || (() => 0), gT = ctx.opts.groundAt || (() => 0), yS = (x, z) => Math.max(yG(x, z), gT(x, z));
+  // roll-off pose (QA first-minutes #9): stepped east into the yard until no corner is within 0.4 m of the asphalt, and set flat on its
+  // rails at the lowest corner's ground (it sat on its center height, so on the sloping verge one end hung in the air)
+  const DP = (() => { const d = DUMPSTER, rd = ctx.opts.roadDist || (() => 25), hw = 3.26 * d.scale / 2 + 0.1, hl = 8.81 * d.scale / 2 + 0.1, c = Math.cos(d.heading), sn = Math.sin(d.heading);
+    const corners = (x, z) => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [x + a * hw * c + b * hl * sn, z - a * hw * sn + b * hl * c]); let x = d.x;
+    for (let k = 0; k < 16 && corners(x, d.z).some(([px, pz]) => rd(px, pz) < 0.4); k++) x += 0.25;
+    return { x, z: d.z, y: Math.min(...[...corners(x, d.z), [x, d.z]].map(([px, pz]) => yS(px, pz))) - 0.02, dx: x - d.x }; })();
+  ctx.stats.dumpsterShift = +DP.dx.toFixed(2);
 
   // ======================================================================= lattice planter box
   { let oy = 0; const MY = (x, y, z, ...a) => M(x, y + oy, z, ...a); const H = PLANTER.h, Dp = PLANTER.depth, white = () => ({ color: V(0xe6e1d2, 0.04), wear: 0.35 + r() * 0.35, bevel: 0.003, rand: r });
@@ -156,7 +163,7 @@ export function build(ctx) {
 
   // ======================================================================= the roll-off's load (r2-keys, lead review): real tear-out at real sizes, lying
   // INSIDE the bin just under the rim: broken drywall with thickness and torn edges, 2x4 studs, a bent sheet of roofing tin, a folded tarp
-  { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x, y, z, a, b, c)), q = kit.rng(5577);
+  { const d = DUMPSTER, sc = d.scale, sy = d.sy ?? 1, base = M(DP.x, DP.y, DP.z, 0, d.heading, 0), L = (x, y, z, a = 0, b = 0, c = 0) => kit.mulM(base, M(x, y, z, a, b, c)), q = kit.rng(5577);
     const GYP = mat.pbr('concrete_wall_008', { rep: 0.7, tint: 0xdfe8ff, gain: 2.6, grunge: true });   // (the scan is warm: a blue tint lands it on off-white)   // gypsum board: paper face with a chalky grain
     const rim = 3.37 * sc * sy, hx = 3.26 * sc / 2 - 0.16, hz = 8.81 * sc / 2 - 0.2, fill = rim - 0.62;
     // a real heap: a mound that rises from just under the rim at the walls to above it in the middle, and every piece is stacked on
@@ -274,7 +281,7 @@ export function build(ctx) {
   // colliders now (the house's collider list is read right after the build), visuals when the models arrive
   // curb carts: breakable (a car above ~15 km/h knocks one over; src/world/miami/breakables.js), static box otherwise
   const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
-  { const d = DUMPSTER, sy = d.sy ?? 1; col.box(d.x, 3.37 * d.scale * sy / 2 + yS(d.x, d.z), d.z, 3.26 * d.scale, 3.37 * d.scale * sy, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
+  { const d = DUMPSTER, sy = d.sy ?? 1; col.box(DP.x, 3.37 * d.scale * sy / 2 + DP.y, DP.z, 3.26 * d.scale, 3.37 * d.scale * sy, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
@@ -284,7 +291,7 @@ export function build(ctx) {
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });
     for (const m of POLE_M) I.add('utility_pole', 'dock', m);
     for (const [k, m] of [...LIBP, ...(ctx.libProps || [])]) I.add(k, 'dock', m);
-    { const d = DUMPSTER; I.add('rolloff', 'dock', M(d.x, yS(d.x, d.z), d.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
+    { const d = DUMPSTER; I.add('rolloff', 'dock', M(DP.x, DP.y, DP.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
     for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};

@@ -147,7 +147,10 @@ export async function initV2(game) {
   // r2-keys: the yard's matted-grass patches also get the ground helper's grass clumps (the user's Grass Clump / Moss models, r2-ground
   // grass.v2.js; queued if that module is not up yet). Not on the drive (the ruts stay bare)
   if (!KEYS_OFF) try { const T = THREE, dD = (x, z) => { let b = 1e9; const P = DRIVE.main; for (let i = 0; i < P.length - 1; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); b = Math.min(b, Math.hypot(x - ax - dx * t, z - az - dz * t)); } return b; };
-    const L = LITTER.filter(([x, z, , , k]) => k === 'matted' && dD(x, z) > DRIVE.halfWidth + 0.5).map(([x, z, r, d], i) => { const p = new T.Vector3(x, 0, z).applyMatrix4(g.matrixWorld); return { x: p.x, z: p.z, r: r * 0.95, density: Math.min(1, d * 1.15), kind: i % 4 === 3 ? 'dry' : 'clump' }; });   // lead: denser, lower, greener mats
+    const L = LITTER.filter(([x, z, , , k]) => k === 'matted' && dD(x, z) > DRIVE.halfWidth + 0.5).flatMap(([x, z, r, d], i) => { const out = [], n = 2 + (i % 3);   // QA first-minutes #19: each mat as 2-4 tight clumps with bare sand between, not one even scatter
+      for (let k = 0; k < n; k++) { const a = i * 2.39 + k * 2.1, dd = r * (0.25 + 0.45 * ((i * 7 + k * 3) % 5) / 4), p = new T.Vector3(x + Math.cos(a) * dd, 0, z + Math.sin(a) * dd).applyMatrix4(g.matrixWorld);
+        out.push({ x: p.x, z: p.z, r: r * (0.3 + 0.12 * ((i + k) % 3)), density: Math.min(1, d * 1.6), kind: (i + k) % 4 === 3 ? 'dry' : 'clump' }); } return out; });   // lead: denser, lower, greener mats
+    for (const [cx, cz] of [[-14, 2], [-14, 18], [2, 2], [2, 18], [-6, 10]]) { const p = new T.Vector3(cx, 0, cz).applyMatrix4(g.matrixWorld); L.push({ x: p.x, z: p.z, r: 10, kind: 'clear' }); }   // QA #19: no automatic grass in the lot, only these hand-placed clumps
     if (L.length) { if (game.groundGrass?.patches) game.groundGrass.patches(L); else (game.groundGrassQueue ||= []).push(...L); } } catch (e) { console.warn('[nicoHouse] grass patches', e); }
   // parked cars: the cars helper places Nico's pickup and classic itself (src/vehicles/vehicles.js NICO_CARS); yard.data.js
   // CAR_SPOTS documents the mock-up spots and is kept clear of props

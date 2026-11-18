@@ -22,7 +22,7 @@ export function build(ctx) {
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle
   // shell fragments read in the normal map without crunchy grazing-angle noise (r2-art: sand class 0.8-1.0) or fine speckle at distance
   // (lead): rep 3.2 m, nscale 0.85
-  const SHELL = mat.pbr('shell_floor_01', { rep: 3.2, gain: 1.5, grunge: true, nscale: 0.85 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
+  const SHELL = mat.pbr('shell_floor_01', { rep: 3.2, gain: 1.5, grunge: true, nscale: 0.85, flat: 0.55 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
@@ -58,7 +58,7 @@ export function build(ctx) {
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
       // r2-art / r2-look calibration: the shell scan is warm (linear mean 0.29, 0.24, 0.18) and the material gain is 1.5, so these per-channel
       // multipliers land the floor at luminance ~0.46, saturation < 0.1 (crushed shell 0.42-0.52, near neutral), before the breakup below
-      let c = [1.2, 1.44, 1.84];
+      let c = [1.1, 1.32, 1.69];   // QA first-minutes #19: a notch less white (x0.92)
       c = c.map((v) => v * (0.76 + 0.34 * n) * (0.86 + 0.24 * nC) * (1 - 0.28 * under) * (1 + 0.08 * drive));
       const damp = Math.min(1, Math.max(0, nB - 0.55) * 2.6 * (1 - drive * 0.4)) + 0.5 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 9) + drive * Math.max(0, nC - 0.45) * 1.4; c = c.map((v, k) => v * (1 - 0.24 * Math.min(1, damp) * [1, 1.02, 1.06][k]));      // damp hollows (soft: one continuous floor, not patches)
       const grass = Math.min(1, edge * 0.85 + (1 - drive) * 0.7 * Math.max(0, n - 0.3) + 0.45 * Math.max(0, nC - 0.5));
@@ -140,8 +140,10 @@ export function build(ctx) {
     for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
     line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5);
     { const D2 = DRIVE.main; for (let i = 0; i < D2.length - 1; i++) { const [ax, az] = D2[i], [bx, bz] = D2[i + 1], len = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / len, nz = (bx - ax) / len;   // drive margins (r2-keys)
-      for (let t = 0; t < len; t += 0.45) for (const sgn of [-1, 1]) { const off = DRIVE.halfWidth + 0.6 + q() * q() * 4; put(ax + (bx - ax) * t / len + nx * sgn * off, az + (bz - az) * t / len + nz * sgn * off, 0.8 + q() * 0.9); }
-      for (let t = 0; t < len; t += 0.5) put(ax + (bx - ax) * t / len + (q() - 0.5) * 0.4, az + (bz - az) * t / len + (q() - 0.5) * 0.4, 0.7 + q() * 0.4); } }   // the hump between the ruts
+      // QA first-minutes #19: clumps, not an even scatter: a clump of 3-8 tufts every ~1.7 m on about half the stations, gaps between
+      for (let t = q() * 1.2; t < len; t += 1.1 + q() * 1.3) for (const sgn of [-1, 1]) { if (q() < 0.45) continue; const off = DRIVE.halfWidth + 0.6 + q() * q() * 4, cx = ax + (bx - ax) * t / len + nx * sgn * off, cz = az + (bz - az) * t / len + nz * sgn * off, n = 3 + (q() * 6 | 0);
+        for (let k = 0; k < n; k++) { const a = q() * 6.283, d = Math.sqrt(q()) * (0.18 + n * 0.04); put(cx + Math.cos(a) * d, cz + Math.sin(a) * d, (0.7 + q() * 0.8) * (k < 2 ? 1.2 : 1)); } }
+      for (let t = 0; t < len; t += 0.5) if (Math.sin(t * 1.9 + ax * 0.7) + Math.sin(t * 0.83 + az) > -0.4) put(ax + (bx - ax) * t / len + (q() - 0.5) * 0.4, az + (bz - az) * t / len + (q() - 0.5) * 0.4, 0.7 + q() * 0.4); } }   // the hump between the ruts, in runs
     if (wallN) line(L.x0 - 20, L.z0 + 0.7, L.x1 - 0.5, L.z0 + 0.7, 260, 0.8, 1.2); if (wallE) line(L.x1 - 0.7, L.z0, L.x1 - 0.7, L.z1 + 15, 300, 0.8, 1.2);   // only along a seawall line(-13.5, 6.6 + P.stairW.dz, -9.5, 6.9 + P.stairW.dz, 40, 0.5); line(-12.2, 2.8 + P.stairW.dz, -12.2, 4.4 + P.stairW.dz, 20, 0.3);   // west stair foot / landing (moved)
     for (const [wx, wz, wr, wn, ws] of WEEDS) for (let i = 0; i < wn; i++) { const a = q() * 6.283, d = Math.sqrt(q()) * wr; put(wx + Math.cos(a) * d, wz + Math.sin(a) * d, ws * (0.8 + q() * 0.6)); }   // keys pass: hand-placed clumps (yard.data.js WEEDS)
     const im = kit.instances(g, gm, ms, cs, { cast: false }); im.name = 'weeds'; ctx.groups.detail.add(im); }
