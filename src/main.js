@@ -12,6 +12,7 @@ import { createPeds } from './npc/peds.js';
 import { createHUD } from './ui/hud.js';
 import { createPost } from './render/post.js';
 import { createAudio } from './core/audio.js';
+import * as loadingMusic from './audio/loadingMusic.js';
 const DAY_MINUTES = 48; // stage 1: a full in-game day lasts 48 real minutes, as in GTA V (fixed, not a setting)
 import { createInteriors } from './world/interiors.js';
 import { createGameplay } from './gameplay/gameplay.js';
@@ -916,6 +917,7 @@ async function boot() {
   game.ready = true;
   loading.style.pointerEvents = 'none'; // never swallow the first click while fading out
   setTimeout(() => { loading.style.opacity = 0; setTimeout(() => loading.remove(), 700); }, 200);
+  try { loadingMusic.stop(game, 1.6, 'boot'); } catch (e) { /* */ } // the boot loop fades as the first loading screen goes (the title theme takes over)
   game.hud.notify?.('Welcome to Southline. Click to play.', 4000);
 
   // ---- F3 performance overlay ----
