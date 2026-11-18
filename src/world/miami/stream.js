@@ -183,10 +183,11 @@ export function createStreamer(opts) {
         const ts = performance.now();
         const r = j.gen.next();
         const dt = performance.now() - ts; if (dt > stats.maxStep[j.kind]) stats.maxStep[j.kind] = dt;
+        { const K = stats.msByKind || (stats.msByKind = {}); K[j.kind] = (K[j.kind] || 0) + dt; } // r2-perf: total job time per kind
         if (dt > 30) { const L = stats.longSteps || (stats.longSteps = {}); L[j.kind + (dt > 100 ? '>100' : '>30')] = (L[j.kind + (dt > 100 ? '>100' : '>30')] || 0) + 1; // r2-perf: step-length histogram
           if (dt > 60) { const LL = stats.longList || (stats.longList = []); LL.push([j.kind, Math.round(ts), Math.round(ts + dt), j.owner?.tx ?? j.owner?.a, j.owner?.tz ?? j.owner?.b]); if (LL.length > 80) LL.shift(); } }
         stats.jobsRun++;
-        if (r.done) { jobs.shift(); if (j.cancelled) { if (r.value) { if (j.kind === 'col') removeTileCols(j.owner, r.value); else dispose(r.value); } } else j.done(r.value); }
+        if (r.done) { const DN = stats.doneByKind || (stats.doneByKind = {}); DN[j.kind] = (DN[j.kind] || 0) + 1; jobs.shift(); if (j.cancelled) { if (r.value) { if (j.kind === 'col') removeTileCols(j.owner, r.value); else dispose(r.value); } } else j.done(r.value); }
       }
     }
   }
