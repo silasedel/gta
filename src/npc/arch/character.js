@@ -14,7 +14,7 @@ import { PERSONAS } from '../personality.js';
 export const SHADOW_PROXY = { on: false, layer: 7 }; // layer 7 = the split sun's dynamic caster layer (render/stage/env/shadows.js)
 
 export const LOD_DIST = [15, 60];
-export const LOD_CFG = { maxFull: 8, shadowDist: 26 };
+export const LOD_CFG = { maxFull: 12, shadowDist: 26, alwaysFull: 7 };   // user: close people must always be full quality
 const rng = (seed) => { let a = (seed | 0) ^ 0x9e3779b9; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
 const approach = (x, t, rate, dt) => x + (t - x) * (1 - Math.exp(-rate * dt));
 const UP = new THREE.Vector3(0, 1, 0);
@@ -271,7 +271,10 @@ export function createNpc(game, opts = {}) {
     if (lv <= 1 && d > LOD_DIST[1] * 1.08) lv = 2;
     if (lv === 2 && d < LOD_DIST[1] * 0.92) lv = 1;
     if (lv >= 1 && d < LOD_DIST[0] * 0.9) lv = 0;
-    if (lv === 0) { const f = budget(game); if (f.full >= LOD_CFG.maxFull) lv = 1; else f.full++; }
+    if (lv === 0) { // full-detail slots go to the NEAREST people (last frame's ranking), not to whoever updates first;
+      // anyone within alwaysFull meters is always full detail (user: a woman next to the camera showed the 5k LOD1 body)
+      const f = budget(game); f.cand.push(d);
+      if (d > LOD_CFG.alwaysFull && (d > f.cut || f.full >= LOD_CFG.maxFull + 4)) lv = 1; else f.full++; }
     applyLOD(lv, d < LOD_CFG.shadowDist);
   }
   function applyLOD(lv, sh) {
@@ -329,5 +332,8 @@ export function createNpc(game, opts = {}) {
 }
 
 // frame budget for full-detail meshes
-let _bf = -1; const _budget = { full: 0 };
-function budget(game) { const f = game?.clock?.elapsed ?? game?.frame ?? Math.floor(performance.now() / 16); if (f !== _bf) { _bf = f; _budget.full = 0; } return _budget; }
+let _bf = -1; const _budget = { full: 0, cand: [], cut: Infinity };
+function budget(game) { const f = game?.clock?.elapsed ?? game?.frame ?? Math.floor(performance.now() / 16);
+  if (f !== _bf) { _bf = f; _budget.full = 0; const c = _budget.cand; // the maxFull-th nearest candidate of the last frame sets the cut-off
+    if (c.length > LOD_CFG.maxFull) { c.sort((a, b) => a - b); _budget.cut = c[LOD_CFG.maxFull - 1] + 0.5; } else _budget.cut = Infinity; c.length = 0; }
+  return _budget; }
