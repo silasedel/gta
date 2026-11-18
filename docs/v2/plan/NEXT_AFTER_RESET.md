@@ -77,3 +77,4 @@
 - **People pathing (user):** an NPC walked through a tree and one stood in the middle of the road. Crowd walkers should avoid tree trunks (trunks.js) and stay off carriageways (game.placement) except at crossings.
 - **Parked cars:** one sat in the middle of a narrow Keys lane. Curb spots must keep the car body outside the travel lane (or skip narrow streets).
 - **Windshields:** some (the silver hatch) still look odd: check the glass on the rest of the fleet.
+- **Settings UX (user: too complicated, weird):** simplify. Show the main options first: the graphics preset, resolution, frame limit, volume sliders, sensitivity, subtitles. Put the rest under "Advanced". Use big clear rows, instant previews, sliders that snap with sound and visual feedback, clear current values, and fewer nested sections. Keep it satisfying (hover / press feedback with the Soft Button sound) and fully keyboard / controller navigable.
