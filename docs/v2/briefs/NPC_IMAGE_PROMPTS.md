@@ -84,6 +84,13 @@ Rules the prompts follow:
 58. 50-year-old weathered homeless white man, long gray beard trimmed close, sun-damaged skin, layered worn fitted clothes, short hair
 59. 44-year-old Honduran street vendor, short and stocky, short black hair, mustache, fitted t-shirt, apron, jeans
 
+## Gang members (tough, tattooed; invented gangs, no real gang symbols)
+60. 27-year-old lean Salvadoran man, shaved head, face and neck covered in black ink tattoos, hard stare, fitted white tank top, baggy khaki pants, black sneakers
+61. 32-year-old heavyset Black man, short dreadlocks, gold teeth, scar through one eyebrow, tattooed forearms, fitted black t-shirt, dark jeans, white sneakers
+62. 24-year-old wiry white man, rough meth-thin face, patchy beard, sunken eyes, prison tattoos on his arms and neck, stained fitted gray tank top, ripped jeans, worn boots
+63. 35-year-old muscular Puerto Rican man, cornrows, teardrop tattoo under one eye, full tattoo sleeves, fitted red tank top, black cargo shorts, high socks and slides
+64. 29-year-old stocky Cuban man, buzz cut with a scar on the scalp, thick goatee, chest and arm tattoos showing, open-collar fitted short-sleeve shirt, dark jeans, boots
+
 ## Search terms for hard-to-find models (for the free model site)
 - **Plants:** "tropical shrub", "beach plant", "dune grass", "marsh grass", "fan palm small", "palmetto", "tropical tree", "flowering tree", "coastal shrub", "agave", "succulent bush", "jungle plant pack"
 - **School bus:** "yellow bus", "american bus", "school bus low poly", "bus pack"
