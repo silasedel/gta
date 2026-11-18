@@ -54,3 +54,4 @@ The user wants Claude to find issues itself, not wait for the user to spot them.
 35. Car layers still look weird (user, again). Needs a real look next week (paint/clear-coat layers, decals, LOD).
 36. Gang system removed by default (6d6cbba5, ?gangs=1 restores). Two duplicate map labels were the gang turf labels.
 37. Car exit: real step-out animation (reverse of the enter swing). Quick fix 0.14 s blend + face out of the door is in.
+38. Beach in the rain (user, County Road 846 beach): 4-5 sunbathers were the same woman model and pose; sunbathers on towels while it rains; people lying look like they are flying; the lifeguard should act like a lifeguard at the tower. Sent to r3-people.
