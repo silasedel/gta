@@ -875,6 +875,15 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - Sea oats and vines no longer float on the open north edge.
   - Generated houses take their colliders from the LOD 0 build (QA-035).
   - HD poinciana and HD hibiscus (r2-veg) are in the lot; the bougainvillea mound is now a big, loose cascade (9d6133c8).
+- **Last pass** (3c08d4f7, 9429b416; shots `r2k41_r0b_deck.png`, `r2k42_r0b_deck.png`, `r2k42_wicker.png`, 0 console errors):
+  - HD plants at their intended sizes (r2-veg's per-model base scale).
+  - The user's wicker chairs replace the box-built set on the deck.
+  - The user's fishing supplies (rod, tackle box, buckets, net) sit on the dock's T-head. They are placed and boot clean but have not been shot close up.
+  - Skipped:
+    - Wicker Chair 2 (600k-poly scan at the wrong scale).
+    - Boat Trailer 1 and Boat 16, which carry real brand marks (BoatUS logos and a Louisiana plate on the trailer; Nitro / Mercury lettering across the boat's photo texture). They need a texture cleanup pass before use.
+  - Not started: Fences 6-9 on the lot lines, the rigged fishing rod, gear under the house, and the generated houses' window AC.
+- **STOPPED** on the lead's instruction.
 
 ## r2-art
 - 09:50 **Started (art director, one style).**
