@@ -191,7 +191,7 @@ export function createWorldStuff(game, G) {
 
   // ---------------- street events
   const events = [];
-  let eventCd = rand(25, 40);
+  let eventCd = rand(60, 80); // r2 (QA first minutes #10): no street event in the first minute after spawn
   const vehicles = () => game.vehicles;
   function spawnCar(type, pos, heading) {
     const vs = vehicles();
@@ -369,6 +369,7 @@ export function createWorldStuff(game, G) {
       try { done = KINDS[e.kind].tick(e, dt); } catch (err) { done = true; }
       if (done) { tryCall('event.end', () => KINDS[e.kind].end(e)); events.splice(events.indexOf(e), 1); }
     }
+    if (game.ui?.title || game.frontEnd?.active) return; // the clock only runs once play has started
     eventCd -= dt;
     if (eventCd > 0 || G.wanted.level > 0 || G.dead || G.busted || events.length >= 2) return;
     eventCd = rand(40, 80);

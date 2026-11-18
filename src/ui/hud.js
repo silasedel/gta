@@ -647,7 +647,7 @@ export function createHUD(game) {
     // north marker
     {
       const nx = Math.sin(th), ny = -Math.cos(th);
-      const [ex, ey] = edgePoint(nx, ny, cx - 13, ny < 0 ? cy - 13 : MH - cy - 13);
+      const [ex, ey] = edgePoint(nx, ny, cx - 19, ny < 0 ? cy - 19 : MH - cy - 19); // r2: clear of the rounded frame edge
       g.fillStyle = 'rgba(10,14,22,.85)'; g.beginPath(); g.arc(cx + ex, cy + ey, 9, 0, TAU); g.fill();
       g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1; g.stroke();
       g.fillStyle = '#fff'; g.font = '700 11px "Archivo Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -1266,7 +1266,27 @@ export function createHUD(game) {
   }
 
   // ---------- public API ----------
+  // r2 (QA first minutes #10): one message at a time. Notifications that arrive together are shown ~3 s apart, and in
+  // the first seconds of play the area card comes first, then the messages, then the help prompt.
+  const notifQ = [];
+  let nextNotifAt = 0, playStartAt = 0;
+  const OPENING_MS = 3200, NOTIF_GAP_MS = 3000;
   function notify(text, ms = 3500, opts = {}) {
+    if (!text) return;
+    const now = performance.now();
+    if (ui.title || !playStartAt || notifQ.length || now < nextNotifAt) { if (notifQ.length < 6) notifQ.push([text, ms, opts]); return; }
+    nextNotifAt = now + NOTIF_GAP_MS;
+    notifyNow(text, ms, opts);
+  }
+  function pumpNotifs() {
+    const now = performance.now();
+    if (!playStartAt && !ui.title) { playStartAt = now; nextNotifAt = Math.max(nextNotifAt, now + OPENING_MS); }
+    if (!notifQ.length || ui.title || now < nextNotifAt) return;
+    const [t, ms, o] = notifQ.shift();
+    nextNotifAt = now + NOTIF_GAP_MS;
+    notifyNow(t, ms, o);
+  }
+  function notifyNow(text, ms = 3500, opts = {}) {
     if (!text) return;
     const n = el('div', 'ps-notif');
     const str = String(text);
@@ -1304,12 +1324,16 @@ export function createHUD(game) {
     requestAnimationFrame(() => n.classList.add('in'));
     setTimeout(() => { n.classList.remove('in'); n.classList.add('out'); setTimeout(() => n.remove(), 450); }, Math.max(800, num(ms, 3500)));
   }
+  let helpHeld = undefined;
   function help(text) {
+    // the opening sequence owns the first seconds: the prompt waits until the area card and the first messages are read
+    if (!playStartAt || performance.now() < playStartAt + 2 * OPENING_MS) { helpHeld = text || null; return; }
     if (text === helpText) return;
     helpText = text || null;
     if (helpText) { helpEl.innerHTML = formatKeys(helpText); helpEl.classList.add('on'); }
     else helpEl.classList.remove('on');
   }
+  function pumpHelp() { if (helpHeld !== undefined && playStartAt && performance.now() >= playStartAt + 2 * OPENING_MS) { const t = helpHeld; helpHeld = undefined; help(t); } }
   function formatKeys(t) {
     const esc = String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
     return esc.replace(/&lt;(b|kbd)&gt;(.{1,14}?)&lt;\/\1&gt;|\[([^\]]{1,12})\]/g, (m, t, a, b) => `<kbd>${a || b}</kbd>`);
@@ -1331,6 +1355,7 @@ export function createHUD(game) {
 
   // ---------- per-frame ----------
   function update(dt) {
+    pumpNotifs(); pumpHelp();
     dt = num(dt, num(game.clock?.dt, 1 / 60)); dt = clamp(dt, 0, 0.1);
     const pl = game.player || {};
     if (!bake && !mapR.ok() && performance.now() - bakeTried > 1000) { bakeTried = performance.now(); bake = tryBake(); }

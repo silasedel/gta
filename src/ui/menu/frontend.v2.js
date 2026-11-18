@@ -350,7 +350,7 @@ function startTitle(game, ctx, cin, fe, params) {
     const back = { x: Math.sin(P.heading), z: Math.cos(P.heading) };
     cin.begin({ letterbox: false, dof: true, flare: true, grain: 1.2, vignette: 0.08, owner: 'intro' });
     cin.shot({ dur: 1e6, fov: 42, aperture: 0.4, from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] } });
-    await load.waitWorld(px, pz);
+    try { await load.waitWorld(px, pz); } catch (e) { console.warn('[frontend] waitWorld', e); } // never leave the loading screen up
     // reveal: crane down from behind to the gameplay camera, then hand it over
     game.menuMusic = null;
     root.remove();

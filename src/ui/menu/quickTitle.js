@@ -169,8 +169,8 @@ export function installQuickTitle() {
     removeEventListener('keydown', onKey, true); removeEventListener('keyup', onKey, true);
     if (L) L.style.visibility = '';
     if (error) { wrap.remove(); return; }
-    wrap.classList.add('out');
-    setTimeout(() => { try { st.load?.close(); } catch (e) { /* */ } wrap.remove(); }, 700);
+    wrap.classList.add('out'); wrap.style.transition = 'opacity .4s ease'; wrap.style.opacity = '0'; wrap.style.pointerEvents = 'none';
+    setTimeout(() => { try { st.load?.close(); } catch (e) { /* */ } wrap.style.display = 'none'; wrap.remove(); }, 450);
   }
   return st;
 }

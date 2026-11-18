@@ -71,6 +71,13 @@ export function createLoadScreen(o = {}) {
     el: L,
     set(p, m) { shown = Math.max(shown, Math.min(100, p)); bar.style.setProperty('--p', (shown / 100).toFixed(3)); pct.textContent = Math.floor(shown) + '%'; if (m != null) msg.textContent = m; },
     place(t) { place.textContent = t || ''; },
-    close() { clearInterval(tipT); L.classList.add('out'); setTimeout(() => L.remove(), 950); },
+    // r2 (QA first minutes #1): a short, decisive fade, then gone from layout and the DOM (no half-transparent ghost
+    // over the first gameplay frames, whatever the frame rate is doing)
+    close() {
+      clearInterval(tipT);
+      L.style.pointerEvents = 'none'; L.style.transition = 'opacity .4s ease';
+      L.classList.remove('in'); L.classList.add('out'); L.style.opacity = '0';
+      setTimeout(() => { L.style.display = 'none'; L.remove(); }, 450);
+    },
   };
 }
