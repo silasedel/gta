@@ -12,6 +12,8 @@ const COL = { // a touch warm (not beige): the blue sky fill on shaded faces the
   soffit: [0.2, 0.196, 0.185], walk: [0.3, 0.292, 0.27], curb: [0.28, 0.272, 0.25], girder: [0.24, 0.234, 0.215], pier: [0.3, 0.292, 0.27], cap: [0.29, 0.282, 0.26], /* ground pass: undersides / piers read as concrete, not near-black */ white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
+const R3C = !(typeof location !== 'undefined' && /[?&]r3concrete=0\b/.test(location.search)); // r3-concrete A/B: 0 = old flat retaining wall
+
 export function createBuilder(net) {
   const { chains } = net;
   // ---- index: 50 m cells -> segment ids / piers / lamps / joints / barrier runs
@@ -117,13 +119,31 @@ export function createBuilder(net) {
     };
     const s = side, CP = 0.14, cT0 = yE0 - 0.05, cT1 = yE1 - 0.05, cB0 = yE0 - 0.42, cB1 = yE1 - 0.42;
     face(oE0, yt0, oE0, cT0, oE1, yt1, oE1, cT1, COL.barrier, hx, 0, hz);                                   // barrier outer face down to the coping
+    if (R3C) { // r3-concrete: 4 cm chamfer on the coping's outer top edge (catches light like a real cast edge)
+      const CH = 0.045;
+      face(oE0, cT0, oE0 + s * (CP - CH), cT0, oE1, cT1, oE1 + s * (CP - CH), cT1, COL.coping, 0, 1, 0);
+      face(oE0 + s * (CP - CH), cT0, oE0 + s * CP, cT0 - CH, oE1 + s * (CP - CH), cT1, oE1 + s * CP, cT1 - CH, COL.coping, hx * 0.7, 0.7, hz * 0.7);
+      face(oE0 + s * CP, cT0 - CH, oE0 + s * CP, cB0, oE1 + s * CP, cT1 - CH, oE1 + s * CP, cB1, COL.coping, hx, 0, hz);
+    } else {
     face(oE0, cT0, oE0 + s * CP, cT0, oE1, cT1, oE1 + s * CP, cT1, COL.coping, 0, 1, 0);                       // coping top
     face(oE0 + s * CP, cT0, oE0 + s * CP, cB0, oE1 + s * CP, cT1, oE1 + s * CP, cB1, COL.coping, hx, 0, hz);    // coping front
+    }
     face(oE0 + s * CP, cB0 + 0.04, oE0 + s * (CP - 0.03), cB0 + 0.04, oE1 + s * CP, cB1 + 0.04, oE1 + s * (CP - 0.03), cB1 + 0.04, COL.drip, 0, -1, 0); // drip groove
     face(oE0 + s * CP, cB0, oE0, cB0, oE1 + s * CP, cB1, oE1, cB1, COL.drip, 0, -1, 0);                        // coping underside
     // wall face (2 % batter toward the base), tone per 3 m panel at the segment middle
     const ft0 = g0 + 0.25, ft1 = g1 + 0.25, bt0 = s * 0.02 * Math.max(0, cB0 - ft0), bt1 = s * 0.02 * Math.max(0, cB1 - ft1);
-    const tone = panelTone(Math.floor((F0.s + F1.s) / 2 / 3.0) + c.id * 7 + (side > 0 ? 3 : 0)), wc = [COL.wall[0] * tone, COL.wall[1] * tone, COL.wall[2] * tone];
+    const tone = panelTone(Math.floor((F0.s + F1.s) / 2 / 3.0) + c.id * 7 + (side > 0 ? 3 : 0)), lw = R3C ? 1.45 : 1, wc = [COL.wall[0] * tone * lw, COL.wall[1] * tone * lw, COL.wall[2] * tone * lw];
+    if (R3C) { // wall in two bands: panel concrete above, splash / soil darkening that fades up from the footing (vertex-colour gradient = AO + rain spray at the base)
+      const hb = Math.min(1.4, (cB0 - ft0) * 0.5), hb1 = Math.min(1.4, (cB1 - ft1) * 0.5), dk = 0.42, wd = [wc[0] * dk, wc[1] * dk * 0.97, wc[2] * dk * 0.92];
+      const wp = (F, oE, bt, cB, ft, y) => W(F, oE + bt * (1 - (y - ft) / Math.max(1e-6, cB - ft)), y);
+      const m0 = ft0 + hb, m1 = ft1 + hb1, uvS = 0.25;
+      const A0 = wp(F0, oE0, bt0, cB0, ft0, cB0), A1 = wp(F0, oE0, bt0, cB0, ft0, m0), B1 = wp(F1, oE1, bt1, cB1, ft1, m1), B0 = wp(F1, oE1, bt1, cB1, ft1, cB1);
+      setV(va, ...A0, 0, 0, 0, F0.s * uvS, cB0 * uvS, wc); setV(vb, ...A1, 0, 0, 0, F0.s * uvS, m0 * uvS, wc); setV(vc, ...B1, 0, 0, 0, F1.s * uvS, m1 * uvS, wc); setV(vd, ...B0, 0, 0, 0, F1.s * uvS, cB1 * uvS, wc);
+      quad(buf, va, vb, vc, vd, hx, 0, hz, B);
+      const C0 = wp(F0, oE0, bt0, cB0, ft0, ft0), C1 = wp(F1, oE1, bt1, cB1, ft1, ft1);
+      setV(va, ...A1, 0, 0, 0, F0.s * uvS, m0 * uvS, wc); setV(vb, ...C0, 0, 0, 0, F0.s * uvS, ft0 * uvS, wd); setV(vc, ...C1, 0, 0, 0, F1.s * uvS, ft1 * uvS, wd); setV(vd, ...B1, 0, 0, 0, F1.s * uvS, m1 * uvS, wc);
+      quad(buf, va, vb, vc, vd, hx, 0, hz, B);
+    } else
     face(oE0, cB0, oE0 + bt0, ft0, oE1, cB1, oE1 + bt1, ft1, wc, hx, 0, hz);
     // panel joints: vertical every 3 m (by global arc length), horizontal every 1.5 m above the footing
     const jw = 0.035, out = s * 0.012;
@@ -144,6 +164,16 @@ export function createBuilder(net) {
     const FW = 0.3;
     face(oE0 + bt0, ft0, oE0 + bt0 + s * FW, ft0, oE1 + bt1, ft1, oE1 + bt1 + s * FW, ft1, COL.footing, 0, 1, 0);
     face(oE0 + bt0 + s * FW, ft0, oE0 + bt0 + s * FW, g0 - 0.35, oE1 + bt1 + s * FW, ft1, oE1 + bt1 + s * FW, g1 - 0.35, COL.footing, hx, 0, hz);
+    if (R3C) { // earth berm: soil piled against the footing, sloping out and down under the terrain so the wall base has no hard 2D edge
+      const GR = 2.4, fo0 = oE0 + bt0 + s * FW, fo1 = oE1 + bt1 + s * FW, top0 = g0 + 0.32, top1 = g1 + 0.32, lo0 = g0 - 0.12, lo1 = g1 - 0.12;
+      const E = (F, o, y, u) => setV([], ...W(F, o, y), 0, 0, 0, u, 300, [0.5, 0.5, 0.5]);
+      // 2 slope bands: steep near the wall, long toe under the terrain
+      const mid0 = g0 + 0.1, mid1 = g1 + 0.1;
+      for (const [a0, a1, b0, b1, ua, ub] of [[top0, top1, mid0, mid1, 0, 0.45], [mid0, mid1, lo0, lo1, 0.45, 1]]) {
+        const oa0 = fo0 + s * GR * ua, ob0 = fo0 + s * GR * ub, oa1 = fo1 + s * GR * ua, ob1 = fo1 + s * GR * ub;
+        quad(buf, E(F0, oa0, a0, ua), E(F0, ob0, b0, ub), E(F1, ob1, b1, ub), E(F1, oa1, a1, ua), hx * 0.4, 0.92, hz * 0.4, B);
+      }
+    }
     return true;
   }
 

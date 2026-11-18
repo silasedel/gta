@@ -56,7 +56,7 @@ vec3 ccNrmT = vec3(0.0);
         vec3 cc = diffuseColor.rgb * det * panel;
         cc *= 1.0 - grime; cc *= 1.0 - joint * 0.45;
         // barrier faces: height fraction in uv.y (100 + h), scuff line, scuppers, tyre spray
-        if (vCcUv.y > 99.5) {
+        if (vCcUv.y > 99.5 && vCcUv.y < 299.5) {
           float hf = vCcUv.y - 100.0, sAlong = vCcUv.x;
           float scuff = smoothstep(0.04, 0.07, hf) * (1.0 - smoothstep(0.2, 0.26, hf)) * smoothstep(0.35, 0.65, ccN(vec2(sAlong * 0.8, 1.7)) * 0.7 + ccN(vec2(sAlong * 6.0, 4.4)) * 0.3);
           float spray = 1.0 - smoothstep(0.0, 0.55, hf);
@@ -78,6 +78,15 @@ vec3 ccNrmT = vec3(0.0);
           cc = mix(vec3(cl) * vec3(1.0, 1.0, 0.98), cc, 0.35);
           cc *= mix(1.0, clamp(0.27 / max(cl, 1e-3), 0.7, 1.5), 0.55);
         }
+        if (vCcUv.y > 299.5) { // r3-concrete: earth berm at a wall base (uv.x = 0 at the wall -> 1 at the terrain): dark soil by the wall, dry grass and soil toward the terrain, fines + pebbles
+          float un = clamp(vCcUv.x, 0.0, 1.0), nz1 = ccN(vCcP.xz * 3.1), nz2 = ccN(vCcP.xz * 11.0 + 5.0), nz3 = ccN(vCcP.xz * 0.7 + 2.0);
+          vec3 soil = mix(vec3(0.052, 0.040, 0.030), vec3(0.095, 0.074, 0.052), nz3) * (0.75 + 0.5 * nz1) * (0.85 + 0.3 * nz2);
+          vec3 turf = vec3(0.062, 0.078, 0.030) * (0.7 + 0.6 * nz1);
+          float gr = smoothstep(0.35, 0.8, un + (nz3 - 0.5) * 0.5);
+          cc = mix(soil, turf, gr * 0.85);
+          cc = mix(cc, vec3(0.30, 0.285, 0.26) * (0.6 + 0.6 * nz2), step(0.93, nz2) * 0.5 * (1.0 - gr)); // pebbles
+          ccNrmT.y = 0.0;
+        }
         diffuseColor.rgb = cc;
         ccNrmT.x = joint;
       }`)
@@ -91,7 +100,7 @@ vec3 ccNrmT = vec3(0.0);
         vec3 nW = normalize(tX.zyx * bw.x + tY.xzy * bw.y + tZ.xyz * bw.z);
         normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`);
   };
-  m.customProgramCacheKey = () => 'ground-elevated-concrete-v2';
+  m.customProgramCacheKey = () => 'ground-elevated-concrete-v3';
   m.needsUpdate = true;
   return m;
 }

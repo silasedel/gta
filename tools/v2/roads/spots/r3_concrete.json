@@ -1,0 +1,5 @@
+[
+ {"id":"brickell_a","tod":11,"road":{"x":377,"z":1070,"dir":1,"back":14,"up":2.2,"ahead":30,"side":9,"lookSide":0,"lookUp":2}},
+ {"id":"brickell_b","tod":11,"eye":[352,1.6,1070],"look":[362,2,1090]},
+ {"id":"miami_aerial","tod":11,"eye":[-33,60,-830],"look":[-33,0,-762]}
+]
