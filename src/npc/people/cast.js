@@ -40,6 +40,7 @@ export function placesFor(zone, act, ctx = {}) {
     case 'bouncer': case 'security': return ['security'];
     case 'club': case 'guest': case 'dj': return ['nightlife', 'tourist'];
     case 'hotel': case 'maid': case 'bellhop': return ['hotel_staff'];
+    case 'gang': return ['gang', 'rough'];
     case 'hospital': case 'nurse': case 'paramedic': return ['medic'];
     case 'fire_station': case 'firefighter': return ['fire'];
     case 'garage': case 'mechanic': return ['work', 'industrial'];

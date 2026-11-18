@@ -47,6 +47,35 @@ for (x0, y0, x1, y1) in _row.get('erase', []):
     mask = mask.filter(ImageFilter.MaxFilter(3))
     A.paste(Image.composite(fill, reg, mask), outer[:2])
 # full-resolution set for the few people right next to the camera (user: full-res textures up close)
+# r2: white fringe at the hair edges (the scan baked its white background into the hair silhouette texels): inside the
+# scalp / hair UV region (tools/v2/npcs/rig_person.py <pid>_hair.json), near-white low-saturation texels next to dark hair
+# take the color of the hair around them. Skipped for light (gray / blond) hair.
+try:
+    import numpy as _np
+    from PIL import ImageDraw as _ID
+    _hj = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out', 'blend', pid + '_hair.json')
+    if os.path.exists(_hj):
+        _tris = _json.load(open(_hj)); W_, H_ = A.size
+        _m = Image.new('L', (1024, 1024), 0); _d = _ID.Draw(_m)      # mask at 1K (rank filters at 4K take minutes)
+        for t in _tris: _d.polygon([(u * 1024, (1 - v) * 1024) for u, v in t], fill=255)
+        _m = _m.filter(ImageFilter.MaxFilter(3)).resize(A.size, Image.NEAREST)
+        _ar = _np.asarray(A).astype(_np.float32) / 255; mk = _np.asarray(_m) > 0
+        L = _ar.mean(2); sat = _ar.max(2) - _ar.min(2)
+        region = mk & (L < 0.7)
+        if region.sum() > 500 and _np.median(L[region]) < 0.32:          # dark hair only
+            fr = mk & (L > 0.62) & (sat < 0.2)
+            if fr.any():
+                keep = (mk & ~fr).astype(_np.float32)
+                _sm = (A.size[0] // 4, A.size[1] // 4)   # the fill color is smooth: blur at quarter size, scale back up
+                num = Image.fromarray((_ar * keep[..., None] * 255).astype(_np.uint8)).resize(_sm, Image.BILINEAR).filter(ImageFilter.GaussianBlur(3)).resize(A.size, Image.BILINEAR)
+                den = Image.fromarray((keep * 255).astype(_np.uint8)).resize(_sm, Image.BILINEAR).filter(ImageFilter.GaussianBlur(3)).resize(A.size, Image.BILINEAR)
+                nn = _np.asarray(num).astype(_np.float32); dd = _np.asarray(den).astype(_np.float32)[..., None]
+                fill = _np.where(dd > 8, nn / _np.maximum(dd, 1) * 255, _ar * 255)
+                out_ = _ar * 255; out_[fr] = fill[fr]
+                A = Image.fromarray(out_.clip(0, 255).astype(_np.uint8))
+                print('[tex]', pid, 'hair fringe texels', int(fr.sum()))
+except Exception as _e:
+    print('[tex] hair fringe skipped', _e)
 webp(A, os.path.join(out, pid + '_a4.webp'), 88)
 webp(A.resize((2048, 2048), Image.LANCZOS), os.path.join(out, pid + '_a2.webp'), 84)
 webp(A.resize((1024, 1024), Image.LANCZOS), os.path.join(out, pid + '_a.webp'), 86)

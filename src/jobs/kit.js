@@ -171,7 +171,8 @@ export function applyKit(game, ped, kit, seed = 1) {
 export function spawnKitPed(game, pos, kit, seed, opts = {}) {
   const peds = game.peds;
   if (!peds?.spawnAt) return null;
-  const p = peds.spawnAt(new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), {});
+  // gang crews wear the user's gang-member people (r2-people cast place 'gang'); everyone else a person of the area
+  const p = peds.spawnAt(new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), opts.tag?.gang ? { outfit: 'gang' } : {});
   if (!p) return null;
   applyKit(game, p, kit, seed);
   p.pinned = 1e9;

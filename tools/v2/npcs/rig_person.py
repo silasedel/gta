@@ -112,6 +112,45 @@ bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 bm.to_mesh(me); bm.free(); me.update()
 log('clean', 'islands', len(islands), 'dropped verts', len(drop), 'verts', len(me.vertices))
 
+# ---------------------------------------------------------------- r2: flatten shirt-print relief (user note)
+# Tripo models some shirt graphics as raised 3D relief. Small sharp bumps on the torso (outward from a lightly smoothed
+# copy of the surface by 4-25 mm) go back onto that surface; the print stays in the texture. Large smooth shapes (chest,
+# belly) barely move under a few smoothing steps, so they are kept.
+if not A.get('noflat'):
+    _P = V(); n = len(_P)
+    _E = np.empty(len(me.edges) * 2, dtype=np.int64); me.edges.foreach_get('vertices', _E); _E = _E.reshape(-1, 2)
+    _N = np.empty(n * 3); me.vertices.foreach_get('normal', _N); _N = _N.reshape(-1, 3)
+    deg = np.bincount(_E.ravel(), minlength=n).astype(np.float64); deg[deg == 0] = 1
+    def _smooth(X, it):
+        S = X.copy()
+        for _ in range(it):
+            acc = np.zeros_like(S); np.add.at(acc, _E[:, 0], S[_E[:, 1]]); np.add.at(acc, _E[:, 1], S[_E[:, 0]])
+            S = 0.5 * S + 0.5 * acc / deg[:, None]
+        return S
+    Hh = _P[:, 2].max() - _P[:, 2].min(); z0 = _P[:, 2].min(); k = Hh / 1.75
+    S = _smooth(_P, 30)
+    d = ((_P - S) * _N).sum(1)
+    torso = ((_P[:, 2] - z0) > 0.47 * Hh) & ((_P[:, 2] - z0) < 0.80 * Hh) & (np.abs(_P[:, 0]) < 0.13 * Hh)
+    # sharp walls: a print relief has steep sides (neighbor normals differ a lot); smooth body shapes do not
+    cosmin = np.ones(n); dots = (_N[_E[:, 0]] * _N[_E[:, 1]]).sum(1)
+    np.minimum.at(cosmin, _E[:, 0], dots); np.minimum.at(cosmin, _E[:, 1], dots)
+    cand = torso & (d > 0.006 * k) & (d < 0.08 * k)
+    seed = cand & (cosmin < 0.55) & (d > 0.01 * k)
+    # grow the seeds over connected candidates (the whole raised print), then flatten it onto the smoothed surface
+    m = seed.copy()
+    for _ in range(40):
+        g = m.copy(); g[_E[:, 0]] |= m[_E[:, 1]]; g[_E[:, 1]] |= m[_E[:, 0]]; g &= cand
+        if (g == m).all(): break
+        m = g
+    if m.sum():
+        T = S + _N * 0.0015
+        _P[m] = T[m]
+        # blend the rim one ring out so no crease is left
+        rim = np.zeros(n, bool); rim[_E[:, 0]] |= m[_E[:, 1]]; rim[_E[:, 1]] |= m[_E[:, 0]]; rim &= ~m & torso
+        _P[rim] = 0.5 * _P[rim] + 0.5 * T[rim]
+        me.vertices.foreach_set('co', _P.ravel()); me.update()
+    log('relief flattened verts', int(m.sum()))
+
 # ---------------------------------------------------------------- landmarks
 P = V(); H = P[:, 2].max() - HAT   # landmark scale: the person, not the hat
 X, Y, Z = P[:, 0], P[:, 1], P[:, 2]
@@ -254,6 +293,20 @@ _, hy, hd = slice_center(hipZ + 0.02 * H, 0.2)
 put('Hips', (0, hy + 0.1 * hd, hipZ + 0.02 * H))
 neckZ = zArm + 0.03 * H
 headZ = zArm + 0.44 * (H - zArm)   # skull base (0.56 sat at the nose: jaw weighted to the neck)
+# r2: UV triangles of the scalp / hair (above the brow, plus the back of the head) for textures.py's white-fringe fix
+try:
+    _uvl = me.uv_layers.active.data; _hc = slice_center(headZ + 0.06 * H, 0.08); _hy = _hc[1]
+    tris = []
+    for poly in me.polygons:
+        cz = sum(me.vertices[i].co.z for i in poly.vertices) / len(poly.vertices)
+        cy = sum(me.vertices[i].co.y for i in poly.vertices) / len(poly.vertices)
+        if cz > headZ + 0.55 * (H - headZ) or (cz > headZ and cy > _hy + 0.02 * H):   # above the brow, or the back of the head
+            uv = [list(_uvl[li].uv) for li in poly.loop_indices]
+            for k in range(1, len(uv) - 1): tris.append([uv[0], uv[k], uv[k + 1]])
+    json.dump(tris, open(os.path.join(OUT, PID + '_hair.json'), 'w'))
+    log('hair uv tris', len(tris))
+except Exception as e:
+    log('hair uv failed', e)
 for n, f in (('Spine', 0.2), ('Spine1', 0.45), ('Spine2', 0.7)):
     z = J['Hips'].z + (neckZ - J['Hips'].z) * f
     _, y, dd = slice_center(z, 0.16)

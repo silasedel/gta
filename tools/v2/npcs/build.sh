@@ -17,11 +17,12 @@ for c in json.load(open('tools/v2/npcs/people.json'))['people']:
         pid = 'c%02d' % c['char']; d = glob.glob('Models/Characters/Character %d - */' % c['char'])[0]
         src = c.get('src') or (glob.glob(d + '*.glb') + glob.glob(d + '*.fbx'))[0]; tex = d + 'textures'   # src: re-posed mesh (apose_lifeguard.py)
     if want and pid not in want: continue
-    print('\t'.join([pid, src, tex, str(c['h']), str(c.get('hat', 0))]))
+    print('\t'.join([pid, src, tex, str(c['h']), str(c.get('hat', 0)), '1' if c.get('noflat') else '0']))
 PY
 run() {
-  IFS=$'\t' read -r pid src tex h hat <<< "$1"
-  /opt/homebrew/bin/blender -b --python-exit-code 1 -P tools/v2/npcs/rig_person.py -- --in "$src" --id "$pid" --height "$h" --hat "$hat" --out "$BL" --blend 1 > "$LOG/$pid.log" 2>&1 || { echo "FAIL $pid"; return 0; }
+  IFS=$'\t' read -r pid src tex h hat noflat <<< "$1"
+  NF=""; [ "$noflat" = "1" ] && NF="--noflat 1"
+  /opt/homebrew/bin/blender -b --python-exit-code 1 -P tools/v2/npcs/rig_person.py -- --in "$src" --id "$pid" --height "$h" --hat "$hat" $NF --out "$BL" --blend 1 > "$LOG/$pid.log" 2>&1 || { echo "FAIL $pid"; return 0; }
   mv "$BL/$pid.json" "$META/$pid.json"; mv "$BL/$pid.glb" "$OUT/$pid.glb"
   if [ -z "$SKIPTEX" ]; then
   python3 -P -E tools/v2/npcs/textures.py "$tex" "$pid" "$OUT" >> "$LOG/$pid.log" 2>&1 || echo "TEXFAIL $pid"
@@ -30,5 +31,5 @@ run() {
   echo "ok $pid $(grep '\[rig\].*done' "$LOG/$pid.log" | cut -c1-160)"
 }
 export -f run; export OUT META BL LOG SKIPTEX
-tr '\n' '\0' < tools/v2/npcs/out/jobs.txt | xargs -0 -P "${JOBS:-3}" -I{} bash -c 'run "$@"' _ {}
+tr '\n' '\0' < tools/v2/npcs/out/jobs.txt | xargs -0 -P "${JOBS:-3}" -S 4096 -I{} bash -c 'run "$@"' _ {}
 python3 -I tools/v2/npcs/build_index.py "$META" "$OUT"

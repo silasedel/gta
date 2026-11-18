@@ -3482,11 +3482,11 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 13797489,
-    "top": 13486549,
+    "skin": 13797745,
+    "top": 13421011,
     "bottom": 5266030,
-    "hair": 6045222,
-    "shoes": 12417118,
+    "hair": 5979430,
+    "shoes": 12483166,
     "sleeve": 0.0,
     "leg": 0.92,
     "hat": false
@@ -3668,7 +3668,7 @@
     "lifeguard"
    ],
    "height": 1.838,
-   "hipH": 0.9087,
+   "hipH": 0.9084,
    "tris": {
     "LOD0_body": 48018,
     "LOD1_body": 5000,
@@ -3678,7 +3678,7 @@
    "skirt": false,
    "cols": {
     "skin": 13337702,
-    "top": 13947346,
+    "top": 13947603,
     "bottom": 11081508,
     "hair": 5585447,
     "shoes": 12350548,
@@ -3774,11 +3774,11 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 12875857,
-    "top": 13859099,
+    "skin": 12810065,
+    "top": 13596955,
     "bottom": 3946552,
     "hair": 4735031,
-    "shoes": 4076589,
+    "shoes": 4142381,
     "sleeve": 0.4,
     "leg": 1.0,
     "hat": false
@@ -3807,7 +3807,7 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 12481364,
+    "skin": 12481363,
     "top": 2110819,
     "bottom": 2698298,
     "hair": 2438231,
@@ -3874,7 +3874,7 @@
    "skirt": false,
    "cols": {
     "skin": 12090725,
-    "top": 12881700,
+    "top": 12684583,
     "bottom": 4672590,
     "hair": 4272930,
     "shoes": 5326641,
@@ -3906,7 +3906,7 @@
    "cols": {
     "skin": 13996411,
     "top": 6908011,
-    "bottom": 5524803,
+    "bottom": 5524800,
     "hair": 4403748,
     "shoes": 2368288,
     "sleeve": 0.2,
@@ -3926,8 +3926,8 @@
     "bar",
     "shop_staff"
    ],
-   "height": 1.665,
-   "hipH": 0.8384,
+   "height": 1.664,
+   "hipH": 0.8372,
    "tris": {
     "LOD0_body": 48664,
     "LOD1_body": 5000,
@@ -3937,7 +3937,7 @@
    "skirt": false,
    "cols": {
     "skin": 14850694,
-    "top": 2499358,
+    "top": 2565151,
     "bottom": 1973533,
     "hair": 7881240,
     "shoes": 2368546,
@@ -4002,7 +4002,7 @@
    "skirt": false,
    "cols": {
     "skin": 14389370,
-    "top": 2443910,
+    "top": 2443654,
     "bottom": 2179706,
     "hair": 2038551,
     "shoes": 13749965,
@@ -4033,7 +4033,7 @@
    "skirt": false,
    "cols": {
     "skin": 13401956,
-    "top": 2632764,
+    "top": 2632765,
     "bottom": 1974055,
     "hair": 1775380,
     "shoes": 1974046,
@@ -4055,7 +4055,7 @@
     "work"
    ],
    "height": 1.886,
-   "hipH": 0.931,
+   "hipH": 0.9308,
    "tris": {
     "LOD0_body": 49087,
     "LOD1_body": 4999,
@@ -4065,10 +4065,10 @@
    "skirt": false,
    "cols": {
     "skin": 13203813,
-    "top": 4799786,
+    "top": 5917739,
     "bottom": 8874301,
     "hair": 5192745,
-    "shoes": 2697508,
+    "shoes": 2697509,
     "sleeve": 1.0,
     "leg": 1.0,
     "hat": false
@@ -4098,7 +4098,7 @@
    "skirt": false,
    "cols": {
     "skin": 11431252,
-    "top": 10006243,
+    "top": 9808610,
     "bottom": 2370370,
     "hair": 8813173,
     "shoes": 1513238,
@@ -4128,9 +4128,9 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 11955797,
-    "top": 1908255,
-    "bottom": 1710875,
+    "skin": 11890261,
+    "top": 2039841,
+    "bottom": 1776411,
     "hair": 2763306,
     "shoes": 1907997,
     "sleeve": 1.0,
@@ -4162,7 +4162,7 @@
    "skirt": false,
    "cols": {
     "skin": 13335398,
-    "top": 5853256,
+    "top": 5853255,
     "bottom": 5589568,
     "hair": 6836537,
     "shoes": 3354409,
@@ -4184,7 +4184,7 @@
     "street"
    ],
    "height": 1.76,
-   "hipH": 0.8706,
+   "hipH": 0.8705,
    "tris": {
     "LOD0_body": 47602,
     "LOD1_body": 5000,
@@ -4226,7 +4226,7 @@
    "skirt": true,
    "cols": {
     "skin": 14191727,
-    "top": 13747640,
+    "top": 13747385,
     "bottom": 2170911,
     "hair": 3878436,
     "shoes": 2105116,
@@ -4257,10 +4257,10 @@
    "skirt": false,
    "cols": {
     "skin": 12416599,
-    "top": 1842213,
+    "top": 1973799,
     "bottom": 1644831,
     "hair": 3092012,
-    "shoes": 1250067,
+    "shoes": 1250068,
     "sleeve": 0.3,
     "leg": 1.0,
     "hat": false
@@ -4288,10 +4288,10 @@
    "skirt": false,
    "cols": {
     "skin": 13865089,
-    "top": 2302506,
-    "bottom": 1973539,
-    "hair": 5784887,
-    "shoes": 1710360,
+    "top": 2302507,
+    "bottom": 1973540,
+    "hair": 5719351,
+    "shoes": 1644824,
     "sleeve": 0.4,
     "leg": 1.0,
     "hat": false
@@ -4318,10 +4318,10 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 13008488,
-    "top": 3292499,
+    "skin": 13008231,
+    "top": 6920654,
     "bottom": 2303282,
-    "hair": 2959654,
+    "hair": 3025447,
     "shoes": 3749943,
     "sleeve": 0.4,
     "leg": 1.0,
@@ -4350,10 +4350,10 @@
    "skirt": true,
    "cols": {
     "skin": 13994107,
-    "top": 2434350,
+    "top": 2434352,
     "bottom": 2105127,
-    "hair": 10916235,
-    "shoes": 2499876,
+    "hair": 10917772,
+    "shoes": 2500132,
     "sleeve": 0.4,
     "leg": 1.0,
     "hat": false
@@ -4380,8 +4380,8 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 13336943,
-    "top": 2105129,
+    "skin": 13336687,
+    "top": 2236716,
     "bottom": 2170664,
     "hair": 4732454,
     "shoes": 1579031,
@@ -4415,8 +4415,8 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 12022356,
-    "top": 12303037,
+    "skin": 12022355,
+    "top": 12302781,
     "bottom": 9065783,
     "hair": 2235415,
     "shoes": 9198912,
@@ -4482,7 +4482,7 @@
    "cols": {
     "skin": 13797740,
     "top": 8651798,
-    "bottom": 10314562,
+    "bottom": 10314818,
     "hair": 3221796,
     "shoes": 11563088,
     "sleeve": 1.0,
@@ -4515,7 +4515,7 @@
     "skin": 13993572,
     "top": 2170915,
     "bottom": 2236710,
-    "hair": 2301725,
+    "hair": 2235933,
     "shoes": 3354414,
     "sleeve": 1.0,
     "leg": 1.0,
@@ -4547,10 +4547,10 @@
    "skirt": false,
    "cols": {
     "skin": 13929073,
-    "top": 3092018,
-    "bottom": 2763309,
-    "hair": 11245446,
-    "shoes": 11709603,
+    "top": 3026225,
+    "bottom": 2763053,
+    "hair": 11376775,
+    "shoes": 11775915,
     "sleeve": 0.0,
     "leg": 1.0,
     "hat": false
@@ -4579,12 +4579,12 @@
    "a2": true,
    "skirt": false,
    "cols": {
-    "skin": 12481878,
+    "skin": 12416086,
     "top": 14933724,
     "bottom": 10521204,
     "hair": 13288379,
     "shoes": 4010535,
-    "sleeve": 0.6,
+    "sleeve": 0.5,
     "leg": 1.0,
     "hat": false
    },
@@ -4614,7 +4614,7 @@
    "skirt": true,
    "cols": {
     "skin": 13994618,
-    "top": 9734820,
+    "top": 9669284,
     "bottom": 1908009,
     "hair": 13748675,
     "shoes": 2631462,
@@ -4682,10 +4682,10 @@
    "skirt": false,
    "cols": {
     "skin": 13140069,
-    "top": 13047917,
+    "top": 12982380,
     "bottom": 11604061,
     "hair": 13025209,
-    "shoes": 13815760,
+    "shoes": 13816016,
     "sleeve": 1.0,
     "leg": 1.0,
     "hat": false
@@ -4717,7 +4717,7 @@
     "skin": 14059892,
     "top": 3888525,
     "bottom": 1776411,
-    "hair": 3551019,
+    "hair": 3616556,
     "shoes": 5329235,
     "sleeve": 0.4,
     "leg": 0.5,
@@ -4747,7 +4747,7 @@
    "skirt": false,
    "cols": {
     "skin": 12480083,
-    "top": 11570383,
+    "top": 11570126,
     "bottom": 8145722,
     "hair": 1774096,
     "shoes": 12563647,
@@ -4779,10 +4779,10 @@
    "skirt": false,
    "cols": {
     "skin": 15112066,
-    "top": 15433086,
+    "top": 15302013,
     "bottom": 13141352,
     "hair": 12228472,
-    "shoes": 11647418,
+    "shoes": 11187896,
     "sleeve": 0.3,
     "leg": 0.42,
     "hat": false
@@ -4811,8 +4811,8 @@
    "skirt": false,
    "cols": {
     "skin": 14061691,
-    "top": 9056819,
-    "bottom": 6101019,
+    "top": 9516344,
+    "bottom": 6035483,
     "hair": 4402204,
     "shoes": 12628913,
     "sleeve": 0.1,
@@ -4846,9 +4846,846 @@
     "top": 12428759,
     "bottom": 13402720,
     "hair": 3287076,
-    "shoes": 13289417,
+    "shoes": 13223881,
     "sleeve": 0.2,
     "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p146",
+   "file": "p146.glb",
+   "name": "Sunburned Tourist In Print Shirt And Cargo Shorts",
+   "g": "m",
+   "age": "adult",
+   "years": 48,
+   "role": "tourist",
+   "places": [
+    "tourist",
+    "beach_walk",
+    "street"
+   ],
+   "height": 1.787,
+   "hipH": 0.8832,
+   "tris": {
+    "LOD0_body": 47696,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13399660,
+    "top": 6189711,
+    "bottom": 9666661,
+    "hair": 9732474,
+    "shoes": 9010548,
+    "sleeve": 0.3,
+    "leg": 0.33,
+    "hat": false
+   }
+  },
+  {
+   "id": "p147",
+   "file": "p147.glb",
+   "name": "Gym Guy In Black Stringer Tank",
+   "g": "m",
+   "age": "adult",
+   "years": 26,
+   "role": "bodybuilder",
+   "places": [
+    "sport",
+    "street",
+    "beach_walk"
+   ],
+   "height": 1.81,
+   "hipH": 0.8952,
+   "tris": {
+    "LOD0_body": 49708,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12283729,
+    "top": 2236965,
+    "bottom": 4013373,
+    "hair": 2038550,
+    "shoes": 12894144,
+    "sleeve": 0.1,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p148",
+   "file": "p148.glb",
+   "name": "Blond Boy In Graphic Tee",
+   "g": "m",
+   "age": "kid",
+   "years": 10,
+   "role": "kid",
+   "places": [
+    "park",
+    "residential"
+   ],
+   "height": 1.408,
+   "hipH": 0.7458,
+   "tris": {
+    "LOD0_body": 48686,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 14321780,
+    "top": 3757130,
+    "bottom": 11309167,
+    "hair": 9467223,
+    "shoes": 3486774,
+    "sleeve": 0.4,
+    "leg": 0.42,
+    "hat": false
+   }
+  },
+  {
+   "id": "p149",
+   "file": "p149.glb",
+   "name": "Homeless Man In Worn Layers",
+   "g": "m",
+   "age": "older",
+   "years": 50,
+   "role": "homeless",
+   "places": [
+    "rough",
+    "street"
+   ],
+   "height": 1.764,
+   "hipH": 0.8703,
+   "tris": {
+    "LOD0_body": 49750,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11101268,
+    "top": 4011567,
+    "bottom": 4866874,
+    "hair": 6444364,
+    "shoes": 5523774,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p150",
+   "file": "p150.glb",
+   "name": "Tattooed Gang Member In White Tank",
+   "g": "m",
+   "age": "adult",
+   "years": 27,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.769,
+   "hipH": 0.9367,
+   "tris": {
+    "LOD0_body": 47712,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 12744797,
+    "top": 13090497,
+    "bottom": 10060388,
+    "hair": 7824982,
+    "shoes": 3223341,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p151",
+   "file": "p151.glb",
+   "name": "Street Vendor In Apron",
+   "g": "m",
+   "age": "adult",
+   "years": 44,
+   "role": "vendor",
+   "places": [
+    "street",
+    "tourist",
+    "shop_staff"
+   ],
+   "height": 1.687,
+   "hipH": 0.8928,
+   "tris": {
+    "LOD0_body": 48918,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 12548960,
+    "top": 13547678,
+    "bottom": 9863531,
+    "hair": 4011828,
+    "shoes": 5721151,
+    "sleeve": 0.4,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p152",
+   "file": "p152.glb",
+   "name": "Heavyset Gang Member In Black Tee",
+   "g": "m",
+   "age": "adult",
+   "years": 32,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.829,
+   "hipH": 0.9042,
+   "tris": {
+    "LOD0_body": 49072,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10971477,
+    "top": 2434343,
+    "bottom": 2960685,
+    "hair": 1973533,
+    "shoes": 11973295,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p153",
+   "file": "p153.glb",
+   "name": "Wiry Gang Member In Stained Tank",
+   "g": "m",
+   "age": "adult",
+   "years": 24,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.781,
+   "hipH": 0.8818,
+   "tris": {
+    "LOD0_body": 48082,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11629151,
+    "top": 9010290,
+    "bottom": 4671560,
+    "hair": 4602155,
+    "shoes": 4801075,
+    "sleeve": 0.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p154",
+   "file": "p154.glb",
+   "name": "Gang Member In Red Tank And Cornrows",
+   "g": "m",
+   "age": "adult",
+   "years": 35,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.807,
+   "hipH": 0.956,
+   "tris": {
+    "LOD0_body": 48852,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 11693138,
+    "top": 10682903,
+    "bottom": 2039326,
+    "hair": 2762533,
+    "shoes": 2762531,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p155",
+   "file": "p155.glb",
+   "name": "Gang Member In Open Short-Sleeve Shirt",
+   "g": "m",
+   "age": "adult",
+   "years": 29,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.787,
+   "hipH": 0.8824,
+   "tris": {
+    "LOD0_body": 48486,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12152920,
+    "top": 8088669,
+    "bottom": 2631720,
+    "hair": 4470574,
+    "shoes": 2630945,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p156",
+   "file": "p156.glb",
+   "name": "Gang Member In Gray Hoodie",
+   "g": "m",
+   "age": "adult",
+   "years": 30,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.803,
+   "hipH": 0.8941,
+   "tris": {
+    "LOD0_body": 48970,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11628117,
+    "top": 6709337,
+    "bottom": 2565670,
+    "hair": 2302753,
+    "shoes": 6772809,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p157",
+   "file": "p157.glb",
+   "name": "Skinny Gang Member In Stained Tank",
+   "g": "m",
+   "age": "adult",
+   "years": 22,
+   "role": "gang",
+   "places": [
+    "gang"
+   ],
+   "height": 1.787,
+   "hipH": 0.9452,
+   "tris": {
+    "LOD0_body": 49636,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 10051653,
+    "top": 12037023,
+    "bottom": 2302753,
+    "hair": 1579030,
+    "shoes": 3156514,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p158",
+   "file": "p158.glb",
+   "name": "Blonde Woman In Black String Bikini",
+   "g": "f",
+   "age": "adult",
+   "years": 25,
+   "role": "beachgoer",
+   "places": [
+    "beach",
+    "swim",
+    "beach_walk"
+   ],
+   "height": 1.715,
+   "hipH": 0.9109,
+   "tris": {
+    "LOD0_body": 47220,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12350034,
+    "top": 10446653,
+    "bottom": 12811857,
+    "hair": 10188896,
+    "shoes": 12876890,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p159",
+   "file": "p159.glb",
+   "name": "Keys Fisherman In Long-Sleeve Shirt And Boots",
+   "g": "m",
+   "age": "older",
+   "years": 60,
+   "role": "fisherman",
+   "places": [
+    "dock",
+    "fishing",
+    "keys"
+   ],
+   "height": 1.769,
+   "hipH": 0.8746,
+   "tris": {
+    "LOD0_body": 49103,
+    "LOD1_body": 4999,
+    "LOD2_body": 1199
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11364946,
+    "top": 9478046,
+    "bottom": 5393472,
+    "hair": 9144192,
+    "shoes": 7363392,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p160",
+   "file": "p160.glb",
+   "name": "Boat Captain In White Polo And Cap",
+   "g": "m",
+   "age": "adult",
+   "years": 45,
+   "role": "boat_captain",
+   "places": [
+    "dock",
+    "keys",
+    "port"
+   ],
+   "height": 1.809,
+   "hipH": 0.8943,
+   "tris": {
+    "LOD0_body": 48800,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9063734,
+    "top": 14079710,
+    "bottom": 2698554,
+    "hair": 13420742,
+    "shoes": 7360060,
+    "sleeve": 0.4,
+    "leg": 0.42,
+    "hat": false
+   }
+  },
+  {
+   "id": "p161",
+   "file": "p161.glb",
+   "name": "Airboat Guide In Camo Shirt And Cap",
+   "g": "m",
+   "age": "adult",
+   "years": 40,
+   "role": "guide",
+   "places": [
+    "keys",
+    "dock",
+    "rural"
+   ],
+   "height": 1.812,
+   "hipH": 0.9602,
+   "tris": {
+    "LOD0_body": 47524,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 12020821,
+    "top": 7299658,
+    "bottom": 5720118,
+    "hair": 8220504,
+    "shoes": 4602666,
+    "sleeve": 0.3,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p162",
+   "file": "p162.glb",
+   "name": "Keys Fisherman In Camo Shirt",
+   "g": "m",
+   "age": "adult",
+   "years": 42,
+   "role": "fisherman",
+   "places": [
+    "dock",
+    "fishing",
+    "keys"
+   ],
+   "height": 1.8,
+   "hipH": 0.8902,
+   "tris": {
+    "LOD0_body": 47524,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12020821,
+    "top": 7299658,
+    "bottom": 5720118,
+    "hair": 8220504,
+    "shoes": 4602666,
+    "sleeve": 0.3,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p163",
+   "file": "p163.glb",
+   "name": "Bouncer In Black Tee",
+   "g": "m",
+   "age": "adult",
+   "years": 34,
+   "role": "bouncer",
+   "places": [
+    "security",
+    "nightlife"
+   ],
+   "height": 1.909,
+   "hipH": 0.9438,
+   "tris": {
+    "LOD0_body": 48002,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 9788227,
+    "top": 2039840,
+    "bottom": 2105376,
+    "hair": 8681841,
+    "shoes": 1776410,
+    "sleeve": 0.5,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p164",
+   "file": "p164.glb",
+   "name": "Bartender In Black Vest",
+   "g": "f",
+   "age": "adult",
+   "years": 30,
+   "role": "bartender",
+   "places": [
+    "bar"
+   ],
+   "height": 1.696,
+   "hipH": 0.8947,
+   "tris": {
+    "LOD0_body": 47308,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 11760202,
+    "top": 2565927,
+    "bottom": 2434341,
+    "hair": 3024158,
+    "shoes": 2697510,
+    "sleeve": 0.6,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p165",
+   "file": "p165.glb",
+   "name": "Finance Man In Navy Suit",
+   "g": "m",
+   "age": "adult",
+   "years": 38,
+   "role": "businessman",
+   "places": [
+    "business"
+   ],
+   "height": 1.827,
+   "hipH": 0.9208,
+   "tris": {
+    "LOD0_body": 48032,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12875612,
+    "top": 2698042,
+    "bottom": 2368822,
+    "hair": 4079426,
+    "shoes": 4207662,
+    "sleeve": 1.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p166",
+   "file": "p166.glb",
+   "name": "Finance Woman In Beige Dress",
+   "g": "f",
+   "age": "adult",
+   "years": 33,
+   "role": "businesswoman",
+   "places": [
+    "business",
+    "nightlife"
+   ],
+   "height": 1.707,
+   "hipH": 0.9032,
+   "tris": {
+    "LOD0_body": 49388,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 12482641,
+    "top": 14666934,
+    "bottom": 14271402,
+    "hair": 4075816,
+    "shoes": 12294774,
+    "sleeve": 0.1,
+    "leg": 0.33,
+    "hat": false
+   }
+  },
+  {
+   "id": "p167",
+   "file": "p167.glb",
+   "name": "Skater In Graphic Tee And Jeans",
+   "g": "m",
+   "age": "adult",
+   "years": 20,
+   "role": "local",
+   "places": [
+    "street",
+    "park",
+    "beach_walk"
+   ],
+   "height": 1.793,
+   "hipH": 0.9509,
+   "tris": {
+    "LOD0_body": 49450,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": true,
+   "cols": {
+    "skin": 9458487,
+    "top": 5723220,
+    "bottom": 6317930,
+    "hair": 2105633,
+    "shoes": 6972254,
+    "sleeve": 0.4,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p168",
+   "file": "p168.glb",
+   "name": "Street Musician In Floral Shirt",
+   "g": "m",
+   "age": "adult",
+   "years": 45,
+   "role": "musician",
+   "places": [
+    "street",
+    "tourist",
+    "beach_walk"
+   ],
+   "height": 1.77,
+   "hipH": 0.8758,
+   "tris": {
+    "LOD0_body": 48226,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10444869,
+    "top": 5060660,
+    "bottom": 13350038,
+    "hair": 4142126,
+    "shoes": 6439990,
+    "sleeve": 0.0,
+    "leg": 1.0,
+    "hat": false
+   }
+  },
+  {
+   "id": "p169",
+   "file": "p169.glb",
+   "name": "Jogger Woman In Red Tank And Shorts",
+   "g": "f",
+   "age": "adult",
+   "years": 28,
+   "role": "jogger",
+   "places": [
+    "sport",
+    "park",
+    "beach_walk"
+   ],
+   "height": 1.676,
+   "hipH": 0.8375,
+   "tris": {
+    "LOD0_body": 47734,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 12352340,
+    "top": 9521236,
+    "bottom": 11892301,
+    "hair": 3090209,
+    "shoes": 12038834,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p170",
+   "file": "p170.glb",
+   "name": "Tourist Mom In Tank And Denim Shorts",
+   "g": "f",
+   "age": "adult",
+   "years": 38,
+   "role": "tourist",
+   "places": [
+    "tourist",
+    "beach_walk",
+    "street",
+    "park"
+   ],
+   "height": 1.667,
+   "hipH": 0.8599,
+   "tris": {
+    "LOD0_body": 47750,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 13860189,
+    "top": 13747393,
+    "bottom": 12612169,
+    "hair": 4074784,
+    "shoes": 11116441,
+    "sleeve": 0.0,
+    "leg": 0.1,
+    "hat": false
+   }
+  },
+  {
+   "id": "p171",
+   "file": "p171.glb",
+   "name": "Heavyset Domino Player In White Tank",
+   "g": "m",
+   "age": "older",
+   "years": 62,
+   "role": "retiree",
+   "places": [
+    "residential",
+    "street",
+    "park"
+   ],
+   "height": 1.75,
+   "hipH": 0.8657,
+   "tris": {
+    "LOD0_body": 48280,
+    "LOD1_body": 5000,
+    "LOD2_body": 1200
+   },
+   "a2": true,
+   "skirt": false,
+   "cols": {
+    "skin": 10970187,
+    "top": 14801634,
+    "bottom": 2761249,
+    "hair": 12031109,
+    "shoes": 2564896,
+    "sleeve": 0.5,
+    "leg": 1.0,
     "hat": false
    }
   }
