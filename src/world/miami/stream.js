@@ -183,6 +183,8 @@ export function createStreamer(opts) {
         const ts = performance.now();
         const r = j.gen.next();
         const dt = performance.now() - ts; if (dt > stats.maxStep[j.kind]) stats.maxStep[j.kind] = dt;
+        if (dt > 30) { const L = stats.longSteps || (stats.longSteps = {}); L[j.kind + (dt > 100 ? '>100' : '>30')] = (L[j.kind + (dt > 100 ? '>100' : '>30')] || 0) + 1; // r2-perf: step-length histogram
+          if (dt > 60) { const LL = stats.longList || (stats.longList = []); LL.push([j.kind, Math.round(ts), Math.round(ts + dt), j.owner?.tx ?? j.owner?.a, j.owner?.tz ?? j.owner?.b]); if (LL.length > 80) LL.shift(); } }
         stats.jobsRun++;
         if (r.done) { jobs.shift(); if (j.cancelled) { if (r.value) { if (j.kind === 'col') removeTileCols(j.owner, r.value); else dispose(r.value); } } else j.done(r.value); }
       }

@@ -56,6 +56,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   await b.sleep(4000);
   // sampling profile of the whole drive
   await b.send('Profiler.enable'); await b.send('Profiler.setSamplingInterval', { interval: 500 }); await b.send('Profiler.start');
+  const pageT0 = await b.eval('performance.now()');
   const res = await b.eval(`new Promise((res) => { const D = window.__drv; const t0 = performance.now();
     const ri = game.renderer.info; const progs0 = ri.programs.length; const progSet0 = new Set(ri.programs); window.__r2pc.on = true;
     game.cameraOverride = (dt, cam) => { const s = Math.min(D.len, (performance.now() - t0) / 1000 * ${speed}); const p = D.at(s), q = D.at(Math.min(D.len, s + 30)); cam.position.set(p[0], p[1] + 1.5, p[2]); cam.lookAt(q[0], q[1] + 1.2, q[2]); return true; };
@@ -94,6 +95,19 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   const total = pr.samples.length, self = {}, incl = {};
   const nm = (n) => `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.split('/').slice(-1)[0].split('?')[0]}:${n.callFrame.lineNumber + 1}`;
   for (const [sid, c] of cnt) { const n = nodes.get(sid); self[nm(n)] = (self[nm(n)] || 0) + c; const seen = new Set(); for (let x = sid; x !== undefined; x = parent.get(x)) { const k = nm(nodes.get(x)); if (!seen.has(k)) { seen.add(k); incl[k] = (incl[k] || 0) + c; } } }
+  // long tile-build steps (stream.js stats.longList: kind, t0, t1 in page ms): what ran inside each, from the samples
+  try {
+    const offs = pr.startTime / 1000 - pageT0; // profiler clock (ms) minus page clock at start (both monotonic)
+    const LL = rep.drive.stream.longList || []; const per = []; let ts = pr.startTime / 1000;
+    const sampT = pr.samples.map((sid, i) => { ts += (pr.timeDeltas[i] || 0) / 1000; return [sid, ts - offs]; });
+    for (const [kind, a0, a1, x, z] of LL) {
+      const m = {}; let nS = 0;
+      for (const [sid, t] of sampT) { if (t < a0 || t > a1) continue; nS++; const seen = new Set(); for (let q = sid; q !== undefined; q = parent.get(q)) { const k = nm(nodes.get(q)); if (/tilebuild|terrain|facade|geo\.js|flora|elevated|roadgeo|chunk-|data\.js|houses|bldmodels|streetkit/.test(k) && !seen.has(k)) { seen.add(k); m[k] = (m[k] || 0) + 1; } } }
+      per.push({ kind, ms: a1 - a0, tile: [x, z], samples: nS, top: Object.entries(m).sort((p1, p2) => p2[1] - p1[1]).slice(0, 8).map(([k, c]) => `${Math.round(100 * c / Math.max(1, nS))}% ${k}`) });
+    }
+    rep.longSteps = per.sort((p1, p2) => p2.ms - p1.ms).slice(0, 25);
+    console.log('LONG STEPS:'); for (const l of rep.longSteps.slice(0, 15)) console.log('   ', JSON.stringify(l));
+  } catch (e) { console.log('longSteps analysis failed', e.message); }
   const topN = (m, k) => Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, k).map(([f, c]) => `${(100 * c / total).toFixed(1).padStart(5)}%  ${f}`);
   // inclusive shares restricted to samples under a given frame (e.g. the tile streamer's job runner)
   const under = (re) => { const m = {}; let tot = 0; for (const [sid, c] of cnt) { const stack = []; for (let x = sid; x !== undefined; x = parent.get(x)) stack.push(nm(nodes.get(x))); if (!stack.some((f) => re.test(f))) continue; tot += c; const seen = new Set(); for (const f of stack) if (!seen.has(f)) { seen.add(f); m[f] = (m[f] || 0) + c; } } return { totalPct: +(100 * tot / total).toFixed(1), top: Object.entries(m).sort((x, y) => y[1] - x[1]).slice(0, 60).map(([f, c2]) => `${(100 * c2 / Math.max(1, tot)).toFixed(1).padStart(5)}%  ${f}`) }; };
