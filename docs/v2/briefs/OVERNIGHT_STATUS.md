@@ -1441,6 +1441,17 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Standing still** (load 8-10): spawn 39-47 ms, Keys 16.6 ms, downtown 26.6 ms.
 - **Left:** spawn render submit (about 1,000 draws, 340 programs; countryside 325 draws), long tile-build steps,
   collider gaps (all in PERF_PLAN.md round 3).
+- **17:55 (b) long tile-build steps.**
+  - Time-based yields in the building loops (tilebuild, ?tbyield=0; tilebuild ready sent): near steps over 100 ms
+    18 -> 8 per drive, frame rate unchanged.
+  - Committed: a stream step histogram (streamer.stats.longSteps).
+  - Remaining cost:
+    - colliders, 54 % of tile-build CPU, a third of it ensureProps re-running buildRoads
+    - shop-front dressing, about 30 %: per-vertex JS
+  - Neither is a safe single-file fix.
+- **Programs and light uniforms:** 207 programs in view (83 custom onBeforeCompile keys x 23 feature sets). The
+  shadow-only directional lights can't be dropped without rewriting the split-shadow sampling. The fix is shared
+  onBeforeCompile keys per material family, which is owner work.
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
