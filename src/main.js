@@ -532,7 +532,9 @@ async function boot() {
     pCol.setEnabled(true);
     st.inVehicle = false; st.vehicle = null; vy = 0; moveSpeed = 0;
     L.blockT = 0; L.speedF = 0; L.animSpeed = 0; L.turnInPlace = false; L.visY = null; L.airVy = 0;
-    P.heading = Math.atan2(-Math.sin(game.cameraYaw), -Math.cos(game.cameraYaw));
+    { // face away from the car (out of the door), not along the camera (user: step out normally, don't appear sitting on the ground)
+      const vp = v.body?.translation?.(); const ox = vp ? spot.x - vp.x : 0, oz = vp ? spot.z - vp.z : 0;
+      P.heading = Math.hypot(ox, oz) > 0.3 ? Math.atan2(ox, oz) : Math.atan2(-Math.sin(game.cameraYaw), -Math.cos(game.cameraYaw)); }
     playerSeat.exit();
     if (character) character.setVisible(true);
   }

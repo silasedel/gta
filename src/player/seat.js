@@ -99,7 +99,7 @@ export function createPlayerSeat(game) {
     exit() {
       if (!cur) return;
       if (cur.pending) { cur = null; return; }
-      try { cur.ch.snapshotPose?.(0.4); unseatCharacter(cur.ch); game.scene.add(cur.ch.root); cur.ch.root.rotation.set(0, 0, 0); } catch (e) { /* ignore */ }
+      try { cur.ch.snapshotPose?.(0.14); unseatCharacter(cur.ch); game.scene.add(cur.ch.root); cur.ch.root.rotation.set(0, 0, 0); } catch (e) { /* ignore */ }
       cur = null;
     },
   };
