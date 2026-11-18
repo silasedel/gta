@@ -804,3 +804,9 @@ Epidemic Sound, licensed by the project owner, local build only. These files are
 No third-party assets. Every surface (polished stone tile, marble, velvet, tufting, fluting, plaster, walnut, brass), the bottle shapes
 and their label atlas (40 invented brands), neon signs (club names and icons), menus, art prints, garments, palm fronds and effects are
 generated in code. Neon, menu and logo lettering use typefaces referenced by name from the operating system (no font files are distributed).
+
+## Aircraft (r4-air: public/assets/vehicles/air, src/vehicles/air)
+Library models from the user's collection (Models/Planes), converted by tools/v2/air/convert_planes.py. The Caloosa Skimmer 210
+prop plane (prop.glb) is Plane 9, a high-wing single-prop model by BARANGER Emmanuel (helijah), made for FlightGear, GPL licensed:
+credit required when shipped. The floatplane (Plane 3) and business jet (Plane 13) are user-licensed library models. Brand and
+model names are invented. The airport fence, gates, signs and all aircraft effects are generated in code.
