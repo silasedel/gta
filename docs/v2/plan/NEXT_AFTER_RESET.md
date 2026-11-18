@@ -52,3 +52,8 @@
 - **Map shoreline near Nico's lot:** a stray filled square of water is drawn in the yard (the carved cove polygon); round the shoreline corners slightly.
 - **Wire fences:** thin wire fences (posts plus wires, e.g. at the Keys lot by the stop sign) are rigid walls. Fill them with the user's chain-link / wire mesh model and make them break or bend (low energy in breakables) instead of stopping the car dead.
 - **Police:** "hit and run" while being chased (likely a ped bumped at low speed after the low-speed hit change): the officer saw it, so this is expected, but check what started the original chase.
+- **Stairs (user again):** they should run from the deck corner down toward the middle, next to the basketball hoop. Stray glitched wood pieces sit below the deck. The back side's stairs and room are off: copy mockup 08 exactly.
+- **Road and sand edges:** still bad near Nico's. Rocks on the road (yard rocks fixed in this round; check the other lot dressing). Asphalt edge blending into sand.
+- **Wanted stars:** the blinking looks weird. Animate like a real open-world HUD: a smooth flash on gain, a pulse while searching, a fade on loss, gentle light-up timing.
+- **Overseas Hwy bridge:** where the divided highway meets the single carriageway at the islet (user map screenshot), the bridge dips underwater and drops off. Make it one continuous elevated bridge like render 1: concrete deck, multi-column bents, no water on the deck or between the twin bridges.
+- **Fence physics:** the thin wire / map-data fence that stopped the car dead needs the energy-break model (chain / wire low energy) and the mesh fabric from the user's model.
