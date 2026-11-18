@@ -10,6 +10,10 @@
 //   - barrier faces (uv.y = 100 + height fraction, written by elevated/build.js): a black rubber scuff line 6-25 cm above the
 //     deck and drain scuppers (dark slots at the base every 8 m)
 // makeElevatedConcrete(THREE, base) -> material (vertexColors on)
+// r4-shoreland (?r4barrier=0 = old): barrier faces read as slip-formed cast concrete instead of a blotchy scan print: the scan's
+// pitting is toned down on them, contraction joints (V-groove, chipped lips) every 6.1 m along the run replace the world-axis
+// formwork lines, faint horizontal drag marks of the slip form, road grime + dust caked at the base, streaks under the joints.
+const R4B = !(typeof location !== 'undefined' && /[?&]r4barrier=0\b/.test(location.search));
 let _tex = null;
 function texSet(THREE) {
   if (_tex) return _tex;
@@ -53,6 +57,7 @@ vec3 ccNrmT = vec3(0.0);
         // grime: rain streaks from the top (vertical noise), heavier lower down
         float streak = ccN(vec2(run * 2.3, hy * 0.18)) * 0.6 + ccN(vec2(run * 7.1, hy * 0.5 + 3.0)) * 0.4;
         float grime = smoothstep(0.55, 0.85, streak) * vert * 0.35;
+        ${R4B ? `if (vCcUv.y > 99.5 && vCcUv.y < 299.5) { det = mix(det, 1.0, 0.72); joint = 0.0; grime *= 0.55; panel = mix(1.0, panel, 0.6); } // r4: slip-formed barrier, no world-axis formwork lines` : ''}
         vec3 cc = diffuseColor.rgb * det * panel;
         cc *= 1.0 - grime; cc *= 1.0 - joint * 0.45;
         // barrier faces: height fraction in uv.y (100 + h), scuff line, scuppers, tyre spray
@@ -65,6 +70,20 @@ vec3 ccNrmT = vec3(0.0);
           cc = mix(cc, vec3(0.025, 0.024, 0.023), scuff * 0.75);
           cc = mix(cc, vec3(0.01), scup * 0.9);
           ccNrmT.y = scuff;
+          ${R4B ? `{ // r4-shoreland: contraction joints every 6.1 m (V-groove + chipped lip + stain), drag marks, grime caked at the base
+            float jq = sAlong / 6.1, jd = abs(fract(jq + 0.5) - 0.5) * 6.1, jw = 0.006 + fwidth(sAlong) * 0.75;
+            float jt = 1.0 - smoothstep(jw, jw * 2.2, jd), lip = (1.0 - smoothstep(jw * 2.2, jw * 4.5, jd)) * (1.0 - jt);
+            float jn = ccN(vec2(floor(jq + 0.5) * 3.7, hf * 9.0));
+            cc *= 1.0 - jt * 0.6; cc *= 1.0 + lip * 0.07 * jn;
+            float wet = (1.0 - smoothstep(0.03, 0.32 + 0.2 * jn, jd)) * smoothstep(0.15, 0.95, hf + 0.25 * ccN(vec2(sAlong * 5.0, hf * 2.0)));
+            cc *= 1.0 - wet * 0.13; // water runs down through the joint from the top
+            cc *= 1.0 + 0.03 * (ccN(vec2(sAlong * 0.21, hf * 34.0)) - 0.5) + 0.02 * (ccN(vec2(sAlong * 1.7, hf * 90.0)) - 0.5); // slip-form drag marks
+            float bn = ccN(vec2(sAlong * 2.3, 6.6)), base = 1.0 - smoothstep(0.0, 0.07 + 0.08 * bn, hf);
+            cc = mix(cc, cc * vec3(0.52, 0.5, 0.46), base * 0.85); // road grime caked at the toe
+            cc = mix(cc, cc * vec3(1.07, 1.0, 0.88), (1.0 - smoothstep(0.05, 0.42, hf)) * 0.45 * (0.5 + 0.5 * bn)); // dust / road film on the lower slope
+            cc *= 1.0 + smoothstep(0.93, 1.0, hf) * 0.05; // top edge catches the sky
+            ccNrmT.y = max(ccNrmT.y, base * 0.4);
+          }` : ''}
         }
         if (wn.y < -0.6) { // soffits: smooth precast / plywood-formed panels (2.44 x 1.22 m) with faint seams and per-panel tone, efflorescence blooms
           vec2 fp = vCcP.xz / vec2(2.44, 1.22), ff = fract(fp), fw = fwidth(fp) * 1.5 + 0.004;
@@ -96,11 +115,12 @@ vec3 ccNrmT = vec3(0.0);
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       { vec3 wn = normalize(vCcN), bw = pow(abs(wn), vec3(4.0)); bw /= (bw.x + bw.y + bw.z + 1e-4);
         vec3 tX = texture2D(tCcN, vCcP.zy / 1.7).xyz * 2.0 - 1.0, tY = texture2D(tCcN, vCcP.xz / 1.7).xyz * 2.0 - 1.0, tZ = texture2D(tCcN, vCcP.xy / 1.7).xyz * 2.0 - 1.0;
-        tX = vec3(tX.xy * 0.35 + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy * 0.35 + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy * 0.35 + wn.xy, abs(tZ.z) * wn.z);
+        float nK = ${R4B ? '(vCcUv.y > 99.5 && vCcUv.y < 299.5) ? 0.14 : 0.35' : '0.35'}; // r4: slip-formed barrier faces are smooth, only a faint pitting
+        tX = vec3(tX.xy * nK + wn.zy, abs(tX.z) * wn.x); tY = vec3(tY.xy * nK + wn.xz, abs(tY.z) * wn.y); tZ = vec3(tZ.xy * nK + wn.xy, abs(tZ.z) * wn.z);
         vec3 nW = normalize(tX.zyx * bw.x + tY.xzy * bw.y + tZ.xyz * bw.z);
         normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz) * (gl_FrontFacing ? 1.0 : 1.0); }`);
   };
-  m.customProgramCacheKey = () => 'ground-elevated-concrete-v3';
+  m.customProgramCacheKey = () => 'ground-elevated-concrete-v3' + (R4B ? '-r4b' : '');
   m.needsUpdate = true;
   return m;
 }

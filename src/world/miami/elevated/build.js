@@ -13,6 +13,13 @@ const COL = { // a touch warm (not beige): the blue sky fill on shaded faces the
 };
 
 const R3C = !(typeof location !== 'undefined' && /[?&]r3concrete=0\b/.test(location.search)); // r3-concrete A/B: 0 = old flat retaining wall
+// r4-shoreland (user: barrier walls "look like cheap 2D layers"): the barrier was one sloped plane over an 8 cm reveal. Now the real
+// New Jersey safety shape: 7.6 cm vertical lip, 55 deg lower face to 33 cm, 84 deg upper face, rounded knee and top edges with
+// smooth normals; the collider hull follows the same knee / top. ?r4barrier=0 = old profile.
+const R4B = !(typeof location !== 'undefined' && /[?&]r4barrier=0\b/.test(location.search));
+const R4S = !(typeof location !== 'undefined' && /[?&]r4slab=0\b/.test(location.search)); // r4-shoreland: low ramp-foot deck edges become fill slopes
+// jersey key heights / runs above the toe for a barrier of height H (lateral runs from the toe toward the outer face)
+const jerseyK = (H) => { const lip = Math.min(0.076, H * 0.1), hb = Math.min(0.33, H * 0.42), r1 = (hb - lip) * 0.7; return { lip, hb, r1, rt: r1 + (H - hb) * 0.105 }; };
 
 export function createBuilder(net) {
   const { chains } = net;
@@ -73,9 +80,45 @@ export function createBuilder(net) {
     const yEdge = surf(c, i, oE);
     const bottom = type === 2 ? yEdge - 0.85 : Math.min(yEdge - 0.3, c.gY[i] - 0.3);
     out[0] = oT; out[1] = yb; out[2] = oT + s * 0.04; out[3] = Math.min(yt, yb + 0.08); out[4] = oTi; out[5] = yt; out[6] = oE; out[7] = yt; out[8] = oE; out[9] = bottom;
+    if (R4B && !par) { const J = jerseyK(yt - yb); out[2] = oT + s * J.r1; out[3] = yb + J.hb; out[4] = oT + s * Math.min(J.rt, P.BAR_BASE - 0.12); } // r4: knee + top-inner of the jersey shape (visual + collider hull)
     return out;
   }
   const BP0 = new Float64Array(10), BP1 = new Float64Array(10), PA10 = new Float64Array(10), PB10 = new Float64Array(10);
+  // ---- r4-shoreland: jersey cross-section from a barrier profile (toe, knee, top-inner, top-outer, bottom-outer)
+  const isJersey = (p) => R4B && Math.abs(p[4] - p[0]) > 0.1; // a parapet has its top-inner right above the toe
+  const jRound = (p) => (isJersey(p) ? Math.min(0.025, (p[5] - p[1]) * 0.05) : 0); // radius of the rounded top edges
+  // profile points [u lateral from the toe toward the outer face, h above the toe, soft (smooth normal)]
+  function jerseyPts(p) {
+    const H = p[5] - p[1], J = jerseyK(H), r1 = Math.abs(p[2] - p[0]), hb = p[3] - p[1], rt = Math.abs(p[4] - p[0]), W = Math.abs(p[6] - p[0]);
+    const R = jRound(p), Rk = Math.min(0.03, H * 0.06), dl = Math.hypot(0.7, 1), du = Math.hypot(0.105, 1);
+    return [[0, 0, 0], [0, Math.min(J.lip, hb * 0.5), 0], [r1 - Rk * 0.7 / dl, hb - Rk / dl, 1], [r1 + Rk * 0.105 / du, hb + Rk / du, 1],
+      [rt - R * 0.105 / du, H - R / du, 1], [rt + R, H, 1], [W - R, H, 1], [W, H - R, 1]];
+  }
+  const JN = [];
+  function jerseyNormals(pts) { // per point: [incoming face normal, outgoing face normal] (equal and averaged at soft points)
+    const seg = []; for (let k = 0; k + 1 < pts.length; k++) { const du = pts[k + 1][0] - pts[k][0], dh = pts[k + 1][1] - pts[k][1], l = Math.hypot(du, dh) || 1; seg.push([-dh / l, du / l]); }
+    JN.length = 0;
+    for (let k = 0; k < pts.length; k++) { const a = seg[k - 1] || seg[k], b = seg[k] || seg[k - 1];
+      if (pts[k][2]) { const nu = a[0] + b[0], nh = a[1] + b[1], l = Math.hypot(nu, nh) || 1; JN.push([[nu / l, nh / l], [nu / l, nh / l]]); } else JN.push([a, b]); }
+    return JN;
+  }
+  // emit quad (a, b, c, d) with the normals already set on the vertices; winding from the geometric normal vs a's normal
+  function quadN(buf, a, b, c, d, B) {
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], wx = c[0] - a[0], wy = c[1] - a[1], wz = c[2] - a[2];
+    const nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx; if (Math.hypot(nx, ny, nz) < 1e-12) return;
+    if (nx * a[3] + ny * a[4] + nz * a[5] >= 0) { triClip(buf, a, b, c, B); triClip(buf, a, c, d, B); } else { triClip(buf, a, c, b, B); triClip(buf, a, d, c, B); }
+  }
+  function jerseyFaces(buf, c, side, F0, F1, pa, pb, B) {
+    const P0 = jerseyPts(pa), P1 = jerseyPts(pb), N0 = jerseyNormals(P0).map((q) => q.slice()), N1 = jerseyNormals(P1).map((q) => q.slice());
+    const tone = panelTone(Math.floor((F0.s + F1.s) / 12) + c.id * 5 + (side > 0 ? 2 : 0));
+    const V = (v, F, p, q, nrm, col) => { const o = p[0] + side * q[0], y = p[1] + q[1], f = tone * (0.7 + 0.3 * Math.min(1, Math.max(0, q[1] / P.BAR_H)));
+      return setV(v, F.x - F.tz * o, y, F.z + F.tx * o, nrm[0] * side * -F.tz, nrm[1], nrm[0] * side * F.tx, F.s, 100 + Math.max(0, Math.min(1, q[1] / P.BAR_H)), [col[0] * f, col[1] * f, col[2] * f]); };
+    for (let k = 0; k + 1 < P0.length; k++) {
+      const col = k >= 4 ? COL.barrierTop : COL.barrier;
+      V(va, F0, pa, P0[k], N0[k][1], col); V(vb, F0, pa, P0[k + 1], N0[k + 1][0], col); V(vc, F1, pb, P1[k + 1], N1[k + 1][0], col); V(vd, F1, pb, P1[k], N1[k][1], col);
+      quadN(buf, va, vb, vc, vd, B);
+    }
+  }
   // usable sidewalk width on one side of sample i (0 = none: highway, joined side, or squeezed away)
   function sideWalkW(c, i, side) {
     if (!c.sw[i] || (side < 0 ? c.joinL[i] : c.joinR[i])) return 0;
@@ -107,7 +150,7 @@ export function createBuilder(net) {
   // precast panel wall (3 m x 1.5 m joints, slight per-panel tone, 2 % batter) and a footing strip into the ground.
   const panelTone = (n) => { const h = Math.sin(n * 12.9898) * 43758.5453; return 0.955 + (h - Math.floor(h)) * 0.07; };
   function retainingWall(buf, c, side, F0, F1, pa, pb, B) {
-    const oE0 = pa[6], oE1 = pb[6], yt0 = pa[7], yt1 = pb[7];
+    const oE0 = pa[6], oE1 = pb[6], yt0 = pa[7] - jRound(pa), yt1 = pb[7] - jRound(pb); // r4: below the rounded outer top edge
     const yE0 = F0.y + P.ROAD_Y + F0.b * oE0, yE1 = F1.y + P.ROAD_Y + F1.b * oE1, g0 = pa[9] + 0.3, g1 = pb[9] + 0.3;
     if (yE0 - g0 < 0.7 && yE1 - g1 < 0.7) return false; // ramp foot: the plain face reads better than a squashed wall
     const W = (F, o, y) => [F.x - F.tz * o, y, F.z + F.tx * o];
@@ -209,9 +252,11 @@ export function createBuilder(net) {
           for (let k = 0; k < 10; k++) { pa[k] = lerp(A[k], Bp[k], tA); pb[k] = lerp(A[k], Bp[k], tB); }
           const cols = [COL.barrier, COL.barrier, COL.barrierTop, (t0 === 1 || t1 === 1) ? COL.wall : COL.fascia];
           const wallSeg = (t0 === 1 || t1 === 1) && t0 !== 2 && t1 !== 2;
-          for (let k = 0; k < 4; k++) {
+          const jer = isJersey(pa) && isJersey(pb);
+          if (jer) jerseyFaces(conc, c, side, F0, F1, pa, pb, B); // r4: lip, lower / upper faces, rounded top
+          for (let k = jer ? 3 : 0; k < 4; k++) {
             if (k === 3 && wallSeg && retainingWall(conc, c, side, F0, F1, pa, pb, B)) continue;
-            const o0a = pa[k * 2], y0a = pa[k * 2 + 1], o1a = pa[k * 2 + 2], y1a = pa[k * 2 + 3], o0b = pb[k * 2], y0b = pb[k * 2 + 1], o1b = pb[k * 2 + 2], y1b = pb[k * 2 + 3];
+            const o0a = pa[k * 2], y0a = pa[k * 2 + 1] - (k === 3 ? jRound(pa) : 0), o1a = pa[k * 2 + 2], y1a = pa[k * 2 + 3], o0b = pb[k * 2], y0b = pb[k * 2 + 1] - (k === 3 ? jRound(pb) : 0), o1b = pb[k * 2 + 2], y1b = pb[k * 2 + 3];
             const hx = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * -F0.tz, hz = k === 2 ? 0 : (k === 3 ? 1 : -1) * side * F0.tx, hy = k === 2 ? 1 : (k === 1 ? 0.3 : 0);
             const col = cols[k], vS = k === 3 ? 0.25 : 0.5;
             // weathering: road grime darkens the lower barrier (tyre spray), each 6 m cast section has its own tone
@@ -231,7 +276,9 @@ export function createBuilder(net) {
             if (barrierContinues(c, at, side, prof)) continue; // another deck's barrier carries on right here: no nose / cap (no overlapping ends)
             // crash cushion (impact attenuator) ahead of a barrier nose that faces oncoming traffic on an elevated deck
             if (dir < 0 && c.lanesB[at] === 0 && c.y[at] >= 1.6 && cushionClear(c, at, (prof[0] + prof[6]) / 2)) cushion(conc, F, (prof[0] + prof[6]) / 2, prof[1], B);
-            const pts = []; for (let k = 0; k < 5; k++) pts.push([F.x - F.tz * prof[k * 2], prof[k * 2 + 1], F.z + F.tx * prof[k * 2]]);
+            const pts = [];
+            if (isJersey(prof)) { for (const q of jerseyPts(prof)) { const o = prof[0] + side * q[0]; pts.push([F.x - F.tz * o, prof[1] + q[1], F.z + F.tx * o]); } pts.push([F.x - F.tz * prof[8], prof[9], F.z + F.tx * prof[8]]); } // r4: cap follows the jersey section
+            else for (let k = 0; k < 5; k++) pts.push([F.x - F.tz * prof[k * 2], prof[k * 2 + 1], F.z + F.tx * prof[k * 2]]);
             pts.push([F.x - F.tz * prof[0], prof[9], F.z + F.tx * prof[0]]);
             const hx = F.tx * dir, hz = F.tz * dir;
             for (let k = 1; k + 1 < pts.length; k++) { setV(va, ...pts[0], 0, 0, 0, 0, 0, COL.barrier); setV(vb, ...pts[k], 0, 0, 0, 0, 0, COL.barrier); setV(vc, ...pts[k + 1], 0, 0, 0, 0, 0, COL.barrier); setV(vd, ...pts[k + 1], 0, 0, 0, 0, 0, COL.barrier); quadTri(conc, va, vb, vc, hx, 0, hz, B); }
@@ -241,6 +288,19 @@ export function createBuilder(net) {
           const oa = side < 0 ? P0.vL : P0.vR, ob = side < 0 ? P1.vL : P1.vR;
           const ya = P0.y + P.ROAD_Y + P0.b * oa, yb = P1.y + P.ROAD_Y + P1.b * ob;
           const ba = open ? ya - 0.85 : Math.min(ya - 0.3, -0.3), bb = open ? yb - 0.85 : Math.min(yb - 0.3, -0.3);
+          // r4-shoreland (?r4slab=0 = old): a deck edge less than 0.6 m above dry ground (the feet of ramps r3-roads brought down to
+          // grade, Brickell Ave swamp) was a long white concrete strip 0.1-0.5 m high lying along the bank. A road there sits on a
+          // graded fill: the edge gets a soil / turf slope (the r3-concrete berm shader branch, uv.y = 300) down into the terrain.
+          const gA = c.gY[i], gB = c.gY[j];
+          if (R4S && !open && !c.water[i] && !c.water[j] && ya - gA < 0.6 && yb - gB < 0.6) {
+            if (Math.max(ya - gA, yb - gB) > 0.02) {
+              const ra = 0.5 + Math.max(0, ya - gA) * 3.2, rb = 0.5 + Math.max(0, yb - gB) * 3.2, s = side;
+              const E = (F, o, y, u) => setV([], F.x - F.tz * o, y, F.z + F.tx * o, 0, 0, 0, u, 300, [0.5, 0.5, 0.5]);
+              const ma = Math.max(gA - 0.12, ya - 0.6), mb = Math.max(gB - 0.12, yb - 0.6);
+              quad(conc, E(P0, oa, ya - 0.01, 0), E(P0, oa + s * ra, ma, 1), E(P1, ob + s * rb, mb, 1), E(P1, ob, yb - 0.01, 0), s * -P0.tz * 0.3, 0.95, s * P0.tx * 0.3, B);
+            }
+            continue;
+          }
           setV(va, P0.x - P0.tz * oa, ya, P0.z + P0.tx * oa, 0, 0, 0, P0.s / 4, ya / 4, COL.wall); setV(vb, P0.x - P0.tz * oa, ba, P0.z + P0.tx * oa, 0, 0, 0, P0.s / 4, ba / 4, COL.wall);
           setV(vc, P1.x - P1.tz * ob, bb, P1.z + P1.tx * ob, 0, 0, 0, P1.s / 4, bb / 4, COL.wall); setV(vd, P1.x - P1.tz * ob, yb, P1.z + P1.tx * ob, 0, 0, 0, P1.s / 4, yb / 4, COL.wall);
           quad(conc, va, vb, vc, vd, side * -P0.tz, 0, side * P0.tx, B);
@@ -508,6 +568,7 @@ export function createBuilder(net) {
         const bar = side < 0 ? c.barL : c.barR; let oa = side < 0 ? c.vL[i0] : c.vR[i0], ob = side < 0 ? c.vL[j] : c.vR[j]; const hasBar = bar[i0] && bar[j];
         const top = hasBar ? P.BAR_H - 0.1 : -0.06, bot = (k, o) => (open ? -0.85 - (c.y[k] + P.ROAD_Y + c.bank[k] * o) + c.y[k] : c.gY[k] - 0.3 - (c.y[k] + P.ROAD_Y + c.bank[k] * o));
         if (c.type[i0] === 0 && c.type[j] === 0) continue;
+        if (R4S && !hasBar && !open && !c.water[i0] && !c.water[j] && c.y[i0] - c.gY[i0] < 0.6 && c.y[j] - c.gY[j] < 0.6) continue; // r4: fill slope, not a wall (see buildVisual)
         const oa6 = oa - side * 0.06, ob6 = ob - side * 0.06;
         q(pt(i0, oa6, top), pt(i0, oa6, bot(i0, oa) + 0.06), pt(j, ob6, bot(j, ob) + 0.06), pt(j, ob6, top), COL.fascia, side * -c.tz[i0], 0, side * c.tx[i0]);
         if (hasBar) { const ia = oa - side * P.BAR_TOP, ib = ob - side * P.BAR_TOP; const oa_ = oa6, ob_ = ob6; oa = oa_; ob = ob_; q(pt(i0, ia, top), pt(i0, oa, top), pt(j, ob, top), pt(j, ib, top), COL.barrierTop, 0, 1, 0); q(pt(i0, ia, 0), pt(i0, ia, top), pt(j, ib, top), pt(j, ib, 0), COL.barrier, -side * -c.tz[i0], 0, -side * c.tx[i0]); }
