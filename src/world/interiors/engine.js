@@ -14,6 +14,7 @@ import { rng, hashStr, clamp } from './kit/util.js';
 import { probeJob, probePlaceholder } from './kit/probe.js';
 import { setProbePlaceholder } from './kit/materials.js';
 import { surfaceTextures } from './kit/surfaces.js';
+import { preloadModels, modelsReady } from './kit/models.js';
 
 const ACTIVE_R = 70, DISPOSE_R = 140, MAX_ACTIVE = 3, CACHE = 2, WALL_T = 0.25, GF_H = 4.2, BUILD_MS = 4;
 export const isOpenAt = (h, hrs) => { const [o, c] = hrs; if (c - o >= 24) return true; return o < c ? h >= o && h < c : h >= o || h < c; };
@@ -25,6 +26,7 @@ export function createEngine(game, opts = {}) {
   const fastS = { x: undefined, z: undefined, v: 0 }; // r2-perf: player ground speed (m/s, smoothed)
   const INT_FAST_OLD = typeof location !== 'undefined' && /[?&]intfast=1\b/.test(location.search);
   let current = null, pending = null, fitter = opts.fitter || null, ingN = 0, ingSrc = null, pollT = 0, scanT = 0, nearList = [], upMax = 0, buildMax = 0, clock = 0;
+  try { preloadModels(); } catch (e) { /* fixtures fall back to code-built */ }
   try { if (game.design) setDesign(game.design); } catch (e) { /* */ }
   try { if (game.renderer) setProbePlaceholder(probePlaceholder(game.renderer, 256)); } catch (e) { console.warn('[interiors] probe placeholder', e); }
 
@@ -48,7 +50,7 @@ export function createEngine(game, opts = {}) {
     s.name = prof.name || sf.name || def.label; s.hours = prof.open24 ? [0, 24] : prof.hours; s.zone = sf.zone || null; s.address = sf.street || null;
     s.priceOf = (pid) => { const p = getProduct(pid); if (!p) return 0; const v = p.price * prof.priceK; return p.price >= 1 && !p.scratch ? Math.max(0.49, Math.round(v * 10) / 10 - 0.01) : p.price; };
     if (!state.has(key)) state.set(key, { taken: new Set(), dvr: true, lights: true, robbedUntil: -1, banned: false, cash: null }); s.state = state.get(key);
-    s.counterPos = s.center.clone(); s.counterFallback = true; claimed.add(sf);   // counterFallback: the room center, not a real desk (no props may hang there) sf.v2Facade = true; byKey.set(key, s); list.push(s); return s;
+    s.counterPos = s.center.clone(); s.counterFallback = true; claimed.add(sf); sf.v2Facade = true; byKey.set(key, s); list.push(s); return s; // counterFallback: the room center, not a real desk (no props may hang there)
   }
   function ingest() {
     const src = (Array.isArray(city.storefronts) && city.storefronts.length ? city.storefronts : city.shopLots) || []; if (src === ingSrc && src.length === ingN) return;
@@ -117,7 +119,7 @@ export function createEngine(game, opts = {}) {
     { const vx = pp.x - (fastS.x ?? pp.x), vz = pp.z - (fastS.z ?? pp.z); fastS.x = pp.x; fastS.z = pp.z; const v = dt > 0 ? Math.hypot(vx, vz) / dt : 0; fastS.v += (Math.min(v, 120) - fastS.v) * Math.min(1, dt * 3); }
     const passing = !(game.intFastOld ?? INT_FAST_OLD) && fastS.v > 12 && !current; // game.intFastOld = true: old behavior (A/B)
     if (!passing) for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
-    for (const s of wanted) { if (!s.built) { if (!pending && !passing && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
+    for (const s of wanted) { if (!s.built) { if (!pending && !passing && modelsReady() && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
     if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const r = pending.it.next(); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); precompile(r.value); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
     let hidden = 0;

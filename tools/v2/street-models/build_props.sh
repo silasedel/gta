@@ -44,3 +44,6 @@ CU="$M/Cups/Coffee Cup 1 - Red-Band Paper Cup With Lid/Coffee Cup 1.blend"
 run cup '{"src":"'$CU'","out":"'$O'/cup.glb","height":0.15,"tris":700,"maxtex":256,"texmat":{"Sleeve":{"color":"'$PWD'/tools/v2/street-models/fixed/cup_sleeve.png"}}}'
 # bike rack: kitbashed by tools/v2/street-models/bikerack.py from Street Props Pack 2 rail_short (see that script)
 [[ "bikerack" =~ $only ]] && blender -b --factory-startup --disable-autoexec -P tools/v2/street-models/bikerack.py -- "$P2" "$O/bike_rack.glb" 2>&1 | grep CONVERTED
+
+# r3-props (Nov 17): the user's ATM 1 (replaces the code-built kiosk in the stores). Base color texture was unlinked in the .blend, so it is named here; fixed/atm_color.png = Color.png with the real card-scheme logos painted out.
+run atm '{"src":"'$M'/ATMs/ATM 1 - Plain Grey Bank ATM/ATM 1.blend","out":"'$O'/atm.glb","height":1.75,"tris":6000,"maxtex":1024,"texmat":{".":{"color":"'$PWD'/tools/v2/street-models/fixed/atm_color.png","normal":"ATM Normal.png","rough":"ATM Roughness.png","metal":"ATM Metallic.png"}}}'
