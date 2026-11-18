@@ -13,38 +13,36 @@ vs = [v.co for v in me.vertices]; mn = mathutils.Vector([min(v[i] for v in vs) f
 c = (mn + mx) / 2; me.transform(mathutils.Matrix.Translation((-c.x, -c.y, -mn.z)))
 L = mx.x - mn.x  # long axis X (3.6 m)
 bm = bmesh.new(); bm.from_mesh(me)
-# a "staple" hoop (the common US sidewalk rack): 0.9 m of the railing's straight top tube as the bar, two more copies of it
-# stood up as legs, and the end post's ground flange under each leg
-top = max(v.co.z for v in bm.verts)
-def piece(x0, x1, z0, z1):
-    g = bm.copy(); 
-    for pl, nrm in (((x0, 0, 0), (1, 0, 0)), ((x1, 0, 0), (1, 0, 0))): bmesh.ops.bisect_plane(g, geom=g.verts[:] + g.edges[:] + g.faces[:], plane_co=pl, plane_no=nrm)
-    bmesh.ops.delete(g, geom=[f for f in g.faces if not (x0 <= f.calc_center_median().x <= x1 and z0 <= f.calc_center_median().z <= z1)], context='FACES')
-    bmesh.ops.delete(g, geom=[v for v in g.verts if not v.link_faces], context='VERTS'); return g
-bar = piece(-0.5, 0.5, top - 0.12, top + 1)  # a straight stretch of the top tube
-import numpy as np
-V = np.array([v.co[:] for v in bar.verts]); c0 = V.mean(0); w, vecs = np.linalg.eigh(np.cov((V - c0).T)); ax = vecs[:, np.argmax(w)]
-if ax[0] < 0: ax = -ax
-R = mathutils.Vector(ax.tolist()).rotation_difference(mathutils.Vector((1, 0, 0))).to_matrix().to_4x4()
-bmesh.ops.transform(bar, matrix=R @ mathutils.Matrix.Translation((-c0[0], -c0[1], -c0[2])), verts=bar.verts[:])
-L0 = max(v.co.x for v in bar.verts) - min(v.co.x for v in bar.verts)
-bmesh.ops.transform(bar, matrix=mathutils.Matrix.Diagonal((0.9 / L0, 1, 1, 1)), verts=bar.verts[:])  # exactly 0.9 m along X, centered
-H = 0.92  # bar center height
-out = bmesh.new()
-def add(g, M):
-    tmp = bpy.data.meshes.new('t'); g2 = g.copy(); bmesh.ops.transform(g2, matrix=M, verts=g2.verts[:]); g2.to_mesh(tmp); g2.free(); out.from_mesh(tmp); bpy.data.meshes.remove(tmp)
-add(bar, mathutils.Matrix.Translation((0, 0, H)))
-for sx in (-1, 1):  # legs: the bar turned upright, its 0.9 m stretched to the leg length, standing at x = +-0.45
-    L2 = H + 0.06; M = mathutils.Matrix.Translation((sx * 0.45, 0, L2 / 2 - 0.03)) @ mathutils.Matrix.Rotation(math.radians(90), 4, 'Y') @ mathutils.Matrix.Diagonal((L2 / 0.9, 1, 1, 1))
-    add(bar, M)
-# ground flanges from the railing's end post foot
-xs = [v.co.x for v in bm.verts]; xe = min(xs)
-foot = piece(xe - 0.05, xe + 0.25, -0.01, 0.08)
-fx = [v.co.x for v in foot.verts]; fyy = [v.co.y for v in foot.verts]
-if fx:
-    fc = ((min(fx) + max(fx)) / 2, (min(fyy) + max(fyy)) / 2)
-    for sx in (-1, 1): add(foot, mathutils.Matrix.Translation((sx * 0.45 - fc[0], -fc[1], 0)))
+# a "staple" hoop (the common US sidewalk rack) as ONE bent tube: two legs and the top bar joined by real rounded bends
+# (radius 0.14 m, user: "round these edges better"), swept with the railing's own tube radius and material
+tube_r = 0.024
+try:
+    ys = [v.co.y for v in bm.verts]; tube_r = max(0.018, min(0.032, (max(ys) - min(ys)) / 2 * 0.9))
+except Exception: pass
+H = 0.92; W = 0.45; RB = 0.14
+pts = [(-W, 0.0, -0.02), (-W, 0.0, H - RB)]
+for k in range(1, 12):
+    a = math.pi - (math.pi / 2) * k / 12; pts.append((-W + RB + RB * math.cos(a), 0.0, H - RB + RB * math.sin(a)))
+pts += [(-W + RB, 0.0, H), (W - RB, 0.0, H)]
+for k in range(1, 12):
+    a = math.pi / 2 - (math.pi / 2) * k / 12; pts.append((W - RB + RB * math.cos(a), 0.0, H - RB + RB * math.sin(a)))
+pts += [(W, 0.0, H - RB), (W, 0.0, -0.02)]
+cu = bpy.data.curves.new('hoopc', 'CURVE'); cu.dimensions = '3D'; cu.bevel_depth = tube_r; cu.bevel_resolution = 4; cu.use_fill_caps = True
+sp = cu.splines.new('POLY'); sp.points.add(len(pts) - 1)
+for i, q in enumerate(pts): sp.points[i].co = (q[0], q[1], q[2], 1)
+co = bpy.data.objects.new('hoopc', cu); bpy.context.scene.collection.objects.link(co)
+dg2 = bpy.context.evaluated_depsgraph_get(); tm = bpy.data.meshes.new_from_object(co.evaluated_get(dg2)); bpy.data.objects.remove(co, do_unlink=True)
+for mat in me.materials: tm.materials.append(mat)
+out = bmesh.new(); out.from_mesh(tm); bpy.data.meshes.remove(tm)
+for f in out.faces: f.smooth = True
+# small round ground flanges under each leg
+for sx in (-1, 1):
+    r = bmesh.ops.create_circle(out, cap_ends=True, segments=16, radius=0.06)
+    bmesh.ops.translate(out, verts=r['verts'], vec=(sx * W, 0, 0.004))
+    ex = bmesh.ops.extrude_face_region(out, geom=[f for f in out.faces if all(v in r['verts'] for v in f.verts)])
+    bmesh.ops.translate(out, verts=[e for e in ex['geom'] if isinstance(e, bmesh.types.BMVert)], vec=(0, 0, 0.008))
 bm.free(); bm = out
+me.clear_geometry() if hasattr(me, 'clear_geometry') else None
 bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=0.002)
 print('HOOP x', round(min(v.co.x for v in bm.verts),3), round(max(v.co.x for v in bm.verts),3), 'z', round(min(v.co.z for v in bm.verts),3), round(max(v.co.z for v in bm.verts),3), 'faces', len(bm.faces))
 bm.to_mesh(me); bm.free()

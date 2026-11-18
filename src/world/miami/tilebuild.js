@@ -1867,7 +1867,7 @@ export function createTileBuilder(ctx) {
               if (/primary|secondary/.test(r.kind) && sh < 0.12 && side > 0 && !props.realBus) { fpush(props.shelter, { x: q.x + q.nx * side * (hw + 1.9), y: CURB, z: q.z + q.nz * side * (hw + 1.9), ry: toRoad(q) }); continue; }
               if ((SK ? (zoneKind(q.x, q.z) === 'beach' ? sh < 0.4 : (zoneKind(q.x, q.z) === 'urban' || zoneKind(q.x, q.z) === 'commercial') ? sh < 0.12 : (sh < 0.08 && /primary|secondary/.test(r.kind))) : sh < 0.55) && (!props.realBenches || (!/beach|nightlife/.test(zone) && !(tile.benches || []).some((bb) => Math.abs(bb.pos.x - q.x) < 30 && Math.abs(bb.pos.z - q.z) < 30)))) fpush(props.bench, { x: q.x + q.nx * side * (hw + SIDEWALK_W - 0.55), y: CURB, z: q.z + q.nz * side * (hw + SIDEWALK_W - 0.55), ry: toRoad(q) });
               if (sh >= 0.55 && sh < 0.85 && dense && !/beach|nightlife/.test(zone) && (!roadDist || roadDist(q.x + q.nx * side * (hw + 1.0), q.z + q.nz * side * (hw + 1.0)) > 0.9)) { // mainland / island streets: bike racks and litter bins between the benches
-                if (sh < 0.7) fpush(props.bike, { x: q.x + q.nx * side * (hw + 1.0), y: CURB, z: q.z + q.nz * side * (hw + 1.0), ry: toRoad(q) + Math.PI / 2 });
+                if (sh < 0.6) fpush(props.bike, { x: q.x + q.nx * side * (hw + 1.0), y: CURB, z: q.z + q.nz * side * (hw + 1.0), ry: toRoad(q) + Math.PI / 2 });
                 else fpush(props.bin, { x: q.x + q.nx * side * (hw + 0.7), y: CURB, z: q.z + q.nz * side * (hw + 0.7), ry: toRoad(q), k: ((sh * 13) | 0) % 3 }); }
               if (dense && !/beach|nightlife/.test(zone) && /primary|secondary|tertiary|residential/.test(r.kind) && hash(((s * 7) | 0) + (r.edgeId ?? 0) * 3 + side) < 0.7) { const q2 = sampleAt(fr, s + 11), x2 = q2.x + q2.nx * side * (hw + 0.55), z2 = q2.z + q2.nz * side * (hw + 0.55); if (s + 11 < b2 - 6 && (!roadDist || roadDist(x2, z2) > 0.4)) fpush(props.signPost, { x: x2, y: CURB, z: z2, ry: toRoad(q2) + Math.PI / 2 * side }); } // parking regulation signs at the kerb
               if (SK && /primary|secondary|tertiary/.test(r.kind) && zoneKind(q.x, q.z) === 'urban' && sh > 0.3 && sh < 0.55) for (let m = 0; m < 4; m++) { const q4 = sampleAt(fr, s + 3 + m * 6.5); if (s + 3 + m * 6.5 > b2 - 6) break; fpush(props.meter, { x: q4.x + q4.nx * side * (hw + 0.45), y: CURB, z: q4.z + q4.nz * side * (hw + 0.45), ry: toRoad(q4) }); }
@@ -3116,7 +3116,7 @@ export function createTileBuilder(ctx) {
       } else {
         const u = kh < 0.5 ? -2.2 : 2.2, x = fx + ox * 0.9 + rx * u, z = fz + oz * 0.9 + rz * u; if (!ok(x, z)) continue;
         if (kh < 0.35) props.flower.push({ x, y: gY0(x, z), z, ry: kh * 9, s: 0.75, color: new THREE.Color().setHSL(0.9 + kh * 0.2, 0.55, 0.6) });
-        else if (kh < 0.6) { const bx = fx + ox * 1.6 + rx * u, bz = fz + oz * 1.6 + rz * u; if (ok(bx, bz) && (!roadDist || roadDist(bx, bz) > 1.2)) props.bike.push({ x: bx, y: gY0(bx, bz), z: bz, ry: f.facing + Math.PI / 2 }); }
+        else if (kh < 0.42) { const bx = fx + ox * 1.6 + rx * u, bz = fz + oz * 1.6 + rz * u; if (ok(bx, bz) && (!roadDist || roadDist(bx, bz) > 1.2)) props.bike.push({ x: bx, y: gY0(bx, bz), z: bz, ry: f.facing + Math.PI / 2 }); }
         else props.bin.push({ x, y: gY0(x, z), z, ry: f.facing, k: 1 });
       }
     }

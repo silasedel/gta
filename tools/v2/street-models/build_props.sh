@@ -5,7 +5,7 @@
 cd "$(dirname $0)/../../.."
 M="$PWD/Models"; O="$PWD/public/assets/models/street"; C=tools/v2/street-models/convert.py
 only=${1:-.}
-run() { [[ "$1" =~ $only ]] || return 0; blender -b --factory-startup -Y -P $C -- "$2" 2>&1 | grep -E "CONVERTED|CONVERT-ERROR|Error|TEX" | sed "s|$PWD/||g" }
+run() { [[ "$1" =~ $only ]] || return 0; blender -b --factory-startup --disable-autoexec -P $C -- "$2" 2>&1 | grep -E "CONVERTED|CONVERT-ERROR|Error|TEX" | sed "s|$PWD/||g" }
 TC1="$M/Bins/Trash Can 1 - Wheeled Curbside Bin Set/Trash Can 1.blend"
 # one curbside cart of the 4-color set (the other colors become texture-array layers)
 run cart '{"src":"'$TC1'","out":"'$O'/cart.glb","keep":"^TrashCan_Grey$","rotz":90,"height":1.07,"tris":980,"maxtex":512,"texmat":{".":{"normal":"Trash Can Normal.png","rough":"Trash Can Roughness.png"}}}'
@@ -43,4 +43,4 @@ run can '{"src":"'$SC'","out":"'$O'/can.glb","keep":"^Can Red Cola\\.001$","heig
 CU="$M/Cups/Coffee Cup 1 - Red-Band Paper Cup With Lid/Coffee Cup 1.blend"
 run cup '{"src":"'$CU'","out":"'$O'/cup.glb","height":0.15,"tris":700,"maxtex":256,"texmat":{"Sleeve":{"color":"'$PWD'/tools/v2/street-models/fixed/cup_sleeve.png"}}}'
 # bike rack: kitbashed by tools/v2/street-models/bikerack.py from Street Props Pack 2 rail_short (see that script)
-[[ "bikerack" =~ $only ]] && blender -b --factory-startup -Y -P tools/v2/street-models/bikerack.py -- "$P2" "$O/bike_rack.glb" 2>&1 | grep CONVERTED
+[[ "bikerack" =~ $only ]] && blender -b --factory-startup --disable-autoexec -P tools/v2/street-models/bikerack.py -- "$P2" "$O/bike_rack.glb" 2>&1 | grep CONVERTED
