@@ -1822,7 +1822,9 @@ export function createAudio(game) {
       ambDuck.gain.setTargetAtTime(st?.inVehicle && !muted ? MIXK.ambInCar : 1, t, 0.6);
       outGain.gain.setTargetAtTime(MUTED ? 0 : game.ui?.paused ? volume * 0.25 : volume, t, 0.1);
       { // [main-menu hook] menus duck and muffle the world (menu music and UI cues bypass it)
-        const dk = game.menuMusic?.duck;
+        // user (Nov 18): no game sounds at all before you are in the game (loading, title, front end): world fully silent
+        const preGame = !game.ready || !!game.frontEnd?.active || !(typeof document !== 'undefined' && document.getElementById('ps-hud')?.classList.contains('live'));
+        const dk = preGame ? 0 : game.menuMusic?.duck;
         if (dk != null && deathFx.state === 0) { worldG.gain.setTargetAtTime(dk, t, 0.5); worldLP.frequency.setTargetAtTime(game.menuMusic.duckLP ?? 20000, t, 0.5); menuDuck.on = true; }
         else if (menuDuck.on && deathFx.state === 0) { worldG.gain.setTargetAtTime(1, t, 0.6); worldLP.frequency.setTargetAtTime(20000, t, 0.6); menuDuck.on = false; }
       }
