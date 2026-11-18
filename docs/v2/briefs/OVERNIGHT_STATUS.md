@@ -1719,3 +1719,4 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   - Car: clean Southline car (graffiti closed out of the Train 2 atlases), Subway 1 rubber floor, softer light panels.
   - Tunnel: Subway 1 tunnel concrete and track bed. Subway 2 wasn't used: its 317k triangles and many materials cost too much for a corridor.
   - Model requests filed: a subway car with a driver cab, and a clean modern station kit. 0 console errors.
+- 09:15 Car walls (user: higher-res, no splotches): Models/ has no suitable panel texture (Textures/ is brick, concrete, plaster, corrugated roof), so I authored a clean 2K procedural laminate (`tools/v2/metro/car_panel.py`: 2048 px = 2.4 m, orange peel, seams, rivets; normal + roughness maps alongside, relief baked into the albedo for the baked car lighting). Platform tiles are now ~0.3 m. Close-up: `docs/v2/shots/metro/10_car_wall_closeup.png`. Request row added.
