@@ -331,3 +331,34 @@ Fast 50 m/s drive from Nico's to downtown over the afternoon: 6.4 fps with 432 f
 3. **Collider gaps (QA-045 follow-up, for tilebuild)**: some downtown and beach facades have no collider (drawn 18-21 m, physics 0.1 m), and library tower roofs sit 11 m above their collider box.
 4. **TAA GPU 2.9-4.4 ms at 1080p** (r2-render's new resolve) and bloom 2.4-3.5 ms. These matter for mid GPUs.
 5. **Minimap CPU tile rendering at speed** (4 %; sent to r2-mapui) and shader-link stalls while driving (1.2-4.5 s per drive). Warm the street-kit / cover / signal materials at boot.
+
+
+## Correction (19:50): the 46 fps drive was invalid
+
+The 17:00 fast drive (`r2-perf-drive3.json`, 46 fps) logged a Rapier panic ("recursive use of an object ... physics
+halted"). Physics stopped for the rest of that run, so the number is not comparable. Valid fast-drive figures, same route
+at 50 m/s on the loaded machine (load 7-20):
+- baseline: 6.4 fps (13:30)
+- 8.9 fps after the streaming / physics / interiors fixes
+- 15-20 fps after the shader-light-set fix
+  - drive2: 17.2 fps (before the light-set fix)
+  - fx_c: 17.5 fps
+  - alloc2: 19.9 fps
+- The shader-link-stall reduction itself stands (1.5 s -> 0.3-0.9 s per drive).
+
+Feature A/B (same route, 60 s each):
+- today's later features off (TAA filter, vegmerge, metro, far crowd, telehold): 15.1 fps
+- defaults: 17.5 fps
+
+That is within the noise, so none of them costs the frames.
+
+What does cost frames in the fast drive is **GC at 19-23 % of CPU**:
+- About 4 GB of JS-array growth per 40 s in the tile builders' Batch.vert pushes.
+- Other allocation sites: nicoHouse kit boxes for the generated houses (0.6-0.7 GB), countryside cell generation,
+  three.js uniform uploads.
+- Fixed (allocation-free, same output):
+  - terrain heightAt water probes: 0.7 -> 0.2 GB
+  - awning quad2: 0.9 -> 0.7 GB
+  - GC share unchanged.
+- The real fix is typed-array batches with preallocated growth, or building tile vertex data in a worker. That's
+  next-round work, owned by the lead (tilebuild) and r2-keys (house kit).
