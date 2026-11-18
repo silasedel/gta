@@ -1014,6 +1014,8 @@ export function createAudio(game) {
     if (car._sndOneShot && car._sndOneShot.w === which && now - car._sndOneShot.t < 1.5) return;
     car._sndOneShot = { w: which, t: now };
     const kind = engineKind(car);
+    // electric cars have no crank or shutdown (user: "electric cars don't have a startup"): no one-shot at all
+    if (kind === 'electric' || ENGINE[kind]?.electric || car.model?.engine === 'electric' || car.spec?.engineProfile === 'ev') return;
     const key = hasKey('vehicles', `${kind}_${which}`) ? `${kind}_${which}` : kind === 'bus' && hasKey('vehicles', `diesel_${which}`) ? `diesel_${which}` : `car_${which}`;
     const p = car.mesh.position;
     const isP = car === game.player?.state?.vehicle;

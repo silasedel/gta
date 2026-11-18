@@ -612,7 +612,7 @@ export async function createVehicles(game) {
   // engine torque shape over the rev range (0..1 of maxRpm)
   function torqueCurve(v) {
     const m = v.model, n = clamp(v.rpm / m.maxRpm, 0, 1);
-    return m.engine === 'diesel' ? 1.15 - 0.45 * n : m.engine === 'electric' ? 1.1 - 0.3 * n : 0.82 + 0.38 * Math.sin(Math.PI * Math.min(1, n * 1.05));
+    return m.engine === 'diesel' ? 1.15 - 0.45 * n : m.engine === 'electric' ? 1.8 - 0.85 * n : 0.82 + 0.38 * Math.sin(Math.PI * Math.min(1, n * 1.05));
   }
   // automatic gearbox: drives v.rpm / v.gear / v.throttle / v.load for audio and torque
   function gearbox(v, speed, c, engine, brake, dt) {
