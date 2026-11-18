@@ -1747,7 +1747,19 @@ export async function createVehicles(game) {
   const _spotPos = new THREE.Vector3();
   let lastEvict = 0;
   let paintWet = 0;
+  let bushT = 0;
   function update(dt) {
+    // parked cars in bushes (user, Nov 18: a car glitched through a yard bush): lot planting streams in after the parked cars,
+    // so the spawn-time check (lotBlocked) misses plants that arrive later. Every 1.2 s, a parked car within 50 m (where shrub
+    // zones exist) that now stands in a shrub is recycled as soon as it is out of view (never popped while on screen)
+    if ((bushT += dt) > 1.2) { bushT = 0; try { const pp = game.player?.position;
+      if (pp && game.physics?.shrubs?.at) for (const v of list.slice()) {
+        if (!v.parked || v.pinned || v.playerDriven || v.ai || v.everDriven || v.rare || v.playerOwned) continue;
+        const t = v.body?.translation?.(); if (!t || Math.hypot(t.x - pp.x, t.z - pp.z) > 50) continue;
+        const r = v.body.rotation(), h = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x)), T = CAR_TYPES[v.typeKey] || {};
+        const hit = lotBlocked(t.x, t.z, h, (T.L || 4.6) * 0.9, (T.W || 1.9) * 0.9);
+        if (hit && !inView(new THREE.Vector3(t.x, t.y, t.z))) removeVehicle(v);   // seen right now: re-checked next tick, removed once off screen
+      } } catch (e) { /* cosmetic */ } }
     { // car paint wetness follows rain: builds in ~10 s, dries over ~90 s
       const w = game.weather; const kind = String(typeof w === 'string' ? w : (w?.kind || w?.type || w?.current || w?.state || '')).toLowerCase();
       const rain = typeof w?.rain === 'number' ? w.rain : (/storm|hurricane|rain|shower/.test(kind) ? 1 : 0);
