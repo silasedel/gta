@@ -285,9 +285,10 @@ export function build(ctx) {
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   // user (Nov 18): "there shouldn't be rocks in the road". The yard rocks were laid out for the old lot; on the new Keys lot
   // (r4-keys: local x -24..11.4, z -14.2..33, driveway straight out along +Z at x = -6) drop any outside the lot or on the drive
+  const STOPS_OK = [];   // the yard STOP signs marked the OLD lot's T corner; on the new Keys lot the street signs come from the road sign system (user: a stop sign in the middle of the sand)
   const ROCKS_OK = ROCKS.filter(([x, z]) => x > -23.5 && x < 11 && z > -13.8 && z < 32.2 && !(Math.abs(x + 6) < 3.4 && z > 16));
   for (const [x, z, k, sc, h, sink] of ROCKS_OK) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
-  for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
+  for (const st of STOPS_OK) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post', 'wicker_chair']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
@@ -315,7 +316,7 @@ export function build(ctx) {
     const g = new THREE.Group(); g.name = 'keysStops';
     // one instanced mesh per part for the three signs (post, plate)
     const inst = (part, mats) => { const im = new THREE.InstancedMesh(part.geometry, part.material, mats.length); mats.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; im.computeBoundingSphere(); g.add(im); };
-    const bases = STOPS.map((st) => M(st.x, yS(st.x, st.z) - 0.04, st.z, st.lean || 0, st.face, 0));
+    const bases = STOPS_OK.map((st) => M(st.x, yS(st.x, st.z) - 0.04, st.z, st.lean || 0, st.face, 0));
     // user: the STOP plate sat off the post. The kit's post geometry is not centered on its origin, so the 2.4x width scale pushed
     // it sideways: center both parts on the sign axis from their own bounding boxes (plate just in front of the post)
     const ctr = (geo) => { try { geo.computeBoundingBox(); const bb = geo.boundingBox; return { x: (bb.min.x + bb.max.x) / 2, z: (bb.min.z + bb.max.z) / 2, d: bb.max.z - bb.min.z }; } catch (e) { return { x: 0, z: 0, d: 0 }; } };
