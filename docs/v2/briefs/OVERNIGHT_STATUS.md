@@ -1148,6 +1148,20 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - game.vegetation.trunksNear() for r2-physics' trunk colliders. Sin-free instance hash with a CPU twin, so collider and drawn trunk
     match. Includes r2-render's dither / A2C / near-fade hunks.
   - Open: the deck-view mass (far red canopy, tree wall behind the roll-off), 40 street spots still rejected, r2-perf's vegLodScale.
+- **Evening (commits afce3e49, 134439d8, 1888f202, 02e48150):**
+  - **Foliage look:** per leaf-cluster color, dead leaves, darker undersides, folded palm fronds, 3x denser 30 % smaller shrub cards,
+    a -0.7 leaf mip bias with 62-65 % volume normals (crisp leaves at 3-5 m), and foliageVolume() for set-piece plants.
+    Sheets: `sheet_foliage_look_ab.jpg`. Map-wide census: every library species is on the volume material.
+  - **trunksNear():** for r2-physics' trunk colliders, with a sin-free instance hash and its CPU twin.
+  - **Ground:** Keys weeds in clusters (weedPatch mask shared with r2-ground); yard planting avoids parked cars; only real paving lifts
+    a plant over the drawn terrain.
+  - **The user's HD models:** royal poinciana x3 (now the poinciana everywhere), HD hibiscus, and the HD red mangrove as the only
+    mangrove. Per-model base scale. The crotons converted without textures and are not placed.
+  - **Draw calls (r2-perf round 3 a):** per-model atlas merge of leaf / bark parts. 94 parts merged; visible vegetation meshes
+    471 -> 382 at the spawn; total draws -5 to -10 % at the spawn, Keys street and planter. Same look (`sheet_merge_ab.jpg`).
+  - **Incidents (each fixed within minutes):** at 13:30 a `//` comment broke the city boot; during the merge work a GLSL `#endif`
+    broke every vegetation shader for ~25 min. Edits now go through a temp-file node check, and runs are checked for "Shader Error".
+  - **Open:** the deck view's tree wall behind the roll-off; 40 rejected street spots; game.vegLodScale for r2-perf; textured crotons.
 
 ## r2-web
 - **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
