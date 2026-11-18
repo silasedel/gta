@@ -170,6 +170,7 @@ export function createAudio(game) {
   function start() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     ctx = new (window.AudioContext || window.webkitAudioContext)();
+    setTimeout(() => { try { loadFile('ui', 'soft_button.wav'); } catch (e) { /* */ } }, 0);   // preload the menu button sound
     // master: sum -> gentle glue compression -> brick-wall limiter at -1 dBFS -> (metered) -> volume/mute -> out
     const tap = (name, node) => { const a = ctx.createAnalyser(); a.fftSize = 4096; node.connect(a); meters[name] = a; return node; };
     master = ctx.createGain(); master.gain.value = 1;
@@ -1742,6 +1743,11 @@ export function createAudio(game) {
     ui(name, o = {}) {
       if (!ctx || !uiBus || ctx.state !== 'running') return;
       const t = ctx.currentTime + 0.004, d = out({ bus: uiBus, volume: 0.55 * (o.volume ?? 1) });
+      // user (Nov 18): button presses use the user's "Soft Button" sound (SFX/00_Essentials), not the synth sweeps
+      if (name === 'select' || name === 'confirm' || name === 'start' || name === 'open') {
+        const buf = loadFile('ui', 'soft_button.wav');
+        if (buf) { try { const src = ctx.createBufferSource(); src.buffer = buf; const g = ctx.createGain(); g.gain.value = 0.9 * (o.volume ?? 1); src.connect(g); g.connect(d); src.start(t); return; } catch (e) { /* synth below */ } }
+      }
       switch (name) {
         case 'move': tone(d, t, { f0: 1760, f1: 1480, decay: 0.05, gain: 0.13 }); burst(d, t, { type: 'highpass', freq: 7000, decay: 0.018, gain: 0.05 }); break;
         case 'tick': tone(d, t, { type: 'triangle', f0: 2300, decay: 0.022, gain: 0.07 }); break;
