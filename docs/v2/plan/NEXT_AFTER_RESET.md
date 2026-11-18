@@ -59,3 +59,10 @@
 - **Fence physics:** the thin wire / map-data fence that stopped the car dead needs the energy-break model (chain / wire low energy) and the mesh fabric from the user's model.
 - **Variety:** avoid two of the same model in the same area (parked and traffic cars and people): a per-area recent-model ring.
 - **Tires:** some cars (the 4Runner-like SUV) still have non-solid looking tires. Audit every wheel model for open sidewalls / inner faces (r3-cars made wheels double-sided; check the carcass per model).
+
+## Systems to make future-proof (the user's direction: fix systems, not spots)
+- **Placement:** `game.placement` (src/world/placement.v2.js) is the one rule for "may something stand here". Vegetation fields use it now. Migrate onto it: house lots (houses.v2.js inline checks), parked cars (vehicles.js lotBlocked), yard dressing (55_yard.js: rocks use the lot bounds now), lot props (offRoad), street props, signs. Add building footprints and water edges to the rule.
+- **Grounding:** one ground-snap service (highest static surface under a footprint, via raycasts) for everything placed: palms (roots float), the player's feet on the yard sheet, props, signs. Replace the per-placer y logic.
+- **Physics safety:** removed cars now keep a stand-in body (vehicles.js deadBody). Do the same for every system that frees Rapier bodies (boats, aircraft, props, breakables). Keep `?rapierguard=1` in the QA runs.
+- **Ragdolls:** CCD plus a floor guard on all parts (ragdoll.js floorGuard). Joint limits and masses still need a pass.
+- **Car to people:** hits from 1.4 m/s. Make the hit test a swept volume against the people's capsules (no pass-through at the car's edges).
