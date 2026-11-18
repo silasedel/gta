@@ -1186,6 +1186,10 @@ export async function createVehicles(game) {
 
     // stuck detection (waiting at a red light does not count)
     if (Math.abs(v.speed) < 0.5 && ai.waitT <= 0) ai.stuckT += dt; else ai.stuckT = 0;
+    // wedged (a hedge, a curb, a parked car): one reverse with opposite lock after 3.5 s; still stuck at 8 s -> recycled
+    if (ai.stuckT > 3.5 && !ai.revTried) { ai.revTried = true; ai.revT = 1.4; }
+    if (Math.abs(v.speed) > 2) ai.revTried = false;
+    if (ai.revT > 0) { ai.revT -= dt; v.ctrl.throttle = -0.7; v.ctrl.brake = 0; v.ctrl.handbrake = false; v.ctrl.steer = -(v.ctrl.steer || 0.6); }
   }
 
   // aggressive pursuit: ignores lanes, rams, avoids buildings with forward rays
@@ -1408,6 +1412,16 @@ export async function createVehicles(game) {
     try { game.physics?.watchParked?.(v); } catch (e) { /* optional */ }
     return v;
   }
+  // lot planting blocks parking (user: an SUV wedged in the hedge by Nico's stairs): no parked car within 1.5 m of a drawn
+  // shrub / hedge (r2-physics' shrub zones, registered within 50 m of the player) at its center or corners
+  function lotBlocked(x, z, heading = 0, L = 4.8, W = 2.0) {
+    const at = game.physics?.shrubs?.at; if (!at) return false;
+    const c = Math.cos(heading), s_ = Math.sin(heading);
+    for (const [a, b] of [[0, 0], [W / 2, L / 2], [-W / 2, L / 2], [W / 2, -L / 2], [-W / 2, -L / 2], [0, L / 2], [0, -L / 2]]) {
+      if (at(x + a * c + b * s_, z - a * s_ + b * c, 1.5) > 0) return true;
+    }
+    return false;
+  }
   async function spawnParked(key, o = {}) {
     if (fleet && !CAR_TYPES[key]?.glb) key = fleet.resolve(key); // generic keys ('sedan', 'pickup'...) -> a library model of that class
     if (fleet && CAR_TYPES[key]?.glb && !fleet.loaded(key)) { try { await loadCarModel(CAR_TYPES[key].fileKey || key); } catch (e) { /* falls back below */ } }
@@ -1417,6 +1431,7 @@ export async function createVehicles(game) {
     if (!o.keepSpot && game.physics?.findCarSpot && CAR_TYPES[key]) {
       const s = game.physics.findCarSpot(o.x, o.z, o.heading || 0, CAR_TYPES[key].L, CAR_TYPES[key].W);
       if (!s) return null;
+      if (lotBlocked(s.x, s.z, o.heading || 0, CAR_TYPES[key].L, CAR_TYPES[key].W)) return null;
       o = { ...o, x: s.x, z: s.z, y: s.y ?? o.y };
     }
     const y = o.y ?? groundY(o.x, o.z);
@@ -1668,7 +1683,7 @@ export async function createVehicles(game) {
     if (nearParked < 10) {
       const farP = parked.find((v) => distXZ(v.body.translation(), pp) > PHYS_R + 60);
       const sp = parkedSpot(pp, 70, PHYS_R - 15, true);
-      if (sp) {
+      if (sp && !lotBlocked(sp.pos.x, sp.pos.z, sp.heading)) {
         if (farP) { placeVehicle(farP, sp.pos, sp.heading); farP.locked = Math.random() < 0.4; }
         else if (parked.length < 18) { const type = parkedTypeFor(sp.pos); parkChecked(type, sp.pos, sp.heading); }
       }
