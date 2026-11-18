@@ -9,6 +9,10 @@ import { resolveOverrides, applyPlans, applyTargets, applyProfile } from './over
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 
 const DEG = Math.PI / 180;
+// r5-bridge (user's Keys bridge render): over-water decks of the Overseas Highway in the Keys (z > 3900) get the Florida Keys look:
+// plain slab with low solid parapets (no jersey / lamps), bents every ~28 m of 3-4 slender rectangular columns under a cap beam.
+// ?keysbridge=0 = the generic viaduct look.
+const KEYSB = !(typeof location !== 'undefined' && /[?&]keysbridge=0\b/.test(location.search));
 
 // uniform grid of item ids (cell -> int list)
 class Grid {
@@ -456,6 +460,8 @@ export function* buildNetworkSteps(data, opts = {}) {
     if ((++yieldN & 7) === 0) yield; // boot pacing
     const n = c.n; c.type = new Uint8Array(n); c.gY = new Float64Array(n); c.water = new Uint8Array(n);
     for (let i = 0; i < n; i++) { c.water[i] = isWater(c.x[i], c.z[i]) ? 1 : 0; c.gY[i] = c.water[i] ? seabed(c.x[i], c.z[i]) : terrainY(c.x[i], c.z[i]); }
+    c.kst = 0;
+    if (KEYSB) { let w = 0; for (let i = 0; i < n; i++) w += c.water[i]; const m = n >> 1; if (w >= 6 && c.z[m] > 3900 && c.x[m] < 400) c.kst = 1; }
     const wNear = new Uint8Array(n); for (let i = 0; i < n; i++) if (c.water[i]) for (let k = Math.max(0, i - 4); k <= Math.min(n - 1, i + 4); k++) wNear[k] = 1;
     for (let i = 0; i < n; i++) { const y = c.y[i]; c.type[i] = wNear[i] && y > 0.6 ? 2 : y < P.GRADE_Y ? 0 : y < P.OPEN_MIN ? 1 : 2; }
     // something passes underneath (a street or a lower deck): never a solid embankment there, open span instead
@@ -532,7 +538,7 @@ export function* buildNetworkSteps(data, opts = {}) {
       let j = i; while (j < n && c.type[j] === 2 && c.vis[j]) j++;
       const s0 = c.s[i], s1 = c.s[j - 1], len = s1 - s0;
       if (len > 6) {
-        const nsp = Math.max(1, Math.round(len / P.SPAN)), sp = len / nsp;
+        const nsp = Math.max(1, Math.round(len / (c.kst ? 28 : P.SPAN))), sp = len / nsp;
         let pk = 0;
         for (let q = 0; q <= nsp; q++) {
           const sNom = s0 + q * sp; let placed = false;
@@ -541,13 +547,13 @@ export function* buildNetworkSteps(data, opts = {}) {
             const k = sampleIndex(c, s); const kk = Math.min(n - 1, Math.max(0, k)); if (c.type[kk] !== 2 || !c.vis[kk]) continue;
             const pp = framesAt(c, s); const W = pp.vR - pp.vL; if (W < 3) continue;
             const yTop = pp.y + P.ROAD_Y, soffit = yTop + pp.bank * ((pp.vL + pp.vR) / 2) - P.DECK_D;
-            const nCol = W < 9.5 ? 1 : W < 17 ? 2 : 3, cols = [];
-            for (let m = 0; m < nCol; m++) cols.push(pp.vL + W * (m + 0.5) / nCol);
+            const nCol = c.kst ? (W < 9.5 ? 2 : W < 17 ? 3 : 4) : W < 9.5 ? 1 : W < 17 ? 2 : 3, cols = [];
+            for (let m = 0; m < nCol; m++) cols.push(c.kst ? pp.vL + 1.4 + (W - 2.8) * m / (nCol - 1) : pp.vL + W * (m + 0.5) / nCol);
             let ok = true; const colPts = [];
             for (const o of cols) { const cx = pp.x - pp.tz * o, cz = pp.z + pp.tx * o, g = groundY(cx, cz); if (soffit - 1.2 - g < 1.5 || occupied(cx, cz, 1.2, soffit - 0.5, c)) { ok = false; break; } colPts.push([cx, cz, g]); }
             if (ok) { const capBot = soffit - 1.15; for (let o = pp.vL + 0.5; o <= pp.vR - 0.5 && ok; o += 1.5) for (const dl of [-0.85, 0.85]) { const qx = pp.x - pp.tz * o + pp.tx * dl, qz = pp.z + pp.tx * o + pp.tz * dl; if (deckBetween(qx, qz, capBot - P.CLEAR - 0.1, soffit + 0.5, c)) { ok = false; break; } } }
             if (!ok) continue;
-            piers.push({ chain: c.id, s, x: pp.x, z: pp.z, tx: pp.tx, tz: pp.tz, vL: pp.vL, vR: pp.vR, soffit, bank: pp.bank, cols: colPts, r: soffit - colPts[0][2] > 14 ? 0.85 : 0.7 });
+            piers.push({ chain: c.id, s, x: pp.x, z: pp.z, tx: pp.tx, tz: pp.tz, vL: pp.vL, vR: pp.vR, soffit, bank: pp.bank, cols: colPts, r: soffit - colPts[0][2] > 14 ? 0.85 : 0.7, ...(c.kst ? { rect: [0.42, 0.32], r: 0.5 } : {}) });
             if (pk++ % 2 === 1 && q > 0 && q < nsp) joints.push({ chain: c.id, s });
             placed = true; break;
           }
@@ -557,7 +563,7 @@ export function* buildNetworkSteps(data, opts = {}) {
       i = j;
     }
     // lamps on the barrier lines (staggered both sides)
-    for (const side of [-1, 1]) {
+    for (const side of (c.kst ? [] : [-1, 1])) { // r5-bridge: no lamps on the Keys bridges (the render has utility poles, not lamps)
       const bar = side < 0 ? c.barL : c.barR;
       for (let s = (side > 0 ? 14 : 14 + P.LAMP_SP / 2); s < c.length - 8; s += P.LAMP_SP) {
         const k = Math.min(n - 1, Math.round(sampleIndexF(c, s)));

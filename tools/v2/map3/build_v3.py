@@ -297,6 +297,7 @@ if os.path.exists(_kp):
                    speed=rd_.get('speedKmh') or (80 if kind == 'trunk' else 30 if rd_.get('surface') == 'dirt' else 40),
                    surface=rd_.get('surface'), region='Key Largo', ref=('US-1' if kind == 'trunk' else ''), tags={'keysDetail': 1, 'dkind': 'keys', 'style': rd_.get('style'), **({'keysFill': rd_['fill']} if rd_.get('fill') else {}), **({'keysGrid': 1} if rd_.get('grid') else {})})   # r4-keys grid
         if r is not None: r.width = rd_.get('width') or (11.0 if kind == 'trunk' else 5.2 if rd_.get('surface') == 'dirt' else 7.0)
+        if r is not None and rd_.get('deck'): r.bclass = 'long'   # r5-bridge: the undivided highway ends cross the water on one 6.2 m deck
     for pr in KEYS.get('piers', []): W.path(pr['pts'], 'pier', pr.get('width', 2.2), 'wood', None, y=None)
     log(f"keys detail: region {KREG.area / 1e6:.2f} km2, roads {len(KEYS.get('roads', []))}, buildings {len(KEYS.get('buildings', []))}, piers {len(KEYS.get('piers', []))}")
 
@@ -322,6 +323,8 @@ wet = sbox(BOUNDS['minX'], BOUNDS['minZ'], BOUNDS['maxX'], BOUNDS['maxZ']).diffe
 # grade on a culvert (each bridge is its own deck mesh and draw calls; the map had ~240 tiny ones)
 wet = wet.buffer(-9.0, join_style=2).buffer(9.0, join_style=2)
 wet = unary_union([g for g in geoms(wet) if g.area > 1500])
+if KEYS and isinstance(KEYS.get('grid'), dict) and KEYS['grid'].get('decks'):   # r5-bridge: the Keys highway's end decks are ONE bridge
+    wet = wet.union(unary_union([Polygon(d).buffer(0) for d in KEYS['grid']['decks']]))     # over every channel, islet and sliver
 nb = RN.finalize(W, wet)
 comps = RN.connectivity(W.roads)
 main_c = set(comps[0])

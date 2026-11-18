@@ -12,6 +12,7 @@ const COL = { // a touch warm (not beige): the blue sky fill on shaded faces the
   soffit: [0.2, 0.196, 0.185], walk: [0.3, 0.292, 0.27], curb: [0.28, 0.272, 0.25], girder: [0.24, 0.234, 0.215], pier: [0.3, 0.292, 0.27], cap: [0.29, 0.282, 0.26], /* ground pass: undersides / piers read as concrete, not near-black */ white: [0.95, 0.95, 0.93], yellow: [0.95, 0.76, 0.19], gore: [0.93, 0.93, 0.9],
 };
 
+const KDECK = [1.9, 1.87, 1.78], KDECK_LOD = [0.56, 0.55, 0.53]; // r5-bridge Keys deck tints (full detail / LOD)
 const R3C = !(typeof location !== 'undefined' && /[?&]r3concrete=0\b/.test(location.search)); // r3-concrete A/B: 0 = old flat retaining wall
 // r4-shoreland (user: barrier walls "look like cheap 2D layers"): the barrier was one sloped plane over an 8 cm reveal. Now the real
 // New Jersey safety shape: 7.6 cm vertical lip, 55 deg lower face to 33 cm, 84 deg upper face, rounded knee and top edges with
@@ -73,9 +74,10 @@ export function createBuilder(net) {
 
   // barrier cross-section at sample i (side s): inner toe, reveal, top-inner, top-outer, bottom-outer ([o, y] pairs)
   function barrierProfile(c, i, side, hScale, out) {
-    const oE = side < 0 ? c.vL[i] : c.vR[i], s = side, par = sideWalkW(c, i, side) > 0;
-    const oT = oE - s * (par ? P.PAR_W : P.BAR_BASE), oTi = par ? oT : oE - s * P.BAR_TOP;
-    const yb = surf(c, i, oT) + (par ? P.CURB_H : 0), yt = yb + (par ? P.PAR_H : P.BAR_H * hScale);
+    const oE = side < 0 ? c.vL[i] : c.vR[i], s = side, kp = c.kst === 1, par = kp || sideWalkW(c, i, side) > 0;
+    // r5-bridge: Keys bridges have a low solid parapet (0.36 m wide, 0.86 m tall, vertical faces) right on the deck
+    const oT = oE - s * (kp ? 0.36 : par ? P.PAR_W : P.BAR_BASE), oTi = par ? oT : oE - s * P.BAR_TOP;
+    const yb = surf(c, i, oT) + (kp ? 0 : par ? P.CURB_H : 0), yt = yb + (kp ? 0.86 * hScale : par ? P.PAR_H : P.BAR_H * hScale);
     const type = c.type[i];
     const yEdge = surf(c, i, oE);
     const bottom = type === 2 ? yEdge - 0.85 : Math.min(yEdge - 0.3, c.gY[i] - 0.3);
@@ -236,8 +238,9 @@ export function createBuilder(net) {
       {
         const L0 = full ? [c.lx[i], c.ly[i], c.lz[i]] : W(P0, P0.vL, 0), R0 = full ? [c.rx[i], c.ry[i], c.rz[i]] : W(P0, P0.vR, 0);
         const L1 = full ? [c.lx[j], c.ly[j], c.lz[j]] : W(P1, P1.vL, 0), R1 = full ? [c.rx[j], c.ry[j], c.rz[j]] : W(P1, P1.vR, 0);
-        setV(va, L0[0], L0[1], L0[2], 0, 1, 0, P0.vL / 7, P0.s / 7, COL.deck); setV(vb, R0[0], R0[1], R0[2], 0, 1, 0, P0.vR / 7, P0.s / 7, COL.deck);
-        setV(vc, R1[0], R1[1], R1[2], 0, 1, 0, P1.vR / 7, P1.s / 7, COL.deck); setV(vd, L1[0], L1[1], L1[2], 0, 1, 0, P1.vL / 7, P1.s / 7, COL.deck);
+        const DC = c.kst ? KDECK : COL.deck; // r5-bridge: the Keys slab reads as pale concrete (asphalt map x vertex tint)
+        setV(va, L0[0], L0[1], L0[2], 0, 1, 0, P0.vL / 7, P0.s / 7, DC); setV(vb, R0[0], R0[1], R0[2], 0, 1, 0, P0.vR / 7, P0.s / 7, DC);
+        setV(vc, R1[0], R1[1], R1[2], 0, 1, 0, P1.vR / 7, P1.s / 7, DC); setV(vd, L1[0], L1[1], L1[2], 0, 1, 0, P1.vL / 7, P1.s / 7, DC);
         quad(asph, va, vb, vc, vd, 0, 1, 0, B);
       }
       const t0 = c.type[i], t1 = c.type[j], open = t0 === 2 && t1 === 2, elev = t0 > 0 || t1 > 0;
@@ -455,6 +458,19 @@ export function createBuilder(net) {
       setV(va, ...A, 0, 0, 0, a[0] / 3, a[2] / 3, COL.cap); setV(vb, ...Bq, 0, 0, 0, b[0] / 3, b[2] / 3, COL.cap); setV(vc, ...C, 0, 0, 0, cc[0] / 3, cc[2] / 3, COL.cap); setV(vd, ...D, 0, 0, 0, d[0] / 3, d[2] / 3, COL.cap);
       quad(buf, va, vb, vc, vd, hx, hy, hz, B);
     }
+    if (p.rect) { // r5-bridge: Keys bents: slender rectangular columns (half sizes across / along the deck)
+      const [ha, hl] = p.rect, nx2 = -p.tz, nz2 = p.tx;
+      for (const [cx, cz, g] of p.cols) {
+        const y0 = g - 0.5, y1 = capBot + 0.05, Cn = (a, l) => [cx + nx2 * a + p.tx * l, cz + nz2 * a + p.tz * l];
+        for (const [a0, l0, a1, l1, hx, hz] of [[-ha, -hl, ha, -hl, -p.tx, -p.tz], [ha, -hl, ha, hl, nx2, nz2], [ha, hl, -ha, hl, p.tx, p.tz], [-ha, hl, -ha, -hl, -nx2, -nz2]]) {
+          const [x0, z0] = Cn(a0, l0), [x1, z1] = Cn(a1, l1);
+          setV(va, x0, y0, z0, 0, 0, 0, a0 / 3, y0 / 3, COL.pier); setV(vb, x1, y0, z1, 0, 0, 0, a1 / 3, y0 / 3, COL.pier);
+          setV(vc, x1, y1, z1, 0, 0, 0, a1 / 3, y1 / 3, COL.pier); setV(vd, x0, y1, z0, 0, 0, 0, a0 / 3, y1 / 3, COL.pier);
+          quad(buf, va, vb, vc, vd, hx, 0, hz, B);
+        }
+      }
+      return;
+    }
     for (const [cx, cz, g] of p.cols) {
       const r = p.r, y0 = g - 0.5, y1 = capBot + 0.05;
       for (let k = 0; k < SEG; k++) {
@@ -529,7 +545,7 @@ export function createBuilder(net) {
       const capH = 1.15, capTop = p.soffit, capBot = capTop - capH, o0 = p.vL + 0.5, o1 = p.vR - 0.5, om = (o0 + o1) / 2, ry = Math.atan2(p.tx, p.tz);
       const q = { x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) };
       out.push({ desc: RAPIER.ColliderDesc.cuboid((o1 - o0) / 2, capH / 2, 0.85).setTranslation(p.x - p.tz * om, (capTop + capBot) / 2, p.z + p.tx * om).setRotation(q), kind: 'pierCap' });
-      for (const [cx, cz, g] of p.cols) { const y0 = g - 0.5, y1 = capBot + 0.05; out.push({ desc: RAPIER.ColliderDesc.cylinder((y1 - y0) / 2, p.r).setTranslation(cx, (y0 + y1) / 2, cz), kind: 'pier' }); }
+      for (const [cx, cz, g] of p.cols) { const y0 = g - 0.5, y1 = capBot + 0.05; out.push({ desc: (p.rect ? RAPIER.ColliderDesc.cuboid(p.rect[0], (y1 - y0) / 2, p.rect[1]).setRotation(q) : RAPIER.ColliderDesc.cylinder((y1 - y0) / 2, p.r)).setTranslation(cx, (y0 + y1) / 2, cz), kind: 'pier' }); }
     }
     return out;
   }
@@ -562,11 +578,11 @@ export function createBuilder(net) {
       // 0.3 m in FRONT of the real jersey barrier, and the untextured LOD deck z-fought the real one: the "flat white slabs" and the
       // "blue deck"). So the LOD shell sits strictly INSIDE the full-detail geometry: deck 6 cm lower, barrier block inset under the
       // jersey profile (outer face 6 cm in, inner face at the top width, 10 cm lower), so the near tile always wins where it exists.
-      q(pt(i0, c.vL[i0] + 0.06, -0.06), pt(i0, c.vR[i0] - 0.06, -0.06), pt(j, c.vR[j] - 0.06, -0.06), pt(j, c.vL[j] + 0.06, -0.06), ASPH, 0, 1, 0);
+      q(pt(i0, c.vL[i0] + 0.06, -0.06), pt(i0, c.vR[i0] - 0.06, -0.06), pt(j, c.vR[j] - 0.06, -0.06), pt(j, c.vL[j] + 0.06, -0.06), c.kst ? KDECK_LOD : ASPH, 0, 1, 0);
       const open = c.type[i0] === 2 && c.type[j] === 2;
       for (const side of [-1, 1]) {
         const bar = side < 0 ? c.barL : c.barR; let oa = side < 0 ? c.vL[i0] : c.vR[i0], ob = side < 0 ? c.vL[j] : c.vR[j]; const hasBar = bar[i0] && bar[j];
-        const top = hasBar ? P.BAR_H - 0.1 : -0.06, bot = (k, o) => (open ? -0.85 - (c.y[k] + P.ROAD_Y + c.bank[k] * o) + c.y[k] : c.gY[k] - 0.3 - (c.y[k] + P.ROAD_Y + c.bank[k] * o));
+        const top = hasBar ? (c.kst ? 0.76 : P.BAR_H - 0.1) : -0.06, bot = (k, o) => (open ? -0.85 - (c.y[k] + P.ROAD_Y + c.bank[k] * o) + c.y[k] : c.gY[k] - 0.3 - (c.y[k] + P.ROAD_Y + c.bank[k] * o));
         if (c.type[i0] === 0 && c.type[j] === 0) continue;
         if (R4S && !hasBar && !open && !c.water[i0] && !c.water[j] && c.y[i0] - c.gY[i0] < 0.6 && c.y[j] - c.gY[j] < 0.6) continue; // r4: fill slope, not a wall (see buildVisual)
         const oa6 = oa - side * 0.06, ob6 = ob - side * 0.06;

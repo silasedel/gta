@@ -24,6 +24,7 @@ from scipy import ndimage
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, mapping, shape, box
 from shapely.ops import unary_union, nearest_points, split
 from shapely import affinity
+from shapely.prepared import prep
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OUT = os.path.join(HERE, 'out')
@@ -494,6 +495,8 @@ def rect(cx, cz, ang, L, W):
 # at the SW and N tips. The irregular NE end (Nico's Pelican Point Ln loop, Mahogany Dr, Ocean Bay Dr, Dove Ln, Card Sound Road) keeps its
 # hand-digitized curves; their highway ends move onto the carriageway on their side. KEYS_GRID=0 = the old one-highway layout.
 GRID = os.environ.get('KEYS_GRID', '1') != '0'
+DECK = os.environ.get('KEYS_DECK', '1') != '0'   # r5-bridge: one continuous elevated deck over the water at both highway ends
+DECK_ABUT, DECK_SPLIT = 8.0, 165.0   # deck runs this far onto the land past the last water; the divide starts this far beyond
 G_MOFF, G_CW = 7.2, 9.4          # carriageway centerline offset from the highway axis (median gap 5 m edge to edge), carriageway width
 G_KEEP = ('w1', 'w1L', 's1', 'd1', 'e1', 'e1cul', 'neSpur')
 G_CROSS = ['Grouper St', 'Dove Ln', 'Lobster Ln', 'Marina Ave', 'Barracuda Ln', 'Bonefish Ln', 'Sea Grape Ln', 'Tarpon Ave', 'Snapper Ln',
@@ -524,14 +527,35 @@ def grid_roads(ctrl, hwS0, land, lot, avoid=None):
     R = [(-tz, tx) for tx, tz in T]                                  # right of travel (x east, z south)
     sst = lambda t: t * t * (3 - 2 * t)
     STUB, TAPER = 50.0, 70.0
-    O = [G_MOFF * sst(min(1, max(0, (S[i] - STUB) / TAPER))) * sst(min(1, max(0, (L - STUB - S[i]) / TAPER))) for i in range(N)]
+    # r5-bridge (user: "fully fix the overpass to and from the Keys"): the divided highway used to split 50 m from each join, out over the
+    # water, so one carriageway bridged a channel while its twin lay flat on a sand sliver at sea level (and water showed between the two
+    # decks). Now the highway stays ONE 4-lane road over every over-water stretch at the ends (one wide deck, KEYS_DECK=0 = old), and only
+    # divides on solid land, far enough past the abutment that the r3 junction pin at the split never pulls the deck down
+    # (deck 6.2 m at 5 % = 124 m ramp; the pin's flat mouth + 8 % envelope needs >= 141 m between the deck end and the split).
+    STUB_N = STUB_S = STUB; decks = []
+    if DECK:
+        landq = prep(land.buffer(-6, join_style=2).buffer(6, join_style=2))     # slivers narrower than 12 m count as water
+        HALF = G_MOFF + G_CW / 2
+        wet = [any(not landq.contains(Point(C[i][0] + R[i][0] * o, C[i][1] + R[i][1] * o)) for o in (-HALF, -HALF / 2, 0, HALF / 2, HALF)) for i in range(N)]
+        dN = max((S[i] for i in range(N) if wet[i] and S[i] < 900), default=None)
+        dS = max((L - S[i] for i in range(N) if wet[i] and L - S[i] < 900), default=None)
+        for d, end in ((dN, 0), (dS, 1)):
+            if d is None: continue
+            a_, b_ = (0.0, d + DECK_ABUT) if end == 0 else (L - d - DECK_ABUT, L)
+            seg = [C[i] for i in range(N) if a_ - 0.01 <= S[i] <= b_ + 0.01]
+            if len(seg) >= 2: decks.append(LineString(seg).buffer(G_CW / 2 + G_MOFF + 3.0, cap_style=2, join_style=2))
+        if dN is not None: STUB_N = max(STUB, dN + DECK_ABUT + DECK_SPLIT)
+        if dS is not None: STUB_S = max(STUB, dS + DECK_ABUT + DECK_SPLIT)
+        print(f'deck: over-water ends N {dN} m, SW {dS} m -> undivided stubs N {STUB_N:.0f} m, SW {STUB_S:.0f} m')
+    O = [G_MOFF * sst(min(1, max(0, (S[i] - STUB_N) / TAPER))) * sst(min(1, max(0, (L - STUB_S - S[i]) / TAPER))) for i in range(N)]
     pt = lambda i, o: (C[i][0] + R[i][0] * o, C[i][1] + R[i][1] * o)
-    iA0 = next(i for i in range(N) if S[i] >= STUB); iA1 = max(i for i in range(N) if S[i] <= L - STUB)
+    iA0 = next(i for i in range(N) if S[i] >= STUB_N); iA1 = max(i for i in range(N) if S[i] <= L - STUB_S)
     j0 = min(range(N), key=lambda i: math.dist(C[i], hwS0[0]))
     HW = 'Overseas Highway'
     rec = lambda pts, **kw: dict(pts=[[round(x, 2), round(z, 2)] for x, z in pts], **kw)
-    out = [rec(C[:iA0 + 1], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1),
-           rec(C[iA1:], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1),
+    dk = dict(deck=1) if decks else {}
+    out = [rec(C[:iA0 + 1], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1, **dk),
+           rec(C[iA1:], kind='trunk', surface='concrete', lanes=2, width=19.0, name=HW, speedKmh=72, grid=1, **dk),
            rec([pt(i, O[i]) for i in range(iA0, iA1 + 1)], kind='trunk', surface='concrete', lanes=2, width=G_CW, name=HW, speedKmh=72, oneway=True, grid=1, fill='hw'),
            rec([pt(i, -O[i]) for i in range(iA1, iA0 - 1, -1)], kind='trunk', surface='concrete', lanes=2, width=G_CW, name=HW, speedKmh=72, oneway=True, grid=1, fill='hw')]
     axis = LineString(C)
@@ -564,6 +588,8 @@ def grid_roads(ctrl, hwS0, land, lot, avoid=None):
     if LAYOUT:   # the grid runs the whole island: the N branch's stretch north of the split too (not within 70 m of the split)
         g0 = next((i for i in range(iA0 + 5, j0) if coast(i, 1) > 35 and coast(i, -1) > 35), j0 + 20); g1 = iA1 - 25
     else: g0, g1 = j0 + 40, iA1 - 25
+    if DECK:   # r5-bridge: no cross street (an at-grade junction pinned at 0) on the undivided stubs next to a deck
+        g0 = max(g0, next(i for i in range(N) if S[i] >= STUB_N + TAPER)); g1 = min(g1, max(i for i in range(N) if S[i] <= L - STUB_S - TAPER))
     cross_names = {}
     sides = {}
     for sd in (1, -1):
@@ -642,7 +668,7 @@ def grid_roads(ctrl, hwS0, land, lot, avoid=None):
             if gg.geom_type == 'Polygon' and gg.area > 600: areas.append(dict(ring=[[round(x, 2), round(z, 2)] for x, z in list(gg.exterior.coords)[:-1]], kind='park', name=nm))
     print(f'grid: highway {L:.0f} m divided ({G_MOFF} m offset), cross stations {len(stations)}, median openings {opened}, collectors {ncol}, '
           f'roads {len(out)}, parks {len(areas)}')
-    return out, areas, keepz, dict(axis=[[round(x, 2), round(z, 2)] for x, z in C], R=[[round(a, 4), round(b, 4)] for a, b in R])
+    return out, areas, keepz, dict(decks=[[[round(x, 2), round(z, 2)] for x, z in list(g.exterior.coords)[:-1]] for g in decks], axis=[[round(x, 2), round(z, 2)] for x, z in C], R=[[round(a, 4), round(b, 4)] for a, b in R])
 
 
 # ---------------------------------------------------------------------------------------------------------------- r4 layout map
@@ -816,6 +842,12 @@ def main():
             _bx, _bz = _p.x - _rx * 36, _p.y - _rz * 36; _bh = math.atan2(_rx, _rz)
             _bar_lot = Polygon([hl((_bx, _bz), _bh, x, z) for x, z in ((-24, -19), (24, -19), (24, 19), (-24, 19))])
         roads_w, areas, keepz, gridinfo = grid_roads(ctrl, hwS0, land, lot, avoid=_bar_lot.buffer(4))
+        if gridinfo.get('decks'):   # r5-bridge: sand slivers (< 12 m wide) under / beside the end decks go (the twin carriageway lay on one)
+            _dz = unary_union([Polygon(d) for d in gridinfo['decks']]).buffer(12)
+            _sl = land.intersection(_dz).difference(land.buffer(-6, join_style=2).buffer(6, join_style=2))
+            _sl = _sl.union(land.intersection(_dz.buffer(-12)).difference(land.buffer(-12, join_style=2).buffer(12, join_style=2)))   # strips the map drew under the deck
+            land = unary_union([g for g in getattr(land.difference(_sl.buffer(0.5)), 'geoms', [land.difference(_sl.buffer(0.5))]) if g.geom_type == 'Polygon' and g.area > 60]).buffer(0)
+            print(f'deck: {len(gridinfo["decks"])} end decks, {_sl.area:.0f} m2 of sand sliver removed')
         if LAYOUT:   # Nico's driveway street: from the lot front straight out to the first grid street
             _a = hl(o, h, -6.0, 33.5); _b = hl(o, h, -6.0, 160.0); _ray = LineString([_a, _b]); _hit = None
             for r in roads_w:
