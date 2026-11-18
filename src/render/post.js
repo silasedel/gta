@@ -633,13 +633,13 @@ export function createPost(game) {
       uniforms: {
         tCur: { value: null }, tHist: { value: null }, tDepth: { value: null }, tVel: { value: null },
         uInvVP: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uTexel: { value: new THREE.Vector2(1, 1) },
-        uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 }, uBlendRest: { value: 0.08 }, uDisocc: { value: 1 }, uBoxMix: { value: 0.5 }, uCross: { value: 0 },
+        uReset: { value: 1 }, uVelOn: { value: 0 }, uNear: { value: 0.25 }, uFar: { value: 3000 }, uBlendRest: { value: 0.08 }, uDisocc: { value: 1 }, uBoxMix: { value: 0.5 }, uCross: { value: 0 }, uJitPx: { value: new THREE.Vector2() }, uFilter: { value: 1 },
       },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
       fragmentShader: /* glsl */`
         #include <packing>
         uniform sampler2D tCur; uniform sampler2D tHist; uniform sampler2D tDepth; uniform sampler2D tVel;
-        uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uTexel; uniform float uReset, uVelOn, uNear, uFar, uBlendRest, uDisocc, uBoxMix, uCross;
+        uniform mat4 uInvVP; uniform mat4 uPrevVP; uniform vec2 uTexel; uniform float uReset, uVelOn, uNear, uFar, uBlendRest, uDisocc, uBoxMix, uCross, uFilter; uniform vec2 uJitPx;
         float linZ( vec2 uv ) { float d = texture2D( tDepth, uv ).x; return d >= 0.99995 ? 6.0e4 : -perspectiveDepthToViewZ( d, uNear, uFar ); }
         varying vec2 vUv;
         vec3 toY( vec3 c ) { return vec3( 0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b ); }
@@ -678,12 +678,18 @@ export function createPost(game) {
           vec3 cur = tm( texture2D( tCur, vUv ).rgb );
           if ( uReset > 0.5 ) { gl_FragColor = vec4( itm( cur ), vz ); return; }
           vec3 yc = toY( cur ), mn = yc, mx = yc, m1 = yc, m2 = yc * yc;
+          // reconstruction filter (r2-render, after the QA's "dotted" deck): the new sample is the 3x3 weighted by each
+          // tap's distance to this pixel's center after the jitter (Blackman-Harris fit, as UE4): a smooth, stable
+          // 1.5 px footprint instead of one point sample per frame, which left 1-px steps and texture sparkle at rest
+          vec2 jo = uJitPx; float fw0 = exp( -2.29 * dot( jo, jo ) ), fwS = fw0; vec3 yF = yc * fw0;
           for ( int j = -1; j <= 1; j++ ) for ( int i = -1; i <= 1; i++ ) {
             if ( i == 0 && j == 0 ) continue;
             if ( uCross > 0.5 && i != 0 && j != 0 ) continue; // Medium / Low: 5-tap cross (r2-perf: GPU cost)
             vec3 y = toY( tm( texture2D( tCur, vUv + vec2( float( i ), float( j ) ) * uTexel ).rgb ) );
             mn = min( mn, y ); mx = max( mx, y ); m1 += y; m2 += y * y;
+            vec2 dd = vec2( float( i ), float( j ) ) + jo; float fw = exp( -2.29 * dot( dd, dd ) ); yF += y * fw; fwS += fw;
           }
+          if ( uFilter > 0.5 ) yc = yF / fwS;
           float nN = uCross > 0.5 ? 5.0 : 9.0;
           vec3 mu = m1 / nN, sd = sqrt( max( m2 / nN - mu * mu, 0.0 ) );
           // moving surface: nearest velocity sample in a 5-tap cross (dilated silhouettes), only where it is not hidden
@@ -984,6 +990,10 @@ export function createPost(game) {
       U.uBlendRest.value = game.renderTaaRest ?? 0.08;
       U.uDisocc.value = game.renderDisocc === true ? 1 : 0; // off: the depth test still misfired on textured ground at rest (ablation abl1: 3x the frame-to-frame noise); velocity + clipping handle ghosting
       U.uBoxMix.value = game.renderBoxMix ?? 0.2;
+      U.uFilter.value = game.renderTaaFilter === false ? 0 : 1;
+      // jitter in pixels: pixel c sampled the unjittered position c - j, so tap (i, j) sits at (i, j) - j from c's center... the
+      // shader adds jo to the offset, so pass -j
+      U.uJitPx.value.set(-taa.jx * readBuffer.width / 2, -taa.jy * readBuffer.height / 2);
       U.uCross.value = game.renderTaaCross ?? (game.quality?.name === 'medium' || game.quality?.name === 'low') ? 1 : 0; // r2-render: 0.5 let wind-moved leaves (no motion vectors) keep a smudged history (r2-veg: shrubs as blurry balls)
       U.uReset.value = reset ? 1 : 0;
       reset = false;
