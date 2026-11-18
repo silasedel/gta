@@ -1121,6 +1121,17 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
      - Full braking ~8.4 m/s2 (was 10.4).
      - Wet roads cut grip to ~0.7 (carphys 1).
      - Not measured: 0-100 times per class; sand / grass grip stay r2-cars' soft-ground model.
+- **Energy / momentum impacts** (committed):
+  - **Model.** Each breakable has a snap energy and a debris mass, for example sign 4.5 kJ, picket panel 6 kJ, thick fence 22 kJ, chain-link 11 kJ, hydrant 150 kJ; poles and bollards are rigid. At the contact, the car's kinetic energy along the contact normal decides:
+    - above the snap energy: the object breaks, and the car pays that energy plus carries the debris
+    - below it: a rigid stop with a small bounce, and the object stays standing
+  - **Contact offset.** The effective mass at the contact point makes an off-center hit yaw the car. Damage comes from the absorbed energy.
+  - **Verified:**
+    - hydrant, center hit at 29 km/h: stops, bouncing back 3 km/h
+    - hydrant 0.6 m off-center at 29 km/h: 95 % speed loss and 7.6 deg of yaw (still on the bumper face)
+  - **Fixed after a failed check:** a picket fence at 13 km/h hit before the old 15 km/h break threshold and stopped as a solid wall. The energy model now decides from 4 km/h.
+  - **Not verified:** the picket fence at 15 / 120 km/h and the thick fence at 15 km/h. Runs were stopped at the lead's wrap-up.
+  - **Not done:** yard picket and chain-link fences (house generator, keysLots) are still solid walls, not energy-model breakables.
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
