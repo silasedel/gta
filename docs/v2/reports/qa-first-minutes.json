@@ -1,0 +1,1329 @@
+{
+ "when": "2026-11-18T03:14:33.837Z",
+ "frames": [
+  {
+   "f": "docs/v2/shots/qa/first/001_title.jpg",
+   "tag": "title",
+   "phase": "boot",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/002_yard_look0.jpg",
+   "tag": "yard_look0",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/003_yard_look45.jpg",
+   "tag": "yard_look45",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/004_yard_look90.jpg",
+   "tag": "yard_look90",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/005_yard_look135.jpg",
+   "tag": "yard_look135",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/006_yard_look180.jpg",
+   "tag": "yard_look180",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/007_yard_look225.jpg",
+   "tag": "yard_look225",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/008_yard_look270.jpg",
+   "tag": "yard_look270",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/009_yard_look315.jpg",
+   "tag": "yard_look315",
+   "phase": "yard360",
+   "p": [
+    -865.75,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/010_close_truck_outside.jpg",
+   "tag": "close_truck_outside",
+   "phase": "walk_truck",
+   "p": [
+    -865.62,
+    0.03,
+    4836.47
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/011_close_truck_driver_window.jpg",
+   "tag": "close_truck_driver_window",
+   "phase": "walk_truck",
+   "p": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/012_close_truck_passenger_window.jpg",
+   "tag": "close_truck_passenger_window",
+   "phase": "walk_truck",
+   "p": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/013_in_truck_chase.jpg",
+   "tag": "in_truck_chase",
+   "phase": "walk_truck",
+   "p": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -862.85,
+    0.85,
+    4835.66
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/014_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.29,
+    0.85,
+    4835.13
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.29,
+    0.85,
+    4835.13
+   ],
+   "kmh": 8.6,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/015_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.75,
+    0.86,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.75,
+    0.86,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.09,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/016_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/017_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/018_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.84,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.04,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/019_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.83,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.83,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.04,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/020_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.77,
+    0.83,
+    4834.35
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.77,
+    0.83,
+    4834.35
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/021_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.77,
+    0.83,
+    4834.34
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.77,
+    0.83,
+    4834.34
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/022_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.77,
+    0.83,
+    4834.34
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.77,
+    0.83,
+    4834.34
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/023_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.83,
+    4834.34
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.83,
+    4834.34
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/024_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/025_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/026_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.76,
+    0.83,
+    4834.33
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/027_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.75,
+    0.83,
+    4834.32
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.75,
+    0.83,
+    4834.32
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/028_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.75,
+    0.83,
+    4834.32
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.75,
+    0.83,
+    4834.32
+   ],
+   "kmh": 0.2,
+   "vy": -0.05,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/029_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.74,
+    0.83,
+    4834.31
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.74,
+    0.83,
+    4834.31
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/030_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.73,
+    0.83,
+    4834.31
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.73,
+    0.83,
+    4834.31
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/031_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.73,
+    0.83,
+    4834.3
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.73,
+    0.83,
+    4834.3
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/032_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.72,
+    0.83,
+    4834.3
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.72,
+    0.83,
+    4834.3
+   ],
+   "kmh": 0,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/033_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.71,
+    0.83,
+    4834.29
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.71,
+    0.83,
+    4834.29
+   ],
+   "kmh": 0.2,
+   "vy": -0.05,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/034_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.71,
+    0.83,
+    4834.29
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.71,
+    0.83,
+    4834.29
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/035_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.7,
+    0.83,
+    4834.28
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.7,
+    0.83,
+    4834.28
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/036_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.69,
+    0.83,
+    4834.27
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.69,
+    0.83,
+    4834.27
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/037_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.68,
+    0.83,
+    4834.26
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.68,
+    0.83,
+    4834.26
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/038_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.67,
+    0.83,
+    4834.26
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.67,
+    0.83,
+    4834.26
+   ],
+   "kmh": 0.1,
+   "vy": -0.05,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/039_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.66,
+    0.83,
+    4834.25
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.66,
+    0.83,
+    4834.25
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/040_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.65,
+    0.83,
+    4834.24
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.65,
+    0.83,
+    4834.24
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/041_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.64,
+    0.83,
+    4834.23
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.64,
+    0.83,
+    4834.23
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/042_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.63,
+    0.83,
+    4834.23
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.63,
+    0.83,
+    4834.23
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/043_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.62,
+    0.83,
+    4834.22
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.62,
+    0.83,
+    4834.22
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/044_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.61,
+    0.83,
+    4834.21
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.61,
+    0.83,
+    4834.21
+   ],
+   "kmh": 0.2,
+   "vy": -0.05,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/045_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.6,
+    0.83,
+    4834.2
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.6,
+    0.83,
+    4834.2
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/046_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.59,
+    0.83,
+    4834.2
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.59,
+    0.83,
+    4834.2
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/047_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.58,
+    0.83,
+    4834.19
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.58,
+    0.83,
+    4834.19
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/048_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.57,
+    0.83,
+    4834.18
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.57,
+    0.83,
+    4834.18
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/049_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.56,
+    0.83,
+    4834.17
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.56,
+    0.83,
+    4834.17
+   ],
+   "kmh": 0.1,
+   "vy": -0.05,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/050_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.55,
+    0.83,
+    4834.16
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.55,
+    0.83,
+    4834.16
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/051_drive.jpg",
+   "tag": "drive",
+   "phase": "drive",
+   "p": [
+    -863.54,
+    0.83,
+    4834.15
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.54,
+    0.83,
+    4834.15
+   ],
+   "kmh": 0.1,
+   "vy": -0.07,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/052_stopped_highway_chase.jpg",
+   "tag": "stopped_highway_chase",
+   "phase": "stop_highway",
+   "p": [
+    -863.52,
+    0.86,
+    4834.15
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.52,
+    0.86,
+    4834.15
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/053_close_highway_driver_window.jpg",
+   "tag": "close_highway_driver_window",
+   "phase": "stop_highway",
+   "p": [
+    -863.52,
+    0.86,
+    4834.15
+   ],
+   "inV": true,
+   "car": "truck9",
+   "cp": [
+    -863.52,
+    0.86,
+    4834.15
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/054_exited_highway.jpg",
+   "tag": "exited_highway",
+   "phase": "stop_highway",
+   "p": [
+    -865.51,
+    0.03,
+    4835.29
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/055_close_highway_street.jpg",
+   "tag": "close_highway_street",
+   "phase": "stop_highway",
+   "p": [
+    -865.51,
+    0.03,
+    4835.29
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/056_neighbor_arrive.jpg",
+   "tag": "neighbor_arrive",
+   "phase": "neighbor",
+   "p": [
+    -851.38,
+    0.05,
+    4847.71
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/057_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -853.41,
+    0.05,
+    4846.89
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/058_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -855.83,
+    0.05,
+    4845.94
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/059_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -856.8,
+    0.05,
+    4846.41
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/060_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -857.37,
+    0.05,
+    4846.94
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/061_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -857.72,
+    0.05,
+    4847.27
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/062_walk_neighbor.jpg",
+   "tag": "walk_neighbor",
+   "phase": "neighbor",
+   "p": [
+    -858.04,
+    0.05,
+    4847.56
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/063_close_neighbor_yard.jpg",
+   "tag": "close_neighbor_yard",
+   "phase": "neighbor",
+   "p": [
+    -858.13,
+    0.05,
+    4847.64
+   ],
+   "inV": false,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/064_close_coupe_driver_window.jpg",
+   "tag": "close_coupe_driver_window",
+   "phase": "neighbor",
+   "p": [
+    -864.38,
+    0.66,
+    4842.52
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -864.38,
+    0.66,
+    4842.52
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/065_in_coupe_chase.jpg",
+   "tag": "in_coupe_chase",
+   "phase": "neighbor",
+   "p": [
+    -864.38,
+    0.66,
+    4842.52
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -864.38,
+    0.66,
+    4842.52
+   ],
+   "kmh": 0,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/066_coupe_drive.jpg",
+   "tag": "coupe_drive",
+   "phase": "neighbor",
+   "p": [
+    -863.24,
+    0.66,
+    4839.19
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -863.24,
+    0.66,
+    4839.19
+   ],
+   "kmh": 11.5,
+   "vy": -0.03,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/067_coupe_drive.jpg",
+   "tag": "coupe_drive",
+   "phase": "neighbor",
+   "p": [
+    -863.08,
+    0.66,
+    4838.74
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -863.08,
+    0.66,
+    4838.74
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/068_coupe_drive.jpg",
+   "tag": "coupe_drive",
+   "phase": "neighbor",
+   "p": [
+    -863.1,
+    0.66,
+    4838.71
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -863.1,
+    0.66,
+    4838.71
+   ],
+   "kmh": 0.1,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  },
+  {
+   "f": "docs/v2/shots/qa/first/069_coupe_drive.jpg",
+   "tag": "coupe_drive",
+   "phase": "neighbor",
+   "p": [
+    -863.12,
+    0.66,
+    4838.68
+   ],
+   "inV": true,
+   "car": "coupe4",
+   "cp": [
+    -863.12,
+    0.66,
+    4838.68
+   ],
+   "kmh": 0.2,
+   "vy": -0.06,
+   "up": 1,
+   "zone": "Pelican Point Ln"
+  }
+ ],
+ "events": [
+  [
+   "truck",
+   {
+    "key": "truck9",
+    "x": -862.8496704101562,
+    "z": 4835.65869140625,
+    "d": 3.0070839579391717
+   }
+  ],
+  [
+   "route",
+   {
+    "dest": [
+     -772.5,
+     4801.7001953125
+    ],
+    "d": 97,
+    "n": 2,
+    "len": null
+   }
+  ],
+  [
+   "arrived",
+   false,
+   62.096
+  ],
+  [
+   "coupe",
+   {
+    "key": "coupe4",
+    "x": -864.3787841796875,
+    "z": 4842.5166015625
+   }
+  ]
+ ],
+ "console": [
+  {
+   "lvl": "warning",
+   "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+   "url": "node_modules/.vite/deps/chunk-UG26MVNH.js:6920",
+   "n": 1,
+   "at": "boot",
+   "t": 0
+  },
+  {
+   "lvl": "warning",
+   "text": "[nicoHouse] atlas overflow nh72_atlas 2246",
+   "url": "src/world/setpieces/nicoHouse/parts/72_kitchen.js:36",
+   "n": 1,
+   "at": "boot",
+   "t": 0
+  }
+ ],
+ "phase": "end"
+}
