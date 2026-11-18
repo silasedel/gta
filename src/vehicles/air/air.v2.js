@@ -95,9 +95,13 @@ export async function initV2(game) {
     const body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(pos.x, pos.y, pos.z).setRotation(S.q));
     const hh = T.half, wz = T.wing.z - cg.z;
     const fuseY = T.gearH ? T.gearH + 1.0 : T.floats ? 2.1 : hh[1];
-    world.createCollider(RAPIER.ColliderDesc.cuboid(hh[0], hh[1] * 0.75, hh[2]).setTranslation(0, fuseY - cg.y, -cg.z).setFriction(0.6), body);
-    world.createCollider(RAPIER.ColliderDesc.cuboid(T.wing.span / 2, 0.12, T.wing.chord / 2).setTranslation(0, T.wing.y - cg.y, wz), body);
-    if (T.floats) for (const sx of [1, -1]) world.createCollider(RAPIER.ColliderDesc.cuboid(0.35, 0.3, 2.6).setTranslation(sx * 0.95, 0.35 - cg.y, 1.45 - cg.z), body);
+    if (T.hit) {   // fitted boxes along the fuselage, tail, wings, floats and wheels (types.js: model frame, minus the CG)
+      for (const h of T.hit) for (const sx of h[6] ? [1, -1] : [1]) world.createCollider(RAPIER.ColliderDesc.cuboid(h[3], h[4], h[5]).setTranslation(sx * h[0] - cg.x, h[1] - cg.y, h[2] - cg.z).setFriction(0.6), body);
+    } else {
+      world.createCollider(RAPIER.ColliderDesc.cuboid(hh[0], hh[1] * 0.75, hh[2]).setTranslation(0, fuseY - cg.y, -cg.z).setFriction(0.6), body);
+      world.createCollider(RAPIER.ColliderDesc.cuboid(T.wing.span / 2, 0.12, T.wing.chord / 2).setTranslation(0, T.wing.y - cg.y, wz), body);
+      if (T.floats) for (const sx of [1, -1]) world.createCollider(RAPIER.ColliderDesc.cuboid(0.35, 0.3, 2.6).setTranslation(sx * 0.95, 0.35 - cg.y, 1.45 - cg.z), body);
+    }
     const A = {
       kind: 'aircraft', air: true, isAircraft: true, typeKey: key, T, S, mesh, body, nodes, discs, gearVis,
       name: `${T.brand} ${T.model}`, spec: { brand: T.brand, model: T.model, label: `${T.brand} ${T.model}`, air: true },
