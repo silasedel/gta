@@ -73,6 +73,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 1100) }, a
         await b.eval(`(() => { ${off}; return 1; })()`);
         const md = (xs) => { const s = xs.slice().sort((p, q) => p - q); return s[s.length >> 1]; };
         const comb = (L) => ({ med: md(L.map((x) => x.f.med)), work: md(L.map((x) => x.f.work)), render: md(L.map((x) => x.f.sys.render || 0)), calls: md(L.map((x) => x.f.calls)), tris: md(L.map((x) => x.f.tris)), gpu: md(L.map((x) => x.g.TOTAL)), gpuScene: md(L.map((x) => Object.entries(x.g).find(([k]) => k.includes('RenderPass'))?.[1] || 0)), shadow: md(L.map((x) => x.g.shadow || 0)),
+          taa: md(L.map((x) => Object.entries(x.g).find(([k]) => k.includes('TAA'))?.[1] || 0)), velRP: md(L.map((x) => Object.entries(x.g).filter(([k]) => /unspecified|Object/.test(k)).reduce((a, [, v]) => a + v, 0))),
           step: md(L.map((x) => x.f.sys['world.step'] || 0)), player: md(L.map((x) => x.f.sys['fixed:playerFixed'] || 0)), peds: md(L.map((x) => x.f.sys.peds || 0)), veh: md(L.map((x) => x.f.sys['fixed:vehiclesFixed'] || 0)) });
         P[name] = { off: comb(A), on: comb(B) };
         console.log(id, name.padEnd(16), 'OFF', JSON.stringify(P[name].off), '\n', ' '.repeat(id.length + 17), 'ON ', JSON.stringify(P[name].on));
