@@ -1534,6 +1534,25 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - Collider job time 34.6 -> 28.2 ms per job.
   - Pending your commit: the async window.__tbDebugProps fix in tilebuild.
   - Paused until FREEZE. Then one clean final measurement.
+- **19:10 Teleport hold** (src/main.js, ?telehold=0). After a teleport the player is held until the landing tile's
+  colliders exist and a ray finds ground; the streamer gets extra slices while held.
+  - QA spots (Edgewater, Ocean Dr, Miami Beach) x2: released on ground after 0.24-1.16 s, 0 falls.
+  - QA waits: use game.teleportHolding / game.lastTeleportHold, not readyAround(120) (10-21 s).
+- **Final measurement** (r2-perf-final_stand.json, r2-perf-final_drive.json). Not clean: the load rose from 8 to
+  15-17 during the run.
+
+  | | final | earlier best (load 6-8) |
+  |---|---|---|
+  | spawn, standing | 46.7 ms | 39-47 ms |
+  | downtown, standing | 55.7 ms; tiles were still streaming (city.update 38 ms average) | 26.6 ms |
+  | fast 50 m/s drive | 13.2 fps, p99 275 ms | 46 fps / p99 72 at 17:00 |
+
+  - The tree has changed since 17:00 (TAA filter, plants, colliders, map), and the load is double. The drive needs a
+    re-run on a quiet machine before quoting it.
+  - New lead from the long-step attribution: some mid / collider tile jobs contain a full renderer.render or a texture
+    upload (texSubImage2D 95 % of one 166 ms collider step). Something called from tile building renders or uploads
+    synchronously. Next step: find who.
+- **Stopped.**
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
