@@ -260,7 +260,9 @@ export async function createCast(game) {
   // (full-detail people cast their shadow with LOD1; '?pshadow=0' turns it off for A/B)
   if (!(typeof location !== 'undefined' && /[?&]pshadow=0/.test(location.search))) {
     let lt = 0;
-    const enable = () => { let n = 0; game.scene?.traverse?.((o) => { if (o.isLight && o.castShadow && o.shadow?.camera) { o.shadow.camera.layers.enable(SHADOW_PROXY.layer); n++; } }); return n; };
+    // (only with the split sun: shadow casters are tested against the main camera's layers, which the split renderer
+    // sets to the dynamic layer for the per-frame map; without it a layer-only proxy would never cast, so LOD0 casts itself)
+    const enable = () => (game.__psSplit ? 1 : 0);
     if (enable()) SHADOW_PROXY.on = true;
     game.updaters?.push?.((dt) => { lt -= dt; if (lt > 0) return; lt = 5; if (enable()) SHADOW_PROXY.on = true; });
   }

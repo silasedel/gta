@@ -10,7 +10,7 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: 900 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
   await startGame(b);
-  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = 13; game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`);
+  await b.eval(`(() => { const t = document.getElementById('title'); if (t) t.style.display = 'none'; game.timeExternal = true; game.timeOfDay = ${Number(o.tod || 13)}; game.teleport(${AT[0]}, undefined, ${AT[1]}, 0); return 1; })()`);
   await b.sleep(8000);
   console.log('sand', await b.eval(`(() => { const pp = game.player.position; const q = game.peds._nav.sandPoint?.(pp, 400, true) || game.peds._nav.sandPoint?.(pp, 400); if (!q) return 'none'; game.teleport(q.x, undefined, q.z, 0); return [q.x | 0, q.z | 0, game.city.zoneAt(q.x, q.z)].join(','); })()`));
   await b.sleep(50000);

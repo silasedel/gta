@@ -11,7 +11,7 @@ import { getBase } from './lib.js';
 import { makeBodyMaterial, makeHairMaterial, makeEyeMaterial, makeBrowMaterial, makeShoeMaterial } from './materials.js';
 import { PERSONAS } from '../personality.js';
 // shadow-only proxy layer for the user's people (enabled on the shadow cameras by src/npc/people/cast.js)
-export const SHADOW_PROXY = { on: false, layer: 5 };
+export const SHADOW_PROXY = { on: false, layer: 7 }; // layer 7 = the split sun's dynamic caster layer (render/stage/env/shadows.js)
 
 export const LOD_DIST = [15, 60];
 export const LOD_CFG = { maxFull: 8, shadowDist: 26 };
@@ -284,7 +284,9 @@ export function createNpc(game, opts = {}) {
     // the user's people: a full-detail person (LOD0 = the whole scan) casts its shadow with the 5k LOD1 mesh on the
     // shadow-only layer (src/npc/people/lib.js SHADOW_LAYER), the same silhouette for a fraction of the skinning cost
     if (isPerson && SHADOW_PROXY.on) {
-      for (const m of lods[1]) m.layers.set(0);
+      // three tests casters against the MAIN camera's layers; the split sun renders its dynamic map with that mask set to
+      // the dynamic layer (7), so the proxy lives on layer 7 only (cast, never drawn) and LOD1 keeps 0 + 7 when drawn
+      for (const m of lods[1]) { m.layers.set(0); m.layers.enable(SHADOW_PROXY.layer); }
       if (lv === 0 && sh) { for (const m of lods[0]) m.castShadow = false; for (const m of lods[1]) { m.visible = true; m.castShadow = true; m.layers.set(SHADOW_PROXY.layer); } }
     }
     character.lodLevel = lv;
