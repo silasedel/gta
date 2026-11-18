@@ -1994,7 +1994,7 @@ export async function createVehicles(game) {
         }
       }
       // pedestrian hits
-      if (Math.abs(v.speed) > 5.5 && game.peds?.list?.length) hitPeds(v, t, r);
+      if (Math.abs(v.speed) > 1.4 && game.peds?.list?.length) hitPeds(v, t, r);   // user: drove straight through people (was > 5.5 m/s = 20 km/h); damage scales with speed
     }
     sirenAudio(playerCar && playerCar.sirenActive && !game.audio?.play);
     // police light bar point lights on the nearest active siren
