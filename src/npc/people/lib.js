@@ -28,7 +28,12 @@ function loader() {
 let _index = null;
 export function loadPeopleIndex() {
   if (_index) return _index;
-  _index = fetch(PROOT + 'index.json').then((r) => (r.ok ? r.json() : { people: [] })).catch(() => ({ people: [] }));
+  // user (Nov 18): NEVER the main character as an NPC. p56 "Man In Palm Print Shirt And Cargo Pants" is Nico's look; any entry
+  // marked player / nico is dropped too. Filtering here covers the near cast, the far crowd, venues and mission stand-ins.
+  const NOT_NPC = new Set(['p56']);
+  const keep = (p) => p && !NOT_NPC.has(p.id) && !p.player && !/\bnico\b/i.test(String(p.name || '') + ' ' + String(p.role || ''));
+  _index = fetch(PROOT + 'index.json').then((r) => (r.ok ? r.json() : { people: [] })).catch(() => ({ people: [] }))
+    .then((j) => { if (Array.isArray(j?.people)) j.people = j.people.filter(keep); else if (Array.isArray(j)) return j.filter(keep); return j; });
   return _index;
 }
 const bases = new Map(), pending = new Map();
