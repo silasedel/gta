@@ -41,6 +41,7 @@ import { drawBlade } from '../signs/draw.js';
 import { bladeLabel } from '../signs/plan.js';
 import { covers as COVERS, placeCovers } from '../surfaces/covers.js'; // r2-roads: utility covers (library manholes / inlets / valves)
 import { attachRoadChannel, setRoad, applyRoadChannel } from '../surfaces/roadChannel.js'; import { SURF_OFF } from '../surfaces/surfaceShaders.js'; // surfaces pass: lane frame for the asphalt / paint / decal shaders
+const TB_YIELD = !(typeof location !== 'undefined' && /[?&]tbyield=0\b/.test(location.search)); // r2-perf: time-based yields in the building loops
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
@@ -3279,8 +3280,10 @@ export function createTileBuilder(ctx) {
     yield;
     yield* buildRoads(B, tile, props, null);
     yield;
-    let k = 0;
-    for (const b of buildingsOf(tile)) { if (houseLots.claims(b)) continue; /* drawn by the house generator (setpieces/houses) */ if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (++k % 25 === 0) yield; }
+    let k = 0, tY = performance.now();
+    // r2-perf: yield on elapsed time (4 ms), not every 25 buildings: 25 downtown buildings with shop-front dressing took
+    // 200-600 ms in one step (a hitch while driving). Same output. ?tbyield=0 = old.
+    for (const b of buildingsOf(tile)) { if (houseLots.claims(b)) continue; /* drawn by the house generator (setpieces/houses) */ if (LF.on) LF.k = baseOf(b); buildBuilding(B, b, { shops: true, props }); if (b.style === 'stilt') stiltPiles(B, b); if (TB_YIELD ? performance.now() - tY > 4 : ++k % 25 === 0) { yield; tY = performance.now(); } }
     LIBM.lotFences(tile); // rough side: chain-link fences around the vacant lots (bldmodels.js, instanced city-wide)
     LF.k = null;
     yield;
@@ -3432,13 +3435,13 @@ export function createTileBuilder(ctx) {
     return { fb, B };
   }
   function* lodBuildings(LB, tile, far) {
-    let k = 0;
+    let k = 0, tY = performance.now();
     for (const bd of buildingsOf(tile, false)) {
       if (far && bd.h < 12 && bd.area < 1500) continue;
       if (!bd.rings || !bd.rings[0] || bd.rings[0].length < 3) continue;
       if (LB.lift.on) LB.lift.k = baseOf(bd);
       try { buildBuilding(LB.B, bd, { shops: false, lod: far ? 2 : 1 }); } catch (e) { if (!LB.warned) { LB.warned = true; console.warn('[city-look] LOD building failed', bd.id, e); } }
-      if (++k % 6 === 0) yield;
+      if (TB_YIELD ? performance.now() - tY > 4 : ++k % 6 === 0) { yield; tY = performance.now(); } // r2-perf: time-based yields (see buildNear)
     }
   }
   // ELEVATED's LOD decks (vertex-coloured, clipped to the tile) appended straight into a mid/far chunk batch
