@@ -1944,3 +1944,10 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   2. The after shots of inland1 / inland2 / highway / bridge ran at 09:xx instead of 11:00 (time override missed after the flag-check boot), so the lighting differs from the before shots.
   3. The bridge outer fascia seen from the water is unchanged.
   4. Seawall caps on sea / canal / river banks inside terrain tiles are kept. Whether those are real seawalls has not been checked tile by tile.
+
+## r4-air
+- Flyable aircraft (src/vehicles/air/, ?air=0): Caloosa Skimmer 210 prop (Plane 9, GPL credit in CREDITS.md), Matecumbe Skipjack Float floatplane (Plane 3), Biscayne Solstice 45 jet (Plane 13, code gear). Spawns: MIA GA apron (2 props, floatplane, jet), Key West (1 prop), Key Largo (floatplane on the water). F/E enter (theft report), W/S throttle, A/D roll, Q/E rudder, K/I pitch, Space brakes, X/Z flaps, G gear, V camera.
+- VFX: wingtip condensation at high G, prop disc, exhaust (dark when damaged), float spray. HUD: alt / throttle / flaps / stall.
+- Airport chain-link fence kit (src/world/airport/fence.js, ?airfence=0): posts, rail, fabric, barbed arms, gates with signs, colliders (MIA 4.8 km, 18 gates).
+- Shots docs/v2/shots/air/. Still off: airliners static, jet not flown in game, long landing rollout, floatplane pavement takeoff arcade-y, fence gates on service roads, plane audio = car engines.
+- Seen: Rapier "recursive use of an object" crash near the Keys (also with ?air=0): sent to r4-house (collider add/remove during step). r4-keys map published (c741139c, b20261118-091900).
