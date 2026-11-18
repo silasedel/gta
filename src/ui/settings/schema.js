@@ -21,7 +21,7 @@ export const RENDER_DISTANCE = { near: 0.6, medium: 1, far: 1.5, ultra: 2.2 };
 export const SCHEMA = [
   { id: 'graphics', label: 'Graphics', icon: 'display', sections: [
     { title: 'Quality', items: [
-      { key: 'gfxPreset', label: 'Preset', type: 'choice', default: 'high', owner: 'ui', options: [C('low', 'Low'), C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Ultra'), C('custom', 'Custom')], desc: 'Sets everything below at once. Changing any single option switches to Custom.' },
+      { key: 'gfxPreset', label: 'Preset', type: 'choice', default: 'high', owner: 'ui', options: [C('low', 'Low'), C('medium', 'Medium'), C('high', 'High'), C('ultra', 'Extra High'), C('custom', 'Custom')], desc: 'Sets everything below at once. Changing any single option switches to Custom.' },
       { key: 'gfxAutoDetect', label: 'Auto-detect', type: 'action', action: 'detect', button: 'Detect best settings', desc: 'Looks at your graphics chip and the measured frame rate, then picks a preset.' },
       { key: 'resolutionScale', label: 'Resolution scale', type: 'range', min: 0.5, max: 1.5, step: 0.05, default: 1, fmt: pct, owner: 'ui', desc: 'Renders the 3D world at a fraction of the window size. Lower is faster and softer.' },
       { key: 'renderDistance', label: 'Draw distance', type: 'choice', default: 'far', owner: 'ui', options: [C('near', 'Near'), C('medium', 'Medium'), C('far', 'Far'), C('ultra', 'Ultra')], desc: 'How far full-detail buildings, cars and trees are drawn.' },
@@ -152,6 +152,7 @@ export const SCHEMA = [
       { key: 'saveTools', type: 'custom', widget: 'saveTools' },
     ] },
     { title: 'More options', items: [{ key: 'externalSettings', type: 'custom', widget: 'externalSettings' }] },
+    { title: 'Dev mode', items: [{ key: 'devCode', label: 'Dev mode', type: 'action', action: 'devCode', button: 'Enter code', desc: 'Type the dev code and press Enter.' }] },
     { title: 'Reset', items: [{ key: 'resetAll', label: 'Restore every setting to its default', type: 'action', action: 'resetAll', button: 'Restore defaults', danger: true }] },
   ] },
 ];
