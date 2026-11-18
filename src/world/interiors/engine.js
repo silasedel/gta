@@ -48,7 +48,7 @@ export function createEngine(game, opts = {}) {
     s.name = prof.name || sf.name || def.label; s.hours = prof.open24 ? [0, 24] : prof.hours; s.zone = sf.zone || null; s.address = sf.street || null;
     s.priceOf = (pid) => { const p = getProduct(pid); if (!p) return 0; const v = p.price * prof.priceK; return p.price >= 1 && !p.scratch ? Math.max(0.49, Math.round(v * 10) / 10 - 0.01) : p.price; };
     if (!state.has(key)) state.set(key, { taken: new Set(), dvr: true, lights: true, robbedUntil: -1, banned: false, cash: null }); s.state = state.get(key);
-    s.counterPos = s.center.clone(); claimed.add(sf); sf.v2Facade = true; byKey.set(key, s); list.push(s); return s;
+    s.counterPos = s.center.clone(); s.counterFallback = true; claimed.add(sf);   // counterFallback: the room center, not a real desk (no props may hang there) sf.v2Facade = true; byKey.set(key, s); list.push(s); return s;
   }
   function ingest() {
     const src = (Array.isArray(city.storefronts) && city.storefronts.length ? city.storefronts : city.shopLots) || []; if (src === ingSrc && src.length === ingN) return;

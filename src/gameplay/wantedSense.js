@@ -251,7 +251,7 @@ export function createSense(game, G, law) {
     const dx = shop.center ? cp.x - shop.center.x : 0, dz = shop.center ? cp.z - shop.center.z : 1, dl = Math.hypot(dx, dz) || 1;
     const rp = new THREE.Vector3(cp.x + (dx / dl) * 0.55 - (dz / dl) * 0.9, (cp.y || 0) + 1.02, cp.z + (dz / dl) * 0.55 + (dx / dl) * 0.9);
     let model = null;
-    tryCall('recorder model', () => { model = buildRecorder(THREE, { seed: strHash(String(key)) }); model.group.position.copy(rp); model.group.rotation.y = Math.atan2(-dx, -dz); game.scene.add(model.group); });
+    if (!shop.counterFallback) tryCall('recorder model', () => { model = buildRecorder(THREE, { seed: strHash(String(key)) }); model.group.position.copy(rp); model.group.rotation.y = Math.atan2(-dx, -dz); game.scene.add(model.group); });
     const rec = registerRecorder({ id: 'rec:' + key, name: `${shop.name} recorder`, position: rp, model });
     const cam = registerCamera({ id: 'store:' + key, kind: shop.type === 'bank' ? 'bank' : 'store', name: `Store camera, ${shop.name}`, position: { x: cp.x, y: (cp.y || 0) + 2.7, z: cp.z }, range: 13, recorderId: rec.id, uploads: shop.type === 'bank' ? 'remote' : 'local' });
     const sec = { rec, cam, shop }; storeSec.set(shop, sec); return sec;
