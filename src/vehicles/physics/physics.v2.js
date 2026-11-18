@@ -7,6 +7,7 @@ import { installClearance } from './clearance.js';
 import { installRelief } from './relief.js';
 import { installRocks } from './rocks.js';
 import { installTrunks } from './trunks.js';
+import { installShrubs } from './shrubs.js';
 import { installImpacts } from './impacts.js';
 import { installSolidCars } from './solidCars.js';
 
@@ -14,6 +15,7 @@ export const order = 5;
 
 export async function initV2(game) {
   try { installRelief(game); } catch (e) { console.error('[r2-physics] relief', e); }
+  try { installShrubs(game); } catch (e) { console.error('[r2-physics] shrubs', e); }
   try { installTrunks(game); } catch (e) { console.error('[r2-physics] trunks', e); }
   try { installRocks(game); } catch (e) { console.error('[r2-physics] rocks', e); }
   try { installSolidCars(game); } catch (e) { console.error('[r2-physics] solid cars', e); }

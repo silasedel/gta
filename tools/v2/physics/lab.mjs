@@ -28,11 +28,11 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: 2700 }, async (b) => {
   for (const name of TESTS) {
     const m = /^([a-z]+)(\d+)$/.exec(name); if (!m) continue; const kind = m[1], kmh = +m[2];
     await b.eval(`(() => { __lab.endReplay?.(); __lab.clear(); return 1; })()`);
-    const obs = { curb: `__lab.build('curb', { s: 45 })`, pothole: `__lab.build('pothole', { s: 45 })`, rock: `__lab.build('rock', { s: 45 })`, bump: `__lab.build('bump', { s: 45 })` }[kind];
+    const obs = { curbang: `__lab.build('curb', { s: 45, yaw: 0.52, wid: 6 })`, curb: `__lab.build('curb', { s: 45 })`, pothole: `__lab.build('pothole', { s: 45 })`, rock: `__lab.build('rock', { s: 45 })`, bump: `__lab.build('bump', { s: 45 })` }[kind];
     await b.eval(`(() => { ${obs}; return 1; })()`);
     const sp = await b.eval(`__lab.spawn('${KEY}', 0).then((r) => JSON.stringify(r))`);
     await b.eval(`(() => { __lab.cam('${o.cam || 'leftside'}', { d: 5.4, up: 0.35 }); return 1; })()`);
-    const res = await b.eval(`__lab.run({ kmh: ${kmh}, sEnd: ${kind === 'curb' ? 70 : 62}, maxT: 40 }).then((r) => JSON.stringify(r))`, 120000);
+    const res = await b.eval(`__lab.run({ kmh: ${kmh}, sEnd: ${/curb/.test(kind) ? 70 : 62}, maxT: 40 }).then((r) => JSON.stringify(r))`, 120000);
     const rec = JSON.parse(await b.eval(`JSON.stringify(__lab.rec.map((r) => { const { pose, wl, ws, wr, ...k } = r; return k; }))`));
     report.tests[name] = { spawn: JSON.parse(sp), result: JSON.parse(res), rec };
     // summary around the obstacle (s 35..65)

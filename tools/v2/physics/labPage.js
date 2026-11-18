@@ -40,7 +40,7 @@
   L.clear = () => { try { g.breakables?.removeOwner?.('r2lab'); } catch (e) { /* */ } for (const o of L.obst) { try { if (o.col) W.removeCollider(o.col, true); } catch (e) { /* */ } if (o.mesh) g.scene.remove(o.mesh); } L.obst = []; };
   L.build = (kind, o = {}) => {
     const S = L.spot, s = o.s ?? 45, hd = S.h;
-    const q = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), hd);
+    const q = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), hd + (o.yaw || 0)); // o.yaw: obstacle turned against the lane (angled curb hit)
     if (kind === 'curb') { // 15 cm high block across both wheel paths, 7 m long: curb up, then the drop off its far edge
       const H = o.h ?? 0.15, len = o.len ?? 7, wid = o.wid ?? 3.2, c = at(s + len / 2, o.lat ?? 0), y = groundY(c.x, c.z);
       const col = W.createCollider(R.ColliderDesc.cuboid(wid / 2, H / 2, len / 2).setTranslation(c.x, y + H / 2, c.z).setRotation(q));
