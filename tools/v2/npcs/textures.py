@@ -47,6 +47,27 @@ for (x0, y0, x1, y1) in _row.get('erase', []):
     mask = mask.filter(ImageFilter.MaxFilter(3))
     A.paste(Image.composite(fill, reg, mask), outer[:2])
 # full-resolution set for the few people right next to the camera (user: full-res textures up close)
+# r2: printed brand lettering in a saturated red on dark cloth (people.json "unred": boxes): red-dominant texels inside the
+# box take the color of the cloth around them
+try:
+    import numpy as _np2
+    for (x0, y0, x1, y1) in _row.get('unred', []):
+        k = A.width / 1024; bx = (int(x0 * k), int(y0 * k), int(x1 * k), int(y1 * k))
+        reg = _np2.asarray(A.crop(bx)).astype(_np2.float32) / 255
+        r_, g_, b_ = reg[..., 0], reg[..., 1], reg[..., 2]
+        red = (r_ > 0.16) & (r_ > g_ * 2.0) & (r_ > b_ * 1.8)   # pure print red only (dark skin is r ~ 1.5 g)
+        redm = Image.fromarray((red * 255).astype(_np2.uint8)).filter(ImageFilter.MaxFilter(5))
+        keep = 1 - _np2.asarray(redm).astype(_np2.float32) / 255
+        sm = (max(1, reg.shape[1] // 4), max(1, reg.shape[0] // 4))
+        num = _np2.asarray(Image.fromarray((reg * keep[..., None] * 255).astype(_np2.uint8)).resize(sm, Image.BILINEAR).filter(ImageFilter.GaussianBlur(4)).resize(reg.shape[1::-1], Image.BILINEAR)).astype(_np2.float32)
+        den = _np2.asarray(Image.fromarray((keep * 255).astype(_np2.uint8)).resize(sm, Image.BILINEAR).filter(ImageFilter.GaussianBlur(4)).resize(reg.shape[1::-1], Image.BILINEAR)).astype(_np2.float32)[..., None]
+        fill = _np2.where(den > 8, num / _np2.maximum(den, 1), reg * 255)
+        m = 1 - keep[..., None]
+        out_r = reg * 255 * (1 - m) + fill * m
+        A.paste(Image.fromarray(out_r.clip(0, 255).astype(_np2.uint8)), bx[:2])
+        print('[tex]', pid, 'unred texels', int(red.sum()))
+except Exception as _e:
+    print('[tex] unred skipped', _e)
 # r2: white fringe at the hair edges (the scan baked its white background into the hair silhouette texels): inside the
 # scalp / hair UV region (tools/v2/npcs/rig_person.py <pid>_hair.json), near-white low-saturation texels next to dark hair
 # take the color of the hair around them. Skipped for light (gray / blond) hair.
