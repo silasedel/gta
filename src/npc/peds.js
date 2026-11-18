@@ -1278,7 +1278,15 @@ export async function createPeds(game) {
           const wl = Math.hypot(want.x, want.z);
           if (wl < 3) {
             kcc.computeColliderMovement(ped.collider, want);
-            const mv = kcc.computedMovement();
+            let mv = kcc.computedMovement();
+            // r3-people2: blocked by a step (curb) taller than the autostep: probe from 0.5 m higher and take it if that gets further (snap-to-ground brings the walker down on the far side)
+            if (moving && wl > 0.004 && Math.hypot(mv.x, mv.z) < wl * 0.35) {
+              try {
+                kcc.computeColliderMovement(ped.collider, { x: want.x, y: 0.5, z: want.z });
+                const m2 = kcc.computedMovement();
+                if (Math.hypot(m2.x, m2.z) > Math.hypot(mv.x, mv.z) * 2 + 0.002 && m2.y < 0.52) { kcc.computeColliderMovement(ped.collider, { x: m2.x, y: -0.5, z: m2.z }); const m3 = kcc.computedMovement(); mv = { x: m3.x, y: m2.y + m3.y, z: m3.z }; }
+              } catch (e) { /* ignore */ }
+            }
             ped.pos.set(base.x + mv.x, base.y + mv.y - 0.9, base.z + mv.z);
             kccOk = true;
             const got = Math.hypot(mv.x, mv.z);
@@ -1295,6 +1303,7 @@ export async function createPeds(game) {
         } catch (e) { kccOk = false; }
       }
       ped.teleported = false;
+      if (ped.v21 && ped.v21.y !== undefined) { ped.pos.y = ped.v21.y; ped.gy = ped.v21.y; }   // r3-people2: shop / bar staff and guests stand on the interior floor (a man floated near the counter)
       if (!kccOk) {
         if (ped.state === 'swim') ped.pos.y = seaLevel - 0.05 + (game.waves?.shaderOn ? game.waves.heightAt(ped.pos.x, ped.pos.z) : 0); // r2-water: swimmers ride the drawn swell
         else {

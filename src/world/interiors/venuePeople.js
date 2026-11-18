@@ -26,7 +26,8 @@ export function createVenuePeople(game, opts = {}) {
     const peds = game.peds; if (!peds?.spawnAt) return null; const w = s.toWorld(poi.x, poi.z, v3), heading = s.facing + (poi.ry || 0);
     let x = w.x, z = w.z; if (state === 'bench') { x += Math.sin(heading) * 0.1; z += Math.cos(heading) * 0.1; }
     const p = peds.spawnAt(new THREE.Vector3(x, s.baseY, z), { outfit: role === 'guest' ? ((s.venue?.kind === 'nightclub' || s.venue?.kind === 'bar') ? 'club' : 'casual') : role === 'clerk' ? 'casual' : role }); if (!p) return null;
-    p.pinned = 1e9; p.v21 = { venue: s.key, role }; p.nav = null; p.group = null; p.target = null; p.state = state; p.act = state; p.stateT = 1e9; p.styleT = 1 + Math.random() * 4;
+    p.pinned = 1e9; p.v21 = { venue: s.key, role, y: s.baseY + 0.02 };   // y = finished floor: the ped system keeps venue people on it (never the street / roof height)
+     p.nav = null; p.group = null; p.target = null; p.state = state; p.act = state; p.stateT = 1e9; p.styleT = 1 + Math.random() * 4;
     p.heading = heading; p.idleStyle = state === 'bench' ? 'sitBench' : state === 'lean' ? 'lean' : state === 'dance' ? 'dance' : (Math.random() < 0.5 ? 'talk' : null); p.pos.y = s.baseY; p.groundY = s.baseY;
     if (p.root) { p.root.position.copy(p.pos); p.root.rotation.y = heading; }
     if (applyKit && (role === 'bartender' || role === 'server' || role === 'barista' || role === 'host' || role === 'clerk')) applyKit(game, p, STAFF_KIT, (s.seed + live.get(s)?.peds.length) % 97);

@@ -179,11 +179,47 @@ export function createPolice(game, G) {
     }
   }
 
+  // ---- wall-aware steering for foot units (r3-people2)
+  const NAV_OLD = typeof location !== 'undefined' && /[?&]copnav=old/.test(location.search);
+  const _cr = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 1 });
+  const STATIC_ONLY = QF.EXCLUDE_DYNAMIC | (QF.EXCLUDE_KINEMATIC || 0) | QF.EXCLUDE_SENSORS;
+  function blockedDir(u, dx, dz, L) {
+    try {
+      for (const h of [0.45, 1.2]) {
+        _cr.origin = { x: u.pos.x, y: u.pos.y + h, z: u.pos.z }; _cr.dir = { x: dx, y: 0, z: dz };
+        if (world.castRay(_cr, L, true, STATIC_ONLY, undefined, u.collider)) return true;
+      }
+    } catch (e) { /* fall through to the raster */ }
+    try { // building footprints from the map raster (works where colliders are not built yet)
+      for (let k = 1.2; k <= L; k += 1.2) if (game.surfaceAt?.(u.pos.x + dx * k, u.pos.z + dz * k) === 'building') return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
+  const STEER_ANG = [0.6, 1.1, 1.65, 2.2];
+  function steerAround(u, nx, nz, L, dt) {
+    u.steerT = (u.steerT || 0) - dt;
+    // committed detour direction: keep it for a moment so the officer does not flicker at a corner
+    if (u.steerT > 0 && u.steerDir) { if (!blockedDir(u, u.steerDir[0], u.steerDir[1], L * 0.8)) return u.steerDir; u.steerT = 0; }
+    u.steerCd = (u.steerCd || 0) - dt;
+    if (u.steerCd > 0 && !u.steerBlocked) return [nx, nz];
+    u.steerCd = 0.12;
+    if (!blockedDir(u, nx, nz, L)) { u.steerBlocked = false; return [nx, nz]; }
+    u.steerBlocked = true;
+    const base = Math.atan2(nx, nz), pref = u.avoidSide || (u.avoidSide = Math.random() < 0.5 ? -1 : 1);
+    for (const a of STEER_ANG) for (const sd of [pref, -pref]) {
+      const ang = base + a * sd, ex = Math.sin(ang), ez = Math.cos(ang);
+      if (!blockedDir(u, ex, ez, L)) { u.avoidSide = sd; u.steerDir = [ex, ez]; u.steerT = 0.9 + a * 0.5; return u.steerDir; }
+    }
+    return [nx, nz];
+  }
+
   function moveUnit(u, dx, dz, speed, dt) {
     const l = Math.hypot(dx, dz);
     let mx = 0, mz = 0;
     if (l > 0.01 && speed > 0) {
       let nx = dx / l, nz = dz / l;
+      // r3-people2 (user: "police walk into walls"): feelers ahead, steer round buildings, never straight at the target
+      if (!NAV_OLD && speed > 0.5) { const s = steerAround(u, nx, nz, Math.max(2.6, speed * 0.7), dt); nx = s[0]; nz = s[1]; }
       if (u.sideT > 0) { u.sideT -= dt; const sx = -nz * u.side, sz = nx * u.side; nx = nx * 0.3 + sx; nz = nz * 0.3 + sz; const n = Math.hypot(nx, nz); nx /= n; nz /= n; }
       mx = nx * speed * dt; mz = nz * speed * dt;
       const want = Math.atan2(nx, nz);
@@ -206,7 +242,7 @@ export function createPolice(game, G) {
     u.speed = dt > 0 ? moved / dt : 0;
     if (speed > 3 && moved < speed * dt * 0.3 && u.stuckT > 0.15 && u.vaultT <= 0 && lowObstacle(u)) { u.vy = 5.4; u.vaultT = 1.2; u.stuckT = 0; } // vault fences, planters and hoods
     if (u.vaultT > 0) u.vaultT -= dt;
-    if (speed > 1 && moved < speed * dt * 0.3) { u.stuckT += dt; if (u.stuckT > 0.4) { u.side = Math.random() < 0.5 ? -1 : 1; u.sideT = rand(0.8, 1.6); u.stuckT = 0; } } else u.stuckT = 0;
+    if (speed > 1 && moved < speed * dt * 0.3) { u.stuckT += dt; if (u.stuckT > 0.4) { u.side = Math.random() < 0.5 ? -1 : 1; u.sideT = rand(0.8, 1.6); u.stuckT = 0; u.avoidSide = -(u.avoidSide || 1); u.stuckN = (game.clock.elapsed - (u.stuckN0 || -99) > 6 ? 0 : (u.stuckN || 0)) + 1; u.stuckN0 = game.clock.elapsed; if (u.stuckN >= 3 && u.mode !== 'chase') u.wander = null; } } else u.stuckT = 0;   // re-route on a stall: flip the detour side; a searching officer picks a new spot after 3 stalls
     u.pos.set(nx, ny - 0.88, nz);
     if (u.pos.y < -10) { const gy = groundAt(game, u.pos.x, u.pos.z); u.body.setTranslation({ x: u.pos.x, y: gy + 0.9, z: u.pos.z }, true); u.vy = 0; }
   }
