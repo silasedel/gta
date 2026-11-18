@@ -104,7 +104,8 @@ export async function createCast(game) {
   function trim() {
     const L = loadedPeople(); if (L.length <= CAP) return;
     const inUse = new Set(FAR_IN_USE); for (const c of live) inUse.add(c.npcArch);
-    const cands = L.filter((b) => !inUse.has(b.id) && !queued.has(b.id)).sort((a, b) => (lastUse.get(a.id) || 0) - (lastUse.get(b.id) || 0));
+    // police stay resident (a wanted level must never fall back to old bodies while an officer reloads)
+    const cands = L.filter((b) => !inUse.has(b.id) && !queued.has(b.id) && !(byId.get(b.id)?.places || []).some((x) => x === 'police' || x === 'police_swat')).sort((a, b) => (lastUse.get(a.id) || 0) - (lastUse.get(b.id) || 0));
     for (let i = 0; i < cands.length && loadedPeople().length > CAP; i++) unloadPerson(cands[i].id);
   }
 
@@ -311,7 +312,7 @@ export async function createCast(game) {
     if (game.wanted?.level) wantPlaces(ctx.swat ? ['police_swat', 'police'] : ['police'], 4);
     pump();
   });
-  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police'], 4); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12); wantPlaces(['street', 'residential'], 6); pump(); }
+  { const pp = game.player?.position; const ctx = ctxAt(pp); wantPlaces(['police', 'police_swat'], 10); if (pp) wantPlaces(placesFor(zoneAt(pp.x, pp.z), null, ctx), 12); wantPlaces(['street', 'residential'], 6); pump(); }
 
   /** far crowd tier (src/npc/crowd.js): any of the user's people for this zone (needs no loading: index palette only) */
   const farPool = new Map();
