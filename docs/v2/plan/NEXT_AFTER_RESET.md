@@ -74,3 +74,6 @@
 - **Loading music (user):** start the main theme during the loading screen (the app allows autoplay; the browser needs a click first), continuing into the title.
 - **Road edges everywhere (user):** the user LIKES the edge treatment on most roads (dirt blend, slight elevation, realistic jaggedness). Apply that same verge system to every road, including Keys side streets and driveway joins near Nico's (screenshot: flat jagged asphalt cut into sand with a bare concrete slab). Find why those edges skip the verge builder (likely the new Keys streets or the terrain-tile path) and route them through it.
 - **Nico's driveway (user):** a clear, defined dirt / crushed-shell drive from the house out to Pelican Point Ln: packed tire ruts, soft verge blend, no props or plants on it (game.placement), meeting the street with the shared verge treatment.
+- **People pathing (user):** an NPC walked through a tree and one stood in the middle of the road. Crowd walkers should avoid tree trunks (trunks.js) and stay off carriageways (game.placement) except at crossings.
+- **Parked cars:** one sat in the middle of a narrow Keys lane. Curb spots must keep the car body outside the travel lane (or skip narrow streets).
+- **Windshields:** some (the silver hatch) still look odd: check the glass on the rest of the fleet.
