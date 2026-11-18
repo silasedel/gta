@@ -1324,6 +1324,14 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   probe keeps them), van3 / super4 lowered, truck9 seats dropped 14 / 10 cm.
 
 ## r2-people
+- 19:00 **Final.** All 76 new user people (NPC 96-171) in the game (173 people total), named from previews (folders +
+  Models/catalog.csv, on disk), rigged with the user's quality notes (shirt-print relief flattened, white hair-edge fringe
+  recolored, stray bits dropped, fixed thumb lanes) and cast by role: 7 gang members only in gang crews (kit.js 'gang'),
+  9 police (preloaded, kept resident: squads are all user officers), 6 lifeguards at posts, beachgoers to beaches, Keys
+  fishermen / captain / airboat guide at docks, workers at their venues, elderly residential / park, kids park /
+  residential only (never drive or stand in for missions; not yet paired with an adult). None too broken to use.
+  In game: `docs/v2/shots/people/r2_new_people_sheet.jpg`. Brand marks erased on p110, p144, p147, p148, p169; p167's
+  script is no longer red but a faint ghost remains. Open: melted-finger geometry is not rebuilt (the hand rig bends it).
 - 18:30 **Far crowd of the user's people ON by default**, cost verified by r2-perf (in-session ABAB x3 downtown,
   `docs/v2/reports/r2-perf-probe2.json`): the on / off difference is inside the noise, under the 2 ms target (half-rate
   far walkers, no re-upload for still people, bake waiting list, incremental bakes). Every NPC path uses the user's people
