@@ -1101,6 +1101,23 @@ for B in CFG.get('lampBoxes') or []:
         for lp in f.loops: lp[col_layer] = (col[0], col[1], col[2], LAMP[k_] / 16.0); lp[uvl].uv = (-1.0, -1.0)
         f.material_index = 3; n += 1
     log('lamp box', kind, n)
+# double glazing (user: truck9's windshield "all glitched", blotchy dark patches): many models ship an inner glass layer
+# 0.5-30 mm behind the outer one; two transparent layers sort per object, not per pixel, and z-fight / blotch.  The inner
+# layer (another glass face within 3 cm further out from the body's center line) is deleted.
+if not CFG.get('keepDoubleGlass'):
+    gl_ = [f for f in bm.faces if f.is_valid and f not in _kill and f.material_index == 1]
+    if gl_:
+        vs_ = [v.co.copy() for v in bm.verts]; bm.verts.ensure_lookup_table()
+        bvg_ = _BVH.FromPolygons(vs_, [[v.index for v in f.verts] for f in gl_])
+        ng_ = 0
+        for f in gl_:
+            c_ = f.calc_center_median(); n_ = f.normal.copy()
+            out_ = Vector((c_[0], c_[1], c_[2] - 1.0))   # away from a point inside the cabin
+            if n_.dot(out_) < 0: n_ = -n_
+            hit_ = bvg_.ray_cast(c_ + n_ * 0.0004, n_, 0.03)
+            if hit_[0] is not None:
+                _kill.add(f); kill.append(f); ng_ += 1
+        log('inner glass layer removed', ng_, 'of', len(gl_))
 # hidden under-skins: trim faces (black inner shells, primer layers) lying 0..3 cm behind a paint face that faces the same way
 # are never seen, but once the LODs are decimated they poke through the paint as jagged black patches.  Deleted here.
 if not CFG.get('keepUnderskin'):
