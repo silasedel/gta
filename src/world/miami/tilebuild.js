@@ -23,6 +23,7 @@ import { createBuildingModels, CASINO, AIRPORT, LIB as LIBMODELS } from './bldmo
 import { buildingStyle, podiumStyle, groundStyle } from '../city/families.js';
 import { lots as houseLots } from '../setpieces/houses/lots.js';
 import { groundClaims } from '../ground/claims.js';
+const R4SLAB = !(typeof location !== 'undefined' && /[?&]r4slab=0\b/.test(location.search)); // r4-shoreland: no seawall cap on natural inland banks
 const GC_OFF = typeof location !== 'undefined' && /[?&]groundfix=0/.test(location.search); // ground-continuity before/after switch (audit only)
 import { occupancy } from '../ground/occupancy.js';
 import { surfaceMask } from '../ground/surfaceMask.js';
@@ -3045,7 +3046,9 @@ export function createTileBuilder(ctx) {
     for (const r of runs) {
       const { p, tx, tz, ox, oz } = r, at = (s2, o) => [p[0] + tx * s2 + ox * o, p[1] + tz * s2 + oz * o];
       // seawall cap: 0.6 m concrete coping, 0.12 m proud, face continues down the wall (all waterfronts)
-      if (B && B.trim && !natShore) { const fr = polyFrame([at(r.sA, 0), at(r.sB, 0)]), sgn = (fr[0].nx * ox + fr[0].nz * oz) > 0 ? 1 : -1;
+      // r4-shoreland (?r4slab=0 = old): not along inland ponds / lakes / marsh on terrain tiles (Brickell Ave swamp): there the bank is
+      // the terrain's natural slope, and the cap lay on it as a white 0.6 m slab, half in the water
+      if (B && B.trim && !natShore && !(R4SLAB && terrain && tile.tx !== undefined && terrain.synthetic(tile.tx, tile.tz) && D && D.waterKindAt && [3, 8].some((o) => { const q = at((r.sA + r.sB) / 2, o); return /pond|lake|marsh/.test(String(D.waterKindAt(q[0], q[1]) || '')); }))) { const fr = polyFrame([at(r.sA, 0), at(r.sB, 0)]), sgn = (fr[0].nx * ox + fr[0].nz * oz) > 0 ? 1 : -1;
         ribbon(B.trim, fr, 0, Math.min(-0.55 * sgn, 0.06 * sgn), Math.max(-0.55 * sgn, 0.06 * sgn), 0.12, capTop, 1 / 3, r.sA - r.sA, r.sB - r.sA);
         sideWall(B.trim, fr, 0, 0.06 * sgn, 0.42, -0.3, cap, sgn, 0, r.sB - r.sA); sideWall(B.trim, fr, 0, -0.55 * sgn, 0.12, 0, cap, -sgn, 0, r.sB - r.sA); }
       // promenade: islands / causeways, or any park waterfront with a walking path along it
