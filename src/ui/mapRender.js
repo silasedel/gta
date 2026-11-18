@@ -153,7 +153,10 @@ function bboxOfRings(rings) {
 export function createMapRenderer(game) {
   let built = null, builtFor = null;
   const cache = new Map();   // key -> { c, used }
-  let frameBudgetMs = 6, spentThisFrame = 0, frameId = -1, drawSeq = 0;
+  // default per-frame tile budget (minimap, phone); the pause map passes its own larger budget. r2-perf: 6 -> 3 ms, the
+  // overview underlay covers tiles that are not drawn yet
+  const DEFAULT_BUDGET = 3;
+  let frameBudgetMs = DEFAULT_BUDGET, spentThisFrame = 0, frameId = -1, drawSeq = 0;
   const lastLevel = new Map();
   const OVERVIEW = 4;        // 4 km tiles: rendered once, kept forever, drawn under every zoom
 
@@ -503,6 +506,33 @@ export function createMapRenderer(game) {
     return out;
   }
   let lastPending = 0;
+  // not in play: loading, title or paused (a long frame costs nothing visible there)
+  const offStage = () => { const u = game.ui || {}; return !game.ready || !!u.title || !!u.paused; };
+  // idle-time prewarm: the shore field and the overview tiles are built in browser idle periods, so the minimap never
+  // has to render them inside a gameplay frame
+  let idleQueued = false;
+  function prewarm() {
+    if (idleQueued || typeof requestIdleCallback !== 'function') return;
+    const B = build();
+    const missing = overviewTiles().some(([tx, tz]) => !cache.has(OVERVIEW + ':' + tx + ':' + tz));
+    if (B.shore !== undefined && !missing) return;
+    idleQueued = true;
+    requestIdleCallback((dl) => {
+      idleQueued = false;
+      try {
+        while (dl.timeRemaining() > 12) {
+          const B2 = build();
+          if (B2.hasLand && B2.shore === undefined) { shoreStep(Math.min(8, dl.timeRemaining() - 2)); continue; }
+          const t = overviewTiles().find(([tx, tz]) => !cache.has(OVERVIEW + ':' + tx + ':' + tz));
+          if (!t) break;
+          const key = OVERVIEW + ':' + t[0] + ':' + t[1];
+          let c = null; try { c = renderTile(OVERVIEW, t[0], t[1]); } catch (e) { c = document.createElement('canvas'); c.width = c.height = 2; }
+          cache.set(key, { c, used: drawSeq });
+        }
+      } catch (e) { /* idle work is best effort */ }
+      prewarm();
+    }, { timeout: 4000 });
+  }
   // Draw into a ctx already transformed to world units. ppmDevice: device px per metre.
   function draw(g, x0, z0, x1, z1, ppmDevice, opts = {}) {
     if (!ok()) return false;
@@ -511,6 +541,7 @@ export function createMapRenderer(game) {
     if (opts.budget) frameBudgetMs = opts.budget;
     lastPending = 0;
     g.imageSmoothingEnabled = true;
+    prewarm();
     // 1) overview underlay: always present, rendered once (one per call until complete, even over budget)
     const S4 = tileSize(OVERVIEW);
     let forcedOne = false;
@@ -518,7 +549,9 @@ export function createMapRenderer(game) {
       const k = OVERVIEW + ':' + tx + ':' + tz, hit = cache.get(k);
       let c = hit ? hit.c : null;
       if (hit) hit.used = drawSeq;
-      else if (!forcedOne) { forcedOne = true; c = getTile(OVERVIEW, tx, tz, true, spentThisFrame < 40); }
+      // over-budget (forced) overview renders only behind the loading / title screen; in play they share the frame budget
+      // and the idle-time prewarm below fills them in
+      else if (!forcedOne) { forcedOne = true; c = getTile(OVERVIEW, tx, tz, true, offStage() && spentThisFrame < 40); }
       const vis = !(tx * S4 > x1 || (tx + 1) * S4 < x0 || tz * S4 > z1 || (tz + 1) * S4 < z0);
       if (c && vis) g.drawImage(c, tx * S4, tz * S4, S4 + 2 / ppmDevice, S4 + 2 / ppmDevice);
       else if (!c && vis) lastPending++; // still being built: the caller redraws (pause map timer, minimap every frame)
@@ -532,7 +565,7 @@ export function createMapRenderer(game) {
     const tilesAt = (l) => { const S = tileSize(l); return (Math.floor(x1 / S) - Math.floor(x0 / S) + 1) * (Math.floor(z1 / S) - Math.floor(z0 / S) + 1); };
     while (level < LEVELS - 1 && tilesAt(level) > 36) level++;
     lastLevel.set(id, level);
-    if (level >= OVERVIEW) { frameBudgetMs = 6; return true; } // the overview already is this detail level or finer
+    if (level >= OVERVIEW) { frameBudgetMs = DEFAULT_BUDGET; return true; } // the overview already is this detail level or finer
     const S = tileSize(level);
     const tx0 = Math.floor(x0 / S), tz0 = Math.floor(z0 / S), tx1 = Math.floor(x1 / S), tz1 = Math.floor(z1 / S);
     const seam = 1.25 / Math.max(1e-4, ppmDevice);
@@ -557,7 +590,7 @@ export function createMapRenderer(game) {
         for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) { const c3 = getTile(level - 1, tx * 2 + a, tz * 2 + b, false); if (c3) g.drawImage(c3, (tx * 2 + a) * S3, (tz * 2 + b) * S3, S3 + seam, S3 + seam); }
       }
     }
-    frameBudgetMs = 6;
+    frameBudgetMs = DEFAULT_BUDGET;
     return true;
   }
 
