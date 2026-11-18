@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { createCharacter, humansLoaded, humansTotal } from '../player/characterModel.js';
 import { sitOnFurniture, standUp } from './furnitureSeat.js';
+import { makeTowel, makeBeachThings, restOnTowel } from './beachTowel.js';
 import { createRagdollSystem } from './ragdoll.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { createSignals } from './streetlife.js';
@@ -204,7 +205,7 @@ export async function createPeds(game) {
   const pmat = (c, r = 0.8, side = THREE.FrontSide) => { const k = c + ':' + r + ':' + side; if (!propMat.has(k)) propMat.set(k, new THREE.MeshStandardMaterial({ color: c, roughness: r, side })); return propMat.get(k); };
   const props = new Set();
   function addProp(mesh) { mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); props.add(mesh); return mesh; }
-  function removeProp(m) { if (!m) return; scene.remove(m); props.delete(m); }
+  function removeProp(m) { if (!m) return; scene.remove(m); props.delete(m); if (m.userData?.disposeGeo) m.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); }
   function makeUmbrella(x, y, z) {
     const g = new THREE.Group(); g.position.set(x, y, z);
     const pole = new THREE.Mesh(propGeo.pole, pmat(0xdddddd, 0.4)); pole.position.y = 1.1; g.add(pole);
@@ -379,6 +380,7 @@ export async function createPeds(game) {
 
   function activate(ped, pos, zone, act, opts = {}) {
     if (ped._furn) standUp(ped);
+    ped._rest = undefined; ped._restN = 0;
     ped.pos.copy(pos);
     ped.zone = zone; ped.act = act;
     ped.char = getChar(opts.outfit || zone, { ...opts, pos, act });
@@ -509,10 +511,12 @@ export async function createPeds(game) {
       const pos = new THREE.Vector3(c.x + ox, 0, c.z + oz);
       if (!activate(p, pos, 'beach', 'sunbathe', { heading: hd + rand(-0.15, 0.15) + (Math.random() < 0.3 ? Math.PI : 0), outfit: 'beach' })) return;
       p.idleStyle = Math.random() < 0.65 ? 'lie' : 'sitGround'; p.group = g; g.members.push(p); p.stateT = rand(60, 200);
-      const towel = new THREE.Mesh(propGeo.towel, pmat(pick(TOWEL_COLS), 0.95));
-      towel.receiveShadow = true;
-      towel.position.set(0, 0.02, p.idleStyle === 'lie' ? -0.42 : 0.15);
-      p.root.add(towel); p.towel = towel; props.add(towel);
+      // a real towel draped on the sand under them (src/npc/beachTowel.js), flip-flops / a bag beside it
+      const th = p.heading, tz = p.idleStyle === 'lie' ? -0.42 : 0.15, tx0 = p.pos.x + Math.sin(th) * tz, tz0 = p.pos.z + Math.cos(th) * tz;
+      const gA = (x, z) => groundAt(x, z, p.pos.y + 1);
+      const towel = makeTowel(tx0, tz0, th, pick(TOWEL_COLS), gA, (p.id || 1) * 7 + k);
+      scene.add(towel); p.towel = towel; props.add(towel);
+      if (Math.random() < 0.7) { const th2 = makeBeachThings(tx0, tz0, th, gA, (p.id || 1) * 13 + k); scene.add(th2); props.add(th2); (p.ownProps ||= []).push(th2); }
     });
     return ps;
   }
@@ -1215,6 +1219,7 @@ export async function createPeds(game) {
       // seated on the real bench / chair / sofa under them (src/npc/furnitureSeat.js): probed cushion, natural variants, life
       if (ped.state === 'bench' && !(ped.speed > 0.4) && dCam < 60) { try { sitOnFurniture(game, ped, dt); } catch (e) { /* keep the clip pose */ } }
       else if (ped._furn) standUp(ped);
+      if (ped.state === 'sunbathe' && dCam < 80) { try { restOnTowel(ped, (x, z) => groundAt(x, z, ped.pos.y + 1)); } catch (e) { /* keep the clip pose */ } }
     }
   }
 
