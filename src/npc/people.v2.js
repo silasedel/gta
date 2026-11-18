@@ -297,13 +297,15 @@ export async function initV2(game) {
     }
     return k;
   }
-  const rainy = () => /rain|storm|shower/.test(weather());
+  // r3-people: the renderer's own rain state (src/world/env/weather.v2.js: rain / wetness 0..1), the kind string as fallback
+  const rainy = () => { const w = game.weather; if (w && typeof w.rain === 'number') return w.rain > 0.12 || (w.wetness || 0) > 0.45; return /rain|storm|shower/.test(weather()); };
   // far tier wears the user's people (src/npc/people/cast.js palettes: skin, top, bottom, hair, shoes, sleeve and leg cut)
   function farLook(L, pos, still = false) {
     const base = crowdLook(L);
     const cast = game.npc?.cast; if (!cast?.farPerson) return base;
     try {
-      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null); const c = p?.cols; if (!c) return base;
+      const avoid = new Set(); for (const w of walkers) if (w.look?.personId && Math.abs(w.pos.x - pos.x) < 45 && Math.abs(w.pos.z - pos.z) < 45) avoid.add(w.look.personId);
+      const zn = NAV ? NAV.zoneAt(pos.x, pos.z) : 'residential'; const p = cast.farPerson(zn, pos, still && (zn === 'beach' || zn === 'water') ? 'sunbathe' : null, avoid); const c = p?.cols; if (!c) return base;
       L.height = p.height * (0.97 + Math.random() * 0.06); L.gender = p.g; L.personId = p.id;
       const f = p.g === 'f';
       return { ...base, personId: p.id, gender: p.g, skin: c.skin ?? base.skin, top: c.top ?? base.top, bottom: c.bottom ?? base.bottom, hair: c.hair ?? base.hair, shoes: c.shoes ?? base.shoes,
@@ -362,13 +364,17 @@ export async function initV2(game) {
     // denser near the viewer and in front of the camera (people behind you are never seen)
     game.camera.getWorldDirection(_fwd);
     let pos = null, bestDot = -2;
-    const lounger = beachy && NAV.sandPoint && Math.random() < 0.6;
+    const wet = rainy();   // r3-people: no sunbathers in the rain, far fewer people on the beach at all
+    if (beachy && wet && Math.random() < 0.7) return false;
+    const lounger = beachy && !wet && NAV.sandPoint && Math.random() < 0.6;
     const shoreWalker = beachy && NAV.sandPoint && !lounger && Math.random() < 0.6;
     for (let k = 0; k < 3; k++) {
       const r = crowdCfg.near + 12 + Math.pow(Math.random(), 1.4) * (crowdCfg.far - crowdCfg.near - 25);
       const q = lounger ? NAV.sandPoint(cam, r) : shoreWalker ? NAV.sandPoint(cam, r, true) : NAV.sidewalkNear(cam, r);
       if (!q) continue;
       if (NAV.spotOK && !NAV.spotOK(q.x, q.z)) continue; // never on a carriageway, highway, bridge or deck
+      // r3-people (user, item 30): never appear in plain sight (the fade-in band at the far edge excepted)
+      if (NAV.inCamView && Math.hypot(q.x - cam.x, q.z - cam.z) < crowdCfg.far - 20 && NAV.inCamView(q.x, q.y || 0, q.z)) continue;
       const dx = q.x - cam.x, dz = q.z - cam.z, dl = Math.hypot(dx, dz) || 1, dot = (dx * _fwd.x + dz * _fwd.z) / dl;
       // far away: prefer in front (where people are seen); closer: prefer behind or beside the camera, so nobody
       // appears in plain sight
@@ -386,8 +392,12 @@ export async function initV2(game) {
     const i = crowd.alloc(); if (i < 0) return false;
     const w = { i, pos: new THREE.Vector3(pos.x, pos.y || 0, pos.z), nav: null, heading: Math.random() * 6.28, id: pick.id, look: L, speed: L.gait.speed, gy: NAV.groundAt(pos.x, pos.z, pos.y || 0), phase: Math.random() * 6.28, still: lounger, fade: 0, leaving: false, ampJit: 0.92 + Math.random() * 0.16 };
     crowd.setFade(i, 0);
-    crowd.setLook(i, farLook(L, w.pos, w.still));
+    const FL = farLook(L, w.pos, w.still);
+    // r3-people: every far person is one of the user's people and never one already used within ~45 m (no twins in a group)
+    if (FAR_PEOPLE && game.npc?.cast?.farPerson && !FL.personId) { crowd.release(i); return false; }
+    crowd.setLook(i, FL);
     if (lounger) { // beach crowd: lying, sitting, standing around, talking, playing
+      w.lounger = true;
       // sit on the surface that is really there (physics ground), so neither the person nor the towel hovers (playtest P4)
       w.gy = surfaceY(w.pos.x, w.pos.z, w.gy);
       const LP = [POSE.lie, POSE.lie, POSE.lieFront, POSE.sitGround, POSE.sitGround, POSE.lounge, POSE.stand, POSE.talk, POSE.talk, POSE.phone, POSE.sip]; // no volleyball players
@@ -746,6 +756,7 @@ export async function initV2(game) {
     }
     buildGrid();
     let excess = staying - (want + 8);
+    const wetNow = rainy();
     for (let n = walkers.length - 1; n >= 0; n--) {
       const w = walkers[n];
       const d = Math.hypot(w.pos.x - cam.x, w.pos.z - cam.z);
@@ -754,6 +765,8 @@ export async function initV2(game) {
       // the near range keeps walking until they are out of view, and only then hands over
       const tooNear = d < (w.still || w.shore ? 14 : crowdCfg.near);
       const seen = inViewXZ(w.pos.x, w.gy + 1, w.pos.z);
+      // rain: people on the sand pack up and leave (out of view, or once they are not close)
+      if (!w.leaving && w.lounger && wetNow && (!seen || d > 35)) w.leaving = true;
       if (!w.leaving && ((tooNear && !seen) || d > crowdCfg.far + 10 || (excess > 0 && !(d < 60 && seen)))) {
         if (excess > 0) {
           excess--;
@@ -851,7 +864,7 @@ export async function initV2(game) {
     lines: () => lineLog.slice(), lineCount,
     roster: () => [...roster.values()].map((id) => ({ name: id.name, age: id.age, job: id.job, home: id.districtKey, voice: id.voice, traits: Object.fromEntries(Object.entries(id.traits).map(([k, v]) => [k, Math.round(v * 100) / 100])) })),
     life: { stats: () => ({ ...lifeStats }), governor: () => ({ k: governor.k, avgMs: governor.avgMs }), panic: crowdPanic, walkState: signals.walkState },
-    crowd: { cfg: crowdCfg, get impl() { return crowd; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]) },
+    crowd: { cfg: crowdCfg, get impl() { return crowd; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
     sigList: () => [...audit.sigs.keys()],
     inView() { // people inside the camera frustum (near tier + crowd tier)
       const cam = game.camera; if (!cam) return null; cam.updateMatrixWorld();

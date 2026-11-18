@@ -22,6 +22,16 @@ export function placesFor(zone, act, ctx = {}) {
   if (act === 'sunbathe' || act === 'swim' || act === 'wade' || act === 'volley' || act === 'frisbee') return ['beach', 'swim'];
   if (act === 'jog') return ['sport'];
   if (act === 'dog') return keys ? ['keys', 'residential'] : ['residential', 'street'];
+  // r3-people (user, Nov 17 PM item 8: "the cast must fit the district"): the district beats the generic street zone
+  // for the public street zones (venue / job roles below stay as they are)
+  const d = ctx.district || '';
+  if (d && /^(business|downtown|commercial|residential|casual|park|nightlife|night|beach|water)$/.test(zone || 'residential')) {
+    if (/^(Brickell|Downtown|Brickell Hammock)$/.test(d) && !/beach|water/.test(zone)) return night ? ['business', 'nightlife', 'tourist'] : ['business', 'business', 'shop_guest'];
+    if (/^(South Beach|South of Fifth|Collins Park|Mid-Beach|Miami Beach)$/.test(d)) return night ? ['nightlife', 'tourist', 'beach_walk'] : zone === 'residential' ? ['tourist', 'residential', 'beach_walk'] : ['tourist', 'beach_walk', 'beach'];
+    if (d === 'Dodge Island Port') return ['work', 'port', 'industrial'];
+    if (/^(Wynwood|Design District|Midtown|Arts & Entertainment District)$/.test(d)) return night ? ['nightlife', 'street', 'tourist'] : ['street', 'tourist', 'shop_guest', 'business'];
+    if (/^(Coconut Grove|Key Biscayne|The Roads|Bayshore)$/.test(d) && zone === 'residential') return ['residential', 'sport', 'street'];
+  }
   switch (zone) {
     case 'beach': case 'water': return night ? ['beach_walk', 'tourist', 'nightlife'] : ['beach_walk', 'beach', 'tourist'];
     case 'business': case 'downtown': return night ? ['business', 'nightlife', 'street'] : ['business', 'business', 'street'];
@@ -68,7 +78,7 @@ export async function createCast(game) {
   const ctxAt = (pos) => {
     if (!pos) return {};
     const d = districtAt(pos.x, pos.z);
-    return { keys: /Key|Marathon|Islamorada|Tavernier/i.test(d) || pos.z > 4300, rough: /Overtown|Liberty/i.test(d), night: hour() > 20 || hour() < 5, swat: (game.wanted?.level || 0) >= 4 };
+    return { district: d, keys: /Key|Marathon|Islamorada|Tavernier/i.test(d) || pos.z > 4300, rough: /Overtown|Liberty/i.test(d), night: hour() > 20 || hour() < 5, swat: (game.wanted?.level || 0) >= 4 };
   };
   const has = (p, places) => p.places.some((x) => places.includes(x));
   const rank = (p, places) => { let best = 9; for (const x of p.places) { const i = places.indexOf(x); if (i >= 0 && i < best) best = i; } return best; };
@@ -277,6 +287,17 @@ export async function createCast(game) {
     c.root.position.set(x, gy(x, z), z); c.root.rotation.y = heading; game.scene.add(c.root);
     posts.push({ kind, c, x, z }); return true;
   }
+  function hutNear(pp) {
+    const b0 = Math.round((pp.z - 85) / 170) * 170 + 85; let best = null;
+    for (const zc of [b0, b0 - 170, b0 + 170]) for (const dx of [1, -1]) for (let x = pp.x - 200; x < pp.x + 200; x += 2) {
+      if (isWater(x, zc) || !isWater(x + dx * 6, zc) || zoneAt(x, zc) !== 'beach') continue;
+      const hx = x - dx * 28; if (isWater(hx, zc)) continue;
+      const d = Math.hypot(hx - pp.x, zc - pp.z); if (d < 25 || d > 160) continue;
+      if (!best || d < best.d) best = { x: hx + dx * 2.6, z: zc + 1.6, a: Math.atan2(dx, 0), d };
+      break;
+    }
+    return best;
+  }
   function waterDir(x, z) { let best = null; for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; for (const r of [8, 16, 30]) if (isWater(x + Math.sin(a) * r, z + Math.cos(a) * r)) { if (!best || r < best.r) best = { a, r }; break; } } return best; }
   game.updaters?.push?.((dt) => {
     for (const p of posts) p.c.update(dt, { speed: 0, grounded: true, lookAt: game.player?.position && p.c.root.position.distanceTo(game.player.position) < 7 ? game.player.position : null });
@@ -286,9 +307,12 @@ export async function createCast(game) {
     const h = hour(); const z0 = zoneAt(pp.x, pp.z); const nav = game.peds?._nav;
     // lifeguard: one per ~150 m of beach, 8:00-19:00, on the sand near the water, facing the sea
     if (nav && h > 8 && h < 19 && (z0 === 'beach' || z0 === 'water') && posts.filter((p) => p.kind === 'lifeguard').length < 2) {
-      const s = nav.sandPoint?.(pp, 120, true);
+      // r3-people (user: "the lifeguard should be at the lifeguard tower"): stand on the water side of the nearest hut
+      // (tilebuild places the huts every 170 m of z, 28 m inland from the waterline); the old sand spot is the fallback
+      const hut = hutNear(pp);
+      const s = hut || nav.sandPoint?.(pp, 120, true);
       if (s && !posts.some((p) => p.kind === 'lifeguard' && Math.hypot(p.x - s.x, p.z - s.z) < 150) && Math.hypot(s.x - pp.x, s.z - pp.z) > 25) {
-        const w = waterDir(s.x, s.z); if (w) addPost('lifeguard', ['lifeguard'], s.x, s.z, w.a, Math.random() < 0.5 ? 'cross_arms' : 'idle');
+        const w = hut ? { a: hut.a } : waterDir(s.x, s.z); if (w) addPost('lifeguard', ['lifeguard'], s.x, s.z, w.a, Math.random() < 0.5 ? 'cross_arms' : 'idle');
       }
     }
     // dock people: at a mooring, standing on the closest dry spot beside the boat, looking at the water
@@ -319,7 +343,7 @@ export async function createCast(game) {
 
   /** far crowd tier (src/npc/crowd.js): any of the user's people for this zone (needs no loading: index palette only) */
   const farPool = new Map();
-  function farPerson(zone, pos, act = null) {
+  function farPerson(zone, pos, act = null, avoid = null) {
     const ctx = ctxAt(pos); const places = placesFor(zone, act, ctx);
     const key = places.join(',');
     let L = farPool.get(key);
@@ -327,6 +351,8 @@ export async function createCast(game) {
     if (!L.length) return null;
     // the far tier draws the real person (src/npc/people/farCrowd.js): only people already loaded
     const LL = L.filter((p) => getPerson(p.id)); if (LL.length) L = LL;
+    // r3-people (user: "4-5 sunbathers next to each other were the same woman"): never a person already used close by
+    if (avoid && avoid.size) { const L2 = L.filter((p) => !avoid.has(p.id)); if (L2.length) L = L2; else { wantPlaces(places, 24, true); pump(); return null; } }   // nobody new loaded yet: the caller skips this spawn
     // first places weigh more
     for (let t = 0; t < 4; t++) { const p = L[(Math.random() * L.length) | 0]; if (Math.random() < 1 / (1 + rank(p, places) * 0.5)) return p; }
     return L[(Math.random() * L.length) | 0];

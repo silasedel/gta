@@ -73,6 +73,60 @@ export async function createPeds(game) {
   }
   const walkable = (e) => e && e.pts && e.pts.length > 1 && !/motorway|trunk|_link|rail|ferry/.test(e.kind || '') && (e.speedKmh || 40) < 75 && !(e.bridge && (e.speedKmh || 40) > 55);
   const sideOffset = (e) => (e.width || 8) / 2 + 2.0;
+  // r3-people (user, Nov 17 PM: "~20 NPCs in a line along the road edge", "NPCs walk diagonally through walls"): every
+  // walker used one line at width/2 + 2 m (+-0.7 m), so a busy edge read as a single file, and that line ignored the
+  // sidewalk width and the buildings. Now each walker keeps its own lane across the real sidewalk width, and the lane
+  // is clamped in front of the first wall (two sideways rays from the road against the static world, max of both so a
+  // lamp post does not pull people to the curb), refreshed every few meters. Straight-line moves (corners, crossing
+  // to the other side) that would pass through a wall go via the curb instead. '?pednav=old' = the previous behavior.
+  const NAV_OLD = typeof location !== 'undefined' && /[?&]pednav=old/.test(location.search);
+  const _rO = { x: 0, y: 0, z: 0 }, _rD = { x: 0, y: 0, z: 0 };
+  let _ray = null;
+  function wallDist(x, y, z, dx, dz, max) {
+    try {
+      const R = game.RAPIER, W = game.world; if (!R || !W) return max;
+      _rO.x = x; _rO.y = y; _rO.z = z; _rD.x = dx; _rD.y = 0; _rD.z = dz;
+      if (!_ray) _ray = new R.Ray(_rO, _rD); else { _ray.origin = _rO; _ray.dir = _rD; }
+      const hit = W.castRay(_ray, max, true, R.QueryFilterFlags.EXCLUDE_DYNAMIC | (R.QueryFilterFlags.EXCLUDE_KINEMATIC || 0) | R.QueryFilterFlags.EXCLUDE_SENSORS);
+      return hit && Number.isFinite(hit.timeOfImpact) ? hit.timeOfImpact : max;
+    } catch (e) { return max; }
+  }
+  // lateral offset of this walker's lane on its edge and side (m from the centerline)
+  const _wp2 = { x: 0, z: 0, tx: 0, tz: 1 };
+  function laneOff(n, side) {
+    const e = n.edge, hw = (e.width || 8) / 2, sw = e.sidewalk || 0;
+    if (n.lane === undefined) n.lane = Math.random();
+    let off = sw > 0.5 ? hw + 0.45 + n.lane * Math.max(0.3, sw - 0.9) : hw + 1.1 + n.lane * 1.6;
+    // wall clamp (cached per edge / side / ~6 m of travel)
+    if (n.wE !== e || n.wSide !== side || Math.abs(n.s - n.wS) > 6) {
+      n.wE = e; n.wSide = side; n.wS = n.s; n.wMax = 1e9;
+      if (collidersReady(_ep.x, _ep.z)) {
+        const nx = -_ep.tz * side, nz = _ep.tx * side; let best = 0;
+        const y = groundAt(_ep.x, _ep.z, 0) + 1.3;
+        for (const k of [-1.6, 1.6]) {
+          const L = edgeLen(e); edgeAt(e, Math.max(0, Math.min(L, n.s + k)), _wp2);
+          // start just outside the carriageway (parked cars / the road itself are not walls)
+          best = Math.max(best, hw * 0.6 + wallDist(_wp2.x + nx * hw * 0.6, y, _wp2.z + nz * hw * 0.6, nx, nz, hw * 0.4 + off + 1.5));
+        }
+        if (best < hw + off + 1.5 - 0.01) n.wMax = best - 0.55;
+      }
+      // building footprints from the map raster too (works beyond the collider radius, for the far crowd)
+      try {
+        const nx = -_ep.tz * side, nz = _ep.tx * side;
+        for (let k = hw + 0.25; k < off + 1.6 && k < n.wMax + 0.55; k += 0.5) if (surfaceAt(_ep.x + nx * k, _ep.z + nz * k) === 'building') { n.wMax = Math.min(n.wMax, k - 0.6); break; }
+      } catch (e) { /* */ }
+    }
+    if (n.jit0 === undefined) n.jit0 = n.jit || 0;
+    off += (n.jit || 0) - n.jit0;   // people.v2 sidesteps (avoidance) still shift the lane
+    if (off > n.wMax) off = Math.max(hw + 0.3, n.wMax);
+    return off;
+  }
+  // is the straight line from the walker to (x, z) free of walls?
+  function lineFree(ped, x, z) {
+    const dx = x - ped.pos.x, dz = z - ped.pos.z, d = Math.hypot(dx, dz);
+    if (d < 0.5 || !collidersReady(ped.pos.x, ped.pos.z)) return true;
+    return wallDist(ped.pos.x, (ped.pos.y || groundAt(ped.pos.x, ped.pos.z, 0)) + 1.3, ped.pos.z, dx / d, dz / d, d) >= d - 0.01;
+  }
   const nodeEdges = (id) => { try { return RG.edgesAt(id) || []; } catch (e) { return []; } };
   const _ep = { x: 0, z: 0, tx: 0, tz: 1 };
   // place a ped's nav on the nearest walkable edge
@@ -92,13 +146,19 @@ export async function createPeds(game) {
     const n = ped.nav; const e = n.edge;
     edgeAt(e, n.s, _ep);
     const side = n.hand * n.dir;
-    const off = sideOffset(e) + n.jit;
+    const off = NAV_OLD ? sideOffset(e) + n.jit : laneOff(n, side);
     out.x = _ep.x - _ep.tz * side * off; out.z = _ep.z + _ep.tx * side * off;
     return Math.atan2(_ep.tx * n.dir, _ep.tz * n.dir);
   }
   // advance along the sidewalk; returns desired heading; moves ped.pos in xz
   function navStep(ped, dt, speed) {
     const n = ped.nav;
+    if (n.via) { // r3-people: detour point (curb) before a straight move that would cross a wall
+      const dx = n.via.x - ped.pos.x, dz = n.via.z - ped.pos.z, d = Math.hypot(dx, dz);
+      n.viaT = (n.viaT || 0) + dt;
+      if (d < 0.4 || n.viaT > 8) { n.via = null; n.viaT = 0; }
+      else { const k = Math.min(1, speed * dt / d); ped.pos.x += dx * k; ped.pos.z += dz * k; return Math.atan2(dx, dz); }
+    }
     if (n.cross) { // crossing an intersection / crosswalk in a straight line
       const dx = n.cross.x - ped.pos.x, dz = n.cross.z - ped.pos.z, d = Math.hypot(dx, dz);
       if (d < 0.35 || n.crossT > 12) { n.cross = null; }
@@ -122,6 +182,7 @@ export async function createPeds(game) {
         n.edge = ch.e; n.dir = ch.fwd ? 1 : -1; n.s = ch.fwd ? 0.01 : edgeLen(ch.e) - 0.01;
         const t = _nt; navTarget(ped, t);
         n.cross = { x: t.x, z: t.z }; n.crossT = 0;
+        if (!NAV_OLD && !lineFree(ped, t.x, t.z)) { const q = edgeAt(n.edge, n.dir > 0 ? 0 : edgeLen(n.edge), _wp2); const vx = ped.pos.x - q.x, vz = ped.pos.z - q.z, vl = Math.hypot(vx, vz) || 1, r0 = (n.edge.width || 8) / 2 + 0.6; n.via = { x: q.x + vx / vl * r0, z: q.z + vz / vl * r0 }; }   // round the corner at the curb, not through the corner building
         // npc-life: remember the corner, so walkers can wait for the walk signal there (streetlife.js)
         n.cross.node = node;
         n.cross.sig = 0;
@@ -132,7 +193,12 @@ export async function createPeds(game) {
     }
     const t = _nt; const h = navTarget(ped, t);
     const dx = t.x - ped.pos.x, dz = t.z - ped.pos.z, d = Math.hypot(dx, dz);
-    if (d > 6) { n.cross = { x: t.x, z: t.z }; n.crossT = 0; return Math.atan2(dx, dz); }
+    if (d > 6) {
+      n.cross = { x: t.x, z: t.z }; n.crossT = 0;
+      // a wall in the way: step out to the curb first (the curb point of this edge at the walker's station)
+      if (!NAV_OLD && !lineFree(ped, t.x, t.z)) { edgeAt(n.edge, n.s, _ep); const hw = (n.edge.width || 8) / 2 + 0.4, sd = ((ped.pos.x - _ep.x) * -_ep.tz + (ped.pos.z - _ep.z) * _ep.tx) >= 0 ? 1 : -1; n.via = { x: _ep.x - _ep.tz * sd * hw, z: _ep.z + _ep.tx * sd * hw }; }
+      return Math.atan2(dx, dz);
+    }
     // follow the sidewalk line with gentle lateral correction
     ped.pos.x += Math.sin(h) * speed * dt + dx * Math.min(1, dt * 2);
     ped.pos.z += Math.cos(h) * speed * dt + dz * Math.min(1, dt * 2);
@@ -305,6 +371,13 @@ export async function createPeds(game) {
   // Is (x, z) a place a person can stand? Not inside a road's carriageway, not near a motorway / trunk / link / bridge
   // edge, and not where an elevated deck exists (deck height and street height differ there). Playtest: idle
   // "parked people" on highways, bridges and causeways.
+  const _sfr = new THREE.Frustum(), _spm = new THREE.Matrix4(), _ssp = new THREE.Sphere(new THREE.Vector3(), 1.2);
+  let _rainT = -1, _rainV = false;
+  function isRaining() { const t = performance.now(); if (t - _rainT > 1000) { _rainT = t; const w = game.weather; _rainV = !!w && (typeof w.rain === 'number' ? w.rain > 0.12 || (w.wetness || 0) > 0.45 : /rain|storm|shower/.test(String(w.kind || ''))); } return _rainV; }
+  function inCamView(x, y, z) {
+    const c = game.camera; if (!c) return false;
+    try { c.updateMatrixWorld(); _spm.multiplyMatrices(c.projectionMatrix, c.matrixWorldInverse); _sfr.setFromProjectionMatrix(_spm); _ssp.center.set(x, y + 1, z); return _sfr.intersectsSphere(_ssp); } catch (e) { return false; }
+  }
   function spotOK(x, z) {
     try {
       if (RG) {
@@ -427,13 +500,16 @@ export async function createPeds(game) {
       const cam = game.camera; let behind = true;
       if (cam) { cam.getWorldDirection(_v2); behind = (_v2.x * (p.x - cam.position.x) + _v2.z * (p.z - cam.position.z)) < 0; }
       if (!behind && d < 45 && Math.random() < 0.85) continue;
+      if (!NAV_OLD && d < 150 && inCamView(p.x, p.y || 0, p.z)) continue;   // r3-people (user, item 30): never spawn in plain sight
       base = p;
     }
     const zone0 = base ? zoneAt(base.x, base.z) : zoneAt(pp.x, pp.z);
     const beachNear = zone0 === 'beach' || zoneAt(pp.x, pp.z) === 'beach';
     const r = Math.random();
     // ---- beach life
-    if (beachNear && budget >= 2 && !night && r < 0.65) {
+    const raining = isRaining();
+    if (beachNear && raining && Math.random() < 0.75) return [];   // r3-people: the beach empties in the rain
+    if (beachNear && budget >= 2 && !night && !raining && r < 0.65) {
       const k = Math.random();
       if (k < 0.38) { const c = sandPoint(pp, 140); if (c) return sunbathers(c, Math.min(budget, 1 + (Math.random() * 3 | 0))); }
       // (no beach volleyball games: removed in stage 1 job 6)
@@ -1092,9 +1168,12 @@ export async function createPeds(game) {
         }
         case 'bench': case 'lean': case 'garden': case 'sunbathe': case 'volley': case 'wade': {
           ped.stateT -= dt;
+          // r3-people: rain -> sunbathers and waders get up and leave within a few seconds
+          if ((ped.state === 'sunbathe' || ped.state === 'wade') && ped.stateT > 6 && isRaining()) ped.stateT = rand(0.5, 6);
           if (ped.state === 'wade') { ped.idleStyle = Math.random() < 0.002 ? 'talk' : ped.idleStyle; }
           if (ped.stateT <= 0 && ped.state !== 'volley') {
             // stand up and walk off (sit/stand transitions via style blending)
+            if (ped.state === 'sunbathe' && ped.towel) { scene.remove(ped.towel); }
             if (ped.towel) { ped.towel.visible = false; }
             ped.leaveGroup = true; ped.idleStyle = null; ped.state = 'walk'; ped.act = ped.zone === 'beach' ? 'shore' : 'walk';
           }
@@ -1107,6 +1186,8 @@ export async function createPeds(game) {
         }
         case 'swim': {
           ped.stateT -= dt; ped.idleStyle = 'swim';
+          // r3-people (user: "people lying in the air, superman pose"): a swimmer never stays where there is no water under them
+          if (!isWater(ped.pos.x, ped.pos.z) || groundAt(ped.pos.x, ped.pos.z, -3) > seaLevel - 0.35) { ped.despawnNow = true; break; }
           targetSpeed = 0.8;
           const nx = ped.pos.x + Math.sin(ped.swimDir) * 3, nz = ped.pos.z + Math.cos(ped.swimDir) * 3;
           if (!isWater(nx, nz) || seaLevel - groundAt(nx, nz, -3) < 1.0) ped.swimDir += Math.PI * rand(0.6, 1.4);
@@ -1254,5 +1335,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK }, get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView }, get count() { return list.filter((p) => p.active).length; } };
 }
