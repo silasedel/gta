@@ -1689,6 +1689,14 @@ Report JSONs: `docs/v2/reports/water-drive-{before,after}.json` (same spots both
     - That's r2-ground's seabed heightfield vs the data depth (QA sent the same "physics floor 0 vs drawn seabed -0.35" finding to r2-ground), not the swim code.
   - **QA-051:** a false positive. QA's selector (and mine) took the BREATH bar itself as "the label" and read the opacity of its parent `<body>`. The bar now also sets `visibility: hidden` once faded, so it's fully gone at 100 % above water.
   - **`ocean.js`:** r2-ground's two-pass commit has landed. My `// r2-water` block isn't added (the lead stopped me on budget). `?waves=2` patches both passes at runtime and is ready to become the block.
+- **Freshwater (user: "make it real and not a stupid hard line"):** commit `r2-water: inland freshwater ...`, **on by default**, `?fresh=0` = off. Sheet: `docs/v2/shots/water/sheet_freshwater.jpg`, glades lake bank, same-session A/B, 0 console errors.
+  - **Cause of the milky water:** r2-ground's ocean model drew canals and glades lakes as clear tropical sea over its white-sand stand-in bed, which read milky gray / Caribbean turquoise.
+  - **What it does now:** a camera-centered "fresh" mask (`waves.js`; inland = little open water within ~450 m, so the open coast stays sea) patches both ocean passes. Light is absorbed in a tea-amber color (the old sea absorption tinted amber-brown), with dark brown in-scatter, a peat / leaf-litter stand-in bed, and calmer ripples. Shallows show the dark bed through tea, and deeper water goes dark olive-brown. The glades sheet water is tea-toned and less milky.
+  - **Not done:**
+    - My canal-bank A/B view landed inside a tree crown on the coast, so it isn't a canal (foliage has no collider to test against). The canal look is unverified.
+    - No tree reflections (needs SSR / planar reflection).
+    - No wet mud band, foam or lily pads on the bank; the bank band is r2-ground's terrain shading.
+    - The far bank of the test lake still shows the terrain's pale sand strip (terrain layer, r2-ground).
 
 ## r2-render
 **Image-stability overhaul (the user's "dotty, fringy, layered").** On by default (`game.renderR2`, page `?render2=0` = old pipeline).
