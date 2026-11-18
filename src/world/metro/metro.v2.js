@@ -205,11 +205,12 @@ export async function initV2(game) {
     const nm = canvasPlane(1.9, 0.48, 512, (g, w, h) => drawNameSign(g, w, h, s.name, s.sub), { side: THREE.DoubleSide }); nm.position.set(0, 2.45, 0); tot.add(nm);
     disc.material.toneMapped = false; disc.material.color.setScalar(0.9);
     scene.add(root); s.root = root;
-    // colliders: two balustrades, rear parapet, and a bar across the stair top (the stairwell is not walkable)
+    // colliders: a 2.5 m hull: both long sides over the full length (glass + posts), the rear, and a wall across the stair top
+    // (the stairwell is never walkable; entry is E on the landing)
     try {
       const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), s.yaw);
       const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(s.kx, gy, s.kz).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }));
-      for (const [x, y, z, hx, hy, hz] of [[1.95, 0.6, -0.4, 0.32, 0.6, 3.55], [-1.95, 0.6, -0.4, 0.32, 0.6, 3.55], [0, 0.6, -3.6, 2.27, 0.6, 0.35], [0, 0.6, 2.35, 1.7, 0.6, 0.15]]) world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z), body);
+      for (const [x, y, z, hx, hy, hz] of [[1.95, 1.25, 0, 0.32, 1.25, 3.95], [-1.95, 1.25, 0, 0.32, 1.25, 3.95], [0, 1.25, -3.6, 2.27, 1.25, 0.35], [0, 1.25, 2.3, 1.7, 1.25, 0.25]]) world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z), body);
       s.body = body;
     } catch (e) { console.warn('[metro] kiosk colliders', e); }
   }
