@@ -313,8 +313,12 @@ export function build(ctx) {
     // one instanced mesh per part for the three signs (post, plate)
     const inst = (part, mats) => { const im = new THREE.InstancedMesh(part.geometry, part.material, mats.length); mats.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; im.computeBoundingSphere(); g.add(im); };
     const bases = STOPS.map((st) => M(st.x, yS(st.x, st.z) - 0.04, st.z, st.lean || 0, st.face, 0));
-    if (SK.signs.post) inst(SK.signs.post, bases.map((b) => kit.mulM(b, M(0, -0.12, 0, 0, 0, 0, 2.4, 2.9, 2.4))));
-    inst(SK.signs.stop, bases.map((b) => kit.mulM(b, M(0, 2.33, 0.045))));
+    // user: the STOP plate sat off the post. The kit's post geometry is not centered on its origin, so the 2.4x width scale pushed
+    // it sideways: center both parts on the sign axis from their own bounding boxes (plate just in front of the post)
+    const ctr = (geo) => { try { geo.computeBoundingBox(); const bb = geo.boundingBox; return { x: (bb.min.x + bb.max.x) / 2, z: (bb.min.z + bb.max.z) / 2, d: bb.max.z - bb.min.z }; } catch (e) { return { x: 0, z: 0, d: 0 }; } };
+    const pc = SK.signs.post ? ctr(SK.signs.post.geometry) : { x: 0, z: 0, d: 0 }, sc = ctr(SK.signs.stop.geometry);
+    if (SK.signs.post) inst(SK.signs.post, bases.map((b) => kit.mulM(b, M(-pc.x * 2.4, -0.12, -pc.z * 2.4, 0, 0, 0, 2.4, 2.9, 2.4))));
+    inst(SK.signs.stop, bases.map((b) => kit.mulM(b, M(-sc.x, 2.33, -sc.z + pc.d * 2.4 / 2 + 0.012))));
     ctx.groups.site.add(g);
   })());
 }

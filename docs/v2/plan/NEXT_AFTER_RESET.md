@@ -22,3 +22,29 @@
 8. **Models to download:** `docs/v2/reports/library-audit-r4.md` and `docs/v2/plan/nico_house/r4/MISSING_MODELS.md`.
 
 9. **House look still off:** the boat is oversized (needs a skiff model). The interior is too dark and the floor reads red. Sky saturation, sun strength and the clear Caribbean water at the house all need a render / water pass toward the mock-ups' soft cinematic look.
+
+## User's last playtest (Nov 18 midday), still to fix: a full polish pass, every item checked in game
+- **Visuals:**
+  - Textures need more resolution and crispness, keeping the smooth look.
+  - Shadows are grainy or pixelated in places, and the house fence rails shimmer.
+- **Spawn yard:**
+  - Nico's feet sink into the ground (yard sheet above the collider).
+  - Sand changes color between greenish and purple across the ground sheets.
+  - The red plant looks flat.
+  - A black stripe runs across the ground.
+- **Stop signs:** every street stop sign's plate sits off its post (only the yard ones were fixed, in 55_yard.js); fix the street kit and `regulatory.v2.js`. A street sign stands in the middle of a road.
+- **Stairs:** the top of the stairs must land at the main front corner, the one with the satellite dish, seen from the drive. Some rails don't connect to the stairs.
+- **Police:** a cop came after the user with no crime committed. Officers' hands twist on their guns.
+- **Car entry and hands:**
+  - You must stand next to a car's door to get in, and use the passenger door if someone is driving.
+  - Nico's hands don't sit on the steering wheel.
+- **People:** they slide through car edges when hit (low-speed hits fixed in 33ae7546; check fast hits and the edges).
+- **Palms:** roots float a few inches above the ground.
+- **Keys overpass:** one stretch of road lies flat on the water where it should be one continuous elevated bridge, and there's water between the bridges on the overpass. Make it one polished, big bridge.
+- **Map:** make sure road connections match the map.
+- **Done this round:**
+  - Dev mode in settings (94e68056).
+  - Extra High preset label.
+  - Electric cars: no start sound, instant torque (6b0448a5).
+  - Parked cars in bushes recycled (0a6698d1).
+  - Yard stop signs centered.
