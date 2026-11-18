@@ -72,6 +72,10 @@ export function createBreakables(game) {
   }
   function breakNow(rec, v, car) {
     const speed = (() => { try { const l = v.body.linvel(); return Math.hypot(l.x, l.z); } catch (e) { return 0; } })();
+    // r2-physics energy model: the car's kinetic energy at the contact decides; below the object's snap energy it is a rigid hit (the
+    // impulse stops / deflects the car there) and the object stays standing with its collider back
+    let imp = null;
+    if (game.physics?.impacts && game.physics.propImpact) { imp = game.physics.propImpact(v, { kind: rec.kind, x: rec.x, y: rec.y || 0, z: rec.z, top: rec.hy * 2, broke: true }); if (imp && imp.broke === false) { add(rec); return; } }
     try { rec.hide && rec.hide(); } catch (e) { console.warn('[breakables] hide', e); }
     const lv = v.body.linvel();
     if (car && game.physics?.impacts) { try { const p = v.body.translation(), r = v.body.rotation(); const yaw = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x)); car = { ...car, x: p.x, z: p.z, c: Math.cos(yaw), s: Math.sin(yaw) }; } catch (e) { /* */ } }
@@ -79,8 +83,7 @@ export function createBreakables(game) {
     const at = new THREE.Vector3(rec.x, (rec.y || 0) + rec.hy, rec.z);
     if (!game.physics?.impacts) try { if (game.audio?.play) game.audio.play(rec.kind === 'fence' || rec.kind === 'chain' ? 'door' : 'car_crash', { position: at, volume: rec.kind === 'bush' ? 0.15 : 0.35 }); } catch (e) { /* audio optional */ }
     // r2-physics impacts (flag): momentum from the object's mass + snap strength at the real contact point, damage where it hit
-    const imp = game.physics?.impacts && game.physics.propImpact ? game.physics.propImpact(v, { kind: rec.kind, x: rec.x, y: rec.y || 0, z: rec.z, top: rec.hy * 2, broke: true }) : null;
-    if (!imp) {
+    if (!imp && !game.physics?.impacts) {
       const slow = rec.kind === 'bush' ? 0.96 : rec.kind === 'hydrant' ? 0.82 : 0.9;
       v.body.setLinvel({ x: lv.x * slow, y: lv.y, z: lv.z * slow }, true);
       try { v.damage?.(rec.kind === 'bush' ? 1 : rec.kind === 'hydrant' ? 12 : 5, null); } catch (e) { /* */ }

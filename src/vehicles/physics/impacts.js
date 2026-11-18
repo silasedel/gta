@@ -17,15 +17,18 @@ import * as THREE from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
 // mass (kg), snap / shear impulse (N s), hardness 0..1 (damage), restitution
+// m: object mass (kg), eb: energy to snap / shear / uproot it (J; 1e9 = rigid), md: debris mass carried along (kg), h: hardness (damage),
+// e: restitution of a rigid hit, rad: half-width of the object (m, for center vs glancing hits)
 export const PROPS = {
-  cone: { m: 3, jb: 0, h: 0.04, e: 0.3 }, channelizer: { m: 5, jb: 20, h: 0.05, e: 0.3 }, barricade: { m: 9, jb: 60, h: 0.12, e: 0.2 },
-  bin: { m: 15, jb: 0, h: 0.12, e: 0.2 }, cart: { m: 14, jb: 0, h: 0.12, e: 0.2 }, chair: { m: 4, jb: 0, h: 0.05, e: 0.2 },
-  bush: { m: 6, jb: 90, h: 0.02, e: 0 }, fence: { m: 24, jb: 520, h: 0.32, e: 0.1 }, chain: { m: 30, jb: 900, h: 0.38, e: 0.1 },
-  signPost: { m: 15, jb: 800, h: 0.5, e: 0.15 }, mailbox: { m: 25, jb: 1300, h: 0.55, e: 0.15 }, meter: { m: 20, jb: 1800, h: 0.7, e: 0.1 },
-  bench: { m: 60, jb: 2500, h: 0.6, e: 0.1 }, tree: { m: 40, jb: 2600, h: 0.62, e: 0.1 }, hydrant: { m: 150, jb: 7000, h: 1, e: 0.05 },
-  default: { m: 20, jb: 600, h: 0.4, e: 0.15 },
+  cone: { m: 3, eb: 60, md: 3, h: 0.04, e: 0.3, rad: 0.2 }, channelizer: { m: 5, eb: 150, md: 5, h: 0.05, e: 0.3, rad: 0.15 }, barricade: { m: 9, eb: 900, md: 9, h: 0.12, e: 0.2, rad: 0.6 },
+  bin: { m: 15, eb: 120, md: 15, h: 0.12, e: 0.2, rad: 0.35 }, cart: { m: 14, eb: 120, md: 14, h: 0.12, e: 0.2, rad: 0.35 }, chair: { m: 4, eb: 100, md: 4, h: 0.05, e: 0.2, rad: 0.3 },
+  bush: { m: 6, eb: 2500, md: 8, h: 0.02, e: 0, rad: 0.6 }, fence: { m: 24, eb: 6000, md: 25, h: 0.32, e: 0.12, rad: 1.2 }, fenceThick: { m: 60, eb: 22000, md: 60, h: 0.45, e: 0.12, rad: 1.2 },
+  chain: { m: 30, eb: 11000, md: 30, h: 0.38, e: 0.15, rad: 1.2 }, signPost: { m: 15, eb: 4500, md: 15, h: 0.5, e: 0.15, rad: 0.05 }, mailbox: { m: 25, eb: 5000, md: 25, h: 0.55, e: 0.15, rad: 0.12 },
+  meter: { m: 20, eb: 9000, md: 20, h: 0.7, e: 0.1, rad: 0.07 }, bench: { m: 60, eb: 20000, md: 60, h: 0.6, e: 0.1, rad: 0.9 }, tree: { m: 40, eb: 15000, md: 40, h: 0.62, e: 0.1, rad: 0.12 },
+  hydrant: { m: 150, eb: 150000, md: 150, h: 1, e: 0.12, rad: 0.15 }, bollard: { m: 400, eb: 1e9, md: 0, h: 1, e: 0.12, rad: 0.15 }, pole: { m: 300, eb: 1e9, md: 0, h: 1, e: 0.12, rad: 0.15 },
+  default: { m: 20, eb: 6000, md: 20, h: 0.4, e: 0.15, rad: 0.3 },
 };
-const KIND_ALIAS = [[/sign|post/i, 'signPost'], [/mail/i, 'mailbox'], [/hydrant/i, 'hydrant'], [/meter/i, 'meter'], [/bench/i, 'bench'],
+const KIND_ALIAS = [[/thick|privacy|board/i, 'fenceThick'], [/bollard/i, 'bollard'], [/pole|lamp|mast/i, 'pole'], [/sign|post/i, 'signPost'], [/mail/i, 'mailbox'], [/hydrant/i, 'hydrant'], [/meter/i, 'meter'], [/bench/i, 'bench'],
   [/cone/i, 'cone'], [/channel|bollard_flex|delineator/i, 'channelizer'], [/barric|jersey/i, 'barricade'], [/cart|bin_wheel/i, 'cart'], [/bin|trash|can/i, 'bin'],
   [/chair|table/i, 'chair'], [/bush|shrub|flower/i, 'bush'], [/chain/i, 'chain'], [/fence|picket|rail/i, 'fence'], [/tree|palm|sapling/i, 'tree']];
 // impact sound material by object kind: leaves | wood | metal | concrete | glass | chain
@@ -218,20 +221,48 @@ export function installImpacts(game) {
     const speed = Math.hypot(lv.x, lv.z);
     if (!(vn > 0.3)) return null;
     const mCar = b.mass() || v.spec?.mass || 1500;
-    let J = C.m * vn * (1 + C.e) + C.jb * Math.min(1.15, 0.55 + vn / 20);
-    J = Math.min(J, mCar * vn * 0.92);
-    // contact point on the body side facing the object (bumper height), world space
-    const cp = obj.clone().addScaledVector(n, 0.15); cp.y = t.y - (v.groundOff || 0.6) + Math.min(0.6, Math.max(0.35, (o.top || 1) * 0.45));
-    try { b.applyImpulseAtPoint({ x: n.x * J, y: 0, z: n.z * J }, { x: cp.x, y: cp.y, z: cp.z }, true); } catch (e) { /* */ }
-    // steering kick toward the hit side and a camera jolt, both scaled by the speed lost
+    // ---- energy / momentum model (user: "a hydrant should fully stop you if you hit it in the middle ... at 80 mph a wood fence
+    // should barely slow you down ... it depends on the exact item and where you hit it") ----
+    // contact geometry in the car frame: the object meets the front / rear bumper face (normal = the car's long axis) unless it is
+    // beyond the corner, then the corner (normal from the object to the corner); the lever arm of that point gives the yaw
+    const r0 = b.rotation(); _q.set(r0.x, r0.y, r0.z, r0.w); const qi = _q.clone().invert();
+    const loc = obj.clone().sub(_w.set(t.x, t.y, t.z)).applyQuaternion(qi), hw = (v.spec?.W || 1.9) / 2, hl = (v.spec?.L || 4.6) / 2;
+    const fwdHit = Math.abs(loc.z) > hl - 0.4 || Math.abs(loc.x) < hw - 0.15, sz = Math.sign(loc.z || 1), sx = Math.sign(loc.x || 1);
+    const cl = new THREE.Vector3(), nl = new THREE.Vector3();
+    if (fwdHit && Math.abs(loc.x) <= hw) { cl.set(loc.x, 0, sz * hl); nl.set(0, 0, -sz); } // bumper face: pushes the car back along its axis
+    else if (fwdHit) { cl.set(sx * hw, 0, sz * hl); nl.set(sx * hw - loc.x, 0, sz * hl - loc.z).normalize(); } // corner beyond the face: glancing
+    else { cl.set(sx * hw, 0, loc.z); nl.set(-sx, 0, 0); } // side swipe
+    cl.y = (v.spec?.yb || 0.3) + 0.25 - (v.groundOff || 0.6);
+    const cpW = cl.clone().applyQuaternion(_q).add(_w.set(t.x, t.y, t.z)), nW = nl.clone().applyQuaternion(_q); nW.y = 0; nW.normalize();
+    // effective mass at that point along that normal (the lever arm lets an off-center hit turn the car instead of stopping it)
+    const com = b.worldCom(), rx = cpW.x - com.x, ry = cpW.y - com.y, rz = cpW.z - com.z;
+    let invI = null; try { const I = b.principalInertia(), ql = b.principalInertiaLocalFrame(); const R = _q.clone().multiply(new THREE.Quaternion(ql.x, ql.y, ql.z, ql.w));
+      const M = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(R)), D = new THREE.Matrix3().set(1 / I.x, 0, 0, 0, 1 / I.y, 0, 0, 0, 1 / I.z);
+      invI = M.clone().multiply(D).multiply(M.clone().transpose()); } catch (e) { invI = null; }
+    const rxn = new THREE.Vector3(ry * nW.z - rz * nW.y, rz * nW.x - rx * nW.z, rx * nW.y - ry * nW.x);
+    const k = 1 / mCar + (invI ? rxn.clone().applyMatrix3(invI).dot(rxn) : 0), mEff = 1 / k;
+    const av = b.angvel(), vp = { x: lv.x + av.y * rz - av.z * ry, y: lv.y + av.z * rx - av.x * rz, z: lv.z + av.x * ry - av.y * rx };
+    const vN = -(vp.x * nW.x + vp.z * nW.z); // closing speed at the contact along the normal (> 0 = into the object)
+    if (!(vN > 0.2)) return null;
+    const KE = 0.5 * mEff * vN * vN;
+    const broke = KE > C.eb;
+    let vAfter;
+    if (broke) { const v1 = Math.sqrt(Math.max(0, vN * vN - 2 * C.eb / mEff)); vAfter = v1 * mEff / (mEff + C.md); } // pay the snap energy, then carry the debris (inelastic)
+    else vAfter = -C.e * vN; // rigid: stop and a small bounce
+    const J = mEff * (vN - vAfter);
+    try { b.applyImpulseAtPoint({ x: nW.x * J, y: 0, z: nW.z * J }, { x: cpW.x, y: cpW.y, z: cpW.z }, true); } catch (e) { /* */ }
+    const absorbed = Math.max(0, KE - 0.5 * mEff * Math.max(0, vAfter) ** 2);
     const dv = J / mCar;
-    try { const r0 = b.rotation(); _q.set(r0.x, r0.y, r0.z, r0.w); const loc = obj.clone().sub(_w.set(t.x, t.y, t.z)).applyQuaternion(_q.invert());
-      v.steerCur = (v.steerCur || 0) + Math.sign(loc.x || 0) * Math.min(0.12, dv * 0.05); } catch (e) { /* */ }
-    if (v.playerDriven) { jolt.t = 0.25; jolt.amp = Math.min(0.06, 0.006 + dv * 0.012); }
-    const tier = damageAt(v, obj, { speedKmh: speed * 3.6, hardness: C.h, dir: n.clone() });
-    impactSound(o.kind, vn * 3.6, obj);
-    try { v.damage?.(Math.min(140, 2 + tier * tier * 6 * (0.4 + C.h)), null); } catch (e) { /* health only (no second dent: localPoint null) */ }
-    return { J: Math.round(J), dv: +dv.toFixed(3), tier };
+    v.steerCur = (v.steerCur || 0) + Math.sign(loc.x || 0) * Math.min(0.12, dv * 0.05);
+    if (v.playerDriven) { jolt.t = 0.25; jolt.amp = Math.min(0.08, 0.006 + dv * 0.012); }
+    // damage from the absorbed energy (as the equivalent impact speed of the whole car) at the contact
+    const kmhEq = Math.sqrt(2 * absorbed / mCar) * 3.6 * (broke ? 1 : 1.25);
+    const tier = damageAt(v, cpW, { speedKmh: kmhEq, hardness: C.h, dir: nW.clone() });
+    impactSound(o.kind, vN * 3.6, obj);
+    try { v.damage?.(Math.min(220, 2 + absorbed / 900 * (0.4 + C.h)), null); } catch (e) { /* health only */ }
+    const res = { broke, J: Math.round(J), dv: +dv.toFixed(3), tier, KE: Math.round(KE), eb: C.eb, mEff: Math.round(mEff), vN: +vN.toFixed(2), vAfter: +vAfter.toFixed(2), offset: +loc.x.toFixed(2) };
+    (P.energyLog ||= []).push({ kind: o.kind, ...res }); if (P.energyLog.length > 40) P.energyLog.shift();
+    return res;
   }
 
   // the prop systems detect a hit up to a few meters early (look-ahead against tunneling at low frame rates); the momentum,
