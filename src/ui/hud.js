@@ -968,6 +968,7 @@ export function createHUD(game) {
         .map((q) => [q.name, q.x, q.z, (KIND_SIZE[q.kind] || 20) + Math.sqrt(num(q.r, 400)) * 0.2])
         .concat(k > 0.35 ? labels : []);
     }
+    labels = labels.filter((l) => !/^downtown$/i.test(String(l[0] || '').trim()));   // user: no DOWNTOWN labels
     labels.sort((a2, b2) => b2[3] - a2[3]);
     const fsBase = DL.length ? clamp(10 + k * 14, 12, 26) : clamp(13 * k / 0.6, 12, 26);
     const labelBoxes = [];

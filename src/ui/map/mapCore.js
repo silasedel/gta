@@ -279,6 +279,8 @@ export function createMapCore(game, ctx) {
       for (let x = bb.minX + step / 2; x < bb.maxX; x += step) for (let z = bb.minZ + step / 2; z < bb.maxZ; z += step) { let n = null; try { n = c.districtAt(x, z); } catch (e) { /* */ } if (!n) continue; let a = acc.get(n); if (!a) acc.set(n, (a = { x: 0, z: 0, k: 0 })); a.x += x; a.z += z; a.k++; }
       for (const [name, a] of acc) out.push({ name, kind: 'district', x: a.x / a.k, z: a.z / a.k, r: Math.sqrt(a.k) * step * 0.6 });
     }
+    // user (Nov 18): no generic DOWNTOWN labels (two stacked over the grid read as a bug)
+    for (let i = out.length - 1; i >= 0; i--) if (/^downtown$/i.test(String(out[i].name || '').trim())) out.splice(i, 1);
     for (const p of out) { p.id = p.kind + ':' + p.name; p.inside = !b.inside || b.inside(p.x, p.z); p.prio = (p.kind === 'region' ? 5000 : p.kind === 'town' || p.kind === 'airport' ? 3000 : p.kind === 'water' || p.kind === 'lake' ? 600 : 1000) + Math.min(2500, p.r); }
     out.sort((p, q) => q.prio - p.prio);
     return (b.places = out);
