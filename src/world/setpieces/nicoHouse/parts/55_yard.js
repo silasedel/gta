@@ -283,7 +283,10 @@ export function build(ctx) {
   const BRK = breakables.enabled; if (!BRK) for (const b of BINS) if (b.piece) col.box(b.x, 0.56 + yG(b.x, b.z), b.z, 0.6, 1.12, 0.62, { ry: b.h || 0, tag: 'bin' });
   { const d = DUMPSTER, sy = d.sy ?? 1; col.box(DP.x, 3.37 * d.scale * sy / 2 + DP.y, DP.z, 3.26 * d.scale, 3.37 * d.scale * sy, 8.81 * d.scale, { ry: d.heading, tag: 'dumpster' }); }
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
-  for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
+  // user (Nov 18): "there shouldn't be rocks in the road". The yard rocks were laid out for the old lot; on the new Keys lot
+  // (r4-keys: local x -24..11.4, z -14.2..33, driveway straight out along +Z at x = -6) drop any outside the lot or on the drive
+  const ROCKS_OK = ROCKS.filter(([x, z]) => x > -23.5 && x < 11 && z > -13.8 && z < 32.2 && !(Math.abs(x + 6) < 3.4 && z > 16));
+  for (const [x, z, k, sc, h, sink] of ROCKS_OK) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
   const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post', 'wicker_chair']);
   ctx.async.push(lib.ready.then(() => {
@@ -293,7 +296,7 @@ export function build(ctx) {
     for (const [k, m] of [...LIBP, ...(ctx.libProps || [])]) I.add(k, 'dock', m);
     { const d = DUMPSTER; I.add('rolloff', 'dock', M(DP.x, DP.y, DP.z, 0, d.heading, 0, d.scale, d.scale * (d.sy ?? 1), d.scale), { tint: d.tint }); }
     const rockNames = lib.names('rocks').sort();   // three rock shapes (3 draw calls), varied by scale / yaw / tint
-    for (const [x, z, k, sc, h, sink] of ROCKS) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
+    for (const [x, z, k, sc, h, sink] of ROCKS_OK) { const n = rockNames[[0, 1, 2, 0, 1, 2][(k - 1) % 6] % rockNames.length]; I.add('rocks', n, M(x, -sink + yS(x, z), z, 0, h, 0, sc, sc * 0.8, sc), { tint: [0.95 + r() * 0.1, 0.95 + r() * 0.08, 0.92 + r() * 0.08] }); }
     const meshes = I.build(ctx.groups.site); for (const m of meshes) m.raycast = () => {};
     if (BRK) { // register the carts in world space once the house group is placed; hiding a cart collapses its instance
       const binMeshes = (piece) => meshes.filter((m) => lib.piece('bins', piece)?.parts.some((q) => q.geometry === m.geometry)), idx = {}, zero = new THREE.Matrix4().makeScale(0, 0, 0);
