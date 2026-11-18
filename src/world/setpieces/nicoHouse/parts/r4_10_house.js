@@ -108,8 +108,9 @@ export function build(ctx) {
   const e = 0.06, RE = { x0: RX0 + e, x1: RX1 - e, z0: E0 + e, z1: E1 - e }, SWs = P.stairW, SEs = P.stairE;
   railRun(RE.x0, RE.z0, RE.x1, RE.z0, {});                                                   // back (bay) side
   railRun(RE.x1, RE.z0, RE.x1, SEs.pad.z0, { noStart: true }); railRun(RE.x1, SEs.pad.z1, RE.x1, RE.z1, { noEnd: true });   // east side, open at the east stair pad
-  railRun(RE.x1, RE.z1, RE.x0, RE.z1, { noStart: true });                                    // front (hoop side)
-  railRun(RE.x0, RE.z1, RE.x0, SWs.pad.z1, { noStart: true }); railRun(RE.x0, SWs.pad.z0, RE.x0, RE.z0, { noEnd: true });   // west side, open at the west stair pad
+  const FP = P.stairF.pad;
+  railRun(RE.x1, RE.z1, FP.x1, RE.z1, { noStart: true }); railRun(FP.x0, RE.z1, RE.x0, RE.z1, { noEnd: true });   // front (hoop side), open at the front stair pad
+  railRun(RE.x0, RE.z1, RE.x0, RE.z0, { noStart: true, noEnd: true });                      // west side
 
   // ================= stairs: two short flights with a 1.2 m landing, running down ALONG the side of the house (02, 08, 10) =================
   const rise = F / 20, run = P.run;
@@ -147,6 +148,12 @@ export function build(ctx) {
     box(LW, 0.05, 0.07, len, x, 0.07, (z0 + z1) / 2, { color: col, wear: 0.6 });
     if (o.col) Fr.col.box(x, 0.8, (z0 + z1) / 2, 0.1, 1.6, len, { tag: 'lattice' });
   };
+  const latticeTo = (LB, x, z0, z1, yTop0, yTop1) => { const LW = mat.paint({ peel: 'a', fade: 0.6, gloss: 0.93 }), col = kit.vary(C.white, r, 0.04), len = z1 - z0, pitchL = 0.115;
+    for (const [layer, sgn] of [[0, 1], [1, -1]]) for (let k = -40; k < 80; k++) { const c0 = k * pitchL, pts = [];
+      for (let t = 0; t <= 1.0001; t += 0.02) { const u = t * len, yTop = yTop0 + (yTop1 - yTop0) * t, y = sgn > 0 ? u - c0 : c0 - u; if (y >= 0.08 && y <= yTop - 0.05) pts.push([u, y]); }
+      if (pts.length < 2) continue; const [u0, y0] = pts[0], [u1, y1] = pts[pts.length - 1], L = Math.hypot(u1 - u0, y1 - y0); if (L < 0.08) continue;
+      LB.box(LW, 0.012, L, 0.038, M(x + (layer ? 0.007 : -0.007), (y0 + y1) / 2, z0 + (u0 + u1) / 2, -Math.atan2(u1 - u0, y1 - y0)), { color: col, wear: 0.5, bevel: 0.003 }); }
+    LB.box(LW, 0.05, 0.07, len, M(x, 0.07, (z0 + z1) / 2), { color: col, wear: 0.6 }); };
   const sideStair = (S2, sgnX) => {   // sgnX: -1 west side (runs +Z toward the front corner), +1 east side (runs -Z toward the bay corner)
     const pd = S2.pad, xc = (pd.x0 + pd.x1) / 2, dirZ = sgnX < 0 ? 1 : -1, yL = F - 10 * rise;
     // head pad at deck level outside the deck edge: joists, boards, two posts
@@ -171,7 +178,29 @@ export function build(ctx) {
     // lattice skirt under the lower flight (10), outer side
     const za = dirZ > 0 ? lb + 0.3 : la - 0.3, zb = za + dirZ * (f2.total - 0.3); lattice(sgnX < 0 ? pd.x0 + 0.02 : pd.x1 - 0.02, Math.min(za, zb), Math.max(za, zb), dirZ > 0 ? yL - 0.45 : 0.35, dirZ > 0 ? 0.35 : yL - 0.45, { col: false });
   };
-  sideStair(SWs, -1); sideStair(SEs, 1);
+  sideStair(SEs, 1);
+  // front stair on the hoop side (user review 2): head pad off the front deck edge, flight, 1.2 m landing, flight, all running -X along
+  // the front face toward the drive corner; lattice under the lower flight
+  { const pd = FP, zc = (pd.z0 + pd.z1) / 2, w = pd.z1 - pd.z0, yL = F - 10 * rise;
+    for (let x = pd.x0 + pitch / 2; x < pd.x1 - 0.02; x += pitch) box(WOOD, db.w, db.t, w, x, F - db.t / 2, zc, { grain: 2, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const xx of [pd.x0 + 0.06, pd.x1 - 0.06]) box(WOOD, J.t, J.d, w, xx, joistBot + J.d / 2, zc, { grain: 2, color: dark(), wear: 0.4 });
+    for (const xx of [pd.x0 + 0.06, pd.x1 - 0.06]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xx, 0.05 + (beamTop - 0.05) / 2, pd.z1 - 0.06, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(xx, 1.6, pd.z1 - 0.06, 0.16, 3.2, 0.16, { tag: 'pile' }); }
+    Fr.col.box((pd.x0 + pd.x1) / 2, F - 0.16, zc, pd.x1 - pd.x0, 0.32, w + 0.1, { tag: 'deck', surface: 'wood' });
+    railRun(pd.x1, RE.z1, pd.x1, pd.z1 - 0.06, { noStart: true }); railRun(pd.x1, pd.z1 - 0.06, pd.x0, pd.z1 - 0.06, { noStart: true, noEnd: true });
+    const f1 = flight({ x: pd.x0, z: zc, y0: F, dir: [-1, 0], n: 9, w: w - 0.1, skipSide: 1 });
+    const la = pd.x0 - f1.total - run - 1.2, lb = la + 1.2;
+    for (let x = la + pitch / 2; x < lb - 0.02; x += pitch) box(WOOD, db.w, db.t, w, x, yL - db.t / 2, zc, { grain: 2, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const zz of [pd.z0 + 0.06, pd.z1 - 0.06]) box(WOOD, lb - la, 0.2, J.t, (la + lb) / 2, yL - db.t - 0.1, zz, { grain: 0, color: dark(), wear: 0.4 });
+    for (const x of [la + 0.06, lb - 0.06]) for (const z of [pd.z0 + 0.06, pd.z1 - 0.06]) { box(WHITE, 0.12, yL + RL.h, 0.12, x, (yL + RL.h) / 2, z, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(x, (yL + RL.h) / 2, z, 0.14, yL + RL.h, 0.14, { tag: 'pile' }); }
+    Fr.col.box((la + lb) / 2, yL - 0.1, zc, lb - la, 0.2, w, { tag: 'deck', surface: 'wood' });
+    { const zr = pd.z1 - 0.03; box(WOOD, lb - la, 0.09, 0.045, (la + lb) / 2, yL + RL.h - 0.1, zr, { grain: 0, color: gray(0.92), wear: 0.6 }); box(WOOD, lb - la + 0.1, 0.04, 0.145, (la + lb) / 2, yL + RL.h + 0.02, zr, { grain: 0, color: gray(0.96), wear: 0.65 });
+      for (let x = la + 0.15; x < lb - 0.1; x += RL.oc) box(WOOD, RL.bal, RL.h - 0.26, RL.bal, x, yL + 0.12 + (RL.h - 0.26) / 2, zr, { grain: 1, color: gray(0.9), wear: 0.6 });
+      Fr.col.box((la + lb) / 2, yL + 0.55, zr, lb - la, 1.1, 0.1, { tag: 'rail' }); }
+    const f2 = flight({ x: la, z: zc, y0: yL, dir: [-1, 0], n: 9, w: w - 0.1 });
+    // lattice under the lower flight, outer (street) side: the panel builder works along z, so it is turned with a small group
+    const lg = new THREE.Group(); lg.position.set(la - 0.3, 0, pd.z1 - 0.02); lg.rotation.y = -Math.PI / 2; Fr.groups.ext.add(lg);
+    const LB = kit.batch('r4lat'), keepB = B; void keepB; latticeTo(LB, 0, 0, f2.total - 0.3, yL - 0.45, 0.35); LB.build(lg); }
+
 
   // ================= pavers under the house (10: square concrete pavers) =================
   { const PV = mat.concrete(), Pv = P.pavers, s = 0.6;
@@ -415,7 +444,7 @@ export function build(ctx) {
   function ryG0(ry) { return ry + Math.PI / 2 - Math.PI / 2; }
 
   // ================= basketball hoop hanging under the front beam (10) =================
-  { const bxh = -1.6, bz = -1.6 + 0.12, yTop = beamBot - 0.01, BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
+  { const bxh = 0.0, bz = -1.6 + 0.12, yTop = beamBot - 0.01, BBm = mat.paint({ peel: 'a', fade: 0.5, gloss: 0.6, scale: 0.5 });
     box(BBm, 1.2, 0.8, 0.035, bxh, yTop - 0.4, bz, { color: 0xe8e5dc, wear: 0.45 });
     for (const [dx, dy, sx, sy] of [[0, -0.1, 0.6, 0.05], [0, -0.33, 0.6, 0.05], [-0.28, -0.215, 0.05, 0.28], [0.28, -0.215, 0.05, 0.28]]) box(mat.plastic(), sx, sy, 0.006, bxh + dx, yTop - 0.4 + dy + 0.05, bz + 0.021, { color: 0xc4522e, bevel: 0.001 });
     for (const s of [-1, 1]) box(STEEL, 0.04, 0.3, 0.12, bxh + s * 0.4, yTop - 0.05, bz - 0.06, { color: 0x6c6a64 });

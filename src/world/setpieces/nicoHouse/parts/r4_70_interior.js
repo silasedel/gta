@@ -19,7 +19,7 @@ export function build(ctx) {
   const { THREE, kit } = ctx, im = kit.imat, Fr = frame(ctx, 'house'), I = Fr.int, M = kit.M, P = P4, r = kit.rng(707), F = P.F, T = P.wallT, yT = F + P.wallH, PI = Math.PI;
   const { hexa, subtract, lathe } = makeGeo(THREE, kit);
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => I.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
-  const OLIVE = im.paint({ peel: 'b', fade: 0.12, gloss: 0.7, scale: 0.7 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
+  const OLIVE = im.pbr('white_planks_clean', { rep: 1.2 }), OLIVE0 = im.paint({ peel: 'b', fade: 0.12, gloss: 0.7, scale: 0.7 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
   const FLOOR = im.pbr('white_planks_clean', { rep: 1.6, rough: 0.55 }), PLAST = im.plastic(), GLOSS = im.plasticGloss(), STEEL = im.steel(), CER = im.ceramic(), MATTE = im.matte(), CHROME = im.chrome();
   let bambooM = null;
   kit.uIndirect.value = Math.max(kit.uIndirect.value, 0.62);   // user review: dim and window-lit, but readable (the r4 rooms were near black)
@@ -43,7 +43,7 @@ export function build(ctx) {
     const ops = (ctx.r4openings || []).filter((o) => o.wall === W && o.kind !== 'vent'), L = W.L;
     const top = (u) => (W.gable ? ceilY(W.pt(u, 0)[1]) + 0.05 : yT + 0.12);
     const nB = Math.ceil((L - 2 * T) / 0.15);
-    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, tone = kit.vary(0x4e4b2f, r, 0.08);
+    for (let i = 0; i < nB; i++) { const u0 = T + i * (L - 2 * T) / nB, u1 = T + (i + 1) * (L - 2 * T) / nB, [bxw, bzw] = W.pt((u0 + u1) / 2, -T), tone = bxw > 0.7 && bxw < 4.1 && bzw < -6.2 ? kit.vary(0xcfccc2, r, 0.03) : kit.vary(0x6f6340, r, 0.07);
       for (const [s0, s1] of subtract(u0, u1, ops.map((o) => [o.u0 - 0.03, o.u1 + 0.03]), 0.004)) for (const [y0, y1] of [[F + 0.02, 99]]) { const t0 = top(s0), t1 = top(s1), a0 = W.pt(s0 + 0.001, -T), a1 = W.pt(s1 - 0.001, -T), b0 = W.pt(s1 - 0.001, -T + 0.018), b1 = W.pt(s0 + 0.001, -T + 0.018);
         hexa(I, OLIVE, [[a0[0], y0, a0[1]], [a1[0], y0, a1[1]], [b0[0], y0, b0[1]], [b1[0], y0, b1[1]], [a0[0], t0, a0[1]], [a1[0], t1, a1[1]], [b0[0], t1, b0[1]], [b1[0], t0, b1[1]]], { color: tone, wear: 0.15 }); void y1; }
       const um = (u0 + u1) / 2;
@@ -70,15 +70,15 @@ export function build(ctx) {
     for (const z of [z0 + 0.06, z1 - 0.06]) box(BEAM, x1 - x0, 0.14, 0.1, (x0 + x1) / 2, yT + 0.08, z, { grain: 0, color: 0x46372a, wear: 0.3 }); }
   // ================= partitions =================
   const part = (ax, az, bx, bz, h, doors = [], o = {}) => { const L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(-uz, ux);
-    for (const [u0, u1] of subtract(0, L, doors.map((d) => [d.u - d.w / 2, d.u + d.w / 2]))) { const um = (u0 + u1) / 2; box(o.m || OLIVE, u1 - u0, h, 0.11, ax + ux * um, F + 0.02 + h / 2, az + uz * um, { grain: 1, color: o.color || 0x55512f, wear: 0.12 }, 0, ry); Fr.col.box(ax + ux * um, F + h / 2, az + uz * um, u1 - u0, h, 0.12, { ry, tag: 'wall' }); }
-    for (const d of doors) { box(o.m || OLIVE, d.w, h - 2.06, 0.11, ax + ux * d.u, F + 2.06 + (h - 2.06) / 2, az + uz * d.u, { color: o.color || 0x55512f, wear: 0.12 }, 0, ry);
+    for (const [u0, u1] of subtract(0, L, doors.map((d) => [d.u - d.w / 2, d.u + d.w / 2]))) { const um = (u0 + u1) / 2; box(o.m || OLIVE, u1 - u0, h, 0.11, ax + ux * um, F + 0.02 + h / 2, az + uz * um, { grain: 1, color: o.color || 0x6a5f3e, wear: 0.12 }, 0, ry); Fr.col.box(ax + ux * um, F + h / 2, az + uz * um, u1 - u0, h, 0.12, { ry, tag: 'wall' }); }
+    for (const d of doors) { box(o.m || OLIVE, d.w, h - 2.06, 0.11, ax + ux * d.u, F + 2.06 + (h - 2.06) / 2, az + uz * d.u, { color: o.color || 0x6a5f3e, wear: 0.12 }, 0, ry);
       for (const s of [-1, 1]) box(WHITEP, 0.07, 2.1, 0.13, ax + ux * (d.u + s * (d.w / 2 + 0.035)), F + 1.05, az + uz * (d.u + s * (d.w / 2 + 0.035)), { color: 0xc9c2ac, wear: 0.4 }, 0, ry);
       box(WHITEP, d.w + 0.14, 0.07, 0.13, ax + ux * d.u, F + 2.095, az + uz * d.u, { color: 0xc9c2ac, wear: 0.4 }, 0, ry); }
     return { ux, uz, ry, L }; };
   const hH = 2.55;
   part(-0.7, z1, -0.7, -5.6, hH);                                                          // hall left wall
-  part(0.7, z1, 0.7, BA.z0, hH, [{ u: 1.05, w: 0.78 }], { color: 0x5b5733 });              // hall right wall with the bathroom door (04)
-  part(0.7, BA.z0, BA.x1, BA.z0, hH, [], { color: 0x5b5733 });                             // bath | kitchen
+  part(0.7, z1, 0.7, BA.z0, hH, [{ u: 1.05, w: 0.78 }], { color: 0x6a5f3e });              // hall right wall with the bathroom door (04)
+  part(0.7, BA.z0, BA.x1, BA.z0, hH, [], { color: 0xcfccc2 });                             // bath | kitchen (07: gray-white kitchen walls)
   part(BA.x1, z1, BA.x1, BA.z0, hH, []);                                                   // bath | back room
   part(0.7, BA.z0, 0.7, -7.35, 2.0, [], { m: WHITEP, color: 0xd9d6cc });                   // the white fridge-height partition at the kitchen / living boundary (05 / 09)
   // bathroom door (ajar), the toilet and a small vanity
@@ -152,7 +152,7 @@ export function build(ctx) {
   { const tx = 0.25, tz = -6.85, TW = 0.48, TL = 0.92, TH = 0.46, baseY = F + 0.78, WDK = im.wood({ dark: true }), BLK = im.metalPaint();
     // dark wood base with a drawer, pedestal, three splayed feet on casters
     box(WDK, TW + 0.1, 0.16, TL + 0.1, tx, baseY - 0.08, tz, { grain: 2, color: 0x3a2618, wear: 0.4, bevel: 0.012 });
-    for (const dz of [-0.2, 0.2]) knob(tx + TW / 2 + 0.05, baseY - 0.08, tz + dz, PI / 2);
+    for (const dz of [-0.2, 0.2]) knob(tx - TW / 2 - 0.05, baseY - 0.08, tz + dz, -PI / 2);
     lathe(I, WDK, [[0.001, 0], [0.05, 0], [0.06, 0.05], [0.04, 0.15], [0.055, 0.3], [0.035, 0.45], [0.06, 0.56], [0.08, 0.6], [0.001, 0.6]], M(tx, F + 0.12, tz), { color: 0x2f1f14, seg: 20 });
     for (let k = 0; k < 4; k++) { const a = k * PI / 2 + PI / 4, fx2 = tx + Math.cos(a) * 0.32, fz2 = tz + Math.sin(a) * 0.32; I.tube(WDK, [[tx, F + 0.2, tz], [tx + Math.cos(a) * 0.18, F + 0.12, tz + Math.sin(a) * 0.18], [fx2, F + 0.07, fz2]], 0.022, { seg: 8, color: 0x2f1f14, steps: 12 });
       I.cyl(BLK, 0.025, 0.025, 0.02, M(fx2, F + 0.045, fz2, PI / 2, a, 0), { color: 0x6a5a40, seg: 12 }); lathe(I, CHROME, [[0.001, 0], [0.012, 0.003], [0.012, 0.03], [0.001, 0.035]], M(fx2, F + 0.05, fz2), { color: 0x9a8a60, seg: 8 }); }
@@ -197,7 +197,12 @@ export function build(ctx) {
     Fr.interact({ id: 'terrarium', kind: 'look', label: 'Look at the corn snake', pos: [tx, baseY + 0.3, tz], radius: 1.2, use: (env) => { env?.notify?.('Noodle is coiled up on the bark. She looks fine.'); return true; } });
   }
   // ================= living room (06) =================
-  { // rattan sofa against the west wall, facing east: cane frame (smooth tubes), camo-floral cushions
+  // user review 2: the set is built as before and turned 90 deg: the sofa stands under the front window facing north, the TV faces it
+  // with its back toward the sliding doors
+  const FrO = Fr, T2 = (x, z) => [3.0 + z, -10.1 - x];
+  { const LI = kit.batch('r4living'), LG = new THREE.Group(); LG.name = 'r4_living'; LG.rotation.y = PI / 2; LG.position.set(3.0, 0, -10.1); FrO.groups.int.add(LG);
+    const I = LI, box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => LI.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
+    const Fr = { col: { box: (x, y, z, sx, sy, sz, o = {}) => { const [a, b] = T2(x, z); return FrO.col.box(a, y, b, sz, sy, sx, o); } }, interact: (it) => { const [a, b] = T2(it.pos[0], it.pos[2]); return FrO.interact({ ...it, pos: [a, it.pos[1], b] }); }, v: (x, y, z) => { const [a, b] = T2(x, z); return FrO.v(a, y, b); } };
     const sx = x0 + 0.48, szc = -6.6, SL = 2.0, CANE = im.pbr('tatami_mat', { rep: 0.2 }), cane = 0x9a7046;
     const CUSH = im.art('r4cush', 512, 512, (g, w, h) => { g.fillStyle = '#6f7660'; g.fillRect(0, 0, w, h); const q = kit.rng(21);
       for (let i = 0; i < 160; i++) { const c = ['#4f5a44', '#8b8f78', '#3e4536', '#a3a48c', '#5d6b57'][i % 5]; g.fillStyle = c; g.beginPath(); g.ellipse(q() * w, q() * h, 10 + q() * 40, 6 + q() * 26, q() * 3, 0, 6.3); g.fill(); }
@@ -211,7 +216,7 @@ export function build(ctx) {
     for (const dz of [-SL / 4, SL / 4]) { box(CUSH, 0.7, 0.13, SL / 2 - 0.03, sx + 0.05, F + 0.43, szc + dz, { color: 0xffffff, bevel: 0.045 }); box(CUSH, 0.16, 0.5, SL / 2 - 0.05, sx - 0.24, F + 0.72, szc + dz, { color: 0xf0f0f0, bevel: 0.05 }, 0, 0, 0.12); }
     box(im.fabric('cotton_jersey', { rep: 0.2 }), 0.12, 0.38, 0.42, sx - 0.12, F + 0.68, szc + SL / 2 - 0.35, { color: 0xb8ad8e, bevel: 0.05 }, 0, 0.2, 0.25);
     Fr.col.box(sx, F + 0.42, szc, 0.85, 0.84, SL, { tag: 'furniture' });
-    ctx.anchors.sofa = { pos: Fr.v(sx + 0.1, F, szc), heading: PI / 2 - 0.72 };
+    ctx.anchors.sofa = { pos: Fr.v(sx + 0.1, F, szc), heading: PI - 0.72 + FrO.th };
     // weathered low coffee table with a lower slat shelf, an ashtray
     const tx = sx + 1.35, tzc = szc + 0.1, TB = im.pbr('wood_table_worn', { rep: 0.8 });
     box(TB, 0.6, 0.05, 1.05, tx, F + 0.42, tzc, { grain: 2, color: 0xcfc4ae, wear: 0.6, bevel: 0.01 });
@@ -232,11 +237,12 @@ export function build(ctx) {
     const CB = im.matte(); box(CB, 0.45, 0.32, 0.4, x0 + 0.3, F + 0.16, -4.5, { color: 0xa07f56, bevel: 0.01 }); box(CB, 0.4, 0.26, 0.35, x0 + 0.32, F + 0.45, -4.55, { color: 0xb18d61, bevel: 0.01 }, 0, 0.2);
     I.rod(im.plasticGloss(), [x0 + 0.12, F + 0.02, -4.0], [x0 + 0.05, F + 2.2, -4.15], 0.008, { color: 0x1f1f1f }); I.cyl(CHROME, 0.03, 0.03, 0.05, M(x0 + 0.11, F + 0.5, -4.02, 0, 0, PI / 2), { color: 0x9c9c98, seg: 12 });
     box(im.wood({ dark: true }), 0.04, 0.6, 0.8, x0 + 0.06, F + 0.32, -8.9, { color: 0x3a2a1c }, 0, 0, -0.1);
+    LI.build(LG, { cast: false });
   }
   // ================= back room under renovation (07): stud walls, drywall, tape, fan, curtains, mattress =================
   { const BR = P.back, STUD = im.wood(), studC = 0xd2b98e, xw = BR.x0;
     // the stud wall along x = 4.1 (bare 2x4s at 16 in., plates, a header over the opening), drywall sheets half hung
-    const open = [-8.2, -7.1];
+    const open = [-8.75, -6.65];
     box(STUD, 0.09, 0.04, z1 - z0, xw, F + 0.04, (z0 + z1) / 2 - 0.0, { grain: 2, color: studC, wear: 0.15 }); box(STUD, 0.09, 0.08, z1 - z0, xw, F + 2.5, (z0 + z1) / 2, { grain: 2, color: studC, wear: 0.15 });
     for (let z = z0 + 0.04; z < z1 - 0.02; z += 0.406) { if (z > open[0] && z < open[1]) continue; box(STUD, 0.09, 2.42, 0.04, xw, F + 1.27, z, { grain: 1, color: kit.vary(studC, r, 0.06), wear: 0.15 }); }
     box(STUD, 0.09, 0.2, open[1] - open[0] + 0.1, xw, F + 2.1, (open[0] + open[1]) / 2, { grain: 2, color: studC, wear: 0.15 });

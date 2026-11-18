@@ -38,7 +38,9 @@ export const P4 = {
   rise: 0.18, run: 0.28,
   // stairs: west front stair (10: on the left, lattice under it), back stair to the lawn (08: top at the left, down to the right)
   stairW: { x: -7.2, z: -1.6, w: 1.2, n: 19, pad: { x0: -9.9, x1: -8.62, z0: -8.9, z1: -7.8 } },   // west side: head pad, then down +Z to the front corner
-  stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },                                       // east side: down -Z to the bay corner
+  stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },
+  stairF: { pad: { x0: -3.0, x1: -1.9, z0: -1.52, z1: -0.32 } },   // front (hoop side): head pad, then down -X along the front face
+                                       // east side: down -Z to the bay corner
   stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 6.5, z0: -10.4, z1: -3.6, h: 2.85 },
@@ -89,6 +91,6 @@ export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad)) retur
 export function houseBlock(sx, sz, pad = 0) {
   const P = P4, [x, z] = StoH(sx, sz);
   return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
-    || inR({ x0: -10.0, x1: -8.5, z0: -8.9, z1: -1.2 }, x, z, pad)          // west side stair
+    || inR({ x0: -9.6, x1: -1.8, z0: -1.6, z1: -0.25 }, x, z, pad)          // front stair along the hoop side
     || inR({ x0: 8.5, x1: 10.0, z0: -11.6, z1: -4.1 }, x, z, pad);          // east side stair
 }
