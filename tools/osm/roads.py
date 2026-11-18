@@ -1,5 +1,5 @@
 """Road graph: drivable OSM ways -> nodes/edges with lanes, width, speed, bridge elevation profiles."""
-import heapq, math
+import heapq, math, os
 from collections import defaultdict
 from shapely.geometry import LineString, Point
 from osmgeom import load, pts, world_box, parse_len, parse_speed
@@ -20,6 +20,14 @@ SPEED_DEF = {'motorway': 89, 'trunk': 64, 'primary': 56, 'secondary': 48, 'terti
              'residential': 40, 'living_street': 24, 'service': 24, 'road': 40}
 HIGHWAYISH = {'motorway', 'motorway_link', 'trunk', 'trunk_link'}
 GRADE = 0.065
+# r3-roads (Nov 17, user: broken intersections all over the map). MAP_R3_JUNCTIONS=0 restores the old graph for A/B.
+R3_JUNCTIONS = os.environ.get('MAP_R3_JUNCTIONS', '1') != '0'
+JMERGE_STUB = 12.0      # junction nodes joined by a stub shorter than this (wide roads: up to 18 m) become ONE junction
+JMERGE_NEAR = 7.0       # ... and so do junction nodes this close even without a stub (overlapping mouths)
+PIN_Y = 2.0             # a junction below this height with a street leg is an at-grade junction: pinned to the ground
+PIN_FLAT = 7.0          # flat (y = 0) along every leg for half the widest leg + this, then ramps may start
+PIN_GRADE = 0.08        # the steepest a ramp may climb away from that flat zone
+HUMP_MAX = 2.6          # a non-bridge piece that leaves and returns to the ground below this is flattened (no walls)
 SIDEWALK_KINDS = {'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'living_street',
                   'primary_link', 'secondary_link', 'tertiary_link', 'road'}
 
@@ -548,6 +556,8 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
         import citymask
         edges += citymask.bridge_components(nodes, edges, log)
     log(f'roads: {len(ways)} way pieces, {len(nodes)} raw nodes, {len(raw)} raw edges -> {len(edges)} merged edges; tunnels skipped {tunnels}')
+    if R3_JUNCTIONS:
+        edges = merge_junction_clusters(nodes, edges, nid, log)
     # compact node ids
     used = sorted({e['a'] for e in edges} | {e['b'] for e in edges})
     remap = {o: i for i, o in enumerate(used)}
@@ -584,6 +594,11 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
                 yy.append(round(val, 2))
             e['y'] = yy
             n_prof += 1
+        elif R3_JUNCTIONS and e.get('synthetic') and not e.get('br'):
+            # the synthetic world already solved its ramps (tools/world/wl/roadnet.elevate): a street it left on the ground
+            # stays there. elevate() above spreads every bridge peak through the junctions into the cross streets, which
+            # drew 1-2 m humps on walls in the middle of at-grade streets (SW 11th St at Brickell, Miami Ave at NW 3rd Ave)
+            e['y'] = [0.0] * len(e['y'])
         deck = max(e['y'])
         if terrain is not None:
             th = [terrain(v[0], v[1]) for v in e['pts']]
@@ -755,9 +770,234 @@ def build_graph(is_water_pt, synthetic=None, terrain=None, log=print):
         log(f'roads: removed {n_kill} synthetic links that joined a real viaduct end straight to a street at another level')
     for e in edges:
         e.pop('_prof', None)
+    if R3_JUNCTIONS:
+        ground_junctions(nodes, edges, tol, log)
     if n_prof or n_terr or n_fix:
         log(f'roads: {n_prof} edges with explicit deck profiles, {n_terr} edges on non-flat terrain, {n_fix} edges blended to meet their neighbors')
     return nodes, edges, dict(nodeKey=node_key, osmNode=osm_xy, boundary=bnd)
+
+
+def merge_junction_clusters(nodes, edges, nid, log=print):
+    """r3-roads: the trace draws one crossing as 2-5 junction nodes a few meters apart, joined by 3-10 m stubs (Miami Ave x
+    NW 3rd Ave: five junction points within 5 m). Each node got its own junction surface and curb returns, which overlapped
+    each other, cut across the other legs and boxed grass triangles in between. Such a cluster becomes ONE node at the
+    width-weighted center of the cluster; the stubs go, every other leg is re-ended there, and two legs that now join the
+    same two nodes along nearly the same path (a road traced twice) become one. Also merged: a road whose end node sits
+    1-5 m short of a junction, and three junction nodes forming a small triangle (a Y with a slip lane around a grass island)."""
+    deg = defaultdict(int)
+    for e in edges:
+        deg[e['a']] += 1
+        deg[e['b']] += 1
+    elen = [LineString(e['pts']).length for e in edges]
+    par = {}
+
+    def find(a):
+        par.setdefault(a, a)
+        while par[a] != a:
+            par[a] = par[par[a]]
+            a = par[a]
+        return a
+
+    def ok_edge(e):
+        return not e.get('br') and not (e.get('layer') or 0) > 0
+    J = {n for n, d in deg.items() if d >= 3}
+    grounded = defaultdict(bool)        # junction with at least one non-bridge leg
+    for e in edges:
+        if ok_edge(e):
+            grounded[e['a']] = grounded[e['b']] = True
+    wmx = defaultdict(float)
+    for e in edges:
+        for n in (e['a'], e['b']):
+            wmx[n] = max(wmx[n], e.get('w') or 8.0)
+    for e, L in zip(edges, elen):
+        # wide crossings: the stub may be up to about the mean of the widest legs (two 15 m roads: 17 m), never over 18 m
+        lim = max(JMERGE_STUB, min(18.0, (wmx[e['a']] + wmx[e['b']]) / 2 + 2.0))
+        if e['a'] != e['b'] and L < lim and e['a'] in J and e['b'] in J and ok_edge(e):
+            par[find(e['a'])] = find(e['b'])
+        # a road that starts 1-5 m short of a junction (kind change on a stub): its end node joins the junction
+        elif e['a'] != e['b'] and L < 5.0 and (e['a'] in J or e['b'] in J) and ok_edge(e) and min(deg[e['a']], deg[e['b']]) == 2:
+            par[find(e['a'])] = find(e['b'])
+    # a junction drawn as a small triangle of three nodes (a Y with a slip lane) boxes a grass island in: one junction
+    tri_adj = defaultdict(set)
+    for e, L in zip(edges, elen):
+        if e['a'] != e['b'] and L < 45.0 and e['a'] in J and e['b'] in J and ok_edge(e):
+            tri_adj[e['a']].add(e['b'])
+            tri_adj[e['b']].add(e['a'])
+    n_tri = 0
+    for u in list(tri_adj):
+        for v in tri_adj[u]:
+            if v < u:
+                continue
+            for w in tri_adj[u] & tri_adj[v]:
+                if w < v:
+                    continue
+                (ax, az), (bx, bz), (cx, cz) = nodes[u], nodes[v], nodes[w]
+                if abs((bx - ax) * (cz - az) - (bz - az) * (cx - ax)) / 2 < 700.0:
+                    par[find(v)] = find(u)
+                    par[find(w)] = find(u)
+                    n_tri += 1
+    cell = defaultdict(list)
+    for n in J:
+        if grounded[n]:
+            cell[(int(nodes[n][0] // JMERGE_NEAR), int(nodes[n][1] // JMERGE_NEAR))].append(n)
+    for (cx, cz), lst in cell.items():
+        for n in lst:
+            for dx in (-1, 0, 1):
+                for dz in (-1, 0, 1):
+                    for m in cell.get((cx + dx, cz + dz), ()):
+                        if m > n and math.hypot(nodes[m][0] - nodes[n][0], nodes[m][1] - nodes[n][1]) < JMERGE_NEAR:
+                            par[find(m)] = find(n)
+    groups = defaultdict(list)
+    for n in list(par):
+        groups[find(n)].append(n)
+    groups = {r: g for r, g in groups.items() if len(g) > 1}
+    rep, cen = {}, {}
+    for r, g in groups.items():
+        wsum = defaultdict(float)
+        for e, L in zip(edges, elen):
+            for n in (e['a'], e['b']):
+                if n in g and not (find(e['a']) == find(e['b']) and L < 36):
+                    wsum[n] += e.get('w') or 8.0
+        W = sum(wsum[n] for n in g) or 1.0
+        cx = sum(nodes[n][0] * wsum[n] for n in g) / W if sum(wsum.values()) else sum(nodes[n][0] for n in g) / len(g)
+        cz = sum(nodes[n][1] * wsum[n] for n in g) / W if sum(wsum.values()) else sum(nodes[n][1] for n in g) / len(g)
+        k = min(g)
+        nodes[k] = [round(cx, 2), round(cz, 2)]
+        for n in g:
+            rep[n] = k
+        cen[k] = (round(cx, 2), round(cz, 2))
+    out, n_stub = [], 0
+    for e, L in zip(edges, elen):
+        a, b = rep.get(e['a'], e['a']), rep.get(e['b'], e['b'])
+        if a == b and (e['a'] != e['b'] or L < 60) and a in cen:
+            if L < 36 or e['a'] != e['b'] and L < 60:
+                n_stub += 1
+                continue
+        c = list(e['pts'])
+        if a != e['a']:
+            C = cen[a]
+            c[0] = C
+            while len(c) > 2 and math.hypot(c[1][0] - C[0], c[1][1] - C[1]) < 4.0:
+                c.pop(1)
+        if b != e['b']:
+            C = cen[b]
+            c[-1] = C
+            while len(c) > 2 and math.hypot(c[-2][0] - C[0], c[-2][1] - C[1]) < 4.0:
+                c.pop(-2)
+        e['a'], e['b'], e['pts'] = a, b, c
+        out.append(e)
+    # a road traced twice between the same two nodes: keep the higher class (then the shorter) when the two run together
+    RK = {'motorway': 6, 'trunk': 5, 'primary': 4, 'secondary': 3, 'tertiary': 2, 'unclassified': 1, 'residential': 1}
+    pair = defaultdict(list)
+    for i, e in enumerate(out):
+        if e['a'] != e['b']:
+            pair[(min(e['a'], e['b']), max(e['a'], e['b']))].append(i)
+    drop = set()
+    for (na, nb), lst in pair.items():
+        if len(lst) < 2:
+            continue
+        hmax = 18.0 if (na in cen or nb in cen) else 14.0   # elsewhere: two lines a lens-shaped grass sliver apart
+        for x in range(len(lst)):
+            for y in range(x + 1, len(lst)):
+                i, j = lst[x], lst[y]
+                if i in drop or j in drop:
+                    continue
+                ei, ej = out[i], out[j]
+                if ei.get('br') or ej.get('br'):
+                    continue
+                di = (ei['a'], ei['b']) if not ei.get('rev') else (ei['b'], ei['a'])
+                dj = (ej['a'], ej['b']) if not ej.get('rev') else (ej['b'], ej['a'])
+                if (ei.get('oneway') or ej.get('oneway')) and not (ei.get('oneway') and ej.get('oneway') and di == dj):
+                    continue
+                li, lj = LineString(ei['pts']), LineString(ej['pts'])
+                if max(li.length, lj.length) > 1.6 * min(li.length, lj.length) or li.hausdorff_distance(lj) > hmax:
+                    continue
+                ki = (RK.get(base(ei['kind']), 0), -li.length)
+                kj = (RK.get(base(ej['kind']), 0), -lj.length)
+                lo, hi = (i, j) if ki < kj else (j, i)
+                out[hi]['ways'] = out[hi]['ways'] | out[lo]['ways']
+                drop.add(lo)
+    out = [e for i, e in enumerate(out) if i not in drop]
+    for k, v in list(nid.items()):
+        if v in rep:
+            nid[k] = rep[v]
+    log(f'roads: r3 junction merge: {len(groups)} clusters of {sum(len(g) for g in groups.values())} junction nodes -> one junction each '
+        f'({n_stub} stubs removed, {n_tri} slip-lane triangles closed, {len(drop)} doubled roads merged)')
+    return out
+
+
+def ground_junctions(nodes, edges, tol, log=print):
+    """r3-roads: an at-grade junction lies ON the ground and so does the mouth of every leg. Ramps were spread through the
+    junctions at the bridge grade, so a cross street started climbing on walls right at the corner (SW 10th Ave at State
+    Road 934) or a ramp still 0.3-0.8 m up within the junction (SR 1044 at SW 9th Ave) made the game drop the whole junction
+    surface (grass in the middle). Every junction with a street leg below PIN_Y is pinned at 0 with a flat zone along each
+    leg; beyond it heights are capped at the PIN_GRADE envelope (a bridge deck right next to a junction comes down with its
+    approach, so there is never a step).
+    Pieces that leave and return to the ground without carrying a bridge (humps under HUMP_MAX) are flattened."""
+    nV = len(nodes)
+    adj = defaultdict(list)
+    evid = []
+    for e in edges:
+        if e['y'] is not None and len(e['y']) != len(e['pts']):
+            evid.append(None)
+            continue
+        ids = [e['a']]
+        for _ in e['pts'][1:-1]:
+            ids.append(nV)
+            nV += 1
+        ids.append(e['b'])
+        evid.append(ids)
+        c = e['pts']
+        for k in range(len(ids) - 1):
+            d = math.hypot(c[k + 1][0] - c[k][0], c[k + 1][1] - c[k][1])
+            adj[ids[k]].append((ids[k + 1], d))
+            adj[ids[k + 1]].append((ids[k], d))
+    deg, ny, wmax, street = defaultdict(int), defaultdict(float), defaultdict(float), defaultdict(bool)
+    for e in edges:
+        for n, v in ((e['a'], e['y'][0] if e['y'] else 0.0), (e['b'], e['y'][-1] if e['y'] else 0.0)):
+            deg[n] += 1
+            ny[n] = max(ny[n], v)
+            wmax[n] = max(wmax[n], e.get('w') or 8.0)
+            if not e.get('br') and not e.get('yg'):
+                street[n] = True
+    pins = [n for n in deg if deg[n] >= 3 and ny[n] < PIN_Y and street[n]]
+    G = {}
+    hq = []
+    for n in pins:
+        g0 = -PIN_GRADE * (wmax[n] / 2 + PIN_FLAT)
+        G[n] = g0
+        hq.append((g0, n))
+    heapq.heapify(hq)
+    while hq:
+        g, v = heapq.heappop(hq)
+        if g > G.get(v, 1e9) + 1e-9 or g > 15.0:
+            continue
+        for u, d in adj[v]:
+            ng = g + PIN_GRADE * d
+            if ng < G.get(u, 1e9) - 1e-6:
+                G[u] = ng
+                heapq.heappush(hq, (ng, u))
+    n_cap = n_hump = 0
+    for e, ids in zip(edges, evid):
+        if ids is None or e['y'] is None or e.get('yg'):
+            continue
+        ny_ = [round(max(0.0, min(y_, G.get(v, 1e9))), 2) for y_, v in zip(e['y'], ids)]
+        if any(abs(a_ - b_) > 0.02 for a_, b_ in zip(ny_, e['y'])):
+            n_cap += 1
+        e['y'] = ny_
+    for e in edges:
+        if e['y'] is None or e.get('yg') or e.get('br'):
+            continue
+        if e['y'][0] < 0.05 and e['y'][-1] < 0.05 and max(e['y']) < HUMP_MAX:
+            e['y'] = [0.0] * len(e['y'])
+            n_hump += 1
+    for e in edges:
+        if e['y'] is not None and not e.get('yg') and max(e['y']) < 0.05:
+            e['y'] = None
+            e['pts'] = list(LineString(e['pts']).simplify(tol(e), preserve_topology=False).coords)
+            e.pop('tr', None)
+    log(f'roads: r3 ground junctions: {len(pins)} at-grade junctions pinned (flat mouth, {PIN_GRADE * 100:.0f} % ramps beyond), '
+        f'{n_cap} edges capped, {n_hump} humps flattened')
 
 
 def link_components(nodes, edges, log=print, max_gap=140.0, island_km=5.0):

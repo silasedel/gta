@@ -1,15 +1,15 @@
 {
- "build": "b20261117-130138",
- "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-gvfuan1t",
+ "build": "b20261118-000412",
+ "root": "/var/folders/bk/0fgfxvy104jf7shl3n49fl1c0000gn/T/ps-world-stage-s0e0gh1n",
  "checks": {
   "roads.geometry": {
-   "pass": false,
-   "edges": 3246,
-   "nodes": 2178,
+   "pass": true,
+   "edges": 3193,
+   "nodes": 2140,
    "degenerate": 0,
    "nan": 0,
    "duplicateVertices": 0,
-   "duplicateEdges": 4,
+   "duplicateEdges": 0,
    "endMismatch": 0,
    "yLengthMismatch": 0,
    "badLanes": 0
@@ -17,8 +17,8 @@
   "roads.connected": {
    "pass": false,
    "components": 6,
-   "mainKm": 412,
-   "totalKm": 422.3,
+   "mainKm": 411.9,
+   "totalKm": 422.2,
    "mainShare": 0.9756,
    "otherComponents": [
     {
@@ -83,15 +83,15 @@
    "turnOnly": 0,
    "turnVia": 0,
    "badTurn": 0,
-   "signalNodes": 975,
+   "signalNodes": 949,
    "approaches": {
-    "signal": 3403,
-    "stop": 1117,
+    "signal": 3316,
+    "stop": 1105,
     "yield": 0
    },
-   "named": 3245,
-   "withRef": 419,
-   "postedSpeed": 3246,
+   "named": 3192,
+   "withRef": 413,
+   "postedSpeed": 3193,
    "oneway": 4,
    "refs": [
     "US-1",
@@ -259,7 +259,6 @@
   }
  },
  "fail": [
-  "roads.geometry",
   "roads.connected",
   "roads.rules",
   "tiles.coverage",
@@ -267,17 +266,17 @@
   "transit"
  ],
  "boot": {
-  "ms": 283,
+  "ms": 108,
   "timings": {
-   "fetchMs": 38,
-   "decodeMs": 241,
-   "bootRegionsMs": 3,
-   "totalMs": 282
+   "fetchMs": 16,
+   "decodeMs": 91,
+   "bootRegionsMs": 1,
+   "totalMs": 108
   },
   "files": 13,
-  "MB": 4.67,
-  "heapMB": 43.9,
-  "arrayBuffersMB": 12.3
+  "MB": 4.69,
+  "heapMB": 34.2,
+  "arrayBuffersMB": 9.8
  },
  "roadComponents": [
   {
@@ -341,12 +340,12 @@
  },
  "regions": {
   "count": 176,
-  "loadAllMs": 39,
-  "parseMsMedian": 0.04,
-  "parseMsP95": 0.69,
-  "parseMsMax": 1.64,
-  "bytesMB": 3.55,
-  "largestKB": 196
+  "loadAllMs": 17,
+  "parseMsMedian": 0.02,
+  "parseMsP95": 0.29,
+  "parseMsMax": 0.69,
+  "bytesMB": 3.61,
+  "largestKB": 199
  },
  "buildingUses": {
   "apartments": 5244,
@@ -377,14 +376,14 @@
   }
  },
  "queryNs": {
-  "isWaterRandom": 288,
-  "isWaterCoherent": 427,
-  "groundHeightRandom": 4070,
-  "zoneAt": 577,
-  "districtAt": 64,
-  "surfaceAt": 218,
-  "terrainHeightAt": 10,
-  "nearestEdge": 2990
+  "isWaterRandom": 52,
+  "isWaterCoherent": 68,
+  "groundHeightRandom": 1153,
+  "zoneAt": 71,
+  "districtAt": 23,
+  "surfaceAt": 57,
+  "terrainHeightAt": 5,
+  "nearestEdge": 944
  },
  "gridMemory": {
   "wkind": {
@@ -407,40 +406,40 @@
    "MB": 3.06
   },
   "surface": {
-   "runs": 726238,
-   "MB": 2.21
+   "runs": 763261,
+   "MB": 2.32
   }
  },
  "stats": {
   "buildings": 13152,
-  "edges": 3246,
-  "nodes": 2178,
+  "edges": 3193,
+  "nodes": 2140,
   "tiles": 2127,
   "regions": 176,
   "storefronts": 4527,
   "storefrontsTyped": 2386,
-  "sidewalkLines": 2811,
+  "sidewalkLines": 3332,
   "paths": 0,
   "pois": 0,
-  "signals": 975,
+  "signals": 949,
   "turnRestrictions": 0,
   "busStops": 0,
   "busRoutes": 0,
   "railLines": 0,
   "stations": 0,
   "roadComponents": 6,
-  "roadKm": 422.3,
-  "mainComponentKm": 412,
+  "roadKm": 422.2,
+  "mainComponentKm": 411.9,
   "bytes": {
-   "roadgraph.json": 855382,
-   "peds.json": 203801,
-   "spots.json": 1046607,
+   "roadgraph.json": 801578,
+   "peds.json": 241616,
+   "spots.json": 1047151,
    "map.json": 1241100,
-   "grid.bin": 1117498,
-   "names.json": 26766,
+   "grid.bin": 1143438,
+   "names.json": 26469,
    "places.json": 114873,
    "transit.json": 56,
-   "regions/*": 3552061
+   "regions/*": 3613570
   }
  },
  "districts": [

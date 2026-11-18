@@ -1,0 +1,431 @@
+{
+  "set": "r3roads_before",
+  "when": "2026-11-18T07:05:18.936Z",
+  "shots": {
+    "miamiave_hi": {
+      "cam": {
+        "eye": [
+          20,
+          45,
+          -715
+        ],
+        "look": [
+          -34,
+          0,
+          -760
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_miamiave_hi.jpg"
+    },
+    "miamiave_lo": {
+      "cam": {
+        "eye": [
+          -34,
+          2.4,
+          -830
+        ],
+        "look": [
+          -34,
+          0,
+          -760
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_miamiave_lo.jpg"
+    },
+    "brickell_ramp": {
+      "cam": {
+        "eye": [
+          330,
+          3.1,
+          1150
+        ],
+        "look": [
+          372,
+          0,
+          1075
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_brickell_ramp.jpg"
+    },
+    "rand1_ne1st_ne4th": {
+      "cam": {
+        "eye": [
+          828,
+          40.1,
+          -25
+        ],
+        "look": [
+          783,
+          1.2,
+          -70
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_rand1_ne1st_ne4th.jpg"
+    },
+    "rand2_jefferson_21st": {
+      "cam": {
+        "eye": [
+          2256,
+          40.1,
+          -772
+        ],
+        "look": [
+          2211,
+          0,
+          -817
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_rand2_jefferson_21st.jpg"
+    },
+    "rand3_ne3rd_ne14th": {
+      "cam": {
+        "eye": [
+          734,
+          40.1,
+          -1458
+        ],
+        "look": [
+          689,
+          0,
+          -1503
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_rand3_ne3rd_ne14th.jpg"
+    },
+    "rand4_ne6th_hump": {
+      "cam": {
+        "eye": [
+          654,
+          30.1,
+          -465
+        ],
+        "look": [
+          609,
+          0.1,
+          -510
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_before_rand4_ne6th_hump.jpg"
+    },
+    "traffic_brickell": {
+      "traffic": [
+        {
+          "p": [
+            297.8,
+            3.56,
+            1008.7
+          ],
+          "sp": -0.1,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 2.86
+        },
+        {
+          "p": [
+            460.9,
+            2.16,
+            1078.4
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 1.35
+        },
+        {
+          "p": [
+            212.7,
+            1.56,
+            1114.9
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.06
+        },
+        {
+          "p": [
+            439.2,
+            0.63,
+            1104.8
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.05
+        },
+        {
+          "p": [
+            219.7,
+            2.69,
+            1118.2
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2574,
+            "d": 39.4,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.07
+        },
+        {
+          "p": [
+            373.3,
+            0.8,
+            1081.6
+          ],
+          "sp": 16.3,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2541,
+            "d": 37.8,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.2
+        },
+        {
+          "p": [
+            403.5,
+            0.73,
+            1128.9
+          ],
+          "sp": 2.6,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2577,
+            "d": 34.4,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.05
+        },
+        {
+          "p": [
+            383.4,
+            0.81,
+            1142.4
+          ],
+          "sp": 9,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2586,
+            "d": 7.4,
+            "stuckT": 0,
+            "waitT": 0.7,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            456.1,
+            2.33,
+            1084.5
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2551,
+            "d": 39.1,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.9
+        },
+        {
+          "p": [
+            380.1,
+            5.91,
+            1012.9
+          ],
+          "sp": 12.5,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2534,
+            "d": 4.2,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": true,
+          "g": 5.29
+        },
+        {
+          "p": [
+            448.9,
+            1.72,
+            1098.7
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2551,
+            "d": 23.2,
+            "stuckT": 0,
+            "waitT": 2,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.19
+        },
+        {
+          "p": [
+            228.2,
+            2.63,
+            1119.8
+          ],
+          "sp": 3.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2574,
+            "d": 30.6,
+            "stuckT": 0,
+            "waitT": 1.7,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.07
+        },
+        {
+          "p": [
+            452.8,
+            1.95,
+            1091.4
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2551,
+            "d": 31.5,
+            "stuckT": 0,
+            "waitT": 0.1,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.52
+        },
+        {
+          "p": [
+            312.5,
+            0.78,
+            1119
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2564,
+            "d": 38.1,
+            "stuckT": 0,
+            "waitT": 8.3,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.05
+        },
+        {
+          "p": [
+            351.5,
+            0.74,
+            1101.8
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2573,
+            "d": 51.2,
+            "stuckT": 0,
+            "waitT": 8.6,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.05
+        },
+        {
+          "p": [
+            247.8,
+            2.78,
+            1159.4
+          ],
+          "sp": 18.2,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2584,
+            "d": 33.5,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.13
+        }
+      ]
+    }
+  },
+  "errors": []
+}

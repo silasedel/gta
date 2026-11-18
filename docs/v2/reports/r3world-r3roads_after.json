@@ -1,0 +1,693 @@
+{
+  "set": "r3roads_after",
+  "when": "2026-11-18T07:11:08.016Z",
+  "shots": {
+    "sr934_10th_hi": {
+      "cam": {
+        "eye": [
+          -600,
+          70,
+          2730
+        ],
+        "look": [
+          -683,
+          0,
+          2645
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_sr934_10th_hi.jpg"
+    },
+    "sr934_10th_lo": {
+      "cam": {
+        "eye": [
+          -610,
+          2.4,
+          2637
+        ],
+        "look": [
+          -683,
+          0,
+          2651
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_sr934_10th_lo.jpg"
+    },
+    "sr934_9th_hi": {
+      "cam": {
+        "eye": [
+          -440,
+          68.3,
+          2690
+        ],
+        "look": [
+          -508,
+          0,
+          2620
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_sr934_9th_hi.jpg"
+    },
+    "sr934_9th_lo": {
+      "cam": {
+        "eye": [
+          -575,
+          2.4,
+          2630
+        ],
+        "look": [
+          -508,
+          0,
+          2618
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_sr934_9th_lo.jpg"
+    },
+    "miamiave_hi": {
+      "cam": {
+        "eye": [
+          20,
+          45,
+          -715
+        ],
+        "look": [
+          -34,
+          0,
+          -760
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_miamiave_hi.jpg"
+    },
+    "miamiave_lo": {
+      "cam": {
+        "eye": [
+          -34,
+          2.4,
+          -830
+        ],
+        "look": [
+          -34,
+          0,
+          -760
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_miamiave_lo.jpg"
+    },
+    "brickell_hi": {
+      "cam": {
+        "eye": [
+          390,
+          110,
+          1210
+        ],
+        "look": [
+          285,
+          1.2,
+          1085
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_brickell_hi.jpg"
+    },
+    "brickell_ramp": {
+      "cam": {
+        "eye": [
+          455,
+          45.1,
+          1150
+        ],
+        "look": [
+          365,
+          0,
+          1080
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_brickell_ramp.jpg"
+    },
+    "rand1_ne1st_ne4th": {
+      "cam": {
+        "eye": [
+          828,
+          40.1,
+          -25
+        ],
+        "look": [
+          783,
+          0,
+          -70
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_rand1_ne1st_ne4th.jpg"
+    },
+    "rand2_jefferson_21st": {
+      "cam": {
+        "eye": [
+          2256,
+          40.1,
+          -772
+        ],
+        "look": [
+          2211,
+          0,
+          -817
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_rand2_jefferson_21st.jpg"
+    },
+    "rand3_ne3rd_ne14th": {
+      "cam": {
+        "eye": [
+          734,
+          40.1,
+          -1458
+        ],
+        "look": [
+          689,
+          0,
+          -1503
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_rand3_ne3rd_ne14th.jpg"
+    },
+    "rand4_ne6th_hump": {
+      "cam": {
+        "eye": [
+          654,
+          30.1,
+          -465
+        ],
+        "look": [
+          609,
+          0,
+          -510
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/r3roads_after_rand4_ne6th_hump.jpg"
+    },
+    "traffic_brickell": {
+      "traffic": [
+        {
+          "p": [
+            450.5,
+            0.7,
+            1124.1
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            460.8,
+            0.71,
+            1136.8
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            452.8,
+            1.28,
+            1095.6
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.38
+        },
+        {
+          "p": [
+            446.5,
+            1.11,
+            1090.9
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.33
+        },
+        {
+          "p": [
+            226.9,
+            0.85,
+            1117.6
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            302.5,
+            3.26,
+            1005.8
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 2.49
+        },
+        {
+          "p": [
+            375.8,
+            0.86,
+            1083.3
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.23
+        },
+        {
+          "p": [
+            380.1,
+            0.74,
+            1163.4
+          ],
+          "sp": 0,
+          "parked": true,
+          "flooded": false,
+          "inWater": false,
+          "ai": null,
+          "water": false,
+          "g": 0.15
+        },
+        {
+          "p": [
+            447.4,
+            1.13,
+            1101.5
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2504,
+            "d": 20,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.1
+        },
+        {
+          "p": [
+            436.9,
+            6.14,
+            1019.2
+          ],
+          "sp": 2.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2489,
+            "d": 47.9,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": true,
+          "g": 5.25
+        },
+        {
+          "p": [
+            454.7,
+            0.64,
+            1127.6
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2531,
+            "d": 48.7,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            379.4,
+            0.68,
+            1128
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2528,
+            "d": 33.9,
+            "stuckT": 2.3,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            262.8,
+            0.72,
+            1123.9
+          ],
+          "sp": -0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2515,
+            "d": 5.6,
+            "stuckT": 0.8,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            354.2,
+            0.74,
+            1097.7
+          ],
+          "sp": 8.3,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2526,
+            "d": 5.9,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            302.2,
+            0.69,
+            1129.5
+          ],
+          "sp": 6.6,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2533,
+            "d": 44.2,
+            "stuckT": 0,
+            "waitT": 3,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            400.8,
+            0.75,
+            1130.1
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2530,
+            "d": 37.4,
+            "stuckT": 0,
+            "waitT": 3.3,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            318.1,
+            0.69,
+            1123.8
+          ],
+          "sp": -0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2517,
+            "d": 3.7,
+            "stuckT": 0.9,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            384.8,
+            0.74,
+            1131.6
+          ],
+          "sp": -2,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2528,
+            "d": 6.3,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            332.6,
+            0.68,
+            1098.6
+          ],
+          "sp": 6.6,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2526,
+            "d": 27.6,
+            "stuckT": 0,
+            "waitT": 2.1,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            383.1,
+            5.96,
+            1018.6
+          ],
+          "sp": 8.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2493,
+            "d": 4.8,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": true,
+          "g": 5.1
+        },
+        {
+          "p": [
+            316.2,
+            4.28,
+            1034.2
+          ],
+          "sp": 7.7,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2487,
+            "d": 71.7,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": true,
+          "g": 3.63
+        },
+        {
+          "p": [
+            454.7,
+            0.62,
+            1132.1
+          ],
+          "sp": 0,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2531,
+            "d": 22.8,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        },
+        {
+          "p": [
+            306.6,
+            1.37,
+            960.5
+          ],
+          "sp": 17.9,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2368,
+            "d": 62.6,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 1.26
+        },
+        {
+          "p": [
+            263.1,
+            0.73,
+            1115.7
+          ],
+          "sp": 0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2515,
+            "d": 40.4,
+            "stuckT": 0,
+            "waitT": 6.5,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0.05
+        },
+        {
+          "p": [
+            463.5,
+            3.48,
+            1065.8
+          ],
+          "sp": 2,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2504,
+            "d": 59,
+            "stuckT": 0,
+            "waitT": 0,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 2.02
+        },
+        {
+          "p": [
+            429,
+            0.65,
+            1123.2
+          ],
+          "sp": -0.1,
+          "parked": false,
+          "flooded": false,
+          "inWater": false,
+          "ai": {
+            "edge": 2530,
+            "d": 42.5,
+            "stuckT": 0,
+            "waitT": 2.3,
+            "blockedT": 0,
+            "seen": "x"
+          },
+          "water": false,
+          "g": 0
+        }
+      ]
+    }
+  },
+  "errors": []
+}

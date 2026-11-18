@@ -7,6 +7,12 @@
 //   curb      a junction's outline (= its curb line) cutting through the carriageway of a road that is not one of its legs
 //   short     a leg whose curb returns do not fit on the leg (mouth clamped to 48 % of the leg: curbs end inside the next junction)
 //   wall      a ramp / deck stretch at 0.3-4.5 m (side walls, embankment face) reaching into an at-grade street's carriageway
+//   grade     (r3-roads) an at-grade junction (a street leg, below 2 m) whose node is raised > 0.3 m: a ramp runs straight
+//             through the junction, its walls start at the corner (SR 934 x SW 10th Ave)
+//   blocked   (r3-roads) an at-grade junction with a raised ramp / deck (0.35-5.5 m) over its center or mouth: the game drops
+//             the whole junction surface there (grass in the middle of the crossing: SR 934 x SW 9th Ave)
+//   hump      (r3-roads) a street that leaves the ground and comes back without carrying a bridge: a stretch of the street
+//             raised on walls for nothing (SW 11th St between the Brickell Ave ramps)
 //   island    a small piece of ground (grass / median) enclosed by carriageways next to a junction (a junction drawn as two or more
 //             close nodes with a grass triangle between them)
 //   node --max-old-space-size=4096 tools/v2/maproads/junction-audit.mjs [--build <dir>] [--json docs/v2/reports/junction-audit.json]
@@ -95,6 +101,26 @@ for (const j of J.values()) { const legIds = new Set(j.legs.map((l) => l.edge.id
   for (let k = 0; k < P.length; k++) { const [x, z] = P[k];
     for (const B of near(x, z, 12)) { if (legIds.has(B.e.id) || !atGrade(B.e, (B.s0 + B.s1) / 2)) continue; const q = segDist(x, z, B), pen = B.e.width / 2 - 0.6 - q.d; if (pen > worst) { worst = pen; wx = x; wz = z; we = B.e; } } }
   if (worst > 0.3) add('curb', wx, wz, { node: j.node.id, name: jName(j), into: nm(we), edge: we.id, m: +worst.toFixed(1) }); }
+// ---- 2b. r3-roads: raised at-grade junctions, junctions under a ramp, humps
+{ const owned = new Set(); // same rule as src/world/miami/elevated/network.js: elevated edges >= 0.3 m in components that reach 1 m
+  const ymax = (e) => (e.y && e.y.length ? Math.max(...e.y) : 0), elev = (e) => e && e.elevated && !e.terrain && e.pts.length >= 2 && ymax(e) >= 0.3;
+  const seen = new Set();
+  for (const e0 of E) { if (!elev(e0) || seen.has(e0.id)) continue; const comp = [], st = [e0.id]; seen.add(e0.id); let mx = 0;
+    while (st.length) { const id = st.pop(), e = E[id]; comp.push(id); mx = Math.max(mx, ymax(e)); for (const n of [e.a, e.b]) for (const k of N[n].edges) if (elev(E[k]) && !seen.has(k)) { seen.add(k); st.push(k); } }
+    if (mx >= 1.0) for (const id of comp) owned.add(id); }
+  const ptAt = (e, s) => { const c = e.cum; let i = 1; while (i < c.length - 1 && c[i] < s) i++; const t = Math.max(0, Math.min(1, (s - c[i - 1]) / ((c[i] - c[i - 1]) || 1))); return [e.pts[i - 1][0] + (e.pts[i][0] - e.pts[i - 1][0]) * t, e.pts[i - 1][1] + (e.pts[i][1] - e.pts[i - 1][1]) * t]; };
+  for (const n of N) { if (!n || (n.edges || []).length < 3) continue; const legs = n.edges.map((k) => E[k]);
+    if (!legs.some((e) => !e.bridge && !e.terrain)) continue; const yN = n.y || 0; if (yN >= 2.0) continue;
+    const name = [...new Set(legs.map(nm))].join(' x ');
+    if (yN > 0.3 && !n.terrain) { add('grade', n.x, n.z, { node: n.id, name, y: +yN.toFixed(1), note: 'a ramp runs through the junction' }); continue; }
+    const W = Math.max(...legs.map((e) => e.width)), R = W / 2 + 3; let hit = null;
+    for (const [dx, dz] of [[0, 0], [R, 0], [-R, 0], [0, R], [0, -R]]) { const px = n.x + dx, pz = n.z + dz;
+      for (const B of near(px, pz, 14)) { if (!owned.has(B.e.id)) continue; const q = segDist(px, pz, B); if (q.d > B.e.width / 2) continue; const y = yAt(B.e, q.s); if (y > 0.35 && y < 5.5) { hit = { e: B.e, y }; break; } }
+      if (hit) break; }
+    if (hit) add('blocked', n.x, n.z, { node: n.id, name, by: nm(hit.e), edge: hit.e.id, y: +hit.y.toFixed(1), note: 'junction surface dropped (ramp at ' + hit.y.toFixed(1) + ' m over it)' }); }
+  for (const e of E) { if (!e || !owned.has(e.id) || e.bridge || !e.y || e.y.length < 3) continue; const y0 = e.y[0], y1 = e.y[e.y.length - 1], m = ymax(e);
+    if (y0 < 0.3 && y1 < 0.3 && m > 0.3) { let at = 0; for (let i = 0; i < e.y.length; i++) if (e.y[i] === m) at = i; const [x, z] = ptAt(e, e.cum[at]);
+      add('hump', x, z, { a: e.id, na: nm(e), y: +m.toFixed(1), note: 'street raised on walls without a crossing' }); } } }
 // ---- 3. enclosed islands next to junctions (1 m raster around each junction node)
 const R = 70, done = new Set();
 for (const j of J.values()) { const n = j.node, gx0 = Math.floor(n.x - R), gz0 = Math.floor(n.z - R), W = 2 * R; const road = new Uint8Array(W * W);
