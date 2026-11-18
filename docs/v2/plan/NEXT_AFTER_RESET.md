@@ -48,3 +48,7 @@
   - Electric cars: no start sound, instant torque (6b0448a5).
   - Parked cars in bushes recycled (0a6698d1).
   - Yard stop signs centered.
+- **Plants:** many still look low-res and layered (bushes and trees near Nico's yard): proper LOD0 foliage and denser, higher-resolution leaf cards or real geometry.
+- **Map shoreline near Nico's lot:** a stray filled square of water is drawn in the yard (the carved cove polygon); round the shoreline corners slightly.
+- **Wire fences:** thin wire fences (posts plus wires, e.g. at the Keys lot by the stop sign) are rigid walls. Fill them with the user's chain-link / wire mesh model and make them break or bend (low energy in breakables) instead of stopping the car dead.
+- **Police:** "hit and run" while being chased (likely a ped bumped at low speed after the low-speed hit change): the officer saw it, so this is expected, but check what started the original chase.
