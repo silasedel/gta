@@ -849,9 +849,9 @@ function makePlateMat() {
     c.fillStyle = g; c.fillRect(0, 0, 256, 128);
     c.strokeStyle = '#1b3f73'; c.lineWidth = 6; c.strokeRect(5, 5, 246, 118);
     c.fillStyle = '#e0602a'; c.beginPath(); c.arc(128, 30, 14, Math.PI, 0); c.fill(); // little sunset
-    c.fillStyle = '#1b3f73'; c.font = 'bold 20px sans-serif'; c.textAlign = 'center'; c.fillText('SOUTHLINE', 128, 28);
+    c.fillStyle = '#1b3f73'; c.font = 'bold 20px sans-serif'; c.textAlign = 'center'; c.fillText('FLORIDA', 128, 28);
     c.fillStyle = '#122a4c'; c.font = 'bold 50px monospace'; c.fillText(code, 128, 92);
-    c.font = '13px sans-serif'; c.fillText('SUNSHINE COAST', 128, 116);
+    c.font = '13px sans-serif'; c.fillText('SUNSHINE STATE', 128, 116);
   });
   return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.25 });
 }

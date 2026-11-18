@@ -19,7 +19,8 @@ export function plateMaterial(plate) {
   const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128;
   const c = cv.getContext('2d'), grad = (a, b) => { const g = c.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
   let ink = '#14305a', head = '#d2562a', sub = 'SUNSHINE COAST';
-  if (style === 'standard') { c.fillStyle = grad('#fbf8ee', '#f3e3bd'); c.fillRect(0, 0, 256, 128); c.fillStyle = '#f08a2c'; c.beginPath(); c.arc(128, 128, 60, Math.PI, 0); c.fill(); c.fillStyle = 'rgba(251,248,238,0.78)'; c.fillRect(0, 40, 256, 88); c.fillStyle = '#2e8f6a'; for (const x of [22, 234]) { c.beginPath(); c.arc(x, 24, 11, 0, 7); c.fill(); } c.fillStyle = '#f2a23a'; for (const x of [22, 234]) { c.beginPath(); c.arc(x, 24, 6, 0, 7); c.fill(); } }
+  if (style === 'standard') { // Florida (user): white plate, green characters, an orange in the middle, SUNSHINE STATE
+    c.fillStyle = grad('#fdfdf9', '#eeefe8'); c.fillRect(0, 0, 256, 128); ink = '#1d6233'; head = '#1d6233'; sub = 'SUNSHINE STATE'; }
   else if (style === 'reef') { c.fillStyle = grad('#7fd8d8', '#1d6fa0'); c.fillRect(0, 0, 256, 128); c.fillStyle = '#ff8a6a'; for (let i = 0; i < 7; i++) { c.beginPath(); c.ellipse(20 + i * 38, 122, 14, 22 + (i % 3) * 8, 0, 0, 7); c.fill(); } ink = '#06243f'; head = '#06243f'; sub = 'PROTECT OUR REEFS'; }
   else if (style === 'glades') { c.fillStyle = grad('#eaf2d8', '#9fbf78'); c.fillRect(0, 0, 256, 128); c.strokeStyle = '#4e7a3a'; c.lineWidth = 3; for (let i = 0; i < 26; i++) { c.beginPath(); c.moveTo(i * 10, 128); c.lineTo(i * 10 + (i % 2 ? 5 : -4), 96 - (i % 5) * 4); c.stroke(); } ink = '#1e3a1c'; head = '#1e3a1c'; sub = 'RIVER OF GRASS'; }
   else if (style === 'sunset') { c.fillStyle = grad('#ffb25a', '#e0457a'); c.fillRect(0, 0, 256, 128); c.fillStyle = '#2a1238'; c.fillRect(0, 108, 256, 20); ink = '#2a1238'; head = '#fff4dc'; sub = 'THE KEYS'; }
@@ -27,8 +28,12 @@ export function plateMaterial(plate) {
   else if (style === 'temp') { c.fillStyle = '#fdfdf8'; c.fillRect(0, 0, 256, 128); ink = '#111'; head = '#111'; sub = 'TEMPORARY TAG  EXP 12-26'; }
   else { c.fillStyle = '#1c2b4a'; c.fillRect(0, 0, 256, 128); ink = '#f2d77a'; head = '#f2d77a'; sub = 'HORSELESS CARRIAGE'; }
   c.strokeStyle = ink; c.lineWidth = 5; c.strokeRect(4, 4, 248, 120);
-  c.textAlign = 'center'; c.fillStyle = head; c.font = 'bold 22px sans-serif'; c.fillText('SOUTHLINE', 128, 30);
-  c.fillStyle = ink; c.font = style === 'temp' ? 'bold 46px monospace' : 'bold 54px monospace'; c.fillText(text, 128, 92);
+  c.textAlign = 'center'; c.fillStyle = head; c.font = style === 'standard' ? 'italic bold 24px serif' : 'bold 22px sans-serif'; c.fillText('FLORIDA', 128, 30);
+  if (style === 'standard') { // two halves around the orange, like the real plate
+    const sp = text.indexOf(' '), a = sp > 0 ? text.slice(0, sp) : text.slice(0, 3), b = sp > 0 ? text.slice(sp + 1) : text.slice(3);
+    c.fillStyle = '#f08a1c'; c.beginPath(); c.arc(128, 74, 14, 0, 7); c.fill(); c.fillStyle = '#2f7d34'; c.beginPath(); c.ellipse(133, 58, 6, 3, -0.5, 0, 7); c.fill();
+    c.fillStyle = ink; c.font = 'bold 52px monospace'; c.textAlign = 'right'; c.fillText(a, 110, 92); c.textAlign = 'left'; c.fillText(b, 146, 92); c.textAlign = 'center';
+  } else { c.fillStyle = ink; c.font = style === 'temp' ? 'bold 46px monospace' : 'bold 54px monospace'; c.fillText(text, 128, 92); }
   c.font = 'bold 12px sans-serif'; c.fillText(sub, 128, 116);
   if (style !== 'temp') { c.fillStyle = '#e8c22a'; c.fillRect(214, 10, 30, 18); c.fillStyle = '#222'; c.font = 'bold 11px sans-serif'; c.fillText(String(1 + (text.charCodeAt(0) % 12)).padStart(2, '0') + '-27', 229, 23); }
   const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4;
