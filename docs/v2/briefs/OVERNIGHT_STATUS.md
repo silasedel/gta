@@ -1951,3 +1951,19 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - Airport chain-link fence kit (src/world/airport/fence.js, ?airfence=0): posts, rail, fabric, barbed arms, gates with signs, colliders (MIA 4.8 km, 18 gates).
 - Shots docs/v2/shots/air/. Still off: airliners static, jet not flown in game, long landing rollout, floatplane pavement takeoff arcade-y, fence gates on service roads, plane audio = car engines.
 - Seen: Rapier "recursive use of an object" crash near the Keys (also with ?air=0): sent to r4-house (collider add/remove during step). r4-keys map published (c741139c, b20261118-091900).
+
+## r5-bridge
+- **Cause:** r4-keys' divided highway split into two carriageways 50 m from each join, out over the water. At the north end one carriageway bridged the channels (5.5 m) while its twin lay at grade on a 12-20 m sand strip the layout map drew under the road. That is the road lying flat on the water, with water between the decks and a wall at the split. At the SW end the two carriageways left the 6.2 m main bridge as separate decks with water between them.
+- **Fix (generator):** keys_detail.py keeps the highway as ONE 19 m 4-lane road over every over-water stretch at both ends (N 336 m, SW 168 m) and only divides on solid land, 165 m past the abutment, so the r3 junction pin at the split never pulls the deck down. No cross streets on the undivided stubs or the taper. Sand strips under the decks were removed (the islet stays under the bridge). build_v3.py makes each end deck one 'long' bridge (wet ∪ deck zone, 6.2 m). Final game profile: 6.2 m deck, 5.1 % ramps on land. `KEYS_DECK=0` = the old layout.
+- **Look (src/world/miami/elevated, `?keysbridge=0` = old):** Keys water bridges (z > 3900) get low solid 0.86 m parapets, a pale concrete slab, bents every ~28 m with 4 rectangular columns (3 on narrower decks) under the cap beam, and no lamps.
+- **Build:** b20261118-125203 published. Junction audit vs b20261118-091900: the north-split wall is gone; cross / curb / overlap stay at the pre-existing Card Sound Road crossover (-795, 5258).
+- **In game** (`node tools/v2/map3/r5_bridge_check.mjs`, report docs/v2/reports/keys-r5-bridge.json):
+  - Collider probe every 6 m over both decks and ramps: 0 holes, 0 steps.
+  - Player drive: N 349 m, SW 310 m across. 10 traffic cars on each deck.
+  - 0 console errors, 0 [rapierguard].
+  - Shots: docs/v2/shots/keys/r5bridge/r5b2_*.jpg (n_air, n_water, n_mainjoin, n_drive, n_islandjoin, s_air, s_water, s_islandjoin, s_mainjoin, drive_N, drive_SW).
+- **Still off:**
+  - No utility poles or green overhead signs on the bridge yet.
+  - The deck is tinted asphalt, not a real concrete material.
+  - The main-map neck ramp north of the N join has a short stretch of retaining wall without a barrier.
+  - Fewer cross streets near the island tips (the stubs are longer).

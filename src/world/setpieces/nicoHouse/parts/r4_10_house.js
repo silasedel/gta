@@ -471,7 +471,7 @@ export function build(ctx) {
   // ================= anchors, interior visibility, camera occluder =================
   Lot.anchor('truckR4', -4.6, 0, 8.2, 0);   // Nico's pickup in the drive under the front eave, facing the street (01)
   Fr.anchor('carport', -0.5, 0.06, -6.5, Math.PI); Fr.anchor('front', 0, 0, 6.0, Math.PI);
-  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-12.6, 0, 5.4), heading: -0.4 };   // r2-keys: Nico's spot in the yard by the pickup (yard frame)
+  ctx.anchors.spawnYard = { pos: new THREE.Vector3(-6.0, 0, 11.0), heading: Math.PI };   // user: spawn in the middle of the driveway (was beside the truck), facing the house   // r2-keys: Nico's spot in the yard by the pickup (yard frame)
   const camS = new THREE.Vector3();
   ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = StoH(...toS(cx, cz)); camS.set(sx, cy, sz); return inR(P.body, sx, sz, 1.4) && cy > F - 1.4 || (inR({ x0: P.deckS.x0, x1: P.deckE.x1, z0: P.deckN.z0, z1: P.deckS.z1 }, sx, sz, 2.0) && cy > F - 1.0); };
   ctx.facing = (dir, cx, cz) => { if (!dir) return true; const [sx, sz] = StoH(...toS(cx, cz)); if (inR(P.body, sx, sz, 0.2)) return true; const [d0, d1] = StoH(...toS(0, 0)), [d2, d3] = StoH(...toS(dir.x, dir.z)), dx = d2 - d0, dz = d3 - d1, hx = 0 - sx, hz = -7 - sz; return dx * hx + dz * hz > -0.35 * Math.hypot(hx, hz); };
