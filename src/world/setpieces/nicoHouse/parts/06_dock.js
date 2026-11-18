@@ -18,7 +18,7 @@ export function build(ctx) {
   const dockG = yaw ? new THREE.Group() : ctx.groups.site; if (yaw) { dockG.name = 'nh_dockFrame'; dockG.rotation.y = -yaw; ctx.groups.site.add(dockG); }
   const c0 = ctx.colliders.length, l0 = ctx.lights.length, g0 = ctx.opts.groundAt || (() => 0), w0 = ctx.opts.waterAt;
   const B = yaw ? kit.batch('dockSite') : ctx.site, D = yaw ? kit.batch('dockDetail') : ctx.detail, sea = P.seaY, y = Dk.y, X = Dk.x, W = 2.45, ground = (x, z) => g0(...toH(x, z));
-  const lib = loadKeysModels(THREE, ['pier_kit', 'rowboat', 'skiff', 'lifebuoy', 'rocks']);
+  const lib = loadKeysModels(THREE, ['pier_kit', 'rowboat', 'skiff', 'lifebuoy', 'rocks', 'fishing_gear']);
   // ---- layout: sections from the land end (z1) out to z0, chosen in a fixed order (no two neighbors alike) ----
   const ORDER = ['modular_wooden_pier_section_02'];   // one kit piece, flipped / tinted for variety (03 / 04 dropped out of the draw in tests)
   const LEN = { modular_wooden_pier_section_02: 3.39, modular_wooden_pier_section_03: 3.39, modular_wooden_pier_section_04: 3.16 };
@@ -69,6 +69,7 @@ export function build(ctx) {
   const cleat = (cx, cz, ry) => { B.box(ST, 0.26, 0.024, 0.045, M(cx, y + 0.06, cz, 0, ry, 0), { color: 0xa9a59a, bevel: 0.01 }); for (const s of [-1, 1]) B.cyl(ST, 0.015, 0.02, 0.05, M(cx + Math.cos(ry) * s * 0.06, y + 0.025, cz - Math.sin(ry) * s * 0.06), { color: 0xa9a59a, seg: 8 }); };
   const cleats = [[X + W / 2 - 0.12, (Dk.z1 + zEnd) / 2, PI / 2], [X + W / 2 - 0.12, zEnd + 3.0, PI / 2], [X - W / 2 + 0.12, zEnd + 2.0, PI / 2], [X + 3.3, headZ + 0.9, 0], [X - 3.3, headZ - 0.9, 0]];
   for (const [cx, cz, ry] of cleats) cleat(cx, cz, ry);
+  col.box(X + 2.5, y + 0.2, headZ - 0.3, 1.8, 0.4, 0.7, { tag: 'prop' });   // fishing gear on the T-head (library, below)
   for (const s of [-1, 1]) B.box(ST, 0.04, 2.6, 0.04, M(X + 3.62, y - 0.9, headZ + s * 0.22), { color: 0xa9a59a, bevel: 0.008 });
   for (let k = 0; k < 7; k++) B.cyl(ST, 0.016, 0.016, 0.44, M(X + 3.62, y - 0.15 - k * 0.3, headZ, PI / 2, 0, 0), { color: 0xa9a59a, seg: 8 });
   { const pts = []; for (let i = 0; i < 90; i++) { const t = i / 90, a = t * 6.283 * 5, rr = 0.07 + t * 0.2; pts.push([X - 2.6 + Math.cos(a) * rr, y + 0.02 + (i % 18) * 0.0004, headZ + 0.4 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.011, { seg: 5, color: 0xd8cfae, steps: 150 }); }
@@ -96,6 +97,10 @@ export function build(ctx) {
     const I = lib.instancer('keysDock');
     for (const s of secs) I.add('pier_kit', s.n, M(X, y, s.zc, 0, s.flip ? PI : 0, 0), { tint: [0.96 + r() * 0.08, 0.96 + r() * 0.06, 0.95 + r() * 0.06] });
     I.add('pier_kit', 'modular_wooden_pier_section_05', M(X - 3.3, y, headZ, 0, PI / 2, 0));   // the hoist frame across the head's west wing
+    // r2-keys (Nov 17 pm): the user's fishing supplies on the T-head's east wing (Fishing Gear 2 -> keys/fishing_gear.glb): rod laid along
+    // the boards, tackle box, a full bait bucket and a pail, the landing net leaning at the edge
+    for (const [n, dx, dz, a] of [['fishing_pole', 1.9, 0.55, 0.12], ['tackle_box', 2.3, -0.2, 0.4], ['plastic_bucket_full', 2.95, -0.45, 1.1], ['metal_bucket_full', 1.55, -0.55, 2.0], ['fishing_net', 3.25, 0.45, -0.3]])
+      I.add('fishing_gear', n, M(X + dx, y, headZ + dz, 0, a, 0));
     const meshes = I.build(dockG); for (const m of meshes) m.raycast = () => {};
     // every kit post foot that ends above the sea bed carries on down in marine-growth timber (same radius, sunk into the bed)
     const PB = kit.batch('dockPiles'); let nExt = 0;

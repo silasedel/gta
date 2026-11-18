@@ -278,7 +278,7 @@ export function build(ctx) {
   const ROCK_SZ = [[2.2, 1.5, 3.3], [2.6, 1.3, 3.3], [2.1, 1.1, 2.1], [2.1, 1.8, 2.0], [1.8, 1.2, 3.0], [2.1, 1.3, 2.8]];
   for (const [x, z, k, sc, h, sink] of ROCKS) { const q = ROCK_SZ[[0, 1, 2, 0, 1, 2][(k - 1) % 6]]; col.box(x, q[1] * sc * 0.8 * 0.45 - sink + yS(x, z), z, q[0] * sc * 0.75, q[1] * sc * 0.8 * 0.9, q[2] * sc * 0.75, { ry: h, tag: 'rock' }); }
   for (const st of STOPS) col.cyl(st.x, 1.3 + yS(st.x, st.z), st.z, 0.05, 2.6, { tag: 'sign' });
-  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post']);
+  const lib = loadKeysModels(THREE, ['bins', 'rolloff', 'rocks', 'utility_pole', 'coolers', 'patio_chair', 'window_ac', 'galv_can', 'mailbox_post', 'wicker_chair']);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('keysYard');
     for (const b of BINS) if (b.piece) I.add('bins', b.piece, M(b.x, yG(b.x, b.z), b.z, 0, (b.h || 0) + PI / 2, 0), { tint: b.tint });

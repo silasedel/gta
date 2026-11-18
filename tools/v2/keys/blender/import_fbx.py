@@ -21,6 +21,10 @@ def pick(rx, mname=''):
     if own or ok: return os.path.join(TEX, (own or ok)[0])
     imgs = [f for f in files if re.search(r'\.(jpe?g|png)$', f, re.I)]
     if rx.startswith('base') and len(imgs) == 1: return os.path.join(TEX, imgs[0])   # a single loose image is the color map
+    if rx.startswith('base') and mname:   # a map named after the material with no kind keyword ('Wicker chair.png') is its color map
+        key = re.sub(r'[^a-z0-9]', '', mname.lower())
+        named = [f for f in imgs if re.sub(r'[^a-z0-9]', '', os.path.splitext(f)[0].lower()) == key]
+        if named: return os.path.join(TEX, named[0])
 for m in bpy.data.materials:
     if not m.use_nodes: continue
     nt = m.node_tree; bsdf = next((x for x in nt.nodes if x.type == 'BSDF_PRINCIPLED'), None)
@@ -31,7 +35,7 @@ for m in bpy.data.materials:
     for n in [x for x in nt.nodes if x.type in ('TEX_IMAGE', 'NORMAL_MAP')]: nt.nodes.remove(n)
     def img(f, color):
         t = nt.nodes.new('ShaderNodeTexImage'); t.image = bpy.data.images.load(f); t.image.colorspace_settings.name = 'sRGB' if color else 'Non-Color'; return t
-    c, r, nm, mt = pick(r'base.?color|albedo|diffuse', m.name), pick(r'rough', m.name), pick(r'normal', m.name), pick(r'metal', m.name)
+    c, r, nm, mt = pick(r'base.?color|albedo|diffuse|_d\.', m.name), pick(r'rough|_r\.', m.name), pick(r'normal|_n\.', m.name), pick(r'metal|_mt\.', m.name)
     if c: nt.links.new(img(c, True).outputs['Color'], bsdf.inputs['Base Color'])
     if r: nt.links.new(img(r, False).outputs['Color'], bsdf.inputs['Roughness'])
     if nm: q = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(img(nm, False).outputs['Color'], q.inputs['Color']); nt.links.new(q.outputs['Normal'], bsdf.inputs['Normal'])

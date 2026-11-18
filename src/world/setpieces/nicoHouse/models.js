@@ -14,6 +14,8 @@ const FILES = {
   rolloff: 'assets/models/keys/rolloff.glb', rocks: 'assets/models/keys/rocks.glb', bins: 'assets/models/keys/bins.glb', fence_rustic: 'assets/models/keys/fence_rustic.glb',
   utility_pole: 'assets/models/keys/utility_pole.glb',
   coolers: 'assets/models/keys/coolers.glb', patio_chair: 'assets/models/keys/patio_chair.glb',
+  wicker_chair: 'assets/models/keys/wicker_chair.glb',
+  fishing_gear: 'assets/models/keys/fishing_gear.glb',
   window_ac: 'assets/models/keys/window_ac.glb', galv_can: 'assets/models/keys/galv_can.glb', mailbox_post: 'assets/models/keys/mailbox_post.glb',
   rowboat: 'assets/models/keys/rowboat.glb', skiff: 'assets/models/keys/skiff.glb', lifebuoy: 'assets/models/keys/lifebuoy.glb',
 };
@@ -71,6 +73,8 @@ export function loadKeysModels(THREE, which = Object.keys(FILES)) {
     if (k === 'galv_can') { m.roughness = 0.6; m.color.setRGB(1.05, 1.05, 1.02); }   // dull zinc spangle, no chrome
     if (k === 'mailbox_post') { m.roughness = Math.max(0.6, m.roughness); m.color.setRGB(1.2, 1.17, 0.86);   // the saturated royal blue -> a sun-faded gray-blue (ART_STYLE)
       if (m.emissiveMap) { m.emissiveMap = null; m.emissive?.setRGB(0, 0, 0); } }
+    if (k === 'wicker_chair') { m.roughness = Math.max(0.75, m.roughness); if (/Black/.test(m.name || '')) m.color.setRGB(0.12, 0.12, 0.11); else m.color.multiplyScalar(1.08); }   // natural rattan, matte
+    if (k === 'fishing_gear') m.roughness = 0.7;
     if (k === 'utility_pole') { m.color.setRGB(1.3, 1.24, 1.15); m.roughness = 1; }   // dark creosote scan -> sun-weathered gray-brown pine (ART_STYLE)
     if (m.transparent && m.opacity >= 0.99) { m.transparent = false; m.alphaTest = 0.5; }
     m.needsUpdate = true; return m;
