@@ -1,0 +1,42 @@
+# User feedback, Nov 17 late evening (played the Mac app build of 92a1a256)
+
+Shots: shot_01_sw11th_median.webp (SW 11th St: grass median where an intersection should be), shot_02_brickell_swamp.webp (Brickell Ave swamp).
+
+## Performance
+1. Starts fine, then after a while drops to ~2 fps. Find what grows over time (leak / accumulation) and fix it. Frame rate must be smooth and reliable.
+2. Buildings glitch: for a split second they disappear and come back when the detail level swaps. Keep the old version until the new one is ready (no full refresh).
+3. Loading: the user prefers "everything loaded / installed" like big games (Mac app) plus streaming like Minecraft/Fortnite.
+
+## NPCs
+4. ~20 NPCs in a line walking along the road edge for no reason.
+5. NPCs walk diagonally through walls; collide with buildings. Improve the basic AI/pathing (not insane AI yet).
+6. Many of the user's generated NPCs were modeled with hands up, so they walk with arms out. Check each model and rotate the arms (~90 deg) down.
+7. Animations still float/slide; make walking/animation much better.
+8. Cast must fit the district: business people in Brickell / downtown, beach people at beaches, etc.
+9. Ragdolls: no proper collisions or human joint limits / weight. Rig like real games (joint limits, masses).
+
+## Cars
+10. Tires still look weird, paint textures look bad, windows glitched, glass transparency not good.
+11. Boat: jumping into a boat made the player fall. Use E to enter/drive (or steal) a boat like a car.
+12. Cops must come from real places: in police cars, or out of police stations; never spawn from nowhere.
+
+## World
+13. Mangrove trees float in the sky, not attached to the ground.
+14. Road crack lines look fake (not tar seal or cracks). Smudges and dots are good. Make the lines a stronger, more gravelly tar look.
+15. State Road 934 x 10th Avenue: 10th Ave weirdly crosses it.
+16. SR 934 x 9th Avenue: a big grass patch in the middle, no intersection. Misplaced bad curbs at the next intersection too.
+17. Brickell -> downtown: another intersection issue.
+18. Check every intersection on the map for these issues.
+19. Brickell Ave swamp (shot_02): water edge glitches slightly, odd puddles, cars stopped because of it. Polish.
+20. User likes: road edges, dirt, grass verges ("absolutely perfect").
+
+## UI / systems
+21. Top-right wanted-sense icons: always show them (reference: docs/v2/plan/hud_corner_target.webp). They mean what police recognize you by. Don't keep switching views; keep that UI.
+22. Clothes recognition: once you commit a crime they know your clothes (on), until you change shirts (you can change shirts).
+23. Wardrobe: the tropical camp shirt doesn't actually change. Make it work or remove wardrobe.
+24. Dev mode: infinite money option.
+
+## Models
+25. Dogs look terrible: ask the user for a dog model instead of making one.
+
+The user wants Claude to find issues itself, not wait for the user to spot them.
