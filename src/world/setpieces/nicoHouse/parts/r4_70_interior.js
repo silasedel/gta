@@ -20,8 +20,9 @@ export function build(ctx) {
   const { hexa, subtract, lathe } = makeGeo(THREE, kit);
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0) => I.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
   const OLIVE = im.paint({ peel: 'b', fade: 0.12, gloss: 0.7, scale: 0.7 }), WHITEP = im.paint({ peel: 'a', fade: 0.08, gloss: 0.6, scale: 0.6 });
-  const FLOOR = im.pbr('wood_floor_worn', { rep: 1.4, rough: 0.5 }), PLAST = im.plastic(), GLOSS = im.plasticGloss(), STEEL = im.steel(), CER = im.ceramic(), MATTE = im.matte(), CHROME = im.chrome();
+  const FLOOR = im.pbr('white_planks_clean', { rep: 1.6, rough: 0.55 }), PLAST = im.plastic(), GLOSS = im.plasticGloss(), STEEL = im.steel(), CER = im.ceramic(), MATTE = im.matte(), CHROME = im.chrome();
   let bambooM = null;
+  kit.uIndirect.value = Math.max(kit.uIndirect.value, 0.62);   // user review: dim and window-lit, but readable (the r4 rooms were near black)
   const Bd = P.body, x0 = Bd.x0 + T, x1 = Bd.x1 - T, z0 = Bd.z0 + T, z1 = Bd.z1 - T;
   const roofTop = (z) => P.yRidge - Math.abs(z - P.ridgeZ) * P.pitch, ceilY = (z) => roofTop(z) - 0.2;
   // ================= floor: honey planks (living, hall, back room), gray square tile in the kitchen (09), tile in the bath =================
@@ -33,7 +34,7 @@ export function build(ctx) {
     while (x < x1 - 0.01) { let xe = Math.min(x1, x + 1.2 + r() * 2.2);
       const inK = (xx) => zm > KT.z0 && zm < KT.z1 && xx > KT.x0 && xx < KT.x1, inB = (xx) => zm > BA.z0 && zm < BA.z1 && xx > BA.x0 && xx < BA.x1;
       for (const [a, b] of subtract(x, xe, [[KT.x0, KT.x1].map((v, i) => (zm > KT.z0 && zm < KT.z1 ? v : i ? -1e3 : -1e3 - 1)), [BA.x0, BA.x1].map((v, i) => (zm > BA.z0 && zm < BA.z1 ? v : i ? -1e3 : -1e3 - 1))]))
-        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xf6c784, r, 0.1), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
+        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xd99a4e, r, 0.1), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
       void inK; void inB; x = xe; } }
   box(tileMat, KT.x1 - KT.x0, 0.02, KT.z1 - KT.z0 + 0.0, (KT.x0 + KT.x1) / 2, F + 0.011, (KT.z0 + KT.z1) / 2 - T / 2 + 0.0, { color: 0xffffff, bevel: 0.002, uvS: 2.4 });
   box(im.pbr('long_white_tiles', { rep: 0.9 }), BA.x1 - BA.x0 - 0.06, 0.02, BA.z1 - BA.z0 - T, (BA.x0 + BA.x1) / 2, F + 0.011, (BA.z0 + BA.z1) / 2 - T / 2, { color: 0xc8ccc8, bevel: 0.002 });

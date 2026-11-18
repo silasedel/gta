@@ -27,16 +27,18 @@ export const P4 = {
   body: { x0: -6.5, x1: 6.5, z0: -10.4, z1: -3.6 },
   ridgeZ: -7.0, pitch: 0.42, eave: 0.55, rake: 0.42,
   // wraparound deck (N, E, S) at F; the west end is the house wall
-  deckN: { x0: -6.5, x1: 10.6, z0: -12.8, z1: -10.4 },
-  deckE: { x0: 6.5, x1: 10.6, z0: -12.8, z1: -1.6 },
-  deckS: { x0: -7.8, x1: 10.6, z0: -3.6, z1: -1.6 },
+  deckN: { x0: -8.5, x1: 8.5, z0: -12.8, z1: -10.4 },
+  deckE: { x0: 6.5, x1: 8.5, z0: -12.8, z1: -1.6 },
+  deckS: { x0: -8.5, x1: 8.5, z0: -3.6, z1: -1.6 },
+  deckW: { x0: -8.5, x1: -6.5, z0: -12.8, z1: -1.6 },
   // posts (whitewashed 10x10 timbers) and beam lines
-  postXs: [-6.5, -2.2, 2.2, 6.5, 10.6], postZs: [-12.8, -10.4, -7.0, -3.6, -1.6], post: 0.24,
+  postXs: [-8.5, -6.5, -2.2, 2.2, 6.5, 8.5], postZs: [-12.8, -10.4, -7.0, -3.6, -1.6], post: 0.24,
   beam: { d: 0.29, t: 0.05 }, joist: { d: 0.235, t: 0.045, oc: 0.406 }, board: { w: 0.14, t: 0.035, gap: 0.006 },
   rail: { h: 1.0, post: 0.1, bal: 0.042, oc: 0.12 },
   rise: 0.18, run: 0.28,
   // stairs: west front stair (10: on the left, lattice under it), back stair to the lawn (08: top at the left, down to the right)
-  stairW: { x: -7.2, z: -1.6, w: 1.2, n: 19 },        // top nosing center, runs +Z
+  stairW: { x: -7.2, z: -1.6, w: 1.2, n: 19, pad: { x0: -9.9, x1: -8.62, z0: -8.9, z1: -7.8 } },   // west side: head pad, then down +Z to the front corner
+  stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },                                       // east side: down -Z to the bay corner
   stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 6.5, z0: -10.4, z1: -3.6, h: 2.85 },
@@ -50,8 +52,8 @@ export const P4 = {
   // lawn terrace, bulkhead, dock (08)
   wallZ: -27.2,            // outer face of the plank bulkhead
   wallX0: -22, wallX1: 15,
-  lawnTop: 1.0,            // lawn at the wall: ~1.1 m over the water (08)
-  terrace: { z0: -15.5, z1: -23.5, x0: -18, x1: 12, fall: 5 },   // lawn rises from grade at z0 to lawnTop by z1, flat to the wall
+  lawnTop: 0.85,            // lawn at the wall: ~1.1 m over the water (08)
+  terrace: { z0: -22.8, z1: -25.8, x0: -18, x1: 12, fall: 5 },   // lawn rises from grade at z0 to lawnTop by z1, flat to the wall
   dock: { y: 0.42, w: 1.5, x0: 9.5, x1: -1.0, z: -30.6, gangX: 9.5 },   // long walkway parallel to the wall (from the left in 08)
   plat: { x0: -6.8, x1: -0.6, z0: -33.4, z1: -27.8 },  // square platform in front of the center-right of the house (08)
   colors: {
@@ -71,7 +73,7 @@ export function measureSite(waterAt) {
   for (let z = -10; z > -60; z -= 0.25) { let n = 0; for (const x of [-6, -3, 0, 3, 6]) if (waterAt(...raw(x, z))) n++; if (n >= 3) { zw = z; break; } }
   if (zw === null) return;
   const oz = Math.max(-6, Math.min(7.5, zw + 21.3)), wall = zw + 0.35 - oz;
-  P4.oz = oz; P4.wallZ = wall; P4.terrace.z0 = Math.min(-13.0, wall + 11.7); P4.terrace.z1 = wall + 3.7;
+  P4.oz = oz; P4.wallZ = wall; P4.terrace.z0 = wall + 4.4; P4.terrace.z1 = wall + 1.4;
   P4.dock.z = wall - 3.4; P4.plat.z0 = wall - 6.2; P4.plat.z1 = wall - 0.6; P4.measured = { zw, oz, wall };
 }
 // the lawn raise (S frame, m above grade): 0 at the house, lawnTop along the bulkhead
@@ -86,7 +88,7 @@ export function plantClear(sx, sz, pad = 0) { if (houseBlock(sx, sz, pad)) retur
 // true where the house, decks, stairs or the ground room stand (plants, weeds and yard props keep out). S frame.
 export function houseBlock(sx, sz, pad = 0) {
   const P = P4, [x, z] = StoH(sx, sz);
-  return inR({ x0: P.deckS.x0, x1: P.deckE.x1, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
-    || inR({ x0: -7.9, x1: -6.5, z0: -1.6, z1: 3.9 }, x, z, pad)            // west stair run
-    || inR({ x0: -0.4, x1: 6.7, z0: -14.2, z1: -12.8 }, x, z, pad);         // back stair + landing
+  return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
+    || inR({ x0: -10.0, x1: -8.5, z0: -8.9, z1: -1.2 }, x, z, pad)          // west side stair
+    || inR({ x0: 8.5, x1: 10.0, z0: -11.6, z1: -4.1 }, x, z, pad);          // east side stair
 }

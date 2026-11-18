@@ -90,18 +90,19 @@ export function build(ctx) {
     Fr.col.cyl(sx, y + 2, sz, 0.08, 4, { tag: 'pole' }); }
   Fr.anchor('dock', (pl.x0 + pl.x1) / 2, y, (pl.z0 + pl.z1) / 2, Math.PI); Fr.anchor('dockHead', (pl.x0 + pl.x1) / 2, y, pl.z0 + 0.6, Math.PI);
   // ---------- library pieces: lawn chairs, fishing gear, cooler, the boat ----------
-  const lib = loadKeysModels(THREE, ['lawn_chair', 'fishing_gear', 'coolers', 'skiff_cc']);
-  const boat = { x: -3.6, z: pl.z0 - 1.25, h: Math.PI / 2 + 0.03 };
+  const lib = loadKeysModels(THREE, ['fishing_gear', 'coolers', 'skiff_cc']);
+  const boat = { x: (pl.x0 + pl.x1) / 2 + 0.3, z: pl.z0 - 1.45, h: Math.PI / 2 + 0.03 };
   Fr.anchor('skiff', boat.x, sea, boat.z, boat.h);
   ctx.async.push(lib.ready.then(() => {
     const I = lib.instancer('r4dock');
-    for (const [x, z, a] of [[-3.2, -29.0, 2.6], [-1.9, -28.8, 3.4]]) { I.add('lawn_chair', 'dock', M(x, y, z, 0, a, 0)); Fr.col.box(x, y + 0.45, z, 0.62, 0.9, 0.62, { tag: 'prop' }); }
-    ctx.anchors.dockChair = { pos: Fr.v(-3.2, y, -29.0), heading: 2.6 - 0.72 };
-    for (const [n, x, z, a] of [['tackle_box', -4.8, -29.4, 0.3], ['plastic_bucket_full', -5.2, -29.0, 1.0]]) I.add('fishing_gear', n, M(x, y, z, 0, a, 0));
-    const cn = lib.names('coolers'); if (cn.length) I.add('coolers', cn[0], M(-0.95, y, -28.35, 0, 0.4, 0), { tint: [0.55, 0.75, 1.15] });   // the blue cooler at the walk junction
+    // two normal white plastic lawn chairs on the platform (08), facing the water, beside the rod, tackle box and cooler
+    for (const [dx, dz, a] of [[2.9, 1.6, Math.PI + 0.25], [3.9, 1.8, Math.PI - 0.2]]) { const x = pl.x0 + dx, z = pl.z0 + dz; ctx.async.push(kit.model('plastic_monobloc_chair_01').then((m) => { if (!m) return; m.position.set(x, y, z); m.rotation.y = a; m.traverse((o) => { if (o.isMesh) { o.raycast = () => {}; if (o.material) { o.material.roughness = Math.max(0.55, o.material.roughness ?? 0.5); o.material.envMapIntensity = 0.5; } } }); Fr.groups.detail.add(m); })); Fr.col.box(x, y + 0.42, z, 0.56, 0.84, 0.56, { tag: 'prop' }); }
+    ctx.anchors.dockChair = { pos: Fr.v(pl.x0 + 2.9, y, pl.z0 + 1.6), heading: Math.PI + 0.25 - 0.72 };
+    for (const [n, dx, dz, a] of [['tackle_box', 1.6, 1.0, 0.3], ['plastic_bucket_full', 1.1, 1.5, 1.0]]) I.add('fishing_gear', n, M(pl.x0 + dx, y, pl.z0 + dz, 0, a, 0));
+    const cn = lib.names('coolers'); if (cn.length) I.add('coolers', cn[0], M(pl.x1 - 0.9, y, pl.z0 + 1.2, 0, 0.4, 0), { tint: [0.55, 0.75, 1.15] });   // the blue cooler at the walk junction
     const meshes = I.build(Fr.groups.detail); for (const m of meshes) m.raycast = () => {};
     // rod in a tripod holder at the platform edge, line out to the water
-    { const T = kit.batch('r4rod'), tx = -4.4, tz = pl.z0 + 0.5, apex = [tx, y + 0.95, tz];
+    { const T = kit.batch('r4rod'), tx = pl.x0 + 2.2, tz = pl.z0 + 0.55, apex = [tx, y + 0.95, tz];
       for (let k = 0; k < 3; k++) { const a2 = k * 2.094 + 0.3; T.rod(ST, [tx + Math.cos(a2) * 0.32, y, tz + Math.sin(a2) * 0.32], apex, 0.012, { color: 0x2d2d2d }); }
       const p = lib.piece('fishing_gear', 'fishing_pole'); if (p) { const g = new THREE.Group(); g.position.set(tx, y + 0.95, tz); g.rotation.set(-0.95, 0.15, 0); for (const q of p.parts) { const m = new THREE.Mesh(q.geometry, q.material); m.castShadow = true; m.raycast = () => {}; g.add(m); } Fr.groups.detail.add(g); }
       T.tube(mat.plastic(), [[tx, y + 2.4, tz - 1.3], [tx - 0.2, y + 1.2, tz - 3.0], [tx - 0.3, sea, tz - 4.2]], 0.0015, { seg: 3, color: 0xe8e8e0, steps: 20 }); T.build(Fr.groups.detail); }
@@ -111,8 +112,8 @@ export function build(ctx) {
       const inner = new THREE.Group(); if (long === 'z') inner.rotation.y = Math.PI / 2; g.add(inner);
       for (const q of p.parts) { let mm = q.material; if (/blue/i.test(mm.name || '')) { mm = mm.clone(); mm.color.setRGB(0.02, 0.02, 0.022); mm.name += ':r4black'; }
         if (/red/i.test(mm.name || '')) { mm = mm.clone(); mm.color.setRGB(0.12, 0.12, 0.12); } const m = new THREE.Mesh(q.geometry, mm); m.castShadow = false; m.receiveShadow = true; m.raycast = () => {}; inner.add(m); }
-      g.position.set(boat.x, sea - 0.28, boat.z); g.rotation.y = boat.h - Math.PI / 2; Fr.groups.dyn.add(g);
-      const ph = r() * 6.28; ctx.updaters.push(() => { const t = performance.now() / 1000; g.position.y = sea - 0.28 + Math.sin(t * 0.9 + ph) * 0.03; g.rotation.z = Math.sin(t * 0.7 + ph) * 0.02; });
+      g.position.set(boat.x, sea - 0.42, boat.z); g.rotation.y = boat.h - Math.PI / 2; Fr.groups.dyn.add(g);
+      const ph = r() * 6.28; ctx.updaters.push(() => { const t = performance.now() / 1000; g.position.y = sea - 0.42 + Math.sin(t * 0.9 + ph) * 0.03; g.rotation.z = Math.sin(t * 0.7 + ph) * 0.02; });
       // bow and stern lines to the platform cleats
       const tb = kit.batch('r4lines'); for (const [cx, cz, dx] of [[pl.x0 + 1.2, pl.z0 + 0.12, -2.4], [pl.x0 + 4.6, pl.z0 + 0.12, 2.2]]) { const a2 = [cx, y + 0.08, cz], b2 = [boat.x + dx, sea + 0.55, boat.z + 0.35], pts = []; for (let i = 0; i <= 10; i++) { const t = i / 10; pts.push([a2[0] + (b2[0] - a2[0]) * t, a2[1] + (b2[1] - a2[1]) * t - 0.25 * 4 * t * (1 - t), a2[2] + (b2[2] - a2[2]) * t]); } tb.tube(ROPE, pts, 0.011, { seg: 5, color: 0xd6cfb4 }); }
       tb.build(Fr.groups.detail, { cast: false }); }

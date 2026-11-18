@@ -33,6 +33,8 @@ export function frame(ctx, kind = 'lot') {
     // finish: merge the batches into the S-frame subgroups
     build() {
       F.ext.build(groups.ext); F.int.build(groups.int, { cast: false }); F.detail.build(groups.detail);
+      // user review: softer, matte weathered look (less sky reflection on wood, paint and roofing); glass keeps its reflections
+      for (const g of Object.values(groups)) g.traverse((o) => { const m = o.material; if (!m || m.userData?.r4matte || m.transparent) return; m.userData.r4matte = true; m.envMapIntensity = Math.min(m.envMapIntensity ?? 1, m.metalness > 0.5 ? 0.6 : 0.35); });
     },
   };
   per[kind] = F;

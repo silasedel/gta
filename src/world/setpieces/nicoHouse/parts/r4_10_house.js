@@ -20,7 +20,7 @@ export function build(ctx) {
   const { hexa, subtract, lathe } = makeGeo(THREE, kit);
   const F = P.F, db = P.board, J = P.joist, BM = P.beam, joistTop = F - db.t, joistBot = joistTop - J.d, beamTop = joistBot, beamBot = beamTop - BM.d, yT = F + P.wallH;
   ctx.r4 = { F, yT, beamBot };
-  const WOOD = mat.wood(), WHITE = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.85 }), TEAL = mat.paint({ peel: 'b', fade: 0.4, gloss: 0.8, scale: 1.2 }), DOORP = mat.paint({ peel: 'a', fade: 0.12, gloss: 0.55, scale: 0.6 });
+  const WOOD = mat.wood(), WHITE = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.93 }), TEAL = mat.paint({ peel: 'b', fade: 0.45, gloss: 0.92, scale: 1.2 }), DOORP = mat.paint({ peel: 'a', fade: 0.15, gloss: 0.72, scale: 0.6 });
   const GLASS = mat.glass(), PLAST = mat.plastic(), STEEL = mat.steel(), CONC = mat.concrete(), RUB = mat.rubber(), MP = mat.metalPaint();
   const gray = (k = 1) => kit.vary(kit.mul(C.deck, k), r, 0.08), dark = () => kit.vary(C.deckDark, r, 0.09);
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0, Bt = B) => Bt.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
@@ -30,10 +30,8 @@ export function build(ctx) {
   const posts = [];
   for (const x of P.postXs) for (const z of P.postZs) {
     if (x === -2.2 && z === -7.0) continue;                          // open drive-through bay (10)
-    if (x === 10.6 && z === -7.0) continue;
     posts.push([x, z]);
   }
-  posts.push([-7.8, -3.6], [-7.8, -1.6]);                             // front deck's west extension (stair head)
   const ps = P.post;
   for (const [x, z] of posts) {
     const h = beamBot + 0.002 - 0.05, lean = (r() - 0.5) * 0.008;
@@ -43,7 +41,7 @@ export function build(ctx) {
     Fr.col.box(x, 1.6, z, ps + 0.02, 3.2, ps + 0.02, { tag: 'pile' });
   }
   // beams along X on every Z line: 3-ply 2x12, top flush with the joist bottoms, ends cut 2 cm past the outer posts
-  const beamLines = [{ z: -12.8, x0: -6.5, x1: 10.6 }, { z: -10.4, x0: -6.5, x1: 10.6 }, { z: -7.0, x0: -6.5, x1: 10.6 }, { z: -3.6, x0: -7.8, x1: 10.6 }, { z: -1.6, x0: -7.8, x1: 10.6 }];
+  const beamLines = [-12.8, -10.4, -7.0, -3.6, -1.6].map((z) => ({ z, x0: -8.5, x1: 8.5 }));
   for (const L of beamLines) {
     const x0 = L.x0 - ps / 2 - 0.02, x1 = L.x1 + ps / 2 + 0.02, n = Math.ceil((x1 - x0) / 5.2);
     for (let i = 0; i < n; i++) { const a = x0 + (x1 - x0) * i / n, b = x0 + (x1 - x0) * (i + 1) / n - 0.004;
@@ -55,19 +53,18 @@ export function build(ctx) {
   for (const [x, z] of posts) {
     const onX = beamLines.find((L) => Math.abs(L.z - z) < 0.01);
     if (onX) { if (x > onX.x0 + 0.1) knee(x, z, -1, 0); if (x < onX.x1 - 0.1) knee(x, z, 1, 0); }
-    if (x === -6.5 || x === 10.6 || x === -7.8) { if (z > -12.7 && !(x === -7.8 && z < -3.5)) knee(x, z, 0, -1); if (z < -1.7) knee(x, z, 0, 1); }
+    if (x === -8.5 || x === 8.5) { if (z > -12.7) knee(x, z, 0, -1); if (z < -1.7) knee(x, z, 0, 1); }
   }
   // joists along Z (on the beams), the platform outline per x
-  const zSpan = (x) => (x < -6.5 ? [-3.6 - 0.08, -1.6 + 0.08] : [-12.8 - 0.08, -1.6 + 0.08]);
-  const jx = []; for (let x = -7.8 - ps / 2 + 0.03; x < 10.6 + ps / 2 - 0.02; x += J.oc) jx.push(x);
+  const zSpan = () => [-12.8 - 0.08, -1.6 + 0.08];
+  const jx = []; for (let x = -8.5 - ps / 2 + 0.03; x < 8.5 + ps / 2 - 0.02; x += J.oc) jx.push(x);
   for (const x of jx) { const [z0, z1] = zSpan(x); box(WOOD, J.t, J.d, z1 - z0 - 0.004, x, joistBot + J.d / 2, (z0 + z1) / 2, { grain: 2, color: kit.vary(kit.mul(C.deckDark, 0.95), r, 0.1), wear: 0.4, bevel: 0.003, shade: [0.8, 1] }); }
   // rim boards around the platform (the visible deck edge band), proud of the joist ends
   const rim = (x0, z0, x1, z1) => { const hz = Math.abs(z1 - z0) < 0.01, len = hz ? Math.abs(x1 - x0) : Math.abs(z1 - z0);
     box(WOOD, hz ? len : 0.045, J.d + 0.02, hz ? 0.045 : len, (x0 + x1) / 2, joistBot + J.d / 2 + 0.005, (z0 + z1) / 2, { grain: hz ? 0 : 2, color: gray(0.9), wear: 0.7, bevel: 0.006, shade: [0.85, 1] }); };
   const ex = 0.0225, E0 = -12.8 - 0.08 - ex, E1 = -1.6 + 0.08 + ex;
-  rim(-6.5 - ps / 2 - 0.05, E0, 10.6 + ps / 2 + 0.07, E0); rim(10.6 + ps / 2 + 0.05, E0 + ex, 10.6 + ps / 2 + 0.05, E1 - ex);
-  rim(-7.8 - ps / 2 - 0.05, E1, 10.6 + ps / 2 + 0.07, E1); rim(-7.8 - ps / 2 - 0.05 + ex, -3.6 - 0.08, -7.8 - ps / 2 - 0.05 + ex, E1 - ex);
-  rim(-6.5 - ps / 2 - 0.05 + ex, E0 + ex, -6.5 - ps / 2 - 0.05 + ex, -3.6 - 0.12);
+  const RX0 = -8.5 - ps / 2 - 0.05, RX1 = 8.5 + ps / 2 + 0.05;
+  rim(RX0, E0, RX1 + 0.02, E0); rim(RX0, E1, RX1 + 0.02, E1); rim(RX1, E0 + ex, RX1, E1 - ex); rim(RX0 + ex, E0 + ex, RX0 + ex, E1 - ex);
   // plywood subfloor under the rooms (seen from below), joints between sheets
   const PLY = mat.pbr('plywood', { rep: 1.2, grunge: true }), Bd = P.body;
   for (let x = Bd.x0; x < Bd.x1 - 0.01; x += 2.44) for (let z = Bd.z0; z < Bd.z1 - 0.01; z += 1.22) {
@@ -84,13 +81,12 @@ export function build(ctx) {
       box(WOOD, len, db.t, db.w, (x + xe) / 2, F - db.t / 2 + (r() - 0.5) * 0.002, z, { grain: 0, color: tone, wear: fresh ? 0.1 : 0.35 + r() * 0.5, bevel: 0.005 }, (r() - 0.5) * 0.008);
       for (const j of jx) if (j > x + 0.03 && j < xe - 0.03) for (const dz of [-0.04, 0.04]) screws.push(M(j, F + 0.0006, z + dz)); x = xe; } };
   for (let z = -12.8 - 0.08 + pitch / 2; z < -1.6 + 0.08 - db.w / 2 + 0.01; z += pitch) {
-    if (z < -10.4 - db.w / 2) deckRow(z, -6.5 - ps / 2 - 0.03, 10.6 + ps / 2 + 0.05);
-    else if (z < -3.6 + db.w / 2) deckRow(z, 6.5 + 0.17, 10.6 + ps / 2 + 0.05);
-    else deckRow(z, -7.8 - ps / 2 - 0.03, 10.6 + ps / 2 + 0.05);
+    if (z < -10.4 - db.w / 2 || z > -3.6 + db.w / 2) deckRow(z, RX0 + 0.02, RX1 + 0.04);
+    else { deckRow(z, RX0 + 0.02, -6.5 - 0.17); deckRow(z, 6.5 + 0.17, RX1 + 0.04); }
   }
   { const g = new THREE.CylinderGeometry(0.004, 0.004, 0.002, 6); const sm = kit.instances(g, mat.steel(), screws, null); sm.name = 'r4screws'; Fr.groups.detail.add(sm); }
   // deck / floor colliders (one per region; the room floors too)
-  for (const R of [P.deckN, P.deckE, P.deckS, Bd]) Fr.col.box((R.x0 + R.x1) / 2, F - 0.16, (R.z0 + R.z1) / 2, R.x1 - R.x0 + 0.12, 0.32, R.z1 - R.z0 + 0.12, { tag: R === Bd ? 'floor' : 'deck', surface: 'wood' });
+  for (const R of [P.deckN, P.deckE, P.deckS, P.deckW, Bd]) Fr.col.box((R.x0 + R.x1) / 2, F - 0.16, (R.z0 + R.z1) / 2, R.x1 - R.x0 + 0.12, 0.32, R.z1 - R.z0 + 0.12, { tag: R === Bd ? 'floor' : 'deck', surface: 'wood' });
 
   // ================= rails =================
   const RL = P.rail, railY = F + RL.h;
@@ -108,47 +104,36 @@ export function build(ctx) {
     for (let i = 0; i < nc; i++) { const [x, z] = at(len * (i + 0.5) / nc); box(WOOD, len / nc - 0.004 + (o.capX || 0), 0.04, 0.145, x, railY + 0.02, z, { grain: 0, color: gray(0.96), wear: 0.65, bevel: 0.008 }, 0, ry); }
     Fr.col.box((ax + bx) / 2, F + 0.55, (az + bz) / 2, len, 1.1, 0.12, { ry, tag: 'rail' });
   };
-  const e = 0.06, SL = P.stairN.land, SW = P.stairW;
-  railRun(-6.5 + 0.1, -12.8 - 0.08 + e, SL.x0 + 0.05, -12.8 - 0.08 + e, {});                 // back deck rail, up to the stair landing
-  railRun(SL.x1 - 0.05, -12.8 - 0.08 + e, 10.6 + 0.1 + e, -12.8 - 0.08 + e, { noStart: false });
-  railRun(SL.x0 + 0.05, SL.z0 + e, SL.x1 - 0.05, SL.z0 + e, { noStart: true }); railRun(SL.x1 - 0.05, SL.z0 + e, SL.x1 - 0.05, -12.8 - 0.08 + e, { noStart: true, noEnd: true });
-  railRun(-6.5 + 0.12 - 0.12 - ps / 2, -12.8 - 0.08 + e, -6.5 - ps / 2 + 0.05, -10.4 - 0.08, { noStart: true });   // west return of the back deck
-  railRun(10.6 + 0.1 + e, -12.8 - 0.08 + e, 10.6 + 0.1 + e, -1.6 + 0.08 - e, { noStart: true });             // east end (the big gable deck)
-  railRun(10.6 + 0.1 + e, -1.6 + 0.08 - e, SW.x + SW.w / 2 + 0.03, -1.6 + 0.08 - e, { noStart: true });      // front, up to the west stair
-  railRun(-7.8 - ps / 2 - 0.05 + e, -1.6 + 0.08 - e, -7.8 - ps / 2 - 0.05 + e, -3.6 - 0.08 + e, {});          // west end of the front strip
-  railRun(-7.8 - ps / 2 - 0.05 + e, -3.6 - 0.08 + e, -6.5 - ps / 2, -3.6 - 0.08 + e, { noStart: true });
-  // back stair landing (deck level): joists + boards + its posts
-  { const Lx0 = SL.x0, Lx1 = SL.x1; for (let z = SL.z0 + pitch / 2; z < -12.8 - 0.08 - 0.02; z += pitch) box(WOOD, Lx1 - Lx0, db.t, db.w, (Lx0 + Lx1) / 2, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
-    for (const x of [Lx0 + 0.1, Lx1 - 0.1]) box(WOOD, J.t, J.d, SL.z1 - SL.z0, x, joistBot + J.d / 2, (SL.z0 + SL.z1) / 2, { grain: 2, color: dark(), wear: 0.4 });
-    for (const x of [Lx0, Lx1]) { box(WHITE, 0.16, beamTop - 0.05, 0.16, x, 0.05 + (beamTop - 0.05) / 2, SL.z0 + 0.1, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(x, 1.6, SL.z0 + 0.1, 0.18, 3.2, 0.18, { tag: 'pile' }); }
-    box(WOOD, Lx1 - Lx0 + 0.16, 0.2, 0.12, (Lx0 + Lx1) / 2, joistBot - 0.1, SL.z0 + 0.1, { grain: 0, color: dark(), wear: 0.5 });
-    Fr.col.box((Lx0 + Lx1) / 2, F - 0.16, (SL.z0 + SL.z1) / 2, Lx1 - Lx0, 0.32, SL.z1 - SL.z0 + 0.1, { tag: 'deck', surface: 'wood' }); }
+  // ================= rails: the deck wraps the whole house, tight (user review), open only at the two stair heads =================
+  const e = 0.06, RE = { x0: RX0 + e, x1: RX1 - e, z0: E0 + e, z1: E1 - e }, SWs = P.stairW, SEs = P.stairE;
+  railRun(RE.x0, RE.z0, RE.x1, RE.z0, {});                                                   // back (bay) side
+  railRun(RE.x1, RE.z0, RE.x1, SEs.pad.z0, { noStart: true }); railRun(RE.x1, SEs.pad.z1, RE.x1, RE.z1, { noEnd: true });   // east side, open at the east stair pad
+  railRun(RE.x1, RE.z1, RE.x0, RE.z1, { noStart: true });                                    // front (hoop side)
+  railRun(RE.x0, RE.z1, RE.x0, SWs.pad.z1, { noStart: true }); railRun(RE.x0, SWs.pad.z0, RE.x0, RE.z0, { noEnd: true });   // west side, open at the west stair pad
 
-  // ================= stairs =================
-  const rise = F / (P.stairW.n + 1), run = P.run;
+  // ================= stairs: two short flights with a 1.2 m landing, running down ALONG the side of the house (02, 08, 10) =================
+  const rise = F / 20, run = P.run;
   const flight = (o) => {
-    Fr.flight({ x: o.x, z: o.z, y: F, dir: o.dir, n: o.n, w: o.w, rise, run });
+    const Y = o.y0 ?? F; Fr.flight({ x: o.x, z: o.z, y: Y, dir: o.dir, n: o.n, w: o.w, rise, run });
     const [dx, dz] = o.dir, px = -dz, pz = dx, n = o.n, ry = Math.atan2(-dz, dx), total = n * run, drop = (n + 1) * rise;
     const at = (t, y, s = 0) => [o.x + dx * t + px * s, y, o.z + dz * t + pz * s];
-    for (let i = 1; i <= n; i++) { const y = F - rise * i;
+    for (let i = 1; i <= n; i++) { const y = Y - rise * i;
       for (const k of [0, 1]) { const p = at(run * (i - 1) + 0.075 + k * 0.142, y - 0.018); box(WOOD, 0.136, 0.036, o.w - 0.1, p[0], p[1], p[2], { grain: 2, color: gray(0.82 + r() * 0.26), wear: 0.5 + r() * 0.4, bevel: 0.006 }, 0, ry); } }
     // 2x12 stringers as solid slabs following the flight
-    for (const s of [-1, 1]) { const a = at(-0.05, F - 0.06, s * (o.w / 2 - 0.025)), b = at(total + 0.12, F - drop + 0.12, s * (o.w / 2 - 0.025)); B.strut(WOOD, a, b, 0.045, 0.29, { color: gray(0.85), wear: 0.7, bevel: 0.006, rand: r }); }
-    const slope = Math.atan2(drop, total + run), sl = Math.hypot(drop, total + run), mid = at((total + run) / 2 - 0.1 * Math.sin(slope), F - drop / 2 - 0.1 * Math.cos(slope));
+    for (const s of [-1, 1]) { const a = at(-0.05, Y - 0.06, s * (o.w / 2 - 0.025)), b = at(total + 0.12, Y - drop + 0.12, s * (o.w / 2 - 0.025)); B.strut(WOOD, a, b, 0.045, 0.29, { color: gray(0.85), wear: 0.7, bevel: 0.006, rand: r }); }
+    const slope = Math.atan2(drop, total + run), sl = Math.hypot(drop, total + run), mid = at((total + run) / 2 - 0.1 * Math.sin(slope), Y - drop / 2 - 0.1 * Math.cos(slope));
     Fr.col.boxQ(mid, [sl / 2 + 0.05, 0.1, o.w / 2], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, -slope, 'YXZ')), { tag: 'stair', surface: 'wood' });
     // sloped rails: posts at the foot and the head, cap + sub rail, balusters
     for (const s of [-1, 1]) { if (o.skipSide === s) continue;
-      const off = s * (o.w / 2 + 0.03), top = at(0.05, F + RL.h, off), bot = at(total + run - 0.08, F - drop + RL.h - 0.05, off);
+      const off = s * (o.w / 2 + 0.03), top = at(0.05, Y + RL.h, off), bot = at(total + run - 0.08, Y - drop + RL.h - 0.05, off);
       B.strut(WOOD, top, bot, 0.14, 0.04, { color: gray(0.95), wear: 0.6, bevel: 0.007, rand: r, roll: Math.PI / 2 });
       const tl = [top[0], top[1] - 0.12, top[2]], bl = [bot[0], bot[1] - 0.12, bot[2]]; B.strut(WOOD, tl, bl, 0.04, 0.09, { color: gray(0.9), wear: 0.6, bevel: 0.005, rand: r });
-      const bp = at(total + run - 0.08, 0, off); box(WOOD, 0.1, F - drop + RL.h + 0.05, 0.1, bp[0], (F - drop + RL.h + 0.05) / 2, bp[2], { grain: 1, color: gray(0.9), wear: 0.7, bevel: 0.008 }, 0, ry);
-      for (let t = 0.22; t < total; t += 0.14) { const yb = F - (t / run + 0.6) * rise, p = at(t, 0, off), ytop = F + RL.h - 0.12 - (t - 0.05) * Math.tan(slope) - 0.03, ybot = yb + 0.03; if (ytop - ybot < 0.3) continue;
+      const bp = at(total + run - 0.08, 0, off); box(WOOD, 0.1, Y - drop + RL.h + 0.05, 0.1, bp[0], (Y - drop + RL.h + 0.05) / 2, bp[2], { grain: 1, color: gray(0.9), wear: 0.7, bevel: 0.008 }, 0, ry);
+      for (let t = 0.22; t < total; t += 0.14) { const yb = Y - (t / run + 0.6) * rise, p = at(t, 0, off), ytop = Y + RL.h - 0.12 - (t - 0.05) * Math.tan(slope) - 0.03, ybot = yb + 0.03; if (ytop - ybot < 0.3) continue;
         box(WOOD, RL.bal, ytop - ybot, RL.bal, p[0], (ytop + ybot) / 2, p[2], { grain: 1, color: gray(0.86 + r() * 0.2), wear: 0.6, bevel: 0.005 }, 0, ry); }
-      Fr.col.boxQ(at((total + run) / 2, F - drop / 2 + 0.55, off), [sl / 2, 0.55, 0.05], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, -slope, 'YXZ')), { tag: 'rail' }); }
+      Fr.col.boxQ(at((total + run) / 2, Y - drop / 2 + 0.55, off), [sl / 2, 0.55, 0.05], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, -slope, 'YXZ')), { tag: 'rail' }); }
     return { total, drop };
   };
-  flight({ x: SW.x, z: -1.6 + 0.08, dir: [0, 1], n: SW.n, w: SW.w });                  // west front stair, down toward the drive (10)
-  const SN = P.stairN; flight({ x: SN.x, z: SN.z, dir: [-1, 0], n: SN.n, w: SN.w, skipSide: -1 });   // back stair along the deck, down to the lawn (08)
   // lattice skirt under the west stair (10): real diagonal strips in a frame, two layers, no cards
   const lattice = (x, z0, z1, yTop0, yTop1, o = {}) => {
     const LW = mat.paint({ peel: 'a', fade: 0.6, gloss: 0.9 }), col = kit.vary(C.white, r, 0.04), len = z1 - z0, pitchL = 0.115;
@@ -162,7 +147,31 @@ export function build(ctx) {
     box(LW, 0.05, 0.07, len, x, 0.07, (z0 + z1) / 2, { color: col, wear: 0.6 });
     if (o.col) Fr.col.box(x, 0.8, (z0 + z1) / 2, 0.1, 1.6, len, { tag: 'lattice' });
   };
-  { const z0 = -1.6 + 0.5, z1 = -1.6 + 0.08 + SW.n * run - 0.2; for (const s of [-1, 1]) lattice(SW.x + s * (SW.w / 2 - 0.02), z0, z1, F - (z0 + 1.6) / run * rise - 0.35, F - (z1 + 1.6) / run * rise - 0.32, { col: true }); }
+  const sideStair = (S2, sgnX) => {   // sgnX: -1 west side (runs +Z toward the front corner), +1 east side (runs -Z toward the bay corner)
+    const pd = S2.pad, xc = (pd.x0 + pd.x1) / 2, dirZ = sgnX < 0 ? 1 : -1, yL = F - 10 * rise;
+    // head pad at deck level outside the deck edge: joists, boards, two posts
+    for (let z = pd.z0 + pitch / 2; z < pd.z1 - 0.02; z += pitch) box(WOOD, pd.x1 - pd.x0, db.t, db.w, xc, F - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const zz of [pd.z0 + 0.06, pd.z1 - 0.06]) box(WOOD, pd.x1 - pd.x0, J.d, J.t, xc, joistBot + J.d / 2, zz, { grain: 0, color: dark(), wear: 0.4 });
+    const xo = sgnX < 0 ? pd.x0 + 0.06 : pd.x1 - 0.06, zBack = dirZ > 0 ? pd.z0 + 0.06 : pd.z1 - 0.06;
+    for (const zz of [pd.z0 + 0.06, pd.z1 - 0.06]) { box(WHITE, 0.14, beamTop - 0.05, 0.14, xo, 0.05 + (beamTop - 0.05) / 2, zz, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(xo, 1.6, zz, 0.16, 3.2, 0.16, { tag: 'pile' }); }
+    Fr.col.box(xc, F - 0.16, (pd.z0 + pd.z1) / 2, pd.x1 - pd.x0 + 0.1, 0.32, pd.z1 - pd.z0, { tag: 'deck', surface: 'wood' });
+    railRun(xo, zBack, xo, dirZ > 0 ? pd.z1 : pd.z0, { noEnd: true });
+    railRun(sgnX < 0 ? RE.x0 : RE.x1, zBack, xo, zBack, { noStart: true });
+    // flight 1 (10 risers) from the pad, the landing, flight 2 (10 risers) to the ground
+    const z1 = dirZ > 0 ? pd.z1 : pd.z0, f1 = flight({ x: xc, z: z1, y0: F, dir: [0, dirZ], n: 9, w: pd.x1 - pd.x0 - 0.1, skipSide: -1 });
+    const lz0 = z1 + dirZ * (f1.total + run), lz1 = lz0 + dirZ * 1.2, la = Math.min(lz0, lz1), lb = Math.max(lz0, lz1);
+    for (let z = la + pitch / 2; z < lb - 0.02; z += pitch) box(WOOD, pd.x1 - pd.x0, db.t, db.w, xc, yL - db.t / 2, z, { grain: 0, color: gray(0.9 + r() * 0.2), wear: 0.5, bevel: 0.005 });
+    for (const x of [pd.x0 + 0.06, pd.x1 - 0.06]) box(WOOD, J.t, 0.2, lb - la, x, yL - db.t - 0.1, (la + lb) / 2, { grain: 2, color: dark(), wear: 0.4 });
+    for (const x of [pd.x0 + 0.06, pd.x1 - 0.06]) for (const z of [la + 0.06, lb - 0.06]) { box(WHITE, 0.12, yL + RL.h, 0.12, x, (yL + RL.h) / 2, z, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); Fr.col.box(x, (yL + RL.h) / 2, z, 0.14, yL + RL.h, 0.14, { tag: 'pile' }); }
+    Fr.col.box(xc, yL - 0.1, (la + lb) / 2, pd.x1 - pd.x0, 0.2, lb - la, { tag: 'deck', surface: 'wood' });
+    { const xr = sgnX < 0 ? pd.x0 + 0.03 : pd.x1 - 0.03; box(WOOD, 0.045, 0.09, lb - la, xr, yL + RL.h - 0.1, (la + lb) / 2, { grain: 2, color: gray(0.92), wear: 0.6 }); box(WOOD, 0.145, 0.04, lb - la + 0.1, xr, yL + RL.h + 0.02, (la + lb) / 2, { grain: 2, color: gray(0.96), wear: 0.65 });
+      for (let z = la + 0.15; z < lb - 0.1; z += RL.oc) box(WOOD, RL.bal, RL.h - 0.26, RL.bal, xr, yL + 0.12 + (RL.h - 0.26) / 2, z, { grain: 1, color: gray(0.9), wear: 0.6 });
+      Fr.col.box(xr, yL + 0.55, (la + lb) / 2, 0.1, 1.1, lb - la, { tag: 'rail' }); }
+    const f2 = flight({ x: xc, z: dirZ > 0 ? lb : la, y0: yL, dir: [0, dirZ], n: 9, w: pd.x1 - pd.x0 - 0.1 });
+    // lattice skirt under the lower flight (10), outer side
+    const za = dirZ > 0 ? lb + 0.3 : la - 0.3, zb = za + dirZ * (f2.total - 0.3); lattice(sgnX < 0 ? pd.x0 + 0.02 : pd.x1 - 0.02, Math.min(za, zb), Math.max(za, zb), dirZ > 0 ? yL - 0.45 : 0.35, dirZ > 0 ? 0.35 : yL - 0.45, { col: false });
+  };
+  sideStair(SWs, -1); sideStair(SEs, 1);
 
   // ================= pavers under the house (10: square concrete pavers) =================
   { const PV = mat.concrete(), Pv = P.pavers, s = 0.6;
@@ -360,7 +369,7 @@ export function build(ctx) {
     for (let t = 0.3; t < len - 0.2; t += 0.3) { const p = new THREE.Vector3(...base).addScaledVector(up, t / len); D.cyl(mat.steel(), 0.016, 0.016, w, M(p.x, p.y, p.z, 0, 0, Math.PI / 2), { color: 0xc9c9c4, seg: 10 }); }
     Fr.col.box(base[0], (base[1] + top[1]) / 2, (base[2] + top[2]) / 2, w + 0.06, len, 0.1, { rx: -Math.atan2(top[2] - base[2], top[1] - base[1]), tag: 'prop' }); }
   // ================= satellite dish on a 4x4 post at the east deck's NE corner (02), bolted arm, nothing floating =================
-  { const px = 10.6 + 0.02, pz = -12.8 - 0.02, y0 = F, y1 = F + 2.25, DS = mat.metalPaint();
+  { const px = 8.5 + 0.02, pz = -12.8 - 0.02, y0 = F, y1 = F + 2.25, DS = mat.metalPaint();
     box(WOOD, 0.09, y1 - y0, 0.09, px, (y0 + y1) / 2, pz, { grain: 1, color: gray(0.95), wear: 0.6, bevel: 0.008 });
     for (const yy of [F + 0.6, F + 1.0]) box(STEEL, 0.11, 0.03, 0.11, px, yy, pz, { color: 0x8c8a84, bevel: 0.004 });
     box(STEEL, 0.06, 0.5, 0.06, px, y1 - 0.25, pz, { color: 0x9a9890, bevel: 0.006 }); B.strut(STEEL, [px, y1 - 0.08, pz], [px - 0.18, y1 + 0.12, pz + 0.12], 0.05, 0.05, { color: 0x9a9890, rand: r });
