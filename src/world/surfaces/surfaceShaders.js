@@ -14,6 +14,8 @@
 import * as THREE from 'three';
 
 export const SRF_U = { value: new THREE.Vector4(1, 1, 0, 0) };
+// (r3-world) `?tar=old`: the previous tar crack-sealer look (thin smooth lines), for A/B shots
+const TAR_OLD = typeof location !== 'undefined' && /[?&]tar=old\b/.test(location.search);
 export const SURF_OFF = typeof location !== 'undefined' && /[?&]surfaces=0\b/.test(location.search);
 if (typeof window !== 'undefined') window.__surfaces = { u: SRF_U, set(on) { SRF_U.value.x = on ? 1 : 0; } };
 
@@ -51,6 +53,13 @@ vec4 srfTexB(sampler2D t, vec2 uv, float bias) {
   vec4 b = texture2D(t, srfUV2(uv), bias); float w = srfBW();
   vec4 m = textureLod(t, vec2(0.5), 12.0);
   return clamp((mix(a, b, w) - m) * inversesqrt(w * w + (1.0 - w) * (1.0 - w)) * 0.92 + m, 0.0, 1.0);
+}
+// (r3-world) tar crack-seal band: the binder squeezed out unevenly (ragged rim, a few cm of jitter at close range), the line fades
+// out by pixel footprint like before (no shimmer far away)
+float srfTarBand(float d, float tw, vec2 w, float fwM) {
+  float rag = ((srfN(w * 23.0) - 0.5) * 0.5 + (srfN(w * 61.0 + 3.3) - 0.5) * 0.35) * clamp(0.012 / fwM, 0.0, 1.0);
+  float t = tw * (1.0 + rag);
+  return (1.0 - smoothstep(t, t + fwM, d)) * clamp(tw * 2.5 / fwM, 0.0, 1.0);
 }
 vec4 srfTex(sampler2D t, vec2 uv) { vec4 a = texture2D(t, uv); if (uSrf.x < 0.5) return a; return mix(a, texture2D(t, srfUV2(uv)), srfBW()); }
 `;
@@ -130,16 +139,28 @@ if (uSrf.x > 0.5) {
     float dT = abs(ss - tcPos + (srfN(vec2(o * 0.8, tc)) - 0.5) * 0.9 + (srfN(vec2(o * 5.0, tc + 5.0)) - 0.5) * 0.08);
     float ext = smoothstep(0.38, 0.52, srfN(vec2(o * 0.22 + tc * 3.1, tc))) * step(srfH(vec2(tc, seed * 5.0)), age * 0.85 - 0.1) * jf;
     float sealed = step(0.4, srfH(vec2(tc + 2.0, seed)));
+${TAR_OLD ? `
     float tw = mix(0.0035, 0.03, sealed);
     float tline = (1.0 - smoothstep(tw, tw + fwM, dT)) * ext * clamp(tw * 2.0 / fwM, 0.0, 1.0);
+` : `
+    float tw = mix(0.0035, 0.024 + 0.03 * srfN(vec2(o * 1.3, tc + 9.0)), sealed); // (r3-world) sealed: 2.5-5.5 cm, uneven along the crack
+    float tline = sealed > 0.5 ? srfTarBand(dT, tw, w, fwM) * ext : (1.0 - smoothstep(tw, tw + fwM, dT)) * ext * clamp(tw * 2.0 / fwM, 0.0, 1.0);
+`}
     tar = max(tar, tline * sealed); crk = max(crk, tline * (1.0 - sealed));
     // longitudinal cracks (tar-sealed on most streets) wandering along a wheel path for 10-40 m
     { float lc2 = L.z; float side = srfH(vec2(sec, seed * 3.3)) < 0.5 ? -1.0 : 1.0;
       float run = floor(ss / 23.0), on = step(srfH(vec2(run, seed * 7.7 + sec)), 0.25 + age * 0.45);
       float dLc = abs(lc2 - side * (0.9 + 0.5 * (srfH(vec2(run, 1.0)) - 0.5)) + (srfN(vec2(s * 0.35, run)) - 0.5) * 0.45 + (srfN(vec2(s * 2.1, run)) - 0.5) * 0.06);
+${TAR_OLD ? `
       float lw2 = 0.012 + 0.016 * srfN(vec2(s * 0.5, run + 3.0));
       float fadeE = smoothstep(0.0, 0.25, fract(ss / 23.0)) * smoothstep(1.0, 0.75, fract(ss / 23.0));
       tar = max(tar, (1.0 - smoothstep(lw2, lw2 + fwM, dLc)) * on * fadeE * jf * clamp(lw2 * 2.5 / fwM, 0.0, 1.0)); }
+` : `
+      dLc = abs(dLc + (srfN(vec2(s * 4.3, run + 5.0)) - 0.5) * 0.03); // (r3-world) the crack under the seal kinks at cm scale
+      float lw2 = 0.016 + 0.026 * srfN(vec2(s * 0.5, run + 3.0));
+      float fadeE = smoothstep(0.0, 0.25, fract(ss / 23.0)) * smoothstep(1.0, 0.75, fract(ss / 23.0));
+      tar = max(tar, srfTarBand(dLc, lw2, w, fwM) * on * fadeE * jf); }
+`}
     // concrete gutter pan along curbed streets (0.5 m), contraction joints every 3 m
     float dg = hw - abs(o);
     gut = curbed * (1.0 - smoothstep(0.5, 0.5 + fwM * 1.5, dg));
@@ -153,10 +174,21 @@ if (uSrf.x > 0.5) {
   {
     float nC = srfN(w * 0.065 + vec2(srfN(w * 0.19), srfN(w * 0.19 + 4.0)) * 1.1);
     float gC = max(fwidth(nC), 1e-6) / fwM;
+${TAR_OLD ? `
     float dC = abs(nC - 0.5) / max(gC, 0.02);
     float mC = smoothstep(0.4, 0.56, srfN(w * 0.021 + 11.0)) * smoothstep(0.2, 0.6, age);
     float tw2 = 0.018 + 0.016 * srfN(w * 0.7);
     tar = max(tar, (1.0 - smoothstep(tw2, tw2 + fwM, dC)) * mC * clamp(tw2 * 2.5 / fwM, 0.0, 1.0));
+` : `
+    // (r3-world, user Nov 17: the smooth pen-drawn curves read fake) the crack under the seal wanders and kinks at 2-60 cm scale,
+    // the band width changes along it (thin pour 1-3 cm, squeegeed overband sections 4.5-7.5 cm) and its rim is ragged
+    float sC = (nC - 0.5) / max(gC, 0.02) + (srfN(w * 1.7 + 2.0) - 0.5) * 0.06 + (srfN(w * 5.3 + 7.0) - 0.5) * 0.022 + (srfN(w * 13.0 + 1.0) - 0.5) * 0.008;
+    float dC = abs(sC);
+    float mC = smoothstep(0.4, 0.56, srfN(w * 0.021 + 11.0)) * smoothstep(0.2, 0.6, age);
+    float over = smoothstep(0.45, 0.75, srfN(w * 0.23 + 5.0));
+    float tw2 = mix(0.011 + 0.016 * srfN(w * 0.9), 0.045 + 0.03 * srfN(w * 0.6 + 1.0), over);
+    tar = max(tar, srfTarBand(dC, tw2, w, fwM) * mC);
+`}
   }
   // alligator (fatigue) cracking in old wheel paths
   {
@@ -202,9 +234,21 @@ if (uSrf.x > 0.5) {
     diffuseColor.rgb = mix(diffuseColor.rgb, cc * (1.0 - 0.55 * gutJ), gut);
     roughnessFactor = mix(roughnessFactor, 0.88, gut);
   }
+${TAR_OLD ? `
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.026, 0.025, 0.024), tar * 0.8);
   diffuseColor.rgb *= 1.0 - 0.6 * crk;
   roughnessFactor = mix(roughnessFactor, 0.64, tar * 0.8); // sealant: satin, not a mirror line at grazing angles
+` : `
+  // (r3-world) tar sealant body: near-black binder with sand / fine-aggregate grit pressed into it (pale flecks, darker pools),
+  // a slight sheen where it is thick and smooth, rougher where the grit shows; the grit fades out by pixel footprint
+  float tGF = 1.0 - smoothstep(0.004, 0.012, fwM);
+  float tGrit = srfN(w * 38.0) * 0.6 + srfN(w * 91.0 + 1.3) * 0.4;
+  float tFleck = step(0.86, srfH(floor(w * 160.0))) * tGF;
+  vec3 tarCol = vec3(0.030, 0.029, 0.027) * (0.8 + 0.55 * (tGrit - 0.5) * tGF) + vec3(0.075, 0.07, 0.062) * tFleck;
+  diffuseColor.rgb = mix(diffuseColor.rgb, tarCol, tar * 0.88);
+  diffuseColor.rgb *= 1.0 - 0.6 * crk;
+  roughnessFactor = mix(roughnessFactor, 0.44 + 0.3 * tGrit * tGF + 0.25 * tFleck, tar * 0.85); // sealant: slight satin sheen, gritty (not a mirror line)
+`}
   roughnessFactor *= 1.0 - 0.24 * wheel - 0.12 * drip;
   roughnessFactor = mix(roughnessFactor, roughnessFactor * 0.9, 1.0 - age);
   srfLow = clamp(0.2 + srfF(w * 0.16) * 0.5 + wheel * age * 0.3 + edgeLow * 0.45 + crk * 0.2, 0.0, 1.0);

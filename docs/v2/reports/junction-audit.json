@@ -1,0 +1,2117 @@
+{
+ "build": "b20261117-130138",
+ "when": "2026-11-18T05:40:39.565Z",
+ "counts": {
+  "cross": 108,
+  "wall": 24,
+  "overlap": 4,
+  "curb": 23,
+  "island": 60
+ },
+ "issues": [
+  {
+   "kind": "cross",
+   "x": -846,
+   "z": 4840.8,
+   "a": 3210,
+   "b": 3215,
+   "na": "Pelican Point Ln",
+   "nb": "Pelican Point Ln",
+   "ya": 0,
+   "yb": 0,
+   "note": "no junction node"
+  },
+  {
+   "kind": "cross",
+   "x": -330,
+   "z": -4942.7,
+   "a": 95,
+   "b": 97,
+   "na": "Alligator Alley",
+   "nb": "Alligator Alley",
+   "note": "carriageways overlap 15.1 m (center lines 3.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -333.6,
+   "z": -4944.5,
+   "a": 95,
+   "b": 100,
+   "na": "Alligator Alley",
+   "nb": "Janes Scenic Dr",
+   "note": "carriageways overlap 5.6 m (center lines 7.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -1369.2,
+   "z": -2990.6,
+   "a": 400,
+   "b": 450,
+   "na": "Orange Ave",
+   "nb": "Bay St",
+   "note": "carriageways overlap 3.0 m (center lines 9.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -1367.7,
+   "z": -2986.9,
+   "a": 400,
+   "b": 471,
+   "na": "Orange Ave",
+   "nb": "Lime Ave",
+   "note": "carriageways overlap 4.0 m (center lines 5.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 631.2,
+   "z": -3071.2,
+   "a": 401,
+   "b": 428,
+   "na": "NE 2nd Ave",
+   "nb": "NE 1st Ave",
+   "note": "carriageways overlap 1.7 m (center lines 8.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 631.5,
+   "z": -3067.2,
+   "a": 401,
+   "b": 442,
+   "na": "NE 2nd Ave",
+   "nb": "NE 2nd Ave",
+   "note": "carriageways overlap 5.7 m (center lines 4.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 631.6,
+   "z": -3066,
+   "a": 412,
+   "b": 428,
+   "na": "NE 5th Ave",
+   "nb": "NE 1st Ave",
+   "note": "carriageways overlap 6.9 m (center lines 3.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 634.7,
+   "z": -3068.5,
+   "a": 412,
+   "b": 442,
+   "na": "NE 5th Ave",
+   "nb": "NE 2nd Ave",
+   "note": "carriageways overlap 3.7 m (center lines 6.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -1358.7,
+   "z": -2986.5,
+   "a": 450,
+   "b": 470,
+   "na": "Bay St",
+   "nb": "Bay St",
+   "note": "carriageways overlap 3.6 m (center lines 8.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -1365.8,
+   "z": -2982.1,
+   "a": 470,
+   "b": 471,
+   "na": "Bay St",
+   "nb": "Lime Ave",
+   "note": "carriageways overlap 7.9 m (center lines 1.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 696.6,
+   "z": -1511,
+   "a": 940,
+   "b": 999,
+   "na": "NE 3rd Ave",
+   "nb": "NE 14th St",
+   "note": "carriageways overlap 2.5 m (center lines 7.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 695.4,
+   "z": -1507.2,
+   "a": 940,
+   "b": 1000,
+   "na": "NE 3rd Ave",
+   "nb": "NE 3rd Ave",
+   "note": "carriageways overlap 6.5 m (center lines 3.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 691.3,
+   "z": -1510.7,
+   "a": 953,
+   "b": 999,
+   "na": "NE 15th St",
+   "nb": "NE 14th St",
+   "note": "carriageways overlap 4.5 m (center lines 8.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 694,
+   "z": -1507.8,
+   "a": 953,
+   "b": 1000,
+   "na": "NE 15th St",
+   "nb": "NE 3rd Ave",
+   "note": "carriageways overlap 8.2 m (center lines 4.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 695.3,
+   "z": -1506.7,
+   "a": 970,
+   "b": 999,
+   "na": "NE 5th Ave",
+   "nb": "NE 14th St",
+   "note": "carriageways overlap 7.0 m (center lines 3.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 699.3,
+   "z": -1507.2,
+   "a": 970,
+   "b": 1000,
+   "na": "NE 5th Ave",
+   "nb": "NE 3rd Ave",
+   "note": "carriageways overlap 4.6 m (center lines 5.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 686.9,
+   "z": -1500.9,
+   "a": 994,
+   "b": 999,
+   "na": "NE 5th Ave",
+   "nb": "NE 14th St",
+   "note": "carriageways overlap 1.2 m (center lines 8.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 689.7,
+   "z": -1503.7,
+   "a": 994,
+   "b": 1000,
+   "na": "NE 5th Ave",
+   "nb": "NE 3rd Ave",
+   "note": "carriageways overlap 4.5 m (center lines 5.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 513,
+   "z": -1398.3,
+   "a": 1021,
+   "b": 1057,
+   "na": "NE 1st Ave",
+   "nb": "NE 1st Ave",
+   "note": "carriageways overlap 3.5 m (center lines 9.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 506,
+   "z": -1392.7,
+   "a": 1044,
+   "b": 1057,
+   "na": "NE 13th St",
+   "nb": "NE 1st Ave",
+   "note": "carriageways overlap 3.2 m (center lines 6.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 512.2,
+   "z": -1391.5,
+   "a": 1052,
+   "b": 1057,
+   "na": "NE 13th St",
+   "nb": "NE 1st Ave",
+   "note": "carriageways overlap 7.8 m (center lines 2.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -27.2,
+   "z": -766,
+   "a": 1305,
+   "b": 1338,
+   "na": "NW 3rd Ave",
+   "nb": "County Road 27",
+   "note": "carriageways overlap 1.4 m (center lines 10.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -30.6,
+   "z": -763.9,
+   "a": 1305,
+   "b": 1347,
+   "na": "NW 3rd Ave",
+   "nb": "Miami Ave",
+   "note": "carriageways overlap 4.3 m (center lines 7.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -33.5,
+   "z": -762.2,
+   "a": 1306,
+   "b": 1358,
+   "na": "NW 3rd Ave",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 4.6 m (center lines 4.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -41.1,
+   "z": -768.6,
+   "a": 1338,
+   "b": 1364,
+   "na": "County Road 27",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 2.1 m (center lines 9.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -39,
+   "z": -765.1,
+   "a": 1338,
+   "b": 1358,
+   "na": "County Road 27",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 1.5 m (center lines 10.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -37,
+   "z": -761.7,
+   "a": 1338,
+   "b": 1365,
+   "na": "County Road 27",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 5.0 m (center lines 7.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.3,
+   "z": -771,
+   "a": 1347,
+   "b": 1364,
+   "na": "Miami Ave",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 3.0 m (center lines 9.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.3,
+   "z": -767,
+   "a": 1347,
+   "b": 1358,
+   "na": "Miami Ave",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 2.6 m (center lines 9.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.4,
+   "z": -763,
+   "a": 1347,
+   "b": 1365,
+   "na": "Miami Ave",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 5.7 m (center lines 6.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.4,
+   "z": -759,
+   "a": 1352,
+   "b": 1305,
+   "na": "NW 6th St",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 5.3 m (center lines 3.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -37.8,
+   "z": -762.2,
+   "a": 1352,
+   "b": 1358,
+   "na": "NW 6th St",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 1.1 m (center lines 7.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -40.2,
+   "z": -765.4,
+   "a": 1352,
+   "b": 1364,
+   "na": "NW 6th St",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 1.6 m (center lines 7.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.4,
+   "z": -759,
+   "a": 1355,
+   "b": 1305,
+   "na": "Corkscrew Rd",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 8.3 m (center lines 3.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -39.4,
+   "z": -759,
+   "a": 1355,
+   "b": 1358,
+   "na": "Corkscrew Rd",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 3.2 m (center lines 8.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -43.4,
+   "z": -759,
+   "a": 1355,
+   "b": 1364,
+   "na": "Corkscrew Rd",
+   "nb": "Turner River Rd",
+   "note": "carriageways overlap 1.6 m (center lines 10.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -35.4,
+   "z": -759,
+   "a": 1357,
+   "b": 1305,
+   "na": "Corkscrew Rd",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 5.3 m (center lines 3.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -30.6,
+   "z": -758.9,
+   "a": 1358,
+   "b": 1305,
+   "na": "Corkscrew Rd",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 4.7 m (center lines 4.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -30.6,
+   "z": -758.9,
+   "a": 1365,
+   "b": 1306,
+   "na": "Turner River Rd",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 4.8 m (center lines 4.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -27.9,
+   "z": -755.9,
+   "a": 1365,
+   "b": 1355,
+   "na": "Turner River Rd",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 3.9 m (center lines 8.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2544.4,
+   "z": -317.8,
+   "a": 1557,
+   "b": 1636,
+   "na": "Ocean Dr",
+   "nb": "16th St",
+   "note": "carriageways overlap 2.2 m (center lines 7.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2544.5,
+   "z": -313.8,
+   "a": 1557,
+   "b": 1642,
+   "na": "Ocean Dr",
+   "nb": "Ocean Dr",
+   "note": "carriageways overlap 5.9 m (center lines 4.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2547.7,
+   "z": -316.6,
+   "a": 1559,
+   "b": 1636,
+   "na": "17th St",
+   "nb": "16th St",
+   "note": "carriageways overlap 3.7 m (center lines 6.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2545.7,
+   "z": -313.1,
+   "a": 1559,
+   "b": 1642,
+   "na": "17th St",
+   "nb": "Ocean Dr",
+   "note": "carriageways overlap 7.1 m (center lines 2.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2540.2,
+   "z": -311.7,
+   "a": 1618,
+   "b": 1636,
+   "na": "16th St",
+   "nb": "16th St",
+   "note": "carriageways overlap 3.4 m (center lines 6.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 2544.1,
+   "z": -311,
+   "a": 1618,
+   "b": 1642,
+   "na": "16th St",
+   "nb": "Ocean Dr",
+   "note": "carriageways overlap 7.4 m (center lines 2.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 789.4,
+   "z": -81.7,
+   "a": 1723,
+   "b": 1763,
+   "na": "NW 2nd Ave",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 1.2 m (center lines 11.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 788.1,
+   "z": -77.9,
+   "a": 1723,
+   "b": 1813,
+   "na": "NW 2nd Ave",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 7.5 m (center lines 7.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 787.1,
+   "z": -74,
+   "a": 1723,
+   "b": 1797,
+   "na": "NW 2nd Ave",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 4.2 m (center lines 5.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 769.7,
+   "z": -81.1,
+   "a": 1763,
+   "b": 1797,
+   "na": "NE 1st St",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 1.4 m (center lines 11.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 773,
+   "z": -78.9,
+   "a": 1763,
+   "b": 1812,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 1.3 m (center lines 15.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 776.3,
+   "z": -76.7,
+   "a": 1763,
+   "b": 1813,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 2.7 m (center lines 14.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 779.7,
+   "z": -74.5,
+   "a": 1763,
+   "b": 1796,
+   "na": "NE 1st St",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 7.2 m (center lines 5.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 783,
+   "z": -72.3,
+   "a": 1763,
+   "b": 1811,
+   "na": "NE 1st St",
+   "nb": "NE 4th Ave",
+   "note": "carriageways overlap 10.4 m (center lines 2.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 783.9,
+   "z": -71.7,
+   "a": 1764,
+   "b": 1813,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 11.5 m (center lines 5.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 786.1,
+   "z": -70.3,
+   "a": 1796,
+   "b": 1813,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 11.1 m (center lines 3.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 782.7,
+   "z": -70.2,
+   "a": 1797,
+   "b": 1764,
+   "na": "NE 1st St",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 10.6 m (center lines 1.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 778.7,
+   "z": -70.2,
+   "a": 1797,
+   "b": 1812,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 7.1 m (center lines 7.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 783.9,
+   "z": -71.7,
+   "a": 1810,
+   "b": 1723,
+   "na": "NE 4th Ave",
+   "nb": "NW 2nd Ave",
+   "note": "carriageways overlap 7.5 m (center lines 2.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 782.7,
+   "z": -70.2,
+   "a": 1811,
+   "b": 1723,
+   "na": "NE 4th Ave",
+   "nb": "NW 2nd Ave",
+   "note": "carriageways overlap 6.6 m (center lines 3.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 780.1,
+   "z": -67.1,
+   "a": 1811,
+   "b": 1764,
+   "na": "NE 4th Ave",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 6.6 m (center lines 5.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 777.6,
+   "z": -64,
+   "a": 1811,
+   "b": 1812,
+   "na": "NE 4th Ave",
+   "nb": "State Road 961",
+   "note": "carriageways overlap 3.9 m (center lines 10.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 786.1,
+   "z": -70.3,
+   "a": 1812,
+   "b": 1810,
+   "na": "State Road 961",
+   "nb": "NE 4th Ave",
+   "note": "carriageways overlap 11.9 m (center lines 2.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 789.4,
+   "z": -71,
+   "a": 1813,
+   "b": 1797,
+   "na": "State Road 961",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 7.8 m (center lines 6.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 793.3,
+   "z": -71.8,
+   "a": 1813,
+   "b": 1810,
+   "na": "State Road 961",
+   "nb": "NE 4th Ave",
+   "note": "carriageways overlap 5.1 m (center lines 9.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 789.4,
+   "z": -71,
+   "a": 1831,
+   "b": 1723,
+   "na": "SE 1st St",
+   "nb": "NW 2nd Ave",
+   "note": "carriageways overlap 1.1 m (center lines 8.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 792.6,
+   "z": -68.6,
+   "a": 1831,
+   "b": 1763,
+   "na": "SE 1st St",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 3.3 m (center lines 9.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 795.8,
+   "z": -66.2,
+   "a": 1831,
+   "b": 1764,
+   "na": "SE 1st St",
+   "nb": "NE 1st St",
+   "note": "carriageways overlap 2.0 m (center lines 10.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -927.6,
+   "z": 173.4,
+   "a": 1956,
+   "b": 2036,
+   "na": "SW 13th Ave",
+   "nb": "State Road 953",
+   "note": "carriageways overlap 3.9 m (center lines 13.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -926.6,
+   "z": 177.3,
+   "a": 1956,
+   "b": 2054,
+   "na": "SW 13th Ave",
+   "nb": "SW 13th Ave",
+   "note": "carriageways overlap 3.3 m (center lines 9.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -939.5,
+   "z": 185.8,
+   "a": 2036,
+   "b": 2047,
+   "na": "State Road 953",
+   "nb": "State Road 953",
+   "note": "carriageways overlap 3.8 m (center lines 15.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -924.3,
+   "z": 186.6,
+   "a": 2047,
+   "b": 2054,
+   "na": "State Road 953",
+   "nb": "SW 13th Ave",
+   "note": "carriageways overlap 12.0 m (center lines 2.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2545.8,
+   "z": 882.5,
+   "a": 2155,
+   "b": 2457,
+   "na": "Canal Rd",
+   "nb": "County Road 846",
+   "note": "carriageways overlap 1.5 m (center lines 7.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2548,
+   "z": 885.8,
+   "a": 2155,
+   "b": 2440,
+   "na": "Canal Rd",
+   "nb": "County Road 846",
+   "note": "carriageways overlap 3.1 m (center lines 5.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 66.6,
+   "z": 464.5,
+   "a": 2211,
+   "b": 2264,
+   "na": "Corkscrew Rd",
+   "nb": "State Road 1032",
+   "note": "carriageways overlap 4.3 m (center lines 10.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 69.2,
+   "z": 467.5,
+   "a": 2211,
+   "b": 2214,
+   "na": "Corkscrew Rd",
+   "nb": "SW 4th St",
+   "note": "carriageways overlap 3.3 m (center lines 6.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 74.4,
+   "z": 469,
+   "a": 2212,
+   "b": 2213,
+   "na": "SW 4th St",
+   "nb": "NW 3rd Ave",
+   "note": "carriageways overlap 2.6 m (center lines 7.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 85.6,
+   "z": 465,
+   "a": 2213,
+   "b": 2264,
+   "na": "NW 3rd Ave",
+   "nb": "State Road 1032",
+   "note": "carriageways overlap 3.9 m (center lines 10.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 82.8,
+   "z": 467.9,
+   "a": 2213,
+   "b": 2247,
+   "na": "NW 3rd Ave",
+   "nb": "SW 3rd Ave",
+   "note": "carriageways overlap 2.9 m (center lines 7.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 77.8,
+   "z": 469,
+   "a": 2214,
+   "b": 2246,
+   "na": "SW 4th St",
+   "nb": "SW 4th St",
+   "note": "carriageways overlap 2.6 m (center lines 7.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 64.3,
+   "z": 468.8,
+   "a": 2246,
+   "b": 2264,
+   "na": "SW 4th St",
+   "nb": "State Road 1032",
+   "note": "carriageways overlap 3.0 m (center lines 11.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 68.3,
+   "z": 468.9,
+   "a": 2246,
+   "b": 2248,
+   "na": "SW 4th St",
+   "nb": "SW 3rd Ave",
+   "note": "carriageways overlap 2.5 m (center lines 7.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 74.4,
+   "z": 469,
+   "a": 2247,
+   "b": 2249,
+   "na": "SW 3rd Ave",
+   "nb": "SW 4th St",
+   "note": "carriageways overlap 2.6 m (center lines 7.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 75.8,
+   "z": 469,
+   "a": 2248,
+   "b": 2211,
+   "na": "SW 3rd Ave",
+   "nb": "Corkscrew Rd",
+   "note": "carriageways overlap 4.6 m (center lines 5.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 81.8,
+   "z": 469,
+   "a": 2249,
+   "b": 2212,
+   "na": "SW 4th St",
+   "nb": "SW 4th St",
+   "note": "carriageways overlap 4.0 m (center lines 6.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 85.8,
+   "z": 469,
+   "a": 2249,
+   "b": 2264,
+   "na": "SW 4th St",
+   "nb": "State Road 1032",
+   "note": "carriageways overlap 4.5 m (center lines 10.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 73.8,
+   "z": 537,
+   "a": 2264,
+   "b": 2294,
+   "na": "State Road 1032",
+   "nb": "County Road 29",
+   "note": "carriageways overlap 3.6 m (center lines 13.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 73.7,
+   "z": 541,
+   "a": 2264,
+   "b": 2298,
+   "na": "State Road 1032",
+   "nb": "SW 3rd Ave",
+   "note": "carriageways overlap 3.9 m (center lines 9.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 73.5,
+   "z": 546.2,
+   "a": 2277,
+   "b": 2294,
+   "na": "SW 3rd Ave",
+   "nb": "County Road 29",
+   "note": "carriageways overlap 8.3 m (center lines 4.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 77.2,
+   "z": 544.6,
+   "a": 2277,
+   "b": 2298,
+   "na": "SW 3rd Ave",
+   "nb": "SW 3rd Ave",
+   "note": "carriageways overlap 1.8 m (center lines 7.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2550.8,
+   "z": 882,
+   "a": 2418,
+   "b": 2440,
+   "na": "Immokalee Rd",
+   "nb": "County Road 846",
+   "note": "carriageways overlap 1.6 m (center lines 8.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2550.3,
+   "z": 886,
+   "a": 2418,
+   "b": 2490,
+   "na": "Immokalee Rd",
+   "nb": "Canal Rd",
+   "note": "carriageways overlap 2.0 m (center lines 8.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2551.4,
+   "z": 890.4,
+   "a": 2457,
+   "b": 2418,
+   "na": "County Road 846",
+   "nb": "Immokalee Rd",
+   "note": "carriageways overlap 1.5 m (center lines 8.5 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2551.4,
+   "z": 890.4,
+   "a": 2490,
+   "b": 2155,
+   "na": "Canal Rd",
+   "nb": "Canal Rd",
+   "note": "carriageways overlap 6.5 m (center lines 2.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2551.4,
+   "z": 890.4,
+   "a": 2491,
+   "b": 2155,
+   "na": "Airboat Rd",
+   "nb": "Canal Rd",
+   "note": "carriageways overlap 5.3 m (center lines 2.3 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -2549.7,
+   "z": 894,
+   "a": 2491,
+   "b": 2418,
+   "na": "Airboat Rd",
+   "nb": "Immokalee Rd",
+   "note": "carriageways overlap 3.4 m (center lines 5.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 232,
+   "z": 1644.5,
+   "a": 2726,
+   "b": 2728,
+   "na": "SW 2nd Ave",
+   "nb": "SW 15th St",
+   "note": "carriageways overlap 4.6 m (center lines 5.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 230.7,
+   "z": 1648.2,
+   "a": 2726,
+   "b": 2734,
+   "na": "SW 2nd Ave",
+   "nb": "SW 18th St",
+   "note": "carriageways overlap 7.9 m (center lines 2.1 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 224.8,
+   "z": 1647.3,
+   "a": 2728,
+   "b": 2735,
+   "na": "SW 15th St",
+   "nb": "SW 15th St",
+   "note": "carriageways overlap 4.1 m (center lines 5.9 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": 228.7,
+   "z": 1648.7,
+   "a": 2734,
+   "b": 2735,
+   "na": "SW 18th St",
+   "nb": "SW 15th St",
+   "note": "carriageways overlap 8.2 m (center lines 1.8 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -348.2,
+   "z": 2431.3,
+   "a": 2880,
+   "b": 2887,
+   "na": "State Road 948",
+   "nb": "SW 6th Ave",
+   "note": "carriageways overlap 1.3 m (center lines 12.4 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -336.5,
+   "z": 2435.1,
+   "a": 2885,
+   "b": 2887,
+   "na": "SW 18th St",
+   "nb": "SW 6th Ave",
+   "note": "carriageways overlap 1.5 m (center lines 10.2 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -328.1,
+   "z": 2449.4,
+   "a": 2887,
+   "b": 2909,
+   "na": "SW 6th Ave",
+   "nb": "State Road 984",
+   "note": "carriageways overlap 3.7 m (center lines 10.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -331.7,
+   "z": 2447.7,
+   "a": 2887,
+   "b": 2903,
+   "na": "SW 6th Ave",
+   "nb": "State Road 984",
+   "note": "carriageways overlap 1.1 m (center lines 12.6 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -335.3,
+   "z": 2446,
+   "a": 2887,
+   "b": 2906,
+   "na": "SW 6th Ave",
+   "nb": "SW 18th St",
+   "note": "carriageways overlap 3.0 m (center lines 8.7 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -762.2,
+   "z": 4829.3,
+   "a": 3177,
+   "b": 3182,
+   "na": "Overseas Highway",
+   "nb": "Card Sound Road",
+   "note": "carriageways overlap 1.2 m (center lines 10.0 m apart)"
+  },
+  {
+   "kind": "cross",
+   "x": -843.7,
+   "z": 4836.6,
+   "a": 3210,
+   "b": 3215,
+   "na": "Pelican Point Ln",
+   "nb": "Pelican Point Ln",
+   "note": "carriageways overlap 1.7 m (center lines 4.8 m apart)"
+  },
+  {
+   "kind": "wall",
+   "x": 373.8,
+   "z": -3070.1,
+   "a": 378,
+   "b": 266,
+   "na": "NE 30th St",
+   "nb": "Corkscrew Rd",
+   "y": 2.4,
+   "note": "ramp at 2.4 m, its edge 0.4 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 933.3,
+   "z": -2844.1,
+   "a": 533,
+   "b": 520,
+   "na": "NE 5th Ave",
+   "nb": "NE 27th St",
+   "y": 2.5,
+   "note": "ramp at 2.5 m, its edge 0.1 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -23.6,
+   "z": -767.7,
+   "a": 1305,
+   "b": 1347,
+   "na": "NW 3rd Ave",
+   "nb": "Miami Ave",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 0.4 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -26.4,
+   "z": -766.5,
+   "a": 1305,
+   "b": 1338,
+   "na": "NW 3rd Ave",
+   "nb": "County Road 27",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 0.7 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -41.1,
+   "z": -768.6,
+   "a": 1338,
+   "b": 1305,
+   "na": "County Road 27",
+   "nb": "NW 3rd Ave",
+   "y": 0.6,
+   "note": "ramp at 0.6 m, its edge 2.4 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -35.3,
+   "z": -773,
+   "a": 1347,
+   "b": 1305,
+   "na": "Miami Ave",
+   "nb": "NW 3rd Ave",
+   "y": 0.6,
+   "note": "ramp at 0.6 m, its edge 0.7 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -21.6,
+   "z": -758.8,
+   "a": 1358,
+   "b": 1305,
+   "na": "Corkscrew Rd",
+   "nb": "NW 3rd Ave",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 0.2 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -26.6,
+   "z": -754.5,
+   "a": 1365,
+   "b": 1338,
+   "na": "Turner River Rd",
+   "nb": "County Road 27",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 2.4 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 790.6,
+   "z": -84.4,
+   "a": 1723,
+   "b": 1813,
+   "na": "NW 2nd Ave",
+   "nb": "State Road 961",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 1.9 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 789.4,
+   "z": -81.7,
+   "a": 1723,
+   "b": 1763,
+   "na": "NW 2nd Ave",
+   "nb": "NE 1st St",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 1.5 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 778,
+   "z": -75.6,
+   "a": 1763,
+   "b": 1723,
+   "na": "NE 1st St",
+   "nb": "NW 2nd Ave",
+   "y": 0.3,
+   "note": "ramp at 0.3 m, its edge 1.3 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 783.9,
+   "z": -71.7,
+   "a": 1764,
+   "b": 1813,
+   "na": "NE 1st St",
+   "nb": "State Road 961",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 11.8 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 786.1,
+   "z": -70.3,
+   "a": 1796,
+   "b": 1763,
+   "na": "NE 1st St",
+   "nb": "NE 1st St",
+   "y": 0.6,
+   "note": "ramp at 0.6 m, its edge 10.2 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 782.7,
+   "z": -70.2,
+   "a": 1797,
+   "b": 1723,
+   "na": "NE 1st St",
+   "nb": "NW 2nd Ave",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 6.9 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 783.9,
+   "z": -71.7,
+   "a": 1810,
+   "b": 1723,
+   "na": "NE 4th Ave",
+   "nb": "NW 2nd Ave",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 0.8 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 782.7,
+   "z": -70.2,
+   "a": 1811,
+   "b": 1723,
+   "na": "NE 4th Ave",
+   "nb": "NW 2nd Ave",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 6.9 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 786.1,
+   "z": -70.3,
+   "a": 1812,
+   "b": 1763,
+   "na": "State Road 961",
+   "nb": "NE 1st St",
+   "y": 0.6,
+   "note": "ramp at 0.6 m, its edge 3.8 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 789.4,
+   "z": -71,
+   "a": 1813,
+   "b": 1723,
+   "na": "State Road 961",
+   "nb": "NW 2nd Ave",
+   "y": 0.8,
+   "note": "ramp at 0.8 m, its edge 5.9 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 789.4,
+   "z": -71,
+   "a": 1831,
+   "b": 1723,
+   "na": "SE 1st St",
+   "nb": "NW 2nd Ave",
+   "y": 0.8,
+   "note": "ramp at 0.8 m, its edge 1.4 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": 796.6,
+   "z": -65.6,
+   "a": 1831,
+   "b": 1764,
+   "na": "SE 1st St",
+   "nb": "NE 1st St",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 1.3 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -2551.2,
+   "z": 880,
+   "a": 2418,
+   "b": 2457,
+   "na": "Immokalee Rd",
+   "nb": "County Road 846",
+   "y": 0.6,
+   "note": "ramp at 0.6 m, its edge 0.0 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -2558.6,
+   "z": 891.1,
+   "a": 2440,
+   "b": 2155,
+   "na": "County Road 846",
+   "nb": "Canal Rd",
+   "y": 0.5,
+   "note": "ramp at 0.5 m, its edge 0.1 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -2553,
+   "z": 896.2,
+   "a": 2490,
+   "b": 2155,
+   "na": "Canal Rd",
+   "nb": "Canal Rd",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 0.9 m inside the street"
+  },
+  {
+   "kind": "wall",
+   "x": -2548.9,
+   "z": 895.8,
+   "a": 2491,
+   "b": 2155,
+   "na": "Airboat Rd",
+   "nb": "Canal Rd",
+   "y": 0.4,
+   "note": "ramp at 0.4 m, its edge 0.6 m inside the street"
+  },
+  {
+   "kind": "overlap",
+   "x": -33.4,
+   "z": -760,
+   "nodes": [
+    913,
+    914
+   ],
+   "m2": 5,
+   "apart": 3.7,
+   "name": "NW 3rd Ave x Turner River Rd / NW 6th St x County Road 27 x Miami Ave x NW 3rd Ave x Corkscrew Rd"
+  },
+  {
+   "kind": "overlap",
+   "x": -32.9,
+   "z": -759.7,
+   "nodes": [
+    913,
+    945
+   ],
+   "m2": 5,
+   "apart": 4.4,
+   "name": "NW 3rd Ave x Turner River Rd / Corkscrew Rd x Turner River Rd"
+  },
+  {
+   "kind": "overlap",
+   "x": -33.1,
+   "z": -759.7,
+   "nodes": [
+    914,
+    945
+   ],
+   "m2": 5,
+   "apart": 4.8,
+   "name": "NW 6th St x County Road 27 x Miami Ave x NW 3rd Ave x Corkscrew Rd / Corkscrew Rd x Turner River Rd"
+  },
+  {
+   "kind": "overlap",
+   "x": 783.7,
+   "z": -68.9,
+   "nodes": [
+    1214,
+    1233
+   ],
+   "m2": 9,
+   "apart": 1.9,
+   "name": "NE 1st St x NE 4th Ave / NE 4th Ave x NE 1st St"
+  },
+  {
+   "kind": "curb",
+   "x": -328.3,
+   "z": -4939.3,
+   "node": 70,
+   "name": "Alligator Alley x Janes Scenic Dr",
+   "into": "Alligator Alley",
+   "edge": 97,
+   "m": 4.9
+  },
+  {
+   "kind": "curb",
+   "x": -328.3,
+   "z": -4939.3,
+   "node": 72,
+   "name": "Alligator Alley x Janes Scenic Dr",
+   "into": "Alligator Alley",
+   "edge": 95,
+   "m": 5.1
+  },
+  {
+   "kind": "curb",
+   "x": -1363.9,
+   "z": -2978,
+   "node": 298,
+   "name": "Orange Ave x Bay St",
+   "into": "Bay St",
+   "edge": 450,
+   "m": 2.1
+  },
+  {
+   "kind": "curb",
+   "x": 626.7,
+   "z": -3064.3,
+   "node": 299,
+   "name": "NE 2nd Ave x NE 5th Ave",
+   "into": "NE 1st Ave",
+   "edge": 428,
+   "m": 2.5
+  },
+  {
+   "kind": "curb",
+   "x": -1368.8,
+   "z": -2989.1,
+   "node": 331,
+   "name": "Bay St x Lime Ave",
+   "into": "Orange Ave",
+   "edge": 400,
+   "m": 3.7
+  },
+  {
+   "kind": "curb",
+   "x": 945.1,
+   "z": -2845.5,
+   "node": 365,
+   "name": "NE 6th Ave x NE 27th St",
+   "into": "NE 5th Ave",
+   "edge": 535,
+   "m": 1.1
+  },
+  {
+   "kind": "curb",
+   "x": 689.2,
+   "z": -1503.3,
+   "node": 716,
+   "name": "NE 3rd Ave x NE 14th St",
+   "into": "NE 5th Ave",
+   "edge": 994,
+   "m": 4.4
+  },
+  {
+   "kind": "curb",
+   "x": -38.2,
+   "z": -763,
+   "node": 913,
+   "name": "NW 3rd Ave x Turner River Rd",
+   "into": "County Road 27",
+   "edge": 1338,
+   "m": 6.5
+  },
+  {
+   "kind": "curb",
+   "x": -30.7,
+   "z": -758.2,
+   "node": 914,
+   "name": "NW 6th St x County Road 27 x Miami Ave x NW 3rd Ave x Corkscrew Rd",
+   "into": "Turner River Rd",
+   "edge": 1365,
+   "m": 3.4
+  },
+  {
+   "kind": "curb",
+   "x": -35.3,
+   "z": -757.4,
+   "node": 945,
+   "name": "Corkscrew Rd x Turner River Rd",
+   "into": "County Road 27",
+   "edge": 1338,
+   "m": 5.3
+  },
+  {
+   "kind": "curb",
+   "x": 2544.4,
+   "z": -305.8,
+   "node": 1083,
+   "name": "16th St x Ocean Dr x 17th St",
+   "into": "Ocean Dr",
+   "edge": 1642,
+   "m": 1.7
+  },
+  {
+   "kind": "curb",
+   "x": 2546.8,
+   "z": -315.5,
+   "node": 1128,
+   "name": "16th St x Ocean Dr",
+   "into": "17th St",
+   "edge": 1559,
+   "m": 4.2
+  },
+  {
+   "kind": "curb",
+   "x": 787.3,
+   "z": -67.9,
+   "node": 1214,
+   "name": "NE 1st St x NE 4th Ave",
+   "into": "State Road 961",
+   "edge": 1812,
+   "m": 6.3
+  },
+  {
+   "kind": "curb",
+   "x": 779.4,
+   "z": -74.1,
+   "node": 1233,
+   "name": "NE 4th Ave x NE 1st St",
+   "into": "NE 1st St",
+   "edge": 1763,
+   "m": 6.4
+  },
+  {
+   "kind": "curb",
+   "x": -926.5,
+   "z": 195,
+   "node": 1337,
+   "name": "State Road 953 x SW 13th Ave",
+   "into": "State Road 953",
+   "edge": 2036,
+   "m": 0.4
+  },
+  {
+   "kind": "curb",
+   "x": -925.3,
+   "z": 177.1,
+   "node": 1393,
+   "name": "State Road 953 x SW 13th Ave",
+   "into": "SW 13th Ave",
+   "edge": 1956,
+   "m": 5.5
+  },
+  {
+   "kind": "curb",
+   "x": -2546.7,
+   "z": 890.7,
+   "node": 1469,
+   "name": "Immokalee Rd x Canal Rd",
+   "into": "County Road 846",
+   "edge": 2457,
+   "m": 3.7
+  },
+  {
+   "kind": "curb",
+   "x": 72.8,
+   "z": 473.9,
+   "node": 1504,
+   "name": "SW 4th St x Corkscrew Rd x SW 3rd Ave",
+   "into": "State Road 1032",
+   "edge": 2264,
+   "m": 6
+  },
+  {
+   "kind": "curb",
+   "x": 79.1,
+   "z": 474,
+   "node": 1506,
+   "name": "NW 3rd Ave x SW 4th St x SW 3rd Ave",
+   "into": "State Road 1032",
+   "edge": 2264,
+   "m": 5.5
+  },
+  {
+   "kind": "curb",
+   "x": 68.4,
+   "z": 547.9,
+   "node": 1533,
+   "name": "State Road 1032 x SW 3rd Ave",
+   "into": "County Road 29",
+   "edge": 2294,
+   "m": 3.6
+  },
+  {
+   "kind": "curb",
+   "x": 68.4,
+   "z": 548.2,
+   "node": 1534,
+   "name": "State Road 1032 x SW 3rd Ave x County Road 29",
+   "into": "State Road 1032",
+   "edge": 2264,
+   "m": 3.4
+  },
+  {
+   "kind": "curb",
+   "x": 228.1,
+   "z": 1653.7,
+   "node": 1835,
+   "name": "SW 15th St x SW 2nd Ave",
+   "into": "SW 18th St",
+   "edge": 2734,
+   "m": 0.4
+  },
+  {
+   "kind": "curb",
+   "x": 231,
+   "z": 1644.2,
+   "node": 1836,
+   "name": "SW 15th St x SW 18th St",
+   "into": "SW 2nd Ave",
+   "edge": 2726,
+   "m": 3.3
+  },
+  {
+   "kind": "island",
+   "x": -394.7,
+   "z": -6014.4,
+   "node": 12,
+   "name": "State Road 950 x County Road 29 x Sugarland Hwy",
+   "m2": 2242
+  },
+  {
+   "kind": "island",
+   "x": 205.9,
+   "z": -5186.9,
+   "node": 53,
+   "name": "NW 2nd Ave",
+   "m2": 144
+  },
+  {
+   "kind": "island",
+   "x": -220,
+   "z": -4918.8,
+   "node": 64,
+   "name": "Alligator Alley x NW 6th Ave x Snake Rd",
+   "m2": 1169
+  },
+  {
+   "kind": "island",
+   "x": -272.6,
+   "z": -4918.5,
+   "node": 64,
+   "name": "Alligator Alley x NW 6th Ave x Snake Rd",
+   "m2": 1185
+  },
+  {
+   "kind": "island",
+   "x": -1377.9,
+   "z": -4477.4,
+   "node": 93,
+   "name": "Alligator Alley x Sugarland Hwy x State Road 926",
+   "m2": 1724
+  },
+  {
+   "kind": "island",
+   "x": -1541.7,
+   "z": -3350.8,
+   "node": 222,
+   "name": "Main St x Orange Ave",
+   "m2": 2101
+  },
+  {
+   "kind": "island",
+   "x": -1855.5,
+   "z": -3245.2,
+   "node": 252,
+   "name": "Main St x Heron Ln",
+   "m2": 1956
+  },
+  {
+   "kind": "island",
+   "x": -1853.3,
+   "z": -3026.5,
+   "node": 290,
+   "name": "Royal Palm Way x Mango St",
+   "m2": 1759
+  },
+  {
+   "kind": "island",
+   "x": -4461.4,
+   "z": -2627.4,
+   "node": 438,
+   "name": "Mango St x Seagrape Dr",
+   "m2": 239
+  },
+  {
+   "kind": "island",
+   "x": -4443.4,
+   "z": -2589.2,
+   "node": 439,
+   "name": "Mango St x Seagrape Dr",
+   "m2": 449
+  },
+  {
+   "kind": "island",
+   "x": -4434.2,
+   "z": -2538.3,
+   "node": 444,
+   "name": "Mango St x Mangrove Ln",
+   "m2": 1851
+  },
+  {
+   "kind": "island",
+   "x": -4280,
+   "z": -2177.4,
+   "node": 507,
+   "name": "State Road 962 x Immokalee Rd x County Road 78",
+   "m2": 935
+  },
+  {
+   "kind": "island",
+   "x": -535.7,
+   "z": -1881.9,
+   "node": 604,
+   "name": "Immokalee Rd x County Road 846 x State Road 940",
+   "m2": 1600
+  },
+  {
+   "kind": "island",
+   "x": -4651.1,
+   "z": -1720,
+   "node": 644,
+   "name": "Canal Rd x Sawgrass Rd",
+   "m2": 823
+  },
+  {
+   "kind": "island",
+   "x": 2260.8,
+   "z": -1562.4,
+   "node": 645,
+   "name": "County Road 833 x Corkscrew Rd",
+   "m2": 1253
+  },
+  {
+   "kind": "island",
+   "x": 757.3,
+   "z": -1602.6,
+   "node": 657,
+   "name": "NE 16th St x State Road 1038 x NE 3rd Ave",
+   "m2": 2130
+  },
+  {
+   "kind": "island",
+   "x": 818.5,
+   "z": -1605.3,
+   "node": 658,
+   "name": "NE 5th Ave x NE 4th Ave x State Road 1038",
+   "m2": 2415
+  },
+  {
+   "kind": "island",
+   "x": 815.6,
+   "z": -1545.9,
+   "node": 659,
+   "name": "NE 15th St x NE 4th Ave",
+   "m2": 2093
+  },
+  {
+   "kind": "island",
+   "x": 657.5,
+   "z": -1514.6,
+   "node": 662,
+   "name": "NE 2nd Ave x NE 15th St x State Road 1003",
+   "m2": 1833
+  },
+  {
+   "kind": "island",
+   "x": 19.8,
+   "z": -1323.3,
+   "node": 667,
+   "name": "NW 4th Ave",
+   "m2": 19
+  },
+  {
+   "kind": "island",
+   "x": 813.2,
+   "z": -1492.2,
+   "node": 674,
+   "name": "NE 4th Ave x NE 5th Ave",
+   "m2": 1928
+  },
+  {
+   "kind": "island",
+   "x": 804.7,
+   "z": -1435.2,
+   "node": 706,
+   "name": "NE 14th St x NE 4th Ave",
+   "m2": 2422
+  },
+  {
+   "kind": "island",
+   "x": 552.9,
+   "z": -1412.3,
+   "node": 712,
+   "name": "NE 1st Ave x NE 13th St",
+   "m2": 2405
+  },
+  {
+   "kind": "island",
+   "x": 796.2,
+   "z": -1382.3,
+   "node": 726,
+   "name": "NE 13th St x NE 4th Ave",
+   "m2": 1492
+  },
+  {
+   "kind": "island",
+   "x": 859.4,
+   "z": -1376,
+   "node": 727,
+   "name": "NE 13th St x NE 4th Ave",
+   "m2": 2055
+  },
+  {
+   "kind": "island",
+   "x": 1775.1,
+   "z": -1302.2,
+   "node": 773,
+   "name": "27th St x 24th St",
+   "m2": 2010
+  },
+  {
+   "kind": "island",
+   "x": 277.9,
+   "z": -1149.2,
+   "node": 804,
+   "name": "NE 5th Ave x Miami Ave",
+   "m2": 999
+  },
+  {
+   "kind": "island",
+   "x": 518.4,
+   "z": -954.3,
+   "node": 861,
+   "name": "NE 9th St x NE 1st Ave",
+   "m2": 1962
+  },
+  {
+   "kind": "island",
+   "x": 2134.2,
+   "z": -832.3,
+   "node": 907,
+   "name": "Collins Ave x Lenox Ave",
+   "m2": 650
+  },
+  {
+   "kind": "island",
+   "x": 1378.6,
+   "z": -800.9,
+   "node": 923,
+   "name": "Sugarland Hwy x County Road 27",
+   "m2": 210
+  },
+  {
+   "kind": "island",
+   "x": 169.1,
+   "z": -599.2,
+   "node": 949,
+   "name": "NW 10th St x NW 6th St",
+   "m2": 1041
+  },
+  {
+   "kind": "island",
+   "x": 296.4,
+   "z": -539.5,
+   "node": 966,
+   "name": "Miami Ave x NE 5th St",
+   "m2": 2037
+  },
+  {
+   "kind": "island",
+   "x": 351.5,
+   "z": -536.2,
+   "node": 966,
+   "name": "Miami Ave x NE 5th St",
+   "m2": 1971
+  },
+  {
+   "kind": "island",
+   "x": -4198.4,
+   "z": -353.4,
+   "node": 975,
+   "name": "Dolphin Expressway x Manatee Ave x County Road 78",
+   "m2": 12
+  },
+  {
+   "kind": "island",
+   "x": -743.3,
+   "z": -140.1,
+   "node": 1060,
+   "name": "County Road 846 x NW 1st St",
+   "m2": 844
+  },
+  {
+   "kind": "island",
+   "x": 456.5,
+   "z": -178.7,
+   "node": 1120,
+   "name": "NW 2nd St x NW 1st Ave",
+   "m2": 2068
+  },
+  {
+   "kind": "island",
+   "x": -4353.2,
+   "z": -135.1,
+   "node": 1182,
+   "name": "Mango St x Coral Way",
+   "m2": 252
+  },
+  {
+   "kind": "island",
+   "x": -213.9,
+   "z": 106.5,
+   "node": 1294,
+   "name": "SW 6th Ave x SW 1st St",
+   "m2": 1844
+  },
+  {
+   "kind": "island",
+   "x": -46.1,
+   "z": 107.9,
+   "node": 1295,
+   "name": "SW 5th Ave x SW 1st St",
+   "m2": 1582
+  },
+  {
+   "kind": "island",
+   "x": -1459.2,
+   "z": 278.4,
+   "node": 1407,
+   "name": "County Road 78 x Cargo Rd",
+   "m2": 1781
+  },
+  {
+   "kind": "island",
+   "x": -93.2,
+   "z": 426.3,
+   "node": 1456,
+   "name": "SW 5th Ave x SW 4th St",
+   "m2": 1943
+  },
+  {
+   "kind": "island",
+   "x": -4825.7,
+   "z": 442.5,
+   "node": 1490,
+   "name": "Airboat Rd x Palm Ave x Immokalee Rd",
+   "m2": 184
+  },
+  {
+   "kind": "island",
+   "x": -452.5,
+   "z": 599.2,
+   "node": 1510,
+   "name": "Loop Road x County Road 78 x County Road 27 x Hangar Rd x SW 5th St",
+   "m2": 572
+  },
+  {
+   "kind": "island",
+   "x": -430.6,
+   "z": 639.7,
+   "node": 1554,
+   "name": "County Road 27 x County Road 78",
+   "m2": 307
+  },
+  {
+   "kind": "island",
+   "x": -2665.5,
+   "z": 815.5,
+   "node": 1594,
+   "name": "Immokalee Rd x County Road 846",
+   "m2": 377
+  },
+  {
+   "kind": "island",
+   "x": -250.6,
+   "z": 859.7,
+   "node": 1595,
+   "name": "Loop Road x County Road 846",
+   "m2": 812
+  },
+  {
+   "kind": "island",
+   "x": 1142.6,
+   "z": 915.7,
+   "node": 1640,
+   "name": "State Road 944 x Caribbean Way x Cruise Terminal Dr",
+   "m2": 320
+  },
+  {
+   "kind": "island",
+   "x": 1417.4,
+   "z": 908,
+   "node": 1641,
+   "name": "Dock St x Caribbean Way",
+   "m2": 2067
+  },
+  {
+   "kind": "island",
+   "x": 1310.1,
+   "z": 950.1,
+   "node": 1690,
+   "name": "Dock St x Container Rd",
+   "m2": 2425
+  },
+  {
+   "kind": "island",
+   "x": 867.3,
+   "z": 1226.3,
+   "node": 1756,
+   "name": "Main St x Palm Ave",
+   "m2": 1946
+  },
+  {
+   "kind": "island",
+   "x": -297.8,
+   "z": 1815.1,
+   "node": 1844,
+   "name": "Brickell Ave x SW 17th St",
+   "m2": 1480
+  },
+  {
+   "kind": "island",
+   "x": -2749.3,
+   "z": 1868.4,
+   "node": 1866,
+   "name": "Krome Avenue x Sugarland Hwy",
+   "m2": 147
+  },
+  {
+   "kind": "island",
+   "x": -2716,
+   "z": 1920.7,
+   "node": 1866,
+   "name": "Krome Avenue x Sugarland Hwy",
+   "m2": 254
+  },
+  {
+   "kind": "island",
+   "x": -352.4,
+   "z": 2470.5,
+   "node": 1928,
+   "name": "State Road 984 x State Road 948 x SW 18th St",
+   "m2": 433
+  },
+  {
+   "kind": "island",
+   "x": -1402.8,
+   "z": 2855.6,
+   "node": 1982,
+   "name": "Coral Way x Marlin St",
+   "m2": 2413
+  },
+  {
+   "kind": "island",
+   "x": -1672.8,
+   "z": 2918,
+   "node": 1983,
+   "name": "Bougainvillea St x Ocean Ave x State Road 993",
+   "m2": 1962
+  },
+  {
+   "kind": "island",
+   "x": -1108,
+   "z": 2950.5,
+   "node": 1998,
+   "name": "Manatee Ave x Key Lime Ln x State Road 955",
+   "m2": 978
+  },
+  {
+   "kind": "island",
+   "x": -3323.2,
+   "z": 3164.3,
+   "node": 2037,
+   "name": "Main St x Mango St",
+   "m2": 886
+  },
+  {
+   "kind": "island",
+   "x": -4753.9,
+   "z": 6535.3,
+   "node": 2117,
+   "name": "Coconut Row x Pelican Point Ln",
+   "m2": 816
+  },
+  {
+   "kind": "island",
+   "x": -922.5,
+   "z": 4872,
+   "node": 2162,
+   "name": "Pelican Point Ln",
+   "m2": 114
+  }
+ ]
+}

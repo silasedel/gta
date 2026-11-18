@@ -408,7 +408,7 @@ export function createCountryside({ renderer, scene, terrain, data, roadDist, de
     if (add.size) dirty = true;
   }
   function genTrees(c) {
-    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.name === 'mangrove' ? (t.wet ? Math.min(t.y - 0.25, -0.12 - 0.4) : t.y - 0.25) : t.y - Math.min(0.1, Math.max(0.04, (t.palm ? 0.07 : 0.06) * t.s)), t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
+    c.lotIds = new Set(); placeTrees({ ...ctx, lotSeen: c.lotIds }, c.x0, c.z0, CELLS, (t) => { if (rejected.has(t.key.split(',').slice(0, 2).join(','))) return; if (t.key.startsWith('lot')) (c.lotKeys ||= new Set()).add(t.key); const pi = protoOf[t.name][t.v]; pushItem(c, pi, t.x, t.name === 'mangrove' ? (t.wet ? Math.min(t.y - 0.25 - 0.55 * t.s, -0.12 - 0.4 - 0.55 * t.s) : t.y - 0.25 - 0.55 * t.s) /* (r3-world) the model's prop roots end 0.6-0.8 m above its origin: sink them into the mud / water */ : t.y - Math.min(0.1, Math.max(0.04, (t.palm ? 0.07 : 0.06) * t.s)), t.z, t.ry, t.s, null, leafCol(t.b, t.x, t.z, hh(t.x | 0, t.z | 0, 12)), t.s * (0.84 + hh(t.x | 0, t.z | 0, 13) * 0.32)); }); // own height / width ratio per tree (no clones)
     c.lv.t = 1; c.hs = hSig(c);
   }
   // 4 m sample grid of height / road distance / biome / water for the shrub and ground-cover passes

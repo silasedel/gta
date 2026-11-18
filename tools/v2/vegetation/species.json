@@ -465,6 +465,7 @@
   "mangrove": {
    "src": "Models/Trees/Mangrove Tree 2 - Red Mangrove With Stilt Roots/Mangrove Tree 2.blend",
    "height": 7,
+   "keepRoots": true,
    "bark": "Bark",
    "leaf0": 14000,
    "bark0": 36000,

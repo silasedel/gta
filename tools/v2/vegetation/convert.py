@@ -344,13 +344,28 @@ def thin(mesh, budget, grow_cap, seed, bloom_frac=0.0):
     bm.to_mesh(mesh); bm.free(); mesh.update()
     return leaf_t, tri_count(mesh, leaf_idx)
 
+LOD1_PHASE = [False]  # keepRoots acts on the LOD1 pass only (LOD0 keeps the converter's own decimation)
+def ground_faces(bm, idxs, reach=0.9):  # (r3-world) faces of the small bark pieces that reach down to the ground (stilt / prop roots)
+    bm.faces.ensure_lookup_table(); comps = components(bm, idxs)
+    if not comps: return set()
+    zmin = min(v.co.z for c in comps for f in c for v in f.verts); tot = sum(len(c) for c in comps); out = set()
+    for c in comps:
+        if len(c) < tot * 0.1 and min(v.co.z for f in c for v in f.verts) < zmin + reach: out.update(f.index for f in c)
+    return out
+
 def decimate_bark(o, budget, idxs=None):  # collapse-decimate only the faces of the given materials (split off, decimate, join back)
     idxs = bark_idx if idxs is None else idxs
     bt = tri_count(o.data, idxs)
     if not budget or bt <= budget or not idxs: return bt, bt
+    # (r3-world) species with keepRoots: the stilt / prop roots stay out of the collapse (collapsing them to 19 % deleted every root
+    # of the mangrove LOD1: its trunk ended 1.25 m above the ground, trees floated at 50-170 m)
+    keep = set()
+    if S.get('keepRoots') and LOD1_PHASE[0] and idxs is bark_idx:
+        bm0 = bmesh.new(); bm0.from_mesh(o.data); keep = ground_faces(bm0, idxs); gt = sum(len(f.verts) - 2 for f in bm0.faces if f.index in keep); bm0.free()
+        if keep: budget = max(budget * 0.25, budget - gt); bt = max(1, bt - gt)
     part = o.copy(); part.data = o.data.copy(); sc.collection.objects.link(part)
     def keep_only(mesh, inside):
-        bm = bmesh.new(); bm.from_mesh(mesh); kill = [f for f in bm.faces if (f.material_index in idxs) != inside]
+        bm = bmesh.new(); bm.from_mesh(mesh); bm.faces.ensure_lookup_table(); kill = [f for f in bm.faces if (f.material_index in idxs and f.index not in keep) != inside]
         if kill: bmesh.ops.delete(bm, geom=kill, context='FACES')
         loose = [v for v in bm.verts if not v.link_faces]
         if loose: bmesh.ops.delete(bm, geom=loose, context='VERTS')
@@ -372,8 +387,10 @@ def prune_bark(o, budget):  # twigs as separate little meshes collapse badly: dr
         vs = [v.co for f in c for v in f.verts]; xs = [v.x for v in vs]; ys = [v.y for v in vs]; zs = [v.z for v in vs]
         return (max(xs) - min(xs)) ** 2 + (max(ys) - min(ys)) ** 2 + (max(zs) - min(zs)) ** 2
     comps.sort(key=diag); total = sum(len(f.verts) - 2 for c in comps for f in c); kill = []
+    keep = ground_faces(bm, bark_idx) if S.get('keepRoots') and LOD1_PHASE[0] else set()  # (r3-world) stilt / prop roots are never pruned
     for c in comps:
         if total <= budget: break
+        if keep and c[0].index in keep: continue
         kill.extend(c); total -= sum(len(f.verts) - 2 for f in c)
     if kill: bmesh.ops.delete(bm, geom=kill, context='FACES')
     loose = [v for v in bm.verts if not v.link_faces]
@@ -416,6 +433,7 @@ def measure(mesh):
 os.makedirs(OUT, exist_ok=True)
 p0 = os.path.join(OUT, KEY + '.glb'); export(p0, True)
 info0 = measure(ob.data)
+LOD1_PHASE[0] = True
 lt1 = leaf_reduce(S['leaf1'], S.get('grow1', 1.6), S.get('seed', 7) + 101)
 if bp: prune_bark(ob, int(S['bark1'] * bp))
 bt1 = decimate_bark(ob, S['bark1']); prune_bark(ob, S['bark1']); bt1 = (bt1[0], tri_count(ob.data, bark_idx))

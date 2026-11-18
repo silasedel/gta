@@ -71,8 +71,8 @@ export async function initV2(game) {
     const s = it.s ?? 1, r = grp === 'mangrove' ? 1.6 : Math.min(0.4, (md.def.r || (md.cls === 'shrub' ? 0.25 : 0.35)) * s); // the trunk's own footprint (wider sampling buried the flare on slopes)
     let g = gh(it.x, it.z); for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r], [r * 0.7, r * 0.7], [-r * 0.7, r * 0.7], [r * 0.7, -r * 0.7], [-r * 0.7, -r * 0.7]]) { if (grp !== 'mangrove' && C?.isWater?.(it.x + dx, it.z + dz)) continue; g = Math.min(g, gh(it.x + dx, it.z + dz)); } // land plants: a water sample beside the trunk is not its ground
     if (it.y !== undefined && it.y !== null && Math.abs(it.y - g) > 0.6 && grp !== 'mangrove') return it; // deliberate height (planter, deck, roof garden)
-    const sink = grp === 'mangrove' ? 0.25 : md.cls === 'shrub' ? 0.05 * s : Math.min(0.1, Math.max(0.04, (md.cls === 'palm' ? 0.07 : 0.06) * s)); /* trunk base 4-10 cm into the ground (the root flare stays visible) */
-    let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.4); // prop roots into the shallow water / mud
+    const sink = grp === 'mangrove' ? 0.25 + 0.55 * s /* (r3-world) prop roots end 0.6-0.8 m above the model origin */ : md.cls === 'shrub' ? 0.05 * s : Math.min(0.1, Math.max(0.04, (md.cls === 'palm' ? 0.07 : 0.06) * s)); /* trunk base 4-10 cm into the ground (the root flare stays visible) */
+    let y = g - sink; if (grp === 'mangrove' && C?.isWater?.(it.x, it.z)) y = Math.min(y, (C.seaLevel ?? -0.12) - 0.4 - 0.55 * s); // prop roots into the shallow water / mud
     return { ...it, y };
   }
   let t = 0, lastSeen = -1, cs = null, csFailed = false, nicoStreet = null, nsWait = 0, collars = null, yards = null;

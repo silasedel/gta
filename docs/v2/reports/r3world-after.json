@@ -1,0 +1,81 @@
+{
+  "set": "after",
+  "when": "2026-11-18T05:42:00.302Z",
+  "shots": {
+    "crack_sw11": {
+      "cam": {
+        "eye": [
+          -160,
+          1.7,
+          991.5
+        ],
+        "look": [
+          -125,
+          0,
+          1008
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/after_crack_sw11.jpg"
+    },
+    "crack_sr934": {
+      "cam": {
+        "eye": [
+          -560,
+          1.8,
+          2626
+        ],
+        "look": [
+          -600,
+          0.3,
+          2634
+        ],
+        "tree": null
+      },
+      "file": "docs/v2/shots/world/after_crack_sr934.jpg"
+    },
+    "mangrove_far": {
+      "cam": {
+        "eye": [
+          -1027.1,
+          4.9,
+          5619.1
+        ],
+        "look": [
+          -1074.6,
+          1.4,
+          5536.8
+        ],
+        "tree": {
+          "kind": "mangrove",
+          "x": -1074.5687255859375,
+          "y": -1.1181188821792603,
+          "z": 5536.82421875
+        }
+      },
+      "file": "docs/v2/shots/world/after_mangrove_far.jpg"
+    },
+    "mangrove_near": {
+      "cam": {
+        "eye": [
+          -1063.6,
+          2.9,
+          5555.9
+        ],
+        "look": [
+          -1074.6,
+          1.4,
+          5536.8
+        ],
+        "tree": {
+          "kind": "mangrove",
+          "x": -1074.5687255859375,
+          "y": -1.1181188821792603,
+          "z": 5536.82421875
+        }
+      },
+      "file": "docs/v2/shots/world/after_mangrove_near.jpg"
+    }
+  },
+  "errors": []
+}
