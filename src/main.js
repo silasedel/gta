@@ -409,6 +409,17 @@ async function boot() {
   function spotFree(x, y, z) {
     return !world.intersectionWithShape({ x, y: y + CENTER + 0.06, z }, IDQ, capShape, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS, undefined, pCol);
   }
+  // user (Nov 18): you can only get into a car from beside its driver door (driver side = +X in the car frame, the exit side),
+  // not from the far side or from meters away. Boats, aircraft and bikes keep their own boarding.
+  const _dq = new THREE.Quaternion(), _dv = new THREE.Vector3();
+  function atDriverDoor(v) {
+    if (!v || v.isBoat || v.isAircraft || v.isBike || v.kind === 'aircraft' || !v.body || !v.spec) return true;
+    try { const t = v.body.translation(), r = v.body.rotation(); _dq.set(r.x, r.y, r.z, r.w).invert();
+      _dv.set(P.position.x - t.x, 0, P.position.z - t.z).applyQuaternion(_dq);
+      const W = v.spec.W || 1.9, L = v.spec.L || 4.6;
+      return _dv.x > W / 2 - 0.35 && _dv.x < W / 2 + 1.7 && _dv.z > -L * 0.3 && _dv.z < L * 0.42;
+    } catch (e) { return true; }
+  }
   function safeExitSpot(v) {
     const t = v.body.translation(), r = v.body.rotation();
     const q = new THREE.Quaternion(r.x, r.y, r.z, r.w);
@@ -1050,7 +1061,7 @@ async function boot() {
         if (P.state.inVehicle) {
           if ((P.state.vehicle.speedKmh || 0) < 25 || (P.state.vehicle.submerged || 0) > 0.3) exitVehicle();
         } else {
-          const v = eBoat || game.vehicles.nearest?.(P.position, 4.0);
+          let v = eBoat || game.vehicles.nearest?.(P.position, 4.0); if (v && !eBoat && !atDriverDoor(v)) v = null;
           if (v && game.emit('enterVehicle', { vehicle: v })) enterVehicle(v);
         }
       }
@@ -1068,7 +1079,7 @@ async function boot() {
       }
       // help prompt
       if (!P.state.inVehicle) {
-        const v = game.vehicles.nearest?.(P.position, 4.0);
+        let v = game.vehicles.nearest?.(P.position, 4.0); if (v && !atDriverDoor(v)) v = null;
         game.hud.help?.(v ? (v.isBoat ? 'Press <b>F</b> or <b>E</b> to board boat' : 'Press <b>F</b> to enter vehicle') : null);
       } else game.hud.help?.(null);
       // physics (sub-step to keep ≤1/60)
