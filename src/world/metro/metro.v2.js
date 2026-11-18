@@ -264,12 +264,12 @@ export async function initV2(game) {
       if (!st || !tr) throw new Error('metro models missing');
       // station: unlit + baked light
       let concrete = null;
-      const KT = { floor: kitTex('floor_stone'), tactile: kitTex('tactile'), grime: kitTex('grime_d', false), ceil: kitTex('ceiling_d', false), tile: kitTex('wall_tile_d', false), tunnel: kitTex('tunnel_wall'), bed: kitTex('track_bed'), carFloor: kitTex('car_floor') };
+      const KT = { floor: kitTex('floor_stone'), tactile: kitTex('tactile'), grime: kitTex('grime_d', false), ceil: kitTex('ceiling_d', false), tile: kitTex('wall_tile_d', false), tunnel: kitTex('tunnel_wall'), bed: kitTex('track_bed'), carFloor: kitTex('car_floor'), panel: kitTex('car_panel') };
       st.updateMatrixWorld(true);
       st.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, stationLight); const m = o.material, nm = m?.name || ''; if (/Lambert4|Lambert6/.test(nm) && m.map && !concrete) concrete = m.map;
         const u = unlit(m); o.material = u;
         // real surfaces from the user's Subway 1 kit: stone platform tiles, grout + grime on the walls, stained concrete overhead
-        if (nm === 'Lambert2') { planarUV(o.geometry, 4.2, 'uv', o.matrixWorld); u.map = KT.floor; u.color.setScalar(0.95); detail(u, o.geometry, KT.grime, 7, 0.55, o.matrixWorld); }
+        if (nm === 'Lambert2') { planarUV(o.geometry, 2.0, 'uv', o.matrixWorld); u.map = KT.floor; u.color.setScalar(0.95); detail(u, o.geometry, KT.grime, 7, 0.55, o.matrixWorld); }
         else if (nm === 'Lambert3') detail(u, o.geometry, KT.tile, 1.2, 0.75, o.matrixWorld);
         else if (/Lambert[456]/.test(nm)) detail(u, o.geometry, KT.ceil, 5, 0.9, o.matrixWorld);
         else if (!/Glass|Electrical/.test(nm)) detail(u, o.geometry, KT.grime, 4, 0.7, o.matrixWorld);
@@ -302,6 +302,12 @@ export async function initV2(game) {
       const carProto = new THREE.Group(); const doors = [];
       tr.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, carLight); const nm = o.material?.name || '';
         if (/^Lights/.test(nm)) { o.material = new THREE.MeshBasicMaterial({ color: 0xe6e1d4 }); }   // diffuser panels: bright, not blown out
+        else if (/^Walls/.test(nm)) {
+          // clean car panels: light warm-gray laminate with fine brushed grain and panel seams (no atlas, so no splotches)
+          // 2K laminate (tools/v2/metro/car_panel.py: 2048 px = 2.4 m, orange peel, seams, rivets; normal + roughness maps beside it)
+          planarUV(o.geometry, 2.4, 'uv');
+          o.material = new THREE.MeshBasicMaterial({ map: KT.panel, color: 0xf2f0ec, vertexColors: true });
+        }
         else if (/^Floor/.test(nm)) { planarUV(o.geometry, 1.6); o.material = new THREE.MeshBasicMaterial({ map: KT.carFloor, color: new THREE.Color(2.4, 2.4, 2.4), vertexColors: true }); }
         else o.material = unlit(o.material, { glass: /Glass/.test(nm), tint: /^Bars/.test(nm) ? 0x9a9a9a : /^Walls/.test(nm) ? new THREE.Color(1.4, 1.4, 1.42) : /^Roof/.test(nm) ? 0xd8d8d8 : null });
         if (!o.material.name && o.name === 'm__none') o.material.color.set(0x8d9298);
