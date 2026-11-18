@@ -66,3 +66,4 @@
 - **Physics safety:** removed cars now keep a stand-in body (vehicles.js deadBody). Do the same for every system that frees Rapier bodies (boats, aircraft, props, breakables). Keep `?rapierguard=1` in the QA runs.
 - **Ragdolls:** CCD plus a floor guard on all parts (ragdoll.js floorGuard). Joint limits and masses still need a pass.
 - **Car to people:** hits from 1.4 m/s. Make the hit test a swept volume against the people's capsules (no pass-through at the car's edges).
+- **Carjacking (user):** a full sequence. Walk to the driver door, open it, pull the driver out (they ragdoll onto the ground outside, clear of bushes), get in, shut the door, drive. The ejected driver's spot comes from game.placement (not in bushes, not in the road), then they flee or fight. Doors need opening parts in the car pipeline. Door-only entry is in (atDriverDoor in main.js).
