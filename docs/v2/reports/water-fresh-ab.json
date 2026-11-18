@@ -1,0 +1,35 @@
+{
+ "spots": {
+  "canal": {
+   "x": -4720,
+   "z": -2100,
+   "lx": -4700,
+   "lz": -2100,
+   "an": 0
+  },
+  "lake": {
+   "x": -2740,
+   "z": -1380,
+   "lx": -2678.812625017241,
+   "lz": -1328.4625850209848,
+   "an": 0.7
+  }
+ },
+ "shots": [
+  "docs/v2/shots/water/fresh_canal_before.jpg",
+  "docs/v2/shots/water/fresh_canal_after.jpg",
+  "docs/v2/shots/water/fresh_lake_before.jpg",
+  "docs/v2/shots/water/fresh_lake_after.jpg"
+ ],
+ "canalView": {
+  "ox": -4694,
+  "oz": -2100
+ },
+ "lakeView": {
+  "ox": -2674.223571893534,
+  "oz": -1324.5972788975587
+ },
+ "freshOn": true,
+ "builds": 5,
+ "errors": []
+}
