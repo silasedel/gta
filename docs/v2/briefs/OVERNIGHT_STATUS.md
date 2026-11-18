@@ -1375,6 +1375,7 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   found), truck11 (cab-chassis, converted but unused), city bus.
 
 ## r2-people
+- 22:00 Beach towels: draped terry towels (folds, curled edges, loop fuzz, sheen, sand at the rims), flip-flops, sunbathers resting on the towel top (no sinking). Close-ups `docs/v2/shots/people/r2_towel_sheet.jpg` (before: the user's screenshot). Not done: front / propped-on-elbows lying variants (only the back and sitting clips exist), a real beach bag model.
 - 21:30 Sitting follow-up: seats face away from the probed backrest (flipped chair spots are turned around), a guard drops the seat pose if the knees fold under 60 deg or the feet end above the cushion, the prop-less phone variant is off. Front views (sofa, booth, cafe table): `docs/v2/shots/people/r2_sitting_sheet.jpg`; 9 / 9 bar sitters probed with knees forward of the hips and feet on the floor ahead of them.
 - 21:00 **Sitting (user: "terrible and unrealistic when sitting").** `src/npc/furnitureSeat.js` + the shared seat solver:
   every seated ped (interiors, benches, booths) is placed on the probed cushion of the real furniture (not the armrest),
