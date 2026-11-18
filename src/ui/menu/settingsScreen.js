@@ -110,7 +110,7 @@ export function openSettingsScreen(game, ctx, o = {}) {
     else if (r.dataset.kind === 'action') {
       if (it?.action === 'detect') { const d = S.detect(); S.applyPreset(d.preset); ctx.notify?.(`Picked ${d.preset}: ${d.reason}`, 3500); }
       else if (it?.action === 'resetAll') { S.reset(); }
-      else if (it?.action === 'devCode') { try { (ctx.game || window.game)?.dev?.openCodes?.(); } catch (e) { /* dev module not loaded */ } }
+      else if (it?.action === 'devCode') { try { (game || ctx.game || window.game)?.dev?.openCodes?.(); } catch (e) { /* dev module not loaded */ } }
       render(r.dataset.key);
     } else if (e.target.closest('.pm-pick i')) { const i = [...r.querySelectorAll('.pm-pick i')].indexOf(e.target.closest('.pm-pick i')); adjust(r, i === 0 ? -1 : 1); }
   });

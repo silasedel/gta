@@ -126,6 +126,7 @@ export async function initV2(game) {
   function openCodes() {
     if (panelOpen) return;
     panelOpen = true; panel.classList.add('open'); field.value = ''; field.classList.remove('bad', 'good'); paint();
+    panel.style.zIndex = '2147483000'; document.body.appendChild(panel); setTimeout(() => { try { field.focus(); } catch (e) { /* */ } }, 30);   // above every menu layer (settings from the title), typing goes to the field
     const B = game.bindings;
     try { if (B?.pushMode) leaveUI = B.pushMode('ui'); if (B?.on) offUI = B.on('uikey', onUIKey); } catch (e) { leaveUI = offUI = null; }
     try { navH = game.uiContext?.nav?.push?.({ root: panel.querySelector('.ps-dev-card'), wrap: true, onBack: () => { closeCodes(); keepPaused(); } }) || null; } catch (e) { navH = null; }
