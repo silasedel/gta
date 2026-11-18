@@ -864,7 +864,12 @@ export async function initV2(game) {
     lines: () => lineLog.slice(), lineCount,
     roster: () => [...roster.values()].map((id) => ({ name: id.name, age: id.age, job: id.job, home: id.districtKey, voice: id.voice, traits: Object.fromEntries(Object.entries(id.traits).map(([k, v]) => [k, Math.round(v * 100) / 100])) })),
     life: { stats: () => ({ ...lifeStats }), governor: () => ({ k: governor.k, avgMs: governor.avgMs }), panic: crowdPanic, walkState: signals.walkState },
-    crowd: { cfg: crowdCfg, get impl() { return crowd; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
+    crowd: { cfg: crowdCfg, get impl() { return crowd; },
+      // user (Nov 18): cars drove straight through crowd-tier people. hitAt removes the crowd walker inside the disk at once and
+      // returns where it stood, so the car code can put a full person there and knock it down (vehicles.js hitPeds)
+      hitAt(x, z, r = 1.2) { for (let n = walkers.length - 1; n >= 0; n--) { const w = walkers[n]; if (Math.hypot(w.pos.x - x, w.pos.z - z) > r) continue;
+        try { spots.free(w.spotKey); spots.free(w.groupKey); crowd.release(w.i); if (w.towel) { game.scene.remove(w.towel); w.towel.geometry?.dispose?.(); towelN--; } } catch (e) { /* */ }
+        walkers.splice(n, 1); return { x: w.pos.x, y: w.gy ?? 0, z: w.pos.z, heading: w.heading || 0 }; } return null; }, get count() { return walkers.length; }, get tris() { return crowd?.tris || 0; }, positions: () => walkers.map((w) => [w.pos.x, w.pos.z]), persons: () => walkers.map((w) => [w.look?.personId || null, w.pos.x, w.pos.z, !!w.lounger, !!w.leaving]) },
     sigList: () => [...audit.sigs.keys()],
     inView() { // people inside the camera frustum (near tier + crowd tier)
       const cam = game.camera; if (!cam) return null; cam.updateMatrixWorld();

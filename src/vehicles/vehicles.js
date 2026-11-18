@@ -2040,6 +2040,10 @@ export async function createVehicles(game) {
   function hitPeds(v, t, r) {
     _q.set(r.x, r.y, r.z, r.w).invert();
     const spec = v.spec;
+    // crowd-tier walkers (people.v2 far crowd) had no hit test: one just ahead of the bumper becomes a full person and is hit
+    try { const C = game.people?.crowd; if (C?.hitAt && game.peds?.spawnAt) { const sg = v.speed >= 0 ? 1 : -1, fq = new THREE.Quaternion(r.x, r.y, r.z, r.w);
+      const f = new THREE.Vector3(0, 0, sg * (spec.L / 2 + 0.3)).applyQuaternion(fq), w = C.hitAt(t.x + f.x, t.z + f.z, spec.W / 2 + 0.4);
+      if (w) { const ped = game.peds.spawnAt(new THREE.Vector3(w.x, w.y, w.z), { heading: w.heading }); if (ped) ped._carHitT = 0; } } } catch (e) { /* crowd optional */ }
     for (const ped of game.peds.list) {
       if (!ped || ped.dead) continue;
       const pp = ped.pos || ped.root?.position;
