@@ -91,6 +91,9 @@ Rules the prompts follow:
 63. 35-year-old muscular Puerto Rican man, cornrows, teardrop tattoo under one eye, full tattoo sleeves, fitted red tank top, black cargo shorts, high socks and slides
 64. 29-year-old stocky Cuban man, buzz cut with a scar on the scalp, thick goatee, chest and arm tattoos showing, open-collar fitted short-sleeve shirt, dark jeans, boots
 
+65. 30-year-old slim Black man, rough street look, short messy afro, patchy beard, hollow cheeks, faded neck tattoo, dirty oversized-but-tucked gray hoodie with the sleeves pushed up, torn black jeans, beat-up sneakers
+66. 22-year-old skinny dark-skinned Black man, short twists, thin mustache, scar on the cheek, tattooed knuckles and forearms, stained fitted white tank top, sagging dark cargo pants, worn slides with socks
+
 ## Search terms for hard-to-find models (for the free model site)
 - **Plants:** "tropical shrub", "beach plant", "dune grass", "marsh grass", "fan palm small", "palmetto", "tropical tree", "flowering tree", "coastal shrub", "agave", "succulent bush", "jungle plant pack"
 - **School bus:** "yellow bus", "american bus", "school bus low poly", "bus pack"
