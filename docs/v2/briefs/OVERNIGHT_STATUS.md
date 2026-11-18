@@ -1840,3 +1840,30 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   - **Result** (built site, 50 Mbps emulated / about 28 Mbps effective, first visit): before 28 / 34 / 34 / 63 / 74 % at 10 / 25 / 50 / 75 / 90 % of the time, parked at 34 % for about 45 s; after 10 / 23 / 40 / 65 / 93 %, monotonic, 0 errors. Longest flat stretch: 8 s at 41 %, while the map is built after its download, during a 4.8 s main-thread block.
   - Plot: `docs/v2/shots/r2web/loadbar_web_before_after.jpg`. Dev check: 0 errors, no manifest, so time weights as before.
   - **The site needs a rebuild with build-pages.mjs** so `boot-bytes.json` ships.
+
+## r3-perf
+- **Memory leak while driving fixed** (commit 13a1889f; `?leakfix=0` rolls it back). Measured on a 650 s Brickell / downtown drive
+  (physics car on autopilot, wanted 3 chase, `tools/v2/perf/r3-leak.mjs`). Slopes are from 200 s to the end:
+
+  | | renderer footprint | GPU process | ArrayBuffers |
+  |---|---|---|---|
+  | fixes off | +0.27 GB/min (9.1 -> 11.2 GB) | +0.27 GB/min (12.8 -> 14.8 GB) | +0.18 GB/min |
+  | fixes on | +0.11 GB/min (9.5 -> 10.3 GB) | +0.08 GB/min (14.2 -> 14.8 GB) | +0.01 GB/min (flat ~3.6 GB) |
+
+  Data: `docs/v2/reports/r3-leak-off.json`, `r3-leak-on.json`.
+- **What leaked** (found from heap-snapshot retainer paths, `tools/v2/perf/r3-retain.mjs`):
+  - `env/ocean.js` (new Nov 17): the shore height-map proxies kept every streamed ground mesh, and through `.parent` the whole
+    disposed tile. Their prune ran only near water. Detached tiles also kept drawing, so their disposed geometry went back to
+    the GPU and was never freed.
+  - `render/instVao.v2.js`: its owner WeakMap held InstancedMeshes strongly. That kept whole tiles alive through the
+    ground-mask mulch discs, plus old library cells. Views were never released either.
+  - `vehicles.js`: wrecks and cars the player drove and left stayed forever. They are now swept: out of view past 220 m, at
+    most 8 kept.
+- **Building pop** (`?popfix=0` rolls it back):
+  - `bldmodels.js` keeps the drawn LOD until the new LOD is loaded and compiled.
+  - `perfGuards.v2.js` no longer hides a new near tile whose shaders are already linked. The mid LOD under it was cut at once,
+    so its buildings vanished for 1 frame to 1.5 s.
+  - Not checked visually frame by frame.
+- **Still open:** slow growth remains: about +60 geometries, +25 textures and +130 VAOs a minute, and the renderer at
+  +0.11 GB/min. Audio nodes are created at 10-40/s in a chase (not checked whether they leak). Absolute fps is not usable from
+  these runs: the machine was loaded (load average 27-35) and the user's Southline app was running.
