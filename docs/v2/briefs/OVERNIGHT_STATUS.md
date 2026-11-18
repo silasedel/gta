@@ -1359,6 +1359,7 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   found), truck11 (cab-chassis, converted but unused), city bus.
 
 ## r2-people
+- 21:30 Sitting follow-up: seats face away from the probed backrest (flipped chair spots are turned around), a guard drops the seat pose if the knees fold under 60 deg or the feet end above the cushion, the prop-less phone variant is off. Front views (sofa, booth, cafe table): `docs/v2/shots/people/r2_sitting_sheet.jpg`; 9 / 9 bar sitters probed with knees forward of the hips and feet on the floor ahead of them.
 - 21:00 **Sitting (user: "terrible and unrealistic when sitting").** `src/npc/furnitureSeat.js` + the shared seat solver:
   every seated ped (interiors, benches, booths) is placed on the probed cushion of the real furniture (not the armrest),
   9 cm above it and 13 cm in front of the backrest, feet on the floor in front of the seat edge, with a natural variant
