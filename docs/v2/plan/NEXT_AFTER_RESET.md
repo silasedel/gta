@@ -57,3 +57,5 @@
 - **Wanted stars:** the blinking looks weird. Animate like a real open-world HUD: a smooth flash on gain, a pulse while searching, a fade on loss, gentle light-up timing.
 - **Overseas Hwy bridge:** where the divided highway meets the single carriageway at the islet (user map screenshot), the bridge dips underwater and drops off. Make it one continuous elevated bridge like render 1: concrete deck, multi-column bents, no water on the deck or between the twin bridges.
 - **Fence physics:** the thin wire / map-data fence that stopped the car dead needs the energy-break model (chain / wire low energy) and the mesh fabric from the user's model.
+- **Variety:** avoid two of the same model in the same area (parked and traffic cars and people): a per-area recent-model ring.
+- **Tires:** some cars (the 4Runner-like SUV) still have non-solid looking tires. Audit every wheel model for open sidewalls / inner faces (r3-cars made wheels double-sided; check the carcass per model).
