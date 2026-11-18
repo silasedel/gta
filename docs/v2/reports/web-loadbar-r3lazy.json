@@ -1,0 +1,719 @@
+{
+ "set": "r3lazy",
+ "url": "http://127.0.0.1:5231/gta6/",
+ "when": "2026-11-18T07:09:01.783Z",
+ "boots": [
+  {
+   "boot": 1,
+   "ready": 113813,
+   "samples": [
+    [
+     30,
+     0,
+     ""
+    ],
+    [
+     131,
+     0,
+     "LOADING"
+    ],
+    [
+     749,
+     0,
+     ""
+    ],
+    [
+     2503,
+     1,
+     ""
+    ],
+    [
+     2604,
+     2,
+     ""
+    ],
+    [
+     3741,
+     3,
+     ""
+    ],
+    [
+     4357,
+     4,
+     ""
+    ],
+    [
+     5313,
+     5,
+     ""
+    ],
+    [
+     6135,
+     6,
+     ""
+    ],
+    [
+     7023,
+     7,
+     ""
+    ],
+    [
+     8046,
+     8,
+     ""
+    ],
+    [
+     9095,
+     9,
+     ""
+    ],
+    [
+     10333,
+     10,
+     ""
+    ],
+    [
+     11678,
+     11,
+     ""
+    ],
+    [
+     12903,
+     12,
+     ""
+    ],
+    [
+     13713,
+     13,
+     ""
+    ],
+    [
+     14740,
+     14,
+     ""
+    ],
+    [
+     15864,
+     15,
+     ""
+    ],
+    [
+     17299,
+     16,
+     ""
+    ],
+    [
+     18238,
+     17,
+     ""
+    ],
+    [
+     19460,
+     18,
+     ""
+    ],
+    [
+     21216,
+     19,
+     ""
+    ],
+    [
+     22132,
+     20,
+     ""
+    ],
+    [
+     23161,
+     21,
+     ""
+    ],
+    [
+     24834,
+     22,
+     ""
+    ],
+    [
+     26833,
+     23,
+     ""
+    ],
+    [
+     28380,
+     24,
+     ""
+    ],
+    [
+     29814,
+     25,
+     ""
+    ],
+    [
+     30323,
+     26,
+     ""
+    ],
+    [
+     31866,
+     27,
+     ""
+    ],
+    [
+     32689,
+     28,
+     ""
+    ],
+    [
+     33610,
+     29,
+     ""
+    ],
+    [
+     34846,
+     30,
+     ""
+    ],
+    [
+     36071,
+     31,
+     ""
+    ],
+    [
+     37175,
+     32,
+     ""
+    ],
+    [
+     38120,
+     33,
+     ""
+    ],
+    [
+     41554,
+     34,
+     ""
+    ],
+    [
+     46674,
+     35,
+     ""
+    ],
+    [
+     49160,
+     36,
+     ""
+    ],
+    [
+     55329,
+     37,
+     ""
+    ],
+    [
+     65673,
+     49,
+     ""
+    ],
+    [
+     66084,
+     50,
+     ""
+    ],
+    [
+     71885,
+     51,
+     ""
+    ],
+    [
+     72370,
+     53,
+     ""
+    ],
+    [
+     73222,
+     54,
+     ""
+    ],
+    [
+     74457,
+     55,
+     ""
+    ],
+    [
+     75933,
+     56,
+     ""
+    ],
+    [
+     77477,
+     57,
+     ""
+    ],
+    [
+     81717,
+     62,
+     ""
+    ],
+    [
+     83634,
+     63,
+     ""
+    ],
+    [
+     84925,
+     64,
+     ""
+    ],
+    [
+     86867,
+     65,
+     ""
+    ],
+    [
+     87375,
+     66,
+     ""
+    ],
+    [
+     88496,
+     67,
+     ""
+    ],
+    [
+     89208,
+     69,
+     ""
+    ],
+    [
+     90403,
+     71,
+     ""
+    ],
+    [
+     90506,
+     73,
+     ""
+    ],
+    [
+     91020,
+     74,
+     ""
+    ],
+    [
+     91429,
+     75,
+     ""
+    ],
+    [
+     92346,
+     76,
+     ""
+    ],
+    [
+     93154,
+     77,
+     ""
+    ],
+    [
+     94212,
+     78,
+     ""
+    ],
+    [
+     94521,
+     79,
+     ""
+    ],
+    [
+     95151,
+     80,
+     ""
+    ],
+    [
+     95771,
+     81,
+     ""
+    ],
+    [
+     96512,
+     82,
+     ""
+    ],
+    [
+     97371,
+     84,
+     ""
+    ],
+    [
+     97677,
+     85,
+     ""
+    ],
+    [
+     97883,
+     86,
+     ""
+    ],
+    [
+     99223,
+     87,
+     ""
+    ],
+    [
+     99629,
+     88,
+     ""
+    ],
+    [
+     99833,
+     89,
+     ""
+    ],
+    [
+     100446,
+     90,
+     ""
+    ],
+    [
+     102468,
+     91,
+     ""
+    ],
+    [
+     104613,
+     93,
+     ""
+    ],
+    [
+     104962,
+     95,
+     ""
+    ],
+    [
+     111596,
+     96,
+     ""
+    ],
+    [
+     112711,
+     97,
+     ""
+    ],
+    [
+     113813,
+     100,
+     "READY"
+    ]
+   ],
+   "stalls": [
+    [
+     10344,
+     37,
+     ""
+    ],
+    [
+     6634,
+     95,
+     ""
+    ],
+    [
+     6169,
+     36,
+     ""
+    ],
+    [
+     5801,
+     50,
+     ""
+    ],
+    [
+     5120,
+     34,
+     ""
+    ],
+    [
+     4240,
+     57,
+     ""
+    ],
+    [
+     3434,
+     33,
+     ""
+    ],
+    [
+     2486,
+     35,
+     ""
+    ]
+   ],
+   "blocks": [
+    [
+     108153,
+     3443
+    ],
+    [
+     105413,
+     2740
+    ],
+    [
+     38323,
+     2668
+    ],
+    [
+     41554,
+     1688
+    ],
+    [
+     103167,
+     1446
+    ],
+    [
+     80395,
+     1322
+    ],
+    [
+     25754,
+     1079
+    ]
+   ],
+   "phaseBytes": {
+    "rapier": 2592657,
+    "env": 265289,
+    "miami": 210260130,
+    "chars": 36294657,
+    "playerModel": 0,
+    "vehicles": 5020423,
+    "npcAtlas": 4673,
+    "peds": 0,
+    "interiors": 944224,
+    "gameplay": 0,
+    "hud": 0,
+    "post": 0,
+    "v2:./audio/passed.v2.js": 2193198,
+    "v2:./design/design.v2.js": 133993,
+    "v2:./fx/fire.v2.js": 3862682,
+    "v2:./fx/footprints.v2.js": 3487,
+    "v2:./gameplay/business/business.v2.js": 773512,
+    "v2:./gameplay/gangs/gangs.v2.js": 631105,
+    "v2:./jobs/jobs.v2.js": 4247,
+    "v2:./net/mp.v2.js": 402,
+    "v2:./npc/arch/arch.v2.js": 31820,
+    "v2:./npc/people.v2.js": 1261007,
+    "v2:./player/nico.v2.js": 2096,
+    "v2:./player/ragdoll.v2.js": 2255,
+    "v2:./player/vault.v2.js": 1952,
+    "v2:./render/contextGuard.v2.js": 1217,
+    "v2:./render/detailCull.v2.js": 665,
+    "v2:./render/drawOrder.v2.js": 2212803,
+    "v2:./render/dynres.v2.js": 1052,
+    "v2:./render/instVao.v2.js": 973,
+    "v2:./render/lodBias.v2.js": 894,
+    "v2:./render/perfGuards.v2.js": 2725,
+    "v2:./render/perfHud.v2.js": 2168,
+    "v2:./render/precompile.v2.js": 2217,
+    "v2:./render/quality.v2.js": 1911,
+    "v2:./render/tiers.v2.js": 2424,
+    "v2:./render/tileCull.v2.js": 969,
+    "v2:./render/warmup.v2.js": 49388,
+    "v2:./systems/systems.v2.js": 62864,
+    "v2:./ui/dev/devMode.v2.js": 308528,
+    "v2:./ui/menu/frontend.v2.js": 85719,
+    "v2:./ui/menu/intros.v2.js": 3826,
+    "v2:./vehicles/envlink.v2.js": 205,
+    "v2:./vehicles/hero/hero.v2.js": 415,
+    "v2:./vehicles/physics/physics.v2.js": 13959,
+    "v2:./web/offline.v2.js": 700,
+    "v2:./world/dressing/dressing.v2.js": 23768,
+    "v2:./world/env/weather.v2.js": 4064,
+    "v2:./world/ground/beach.v2.js": 1071,
+    "v2:./world/ground/grass.v2.js": 3709,
+    "v2:./world/ground/sand.v2.js": 701,
+    "v2:./world/metro/metro.v2.js": 14194,
+    "v2:./world/props/dynamicProps.v2.js": 0,
+    "v2:./world/props/hydrantSpray.v2.js": 0,
+    "v2:./world/props/lotProps.v2.js": 0,
+    "v2:./world/props/propShapes.v2.js": 0,
+    "v2:./world/props/variants.v2.js": 0,
+    "v2:./world/setpieces/houses/houses.v2.js": 25602,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 29977,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 10957,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 184647,
+    "v2:./world/setpieces/towns/towns.v2.js": 17658,
+    "v2:./world/signs/regulatory.v2.js": 3460,
+    "v2:./world/signs/signs.v2.js": 4133,
+    "v2:./world/vegetation/vegetation.v2.js": 11200,
+    "init:render/dynres.v2.js": 0,
+    "init:render/detailCull.v2.js": 0,
+    "init:render/perfGuards.v2.js": 0,
+    "init:render/contextGuard.v2.js": 0,
+    "init:render/drawOrder.v2.js": 0,
+    "init:systems/systems.v2.js": 0,
+    "init:vehicles/physics/physics.v2.js": 3591,
+    "init:render/quality.v2.js": 0,
+    "init:render/tiers.v2.js": 0,
+    "init:render/lodBias.v2.js": 0,
+    "init:world/env/weather.v2.js": 0,
+    "init:render/tileCull.v2.js": 0,
+    "init:design/design.v2.js": 0,
+    "init:render/instVao.v2.js": 0,
+    "init:player/nico.v2.js": 0,
+    "init:player/ragdoll.v2.js": 0,
+    "init:player/vault.v2.js": 0,
+    "init:world/ground/sand.v2.js": 0,
+    "init:world/signs/signs.v2.js": 0,
+    "init:world/vegetation/vegetation.v2.js": 0,
+    "init:world/signs/regulatory.v2.js": 0,
+    "init:world/ground/beach.v2.js": 0,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 23262858,
+    "init:world/ground/grass.v2.js": 22244715,
+    "init:world/dressing/dressing.v2.js": 7471734,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 54272396,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 0,
+    "init:world/setpieces/houses/houses.v2.js": 0,
+    "init:world/setpieces/towns/towns.v2.js": 408043,
+    "init:fx/footprints.v2.js": 0,
+    "init:npc/arch/arch.v2.js": 892284,
+    "init:audio/passed.v2.js": 0,
+    "init:gameplay/gangs/gangs.v2.js": 0,
+    "init:npc/people.v2.js": 0,
+    "init:vehicles/hero/hero.v2.js": 13333,
+    "init:gameplay/business/business.v2.js": 0,
+    "init:jobs/jobs.v2.js": 0,
+    "init:fx/fire.v2.js": 0,
+    "init:world/metro/metro.v2.js": 0,
+    "init:net/mp.v2.js": 0,
+    "init:vehicles/envlink.v2.js": 0,
+    "init:ui/dev/devMode.v2.js": 0,
+    "init:render/precompile.v2.js": 0,
+    "init:render/perfHud.v2.js": 0,
+    "init:render/warmup.v2.js": 0,
+    "init:ui/menu/frontend.v2.js": 0,
+    "init:ui/menu/intros.v2.js": 0,
+    "init:web/offline.v2.js": 0,
+    "shaders": 9686301,
+    "warmup": 31689040
+   },
+   "bw": 3674794.9227933297,
+   "netBytes": 418114859,
+   "phases": {
+    "rapier": 18.100000001490116,
+    "env": 166,
+    "miami": 64682.79999999702,
+    "chars": 6749.89999999851,
+    "playerModel": 8,
+    "vehicles": 8084,
+    "npcAtlas": 1033.2999999970198,
+    "peds": 1,
+    "interiors": 683.1999999955297,
+    "gameplay": 239.80000000447035,
+    "hud": 28.5,
+    "post": 9.099999994039536,
+    "v2:./audio/passed.v2.js": 82.80000000447035,
+    "v2:./design/design.v2.js": 31.69999999552965,
+    "v2:./fx/fire.v2.js": 685.2000000029802,
+    "v2:./fx/footprints.v2.js": 25.299999997019768,
+    "v2:./gameplay/business/business.v2.js": 26,
+    "v2:./gameplay/gangs/gangs.v2.js": 28.100000001490116,
+    "v2:./jobs/jobs.v2.js": 25.5,
+    "v2:./net/mp.v2.js": 23.200000002980232,
+    "v2:./npc/arch/arch.v2.js": 37.69999999552965,
+    "v2:./npc/people.v2.js": 62.899999998509884,
+    "v2:./player/nico.v2.js": 25.700000002980232,
+    "v2:./player/ragdoll.v2.js": 26,
+    "v2:./player/vault.v2.js": 24.899999998509884,
+    "v2:./render/contextGuard.v2.js": 23,
+    "v2:./render/detailCull.v2.js": 23.399999998509884,
+    "v2:./render/drawOrder.v2.js": 32.29999999701977,
+    "v2:./render/dynres.v2.js": 27.399999998509884,
+    "v2:./render/instVao.v2.js": 27.100000001490116,
+    "v2:./render/lodBias.v2.js": 25.600000001490116,
+    "v2:./render/perfGuards.v2.js": 24,
+    "v2:./render/perfHud.v2.js": 26.899999998509884,
+    "v2:./render/precompile.v2.js": 26.700000002980232,
+    "v2:./render/quality.v2.js": 26.299999997019768,
+    "v2:./render/tiers.v2.js": 26.100000001490116,
+    "v2:./render/tileCull.v2.js": 21.799999997019768,
+    "v2:./render/warmup.v2.js": 21.899999998509884,
+    "v2:./systems/systems.v2.js": 42.600000001490116,
+    "v2:./ui/dev/devMode.v2.js": 27,
+    "v2:./ui/menu/frontend.v2.js": 40.5,
+    "v2:./ui/menu/intros.v2.js": 26.899999998509884,
+    "v2:./vehicles/envlink.v2.js": 23.600000001490116,
+    "v2:./vehicles/hero/hero.v2.js": 26.100000001490116,
+    "v2:./vehicles/physics/physics.v2.js": 27,
+    "v2:./web/offline.v2.js": 26.69999999552965,
+    "v2:./world/dressing/dressing.v2.js": 28.30000000447035,
+    "v2:./world/env/weather.v2.js": 24.30000000447035,
+    "v2:./world/ground/beach.v2.js": 25.69999999552965,
+    "v2:./world/ground/grass.v2.js": 26.200000002980232,
+    "v2:./world/ground/sand.v2.js": 25.899999998509884,
+    "v2:./world/metro/metro.v2.js": 26.099999994039536,
+    "v2:./world/props/dynamicProps.v2.js": 0.20000000298023224,
+    "v2:./world/props/hydrantSpray.v2.js": 0,
+    "v2:./world/props/lotProps.v2.js": 0.20000000298023224,
+    "v2:./world/props/propShapes.v2.js": 0,
+    "v2:./world/props/variants.v2.js": 0,
+    "v2:./world/setpieces/houses/houses.v2.js": 30.69999999552965,
+    "v2:./world/setpieces/keysBar/keysBar.v2.js": 35.899999998509884,
+    "v2:./world/setpieces/keysSign/keysSign.v2.js": 28.700000002980232,
+    "v2:./world/setpieces/nicoHouse/nicoHouse.v2.js": 70.10000000149012,
+    "v2:./world/setpieces/towns/towns.v2.js": 30.200000002980232,
+    "v2:./world/signs/regulatory.v2.js": 27.399999998509884,
+    "v2:./world/signs/signs.v2.js": 27.600000001490116,
+    "v2:./world/vegetation/vegetation.v2.js": 29.700000002980232,
+    "init:render/dynres.v2.js": 3.399999998509884,
+    "init:render/detailCull.v2.js": 0.30000000447034836,
+    "init:render/perfGuards.v2.js": 3,
+    "init:render/contextGuard.v2.js": 0.3999999985098839,
+    "init:render/drawOrder.v2.js": 0.20000000298023224,
+    "init:systems/systems.v2.js": 7.699999995529652,
+    "init:vehicles/physics/physics.v2.js": 28.200000002980232,
+    "init:render/quality.v2.js": 1.3999999985098839,
+    "init:render/tiers.v2.js": 0.5,
+    "init:render/lodBias.v2.js": 0.10000000149011612,
+    "init:world/env/weather.v2.js": 2,
+    "init:render/tileCull.v2.js": 0,
+    "init:design/design.v2.js": 0.19999999552965164,
+    "init:render/instVao.v2.js": 1.8999999985098839,
+    "init:player/nico.v2.js": 0.5,
+    "init:player/ragdoll.v2.js": 0.10000000149011612,
+    "init:player/vault.v2.js": 0.10000000149011612,
+    "init:world/ground/sand.v2.js": 0,
+    "init:world/signs/signs.v2.js": 8.399999998509884,
+    "init:world/vegetation/vegetation.v2.js": 0.30000000447034836,
+    "init:world/signs/regulatory.v2.js": 31.899999998509884,
+    "init:world/ground/beach.v2.js": 0.29999999701976776,
+    "init:world/setpieces/nicoHouse/nicoHouse.v2.js": 5567.20000000298,
+    "init:world/ground/grass.v2.js": 2267.2999999970198,
+    "init:world/dressing/dressing.v2.js": 1724.7000000029802,
+    "init:world/setpieces/keysSign/keysSign.v2.js": 8266.29999999702,
+    "init:world/setpieces/keysBar/keysBar.v2.js": 288.79999999701977,
+    "init:world/setpieces/houses/houses.v2.js": 120,
+    "init:world/setpieces/towns/towns.v2.js": 189.40000000596046,
+    "init:fx/footprints.v2.js": 1,
+    "init:npc/arch/arch.v2.js": 170.10000000149012,
+    "init:audio/passed.v2.js": 0.30000000447034836,
+    "init:gameplay/gangs/gangs.v2.js": 0.4000000059604645,
+    "init:npc/people.v2.js": 3.5,
+    "init:vehicles/hero/hero.v2.js": 0.8999999985098839,
+    "init:gameplay/business/business.v2.js": 13.100000001490116,
+    "init:jobs/jobs.v2.js": 0.8999999985098839,
+    "init:fx/fire.v2.js": 0.8999999985098839,
+    "init:world/metro/metro.v2.js": 18.100000001490116,
+    "init:net/mp.v2.js": 0.10000000149011612,
+    "init:vehicles/envlink.v2.js": 0.09999999403953552,
+    "init:ui/dev/devMode.v2.js": 0.6000000014901161,
+    "init:render/precompile.v2.js": 0.30000000447034836,
+    "init:render/perfHud.v2.js": 0.19999999552965164,
+    "init:render/warmup.v2.js": 113.30000000447035,
+    "init:ui/menu/frontend.v2.js": 2.5999999940395355,
+    "init:ui/menu/intros.v2.js": 0.10000000149011612,
+    "init:web/offline.v2.js": 0.10000000149011612,
+    "shaders": 3973.60000000149,
+    "warmup": 6227.89999999851
+   },
+   "storedWeights": 115,
+   "shots": [],
+   "errors": []
+  }
+ ]
+}
