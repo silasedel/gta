@@ -51,3 +51,6 @@ The user wants Claude to find issues itself, not wait for the user to spot them.
 32. Animations: kneeling people look like they are punching the ground; everything must look natural.
 33. Police walk into walls; a man stuck on a curb edge; a car stuck on the overpass.
 34. User's overall message: walk through the game yourself, think it through, and make everything look and behave like it would in real life (smooth roads, real materials, real behavior). Don't wait for the user to find issues.
+35. Car layers still look weird (user, again). Needs a real look next week (paint/clear-coat layers, decals, LOD).
+36. Gang system removed by default (6d6cbba5, ?gangs=1 restores). Two duplicate map labels were the gang turf labels.
+37. Car exit: real step-out animation (reverse of the enter swing). Quick fix 0.14 s blend + face out of the door is in.
