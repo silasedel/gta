@@ -195,6 +195,11 @@ export async function initV2(game) {
       const sp = planHouse({ seed: l.seed, w: h.w, d: h.d, stilt: h.stilt, base: h.base, district: districtAt(l.x, l.z), drvU: h.drvU ?? undefined, front: h.front ?? Math.min(3.2, (h.roadV ?? 8) - 3), style: h.style, yard: h.yard });
       // hand-placed Keys lots (dressing/keysStreet.data.js): explicit colors and yard choices override the seeded plan
       if (h.over) { const { colors, ...rest } = h.over; Object.assign(sp, rest); if (colors) Object.assign(sp.colors, colors); }
+      { // hand-placed Keys lots were laid out for the old Keys roads: skip any whose footprint now sits on a carriageway
+        const RG = game.miamiData?.roadGraph || game.city?.roadGraph, c0 = Math.cos(l.heading || 0), s0 = Math.sin(l.heading || 0); let bad = false;
+        if (RG?.nearestEdge) for (const [uu, vv] of [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0, 0]]) { const u = uu * (h.w || 9), v = vv * (h.d || 9), e = RG.nearestEdge(l.x + c0 * u + s0 * v, l.z - s0 * u + c0 * v, {}, 20);
+          if (e && e.edge && !/service|track|path|driveway|footway|dirt/.test(String(e.edge.kind || '')) && e.dist < (e.edge.width || 6) / 2 - 0.2) { bad = true; break; } }
+        if (bad) { try { lots.remove?.(l.id); } catch (e) { /* */ } continue; } }
       list.push({ lotKey: l.id, x: l.x, y: l.y, z: l.z, ry: l.heading, sp });
       l.style = sp.style;
     }
@@ -222,6 +227,12 @@ export async function initV2(game) {
     for (const [x, z] of ring) { const dx = x - cx, dz = z - cz, u = dx * c - dz * s, v = dx * s + dz * c; u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
     const mu = (u0 + u1) / 2, mv = (v0 + v1) / 2, x = cx + c * mu + s * mv, z = cz - s * mu + c * mv;
     const w = (u1 - u0) * 0.95, d = (v1 - v0) * 0.95;
+    // user (Nov 18): "a house in the middle of the road". A building footprint from the map can overlap a street (the Keys
+    // layout re-cut the roads): any footprint corner or edge midpoint inside a drivable carriageway -> no house on this lot
+    if (D?.roadGraph?.nearestEdge) { const NOHIT = /service|track|path|driveway|footway|dirt/;
+      for (const [uu, vv] of [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0, -0.5], [0, 0.5], [-0.5, 0], [0.5, 0], [0, 0]]) {
+        const u = uu * w, v = vv * d, px = x + c * u + s * v, pz = z - s * u + c * v, e = D.roadGraph.nearestEdge(px, pz, {}, 20);
+        if (e && e.edge && !NOHIT.test(String(e.edge.kind || '')) && e.dist < (e.edge.width || 6) / 2 - 0.2) return null; } }
     let y = Infinity; for (const [px, pz] of ring) y = Math.min(y, TH(px, pz)); if (!Number.isFinite(y)) y = 0;
     for (const o of others) if (!o._bb && o.rings) { let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity; for (const [px, pz] of o.rings[0]) { a0 = Math.min(a0, px); a1 = Math.max(a1, px); b0 = Math.min(b0, pz); b1 = Math.max(b1, pz); } o._bb = [a0, a1, b0, b1]; }
     const fx2 = s, fz2 = c, rx2 = c, rz2 = -s;   // lot +Z (street) and +X in world
@@ -249,7 +260,7 @@ export async function initV2(game) {
       tilePending.sort((a, b) => Math.hypot(a.cx - px, a.cz - pz) - Math.hypot(b.cx - px, b.cz - pz));
       const t = tilePending.shift(), tile = D.getTile(t.tx, t.tz);
       if (!tile) { t._houseEmpty = true; return; }
-      const list = []; for (const b of tile.buildings || []) if (lots.claims(b) && !(lots.reserved.length && b.rings[0].concat([[b.cx, b.cz]]).some(([x, z]) => Number.isFinite(x) && lots.reservedAt(x, z, 1.5)))) list.push(lotFromBuilding(b, tile.buildings));
+      const list = []; for (const b of tile.buildings || []) if (lots.claims(b) && !(lots.reserved.length && b.rings[0].concat([[b.cx, b.cz]]).some(([x, z]) => Number.isFinite(x) && lots.reservedAt(x, z, 1.5)))) { const L0 = lotFromBuilding(b, tile.buildings); if (L0) list.push(L0); }
       if (!list.length) { t._houseEmpty = true; return; }
       addCluster('tile:' + t.tx + '_' + t.tz, list, { tile: t });
     }
