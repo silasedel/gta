@@ -43,7 +43,7 @@ function loadTick() {
   s.shown = Math.max(s.shown, v);
   const b = document.getElementById('loadbar'); if (b) b.style.width = `${s.shown}%`;
   const pc = document.getElementById('loadpct'); if (pc) pc.textContent = `${Math.floor(s.shown)}%`;
-  if (label) { const m = document.getElementById('loadmsg'); if (m && m.textContent !== label) m.textContent = label; }
+  if (label != null) { const m = document.getElementById('loadmsg'); if (m && m.textContent && !/^ERROR/.test(m.textContent)) m.textContent = ''; } // user: no download / phase text under the bar, just the %
   if (s.done && s.shown >= 100) { s.raf = 0; return; }
   s.raf = requestAnimationFrame(loadTick);
 }
