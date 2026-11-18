@@ -2027,5 +2027,38 @@
    "outer_glass|outer_gls|^transparent|semi_transparent|white_glass": "glass"
   },
   "dropMat": "sticker|badge|breklight_text|^key$|camera"
+ },
+ "truck10": {
+  "src": "Trucks/Truck 10 - Medium-Duty Tow Truck (Low Poly)/source/Utility90_Towtruck.fbx",
+  "L": 7.4,
+  "dropMat": "logo|badge|emblem|decal|letter|text|sticker|label|caterpillar|\\bcat\\b|kenworth|mcneilus|autocar|brand|script",
+  "tris": [
+   80000,
+   80000,
+   5000
+  ],
+  "keepInnerLod": true
+ },
+ "truck11": {
+  "src": "Trucks/Truck 11 - Heavy Vocational Truck Cab/source/Caterpillar_CT680_HQ.glb",
+  "L": 7.6,
+  "dropMat": "logo|badge|emblem|decal|letter|text|sticker|label|caterpillar|\\bcat\\b|kenworth|mcneilus|autocar|brand|script"
+ },
+ "truck12": {
+  "src": "Trucks/Truck 12 - Tow Truck/source/inner_Kenworth T440 Tow Truck/Kenworth T440 Tow Truck.glb",
+  "L": 8.6,
+  "dropMat": "logo|badge|emblem|decal|letter|text|sticker|label|caterpillar|\\bcat\\b|kenworth|mcneilus|autocar|brand|script"
+ },
+ "truck13": {
+  "src": "Trucks/Truck 13 - Front-Load Garbage Truck/source/inner_CDS Autocar McNeilus Pacific/CDS Autocar McNeilus Pacific.blend",
+  "L": 9.8,
+  "dropMat": "logo|badge|emblem|decal|letter|text|sticker|label|caterpillar|\\bcat\\b|kenworth|mcneilus|autocar|brand|script",
+  "dropObj": "^Dumpster|^Plane",
+  "tris": [
+   80000,
+   80000,
+   5000
+  ],
+  "keepInnerLod": true
  }
 }

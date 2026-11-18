@@ -118,6 +118,9 @@ c('truck4', 'Atlas', 'Box 26', 'truck', 'box', 7.6, 1.5, 'dslH', 1994, { palette
 c('truck7', 'Atlas', 'Box 20', 'truck', 'box', 7.0, 2, 'dsl', 2015, { palette: [0xf2f2f2] });
 c('truck5', 'Atlas', 'Long Haul', 'truck', 'semi', 7.4, 2, 'dslH', 2010, { palette: [0x9a9a9a] });
 c('truck8', 'Atlas', 'Vault', 'truck', 'box', 6.3, 3, 'dslH', 2018, { armored: true, palette: [0x101214] });
+// city service trucks (user models, Nov 17 evening): a tow truck (traffic + parked) and the city's front-load refuse truck
+c('truck10', 'Atlas', 'Hookline 90', 'tow', 'box', 7.4, 2, 'dsl', 1997, { palette: [0x16181c, 0xf2f2f2, 0xb3121b] });
+c('truck13', 'Atlas', 'Southline Sanitation FL', 'garbage', 'box', 9.5, 2, 'dslH', 2016, { service: true, palette: [0x2a5aa8] });
 c('truck6', 'Atlas', 'Engine 9', 'firetruck', 'fire', 8.2, 3, 'dslH', 2012, { police: 'fire', livery: 'fire', service: true, palette: [0xc4161c] });
 c('van3', 'Corvo', 'Medic One', 'ambulance', 'box', 6.6, 2.5, 'dsl', 2014, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
 c('van4', 'Corvo', 'Medic Two', 'ambulance', 'box', 6.0, 2.5, 'dsl', 2018, { police: 'ambulance', livery: 'ambulance', service: true, palette: [0xf4f4f2] });
@@ -169,7 +172,7 @@ export function modelFor(e) {
 export function zoneMix(zone, income = 0.5, parked = false, env = {}) {
   const rich = Math.max(0, income - 0.5) * 2, poor = Math.max(0, 0.5 - income) * 2;
   const m = { sedan: 30, compact: 16 + poor * 10, suv: 22 + rich * 10, pickup: 6 + poor * 4, van: 5 + poor * 2, taxi: parked ? 0 : 5, sports: 3 + rich * 6, muscle: 2 + poor * 2,
-    police: parked ? 0 : 2.5, truck: parked ? 1 : 2.5, firetruck: 0, ambulance: parked ? 0 : 0.4, bus: parked ? 0 : 1.2, minivan: 8 + (1 - rich) * 3 };
+    police: parked ? 0 : 2.5, truck: parked ? 1 : 2.5, firetruck: 0, ambulance: parked ? 0 : 0.4, bus: parked ? 0 : 1.2, minivan: 8 + (1 - rich) * 3, tow: parked ? 0.5 : 0.6, garbage: parked ? 0 : (zone === 'residential' || zone === 'suburb' ? 0.8 : 0.15) };
   if (zone === 'industrial' || zone === 'port') { m.truck = parked ? 10 : 16; m.van = 14; m.pickup = 14; m.sports = 0.5; m.taxi = parked ? 0 : 1; }
   if (zone === 'keys' || env.salt || zone === 'rural' || zone === 'farm' || env.rural) { m.pickup = 26; m.suv += 6; m.taxi = 0; m.bus = 0; m.truck = parked ? 1 : 3; m.sports = 1; m.compact = 10; m.minivan += 2; }
   if (zone === 'downtown' || zone === 'business') { m.taxi = parked ? 0 : 11; m.van += 3; m.truck = parked ? 0.5 : 3; m.minivan = 4; }
