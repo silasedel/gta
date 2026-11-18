@@ -38,42 +38,47 @@ export function probeFurniture(scene, pos, heading, floorY) {
   const fx = Math.sin(heading), fz = Math.cos(heading), lx = Math.cos(heading), lz = -Math.sin(heading);
   const meshes = nearMeshes(scene, pos, 1.6);
   const top = floorY + 1.6;
-  // walk along the seat's center line from 0.35 m in front of the spot to 0.75 m behind it
+  // walk along the seat's center line both ways (0.75 m in front of and behind the spot)
   const prof = [];
-  for (let t = 0.35; t >= -0.75; t -= 0.05) { const y = castY(meshes, pos.x + fx * t, top, pos.z + fz * t, 1.75); prof.push([t, y === null ? null : y - floorY]); }
-  // cushion: the LOWEST flat run (>= 3 neighboring samples within 3 cm) between 0.28 and 0.8 m: armrests, backs and
-  // table tops are higher, so the most common height is not the seat (lobby armchairs: people sat on the arm)
-  const hs = prof.filter(([, h]) => h !== null && h > 0.28 && h < 0.8);
-  let res = null;
-  let best = null;
+  for (let t = 0.75; t >= -0.75; t -= 0.05) { const y = castY(meshes, pos.x + fx * t, top, pos.z + fz * t, 1.75); prof.push([t, y === null ? null : y - floorY]); }
+  // cushion: the LOWEST flat run (>= 3 neighboring samples within 3 cm) between 0.28 and 0.8 m near the spot: armrests,
+  // backs and table tops are higher, so the most common height is not the seat (lobby armchairs: people sat on the arm)
+  let res = null, best = null;
   for (let i = 0; i + 2 < prof.length; i++) {
     const r = [prof[i][1], prof[i + 1][1], prof[i + 2][1]];
-    if (prof[i][0] > 0.2 || r.some((h) => h === null || h < 0.28 || h > 0.8)) continue;   // on the seat, not a coffee table in front
+    if (Math.abs(prof[i + 1][0]) > 0.45 || r.some((h) => h === null || h < 0.28 || h > 0.8)) continue;
     if (Math.max(...r) - Math.min(...r) > 0.03) continue;
     const h = (r[0] + r[1] + r[2]) / 3; if (best === null || h < best - 0.02) best = h;
   }
   if (best !== null) {
-    const cush = hs.filter(([, h]) => Math.abs(h - best) < 0.05);
-    const front = Math.max(...cush.map(([t]) => t));
-    const behind = prof.filter(([t, h]) => t < front && h !== null && h > best + 0.15);   // the backrest rises behind the cushion
-    const backZ = behind.length ? Math.max(...behind.map(([t]) => t)) : Math.min(...cush.map(([t]) => t)) - 0.05;
+    // the cushion's extent around the spot, then the backrest on whichever side rises next to it
+    const on = (k) => prof[k] && prof[k][1] !== null && Math.abs(prof[k][1] - best) < 0.05;
+    let c0 = prof.findIndex(([t]) => Math.abs(t) < 0.026); if (!on(c0)) { c0 = prof.findIndex((q, k) => on(k) && Math.abs(q[0]) <= 0.45); }
+    let a0 = c0, a1 = c0; while (on(a0 - 1)) a0--; while (on(a1 + 1)) a1++;
+    const tHi = prof[a0][0], tLo = prof[a1][0];                     // prof runs from +t to -t
+    const high = (k) => prof[k] && prof[k][1] !== null && prof[k][1] > best + 0.15;
+    const ahead = high(a0 - 1) || high(a0 - 2), behind = high(a1 + 1) || high(a1 + 2);
+    // forward = away from the backrest: a chair spot whose heading points INTO the backrest is turned around
+    const flip = ahead && !behind;
+    const front = flip ? -tLo : tHi, backZ = flip ? -tHi : (behind ? tLo : tLo - 0.05);
     const depth = front - backZ;
     if (depth > 0.28) {
+      const fx2 = flip ? -fx : fx, fz2 = flip ? -fz : fz, lx2 = flip ? -lx : lx, lz2 = flip ? -lz : lz;
       // armrests: a raised surface 0.2-0.45 m to each side at mid-seat
       const mid = backZ + depth * 0.5; const arm = [];
       for (const sg of [1, -1]) {
         let found = null;
-        for (let o = 0.22; o <= 0.46 && !found; o += 0.04) { const y = castY(meshes, pos.x + fx * mid + lx * o * sg, top, pos.z + fz * mid + lz * o * sg, 1.75); if (y !== null && y - floorY > best + 0.12 && y - floorY < best + 0.45) found = { o, h: y - floorY }; }
+        for (let o = 0.22; o <= 0.46 && !found; o += 0.04) { const y = castY(meshes, pos.x + fx2 * mid + lx2 * o * sg, top, pos.z + fz2 * mid + lz2 * o * sg, 1.75); if (y !== null && y - floorY > best + 0.12 && y - floorY < best + 0.45) found = { o, h: y - floorY }; }
         arm.push(found);
       }
-      res = { cushion: best, front, backZ, depth, armL: arm[0], armR: arm[1], back: !!behind.length };
+      res = { cushion: best, front, backZ, depth, armL: arm[0], armR: arm[1], back: flip || behind, flip };
     }
   }
   PROBES.set(key, res); DEBUG.last = { key, res, prof, meshes: meshes.length };
   return res;
 }
 
-const VARIANTS = ['back', 'back', 'forward', 'clasped', 'phone', 'armrest', 'turned'];
+const VARIANTS = ['back', 'back', 'forward', 'clasped', 'back', 'armrest', 'turned'];   // 'phone' held without a phone prop read as a hunch: off
 /** after ped.char.update(): pose a bench / chair sitter on the probed seat (call every frame while seated) */
 export function sitOnFurniture(game, ped, dt) {
   const ch = ped.char; if (!ch?.root) return;
@@ -84,7 +89,8 @@ export function sitOnFurniture(game, ped, dt) {
     const pr = probeFurniture(game.scene, ped.spot?.pos || ped.pos, ped.heading, floor);
     F.pr = pr; F.floor = floor; F.prof = DEBUG.last?.prof;
     if (!pr) return;
-    const fx = Math.sin(ped.heading), fz = Math.cos(ped.heading), lx = Math.cos(ped.heading), lz = -Math.sin(ped.heading);
+    const hd = ped.heading + (pr.flip ? Math.PI : 0); F.hd = hd;
+    const fx = Math.sin(hd), fz = Math.cos(hd), lx = Math.cos(hd), lz = -Math.sin(hd);
     const base = ped.spot?.pos || ped.pos;
     const hz = pr.backZ + 0.13 + (pr.back ? 0 : 0.1);                       // ~13 cm in front of the backrest
     const seed = ((ped.id || 1) * 2654435761 >>> 0) / 4294967296;
@@ -97,7 +103,7 @@ export function sitOnFurniture(game, ped, dt) {
     const heelZ = Math.max(hz + knee, pr.front + 0.06 + seed * 0.16) - hz;
     const heel = new THREE.Vector3(hip.x + fx * heelZ, floor, hip.z + fz * heelZ);
     const W = (x, y, z) => new THREE.Vector3(hip.x + fx * z + lx * x, hip.y + y, hip.z + fz * z + lz * x);
-    const A = { id: 'front', i: 1, open: true, roofY: NaN, doorX: 3, wheel: null, hip, heel, yaw: ped.heading + (v === 'turned' ? (seed < 0.5 ? 0.3 : -0.3) : 0),
+    const A = { id: 'front', i: 1, open: true, roofY: NaN, doorX: 3, wheel: null, hip, heel, yaw: hd + (v === 'turned' ? (seed < 0.5 ? 0.3 : -0.3) : 0),
       recline: v === 'forward' ? -14 : v === 'phone' ? 8 : v === 'clasped' ? 12 : (pr.back ? 20 : 6) + seed * 6 };
     if (v === 'forward') A.grips = [{ side: 'Left', p: W(0.05, 0.12, heelZ * 0.78) }, { side: 'Right', p: W(-0.05, 0.12, heelZ * 0.78) }];
     else if (v === 'clasped') A.grips = [{ side: 'Left', p: W(0.04, 0.14, 0.24) }, { side: 'Right', p: W(-0.04, 0.14, 0.24) }];
@@ -107,7 +113,19 @@ export function sitOnFurniture(game, ped, dt) {
     if (v === 'phone' && ch._seat) ch._seat.chin = 14;                       // looking down at the phone
     F.ok = true; F.v = v;
   }
-  if (F.ok) solveSeat(ch, dt);
+  if (F.ok) {
+    solveSeat(ch, dt);
+    // guard (first second): feet must end on the floor below the cushion and the knees must not fold under (< 60 deg)
+    if ((F.chk = (F.chk || 0) + 1) < 40 && F.chk % 10 === 0) {
+      const g = (n) => ch.getBone(n)?.getWorldPosition(new THREE.Vector3());
+      const hp = g('LeftUpLeg'), kn = g('LeftLeg'), ft = g('LeftFoot'); const floor = F.floor ?? ped.pos.y;
+      if (hp && kn && ft) {
+        const a = new THREE.Vector3().subVectors(hp, kn).normalize(), b = new THREE.Vector3().subVectors(ft, kn).normalize();
+        const knee = Math.acos(THREE.MathUtils.clamp(a.dot(b), -1, 1)) / Math.PI * 180;
+        if (knee < 60 || ft.y - floor > (F.pr?.cushion ?? 0.45) - 0.05) { F.ok = false; unseatCharacter(ch); }
+      }
+    }
+  }
 }
 /** the sitter got up (or was released): drop the seat pose */
 export function standUp(ped) { if (ped?._furn) { ped._furn = null; unseatCharacter(ped.char); } }

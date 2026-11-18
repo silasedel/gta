@@ -8,9 +8,9 @@ for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].s
 const SET = o.set || 's'; const AT = String(o.at || '2398,660').split(',').map(Number);
 const D = 'docs/v2/shots/people/r2sit'; fs.mkdirSync(D, { recursive: true });
 const SHOOT = (tag, n) => `(() => { const B = game.peds.list.filter((p) => p.active && p.state === 'bench'); console.log('[sit] bench', B.length, 'furn', B.filter((p) => p._furn).length, 'ok', B.filter((p) => p._furn?.ok).length); const L = game.peds.list.filter((p) => p.active && p.state === 'bench' && p._furn?.ok && p.char?.root?.visible !== false);
-  const pp = game.player.position; L.sort((x, y) => x.pos.distanceTo(pp) - y.pos.distanceTo(pp)); const seen = new Set(); const pick = [];
+  const pp = game.player.position; L.sort((x, y) => ((y._furn.pr?.armL || y._furn.pr?.armR) ? 1 : 0) - ((x._furn.pr?.armL || x._furn.pr?.armR) ? 1 : 0) || x.pos.distanceTo(pp) - y.pos.distanceTo(pp)); const seen = new Set(); const pick = [];
   for (const p of L) { if (seen.has(p._furn.v) && pick.length < 2) continue; seen.add(p._furn.v); pick.push(p); if (pick.length >= ${n}) break; }
-  window.__sit = pick; return JSON.stringify(pick.map((p) => [p.char.npcArch, p._furn.v, p.char._seat?.anchor?.hip?.y?.toFixed(2), p.pos.distanceTo(pp) | 0, p._furn.floor, ['LeftUpLeg', 'LeftLeg', 'LeftFoot', 'Neck'].map((n) => { const v = p.char.getBone(n).getWorldPosition(new (pp.constructor)()); const h = p.char.root.rotation.y; const dx = v.x - p.pos.x, dz = v.z - p.pos.z; return [n, +(v.y - p._furn.floor).toFixed(2), +(dx * Math.sin(h) + dz * Math.cos(h)).toFixed(2)]; }), p.char._seat?.anchor?.heel && +(p.char._seat.anchor.heel.y).toFixed(2), p.state, p.char._seat?.manual])); })()`;
+  window.__sit = pick; return JSON.stringify(pick.map((p) => [p.char.npcArch, p._furn.v, p.char._seat?.anchor?.hip?.y?.toFixed(2), p.pos.distanceTo(pp) | 0, p._furn.floor, ['LeftUpLeg', 'LeftLeg', 'LeftFoot', 'Neck'].map((n) => { const v = p.char.getBone(n).getWorldPosition(new (pp.constructor)()); const h = p.char.root.rotation.y; const dx = v.x - p.pos.x, dz = v.z - p.pos.z; return [n, +(v.y - p._furn.floor).toFixed(2), +(dx * Math.sin(h) + dz * Math.cos(h)).toFixed(2)]; }), p.char._seat?.anchor?.heel && +(p.char._seat.anchor.heel.y).toFixed(2), p.state, p.char._seat?.manual, p._furn.pr?.flip])); })()`;
 await withBrowser({ width: 1280, height: 800, maxSeconds: 1300 }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute');
   await b.waitFor(GAME_READY + " && typeof game.teleport === 'function'", 480);
@@ -23,7 +23,7 @@ await withBrowser({ width: 1280, height: 800, maxSeconds: 1300 }, async (b) => {
     const k = JSON.parse(r).length;
     for (let i = 0; i < k; i++) {
       await b.eval(`(() => { const p = window.__sit[${i}]; const T = game.player.position.constructor; game.cameraOverride = (dt, cam) => { const h = p.char.root.rotation.y, c = p.char.root.position, hip = p.char.getBone('Hips').getWorldPosition(new T());
-        cam.position.set(hip.x + Math.sin(h + 0.75) * 1.9, hip.y + 0.45, hip.z + Math.cos(h + 0.75) * 1.9); cam.lookAt(hip.x, hip.y + 0.15, hip.z); if (cam.fov !== 45) { cam.fov = 45; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
+        cam.position.set(hip.x + Math.sin(h + 0.3) * 2.0, hip.y + 0.5, hip.z + Math.cos(h + 0.3) * 2.0); cam.lookAt(hip.x, hip.y + 0.15, hip.z); if (cam.fov !== 45) { cam.fov = 45; cam.updateProjectionMatrix(); } return true; }; return 1; })()`);
       await b.eval(`(() => { const r = game.renderer; return 1; })()`); await b.sleep(700); const f = `${D}/${SET}_${tag}_${i}.png`; await b.screenshot(f); shots.push(f);
     }
     await b.eval('(game.cameraOverride = null, 1)');
