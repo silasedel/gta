@@ -18,6 +18,27 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 export const order = 175;
 const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
 const URL_OF = (n) => BASE + 'assets/metro/' + n + '.glb';
+// tiling surfaces cropped from the user's Subway 1 kit (tools/v2/metro/kit_textures.py)
+let TEXL = null;
+function kitTex(n, srgb = true) {
+  TEXL ||= new THREE.TextureLoader();
+  const t = TEXL.load(BASE + 'assets/metro/tex/' + n + '.jpg'); if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+// box projection by the dominant normal axis; size = meters per texture repeat; name 'uv' (map) or 'uv1' (aoMap detail)
+function planarUV(g, size, name = 'uv', mtx = null) {
+  if (!g?.attributes?.position) return; if (!g.attributes.normal) g.computeVertexNormals();
+  const P = g.attributes.position, N = g.attributes.normal, uv = new Float32Array(P.count * 2), p = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    p.fromBufferAttribute(P, i); n.fromBufferAttribute(N, i); if (mtx) { p.applyMatrix4(mtx); n.transformDirection(mtx); }
+    const ax = Math.abs(n.x), ay = Math.abs(n.y), az = Math.abs(n.z); let u, v;
+    if (ay >= ax && ay >= az) { u = p.x; v = p.z; } else if (ax >= az) { u = p.z; v = p.y; } else { u = p.x; v = p.y; }
+    uv[i * 2] = u / size; uv[i * 2 + 1] = v / size;
+  }
+  g.setAttribute(name, new THREE.BufferAttribute(uv, 2));
+}
+function detail(mat, g, tex, size, k = 0.9, mtx = null) { planarUV(g, size, 'uv1', mtx); const t = tex.clone(); t.channel = 1; t.needsUpdate = true; mat.aoMap = t; mat.aoMapIntensity = k; mat.needsUpdate = true; }
+function propLight(p, n, out) { const L = Math.min(1.15, 0.5 + 0.38 * Math.max(0, n.y) + 0.12 * Math.max(0, -n.z)); out[0] = L; out[1] = L * 0.98; out[2] = L * 0.94; }
 // line order; x, z = the district spot the entrance is placed near (beside the nearest road)
 export const METRO_STATIONS = [
   { id: 'airport', name: 'Airport', sub: 'Terminal Dr', x: -650, z: 1230, flip: true },
@@ -239,11 +260,20 @@ export async function initV2(game) {
   function buildKit() {
     if (kitReady) return kitReady;
     kitReady = (async () => {
-      const [st, tr] = await Promise.all([load('station'), load('train')]);
+      const [st, tr, props, bench] = await Promise.all([load('station'), load('train'), load('props'), load('bench')]);
       if (!st || !tr) throw new Error('metro models missing');
       // station: unlit + baked light
       let concrete = null;
-      st.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, stationLight); const m = o.material; if (/Lambert4|Lambert6/.test(m?.name || '') && m.map && !concrete) concrete = m.map; o.material = unlit(m); o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false; });
+      const KT = { floor: kitTex('floor_stone'), tactile: kitTex('tactile'), grime: kitTex('grime_d', false), ceil: kitTex('ceiling_d', false), tile: kitTex('wall_tile_d', false), tunnel: kitTex('tunnel_wall'), bed: kitTex('track_bed'), carFloor: kitTex('car_floor') };
+      st.updateMatrixWorld(true);
+      st.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, stationLight); const m = o.material, nm = m?.name || ''; if (/Lambert4|Lambert6/.test(nm) && m.map && !concrete) concrete = m.map;
+        const u = unlit(m); o.material = u;
+        // real surfaces from the user's Subway 1 kit: stone platform tiles, grout + grime on the walls, stained concrete overhead
+        if (nm === 'Lambert2') { planarUV(o.geometry, 4.2, 'uv', o.matrixWorld); u.map = KT.floor; u.color.setScalar(0.95); detail(u, o.geometry, KT.grime, 7, 0.55, o.matrixWorld); }
+        else if (nm === 'Lambert3') detail(u, o.geometry, KT.tile, 1.2, 0.75, o.matrixWorld);
+        else if (/Lambert[456]/.test(nm)) detail(u, o.geometry, KT.ceil, 5, 0.9, o.matrixWorld);
+        else if (!/Glass|Electrical/.test(nm)) detail(u, o.geometry, KT.grime, 4, 0.7, o.matrixWorld);
+        o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false; });
       const station = new THREE.Group(); station.name = 'metro-station'; station.add(st); root.add(station);
       // the strip's tunnel mouths (|x| 72..106) are open on the platform side: close them with concrete walls
       { const fm = new THREE.MeshBasicMaterial({ map: concrete || null, color: concrete ? 0x4e4e4e : 0x2e2e30 });
@@ -255,21 +285,25 @@ export async function initV2(game) {
       for (let x = -48; x <= 48; x += 32) { const n = canvasPlane(3.2, 0.8, 768, (g, w, h) => drawNameSign(g, w, h, 'Station', '')); n.position.set(x, 3.1, 16.08); n.rotation.y = Math.PI; station.add(n); names.push(n); }
       const map = canvasPlane(3.6, 1.6, 1024, (g, w, h) => drawLineMap(g, w, h, 0)); map.position.set(-16, 1.9, 16.08); map.rotation.y = Math.PI; station.add(map);
       const exit = canvasPlane(2.4, 0.5, 512, drawExit, { toneMapped: false }); exit.position.set(EXIT_LOCAL.x, 2.9, 16.08); exit.rotation.y = Math.PI; exit.material.color.setScalar(0.85); station.add(exit);
-      // benches (simple: steel + wood slats) along the platform
-      const benchG = new THREE.Group(); const steel = new THREE.MeshBasicMaterial({ color: 0x3a3c40 }), wood = new THREE.MeshBasicMaterial({ color: 0x8a5a36 });
-      for (const x of [-44, -8, 20, 50]) { const b = new THREE.Group(); b.position.set(x, PLAT_Y, 8.5);
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.07, 0.5), wood); seat.position.y = 0.46; b.add(seat);
-        const back = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.42, 0.06), wood); back.position.set(0, 0.75, 0.24); b.add(back);
-        for (const lx of [-1.4, 1.4]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.46, 0.46), steel); leg.position.set(lx, 0.23, 0); b.add(leg); }
-        benchG.add(b); }
-      station.add(benchG);
+      // the yellow tactile edge (Subway 1 tactile tiles) along the platform edge
+      { const t = KT.tactile.clone(); t.repeat.set(144 / 1.4, 1); t.needsUpdate = true;
+        const e = new THREE.Mesh(new THREE.PlaneGeometry(144, 0.6).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: t, color: 0xd8d4c8 })); e.position.set(0, PLAT_Y + 0.006, 2.18); station.add(e); }
+      // furniture from the user's models: Bench 2 (cast-metal slat bench), Subway 1's bin, fluorescent fixtures, cameras, speakers
+      const unlitProp = (src) => { const g = src.clone(true); g.traverse((o) => { if (!o.isMesh) return; o.geometry = o.geometry.clone(); bakeMesh(o, propLight); o.material = unlit(o.material); o.frustumCulled = false; }); return g; };
+      const P = {}; props?.traverse((o) => { if (o.isMesh && /^prop_/.test(o.name)) P[o.name.slice(5)] = o; });
+      const place = (src, x, y, z, ry = 0, sc = 1, tint = null) => { if (!src) return null; const g = unlitProp(src); if (tint) g.traverse((o) => { if (o.isMesh) o.material.color.set(tint); }); g.position.set(x, y, z); g.rotation.y = ry; g.scale.setScalar(sc); station.add(g); return g; };
+      const benchSrc = bench ? (() => { let m = null; bench.traverse((o) => { if (o.isMesh && !m) m = o; }); return m; })() : null;
+      for (const x of [-44, -8, 20, 50]) { place(benchSrc, x - 1.3, PLAT_Y, 8.6, Math.PI, 1, 0x4a4f56); place(benchSrc, x + 1.3, PLAT_Y, 8.6, Math.PI, 1, 0x4a4f56); /* powder-coated graphite */ place(P.bin, x + 3.2, PLAT_Y, 8.9); }
+      for (let x = -64; x <= 64; x += 8) { for (const z of [5.5, 11]) place(P.lamp, x, 4.3, z, Math.PI / 2); }
+      for (const x of [-56, -20, 16, 52]) { place(P.camera, x, 3.4, 15.9, Math.PI); place(P.speaker, x + 6, 3.5, 15.95, Math.PI / 2); }
       S.relabel = (i) => { const s = S.stations[i]; for (const n of names) n.userData.redraw((g, w, h) => drawNameSign(g, w, h, s.name, s.sub)); map.userData.redraw((g, w, h) => drawLineMap(g, w, h, i)); };
-      S.benchSpots = [-44, -8, 20, 50].map((x) => new THREE.Vector3(x, PLAT_Y, 8.4));
+      S.benchSpots = [-44, -8, 20, 50].map((x) => new THREE.Vector3(x - 1.3, PLAT_Y, 8.75));
       // train: 3 cars, unlit + baked, livery stripes, head / tail lights
       const carProto = new THREE.Group(); const doors = [];
       tr.traverse((o) => { if (!o.isMesh) return; bakeMesh(o, carLight); const nm = o.material?.name || '';
-        if (/^Lights/.test(nm)) { o.material = new THREE.MeshBasicMaterial({ color: 0xfff6e8, toneMapped: false }); }
-        else o.material = unlit(o.material, { glass: /Glass/.test(nm), tint: /^Bars/.test(nm) ? 0x9a9a9a : /^Walls|^Roof/.test(nm) ? 0xd8d8d8 : null });
+        if (/^Lights/.test(nm)) { o.material = new THREE.MeshBasicMaterial({ color: 0xe6e1d4 }); }   // diffuser panels: bright, not blown out
+        else if (/^Floor/.test(nm)) { planarUV(o.geometry, 1.6); o.material = new THREE.MeshBasicMaterial({ map: KT.carFloor, color: new THREE.Color(2.4, 2.4, 2.4), vertexColors: true }); }
+        else o.material = unlit(o.material, { glass: /Glass/.test(nm), tint: /^Bars/.test(nm) ? 0x9a9a9a : /^Walls/.test(nm) ? new THREE.Color(1.4, 1.4, 1.42) : /^Roof/.test(nm) ? 0xd8d8d8 : null });
         if (!o.material.name && o.name === 'm__none') o.material.color.set(0x8d9298);
         o.frustumCulled = false; });
       carProto.add(tr);
@@ -291,12 +325,12 @@ export async function initV2(game) {
       // tunnel: recycled 12 m segments (concrete box, rails, sleepers, a wall lamp each)
       const tunnel = new THREE.Group(); tunnel.name = 'metro-tunnel'; root.add(tunnel);
       const segG = new THREE.Group();
-      const cMat = new THREE.MeshBasicMaterial({ map: concrete || null, color: concrete ? 0x6a6a6a : 0x3d3d3f, side: THREE.DoubleSide });
-      if (concrete) { concrete.wrapS = concrete.wrapT = THREE.RepeatWrapping; }
-      const box = (w, h, d, m, x, y, z) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); segG.add(b); return b; };
-      box(SEG, 0.1, 8, cMat, 0, -0.3, -0.2);                 // floor
-      box(SEG, 6, 0.1, cMat, 0, 2.7, -3.75);                 // walls
-      box(SEG, 6, 0.1, cMat, 0, 2.7, 3.35);
+      const cMat = new THREE.MeshBasicMaterial({ map: KT.tunnel, color: 0x8a8a8a, side: THREE.DoubleSide });
+      const bedM = new THREE.MeshBasicMaterial({ map: KT.bed, color: 0x7a7a7a });
+      const box = (w, h, d, m, x, y, z, uvSize = 0) => { const geo = new THREE.BoxGeometry(w, h, d); if (uvSize) planarUV(geo, uvSize, 'uv', new THREE.Matrix4().makeTranslation(x, y, z)); const b = new THREE.Mesh(geo, m); b.position.set(x, y, z); segG.add(b); return b; };
+      box(SEG, 0.1, 8, bedM, 0, -0.3, -0.2, 4);              // track bed
+      box(SEG, 6, 0.1, cMat, 0, 2.7, -3.75, 6);              // walls (Subway 1 tunnel concrete)
+      box(SEG, 6, 0.1, cMat, 0, 2.7, 3.35, 6);
       box(SEG, 0.1, 8, new THREE.MeshBasicMaterial({ color: 0x1c1c1e }), 0, 5.6, -0.2);   // roof
       const railM = new THREE.MeshBasicMaterial({ color: 0x8a8580 }), sleeperM = new THREE.MeshBasicMaterial({ color: 0x4a4440 }), cableM = new THREE.MeshBasicMaterial({ color: 0x141414 });
       box(SEG, 0.15, 0.08, railM, 0, 0.15, -0.95); box(SEG, 0.15, 0.08, railM, 0, 0.15, 0.55);

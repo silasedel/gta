@@ -165,6 +165,68 @@ elif MODE == 'train':
     set_base('Divider', (0.09, 0.1, 0.11))
     set_base('Bars', (0.62, 0.63, 0.64), rough=0.3, metal=1.0)
     set_base('Glass', (0.35, 0.4, 0.42), rough=0.05)
+    if TEX:   # graffiti-free atlases from kit_textures.py
+        for im in bpy.data.images:
+            n = im.filepath.replace('\\', '/').split('/')[-1]
+            for k in ('Walls Color', 'Bench Color'):
+                if n.startswith(k):
+                    im.filepath = os.path.join(TEX, k + '.jpg'); im.reload()
     join_by_material()
     shrink_images(1024, big={})
+    export()
+
+elif MODE == 'props1':
+    # one clean instance of each Subway 1 station prop (the kit merges every copy into one mesh): split loose parts,
+    # cluster them by distance, keep the cluster nearest the kit's middle, sit it on its own origin (bottom center)
+    import bmesh
+    WANT = {'Banco': 'bench', 'Papelera': 'bin', 'CamaraSeguridad': 'camera', 'Megafono': 'speaker', 'FluorescenteLuz': 'lamp', 'Fluorescente': 'lampbody', 'CartelSalida Izquierda': 'exitsign'}
+    apply_all()
+    keep = []
+    for key, out in WANT.items():
+        objs = [o for o in meshes() if o.data.materials and o.data.materials[0] and o.data.materials[0].name.rstrip('+') == key and not o.name.startswith('prop_')]
+        if not objs:
+            print('MISSING', key); continue
+        select(objs)
+        if len(objs) > 1: bpy.ops.object.join()
+        o = bpy.context.view_layer.objects.active
+        bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.separate(type='LOOSE'); bpy.ops.object.mode_set(mode='OBJECT')
+        parts = [p for p in bpy.context.selected_objects]
+        def cen(p):
+            bb = [p.matrix_world @ Vector(c) for c in p.bound_box]; return sum(bb, Vector()) / 8
+        cs = {p.name: cen(p) for p in parts}
+        seed = min(parts, key=lambda p: (cs[p.name] - Vector((-4, -15, 1))).length)
+        clus = [seed]; grow = True
+        while grow:
+            grow = False
+            for p in parts:
+                if p not in clus and min((cs[p.name] - cs[q.name]).length for q in clus) < 1.4:
+                    clus.append(p); grow = True
+        for p in parts:
+            if p not in clus: bpy.data.objects.remove(p)
+        select(clus)
+        if len(clus) > 1: bpy.ops.object.join()
+        o = bpy.context.view_layer.objects.active
+        bb = [Vector(c) for c in o.bound_box]
+        mn = Vector([min(v[i] for v in bb) for i in range(3)]); mx = Vector([max(v[i] for v in bb) for i in range(3)])
+        o.data.transform(Matrix.Translation((-(mn.x + mx.x) / 2, -(mn.y + mx.y) / 2, -mn.z)))
+        o.name = 'prop_' + out; keep.append(o)
+        print('PROP', out, 'tris', tris(o), 'size', tuple(round(v, 2) for v in (mx - mn)), 'z0', round(mn.z, 2))
+    for o in list(meshes()):
+        if o not in keep: bpy.data.objects.remove(o)
+    shrink_images(1024)
+    export()
+
+elif MODE == 'prop':
+    # a single library prop: joined, decimated to argv[3] ratio, bottom-center origin
+    apply_all()
+    select(meshes())
+    if len(meshes()) > 1: bpy.ops.object.join()
+    o = bpy.context.view_layer.objects.active
+    r = float(argv[3]) if len(argv) > 3 else 1.0
+    if r < 1: decimate(o, r)
+    bb = [Vector(c) for c in o.bound_box]
+    mn = Vector([min(v[i] for v in bb) for i in range(3)]); mx = Vector([max(v[i] for v in bb) for i in range(3)])
+    o.data.transform(Matrix.Translation((-(mn.x + mx.x) / 2, -(mn.y + mx.y) / 2, -mn.z)))
+    print('PROP size', tuple(round(v, 2) for v in (mx - mn)))
+    shrink_images(1024)
     export()
