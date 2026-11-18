@@ -13,6 +13,7 @@ import { pickLine, lineCount } from './lines.js';
 import { createCrowd, POSE } from './crowd.js';
 import { createPeopleCrowd } from './people/farCrowd.js';
 import { clamp } from './rand.js';
+import { hasLOS } from '../gameplay/util.js';
 import { createTalk } from './talk.js';
 import * as PR from './props.js';
 import { createSignals, createSpots, createGovernor } from './streetlife.js';
@@ -165,12 +166,26 @@ export async function initV2(game) {
     const m = { greet: 'greet', drunk: 'greet', apologise: 'bumped', insult: 'bumped', argue: 'bumped', scream: ped.lastSrc === 'crash' ? 'crash' : 'gunfire' };
     if (m[kind]) say(ped, m[kind], { force: kind !== 'greet' });
   }
+  const _bh = new THREE.Vector3();
+  // a speaker standing in a bush (breakable 'bush' boxes) is hidden by its leaves
+  function inBush(h) { try { const B = game.breakables; if (!B?.near) return false; for (const r of B.near(h.x, h.z, 2)) if (r.kind === 'bush' && Math.hypot(r.x - h.x, r.z - h.z) < (r.r || 0.6) && h.y < (r.y || 0) + (r.hy || 0.6) * 2 + 0.2) return true; } catch (e) { /* */ } return false; }
   function updateBubbles() {
     const cam = game.camera; if (!cam) return;
     const W = window.innerWidth, H = window.innerHeight, t = now();
     for (let i = bubbles.length - 1; i >= 0; i--) {
       const b = bubbles[i]; const p = b.ped;
       if (t > b.until || !p.active || p.dead) { b.el.remove(); bubbles.splice(i, 1); continue; }
+      // QA: a bubble floated over a bush with nobody visible: only a speaker who is shown, in view and not behind
+      // the static world (walls, dumpsters, props with colliders) or inside a bush gets a bubble (re-checked 4x a second)
+      if (!p.isPlayer) {
+        if ((p.root && p.root.visible === false) || (p.char === null)) { b.el.style.display = 'none'; continue; }
+        if (!(b.losT > t)) {
+          b.losT = t + 0.25;
+          const head = _bh.set(p.pos.x, p.pos.y + (p.look?.height || 1.75) - 0.1, p.pos.z);
+          b.seen = hasLOS(game, cam.position, head) && !inBush(head);
+        }
+        if (!b.seen) { b.el.style.display = 'none'; continue; }
+      }
       _hp.set(p.pos.x, p.pos.y + (p.look?.height || 1.75) + 0.32, p.pos.z).project(cam);
       if (_hp.z > 1 || Math.abs(_hp.x) > 1.1 || Math.abs(_hp.y) > 1.1) { b.el.style.display = 'none'; continue; }
       b.el.style.display = ''; b.el.style.left = ((_hp.x + 1) / 2 * W).toFixed(1) + 'px'; b.el.style.top = ((1 - _hp.y) / 2 * H).toFixed(1) + 'px';

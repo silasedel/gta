@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { createCharacter, humansLoaded, humansTotal } from '../player/characterModel.js';
 import { sitOnFurniture, standUp } from './furnitureSeat.js';
-import { makeTowel, makeBeachThings, restOnTowel } from './beachTowel.js';
+import { makeTowel, makeBeachThings, restOnTowel, clearTowelContact } from './beachTowel.js';
 import { createRagdollSystem } from './ragdoll.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { createSignals } from './streetlife.js';
@@ -489,7 +489,21 @@ export async function createPeds(game) {
     p.spot = s; p.idleStyle = 'sitBench'; p.stateT = rand(20, 80); p.call = Math.random() < 0.15;
     return [p];
   }
+  // a lean spot needs room for the elbow, hand and the bent leg: no mailbox / bin / hydrant / sign post within ~0.55 m of
+  // the body (QA: an NPC leaned into a mailbox with his hand and leg through it); checked once per spot
+  function leanClear(s) {
+    if (s._leanOK !== undefined) return s._leanOK;
+    let ok = true;
+    try { const B = game.breakables; if (B?.near) for (const r of B.near(s.pos.x, s.pos.z, 1.6)) if (r.collider && Math.hypot(r.x - s.pos.x, r.z - s.pos.z) - (r.r || 0.2) < 0.55) { ok = false; break; } } catch (e) { /* keep */ }
+    if (ok) try {   // anything solid right in front of the body (poles, planters): a ball ahead of the spot, clear of the wall behind
+      const fx = Math.sin(s.heading), fz = Math.cos(s.heading);
+      const hit = world.intersectionWithShape({ x: s.pos.x + fx * 0.22, y: s.pos.y + 0.9, z: s.pos.z + fz * 0.22 }, { x: 0, y: 0, z: 0, w: 1 }, new RAPIER.Ball(0.2), RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC | RAPIER.QueryFilterFlags.EXCLUDE_KINEMATIC | RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
+      if (hit) ok = false;
+    } catch (e) { /* keep */ }
+    return (s._leanOK = ok);
+  }
   function leaner(s, zone) {
+    if (!leanClear(s)) return [];
     const p = freePeds(1)[0]; used.add(s);
     if (!activate(p, s.pos, zone, 'lean', { heading: s.heading })) { used.delete(s); return []; }
     p.spot = s; p.idleStyle = 'lean'; p.stateT = rand(20, 70); p.call = Math.random() < 0.25;
@@ -504,7 +518,7 @@ export async function createPeds(game) {
     if (!canSpawn(n)) return [];
     const g = { members: [], center: c.clone(), props: [] }; groups.add(g);
     const hd = Math.random() * Math.PI * 2;
-    if (Math.random() < 0.6) g.props.push(makeUmbrella(c.x + Math.cos(hd) * 0.6, c.y, c.z - Math.sin(hd) * 0.6));
+    const wantUmb = Math.random() < 0.6;
     const ps = freePeds(n);
     ps.forEach((p, k) => {
       const ox = Math.cos(hd) * (k - (n - 1) / 2) * 1.25, oz = -Math.sin(hd) * (k - (n - 1) / 2) * 1.25;
@@ -518,6 +532,22 @@ export async function createPeds(game) {
       scene.add(towel); p.towel = towel; props.add(towel);
       if (Math.random() < 0.7) { const th2 = makeBeachThings(tx0, tz0, th, gA, (p.id || 1) * 13 + k); scene.add(th2); props.add(th2); (p.ownProps ||= []).push(th2); }
     });
+    // the umbrella stands on the sun side of the first towel so the canopy shade falls on that person (the shade lands
+    // at canopy - sun_xz * h / sun_y), its pole kept off the towel
+    const t0 = g.members[0]?.towel;
+    if (wantUmb && t0) {
+      const tp = t0.position, th = t0.rotation.y, cs = Math.cos(th), sn = Math.sin(th);
+      let dx = Math.cos(hd) * 0.9, dz = -Math.sin(hd) * 0.9;
+      const sun = game.env?.sun;
+      if (sun?.target) {
+        const d = _v.subVectors(sun.position, sun.target.position).normalize(), hz = Math.hypot(d.x, d.z) || 1e-6;
+        if (d.y > 0.2) { const off = Math.min(1.8, 2.05 * hz / d.y); dx = d.x / hz * off; dz = d.z / hz * off; }
+      }
+      let lx = dx * cs - dz * sn, lz = dx * sn + dz * cs;
+      if (Math.abs(lx) < 0.6 && Math.abs(lz) < 1.05) lx = (lx < 0 ? -1 : 1) * 0.6;
+      const ux = tp.x + lx * cs + lz * sn, uz = tp.z - lx * sn + lz * cs;
+      g.props.push(makeUmbrella(ux, groundAt(ux, uz, tp.y + 1), uz));
+    }
     return ps;
   }
   function volleyball(c) {
@@ -1220,6 +1250,7 @@ export async function createPeds(game) {
       if (ped.state === 'bench' && !(ped.speed > 0.4) && dCam < 60) { try { sitOnFurniture(game, ped, dt); } catch (e) { /* keep the clip pose */ } }
       else if (ped._furn) standUp(ped);
       if (ped.state === 'sunbathe' && dCam < 80) { try { restOnTowel(ped, (x, z) => groundAt(x, z, ped.pos.y + 1)); } catch (e) { /* keep the clip pose */ } }
+      else if (ped.state !== 'sunbathe' && ped.towel?.userData.contact) clearTowelContact(ped.towel);
     }
   }
 

@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { VOICE_GROUP } from './lines.js';
 import { clamp } from './rand.js';
+import { hasLOS } from '../gameplay/util.js';
 
 // ---------------------------------------------------------------- replies: topic -> tier -> core lines
 // tiers: warm (likes you / good mood), neutral, cold (you were rude before / bad mood)
@@ -645,6 +646,7 @@ export function createTalk(game, people) {
       start(prompted);
     }
   });
+  let losPed = null, losT = 0, losOK = true; const _lc = new THREE.Vector3(), _le = new THREE.Vector3();
   function nearestTalkable() {
     const P = game.player;
     if (!P?.position || P.state?.inVehicle) return null;
@@ -661,8 +663,20 @@ export function createTalk(game, people) {
       const d = Math.hypot(dx, dz);
       if (d > bd) continue;
       if (d > 1.2 && (dx * fx + dz * fz) / d < 0.2) continue;
+      if (!p.char || p.root?.visible === false) continue;   // no model shown: nobody to talk to
       bd = d;
       best = p;
+    }
+    // QA: "Talk to Chad" showed for a man hidden behind a dumpster: the person must be in plain sight of Nico and of
+    // the camera (static world: walls, dumpsters, props with colliders); re-checked 4x a second
+    if (best) {
+      const t = performance.now();
+      if (best !== losPed || t - losT > 250) {
+        losPed = best; losT = t;
+        const chest = _lc.set(best.pos.x, best.pos.y + 1.3, best.pos.z);
+        losOK = hasLOS(game, _le.set(pp.x, pp.y + 1.55, pp.z), chest) && (!game.camera || hasLOS(game, game.camera.position, chest));
+      }
+      if (!losOK) return null;
     }
     return best;
   }
