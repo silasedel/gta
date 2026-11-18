@@ -718,7 +718,7 @@ export function* buildHouseGen(hk, sp, lod = 0) {
     const segs = intervals(xa, xb, gaps);
     for (const [p, q] of segs) {
       const len = q - p, cx = (p + q) / 2;
-      if (type === 'chain') { const h = 1.2; for (let x = p; x <= q + 0.01; x += Math.min(2.4, len)) B.cyl(STEEL, 0.03, 0.03, h + 0.05, M(Math.min(x, q), (h + 0.05) / 2, z), { seg: 6, color: 0xb8bab6 }); B.rod(STEEL, [p, h, z], [q, h, z], 0.02, { color: 0xb8bab6 }); if (L0) box(mat.chainlink(), len, h - 0.05, 0.005, cx, h / 2, z, { color: 0xc8cac6, uvS: 0.06 }); else box(STEEL, len, h - 0.05, 0.01, cx, h / 2, z, { color: 0x8a8c88 }); }
+      if (type === 'chain') { const h = 1.2; for (let x = p; x <= q + 0.01; x += Math.min(2.4, len)) B.cyl(STEEL, 0.03, 0.03, h + 0.05, M(Math.min(x, q), (h + 0.05) / 2, z), { seg: 6, color: 0xb8bab6 }); B.rod(STEEL, [p, h, z], [q, h, z], 0.02, { color: 0xb8bab6 }); box(mat.chainlink(), len, h - 0.05, 0.005, cx, h / 2, z, { color: 0xc8cac6, uvS: 0.06 }); }   // user: the fence read as bare posts + wire: the mesh fabric at every LOD
       else if (type === 'wood') { const h = 1.55; for (let x = p; x <= q + 0.01; x += Math.min(2.4, len)) box(WOOD, 0.1, h + 0.12, 0.1, Math.min(x, q), (h + 0.12) / 2, z + 0.06, { color: vary(0x8a7a62, 0.06), wear: 0.8, grain: 1 });   // keys: weathered board privacy fence
         for (const y of [0.3, h - 0.25]) box(WOOD, len, 0.09, 0.04, cx, y, z + 0.04, { color: 0x7a6a52, wear: 0.7 });
         if (L0) for (let x = p + 0.07; x < q - 0.03; x += 0.15 + (r() < 0.06 ? 0.05 : 0)) { if (r() < 0.03) continue; const bh = h - 0.04 - r() * 0.08; box(WOOD, 0.135, bh, 0.018, x, bh / 2 + 0.03, z, { color: vary(r() < 0.15 ? 0xa59478 : 0x8f8470, 0.08), wear: 0.5 + r() * 0.4, grain: 1 }, 0, (r() - 0.5) * 0.03); }
