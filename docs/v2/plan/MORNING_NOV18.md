@@ -1,6 +1,6 @@
 # Morning summary, Nov 18
 
-Weekly usage ended the night at about 92-93 % (resets Nov 19, 9 am Denver). Everything below is committed on `stage-1`. The website and the Mac app were rebuilt after the last big batch.
+Weekly usage ended the night at about 92 %. Final deploy: gh-pages d1923c7 from e7157a78 (Mac app rebuilt from the same commit) (resets Nov 19, 9 am Denver). Everything below is committed on `stage-1`. The website and the Mac app were rebuilt after the last big batch.
 
 ## Live now
 - Website: https://silasedel.github.io/gta6/ (streams cars and big trees after you start; 417 MB before play, was 450).
@@ -14,6 +14,9 @@ Weekly usage ended the night at about 92-93 % (resets Nov 19, 9 am Denver). Ever
 - **World:** realistic rain (patchy wetness, sand soaks it up, mirrors only in puddles), mangroves rooted, tar-seal road cracks.
 - **Your library models in:** ATM, wall clock, rubber plant, potted palm. Store display no longer floats.
 - **Gameplay:** GPS routes by travel time (fewer turns), E drives boats, police come from cars or stations, top-right recognition icons always shown, wardrobe works, infinite money in dev mode, gang system removed, quicker car exit.
+- **Car paint (late night):** paint normals rebuilt (the blotchy reflections and lumpy panels), dirt only on sills / behind wheels, soft fade and rust, no rain speckle; mid-distance color no longer jumps. `?r3paint=0` = old.
+- **Overpass / retaining walls:** chamfered top edge, darker base, an earth berm blends the base into the ground (`?r3concrete=0`). Jersey barriers not changed yet.
+- **Police on foot** steer around buildings; shop people stay on the floor.
 - **Dogs:** filed in Models/Animals (Dog 1-5, police vest). Dog 5 is ripped from Call of Duty: reference only.
 
 ## Needs your OK
