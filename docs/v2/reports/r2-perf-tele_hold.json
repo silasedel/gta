@@ -1,0 +1,480 @@
+{
+ "set": "tele_hold",
+ "q": "",
+ "when": "2026-11-18T02:05:56.499Z",
+ "spots": [
+  {
+   "id": "edgewater",
+   "round": 0,
+   "hold": {
+    "ms": 1157,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 20396,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 25,
+   "gridPts": 149,
+   "badPts": [
+    [
+     299,
+     -915,
+     21.6,
+     20,
+     "Mesh<chunk-far-0,-2 | facade-far"
+    ],
+    [
+     299,
+     -875,
+     10.1,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -935,
+     8.8,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -895,
+     7.6,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -875,
+     13.4,
+     9.8,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     319,
+     -915,
+     9.5,
+     7.4,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 101
+  },
+  {
+   "id": "oceandr",
+   "round": 0,
+   "hold": {
+    "ms": 320,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 9922,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 11,
+   "gridPts": 149,
+   "badPts": [
+    [
+     2371,
+     365,
+     2.8,
+     0.1,
+     "Mesh<chunk-mid-2,0 | facade-far"
+    ],
+    [
+     2411,
+     345,
+     12.2,
+     0.1,
+     "facades<tile-near-12,1 | M.facade"
+    ],
+    [
+     2411,
+     355,
+     3.1,
+     0.1,
+     "Mesh<chunk-mid-3,0 | facade-far"
+    ],
+    [
+     2421,
+     425,
+     7.1,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ],
+    [
+     2421,
+     435,
+     7.1,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ],
+    [
+     2421,
+     445,
+     10.2,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 95
+  },
+  {
+   "id": "mbeach",
+   "round": 0,
+   "hold": {
+    "ms": 267,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 21405,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 12,
+   "gridPts": 149,
+   "badPts": [
+    [
+     2276,
+     -719,
+     5.9,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2276,
+     -619,
+     7.8,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2306,
+     -739,
+     3.1,
+     0.1,
+     "Mesh<chunk-mid-2,-1 | facade-far"
+    ],
+    [
+     2316,
+     -699,
+     11,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2316,
+     -689,
+     4.7,
+     0.1,
+     "lib-fire_escape[i]<library-buildings | StairBodyPlat"
+    ],
+    [
+     2316,
+     -669,
+     10.5,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 95
+  },
+  {
+   "id": "edgewater",
+   "round": 1,
+   "hold": {
+    "ms": 655,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 19999,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 25,
+   "gridPts": 149,
+   "badPts": [
+    [
+     299,
+     -915,
+     21.6,
+     20,
+     "Mesh<chunk-far-0,-2 | facade-far"
+    ],
+    [
+     299,
+     -875,
+     10.1,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -935,
+     8.8,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -895,
+     7.6,
+     0.1,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     309,
+     -875,
+     13.4,
+     9.8,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ],
+    [
+     319,
+     -915,
+     9.5,
+     7.4,
+     "Mesh<chunk-mid-0,-2 | facade-far"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 100
+  },
+  {
+   "id": "oceandr",
+   "round": 1,
+   "hold": {
+    "ms": 276,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 11781,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 11,
+   "gridPts": 149,
+   "badPts": [
+    [
+     2371,
+     365,
+     2.8,
+     0.1,
+     "Mesh<chunk-mid-2,0 | facade-far"
+    ],
+    [
+     2411,
+     345,
+     12.2,
+     0.1,
+     "facades<tile-near-12,1 | M.facade"
+    ],
+    [
+     2411,
+     355,
+     3.1,
+     0.1,
+     "Mesh<chunk-mid-3,0 | facade-far"
+    ],
+    [
+     2421,
+     425,
+     7.1,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ],
+    [
+     2421,
+     435,
+     7.1,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ],
+    [
+     2421,
+     445,
+     10.2,
+     0.1,
+     "facades<tile-near-12,2 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 97
+  },
+  {
+   "id": "mbeach",
+   "round": 1,
+   "hold": {
+    "ms": 239,
+    "ground": true,
+    "water": false,
+    "timedOut": false
+   },
+   "fellDuring": 0,
+   "minDy": 0.05,
+   "ready": true,
+   "waited": 23478,
+   "noNear": 0,
+   "noCol": 0,
+   "tilesMissingFromMap": 0,
+   "farDrawnWithin70": 0,
+   "heightMismatch": 12,
+   "gridPts": 149,
+   "badPts": [
+    [
+     2276,
+     -719,
+     5.9,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2276,
+     -619,
+     7.8,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2306,
+     -739,
+     3.1,
+     0.1,
+     "Mesh<chunk-mid-2,-1 | facade-far"
+    ],
+    [
+     2316,
+     -699,
+     11,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ],
+    [
+     2316,
+     -689,
+     4.7,
+     0.1,
+     "lib-fire_escape[i]<library-buildings | StairBodyPlat"
+    ],
+    [
+     2316,
+     -669,
+     10.5,
+     0.1,
+     "facades<tile-near-11,-4 | M.facade"
+    ]
+   ],
+   "fell": false,
+   "py": 0.1,
+   "gy": 0,
+   "miss": [],
+   "pending": 95
+  }
+ ],
+ "badNames": [
+  [
+   "Mesh<chunk-mid-0,-2 | facade-far",
+   40
+  ],
+  [
+   "facades<tile-near-11,-4 | M.facade",
+   12
+  ],
+  [
+   "Mesh<chunk-mid-3,0 | facade-far",
+   8
+  ],
+  [
+   "facades<tile-near-12,2 | M.facade",
+   8
+  ],
+  [
+   "Mesh<chunk-mid-2,-1 | facade-far",
+   8
+  ],
+  [
+   "Mesh[i] | MeshStandardMaterial",
+   6
+  ],
+  [
+   "facades<tile-near-12,1 | M.facade",
+   4
+  ],
+  [
+   "lib-fire_escape[i]<library-buildings | StairBodyPlat",
+   4
+  ],
+  [
+   "Mesh<chunk-far-0,-2 | facade-far",
+   2
+  ],
+  [
+   "facades<tile-near-1,-5 | M.facade",
+   2
+  ],
+  [
+   "Mesh<chunk-mid-2,0 | facade-far",
+   2
+  ]
+ ],
+ "errors": [],
+ "summary": {
+  "fellDuring": 0,
+  "spots": 6,
+  "notReady": 0,
+  "noNear": 0,
+  "noCol": 0,
+  "missingFromMap": 0,
+  "farDrawnWithin70": 0,
+  "heightMismatch": 96,
+  "fell": 0,
+  "avgWaitMs": 17830
+ }
+}

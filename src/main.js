@@ -206,6 +206,7 @@ async function boot() {
   function playerFixed(dt) {
     const st = P.state;
     if (st.inVehicle) return;
+    if (teleHold) { let held = false; try { held = teleHoldStep(); } catch (e) { teleHold = null; game.teleportHolding = false; } if (held) { vy = 0; moveSpeed = 0; return; } }
     // V2: a module may take over the player (sitting, climbing, boarding, cutscenes) by setting game.player.script.
     if (P.script) { try { P.script.fixed?.(dt); } catch (e) { console.error('[player.script]', e); P.script = null; } vy = 0; moveSpeed = 0; return; }
     const inp = game.input, blocked = game.ui.paused || (game.ui.phoneOpen && game.uiSettings?.get?.('phoneWalk') === false) || hardBlocked(); // phone up: walk and drive on unless the setting is off (r2-phone)
@@ -769,7 +770,32 @@ async function boot() {
     const gy = y ?? (game.city.groundHeightAt?.(x, z) ?? 0);
     pBody.setTranslation({ x, y: gy + CENTER + 0.1, z }, true); P.position.set(x, gy, z); vy = 0;
     if (typeof heading === 'number') { P.heading = heading; game.cameraYaw = heading + Math.PI; }
+    // r2-perf (QA: fell below the ground after teleports): hold the player in place until the landing tile's colliders
+    // exist and a ray finds ground there (see teleHoldStep); ?telehold=0 = old behavior
+    if (TELE_HOLD) { teleHold = { x, z, y: gy, t0: performance.now() }; game.teleportHolding = true; }
   };
+  let teleHold = null;
+  const TELE_HOLD = !/[?&]telehold=0\b/.test(location.search);
+  // while held, the streamer gets two extra slices a frame (the landing tile's collider job has the top priority: it is the
+  // nearest to the player focus), so the ground is usually there within a few seconds
+  game.updaters.push(function teleBoost() { if (!teleHold) return; try { game.city?.update?.(0); game.city?.update?.(0); } catch (e) { /* never break the frame */ } });
+  // returns true while the player is held (no movement, no gravity): released on ground under the landing point (or water,
+  // or after 60 s as a last resort)
+  function teleHoldStep() {
+    const H = teleHold, c = game.city;
+    pBody.setNextKinematicTranslation({ x: H.x, y: H.y + CENTER + 0.1, z: H.z }); P.position.set(H.x, H.y, H.z);
+    const ready = !c?.collidersReadyAt || c.collidersReadyAt(H.x, H.z);
+    let hit = null;
+    if (ready) { try { hit = world.castRay(new RAPIER.Ray({ x: H.x, y: H.y + 2, z: H.z }, { x: 0, y: -1, z: 0 }), 12, true, STATIC_ONLY, undefined, pCol); } catch (e) { hit = null; } }
+    const water = !!c?.isWater?.(H.x, H.z);
+    const timedOut = performance.now() - H.t0 > 60000;
+    if (!((ready && (hit || water)) || timedOut)) return true;
+    if (hit) { const top = H.y + 2 - hit.timeOfImpact; pBody.setTranslation({ x: H.x, y: top + CENTER + 0.05, z: H.z }, true); P.position.set(H.x, top, H.z); }
+    if (timedOut && !hit) console.warn('[teleport] no ground under the landing point after 60 s', H.x.toFixed(1), H.z.toFixed(1));
+    game.lastTeleportHold = { ms: Math.round(performance.now() - H.t0), ground: !!hit, water, timedOut };
+    teleHold = null; game.teleportHolding = false; vy = 0;
+    return false;
+  }
   // Move the player's kinematic body directly (for player.script.fixed). y is the feet height.
   game.movePlayerTo = (x, y, z) => { pBody.setNextKinematicTranslation({ x, y: y + CENTER, z }); P.position.set(x, y, z); };
   Object.defineProperty(game, 'playerCharacter', { get: () => character, configurable: true });

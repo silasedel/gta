@@ -13,7 +13,8 @@ import { withBrowser, GAME_READY, startGame } from '../browser.mjs';
 const a = process.argv.slice(2), o = {};
 for (let i = 0; i < a.length; i++) if (a[i].startsWith('--')) { const k = a[i].slice(2); o[k] = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; }
 const SET = o.set || 'tele';
-const SPOTS = [['qa045', 470, -157], ['qa045b', 499, -156], ['beach', 2332, -660], ['keys', -836, 5272], ['glades', -2386, 2660], ['brickell', 0, 1760], ['spawn', null, null]];
+const SPOTS0 = [['qa045', 470, -157], ['qa045b', 499, -156], ['beach', 2332, -660], ['keys', -836, 5272], ['glades', -2386, 2660], ['brickell', 0, 1760], ['spawn', null, null]];
+const SPOTS = o.spots ? String(o.spots).split(';').map((t) => { const [id, x, z] = t.split(':'); return [id, +x, +z]; }) : SPOTS0;
 const rep = { set: SET, q: o.q || '', when: new Date().toISOString(), spots: [] };
 await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 800) }, async (b) => {
   await b.goto('http://127.0.0.1:5200/?mute' + (o.q || ''));
@@ -24,7 +25,10 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 800) }, asy
       const G = game, st = G.city.streamer, T = G.THREE, R = G.RAPIER, W = G.world, P = G.player;
       G.teleport(x, undefined, z);
       const t0 = performance.now(); let ok = false;
-      while (performance.now() - t0 < 30000) { await new Promise((r) => setTimeout(r, 100)); if (st.readyAround(x, z, 120) && G.city.collidersReadyAt(x, z)) { ok = true; break; } }
+      let fellDuring = 0, minDy = 1e9;
+      while (performance.now() - t0 < 30000) { await new Promise((r) => setTimeout(r, 100));
+        { const gy0 = G.city.groundHeightAt?.(P.position.x, P.position.z) ?? 0, dy = P.position.y - gy0; if (dy < minDy) minDy = dy; if (dy < -2 && !G.city.isWater?.(P.position.x, P.position.z)) fellDuring++; }
+        if (st.readyAround(x, z, 120) && G.city.collidersReadyAt(x, z)) { ok = true; break; } }
       const waited = Math.round(performance.now() - t0);
       // truth from the maps
       const TS = st.tileSize; const dR = (t) => Math.hypot(Math.max(t.x0 - x, 0, x - (t.x0 + TS)), Math.max(t.z0 - z, 0, z - (t.z0 + TS)));
@@ -45,9 +49,10 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 800) }, asy
           if (badPts.length < 6) badPts.push([Math.round(px), Math.round(pz), +dh.toFixed(1), ph === null ? null : +ph.toFixed(1), nm.join('<').slice(0, 60) + ' | ' + mt]); } }
       await new Promise((r) => setTimeout(r, 3000));
       const gy = G.city.groundHeightAt?.(P.position.x, P.position.z) ?? 0; const fell = P.position.y < gy - 2;
-      return { ready: ok, waited, noNear, noCol, tilesMissingFromMap, farDrawnWithin70: farNear, heightMismatch: bad, gridPts: n, badPts, fell, py: +P.position.y.toFixed(1), gy: +gy.toFixed(1), miss: miss.slice(0, 6), pending: st.pending() };
+      return { hold: G.lastTeleportHold || null, fellDuring, minDy: +minDy.toFixed(2), ready: ok, waited, noNear, noCol, tilesMissingFromMap, farDrawnWithin70: farNear, heightMismatch: bad, gridPts: n, badPts, fell, py: +P.position.y.toFixed(1), gy: +gy.toFixed(1), miss: miss.slice(0, 6), pending: st.pending() };
     }; return 1; })()`);
   for (let r = 0; r < +(o.rounds || 2); r++) for (const [id, x, z] of SPOTS) {
+    await b.eval('(game.lastTeleportHold = null, 1)');
     const res = JSON.parse(await b.eval(`window.__tele(${x ?? 'window.__sp[0]'}, ${z ?? 'window.__sp[1]'}).then(JSON.stringify)`, 60000));
     rep.spots.push({ id, round: r, ...res });
     console.log(id.padEnd(9), JSON.stringify(res));
@@ -58,6 +63,6 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 800) }, asy
   if (rep.errors.length) console.log('ERRORS', rep.errors.map((e) => e.slice(0, 200)).join('\n'));
 });
 const S = rep.spots, sum = (k) => S.reduce((s2, x) => s2 + (typeof x[k] === 'boolean' ? (x[k] ? 1 : 0) : x[k] || 0), 0);
-rep.summary = { spots: S.length, notReady: S.filter((x) => !x.ready).length, noNear: sum('noNear'), noCol: sum('noCol'), missingFromMap: sum('tilesMissingFromMap'), farDrawnWithin70: sum('farDrawnWithin70'), heightMismatch: sum('heightMismatch'), fell: sum('fell'), avgWaitMs: Math.round(sum('waited') / Math.max(1, S.length)) };
+rep.summary = { fellDuring: sum('fellDuring'), spots: S.length, notReady: S.filter((x) => !x.ready).length, noNear: sum('noNear'), noCol: sum('noCol'), missingFromMap: sum('tilesMissingFromMap'), farDrawnWithin70: sum('farDrawnWithin70'), heightMismatch: sum('heightMismatch'), fell: sum('fell'), avgWaitMs: Math.round(sum('waited') / Math.max(1, S.length)) };
 console.log('SUMMARY', JSON.stringify(rep.summary));
 fs.writeFileSync(`docs/v2/reports/r2-perf-${SET}.json`, JSON.stringify(rep, null, 1));
