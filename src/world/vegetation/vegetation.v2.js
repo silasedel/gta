@@ -95,6 +95,8 @@ export async function initV2(game) {
     materials: sharedVegMaterials(),
     // instanced field with LODs: items [{x,y,z,ry,s}] in world space; added to game.scene unless opts.parent is given
     field(kind, items, opts = {}) {
+      // shared placement rule (src/world/placement.v2.js): no plant in a carriageway, from any placer (user: things in roads)
+      if (game.placement && Array.isArray(items) && !opts.allowRoad) { const n0 = items.length; items = items.filter((it) => !it || !game.placement.onRoad(it.x, it.z, 0.3 * (it.s || 1))); if (items.length !== n0) (game.placementStats ||= { plantsDropped: 0 }).plantsDropped += n0 - items.length; }
       // vegetation track: every kind with a library-model group (species.js GROUPS) draws the user's models, split per item over
       // the group's models; items are grounded (lowest ground under the footprint, base sunk a little, mangroves into the mud)
       const grp = !opts.model && !opts.noModel && groupOf(ALIAS_G[kind] || kind), lib = game.city?.flora?.models || {};
