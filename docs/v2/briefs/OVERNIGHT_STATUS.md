@@ -1432,6 +1432,15 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - fast 50 m/s drive: 6.6 -> 8.9 fps average, frames over 250 ms 75 -> 43
 - Details, the drop list and the next steps (spawn draw count, long tile-build steps, collider gaps): PERF_PLAN.md
   "Round 3".
+- **17:20** More committed, on by default with an off switch:
+  - **Shader precompile with the render-time light set** (?compilelights=0). Every precompile compiled for 1 point / 0
+    spot lights, so the real programs compiled at first draw. Fast drive: 17 -> 46 fps, frames over 100 ms 178 -> 12.
+  - **One VAO per InstancedMesh** (?instvao=0). vertexAttribPointer per frame: spawn 3533 -> 132.
+  - TAA cost checked with r2-render: 0.6-0.8 ms GPU after their cuts.
+- **Whole afternoon, same 50 m/s drive:** 6.4 -> 46 fps average, frames over 100 ms 432 -> 12.
+- **Standing still** (load 8-10): spawn 39-47 ms, Keys 16.6 ms, downtown 26.6 ms.
+- **Left:** spawn render submit (about 1,000 draws, 340 programs; countryside 325 draws), long tile-build steps,
+  collider gaps (all in PERF_PLAN.md round 3).
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
