@@ -622,7 +622,7 @@ async function boot() {
       const t = st.vehicle.mesh.position;
       pivot = tmp.set(t.x, t.y + 1.6, t.z);
       const kmh = st.vehicle.speedKmh || 0;
-      wantDist = 5.7 + Math.min(kmh / 70, 2.0); // stage 1: GTA 6 chase-cam distance
+      wantDist = 2.6 + 0.5 * (st.vehicle.spec?.L || 4.6) + Math.min(kmh / 80, 1.6); // user: a little closer to the car (was 5.7 for every car); scales with car length
       // auto-follow behind car
       if (game.clock.elapsed - lastMouseTime > 1.2 && kmh > 8) {
         const want = P.heading + Math.PI;
