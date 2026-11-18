@@ -1046,6 +1046,14 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   - QA-030 dock -895,4806: the -0.31 floor is r2-ground's seabed heightfield (the drawn shelf), not tilebuild.
   - truck9 wheels sink 15 cm (QA-024/031): handed to r2-cars (wheel radius vs model).
   - carphys 2 (suspension) is still off by default: the lab is verified (curb / pothole / rock / hump), but the traffic A/B (roll-overs, fps) never got a browser slot.
+- 18:30 Facade / tower item (r2-perf badNames). Probed in game with `tools/v2/physics/drawnprobe.mjs` (what is drawn at x,z vs the physics under it).
+  - **What is drawn at 410,-157 / 449,-176:** stacked balcony slabs every 3.4 m (21.3 / 17.9 / 14.5 / 11.1 m). They hang outside any building footprint, so the collider build never made them: these are not walk-through buildings.
+  - 410,-167 (building 7935): the collider roof matches at 24.2 m; the extra 3.5 m drawn is rooftop parapet.
+  - 499,-156: nothing is drawn above the ground there now (tower 7940's footprint, no tower mesh), so there is no mismatch.
+  - **tilebuild ready: r2-physics** (not verified):
+    - balcony colliders (slab + rail wall) in buildTower's balcony stacks and a collider twin of the r2-art mid-rise balcony block (same bays / floors).
+    - A re-probe at 410,-157 still showed no physics under the drawn slab, so that collider-pass condition does not trigger for this building yet. Still to work out: the collider pass differs from the near pass there (probably FS / storefront state).
+  - **`bldmodels.js` (uncommitted, needs a boot check before commit):** LIBM.collide stretches a library collision mesh that is shorter than the drawn model up to the drawn height (grid_tower roof 112 m vs collider box 101 m).
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**

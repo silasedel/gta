@@ -257,7 +257,12 @@ export function createBuildingModels({ root, roadDist = null, districtAt = null,
   const WHITE = new THREE.Color(0xffffff);
   function collide(coll, L, dy = 0) {
     const m = LIB[L.name], P = cols.get(L.name), y = (L._y ?? 0) + dy;
-    const cr = Math.cos(L.ry), sr = Math.sin(L.ry), sx = (L.s / m.k) * (L.mir ? -1 : 1), sy = L.sy / m.k, sz = L.s / m.k;
+    const cr = Math.cos(L.ry), sr = Math.sin(L.ry), sx = (L.s / m.k) * (L.mir ? -1 : 1), sz = L.s / m.k;
+    let sy = L.sy / m.k;
+    // r2-physics: a collision mesh authored shorter than the drawn model (grid_tower: roof 112 m vs collider 101 m) is stretched to
+    // the model's drawn height, so the roof you see is the roof you stand on
+    if (P && P.length >= 9 && L.h > 0) { let top = P._top; if (top === undefined) { top = -Infinity; for (let i = 1; i < P.length; i += 3) top = Math.max(top, P[i]); P._top = top; }
+      const colH = top * sy; if (colH > 1 && colH < L.h - 0.4) sy *= L.h / colH; }
     if (P && P.length >= 9) {
       for (let i = 0; i < P.length; i += 3) { const lx = P[i] * sx, ly = P[i + 1] * sy, lz = P[i + 2] * sz; coll.vert(L.x + lx * cr + lz * sr, y + ly, L.z - lx * sr + lz * cr, 0, 1, 0, 0, 0, WHITE); }
     } else {

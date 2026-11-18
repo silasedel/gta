@@ -41,7 +41,8 @@ import { drawBlade } from '../signs/draw.js';
 import { bladeLabel } from '../signs/plan.js';
 import { covers as COVERS, placeCovers } from '../surfaces/covers.js'; // r2-roads: utility covers (library manholes / inlets / valves)
 import { attachRoadChannel, setRoad, applyRoadChannel } from '../surfaces/roadChannel.js'; import { SURF_OFF } from '../surfaces/surfaceShaders.js'; // surfaces pass: lane frame for the asphalt / paint / decal shaders
-const TB_YIELD = !(typeof location !== 'undefined' && /[?&]tbyield=0\b/.test(location.search)); // r2-perf: time-based yields in the building loops
+const TB_YIELD = !(typeof location !== 'undefined' && /[?&]tbyield=0\b/.test(location.search));
+const PROPS_SINK = !(typeof location !== 'undefined' && /[?&]propsink=0\b/.test(location.search)); // r2-perf: props-only road pass for the collider job // r2-perf: time-based yields in the building loops
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 const EXIT_Y = CLIP_OFF ? 0.008 : -0.012; // beach exit aprons sit 2 cm under the sand areas (0.01), not 2 mm (z-fight)
 const FAC = { ...VARIANTS, office: [8, 8, 24, 28], deco: [4, 4, 16, 13.6], glass: [16, 16, 32, 64], band: [16, 8, 24, 30.4], warehouse: [6, 1, 24, 12] };
@@ -704,6 +705,7 @@ export function createTileBuilder(ctx) {
           const ax = p[0] + tx * m, az = p[1] + tz * m, bx = q[0] - tx * m, bz = q[1] - tz * m;
           for (let y = L.y0 + 3.2; y < L.y1 - 2.5; y += 3.2) {
             edgeSlab(B.trim, ax, az, bx, bz, nx, nz, y, wrap ? 2.1 : 1.7, 0.2, slabC);
+            if (opts.coll) { edgeSlab(opts.coll, ax, az, bx, bz, nx, nz, y, wrap ? 2.1 : 1.7, 0.2, 0xffffff); edgeSlab(opts.coll, ax + nx * (wrap ? 2.04 : 1.64), az + nz * (wrap ? 2.04 : 1.64), bx + nx * (wrap ? 2.04 : 1.64), bz + nz * (wrap ? 2.04 : 1.64), nx, nz, y + 0.2, 0.06, 1.05, 0xffffff); } // r2-physics: balconies are solid (slab + rail)
             const fx = nx * (wrap ? 2.08 : 1.68), fz = nz * (wrap ? 2.08 : 1.68), y1 = y + 0.2, y2 = y + 1.25;
             for (const v of [[ax + fx, y1, az + fz], [bx + fx, y1, bz + fz], [bx + fx, y2, bz + fz], [ax + fx, y1, az + fz], [bx + fx, y2, bz + fz], [ax + fx, y2, az + fz]]) B.shopGlass.vert(v[0], v[1], v[2], nx, 0, nz, 0, 0, white);
           }
@@ -824,6 +826,19 @@ export function createTileBuilder(ctx) {
     if (y0 > 0.5 && !b.part) { fillPolyDown(B.trim, b.rings, y0, new THREE.Color(0xcfcac2)); if (opts.coll) fillPolyDown(opts.coll, b.rings, y0, 0xffffff); } // passage / overhang soffit
     if (b._passage) for (const [x, z] of outer) { if (roadDist && roadDist(x, z) < 0.8) continue; // columns at the corners that stand clear of the lanes
       B.trim.addGeometry(CYLG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), new THREE.Color(0xd9d4ca)); if (opts.coll) opts.coll.addGeometry(BOXG, m4(x, y0 / 2, z, 0, 0.7, y0, 0.7), 0xffffff); }
+    // r2-physics (QA-045 / r2-perf "facades with no collider"): the stacked balconies below hang 1.35 m outside the footprint, so they
+    // were drawn without a collider; the collider build adds the same slabs and rail walls (same bays, floors and ground floor)
+    if (opts.coll && !ARTGEO_OFF && !opts.lod && y0 < 0.5 && !b.part && h >= 10 && h < 46 && outer.length <= 12 && /residential|beach|business|commercial|mixed/.test(b.zone || zone) && (style === 'office' || style === 'band') && hash(seed + 1301) < (/residential|beach/.test(b.zone || zone) ? 0.6 : 0.3)) {
+      let FSc = null; try { FSc = b._podOf ? podiumStyle(facStyle(b._podOf, zone, styleFor(b._podOf, b._podOf.zone || zone, seed), b._podOf.h), b._podOf, zone) : facStyle(b, zone, style, h); } catch (e) { FSc = null; }
+      const shopsV = sf || (y0 < 0.5 && h > 7 && (style === 'deco' || style === 'office' || style === 'band') && b.area > 150 && !b.part && h > GF + 0.5);
+      const gy = shopsV ? GF : 4.2, fh = FSc?.floorH || 3.2;
+      const edges = outer.map((p, i) => [p, outer[(i + 1) % outer.length]]).map(([p, q]) => ({ p, q, L: Math.hypot(q[0] - p[0], q[1] - p[1]) })).sort((a, c) => c.L - a.L).slice(0, 2);
+      for (const { p, q, L: el } of edges) {
+        if (el < 9) continue;
+        const tx = (q[0] - p[0]) / el, tz = (q[1] - p[1]) / el, nx = -tz, nz = tx, nb = Math.max(1, Math.floor((el - 2) / 6.5)), bw = Math.min(3.4, el / nb - 1.2), dep = 1.35;
+        for (let k = 0; k < nb; k++) { const u = (k + 0.5) * el / nb, cx = p[0] + tx * u, cz = p[1] + tz * u, ax = cx - tx * bw / 2, az = cz - tz * bw / 2, bx = cx + tx * bw / 2, bz = cz + tz * bw / 2;
+          for (let y = gy + fh; y < h - 2.4; y += fh) { edgeSlab(opts.coll, ax, az, bx, bz, nx, nz, y - 0.18, dep, 0.18, 0xffffff); const fx = nx * (dep - 0.06), fz = nz * (dep - 0.06); edgeSlab(opts.coll, ax + fx, az + fz, bx + fx, bz + fz, nx, nz, y, 0.06, 1.05, 0xffffff); } } }
+    }
     if (!ARTGEO_OFF && FB && FS && !opts.lod && B.shopGlass && y0 < 0.5 && !b.part && h >= 10 && h < 46 && outer.length <= 12 && /residential|beach|business|commercial|mixed/.test(b.zone || zone) && (style === 'office' || style === 'band') && hash(seed + 1301) < (/residential|beach/.test(b.zone || zone) ? 0.6 : 0.3)) { // deco gets eyebrows instead
       ART_GEO_N.balc++;
       // r2-art: residential mid-rises read as flat boxes: stacked balconies (slab + glass rail + handrail) on the two longest faces,
@@ -2486,11 +2501,17 @@ export function createTileBuilder(ctx) {
     for (const [h, k] of q._vis) { const i = h.idx[k]; if (i !== undefined && h.p && i < h.p.count) poolSetMatrix(h.p, i, _zeroM); }
     return true;
   }
-  function* ensureProps(t, tile) {
+  // r2-perf: the collider job only needs the road props, so its buildRoads pass writes geometry into sink batches that
+  // drop every vertex (the dummy Batches stored and then threw away full road geometry: about a third of the collider
+  // job). Same props (checked with debugProps on 60 tiles). ?propsink=0 = old dummy batches.
+  const SINK_ARR = { push() { return 0; }, length: 0 };
+  class SinkBatch { constructor() { this.p = SINK_ARR; this.n = SINK_ARR; this.uv = SINK_ARR; this.c = SINK_ARR; } vert() {} addGeometry() {} addGeometryWorldUV() {} hquad() {} get empty() { return true; } }
+  const sinkSet = () => ({ guard: new SinkBatch(), asphalt: new SinkBatch(), marks: new SinkBatch(), sidewalk: new SinkBatch(), trim: new SinkBatch() });
+  function* ensureProps(t, tile, sinkMode = PROPS_SINK) {
     if (t.props) return t.props;
-    const props = newProps(); seedRealProps(props, tile); const dummy = { guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch() };
+    const props = newProps(); seedRealProps(props, tile); const dummy = sinkMode ? sinkSet() : { guard: new Batch(), asphalt: new Batch(), marks: new Batch(), sidewalk: new Batch(), trim: new Batch() };
     const it = buildRoads(dummy, tile, props, null);
-    for (let r = it.next(); !r.done; r = it.next()) { dummy.guard = new Batch(); dummy.asphalt = new Batch(); dummy.marks = new Batch(); dummy.sidewalk = new Batch(); dummy.trim = new Batch(); yield; }
+    for (let r = it.next(); !r.done; r = it.next()) { if (!sinkMode) { dummy.guard = new Batch(); dummy.asphalt = new Batch(); dummy.marks = new Batch(); dummy.sidewalk = new Batch(); dummy.trim = new Batch(); } yield; }
     cleanProps(tile, props); if (SK) { shelterClear(props); workZones(tile, props); propJitter(props); } if (tile.relief && D) liftProps(props); syncKids(props); if (flora && terrain && terrain.synthetic(t.tx, t.tz)) yield* floraInto(t, tile, props); t.props = props; return props;
   }
   // procedural fallbacks + bus shelter / bin variants
@@ -3821,5 +3842,13 @@ export function createTileBuilder(ctx) {
     root.remove(group);
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
-  return { junctionOf, sigStats, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
+  // r2-perf: props of one tile computed fresh with / without the sink batches (equivalence test; not cached)
+  function debugProps(tx, tz, sinkMode) {
+    const run = (g) => { let r = g.next(); while (!r.done) r = g.next(); return r.value; };
+    const tile = run(getTileG(tx, tz)); if (!tile) return null;
+    const T = provider.tileSize || 200;
+    return run(ensureProps({ tx, tz, x0: tx * T, z0: tz * T, cx: (tx + 0.5) * T, cz: (tz + 0.5) * T, props: null }, tile, sinkMode));
+  }
+  if (typeof window !== 'undefined') window.__tbDebugProps = debugProps;
+  return { debugProps, junctionOf, sigStats, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
 }
