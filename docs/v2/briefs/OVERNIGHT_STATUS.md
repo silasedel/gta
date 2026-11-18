@@ -1063,6 +1063,25 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     - balcony colliders (slab + rail wall) in buildTower's balcony stacks and a collider twin of the r2-art mid-rise balcony block (same bays / floors).
     - A re-probe at 410,-157 still showed no physics under the drawn slab, so that collider-pass condition does not trigger for this building yet. Still to work out: the collider pass differs from the near pass there (probably FS / storefront state).
   - **`bldmodels.js` (uncommitted, needs a boot check before commit):** LIBM.collide stretches a library collision mesh that is shorter than the drawn model up to the drawn height (grid_tower roof 112 m vs collider box 101 m).
+- Final QA round (qa-r2-final.md):
+  1. **Bushes are soft but real** (`shrubs.js`, committed). Every drawn shrub within 50 m becomes a soft zone in city.bushAt (the player slows to ~45 % and can't sprint; cars are dragged); shrubs over 1.5 m get a solid core like a hedge. The QA points are oleander / green_shrub. Sprint test:
+     - -829.8,4822.7: 1.3 m/s inside
+     - -849.2,4864.8: stopped 1.7 m short
+     - -795.3,4855.7: slowed, ended 0.7 m past center
+     - The glades point (-2307.6,2424.6) is countryside shrub slots without vegCls. Now included via the veg family + size test, but not re-verified.
+  2. **South Beach:**
+     - The metro kiosk (2400.6,628.6) has r2-metro's wall colliders. The open front is the stair entrance, so walking in is by design; its 3.3 m roof has no collider.
+     - The shop piece (2388.4,608.7): building 10367's collider matches the drawn 10.4 m roof. The walk-in there is a storefront door gap (enterable shop).
+  3. **hatch2 roll-over:** roll trip guard (vehicles.js, committed). Verified with hatch2 into a 15 cm curb at 30 deg, at 25 and 30 km/h: max roll 3.2 / 2.9 deg, no roll-over. The COM comes from the class, not the manifest's yb / H.
+  4. **Land floors:**
+     - -921,5295: floor at 0 under terrain drawn at -0.02 (fixed by e9e041b3).
+     - -2340,2791: elevated concrete drawn at 1.77 m, collider at 1.75 m.
+     - -840,4750: the drawn 1.35 m there is a hibiscus bush (soft).
+  5. **Keys dock (-895,4806): NOT fixed.**
+     - What I tried: in seabed.js, an upward ray finds a deck overhead and deepens the bottom there to the map depth (1.8-3.2 m).
+     - Result: the probe still showed the heightfield at -0.31 (no deck detected there, or the grid did not rebuild after the dock streamed in).
+     - Status: reverted, not committed. The patch is kept at the scratchpad file r2p_seabed_deck.patch.
+     - Next step: find the dock's collider there (keysLots boxCol at deckY) and rebuild the seabed grid when it streams in.
 
 ## r2-veg
 **Summary (items 10, 12, 16 trees, the floating trees, the Keys density).**
