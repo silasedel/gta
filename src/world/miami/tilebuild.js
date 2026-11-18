@@ -3843,11 +3843,14 @@ export function createTileBuilder(ctx) {
   }
   const deckSurfaceAt = (x, z, yHint) => { if (elevated) { const h = safeCall(() => elevated.heightAt(x, z, yHint), null); return Number.isFinite(h) ? h : null; } const T = provider.tileSize, tile = provider.getTile ? provider.getTile(Math.floor(x / T), Math.floor(z / T)) : null; if (!tile || tile.then) return null; resolveDecks(tile); const y = elevIndex(tile).nearestY(x, z, yHint, 3.5); return y === null ? null : y + 0.05; };
   // r2-perf: props of one tile computed fresh with / without the sink batches (equivalence test; not cached)
-  function debugProps(tx, tz, sinkMode) {
-    const run = (g) => { let r = g.next(); while (!r.done) r = g.next(); return r.value; };
-    const tile = run(getTileG(tx, tz)); if (!tile) return null;
+  async function debugProps(tx, tz, sinkMode) {
+    // generator steps are timed (cpu ms); between steps the event loop runs (tile data loads asynchronously)
+    const out = { ms: 0 };
+    const run = async (g, timed) => { let r; for (;;) { const t0 = performance.now(); r = g.next(); if (timed) out.ms += performance.now() - t0; if (r.done) return r.value; await new Promise((ok) => setTimeout(ok, 0)); } };
+    const tile = await run(getTileG(tx, tz), false); if (!tile) return null;
     const T = provider.tileSize || 200;
-    return run(ensureProps({ tx, tz, x0: tx * T, z0: tz * T, cx: (tx + 0.5) * T, cz: (tz + 0.5) * T, props: null }, tile, sinkMode));
+    out.props = await run(ensureProps({ tx, tz, x0: tx * T, z0: tz * T, cx: (tx + 0.5) * T, cz: (tz + 0.5) * T, props: null }, tile, sinkMode), true);
+    return out;
   }
   if (typeof window !== 'undefined') window.__tbDebugProps = debugProps;
   return { debugProps, junctionOf, sigStats, capStats, sliverStats, groundClaims: CLAIMS, auditFacades, bushAt, colliderSourceAt, cullPools, cullStats, synthLots, synthShopsNear, mooringsNear, claimMooring, releaseMooring, deckSurfaceAt, resolveDecks, roadProfile, sidewalksOf, nodeLevel, colTags, colStats, placeStats, lawnAt, lawnTester, buildLandBase, buildNear, buildMid, buildFar, buildColliders, removeColliders, dispose, extraMaterials: [...(terrain ? terrain.materials : []), ...(flora ? flora.materials : []), acMat, sigMat, pierMat, vcMat, litterMat, containerMat, boatMat, blobMat, hutMat, umbMat, ...greenMats] };
