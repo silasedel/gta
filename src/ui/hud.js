@@ -129,8 +129,20 @@ export function createHUD(game) {
   bars.append(hpBar, arBar);
   const mmInfo = el('div', 'ps-mm-info', '<span class="ps-mm-zone"></span><span class="ps-mm-hdg"></span>');
   const mmZone = mmInfo.firstChild, mmHdg = mmInfo.lastChild;
-  mm.append(mmFrame, bars, mmInfo);
+  mm.append(mmFrame, mmInfo);
   root.appendChild(mm);
+  // user (Nov 18, docs/v2/plan/hud_health_target.png): health lives top-left as a heart badge + one pink bar (armor a thin
+  // blue line under it only while you have armor); the minimap is just the frosted map (docs/v2/plan/hud_minimap_target.png)
+  const vitals = el('div', 'ps-vitals', '<span class="ps-heart"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="#f0a6c6" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.2 0 3.6 1.2 5.4 3.2 1.8-2 3.2-3.2 5.4-3.2 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z"/></svg></span>');
+  vitals.appendChild(bars);
+  root.appendChild(vitals);
+  // vehicle card above the minimap while in any vehicle (user reference docs/v2/plan/hud_vehicle_target.png): brand, model,
+  // an engine badge (green / amber / red by vehicle health) and a fuel ring (no fuel system yet: shown full)
+  const vehCard = el('div', 'ps-vehcard', '<div class="ps-vc-brand"></div><div class="ps-vc-model"></div><div class="ps-vc-icons">'
+    + '<span class="ps-vc-eng"><svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M7 8h3V6h4v2h2l2 2h2v6h-2l-2 2H8l-2-2H4v-5h2l1-1zm-1 4v3h1.5l2 2h6l2-2H19v-3h-1.5l-2-2H8.5z"/></svg></span>'
+    + '<span class="ps-vc-fuel"><svg viewBox="0 0 34 34" width="34" height="34"><circle class="ps-vc-ring" cx="17" cy="17" r="14.5" fill="none" stroke-width="2.4" stroke-dasharray="91.1 91.1" transform="rotate(-90 17 17)"/></svg><svg class="ps-vc-pump" viewBox="0 0 24 24" width="13" height="13"><path fill="currentColor" d="M5 3h9v8h1.5a1.5 1.5 0 0 1 1.5 1.5V17a1 1 0 0 0 2 0V9.4L16.3 7l1.4-1.4L21 8.9V17a3 3 0 0 1-6 0v-4h-1v8H5zm2 2v4h5V5z"/></svg></span></div>');
+  const vcBrand = vehCard.querySelector('.ps-vc-brand'), vcModel = vehCard.querySelector('.ps-vc-model'), vcEng = vehCard.querySelector('.ps-vc-eng');
+  root.appendChild(vehCard);
   const MW = 260, MH = 170;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   mmCanvas.width = MW * dpr; mmCanvas.height = MH * dpr;
@@ -1433,6 +1445,14 @@ export function createHUD(game) {
         spdTip.setAttribute('cx', (90 + Math.cos(ta) * ARC_R).toFixed(1)); spdTip.setAttribute('cy', (90 + Math.sin(ta) * ARC_R).toFixed(1)); }
       const nm = String(st.vehicle.name || st.vehicle.spec?.label || 'Vehicle').replace(/\s*#\d+$/, '').toUpperCase();
       if (spdName.textContent !== nm) spdName.textContent = nm;
+      { const V = st.vehicle, sp = V.spec || {}; let br = sp.brand || '', md = sp.model || sp.name || '';
+        if (!br || !md) { const w = nm.split(' '); br = br || w[0] || ''; md = md || w.slice(1).join(' '); }
+        br = String(br).toUpperCase(); md = String(md).replace(/\s*#\d+$/, '').toUpperCase();
+        if (vcBrand.textContent !== br) vcBrand.textContent = br;
+        if (vcModel.textContent !== md) vcModel.textContent = md;
+        const hf = Number.isFinite(V.health) ? V.health / 1000 : 1;
+        const ec = V.disabled || hf <= 0.15 ? 'bad' : hf < 0.5 ? 'warn' : 'ok';
+        if (vcEng.dataset.s !== ec) { vcEng.dataset.s = ec; vcEng.className = 'ps-vc-eng ' + ec; } }
       const fwd = num(st.vehicle.speedKmh);
       spdGear.textContent = kmh < 1 ? 'N' : fwd < -0.5 ? 'R' : String(Math.min(6, 1 + Math.floor(kmh / 38)));
       speedo.classList.toggle('redline', kmh > 190);

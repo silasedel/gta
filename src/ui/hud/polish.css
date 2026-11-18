@@ -124,3 +124,45 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 0 60px 12px rgba(4, 8, 14, .35);
   background: none;
 }
+
+/* ---- Nov 18 (user references docs/v2/plan/hud_minimap_target.png, hud_health_target.png) ---- */
+/* minimap: a frosted, see-through card (the world shows through softly), soft light rim, nothing under it */
+.ps-hud .ps-mm-frame {
+  background: rgba(214, 220, 228, .16);
+  -webkit-backdrop-filter: blur(7px) saturate(.85); backdrop-filter: blur(7px) saturate(.85);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .42), 0 6px 22px rgba(0, 0, 0, .28);
+}
+.ps-hud .ps-mm-canvas { opacity: .74; filter: saturate(.6) brightness(1.12) contrast(.92); }
+.ps-hud .ps-mm-gloss { background: linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .03) 40%, transparent); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.ps-hud .ps-mm-info { display: none; }
+/* health: dark round heart badge + one flat pink bar with a white tick (the low-health mark), top-left */
+.ps-vitals { position: absolute; left: 28px; top: 22px; display: flex; align-items: center; gap: 9px; width: 300px; }
+.ps-hud:not(.live) .ps-vitals, .ps-hud.is-paused .ps-vitals, .ps-hud.photo .ps-vitals { opacity: 0; }
+.ps-vitals { transition: opacity .28s var(--ps-ease); }
+.ps-heart { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(28, 31, 38, .92); box-shadow: 0 1px 3px rgba(0, 0, 0, .45); }
+.ps-vitals .ps-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; margin: 0; }
+.ps-vitals .ps-bar { -webkit-mask: none; mask: none; filter: none; height: 15px; border-radius: 2px; background: rgba(240, 166, 198, .22); box-shadow: 0 1px 3px rgba(0, 0, 0, .35); overflow: hidden; position: relative; flex: none; }
+.ps-vitals .ps-hp i { background: #e9a5c2; }
+.ps-vitals .ps-hp u { background: rgba(255, 255, 255, .55); }
+.ps-vitals .ps-bar b { display: none; }
+.ps-vitals .ps-hp::after { content: ''; position: absolute; top: 0; bottom: 0; left: 30%; width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 0 1px rgba(20, 22, 28, .55); z-index: 2; }
+.ps-vitals .ps-hp.low i { background: #e2384a; }
+.ps-vitals .ps-ar { height: 4px; border-radius: 2px; background: rgba(120, 170, 255, .2); }
+.ps-vitals .ps-ar i { background: #7fb2ff; }
+.ps-vitals .ps-ar.empty { display: none; }
+/* notifications and help start below the health row */
+.ps-hud .ps-leftcol { top: 66px; }
+/* vehicle card above the minimap (docs/v2/plan/hud_vehicle_target.png) */
+.ps-vehcard { position: absolute; left: 28px; bottom: 202px; width: 260px; padding: 9px 0 8px; text-align: center; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(18, 26, 32, .52), rgba(18, 26, 32, .34)); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ps-ease), transform .3s var(--ps-ease); pointer-events: none; }
+.ps-hud.live.driving .ps-vehcard { opacity: 1; transform: none; }
+.ps-hud.is-paused .ps-vehcard, .ps-hud.photo .ps-vehcard { opacity: 0; }
+.ps-vc-brand { font: 700 19px/1.05 var(--ps-cond); letter-spacing: .05em; color: #c9ced6; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+.ps-vc-model { font: 800 21px/1.1 var(--ps-cond); letter-spacing: .04em; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.ps-vc-icons { display: flex; justify-content: center; gap: 10px; margin-top: 6px; }
+.ps-vc-eng, .ps-vc-fuel { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; position: relative; color: #7fe08c; }
+.ps-vc-eng { box-shadow: inset 0 0 0 2.4px currentColor; background: rgba(10, 14, 18, .35); }
+.ps-vc-eng.warn { color: #f2c14e; } .ps-vc-eng.bad { color: #ff5a4f; }
+.ps-vc-fuel svg:first-child { position: absolute; inset: 0; } .ps-vc-ring { stroke: currentColor; }
+.ps-hud.driving .ps-street { bottom: 300px; }
