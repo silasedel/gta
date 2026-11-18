@@ -217,6 +217,7 @@ export async function createGameplay(game) {
     }
     if (!G.owned.has(v)) {
       G.owned.add(v);
+      if (v.playerOwned) return true; // Nico's own cars (truck, coupe): no theft report
       if (v.police || v.typeKey === 'police') reportCrime('vehicle_theft', P.position.clone(), null, { police: true });
       else if (!v._gpBrokenDown) reportCrime('vehicle_theft', P.position.clone(), null, { copOnly: true, witnessed: false });
     }

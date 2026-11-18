@@ -16,6 +16,7 @@ import { initFleet } from './glb/index.js';
 import { loadCarModel, buildStaticCar } from './glb/glbCar.js';
 import { RARE_PLACEMENTS } from './glb/placements.js';
 import { createShapeVehicle } from './physics/suspension.js'; // r2-physics (carphys 2)
+import { WEATHER_U } from '../render/wetSurfaces.js'; // r2-physics: wet-road grip
 
 const PALETTE = [
   0xff6a2b, 0x1fb5b0, 0x173b8f, 0xeeeeea, 0x101214, 0xa9aeb4, 0xb3121b, 0x7c2fbf,
@@ -784,7 +785,7 @@ export async function createVehicles(game) {
     v.soft = (v.soft ?? 0) + ((v.softTarget || 0) - (v.soft ?? 0)) * Math.min(1, dt * 3);
     const soft = v.inWater ? 0 : v.soft;
     if (soft > 0.01) engine *= 1 - 0.2 * soft;
-    const brakeImpulse = brake * spec.mass * 2.6 * dt; // per wheel
+    const brakeImpulse = brake * spec.mass * 2.1 * dt; // per wheel (r2-physics: ~8.4 m/s2 full braking on dry asphalt, was 10.4)
     const drive = spec.drive;
     const nDrive = drive === 'awd' ? 4 : 2;
     for (let i = 0; i < 4; i++) {
@@ -803,6 +804,7 @@ export async function createVehicles(game) {
         slip = spec.grip * 0.45; side = 0.75;
       }
       if (soft > 0.01) { slip *= 1 - 0.3 * soft; side *= 1 - 0.22 * soft; }
+      if (WEATHER_U[0] > 0.02) { const wk = 1 - 0.3 * Math.min(1, WEATHER_U[0]); slip *= wk; side *= 0.5 + 0.5 * wk; } // r2-physics: wet roads ~0.7 grip
       vc.setWheelBrake(i, fin(b, 0, spec.mass * 10));
       vc.setWheelFrictionSlip(i, fin(v.inWater ? 0.03 : slip, spec.grip, 10));
       vc.setWheelSideFrictionStiffness(i, fin(side, 1, 2));
@@ -1451,7 +1453,7 @@ export async function createVehicles(game) {
     }
     for (const c of NICO_CARS) {
       const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, keepSpot: true }); nicoCars.push(v); }
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();
@@ -2013,7 +2015,7 @@ export async function createVehicles(game) {
   if (game.on) {
     game.on('enterVehicle', (e) => {
       const v = e?.vehicle;
-      if (!v || !v.locked || v.breakingIn) return;
+      if (!v || !v.locked || v.breakingIn || v.playerOwned) return;
       v.breakingIn = true;
       game.audio?.play?.('glass', { position: v.mesh.position.clone(), volume: 0.9 });
       breakGlass(v);
