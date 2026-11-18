@@ -451,7 +451,13 @@ export function createPost(game) {
           // grass and planting do not mirror (green-dominant pixel, same idea as the wet material patch)
           float leafy = smoothstep( 0.005, 0.04, c.g - max( c.r, c.b ) * 0.95 );
           puddle *= 1.0 - leafy;
-          float amt = up * ( mix( 0.22, 0.42, uLook3 ) * uWeather.x * ( 1.0 - 0.85 * leafy ) + mix( 0.7, 0.95, uLook3 ) * puddle );
+          // the plain wet film is a faint, patchy sheen (rough surfaces don't mirror); only puddles mirror clearly.
+          // Sand-colored ground (bright, warm) soaks the rain up and barely reflects (user: the beach looked like glass)
+          float lumC = dot( c.rgb, vec3( 0.299, 0.587, 0.114 ) );
+          float sandC = smoothstep( 0.03, 0.1, c.r - c.b ) * smoothstep( 0.18, 0.35, lumC / ( 1.0 + lumC ) );
+          float patchC = smoothstep( 0.35, 0.75, wNoise( Pw.xz * 0.045 + 3.1 ) * 0.7 + wNoise( Pw.xz * 0.21 ) * 0.3 );
+          puddle *= 1.0 - 0.7 * sandC;
+          float amt = up * ( mix( 0.06, 0.13, uLook3 ) * patchC * uWeather.x * ( 1.0 - 0.85 * leafy ) * ( 1.0 - 0.8 * sandC ) + mix( 0.7, 0.95, uLook3 ) * puddle );
           if ( amt < 0.01 ) { gl_FragColor = c; return; }
           // reflect about world up (wet ground is flat at this scale)
           vec3 upV = normalize( ( vec4( 0.0, 1.0, 0.0, 0.0 ) * uViewInv ).xyz );

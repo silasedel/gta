@@ -60,10 +60,18 @@ if ( uWeather.x > 0.001 ) { // stage1 wet
   #ifdef USE_ALPHATEST
     leafy = max( leafy, 0.85 );
   #endif
-  float sheen = wet * ( 1.0 - 0.8 * leafy );
-  puddle *= 1.0 - leafy;
-  material.diffuseColor *= mix( 1.0, 0.6, wet * porous ) * mix( 1.0, 0.85, puddle );
-  material.roughness = mix( material.roughness, mix( 0.24, 0.42, 1.0 - up ), sheen * 0.85 );
+  // user (Nov 17): rain looked like one plain shiny layer. Real wet ground varies: drier and wetter patches, and porous
+  // sand / soil soak the water up (darker, satin at most) while sealed surfaces (asphalt, concrete, paint) gloss.
+  // Sand: bright, warm, low-saturation albedo. The surface's own roughness detail is kept (aggregate stays rough).
+  float lum = dot( dc, vec3( 0.299, 0.587, 0.114 ) );
+  float sandy = smoothstep( 0.22, 0.4, lum ) * smoothstep( 0.02, 0.08, dc.r - dc.b ) * ( 1.0 - smoothstep( 0.25, 0.45, dc.r - dc.b ) );
+  float patchW = mix( 0.55, 1.0, smoothstep( 0.3, 0.7, wetNoise( wP.xz * 0.045 + 3.1 ) * 0.7 + wetNoise( wP.xz * 0.21 ) * 0.3 ) );
+  wet *= patchW;
+  float sheen = wet * ( 1.0 - 0.8 * leafy ) * ( 1.0 - 0.75 * sandy );
+  puddle *= ( 1.0 - leafy ) * ( 1.0 - 0.7 * sandy );
+  material.diffuseColor *= mix( 1.0, 0.6, wet * max( porous, sandy ) ) * mix( 1.0, 0.85, puddle ) * mix( 1.0, 0.82, wet * sandy );
+  float wetR = mix( mix( 0.2, 0.42, 1.0 - up ), 0.55, sandy ) + ( material.roughness - 0.6 ) * 0.3;
+  material.roughness = mix( material.roughness, clamp( wetR, 0.12, 0.85 ), sheen * 0.85 );
   material.roughness = mix( material.roughness, 0.04, puddle );
   // standing water is flat: tilt the shading normal back toward world up, plus rain ripples while it rains
   vec2 rip = uWeather.z > 0.01 ? wetRipple( wP.xz, uWeather.w ) * uWeather.z : vec2( 0.0 );
