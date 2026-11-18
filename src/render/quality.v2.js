@@ -37,7 +37,7 @@ export const PRESETS = {
     label: 'High',
     // render resolution: native (Retina up to 2x), mid (between), min (just enough for 1920x1080 internal)
     // look track: native on High so Retina is crisp by default; the render-scale governor (post.js) pays for it when GPU-bound
-    dpr: 1.5, // r2-render: 1.5x on Retina (never below the 1080p-class floor); was 'min'
+    dpr: 2, // user (Nov 17): full Retina resolution on High too (was 1.5); the GPU has headroom (CPU-bound), dynres still guards heavy frames
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
     crowd: 240,
