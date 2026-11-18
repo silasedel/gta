@@ -1,0 +1,5 @@
+{
+ "top": { "eye": [0, 140, -10], "look": [0, 0, -9.9], "tod": 12, "fov": 60, "eval": "const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+z*s,NH.group.position.y+y,sp.z-x*s+z*c);const e=W(-5,150,-15),l=W(-5,0,-14.99);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(-s,0,-c);cam.lookAt(l);cam.fov=60;cam.updateProjectionMatrix();return true;};" },
+ "water": { "eye": [0, 3, -40], "look": [0, 3, 0], "tod": 16, "fov": 55, "eval": "const NH=game.nicoHouse,sp=NH.spot,h=sp.streetHeading||0,c=Math.cos(h),s=Math.sin(h),W=(x,y,z)=>new game.THREE.Vector3(sp.x+x*c+z*s,NH.group.position.y+y,sp.z-x*s+z*c);const e=W(-2,2.2,-48),l=W(-2,3,0);game.cameraOverride=(dt,cam)=>{cam.position.copy(e);cam.up.set(0,1,0);cam.lookAt(l);cam.fov=55;cam.updateProjectionMatrix();return true;};" },
+ "front": { "eye": [-1.5, 1.7, 26], "look": [-1.5, 3.4, 0], "tod": 11, "fov": 60 }
+}

@@ -14,6 +14,9 @@
 // Parts live in ./parts/*.js; each exports `order` and `build(ctx)` and is picked up automatically.
 import { createKit, createContext } from './kit.js';
 import { PLAN, WALLS, PARTITIONS } from './plan.js';
+import { R4 } from './r4/plan4.js';
+// r4 (Nov 18, user mock-ups 01-10): the rebuilt house replaces these round-3 parts (?nh=r3 = the old house)
+const R3_PARTS = ['06_dock', '10_structure', '12_frontdeck', '20_shell', '22_openings', '30_roof', '40_fixtures', '45_carport', '47_frontbay', '70_living', '72_kitchen', '74_bedroom', '76_bath_hall'];
 
 const partMods = import.meta.glob('./parts/*.js', { eager: true });
 
@@ -24,7 +27,7 @@ export async function buildNicoHouse(THREE, opts = {}) {
   const ctx = createContext(THREE, kit, plan, opts);
   ctx.time = opts.timeOfDay ?? 9;
   const parts = Object.entries(partMods).map(([k, m]) => ({ name: k.replace(/^.*\/|\.js$/g, ''), order: m.order ?? 100, build: m.build })).filter((p) => typeof p.build === 'function')
-    .filter((p) => !opts.only || opts.only.includes(p.name)).filter((p) => !opts.skip || !opts.skip.includes(p.name))
+    .filter((p) => !opts.only || opts.only.includes(p.name)).filter((p) => !opts.skip || !opts.skip.includes(p.name)).filter((p) => (R4 ? !R3_PARTS.includes(p.name) : !p.name.startsWith('r4_')))
     .sort((a, b) => a.order - b.order || (a.name < b.name ? -1 : 1));
   const t0 = performance.now(), partMs = {};
   for (const p of parts) {
@@ -34,12 +37,13 @@ export async function buildNicoHouse(THREE, opts = {}) {
   }
   const count = { ext: ctx.ext.count(), int: ctx.int.count(), detail: ctx.detail.count() };
   ctx.ext.build(ctx.groups.ext); ctx.int.build(ctx.groups.int); ctx.detail.build(ctx.groups.detail); ctx.site.build(ctx.groups.site);
+  if (R4) opts = { ...opts, shell: false };   // r4: no far shell yet (the r4 house is ~25 batches)
   if (opts.shell !== false) { buildShell(ctx); ctx.groups.shell.visible = false; }
-  const roomProxy = buildRoomProxy(ctx);   // what the windows show while the interior is not drawn
+  const roomProxy = R4 ? null : buildRoomProxy(ctx);   // what the windows show while the interior is not drawn
   // camera occluder (perf pass): the game's camera ray tests this house every frame (playtest P2 roofs). Testing 1.2M
   // triangles cost about 16 ms a frame at the spawn; a 200-triangle hull of walls, roofs and decks answers the same
   // question. The hull is never drawn (material.visible = false: no draw call); every other mesh skips raycasts.
-  const occluder = buildOccluder(ctx);
+  const occluder = ctx.buildOccluder ? ctx.buildOccluder() : buildOccluder(ctx);
   const noRay = () => {};
   const muteRaycasts = () => ctx.group.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && o !== occluder && o.raycast !== noRay) o.raycast = noRay; });
   muteRaycasts();
@@ -79,7 +83,7 @@ export async function buildNicoHouse(THREE, opts = {}) {
   let lodT = 0, lodScanT = 0;
   const env0 = { timeOfDay: ctx.time, camera: null, game: null };
   const house = {
-    group: ctx.group, yardY: (x, z) => (ctx.yardY ? ctx.yardY(x, z) : 0), stairs: ctx.stairs || [], colliders: ctx.colliders, interact: ctx.interact, lights: ctx.lights, anchors: ctx.anchors, plan, stats: ctx.stats, kit, lodStats,
+    r4site: ctx.r4site || null, group: ctx.group, yardY: (x, z) => (ctx.yardY ? ctx.yardY(x, z) : 0), stairs: ctx.stairs || [], colliders: ctx.colliders, interact: ctx.interact, lights: ctx.lights, anchors: ctx.anchors, plan, stats: ctx.stats, kit, lodStats,
     // resolves when every texture and model has arrived (the house is already usable before that)
     loaded: Promise.all([...kit.pending, ...ctx.async]).then(() => true),
     update(dt, env = env0) {
@@ -96,10 +100,10 @@ export async function buildNicoHouse(THREE, opts = {}) {
         // within a few meters of a window; otherwise each window shows a lit room card at the same depth
         const cx = env.camera.x, cz = env.camera.z, cy = env.camera.y ?? 1.7, P = plan;
         const near = (r, pad) => cx > r.x0 - pad && cx < r.x1 + pad && cz > r.z0 - pad && cz < r.z1 + pad;
-        const lookIn = near(P.A, 1.2) || near(P.B, 1.2) || ((near(P.porch, 1.5) || near(P.deckW, 1.5) || near(P.deckN, 1.5)) && cy > P.F - 1.2) || (opts.intNear != null && d < opts.intNear);
+        const lookIn = ctx.lookIn ? ctx.lookIn(cx, cy, cz) : near(P.A, 1.2) || near(P.B, 1.2) || ((near(P.porch, 1.5) || near(P.deckW, 1.5) || near(P.deckN, 1.5)) && cy > P.F - 1.2) || (opts.intNear != null && d < opts.intNear);
         // keys pass (draw calls): from the decks the interior only draws while the camera faces the house (the deck views of the
         // street looked away from it and still paid ~270 draw calls for the rooms behind the camera)
-        const facing = !env.camDir || (env.camDir.x * (-1.2 - cx) + env.camDir.z * (0.6 - cz)) > -0.35 * Math.hypot(-1.2 - cx, 0.6 - cz) || near(P.A, 0.2) || near(P.B, 0.2);
+        const facing = ctx.lookIn ? ctx.facing(env.camDir, cx, cz) : !env.camDir || (env.camDir.x * (-1.2 - cx) + env.camDir.z * (0.6 - cz)) > -0.35 * Math.hypot(-1.2 - cx, 0.6 - cz) || near(P.A, 0.2) || near(P.B, 0.2);
         ctx.groups.int.visible = lookIn && facing && d < (opts.intDist ?? 70); if (roomProxy) roomProxy.visible = !ctx.groups.int.visible; ctx.groups.detail.visible = d < (opts.detailDist ?? 110); ctx.groups.dyn.visible = d < (opts.detailDist ?? 110);
         if (opts.lod !== false && (lodScanT -= dt) <= 0) { lodScanT = 2; scanLod(); }
         if (opts.lod !== false && (lodT -= dt) <= 0 && d < (opts.detailDist ?? 110) + 10) {

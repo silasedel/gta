@@ -5,6 +5,7 @@ import { buildNicoHouse, PLAN } from './index.js';
 import { CAR_SPOTS, PLANTING, LITTER, DRIVE, DRIVE_PUDDLE } from './yard.data.js';
 import { patchPuddles } from '../../ground/puddles.js';
 import { lots as houseLots } from '../houses/lots.js';
+import { R4, P4, toS, houseBlock } from './r4/plan4.js';
 // r2-perf: the yard ground collider as a triangle mesh with the SAME vertices and cell triangulation as the heightfield
 // descriptor. Rapier's heightfield has no BVH, so the player's character controller paid ~2.2 ms per call standing in the
 // yard (3 calls a frame at the spawn: ~7 ms); the trimesh is ~0.13 ms. Same surface. ?hftri=0 = the heightfield (A/B).
@@ -159,6 +160,7 @@ export async function initV2(game) {
   const stairs = (house.stairs || []).map((f) => { const o = toWorld(new THREE.Vector3(f.x, f.y, f.z)), dir = new THREE.Vector3(f.dir[0], 0, f.dir[1]).applyQuaternion(qH).normalize(), side = new THREE.Vector3(-dir.z, 0, dir.x);
     return { o, dir, side, w: f.w, n: f.n, rise: f.rise, run: f.run, yTop: o.y }; });
   game.nicoHouse = { house, group: g, anchors, spot, temporary, toWorld, spawn: anchors.spawn || null, parked, carSpots: CAR_SPOTS, stairs };
+  if (R4) { game.nicoHouse.r4site = house.r4site; game.nicoHouse.r4oz = house.r4site?.oz ?? P4.oz; }
   // other tracks: game.nicoHouse.anchors.{spawn, bed, wardrobe, dock, carport, truck, bike, kayak, skiff, mailbox, hoop, hammock}
   // the player starts right next to the house (on the drive in front of the carport), following the lot in layout.json
   const sp = anchors.spawnYard || anchors.spawn;
@@ -182,6 +184,7 @@ function plantYard(game, g) {
   const V = game.vegetation; if (!V) return;
   const T = game.THREE, byKind = new Map();
   for (const [kind, lx, lz, o = {}] of PLANTING) {
+    if (R4 && houseBlock(...toS(lx, lz), kind === 'palm' || /palm/.test(kind) ? 1.6 : 0.8)) continue;   // r4: the rebuilt house's footprint
     // r2-keys: inside the lot the plants stand on the yard sheet (its swells), not on the terrain under it
     const yy = g.userData.yardY, p = new T.Vector3(lx, 0, lz).applyMatrix4(g.matrixWorld), y = yy ? g.position.y + yy(lx, lz) - 0.04 + (o.yOff || 0) : game.city?.groundHeightAt?.(p.x, p.z) ?? p.y;
     if (typeof V.place === 'function') { try { V.place(kind, p.x, p.z, { ...o, y, keepY: !!yy, owner: 'nicoHouse' }); continue; } catch (e) { /* fall back to a field */ } }

@@ -6,6 +6,8 @@
 // plants on the deck, porch and at grade. Everything sways through one cheap vertex-shader term keyed on a per-vertex /
 // per-instance attribute (aSw = tree amplitude, tree phase, branch amplitude, branch phase).
 import { PLANTER } from '../yard.data.js';
+import { R4, toS, houseBlock } from '../r4/plan4.js';
+const r4Out = (x, z, pad = 1.0) => R4 && houseBlock(...toS(x, z), pad);   // r4: nothing grows inside the rebuilt house, decks or stairs
 export const order = 50;
 
 export function build(ctx) {
@@ -272,7 +274,7 @@ gl_Position = projectionMatrix * mvPosition;
 
   // ---------- where ground plants may not grow ----------
   const driveHalf = (z) => 4.3 + Math.max(0, z - 19) * 0.36;
-  const blocked = (x, z, pad = 0) => x < -23.8 || x > 11.1 || z < -13.9 || z > 26.6
+  const blocked = (x, z, pad = 0) => r4Out(x, z, pad + 0.4) || x < -23.8 || x > 11.1 || z < -13.9 || z > 26.6
     || (z > 4.6 - pad && Math.abs(x + 3) < driveHalf(z) + pad)
     || (x > -8.9 - pad && x < 6.9 + pad && z > -6.7 - pad && z < 5.5 + pad)
     || (x > -12.1 - pad && x < -10.3 + pad && z > 2.7 - pad && z < 7.4 + pad)
@@ -310,6 +312,7 @@ gl_Position = projectionMatrix * mvPosition;
   };
   const palms = {};
   const palm = (o) => {
+    if (r4Out(o.x, o.z, 1.6)) return;
     const r = kit.rng(o.seed), H = o.H, phase = r() * 6.28, ampTop = o.young ? 0.03 : 0.05 + H * 0.016, dx = Math.cos(o.az), dz = Math.sin(o.az), rB = o.rad ?? 0.15;
     const pts = [], n = Math.round((H + 0.3) / 0.05), ds = (H + 0.3) / n, p = new V3(o.x, -0.3, o.z);
     for (let i = 0; i <= n; i++) { const s = i / n, th = o.lean * (Math.pow(1 - s, 1.25) * 1.5 - 0.12 * s) + Math.sin(s * 5 + phase) * 0.014; pts.push(p.clone()); p.x += Math.sin(th) * dx * ds; p.z += Math.sin(th) * dz * ds; p.y += Math.cos(th) * ds; }
@@ -425,6 +428,7 @@ gl_Position = projectionMatrix * mvPosition;
 
   // ---------- sea grape ----------
   const seaGrape = (x, z, o) => {
+    if (r4Out(x, z, 2.0)) return;
     const r = kit.rng(o.seed), phase = r() * 6.28, sites = [], H = o.H, ctr = new V3(x, H * 0.45, z);
     const sw = (p) => [o.amp * Math.pow(Math.max(0, p.y) / H, 1.5), phase, 0, 0];
     const tone = cv([1.7, 1.55, 1.5], r, 0.05);
@@ -460,6 +464,7 @@ gl_Position = projectionMatrix * mvPosition;
 
   // ---------- bougainvillea ----------
   const bougainvillea = (o) => {
+    if (o.base && r4Out(o.base[0], o.base[1], 1.0)) return;
     const r = kit.rng(o.seed), phase = r() * 6.28, q = new V3(), d = new V3(), nh = new V3(), e1 = new V3(), e2 = new V3(), ax = new V3();
     const sw = (p) => [0.01 + 0.03 * Math.max(0, p.y - 1.2), phase, 0.012, phase + p.x * 2 + p.z * 1.3];
     const bark = cv([1.45, 1.3, 1.15], r, 0.05);
@@ -657,6 +662,7 @@ gl_Position = projectionMatrix * mvPosition;
   };
   const SOIL = mat.matte();
   const pot = (kind, x, y, z, a, h, color) => {
+    if (R4 && (y > 0.5 || r4Out(x, z, 0.3))) return -100;   // r4: the round-3 deck pots are gone (their plants land under the ground)
     const m = kind === 'terra' ? mat.matte() : kind === 'glazed' ? mat.ceramic() : kind === 'bucket' ? mat.metalPaint() : mat.plastic(), dip = kind === 'drum' ? 0.05 : kind === 'nursery' ? 0.03 : 0.04;
     D.geo(m, new THREE.LatheGeometry(POT[kind](a, h).map((q) => new THREE.Vector2(q[0], q[1])), 18), M(x, y, z, 0, R() * 6.28, 0), { color: kit.vary(color, R, 0.07), uvMul: [6, 3], wear: 0.6 });
     D.cyl(SOIL, a * 0.9, a * 0.9, 0.012, M(x, y + h - dip + 0.006, z), { seg: 14, color: kit.vary(0x33261b, R, 0.15) });

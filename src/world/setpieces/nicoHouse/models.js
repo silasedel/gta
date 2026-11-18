@@ -17,6 +17,7 @@ const FILES = {
   wicker_chair: 'assets/models/keys/wicker_chair.glb',
   fishing_gear: 'assets/models/keys/fishing_gear.glb',
   window_ac: 'assets/models/keys/window_ac.glb', galv_can: 'assets/models/keys/galv_can.glb', mailbox_post: 'assets/models/keys/mailbox_post.glb',
+  lawn_chair: 'assets/models/keys/lawn_chair.glb', stove_white: 'assets/models/keys/stove_white.glb', bath_set: 'assets/models/keys/bath_set.glb', step_ladder: 'assets/models/keys/step_ladder.glb', skiff_cc: 'assets/models/keys/skiff_cc.glb',   // r4-house
   rowboat: 'assets/models/keys/rowboat.glb', skiff: 'assets/models/keys/skiff.glb', lifebuoy: 'assets/models/keys/lifebuoy.glb',
 };
 let shared = null;

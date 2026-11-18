@@ -3,6 +3,7 @@
 // fish-cleaning station, ladder and light.
 import { makeGroundMaterial } from '../../../ground/groundMaterial.js';
 import { WEEDS, DRIVE, DRIVE_PUDDLE } from '../yard.data.js';
+import { R4, P4, toS, toG, terraceY, houseBlock, measureSite } from '../r4/plan4.js';
 export const order = 5;
 // ground pass: the yard sheet uses the terrain's Keys-yard ground (user's sand / grassy-sand scans, hex-tiled) so it matches the
 // lots around it; ?ground2=0 keeps the old shell-floor texture
@@ -14,7 +15,8 @@ export function build(ctx) {
   // ---------- yard: one subdivided sheet, vertex colors blend shell drive, pale sand, damp shade and grassy edges ----------
   // keys pass (Nov 17): the bay is ~15 m beyond the old seawall line in the retraced map; a seawall stands only where the water
   // really meets the lot (opts.waterAt), elsewhere the yard runs on and sinks under the beach sand along a wobbly line
-  const waterAt = ctx.opts.waterAt, wallN = !waterAt || [-20, -10, 0, 8].some((x) => waterAt(x, L.z0 - 2)), wallE = !waterAt || [-10, 0, 10, 20].some((z) => waterAt(L.x1 + 2, z));
+  if (R4) { measureSite(ctx.opts.waterAt); ctx.r4site = { oz: P4.oz, wallZ: P4.wallZ, ...(P4.measured || {}) }; }
+  const waterAt = ctx.opts.waterAt, wallN = !R4 && (!waterAt || [-20, -10, 0, 8].some((x) => waterAt(x, L.z0 - 2))), wallE = !R4 && (!waterAt || [-10, 0, 10, 20].some((z) => waterAt(L.x1 + 2, z)));
   const OPEN_N = !wallN, OPEN_E = !wallE;
   ctx.siteWalls = { N: wallN, E: wallE };   // 50_plants keeps its seawall-edge vines / sea oats only where a seawall stands
   // r2-keys (Nov 17): the house is turned in a corner lot (yard.data.js): the sheet runs out to the asphalt of the east leg (front)
@@ -22,7 +24,7 @@ export function build(ctx) {
   // swells (+-0.2 m) with a low spot at the drive end that holds the after-rain puddle
   // shell fragments read in the normal map without crunchy grazing-angle noise (r2-art: sand class 0.8-1.0) or fine speckle at distance
   // (lead): rep 3.2 m, nscale 0.85
-  const SHELL = mat.pbr('shell_floor_01', { rep: 3.2, gain: 1.5, grunge: true, nscale: 0.85, flat: 0.55 }), x0 = L.x0 - 10, x1 = L.x1 + (OPEN_E ? 2 : -0.2), z0 = L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
+  const SHELL = mat.pbr('shell_floor_01', { rep: 3.2, gain: 1.5, grunge: true, nscale: 0.85, flat: 0.55 }), x0 = L.x0 - 10, x1 = R4 ? 30 : L.x1 + (OPEN_E ? 2 : -0.2), z0 = R4 ? -37 : L.z0 + (OPEN_N ? -3 : 0.2), z1 = L.z1 + 8;
   // the shell yard is GROUND, not pavement: the ground mask (src/world/ground/surfaceMask.js autoVeg) treats every flat set-piece mesh
   // as paved unless its material name starts with 'ground:'; as 'paved' it removed every yard plant instance standing on the sheet
   if (!SHELL.name.startsWith('ground:')) SHELL.name = 'ground:' + SHELL.name;
@@ -41,8 +43,12 @@ export function build(ctx) {
     const pa = g.attributes.position, cols = new Float32Array(pa.count * 3), n2 = (x, z) => Math.sin(x * 0.37 + Math.sin(z * 0.23) * 2) * Math.cos(z * 0.31 + Math.sin(x * 0.19) * 2);
     const PX = DRIVE_PUDDLE.x, PZ = DRIVE_PUDDLE.z;
     // the sheet's height at a plan point (also ctx.yardY: decals, puddles and props of part 55 follow the same surface)
-    const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
-      const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
+    // r4: flat under the new house footprint (S frame), the lawn terrace rising to the bulkhead, the sheet sinking beyond the wall
+    // line and past the lot's east / west ends (S frame) so it never runs over the neighbors' yards
+    const underAt = (x, z) => { if (!R4) return (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0; const [sx, sz] = toS(x, z); return houseBlock(sx, sz, 0.8) ? 1 : 0; };
+    const edgeS = (x, z) => { if (!R4) return 99; const [sx, sz] = toS(x, z); return Math.min(sx < P4.wallX0 || sx > P4.wallX1 ? sz - P4.wallZ + 1.5 : 99, 19 - sx, sx + 26); };
+    const yardY = (x, z) => { const dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2)), under = underAt(x, z), near = Math.max(0, Math.min(1, (Math.hypot(Math.max(0, Math.abs(x + 1.5) - 11.5), Math.max(0, Math.abs(z - 0.25) - 8.75))) / 5));   // flat around the house, its stairs, pads and pots
+      const dEdge = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, edgeS(x, z)) - 0.4 - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4 - (n2(x * 0.5, z * 0.45) * 0.5 + 0.5) * 1.5, keep = Math.min(1, Math.max(0, dEdge / 2));
       const rd = roadD(x, z), road = Math.min(1, Math.max(0, (1.1 - rd) / 1.4)), sink = Math.max(1 - keep, road);
       const swell = (n2(x * 0.09 + 1.3, z * 0.08 - 0.7) * 0.13 + n2(x * 0.21 - 2.1, z * 0.17 + 0.4) * 0.06) * near * (1 - drive * 0.7);   // gentle relief, flat at the house and along the drive
       const bowl = -0.09 * Math.exp(-((x - PX) ** 2 + (z - PZ) ** 2) / 5.5);   // the drive-end low spot (puddle)
@@ -50,11 +56,12 @@ export function build(ctx) {
       // never under the terrain inside the yard: where a swell dips below the terrain surface the terrain's own triangles poked
       // through as straight-edged patches (user review shot_27); the low spots bottom out 2 cm over it instead
       const y = Math.max((fine + swell + bowl) * (1 - under * 0.8), gA(x, z) + 0.02);
-      return y + ((Math.min(0, gA(x, z)) - 0.3) - y) * Math.sqrt(sink); };   // steep dive at the edges: one crossing line with the terrain, no coplanar band   // at the asphalt and the open edges: under the terrain surface
+      const yT = R4 ? terraceY(...toS(x, z)) : 0;
+      return y + yT + ((Math.min(0, gA(x, z)) - 0.3) - y - yT) * Math.sqrt(sink); };   // steep dive at the edges: one crossing line with the terrain, no coplanar band   // at the asphalt and the open edges: under the terrain surface
     ctx.yardY = yardY;
     for (let i = 0; i < pa.count; i++) {
       const x = pa.getX(i), z = pa.getZ(i), dd = driveD(x, z), drive = Math.max(0, 1 - dd / (DRIVE.halfWidth + 1.2));
-      const under = (x > -8.6 && x < 8 && z > -6.4 && z < 8) ? 1 : 0, n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 2) - 19) / 12));
+      const under = underAt(x, z), n = n2(x, z) * 0.5 + 0.5, edge = Math.min(1, Math.max(0, (Math.hypot(x + 2, z - 2) - 19) / 12));
       const nB = n2(x * 0.17 + 3.1, z * 0.21 - 1.7) * 0.5 + 0.5, nC = n2(x * 0.71 - 2.3, z * 0.63 + 0.9) * 0.5 + 0.5;   // macro + mid breakup
       // r2-art / r2-look calibration: the shell scan is warm (linear mean 0.29, 0.24, 0.18) and the material gain is 1.5, so these per-channel
       // multipliers land the floor at luminance ~0.46, saturation < 0.1 (crushed shell 0.42-0.52, near neutral), before the breakup below
@@ -69,17 +76,25 @@ export function build(ctx) {
         const dE = Math.min(x - x0, z1 - z, OPEN_E ? x1 - x : 99, OPEN_N ? z - z0 : 99, (roadD(x, z) + 0.5) * 2.2) - (n2(x * 0.11, z * 0.13) * 0.5 + 0.5) * 4, f = Math.max(0, Math.min(1, 1 - (dE - 0.5) / 5));
         const SAND = [1.22, 1.36, 1.56];   // the terrain ring around the lot is shell too (r2-ground): a slightly warmer, sandier shell
         for (let k = 0; k < 3; k++) c[k] = c[k] + (SAND[k] - c[k]) * f * 0.85; }
+      if (R4) { const [sx, sz] = toS(x, z), lawn = Math.max(0, Math.min(1, (-11.5 - sz) / 4)) * (1 - 0.25 * Math.max(0, nB - 0.6)), lt = Math.min(1, lawn * (0.9 + 0.2 * nC));
+        const LAWN = [0.42 + 0.12 * n, 0.62 + 0.14 * nC, 0.2 + 0.06 * n];   // thick green St. Augustine lawn, a little patchy
+        for (let k = 0; k < 3; k++) c[k] = c[k] + (LAWN[k] - c[k]) * lt; void sx; }
       cols[i * 3] = c[0]; cols[i * 3 + 1] = c[1]; cols[i * 3 + 2] = c[2];
       pa.setY(i, yardY(x, z));
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); g.computeVertexNormals();
+    if (R4) { const ix = g.index.array, keep = [], lim = P4.wallZ + 0.1, inWall = (sx) => sx > P4.wallX0 + 0.3 && sx < P4.wallX1 - 0.3, out = new Uint8Array(pa.count);
+      for (let i = 0; i < pa.count; i++) { const [sx, sz] = toS(pa.getX(i), pa.getZ(i)); out[i] = inWall(sx) && sz < lim ? 1 : 0; }
+      for (let t = 0; t < ix.length; t += 3) { const a = ix[t], b = ix[t + 1], d = ix[t + 2]; if (out[a] && out[b] && out[d]) continue; keep.push(a, b, d); }
+      for (let i = 0; i < pa.count; i++) if (out[i]) { const [sx] = toS(pa.getX(i), pa.getZ(i)), [gx, gz] = toG(sx, lim); pa.setX(i, gx); pa.setZ(i, gz); pa.setY(i, yardY(...toG(sx, lim + 0.12)) - 0.02); }
+      g.setIndex(keep); pa.needsUpdate = true; }
     // keys pass (lead review, Nov 17): the mock-up yard is PALE crushed shell and limestone dust, not the terrain's tan sand; the
     // shell scan carries it, vertex colors add gray-green matted grass, damp dark patches and the ruts. ?keysyard=terrain = old look
     const TERRAIN_YARD = GROUND2 && typeof location !== 'undefined' && /[?&]keysyard=terrain\b/.test(location.search);
     B.geo(TERRAIN_YARD ? (yardMat ||= makeGroundMaterial(globalThis.game?.renderer || null)) : SHELL, g, null, { keepColor: true, uvMul: [(x1 - x0) / 3.2, (z1 - z0) / 3.2], wear: 0.5 }); g.dispose();
     // ground collider (r2-keys): a heightfield that follows the sheet's swells (feet and tires sit on what is drawn), over the yard
     // only; at the asphalt and the open edges the terrain's own collider carries on (the sheet is under it there)
-    { const hx0 = L.x0 - 2, hx1 = Math.min(x1, L.x1), hz0 = Math.max(z0, L.z0), hz1 = L.z1 + 1, nX = Math.round((hx1 - hx0) / 0.5), nZ = Math.round((hz1 - hz0) / 0.5), hs = new Float32Array((nX + 1) * (nZ + 1));
+    { const hx0 = L.x0 - 2, hx1 = R4 ? x1 : Math.min(x1, L.x1), hz0 = R4 ? z0 : Math.max(z0, L.z0), hz1 = L.z1 + 1, nX = Math.round((hx1 - hx0) / 0.5), nZ = Math.round((hz1 - hz0) / 0.5), hs = new Float32Array((nX + 1) * (nZ + 1));
       for (let j = 0; j <= nX; j++) for (let i2 = 0; i2 <= nZ; i2++) { const x = hx0 + (hx1 - hx0) * j / nX, z = hz0 + (hz1 - hz0) * i2 / nZ; hs[j * (nZ + 1) + i2] = yardY(x, z) - (roadD(x, z) < 0.3 || x < x0 + 6 ? 0.06 : 0); }
       ctx.colliders.push({ shape: 'hf', p: [(hx0 + hx1) / 2, 0, (hz0 + hz1) / 2], nrows: nZ, ncols: nX, heights: hs, scale: [hx1 - hx0, 1, hz1 - hz0], q: [0, 0, 0, 1], tag: 'ground', surface: 'gravel', enabled: true });
       col.box((hx0 + hx1) / 2, -1.6, (hz0 + hz1) / 2, hx1 - hx0, 2.6, hz1 - hz0, { tag: 'ground', surface: 'gravel' }); }   // backstop under it   // not over the open beach edges (the terrain carries those)
@@ -87,7 +102,7 @@ export function build(ctx) {
   // (r2-keys: the rut puddles of the old straight drive are gone; part 55 PUDDLES lie along the new drive)
   // carport slab: old broom-finished concrete with a crack line and oil stains
   const SLAB = mat.pbr('scuffed_cement', { rep: 2.2, gain: 3.4, tint: 0xbcd2ff, grunge: true });   // r2-art: neutral concrete (the scan is brown)
-  for (const [cx, cz, sx, sz] of [[0.6, 0.6, 2.75, 7.4], [3.4, 0.6, 2.75, 7.4], [6.15, 0.6, 2.7, 7.4], [3.4, 6.15, 8.3, 3.6]]) B.box(SLAB, sx - 0.004, 0.1, sz - 0.004, M(cx, 0.0, cz), { color: kit.vary(0xbdb8aa, r, 0.05), wear: 0.9, bevel: 0.012, rand: r });
+  if (!R4) for (const [cx, cz, sx, sz] of [[0.6, 0.6, 2.75, 7.4], [3.4, 0.6, 2.75, 7.4], [6.15, 0.6, 2.7, 7.4], [3.4, 6.15, 8.3, 3.6]]) B.box(SLAB, sx - 0.004, 0.1, sz - 0.004, M(cx, 0.0, cz), { color: kit.vary(0xbdb8aa, r, 0.05), wear: 0.9, bevel: 0.012, rand: r });
   // ---------- seawalls ----------
   const SW = mat.concrete({ marine: true });
   const wall = (ax, az, bx, bz) => { const len = Math.hypot(bx - ax, bz - az), n = Math.ceil(len / 4.9), ry = Math.atan2(-(bz - az), bx - ax);
@@ -98,7 +113,7 @@ export function build(ctx) {
   if (wallN) wall(L.x0 - 22, L.z0, L.x1 + 0.15, L.z0); if (wallE) wall(L.x1, L.z0 - 0.15, L.x1, L.z1 + 22);
   if (wallN || wallE) { const g = new THREE.PlaneGeometry(400, 400, 1, 1); g.rotateX(-Math.PI / 2); B.geo(mat.pbr('sand_01', { rep: 5, gain: 1.6, grunge: true }), g, M(L.x1 - 60, sea - 1.5, L.z0 + 40), { color: [0.75, 0.82, 0.7], uvMul: [80, 80] }); g.dispose(); }
   // ---------- dock (old plank dock: only when part 06 has no measured waterline) ----------
-  if (!P.dock.kit) {
+  if (!P.dock.kit && !R4) {
   const Dk = P.dock, W = mat.wood({ marine: true }), WD = mat.wood(), ST = mat.steel(), y = Dk.y;
   const board = (cx, cz, lx) => B.box(WD, lx, 0.04, 0.14, M(cx, y - 0.02 + (r() - 0.5) * 0.004, cz, 0, (r() - 0.5) * 0.004, (r() - 0.5) * 0.008), { grain: 0, color: kit.vary(r() < 0.06 ? 0xb49a70 : 0x8f887c, r, 0.12), wear: 0.4 + r() * 0.5, bevel: 0.005, rand: r });
   for (let z = Dk.z0 + 0.08; z < Dk.z1 - 0.02; z += 0.147) { if (z < Dk.headZ1) board((Dk.headX0 + Dk.headX1) / 2, z, Dk.headX1 - Dk.headX0); else board((Dk.x0 + Dk.x1) / 2, z, Dk.x1 - Dk.x0 + (r() - 0.5) * 0.03); }
@@ -133,12 +148,15 @@ export function build(ctx) {
       const g0 = 0.16 + q() * 0.1; for (let v = 0; v < 6; v++) { const tip = v === 2 || v >= 4 ? 1.5 : 0.8; bc.push(0.13 * tip * (0.8 + q() * 0.5), g0 * 0.95 * tip, 0.05 * tip); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(blades, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(bc, 3)); g.computeVertexNormals();
     const gm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide, bumpMap: kit.microTex(), bumpScale: 0.4 }), ms = [], cs = [];
-    const onSlab = (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
+    const onSlab = R4 ? (x, z) => { const [sx, sz] = toS(x, z); return (sx > P4.pavers.x0 && sx < P4.pavers.x1 && sz > P4.pavers.z0 && sz < P4.pavers.z1) || houseBlock(sx, sz, 0.05) && sz > -12.8 && sz < -1.6; } : (x, z) => (x > -0.85 && x < 7.65 && z > -3.15 && z < 8.0) || (x > -7.1 && x < -0.55 && z > -3.25 && z < 5.05);   // carport + front-bay slabs (47): nothing grows through concrete
     const rc = ctx.opts.roadClear || (() => true);
     const put = (x, z, s = 1) => { if (onSlab(x, z) || !rc(x, z, 0.4)) return; ms.push(M(x, 0.01, z, 0, q() * 6.283, 0, s * (0.7 + q() * 0.9))); const d = q(); cs.push([0.75 + d * 0.5, 0.8 + d * 0.35, 0.6 + d * 0.5]); };
     const line = (ax, az, bx, bz, n, spread = 0.25, s = 1) => { for (let i = 0; i < n; i++) { const t = q(); put(ax + (bx - ax) * t + (q() - 0.5) * spread, az + (bz - az) * t + (q() - 0.5) * spread, s); } };
-    for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
-    line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5);
+    if (!R4) for (const x of P.pileXs) for (const z of P.pileZs) for (let i = 0; i < 7; i++) { const a = q() * 6.283; put(x + Math.cos(a) * (0.36 + q() * 0.2), z + Math.sin(a) * (0.36 + q() * 0.2), 0.9); }
+    if (R4) { const lineS = (ax, az, bx, bz, n, sp, sc) => { const [a1, a2] = toG(ax, az), [b1, b2] = toG(bx, bz); line(a1, a2, b1, b2, n, sp, sc); };   // r4: at the post feet, the paver edge, the stair feet
+      for (const x of P4.postXs) for (const z of P4.postZs) { if (x > 6.6 && z < -10.5) continue; const [gx, gz] = toG(x, z); for (let i = 0; i < 6; i++) { const a = q() * 6.283; put(gx + Math.cos(a) * (0.28 + q() * 0.2), gz + Math.sin(a) * (0.28 + q() * 0.2), 0.9); } }
+      lineS(-7.2, -1.1, 6.8, -1.1, 70, 0.3, 1.1); lineS(-7.9, -1.0, -7.9, 3.8, 30, 0.3, 1.0); lineS(-6.5, -1.0, -6.5, 3.8, 30, 0.3, 1.0); lineS(10.9, -12.8, 10.9, -1.6, 40, 0.4, 1.1); }
+    if (!R4) line(-8.4, 2.95, -3.6, 2.95, 110, 0.3, 1.3); if (!R4) { line(-3.5, 3.0, -1.0, 3.0, 40, 0.25); line(-0.8, 8.3, 8.0, 8.3, 120, 0.45, 1.2); line(8.1, 8, 8.1, -3.3, 90, 0.5, 1.1); line(-8.9, 5.4, -8.9, -6.5, 70, 0.5); }
     { const D2 = DRIVE.main; for (let i = 0; i < D2.length - 1; i++) { const [ax, az] = D2[i], [bx, bz] = D2[i + 1], len = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / len, nz = (bx - ax) / len;   // drive margins (r2-keys)
       // QA first-minutes #19: clumps, not an even scatter: a clump of 3-8 tufts every ~1.7 m on about half the stations, gaps between
       for (let t = q() * 1.2; t < len; t += 1.1 + q() * 1.3) for (const sgn of [-1, 1]) { if (q() < 0.45) continue; const off = DRIVE.halfWidth + 0.6 + q() * q() * 4, cx = ax + (bx - ax) * t / len + nx * sgn * off, cz = az + (bz - az) * t / len + nz * sgn * off, n = 3 + (q() * 6 | 0);

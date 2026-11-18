@@ -1448,7 +1448,8 @@ export async function createVehicles(game) {
     // silver metallic with one wide satin-black racing stripe over the hood and the cab roof (never on glass, lamps or trim), sandy dust
     // (user: "shiny gray in the sun, normal gray on the shaded sides": medium cool silver ~0.33 linear (t9b: 0xb0b4b9 still read near-white next to the mock-up's gray body); graphite ~0.13 linear stripe
     // panels with a lighter pinstripe edge, the roof band down the middle with silver both sides)
-    { key: 'truck9', local: [-12.4, 8.4], heading: 2.35, color: 0x9a9ea3, finish: 'metallic', wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
+    { key: 'truck9', local: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? [-12.4, 8.4] : [-5.26, 2.05], heading: (typeof location !== 'undefined' && /[?&]nh=r3\b/.test(location.search)) ? 2.35 : -0.72,   // r4-house: in the drive under the front eave, facing the street (r4 mock-up 01)
+      color: 0x9a9ea3, finish: 'metallic', wear: { dirt: 0.16, rust: 0, fade: 0, dirtColor: 'sand' },
       stripe: { w: 0.86, roofW: 0.78, color: 0x515458, satin: true, line: { color: 0x9da0a4, w: 0.022 } } /* hood / roof boxes measured per model (manifest .stripe, seats.py) */, ride: 0.07,
       tint: 0 }, // factory glass: Nico shows through the windows (QA #4: a rolled limo / dark tint hid the driver completely)
     // the old faded powder-blue muscle coupe: solid single-stage enamel, chalky sun fade on the top surfaces, rust at the sills and arches, salt crust, flat chrome, dusty glass, whitewalls
@@ -1469,8 +1470,8 @@ export async function createVehicles(game) {
       try { await placeStatic(k, { x: p.x, z: p.z, heading: h + h0 }); } catch (e) { /* optional */ }
     }
     for (const c of NICO_CARS) {
-      const p = NH.toWorld(new THREE.Vector3(c.local[0], 0, c.local[1]));
-      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: c.heading + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
+      const ta = c.key === 'truck9' && NH.house?.anchors?.truckR4, p = NH.toWorld(ta ? ta.pos.clone().setY(0) : new THREE.Vector3(c.local[0], 0, c.local[1]));   // r4-house: the drive spot follows the rebuilt house
+      try { const v = await spawnParked(c.key, { x: p.x, z: p.z, heading: (ta ? ta.heading : c.heading) + h0, color: c.color, wear: c.wear, finish: c.finish, locked: false, stripe: c.stripe || null, ride: c.ride, old: c.old, tint: c.tint, keepSpot: true }); if (v) { v.playerOwned = true; v.locked = false; } nicoCars.push(v); }
       catch (e) { console.warn('[cars] nico yard car', c.key, e); }
     }
   })();
