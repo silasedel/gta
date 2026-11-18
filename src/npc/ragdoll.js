@@ -216,7 +216,7 @@ export function createRagdollSystem(game, maxActive = 6) {
         }
         const desc = RAPIER.RigidBodyDesc.dynamic().setTranslation(center.x, center.y, center.z).setRotation({ x: B.x, y: B.y, z: B.z, w: B.w })
           .setLinvel(lv.x, lv.y, lv.z).setLinearDamping(0.05).setAngularDamping(key.startsWith('foot') ? 3 : key.startsWith('lArm') || key === 'head' ? 1.0 : 0.5)
-          .setCcdEnabled(kind === 'car' || kind === 'explosion').setCanSleep(true);
+          .setCcdEnabled(true).setCanSleep(true);   // user: a ragdoll lay half inside the road: CCD for every ragdoll so limbs cannot tunnel the thin road deck
         try { desc.setAdditionalSolverIterations?.(kind === 'car' || kind === 'explosion' ? 6 : 2); } catch (e) { /* older rapier */ }
         const body = world.createRigidBody(desc);
         const Binv = B.clone().invert();
@@ -531,11 +531,25 @@ export function createRagdollSystem(game, maxActive = 6) {
     }
   }
 
+  // floor guard (user: "he's in the ground"): a part whose center is below the static ground under it (road decks, curbs,
+  // terrain) is lifted back onto it and loses its downward velocity. One short ray per part, ragdolls only while they move.
+  const _gr = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+  function floorGuard(rd) {
+    const QF = RAPIER.QueryFilterFlags, F = QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS;
+    for (const p of rd.parts) {
+      try { const t = p.body.translation(); _gr.origin = { x: t.x, y: t.y + 0.6, z: t.z };
+        const h = world.castRay(_gr, 1.4, true, F); if (!h) continue;
+        const gy = t.y + 0.6 - h.timeOfImpact, min = gy + Math.max(0.04, p.rad * 0.85);
+        if (t.y < min) { p.body.setTranslation({ x: t.x, y: min, z: t.z }, true); const v = p.body.linvel(); if (v.y < 0) p.body.setLinvel({ x: v.x * 0.8, y: 0, z: v.z * 0.8 }, true); }
+      } catch (e) { /* query only */ }
+    }
+  }
   function update(dt) {
     for (const rd of active.slice()) {
       rd.age += dt; rd.modeT += dt;
       try { behave(rd, dt); } catch (e) { console.warn('[ragdoll] behave', e); }
       drive(rd);
+      floorGuard(rd);
       let maxV = 0, maxW = 0, asleep = true;
       for (const p of rd.parts) {
         const v = p.body.linvel(), w = p.body.angvel();
