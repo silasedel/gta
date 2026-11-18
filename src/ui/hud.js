@@ -591,6 +591,7 @@ export function createHUD(game) {
     const t = Math.min(hw / Math.max(1e-6, Math.abs(dx)), hh / Math.max(1e-6, Math.abs(dy)));
     return [dx * t, dy * t];
   }
+  let mmAcc = 0, mmDrawnOnce = false;
   function drawMinimap(dt, speedKmh) {
     const g = mctx, p = game.player?.position;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1386,7 +1387,8 @@ export function createHUD(game) {
     if (inVeh && !stats.wasIn) stats.vehiclesEntered++;
     stats.wasIn = inVeh;
 
-    drawMinimap(dt, kmh);
+    // perf (user: unplayable fps): the minimap redraw is one of the biggest HUD costs, so it runs at 30 Hz with the elapsed time
+    mmAcc += dt; if (mmAcc >= 1 / 30 - 0.002 || !mmDrawnOnce) { drawMinimap(mmAcc, kmh); mmAcc = 0; mmDrawnOnce = true; }
 
     // health / armor
     const hp = clamp(num(pl.health, 100), 0, 100), ar = clamp(num(pl.armor, 0), 0, 100);
