@@ -227,7 +227,7 @@ function solve(ch, S, dt) {
   // ---- 1. torso recline against the backrest (absolute: measured, then corrected)
   // subtle life (furniture sitters): slow breathing-scale recline drift and weight shifts, desynchronized per person
   const lifeR = S.life ? Math.sin(S.t * 0.35 + S.life.p0) * 1.4 + Math.sin(S.t * 0.07 + S.life.p1) * 2.2 : 0;
-  const recline = (A.recline ?? S.recline ?? 16) + lifeR + (S.extraRecline || 0) - (S.reachLean || 0);
+  const recline = (S.fixRecline ?? A.recline ?? S.recline ?? 16) + lifeR + (S.extraRecline || 0) - (S.reachLean || 0);
   if (Sp && Neck) {
     const hipMid = V().addVectors(wp(LU, _a), wp(RU, _b)).multiplyScalar(0.5);
     const tor = V().copy(wp(Neck, _a)).sub(hipMid);
@@ -268,7 +268,7 @@ function solve(ch, S, dt) {
     const crownY = V().copy(crown).applyMatrix4(inv).y;
     const over = crownY - (roofY - 0.04);
     if (over > 0.004 && S.fit < 60) { S.fit++; if ((S.reachLean || 0) > 0) { S.reachLean = Math.max(0, S.reachLean - Math.max(1, over * 60)); S.headFirst = true; } else if (sink < 0.08) S.sink = Math.min(0.08, sink + Math.max(0.006, over));   // upright first: sink into the cushion
-      else if ((S.extraRecline || 0) < 14) S.extraRecline = Math.min(14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else S.extraRecline = Math.min(26, S.extraRecline + Math.max(1, over * 60)); }
+      else if ((S.extraRecline || 0) < Math.min(14, S.maxExtra ?? 14)) S.extraRecline = Math.min(14, S.maxExtra ?? 14, (S.extraRecline || 0) + Math.max(1, over * 60)); else if ((S.chin || 0) < 14) S.chin = Math.min(14, (S.chin || 0) + Math.max(1, over * 80)); else if (sink < 0.12) S.sink = Math.min(0.12, sink + Math.max(0.006, over)); else S.extraRecline = Math.min(S.maxExtra ?? 26, (S.extraRecline || 0) + Math.max(1, over * 60)); }
   }
   // ---- 4. legs to the footwell
   const heelW = toW(A.heel);
@@ -376,6 +376,12 @@ function solve(ch, S, dt) {
 const _wp0 = new THREE.Vector3();
 /** the camera the far-skip measures against (set by seatCharacter from opts.game / the vehicle's game) */
 export const S_CAM = { cam: null };
+// per car model + seat id (shell space): hipDY moves the H-point down (m), recline is the whole recline (deg), maxExtra caps
+// the head-room ladder's extra recline on top of it (debug: globalThis.__seatFix overrides entries live)
+export const SEAT_FIX = (typeof globalThis !== 'undefined' && globalThis.__seatFix) || {
+  coupe4: { driver: { hipDY: -0.2, recline: 17 }, front: { hipDY: -0.2, recline: 17 } },   // Nico's crown ~6 cm under the headliner
+};
+if (typeof globalThis !== 'undefined') globalThis.__seatFix = SEAT_FIX;
 export function seatCharacter(ch, anchor, opts = {}) {
   if (opts.game?.camera) S_CAM.cam = opts.game.camera; else if (!S_CAM.cam && typeof window !== 'undefined' && window.game?.camera) S_CAM.cam = window.game.camera;
   if (!ch?.root || !anchor) return false;
@@ -396,6 +402,10 @@ export function seatCharacter(ch, anchor, opts = {}) {
     }
     if (Number.isFinite(pr.roofY) && !S.open) S.roofY = Number.isFinite(anchor.roofY) ? Math.min(anchor.roofY, pr.roofY) : pr.roofY;
   }
+  // hand-set seats for cars whose low roof the generic fit can't meet without folding the driver (user, coupe4: "his head
+  // STILL pokes through"): a lower hip and a fixed, moderate recline, as old muscle cars are driven
+  const fx = SEAT_FIX[opts.vehicle?.typeKey]?.[anchor.id];
+  if (fx) { S.hip = anchor.hip.clone(); S.hip.y += fx.hipDY; if (fx.dz) S.hip.z += fx.dz; S.fixRecline = fx.recline; S.maxExtra = fx.maxExtra ?? 2; }
   if (opts.manual) { S.manual = true; S.life = opts.life || { p0: Math.random() * 6.28, p1: Math.random() * 6.28, p2: Math.random() * 6.28 }; return true; }
   if (!ch._seatWrapped) {
     const orig = ch.update;
