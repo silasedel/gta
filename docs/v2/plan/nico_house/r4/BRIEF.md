@@ -51,3 +51,26 @@ The user made these with ChatGPT and wants the house, yard and interior to match
 ## Rules
 - Library first: search `Models/catalog.csv` for the fridge, stove, sofa, TV, stools, terrarium, ladder, satellite dish, fan, pendant lamps and tires. List what's missing for the user to download.
 - Keep collisions, the door interaction, seats (furnitureSeat.js) and the yard data driving (DRIVE / LITTER / PLANTING in yard.data.js).
+
+## Back and dock (08, the user loves this one: match it exactly)
+- **Seen from the water:** the teal stilt house sits back on a lawn behind a weathered vertical-plank wooden bulkhead (seawall), about 1.2 m above the water.
+- **Water:** dark clear water at the wall.
+- **Lawn and fence:** a white wooden fence with two rails runs along the top of the wall on both sides.
+- **Stairs:** the house's exterior stairs come down at the left, from the deck to the lawn.
+- **Long dock:** a long wooden dock runs from the left part of the wall straight out and parallel to the wall. It turns into a wide square platform in front of the center-right of the house.
+- **Platform:**
+  - two white plastic lawn chairs
+  - a fishing rod on a tripod holder and a tackle box
+  - coiled rope and a blue cooler
+  - a metal swim ladder
+  - pilings at the corners
+  - a pole with a blue sign and a "KEEP OFF MY JETTY" sign
+- **Wall ladder:** a metal ladder runs down the wall at the right.
+- **Boat:** a white center-console skiff with a black hull stripe and an outboard motor is moored along the platform. The motor's brand name must be invented (not the real "DINKA").
+- **Around the house:**
+  - tall coconut palms left of the house and one right
+  - dense green trees and red bougainvillea bushes
+  - an RV / camper parked at the right behind the bushes
+  - a satellite dish on the roof
+  - a power pole with lines at the right
+- **Roof:** this view shows a metal roof. Match 08 for the back and 01 for the shingles being repaired on the front slope.
