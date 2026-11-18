@@ -34,7 +34,7 @@ export function build(ctx) {
     while (x < x1 - 0.01) { let xe = Math.min(x1, x + 1.2 + r() * 2.2);
       const inK = (xx) => zm > KT.z0 && zm < KT.z1 && xx > KT.x0 && xx < KT.x1, inB = (xx) => zm > BA.z0 && zm < BA.z1 && xx > BA.x0 && xx < BA.x1;
       for (const [a, b] of subtract(x, xe, [[KT.x0, KT.x1].map((v, i) => (zm > KT.z0 && zm < KT.z1 ? v : i ? -1e3 : -1e3 - 1)), [BA.x0, BA.x1].map((v, i) => (zm > BA.z0 && zm < BA.z1 ? v : i ? -1e3 : -1e3 - 1))]))
-        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xd99a4e, r, 0.1), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
+        box(FLOOR, b - a - 0.003, 0.02, 0.138, (a + b) / 2, F + 0.01, zm, { grain: 0, color: kit.vary(0xe8b571, r, 0.08), wear: 0.25, bevel: 0.002, uv: [r() * 7, r() * 7] });
       void inK; void inB; x = xe; } }
   box(tileMat, KT.x1 - KT.x0, 0.02, KT.z1 - KT.z0 + 0.0, (KT.x0 + KT.x1) / 2, F + 0.011, (KT.z0 + KT.z1) / 2 - T / 2 + 0.0, { color: 0xffffff, bevel: 0.002, uvS: 2.4 });
   box(im.pbr('long_white_tiles', { rep: 0.9 }), BA.x1 - BA.x0 - 0.06, 0.02, BA.z1 - BA.z0 - T, (BA.x0 + BA.x1) / 2, F + 0.011, (BA.z0 + BA.z1) / 2 - T / 2, { color: 0xc8ccc8, bevel: 0.002 });
@@ -282,6 +282,6 @@ export function build(ctx) {
   }
   // interior sun shafts: soft dusty light cones from the back windows (cheap additive cards are avoided: a faint volumetric
   // box per window with view-angle fade would be a card; here only the warm fill lights near the windows)
-  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 16, range: 4.6, on: true }); }
+  for (const o of (ctx.r4openings || []).filter((q) => q.kind === 'window' && !q.frosted)) { const [x, z] = o.wall.pt(o.u, -T - 0.8); Fr.light({ id: 'r4_win_' + o.id, pos: [x, (o.y0 + o.y1) / 2, z], color: 0xffe2b8, intensity: 27, range: 6.2, on: true }); }
   Fr.build();
 }
