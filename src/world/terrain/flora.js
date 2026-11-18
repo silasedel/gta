@@ -74,9 +74,16 @@ function fruit(clusters, n, seed) { const r = rnd(seed), P = [], N = [], s = new
 
 import { buildGeometry as vegGeometry } from '../vegetation/index.js';
 import { placeTrees, csReject, CS_ON } from '../vegetation/countryside.js';
-import { loadVegModels } from '../vegetation/models.js';
+import { loadVegModels, VEG_MODELS } from '../vegetation/models.js';
+import { LAZY, afterReady, trickle } from '../../core/loadMode.js';
 export async function createFlora(renderer, M) {
-  const modelsP = loadVegModels(renderer).catch((e) => { console.warn('[flora] library plant models unavailable', e); return {}; }); // royal / coconut palms, banyan (models.js)
+  // r3-web: on the web the big broadleaf trees (poinciana HD x3, oaks, banyans, pines ... ~45 MB) stream in after READY, one at a time;
+  // the Keys spawn area needs palms, shrubs, mangrove and the small poinciana. Until a tree arrives the countryside draws its procedural stand-in,
+  // then the countryside is rebuilt once with the full set (vegetation.v2 refreshCountryside). The app / ?preload=all load everything first.
+  const KEEP = new Set(['mangrove', 'poinciana', 'poinciana_b', 'rubber_fig', 'shade_tree']);
+  const allKeys = Object.keys(VEG_MODELS).filter((k) => !VEG_MODELS[k].hidden);
+  const deferred = LAZY ? allKeys.filter((k) => VEG_MODELS[k].cls === 'tree' && !KEEP.has(k)) : [];
+  const modelsP = loadVegModels(renderer, deferred.length ? allKeys.filter((k) => !deferred.includes(k)) : undefined).catch((e) => { console.warn('[flora] library plant models unavailable', e); return {}; }); // royal / coconut palms, banyan (models.js)
   const bark = await loadSet(renderer, 'bark_brown_02'); for (const t of [bark.map, bark.normalMap, bark.arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
   const barkMat = new THREE.MeshStandardMaterial(setParams(bark, { color: 0xb8aa98 })); barkMat.name = 'flora-bark'; barkMat.userData.pbr = true;
   const grassMat = new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, roughness: 0.82, metalness: 0 }); grassMat.name = 'flora-blades';
@@ -168,5 +175,12 @@ export async function createFlora(renderer, M) {
     }
   }
   const models = await modelsP;
+  if (deferred.length) {
+    afterReady(() => {
+      const near = (k) => 0; // order: file order (species.js lists the Keys / common kinds first)
+      trickle(deferred.slice().sort((a, b) => near(a) - near(b)).map((k) => async () => { const m = await loadVegModels(renderer, [k]); for (const [kk, v] of Object.entries(m)) if (v && !models[kk]) models[kk] = v; }), { gapMs: 400 })
+        .then(() => { try { globalThis.game?.vegetation?.refreshCountryside?.(); } catch (e) { /* stays on stand-ins */ } });
+    }, 4000);
+  }
   return { countryside: CS_ON, models, G, T, VT, VG, SPECIES, TINT, barkMat, grassMat, fruitMat, leaf, leafDepth: M.leafDepth || null, scatter, materials: [barkMat, grassMat, fruitMat] };
 }

@@ -8,6 +8,7 @@
 import { loadCarModel, isCarLoaded, buildGlbCar, glbStats } from './glbCar.js';
 import { FLEET, FLEET_BY_KEY, specFor, modelFor, zoneMix, fileKey, pickUsColor, pickUsPaint, PAINT_BIAS } from './fleet.js';
 import { rng, hashSeed } from '../model/rng.js';
+import { LAZY, afterReady } from '../../core/loadMode.js';
 
 const BASE = (import.meta.env?.BASE_URL || '/') + 'assets/vehicles/cars/';
 // engine profiles (same numbers as catalog.js E)
@@ -64,20 +65,22 @@ export async function initFleet(cat, opts = {}) {
   function prio(k) { const e = FLEET_BY_KEY[k]; return e.rare ? 3 : e.parkedOnly || e.service ? 2 : ['sedan', 'suv', 'compact', 'police', 'taxi'].includes(e.cls) ? 0 : 1; }
   const queue = [...new Set(order.map(fileKey))];
   let active = 0;
+  // web (loadMode.LAZY): only a small boot set before play; the rest streams after READY, two at a time (the app / ?preload=all: today's burst)
+  const CONC = LAZY ? 2 : (opts.concurrency || 3);
   const done = new Promise((res) => {
     const next = () => {
       if (!queue.length) { if (!active) res(); return; }
-      while (active < (opts.concurrency || 3) && queue.length) {
+      while (active < CONC && queue.length) {
         const fk = queue.shift(); active++;
         loadCarModel(fk).finally(() => { active--; next(); });
       }
     };
-    next();
+    if (LAZY) afterReady(next, 3000); else next();
   });
   const bootSet = [];
   for (const cls of ['sedan', 'suv', 'compact', 'pickup', 'van', 'police', 'taxi', 'truck', 'sports', 'muscle', 'sedan', 'suv']) {
     const k = keys.find((x) => FLEET_BY_KEY[x].cls === cls && !FLEET_BY_KEY[x].rare && !bootSet.includes(fileKey(x)) && !FLEET_BY_KEY[x].service);
-    if (k && bootSet.length < (opts.bootCount ?? 12)) bootSet.push(fileKey(k));
+    if (k && bootSet.length < (opts.bootCount ?? (LAZY ? 4 : 12))) bootSet.push(fileKey(k));
   }
   const t0 = performance.now();
   await Promise.race([Promise.all(bootSet.map(loadCarModel)), new Promise((r) => setTimeout(r, opts.bootTimeout ?? 15000))]);

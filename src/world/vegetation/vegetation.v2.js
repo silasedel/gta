@@ -77,6 +77,8 @@ export async function initV2(game) {
   }
   let t = 0, lastSeen = -1, cs = null, csFailed = false, nicoStreet = null, nsWait = 0, collars = null, yards = null;
   game.vegetation = {
+    // r3-web: the deferred tree models arrived (flora.js): rebuild the countryside once so it draws them instead of the stand-ins
+    refreshCountryside() { if (!cs) return; try { cs.dispose(); } catch (e) { /* */ } cs = null; csFailed = false; if (game.city?.flora) game.city.flora.cs = null; game.vegetation.countryside = null; },
     kinds: KINDS, types: KIND_TYPE, palms: PALM_SPECIES,
     // build one plant: opts { seed, height, lod, size, length (hedges), lean, wear } -> Group at the origin (base at y=0)
     // aliases and set-piece options: radius / height (m) -> size, lean: [dx, dz] top offset in m (palms) -> lean amount + yaw
