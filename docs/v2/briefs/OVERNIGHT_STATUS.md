@@ -1322,6 +1322,13 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Minivans (user models):** van6 Halcyon Harbor 8, van7 Marlin Tidewater LX; class `minivan` in every zone mix.
 - **Headroom:** `tools/v2/cars/headroom.mjs` (tall NPC + Nico in every seat); hand-checked anchors are `fixed` (r2-people's
   probe keeps them), van3 / super4 lowered, truck9 seats dropped 14 / 10 cm.
+- **Final pass:** LOD2 out of the chain (per-slot LOD1 to the culling distance, all 54 LOD1s audited whole); truck9 fender cap
+  never sinks a tire more than 3 cm under the physics contact; drivers / passengers picked to fit the seat (r2-people's fit filter;
+  run 4 still shows 49 passenger seats < 6 cm, list sent to r2-people); 13 driver H-points lowered after headroom run 3.
+- **Service trucks:** truck10 Atlas Hookline 90 tow truck (traffic + parked), truck13 Atlas Southline Sanitation FL refuse truck
+  (residential traffic); sheet `docs/v2/shots/cars/r2/service_trucks.jpg`. Not done: an invented sanitation livery texture (the
+  model's blue livery stays, logos dropped; faint maker text on the front bumper), daytime-only garbage runs, truck12 (no wheels
+  found), truck11 (cab-chassis, converted but unused), city bus.
 
 ## r2-people
 - 19:00 **Final.** All 76 new user people (NPC 96-171) in the game (173 people total), named from previews (folders +
@@ -1482,6 +1489,12 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
 - **Programs and light uniforms:** 207 programs in view (83 custom onBeforeCompile keys x 23 feature sets). The
   shadow-only directional lights can't be dropped without rewriting the split-shadow sampling. The fix is shared
   onBeforeCompile keys per material family, which is owner work.
+- **18:40 Collider props pass:** buildRoads writes into sink batches for the collider job (?propsink=0 = old; in
+  f2a74e25).
+  - Props identical on 16 tiles.
+  - Collider job time 34.6 -> 28.2 ms per job.
+  - Pending your commit: the async window.__tbDebugProps fix in tilebuild.
+  - Paused until FREEZE. Then one clean final measurement.
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
