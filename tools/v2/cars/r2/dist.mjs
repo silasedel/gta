@@ -5,7 +5,7 @@
 const TAG = process.env.TAG || 'd1';
 const D = 'docs/v2/shots/cars/r2';
 const CARS = (process.env.CARS || 'sedan5,suv12,suv4').split(',');
-const DIST = [10, 30, 60, 100, 150];
+const DIST = (process.env.DIST || '10,30,60,100,150').split(',').map(Number);
 const steps = [{ eval: `(() => { game.timeOfDay = ${process.env.TOD || 11}; game.teleport(-866.1, undefined, 4836.4, 2.6); return 1; })()`, sleep: 18000 },
   { log: 'programs', eval: `(() => JSON.stringify((game.renderer.info.programs || []).filter((p) => p.diagnostics && !p.diagnostics.runnable).map((p) => p.name)))()` },
   { eval: `(async () => { const t9 = (game.vehicles.nicoCars || []).find((c) => c.typeKey === 'truck9'); window.__dc = { truck9: t9 };

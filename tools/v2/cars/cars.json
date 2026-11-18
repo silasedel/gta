@@ -96,7 +96,8 @@
    ],
    "tol": 0.05,
    "minY": 0.8
-  }
+  },
+  "keepDoublePaint": true
  },
  "conv2": {
   "src": "Convertibles/Convertible 2 - American Mid-Engine/Convertible 2.blend",
@@ -1596,7 +1597,8 @@
    "mat": "^Body$",
    "decals": false,
    "minY": 0.5
-  }
+  },
+  "keepDoublePaint": true
  },
  "van2": {
   "src": "Vans/Van 2 - Classic Graffiti Van (broken)/Van 2.blend",
@@ -1790,8 +1792,9 @@
     ],
     "y": [
      1.33,
-     1.87
-    ]
+     1.8
+    ],
+    "rough": 0.65
    }
   ],
   "emblemHalfW": 0.7,

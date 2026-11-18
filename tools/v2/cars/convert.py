@@ -949,7 +949,7 @@ for B in CFG.get('darkBoxes') or []:
         if 'z' in B: d_ = B['dz'][0] if B['z'][0] <= gz_ <= B['z'][1] else -1e9   # absolute shell z range (pillars)
         if not (B['dz'][0] <= d_ <= B['dz'][1] and B['ax'][0] <= abs(c_[0]) <= B['ax'][1] and B['y'][0] <= c_[2] <= B['y'][1]): continue
         if B.get('nf') is not None and (-f.normal[1] if front else f.normal[1]) < B['nf']: continue   # only faces looking out of the nose / tail
-        for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(0.4, 0.0))
+        for lp in f.loops: lp[col_layer] = (0.03, 0.03, 0.034, pack_rm(B.get('rough', 0.4), 0.0))
         f.material_index = 2; n += 1
     log('dark box', n)
 # hand-placed boxes where black trim pokes up through a painted panel (cars.json 'paintBoxes': {front, dz, ax, y, up}):
@@ -1118,6 +1118,22 @@ if not CFG.get('keepDoubleGlass'):
             if hit_[0] is not None:
                 _kill.add(f); kill.append(f); ng_ += 1
         log('inner glass layer removed', ng_, 'of', len(gl_))
+# double paint shells (user: "terrible-looking layers"): a paint face with another paint face facing the same way less than
+# 1 cm further out is an inner skin; it z-fights through the outer one at distance.  Deleted (the outer is kept).
+if not CFG.get('keepDoublePaint'):
+    pf_ = [f for f in bm.faces if f.is_valid and f not in _kill and f.material_index == 0]
+    if pf_:
+        bm.verts.ensure_lookup_table()
+        bvp_ = _BVH.FromPolygons([v.co.copy() for v in bm.verts], [[v.index for v in f.verts] for f in pf_])
+        np_ = 0
+        for f in pf_:
+            c_ = f.calc_center_median(); n_ = f.normal.copy()
+            if n_.length < 0.5: continue
+            if n_.dot(Vector((c_[0], c_[1], c_[2] - 0.8))) < 0: n_ = -n_
+            loc_, nn_, ix_, d_ = bvp_.ray_cast(c_ + n_ * 0.0003, n_, 0.01)
+            if loc_ is not None and abs(pf_[ix_].normal.dot(f.normal)) > 0.9:
+                _kill.add(f); kill.append(f); np_ += 1
+        log('inner paint shell removed', np_, 'of', len(pf_))
 # hidden under-skins: trim faces (black inner shells, primer layers) lying 0..3 cm behind a paint face that faces the same way
 # are never seen, but once the LODs are decimated they poke through the paint as jagged black patches.  Deleted here.
 if not CFG.get('keepUnderskin'):
