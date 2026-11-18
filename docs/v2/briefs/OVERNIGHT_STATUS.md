@@ -1876,3 +1876,4 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - r3-cars: tires (rubber material, double-sided, smooth dust, sedan1/hatch1 wheels borrowed) and glass (camera-facing normals, inner sheet dropped, Fresnel, darker tints, cabin shading); ?r3car=0.
 - r3-props/interiors: library ATM, wall clock, ficus, palm; store display on a stem; interiors registration bug from c836c547 fixed in 1730b3bd.
 - lead: GPS travel-time routing, gangs off, car exit blend, people LOD nearest-first, rain look, rare car colors.
+- r3-people2: police feeler-ray steering around buildings (?copnav=old), venue people pinned to the interior floor, curb step retry (unverified); foot sliding not done.
