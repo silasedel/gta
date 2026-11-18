@@ -883,6 +883,11 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
     - Wicker Chair 2 (600k-poly scan at the wrong scale).
     - Boat Trailer 1 and Boat 16, which carry real brand marks (BoatUS logos and a Louisiana plate on the trailer; Nitro / Mercury lettering across the boat's photo texture). They need a texture cleanup pass before use.
   - Not started: Fences 6-9 on the lot lines, the rigged fishing rod, gear under the house, and the generated houses' window AC.
+- **QA first-minutes fixes** (b7b56a1e; shots `r2k43_*.png`, `r2k44_yard.png`, `r2k45_roll.png`, 0 console errors):
+  - #5 / #6: the poinciana moved back from the classic. No tree collider is within 7 m of the car now (probe); I did not re-run the drive.
+  - #9: the roll-off sits flat on its rails, off the asphalt, and is faded red all over (the black panel is gone); the heap follows it.
+  - #19: the sand is less white with less speckle, and the grass grows in clumps. The lead's 'clear' circles are committed with my hunk but not shot.
+  - #20: curb carts sit in front of the fence line.
 - **STOPPED** on the lead's instruction.
 
 ## r2-art
