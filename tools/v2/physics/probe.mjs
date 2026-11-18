@@ -15,7 +15,7 @@ await withBrowser({ width: 800, height: 450, maxSeconds: 1500 }, async (b) => {
   for (const [x, z] of PTS) {
     await b.eval(`(() => { game.teleport(${x} + 3, undefined, ${z} + 3); return 1; })()`); await b.sleep(+(o.wait || 8) * 1000);
     const r = JSON.parse(await b.eval(`JSON.stringify((() => { const R = game.RAPIER, W = game.world, C = game.city, hits = []; let y0 = +(${o.top || 20}), ex = null;
-      for (let k = 0; k < 8; k++) { const h = W.castRayAndGetNormal(new R.Ray({ x: ${x}, y: y0, z: ${z} }, { x: 0, y: -1, z: 0 }), 60, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, ex || undefined);
+      for (let k = 0; k < 8; k++) { const h = W.castRayAndGetNormal(new R.Ray({ x: ${x}, y: y0, z: ${z} }, { x: 0, y: -1, z: 0 }), 400, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, ex || undefined);
         if (!h) break; const y = y0 - (h.timeOfImpact ?? h.toi), c = h.collider, pb = c.parent();
         hits.push({ y: +y.toFixed(3), shape: c.shapeType(), tag: C.colTags?.get?.(c.handle) || null, body: pb ? (pb.isFixed() ? 'fixed' : pb.isDynamic() ? 'dynamic' : 'kinematic') : 'static', n: +h.normal.y.toFixed(2), handle: c.handle });
         ex = c; y0 = y - 0.01; }
