@@ -695,6 +695,18 @@ export async function createVehicles(game) {
         v.rightedT = (v.rightedT || 0) + dt;
       }
     }
+    // r2-physics trip guard (QA: hatch2 rolled onto its side after a 30 deg curb hit at ~25 km/h): a curb strike kicks a roll rate
+    // that a real car's tires and anti-roll bars soak up. Below 80 km/h, between 8 and 50 deg of lean, a roll rate above 1.1 rad/s
+    // is cut back to 0.95 rad/s each tick (light, tall cars trip first); a real roll-over (high speed, big lean,
+    // a crash) is left alone
+    if (!v.ghost && !v.disabled && game.physics?.tripGuard !== false) {
+      const r1 = body.rotation(); _q.set(r1.x, r1.y, r1.z, r1.w); _v2.set(0, 1, 0).applyQuaternion(_q); _fw.set(0, 0, 1).applyQuaternion(_q);
+      const lean = Math.acos(Math.max(-1, Math.min(1, _v2.y))), lv1 = body.linvel(), sp1 = Math.hypot(lv1.x, lv1.z);
+      if (lean > 0.14 && lean < 0.87 && sp1 < 22) {
+        const av = body.angvel(), rr = av.x * _fw.x + av.y * _fw.y + av.z * _fw.z; // roll rate about the car's forward axis
+        if (Math.abs(rr) > 1.1) { const k = (Math.abs(rr) - 0.95) / Math.abs(rr); body.setAngvel({ x: av.x - _fw.x * rr * k, y: av.y - _fw.y * rr * k, z: av.z - _fw.z * rr * k }, true); v.tripGuards = (v.tripGuards || 0) + 1; }
+      }
+    }
     const tt = body.translation();
     if (!Number.isFinite(tt.x) || !Number.isFinite(tt.y) || tt.y < -30) {
       // fell out of the world / NaN: never teleport onto the player; freeze at the last good spot or drop it
