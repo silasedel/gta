@@ -1948,7 +1948,8 @@
   "wheelTris": [
    48000,
    14000
-  ]
+  ],
+  "tireDonor": "suv12"
  },
  "coupe4": {
   "src": "Coupes/Coupe 4 - 1970 American Muscle Coupe/FINAL_MODEL_SS.fbx",

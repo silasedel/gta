@@ -114,6 +114,39 @@ function whitewall(g, R, tw, band) {
   }
   c.needsUpdate = true; rm.needsUpdate = true;
 }
+// radius helpers for tire swaps (wheel space: axle along x)
+function wheelBead(g, r) {
+  const p = g.getAttribute('position'), col = g.getAttribute('color'); let bead = r * 0.87;
+  if (col) for (let i = 0; i < p.count; i++) { const rr = Math.hypot(p.getY(i), p.getZ(i)); if (rr > 0.45 * r && rr < bead && 0.2126 * col.getX(i) + 0.7152 * col.getY(i) + 0.0722 * col.getZ(i) < 0.09) bead = rr; }
+  return bead;
+}
+function radialPart(g, keep) {   // triangles whose three corners all pass keep(radius)
+  const n = g.index ? g.toNonIndexed() : g.clone(), p = n.getAttribute('position'), tri = [];
+  for (let i = 0; i < p.count; i += 3) { let ok = true; for (let j = 0; j < 3 && ok; j++) ok = keep(Math.hypot(p.getY(i + j), p.getZ(i + j))); if (ok) tri.push(i); }
+  const out = new THREE.BufferGeometry();
+  for (const k of Object.keys(n.attributes)) {
+    const a = n.getAttribute(k), arr = new Float32Array(tri.length * 3 * a.itemSize);
+    tri.forEach((t, m) => arr.set(a.array.subarray(t * a.itemSize, (t + 3) * a.itemSize), m * 3 * a.itemSize));
+    out.setAttribute(k, new THREE.BufferAttribute(arr, a.itemSize));
+  }
+  return out;
+}
+function tireSpan(g, rmin) { const p = g.getAttribute('position'); let a = Infinity, b = -Infinity; for (let i = 0; i < p.count; i++) if (Math.hypot(p.getY(i), p.getZ(i)) > rmin) { a = Math.min(a, p.getX(i)); b = Math.max(b, p.getX(i)); } return [a, b]; }
+// truck9 (user: its lugs float as loose fragments): its own rim inside the bead + the donor model's tire, scaled to this size
+function swapTire(own, r, donor, rD) {
+  if (!own || !donor) return own;
+  const bO = wheelBead(own, r), bD = wheelBead(donor, rD), k = r / rD;
+  const rim = radialPart(own, (rr) => rr < bO + 0.004);
+  const tire = radialPart(donor, (rr) => rr > bD - 0.004);
+  const [o0, o1] = tireSpan(own, 0.8 * r), [d0, d1] = tireSpan(donor, 0.8 * rD);
+  const sx = (o1 - o0) / Math.max(0.05, d1 - d0);
+  tire.translate(-(d0 + d1) / 2, 0, 0); tire.scale(sx, k, k); tire.translate((o0 + o1) / 2, 0, 0);
+  // the donor tire's bead now sits at bD * k; stretch its inner edge to this rim's bead so no ring of air shows
+  const p = tire.getAttribute('position');
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i), z = p.getZ(i), rr = Math.hypot(y, z); if (rr < bD * k + 0.02 && rr > 1e-4) { const t = Math.max(0, (bD * k + 0.02 - rr) / 0.02), want = rr + (bO - bD * k) * t; p.setY(i, y * want / rr); p.setZ(i, z * want / rr); } }
+  tire.computeVertexNormals();
+  return mergeSafe([rim, tire]) || own;
+}
 // tire carcass (user: "the tires look like thin crappy layers"): game-rip knobby tires are open lug shells with nothing
 // behind them, so the far side and the sky show between the lugs.  A closed dark rubber drum under the tread fills it.
 function addCarcass(g, r) {
@@ -194,7 +227,12 @@ export function loadCarModel(key) {
       return mergeSafe(list);
     };
     const cal = parts.caliper0 ? mergeSafe(Object.values(parts.caliper0).map((g) => prepWheel(g, true))) : null;
-    let wheel = [mergeSafe([addCarcass(wheelGeo('wheel0'), man.r), cal]), addCarcass(wheelGeo('wheel1'), man.r)];
+    let w0 = wheelGeo('wheel0'), w1 = wheelGeo('wheel1'); const wheelRaw = [w0, w1];
+    if (man.cfg?.tireDonor && man.cfg.tireDonor !== key) {
+      const d = await loadCarModel(man.cfg.tireDonor), dr = d?.man?.r;
+      if (d?.wheelRaw && dr) { w0 = swapTire(w0, man.r, d.wheelRaw[0], dr); w1 = w0; }
+    }
+    let wheel = [mergeSafe([addCarcass(w0, man.r), cal]), addCarcass(w1, man.r)];
     if ((man.tris?.wheel0 || 0) >= 8000) wheel[1] = wheel[0];   // knobby off-road tread: no decimated lugs at mid range
     if (man.wheelDonor && man.wheelDonor !== key) { // crude source wheels (8-sided): borrow a better wheel, scaled to this tire
       const d = await loadCarModel(man.wheelDonor);
@@ -207,7 +245,7 @@ export function loadCarModel(key) {
     let sideX = 0;
     { const P = lv[1].paint || lv[0].paint, a = P?.getAttribute('position'), s_ = man.shape, wb = man.wb, r = man.r;
       if (a) for (let i = 0; i < a.count; i++) { const y = a.getY(i), z = a.getZ(i); if (y > s_.yb + 0.25 && y < s_.belt - 0.08 && Math.abs(z) < wb / 2 - r * 1.2) sideX = Math.max(sideX, Math.abs(a.getX(i))); } }
-    const rec = { key, man, lv, wheel, wheelR, sideX: sideX || man.dims.W / 2 - 0.1, hull: man.hull ? hullPoints(man.hull, man.shape?.belt) : null };
+    const rec = { key, man, lv, wheel, wheelR, wheelRaw, sideX: sideX || man.dims.W / 2 - 0.1, hull: man.hull ? hullPoints(man.hull, man.shape?.belt) : null };
     models.set(key, rec);
     glbStats.loaded++; glbStats.ms += performance.now() - t0; glbStats.bytes += man.bytes || 0;
     return rec;
