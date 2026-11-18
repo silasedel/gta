@@ -93,7 +93,8 @@ export async function initV2(game) {
           y = terr.heightAt(x, z) - 0.02; gx = (terr.heightAt(x + 0.6, z) - 0.02 - y) / 0.6; gz = (terr.heightAt(x, z + 0.6) - 0.02 - y) / 0.6;
         } else { const s = data && data.surfaceAt ? data.surfaceAt(x, z) : 'grass_short'; dens = s === 'grass_long' ? 0.55 : s === 'dirt' ? 0.12 : s === 'grass_short' ? 0.03 : s === 'sand' ? 0.03 : 0; dry = 0.4;
           y = city.groundHeightAt ? city.groundHeightAt(x, z) : 0; }
-        for (const p of hand) { const d = Math.hypot(x - p.x, z - p.z); if (d < p.r) { const f = ss(p.r, p.r * 0.45, d) * (p.density ?? 0.8); handF = Math.max(handF, f); if (p.kind === 'dry') dry = Math.max(dry, 0.7); if (p.kind === 'moss') dry = -1; } }
+        let clear = false; for (const p of hand) { const d = Math.hypot(x - p.x, z - p.z); if (d < p.r) { if (p.kind === 'clear') { clear = true; continue; } const f = ss(p.r, p.r * 0.45, d) * (p.density ?? 0.8); handF = Math.max(handF, f); if (p.kind === 'dry') dry = Math.max(dry, 0.7); if (p.kind === 'moss') dry = -1; } }
+        if (clear && handF <= 0.05) dens = 0;   // 'clear' zones (set pieces with their own hand-placed grass, e.g. Nico's lot): no automatic grass
         if (dens > 0 && handF < 0.0005) {
           dens *= ss(0.22, 0.62, vn(x / 6.5 + 1.7, z / 6.5 - 8.2) * 0.65 + vn(x / 2.2 - 4.4, z / 2.2 + 2.9) * 0.35) * 1.6; // clustered: clumps gather, gaps between
           const lo = lowAt ? lowAt(x, z) : 0; if (lo > 0.05) { dens = Math.min(1, dens + lo * 0.5); dry *= 1 - lo * 0.6; } // greener, thicker in the wet lows
