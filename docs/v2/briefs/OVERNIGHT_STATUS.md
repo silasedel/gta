@@ -1199,6 +1199,16 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     broke every vegetation shader for ~25 min. Edits now go through a temp-file node check, and runs are checked for "Shader Error".
   - **Open:** the deck view's tree wall behind the roll-off; 40 rejected street spots; game.vegLodScale for r2-perf; textured crotons.
 
+- **Final pass: user's fan palms + reeds, QA 6/8/13/14 (cad04b07; tilebuild.js waiting for the lead).** Sheet docs/v2/shots/vegetation/r2/r2veg_fanpalms_qa_final.jpg.
+  - Fan palms: Mexican (rob1/2) and California (cal1/2) HD fan palms in the countryside fan/queen kinds; Mediterranean clumps (med1/2) as yard and park understory. City (tilebuild): Ocean Drive, South Beach and commercial street palms are Mexican fan rows (one species per 70 m stretch); 51 fan palms within 160 m of Ocean Dr. Only rob1 + cal1 in the city: 4 models cost ~200 extra draws there. modelPalmOf no longer caches a model that had not loaded yet.
+  - Reeds and cattails: clumped bands within ~6 m of open water in the glade, swamp, marsh and mangrove biomes (54 at a glades canal bank, none floating or sunk). The dwarf palmetto has no textures: skipped. Not used: Tropical Plant 1, Shrub Pack 1, Shrub 7, Jungle Tree 1.
+  - QA 6: the poinciana "shards" were 81k tris of leaf stalks collapsed to flat triangles. Stalks dropped, twigs pruned before a gentle collapse.
+  - QA 6/8: the HD LOD meshes used 16-64 px LOD textures. The converter now loads the LOD0 set (hibiscus, poinciana, fan palms).
+  - QA 8: bougainvillea keeps the leaf shading inside the bracts and mixes bracts with leaves. Shrub volume normals keep ~48 % of the card normal.
+  - QA 14: coconut trunks use the HD Washingtonia trunk (2048).
+  - QA 13: no plants on city beach sand or the strip by the surf. The green strip itself is ground surface `grass_short` in the map data (r2-ground / map), not plants.
+  - Open: small bright-green specks in the poinciana crown at 5 m. r2-render's dither check on the merged shader: no shader changes this pass.
+
 ## r2-web
 - **PAUSED 13:05** on the lead's order (no upload until the graphics update and an efficiency pass are done). No browser runs started after the pause.
 - **Measured before** (`tools/v2/web/netboot.mjs`, 06:30 dist on 5201, 50 Mbps / 20 ms, cache off; `docs/v2/reports/web-boot-base5201.json`):
