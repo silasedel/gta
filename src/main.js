@@ -520,7 +520,10 @@ async function boot() {
   game.exitVehicle = () => exitVehicle();
   function exitVehicle() {
     const st = P.state, v = st.vehicle;
-    v.playerDriven = false; v.setControls({ throttle: 0, steer: 0, brake: 1, handbrake: true });
+    if (!v) { // the vehicle went away under us (sunk / despawned / destroyed): just put the player back on foot where he is (QA: exitVehicle threw on null)
+      st.inVehicle = false; st.vehicle = null; pCol.setEnabled(true); playerSeat.exit(); if (character) character.setVisible(true); return;
+    }
+    v.playerDriven = false; v.setControls?.({ throttle: 0, steer: 0, brake: 1, handbrake: true });
     armGuard(v);
     const spot = safeExitSpot(v);
     pBody.setTranslation({ x: spot.x, y: spot.y + CENTER + 0.05, z: spot.z }, true);
