@@ -285,3 +285,27 @@ body.pm-intro #ps-hud { opacity: 0 !important; transition: opacity .4s; }
 .pm-set-body { overflow-x: hidden; }
 .pm-row > :last-child { flex: 0 1 auto; min-width: 0; max-width: 72%; display: flex; flex-wrap: wrap; justify-content: flex-end; }
 .pm-set-note { overflow-wrap: anywhere; }
+
+/* r5-settings: simpler, roomier settings rows (appended last so it wins) */
+.pm-set-body section h3 { margin: calc(26 * var(--u)) 0 calc(8 * var(--u)); }
+.pm-row { min-height: calc(62 * var(--u)); padding: calc(10 * var(--u)) calc(18 * var(--u)); border-radius: var(--r-sm); border-bottom-color: rgba(243, 237, 226, .06); transition: background .12s ease, padding-left .12s ease, transform .12s ease; }
+.pm-row:hover { background: rgba(243, 237, 226, .045); }
+.pm-row.is-focus { background: rgba(243, 237, 226, .09); padding-left: calc(26 * var(--u)); }
+.pm-row-l { font-size: calc(var(--fs-md) * 1.12); font-weight: 650; transition: color .12s ease; }
+.pm-row.is-focus .pm-row-l { color: #fff; }
+.pm-row-v, .pm-pick b, .pm-range output { font-size: var(--fs-md); color: var(--ps-shell); letter-spacing: .08em; }
+.pm-range { width: calc(360 * var(--u)); }
+.pm-range input { height: calc(30 * var(--u)); }
+.pm-range input::-webkit-slider-runnable-track { height: calc(6 * var(--u)); border-radius: 3px; }
+.pm-range input::-webkit-slider-thumb { width: calc(18 * var(--u)); height: calc(18 * var(--u)); margin-top: calc(-6 * var(--u)); border-radius: 50%; transition: transform .12s ease, box-shadow .12s ease; }
+.pm-range input:hover::-webkit-slider-thumb, .pm-range input:active::-webkit-slider-thumb { transform: scale(1.25); }
+.pm-tog { width: calc(52 * var(--u)); height: calc(28 * var(--u)); transition: background .12s ease, box-shadow .12s ease; }
+.pm-tog i { width: calc(22 * var(--u)); height: calc(22 * var(--u)); transition: transform .12s ease, background .12s ease; }
+.pm-tog.on i { transform: translateX(calc(24 * var(--u))); }
+.ps-ui .pm-seg { padding: calc(10 * var(--u)) calc(14 * var(--u)) !important; transition: background .12s ease, color .12s ease, transform .12s ease; }
+.ps-ui .pm-seg:active { transform: scale(.96); }
+.pm-pick i { width: calc(30 * var(--u)); height: calc(30 * var(--u)); border-radius: 50%; align-items: center; justify-content: center; transition: background .12s ease, transform .12s ease; }
+.pm-pick i:hover { background: rgba(243, 237, 226, .16); transform: scale(1.12); }
+.pm-pick i:active { transform: scale(.92); }
+.pm-adv { margin-top: calc(22 * var(--u)); border: 1px dashed var(--ps-line); justify-content: space-between; }
+.pm-adv .pm-row-l { color: var(--ps-shell-2); flex: 1 1 auto; }

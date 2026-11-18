@@ -157,6 +157,11 @@ export const SCHEMA = [
   ] },
 ];
 
+// The handful of settings people actually change: shown by default; everything else sits behind "Show advanced settings".
+const BASIC = new Set(['gfxPreset', 'gfxAutoDetect', 'resolutionScale', 'fpsLimit', 'showFps', 'fullscreen', 'volMaster', 'volMusic', 'volSfx', 'mouseSens', 'invertY', 'bindings',
+  'subtitles', 'subtitleSize', 'subtitlePreview', 'units', 'clock24h', 'language', 'devCode', 'resetAll']);
+for (const t of SCHEMA) for (const s of t.sections) for (const it of s.items) if (BASIC.has(it.key)) it.basic = true;
+
 /** Flat list of real (value-carrying) settings. */
 export function allItems() { const out = []; for (const t of SCHEMA) for (const s of t.sections) for (const it of s.items) if (it.type !== 'custom' && it.type !== 'action') out.push({ ...it, tab: t.id, section: s.title }); return out; }
 export const DEFAULTS = Object.fromEntries(allItems().map((i) => [i.key, i.default]));

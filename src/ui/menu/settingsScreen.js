@@ -13,6 +13,8 @@ export function openSettingsScreen(game, ctx, o = {}) {
   const leaveUI = fromPause ? B.pushMode('ui') : null;
   const tabs = S.schema.map((x) => x.id);
   let tab = o.tab && tabs.includes(o.tab) ? o.tab : 'graphics';
+  let showAdv = false;
+  try { showAdv = localStorage.getItem('southline.settings.advanced') === '1'; } catch (e) { /* storage blocked */ }
   const root = el('div', 'pm-set ps-interactive' + (fromPause ? ' from-pause' : ''));
   root.innerHTML = `
     <div class="pm-set-panel">
@@ -63,9 +65,10 @@ export function openSettingsScreen(game, ctx, o = {}) {
     root.querySelectorAll('.pm-set-tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     const T = S.schema.find((x) => x.id === tab);
     body.innerHTML = T.sections.map((sec) => {
-      const rows = sec.items.filter((it) => !(it.type === 'custom' && SKIP.has(it.widget))).map(row).join('');
+      const rows = sec.items.filter((it) => !(it.type === 'custom' && SKIP.has(it.widget)) && (showAdv || it.basic)).map(row).join('');
       return rows ? `<section><h3>${esc(t(sec.title))}</h3>${rows}</section>` : '';
     }).join('');
+    body.insertAdjacentHTML('beforeend', `<div class="pm-row pm-adv${showAdv ? ' open' : ''}" data-nav data-adv><span class="pm-row-l">${esc(t(showAdv ? 'Hide advanced settings' : 'Show advanced settings'))}</span><span class="pm-tog${showAdv ? ' on' : ''}"><i></i></span></div>`);
     if (tab === 'graphics') body.insertAdjacentHTML('afterbegin', `<div class="pm-set-note">${icon('info')}<span>${esc(qualityNote())}</span></div>`);
     scope.refresh(keepKey ? `[data-key="${keepKey}"]` : null);
   }
@@ -80,6 +83,7 @@ export function openSettingsScreen(game, ctx, o = {}) {
   }
   function adjust(e, dir) {
     const k = e.dataset.key, it = S.item(k); if (!it) return;
+    ctx.sfx('move');
     if (it.type === 'range') S.set(k, S.get(k) + dir * it.step * (it.max - it.min > 2 ? 1 : 1));
     else if (it.type === 'choice') { const i = it.options.findIndex((x) => x.value === S.get(k)); const n = it.options[(i + dir + it.options.length) % it.options.length]; S.set(k, n.value); }
     else if (it.type === 'toggle') S.set(k, !S.get(k));
@@ -91,8 +95,9 @@ export function openSettingsScreen(game, ctx, o = {}) {
     onFocus: describe,
   });
   root.addEventListener('nav:adjust', (e) => { const r = e.target.closest('[data-key]'); if (r) adjust(r, e.detail.dir); });
-  root.addEventListener('input', (e) => { const r = e.target.closest('[data-key]'); if (r && e.target.type === 'range') S.set(r.dataset.key, +e.target.value); });
+  root.addEventListener('input', (e) => { const r = e.target.closest('[data-key]'); if (r && e.target.type === 'range') ctx.sfx('move'), S.set(r.dataset.key, +e.target.value); });
   root.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-adv]')) { showAdv = !showAdv; try { localStorage.setItem('southline.settings.advanced', showAdv ? '1' : '0'); } catch (e2) { /* */ } ctx.sfx('select'); render(); const a = body.querySelector('[data-adv]'); if (a) { scope.focus(a, 'auto'); a.scrollIntoView({ block: 'nearest' }); } return; }
     const tb = e.target.closest('.pm-set-tab'); if (tb) { tab = tb.dataset.tab; ctx.sfx('tab'); render(); return; }
     if (e.target.closest('.pm-set-reset')) { S.reset(tab); ctx.sfx('select'); render(); return; }
     const kb = e.target.closest('[data-bind]');
@@ -103,10 +108,10 @@ export function openSettingsScreen(game, ctx, o = {}) {
       render(); scope.refresh(`[data-bind="${kb.dataset.bind}"][data-slot="${kb.dataset.slot}"]`); return;
     }
     const seg = e.target.closest('.pm-seg'); const r = e.target.closest('[data-key]');
-    if (seg && r) { const it = S.item(r.dataset.key); const op = it.options.find((x) => String(x.value) === seg.dataset.val); if (op) { S.set(r.dataset.key, op.value); ctx.sfx('tick'); } return; }
+    if (seg && r) { const it = S.item(r.dataset.key); const op = it.options.find((x) => String(x.value) === seg.dataset.val); if (op) { S.set(r.dataset.key, op.value); ctx.sfx('move'); } return; }
     if (!r) return;
     const it = S.item(r.dataset.key);
-    if (r.dataset.kind === 'toggle') S.set(r.dataset.key, !S.get(r.dataset.key));
+    if (r.dataset.kind === 'toggle') { S.set(r.dataset.key, !S.get(r.dataset.key)); ctx.sfx('select'); }
     else if (r.dataset.kind === 'action') {
       if (it?.action === 'detect') { const d = S.detect(); S.applyPreset(d.preset); ctx.notify?.(`Picked ${d.preset}: ${d.reason}`, 3500); }
       else if (it?.action === 'resetAll') { S.reset(); }
