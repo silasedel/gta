@@ -161,6 +161,16 @@ export function createMapRenderer(game) {
   const OVERVIEW = 4;        // 4 km tiles: rendered once, kept forever, drawn under every zoom
 
   function city() { return game.city; }
+  // airports (world layout: airport / airfield { runways: [[a, b], ...] centerlines }): runways, a parallel taxiway with
+  // connectors and apron joints / lead-in lines are drawn so a close zoom on an airport is never a blank gray field
+  let AIR = [];
+  try {
+    fetch(new URL('assets/world/layout.json', document.baseURI)).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!j) return;
+      AIR = [j.airport, j.airfield].filter((a) => a && Array.isArray(a.runways));
+      cache.clear();
+    }).catch(() => {});
+  } catch (e) { /* no layout: no airport detail */ }
   function ok() { const c = city(); return !!(c && c.mapLayers && (Array.isArray(c.mapLayers.land) || Array.isArray(c.mapLayers.roadEdges))); }
 
   // ---------- boundary mask (fast inside tests) ----------
@@ -414,6 +424,7 @@ export function createMapRenderer(game) {
       for (const cls of order) fillRings(groups.get(cls), (COVER_STYLE[cls] || (() => MAP_COLORS.park))());
     }
     if (by.park.length) fillRings(by.park, MAP_COLORS.park);
+    if (level <= 3) drawAirports(g, by, x0, z0, S, ppm, level);
     if (by.beach.length) fillRings(by.beach, MAP_COLORS.beach);
     if (by.water.length) {
       // lakes, rivers and canals: deeper water with only a soft lighter rim near their banks (no outline)
@@ -476,6 +487,49 @@ export function createMapRenderer(game) {
       g.strokeStyle = 'rgba(214,240,245,.75)'; g.lineWidth = 1.4 / ppm; g.lineJoin = 'round'; ringPath(g, ring); g.stroke();
     }
     return cv;
+  }
+  function drawAirports(g, by, x0, z0, S, ppm, level) {
+    const px = 1 / ppm, aprons = by.cover.filter((it) => it.cls === 'apron');
+    // apron: concrete panel joints (world-anchored grid) at close zoom
+    if (aprons.length && level <= 1) {
+      g.save(); g.beginPath();
+      for (const it of aprons) for (const rr of it.rings) { g.moveTo(rr[0][0], rr[0][1]); for (let i = 1; i < rr.length; i++) g.lineTo(rr[i][0], rr[i][1]); g.closePath(); }
+      g.clip('evenodd');
+      const step = level === 0 ? 20 : 40;
+      g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 0.8 * px; g.beginPath();
+      for (let x = Math.floor(x0 / step) * step; x <= x0 + S; x += step) { g.moveTo(x, z0); g.lineTo(x, z0 + S); }
+      for (let z = Math.floor(z0 / step) * step; z <= z0 + S; z += step) { g.moveTo(x0, z); g.lineTo(x0 + S, z); }
+      g.stroke(); g.restore();
+    }
+    if (!AIR.length) return;
+    const C = city(), inAir = (x, z) => { try { const zn = C?.zoneAt?.(x, z); return zn === 'airport'; } catch (e) { return false; } };
+    for (const A of AIR) for (const [a, b] of A.runways) {
+      const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (L < 50) continue;
+      const ux = dx / L, uz = dz / L, nx = -uz, nz = ux;
+      const minx = Math.min(a[0], b[0]) - 300, maxx = Math.max(a[0], b[0]) + 300, minz = Math.min(a[1], b[1]) - 300, maxz = Math.max(a[1], b[1]) + 300;
+      if (maxx < x0 || minx > x0 + S || maxz < z0 || minz > z0 + S) continue;
+      const P = (s2, o) => [a[0] + ux * s2 + nx * o, a[1] + uz * s2 + nz * o];
+      const line = (s0, s1, o) => { const p = P(s0, o), q = P(s1, o); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); };
+      // parallel taxiway on each side that lies on airport ground, with connectors every ~450 m
+      for (const side of [-1, 1]) {
+        const off = side * 170, mid = P(L / 2, off);
+        if (!inAir(mid[0], mid[1])) continue;
+        g.lineCap = 'butt'; g.strokeStyle = '#8f8c86'; g.lineWidth = 24; g.beginPath(); line(60, L - 60, off);
+        for (let s2 = 60; s2 <= L - 60; s2 += Math.max(300, (L - 120) / Math.max(1, Math.round((L - 120) / 450)))) { const p = P(s2, 0), q = P(s2, off); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); }
+        g.stroke();
+        if (level <= 2) { g.strokeStyle = '#e9c13a'; g.lineWidth = Math.max(1.2 * px, 0.6); g.beginPath(); line(60, L - 60, off); for (let s2 = 60; s2 <= L - 60; s2 += Math.max(300, (L - 120) / Math.max(1, Math.round((L - 120) / 450)))) { const p = P(s2, 30), q = P(s2, off); g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); } g.stroke(); }
+      }
+      // runway: asphalt, white edge lines, dashed centerline, threshold bars
+      g.lineCap = 'butt'; g.strokeStyle = '#5f5c58'; g.lineWidth = 60; g.beginPath(); line(0, L, 0); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = Math.max(1.2 * px, 1.2); g.beginPath(); line(0, L, -27); line(0, L, 27); g.stroke();
+      if (level <= 2) {
+        g.setLineDash([36, 24]); g.lineWidth = Math.max(1.2 * px, 1); g.beginPath(); line(70, L - 70, 0); g.stroke(); g.setLineDash([]);
+        // threshold "piano keys": stripes along the runway, spread across its width, at both ends
+        g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.85)'; g.beginPath();
+        for (let o = -22; o <= 22; o += 5.5) { if (Math.abs(o) < 3) continue; line(8, 40, o); line(L - 40, L - 8, o); }
+        g.stroke();
+      }
+    }
   }
   function getTile(level, tx, tz, allowRender, force) {
     const key = level + ':' + tx + ':' + tz;
