@@ -226,6 +226,44 @@ async function loadOne(renderer, key) {
   const [g0, g1] = await Promise.all([fetchGLB(def.file + '.glb'), fetchGLB(def.file + '_lod1.glb').catch(() => null)]);
   return serial(() => buildOne(renderer, key, def, g0, g1));
 }
+
+// round 3 (r2-perf: draw calls): the parts of one family (all leaf parts, all bark parts) of a model are merged into ONE geometry
+// and ONE material: their color / normal maps are packed into a tile atlas (gutter + clamped uvs, so mips never bleed across
+// tiles), uvs remapped, and each part's palette gain moves from a material uniform into a vertex attribute (aVegGrade). The look
+// is the same; one draw (and one shadow draw) per family instead of one per part. Only parts whose uvs stay inside 0..1 (no
+// tiling) and that have a color map are merged; ?vegmerge=0 turns it off.
+const MERGE_ON = typeof location === 'undefined' || !/[?&]vegmerge=0\b/.test(location.search);
+function uvRange(g) { const U = g.attributes.uv; let a = Infinity, b = -Infinity; for (let i = 0; i < U.count; i++) { const u = U.getX(i), v = U.getY(i); a = Math.min(a, u, v); b = Math.max(b, u, v); } return [a, b]; }
+function atlasLayout(parts) { // tile size = the largest map; grid cols x rows; gutter 1/32 of a tile
+  const T = Math.min(2048, Math.max(...parts.map((p) => Math.max(p.map.image.width, p.map.image.height)))), n = parts.length, cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols), G = Math.max(4, T >> 5);
+  const tiles = {}; parts.forEach((p, k) => { tiles[p.name] = { x: (k % cols) * T, y: ((k / cols) | 0) * T }; });
+  return { T, cols, rows, G, W: cols * T, H: rows * T, tiles };
+}
+function atlasTex(parts, lay, key, srgb) { // draw every part's map into its tile (inset by the gutter, edges smeared into the gutter)
+  const cv = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(lay.W, lay.H) : Object.assign(document.createElement('canvas'), { width: lay.W, height: lay.H }), g = cv.getContext('2d');
+  g.fillStyle = key === 'normalMap' ? 'rgb(128,128,255)' : 'rgba(0,0,0,0)'; g.fillRect(0, 0, lay.W, lay.H);
+  for (const p of parts) { const im = p[key]?.image, t = lay.tiles[p.name], G = lay.G, S = lay.T - 2 * G; if (!im) continue;
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]]) g.drawImage(im, t.x + G + dx * G * 0.5, t.y + G + dy * G * 0.5, S, S); } // the last draw is the real one
+  const tex = new THREE.CanvasTexture(cv); tex.flipY = false; tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; tex.anisotropy = 8;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.needsUpdate = true; return tex;
+}
+function mergeParts(parts, fam, lay, maps, grade) {
+  const mine = parts.filter((p) => p.fam === fam && lay.tiles[p.name]); if (mine.length < 2) return parts;
+  const geos = mine.map((p) => { const g = p.geometry.clone(), t = lay.tiles[p.name], U = g.attributes.uv, G = lay.G, S = lay.T - 2 * G, n = U.count, gr = grade[p.name] || [1, 1, 1, 1], A = new Float32Array(n * 3);
+    const uv = new Float32Array(n * 2); for (let i = 0; i < n; i++) { uv[i * 2] = (t.x + G + Math.min(1, Math.max(0, U.getX(i))) * S) / lay.W; uv[i * 2 + 1] = (t.y + G + Math.min(1, Math.max(0, U.getY(i))) * S) / lay.H; A[i * 3] = gr[0]; A[i * 3 + 1] = gr[1]; A[i * 3 + 2] = gr[2]; }
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('aVegGrade', new THREE.BufferAttribute(A, 3)); return g; });
+  const m = mergeGeometries(geos, false); if (!m) return parts; m.computeBoundingSphere();
+  const merged = { name: fam + 'Atlas', fam, geometry: m, map: maps.map, normalMap: maps.normalMap, tris: m.index.count / 3, merged: mine.length };
+  return [...parts.filter((p) => !mine.includes(p)), merged];
+}
+function planMerge(L0, fam, GR) { // which parts of a family can share an atlas (color map, no tiling, same normal-map presence, no bloom)
+  const ps = L0.parts.filter((p) => p.fam === fam && p.map?.image && !/bloom/i.test(p.name || ''));
+  const ok = ps.filter((p) => { const [a, b] = uvRange(p.geometry); return a > -0.002 && b < 1.002; });
+  if (ok.length < 2) return null; const withN = ok.filter((p) => p.normalMap?.image), use = withN.length >= ok.length / 2 ? withN : ok.filter((p) => !p.normalMap);
+  if (use.length < 2) return null; const lay = atlasLayout(use);
+  return { lay, maps: { map: atlasTex(use, lay, 'map', true), normalMap: use[0].normalMap ? atlasTex(use, lay, 'normalMap', false) : null } };
+}
+
 async function buildOne(renderer, key, def, g0, g1) {
   const L0 = partsOf(g0.scene, def); await breathe(8); const L1 = g1 ? partsOf(g1.scene, def, L0.E, 1) : L0; await breathe(8);
   for (const g of [g0, g1]) if (g) g.scene.traverse((o) => { if (o.isMesh) o.geometry.dispose(); }); _glb.delete(def.file + '.glb'); _glb.delete(def.file + '_lod1.glb'); // parts hold their own copies
@@ -233,7 +271,9 @@ async function buildOne(renderer, key, def, g0, g1) {
   const C = CLS[def.cls] || CLS.tree, shape = (def.shape || C.shape).slice(); shape[0] = L0.height;
   // glTF normal maps: green flipped without tangents
   const GR = VEG_R2 ? GRADE[key] || {} : {}; // round 2: per-material gain into the shared palette (tools/v2/vegetation/grade.py)
-  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: VEG_R2 && fam === 'leaf' ? [0.7, -0.7] : [1, -1], /* r2-art: leaf cards 0.6-0.8 (full strength flickers at distance) */ roughness: fam === 'bark' ? 0.9 : 0.72, grade: GR[p.name], ao: VEG_R2 && !!p.geometry.attributes.aVegAO, ...o });
+  const vm = (fam, p, o) => makeVegMaterial(fam, { map: p.map, normalMap: p.normalMap, normalScale: VEG_R2 && fam === 'leaf' ? [0.7, -0.7] : [1, -1], /* r2-art: leaf cards 0.6-0.8 (full strength flickers at distance) */ roughness: fam === 'bark' ? 0.9 : 0.72, grade: p.geometry.attributes.aVegGrade ? null : GR[p.name], vgrade: !!p.geometry.attributes.aVegGrade, ao: VEG_R2 && !!p.geometry.attributes.aVegAO, ...o });
+  if (VEG_R2 && MERGE_ON) for (const fam of ['leaf', 'bark']) { try { const plan = planMerge(L0, fam, GR); if (!plan) continue; // one draw per family (r2-perf)
+    L0.parts = mergeParts(L0.parts, fam, plan.lay, plan.maps, GR); if (L1 !== L0) L1.parts = mergeParts(L1.parts, fam, plan.lay, plan.maps, GR); L0.lods = null; await yieldTask(); } catch (e) { console.warn('[vegetation] atlas merge skipped', key, fam, e); } }
   await initTexturesSliced(renderer, L0.parts.flatMap((p) => [p.map, p.normalMap]).filter(Boolean), 8); await yieldTask();
   let imp = null;
   try {

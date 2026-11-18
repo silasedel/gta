@@ -39,6 +39,9 @@ varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec
 #ifdef VEG_AO
 attribute float aVegAO; varying float vVegAO;
 #endif
+#ifdef VEG_VGRADE
+attribute vec3 aVegGrade; varying vec3 vVegGrade;
+#endif
 uniform vec4 uShape; uniform float uCrownY; uniform vec2 uCrownC; uniform float uSpread; uniform vec3 uBaseClamp; // uBaseClamp: (height, trunk radius, on) for plants in paving // model height, bend, twist (rad), frond droop; crown attachment height (m)
 float vegH12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vegInstH() {
@@ -80,6 +83,9 @@ const VERT_BODY = `
   vVegHash = vec2(vh, vh2); vVegHash2 = vec2(vh3, vh4); vVegFl = aWind.y; vVegH = position.y;
 #ifdef VEG_AO
   vVegAO = aVegAO;
+#endif
+#ifdef VEG_VGRADE
+  vVegGrade = aVegGrade;
 #endif
 #ifndef VEG_IMP
   if (uBaseClamp.z > 0.0 && transformed.y < uBaseClamp.x) { // in paving: root flare pulled in to the trunk, a slight bulge at the collar
@@ -138,6 +144,9 @@ varying vec2 vVegHash; varying vec2 vVegHash2; varying float vVegFl; varying vec
 #ifdef VEG_AO
 varying float vVegAO;
 #endif
+#ifdef VEG_VGRADE
+varying vec3 vVegGrade; // per-part palette gain of an atlas-merged family (models.js mergeParts)
+#endif
 uniform float uRenderR2; uniform vec3 uVegFocus; uniform vec3 uVegCam; uniform float uVegCamOn;
 ${IGN_R2_GLSL}
 // r2-render: foliage near the camera (< ~1.3 m) or between the camera and the player fades out by coverage, so a camera
@@ -182,7 +191,12 @@ const FRAG_COLOR = `
     vec3 tj = vec3(0.92 + 0.16 * vVegHash.x, 0.93 + 0.14 * vVegHash.y, 0.88 + 0.2 * fract(vVegHash.x * 13.7));
     diffuseColor.rgb *= mix(vec3(1.0), tj, uTintAmt);
     {
-      vec3 c = diffuseColor.rgb * uGrade.rgb; float l0 = dot(c, vec3(0.2126, 0.7152, 0.0722));
+#ifdef VEG_VGRADE
+      vec3 c = diffuseColor.rgb * vVegGrade;
+#else
+      vec3 c = diffuseColor.rgb * uGrade.rgb;
+#endif
+      float l0 = dot(c, vec3(0.2126, 0.7152, 0.0722));
       float hj = uJit.x * (vVegHash2.x - 0.5) * 2.0, sj = uGrade.w * (1.0 + uJit.y * (vVegHash2.y - 0.5) * 2.0), bj = 1.0 + uJit.z * (fract(vVegHash.x * 7.31 + vVegHash2.y) - 0.5) * 2.0;
       c *= vec3(1.0 + 0.5 * hj, 1.0 + 0.08 * hj, 1.0 - 0.8 * hj); // warm (sun-bleached, yellower) <-> cool (shaded, bluer green)
       float l1 = dot(c, vec3(0.2126, 0.7152, 0.0722)); c *= l0 / max(l1, 1e-4);
@@ -359,10 +373,10 @@ export function makeVegMaterial(family, o = {}) {
     const map = family === 'imp' || o.map ? o.map : leafAtlas().map;
     mat = new THREE.MeshStandardMaterial({ map, normalMap: family !== 'imp' && o.normalMap ? o.normalMap : null, normalScale: o.normalScale ? new THREE.Vector2(...o.normalScale) : new THREE.Vector2(1, 1), alphaTest: o.alphaTest ?? (VEG_AA ? 0.5 : 0.42), side: THREE.DoubleSide, roughness: o.roughness ?? 0.8, metalness: 0, envMapIntensity: 0.55, vertexColors: family !== 'imp', alphaToCoverage: !VEG_AA });
   }
-  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = ''; if (o.ao && family !== 'imp') defs.VEG_AO = ''; if (VEG_R2) { defs.VEG_R2MIP = ''; defs.VEG_R2IMP = ''; }
+  const defs = {}; if (o.mirror) defs.VEG_MIRROR = ''; if (family === 'imp') defs.VEG_IMP = ''; if (o.ao && family !== 'imp') defs.VEG_AO = ''; if (o.vgrade && family !== 'imp') defs.VEG_VGRADE = ''; if (VEG_R2) { defs.VEG_R2MIP = ''; defs.VEG_R2IMP = ''; }
   if (o.mirror && family === 'bark') mat.side = THREE.DoubleSide; // mirrored instances flip the winding
   mat.defines = { ...(mat.defines || {}), ...defs };
-  const pk = 'veg-' + family + (o.mirror ? '-m' : '') + (defs.VEG_AO !== undefined ? '-ao' : '');
+  const pk = 'veg-' + family + (o.mirror ? '-m' : '') + (defs.VEG_AO !== undefined ? '-ao' : '') + (defs.VEG_VGRADE !== undefined ? '-vg' : '');
   mat.onBeforeCompile = patch(family, u);
   mat.customProgramCacheKey = () => pk;
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: family === 'bark' || family === 'plain' ? null : mat.map, alphaTest: family === 'bark' || family === 'plain' ? 0 : (o.alphaTest ?? 0.42), side: family === 'bark' ? THREE.FrontSide : THREE.DoubleSide });

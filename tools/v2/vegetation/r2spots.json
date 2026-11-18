@@ -930,5 +930,53 @@
   },
   "tod": 12.5,
   "fov": 65
+ },
+ "m_spawn": {
+  "house": true,
+  "eye": [
+   -8.33,
+   4.65,
+   1.25
+  ],
+  "look": [
+   -16.75,
+   -2.32,
+   18.0
+  ],
+  "tod": 11,
+  "fov": 51,
+  "eval": "game.vegetation.freezeWind = true; if (game.npcs?.setEnabled) try { game.npcs.setEnabled(false); } catch (e) {}"
+ },
+ "m_street": {
+  "house": true,
+  "eye": [
+   12,
+   1.7,
+   31
+  ],
+  "look": [
+   50,
+   2.5,
+   33
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "game.vegetation.freezeWind = true; if (game.npcs?.setEnabled) try { game.npcs.setEnabled(false); } catch (e) {}"
+ },
+ "m_crown": {
+  "house": true,
+  "eye": [
+   -14.5,
+   1.6,
+   16.5
+  ],
+  "look": [
+   -10.8,
+   1.0,
+   12.3
+  ],
+  "tod": 11,
+  "fov": 60,
+  "eval": "game.vegetation.freezeWind = true; if (game.npcs?.setEnabled) try { game.npcs.setEnabled(false); } catch (e) {}"
  }
 }
