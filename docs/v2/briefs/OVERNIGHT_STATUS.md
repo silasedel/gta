@@ -1707,3 +1707,9 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - Exit: press E at the EXIT sign. The game fades and waits for the streamer (`collidersReadyAt` + `readyAround`), then puts you out at the destination's stair head.
 - Wanted 2+ stars: no entry and no boarding.
 - Not finished: no walk-down stair animation (E + fade instead); door leaves slide rather than split; the train interior keeps the model's graffiti; no ambient trains in other stations.
+- 17:10 **Interior kit pass** (user: the lobby desk front and the walls looked like plain layers). Applies map-wide through the shared kit; `?intart=0` shows the before. Sheets (console clean): `docs/v2/shots/art/sheet_int1_lobby.jpg`, `sheet_int1_shop.jpg`.
+  - Reception / host desks: the flat backlit panel is now reeded (fluted) backlit glass, 8 px rounded flutes with frosted grain, plus a real glass face in front for sheen and reflections.
+  - Painted walls (paint, FRP, CMU, slat wall): paint-roller lanes and orange-peel stipple in albedo and roughness.
+  - Hard floors are sealed / polished and reflect: terrazzo ×0.42 roughness, ceramic ×0.55, VCT ×0.7, wood ×0.72.
+  - Countertops keep the existing veined marble with the room probe; skirting already existed.
+  - STOP.

@@ -250,6 +250,7 @@ export function hostBar(ctx, x, z, ry, o = {}) {
   G.at(x, z, ry, () => {
     G.boxB(V.matte, 0, 0, -0.02, L, H - 0.06, D - 0.1);
     const frost = frostGlow(ctx, gc, o.k ?? 0.9), fr = { uvRect: frost.userData.frostRect }; G.plane(frost, 0, (0.08 + H - 0.06) / 2, D / 2 - 0.02, L - 0.04, H - 0.14, fr);
+    if (!INT_ART_OFF) G.plane(M.glass({ tint: '#ffffff', opacity: 0.08, rough: 0.05, env: 1.6 }), 0, (0.08 + H - 0.06) / 2, D / 2 - 0.006, L - 0.04, H - 0.14); // r2-art: the glass face in front of the backlit reeds: a real sheen / reflection layer
     for (const sx of [-1, 1]) G.plane(frost, sx * (L / 2 - 0.005), (0.08 + H - 0.06) / 2, 0, D - 0.06, H - 0.14, { ry: sx * Math.PI / 2, ...fr });
     const mul = Math.round(L / 0.42); for (let i = 0; i <= mul; i++) G.box(V.black, -L / 2 + 0.02 + i * (L - 0.04) / mul, (0.08 + H) / 2 - 0.03, D / 2 - 0.01, 0.018, H - 0.14, 0.012);
     G.boxB(V.black, 0, 0, D / 2 - 0.06, L, 0.08, 0.1); G.box(V.marble, 0, H - 0.03, 0, L + 0.08, 0.06, D + 0.04);
@@ -266,7 +267,13 @@ export function hostBar(ctx, x, z, ry, o = {}) {
 }
 
 // frosted glass panel glow: brighter at the bottom (the lamps sit in the base), soft vertical banding
-function frostGlow(ctx, color, k) { const p = ctx.prints.make('frost:' + color, 128, 128, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#5a5a5a'); gr.addColorStop(0.55, '#9a9a9a'); gr.addColorStop(1, '#ffffff'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+const INT_ART_OFF = typeof location !== 'undefined' && /[?&]intart=0\b/.test(location.search);
+// r2-art: reeded (fluted) backlit glass: 8 px rounded flutes with a bright core and darker valleys, frosted grain, lamps in the base
+function frostGlow(ctx, color, k) { if (!INT_ART_OFF) { const p2 = ctx.prints.make('frost2:' + color, 256, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#585858'); gr.addColorStop(0.6, '#9c9c9c'); gr.addColorStop(1, '#f4f4f4'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 8) { const fl = g.createLinearGradient(x, 0, x + 8, 0); fl.addColorStop(0, 'rgba(0,0,0,0.22)'); fl.addColorStop(0.45, 'rgba(255,255,255,0.16)'); fl.addColorStop(0.6, 'rgba(255,255,255,0.10)'); fl.addColorStop(1, 'rgba(0,0,0,0.22)'); g.fillStyle = fl; g.fillRect(x, 0, 8, h); }
+    let s = 7; const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); for (let i = 0; i < 5000; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,255' : '0,0,0'},0.05)`; g.fillRect(rnd() * w, rnd() * h, 1, 1); } });
+    const tex2 = p2.cell.tex, M2 = ctx.M; return M2._keep('frostg2:' + color + k, () => { const m = new THREE.MeshBasicMaterial({ map: tex2, color: new THREE.Color(color).multiplyScalar(k), toneMapped: false }); m.userData.frostRect = p2.rect; M2.glows.push({ m, base: new THREE.Color(color).multiplyScalar(k), ch: 1 }); return m; }); }
+  const p = ctx.prints.make('frost:' + color, 128, 128, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#5a5a5a'); gr.addColorStop(0.55, '#9a9a9a'); gr.addColorStop(1, '#ffffff'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   for (let x = 0; x < w; x += 4) { g.fillStyle = `rgba(255,255,255,${0.04 + 0.05 * Math.sin(x * 0.7)})`; g.fillRect(x, 0, 2, h); } });
   const tex = p.cell.tex, M = ctx.M; return M._keep('frostg:' + color + k, () => { const m = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(color).multiplyScalar(k), toneMapped: false }); m.userData.frostRect = p.rect; M.glows.push({ m, base: new THREE.Color(color).multiplyScalar(k), ch: 1 }); return m; }); }
 // ---------------------------------------------------------------- coffered ceiling with magenta coves and downlights over a room

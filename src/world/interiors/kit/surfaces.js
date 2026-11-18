@@ -84,14 +84,28 @@ function normalMap(hc, S, k) { // Sobel on the height canvas (wrapping) -> tange
 const TEX = new Map();
 const col3 = (c) => (c ? (Array.isArray(c) ? c.map((v) => v | 0).join(',') : String(c)) : '');
 // -> { map, normalMap, roughnessMap, m, rough, metal } (cached; never disposed: shared across all interiors)
+// r2-art interior pass (?intart=0 = before): sealed / polished hard floors reflect (terrazzo, tile, VCT, wood), painted walls get
+// roller lanes and stipple in albedo and roughness. Roughness multipliers apply on top of each surface's own roughness map.
+const INT_ART_OFF = typeof location !== 'undefined' && /[?&]intart=0\b/.test(location.search);
+const POLISH = { terrazzo: 0.42, ceramic: 0.55, vct: 0.7, wood: 0.72, quarry: 0.85, cubanTile: 0.7, subway: 0.8 };
+const ROLLED = new Set(['paint', 'frp', 'cmu', 'slatwall']);
+function rollerFinish(A, G, S, R) {
+  const lanes = 6 + Math.floor(R() * 3), w = S / lanes;
+  for (let i = 0; i < lanes; i++) { const k = (R() - 0.5) * 0.05, x = i * w + (R() - 0.5) * w * 0.15; // each roller pass a hair lighter / darker, soft edges
+    const g = A.createLinearGradient(x, 0, x + w, 0); const c = k > 0 ? '255,255,255' : '0,0,0', a = Math.abs(k);
+    g.addColorStop(0, `rgba(${c},0)`); g.addColorStop(0.15, `rgba(${c},${a})`); g.addColorStop(0.85, `rgba(${c},${a})`); g.addColorStop(1, `rgba(${c},0)`); A.fillStyle = g; A.fillRect(x, 0, w, S);
+    const gg = G.createLinearGradient(x, 0, x + w, 0); gg.addColorStop(0, 'rgba(0,0,0,0)'); gg.addColorStop(0.5, `rgba(${R() < 0.5 ? '255,255,255' : '0,0,0'},${0.05 + R() * 0.06})`); gg.addColorStop(1, 'rgba(0,0,0,0)'); G.fillStyle = gg; G.fillRect(x, 0, w, S); }
+  for (let i = 0; i < S * S / 60; i++) { const x = R() * S, y = R() * S; A.fillStyle = `rgba(${R() < 0.5 ? '255,255,255' : '0,0,0'},0.035)`; A.fillRect(x, y, 1.5, 1.5); G.fillStyle = `rgba(0,0,0,0.08)`; G.fillRect(x, y, 1, 1); } // stipple (orange peel)
+}
 export function surfaceTextures(name, o = {}) {
   const def = SURFACES[name]; if (!def) throw new Error('unknown surface ' + name);
   const wear = Math.round(clamp(o.wear ?? 0.3) * 2) / 2, key = `${name}|${col3(o.c)}|${col3(o.c2)}|${col3(o.c3)}|${wear}`;
   let t = TEX.get(key); if (t) return t;
   const S = o.size || def.size || 256, A = cv(S), H = cv(S), G = cv(S), R = rng(key);
   def.draw(A.getContext('2d'), H.getContext('2d'), G.getContext('2d'), S, R, { ...o, wear });
+  if (!INT_ART_OFF && ROLLED.has(name)) rollerFinish(A.getContext('2d'), G.getContext('2d'), S, R); // r2-art: paint-roller lanes + stipple, so walls are not one flat layer
   const mk = (c, srgb) => { const x = new THREE.CanvasTexture(c); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
-  t = { map: mk(A, true), normalMap: mk(normalMap(H, S, def.bump || 2.2), false), roughnessMap: mk(G, false), m: def.m, rough: def.rough ?? 1, metal: def.metal || 0 };
+  t = { map: mk(A, true), normalMap: mk(normalMap(H, S, def.bump || 2.2), false), roughnessMap: mk(G, false), m: def.m, rough: (def.rough ?? 1) * (INT_ART_OFF ? 1 : POLISH[name] ?? 1), metal: def.metal || 0 };
   TEX.set(key, t); return t;
 }
 export const surfaceCount = () => TEX.size;
