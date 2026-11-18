@@ -13,6 +13,7 @@
 //                                        small chop only (a hull must never bob against a flat drawn plane)
 // ?waves=0 turns the swell off everywhere (flat calm, physics and shader).
 import * as THREE from 'three';
+import { FRESH_U, R4WATER } from './freshMask.js';
 
 const OFF = typeof location !== 'undefined' && /[?&]waves=0\b/.test(location.search);
 const G = 9.81, SHORE_MAX = 140, CALM0 = 12, CALM1 = 60;
@@ -154,7 +155,7 @@ export function createWaves(game, opts = {}) {
   const FN = 256, FC = 8, GL = /^(Everglades|Everglades City|Big Cypress)$/;
   const fData = new Uint8Array(FN * FN), fTex = new THREE.DataTexture(fData, FN, FN, THREE.RedFormat, THREE.UnsignedByteType);
   fTex.magFilter = fTex.minFilter = THREE.LinearFilter; fTex.generateMipmaps = false; fTex.needsUpdate = true;
-  uniforms.tFresh = { value: fTex }; uniforms.uFreshRect = { value: new THREE.Vector4(0, 0, 1, 0) };
+  FRESH_U.tFresh.value = fTex; uniforms.tFresh = FRESH_U.tFresh; uniforms.uFreshRect = FRESH_U.uFreshRect; uniforms.uR4 = FRESH_U.uR4; // r4-water: shared with the ground shader
   const F = { job: null, cx: 1e9, cz: 1e9, builds: 0 };
   function* buildFresh(cx, cz) {
     const c = game.city; if (!c?.isWater) return;
@@ -163,11 +164,36 @@ export function createWaves(game, opts = {}) {
       if (v === undefined) { let w = 0; for (let a = 0; a < 12; a++) { const an = a / 12 * Math.PI * 2; for (const r of [220, 450]) if (c.isWater(x + Math.cos(an) * r, z + Math.sin(an) * r)) w++; }
         const lo = GL.test(c.districtAt?.(x, z) || '') ? 0.34 : 0.18; v = 1 - Math.min(1, Math.max(0, (w / 24 - lo) / 0.2)); coarse.set(k, v); } return v; }; // open coast (lots of water around) stays sea, even in the glades districts
     let t0 = performance.now();
+    if (R4WATER) { yield* buildFresh4(x0, z0, buf, inland); fData.set(buf); fTex.needsUpdate = true; uniforms.uFreshRect.value.set(x0, z0, 1 / (FN * FC), 1); F.cx = cx; F.cz = cz; F.builds++; F.r4 = true; return; }
     for (let j = 0; j < FN; j++) {
       for (let i = 0; i < FN; i++) { const x = x0 + (i + 0.5) * FC, z = z0 + (j + 0.5) * FC; buf[j * FN + i] = c.isWater(x, z) ? Math.round(inland(x, z) * 255) : 255; }
       if (performance.now() - t0 > 1.5) { yield; t0 = performance.now(); }
     }
     fData.set(buf); fTex.needsUpdate = true; uniforms.uFreshRect.value.set(x0, z0, 1 / (FN * FC), 1); F.cx = cx; F.cz = cz; F.builds++;
+  }
+  // r4-water (user: "inconsistent water color across one body"): the old mask mixed sea and fresh inside one pond (Brickell Ave:
+  // a 'sea' fringe of raster cells around a 'pond', the open-water test in 64 m steps), and land cells were 255, so the
+  // bilinear fetch blended "fresh" into the sea at every beach. Now: the data's water kind decides (pond / canal / lake / river /
+  // marsh = fresh), only 'sea' cells use the open-water test (bilinear between 64 m nodes, no steps), fresh spreads 16 m into
+  // a body's sea fringe, values are smoothed inside the water, and land takes its nearest water's value (24 m).
+  function* buildFresh4(x0, z0, buf, inland) {
+    const c = game.city, d = game.miamiData || c, wkAt = d.waterKindAt || c.waterKindAt || null, N2 = FN * FN;
+    const isW = new Uint8Array(N2), v = new Float32Array(N2); let t0 = performance.now();
+    const node = new Map(), nodeV = (a, b) => { const k = a * 100003 + b; let r = node.get(k); if (r === undefined) { r = inland(a * 64, b * 64); node.set(k, r); } return r; };
+    const inl = (x, z) => { const fx = x / 64, fz = z / 64, a = Math.floor(fx), b = Math.floor(fz), u = fx - a, w = fz - b;
+      return (nodeV(a, b) * (1 - u) + nodeV(a + 1, b) * u) * (1 - w) + (nodeV(a, b + 1) * (1 - u) + nodeV(a + 1, b + 1) * u) * w; };
+    for (let j = 0; j < FN; j++) {
+      for (let i = 0; i < FN; i++) { const x = x0 + (i + 0.5) * FC, z = z0 + (j + 0.5) * FC, k = j * FN + i;
+        if (!c.isWater(x, z)) { v[k] = -1; continue; } isW[k] = 1; const wk = wkAt ? wkAt.call(d, x, z) : 'sea';
+        v[k] = wk && wk !== 'sea' ? 1 : inl(x, z); }
+      if (performance.now() - t0 > 1.5) { yield; t0 = performance.now(); }
+    }
+    const tmp = new Float32Array(N2);
+    const pass = (fn) => { tmp.set(v); for (let j = 1; j < FN - 1; j++) for (let i = 1; i < FN - 1; i++) fn(j * FN + i); };
+    for (let n = 0; n < 2; n++) { pass((k) => { if (!isW[k]) return; let m = tmp[k]; for (const o of [1, -1, FN, -FN]) if (isW[k + o] && tmp[k + o] > m) m = tmp[k + o]; v[k] = m; }); yield; } // fresh into the sea fringe
+    for (let n = 0; n < 2; n++) { pass((k) => { if (!isW[k]) return; let s = tmp[k] * 2, w = 2; for (const o of [1, -1, FN, -FN, FN + 1, FN - 1, -FN + 1, -FN - 1]) if (isW[k + o]) { s += tmp[k + o]; w++; } v[k] = s / w; }); yield; } // smooth inside the water
+    for (let n = 0; n < 3; n++) { pass((k) => { if (tmp[k] >= 0) return; let s = 0, w = 0; for (const o of [1, -1, FN, -FN]) if (tmp[k + o] >= 0) { s += tmp[k + o]; w++; } if (w) v[k] = s / w; }); yield; } // land carries its water's value
+    for (let k = 0; k < N2; k++) buf[k] = v[k] < 0 ? 255 : Math.round(Math.min(1, Math.max(0, v[k])) * 255);
   }
   W.fresh = F;
   W.updateFresh = function updateFresh(cam) {
@@ -179,17 +205,30 @@ export function createWaves(game, opts = {}) {
     let fs = mat.fragmentShader;
     const A = ['vec2 p = vWorld.xz;', 'float chop = ( 0.55 + 0.35 * lowSun ) * lod * uWindChop;', 'vec3 Tr = exp( -vec3( 0.42, 0.072, 0.034 ) * Lp );', 'vec3 bedFake = mix( vec3( 0.46, 0.43, 0.37 ), vec3( 0.05, 0.08, 0.045 ), grassB )'];
     if (!A.every((a) => fs.includes(a)) || !/vec3 inS = [^;]*;/.test(fs)) return false;
-    fs = fs.replace('void main() {', 'uniform sampler2D tFresh; uniform vec4 uFreshRect;\n      void main() {');
+    fs = fs.replace('void main() {', 'uniform sampler2D tFresh; uniform vec4 uFreshRect; uniform float uR4;\n      void main() {');
     fs = fs.replace(A[0], `${A[0]}
         float fresh = 0.0; { vec2 fu = ( p - uFreshRect.xy ) * uFreshRect.z; if ( uFreshRect.w > 0.5 && fu.x > 0.0 && fu.y > 0.0 && fu.x < 1.0 && fu.y < 1.0 ) fresh = texture2D( tFresh, fu ).r; }`);
     fs = fs.replace(A[1], `${A[1]} chop *= 1.0 - 0.6 * fresh; // still inland water: fine ripples, no sea chop`);
+    const R4A = ['float dE = wD + wob,', 'float Fn = F * smoothstep( 0.0, 0.05, dE );', 'addC += vec3( 0.02 ) * crest * Ein;', 'vec3 foamC =', 'vec3 mulC = vec3( 1.0 - Fn ) * Tr * dataK;'];
+    const r4 = R4A.every((a) => fs.includes(a)) && fs.includes('float r4Land');
+    if (r4) { // r4-water: inland banks (Brickell Ave swamp): soft, even, murky; the sea keeps r2-ground's look
+      fs = fs.replace(R4A[0], 'float r4F = fresh * uR4; float dE = wD + wob * ( 1.0 - r4F ),'); // no breathing edge inland (it crawled over the flats)
+      fs = fs.replace(R4A[1], `${R4A[1]} Fn *= r4E;`);
+      fs = fs.replace(R4A[2], 'addC += vec3( 0.02 ) * crest * Ein * ( 1.0 - r4F );'); // no surf wavelet rings on a pond
+      fs = fs.replace(R4A[3], 'fA *= 1.0 - r4F; vec3 foamC ='); // no foam lace / white blotches on a pond's edge
+      fs = fs.replace(R4A[4], `${R4A[4]} { float bk = r4E * ( 1.0 - r4E ) * 4.0 * r4F; mulC *= 1.0 - 0.38 * bk; addC *= 1.0 - 0.3 * bk; } // the last meter: dark wet mud under a film of water`);
+    }
+    // r4: one even, murky body: past the bank the look no longer depends on the (noisy) bed depth; at the bank the water thins
+    // out over ~2 m of the blurred land cover (r4Land, ocean.js height cascade), so the line is soft and follows the bank
+    const r4Tr = r4 ? `float r4E = mix( 1.0, 1.0 - smoothstep( 0.1, 0.46, r4Land ), r4F * hK ); float LpF = mix( Lp, max( Lp, 2.4 * r4E ), r4F );
+        vec3 Tr = mix( vec3( 1.0 ), exp( -mix( vec3( 0.42, 0.072, 0.034 ), mix( vec3( 0.75, 1.45, 3.1 ), vec3( 2.1, 2.5, 3.6 ), uR4 ), fresh ) * LpF ), mix( 1.0, r4E, r4F ) );` : '';
     // tannin: blue and green absorbed within a meter (amber-brown), red carries -> shallows show the dark bed through tea
-    fs = fs.replace(A[2], 'vec3 Tr = exp( -mix( vec3( 0.42, 0.072, 0.034 ), vec3( 0.75, 1.45, 3.1 ), fresh ) * Lp );');
-    fs = fs.replace(/vec3 inS = ([^;]*);/, (m0, ex) => `vec3 inS = mix( ${ex}, vec3( 0.022, 0.016, 0.006 ) * Ein * ( 1.0 - Tr ) * facet, fresh );`);
+    fs = fs.replace(A[2], r4Tr || 'vec3 Tr = exp( -mix( vec3( 0.42, 0.072, 0.034 ), vec3( 0.75, 1.45, 3.1 ), fresh ) * Lp );');
+    fs = fs.replace(/vec3 inS = ([^;]*);/, (m0, ex) => `vec3 inS = mix( ${ex}, mix( vec3( 0.022, 0.016, 0.006 ), vec3( 0.019, 0.021, 0.012 ), uR4 ) * Ein * ( 1.0 - Tr ) * facet, fresh );`); // r4: murky olive-brown body (was near-black tea)
     // stand-in bed: peat / mud with drowned leaf litter instead of white sand (the milky gray look in canals)
     const B0 = A[3].replace('vec3 bedFake = ', '');
     fs = fs.replace(A[3], `vec3 bedFake = mix( ${B0}, mix( vec3( 0.075, 0.058, 0.036 ), vec3( 0.035, 0.03, 0.018 ), grassB ), fresh )`);
-    mat.fragmentShader = fs; mat.uniforms.tFresh = uniforms.tFresh; mat.uniforms.uFreshRect = uniforms.uFreshRect; mat.needsUpdate = true;
+    mat.fragmentShader = fs; mat.uniforms.tFresh = uniforms.tFresh; mat.uniforms.uFreshRect = uniforms.uFreshRect; mat.uniforms.uR4 = uniforms.uR4; mat.needsUpdate = true; W.r4Patched = r4;
     return true;
   };
   return W;

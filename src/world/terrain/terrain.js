@@ -7,6 +7,7 @@ import { loadArray, loadSet, setParams } from '../city/pbr.js';
 import { loadGroundArrays } from './groundtex.js';
 import { patchGround, recipeUniforms } from './groundShader.js';
 import { groundClaims } from '../ground/claims.js';
+import { R4WATER } from '../env/freshMask.js';
 // ground v2 (user's ground scans, hex-tiled recipes, shore bands): ?ground2=0 restores the previous Poly Haven array shader (A/B audits)
 export const GROUND2 = typeof location === 'undefined' || !/[?&]ground2=0\b/.test(location.search);
 
@@ -177,7 +178,8 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     }
     // shoreline: a few meters of beach sand on open coast, mud on marsh / mangrove banks
     if (data.isWater && k !== 'marsh') for (const [dx, dz] of [[5, 0], [-5, 0], [0, 5], [0, -5]]) if (data.isWater(x + dx, z + dz)) {
-      const wk = data.waterKindAt ? data.waterKindAt(x + dx, z + dz) : 'sea';
+      let wk = data.waterKindAt ? data.waterKindAt(x + dx, z + dz) : 'sea';
+      if (R4WATER && wk === 'sea' && data.waterKindAt) for (const s of [2.5, 4.5]) { const w2 = data.waterKindAt(x + dx * s, z + dz * s); if (w2 && w2 !== 'sea') { wk = w2; break; } } // r4-water: a pond's 'sea' raster fringe (Brickell Ave swamp) made a beach-sand strip round the pond
       k = wk === 'sea' ? (k === 'sawgrass' || k === 'forest' ? 'marsh' : isKeys(x, z) && vnoise(x * 0.05, z * 0.05) < 0.4 ? 'damp' : 'sand') : wk === 'lake' ? 'damp' : k === 'lawn' || k === 'forest' || k === 'pine' ? k : 'marsh'; break; // canal / pond / river banks: mud and grass, not beach
     }
     return LI[k];

@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { GT } from './groundtex.js';
 import { vegUniforms } from '../vegetation/materials.js';
 import { CAUSTIC_GLSL } from '../ground/caustics.js';
+import { FRESH_U } from '../env/freshMask.js';
 
 // A / B: [texture, meters per repeat, tint (linear multiplier)]; cov: share of B (0..1); mf: B patch size (m);
 // M: [macro texture, meters, color strength, B-mask push from the macro's darkness (signed)];
@@ -152,11 +153,11 @@ export function patchGround(mat, lod, opts, tex, U) {
   mat.customProgramCacheKey = () => 'ps-ground2-' + (lod ? 'lod' : 'near');
   mat.onBeforeCompile = (sh) => {
     if (lod && opts.nearCut) opts.nearCut(sh);
-    Object.assign(sh.uniforms, { tGC: { value: tex.col }, tGN: { value: tex.aux }, uRA: U.uRA, uRB: U.uRB, uRC: U.uRC, uRD: U.uRD, uTA: U.uTA, uTB: U.uTB, uRN: U.uRN, uVegTime: vegUniforms.uVegTime, uGSea: { value: opts.seaLevel ?? -0.12 } });
+    Object.assign(sh.uniforms, { tGC: { value: tex.col }, tGN: { value: tex.aux }, uRA: U.uRA, uRB: U.uRB, uRC: U.uRC, uRD: U.uRD, uTA: U.uTA, uTB: U.uTB, uRN: U.uRN, uVegTime: vegUniforms.uVegTime, uGSea: { value: opts.seaLevel ?? -0.12 }, tR4Fresh: FRESH_U.tFresh, uR4Rect: FRESH_U.uFreshRect, uR4g: FRESH_U.uR4 });
     sh.vertexShader = 'attribute vec3 aL;\nattribute float aS;\nattribute float aLow;\nvarying vec3 vL;\nvarying vec3 vBary;\nvarying vec3 vWP;\nvarying vec3 vWN;\nvarying float vShore;\nvarying float vLow;\n' + sh.vertexShader.replace('#include <fog_vertex>', `#include <fog_vertex>
       vL = aL; vShore = aS; vLow = aLow; int tid = gl_VertexID % 3; vBary = vec3(tid == 0 ? 1.0 : 0.0, tid == 1 ? 1.0 : 0.0, tid == 2 ? 1.0 : 0.0);
       vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * normal);`);
-    sh.fragmentShader = GROUND_GLSL_HEAD.replace(/\bNC\b/g, String(U.NC)) + sh.fragmentShader
+    sh.fragmentShader = 'uniform sampler2D tR4Fresh; uniform vec4 uR4Rect; uniform float uR4g;\n' + GROUND_GLSL_HEAD.replace(/\bNC\b/g, String(U.NC)) + sh.fragmentShader
       .replace('#include <map_fragment>', /* glsl */`
       vec2 wp = vWP.xz, gdx = dFdx(wp), gdy = dFdy(wp);
       float gdC = distance(cameraPosition, vWP);
@@ -192,6 +193,11 @@ export function patchGround(mat, lod, opts, tex, U) {
       // water: darker wet sand with soft caustics (the ocean shader adds the depth color on top)
       float hsea = vWP.y - uGSea;
       float shG = gs.shore * (1.0 - smoothstep(9.0, 22.0, vShore));
+      // r4-water: banks of inland water (ponds, canals, the Brickell Ave swamp) are not surf beaches: no swash film / foam lace /
+      // caustics there; a damp dark mud band at the waterline, a dark mud bed under the water, no marsh puddles on the bank
+      float r4Fg = 0.0;
+      if (uR4g > 0.5 && uR4Rect.w > 0.5) { vec2 fu = (wp - uR4Rect.xy) * uR4Rect.z; if (fu.x > 0.0 && fu.y > 0.0 && fu.x < 1.0 && fu.y < 1.0) r4Fg = texture2D(tR4Fresh, fu).r * (1.0 - smoothstep(10.0, 22.0, vShore)); }
+      shG *= 1.0 - r4Fg;
       float sn = gN(wp * 0.7 + 3.0), sn2 = gN(wp * 2.9 - 1.0);
       float film = 0.0, wetZ = 0.0, foamS = 0.0;
       if (shG > 0.002 && hsea < 0.6) {
@@ -214,18 +220,22 @@ export function patchGround(mat, lod, opts, tex, U) {
         tRough = mix(tRough, tRough * 0.8, dampZ); tRough = mix(tRough, 0.26, wetZ * 0.85);
         alb *= mix(vec3(1.0), vec3(0.9, 0.95, 0.95), film); tRough = mix(tRough, 0.05, film);
       }
+      if (r4Fg > 0.002) { float bn = gN(wp * 0.45 + 1.7);
+        float dB = r4Fg * (1.0 - smoothstep(0.8, 3.2 + bn * 2.2, vShore)) * (1.0 - smoothstep(0.12, 0.35, hsea));
+        alb *= mix(vec3(1.0), vec3(0.58, 0.56, 0.52), dB); tRough = mix(tRough, tRough * 0.55, dB); }
       { // under the water: wet, darker, soft moving caustics in the first 2 m
         float under = 1.0 - smoothstep(-0.04, 0.0, hsea);
         if (under > 0.0) {
           float cdp = clamp(-hsea, 0.0, 3.0);
           float ca = r2Caustic(wp, uVegTime);
-          alb = mix(alb * 0.8, vec3(0.45, 0.42, 0.355), under * mix(0.7, 1.0, smoothstep(0.03, 0.12, cdp))) /* deeper than ~10 cm: exactly the seabed's wet sand, no lighter terrain triangles near docks */ * (1.0 + ca * 0.55 * under * smoothstep(0.02, 0.18, cdp) * (1.0 - smoothstep(1.0, 3.0, cdp)));
+          ca *= 1.0 - r4Fg;
+          alb = mix(alb * 0.8, mix(vec3(0.45, 0.42, 0.355), vec3(0.15, 0.13, 0.095), r4Fg), under * mix(0.7, 1.0, smoothstep(0.03, 0.12, cdp))) /* deeper than ~10 cm: exactly the seabed's wet sand, no lighter terrain triangles near docks */ * (1.0 + ca * 0.55 * under * smoothstep(0.02, 0.18, cdp) * (1.0 - smoothstep(1.0, 3.0, cdp)));
           tRough = mix(tRough, 0.55, under);
         }
       }
       alb = mix(alb, vec3(0.8, 0.82, 0.82), foamS * 0.85); tRough = mix(tRough, 0.45, foamS);
       float wetB = max(wetZ * 0.6, film);
-      float pud = gs.wet * smoothstep(0.5, 0.58, gF(wp * 0.067 + 3.1) * 0.6 + gN(wp * 0.29 + 7.7) * 0.4); // standing water in marsh / mud
+      float pud = gs.wet * smoothstep(0.5, 0.58, gF(wp * 0.067 + 3.1) * 0.6 + gN(wp * 0.29 + 7.7) * 0.4) * (1.0 - r4Fg); // standing water in marsh / mud
       { // r2-ground: rain collects in the micro-relief's drainage lows and roadside swales (fills with the weather's puddle level, dries with it)
         float lowK = vLow + (gF(wp * 0.19 + 5.0) - 0.5) * 0.35 + (gN(wp * 1.3) - 0.5) * 0.08;
         float lp = uWeather.y * smoothstep(0.62 - 0.22 * uWeather.y, 0.7 - 0.2 * uWeather.y, lowK);

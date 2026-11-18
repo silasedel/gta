@@ -1,0 +1,91 @@
+{
+ "tag": "before",
+ "q": "r4water=0",
+ "spots": {
+  "brickell": {
+   "s": 9.807617407627275,
+   "x": 371,
+   "z": 1064,
+   "lx": 377,
+   "lz": 1064,
+   "an": 0,
+   "wk": "sea",
+   "rd": 0.6611680166943517
+  },
+  "inland1": {
+   "s": 21.595646492179156,
+   "x": -2490,
+   "z": -2718,
+   "lx": -2484,
+   "lz": -2718,
+   "an": 0,
+   "wk": "pond",
+   "rd": 5.698803732496794
+  },
+  "inland2": {
+   "s": 10.603829133051219,
+   "x": 998,
+   "z": -2578,
+   "lx": 993.7573593128807,
+   "lz": -2573.757359312881,
+   "an": 2.356194490192345,
+   "wk": "pond",
+   "rd": 3.8877010041525146
+  },
+  "inland3": {
+   "s": 21.652738620636445,
+   "x": -406,
+   "z": -2022,
+   "lx": -410.24264068711926,
+   "lz": -2017.7573593128807,
+   "an": 2.356194490192345,
+   "wk": "pond",
+   "rd": 7.664091650149842
+  },
+  "beach": {
+   "x": 2181.6152236891494,
+   "z": -1981.6152236891498,
+   "lx": 2177.3725830020303,
+   "lz": -1977.3725830020305,
+   "an": 2.356194490192345,
+   "wk": "sea"
+  }
+ },
+ "probe": {},
+ "shots": [
+  "docs/v2/shots/water/r4/brickell_close_11_before.jpg",
+  "docs/v2/shots/water/r4/brickell_mid_11_before.jpg",
+  "docs/v2/shots/water/r4/brickell_top_11_before.jpg",
+  "docs/v2/shots/water/r4/brickell_user_11_before.jpg",
+  "docs/v2/shots/water/r4/brickell_close_175_before.jpg",
+  "docs/v2/shots/water/r4/brickell_mid_175_before.jpg",
+  "docs/v2/shots/water/r4/brickell_top_175_before.jpg",
+  "docs/v2/shots/water/r4/brickell_user_175_before.jpg",
+  "docs/v2/shots/water/r4/inland1_close_11_before.jpg",
+  "docs/v2/shots/water/r4/inland1_mid_11_before.jpg",
+  "docs/v2/shots/water/r4/inland1_top_11_before.jpg",
+  "docs/v2/shots/water/r4/inland1_close_175_before.jpg",
+  "docs/v2/shots/water/r4/inland1_mid_175_before.jpg",
+  "docs/v2/shots/water/r4/inland1_top_175_before.jpg",
+  "docs/v2/shots/water/r4/inland2_close_11_before.jpg",
+  "docs/v2/shots/water/r4/inland2_mid_11_before.jpg",
+  "docs/v2/shots/water/r4/inland2_top_11_before.jpg",
+  "docs/v2/shots/water/r4/inland2_close_175_before.jpg",
+  "docs/v2/shots/water/r4/inland2_mid_175_before.jpg",
+  "docs/v2/shots/water/r4/inland2_top_175_before.jpg",
+  "docs/v2/shots/water/r4/inland3_close_11_before.jpg",
+  "docs/v2/shots/water/r4/inland3_mid_11_before.jpg",
+  "docs/v2/shots/water/r4/inland3_top_11_before.jpg",
+  "docs/v2/shots/water/r4/inland3_close_175_before.jpg",
+  "docs/v2/shots/water/r4/inland3_mid_175_before.jpg",
+  "docs/v2/shots/water/r4/inland3_top_175_before.jpg",
+  "docs/v2/shots/water/r4/beach_close_11_before.jpg",
+  "docs/v2/shots/water/r4/beach_mid_11_before.jpg",
+  "docs/v2/shots/water/r4/beach_top_11_before.jpg",
+  "docs/v2/shots/water/r4/beach_close_175_before.jpg",
+  "docs/v2/shots/water/r4/beach_mid_175_before.jpg",
+  "docs/v2/shots/water/r4/beach_top_175_before.jpg"
+ ],
+ "errors": [],
+ "r4": "null"
+}

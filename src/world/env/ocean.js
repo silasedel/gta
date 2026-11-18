@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { fillLandFromWater } from './shoreFill.js';
+import { R4WATER } from './freshMask.js';
 
 // Global ocean: one huge camera-following plane at sea level with
 //  - multi-scale scrolling normal maps, flattened with distance (LOD normals, no shimmer on the horizon)
@@ -112,6 +113,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
 
         // ---- r2-ground: true water depth near the camera (height cascade of the ground under the water) ----
         float sE = shoreM * mix( 0.75, 1.3, oN( p / 85.0 ) * 0.7 + oN( p / 23.0 + 4.0 ) * 0.3 ); // sand bars / channels break up the estimate
+        float r4Land = 0.0; // r4-water: blurred share of ground at / above the waterline (b / g of the cascade), 0 = open water
         float hK = 0.0, gwO = 0.0, wD = 0.08 + sE * 0.025 + sE * sE * 0.00035, wS = 0.06; // cascade weight, ground-data weight, depth (m; without ground data: the seabed shelf profile over the coarse shore distance), bottom slope
         if ( uHRect.w > 0.5 ) {
           vec2 hu = vec2( ( p.x - uHRect.x ) * uHRect.z, 1.0 - ( p.y - uHRect.y ) * uHRect.z );
@@ -122,7 +124,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
             vec4 h0 = texture2D( tHgt, hu ), hx = texture2D( tHgt, hu + vec2( tx, 0.0 ) ), hz = texture2D( tHgt, hu - vec2( 0.0, tx ) );
             hK = hb;
             if ( h0.g > 0.01 ) {
-              float y0 = h0.r / h0.g, gw = smoothstep( 0.08, 0.9, h0.g );
+              float y0 = h0.r / h0.g, gw = smoothstep( 0.08, 0.9, h0.g ); r4Land = clamp( h0.b / h0.g, 0.0, 1.0 );
               float sbF = 1.0; if ( uSbRect.w > 0.5 ) { vec2 sbd = abs( p - uSbRect.xy ); sbF = 1.0 - smoothstep( uSbRect.z - 70.0, uSbRect.z - 10.0, max( sbd.x, sbd.y ) ); } // long crossfade to the estimate before the seabed grid's rim: no straight edge
               gw *= sbF;
               wD = mix( wD, uSea - y0, gw );
@@ -301,17 +303,23 @@ export function createOcean(game, skyUniforms, normalsTex) {
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: 'uniform sampler2D tSrc; uniform vec2 uDir; varying vec2 vUv; void main() { vec4 c = texture2D(tSrc, vUv) * 0.1592; c += (texture2D(tSrc, vUv + uDir * 1.4706) + texture2D(tSrc, vUv - uDir * 1.4706)) * 0.2659; c += (texture2D(tSrc, vUv + uDir * 3.4302) + texture2D(tSrc, vUv - uDir * 3.4302)) * 0.1263; c += (texture2D(tSrc, vUv + uDir * 5.4) + texture2D(tSrc, vUv - uDir * 5.4)) * 0.0332; c += (texture2D(tSrc, vUv + uDir * 7.38) + texture2D(tSrc, vUv - uDir * 7.38)) * 0.005; gl_FragColor = c / 1.02; }' });
   const hQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), hBlur), hQS = new THREE.Scene(), hQC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); hQuad.frustumCulled = false; hQS.add(hQuad);
-  const hMat = new THREE.ShaderMaterial({ side: THREE.DoubleSide,
+  // r4-water: b = 1 where the ground is "land" for the bank fade (less than 5 cm under the still water counts: a 3 cm film over a
+  // flat lot is not a pond, it was the flickering puddle sheet next to Brickell Ave); blurred with the rest -> a soft bank contour
+  const hMat = new THREE.ShaderMaterial({ side: THREE.DoubleSide, uniforms: { uLandY: { value: -0.17 } },
     vertexShader: 'varying float vY; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vY = w.y; gl_Position = projectionMatrix * viewMatrix * w; }',
-    fragmentShader: 'varying float vY; void main() { gl_FragColor = vec4(vY, 1.0, 0.0, 1.0); }' });
+    fragmentShader: 'uniform float uLandY; varying float vY; void main() { gl_FragColor = vec4(vY, 1.0, step(uLandY, vY), 1.0); }' });
+  // the land base only where it is drawn: on synthetic (terrain) land the ground shader drops it under full-detail ground (aTile)
+  const hMatLB = new THREE.ShaderMaterial({ side: THREE.DoubleSide, uniforms: hMat.uniforms,
+    vertexShader: 'attribute vec2 aTile; varying float vY; varying float vCut; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vY = w.y; vCut = aTile.x > -1e5 ? 1.0 : 0.0; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: 'uniform float uLandY; varying float vY; varying float vCut; void main() { if (vCut > 0.5) discard; gl_FragColor = vec4(vY, 1.0, step(uLandY, vY), 1.0); }' });
   const hLod = new THREE.Scene(), hNear = new THREE.Scene(); hLod.matrixWorldAutoUpdate = false; hNear.matrixWorldAutoUpdate = false;
   const hCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 700); hCam.rotation.set(-Math.PI / 2, 0, 0);
   const hProx = new Map();
   const groundKind = (o) => { if (!o.isMesh || o.isInstancedMesh || !o.geometry) return 0; if (o.name === 'seabed') return 2; const m = Array.isArray(o.material) ? o.material[0] : o.material, n = (m && m.name) || '';
-    if (n === 'terrain-lod') return 1; if (n === 'terrain' || /^ground:/.test(n)) return 2; const sand = game.city && game.city.materials && game.city.materials.sand; return sand && m === sand ? 2 : 0; };
+    if (n === 'terrain-lod') return 1; if (n === 'terrain' || /^ground:/.test(n) || (R4WATER && n === 'land-base')) return 2; /* r4: the map's land polygons (-0.05) are the visible bank in real Miami */ const sand = game.city && game.city.materials && game.city.materials.sand; return sand && m === sand ? 2 : 0; };
   function scanGround() {
     const live = new Set();
-    game.scene.traverse((o) => { const k = groundKind(o); if (!k) return; live.add(o); if (!hProx.has(o)) { const p = new THREE.Mesh(o.geometry, hMat); p.matrixAutoUpdate = false; p.matrixWorldAutoUpdate = false; hProx.set(o, p); (k === 1 ? hLod : hNear).add(p); } });
+    game.scene.traverse((o) => { const k = groundKind(o); if (!k) return; live.add(o); if (!hProx.has(o)) { const lb = R4WATER && o.geometry.attributes.aTile && ((Array.isArray(o.material) ? o.material[0] : o.material)?.name === 'land-base'); const p = new THREE.Mesh(o.geometry, lb ? hMatLB : hMat); p.matrixAutoUpdate = false; p.matrixWorldAutoUpdate = false; hProx.set(o, p); (k === 1 ? hLod : hNear).add(p); } });
     for (const [o, p] of hProx) if (!live.has(o)) { p.removeFromParent(); hProx.delete(o); }
   }
   // r3-perf (leak, ?leakfix=0 rolls back): a proxy kept its source mesh (and through .parent the whole streamed tile, every
@@ -334,6 +342,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
       hBlur.uniforms.tSrc.value = hRT.texture; hBlur.uniforms.uDir.value.set(0.55 / 256, 0); renderer.setRenderTarget(hB0); renderer.render(hQS, hQC);
       hBlur.uniforms.tSrc.value = hB0.texture; hBlur.uniforms.uDir.value.set(0, 0.55 / 256); renderer.setRenderTarget(hB1); renderer.render(hQS, hQC);
     } finally { renderer.setRenderTarget(prevRT); renderer.autoClear = prevAC; renderer.setClearColor(prevCol, prevA); renderer.shadowMap.autoUpdate = prevSh; renderer.shadowMap.needsUpdate = prevNU; }
+    hMat.uniforms.uLandY.value = uniforms.uSea.value - 0.05;
     uniforms.uHRect.value.set(cx - h, cz - h, 1 / HC.span, 1); HC.cx = cx; HC.cz = cz; HC.t = 0; HC.renders++; HC.ms = performance.now() - t0;
   }
   function updateHeights(dt, camera) {

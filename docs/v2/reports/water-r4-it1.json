@@ -1,0 +1,6385 @@
+{
+ "tag": "it1",
+ "q": "",
+ "spots": {
+  "brickell": {
+   "s": 9.807617407627275,
+   "x": 371,
+   "z": 1064,
+   "lx": 377,
+   "lz": 1064,
+   "an": 0,
+   "wk": "sea",
+   "rd": 0.6611680166943517
+  },
+  "beach": {
+   "x": 2181.6152236891494,
+   "z": -1981.6152236891498,
+   "lx": 2177.3725830020303,
+   "lz": -1977.3725830020305,
+   "an": 2.356194490192345,
+   "wk": "sea"
+  }
+ },
+ "probe": {
+  "brickell": {
+   "transects": [
+    {
+     "off": -12,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.686,
+         "asph|M.asphalt"
+        ],
+        [
+         0.629,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.533,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.663,
+         "asph|M.asphalt"
+        ],
+        [
+         0.608,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.518,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.64,
+         "asph|M.asphalt"
+        ],
+        [
+         0.588,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 1.503,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.617,
+         "asph|M.asphalt"
+        ],
+        [
+         0.568,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.489,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.594,
+         "asph|M.asphalt"
+        ],
+        [
+         0.548,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 1.474,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.571,
+         "asph|M.asphalt"
+        ],
+        [
+         0.527,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.548,
+         "asph|M.asphalt"
+        ],
+        [
+         0.507,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.526,
+         "asph|M.asphalt"
+        ],
+        [
+         0.487,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.507,
+         "asph|M.asphalt"
+        ],
+        [
+         0.466,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.487,
+         "asph|M.asphalt"
+        ],
+        [
+         0.446,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.474,
+         "mark|M.markings"
+        ],
+        [
+         0.467,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.454,
+         "mark|M.markings"
+        ],
+        [
+         0.447,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.426,
+         "asph|M.asphalt"
+        ],
+        [
+         0.385,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.404,
+         "asph|M.asphalt"
+        ],
+        [
+         0.365,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.383,
+         "asph|M.asphalt"
+        ],
+        [
+         0.345,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.361,
+         "asph|M.asphalt"
+        ],
+        [
+         0.325,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.343,
+         "asph|M.asphalt"
+        ],
+        [
+         0.304,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.326,
+         "asph|M.asphalt"
+        ],
+        [
+         0.284,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.47,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.309,
+         "asph|M.asphalt"
+        ],
+        [
+         0.263,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 0,
+       "wk": null,
+       "gh": 1.212,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.302,
+         "mark|M.markings"
+        ],
+        [
+         0.292,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 1.191,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.274,
+         "asph|M.asphalt"
+        ],
+        [
+         0.222,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.257,
+         "asph|M.asphalt"
+        ],
+        [
+         0.201,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.24,
+         "asph|M.asphalt"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.022,
+         "terrain|terrain"
+        ],
+        [
+         -0.022,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.023,
+         "terrain|terrain"
+        ],
+        [
+         -0.023,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.025,
+         "terrain|terrain"
+        ],
+        [
+         -0.025,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.027,
+         "terrain|terrain"
+        ],
+        [
+         -0.027,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.029,
+         "terrain|terrain"
+        ],
+        [
+         -0.029,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.03,
+         "terrain|terrain"
+        ],
+        [
+         -0.03,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.032,
+         "terrain|terrain"
+        ],
+        [
+         -0.032,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.034,
+         "terrain|terrain"
+        ],
+        [
+         -0.034,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.042,
+         "terrain|terrain"
+        ],
+        [
+         -0.042,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.05,
+         "terrain|terrain"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "off": 0,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.007,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.073,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.165,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.263,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.307,
+         "conc|elevated-concrete"
+        ],
+        [
+         0.25,
+         "conc|elevated-concrete"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         2.033,
+         "conc|elevated-concrete"
+        ],
+        [
+         1.351,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 2.486,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.32,
+         "asph|M.asphalt"
+        ],
+        [
+         1.264,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.476,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.301,
+         "mark|M.markings"
+        ],
+        [
+         1.29,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 2.466,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.26,
+         "asph|M.asphalt"
+        ],
+        [
+         1.207,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.455,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.23,
+         "asph|M.asphalt"
+        ],
+        [
+         1.179,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 2.445,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.2,
+         "asph|M.asphalt"
+        ],
+        [
+         1.151,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.435,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.169,
+         "asph|M.asphalt"
+        ],
+        [
+         1.121,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 2.425,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         2.967,
+         "LOD1_body|nicoTripo"
+        ],
+        [
+         1.139,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.414,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.109,
+         "asph|M.asphalt"
+        ],
+        [
+         1.062,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.404,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.079,
+         "asph|M.asphalt"
+        ],
+        [
+         1.032,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.394,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.061,
+         "mark|M.markings"
+        ],
+        [
+         1.051,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 2.383,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.022,
+         "asph|M.asphalt"
+        ],
+        [
+         0.972,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.373,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.993,
+         "asph|M.asphalt"
+        ],
+        [
+         0.943,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 2.363,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.964,
+         "asph|M.asphalt"
+        ],
+        [
+         0.913,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.352,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.935,
+         "asph|M.asphalt"
+        ],
+        [
+         0.883,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 2.342,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.906,
+         "asph|M.asphalt"
+        ],
+        [
+         0.854,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.332,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.878,
+         "asph|M.asphalt"
+        ],
+        [
+         0.824,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 2.322,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.849,
+         "asph|M.asphalt"
+        ],
+        [
+         0.794,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 2.311,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.82,
+         "asph|M.asphalt"
+        ],
+        [
+         0.765,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.067,
+         "conc|elevated-concrete"
+        ],
+        [
+         0.791,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.858,
+         "conc|elevated-concrete"
+        ],
+        [
+         0.762,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.288,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.034,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.19,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.048,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.093,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.014,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.066,
+         "conc|elevated-concrete"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.106,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.121,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.12,
+         "facades|M.facade"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         -0.15,
+         "terrain|terrain"
+        ],
+        [
+         -0.15,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.185,
+         "terrain|terrain"
+        ],
+        [
+         -0.185,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.22,
+         "terrain|terrain"
+        ],
+        [
+         -0.22,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.244,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.254,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.252,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.289,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.26,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.317,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.268,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.318,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.277,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.315,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 1,
+       "wk": "sea",
+       "gh": -1.787,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.285,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.312,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.129,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.293,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.306,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.214,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.3,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.3,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.298,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.294,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.294,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.383,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.288,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.288,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.467,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.294,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.294,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.551,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.3,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.3,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.636,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.306,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.306,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.72,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.312,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.312,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.72,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.33,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.33,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.72,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.347,
+         "seabed|MeshStandardMaterial"
+        ],
+        [
+         -0.347,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "off": 12,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         0.08,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         0.177,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         0.278,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.928,
+         "conc|elevated-concrete"
+        ],
+        [
+         0.25,
+         "conc|elevated-concrete"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         2.335,
+         "conc|elevated-concrete"
+        ],
+        [
+         1.951,
+         "asph|M.asphalt"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.225,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.921,
+         "asph|M.asphalt"
+        ],
+        [
+         1.86,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 3.222,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.892,
+         "asph|M.asphalt"
+        ],
+        [
+         1.829,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.219,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.863,
+         "asph|M.asphalt"
+        ],
+        [
+         1.798,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 3.217,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.833,
+         "asph|M.asphalt"
+        ],
+        [
+         1.767,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.214,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.804,
+         "asph|M.asphalt"
+        ],
+        [
+         1.736,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 3.211,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.774,
+         "asph|M.asphalt"
+        ],
+        [
+         1.706,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.208,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.745,
+         "asph|M.asphalt"
+        ],
+        [
+         1.677,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 3.206,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.716,
+         "asph|M.asphalt"
+        ],
+        [
+         1.648,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.203,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.686,
+         "asph|M.asphalt"
+        ],
+        [
+         1.619,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 3.2,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.657,
+         "asph|M.asphalt"
+        ],
+        [
+         1.59,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.198,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.627,
+         "asph|M.asphalt"
+        ],
+        [
+         1.561,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 3.195,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.597,
+         "asph|M.asphalt"
+        ],
+        [
+         1.532,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.192,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.567,
+         "asph|M.asphalt"
+        ],
+        [
+         1.503,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.189,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.537,
+         "asph|M.asphalt"
+        ],
+        [
+         1.474,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.187,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.507,
+         "asph|M.asphalt"
+        ],
+        [
+         1.446,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 3.184,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.477,
+         "asph|M.asphalt"
+        ],
+        [
+         1.417,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 3.181,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.447,
+         "asph|M.asphalt"
+        ],
+        [
+         1.388,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         1.417,
+         "asph|M.asphalt"
+        ],
+        [
+         1.359,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         2.482,
+         "conc|elevated-concrete"
+        ],
+        [
+         2.36,
+         "?|M.far"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.308,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.169,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.208,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.177,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_long",
+       "hit": [
+        [
+         0.107,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.186,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         0.023,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.194,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.059,
+         "conc|elevated-concrete"
+        ],
+        [
+         -0.202,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.21,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.301,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.219,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.318,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.52,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.227,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.316,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.52,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.235,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.313,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.52,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.244,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.311,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.52,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.252,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.308,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.526,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.26,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.31,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.557,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.268,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.312,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.589,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.277,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.315,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.62,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.285,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.317,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.639,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.293,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.341,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.657,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.302,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.366,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.676,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.31,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.39,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.695,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.318,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.415,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.714,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.326,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.44,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.732,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.335,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.465,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.751,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.343,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.49,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.77,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.351,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.515,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.789,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.36,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.5,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.807,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.368,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.485,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.826,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.376,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.469,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.845,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.384,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.454,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.864,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.393,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.469,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.883,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.401,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.485,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.901,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.409,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.501,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.92,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.418,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.517,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 1,
+       "wk": "pond",
+       "gh": -0.97,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.426,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.54,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 1,
+       "wk": "pond",
+       "gh": -1.02,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.434,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.564,
+         "seabed|MeshStandardMaterial"
+        ]
+       ]
+      }
+     ]
+    }
+   ],
+   "map": [
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPP==================",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP=================",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP...==============",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP.............====",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP...............SS",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP...............SS",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP...............SS",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP...............SS",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPSS................SS",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPSS.................S",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPS=..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPS=..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPP==..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPP==..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPP===..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPP===..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPSS.===..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPSS====..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPPS.====..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPP..====..................",
+    "PPPPPPPPPPPPPPPPPPPPPPPP..====..................",
+    "PPPPPPPPPPPPPPPPPPPPPPP...====..................",
+    "PPPPPPPPPPPPPPPPPPPPPPP..====...................",
+    "PPPPPPPPPPPPPPPPPPPPPP...====...................",
+    "PPPPPPPPPPPPPPPPPPPPSS...====...................",
+    "PPPPPPPPPPPPPPPPPPPPS....====...................",
+    "PPPPPPPPPPPPPPPPPPPP....====....................",
+    "PPPPPPPPPPPPPPPPPPPP....====....................",
+    "PPPPSSSSSSSSSSSSSS.....=====....................",
+    "PPPPSSSSS..............====.....................",
+    "PPPPSS................=====.....................",
+    ".P....................====......................",
+    ".....................=====......................",
+    "....................=====.......................",
+    "....................====........................",
+    "...................=====........................",
+    "..................=====.........................",
+    ".................=====..........................",
+    ".................====...........................",
+    "................=====...........................",
+    "====================............................",
+    "===================.............................",
+    "===================.............................",
+    "====================............................",
+    "=====================...........................",
+    "===............=======..........................",
+    "==..............======..........................",
+    "==...............======........................."
+   ],
+   "freshOn": true,
+   "waveShader": false,
+   "sea": -0.12,
+   "fresh": [
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255
+   ],
+   "hRect": [
+    280,
+    928,
+    0.00390625,
+    1
+   ],
+   "meshes": 117
+  },
+  "beach": {
+   "transects": [
+    {
+     "off": -12,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.028,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.037,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.046,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.028,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.042,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.057,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.071,
+         "terrain|terrain"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "off": 0,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         1.827,
+         "LOD1_body|nicoTripo"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.027,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.038,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.024,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.038,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.052,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.066,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.08,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.094,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.123,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.161,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.2,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.207,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.238,
+         "terrain|terrain"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "off": 12,
+     "tr": [
+      {
+       "k": -14,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -13,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "sand",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": -1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": -0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 0,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 0.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 1,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 1.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 2,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 2.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 3,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 3.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.02,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 4,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.027,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 4.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.038,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 5.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 6,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 6.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.02,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 7,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.022,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 7.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.025,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 8,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.027,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 8.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.03,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 9,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.038,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 9.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.049,
+         "terrain|terrain"
+        ],
+        [
+         -0.05,
+         "?|land-base"
+        ]
+       ]
+      },
+      {
+       "k": 10,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "grass_short",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.061,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 10.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "concrete",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.076,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "concrete",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.092,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 11.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "concrete",
+       "hit": [
+        [
+         -0.05,
+         "?|land-base"
+        ],
+        [
+         -0.108,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 12,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "concrete",
+       "hit": [
+        [
+         -0.124,
+         "terrain|terrain"
+        ],
+        [
+         -0.214,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 12.5,
+       "w": 0,
+       "wk": null,
+       "gh": 0,
+       "th": 0,
+       "s": "concrete",
+       "hit": [
+        [
+         -0.163,
+         "terrain|terrain"
+        ],
+        [
+         -0.226,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 13,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.217,
+         "terrain|terrain"
+        ],
+        [
+         -0.237,
+         "terrain-lod|terrain-lod"
+        ]
+       ]
+      },
+      {
+       "k": 13.5,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.249,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.27,
+         "terrain|terrain"
+        ]
+       ]
+      },
+      {
+       "k": 14,
+       "w": 1,
+       "wk": "sea",
+       "gh": -0.953,
+       "th": 0,
+       "s": "water",
+       "hit": [
+        [
+         -0.261,
+         "terrain-lod|terrain-lod"
+        ],
+        [
+         -0.324,
+         "terrain|terrain"
+        ]
+       ]
+      }
+     ]
+    }
+   ],
+   "map": [
+    ".....................SSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".....................SSSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "......................SSSSSSSSSSSSSSSSSSSSSSSSSS",
+    "......................SSSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".......................SSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".......................SSSSSSSSSSSSSSSSSSSSSSSSS",
+    ".......................SSSSSSSSSSSSSSSSSSSSSSSSS",
+    "........................SSSSSSSSSSSSSSSSSSSSSSSS",
+    "........................SSSSSSSSSSSSSSSSSSSSSSSS",
+    ".........................SSSSSSSSSSSSSSSSSSSSSSS",
+    ".........................SSSSSSSSSSSSSSSSSSSSSSS",
+    "..........................SSSSSSSSSSSSSSSSSSSSSS",
+    "..........................SSSSSSSSSSSSSSSSSSSSSS",
+    "...........................SSSSSSSSSSSSSSSSSSSSS",
+    "...........................SSSSSSSSSSSSSSSSSSSSS",
+    "............................SSSSSSSSSSSSSSSSSSSS",
+    "............................SSSSSSSSSSSSSSSSSSSS",
+    ".............................SSSSSSSSSSSSSSSSSSS",
+    "..............................SSSSSSSSSSSSSSSSSS",
+    "..............................SSSSSSSSSSSSSSSSSS",
+    "...............................SSSSSSSSSSSSSSSSS",
+    "................................SSSSSSSSSSSSSSSS",
+    "................................SSSSSSSSSSSSSSSS",
+    ".................................SSSSSSSSSSSSSSS",
+    "..................................SSSSSSSSSSSSSS",
+    "...................................SSSSSSSSSSSSS",
+    "...................................SSSSSSSSSSSSS",
+    "....................................SSSSSSSSSSSS",
+    ".....................................SSSSSSSSSSS",
+    ".....................................SSSSSSSSSSS",
+    "......................................SSSSSSSSSS",
+    ".......................................SSSSSSSSS",
+    "........................................SSSSSSSS",
+    ".........................................SSSSSSS",
+    "..........................................SSSSSS",
+    "=..........................................SSSSS",
+    "==..........................................SSSS",
+    "===..........................................SSS",
+    "=====.........................................SS",
+    "======.........................................S",
+    ".======.........................................",
+    "..======........................................",
+    "...======.......................................",
+    "....======......................................",
+    ".....======.....................................",
+    "......=====.....................................",
+    ".......=====....................................",
+    "........=====..................................."
+   ],
+   "freshOn": true,
+   "waveShader": false,
+   "sea": -0.12,
+   "fresh": [
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hRect": [
+    2036,
+    -2076,
+    0.00390625,
+    1
+   ],
+   "meshes": 51
+  }
+ },
+ "shots": [
+  "docs/v2/shots/water/r4/brickell_close_11_it1.jpg",
+  "docs/v2/shots/water/r4/brickell_mid_11_it1.jpg",
+  "docs/v2/shots/water/r4/brickell_top_11_it1.jpg",
+  "docs/v2/shots/water/r4/brickell_user_11_it1.jpg",
+  "docs/v2/shots/water/r4/beach_close_11_it1.jpg",
+  "docs/v2/shots/water/r4/beach_mid_11_it1.jpg",
+  "docs/v2/shots/water/r4/beach_top_11_it1.jpg"
+ ],
+ "errors": [],
+ "r4": "null"
+}
