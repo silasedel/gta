@@ -114,6 +114,33 @@ function whitewall(g, R, tw, band) {
   }
   c.needsUpdate = true; rm.needsUpdate = true;
 }
+// tire carcass (user: "the tires look like thin crappy layers"): game-rip knobby tires are open lug shells with nothing
+// behind them, so the far side and the sky show between the lugs.  A closed dark rubber drum under the tread fills it.
+function addCarcass(g, r) {
+  const p = g?.getAttribute('position'); if (!p) return g;
+  let x0 = Infinity, x1 = -Infinity, n = 0;
+  for (let i = 0; i < p.count; i++) { const rr = Math.hypot(p.getY(i), p.getZ(i)); if (rr > 0.8 * r) { const x = p.getX(i); if (x < x0) x0 = x; if (x > x1) x1 = x; n++; } }
+  if (n < 12 || !(x1 - x0 > 0.05)) return g;
+  // the bead (rim edge): the smallest radius of the dark rubber vertices; the side rings stop there and never cover the rim
+  const col = g.getAttribute('color'); let bead = r * 0.87;
+  if (col) for (let i = 0; i < p.count; i++) { const rr = Math.hypot(p.getY(i), p.getZ(i)); if (rr > 0.45 * r && rr < bead && 0.2126 * col.getX(i) + 0.7152 * col.getY(i) + 0.0722 * col.getZ(i) < 0.09) bead = rr; }
+  bead = Math.min(r * 0.84, bead + 0.012);
+  const xc = (x0 + x1) / 2, hw = (x1 - x0) * 0.36;   // rings well inside the sidewall: lugs and lettering stay in front
+  const drum = new THREE.CylinderGeometry(r * 0.87, r * 0.87, hw * 2, 40, 1, true); drum.rotateZ(Math.PI / 2); drum.translate(xc, 0, 0);
+  const ringA = new THREE.RingGeometry(bead, r * 0.87, 40, 1); ringA.rotateY(Math.PI / 2); ringA.translate(xc + hw, 0, 0);
+  const ringB = new THREE.RingGeometry(bead, r * 0.87, 40, 1); ringB.rotateY(-Math.PI / 2); ringB.translate(xc - hw, 0, 0);
+  const c = mergeGeometries([drum.toNonIndexed(), ringA.toNonIndexed(), ringB.toNonIndexed()], false);
+  const m = c.attributes.position.count;
+  for (const k of Object.keys(g.attributes)) {
+    if (k === 'position' || k === 'normal') continue;
+    const src = g.getAttribute(k), arr = new Float32Array(m * src.itemSize);
+    if (k === "color") arr.fill(0.05);
+    if (k === 'aRM') for (let i = 0; i < m; i++) { arr[i * 2] = 0.88; arr[i * 2 + 1] = 0; }
+    c.setAttribute(k, new THREE.BufferAttribute(arr, src.itemSize));
+  }
+  for (const k of Object.keys(c.attributes)) if (!g.getAttribute(k)) c.deleteAttribute(k);
+  return mergeSafe([g, c]) || g;
+}
 function mergeSafe(list) {
   let gs = list.filter(Boolean);
   if (!gs.length) return null;
@@ -167,12 +194,13 @@ export function loadCarModel(key) {
       return mergeSafe(list);
     };
     const cal = parts.caliper0 ? mergeSafe(Object.values(parts.caliper0).map((g) => prepWheel(g, true))) : null;
-    let wheel = [mergeSafe([wheelGeo('wheel0'), cal]), wheelGeo('wheel1')];
+    let wheel = [mergeSafe([addCarcass(wheelGeo('wheel0'), man.r), cal]), addCarcass(wheelGeo('wheel1'), man.r)];
+    if ((man.tris?.wheel0 || 0) >= 8000) wheel[1] = wheel[0];   // knobby off-road tread: no decimated lugs at mid range
     if (man.wheelDonor && man.wheelDonor !== key) { // crude source wheels (8-sided): borrow a better wheel, scaled to this tire
       const d = await loadCarModel(man.wheelDonor);
       if (d?.wheel?.[0]) { const k = man.r / d.man.r; wheel = d.wheel.map((g) => g && g.clone().scale(k, k, k)); }
     }
-    const wheelR = parts.wheelR0 ? [mergeSafe([wheelGeo('wheelR0'), cal]), wheelGeo('wheelR1')] : null;
+    const wheelR = parts.wheelR0 ? [mergeSafe([addCarcass(wheelGeo('wheelR0'), man.rR || man.r), cal]), addCarcass(wheelGeo('wheelR1'), man.rR || man.r)] : null;
     if (man.cfg?.whitewall) for (const g of [...wheel, ...(wheelR || [])]) if (g) whitewall(g, man.r, man.tw || 0.22, man.cfg.whitewall);
     for (const L of lv) for (const k in L) if (L[k]?.isBufferGeometry) { L[k].computeBoundingSphere(); L[k].computeBoundingBox(); }
     // body side wall at door height between the axles (door decals sit on it)

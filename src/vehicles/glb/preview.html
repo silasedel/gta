@@ -95,6 +95,11 @@ function view(name = 'front34', idx = 0) {
   const dir = new THREE.Vector3(...V).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), e.c.root.rotation.y);
   cam.position.copy(p).addScaledVector(dir, name === 'cab' ? d * 0.55 : d); cam.position.y += H * 0.45;
   cam.lookAt(p.x, H * 0.42, p.z); cam.fov = +(q.get('fov') || 32); cam.updateProjectionMatrix();
+  if (name === 'tireR') { // rear tire close-up from outside, a little behind and above (the tread and sidewall)
+    const R = new THREE.Vector3(0, 1, 0), a = e.c.root.rotation.y, wx = (t.track || t.W * 0.8) / 2, wz = -(t.wb || L * 0.6) / 2, r = t.r || 0.33;
+    const tgt = new THREE.Vector3(wx, r * 0.9, wz).applyAxisAngle(R, a).add(p), eye = new THREE.Vector3(wx + 1.15, r * 1.9, wz - 0.75).applyAxisAngle(R, a).add(p);
+    cam.position.copy(eye); cam.lookAt(tgt); cam.fov = 34; cam.updateProjectionMatrix();
+  }
   if (name === 'lampF' || name === 'lampR') { // lamp close-ups: the left head lamp / tail lamp from 1.6 m, slightly off-axis
     const f = name === 'lampF' ? 1 : -1, lx = t.W * 0.36, lz = f * t.L * 0.47, ly = (f > 0 ? t.noseY : t.tailY) * 0.82;
     const tgt = new THREE.Vector3(lx, ly, lz).applyAxisAngle(new THREE.Vector3(0, 1, 0), e.c.root.rotation.y).add(p);
