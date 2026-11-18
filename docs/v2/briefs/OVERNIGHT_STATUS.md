@@ -1302,6 +1302,12 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
   probe keeps them), van3 / super4 lowered, truck9 seats dropped 14 / 10 cm.
 
 ## r2-people
+- 18:30 **Far crowd of the user's people ON by default**, cost verified by r2-perf (in-session ABAB x3 downtown,
+  `docs/v2/reports/r2-perf-probe2.json`): the on / off difference is inside the noise, under the 2 ms target (half-rate
+  far walkers, no re-upload for still people, bake waiting list, incremental bakes). Every NPC path uses the user's people
+  (repeats allowed beyond 45 m); no archetype library loads anymore. Seat probes cached per car model + seat. People are
+  picked per seat by its real headroom (0.56 x stature + 8 cm); the passenger headroom report needs one re-run
+  (`tools/v2/cars/headroom.mjs`). Boats: Nico at the airboat seat / helm (`docs/v2/shots/people/r2_boats_sheet.jpg`).
 - 16:10 **Final state.** All committed (pathspec). (1) **Seat solver never trusts a stale anchor** (lead: Nico's head
   through the re-converted truck9): per car model + seat it raycasts the car's own meshes down onto the cushion (hip =
   cushion + 10 cm when the anchor is off) and up to the headliner (roof = min(anchor, probed)); head-room ladder: arm-reach
@@ -1412,6 +1418,20 @@ Items 8 (surveyed curves), 11 (curb / junction seams), 13 (utility covers, US ma
     never got a browser slot. The command is in PERF_PLAN.md "Next steps".
   - Committed: my tools and flag-off modules (see the commit).
   - The post.js hunks travel with r2-render's commit.
+- **17:00 Resumed** ("2 fps at times, make it ~30 on an M3 Max"). Committed, each A/B'd, on by default with an off switch:
+  - streaming readiness fix (QA-045): ?streamfix=0
+  - physics sub-step cap: ?physcap=0
+  - no interior builds while passing at speed: ?intfast=1
+  - Nico's yard collider as a trimesh: ?hftri=0. Spawn character controller 2.49 -> 0.14 ms per call.
+  - tile culling: ?tilecull=0
+- **Now** (load about 8):
+  - spawn 46.9 ms (was about 89)
+  - Keys 16.6 ms (60 fps)
+  - downtown 26.6 ms (38 fps)
+  - Keys drive median 26 ms, p99 49 ms (was 37.6 / 91)
+  - fast 50 m/s drive: 6.6 -> 8.9 fps average, frames over 250 ms 75 -> 43
+- Details, the drop list and the next steps (spawn draw count, long tile-build steps, collider gaps): PERF_PLAN.md
+  "Round 3".
 
 ## r2-phone
 The phone now runs on its own OS, "Kestrel OS" (src/ui/phone/). It replaces the old HUD phone.
@@ -1566,6 +1586,10 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   27.5 -> 28.6 ms. The machine was at load ~90, so only the CPU column means much: about +0-1 ms. Headless Chrome ignored
   --force-device-scale-factor, so the Retina DPR 1.5 / 2.0 cost is NOT measured here. Check fps on the user's Mac; if High drops
   under 30, set High's dpr back to 'min' (quality.v2.js) and keep MSAA 4x.
+- **TAA GPU cost** (r2-perf, serialized-frame GPU at 1080p High, M3 Max, `docs/v2/reports/r2-perf-ab6.json`): first version
+  2.9-4.4 ms; after 6fb4973c (1-tap output copy, velocity pass only for movers within 60 m / 30 m on Low, 5-tap cross on
+  Medium / Low) 0.6-0.8 ms: the resolve is +0.3-0.5 ms over the old one, the velocity pass about 0.8 ms while cars or people
+  move nearby.
 - **Still not right:** far palm frond tips can show a fine moire where the leaflet comb is about a pixel wide (the frond mip
   chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
   (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
