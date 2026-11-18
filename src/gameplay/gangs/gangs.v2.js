@@ -20,6 +20,8 @@ const MAX_MELEE = 3;
 const HOLD_SECONDS = 20;
 
 export async function initV2(game) {
+  // user (Nov 17): remove the gang turf system (Lyric Boys etc., turf circles and labels on the map). Off unless ?gangs=1.
+  try { if (!/[?&]gangs=1\b/.test(location.search)) return; } catch (e) { return; }
   const city = game.city;
   const sf = city?.storefronts || [];
   if (!sf.length || !game.peds?.spawnAt) {
