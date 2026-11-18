@@ -7,6 +7,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { rng, mixHex } from './rand.js';
+import { preloadLib, libGet } from '../world/libprops.js';
+preloadLib(['cap']); // r4-library: the user's baseball cap (Cap 1, street/cap.glb) for 'cap' / 'capBack' hats; code cap until it loads
 
 const BR = [0xe07f68, 0x2f8a86, 0xe6b3b5, 0xa6d3bf, 0x9cc1de, 0xe8d78a, 0xb8a8d2, 0x5fb3b8, 0xe89a85, 0xb5443e, 0xc9a043, 0x2a6fb5, 0xd95f9a, 0x58a55c, 0xf08a2c];
 const NE = [0xf0ede6, 0xe9e1cf, 0xd6c4a0, 0x2a3442, 0x5a6450, 0x3a3a3c, 0xb5a385, 0x1f1f21, 0x8e9094, 0xa95d3d, 0x6b7a8f];
@@ -245,7 +247,11 @@ export function yogaMat(seed = 1) { const r = rng(seed), P = new PB(); P.cyl(0.0
 // ================================================================ worn (origin: top of the skull for hats, nose bridge for eyewear)
 export function hat(seed = 1, kind = 'cap') {
   const r = rng(seed), P = new PB(); const c = pk(r, [0x1f1f21, 0xf0ede6, 0x2a3442, 0xb5443e, 0x2f8a86, 0xb5a385, 0xe07f68, 0xc9a043, 0x58a55c, 0x5d7598, 0xd95f9a]);
-  if (kind === 'cap' || kind === 'capBack') { P.sph(0.1, c, 0, -0.085, -0.004, 1, 0.92, 1.1, 12, 5, 0, Math.PI / 2); const s = kind === 'capBack' ? -1 : 1; P.cyl(0.085, 0.085, 0.01, r.chance(0.3) ? pk(r, [0x1f1f21, 0xf0ede6]) : c, 0, -0.078, s * 0.105, s * 0.1, 0, 0, 12); P.sph(0.012, c, 0, 0.008, -0.004); P.box(0.05, 0.035, 0.004, pk(r, [0xf0ede6, 0xc9a043, 0x1f1f21, 0xb5443e]), 0, -0.04, 0.1, -0.2); }
+  const LC = (kind === 'cap' || kind === 'capBack') && libGet('cap');
+  if (LC) { // library cap: crown on the skull (top 7 mm over it), brim to +Z (or back), one color per person
+    const s = kind === 'capBack' ? -1 : 1;
+    P.add(LC.parts[0].geometry, c, 0, 0.007 - 0.153 * 0.85, s * 0.035, 0, s > 0 ? 0 : Math.PI, 0, 1.02, 0.85, 1.02);
+  } else if (kind === 'cap' || kind === 'capBack') { P.sph(0.1, c, 0, -0.085, -0.004, 1, 0.92, 1.1, 12, 5, 0, Math.PI / 2); const s = kind === 'capBack' ? -1 : 1; P.cyl(0.085, 0.085, 0.01, r.chance(0.3) ? pk(r, [0x1f1f21, 0xf0ede6]) : c, 0, -0.078, s * 0.105, s * 0.1, 0, 0, 12); P.sph(0.012, c, 0, 0.008, -0.004); P.box(0.05, 0.035, 0.004, pk(r, [0xf0ede6, 0xc9a043, 0x1f1f21, 0xb5443e]), 0, -0.04, 0.1, -0.2); }
   else if (kind === 'straw') { const s = pk(r, [0xd9c08a, 0xcdb27a, 0xe3d2a6]); P.cyl(0.092, 0.104, 0.1, s, 0, -0.045, -0.004, 0, 0, 0, 14); P.cyl(0.22, 0.23, 0.008, s, 0, -0.096, -0.004, 0, 0, 0, 18); P.cyl(0.106, 0.106, 0.022, pk(r, [0x1f1f21, 0x2a3442, 0x8a3b2e, 0xe07f68]), 0, -0.082, -0.004, 0, 0, 0, 14); }
   else if (kind === 'bucket') { P.cyl(0.092, 0.11, 0.09, c, 0, -0.05, -0.004, 0, 0, 0, 14); P.cyl(0.14, 0.17, 0.05, c, 0, -0.108, -0.004, 0, 0, 0, 14, true); P.ds = true; }
   else if (kind === 'fedora') { const s = pk(r, [0xd9c08a, 0xe9e1cf, 0x3a3a3c, 0x8a6a46]); P.cyl(0.085, 0.1, 0.1, s, 0, -0.04, -0.004, 0, 0, 0, 14); P.cyl(0.15, 0.155, 0.008, s, 0, -0.092, -0.004, 0.05, 0, 0, 16); P.cyl(0.101, 0.101, 0.024, pk(r, [0x1f1f21, 0x2a3442, 0x7a2f2f]), 0, -0.078, -0.004, 0, 0, 0, 14); }

@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const BASE = '/assets/models/street/', cache = new Map();
 let started = null, done = false;
 export const hasModel = (n) => cache.has(n);
-export function preloadModels(names = ['atm', 'wall_clock', 'plant_ficus', 'plant_palm']) {
+export function preloadModels(names = ['atm', 'wall_clock', 'plant_ficus', 'plant_palm', 'bin_commercial']) {
   if (started) return started;
   const gl = new GLTFLoader();
   started = Promise.all(names.map(async (n) => {

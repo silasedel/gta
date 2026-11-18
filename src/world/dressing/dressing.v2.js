@@ -17,6 +17,7 @@ import { occupancy } from '../ground/occupancy.js';
 import { breakables } from '../miami/breakables.js';
 import { lotProps } from '../props/lotProps.v2.js';
 import { buildKeysLots } from './keysLots.js';
+import { preloadLib, libInstancer } from '../libprops.js';
 import { HAND_R } from './keysStreet.data.js';
 const CLIP_OFF = typeof location !== 'undefined' && /[?&]clipfix=0/.test(location.search); // clipping-sweep before/after switch (audit only)
 // clipping sweep: trunk radius, height, crown radius of the tall plants placed here (shared occupancy index, src/world/ground/occupancy.js)
@@ -181,6 +182,11 @@ float lNoise(vec2 p) {
   }
   // X1: breakable small props (fences, mailboxes, wheelie bins): their own merged mesh (vertex range per piece, collapsed when a car
   // knocks one over) and their own box collider through src/world/miami/breakables.js
+  // r4-library: picnic tables are the user's Picnic Table 1 (street/picnic_table.glb, 2.4 x 2.25 m as placed), instanced; the code table
+  // (kit.js picnicTable) only if the file is missing
+  preloadLib(['picnic_table']);
+  const picnicI = libInstancer(scene, 'picnic_table').onMissing((m) => { const g = K.picnicTable(); g.applyMatrix4(m); const pm = new THREE.Mesh(g, propMat); pm.castShadow = pm.receiveShadow = true; scene.add(pm); });
+  function placePicnic(x, y, z, ry) { tmpQ.setFromAxisAngle(Y, ry); picnicI.add(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), tmpQ, new THREE.Vector3(0.8, 1, 1))); } // 0.8 along the planks: 2.4 m (8 ft) long
   const brkGeos = [];
   function placeBreak(geo, x, y, z, ry, box, kind) {
     if (CLIP_OFF || !breakables.enabled) return place(geo, x, y, z, ry);
@@ -356,7 +362,7 @@ float lNoise(vec2 p) {
       }
       next = q.s + 26 + R() * 14;
     }
-    if (KEYS_HAND) { try { buildKeysLots(game, { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots: houseLots.enabled && !game.v2DressingBoxHouses ? houseLots : null, K }); } catch (e) { console.error('[dressing] keys lots', e); } }
+    if (KEYS_HAND) { try { buildKeysLots(game, { THREE, spot, place, placePicnic, placeBreak, boxCol, cylCol, groundY, isWater, houseLots: houseLots.enabled && !game.v2DressingBoxHouses ? houseLots : null, K }); } catch (e) { console.error('[dressing] keys lots', e); } }
     // yards
     const carSpots = [];
     for (const L of lots) {
@@ -388,7 +394,7 @@ float lNoise(vec2 p) {
         carSpots.push({ x: at(-3, H.d / 2 + 6)[0], z: at(-3, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
         carSpots.push({ x: at(3.5, H.d / 2 + 6)[0], z: at(3.5, H.d / 2 + 6)[1], ry: L.ry + Math.PI / 2 });
         const [px, pz] = at(-H.w / 2 - 3, 1);
-        place(K.picnicTable(), px, groundY(px, pz), pz, L.ry + 0.3);
+        placePicnic(px, groundY(px, pz), pz, L.ry + 0.3);
         const [cx2, cz2] = at(H.w / 2 + 1.5, -1);
         place(K.crabTrapStack(r), cx2, groundY(cx2, cz2), cz2, r() * 6);
         place(K.dumpster(), at(H.w / 2 + 2, -H.d / 2)[0], groundY(L.x, L.z), at(H.w / 2 + 2, -H.d / 2)[1], L.ry);
@@ -424,7 +430,7 @@ float lNoise(vec2 p) {
         [0.3, () => K.crabTrapStack(r)],
         [0.25, () => K.kayak([0xe85a2a, 0x2a8ab8, 0xe8c82a, 0x3aa86a][(r() * 4) | 0])],
         [0.35, () => K.propaneTank()],
-        [0.3, () => K.picnicTable()],
+        [0.3, 'picnic'],
         [0.25, () => K.buoyPile(r)],
       ];
       for (const [p, mk] of clutter) {
@@ -433,7 +439,7 @@ float lNoise(vec2 p) {
         const v = -H.d / 2 - 2 - r() * 6;
         const [cx, cz] = at(u, v);
         if (isWater(cx, cz)) continue;
-        place(mk(), cx, groundY(cx, cz), cz, r() * 6.28);
+        if (mk === 'picnic') { const [qx, qz] = at(u, v - 0.7); placePicnic(qx, groundY(qx, qz), qz, r() * 6.28); } else place(mk(), cx, groundY(cx, cz), cz, r() * 6.28);
       }
       // coral rock edging along the driveway
       if (r() < 0.4) {
@@ -546,6 +552,7 @@ float lNoise(vec2 p) {
     }
   }
 
+  picnicI.flush();
   // one merged static mesh for the spawn street
   if (geos.length) {
     const merged = mergeGeometries(geos, false);

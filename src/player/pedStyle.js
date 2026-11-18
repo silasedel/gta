@@ -1,5 +1,7 @@
 // Pedestrian wardrobe + accessories for a hot coastal city (CHARACTER agent).
 import * as THREE from 'three';
+import { preloadLib, libGet } from '../world/libprops.js';
+preloadLib(['cap']);
 
 export function rng(seed) { let s = (seed * 2654435761) >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
 export const pick = (r, a) => a[Math.floor(r() * a.length) % a.length];
@@ -116,9 +118,12 @@ export function makeHeadAccessories(r, beach, hairOn) {
     kinds.push(kind);
     if (kind === 'cap') {
       const col = pick(r, [0x1f1f21, 0xf0ede6, 0x2a3442, 0xb5443e, 0x2f8a86, 0xb5a385, 0xe07f68]);
-      const m = mat(col, 0.85);
-      grp.add(mesh(g.capDome, m, 0, -0.072, -0.004, 1, 0.82, 1.04));
-      grp.add(mesh(g.capBrim, m, 0, -0.068, 0.088, 1, 1, 1.05, 0.12));
+      const m = mat(col, 0.85), LC = libGet('cap');
+      if (LC) { const c = mesh(LC.parts[0].geometry, m, 0, 0.007 - 0.153 * 0.85, 0.035, 1.02, 0.85, 1.02); c.name = 'lib-cap'; grp.add(c); } // r4-library: the user's Cap 1
+      else {
+        grp.add(mesh(g.capDome, m, 0, -0.072, -0.004, 1, 0.82, 1.04));
+        grp.add(mesh(g.capBrim, m, 0, -0.068, 0.088, 1, 1, 1.05, 0.12));
+      }
     } else if (kind === 'bucket') {
       const m = mat(pick(r, [0xd6c4a0, 0xf0ede6, 0x5a6450, 0x1f1f21, 0x9cc1de]), 0.9);
       grp.add(mesh(g.bucket, m, 0, -0.058, -0.004));

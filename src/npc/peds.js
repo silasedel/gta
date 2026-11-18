@@ -12,6 +12,8 @@ import { makeTowel, makeBeachThings, restOnTowel, clearTowelContact } from './be
 import { createRagdollSystem } from './ragdoll.js';
 import { PERSONAS, pickPersona } from './personality.js';
 import { createSignals } from './streetlife.js';
+import { preloadDog, createLibDog } from './dog.js';
+import { preloadLib, libSwap } from '../world/libprops.js';
 
 const DESPAWN = 300, SPAWN_MIN = 20, SPAWN_MAX = 165;
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _q = new THREE.Quaternion();
@@ -272,17 +274,26 @@ export async function createPeds(game) {
   const props = new Set();
   function addProp(mesh) { mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); props.add(mesh); return mesh; }
   function removeProp(m) { if (!m) return; scene.remove(m); props.delete(m); if (m.userData?.disposeGeo) m.traverse((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); }
+  preloadLib(['umbrella_beach1', 'umbrella_beach2']);
   function makeUmbrella(x, y, z) {
     const g = new THREE.Group(); g.position.set(x, y, z);
     const pole = new THREE.Mesh(propGeo.pole, pmat(0xdddddd, 0.4)); pole.position.y = 1.1; g.add(pole);
     const can = new THREE.Mesh(propGeo.canopy, pmat(pick([0xe07f68, 0x2f8a86, 0xe8d78a, 0xf0ede6, 0x3b6fb6]), 0.85, THREE.DoubleSide)); can.position.y = 2.15; g.add(can);
     g.rotation.z = rand(-0.12, 0.12);
     g.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
+    libSwap(g, Math.random() < 0.5 ? 'umbrella_beach1' : 'umbrella_beach2', { ry: rand(0, 6.28), scale: rand(0.95, 1.05) }); // r4-library: the user's beach umbrellas (code one while loading)
     scene.add(g); props.add(g); return g;
   }
   // a simple procedural dog (low poly, animated legs) + leash line
   const dogMat = [0x3b2a1e, 0xd8c3a0, 0x1c1a18, 0x8a6a46, 0xe9e2d6].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.9 }));
+  preloadDog(); // r4-library: the user's rigged Doberman (src/npc/dog.js); the code dog below while it loads / if missing
   function makeDog() {
+    const lib = createLibDog(scene);
+    if (lib) {
+      const leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), leashMat);
+      leash.frustumCulled = false; scene.add(leash);
+      return { lib, g: lib.g, leash, phase: 0, pos: new THREE.Vector3(), prev: new THREE.Vector3(), heading: 0, y: null };
+    }
     const s = rand(0.75, 1.25); const m = pick(dogMat);
     const g = new THREE.Group(); g.scale.setScalar(s);
     const body = new THREE.Mesh(SG('CapsuleGeometry', THREE.CapsuleGeometry, 0.11, 0.38, 3, 8), m); body.rotation.x = Math.PI / 2; body.position.y = 0.36; g.add(body);
@@ -309,6 +320,16 @@ export async function createPeds(game) {
     if (dist > 6) d.pos.copy(want);
     const sp = Math.min(4, dist * 3);
     if (dist > 0.05) { d.pos.x += dx / dist * sp * dt; d.pos.z += dz / dist * sp * dt; d.heading = approachAngle(d.heading, Math.atan2(dx, dz), dt * 6); }
+    if (d.lib) { // ground snap (own height, so a dog on the street beside a curb walker stands on the street) + measured gait speed
+      const gy = groundAt(d.pos.x, d.pos.z, ped.pos.y); d.y = d.y == null || Math.abs(gy - d.y) > 1.5 ? gy : d.y + (gy - d.y) * Math.min(1, dt * 12); d.pos.y = d.y;
+      const gs = dt > 0 ? Math.hypot(d.pos.x - d.prev.x, d.pos.z - d.prev.z) / dt : 0; d.prev.copy(d.pos);
+      d.lib.pose(dt, Math.min(gs, 4)); d.g.position.copy(d.pos); d.g.rotation.y = d.heading;
+      const hand = ped.char.getBone?.('RightHand');
+      const a = hand ? hand.getWorldPosition(_v2) : _v2.copy(ped.pos).setY(ped.pos.y + 0.9);
+      d.g.updateMatrixWorld(true); const b = d.lib.collar(_v3);
+      const arr = d.leash.geometry.attributes.position.array; arr[0] = a.x; arr[1] = a.y; arr[2] = a.z; arr[3] = b.x; arr[4] = b.y; arr[5] = b.z; d.leash.geometry.attributes.position.needsUpdate = true;
+      return;
+    }
     d.pos.y = ped.pos.y;
     d.phase += dt * (2 + sp * 4);
     const sw = Math.min(1, sp) * 0.6;
@@ -321,7 +342,7 @@ export async function createPeds(game) {
     const b = _v3.copy(d.pos); b.x += Math.sin(d.heading) * 0.28; b.y += 0.48 * d.g.scale.y; b.z += Math.cos(d.heading) * 0.28;
     const arr = d.leash.geometry.attributes.position.array; arr[0] = a.x; arr[1] = a.y; arr[2] = a.z; arr[3] = b.x; arr[4] = b.y; arr[5] = b.z; d.leash.geometry.attributes.position.needsUpdate = true;
   }
-  function removeDog(ped) { if (!ped.dog) return; scene.remove(ped.dog.g); scene.remove(ped.dog.leash); ped.dog.leash.geometry.dispose(); ped.dog = null; }
+  function removeDog(ped) { if (!ped.dog) return; if (ped.dog.lib) ped.dog.lib.dispose(); else scene.remove(ped.dog.g); scene.remove(ped.dog.leash); ped.dog.leash.geometry.dispose(); ped.dog = null; }
 
   // ---------------------------------------------------------------- character pool (reuse by zone)
   const pool = [];
@@ -474,7 +495,7 @@ export async function createPeds(game) {
     if (ped.nav) { ped.heading = navTarget(ped, _nt); }
     const gy = groundAt(pos.x, pos.z, pos.y || 0); ped.pos.y = opts.y ?? gy; ped.groundY = ped.pos.y;
     if (ped.collider) { ped.collider.setEnabled(!opts.noCollider); ped.body.setTranslation({ x: ped.pos.x, y: ped.pos.y + 0.9, z: ped.pos.z }, true); ped.teleported = true; }
-    if (act === 'dog') { ped.dog = makeDog(); ped.dog.pos.copy(ped.pos); }
+    if (act === 'dog') { ped.dog = makeDog(); ped.dog.pos.copy(ped.pos); ped.dog.prev?.copy(ped.pos); }
     // identity, unique look and traits (people.v2.js); a failure leaves the v1 person as is
     ped.identity = null; ped.look = null; ped.applied = null; ped.sig = null; ped.sawWeapon = false; ped.waitT = 0; ped.handsUp = false; ped.walkBoostT = 0; ped.callPe = null; ped.helper = false;
     if (zone !== 'cop' && opts.outfit !== 'cop') { try { game.people?.dress?.(ped, { zone, act, opts }); } catch (e) { console.warn('[peds] dress', e); } }
@@ -773,6 +794,7 @@ export async function createPeds(game) {
     if (o.state === 'flee') { p.state = 'flee'; p.fleeT = rand(4, 7); p.threat = { x: pp.x, z: pp.z }; p.scream = true; }
     else if (o.state === 'fight') { p.state = 'fight'; p.stateT = 15; p.hitCd = 1; p.guard = true; }
     else if (o.state === 'cop') { p.state = 'cop'; p.isCop = true; p.tough = true; p.hitCd = 1; p.char.restyle?.('cop'); }
+    if (o.dog && !p.dog) { p.dog = makeDog(); p.dog.pos.copy(p.pos); p.dog.prev?.copy(p.pos); } // a walker with a dog (tests / scripted scenes)
     p.pinned = 20; // spawned by gameplay: don't recycle immediately
     return p;
   }
@@ -1344,5 +1366,5 @@ export async function createPeds(game) {
     }
   }
 
-  return { list, update, panic, damage, spawnAt, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView }, get count() { return list.filter((p) => p.active).length; } };
+  return { list, update, panic, damage, spawnAt, _umbrella: makeUmbrella, _removeProp: removeProp, _nav: { navFromPos, navStep, sidewalkNear, sandPoint, groundAt, zoneAt, spotOK, inCamView }, get count() { return list.filter((p) => p.active).length; } };
 }

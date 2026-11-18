@@ -10,7 +10,7 @@ import { loadKeysModels } from '../setpieces/nicoHouse/models.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export function buildKeysLots(game, api) {
-  const { THREE, spot, place, placeBreak, boxCol, cylCol, groundY, isWater, houseLots, K } = api;
+  const { THREE, spot, place, placePicnic, placeBreak, boxCol, cylCol, groundY, isWater, houseLots, K } = api;
   const H = spot.streetHeading ?? spot.heading ?? 0, cH = Math.cos(H), sH = Math.sin(H);
   const toW = (lx, lz) => [spot.x + lx * cH + lz * sH, spot.z - lx * sH + lz * cH];
   const out = { lots: [], docks: 0, extras: 0 };
@@ -34,7 +34,7 @@ export function buildKeysLots(game, api) {
       else if (e.k === 'crabTraps') place(K.crabTrapStack(r), ex, ey, ez, eh);
       else if (e.k === 'buoys') place(K.buoyPile(r), ex, ey, ez, eh);
       else if (e.k === 'propane') { place(K.propaneTank(), ex, ey, ez, eh); boxCol(ex, ey + 0.5, ez, 0.4, 0.5, 0.9, eh); }
-      else if (e.k === 'picnic') { place(K.picnicTable(), ex, ey, ez, eh); boxCol(ex, ey + 0.4, ez, 0.9, 0.4, 0.8, eh); }
+      else if (e.k === 'picnic') { if (placePicnic) { placePicnic(ex, ey, ez, eh); boxCol(ex, ey + 0.38, ez, 1.22, 0.38, 1.1, eh); } else { place(K.picnicTable(), ex, ey, ez, eh); boxCol(ex, ey + 0.4, ez, 0.9, 0.4, 0.8, eh); } } // r4-library: the user's picnic table
       else if (e.k === 'grill') { place(grill(K), ex, ey, ez, eh); cylCol(ex, ey + 0.45, ez, 0.45, 0.32); }
       else if (e.k === 'rocks') { for (let i = -3; i <= 3; i++) { const [cx, cz] = at(e.u + i * 1.2 + (r() - 0.5) * 0.3, e.v + (r() - 0.5) * 0.4); place(K.coralRock(r), cx, groundY(cx, cz) - 0.05, cz, r() * 6.28, 0.45 + r() * 0.3); } }
       else if (e.k === 'fence') { const A = at(e.u, e.v), B2 = at(e.u2, e.v2), len = Math.hypot(B2[0] - A[0], B2[1] - A[1]); boxCol((A[0] + B2[0]) / 2, groundY(A[0], A[1]) + 0.8, (A[1] + B2[1]) / 2, 0.05, 0.8, len / 2, Math.atan2(B2[0] - A[0], B2[1] - A[1])); libJobs.push(() => fenceRun(A, B2)); }

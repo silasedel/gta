@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { rand, pick, sfx, tryCall, pointNear, distXZ, makeMarker, inView, groundAt, removeColliderSafe, vAlive } from './util.js';
 import { createCellStreamer } from './stream.js';
+import { preloadLib, libSwap, libGet } from '../world/libprops.js';
 
 
 function screenTex(lines, bg, fg) {
@@ -26,7 +27,7 @@ M.atmScreen.emissiveMap = M.atmScreen.map; M.vendFront.emissiveMap = M.vendFront
 const _bxCache = new Map();
 function bx(w, h, d, mat, x, y, z) { const k = w + ',' + h + ',' + d; let geo = _bxCache.get(k); if (!geo) { geo = new THREE.BoxGeometry(w, h, d); _bxCache.set(k, geo); } const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
 const _propProto = new Map();
-function buildProp(type) { let p = _propProto.get(type); if (!p) { p = buildPropRaw(type); _propProto.set(type, p); } return p.clone(); }
+function buildProp(type) { let p = _propProto.get(type); if (!p) { p = buildPropRaw(type); _propProto.set(type, p); } const g = p.clone(); if (type === 'atm') libSwap(g, 'atm'); return g; } // r4-library: the user's ATM 1 (street/atm.glb), code ATM until it loads
 function buildPropRaw(type) {
   const g = new THREE.Group();
   if (type === 'atm') {
@@ -55,6 +56,7 @@ export function createWorldStuff(game, G) {
   const { scene, world, RAPIER } = game;
   const P = game.player;
   const props = [];
+  preloadLib(['atm']);
 
   // ---------------- streamed placement (storefronts first, then sidewalks), per ~200 m cell
   const C = G.city;
@@ -118,7 +120,7 @@ export function createWorldStuff(game, G) {
       const g = buildProp(sp.type);
       g.position.set(sp.x, sp.y, sp.z); g.rotation.y = sp.heading;
       scene.add(g);
-      const sz = SIZE[sp.type];
+      const sz = sp.type === 'atm' && libGet('atm') ? [0.35, 0.875, 0.45] : SIZE[sp.type];
       const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), sp.heading);
       let col = null;
       try { col = world.createCollider(RAPIER.ColliderDesc.cuboid(sz[0], sz[1], sz[2]).setTranslation(sp.x, sp.y + sz[1], sp.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })); } catch (e) { /* ignore */ }

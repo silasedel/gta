@@ -4,6 +4,7 @@ import { createCharacter } from '../player/characterModel.js';
 let seatMod = null; import('../npc/seat.js').then((m) => { seatMod = m; }).catch(() => { /* seat solver unavailable: copied transform */ });
 import { rand, clamp, sfx, tryCall, hasLOS, pointNear, distXZ, findBone, inView, groundAt, warnOnce, aimArm, removeColliderSafe, removeBodySafe, bodyAlive, vAlive } from './util.js';
 import { buildWeaponModel } from './gunModels.js';
+import { preloadLib, libClone } from '../world/libprops.js';
 import { holdWeapon } from './gunHold.js';
 import { createLaw } from './police/law.js';
 import { createStations } from './police/stations.js';
@@ -578,23 +579,27 @@ export function createPolice(game, G) {
   const barMat = new THREE.MeshStandardMaterial({ map: stripeTex, roughness: 0.6, emissive: 0x330000 });
   const legMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7 });
   const barGeo = new THREE.BoxGeometry(3, 0.3, 0.08), legGeo = new THREE.BoxGeometry(0.08, 1, 0.5);
+  preloadLib(['barricade2']); // r4-library: the user's striped barricade (Sign Set 8, street/barricade2.glb, 2.2 x 1.5 m); code barrier while missing
   function makeBarrier(x, z, heading, gy = 0) {
-    const g = new THREE.Group();
-    const bar = new THREE.Mesh(barGeo, barMat); bar.position.y = 0.95;
-    const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-1.3, 0.5, 0);
-    const l2 = l1.clone(); l2.position.x = 1.3;
-    g.add(bar, l1, l2); g.traverse((m) => { if (m.isMesh) m.castShadow = true; });
+    let g = libClone('barricade2'); const lib = !!g, hy = lib ? 0.75 : 0.55;
+    if (!lib) {
+      g = new THREE.Group();
+      const bar = new THREE.Mesh(barGeo, barMat); bar.position.y = 0.95;
+      const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-1.3, 0.5, 0);
+      const l2 = l1.clone(); l2.position.x = 1.3;
+      g.add(bar, l1, l2); g.traverse((m) => { if (m.isMesh) m.castShadow = true; });
+    }
     g.position.set(x, gy, z); g.rotation.y = heading; scene.add(g);
     const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading);
     // light breakaway prop: ~20 kg dynamic body; cars plough through it, people can shove it
     let body = null, col = null;
     try {
-      body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(x, gy + 0.55, z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
+      body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(x, gy + hy, z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
         .setLinearDamping(0.4).setAngularDamping(0.6).setCanSleep(true).setCcdEnabled(true));
-      col = world.createCollider(RAPIER.ColliderDesc.cuboid(1.5, 0.55, 0.22).setMass(20).setFriction(0.7).setRestitution(0.2), body);
+      col = world.createCollider((lib ? RAPIER.ColliderDesc.cuboid(1.1, 0.75, 0.25) : RAPIER.ColliderDesc.cuboid(1.5, 0.55, 0.22)).setMass(20).setFriction(0.7).setRestitution(0.2), body);
       body.sleep();
     } catch (e) { body = null; }
-    const it = { g, col, body, hit: false, offset: new THREE.Vector3(0, -0.55, 0) };
+    const it = { g, col, body, hit: false, offset: new THREE.Vector3(0, -hy, 0) };
     barriers.push(it);
     return it;
   }

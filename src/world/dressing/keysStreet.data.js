@@ -40,7 +40,7 @@ export const KEYS_LOTS = [
   { // D: mint cottage on the bend, no fence, a hedge on the quiet side, picnic table under the tree
     id: 'pp_mint', x: -33.0, z: 41.0, face: -2.57, w: 8.4, d: 7.4, style: 'keys', stilt: false, base: 0.7, gap: 5.2, side: 3.5, back: 7,
     over: { colors: { body: 0xc8d8a0, trim: 0xf2f0ea, accent: 0x2a4a6a, roof: 0xb8bcc0 }, fence: 'none', frontHedge: false, hedge: true, car: false, bins: true, palms: 2, shrubs: 3, porchStuff: 1, windowAC: true },
-    extras: [{ k: 'picnic', u: -5.0, v: -3.0, h: 0.6 }, { k: 'rocks', u: 0, v: 5.0 }],
+    extras: [{ k: 'picnic', u: -5.8, v: -3.0, h: 1.75 }, { k: 'rocks', u: 0, v: 5.0 }],
     car: { kind: 'van', look: 'old', u: 5.6, v: 5.4, h: Math.PI - 0.1 },
   },
   { // E: blue stilt house east of Nico, storage below, board fence on the side to Nico's

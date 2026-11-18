@@ -53,3 +53,11 @@ run clock '{"src":"'$M'/Wall Clocks/Wall Clock 1 - Round Quartz Wall Clock With 
 # r3-interiors: indoor plants (rubber plant for cafe/boutique corners, the big palm of Plant Pot 1 for the lounges)
 run plant_ficus '{"src":"'$M'/Plants/Potted Plant 1 - Rubber Plant In Clay Pot/Potted Plant 1.blend","out":"'$O'/plant_ficus.glb","height":1.5,"tris":4000,"maxtex":1024}'
 run plant_palm '{"src":"'$M'/Plant Pots/Plant Pot 1 - Four Potted Palms/Plant Pot 1.blend","out":"'$O'/plant_palm.glb","keep":"^(02_2|flower_pot)$","height":2.3,"tris":5000,"maxtex":1024}'
+
+# r4-library (Nov 18): beach umbrellas for the sunbathers (Umbrella 1 colorful panels, Umbrella 2 orange/white stripes), the
+# weathered picnic table for the Keys lots / spawn street yards (long side along x), and one baseball cap of Cap 1 (geometry only:
+# src/npc/props.js colors it per person like the other worn props). 1K textures.
+run umb_beach1 '{"src":"'$M'/Beach Stuff/Umbrella 1 - Colorful Beach Umbrella/Umbrella 1.blend","out":"'$O'/umbrella_beach1.glb","height":2.35,"tris":2100,"maxtex":1024}'
+run umb_beach2 '{"src":"'$M'/Beach Stuff/Umbrella 2 - Classic Beach Umbrella/Umbrella 2.blend","out":"'$O'/umbrella_beach2.glb","height":2.4,"tris":600,"maxtex":1024}'
+run picnic '{"src":"'$M'/Furniture/Picnic Table 1 - Dark Weathered Wooden Picnic Table/Picnic Table 1.blend","out":"'$O'/picnic_table.glb","rotz":90,"height":0.75,"tris":3000,"maxtex":1024}'
+run cap '{"src":"'$M'/Hats/Cap 1 - Two Plain Baseball Caps/Cap 1.blend","out":"'$O'/cap.glb","keep":"^Cap$","rotz":180,"height":0.153,"tris":700,"maxtex":256}'
