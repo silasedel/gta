@@ -16,6 +16,7 @@ import { buildTitleScenes } from './titleShots.js';
 import { openSettingsScreen } from './settingsScreen.js';
 import { openWardrobeStage } from './wardrobeStage.js';
 import { createLoadScreen } from './loadScreen.js';
+import * as loadingMusic from '../../audio/loadingMusic.js';
 import creditsText from '../../../CREDITS.md?raw';
 
 export const order = 950;
@@ -331,7 +332,9 @@ function startTitle(game, ctx, cin, fe, params) {
     live = false;
     await new Promise((r) => setTimeout(r, 380));
     // fade the title music under the loading screen, then start the world
-    game.menuMusic = { station: ctx.settings.get('menuMusic') === false ? null : STATION, gain: 0.5, duck: 0.3, duckLP: 1200, startAt: 9, loopAt: 9 };
+    // the loading screen has its own song (user): the title theme stops, the looped drop section plays until the reveal
+    game.menuMusic = { station: null, duck: 0.3, duckLP: 1200 };
+    loadingMusic.start(game, { settings: ctx.settings });
     let ok = false;
     try {
       game.save?.release?.('title');
@@ -353,6 +356,7 @@ function startTitle(game, ctx, cin, fe, params) {
     try { await load.waitWorld(px, pz); } catch (e) { console.warn('[frontend] waitWorld', e); } // never leave the loading screen up
     // reveal: crane down from behind to the gameplay camera, then hand it over
     game.menuMusic = null;
+    loadingMusic.stop(game, 1.6);
     root.remove();
     load.close();
     cin.shot({ dur: 2.6, fov: 42, aperture: 0.5, ease: (t) => 1 - Math.pow(1 - t, 3), from: { pos: [px - back.x * 26, py + 16, pz - back.z * 26], look: [px, py + 1, pz] }, to: { pos: [px - back.x * 5.2, py + 2.6, pz - back.z * 5.2], look: [px, py + 1.5, pz] } });

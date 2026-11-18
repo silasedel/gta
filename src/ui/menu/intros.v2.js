@@ -30,6 +30,10 @@ const FRONT_SHOTS = [
   { pos: [14, 7, 18], to: [-14, 7, 18], look: [0, 3.5, 0], fov: 40, aperture: 0.6 },
 ];
 
+// rural places score their intro with the user's track (Epidemic Sound, licensed by the project owner for the web build):
+// a warm, wholesome adventure feel. Tempo measured from the file (onset autocorrelation): 167 BPM, first beat 0.21 s
+const RURAL = { music: 'url:/assets/audio/music/cutscene/rural_frigga_do_you_really_wanna_be_in_love.mp3', beats: { bpm: 167, beat0: 0.209 } };
+
 export const PLACES = [
   {
     id: 'club', name: 'Velvet Undertow', tagline: "South Beach's after-hours.", station: 'neon', hour: [21, 4],
@@ -55,7 +59,7 @@ export const PLACES = [
     ],
   },
   {
-    id: 'keys_bar', name: 'Low Tide Lola’s', tagline: 'Last stop before the bridge.', station: 'latin',
+    id: 'keys_bar', name: 'Low Tide Lola’s', tagline: 'Last stop before the bridge.', station: 'latin', ...RURAL,
     frame: (game) => { const b = game.keysBar; if (!b?.position) return null; const h = b.heading || 0; return { x: b.position.x, z: b.position.z, y: b.position.y, fx: Math.sin(h), fz: Math.cos(h) }; },
     radius: 26, shots: FRONT_SHOTS,
   },
@@ -96,7 +100,11 @@ export async function initV2(game) {
   const persist = () => { try { localStorage.setItem('portsolana.v2.intros', JSON.stringify([...seen])); } catch (e) { /* */ } };
 
   // ---- beat clock: when the next bar line of the station's current song lands (seconds from now)
-  function barClock(station) {
+  let musicT0 = 0;   // when a file-scored intro (pl.music) started its track
+  function barClock(station, beats) {
+    if (beats) { const beat = 60 / beats.bpm, bar = beat * 4, t1 = performance.now();
+      const nextBarIn = (minGap) => { const pos = (performance.now() - musicT0) / 1000; const k = Math.ceil((pos + minGap - beats.beat0) / bar); return beats.beat0 + k * bar - pos; };
+      void t1; return { bar, beat, nextBarIn, bpm: beats.bpm }; }
     const np = game.audio?.nowPlaying?.(station);
     const file = np && Object.keys(BEATS).find((f) => f.startsWith(station + '/') && np.title && f.includes(np.title.toLowerCase().replace(/[^a-z0-9]+/g, '_')));
     const b = file ? BEATS[file] : { bpm: 120, beat0: 0 };
@@ -116,7 +124,7 @@ export async function initV2(game) {
     let skipped = false;
     const offNav = game.bindings?.on?.('nav', (d) => { if (d.dir === 'back' || d.dir === 'accept' || d.dir === 'start') { skipped = true; d.handled = true; } });
     const prevMusic = game.menuMusic;
-    game.menuMusic = { station: pl.station, gain: 0.95, duck: 0.45, duckLP: 6000 };
+    game.menuMusic = { station: pl.music || pl.station, gain: 0.95, duck: 0.45, duckLP: 6000 }; musicT0 = performance.now();
     document.body.classList.add('pm-intro');
     // title card
     const card = document.createElement('div'); card.className = 'pm-icard';
@@ -126,7 +134,7 @@ export async function initV2(game) {
     cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.5, vignette: 0.14, owner: 'intro' });
     await cin.black(true, 350);
     { const s0 = pl.shots[0]; cin.shot({ dur: 9, fov: s0.fov, from: { pos: W(s0.pos), look: W(s0.look) } }); await cin.waitStream(f.x, f.z, 3500, 200); }
-    const clock = barClock(pl.station);
+    const clock = barClock(pl.music || pl.station, pl.music ? pl.beats : null);
     const barsPerShot = clock.bar < 1.7 ? 2 : 1;
     try {
       for (let i = 0; i < pl.shots.length && !skipped; i++) {
