@@ -1456,7 +1456,7 @@ export function createPost(game) {
       smaa.enabled = !taaOn;
       if (taaOn) {
         if (!LOOK_OFF) gu.uSharp.value = Math.max(gu.uSharp.value, game.quality?.current?.look?.taaSharpen ?? 0.8);
-        if (game.renderR2) gu.uSharp.value = game.renderGradeSharp ?? 0.08; // r2-render: the TAA output already sharpens (clamped, in HDR)
+        if (game.renderR2) gu.uSharp.value = game.renderGradeSharp ?? 0.22;   // user: things looked blurred / over-smoothed: a firmer (still halo-free) final sharpen // r2-render: the TAA output already sharpens (clamped, in HDR)
         taa.jitter(Math.floor(W * renderer.getPixelRatio() * renderScale), Math.floor(H * renderer.getPixelRatio() * renderScale));
       }
       {
