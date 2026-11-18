@@ -1691,6 +1691,12 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
   2.9-4.4 ms; after 6fb4973c (1-tap output copy, velocity pass only for movers within 60 m / 30 m on Low, 5-tap cross on
   Medium / Low) 0.6-0.8 ms: the resolve is +0.3-0.5 ms over the old one, the velocity pass about 0.8 ms while cars or people
   move nearby.
+- **QA "dotted deck" (2x2 checker 5.2 %), traced** (`tools/v2/render/ditherprobe.mjs`, r0b_deck 1280x720): the pattern is static
+  (16-frame mean = one frame) and unchanged with the vegetation fades off, grass A2C off, PCSS off or wind frozen, so no dither,
+  hash or fade remains; it was the point-sampled TAA resolve (1-px steps, texture sparkle). Fix 0e235c22: a jitter-aware 3x3
+  reconstruction filter (Blackman-Harris fit). Checker 5.1 % -> 4.0 % (old TAA 4.1 %, via blur and ghosts). Crop: point
+  sample | filter | old: `docs/v2/shots/render/qa_deck_filter_ab.png`. The diamond lattice beside the bougainvillea is real
+  geometry / texture near the pixel limit, not a dither.
 - **Still not right:** far palm frond tips can show a fine moire where the leaflet comb is about a pixel wide (the frond mip
   chain, r2-veg); the Bayline 65 folded top speckles (fabric normal, r2-cars); wind-animated foliage has no motion vectors
   (flutter was slowed by r2-veg instead); grass.v2 cards still use three's own A2C.
