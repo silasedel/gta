@@ -897,6 +897,12 @@ In-session A/B switch: `game.lookR2 = false` brings back the overnight look3. To
   - Library walls stretched below 110 px/m get the stronger street-level grain and detail normal.
   - Sign posts are galvanized (metal 1) and sign backs dielectric. House chain-link is galvanized.
   - Found and reported: the miamiData TDZ (r2-ground, fixed) and the psSunVis shader error (r2-look, fixed).
+- 21:40 **Final QA items (commit f2beecd2, sheet `docs/v2/shots/art/sheet_qa_final.jpg`, 0 console errors).**
+  - (3) Airport: the four airliners are nose-in, one per gate, with the fuselage along the jet bridge cab and the forward door at the cab end. The "merged" pair in the QA frame was two planes in one line of sight from that camera; an oblique view shows them apart. The middle gate stays open.
+  - (17) Edgewater, NE 8th St: the slanted roof and blank white wall with rusty doors were the library `graffiti_shop`. It is now limited to the rough side (not Downtown, Brickell, Edgewater, Miami Beach, South Beach, Coral Gables). A stone shop fills the lot now.
+  - (20) Hotel lobby: neon k 2.8 to 1.5 (no pink blob). The luggage cart is off the desk line on narrow lobbies.
+    - Not art: the box "jutting from the desk" is the NVR recorder from `wantedSense.js:252` (ensureStoreSecurity). `interiors/engine.js:51` sets `counterPos = center` for every v2 interior, so the recorder floats 1.02 m up in the middle of every v2 shop. Lead or owner: use the built host / register POI as counterPos, or skip the fallback model for v2 interiors.
+  - (16) Apron tiling and the terminal: not done (budget).
 
 ## r2-mapui
 **Round 2, items 9 (map water outline) and 7 (mission / race / job markers).** Item 9 is committed (f706e11d, da64e72a). Item 7 is committed (0988577a).
