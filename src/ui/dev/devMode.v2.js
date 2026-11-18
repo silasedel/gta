@@ -16,6 +16,7 @@ import { seaLevel } from '../../player/controller/surface.js';
 export const order = 900; // after the police / law system and the HUD, so the crime filter wraps theirs
 
 const CODE = '6969';
+const LS_MONEY = 'southline.dev.money';
 const LS_ON = 'southline.dev', LS_LOCK = 'southline.dev.policeLock';
 const ls = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -34,7 +35,7 @@ const LOCK_SVG = `<svg viewBox="0 0 224 240" aria-hidden="true">
 
 export async function initV2(game) {
   const ui = (game.ui = game.ui || {});
-  const S = { on: ls.get(LS_ON) === '1', lock: ls.get(LS_LOCK) === '1', busy: false, lastCar: null };
+  const S = { on: ls.get(LS_ON) === '1', lock: ls.get(LS_LOCK) === '1', money: ls.get(LS_MONEY) === '1', busy: false, lastCar: null };
 
   // ------------------------------------------------------------------ DOM
   const hud = document.getElementById('ps-hud') || document.querySelector('.ps-hud');
@@ -78,7 +79,7 @@ export async function initV2(game) {
     badge.classList.toggle('locked', S.on && S.lock);
     badge.innerHTML = `<i></i>DEV${S.on && S.lock ? ' · NO COPS' : ''}`;
     codesBtn.classList.toggle('on', S.on);
-    extra.innerHTML = S.on ? `<div class="ps-dev-row"><button data-a="lock" class="${S.lock ? 'on' : ''}">POLICE LOCK: ${S.lock ? 'ON' : 'OFF'}</button><button data-a="off">TURN DEV MODE OFF</button></div>
+    extra.innerHTML = S.on ? `<div class="ps-dev-row"><button data-a="lock" class="${S.lock ? 'on' : ''}">POLICE LOCK: ${S.lock ? 'ON' : 'OFF'}</button><button data-a="money" class="${S.money ? 'on' : ''}">INFINITE MONEY: ${S.money ? 'ON' : 'OFF'}</button><button data-a="off">TURN DEV MODE OFF</button></div>
       <div class="ps-dev-status"><b>Dev mode is on.</b><br><kbd>T</kbd>teleport to the map waypoint (pause map)<br><kbd>[</kbd><kbd>]</kbd>time −1 h / +1 h · <kbd>\\</kbd>next weather<br><kbd>'</kbd>spawn your last car · <kbd>;</kbd>police lock (<kbd>L</kbd> in this menu)</div>` : '';
   }
   function setOn(b) {
@@ -86,6 +87,13 @@ export async function initV2(game) {
     if (!S.on && S.lock) setPoliceLock(false, true);
     paint();
   }
+  // infinite money: keep cash topped up (spending still works, it just refills)
+  const MONEY_FLOOR = 5e6, MONEY_TOP = 9999999;
+  function topUp() {
+    const w = game.wallet; if (!w) return;
+    try { if (w.cash < MONEY_FLOOR) w.setCashDirect(MONEY_TOP, 'Dev money'); } catch (e) { /* no wallet yet */ }
+  }
+  function setMoney(b) { S.money = !!b; ls.set(LS_MONEY, S.money ? '1' : null); if (S.on && S.money) topUp(); paint(); }
   function setPoliceLock(b, quiet) {
     S.lock = !!b; ls.set(LS_LOCK, S.lock ? '1' : null);
     if (S.lock) { installLaw(); clearLaw(); }
@@ -152,6 +160,7 @@ export async function initV2(game) {
   extra.addEventListener('click', (e) => {
     const a = e.target.closest('button')?.dataset.a;
     if (a === 'lock') setPoliceLock(!S.lock);
+    else if (a === 'money') { setMoney(!S.money); notify(game, S.money ? 'Infinite money ON' : 'Infinite money OFF', 2000); }
     else if (a === 'off') { setOn(false); notify(game, 'Dev mode OFF', 2000); }
   });
 
@@ -378,12 +387,13 @@ export async function initV2(game) {
     const st = game.player?.state;
     if (st?.inVehicle && st.vehicle && !st.vehicle.isBoat) S.lastCar = st.vehicle.typeKey || st.vehicle.type || st.vehicle.kind || S.lastCar;
     if (S.on && S.lock) { installLaw(); clearLaw(); }
+    if (S.on && S.money) topUp();
   });
 
   paint();
   if (S.on && S.lock) { installLaw(); clearLaw(); }
   game.dev = {
     get on() { return S.on; }, get policeLock() { return S.on && S.lock; }, get busy() { return S.busy; }, get lastTeleport() { return S.lastTeleport || null; },
-    setOn, setPoliceLock, teleportTo, openCodes, closeCodes, code: () => CODE.length,
+    setOn, setPoliceLock, setMoney, get infiniteMoney() { return S.on && S.money; }, teleportTo, openCodes, closeCodes, code: () => CODE.length,
   };
 }

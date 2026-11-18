@@ -11,10 +11,13 @@ import { getPiece, DEFAULT_OUTFIT } from '../wardrobe/outfit.js';
 
 const REGION = { top: 0, bottom: 1, shoes: 2 };
 // pieces that ARE the baked look (no tint)
-const BAKED = new Set(['shirt_palm_open', 'shirt_camp_teal', 'pants_cargo_khaki', 'sneakers_leather_offwhite', 'sneakers_white', 'tee_white', 'watch_diver_steel']);
+const BAKED = new Set(['shirt_palm_open', 'pants_cargo_khaki', 'sneakers_leather_offwhite', 'sneakers_white', 'tee_white', 'watch_diver_steel']);
 // prints without a flat color: a representative cloth color by name
 const BY_NAME = { teal: 0x1f7a78, coral: 0xd8705a, navy: 0x1d2a48, 'off-white': 0xe6e0d0, white: 0xeeece6, black: 0x1a1b1e, blue: 0x3b6ea5, red: 0xb5352e,
   green: 0x56603e, khaki: 0xb39a6c, olive: 0x565c3c, 'blue denim': 0x4a6a94, tan: 0x9a6b3c, brown: 0x5a3d26, burgundy: 0x5e1a24, 'dark blue': 0x1c2740 };
+
+// the lagoon print is the same teal as the baked shirt, so a name tint changed nothing: give it a clearly different aqua
+const TINT_ID = { shirt_tropical_lagoon: 0x3fc4bd, shirt_tropical_bone: 0xe4dcc4 };
 
 export function createBakedOutfit({ character, game, material }) {
   const worn = {};
@@ -25,7 +28,7 @@ export function createBakedOutfit({ character, game, material }) {
     const p = worn[slot];
     const t = u.uTint.value[r];
     if (!p || BAKED.has(p.id)) { t.w = 0; return; }
-    const c = p.mat?.color ?? BY_NAME[p.colorName] ?? 0x808080;
+    const c = TINT_ID[p.id] ?? p.mat?.color ?? BY_NAME[p.colorName] ?? 0x808080;
     col.setHex(c).convertSRGBToLinear();                   // the shader works on linear albedo
     t.set(col.r, col.g, col.b, 0.92);
   };

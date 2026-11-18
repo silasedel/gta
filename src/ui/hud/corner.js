@@ -382,6 +382,7 @@ export function createCorner(game) {
     clockSvg.innerHTML = textSVGThin([{ t: text, color: '#eceef2' }], 1358, 18, 92);
   }
 
+  let crimeShirt = null, hadStars = false;
   function setKnown(k) {
     if (k == null) { manual = null; return; }
     manual = {};
@@ -433,9 +434,15 @@ export function createCorner(game) {
     pollT -= dt;
     if (pollT <= 0) {
       pollT = 0.25;
-      const k = manual || knownFromEvidence(game) || {};
+      const k = Object.assign({}, manual || knownFromEvidence(game) || {});
+      // clothes: once a crime brings stars the police know what you wear, until you change your shirt
+      const shirt = tryGet(() => game.wardrobe?.current?.().top ?? '', '');
+      if (w > 0 && !hadStars) crimeShirt = shirt;      // a fresh crime (stars from none) fixes the shirt they saw
+      hadStars = w > 0;
+      if (crimeShirt != null && shirt !== crimeShirt) crimeShirt = null;
+      if (crimeShirt != null) k.outfit = true;
       const any = KNOWN_KEYS.some((n) => k[n]);
-      const show = w > 0 || (!!manual && any);
+      const show = true;                       // user: the five icons always show (gray when police know nothing)
       const key = KNOWN_KEYS.map((n) => (k[n] ? 1 : 0)).join('');
       if (key !== lastKnownKey) {
         for (const n of KNOWN_KEYS) {

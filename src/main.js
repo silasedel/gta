@@ -1028,12 +1028,15 @@ async function boot() {
       // interactions
       enterCooldown -= dt; punchTimer -= dt;
       P.state.punch = false;
-      if (!game.ui.phoneOpen && !P.script?.lock && inp.pressed('KeyF') && enterCooldown <= 0) {
+      // r3-gameplay: E (interact) also boards a boat within reach, like F does for any vehicle
+      let enterKey = inp.pressed('KeyF'), eBoat = null;
+      if (!enterKey && !P.state.inVehicle && inp.pressed('KeyE')) { const b = game.vehicles.nearest?.(P.position, 3.5); if (b?.isBoat) { enterKey = true; eBoat = b; } }
+      if (!game.ui.phoneOpen && !P.script?.lock && enterKey && enterCooldown <= 0) {
         enterCooldown = 0.6;
         if (P.state.inVehicle) {
           if ((P.state.vehicle.speedKmh || 0) < 25 || (P.state.vehicle.submerged || 0) > 0.3) exitVehicle();
         } else {
-          const v = game.vehicles.nearest?.(P.position, 4.0);
+          const v = eBoat || game.vehicles.nearest?.(P.position, 4.0);
           if (v && game.emit('enterVehicle', { vehicle: v })) enterVehicle(v);
         }
       }
@@ -1052,7 +1055,7 @@ async function boot() {
       // help prompt
       if (!P.state.inVehicle) {
         const v = game.vehicles.nearest?.(P.position, 4.0);
-        game.hud.help?.(v ? 'Press <b>F</b> to enter vehicle' : null);
+        game.hud.help?.(v ? (v.isBoat ? 'Press <b>F</b> or <b>E</b> to board boat' : 'Press <b>F</b> to enter vehicle') : null);
       } else game.hud.help?.(null);
       // physics (sub-step to keep ≤1/60)
       // r2-perf (game.physCap, ?physcap=1): at most 3 sub-steps of <= 1/60 s per frame. A slow frame used to run up to 6

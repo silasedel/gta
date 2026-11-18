@@ -1178,6 +1178,7 @@ export function createBoats(game, opts = {}) {
     try { proximitySwap(dt); } catch (e) { console.warn('[boats] swap', e); }
     try { upgradeStep(); } catch (e) { console.warn('[boats] upgrade', e); }
     boardingStep(dt);
+    try { deckRescue(); } catch (e) { /* ignore */ }
     const h = game.timeOfDay ?? 12, night = h < 6.6 || h > 18.7;
     const et = game.clock?.elapsed ?? 0;
     for (const b of boats) {
@@ -1249,6 +1250,26 @@ export function createBoats(game, opts = {}) {
     const lz = clamp(dx * fx + dz * fz, -b.spec.L / 2, b.spec.L / 2), lx = clamp(dx * fz - dz * fx, -b.spec.W / 2, b.spec.W / 2);
     const ex = dx - (fx * lz + fz * lx), ez = dz - (fz * lz - fx * lx);
     return Math.hypot(ex, ez, Math.max(0, Math.abs((pos.y ?? tr.y) - tr.y) - 2.5));
+  }
+  // r3-gameplay: a player on foot who jumped onto / into a hull and sank through it (fast fall, hull moving) is put back on the
+  // deck, standing; F / E then board it like any vehicle
+  function deckRescue() {
+    const P = game.player, pp = P?.position; if (!pp || P.state?.inVehicle || P.swimming || BOARD.active || !P.body?.setTranslation) return;
+    for (const b of boats) {
+      if (b.frozen || b.disabled || b.disposed) continue;
+      const tr = b.body.translation(), L = b.spec.L, W = b.spec.W;
+      if (Math.abs(pp.x - tr.x) > L || Math.abs(pp.z - tr.z) > L) continue;
+      const hd = b.heading, fx = Math.sin(hd), fz = Math.cos(hd), dx = pp.x - tr.x, dz = pp.z - tr.z;
+      const lz = dx * fx + dz * fz, lx = dx * fz - dz * fx;
+      if (Math.abs(lz) > L * 0.38 || Math.abs(lx) > W * 0.32) continue;                   // well inside the hull outline only
+      const deck = tr.y + b.spec.sheer - 0.1;
+      if (pp.y < deck - 0.35 && pp.y > tr.y - b.spec.draft - 0.2) {
+        const c = P.capsule?.center ?? 0.9;
+        P.body.setTranslation({ x: pp.x, y: deck + c + 0.05, z: pp.z }, true);
+        try { P.body.setLinvel({ x: 0, y: 0, z: 0 }, true); } catch (e) { /* ignore */ }
+        return;
+      }
+    }
   }
   // every static moored boat close to a player on foot / swimming becomes the drivable one (no cap), so F always works
   let swapT = 0;

@@ -51,7 +51,7 @@
   display: inline-block; min-width: 14px; padding: 1px 5px; margin-right: 4px; border-radius: 4px; font: 800 11px/1.3 var(--ps-sans);
   background: #f4f4f2; color: #14161c; text-align: center;
 }
-.ps-dev-row { display: flex; gap: 8px; margin-top: 12px; }
+.ps-dev-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .ps-dev-row button {
   flex: 1; font: 800 11px/1 var(--ps-sans); letter-spacing: .14em; color: #fff; cursor: pointer; padding: 10px 6px 9px;
   border-radius: 10px; border: 2px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .05);

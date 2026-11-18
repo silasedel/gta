@@ -373,9 +373,11 @@ export function createPolice(game, G) {
   // Police cars are dispatched from the nearest station: they appear out of sight 170-300 m away on the road route from the
   // station towards the player (so they arrive from the station's direction), never on the road next to the player.
   let dispatchCache = null;
-  function dispatchPoint(pp) {
+  function dispatchPoint(pp, k = 0) {
     const C = G.city, ms = Math.sqrt(C?.mapScale || 1), iv = (q) => inView(game, q);
-    const stn = stations.nearest(pp); law.dispatchStation = stn || null;
+    // big responses: later units come from the 2nd / 3rd nearest station, so several stations send cars
+    const near = k > 0 ? stations.nearest(pp, Math.min(3, k + 1)) : null;
+    const stn = k > 0 ? (near[Math.min(k, near.length - 1)] || stations.nearest(pp)) : stations.nearest(pp); law.dispatchStation = stn || null;
     const st = stn ? stn.road : tryCall('policeStation', () => C?.respawnPoint?.('police', pp), null);
     if (st && Number.isFinite(st.x)) {
       const ds = Math.hypot(st.x - pp.x, st.z - pp.z);
@@ -437,7 +439,7 @@ export function createPolice(game, G) {
       carSpawnCd = lvl >= 6 ? 2.2 : lvl >= 5 ? 3 : lvl >= 3 ? 4.5 : 6;
       // reinforcements head for what the police know: the player while seen, otherwise the last-known spot / search area
       const known = W.seen ? pp : (W.evading && W.searchCenter ? W.searchCenter : W.lastSeen);
-      const r = dispatchPoint(known);
+      const r = dispatchPoint(known, lvl >= 3 ? cars.length % 3 : 0);
       if (r && (W.seen || distXZ(r.position, pp) > 140)) { const v = spawnPoliceCar(r.position, r.heading, true); if (v) cars.push({ v, deployed: false, cops: [], mine: true, t: 0 }); }
     }
     for (const c of cars.slice()) {
@@ -519,10 +521,15 @@ export function createPolice(game, G) {
     const footActive = units.filter((u) => u.active && !u.dead).length;
     if (lvl >= 2 && footSpawnCd <= 0 && footActive < FOOT_TARGET[lvl] && onFoot) {
       footSpawnCd = lvl >= 6 ? rand(1.8, 3) : lvl >= 5 ? rand(2.5, 4) : rand(5, 9);
+      // r3-gameplay: foot units never pop in from nowhere: they come out of the nearest police station (when it is within
+      // running distance (under 150 m) and out of view); beyond that the police cars bring them (see carTick)
       const from = W.evading && W.searchCenter ? W.searchCenter : pp;
-      const q = G.city?.sidewalkPoint(from, 35, 75, null, { avoidView: true, inView: (x) => inView(game, x) });
-      const r = q ? { position: q } : pointNear(game, from, 35, 70, 'sidewalk', true);
-      if (r) spawnCop(r.position, Math.atan2(pp.x - r.position.x, pp.z - r.position.z));
+      const stn = stations.nearest(from);
+      if (stn && distXZ(stn, pp) < 150 && distXZ(stn, pp) > 45 && !inView(game, new THREE.Vector3(stn.x, pp.y, stn.z))) {
+        const sp = new THREE.Vector3(stn.road?.x ?? stn.x, 0, stn.road?.z ?? stn.z); sp.y = groundAt(game, sp.x, sp.z, pp.y + 3);
+        spawnCop(sp, Math.atan2(pp.x - sp.x, pp.z - sp.z));
+        law.dispatchStation = stn;
+      }
     }
   }
 
