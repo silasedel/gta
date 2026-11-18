@@ -1867,3 +1867,12 @@ Commits: bd916811 (TAA, dithers, A2C, shadows, aniso, near fade, tools), f5d7a85
 - **Still open:** slow growth remains: about +60 geometries, +25 textures and +130 VAOs a minute, and the renderer at
   +0.11 GB/min. Audio nodes are created at 10-40/s in a chase (not checked whether they leak). Absolute fps is not usable from
   these runs: the machine was loaded (load average 27-35) and the user's Southline app was running.
+
+## r3 round (Nov 17 late, user feedback docs/v2/plan/feedback_nov17_pm/FEEDBACK.md)
+- r3-perf: memory leak fixed (13a1889f): ocean.js shore proxies held disposed tiles, instVao held first InstancedMesh, wrecks never swept. Renderer +0.27 -> +0.11 GB/min, GPU +0.27 -> +0.08. Building pop: keep current LOD until next is ready. Still: slow geometry/texture/VAO growth.
+- r3-people: arms (63 palms-forward models rolled; 8 sign-flipped by lead ade7b94b), sidewalk lanes, wall steering, off-screen spawns, district casting, beach rain/no twins/lifeguard. Open: foot sliding, shop floating man, police in walls.
+- r3-gameplay: boat E, police from cars/stations (unverified), wanted HUD always on + clothes rule, wardrobe tint, dev infinite money.
+- r3-world: mangroves grounded, tar-seal cracks, junction audit (docs/v2/reports/junction-audit.json: 108 crossings, 60 islands, 24 ramp walls in streets, 23 curbs) - fixes need a map rebuild.
+- r3-cars: tires (rubber material, double-sided, smooth dust, sedan1/hatch1 wheels borrowed) and glass (camera-facing normals, inner sheet dropped, Fresnel, darker tints, cabin shading); ?r3car=0.
+- r3-props/interiors: library ATM, wall clock, ficus, palm; store display on a stem; interiors registration bug from c836c547 fixed in 1730b3bd.
+- lead: GPS travel-time routing, gangs off, car exit blend, people LOD nearest-first, rain look, rare car colors.
