@@ -36,3 +36,6 @@ fx "$X/ac/window Ac/window Ac.fbx" "$X/ac/window Ac/Textures" public/assets/mode
 DROPBIG=5000 fx "$X/can/Trash_01/wee2_trash_01_geo.obj" "$M/Bins/Trash Can 7 - Galvanized Steel Trash Can With Lid/textures" public/assets/models/keys/galv_can.glb 0.01   # drops the 2 m ground plane in the mesh
 fx "$X/mb6/MailBox_upl/MailBox_J_low.fbx" "$X/mb6/MailBox_upl/Mailbox_UE_4K" public/assets/models/keys/mailbox_post.glb 0.37
 rm -rf "$X"
+# deck and dock (r2-keys, last pass): wicker chair (FBX, decimated to 9k) and the fishing supplies set (.blend, one piece per object)
+P="$M/Chairs/Wicker Chair 1 - Low-Poly Wicker Chair"; FBX="$P/source/wicker chair.fbx" TEX="$P/textures" "$B" -b -Y --factory-startup --python-exit-code 1 --python tools/v2/keys/blender/import_fbx.py -- public/assets/models/keys/wicker_chair.glb 1 1024 join "" 9000 base 2>&1 | grep -E "CONV|rror"
+c "Fishing Gear/Fishing Gear 2 - Fishing Supplies Set/source/inner_FishingSupplies/FishingSupplies.blend" public/assets/models/keys/fishing_gear.glb 0.012 1024 splitc "Empty" 0 base
