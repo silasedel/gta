@@ -18,7 +18,7 @@ const R4GAITFB = R4GAIT && typeof location !== 'undefined' && /[?&]r4gaitfb=1/.t
 export const SHADOW_PROXY = { on: false, layer: 7 }; // layer 7 = the split sun's dynamic caster layer (render/stage/env/shadows.js)
 
 export const LOD_DIST = [15, 60];
-export const LOD_CFG = { maxFull: 12, shadowDist: 26, alwaysFull: 7 };   // user: close people must always be full quality
+export const LOD_CFG = { maxFull: 8, shadowDist: 26, alwaysFull: 7 };   // nearest-first, anyone within 7 m always full; 8 slots (12 cost too much skinning in the app)   // user: close people must always be full quality
 const rng = (seed) => { let a = (seed | 0) ^ 0x9e3779b9; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
 const approach = (x, t, rate, dt) => x + (t - x) * (1 - Math.exp(-rate * dt));
 const UP = new THREE.Vector3(0, 1, 0);

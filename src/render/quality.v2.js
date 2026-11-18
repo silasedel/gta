@@ -40,7 +40,7 @@ export const PRESETS = {
     dpr: 2, // user (Nov 17): full Retina resolution on High too (was 1.5); the GPU has headroom (CPU-bound), dynres still guards heavy frames
     shadow: { size: 4096, radius: 150, dynSize: 2048, dynRadius: 42 },
     far: 8000,
-    crowd: 240,
+    crowd: 180,
     pedScale: 1,
     lod: { maxFull: 6, budget: 380000 },
     ao: true,
