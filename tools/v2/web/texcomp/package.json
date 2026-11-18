@@ -1,0 +1,8 @@
+{
+  "name": "southline-texcomp",
+  "private": true,
+  "description": "Web-build texture recompression (gltf-transform). Isolated from the game packages.",
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1"
+  }
+}
