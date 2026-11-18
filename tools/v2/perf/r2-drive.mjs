@@ -55,6 +55,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   const speed = plan.len / SECS;
   await b.sleep(4000);
   // sampling profile of the whole drive
+  if (o.alloc) { await b.send('HeapProfiler.enable'); await b.send('HeapProfiler.startSampling', { samplingInterval: 65536, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true }); }
   await b.send('Profiler.enable'); await b.send('Profiler.setSamplingInterval', { interval: 500 }); await b.send('Profiler.start');
   const pageT0 = await b.eval('performance.now()');
   const res = await b.eval(`new Promise((res) => { const D = window.__drv; const t0 = performance.now();
@@ -125,7 +126,7 @@ await withBrowser({ width: 1920, height: 1080, maxSeconds: +(o.max || 900) }, as
   console.log('CPU incl:'); for (const l of rep.cpuprof.incl.slice(0, 50)) console.log('   ', l);
   rep.heapNow = JSON.parse(await b.eval('JSON.stringify(performance.memory ? { usedMB: Math.round(performance.memory.usedJSHeapSize / 1048576), totalMB: Math.round(performance.memory.totalJSHeapSize / 1048576), limitMB: Math.round(performance.memory.jsHeapSizeLimit / 1048576) } : null)'));
   console.log('heap', JSON.stringify(rep.heapNow));
-  if (o.heap) {
+  if (o.heap || o.alloc) {
     const hp = (await b.send('HeapProfiler.getSamplingProfile')).result.profile;
     const bySite = {}, byFn = {};
     const walk = (n, stack) => { const cf = n.callFrame, f = `${cf.functionName || '(anon)'} ${cf.url.split('/').slice(-1)[0].split('?')[0]}:${cf.lineNumber + 1}`; const st2 = [...stack, f];

@@ -186,12 +186,13 @@ float tNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
   // from land to WATER_Y between two 4 m grid vertices: the waterline is a smooth contour, not a jagged triangle saw that
   // z-fights with the ocean plane
   const SH = [[0, 0], [4.5, 0], [-4.5, 0], [0, 4.5], [0, -4.5], [3.2, 3.2], [-3.2, 3.2], [3.2, -3.2], [-3.2, -3.2]];
+  const SHF = new Float64Array(SH.flat());
   // coarse = far LOD grids: the base height only (the ±0.3 m micro-relief is invisible there and its 4 m samples are not worth computing)
   const TH0 = data.terrainHeightAt && data.terrainHeightAt.base ? data.terrainHeightAt.base : null;
   const heightAt = (x, z, coarse) => {
     const land = (coarse && TH0 ? TH0(x, z) : data.terrainHeightAt ? data.terrainHeightAt(x, z) : 0) + Y_OFF;
     if (!data.isWater) return land;
-    let w = 0; for (const [dx, dz] of SH) if (data.isWater(x + dx, z + dz)) w++;
+    let w = 0; for (let i = 0; i < 18; i += 2) if (data.isWater(x + SHF[i], z + SHF[i + 1])) w++; // r2-perf: flat offsets (the destructuring for-of allocated ~0.7 GB per 40 s drive)
     if (w === 0) return land; if (w === 9) return WATER_Y;
     const f = w / 9, k = f * f * (3 - 2 * f);
     // r2-ground: a smooth beach profile across the waterline. Land vertices ease down to ~9 cm above the still water (-0.12),
