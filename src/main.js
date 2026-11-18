@@ -675,9 +675,10 @@ async function boot() {
     // Sweep a small sphere (≈ the near plane's half-width) instead of a thin ray, so the camera can't slip
     // past the edges of poles, posts, signs and wall corners and show their insides.
     let hit = world.castRay(new RAPIER.Ray(piv, raydir), camDist + 0.3, true, STATIC_ONLY);
+    if (hit) hit = { timeOfImpact: hit.timeOfImpact, static: true };
     try {
       const sh = world.castShape(piv, IDQ, raydir, camSphere, 0, camDist + 0.3, false, STATIC_ONLY);
-      if (sh && Number.isFinite(sh.time_of_impact) && (!hit || sh.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sh.time_of_impact };
+      if (sh && Number.isFinite(sh.time_of_impact) && (!hit || sh.time_of_impact < hit.timeOfImpact)) hit = { timeOfImpact: sh.time_of_impact, static: true };
     } catch (e) { /* keep ray result */ }
     // cars too (parked and moving, not the one being driven): a car between the camera and Nico pulls the camera in
     // like GTA instead of filling half the screen with its hood; it eases back out below (colDist)
@@ -711,8 +712,20 @@ async function boot() {
         }
       }
     } catch (e) { /* occluder test is best effort */ }
+    // r2-physics (user: "the camera gets closer then farther" while driving): thin things between the car and the camera (poles,
+    // posts, sign posts, palm / sapling trunks, hedge cores, bins) no longer pull it in: a static hit only counts when parallel
+    // rays 0.55 m to either side are blocked too (a wall, a building, a big trunk, terrain). In / out are smoothed with hysteresis:
+    // in fast when really blocked, out slowly once the path has stayed clear for 0.3 s, so it never pumps.
+    if (hit && hit.static && driving) {
+      try { const px = -raydir.z, pz = raydir.x, pl = Math.hypot(px, pz) || 1; let blocked = 0;
+        for (const sd of [-0.55, 0.55]) { const o = { x: piv.x + px / pl * sd, y: piv.y, z: piv.z + pz / pl * sd }; const h2 = world.castRay(new RAPIER.Ray(o, raydir), hit.timeOfImpact + 0.6, true, STATIC_ONLY); if (h2) blocked++; }
+        if (blocked < 2) hit = null; } catch (e) { /* keep */ }
+    }
     const wantD = hit ? Math.max(0.6, hit.timeOfImpact - 0.3) : camDist;
-    if (wantD < colDist) colDist = wantD; else colDist += (wantD - colDist) * Math.min(1, dt * 2.5);
+    L.camClearT = hit ? 0 : (L.camClearT || 0) + dt;
+    game.__camDbg = { camDist, wantD, colDist, hit: !!hit }; // r2-physics: camera pumping check (tools/v2/physics/camcheck.mjs)
+    if (wantD < colDist - 0.12) colDist = wantD < colDist - 1.2 || !driving ? wantD : colDist + (wantD - colDist) * Math.min(1, dt * 14);
+    else if (wantD > colDist + 0.05 && (L.camClearT > 0.3 || !driving)) colDist += (wantD - colDist) * Math.min(1, dt * (driving ? 1.2 : 2.5));
     const target = piv.clone().addScaledVector(raydir, colDist);
     const cw = game.city?.isWater?.(target.x, target.z);
     const under = (P.headUnderwater || (driving && (st.vehicle?.submerged || 0) > 0.3));
