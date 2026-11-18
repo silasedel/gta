@@ -4,7 +4,7 @@
 //   Float (floatplane), Biscayne Solstice 45 (business jet). Spawns: GA apron at Miami International (2 props, the
 //   floatplane, the jet), a prop plane at the Key West airfield, a floatplane moored off Key Largo.
 //   The parked airliners at the MIA gates stay static set dressing (src/world/miami/bldmodels.js, not flyable).
-// Controls (in an aircraft): W / S throttle up / down, A / D roll (and nose-wheel / water-rudder steering), Q / E rudder,
+// Controls (in an aircraft): W / S throttle up / down (the lever stays where you leave it, shown as a bar on screen); the MOUSE is the stick (tilt: pitch and roll, springs back to centre); A / D roll (and nose-wheel / water-rudder steering), Q / E rudder,
 //   K / I (or Numpad 5 / 8) pitch up / down, Space brakes, X / Z flaps down / up, G gear (jet), V camera, F exit (< 25 km/h).
 // Vehicle kind 'aircraft' (game.vehicles.registerKind): F / E to enter like cars, stealing reports 'vehicle_theft'.
 // Physics: src/vehicles/air/flight/sim.js (pure JS, kinematic Rapier body so cars and people collide with the plane,
@@ -250,9 +250,16 @@ export async function initV2(game) {
     c.throttle = clamp(c.throttle + ((W ? 1 : 0) - (Sk ? 1 : 0)) * dt * 0.7, 0, 1);
     const ax = (a, b) => (key(a) ? 1 : 0) - (key(b) ? 1 : 0);
     const ease = (cur, want, r) => cur + clamp(want - cur, -r * dt, r * dt);
-    c.roll = ease(c.roll, ax('KeyD', 'KeyA'), 5);
+    // mouse = the stick (user: W/S only set the throttle, the camera/mouse does the tilt): mouse movement pushes a virtual stick
+    // (right = roll right, up = nose up) that springs back to centre when the mouse stops; keys still work and add to it
+    const st = A.stick || (A.stick = { x: 0, y: 0, idle: 0 });
+    const mdx = inp.mouseDX || 0, mdy = inp.mouseDY || 0;
+    if (mdx || mdy) { st.x = clamp(st.x + mdx * 0.0042, -1, 1); st.y = clamp(st.y - mdy * 0.0042, -1, 1); st.idle = 0; }
+    else { st.idle += dt; if (st.idle > 0.12) { const k = Math.min(1, dt * 1.8); st.x -= st.x * k; st.y -= st.y * k; } }
+    const keyRoll = ax('KeyD', 'KeyA'), keyPitch = (key('KeyK') || key('Numpad5') ? 1 : 0) - (key('KeyI') || key('Numpad8') ? 1 : 0);
+    c.roll = ease(c.roll, clamp(keyRoll + st.x, -1, 1), 7);
     c.yaw = ease(c.yaw, ax('KeyE', 'KeyQ'), 4);
-    c.pitch = ease(c.pitch, (key('KeyK') || key('Numpad5') ? 1 : 0) - (key('KeyI') || key('Numpad8') ? 1 : 0), 4);
+    c.pitch = ease(c.pitch, clamp(keyPitch + st.y, -1, 1), 7);
     c.brake = key('Space') ? 1 : S.onGround && c.throttle < 0.02 && S.vel.length() < 1 ? 1 : 0;
     if (inp.pressed?.('KeyX')) c.flaps = Math.min(1, c.flaps + 0.5);
     if (inp.pressed?.('KeyZ')) c.flaps = Math.max(0, c.flaps - 0.5);
@@ -332,7 +339,7 @@ export async function initV2(game) {
       cur.active = true; cur.S.engineOn = true; cur.S.ctl.brake = 0;
       if (!cur.owned && !cur.stolen) { cur.stolen = true; game.emit?.('crime', { type: 'vehicle_theft', position: cur.mesh.position.clone(), severity: 2, vehicle: cur }); game.hud?.notify?.('Stolen aircraft: ' + cur.name, 2200); }
       if (!game.cameraOverride || game.cameraOverride === airCam) { game.cameraOverride = airCam; camInit = false; }
-      game.hud?.notify?.('W/S throttle  A/D roll  Q/E rudder  K/I pitch  X/Z flaps  V camera', 5000);
+      game.hud?.notify?.('W/S throttle (stays set)  mouse tilt  A/D roll  Q/E rudder  X/Z flaps  V camera', 5000);
     } else if (game.cameraOverride === airCam) { game.cameraOverride = null; restoreFov(); }
   }
   const camPos = new THREE.Vector3(), camFwd = new THREE.Vector3(0, 0, 1), camUp = new THREE.Vector3(0, 1, 0), _f = new THREE.Vector3(), _u = new THREE.Vector3(), _t = new THREE.Vector3(), _o = new THREE.Vector3();
@@ -381,7 +388,7 @@ export async function initV2(game) {
   }
 
   // ---------------------------------------------------------------- HUD: brand / model on the vehicle card (spec), altitude + throttle by the speedometer
-  let hudEl = null, spEl = null;
+  let hudEl = null, spEl = null, barEl = null;
   function hudUpdate(A) {
     if (!spEl || !spEl.isConnected) { spEl = document.querySelector('.ps-speedo'); if (hudEl && spEl) spEl.appendChild(hudEl); }
     const sp = spEl;
@@ -394,7 +401,22 @@ export async function initV2(game) {
       hudEl = document.createElement('div'); hudEl.className = 'ps-air-read'; sp.appendChild(hudEl);
     }
     sp.classList.toggle('ps-air', !!A);
+    // throttle lever on screen: a vertical bar that stays where the lever is set (W / S move it), plus the mouse stick marker
+    if (!barEl) {
+      const st2 = document.createElement('style');
+      st2.textContent = `.ps-thr{position:fixed;left:28px;top:50%;transform:translateY(-50%);width:46px;display:none;flex-direction:column;align-items:center;gap:8px;z-index:30;pointer-events:none;font:700 11px/1 var(--ps-cond, system-ui, sans-serif);letter-spacing:.14em;color:#f3ede2;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.ps-thr.on{display:flex}.ps-thr .trk{position:relative;width:16px;height:190px;border-radius:9px;background:rgba(8,12,20,.62);box-shadow:inset 0 0 0 1px rgba(243,237,226,.28);overflow:hidden}
+.ps-thr .fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#d462ff,#ff8ad9);border-radius:9px;transition:height .08s linear}
+.ps-thr .tick{position:absolute;left:0;right:0;height:1px;background:rgba(243,237,226,.35)}
+.ps-thr .val{font-size:15px;letter-spacing:.06em}`;
+      document.head.appendChild(st2);
+      barEl = document.createElement('div'); barEl.className = 'ps-thr';
+      barEl.innerHTML = '<div class="val">0%</div><div class="trk"><div class="fill"></div><div class="tick" style="bottom:25%"></div><div class="tick" style="bottom:50%"></div><div class="tick" style="bottom:75%"></div></div><div>THR</div>';
+      document.body.appendChild(barEl);
+    }
+    barEl.classList.toggle('on', !!A);
     if (!A) return;
+    { const th = clamp(A.S.ctl.throttle, 0, 1); const pc = Math.round(th * 100); if (barEl._p !== pc) { barEl._p = pc; barEl.querySelector('.fill').style.height = pc + '%'; barEl.querySelector('.val').textContent = pc + '%'; } }
     const S = A.S, alt = Math.max(0, Math.round(S.agl)), thr = Math.round(S.ctl.throttle * 100);
     const txt = `ALT <b>${alt}</b> m&nbsp;&nbsp;THR <b>${thr}</b>%${S.ctl.flaps > 0.05 ? '&nbsp;&nbsp;FLAPS' : ''}${A.T.retract ? (S.ctl.gearDown ? '&nbsp;&nbsp;GEAR' : '') : ''}${S.stall > 0.3 ? '&nbsp;&nbsp;<span class="warn">STALL</span>' : ''}`;
     if (hudEl._t !== txt) { hudEl._t = txt; hudEl.innerHTML = txt; }
