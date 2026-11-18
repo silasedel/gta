@@ -8,6 +8,13 @@
 import * as THREE from 'three';
 import { linkEnv } from './envlink.js';
 
+// r3 paint (user: "terrible textures", splotchy paint, weird layers).  On: wear only where real cars collect it (sills, behind
+// the wheels, faces turned to the road), soft and low-frequency (coarse mips of the grime noise: no blotches, no speckle,
+// no grime veil over the whole body); sun fade broad and cloudy instead of islands; rust only in the sill / arch band;
+// pearl without the cloth sheen lobe.  glbCar.js also rebuilds the paint shell's shading normals (the converter's
+// transferred normals were the blotchy reflections).  ?r3paint=0 restores the r2 paint.
+export const R3PAINT = (() => { try { return new URLSearchParams(location.search).get('r3paint') !== '0'; } catch (e) { return true; } })();
+
 // ---------------------------------------------------------------- shared grime noise (generated once, tileable)
 let _grime = null;
 export function grimeTexture() {
@@ -77,6 +84,12 @@ void computeBeads(vec3 p, vec3 n) {
   float present = step(1.0 - uWet * (0.35 + 0.55 * up), h);
   wetBead = clamp(k, 0.0, 1.0) * present;
   wetGrad = k > 0.0 ? -d / rad * present : vec2(0.0);
+#ifdef R3PAINT
+  // a 9 mm bead is only drawn while its cell spans several pixels; farther out it aliased into square speckle (the wet
+  // clear coat carries the look there)
+  float bf = 1.0 - smoothstep(0.15, 0.4, length(fwidth(q)));
+  wetBead *= bf; wetGrad *= bf;
+#endif
 }
 varying vec3 vWearPos;
 varying vec3 vWearN;
@@ -109,14 +122,22 @@ vec3 flakeTilt(vec3 p) {
 vec4 grimeTri(vec3 p, vec3 w) {
   return texture2D(uGrime, p.zy) * w.x + texture2D(uGrime, p.zx) * w.y + texture2D(uGrime, p.xy) * w.z;
 }
+#ifdef R3PAINT
+// the grime noise read from a coarse mip: smooth, nothing finer than ~10 cm, identical on every LOD and at every distance
+vec4 softTri(vec3 p, vec3 w, float lod) {
+  return textureLod(uGrime, p.zy, lod) * w.x + textureLod(uGrime, p.zx, lod) * w.y + textureLod(uGrime, p.xy, lod) * w.z;
+}
+#endif
 void computeWear(inout vec3 albedo) {
   vec3 p = vWearPos; vec3 n = normalize(vWearN);
   vec3 w = pow(abs(n), vec3(4.0)); w /= (w.x + w.y + w.z + 1e-5);
   float seed = uWear.w;
+#ifndef R3PAINT
   vec4 nLo = grimeTri(p * 0.37 + seed * 0.731, w);
   vec4 nHi = grimeTri(p * 1.9 + seed * 1.37, w);
   // far away the fine grime speckle can't be resolved: fade it to its mean (r2-render: it crawled / splotched at low mips)
   { float fq = smoothstep(0.004, 0.03, length(fwidth(p))); nHi = mix(nHi, vec4(0.5), fq); nLo = mix(nLo, vec4(0.5), fq * 0.5); }
+#endif
   // two-tone split and a replaced panel (both before dirt, so grime lies over them)
   if (uTwoTone.a > 0.0) {
     float e = smoothstep(uTwoTone.a + 0.004, uTwoTone.a - 0.004, p.y);
@@ -157,6 +178,49 @@ void computeWear(inout vec3 albedo) {
     albedo = mix(albedo, vec3(0.032, 0.033, 0.036), fl);
     wearFlare = fl;   // molded textured plastic: no metal, no clear coat (see the roughness / clearcoat hooks)
   }
+#ifdef R3PAINT
+  {
+    vec4 nS = softTri(p * 0.21 + seed * 0.731, w, 2.5);   // broad: ~0.6-5 m
+    vec4 nM = softTri(p * 0.55 + seed * 1.37, w, 2.0);    // mid: ~15-150 cm
+    float rr = uWearShape.w, top = uWearShape.x;
+    // road film: the rocker, the bumper bottoms and the lower doors, thrown up behind each wheel, and faces turned to the road
+    float low = 1.0 - smoothstep(rr * 0.45, rr * 1.7 + uWear.x * 0.3, p.y);
+    float behindF = exp(-pow((p.z - (uWearShape.z - rr * 1.6)) / (rr * 1.3), 2.0));
+    float behindR = exp(-pow((p.z - (-uWearShape.z - rr * 1.6)) / (rr * 1.3), 2.0));
+    float spray = max(behindF, behindR) * (1.0 - smoothstep(rr * 0.9, rr * 2.4, p.y));
+    float under = smoothstep(-0.15, -0.7, n.y) * (1.0 - smoothstep(rr * 1.5, rr * 3.0, p.y));
+    // dust on the hood / roof / deck only on properly dirty cars, and even: no mottling
+    float topDust = smoothstep(0.6, 0.95, n.y) * smoothstep(0.3, 0.7, uWear.x) * 0.22;
+    // rain run-off under the window line on dirty cars (soft vertical streaks, side panels only)
+    float st = textureLod(uGrime, vec2(p.z * 1.6 + seed, p.y * 0.18), 1.5).b;
+    float runoff = smoothstep(0.55, 0.9, st) * w.x * (1.0 - smoothstep(top - 0.12, top, p.y)) * smoothstep(0.25, 0.5, uWear.x) * 0.25;
+    float d = uWear.x * (low * 1.05 + spray * 0.75 + under * 0.5 + topDust + runoff);
+    d *= 0.8 + 0.4 * mix(nS.r, nM.r, 0.35);
+    wearDirt = clamp(d, 0.0, 0.85);
+    // sun fade: hood, roof, deck, a little on the shoulders; broad and cloudy, never islands
+    float fm = max(smoothstep(0.3, 0.85, n.y), smoothstep(top - 0.05, top + 0.25, p.y) * 0.45) * clamp(uWear.z * 1.25, 0.0, 1.0);
+    wearFade = clamp(fm * (0.7 + 0.6 * nS.r), 0.0, 1.0) * step(0.02, uWear.z);
+    // rust: only in the sill / wheel-arch band, pitted edges there
+    float edge = clamp(low * 0.9 + spray * 0.7, 0.0, 1.0);
+    vec4 nR = grimeTri(p * 0.9 + seed * 1.91, w);
+    float rustN = nM.a * 0.5 + nR.a * 0.5;   // (the coarse mip has less spread than the raw noise: lower threshold)
+    float rA = 1.05 - uWear.y * (0.3 + 0.8 * edge);
+    float rv = rustN + edge * 0.25, band = smoothstep(0.2, 0.5, edge);
+    wearRust = clamp(smoothstep(rA, rA + 0.08, rv) * band * step(0.02, uWear.y), 0.0, 1.0);
+    // factory paint: +-1 % broad tone drift at most
+    albedo *= 0.99 + 0.02 * nS.r;
+    float lumA = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
+    vec3 faded = mix(albedo, vec3(lumA), 0.5) * 1.1 + vec3(0.015);
+    albedo = mix(albedo, faded, wearFade);
+    float core = smoothstep(rA + 0.03, rA + 0.12, rv) * band;
+    float halo = smoothstep(rA - 0.09, rA, rv) * band * (1.0 - wearRust);
+    vec3 rustDark = vec3(0.075, 0.032, 0.014) * (0.8 + 0.4 * nR.g);
+    vec3 rustBloom = mix(vec3(0.24, 0.095, 0.03), vec3(0.32, 0.15, 0.06), nM.r);
+    albedo = mix(albedo, mix(rustBloom, rustDark, core), wearRust);
+    albedo = mix(albedo, albedo * vec3(0.8, 0.7, 0.6), halo * step(0.02, uWear.y) * 0.6);
+    albedo = mix(albedo, uDirtColor * (0.9 + 0.2 * nM.g), wearDirt * 0.85);
+  }
+#else
   // road film: strongest low on the body and thrown up behind the wheels; a little dust on upward faces
   float low = 1.0 - smoothstep(uWearShape.w * 0.6, uWearShape.x, p.y);
   float behindF = exp(-pow((p.z - (uWearShape.z - uWearShape.w * 1.6)) / (uWearShape.w * 1.3), 2.0));
@@ -192,6 +256,7 @@ void computeWear(inout vec3 albedo) {
   albedo = mix(albedo, rustCol, wearRust);
   albedo = mix(albedo, albedo * vec3(0.78, 0.66, 0.56), halo * step(0.02, uWear.y) * 0.8);
   albedo = mix(albedo, uDirtColor * (0.75 + 0.5 * nHi.r), wearDirt * 0.88);
+#endif
 }
 `;
 
@@ -204,7 +269,7 @@ function injectWear(mat) {
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vWearPos = position + uWearOffset;\n  vWearN = normal;');
     shader.uniforms.uWet = PAINT_WET;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + WEAR_FRAG_DECL)
+      .replace('#include <common>', '#include <common>\n' + (R3PAINT ? '#define R3PAINT\n' : '') + WEAR_FRAG_DECL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n  computeWear(diffuseColor.rgb);\n  computeBeads(vWearPos, normalize(vWearN));\n  diffuseColor.rgb *= 1.0 - uWet * 0.14 * (1.0 - wearDirt);')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.92, max(wearDirt * 0.9, max(wearRust, wearFade * 0.55)));\n  roughnessFactor = mix(roughnessFactor, 0.48, wearPatch * uPatchSatin);\n  roughnessFactor = mix(roughnessFactor, 0.62, wearFlare);')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n  metalnessFactor *= (1.0 - max(wearDirt * 0.85, wearRust));\n  metalnessFactor *= 1.0 - max(wearPatch * uPatchSatin, wearFlare);')
@@ -212,7 +277,7 @@ function injectWear(mat) {
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  if (uFlake > 0.0) normal = normalize(normal + flakeTilt(vWearPos) * uFlake * (1.0 - wearDirt) * (1.0 - smoothstep(6.0, 10.0, length(vViewPosition))));')
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n  #ifdef USE_CLEARCOAT\n  if (wetBead > 0.0) clearcoatNormal = normalize(clearcoatNormal + vec3(wetGrad * 0.9, 0.0));\n  { float opd = 1.0 - smoothstep(2.5, 7.0, length(vViewPosition)); if (opd > 0.0) { vec4 op = texture2D(uGrime, vWearPos.xz * 37.0 + vWearPos.yy * 23.0); clearcoatNormal = normalize(clearcoatNormal + vec3((op.gb - 0.5) * 0.012 * opd, 0.0)); } }\n  #endif');
   };
-  mat.customProgramCacheKey = () => 'ps-wear-v10';
+  mat.customProgramCacheKey = () => (R3PAINT ? 'ps-wear-v12-r3' : 'ps-wear-v10');
 }
 
 // Shared wetness for every car paint (0 dry .. 1 soaked, with beads).  Weather drives it: setPaintWetness(w).
@@ -239,7 +304,9 @@ export function carPaint(opts = {}) {
     metallic: { metalness: 0.6, roughness: 0.36, clearcoat: 1, clearcoatRoughness: 0.045 },
     // old single-stage enamel (classics, beaters): no metal flake, a thin tired clear coat that blurs the sky
     solid: { metalness: 0, roughness: 0.46, clearcoat: 0.38, clearcoatRoughness: 0.17 },
-    pearl: { metalness: 0.35, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.03, sheen: 0.6, iridescence: 0.35 },
+    // r3: no sheen (a cloth lobe: a pale veil over the body at grazing angles) and only a hint of thin-film color flop
+    pearl: R3PAINT ? { metalness: 0.35, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.03, iridescence: 0.12 }
+      : { metalness: 0.35, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.03, sheen: 0.6, iridescence: 0.35 },
     matte: { metalness: 0.2, roughness: 0.78, clearcoat: 0, clearcoatRoughness: 0.5 },
     satin: { metalness: 0.4, roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.35 },
     chrome: { metalness: 1, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.02 },

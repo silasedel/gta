@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { carPaint } from '../model/materials.js';
+import { carPaint, R3PAINT } from '../model/materials.js';
 import { trimMaterial, glassMaterial, lampMaterial, SHEET, R3CAR } from '../model/body/mats.js';
 import { wheelMat } from '../model/body/wheel.js';
 import { plateMaterial } from '../model/extras.js';
@@ -200,7 +200,86 @@ function prepLamp(g, inCab = null) {
   g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   return g;
 }
-function prepPaint(g) { g.deleteAttribute('color'); if (g.getAttribute('uv')) g.deleteAttribute('uv'); return g; }
+function prepPaint(g, level = 0) {
+  g.deleteAttribute('color'); if (g.getAttribute('uv')) g.deleteAttribute('uv');
+  if (R3PAINT && level < 2) { try { return paintNormals(g, level === 0 ? 40 : 50); } catch (e) { console.warn('[cars] paint normals', e); } }
+  return g;
+}
+// r3 paint: the paint shell's shading normals rebuilt from its own surface.  The converter transfers the source model's normals
+// onto the decimated shell (nearest face): measured on sedan1, 11 % of LOD0 / 30 % of LOD1 paint corners sit more than 30 deg
+// off their face, 1.5 % / 3.5 % more than 90 deg (inner-skin normals) = the blotchy sky / ground reflections, lumpy shading and
+// the color jump at the LOD switch.  Corners are welded by position, then grouped per vertex by face orientation (crease
+// angle): angle-weighted smooth normals inside a group, hard edges at panel gaps and body lines.  Same rule on LOD0 and LOD1.
+function paintNormals(g, creaseDeg) {
+  const P = g.getAttribute('position'), nv = P.count, I = g.index ? g.index.array : null;
+  const nc = I ? I.length : nv, nt = (nc / 3) | 0;
+  if (nt < 4) return g;
+  const pa = P.array, vi = (c) => (I ? I[c] : c);
+  // weld: identical (quantized) positions -> one id
+  const weld = new Int32Array(nv), map = new Map(); let nw = 0;
+  const Q = 4000, O = 65536;   // 0.25 mm grid, +-16 m (key < 2^51: exact)
+  for (let i = 0; i < nv; i++) {
+    const k = ((Math.round(pa[i * 3] * Q) + O) * 131072 + (Math.round(pa[i * 3 + 1] * Q) + O)) * 131072 + (Math.round(pa[i * 3 + 2] * Q) + O);
+    let id = map.get(k); if (id === undefined) { id = nw++; map.set(k, id); } weld[i] = id;
+  }
+  // unit face normals + corner angles
+  const fn = new Float32Array(nt * 3), ang = new Float32Array(nc);
+  for (let t = 0; t < nt; t++) {
+    const a = vi(t * 3) * 3, b = vi(t * 3 + 1) * 3, c = vi(t * 3 + 2) * 3;
+    const e1x = pa[b] - pa[a], e1y = pa[b + 1] - pa[a + 1], e1z = pa[b + 2] - pa[a + 2];
+    const e2x = pa[c] - pa[a], e2y = pa[c + 1] - pa[a + 1], e2z = pa[c + 2] - pa[a + 2];
+    const e3x = pa[c] - pa[b], e3y = pa[c + 1] - pa[b + 1], e3z = pa[c + 2] - pa[b + 2];
+    let nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
+    const L = Math.sqrt(nx * nx + ny * ny + nz * nz);
+    if (L < 1e-12) continue;   // degenerate: weight 0, takes its vertex group's normal
+    fn[t * 3] = nx / L; fn[t * 3 + 1] = ny / L; fn[t * 3 + 2] = nz / L;
+    const l1 = Math.sqrt(e1x * e1x + e1y * e1y + e1z * e1z), l2 = Math.sqrt(e2x * e2x + e2y * e2y + e2z * e2z), l3 = Math.sqrt(e3x * e3x + e3y * e3y + e3z * e3z);
+    const cA = (e1x * e2x + e1y * e2y + e1z * e2z) / (l1 * l2 || 1), cB = (-e1x * e3x - e1y * e3y - e1z * e3z) / (l1 * l3 || 1);
+    const A = Math.acos(Math.max(-1, Math.min(1, cA))), B = Math.acos(Math.max(-1, Math.min(1, cB)));
+    ang[t * 3] = A; ang[t * 3 + 1] = B; ang[t * 3 + 2] = Math.max(0, Math.PI - A - B);
+  }
+  // corners per welded vertex (CSR)
+  const cnt = new Int32Array(nw + 1);
+  for (let c = 0; c < nc; c++) cnt[weld[vi(c)] + 1]++;
+  for (let i = 0; i < nw; i++) cnt[i + 1] += cnt[i];
+  const fill = cnt.slice(0, nw), lst = new Int32Array(nc);
+  for (let c = 0; c < nc; c++) lst[fill[weld[vi(c)]]++] = c;
+  // group each vertex's corners by face orientation; one output vertex per (welded vertex, group)
+  const cosC = Math.cos(creaseDeg * Math.PI / 180), outOf = new Int32Array(nc);
+  const pos = new Float32Array(nc * 3), nor = new Float32Array(nc * 3), G = new Float64Array(64 * 3), GC = new Int32Array(64);
+  const n0 = g.getAttribute('normal');
+  let nOut = 0;
+  for (let v = 0; v < nw; v++) {
+    let ng = 0;
+    const s = cnt[v], e = cnt[v + 1], first = nOut;
+    for (let j = s; j < e; j++) {
+      const c = lst[j], t = (c / 3) | 0, x = fn[t * 3], y = fn[t * 3 + 1], z = fn[t * 3 + 2], wgt = ang[c];
+      let best = -1, bd = cosC;
+      for (let k = 0; k < ng; k++) {
+        const X = G[k * 3], Y = G[k * 3 + 1], Z = G[k * 3 + 2], L = Math.sqrt(X * X + Y * Y + Z * Z) || 1, d = (X * x + Y * y + Z * z) / L;
+        if (d > bd || (wgt === 0 && best < 0)) { bd = d; best = k; }
+      }
+      if (best < 0) { if (ng >= 64) best = 0; else { best = ng++; G[best * 3] = G[best * 3 + 1] = G[best * 3 + 2] = 0; GC[best] = c; } }
+      G[best * 3] += x * wgt; G[best * 3 + 1] += y * wgt; G[best * 3 + 2] += z * wgt;
+      outOf[c] = first + best;
+    }
+    const p0 = vi(lst[s]) * 3;
+    for (let k = 0; k < ng; k++) {
+      let x = G[k * 3], y = G[k * 3 + 1], z = G[k * 3 + 2], L = Math.sqrt(x * x + y * y + z * z);
+      if (L < 1e-9) { const q = vi(GC[k]); x = n0 ? n0.getX(q) : 0; y = n0 ? n0.getY(q) : 1; z = n0 ? n0.getZ(q) : 0; L = Math.sqrt(x * x + y * y + z * z) || 1; }
+      const o = nOut * 3; pos[o] = pa[p0]; pos[o + 1] = pa[p0 + 1]; pos[o + 2] = pa[p0 + 2]; nor[o] = x / L; nor[o + 1] = y / L; nor[o + 2] = z / L; nOut++;
+    }
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos.slice(0, nOut * 3), 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor.slice(0, nOut * 3), 3));
+  const idx = nOut > 65535 ? new Uint32Array(nc) : new Uint16Array(nc);
+  for (let c = 0; c < nc; c++) idx[c] = outOf[c];
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.userData = { ...g.userData, paintNormals: { welded: nw, verts: nOut, crease: creaseDeg } };
+  g.dispose();
+  return out;
+}
 function prepWheel(g, fix) {
   prepTrim(g);
   const n = g.getAttribute('position').count;
@@ -326,12 +405,16 @@ export function loadCarModel(key) {
       if (/^T_/.test(slot)) texMats[slot] ||= texturedMaterial(o.material);
       (parts[n.name] ||= {})[slot] = mergeSafe([(parts[n.name] || {})[slot], g]);
     });
-    const lv = [0, 1, 2].map((l) => {
+    const lv = [];
+    for (const l of [0, 1, 2]) {   // (r3 paint: a macrotask between levels, the paint normal rebuild is ~5-20 ms per level)
+      if (R3PAINT && l < 2) await new Promise((r) => setTimeout(r, 0));
+      lv.push((() => {
       const P = parts['body' + l] || {};
       let inCab = null; if (R3CAR && l < 2) { try { inCab = cabinTest(P); } catch (e) { inCab = null; } }
       const tex = Object.keys(P).filter((k) => /^T_/.test(k)).map((k) => ({ geo: prepTrim(P[k]), mat: texMats[k] }));
-      return { paint: P.paint ? prepPaint(P.paint) : null, trim: P.trim ? prepTrim(P.trim, inCab) : null, glass: P.glass ? prepGlass(P.glass) : null, lamp: P.lamp ? prepLamp(P.lamp, inCab) : null, tex };
-    });
+      return { paint: P.paint ? prepPaint(P.paint, l) : null, trim: P.trim ? prepTrim(P.trim, inCab) : null, glass: P.glass ? prepGlass(P.glass) : null, lamp: P.lamp ? prepLamp(P.lamp, inCab) : null, tex };
+      })());
+    }
     const wheelGeo = (name) => {
       const P = parts[name]; if (!P) return null;
       const list = Object.values(P).map((g) => prepWheel(g, false));

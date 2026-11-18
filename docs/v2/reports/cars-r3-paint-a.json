@@ -1,0 +1,214 @@
+{
+ "runs": {
+  "a": {
+   "cars": {
+    "van6": {
+     "10": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #50",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       3
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #56",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       20
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "truck9": {
+     "10": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #51",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       33
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #57",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       17
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "coupe4": {
+     "10": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #52",
+      "prog": "ps-wear-v12-r3",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       30
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #59",
+      "prog": "ps-wear-v12-r3",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       41
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "sedan5": {
+     "10": {
+      "key": "sedan5",
+      "name": "Kestrel Line #54",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       57
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan5",
+      "name": "Kestrel Line #62",
+      "prog": "ps-wear-v12-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       1
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    }
+   },
+   "errors": [],
+   "spot": {
+    "x": -840.6065936021363,
+    "z": 4841.110306825646,
+    "h": -1.9386865642628766
+   }
+  }
+ }
+}

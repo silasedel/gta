@@ -1,0 +1,824 @@
+{
+ "runs": {
+  "b": {
+   "cars": {
+    "sedan1": {
+     "10": {
+      "key": "sedan1",
+      "name": "Marlin Coastline #49",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.03,
+      "rough": 0.28,
+      "metal": 0.35,
+      "env": 1,
+      "wear": [
+       0.22,
+       0,
+       0,
+       27
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan1",
+      "name": "Marlin Coastline #60",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.03,
+      "rough": 0.28,
+      "metal": 0.35,
+      "env": 1,
+      "wear": [
+       0.22,
+       0,
+       0,
+       31
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "sedan5": {
+     "10": {
+      "key": "sedan5",
+      "name": "Kestrel Line #50",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       57
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan5",
+      "name": "Kestrel Line #61",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       28
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "sedan8": {
+     "10": {
+      "key": "sedan8",
+      "name": "Tarpon Alisio #52",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.28,
+       0,
+       0,
+       51
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan8",
+      "name": "Tarpon Alisio #62",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.28,
+       0,
+       0,
+       25
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "hatch1": {
+     "10": {
+      "key": "hatch1",
+      "name": "Mirabel Pebble 5 #53",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.14,
+       0,
+       0,
+       17
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "hatch1",
+      "name": "Mirabel Pebble 5 #63",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.14,
+       0,
+       0,
+       55
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "suv4": {
+     "10": {
+      "key": "suv4",
+      "name": "Cayo Sola #54",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.38,
+       0.12,
+       0.3,
+       14
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "suv4",
+      "name": "Cayo Sola #64",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.38,
+       0.12,
+       0.3,
+       15
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "van6": {
+     "10": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #55",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       44
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #65",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       12
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "truck9": {
+     "10": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #56",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       41
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #66",
+      "prog": "ps-wear-v10",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       42
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "coupe4": {
+     "10": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #57",
+      "prog": "ps-wear-v10",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       38
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #67",
+      "prog": "ps-wear-v10",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       39
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    }
+   },
+   "errors": [],
+   "spot": {
+    "x": -840.6065936021363,
+    "z": 4841.110306825646,
+    "h": -1.9386865642628766
+   }
+  },
+  "a": {
+   "cars": {
+    "sedan1": {
+     "10": {
+      "key": "sedan1",
+      "name": "Marlin Coastline #49",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.03,
+      "rough": 0.28,
+      "metal": 0.35,
+      "env": 1,
+      "wear": [
+       0.22,
+       0,
+       0,
+       27
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan1",
+      "name": "Marlin Coastline #60",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.03,
+      "rough": 0.28,
+      "metal": 0.35,
+      "env": 1,
+      "wear": [
+       0.22,
+       0,
+       0,
+       25
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "sedan5": {
+     "10": {
+      "key": "sedan5",
+      "name": "Kestrel Line #50",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       20
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan5",
+      "name": "Kestrel Line #61",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.18,
+       0,
+       0,
+       55
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "sedan8": {
+     "10": {
+      "key": "sedan8",
+      "name": "Tarpon Alisio #51",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.28,
+       0,
+       0,
+       17
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "sedan8",
+      "name": "Tarpon Alisio #63",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.28,
+       0,
+       0,
+       15
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "hatch1": {
+     "10": {
+      "key": "hatch1",
+      "name": "Mirabel Pebble 5 #52",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.14,
+       0,
+       0,
+       14
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "hatch1",
+      "name": "Mirabel Pebble 5 #69",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.14,
+       0,
+       0,
+       26
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "suv4": {
+     "10": {
+      "key": "suv4",
+      "name": "Cayo Sola #53",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.38,
+       0.12,
+       0.3,
+       44
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "suv4",
+      "name": "Cayo Sola #70",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.38,
+       0.12,
+       0.3,
+       56
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "van6": {
+     "10": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #56",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       4
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "van6",
+      "name": "Halcyon Harbor 8 #71",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.25,
+       0,
+       0,
+       53
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "truck9": {
+     "10": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #57",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       1
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "truck9",
+      "name": "Ridgeback Sandhawk TR #72",
+      "prog": "ps-wear-v11-r3",
+      "cc": 1,
+      "ccr": 0.045,
+      "rough": 0.36,
+      "metal": 0.6,
+      "env": 1,
+      "wear": [
+       0.16,
+       0,
+       0,
+       50
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    },
+    "coupe4": {
+     "10": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #58",
+      "prog": "ps-wear-v11-r3",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       31
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     },
+     "17.5": {
+      "key": "coupe4",
+      "name": "Brava Regalia 454 #73",
+      "prog": "ps-wear-v11-r3",
+      "cc": 0.38,
+      "ccr": 0.17,
+      "rough": 0.46,
+      "metal": 0,
+      "env": 1,
+      "wear": [
+       0.3,
+       0.32,
+       0.6,
+       16
+      ],
+      "lod": {
+       "q34": 0,
+       "side": 0,
+       "rq": 0,
+       "top": 0,
+       "m26": 0,
+       "m31": 1
+      }
+     }
+    }
+   },
+   "errors": [],
+   "spot": {
+    "x": -840.6065936021363,
+    "z": 4841.110306825646,
+    "h": -1.9386865642628766
+   }
+  }
+ }
+}
