@@ -16,6 +16,7 @@ PALMS = {'fanpalm_rob1', 'fanpalm_rob2', 'fanpalm_cal1', 'fanpalm_cal2', 'fanpal
 SKIP = {'agave', 'red_grass', 'geranium', 'potted_ficus', 'moss_clump', 'flower_bush_a', 'flower_bush_b', 'croton_a', 'croton_b'}
 # materials that are not what their family says (measured): stalks / crownshaft / petioles / hanging roots / flower atlases
 OVR = {
+  ('bougainvillea', 'leafbloom'): dict(h=None, s=(0.5, 0.6), v=(0.5, 0.58)), ('bougainvillea_b', 'leafbloom'): dict(h=None, s=(0.48, 0.58), v=(0.5, 0.58)),  # QA first-minutes 7: softer bract color (full 0.72 saturation read as posterized magenta)
   ('royal_palm', 'bark_1'): 'skip',            # crownshaft (green by nature)
   ('fan_palm', 'bark_3'): 'skip', ('fan_palm', 'bark_4'): 'skip', ('fan_palm', 'bark_5'): 'skip', ('fan_palm', 'leaf_2'): 'skip', ('fan_palm', 'leaf_6'): 'skip',  # petioles, dry skirt
   ('banyan', 'leaf_0'): 'skip', ('banyan', 'leaf_1'): 'skip', ('banyan', 'bark_3'): 'skip',  # hanging roots / caps
@@ -28,9 +29,9 @@ OVR = {
   ('mangrove', 'bark_0'): TRUNK,
   ('reed_a', 'bark_0'): 'skip', ('reed_b', 'bark_0'): 'skip', ('reed_a', 'leaf_1'): dict(h=(62, 70), s=(0.36, 0.42), v=(0.36, 0.40)), ('reed_b', 'leaf_1'): dict(h=(62, 70), s=(0.36, 0.42), v=(0.36, 0.40)),
   ('hibiscus_hd', 'leaf_0'): 'skip', ('hibiscus_hd', 'leaf_4'): BLOOM, ('hibiscus_hd', 'leaf_5'): BLOOM, ('hibiscus_hd', 'bark_6'): 'skip',
-  ('poinciana_hd1', 'leaf_2'): BLOOM, ('poinciana_hd1', 'leaf_3'): BLOOM, ('poinciana_hd1', 'leaf_4'): 'skip', ('poinciana_hd1', 'leaf_5'): 'skip', ('poinciana_hd1', 'leaf_6'): 'skip',  # slots after the stalks were dropped (flowers 2-3, buds 4-6, leaf 7); the old map graded a red flower toward green = neon specks
-  ('poinciana_hd2', 'leaf_2'): BLOOM, ('poinciana_hd2', 'leaf_3'): BLOOM, ('poinciana_hd2', 'leaf_4'): 'skip', ('poinciana_hd2', 'leaf_5'): 'skip', ('poinciana_hd2', 'leaf_6'): 'skip',  # slots after the stalks were dropped (flowers 2-3, buds 4-6, leaf 7); the old map graded a red flower toward green = neon specks
-  ('poinciana_hd3', 'leaf_2'): BLOOM, ('poinciana_hd3', 'leaf_3'): BLOOM, ('poinciana_hd3', 'leaf_4'): 'skip', ('poinciana_hd3', 'leaf_5'): 'skip', ('poinciana_hd3', 'leaf_6'): 'skip',  # slots after the stalks were dropped (flowers 2-3, buds 4-6, leaf 7); the old map graded a red flower toward green = neon specks
+  ('poinciana_hd1', 'leaf_2'): BLOOM, ('poinciana_hd1', 'leaf_4'): BLOOM, ('poinciana_hd1', 'leaf_5'): 'skip', ('poinciana_hd1', 'leaf_6'): 'skip', ('poinciana_hd1', 'leaf_7'): 'skip', ('poinciana_hd1', 'bark_3'): 'skip',  # LOD2 source with stalks (bark_3): flowers 2 + 4, buds 5-7, leaflets 8. Slots shift if a material is dropped: a red flower graded as a leaf = neon specks
+  ('poinciana_hd2', 'leaf_2'): BLOOM, ('poinciana_hd2', 'leaf_4'): BLOOM, ('poinciana_hd2', 'leaf_5'): 'skip', ('poinciana_hd2', 'leaf_6'): 'skip', ('poinciana_hd2', 'leaf_7'): 'skip', ('poinciana_hd2', 'bark_3'): 'skip',  # LOD2 source with stalks (bark_3): flowers 2 + 4, buds 5-7, leaflets 8. Slots shift if a material is dropped: a red flower graded as a leaf = neon specks
+  ('poinciana_hd3', 'leaf_2'): BLOOM, ('poinciana_hd3', 'leaf_4'): BLOOM, ('poinciana_hd3', 'leaf_5'): 'skip', ('poinciana_hd3', 'leaf_6'): 'skip', ('poinciana_hd3', 'leaf_7'): 'skip', ('poinciana_hd3', 'bark_3'): 'skip',  # LOD2 source with stalks (bark_3): flowers 2 + 4, buds 5-7, leaflets 8. Slots shift if a material is dropped: a red flower graded as a leaf = neon specks
   ('grass_tuft_a', 'leaf_0'): dict(h=(74, 78), s=(0.50, 0.55), v=(0.37, 0.40)),  # r2-ground lush grass target sRGB (84, 98, 46)
   ('grass_tuft_b', 'leaf_0'): dict(h=(45, 49), s=(0.33, 0.37), v=(0.49, 0.53)),  # r2-ground dry straw target (130, 120, 84)
 }

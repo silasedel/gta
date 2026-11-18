@@ -329,6 +329,12 @@ const NEAR_FADE = `
     if ( nf < 0.999 && nf <= psIgnT( gl_FragCoord.xy + 17.0 ) ) discard; // threshold stepped per frame: TAA averages it into a smooth fade at rest
   }
 #endif
+#if !defined( USE_ALPHATEST )
+  if ( uRenderR2 > 0.5 ) { // (r2-veg) opaque bark too (twigs, limbs, trunks): the chase cam inside a canopy saw a screen full of sticks
+    float nfb = vegNearFade();
+    if ( nfb < 0.999 && nfb <= psIgnT( gl_FragCoord.xy + 17.0 ) ) discard;
+  }
+#endif
 `;
 function patch(kind, local) {
   return (sh) => {

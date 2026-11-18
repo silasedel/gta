@@ -33,7 +33,7 @@
    "bark0": 1800,
    "leaf1": 1800,
    "bark1": 400,
-   "texBark": 1024,
+   "texBark": 4096,
    "gradeLeaf": [
     80,
     0.48,
@@ -217,7 +217,8 @@
     84,
     0.42,
     0.38
-   ]
+   ],
+   "texBark": 2048
   },
   "palm_yellow": {
    "src": "Models/Trees/Palm Tree 4 - Yellow-Green Realistic Palm/Palm Tree 4.blend",
@@ -252,7 +253,8 @@
     "Frond": {
      "alpha": "blackkey"
     }
-   }
+   },
+   "texBark": 2048
   },
   "weathered_b": {
    "src": "Models/Trees/Palm Tree 5 - Pair Of Dark Weathered Palms/Palm Tree 5.blend",
@@ -270,7 +272,8 @@
     "Frond": {
      "alpha": "blackkey"
     }
-   }
+   },
+   "texBark": 2048
   },
   "sabal_palm": {
    "src": "Models/Trees/Palm Tree 6 - Low Bushy Palm/Palm Tree 6.blend",
@@ -280,7 +283,14 @@
     82,
     0.42,
     0.4
-   ]
+   ],
+   "texfix": {
+    "Bark": {
+     "color": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_b_L.png",
+     "normal": "../Fan Palm 7 - Mexican Fan Palm HD (1010)/textures/Washingtonia_robusta_HD_V2_Wash_trunk_Washingtonia_trunk_n_L.png"
+    }
+   },
+   "texBark": 2048
   },
   "banyan": {
    "src": "Models/Trees/Banyan Tree 2 - Large Banyan With Hanging Roots/Banyan Tree 2.blend",
@@ -699,15 +709,17 @@
    "bloom": {
     "fraction": 0.8,
     "tint": [
-     0.8,
-     0.1,
+     0.76,
+     0.16,
      0.48
     ],
-    "amount": 0.88,
-    "detail": 0.9,
+    "amount": 0.78,
+    "detail": 1.0,
     "clusters": 0.62,
-    "clusterRes": 72
-   }
+    "clusterRes": 72,
+    "clusterSoft": 0.4
+   },
+   "texLeaf": 2048
   },
   "hibiscus": {
    "src": "Models/Plants/Shrub 6 - Low-Poly Leafy Bush/Shrub 6.blend",
@@ -860,15 +872,17 @@
    "bloom": {
     "fraction": 0.75,
     "tint": [
-     0.86,
-     0.22,
-     0.62
+     0.8,
+     0.24,
+     0.58
     ],
-    "amount": 0.88,
-    "detail": 0.9,
+    "amount": 0.78,
+    "detail": 1.0,
     "clusters": 0.58,
-    "clusterRes": 72
-   }
+    "clusterRes": 72,
+    "clusterSoft": 0.4
+   },
+   "texLeaf": 2048
   },
   "moss_clump": {
    "src": "Models/Plants/Moss 1 - Round Moss Patches With Alpha Cards/Moss 1.blend",
@@ -1108,14 +1122,14 @@
    }
   },
   "poinciana_hd1": {
-   "src": "Models/Trees/Royal Poinciana Tree 1 - Realistic HD Flamboyant Tree (variant 1540)/source/inner_Delonix regia HD_Compact mat 100/zzz_LODs/LOD4/Delonix regia HD_Compact mat 100_LOD4.fbx",
+   "src": "Models/Trees/Royal Poinciana Tree 1 - Realistic HD Flamboyant Tree (variant 1540)/source/inner_Delonix regia HD_Compact mat 100/zzz_LODs/LOD2/Delonix regia HD_Compact mat 100_LOD2.fbx",
    "height": 6.5,
-   "bark": "trunk|twig",
+   "bark": "trunk|twig|stalk",
    "seed": 61,
-   "leaf0": 45000,
-   "bark0": 22000,
-   "leaf1": 12000,
-   "bark1": 4000,
+   "leaf0": 60000,
+   "bark0": 60000,
+   "leaf1": 14000,
+   "bark1": 5000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1128,18 +1142,18 @@
      "nograde": 1
     }
    },
-   "barkPrune": 1.5,
-   "drop": "stalk"
+   "barkPrune": 1.0,
+   "grow0": 1.1
   },
   "poinciana_hd2": {
-   "src": "Models/Trees/Royal Poinciana Tree 2 - Realistic HD Flamboyant Tree (variant 1640)/source/inner_Delonix regia HD_Wild mat 0/zzz_LODs/LOD4/Delonix regia HD_Wild mat 0_LOD4.fbx",
+   "src": "Models/Trees/Royal Poinciana Tree 2 - Realistic HD Flamboyant Tree (variant 1640)/source/inner_Delonix regia HD_Wild mat 0/zzz_LODs/LOD2/Delonix regia HD_Wild mat 0_LOD2.fbx",
    "height": 7.0,
-   "bark": "trunk|twig",
+   "bark": "trunk|twig|stalk",
    "seed": 62,
-   "leaf0": 45000,
-   "bark0": 22000,
-   "leaf1": 12000,
-   "bark1": 4000,
+   "leaf0": 60000,
+   "bark0": 60000,
+   "leaf1": 14000,
+   "bark1": 5000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1152,18 +1166,18 @@
      "nograde": 1
     }
    },
-   "barkPrune": 1.5,
-   "drop": "stalk"
+   "barkPrune": 1.0,
+   "grow0": 1.1
   },
   "poinciana_hd3": {
-   "src": "Models/Trees/Royal Poinciana Tree 3 - Realistic HD Flamboyant Tree (variant 1740)/source/inner_Delonix regia HD_Wild mat 25/zzz_LODs/LOD4/Delonix regia HD_Wild mat 25_LOD4.fbx",
+   "src": "Models/Trees/Royal Poinciana Tree 3 - Realistic HD Flamboyant Tree (variant 1740)/source/inner_Delonix regia HD_Wild mat 25/zzz_LODs/LOD2/Delonix regia HD_Wild mat 25_LOD2.fbx",
    "height": 7.5,
-   "bark": "trunk|twig",
+   "bark": "trunk|twig|stalk",
    "seed": 63,
-   "leaf0": 45000,
-   "bark0": 22000,
-   "leaf1": 12000,
-   "bark1": 4000,
+   "leaf0": 60000,
+   "bark0": 60000,
+   "leaf1": 14000,
+   "bark1": 5000,
    "texLeaf": 1024,
    "texBark": 1024,
    "gradeLeaf": [
@@ -1176,8 +1190,8 @@
      "nograde": 1
     }
    },
-   "barkPrune": 1.5,
-   "drop": "stalk"
+   "barkPrune": 1.0,
+   "grow0": 1.1
   },
   "hibiscus_hd": {
    "src": "Models/Plants/Hibiscus 1 - Realistic HD Chinese Hibiscus Shrub/source/inner_Hibiscus rosa-sinensis HD_Small tree mat 25/zzz_LODs/LOD4/Hibiscus rosa-sinensis HD_Small tree mat 25_LOD4.fbx",

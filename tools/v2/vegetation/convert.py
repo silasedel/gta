@@ -266,7 +266,7 @@ if bloom:
         NR = int(bloom.get('clusterRes', 28)); rs = np.random.RandomState(S.get('seed', 7) + 11); g = rs.rand(NR, NR).astype(np.float32); H, Wd = rgb.shape[:2]
         yi = np.linspace(0, NR - 1, H); xi = np.linspace(0, NR - 1, Wd); y0 = np.floor(yi).astype(int); x0 = np.floor(xi).astype(int); y1 = np.minimum(y0 + 1, NR - 1); x1 = np.minimum(x0 + 1, NR - 1); fy = (yi - y0)[:, None]; fx = (xi - x0)[None, :]
         up = g[y0][:, x0] * (1 - fy) * (1 - fx) + g[y0][:, x1] * (1 - fy) * fx + g[y1][:, x0] * fy * (1 - fx) + g[y1][:, x1] * fy * fx
-        c = float(bloom['clusters']); m = np.clip((up - (1 - c) + 0.08) / 0.16, 0, 1)
+        c = float(bloom['clusters']); sw = float(bloom.get('clusterSoft', 0.16)); m = np.clip((up - (1 - c) + sw / 2) / sw, 0, 1)  # clusterSoft: wider = softer bract / leaf transitions
         w = w * m[..., None]
     rgb2 = rgb * (1 - w * bloom.get('amount', 0.92)) + np.clip(t * var, 0, 1) * w * bloom.get('amount', 0.92)
     bi = save_img('leafbloom_c', np.concatenate([rgb2, px[..., 3:4]], -1), alpha=True)
