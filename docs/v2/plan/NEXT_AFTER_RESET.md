@@ -67,3 +67,6 @@
 - **Ragdolls:** CCD plus a floor guard on all parts (ragdoll.js floorGuard). Joint limits and masses still need a pass.
 - **Car to people:** hits from 1.4 m/s. Make the hit test a swept volume against the people's capsules (no pass-through at the car's edges).
 - **Carjacking (user):** a full sequence. Walk to the driver door, open it, pull the driver out (they ragdoll onto the ground outside, clear of bushes), get in, shut the door, drive. The ejected driver's spot comes from game.placement (not in bushes, not in the road), then they flee or fight. Doors need opening parts in the car pipeline. Door-only entry is in (atDriverDoor in main.js).
+- **Yard dressing:** re-lay ALL of Nico's yard data (POLES, WIRES, BINS, DEBRIS, PUDDLES, PLANTING, LITTER) on the new lot through game.placement (rocks and STOP signs are filtered for now).
+- **G-wagon (suv1 / Aurelia Bastion):** stray triangles on the body (converter leftovers): re-convert with a degenerate / stray-sliver cleanup.
+- **Foliage interaction:** bushes and trees bend and sway when the car or player pushes through them. Thin branches break off (by thickness), with leaves scattering. Remove the dotted dither on the leaves (alpha to coverage / TAA resolve on foliage cards).
