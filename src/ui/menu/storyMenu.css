@@ -1,0 +1,62 @@
+/* Story main menu (Phase A, Nov 19): one big PLAY over a short row of small options, same purple-pink look as menu.css.
+   The selectors are one step more specific than menu.css (its Southline pass uses !important). */
+
+.pm-menu.pm-story {
+  gap: 0.2vh;
+}
+
+/* PLAY: the one big button a first-time player sees */
+.ps-ui .pm-menu .pm-item.pm-hero {
+  grid-template-columns: 0 1fr;
+  margin-bottom: 1.6vh;
+  padding-top: 0.6vh;
+  padding-bottom: 0.9vh;
+}
+.pm-menu .pm-item.pm-hero .pm-lab {
+  font-size: clamp(44px, 4.6vw, 84px) !important;
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow:
+    4px 4px 0 #3b0f46,
+    0 0 26px rgba(255, 46, 138, 0.45) !important;
+}
+.pm-menu .pm-item.pm-hero .pm-desc {
+  max-height: none;
+  opacity: 0.85;
+  margin-top: 0.3vh;
+  font-size: clamp(13px, 1vw, 17px);
+}
+.pm-menu .pm-item.pm-hero.is-focus .pm-lab {
+  color: #fff;
+  letter-spacing: 0.12em;
+}
+.pm-menu .pm-item.pm-hero::after {
+  width: 4px;
+}
+
+/* the small options under it */
+.pm-menu .pm-item.pm-minor {
+  padding-top: 0.45vh;
+  padding-bottom: 0.45vh;
+}
+.pm-menu .pm-item.pm-minor .pm-lab {
+  font-size: clamp(15px, 1.35vw, 23px) !important;
+  color: rgba(243, 237, 226, 0.68);
+}
+.pm-menu .pm-item.pm-minor.is-focus .pm-lab {
+  color: #fff;
+}
+
+/* confirm and placeholder cards */
+.pm-sub-confirm .pm-card,
+.pm-sub-mp .pm-card {
+  max-width: 560px;
+}
+.pm-card-act .ps-btn.pm-danger {
+  background: linear-gradient(90deg, #ff2e8a, #8a4dff);
+  border-color: transparent;
+  color: #fff;
+}
+.pm-card-act .ps-btn.pm-danger.is-focus {
+  box-shadow: 0 0 22px rgba(255, 46, 138, 0.55);
+}

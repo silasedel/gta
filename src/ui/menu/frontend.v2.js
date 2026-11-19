@@ -1,9 +1,11 @@
-// SOUTHLINE: the front end (main-menu track). Title screen over a live in-engine scene, main menu, online join
-// form, credits, loading screen into the game, and the doorway to Settings and the Wardrobe (also from the pause menu).
+// SOUTHLINE: the front end (main-menu track). Title screen over a live in-engine scene, the story main menu (Play, Free
+// Roam, Restart Story, Multiplayer placeholder, Settings, Credits, Quit; Play / Free Roam / Restart run through
+// game.story, src/story), credits, loading screen into the game, and the doorway to Settings and the Wardrobe.
 //   game.frontEnd = { open(), openSettings(o), openWardrobe(o), active }
 // The title is skipped under automation (navigator.webdriver) so other tracks' test scripts keep their old flow;
 // ?menu=1 forces it on, ?menu=0 turns it off.
 import './menu.css';
+import './storyMenu.css';
 import { createUIContext } from '../core/context.js';
 import { el, esc, fmtClock } from '../core/dom.js';
 import { logoSVG } from '../core/logo.js';
@@ -335,22 +337,23 @@ function startTitle(game, ctx, cin, fe, params) {
   // ---------------------------------------------------------------- menu
   let hasSave = false;
   const isDesktop = !!window.portSolanaDesktop?.isDesktop;
+  // Story menu (Phase A, Nov 19): one big Play; a first-time player sees Play and a short row of small options.
+  // Play starts the intro or continues the story at the saved stage (src/story, game.story.beginPlay).
   const ITEMS = () =>
     [
-      hasSave && { id: 'continue', label: 'Continue', sub: 'Pick up where you left off' },
       {
-        id: 'new',
-        label: 'New Game',
-        sub: hasSave ? 'Start over in a fresh slot. Your other saves stay.' : 'Wake up in the Keys',
+        id: 'play',
+        label: 'Play',
+        hero: true,
+        sub: hasSave ? 'Continue the story' : 'Start the story in the Keys',
       },
-      {
-        id: 'online',
-        label: 'Online',
-        sub: params.get('mp')
-          ? 'Connected session: ' + (params.get('room') || 'lobby')
-          : 'Join a friend’s session',
+      { id: 'freeroam', label: 'Free Roam', sub: 'Spawn at Nico’s house with the whole map open' },
+      hasSave && {
+        id: 'restart',
+        label: 'Restart Story',
+        sub: 'Erase your progress and begin again',
       },
-      { id: 'wardrobe', label: 'Wardrobe', sub: 'Dress Nico' },
+      { id: 'multiplayer', label: 'Multiplayer', sub: 'Play with friends' },
       { id: 'settings', label: 'Settings', sub: 'Graphics, audio, controls, display' },
       { id: 'credits', label: 'Credits', sub: 'Who made this, and what with' },
       isDesktop && { id: 'quit', label: 'Quit', sub: 'Close the game' },
@@ -376,13 +379,16 @@ function startTitle(game, ctx, cin, fe, params) {
   }
   function renderMenu() {
     const items = ITEMS();
-    menu.innerHTML = items
-      .map(
-        (it, i) => `<button class="pm-item" data-nav data-id="${it.id}" style="--i:${i}">
-        <span class="pm-idx">${String(i + 1).padStart(2, '0')}</span><span class="pm-lab">${esc(ctx.t(it.label))}</span>
-        <span class="pm-desc">${esc(it.id === 'continue' && fe.saveMeta ? saveLine(fe.saveMeta) : it.sub)}</span></button>`,
-      )
-      .join('');
+    menu.classList.add('pm-story');
+    menu.innerHTML = items.map((it, i) => menuItemHTML(it, i)).join('');
+  }
+  function menuItemHTML(it, i) {
+    const desc = it.id === 'play' && hasSave && fe.saveMeta ? saveLine(fe.saveMeta) : it.sub;
+    const cls = it.hero ? 'pm-item pm-hero' : 'pm-item pm-minor';
+    return `<button class="${cls}" data-nav data-id="${it.id}" style="--i:${i}">
+        <span class="pm-idx">${it.hero ? '' : String(i).padStart(2, '0')}</span>
+        <span class="pm-lab">${esc(ctx.t(it.label))}</span>
+        <span class="pm-desc">${esc(desc)}</span></button>`;
   }
   function saveLine(m) {
     const bits = [];
@@ -459,17 +465,24 @@ function startTitle(game, ctx, cin, fe, params) {
 
   function choose(id, o = {}) {
     switch (id) {
-      case 'continue':
-        ctx.sfx('start');
-        play('continue', o);
-        break;
+      case 'play':
+      case 'continue': // quick title (quickTitle.js) still hands over its old ids
       case 'new':
         ctx.sfx('start');
-        play('new', o);
+        play('play', o);
         break;
+      case 'freeroam':
+        ctx.sfx('start');
+        play('freeroam', o);
+        break;
+      case 'restart':
+        ctx.sfx('open');
+        openRestartConfirm();
+        break;
+      case 'multiplayer':
       case 'online':
         ctx.sfx('open');
-        openOnline();
+        openMultiplayer();
         break;
       case 'wardrobe':
         ctx.sfx('open');
@@ -522,68 +535,47 @@ function startTitle(game, ctx, cin, fe, params) {
     }
     return { root: sub, close, scope: s };
   }
-  function openOnline() {
-    const last = (() => {
-      try {
-        return JSON.parse(localStorage.getItem('portsolana.v2.online') || '{}');
-      } catch (e) {
-        return {};
-      }
-    })();
-    const cur = params.get('mp');
+  // Multiplayer is built on its own branch (Phase D); until it lands this screen says so.
+  function openMultiplayer() {
     const h = openSub(
       `
-      <div class="pm-card">
-        <div class="pm-card-h"><span class="pm-kicker">${icon('globe')} Online</span><h2>Join a session</h2><p>Play in the same Southline as your friends. Ask the host for the server address and the room code.</p></div>
-        ${cur ? `<div class="pm-online-now">${icon('signal')} Connected to <b>${esc(cur)}</b> · room <b>${esc(params.get('room') || 'lobby')}</b></div>` : ''}
-        <label class="pm-field" data-nav="text"><span>Server address</span><input class="ps-input" name="mp" spellcheck="false" placeholder="ws://192.168.1.20:5310" value="${esc(last.mp || cur || 'ws://' + (location.hostname || '127.0.0.1') + ':5310')}"></label>
-        <label class="pm-field" data-nav="text"><span>Room code</span><input class="ps-input" name="room" spellcheck="false" maxlength="12" placeholder="Leave empty to create a room" value="${esc(last.room || params.get('room') || '')}"></label>
-        <label class="pm-field" data-nav="text"><span>Your name</span><input class="ps-input" name="name" spellcheck="false" maxlength="18" placeholder="Nico" value="${esc(last.name || params.get('name') || 'Nico')}"></label>
-        <div class="pm-card-act"><button class="ps-btn primary" data-nav data-act="join">${icon('play')} Join</button>${cur ? '<button class="ps-btn" data-nav data-act="leave">Play offline</button>' : ''}<button class="ps-btn ghost" data-nav data-act="back">Back</button></div>
-        <p class="pm-small">The game reloads into the session. Saves stay on this device.</p>
+      <div class="pm-card pm-mp">
+        <div class="pm-card-h"><span class="pm-kicker">${icon('globe')} Multiplayer</span><h2>Coming soon</h2>
+        <p>Play Southline with your friends over the internet: host a session or join one with a room code, and talk
+        with proximity voice chat.</p></div>
+        <div class="pm-card-act"><button class="ps-btn ghost" data-nav data-act="back">Back</button></div>
       </div>`,
-      'pm-sub-online',
+      'pm-sub-mp',
     );
-    const go = () => {
-      const v = (n) => h.root.querySelector(`[name=${n}]`).value.trim();
-      const mp = v('mp');
-      if (!/^wss?:\/\/.+/i.test(mp)) {
-        ctx.sfx('deny');
-        h.root.querySelector('[name=mp]').focus();
-        return;
-      }
-      const room = v('room')
-          .replace(/[^a-z0-9_-]/gi, '')
-          .slice(0, 12),
-        name = v('name').slice(0, 18) || 'Nico';
-      try {
-        localStorage.setItem('portsolana.v2.online', JSON.stringify({ mp, room, name }));
-      } catch (e) {
-        /* */
-      }
-      const q = new URLSearchParams(location.search);
-      q.set('mp', mp);
-      if (room) q.set('room', room);
-      else q.delete('room');
-      q.set('name', name);
-      ctx.sfx('start');
-      cin.black(true, 500).then(() => {
-        location.search = q.toString();
-      });
-    };
+    h.root.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act=back]')) h.close();
+    });
+  }
+  // Restart Story: a confirm card; Restart wipes every save and starts the intro from the beginning.
+  function openRestartConfirm() {
+    const h = openSub(
+      `
+      <div class="pm-card pm-confirm">
+        <div class="pm-card-h"><span class="pm-kicker">${icon('star')} Restart Story</span>
+        <h2>Start over?</h2>
+        <p>This erases your story progress, money and items, and starts the story from the beginning.
+        It cannot be undone.</p></div>
+        <div class="pm-card-act">
+          <button class="ps-btn ghost" data-nav data-act="back">Cancel</button>
+          <button class="ps-btn primary pm-danger" data-nav data-act="restart">Restart</button>
+        </div>
+      </div>`,
+      'pm-sub-confirm',
+    );
     h.root.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'join') go();
-      else if (a === 'back') h.close();
-      else if (a === 'leave') {
-        const q = new URLSearchParams(location.search);
-        q.delete('mp');
-        q.delete('room');
-        q.delete('name');
-        location.search = q.toString();
+      if (a === 'back') h.close();
+      else if (a === 'restart') {
+        h.close();
+        ctx.sfx('start');
+        play('restart');
       }
     });
-    h.root.addEventListener('nav:submit', go);
   }
   function openCredits() {
     const html = mdLite(creditsText);
@@ -669,26 +661,9 @@ function startTitle(game, ctx, cin, fe, params) {
     // the menu loop carries on under the loading screen (start() is a no-op while it plays) until the reveal
     game.menuMusic = { station: null, duck: 0.3, duckLP: 1200 };
     loadingMusic.start(game, { settings: ctx.settings });
-    let ok = false;
     try {
       game.save?.release?.('title');
-      if (kind === 'continue') {
-        const r = await game.save.continue();
-        ok = !!r?.ok;
-        if (!ok) console.warn('[frontend] continue failed', r);
-      }
-      if (!ok) {
-        await game.save?.newGame?.();
-        const sp = game.nicoHouse?.anchors?.spawnYard || game.nicoHouse?.anchors?.spawn;
-        if (sp?.pos) game.teleport(sp.pos.x, sp.pos.y, sp.pos.z, sp.heading);
-        else if (game.city?.playerSpawn)
-          game.teleport(
-            game.city.playerSpawn.x,
-            null,
-            game.city.playerSpawn.z,
-            game.city.playerSpawnHeading,
-          );
-      }
+      await startStory(kind);
     } catch (e) {
       console.error('[frontend] start', e);
     }
@@ -741,6 +716,55 @@ function startTitle(game, ctx, cin, fe, params) {
     cin.handoff?.(1100);
     cin.end();
     finish();
+    afterReveal(kind);
+  }
+
+  // Before the world loads: load or create the game and put the player where this choice starts.
+  //   play      continue the newest save (or a new game at the house); a mission in progress resumes at its checkpoint
+  //   freeroam  same save (or a new one), every intro mission skipped, at the house
+  //   restart   every save erased, a new game at the house
+  async function startStory(kind) {
+    const story = game.story;
+    if (kind === 'restart' && story) {
+      await story.restartStory({ save: false });
+      return;
+    }
+    let ok = false;
+    if (hasSave) {
+      const r = await game.save.continue();
+      ok = !!r?.ok;
+      if (!ok) console.warn('[frontend] continue failed', r);
+    }
+    if (!ok) {
+      await game.save?.newGame?.();
+      if (story) story.toHouse();
+      else toHouseFallback();
+    }
+    if (kind === 'freeroam' && story) await story.skipIntro({ save: false });
+    else if (kind === 'play' && story) story.preparePlay();
+  }
+  function toHouseFallback() {
+    const sp = game.nicoHouse?.anchors?.spawnYard || game.nicoHouse?.anchors?.spawn;
+    if (sp?.pos) game.teleport(sp.pos.x, sp.pos.y, sp.pos.z, sp.heading);
+    else if (game.city?.playerSpawn)
+      game.teleport(
+        game.city.playerSpawn.x,
+        null,
+        game.city.playerSpawn.z,
+        game.city.playerSpawnHeading,
+      );
+  }
+  // Once the player has control: save the fresh state (so Continue finds it), then the story takes over.
+  async function afterReveal(kind) {
+    const story = game.story;
+    if (!story) return;
+    if (kind !== 'play' || !hasSave) await story.runner.autosave('menu:' + kind);
+    if (kind === 'freeroam')
+      game.hud?.notify?.(
+        'Free roam: the whole map is open. Mission markers show on the map.',
+        5000,
+      );
+    else await story.beginPlay();
   }
   function finish() {
     fe.active = false;
@@ -793,7 +817,8 @@ function startTitle(game, ctx, cin, fe, params) {
       await openMenu();
       if (st === 'settings') openSettings();
       else if (st === 'wardrobe') openWardrobe();
-      else if (st === 'online') openOnline();
+      else if (st === 'online' || st === 'multiplayer') openMultiplayer();
+      else if (st === 'restart') openRestartConfirm();
       else if (st === 'credits') openCredits();
     }, 600);
 }
@@ -806,7 +831,12 @@ function createLoading(game, ctx, kind, from = 2) {
       ` ${ctx.bindings.glyph('radioPrev')} and ${ctx.bindings.glyph('radioNext')} `,
     );
   const ls = createLoadScreen({ mount: ctx.layer('top'), fillTip: fill });
-  ls.set(from, kind === 'continue' ? 'Loading your save' : 'Starting a new game');
+  const label = {
+    play: 'Loading the story',
+    freeroam: 'Heading to Nico’s house',
+    restart: 'Starting the story over',
+  };
+  ls.set(from, label[kind] || 'Loading');
   return {
     // real readiness: streamed tiles (colliders + full-detail meshes) within 220 m of the player
     async waitWorld(x, z) {
