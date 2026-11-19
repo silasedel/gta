@@ -56,9 +56,15 @@ export function build(ctx) {
         for (let i = 0; i <= n; i++) { const [x, z] = at(L * i / n, fo), y0 = gY(x, z) - 0.06; box(WHITE, 0.1, 1.02, 0.1, x, y0 + 0.47, z, { grain: 1, color: kit.vary(0xe9e6dc, r, 0.03), wear: 0.45, bevel: 0.01 }, 0, ry); }
         for (let i = 0; i < n; i++) { const [x, z] = at(L * (i + 0.5) / n, fo - 0.07), y0 = gY(x, z) - 0.06; for (const y of [0.88, 0.45]) box(WHITE, L / n - 0.1, 0.09, 0.04, x, y0 + y, z, { grain: 0, color: kit.vary(0xe9e6dc, r, 0.03), wear: 0.45 }, 0, ry); }
         const [fx, fz] = at(L / 2, fo); Fr.col.box(fx, gY(fx, fz) + 0.45, fz, L, 1.0, 0.12, { ry, tag: 'fence' }); } };
+    // r7b: where the world has no water in the canal yet (narrower than its water raster), the set piece draws the canal's water: a dark,
+    // glossy teal sheet just over the ground there, from the bulkhead line to the dead end (the bay's real water starts at the wall line)
+    if (C.fake) { const gy = (x, z) => (ctx.opts.groundAt ? ctx.opts.groundAt(...Fr.toG(x, z)) : 0), wy = Math.max(sea, gy((C.x0 + C.x1) / 2, (zw + C.z1) / 2)) + 0.03;
+      const WM = new THREE.MeshStandardMaterial({ color: 0x173f40, roughness: 0.05, metalness: 0.0, envMapIntensity: 1.0 }); WM.name = 'r7canalWater'; WM.userData.uvScale = 0;
+      const g = new THREE.PlaneGeometry(C.x1 - C.x0, C.z1 - zw + 0.4, 1, 1); g.rotateX(-Math.PI / 2); const m = new THREE.Mesh(g, WM); m.position.set((C.x0 + C.x1) / 2, wy, (zw + C.z1) / 2 - 0.2); m.receiveShadow = true; m.name = 'r7_canal_water'; Fr.groups.ext.add(m);
+      Fr.col.box((C.x0 + C.x1) / 2, wy - 1.0, (zw + C.z1) / 2, C.x1 - C.x0, 0.2, C.z1 - zw, { tag: 'water' }); }
     wallRun(C.x0, zw, C.x0, C.z1, 1, 0, true);                 // house side (the fence leaves a gap at the bay end for the corner post)
-    wallRun(C.x0, C.z1, C.x1, C.z1, 0, -1, false);             // the dead end past the front of the house
-    wallRun(C.x1, C.z1, C.x1, zw, -1, 0, false);               // the far (neighbor) side
+    wallRun(C.x0, C.z1, C.x1, C.z1, 0, -1, true);              // the dead end past the front of the house (fenced: r7b)
+    wallRun(C.x1, C.z1, C.x1, zw, -1, 0, !!C.fake);            // the far (neighbor) side
     wallRun(C.x1, zw, C.x1 + 5, zw, 0, -1, false);             // the bay wall carries on past the canal mouth
     // a ladder down the house-side canal wall, halfway along
     { const lz = (zw + C.z1) / 2, lx = C.x0 + 0.1, top = gY(C.x0 - 0.4, lz) + 0.04;

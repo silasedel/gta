@@ -9,7 +9,8 @@ for sid, sp in spots.items():
     try: b = Image.open(G + f'{S}_{sid}.png').convert('RGB')
     except Exception as e: print('skip', sid, e); continue
     h = 540; b = b.resize((int(b.width * h / b.height), h))
-    a = Image.open(next(R + sp['ref'] + e for e in ('', '.webp', '.png', '.jpg', '.jpeg') if os.path.isfile(R + sp['ref'] + e))).convert('RGB') if sp.get('ref') else Image.new('RGB', (b.width, h), 'gray')
+    rp = next((R + sp['ref'] + e for e in ('', '.webp', '.png', '.jpg', '.jpeg') if sp.get('ref') and os.path.isfile(R + sp['ref'] + e)), None)
+    a = Image.open(rp).convert('RGB') if rp else Image.new('RGB', (b.width, h), 'gray')
     a = a.resize((int(a.width * h / a.height), h))
     im = Image.new('RGB', (a.width + b.width + 10, h), 'white'); im.paste(a, (0, 0)); im.paste(b, (a.width + 10, 0))
     d = ImageDraw.Draw(im); d.text((8, 8), 'mock-up ' + (sp.get('ref') or '-'), fill=(255, 255, 0)); d.text((a.width + 18, 8), f'game {S} {sid}', fill=(255, 255, 0))

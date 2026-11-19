@@ -15,7 +15,7 @@ export function build(ctx) {
   // ---------- yard: one subdivided sheet, vertex colors blend shell drive, pale sand, damp shade and grassy edges ----------
   // keys pass (Nov 17): the bay is ~15 m beyond the old seawall line in the retraced map; a seawall stands only where the water
   // really meets the lot (opts.waterAt), elsewhere the yard runs on and sinks under the beach sand along a wobbly line
-  if (R4) { measureSite(ctx.opts.waterAt); ctx.r4site = { oz: P4.oz, wallZ: P4.wallZ, canal: P4.canal.on, ...(P4.measured || {}) }; ctx.r7water = (sx, sz) => inCanal(sx, sz, -0.05); }
+  if (R4) { measureSite(ctx.opts.waterAt); ctx.r4site = { oz: P4.oz, wallZ: P4.wallZ, canal: P4.canal.on, ...(P4.measured || {}) }; ctx.r7water = (sx, sz) => !P4.canal.fake && inCanal(sx, sz, -0.05); }
   const waterAt = ctx.opts.waterAt, wallN = !R4 && (!waterAt || [-20, -10, 0, 8].some((x) => waterAt(x, L.z0 - 2))), wallE = !R4 && (!waterAt || [-10, 0, 10, 20].some((z) => waterAt(L.x1 + 2, z)));
   const OPEN_N = !wallN, OPEN_E = !wallE;
   ctx.siteWalls = { N: wallN, E: wallE };   // 50_plants keeps its seawall-edge vines / sea oats only where a seawall stands

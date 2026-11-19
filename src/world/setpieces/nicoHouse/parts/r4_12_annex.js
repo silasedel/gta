@@ -14,7 +14,7 @@ export function build(ctx) {
   const { THREE, kit, mat } = ctx, Fr = frame(ctx, 'house'), B = kit.batch('r7annex'), D = kit.batch('r7annexD'), M = kit.M, P = P4, A = P.annex, C = P.colors, r = kit.rng(1212);
   const { lathe, subtract } = makeGeo(THREE, kit);
   const WOOD = mat.wood(), WHITE = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.93 }), TEAL = mat.paint({ peel: 'b', fade: 0.45, gloss: 0.92, scale: 1.2 }), DOORP = mat.paint({ peel: 'a', fade: 0.2, gloss: 0.8, scale: 0.6 });
-  const CONC = mat.concrete(), STEEL = mat.steel(), GLASS = mat.glass(), PL = mat.plastic();
+  const CONC = mat.concrete(), STEEL = mat.steel(), GLASS = mat.glass(), PL = mat.plastic(), MPt = () => mat.metalPaint();
   const box = (m, sx, sy, sz, x, y, z, o = {}, rx = 0, ry = 0, rz = 0, Bt = B) => Bt.box(m, sx, sy, sz, M(x, y, z, rx, ry, rz), { bevel: 0.004, rand: r, ...o });
   const gray = (k = 1) => kit.vary(kit.mul(C.deck, k), r, 0.08);
   const H = A.h, BT = 0.022, T = 0.12, dY = A.deckY;
@@ -68,12 +68,21 @@ export function build(ctx) {
       Fr.col.cyl(x, 0.25, z, 0.18 * s, 0.4, { tag: 'prop' }); };
     pot(door.u - 0.55, 0.35, 1.0); pot(door.u - 1.45, 0.3, 1.25); pot(door.u + 1.0, 0.75, 0.9); }
   // ---------- the lower deck on the annex roof: joists, rim, boards, railing (open toward the steps from the main deck), umbrella ----------
-  { const db = P.board, pitch = db.w + db.gap, x0 = A.deckX0, x1 = A.x1 + 0.06, z0 = A.z0 - 0.06, z1 = A.z1 + 0.06, jb = dY - db.t;
-    box(TEAL, A.x1 - A.x0, jb - 0.24 - H, A.z1 - A.z0, (A.x0 + A.x1) / 2, (H + jb - 0.24) / 2, (A.z0 + A.z1) / 2, { color: kit.mul(C.tealDeep, 0.8), wear: 0.3 });   // roof structure under the deck
-    for (const [ax, az, bx, bz] of [[x0, z0, x1, z0], [x0, z1, x1, z1], [x0, z0, x0, z1], [x1, z0, x1, z1]]) { const hz = Math.abs(bz - az) < 0.01, len = hz ? bx - ax : bz - az;
-      box(WOOD, hz ? len + 0.04 : 0.04, 0.24, hz ? 0.04 : len, (ax + bx) / 2, jb - 0.12, (az + bz) / 2, { grain: hz ? 0 : 2, color: gray(0.88), wear: 0.6 }); }
-    for (let z = z0 + pitch / 2; z < z1 - 0.02; z += pitch) box(WOOD, x1 - x0, db.t, db.w, (x0 + x1) / 2, dY - db.t / 2, z, { grain: 0, color: gray(0.86 + r() * 0.24), wear: 0.4 + r() * 0.4, bevel: 0.005 });
-    Fr.col.box((x0 + x1) / 2, (H + dY) / 2, (z0 + z1) / 2, x1 - x0, dY - H + 0.02, z1 - z0, { tag: 'deck', surface: 'wood' });
+  { const db = P.board, pitch = db.w + db.gap, x0 = A.deckX0, x1 = A.x1 + 0.06, z0 = A.z0 - 0.06, z1 = A.z1 + 0.06, jb = dY - db.t; void z0;
+    box(TEAL, A.x1 - A.x0, jb - 0.3 - H, A.z1 - A.z0, (A.x0 + A.x1) / 2, (H + jb - 0.3) / 2, (A.z0 + A.z1) / 2, { color: kit.mul(C.tealDeep, 0.8), wear: 0.3 });   // roof structure under the deck
+    // r7b (MAIN mock-ups 18 / 19 / 11 / 17): the lower level is an L: behind the house under the slider (LA, the gym) and on over the
+    // annex roof along the canal (LB); posts with concrete footings where nothing is under it
+    const LA = P.lowerDeck, LBr = { x0, x1, z0: LA.z1, z1 };
+    for (const R of [LA, LBr]) {
+      for (const [ax, az, bx, bz] of [[R.x0, R.z0, R.x1, R.z0], [R.x0, R.z1, R.x1, R.z1], [R.x0, R.z0, R.x0, R.z1], [R.x1, R.z0, R.x1, R.z1]]) { const hz = Math.abs(bz - az) < 0.01, len = hz ? bx - ax : bz - az;
+        box(WOOD, hz ? len + 0.04 : 0.04, 0.24, hz ? 0.04 : len, (ax + bx) / 2, jb - 0.12, (az + bz) / 2, { grain: hz ? 0 : 2, color: gray(0.8), wear: 0.6 }); }
+      for (let z = R.z0 + pitch / 2; z < R.z1 - 0.02; z += pitch) box(WOOD, R.x1 - R.x0, db.t, db.w, (R.x0 + R.x1) / 2, dY - db.t / 2, z, { grain: 0, color: r() < 0.06 ? kit.vary(0xb59a72, r, 0.06) : gray(0.62 + r() * 0.2), wear: 0.6 + r() * 0.4, bevel: 0.005 });
+      for (let x = R.x0 + 0.2; x < R.x1; x += 0.61) box(WOOD, 0.045, 0.2, R.z1 - R.z0 - 0.1, x, jb - 0.12, (R.z0 + R.z1) / 2, { grain: 2, color: gray(0.6), wear: 0.5 }, 0, 0, 0, D);
+      Fr.col.box((R.x0 + R.x1) / 2, dY - 0.15, (R.z0 + R.z1) / 2, R.x1 - R.x0, 0.3, R.z1 - R.z0, { tag: 'deck', surface: 'wood' }); }
+    // posts under the open parts (not over the annex): outer edges every ~2.4 m
+    { const WHITE2 = mat.paint({ peel: 'a', fade: 0.55, gloss: 0.93 }), post = (x, z) => { box(WHITE2, 0.2, jb - 0.24, 0.2, x, (jb - 0.24) / 2, z, { grain: 1, color: kit.vary(C.post, r, 0.04), wear: [0.95, 0.6], bevel: 0.01 }); box(CONC, 0.32, 0.1, 0.32, x, 0.05, z, { color: 0xb9b5aa, wear: 0.8, bevel: 0.015 }); Fr.col.box(x, (jb - 0.24) / 2, z, 0.22, jb - 0.24, 0.22, { tag: 'pile' }); };
+      for (let x = LA.x0 + 0.1; x <= LA.x1 - 0.05; x += (LA.x1 - LA.x0 - 0.2) / 7) post(x, LA.z0 + 0.1);
+      post(LA.x0 + 0.1, LA.z1 - 0.15); post(LBr.x1 - 0.1, (LBr.z0 + A.z0) / 2); }
     const RL = P.rail, run = (ax, az, bx, bz) => { const len = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax), n = Math.max(1, Math.round(len / 1.6));
       for (let i = 0; i <= n; i++) box(WOOD, RL.post, RL.h + 0.04, RL.post, ax + (bx - ax) * i / n, dY + RL.h / 2, az + (bz - az) * i / n, { grain: 1, color: gray(0.95), wear: 0.7, bevel: 0.008 }, 0, ry);
       const cx = (ax + bx) / 2, cz = (az + bz) / 2; box(WOOD, len, 0.09, 0.04, cx, dY + RL.h - 0.1, cz, { grain: 0, color: gray(0.92), wear: 0.6 }, 0, ry); box(WOOD, len + 0.04, 0.04, 0.145, cx, dY + RL.h + 0.02, cz, { grain: 0, color: gray(0.96), wear: 0.65 }, 0, ry);
@@ -81,13 +90,55 @@ export function build(ctx) {
       for (let t = 0.12; t < len - 0.06; t += RL.oc) box(WOOD, RL.bal, RL.h - 0.27, RL.bal, ax + (bx - ax) * t / len, dY + 0.12 + (RL.h - 0.27) / 2, az + (bz - az) * t / len, { grain: 1, color: gray(0.86 + r() * 0.2), wear: 0.6 }, 0, ry);
       Fr.col.box(cx, dY + 0.55, cz, len, 1.1, 0.1, { ry, tag: 'rail' }); };
     const S2 = P.mainStair.annexStep, e = 0.03;
-    run(x0 + 0.1, z1 - e, x1 - e, z1 - e); run(x1 - e, z1 - e, x1 - e, z0 + e); run(x1 - e, z0 + e, x0 + 0.1, z0 + e); void S2;   // the west side is under the main deck's edge (steps come down there)
-    // the yellow patio umbrella and a chair (11)
-    { const ux = (A.x0 + A.x1) / 2 + 0.4, uz = (A.z0 + A.z1) / 2 + 0.6, YEL = mat.fabric('cotton_jersey', { rep: 0.4 });
-      D.cyl(STEEL, 0.022, 0.022, 2.35, M(ux, dY + 1.17, uz), { color: 0xdedbd2, seg: 10 }); lathe(D, CONC, [[0.001, 0], [0.24, 0], [0.24, 0.06], [0.05, 0.1], [0.001, 0.1]], M(ux, dY, uz), { color: 0x9a978f, seg: 18 });
-      lathe(B, YEL, [[0.001, 0.42], [0.5, 0.3], [1.05, 0.08], [1.12, 0.0], [1.1, -0.06], [1.02, 0.05], [0.45, 0.24], [0.001, 0.36]], M(ux, dY + 2.0, uz), { color: 0xe9bf2f, seg: 8, wear: 0.3 });
-      Fr.col.cyl(ux, dY + 1.0, uz, 0.06, 2.0, { tag: 'pole' });
-      ctx.async.push(kit.model('plastic_monobloc_chair_01').then((m) => { if (!m) return; m.position.set(ux - 0.8, dY, uz + 0.5); m.rotation.y = 2.3; Fr.groups.detail.add(m); })); }
+    void S2; const LS = P.lowerDeck.stair;
+    run(x0 + 0.1, z1 - e, x1 - e, z1 - e); run(x1 - e, z1 - e, x1 - e, LA.z0 + e);                                     // annex part: street side, canal side
+    run(x1 - e, LA.z0 + e, LA.x0 + e, LA.z0 + e);                                                                     // back (bay) side
+    run(LA.x0 + e, LA.z0 + e, LA.x0 + e, LS.z0); run(LA.x0 + e, LS.z1, LA.x0 + e, LA.z1 - e);                         // west end, open at the stair to the lawn
+    // the stair from the lower deck's west end down to the lawn (going -X)
+    { const LS2 = P.lowerDeck.stair, n = 14, rr = dY / (n + 1), w = LS2.z1 - LS2.z0 - 0.1, zc = (LS2.z0 + LS2.z1) / 2, run = 0.28, xs = LA.x0;
+      for (let i = 1; i <= n; i++) box(WOOD, 0.27, 0.035, w, xs - (i - 0.5) * run, dY - rr * i - 0.018, zc, { grain: 2, color: gray(0.8 + r() * 0.2), wear: 0.55, bevel: 0.005 });
+      for (const sd of [-1, 1]) B.strut(WOOD, [xs, dY - 0.05, zc + sd * (w / 2 + 0.02)], [xs - n * run - 0.1, 0.02, zc + sd * (w / 2 + 0.02)], 0.045, 0.24, { color: gray(0.75), wear: 0.7, bevel: 0.006, rand: r });
+      for (const sd of [-1, 1]) B.strut(WOOD, [xs - 0.05, dY + 0.95, zc + sd * (w / 2 + 0.05)], [xs - n * run, rr + 0.9, zc + sd * (w / 2 + 0.05)], 0.06, 0.06, { color: gray(0.9), wear: 0.6, rand: r });
+      const sl = Math.atan2(dY, n * run), len = Math.hypot(dY, n * run);
+      Fr.col.boxQ([xs - n * run / 2, dY / 2 - 0.1, zc], [len / 2 + 0.05, 0.1, w / 2], new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, sl, 'YXZ')), { tag: 'stair', surface: 'wood' });
+      Fr.flight({ x: xs, z: zc, y: dY, dir: [-1, 0], n, w, rise: rr, run }); }
+    // r7b (MAIN mock-ups 18 / 19): the lower deck is Nico's outdoor gym and grill spot: a gray patio table with four woven chairs under
+    // a gray / yellow umbrella, a flat bench with a rack and a loaded bar, a loose bar on a black rubber mat, a plate tree, a plywood
+    // lifting platform, the green mat with kettlebells, a black gas grill, a red / white cooler, a rope coil, the zig-zag towel on the rail
+    { const IRON = mat.metalPaint(), RUBM = mat.rubber(), PLY = mat.pbr('plywood', { rep: 1.0, grunge: true }), BLK = 0x1b1b1c, y0 = dY;
+      const plate = (x, y, z, r2, ry = 0, rz = Math.PI / 2) => { D.cyl(IRON, r2, r2, 0.035, M(x, y, z, 0, ry, rz), { color: BLK, seg: 20 }); };
+      const bar = (x, y, z, len, ry, plates) => { D.cyl(STEEL, 0.014, 0.014, len, M(x, y, z, 0, ry, Math.PI / 2), { color: 0xb8b8b4, seg: 10 });
+        const ux = Math.cos(ry), uz = -Math.sin(ry); for (const sd of [-1, 1]) for (let k = 0; k < plates; k++) plate(x + ux * sd * (len / 2 - 0.12 - k * 0.04), y, z + uz * sd * (len / 2 - 0.12 - k * 0.04), 0.225 - k * 0.03, ry); };
+      // patio table + umbrella + chairs (19)
+      { const tx = 10.3, tz = -14.7;
+        lathe(B, PL, [[0.001, 0.72], [0.5, 0.72], [0.5, 0.74], [0.001, 0.75]], M(tx, y0, tz), { color: 0x8d9092, seg: 28 }); D.cyl(PL, 0.05, 0.25, 0.72, M(tx, y0 + 0.36, tz), { color: 0x7d8082, seg: 14 });
+        box(mat.paint({ peel: 'a', fade: 0, gloss: 0.5 }), 0.21, 0.004, 0.28, tx + 0.15, y0 + 0.752, tz - 0.1, { color: 0xc94b3a, bevel: 0 }, 0, 0.4, 0, D);   // magazine
+        D.cyl(STEEL, 0.02, 0.02, 2.3, M(tx, y0 + 1.15, tz), { color: 0xcfccc4, seg: 10 });
+        lathe(B, mat.fabric('cotton_jersey', { rep: 0.4 }), [[0.001, 0.42], [0.5, 0.3], [1.05, 0.08], [1.12, 0.0], [1.1, -0.06], [1.02, 0.05], [0.45, 0.24], [0.001, 0.36]], M(tx, y0 + 2.0, tz), { color: 0x9c9d98, seg: 8, wear: 0.3 });
+        lathe(B, mat.fabric('cotton_jersey', { rep: 0.4 }), [[1.1, -0.065], [1.13, -0.06], [1.13, -0.16], [1.11, -0.16]], M(tx, y0 + 2.0, tz), { color: 0xe3b62a, seg: 8 });   // yellow valance
+        for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + 0.4, cx = tx + Math.cos(a) * 0.82, cz = tz + Math.sin(a) * 0.82, ry = -a + Math.PI / 2;
+          box(mat.pbr('tatami_mat', { rep: 0.3 }), 0.46, 0.06, 0.46, cx, y0 + 0.44, cz, { color: 0x6b5035, bevel: 0.02 }, 0, ry); box(mat.pbr('tatami_mat', { rep: 0.3 }), 0.46, 0.46, 0.05, cx + Math.cos(a) * 0.22, y0 + 0.7, cz + Math.sin(a) * 0.22, { color: 0x6b5035, bevel: 0.02 }, -0.12, ry);
+          for (const [dx, dz] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) D.cyl(STEEL, 0.012, 0.012, 0.42, M(cx + dx, y0 + 0.21, cz + dz), { color: 0x3a3a38, seg: 6 }); }
+        Fr.col.cyl(tx, y0 + 0.4, tz, 0.55, 0.8, { tag: 'furniture' }); }
+      // plywood platform with a loose bar on its black mat, bench + rack + loaded bar, plate tree, the green mat with kettlebells
+      box(PLY, 2.2, 0.04, 1.2, 6.4, y0 + 0.02, -14.9, { color: 0xc9a77a, wear: 0.6, bevel: 0.006 }); box(RUBM, 1.0, 0.02, 1.1, 6.4, y0 + 0.05, -14.9, { color: 0x151515, bevel: 0.004 });
+      bar(6.4, y0 + 0.285, -14.9, 2.1, 0, 2);
+      { const bx = 4.4, bz = -15.6; box(PL, 1.15, 0.08, 0.3, bx, y0 + 0.44, bz, { color: 0x1c1c1c, bevel: 0.03 }); for (const dz of [-0.45, 0.45]) box(IRON, 0.05, 0.4, 0.05, bx + dz, y0 + 0.2, bz, { color: 0x2a2a2a });
+        for (const sd of [-1, 1]) { box(IRON, 0.05, 1.25, 0.05, bx + sd * 0.55, y0 + 0.62, bz - 0.4, { color: 0x2a2a2a }); box(IRON, 0.05, 0.05, 0.5, bx + sd * 0.55, y0 + 0.02, bz - 0.2, { color: 0x2a2a2a }); }
+        bar(bx, y0 + 1.15, bz - 0.4, 2.0, 0, 3); Fr.col.box(bx, y0 + 0.5, bz - 0.15, 1.3, 1.0, 0.7, { tag: 'furniture' }); }
+      { const px = 8.1, pz = -15.9; D.cyl(IRON, 0.02, 0.02, 0.9, M(px, y0 + 0.45, pz), { color: BLK, seg: 8 }); box(IRON, 0.5, 0.03, 0.5, px, y0 + 0.015, pz, { color: BLK });
+        for (let k = 0; k < 5; k++) plate(px + (k % 2 ? 0.06 : -0.06), y0 + 0.25 + k * 0.13, pz, 0.12 + (k % 3) * 0.04, Math.PI / 2, Math.PI / 2); Fr.col.cyl(px, y0 + 0.45, pz, 0.25, 0.9, { tag: 'prop' }); }
+      box(RUBM, 1.8, 0.012, 0.9, 2.0, y0 + 0.006, -14.6, { color: 0x2f6b3a, bevel: 0.003 });
+      for (const [kx, kz, ks] of [[2.5, -14.4, 1], [2.8, -14.7, 0.8]]) { lathe(D, IRON, [[0.001, 0], [0.09 * ks, 0.01], [0.11 * ks, 0.1 * ks], [0.08 * ks, 0.18 * ks], [0.001, 0.19 * ks]], M(kx, y0 + 0.012, kz), { color: BLK, seg: 14 }); D.geo(IRON, new THREE.TorusGeometry(0.06 * ks, 0.014, 6, 16, Math.PI), M(kx, y0 + 0.012 + 0.19 * ks, kz), { color: BLK }); }
+      // black gas grill, red / white cooler, rope coil
+      { const gx = -3.9, gz = -15.7; box(MPt(), 0.55, 0.45, 0.85, gx, y0 + 0.75, gz, { color: 0x1d1d1e, bevel: 0.05 }); box(MPt(), 0.5, 0.55, 0.8, gx, y0 + 0.28, gz, { color: 0x242425, bevel: 0.01 });
+        for (const dz of [-0.6, 0.6]) box(MPt(), 0.45, 0.03, 0.32, gx, y0 + 0.9, gz + dz, { color: 0x2c2c2c }); Fr.col.box(gx, y0 + 0.5, gz, 0.6, 1.0, 1.5, { tag: 'prop' }); }
+      box(PL, 0.42, 0.36, 0.62, -2.9, y0 + 0.18, -15.9, { color: 0xb5332a, bevel: 0.03 }); box(PL, 0.44, 0.06, 0.64, -2.9, y0 + 0.39, -15.9, { color: 0xeeeeea, bevel: 0.02 });
+      { const pts = []; for (let k = 0; k < 90; k++) { const t = k / 90, a = t * 6.283 * 5, rr = 0.06 + t * 0.16; pts.push([-1.8 + Math.cos(a) * rr, y0 + 0.015 + (k % 18) * 0.0008, -15.8 + Math.sin(a) * rr]); } D.tube(mat.fabric('wool_boucle', { rep: 0.05 }), pts, 0.012, { seg: 6, color: 0xd9d2b8, steps: 150 }); }
+      // the yellow / blue zig-zag towel over the east rail (18 / 19)
+      { const ZZ = mat.art('r7towel', 256, 512, (g, w, h) => { g.fillStyle = '#f2c233'; g.fillRect(0, 0, w, h); g.fillStyle = '#2e5fae'; for (let y = 0; y < h; y += 64) { g.beginPath(); for (let x = 0; x <= w; x += 32) g.lineTo(x, y + ((x / 32) % 2 ? 26 : 0)); for (let x = w; x >= 0; x -= 32) g.lineTo(x, y + 18 + ((x / 32) % 2 ? 26 : 0)); g.fill(); } }, { rough: 0.95 });
+        const rz = P.lowerDeck.z0 + 0.03; for (const sd of [-1, 1]) box(ZZ, 0.7, 0.62, 0.012, 0.6, dY + 0.72, rz + sd * 0.09, { color: 0xffffff, bevel: 0.004 }); box(ZZ, 0.7, 0.012, 0.19, 0.6, dY + 1.04, rz, { color: 0xffffff, bevel: 0.004 }); }
+    }
   }
   // ---------- the fluorescent tube light in the carport under the house (11) ----------
   { const tx = -4.3, tz = -6.2, ty = ctx.r4 ? ctx.r4.beamBot - 0.08 : 2.95, TUBE = mat.emissive(0xeaf4ff, 2.6, 'r7tube');

@@ -43,12 +43,15 @@ export const P4 = {
   stairE: { pad: { x0: 8.62, x1: 9.9, z0: -5.2, z1: -4.1 } },
   stairF: { pad: { x0: -8.62, x1: -7.4, z0: -1.5, z1: -0.2 } },   // front (hoop side), r6: head pad at the front corner, then ONE flight down +X along the front face to the hoop
                                        // east side: down -Z to the bay corner
-  stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: 5.2, x1: 6.6, z0: -14.05, z1: -12.8 } },   // runs -X from the landing
+  stairN: { x: 5.2, z: -13.45, w: 1.2, n: 19, land: { x0: -5.4, x1: -4.1, z0: -14.05, z1: -12.8 } },   // r7b: the short steps from the back deck down to the lower deck, left of the slider (18)   // runs -X from the landing
   // r7b (user's MAIN mock-up 11, from the driveway): the main stair from a head pad at the deck's front-east corner, two flights with a
   // landing, down to a step platform in front of the ANNEX, a lower teal room east of the house with the lower back-deck level on its roof
   mainStair: { pad: { x0: -8.67, x1: -7.3, z0: -1.55, z1: -0.35 }, annexStep: { z0: -8.5, z1: -7.3 } },   // r7b (mock-up 14): head pad at the front-WEST corner (the dish), two flights down +X along the front
   // r7b (mock-up 13): the annex runs from under the back half of the house out past its east edge; its door faces the pad under the
   // house; the part outside the main deck carries the lower deck level (11)
+  // r7b (18 / 19 / 17): the lower back-deck level behind the house (0.85 m under the main deck: the short steps left of the slider), on
+  // around over the annex along the canal; a stair from its west end down to the lawn
+  lowerDeck: { x0: -5.0, x1: 12.06, z0: -16.6, z1: -12.86, stair: { z0: -16.4, z1: -15.2 } },
   annex: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.4, deckY: 2.75, deckX0: 8.62 },
   // ground-floor room under the east end (10: teal board-and-batten, white slider window, hose reel, vine)
   groundRoom: { x0: 2.2, x1: 12.0, z0: -10.4, z1: -3.6, h: 2.6 },   // r7b: = the annex footprint (pavers skip it)
@@ -91,7 +94,10 @@ export function measureSite(waterAt) {
   P4.oz = oz; P4.wallZ = wall; P4.terrace.z0 = wall + 4.4; P4.terrace.z1 = wall + 1.4;
   P4.dock.z = wall - 3.4; P4.plat.z0 = wall - 6.2; P4.plat.z1 = wall - 0.6; P4.measured = { zw, oz, wall };
   const C = P4.canal, cx = (C.x0 + C.x1) / 2, inW = (x, z) => waterAt(...toG(x, z));
-  C.on = !(typeof location !== 'undefined' && /[?&]canal=0\b/.test(location.search)) && inW(cx, wall + 6) && inW(cx, (wall + C.z1) / 2) && inW(cx, C.z1 - 2.5);
+  // r7b: the 6 m canal is narrower than the world's water raster, so the world may still report land there; the set piece then draws
+  // the canal's water itself (fake = true) and keeps people out of it with its walls and fences
+  C.on = !(typeof location !== 'undefined' && /[?&]canal=0\b/.test(location.search));
+  C.fake = !(inW(cx, wall + 6) && inW(cx, (wall + C.z1) / 2) && inW(cx, C.z1 - 2.5));
   if (C.on) P4.wallX1 = C.x0;   // the bay bulkhead turns into the canal's house-side wall
 }
 // r7: inside the canal's water (S frame), pad > 0 grows it
@@ -111,5 +117,5 @@ export function houseBlock(sx, sz, pad = 0) {
   return inR({ x0: -8.6, x1: 8.6, z0: P.deckN.z0, z1: P.deckS.z1 }, x, z, pad)
     || inR({ x0: -8.8, x1: 0.2, z0: -1.7, z1: -0.1 }, x, z, pad)   // r7b: main stair along the front (two flights, landing, foot platform)
     || inR({ x0: 2.0, x1: 12.2, z0: -10.6, z1: -3.4 }, x, z, pad)          // r7b: the annex
-    || inR({ x0: -1.4, x1: 6.8, z0: -14.2, z1: -12.7 }, x, z, pad);          // r7: back stair along the back face (08)
+    || inR({ x0: -9.4, x1: 12.2, z0: -16.8, z1: -12.7 }, x, z, pad);          // r7b: the lower deck and its stair to the lawn
 }
