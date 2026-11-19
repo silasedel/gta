@@ -140,9 +140,19 @@ export async function initV2(game) {
   // ---------------------------------------------------------------- hobos and gang hangouts (roaming spawners)
   const HOBO_RE = new RegExp('^(' + HOBO_DISTRICTS.join('|') + ')$'), GANG_RE = new RegExp('^(' + GANG_DISTRICTS.join('|') + ')$');
   let scanT = 0, gangCd = 0;
-  const lean = (x, z, r) => { try { return city.leanSpotsNear?.(x, z, r) || []; } catch (e) { return []; } };
+  // wall spots: the map's lean spots, else storefront doors (stand / sit against the shop front, facing the street)
+  const lean = (x, z, r) => {
+    let L = []; try { L = (city.leanSpotsNear?.(x, z, r) || []).slice(); } catch (e) { L = []; }
+    if (L.length < 4) { try { const sf = city.storefrontsNear?.(x, z, r) || []; for (const s of sf) { if (!Number.isFinite(s.fx)) continue; const dx = s.fx - s.x, dz = s.fz - s.z, l = Math.hypot(dx, dz) || 1; const px = s.fx + dx / l * 0.6 + dz / l * 1.8, pz = s.fz + dz / l * 0.6 - dx / l * 1.8; if (city.isWater(px, pz)) continue; L.push({ pos: new THREE.Vector3(px, groundY(game, px, pz), pz), heading: Math.atan2(dx, dz) }); } } catch (e) { /* */ } }
+    if (L.length < 4) { for (let i = 0; i < 6; i++) { try { const q = city.randomSidewalkPoint?.({ x, z }, r * 0.8); if (q && Math.hypot(q.x - x, q.z - z) < r && !city.isWater(q.x, q.z)) L.push({ pos: new THREE.Vector3(q.x, groundY(game, q.x, q.z), q.z), heading: Math.random() * Math.PI * 2 }); } catch (e) { /* */ } } }
+    if (L.length < 2) for (let i = 0; i < 8; i++) {   // open ground around (lots, yards): the crew hangs out wherever
+      const a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 25, qx = x + Math.sin(a) * d, qz = z + Math.cos(a) * d;
+      if (!city.isWater(qx, qz)) L.push({ pos: new THREE.Vector3(qx, groundY(game, qx, qz), qz), heading: a + Math.PI });
+    }
+    return L;
+  };
   const spawnPed = (pos, outfit, style, heading) => {
-    const p = castPed(game, new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), outfit);
+    const p = castPed(game, new THREE.Vector3(pos.x, pos.y ?? groundY(game, pos.x, pos.z), pos.z), outfit, outfit === 'gang' ? 2 : 4, !!pos.any);
     if (!p) return null;
     p.pinned = 1e9; p.v21 = { ambient: true }; p.nav = null; p.group = null; p.state = 'talk'; p.act = 'talk'; p.stateT = 1e9; p.idleStyle = style; p.style0 = style; p.heading = heading;
     if (p.root) { p.root.position.copy(p.pos); p.root.rotation.y = heading; }
@@ -157,20 +167,20 @@ export async function initV2(game) {
     const style = Math.random() < 0.6 ? 'sitGround' : 'lie';
     const p = spawnPed(s.pos, 'rough', style, s.heading + (style === 'lie' ? Math.PI / 2 : 0)); if (!p) return;
     cardMat ||= new THREE.MeshStandardMaterial({ color: 0x9b7a52, roughness: 0.95 });
-    const card = new THREE.Mesh(new THREE.BoxGeometry(style === 'lie' ? 1.9 : 1.0, 0.015, style === 'lie' ? 0.8 : 1.0), cardMat); card.position.set(s.pos.x, s.pos.y + 0.01, s.pos.z); card.rotation.y = s.heading; card.receiveShadow = true; game.scene.add(card);
+    const card = new THREE.Mesh(new THREE.BoxGeometry(style === 'lie' ? 1.9 : 1.0, 0.015, style === 'lie' ? 0.8 : 1.0), cardMat); card.position.set(p.pos.x, p.pos.y + 0.012, p.pos.z); card.rotation.y = s.heading; card.receiveShadow = true; game.scene.add(card);
     A.hobos.push({ p, card, asked: false, done: false });
   }
   function gangSpawn() {
-    const pp = P(); const spots = lean(pp.x, pp.z, 120).filter((s) => { const d = Math.hypot(s.pos.x - pp.x, s.pos.z - pp.z); return d > 55 && d < 115; });
-    if (!spots.length) return;
+    const pp = P(); const spots = lean(pp.x, pp.z, 120).filter((s) => { const d = Math.hypot(s.pos.x - pp.x, s.pos.z - pp.z); return d > 28 && d < 70; });
+    if (!spots.length) return 'no spots';
     const s = spots[(Math.random() * spots.length) | 0];
     const n = 3 + (Math.random() < 0.4 ? 1 : 0), peds = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2, c = { x: s.pos.x + Math.sin(s.heading) * 1.6, z: s.pos.z + Math.cos(s.heading) * 1.6 };
       const x = c.x + Math.cos(a) * 1.15, z = c.z + Math.sin(a) * 1.15;
-      const p = spawnPed({ x, z }, 'gang', i === 0 ? 'talk' : i === 1 ? 'lean_wall' : i === 2 ? 'cross_arms' : 'phone', Math.atan2(c.x - x, c.z - z)); if (p) peds.push(p);
+      const p = spawnPed({ x, z, any: i === 0 }, 'gang', i === 0 ? 'talk' : i === 1 ? 'lean_wall' : i === 2 ? 'cross_arms' : 'phone', Math.atan2(c.x - x, c.z - z)); if (p) peds.push(p);
     }
-    if (!peds.length) return;
+    if (peds.length < 2) { for (const p of peds) freeP(p); gangCd = 8; return 'cast ' + peds.length + '/' + n; }
     const crew = createCrew(game, { peds, name: 'Corner boy', knife: 0.4, noticeR: 12, onEnd: () => { gangCd = 60; } });
     A.crews.push({ crew, peds, at: { x: s.pos.x, z: s.pos.z } });
   }
@@ -207,5 +217,5 @@ export async function initV2(game) {
     for (const h of A.hobos) if (h.p.active && h.p.state === 'talk' && !h.asked) h.p.idleStyle = h.p.style0;
     void sfx; void local; void canvasTex;
   });
-  H.api('ambientLife', { stats: () => ({ performers: A.performers.filter((p) => p.root).length, fishers: A.fishers.filter((f) => f.root).length, hobos: A.hobos.length, crews: A.crews.length }), performers: A.performers, crews: A.crews, hobos: A.hobos });
+  H.api('ambientLife', { spawnCrew: () => gangSpawn() || 'ok', stats: () => ({ performers: A.performers.filter((p) => p.root).length, fishers: A.fishers.filter((f) => f.root).length, hobos: A.hobos.length, crews: A.crews.length }), performers: A.performers, fishers: A.fishers, crews: A.crews, hobos: A.hobos });
 }
