@@ -4,11 +4,14 @@
 #         recessed shut lines (hood, doors, tailgate, fenders), paint = one repaintable slot (yellow + stripe from the game look)
 #   chrome bumpers, window trim, drip and bed rails, bullet mirrors, dual exhaust tips; tinted glass; lamp units with lenses
 #   bed: ribbed floor, ribbed side walls, bulkhead and tailgate;  cabin: tan leather buckets, console, dash with gauges,
-#         3-spoke wheel, door cards, carpet, headliner;  wheels: new 5-spoke chrome rims + tires with tread (FL FR RL RR)
+#         3-spoke wheel, door cards, carpet, headliner;  wheels: downloaded 5-spoke chrome rim + tyre (prep_wheel.py), FL FR RL RR
 #   front / rear plate recesses (the game mounts a 0.305 m plate there), no lettering or badges anywhere.
 # blender -b --factory-startup -P tools/v2/cars/ute1/build_ute1.py -- <source.fbx> <out.blend>
+# wheels come from <source dir>/wheel/wheel_parts.blend, made once from the downloaded rim + tyre by:
+#   blender -b --factory-startup --disable-autoexec -P tools/v2/cars/ute1/prep_wheel.py -- Models/_Inbox/shiny-rim/source/rim2.blend \
+#           Models/_Inbox/tyres/source/tyre.fbx "<source dir>/wheel/wheel_parts.blend"
 # Output = a clean source for tools/v2/cars/convert.py (cars.json key ute1: material names U_* -> slots).
-import bpy, bmesh, sys, math
+import bpy, bmesh, sys, math, os
 from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
 
@@ -58,7 +61,7 @@ mat('U_Liner', 0xb49b7a, 0.9)
 mat('U_Gauge', 0x0c0c0c, 0.35)
 mat('U_IntChrome', 0xc8cacc, 0.15, 1.0)
 mat('U_Tire', 0x121212, 0.9)
-mat('U_Rim', 0xf0f1f3, 0.14, 1.0)
+mat('U_Rim', 0xf3f4f6, 0.09, 1.0)
 mat('U_RimDark', 0x1c1d1f, 0.5, 0.0)
 mat('U_Drum', 0x262626, 0.7)
 ORDER = list(MATS)
@@ -417,71 +420,23 @@ C.obj('cabin')
 WR, WW = 0.322, 0.235            # tire radius, width
 WX, WYF, WYR, WZ = 0.765, -1.65, 1.27, 0.335
 WK, WKX = 0.335 / 0.322, 1.1
-def wheel_bm():
-    W = MB()
-    # tread: a cylindrical grid with block / groove radii (3 ribs, lateral sipes)
-    NA, NL = 120, 13
-    xs = [-0.1 + 0.2 * j / (NL - 1) for j in range(NL)]
-    grid = []
-    for i in range(NA):
-        a = 2 * math.pi * i / NA; row = []
-        for j, x in enumerate(xs):
-            groove = j in (4, 8) or ((j <= 2 or j >= 10) and i % 5 == 0) or ((5 <= j <= 7) and i % 10 == 5)
-            r = WR - (0.011 if groove else 0.0) - (0.004 if j in (0, NL - 1) else 0)
-            row.append(W.bm.verts.new((x, r * math.cos(a), r * math.sin(a))))
-        grid.append(row)
-    for i in range(NA):
-        A, Bq = grid[i], grid[(i + 1) % NA]
-        for j in range(NL - 1):
-            f = W.bm.faces.new((A[j], Bq[j], Bq[j + 1], A[j + 1])); f.material_index = MI['U_Tire']; f.smooth = True
-    # sidewalls: tread edge -> shoulder -> bulge -> bead (both sides), joined to the tread grid
-    for side, j0 in ((1, NL - 1), (-1, 0)):
-        prof = [(WR - 0.012, side * 0.112), (WR - 0.03, side * 0.118), (0.27, side * 0.12), (0.235, side * 0.114), (0.205, side * 0.1)]
-        rings = []
-        for i in range(NA):
-            a = 2 * math.pi * i / NA
-            rings.append([grid[i][j0]] + [W.bm.verts.new((x, r * math.cos(a), r * math.sin(a))) for r, x in prof])
-        for i in range(NA):
-            A, Bq = rings[i], rings[(i + 1) % NA]
-            for j in range(len(prof)):
-                q = (A[j], Bq[j], Bq[j + 1], A[j + 1]) if side > 0 else (A[j + 1], Bq[j + 1], Bq[j], A[j])
-                f = W.bm.faces.new(q); f.material_index = MI['U_Tire']; f.smooth = True
-    # rim: outer lip, barrel, five-spoke dish, centre cap, lug nuts, drum behind
-    W.lathe([(0.205, 0.1), (0.207, 0.093), (0.2, 0.084), (0.188, 0.078)], 64, 'U_Rim')
-    W.lathe([(0.188, 0.078), (0.186, 0.06), (0.186, -0.1)], 40, 'U_RimDark')
-    W.lathe([(0.16, -0.07), (0.05, -0.07)], 32, 'U_Drum')
-    NA2, rs = 90, [0.045, 0.06, 0.075, 0.09, 0.105, 0.12, 0.135, 0.15, 0.165, 0.178, 0.188]
-    def dish_x(r): return 0.028 + (r - 0.045) / (0.188 - 0.045) * 0.05
-    def win(r, a):   # inside a window between two spokes?
-        if r < 0.072 or r > 0.168: return False
-        w_s = 0.021 + 0.012 * (r - 0.072) / 0.096           # spoke half width (m), wider at the rim
-        d = (a % (2 * math.pi / 5)) - math.pi / 5            # angle from the window centre
-        return abs(d) * r < (math.pi / 5) * r - w_s
-    vg = [[W.bm.verts.new((dish_x(r), r * math.cos(2 * math.pi * i / NA2), r * math.sin(2 * math.pi * i / NA2))) for r in rs] for i in range(NA2)]
-    dish = []
-    for i in range(NA2):
-        A, Bq = vg[i], vg[(i + 1) % NA2]
-        for j in range(len(rs) - 1):
-            rm, am = (rs[j] + rs[j + 1]) / 2, 2 * math.pi * (i + 0.5) / NA2
-            if win(rm, am): continue
-            f = W.bm.faces.new((A[j], Bq[j], Bq[j + 1], A[j + 1])); f.material_index = MI['U_Rim']; f.smooth = True; dish.append(f)
-    ext = bmesh.ops.extrude_face_region(W.bm, geom=dish)
-    bmesh.ops.translate(W.bm, vec=(-0.012, 0, 0), verts=[e for e in ext['geom'] if isinstance(e, bmesh.types.BMVert)])
-    W.lathe([(0.0, 0.058), (0.02, 0.056), (0.034, 0.049)], 24, 'U_RimDark')   # dark dome cap
-    W.lathe([(0.034, 0.049), (0.04, 0.05), (0.045, dish_x(0.045))], 24, 'U_Rim')     # chrome ring
-    for k in range(5):
-        a = 2 * math.pi * k / 5 + math.pi / 5 * 0
-        M_ = Matrix.Translation((dish_x(0.06), 0.06 * math.cos(a + math.pi / 5), 0.06 * math.sin(a + math.pi / 5)))
-        W.lathe([(0.0, 0.016), (0.008, 0.016), (0.009, 0.0)], 6, 'U_RimDark', M_=M_)
-    bmesh.ops.remove_doubles(W.bm, verts=W.bm.verts, dist=1e-5)
-    bmesh.ops.recalc_face_normals(W.bm, faces=W.bm.faces)
-    return W.bm
+WHEEL_SRC = os.path.join(os.path.dirname(SRC), 'wheel', 'wheel_parts.blend')   # made by prep_wheel.py (see the top)
+with bpy.data.libraries.load(WHEEL_SRC, link=False) as (_s, _d): _d.objects = ['wheel']
+WHEEL_O = _d.objects[0]
+def wheel_bm():   # downloaded 5-spoke rim + tyre, already in the wheel frame (axle X, face +X, radius WR, x within +-0.12)
+    bm = bmesh.new(); bm.from_mesh(WHEEL_O.data)
+    remap = [MI[m.name.split('.')[0]] for m in WHEEL_O.data.materials]
+    for f in bm.faces: f.material_index = remap[f.material_index]
+    return bm
 for wid, sx, y in (('FL', 1, WYF), ('FR', -1, WYF), ('RL', 1, WYR), ('RR', -1, WYR)):
     wb = wheel_bm()
     M_ = Matrix.Translation((sx * WX, y, WZ)) @ Matrix.Diagonal((sx * WKX, WK, WK, 1))
     bmesh.ops.transform(wb, matrix=M_, verts=wb.verts)
     if sx < 0: bmesh.ops.reverse_faces(wb, faces=wb.faces)
     new_obj('wheel_' + wid, wb)
+_wm = WHEEL_O.data; _wmats = list(_wm.materials); bpy.data.objects.remove(WHEEL_O); bpy.data.meshes.remove(_wm)
+for _m in _wmats:
+    if _m and _m.users == 0: bpy.data.materials.remove(_m)
 
 # ------------------------------------------------------------------ finish: apply modifiers, shade smooth by angle, save
 dg = bpy.context.evaluated_depsgraph_get()
