@@ -9,7 +9,7 @@
 // Plane 8 cargo jet (airport/cargo_jet); from the user's downloads: C-130J (airport/c130), F-22 / F-16 / F-35 (game.air
 // types jet_f22 / jet_f16 / jet_f35, far LOD swapped in here), UH-60M Black Hawk on the pad (game.heli model 'blackhawk'), Booth 3 (airport/guard_booth), the downloaded military base asset pack (airport/mil_outpost, mil_watchtower,
 // mil_garage, mil_tank, mil_barrels), Barrier 1 / 2 (airport/barbed_barrier, jersey_barrier), Security Camera 1
-// heads (airport/sec_cam), guards p12 (tactical officer retinted olive). Converters: tools/v2/airport/convert_w6.py, convert.sh.
+// heads (airport/sec_cam), guards p185 / p173 / p172 (the user's soldiers and officer). Converters: tools/v2/airport/convert_w6.py, convert.sh.
 // The fence (fence.js) is 3.4 m with a concertina coil, climbable only at the climb spots (crates stacked outside; a
 // sweeping camera and a patrol cover each one, so it can be done but needs timing). No real-world insignia anywhere.
 // W7 (Nov 19): fighters park facing open pavement (F-22 on connector A3, nose to runway 17/35; F-16 / F-35 on the GA
@@ -861,7 +861,7 @@ export function zoneConfig(ap, plan, built, F) {
     guards.push({ route: r });
   }
   const pd = plan.pad;
-  guards.push({ x: pd.x + 14, z: pd.z + 6, heading: Math.atan2(-14, -6), range: 50 });
+  guards.push({ x: pd.x + 14, z: pd.z + 6, heading: Math.atan2(-14, -6), range: 50, who: 2 });
   cams.push({
     x: pd.x + 16,
     z: pd.z - 12,
@@ -871,7 +871,7 @@ export function zoneConfig(ap, plan, built, F) {
     range: 40,
   });
   const tw = ap.tower;
-  guards.push({ x: tw.x + 9, z: tw.z - 3, heading: -1.3, range: 50 });
+  guards.push({ x: tw.x + 9, z: tw.z - 3, heading: -1.3, range: 50, who: 2 });
   cams.push({ x: at(26, -30)[0], z: at(26, -30)[1], yaw: th, sweep: 1.1, period: 14, range: 40 });
   cams.push({ x: at(26, 32)[0], z: at(26, 32)[1], yaw: th, sweep: 1.1, period: 12, range: 40 });
   if (plan.back) {
@@ -894,7 +894,11 @@ export function zoneConfig(ap, plan, built, F) {
   const tA = at(45, 0);
   if (inside(mid[0] + 60, mid[1]) && inside(tA[0], tA[1]))
     guards.push({ route: [tA, [mid[0] + 60, mid[1]]], speed: 1.5 });
-  // the user's tactical officer (p12) retinted olive on the near guards; library camera heads
-  const person = { id: 'p12', retint: [0.3, 0.33, 0.2] };
-  return { guards, cams, person, camModel: 'airport/sec_cam' };
+  // the user's soldiers (Nov 19 people): the woodland-camo guard (p185) and the desert-tan soldier (p173) take
+  // turns on the patrols and gates; the olive-uniform officer (p172, no rifle) holds the tower and helipad posts
+  guards.forEach((g, i) => {
+    g.who ??= i % 2;
+  });
+  const people = [{ id: 'p185' }, { id: 'p173' }, { id: 'p172', rifle: false }];
+  return { guards, cams, people, camModel: 'airport/sec_cam' };
 }

@@ -1,7 +1,7 @@
 // B1 First Job (docs/v2/plan/STORY_INTRO_SCRIPT.md): Vale calls, Nico drives his truck to Pelican Point Marina and meets
 // Dex and Lou on the dock. Skeleton: real steps, waypoints, checkpoints, cutscenes with the script's lines.
 import { defineMission } from '../runner.js';
-import { PLACES, CAST, house, nicoTruck } from './lib/intro.js';
+import { PLACES, CAST, house, nicoTruck, loadCast } from './lib/intro.js';
 
 // the two associates stand a few meters apart on the marina dock
 const DEX_AT = { x: PLACES.marinaDock.x + 1.2, z: PLACES.marinaDock.z + 1.5, heading: 0.9 };
@@ -40,6 +40,9 @@ function dockCutscene() {
     frame: PLACES.marinaDock,
     actors: {
       vale: { person: CAST.vale, at: [0, 0, -6, 0], pose: 'idle' },
+      // Vale's bodyguards a step behind him
+      guardPolo: { person: CAST.guards[0], at: [-1.6, 0, -7.3, 0], pose: 'cross_arms' },
+      guardSuit: { person: CAST.guards[1], at: [1.6, 0, -7.3, 0], pose: 'idle' },
     },
     shots: [
       { dur: 4, mm: 35, from: { pos: [0.6, 1.75, -3], look: 'actor:dex' } },
@@ -81,6 +84,7 @@ export default defineMission({
   flags: { 'vale.met': true },
   start: { teleport: true, at: (game) => house(game, 'spawnYard') },
   end: { at: PLACES.marinaDock },
+  setup: () => loadCast([CAST.dex, CAST.lou, CAST.vale, ...CAST.guards]),
   steps: [
     { id: 'call', cutscene: callCutscene },
     {
@@ -100,6 +104,7 @@ export default defineMission({
       id: 'findCrew',
       text: 'Find Dex and Lou on the dock.',
       enter(ctx) {
+        loadCast([CAST.vale, ...CAST.guards]); // after the drive: in case the crowd unloaded them
         ctx.spawnActor('dex', { person: CAST.dex, at: DEX_AT, pose: 'talk_g' });
         ctx.spawnActor('lou', { person: CAST.lou, at: LOU_AT, pose: 'cross_arms' });
       },

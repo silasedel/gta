@@ -1,6 +1,7 @@
 // Shared data for the intro missions (docs/v2/plan/STORY_INTRO_SCRIPT.md): places, cast and small helpers.
 // Not a mission file (the loader only reads src/story/missions/*.js).
-import { keepFighting, fireAtPlayer, pedOut } from '../../../jobs/kit.js';
+import { keepFighting, fireAtPlayer, pedOut, release } from '../../../jobs/kit.js';
+import { loadPerson } from '../../../npc/people/lib.js';
 
 // World meters (CONVENTIONS section 1). Water spots were checked with game.city.isWater.
 export const PLACES = {
@@ -29,7 +30,20 @@ export const CAST = {
   cisco: 'p155',
   wade: 'p150',
   sawgrass: ['p151', 'p152', 'p153', 'p154', 'p156', 'p157'],
+  // Nov 19 people (Models/NPCs/NPC 172-185)
+  guards: ['p175', 'p176'], // Vale's bodyguards: black polo, charcoal suit
+  poachers: ['p177', 'p178'], // swamp poachers who ride with the Sawgrass Boys
+  seaplanePilot: 'p174', // Vale's floatplane pilot at the far dock
+  dropPilot: 'p183', // flies the drop plane (the rural pilot until the bush pilot, prompt 4, exists)
 };
+
+// Load the people a mission stages (under the black of its start), so spawnPosed gets the real person and not a
+// stand-in from the street crowd. Gives up after `ms` (a slow load then falls back to the stand-in).
+export function loadCast(ids, ms = 8000) {
+  const all = Promise.all(ids.map((id) => loadPerson(id).catch(() => null)));
+  const late = new Promise((resolve) => setTimeout(resolve, ms));
+  return Promise.race([all, late]);
+}
 
 // Nico's house anchors in world space (src/world/setpieces/nicoHouse), with the set piece spot as a fallback
 export function house(game, name = 'spawnYard') {
@@ -58,10 +72,13 @@ const SAWGRASS_KIT = {
   hats: ['capBack', 'beanie'],
   chain: 0.2,
 };
+// Every other member is one of the user's swamp poachers (place 'poacher', CAST.poachers); the rest are the gang
+// people in the kit.
 export function spawnCrew(ctx, name, around, n, seed = 1) {
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2;
     const at = { x: around.x + Math.sin(a) * 9, z: around.z + Math.cos(a) * 9 };
+    if (i % 2 === 0 && spawnPoacher(ctx, name, at)) continue;
     ctx.spawnPed(name, {
       at,
       kit: SAWGRASS_KIT,
@@ -71,6 +88,22 @@ export function spawnCrew(ctx, name, around, n, seed = 1) {
       health: 90,
     });
   }
+}
+
+// one poacher in the crew: a crowd person of the 'poacher' place in their own clothes (no kit), held like spawnPed's
+function spawnPoacher(ctx, name, at) {
+  const peds = ctx.game.peds;
+  if (!peds?.spawnAt) return null;
+  const y = ctx.game.city?.groundHeightAt?.(at.x, at.z) ?? 0;
+  const p = peds.spawnAt({ x: at.x, y, z: at.z }, { outfit: 'poacher' });
+  if (!p) return null;
+  p.pinned = 1e9;
+  p.health = 90;
+  p.v21 = { story: ctx.mission?.id || 'intro', gang: true };
+  ctx.h[name] = ctx.h[name] || [];
+  ctx.h[name].push(p);
+  ctx.track(p, () => release(p));
+  return p;
 }
 
 // every frame of a fight step: the crew keeps attacking, armed members shoot about once a second when close

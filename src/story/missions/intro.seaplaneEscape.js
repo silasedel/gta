@@ -1,10 +1,11 @@
 // B4 Seaplane Escape (docs/v2/plan/STORY_INTRO_SCRIPT.md): board Vale's floatplane at the far dock, take off from the
 // water, fly to Pelican Point Marina, land, taxi to the dock, get paid by Vale, drive home and go inside.
 import { defineMission } from '../runner.js';
-import { PLACES, CAST, house } from './lib/intro.js';
+import { PLACES, CAST, house, loadCast } from './lib/intro.js';
 
 const TAKEOFF_Y = 40; // meters above the sea counts as airborne
 const SEA = -0.12;
+const PILOT_AT = { x: PLACES.farDock.x - 2, z: PLACES.farDock.z + 4, heading: 0.2 };
 
 function onFoot(ctx) {
   return !ctx.game.player.state?.inVehicle;
@@ -23,6 +24,9 @@ function paidCutscene() {
     actors: {
       vale: { person: CAST.vale, at: [0, 0, 3, Math.PI], pose: 'idle' },
       lou: { person: CAST.lou, at: [-2, 0, 4.5, Math.PI], pose: 'cross_arms' },
+      // Vale's bodyguards behind him
+      guardPolo: { person: CAST.guards[0], at: [1.9, 0, 4.4, Math.PI], pose: 'cross_arms' },
+      guardSuit: { person: CAST.guards[1], at: [-0.3, 0, 5.3, Math.PI], pose: 'idle' },
     },
     props: { case: { prop: 'briefcase', at: [0.6, 0, 2.4, 0] } },
     player: { at: [0, 0, 0, 0] },
@@ -60,11 +64,16 @@ export default defineMission({
   flags: { 'vale.trust': 1 },
   start: { teleport: true, at: PLACES.farDock },
   end: { at: (game) => house(game, 'spawn') },
+  setup: () => loadCast([CAST.seaplanePilot, CAST.vale, CAST.lou, ...CAST.guards]),
   steps: [
     {
       id: 'board',
       text: 'Get in the seaplane.',
-      enter: (ctx) => ctx.spawnAircraft('plane', 'floatplane', { ...PLACES.farDockWater, y: SEA }),
+      enter(ctx) {
+        ctx.spawnAircraft('plane', 'floatplane', { ...PLACES.farDockWater, y: SEA });
+        // Vale's floatplane pilot waits on the dock beside it
+        ctx.spawnActor('pilot', { person: CAST.seaplanePilot, at: PILOT_AT, pose: 'idle' });
+      },
       trigger: { enterVehicle: true },
       waypoint: 'plane',
     },

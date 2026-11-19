@@ -2,7 +2,7 @@
 // Sawgrass Boys at the shack, cut Cisco loose, hold off the second wave, run west to the floatplane at the far dock.
 // Skeleton: the crews are crowd peds in a kit (src/jobs/kit.js); Cisco is a staged person who meets you at the dock.
 import { defineMission } from '../runner.js';
-import { PLACES, CAST, spawnCrew, crewFight } from './lib/intro.js';
+import { PLACES, CAST, spawnCrew, crewFight, loadCast } from './lib/intro.js';
 
 const CLEARING = { x: PLACES.shack.x, z: PLACES.shack.z + 40 };
 const CISCO_AT = { x: PLACES.shack.x + 1.5, z: PLACES.shack.z + 1.5, heading: Math.PI };
@@ -75,6 +75,8 @@ export default defineMission({
   start: { teleport: true, at: PLACES.sawgrassLanding },
   end: { at: PLACES.farDock },
   fail: { leftArea: SWAMP_AREA },
+  // the poachers who fight beside the Sawgrass Boys (spawnCrew), Cisco and Dex
+  setup: () => loadCast([...CAST.poachers, CAST.cisco, CAST.dex]),
   // a skip (Free Roam) leaves Nico with the pistol Dex hands him in the landing cutscene
   apply(story, how) {
     if (how === 'skip') givePistol(story.game);

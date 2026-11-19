@@ -196,6 +196,7 @@ export function createZone(game, cfg) {
       phase: Math.random() * 6,
       fireCd: 1.5,
       armed: g.armed !== false,
+      who: g.who ?? 0, // index into cfg.people (which person this guard is)
       marker: null,
       tx: 0,
       tz: 0,
@@ -290,12 +291,18 @@ export function createZone(game, cfg) {
   }
 
   // skinned guards (the user's person model on the nearest guards) ----
+  // Nov 19 (people intake): cfg.people = [{ id, retint, rifle }] lets one zone use several people (the base's
+  // soldiers and officer); each guard wears people[g.who]. The POOL figures are split between them.
   const slots = [];
   const _cp = new THREE.Vector3();
-  if (SKIN && cfg.person?.id) {
-    loadPerson(cfg.person.id)
-      .then(buildSlots)
-      .catch((e) => console.warn('[stealth] guard person', e));
+  const people = cfg.people || (cfg.person?.id ? [cfg.person] : []);
+  const perPerson = Math.max(1, Math.floor(POOL / Math.max(1, people.length)));
+  if (SKIN) {
+    people.forEach((who, k) => {
+      loadPerson(who.id)
+        .then((base) => buildSlots(base, who, k))
+        .catch((e) => console.warn('[stealth] guard person', who.id, e));
+    });
   }
 
   function pickClip(base, ...names) {
@@ -303,10 +310,10 @@ export function createZone(game, cfg) {
     return null;
   }
 
-  function buildSlots(base) {
+  function buildSlots(base, who, k) {
     if (!base) return;
     let bodyMat = personMaterial(base);
-    if (cfg.person.retint) bodyMat = retinted(bodyMat, cfg.person.retint);
+    if (who.retint) bodyMat = retinted(bodyMat, who.retint);
     const rifleMat = new THREE.MeshStandardMaterial({
       color: 0x1c1e20,
       roughness: 0.55,
@@ -318,11 +325,16 @@ export function createZone(game, cfg) {
       run: pickClip(base, 'run', 'jog'),
       dead: pickClip(base, 'deadBack', 'deadFwd'),
     };
-    const n = Math.min(POOL, guards.length);
-    for (let i = 0; i < n; i++) slots.push(makeSlot(base, bodyMat, rifleMat, clips));
+    const mine = guards.filter((g) => g.who === k).length;
+    const n = Math.min(perPerson, mine);
+    for (let i = 0; i < n; i++) {
+      const slot = makeSlot(base, bodyMat, who.rifle === false ? null : rifleMat, clips);
+      slot.who = k;
+      slots.push(slot);
+    }
   }
 
-  // one pooled figure: the LOD1 body only, a rifle on the right hand, its own mixer
+  // one pooled figure: the LOD1 body only, a rifle on the right hand (none when rifleMat is null), its own mixer
   function makeSlot(base, bodyMat, rifleMat, clips) {
     const o = SkeletonUtils.clone(base.scene);
     o.visible = false;
@@ -338,7 +350,7 @@ export function createZone(game, cfg) {
         m.castShadow = true;
       }
     });
-    if (hand) {
+    if (hand && rifleMat) {
       const rifle = new THREE.Mesh(RIFLE_G, rifleMat);
       rifle.position.set(-0.02, -0.04, 0.06);
       hand.add(rifle);
@@ -356,17 +368,25 @@ export function createZone(game, cfg) {
     return { o, mixer, acts, g: null, cur: null };
   }
 
-  // the guards nearest the camera (within SKIN_R) get a pooled figure; the rest stay instanced
+  // the guards nearest the camera (within SKIN_R) get a pooled figure of their person; the rest stay instanced
   function nearestGuards() {
     const cam = game.camera?.position || P.position;
     _cp.copy(cam);
-    return guards
+    const free = new Map();
+    for (const s of slots) free.set(s.who, (free.get(s.who) || 0) + 1);
+    const near = guards
       .filter((g) => !(g.dead && g.deadT > 30))
       .map((g) => ({ g, d: Math.hypot(g.x - _cp.x, g.z - _cp.z) }))
       .filter((e) => e.d < SKIN_R)
-      .sort((p, q) => p.d - q.d)
-      .slice(0, slots.length)
-      .map((e) => e.g);
+      .sort((p, q) => p.d - q.d);
+    const out = [];
+    for (const e of near) {
+      const left = free.get(e.g.who) || 0;
+      if (left <= 0) continue;
+      free.set(e.g.who, left - 1);
+      out.push(e.g);
+    }
+    return out;
   }
 
   function release(slot) {
@@ -406,8 +426,8 @@ export function createZone(game, cfg) {
     }
     for (const g of want) {
       if (g.slot) continue;
-      const slot = slots.find((x) => !x.g);
-      if (!slot) break;
+      const slot = slots.find((x) => !x.g && x.who === g.who);
+      if (!slot) continue;
       slot.g = g;
       g.slot = slot;
       slot.o.visible = true;

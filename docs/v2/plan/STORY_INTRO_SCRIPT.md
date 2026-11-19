@@ -17,7 +17,10 @@ no speeches. Nobody explains the plot twice.
 | **Dex Marlow** | NPC 159 (`p159`) | Vale's associate. Big, loud, likes Nico on sight. Drives the boat in Ocean Smuggling if Nico is busy. |
 | **Lou Batista** | NPC 162 (`p162`) | Vale's other associate. Quiet, watchful, the radio voice. Does not trust Nico yet. |
 | **Cisco Pardo** | NPC 155 (`p155`) | Vale's man on the ground in the Glades. Captured by the swamp crew during the drop. Rescued in Swamp Rescue. |
-| **The Sawgrass Boys** | gang NPCs 150–157 (`p150`–`p157`, not 155) | A swamp crew who took Cisco and want the cargo. Rifles and shotguns, airboats. Leader: **Wade** (`p150`). |
+| **The Sawgrass Boys** | gang NPCs 150–157 (`p150`–`p157`, not 155) and the swamp poachers NPC 177–178 (`p177`, `p178`) | A swamp crew who took Cisco and want the cargo. Rifles and shotguns, airboats. Leader: **Wade** (`p150`). Every other member of a wave is a poacher (`spawnCrew` in `missions/lib/intro.js`). |
+| **Vale's bodyguards** | NPC 175 (`p175`, black polo), NPC 176 (`p176`, charcoal suit) | Stand behind Vale in his marina cutscenes (B1 dock, B4 paid). No lines. |
+| **The drop pilot** | NPC 183 (`p183`, rural pilot) | Flies the drop plane in B2 (`CAST.dropPilot`; the bush pilot, prompt 4, is not generated yet). |
+| **The seaplane pilot** | NPC 174 (`p174`) | Vale's floatplane pilot, waiting on the far dock beside the plane in B4. |
 
 ## Places (world meters; CONVENTIONS section 1)
 

@@ -1,6 +1,7 @@
 // B2 Ocean Smuggling (docs/v2/plan/STORY_INTRO_SCRIPT.md): briefing at the marina, the console boat out to the reef,
 // follow the drop plane, fish six packages out of the water, Lou's radio call (Cisco is taken), head for the swamp.
-// Skeleton: the drop plane is a moving point (blip + waypoint) for now; the real aircraft on a scripted path comes next.
+// Skeleton: the drop plane is a moving point (blip + waypoint) for now; the real aircraft on a scripted path comes next,
+// flown by CAST.dropPilot (lib/intro.js).
 import { defineMission } from '../runner.js';
 import { PLACES, CAST, along } from './lib/intro.js';
 
