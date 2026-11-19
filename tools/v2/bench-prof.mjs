@@ -43,7 +43,17 @@ function cpuAgg(prof) {
     while (cur !== undefined) { const kk = nm(byId.get(cur).callFrame); if (!seen.has(kk)) { seen.add(kk); tot.set(kk, (tot.get(kk) || 0) + us); } cur = parent.get(cur); }
   }
   const secs = all / 1e6; const f = (m) => [...m].sort((x, y) => y[1] - x[1]).slice(0, 70).map(([k, v]) => [k, +(v / 1000 / secs).toFixed(2)]);
-  return { secs: +secs.toFixed(1), unit: 'ms per second', self: f(self), total: f(tot) };
+  // long main-thread stretches (> 30 ms of consecutive samples outside idle / program): what ran in them (inclusive ms by
+  // function, top entries), so a single long job step names its own culprit
+  const long = []; let cur = null, t = prof.startTime;
+  for (let i = 0; i < prof.samples.length; i++) {
+    t += prof.timeDeltas[i] || 0; const nd = byId.get(prof.samples[i]); const fnm = nd.callFrame.functionName;
+    const busy = !(fnm === '(idle)' || fnm === '(program)' || fnm === '(root)');
+    if (busy) { if (!cur) cur = { t0: t, t1: t, n: new Map() }; cur.t1 = t; const seen = new Set(); let c = nd.id; while (c !== undefined) { const kk = nm(byId.get(c).callFrame); if (!seen.has(kk)) { seen.add(kk); cur.n.set(kk, (cur.n.get(kk) || 0) + (prof.timeDeltas[i] || 0)); } c = parent.get(c); } }
+    else if (cur) { if (cur.t1 - cur.t0 > 30000) long.push(cur); cur = null; }
+  }
+  const longOut = long.sort((x, y) => (y.t1 - y.t0) - (x.t1 - x.t0)).slice(0, 15).map((L) => ({ ms: Math.round((L.t1 - L.t0) / 1000), top: [...L.n].filter(([k]) => !/^\(|pump |frame2 /.test(k)).sort((x, y) => y[1] - x[1]).slice(0, 14).map(([k, v]) => [k, Math.round(v / 1000)]) }));
+  return { secs: +secs.toFixed(1), unit: 'ms per second', self: f(self), total: f(tot), long: longOut };
 }
 function heapAgg(prof, secs) {
   const agg = new Map(), via = new Map(); let tot = 0;
