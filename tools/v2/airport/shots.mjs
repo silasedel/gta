@@ -34,6 +34,7 @@ await withBrowser({ width: 1280, height: 720, maxSeconds: +(o.max || 1100) }, as
     const hx = T.x + (lx + 12) * c + (lz - 10) * s, hz = T.z - (lx + 12) * s + (lz - 10) * c, tx = T.x - 10 * c, tz = T.z + 10 * s;
     await camAt(hx, 4.5, hz, tx, 2.5, tz, 65); await shot('inside_hall', 3000); }
   if (want('tower') && DATA.tower) { const t = DATA.tower; await camAt(t.x + 120, 25, t.z + 120, t.x, 40, t.z, 55); await shot('tower', 4000); }
+  if (want('gate')) { const st = DATA.stands.find((x) => x.jb); if (st) { const hx = Math.sin(st.heading), hz = Math.cos(st.heading); await camAt(st.x - hx * 30 + hz * 25, 9, st.z - hz * 30 - hx * 25, st.x + hx * 5, 3, st.z + hz * 5, 50); await shot('gate', 3000); } }
   if (want('fence')) { const p = DATA.airside[5]; await camAt(p[0] + 15, 4, p[1] + 15, p[0], 1.5, p[1], 55); await shot('fence', 3000); }
   if (o.climb) {   // fence climb frames from the side
     const r = JSON.parse(await b.eval(`(() => { const A = game.airport.list.find((a) => a.id === '${AP}'), ring = A.ap.airside, k = Math.floor(ring.length / 3), n = A.parts.fence.nearest((ring[k][0] + ring[k + 1][0]) / 2, (ring[k][1] + ring[k + 1][1]) / 2, 30);

@@ -54,6 +54,7 @@ export function createTraffic(game, airports) {
   const navU = { uTime: { value: 0 }, uNight: { value: 0 }, uScale: { value: 600 } };
   const navMat = new THREE.ShaderMaterial({ vertexShader: NAV_VS, fragmentShader: NAV_FS, uniforms: navU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   const flights = [];
+  const TG = new THREE.Group(); TG.name = 'air-traffic'; game.shaderWarmWrap?.(TG); scene.add(TG);
   let fid = 100 + Math.floor(Math.random() * 600);
   const AP = airports.map((ap) => prepAirport(ap));
 
@@ -83,7 +84,7 @@ export function createTraffic(game, airports) {
     const md = [0, 0, 0, 0, 0, 0, 1, 0, 1, 0.5, 2, 0, 2, 0.15, 3, 0, 3, 0];
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); lg.setAttribute('col', new THREE.Float32BufferAttribute(col, 3)); lg.setAttribute('md', new THREE.Float32BufferAttribute(md, 2));
     const lp = new THREE.Points(lg, navMat); lp.frustumCulled = false; lp.renderOrder = 6; g.add(lp);
-    scene.add(g);
+    TG.add(g);   // the traffic group: new programs compile in parallel before an aircraft shows
     // kinematic hitboxes: fuselage + wings (cars, people and the camera bump into it)
     let body = null;
     try {
@@ -155,7 +156,7 @@ export function createTraffic(game, airports) {
   }
   function remove(f) {
     const i = flights.indexOf(f); if (i >= 0) flights.splice(i, 1);
-    scene.remove(f.ac.g); f.ac.lp.geometry.dispose();
+    f.ac.g.parent?.remove(f.ac.g); f.ac.lp.geometry.dispose();
     if (f.ac.body) try { f.ac.body.setEnabled(false); world.removeRigidBody(f.ac.body); } catch (e) { /* */ }
     if (f.st && f.st.busy === f) f.st.busy = null;
   }

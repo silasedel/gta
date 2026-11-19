@@ -16,7 +16,7 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
   const T = ap.terminal, big = T.len > 150, L = T.len, D = T.depth, H = T.h;
   const root = new THREE.Group(); root.name = 'airport-terminal-' + ap.id;
   const gy = ground(T.x, T.z);
-  root.position.set(T.x, gy, T.z); root.rotation.y = T.heading; group.add(root); root.updateMatrixWorld(true);
+  root.position.set(T.x, gy, T.z); root.rotation.y = T.heading; root.updateMatrixWorld(true);   // joins the group when complete (shader warm-up sees every mesh)
   const c = Math.cos(T.heading), s = Math.sin(T.heading);
   const toWorld = (lx, lz) => [T.x + lx * c + lz * s, T.z - lx * s + lz * c];
   const toLocal = (x, z) => { const dx = x - T.x, dz = z - T.z; return [dx * c - dz * s, dx * s + dz * c]; };
@@ -148,6 +148,7 @@ export async function buildTerminal(ap, { group, ground, world, RAPIER, game }) 
   for (const [x, y, z, hx, hy, hz] of boxes) world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z), body);
   const doorCols = doors.map((d) => world.createCollider(RAPIER.ColliderDesc.cuboid(DW / 2, 1.5, 0.08).setTranslation(d.x, FLOOR + 1.5, -D / 2), body));
   // ---- interior test: inside the shell (local box)
+  group.add(root);
   const inside = (x, z, pad = 0) => { const [lx, lz] = toLocal(x, z); return Math.abs(lx) < L / 2 + pad && Math.abs(lz) < D / 2 + pad; };
   return {
     root, gates: gateInfo, inside, toWorld, toLocal, drawBoard, floorY: gy + FLOOR, hallHalf, L, D,

@@ -50,7 +50,7 @@ export function buildFence(opts) {
   if (runs.length > 1) { const f = runs[0], l = runs[runs.length - 1], a = l[l.length - 1], b = f[0]; if (Math.hypot(a.x - b.x, a.z - b.z) < POST * 1.6) { runs[0] = l.concat(f); runs.pop(); } }
   else if (runs.length === 1) { const r = runs[0]; if (Math.hypot(r[0].x - r[r.length - 1].x, r[0].z - r[r.length - 1].z) < POST * 1.6) r.push(r[0]); }
 
-  const group = new THREE.Group(); group.name = 'airport-fence'; parent.add(group);
+  const group = new THREE.Group(); group.name = 'airport-fence';   // added to the parent when complete
   const steel = new THREE.MeshStandardMaterial({ color: 0x9ea4a8, metalness: 0.65, roughness: 0.42 });
   const fabricMat = new THREE.MeshStandardMaterial({ map: diamondTexture(), color: 0xd8dde0, metalness: 0.55, roughness: 0.45, transparent: true, alphaTest: 0.04, depthWrite: false, side: THREE.DoubleSide });
   const wireMat = new THREE.LineBasicMaterial({ color: 0x55595c });
@@ -118,6 +118,7 @@ export function buildFence(opts) {
         try { world.createCollider(RAPIER.ColliderDesc.cuboid(0.06, 1.3, sp.len / 2 + 0.05).setTranslation((sp.ax + sp.bx) / 2, sp.y + 1.3, (sp.az + sp.bz) / 2).setRotation({ x: qq.x, y: qq.y, z: qq.z, w: qq.w }), body); } catch (e) { /* */ } }
       if (i < spans.length) requestAnimationFrame(chunk); };
     chunk(); }
+  parent.add(group);
   // nearest fence span to a point: { x, z (closest point), nx, nz (outward), y, d, gate }
   function nearest(x, z, maxD = 3) {
     let best = null, bd = maxD;

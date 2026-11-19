@@ -43,9 +43,9 @@ export async function initV2(game) {
 
   async function build(A) {
     A.state = 'building'; const t0 = performance.now(), ap = A.ap;
-    const group = new THREE.Group(); group.name = 'airport-' + ap.id; scene.add(group); A.group = group;
+    const group = new THREE.Group(); group.name = 'airport-' + ap.id; game.shaderWarmWrap?.(group); scene.add(group); A.group = group;   // new programs compile in parallel before the parts show (no frame stall)
     const ctx = { renderer, ground, group, world, RAPIER, game, isFree };
-    const step = async (name, fn) => { try { A.parts[name] = await fn(); } catch (e) { console.warn('[airport] ' + ap.id + ' ' + name, e); } await frameWait(); };
+    const step = async (name, fn) => { const t1 = performance.now(); try { A.parts[name] = await fn(); } catch (e) { console.warn('[airport] ' + ap.id + ' ' + name, e); } (A.stats.stepMs ||= {})[name] = Math.round(performance.now() - t1); await frameWait(); };
     await step('pavement', () => buildPavement(ap, ctx));
     await step('markings', () => buildMarkings(ap, ctx));
     await step('lights', () => buildLights(ap, ctx));
@@ -132,8 +132,8 @@ export async function initV2(game) {
     if (game.cameraOverride === boarding.cam) game.cameraOverride = null;
     if (f) { f.passenger = false; f.gone = true; }
     // arrival: out of the terminal's landside doors at the destination
-    const dT = dest.ap.terminal, c = Math.cos(dT.heading), s = Math.sin(dT.heading), lz = -dT.depth / 2 - 8;
-    const ax = dT.x + lz * s, az = dT.z + lz * c;
+    const dT = dest.ap.terminal, c = Math.cos(dT.heading), s = Math.sin(dT.heading), lz = -dT.depth / 2 - 4, lx = 7.5;   // just outside the doors, between the canopy columns
+    const ax = dT.x + lx * c + lz * s, az = dT.z - lx * s + lz * c;
     try { game.teleport(ax, undefined, az, dT.heading + Math.PI); } catch (e) { /* */ }
     try { P.state.hidden = false; game.setPlayerHidden?.(false); } catch (e) { /* */ }
     try { game.timeOfDay = ((game.timeOfDay ?? 12) + 0.75) % 24; } catch (e) { /* */ }
