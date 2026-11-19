@@ -119,7 +119,10 @@ export function build(ctx) {
   // ---------- the gym and grill deck (E / 19 / F) ----------
   { const IRON = mat.metalPaint(), RUBM = mat.rubber(), PLY = mat.pbr('plywood', { rep: 1.0, grunge: true }), BLK = 0x1b1b1c, y0 = dY, DG = Fr.groups.detail;
     const aging = (k = 0.85) => (m) => { m.color?.multiplyScalar(k); m.roughness = Math.max(0.55, m.roughness ?? 0.6); };
-    const plate = (x, y, z, r2, ry = 0, rz = Math.PI / 2) => { const s = r2 / 0.225; glb(kit, 'plate_45.glb', { parent: DG, pos: [x, y, z], scale: [s, 1.2, s], mat: (m) => { m.color.setRGB(0.16, 0.16, 0.17); m.metalness = 0.6; m.roughness = 0.55; } }).then((g) => { if (g) g.rotation.set(0, ry, rz, 'YXZ'); }); };
+    // iron plates (the user's 45 lb plate, scaled per size): ONE instanced mesh per plate sub-mesh for every plate on the deck
+    const plateM = [], plate = (x, y, z, r2, ry = 0, rz = Math.PI / 2) => { const s = r2 / 0.225; plateM.push(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, rz, 'YXZ')), new THREE.Vector3(s, 1.2, s))); };
+    ctx.async.push(glb(kit, 'plate_45.glb', { mat: (m) => { m.color.setRGB(0.16, 0.16, 0.17); m.metalness = 0.6; m.roughness = 0.55; } }).then((g) => { if (!g || !plateM.length) return; g.updateMatrixWorld(true);
+      g.traverse((n) => { if (!n.isMesh) return; const im = new THREE.InstancedMesh(n.geometry, n.material, plateM.length); plateM.forEach((m, k) => im.setMatrixAt(k, new THREE.Matrix4().multiplyMatrices(m, n.matrixWorld))); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.raycast = () => {}; im.computeBoundingSphere(); im.name = 'r8plates'; DG.add(im); }); }));
     const bar = (x, y, z, len, ry, plates) => { D.cyl(STEEL, 0.014, 0.014, len, M(x, y, z, 0, ry, Math.PI / 2), { color: 0xb8b8b4, seg: 10 });
       const ux = Math.cos(ry), uz = -Math.sin(ry); for (const sd of [-1, 1]) for (let k = 0; k < plates; k++) plate(x + ux * sd * (len / 2 - 0.14 - k * 0.045), y, z + uz * sd * (len / 2 - 0.14 - k * 0.045), 0.225 - k * 0.03, ry); };
     // patio table (long side along the deck), umbrella, four chairs: the NW half (E: nearest the slider's end of the strip)

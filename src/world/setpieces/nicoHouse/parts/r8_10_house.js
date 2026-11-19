@@ -355,7 +355,7 @@ export function build(ctx) {
 
   // ================= anchors, interior visibility, camera occluder =================
   Fr.anchor('carport', 0, 0.06, -8.5, Math.PI); Fr.anchor('front', Bd.x0 - 6, 0, -7, -Math.PI / 2);
-  Fr.anchor('truckR4', -15.5, 0, 4.5, 2.55);
+  Fr.anchor('truckR4', -10.0, 0, 5.2, 2.9);   // G: nose in toward the front walkway corner
   Fr.anchor('spawnYard', -17, 0, 2.5, 2.37);   // in the drive, facing the front door
   const camS = new THREE.Vector3();
   ctx.lookIn = (cx, cy, cz) => { const [sx, sz] = StoH(...toS(cx, cz)); camS.set(sx, cy, sz); return (inR(P.body, sx, sz, 1.4) && cy > F - 1.4) || (inR({ x0: WK.x0, x1: P.lower.x1, z0: P.lower.z0, z1: WK.z1 }, sx, sz, 2.0) && cy > F - 1.6); };
