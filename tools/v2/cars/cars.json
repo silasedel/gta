@@ -2092,23 +2092,9 @@
      0.4,
      1.0
     ]
-   },
-   {
-    "front": true,
-    "dz": [
-     0.9,
-     2.3
-    ],
-    "ax": [
-     0.9,
-     1.5
-    ],
-    "y": [
-     2.5,
-     3.3
-    ],
-    "mode": "lampkill"
    }
-  ]
+  ],
+  "keepInner": true,
+  "keepDoublePaint": true
  }
 }
