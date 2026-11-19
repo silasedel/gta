@@ -24,9 +24,9 @@
  "B": {
   "ref": "r8/B_front_low_facing_N.webp",
   "eye": [
-   0.2,
+   0.6,
    0.9,
-   17.9
+   13.2
   ],
   "hdg": 0,
   "pitch": 9,
@@ -41,9 +41,9 @@
  "D": {
   "ref": "r8/D_driveway_head_height_facing_N.webp",
   "eye": [
-   3.18,
+   2.6,
    1.7,
-   17.3
+   13.8
   ],
   "hdg": 0,
   "pitch": 4,
