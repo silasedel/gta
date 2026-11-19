@@ -50,7 +50,11 @@
 | before (`bench-base`, 00:00) | 24-33 | 75 ms | 318 ms | 1417 ms | 4575 ms | 759 (70%) | 328 | 1086 |
 | after, loaded (`bench-fixE`, 04:00) | 37-51 | 99 ms | 350 ms | 450 ms | 726 ms | | 481 | 1006 |
 | after, quiet-ish (`bench-quiet2-high`, 05:00) | 6-7 | 33 ms | 102 ms | 135 ms | 275 ms | 1793 (51%) | 205 | 3490 |
-| gate (`bench-gate-high`, 05:45) | see below | | | | | | | |
+| **gate High** (`bench-gate-high`, 05:15, built app) | 5-7 | 40 ms | 108 ms | 142 ms | 206 ms | 1991 (60%) | 194 | 3304 |
+| gate Medium (`bench-gate-medium`, 05:20, built app) | 6-9 | 39 ms | 108 ms | 134 ms | 2856 ms (1 gap outside the frame) | 1886 (59%) | 213 | 3208 |
+
+Medium is no faster than High: the frame is CPU-bound (cpu p50 25-43 ms per segment) once High renders at ~1440p
+internal. Zero console errors in both runs.
 
 The before run had a heavier load than the quiet run, so the improvement is overstated in p50 but not in the spikes
 (the multi-second freezes are gone at any load). Where the time goes now (quiet, per frame): render submission ~14-16 ms
