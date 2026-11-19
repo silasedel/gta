@@ -14,6 +14,8 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { LOOK_OFF } from '../../world/env/fogChunks.js';
 
 const V = (v, out = new THREE.Vector3()) => (Array.isArray(v) ? out.set(v[0], v[1], v[2]) : v?.isVector3 ? out.copy(v) : typeof v === 'function' ? V(v(), out) : v ? out.set(v.x, v.y, v.z) : out.set(0, 0, 0));
+/** Vertical field of view (degrees) of a full-frame lens of `mm` focal length (24 mm sensor height). */
+export const mmToFov = (mm) => 2 * Math.atan(12 / mm) * 180 / Math.PI;
 export const EASE = {
   linear: (t) => t,
   inOut: (t) => t * t * (3 - 2 * t),
@@ -107,7 +109,7 @@ const CinemaShader = {
 // ---------------------------------------------------------------- DOM: letterbox + crossfade layer
 const CSS = `
 .pm-cine { position: fixed; inset: 0; pointer-events: none; z-index: 45; }
-.pm-cine-bar { position: absolute; left: 0; right: 0; height: var(--pm-bar, 11.5vh); background: #000; transform: scaleY(0); transition: transform 1.1s cubic-bezier(.2,.9,.25,1); }
+.pm-cine-bar { position: absolute; left: 0; right: 0; height: var(--pm-bar, 11.5vh); background: #000; transform: scaleY(0); transition: transform 1.4s cubic-bezier(.65,0,.35,1); }
 .pm-cine-bar.t { top: 0; transform-origin: 50% 0; } .pm-cine-bar.b { bottom: 0; transform-origin: 50% 100%; }
 .pm-cine.lb .pm-cine-bar { transform: scaleY(1); }
 .pm-cine-fade { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; object-fit: cover; }
@@ -215,18 +217,26 @@ export function getCinema(game) {
       if (o.lookOffset) tmpL.y += o.lookOffset;
       if (o.side) { const dx = tmpL.x - tmpP.x, dz = tmpL.z - tmpP.z, l = Math.hypot(dx, dz) || 1; tmpL.x -= (-dz / l) * o.side; tmpL.z -= (dx / l) * o.side; }
     }
-    // handheld breathing (very small)
+    // never under the ground (crane moves that end low, sloped streets): cheap height query, cinematics only
+    if (s.clampGround !== false) { const g = game.city?.groundHeightAt?.(tmpP.x, tmpP.z, tmpP.y); if (Number.isFinite(g) && tmpP.y < g + 0.35) tmpP.y = g + 0.35; }
+    // handheld: an operator's slow drift as small rotations (layered incommensurate sines = no visible loop), not a
+    // positional wobble; longer lenses magnify it the way a real one does, so it is scaled by the field of view
     shake.t += dt;
     const amp = (s.handheld ?? 0.6) * (game.uiSettings?.get?.('reducedMotion') ? 0 : 1);
-    tmpP.x += Math.sin(shake.t * 0.71) * 0.012 * amp; tmpP.y += Math.sin(shake.t * 0.53 + 1.3) * 0.01 * amp;
-    tmpL.x += Math.sin(shake.t * 0.37 + 0.4) * 0.03 * amp; tmpL.y += Math.sin(shake.t * 0.29 + 2) * 0.02 * amp;
-    cam.position.copy(tmpP); cam.up.set(0, 1, 0); cam.lookAt(tmpL);
-    if (s.roll) cam.rotateZ(s.roll);
     const fov = s.fov1 != null ? s.fov + (s.fov1 - s.fov) * k : (s.fov ?? 40);
+    cam.position.copy(tmpP); cam.up.set(0, 1, 0); cam.lookAt(tmpL);
+    if (amp > 0) {
+      const t = shake.t, lens = Math.min(1.4, Math.max(0.45, fov / 40)) * amp;
+      cam.rotateY((Math.sin(t * 0.61) * 0.6 + Math.sin(t * 1.43 + 1.1) * 0.28 + Math.sin(t * 3.1 + 0.3) * 0.08) * 0.0042 * lens);
+      cam.rotateX((Math.sin(t * 0.47 + 2.0) * 0.6 + Math.sin(t * 1.21 + 0.6) * 0.3 + Math.sin(t * 2.7 + 1.9) * 0.08) * 0.0032 * lens);
+      cam.rotateZ((Math.sin(t * 0.39 + 0.8) * 0.7 + Math.sin(t * 0.97 + 2.4) * 0.3) * 0.0022 * lens);
+    }
+    if (s.roll) cam.rotateZ(s.roll);
     if (Math.abs(cam.fov - fov) > 1e-3) { cam.fov = fov; cam.updateProjectionMatrix(); }
     // focus: a point (distance to it), a number, or the look target
     if (s.focus != null) state.focus = typeof s.focus === 'number' ? s.focus : V(s.focus, fp).distanceTo(tmpP);
     else state.focus = tmpL.distanceTo(tmpP);
+    if (s.focus1 != null) { const f1 = typeof s.focus1 === 'number' ? s.focus1 : V(s.focus1, fp).distanceTo(tmpP), r = EASE.inOut(Math.min(1, Math.max(0, (k - 0.35) / 0.4))); state.focus += (f1 - state.focus) * r; }
     // look track (z-fighting): the near plane follows the shot's focus distance. Wide skyline shots get up to 1.5 m
     // (depth precision far away is about 7x better than at 0.2), close-ups keep 0.2.
     if (!LOOK_OFF) {

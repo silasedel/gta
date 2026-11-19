@@ -7,10 +7,23 @@
 // place faces: its front, toward the street or the water) and lists shots in that frame's local space:
 //   pos / look: [right, up, forward] metres from the frame origin (forward = fx/fz); to: end of the move.
 import { esc } from '../core/dom.js';
-import { getCinema } from './cinema.js';
+import { getCinema, EASE, mmToFov } from './cinema.js';
 import BEATS from './beats.json';
 
 export const order = 960;
+
+// title card look for the arrival intros (scoped class; menu.css owns the base card): the name tracks in from wide
+// letter-spacing and blur, the rule draws, the tagline follows a beat later; out is a quick soft fade
+const CARD_CSS = `
+.pm-icard-v3 .pm-icard-in { left: 8vw; }
+.pm-icard-v3.show b { animation: pm-icard3-name 1.6s cubic-bezier(.16,1,.3,1) both; }
+.pm-icard-v3.show p { animation: pm-icard3-up 1s .55s cubic-bezier(.16,1,.3,1) both; }
+.pm-icard-v3.show .pm-icard-k { animation: pm-icard3-up .9s .1s cubic-bezier(.16,1,.3,1) both; }
+.pm-icard-v3.out .pm-icard-in { transition: opacity .7s ease, transform .9s ease, filter .7s ease; filter: blur(4px); }
+.pm-icard-v3 .pm-iskip { opacity: .55; }
+@keyframes pm-icard3-name { from { opacity: 0; letter-spacing: .22em; filter: blur(8px); } to { opacity: 1; letter-spacing: .01em; filter: none; } }
+@keyframes pm-icard3-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+`;
 
 const nearestStorefront = (game, re, near) => {
   const sf = game.city?.storefronts || []; let best = null, bd = Infinity;
@@ -20,14 +33,19 @@ const nearestStorefront = (game, re, near) => {
   return { x: best.fx ?? best.x, z: best.fz ?? best.z, fx: fx / l, fz: fz / l, name: best.name };
 };
 
-// standard grammar for a storefront arrival: establishing crane, low dolly, details, the door, a reverse on the street
+// standard grammar for a storefront arrival, shot like a film crew would: a crane down from above the roofline, a
+// low-angle push-in that puts the place on a third, a long-lens detail on the facade, an over-the-shoulder of the
+// player looking at the door, a reverse out of the doorway onto the street, and a slow lateral dolly-out to close.
+// pos / to / look / lookTo: [right, up, forward] in the place's frame. mm = focal length (full frame), aperture = DoF
+// strength (bigger = shallower), ease = move curve, len = rough seconds (rounded to the music's bar lines),
+// cut: 'dissolve' crossfades into the shot instead of a hard cut on the bar.
 const FRONT_SHOTS = [
-  { pos: [-26, 22, 34], to: [-14, 12, 26], look: [0, 4, 0], fov: 46, aperture: 0.4 },
-  { pos: [9, 0.6, 9], to: [5, 0.8, 7], look: [-4, 4.5, -1], fov: 34, aperture: 1.2 },
-  { pos: [-5, 4.5, 4], to: [-3, 4.2, 3.4], look: [1.5, 5.2, 0], fov: 28, aperture: 2.2 },
-  { pos: [3, 1.6, 6], to: [1.4, 1.6, 4], look: [0, 1.7, 0], fov: 36, aperture: 1.6 },
-  { pos: [0, 1.2, 1.4], to: [0, 1.3, 4.2], look: [0, 1.8, 14], fov: 40, aperture: 1.0 },
-  { pos: [14, 7, 18], to: [-14, 7, 18], look: [0, 3.5, 0], fov: 40, aperture: 0.6 },
+  { pos: [-24, 30, 38], to: [-15, 11, 27], look: [0, 9, 0], lookTo: [1, 5, 0], mm: 24, aperture: 0.35, ease: 'slider', len: 5.2 },
+  { pos: [8.5, 0.55, 12], to: [6.2, 0.6, 8.6], look: [-2.2, 5.5, 0], lookTo: [-2.0, 5.0, 0], mm: 32, aperture: 0.9, ease: 'slider', len: 4 },
+  { pos: [-7, 4.6, 6], to: [-4.2, 4.6, 6], look: [-1, 5.2, 0], lookTo: [1.8, 5.2, 0], mm: 85, aperture: 2.6, maxCoc: 14, ease: 'inOut', len: 3.6 },
+  { ots: true, mm: 50, aperture: 2.0, ease: 'slider', len: 4 },
+  { pos: [0.6, 1.4, 1.2], to: [0.4, 1.45, 3.6], look: [-0.6, 1.7, 16], mm: 28, aperture: 0.8, ease: 'out', len: 3.6 },
+  { pos: [15, 3.2, 19], to: [-11, 7.5, 23], look: [2, 4, 0], lookTo: [-1, 4.5, 0], mm: 35, aperture: 0.5, ease: 'slider', len: 5.2, cut: 'dissolve' },
 ];
 
 // rural places score their intro with the user's track (Epidemic Sound, licensed by the project owner for the web build):
@@ -50,12 +68,12 @@ export const PLACES = [
     frame: (game) => nearestStorefront(game, /marina|boat|yacht|ferry/i, { x: 1100, z: -300 }),
     radius: 30,
     shots: [
-      { pos: [-40, 26, 50], to: [-22, 14, 38], look: [0, 1, -10], fov: 44, aperture: 0.4 },
-      { pos: [8, 1.2, -6], to: [4, 1.0, -10], look: [-6, 1.5, -24], fov: 34, aperture: 1.4 },
-      { pos: [-3, 0.5, -14], to: [-1, 0.6, -16], look: [2, 1.2, -30], fov: 30, aperture: 2 },
-      { pos: [12, 5, 4], to: [10, 4, 0], look: [0, 2, -16], fov: 38, aperture: 0.8 },
-      { pos: [0, 1.4, 3], to: [0, 1.5, 0], look: [0, 1.6, -20], fov: 42, aperture: 0.9 },
-      { pos: [30, 10, -10], to: [24, 9, -30], look: [0, 1, -12], fov: 40, aperture: 0.6 },
+      { pos: [-40, 30, 50], to: [-22, 12, 38], look: [0, 4, -10], lookTo: [0, 1, -12], mm: 24, aperture: 0.35, ease: 'slider', len: 5.2 },
+      { pos: [8, 0.9, -6], to: [4.5, 0.8, -10], look: [-6, 2, -24], mm: 32, aperture: 1.2, ease: 'slider', len: 4 },
+      { pos: [-3, 0.7, -14], to: [-1, 0.7, -16], look: [2, 1.2, -30], mm: 85, aperture: 2.4, maxCoc: 14, ease: 'inOut', len: 3.6 },
+      { ots: true, otsLook: [0, 1.5, -18], mm: 45, aperture: 1.8, ease: 'slider', len: 4 },
+      { pos: [12, 5, 4], to: [10, 4, 0], look: [0, 2, -16], mm: 35, aperture: 0.8, ease: 'out', len: 3.6 },
+      { pos: [30, 8, -10], to: [24, 13, -30], look: [0, 1, -12], mm: 32, aperture: 0.5, ease: 'slider', len: 5.2, cut: 'dissolve' },
     ],
   },
   {
@@ -68,17 +86,18 @@ export const PLACES = [
     trigger: (game, p) => /downtown/i.test(game.city?.districtAt?.(p.x, p.z) || ''),
     frame: (game) => ({ x: 407, z: -110, fx: 1, fz: 0 }), // stage 1 map v3: Downtown
     shots: [
-      { pos: [-160, 180, 420], to: [-60, 150, 330], look: [0, 60, 0], fov: 40, aperture: 0.2 },
-      { pos: [40, 2, 120], to: [30, 2, 100], look: [0, 90, -20], fov: 30, aperture: 0.3 },
-      { pos: [-120, 70, 60], to: [-110, 72, 20], look: [0, 80, -40], fov: 34, aperture: 0.3 },
-      { pos: [0, 1.6, 30], to: [0, 1.6, 20], look: [0, 30, -60], fov: 46, aperture: 0.4 },
-      { pos: [200, 40, 0], to: [200, 46, -80], look: [0, 70, 0], fov: 32, aperture: 0.2 },
-      { pos: [60, 260, 260], to: [20, 240, 200], look: [0, 40, 0], fov: 44, aperture: 0.2 },
+      { pos: [-160, 190, 420], to: [-70, 140, 330], look: [0, 70, 0], lookTo: [0, 55, 0], mm: 28, aperture: 0.2, ease: 'slider', len: 5.6 },
+      { pos: [40, 1.2, 120], to: [32, 1.4, 100], look: [0, 90, -20], lookTo: [0, 110, -20], mm: 24, aperture: 0.3, ease: 'slider', len: 4.4 },
+      { pos: [-120, 70, 60], to: [-108, 74, 22], look: [0, 80, -40], mm: 70, aperture: 0.3, ease: 'inOut', len: 4 },
+      { ots: true, otsLook: [0, 40, -60], mm: 35, aperture: 1.2, ease: 'slider', len: 4 },
+      { pos: [200, 40, 0], to: [200, 48, -80], look: [0, 70, 0], mm: 50, aperture: 0.2, ease: 'slider', len: 4.4 },
+      { pos: [60, 260, 260], to: [20, 230, 200], look: [0, 40, 0], mm: 28, aperture: 0.2, ease: 'slider', len: 5.6, cut: 'dissolve' },
     ],
   },
 ];
 
 export async function initV2(game) {
+  if (!document.getElementById('pm-icard3-css')) { const st = document.createElement('style'); st.id = 'pm-icard3-css'; st.textContent = CARD_CSS; document.head.appendChild(st); }
   const cin = getCinema(game), P = game.player;
   let seen = new Set();
   try { const s = JSON.parse(localStorage.getItem('portsolana.v2.intros') || '[]'); seen = new Set(s); } catch (e) { /* */ }
@@ -115,6 +134,51 @@ export async function initV2(game) {
     return { bar, beat, nextBarIn, bpm: b.bpm };
   }
 
+  // ---- clip safety: a camera keyframe never sits inside or behind a wall, under the ground, or inside the player.
+  // Static colliders (buildings, walls, terrain) exist around the player, which is where an arrival intro plays.
+  const STATIC = () => { const QF = game.RAPIER?.QueryFilterFlags; return QF ? QF.EXCLUDE_DYNAMIC | QF.EXCLUDE_KINEMATIC | QF.EXCLUDE_SENSORS : undefined; };
+  function solid(x, y, z) { const R = game.RAPIER, Wd = game.world; if (!R || !Wd) return false; try { const h = Wd.castRay(new R.Ray({ x, y: y + 40, z }, { x: 0, y: -1, z: 0 }), 40, true, STATIC()); if (!h) return false; const t = h.timeOfImpact ?? h.toi; if (t >= 39.95) return false; const up = Wd.castRay(new R.Ray({ x, y, z }, { x: 0, y: 1, z: 0 }), 0.01, true, STATIC()); return !!up && (up.timeOfImpact ?? up.toi) <= 0.001; } catch (e) { return false; } }
+  function safe(pos, look, avoidPlayer = true) {
+    const R = game.RAPIER, Wd = game.world; const p = pos.slice();
+    const g = game.city?.groundHeightAt?.(p[0], p[2], p[1]); if (Number.isFinite(g) && p[1] < g + 0.4) p[1] = g + 0.4;
+    if (avoidPlayer) { const pp = P.position, dx = p[0] - pp.x, dz = p[2] - pp.z, d = Math.hypot(dx, dz); if (d < 1.1 && p[1] < pp.y + 1.6) { const k = 1.1 / (d || 1); p[0] = pp.x + (d ? dx : 1) * k; p[2] = pp.z + (d ? dz : 0) * k; } }
+    if (!R || !Wd) return p;
+    try {
+      // camera inside a building: lift it out (2 m steps) rather than pushing sideways through more geometry
+      for (let i = 0; i < 12 && solid(p[0], p[1], p[2]); i++) p[1] += 2;
+      // something between the subject and the lens: bring the camera in front of it, toward the subject
+      const dx = p[0] - look[0], dy = p[1] - look[1], dz = p[2] - look[2], L = Math.hypot(dx, dy, dz);
+      if (L > 1.5 && !solid(look[0], look[1], look[2])) {
+        const h = Wd.castRay(new R.Ray({ x: look[0], y: look[1], z: look[2] }, { x: dx / L, y: dy / L, z: dz / L }), L, true, STATIC());
+        const t = h && (h.timeOfImpact ?? h.toi);
+        if (h && t < L - 0.05) { const d = Math.max(1.2, t - 0.5); p[0] = look[0] + dx / L * d; p[1] = look[1] + dy / L * d; p[2] = look[2] + dz / L * d; }
+      }
+    } catch (e) { /* best effort */ }
+    return p;
+  }
+
+  // shot -> world-space camera move (frame-local shots, or an over-the-shoulder built on the player)
+  function resolveShot(s, f, W) {
+    const fov = s.mm ? mmToFov(s.mm) : (s.fov ?? 40);
+    if (s.ots) {
+      const pp = P.position, gy = game.city?.groundHeightAt?.(pp.x, pp.z, pp.y); const foot = Number.isFinite(gy) && Math.abs(gy - pp.y) < 2.5 ? gy : pp.y - 0.9;
+      const tgt = W(s.otsLook || [0, 1.8, 0]);
+      let dx = tgt[0] - pp.x, dz = tgt[2] - pp.z; const l = Math.hypot(dx, dz);
+      if (l < 2 || l > 260) return null;                                // player is not somewhere this shot reads; skip it
+      dx /= l; dz /= l; const rx = dz, rz = -dx;                         // camera-right of the line player -> subject
+      const at = (back, side, up) => [pp.x - dx * back + rx * side, foot + up, pp.z - dz * back + rz * side];
+      const from = at(1.45, 0.55, 1.78), to = at(1.05, 0.5, 1.74);
+      return { fov, from: { pos: from, look: tgt }, to: { pos: to, look: tgt }, focus: tgt, ots: true };
+    }
+    const look = W(s.look), lookTo = W(s.lookTo || s.look);
+    return { fov, from: { pos: safe(W(s.pos), look), look }, to: { pos: safe(W(s.to || s.pos), lookTo), look: lookTo } };
+  }
+
+  // the music: soft under the establishing shot, swells with the title card, settles out under the handoff
+  let swell = null;
+  function gainTo(v, sec) { const mm = game.menuMusic; if (!mm) return; const g0 = mm.gain ?? v, t0 = performance.now(); swell = { g0, v, t0, sec }; }
+  function swellTick() { const mm = game.menuMusic; if (!mm || !swell) return; const k = Math.min(1, (performance.now() - swell.t0) / 1000 / Math.max(0.01, swell.sec)); mm.gain = swell.g0 + (swell.v - swell.g0) * EASE.inOut(k); if (k >= 1) swell = null; }
+
   async function play(pl, force) {
     const f = frameOf(pl); if (!f || playing) return;
     playing = pl.id; seen.add(pl.id); persist();
@@ -123,38 +187,62 @@ export async function initV2(game) {
     const leaveUI = game.bindings?.pushMode?.('ui');
     let skipped = false;
     const offNav = game.bindings?.on?.('nav', (d) => { if (d.dir === 'back' || d.dir === 'accept' || d.dir === 'start') { skipped = true; d.handled = true; } });
+    const sleep = (sec) => new Promise((r) => { const t0 = performance.now(); const tick = () => { swellTick(); if (skipped || (performance.now() - t0) / 1000 >= sec) r(); else setTimeout(tick, 30); }; tick(); });
     const prevMusic = game.menuMusic;
-    game.menuMusic = { station: pl.music || pl.station, gain: 0.95, duck: 0.45, duckLP: 6000 }; musicT0 = performance.now();
+    game.menuMusic = { station: pl.music || pl.station, gain: 0.5, duck: 0.4, duckLP: 5200 }; musicT0 = performance.now();
     document.body.classList.add('pm-intro');
     // title card
-    const card = document.createElement('div'); card.className = 'pm-icard';
+    const card = document.createElement('div'); card.className = 'pm-icard pm-icard-v3';
     card.innerHTML = `<div class="pm-icard-in"><span class="pm-icard-k">${esc(game.city?.districtAt?.(f.x, f.z) || 'Southline')}</span><b>${esc(pl.name.toUpperCase())}</b><i></i><p>${esc(pl.tagline)}</p></div><div class="pm-iskip">${game.bindings?.codeGlyph?.('Enter') || ''} Skip</div>`;
     document.body.appendChild(card);
     const W = (v) => [f.x + v[0] * f.fz + v[2] * f.fx, (f.y || 0) + v[1], f.z - v[0] * f.fx + v[2] * f.fz];
-    cin.begin({ letterbox: true, dof: true, flare: true, grain: 1.5, vignette: 0.14, owner: 'intro' });
-    await cin.black(true, 350);
-    { const s0 = pl.shots[0]; cin.shot({ dur: 9, fov: s0.fov, from: { pos: W(s0.pos), look: W(s0.look) } }); await cin.waitStream(f.x, f.z, 3500, 200); }
-    const clock = barClock(pl.music || pl.station, pl.music ? pl.beats : null);
-    const barsPerShot = clock.bar < 1.7 ? 2 : 1;
+    cin.begin({ letterbox: false, dof: true, flare: true, grain: 1.5, vignette: 0.16, owner: 'intro' });
+    await cin.black(true, 420);
+    // pre-roll under black: visit every shot's camera pose so the streamer (it follows the camera) builds that view,
+    // shaders compile and LODs settle; nothing pops in once a shot is on screen. Capped so it never stalls long.
+    const plan = [];
     try {
-      for (let i = 0; i < pl.shots.length && !skipped; i++) {
-        const s = pl.shots[i];
-        const wait = clock.nextBarIn(clock.bar * barsPerShot * 0.85);
-        cin.shot({ dur: wait + 0.4, fov: s.fov, aperture: s.aperture, maxCoc: 12, handheld: 0.5, from: { pos: W(s.pos), look: W(s.look) }, to: { pos: W(s.to || s.pos), look: W(s.lookTo || s.look) }, ease: (t) => t });
-        if (i === 0) { cin.black(false, 280); }
-        if (i === 1) card.classList.add('show');
-        if (i === pl.shots.length - 2) card.classList.add('out');
-        const t0 = performance.now();
-        while (!skipped && (performance.now() - t0) / 1000 < wait) await new Promise((r) => setTimeout(r, 30));
+      await cin.waitStream(f.x, f.z, 3000, 200);
+      const tEnd = performance.now() + 5200;
+      for (const s of pl.shots) {
+        const r = resolveShot(s, f, W); if (!r) continue; plan.push({ s, r });
+        for (const end of [r.from, r.to]) {
+          if (skipped || performance.now() > tEnd) break;
+          cin.shot({ dur: 1, fov: r.fov, handheld: 0, from: end });
+          await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+          await cin.waitStream(end.pos[0], end.pos[2], Math.max(0, Math.min(900, tEnd - performance.now())), 90);
+        }
+      }
+    } catch (e) { console.error('[intros] pre-roll', e); }
+    const clock = barClock(pl.music || pl.station, pl.music ? pl.beats : null);
+    const shotSpec = (i) => { const { s, r } = plan[i]; return { fov: r.fov, aperture: s.aperture, maxCoc: s.maxCoc ?? 12, handheld: r.ots ? 0.9 : 0.55, focus: r.focus, from: r.from, to: r.to, ease: EASE[s.ease] || EASE.slider }; };
+    try {
+      if (plan.length && !skipped) {
+        cin.shot({ ...shotSpec(0), dur: 30 }); await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+      }
+      cin.letterbox(true);
+      for (let i = 0; i < plan.length && !skipped; i++) {
+        const { s } = plan[i];
+        const bars = Math.max(1, Math.round((s.len || 4) / clock.bar));
+        const wait = clock.nextBarIn(clock.bar * bars * 0.8);
+        if (i > 0 && s.cut === 'dissolve') await cin.crossfade(Math.min(1400, wait * 450));
+        // the move runs a little past the cut so the camera is still travelling when the next shot lands (cut on motion)
+        cin.shot({ ...shotSpec(i), dur: wait + 0.6 });
+        if (i === 0) { cin.black(false, 900); gainTo(0.78, 2.5); }
+        if (i === 1) { card.classList.add('show'); gainTo(1.0, 1.6); }
+        if (i === plan.length - 2) card.classList.add('out');
+        if (i === plan.length - 1) gainTo(0.7, wait);
+        await sleep(wait);
       }
     } catch (e) { console.error('[intros]', e); }
     // hand back: settle the gameplay camera behind the player and blend into it
     card.classList.add('out');
-    if (skipped) await cin.black(true, 220);
+    if (skipped) { cin.cancelFade(); await cin.black(true, 220); }
     game.cameraYaw = P.heading + Math.PI;
-    cin.handoff(skipped ? 10 : 900);
+    cin.handoff(skipped ? 10 : 1300);
     cin.end();
-    if (skipped) cin.black(false, 380);
+    if (skipped) cin.black(false, 380); else cin.black(false, 10);
+    swell = null;
     game.menuMusic = prevMusic || null;
     offNav?.(); leaveUI?.();
     P.script = wasScript && !wasScript.title && !wasScript.devTeleport ? wasScript : null; // never restore a dev-teleport hold (it was already released; restoring it pinned the player for good, QA)
