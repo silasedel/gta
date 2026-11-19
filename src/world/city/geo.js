@@ -4,11 +4,35 @@ import { buildPalm } from '../vegetation/palms.js';
 
 const _c = new THREE.Color();
 
+// perf (Nov 19): staging in growable Float64Arrays instead of JS arrays (the pushes promoted ~70 MB/s of large arrays into
+// V8's old space while driving: full GCs). Same values (doubles until build), same output. b.p / b.n / b.uv / b.c are exact-
+// length typed views (index read / write, .length, copy into Float32Array all work); code that assigns its own arrays to them
+// switches that batch to plain arrays. ?batchf32=0 = the JS-array path.
+const BATCH_F64 = !(typeof location !== 'undefined' && /[?&]batchf32=0\b/.test(location.search));
+const STAGE = ['p', 'n', 'uv', 'c'], STRIDE = { p: 3, n: 3, uv: 2, c: 3 };
 // Accumulates non-indexed triangles with position/normal/uv/color -> one Mesh.
 export class Batch {
-  constructor() { this.p = []; this.n = []; this.uv = []; this.c = []; }
+  constructor() {
+    if (BATCH_F64) { this._sv = 0; this._cap = 0; this._st = null; this._vw = null; this._vwN = -1; }
+    else { this.p = []; this.n = []; this.uv = []; this.c = []; }
+  }
+  _grow(need) {
+    const cap = Math.max(256, this._cap * 2, need); const st = {};
+    for (const k of STAGE) { const a = new Float64Array(cap * STRIDE[k]); if (this._st) a.set(this._st[k].subarray(0, this._sv * STRIDE[k])); st[k] = a; }
+    this._st = st; this._cap = cap; this._vwN = -1;
+  }
   vert(x, y, z, nx, ny, nz, u, v, col) {
-    this.p.push(x, y, z); this.n.push(nx, ny, nz); this.uv.push(u, v); this.c.push(col.r, col.g, col.b);
+    if (this._plain || !BATCH_F64) { this.p.push(x, y, z); this.n.push(nx, ny, nz); this.uv.push(u, v); this.c.push(col.r, col.g, col.b); return; }
+    this.vertRaw(x, y, z, nx, ny, nz, u, v, col.r, col.g, col.b);
+  }
+  // one vertex from plain numbers (for code that used to push into b.p / b.n / b.uv / b.c directly)
+  vertRaw(x, y, z, nx, ny, nz, u, v, r, g, b) {
+    if (this._plain || !BATCH_F64) { this.p.push(x, y, z); this.n.push(nx, ny, nz); this.uv.push(u, v); this.c.push(r, g, b); return; }
+    const i = this._sv; if (i >= this._cap) this._grow(i + 1);
+    const S = this._st, i3 = i * 3, i2 = i * 2;
+    S.p[i3] = x; S.p[i3 + 1] = y; S.p[i3 + 2] = z; S.n[i3] = nx; S.n[i3 + 1] = ny; S.n[i3 + 2] = nz;
+    S.uv[i2] = u; S.uv[i2 + 1] = v; S.c[i3] = r; S.c[i3 + 1] = g; S.c[i3 + 2] = b;
+    this._sv = i + 1;
   }
   // add any BufferGeometry (cloned + transformed). uvScale optional [su, sv]
   addGeometry(geom, matrix, color = 0xffffff, uvScale = null, uvOff = null) {
@@ -53,6 +77,10 @@ export class Batch {
     this.vert(x1, y, z0, 0, 1, 0, x1 * s, z0 * s, col);
   }
   get empty() { return this.p.length === 0; }
+  _view(k) {
+    if (this._vwN !== this._sv) { const n = this._sv, st = this._st; this._vw = st ? { p: st.p.subarray(0, n * 3), n: st.n.subarray(0, n * 3), uv: st.uv.subarray(0, n * 2), c: st.c.subarray(0, n * 3) } : { p: EMPTY, n: EMPTY, uv: EMPTY, c: EMPTY }; this._vwN = n; }
+    return this._vw[k];
+  }
   build(material, { cast = true, receive = true } = {}) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
@@ -64,6 +92,18 @@ export class Batch {
     m.castShadow = cast; m.receiveShadow = receive; m.matrixAutoUpdate = false; m.updateMatrix();
     return m;
   }
+}
+
+const EMPTY = new Float64Array(0);
+if (BATCH_F64) for (const k of STAGE) {
+  Object.defineProperty(Batch.prototype, k, {
+    configurable: true,
+    get() { return this._plain ? this['_a' + k] : this._view(k); },
+    set(v) { // someone assigns its own array: this batch keeps plain arrays from now on (current data copied over)
+      if (!this._plain) { this._plain = true; for (const q of STAGE) this['_a' + q] = Array.from(this._view(q)); }
+      this['_a' + k] = v;
+    },
+  });
 }
 
 // Closed polygon [[x,z],...] oriented so (-dz,dx) of each edge points outward (negative signed area).

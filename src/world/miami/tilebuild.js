@@ -3574,7 +3574,8 @@ export function createTileBuilder(ctx) {
   function elevLodInto(b, tx, tz) {
     const T = provider.tileSize || 200, g = safeCall(() => elevated.buildTileLod(tx, tz, { minX: tx * T, minZ: tz * T, maxX: (tx + 1) * T, maxZ: (tz + 1) * T }), null); if (!g) return 0;
     const P = g.attributes.position.array, N = g.attributes.normal.array, C = g.attributes.color.array, I = g.index ? g.index.array : null, n = I ? I.length : P.length / 3;
-    for (let k = 0; k < n; k++) { const i = I ? I[k] : k; b.p.push(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]); b.n.push(N[i * 3], N[i * 3 + 1], N[i * 3 + 2]); b.uv.push(0, 0); b.c.push(C[i * 3], C[i * 3 + 1], C[i * 3 + 2]); }
+    if (!b.vertRaw) { for (let k = 0; k < n; k++) { const i = I ? I[k] : k; b.p.push(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]); b.n.push(N[i * 3], N[i * 3 + 1], N[i * 3 + 2]); b.uv.push(0, 0); b.c.push(C[i * 3], C[i * 3 + 1], C[i * 3 + 2]); } g.dispose(); return n; }
+    for (let k = 0; k < n; k++) { const i = I ? I[k] : k; b.vertRaw(P[i * 3], P[i * 3 + 1], P[i * 3 + 2], N[i * 3], N[i * 3 + 1], N[i * 3 + 2], 0, 0, C[i * 3], C[i * 3 + 1], C[i * 3 + 2]); }
     g.dispose(); return n;
   }
   function* buildMid(ca, cb, CS) {
