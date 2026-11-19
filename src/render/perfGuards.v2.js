@@ -379,8 +379,13 @@ function evenPacing(game) {
   let ids = 0;
   let scheduled = false;
   let lastFire = 0;
+  // perf (Nov 19): the boot-time probe ran during loading (slow frames) and could read a 120 Hz panel as 60 Hz; the refresh is
+  // re-estimated all the time from the shortest native tick intervals (any 8.3 ms pair means a 120 Hz display)
+  let lastNative = 0, hzWin = [], hzN = 0;
   function pump(now) {
     scheduled = false;
+    if (lastNative) { const d = now - lastNative; if (d > 2 && d < 60) { hzWin.push(d); if (hzWin.length >= 90) { hzWin.sort((x, y) => x - y); const lo = hzWin[Math.floor(hzWin.length * 0.1)]; const hz = Math.round(1000 / lo); if (hz >= 90) { pace.hz = hz; hzN = 0; } else if (++hzN >= 8) { pace.hz = hz; hzN = 0; } hzWin = []; } } }
+    lastNative = now;
     // on a 120 Hz panel ticks come every 8.3 ms: fire every second tick (present at 16.7 ms)
     // the setting can change (and settings load after this module): follow it on every tick
     pace.on = pace.hz >= 90 && game.settings?.fpsLimit !== 0 && game.settings?.fpsLimit !== 120 && game.settings?.evenPacing !== false;
