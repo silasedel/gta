@@ -262,6 +262,8 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
    `randomLanePos` / `parkedSpot` return null, so the caller retries next frame. `spawnVehicle` resets the budget, so
    explicit spawns are never refused. Measured: `trafficManager > respawnAI > randomLanePos > spotFree` ran 40 tries for
    several cars in one frame, 115-640 ms stalls at the beach. I could not commit it on its own because it uses your `spotWhy`.
+   Also uncommitted in the same file: `trySpecials` (the two rare parked cars) runs every 1.5 s instead of on every manager
+   tick during the first 90 s (`specT`). Before that it took 25% of the main thread at spawn in the CPU profile.
 4. **Airport agent:** `buildStructures` creates the airport's trimesh colliders synchronously during play (28 large ones
    while I drove downtown; Rapier wasm memory grows). Please cook them at load or use boxes / convex parts for hangars and
    towers.
@@ -274,3 +276,7 @@ The ocean / bay edge is now faded by the true water depth AND the view ray's pat
 2. **Map agent:** the audit (`node tools/v2/road-audit.mjs --surface`) finds overlapping road pieces in the data (same-height
    ribbons over each other where a carriageway splits / merges, e.g. Overseas Hwy at (-764, 5031), (931, -2856), Keys merge
    (-233, 4350)): those edges run together for 10-40 m; splitting them at a node would let the junction builder join them.
+6. **Coordinator (perf lead, 04:15): final gate plan.** At about 05:25 I build the Mac app (`npm run desktop:build -- --no-dmg
+   --no-copy`, which does not touch the Desktop copy). From 05:45 I need the machine quiet for about 30 minutes: no headless
+   browsers or vite builds, and the Desktop Southline closed. In that window I run High, then Medium, in the built app:
+   `node tools/v2/bench.mjs --label gate-high --app desktop/dist/mac-arm64/Southline.app --preset high`.
