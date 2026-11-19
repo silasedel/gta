@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { note } from './prof.js';
 import { css, inkOn } from './util.js';
 
+const NODEFER = typeof location !== 'undefined' && /[?&]nodefer=1\b/.test(location.search); // r7: ?nodefer=1 = cells drawn at once (A/B)
 export class Atlas {
   constructor(size = 2048, pad = 4) { this.size = size; this.pad = pad; this.pages = []; this.cells = new Map(); }
   _page() { const c = document.createElement('canvas'); c.width = c.height = this.size; const g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, this.size, this.size);
@@ -19,14 +20,20 @@ export class Atlas {
     if (p.x + w + 2 * P > S) { p.x = 0; p.y += p.rowH; p.rowH = 0; }
     if (p.y + h + 2 * P > S) p = this._page();
     const x = p.x + P, y = p.y + P; p.x += w + 2 * P; p.rowH = Math.max(p.rowH, h + 2 * P);
-    const tc = performance.now(), g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); try { draw(g, w, h); } catch (e) { console.warn('[interiors] atlas draw failed', key, e); g.fillStyle = '#c33'; g.fillRect(0, 0, w, h); } g.restore();
-    // bleed the border outwards so mipmaps do not pull in the neighbors
-    g.drawImage(p.c, x, y, w, 1, x, y - P, w, P); g.drawImage(p.c, x, y + h - 1, w, 1, x, y + h, w, P); g.drawImage(p.c, x, y - P, 1, h + 2 * P, x - P, y - P, P, h + 2 * P); g.drawImage(p.c, x + w - 1, y - P, 1, h + 2 * P, x + w, y - P, P, h + 2 * P);
-    p.dirty = true; p.tex.needsUpdate = true; note('cell:' + String(key).slice(0, 24), performance.now() - tc);
-    cl = { tex: p.tex, page: this.pages.indexOf(p), rect: [x / S, (y + h) / S, (x + w) / S, y / S], px: [x, y, w, h], w, h, canvas: p.c }; this.cells.set(key, cl); return cl;
+    // r7 (zero-hitch entry): with a defer queue the cell is reserved now (rect known, geometry can use it) and drawn later by
+    // flush(ms), a few ms per frame; the engine flushes the queues before an interior is shown
+    const job = () => {
+      const tc = performance.now(), g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); try { draw(g, w, h); } catch (e) { console.warn('[interiors] atlas draw failed', key, e); g.fillStyle = '#c33'; g.fillRect(0, 0, w, h); } g.restore();
+      g.drawImage(p.c, x, y, w, 1, x, y - P, w, P); g.drawImage(p.c, x, y + h - 1, w, 1, x, y + h, w, P); g.drawImage(p.c, x, y - P, 1, h + 2 * P, x - P, y - P, P, h + 2 * P); g.drawImage(p.c, x + w - 1, y - P, 1, h + 2 * P, x + w, y - P, P, h + 2 * P);
+      p.dirty = true; note('cell:' + String(key).slice(0, 24), performance.now() - tc);
+    };
+    let dj = null; if (this.deferQ && !this.direct && !NODEFER) this.deferQ.push(dj = { job, p, cl: null }); else { job(); p.tex.needsUpdate = true; }
+    cl = { tex: p.tex, page: this.pages.indexOf(p), rect: [x / S, (y + h) / S, (x + w) / S, y / S], px: [x, y, w, h], w, h, canvas: p.c }; if (dj) dj.cl = cl; this.cells.set(key, cl); return cl;
   }
+  // draw deferred cells for up to ms milliseconds; -> cells still waiting
+  flush(ms = 2) { const q = this.deferQ; if (!q || !q.length) return 0; const t0 = performance.now(), touched = new Set(); while (q.length && performance.now() - t0 < ms) { const j = q.shift(); try { j.job(); } catch (e) { /* drawn as an error tile inside */ } touched.add(j.p); } for (const p of touched) p.tex.needsUpdate = true; return q.length; }
   // redraw an existing cell (screens, clocks, running totals)
-  redraw(cl, draw) { const p = this.pages[cl.page], [x, y, w, h] = cl.px, g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); draw(g, w, h); g.restore(); p.tex.needsUpdate = true; }
+  redraw(cl, draw) { const q = this.deferQ; if (q?.length) { const i = q.findIndex((j) => j.cl === cl); if (i >= 0) q.splice(i, 1); } /* the redraw replaces its pending first draw */ const p = this.pages[cl.page], [x, y, w, h] = cl.px, g = p.g; g.save(); g.translate(x, y); g.beginPath(); g.rect(0, 0, w, h); g.clip(); g.clearRect(0, 0, w, h); draw(g, w, h); g.restore(); p.tex.needsUpdate = true; }
   dispose() { for (const p of this.pages) p.tex.dispose(); this.pages.length = 0; this.cells.clear(); }
   bytes() { return this.pages.length * this.size * this.size * 4 * 1.33; }
 }

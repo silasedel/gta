@@ -25,7 +25,7 @@ export const MODEL_IDS = { dry: ['mp-cereal', 'mp-granola', 'mp-tea', 'mp-coffee
 
 let started = null;
 export function loadModelProducts() {
-  if (started) return started; const gl = new GLTFLoader();
+  if (started) return started; if (/[?&]nomp=1\b/.test(globalThis.location?.search || '')) return (started = Promise.resolve()); const gl = new GLTFLoader();
   const one = async (url, list) => { let scene; try { scene = (await gl.loadAsync(url)).scene; } catch (e) { console.warn('[interiors] model product missing', url, e?.message); return; } scene.updateMatrixWorld(true);
     for (const p of list) { let mesh = null; scene.traverse((o) => { if (o.isMesh && !mesh && (list.length === 1 || o.name === p.id || o.parent?.name === p.id)) mesh = o; }); if (!mesh) continue; try { make(p, mesh); } catch (e) { console.warn('[interiors] model product', p.id, e); } } };
   started = Promise.all([...SINGLE.map((p) => one(U(p.id + '.glb'), [p])), one(U('mp-chips.glb'), CHIPS)]);

@@ -14,7 +14,7 @@ const NOTICES = {
 };
 
 export class Prints {
-  constructor(M, store) { this.M = M; this.store = store; this.local = new Atlas(1024, 3); this.R = rng(store.seed, 'prints'); }
+  constructor(M, store) { this.M = M; this.store = store; this.local = new Atlas(1024, 3); this.local.deferQ = []; /* r7: drawn by engine flushes, not inside build steps */ this.R = rng(store.seed, 'prints'); }
   // generic: draw(g, w, h). o: { global, lit (emissive strength), alpha, decal, ch, rough }
   make(key, w, h, draw, o = {}) { const at = o.global ? GLOBAL : this.local, cl = at.cell(key, w, h, draw); return { cell: cl, rect: cl.rect, mat: this.M.page(cl.tex, { lit: o.lit, alpha: o.alpha, decal: o.decal, ch: o.ch, rough: o.rough }), w, h, atlas: at }; }
   get mat() { return this.M.page((this.local.pages[0] || this.local._page()).tex, {}); }

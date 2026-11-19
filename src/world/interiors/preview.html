@@ -51,7 +51,7 @@ function loop() {
   if (q.get('pt') !== 'free') player.position.set(camera.position.x, 0, camera.position.z);
   engine.update(dt); world.step(); just.clear(); renderer.info.autoReset = false; renderer.info.reset(); if (composer) composer.render(); else renderer.render(scene, camera); window.drawCalls = renderer.info.render.calls; window.tris = renderer.info.render.triangles;
   const st = engine.stats(), built = engine.list.filter((s) => s.built);
-  window.ready = built.length > 0 && built.every((s) => s.built.ready) && !engine.pending() && engine.list.filter((s) => s.dist < 80).every((s) => s.built || s.failed);
+  window.ready = built.length > 0 && built.every((s) => s.built.ready && s.built.visible) && !engine.pending() && engine.list.filter((s) => s.dist < 80).every((s) => s.built || s.failed);
   info.textContent = `calls ${renderer.info.render.calls} tris ${(renderer.info.render.triangles / 1000).toFixed(0)}k geo ${renderer.info.memory.geometries} tex ${renderer.info.memory.textures} frameMax ${window.frameMax.toFixed(0)}ms upd ${st.updMaxMs} slice ${st.buildSliceMaxMs}\n` + built.map((s) => `${s.name} ${s.W.toFixed(1)}x${s.D.toFixed(1)} v${s.profile.variant} verts ${s.built.verts} lights ${s.built.lights} items ${s.built.items.slots.length} build ${s.built.prof.total}ms bake ${s.built.prof.bake || '…'}ms`).join('\n') + `\n${window.helpText || ''}`;
   requestAnimationFrame(loop);
 }

@@ -31,11 +31,12 @@ export function createEngine(game, opts = {}) {
   const fastS = { x: undefined, z: undefined, v: 0 }; // r2-perf: player ground speed (m/s, smoothed)
   const INT_FAST_OLD = typeof location !== 'undefined' && /[?&]intfast=1\b/.test(location.search);
   let current = null, pending = null, fitter = opts.fitter || null, ingN = 0, ingSrc = null, pollT = 0, scanT = 0, nearList = [], upMax = 0, buildMax = 0, clock = 0;
+  GLOBAL.deferQ ||= []; // r7: shared labels / posters / tags are drawn by per-frame flushes too
   try { preloadModels()?.then?.(() => warmLabels()); } catch (e) { /* fixtures fall back to code-built */ }
   // r7: paint every product's label cell into the shared atlas in idle time after start (one per idle slot), so the first
   // shop the player walks into does not paint hundreds of labels inside its build steps (the 300-700 ms first-entry hitch)
-  function warmLabels() { const ids = allProducts().map((p) => p.id), idle = globalThis.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 6 }), 40)); let i = 0;
-    const step = (dl) => { const t0 = performance.now(); while (i < ids.length && performance.now() - t0 < Math.min(6, dl?.timeRemaining?.() ?? 6)) { try { productCell(ids[i]); } catch (e) { /* */ } i++; } if (i < ids.length) idle(step, { timeout: 500 }); }; idle(step, { timeout: 500 }); }
+  function warmLabels() { if (/[?&]nowarm=1\b/.test(globalThis.location?.search || '')) return; const ids = allProducts().map((p) => p.id), idle = globalThis.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 6 }), 40)); let i = 0;
+    const step = (dl) => { const t0 = performance.now(); while (i < ids.length && performance.now() - t0 < Math.min(6, dl?.timeRemaining?.() ?? 6)) { GLOBAL.direct = true; try { productCell(ids[i]); } catch (e) { /* */ } GLOBAL.direct = false; i++; } if (i < ids.length) idle(step, { timeout: 500 }); }; idle(step, { timeout: 500 }); }
   try { if (game.design) setDesign(game.design); } catch (e) { /* */ }
   try { if (game.renderer) setProbePlaceholder(probePlaceholder(game.renderer, 256)); } catch (e) { console.warn('[interiors] probe placeholder', e); }
 
@@ -105,7 +106,7 @@ export function createEngine(game, opts = {}) {
     // and upload its textures a few milliseconds per frame (first use would otherwise upload them all in one frame)
     const tex = new Set(); g.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'alphaMap']) { const t = m[k] || m.uniforms?.[k]?.value; if (t && t.isTexture && !t.isRenderTargetTexture) tex.add(t); } }); b.texQ = [...tex]; }
   function uploadTick(b, ms = 3) { const r = game.renderer, q = b.texQ; if (!q || !r?.initTexture) { b.texQ = null; return; } const t0 = performance.now(); while (q.length && performance.now() - t0 < ms) { const t1 = performance.now(); try { r.initTexture(q.shift()); } catch (e) { /* */ } note('upload', performance.now() - t1); } if (!q.length) b.texQ = null; }
-  function show(s) { const b = s.built; if (!b || b.visible || !b.ready || b.compiled === false) return; if (surfacesPending() && performance.now() - (b.surfWait ??= performance.now()) < 4000) return; /* r7: textures still drawing in the worker */ if (b.texQ) { uploadTick(b); if (b.texQ) return; } b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); }
+  function show(s) { const b = s.built; if (!b || b.visible || !b.ready || b.compiled === false) return; if ((GLOBAL.deferQ?.length || b.prints?.local?.deferQ?.length) && performance.now() - (b.cellWait ??= performance.now()) < 12000) { GLOBAL.flush(2); b.prints?.local?.flush(2); return; } /* r7: signs, screens and labels still being drawn */ if (surfacesPending() && performance.now() - (b.surfWait ??= performance.now()) < 4000) return; /* r7: textures still drawing in the worker */ if (b.texQ) { uploadTick(b); if (b.texQ) return; } b.visible = true; b.group.visible = true; if (!b.group.parent) scene.add(b.group); try { makeBody(s); } catch (e) { console.warn('[interiors] colliders', e); }
     if (!b.revealed) { b.revealQ = b.group.children.filter((o) => o.visible); for (const o of b.revealQ) o.visible = false; b.revealed = true; revealTick(b); } }
   // r7: the first draw of a mesh uploads its buffers: reveal a new interior a slice of geometry per frame (it appears while the
   // player is still 40-70 m away), so its ~10 MB of vertex data is not uploaded in one frame
@@ -147,6 +148,7 @@ export function createEngine(game, opts = {}) {
     const passing = !(game.intFastOld ?? INT_FAST_OLD) && fastS.v > 12 && !current; // game.intFastOld = true: old behavior (A/B)
     if (!passing) for (const s of nearList) { if (s.dist > 160) break; if (!s.built && !s.warmQ) prewarm(s); }
     for (const s of wanted) { if (!s.built) { if (!pending && !passing && modelsReady() && hasShell(s)) pending = { s, it: buildInterior(game, s, s.def) }; } else if (!s.built.visible) show(s); }
+    GLOBAL.flush(2); for (const s of nearList) if (s.built?.prints?.local?.deferQ?.length) s.built.prints.local.flush(2); // r7: deferred atlas cells, a few ms a frame
     for (const s of nearList) { if (s.built?.colI != null) bodyTick(s); if (s.built?.revealQ) revealTick(s.built); } // r7: colliders and geometry trickle in
     if (pending && !passing) { const t0 = performance.now(); try { while (performance.now() - t0 < BUILD_MS) { const t1 = performance.now(), r = pending.it.next(), d1 = performance.now() - t1, pr = pending.s._buildProf; if (pr && d1 > (pr.worst || 0)) { pr.worst = Math.round(d1); pr.worstAfter = pr.last; } note('step:' + (pr?.last || '?') + (pr?.fx != null ? '#' + pr.fx : ''), d1); if (r.done) { pending.s.built = r.value; scene.add(r.value.group); prof('compile', () => precompile(r.value)); pending = null; break; } } } catch (e) { console.error('[interiors] build failed', pending.s.name, e); pending.s.failed = true; pending = null; } const d = performance.now() - t0; if (d > buildMax) buildMax = d; }
     const sky = updateSky(hour);
