@@ -27,6 +27,8 @@ band = mul(cmp(sep.outputs['Z'], BAND[0], BAND[1]), cmp(sep.outputs['Y'], -2.3, 
 mx = nt.nodes.new('ShaderNodeMath'); mx.operation = 'MAXIMUM'; nt.links.new(hood, mx.inputs[0]); nt.links.new(band, mx.inputs[1])
 mix = nt.nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'
 mix.inputs[6].default_value = (0.88, 0.40, 0.003, 1); mix.inputs[7].default_value = (0.69, 0.065, 0.012, 1)
+mx.inputs[0].default_value = 0; mx.inputs[1].default_value = 0
+for l in list(mx.inputs[0].links) + list(mx.inputs[1].links): nt.links.remove(l)
 nt.links.new(mx.outputs[0], mix.inputs[0]); nt.links.new(mix.outputs[2], b.inputs['Base Color'])
 for n_ in ('U_Glass', 'U_Lens'):
     g = bpy.data.materials[n_]; bb = g.node_tree.nodes['Principled BSDF']; bb.inputs['Roughness'].default_value = 0.02

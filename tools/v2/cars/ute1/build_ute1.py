@@ -39,7 +39,8 @@ def mat(name, hexc, rough=0.5, metal=0.0, alpha=1.0, trans=0.0, emis=0.0):
     MATS[name] = m; return m
 mat('U_Paint', 0xf2a90f, 0.2)
 mat('U_Gap', 0x0a0a0b, 0.7)
-mat('U_Chrome', 0xd8dade, 0.08, 1.0)
+mat('U_Chrome', 0xeeeff1, 0.17, 1.0)   # bright neutral: a little blur so it averages sky + ground, not a dark-blue sky mirror
+mat('U_Stripe', 0xd8461a, 0.3)
 mat('U_Black', 0x141416, 0.6)
 mat('U_Under', 0x151515, 0.85)
 mat('U_Glass', 0x1a2224, 0.05, 0, 0.35, 1.0)
@@ -57,8 +58,8 @@ mat('U_Liner', 0xb49b7a, 0.9)
 mat('U_Gauge', 0x0c0c0c, 0.35)
 mat('U_IntChrome', 0xc8cacc, 0.15, 1.0)
 mat('U_Tire', 0x121212, 0.9)
-mat('U_Rim', 0xdcdee2, 0.07, 1.0)
-mat('U_RimDark', 0x55585c, 0.45, 1.0)
+mat('U_Rim', 0xf0f1f3, 0.14, 1.0)
+mat('U_RimDark', 0x1c1d1f, 0.5, 0.0)
 mat('U_Drum', 0x262626, 0.7)
 ORDER = list(MATS)
 MI = {n: i for i, n in enumerate(ORDER)}
@@ -145,19 +146,41 @@ me2 = bpy.data.meshes.new_from_object(shell.evaluated_get(dg))
 bpy.data.objects.remove(shell, do_unlink=True)
 bm = bmesh.new(); bm.from_mesh(me2)
 # wheel wells: the dark liners pushed out to 4 cm around the new tires (the game reads the free room above each tire)
-WELL_R = 0.362
+WELL_R = 0.376
 for v in bm.verts:
     if not v.link_faces or any(f.material_index == MI['U_Paint'] or f.material_index == MI['U_Chrome'] for f in v.link_faces): continue
     for cy in (-1.65, 1.27):
-        if abs(abs(v.co.x) - 0.765) > 0.14: continue
-        d = Vector((0, v.co.y - cy, v.co.z - 0.322))
-        if d.length < WELL_R and v.co.z > 0.322: v.co = Vector((v.co.x, cy, 0.322)) + d.normalized() * WELL_R
+        if abs(abs(v.co.x) - 0.765) > 0.15: continue
+        d = Vector((0, v.co.y - cy, v.co.z - 0.335))
+        if d.length < WELL_R and v.co.z > 0.335: v.co = Vector((v.co.x, cy, 0.335)) + d.normalized() * WELL_R
+# racing stripe (mock-up): a wide band across the rear of the hood that wraps down each front fender behind the wheel
+# (a slanted hockey stick) and runs back along both flanks.  Cut into the paint, its own glossy orange-red region.
+SZ0, SZ1 = 0.50, 0.60                     # flank band height
+HB0, HB1 = -1.52, -0.98                   # hood band (Blender y; front = -y)
+SK = 0.43
+def stick(c): return c.y + SK * c.z      # hockey stick: y + SK z in [ST0, ST1] (behind the front arch, leans forward going up)
+ST0, ST1 = -1.085, -0.915
+for co, no in (((0, 0, SZ0), (0, 0, 1)), ((0, 0, SZ1), (0, 0, 1)), ((0, HB0, 0), (0, 1, 0)), ((0, HB1, 0), (0, 1, 0)),
+               ((0, ST0, 0), (0, 1, SK)), ((0, ST1, 0), (0, 1, SK))):
+    pf = [f for f in bm.faces if f.material_index == MI['U_Paint']]
+    ge = list({e for f in pf for e in f.edges}) + list({v for f in pf for v in f.verts}) + pf
+    bmesh.ops.bisect_plane(bm, geom=ge, plane_co=Vector(co), plane_no=Vector(no).normalized())
+nst = 0
+for f in bm.faces:
+    if f.material_index != MI['U_Paint']: continue
+    c, n = f.calc_center_median(), f.normal
+    side = abs(n.x) > 0.45 and abs(c.x) > 0.8
+    hood = n.z > 0.55 and c.z > 0.72 and HB0 < c.y < HB1 and abs(c.x) < 0.84
+    stk = side and ST0 < stick(c) < ST1 and SZ0 < c.z < 0.95 and c.y < -0.9
+    flank = side and SZ0 < c.z < SZ1 and stick(c) > ST0 and c.y < 2.2
+    if hood or stk or flank: f.material_index = MI['U_Stripe']; nst += 1
+print('[ute1] stripe faces', nst)
 # shut lines: thin dark strips (the source's drawn panel lines) become 6 mm deep grooves
 gaps = [f for f in bm.faces if f.material_index == MI['U_Gap'] and f.calc_area() < 0.004]
 gset = set(gaps)
 # keep only strips that sit between paint faces (panel lines), not the arch liners / window surrounds
 def is_line(f):
-    return sum(1 for e in f.edges for g in e.link_faces if g is not f and g.material_index == MI['U_Paint']) >= 1
+    return sum(1 for e in f.edges for g in e.link_faces if g is not f and g.material_index in (MI['U_Paint'], MI['U_Stripe'])) >= 1
 gl = [f for f in gaps if is_line(f)]
 if gl: bmesh.ops.inset_region(bm, faces=gl, thickness=0.0012, depth=-0.006, use_even_offset=True)
 log_gap = len(gl)
@@ -392,7 +415,8 @@ C.obj('cabin')
 
 # ------------------------------------------------------------------ wheels: 15" five-spoke chrome rims, tires with tread
 WR, WW = 0.322, 0.235            # tire radius, width
-WX, WYF, WYR, WZ = 0.765, -1.65, 1.27, 0.322
+WX, WYF, WYR, WZ = 0.765, -1.65, 1.27, 0.335
+WK, WKX = 0.335 / 0.322, 1.1
 def wheel_bm():
     W = MB()
     # tread: a cylindrical grid with block / groove radii (3 ribs, lateral sipes)
@@ -443,17 +467,18 @@ def wheel_bm():
             f = W.bm.faces.new((A[j], Bq[j], Bq[j + 1], A[j + 1])); f.material_index = MI['U_Rim']; f.smooth = True; dish.append(f)
     ext = bmesh.ops.extrude_face_region(W.bm, geom=dish)
     bmesh.ops.translate(W.bm, vec=(-0.012, 0, 0), verts=[e for e in ext['geom'] if isinstance(e, bmesh.types.BMVert)])
-    W.lathe([(0.0, 0.058), (0.02, 0.056), (0.036, 0.048), (0.045, dish_x(0.045))], 24, 'U_Rim')   # dome cap
+    W.lathe([(0.0, 0.058), (0.02, 0.056), (0.034, 0.049)], 24, 'U_RimDark')   # dark dome cap
+    W.lathe([(0.034, 0.049), (0.04, 0.05), (0.045, dish_x(0.045))], 24, 'U_Rim')     # chrome ring
     for k in range(5):
         a = 2 * math.pi * k / 5 + math.pi / 5 * 0
         M_ = Matrix.Translation((dish_x(0.06), 0.06 * math.cos(a + math.pi / 5), 0.06 * math.sin(a + math.pi / 5)))
-        W.lathe([(0.0, 0.016), (0.008, 0.016), (0.009, 0.0)], 6, 'U_Rim', M_=M_)
+        W.lathe([(0.0, 0.016), (0.008, 0.016), (0.009, 0.0)], 6, 'U_RimDark', M_=M_)
     bmesh.ops.remove_doubles(W.bm, verts=W.bm.verts, dist=1e-5)
     bmesh.ops.recalc_face_normals(W.bm, faces=W.bm.faces)
     return W.bm
 for wid, sx, y in (('FL', 1, WYF), ('FR', -1, WYF), ('RL', 1, WYR), ('RR', -1, WYR)):
     wb = wheel_bm()
-    M_ = Matrix.Translation((sx * WX, y, WZ)) @ Matrix.Diagonal((sx, 1, 1, 1))
+    M_ = Matrix.Translation((sx * WX, y, WZ)) @ Matrix.Diagonal((sx * WKX, WK, WK, 1))
     bmesh.ops.transform(wb, matrix=M_, verts=wb.verts)
     if sx < 0: bmesh.ops.reverse_faces(wb, faces=wb.faces)
     new_obj('wheel_' + wid, wb)
