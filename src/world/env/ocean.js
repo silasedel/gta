@@ -31,7 +31,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
     uSbRect: { value: new THREE.Vector4(0, 0, 1, 0) }, // seabed grid (center x, z, half size, on): see-through fades out before its rim
     // render track (Nov 18, user: "the water line at the shore glitches and looks harsh"): the opaque scene's depth, copied
     // right before the water draws (oceanSoftEdge below), gives the TRUE water depth at every pixel near the shore
-    tSceneDepth: { value: null }, tSceneColor: { value: null }, uProj: { value: new THREE.Matrix4() }, uSSR: { value: 1 }, uSoft: { value: 0 }, uDepthSize: { value: new THREE.Vector2(1, 1) }, uNearFar: { value: new THREE.Vector2(0.25, 8000) },
+    tSceneDepth: { value: null }, tSceneColor: { value: null }, uProj: { value: new THREE.Matrix4() }, uSSR: { value: 1 }, uSoft: { value: 0 }, uWader: { value: new THREE.Vector4(0, 0, 0, 0) }, uDepthSize: { value: new THREE.Vector2(1, 1) }, uNearFar: { value: new THREE.Vector2(0.25, 8000) },
   }]);
   // share sky uniform objects (by reference) so the ocean always reflects the current sky
   for (const k of ['lightDir', 'lightColor', 'sunDir', 'moonDir', 'uZenith', 'uHorizon', 'uHorizonSun', 'uSunGlow', 'uNight', 'uFogColor']) uniforms[k] = u[k];
@@ -67,7 +67,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
       uniform vec3 uZenith, uHorizon, uHorizonSun, uSunGlow, uFogColor;
       uniform float uNight;
       uniform sampler2D tHgt; uniform vec4 uHRect; uniform float uSea; uniform vec4 uSbRect;
-      uniform sampler2D tSceneDepth; uniform float uSoft; uniform vec2 uDepthSize, uNearFar;
+      uniform sampler2D tSceneDepth; uniform float uSoft; uniform vec4 uWader; uniform vec2 uDepthSize, uNearFar;
       uniform sampler2D tSceneColor; uniform mat4 uProj; uniform float uSSR;
       varying vec3 vWorld;
       varying float vViewZ;
@@ -187,6 +187,12 @@ export function createOcean(game, skyUniforms, normalsTex) {
         // stepped height-cascade estimate, so the edge sits exactly where the ground meets the water, fades to nothing there
         // (no hard cut line, no shimmer of the intersection under TAA jitter) and never jumps when the cascade recenters.
         float softD = 1e3, softP = 1e3; // vertical water depth, and the view ray's path through the water (m)
+        // W4 (Nov 19, user: "walking on top of the water"): the scene depth also holds the player's legs (or his boat / car hull),
+        // and the soft edge below read them as a bank: the water thinned out to nothing around his shins, so he seemed to stand
+        // on the caustics. Around the wader (uWader: x, z, radius, on) the ground depth (cascade) is kept and the water stays
+        // drawn up to the body: a real waterline on the legs and a foam ring. ?wader=0 = old.
+        float wR = length( p - uWader.xy ), wOn = step( 0.01, uWader.w );
+        float wadeK = wOn * ( 1.0 - smoothstep( uWader.z * 0.6, uWader.z, wR ) ) * smoothstep( 0.12, 0.3, dE );
         if ( uSoft > 0.5 ) {
           float sd = texture2D( tSceneDepth, gl_FragCoord.xy / uDepthSize ).x;
           if ( sd < 0.999999 ) {
@@ -194,13 +200,14 @@ export function createOcean(game, skyUniforms, normalsTex) {
             softP = max( sceneZ - vViewZ, 0.0 ) * dist / max( vViewZ, 1e-3 );
             softD = softP * max( V.y, 0.03 );
           }
-          dE = softD < 1.6 ? mix( softD, dE, smoothstep( 0.35, 1.6, softD ) ) : dE;
+          dE = softD < 1.6 ? mix( softD, dE, mix( smoothstep( 0.35, 1.6, softD ), 1.0, wadeK ) ) : dE;
         }
         // r8 (user: "water edges sharp and glitching in and out"): the edge fades over the ray's PATH through the water as
         // well, so where the bank is a step / mesh rim (path short even though the water is suddenly deep) the water still
         // thins out softly over ~0.4 m instead of cutting off on the ground mesh's polygon outline; scaled with distance so
         // far shores stay soft without going blurry up close.
         float kEdge = uSoft > 0.5 ? smoothstep( 0.0, 0.02, softD ) * smoothstep( 0.0, 0.25 + 0.004 * dist, softP ) : 1.0;
+        kEdge = mix( kEdge, 1.0, wadeK );
         dP = max( dE, 0.0 );
         float cv = sqrt( max( 1.0 - ( 1.0 - NdV * NdV ) / 1.769, 0.0 ) ), cs = sqrt( max( 1.0 - ( 1.0 - L.y * L.y ) / 1.769, 0.0 ) );
         float Lp = dP / max( cv, 0.25 ) + dP / max( cs, 0.35 );
@@ -231,7 +238,16 @@ export function createOcean(game, skyUniforms, normalsTex) {
         if ( uSoft > 0.5 && min( softD, softP * 0.15 ) < 0.12 ) {
           float eD = min( softD, softP * 0.15 ); // the step banks get the same gentle fringe as sloped beaches
           float fr = ( 1.0 - smoothstep( 0.004, 0.06 + 0.03 * sin( t * 0.9 + p.x * 0.21 + p.y * 0.17 ), eD ) ) * smoothstep( 0.3, 0.7, oN( p * 3.1 + vec2( t * 0.05, -t * 0.04 ) ) * 0.7 + oN( p * 11.0 ) * 0.3 );
-          fA = max( fA, fr * 0.28 );
+          fA = max( fA, fr * mix( 0.28, 0.55, wadeK ) );
+        }
+        // the wader's own water: a broken foam collar where the body cuts the surface and small rings running out from it
+        // (stronger while moving: uWader.w = 0.35 standing .. 1 running); wading depth only, gone in deep water / on land
+        if ( wOn > 0.5 && uWader.z < 2.0 && wR < uWader.z * 4.0 ) {
+          float wd = smoothstep( 0.05, 0.16, dE ) * ( 1.0 - smoothstep( 1.4, 2.2, dE ) ), bz = uWader.z * 0.42;
+          float nzW = oN( p * 6.0 + vec2( t * 0.6, -t * 0.45 ) ) * 0.65 + oN( p * 17.0 - t * 0.3 ) * 0.35;
+          float collar = smoothstep( bz * 0.55, bz * 0.9, wR ) * ( 1.0 - smoothstep( bz * 1.05, bz * 1.7, wR ) ) * smoothstep( 0.38, 0.62, nzW ) * ( 0.35 + 0.35 * uWader.w );
+          float rr = wR / uWader.z, ringW = pow( 0.5 + 0.5 * sin( ( rr * 1.25 - t * 0.9 ) * 6.2832 ), 6.0 ) * smoothstep( 0.55, 0.95, rr ) * ( 1.0 - smoothstep( 1.3, 2.8, rr ) ) * smoothstep( 0.45, 0.7, nzW + 0.1 );
+          fA = max( fA, ( collar + ringW * 0.2 * uWader.w ) * wd );
         }
         // far field (no depth data): a faint broken foam line at the coarse coast, no broad band
         if ( shoreM < 12.0 && hK < 1.0 ) { float nz = texture2D( tNormal, p / 9.0 + t * 0.02 ).r; fA = max( fA, ( 1.0 - smoothstep( 1.0, 5.0 + nz * 4.0, shoreM ) ) * smoothstep( 0.45, 0.8, nz + 0.2 ) * 0.4 * ( 1.0 - hK ) ); }
@@ -278,6 +294,7 @@ export function createOcean(game, skyUniforms, normalsTex) {
   // Only for the main scene target (it carries a depthTexture); env cubes, probes and tools render without it (uSoft 0).
   // One depth blit per frame (multisampled targets resolve their depth in the blit). ?softshore=0 = old edge.
   const SOFT = !(typeof location !== 'undefined' && /[?&]softshore=0\b/.test(location.search));
+  const WADER = !(typeof location !== 'undefined' && /[?&]wader=0\b/.test(location.search));
   const SSR = typeof location !== 'undefined' && /[?&]waterssr=1\b/.test(location.search); // screen-space reflections on the water: OFF by default until its GPU cost is measured on a quiet machine (?waterssr=1 or game.waterSSR)
   const dRT = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true, samples: 0, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false });
   dRT.depthTexture = new THREE.DepthTexture(4, 4, THREE.UnsignedIntType); dRT.depthTexture.format = THREE.DepthFormat;
@@ -463,6 +480,9 @@ export function createOcean(game, skyUniforms, normalsTex) {
       mesh.position.set(Math.round(camera.position.x / 200) * 200, (game.city?.seaLevel ?? env.seaLevel ?? -0.12), Math.round(camera.position.z / 200) * 200);
       // lighting
       uniforms.uSea.value = mesh.position.y;
+      if (WADER) { const P = game.player, v = P?.state?.inVehicle ? P.state.vehicle : null, q = v ? (v.mesh?.position || v.group?.position || v.position || P.position) : P?.position;
+        const sp = v ? 0 : Math.hypot(P.velocity?.x || 0, P.velocity?.z || 0);
+        if (q) uniforms.uWader.value.set(q.x, q.z, v ? 3.2 : 0.75, 0.35 + 0.65 * Math.min(1, sp / 3)); else uniforms.uWader.value.w = 0; }
       try { updateHeights(dt, camera); } catch (e) { uniforms.uHRect.value.w = 0; if (!HC.err) { HC.err = true; console.warn('[ocean] height cascade off', e); } }
       const h = env.hemi, s = env.sun;
       uniforms.uAmbient.value.copy(h.color).multiplyScalar(h.intensity * 0.9);

@@ -46,7 +46,13 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
   // r2-ground: the shelf follows the distance to land, measured on the grid itself (one water test per vertex + a chamfer
   // distance pass) instead of 48+ probes per vertex. It runs out ~40 m and deepens smoothly (0.4 m at 1.5 m out, ~1.8 m at
   // 14 m, ~4 m at 28 m), so the depth-colored shallows fade into deep water over tens of meters instead of a step at 14 m.
-  const shelfDepth = (r) => 0.08 + r * 0.025 + r * r * 0.00035; // Keys flats: 0.2 m at 4 m out, 0.7 m at 20 m, 1.6 m at 40 m, 2.8 m at 60 m, 5.2 m at 90 m (same profile as the ocean's far estimate)
+  const shelfDepth = (r) => 0.08 + r * 0.025 + r * r * 0.00035;
+  // W4 (Nov 19, user: "walking on top of the water" at Miami Beach): off a sand beach the bottom drops like a real surf beach
+  // (0.5 m at 6 m out, 1 m at 12 m, swimming depth ~16 m out) instead of the Keys flats' 35 m of ankle-to-knee water where
+  // he ran on and on over the caustics. ?beachshelf=0 = flats everywhere.
+  const BEACH = !(typeof location !== 'undefined' && /[?&]beachshelf=0\b/.test(location.search));
+  // the first ~8 m stay on the drawn terrain bank (all-water terrain vertices sit at -0.55, 0.43 m down), then 0.11 m per m
+  const beachDepth = (r) => Math.max(shelfDepth(r), r < 8 ? 0.06 + r * 0.06 : 0.54 + (r - 8) * 0.11); // Keys flats: 0.2 m at 4 m out, 0.7 m at 20 m, 1.6 m at 40 m, 2.8 m at 60 m, 5.2 m at 90 m (same profile as the ocean's far estimate)
   // r2-ground: the seabed you see is the seabed you stand / drive on. A Rapier heightfield built from the very same grid heights
   // (column-major: rows along z, columns along x), swapped with every rebuild; city.seabed.heightAt reads the same grid.
   const W = game.world, R = game.RAPIER || globalThis.RAPIER; let col = null, hfData = null;
@@ -89,12 +95,16 @@ float sbN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
       const z = z0 + j.row * STEP;
       for (let i = 0; i < N; i++) {
         const x = x0 + i * STEP, k = j.row * N + i;
-        const water = !!j.W[k];
-        let y = water ? SEA - Math.max(0.2, Math.min(city.seabedDepthAt(x, z), j.D[k] < 1e5 ? shelfDepth(Math.max(0, j.D[k] - 0.5)) : 99)) : -0.35; // under land: hidden by the land surface, forms the shore slope
+        const water = !!j.W[k], sbd = water ? city.seabedDepthAt(x, z) : 0;
+        // a sea beach: the data's swim floor is ramped down near sand (minDepthAt) and it is open sea, not a canal / pond / marsh
+        // weight 1 within ~37 m of the sand, fading out to the flats by ~55 m (a gentle bar, no step where the ramp ends)
+        const bch = BEACH && water && sbd < 4.9 && sbd > 0.9 && (!game.miamiData?.waterKindAt || game.miamiData.waterKindAt(x, z) === 'sea') ? 1 - Math.min(1, Math.max(0, (sbd - 3) / 1.9)) : 0;
+        const rr = Math.max(0, j.D[k] - 0.5), shelf = j.D[k] < 1e5 ? (bch > 0 ? shelfDepth(rr) + (beachDepth(rr) - shelfDepth(rr)) * bch : shelfDepth(rr)) : 99;
+        let y = water ? SEA - Math.max(0.2, Math.min(sbd, shelf)) : -0.35; // under land: hidden by the land surface, forms the shore slope
         if (!Number.isFinite(y)) y = SEA - 3;
         if (water) { j.water++; y += (noise(x * 0.35, z * 0.35) - 0.5) * 0.35 * Math.min(1, j.D[k] / 12);
           const eb = Math.min(i, j.row, N - 1 - i, N - 1 - j.row); if (eb < 2) y -= 1.5; } // the outer rim tucks down (the ocean fades its see-through out before it: uSbRect)
-        if (water && j.D[k] < 12 && city.terrain && city.terrain.heightAt) { const th = city.terrain.heightAt(x, z); if (th > y && th > -0.6) y = th - 0.005; } // r2-ground: meet the terrain's under-water strip, so the collider is the drawn bottom there too
+        if (water && j.D[k] < (bch > 0.5 ? 8 : 12) && city.terrain && city.terrain.heightAt) { const th = city.terrain.heightAt(x, z); if (th > y && th > -0.6) y = th - 0.005; } // off a beach only the drawn bank strip (all-water terrain reads -0.55 but is not drawn) // r2-ground: meet the terrain's under-water strip, so the collider is the drawn bottom there too
         pos[k * 3] = x; pos[k * 3 + 1] = y; pos[k * 3 + 2] = z;
         const n1 = noise(x * 0.08, z * 0.08), n2 = noise(x * 0.6 + 17, z * 0.6 - 9);
         _c.copy(SAND).lerp(WET, 0.2 + 0.3 * n2); // pale coral sand like the beach above (r2-ground)

@@ -1,0 +1,820 @@
+{
+ "tag": "w4f",
+ "at": [
+  2332,
+  -660
+ ],
+ "samples": [
+  {
+   "t": 0,
+   "along": -14,
+   "x": 2764,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 1,
+   "along": -12.9,
+   "x": 2765.1,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 1.4,
+   "along": -11.5,
+   "x": 2766.5,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 1.8,
+   "along": -9.9,
+   "x": 2768.1,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 2.2,
+   "along": -9,
+   "x": 2769,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 2.9,
+   "along": -7.2,
+   "x": 2770.8,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 3.4,
+   "along": -4.7,
+   "x": 2773.3,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 4.3,
+   "along": -1,
+   "x": 2777,
+   "z": -660,
+   "feet": 0,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.34,
+   "swim": false,
+   "depth": 0,
+   "sea": -0.12,
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 4.7,
+   "along": 1,
+   "x": 2779,
+   "z": -660,
+   "feet": -0.16,
+   "water": true,
+   "ground": -2.2,
+   "seabed": -0.37,
+   "swim": false,
+   "depth": 0.02,
+   "sea": -0.12,
+   "hit": {
+    "y": -0.16,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "t": 5.2,
+   "along": 2.6,
+   "x": 2780.6,
+   "z": -660,
+   "feet": -0.43,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.43,
+   "swim": false,
+   "depth": 0.3,
+   "sea": -0.12,
+   "hit": {
+    "y": -0.43,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 5.8,
+   "along": 4.6,
+   "x": 2782.6,
+   "z": -660,
+   "feet": -0.5,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.5,
+   "swim": false,
+   "depth": 0.37,
+   "sea": -0.12,
+   "hit": {
+    "y": -0.5,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 6.3,
+   "along": 6.8,
+   "x": 2784.8,
+   "z": -660,
+   "feet": -0.63,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.63,
+   "swim": false,
+   "depth": 0.5,
+   "sea": -0.12,
+   "hit": {
+    "y": -0.63,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 7.1,
+   "along": 9.6,
+   "x": 2787.6,
+   "z": -660,
+   "feet": -0.82,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.83,
+   "swim": false,
+   "depth": 0.7,
+   "sea": -0.12,
+   "hit": {
+    "y": -0.82,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 7.6,
+   "along": 11.4,
+   "x": 2789.4,
+   "z": -659.9,
+   "feet": -1.02,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.02,
+   "swim": false,
+   "depth": 0.89,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.02,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 8.1,
+   "along": 13.1,
+   "x": 2791.1,
+   "z": -659.9,
+   "feet": -1.24,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.24,
+   "swim": false,
+   "depth": 1.12,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.24,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 8.6,
+   "along": 14.3,
+   "x": 2792.3,
+   "z": -659.9,
+   "feet": -1.37,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.39,
+   "swim": true,
+   "depth": 1.27,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.39,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 9.1,
+   "along": 15.3,
+   "x": 2793.3,
+   "z": -659.9,
+   "feet": -1.31,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.51,
+   "swim": true,
+   "depth": 1.38,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.52,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 9.9,
+   "along": 16.7,
+   "x": 2794.7,
+   "z": -659.9,
+   "feet": -1.14,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.61,
+   "swim": true,
+   "depth": 1.49,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.61,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 10.3,
+   "along": 17.4,
+   "x": 2795.4,
+   "z": -659.9,
+   "feet": -1.15,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.64,
+   "swim": true,
+   "depth": 1.51,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.64,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "t": 10.8,
+   "along": 18.3,
+   "x": 2796.3,
+   "z": -659.9,
+   "feet": -1.2,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.69,
+   "swim": true,
+   "depth": 1.57,
+   "sea": -0.12,
+   "hit": {
+    "y": -1.69,
+    "shape": 7,
+    "tag": null
+   }
+  }
+ ],
+ "shots": [
+  "docs/v2/shots/water-walk/w4f_0.jpg",
+  "docs/v2/shots/water-walk/w4f_1.jpg",
+  "docs/v2/shots/water-walk/w4f_2.jpg",
+  "docs/v2/shots/water-walk/w4f_3.jpg"
+ ],
+ "line": {
+  "r": 446,
+  "an": 1.5707963267948966,
+  "x": 2778,
+  "z": -660
+ },
+ "start": [
+  2764,
+  -660
+ ],
+ "profile": [
+  {
+   "s": -4,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "terr": -0.02,
+   "surf": "grass_short",
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": -2,
+   "water": false,
+   "ground": 0,
+   "seabed": -0.35,
+   "terr": -0.1,
+   "surf": "concrete",
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 0,
+   "water": true,
+   "ground": -1.92,
+   "seabed": -0.33,
+   "terr": -0.43,
+   "surf": "water",
+   "hit": {
+    "y": 0,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 2,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.41,
+   "terr": -0.43,
+   "surf": "water",
+   "hit": {
+    "y": -0.34,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 4,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.47,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -0.7,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 6,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.56,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.05,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 8,
+   "water": true,
+   "ground": -2.62,
+   "seabed": -0.75,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.41,
+    "shape": 6,
+    "tag": null
+   }
+  },
+  {
+   "s": 10,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -0.83,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 12,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.09,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.09,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 14,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.36,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.36,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 16,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.59,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.59,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 18,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.67,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.67,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 20,
+   "water": true,
+   "ground": -3.45,
+   "seabed": -1.83,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.83,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 22,
+   "water": true,
+   "ground": -4.29,
+   "seabed": -1.54,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 24,
+   "water": true,
+   "ground": -4.29,
+   "seabed": -1.77,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 26,
+   "water": true,
+   "ground": -4.29,
+   "seabed": -1.86,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 28,
+   "water": true,
+   "ground": -4.29,
+   "seabed": -1.88,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.88,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 30,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.45,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.45,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 32,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.49,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.49,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 34,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.51,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 36,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.56,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 38,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.63,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 40,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.72,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 42,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -1.79,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -1.79,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 44,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.06,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.06,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 46,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.14,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.14,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 48,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.12,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.12,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 50,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.32,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.32,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 52,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.57,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.57,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 54,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.81,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -8,
+    "shape": 1,
+    "tag": null
+   }
+  },
+  {
+   "s": 56,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -2.91,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -2.91,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 58,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -3.08,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -3.08,
+    "shape": 7,
+    "tag": null
+   }
+  },
+  {
+   "s": 60,
+   "water": true,
+   "ground": -5.12,
+   "seabed": -3.2,
+   "terr": -0.55,
+   "surf": "water",
+   "hit": {
+    "y": -3.2,
+    "shape": 7,
+    "tag": null
+   }
+  }
+ ],
+ "errors": [],
+ "waterWalk": 1,
+ "maxAlong": 18.3,
+ "swam": true
+}
