@@ -1710,7 +1710,12 @@ export async function createVehicles(game) {
     for (const v of list) {
       if (v.playerDriven || v === lastPlayerCar || v.playerOwned || v.owned || v.keep || specials.has(v) || (v.ai && !v.disabled) || (v.chaseTarget && !v.disabled)) continue;
       if (!(v.disabled || v.everDriven || v.flooded)) continue;
-      const t = v.body.translation(); left.push({ v, d: distXZ(t, pp), seen: inView(t) });
+      const t = v.body.translation(), seen = inView(t);
+      // GTA rule (user: the car despawned when he got out): a car the player drove goes only after it has been out of view for
+      // a while (30 s, 90 s within 5 min of driving it); wrecks / flooded cars keep the old 0 s
+      v._unseenT = seen ? 0 : (v._unseenT || 0) + 2;
+      const need = v.everDriven && !v.disabled ? ((et - (v.lastDrivenAt ?? -1e9)) < 300 ? 90 : 30) : 0;
+      left.push({ v, d: distXZ(t, pp), seen: seen || v._unseenT < need });
     }
     left.sort((a, b) => b.d - a.d);
     let n = left.length;
@@ -1795,7 +1800,7 @@ export async function createVehicles(game) {
       v.lightsOn = night && !v.disabled && (v.ai || v.playerDriven);
       if (v.flooded) { const ft = v.floodT || 0; v.lightsOn = ft < 4 && Math.random() < 1 - ft / 4.5; }
       if (v.playerDriven) {
-        playerCar = v; v.everDriven = true;
+        playerCar = v; v.everDriven = true; v.lastDrivenAt = et; lastPlayerCar = v;
         if (v.ai) { v.ai = null; }
         v.parked = false;
       }
@@ -2123,6 +2128,19 @@ export async function createVehicles(game) {
     list.splice(i, 1);
     v.alive = false; v.disposed = true;
     try { city?.unregisterAnchor?.(v); } catch (e) { /* */ }
+  // game.vehicles.remove(v, { force }) for other systems: the player's last car, and any car he drove in the last 10 min while it
+  // is within 250 m or on screen, stays where he left it (house lots, police, gang and job cleanups used to delete it the moment
+  // he got out).  Garage-managed cars (property.js: v.owned) and force: true bypass the guard.  Returns false when kept.
+  function removeGuarded(v, opts = {}) {
+    if (v && !opts.force && v.everDriven && !v.owned && !v.ownedId && !v.disabled) {
+      if (v === lastPlayerCar) return false;
+      const et = game.clock?.elapsed ?? 0, pp = game.player?.position;
+      if (et - (v.lastDrivenAt ?? -1e9) < 600) {
+        try { const t = v.body.translation(); if (!pp || distXZ(t, pp) < 250 || inView(t)) return false; } catch (e) { return false; }
+      }
+    }
+    return removeVehicle(v);
+  }
     disposeCar(v);
     for (let k = 0; k < 4; k++) skids.end(v.name + k);
     scene.remove(v.mesh);
@@ -2280,6 +2298,6 @@ export async function createVehicles(game) {
   };
   const api = { ...apiEarly, lookAudit, trafficStats: () => driverStats.report(), resetTrafficStats: () => driverStats.reset(), trafficDebug, liveLooks: () => liveReg.vis.size, lookStats, kinds: kindReg.kinds, kind: (k) => kindReg.get(k), all: () => [...list, ...(kindReg.has('boat') ? [] : (boatSys?.list || [])), ...kindReg.all()],
     models: MODELS, types: CAR_TYPES, classes: CLASSES, modelKeys: () => ALL_KEYS.slice(), externalModelKeys,
-    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, addNoParkZone, remove: removeVehicle, sweepStats: () => sweepStats, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
+    list, nearest: nearestAny, update: updateAll, boats: boatSys?.list || [], spawnBoat: boatSys?.spawn, removeBoat: boatSys?.remove, boatNav: boatSys?.nav, boatBoarding: boatSys?.boarding || null, warmup, spawn: spawnVehicle, spawnParked, placeStatic, fleet, nicoCars, seatAnchor, seatWorld, addDriver, removeDriver, placeVehicle, addNoParkZone, remove: removeGuarded, sweepStats: () => sweepStats, respawn: respawnAI, get respawnCount() { return respawnCount; }, gpuStats: modelGpuStats };
   return api;
 }
